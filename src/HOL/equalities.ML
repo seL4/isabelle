@@ -101,6 +101,7 @@ by (Blast_tac 1);
 qed "image_insert";
 Addsimps[image_insert];
 
+(*image_INTER fails, perhaps even if f is injective*)
 Goal  "(f `` (UNION A B)) = (UN x:A.(f `` (B x)))";
 by (Blast_tac 1);
 qed "image_UNION";
@@ -109,6 +110,10 @@ Goal "(%x. x) `` Y = Y";
 by (Blast_tac 1);
 qed "image_id";
 Addsimps [image_id];
+
+Goal "x:A ==> (%x. c) `` A = {c}";
+by (Blast_tac 1);
+qed "image_constant";
 
 Goal "f``(g``A) = (%x. f (g x)) `` A";
 by (Blast_tac 1);
@@ -137,7 +142,6 @@ qed "if_image_distrib";
 Addsimps[if_image_distrib];
 
 val prems = Goal "[|M = N; !!x. x:N ==> f x = g x|] ==> f``M = g``N";
-by (rtac set_ext 1);
 by (simp_tac (simpset() addsimps image_def::prems) 1);
 qed "image_cong";
 
@@ -485,6 +489,14 @@ Goal "(UN x : (UN y:A. B y). C x) = (UN y:A. UN x: B y. C x)";
 by (Blast_tac 1);
 qed "UN_UN_flatten";
 
+Goal "((UN i:I. A i) <= B) = (ALL i:I. A i <= B)";
+by (Blast_tac 1);
+qed "UN_subset_iff";
+
+Goal "(B <= (INT i:I. A i)) = (ALL i:I. B <= A i)";
+by (Blast_tac 1);
+qed "INT_subset_iff";
+
 Goal "(INT x:insert a A. B x) = B a Int INTER A B";
 by (Blast_tac 1);
 qed "INT_insert";
@@ -501,6 +513,7 @@ qed "INT_insert_distrib";
 Goal "Union(B``A) = (UN x:A. B(x))";
 by (Blast_tac 1);
 qed "Union_image_eq";
+Addsimps [Union_image_eq];
 
 Goal "f `` Union S = (UN x:S. f `` x)";
 by (Blast_tac 1);
@@ -509,6 +522,7 @@ qed "image_Union_eq";
 Goal "Inter(B``A) = (INT x:A. B(x))";
 by (Blast_tac 1);
 qed "Inter_image_eq";
+Addsimps [Inter_image_eq];
 
 Goal "u: A ==> (UN y:A. c) = c";
 by (Blast_tac 1);
@@ -749,6 +763,59 @@ by Auto_tac;
 qed "INT_bool_eq";
 
 
+section "Pow";
+
+Goalw [Pow_def] "Pow {} = {{}}";
+by Auto_tac;
+qed "Pow_empty";
+Addsimps [Pow_empty];
+
+Goal "Pow (insert a A) = Pow A Un (insert a `` Pow A)";
+by Safe_tac;
+by (etac swap 1);
+by (res_inst_tac [("x", "x-{a}")] image_eqI 1);
+by (ALLGOALS Blast_tac);
+qed "Pow_insert";
+
+Goal "Pow (- A) = {-B |B. A: Pow B}";
+by Safe_tac;
+by (Blast_tac 2);
+by (res_inst_tac [("x", "-x")] exI 1);
+by (ALLGOALS Blast_tac);
+qed "Pow_Compl";
+
+Goal "Pow UNIV = UNIV";
+by (Blast_tac 1);
+qed "Pow_UNIV";
+Addsimps [Pow_UNIV];
+
+Goal "Pow(A) Un Pow(B) <= Pow(A Un B)";
+by (Blast_tac 1);
+qed "Un_Pow_subset";
+
+Goal "(UN x:A. Pow(B(x))) <= Pow(UN x:A. B(x))";
+by (Blast_tac 1);
+qed "UN_Pow_subset";
+
+Goal "A <= Pow(Union(A))";
+by (Blast_tac 1);
+qed "subset_Pow_Union";
+
+Goal "Union(Pow(A)) = A";
+by (Blast_tac 1);
+qed "Union_Pow_eq";
+
+Goal "Pow(A Int B) = Pow(A) Int Pow(B)";
+by (Blast_tac 1);
+qed "Pow_Int_eq";
+
+Goal "Pow(INT x:A. B(x)) = (INT x:A. Pow(B(x)))";
+by (Blast_tac 1);
+qed "Pow_INT_eq";
+
+Addsimps [Union_Pow_eq, Pow_Int_eq];
+
+
 section "Miscellany";
 
 Goal "(A = B) = ((A <= (B::'a set)) & (B<=A))";
@@ -768,22 +835,6 @@ by (Blast_tac 1);
 qed "all_not_in_conv";
 AddIffs [all_not_in_conv];
 
-Goalw [Pow_def] "Pow {} = {{}}";
-by Auto_tac;
-qed "Pow_empty";
-Addsimps [Pow_empty];
-
-Goal "Pow (insert a A) = Pow A Un (insert a `` Pow A)";
-by Safe_tac;
-by (etac swap 1);
-by (res_inst_tac [("x", "x-{a}")] image_eqI 1);
-by (ALLGOALS Blast_tac);
-qed "Pow_insert";
-
-Goal "Pow UNIV = UNIV";
-by (Blast_tac 1);
-qed "Pow_UNIV";
-Addsimps [Pow_UNIV];
 
 (** for datatypes **)
 Goal "f x ~= f y ==> x ~= y";
