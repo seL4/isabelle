@@ -245,7 +245,7 @@ text {*
   You can simulate this in Isabelle by instantiating the @{term xs} in
   definition \mbox{@{thm hd.simps[no_vars]}} with a constant @{text DUMMY} that
   is printed as @{term DUMMY}. The code for the pattern above is 
-  \verb!@!\verb!{thm hd.simps [where xs=DUMMY,novars]}!.
+  \verb!@!\verb!{thm hd.simps [where xs=DUMMY,no_vars]}!.
 
   You can drive this game even further and extend the syntax of let
   bindings such that certain functions like @{term fst}, @{term hd}, 
