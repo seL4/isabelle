@@ -63,20 +63,23 @@ by (ALLGOALS (asm_simp_tac (simpset() addsimps prems)));
 qed "finite_UnI";
 
 (*Every subset of a finite set is finite*)
-val [subs,fin] = goal Finite.thy "[| A<=B;  finite B |] ==> finite A";
-by (EVERY1 [subgoal_tac "ALL C. C<=B --> finite C",
-            rtac mp, etac spec,
-            rtac subs]);
-by (rtac (fin RS finite_induct) 1);
-by (simp_tac (simpset() addsimps [subset_Un_eq]) 1);
+goal Finite.thy "!!B. finite B ==> ALL A. A<=B --> finite A";
+by (etac finite_induct 1);
+by (Simp_tac 1);
 by (safe_tac (claset() addSDs [subset_insert_iff RS iffD1]));
-by (eres_inst_tac [("t","C")] (insert_Diff RS subst) 2);
+by (eres_inst_tac [("t","A")] (insert_Diff RS subst) 2);
 by (ALLGOALS Asm_simp_tac);
+val lemma = result();
+
+goal Finite.thy "!!A. [| A<=B;  finite B |] ==> finite A";
+bd lemma 1;
+by (Blast_tac 1);
 qed "finite_subset";
 
 goal Finite.thy "finite(F Un G) = (finite F & finite G)";
-by (blast_tac (claset() addIs [finite_UnI] addDs
-                [Un_upper1 RS finite_subset, Un_upper2 RS finite_subset]) 1);
+by (blast_tac (claset() 
+	         addIs [read_instantiate [("B", "?AA Un ?BB")] finite_subset, 
+			finite_UnI]) 1);
 qed "finite_Un";
 AddIffs[finite_Un];
 
@@ -207,7 +210,7 @@ AddIffs [finite_inverse];
 
 section "Finite cardinality -- 'card'";
 
-goal Set.thy "{f i |i. P i | i=n} = insert (f n) {f i|i. P i}";
+goal Set.thy "{f i |i. (P i | i=n)} = insert (f n) {f i|i. P i}";
 by (Blast_tac 1);
 val Collect_conv_insert = result();
 
