@@ -218,9 +218,9 @@ addSDs      : claset * thm list -> claset                 \hfill{\bf infix 4}
 addIs       : claset * thm list -> claset                 \hfill{\bf infix 4}
 addEs       : claset * thm list -> claset                 \hfill{\bf infix 4}
 addDs       : claset * thm list -> claset                 \hfill{\bf infix 4}
+delrules    : claset * thm list -> claset                 \hfill{\bf infix 4}
 \end{ttbox}
-There are no operations for deletion from a classical set.  The add
-operations do not check for repetitions.
+The add operations do not check for repetitions.
 \begin{ttdescription}
 \item[\ttindexbold{empty_cs}] is the empty classical set.
 
@@ -243,6 +243,9 @@ adds unsafe elimination~$rules$ to~$cs$.
 
 \item[$cs$ addDs $rules$] \indexbold{*addDs}
 adds unsafe destruction~$rules$ to~$cs$.
+
+\item[$cs$ delrules $rules$] \indexbold{*delrules}
+deletes~$rules$ from~$cs$.
 \end{ttdescription}
 
 Introduction rules are those that can be applied using ordinary resolution.
@@ -393,6 +396,39 @@ but allows unknowns to be instantiated.
   The resulting search space is larger.
 \end{ttdescription}
 
+\subsection{The current claset}
+Some logics (e.g.\ \HOL) support the concept of a {\em current set of
+classical rules}\index{claset!current}.
+The underlying idea is quite similar to that of a current simpset described
+in \S\ref{sec:simp-for-dummies}.
+Just like simpsets, clasets can be associated with theories.
+The tactics
+\begin{ttbox}
+Step_tac     : int -> tactic
+Fast_tac     : int -> tactic
+Best_tac     : int -> tactic
+Deepen_tac   : int -> int -> tactic
+\end{ttbox}
+\indexbold{*Step_tac} \indexbold{*Best_tac} \indexbold{*Fast_tac}
+\indexbold{*Deepen_tac} 
+make use of the current claset. E.g.~{\tt Fast_tac} is defined as follows:
+\begin{ttbox}
+fun Fast_tac i = fast_tac (!claset) i;
+\end{ttbox}
+where \ttindex{!claset} is the current claset.
+The functions
+\begin{ttbox}
+AddSIs, AddSEs, AddSDs, AddIs, AddEs, AddDs: thm list -> unit
+\end{ttbox}
+\indexbold{*AddSIs} \indexbold{*AddSEs} \indexbold{*AddSDs}
+\indexbold{*AddIs} \indexbold{*AddEs} \indexbold{*AddDs}
+are used to add rules to the current claset. They work exactly like their
+lower case counterparts {\tt addSIs} etc.
+\begin{ttbox}
+Delrules : thm list -> unit
+\end{ttbox}
+deletes rules from the current claset. You do not need to worry via which of
+the above {\tt Add} functions the rule was initially added.
 
 \subsection{Other useful tactics}
 \index{tactics!for contradiction}
