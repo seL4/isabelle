@@ -432,7 +432,7 @@ val proto_pure =
     ("TYPE", "'a itself", NoSyn),
     (dummy_patternN, "'a", Delimfix "'_")]
   |> Theory.add_modesyntax ("", false)
-    [("Goal", "prop => prop", Mixfix ("_", [0], 0))]
+    [("Goal", "prop => prop", Mixfix ("_", [0], 1000))]
   |> local_path
   |> (add_defs o map Thm.no_attributes)
    [("flexpair_def", "(t =?= u) == (t == u::'a::{})"),
