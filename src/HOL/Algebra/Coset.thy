@@ -33,7 +33,7 @@ syntax (xsymbols)
   normal :: "['a set, ('a,'b) monoid_scheme] => bool"  (infixl "\<lhd>" 60)
 
 
-subsection {*Lemmas Using Locale Constants*}
+subsection {*Basic Properties of Cosets*}
 
 lemma (in group) r_coset_eq: "H #> a = {b . \<exists>h\<in>H. h \<otimes> a = b}"
 by (auto simp add: r_coset_def)
@@ -187,6 +187,8 @@ next
   qed
 qed
 
+subsection{*More Properties of Cosets*}
+
 lemma (in group) lcos_m_assoc:
      "[| M \<subseteq> carrier G; g \<in> carrier G; h \<in> carrier G |]
       ==> g <# (h <# M) = (g \<otimes> h) <# M"
@@ -300,7 +302,7 @@ apply (simp add: rcos_inv)
 done
 
 
-subsubsection {* Some rules for @{text "<#>"} with @{text "#>"} or @{text "<#"}. *}
+subsubsection {*Theorems for @{text "<#>"} with @{text "#>"} or @{text "<#"}.*}
 
 lemma (in group) setmult_rcos_assoc:
      "[| H \<subseteq> carrier G; K \<subseteq> carrier G; x \<in> carrier G |]
@@ -345,7 +347,29 @@ lemma (in group) setrcos_mult_eq: "[|H <| G; M \<in> rcosets G H|] ==> H <#> M =
     setmult_rcos_assoc subgroup_mult_id)
 
 
-subsection {*Lemmas Leading to Lagrange's Theorem *}
+subsubsection{*Two distinct right cosets are disjoint*}
+
+lemma (in group) rcos_equation:
+     "[|subgroup H G;  a \<in> carrier G;  b \<in> carrier G;  ha \<otimes> a = h \<otimes> b;
+        h \<in> H;  ha \<in> H;  hb \<in> H|]
+      ==> \<exists>h\<in>H. h \<otimes> b = hb \<otimes> a"
+apply (rule bexI [of _"hb \<otimes> ((inv ha) \<otimes> h)"])
+apply (simp  add: m_assoc transpose_inv subgroup.subset [THEN subsetD])
+apply (simp add: subgroup.m_closed subgroup.m_inv_closed)
+done
+
+lemma (in group) rcos_disjoint:
+     "[|subgroup H G; a \<in> rcosets G H; b \<in> rcosets G H; a\<noteq>b|] ==> a \<inter> b = {}"
+apply (simp add: setrcos_eq r_coset_eq)
+apply (blast intro: rcos_equation sym)
+done
+
+
+subsection {*Order of a Group and Lagrange's Theorem*}
+
+constdefs
+  order :: "('a, 'b) semigroup_scheme => nat"
+  "order S == card (carrier S)"
 
 lemma (in group) setrcos_part_G: "subgroup H G ==> \<Union>rcosets G H = carrier G"
 apply (rule equalityI)
@@ -387,41 +411,34 @@ apply (rule card_bij_eq)
 apply (blast intro: finite_subset)
 done
 
-
-subsection{*Two distinct right cosets are disjoint*}
-
-lemma (in group) rcos_equation:
-     "[|subgroup H G;  a \<in> carrier G;  b \<in> carrier G;  ha \<otimes> a = h \<otimes> b;
-        h \<in> H;  ha \<in> H;  hb \<in> H|]
-      ==> \<exists>h\<in>H. h \<otimes> b = hb \<otimes> a"
-apply (rule bexI [of _"hb \<otimes> ((inv ha) \<otimes> h)"])
-apply (simp  add: m_assoc transpose_inv subgroup.subset [THEN subsetD])
-apply (simp add: subgroup.m_closed subgroup.m_inv_closed)
-done
-
-lemma (in group) rcos_disjoint:
-     "[|subgroup H G; a \<in> rcosets G H; b \<in> rcosets G H; a\<noteq>b|] ==> a \<inter> b = {}"
-apply (simp add: setrcos_eq r_coset_eq)
-apply (blast intro: rcos_equation sym)
-done
-
 lemma (in group) setrcos_subset_PowG:
      "subgroup H G  ==> rcosets G H \<subseteq> Pow(carrier G)"
 apply (simp add: setrcos_eq)
 apply (blast dest: r_coset_subset_G subgroup.subset)
 done
 
+
+theorem (in group) lagrange:
+     "[| finite(carrier G); subgroup H G |]
+      ==> card(rcosets G H) * card(H) = order(G)"
+apply (simp (no_asm_simp) add: order_def setrcos_part_G [symmetric])
+apply (subst mult_commute)
+apply (rule card_partition)
+   apply (simp add: setrcos_subset_PowG [THEN finite_subset])
+  apply (simp add: setrcos_part_G)
+ apply (simp add: card_cosets_equal subgroup.subset)
+apply (simp add: rcos_disjoint)
+done
+
+
 subsection {*Quotient Groups: Factorization of a Group*}
 
 constdefs
   FactGroup :: "[('a,'b) monoid_scheme, 'a set] => ('a set) monoid"
-     (infixl "Mod" 60)
+     (infixl "Mod" 65)
     --{*Actually defined for groups rather than monoids*}
   "FactGroup G H ==
-    (| carrier = rcosets G H,
-       mult = (%X: rcosets G H. %Y: rcosets G H. set_mult G X Y),
-       one = H |)"
-
+    (| carrier = rcosets G H, mult = set_mult G, one = H |)"
 
 lemma (in group) setmult_closed:
      "[| H <| G; K1 \<in> rcosets G H; K2 \<in> rcosets G H |]
@@ -434,15 +451,6 @@ lemma (in group) setinv_closed:
 by (auto simp add: normal_imp_subgroup
                    subgroup.subset rcos_inv
                    setrcos_eq)
-
-(*
-The old version is no longer valid: "group G" has to be an explicit premise.
-
-lemma setinv_closed:
-     "[| H <| G; K \<in> rcosets G H |] ==> set_inv G K \<in> rcosets G H"
-by (auto simp add:  normal_imp_subgroup
-                   subgroup.subset coset.rcos_inv coset.setrcos_eq)
-*)
 
 lemma (in group) setrcos_assoc:
      "[|H <| G; M1 \<in> rcosets G H; M2 \<in> rcosets G H; M3 \<in> rcosets G H|]
@@ -460,18 +468,6 @@ proof -
   then show ?thesis
     by (auto simp add: setrcos_eq)
 qed
-
-(*
-lemma subgroup_in_rcosets:
-  "subgroup H G ==> H \<in> rcosets G H"
-apply (frule subgroup_imp_coset)
-apply (frule subgroup_imp_group)
-apply (simp add: coset.setrcos_eq)
-apply (blast del: equalityI
-             intro!: group.subgroup.one_closed group.one_closed
-                     coset.coset_join2 [symmetric])
-done
-*)
 
 lemma (in group) setrcos_inv_mult_group_eq:
      "[|H <| G; M \<in> rcosets G H|] ==> set_inv G M <#> M = H"
@@ -499,6 +495,9 @@ apply (rule groupI)
 apply (auto dest: setrcos_inv_mult_group_eq simp add: setinv_closed)
 done
 
+lemma mult_FactGroup [simp]: "X \<otimes>\<^bsub>(G Mod H)\<^esub> X' = X <#>\<^bsub>G\<^esub> X'"
+  by (simp add: FactGroup_def) 
+
 lemma (in group) inv_FactGroup:
      "N <| G ==> X \<in> carrier (G Mod N) ==> inv\<^bsub>G Mod N\<^esub> X = set_inv G X"
 apply (rule group.inv_equality [OF factorgroup_is_group]) 
@@ -511,5 +510,131 @@ lemma (in group) r_coset_hom_Mod:
   assumes N: "N <| G"
   shows "(r_coset G N) \<in> hom G (G Mod N)"
 by (simp add: FactGroup_def rcosets_def Pi_def hom_def rcos_sum N) 
+
+
+subsection{*Quotienting by the Kernel of a Homomorphism*}
+
+constdefs
+  kernel :: "('a, 'm) monoid_scheme => ('b, 'n) monoid_scheme => 
+             ('a => 'b) => 'a set" 
+    --{*the kernel of a homomorphism*}
+  "kernel G H h == {x. x \<in> carrier G & h x = \<one>\<^bsub>H\<^esub>}";
+
+lemma (in group_hom) subgroup_kernel: "subgroup (kernel G H h) G"
+apply (rule group.subgroupI) 
+apply (auto simp add: kernel_def group.intro prems) 
+done
+
+text{*The kernel of a homomorphism is a normal subgroup*}
+lemma (in group_hom) normal_kernel: "(kernel G H h) <| G"
+apply (simp add: group.normal_inv_iff subgroup_kernel group.intro prems)
+apply (simp add: kernel_def)  
+done
+
+lemma (in group_hom) FactGroup_nonempty:
+  assumes X: "X \<in> carrier (G Mod kernel G H h)"
+  shows "X \<noteq> {}"
+proof -
+  from X
+  obtain g where "g \<in> carrier G" 
+             and "X = kernel G H h #> g"
+    by (auto simp add: FactGroup_def rcosets_def)
+  thus ?thesis 
+   by (force simp add: kernel_def r_coset_def image_def intro: hom_one)
+qed
+
+
+lemma (in group_hom) FactGroup_contents_mem:
+  assumes X: "X \<in> carrier (G Mod (kernel G H h))"
+  shows "contents (h`X) \<in> carrier H"
+proof -
+  from X
+  obtain g where g: "g \<in> carrier G" 
+             and "X = kernel G H h #> g"
+    by (auto simp add: FactGroup_def rcosets_def)
+  hence "h ` X = {h g}" by (force simp add: kernel_def r_coset_def image_def g)
+  thus ?thesis by (auto simp add: g)
+qed
+
+lemma (in group_hom) FactGroup_hom:
+     "(%X. contents (h`X)) \<in> hom (G Mod (kernel G H h)) H"
+proof (simp add: hom_def funcsetI FactGroup_contents_mem, intro ballI) 
+  fix X and X'
+  assume X:  "X  \<in> carrier (G Mod kernel G H h)"
+     and X': "X' \<in> carrier (G Mod kernel G H h)"
+  then
+  obtain g and g'
+           where "g \<in> carrier G" and "g' \<in> carrier G" 
+             and "X = kernel G H h #> g" and "X' = kernel G H h #> g'"
+    by (auto simp add: FactGroup_def rcosets_def)
+  hence all: "\<forall>x\<in>X. h x = h g" "\<forall>x\<in>X'. h x = h g'" 
+    and Xsub: "X \<subseteq> carrier G" and X'sub: "X' \<subseteq> carrier G"
+    by (force simp add: kernel_def r_coset_def image_def)+
+  hence "h ` (X <#> X') = {h g \<otimes>\<^bsub>H\<^esub> h g'}" using X X'
+    by (auto dest!: FactGroup_nonempty
+             simp add: set_mult_def image_eq_UN 
+                       subsetD [OF Xsub] subsetD [OF X'sub]) 
+  thus "contents (h ` (X <#> X')) = contents (h ` X) \<otimes>\<^bsub>H\<^esub> contents (h ` X')"
+    by (simp add: all image_eq_UN FactGroup_nonempty X X')  
+qed
+
+text{*Lemma for the following injectivity result*}
+lemma (in group_hom) FactGroup_subset:
+     "[|g \<in> carrier G; g' \<in> carrier G; h g = h g'|]
+      ==>  kernel G H h #> g \<subseteq> kernel G H h #> g'"
+apply (clarsimp simp add: kernel_def r_coset_def image_def);
+apply (rename_tac y)  
+apply (rule_tac x="y \<otimes> g \<otimes> inv g'" in exI) 
+apply (simp add: G.m_assoc); 
+done
+
+lemma (in group_hom) FactGroup_inj_on:
+     "inj_on (\<lambda>X. contents (h ` X)) (carrier (G Mod kernel G H h))"
+proof (simp add: inj_on_def, clarify) 
+  fix X and X'
+  assume X:  "X  \<in> carrier (G Mod kernel G H h)"
+     and X': "X' \<in> carrier (G Mod kernel G H h)"
+  then
+  obtain g and g'
+           where gX: "g \<in> carrier G"  "g' \<in> carrier G" 
+              "X = kernel G H h #> g" "X' = kernel G H h #> g'"
+    by (auto simp add: FactGroup_def rcosets_def)
+  hence all: "\<forall>x\<in>X. h x = h g" "\<forall>x\<in>X'. h x = h g'" 
+    by (force simp add: kernel_def r_coset_def image_def)+
+  assume "contents (h ` X) = contents (h ` X')"
+  hence h: "h g = h g'"
+    by (simp add: image_eq_UN all FactGroup_nonempty X X') 
+  show "X=X'" by (rule equalityI) (simp_all add: FactGroup_subset h gX) 
+qed
+
+text{*If the homomorphism @{term h} is onto @{term H}, then so is the
+homomorphism from the quotient group*}
+lemma (in group_hom) FactGroup_onto:
+  assumes h: "h ` carrier G = carrier H"
+  shows "(\<lambda>X. contents (h ` X)) ` carrier (G Mod kernel G H h) = carrier H"
+proof
+  show "(\<lambda>X. contents (h ` X)) ` carrier (G Mod kernel G H h) \<subseteq> carrier H"
+    by (auto simp add: FactGroup_contents_mem)
+  show "carrier H \<subseteq> (\<lambda>X. contents (h ` X)) ` carrier (G Mod kernel G H h)"
+  proof
+    fix y
+    assume y: "y \<in> carrier H"
+    with h obtain g where g: "g \<in> carrier G" "h g = y"
+      by (blast elim: equalityE); 
+    hence "(\<Union>\<^bsub>x\<in>kernel G H h #> g\<^esub> {h x}) = {y}" 
+      by (auto simp add: y kernel_def r_coset_def) 
+    with g show "y \<in> (\<lambda>X. contents (h ` X)) ` carrier (G Mod kernel G H h)" 
+      by (auto intro!: bexI simp add: FactGroup_def rcosets_def image_eq_UN)
+  qed
+qed
+
+
+text{*If @{term h} is a homomorphism from @{term G} onto @{term H}, then the
+ quotient group @{term "G Mod (kernel G H h)"} is isomorphic to @{term H}.*}
+theorem (in group_hom) FactGroup_iso:
+  "h ` carrier G = carrier H
+   \<Longrightarrow> (%X. contents (h`X)) \<in> (G Mod (kernel G H h)) \<cong> H"
+by (simp add: iso_def FactGroup_hom FactGroup_inj_on bij_betw_def 
+              FactGroup_onto) 
 
 end

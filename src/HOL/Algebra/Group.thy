@@ -593,15 +593,15 @@ done
 
 subsection {* Isomorphisms *}
 
-constdefs (structure G and H)
-  iso :: "_ => _ => ('a => 'b) set"
-  "iso G H == {h. h \<in> hom G H & bij_betw h (carrier G) (carrier H)}"
+constdefs
+  iso :: "_ => _ => ('a => 'b) set"  (infixr "\<cong>" 60)
+  "G \<cong> H == {h. h \<in> hom G H & bij_betw h (carrier G) (carrier H)}"
 
-lemma iso_refl: "(%x. x) \<in> iso G G"
+lemma iso_refl: "(%x. x) \<in> G \<cong> G"
 by (simp add: iso_def hom_def inj_on_def bij_betw_def Pi_def) 
 
 lemma (in group) iso_sym:
-     "h \<in> iso G H \<Longrightarrow> Inv (carrier G) h \<in> iso H G"
+     "h \<in> G \<cong> H \<Longrightarrow> Inv (carrier G) h \<in> H \<cong> G"
 apply (simp add: iso_def bij_betw_Inv) 
 apply (subgoal_tac "Inv (carrier G) h \<in> carrier H \<rightarrow> carrier G") 
  prefer 2 apply (simp add: bij_betw_imp_funcset [OF bij_betw_Inv]) 
@@ -609,15 +609,15 @@ apply (simp add: hom_def bij_betw_def Inv_f_eq funcset_mem f_Inv_f)
 done
 
 lemma (in group) iso_trans: 
-     "[|h \<in> iso G H; i \<in> iso H I|] ==> (compose (carrier G) i h) \<in> iso G I"
+     "[|h \<in> G \<cong> H; i \<in> H \<cong> I|] ==> (compose (carrier G) i h) \<in> G \<cong> I"
 by (auto simp add: iso_def hom_compose bij_betw_compose)
 
 lemma DirProdGroup_commute_iso:
-  shows "(%(x,y). (y,x)) \<in> iso (G \<times>\<^sub>g H) (H \<times>\<^sub>g G)"
+  shows "(%(x,y). (y,x)) \<in> (G \<times>\<^sub>g H) \<cong> (H \<times>\<^sub>g G)"
 by (auto simp add: iso_def hom_def inj_on_def bij_betw_def Pi_def) 
 
 lemma DirProdGroup_assoc_iso:
-  shows "(%(x,y,z). (x,(y,z))) \<in> iso (G \<times>\<^sub>g H \<times>\<^sub>g I) (G \<times>\<^sub>g (H \<times>\<^sub>g I))"
+  shows "(%(x,y,z). (x,(y,z))) \<in> (G \<times>\<^sub>g H \<times>\<^sub>g I) \<cong> (G \<times>\<^sub>g (H \<times>\<^sub>g I))"
 by (auto simp add: iso_def hom_def inj_on_def bij_betw_def Pi_def) 
 
 

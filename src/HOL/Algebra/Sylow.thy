@@ -11,25 +11,6 @@ text {*
   See also \cite{Kammueller-Paulson:1999}.
 *}
 
-subsection {*Order of a Group and Lagrange's Theorem*}
-
-constdefs
-  order :: "('a, 'b) semigroup_scheme => nat"
-  "order S == card (carrier S)"
-
-theorem (in group) lagrange:
-     "[| finite(carrier G); subgroup H G |]
-      ==> card(rcosets G H) * card(H) = order(G)"
-apply (simp (no_asm_simp) add: order_def setrcos_part_G [symmetric])
-apply (subst mult_commute)
-apply (rule card_partition)
-   apply (simp add: setrcos_subset_PowG [THEN finite_subset])
-  apply (simp add: setrcos_part_G)
- apply (simp add: card_cosets_equal subgroup.subset)
-apply (simp add: rcos_disjoint)
-done
-
-
 text{*The combinatorial argument is in theory Exponent*}
 
 locale sylow = group +
