@@ -108,7 +108,7 @@ val scan_tvar = $$ "?" ^^ $$ "'" ^^ scan_id_nat;
 fun string_of_vname (x, i) =
   let
     val si = string_of_int i;
-    val dot = Symbol.is_digit (last_elem (Symbol.explode x)) handle _ => true;
+    val dot = if_none (try (Symbol.is_digit o last_elem o Symbol.explode) x) true;
   in
     if dot then "?" ^ x ^ "." ^ si
     else if i = 0 then "?" ^ x

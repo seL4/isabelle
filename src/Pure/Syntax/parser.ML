@@ -193,7 +193,7 @@ fun add_prods _ chains lambdas prod_count [] = (chains, lambdas, prod_count)
                       (*existing productions whose lookahead may depend on l*)
                       val tk_prods =
                         assocs nt_prods
-                               (Some (hd l_starts  handle Hd => UnknownStart));
+                               (Some (hd l_starts  handle LIST _ => UnknownStart));
 
                       (*add_lambda is true if an existing production of the nt
                         produces lambda due to the new lambda NT l*)
