@@ -69,6 +69,11 @@ Addsimprocs [Int_Cancel.sum_conv, Int_Cancel.rel_conv];
 
 (*** misc ***)
 
+Goal "- (z - y) = y - (z::int)";
+by (Simp_tac 1);
+qed "zminus_zdiff_eq";
+Addsimps [zminus_zdiff_eq];
+
 Goal "(w<z) = neg(w-z)";
 by (simp_tac (simpset() addsimps [zless_def]) 1);
 qed "zless_eq_neg";

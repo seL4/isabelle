@@ -22,6 +22,13 @@ by (simp_tac (simpset() addsimps zcompare_rls) 1);
 qed "zle_iff_zdiff_zle_0";
 
 
+(** For combine_numerals **)
+
+Goal "i*u + (j*u + k) = (i+j)*u + (k::int)";
+by (asm_simp_tac (simpset() addsimps [zadd_zmult_distrib]) 1);
+qed "left_zadd_zmult_distrib";
+
+
 (** For cancel_numerals **)
 
 Goal "!!i::int. ((i*u + m) - (j*u + n)) = (((i-j)*u + m) - n)";
@@ -79,8 +86,10 @@ fun mk_numeral n = HOLogic.number_of_const HOLogic.intT $
                    NumeralSyntax.mk_bin n;
 
 (*Decodes a binary INTEGER*)
-fun dest_numeral (Const("Numeral.number_of", _) $ w) = NumeralSyntax.dest_bin w
-  | dest_numeral t = raise TERM("dest_numeral", [t]);
+fun dest_numeral (Const("Numeral.number_of", _) $ w) = 
+     (NumeralSyntax.dest_bin w
+      handle Match => raise TERM("Int_Numeral_Simprocs.dest_numeral:1", [w]))
+  | dest_numeral t = raise TERM("Int_Numeral_Simprocs.dest_numeral:2", [t]);
 
 fun find_first_numeral past (t::terms) =
 	((dest_numeral t, rev past @ terms)
@@ -96,6 +105,10 @@ val uminus_const = Const ("uminus", HOLogic.intT --> HOLogic.intT);
 fun mk_sum []        = zero
   | mk_sum [t,u]     = mk_plus (t, u)
   | mk_sum (t :: ts) = mk_plus (t, mk_sum ts);
+
+(*this version ALWAYS includes a trailing zero*)
+fun long_mk_sum []        = zero
+  | long_mk_sum (t :: ts) = mk_plus (t, mk_sum ts);
 
 val dest_plus = HOLogic.dest_bin "op +" HOLogic.intT;
 
@@ -259,16 +272,50 @@ val cancel_numerals =
 		"(l::int) * m - n", "(l::int) - m * n"], 
      DiffCancelNumerals.proc)];
 
+
+structure CombineNumeralsData =
+  struct
+  val mk_sum    	= long_mk_sum    (*to work for e.g. #2*x + #3*x *)
+  val dest_sum		= dest_sum
+  val mk_coeff		= mk_coeff
+  val dest_coeff	= dest_coeff 1
+  val left_distrib	= left_zadd_zmult_distrib RS trans
+  val prove_conv	= prove_conv "int_combine_numerals"
+  val subst_tac          = subst_tac
+  val norm_tac = ALLGOALS
+                   (simp_tac (HOL_ss addsimps add_0s@mult_1s@diff_simps@
+                                              zadd_ac))
+                 THEN ALLGOALS
+                    (simp_tac (HOL_ss addsimps [zmult_zminus_right RS sym]@
+                                               bin_simps@zadd_ac@zmult_ac))
+  val numeral_simp_tac	= ALLGOALS 
+                    (simp_tac (HOL_ss addsimps add_0s@bin_simps))
+  end;
+
+structure CombineNumerals = CombineNumeralsFun(CombineNumeralsData);
+  
+val combine_numerals = 
+    prep_simproc ("int_combine_numerals",
+		  prep_pats ["(i::int) + (j+k)", "(i::int) + (j*k)", 
+			     "(j+k) + (i::int)", "(j*k) + (i::int)"],
+		  CombineNumerals.proc);
+
 end;
 
 
 Addsimprocs Int_Numeral_Simprocs.cancel_numerals;
+Addsimprocs [Int_Numeral_Simprocs.combine_numerals];
+
+(*The Abel_Cancel simprocs are now obsolete*)
+Delsimprocs [Int_Cancel.sum_conv, Int_Cancel.rel_conv];
 
 (*examples:
 print_depth 22;
 set proof_timing;
 set trace_simp;
 fun test s = (Goal s; by (Simp_tac 1)); 
+
+test "l + #2 + #2 + #2 + (l + #2) + (oo + #2) = (uu::int)";
 
 test "#2*u = (u::int)";
 test "(i + j + #12 + (k::int)) - #15 = y";
@@ -277,14 +324,18 @@ test "(i + j + #12 + (k::int)) - #5 = y";
 test "y - b < (b::int)";
 test "y - (#3*b + c) < (b::int) - #2*c";
 
-test "(#2*x + (u*v) + y) - v*#3*u = (w::int)";
+test "(#2*x - (u*v) + y) - v*#3*u = (w::int)";
 test "(#2*x*u*v + (u*v)*#4 + y) - v*u*#4 = (w::int)";
 test "(#2*x*u*v + (u*v)*#4 + y) - v*u = (w::int)";
+test "u*v - (x*u*v + (u*v)*#4 + y) = (w::int)";
 
 test "(i + j + #12 + (k::int)) = u + #15 + y";
 test "(i + j*#2 + #12 + (k::int)) = j + #5 + y";
 
 test "#2*y + #3*z + #6*w + #2*y + #3*z + #2*u = #2*y' + #3*z' + #6*w' + #2*y' + #3*z' + u + (vv::int)";
+
+test "a + -(b+c) + b = (d::int)";
+test "a + -(b+c) - b = (d::int)";
 
 (*negative numerals*)
 test "(i + j + #-2 + (k::int)) - (u + #5 + y) = zz";
@@ -299,8 +350,9 @@ test "(i + j + #-12 + (k::int)) - #-15 = y";
 (** Constant folding for integer plus and times **)
 
 (*We do not need
+    structure Nat_Plus_Assoc = Assoc_Fold (Nat_Plus_Assoc_Data);
     structure Int_Plus_Assoc = Assoc_Fold (Int_Plus_Assoc_Data);
-  because cancel_coeffs does the same thing*)
+  because combine_numerals does the same thing*)
 
 structure Int_Times_Assoc_Data : ASSOC_FOLD_DATA =
 struct
@@ -319,18 +371,6 @@ Addsimprocs [Int_Times_Assoc.conv];
 
 (** The same for the naturals **)
 
-structure Nat_Plus_Assoc_Data : ASSOC_FOLD_DATA =
-struct
-  val ss		= HOL_ss
-  val eq_reflection	= eq_reflection
-  val thy    = Bin.thy
-  val T	     = HOLogic.natT
-  val plus   = Const ("op +", [HOLogic.natT,HOLogic.natT] ---> HOLogic.natT);
-  val add_ac = add_ac
-end;
-
-structure Nat_Plus_Assoc = Assoc_Fold (Nat_Plus_Assoc_Data);
-
 structure Nat_Times_Assoc_Data : ASSOC_FOLD_DATA =
 struct
   val ss		= HOL_ss
@@ -343,7 +383,7 @@ end;
 
 structure Nat_Times_Assoc = Assoc_Fold (Nat_Times_Assoc_Data);
 
-Addsimprocs [Nat_Plus_Assoc.conv, Nat_Times_Assoc.conv];
+Addsimprocs [Nat_Times_Assoc.conv];
 
 
 
@@ -362,11 +402,14 @@ let
 
 (* reduce contradictory <= to False *)
 val add_rules = simp_thms @ bin_arith_simps @ bin_rel_simps @
-                [int_0,zmult_0,zmult_0_right];
+                [int_0, zadd_0, zadd_0_right, zdiff_def,
+		 zadd_zminus_inverse, zadd_zminus_inverse2, 
+		 zmult_0, zmult_0_right, 
+		 zmult_1, zmult_1_right, 
+		 zmult_minus1, zmult_minus1_right];
 
-val simprocs = Int_Numeral_Simprocs.cancel_numerals@
-               [Int_Cancel.sum_conv, Int_Cancel.rel_conv  (*****,
-                Int_CC.sum_conv, Int_CC.rel_conv***)];
+val simprocs = [Int_Times_Assoc.conv, Int_Numeral_Simprocs.combine_numerals]@
+               Int_Numeral_Simprocs.cancel_numerals;
 
 val add_mono_thms =
   map (fn s => prove_goal Int.thy s

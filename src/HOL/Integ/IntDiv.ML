@@ -198,8 +198,7 @@ qed "negateSnd_eq";
 Addsimps [negateSnd_eq];
 
 Goal "quorem ((-a,-b), qr) ==> quorem ((a,b), negateSnd qr)";
-by (auto_tac (claset(),
-	      simpset() addsimps split_ifs@[zmult_zminus, quorem_def]));
+by (auto_tac (claset(), simpset() addsimps split_ifs@[quorem_def]));
 qed "quorem_neg";
 
 Goal "b ~= #0 ==> quorem ((a,b), divAlg(a,b))";
@@ -804,7 +803,7 @@ by (zdiv_undefined_case_tac "a = #0" 1);
 by (subgoal_tac "#1 <= a" 1);
  by (arith_tac 2);
 by (subgoal_tac "#1 < a * #2" 1);
- by (dres_inst_tac [("i","#1"), ("k", "#2")] zmult_zle_mono1 2);
+ by (arith_tac 2);
 by (subgoal_tac "#2*(#1 + b mod a) <= #2*a" 1);
  by (rtac zmult_zle_mono2 2);
 by (auto_tac (claset(),
@@ -819,6 +818,9 @@ by (asm_simp_tac (simpset()
                     pos_mod_sign RS zadd_zle_mono1 RSN (2,order_trans)]) 1);
 by (auto_tac (claset(),
 	      simpset() addsimps [mod_pos_pos_trivial]));
+by (subgoal_tac "#0 <= b mod a" 1);
+ by (asm_simp_tac (simpset() addsimps [pos_mod_sign]) 2);
+by (arith_tac 1);
 qed "pos_zdiv_times_2";
 
 
@@ -863,7 +865,7 @@ by (zdiv_undefined_case_tac "a = #0" 1);
 by (subgoal_tac "#1 <= a" 1);
  by (arith_tac 2);
 by (subgoal_tac "#1 < a * #2" 1);
- by (dres_inst_tac [("i","#1"), ("k", "#2")] zmult_zle_mono1 2);
+ by (arith_tac 2);
 by (subgoal_tac "#2*(#1 + b mod a) <= #2*a" 1);
  by (rtac zmult_zle_mono2 2);
 by (auto_tac (claset(),
@@ -878,6 +880,9 @@ by (asm_simp_tac (simpset()
                     pos_mod_sign RS zadd_zle_mono1 RSN (2,order_trans)]) 1);
 by (auto_tac (claset(),
 	      simpset() addsimps [mod_pos_pos_trivial]));
+by (subgoal_tac "#0 <= b mod a" 1);
+ by (asm_simp_tac (simpset() addsimps [pos_mod_sign]) 2);
+by (arith_tac 1);
 qed "pos_zmod_times_2";
 
 

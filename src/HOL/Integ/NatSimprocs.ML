@@ -76,9 +76,9 @@ fun mk_numeral n = HOLogic.number_of_const HOLogic.natT $
 fun dest_numeral (Const ("0", _)) = 0
   | dest_numeral (Const ("Suc", _) $ t) = 1 + dest_numeral t
   | dest_numeral (Const("Numeral.number_of", _) $ w) = 
-        (BasisLibrary.Int.max (0, NumeralSyntax.dest_bin w)
-	 handle Match => raise TERM("dest_numeral:1", [w]))
-  | dest_numeral t = raise TERM("dest_numeral:2", [t]);
+      (BasisLibrary.Int.max (0, NumeralSyntax.dest_bin w)
+       handle Match => raise TERM("Nat_Numeral_Simprocs.dest_numeral:1", [w]))
+  | dest_numeral t = raise TERM("Nat_Numeral_Simprocs.dest_numeral:2", [t]);
 
 fun find_first_numeral past (t::terms) =
 	((dest_numeral t, t, rev past @ terms)
@@ -175,9 +175,10 @@ structure CancelNumeralsCommon =
   val find_first_coeff	= find_first_coeff []
   val subst_tac          = subst_tac
   val norm_tac = ALLGOALS
-                   (simp_tac (HOL_ss addsimps add_0s@mult_1s@bin_simps@
+                   (simp_tac (HOL_ss addsimps add_0s@mult_1s@
                                        [add_0, Suc_eq_add_numeral_1]@add_ac))
-                 THEN ALLGOALS (simp_tac (HOL_ss addsimps mult_ac@add_ac))
+                 THEN ALLGOALS (simp_tac
+				(HOL_ss addsimps bin_simps@add_ac@mult_ac))
   val numeral_simp_tac	= ALLGOALS
                 (simp_tac (HOL_ss addsimps [numeral_0_eq_0 RS sym]@add_0s@bin_simps))
   end;
@@ -254,9 +255,10 @@ structure CombineNumeralsData =
   val prove_conv	= prove_conv "nat_combine_numerals"
   val subst_tac          = subst_tac
   val norm_tac = ALLGOALS
-                   (simp_tac (HOL_ss addsimps add_0s@mult_1s@bin_simps@
+                   (simp_tac (HOL_ss addsimps add_0s@mult_1s@
                                        [add_0, Suc_eq_add_numeral_1]@add_ac))
-                 THEN ALLGOALS (simp_tac (HOL_ss addsimps mult_ac@add_ac))
+                 THEN ALLGOALS (simp_tac
+				(HOL_ss addsimps bin_simps@add_ac@mult_ac))
   val numeral_simp_tac	= ALLGOALS
                 (simp_tac (HOL_ss addsimps [numeral_0_eq_0 RS sym]@add_0s@bin_simps))
   end;
@@ -359,8 +361,6 @@ LA_Data_Ref.ss_ref := !LA_Data_Ref.ss_ref addsimps add_rules
                                           addsimps basic_renamed_arith_simps
                                           addsimprocs simprocs
 end;
-
-Delsimprocs [Nat_Plus_Assoc.conv];  (*combine_numerals makes it redundant*)
 
 
 
