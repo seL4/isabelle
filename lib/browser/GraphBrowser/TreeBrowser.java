@@ -2,7 +2,7 @@
   Title:      GraphBrowser/TreeBrowser.java
   ID:         $Id$
   Author:     Stefan Berghofer, TU Muenchen
-  Copyright   1997  TU Muenchen
+  License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
   This class defines the browser window which is used to display directory
   trees. It contains methods for handling events.
@@ -23,9 +23,10 @@ public class TreeBrowser extends Canvas implements MouseListener
 	long timestamp;
 	Dimension size;
 	boolean parent_needs_layout;
+	Font font;
 
-	public TreeBrowser(TreeNode tn, GraphView gr) {
-		t=tn;gv=gr;
+	public TreeBrowser(TreeNode tn, GraphView gr, Font f) {
+		t = tn; gv = gr; font = f;
 		size = new Dimension(0, 0);
 		parent_needs_layout = true;
 		addMouseListener(this);
@@ -82,6 +83,7 @@ public class TreeBrowser extends Canvas implements MouseListener
 
 	public void paint(Graphics g)
 	{
+		g.setFont(font);
 		Dimension d = t.draw(g,5,5,selected);
 		if (parent_needs_layout) {
 			size = new Dimension(5+d.width, 5+d.height);

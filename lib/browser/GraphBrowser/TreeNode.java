@@ -2,7 +2,7 @@
   Title:      GraphBrowser/TreeNode.java
   ID:         $Id$
   Author:     Stefan Berghofer, TU Muenchen
-  Copyright   1997  TU Muenchen
+  License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
   This class contains methods for storing and manipulating directory
   trees (e.g. collapsing / uncollapsing directory branches).
@@ -33,7 +33,6 @@ class Directory {
 
 public class TreeNode
 {
-	static Font f=new Font("Helvetica", Font.PLAIN, 14);
 	int starty,endy,number;
 	String name,path;
 
@@ -140,8 +139,7 @@ public class TreeNode
 
 	public Dimension draw(Graphics g,int x,int y,TreeNode t)
 	{
-		FontMetrics fm=g.getFontMetrics(f);
-		g.setFont(f);
+		FontMetrics fm=g.getFontMetrics(g.getFont());
 		int h=fm.getHeight();
 		int e=(int) (h / 10) + 1;
 		int down_x[]={x + e, x + h - e, x + (int)(h / 2)};
