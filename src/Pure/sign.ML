@@ -90,6 +90,9 @@ sig
   val infer_types_simult: sg -> (indexname -> typ option) ->
     (indexname -> sort option) -> string list -> bool
     -> (xterm list * typ) list -> term list * (indexname * typ) list
+  val read_def_terms:
+    sg * (indexname -> typ option) * (indexname -> sort option) ->
+    string list -> bool -> (string * typ) list -> term list * (indexname * typ) list
   val add_classes: (bclass * xclass list) list -> sg -> sg
   val add_classes_i: (bclass * class list) list -> sg -> sg
   val add_classrel: (xclass * xclass) list -> sg -> sg
@@ -670,7 +673,6 @@ fun certify_term sg tm =
   end;
 
 
-
 (** infer_types **)         (*exception ERROR*)
 
 (*
@@ -726,6 +728,19 @@ fun infer_types_simult sg def_type def_sort used freeze args =
 
 fun infer_types sg def_type def_sort used freeze tsT =
   apfst hd (infer_types_simult sg def_type def_sort used freeze [tsT]);
+
+
+(** read_def_terms **)
+
+(*read terms, infer types*)
+fun read_def_terms (sign, types, sorts) used freeze sTs =
+  let
+    val syn = #syn (rep_sg sign);
+    fun read (s, T) =
+      let val T' = certify_typ sign T handle TYPE (msg, _, _) => error msg
+      in (Syntax.read syn T' s, T') end;
+    val tsTs = map read sTs;
+  in infer_types_simult sign types sorts used freeze tsTs end;
 
 
 
