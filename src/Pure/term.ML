@@ -67,6 +67,7 @@ sig
   val foldl_atyps: ('a * typ -> 'a) -> 'a * typ -> 'a
   val foldl_types: ('a * typ -> 'a) -> 'a * term -> 'a
   val foldl_aterms: ('a * term -> 'a) -> 'a * term -> 'a
+  val foldl_map_aterms: ('a * term -> 'a * term) -> 'a * term -> 'a * term
   val dummyT: typ
   val logicC: class
   val logicS: sort
@@ -891,6 +892,13 @@ fun foldl_atyps f (x, Type (_, Ts)) = foldl (foldl_atyps f) (x, Ts)
 fun foldl_aterms f (x, t $ u) = foldl_aterms f (foldl_aterms f (x, t), u)
   | foldl_aterms f (x, Abs (_, _, t)) = foldl_aterms f (x, t)
   | foldl_aterms f x_atom = f x_atom;
+
+fun foldl_map_aterms f (x, t $ u) =
+      let val (x', t') = foldl_map_aterms f (x, t); val (x'', u') = foldl_map_aterms f (x', u);
+      in (x'', t' $ u') end
+  | foldl_map_aterms f (x, Abs (a, T, t)) =
+      let val (x', t') = foldl_map_aterms f (x, t) in (x', Abs (a, T, t')) end
+  | foldl_map_aterms f x_atom = f x_atom;
 
 (*foldl types of term*)
 fun foldl_types f (x, Const (_, T)) = f (x, T)
