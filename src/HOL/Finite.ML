@@ -6,8 +6,6 @@
 Finite sets and their cardinality
 *)
 
-open Finite;
-
 section "finite";
 
 (*Discharging ~ x:y entails extra work*)
@@ -310,8 +308,7 @@ by (hyp_subst_tac 1);
 by (Asm_full_simp_tac 1);
 val lemma = result();
 
-Goalw [card_def]
-  "[| finite A; x ~: A |] ==> card(insert x A) = Suc(card A)";
+Goalw [card_def] "[| finite A; x ~: A |] ==> card(insert x A) = Suc(card A)";
 by (etac lemma 1);
 by (assume_tac 1);
 qed "card_insert_disjoint";
@@ -333,11 +330,18 @@ by (fast_tac (claset() addss
 	      (simpset() addsimps [subset_insert_iff, finite_subset])) 1);
 qed_spec_mp "card_mono";
 
-Goal "[| finite A; finite B |]\
-\                       ==> A Int B = {} --> card(A Un B) = card A + card B";
+
+Goal "[| finite A; finite B |] \
+\     ==> card A + card B = card (A Un B) + card (A Int B)";
 by (etac finite_induct 1);
-by (ALLGOALS (asm_simp_tac (simpset() addsimps [Int_insert_left])));
-qed_spec_mp "card_Un_disjoint";
+by (Simp_tac 1);
+by (asm_simp_tac (simpset() addsimps [insert_absorb, Int_insert_left]) 1);
+qed "card_Un_Int";
+
+Goal "[| finite A; finite B; A Int B = {} |] \
+\     ==> card (A Un B) = card A + card B";
+by (asm_simp_tac (simpset() addsimps [card_Un_Int]) 1);
+qed "card_Un_disjoint";
 
 Goal "[| finite A; B<=A |] ==> card A - card B = card (A - B)";
 by (subgoal_tac "(A-B) Un B = A" 1);
@@ -349,7 +353,7 @@ by (Blast_tac 3);
 by (ALLGOALS 
     (asm_simp_tac
      (simpset() addsimps [add_commute, not_less_iff_le, 
-			 add_diff_inverse, card_mono, finite_subset])));
+			  add_diff_inverse, card_mono, finite_subset])));
 qed "card_Diff_subset";
 
 Goal "[| finite A; x: A |] ==> Suc(card(A-{x})) = card A";
@@ -376,7 +380,6 @@ by (case_tac "x:A" 1);
 by (ALLGOALS 
     (asm_simp_tac (simpset() addsimps [card_Suc_Diff, insert_absorb])));
 qed "card_insert";
-Addsimps [card_insert];
 
 Goal "finite(A) ==> inj_on f A --> card (f `` A) = card A";
 by (etac finite_induct 1);
