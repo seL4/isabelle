@@ -28,6 +28,7 @@ sig
   val cert_axm          : Sign.sg -> string * term -> string * term
   val read_axm          : Sign.sg -> string * string -> string * term
   val inferT_axm        : Sign.sg -> string * term -> string * term
+  val merge_theories	: string -> theory * theory -> theory
 end
 
 signature THEORY =
@@ -413,6 +414,11 @@ fun merge_list thys =
               handle Symtab.DUPS names => err_dup_oras names)
             thys)
   end;
+
+
+fun merge_theories name (thy1, thy2) =
+  merge_list [thy1, thy2]
+  |> add_name name;
 
 
 end;
