@@ -10,62 +10,25 @@ The integers as equivalence classes over nat*nat.
 (*Rewrite the overloaded 0::int to (int 0)*)
 Addsimps [Zero_def];
 
-(*** Proving that intrel is an equivalence relation ***)
-
-val eqa::eqb::prems = goal Arith.thy 
-    "[| (x1::nat) + y2 = x2 + y1; x2 + y3 = x3 + y2 |] ==> \
-\       x1 + y3 = x3 + y1";
-by (res_inst_tac [("k1","x2")] (add_left_cancel RS iffD1) 1);
-by (rtac (add_left_commute RS trans) 1);
-by (stac eqb 1);
-by (rtac (add_left_commute RS trans) 1);
-by (stac eqa 1);
-by (rtac (add_left_commute) 1);
-qed "integ_trans_lemma";
-
-(** Natural deduction for intrel **)
-
-Goalw  [intrel_def] "[| x1+y2 = x2+y1|] ==> ((x1,y1),(x2,y2)): intrel";
-by (Fast_tac 1);
-qed "intrelI";
-
-(*intrelE is hard to derive because fast_tac tries hyp_subst_tac so soon*)
-Goalw [intrel_def]
-  "p: intrel --> (EX x1 y1 x2 y2. \
-\                  p = ((x1,y1),(x2,y2)) & x1+y2 = x2+y1)";
-by (Fast_tac 1);
-qed "intrelE_lemma";
-
-val [major,minor] = Goal
-  "[| p: intrel;  \
-\     !!x1 y1 x2 y2. [| p = ((x1,y1),(x2,y2));  x1+y2 = x2+y1|] ==> Q |] \
-\  ==> Q";
-by (cut_facts_tac [major RS (intrelE_lemma RS mp)] 1);
-by (REPEAT (eresolve_tac [asm_rl,exE,conjE,minor] 1));
-qed "intrelE";
-
-AddSIs [intrelI];
-AddSEs [intrelE];
-
-Goal "((x1,y1),(x2,y2)): intrel = (x1+y2 = x2+y1)";
-by (Fast_tac 1);
+Goalw  [intrel_def] "((x1,y1),(x2,y2)): intrel = (x1+y2 = x2+y1)";
+by (Blast_tac 1);
 qed "intrel_iff";
 
-Goal "(x,x): intrel";
+Goalw  [intrel_def] "(x,x): intrel";
 by (pair_tac "x" 1);
-by (rtac intrelI 1);
-by (rtac refl 1);
+by (Blast_tac 1);
 qed "intrel_refl";
 
-Goalw [equiv_def, refl_def, sym_def, trans_def]
+Goalw [intrel_def, equiv_def, refl_def, sym_def, trans_def]
     "equiv UNIV intrel";
-by (fast_tac (claset() addSIs [intrel_refl] 
-                       addSEs [sym, integ_trans_lemma]) 1);
+by Auto_tac;
 qed "equiv_intrel";
 
-bind_thm ("equiv_intrel_iff", [equiv_intrel, UNIV_I, UNIV_I] MRS eq_equiv_class_iff);
+bind_thm ("equiv_intrel_iff", 
+	  [equiv_intrel, UNIV_I, UNIV_I] MRS eq_equiv_class_iff);
 
-Goalw  [Integ_def,intrel_def,quotient_def] "intrel^^{(x,y)}:Integ";
+Goalw [Integ_def,intrel_def,quotient_def]
+     "intrel^^{(x,y)}:Integ";
 by (Fast_tac 1);
 qed "intrel_in_integ";
 
@@ -93,16 +56,15 @@ by (REPEAT (rtac intrel_in_integ 1));
 by (dtac eq_equiv_class 1);
 by (rtac equiv_intrel 1);
 by (Fast_tac 1);
-by Safe_tac;
-by (Asm_full_simp_tac 1);
+by (asm_full_simp_tac (simpset() addsimps [intrel_def]) 1);
 qed "inj_int";
 
 
 (**** zminus: unary negation on Integ ****)
 
-Goalw [congruent_def] "congruent intrel (%(x,y). intrel^^{(y,x)})";
-by (Clarify_tac 1);
-by (asm_simp_tac (simpset() addsimps add_ac) 1);
+Goalw [congruent_def, intrel_def]
+     "congruent intrel (%(x,y). intrel^^{(y,x)})";
+by (auto_tac (claset(), simpset() addsimps add_ac));
 qed "zminus_congruent";
 
 Goalw [zminus_def]
@@ -161,7 +123,6 @@ Goalw [zadd_def]
 \  Abs_Integ(intrel^^{(x1+x2, y1+y2)})";
 by (asm_simp_tac (simpset() addsimps [UN_UN_split_split_eq]) 1);
 by (stac (equiv_intrel RS UN_equiv_class2) 1);
-(*Congruence property for addition*)
 by (auto_tac (claset(), simpset() addsimps [congruent2_def]));
 qed "zadd";
 
@@ -275,28 +236,23 @@ qed "zadd_assoc_swap";
 
 (**** zmult: multiplication on Integ ****)
 
-Goal "((k::nat) + l) + (m + n) = (k + m) + (n + l)";
-by (simp_tac (simpset() addsimps add_ac) 1);
-qed "zmult_congruent_lemma";
-
 (*Congruence property for multiplication*)
 Goal "congruent2 intrel \
 \       (%p1 p2. (%(x1,y1). (%(x2,y2).   \
 \                   intrel^^{(x1*x2 + y1*y2, x1*y2 + y1*x2)}) p2) p1)";
 by (rtac (equiv_intrel RS congruent2_commuteI) 1);
 by (pair_tac "w" 2);
-by (rename_tac "z1 z2" 2);
 by (ALLGOALS Clarify_tac);
 by (simp_tac (simpset() addsimps add_ac@mult_ac) 1);
 by (asm_simp_tac (simpset() delsimps [equiv_intrel_iff]
                             addsimps add_ac@mult_ac) 1);
-by (rtac ([equiv_intrel, intrelI] MRS equiv_class_eq) 1);
-by (rtac (zmult_congruent_lemma RS trans) 1);
-by (rtac (zmult_congruent_lemma RS trans RS sym) 1);
-by (rtac (zmult_congruent_lemma RS trans RS sym) 1);
-by (rtac (zmult_congruent_lemma RS trans RS sym) 1);
-by (asm_simp_tac (simpset() addsimps [add_mult_distrib RS sym]) 1);
-by (asm_simp_tac (simpset() addsimps add_ac@mult_ac) 1);
+by (rename_tac "x1 x2 y1 y2 z1 z2" 1);
+by (rtac ([equiv_intrel, intrel_iff RS iffD2] MRS equiv_class_eq) 1);
+by (asm_full_simp_tac (simpset() addsimps [intrel_def]) 1);
+by (subgoal_tac 
+    "x1*z1 + y2*z1 = y1*z1 + x2*z1 & x1*z2 + y2*z2 = y1*z2 + x2*z2" 1);
+by (asm_simp_tac (simpset() addsimps [add_mult_distrib RS sym]) 2);
+by (arith_tac 1);
 qed "zmult_congruent2";
 
 Goalw [zmult_def]

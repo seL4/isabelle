@@ -9,10 +9,10 @@ The integers as equivalence classes over nat*nat.
 IntDef = Equiv + Arith +
 constdefs
   intrel      :: "((nat * nat) * (nat * nat)) set"
-  "intrel == {p. ? x1 y1 x2 y2. p=((x1::nat,y1),(x2,y2)) & x1+y2 = x2+y1}"
+  "intrel == {p. EX x1 y1 x2 y2. p=((x1::nat,y1),(x2,y2)) & x1+y2 = x2+y1}"
 
 typedef (Integ)
-  int = "UNIV/intrel"            (Equiv.quotient_def)
+  int = "UNIV//intrel"            (Equiv.quotient_def)
 
 instance
   int :: {ord, zero, plus, times, minus}
@@ -33,7 +33,8 @@ constdefs
   iszero :: int => bool
   "iszero z == z = int 0"
   
-defs
+defs (*of overloaded constants*)
+  
   Zero_def      "0 == int 0"
 
   zadd_def
