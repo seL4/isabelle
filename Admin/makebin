@@ -1,0 +1,101 @@
+#!/bin/bash
+#
+# $Id$
+#
+# makebin -- make Isabelle logic images for current platform.
+
+
+## global settings
+
+FAKE_BUILD=""
+DISTBASE=~/tmp/isadist
+TMP="/tmp/isabelle-makebin$$"
+
+TAR=tar
+type -path gtar >/dev/null && TAR=gtar
+
+
+## diagnostics
+
+PRG=$(basename "$0")
+
+function usage()
+{
+  echo
+  echo "Usage: $PRG ARCHIVE"
+  echo
+  echo "  Make Isabelle logic images for current platform."
+  echo
+  exit 1
+}
+
+function fail()
+{
+  echo "$1" >&2
+  exit 2
+}
+
+
+## process command line
+
+[ "$#" -gt 1 ] && usage
+
+ARCHIVE="$1"; shift
+
+
+## main
+
+[ ! -f "$ARCHIVE" ] && fail "Bad archive file $ARCHIVE"
+ARCHIVE_BASE=$(basename "$ARCHIVE")
+ARCHIVE_DIR=$(cd $(dirname "$ARCHIVE"); echo "$PWD")
+ARCHIVE_FULL="$ARCHIVE_DIR/$ARCHIVE_BASE"
+
+ISABELLE_NAME=$(basename "$ARCHIVE_BASE" .tar.gz)
+ISABELLE_HOME="$TMP/$ISABELLE_NAME"
+
+
+# build logics
+
+mkdir "$TMP" || fail "Cannot create directory $TMP"
+
+cd "$TMP"
+tar -xzf "$ARCHIVE_FULL"
+cd "$ISABELLE_NAME"
+
+ISABELLE_HOME_USER=$(./bin/isatool getenv -b ISABELLE_HOME_USER)
+[ -f "$ISABELLE_HOME_USER/etc/settings" ] && \
+  echo "### WARNING!  Personal Isabelle settings present. " >&2
+
+COMPILER=$(./bin/isatool getenv -b ML_IDENTIFIER)
+PLATFORM=$(./bin/isatool getenv -b ML_PLATFORM)
+
+if [ -n "$FAKE_BUILD" ]; then
+  mkdir -p "heaps/$COMPILER"
+  touch "heaps/$COMPILER/HOL"
+  touch "heaps/$COMPILER/HOL-Real"
+  touch "heaps/$COMPILER/ZF"
+else
+  ./build -b -m HOL-Real HOL
+  ./build -b ZF
+  rm -f "heaps/$COMPILER/Pure" "heaps/$COMPILER/FOL"
+fi
+
+
+# prepare result
+
+cd "$TMP"
+
+chmod -R g=o "$TMP"
+chgrp -R isabelle "$TMP"
+
+for IMG in HOL HOL-Real ZF
+do
+  "$TAR" cf "${IMG}_$PLATFORM.tar" "$ISABELLE_NAME/heaps/$COMPILER/$IMG"
+  gzip "${IMG}_$PLATFORM.tar"
+  cp -f "${IMG}_$PLATFORM.tar.gz" "$DISTBASE"
+done
+
+
+# clean up
+cd /tmp
+rm -rf "$TMP"
