@@ -874,20 +874,19 @@ subsubsection{*The Formula Functor, Internalized*}
 
 constdefs formula_functor_fm :: "[i,i]=>i"
 (*     "is_formula_functor(M,X,Z) == 
-        \<exists>nat'[M]. \<exists>natnat[M]. \<exists>natnatsum[M]. \<exists>XX[M]. \<exists>X3[M]. \<exists>X4[M]. 
-          5          4              3          2       1       0
+        \<exists>nat'[M]. \<exists>natnat[M]. \<exists>natnatsum[M]. \<exists>XX[M]. \<exists>X3[M]. 
+           4           3               2       1       0
           omega(M,nat') & cartprod(M,nat',nat',natnat) & 
           is_sum(M,natnat,natnat,natnatsum) &
-          cartprod(M,X,X,XX) & is_sum(M,XX,X,X3) & is_sum(M,X,X3,X4) &
-          is_sum(M,natnatsum,X4,Z)" *) 
+          cartprod(M,X,X,XX) & is_sum(M,XX,X,X3) & 
+          is_sum(M,natnatsum,X3,Z)" *) 
     "formula_functor_fm(X,Z) == 
-       Exists(Exists(Exists(Exists(Exists(Exists(
-	And(omega_fm(5),
-         And(cartprod_fm(5,5,4),
-          And(sum_fm(4,4,3),
-           And(cartprod_fm(X#+6,X#+6,2),
-            And(sum_fm(2,X#+6,1),
-             And(sum_fm(X#+6,1,0), sum_fm(3,0,Z#+6)))))))))))))"
+       Exists(Exists(Exists(Exists(Exists(
+	And(omega_fm(4),
+         And(cartprod_fm(4,4,3),
+          And(sum_fm(3,3,2),
+           And(cartprod_fm(X#+5,X#+5,1),
+            And(sum_fm(1,X#+5,0), sum_fm(2,0,Z#+5)))))))))))"
 
 lemma formula_functor_type [TC]:
      "[| x \<in> nat; y \<in> nat |] ==> formula_functor_fm(x,y) \<in> formula"

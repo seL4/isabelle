@@ -21,7 +21,7 @@ lemma bnd_mono_increasing [rule_format]:
      "[|i \<in> nat; j \<in> nat; bnd_mono(D,h)|] ==> i \<le> j --> h^i(0) \<subseteq> h^j(0)"
 apply (rule_tac m=i and n=j in diff_induct, simp_all)
 apply (blast del: subsetI
-	     intro: bnd_mono_iterates_subset bnd_monoD2 [of concl: h] ) 
+	     intro: bnd_mono_iterates_subset bnd_monoD2 [of concl: h]) 
 done
 
 lemma directed_iterates: "bnd_mono(D,h) ==> directed({h^n (0). n\<in>nat})"
@@ -63,7 +63,7 @@ apply (simp add: UN_subset_iff)
 apply (rule ballI)  
 apply (induct_tac n, simp_all) 
 apply (rule subset_trans [of _ "h(lfp(D,h))"])
- apply (blast dest: bnd_monoD2 [OF _ _ lfp_subset] )  
+ apply (blast dest: bnd_monoD2 [OF _ _ lfp_subset])  
 apply (erule lfp_lemma2) 
 done
 
@@ -212,7 +212,7 @@ by (simp add: is_list_functor_def singleton_0 nat_into_M)
 subsection {*formulas without univ*}
 
 lemma formula_fun_bnd_mono:
-     "bnd_mono(univ(0), \<lambda>X. ((nat*nat) + (nat*nat)) + (X + (X*X + X)))"
+     "bnd_mono(univ(0), \<lambda>X. ((nat*nat) + (nat*nat)) + (X*X + X))"
 apply (rule bnd_monoI)
  apply (intro subset_refl zero_subset_univ A_subset_univ 
 	      sum_subset_univ Sigma_subset_univ nat_subset_univ) 
@@ -220,25 +220,25 @@ apply (rule subset_refl sum_mono Sigma_mono | assumption)+
 done
 
 lemma formula_fun_contin:
-     "contin(\<lambda>X. ((nat*nat) + (nat*nat)) + (X + (X*X + X)))"
+     "contin(\<lambda>X. ((nat*nat) + (nat*nat)) + (X*X + X))"
 by (intro sum_contin prod_contin id_contin const_contin) 
 
 
 text{*Re-expresses formulas using sum and product*}
 lemma formula_eq_lfp2:
-    "formula = lfp(univ(0), \<lambda>X. ((nat*nat) + (nat*nat)) + (X + (X*X + X)))"
+    "formula = lfp(univ(0), \<lambda>X. ((nat*nat) + (nat*nat)) + (X*X + X))"
 apply (simp add: formula_def) 
 apply (rule equalityI) 
  apply (rule lfp_lowerbound) 
   prefer 2 apply (rule lfp_subset)
  apply (clarify, subst lfp_unfold [OF formula_fun_bnd_mono])
- apply (simp add: Member_def Equal_def Neg_def And_def Forall_def)
+ apply (simp add: Member_def Equal_def Nand_def Forall_def)
  apply blast 
 txt{*Opposite inclusion*}
 apply (rule lfp_lowerbound) 
  prefer 2 apply (rule lfp_subset, clarify) 
 apply (subst lfp_unfold [OF formula.bnd_mono, simplified]) 
-apply (simp add: Member_def Equal_def Neg_def And_def Forall_def)  
+apply (simp add: Member_def Equal_def Nand_def Forall_def)  
 apply (elim sumE SigmaE, simp_all) 
 apply (blast intro: datatype_univs dest: lfp_subset [THEN subsetD])+  
 done
@@ -246,7 +246,7 @@ done
 text{*Re-expresses formulas using "iterates", no univ.*}
 lemma formula_eq_Union:
      "formula = 
-      (\<Union>n\<in>nat. (\<lambda>X. ((nat*nat) + (nat*nat)) + (X + (X*X + X))) ^ n (0))"
+      (\<Union>n\<in>nat. (\<lambda>X. ((nat*nat) + (nat*nat)) + (X*X + X)) ^ n (0))"
 by (simp add: formula_eq_lfp2 lfp_eq_Union formula_fun_bnd_mono 
               formula_fun_contin)
 
@@ -254,16 +254,16 @@ by (simp add: formula_eq_lfp2 lfp_eq_Union formula_fun_bnd_mono
 constdefs
   is_formula_functor :: "[i=>o,i,i] => o"
     "is_formula_functor(M,X,Z) == 
-        \<exists>nat'[M]. \<exists>natnat[M]. \<exists>natnatsum[M]. \<exists>XX[M]. \<exists>X3[M]. \<exists>X4[M]. 
+        \<exists>nat'[M]. \<exists>natnat[M]. \<exists>natnatsum[M]. \<exists>XX[M]. \<exists>X3[M]. 
           omega(M,nat') & cartprod(M,nat',nat',natnat) & 
           is_sum(M,natnat,natnat,natnatsum) &
-          cartprod(M,X,X,XX) & is_sum(M,XX,X,X3) & is_sum(M,X,X3,X4) &
-          is_sum(M,natnatsum,X4,Z)"
+          cartprod(M,X,X,XX) & is_sum(M,XX,X,X3) & 
+          is_sum(M,natnatsum,X3,Z)"
 
 lemma (in M_axioms) formula_functor_abs [simp]: 
      "[| M(X); M(Z) |] 
       ==> is_formula_functor(M,X,Z) <-> 
-          Z = ((nat*nat) + (nat*nat)) + (X + (X*X + X))"
+          Z = ((nat*nat) + (nat*nat)) + (X*X + X)"
 by (simp add: is_formula_functor_def) 
 
 
@@ -429,7 +429,7 @@ done
 subsubsection{*Absoluteness of Formulas*}
 
 lemma (in M_datatypes) formula_replacement2': 
-  "strong_replacement(M, \<lambda>n y. n\<in>nat & y = (\<lambda>X. ((nat*nat) + (nat*nat)) + (X + (X*X + X)))^n (0))"
+  "strong_replacement(M, \<lambda>n y. n\<in>nat & y = (\<lambda>X. ((nat*nat) + (nat*nat)) + (X*X + X))^n (0))"
 apply (insert formula_replacement2) 
 apply (rule strong_replacement_cong [THEN iffD1])  
 apply (rule conj_cong [OF iff_refl iterates_abs [of "is_formula_functor(M)"]]) 
@@ -447,11 +447,11 @@ done
 lemma (in M_datatypes) is_formula_n_abs [simp]:
      "[|n\<in>nat; M(Z)|] 
       ==> is_formula_n(M,n,Z) <-> 
-          Z = (\<lambda>X. ((nat*nat) + (nat*nat)) + (X + (X*X + X)))^n (0)"
+          Z = (\<lambda>X. ((nat*nat) + (nat*nat)) + (X*X + X))^n (0)"
 apply (insert formula_replacement1)
 apply (simp add: is_formula_n_def relativize1_def nat_into_M
                  iterates_abs [of "is_formula_functor(M)" _ 
-                        "\<lambda>X. ((nat*nat) + (nat*nat)) + (X + (X*X + X))"])
+                        "\<lambda>X. ((nat*nat) + (nat*nat)) + (X*X + X)"])
 done
 
 lemma (in M_datatypes) mem_formula_abs [simp]:
@@ -609,7 +609,7 @@ done
 text{*Proof is trivial since @{term length} returns natural numbers.*}
 lemma (in M_triv_axioms) length_closed [intro,simp]:
      "l \<in> list(A) ==> M(length(l))"
-by (simp add: nat_into_M ) 
+by (simp add: nat_into_M) 
 
 
 subsection {*Absoluteness for @{term nth}*}
@@ -660,5 +660,337 @@ apply (simp add: is_nth_def nth_eq_hd_iterates_tl nat_into_M
                  iterates_abs [OF _ relativize1_tl])
 done
 
+
+
+
+subsection{*Relativization and Absoluteness for the @{term formula} Constructors*}
+
+constdefs
+  is_Member :: "[i=>o,i,i,i] => o"
+     --{* because @{term "Member(x,y) \<equiv> Inl(Inl(\<langle>x,y\<rangle>))"}*}
+    "is_Member(M,x,y,Z) ==
+	\<exists>p[M]. \<exists>u[M]. pair(M,x,y,p) & is_Inl(M,p,u) & is_Inl(M,u,Z)"
+
+lemma (in M_triv_axioms) Member_abs [simp]:
+     "[|M(x); M(y); M(Z)|] ==> is_Member(M,x,y,Z) <-> (Z = Member(x,y))"
+by (simp add: is_Member_def Member_def)
+
+lemma (in M_triv_axioms) Member_in_M_iff [iff]:
+     "M(Member(x,y)) <-> M(x) & M(y)"
+by (simp add: Member_def) 
+
+constdefs
+  is_Equal :: "[i=>o,i,i,i] => o"
+     --{* because @{term "Equal(x,y) \<equiv> Inl(Inr(\<langle>x,y\<rangle>))"}*}
+    "is_Equal(M,x,y,Z) ==
+	\<exists>p[M]. \<exists>u[M]. pair(M,x,y,p) & is_Inr(M,p,u) & is_Inl(M,u,Z)"
+
+lemma (in M_triv_axioms) Equal_abs [simp]:
+     "[|M(x); M(y); M(Z)|] ==> is_Equal(M,x,y,Z) <-> (Z = Equal(x,y))"
+by (simp add: is_Equal_def Equal_def)
+
+lemma (in M_triv_axioms) Equal_in_M_iff [iff]: "M(Equal(x,y)) <-> M(x) & M(y)"
+by (simp add: Equal_def) 
+
+constdefs
+  is_Nand :: "[i=>o,i,i,i] => o"
+     --{* because @{term "Nand(x,y) \<equiv> Inr(Inl(\<langle>x,y\<rangle>))"}*}
+    "is_Nand(M,x,y,Z) ==
+	\<exists>p[M]. \<exists>u[M]. pair(M,x,y,p) & is_Inl(M,p,u) & is_Inr(M,u,Z)"
+
+lemma (in M_triv_axioms) Nand_abs [simp]:
+     "[|M(x); M(y); M(Z)|] ==> is_Nand(M,x,y,Z) <-> (Z = Nand(x,y))"
+by (simp add: is_Nand_def Nand_def)
+
+lemma (in M_triv_axioms) Nand_in_M_iff [iff]: "M(Nand(x,y)) <-> M(x) & M(y)"
+by (simp add: Nand_def) 
+
+constdefs
+  is_Forall :: "[i=>o,i,i] => o"
+     --{* because @{term "Forall(x) \<equiv> Inr(Inr(p))"}*}
+    "is_Forall(M,p,Z) == \<exists>u[M]. is_Inr(M,p,u) & is_Inr(M,u,Z)"
+
+lemma (in M_triv_axioms) Forall_abs [simp]:
+     "[|M(x); M(Z)|] ==> is_Forall(M,x,Z) <-> (Z = Forall(x))"
+by (simp add: is_Forall_def Forall_def)
+
+lemma (in M_triv_axioms) Forall_in_M_iff [iff]: "M(Forall(x)) <-> M(x)"
+by (simp add: Forall_def)
+
+
+subsection {*Absoluteness for @{term formula_rec}*}
+
+subsubsection{*@{term quasiformula}: For Case-Splitting with @{term formula_case'}*}
+
+constdefs
+
+  quasiformula :: "i => o"
+    "quasiformula(p) == 
+	(\<exists>x y. p = Member(x,y)) |
+	(\<exists>x y. p = Equal(x,y)) |
+	(\<exists>x y. p = Nand(x,y)) |
+	(\<exists>x. p = Forall(x))"
+
+  is_quasiformula :: "[i=>o,i] => o"
+    "is_quasiformula(M,p) == 
+	(\<exists>x[M]. \<exists>y[M]. is_Member(M,x,y,p)) |
+	(\<exists>x[M]. \<exists>y[M]. is_Equal(M,x,y,p)) |
+	(\<exists>x[M]. \<exists>y[M]. is_Nand(M,x,y,p)) |
+	(\<exists>x[M]. is_Forall(M,x,p))"
+
+lemma [iff]: "quasiformula(Member(x,y))"
+by (simp add: quasiformula_def)
+
+lemma [iff]: "quasiformula(Equal(x,y))"
+by (simp add: quasiformula_def)
+
+lemma [iff]: "quasiformula(Nand(x,y))"
+by (simp add: quasiformula_def)
+
+lemma [iff]: "quasiformula(Forall(x))"
+by (simp add: quasiformula_def)
+
+lemma formula_imp_quasiformula: "p \<in> formula ==> quasiformula(p)"
+by (erule formula.cases, simp_all)
+
+lemma (in M_triv_axioms) quasiformula_abs [simp]: 
+     "M(z) ==> is_quasiformula(M,z) <-> quasiformula(z)"
+by (auto simp add: is_quasiformula_def quasiformula_def)
+
+constdefs
+
+  formula_case' :: "[[i,i]=>i, [i,i]=>i, [i,i]=>i, i=>i, i] => i"
+    --{*A version of @{term formula_case} that's always defined.*}
+    "formula_case'(a,b,c,d,p) == 
+       if quasiformula(p) then formula_case(a,b,c,d,p) else 0"  
+
+  is_formula_case :: 
+      "[i=>o, [i,i,i]=>o, [i,i,i]=>o, [i,i,i]=>o, [i,i]=>o, i, i] => o"
+    --{*Returns 0 for non-formulas*}
+    "is_formula_case(M, is_a, is_b, is_c, is_d, p, z) == 
+	(\<forall>x[M]. \<forall>y[M]. is_Member(M,x,y,p) --> is_a(x,y,z)) &
+	(\<forall>x[M]. \<forall>y[M]. is_Equal(M,x,y,p) --> is_b(x,y,z)) &
+	(\<forall>x[M]. \<forall>y[M]. is_Nand(M,x,y,p) --> is_c(x,y,z)) &
+	(\<forall>x[M]. is_Forall(M,x,p) --> is_d(x,z)) &
+        (is_quasiformula(M,p) | empty(M,z))"
+
+subsubsection{*@{term formula_case'}, the Modified Version of @{term formula_case}*}
+
+lemma formula_case'_Member [simp]:
+     "formula_case'(a,b,c,d,Member(x,y)) = a(x,y)"
+by (simp add: formula_case'_def)
+
+lemma formula_case'_Equal [simp]:
+     "formula_case'(a,b,c,d,Equal(x,y)) = b(x,y)"
+by (simp add: formula_case'_def)
+
+lemma formula_case'_Nand [simp]:
+     "formula_case'(a,b,c,d,Nand(x,y)) = c(x,y)"
+by (simp add: formula_case'_def)
+
+lemma formula_case'_Forall [simp]:
+     "formula_case'(a,b,c,d,Forall(x)) = d(x)"
+by (simp add: formula_case'_def)
+
+lemma non_formula_case: "~ quasiformula(x) ==> formula_case'(a,b,c,d,x) = 0" 
+by (simp add: quasiformula_def formula_case'_def) 
+
+lemma formula_case'_eq_formula_case [simp]:
+     "p \<in> formula ==>formula_case'(a,b,c,d,p) = formula_case(a,b,c,d,p)"
+by (erule formula.cases, simp_all)
+
+lemma (in M_axioms) formula_case'_closed [intro,simp]:
+  "[|M(p); \<forall>x[M]. \<forall>y[M]. M(a(x,y)); 
+           \<forall>x[M]. \<forall>y[M]. M(b(x,y)); 
+           \<forall>x[M]. \<forall>y[M]. M(c(x,y)); 
+           \<forall>x[M]. M(d(x))|] ==> M(formula_case'(a,b,c,d,p))"
+apply (case_tac "quasiformula(p)") 
+ apply (simp add: quasiformula_def, force) 
+apply (simp add: non_formula_case) 
+done
+
+lemma (in M_triv_axioms) formula_case_abs [simp]: 
+     "[| relativize2(M,is_a,a); relativize2(M,is_b,b); 
+         relativize2(M,is_c,c); relativize1(M,is_d,d); M(p); M(z) |] 
+      ==> is_formula_case(M,is_a,is_b,is_c,is_d,p,z) <-> 
+          z = formula_case'(a,b,c,d,p)"
+apply (case_tac "quasiformula(p)") 
+ prefer 2 
+ apply (simp add: is_formula_case_def non_formula_case) 
+ apply (force simp add: quasiformula_def) 
+apply (simp add: quasiformula_def is_formula_case_def)
+apply (elim disjE exE) 
+ apply (simp_all add: relativize1_def relativize2_def) 
+done
+
+
+subsubsection{*Towards Absoluteness of @{term formula_rec}*}
+
+consts   depth :: "i=>i"
+primrec
+  "depth(Member(x,y)) = 0"
+  "depth(Equal(x,y))  = 0"
+  "depth(Nand(p,q)) = succ(depth(p) \<union> depth(q))"
+  "depth(Forall(p)) = succ(depth(p))"
+
+lemma depth_type [TC]: "p \<in> formula ==> depth(p) \<in> nat"
+by (induct_tac p, simp_all) 
+
+
+constdefs
+  formula_N :: "i => i"
+    "formula_N(n) == (\<lambda>X. ((nat*nat) + (nat*nat)) + (X*X + X)) ^ n (0)"
+
+lemma Member_in_formula_N [simp]:
+     "Member(x,y) \<in> formula_N(succ(n)) <-> x \<in> nat & y \<in> nat"
+by (simp add: formula_N_def Member_def) 
+
+lemma Equal_in_formula_N [simp]:
+     "Equal(x,y) \<in> formula_N(succ(n)) <-> x \<in> nat & y \<in> nat"
+by (simp add: formula_N_def Equal_def) 
+
+lemma Nand_in_formula_N [simp]:
+     "Nand(x,y) \<in> formula_N(succ(n)) <-> x \<in> formula_N(n) & y \<in> formula_N(n)"
+by (simp add: formula_N_def Nand_def) 
+
+lemma Forall_in_formula_N [simp]:
+     "Forall(x) \<in> formula_N(succ(n)) <-> x \<in> formula_N(n)"
+by (simp add: formula_N_def Forall_def) 
+
+text{*These two aren't simprules because they reveal the underlying
+formula representation.*}
+lemma formula_N_0: "formula_N(0) = 0"
+by (simp add: formula_N_def)
+
+lemma formula_N_succ:
+     "formula_N(succ(n)) = 
+      ((nat*nat) + (nat*nat)) + (formula_N(n) * formula_N(n) + formula_N(n))"
+by (simp add: formula_N_def)
+
+lemma formula_N_imp_formula:
+  "[| p \<in> formula_N(n); n \<in> nat |] ==> p \<in> formula"
+by (force simp add: formula_eq_Union formula_N_def)
+
+lemma formula_N_imp_depth_lt [rule_format]:
+     "n \<in> nat ==> \<forall>p \<in> formula_N(n). depth(p) < n"
+apply (induct_tac n)  
+apply (auto simp add: formula_N_0 formula_N_succ 
+                      depth_type formula_N_imp_formula Un_least_lt_iff
+                      Member_def [symmetric] Equal_def [symmetric]
+                      Nand_def [symmetric] Forall_def [symmetric]) 
+done
+
+lemma formula_imp_formula_N [rule_format]:
+     "p \<in> formula ==> \<forall>n\<in>nat. depth(p) < n --> p \<in> formula_N(n)"
+apply (induct_tac p)
+apply (simp_all add: succ_Un_distrib Un_least_lt_iff) 
+apply (force elim: natE)+
+done
+
+lemma formula_N_imp_eq_depth:
+      "[|n \<in> nat; p \<notin> formula_N(n); p \<in> formula_N(succ(n))|] 
+       ==> n = depth(p)"
+apply (rule le_anti_sym) 
+ prefer 2 apply (simp add: formula_N_imp_depth_lt) 
+apply (frule formula_N_imp_formula, simp)
+apply (simp add: not_lt_iff_le [symmetric]) 
+apply (blast intro: formula_imp_formula_N) 
+done
+
+
+
+lemma formula_N_mono [rule_format]:
+  "[| m \<in> nat; n \<in> nat |] ==> m\<le>n --> formula_N(m) \<subseteq> formula_N(n)"
+apply (rule_tac m = m and n = n in diff_induct)
+apply (simp_all add: formula_N_0 formula_N_succ, blast) 
+done
+
+lemma formula_N_distrib:
+  "[| m \<in> nat; n \<in> nat |] ==> formula_N(m \<union> n) = formula_N(m) \<union> formula_N(n)"
+apply (rule_tac i = m and j = n in Ord_linear_le, auto) 
+apply (simp_all add: subset_Un_iff [THEN iffD1] subset_Un_iff2 [THEN iffD1] 
+                     le_imp_subset formula_N_mono)
+done
+
+lemma Nand_in_formula_N:
+    "[|p \<in> formula; q \<in> formula|]
+     ==> Nand(p,q) \<in> formula_N(succ(succ(depth(p))) \<union> succ(succ(depth(q))))"
+by (simp add: succ_Un_distrib [symmetric] formula_imp_formula_N le_Un_iff) 
+
+
+text{*Express @{term formula_rec} without using @{term rank} or @{term Vset},
+neither of which is absolute.*}
+lemma (in M_triv_axioms) formula_rec_eq:
+  "p \<in> formula ==>
+   formula_rec(a,b,c,d,p) = 
+   transrec (succ(depth(p)),
+      \<lambda>x h. Lambda (formula_N(x),
+             formula_case' (a, b,
+                \<lambda>u v. c(u, v, h ` succ(depth(u)) ` u, 
+                              h ` succ(depth(v)) ` v),
+                \<lambda>u. d(u, h ` succ(depth(u)) ` u)))) 
+   ` p"
+apply (induct_tac p)
+txt{*Base case for @{term Member}*}
+apply (subst transrec, simp) 
+txt{*Base case for @{term Equal}*}
+apply (subst transrec, simp)
+txt{*Inductive step for @{term Nand}*}
+apply (subst transrec)
+apply (simp add: succ_Un_distrib Nand_in_formula_N)
+txt{*Inductive step for @{term Forall}*}
+apply (subst transrec) 
+apply (simp add: formula_imp_formula_N) 
+done
+
+
+constdefs
+  is_formula_N :: "[i=>o,i,i] => o"
+    "is_formula_N(M,n,Z) == 
+      \<exists>zero[M]. \<exists>sn[M]. \<exists>msn[M]. 
+       empty(M,zero) & 
+       successor(M,n,sn) & membership(M,sn,msn) &
+       is_wfrec(M, iterates_MH(M, is_formula_functor(M),zero), msn, n, Z)"
+  
+
+lemma (in M_datatypes) formula_N_abs [simp]:
+     "[|n\<in>nat; M(Z)|] 
+      ==> is_formula_N(M,n,Z) <-> Z = formula_N(n)"
+apply (insert formula_replacement1)
+apply (simp add: is_formula_N_def formula_N_def relativize1_def nat_into_M
+                 iterates_abs [of "is_formula_functor(M)" _ 
+                                  "\<lambda>X. ((nat*nat) + (nat*nat)) + (X*X + X)"])
+done
+
+lemma (in M_datatypes) formula_N_closed [intro,simp]:
+     "n\<in>nat ==> M(formula_N(n))"
+apply (insert formula_replacement1)
+apply (simp add: is_formula_N_def formula_N_def relativize1_def nat_into_M
+                 iterates_closed [of "is_formula_functor(M)"])
+done
+
+subsection{*Absoluteness for the Formula Operator @{term depth}*}
+constdefs
+
+  is_depth :: "[i=>o,i,i] => o"
+    "is_depth(M,p,n) == 
+       \<exists>sn[M]. \<exists>formula_n[M]. \<exists>formula_sn[M]. 
+        is_formula_N(M,n,formula_n) & p \<notin> formula_n &
+        successor(M,n,sn) & is_formula_N(M,sn,formula_sn) & p \<in> formula_sn"
+
+
+lemma (in M_datatypes) depth_abs [simp]:
+     "[|p \<in> formula; n \<in> nat|] ==> is_depth(M,p,n) <-> n = depth(p)"
+apply (subgoal_tac "M(p) & M(n)")
+ prefer 2 apply (blast dest: transM)  
+apply (simp add: is_depth_def)
+apply (blast intro: formula_imp_formula_N nat_into_Ord formula_N_imp_eq_depth
+             dest: formula_N_imp_depth_lt)
+done
+
+text{*Proof is trivial since @{term depth} returns natural numbers.*}
+lemma (in M_triv_axioms) depth_closed [intro,simp]:
+     "p \<in> formula ==> M(depth(p))"
+by (simp add: nat_into_M) 
 
 end

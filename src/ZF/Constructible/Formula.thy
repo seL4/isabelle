@@ -11,23 +11,34 @@ consts   formula :: i
 datatype
   "formula" = Member ("x: nat", "y: nat")
             | Equal  ("x: nat", "y: nat")
-            | Neg ("p: formula")
-            | And ("p: formula", "q: formula")
+            | Nand ("p: formula", "q: formula")
             | Forall ("p: formula")
 
 declare formula.intros [TC]
 
+constdefs Neg :: "i=>i"
+    "Neg(p) == Nand(p,p)"
+
+constdefs And :: "[i,i]=>i"
+    "And(p,q) == Neg(Nand(p,q))"
+
 constdefs Or :: "[i,i]=>i"
-    "Or(p,q) == Neg(And(Neg(p),Neg(q)))"
+    "Or(p,q) == Nand(Neg(p),Neg(q))"
 
 constdefs Implies :: "[i,i]=>i"
-    "Implies(p,q) == Neg(And(p,Neg(q)))"
+    "Implies(p,q) == Nand(p,Neg(q))"
 
 constdefs Iff :: "[i,i]=>i"
     "Iff(p,q) == And(Implies(p,q), Implies(q,p))"
 
 constdefs Exists :: "i=>i"
     "Exists(p) == Neg(Forall(Neg(p)))";
+
+lemma Neg_type [TC]: "p \<in> formula ==> Neg(p) \<in> formula"
+by (simp add: Neg_def) 
+
+lemma And_type [TC]: "[| p \<in> formula; q \<in> formula |] ==> And(p,q) \<in> formula"
+by (simp add: And_def) 
 
 lemma Or_type [TC]: "[| p \<in> formula; q \<in> formula |] ==> Or(p,q) \<in> formula"
 by (simp add: Or_def) 
@@ -52,11 +63,8 @@ primrec (*explicit lambda is required because the environment varies*)
   "satisfies(A,Equal(x,y)) = 
       (\<lambda>env \<in> list(A). bool_of_o (nth(x,env) = nth(y,env)))"
 
-  "satisfies(A,Neg(p)) = 
-      (\<lambda>env \<in> list(A). not(satisfies(A,p)`env))"
-
-  "satisfies(A,And(p,q)) =
-      (\<lambda>env \<in> list(A). (satisfies(A,p)`env) and (satisfies(A,q)`env))"
+  "satisfies(A,Nand(p,q)) =
+      (\<lambda>env \<in> list(A). not ((satisfies(A,p)`env) and (satisfies(A,q)`env)))"
 
   "satisfies(A,Forall(p)) = 
       (\<lambda>env \<in> list(A). bool_of_o (\<forall>x\<in>A. satisfies(A,p) ` (Cons(x,env)) = 1))"
@@ -78,15 +86,10 @@ lemma [simp]:
    ==> sats(A, Equal(x,y), env) <-> nth(x,env) = nth(y,env)"
 by simp
 
-lemma sats_Neg_iff [simp]:
+lemma sats_Nand_iff [simp]:
   "env \<in> list(A) 
-   ==> sats(A, Neg(p), env) <-> ~ sats(A,p,env)"
-by (simp add: Bool.not_def cond_def) 
-
-lemma sats_And_iff [simp]:
-  "env \<in> list(A) 
-   ==> (sats(A, And(p,q), env)) <-> sats(A,p,env) & sats(A,q,env)"
-by (simp add: Bool.and_def cond_def) 
+   ==> (sats(A, Nand(p,q), env)) <-> ~ (sats(A,p,env) & sats(A,q,env))" 
+by (simp add: Bool.and_def Bool.not_def cond_def) 
 
 lemma sats_Forall_iff [simp]:
   "env \<in> list(A) 
@@ -96,6 +99,16 @@ by simp
 declare satisfies.simps [simp del]; 
 
 subsection{*Dividing line between primitive and derived connectives*}
+
+lemma sats_Neg_iff [simp]:
+  "env \<in> list(A) 
+   ==> sats(A, Neg(p), env) <-> ~ sats(A,p,env)"
+by (simp add: Neg_def) 
+
+lemma sats_And_iff [simp]:
+  "env \<in> list(A) 
+   ==> (sats(A, And(p,q), env)) <-> sats(A,p,env) & sats(A,q,env)"
+by (simp add: And_def) 
 
 lemma sats_Or_iff [simp]:
   "env \<in> list(A) 
@@ -194,11 +207,8 @@ primrec
   "incr_bv(Equal(x,y)) = 
       (\<lambda>lev \<in> nat. Equal (incr_var(x,lev), incr_var(y,lev)))"
 
-  "incr_bv(Neg(p)) = 
-      (\<lambda>lev \<in> nat. Neg(incr_bv(p)`lev))"
-
-  "incr_bv(And(p,q)) =
-      (\<lambda>lev \<in> nat. And (incr_bv(p)`lev, incr_bv(q)`lev))"
+  "incr_bv(Nand(p,q)) =
+      (\<lambda>lev \<in> nat. Nand (incr_bv(p)`lev, incr_bv(q)`lev))"
 
   "incr_bv(Forall(p)) = 
       (\<lambda>lev \<in> nat. Forall (incr_bv(p) ` succ(lev)))"
@@ -257,15 +267,19 @@ primrec
 
   "arity(Equal(x,y)) = succ(x) \<union> succ(y)"
 
-  "arity(Neg(p)) = arity(p)"
-
-  "arity(And(p,q)) = arity(p) \<union> arity(q)"
+  "arity(Nand(p,q)) = arity(p) \<union> arity(q)"
 
   "arity(Forall(p)) = nat_case(0, %x. x, arity(p))"
 
 
 lemma arity_type [TC]: "p \<in> formula ==> arity(p) \<in> nat"
 by (induct_tac p, simp_all) 
+
+lemma arity_Neg [simp]: "arity(Neg(p)) = arity(p)"
+by (simp add: Neg_def) 
+
+lemma arity_And [simp]: "arity(And(p,q)) = arity(p) \<union> arity(q)"
+by (simp add: And_def) 
 
 lemma arity_Or [simp]: "arity(Or(p,q)) = arity(p) \<union> arity(q)"
 by (simp add: Or_def) 
