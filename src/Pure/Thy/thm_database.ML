@@ -68,7 +68,7 @@ fun warn_ml name =
   else if name = "" then true
   else (warning ("Cannot bind theorem(s) " ^ quote name ^ " as ML value"); true);
 
-val use_text_verbose = use_text writeln true;
+val use_text_verbose = use_text priority true;
 
 fun ml_store_thm (name, thm) =
   let val thm' = store_thm (name, thm) in
