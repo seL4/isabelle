@@ -11,6 +11,8 @@ val rinst = read_instantiate_sg (sign_of thy);
 
 (*** Basic properties ***)
 
+(** lift_set and drop_set **)
+
 Goalw [lift_set_def] "(f : lift_set i A) = (f i : A)";
 by Auto_tac;
 qed "lift_set_iff";
@@ -20,10 +22,30 @@ Goalw [lift_set_def] "lift_set i (A Int B) = lift_set i A Int lift_set i B";
 by Auto_tac;
 qed "lift_set_Int";
 
+(*USED?? converse fails*)
+Goalw [drop_set_def] "f : A ==> f i : drop_set i A";
+by Auto_tac;
+qed "drop_set_I";
+
+(** lift_act and drop_act **)
+
 Goalw [lift_act_def] "lift_act i Id = Id";
 by Auto_tac;
 qed "lift_act_Id";
 Addsimps [lift_act_Id];
+
+Goalw [drop_act_def] "(s, s') : act ==> (s i, s' i) : drop_act i act";
+by (auto_tac (claset() addSIs [image_eqI], simpset()));
+qed "drop_act_I";
+
+Goalw [drop_act_def] "drop_act i Id = Id";
+by Auto_tac;
+by (res_inst_tac [("x", "((%u. x), (%u. x))")] image_eqI 1);
+by Auto_tac;
+qed "drop_act_Id";
+Addsimps [drop_act_Id];
+
+(** lift_prog and drop_prog **)
 
 Goalw [lift_prog_def] "Init (lift_prog i F) = lift_set i (Init F)";
 by Auto_tac;
@@ -33,44 +55,85 @@ Addsimps [Init_lift_prog];
 Goalw [lift_prog_def] "Acts (lift_prog i F) = lift_act i `` Acts F";
 by (auto_tac (claset() addIs [Id_in_Acts RSN (2,image_eqI)], simpset()));
 qed "Acts_lift_prog";
+Addsimps [Acts_lift_prog];
+
+Goalw [drop_prog_def] "Init (drop_prog i F) = drop_set i (Init F)";
+by Auto_tac;
+qed "Init_drop_prog";
+Addsimps [Init_drop_prog];
+
+Goalw [drop_prog_def] "Acts (drop_prog i F) = drop_act i `` Acts F";
+by (auto_tac (claset() addIs [Id_in_Acts RSN (2,image_eqI)], simpset()));
+qed "Acts_drop_prog";
+Addsimps [Acts_drop_prog];
+
+Goal "F component G ==> lift_prog i F component lift_prog i G";
+by (full_simp_tac (simpset() addsimps [component_eq_subset]) 1);
+by Auto_tac;
+qed "lift_prog_mono";
+
+Goal "F component G ==> drop_prog i F component drop_prog i G";
+by (full_simp_tac (simpset() addsimps [component_eq_subset, drop_set_def]) 1);
+by Auto_tac;
+qed "drop_prog_mono";
+
+Goal "lift_prog i SKIP = SKIP";
+by (auto_tac (claset() addSIs [program_equalityI],
+	      simpset() addsimps [SKIP_def, lift_prog_def]));
+qed "lift_prog_SKIP";
+
+Goal "lift_prog i (F Join G) = (lift_prog i F) Join (lift_prog i G)";
+by (rtac program_equalityI 1);
+by (auto_tac (claset(), simpset() addsimps [Acts_Join]));
+qed "lift_prog_Join";
+
+Goal "lift_prog i (JOIN I F) = (JN j:I. lift_prog i (F j))";
+by (rtac program_equalityI 1);
+by (auto_tac (claset(), simpset() addsimps [Acts_JN]));
+qed "lift_prog_JN";
+
+Goal "drop_prog i SKIP = SKIP";
+by (auto_tac (claset() addSIs [program_equalityI],
+	      simpset() addsimps [SKIP_def, drop_set_def, drop_prog_def]));
+qed "drop_prog_SKIP";
 
 
 (** Injectivity of lift_set, lift_act, lift_prog **)
 
-Goalw [inj_on_def] "inj (lift_set i)";
-by (simp_tac (simpset() addsimps [lift_set_def]) 1);
-by (fast_tac (claset() addEs [equalityE]) 1);
+Goalw [lift_set_def, drop_set_def] "drop_set i (lift_set i F) = F";
+by Auto_tac;
+qed "lift_set_inverse";
+Addsimps [lift_set_inverse];
+
+Goal "inj (lift_set i)";
+by (rtac inj_on_inverseI 1);
+by (rtac lift_set_inverse 1);
 qed "inj_lift_set";
 
-Goalw [lift_act_def] "lift_act i x <= lift_act i y ==> x <= y";
+Goalw [lift_act_def, drop_act_def] "drop_act i (lift_act i act) = act";
 by Auto_tac;
-by (dres_inst_tac [("c", "((%s. a), (%s. a)(i:=b))")] subsetD 1);
+by (REPEAT_FIRST (resolve_tac [exI, conjI]));
 by Auto_tac;
-by (dres_inst_tac [("x", "i")] fun_cong 1);
-by Auto_tac;
-val lemma = result();
+qed "lift_act_inverse";
+Addsimps [lift_act_inverse];
 
-Goalw [inj_on_def] "inj (lift_act i)";
-by (blast_tac (claset() addEs [equalityE]
-	 	        addDs [lemma]) 1);
+Goal "inj (lift_act i)";
+by (rtac inj_on_inverseI 1);
+by (rtac lift_act_inverse 1);
 qed "inj_lift_act";
 
-Goal "insert Id (lift_act i `` Acts F) = (lift_act i `` Acts F)";
-by (rtac (image_eqI RS insert_absorb) 1);
-by (rtac Id_in_Acts 2);
-by (rtac (lift_act_Id RS sym) 1);
-qed "insert_Id_lift_act_eq";
+Goal "drop_prog i (lift_prog i F) = F";
+by (simp_tac (simpset() addsimps [lift_prog_def, drop_prog_def]) 1);
+by (rtac program_equalityI 1);
+by (simp_tac (simpset() addsimps [image_compose RS sym, o_def]) 2);
+by (Simp_tac 1);
+qed "lift_prog_inverse";
+Addsimps [lift_prog_inverse];
 
-Goalw [inj_on_def] "inj (lift_prog i)";
-by (simp_tac (simpset() addsimps [lift_prog_def]) 1);
-by Auto_tac;
-by (etac program_equalityE 1);
-by (full_simp_tac
-    (simpset() addsimps [insert_Id_lift_act_eq, inj_lift_set RS inj_eq,
-			 inj_lift_act RS inj_image_eq_iff]) 1);
-by (blast_tac (claset() addSIs [program_equalityI]) 1);
+Goal "inj (lift_prog i)";
+by (rtac inj_on_inverseI 1);
+by (rtac lift_prog_inverse 1);
 qed "inj_lift_prog";
-
 
 
 (** PPROD **)
@@ -88,7 +151,7 @@ AddIffs [lift_act_eq];
 
 Goal "Acts (PPROD I F) = insert Id (UN i:I. lift_act i `` Acts (F i))";
 by (auto_tac (claset(),
-	      simpset() addsimps [PPROD_def, Acts_lift_prog, Acts_JN]));
+	      simpset() addsimps [PPROD_def, Acts_JN]));
 qed "Acts_PPROD";
 
 Goal "PPROD {} F = SKIP";
@@ -96,8 +159,7 @@ by (simp_tac (simpset() addsimps [PPROD_def]) 1);
 qed "PPROD_empty";
 
 Goal "(PPI i: I. SKIP) = SKIP";
-by (auto_tac (claset() addSIs [program_equalityI],
-	      simpset() addsimps [Acts_lift_prog, SKIP_def, Acts_PPROD]));
+by (simp_tac (simpset() addsimps [PPROD_def,lift_prog_SKIP,JN_constant]) 1);
 qed "PPROD_SKIP";
 
 Addsimps [PPROD_SKIP, PPROD_empty];
@@ -115,12 +177,12 @@ qed "component_PPROD";
 
 (*** Safety: co, stable, invariant ***)
 
-(** 1st formulation of lifting **)
+(** Safety and lift_prog **)
 
 Goal "(lift_prog i F : (lift_set i A) co (lift_set i B))  =  \
 \     (F : A co B)";
 by (auto_tac (claset(), 
-	      simpset() addsimps [constrains_def, Acts_lift_prog]));
+	      simpset() addsimps [constrains_def]));
 by (Blast_tac 2);
 by (Force_tac 1);
 qed "lift_prog_constrains_eq";
@@ -129,13 +191,35 @@ Goal "(lift_prog i F : stable (lift_set i A)) = (F : stable A)";
 by (simp_tac (simpset() addsimps [stable_def, lift_prog_constrains_eq]) 1);
 qed "lift_prog_stable_eq";
 
-(*This one looks strange!  Proof probably is by case analysis on i=j.*)
+(*This one looks strange!  Proof probably is by case analysis on i=j.
+  If i~=j then lift_prog j (F j) does nothing to lift_set i, and the 
+  premise ensures A<=B.*)
 Goal "F i : A co B  \
 \     ==> lift_prog j (F j) : (lift_set i A) co (lift_set i B)";
 by (auto_tac (claset(), 
-	      simpset() addsimps [constrains_def, Acts_lift_prog]));
+	      simpset() addsimps [constrains_def]));
 by (REPEAT (Blast_tac 1));
 qed "constrains_imp_lift_prog_constrains";
+
+(** safety properties for program unit j hold trivially of unit i **)
+Goalw [constrains_def]
+     "[| i~=j;  A<= B|] ==> lift_prog i F : (lift_set j A) co (lift_set j B)";
+by Auto_tac;
+qed "neq_imp_lift_prog_constrains";
+
+Goalw [stable_def]
+     "i~=j ==> lift_prog i F : stable (lift_set j A)";
+by (blast_tac (claset() addIs [neq_imp_lift_prog_constrains]) 1);
+qed "neq_imp_lift_prog_stable";
+
+bind_thm ("neq_imp_lift_prog_Constrains",
+	  neq_imp_lift_prog_constrains RS constrains_imp_Constrains);
+
+bind_thm ("neq_imp_lift_prog_Stable",
+	  neq_imp_lift_prog_stable RS stable_imp_Stable);
+
+
+(** Safety and PPROD **)
 
 Goal "i : I ==>  \
 \     (PPROD I F : (lift_set i A) co (lift_set i B))  =  \
@@ -150,19 +234,18 @@ by (asm_simp_tac (simpset() addsimps [stable_def, PPROD_constrains]) 1);
 qed "PPROD_stable";
 
 
-(** 2nd formulation of lifting **)
+(** Safety, lift_prog + drop_set **)
 
 Goal "[| lift_prog i F : AA co BB |] \
-\     ==> F : (Applyall AA i) co (Applyall BB i)";
+\     ==> F : (drop_set i AA) co (drop_set i BB)";
 by (auto_tac (claset(), 
-	      simpset() addsimps [Applyall_def, constrains_def, 
-				  Acts_lift_prog]));
+	      simpset() addsimps [constrains_def, drop_set_def]));
 by (force_tac (claset() addSIs [rinst [("x", "?ff(i := ?u)")] image_eqI],
 	       simpset()) 1);
 qed "lift_prog_constrains_projection";
 
 Goal "[| PPROD I F : AA co BB;  i: I |] \
-\     ==> F i : (Applyall AA i) co (Applyall BB i)";
+\     ==> F i : (drop_set i AA) co (drop_set i BB)";
 by (rtac lift_prog_constrains_projection 1);
 (*rotate this assumption to be last*)
 by (dres_inst_tac [("psi", "PPROD I F : ?C")] asm_rl 1);
@@ -217,22 +300,22 @@ qed "PFUN_invariant";
 Goal "s : reachable F ==> f(i:=s) : reachable (lift_prog i F)";
 by (etac reachable.induct 1);
 by (force_tac (claset() addIs [reachable.Acts, ext], 
-	       simpset() addsimps [Acts_lift_prog]) 2);
+	       simpset()) 2);
 by (force_tac (claset() addIs [reachable.Init], simpset()) 1);
 qed "reachable_lift_progI";
 
 Goal "f : reachable (lift_prog i F) ==> f i : reachable F";
 by (etac reachable.induct 1);
-by (auto_tac (claset(), simpset() addsimps [Acts_lift_prog]));
+by Auto_tac;
 by (ALLGOALS (blast_tac (claset() addIs reachable.intrs)));
 qed "reachable_lift_progD";
 
 Goal "reachable (lift_prog i F) = lift_set i (reachable F)";
-auto();
-be reachable_lift_progD 1;
+by Auto_tac;
+by (etac reachable_lift_progD 1);
 ren "f" 1;
 by (dres_inst_tac [("f","f"),("i","i")] reachable_lift_progI 1);
-auto();
+by Auto_tac;
 qed "reachable_lift_prog";
 
 Goal "(lift_prog i F : (lift_set i A) Co (lift_set i B))  =  \
@@ -278,7 +361,7 @@ by (force_tac (claset() addIs [ext], simpset() addsimps [Acts_PPROD]) 1);
 by (eres_inst_tac [("xa","f")] reachable.induct 1);
 (*Init of PPROD F, action of F case*)
 by (res_inst_tac [("act","lift_act i act")] reachable.Acts 1);
-by (force_tac (claset(), simpset() addsimps [Acts_lift_prog, Acts_Join]) 1);
+by (force_tac (claset(), simpset() addsimps [Acts_Join]) 1);
 by (force_tac (claset() addIs [reachable.Init], simpset()) 1);
 by (force_tac (claset() addIs [ext], simpset() addsimps [lift_act_def]) 1);
 (*last case: an action of PPROD I F*)
@@ -316,16 +399,15 @@ by (auto_tac
      simpset() addsimps [Constrains_def, Collect_conj_eq RS sym,
 			 reachable_PPROD_eq]));
 by (auto_tac (claset(), 
-              simpset() addsimps [constrains_def, Acts_lift_prog, PPROD_def,
-                                  Acts_JN]));
+              simpset() addsimps [constrains_def, PPROD_def, Acts_JN]));
 by (REPEAT (blast_tac (claset() addIs reachable.intrs) 1));
 qed "Constrains_imp_PPROD_Constrains";
 
 Goal "[| ALL i:I. f0 i : R i;   i: I |] \
-\     ==> Applyall ({f. (ALL i:I. f i : R i)} Int lift_set i A) i = R i Int A";
+\     ==> drop_set i ({f. (ALL i:I. f i : R i)} Int lift_set i A) = R i Int A";
 by (force_tac (claset() addSIs [rinst [("x", "?ff(i := ?u)")] image_eqI],
-	       simpset() addsimps [Applyall_def, lift_set_def]) 1);
-qed "Applyall_Int_depend";
+	       simpset() addsimps [drop_set_def, lift_set_def]) 1);
+qed "drop_set_Int_depend";
 
 (*Again, we need the f0 premise so that PPROD I F has an initial state;
   otherwise its Co-property is vacuous.*)
@@ -338,7 +420,7 @@ by (blast_tac (claset() addIs [reachable.Init]) 2);
 by (dtac PPROD_constrains_projection 1);
 by (assume_tac 1);
 by (asm_full_simp_tac
-    (simpset() addsimps [Applyall_Int_depend, reachable_PPROD_eq]) 1);
+    (simpset() addsimps [drop_set_Int_depend, reachable_PPROD_eq]) 1);
 qed "PPROD_Constrains_imp_Constrains";
 
 
@@ -359,9 +441,9 @@ qed "PPROD_Stable";
 (** PFUN (no dependence on i) doesn't require the f0 premise **)
 
 Goal "i: I \
-\     ==> Applyall ({f. (ALL i:I. f i : R)} Int lift_set i A) i = R Int A";
-by (force_tac (claset(), simpset() addsimps [Applyall_def]) 1);
-qed "Applyall_Int";
+\     ==> drop_set i ({f. (ALL i:I. f i : R)} Int lift_set i A) = R Int A";
+by (force_tac (claset(), simpset() addsimps [drop_set_def]) 1);
+qed "drop_set_Int";
 
 Goal "[| (PPI x:I. F) : (lift_set i A) Co (lift_set i B);  \
 \        i: I;  finite I |]  \
@@ -370,7 +452,7 @@ by (full_simp_tac (simpset() addsimps [Constrains_eq_constrains]) 1);
 by (dtac PPROD_constrains_projection 1);
 by (assume_tac 1);
 by (asm_full_simp_tac
-    (simpset() addsimps [Applyall_Int, Collect_conj_eq RS sym,
+    (simpset() addsimps [drop_set_Int, Collect_conj_eq RS sym,
 			 reachable_PPROD_eq]) 1);
 qed "PFUN_Constrains_imp_Constrains";
 
@@ -390,7 +472,6 @@ qed "PFUN_Stable";
 
 (*** guarantees properties ***)
 
-
 Goal "drop_act i (lift_act i act) = act";
 by (force_tac (claset() addSIs [rinst [("x", "?ff(i := ?u)")] exI],
 	       simpset() addsimps [drop_act_def, lift_act_def]) 1);
@@ -398,24 +479,27 @@ qed "lift_act_inverse";
 Addsimps [lift_act_inverse];
 
 
-Goal "(lift_prog i F) Join G = lift_prog i H \
-\     ==> EX J. H = F Join J";
-by (etac program_equalityE 1);
-by (auto_tac (claset(), simpset() addsimps [Acts_lift_prog, Acts_Join]));
-by (res_inst_tac [("x", 
-		   "mk_program(Applyall(Init G) i, drop_act i `` Acts G)")] 
-    exI 1);
-by (rtac program_equalityI 1);
-(*Init*)
-by (simp_tac (simpset() addsimps [Applyall_def]) 1);
-(*Blast_tac can't do HO unification, needed to invent function states*)
-by (fast_tac (claset() addEs [equalityE]) 1);
-(*Now for the Actions*)
-by (dres_inst_tac [("f", "op `` (drop_act i)")] arg_cong 1);
-by (asm_full_simp_tac 
-    (simpset() addsimps [Acts_Join, image_Un, image_compose RS sym, o_def]) 1);
-qed "lift_prog_Join_eq_lift_prog_D";
+(*Because A and B could differ outside i, cannot generalize result to 
+   drop_set i (A Int B) = drop_set i A Int drop_set i B
+*)
+Goalw [lift_set_def, drop_set_def]
+     "drop_set i ((lift_set i A) Int B) = A Int (drop_set i B)";
+by Auto_tac;
+qed "drop_set_lift_set_Int";
 
+Goal "drop_prog i ((lift_prog i F) Join G) = F Join (drop_prog i G)";
+by (rtac program_equalityI 1);
+by (simp_tac (simpset() addsimps [Acts_Join, image_Un,
+				  image_compose RS sym, o_def]) 2);
+by (simp_tac (simpset() addsimps [drop_set_lift_set_Int]) 1);
+qed "drop_prog_lift_prog_Join";
+
+Goal "(lift_prog i F) Join G = lift_prog i H \
+\     ==> H = F Join (drop_prog i G)";
+by (dres_inst_tac [("f", "drop_prog i")] arg_cong 1);
+by (full_simp_tac (simpset() addsimps [drop_prog_lift_prog_Join]) 1);
+by (etac sym 1);
+qed "lift_prog_Join_eq_lift_prog_D";
 
 Goal "F : X guar Y \
 \     ==> lift_prog i F : (lift_prog i `` X) guar (lift_prog i `` Y)";
@@ -424,4 +508,16 @@ by Auto_tac;
 by (blast_tac (claset() addDs [lift_prog_Join_eq_lift_prog_D, guaranteesD]) 1);
 qed "lift_prog_guarantees";
 
+Goalw [PPROD_def]
+    "[| ALL i:I. F i : X guar Y |] \
+\    ==> (PPROD I F) : (INT i: I. lift_prog i `` X) \
+\                 guar (INT i: I. lift_prog i `` Y)";
+by (blast_tac (claset() addIs [guarantees_JN_INT, lift_prog_guarantees]) 1);
+qed "guarantees_PPROD_INT";
 
+Goalw [PPROD_def]
+    "[| ALL i:I. F i : X guar Y |] \
+\    ==> (PPROD I F) : (UN i: I. lift_prog i `` X) \
+\                 guar (UN i: I. lift_prog i `` Y)";
+by (blast_tac (claset() addIs [guarantees_JN_UN, lift_prog_guarantees]) 1);
+qed "guarantees_PPROD_UN";

@@ -10,8 +10,11 @@ PPROD = Union + Comp +
 
 constdefs
 
-  (**possible to force all acts to be included in common initial state
-      (by intersection) ??*)
+  lift_set :: "['a, 'b set] => ('a => 'b) set"
+    "lift_set i A == {f. f i : A}"
+
+  drop_set :: "['a, ('a=>'b) set] => 'b set"
+    "drop_set i A == (%f. f i) `` A"
 
   lift_act :: "['a, ('b*'b) set] => (('a=>'b) * ('a=>'b)) set"
     "lift_act i act == {(f,f'). EX s'. f' = f(i:=s') & (f i, s') : act}"
@@ -19,13 +22,15 @@ constdefs
   drop_act :: "['a, (('a=>'b) * ('a=>'b)) set] => ('b*'b) set"
     "drop_act i act == (%(f,f'). (f i, f' i)) `` act"
 
-  lift_set :: "['a, 'b set] => ('a => 'b) set"
-    "lift_set i A == {f. f i : A}"
-
   lift_prog :: "['a, 'b program] => ('a => 'b) program"
     "lift_prog i F ==
        mk_program (lift_set i (Init F),
 		   lift_act i `` Acts F)"
+
+  drop_prog :: "['a, ('a=>'b) program] => 'b program"
+    "drop_prog i F ==
+       mk_program (drop_set i (Init F),
+		   drop_act i `` (Acts F))"
 
   (*products of programs*)
   PPROD  :: ['a set, 'a => 'b program] => ('a => 'b) program
