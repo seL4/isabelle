@@ -17,6 +17,7 @@ sig
   val save: thm -> thm -> thm
   type T
   val make: bool -> thm -> string list -> (string * T) list
+  val make_raw: bool -> thm -> string list -> (string * T) list
   val rename_params: string list list -> thm -> thm
   val params: string list list -> 'a attribute
 end;
@@ -75,21 +76,30 @@ fun save thm = save_case_names thm o save_consumes thm;
 
 type T = {fixes: (string * typ) list, assumes: term list, binds: (indexname * term option) list};
 
-fun prep_case open_parms thm name i =
+local
+
+fun prep_case raw open_parms thm name i =
   let
     val (_, _, Bi, _) = Thm.dest_state (thm, i)
       handle THM _ => raise THM ("More cases than premises in rule", 0, [thm]);
     val xs = map (if open_parms then I else apfst Syntax.internal) (Logic.strip_params Bi);
     val asms = map (curry Term.list_abs xs) (Logic.strip_assums_hyp Bi);
-    val concl_bind = ((case_conclN, 0),
-      Some (Term.list_abs (xs, Logic.strip_assums_concl Bi)));
-  in (name, {fixes = xs, assumes = asms, binds = [concl_bind]}) end;
+    val concl = Term.list_abs (xs, Logic.strip_assums_concl Bi);
+    val bind = ((case_conclN, 0), Some (if raw then concl else AutoBind.drop_judgment concl));
+  in (name, {fixes = xs, assumes = asms, binds = [bind]}) end;
 
-fun make open_parms raw_thm names =
+fun gen_make raw open_parms raw_thm names =
   let val thm = Tactic.norm_hhf raw_thm in
-    #1 (foldr (fn (name, (cases, i)) => (prep_case open_parms thm name i :: cases, i - 1))
+    #1 (foldr (fn (name, (cases, i)) => (prep_case raw open_parms thm name i :: cases, i - 1))
       (Library.drop (length names - Thm.nprems_of thm, names), ([], Thm.nprems_of thm)))
   end;
+
+in
+
+val make = gen_make false;
+val make_raw = gen_make true;
+
+end;
 
 
 (* params *)
