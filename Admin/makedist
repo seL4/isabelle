@@ -156,6 +156,19 @@ perl -pi -e "s/the internal repository version of Isabelle/$DISTVERSION/" README
 lynx -dump README.html >README
 
 
+# prepare index.html
+
+perl -pi -e \
+ "s/{ISABELLE}/$DISTNAME/g; \
+  s/{PACKED_SIZE}/$PACKED_SIZE/g; \
+  s/{UNPACKED_SIZE}/$UNPACKED_SIZE/g; \
+  s/{AUTHOR}/$LOGNAME/g; \
+  s/{DATE}/$DATE/g;" \
+    ../index.html \
+    lib/html/index1.html \
+    lib/html/index2.html
+
+
 # create archive
 
 cd $DISTBASE
@@ -175,19 +188,6 @@ UNPACKED_SIZE=$[ $(wc -c <$DISTNAME.tar) / 1024 ]
 gzip $DISTNAME.tar
 
 PACKED_SIZE=$[ $(wc -c <$DISTNAME.tar.gz) / 1024 ]
-
-
-# prepare index.html
-
-perl -pi -e \
- "s/{ISABELLE}/$DISTNAME/g; \
-  s/{PACKED_SIZE}/$PACKED_SIZE/g; \
-  s/{UNPACKED_SIZE}/$UNPACKED_SIZE/g; \
-  s/{AUTHOR}/$LOGNAME/g; \
-  s/{DATE}/$DATE/g;" \
-    $DISTBASE/index.html \
-    $DISTBASE/$DISTNAME/lib/html/index1.html \
-    $DISTBASE/$DISTNAME/lib/html/index2.html
 
 
 # final note
