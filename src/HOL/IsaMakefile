@@ -389,8 +389,7 @@ $(LOG)/HOL-UNITY.gz: $(OUT)/HOL Library/Multiset.thy UNITY/ROOT.ML \
   UNITY/Simple/Network.thy\
   UNITY/Simple/Reach.thy UNITY/Simple/Reachability.thy UNITY/Simple/Token.thy\
   UNITY/Comp/Alloc.ML UNITY/Comp/Alloc.thy \
-  UNITY/Comp/AllocBase.thy \
-  UNITY/Comp/Client.ML UNITY/Comp/Client.thy \
+  UNITY/Comp/AllocBase.thy UNITY/Comp/AllocImpl.thy UNITY/Comp/Client.thy \
   UNITY/Comp/Counter.thy UNITY/Comp/Counterc.thy UNITY/Comp/Handshake.thy \
   UNITY/Comp/PriorityAux.thy \
   UNITY/Comp/Priority.thy UNITY/Comp/Progress.thy \
