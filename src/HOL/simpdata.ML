@@ -82,7 +82,7 @@ in
 val iff_add_global = change_global_css (op addIffs);
 val iff_add_local = change_local_css (op addIffs);
 
-val simpdata_setup =
+val iff_attrib_setup =
   [Attrib.add_attributes [("iff", (Attrib.no_args iff_add_global, Attrib.no_args iff_add_local),
     "add rules to simpset and claset simultaneously")]];
 
