@@ -1,11 +1,11 @@
 (*  Title:      HOL/Library/Ring_and_Field.thy
     ID:         $Id$
-    Author:     Gertrud Bauer, TU Muenchen
+    Author:     Gertrud Bauer and Markus Wenzel, TU Muenchen
 *)
 
 header {*
   \title{Ring and field structures}
-  \author{Gertrud Bauer}
+  \author{Gertrud Bauer and Markus Wenzel}
 *}
 
 theory Ring_and_Field = Main: 
