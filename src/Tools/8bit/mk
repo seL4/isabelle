@@ -2,10 +2,13 @@
 #
 # $Id$
 #
-# mk - build 8bit.
+# mk - build 8bit
 #
 # Assumes to be called with current directory 'Tools/8bit'
 
-export ISABELLE8BIT=$(pwd)
+export ISABELLE8BIT=$PWD
+
+mkdir -p bin
 touch Makefile
+
 gmake
