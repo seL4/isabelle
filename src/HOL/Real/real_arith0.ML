@@ -71,6 +71,12 @@ val real_arith_setup =
   arith_discrete ("RealDef.real",false),
   Simplifier.change_simpset_of (op addsimprocs) [fast_real_arith_simproc]];
 
+(* some thms for injection nat => real:
+real_of_nat_zero
+zero_eq_numeral_0
+real_of_nat_add
+*)
+
 end;
 
 
