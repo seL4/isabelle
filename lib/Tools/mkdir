@@ -198,9 +198,16 @@ if [ -n "$DOCUMENT" ]; then
 \isabellestyle{it}
 
 \begin{document}
+
 \title{$NAME}\maketitle
 \tableofcontents
+
+\parindent 0pt\parskip 0.5ex
 \input{session}
+
+%\bibliographystyle{plain}
+%\bibliography{root}
+
 \end{document}
 
 EOF
