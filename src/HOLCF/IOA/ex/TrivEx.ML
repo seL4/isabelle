@@ -22,9 +22,8 @@ by (REPEAT (rtac allI 1));
 by (rtac imp_conj_lemma 1);
 by (simp_tac (simpset() addsimps [trans_of_def,
         C_ioa_def,A_ioa_def,C_trans_def,A_trans_def])1);
-by (simp_tac (simpset() addsimps [h_abs_def]) 1);
 by (induct_tac "a" 1);
-by Auto_tac;
+by (simp_tac (simpset() addsimps [h_abs_def]) 1);
 qed"h_abs_is_abstraction";
 
 

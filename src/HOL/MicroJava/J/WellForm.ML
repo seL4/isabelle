@@ -33,10 +33,7 @@ qed "subcls1_wfD";
 val wf_cdecl_supD = prove_goalw thy [wf_cdecl_def] 
 "\\<And>X. \\<lbrakk>wf_cdecl wf_mb G (C, sc, r); C \\<noteq> Object\\<rbrakk> \\<Longrightarrow> \\<exists>D. sc = Some D \\<and> is_class G D" (K [
 	pair_tac "r" 1,
-	Asm_full_simp_tac 1,
-	strip_tac1 1,
-	option_case_tac 1,
-	Fast_tac 1]);
+	asm_full_simp_tac (simpset() addsplits [option.split_asm]) 1]);
 
 Goal "\\<lbrakk>wf_prog wf_mb G; (C,D)\\<in>(subcls1 G)^+\\<rbrakk> \\<Longrightarrow> \\<not>(D,C)\\<in>(subcls1 G)^+";
 by(etac tranclE 1);

@@ -106,7 +106,7 @@ qed_spec_mp "primel_prod_gz";
 Goal "nondec xs --> nondec (oinsert x xs)";
 by (induct_tac "xs" 1);
 by (case_tac "list" 2);
-by (ALLGOALS (Asm_full_simp_tac));
+by (ALLGOALS(asm_full_simp_tac (simpset()delcongs[thm"list.weak_case_cong"])));
 qed_spec_mp "nondec_oinsert";
 
 Goal "nondec (sort xs)";

@@ -13,8 +13,6 @@ qed "getlocs_def2";
 Goalw [update_def] "s[Loc Y::=s<Y>] = s";
 by (induct_tac "s" 1);
 by (simp_tac (simpset() addsimps [getlocs_def2]) 1);
-br ext 1;
-by (Simp_tac 1);
 qed "update_Loc_idem2";
 Addsimps[update_Loc_idem2];
 
