@@ -78,7 +78,7 @@ $(LOG)/HOL-Datatype.gz: $(OUT)/HOL Datatype/ROOT.ML Datatype/ABexpr.thy \
 
 HOL-Trie: HOL $(LOG)/HOL-Trie.gz
 
-$(LOG)/HOL-Trie.gz: $(OUT)/HOL Trie/Option2.thy Trie/Trie.thy
+$(LOG)/HOL-Trie.gz: $(OUT)/HOL Trie/ROOT.ML Trie/Trie.thy
 	@$(ISATOOL) usedir -i true -d dvi -D document $(OUT)/HOL Trie
 	@rm -f tutorial.dvi
 
@@ -154,8 +154,8 @@ $(LOG)/HOL-Types.gz: $(OUT)/HOL Types/ROOT.ML Types/Pairs.thy \
 HOL-Misc: HOL $(LOG)/HOL-Misc.gz
 
 $(LOG)/HOL-Misc.gz: $(OUT)/HOL Misc/ROOT.ML Misc/Tree.thy Misc/Tree2.thy \
-  Misc/fakenat.thy Misc/natsum.thy Misc/pairs.thy Misc/types.thy \
-  Misc/prime_def.thy Misc/case_exprs.thy \
+  Misc/fakenat.thy Misc/natsum.thy Misc/pairs.thy Misc/Option2.thy \
+  Misc/types.thy Misc/prime_def.thy Misc/case_exprs.thy \
   Misc/simp.thy Misc/Itrev.thy Misc/AdvancedInd.thy
 	@$(ISATOOL) usedir -i true -d dvi -D document $(OUT)/HOL Misc
 	@rm -f tutorial.dvi

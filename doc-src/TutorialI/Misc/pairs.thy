@@ -1,8 +1,7 @@
 (*<*)
 theory pairs = Main:;
 (*>*)
-text{*\label{sec:pairs}\indexbold{product type}
-\index{pair|see{product type}}\index{tuple|see{product type}}
+text{*\label{sec:pairs}\indexbold{pair}
 HOL also has pairs: \isa{($a@1$,$a@2$)} is of type $\tau@1$
 \indexboldpos{\isasymtimes}{$Isatype} $\tau@2$ provided each $a@i$ is of type
 $\tau@i$. The components of a pair are extracted by \isaindexbold{fst} and

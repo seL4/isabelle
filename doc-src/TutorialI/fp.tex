@@ -244,6 +244,10 @@ A more general method for defining total recursive functions is introduced in
 \subsection{Pairs}
 \input{Misc/document/pairs.tex}
 
+\subsection{Datatype \emph{\texttt{option}}}
+\label{sec:option}
+\input{Misc/document/Option2.tex}
+
 \section{Definitions}
 \label{sec:Definitions}
 
@@ -388,6 +392,7 @@ called HOLCF~\cite{MuellerNvOS99}.
 \index{*datatype|)}
 
 \subsection{Case study: Tries}
+\label{sec:Trie}
 
 Tries are a classic search tree data structure~\cite{Knuth3-75} for fast
 indexing with strings. Figure~\ref{fig:trie} gives a graphical example of a
@@ -436,12 +441,8 @@ update function, and prove that they behave as expected.
 
 Proper tries associate some value with each string. Since the
 information is stored only in the final node associated with the string, many
-nodes do not carry any value. This distinction is captured by the
-following predefined datatype (from theory \isa{Option}, which is a parent
-of \isa{Main}):
-\smallskip
-\input{Trie/document/Option2.tex}
-\indexbold{*option}\indexbold{*None}\indexbold{*Some}%
+nodes do not carry any value. This distinction is modeled with the help
+of the predefined datatype \isa{option} (see {\S}\ref{sec:option}).
 \input{Trie/document/Trie.tex}
 
 \begin{exercise}

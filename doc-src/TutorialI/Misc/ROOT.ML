@@ -5,6 +5,7 @@ use_thy "case_exprs";
 use_thy "fakenat";
 use_thy "natsum";
 use_thy "pairs";
+use_thy "Option2";
 use_thy "types";
 use_thy "prime_def";
 use_thy "simp";
