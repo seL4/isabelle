@@ -262,8 +262,8 @@ fun use_thy name =
          else (writeln ("Reading \"" ^ name ^ ".ML\"");
                use ml_file);
 
-         use_string ("store_theory " ^ quote thy_name ^ " " 
-                     ^ thy_name ^ ".thy");
+         use_string ["store_theory " ^ quote thy_name ^ " " ^ thy_name 
+                     ^ ".thy;"];
 
          (*Now set the correct info*)
          set_info (file_info thy_file) (file_info ml_file) thy_name;
