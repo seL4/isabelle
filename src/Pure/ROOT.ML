@@ -7,7 +7,7 @@ Root file for Pure Isabelle.
 *)
 
 val banner = "Pure Isabelle";
-val version = "Isabelle repository";
+val version = "Isabelle repository version";    (*filled in automatically!*)
 
 print_depth 1;
 
