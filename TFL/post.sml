@@ -184,7 +184,6 @@ struct
  (*Strip off the outer !P*)
  val spec'= read_instantiate [("x","P::?'b=>bool")] spec;
 
- (*this function could be combined with define_i --lcp*)
  fun simplify_defn (ss, tflCongs) (thy,(id,pats)) =
     let val dummy = deny (id mem (Sign.stamp_names_of (Theory.sign_of thy)))
 			 ("Recursive definition " ^ id ^ 
@@ -222,7 +221,7 @@ struct
 
  fun define thy fid R ss_congs seqs = 
    let val _ =  writeln ("Recursive function " ^ fid)
-       val read = readtm (Theory.sign_of thy) (TVar(("DUMMY",0),[])) 
+       val read = readtm (Theory.sign_of thy) HOLogic.termT;
    in  define_i thy fid (read R) ss_congs (map read seqs)  end
    handle Utils.ERR {mesg,...} => error mesg;
 
@@ -255,7 +254,7 @@ struct
   end
 
  fun defer thy fid congs seqs = 
-   let val read = readtm (Theory.sign_of thy) (TVar(("DUMMY",0),[]))
+   let val read = readtm (Theory.sign_of thy) HOLogic.termT;
    in  defer_i thy fid congs (map read seqs)  end
    handle Utils.ERR {mesg,...} => error mesg;
  end;
