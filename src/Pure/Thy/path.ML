@@ -36,6 +36,7 @@ fun absolute (Path ("/" :: _)) = true
   | absolute _ = false;
 
 fun base (Path []) = ""
+  | base (Path ["/"]) = ""
   | base (Path xs) = snd (split_last xs);
 
 
