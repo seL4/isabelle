@@ -16,8 +16,7 @@ setmp print_mode ["Eindhoven"] pr ();
 (*actually invoke the model checker*)
 by (mc_tac 1);
 
-qed "reach_ex_thm1";
-
+(*qed "reach_ex_thm1";*)
 
 
 
