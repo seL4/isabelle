@@ -1111,11 +1111,10 @@ local
 
 fun intro_elim_tac netpair_of res_tac rules cs facts =
   let
-    val single_tac =
+    val tac =
       if null rules then FIRST' (map (biresolve_from_nets_tac o netpair_of) (get_nets cs))
       else res_tac rules;
-    fun multi_tac st = (single_tac THEN_ALL_NEW (TRY o (fn st => multi_tac st))) st;
-  in Method.insert_tac facts THEN' multi_tac end;
+  in Method.insert_tac facts THEN' REPEAT_ALL_NEW tac end;
 
 val intro_tac = intro_elim_tac (fn (inet, _) => (inet, Net.empty)) resolve_tac;
 val elim_tac = intro_elim_tac (fn (_, enet) => (Net.empty, enet)) eresolve_tac;
