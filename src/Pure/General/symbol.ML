@@ -10,6 +10,7 @@ signature SYMBOL =
 sig
   type symbol
   val space: symbol
+  val spaces: int -> symbol
   val sync: symbol
   val is_sync: symbol -> bool
   val not_sync: symbol -> bool
@@ -34,13 +35,15 @@ sig
     (symbol, (string, 'a) Source.source) Source.source
   val explode: string -> symbol list
   val input: string -> string
-  val add_mode: string -> (string -> string * real) -> unit
+  val default_indent: string * int -> string
+  val add_mode: string -> (string -> string * real) * (string * int -> string) -> unit
   val isabelle_fontN: string
   val symbolsN: string
   val xsymbolsN: string
   val plain_output: string -> string
   val output: string -> string
   val output_width: string -> string * real
+  val indent: string * int -> string
 end;
 
 structure Symbol: SYMBOL =
@@ -62,6 +65,7 @@ struct
 type symbol = string;
 
 val space = " ";
+fun spaces k = Library.replicate_string k space;
 val sync = "\\<^sync>";
 val malformed = "\\<^malformed>";
 val eof = "";
@@ -314,7 +318,7 @@ fun input str =
 
 (** symbol output **)
 
-(* default_output *)
+(* default *)
 
 fun string_size s = (s, real (size s));
 
@@ -322,12 +326,16 @@ fun default_output s =
   if not (exists_string (equal "\\") s) then string_size s
   else string_size (implode (map (fn "\\" => "\\\\" | c => c) (explode s)));    (*sic!*)
 
+fun default_indent (_: string, k) = spaces k;
 
-(* isabelle_font_output *)
+
+(* isabelle_font *)
 
 fun isabelle_font_output s =
   let val cs = sym_explode s
   in (implode (map char cs), real (sym_length cs)) end;
+
+val isabelle_font_indent = default_indent;
 
 
 (* maintain modes *)
@@ -336,25 +344,26 @@ val isabelle_fontN = "isabelle_font";
 val symbolsN = "symbols";
 val xsymbolsN = "xsymbols";
 
-val modes = ref (Symtab.make [(isabelle_fontN, isabelle_font_output)]);
+val modes = ref (Symtab.make [(isabelle_fontN, (isabelle_font_output, isabelle_font_indent))]);
 
 fun lookup_mode name = Symtab.lookup (! modes, name);
 
-fun add_mode name f =
+fun add_mode name m =
  (if is_none (lookup_mode name) then ()
   else warning ("Redeclaration of symbol print mode " ^ quote name);
-  modes := Symtab.update ((name, f), ! modes));
+  modes := Symtab.update ((name, m), ! modes));
+
+fun get_mode () =
+  if_none (get_first lookup_mode (! print_mode)) (default_output, default_indent);
 
 
 (* mode output *)
 
-fun output_width s =
-  (case get_first lookup_mode (! print_mode) of
-    None => default_output s
-  | Some f => f s);
-
+fun output_width x = #1 (get_mode ()) x;
 val output = #1 o output_width;
 val plain_output = #1 o default_output;
+
+fun indent x = #2 (get_mode ()) x;
 
 
 (*final declarations of this structure!*)
