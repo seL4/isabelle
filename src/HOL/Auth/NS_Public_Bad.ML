@@ -150,7 +150,7 @@ qed "Spy_not_see_NA";
 (*Authentication for A: if she receives message 2 and has used NA
   to start a run, then B has sent message 2.*)
 goal thy 
- "!!evs. [| Says A B (Crypt (pubK B) {|Nonce NA, Agent A|}) : set evs;  \
+ "!!evs. [| Says A  B (Crypt(pubK B) {|Nonce NA, Agent A|}) : set evs;  \
 \           Says B' A (Crypt(pubK A) {|Nonce NA, Nonce NB|}): set evs;  \
 \           A ~: bad;  B ~: bad;  evs : ns_public |]                    \
 \        ==> Says B A (Crypt(pubK A) {|Nonce NA, Nonce NB|}): set evs";
