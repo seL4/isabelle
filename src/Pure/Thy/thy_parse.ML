@@ -213,8 +213,10 @@ val infxl = "infixl" $$-- !! nat >> cat "Infixl";
 val infxr = "infixr" $$-- !! nat >> cat "Infixr";
 
 val binder = "binder" $$--
-  !! (string -- optional ("[" $$-- nat --$$ "]") "0" -- nat)
-  >> (cat "Binder" o mk_triple1);
+  !! (string -- ( ("[" $$-- nat --$$ "]") -- nat
+                || nat >> (fn n => (n,n))
+     )          )
+  >> (cat "Binder" o mk_triple2);
 
 val opt_pris = optional ("[" $$-- !! (list nat --$$ "]")) [] >> mk_list;
 
