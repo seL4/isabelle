@@ -206,7 +206,7 @@ end;
 
 local structure P = OuterParse and K = OuterSyntax.Keyword in
 
-val old_undoP =	(* FIXME same name for compatibility with PG/Isabelle99 *)
+val old_undoP = (* FIXME same name for compatibility with PG/Isabelle99 *)
   OuterSyntax.improper_command "undo" "undo last command (no output)" K.control
     (Scan.succeed (Toplevel.no_timing o IsarCmd.undo));
 
@@ -258,7 +258,9 @@ fun init isar =
   setup_thy_loader ();
   print_mode := [proof_generalN];
   set quick_and_dirty;
-  ml_prompts ("> " ^ oct_char "372") ("- " ^ oct_char "373");
+  ThmDeps.enable ();
+  if isar then ml_prompts "ML> " "ML# "
+  else ml_prompts ("> " ^ oct_char "372") ("- " ^ oct_char "373");
   if isar then Isar.sync_main () else isa_restart ());
 
 
