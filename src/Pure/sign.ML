@@ -85,6 +85,7 @@ sig
   val certify_sort: sg -> sort -> sort
   val certify_typ: sg -> typ -> typ
   val certify_typ_no_norm: sg -> typ -> typ
+  val typ_instance: sg -> typ * typ -> bool
   val certify_term: sg -> term -> term * typ * int
   val read_sort: sg -> string -> sort
   val read_raw_typ: sg * (indexname -> sort option) -> string -> typ
@@ -176,8 +177,8 @@ datatype sg =
     data: data}                                 (*anytype data*)
 and data =
   Data of
-    (Object.kind *				(*kind (for authorization)*)
-      (Object.T *				(*value*)
+    (Object.kind *                              (*kind (for authorization)*)
+      (Object.T *                               (*value*)
         ((Object.T -> Object.T) *               (*prepare extend method*)
           (Object.T -> Object.T) *              (*copy method*)
           (Object.T * Object.T -> Object.T) *   (*merge and prepare extend method*)
@@ -297,8 +298,8 @@ fun err_dup_init sg kind =
   error ("Duplicate initialization of " ^ quote kind ^ " data" ^ of_theory sg);
 
 fun err_uninit sg kind =
-  error ("Tried to access uninitialized " ^ quote kind ^ " data" ^ 
-	 of_theory sg);
+  error ("Tried to access uninitialized " ^ quote kind ^ " data" ^
+         of_theory sg);
 
 (*Trying to access theory data using get / put operations from a different
   instance of the TheoryDataFun result.  Typical cure: re-load all files*)
@@ -595,6 +596,7 @@ val certify_class = Type.cert_class o tsig_of;
 val certify_sort = Type.cert_sort o tsig_of;
 val certify_typ = Type.cert_typ o tsig_of;
 val certify_typ_no_norm = Type.cert_typ_no_norm o tsig_of;
+fun typ_instance sg (T, U) = Type.typ_instance (tsig_of sg, T, U);
 
 
 (* certify_term *)
@@ -652,10 +654,10 @@ fun type_check sg tm =
 
     fun err_appl why bs t T u U =
       let
-        val xs = map Free bs;		(*we do not rename here*)
+        val xs = map Free bs;           (*we do not rename here*)
         val t' = subst_bounds (xs, t);
         val u' = subst_bounds (xs, u);
-        val text = cat_lines(TypeInfer.appl_error prt prT why t' T u' U);
+        val text = cat_lines (TypeInfer.appl_error prt prT why t' T u' U);
       in raise TYPE (text, [T, U], [t', u']) end;
 
     fun typ_of (_, Const (_, T)) = T
@@ -686,7 +688,7 @@ fun certify_term sg tm =
         (case const_type sg a of
           None => ("Undeclared constant " ^ show_const a T) :: errs
         | Some U =>
-            if Type.typ_instance (tsig, T, U) then errs
+            if typ_instance sg (T, U) then errs
             else ("Illegal type for constant " ^ show_const a T) :: errs)
       | atom_err (errs, Var ((x, i), _)) =
           if i < 0 then ("Negative index for Var " ^ quote x) :: errs else errs
@@ -735,7 +737,7 @@ fun infer_types_simult sg def_type def_sort used freeze args =
     val errs = mapfilter get_error err_results;
     val results = mapfilter get_ok err_results;
 
-    val ambiguity = length termss;	(* FIXME !? *)
+    val ambiguity = length termss;      (* FIXME !? *)
     (* FIXME to syntax.ML!? *)
     fun ambig_msg () =
       if ambiguity > 1 andalso ambiguity <= ! Syntax.ambiguity_level
@@ -956,7 +958,7 @@ fun ext_path (syn, tsig, ctab, (path, spaces), data) elems =
       else path @ NameSpace.unpack elems;
   in
     (syn, tsig, ctab, (path', spaces), data)
-  end;      
+  end;
 
 
 (* change name space *)
@@ -1028,7 +1030,7 @@ fun prep_ext sg       = extend_sign false K "#" () sg;
 
 
 
-(** merge signatures **)    	(*exception TERM*)
+(** merge signatures **)        (*exception TERM*)
 
 (* merge_stamps *)
 
@@ -1056,7 +1058,7 @@ fun merge_refs (sgr1 as SgRef (Some (ref (sg1 as Sg ({stamps = s1, ...}, _)))),
 val merge = deref o merge_refs o pairself self_ref;
 
 
-(* proper merge *)		(*exception TERM/ERROR*)
+(* proper merge *)              (*exception TERM/ERROR*)
 
 fun nontriv_merge (sg1, sg2) =
   if subsig (sg2, sg1) then sg1
