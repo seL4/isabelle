@@ -43,6 +43,12 @@ expressions;
 * HOL/GroupTheory: group theory examples including Sylow's theorem, by
 Florian Kammüller;
 
+* HOL: eliminated global items
+
+  const "()" -> "Product_Type.Unity"
+  type "unit" -> "Product_Type.unit"
+
+
 
 *** ZF ***
 
