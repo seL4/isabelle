@@ -674,7 +674,7 @@ val insts_var =
 fun inst_args_var f src ctxt = f ctxt (#2 (syntax (Args.goal_spec HEADGOAL -- insts_var) src ctxt));
 
 fun goal_args' args tac src ctxt = #2 (syntax (Args.goal_spec HEADGOAL -- args >>
-  (fn (quant, s) => SIMPLE_METHOD' quant ( (*K (impose_hyps_tac ctxt) THEN' *) tac s))) src ctxt);
+  (fn (quant, s) => SIMPLE_METHOD' quant (tac s))) src ctxt);
 
 fun goal_args args tac = goal_args' (Scan.lift args) tac;
 

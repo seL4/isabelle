@@ -821,8 +821,13 @@ fun finish_global state =
     val ts = flat tss;
     val locale_results = map (ProofContext.export_standard [] goal_ctxt locale_ctxt)
       (prep_result state ts raw_thm);
+
+    val locale_results' = map
+      (Locale.prune_prems (ProofContext.theory_of locale_ctxt))
+      locale_results;
+
     val results = map (Drule.strip_shyps_warning o
-      ProofContext.export_standard view locale_ctxt theory_ctxt) locale_results;
+      ProofContext.export_standard view locale_ctxt theory_ctxt) locale_results';
 
     val (theory', results') =
       theory_of state
@@ -830,7 +835,7 @@ fun finish_global state =
         if length names <> length loc_attss then
           raise THEORY ("Bad number of locale attributes", [thy])
         else (thy, locale_ctxt)
-          |> Locale.add_thmss loc ((names ~~ Library.unflat tss locale_results) ~~ loc_attss)
+          |> Locale.add_thmss loc ((names ~~ Library.unflat tss locale_results') ~~ loc_attss)
           |> (fn ((thy', ctxt'), res) =>
             if name = "" andalso null loc_atts then thy'
             else (thy', ctxt')
