@@ -16,10 +16,10 @@ datatype 'a rexp = Empty
 
 consts lang :: 'a rexp => 'a list set
 primrec
-lang_Emp  "lang Empty = {}"
-lang_Atom "lang (Atom a) = {[a]}"
-lang_Un   "lang (Union el er) = (lang el) Un (lang er)"
-lang_Conc "lang (Conc el er) = RegSet.conc (lang el) (lang er)"
-lang_Star "lang (Star e) = RegSet.star(lang e)"
+"lang Empty = {}"
+"lang (Atom a) = {[a]}"
+"lang (Union el er) = (lang el) Un (lang er)"
+"lang (Conc el er) = RegSet.conc (lang el) (lang er)"
+"lang (Star e) = RegSet.star(lang e)"
 
 end

@@ -346,31 +346,6 @@ qed "fin_steps_plusI";
 Goal
  "!r. (start A,r) : steps (plus A) w --> \
 \     (? us v. w = concat us @ v & \
-\              (!u:set us. u ~= [] & accepts A u) & \
-\              (start A,r) : steps A v)";
-by (rev_induct_tac "w" 1);
- by (Simp_tac 1);
- by (res_inst_tac [("x","[]")] exI 1);
- by (Simp_tac 1);
-by (Simp_tac 1);
-by (Clarify_tac 1);
-by (etac allE 1 THEN mp_tac 1);
-by (Clarify_tac 1);
-by (etac disjE 1);
- by (res_inst_tac [("x","us")] exI 1);
- by (Asm_simp_tac 1);
- by (Blast_tac 1);
-by (case_tac "v" 1);
- by (res_inst_tac [("x","us")] exI 1);
- by (Asm_full_simp_tac 1);
-by (res_inst_tac [("x","us@[v]")] exI 1);
-by (asm_full_simp_tac (simpset() addsimps [accepts_conv_steps]) 1);
-by (Blast_tac 1);
-qed_spec_mp "start_steps_plusD";
-
-Goal
- "!r. (start A,r) : steps (plus A) w --> \
-\     (? us v. w = concat us @ v & \
 \              (!u:set us. accepts A u) & \
 \              (start A,r) : steps A v)";
 by (rev_induct_tac "w" 1);
