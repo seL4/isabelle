@@ -135,20 +135,19 @@ fun get_filenames path name =
             if hd (explode file) = "/" then file else tack_on (pwd ()) file;
 
       fun new_filename () =
-        let val thyl = to_lower name;
-            val found = find_file path (thyl ^ ".thy")
+        let val found = find_file path (name ^ ".thy")
                         handle FILE_NOT_FOUND => "";
             val thy_file = make_absolute found;
             val (thy_path, _) = split_filename thy_file;
-            val found = find_file path (thyl ^ ".ML");
+            val found = find_file path (name ^ ".ML");
             val ml_file = if thy_file = "" then make_absolute found
-                          else if file_exists (tack_on thy_path (thyl ^ ".ML"))
-                          then tack_on thy_path (thyl ^ ".ML")
+                          else if file_exists (tack_on thy_path (name ^ ".ML"))
+                          then tack_on thy_path (name ^ ".ML")
                           else "";
             val searched_dirs = if path = "" then (!loadpath) else [path]
         in if thy_file = "" andalso ml_file = "" then
-             error ("Could not find file \"" ^ (to_lower name) ^ ".thy\" or \""
-                    ^ (to_lower name) ^ ".ML\" for theory \"" ^ name ^ "\"\n"
+             error ("Could not find file \"" ^ name ^ ".thy\" or \""
+                    ^ name ^ ".ML\" for theory \"" ^ name ^ "\"\n"
                     ^ "in the following directories: \"" ^
                     (space_implode "\", \"" searched_dirs) ^ "\"")
            else ();
@@ -157,13 +156,12 @@ fun get_filenames path name =
 
       val thy = get_thyinfo name
   in if is_some thy andalso path = "" then
-       let val thyl = to_lower name;
-           val ThyInfo {path = abs_path, ...} = the thy;
+       let val ThyInfo {path = abs_path, ...} = the thy;
            val (thy_file, ml_file) = if abs_path = "" then new_filename ()
-                                     else (find_file abs_path (thyl ^ ".thy"),
-                                           find_file abs_path (thyl ^ ".ML"))
+                                     else (find_file abs_path (name ^ ".thy"),
+                                           find_file abs_path (name ^ ".ML"))
        in if thy_file = "" andalso ml_file = "" then
-            (writeln ("Warning: File \"" ^ (tack_on path thyl)
+            (writeln ("Warning: File \"" ^ (tack_on path name)
                       ^ ".thy\"\ncontaining theory \"" ^ name
                       ^ "\" no longer exists.");
              new_filename ()
@@ -216,7 +214,6 @@ fun mark_outdated thy =
   If a theory changed since its last use its children are marked as changed *)
 fun use_thy name =
     let val (path, thy_name) = split_filename name;
-        val thyl = to_lower thy_name;
         val (thy_file, ml_file) = get_filenames path thy_name;
         val (abs_path, _) = if thy_file = "" then split_filename ml_file
                             else split_filename thy_file;
@@ -253,13 +250,13 @@ fun use_thy name =
        else
        (
          if thy_uptodate orelse thy_file = "" then ()
-         else (writeln ("Reading \"" ^ thyl ^ ".thy\"");
-               read_thy thyl thy_file;
-               use (out_name thyl)
+         else (writeln ("Reading \"" ^ name ^ ".thy\"");
+               read_thy thy_name thy_file;
+               use (out_name thy_name)
               );
 
          if ml_file = "" then () 
-         else (writeln ("Reading \"" ^ thyl ^ ".ML\"");
+         else (writeln ("Reading \"" ^ name ^ ".ML\"");
                use ml_file);
 
          let val outstream = open_out ".tmp.ML"
@@ -280,7 +277,7 @@ fun use_thy name =
          (*Remove temporary files*)
          if not (!delete_tmpfiles) orelse (thy_file = "") orelse thy_uptodate 
            then ()
-         else delete_file (out_name thyl);
+         else delete_file (out_name name);
          delete_file ".tmp.ML"
         )
     end;
