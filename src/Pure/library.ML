@@ -12,6 +12,8 @@ infix |> ~~ \ \\ ins ins_string ins_int orf andf prefix upto downto
   mem mem_int mem_string union union_int union_string inter inter_int
   inter_string subset subset_int subset_string;
 
+infix 3 oo ooo;
+
 signature LIBRARY =
 sig
   (*functions*)
@@ -23,6 +25,8 @@ sig
   val apl: 'a * ('a * 'b -> 'c) -> 'b -> 'c
   val apr: ('a * 'b -> 'c) * 'b -> 'a -> 'c
   val funpow: int -> ('a -> 'a) -> 'a -> 'a
+  val oo: ('a -> 'b) * ('c -> 'd -> 'a) -> 'c -> 'd -> 'b
+  val ooo: ('a -> 'b) * ('c -> 'd -> 'e -> 'a) -> 'c -> 'd -> 'e -> 'b
 
   (*stamps*)
   type stamp
@@ -268,6 +272,9 @@ fun funpow n f x =
         | rep (n, x) = rep (n - 1, f x)
   in rep (n, x) end;
 
+(*concatenation: 2 and 3 args*)
+fun (f oo g) x y = f (g x y);
+fun (f ooo g) x y z = f (g x y z);
 
 
 (** stamps **)
