@@ -212,11 +212,16 @@ New in this Isabelle release
   Function 'Summation' over nat is gone, its syntax '\<Sum>i<k. e'
   now translates into 'setsum' as above.
 
-* HOL/Simplifier: Is now set up to reason about transitivity chains
-  involving "trancl" (r^+) and "rtrancl" (r^*) by setting up tactics
-  provided by Provers/trancl.ML as additional solvers.
-  INCOMPATIBILITY: old proofs break occasionally as simplification may
-  now solve more goals than previously.
+* HOL/Simplifier:
+
+  - Is now set up to reason about transitivity chains involving "trancl"
+  (r^+) and "rtrancl" (r^*) by setting up tactics provided by
+  Provers/trancl.ML as additional solvers.  INCOMPATIBILITY: old proofs break
+  occasionally as simplification may now solve more goals than previously.
+
+  - Converts x <= y into x = y if assumption y <= x is present.  Works for
+  all partial orders (class "order"), in particular numbers and sets. For
+  linear orders (e.g. numbers) it treats ~ x < y just like y <= x.
 
 * HOL: new 'isatool dimacs2hol' to convert files in DIMACS CNF format
   (containing Boolean satisfiability problems) into Isabelle/HOL theories.
