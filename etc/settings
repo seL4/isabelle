@@ -61,7 +61,7 @@ ISABELLE_PDFLATEX="pdflatex"
 ISABELLE_BIBTEX="bibtex"
 ISABELLE_DVIPS="dvips -D 600"
 
-# The thumpdf tool is probably not generally available ...
+# The thumbpdf tool is probably not generally available ...
 #ISABELLE_THUMBPDF="thumbpdf"
 
 
