@@ -9,6 +9,7 @@ use "pretty.ML";
 use "lexicon.ML";
 structure Scanner: SCANNER = Lexicon;
 use "symbol_font.ML";
+use "token_trans.ML";
 use "ast.ML";
 use "syn_ext.ML";
 use "parser.ML";
