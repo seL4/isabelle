@@ -492,14 +492,12 @@ in
 (setmp print_mode ["Mucke"] (make_string sign) terms)
 end;
 
-fun callmc s = 
-let 
-val a = TextIO.openOut("tmp.mu");
-val _ = output(a,s);
-val _ = TextIO.closeOut(a);
-in
-execute("mucke -nb tmp")
-end; 
+fun callmc s =
+  let
+    val path = Path.unpack "tmp.mu";
+    val _ = File.write path s;
+    val result = execute "mucke -nb tmp";
+  in File.rm path; result end;
 
 (* extract_result looks for true value before *) 
 (* finishing line "===..." of mucke output    *)
