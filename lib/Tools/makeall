@@ -56,6 +56,7 @@ case $TEST in
         echo '		**** Consider the -notest switch ****'
 esac
 
+mkdir -p $ISABELLE_OUTPUT_DIR
 
 case $FORCE.$EXEC in
   on.on) (cd $ISABELLE_OUTPUT_DIR;
