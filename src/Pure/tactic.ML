@@ -48,7 +48,6 @@ signature TACTIC =
   val fold_tac		: thm list -> tactic
   val forward_tac	: thm list -> int -> tactic   
   val forw_inst_tac	: (string*string)list -> thm -> int -> tactic
-  val freeze_thaw	: thm -> thm * (thm -> thm)
   val insert_tagged_brl : ('a*(bool*thm)) * 
                           (('a*(bool*thm))Net.net * ('a*(bool*thm))Net.net) ->
                           ('a*(bool*thm))Net.net * ('a*(bool*thm))Net.net
@@ -105,31 +104,10 @@ fun trace_goalno_tac tac i st =
     			 Seq.make(fn()=> seqcell));
 
 
-(*Convert all Vars in a theorem to Frees.  Also return a function for 
-  reversing that operation.  DOES NOT WORK FOR TYPE VARIABLES.
-  Similar code in type/freeze_thaw*)
-fun freeze_thaw th =
-  let val fth = freezeT th
-      val {prop,sign,...} = rep_thm fth
-      val used = add_term_names (prop, [])
-      and vars = term_vars prop
-      fun newName (Var(ix,_), (pairs,used)) = 
-	    let val v = variant used (string_of_indexname ix)
-	    in  ((ix,v)::pairs, v::used)  end;
-      val (alist, _) = foldr newName (vars, ([], used))
-      fun mk_inst (Var(v,T)) = 
-	  (cterm_of sign (Var(v,T)),
-	   cterm_of sign (Free(the (assoc(alist,v)), T)))
-      val insts = map mk_inst vars
-      fun thaw th' = 
-	  th' |> forall_intr_list (map #2 insts)
-	      |> forall_elim_list (map #1 insts)
-  in  (instantiate ([],insts) fth, thaw)  end;
-
-
 (*Rotates the given subgoal to be the last.  Useful when re-playing
   an old proof script, when the proof of an early subgoal fails.
-  DOES NOT WORK FOR TYPE VARIABLES.*)
+  DOES NOT WORK FOR TYPE VARIABLES.
+  Similar to drule/rotate_prems*)
 fun defer_tac i state = 
     let val (state',thaw) = freeze_thaw state
 	val hyps = Drule.strip_imp_prems (adjust_maxidx (cprop_of state'))
