@@ -46,13 +46,14 @@ sig
   val finite': 'a * ('a -> bool) -> ('b * 'a list -> 'c * ('d * 'a list))
     -> 'b * 'a list -> 'c * ('d * 'a list)
   val finite: 'a * ('a -> bool) -> ('a list -> 'b * 'a list) -> 'a list -> 'b * 'a list
+  val catch: ('a -> 'b) -> 'a -> 'b
   val error: ('a -> 'b) -> 'a -> 'b
-  val source': string -> (string -> 'a -> 'b list * 'a) ->
-    ('b list * 'a -> 'c) -> 'b * ('b -> bool) -> ('d * 'b list -> 'e list * ('d * 'b list)) ->
-      'd * 'a -> 'e list * ('d * 'c)
-  val source: string -> (string -> 'a -> 'b list * 'a) ->
-    ('b list * 'a -> 'c) -> 'b * ('b -> bool) -> ('b list -> 'd list * 'b list) ->
-      'a -> 'd list * 'c
+  val source': string -> (string -> 'a -> 'b list * 'a) -> ('b list * 'a -> 'c) ->
+    'b * ('b -> bool) -> ('d * 'b list -> 'e list * ('d * 'b list)) ->
+    ('d * 'b list -> 'f * ('d * 'b list)) option -> 'd * 'a -> 'e list * ('d * 'c)
+  val source: string -> (string -> 'a -> 'b list * 'a) -> ('b list * 'a -> 'c) ->
+    'b * ('b -> bool) -> ('b list -> 'd list * 'b list) ->
+    ('b list -> 'e * 'b list) option -> 'a -> 'd list * 'c
   val single: ('a -> 'b * 'a) -> 'a -> 'b list * 'a
   val bulk: ('a -> 'b * 'a) -> 'a -> 'b list * 'a
   type lexicon
@@ -70,7 +71,7 @@ struct
 
 (** scanners **)
 
-exception MORE of string option;	(*need more input (use prompt)*)
+exception MORE of string option;	(*need more input (prompt)*)
 exception FAIL of string option;	(*try alternatives (reason of failure)*)
 exception ABORT of string;		(*dead end*)
 
@@ -153,6 +154,7 @@ fun !! err scan xs = scan xs handle FAIL msg => raise ABORT (err (xs, msg));
 fun try scan xs = scan xs handle MORE _ => raise FAIL None | ABORT _ => raise FAIL None;
 fun force scan xs = scan xs handle MORE _ => raise FAIL None;
 fun prompt str scan xs = scan xs handle MORE None => raise MORE (Some str);
+fun catch scan xs = scan xs handle ABORT msg => raise FAIL (Some msg);
 fun error scan xs = scan xs handle ABORT msg => Library.error msg;
 
 
@@ -179,24 +181,33 @@ fun finite stopper scan xs =
 
 (* infinite scans -- draining state-based source *)
 
-fun source' def_prmpt get unget stopper scan (state, src) =
-  let
-    fun drain (xs, s) =
-      (scan (state, xs), s) handle MORE prmpt =>
-        (case get (if_none prmpt def_prmpt) s of
-          ([], _) => (finite' stopper scan (state, xs), s)
-        | (xs', s') => drain (xs @ xs', s'));
+fun drain def_prmpt get stopper scan ((state, xs), src) =
+  (scan (state, xs), src) handle MORE prmpt =>
+    (case get (if_none prmpt def_prmpt) src of
+      ([], _) => (finite' stopper scan (state, xs), src)
+    | (xs', src') => drain def_prmpt get stopper scan ((state, xs @ xs'), src'));
 
-    val ((ys, (state', rest)), src') =
-      (case get def_prmpt src of
-        ([], s) => (([], (state, [])), s)
-      | xs_s => drain xs_s);
+fun source' def_prmpt get unget stopper scanner opt_recover (state, src) =
+  let
+    val drain_with = drain def_prmpt get stopper;
+
+    fun drain_loop recover inp =
+      drain_with (catch scanner) inp handle FAIL msg =>
+        (warning (if_none msg "Syntax error."); warning "Trying to recover ...";
+          drain_loop recover (apfst snd (drain_with recover inp)));
+
+    val ((ys, (state', xs')), src') =
+      (case (get def_prmpt src, opt_recover) of
+        (([], s), _) => (([], (state, [])), s)
+      | ((xs, s), None) => drain_with (error scanner) ((state, xs), s)
+      | ((xs, s), Some scan) => drain_loop scan ((state, xs), s));
   in
-    (ys, (state', unget (rest, src')))
+    (ys, (state', unget (xs', src')))
   end;
 
-fun source def_prmpt get unget stopper scan src =
-  let val (ys, ((), src')) = source' def_prmpt get unget stopper (lift scan) ((), src)
+fun source def_prmpt get unget stopper scan opt_recover src =
+  let val (ys, ((), src')) =
+    source' def_prmpt get unget stopper (lift scan) (apsome lift opt_recover) ((), src)
   in (ys, src') end;
 
 fun single scan = scan >> (fn x => [x]);
