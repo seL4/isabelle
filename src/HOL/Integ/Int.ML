@@ -90,12 +90,12 @@ bind_thm ("zadd_zle_mono1", zadd_right_cancel_zle RS iffD2);
 (*"v<=w ==> z+v <= z+w"*)
 bind_thm ("zadd_zle_mono2", zadd_left_cancel_zle RS iffD2);
 
-Goal "!!z z'::int. [| w'<=w; z'<=z |] ==> w' + z' <= w + z";
+Goal "[| w'<=w; z'<=z |] ==> w' + z' <= w + (z::int)";
 by (etac (zadd_zle_mono1 RS zle_trans) 1);
 by (Simp_tac 1);
 qed "zadd_zle_mono";
 
-Goal "!!z z'::int. [| w'<w; z'<=z |] ==> w' + z' < w + z";
+Goal "[| w'<w; z'<=z |] ==> w' + z' < w + (z::int)";
 by (etac (zadd_zless_mono1 RS zless_zle_trans) 1);
 by (Simp_tac 1);
 qed "zadd_zless_mono";
@@ -220,7 +220,7 @@ by (dtac zle_imp_zless_or_eq 1);
 by (auto_tac (claset(), simpset() addsimps [zless_iff_Suc_zadd])); 
 qed "not_neg_nat"; 
 
-Goal "neg x ==> ? n. x = - (int (Suc n))"; 
+Goal "neg x ==> EX n. x = - (int (Suc n))"; 
 by (auto_tac (claset(), 
 	      simpset() addsimps [neg_eq_less_int0, zless_iff_Suc_zadd,
 				  zdiff_eq_eq RS sym, zdiff_def])); 
@@ -255,7 +255,7 @@ qed "zless_nat_conj";
 
 Goal "(0 < nat z) = (int 0 < z)";
 by (stac (order_refl RS nat_le_int0 RS sym) 1);
-by (stac (zless_nat_conj) 1);
+by (stac zless_nat_conj 1);
 by (Simp_tac 1);
 qed "zless_zero_nat";
 
