@@ -481,3 +481,44 @@ Addsimps [eq_number_of_Suc, Suc_eq_number_of,
 
 (* Push int(.) inwards: *)
 Addsimps [int_Suc,zadd_int RS sym];
+
+Goal "(m+m = n+n) = (m = (n::int))";
+by Auto_tac;
+val lemma1 = result();
+
+Goal "m+m ~= int 1 + n + n";
+by Auto_tac;
+by (dres_inst_tac [("f", "%x. x mod #2")] arg_cong 1);
+by (full_simp_tac (simpset() addsimps [zmod_zadd1_eq]) 1); 
+val lemma2 = result();
+
+Goal "((number_of (v BIT x) ::int) = number_of (w BIT y)) = \
+\     (x=y & (((number_of v) ::int) = number_of w))"; 
+by (simp_tac (simpset_of Int.thy addsimps
+	       [number_of_BIT, lemma1, lemma2, eq_commute]) 1); 
+qed "eq_number_of_BIT_BIT"; 
+
+Goal "((number_of (v BIT x) ::int) = number_of Pls) = \
+\     (x=False & (((number_of v) ::int) = number_of Pls))"; 
+by (simp_tac (simpset_of Int.thy addsimps
+	       [number_of_BIT, number_of_Pls, eq_commute]) 1); 
+by (res_inst_tac [("x", "number_of v")] spec 1);
+by Safe_tac;
+by (ALLGOALS Full_simp_tac);
+by (dres_inst_tac [("f", "%x. x mod #2")] arg_cong 1);
+by (full_simp_tac (simpset() addsimps [zmod_zadd1_eq]) 1); 
+qed "eq_number_of_BIT_Pls"; 
+
+Goal "((number_of (v BIT x) ::int) = number_of Min) = \
+\     (x=True & (((number_of v) ::int) = number_of Min))"; 
+by (simp_tac (simpset_of Int.thy addsimps
+	       [number_of_BIT, number_of_Min, eq_commute]) 1); 
+by (res_inst_tac [("x", "number_of v")] spec 1);
+by Auto_tac;
+by (dres_inst_tac [("f", "%x. x mod #2")] arg_cong 1);
+by Auto_tac;
+qed "eq_number_of_BIT_Min"; 
+
+Goal "(number_of Pls ::int) ~= number_of Min"; 
+by Auto_tac;
+qed "eq_number_of_Pls_Min"; 
