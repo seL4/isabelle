@@ -13,6 +13,7 @@ implicitely considered to be declared outermost.
 signature NAME_SPACE =
 sig
   val separator: string                 (*single char!*)
+  val hidden: string -> string
   val append: string -> string -> string
   val unpack: string -> string list
   val pack: string list -> string
