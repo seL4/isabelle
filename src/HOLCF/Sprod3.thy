@@ -23,9 +23,6 @@ translations
         "(|x, y, z|)"   == "(|x, (|y, z|)|)"
         "(|x, y|)"      == "spair`x`y"
 
-syntax (symbols)
-  "@stuple"	:: "['a, args] => 'a ** 'b"	("(1\\<lparr>_,/ _\\<rparr>)")
-
 defs
 spair_def       "spair  == (LAM x y.Ispair x y)"
 sfst_def        "sfst   == (LAM p.Isfst p)"
