@@ -142,7 +142,7 @@ val right_inverse_bij = result();
 
 val prems = goal Perm.thy
     "f: inj(A,B) ==> converse(f): inj(range(f), A)";
-bw inj_def;  (*rewrite subgoal but not prems!!*)
+by (rewtac inj_def);  (*rewrite subgoal but not prems!!*)
 by (cut_facts_tac prems 1);
 by (safe_tac ZF_cs);
 (*apply f to both sides and simplify using right_inverse
@@ -359,7 +359,7 @@ goalw Perm.thy [id_def]
 by (safe_tac ZF_cs);
 by (dres_inst_tac [("t", "%h.h`y ")] subst_context 1);
 by (asm_full_simp_tac (ZF_ss addsimps [comp_fun_apply]) 1);
-br fun_extension 1;
+by (rtac fun_extension 1);
 by (REPEAT (ares_tac [comp_fun, lam_type] 1));
 by (asm_simp_tac (ZF_ss addsimps [comp_fun_apply]) 1);
 val comp_eq_id_iff = result();
@@ -475,7 +475,7 @@ by (etac range_type 1);
 by (assume_tac 1);
 by (dtac apply_equality 1);
 by (assume_tac 1);
-by (res_inst_tac [("a","m")] mem_anti_refl 1);
+by (res_inst_tac [("a","m")] mem_irrefl 1);
 by (fast_tac ZF_cs 1);
 val inj_succ_restrict = result();
 

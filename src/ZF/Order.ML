@@ -6,9 +6,6 @@
 For Order.thy.  Orders in Zermelo-Fraenkel Set Theory 
 *)
 
-(*TO PURE/TACTIC.ML*)
-fun subgoals_tac sprops = EVERY' (map subgoal_tac sprops);
-
 
 open Order;
 
@@ -44,8 +41,8 @@ val ord_iso_apply = result();
 goalw Order.thy [ord_iso_def] 
     "!!f. [| f: ord_iso(A,r,B,s);  <x,y>: s;  x:B;  y:B |] ==> \
 \         <converse(f) ` x, converse(f) ` y> : r";
-be CollectE 1;
-be (bspec RS bspec RS iffD2) 1;
+by (etac CollectE 1);
+by (etac (bspec RS bspec RS iffD2) 1);
 by (REPEAT (eresolve_tac [asm_rl, 
 			  bij_converse_bij RS bij_is_fun RS apply_type] 1));
 by (asm_simp_tac (ZF_ss addsimps [right_inverse_bij]) 1);
@@ -142,10 +139,10 @@ val well_ord_iso_unique_lemma = result();
 goal Order.thy
     "!!r. [| well_ord(A,r);  well_ord(B,s);  \
 \            f: ord_iso(A,r, B,s);  g: ord_iso(A,r, B,s) |] ==> f = g";
-br fun_extension 1;
-be (ord_iso_is_bij RS bij_is_fun) 1;
-be (ord_iso_is_bij RS bij_is_fun) 1;
-br well_ord_iso_unique_lemma 1;
+by (rtac fun_extension 1);
+by (etac (ord_iso_is_bij RS bij_is_fun) 1);
+by (etac (ord_iso_is_bij RS bij_is_fun) 1);
+by (rtac well_ord_iso_unique_lemma 1);
 by (REPEAT_SOME assume_tac);
 val well_ord_iso_unique = result();
 
@@ -157,7 +154,7 @@ by (asm_simp_tac (ZF_ss addsimps [wf_on_not_refl]) 1);
 by (safe_tac ZF_cs);
 by (linear_case_tac 1);
 (*case x=xb*)
-by (fast_tac (ZF_cs addSEs [wf_on_anti_sym]) 1);
+by (fast_tac (ZF_cs addSEs [wf_on_asym]) 1);
 (*case x<xb*)
 by (fast_tac (ZF_cs addSEs [wf_on_chain3]) 1);
 val well_ordI = result();
@@ -172,7 +169,7 @@ val well_ord_is_wf = result();
 
 val [major,minor] = goalw Order.thy [pred_def]
     "[| y: pred(A,x,r);  [| y:A; <y,x>:r |] ==> P |] ==> P";
-br (major RS CollectE) 1;
+by (rtac (major RS CollectE) 1);
 by (REPEAT (ares_tac [minor] 1));
 val predE = result();
 

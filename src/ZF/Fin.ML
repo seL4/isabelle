@@ -48,7 +48,7 @@ val major::prems = goal Fin.thy
 \       !!x y. [| x: A;  y: Fin(A);  x~:y;  P(y) |] ==> P(cons(x,y)) \
 \    |] ==> P(b)";
 by (rtac (major RS Fin.induct) 1);
-by (res_inst_tac [("Q","a:b")] (excluded_middle RS disjE) 2);
+by (excluded_middle_tac "a:b" 2);
 by (etac (cons_absorb RS ssubst) 3 THEN assume_tac 3);	    (*backtracking!*)
 by (REPEAT (ares_tac prems 1));
 val Fin_induct = result();

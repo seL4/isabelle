@@ -62,7 +62,7 @@ val [prem] = goal WF.thy
     "[| !!y B. [| ALL x:A. (ALL y:A. <y,x>:r --> y:B) --> x:B;   y:A  \
 \              |] ==> y:B |] \
 \    ==>  wf[A](r)";
-br wf_onI 1;
+by (rtac wf_onI 1);
 by (res_inst_tac [ ("c", "u") ] (prem RS DiffE) 1);
 by (contr_tac 3);
 by (fast_tac ZF_cs 2);
@@ -131,7 +131,7 @@ val [subs,indhyp] = goal WF.thy
 \       !!y B. [| ALL x:A. (ALL y:A. <y,x>:r --> y:B) --> x:B;   y:A  \
 \              |] ==> y:B |] \
 \    ==>  wf(r)";
-br ([wf_onI2, subs] MRS (wf_on_subset_A RS wf_on_field_imp_wf)) 1;
+by (rtac ([wf_onI2, subs] MRS (wf_on_subset_A RS wf_on_field_imp_wf)) 1);
 by (REPEAT (ares_tac [indhyp] 1));
 val wfI2 = result();
 
@@ -148,7 +148,7 @@ by (subgoal_tac "ALL x. <a,x>:r --> <x,a>:r --> P" 1);
 by (wf_ind_tac "a" [] 2);
 by (fast_tac ZF_cs 2);
 by (fast_tac FOL_cs 1);
-val wf_anti_sym = result();
+val wf_asym = result();
 
 goal WF.thy "!!r. [| wf[A](r); a: A |] ==> <a,a> ~: r";
 by (wf_on_ind_tac "a" [] 1);
@@ -160,7 +160,7 @@ by (subgoal_tac "ALL y:A. <a,y>:r --> <y,a>:r --> P" 1);
 by (wf_on_ind_tac "a" [] 2);
 by (fast_tac ZF_cs 2);
 by (fast_tac ZF_cs 1);
-val wf_on_anti_sym = result();
+val wf_on_asym = result();
 
 (*Needed to prove well_ordI.  Could also reason that wf[A](r) means
   wf(r Int A*A);  thus wf( (r Int A*A)^+ ) and use wf_not_refl *)
@@ -180,7 +180,7 @@ val bchain_tac = EVERY' [rtac (bspec RS mp), assume_tac, assume_tac ];
 (*transitive closure of a WF relation is WF provided A is downwards closed*)
 val [wfr,subs] = goal WF.thy
     "[| wf[A](r);  r-``A <= A |] ==> wf[A](r^+)";
-br wf_onI2 1;
+by (rtac wf_onI2 1);
 by (bchain_tac 1);
 by (eres_inst_tac [("a","y")] (wfr RS wf_on_induct) 1);
 by (rtac (impI RS ballI) 1);
@@ -194,8 +194,8 @@ val wf_on_trancl = result();
 
 goal WF.thy "!!r. wf(r) ==> wf(r^+)";
 by (asm_full_simp_tac (ZF_ss addsimps [wf_iff_wf_on_field]) 1);
-br (trancl_type RS field_rel_subset RSN (2, wf_on_subset_A)) 1;
-be wf_on_trancl 1;
+by (rtac (trancl_type RS field_rel_subset RSN (2, wf_on_subset_A)) 1);
+by (etac wf_on_trancl 1);
 by (fast_tac ZF_cs 1);
 val wf_trancl = result();
 
@@ -342,7 +342,7 @@ val wfrec_type = result();
 goalw WF.thy [wf_on_def, wfrec_on_def]
  "!!A r. [| wf[A](r);  a: A |] ==> \
 \        wfrec[A](r,a,H) = H(a, lam x: (r-``{a}) Int A. wfrec[A](r,x,H))";
-be (wfrec RS trans) 1;
+by (etac (wfrec RS trans) 1);
 by (asm_simp_tac (ZF_ss addsimps [vimage_Int_square, cons_subset_iff]) 1);
 val wfrec_on = result();
 

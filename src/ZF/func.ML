@@ -230,7 +230,7 @@ by (fast_tac eq_cs 1);
 val image_lam = result();
 
 goal ZF.thy "!!C A. [| f : Pi(A,B);  C <= A |] ==> f``C = {f`x. x:C}";
-be (eta RS subst) 1;
+by (etac (eta RS subst) 1);
 by (asm_full_simp_tac (FOL_ss addsimps [beta, image_lam, subset_iff]
                               addcongs [RepFun_cong]) 1);
 val image_fun = result();

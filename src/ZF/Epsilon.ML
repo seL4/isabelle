@@ -219,7 +219,7 @@ val rank_mono = result();
 
 goal Epsilon.thy "rank(Pow(a)) = succ(rank(a))";
 by (rtac (rank RS trans) 1);
-by (rtac le_asym 1);
+by (rtac le_anti_sym 1);
 by (DO_GOAL [rtac (Ord_rank RS Ord_succ RS UN_least_le),
 	     etac (PowD RS rank_mono RS succ_leI)] 1);
 by (DO_GOAL [rtac ([Pow_top, le_refl] MRS UN_upper_le),
@@ -252,7 +252,7 @@ by (etac (rank_lt RS succ_leI RS le_imp_subset) 1);
 val rank_Union = result();
 
 goal Epsilon.thy "rank(eclose(a)) = rank(a)";
-by (rtac le_asym 1);
+by (rtac le_anti_sym 1);
 by (rtac (arg_subset_eclose RS rank_mono) 2);
 by (res_inst_tac [("a1","eclose(a)")] (rank RS ssubst) 1);
 by (rtac (Ord_rank RS UN_least_le) 1);

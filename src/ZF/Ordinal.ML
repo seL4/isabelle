@@ -185,10 +185,10 @@ val Ord_INT = result();
 goal Ordinal.thy "~ (ALL i. i:X <-> Ord(i))";
 by (rtac notI 1);
 by (forw_inst_tac [("x", "X")] spec 1);
-by (safe_tac (ZF_cs addSEs [mem_anti_refl]));
+by (safe_tac (ZF_cs addSEs [mem_irrefl]));
 by (swap_res_tac [Ord_is_Transset RSN (2,OrdI)] 1);
 by (fast_tac ZF_cs 2);
-bw Transset_def;
+by (rewtac Transset_def);
 by (safe_tac ZF_cs);
 by (asm_full_simp_tac ZF_ss 1);
 by (REPEAT (eresolve_tac [asm_rl, Ord_in_Ord] 1));
@@ -223,14 +223,14 @@ by (fast_tac (ZF_cs addSIs [ltI] addSEs [ltE, Ord_trans]) 1);
 val lt_trans = result();
 
 goalw Ordinal.thy [lt_def] "!!i j. [| i<j;  j<i |] ==> P";
-by (REPEAT (eresolve_tac [asm_rl, conjE, mem_anti_sym] 1));
-val lt_anti_sym = result();
+by (REPEAT (eresolve_tac [asm_rl, conjE, mem_asym] 1));
+val lt_asym = result();
 
-val lt_anti_refl = prove_goal Ordinal.thy "i<i ==> P"
- (fn [major]=> [ (rtac (major RS (major RS lt_anti_sym)) 1) ]);
+val lt_irrefl = prove_goal Ordinal.thy "i<i ==> P"
+ (fn [major]=> [ (rtac (major RS (major RS lt_asym)) 1) ]);
 
 val lt_not_refl = prove_goal Ordinal.thy "~ i<i"
- (fn _=> [ (rtac notI 1), (etac lt_anti_refl 1) ]);
+ (fn _=> [ (rtac notI 1), (etac lt_irrefl 1) ]);
 
 (** le is less than or equals;  recall  i le j  abbrevs  i<succ(j) !! **)
 
@@ -261,8 +261,8 @@ val leE = result();
 
 goal Ordinal.thy "!!i j. [| i le j;  j le i |] ==> i=j";
 by (asm_full_simp_tac (ZF_ss addsimps [le_iff]) 1);
-by (fast_tac (ZF_cs addEs [lt_anti_sym]) 1);
-val le_asym = result();
+by (fast_tac (ZF_cs addEs [lt_asym]) 1);
+val le_anti_sym = result();
 
 goal Ordinal.thy "i le 0 <-> i=0";
 by (fast_tac (ZF_cs addSIs [Ord_0 RS le_refl] addSEs [leE, lt0E]) 1);
@@ -273,7 +273,7 @@ val le0D = standard (le0_iff RS iffD1);
 val lt_cs = 
     ZF_cs addSIs [le_refl, leCI]
           addSDs [le0D]
-          addSEs [lt_anti_refl, lt0E, leE];
+          addSEs [lt_irrefl, lt0E, leE];
 
 
 (*** Natural Deduction rules for Memrel ***)
@@ -394,13 +394,13 @@ by (DEPTH_SOLVE (ares_tac ([leI,le_eqI] @ prems) 1));
 val Ord_linear_le = result();
 
 goal Ordinal.thy "!!i j. j le i ==> ~ i<j";
-by (fast_tac (lt_cs addEs [lt_anti_sym]) 1);
+by (fast_tac (lt_cs addEs [lt_asym]) 1);
 val le_imp_not_lt = result();
 
 goal Ordinal.thy "!!i j. [| ~ i<j;  Ord(i);  Ord(j) |] ==> j le i";
 by (res_inst_tac [("i","i"),("j","j")] Ord_linear2 1);
 by (REPEAT (SOMEGOAL assume_tac));
-by (fast_tac (lt_cs addEs [lt_anti_sym]) 1);
+by (fast_tac (lt_cs addEs [lt_asym]) 1);
 val not_lt_imp_le = result();
 
 goal Ordinal.thy "!!i j. [| Ord(i);  Ord(j) |] ==> ~ i<j <-> j le i";
@@ -430,7 +430,7 @@ goal Ordinal.thy "!!i j. [| j<=i;  Ord(i);  Ord(j) |] ==> j le i";
 by (rtac (not_lt_iff_le RS iffD1) 1);
 by (assume_tac 1);
 by (assume_tac 1);
-by (fast_tac (ZF_cs addEs [ltE, mem_anti_refl]) 1);
+by (fast_tac (ZF_cs addEs [ltE, mem_irrefl]) 1);
 val subset_imp_le = result();
 
 goal Ordinal.thy "!!i j. i le j ==> i<=j";
@@ -453,7 +453,7 @@ val le_succ_iff = result();
 val [ordi,ordj,minor] = goal Ordinal.thy
     "[| Ord(i);  Ord(j);  !!x. x<j ==> x<i |] ==> j le i";
 by (REPEAT_FIRST (ares_tac [notI RS not_lt_imp_le, ordi, ordj]));
-be (minor RS lt_anti_refl) 1;
+by (etac (minor RS lt_irrefl) 1);
 val all_lt_imp_le = result();
 
 (** Transitive laws **)
@@ -472,13 +472,13 @@ val le_trans = result();
 
 goal Ordinal.thy "!!i j. i<j ==> succ(i) le j";
 by (rtac (not_lt_iff_le RS iffD1) 1);
-by (fast_tac (lt_cs addEs [lt_anti_sym]) 3);
+by (fast_tac (lt_cs addEs [lt_asym]) 3);
 by (ALLGOALS (fast_tac (ZF_cs addEs [ltE] addIs [Ord_succ])));
 val succ_leI = result();
 
 goal Ordinal.thy "!!i j. succ(i) le j ==> i<j";
 by (rtac (not_le_iff_lt RS iffD1) 1);
-by (fast_tac (lt_cs addEs [lt_anti_sym]) 3);
+by (fast_tac (lt_cs addEs [lt_asym]) 3);
 by (ALLGOALS (fast_tac (ZF_cs addEs [ltE, make_elim Ord_succD])));
 val succ_leE = result();
 
@@ -509,8 +509,8 @@ val Un_least_lt = result();
 
 goal Ordinal.thy "!!i j. [| Ord(i); Ord(j) |] ==> i Un j < k  <->  i<k & j<k";
 by (safe_tac (ZF_cs addSIs [Un_least_lt]));
-br (Un_upper2_le RS lt_trans1) 2;
-br (Un_upper1_le RS lt_trans1) 1;
+by (rtac (Un_upper2_le RS lt_trans1) 2);
+by (rtac (Un_upper1_le RS lt_trans1) 1);
 by (REPEAT_SOME assume_tac);
 val Un_least_lt_iff = result();
 
@@ -601,15 +601,15 @@ goalw Ordinal.thy [Limit_def]
     "!!i. [| 0<i;  ALL y. succ(y) ~= i |] ==> Limit(i)";
 by (safe_tac subset_cs);
 by (rtac (not_le_iff_lt RS iffD1) 2);
-by (fast_tac (lt_cs addEs [lt_anti_sym]) 4);
+by (fast_tac (lt_cs addEs [lt_asym]) 4);
 by (REPEAT (eresolve_tac [asm_rl, ltE, Ord_succ] 1));
 val non_succ_LimitI = result();
 
 goal Ordinal.thy "!!i. Limit(succ(i)) ==> P";
-br lt_anti_refl 1;
-br Limit_has_succ 1;
-ba 1;
-be (Limit_is_Ord RS Ord_succD RS le_refl) 1;
+by (rtac lt_irrefl 1);
+by (rtac Limit_has_succ 1);
+by (assume_tac 1);
+by (etac (Limit_is_Ord RS Ord_succD RS le_refl) 1);
 val succ_LimitE = result();
 
 goal Ordinal.thy "!!i. [| Limit(i);  i le succ(j) |] ==> i le j";

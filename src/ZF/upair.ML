@@ -207,20 +207,21 @@ val if_ss = FOL_ss addsimps  [if_true,if_false];
 
 val expand_if = prove_goal ZF.thy
     "P(if(Q,x,y)) <-> ((Q --> P(x)) & (~Q --> P(y)))"
- (fn _=> [ (res_inst_tac [("Q","Q")] (excluded_middle RS disjE) 1),
+ (fn _=> [ (excluded_middle_tac "Q" 1),
 	   (asm_simp_tac if_ss 1),
 	   (asm_simp_tac if_ss 1) ]);
 
 val prems = goal ZF.thy
     "[| P ==> a: A;  ~P ==> b: A |] ==> if(P,a,b): A";
-by (res_inst_tac [("Q","P")] (excluded_middle RS disjE) 1);
+by (excluded_middle_tac "P" 1);
 by (ALLGOALS (asm_simp_tac (if_ss addsimps prems)));
 val if_type = result();
 
 
 (*** Foundation lemmas ***)
 
-val mem_anti_sym = prove_goal ZF.thy "[| a:b;  b:a |] ==> P"
+(*was called mem_anti_sym*)
+val mem_asym = prove_goal ZF.thy "[| a:b;  b:a |] ==> P"
  (fn prems=>
   [ (rtac disjE 1),
     (res_inst_tac [("A","{a,b}")] foundation 1),
@@ -229,15 +230,16 @@ val mem_anti_sym = prove_goal ZF.thy "[| a:b;  b:a |] ==> P"
     (fast_tac (lemmas_cs addIs (prems@[consI1,consI2]) 
 		         addSEs [consE,equalityE]) 1) ]);
 
-val mem_anti_refl = prove_goal ZF.thy "a:a ==> P"
- (fn [major]=> [ (rtac (major RS (major RS mem_anti_sym)) 1) ]);
+(*was called mem_anti_refl*)
+val mem_irrefl = prove_goal ZF.thy "a:a ==> P"
+ (fn [major]=> [ (rtac (major RS (major RS mem_asym)) 1) ]);
 
-val mem_not_refl = prove_goal ZF.thy "a~:a"
- (K [ (rtac notI 1), (etac mem_anti_refl 1) ]);
+val mem_not_refl = prove_goal ZF.thy "a ~: a"
+ (K [ (rtac notI 1), (etac mem_irrefl 1) ]);
 
 (*Good for proving inequalities by rewriting*)
 val mem_imp_not_eq = prove_goal ZF.thy "!!a A. a:A ==> a ~= A"
- (fn _=> [ fast_tac (lemmas_cs addSEs [mem_anti_refl]) 1 ]);
+ (fn _=> [ fast_tac (lemmas_cs addSEs [mem_irrefl]) 1 ]);
 
 (*** Rules for succ ***)
 
@@ -279,12 +281,12 @@ val succ_inject = prove_goal ZF.thy "succ(m) = succ(n) ==> m=n"
  (fn [major]=>
   [ (rtac (major RS equalityE) 1),
     (REPEAT (eresolve_tac [asm_rl, sym, succE, make_elim succ_subsetD,
-			   mem_anti_sym] 1)) ]);
+			   mem_asym] 1)) ]);
 
 val succ_inject_iff = prove_goal ZF.thy "succ(m) = succ(n) <-> m=n"
  (fn _=> [ (fast_tac (FOL_cs addSEs [succ_inject]) 1) ]);
 
-(*UpairI1/2 should become UpairCI;  mem_anti_refl as a hazE? *)
+(*UpairI1/2 should become UpairCI;  mem_irrefl as a hazE? *)
 val upair_cs = lemmas_cs
   addSIs [singletonI, DiffI, IntI, UnCI, consCI, succCI, UpairI1,UpairI2]
   addSEs [singletonE, DiffE, IntE, UnE, consE, succE, UpairE];

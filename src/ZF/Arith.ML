@@ -156,19 +156,17 @@ val add_commute = prove_goal Arith.thy
     (ALLGOALS
      (asm_simp_tac (arith_ss addsimps [add_0_right, add_succ_right]))) ]);
 
+(*for a/c rewriting*)
 val add_left_commute = prove_goal Arith.thy
-    "!!m n k. [| m:nat;  n:nat;  k:nat |] ==> m#+(n#+k)=n#+(m#+k)"
- (fn _ => [rtac (add_commute RS trans) 1, 
-           rtac (add_assoc RS trans) 3, 
-	   rtac (add_commute RS subst_context) 4,
-	   REPEAT (ares_tac [add_type] 1)]);
+    "!!m n k. [| m:nat;  n:nat |] ==> m#+(n#+k)=n#+(m#+k)"
+ (fn _ => [asm_simp_tac (ZF_ss addsimps [add_assoc RS sym, add_commute]) 1]);
 
 (*Addition is an AC-operator*)
 val add_ac = [add_assoc, add_commute, add_left_commute];
 
 (*Cancellation law on the left*)
-val [knat,eqn] = goal Arith.thy 
-    "[| k:nat;  k #+ m = k #+ n |] ==> m=n";
+val [eqn,knat] = goal Arith.thy 
+    "[| k #+ m = k #+ n;  k:nat |] ==> m=n";
 by (rtac (eqn RS rev_mp) 1);
 by (nat_ind_tac "k" [knat] 1);
 by (ALLGOALS (simp_tac arith_ss));
@@ -221,6 +219,16 @@ val mult_assoc = prove_goal Arith.thy
   [ (etac nat_induct 1),
     (ALLGOALS (asm_simp_tac (arith_ss addsimps [add_mult_distrib]))) ]);
 
+(*for a/c rewriting*)
+val mult_left_commute = prove_goal Arith.thy 
+    "!!m n k. [| m:nat;  n:nat;  k:nat |] ==> m #* (n #* k) = n #* (m #* k)"
+ (fn _ => [rtac (mult_commute RS trans) 1, 
+           rtac (mult_assoc RS trans) 3, 
+	   rtac (mult_commute RS subst_context) 6,
+	   REPEAT (ares_tac [mult_type] 1)]);
+
+val mult_ac = [mult_assoc,mult_commute,mult_left_commute];
+
 
 (*** Difference ***)
 
@@ -241,10 +249,16 @@ val add_diff_inverse = result();
 
 (*Subtraction is the inverse of addition. *)
 val [mnat,nnat] = goal Arith.thy
-    "[| m:nat;  n:nat |] ==> (n#+m) #-n = m";
+    "[| m:nat;  n:nat |] ==> (n#+m) #- n = m";
 by (rtac (nnat RS nat_induct) 1);
 by (ALLGOALS (asm_simp_tac (arith_ss addsimps [mnat])));
 val diff_add_inverse = result();
+
+goal Arith.thy
+    "!!m n. [| m:nat;  n:nat |] ==> (m#+n) #- n = m";
+by (res_inst_tac [("m1","m")] (add_commute RS ssubst) 1);
+by (REPEAT (ares_tac [diff_add_inverse] 1));
+val diff_add_inverse2 = result();
 
 val [mnat,nnat] = goal Arith.thy
     "[| m:nat;  n:nat |] ==> n #- (n#+m) = 0";
@@ -311,7 +325,7 @@ val div_geq = result();
 goal Arith.thy
     "!!m n. [| 0<n;  m:nat;  n:nat |] ==> (m div n)#*n #+ m mod n = m";
 by (etac complete_induct 1);
-by (res_inst_tac [("Q","x<n")] (excluded_middle RS disjE) 1);
+by (excluded_middle_tac "x<n" 1);
 (*case x<n*)
 by (asm_simp_tac (arith_ss addsimps [mod_less, div_less]) 2);
 (*case n le x*)

@@ -35,13 +35,13 @@ val Pair_neq_0 = prove_goalw ZF.thy [Pair_def] "<a,b>=0 ==> P"
 
 val Pair_neq_fst = prove_goalw ZF.thy [Pair_def] "<a,b>=a ==> P"
  (fn [major]=>
-  [ (rtac (consI1 RS mem_anti_sym RS FalseE) 1),
+  [ (rtac (consI1 RS mem_asym RS FalseE) 1),
     (rtac (major RS subst) 1),
     (rtac consI1 1) ]);
 
 val Pair_neq_snd = prove_goalw ZF.thy [Pair_def] "<a,b>=b ==> P"
  (fn [major]=>
-  [ (rtac (consI1 RS consI2 RS mem_anti_sym RS FalseE) 1),
+  [ (rtac (consI1 RS consI2 RS mem_asym RS FalseE) 1),
     (rtac (major RS subst) 1),
     (rtac (consI1 RS consI2) 1) ]);
 
