@@ -1382,9 +1382,9 @@ val SET004_0_ax =
 \  (\\<forall>Xr X Y. equal(intersection(cross_product(X::'a,Y),Xr),restrct(Xr::'a,X,Y))) &    \
 \  (\\<forall>Z X. ~(equal(restrct(X::'a,singleton(Z),universal_class),null_class) & member(Z::'a,domain_of(X)))) &    \
 \  (\\<forall>Z X. member(Z::'a,universal_class) --> equal(restrct(X::'a,singleton(Z),universal_class),null_class) | member(Z::'a,domain_of(X))) &        \
-\  (\\<forall>X. subclass(rotate(X),cross_product(cross_product(universal_class::'a,universal_class),universal_class))) &   \
-\  (\\<forall>V W U X. member(ordered_pair(ordered_pair(U::'a,V),W),rotate(X)) --> member(ordered_pair(ordered_pair(V::'a,W),U),X)) &   \
-\  (\\<forall>U V W X. member(ordered_pair(ordered_pair(V::'a,W),U),X) & member(ordered_pair(ordered_pair(U::'a,V),W),cross_product(cross_product(universal_class::'a,universal_class),universal_class)) --> member(ordered_pair(ordered_pair(U::'a,V),W),rotate(X))) & \
+\  (\\<forall>X. subclass(rot(X),cross_product(cross_product(universal_class::'a,universal_class),universal_class))) &   \
+\  (\\<forall>V W U X. member(ordered_pair(ordered_pair(U::'a,V),W),rot(X)) --> member(ordered_pair(ordered_pair(V::'a,W),U),X)) &   \
+\  (\\<forall>U V W X. member(ordered_pair(ordered_pair(V::'a,W),U),X) & member(ordered_pair(ordered_pair(U::'a,V),W),cross_product(cross_product(universal_class::'a,universal_class),universal_class)) --> member(ordered_pair(ordered_pair(U::'a,V),W),rot(X))) & \
 \  (\\<forall>X. subclass(flip(X),cross_product(cross_product(universal_class::'a,universal_class),universal_class))) &     \
 \  (\\<forall>V U W X. member(ordered_pair(ordered_pair(U::'a,V),W),flip(X)) --> member(ordered_pair(ordered_pair(V::'a,U),W),X)) &     \
 \  (\\<forall>U V W X. member(ordered_pair(ordered_pair(V::'a,U),W),X) & member(ordered_pair(ordered_pair(U::'a,V),W),cross_product(cross_product(universal_class::'a,universal_class),universal_class)) --> member(ordered_pair(ordered_pair(U::'a,V),W),flip(X))) &   \
@@ -1485,7 +1485,7 @@ val SET004_0_eq =
 \  (\\<forall>P4 Q4 R4 S4. equal(P4::'a,Q4) --> equal(restrct(P4::'a,R4,S4),restrct(Q4::'a,R4,S4))) &     \
 \  (\\<forall>T4 V4 U4 W4. equal(T4::'a,U4) --> equal(restrct(V4::'a,T4,W4),restrct(V4::'a,U4,W4))) &     \
 \  (\\<forall>X4 Z4 A5 Y4. equal(X4::'a,Y4) --> equal(restrct(Z4::'a,A5,X4),restrct(Z4::'a,A5,Y4))) &     \
-\  (\\<forall>B5 C5. equal(B5::'a,C5) --> equal(rotate(B5),rotate(C5))) &   \
+\  (\\<forall>B5 C5. equal(B5::'a,C5) --> equal(rot(B5),rot(C5))) &   \
 \  (\\<forall>D5 E5. equal(D5::'a,E5) --> equal(second(D5),second(E5))) &   \
 \  (\\<forall>F5 G5. equal(F5::'a,G5) --> equal(singleton(F5),singleton(G5))) &     \
 \  (\\<forall>H5 I5. equal(H5::'a,I5) --> equal(successor(H5),successor(I5))) &     \
@@ -2308,12 +2308,12 @@ val SET025_4 = prove_hard
 \  (\\<forall>X Z. member(Z::'a,inv1 X) --> ordered_pair_predicate(Z)) &       \
 \  (\\<forall>Z X. member(Z::'a,inv1 X) --> member(ordered_pair(second(Z),first(Z)),X)) &      \
 \  (\\<forall>Z X. little_set(Z) & ordered_pair_predicate(Z) & member(ordered_pair(second(Z),first(Z)),X) --> member(Z::'a,inv1 X)) &  \
-\  (\\<forall>Z X. member(Z::'a,rotate_right(X)) --> little_set(f9(Z::'a,X))) & \
-\  (\\<forall>Z X. member(Z::'a,rotate_right(X)) --> little_set(f10(Z::'a,X))) &        \
-\  (\\<forall>Z X. member(Z::'a,rotate_right(X)) --> little_set(f11(Z::'a,X))) &        \
-\  (\\<forall>Z X. member(Z::'a,rotate_right(X)) --> equal(Z::'a,ordered_pair(f9(Z::'a,X),ordered_pair(f10(Z::'a,X),f11(Z::'a,X))))) &      \
-\  (\\<forall>Z X. member(Z::'a,rotate_right(X)) --> member(ordered_pair(f10(Z::'a,X),ordered_pair(f11(Z::'a,X),f9(Z::'a,X))),X)) &     \
-\  (\\<forall>Z V W U X. little_set(Z) & little_set(U) & little_set(V) & little_set(W) & equal(Z::'a,ordered_pair(U::'a,ordered_pair(V::'a,W))) & member(ordered_pair(V::'a,ordered_pair(W::'a,U)),X) --> member(Z::'a,rotate_right(X))) &      \
+\  (\\<forall>Z X. member(Z::'a,rot_right(X)) --> little_set(f9(Z::'a,X))) & \
+\  (\\<forall>Z X. member(Z::'a,rot_right(X)) --> little_set(f10(Z::'a,X))) &        \
+\  (\\<forall>Z X. member(Z::'a,rot_right(X)) --> little_set(f11(Z::'a,X))) &        \
+\  (\\<forall>Z X. member(Z::'a,rot_right(X)) --> equal(Z::'a,ordered_pair(f9(Z::'a,X),ordered_pair(f10(Z::'a,X),f11(Z::'a,X))))) &      \
+\  (\\<forall>Z X. member(Z::'a,rot_right(X)) --> member(ordered_pair(f10(Z::'a,X),ordered_pair(f11(Z::'a,X),f9(Z::'a,X))),X)) &     \
+\  (\\<forall>Z V W U X. little_set(Z) & little_set(U) & little_set(V) & little_set(W) & equal(Z::'a,ordered_pair(U::'a,ordered_pair(V::'a,W))) & member(ordered_pair(V::'a,ordered_pair(W::'a,U)),X) --> member(Z::'a,rot_right(X))) &      \
 \  (\\<forall>Z X. member(Z::'a,flip_range_of(X)) --> little_set(f12(Z::'a,X))) &       \
 \  (\\<forall>Z X. member(Z::'a,flip_range_of(X)) --> little_set(f13(Z::'a,X))) &       \
 \  (\\<forall>Z X. member(Z::'a,flip_range_of(X)) --> little_set(f14(Z::'a,X))) &       \
@@ -2496,7 +2496,7 @@ val SET025_4 = prove_hard
 \  (\\<forall>S11 T11. equal(S11::'a,T11) --> equal(range_of(S11),range_of(T11))) & \
 \  (\\<forall>U11 V11 W11. equal(U11::'a,V11) --> equal(restrct(U11::'a,W11),restrct(V11::'a,W11))) &     \
 \  (\\<forall>X11 Z11 Y11. equal(X11::'a,Y11) --> equal(restrct(Z11::'a,X11),restrct(Z11::'a,Y11))) &     \
-\  (\\<forall>A12 B12. equal(A12::'a,B12) --> equal(rotate_right(A12),rotate_right(B12))) & \
+\  (\\<forall>A12 B12. equal(A12::'a,B12) --> equal(rot_right(A12),rot_right(B12))) & \
 \  (\\<forall>C12 D12. equal(C12::'a,D12) --> equal(second(C12),second(D12))) &     \
 \  (\\<forall>K12 L12. equal(K12::'a,L12) --> equal(sigma(K12),sigma(L12))) &       \
 \  (\\<forall>M12 N12. equal(M12::'a,N12) --> equal(singleton_set(M12),singleton_set(N12))) &       \

@@ -371,8 +371,6 @@ lemma appl_methds_foo_Base:
   {((Class Base, Class Base), [Class Base])}"
 apply (unfold appl_methds_def)
 apply (simp (no_asm))
-apply (subgoal_tac "tprg\<turnstile>NT\<preceq> Class Base")
-apply  (auto simp add: map_of_Cons foo_Base_def)
 done
 
 lemma max_spec_foo_Base: "max_spec tprg Base (foo, [NT]) =  

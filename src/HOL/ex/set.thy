@@ -108,7 +108,7 @@ theorem Schroeder_Bernstein:
   apply (rule bij_if_then_else)
      apply (rule_tac [4] refl)
     apply (rule_tac [2] inj_on_inv)
-    apply (erule subset_inj_on [OF subset_UNIV])
+    apply (erule subset_inj_on [OF _ subset_UNIV])
    txt {* Tricky variable instantiations! *}
    apply (erule ssubst, subst double_complement)
    apply (rule subsetI, erule imageE, erule ssubst, rule rangeI)
