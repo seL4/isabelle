@@ -1,6 +1,6 @@
 (*  Title: 	ZF/AC/DC_lemmas.ML
     ID:         $Id$
-    Author: 	Krzysztof Gr`abczewski
+    Author: 	Krzysztof Grabczewski
 
 More general lemmas used in the proofs concerning DC
 
@@ -15,11 +15,11 @@ by (REPEAT (eresolve_tac [RepFunE, LeastI, prem RS Ord_in_Ord] 1));
 val RepFun_lepoll = result();
 
 goalw thy [lesspoll_def] "!!n. n:nat ==> n lesspoll nat";
-by (resolve_tac [conjI] 1);
+by (rtac conjI 1);
 by (eresolve_tac [Ord_nat RSN (2, OrdmemD) RS subset_imp_lepoll] 1);
-by (resolve_tac [notI] 1);
-by (eresolve_tac [eqpollE] 1);
-by (resolve_tac [succ_lepoll_natE] 1 THEN (assume_tac 2));
+by (rtac notI 1);
+by (etac eqpollE 1);
+by (rtac succ_lepoll_natE 1 THEN (assume_tac 2));
 by (eresolve_tac [nat_succI RS (Ord_nat RSN (2, OrdmemD) RS
 	subset_imp_lepoll) RS lepoll_trans] 1
 	THEN (assume_tac 1));
@@ -44,8 +44,8 @@ val restrict_0 = result();
 val [major, minor] = goal thy
 	"[| (!!g. g:X ==> EX u. <g,u>:R); R<=X*X  \
 \	|] ==> range(R) <= domain(R)";
-by (resolve_tac [subsetI] 1);
-by (eresolve_tac [rangeE] 1);
+by (rtac subsetI 1);
+by (etac rangeE 1);
 by (dresolve_tac [minor RS subsetD RS SigmaD2 RS major] 1);
 by (fast_tac AC_cs 1);
 val range_subset_domain = result();
@@ -64,11 +64,11 @@ val cons_subset = result();
 
 goal thy "!!g. g:n->X ==> cons(<n,x>, g) : succ(n) -> cons(x, X)";
 by (resolve_tac [Pi_iff_old RS iffD2] 1);
-by (resolve_tac [conjI] 1);
+by (rtac conjI 1);
 by (fast_tac (AC_cs addSIs [cons_subset, succI1]
 	addEs [fun_is_rel RS subset_trans RS subsetD, succI2]) 1);
-by (resolve_tac [ballI] 1);
-by (eresolve_tac [succE] 1);
+by (rtac ballI 1);
+by (etac succE 1);
 by (fast_tac (AC_cs addDs [domain_of_fun, domainI] addSEs [mem_irrefl]) 1);
 by (fast_tac (AC_cs addDs [fun_unique_Pair] addSEs [mem_irrefl]) 1);
 val cons_fun_type = result();
@@ -103,10 +103,10 @@ by (asm_full_simp_tac (AC_ss addsimps [domain_cons, succ_def]) 1);
 val domain_cons_eq_succ = result();
 
 goalw thy [restrict_def] "!!g. g:n->X ==> restrict(cons(<n,x>, g), n)=g";
-by (resolve_tac [fun_extension] 1);
-by (resolve_tac [lam_type] 1);
+by (rtac fun_extension 1);
+by (rtac lam_type 1);
 by (eresolve_tac [cons_fun_type RS apply_type] 1);
-by (eresolve_tac [succI2] 1);
+by (etac succI2 1);
 by (assume_tac 1);
 by (asm_full_simp_tac (AC_ss addsimps [cons_val_k]) 1);
 val restrict_cons_eq = result();
@@ -120,13 +120,13 @@ val succ_in_succ = result();
 
 goalw thy [restrict_def]
 	"!!f. [| restrict(f, domain(g)) = g; x: domain(g) |] ==> f`x = g`x";
-by (eresolve_tac [subst] 1);
+by (etac subst 1);
 by (asm_full_simp_tac AC_ss 1);
 val restrict_eq_imp_val_eq = result();
 
 goal thy "!!a. succ(a) = succ(b) ==> a = b";
-by (eresolve_tac [equalityE] 1);
-by (resolve_tac [equalityI] 1);
+by (etac equalityE 1);
+by (rtac equalityI 1);
 by (fast_tac (AC_cs addSEs [mem_irrefl] addEs [mem_asym]) 1);
 by (fast_tac (AC_cs addSEs [mem_irrefl] addEs [mem_asym]) 1);
 val succ_eqD = result();
