@@ -2,7 +2,7 @@
 theory Library =
   Quotient +
   Ring_and_Field +
-  Rational_Numbers +
+(*  Rational_Numbers +  *)
   List_Prefix +
   Accessible_Part +
   Multiset +
