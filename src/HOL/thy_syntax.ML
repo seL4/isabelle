@@ -169,7 +169,7 @@ local
     \val split_"^tname^"_case_asm = prove_goal thy (#2(split_"^tname^"_eqns))\n\
     \  (fn _ => [#exhaust_tac (datatype_info thy (Sign.intern_tycon (sign_of thy) "
       ^ quote tname ^ ")) \""^tname^"0\" 1,\n\
-    \            ALLGOALS Asm_simp_tac]);\n\
+    \            ALLGOALS (asm_simp_tac (simpset() delsimps [split_paired_Ex]))]);\n\
     \val thy = thy\n";
 
 (*

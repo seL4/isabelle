@@ -8,6 +8,7 @@ The I/O automata of Lynch and Tuttle.
 
 (* Has been removed from HOL-simpset, who knows why? *)
 Addsimps [Let_def];
+Delsimps [split_paired_Ex];
 
 open reachable;
 
