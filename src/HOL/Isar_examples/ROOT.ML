@@ -17,4 +17,3 @@ with_path "../Induct" time_use_thy "MultisetOrder";
 with_path "../W0" time_use_thy "W_correct";
 with_path "../ex" time_use_thy "Fibonacci";
 time_use_thy "Puzzle";
-time_use_thy "Minimal";
