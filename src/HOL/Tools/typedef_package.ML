@@ -25,6 +25,7 @@ sig
     * (string * string) option -> bool -> theory -> ProofHistory.T
   val typedef_proof_i: (bool * string) * (bstring * string list * mixfix) * term
     * (string * string) option -> bool -> theory -> ProofHistory.T
+  val setup: (theory -> theory) list
 end;
 
 structure TypedefPackage: TYPEDEF_PACKAGE =
@@ -44,6 +45,28 @@ val Rep_cases = thm "type_definition.Rep_cases";
 val Abs_cases = thm "type_definition.Abs_cases";
 val Rep_induct = thm "type_definition.Rep_induct";
 val Abs_induct = thm "type_definition.Abs_induct";
+
+
+
+(** theory data **)
+
+structure TypedefArgs =
+struct
+  val name = "HOL/typedef";
+  type T = (typ * typ * string * string) Symtab.table;
+  val empty = Symtab.empty;
+  val copy = I;
+  val prep_ext = I;
+  val merge = Symtab.merge op =;
+  fun print sg _ = ();
+end;
+
+structure TypedefData = TheoryDataFun(TypedefArgs);
+
+fun put_typedef newT oldT Abs_name Rep_name thy =
+  TypedefData.put (Symtab.update_new
+    ((fst (dest_Type newT), (newT, oldT, Abs_name, Rep_name)),
+     TypedefData.get thy)) thy;
 
 
 
@@ -143,6 +166,7 @@ fun prepare_typedef prep_term def name (t, vs, mx) raw_set opt_morphs thy =
 
     fun typedef_result (theory, nonempty) =
       theory
+      |> put_typedef newT oldT (full Abs_name) (full Rep_name)
       |> add_typedecls [(t, vs, mx)]
       |> Theory.add_consts_i
        ((if def then [(name, setT, NoSyn)] else []) @
@@ -247,6 +271,96 @@ fun gen_typedef_proof prep_term ((def, name), typ, set, opt_morphs) int thy =
 
 val typedef_proof = gen_typedef_proof read_term;
 val typedef_proof_i = gen_typedef_proof cert_term;
+
+
+
+(** trivial code generator **)
+
+fun typedef_codegen thy gr dep brack t =
+  let
+    fun mk_fun s T ts =
+      let
+        val (gr', _) = Codegen.invoke_tycodegen thy dep false (gr, T);
+        val (gr'', ps) =
+          foldl_map (Codegen.invoke_codegen thy dep true) (gr', ts);
+        val id = Codegen.mk_const_id (sign_of thy) s
+      in Some (gr'', Codegen.mk_app brack (Pretty.str id) ps) end;
+    fun get_name (Type (tname, _)) = tname
+      | get_name _ = "";
+    fun lookup f T = if_none (apsome f (Symtab.lookup
+      (TypedefData.get thy, get_name T))) ""
+  in
+    (case strip_comb t of
+       (Const (s, Type ("fun", [T, U])), ts) =>
+         if lookup #4 T = s andalso
+           is_none (Codegen.get_assoc_type thy (get_name T))
+         then mk_fun s T ts
+         else if lookup #3 U = s andalso
+           is_none (Codegen.get_assoc_type thy (get_name U))
+         then mk_fun s U ts
+         else None
+     | _ => None)
+  end;
+
+fun mk_tyexpr [] s = Pretty.str s
+  | mk_tyexpr [p] s = Pretty.block [p, Pretty.str (" " ^ s)]
+  | mk_tyexpr ps s = Pretty.list "(" (") " ^ s) ps;
+
+fun typedef_tycodegen thy gr dep brack (Type (s, Ts)) =
+      (case Symtab.lookup (TypedefData.get thy, s) of
+         None => None
+       | Some (newT as Type (tname, Us), oldT, Abs_name, Rep_name) =>
+           if is_some (Codegen.get_assoc_type thy tname) then None else
+           let
+             val sg = sign_of thy;
+             val Abs_id = Codegen.mk_const_id sg Abs_name;
+             val Rep_id = Codegen.mk_const_id sg Rep_name;
+             val ty_id = Codegen.mk_type_id sg s;
+             val (gr', qs) = foldl_map
+               (Codegen.invoke_tycodegen thy dep (length Ts = 1)) (gr, Ts);
+             val gr'' = Graph.add_edge (Abs_id, dep) gr' handle Graph.UNDEF _ =>
+               let
+                 val (gr'', p :: ps) = foldl_map
+                   (Codegen.invoke_tycodegen thy Abs_id false)
+                   (Graph.add_edge (Abs_id, dep)
+                      (Graph.new_node (Abs_id, (None, "")) gr'), oldT :: Us);
+                 val s =
+                   Pretty.string_of (Pretty.block [Pretty.str "datatype ",
+                     mk_tyexpr ps ty_id,
+                     Pretty.str " =", Pretty.brk 1, Pretty.str (Abs_id ^ " of"),
+                     Pretty.brk 1, p, Pretty.str ";"]) ^ "\n\n" ^
+                   Pretty.string_of (Pretty.block [Pretty.str ("fun " ^ Rep_id),
+                     Pretty.brk 1, Pretty.str ("(" ^ Abs_id), Pretty.brk 1,
+                     Pretty.str "x) = x;"]) ^ "\n\n" ^
+                   (if "term_of" mem !Codegen.mode then
+                      Pretty.string_of (Pretty.block [Pretty.str "fun ",
+                        Codegen.mk_term_of sg false newT, Pretty.brk 1,
+                        Pretty.str ("(" ^ Abs_id), Pretty.brk 1,
+                        Pretty.str "x) =", Pretty.brk 1,
+                        Pretty.block [Pretty.str ("Const (\"" ^ Abs_name ^ "\","),
+                          Pretty.brk 1, Codegen.mk_type false (oldT --> newT),
+                          Pretty.str ")"], Pretty.str " $", Pretty.brk 1,
+                        Codegen.mk_term_of sg false oldT, Pretty.brk 1,
+                        Pretty.str "x;"]) ^ "\n\n"
+                    else "") ^
+                   (if "test" mem !Codegen.mode then
+                      Pretty.string_of (Pretty.block [Pretty.str "fun ",
+                        Codegen.mk_gen sg false [] "" newT, Pretty.brk 1,
+                        Pretty.str "i =", Pretty.brk 1,
+                        Pretty.block [Pretty.str (Abs_id ^ " ("),
+                          Codegen.mk_gen sg false [] "" oldT, Pretty.brk 1,
+                          Pretty.str "i);"]]) ^ "\n\n"
+                    else "")
+               in Graph.map_node Abs_id (K (None, s)) gr'' end
+           in
+             Some (gr'', mk_tyexpr qs ty_id)
+           end)
+  | typedef_tycodegen thy gr dep brack _ = None;
+
+val setup =
+  [TypedefData.init,
+   Codegen.add_codegen "typedef" typedef_codegen,
+   Codegen.add_tycodegen "typedef" typedef_tycodegen];
 
 
 
