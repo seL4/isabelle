@@ -57,7 +57,7 @@ by (fast_tac eq_cs 1);
 qed "Pi_empty2";
 
 (*The empty function*)
-goalw ZF.thy [Pi_def, function_def] "0: 0->A";
+goalw ZF.thy [Pi_def, function_def] "0: Pi(0,B)";
 by (fast_tac ZF_cs 1);
 qed "empty_fun";
 
