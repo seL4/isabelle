@@ -149,16 +149,12 @@ else
       echo "$LOGIC:"
       echo -e "\t@cd \$(SRC)/$LOGIC; \$(ISATOOL) make $LOGIC"
       echo
-      echo "${NAME}.deps:  ## $SOURCES"
-      echo
-      echo "$TARGET: \$(OUT)/$LOGIC $ROOT_ML $DOCUMENT_ROOT ${NAME}.deps"
+      echo "$TARGET: \$(OUT)/$LOGIC $ROOT_ML $DOCUMENT_ROOT ## $SOURCES"
       echo -e "\t@$USEDIR \$(OUT)/$LOGIC $NAME"
     else
       echo "$NAME: $TARGET"
       echo
-      echo "${NAME}.deps:   ## $ROOT_ML $DOCUMENT_ROOT $SOURCES"
-      echo
-      echo "$TARGET: ${NAME}.deps"
+      echo "$TARGET: ## $ROOT_ML $DOCUMENT_ROOT $SOURCES"
       echo -e "\t@$USEDIR $LOGIC $NAME"
     fi
     echo
@@ -215,25 +211,33 @@ else
   TITLE=$(echo "$NAME" | tr _ -)
   AUTHOR=$("$AUTO_PERL" -e "@pw = getpwnam(\"$USER\"); print @pw[6]" | tr _ -)
   cat >document/root.tex <<EOF
-
 \documentclass[11pt,a4paper]{article}
 \usepackage{isabelle,isabellesym}
 
 % further packages required for unusual symbols (see also isabellesym.sty)
-%\usepackage{latexsym}
-%\usepackage{amssymb}
-%\usepackage[english]{babel}
-%\usepackage[latin1]{inputenc}
-%\usepackage[only,bigsqcap]{stmaryrd}
+% use only when needed
+%\usepackage{amsmath}                  % for \<leadsto>, \<box>, \<diamond>,
+                                       % \<sqsupset>, \<mho>, \<Join>, 
+                                       % \<lhd>, ..
+%\usepackage{amssymb}                  % for \<lesssim>, \<greatersim>,
+                                       % \<lessapprox>, \<greaterapprox>,
+                                       % \<triangleq>, \<yen>, \<lozenge>
+%\usepackage[english]{babel}           % for \<guillemotleft>, 
+                                       %     \<guillemotright>
+%\usepackage[latin1]{inputenc}         % for \<onesuperior>, \<onequarter>,
+                                       % \<twosuperior>, \<onehalf>,
+                                       % \<threesuperior>, \<threequarters>,
+                                       % \<degree>
+%\usepackage[only,bigsqcap]{stmaryrd}  % for \<Sqinter>
 %\usepackage{wasysym}
-%\usepackage{eufrak}
-%\usepackage{textcomp}
-%\usepackage{marvosym}
+%\usepackage{eufrak}                   % for \<AA> ... \<ZZ>, \<aa> ... \<zz>
+%\usepackage{textcomp}                 % \<cent>, \<currency>
+%\usepackage{eurosans}                 % for \<euro>
 
 % this should be the last package used
 \usepackage{pdfsetup}
 
-% proper setup for best-style documents
+% urls in roman style, theory text in math-similar italics
 \urlstyle{rm}
 \isabellestyle{it}
 
