@@ -127,26 +127,15 @@ fun split_rule_goal xss rl =
 
 (* attribute syntax *)
 
-fun complete_split x =
-  Attrib.no_args (Drule.rule_attribute (K complete_split_rule)) x;
-
-fun split_format x =
-  Attrib.syntax (Args.and_list1 (Scan.lift (Scan.repeat Args.name))
-    >> (fn xss => Drule.rule_attribute (K (split_rule_goal xss)))) x;
-
-val split_attributes =
- [("complete_split", (complete_split, complete_split),
-    "recursively split all pair-typed function arguments"),
-  ("split_format", (split_format, split_format),
-    "split given pair-typed subterms in premises")];
-
-
-
-(** theory setup **)
+fun split_format x = Attrib.syntax
+  (Args.mode "complete" >> K (Drule.rule_attribute (K complete_split_rule)) ||
+    Args.and_list1 (Scan.lift (Scan.repeat Args.name))
+      >> (fn xss => Drule.rule_attribute (K (split_rule_goal xss)))) x;
 
 val setup =
- [Attrib.add_attributes split_attributes];
-
+ [Attrib.add_attributes
+  [("split_format", (split_format, split_format),
+    "split pair-typed subterms in premises, or function arguments")]];
 
 end;
 

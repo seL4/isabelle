@@ -139,7 +139,7 @@ inductive "eval G" "evals G" "exec G" intros
 	    G\<turnstile>s1 -c-> s2; G\<turnstile>s2 -While(e) c-> s3 |] ==>
          G\<turnstile>Norm s0 -While(e) c-> s3"
 
-lemmas eval_evals_exec_induct = eval_evals_exec.induct [complete_split]
+lemmas eval_evals_exec_induct = eval_evals_exec.induct [split_format (complete)]
 
 lemma NewCI: "[|new_Addr (heap s) = (a,x);  
        s' = c_hupd (heap s(a\<mapsto>(C,init_vars (fields (G,C))))) (x,s)|] ==>  
