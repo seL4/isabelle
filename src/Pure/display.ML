@@ -16,6 +16,7 @@ signature DISPLAY =
   val pretty_thm	: thm -> Pretty.T
   val print_cterm	: cterm -> unit
   val print_ctyp	: ctyp -> unit
+  val show_consts	: bool ref
   val print_goals	: int -> thm -> unit
   val print_syntax	: theory -> unit
   val print_theory	: theory -> unit
@@ -117,98 +118,115 @@ fun print_theory thy = (Sign.print_sg (sign_of thy); print_thy thy);
 
 (** Print thm A1,...,An/B in "goal style" -- premises as numbered subgoals **)
 
-(* get type_env, sort_env of term *)
+(*show consts in case of showing types?*)
+val show_consts = ref false;
+
 
 local
-  open Syntax;
+
+  (* utils *)
 
   fun ins_entry (x, y) [] = [(x, [y])]
     | ins_entry (x, y) ((pair as (x', ys')) :: pairs) =
-        if x = x' then (x', y ins_string ys') :: pairs
+        if x = x' then (x', y ins ys') :: pairs
         else pair :: ins_entry (x, y) pairs;
 
-  fun add_type_env (Free (x, T), env) = ins_entry (T, x) env
-    | add_type_env (Var (xi, T), env) = ins_entry (T, string_of_vname xi) env
-    | add_type_env (Abs (_, _, t), env) = add_type_env (t, env)
-    | add_type_env (t $ u, env) = add_type_env (u, add_type_env (t, env))
-    | add_type_env (_, env) = env;
+  fun add_consts (Const (c, T), env) = ins_entry (T, c) env
+    | add_consts (t $ u, env) = add_consts (u, add_consts (t, env))
+    | add_consts (Abs (_, _, t), env) = add_consts (t, env)
+    | add_consts (_, env) = env;
 
-  fun add_sort_env (Type (_, Ts), env) = foldr add_sort_env (Ts, env)
-    | add_sort_env (TFree (x, S), env) = ins_entry (S, x) env
-    | add_sort_env (TVar (xi, S), env) = ins_entry (S, string_of_vname xi) env;
+  fun add_vars (Free (x, T), env) = ins_entry (T, (x, ~1)) env
+    | add_vars (Var (xi, T), env) = ins_entry (T, xi) env
+    | add_vars (Abs (_, _, t), env) = add_vars (t, env)
+    | add_vars (t $ u, env) = add_vars (u, add_vars (t, env))
+    | add_vars (_, env) = env;
 
-  fun sort l = map (apsnd sort_strings) l;
+  fun add_varsT (Type (_, Ts), env) = foldr add_varsT (Ts, env)
+    | add_varsT (TFree (x, S), env) = ins_entry (S, (x, ~1)) env
+    | add_varsT (TVar (xi, S), env) = ins_entry (S, xi) env;
+
+  fun less_idx ((x, i):indexname, (y, j):indexname) =
+    x < y orelse x = y andalso i < j;
+  val sort_idxs = map (apsnd (sort less_idx));
+  val sort_strs = map (apsnd sort_strings);
+
+
+  (* prepare atoms *)
+
+  fun consts_of t = sort_strs (add_consts (t, []));
+  fun vars_of t = sort_idxs (add_vars (t, []));
+  fun varsT_of t = rev (sort_idxs (it_term_types add_varsT (t, [])));
+
 in
-  fun type_env t = sort (add_type_env (t, []));
-  fun sort_env t = rev (sort (it_term_types add_sort_env (t, [])));
-end;
+
+  (* print_goals *)
+
+  fun print_goals maxgoals state =
+    let
+      val {sign, ...} = rep_thm state;
+
+      val prt_term = Sign.pretty_term sign;
+      val prt_typ = Sign.pretty_typ sign;
+      val prt_sort = Sign.pretty_sort sign;
+
+      fun prt_atoms prt prtT (X, xs) = Pretty.block
+        [Pretty.block (Pretty.commas (map prt xs)), Pretty.str " ::",
+          Pretty.brk 1, prtT X];
+
+      fun prt_var (x, ~1) = prt_term (Syntax.free x)
+        | prt_var xi = prt_term (Syntax.var xi);
+
+      fun prt_varT (x, ~1) = prt_typ (TFree (x, []))
+        | prt_varT xi = prt_typ (TVar (xi, []));
+
+      val prt_consts = prt_atoms (prt_term o Syntax.const) prt_typ;
+      val prt_vars = prt_atoms prt_var prt_typ;
+      val prt_varsT = prt_atoms prt_varT prt_sort;
 
 
-(* print_goals *)
+      fun print_list _ _ [] = ()
+        | print_list name prt lst = (writeln "";
+            Pretty.writeln (Pretty.big_list name (map prt lst)));
 
-fun print_goals maxgoals state =
-  let
-    open Syntax;
+      fun print_subgoals (_, []) = ()
+        | print_subgoals (n, A :: As) = (Pretty.writeln (Pretty.blk (0,
+            [Pretty.str (" " ^ string_of_int n ^ ". "), prt_term A]));
+              print_subgoals (n + 1, As));
 
-    val {sign, prop, ...} = rep_thm state;
+      val print_ffpairs =
+        print_list "Flex-flex pairs:" (prt_term o Logic.mk_flexpair);
 
-    val pretty_term = Sign.pretty_term sign;
-    val pretty_typ = Sign.pretty_typ sign;
-    val pretty_sort = Sign.pretty_sort sign;
-
-    fun pretty_vars prtf (X, vs) = Pretty.block
-      [Pretty.block (Pretty.commas (map Pretty.str vs)),
-        Pretty.str " ::", Pretty.brk 1, prtf X];
-
-    fun print_list _ _ [] = ()
-      | print_list name prtf lst =
-          (writeln ""; Pretty.writeln (Pretty.big_list name (map prtf lst)));
+      val print_consts = print_list "Constants:" prt_consts o consts_of;
+      val print_vars = print_list "Variables:" prt_vars o vars_of;
+      val print_varsT = print_list "Type variables:" prt_varsT o varsT_of;
 
 
-    fun print_goals (_, []) = ()
-      | print_goals (n, A :: As) = (Pretty.writeln (Pretty.blk (0,
-          [Pretty.str (" " ^ string_of_int n ^ ". "), pretty_term A]));
-            print_goals (n + 1, As));
+      val {prop, ...} = rep_thm state;
+      val (tpairs, As, B) = Logic.strip_horn prop;
+      val ngoals = length As;
 
-    val print_ffpairs =
-      print_list "Flex-flex pairs:" (pretty_term o Logic.mk_flexpair);
+      fun print_gs (types, sorts) =
+       (Pretty.writeln (prt_term B);
+        if ngoals = 0 then writeln "No subgoals!"
+        else if ngoals > maxgoals then
+          (print_subgoals (1, take (maxgoals, As));
+            writeln ("A total of " ^ string_of_int ngoals ^ " subgoals..."))
+        else print_subgoals (1, As);
 
-    val print_types = print_list "Types:" (pretty_vars pretty_typ) o type_env;
-    val print_sorts = print_list "Sorts:" (pretty_vars pretty_sort) o sort_env;
+        print_ffpairs tpairs;
 
-
-    val (tpairs, As, B) = Logic.strip_horn prop;
-    val ngoals = length As;
-
-    val orig_no_freeTs = ! show_no_free_types;
-    val orig_types = ! show_types;
-    val orig_sorts = ! show_sorts;
-
-    fun restore () =
-      (show_no_free_types := orig_no_freeTs;
-        show_types := orig_types;
-        show_sorts := orig_sorts);
-  in
-    (show_no_free_types := true;
-      show_types := (orig_types orelse orig_sorts);
-      show_sorts := false;
-      Pretty.writeln (pretty_term B);
-      if ngoals = 0 then writeln "No subgoals!"
-      else if ngoals > maxgoals then
-        (print_goals (1, take (maxgoals, As));
-          writeln ("A total of " ^ string_of_int ngoals ^ " subgoals..."))
-      else print_goals (1, As);
-
-      print_ffpairs tpairs;
-
-      if orig_sorts then
-        (print_types prop; print_sorts prop)
-      else if orig_types then
-        print_types prop
-      else ())
-    handle exn => (restore (); raise exn);
-    restore ()
+        if types andalso ! show_consts then print_consts prop else ();
+        if types then print_vars prop else ();
+        if sorts then print_varsT prop else ());
+    in
+      setmp show_no_free_types true
+        (setmp show_types (! show_types orelse ! show_sorts)
+          (setmp show_sorts false print_gs))
+     (! show_types orelse ! show_sorts, ! show_sorts)
   end;
+
+end;
 
 
 end;

@@ -7,6 +7,8 @@ New in Isabelle???? (DATE ????)
 
 *** General Changes ***
 
+* print_goals: optional output of const types (set show_consts);
+
 * improved output of warnings (###) / errors (***);
 
 * removed old README and Makefiles;
