@@ -7,6 +7,7 @@ User interfaces for axiomatic type classes.
 
 signature AX_CLASS =
 sig
+  val quiet_mode: bool ref
   val add_classrel_thms: thm list -> theory -> theory
   val add_arity_thms: thm list -> theory -> theory
   val add_axclass: bclass * xclass list -> (string * string) list
@@ -35,6 +36,12 @@ struct
 
 
 (** utilities **)
+
+(* messages *)
+
+val quiet_mode = ref false;
+fun message s = if ! quiet_mode then () else writeln s;
+
 
 (* type vars *)
 
@@ -293,7 +300,7 @@ fun ext_inst_subclass int raw_c1_c2 names thms usr_tac thy =
       if int then intrn_classrel (sign_of thy) raw_c1_c2
       else raw_c1_c2;
   in
-    writeln ("Proving class inclusion " ^
+    message ("Proving class inclusion " ^
       quote (Sign.str_of_classrel (sign_of thy) c1_c2) ^ " ...");
     add_classrel_thms
       [prove_subclass thy c1_c2 (witnesses thy names thms) usr_tac] thy
@@ -311,7 +318,7 @@ fun ext_inst_arity int (raw_t, raw_Ss, raw_cs) names thms usr_tac thy =
       else (raw_t, raw_Ss, raw_cs);
     val wthms = witnesses thy names thms;
     fun prove c =
-     (writeln ("Proving type arity " ^
+     (message ("Proving type arity " ^
         quote (Sign.str_of_arity sign (t, Ss, [c])) ^ " ...");
         prove_arity thy (t, Ss, c) wthms usr_tac);
   in
