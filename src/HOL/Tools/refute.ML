@@ -616,7 +616,7 @@ struct
 							  Type (s', _) =>
 								(case DatatypePackage.datatype_info thy s' of
 								  Some info =>
-									(* TODO: I'm not quite sute if comparing the names is sufficient, or if *)
+									(* TODO: I'm not quite sure if comparing the names is sufficient, or if *)
 									(*       we should also check the type                                  *)
 									s mem (#rec_names info)
 								| None =>  (* not an inductive datatype *)
@@ -625,10 +625,18 @@ struct
 								false)
 							handle LIST "last_elem" => false)  (* not even a function type *)
 				in
-					if is_IDT_constructor () orelse is_IDT_recursor () then
+					if is_IDT_constructor () then
 						(* only collect relevant type axioms *)
 						collect_type_axioms (axs, T)
-					else
+					else if is_IDT_recursor () then (
+						(* TODO: we must add the definition of the recursion operator to the axioms, or *)
+						(*       (better yet, since simply unfolding the definition won't work for      *)
+						(*       initial fragments of recursive IDTs) write an interpreter that         *)
+						(*       respects it                                                            *)
+						warning "Term contains recursion over a datatype; countermodel(s) may be spurious!";
+						(* only collect relevant type axioms *)
+						collect_type_axioms (axs, T)
+					) else
 						(case get_defn axioms of
 						  Some (axname, ax) => 
 							if mem_term (ax, axs) then
