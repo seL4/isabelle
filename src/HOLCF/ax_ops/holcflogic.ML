@@ -33,7 +33,7 @@ val True = Const("True",boolT);
 val False = Const("False",boolT);
 val Imp = Const("op -->",boolT --> boolT --> boolT);
 val And = Const("op &",boolT --> boolT --> boolT);
-val Not = Const("not",boolT --> boolT);   
+val Not = Const("Not",boolT --> boolT);   
 
 fun mkNot A = Not $ A; (* negates, no Trueprop *)
 

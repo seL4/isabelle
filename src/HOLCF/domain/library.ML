@@ -139,7 +139,7 @@ fun mk_constrainall (x,typ,P) = %%"All" $ (%%"_constrainAbs" $ mk_lam(x,P) $ tf 
 end;
 			
 fun mk_ex   (x,P) = mk_exists (x,dummyT,P);
-fun mk_not     P  = Const("not" ,boolT --> boolT) $ P;
+fun mk_not     P  = Const("Not" ,boolT --> boolT) $ P;
 end;
 
 fun mk_All  (x,P) = %%"all" $ mk_lam(x,P); (* meta universal quantification *)
