@@ -11,15 +11,14 @@ sub fixgoal {
     undef $/; $text = <FILE>; $/ = "\n";         # slurp whole file
     close FILE || die $!;
 
-    $thy = "";
     ($path, $thy, $ext) = ($file =~ m,^(.*/)?(\w+)(\.\w+)?$,);
 
     $_ = $text;
 
-    s/^\s*goalw\b\s*\bthy\b/Goalw/mg;
-    s/^\s*goalw\b\s*\b$thy\.thy\b/Goalw/mg;
-    s/^\s*goal\b\s*\bthy\b/Goal/mg;
-    s/^\s*goal\b\s*\b$thy\.thy\b/Goal/mg;
+    s/^[ \t]*goalw\b\s*\bthy\b/Goalw/mg;
+    s/^[ \t]*goalw\b\s*\b$thy\.thy\b/Goalw/mg;
+    s/^[ \t]*goal\b\s*\bthy\b/Goal/mg;
+    s/^[ \t]*goal\b\s*\b$thy\.thy\b/Goal/mg;
 
 
     $result = $_;
