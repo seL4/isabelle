@@ -460,4 +460,22 @@ goal HOL.thy
 by (fast_tac HOL_cs 1);
 result();
 
+(*From Rudnicki, Obvious Inferences, JAR 3 (1987), 383-393.  
+  It does seem obvious!*)
+goal Prod.thy
+    "(ALL x. F(x) & ~G(x) --> (EX y. H(x,y) & J(y))) &        \
+\    (EX x. K(x) & F(x) & (ALL y. H(x,y) --> K(y)))  &        \
+\    (ALL x. K(x) --> ~G(x))   -->   (EX x. K(x) --> ~G(x))";
+by (fast_tac HOL_cs 1);
+result();
+
+goal Prod.thy
+    "(ALL x y. R(x,y) | R(y,x)) &                \
+\    (ALL x y. S(x,y) & S(y,x) --> x=y) &        \
+\    (ALL x y. R(x,y) --> S(x,y))    -->   (ALL x y. S(x,y) --> R(x,y))";
+by (fast_tac HOL_cs 1);
+result();
+
+
+
 writeln"Reached end of file.";
