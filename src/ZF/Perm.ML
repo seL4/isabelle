@@ -26,6 +26,23 @@ goalw Perm.thy [surj_def] "!!f A B. f: surj(A,B) ==> range(f)=B";
 by (best_tac (ZF_cs addIs [equalityI,apply_Pair] addEs [range_type]) 1);
 val surj_range = result();
 
+(** A function with a right inverse is a surjection **)
+
+val prems = goalw Perm.thy [surj_def]
+    "[| f: A->B;  !!y. y:B ==> d(y): A;  !!y. y:B ==> f`d(y) = y \
+\    |] ==> f: surj(A,B)";
+by (fast_tac (ZF_cs addIs prems) 1);
+val f_imp_surjective = result();
+
+val prems = goal Perm.thy
+    "[| !!x. x:A ==> c(x): B;		\
+\       !!y. y:B ==> d(y): A; 		\
+\       !!y. y:B ==> c(d(y)) = y      	\
+\    |] ==> (lam x:A.c(x)) : surj(A,B)";
+by (res_inst_tac [("d", "d")] f_imp_surjective 1);
+by (ALLGOALS (asm_simp_tac (ZF_ss addsimps ([lam_type]@prems)) ));
+val lam_surjective = result();
+
 
 (** Injective function space **)
 
@@ -70,6 +87,15 @@ val bij_is_surj = result();
 (* f: bij(A,B) ==> f: A->B *)
 val bij_is_fun = standard (bij_is_inj RS inj_is_fun);
 
+val prems = goalw Perm.thy [bij_def]
+    "[| !!x. x:A ==> c(x): B;		\
+\       !!y. y:B ==> d(y): A;  		\
+\       !!x. x:A ==> d(c(x)) = x;      	\
+\       !!y. y:B ==> c(d(y)) = y	\
+\    |] ==> (lam x:A.c(x)) : bij(A,B)";
+by (REPEAT (ares_tac (prems @ [IntI, lam_injective, lam_surjective]) 1));
+val lam_bijective = result();
+
 
 (** Identity function **)
 
@@ -110,7 +136,7 @@ by (fast_tac (ZF_cs addIs [id_inj,id_surj]) 1);
 val id_bij = result();
 
 
-(** Converse of a relation **)
+(*** Converse of a function ***)
 
 val [prem] = goal Perm.thy "f: inj(A,B) ==> converse(f) : range(f)->A";
 by (rtac (prem RS inj_is_fun RS PiE) 1);
@@ -120,11 +146,7 @@ by (fast_tac (ZF_cs addEs [prem RSN (3,inj_equality)]) 1);
 by flexflex_tac;
 val inj_converse_fun = result();
 
-val prems = goalw Perm.thy [surj_def]
-    "f: inj(A,B) ==> converse(f): surj(range(f), A)";
-by (fast_tac (ZF_cs addIs (prems@[inj_converse_fun,apply_Pair,apply_equality,
-			 converseI,inj_is_fun])) 1);
-val inj_converse_surj = result();
+(** Equations for converse(f) **)
 
 (*The premises are equivalent to saying that f is injective...*) 
 val prems = goal Perm.thy
@@ -145,8 +167,9 @@ by (rtac (apply_Pair RS (converseD RS apply_equality)) 1);
 by (REPEAT (resolve_tac prems 1));
 val right_inverse_lemma = result();
 
-goal Perm.thy
-    "!!f. [| f: inj(A,B);  b: range(f) |] ==> f`(converse(f)`b) = b";
+(*Should the premises be f:surj(A,B), b:B for symmetry with left_inverse?
+  No: they would not imply that converse(f) was a function! *)
+goal Perm.thy "!!f. [| f: inj(A,B);  b: range(f) |] ==> f`(converse(f)`b) = b";
 by (rtac right_inverse_lemma 1);
 by (REPEAT (ares_tac [inj_converse_fun,inj_is_fun] 1));
 val right_inverse = result();
@@ -158,17 +181,20 @@ by (EVERY1 [etac IntE, etac right_inverse,
 	    assume_tac]);
 val right_inverse_bij = result();
 
-val prems = goal Perm.thy
-    "f: inj(A,B) ==> converse(f): inj(range(f), A)";
-by (rewtac inj_def);  (*rewrite subgoal but not prems!!*)
-by (cut_facts_tac prems 1);
-by (safe_tac ZF_cs);
-(*apply f to both sides and simplify using right_inverse
-  -- could also use  etac[subst_context RS box_equals]  in this proof *)
-by (rtac simp_equals 2);
-by (REPEAT (eresolve_tac [inj_converse_fun, right_inverse RS sym, ssubst] 1
-     ORELSE ares_tac [refl,rangeI] 1));
+(** Converses of injections, surjections, bijections **)
+
+goal Perm.thy "!!f A B. f: inj(A,B) ==> converse(f): inj(range(f), A)";
+by (resolve_tac [f_imp_injective] 1);
+by (eresolve_tac [inj_converse_fun] 1);
+by (resolve_tac [right_inverse] 1);
+by (REPEAT (assume_tac 1));
 val inj_converse_inj = result();
+
+goal Perm.thy "!!f A B. f: inj(A,B) ==> converse(f): surj(range(f), A)";
+by (REPEAT (ares_tac [f_imp_surjective, inj_converse_fun] 1));
+by (REPEAT (ares_tac [left_inverse] 2));
+by (REPEAT (ares_tac [inj_is_fun, range_of_fun RS apply_type] 1));
+val inj_converse_surj = result();
 
 goalw Perm.thy [bij_def] "!!f A B. f: bij(A,B) ==> converse(f): bij(B,A)";
 by (etac IntE 1);
@@ -272,10 +298,12 @@ by (REPEAT (ares_tac [comp_fun,apply_equality,compI,
 		      apply_Pair,apply_type] 1));
 val comp_fun_apply = result();
 
-goalw Perm.thy [inj_def]
-    "!!f g. [| g: inj(A,B);  f: inj(B,C) |] ==> (f O g) : inj(A,C)";
-by (REPEAT (eresolve_tac [bspec RS bspec RS mp, box_equals] 1
-     ORELSE step_tac (ZF_cs addSIs [comp_fun,apply_type,comp_fun_apply]) 1));
+goal Perm.thy "!!f g. [| g: inj(A,B);  f: inj(B,C) |] ==> (f O g) : inj(A,C)";
+by (res_inst_tac [("d", "%y. converse(g) ` (converse(f) ` y)")]
+    f_imp_injective 1);
+by (REPEAT (ares_tac [comp_fun, inj_is_fun] 1));
+by (asm_simp_tac (ZF_ss addsimps [comp_fun_apply, left_inverse] 
+                        setsolver type_auto_tac [inj_is_fun, apply_type]) 1);
 val comp_inj = result();
 
 goalw Perm.thy [surj_def]
@@ -356,20 +384,6 @@ val right_comp_inverse = result();
 
 (** Proving that a function is a bijection **)
 
-val prems = 
-goalw Perm.thy [bij_def, inj_def, surj_def]
-    "[| !!x. x:A ==> c(x): B;		\
-\       !!y. y:B ==> d(y): A;  		\
-\       !!x. x:A ==> d(c(x)) = x;      	\
-\       !!y. y:B ==> c(d(y)) = y	\
-\    |] ==> (lam x:A.c(x)) : bij(A,B)";
-by (simp_tac (ZF_ss addsimps ([lam_type]@prems)) 1);
-by (safe_tac ZF_cs);
-by (eresolve_tac [subst_context RS box_equals] 1);
-by (REPEAT (ares_tac prems 1));
-by (fast_tac (ZF_cs addIs prems) 1);
-val lam_bijective = result();
-
 goalw Perm.thy [id_def]
     "!!f A B. [| f: A->B;  g: B->A |] ==> \
 \             f O g = id(B) <-> (ALL y:B. f`(g`y)=y)";
@@ -381,29 +395,21 @@ by (REPEAT (ares_tac [comp_fun, lam_type] 1));
 by (asm_simp_tac (ZF_ss addsimps [comp_fun_apply]) 1);
 val comp_eq_id_iff = result();
 
-goalw Perm.thy [bij_def, inj_def, surj_def]
+goalw Perm.thy [bij_def]
     "!!f A B. [| f: A->B;  g: B->A;  f O g = id(B);  g O f = id(A) \
 \             |] ==> f : bij(A,B)";
 by (asm_full_simp_tac (ZF_ss addsimps [comp_eq_id_iff]) 1);
-by (safe_tac ZF_cs);
-(*Apply g to both sides then simplify*)
-by (dres_inst_tac [("t", "op `(g)"), ("a", "f`x")] subst_context 1);
-by (asm_full_simp_tac ZF_ss 1);
-by (fast_tac (ZF_cs addIs [apply_type]) 1);
+by (REPEAT (ares_tac [conjI, f_imp_injective, f_imp_surjective] 1
+       ORELSE eresolve_tac [bspec, apply_type] 1));
 val fg_imp_bijective = result();
 
 goal Perm.thy "!!f A. [| f: A->A;  f O f = id(A) |] ==> f : bij(A,A)";
 by (REPEAT (ares_tac [fg_imp_bijective] 1));
 val nilpotent_imp_bijective = result();
 
-(*Injective case applies converse(f) to both sides then simplifies
-    using left_inverse_lemma*)
-goalw Perm.thy [bij_def,inj_def,surj_def]
-    "!!f A B. [| converse(f): B->A;  f: A->B |] ==> f : bij(A,B)";
-val cf_cong = read_instantiate_sg (sign_of Perm.thy)
-                [("t","%x.?f`x")]   subst_context;
-by (fast_tac (ZF_cs addIs [left_inverse_lemma, right_inverse_lemma, apply_type]
-		    addEs [cf_cong RS box_equals]) 1);
+goal Perm.thy "!!f A B. [| converse(f): B->A;  f: A->B |] ==> f : bij(A,B)";
+by (asm_simp_tac (ZF_ss addsimps [fg_imp_bijective, comp_eq_id_iff, 
+				  left_inverse_lemma, right_inverse_lemma]) 1);
 val invertible_imp_bijective = result();
 
 (** Unions of functions -- cf similar theorems on func.ML **)
@@ -425,7 +431,7 @@ by (DEPTH_SOLVE_1 (eresolve_tac [fun_disjoint_apply1, fun_disjoint_apply2] 1
 val surj_disjoint_Un = result();
 
 (*A simple, high-level proof; the version for injections follows from it,
-  using  f:inj(A,B)<->f:bij(A,range(f))  *)
+  using  f:inj(A,B) <-> f:bij(A,range(f))  *)
 goal Perm.thy
     "!!f g. [| f: bij(A,B);  g: bij(C,D);  A Int C = 0;  B Int D = 0 |] ==> \
 \           (f Un g) : bij(A Un C, B Un D)";
