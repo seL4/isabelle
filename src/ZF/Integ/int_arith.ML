@@ -168,7 +168,7 @@ val mult_1s = [zmult_1_intify, zmult_1_right_intify,
                zmult_minus1, zmult_minus1_right];
 
 val tc_rules = [integ_of_type, intify_in_int, 
-                zadd_type, zdiff_type, zmult_type] @ bin.intrs;
+                int_of_type, zadd_type, zdiff_type, zmult_type] @ bin.intrs;
 val intifys = [intify_ident, zadd_intify1, zadd_intify2,
                zdiff_intify1, zdiff_intify2, zmult_intify1, zmult_intify2,
                zless_intify1, zless_intify2, zle_intify1, zle_intify2];
@@ -204,7 +204,8 @@ structure CancelNumeralsCommon =
                                     bin_simps@zadd_ac@zmult_ac@tc_rules@intifys
   val norm_tac		= ALLGOALS (asm_simp_tac norm_tac_ss1)
 			  THEN ALLGOALS (asm_simp_tac norm_tac_ss2)
-  val numeral_simp_tac	= ALLGOALS (simp_tac (ZF_ss addsimps add_0s@bin_simps@tc_rules@intifys))
+  val numeral_simp_tac	= 
+         ALLGOALS (simp_tac (ZF_ss addsimps add_0s@bin_simps@tc_rules@intifys))
   val simplify_meta_eq  = ArithData.simplify_meta_eq (add_0s@mult_1s)
   end;
 
@@ -213,7 +214,7 @@ structure EqCancelNumerals = CancelNumeralsFun
  (open CancelNumeralsCommon
   val prove_conv = ArithData.prove_conv "inteq_cancel_numerals"
   val mk_bal   = FOLogic.mk_eq
-  val dest_bal = FOLogic.dest_bin "op =" iT
+  val dest_bal = FOLogic.dest_eq
   val bal_add1 = eq_add_iff1 RS iff_trans
   val bal_add2 = eq_add_iff2 RS iff_trans
 );
@@ -274,7 +275,8 @@ structure CombineNumeralsData =
                                     bin_simps@zadd_ac@zmult_ac@tc_rules@intifys
   val norm_tac		= ALLGOALS (asm_simp_tac norm_tac_ss1)
 			  THEN ALLGOALS (asm_simp_tac norm_tac_ss2)
-  val numeral_simp_tac	= ALLGOALS (simp_tac (ZF_ss addsimps add_0s@bin_simps))
+  val numeral_simp_tac	= 
+         ALLGOALS (simp_tac (ZF_ss addsimps add_0s@bin_simps@tc_rules@intifys))
   val simplify_meta_eq  = ArithData.simplify_meta_eq (add_0s@mult_1s)
   end;
 
@@ -291,13 +293,16 @@ val combine_numerals =
 
 (*The trick is to regard products as sums, e.g. #3 $* x $* #4 as
   the "sum" of #3, x, #4; the literals are then multiplied*)
+
+
 structure CombineNumeralsProdData =
   struct
   val add		= op * : int*int -> int
   val mk_sum    	= mk_prod
   val dest_sum		= dest_prod
-  fun mk_coeff (k, t) = mk_numeral k
-  val dest_coeff	= dest_coeff 1
+  fun mk_coeff(k,t) = if t=one then mk_numeral k 
+                      else raise TERM("mk_coeff", [])
+  fun dest_coeff t = (dest_numeral t, one)  (*We ONLY want pure numerals.*)
   val left_distrib	= zmult_assoc RS sym RS trans
   val prove_conv        = prove_conv_nohyps "int_combine_numerals_prod"
   val trans_tac         = ArithData.gen_trans_tac trans
@@ -306,7 +311,8 @@ structure CombineNumeralsProdData =
                                     bin_simps@zmult_ac@tc_rules@intifys
   val norm_tac		= ALLGOALS (asm_simp_tac norm_tac_ss1)
 			  THEN ALLGOALS (asm_simp_tac norm_tac_ss2)
-  val numeral_simp_tac	= ALLGOALS (simp_tac (ZF_ss addsimps bin_simps))
+  val numeral_simp_tac	= 
+         ALLGOALS (simp_tac (ZF_ss addsimps bin_simps@tc_rules@intifys))
   val simplify_meta_eq  = ArithData.simplify_meta_eq (mult_1s)
   end;
 
@@ -387,5 +393,9 @@ test "(i $+ j $+ #3 $+ k) $< u $+ #-6 $+ y";
 test "(i $+ j $+ #-12 $+ k) $- #15 = y";
 test "(i $+ j $+ #12 $+ k) $- #-15 = y";
 test "(i $+ j $+ #-12 $+ k) $- #-15 = y";
+
+(*Multiplying separated numerals*)
+Goal "#6 $* ($# x $* #2) =  uu";
+Goal "#4 $* ($# x $* $# x) $* (#2 $* $# x) =  uu";
 *)
 

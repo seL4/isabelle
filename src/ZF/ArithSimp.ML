@@ -353,6 +353,64 @@ by Auto_tac;
 qed "mult_eq_1_iff";
 AddIffs [zero_lt_mult_iff, mult_eq_1_iff];
 
+
+(** Cancellation laws for common factors in comparisons **)
+
+Goal "[| k: nat; m: nat; n: nat |] ==> (m#*k < n#*k) <-> (0<k & m<n)";
+by (safe_tac (claset() addSIs [mult_lt_mono1]));
+by (etac natE 1);
+by Auto_tac;  
+by (rtac (not_le_iff_lt RS iffD1) 1); 
+by (dtac (not_le_iff_lt RSN (2,rev_iffD2)) 3); 
+by (blast_tac (claset() addIs [mult_le_mono1]) 5); 
+by Auto_tac;  
+val lemma = result();
+
+Goal "(m#*k < n#*k) <-> (0 < natify(k) & natify(m) < natify(n))";
+by (rtac iff_trans 1);
+by (rtac lemma 2);
+by Auto_tac;  
+qed "mult_less_cancel2";
+
+Goal "(k#*m < k#*n) <-> (0 < natify(k) & natify(m) < natify(n))";
+by (simp_tac (simpset() addsimps [mult_less_cancel2, 
+                                  inst "m" "k" mult_commute]) 1);
+qed "mult_less_cancel1";
+Addsimps [mult_less_cancel1, mult_less_cancel2];
+
+Goal "(m#*k le n#*k) <-> (0 < natify(k) --> natify(m) le natify(n))";
+by (asm_simp_tac (simpset() addsimps [not_lt_iff_le RS iff_sym]) 1);
+by Auto_tac;  
+qed "mult_le_cancel2";
+
+Goal "(k#*m le k#*n) <-> (0 < natify(k) --> natify(m) le natify(n))";
+by (asm_simp_tac (simpset() addsimps [not_lt_iff_le RS iff_sym]) 1);
+by Auto_tac;  
+qed "mult_le_cancel1";
+Addsimps [mult_le_cancel1, mult_le_cancel2];
+
+Goal "[| Ord(m); Ord(n) |] ==> m=n <-> (m le n & n le m)";
+by (blast_tac (claset() addIs [le_anti_sym]) 1); 
+qed "Ord_eq_iff_le";
+
+Goal "[| k: nat; m: nat; n: nat |] ==> (m#*k = n#*k) <-> (m=n | k=0)";
+by (asm_simp_tac (simpset() addsimps [inst "m" "m#*k" Ord_eq_iff_le,
+                                      inst "m" "m" Ord_eq_iff_le]) 1); 
+by (auto_tac (claset(), simpset() addsimps [Ord_0_lt_iff]));  
+val lemma = result();
+
+Goal "(m#*k = n#*k) <-> (natify(m) = natify(n) | natify(k) = 0)";
+by (rtac iff_trans 1);
+by (rtac lemma 2);
+by Auto_tac;  
+qed "mult_cancel2";
+
+Goal "(k#*m = k#*n) <-> (natify(m) = natify(n) | natify(k) = 0)";
+by (simp_tac (simpset() addsimps [mult_cancel2, inst "m" "k" mult_commute]) 1);
+qed "mult_cancel1";
+Addsimps [mult_cancel1, mult_cancel2];
+
+
 (*Cancellation law for division*)
 Goal "[| 0<n; 0<k; k:nat; m:nat; n:nat |] ==> (k#*m) div (k#*n) = m div n";
 by (eres_inst_tac [("i","m")] complete_induct 1);

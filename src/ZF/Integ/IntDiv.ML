@@ -69,22 +69,12 @@ by (cut_inst_tac [("z","intify(z)")] lemma 1);
 by Auto_tac;  
 qed "zadd_succ_zle_iff";
 
-(** USED??
-Goal "w $< $# succ(m) <-> w $< $# m | intify(w) = $# m";
-by (cut_inst_tac [("z","#0")] zless_add_succ_iff 1);
-by Auto_tac;  
-qed "zless_succ_iff";
-
-Goal "(w $<= $# succ(m)) <-> (w $<= $#m | intify(w) = $# succ(m))";
-by (simp_tac (simpset_of Int.thy addsimps [zless_succ_iff, zle_def]) 1);
-qed "zle_succ_iff";
-**)
-
 (** Inequality reasoning **)
 
 Goal "(w $< z $+ #1) <-> (w$<=z)";
 by (subgoal_tac "#1 = $# 1" 1);
-by (asm_simp_tac (simpset_of Int.thy addsimps [zless_add_succ_iff, zle_def]) 1);
+by (asm_simp_tac (simpset_of Int.thy 
+                  addsimps [zless_add_succ_iff, zle_def]) 1);
 by Auto_tac;  
 qed "zless_add1_iff_zle";
 
@@ -260,89 +250,67 @@ by (asm_full_simp_tac (simpset() addsimps [lemma RS iff_sym]) 1);
 qed "zmult_eq_0_iff";
 
 
-Goal "[| m: int; n: int |] ==> #0 $< k ==> (m$*k $< n$*k) <-> (m$<n)";
-by (safe_tac (claset() addSIs [zmult_zless_mono1]));
-by (cut_facts_tac  [zless_linear] 1);
-by Auto_tac;  
-by (blast_tac (claset() addIs [zmult_zless_mono1] addEs [zless_asym]) 1);
+(** Cancellation laws for k*m < k*n and m*k < n*k, also for <= and =,
+    but not (yet?) for k*m < n*k. **)
+
+Goal "[| k: int; m: int; n: int |] \
+\     ==> (m$*k $< n$*k) <-> ((#0 $< k & m$<n) | (k $< #0 & n$<m))";
+by (case_tac "k = #0" 1);
+by (auto_tac (claset(), simpset() addsimps [neq_iff_zless, 
+                              zmult_zless_mono1, zmult_zless_mono1_neg]));  
+by (auto_tac (claset(), 
+      simpset() addsimps [not_zless_iff_zle,
+			  inst "w1" "m$*k" (not_zle_iff_zless RS iff_sym),
+			  inst "w1" "m" (not_zle_iff_zless RS iff_sym)]));
+by (ALLGOALS (etac notE));
+by (auto_tac (claset(), simpset() addsimps [zless_imp_zle, zmult_zle_mono1,
+                                            zmult_zle_mono1_neg]));  
 val lemma = result();
 
-Goal "#0 $< k ==> (m$*k $< n$*k) <-> (m$<n)";
-by (cut_inst_tac [("m","intify(m)"),("n","intify(n)")] lemma 1);
+Goal "(m$*k $< n$*k) <-> ((#0 $< k & m$<n) | (k $< #0 & n$<m))";
+by (cut_inst_tac [("k","intify(k)"),("m","intify(m)"),("n","intify(n)")]
+                 lemma 1);
 by Auto_tac;  
 qed "zmult_zless_cancel2";
 
-Goal "#0 $< k ==> (k$*m $< k$*n) <-> (m$<n)";
-by (dtac zmult_zless_cancel2 1);
-by (asm_full_simp_tac (simpset() addsimps [zmult_commute]) 1);
+Goal "(k$*m $< k$*n) <-> ((#0 $< k & m$<n) | (k $< #0 & n$<m))";
+by (simp_tac (simpset() addsimps [inst "z" "k" zmult_commute, 
+                                  zmult_zless_cancel2]) 1);
 qed "zmult_zless_cancel1";
-Addsimps [zmult_zless_cancel1, zmult_zless_cancel2];
 
-Goal "[| m: int; n: int |] ==> k $< #0 ==> (m$*k $< n$*k) <-> (n$<m)";
-by (safe_tac (claset() addSIs [zmult_zless_mono1_neg]));
-by (cut_facts_tac [zless_linear] 1);
+Goal "(m$*k $<= n$*k) <-> ((#0 $< k --> m$<=n) & (k $< #0 --> n$<=m))";
+by (simp_tac (simpset() addsimps [not_zless_iff_zle RS iff_sym, 
+                                  zmult_zless_cancel2]) 1);
 by Auto_tac;  
-by (blast_tac (claset() addIs [zmult_zless_mono1_neg] 
-                        addEs [zless_asym]) 1);
-val lemma = result();
-
-Goal "k $< #0 ==> (m$*k $< n$*k) <-> (n$<m)";
-by (cut_inst_tac [("m","intify(m)"),("n","intify(n)")] lemma 1);
-by Auto_tac;  
-qed "zmult_zless_cancel2_neg";
-
-Goal "k $< #0 ==> (k$*m $< k$*n) <-> (n$<m)";
-by (dtac zmult_zless_cancel2_neg 1);
-by (asm_full_simp_tac (simpset() addsimps [zmult_commute]) 1);
-qed "zmult_zless_cancel1_neg";
-Addsimps [zmult_zless_cancel1_neg, zmult_zless_cancel2_neg];
-
-Goal "#0 $< k ==> (m$*k $<= n$*k) <-> (m$<=n)";
-by (asm_full_simp_tac (simpset() addsimps [not_zless_iff_zle RS iff_sym]) 1);
 qed "zmult_zle_cancel2";
 
-Goal "#0 $< k ==> (k$*m $<= k$*n) <-> (m$<=n)";
-by (asm_full_simp_tac (simpset() addsimps [not_zless_iff_zle RS iff_sym]) 1);
+Goal "(k$*m $<= k$*n) <-> ((#0 $< k --> m$<=n) & (k $< #0 --> n$<=m))";
+by (simp_tac (simpset() addsimps [not_zless_iff_zle RS iff_sym, 
+                                  zmult_zless_cancel1]) 1);
+by Auto_tac;  
 qed "zmult_zle_cancel1";
-Addsimps [zmult_zle_cancel1, zmult_zle_cancel2];
 
-Goal "k $< #0 ==> (m$*k $<= n$*k) <-> (n$<=m)";
-by (asm_full_simp_tac (simpset() addsimps [not_zless_iff_zle RS iff_sym]) 1);
-qed "zmult_zle_cancel2_neg";
+Goal "[| m: int; n: int |] ==> m=n <-> (m $<= n & n $<= m)";
+by (blast_tac (claset() addIs [zle_refl,zle_anti_sym]) 1); 
+qed "int_eq_iff_zle";
 
-Goal "k $< #0 ==> (k$*m $<= k$*n) <-> (n$<=m)";
-by (asm_full_simp_tac (simpset() addsimps [not_zless_iff_zle RS iff_sym]) 1);
-qed "zmult_zle_cancel1_neg";
-Addsimps [zmult_zle_cancel1_neg, zmult_zle_cancel2_neg];
+Goal "[| k: int; m: int; n: int |] ==> (m$*k = n$*k) <-> (k=#0 | m=n)";
+by (asm_simp_tac (simpset() addsimps [inst "m" "m$*k" int_eq_iff_zle,
+                                      inst "m" "m" int_eq_iff_zle]) 1); 
+by (auto_tac (claset(), 
+              simpset() addsimps [zmult_zle_cancel2, neq_iff_zless]));  
+val lemma = result();
 
-Goal "[| k ~= #0; k: int; m: int; n: int |] ==> (m$*k = n$*k) <-> (m=n)";
-by (rotate_tac 1 1); 
-by (cut_inst_tac [("z","m"),("w","n")] zless_linear 1);
-by Safe_tac;
-by (asm_full_simp_tac (simpset() addsimps []) 2);
-by (REPEAT 
-    (force_tac (claset() addD2 ("mono_neg", zmult_zless_mono1_neg)
-                         addD2 ("mono_pos", zmult_zless_mono1), 
-		simpset() addsimps [neq_iff_zless]) 1));
+Goal "(m$*k = n$*k) <-> (intify(k) = #0 | intify(m) = intify(n))";
+by (rtac iff_trans 1);
+by (rtac lemma 2);
+by Auto_tac;  
 qed "zmult_cancel2";
 
-Goal "intify(k) ~= #0 ==> (m$*k = n$*k) <-> (intify(m) = intify(n))";
-by (rtac iff_trans 1);
-by (rtac zmult_cancel2 2);
-by Auto_tac;  
-qed "zmult_cancel2_intify";
-
-Goal "[| k ~= #0; k: int; m: int; n: int |] ==> (k$*m = k$*n) <-> (m=n)";
-by (dtac zmult_cancel2 1);
-by (asm_full_simp_tac (simpset() addsimps [zmult_commute]) 4);
-by Auto_tac;  
+Goal "(k$*m = k$*n) <-> (intify(k) = #0 | intify(m) = intify(n))";
+by (simp_tac (simpset() addsimps [inst "z" "k" zmult_commute, 
+                                  zmult_cancel2]) 1);
 qed "zmult_cancel1";
-
-Goal "intify(k) ~= #0 ==> (k$*m = k$*n) <-> (intify(m) = intify(n))";
-by (rtac iff_trans 1);
-by (rtac zmult_cancel1 2);
-by Auto_tac;  
-qed "zmult_cancel1_intify";
 Addsimps [zmult_cancel1, zmult_cancel2];
 
 
@@ -352,18 +320,22 @@ Addsimps [zmult_cancel1, zmult_cancel2];
 Goal "[| b$*q' $+ r' $<= b$*q $+ r;  #0 $<= r';  #0 $< b;  r $< b |] \
 \     ==> q' $<= q";
 by (subgoal_tac "r' $+ b $* (q'$-q) $<= r" 1);
-by (full_simp_tac (simpset() addsimps [zdiff_zmult_distrib2]@zadd_ac@zcompare_rls) 2);
+by (full_simp_tac 
+    (simpset() addsimps [zdiff_zmult_distrib2]@zadd_ac@zcompare_rls) 2);
 by (subgoal_tac "#0 $< b $* (#1 $+ q $- q')" 1);
 by (etac zle_zless_trans 2);
-by (full_simp_tac (simpset() addsimps [zdiff_zmult_distrib2,
-				       zadd_zmult_distrib2]@zadd_ac@zcompare_rls) 2);
+by (full_simp_tac 
+    (simpset() addsimps [zdiff_zmult_distrib2,
+			 zadd_zmult_distrib2]@zadd_ac@zcompare_rls) 2);
 by (etac zle_zless_trans 2);
 by (Asm_simp_tac 2);
 by (subgoal_tac "b $* q' $< b $* (#1 $+ q)" 1);
-by (full_simp_tac (simpset() addsimps [zdiff_zmult_distrib2,
-				       zadd_zmult_distrib2]@zadd_ac@zcompare_rls) 2);
-by (asm_full_simp_tac (simpset() addsimps [zless_add1_iff_zle]@
-                                          zadd_ac@zcompare_rls) 1);
+by (full_simp_tac
+    (simpset() addsimps [zdiff_zmult_distrib2,
+			 zadd_zmult_distrib2]@zadd_ac@zcompare_rls) 2);
+by (auto_tac (claset() addEs [zless_asym], 
+              simpset() addsimps [zmult_zless_cancel1, zless_add1_iff_zle]@
+                                 zadd_ac@zcompare_rls));
 qed "unique_quotient_lemma";
 
 Goal "[| b$*q' $+ r' $<= b$*q $+ r;  r $<= #0;  b $< #0;  b $< r' |] \
@@ -390,7 +362,6 @@ by (REPEAT
 				zle_eq_refl RS unique_quotient_lemma_neg,
 				sym]) 1));
 qed "unique_quotient";
-
 
 Goal "[| quorem (<a,b>, <q,r>);  quorem (<a,b>, <q',r'>);  b: int; b ~= #0; \
 \        q: int; q' : int; \
