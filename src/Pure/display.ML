@@ -28,6 +28,7 @@ end;
 signature DISPLAY =
 sig
   include BASIC_DISPLAY
+  val pretty_flexpair: (term -> Pretty.T) -> term * term -> Pretty.T
   val pretty_thm_aux: (sort -> Pretty.T) * (term -> Pretty.T) -> bool -> thm -> Pretty.T
   val pretty_thm_no_quote: thm -> Pretty.T
   val pretty_thm: thm -> Pretty.T
@@ -66,20 +67,25 @@ val show_tags = ref false;      (*false: suppress tags*)
 fun pretty_tag (name, args) = Pretty.strs (name :: map quote args);
 val pretty_tags = Pretty.list "[" "]" o map pretty_tag;
 
+fun pretty_flexpair pretty_term (t, u) = Pretty.block
+  [pretty_term t, Pretty.str " =?=", Pretty.brk 1, pretty_term u];
+
 fun pretty_thm_aux (pretty_sort, pretty_term) quote th =
   let
-    val {hyps, prop, der = (ora, _), ...} = rep_thm th;
+    val {hyps, tpairs, prop, der = (ora, _), ...} = rep_thm th;
     val xshyps = Thm.extra_shyps th;
     val (_, tags) = Thm.get_name_tags th;
 
-    val prt_term = (if quote then Pretty.quote else I) o pretty_term;
+    val q = if quote then Pretty.quote else I;
+    val prt_term = q o pretty_term;
 
-    val hlen = length xshyps + length hyps;
+    val hlen = length xshyps + length hyps + length tpairs;
     val hsymbs =
       if hlen = 0 andalso not ora then []
       else if ! show_hyps then
         [Pretty.brk 2, Pretty.list "[" "]"
-          (map prt_term hyps @ map pretty_sort xshyps @
+          (map (q o pretty_flexpair pretty_term) tpairs @ map prt_term hyps @
+           map pretty_sort xshyps @
             (if ora then [Pretty.str "!"] else []))]
       else [Pretty.brk 2, Pretty.str ("[" ^ implode (replicate hlen ".") ^
         (if ora then "!" else "") ^ "]")];
@@ -307,15 +313,15 @@ fun pretty_goals_aux (prt_sort, prt_typ, prt_term) begin_goal (msg, main) maxgoa
       Pretty.blk (0, [Pretty.str (begin_goal ^ " " ^ string_of_int n ^ ". "), prt_term A]);
     fun pretty_subgoals As = map pretty_subgoal (1 upto length As ~~ As);
 
-    val pretty_ffpairs = pretty_list "flex-flex pairs:" (prt_term o Logic.mk_flexpair);
+    val pretty_ffpairs = pretty_list "flex-flex pairs:" (pretty_flexpair prt_term);
 
     val pretty_consts = pretty_list "constants:" prt_consts o consts_of;
     val pretty_vars = pretty_list "variables:" prt_vars o vars_of;
     val pretty_varsT = pretty_list "type variables:" prt_varsT o varsT_of;
 
 
-    val {prop, ...} = rep_thm state;
-    val (tpairs, As, B) = Logic.strip_horn prop;
+    val {prop, tpairs, ...} = rep_thm state;
+    val (As, B) = Logic.strip_horn prop;
     val ngoals = length As;
 
     fun pretty_gs (types, sorts) =
