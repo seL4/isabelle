@@ -19,15 +19,11 @@ val ind_defs = ind_can_defs @ ind_ncan_defs;
 val data_defs = simp_defs @ ind_defs @ [napply_def];
 val genrec_defs = [letrec_def,letrec2_def,letrec3_def];
 
-val term_congs = ccl_mk_congs Term.thy 
-    ["inl","inr","succ","op .","split","if","when","ncase","nrec","lcase","lrec",
-     "fst","snd","thd","let","letrec","letrec2","letrec3","napply"];
-
 (*** Beta Rules, including strictness ***)
 
 goalw Term.thy [let_def] "~ t=bot--> let x be t in f(x) = f(t)";
 by (res_inst_tac [("t","t")] term_case 1);
-by (ALLGOALS(SIMP_TAC(CCL_ss addrews [caseBtrue,caseBfalse,caseBpair,caseBlam])));
+by (ALLGOALS(simp_tac(CCL_ss addsimps [caseBtrue,caseBfalse,caseBpair,caseBlam])));
 val letB = result() RS mp;
 
 goalw Term.thy [let_def] "let x be bot in f(x) = bot";
@@ -36,11 +32,11 @@ val letBabot = result();
 
 goalw Term.thy [let_def] "let x be t in bot = bot";
 brs ([caseBbot] RL [term_case]) 1;
-by (ALLGOALS(SIMP_TAC(CCL_ss addrews [caseBtrue,caseBfalse,caseBpair,caseBlam])));
+by (ALLGOALS(simp_tac(CCL_ss addsimps [caseBtrue,caseBfalse,caseBpair,caseBlam])));
 val letBbbot = result();
 
 goalw Term.thy [apply_def] "(lam x.b(x)) ` a = b(a)";
-by (ALLGOALS(SIMP_TAC(CCL_ss addrews [caseBtrue,caseBfalse,caseBpair,caseBlam])));
+by (ALLGOALS(simp_tac(CCL_ss addsimps [caseBtrue,caseBfalse,caseBpair,caseBlam])));
 val applyB = result();
 
 goalw Term.thy [apply_def] "bot ` a = bot";
@@ -57,10 +53,16 @@ by (resolve_tac [fixB RS ssubst] 1 THEN
     resolve_tac [applyB RS ssubst] 1 THEN resolve_tac [refl] 1);
 val letrecB = result();
 
-val rawBs = caseBs @ [applyB,applyBbot,letrecB];
+val rawBs = caseBs @ [applyB,applyBbot];
 
 fun raw_mk_beta_rl defs s = prove_goalw Term.thy defs s
-           (fn _ => [SIMP_TAC (CCL_ss addrews rawBs  addcongs term_congs) 1]);
+           (fn _ => [rtac (letrecB RS ssubst) 1,
+		     simp_tac (CCL_ss addsimps rawBs) 1]);
+fun mk_beta_rl s = raw_mk_beta_rl data_defs s;
+
+fun raw_mk_beta_rl defs s = prove_goalw Term.thy defs s
+           (fn _ => [simp_tac (CCL_ss addsimps rawBs 
+			       setloop (rtac (letrecB RS ssubst))) 1]);
 fun mk_beta_rl s = raw_mk_beta_rl data_defs s;
 
 val ifBtrue    = mk_beta_rl "if true then t else u = t";
@@ -114,8 +116,7 @@ val termBs = [letB,applyB,applyBbot,splitB,splitBbot,
 (*** Constructors are injective ***)
 
 val term_injs = map (mk_inj_rl Term.thy 
-                             [applyB,splitB,whenBinl,whenBinr,ncaseBsucc,lcaseBcons] 
-                             (ccl_congs @ term_congs))
+		     [applyB,splitB,whenBinl,whenBinr,ncaseBsucc,lcaseBcons])
                ["(inl(a) = inl(a')) <-> (a=a')",
                 "(inr(a) = inr(a')) <-> (a=a')",
                 "(succ(a) = succ(a')) <-> (a=a')",
@@ -130,7 +131,7 @@ val term_dstncts = mkall_dstnct_thms Term.thy data_defs (ccl_injs @ term_injs)
 
 local
   fun mk_thm s = prove_goalw Term.thy data_defs s (fn _ => 
-                  [SIMP_TAC (ccl_ss addrews (ccl_porews)) 1]);
+                  [simp_tac (ccl_ss addsimps (ccl_porews)) 1]);
 in
   val term_porews = map mk_thm ["inl(a) [= inl(a') <-> a [= a'",
                                 "inr(b) [= inr(b') <-> b [= b'",
@@ -141,6 +142,7 @@ end;
 (*** Rewriting and Proving ***)
 
 val term_rews = termBs @ term_injs @ term_dstncts @ ccl_porews @ term_porews;
-val term_ss = ccl_ss addrews term_rews addcongs term_congs;
+val term_ss = ccl_ss addsimps term_rews;
 
-val term_cs = ccl_cs addSEs (term_dstncts RL [notE]) addSDs (XH_to_Ds term_injs);
+val term_cs = ccl_cs addSEs (term_dstncts RL [notE]) 
+                     addSDs (XH_to_Ds term_injs);

@@ -10,7 +10,7 @@ open Nat;
 
 val nat_defs = [not_def,add_def,mult_def,sub_def,le_def,lt_def,ack_def,napply_def];
 
-val natBs = map (fn s=>prove_goalw Nat.thy nat_defs s (fn _ => [SIMP_TAC term_ss 1]))
+val natBs = map (fn s=>prove_goalw Nat.thy nat_defs s (fn _ => [simp_tac term_ss 1]))
      ["not(true) = false",
       "not(false) = true",
       "zero #+ n = n",
@@ -20,16 +20,13 @@ val natBs = map (fn s=>prove_goalw Nat.thy nat_defs s (fn _ => [SIMP_TAC term_ss
       "f^zero`a = a",
       "f^succ(n)`a = f(f^n`a)"];
 
-val nat_congs  = ccl_mk_congs Nat.thy ["not","op #+","op #*","op #-","op ##",
-                                     "op #<","op #<=","ackermann","napply"];
-
-val nat_ss = term_ss addrews natBs addcongs nat_congs;
+val nat_ss = term_ss addsimps natBs;
 
 (*** Lemma for napply ***)
 
 val [prem] = goal Nat.thy "n:Nat ==> f^n`f(a) = f^succ(n)`a";
 br (prem RS Nat_ind) 1;
-by (ALLGOALS (ASM_SIMP_TAC (nat_ss addcongs [read_instantiate [("f","f")] arg_cong])));
+by (ALLGOALS (asm_simp_tac nat_ss));
 val napply_f = result();
 
 (****)

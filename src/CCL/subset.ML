@@ -83,10 +83,6 @@ by (rtac (major RS spec RS spec RS mp) 1);
 by (rtac minor 1);
 val monoD = result();
 
-val [prem] = goalw Set.thy [mono_def] "(!!x.f(x) = g(x)) ==> mono(f) <-> mono(g)";
-by (REPEAT (resolve_tac (iff_refl::FOL_congs @ [prem RS subst]) 1));
-val mono_cong = result();
-
 val [prem] = goal Set.thy "mono(f) ==> f(A) Un f(B) <= f(A Un B)";
 by (rtac Un_least 1);
 by (rtac (Un_upper1 RS (prem RS monoD)) 1);
@@ -121,9 +117,6 @@ val mem_rews = [trivial_set,empty_eq] @ (map prover
    "(a : {})       <->   False",
    "(a : {x.P(x)}) <->  P(a)" ]);
 
-val set_congs = 
-    [Collect_cong, ball_cong, bex_cong, INT_cong, UN_cong, mono_cong] @ 
-    mk_congs Set.thy ["Compl", "op Int", "op Un", "Union", "Inter", 
-		      "op :", "op <=", "singleton"];
+val set_congs = [ball_cong, bex_cong, INT_cong, UN_cong];
 
-val set_ss = FOL_ss addcongs set_congs addrews mem_rews;
+val set_ss = FOL_ss addcongs set_congs addsimps mem_rews;

@@ -10,30 +10,10 @@ open CCL;
 
 val ccl_data_defs = [apply_def,fix_def];
 
-(*** Simplifier for pre-order and equality ***)
-
-structure CCL_SimpData : SIMP_DATA =
-  struct
-  val refl_thms		= [refl, po_refl, iff_refl]
-  val trans_thms	= [trans, iff_trans, po_trans]
-  val red1		= iffD1
-  val red2		= iffD2
-  val mk_rew_rules	= mk_rew_rules
-  val case_splits	= []         (*NO IF'S!*)
-  val norm_thms		= norm_thms
-  val subst_thms	= [subst];
-  val dest_red		= dest_red
-  end;
-
-structure CCL_Simp = SimpFun(CCL_SimpData);
-open CCL_Simp;
-
-val auto_ss = empty_ss setauto (fn hyps => ares_tac (TrueI::hyps));
-
 val po_refl_iff_T = make_iff_T po_refl;
 
-val CCL_ss = auto_ss addcongs (FOL_congs @ set_congs)
-                     addrews  ([po_refl_iff_T] @ FOL_rews @ mem_rews);
+val CCL_ss = FOL_ss addcongs set_congs
+                    addsimps  ([po_refl_iff_T] @ mem_rews);
 
 (*** Congruence Rules ***)
 
@@ -46,7 +26,7 @@ val arg_cong = prove_goal CCL.thy "x=y ==> f(x)=f(y)"
  (fn [prem] => [rtac (prem RS subst) 1, rtac refl 1]);
 
 goal CCL.thy  "(ALL x. f(x) = g(x)) --> (%x.f(x)) = (%x.g(x))";
-by (SIMP_TAC (CCL_ss addrews [eq_iff]) 1);
+by (simp_tac (CCL_ss addsimps [eq_iff]) 1);
 by (fast_tac (set_cs addIs [po_abstractn]) 1);
 val abstractn = standard (allI RS (result() RS mp));
 
@@ -60,11 +40,6 @@ fun abs_prems thm =
          | do_prems n (x::xs) thm = do_prems (n+1) xs (do_abs n thm (type_of_terms x));
    in do_prems 1 (prems_of thm) thm
    end;
-
-fun ccl_mk_congs thy cs = map abs_prems (mk_congs thy cs); 
-
-val ccl_congs = ccl_mk_congs CCL.thy 
- ["op [=","SIM","POgen","EQgen","pair","lambda","case","op `","fix"];
 
 val caseBs = [caseBtrue,caseBfalse,caseBpair,caseBlam,caseBbot];
 
@@ -85,17 +60,16 @@ val prems = goal CCL.thy
 by  (REPEAT (SOMEGOAL (ares_tac (prems@[box_equals]))));
 val eq_lemma = result();
 
-fun mk_inj_rl thy rews congs s = 
+fun mk_inj_rl thy rews s = 
       let fun mk_inj_lemmas r = ([arg_cong] RL [(r RS (r RS eq_lemma))]);
           val inj_lemmas = flat (map mk_inj_lemmas rews);
           val tac = REPEAT (ares_tac [iffI,allI,conjI] 1 ORELSE
                             eresolve_tac inj_lemmas 1 ORELSE
-                            ASM_SIMP_TAC (CCL_ss addrews rews 
-                                                 addcongs congs) 1)
+                            asm_simp_tac (CCL_ss addsimps rews) 1)
       in prove_goal thy s (fn _ => [tac])
       end;
 
-val ccl_injs = map (mk_inj_rl CCL.thy caseBs ccl_congs)
+val ccl_injs = map (mk_inj_rl CCL.thy caseBs)
                ["<a,b> = <a',b'> <-> (a=a' & b=b')",
                 "(lam x.b(x) = lam x.b'(x)) <-> ((ALL z.b(z)=b'(z)))"];
 
@@ -124,7 +98,7 @@ local
   fun mk_thm_str thy a b = "~ " ^ (saturate thy a "a") ^ " = " ^ (saturate thy b "b");
 
   val lemma = prove_goal CCL.thy "t=t' --> case(t,b,c,d,e) = case(t',b,c,d,e)"
-                   (fn _ => [SIMP_TAC (CCL_ss addcongs ccl_congs) 1]) RS mp;
+                   (fn _ => [simp_tac CCL_ss 1]) RS mp;
   fun mk_lemma (ra,rb) = [lemma] RL [ra RS (rb RS eq_lemma)] RL 
                            [distinctness RS notE,sym RS (distinctness RS notE)];
 in
@@ -143,7 +117,7 @@ val ccl_dstncts =
 
 fun mk_dstnct_thms thy defs inj_rls xs = 
           let fun mk_dstnct_thm rls s = prove_goalw thy defs s 
-                               (fn _ => [SIMP_TAC (CCL_ss addrews (rls@inj_rls)) 1])
+                               (fn _ => [simp_tac (CCL_ss addsimps (rls@inj_rls)) 1])
           in map (mk_dstnct_thm ccl_dstncts) (mk_dstnct_rls thy xs) end;
 
 fun mkall_dstnct_thms thy defs i_rls xss = flat (map (mk_dstnct_thms thy defs i_rls) xss);
@@ -158,7 +132,7 @@ val XH_to_Ds = map XH_to_D;
 val XH_to_Es = map XH_to_E;
 
 val ccl_rews = caseBs @ ccl_injs @ ccl_dstncts;
-val ccl_ss = CCL_ss addrews ccl_rews addcongs ccl_congs;
+val ccl_ss = CCL_ss addsimps ccl_rews;
 
 val ccl_cs = set_cs addSEs (pair_inject::(ccl_dstncts RL [notE])) 
                     addSDs (XH_to_Ds ccl_injs);
@@ -179,7 +153,7 @@ goalw CCL.thy [POgen_def,SIM_def]  "mono(%X.POgen(X))";
 br monoI 1;
 by (safe_tac ccl_cs);
 by (REPEAT_SOME (resolve_tac [exI,conjI,refl]));
-by (ALLGOALS (SIMP_TAC ccl_ss));
+by (ALLGOALS (simp_tac ccl_ss));
 by (ALLGOALS (fast_tac set_cs));
 val POgen_mono = result();
 
@@ -194,7 +168,7 @@ goal CCL.thy
   "t [= t' <-> t=bot | (t=true & t'=true) | (t=false & t'=false) | \
 \                    (EX a a' b b'.t=<a,b> &  t'=<a',b'>  & a [= a' & b [= b') | \
 \                    (EX f f'.t=lam x.f(x) &  t'=lam x.f'(x) & (ALL x.f(x) [= f'(x)))";
-by (SIMP_TAC (ccl_ss addrews [PO_iff]) 1);
+by (simp_tac (ccl_ss addsimps [PO_iff]) 1);
 br (rewrite_rule [POgen_def,SIM_def] 
                  (POgen_mono RS (PO_def RS def_gfp_Tarski) RS XHlemma1)) 1;
 br (iff_refl RS XHlemma2) 1;
@@ -202,27 +176,27 @@ val poXH = result();
 
 goal CCL.thy "bot [= b";
 br (poXH RS iffD2) 1;
-by (SIMP_TAC ccl_ss 1);
+by (simp_tac ccl_ss 1);
 val po_bot = result();
 
 goal CCL.thy "a [= bot --> a=bot";
 br impI 1;
 bd (poXH RS iffD1) 1;
 be rev_mp 1;
-by (SIMP_TAC ccl_ss 1);
+by (simp_tac ccl_ss 1);
 val bot_poleast = result() RS mp;
 
 goal CCL.thy "<a,b> [= <a',b'> <->  a [= a' & b [= b'";
 br (poXH RS iff_trans) 1;
-by (SIMP_TAC ccl_ss 1);
+by (simp_tac ccl_ss 1);
 by (fast_tac ccl_cs 1);
 val po_pair = result();
 
 goal CCL.thy "lam x.f(x) [= lam x.f'(x) <-> (ALL x. f(x) [= f'(x))";
 br (poXH RS iff_trans) 1;
-by (SIMP_TAC ccl_ss 1);
+by (simp_tac ccl_ss 1);
 by (REPEAT (ares_tac [iffI,allI] 1 ORELSE eresolve_tac [exE,conjE] 1));
-by (ASM_SIMP_TAC ccl_ss 1);
+by (asm_simp_tac ccl_ss 1);
 by (fast_tac ccl_cs 1);
 val po_lam = result();
 
@@ -275,7 +249,7 @@ val npo_lam_pair = result();
 
 fun mk_thm s = prove_goal CCL.thy s (fn _ => 
                           [rtac notI 1,dtac case_pocong 1,etac rev_mp 5,
-                           ALLGOALS (SIMP_TAC ccl_ss),
+                           ALLGOALS (simp_tac ccl_ss),
                            REPEAT (resolve_tac [po_refl,npo_lam_bot] 1)]);
 
 val npo_rls = [npo_pair_lam,npo_lam_pair] @ map mk_thm
@@ -300,7 +274,7 @@ goalw CCL.thy [EQgen_def,SIM_def]  "mono(%X.EQgen(X))";
 br monoI 1;
 by (safe_tac set_cs);
 by (REPEAT_SOME (resolve_tac [exI,conjI,refl]));
-by (ALLGOALS (SIMP_TAC ccl_ss));
+by (ALLGOALS (simp_tac ccl_ss));
 by (ALLGOALS (fast_tac set_cs));
 val EQgen_mono = result();
 
@@ -321,7 +295,7 @@ by (subgoal_tac
 \             (EX a a' b b'.t=<a,b> &  t'=<a',b'>  & <a,a'> : EQ & <b,b'> : EQ) | \
 \             (EX f f'.t=lam x.f(x) &  t'=lam x.f'(x) & (ALL x.<f(x),f'(x)> : EQ))" 1);
 be rev_mp 1;
-by (SIMP_TAC (CCL_ss addrews [EQ_iff RS iff_sym]) 1);
+by (simp_tac (CCL_ss addsimps [EQ_iff RS iff_sym]) 1);
 br (rewrite_rule [EQgen_def,SIM_def]
                  (EQgen_mono RS (EQ_def RS def_gfp_Tarski) RS XHlemma1)) 1;
 br (iff_refl RS XHlemma2) 1;
@@ -345,7 +319,7 @@ fun eq_coinduct3_tac s i = res_inst_tac [("R",s)] eq_coinduct3 i;
 
 goalw CCL.thy [apply_def]  "(EX f.t=lam x.f(x)) --> t = lam x.(t ` x)";
 by (safe_tac ccl_cs);
-by (SIMP_TAC ccl_ss 1);
+by (simp_tac ccl_ss 1);
 val cond_eta = result() RS mp;
 
 goal CCL.thy "(t=bot) | (t=true) | (t=false) | (EX a b.t=<a,b>) | (EX f.t=lam x.f(x))";

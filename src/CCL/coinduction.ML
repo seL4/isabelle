@@ -12,11 +12,11 @@ br prem 1;
 val lfpI = result();
 
 val prems = goal CCL.thy "[| a=a';  a' : A |] ==> a : A";
-by (SIMP_TAC (term_ss addrews prems) 1);
+by (simp_tac (term_ss addsimps prems) 1);
 val ssubst_single = result();
 
 val prems = goal CCL.thy "[| a=a';  b=b';  <a',b'> : A |] ==> <a,b> : A";
-by (SIMP_TAC (term_ss addrews prems) 1);
+by (simp_tac (term_ss addsimps prems) 1);
 val ssubst_pair = result();
 
 (***)
@@ -33,7 +33,7 @@ end;
 
 fun mk_genIs thy defs genXH gen_mono s = prove_goalw thy defs s 
       (fn prems => [rtac (genXH RS iffD2) 1,
-                    (SIMP_TAC term_ss 1),
+                    (simp_tac term_ss 1),
                     TRY (fast_tac (term_cs addIs 
                             ([genXH RS iffD2,gen_mono RS coinduct3_mono_lemma RS lfpI]
                              @ prems)) 1)]);
@@ -75,20 +75,20 @@ br (refl RS (EQ_iff RS iffD1)) 1;
 val EQ_refl = result();
 
 val EQgenIs = map (mk_genIs Term.thy data_defs EQgenXH EQgen_mono)
-      ["<true,true> : EQgen(R)",
-       "<false,false> : EQgen(R)",
-       "[| <a,a'> : R;  <b,b'> : R |] ==> <<a,b>,<a',b'>> : EQgen(R)",
-       "[|!!x. <b(x),b'(x)> : R |] ==> <lam x.b(x),lam x.b'(x)> : EQgen(R)",
-       "<one,one> : EQgen(R)",
-       "<a,a'> : lfp(%x. EQgen(x) Un R Un EQ) ==> \
-\                         <inl(a),inl(a')> : EQgen(lfp(%x. EQgen(x) Un R Un EQ))",
-       "<b,b'> : lfp(%x. EQgen(x) Un R Un EQ) ==> \
-\                         <inr(b),inr(b')> : EQgen(lfp(%x. EQgen(x) Un R Un EQ))",
-       "<zero,zero> : EQgen(lfp(%x. EQgen(x) Un R Un EQ))",
-       "<n,n'> : lfp(%x. EQgen(x) Un R Un EQ) ==> \
-\                         <succ(n),succ(n')> : EQgen(lfp(%x. EQgen(x) Un R Un EQ))",
-       "<[],[]> : EQgen(lfp(%x. EQgen(x) Un R Un EQ))",
-       "[| <h,h'> : lfp(%x. EQgen(x) Un R Un EQ); \
+["<true,true> : EQgen(R)",
+ "<false,false> : EQgen(R)",
+ "[| <a,a'> : R;  <b,b'> : R |] ==> <<a,b>,<a',b'>> : EQgen(R)",
+ "[|!!x. <b(x),b'(x)> : R |] ==> <lam x.b(x),lam x.b'(x)> : EQgen(R)",
+ "<one,one> : EQgen(R)",
+ "<a,a'> : lfp(%x. EQgen(x) Un R Un EQ) ==> \
+\                   <inl(a),inl(a')> : EQgen(lfp(%x. EQgen(x) Un R Un EQ))",
+ "<b,b'> : lfp(%x. EQgen(x) Un R Un EQ) ==> \
+\                   <inr(b),inr(b')> : EQgen(lfp(%x. EQgen(x) Un R Un EQ))",
+ "<zero,zero> : EQgen(lfp(%x. EQgen(x) Un R Un EQ))",
+ "<n,n'> : lfp(%x. EQgen(x) Un R Un EQ) ==> \
+\                   <succ(n),succ(n')> : EQgen(lfp(%x. EQgen(x) Un R Un EQ))",
+ "<[],[]> : EQgen(lfp(%x. EQgen(x) Un R Un EQ))",
+ "[| <h,h'> : lfp(%x. EQgen(x) Un R Un EQ); \
 \          <t,t'> : lfp(%x. EQgen(x) Un R Un EQ) |] ==> \
 \       <h.t,h'.t'> : EQgen(lfp(%x. EQgen(x) Un R Un EQ))"];
 
@@ -101,7 +101,8 @@ fun EQgen_raw_tac i =
 (*      rews are rewrite rules that would cause looping in the simpifier              *)
 
 fun EQgen_tac simp_set rews i = 
-       SELECT_GOAL (TRY (safe_tac ccl_cs) THEN
-                    resolve_tac ((rews@[refl]) RL ((rews@[refl]) RL [ssubst_pair])) i THEN
-                    ALLGOALS (SIMP_TAC simp_set) THEN
-                    ALLGOALS EQgen_raw_tac) i;
+ SELECT_GOAL 
+   (TRY (safe_tac ccl_cs) THEN
+    resolve_tac ((rews@[refl]) RL ((rews@[refl]) RL [ssubst_pair])) i THEN
+    ALLGOALS (simp_tac simp_set) THEN
+    ALLGOALS EQgen_raw_tac) i;

@@ -22,17 +22,12 @@ val prems = goal Set.thy "[| a : {x.P(x)} |] ==> P(a)";
 by (resolve_tac (prems RL [mem_Collect_iff  RS iffD1]) 1);
 val CollectD = result();
 
+val CollectE = make_elim CollectD;
+
 val [prem] = goal Set.thy "[| !!x. x:A <-> x:B |] ==> A = B";
 by (rtac (set_extension RS iffD2) 1);
 by (rtac (prem RS allI) 1);
 val set_ext = result();
-
-val prems = goal Set.thy "[| !!x. P(x) <-> Q(x) |] ==> {x. P(x)} = {x. Q(x)}";
-by (REPEAT (ares_tac [set_ext,iffI,CollectI] 1 ORELSE
-            eresolve_tac ([CollectD] RL (prems RL [iffD1,iffD2])) 1));
-val Collect_cong = result();
-
-val CollectE = make_elim CollectD;
 
 (*** Bounded quantifiers ***)
 

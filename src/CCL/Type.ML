@@ -65,7 +65,7 @@ in
 fun mk_ncanT_tac thy defs top_crls crls s = prove_goalw thy defs s 
   (fn major::prems => [(resolve_tac ([major] RL top_crls) 1),
                        (REPEAT_SOME (eresolve_tac (crls @ [exE,bexE,conjE,disjE]))),
-                       (ALLGOALS (ASM_SIMP_TAC term_ss)),
+                       (ALLGOALS (asm_simp_tac term_ss)),
                        (ALLGOALS (ares_tac (prems RL [lemma]) ORELSE' 
                                   eresolve_tac [bspec])),
                        (safe_tac (ccl_cs addSIs prems))]);
@@ -239,7 +239,7 @@ val inds = [Nat_ind,List_ind];
 
 fun mk_prec_tac inds s = prove_goal Type.thy s
      (fn major::prems => [resolve_tac ([major] RL inds) 1,
-                          ALLGOALS (SIMP_TAC term_ss THEN'
+                          ALLGOALS (simp_tac term_ss THEN'
                                     fast_tac (set_cs addSIs prems))]);
 val prec_tac = mk_prec_tac inds;
 

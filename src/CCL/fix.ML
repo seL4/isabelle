@@ -8,20 +8,13 @@ For fix.thy.
 
 open Fix;
 
-val prems = goalw Fix.thy [INCL_def]
-     "[| !!x.P(x) <-> Q(x) |] ==> INCL(%x.P(x)) <-> INCL(%x.Q(x))";
-by (REPEAT (ares_tac ([refl] @ FOL_congs @ set_congs @ prems) 1));
-val INCL_cong = result();
-
-val fix_congs = [INCL_cong] @ ccl_mk_congs Fix.thy ["napply"];
-
 (*** Fixed Point Induction ***)
 
 val [base,step,incl] = goalw Fix.thy [INCL_def]
     "[| P(bot);  !!x.P(x) ==> P(f(x));  INCL(P) |] ==> P(fix(f))";
 br (incl RS spec RS mp) 1;
 by (rtac (Nat_ind RS ballI) 1 THEN atac 1);
-by (ALLGOALS (SIMP_TAC term_ss));
+by (ALLGOALS (simp_tac term_ss));
 by (REPEAT (ares_tac [base,step] 1));
 val fix_ind = result();
 
@@ -48,7 +41,6 @@ val incl::prems = goal Fix.thy
 by (fast_tac (term_cs addIs ([incl RS inclD] @ prems)) 1);
 val inclE = result();
 
-val fix_ss = term_ss addcongs fix_congs;
 
 (*** Lemmas for Inclusive Predicates ***)
 
@@ -76,7 +68,7 @@ by (fast_tac (set_cs addSIs ([inclI] @ (prems RL [inclD]))) 1);;
 val ball_INCL = result();
 
 goal Fix.thy "INCL(%x.a(x) = b(x)::'a::prog)";
-by (SIMP_TAC (fix_ss addrews [eq_iff]) 1);
+by (simp_tac (term_ss addsimps [eq_iff]) 1);
 by (REPEAT (resolve_tac [conj_INCL,po_INCL] 1));
 val eq_INCL = result();
 
@@ -89,9 +81,9 @@ br (fixB RS sym) 1;
 val fix_idgenfp = result();
 
 goalw Fix.thy [idgen_def] "idgen(lam x.x) = lam x.x";
-by (SIMP_TAC term_ss 1);
+by (simp_tac term_ss 1);
 br (term_case RS allI) 1;
-by (ALLGOALS (SIMP_TAC term_ss));
+by (ALLGOALS (simp_tac term_ss));
 val id_idgenfp = result();
 
 (* All fixed points are lam-expressions *)
@@ -106,12 +98,12 @@ val idgenfp_lam = result();
 
 val prems = goalw Fix.thy [idgen_def] 
     "[| a = b;  a ` t = u |] ==> b ` t = u";
-by (SIMP_TAC (term_ss addrews (prems RL [sym])) 1);
+by (simp_tac (term_ss addsimps (prems RL [sym])) 1);
 val l_lemma= result();
 
 val idgen_lemmas =
     let fun mk_thm s = prove_goalw Fix.thy [idgen_def] s
-           (fn [prem] => [rtac (prem RS l_lemma) 1,SIMP_TAC term_ss 1])
+           (fn [prem] => [rtac (prem RS l_lemma) 1,simp_tac term_ss 1])
     in map mk_thm
           [    "idgen(d) = d ==> d ` bot = bot",
                "idgen(d) = d ==> d ` true = true",
@@ -141,7 +133,7 @@ val [prem] = goal Fix.thy
 \      POgen({p.EX a b.p=<a,b> & (EX t.a=fix(idgen) ` t  & b = d ` t)})";
 by (REPEAT (step_tac term_cs 1));
 by (term_case_tac "t" 1);
-by (ALLGOALS (SIMP_TAC (term_ss addrews (POgenXH::([prem,fix_idgenfp] RL idgen_lemmas)))));
+by (ALLGOALS (simp_tac (term_ss addsimps (POgenXH::([prem,fix_idgenfp] RL idgen_lemmas)))));
 by (ALLGOALS (fast_tac set_cs));
 val lemma1 = result();
 
@@ -157,7 +149,7 @@ val [prem] = goal Fix.thy
 \      {p.EX a b.p=<a,b> & b = d ` a} <= POgen({p.EX a b.p=<a,b> & b = d ` a})";
 by (REPEAT (step_tac term_cs 1));
 by (term_case_tac "a" 1);
-by (ALLGOALS (SIMP_TAC (term_ss addrews (POgenXH::([prem] RL idgen_lemmas)))));
+by (ALLGOALS (simp_tac (term_ss addsimps (POgenXH::([prem] RL idgen_lemmas)))));
 by (ALLGOALS (fast_tac set_cs));
 val lemma2 = result();
 
@@ -165,7 +157,7 @@ val [prem] = goal Fix.thy
     "idgen(d) = d ==> lam x.x [= d";
 br (allI RS po_eta) 1;
 br (lemma2 RSN(2,po_coinduct)) 1;
-by (SIMP_TAC term_ss 1);
+by (simp_tac term_ss 1);
 by (ALLGOALS (fast_tac (term_cs addIs [prem,po_eta_lemma,fix_idgenfp])));
 val id_least_idgen = result();
 
@@ -196,7 +188,7 @@ br (applyBbot RS ssubst) 1;
 brs prems 1;
 br (applyB RS ssubst )1;
 by (res_inst_tac [("t","xa")] term_case 1);
-by (ALLGOALS (SIMP_TAC term_ss));
+by (ALLGOALS (simp_tac term_ss));
 by (ALLGOALS (fast_tac (term_cs addIs ([all_INCL,INCL_subst] @ prems))));
 val term_ind = result();
 

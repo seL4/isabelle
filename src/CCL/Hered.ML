@@ -10,8 +10,6 @@ open Hered;
 
 fun type_of_terms (Const("Trueprop",_) $ (Const("op =",(Type ("fun", [t,_])))$_$_)) = t;
 
-val cong_rls = ccl_mk_congs Hered.thy  ["HTTgen"];
-
 (*** Hereditary Termination ***)
 
 goalw Hered.thy [HTTgen_def]  "mono(%X.HTTgen(X))";
@@ -54,16 +52,16 @@ val HTT_pair = result();
 
 goal Hered.thy "lam x.f(x) : HTT <-> (ALL x. f(x) : HTT)";
 br (HTTXH RS iff_trans) 1;
-by (SIMP_TAC term_ss 1);
+by (simp_tac term_ss 1);
 by (safe_tac term_cs);
-by (ASM_SIMP_TAC term_ss 1);
+by (asm_simp_tac term_ss 1);
 by (fast_tac term_cs 1);
 val HTT_lam = result();
 
 local
   val raw_HTTrews = [HTT_bot,HTT_true,HTT_false,HTT_pair,HTT_lam];
   fun mk_thm s = prove_goalw Hered.thy data_defs s (fn _ => 
-                  [SIMP_TAC (term_ss addrews raw_HTTrews) 1]);
+                  [simp_tac (term_ss addsimps raw_HTTrews) 1]);
 in
   val HTT_rews = raw_HTTrews @
                map mk_thm ["one : HTT",
@@ -115,22 +113,22 @@ val HTTgenIs = map (mk_genIs Hered.thy data_defs HTTgenXH HTTgen_mono)
 (*** Formation Rules for Types ***)
 
 goal Hered.thy "Unit <= HTT";
-by (SIMP_TAC (CCL_ss addrews ([subsetXH,UnitXH] @ HTT_rews)) 1);
+by (simp_tac (CCL_ss addsimps ([subsetXH,UnitXH] @ HTT_rews)) 1);
 val UnitF = result();
 
 goal Hered.thy "Bool <= HTT";
-by (SIMP_TAC (CCL_ss addrews ([subsetXH,BoolXH] @ HTT_rews)) 1);
+by (simp_tac (CCL_ss addsimps ([subsetXH,BoolXH] @ HTT_rews)) 1);
 by (fast_tac (set_cs addIs HTT_Is @ (prems RL [subsetD])) 1);
 val BoolF = result();
 
 val prems = goal Hered.thy "[| A <= HTT;  B <= HTT |] ==> A + B  <= HTT";
-by (SIMP_TAC (CCL_ss addrews ([subsetXH,PlusXH] @ HTT_rews)) 1);
+by (simp_tac (CCL_ss addsimps ([subsetXH,PlusXH] @ HTT_rews)) 1);
 by (fast_tac (set_cs addIs HTT_Is @ (prems RL [subsetD])) 1);
 val PlusF = result();
 
 val prems = goal Hered.thy 
      "[| A <= HTT;  !!x.x:A ==> B(x) <= HTT |] ==> SUM x:A.B(x) <= HTT";
-by (SIMP_TAC (CCL_ss addrews ([subsetXH,SgXH] @ HTT_rews)) 1);
+by (simp_tac (CCL_ss addsimps ([subsetXH,SgXH] @ HTT_rews)) 1);
 by (fast_tac (set_cs addIs HTT_Is @ (prems RL [subsetD])) 1);
 val SigmaF = result();
 
@@ -139,7 +137,7 @@ val SigmaF = result();
 
 (*Proof by induction - needs induction rule for type*)
 goal Hered.thy "Nat <= HTT";
-by (SIMP_TAC (term_ss addrews [subsetXH]) 1);
+by (simp_tac (term_ss addsimps [subsetXH]) 1);
 by (safe_tac set_cs);
 be Nat_ind 1;
 by (ALLGOALS (fast_tac (set_cs addIs HTT_Is @ (prems RL [subsetD]))));
@@ -186,7 +184,7 @@ by (safe_tac ccl_cs);
 bd (poXH RS iffD1) 1;
 by (safe_tac (set_cs addSEs [HTT_bot RS notE]));
 by (REPEAT_SOME (rtac (POgenXH RS iffD2) ORELSE' etac rev_mp));
-by (ALLGOALS (SIMP_TAC (term_ss addrews HTT_rews)));
+by (ALLGOALS (simp_tac (term_ss addsimps HTT_rews)));
 by (ALLGOALS (fast_tac ccl_cs));
 val HTT_po_op = result();
 

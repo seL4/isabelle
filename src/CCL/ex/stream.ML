@@ -21,7 +21,7 @@ by (fast_tac (ccl_cs addSIs prems) 1);
 by (safe_tac type_cs);
 be (XH_to_E ListsXH) 1;
 by (EQgen_tac list_ss [] 1);
-by (SIMP_TAC list_ss 1);
+by (simp_tac list_ss 1);
 by (fast_tac ccl_cs 1);
 val map_comp = result();
 
@@ -87,7 +87,7 @@ val ilist_append = result();
 
 goalw Stream.thy [iter1_def] "iter1(f,a) = a.iter1(f,f(a))";
 br (letrecB RS trans) 1;
-by (SIMP_TAC term_ss 1);
+by (simp_tac term_ss 1);
 val iter1B = result();
 
 goalw Stream.thy [iter2_def] "iter2(f,a) = a . map(f,iter2(f,a))";
@@ -98,14 +98,17 @@ val iter2B = result();
 val [prem] =goal Stream.thy
    "n:Nat ==> map(f) ^ n ` iter2(f,a) = f ^ n ` a . map(f) ^ n ` map(f,iter2(f,a))";
 br (iter2B RS ssubst) 1;back();back();
-by (SIMP_TAC (list_ss addrews [prem RS nmapBcons]) 1);
+by (simp_tac (list_ss addsimps [prem RS nmapBcons]) 1);
 val iter2Blemma = result();
 
 goal Stream.thy "iter1(f,a) = iter2(f,a)";
 by (eq_coinduct3_tac 
-    "{p. EX x y.p=<x,y> & (EX n:Nat.x=iter1(f,f^n`a) & y=map(f)^n`iter2(f,a))}" 1);
-by (fast_tac (type_cs addSIs [napplyBzero RS sym,napplyBzero RS sym RS arg_cong]) 1);
+    "{p. EX x y.p=<x,y> & (EX n:Nat.x=iter1(f,f^n`a) & y=map(f)^n`iter2(f,a))}"
+    1);
+by (fast_tac (type_cs addSIs [napplyBzero RS sym,
+			      napplyBzero RS sym RS arg_cong]) 1);
 by (EQgen_tac list_ss [iter1B,iter2Blemma] 1);
+by (assume_tac 1);   (*should EQgen_tac call asm_simp_tac?*)
 by (rtac (napply_f RS ssubst) 1 THEN atac 1);
 by (res_inst_tac [("f1","f")] (napplyBsucc RS subst) 1);
 by (fast_tac type_cs 1);

@@ -14,10 +14,6 @@ open Wfd;
 
 (***********)
 
-val wfd_congs = mk_congs Wfd.thy ["Wfd","wf","op **","wmap","ListPR"];
-
-(***********)
-
 val [major,prem] = goalw Wfd.thy [Wfd_def]
     "[| Wfd(R);       \
 \       !!x.[| ALL y. <y,x>: R --> P(y) |] ==> P(x) |]  ==>  \
@@ -149,17 +145,17 @@ val wmap_wf = result();
 
 val prems = goal Wfd.thy "<xa,ya> : r ==> <<xa,xb>,<ya,yb>> : wmap(fst,r)";
 br wmapI 1;
-by (SIMP_TAC (term_ss addrews prems) 1);
+by (simp_tac (term_ss addsimps prems) 1);
 val wfstI = result();
 
 val prems = goal Wfd.thy "<xb,yb> : r ==> <<xa,xb>,<ya,yb>> : wmap(snd,r)";
 br wmapI 1;
-by (SIMP_TAC (term_ss addrews prems) 1);
+by (simp_tac (term_ss addsimps prems) 1);
 val wsndI = result();
 
 val prems = goal Wfd.thy "<xc,yc> : r ==> <<xa,<xb,xc>>,<ya,<yb,yc>>> : wmap(thd,r)";
 br wmapI 1;
-by (SIMP_TAC (term_ss addrews prems) 1);
+by (simp_tac (term_ss addsimps prems) 1);
 val wthdI = result();
 
 (*** Ground well-founded relations ***)
@@ -175,7 +171,7 @@ val Empty_wf = result();
 
 val prems = goalw Wfd.thy [wf_def] "Wfd(wf(R))";
 by (res_inst_tac [("Q","Wfd(R)")] (excluded_middle RS disjE) 1);
-by (ALLGOALS (ASM_SIMP_TAC (CCL_ss addcongs wfd_congs)));
+by (ALLGOALS (asm_simp_tac CCL_ss));
 br Empty_wf 1;
 val wf_wf = result();
 
