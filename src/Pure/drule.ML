@@ -26,6 +26,7 @@ signature DRULE =
   val equal_abs_elim	: cterm  -> thm -> thm
   val equal_abs_elim_list: cterm list -> thm -> thm
   val eq_thm		: thm * thm -> bool
+  val same_thm		: thm * thm -> bool
   val eq_thm_sg		: thm * thm -> bool
   val flexpair_abs_elim_list: cterm list -> thm -> thm
   val forall_intr_list	: cterm list -> thm -> thm
@@ -643,6 +644,18 @@ fun eq_thm (th1,th2) =
     let val {sign=sg1, shyps=shyps1, hyps=hyps1, prop=prop1, ...} = rep_thm th1
         and {sign=sg2, shyps=shyps2, hyps=hyps2, prop=prop2, ...} = rep_thm th2
     in  Sign.eq_sg (sg1,sg2) andalso
+        eq_set (shyps1, shyps2) andalso
+        aconvs(hyps1,hyps2) andalso
+        prop1 aconv prop2
+    end;
+
+(*equality of theorems using similarity of signatures,
+  i.e. the theorems belong to the same theory but not necessarily to the same
+  version of this theory*)
+fun same_thm (th1,th2) =
+    let val {sign=sg1, shyps=shyps1, hyps=hyps1, prop=prop1, ...} = rep_thm th1
+        and {sign=sg2, shyps=shyps2, hyps=hyps2, prop=prop2, ...} = rep_thm th2
+    in  Sign.same_sg (sg1,sg2) andalso
         eq_set (shyps1, shyps2) andalso
         aconvs(hyps1,hyps2) andalso
         prop1 aconv prop2

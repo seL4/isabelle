@@ -20,6 +20,7 @@ sig
        stamps: string ref list}
     val subsig: sg * sg -> bool
     val eq_sg: sg * sg -> bool
+    val same_sg: sg * sg -> bool
     val is_draft: sg -> bool
     val const_type: sg -> string -> typ option
     val classes: sg -> class list
@@ -106,6 +107,12 @@ fun is_draft (Sg {stamps = ref "#" :: _, ...}) = true
 fun subsig (Sg {stamps = s1, ...}, Sg {stamps = s2, ...}) = s1 subset s2;
 
 fun eq_sg (Sg {stamps = s1, ...}, Sg {stamps = s2, ...}) = eq_set (s1, s2);
+
+(* test if same theory names are contained in signatures' stamps,
+   i.e. if signatures belong to same theory but not necessarily to the same
+   version of it*)
+fun same_sg (Sg {stamps = s1, ...}, Sg {stamps = s2, ...}) =
+  eq_set (pairself (map (op !)) (s1, s2));
 
 
 (* consts *)
