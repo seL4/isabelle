@@ -1749,11 +1749,14 @@ val (op del_congs) = foldl del_cong;
 
 fun add_proc (mss as Mss {rules,congs,procs,bounds,prems,mk_rews,termless},
     (name, lhs as Cterm {sign_ref, t, ...}, proc, id)) =
-  (trace_term false ("Adding simplification procedure " ^ quote name ^ " for:")
+  (trace_term false ("Adding simplification procedure " ^ quote name ^ " for")
       (Sign.deref sign_ref) t;
     mk_mss (rules, congs,
       Net.insert_term ((t, mk_simproc (name, proc, lhs, id)), procs, eq_simproc)
-        handle Net.INSERT => (trace true "Ignored duplicate"; procs),
+        handle Net.INSERT => 
+	    (warning ("Ignoring duplicate simplification procedure \"" 
+	              ^ name ^ "\""); 
+	     procs),
         bounds, prems, mk_rews, termless));
 
 fun add_simproc (mss, (name, lhss, proc, id)) =
@@ -1768,7 +1771,9 @@ fun del_proc (mss as Mss {rules,congs,procs,bounds,prems,mk_rews,termless},
     (name, lhs as Cterm {t, ...}, proc, id)) =
   mk_mss (rules, congs,
     Net.delete_term ((t, mk_simproc (name, proc, lhs, id)), procs, eq_simproc)
-      handle Net.DELETE => (trace true "Simplification procedure not in simpset"; procs),
+      handle Net.DELETE => 
+	  (warning ("Simplification procedure \"" ^ name ^
+		       "\" not in simpset"); procs),
       bounds, prems, mk_rews, termless);
 
 fun del_simproc (mss, (name, lhss, proc, id)) =
