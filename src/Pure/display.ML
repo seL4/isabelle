@@ -45,7 +45,8 @@ fun pretty_thm th =
       if hlen = 0 then []
       else if ! show_hyps then
         [Pretty.brk 2, Pretty.list "[" "]"
-          (map (Sign.pretty_term sign) hyps @ map Sign.pretty_sort xshyps)]
+          (map (Sign.pretty_term sign) hyps @
+           map (Sign.pretty_sort sign) xshyps)]
       else
         [Pretty.brk 2, Pretty.str ("[" ^ implode (replicate hlen ".") ^ "]")];
   in
@@ -151,7 +152,7 @@ fun print_goals maxgoals state =
 
     val pretty_term = Sign.pretty_term sign;
     val pretty_typ = Sign.pretty_typ sign;
-    val pretty_sort = Sign.pretty_sort;
+    val pretty_sort = Sign.pretty_sort sign;
 
     fun pretty_vars prtf (X, vs) = Pretty.block
       [Pretty.block (Pretty.commas (map Pretty.str vs)),
