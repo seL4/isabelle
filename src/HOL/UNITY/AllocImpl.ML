@@ -134,7 +134,7 @@ Goal
 \ (INT i : lessThan Nclients.   \
 \  INT h. {s. h <= (sub i o allocGiv)s & h pfixGe (sub i o allocAsk)s}  \
 \          LeadsTo {s. tokens h <= (tokens o sub i o allocRel)s})        \
-\<=     \
+\ <=     \
 \(INT i : lessThan Nclients. Increasing (sub i o allocAsk) Int  \
 \                            Increasing (sub i o allocRel))     \
 \ Int   \
