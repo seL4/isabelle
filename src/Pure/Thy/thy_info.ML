@@ -28,8 +28,14 @@ type thy_info =
            the base of this theory.
 *)
 
+signature BASIC_THY_INFO =
+sig
+  val theory: string -> theory
+end
+
 signature THY_INFO =
 sig
+  include BASIC_THY_INFO
   val loaded_thys: thy_info Symtab.table ref
   val get_thyinfo: string -> thy_info option
   val store_theory: theory -> unit
@@ -37,7 +43,6 @@ sig
   val children_of: string -> string list
   val parents_of_name: string -> string list
   val thyinfo_of_sign: Sign.sg -> string * thy_info
-  val theory_of: string -> theory
   val theory_of_sign: Sign.sg -> theory
   val theory_of_thm: thm -> theory
 end;
@@ -103,7 +108,7 @@ fun parents_of_name t =
   | None => []);
 
 (*get theory object for a loaded theory*)
-fun theory_of name =
+fun theory name =
   (case get_thyinfo name of
     Some {theory = Some t, ...} => t
   | _ => err_not_stored name);
@@ -124,3 +129,7 @@ fun store_theory thy =
 
 
 end;
+
+
+structure BasicThyInfo: BASIC_THY_INFO = ThyInfo;
+open BasicThyInfo;

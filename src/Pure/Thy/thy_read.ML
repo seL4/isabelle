@@ -426,7 +426,7 @@ fun mk_base bases child =
       val base_thy =
        (writeln ("Loading theory " ^ quote child);
          if null mergelist then ProtoPure.thy
-         else Theory.prep_ext_merge (map theory_of mergelist));
+         else Theory.prep_ext_merge (map ThyInfo.theory mergelist));
 
       val dummy =
         let val tinfo = case Symtab.lookup (!loaded_thys, child) of
