@@ -8,16 +8,6 @@ header {*  Square roots of primes are irrational *}
 
 theory Sqrt = Primes + Real:
 
-syntax (xsymbols)                        (* FIXME move to main HOL (!?) *)
-  "_square" :: "'a => 'a"  ("(_\<twosuperior>)" [1000] 999)
-syntax (HTML output)
-  "_square" :: "'a => 'a"  ("(_\<twosuperior>)" [1000] 999)
-syntax (output)
-  "_square" :: "'a => 'a"  ("(_^2)" [1000] 999)
-translations
-  "x\<twosuperior>" == "x^Suc (Suc 0)"
-
-
 subsection {* The set of rational numbers *}
 
 constdefs
@@ -86,19 +76,20 @@ proof
   have eq: "m\<twosuperior> = p * n\<twosuperior>"
   proof -
     from n x_rat have "real m = \<bar>x\<bar> * real n" by simp
-    hence "real (m\<twosuperior>) = x\<twosuperior> * real (n\<twosuperior>)" by (simp split: abs_split)
+    hence "real (m\<twosuperior>) = x\<twosuperior> * real (n\<twosuperior>)"
+      by (simp add: power_two real_power_two split: abs_split)
     also from x_sqrt have "... = real (p * n\<twosuperior>)" by simp
     finally show ?thesis ..
   qed
   have "p dvd m \<and> p dvd n"
   proof
     from eq have "p dvd m\<twosuperior>" ..
-    with p_prime show "p dvd m" by (rule prime_dvd_square)
+    with p_prime show "p dvd m" by (rule prime_dvd_power_two)
     then obtain k where "m = p * k" ..
-    with eq have "p * n\<twosuperior> = p\<twosuperior> * k\<twosuperior>" by (auto simp add: mult_ac)
-    with p have "n\<twosuperior> = p * k\<twosuperior>" by simp
+    with eq have "p * n\<twosuperior> = p\<twosuperior> * k\<twosuperior>" by (auto simp add: power_two mult_ac)
+    with p have "n\<twosuperior> = p * k\<twosuperior>" by (simp add: power_two)
     hence "p dvd n\<twosuperior>" ..
-    with p_prime show "p dvd n" by (rule prime_dvd_square)
+    with p_prime show "p dvd n" by (rule prime_dvd_power_two)
   qed
   hence "p dvd gcd (m, n)" ..
   with gcd have "p dvd 1" by simp
@@ -141,16 +132,17 @@ proof
   then obtain m n where
     n: "n \<noteq> 0" and x_rat: "\<bar>x\<bar> = real m / real n" and gcd: "gcd (m, n) = 1" ..
   from n x_rat have "real m = \<bar>x\<bar> * real n" by simp
-  hence "real (m\<twosuperior>) = x\<twosuperior> * real (n\<twosuperior>)" by (simp split: abs_split)
+  hence "real (m\<twosuperior>) = x\<twosuperior> * real (n\<twosuperior>)"
+    by (simp add: power_two real_power_two split: abs_split)
   also from x_sqrt have "... = real (p * n\<twosuperior>)" by simp
   finally have eq: "m\<twosuperior> = p * n\<twosuperior>" ..
   hence "p dvd m\<twosuperior>" ..
-  with p_prime have dvd_m: "p dvd m" by (rule prime_dvd_square)
+  with p_prime have dvd_m: "p dvd m" by (rule prime_dvd_power_two)
   then obtain k where "m = p * k" ..
-  with eq have "p * n\<twosuperior> = p\<twosuperior> * k\<twosuperior>" by (auto simp add: mult_ac)
-  with p have "n\<twosuperior> = p * k\<twosuperior>" by simp
+  with eq have "p * n\<twosuperior> = p\<twosuperior> * k\<twosuperior>" by (auto simp add: power_two mult_ac)
+  with p have "n\<twosuperior> = p * k\<twosuperior>" by (simp add: power_two)
   hence "p dvd n\<twosuperior>" ..
-  with p_prime have "p dvd n" by (rule prime_dvd_square)
+  with p_prime have "p dvd n" by (rule prime_dvd_power_two)
   with dvd_m have "p dvd gcd (m, n)" by (rule gcd_greatest)
   with gcd have "p dvd 1" by simp
   hence "p \<le> 1" by (simp add: dvd_imp_le)
