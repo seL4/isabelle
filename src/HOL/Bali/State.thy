@@ -41,7 +41,7 @@ translations
 constdefs
   
   the_Arr :: "obj option \<Rightarrow> ty \<times> int \<times> (vn, val) table"
- "the_Arr obj \<equiv> \<epsilon>(T,k,t). obj = Some \<lparr>tag=Arr T k,values=t\<rparr>"
+ "the_Arr obj \<equiv> SOME (T,k,t). obj = Some \<lparr>tag=Arr T k,values=t\<rparr>"
 
 lemma the_Arr_Arr [simp]: "the_Arr (Some \<lparr>tag=Arr T k,values=cs\<rparr>) = (T,k,cs)"
 apply (auto simp: the_Arr_def)
@@ -266,7 +266,7 @@ subsection "memory allocation"
 
 constdefs
   new_Addr     :: "heap \<Rightarrow> loc option"
- "new_Addr h   \<equiv> if (\<forall>a. h a \<noteq> None) then None else Some (\<epsilon> a. h a = None)"
+ "new_Addr h   \<equiv> if (\<forall>a. h a \<noteq> None) then None else Some (SOME a. h a = None)"
 
 lemma new_AddrD: "new_Addr h = Some a \<Longrightarrow> h a = None"
 apply (unfold new_Addr_def)

@@ -245,8 +245,8 @@ lemma infinite_countable_subset:
   assumes inf: "infinite (S::'a set)"
   shows "\<exists>f. inj (f::nat \<Rightarrow> 'a) \<and> range f \<subseteq> S"
 proof -
-  def Sseq \<equiv> "nat_rec S (\<lambda>n T. T - {\<epsilon> e. e \<in> T})"
-  def pick \<equiv> "\<lambda>n. (\<epsilon> e. e \<in> Sseq n)"
+  def Sseq \<equiv> "nat_rec S (\<lambda>n T. T - {SOME e. e \<in> T})"
+  def pick \<equiv> "\<lambda>n. (SOME e. e \<in> Sseq n)"
   have Sseq_inf: "\<And>n. infinite (Sseq n)"
   proof -
     fix n

@@ -51,7 +51,7 @@ translations
 
 constdefs
   the_Class :: "ty \<Rightarrow> qtname"
- "the_Class T \<equiv> \<epsilon> C. T = Class C" (** primrec not possible here **)
+ "the_Class T \<equiv> SOME C. T = Class C" (** primrec not possible here **)
  
 lemma the_Class_eq [simp]: "the_Class (Class C)= C"
 by (auto simp add: the_Class_def)
