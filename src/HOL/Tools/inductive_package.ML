@@ -845,7 +845,7 @@ fun add_inductive verbose coind c_strings srcs intro_srcs raw_monos raw_con_defs
 
 val setup =
  [InductiveData.init,
-  Method.add_methods [("mk_cases_tac", mk_cases_meth oo mk_cases_args,
+  Method.add_methods [("ind_cases", mk_cases_meth oo mk_cases_args,
     "dynamic case analysis on sets")],
   Attrib.add_attributes [("mono", mono_attr, "monotonicity rule")]];
 
@@ -873,7 +873,7 @@ val coinductiveP =
 
 
 val ind_cases =
-  P.opt_thm_name "=" -- Scan.repeat1 P.prop -- P.marg_comment
+  P.opt_thm_name ":" -- Scan.repeat1 P.prop -- P.marg_comment
   >> (Toplevel.theory o inductive_cases);
 
 val inductive_casesP =
