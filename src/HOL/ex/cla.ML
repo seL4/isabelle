@@ -276,7 +276,7 @@ goal HOL.thy "(! x. P(a) & (P(x)-->P(b))-->P(c))  =    \
 by (best_tac HOL_cs 1);
 result();
 
-writeln"Problem 34  AMENDED (TWICE!!)  NOT PROVED AUTOMATICALLY";
+writeln"Problem 34  AMENDED (TWICE!!)";
 (*Andrews's challenge*)
 goal HOL.thy "((? x. ! y. p(x) = p(y))  =               \
 \                   ((? x. q(x)) = (! y. p(y))))   =    \
