@@ -1,0 +1,48 @@
+\documentclass[leqno]{article}
+\usepackage{isabelle,isabellesym}
+
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{array}
+
+% this should be the last package used
+\usepackage{pdfsetup}
+
+\urlstyle{rm}
+\isabellestyle{tt}
+%\renewcommand{\isacharunderscore}{\_}%
+% the latter is not necessary with \isabellestyle{tt}
+
+\begin{document}
+
+\title{Locales and Locale Expressions in Isabelle/Isar}
+\author{Clemens Ballarin \\
+  Fakult\"at f\"ur Informatik \\ Technische Universit\"at M\"unchen \\
+  85748 Garching, Germany \\
+  ballarin@in.tum.de}
+\date{}
+
+\maketitle
+
+\begin{abstract}
+  Locales provide a module system for the Isabelle proof assistant.
+  Recently, locales have been ported to the new Isar format for
+  structured proofs.  At the same time, they have been extended by
+  locale expressions, a language for composing locale specifications,
+  and by structures, which provide syntax for algebraic structures.
+  The present paper presents both and is suitable as a tutorial to
+  locales in Isar, because it covers both basics and recent
+  extensions, and contains many examples.
+\end{abstract}
+
+%\tableofcontents
+
+\parindent 0pt\parskip 0.5ex
+
+% include generated text of all theories
+\input{session}
+
+\bibliographystyle{plain}
+\bibliography{root}
+
+\end{document}

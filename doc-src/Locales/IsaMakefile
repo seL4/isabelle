@@ -1,0 +1,33 @@
+
+## targets
+
+default: Locales
+images:
+test: Locales
+
+all: images test
+
+
+## global settings
+
+SRC = $(ISABELLE_HOME)/src
+OUT = $(ISABELLE_OUTPUT)
+LOG = $(OUT)/log
+USEDIR = $(ISATOOL) usedir -i true -d "" -D generated
+
+
+## Locales
+
+Locales: $(LOG)/HOL-Locales.gz
+
+HOL:
+	@cd $(SRC)/HOL; $(ISATOOL) make HOL
+
+$(LOG)/HOL-Locales.gz: $(OUT)/HOL Locales/ROOT.ML Locales/Locales.thy
+	@$(USEDIR) $(OUT)/HOL Locales
+
+
+## clean
+
+clean:
+	@rm -f $(LOG)/HOL-Locales.gz
