@@ -14,7 +14,7 @@ sig
   val verbose: bool ref
   val print_binds: context -> unit
   val print_thms: context -> unit
-  val print_context: context -> unit
+  val strings_of_context: context -> string list
   val print_proof_data: theory -> unit
   val init: theory -> context
   val read_typ: context -> string -> typ
@@ -46,12 +46,12 @@ sig
   val put_thmss: (string * thm list) list -> context -> context
   val have_thmss: string -> context attribute list
     -> (thm list * context attribute list) list -> context -> context * (string * thm list)
-  val assumptions: context -> cterm list
+  val assumptions: context -> (cterm * (int -> tactic)) list
   val fixed_names: context -> string list
-  val assume: string -> context attribute list -> (string * string list) list -> context
-    -> context * ((string * thm list) * thm list)
-  val assume_i: string -> context attribute list -> (term * term list) list -> context
-    -> context * ((string * thm list) * thm list)
+  val assume: (int -> tactic) -> string -> context attribute list -> (string * string list) list
+    -> context -> context * ((string * thm list) * thm list)
+  val assume_i: (int -> tactic) -> string -> context attribute list -> (term * term list) list
+    -> context -> context * ((string * thm list) * thm list)
   val fix: (string * string option) list -> context -> context
   val fix_i: (string * typ) list -> context -> context
   val setup: (theory -> theory) list
@@ -75,18 +75,18 @@ struct
 
 datatype context =
   Context of
-   {thy: theory,                                (*current theory*)
-    data: Object.T Symtab.table,                (*user data*)
+   {thy: theory,                                                        (*current theory*)
+    data: Object.T Symtab.table,                                        (*user data*)
     asms:
-      (cterm list * (string * thm list) list) * (*assumes: A ==> _*)
-      ((string * string) list * string list),   (*fixes: !!x. _*)
-    binds: (term * typ) Vartab.table,           (*term bindings*)
-    thms: thm list Symtab.table,                (*local thms*)
+      ((cterm * (int -> tactic)) list * (string * thm list) list) *     (*assumes: A ==> _*)
+      ((string * string) list * string list),                           (*fixes: !!x. _*)
+    binds: (term * typ) Vartab.table,                                   (*term bindings*)
+    thms: thm list Symtab.table,                                        (*local thms*)
     defs:
-      typ Vartab.table *                        (*type constraints*)
-      sort Vartab.table *                       (*default sorts*)
-      int *					(*maxidx*)
-      string list};                             (*used type variable names*)
+      typ Vartab.table *                                                (*type constraints*)
+      sort Vartab.table *                                               (*default sorts*)
+      int *                                                             (*maxidx*)
+      string list};                                                     (*used type var names*)
 
 exception CONTEXT of string * context;
 
@@ -105,21 +105,24 @@ val sign_of = Theory.sign_of o theory_of;
 (** print context information **)
 
 val verbose = ref false;
-fun verb f x = if ! verbose then f x else ();
+fun verb f x = if ! verbose then f x else [];
+val verb_string = verb (Library.single o Pretty.string_of);
 
-fun print_items prt name items =
+fun strings_of_items prt name items =
   let
     fun pretty_itms (name, [x]) = Pretty.block [Pretty.str (name ^ ":"), Pretty.brk 1, prt x]
       | pretty_itms (name, xs) = Pretty.big_list (name ^ ":") (map prt xs);
   in
-    if null items andalso not (! verbose) then ()
-    else Pretty.writeln (Pretty.big_list name (map pretty_itms items))
+    if null items andalso not (! verbose) then []
+    else [Pretty.string_of (Pretty.big_list name (map pretty_itms items))]
   end;
+
+val print_items = seq writeln ooo strings_of_items;
 
 
 (* term bindings *)
 
-fun print_binds (Context {thy, binds, ...}) =
+fun strings_of_binds (Context {thy, binds, ...}) =
   let
     val prt_term = Sign.pretty_term (Theory.sign_of thy);
 
@@ -130,20 +133,24 @@ fun print_binds (Context {thy, binds, ...}) =
     fun pretty_bind (xi, (t, T)) = Pretty.block
       [Pretty.str (fix_var xi), Pretty.str " ==", Pretty.brk 1, prt_term t];
   in
-    if Vartab.is_empty binds andalso not (! verbose) then ()
-    else Pretty.writeln (Pretty.big_list "Term bindings:" (map pretty_bind (Vartab.dest binds)))
+    if Vartab.is_empty binds andalso not (! verbose) then []
+    else [Pretty.string_of (Pretty.big_list "Term bindings:" (map pretty_bind (Vartab.dest binds)))]
   end;
+
+val print_binds = seq writeln o strings_of_binds;
 
 
 (* local theorems *)
 
-fun print_thms (Context {thms, ...}) =
-  print_items Display.pretty_thm "Local theorems:" (Symtab.dest thms);
+fun strings_of_thms (Context {thms, ...}) =
+  strings_of_items Display.pretty_thm "Local theorems:" (Symtab.dest thms);
+
+val print_thms = seq writeln o strings_of_thms;
 
 
 (* main context *)
 
-fun print_context (ctxt as Context {thy, data = _, asms = ((_, prems), (fixes, _)), binds = _,
+fun strings_of_context (ctxt as Context {thy, data = _, asms = ((_, prems), (fixes, _)), binds = _,
     thms = _, defs = (types, sorts, maxidx, used)}) =
   let
     val sign = Theory.sign_of thy;
@@ -172,16 +179,16 @@ fun print_context (ctxt as Context {thy, data = _, asms = ((_, prems), (fixes, _
     val prt_defT = prt_atom prt_var prt_typ;
     val prt_defS = prt_atom prt_varT prt_sort;
   in
-    verb Pretty.writeln pretty_thy;
-    if null fixes andalso not (! verbose) then ()
-    else Pretty.writeln (Pretty.big_list "Fixed variables:" (map prt_fix (rev fixes)));
-    print_items (prt_term o #prop o Thm.rep_thm) "Assumptions:" prems;
-    verb print_binds ctxt;
-    verb print_thms ctxt;
-    verb Pretty.writeln (Pretty.big_list "Type constraints:" (map prt_defT (Vartab.dest types)));
-    verb Pretty.writeln (Pretty.big_list "Default sorts:" (map prt_defS (Vartab.dest sorts)));
-    verb writeln ("Maxidx: " ^ string_of_int maxidx);
-    verb Pretty.writeln (Pretty.strs ("Used type variable names:" :: used))
+    verb_string pretty_thy @
+    (if null fixes andalso not (! verbose) then []
+     else [Pretty.string_of (Pretty.big_list "Fixed variables:" (map prt_fix (rev fixes)))]) @
+    strings_of_items (prt_term o #prop o Thm.rep_thm) "Assumptions:" prems @
+    verb strings_of_binds ctxt @
+    verb strings_of_thms ctxt @
+    verb_string (Pretty.big_list "Type constraints:" (map prt_defT (Vartab.dest types))) @
+    verb_string (Pretty.big_list "Default sorts:" (map prt_defS (Vartab.dest sorts))) @
+    verb_string (Pretty.str ("Maxidx: " ^ string_of_int maxidx)) @
+    verb_string (Pretty.strs ("Used type variable names:" :: used))
   end;
 
 
@@ -530,7 +537,7 @@ fun prep_declare_match (prep_pat, prep) (ctxt, (raw_pats, raw_t)) =
   let
     val t = prep ctxt raw_t;
     val ctxt' = ctxt |> declare_term t;
-    val pats = map (prep_pat ctxt') raw_pats;		(* FIXME seq / par / simult (??) *)
+    val pats = map (prep_pat ctxt') raw_pats;           (* FIXME seq / par / simult (??) *)
   in (ctxt', (map (rpair t) pats, t)) end;
 
 fun gen_match_binds _ [] ctxt = ctxt
@@ -626,21 +633,22 @@ fun have_thmss name more_attrs ths_attrs ctxt =
 
 (* get assumptions *)
 
-fun assumptions (Context {asms = ((asms_ct, _), _), ...}) = asms_ct;
+fun assumptions (Context {asms = ((asms, _), _), ...}) = asms;
 fun fixed_names (Context {asms = (_, (fixes, _)), ...}) = map #2 fixes;
 
 
 (* assume *)
 
-fun prems (Context {asms = ((_, asms_th), _), ...}) = flat (map #2 asms_th);
+fun prems (Context {asms = ((_, asms), _), ...}) = flat (map #2 asms);
 
-fun gen_assume prepp name attrs raw_prop_pats ctxt =
+fun gen_assume prepp tac name attrs raw_prop_pats ctxt =
   let
     val (ctxt', props) = foldl_map prepp (ctxt, raw_prop_pats);
     val sign = sign_of ctxt';
     val Context {defs = (_, _, maxidx, _), ...} = ctxt';
 
     val cprops = map (Thm.cterm_of sign) props;
+    val cprops_tac = map (rpair tac) cprops;
     val asms = map (Drule.forall_elim_vars (maxidx + 1) o Thm.assume) cprops;
 
     val ths = map (fn th => ([th], [])) asms;
@@ -652,7 +660,7 @@ fun gen_assume prepp name attrs raw_prop_pats ctxt =
     val ctxt''' =
       ctxt''
       |> map_context (fn (thy, data, ((asms_ct, asms_th), fixes), binds, thms, defs) =>
-        (thy, data, ((asms_ct @ cprops, asms_th @ [(name, asms)]), fixes), binds, thms, defs));
+        (thy, data, ((asms_ct @ cprops_tac, asms_th @ [(name, asms)]), fixes), binds, thms, defs));
   in (ctxt''', ((name, thms), prems ctxt')) end;
 
 val assume = gen_assume bind_propp;
