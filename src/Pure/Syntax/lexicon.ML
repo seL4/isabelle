@@ -9,6 +9,7 @@ Lexer for the inner Isabelle syntax (terms and types).
 signature LEXICON0 =
 sig
   val is_identifier: string -> bool
+  val is_ascii_identifier: string -> bool
   val implode_xstr: string list -> string
   val explode_xstr: string -> string list
   val scan_id: string list -> string * string list
@@ -66,7 +67,7 @@ sig
   val tokenize: Scan.lexicon -> bool -> string list -> token list
 end;
 
-structure Lexicon : LEXICON =
+structure Lexicon: LEXICON =
 struct
 
 
@@ -76,6 +77,10 @@ fun is_ident [] = false
   | is_ident (c :: cs) = Symbol.is_letter c andalso forall Symbol.is_letdig cs;
 
 val is_identifier = is_ident o Symbol.explode;
+
+fun is_ascii_identifier s =
+  let val cs = Symbol.explode s
+  in forall Symbol.is_ascii cs andalso is_ident cs end;
 
 fun is_xid s =
   (case Symbol.explode s of
