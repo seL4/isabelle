@@ -46,22 +46,14 @@ goalw Ramsey.thy [Atleast_def, inj_def, Pi_def, function_def] "Atleast(0,A)";
 by (fast_tac ZF_cs 1);
 qed "Atleast0";
 
-val [major] = goalw Ramsey.thy [Atleast_def]
-    "Atleast(succ(m),A) ==> EX x:A. Atleast(m, A-{x})";
-by (rtac (major RS exE) 1);
-by (rtac bexI 1);
-by (etac (inj_is_fun RS apply_type) 2);
-by (rtac succI1 2);
-by (rtac exI 1);
-by (etac inj_succ_restrict 1);
+goalw Ramsey.thy [Atleast_def]
+    "!!m A. Atleast(succ(m),A) ==> EX x:A. Atleast(m, A-{x})";
+by (fast_tac (ZF_cs addEs [inj_is_fun RS apply_type, inj_succ_restrict]) 1);
 qed "Atleast_succD";
 
-val major::prems = goalw Ramsey.thy [Atleast_def]
-    "[| Atleast(n,A);  A<=B |] ==> Atleast(n,B)";
-by (rtac (major RS exE) 1);
-by (rtac exI 1);
-by (etac inj_weaken_type 1);
-by (resolve_tac prems 1);
+goalw Ramsey.thy [Atleast_def]
+    "!!n A. [| Atleast(n,A);  A<=B |] ==> Atleast(n,B)";
+by (fast_tac (ZF_cs addEs [inj_weaken_type]) 1);
 qed "Atleast_superset";
 
 val prems = goalw Ramsey.thy [Atleast_def,succ_def]
@@ -206,19 +198,12 @@ by (fast_tac (ZF_cs addSIs [nat_0I,Ramsey0j]) 1);
 by (rtac ballI 1);
 by (nat_ind_tac "j" [] 1);
 by (fast_tac (ZF_cs addSIs [nat_0I,Ramseyi0]) 1);
-by (dres_inst_tac [("x","succ(j1)")] bspec 1);
-by (REPEAT (eresolve_tac [nat_succI,bexE] 1));
-by (rtac bexI 1);
-by (rtac Ramsey_step_lemma 1);
-by (REPEAT (ares_tac [nat_succI,add_type] 1));
+by (fast_tac (ZF_cs addSIs [nat_succI,add_type,Ramsey_step_lemma]) 1);
 qed "ramsey_lemma";
 
 (*Final statement in a tidy form, without succ(...) *)
-val prems = goal Ramsey.thy
-    "[| i: nat;  j: nat |] ==> EX n:nat. Ramsey(n,i,j)";
-by (rtac (ramsey_lemma RS bspec RS bexE) 1);
-by (etac bexI 3);
-by (REPEAT (ares_tac (prems@[nat_succI]) 1));
+goal Ramsey.thy "!!i j. [| i: nat;  j: nat |] ==> EX n:nat. Ramsey(n,i,j)";
+by (best_tac (ZF_cs addDs [ramsey_lemma] addSIs [nat_succI]) 1);
 qed "ramsey";
 
 (*Compute Ramsey numbers according to proof above -- which, actually,
