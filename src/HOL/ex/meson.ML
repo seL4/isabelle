@@ -200,7 +200,7 @@ fun skolemize th =
 
 fun literals (Const("Trueprop",_) $ P) = literals P
   | literals (Const("op |",_) $ P $ Q) = literals P @ literals Q
-  | literals (Const("not",_) $ P) = [(false,P)]
+  | literals (Const("Not",_) $ P) = [(false,P)]
   | literals P = [(true,P)];
 
 (*number of literals in a term*)

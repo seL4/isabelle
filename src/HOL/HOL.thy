@@ -30,7 +30,7 @@ consts
   (* Constants *)
 
   Trueprop      :: bool => prop                     ("(_)" 5)
-  not           :: bool => bool                     ("~ _" [40] 40)
+  Not           :: bool => bool                     ("~ _" [40] 40)
   True, False   :: bool
   If            :: [bool, 'a, 'a] => 'a   ("(if (_)/ then (_)/ else (_))" 10)
   Inv           :: ('a => 'b) => ('b => 'a)
