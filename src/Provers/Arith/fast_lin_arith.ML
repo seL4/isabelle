@@ -329,7 +329,7 @@ fun mkthm sg asms just =
         in instantiate ([],[(cv,ct)]) mth end
 
       fun simp thm =
-        let val thm' = full_simplify simpset thm
+        let val thm' = trace_thm "Simplified:" (full_simplify simpset thm)
         in if LA_Logic.is_False thm' then raise FalseE thm' else thm' end
 
       fun mk(Asm i) = trace_thm "Asm" (nth_elem(i,asms))
@@ -344,7 +344,12 @@ fun mkthm sg asms just =
         | mk(Multiplied2(n,j)) = simp (trace_msg("**"^string_of_int n); trace_thm "**" (multn2(n,mk j)))
 
   in trace_msg "mkthm";
-     simplify simpset (mk just) handle FalseE thm => thm end
+     let val thm = trace_thm "Final thm:" (mk just)
+     in let val fls = simplify simpset thm
+        in trace_thm "After simplification:" fls; fls
+        end
+     end handle FalseE thm => (trace_thm "False reached early:" thm; thm)
+  end
 end;
 
 fun coeff poly atom = case assoc(poly,atom) of None => 0 | Some i => i;
@@ -355,7 +360,7 @@ fun integ(rlhs,r,rel,rrhs,s,d) =
 let val (rn,rd) = rep_rat r and (sn,sd) = rep_rat s
     val m = lcms(map (abs o snd o rep_rat) (r :: s :: map snd rlhs @ map snd rrhs))
     fun mult(t,r) = let val (i,j) = rep_rat r in (t,i * (m div j)) end
-in (m,(map mult rlhs, rn * (m div rd), rel, map mult rrhs, sn * (m div sd), d)) end
+in (m,(map mult rlhs, rn*(m div rd), rel, map mult rrhs, sn*(m div sd), d)) end
 
 fun mklineq atoms =
   let val n = length atoms in
@@ -451,7 +456,8 @@ fun lin_arith_tac i st = SUBGOAL (fn (A,n) =>
   let val pTs = rev(map snd (Logic.strip_params A))
       val Hs = Logic.strip_assums_hyp A
       val concl = Logic.strip_assums_concl A
-  in case prove (Thm.sign_of_thm st) (pTs,Hs,concl) of
+  in trace_thm ("Trying to refute subgoal " ^ string_of_int i) st;
+     case prove (Thm.sign_of_thm st) (pTs,Hs,concl) of
        [j] => refute1_tac(n,j)
      | [j1,j2] => refute2_tac(n,j1,j2)
      | _ => no_tac
