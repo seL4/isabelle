@@ -632,8 +632,9 @@ fun prove sign xs asms prop tac =
     val fixed_tfrees = foldr Term.add_typ_tfree_names (map #2 fixed_frees, []);
     val params = mapfilter (fn x => apsome (pair x) (assoc_string (frees, x))) xs;
 
-    fun err msg = error (msg ^ "\nThe error(s) above occurred for the goal statement:\n" ^
-      Sign.string_of_term sign (Term.list_all_free (params, statement)));
+    fun err msg = raise ERROR_MESSAGE
+      (msg ^ "\nThe error(s) above occurred for the goal statement:\n" ^
+        Sign.string_of_term sign (Term.list_all_free (params, statement)));
 
     fun cert_safe t = Thm.cterm_of sign (Envir.beta_norm t)
       handle TERM (msg, _) => err msg | TYPE (msg, _, _) => err msg;
