@@ -16,10 +16,6 @@ sig
   type simproc
   val mk_simproc: string -> cterm list
     -> (Sign.sg -> thm list -> term -> thm option) -> simproc
-  val simproc: Sign.sg -> string -> string list
-    -> (Sign.sg -> thm list -> term -> thm option) -> simproc
-  val simproc_i: Sign.sg -> string -> term list
-    -> (Sign.sg -> thm list -> term -> thm option) -> simproc
   type solver
   val mk_solver: string -> (thm list -> int -> tactic) -> solver
   type simpset
@@ -91,6 +87,10 @@ end;
 signature SIMPLIFIER =
 sig
   include BASIC_SIMPLIFIER
+  val simproc: Sign.sg -> string -> string list
+    -> (Sign.sg -> thm list -> term -> thm option) -> simproc
+  val simproc_i: Sign.sg -> string -> term list
+    -> (Sign.sg -> thm list -> term -> thm option) -> simproc
   val          rewrite: simpset -> cterm -> thm
   val      asm_rewrite: simpset -> cterm -> thm
   val     full_rewrite: simpset -> cterm -> thm
