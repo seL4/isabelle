@@ -1163,6 +1163,33 @@ by(induct xs, auto)
 lemma distinct_filter[simp]: "distinct xs ==> distinct (filter P xs)"
 by(induct xs, auto)
 
+(* It is best to avoid this indexed version of distinct,
+   but sometimes it is useful *)
+lemma distinct_conv_nth:
+ "distinct xs = (\<forall>i j. i < size xs \<and> j < size xs \<and> i \<noteq> j \<longrightarrow> xs!i \<noteq> xs!j)"
+apply(induct_tac xs)
+ apply simp
+apply simp
+apply(rule iffI)
+ apply(clarsimp)
+ apply(case_tac i)
+  apply(case_tac j)
+   apply simp
+  apply(simp add:set_conv_nth)
+ apply(case_tac j)
+  apply(clarsimp simp add:set_conv_nth)
+ apply simp
+apply(rule conjI)
+ apply(clarsimp simp add:set_conv_nth)
+ apply(erule_tac x = 0 in allE)
+ apply(erule_tac x = "Suc i" in allE)
+ apply simp
+apply clarsimp
+apply(erule_tac x = "Suc i" in allE)
+apply(erule_tac x = "Suc j" in allE)
+apply simp
+done
+
 (** replicate **)
 section "replicate"
 
