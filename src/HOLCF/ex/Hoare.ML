@@ -103,22 +103,6 @@ val hoare_lemma28 = prove_goal HOLCF.thy
 
 (* ----- access to definitions ----- *)
 
-val p_def2 = prove_goalw Hoare.thy [p_def]
-"p = fix`(LAM f x. If b1`x then f`(g`x) else x fi)"
- (fn prems =>
-        [
-        (rtac refl 1)
-        ]);
-
-val q_def2 = prove_goalw Hoare.thy [q_def]
-"q = fix`(LAM f x. If b1`x orelse b2`x then \
-\     f`(g`x) else x fi)"
- (fn prems =>
-        [
-        (rtac refl 1)
-        ]);
-
-
 val p_def3 = prove_goal Hoare.thy 
 "p`x = If b1`x then p`(g`x) else x fi"
  (fn prems =>
@@ -275,8 +259,7 @@ val fernpass_lemma = prove_goal Hoare.thy
  (fn prems =>
         [
         (cut_facts_tac prems 1),
-        (stac p_def2 1),
-        (rtac fix_ind 1),
+        (rtac (p_def RS def_fix_ind) 1),
         (rtac adm_all 1),
         (rtac allI 1),
         (rtac adm_eq 1),
@@ -309,8 +292,7 @@ val hoare_lemma17 = prove_goal Hoare.thy
  (fn prems =>
         [
         (cut_facts_tac prems 1),
-        (stac q_def2 1),
-        (rtac fix_ind 1),
+        (rtac (q_def RS def_fix_ind) 1),
         (rtac adm_all 1),
         (rtac allI 1),
         (rtac adm_eq 1),
@@ -351,8 +333,7 @@ val hoare_lemma20 = prove_goal Hoare.thy
  (fn prems =>
         [
         (cut_facts_tac prems 1),
-        (stac q_def2 1),
-        (rtac fix_ind 1),
+        (rtac (q_def RS def_fix_ind) 1),
         (rtac adm_all 1),
         (rtac allI 1),
         (rtac adm_eq 1),
