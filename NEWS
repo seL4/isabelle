@@ -55,7 +55,7 @@ statements as well;
 * HOL: improved method 'induct' --- now handles non-atomic goals
 (potential INCOMPATIBILITY); tuned error handling;
 
-* HOL: cases and induct rules may now provide explicit hint about the
+* HOL: cases and induct rules now provide explicit hints about the
 number of facts to be consumed (0 for "type" and 1 for "set" rules);
 any remaining facts are inserted into the goal verbatim;
 
