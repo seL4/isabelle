@@ -19,7 +19,7 @@ types	sig		(* signature of a method, cf. 8.4.2 *)
 	= "sig \\<times> ty \\<times> 'c"
 
 types	'c class		(* class *)
-	= "cname option \\<times> fdecl list \\<times> 'c mdecl list"
+	= "cname \\<times> fdecl list \\<times> 'c mdecl list"
 	(* superclass, fields, methods*)
 
 	'c cdecl		(* class declaration, cf. 8.1 *)
@@ -32,23 +32,33 @@ consts
 
 defs 
 
- ObjectC_def "ObjectC == (Object, (None, [], []))"
+ ObjectC_def "ObjectC == (Object, (arbitrary, [], []))"
 
 
 types 'c prog = "'c cdecl list"
 
+
+translations
+  "fdecl"   <= (type) "vname \\<times> ty"
+  "sig"     <= (type) "mname \\<times> ty list"
+  "mdecl c" <= (type) "sig \\<times> ty \\<times> c"
+  "class c" <= (type) "cname \\<times> fdecl list \\<times> (c mdecl) list"
+  "cdecl c" <= (type) "cname \\<times> (c class)"
+  "prog  c" <= (type) "(c cdecl) list"
+
 consts
 
   class		:: "'c prog => (cname \\<leadsto> 'c class)"
-
   is_class	:: "'c prog => cname => bool"
+
+translations
+
+  "class"        => "map_of"
+  "is_class G C" == "class G C \\<noteq> None"
+
+consts
+
   is_type	:: "'c prog => ty    => bool"
-
-defs
-
-  class_def	"class        == map_of"
-
-  is_class_def	"is_class G C == class G C \\<noteq> None"
 
 primrec
 "is_type G (PrimT pt) = True"

@@ -30,14 +30,12 @@ constdefs
 
  wf_cdecl :: "'c wf_mb => 'c prog => 'c cdecl => bool"
 "wf_cdecl wf_mb G ==
-   \\<lambda>(C,(sc,fs,ms)).
-  (\\<forall>f\\<in>set fs. wf_fdecl G   f    ) \\<and>  unique fs \\<and>
+   \\<lambda>(C,(D,fs,ms)).
+  (\\<forall>f\\<in>set fs. wf_fdecl G         f) \\<and>  unique fs \\<and>
   (\\<forall>m\\<in>set ms. wf_mdecl wf_mb G C m) \\<and>  unique ms \\<and>
-  (case sc of None => C = Object
-         | Some D =>
-             is_class G D \\<and>  \\<not>  G\\<turnstile>D\\<preceq>C C \\<and>
-             (\\<forall>(sig,rT,b)\\<in>set ms. \\<forall>D' rT' b'.
-                 method(G,D) sig = Some(D',rT',b') --> G\\<turnstile>rT\\<preceq>rT'))"
+  (C \\<noteq> Object \\<longrightarrow> is_class G D \\<and>  \\<not>G\\<turnstile>D\\<preceq>C C \\<and>
+                   (\\<forall>(sig,rT,b)\\<in>set ms. \\<forall>D' rT' b'.
+                      method(G,D) sig = Some(D',rT',b') --> G\\<turnstile>rT\\<preceq>rT'))"
 
  wf_prog :: "'c wf_mb => 'c prog => bool"
 "wf_prog wf_mb G ==

@@ -95,7 +95,7 @@ inductive "ty_expr E" "ty_exprs E" "wt_stmt E" intrs
          E\\<turnstile>NewC C::Class C"
 
   (* cf. 15.15 *)
-  Cast  "[| E\\<turnstile>e::Class C;
+  Cast  "[| E\\<turnstile>e::Class C; is_class (prg E) D;
             prg E\\<turnstile>C\\<preceq>? D |] ==>
          E\\<turnstile>Cast D e::Class D"
 

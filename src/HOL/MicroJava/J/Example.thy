@@ -75,13 +75,13 @@ consts
 defs
 
   foo_Base_def "foo_Base == ([x],[],Skip,LAcc x)"
-  BaseC_def "BaseC == (Base, (Some Object, 
+  BaseC_def "BaseC == (Base, (Object, 
 			     [(vee, PrimT Boolean)], 
 			     [((foo,[Class Base]),Class Base,foo_Base)]))"
   foo_Ext_def "foo_Ext == ([x],[],Expr( {Ext}Cast Ext
 				       (LAcc x)..vee:=Lit (Intg #1)),
 				   Lit Null)"
-  ExtC_def  "ExtC  == (Ext,  (Some Base  , 
+  ExtC_def  "ExtC  == (Ext,  (Base  , 
 			     [(vee, PrimT Integer)], 
 			     [((foo,[Class Base]),Class Ext,foo_Ext)]))"
 

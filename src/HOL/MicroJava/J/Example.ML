@@ -1,35 +1,37 @@
 
-AddIs [widen.null];
-
 Addsimps [inj_cnam_, inj_vnam_];
 Addsimps [Base_not_Object,Ext_not_Object];
 Addsimps [Base_not_Object RS not_sym,Ext_not_Object RS not_sym];
 
-val map_of_Cons = prove_goalw thy [get_def thy "map_of_list"] 
-"map_of (p#ps) = (map_of ps)(fst p |-> snd p)" (K [Simp_tac 1]);
-val map_of_Cons1 = prove_goalw Map.thy [get_def thy "map_of_list"] 
-"map_of ((x,y)#ps) x = Some y" (K [Simp_tac 1]);
-val map_of_Cons2 = prove_goalw Map.thy [get_def thy "map_of_list"] 
-"!!X. x\\<noteq>k ==> map_of ((k,y)#ps) x = map_of ps x" (K [Asm_simp_tac 1]);
+bind_thm ("map_of_Cons", hd (tl (thms "map_of.simps")));
+Goal "map_of ((aa,bb)#ps) aa = Some bb";
+by (Simp_tac 1);
+qed "map_of_Cons1";
+Goal "aa\\<noteq>k ==> map_of ((k,bb)#ps) aa = map_of ps aa";
+by (Asm_simp_tac 1);
+qed "map_of_Cons2";
 Delsimps[map_of_Cons]; (* sic! *)
 Addsimps[map_of_Cons1, map_of_Cons2];
 
-val class_tprg_Object = prove_goalw thy [class_def, ObjectC_def] 
- 	"class tprg Object = Some (None, [], [])" 
-	(K [Simp_tac 1]);
-val class_tprg_Base = prove_goalw thy [class_def, ObjectC_def, BaseC_def, 
- ExtC_def] "class tprg Base = Some (Some Object, \
+Goalw [ObjectC_def] "class tprg Object = Some (arbitrary, [], [])";
+by (Simp_tac 1);
+qed "class_tprg_Object";
+
+Goalw [ObjectC_def, BaseC_def, ExtC_def] "class tprg Base = Some (Object, \
 	\ [(vee, PrimT Boolean)], \
-        \ [((foo, [Class Base]), Class Base, foo_Base)])" (K [
-	Simp_tac 1]);
-val class_tprg_Ext = prove_goalw thy [class_def, ObjectC_def, BaseC_def, 
- ExtC_def] "class tprg Ext = Some (Some Base, \
+        \ [((foo, [Class Base]), Class Base, foo_Base)])";
+by (Simp_tac 1);
+qed "class_tprg_Base";
+
+Goalw [ObjectC_def, BaseC_def, ExtC_def] "class tprg Ext = Some (Base, \
 	\ [(vee, PrimT Integer)], \
-        \ [((foo, [Class Base]), Class Ext, foo_Ext)])" (K [
-	Simp_tac 1]);
+        \ [((foo, [Class Base]), Class Ext, foo_Ext)])";
+by (Simp_tac 1);
+qed "class_tprg_Ext";
+
 Addsimps [class_tprg_Object, class_tprg_Base, class_tprg_Ext];
 
-Goal "!!X. (Object,C) \\<in> (subcls1 tprg)^+ ==> R";
+Goal "(Object,C) \\<in> (subcls1 tprg)^+ ==> R";
 by (auto_tac (claset() addSDs [tranclD,subcls1D],simpset()));
 qed "not_Object_subcls";
 AddSEs [not_Object_subcls];
@@ -42,13 +44,13 @@ by Auto_tac;
 qed "subcls_ObjectD";
 AddSDs[subcls_ObjectD];
 
-Goal "!!X. (Base, Ext) \\<in> (subcls1 tprg)^+ ==> R";
+Goal "(Base, Ext) \\<in> (subcls1 tprg)^+ ==> R";
 by (auto_tac (claset() addSDs [tranclD,subcls1D],simpset()));
 qed "not_Base_subcls_Ext";
 AddSEs [not_Base_subcls_Ext];
 
-Goalw [class_def, ObjectC_def, BaseC_def, ExtC_def] "class tprg C = Some z ==> C=Object \\<or> C=Base \\<or> C=Ext";
-by (auto_tac (claset(),simpset()addsimps[]addsplits[split_if_asm]));
+Goalw [ObjectC_def, BaseC_def, ExtC_def] "class tprg C = Some z ==> C=Object \\<or> C=Base \\<or> C=Ext";
+by (auto_tac (claset(),simpset()addsplits[split_if_asm]addsimps[map_of_Cons]));
 qed "class_tprgD";
 
 Goal "(C,C) \\<in> (subcls1 tprg)^+ ==> R";
@@ -66,13 +68,13 @@ qed "unique_classes";
 
 bind_thm ("subcls_direct", subcls1I RS r_into_rtrancl);
 
-Goalw [] "tprg\\<turnstile>Ext\\<preceq>C Base";
+Goal "tprg\\<turnstile>Ext\\<preceq>C Base";
 br subcls_direct 1;
-by (Simp_tac 1);
+by Auto_tac;
 qed "Ext_subcls_Base";
 Addsimps [Ext_subcls_Base];
 
-Goalw [] "tprg\\<turnstile>Class Ext\\<preceq> Class Base";
+Goal "tprg\\<turnstile>Class Ext\\<preceq> Class Base";
 br widen.subcls 1;
 by (Simp_tac 1);
 qed "Ext_widen_Base";
@@ -88,8 +90,6 @@ qed "acyclic_subcls1_";
 
 val wf_subcls1_=acyclic_subcls1_ RS(finite_subcls1 RS finite_acyclic_wf_converse);
 
-
-Addsimps[is_class_def];
 
 val fields_rec_ = wf_subcls1_ RSN (1, fields_rec_lemma);
 

@@ -4,44 +4,43 @@
     Copyright   1999 Technische Universitaet Muenchen
 *)
 
-val subcls1D = prove_goalw thy [subcls1_def] "!!G. G\\<turnstile>C\\<prec>C1D ==> \
-\ \\<exists>fs ms. class G C = Some (Some D,fs,ms)" (K [Auto_tac]);
+Goalw [subcls1_def] 
+  "G\\<turnstile>C\\<prec>C1D \\<Longrightarrow> C \\<noteq> Object \\<and> (\\<exists>fs ms. class G C = Some (D,fs,ms))";
+by Auto_tac;
+qed "subcls1D";
+Goalw [subcls1_def] "\\<lbrakk>class G C = Some (D,rest); C \\<noteq> Object\\<rbrakk> \\<Longrightarrow> G\\<turnstile>C\\<prec>C1D";
+by Auto_tac;
+qed "subcls1I";
 
-val subcls1I = prove_goalw  thy [subcls1_def] 
-"!!G. [| class G C = Some (Some D,rest) |] ==> G\\<turnstile>C\\<prec>C1D" (K [Auto_tac]);
-
-val subcls1_def2 = prove_goalw thy [subcls1_def,is_class_def]  "subcls1 G = \
-\ (SIGMA C:{C. is_class G C} . {D. fst (the (class G C)) = Some D})"
- (K [Auto_tac]);
+Goalw [subcls1_def]  
+"subcls1 G = (\\<Sigma>C\\<in>{C. is_class G C} . {D. C\\<noteq>Object \\<and> fst (the (class G C))=D})";
+by Auto_tac;
+qed "subcls1_def2";
 
 Goal "finite (subcls1 G)";
 by(stac subcls1_def2 1);
-by( rtac finite_SigmaI 1);
-by(  rtac finite_is_class 1);
-by( rtac finite_subset 1);
-by(  rtac some_subset_the 1);
-by( Simp_tac 1);
+by( rtac (finite_is_class RS finite_SigmaI) 1);
+by(res_inst_tac [("B","{fst (the (class G C))}")] finite_subset 1);
+by  Auto_tac;
 qed "finite_subcls1";
 
-fun prove_typerel_lemma drules indrule s = prove_goal thy s (fn prems => [
-	rtac (hd prems RS indrule) 1,
-	auto_tac (claset() addDs drules, simpset())]);
 
-fun prove_typerel s lemmata = prove_goal thy s (fn prems => [
-	cut_facts_tac prems 1,
-	auto_tac (claset() addDs lemmata, simpset())]);
-
-
-Goalw [is_class_def] "(C,D) \\<in> (subcls1 G)^+ ==> is_class G C";
+Goal "(C,D) \\<in> (subcls1 G)^+ ==> is_class G C";
 by(etac trancl_trans_induct 1);
 by (auto_tac (HOL_cs addSDs [subcls1D],simpset()));
 qed "subcls_is_class";
+
+Goal "G\\<turnstile>C\\<preceq>C D \\<Longrightarrow> is_class G D \\<longrightarrow> is_class G C";
+by (etac rtrancl_induct 1);
+by  (dtac subcls1D 2);
+by  Auto_tac;
+qed_spec_mp "subcls_is_class2"; 
 
 (* A particular thm about wf;
    looks like it is an odd instance of something more general
 *)
 Goalw [wf_def] "wf{((A,x),(B,y)) . A=B \\<and> wf(R(A)) \\<and> (x,y)\\<in>R(A)}";
-by(full_simp_tac (simpset() delcongs [imp_cong] addsimps [split_paired_All]) 1);
+by(full_simp_tac (simpset() delcongs [imp_cong]) 1);
 by(strip_tac 1);
 by(rename_tac "A x" 1);
 by(case_tac "wf(R A)" 1);
@@ -68,30 +67,48 @@ val fields_TC = prove_goalw_cterm [subcls1_rel_def]
  (cterm_of (sign_of thy) (HOLogic.mk_Trueprop (hd (tl (fields.tcs)))))
  (K [auto_tac (claset() addIs [subcls1I], simpset())]);
 
+Goalw [field_def] 
+"field (G,C) fn = Some (fd, fT) \\<Longrightarrow> map_of (fields (G,C)) (fn, fd) = Some fT";
+by (rtac table_of_remap_SomeD 1);
+by (Asm_full_simp_tac 1);
+qed "field_fields";
 
-AddSIs   [widen.refl];
+AddSIs   [widen.refl,widen.null];
 Addsimps [widen.refl];
-
-val prove_widen_lemma = prove_typerel_lemma [] widen.elim;
 
 Goal "(G\\<turnstile>PrimT pT\\<preceq>RefT rT) = False";
 br iffI 1;
 be widen.elim 1;
-by(Auto_tac);
+by Auto_tac;
 qed "widen_PrimT_RefT";
 AddIffs [widen_PrimT_RefT];
 
-val widen_RefT = prove_typerel "G\\<turnstile>RefT R\\<preceq>T ==> \\<exists>t. T=RefT t" 
-	[prove_widen_lemma "G\\<turnstile>S\\<preceq>T ==> S=RefT R --> (\\<exists>t. T=RefT t)"];
-bind_thm ("widen_RefT", widen_RefT);
+Goal "G\\<turnstile>S\\<preceq>T ==> S=RefT R --> (\\<exists>t. T=RefT t)";
+by (etac widen.elim 1);
+by Auto_tac;
+qed "widen_RefT_lemma";
+Goal "G\\<turnstile>RefT R\\<preceq>T ==> \\<exists>t. T=RefT t"; 
+by (dtac widen_RefT_lemma 1);
+by Auto_tac;
+qed "widen_RefT";
 
-val widen_RefT2 = prove_typerel "G\\<turnstile>S\\<preceq>RefT R ==> \\<exists>t. S=RefT t" 
-	[prove_widen_lemma "G\\<turnstile>S\\<preceq>T ==> T=RefT R --> (\\<exists>t. S=RefT t)"];
-bind_thm ("widen_RefT2", widen_RefT2);
+Goal "G\\<turnstile>S\\<preceq>T ==> T=RefT R --> (\\<exists>t. S=RefT t)";
+by (etac widen.elim 1);
+by Auto_tac;
+qed "widen_RefT2_lemma";
+Goal "G\\<turnstile>S\\<preceq>RefT R ==> \\<exists>t. S=RefT t";
+by (dtac widen_RefT2_lemma 1);
+by Auto_tac;
+qed "widen_RefT2";
 
-val widen_Class = prove_typerel "G\\<turnstile>Class C\\<preceq>T ==> \\<exists>D. T=Class D"
- [ prove_widen_lemma "G\\<turnstile>S\\<preceq>T ==> S = Class C --> (\\<exists>D. T=Class D)"];
-bind_thm ("widen_Class", widen_Class);
+Goal "G\\<turnstile>S\\<preceq>T ==> S = Class C --> (\\<exists>D. T=Class D)";
+by (etac widen.elim 1);
+by Auto_tac;
+qed "widen_Class_lemma";
+Goal "G\\<turnstile>Class C\\<preceq>T ==> \\<exists>D. T=Class D";
+by (dtac widen_Class_lemma 1);
+by Auto_tac;
+qed "widen_Class";
 
 Goal "(G\\<turnstile>Class C\\<preceq>RefT NullT) = False"; 
 br iffI 1;
@@ -113,6 +130,5 @@ by( etac widen.induct 1);
 by   Safe_tac;
 by(  ALLGOALS (forward_tac [widen_Class, widen_RefT]));
 by  Safe_tac;
-by(  rtac widen.null 2);
 by(eatac rtrancl_trans 1 1);
 qed_spec_mp "widen_trans";

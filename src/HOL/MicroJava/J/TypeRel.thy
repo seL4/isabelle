@@ -34,7 +34,7 @@ translations
 defs
 
   (* direct subclass, cf. 8.1.3 *)
-  subcls1_def	"subcls1 G == {(C,D). \\<exists>c. class G C = Some c \\<and> fst c = Some D}"
+ subcls1_def"subcls1 G \\<equiv> {(C,D). C\\<noteq>Object \\<and> (\\<exists>c. class G C=Some c \\<and> fst c=D)}"
   
 consts
 
@@ -42,15 +42,15 @@ consts
   field	:: "'c prog \\<times> cname => ( vname \\<leadsto> cname \\<times> ty)"
   fields	:: "'c prog \\<times> cname => ((vname \\<times> cname) \\<times>  ty) list"
 
-constdefs       (* auxiliary relations for recursive definitions below *)
+constdefs       (* auxiliary relation for recursive definitions below *)
 
   subcls1_rel	:: "(('c prog \\<times> cname) \\<times> ('c prog \\<times> cname)) set"
  "subcls1_rel == {((G,C),(G',C')). G = G' \\<and>  wf ((subcls1 G)^-1) \\<and>  G\\<turnstile>C'\\<prec>C1C}"
 
 (* methods of a class, with inheritance, overriding and hiding, cf. 8.4.6 *)
 recdef method "subcls1_rel"
- "method (G,C) = (if wf((subcls1 G)^-1) then (case class G C of None => empty
-                   | Some (sc,fs,ms) => (case sc of None => empty | Some D => 
+ "method (G,C) = (if wf((subcls1 G)^-1) then (case class G C of None =>arbitrary
+                   | Some (D,fs,ms) => (if C = Object then empty else 
                                            if is_class G D then method (G,D) 
                                                            else arbitrary) ++
                                            map_of (map (\\<lambda>(s,  m ). 
@@ -59,9 +59,9 @@ recdef method "subcls1_rel"
 
 (* list of fields of a class, including inherited and hidden ones *)
 recdef fields  "subcls1_rel"
- "fields (G,C) = (if wf((subcls1 G)^-1) then (case class G C of None => arbitrary
-                   | Some (sc,fs,ms) => map (\\<lambda>(fn,ft). ((fn,C),ft)) fs@
-                                           (case sc of None => [] | Some D => 
+ "fields (G,C) = (if wf((subcls1 G)^-1) then (case class G C of None =>arbitrary
+                   | Some (D,fs,ms) => map (\\<lambda>(fn,ft). ((fn,C),ft)) fs@
+                                           (if C = Object then [] else 
                                            if is_class G D then fields (G,D) 
                                                            else arbitrary))
                   else arbitrary)"

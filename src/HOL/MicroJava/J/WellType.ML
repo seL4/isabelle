@@ -13,17 +13,17 @@ qed "widen_methd";
 
 
 Goal
-"[|method (G,C) sig = Some (md,rT,b); G\\<turnstile>T''\\<preceq>C C; wf_prog wf_mb G|] ==> \
-\ \\<exists>T' rT' b. method (G,T'') sig = Some (T',rT',b) \\<and> \
-\ G\\<turnstile>rT'\\<preceq>rT \\<and> G\\<turnstile>T''\\<preceq>C T' \\<and> wf_mhead G sig rT' \\<and> wf_mb G T' (sig,rT',b)";
+"[|method (G,C) sig = Some (md,rT,b); G\\<turnstile>T''\\<preceq>C C; wf_prog wf_mb G; \
+\ class G C = Some y|] ==> \\<exists>T' rT' b. method (G,T'') sig = Some (T',rT',b) \\<and> \
+\ G\\<turnstile>rT'\\<preceq>rT \\<and> G\\<turnstile>T''\\<preceq>C T' \\<and> wf_mhead G sig rT' \\<and> wf_mb G T' (sig,rT',b)"; 
 by( datac widen_methd 2 1);
-by( Clarsimp_tac 1);
+by( Clarify_tac 1);
+by( ftac subcls_is_class2 1);
+by (Asm_simp_tac 1);
 by( dtac method_wf_mdecl 1);
-by(  atac 1);
 by( rewtac wf_mdecl_def);
 by Auto_tac;
 qed "Call_lemma";
-
 
 Goal "wf_prog wf_mb G ==> method (G,Object) sig = None";
 by (Asm_simp_tac 1);
@@ -42,9 +42,32 @@ Goalw [appl_methds_def]
 by (Fast_tac 1);
 qed "appl_methsD";
 
-val is_type_typeof = prove_goal thy 
-	"(\\<forall>a. v \\<noteq> Addr a) --> (\\<exists>T. typeof t v = Some T \\<and>  is_type G T)" (K [
-	rtac val_.induct 1,
-	    Fast_tac 5,
-	   ALLGOALS Simp_tac]) RS mp;
+bind_thm ("max_spec2mheads", insertI1 RSN (2,(equalityD2 RS subsetD)) RS 
+                      max_spec2appl_meths RS appl_methsD);
+
+Goal "(\\<forall>a. v \\<noteq> Addr a) --> (\\<exists>T. typeof t v = Some T \\<and> is_type G T)";
+by (rtac val_.induct 1);
+by (Fast_tac 5);
+by Auto_tac;
+qed_spec_mp "is_type_typeof";
 Addsimps [is_type_typeof];
+
+Goal "typeof (\\<lambda>a. None) v = Some T \\<longrightarrow> is_type G T";
+by (rtac val_.induct 1);
+by     Auto_tac;
+qed_spec_mp "typeof_empty_is_type";
+
+Goal "wf_prog wf_mb G \\<Longrightarrow> ((G,L)\\<turnstile>e::T \\<longrightarrow> is_type G T) \\<and> \
+\      ((G,L)\\<turnstile>es[::]Ts \\<longrightarrow> Ball (set Ts) (is_type G)) \\<and> ((G,L)\\<turnstile>c \\<surd> \\<longrightarrow> True)";
+by (rtac ty_expr_ty_exprs_wt_stmt.induct 1);
+by Auto_tac;
+by (   etac typeof_empty_is_type 1);
+by (  asm_full_simp_tac (simpset() addsplits [split_if_asm]) 1);
+by ( dtac field_fields 1);
+by ( datac fields_is_type 1 1);
+by (  Asm_simp_tac 1);
+ba 1;
+by (auto_tac (claset() addSDs [max_spec2mheads,method_wf_mdecl,is_type_rTI], simpset()addsimps[wf_mdecl_def]));
+qed "wt_is_type";
+
+bind_thm ("ty_expr_is_type", permute_prems 0 1 (wt_is_type RS conjunct1 RS mp));
