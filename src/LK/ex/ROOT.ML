@@ -15,6 +15,4 @@ time_use "ex/prop.ML";
 time_use "ex/quant.ML";
 time_use "ex/hardquant.ML";
 
-make_chart ();   (*make HTML chart*)
-
 maketest"END: Root file for LK examples";

@@ -25,6 +25,4 @@ time_use "ex/Tthms.ML";
 time_use "ex/S4thms.ML";
 time_use "ex/S43thms.ML";
 
-make_chart ();   (*make HTML chart*)
-
 maketest"END: Root file for Modal examples";

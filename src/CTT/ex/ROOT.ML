@@ -17,6 +17,4 @@ time_use "ex/elim.ML";
 time_use "ex/equal.ML";
 time_use "ex/synth.ML";
 
-make_chart ();   (*make HTML chart*)
-
 maketest"END: Root file for CTT examples";
