@@ -20,18 +20,18 @@ time_use_thy "ex/integ";
 (*Binary integer arithmetic*)
 use          "ex/twos-compl.ML";
 time_use     "ex/bin.ML";
-time_use_thy "ex/bin-fn";
+time_use_thy "ex/binfn";
 
 (** Datatypes **)
 (*binary trees*)
 time_use     "ex/bt.ML";
-time_use_thy "ex/bt-fn";
+time_use_thy "ex/bt_fn";
 (*terms: recursion over the list functor*)
 time_use     "ex/term.ML";
-time_use_thy "ex/term-fn";
+time_use_thy "ex/termfn";
 (*trees/forests: mutual recursion*)
 time_use     "ex/tf.ML";
-time_use_thy "ex/tf-fn";
+time_use_thy "ex/tf_fn";
 (*Enormous enumeration type -- could be even bigger?*)
 time_use     "ex/enum.ML";
 
@@ -40,7 +40,7 @@ time_use     "ex/enum.ML";
 time_use     "ex/rmap.ML";
 (*completeness of propositional logic*)
 time_use     "ex/prop.ML";
-time_use_thy "ex/prop-log";
+time_use_thy "ex/propthms";
 (*two Coq examples by Ch. Paulin-Mohring*)
 time_use     "ex/listn.ML";
 time_use     "ex/acc.ML";
@@ -52,7 +52,8 @@ time_use_thy "ex/primrec";
 
 (** Co-Datatypes **)
 time_use     "ex/llist.ML";
-time_use_thy "ex/llist-fn";
+time_use     "ex/llist_eq.ML";
+time_use_thy "ex/llistfn";
 
 
 maketest"END: Root file for ZF Set Theory examples";
