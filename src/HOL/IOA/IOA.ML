@@ -30,19 +30,19 @@ qed "trans_in_actions";
 goal IOA.thy "filter_oseq p (filter_oseq p s) = filter_oseq p s";
   by (simp_tac (!simpset addsimps [filter_oseq_def]) 1);
   by (rtac ext 1);
-  by (Option.option.induct_tac "s(i)" 1);
-  by (Simp_tac 1);
-  by (simp_tac (!simpset setloop (split_tac [expand_if])) 1);
+  by (exhaust_tac "s(i)" 1);
+  by (Asm_simp_tac 1);
+  by (asm_simp_tac (!simpset setloop (split_tac [expand_if])) 1);
 qed "filter_oseq_idemp";
 
 goalw IOA.thy [mk_trace_def,filter_oseq_def]
 "(mk_trace A s n = None) =                                        \
-\  (s(n)=None | (? a. s(n)=Some(a) & a ~: externals(asig_of(A))))     \
-\  &                                                                  \
+\  (s(n)=None | (? a. s(n)=Some(a) & a ~: externals(asig_of(A)))) \
+\  &                                                              \
 \  (mk_trace A s n = Some(a)) =                                   \
 \   (s(n)=Some(a) & a : externals(asig_of(A)))";
-  by (Option.option.induct_tac "s(n)" 1);
-  by (ALLGOALS (simp_tac (!simpset setloop (split_tac [expand_if]))));
+  by (exhaust_tac "s(n)" 1);
+  by (ALLGOALS (asm_simp_tac (!simpset setloop (split_tac [expand_if]))));
   by (Fast_tac 1);
 qed "mk_trace_thm";
 
@@ -82,7 +82,7 @@ val [p1,p2] = goalw IOA.thy [invariant_def]
   by (nat_ind_tac "n" 1);
   by (fast_tac (!claset addIs [p1,reachable_0]) 1);
   by (eres_inst_tac[("x","n")]allE 1);
-  by (option_case_tac "fst ex n" 1);
+  by (exhaust_tac "fst ex n" 1 THEN ALLGOALS Asm_full_simp_tac);
   by (safe_tac (!claset));
   by (etac (p2 RS mp) 1);
   by (ALLGOALS(fast_tac(!claset addDs [reachable_n])));
