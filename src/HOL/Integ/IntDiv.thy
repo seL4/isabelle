@@ -238,6 +238,7 @@ lemmas neg_mod_sign  = neg_mod_conj [THEN conjunct1, standard]
    and neg_mod_bound = neg_mod_conj [THEN conjunct2, standard]
 
 
+
 (** proving general properties of div and mod **)
 
 lemma quorem_div_mod: "b ~= 0 ==> quorem ((a, b), (a div b, a mod b))"
@@ -779,7 +780,72 @@ apply (auto simp add: zmult_commute)
 done
 
 
-(*** Speeding up the division algorithm with shifting ***)
+subsection {*splitting rules for div and mod*}
+
+text{*The proofs of the two lemmas below are essentially identical*}
+
+lemma split_pos_lemma:
+ "0<k ==> 
+    P(n div k :: int)(n mod k) = (\<forall>i j. 0<=j & j<k & n = k*i + j --> P i j)"
+apply (rule iffI)
+ apply clarify
+ apply (erule_tac P="P ?x ?y" in rev_mp)  
+ apply (subst zmod_zadd1_eq) 
+ apply (subst zdiv_zadd1_eq) 
+ apply (simp add: div_pos_pos_trivial mod_pos_pos_trivial)  
+txt{*converse direction*}
+apply (drule_tac x = "n div k" in spec) 
+apply (drule_tac x = "n mod k" in spec) 
+apply (simp add: pos_mod_bound pos_mod_sign zmod_zdiv_equality [symmetric]) 
+done
+
+lemma split_neg_lemma:
+ "k<0 ==>
+    P(n div k :: int)(n mod k) = (\<forall>i j. k<j & j<=0 & n = k*i + j --> P i j)"
+apply (rule iffI)
+ apply clarify
+ apply (erule_tac P="P ?x ?y" in rev_mp)  
+ apply (subst zmod_zadd1_eq) 
+ apply (subst zdiv_zadd1_eq) 
+ apply (simp add: div_neg_neg_trivial mod_neg_neg_trivial)  
+txt{*converse direction*}
+apply (drule_tac x = "n div k" in spec) 
+apply (drule_tac x = "n mod k" in spec) 
+apply (simp add: neg_mod_bound neg_mod_sign zmod_zdiv_equality [symmetric]) 
+done
+
+lemma split_zdiv:
+ "P(n div k :: int) =
+  ((k = 0 --> P 0) & 
+   (0<k --> (\<forall>i j. 0<=j & j<k & n = k*i + j --> P i)) & 
+   (k<0 --> (\<forall>i j. k<j & j<=0 & n = k*i + j --> P i)))"
+apply (case_tac "k=0")
+ apply (simp add: DIVISION_BY_ZERO)
+apply (simp only: linorder_neq_iff)
+apply (erule disjE) 
+ apply (simp_all add: split_pos_lemma [of concl: "%x y. P x"] 
+                      split_neg_lemma [of concl: "%x y. P x"])
+done
+
+lemma split_zmod:
+ "P(n mod k :: int) =
+  ((k = 0 --> P n) & 
+   (0<k --> (\<forall>i j. 0<=j & j<k & n = k*i + j --> P j)) & 
+   (k<0 --> (\<forall>i j. k<j & j<=0 & n = k*i + j --> P j)))"
+apply (case_tac "k=0")
+ apply (simp add: DIVISION_BY_ZERO)
+apply (simp only: linorder_neq_iff)
+apply (erule disjE) 
+ apply (simp_all add: split_pos_lemma [of concl: "%x y. P y"] 
+                      split_neg_lemma [of concl: "%x y. P y"])
+done
+
+(* Enable arith to deal with div 2 and mod 2: *)
+declare split_zdiv [of _ 2, simplified, arith_split]
+declare split_zmod [of _ 2, simplified, arith_split]
+
+
+subsection{*Speeding up the division algorithm with shifting*}
 
 (** computing div by shifting **)
 
@@ -826,8 +892,7 @@ apply (simp only: zadd_assoc number_of_BIT)
 (*create subgoal because the next step can't simplify numerals*)
 apply (subgoal_tac "2 ~= (0::int) ")
 apply (simp del: bin_arith_extra_simps 
-         add: zdiv_zmult_zmult1 pos_zdiv_mult_2 not_0_le_lemma neg_zdiv_mult_2)
-apply simp
+         add: zdiv_zmult_zmult1 pos_zdiv_mult_2 not_0_le_lemma neg_zdiv_mult_2, simp)
 done
 
 
@@ -873,8 +938,7 @@ lemma zmod_number_of_BIT [simp]:
            else 2 * (number_of v mod number_of w))"
 apply (simp only: zadd_assoc number_of_BIT)
 apply (simp del: bin_arith_extra_simps bin_rel_simps 
-         add: zmod_zmult_zmult1 pos_zmod_mult_2 not_0_le_lemma neg_zmod_mult_2)
-apply simp
+         add: zmod_zmult_zmult1 pos_zmod_mult_2 not_0_le_lemma neg_zmod_mult_2, simp)
 done
 
 
