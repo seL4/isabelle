@@ -7,6 +7,10 @@
 
 \let\ts=\thinspace
 
+%usage: \iflabelundefined{LABEL}{if not defined}{if defined}
+\newcommand{\iflabelundefined}[1]{\@ifundefined{r@#1}}
+
+
 %%%INDEXING  use sedindex to process the index
 %index, putting page numbers of definitions in boldface
 \newcommand\bold[1]{{\bf#1}}
