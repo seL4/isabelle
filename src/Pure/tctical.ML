@@ -15,19 +15,19 @@ signature TACTICAL =
 sig
   type tactic  (* = thm -> thm Seq.seq*)
   val all_tac           : tactic
-  val ALLGOALS          : (int -> tactic) -> tactic   
+  val ALLGOALS          : (int -> tactic) -> tactic
   val APPEND            : tactic * tactic -> tactic
   val APPEND'           : ('a -> tactic) * ('a -> tactic) -> 'a -> tactic
   val CHANGED           : tactic -> tactic
   val CHANGED_PROP      : tactic -> tactic
-  val CHANGED_GOAL	: (int -> tactic) -> int -> tactic
-  val COND              : (thm -> bool) -> tactic -> tactic -> tactic   
+  val CHANGED_GOAL      : (int -> tactic) -> int -> tactic
+  val COND              : (thm -> bool) -> tactic -> tactic -> tactic
   val DETERM            : tactic -> tactic
-  val EVERY             : tactic list -> tactic   
+  val EVERY             : tactic list -> tactic
   val EVERY'            : ('a -> tactic) list -> 'a -> tactic
   val EVERY1            : (int -> tactic) list -> tactic
   val FILTER            : (thm -> bool) -> tactic -> tactic
-  val FIRST             : tactic list -> tactic   
+  val FIRST             : tactic list -> tactic
   val FIRST'            : ('a -> tactic) list -> 'a -> tactic
   val FIRST1            : (int -> tactic) list -> tactic
   val FIRSTGOAL         : (int -> tactic) -> tactic
@@ -51,24 +51,24 @@ sig
   val REPEAT_DETERM_SOME: (int -> tactic) -> tactic
   val DETERM_UNTIL      : (thm -> bool) -> tactic -> tactic
   val SELECT_GOAL       : tactic -> int -> tactic
-  val SOMEGOAL          : (int -> tactic) -> tactic   
+  val SOMEGOAL          : (int -> tactic) -> tactic
   val strip_context     : term -> (string * typ) list * term list * term
   val SUBGOAL           : ((term*int) -> tactic) -> int -> tactic
   val suppress_tracing  : bool ref
   val THEN              : tactic * tactic -> tactic
   val THEN'             : ('a -> tactic) * ('a -> tactic) -> 'a -> tactic
-  val THEN_ALL_NEW	: (int -> tactic) * (int -> tactic) -> int -> tactic
-  val REPEAT_ALL_NEW	: (int -> tactic) -> int -> tactic
+  val THEN_ALL_NEW      : (int -> tactic) * (int -> tactic) -> int -> tactic
+  val REPEAT_ALL_NEW    : (int -> tactic) -> int -> tactic
   val THEN_ELSE         : tactic * (tactic*tactic) -> tactic
   val traced_tac        : (thm -> (thm * thm Seq.seq) option) -> tactic
   val tracify           : bool ref -> tactic -> tactic
   val trace_REPEAT      : bool ref
   val TRY               : tactic -> tactic
-  val TRYALL            : (int -> tactic) -> tactic   
+  val TRYALL            : (int -> tactic) -> tactic
 end;
 
 
-structure Tactical : TACTICAL = 
+structure Tactical : TACTICAL =
 struct
 
 (**** Tactics ****)
@@ -98,12 +98,12 @@ fun (tac1 ORELSE tac2) st =
 (*The tactical APPEND combines the results of two tactics.
   Like ORELSE, but allows backtracking on both tac1 and tac2.
   The tactic tac2 is not applied until needed.*)
-fun (tac1 APPEND tac2) st = 
+fun (tac1 APPEND tac2) st =
   Seq.append(tac1 st,
                   Seq.make(fn()=> Seq.pull (tac2 st)));
 
 (*Like APPEND, but interleaves results of tac1 and tac2.*)
-fun (tac1 INTLEAVE tac2) st = 
+fun (tac1 INTLEAVE tac2) st =
     Seq.interleave(tac1 st,
                         Seq.make(fn()=> Seq.pull (tac2 st)));
 
@@ -111,7 +111,7 @@ fun (tac1 INTLEAVE tac2) st =
         tac1 ORELSE tac2 = tac1 THEN_ELSE (all_tac, tac2)
         tac1 THEN tac2   = tac1 THEN_ELSE (tac2, no_tac)
 *)
-fun (tac THEN_ELSE (tac1, tac2)) st = 
+fun (tac THEN_ELSE (tac1, tac2)) st =
     case Seq.pull(tac st) of
         None    => tac2 st              (*failed; try tactic 2*)
       | seqcell => Seq.flat       (*succeeded; use tactic 1*)
@@ -148,20 +148,20 @@ fun TRY tac = tac ORELSE all_tac;
 local
   (*This version of EVERY avoids backtracking over repeated states*)
 
-  fun EVY (trail, []) st = 
-	Seq.make (fn()=> Some(st, 
-			Seq.make (fn()=> Seq.pull (evyBack trail))))
-    | EVY (trail, tac::tacs) st = 
-	  case Seq.pull(tac st) of
-	      None    => evyBack trail              (*failed: backtrack*)
-	    | Some(st',q) => EVY ((st',q,tacs)::trail, tacs) st'
+  fun EVY (trail, []) st =
+        Seq.make (fn()=> Some(st,
+                        Seq.make (fn()=> Seq.pull (evyBack trail))))
+    | EVY (trail, tac::tacs) st =
+          case Seq.pull(tac st) of
+              None    => evyBack trail              (*failed: backtrack*)
+            | Some(st',q) => EVY ((st',q,tacs)::trail, tacs) st'
   and evyBack [] = Seq.empty (*no alternatives*)
     | evyBack ((st',q,tacs)::trail) =
-	  case Seq.pull q of
-	      None        => evyBack trail
-	    | Some(st,q') => if eq_thm (st',st) 
-			     then evyBack ((st',q',tacs)::trail)
-			     else EVY ((st,q',tacs)::trail, tacs) st
+          case Seq.pull q of
+              None        => evyBack trail
+            | Some(st,q') => if eq_thm (st',st)
+                             then evyBack ((st',q',tacs)::trail)
+                             else EVY ((st,q',tacs)::trail, tacs) st
 in
 
 (* EVERY [tac1,...,tacn]   equals    tac1 THEN ... THEN tacn   *)
@@ -192,13 +192,13 @@ fun RANGE [] _ = all_tac
 (*** Tracing tactics ***)
 
 (*Print the current proof state and pass it on.*)
-fun print_tac msg = 
-    (fn st => 
+fun print_tac msg =
+    (fn st =>
      (tracing msg;
       Display.print_goals (! Display.goals_limit) st; Seq.single st));
 
 (*Pause until a line is typed -- if non-empty then fail. *)
-fun pause_tac st =  
+fun pause_tac st =
   (tracing "** Press RETURN to continue:";
    if TextIO.inputLine TextIO.stdIn = "\n" then Seq.single st
    else (tracing "Goodbye";  Seq.empty));
@@ -211,7 +211,7 @@ val trace_REPEAT= ref false
 and suppress_tracing = ref false;
 
 (*Handle all tracing commands for current state and tactic *)
-fun exec_trace_command flag (tac, st) = 
+fun exec_trace_command flag (tac, st) =
    case TextIO.inputLine(TextIO.stdIn) of
        "\n" => tac st
      | "f\n" => Seq.empty
@@ -238,7 +238,7 @@ fun tracify flag tac st =
   else tac st;
 
 (*Create a tactic whose outcome is given by seqf, handling TRACE_EXIT*)
-fun traced_tac seqf st = 
+fun traced_tac seqf st =
     (suppress_tracing := false;
      Seq.make (fn()=> seqf st
                          handle TRACE_EXIT st' => Some(st', Seq.empty)));
@@ -246,7 +246,7 @@ fun traced_tac seqf st =
 
 (*Deterministic DO..UNTIL: only retains the first outcome; tail recursive.
   Forces repitition until predicate on state is fulfilled.*)
-fun DETERM_UNTIL p tac = 
+fun DETERM_UNTIL p tac =
 let val tac = tracify trace_REPEAT tac
     fun drep st = if p st then Some (st, Seq.empty)
                           else (case Seq.pull(tac st) of
@@ -254,10 +254,10 @@ let val tac = tracify trace_REPEAT tac
                                 | Some(st',_) => drep st')
 in  traced_tac drep  end;
 
-(*Deterministic REPEAT: only retains the first outcome; 
+(*Deterministic REPEAT: only retains the first outcome;
   uses less space than REPEAT; tail recursive.
   If non-negative, n bounds the number of repetitions.*)
-fun REPEAT_DETERM_N n tac = 
+fun REPEAT_DETERM_N n tac =
   let val tac = tracify trace_REPEAT tac
       fun drep 0 st = Some(st, Seq.empty)
         | drep n st =
@@ -270,9 +270,9 @@ fun REPEAT_DETERM_N n tac =
 val REPEAT_DETERM = REPEAT_DETERM_N ~1;
 
 (*General REPEAT: maintains a stack of alternatives; tail recursive*)
-fun REPEAT tac = 
+fun REPEAT tac =
   let val tac = tracify trace_REPEAT tac
-      fun rep qs st = 
+      fun rep qs st =
         case Seq.pull(tac st) of
             None       => Some(st, Seq.make(fn()=> repq qs))
           | Some(st',q) => rep (q::qs) st'
@@ -289,39 +289,35 @@ fun REPEAT1 tac = tac THEN REPEAT tac;
 
 (** Filtering tacticals **)
 
-(*Returns all states satisfying the predicate*)
 fun FILTER pred tac st = Seq.filter pred (tac st);
 
-(*Returns all changed states*)
-fun CHANGED tac st = 
-    let fun diff st' = not (eq_thm(st,st'))
-    in  Seq.filter diff (tac st)  end;
+fun CHANGED tac st =
+  let fun diff st' = not (Thm.eq_thm (st, st'));
+  in Seq.filter diff (tac st) end;
 
-fun CHANGED_PROP tac st = 
-    let
-      val prop = #prop (Thm.rep_thm st);
-      fun diff st' = not (prop aconv #prop (Thm.rep_thm st'));
-    in  Seq.filter diff (tac st)  end;
+fun CHANGED_PROP tac st =
+  let fun diff st' = not (Drule.eq_thm_prop (st, st'));
+  in Seq.filter diff (tac st) end;
 
 
 (*** Tacticals based on subgoal numbering ***)
 
-(*For n subgoals, performs tac(n) THEN ... THEN tac(1) 
+(*For n subgoals, performs tac(n) THEN ... THEN tac(1)
   Essential to work backwards since tac(i) may add/delete subgoals at i. *)
-fun ALLGOALS tac st = 
+fun ALLGOALS tac st =
   let fun doall 0 = all_tac
         | doall n = tac(n) THEN doall(n-1)
   in  doall(nprems_of st)st  end;
 
 (*For n subgoals, performs tac(n) ORELSE ... ORELSE tac(1)  *)
-fun SOMEGOAL tac st = 
+fun SOMEGOAL tac st =
   let fun find 0 = no_tac
         | find n = tac(n) ORELSE find(n-1)
   in  find(nprems_of st)st  end;
 
 (*For n subgoals, performs tac(1) ORELSE ... ORELSE tac(n).
   More appropriate than SOMEGOAL in some cases.*)
-fun FIRSTGOAL tac st = 
+fun FIRSTGOAL tac st =
   let fun find (i,n) = if i>n then no_tac else  tac(i) ORELSE find (i+1,n)
   in  find(1, nprems_of st)st  end;
 
@@ -343,16 +339,16 @@ fun SUBGOAL goalfun i st = goalfun (List.nth(prems_of st, i-1),  i) st
 
 (*Returns all states that have changed in subgoal i, counted from the LAST
   subgoal.  For stac, for example.*)
-fun CHANGED_GOAL tac i st = 
+fun CHANGED_GOAL tac i st =
     let val np = nprems_of st
         val d = np-i                 (*distance from END*)
         val t = List.nth(prems_of st, i-1)
-        fun diff st' = 
-	    nprems_of st' - d <= 0   (*the subgoal no longer exists*)
-	    orelse 
+        fun diff st' =
+            nprems_of st' - d <= 0   (*the subgoal no longer exists*)
+            orelse
              not (Pattern.aeconv (t,
-				  List.nth(prems_of st', 
-					   nprems_of st' - d - 1)))
+                                  List.nth(prems_of st',
+                                           nprems_of st' - d - 1)))
     in  Seq.filter diff (tac i st)  end
     handle Subscript => Seq.empty  (*no subgoal i*);
 
@@ -380,20 +376,20 @@ fun select tac st i =
   in  Seq.flat (Seq.map next (tac thm))
   end;
 
-fun SELECT_GOAL tac i st = 
+fun SELECT_GOAL tac i st =
   let val np = nprems_of st
-  in  if 1<=i andalso i<=np then 
+  in  if 1<=i andalso i<=np then
           (*If only one subgoal, then just apply tactic*)
-	  if np=1 then tac st else select tac st i
+          if np=1 then tac st else select tac st i
       else Seq.empty
   end;
 
 
 (*Strips assumptions in goal yielding  ( [x1,...,xm], [H1,...,Hn], B )
-    H1,...,Hn are the hypotheses;  x1...xm are variants of the parameters. 
-  Main difference from strip_assums concerns parameters: 
+    H1,...,Hn are the hypotheses;  x1...xm are variants of the parameters.
+  Main difference from strip_assums concerns parameters:
     it replaces the bound variables by free variables.  *)
-fun strip_context_aux (params, Hs, Const("==>", _) $ H $ B) = 
+fun strip_context_aux (params, Hs, Const("==>", _) $ H $ B) =
         strip_context_aux (params, H::Hs, B)
   | strip_context_aux (params, Hs, Const("all",_)$Abs(a,T,t)) =
         let val (b,u) = variant_abs(a,T,t)
@@ -417,11 +413,11 @@ New unknowns in [| B1;...;Bk] ==> C are lifted over x1,...,xm.
 DOES NOT HANDLE TYPE UNKNOWNS.
 ****)
 
-local 
+local
 
   (*Left-to-right replacements: ctpairs = [...,(vi,ti),...].
     Instantiates distinct free variables by terms of same type.*)
-  fun free_instantiate ctpairs = 
+  fun free_instantiate ctpairs =
       forall_elim_list (map snd ctpairs) o forall_intr_list (map fst ctpairs);
 
   fun free_of s ((a,i), T) =
@@ -431,7 +427,7 @@ local
   fun mk_inst (var as Var(v,T))  = (var,  free_of "METAHYP1_" (v,T))
 in
 
-fun metahyps_aux_tac tacf (prem,i) state = 
+fun metahyps_aux_tac tacf (prem,i) state =
   let val {sign,maxidx,...} = rep_thm state
       val cterm = cterm_of sign
       (*find all vars in the hyps -- should find tvars also!*)
@@ -446,18 +442,18 @@ fun metahyps_aux_tac tacf (prem,i) state =
       val hypths = map assume chyps
       fun swap_ctpair (t,u) = (cterm u, cterm t)
       (*Subgoal variables: make Free; lift type over params*)
-      fun mk_subgoal_inst concl_vars (var as Var(v,T)) = 
-          if var mem concl_vars 
+      fun mk_subgoal_inst concl_vars (var as Var(v,T)) =
+          if var mem concl_vars
           then (var, true, free_of "METAHYP2_" (v,T))
           else (var, false,
                 free_of "METAHYP2_" (v, map #2 params --->T))
       (*Instantiate subgoal vars by Free applied to params*)
-      fun mk_ctpair (t,in_concl,u) = 
+      fun mk_ctpair (t,in_concl,u) =
           if in_concl then (cterm t,  cterm u)
           else (cterm t,  cterm (list_comb (u,fparams)))
       (*Restore Vars with higher type and index*)
-      fun mk_subgoal_swap_ctpair 
-                (t as Var((a,i),_), in_concl, u as Free(_,U)) = 
+      fun mk_subgoal_swap_ctpair
+                (t as Var((a,i),_), in_concl, u as Free(_,U)) =
           if in_concl then (cterm u, cterm t)
           else (cterm u, cterm(Var((a, i+maxidx), U)))
       (*Embed B in the original context of params and hyps*)
@@ -465,12 +461,12 @@ fun metahyps_aux_tac tacf (prem,i) state =
       (*Strip the context using elimination rules*)
       fun elim Bhyp = implies_elim_list (forall_elim_list cparams Bhyp) hypths
       (*Embed an ff pair in the original params*)
-      fun embed_ff(t,u) = Logic.mk_flexpair (list_abs_free (params, t), 
+      fun embed_ff(t,u) = Logic.mk_flexpair (list_abs_free (params, t),
                                              list_abs_free (params, u))
       (*Remove parameter abstractions from the ff pairs*)
       fun elim_ff ff = flexpair_abs_elim_list cparams ff
       (*A form of lifting that discharges assumptions.*)
-      fun relift st = 
+      fun relift st =
         let val prop = #prop(rep_thm st)
             val subgoal_vars = (*Vars introduced in the subgoals*)
                   foldr add_term_vars (Logic.strip_imp_prems prop, [])
@@ -479,7 +475,7 @@ fun metahyps_aux_tac tacf (prem,i) state =
             val st' = instantiate ([], map mk_ctpair subgoal_insts) st
             val emBs = map (cterm o embed) (prems_of st')
             and ffs = map (cterm o embed_ff) (tpairs_of st')
-            val Cth  = implies_elim_list st' 
+            val Cth  = implies_elim_list st'
                             (map (elim_ff o assume) ffs @
                              map (elim o assume) emBs)
         in  (*restore the unknowns to the hypotheses*)

@@ -6,7 +6,7 @@
 Zermelo-Fraenkel Set Theory
 *)
 
-ZF = FOL + Let +
+ZF = Let +
 
 global
 
