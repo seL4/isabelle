@@ -396,7 +396,109 @@ bind_thm("reduceB_mksch",conjI RSN (6,conjI RSN (5,reduceB_mksch1 RS spec RS mp)
 
 
 
+(*
 
+
+goal thy "!! y.Finite y ==> ! z tr. Forall (%a.a:ext (A||B)) tr & \
+\                             y = z @@ mksch A B`tr`a`b\
+\                             --> Finite tr";
+be Seq_Finite_ind  1;
+auto();
+by (Seq_case_simp_tac "tr" 1);
+(* tr = UU *)
+by (asm_full_simp_tac (!simpset addsimps [nil_is_Conc]) 1);
+(* tr = nil *)
+auto();
+(* tr = Conc *)
+ren "s ss" 1;
+
+by (case_tac "s:act A" 1);
+by (case_tac "s:act B" 1);
+by (rotate_tac ~2 1);
+by (rotate_tac ~2 2);
+by (asm_full_simp_tac (!simpset addsimps [nil_is_Conc,nil_is_Conc2]) 1);
+by (asm_full_simp_tac (!simpset addsimps [nil_is_Conc,nil_is_Conc2]) 1);
+by (case_tac "s:act B" 1);
+by (rotate_tac ~2 1);
+by (asm_full_simp_tac (!simpset addsimps [nil_is_Conc,nil_is_Conc2]) 1);
+by (fast_tac (!claset addSIs [ext_is_act] 
+                      addss (!simpset addsimps [externals_of_par]) ) 1);
+(* main case *)
+by (Seq_case_simp_tac "tr" 1);
+(* tr = UU *)
+by (asm_full_simp_tac (!simpset addsimps [Conc_Conc_eq]) 1);
+auto();
+(* tr = nil ok *)
+(* tr = Conc *)
+by (Seq_case_simp_tac "z" 1);
+(* z = UU ok *)
+(* z = nil *)
+
+(* z= Cons *)
+
+
+by (case_tac "aaa:act A" 2);
+by (case_tac "aaa:act B" 2);
+by (rotate_tac ~2 2);
+by (rotate_tac ~2 3);
+by (asm_full_simp_tac (HOL_basic_ss addsimps [mksch_cons3]) 2);
+by (eres_inst_tac [("x","sb@@Takewhile (%a.a: int A)`a @@ Takewhile (%a.a:int B)`b@@(aaa>>nil)")] allE 2);
+by (eres_inst_tac [("x","sa")] allE 2);
+by (asm_full_simp_tac (!simpset addsimps [Conc_assoc])2);
+
+
+
+by (eres_inst_tac [("x","sa")] allE 1);
+by (Asm_full_simp_tac 1);
+by (case_tac "aaa:act A" 1);
+by (case_tac "aaa:act B" 1);
+by (rotate_tac ~2 1);
+by (rotate_tac ~2 2);
+by (asm_full_simp_tac (!simpset addsimps [Conc_Conc_eq]) 1);
+
+
+
+by (asm_full_simp_tac (!simpset addsimps [Conc_Conc_eq]) 1);
+
+
+
+(* FIX: should be same as nil_is_Conc2 when all nils are turned to right side !! *)
+goal thy "(nil = x @@ y) = ((x::'a Seq)= nil & y = nil)";
+by (Seq_case_simp_tac "x" 1);
+auto();
+qed"nil_is_Conc";
+
+goal thy "(x @@ y = nil) = ((x::'a Seq)= nil & y = nil)";
+by (Seq_case_simp_tac "x" 1);
+auto();
+qed"nil_is_Conc2";
+
+
+goal thy "(x>>xs = y @@ z) = ((y=nil & x>>xs=z) | (? ys. y=x>>ys & xs=ys@@z))";
+by (Seq_case_simp_tac "y" 1);
+auto();
+qed"Conc_Conc_eq";
+
+
+
+goal thy "!! (y::'a Seq).Finite y ==> ~ y= x@@UU";
+be Seq_Finite_ind 1;
+by (Seq_case_simp_tac "x" 1);
+by (Seq_case_simp_tac "x" 1);
+auto();
+qed"FiniteConcUU1";
+
+
+goal thy "~ Finite ((x::'a Seq)@@UU)";
+br (FiniteConcUU1 COMP rev_contrapos) 1;
+auto();
+qed"FiniteConcUU";
+
+
+
+finiteR_mksch
+  "Finite (mksch A B`tr`x`y) --> Finite tr"
+*)
 
 
  
@@ -471,6 +573,143 @@ qed"FilterA_mksch_is_tr";
 
 
 
+(*
+
+***************************************************************8
+With uncomplete take lemma rule should be reused afterwards !!!!!!!!!!!!!!!!!
+**********************************************************************
+
+(*---------------------------------------------------------------------------
+              Filter of mksch(tr,schA,schB) to A is schA 
+                             take lemma
+  --------------------------------------------------------------------------- *)
+
+goal thy "!! A B. [| compat_ioas A B; compat_ioas B A; \
+\ is_asig(asig_of A); is_asig(asig_of B) |] ==> \
+\ Forall (%x.x:ext (A||B)) tr & \
+\ Forall (%x.x:act A) schA & Forall (%x.x:act B) schB & \
+\ Filter (%a.a:ext A)`schA = Filter (%a.a:act A)`tr &\
+\ Filter (%a.a:ext B)`schB = Filter (%a.a:act B)`tr &\
+\ LastActExtsch A schA & LastActExtsch B schB  \
+\ --> Filter (%a.a:act A)`(mksch A B`tr`schA`schB) = schA";
+
+by (res_inst_tac [("Q","%x. x:act B & x~:act A"),("x","tr")] take_lemma_less_induct 1);
+by (REPEAT (etac conjE 1));
+
+by (case_tac "Finite s" 1);
+
+(* both sides of this equation are nil *)
+by (subgoal_tac "schA=nil" 1);
+by (Asm_simp_tac 1);
+(* first side: mksch = nil *)
+by (SELECT_GOAL (auto_tac (!claset addSIs [ForallQFilterPnil,ForallBnAmksch,FiniteL_mksch],
+                           !simpset)) 1);
+(* second side: schA = nil *)
+by (eres_inst_tac [("A","A")] LastActExtimplnil 1);
+by (Asm_simp_tac 1);
+by (SELECT_GOAL (auto_tac (!claset addSIs [ForallQFilterPnil],
+                           !simpset)) 1);
+
+(* case ~ Finite s *)
+
+(* both sides of this equation are UU *)
+by (subgoal_tac "schA=UU" 1);
+by (Asm_simp_tac 1);
+(* first side: mksch = UU *)
+by (SELECT_GOAL (auto_tac (!claset addSIs [ForallQFilterPUU,
+                                           (finiteR_mksch RS mp COMP rev_contrapos),
+                                            ForallBnAmksch],
+                           !simpset)) 1);
+(* schA = UU *)
+by (eres_inst_tac [("A","A")] LastActExtimplUU 1);
+by (Asm_simp_tac 1);
+by (SELECT_GOAL (auto_tac (!claset addSIs [ForallQFilterPUU],
+                           !simpset)) 1);
+
+(* case" ~ Forall (%x.x:act B & x~:act A) s" *)
+
+by (REPEAT (etac conjE 1));
+
+(* bring in lemma reduceA_mksch *)
+by (forw_inst_tac [("y","schB"),("x","schA")] reduceA_mksch 1);
+by (REPEAT (atac 1));
+by (REPEAT (etac exE 1));
+by (REPEAT (etac conjE 1));
+
+(* use reduceA_mksch to rewrite conclusion *)
+by (hyp_subst_tac 1);
+by (Asm_full_simp_tac  1);
+
+(* eliminate the B-only prefix *)
+
+by (subgoal_tac "(Filter (%a.a :act A)`y1) = nil" 1);
+be ForallQFilterPnil 2;
+ba 2;
+by (Fast_tac 2);
+
+(* Now real recursive step follows (in y) *)
+
+by (Asm_full_simp_tac  1);
+by (case_tac "y:act A" 1);
+by (case_tac "y~:act B" 1);
+by (rotate_tac ~2 1);
+by (Asm_full_simp_tac 1);
+
+by (subgoal_tac "Filter (%a. a:act A & a:ext B)`y1=nil" 1);
+by (rotate_tac ~1 1);
+by (Asm_full_simp_tac  1);
+(* eliminate introduced subgoal 2 *)
+be ForallQFilterPnil 2;
+ba 2;
+by (Fast_tac 2);
+ 
+(* bring in divide Seq for s *)
+by (forward_tac [sym RS antisym_less_inverse RS conjunct1 RS divide_Seq] 1);
+by (REPEAT (etac conjE 1));
+
+(* subst divide_Seq in conclusion, but only at the righest occurence *)
+by (res_inst_tac [("t","schA")] ssubst 1);
+back();
+back();
+back();
+ba 1;
+
+(* reduce trace_takes from n to strictly smaller k *)
+br take_reduction 1;
+
+(* f A (tw iA) = tw ~eA *)
+by (asm_full_simp_tac (!simpset addsimps [FilterPTakewhileQid,int_is_act,
+                              not_ext_is_int_or_not_act]) 1);
+br refl 1;
+
+(* now conclusion fulfills induction hypothesis, but assumptions are not ready *)
+(*
+
+nacessary anymore ???????????????? 
+by (rotate_tac ~10 1);
+
+*)
+(* assumption schB *)
+by (asm_full_simp_tac (!simpset addsimps [ext_and_act]) 1);
+(* assumption schA *)
+by (dres_inst_tac [("x","schA"),
+                   ("g","Filter (%a. a:act A)`s2")] subst_lemma2 1);
+ba 1;
+by (asm_full_simp_tac (!simpset addsimps [FilterPTakewhileQnil]) 1);
+(* assumptions concerning LastActExtsch, cannot be rewritten, as LastActExtsmalli are looping  *)
+by (dres_inst_tac [("sch","schA"),("P","%a. a:int A")] LastActExtsmall1 1);
+by (dres_inst_tac [("sch1.0","y1")]  LastActExtsmall2 1);
+ba 1;
+
+FIX: problem: schA and schB are not quantified in the new take lemma version !!!
+
+by (Asm_full_simp_tac 1);
+
+**********************************************************************************************
+*)
+
+
+
 (*--------------------------------------------------------------------------- *)
 
      section" Filter of mksch(tr,schA,schB) to A is schA -- take lemma proof";  
@@ -520,8 +759,9 @@ by (SELECT_GOAL (auto_tac (!claset addSIs [ForallQFilterPnil,ForallBnAmksch,Fini
 (* second side: schA = nil *)
 by (eres_inst_tac [("A","A")] LastActExtimplnil 1);
 by (Asm_simp_tac 1);
-by (SELECT_GOAL (auto_tac (!claset addSIs [ForallQFilterPnil],
-                           !simpset)) 1);
+by (eres_inst_tac [("Q","%x.x:act B & x~:act A")] ForallQFilterPnil 1);
+ba 1;
+by (Fast_tac 1);
 
 (* case ~ Finite s *)
 
@@ -536,8 +776,9 @@ by (SELECT_GOAL (auto_tac (!claset addSIs [ForallQFilterPUU,
 (* schA = UU *)
 by (eres_inst_tac [("A","A")] LastActExtimplUU 1);
 by (Asm_simp_tac 1);
-by (SELECT_GOAL (auto_tac (!claset addSIs [ForallQFilterPUU],
-                           !simpset)) 1);
+by (eres_inst_tac [("Q","%x.x:act B & x~:act A")] ForallQFilterPUU 1);
+ba 1;
+by (Fast_tac 1);
 
 (* case" ~ Forall (%x.x:act B & x~:act A) s" *)
 
@@ -760,8 +1001,9 @@ by (SELECT_GOAL (auto_tac (!claset addSIs [ForallQFilterPnil,ForallAnBmksch,Fini
 (* second side: schA = nil *)
 by (eres_inst_tac [("A","B")] LastActExtimplnil 1);
 by (Asm_simp_tac 1);
-by (SELECT_GOAL (auto_tac (!claset addSIs [ForallQFilterPnil],
-                           !simpset)) 1);
+by (eres_inst_tac [("Q","%x.x:act A & x~:act B")] ForallQFilterPnil 1);
+ba 1;
+by (Fast_tac 1);
 
 (* case ~ Finite tr *)
 
@@ -776,8 +1018,9 @@ by (SELECT_GOAL (auto_tac (!claset addSIs [ForallQFilterPUU,
 (* schA = UU *)
 by (eres_inst_tac [("A","B")] LastActExtimplUU 1);
 by (Asm_simp_tac 1);
-by (SELECT_GOAL (auto_tac (!claset addSIs [ForallQFilterPUU],
-                           !simpset)) 1);
+by (eres_inst_tac [("Q","%x.x:act A & x~:act B")] ForallQFilterPUU 1);
+ba 1;
+by (Fast_tac 1);
 
 (* case" ~ Forall (%x.x:act B & x~:act A) s" *)
 
