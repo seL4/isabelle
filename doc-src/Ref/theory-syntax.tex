@@ -53,16 +53,18 @@ sort :  id
 types : 'types' ( ( typeDecl ( () | '(' infix ')' ) ) + )
       ;
 
-typeDecl : ( () | tid | '(' ( tid + ',' ) ')') name
+infix : ( 'infixr' | 'infixl' ) nat;
+
+typeDecl : typevarlist name
            ( () | '=' ( string | type ) );
+
+typevarlist : () | tid | '(' ( tid + ',' ) ')';
 
 type : simpleType | '(' type ')' | type '=>' type |
        '[' ( type + "," ) ']' '=>' type;
 
 simpleType: id | ( tid ( () | '::' id ) ) |
             '(' ( type + "," ) ')' id | simpleType id;
-
-infix : ( 'infixr' | 'infixl' ) nat;
 
 
 arities : 'arities' ((( name + ',' ) '::' arity ) + )
