@@ -410,6 +410,8 @@ $\ASSUMENAME$ in \S\ref{sec:proof-context}.
   text & : & \isarantiq \\
   goals & : & \isarantiq \\
   subgoals & : & \isarantiq \\
+  prf & : & \isarantiq \\
+  full_prf & : & \isarantiq \\
 \end{matharray}
 
 The text body of formal comments (see also \S\ref{sec:comments}) may contain
@@ -440,7 +442,9 @@ which are easier to read.
     'typ' options type |
     'text' options name |
     'goals' options |
-    'subgoals' options
+    'subgoals' options |
+    'prf' options thmrefs |
+    'full\_prf' options thmrefs
   ;
   options: '[' (option * ',') ']'
   ;
@@ -477,6 +481,16 @@ Note that the syntax of antiquotations may \emph{not} include source comments
 
 \item [$\at\{subgoals\}$] behaves almost like $goals$, except that it does not
   print the main goal.
+
+\item [$\at\{prf~\vec a\}$] prints the (compact) proof terms corresponding to
+  the theorems $\vec a$. Note that this
+  requires proof terms to be switched on for the current object logic
+  (see the ``Proof terms'' section of the Isabelle reference manual
+  for information on how to do this).
+
+\item [$\at\{full_prf~\vec a\}$] is like $\at\{prf~\vec a\}$, but displays
+  the full proof terms, i.e.\ also displays information omitted in
+  the compact proof term, which is denoted by ``$_$'' placeholders there.
 
 \end{descr}
 

@@ -1276,6 +1276,8 @@ opening of the proof.
   \isarcmd{term}^* & : & \isarkeep{theory~|~proof} \\
   \isarcmd{prop}^* & : & \isarkeep{theory~|~proof} \\
   \isarcmd{typ}^* & : & \isarkeep{theory~|~proof} \\
+  \isarcmd{prf}^* & : & \isarkeep{theory~|~proof} \\
+  \isarcmd{full_prf}^* & : & \isarkeep{theory~|~proof} \\
 \end{matharray}
 
 These diagnostic commands assist interactive development.  Note that $undo$
@@ -1291,6 +1293,10 @@ does not apply here, the theory or proof configuration is not changed.
   'prop' modes? prop
   ;
   'typ' modes? type
+  ;
+  'prf' modes? thmrefs?
+  ;
+  'full\_prf' modes? thmrefs?
   ;
 
   modes: '(' (name + ) ')'
@@ -1315,6 +1321,14 @@ does not apply here, the theory or proof configuration is not changed.
   abbreviations.
 \item [$\isarkeyword{typ}~\tau$] reads and prints types of the meta-logic
   according to the current theory or proof context.
+\item [$\isarkeyword{prf}$] displays the (compact) proof term of the current
+  proof state (if present), or of the given theorems. Note that this
+  requires proof terms to be switched on for the current object logic
+  (see the ``Proof terms'' section of the Isabelle reference manual
+  for information on how to do this).
+\item [$\isarkeyword{full_prf}$] is like $\isarkeyword{prf}$, but displays
+  the full proof term, i.e.\ also displays information omitted in
+  the compact proof term, which is denoted by ``$_$'' placeholders there.
 \end{descr}
 
 All of the diagnostic commands above admit a list of $modes$ to be specified,
