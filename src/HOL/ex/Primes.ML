@@ -47,7 +47,6 @@ Addsimps [gcd_0];
 Goal "0<n ==> gcd(m,n) = gcd (n, m mod n)";
 by (rtac (gcd_eq RS trans) 1);
 by (Asm_simp_tac 1);
-by (Blast_tac 1);
 qed "gcd_non_0";
 
 Goal "gcd(m,1) = 1";

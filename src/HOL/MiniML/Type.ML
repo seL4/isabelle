@@ -530,15 +530,6 @@ by (fast_tac (HOL_cs addEs [less_irrefl]) 1);
 qed "new_tv_not_free_tv";
 Addsimps [new_tv_not_free_tv];
 
-Goalw [max_def] "!!n::nat. m < n ==> m < max n n'";
-by (Auto_tac);
-qed "less_maxL";
-
-Goalw [max_def] "!!n::nat. m < n' ==> m < max n n'";
-by (Simp_tac 1);
-by (fast_tac (claset() addDs [not_leE] addIs [less_trans]) 1);
-val less_maxR = result();
-
 Goalw [new_tv_def] "!!t::typ. ? n. (new_tv n t)";
 by (induct_tac "t" 1);
 by (res_inst_tac [("x","Suc nat")] exI 1);
@@ -546,8 +537,8 @@ by (Asm_simp_tac 1);
 by (REPEAT (etac exE 1));
 by (rename_tac "n'" 1);
 by (res_inst_tac [("x","max n n'")] exI 1);
-by (Simp_tac 1);
-by (fast_tac (claset() addIs [less_maxR,less_maxL]) 1);
+by (simp_tac (simpset() addsimps [less_max_iff_disj]) 1);
+by (Blast_tac 1);
 qed "fresh_variable_types";
 
 Addsimps [fresh_variable_types];
@@ -561,20 +552,11 @@ by (Simp_tac 1);
 by (REPEAT (etac exE 1));
 by (rename_tac "n'" 1);
 by (res_inst_tac [("x","max n n'")] exI 1);
-by (Simp_tac 1);
-by (fast_tac (claset() addIs [less_maxR,less_maxL]) 1);
+by (simp_tac (simpset() addsimps [less_max_iff_disj]) 1);
+by (Blast_tac 1);
 qed "fresh_variable_type_schemes";
 
 Addsimps [fresh_variable_type_schemes];
-
-Goalw [max_def] "!!n::nat. n <= (max n n')";
-by (Simp_tac 1);
-val le_maxL = result();
-
-Goalw [max_def] "!!n'::nat. n' <= (max n n')";
-by (Simp_tac 1);
-by (fast_tac (claset() addDs [not_leE] addIs [less_or_eq_imp_le]) 1);
-val le_maxR = result();
 
 Goal "!!A::type_scheme list. ? n. (new_tv n A)";
 by (induct_tac "A" 1);
@@ -588,7 +570,7 @@ by (res_inst_tac [("x","(max n n')")] exI 1);
 by (subgoal_tac "n <= (max n n')" 1);
 by (subgoal_tac "n' <= (max n n')" 1);
 by (fast_tac (claset() addDs [new_tv_le]) 1);
-by (ALLGOALS (simp_tac (simpset() addsimps [le_maxR,le_maxL])));
+by (ALLGOALS (simp_tac (simpset() addsimps [le_max_iff_disj])));
 qed "fresh_variable_type_scheme_lists";
 
 Addsimps [fresh_variable_type_scheme_lists];
@@ -600,7 +582,7 @@ by (res_inst_tac [("x","(max n1 n2)")] exI 1);
 by (subgoal_tac "n1 <= max n1 n2" 1);
 by (subgoal_tac "n2 <= max n1 n2" 1);
 by (fast_tac (claset() addDs [new_tv_le]) 1);
-by (ALLGOALS (simp_tac (simpset() addsimps [le_maxL,le_maxR])));
+by (ALLGOALS (simp_tac (simpset() addsimps [le_max_iff_disj])));
 qed "make_one_new_out_of_two";
 
 Goal "!!(A::type_scheme list) (A'::type_scheme list) (t::typ) (t'::typ). \
@@ -620,7 +602,8 @@ by (REPEAT (etac exE 1));
 by (rename_tac "n2 n1" 1);
 by (res_inst_tac [("x","(max n1 n2)")] exI 1);
 by (rewtac new_tv_def);
-by (fast_tac (claset() addIs [less_maxL,less_maxR]) 1);
+by (simp_tac (simpset() addsimps [less_max_iff_disj]) 1);
+by (Blast_tac 1);
 qed "ex_fresh_variable";
 
 (* mgu does not introduce new type variables *)

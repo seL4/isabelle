@@ -855,6 +855,13 @@ val not_leD = not_leE RS Suc_leI;
 val not_lessD = leI;
 val sym = sym;
 
+fun mkEqTrue thm = thm RS (eqTrueI RS eq_reflection);
+val mk_Trueprop = HOLogic.mk_Trueprop;
+
+fun neg_prop(TP$(Const("Not",_)$t)) = (TP$t, true)
+  | neg_prop(TP$t) =
+      (TP $ (Const("Not",HOLogic.boolT-->HOLogic.boolT)$t), false);
+
 (* Turn term into list of summand * multiplicity plus a constant *)
 fun poly(Const("Suc",_)$t, (p,i)) = poly(t, (p,i+1))
   | poly(Const("op +",_) $ s $ t, pi) = poly(s,poly(t,pi))
@@ -916,9 +923,29 @@ end;
 
 structure Fast_Nat_Arith = Fast_Lin_Arith(Nat_LA_Data);
 
-simpset_ref () := (simpset() addSolver Fast_Nat_Arith.cut_lin_arith_tac);
-
 val fast_nat_arith_tac = Fast_Nat_Arith.lin_arith_tac;
+
+local
+fun prep_pat s = Thm.read_cterm (sign_of Arith.thy) (s, HOLogic.boolT);
+
+val pats = map prep_pat
+  ["(m::nat) < n","(m::nat) <= n", "~ (m::nat) < n","~ (m::nat) <= n",
+   "(m::nat) = n"]
+
+in
+val fast_nat_arith_simproc =
+  mk_simproc "fast_nat_arith" pats Fast_Nat_Arith.lin_arith_prover;
+end;
+
+Addsimprocs [fast_nat_arith_simproc];
+
+(* Because of fast_nat_arith_simproc, the arithmetic solver is really only
+useful to detect inconsistencies among the premises for subgoals which are
+*not* themselves (in)equalities, because the latter activate
+fast_nat_arith_simproc anyway. However, it seems cheaper to activate the
+solver all the time rather than add the additional check. *)
+
+simpset_ref () := (simpset() addSolver Fast_Nat_Arith.cut_lin_arith_tac);
 
 (* Elimination of `-' on nat due to John Harrison *)
 Goal "P(a - b::nat) = (!d. (b = a + d --> P 0) & (a = b + d --> P d))";

@@ -456,7 +456,6 @@ AddIffs [pnat_not_add_less1, pnat_not_add_less2];
 Goal "m + k <= n --> m <= (n::pnat)";
 by (simp_tac (simpset() addsimps [pnat_le_iff_Rep_pnat_le,
     sum_Rep_pnat_sum RS sym]) 1);
-by (fast_tac (claset() addIs [add_leD1]) 1);
 qed_spec_mp "pnat_add_leD1";
 
 Goal "!!n::pnat. m + k <= n ==> k <= n";

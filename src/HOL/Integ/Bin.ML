@@ -410,6 +410,10 @@ val not_leD = not_zleE RS lessD;
 val not_lessD = zleI;
 val sym = sym;
 
+val mk_Trueprop = Nat_LA_Data.mk_Trueprop;
+val neg_prop = Nat_LA_Data.neg_prop;
+val mkEqTrue = Nat_LA_Data.mkEqTrue;
+
 val intT = Type("IntDef.int",[]);
 
 (* borrowed from Bin.thy: *)

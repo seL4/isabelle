@@ -689,7 +689,7 @@ local
         ALLGOALS Asm_simp_tac
         ]);
 
-  val adm_disj_lemma4 = prove_goal Nat.thy
+  val adm_disj_lemma4 = prove_goal Arith.thy
   "!!Q. !j. i < j --> Q(Y(j))  ==> !n. Q( if n < Suc i then Y(Suc i) else Y n)"
  (fn _ =>
         [Asm_simp_tac 1]);
@@ -701,10 +701,10 @@ local
         [
         safe_tac (HOL_cs addSIs [lub_equal2,adm_disj_lemma3]),
         atac 2,
-        Asm_simp_tac 1,
         res_inst_tac [("x","i")] exI 1,
-        strip_tac 1,
-        Simp_tac 1
+        Simp_tac 1,
+	strip_tac 1,
+        Asm_simp_tac 1
         ]);
 
   val adm_disj_lemma6 = prove_goal thy

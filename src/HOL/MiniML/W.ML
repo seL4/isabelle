@@ -62,10 +62,6 @@ by (rtac new_tv_le 1);
 by (rtac add_le_mono 1);
  by (Simp_tac 1);
 by (simp_tac (simpset() addsimps [max_def]) 1);
-by (strip_tac 1);
-by (dtac not_leE 1);
-by (rtac less_or_eq_imp_le 1);
-by (Fast_tac 1);
 qed_spec_mp "new_tv_bound_typ_inst_sch";
 
 Addsimps [new_tv_bound_typ_inst_sch];

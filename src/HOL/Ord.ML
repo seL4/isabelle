@@ -55,6 +55,13 @@ qed "order_less_not_sym";
 (* [| n<m;  ~P ==> m<n |] ==> P *)
 bind_thm ("order_less_asym", order_less_not_sym RS swap);
 
+(* Transitivity *)
+
+Goal "!!x::'a::order. [| x < y; y < z |] ==> x < z";
+by (asm_full_simp_tac (simpset() addsimps [order_less_le]) 1);
+by (blast_tac (claset() addIs [order_trans,order_antisym]) 1);
+qed "order_less_trans";
+
 
 (** Useful for simplification, but too risky to include by default. **)
 
@@ -102,6 +109,12 @@ by (Simp_tac 1);
 by (cut_facts_tac [linorder_linear] 1);
 by (blast_tac (claset() addIs [order_trans]) 1);
 qed "le_max_iff_disj";
+
+Goalw [max_def] "!!z::'a::linorder. (z < max x y) = (z < x | z < y)";
+by (simp_tac (simpset() addsimps [order_le_less]) 1);
+by (cut_facts_tac [linorder_less_linear] 1);
+by (blast_tac (claset() addIs [order_less_trans]) 1);
+qed "less_max_iff_disj";
 
 Goalw [max_def] "!!z::'a::linorder. (max x y <= z) = (x <= z & y <= z)";
 by (Simp_tac 1);
