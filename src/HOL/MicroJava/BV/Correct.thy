@@ -41,7 +41,7 @@ primrec
          fst((phi C sig)!k) = (rev apTs) @ (Class D) # ST' \\<and>
          length apTs = length pTs \\<and>
          (\\<exists>D' rT' maxl' ins'.
-           method (G,D) (mn,pTs) = Some(D',rT',(maxl',ins')) \\<and>
+           method (G,D) sig0 = Some(D',rT',(maxl',ins')) \\<and>
            G \\<turnstile> rT0 \\<preceq> rT') \\<and>
 	 correct_frame G hp (tl ST, LT) maxl ins f \\<and> 
 	 correct_frames G hp phi rT sig frs))))"
