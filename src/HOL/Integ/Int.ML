@@ -250,11 +250,12 @@ qed "zless_nat_conj";
 
 (* a case theorem distinguishing non-negative and negative int *)  
 
-val prems = Goal "[|!! n. P (int n); !! n. P (- (int (Suc n))) |] ==> P z"; 
+val prems = Goal
+     "[|!! n. z = int n ==> P;  !! n. z =  - (int (Suc n)) ==> P |] ==> P"; 
 by (case_tac "neg z" 1); 
-by (blast_tac (claset() addSDs [negD] addSIs prems) 1); 
-by (etac (not_neg_nat RS subst) 1);
-by (resolve_tac prems 1);
+by (fast_tac (claset() addSDs [negD] addSEs prems) 1); 
+by (dtac (not_neg_nat RS sym) 1);
+by (eresolve_tac prems 1);
 qed "int_cases"; 
 
 fun int_case_tac x = res_inst_tac [("z",x)] int_cases; 
@@ -280,6 +281,16 @@ by (rtac (zminus_zle_zminus RS iffD1) 1);
 by (asm_simp_tac (simpset() addsimps [zmult_zminus_right RS sym,
 				      zmult_zle_mono1, zle_zminus]) 1);
 qed "zmult_zle_mono1_neg";
+
+Goal "[| i <= j;  int 0 <= k |] ==> k*i <= k*j";
+by (dtac zmult_zle_mono1 1);
+by (ALLGOALS (asm_full_simp_tac (simpset() addsimps [zmult_commute])));
+qed "zmult_zle_mono2";
+
+Goal "[| i <= j;  k <= int 0 |] ==> k*j <= k*i";
+by (dtac zmult_zle_mono1_neg 1);
+by (ALLGOALS (asm_full_simp_tac (simpset() addsimps [zmult_commute])));
+qed "zmult_zle_mono2_neg";
 
 (*<=monotonicity, BOTH arguments*)
 Goal "[| i <= j;  k <= l;  int 0 <= j;  int 0 <= k |] ==> i*k <= j*l";
