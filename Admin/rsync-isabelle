@@ -17,7 +17,7 @@ usage()
   echo "  Options are:"
   echo "    -h    print help message"
   echo "    -n    dry run, don't do anything, just report what would happen"
-  echo "    -d    delete files that are not on the server (beware!)"
+  echo "    -d    delete files that are not on the server (BEWARE!)"
   echo
   exit 1
 }
