@@ -17,12 +17,10 @@ by (case_tac "deg r = m" 1);
 by (Clarify_tac 1);
 by (Asm_full_simp_tac 1);
 (* case "deg q ~= m" *)
-by (dtac le_neq_implies_less 1 THEN atac 1);
-by (dres_inst_tac [("i", "deg p")] le_less_trans 1); by (assume_tac 1);
-by (dres_inst_tac [("i", "deg q")] le_less_trans 1); by (assume_tac 1);
+by (arith_tac 2);
+by (subgoal_tac "deg p < m & deg q < m" 1);
 by (asm_simp_tac (simpset() addsimps [deg_aboveD]) 1);
-(* end case *)
-by (asm_full_simp_tac (simpset() addsimps [le_pred_eq]) 1);
+by (arith_tac 1);
 qed "deg_lcoeff_cancel";
 
 Goal
