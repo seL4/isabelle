@@ -10,7 +10,7 @@
   \indexspace
 
   \item {\tt findlogics} tool, 8
-  \item {\tt finish_html}, \bold{13}
+  \item {\tt finish_html}, \bold{15}
 
   \indexspace
 
@@ -18,13 +18,13 @@
 
   \indexspace
 
-  \item HTML, \bold{12}
+  \item HTML, 9, \bold{14}
 
   \indexspace
 
-  \item {\tt init_html}, \bold{13}
+  \item {\tt init_html}, \bold{15}
   \item {\tt INSTALL}, 1
-  \item {\tt installfonts} tool, 10
+  \item {\tt installfonts} tool, 11
   \item {\tt ISABELLE} setting, 3
   \item {\tt Isabelle}, 1
   \item {\tt isabelle}, 1, 4
@@ -32,20 +32,21 @@
   \item {\tt ISABELLE_HOME} setting, 2, 3
   \item {\tt ISABELLE_HOME_USER} setting, 3
   \item {\tt ISABELLE_INSTALL_FONTS} setting, 4
-  \item {\tt ISABELLE_INSTALLFONTS} setting, 10
+  \item {\tt ISABELLE_INSTALLFONTS} setting, 11
   \item {\tt ISABELLE_INTERFACE} setting, 4
   \item {\tt ISABELLE_LOGIC} setting, 4
   \item {\tt ISABELLE_OUTPUT} setting, 3, 4
   \item {\tt ISABELLE_PATH} setting, 3
   \item {\tt ISABELLE_TOOLS} setting, 4
-  \item {\tt ISABELLE_USEDIR_OPTIONS} setting, 4
+  \item {\tt ISABELLE_USEDIR_OPTIONS} setting, 4, 9
+  \item {\tt IsaMakefile}, 9
   \item {\tt ISATOOL} setting, 3
   \item {\tt isatool}, 1
 
   \indexspace
 
   \item {\tt make} tool, 9
-  \item {\tt make_html}, \bold{13}
+  \item {\tt make_html}, \bold{15}
   \item {\tt ML_HOME} setting, 3
   \item {\tt ML_OPTIONS} setting, 3
   \item {\tt ML_SYSTEM} setting, 3
@@ -53,10 +54,12 @@
   \indexspace
 
   \item settings, \bold{1}
-  \item {\tt symbols}, 10
+  \item {\tt symbolinput} tool, 12
+  \item {\tt symbols}, 11
 
   \indexspace
 
-  \item {\tt use_dir}, 13, 14
+  \item {\tt use_dir}, 10, 15, 16
+  \item {\tt usedir} tool, 9
 
 \end{theindex}
