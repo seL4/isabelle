@@ -524,7 +524,7 @@ inductive
   intrs
     emptyI  "0 : Fin(A)"
     consI   "[| a: A;  b: Fin(A) |] ==> cons(a,b) : Fin(A)"
-  type_intrs "[empty_subsetI, cons_subsetI, PowI]"
+  type_intrs  empty_subsetI, cons_subsetI, PowI
   type_elims "[make_elim PowD]"
 end
 \end{ttbox}
@@ -760,7 +760,7 @@ inductive
   domains "acc(r)" <= "field(r)"
   intrs
     vimage  "[| r-``\{a\}: Pow(acc(r)); a: field(r) |] ==> a: acc(r)"
-  monos     "[Pow_mono]"
+  monos      Pow_mono
 \end{ttbox}
 The Isabelle theory proceeds to prove facts about $\acc(\prec)$.  For
 instance, $\prec$ is well-founded if and only if its field is contained in
@@ -846,8 +846,8 @@ inductive
     PROJ     "i: nat ==> PROJ(i) : primrec"
     COMP     "[| g: primrec; fs: list(primrec) |] ==> COMP(g,fs): primrec"
     PREC     "[| f: primrec; g: primrec |] ==> PREC(f,g): primrec"
-  monos      "[list_mono]"
-  con_defs   "[SC_def,CONST_def,PROJ_def,COMP_def,PREC_def]"
+  monos       list_mono
+  con_defs    SC_def, CONST_def, PROJ_def, COMP_def, PREC_def
   type_intrs "nat_typechecks @ list.intrs @                      
               [lam_type, list_case_type, drop_type, map_type,    
                apply_type, rec_type]"
@@ -1330,262 +1330,4 @@ cause complications.
 \end{footnotesize}
 %%%%%\doendnotes
 
-\ifshort\typeout{****Omitting appendices}
-\else
-\newpage
-\appendix
-\section{Inductive and coinductive definitions: users guide}
-A theory file may contain any number of inductive and coinductive
-definitions.  They may be intermixed with other declarations; in
-particular, the (co)inductive sets \defn{must} be declared separately as
-constants, and may have mixfix syntax or be subject to syntax translations.
-
-The syntax is rather complicated.  Please consult the examples above and the
-theory files on the \textsc{zf} source directory.  
-
-Each (co)inductive definition adds definitions to the theory and also proves
-some theorems.  Each definition creates an \textsc{ml} structure, which is a
-substructure of the main theory structure.
-
-Inductive and datatype definitions can take up considerable storage.  The
-introduction rules are replicated in slightly different forms as fixedpoint
-definitions, elimination rules and induction rules.  L\"otzbeyer and Sandner's
-six definitions occupy over 600K in total.  Defining the 60-constructor
-datatype requires nearly 560K\@.
-
-\subsection{The result structure}
-Many of the result structure's components have been discussed
-in~\S\ref{basic-sec}; others are self-explanatory.
-\begin{description}
-\item[\tt thy] is the new theory containing the recursive sets.
-
-\item[\tt defs] is the list of definitions of the recursive sets.
-
-\item[\tt bnd\_mono] is a monotonicity theorem for the fixedpoint operator.
-
-\item[\tt dom\_subset] is a theorem stating inclusion in the domain.
-
-\item[\tt intrs] is the list of introduction rules, now proved as theorems, for
-the recursive sets.  The rules are also available individually, using the
-names given them in the theory file. 
-
-\item[\tt elim] is the elimination rule.
-
-\item[\tt mk\_cases] is a function to create simplified instances of {\tt
-elim}, using freeness reasoning on some underlying datatype.
-\end{description}
-
-For an inductive definition, the result structure contains two induction
-rules, {\tt induct} and \verb|mutual_induct|.  (To save storage, the latter
-rule is just {\tt True} unless more than one set is being defined.)  For a
-coinductive definition, it contains the rule \verb|coinduct|.
-
-Figure~\ref{def-result-fig} summarizes the two result signatures,
-specifying the types of all these components.
-
-\begin{figure}
-\begin{ttbox}
-sig
-val thy          : theory
-val defs         : thm list
-val bnd_mono     : thm
-val dom_subset   : thm
-val intrs        : thm list
-val elim         : thm
-val mk_cases     : thm list -> string -> thm
-{\it(Inductive definitions only)} 
-val induct       : thm
-val mutual_induct: thm
-{\it(Coinductive definitions only)}
-val coinduct    : thm
-end
-\end{ttbox}
-\hrule
-\caption{The result of a (co)inductive definition} \label{def-result-fig}
-\end{figure}
-
-\subsection{The syntax of a (co)inductive definition}
-An inductive definition has the form
-\begin{ttbox}
-inductive
-  domains    {\it domain declarations}
-  intrs      {\it introduction rules}
-  monos      {\it monotonicity theorems}
-  con_defs   {\it constructor definitions}
-  type_intrs {\it introduction rules for type-checking}
-  type_elims {\it elimination rules for type-checking}
-\end{ttbox}
-A coinductive definition is identical, but starts with the keyword
-{\tt coinductive}.  
-
-The {\tt monos}, {\tt con\_defs}, {\tt type\_intrs} and {\tt type\_elims}
-sections are optional.  If present, each is specified as a string, which
-must be a valid \textsc{ml} expression of type {\tt thm list}.  It is simply
-inserted into the {\tt .thy.ML} file; if it is ill-formed, it will trigger
-\textsc{ml} error messages.  You can then inspect the file on your directory.
-
-\begin{description}
-\item[\it domain declarations] consist of one or more items of the form
-  {\it string\/}~{\tt <=}~{\it string}, associating each recursive set with
-  its domain.
-
-\item[\it introduction rules] specify one or more introduction rules in
-  the form {\it ident\/}~{\it string}, where the identifier gives the name of
-  the rule in the result structure.
-
-\item[\it monotonicity theorems] are required for each operator applied to
-  a recursive set in the introduction rules.  There \defn{must} be a theorem
-  of the form $A\sbs B\Imp M(A)\sbs M(B)$, for each premise $t\in M(R_i)$
-  in an introduction rule!
-
-\item[\it constructor definitions] contain definitions of constants
-  appearing in the introduction rules.  The (co)datatype package supplies
-  the constructors' definitions here.  Most (co)inductive definitions omit
-  this section; one exception is the primitive recursive functions example
-  (\S\ref{primrec-sec}).
-
-\item[\it type\_intrs] consists of introduction rules for type-checking the
-  definition, as discussed in~\S\ref{basic-sec}.  They are applied using
-  depth-first search; you can trace the proof by setting
-
-  \verb|trace_DEPTH_FIRST := true|.
-
-\item[\it type\_elims] consists of elimination rules for type-checking the
-  definition.  They are presumed to be safe and are applied as much as
-  possible, prior to the {\tt type\_intrs} search.
-\end{description}
-
-The package has a few notable restrictions:
-\begin{itemize}
-\item The theory must separately declare the recursive sets as
-  constants.
-
-\item The names of the recursive sets must be identifiers, not infix
-operators.  
-
-\item Side-conditions must not be conjunctions.  However, an introduction rule
-may contain any number of side-conditions.
-
-\item Side-conditions of the form $x=t$, where the variable~$x$ does not
-  occur in~$t$, will be substituted through the rule \verb|mutual_induct|.
-\end{itemize}
-
-Isabelle/\textsc{hol} uses a simplified syntax for inductive definitions,
-thanks to type-checking.  There are no \texttt{domains}, \texttt{type\_intrs}
-or \texttt{type\_elims} parts.
-
-
-\section{Datatype and codatatype definitions: users guide}
-This section explains how to include (co)datatype declarations in a theory
-file.  Please include {\tt Datatype} as a parent theory; this makes available
-the definitions of $\univ$ and $\quniv$.
-
-
-\subsection{The result structure}
-The result structure extends that of (co)inductive definitions
-(Figure~\ref{def-result-fig}) with several additional items:
-\begin{ttbox}
-val con_defs  : thm list
-val case_eqns : thm list
-val free_iffs : thm list
-val free_SEs  : thm list
-val mk_free   : string -> thm
-\end{ttbox}
-Most of these have been discussed in~\S\ref{data-sec}.  Here is a summary:
-\begin{description}
-\item[\tt con\_defs] is a list of definitions: the case operator followed by
-the constructors.  This theorem list can be supplied to \verb|mk_cases|, for
-example.
-
-\item[\tt case\_eqns] is a list of equations, stating that the case operator
-inverts each constructor.
-
-\item[\tt free\_iffs] is a list of logical equivalences to perform freeness
-reasoning by rewriting.  A typical application has the form
-\begin{ttbox}
-by (asm_simp_tac (ZF_ss addsimps free_iffs) 1);
-\end{ttbox}
-
-\item[\tt free\_SEs] is a list of safe elimination rules to perform freeness
-reasoning.  It can be supplied to \verb|eresolve_tac| or to the classical
-reasoner:
-\begin{ttbox} 
-by (fast_tac (ZF_cs addSEs free_SEs) 1);
-\end{ttbox}
-
-\item[\tt mk\_free] is a function to prove freeness properties, specified as
-strings.  The theorems can be expressed in various forms, such as logical
-equivalences or elimination rules.
-\end{description}
-
-The result structure also inherits everything from the underlying
-(co)inductive definition, such as the introduction rules, elimination rule,
-and (co)induction rule.
-
-
-\subsection{The syntax of a (co)datatype definition}
-A datatype definition has the form
-\begin{ttbox}
-datatype <={\it domain}
- {\it datatype declaration} and {\it datatype declaration} and \ldots
-  monos      {\it monotonicity theorems}
-  type_intrs {\it introduction rules for type-checking}
-  type_elims {\it elimination rules for type-checking}
-\end{ttbox}
-A codatatype definition is identical save that it starts with the keyword {\tt
-  codatatype}.
-
-The {\tt monos}, {\tt type\_intrs} and {\tt type\_elims} sections are
-optional.  They are treated like their counterparts in a (co)inductive
-definition, as described above.  The package supplements your type-checking
-rules (if any) with additional ones that should cope with any
-finitely-branching (co)datatype definition.
-
-\begin{description}
-\item[\it domain] specifies a single domain to use for all the mutually
-  recursive (co)datatypes.  If it (and the preceeding~{\tt <=}) are
-  omitted, the package supplies a domain automatically.  Suppose the
-  definition involves the set parameters $A_1$, \ldots, $A_k$.  Then
-  $\univ(A_1\un\cdots\un A_k)$ is used for a datatype definition and
-  $\quniv(A_1\un\cdots\un A_k)$ is used for a codatatype definition.
-
-  These choices should work for all finitely-branching (co)datatype
-  definitions.  For examples of infinitely-branching datatypes, 
-  see file {\tt ZF/ex/Brouwer.thy}.
-
-\item[\it datatype declaration] has the form
-\begin{quote}
- {\it string\/} {\tt =} {\it constructor} {\tt|} {\it constructor} {\tt|}
- \ldots 
-\end{quote}
-The {\it string\/} is the datatype, say {\tt"list(A)"}.  Each
-{\it constructor\/} has the form 
-\begin{quote}
- {\it name\/} {\tt(} {\it premise} {\tt,} {\it premise} {\tt,} \ldots {\tt)}
- {\it mixfix\/}
-\end{quote}
-The {\it name\/} specifies a new constructor while the {\it premises\/} its
-typing conditions.  The optional {\it mixfix\/} phrase may give
-the constructor infix, for example.
-
-Mutually recursive {\it datatype declarations\/} are separated by the
-keyword~{\tt and}.
-\end{description}
-
-Isabelle/\textsc{hol}'s datatype definition package is (as of this writing)
-entirely different from Isabelle/\textsc{zf}'s.  The syntax is different, and
-instead of making an inductive definition it asserts axioms.
-
-\paragraph*{Note.}
-In the definitions of the constructors, the right-hand sides may overlap.
-For instance, the datatype of combinators has constructors defined by
-\begin{eqnarray*}
-  {\tt K} & \equiv & \Inl(\emptyset) \\
-  {\tt S} & \equiv & \Inr(\Inl(\emptyset)) \\
-  p{\tt\#}q & \equiv & \Inr(\Inl(\pair{p,q})) 
-\end{eqnarray*}
-Unlike in previous versions of Isabelle, \verb|fold_tac| now ensures that the
-longest right-hand sides are folded first.
-
-\fi
 \end{document}
