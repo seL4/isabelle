@@ -45,6 +45,8 @@ sig
   val force_tac	  : clasimpset  -> int -> tactic
   val Force_tac	  : int -> tactic
   val force	  : int -> unit
+  val change_global_css: (clasimpset * thm list -> clasimpset) -> theory attribute
+  val change_local_css: (clasimpset * thm list -> clasimpset) -> Proof.context attribute
   val setup	  : (theory -> theory) list
 end;
 
@@ -146,6 +148,27 @@ fun force_tac (cs,ss) = let val cs' = cs addss ss in SELECT_GOAL (EVERY [
 	ALLGOALS (Classical.best_tac cs')]) end;
 fun Force_tac i = force_tac (Classical.claset(), Simplifier.simpset()) i;
 fun force i = by (Force_tac i);
+
+
+(* attributes *)
+
+fun change_global_css f (thy, th) =
+  let
+    val cs_ref = Classical.claset_ref_of thy;
+    val ss_ref = Simplifier.simpset_ref_of thy;
+    val (cs', ss') = f ((! cs_ref, ! ss_ref), [th]);
+  in cs_ref := cs'; ss_ref := ss'; (thy, th) end;
+
+fun change_local_css f (ctxt, th) =
+  let
+    val cs = Classical.get_local_claset ctxt;
+    val ss = Simplifier.get_local_simpset ctxt;
+    val (cs', ss') = f ((cs, ss), [th]);
+    val ctxt' =
+      ctxt
+      |> Classical.put_local_claset cs'
+      |> Simplifier.put_local_simpset ss';
+  in (ctxt', th) end;
 
 
 (* methods *)
