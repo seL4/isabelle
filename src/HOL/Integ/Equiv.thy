@@ -1,9 +1,7 @@
 (*  Title:      Equiv.thy
     ID:         $Id$
-    Authors:    Riccardo Mattolini, Dip. Sistemi e Informatica
-                Lawrence C Paulson, Cambridge University Computer Laboratory
-    Copyright   1994 Universita' di Firenze
-    Copyright   1993  University of Cambridge
+    Authors:    Lawrence C Paulson, Cambridge University Computer Laboratory
+    Copyright   1996  University of Cambridge
 
 Equivalence relations in Higher-Order Set Theory 
 *)
