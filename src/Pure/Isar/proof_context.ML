@@ -103,7 +103,7 @@ datatype context =
       ((string * string) list * string list),                           (*fixes: !!x. _*)
     binds: (term * typ) option Vartab.table,                            (*term bindings*)
     thms: thm list option Symtab.table,                                 (*local thms*)
-    cases: RuleCases.T Symtab.table,                                    (*local contexts*)
+    cases: (string * RuleCases.T) list,                                 (*local contexts*)
     defs:
       typ Vartab.table *                                                (*type constraints*)
       sort Vartab.table *                                               (*default sorts*)
@@ -182,14 +182,15 @@ fun strings_of_cases (ctxt as Context {cases, ...}) =
     fun prt_sect _ _ [] = []
       | prt_sect s prt xs = [Pretty.block (Pretty.breaks (Pretty.str s :: map prt xs))];
 
-    (* FIXME hilite keywords (using Isar-self syntax) (!?); move to rule_cases.ML (!?) *)
     fun prt_case (name, (xs, ts)) = Pretty.block (Pretty.breaks
       (Pretty.str (name ^ ":") ::
         prt_sect "fix" (prt_term o Free) xs @
         prt_sect "assume" (Pretty.quote o prt_term) ts));
+
+    val cases' = rev (Library.gen_distinct Library.eq_fst cases);
   in
-    if Symtab.is_empty cases andalso not (! verbose) then []
-    else [Pretty.string_of (Pretty.big_list "cases:" (map prt_case (Symtab.dest cases)))]
+    if null cases andalso not (! verbose) then []
+    else [Pretty.string_of (Pretty.big_list "cases:" (map prt_case cases'))]
   end;
 
 val print_cases = seq writeln o strings_of_cases;
@@ -335,7 +336,7 @@ fun put_data kind f x ctxt =
 
 fun init thy =
   let val data = Symtab.map (fn (_, (f, _)) => f thy) (ProofDataData.get thy) in
-    make_context (thy, data, (([], []), ([], [])), Vartab.empty, Symtab.empty, Symtab.empty,
+    make_context (thy, data, (([], []), ([], [])), Vartab.empty, Symtab.empty, [],
       (Vartab.empty, Vartab.empty, []))
   end;
 
@@ -834,16 +835,13 @@ fun check_case ctxt name (xs, ts) =
   else raise CONTEXT ("Illegal schematic variable(s) in case " ^ quote name, ctxt);
 
 fun get_case (ctxt as Context {cases, ...}) name =
-  (case Symtab.lookup (cases, name) of
+  (case assoc (cases, name) of
     None => raise CONTEXT ("Unknown case: " ^ quote name, ctxt)
   | Some c => (check_case ctxt name c; c));
 
 
-fun add_case (tab, ("", _)) = tab
-  | add_case (tab, name_c) = Symtab.update (name_c, tab);
-
 fun add_cases xs = map_context (fn (thy, data, asms, binds, thms, cases, defs) =>
-  (thy, data, asms, binds, thms, foldl add_case (cases, xs), defs));
+  (thy, data, asms, binds, thms, rev (filter_out (equal "" o #1) xs) @ cases, defs));
 
 
 
