@@ -10,7 +10,7 @@ JBasis = Main +
 
 constdefs
 
-  unique  :: "('a \\<times> 'b) list \\<Rightarrow> bool"
- "unique  \\<equiv> nodups \\<circ> map fst"
+  unique  :: "('a \\<times> 'b) list => bool"
+ "unique  == nodups \\<circ> map fst"
 
 end

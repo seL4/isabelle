@@ -9,30 +9,30 @@ header {* Completeness of the LBV *}
 theory LBVComplete = BVSpec + LBVSpec + StepMono:
 
 constdefs
-  contains_targets :: "[instr list, certificate, method_type, p_count] \<Rightarrow> bool"
-  "contains_targets ins cert phi pc \<equiv> 
+  contains_targets :: "[instr list, certificate, method_type, p_count] => bool"
+  "contains_targets ins cert phi pc == 
      \<forall>pc' \<in> set (succs (ins!pc) pc). 
-      pc' \<noteq> pc+1 \<and> pc' < length ins \<longrightarrow> cert!pc' = phi!pc'"
+      pc' \<noteq> pc+1 \<and> pc' < length ins --> cert!pc' = phi!pc'"
 
-  fits :: "[instr list, certificate, method_type] \<Rightarrow> bool"
-  "fits ins cert phi \<equiv> \<forall>pc. pc < length ins \<longrightarrow> 
+  fits :: "[instr list, certificate, method_type] => bool"
+  "fits ins cert phi == \<forall>pc. pc < length ins --> 
                        contains_targets ins cert phi pc \<and>
                        (cert!pc = None \<or> cert!pc = phi!pc)"
 
-  is_target :: "[instr list, p_count] \<Rightarrow> bool" 
-  "is_target ins pc \<equiv> 
+  is_target :: "[instr list, p_count] => bool" 
+  "is_target ins pc == 
      \<exists>pc'. pc \<noteq> pc'+1 \<and> pc' < length ins \<and> pc \<in> set (succs (ins!pc') pc')"
 
 
 constdefs 
-  make_cert :: "[instr list, method_type] \<Rightarrow> certificate"
-  "make_cert ins phi \<equiv> 
+  make_cert :: "[instr list, method_type] => certificate"
+  "make_cert ins phi == 
      map (\<lambda>pc. if is_target ins pc then phi!pc else None) [0..length ins(]"
 
-  make_Cert :: "[jvm_prog, prog_type] \<Rightarrow> prog_certificate"
-  "make_Cert G Phi \<equiv>  \<lambda> C sig.
-     let (C,x,y,mdecls)  = \<epsilon> (Cl,x,y,mdecls). (Cl,x,y,mdecls) \<in> set G \<and> Cl = C;
-         (sig,rT,maxl,b) = \<epsilon> (sg,rT,maxl,b). (sg,rT,maxl,b) \<in> set mdecls \<and> sg = sig
+  make_Cert :: "[jvm_prog, prog_type] => prog_certificate"
+  "make_Cert G Phi ==  \<lambda> C sig.
+     let (C,x,y,mdecls)  = SOME (Cl,x,y,mdecls). (Cl,x,y,mdecls) \<in> set G \<and> Cl = C;
+         (sig,rT,maxl,b) = SOME (sg,rT,maxl,b). (sg,rT,maxl,b) \<in> set mdecls \<and> sg = sig
      in make_cert b (Phi C sig)"
   
 
@@ -197,14 +197,14 @@ lemma wt_instr_imp_wtl_inst:
   have app: "app (ins!pc) G rT (phi!pc)" by (simp add: wt_instr_def)
 
   from wt pc
-  have pc': "\<And>pc'. pc' \<in> set (succs (ins!pc) pc) ==> pc' < length ins"
+  have pc': "!!pc'. pc' \<in> set (succs (ins!pc) pc) ==> pc' < length ins"
     by (simp add: wt_instr_def)
 
   let ?s' = "step (ins!pc) G (phi!pc)"
 
   from wt fits pc
-  have cert: "!!pc'. \<lbrakk>pc' \<in> set (succs (ins!pc) pc); pc' < max_pc; pc' \<noteq> pc+1\<rbrakk> 
-    \<Longrightarrow> G \<turnstile> ?s' <=' cert!pc'"
+  have cert: "!!pc'. [|pc' \<in> set (succs (ins!pc) pc); pc' < max_pc; pc' \<noteq> pc+1|] 
+    ==> G \<turnstile> ?s' <=' cert!pc'"
     by (auto dest: fitsD simp add: wt_instr_def)     
 
   from app pc cert pc'
@@ -324,14 +324,14 @@ text {*
 *}
 
 theorem wt_imp_wtl_inst_list:
-"\<forall> pc. (\<forall>pc'. pc' < length all_ins \<longrightarrow> 
-        wt_instr (all_ins ! pc') G rT phi (length all_ins) pc') \<longrightarrow>
-       fits all_ins cert phi \<longrightarrow> 
-       (\<exists>l. pc = length l \<and> all_ins = l@ins) \<longrightarrow>  
-       pc < length all_ins \<longrightarrow>      
-       (\<forall> s. (G \<turnstile> s <=' (phi!pc)) \<longrightarrow> 
+"\<forall> pc. (\<forall>pc'. pc' < length all_ins --> 
+        wt_instr (all_ins ! pc') G rT phi (length all_ins) pc') -->
+       fits all_ins cert phi --> 
+       (\<exists>l. pc = length l \<and> all_ins = l@ins) -->  
+       pc < length all_ins -->      
+       (\<forall> s. (G \<turnstile> s <=' (phi!pc)) --> 
              wtl_inst_list ins G rT cert (length all_ins) pc s \<noteq> Err)" 
-(is "\<forall>pc. ?wt \<longrightarrow> ?fits \<longrightarrow> ?l pc ins \<longrightarrow> ?len pc \<longrightarrow> ?wtl pc ins"  
+(is "\<forall>pc. ?wt --> ?fits --> ?l pc ins --> ?len pc --> ?wtl pc ins"  
  is "\<forall>pc. ?C pc ins" is "?P ins") 
 proof (induct "?P" "ins")
   case Nil
@@ -343,7 +343,7 @@ next
   show "?P (i#ins')" 
   proof (intro allI impI, elim exE conjE)
     fix pc s l
-    assume wt  : "\<forall>pc'. pc' < length all_ins \<longrightarrow> 
+    assume wt  : "\<forall>pc'. pc' < length all_ins --> 
                         wt_instr (all_ins ! pc') G rT phi (length all_ins) pc'"
     assume fits: "fits all_ins cert phi"
     assume l   : "pc < length all_ins"
@@ -362,7 +362,7 @@ next
     from Cons
     have "?C (Suc pc) ins'" by blast
     with wt fits pc
-    have IH: "?len (Suc pc) \<longrightarrow> ?wtl (Suc pc) ins'" by auto
+    have IH: "?len (Suc pc) --> ?wtl (Suc pc) ins'" by auto
 
     show "wtl_inst_list (i#ins') G rT cert (length all_ins) pc s \<noteq> Err" 
     proof (cases "?len (Suc pc)")
@@ -422,20 +422,10 @@ proof -
     by (rule fits_imp_wtl_method_complete)
 qed
 
-lemma unique_set:
-"(a,b,c,d)\<in>set l \<longrightarrow> unique l \<longrightarrow> (a',b',c',d') \<in> set l \<longrightarrow> 
-  a = a' \<longrightarrow> b=b' \<and> c=c' \<and> d=d'"
-  by (induct "l") auto
-
-lemma unique_epsilon:
-  "(a,b,c,d)\<in>set l \<longrightarrow> unique l \<longrightarrow> 
-  (\<epsilon> (a',b',c',d'). (a',b',c',d') \<in> set l \<and> a'=a) = (a,b,c,d)"
-  by (auto simp add: unique_set)
-
 
 theorem wtl_complete: 
   "wt_jvm_prog G Phi ==> wtl_jvm_prog G (make_Cert G Phi)"
-proof (simp only: wt_jvm_prog_def)
+proof (unfold wt_jvm_prog_def)
 
   assume wfprog: 
     "wf_prog (\<lambda>G C (sig,rT,maxl,b). wt_method G C (snd sig) rT maxl b (Phi C sig)) G"
@@ -449,12 +439,12 @@ proof (simp only: wt_jvm_prog_def)
              (\<forall>(sig,rT,mb)\<in>set ms. wf_mhead G sig rT \<and> 
                (\<lambda>(maxl,b). wt_method G C (snd sig) rT maxl b (Phi C sig)) mb) \<and>
              unique ms \<and>
-             (case sc of None \<Rightarrow> C = Object
-              | Some D \<Rightarrow>
+             (case sc of None => C = Object
+              | Some D =>
                   is_class G D \<and>
                   (D, C) \<notin> (subcls1 G)^* \<and>
                   (\<forall>(sig,rT,b)\<in>set ms. 
-                   \<forall>D' rT' b'. method (G, D) sig = Some (D', rT', b') \<longrightarrow> G\<turnstile>rT\<preceq>rT'))"
+                   \<forall>D' rT' b'. method (G, D) sig = Some (D', rT', b') --> G\<turnstile>rT\<preceq>rT'))"
              "(a, aa, ab, b) \<in> set G"
   
     assume uG : "unique G" 

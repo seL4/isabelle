@@ -11,26 +11,26 @@ header "Type Safety Invariant"
 theory Correct = BVSpec:
 
 constdefs
- approx_val :: "[jvm_prog,aheap,val,ty err] \<Rightarrow> bool"
-"approx_val G h v any \<equiv> case any of Err \<Rightarrow> True | Ok T \<Rightarrow> G,h\<turnstile>v\<Colon>\<preceq>T"
+ approx_val :: "[jvm_prog,aheap,val,ty err] => bool"
+"approx_val G h v any == case any of Err => True | Ok T => G,h\<turnstile>v::\<preceq>T"
 
- approx_loc :: "[jvm_prog,aheap,val list,locvars_type] \<Rightarrow> bool"
-"approx_loc G hp loc LT \<equiv> list_all2 (approx_val G hp) loc LT"
+ approx_loc :: "[jvm_prog,aheap,val list,locvars_type] => bool"
+"approx_loc G hp loc LT == list_all2 (approx_val G hp) loc LT"
 
- approx_stk :: "[jvm_prog,aheap,opstack,opstack_type] \<Rightarrow> bool"
-"approx_stk G hp stk ST \<equiv> approx_loc G hp stk (map Ok ST)"
+ approx_stk :: "[jvm_prog,aheap,opstack,opstack_type] => bool"
+"approx_stk G hp stk ST == approx_loc G hp stk (map Ok ST)"
 
- correct_frame  :: "[jvm_prog,aheap,state_type,nat,bytecode] \<Rightarrow> frame \<Rightarrow> bool"
-"correct_frame G hp \<equiv> \<lambda>(ST,LT) maxl ins (stk,loc,C,sig,pc).
+ correct_frame  :: "[jvm_prog,aheap,state_type,nat,bytecode] => frame => bool"
+"correct_frame G hp == \<lambda>(ST,LT) maxl ins (stk,loc,C,sig,pc).
    approx_stk G hp stk ST  \<and> approx_loc G hp loc LT \<and> 
    pc < length ins \<and> length loc=length(snd sig)+maxl+1"
 
- correct_frame_opt :: "[jvm_prog,aheap,state_type option,nat,bytecode] \<Rightarrow> frame \<Rightarrow> bool"
-"correct_frame_opt G hp s \<equiv> case s of None \<Rightarrow> \<lambda>maxl ins f. False | Some t \<Rightarrow> correct_frame G hp t"
+ correct_frame_opt :: "[jvm_prog,aheap,state_type option,nat,bytecode] => frame => bool"
+"correct_frame_opt G hp s == case s of None => \<lambda>maxl ins f. False | Some t => correct_frame G hp t"
 
 
 consts
- correct_frames  :: "[jvm_prog,aheap,prog_type,ty,sig,frame list] \<Rightarrow> bool"
+ correct_frames  :: "[jvm_prog,aheap,prog_type,ty,sig,frame list] => bool"
 primrec
 "correct_frames G hp phi rT0 sig0 [] = True"
 
@@ -52,13 +52,13 @@ primrec
 
 
 constdefs
- correct_state :: "[jvm_prog,prog_type,jvm_state] \<Rightarrow> bool"
+ correct_state :: "[jvm_prog,prog_type,jvm_state] => bool"
                   ("_,_\<turnstile>JVM _\<surd>"  [51,51] 50)
-"correct_state G phi \<equiv> \<lambda>(xp,hp,frs).
+"correct_state G phi == \<lambda>(xp,hp,frs).
    case xp of
-     None \<Rightarrow> (case frs of
-	           [] \<Rightarrow> True
-             | (f#fs) \<Rightarrow> G\<turnstile>h hp\<surd> \<and>
+     None => (case frs of
+	           [] => True
+             | (f#fs) => G\<turnstile>h hp\<surd> \<and>
 			(let (stk,loc,C,sig,pc) = f
 		         in
                          \<exists>rT maxl ins s.
@@ -66,11 +66,11 @@ constdefs
                          phi C sig ! pc = Some s \<and>
 			 correct_frame G hp s maxl ins f \<and> 
 		         correct_frames G hp phi rT sig fs))
-   | Some x \<Rightarrow> True" 
+   | Some x => True" 
 
 
 lemma sup_heap_newref:
-  "hp x = None \<Longrightarrow> hp \<le>| hp(newref hp \<mapsto> obj)"
+  "hp x = None ==> hp \<le>| hp(newref hp \<mapsto> obj)"
 apply (unfold hext_def)
 apply clarsimp
 apply (drule newref_None 1) back
@@ -78,7 +78,7 @@ apply simp
 .
 
 lemma sup_heap_update_value:
-  "hp a = Some (C,od') \<Longrightarrow> hp \<le>| hp (a \<mapsto> (C,od))"
+  "hp a = Some (C,od') ==> hp \<le>| hp (a \<mapsto> (C,od))"
 by (simp add: hext_def)
 
 
@@ -93,29 +93,29 @@ lemma approx_val_Null:
 by (auto intro: null simp add: approx_val_def)
 
 lemma approx_val_imp_approx_val_assConvertible [rule_format]: 
-  "wf_prog wt G \<Longrightarrow> approx_val G hp v (Ok T) \<longrightarrow> G\<turnstile> T\<preceq>T' \<longrightarrow> approx_val G hp v (Ok T')"
+  "wf_prog wt G ==> approx_val G hp v (Ok T) --> G\<turnstile> T\<preceq>T' --> approx_val G hp v (Ok T')"
 by (cases T) (auto intro: conf_widen simp add: approx_val_def)
 
 lemma approx_val_imp_approx_val_sup_heap [rule_format]:
-  "approx_val G hp v at \<longrightarrow> hp \<le>| hp' \<longrightarrow> approx_val G hp' v at"
+  "approx_val G hp v at --> hp \<le>| hp' --> approx_val G hp' v at"
 apply (simp add: approx_val_def split: err.split)
 apply (blast intro: conf_hext)
 .
 
 lemma approx_val_imp_approx_val_heap_update:
-  "\<lbrakk>hp a = Some obj'; G,hp\<turnstile> v\<Colon>\<preceq>T; obj_ty obj = obj_ty obj'\<rbrakk> 
-  \<Longrightarrow> G,hp(a\<mapsto>obj)\<turnstile> v\<Colon>\<preceq>T"
+  "[|hp a = Some obj'; G,hp\<turnstile> v::\<preceq>T; obj_ty obj = obj_ty obj'|] 
+  ==> G,hp(a\<mapsto>obj)\<turnstile> v::\<preceq>T"
 by (cases v, auto simp add: obj_ty_def conf_def)
 
 lemma approx_val_imp_approx_val_sup [rule_format]:
-  "wf_prog wt G \<Longrightarrow> (approx_val G h v us) \<longrightarrow> (G \<turnstile> us <=o us') \<longrightarrow> (approx_val G h v us')"
+  "wf_prog wt G ==> (approx_val G h v us) --> (G \<turnstile> us <=o us') --> (approx_val G h v us')"
 apply (simp add: sup_PTS_eq approx_val_def split: err.split)
 apply (blast intro: conf_widen)
 .
 
 lemma approx_loc_imp_approx_val_sup:
-  "\<lbrakk>wf_prog wt G; approx_loc G hp loc LT; idx < length LT; v = loc!idx; G \<turnstile> LT!idx <=o at\<rbrakk>
-  \<Longrightarrow> approx_val G hp v at"
+  "[|wf_prog wt G; approx_loc G hp loc LT; idx < length LT; v = loc!idx; G \<turnstile> LT!idx <=o at|]
+  ==> approx_val G hp v at"
 apply (unfold approx_loc_def)
 apply (unfold list_all2_def)
 apply (auto intro: approx_val_imp_approx_val_sup simp add: split_def all_set_conv_all_nth)
@@ -129,8 +129,8 @@ lemma approx_loc_Cons [iff]:
 by (simp add: approx_loc_def)
 
 lemma assConv_approx_stk_imp_approx_loc [rule_format]:
-  "wf_prog wt G \<Longrightarrow> (\<forall>tt'\<in>set (zip tys_n ts). tt' \<in> widen G) 
-  \<longrightarrow> length tys_n = length ts \<longrightarrow> approx_stk G hp s tys_n \<longrightarrow> 
+  "wf_prog wt G ==> (\<forall>tt'\<in>set (zip tys_n ts). tt' \<in> widen G) 
+  --> length tys_n = length ts --> approx_stk G hp s tys_n --> 
   approx_loc G hp s (map Ok ts)"
 apply (unfold approx_stk_def approx_loc_def list_all2_def)
 apply (clarsimp simp add: all_set_conv_all_nth)
@@ -140,7 +140,7 @@ apply auto
 
 
 lemma approx_loc_imp_approx_loc_sup_heap [rule_format]:
-  "\<forall>lvars. approx_loc G hp lvars lt \<longrightarrow> hp \<le>| hp' \<longrightarrow> approx_loc G hp' lvars lt"
+  "\<forall>lvars. approx_loc G hp lvars lt --> hp \<le>| hp' --> approx_loc G hp' lvars lt"
 apply (unfold approx_loc_def list_all2_def)
 apply (cases lt)
  apply simp
@@ -150,7 +150,7 @@ apply auto
 .
 
 lemma approx_loc_imp_approx_loc_sup [rule_format]:
-  "wf_prog wt G \<Longrightarrow> approx_loc G hp lvars lt \<longrightarrow> G \<turnstile> lt <=l lt' \<longrightarrow> approx_loc G hp lvars lt'"
+  "wf_prog wt G ==> approx_loc G hp lvars lt --> G \<turnstile> lt <=l lt' --> approx_loc G hp lvars lt'"
 apply (unfold sup_loc_def approx_loc_def list_all2_def)
 apply (auto simp add: all_set_conv_all_nth)
 apply (auto elim: approx_val_imp_approx_val_sup)
@@ -158,8 +158,8 @@ apply (auto elim: approx_val_imp_approx_val_sup)
 
 
 lemma approx_loc_imp_approx_loc_subst [rule_format]:
-  "\<forall>loc idx x X. (approx_loc G hp loc LT) \<longrightarrow> (approx_val G hp x X) 
-  \<longrightarrow> (approx_loc G hp (loc[idx:=x]) (LT[idx:=X]))"
+  "\<forall>loc idx x X. (approx_loc G hp loc LT) --> (approx_val G hp x X) 
+  --> (approx_loc G hp (loc[idx:=x]) (LT[idx:=X]))"
 apply (unfold approx_loc_def list_all2_def)
 apply (auto dest: subsetD [OF set_update_subset_insert] simp add: zip_update)
 .
@@ -168,7 +168,7 @@ apply (auto dest: subsetD [OF set_update_subset_insert] simp add: zip_update)
 lemmas [cong] = conj_cong 
 
 lemma approx_loc_append [rule_format]:
-  "\<forall>L1 l2 L2. length l1=length L1 \<longrightarrow> 
+  "\<forall>L1 l2 L2. length l1=length L1 --> 
   approx_loc G hp (l1@l2) (L1@L2) = (approx_loc G hp l1 L1 \<and> approx_loc G hp l2 L2)"
 apply (unfold approx_loc_def list_all2_def)
 apply simp
@@ -192,12 +192,12 @@ by (auto intro: subst [OF approx_stk_rev_lem])
 
 
 lemma approx_stk_imp_approx_stk_sup_heap [rule_format]:
-  "\<forall>lvars. approx_stk G hp lvars lt \<longrightarrow> hp \<le>| hp' \<longrightarrow> approx_stk G hp' lvars lt"
+  "\<forall>lvars. approx_stk G hp lvars lt --> hp \<le>| hp' --> approx_stk G hp' lvars lt"
 by (auto intro: approx_loc_imp_approx_loc_sup_heap simp add: approx_stk_def)
 
 lemma approx_stk_imp_approx_stk_sup [rule_format]:
-  "wf_prog wt G \<Longrightarrow> approx_stk G hp lvars st \<longrightarrow> (G \<turnstile> map Ok st <=l (map Ok st')) 
-  \<longrightarrow> approx_stk G hp lvars st'" 
+  "wf_prog wt G ==> approx_stk G hp lvars st --> (G \<turnstile> map Ok st <=l (map Ok st')) 
+  --> approx_stk G hp lvars st'" 
 by (auto intro: approx_loc_imp_approx_loc_sup simp add: approx_stk_def)
 
 lemma approx_stk_Nil [iff]:
@@ -215,7 +215,7 @@ lemma approx_stk_Cons_lemma [iff]:
 by (simp add: list_all2_Cons2 approx_stk_def approx_loc_def)
 
 lemma approx_stk_append_lemma:
-  "approx_stk G hp stk (S@ST') \<Longrightarrow>
+  "approx_stk G hp stk (S@ST') ==>
    (\<exists>s stk'. stk = s@stk' \<and> length s = length S \<and> length stk' = length ST' \<and> 
              approx_stk G hp s S \<and> approx_stk G hp stk' ST')"
 by (simp add: list_all2_append2 approx_stk_def approx_loc_def)
@@ -224,7 +224,7 @@ by (simp add: list_all2_append2 approx_stk_def approx_loc_def)
 (** oconf **)
 
 lemma correct_init_obj:
-  "\<lbrakk>is_class G C; wf_prog wt G\<rbrakk> \<Longrightarrow> 
+  "[|is_class G C; wf_prog wt G|] ==> 
   G,h \<turnstile> (C, map_of (map (\<lambda>(f,fT).(f,default_val fT)) (fields(G,C)))) \<surd>"
 apply (unfold oconf_def lconf_def)
 apply (simp add: map_of_map)
@@ -233,13 +233,13 @@ apply (force intro: defval_conf dest: map_of_SomeD is_type_fields)
 
 
 lemma oconf_imp_oconf_field_update [rule_format]:
-  "\<lbrakk>map_of (fields (G, oT)) FD = Some T; G,hp\<turnstile>v\<Colon>\<preceq>T; G,hp\<turnstile>(oT,fs)\<surd> \<rbrakk>
-  \<Longrightarrow> G,hp\<turnstile>(oT, fs(FD\<mapsto>v))\<surd>"
+  "[|map_of (fields (G, oT)) FD = Some T; G,hp\<turnstile>v::\<preceq>T; G,hp\<turnstile>(oT,fs)\<surd> |]
+  ==> G,hp\<turnstile>(oT, fs(FD\<mapsto>v))\<surd>"
 by (simp add: oconf_def lconf_def)
 
 
 lemma oconf_imp_oconf_heap_newref [rule_format]:
-"hp x = None \<longrightarrow> G,hp\<turnstile>obj\<surd> \<longrightarrow> G,hp\<turnstile>obj'\<surd> \<longrightarrow> G,(hp(newref hp\<mapsto>obj'))\<turnstile>obj\<surd>"
+"hp x = None --> G,hp\<turnstile>obj\<surd> --> G,hp\<turnstile>obj'\<surd> --> G,(hp(newref hp\<mapsto>obj'))\<turnstile>obj\<surd>"
 apply (unfold oconf_def lconf_def)
 apply simp
 apply (fast intro: conf_hext sup_heap_newref)
@@ -247,8 +247,8 @@ apply (fast intro: conf_hext sup_heap_newref)
 
 
 lemma oconf_imp_oconf_heap_update [rule_format]:
-  "hp a = Some obj' \<longrightarrow> obj_ty obj' = obj_ty obj'' \<longrightarrow> G,hp\<turnstile>obj\<surd> 
-  \<longrightarrow> G,hp(a\<mapsto>obj'')\<turnstile>obj\<surd>"
+  "hp a = Some obj' --> obj_ty obj' = obj_ty obj'' --> G,hp\<turnstile>obj\<surd> 
+  --> G,hp(a\<mapsto>obj'')\<turnstile>obj\<surd>"
 apply (unfold oconf_def lconf_def)
 apply simp
 apply (force intro: approx_val_imp_approx_val_heap_update)
@@ -259,14 +259,14 @@ apply (force intro: approx_val_imp_approx_val_heap_update)
 
 
 lemma hconf_imp_hconf_newref [rule_format]:
-  "hp x = None \<longrightarrow> G\<turnstile>h hp\<surd> \<longrightarrow> G,hp\<turnstile>obj\<surd> \<longrightarrow> G\<turnstile>h hp(newref hp\<mapsto>obj)\<surd>"
+  "hp x = None --> G\<turnstile>h hp\<surd> --> G,hp\<turnstile>obj\<surd> --> G\<turnstile>h hp(newref hp\<mapsto>obj)\<surd>"
 apply (simp add: hconf_def)
 apply (fast intro: oconf_imp_oconf_heap_newref)
 .
 
 lemma hconf_imp_hconf_field_update [rule_format]:
   "map_of (fields (G, oT)) (F, D) = Some T \<and> hp oloc = Some(oT,fs) \<and> 
-  G,hp\<turnstile>v\<Colon>\<preceq>T \<and> G\<turnstile>h hp\<surd> \<longrightarrow> G\<turnstile>h hp(oloc \<mapsto> (oT, fs((F,D)\<mapsto>v)))\<surd>"
+  G,hp\<turnstile>v::\<preceq>T \<and> G\<turnstile>h hp\<surd> --> G\<turnstile>h hp(oloc \<mapsto> (oT, fs((F,D)\<mapsto>v)))\<surd>"
 apply (simp add: hconf_def)
 apply (force intro: oconf_imp_oconf_heap_update oconf_imp_oconf_field_update 
              simp add: obj_ty_def)
@@ -277,10 +277,10 @@ apply (force intro: oconf_imp_oconf_heap_update oconf_imp_oconf_field_update
 lemmas [simp del] = fun_upd_apply
 
 lemma correct_frames_imp_correct_frames_field_update [rule_format]:
-  "\<forall>rT C sig. correct_frames G hp phi rT sig frs \<longrightarrow> 
-  hp a = Some (C,od) \<longrightarrow> map_of (fields (G, C)) fl = Some fd \<longrightarrow> 
-  G,hp\<turnstile>v\<Colon>\<preceq>fd 
-  \<longrightarrow> correct_frames G (hp(a \<mapsto> (C, od(fl\<mapsto>v)))) phi rT sig frs";
+  "\<forall>rT C sig. correct_frames G hp phi rT sig frs --> 
+  hp a = Some (C,od) --> map_of (fields (G, C)) fl = Some fd --> 
+  G,hp\<turnstile>v::\<preceq>fd 
+  --> correct_frames G (hp(a \<mapsto> (C, od(fl\<mapsto>v)))) phi rT sig frs";
 apply (induct frs)
  apply simp
 apply (clarsimp simp add: correct_frame_def) (*takes long*)
@@ -300,8 +300,8 @@ apply simp
 .
 
 lemma correct_frames_imp_correct_frames_newref [rule_format]:
-  "\<forall>rT C sig. hp x = None \<longrightarrow> correct_frames G hp phi rT sig frs \<and> oconf G hp obj 
-  \<longrightarrow> correct_frames G (hp(newref hp \<mapsto> obj)) phi rT sig frs"
+  "\<forall>rT C sig. hp x = None --> correct_frames G hp phi rT sig frs \<and> oconf G hp obj 
+  --> correct_frames G (hp(newref hp \<mapsto> obj)) phi rT sig frs"
 apply (induct frs)
  apply simp
 apply (clarsimp simp add: correct_frame_def)

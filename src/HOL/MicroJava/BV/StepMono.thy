@@ -14,7 +14,7 @@ lemma PrimT_PrimT: "(G \<turnstile> xb \<preceq> PrimT p) = (xb = PrimT p)"
 
 
 lemma sup_loc_some [rule_format]:
-"\<forall> y n. (G \<turnstile> b <=l y) \<longrightarrow> n < length y \<longrightarrow> y!n = Ok t \<longrightarrow> 
+"\<forall> y n. (G \<turnstile> b <=l y) --> n < length y --> y!n = Ok t --> 
   (\<exists>t. b!n = Ok t \<and> (G \<turnstile> (b!n) <=o (y!n)))" (is "?P b")
 proof (induct (open) ?P b)
   show "?P []" by simp
@@ -41,9 +41,9 @@ qed
    
 
 lemma all_widen_is_sup_loc:
-"\<forall>b. length a = length b \<longrightarrow> 
+"\<forall>b. length a = length b --> 
      (\<forall>x\<in>set (zip a b). x \<in> widen G) = (G \<turnstile> (map Ok a) <=l (map Ok b))" 
- (is "\<forall>b. length a = length b \<longrightarrow> ?Q a b" is "?P a")
+ (is "\<forall>b. length a = length b --> ?Q a b" is "?P a")
 proof (induct "a")
   show "?P []" by simp
 
@@ -60,7 +60,7 @@ qed
  
 
 lemma append_length_n [rule_format]: 
-"\<forall>n. n \<le> length x \<longrightarrow> (\<exists>a b. x = a@b \<and> length a = n)" (is "?P x")
+"\<forall>n. n \<le> length x --> (\<exists>a b. x = a@b \<and> length a = n)" (is "?P x")
 proof (induct (open) ?P x)
   show "?P []" by simp
 
@@ -94,7 +94,7 @@ qed
 
 
 lemma rev_append_cons:
-"\<lbrakk>n < length x\<rbrakk> \<Longrightarrow> \<exists>a b c. x = (rev a) @ b # c \<and> length a = n"
+"[|n < length x|] ==> \<exists>a b c. x = (rev a) @ b # c \<and> length a = n"
 proof -
   assume n: "n < length x"
   hence "n \<le> length x" by simp
@@ -118,7 +118,7 @@ qed
 
 
 lemma app_mono: 
-"\<lbrakk>G \<turnstile> s <=' s'; app i G rT s'\<rbrakk> \<Longrightarrow> app i G rT s";
+"[|G \<turnstile> s <=' s'; app i G rT s'|] ==> app i G rT s";
 proof -
 
   { fix s1 s2

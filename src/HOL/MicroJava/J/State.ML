@@ -10,7 +10,7 @@ val obj_ty_def2 = prove_goalw thy [obj_ty_def] "obj_ty (C,fs) = Class C"
 Addsimps [obj_ty_def2];
 
 val new_AddrD = prove_goalw thy [new_Addr_def] 
-"\\<And>X. (a,x) = new_Addr h \\<Longrightarrow> h a = None \\<and>  x = None |  x = Some OutOfMemory" (K[
+"!!X. (a,x) = new_Addr h ==> h a = None \\<and>  x = None |  x = Some OutOfMemory" (K[
 	asm_full_simp_tac (simpset() addsimps [Pair_fst_snd_eq,select_split]) 1,
 	rtac someI 1,
 	rtac disjI2 1,
@@ -40,20 +40,20 @@ val if_None_eq = prove_goal thy
 Addsimps [raise_if_True,raise_if_False,raise_if_Some,raise_if_Some2,if_None_eq];
 
 val raise_if_SomeD = prove_goalw thy [raise_if_def] 
-	"raise_if c x y = Some z \\<longrightarrow> c \\<and>  Some z = Some x |  y = Some z" 
+	"raise_if c x y = Some z --> c \\<and>  Some z = Some x |  y = Some z" 
 (K [split_tac [split_if] 1,Auto_tac]) RS mp;
 
 val raise_if_NoneD = prove_goalw thy [raise_if_def] 
-	"raise_if c x y = None \\<longrightarrow> \\<not> c \\<and>  y = None"
+	"raise_if c x y = None --> \\<not> c \\<and>  y = None"
 (K [split_tac [split_if] 1,Auto_tac]) RS mp;
 
 
 val np_NoneD = (prove_goalw thy [np_def, raise_if_def] 
-	"np a' x' = None \\<longrightarrow> x' = None \\<and>  a' \\<noteq> Null" (fn _ => [
+	"np a' x' = None --> x' = None \\<and>  a' \\<noteq> Null" (fn _ => [
 	split_tac [split_if] 1,
 	Auto_tac ])) RS mp;
 val np_None = (prove_goalw thy [np_def, raise_if_def] 
-	"a' \\<noteq> Null \\<longrightarrow> np a' x' = x'" (fn _ => [
+	"a' \\<noteq> Null --> np a' x' = x'" (fn _ => [
 	split_tac [split_if] 1,
 	Auto_tac ])) RS mp;
 val np_Some = prove_goalw thy [np_def, raise_if_def] "np a' (Some xc) = Some xc"

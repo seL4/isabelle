@@ -4,11 +4,11 @@
     Copyright   1999 Technische Universitaet Muenchen
 *)
 
-val subcls1D = prove_goalw thy [subcls1_def] "\\<And>G. G\\<turnstile>C\\<prec>C1D \\<Longrightarrow> \
+val subcls1D = prove_goalw thy [subcls1_def] "!!G. G\\<turnstile>C\\<prec>C1D ==> \
 \ \\<exists>fs ms. class G C = Some (Some D,fs,ms)" (K [Auto_tac]);
 
 val subcls1I = prove_goalw  thy [subcls1_def] 
-"\\<And>G. \\<lbrakk> class G C = Some (Some D,rest) \\<rbrakk> \\<Longrightarrow> G\\<turnstile>C\\<prec>C1D" (K [Auto_tac]);
+"!!G. [| class G C = Some (Some D,rest) |] ==> G\\<turnstile>C\\<prec>C1D" (K [Auto_tac]);
 
 val subcls1_def2 = prove_goalw thy [subcls1_def,is_class_def]  "subcls1 G = \
 \ (SIGMA C:{C. is_class G C} . {D. fst (the (class G C)) = Some D})"
@@ -32,7 +32,7 @@ fun prove_typerel s lemmata = prove_goal thy s (fn prems => [
 	auto_tac (claset() addDs lemmata, simpset())]);
 
 
-Goalw [is_class_def] "(C,D) \\<in> (subcls1 G)^+ \\<Longrightarrow> is_class G C";
+Goalw [is_class_def] "(C,D) \\<in> (subcls1 G)^+ ==> is_class G C";
 by(etac trancl_trans_induct 1);
 by (auto_tac (HOL_cs addSDs [subcls1D],simpset()));
 qed "subcls_is_class";
@@ -81,16 +81,16 @@ by(Auto_tac);
 qed "widen_PrimT_RefT";
 AddIffs [widen_PrimT_RefT];
 
-val widen_RefT = prove_typerel "G\\<turnstile>RefT R\\<preceq>T \\<Longrightarrow> \\<exists>t. T=RefT t" 
-	[prove_widen_lemma "G\\<turnstile>S\\<preceq>T \\<Longrightarrow> S=RefT R \\<longrightarrow> (\\<exists>t. T=RefT t)"];
+val widen_RefT = prove_typerel "G\\<turnstile>RefT R\\<preceq>T ==> \\<exists>t. T=RefT t" 
+	[prove_widen_lemma "G\\<turnstile>S\\<preceq>T ==> S=RefT R --> (\\<exists>t. T=RefT t)"];
 bind_thm ("widen_RefT", widen_RefT);
 
-val widen_RefT2 = prove_typerel "G\\<turnstile>S\\<preceq>RefT R \\<Longrightarrow> \\<exists>t. S=RefT t" 
-	[prove_widen_lemma "G\\<turnstile>S\\<preceq>T \\<Longrightarrow> T=RefT R \\<longrightarrow> (\\<exists>t. S=RefT t)"];
+val widen_RefT2 = prove_typerel "G\\<turnstile>S\\<preceq>RefT R ==> \\<exists>t. S=RefT t" 
+	[prove_widen_lemma "G\\<turnstile>S\\<preceq>T ==> T=RefT R --> (\\<exists>t. S=RefT t)"];
 bind_thm ("widen_RefT2", widen_RefT2);
 
-val widen_Class = prove_typerel "G\\<turnstile>Class C\\<preceq>T \\<Longrightarrow> \\<exists>D. T=Class D"
- [ prove_widen_lemma "G\\<turnstile>S\\<preceq>T \\<Longrightarrow> S = Class C \\<longrightarrow> (\\<exists>D. T=Class D)"];
+val widen_Class = prove_typerel "G\\<turnstile>Class C\\<preceq>T ==> \\<exists>D. T=Class D"
+ [ prove_widen_lemma "G\\<turnstile>S\\<preceq>T ==> S = Class C --> (\\<exists>D. T=Class D)"];
 bind_thm ("widen_Class", widen_Class);
 
 Goal "(G\\<turnstile>Class C\\<preceq>RefT NullT) = False"; 
@@ -108,7 +108,7 @@ bes widen.intrs 1;
 qed "widen_Class_Class";
 AddIffs [widen_Class_Class];
 
-Goal "G\\<turnstile>S\\<preceq>U \\<Longrightarrow> \\<forall>T. G\\<turnstile>U\\<preceq>T \\<longrightarrow> G\\<turnstile>S\\<preceq>T";
+Goal "G\\<turnstile>S\\<preceq>U ==> \\<forall>T. G\\<turnstile>U\\<preceq>T --> G\\<turnstile>S\\<preceq>T";
 by( etac widen.induct 1);
 by   Safe_tac;
 by(  ALLGOALS (forward_tac [widen_Class, widen_RefT]));

@@ -11,7 +11,7 @@ val map_of_Cons = prove_goalw thy [get_def thy "map_of_list"]
 val map_of_Cons1 = prove_goalw Map.thy [get_def thy "map_of_list"] 
 "map_of ((x,y)#ps) x = Some y" (K [Simp_tac 1]);
 val map_of_Cons2 = prove_goalw Map.thy [get_def thy "map_of_list"] 
-"\\<And>X. x\\<noteq>k \\<Longrightarrow> map_of ((k,y)#ps) x = map_of ps x" (K [Asm_simp_tac 1]);
+"!!X. x\\<noteq>k ==> map_of ((k,y)#ps) x = map_of ps x" (K [Asm_simp_tac 1]);
 Delsimps[map_of_Cons]; (* sic! *)
 Addsimps[map_of_Cons1, map_of_Cons2];
 
@@ -30,12 +30,12 @@ val class_tprg_Ext = prove_goalw thy [class_def, ObjectC_def, BaseC_def,
 	Simp_tac 1]);
 Addsimps [class_tprg_Object, class_tprg_Base, class_tprg_Ext];
 
-Goal "\\<And>X. (Object,C) \\<in> (subcls1 tprg)^+ \\<Longrightarrow> R";
+Goal "!!X. (Object,C) \\<in> (subcls1 tprg)^+ ==> R";
 by (auto_tac (claset() addSDs [tranclD,subcls1D],simpset()));
 qed "not_Object_subcls";
 AddSEs [not_Object_subcls];
 
-Goal "tprg\\<turnstile>Object\\<preceq>C C \\<Longrightarrow> C = Object";
+Goal "tprg\\<turnstile>Object\\<preceq>C C ==> C = Object";
 be rtrancl_induct 1;
 by  Auto_tac;
 bd subcls1D 1;
@@ -43,16 +43,16 @@ by Auto_tac;
 qed "subcls_ObjectD";
 AddSDs[subcls_ObjectD];
 
-Goal "\\<And>X. (Base, Ext) \\<in> (subcls1 tprg)^+ \\<Longrightarrow> R";
+Goal "!!X. (Base, Ext) \\<in> (subcls1 tprg)^+ ==> R";
 by (auto_tac (claset() addSDs [tranclD,subcls1D],simpset()));
 qed "not_Base_subcls_Ext";
 AddSEs [not_Base_subcls_Ext];
 
-Goalw [class_def, ObjectC_def, BaseC_def, ExtC_def] "class tprg C = Some z \\<Longrightarrow> C=Object \\<or> C=Base \\<or> C=Ext";
+Goalw [class_def, ObjectC_def, BaseC_def, ExtC_def] "class tprg C = Some z ==> C=Object \\<or> C=Base \\<or> C=Ext";
 by (auto_tac (claset(),simpset()addsimps[]addsplits[split_if_asm]));
 qed "class_tprgD";
 
-Goal "(C,C) \\<in> (subcls1 tprg)^+ \\<Longrightarrow> R";
+Goal "(C,C) \\<in> (subcls1 tprg)^+ ==> R";
 by (auto_tac (claset() addSDs [tranclD,subcls1D],simpset()));
 by (ftac class_tprgD 1);
 by (auto_tac (claset() addSDs [],simpset()));
@@ -196,7 +196,7 @@ qed "max_spec_foo_Base";
 
 fun t thm = resolve_tac ty_expr_ty_exprs_wt_stmt.intrs 1 thm;
 Goalw [test_def] "(tprg, empty(e\\<mapsto>Class Base))\\<turnstile>\ 
-\ Expr(e\\<Colon>=NewC Ext);; Expr(LAcc e..foo({?pTs'}[Lit Null]))\\<surd>";
+\ Expr(e::=NewC Ext);; Expr(LAcc e..foo({?pTs'}[Lit Null]))\\<surd>";
 (* ?pTs' = [Class Base] *)
 by t;		(* ;; *)
 by  t;		(* Expr *)
@@ -225,8 +225,8 @@ fun e thm = resolve_tac (NewCI::eval_evals_exec.intrs) 1 thm;
 Delsplits[split_if];
 Addsimps[init_vars_def,c_hupd_def,cast_ok_def];
 Goalw [test_def] 
-" \\<lbrakk>new_Addr (heap (snd s0)) = (a, None)\\<rbrakk> \\<Longrightarrow> \
-\ tprg\\<turnstile>s0 -test\\<rightarrow> ?s";
+" [|new_Addr (heap (snd s0)) = (a, None)|] ==> \
+\ tprg\\<turnstile>s0 -test-> ?s";
 (* ?s = s3 *)
 by e;		(* ;; *)
 by  e;		(* Expr *)

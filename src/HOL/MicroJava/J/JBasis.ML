@@ -7,25 +7,25 @@
 val strip_tac1 = SELECT_GOAL (safe_tac (HOL_cs delrules [conjI, disjE, impCE]));
 
 Goalw [image_def]
-	"x \\<in> f``A \\<Longrightarrow> \\<exists>y. y \\<in> A \\<and>  x = f y";
+	"x \\<in> f``A ==> \\<exists>y. y \\<in> A \\<and>  x = f y";
 by(Auto_tac);
 qed "image_rev";
 
 fun case_tac1 s i = EVERY [case_tac s i, rotate_tac ~1 i, rotate_tac ~1 (i+1)];
 
 val select_split = prove_goalw Prod.thy [split_def] 
-	"(\\<epsilon>(x,y). P x y) = (\\<epsilon>xy. P (fst xy) (snd xy))" (K [rtac refl 1]);
+	"(SOME (x,y). P x y) = (SOME xy. P (fst xy) (snd xy))" (K [rtac refl 1]);
 	 
 
 val split_beta = prove_goal Prod.thy "(\\<lambda>(x,y). P x y) z = P (fst z) (snd z)"
 	(fn _ => [stac surjective_pairing 1, stac split 1, rtac refl 1]);
 val split_beta2 = prove_goal Prod.thy "(\\<lambda>(x,y). P x y) (w,z) = P w z"
 	(fn _ => [Auto_tac]);
-val splitE2 = prove_goal Prod.thy "\\<lbrakk>Q (split P z); \\<And>x y. \\<lbrakk>z = (x, y); Q (P x y)\\<rbrakk> \\<Longrightarrow> R\\<rbrakk> \\<Longrightarrow> R" (fn prems => [
+val splitE2 = prove_goal Prod.thy "[|Q (split P z); !!x y. [|z = (x, y); Q (P x y)|] ==> R|] ==> R" (fn prems => [
 	REPEAT (resolve_tac (prems@[surjective_pairing]) 1),
 	rtac (split_beta RS subst) 1,
 	rtac (hd prems) 1]);
-val splitE2' = prove_goal Prod.thy "\\<lbrakk>((\\<lambda>(x,y). P x y) z) w; \\<And>x y. \\<lbrakk>z = (x, y); (P x y) w\\<rbrakk> \\<Longrightarrow> R\\<rbrakk> \\<Longrightarrow> R" (fn prems => [
+val splitE2' = prove_goal Prod.thy "[|((\\<lambda>(x,y). P x y) z) w; !!x y. [|z = (x, y); (P x y) w|] ==> R|] ==> R" (fn prems => [
 	REPEAT (resolve_tac (prems@[surjective_pairing]) 1),
 	res_inst_tac [("P1","P")] (split_beta RS subst) 1,
 	rtac (hd prems) 1]);
@@ -33,7 +33,7 @@ val splitE2' = prove_goal Prod.thy "\\<lbrakk>((\\<lambda>(x,y). P x y) z) w; \\
 
 fun pair_tac s = res_inst_tac [("p",s)] PairE THEN' hyp_subst_tac;
 
-val BallE = prove_goal thy "\\<lbrakk>Ball A P; x \\<notin> A \\<Longrightarrow> Q; P x \\<Longrightarrow> Q \\<rbrakk> \\<Longrightarrow> Q"
+val BallE = prove_goal thy "[|Ball A P; x \\<notin> A ==> Q; P x ==> Q |] ==> Q"
 	(fn prems => [rtac ballE 1, resolve_tac prems 1, 
 			eresolve_tac prems 1, eresolve_tac prems 1]);
 
@@ -43,7 +43,7 @@ Addsimps [Let_def];
 
 (* To HOL.ML *)
 
-val ex1_some_eq_trivial = prove_goal HOL.thy "\\<lbrakk> \\<exists>!x. P x; P y \\<rbrakk> \\<Longrightarrow> Eps P = y" 
+val ex1_some_eq_trivial = prove_goal HOL.thy "[| \\<exists>!x. P x; P y |] ==> Eps P = y" 
 	(fn prems => [
 	cut_facts_tac prems 1,
 	rtac some_equality 1,
@@ -74,7 +74,7 @@ fun ex_ftac thm = EVERY' [forward_tac [thm], REPEAT o (etac exE), rotate_tac ~1,
   asm_full_simp_tac (simpset() delsimps [split_paired_All,split_paired_Ex])];
 
 val optionE = prove_goal thy 
-       "\\<lbrakk> opt = None \\<Longrightarrow> P;  \\<And>x. opt = Some x \\<Longrightarrow> P \\<rbrakk> \\<Longrightarrow> P" 
+       "[| opt = None ==> P;  !!x. opt = Some x ==> P |] ==> P" 
    (fn prems => [
 	case_tac "opt = None" 1,
 	 eresolve_tac prems 1,
@@ -87,7 +87,7 @@ fun option_case_tac2 s i = EVERY [
 	 rotate_tac ~1  i   , asm_full_simp_tac HOL_basic_ss i];
 
 val option_map_SomeD = prove_goalw thy [option_map_def]
-	"\\<And>x. option_map f x = Some y \\<Longrightarrow> \\<exists>z. x = Some z \\<and> f z = y" (K [
+	"!!x. option_map f x = Some y ==> \\<exists>z. x = Some z \\<and> f z = y" (K [
 	option_case_tac2 "x" 1,
 	 Auto_tac]);
 
@@ -120,19 +120,19 @@ by (induct_tac "l" 1);
 by  (auto_tac (claset() addDs [fst_in_set_lemma],simpset()addsimps[inj_eq]));
 qed_spec_mp "unique_map_inj";
 
-Goal "\\<And>l. unique l \\<Longrightarrow> unique (map (split (\\<lambda>k. Pair (k, C))) l)";
+Goal "!!l. unique l ==> unique (map (split (\\<lambda>k. Pair (k, C))) l)";
 by(etac unique_map_inj 1);
 by(rtac injI 1);
 by Auto_tac;
 qed "unique_map_Pair";
 
-Goal "\\<lbrakk>M = N; \\<And>x. x\\<in>N \\<Longrightarrow> f x = g x\\<rbrakk> \\<Longrightarrow> f``M = g``N";
+Goal "[|M = N; !!x. x\\<in>N ==> f x = g x|] ==> f``M = g``N";
 by(rtac set_ext 1);
 by(simp_tac (simpset() addsimps image_def::premises()) 1);
 qed "image_cong";
 
 val split_Pair_eq = prove_goal Prod.thy 
-"\\<And>X. ((x, y), z) \\<in> split (\\<lambda>x. Pair (x, Y)) `` A \\<Longrightarrow> y = Y" (K [
+"!!X. ((x, y), z) \\<in> split (\\<lambda>x. Pair (x, Y)) `` A ==> y = Y" (K [
 	etac imageE 1,
 	split_all_tac 1,
 	auto_tac(claset_of Prod.thy,simpset_of Prod.thy)]);
@@ -140,7 +140,7 @@ val split_Pair_eq = prove_goal Prod.thy
 
 (* More about Maps *)
 
-val override_SomeD = prove_goalw thy [override_def] "(s \\<oplus> t) k = Some x \\<Longrightarrow> \
+val override_SomeD = prove_goalw thy [override_def] "(s \\<oplus> t) k = Some x ==> \
 \ t k = Some x |  t k = None \\<and>  s k = Some x" (fn prems => [
 	cut_facts_tac prems 1,
 	case_tac "\\<exists>x. t k = Some x" 1,
@@ -153,7 +153,7 @@ val override_SomeD = prove_goalw thy [override_def] "(s \\<oplus> t) k = Some x 
 
 Addsimps [fun_upd_same, fun_upd_other];
 
-Goal "unique xys \\<longrightarrow> (map_of xys x = Some y) = ((x,y) \\<in> set xys)";
+Goal "unique xys --> (map_of xys x = Some y) = ((x,y) \\<in> set xys)";
 by(induct_tac "xys" 1);
  by(Simp_tac 1);
 by(force_tac (claset(), simpset() addsimps [unique_Cons]) 1);
@@ -162,7 +162,7 @@ qed_spec_mp "unique_map_of_Some_conv";
 val in_set_get = unique_map_of_Some_conv RS iffD2;
 val get_in_set = unique_map_of_Some_conv RS iffD1;
 
-Goal "(\\<forall>(x,y)\\<in>set l. P x y) \\<longrightarrow> (\\<forall>x. \\<forall>y. map_of l x = Some y \\<longrightarrow> P x y)";
+Goal "(\\<forall>(x,y)\\<in>set l. P x y) --> (\\<forall>x. \\<forall>y. map_of l x = Some y --> P x y)";
 by(induct_tac "l" 1);
 by(ALLGOALS Simp_tac);
 by Safe_tac;
@@ -170,37 +170,37 @@ by Auto_tac;
 bind_thm("Ball_set_table",result() RS mp);
 
 val table_mono = prove_goal thy 
-"unique l' \\<longrightarrow> (\\<forall>xy. (xy)\\<in>set l \\<longrightarrow> (xy)\\<in>set l') \\<longrightarrow>\
-\ (\\<forall>k y. map_of l k = Some y \\<longrightarrow> map_of l' k = Some y)" (fn _ => [
+"unique l' --> (\\<forall>xy. (xy)\\<in>set l --> (xy)\\<in>set l') -->\
+\ (\\<forall>k y. map_of l k = Some y --> map_of l' k = Some y)" (fn _ => [
 	induct_tac "l" 1,
 	 Auto_tac,
  	 fast_tac (HOL_cs addSIs [in_set_get]) 1])
  RS mp RS mp RS spec RS spec RS mp;
 
-val table_map_Some' = prove_goal thy "map_of t k = Some (k', x) \\<longrightarrow> \
+val table_map_Some' = prove_goal thy "map_of t k = Some (k', x) --> \
 \ map_of (map (\\<lambda>u. ((fst u, fst (snd u)), snd (snd u))) t) (k, k') = Some x" (K [
 	induct_tac "t" 1,	
 	 ALLGOALS Simp_tac,
 	case_tac1 "k = fst a" 1,
 	 Auto_tac]) RS mp;
 val table_map_Some = prove_goal thy 
-"map_of (map (\\<lambda>((k,k'),x). (k,(k',x))) t) k = Some (k',x) \\<longrightarrow> \
+"map_of (map (\\<lambda>((k,k'),x). (k,(k',x))) t) k = Some (k',x) --> \
 \map_of t (k, k') = Some x" (K [
 	induct_tac "t" 1,	
 	Auto_tac]) RS mp;
 
 
-val table_mapf_Some = prove_goal thy "\\<And>f. \\<forall>x y. f x = f y \\<longrightarrow> x = y \\<Longrightarrow> \
-\ map_of (map (\\<lambda>(k,x). (k,f x)) t) k = Some (f x) \\<longrightarrow> map_of t k = Some x" (K [
+val table_mapf_Some = prove_goal thy "!!f. \\<forall>x y. f x = f y --> x = y ==> \
+\ map_of (map (\\<lambda>(k,x). (k,f x)) t) k = Some (f x) --> map_of t k = Some x" (K [
 	induct_tac "t" 1,	
 	Auto_tac]) RS mp;
 val table_mapf_SomeD = prove_goal thy 
-"map_of (map (\\<lambda>(k,x). (k, f x)) t) k = Some z \\<longrightarrow> (\\<exists>y. (k,y)\\<in>set t \\<and>  z = f y)"(K [
+"map_of (map (\\<lambda>(k,x). (k, f x)) t) k = Some z --> (\\<exists>y. (k,y)\\<in>set t \\<and>  z = f y)"(K [
 	induct_tac "t" 1,	
 	Auto_tac]) RS mp;
 
 val table_mapf_Some2 = prove_goal thy 
-"\\<And>k. map_of (map (\\<lambda>(k,x). (k,C,x)) t) k = Some (D,x) \\<Longrightarrow> C = D \\<and> map_of t k = Some x" (K [
+"!!k. map_of (map (\\<lambda>(k,x). (k,C,x)) t) k = Some (D,x) ==> C = D \\<and> map_of t k = Some x" (K [
 	forward_tac [table_mapf_SomeD] 1,
 	Auto_tac,
 	rtac table_mapf_Some 1,

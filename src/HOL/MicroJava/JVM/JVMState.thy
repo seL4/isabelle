@@ -32,8 +32,8 @@ types
 (** exceptions **)
 
 constdefs
- raise_xcpt :: "bool \\<Rightarrow> xcpt \\<Rightarrow> xcpt option"
-"raise_xcpt c x \\<equiv> (if c then Some x else None)"
+ raise_xcpt :: "bool => xcpt => xcpt option"
+"raise_xcpt c x == (if c then Some x else None)"
 
 (** runtime state **)
 
@@ -45,6 +45,6 @@ types
 (** dynamic method lookup **)
 
 constdefs
- dyn_class	:: "'code prog \\<times> sig \\<times> cname \\<Rightarrow> cname"
-"dyn_class \\<equiv> \\<lambda>(G,sig,C). fst(the(method(G,C) sig))"
+ dyn_class	:: "'code prog \\<times> sig \\<times> cname => cname"
+"dyn_class == \\<lambda>(G,sig,C). fst(the(method(G,C) sig))"
 end

@@ -19,51 +19,52 @@ types
 
 
 consts
-  strict  :: "('a \<Rightarrow> 'b err) \<Rightarrow> ('a err \<Rightarrow> 'b err)"
+  strict  :: "('a => 'b err) => ('a err => 'b err)"
 primrec
   "strict f Err    = Err"
   "strict f (Ok x) = f x"
 
-consts
-  opt_map :: "('a \<Rightarrow> 'b) \<Rightarrow> ('a option \<Rightarrow> 'b option)"
-primrec
-  "opt_map f None     = None"
-  "opt_map f (Some x) = Some (f x)"
 
 consts
-  val :: "'a err \<Rightarrow> 'a"
+  val :: "'a err => 'a"
 primrec
   "val (Ok s) = s"
 
   
 constdefs
   (* lifts a relation to err with Err as top element *)
-  lift_top :: "('a \<Rightarrow> 'b \<Rightarrow> bool) \<Rightarrow> ('a err \<Rightarrow> 'b err \<Rightarrow> bool)"
-  "lift_top P a' a \<equiv> case a of 
-                       Err  \<Rightarrow> True
-                     | Ok t \<Rightarrow> (case a' of Err \<Rightarrow> False | Ok t' \<Rightarrow> P t' t)"
+  lift_top :: "('a => 'b => bool) => ('a err => 'b err => bool)"
+  "lift_top P a' a == case a of 
+                       Err  => True
+                     | Ok t => (case a' of Err => False | Ok t' => P t' t)"
 
   (* lifts a relation to option with None as bottom element *)
-  lift_bottom :: "('a \<Rightarrow> 'b \<Rightarrow> bool) \<Rightarrow> ('a option \<Rightarrow> 'b option \<Rightarrow> bool)"
-  "lift_bottom P a' a \<equiv> case a' of 
-                          None    \<Rightarrow> True 
-                        | Some t' \<Rightarrow> (case a of None \<Rightarrow> False | Some t \<Rightarrow> P t' t)"
+  lift_bottom :: "('a => 'b => bool) => ('a option => 'b option => bool)"
+  "lift_bottom P a' a == case a' of 
+                          None    => True 
+                        | Some t' => (case a of None => False | Some t => P t' t)"
 
-  sup_ty_opt :: "['code prog,ty err,ty err] \<Rightarrow> bool" ("_ \<turnstile>_ <=o _")
-  "sup_ty_opt G \<equiv> lift_top (\<lambda>t t'. G \<turnstile> t \<preceq> t')"
+  sup_ty_opt :: "['code prog,ty err,ty err] => bool" ("_ \<turnstile> _ <=o _" [71,71] 70)
+  "sup_ty_opt G == lift_top (\<lambda>t t'. G \<turnstile> t \<preceq> t')"
 
-  sup_loc :: "['code prog,locvars_type,locvars_type] \<Rightarrow> bool" 
-             ("_ \<turnstile> _ <=l _"  [71,71] 70)
-  "G \<turnstile> LT <=l LT' \<equiv> list_all2 (\<lambda>t t'. (G \<turnstile> t <=o t')) LT LT'"
+  sup_loc :: "['code prog,locvars_type,locvars_type] => bool" 
+              ("_ \<turnstile> _ <=l _"  [71,71] 70)
+  "G \<turnstile> LT <=l LT' == list_all2 (\<lambda>t t'. (G \<turnstile> t <=o t')) LT LT'"
 
-  sup_state :: "['code prog,state_type,state_type] \<Rightarrow> bool"	  
+  sup_state :: "['code prog,state_type,state_type] => bool"	  
                ("_ \<turnstile> _ <=s _"  [71,71] 70)
-  "G \<turnstile> s <=s s' \<equiv> (G \<turnstile> map Ok (fst s) <=l map Ok (fst s')) \<and> G \<turnstile> snd s <=l snd s'"
+  "G \<turnstile> s <=s s' == (G \<turnstile> map Ok (fst s) <=l map Ok (fst s')) \<and> G \<turnstile> snd s <=l snd s'"
 
-  sup_state_opt :: "['code prog,state_type option,state_type option] \<Rightarrow> bool" 
+  sup_state_opt :: "['code prog,state_type option,state_type option] => bool" 
                    ("_ \<turnstile> _ <=' _"  [71,71] 70)
-  "sup_state_opt G \<equiv> lift_bottom (\<lambda>t t'. G \<turnstile> t <=s t')"
+  "sup_state_opt G == lift_bottom (\<lambda>t t'. G \<turnstile> t <=s t')"
 
+syntax (HTML output) 
+  sup_ty_opt :: "['code prog,ty err,ty err] => bool" ("_ |- _ <=o _")
+  sup_loc :: "['code prog,locvars_type,locvars_type] => bool" ("_ |- _ <=l _"  [71,71] 70)
+  sup_state :: "['code prog,state_type,state_type] => bool"	("_ |- _ <=s _"  [71,71] 70)
+  sup_state_opt :: "['code prog,state_type option,state_type option] => bool" ("_ |- _ <=' _"  [71,71] 70)
+                   
 
 lemma not_Err_eq [iff]:
   "(x \<noteq> Err) = (\<exists>a. x = Ok a)" 
@@ -223,7 +224,7 @@ theorem OkanyConvOk [simp]:
   by (simp add: sup_ty_opt_def)
 
 theorem sup_ty_opt_Ok:
-  "G \<turnstile> a <=o (Ok b) \<Longrightarrow> \<exists> x. a = Ok x"
+  "G \<turnstile> a <=o (Ok b) ==> \<exists> x. a = Ok x"
   by (clarsimp simp add: sup_ty_opt_def)
 
 lemma widen_PrimT_conv1 [simp]:
@@ -250,10 +251,10 @@ theorem sup_loc_Cons2:
 
 
 theorem sup_loc_length:
-  "G \<turnstile> a <=l b \<Longrightarrow> length a = length b"
+  "G \<turnstile> a <=l b ==> length a = length b"
 proof -
   assume G: "G \<turnstile> a <=l b"
-  have "\<forall> b. (G \<turnstile> a <=l b) \<longrightarrow> length a = length b"
+  have "\<forall> b. (G \<turnstile> a <=l b) --> length a = length b"
     by (induct a, auto)
   with G
   show ?thesis by blast
@@ -263,7 +264,7 @@ theorem sup_loc_nth:
   "[| G \<turnstile> a <=l b; n < length a |] ==> G \<turnstile> (a!n) <=o (b!n)"
 proof -
   assume a: "G \<turnstile> a <=l b" "n < length a"
-  have "\<forall> n b. (G \<turnstile> a <=l b) \<longrightarrow> n < length a \<longrightarrow> (G \<turnstile> (a!n) <=o (b!n))"
+  have "\<forall> n b. (G \<turnstile> a <=l b) --> n < length a --> (G \<turnstile> (a!n) <=o (b!n))"
     (is "?P a")
   proof (induct a)
     show "?P []" by simp
@@ -285,7 +286,7 @@ qed
 
 
 theorem all_nth_sup_loc:
-  "\<forall>b. length a = length b \<longrightarrow> (\<forall> n. n < length a \<longrightarrow> (G \<turnstile> (a!n) <=o (b!n))) \<longrightarrow> 
+  "\<forall>b. length a = length b --> (\<forall> n. n < length a --> (G \<turnstile> (a!n) <=o (b!n))) --> 
        (G \<turnstile> a <=l b)" (is "?P a")
 proof (induct a)
   show "?P []" by simp
@@ -295,14 +296,14 @@ proof (induct a)
   show "?P (l#ls)"
   proof (intro strip)
     fix b
-    assume f: "\<forall>n. n < length (l # ls) \<longrightarrow> (G \<turnstile> ((l # ls) ! n) <=o (b ! n))"
+    assume f: "\<forall>n. n < length (l # ls) --> (G \<turnstile> ((l # ls) ! n) <=o (b ! n))"
     assume l: "length (l#ls) = length b"
     
     then obtain b' bs where b: "b = b'#bs"
       by - (cases b, simp, simp add: neq_Nil_conv, rule that)
 
     with f
-    have "\<forall>n. n < length ls \<longrightarrow> (G \<turnstile> (ls!n) <=o (bs!n))"
+    have "\<forall>n. n < length ls --> (G \<turnstile> (ls!n) <=o (bs!n))"
       by auto
 
     with f b l IH
@@ -318,7 +319,7 @@ theorem sup_loc_append:
 proof -
   assume l: "length a = length b"
 
-  have "\<forall>b. length a = length b \<longrightarrow> (G \<turnstile> (a@x) <=l (b@y)) = ((G \<turnstile> a <=l b) \<and> 
+  have "\<forall>b. length a = length b --> (G \<turnstile> (a@x) <=l (b@y)) = ((G \<turnstile> a <=l b) \<and> 
             (G \<turnstile> x <=l y))" (is "?P a") 
   proof (induct a)
     show "?P []" by simp
@@ -384,7 +385,7 @@ qed
 
 
 theorem sup_loc_update [rule_format]:
-  "\<forall> n y. (G \<turnstile> a <=o b) \<longrightarrow> n < length y \<longrightarrow> (G \<turnstile> x <=l y) \<longrightarrow> 
+  "\<forall> n y. (G \<turnstile> a <=o b) --> n < length y --> (G \<turnstile> x <=l y) --> 
           (G \<turnstile> x[n := a] <=l y[n := b])" (is "?P x")
 proof (induct x)
   show "?P []" by simp
@@ -427,7 +428,7 @@ theorem sup_state_Cons2:
   by (auto simp add: sup_state_def map_eq_Cons sup_loc_Cons2)
 
 theorem sup_state_ignore_fst:  
-  "G \<turnstile> (a, x) <=s (b, y) \<Longrightarrow> G \<turnstile> (c, x) <=s (c, y)"
+  "G \<turnstile> (a, x) <=s (b, y) ==> G \<turnstile> (c, x) <=s (c, y)"
   by (simp add: sup_state_def)
 
 theorem sup_state_rev_fst:
@@ -460,15 +461,15 @@ lemma sup_state_opt_Some_any:
 
 
 theorem sup_ty_opt_trans [trans]:
-  "\<lbrakk>G \<turnstile> a <=o b; G \<turnstile> b <=o c\<rbrakk> \<Longrightarrow> G \<turnstile> a <=o c"
+  "[|G \<turnstile> a <=o b; G \<turnstile> b <=o c|] ==> G \<turnstile> a <=o c"
   by (auto intro: lift_top_trans widen_trans simp add: sup_ty_opt_def)
 
 theorem sup_loc_trans [trans]:
-  "\<lbrakk>G \<turnstile> a <=l b; G \<turnstile> b <=l c\<rbrakk> \<Longrightarrow> G \<turnstile> a <=l c"
+  "[|G \<turnstile> a <=l b; G \<turnstile> b <=l c|] ==> G \<turnstile> a <=l c"
 proof -
   assume G: "G \<turnstile> a <=l b" "G \<turnstile> b <=l c"
  
-  hence "\<forall> n. n < length a \<longrightarrow> (G \<turnstile> (a!n) <=o (c!n))"
+  hence "\<forall> n. n < length a --> (G \<turnstile> (a!n) <=o (c!n))"
   proof (intro strip)
     fix n 
     assume n: "n < length a"
@@ -490,11 +491,11 @@ qed
   
 
 theorem sup_state_trans [trans]:
-  "\<lbrakk>G \<turnstile> a <=s b; G \<turnstile> b <=s c\<rbrakk> \<Longrightarrow> G \<turnstile> a <=s c"
+  "[|G \<turnstile> a <=s b; G \<turnstile> b <=s c|] ==> G \<turnstile> a <=s c"
   by (auto intro: sup_loc_trans simp add: sup_state_def)
 
 theorem sup_state_opt_trans [trans]:
-  "\<lbrakk>G \<turnstile> a <=' b; G \<turnstile> b <=' c\<rbrakk> \<Longrightarrow> G \<turnstile> a <=' c"
+  "[|G \<turnstile> a <=' b; G \<turnstile> b <=' c|] ==> G \<turnstile> a <=' c"
   by (auto intro: lift_bottom_trans sup_state_trans simp add: sup_state_opt_def)
 
 

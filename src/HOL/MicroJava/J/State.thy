@@ -15,11 +15,11 @@ types	fields_
 
 constdefs
 
-  obj_ty	:: "obj \\<Rightarrow> ty"
- "obj_ty obj  \\<equiv> Class (fst obj)"
+  obj_ty	:: "obj => ty"
+ "obj_ty obj  == Class (fst obj)"
 
-  init_vars	:: "('a \\<times> ty) list \\<Rightarrow> ('a \\<leadsto> val)"
- "init_vars	\\<equiv> map_of o map (\\<lambda>(n,T). (n,default_val T))"
+  init_vars	:: "('a \\<times> ty) list => ('a \\<leadsto> val)"
+ "init_vars	== map_of o map (\\<lambda>(n,T). (n,default_val T))"
   
 datatype xcpt		(* exceptions *)
 	= NullPointer
@@ -37,9 +37,9 @@ types	aheap  = "loc \\<leadsto> obj" (* "heap" used in a translation below *)
 	 = "xcpt option \\<times> state"
 
 syntax
-  heap		:: "state \\<Rightarrow> aheap"
-  locals	:: "state \\<Rightarrow> locals"
-  Norm		:: "state \\<Rightarrow> xstate"
+  heap		:: "state => aheap"
+  locals	:: "state => locals"
+  Norm		:: "state => xstate"
 
 translations
   "heap"	=> "fst"
@@ -48,19 +48,19 @@ translations
 
 constdefs
 
-  new_Addr	:: "aheap \\<Rightarrow> loc \\<times> xcpt option"
- "new_Addr h \\<equiv> \\<epsilon>(a,x). (h a = None \\<and>  x = None) |  x = Some OutOfMemory"
+  new_Addr	:: "aheap => loc \\<times> xcpt option"
+ "new_Addr h == SOME (a,x). (h a = None \\<and>  x = None) |  x = Some OutOfMemory"
 
-  raise_if	:: "bool \\<Rightarrow> xcpt \\<Rightarrow> xcpt option \\<Rightarrow> xcpt option"
- "raise_if c x xo \\<equiv> if c \\<and>  (xo = None) then Some x else xo"
+  raise_if	:: "bool => xcpt => xcpt option => xcpt option"
+ "raise_if c x xo == if c \\<and>  (xo = None) then Some x else xo"
 
-  np		:: "val \\<Rightarrow> xcpt option \\<Rightarrow> xcpt option"
- "np v \\<equiv> raise_if (v = Null) NullPointer"
+  np		:: "val => xcpt option => xcpt option"
+ "np v == raise_if (v = Null) NullPointer"
 
-  c_hupd	:: "aheap \\<Rightarrow> xstate \\<Rightarrow> xstate"
- "c_hupd h'\\<equiv> \\<lambda>(xo,(h,l)). if xo = None then (None,(h',l)) else (xo,(h,l))"
+  c_hupd	:: "aheap => xstate => xstate"
+ "c_hupd h'== \\<lambda>(xo,(h,l)). if xo = None then (None,(h',l)) else (xo,(h,l))"
 
-  cast_ok	:: "'c prog \\<Rightarrow> cname \\<Rightarrow> aheap \\<Rightarrow> val \\<Rightarrow> bool"
- "cast_ok G C h v \\<equiv> v = Null \\<or> G\\<turnstile>obj_ty (the (h (the_Addr v)))\\<preceq> Class C"
+  cast_ok	:: "'c prog => cname => aheap => val => bool"
+ "cast_ok G C h v == v = Null \\<or> G\\<turnstile>obj_ty (the (h (the_Addr v)))\\<preceq> Class C"
 
 end

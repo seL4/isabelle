@@ -35,8 +35,8 @@ datatype vnam_ = vee_ | x_ | e_
 
 consts
 
-  cnam_ :: "cnam_ \\<Rightarrow> cname"
-  vnam_ :: "vnam_ \\<Rightarrow> vnam"
+  cnam_ :: "cnam_ => cname"
+  vnam_ :: "vnam_ => vnam"
 
 rules (* cnam_ and vnam_ are intended to be isomorphic to cnam and vnam *)
 
@@ -74,18 +74,18 @@ consts
 
 defs
 
-  foo_Base_def "foo_Base \\<equiv> ([x],[],Skip,LAcc x)"
-  BaseC_def "BaseC \\<equiv> (Base, (Some Object, 
+  foo_Base_def "foo_Base == ([x],[],Skip,LAcc x)"
+  BaseC_def "BaseC == (Base, (Some Object, 
 			     [(vee, PrimT Boolean)], 
 			     [((foo,[Class Base]),Class Base,foo_Base)]))"
-  foo_Ext_def "foo_Ext \\<equiv> ([x],[],Expr( {Ext}Cast Ext
+  foo_Ext_def "foo_Ext == ([x],[],Expr( {Ext}Cast Ext
 				       (LAcc x)..vee:=Lit (Intg #1)),
 				   Lit Null)"
-  ExtC_def  "ExtC  \\<equiv> (Ext,  (Some Base  , 
+  ExtC_def  "ExtC  == (Ext,  (Some Base  , 
 			     [(vee, PrimT Integer)], 
 			     [((foo,[Class Base]),Class Ext,foo_Ext)]))"
 
-  test_def "test \\<equiv> Expr(e\\<Colon>=NewC Ext);; 
+  test_def "test == Expr(e::=NewC Ext);; 
                     Expr(LAcc e..foo({[Class Base]}[Lit Null]))"
 
 

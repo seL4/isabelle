@@ -9,7 +9,7 @@ Semantics of JVM instructions
 JVMExecInstr = JVMInstructions + JVMState +
 
 consts
-exec_instr :: "[instr, jvm_prog, aheap, opstack, locvars, cname, sig, p_count, frame list] \\<Rightarrow> jvm_state"
+exec_instr :: "[instr, jvm_prog, aheap, opstack, locvars, cname, sig, p_count, frame list] => jvm_state"
 primrec
  "exec_instr (Load idx) G hp stk vars Cl sig pc frs = 
       (None, hp, ((vars ! idx) # stk, vars, Cl, sig, pc+1)#frs)"

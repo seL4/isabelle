@@ -22,9 +22,9 @@ types	val = val_
 translations "val" <= (type) "val_"
 
 consts
-  the_Bool	:: "val \\<Rightarrow> bool"
-  the_Intg	:: "val \\<Rightarrow> int"
-  the_Addr	:: "val \\<Rightarrow> loc"
+  the_Bool	:: "val => bool"
+  the_Intg	:: "val => int"
+  the_Addr	:: "val => loc"
 
 primrec
  "the_Bool (Bool b) = b"
@@ -36,8 +36,8 @@ primrec
  "the_Addr (Addr a) = a"
 
 consts
-  defpval	:: "prim_ty \\<Rightarrow> val"	(* default value for primitive types *)
-  default_val	:: "ty \\<Rightarrow> val"		(* default value for all types *)
+  defpval	:: "prim_ty => val"	(* default value for primitive types *)
+  default_val	:: "ty => val"		(* default value for all types *)
 
 primrec
 	"defpval Void    = Unit"

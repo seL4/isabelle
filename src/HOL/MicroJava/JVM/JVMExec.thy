@@ -9,7 +9,7 @@ Execution of the JVM
 JVMExec = JVMExecInstr + 
 
 consts
- exec :: "jvm_prog \\<times> jvm_state \\<Rightarrow> jvm_state option"
+ exec :: "jvm_prog \\<times> jvm_state => jvm_state option"
 
 (** exec is not recursive. recdef is just used for pattern matching **)
 recdef exec "{}"
@@ -25,7 +25,7 @@ recdef exec "{}"
 
 
 constdefs
- exec_all :: "[jvm_prog,jvm_state,jvm_state] \\<Rightarrow> bool"  ("_ \\<turnstile> _ -jvm\\<rightarrow> _" [61,61,61]60)
- "G \\<turnstile> s -jvm\\<rightarrow> t \\<equiv> (s,t) \\<in> {(s,t). exec(G,s) = Some t}^*"
+ exec_all :: "[jvm_prog,jvm_state,jvm_state] => bool"  ("_ \\<turnstile> _ -jvm-> _" [61,61,61]60)
+ "G \\<turnstile> s -jvm-> t == (s,t) \\<in> {(s,t). exec(G,s) = Some t}^*"
 
 end

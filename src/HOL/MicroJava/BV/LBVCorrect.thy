@@ -11,31 +11,31 @@ theory LBVCorrect = BVSpec + LBVSpec:
 lemmas [simp del] = split_paired_Ex split_paired_All
 
 constdefs
-fits :: "[method_type,instr list,jvm_prog,ty,state_type option,certificate] \<Rightarrow> bool"
-"fits phi is G rT s0 cert \<equiv> 
-  (\<forall>pc s1. pc < length is \<longrightarrow>
-    (wtl_inst_list (take pc is) G rT cert (length is) 0 s0 = Ok s1 \<longrightarrow>
-    (case cert!pc of None   \<Rightarrow> phi!pc = s1
-                   | Some t \<Rightarrow> phi!pc = Some t)))"
+fits :: "[method_type,instr list,jvm_prog,ty,state_type option,certificate] => bool"
+"fits phi is G rT s0 cert == 
+  (\<forall>pc s1. pc < length is -->
+    (wtl_inst_list (take pc is) G rT cert (length is) 0 s0 = Ok s1 -->
+    (case cert!pc of None   => phi!pc = s1
+                   | Some t => phi!pc = Some t)))"
 
 constdefs
-make_phi :: "[instr list,jvm_prog,ty,state_type option,certificate] \<Rightarrow> method_type"
-"make_phi is G rT s0 cert \<equiv> 
+make_phi :: "[instr list,jvm_prog,ty,state_type option,certificate] => method_type"
+"make_phi is G rT s0 cert == 
    map (\<lambda>pc. case cert!pc of 
-               None   \<Rightarrow> val (wtl_inst_list (take pc is) G rT cert (length is) 0 s0) 
-             | Some t \<Rightarrow> Some t) [0..length is(]"
+               None   => val (wtl_inst_list (take pc is) G rT cert (length is) 0 s0) 
+             | Some t => Some t) [0..length is(]"
 
 
 lemma fitsD_None:
-  "\<lbrakk>fits phi is G rT s0 cert; pc < length is;
+  "[|fits phi is G rT s0 cert; pc < length is;
     wtl_inst_list (take pc is) G rT cert (length is) 0 s0 = Ok s1; 
-    cert ! pc = None\<rbrakk> \<Longrightarrow> phi!pc = s1"
+    cert ! pc = None|] ==> phi!pc = s1"
   by (auto simp add: fits_def)
 
 lemma fitsD_Some:
-  "\<lbrakk>fits phi is G rT s0 cert; pc < length is;
+  "[|fits phi is G rT s0 cert; pc < length is;
     wtl_inst_list (take pc is) G rT cert (length is) 0 s0 = Ok s1; 
-    cert ! pc = Some t\<rbrakk> \<Longrightarrow> phi!pc = Some t"
+    cert ! pc = Some t|] ==> phi!pc = Some t"
   by (auto simp add: fits_def)
 
 lemma make_phi_Some:
@@ -62,7 +62,7 @@ qed
   
 lemma fits_lemma1:
   "[| wtl_inst_list is G rT cert (length is) 0 s = Ok s'; fits phi is G rT s cert |]
-  ==> \<forall>pc t. pc < length is \<longrightarrow> cert!pc = Some t \<longrightarrow> phi!pc = Some t"
+  ==> \<forall>pc t. pc < length is --> cert!pc = Some t --> phi!pc = Some t"
 proof (intro strip)
   fix pc t 
   assume "wtl_inst_list is G rT cert (length is) 0 s = Ok s'"
@@ -114,11 +114,11 @@ proof -
     "wtl_cert l G rT s'' cert (length is) (Suc pc) = Ok x"
     by (auto simp add: wtl_append min_def simp del: append_take_drop_id)
 
-  hence c1: "\<And>t. cert!Suc pc = Some t ==> G \<turnstile> s'' <=' cert!Suc pc"
+  hence c1: "!!t. cert!Suc pc = Some t ==> G \<turnstile> s'' <=' cert!Suc pc"
     by (simp add: wtl_cert_def split: if_splits)
   moreover
   from fits pc wts
-  have c2: "\<And>t. cert!Suc pc = Some t ==> phi!Suc pc = cert!Suc pc"
+  have c2: "!!t. cert!Suc pc = Some t ==> phi!Suc pc = cert!Suc pc"
     by - (drule fitsD_Some, auto)
   moreover
   from fits pc wts
@@ -150,7 +150,7 @@ proof -
 
   from fits wtl pc
   have cert_Some: 
-    "\<And>t pc. [| pc < length is; cert!pc = Some t |] ==> phi!pc = Some t"
+    "!!t pc. [| pc < length is; cert!pc = Some t |] ==> phi!pc = Some t"
     by (auto dest: fits_lemma1)
   
   from fits wtl pc
@@ -236,7 +236,7 @@ proof -
     by (rule fitsD_None)
   moreover    
   from fits pc wt0
-  have "\<And>t. cert!0 = Some t ==> phi!0 = cert!0"
+  have "!!t. cert!0 = Some t ==> phi!0 = cert!0"
     by - (drule fitsD_Some, auto)
   moreover
   from pc
@@ -247,7 +247,7 @@ proof -
     "wtl_cert x G rT s cert (length is) 0 = Ok s'"
     by simp (elim, rule that, simp)
   hence 
-    "\<And>t. cert!0 = Some t ==> G \<turnstile> s <=' cert!0"
+    "!!t. cert!0 = Some t ==> G \<turnstile> s <=' cert!0"
     by (simp add: wtl_cert_def split: if_splits)
 
   ultimately
@@ -268,7 +268,7 @@ proof (unfold wtl_method_def, simp only: Let_def, elim conjE)
 
   with wtl
   have allpc:
-    "\<forall>pc. pc < length ins \<longrightarrow> wt_instr (ins ! pc) G rT phi (length ins) pc"
+    "\<forall>pc. pc < length ins --> wt_instr (ins ! pc) G rT phi (length ins) pc"
     by (blast intro: wtl_fits_wt)
 
   from pc wtl fits
@@ -279,15 +279,6 @@ proof (unfold wtl_method_def, simp only: Let_def, elim conjE)
   show ?thesis by (auto simp add: wt_method_def)
 qed
 
-lemma unique_set:
-  "(a,b,c,d)\<in>set l \<longrightarrow> unique l \<longrightarrow> (a',b',c',d') \<in> set l \<longrightarrow> 
-   a = a' \<longrightarrow> b=b' \<and> c=c' \<and> d=d'"
-  by (induct "l") auto
-
-lemma unique_epsilon:
-  "(a,b,c,d)\<in>set l \<longrightarrow> unique l \<longrightarrow> 
-   (\<epsilon> (a',b',c',d'). (a',b',c',d') \<in> set l \<and> a'=a) = (a,b,c,d)"
-  by (auto simp add: unique_set)
 
 theorem wtl_correct:
 "wtl_jvm_prog G cert ==> \<exists> Phi. wt_jvm_prog G Phi"
@@ -304,9 +295,9 @@ proof (clarsimp simp add: wt_jvm_prog_def wf_prog_def, intro conjI)
     (is "\<exists>Phi. ?Q Phi")
   proof (intro exI)
     let "?Phi" = "\<lambda> C sig. 
-      let (C,x,y,mdecls) = \<epsilon> (Cl,x,y,mdecls). (Cl,x,y,mdecls) \<in> set G \<and> Cl = C;
-          (sig,rT,maxl,b) = \<epsilon> (sg,rT,maxl,b). (sg,rT,maxl,b) \<in> set mdecls \<and> sg = sig
-      in \<epsilon> phi. wt_method G C (snd sig) rT maxl b phi"
+      let (C,x,y,mdecls) = SOME (Cl,x,y,mdecls). (Cl,x,y,mdecls) \<in> set G \<and> Cl = C;
+          (sig,rT,maxl,b) = SOME (sg,rT,maxl,b). (sg,rT,maxl,b) \<in> set mdecls \<and> sg = sig
+      in SOME phi. wt_method G C (snd sig) rT maxl b phi"
     from wtl_prog
     show "?Q ?Phi"
     proof (unfold wf_cdecl_def, intro)
@@ -328,8 +319,8 @@ proof (clarsimp simp add: wt_jvm_prog_def wf_prog_def, intro conjI)
               wt_method G a (snd sig) rT maxl b 
                ((\<lambda>(C,x,y,mdecls).
                     (\<lambda>(sig,rT,maxl,b). Eps (wt_method G C (snd sig) rT maxl b))
-                     (\<epsilon>(sg,rT,maxl,b). (sg, rT, maxl, b) \<in> set mdecls \<and> sg = sig))
-                 (\<epsilon>(Cl,x,y,mdecls). (Cl, x, y, mdecls) \<in> set G \<and> Cl = a))) mb) m"
+                     (SOME (sg,rT,maxl,b). (sg, rT, maxl, b) \<in> set mdecls \<and> sg = sig))
+                 (SOME (Cl,x,y,mdecls). (Cl, x, y, mdecls) \<in> set G \<and> Cl = a))) mb) m"
           by - (drule bspec, assumption, 
                 clarsimp dest!: wtl_method_correct,
                 clarsimp intro!: someI simp add: unique_epsilon) 

@@ -31,7 +31,7 @@ datatype ty    		(* any type, cf. 4.1 *)
 
 syntax
          NT     :: "          ty"
-	 Class	:: "cname  \\<Rightarrow> ty"
+	 Class	:: "cname  => ty"
 translations
 	"NT"      == "RefT   NullT"
 	"Class C" == "RefT (ClassT C)"

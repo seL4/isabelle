@@ -12,7 +12,7 @@ theory Step = Convert:
 
 text "Effect of instruction on the state type:"
 consts 
-step' :: "instr \<times> jvm_prog \<times> state_type \<Rightarrow> state_type"
+step' :: "instr \<times> jvm_prog \<times> state_type => state_type"
 
 recdef step' "{}"
 "step' (Load idx,  G, (ST, LT))          = (val (LT ! idx) # ST, LT)"
@@ -40,13 +40,13 @@ recdef step' "{}"
 (* "step' (i,G,s)                           = None" *)
 
 constdefs
-  step :: "instr \<Rightarrow> jvm_prog \<Rightarrow> state_type option \<Rightarrow> state_type option"
-  "step i G \<equiv> opt_map (\<lambda>s. step' (i,G,s))"
+  step :: "instr => jvm_prog => state_type option => state_type option"
+  "step i G == option_map (\<lambda>s. step' (i,G,s))"
 
 
 text "Conditions under which step is applicable:"
 consts
-app' :: "instr \<times> jvm_prog \<times> ty \<times> state_type \<Rightarrow> bool"
+app' :: "instr \<times> jvm_prog \<times> ty \<times> state_type => bool"
 
 recdef app' "{}"
 "app' (Load idx, G, rT, s)                  = (idx < length (snd s) \<and> 
@@ -88,13 +88,13 @@ recdef app' "{}"
 
 
 constdefs
-  app :: "instr \<Rightarrow> jvm_prog \<Rightarrow> ty \<Rightarrow> state_type option \<Rightarrow> bool"
-  "app i G rT s \<equiv> case s of None \<Rightarrow> True | Some t \<Rightarrow> app' (i,G,rT,t)"
+  app :: "instr => jvm_prog => ty => state_type option => bool"
+  "app i G rT s == case s of None => True | Some t => app' (i,G,rT,t)"
 
 text {* program counter of successor instructions: *}
 
 consts
-succs :: "instr \<Rightarrow> p_count \<Rightarrow> p_count list"
+succs :: "instr => p_count => p_count list"
 
 primrec 
 "succs (Load idx) pc         = [pc+1]"
@@ -117,13 +117,13 @@ primrec
 "succs (Invoke C mn fpTs) pc = [pc+1]"
 
 
-lemma 1: "2 < length a \<Longrightarrow> (\<exists>l l' l'' ls. a = l#l'#l''#ls)"
+lemma 1: "2 < length a ==> (\<exists>l l' l'' ls. a = l#l'#l''#ls)"
 proof (cases a)
   fix x xs assume "a = x#xs" "2 < length a"
   thus ?thesis by - (cases xs, simp, cases "tl xs", auto)
 qed auto
 
-lemma 2: "\<not>(2 < length a) \<Longrightarrow> a = [] \<or> (\<exists> l. a = [l]) \<or> (\<exists> l l'. a = [l,l'])"
+lemma 2: "\<not>(2 < length a) ==> a = [] \<or> (\<exists> l. a = [l]) \<or> (\<exists> l l'. a = [l,l'])"
 proof -;
   assume "\<not>(2 < length a)"
   hence "length a < (Suc 2)" by simp
@@ -136,7 +136,7 @@ proof -;
     hence "\<exists> l. x = [l]"  by - (cases x, auto)
   } note 0 = this
 
-  have "length a = 2 \<Longrightarrow> \<exists>l l'. a = [l,l']" by (cases a, auto dest: 0)
+  have "length a = 2 ==> \<exists>l l'. a = [l,l']" by (cases a, auto dest: 0)
   with * show ?thesis by (auto dest: 0)
 qed
 
@@ -147,7 +147,6 @@ simp rules for @{term app}
 lemma appNone[simp]:
 "app i G rT None = True"
   by (simp add: app_def)
-
 
 
 lemma appLoad[simp]:
@@ -264,7 +263,7 @@ lemma appInvoke[simp]:
   method (G,C) (mn,fpTs) = Some (mD', rT', b'))" (is "?app s = ?P s")
 proof (cases (open) s)
   case Pair
-  have "?app (a,b) \<Longrightarrow> ?P (a,b)"
+  have "?app (a,b) ==> ?P (a,b)"
   proof -
     assume app: "?app (a,b)"
     hence "a = (rev (rev (take (length fpTs) a))) @ (drop (length fpTs) a) \<and> 
@@ -286,7 +285,7 @@ proof (cases (open) s)
     with app
     show ?thesis by (auto simp add: app_def) blast
   qed
-  with Pair have "?app s \<Longrightarrow> ?P s" by simp
+  with Pair have "?app s ==> ?P s" by simp
   thus ?thesis by (auto simp add: app_def)
 qed 
 

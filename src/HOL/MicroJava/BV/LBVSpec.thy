@@ -11,44 +11,36 @@ theory LBVSpec = Step :
 
 types
   certificate       = "state_type option list" 
-  class_certificate = "sig \<Rightarrow> certificate"
-  prog_certificate  = "cname \<Rightarrow> class_certificate"
+  class_certificate = "sig => certificate"
+  prog_certificate  = "cname => class_certificate"
 
 
 constdefs
   check_cert :: "[instr, jvm_prog, state_type option, certificate, p_count, p_count]
-                 \<Rightarrow> bool"
-  "check_cert i G s cert pc max_pc \<equiv> \<forall>pc' \<in> set (succs i pc). pc' < max_pc \<and>  
-                                     (pc' \<noteq> pc+1 \<longrightarrow> G \<turnstile> step i G s <=' cert!pc')"
+                 => bool"
+  "check_cert i G s cert pc max_pc == \<forall>pc' \<in> set (succs i pc). pc' < max_pc \<and>  
+                                     (pc' \<noteq> pc+1 --> G \<turnstile> step i G s <=' cert!pc')"
 
   wtl_inst :: "[instr,jvm_prog,ty,state_type option,certificate,p_count,p_count] 
-               \<Rightarrow> state_type option err" 
-  "wtl_inst i G rT s cert max_pc pc \<equiv> 
+               => state_type option err" 
+  "wtl_inst i G rT s cert max_pc pc == 
      if app i G rT s \<and> check_cert i G s cert pc max_pc then 
        if pc+1 mem (succs i pc) then Ok (step i G s) else Ok (cert!(pc+1))
      else Err";
 
-lemma wtl_inst_Ok:
-"(wtl_inst i G rT s cert max_pc pc = Ok s') =
- (app i G rT s \<and> (\<forall>pc' \<in> set (succs i pc). 
-                   pc' < max_pc \<and> (pc' \<noteq> pc+1 \<longrightarrow> G \<turnstile> step i G s <=' cert!pc')) \<and> 
- (if pc+1 \<in> set (succs i pc) then s' = step i G s else s' = cert!(pc+1)))"
-  by (auto simp add: wtl_inst_def check_cert_def set_mem_eq);
-
-
 constdefs
   wtl_cert :: "[instr,jvm_prog,ty,state_type option,certificate,p_count,p_count] 
-               \<Rightarrow> state_type option err"  
-  "wtl_cert i G rT s cert max_pc pc \<equiv>
+               => state_type option err"  
+  "wtl_cert i G rT s cert max_pc pc ==
      case cert!pc of
-        None    \<Rightarrow> wtl_inst i G rT s cert max_pc pc
-      | Some s' \<Rightarrow> if G \<turnstile> s <=' (Some s') then 
+        None    => wtl_inst i G rT s cert max_pc pc
+      | Some s' => if G \<turnstile> s <=' (Some s') then 
                     wtl_inst i G rT (Some s') cert max_pc pc 
                   else Err"
 
 consts 
   wtl_inst_list :: "[instr list,jvm_prog,ty,certificate,p_count,p_count, 
-                     state_type option] \<Rightarrow> state_type option err"
+                     state_type option] => state_type option err"
 primrec
   "wtl_inst_list []     G rT cert max_pc pc s = Ok s"
   "wtl_inst_list (i#is) G rT cert max_pc pc s = 
@@ -57,19 +49,26 @@ primrec
               
 
 constdefs
- wtl_method :: "[jvm_prog,cname,ty list,ty,nat,instr list,certificate] \<Rightarrow> bool"  
- "wtl_method G C pTs rT mxl ins cert \<equiv>  
+ wtl_method :: "[jvm_prog,cname,ty list,ty,nat,instr list,certificate] => bool"  
+ "wtl_method G C pTs rT mxl ins cert ==  
 	let max_pc = length ins  
   in 
   0 < max_pc \<and>   
   wtl_inst_list ins G rT cert max_pc 0 
                 (Some ([],(Ok (Class C))#((map Ok pTs))@(replicate mxl Err))) \<noteq> Err"
 
- wtl_jvm_prog :: "[jvm_prog,prog_certificate] \<Rightarrow> bool" 
- "wtl_jvm_prog G cert \<equiv>  
+ wtl_jvm_prog :: "[jvm_prog,prog_certificate] => bool" 
+ "wtl_jvm_prog G cert ==  
   wf_prog (\<lambda>G C (sig,rT,maxl,b). wtl_method G C (snd sig) rT maxl b (cert C sig)) G"
 
-text {* \medskip *} 
+
+
+lemma wtl_inst_Ok:
+"(wtl_inst i G rT s cert max_pc pc = Ok s') =
+ (app i G rT s \<and> (\<forall>pc' \<in> set (succs i pc). 
+                   pc' < max_pc \<and> (pc' \<noteq> pc+1 --> G \<turnstile> step i G s <=' cert!pc')) \<and> 
+ (if pc+1 \<in> set (succs i pc) then s' = step i G s else s' = cert!(pc+1)))"
+  by (auto simp add: wtl_inst_def check_cert_def set_mem_eq);
 
 lemma strict_Some [simp]: 
 "(strict f x = Ok y) = (\<exists> z. x = Ok z \<and> f z = Ok y)"
@@ -127,7 +126,7 @@ proof -
 qed
 
 lemma take_Suc:
-  "\<forall>n. n < length l \<longrightarrow> take (Suc n) l = (take n l)@[l!n]" (is "?P l")
+  "\<forall>n. n < length l --> take (Suc n) l = (take n l)@[l!n]" (is "?P l")
 proof (induct l)
   show "?P []" by simp
 
@@ -190,5 +189,15 @@ proof -
   show ?thesis
     by (auto simp add: wtl_append min_def)
 qed
+
+lemma unique_set:
+"(a,b,c,d)\<in>set l --> unique l --> (a',b',c',d') \<in> set l --> 
+  a = a' --> b=b' \<and> c=c' \<and> d=d'"
+  by (induct "l") auto
+
+lemma unique_epsilon:
+  "(a,b,c,d)\<in>set l --> unique l --> 
+  (SOME (a',b',c',d'). (a',b',c',d') \<in> set l \<and> a'=a) = (a,b,c,d)"
+  by (auto simp add: unique_set)
 
 end
