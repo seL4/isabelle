@@ -45,8 +45,11 @@ signature LOGIC =
   val strip_params	: term -> (string * typ) list
   val strip_prems	: int * term list * term -> term list * term
   val thaw_vars		: term -> term
-  val unvarify		: term -> term  
-  val varify		: term -> term  
+  val unvarify		: term -> term
+  val varify		: term -> term
+  val termord		: term * term -> order
+  val lextermord	: term list * term list -> order
+  val termless		: term * term -> bool
   end;
 
 structure Logic : LOGIC =
@@ -329,5 +332,45 @@ fun unvarify (Const(a,T))    = Const(a, Type.unvarifyT T)
   | unvarify (Abs (a,T,body)) = Abs (a, Type.unvarifyT T, unvarify body)
   | unvarify (f$t) = unvarify f $ unvarify t
   | unvarify t = t;
+
+
+(*** term order ***)
+
+(* NB: non-linearity of the ordering is not a soundness problem *)
+
+(* FIXME: "***ABSTRACTION***" is a hack and makes the ordering non-linear *)
+fun string_of_hd(Const(a,_)) = a
+  | string_of_hd(Free(a,_))  = a
+  | string_of_hd(Var(v,_))   = Syntax.string_of_vname v
+  | string_of_hd(Bound i)    = string_of_int i
+  | string_of_hd(Abs _)      = "***ABSTRACTION***";
+
+(* a strict (not reflexive) linear well-founded AC-compatible ordering
+ * for terms:
+ * s < t <=> 1. size(s) < size(t) or
+             2. size(s) = size(t) and s=f(...) and t = g(...) and f<g or
+             3. size(s) = size(t) and s=f(s1..sn) and t=f(t1..tn) and
+                (s1..sn) < (t1..tn) (lexicographically)
+ *)
+
+(* FIXME: should really take types into account as well.
+ * Otherwise non-linear *)
+fun termord(Abs(_,_,t),Abs(_,_,u)) = termord(t,u)
+  | termord(t,u) =
+      (case intord(size_of_term t,size_of_term u) of
+         EQUAL => let val (f,ts) = strip_comb t and (g,us) = strip_comb u
+                  in case stringord(string_of_hd f, string_of_hd g) of
+                       EQUAL => lextermord(ts,us)
+                     | ord   => ord
+                  end
+       | ord => ord)
+and lextermord(t::ts,u::us) =
+      (case termord(t,u) of
+         EQUAL => lextermord(ts,us)
+       | ord   => ord)
+  | lextermord([],[]) = EQUAL
+  | lextermord _ = error("lextermord");
+
+fun termless tu = (termord tu = LESS);
 
 end;
