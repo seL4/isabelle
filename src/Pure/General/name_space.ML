@@ -24,6 +24,7 @@ sig
   type T
   val empty: T
   val extend: T * string list -> T
+  val extend': (string -> string list) -> T * string list -> T
   val merge: T * T -> T
   val hide: bool -> T * string list -> T
   val intern: T -> string -> string
@@ -97,12 +98,15 @@ val empty = NameSpace Symtab.empty;
 
 (* extend *)            (*later entries preferred*)
 
-fun extend_aux (name, tab) =
+fun gen_extend_aux acc (name, tab) =
   if is_hidden name then
     error ("Attempt to declare hidden name " ^ quote name)
-  else Library.foldl (fn (tb, xname) => change add xname (name, tb)) (tab, accesses name);
+  else Library.foldl (fn (tb, xname) => change add xname (name, tb)) (tab, acc name);
 
-fun extend (NameSpace tab, names) = NameSpace (foldr extend_aux tab names);
+fun extend' acc (NameSpace tab, names) =
+  NameSpace (foldr (gen_extend_aux acc) tab names);
+fun extend (NameSpace tab, names) =
+  NameSpace (foldr (gen_extend_aux accesses) tab names);
 
 
 (* merge *)             (*1st preferred over 2nd*)

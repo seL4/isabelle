@@ -68,7 +68,8 @@ sig
   (* Diagnostic functions *)
   val print_locales: theory -> unit
   val print_locale: theory -> expr -> multi_attribute element list -> unit
-  val print_global_registrations: theory -> string -> unit
+  val print_global_registrations: string -> theory -> unit
+  val print_local_registrations: string -> context -> unit
 
   val add_locale: bool -> bstring -> expr -> multi_attribute element list -> theory -> theory
   val add_locale_i: bool -> bstring -> expr -> multi_attribute element_i list
@@ -85,14 +86,21 @@ sig
   val add_thmss: string -> ((string * thm list) * multi_attribute list) list ->
     theory * context -> (theory * context) * (string * thm list) list
 
+  (* Locale interpretation *)
   val instantiate: string -> string * context attribute list
     -> thm list option -> context -> context
-  val prep_registration:
+  val prep_global_registration:
     string * theory attribute list -> expr -> string option list -> theory ->
     theory * ((string * term list) * term list) list * (theory -> theory)
-  val global_add_witness:
+  val prep_local_registration:
+    string * context attribute list -> expr -> string option list -> context ->
+    context * ((string * term list) * term list) list * (context -> context)
+  val add_global_witness:
     string * term list -> thm -> theory -> theory
+  val add_local_witness:
+    string * term list -> thm -> context -> context
 
+  (* Theory setup for locales *)
   val setup: (theory -> theory) list
 end;
 
@@ -138,7 +146,7 @@ type locale =
        (cf. [1], normalisation of locale expressions.)
     *)
   import: expr,                                       (*dynamic import*)
-  elems: (multi_attribute element_i * stamp) list,  (*static content*)
+  elems: (multi_attribute element_i * stamp) list,    (*static content*)
   params: (string * typ option) list * string list}   (*all/local params*)
 
 
@@ -147,7 +155,7 @@ type locale =
 structure Termlisttab = TableFun(type key = term list
   val ord = Library.list_ord Term.term_ord);
 
-structure LocalesArgs =
+structure GlobalLocalesArgs =
 struct
   val name = "Isar/locales";
   type T = NameSpace.T * locale Symtab.table *
@@ -180,24 +188,41 @@ struct
     |> Pretty.writeln;
 end;
 
-structure LocalesData = TheoryDataFun(LocalesArgs);
-val print_locales = LocalesData.print;
+structure GlobalLocalesData = TheoryDataFun(GlobalLocalesArgs);
 
-val intern = NameSpace.intern o #1 o LocalesData.get_sg;
-val cond_extern = NameSpace.cond_extern o #1 o LocalesData.get_sg;
+(** context data **)
+
+structure LocalLocalesArgs =
+struct
+  val name = "Isar/locales";
+  type T = ((string * context attribute list) * thm list) Termlisttab.table
+           Symtab.table;
+    (* registrations: theorems instantiating locale assumptions,
+         with prefix and attributes, indexed by locale name and parameter
+         instantiation *)
+  fun init _ = Symtab.empty;
+  fun print _ _ = ();
+end;
+
+structure LocalLocalesData = ProofDataFun(LocalLocalesArgs);
 
 
 (* access locales *)
 
+val print_locales = GlobalLocalesData.print;
+
+val intern = NameSpace.intern o #1 o GlobalLocalesData.get_sg;
+val cond_extern = NameSpace.cond_extern o #1 o GlobalLocalesData.get_sg;
+
 fun declare_locale name =
-  LocalesData.map (fn (space, locs, regs) =>
+  GlobalLocalesData.map (fn (space, locs, regs) =>
     (NameSpace.extend (space, [name]), locs, regs));
 
 fun put_locale name loc =
-  LocalesData.map (fn (space, locs, regs) =>
+  GlobalLocalesData.map (fn (space, locs, regs) =>
     (space, Symtab.update ((name, loc), locs), regs));
 
-fun get_locale thy name = Symtab.lookup (#2 (LocalesData.get thy), name);
+fun get_locale thy name = Symtab.lookup (#2 (GlobalLocalesData.get thy), name);
 
 fun the_locale thy name =
   (case get_locale thy name of
@@ -207,34 +232,73 @@ fun the_locale thy name =
 
 (* access registrations *)
 
-(* add registration to theory, ignored if already present *)
+(* retrieve registration from theory or context *)
 
-fun global_put_registration (name, ps) attn =
-  LocalesData.map (fn (space, locs, regs) =>
-    (space, locs, let
+fun gen_get_registration get thy_ctxt (name, ps) =
+  case Symtab.lookup (get thy_ctxt, name) of
+      NONE => NONE
+    | SOME tab => Termlisttab.lookup (tab, ps);
+
+val get_global_registration =
+     gen_get_registration (#3 o GlobalLocalesData.get);
+val get_local_registration =
+     gen_get_registration LocalLocalesData.get;
+
+val test_global_registration = isSome oo get_global_registration;
+val test_local_registration = isSome oo get_local_registration;
+fun smart_test_registration ctxt id =
+  let
+    val thy = ProofContext.theory_of ctxt;
+  in
+    test_global_registration thy id orelse test_local_registration ctxt id
+  end;
+
+
+(* add registration to theory or context, ignored if already present *)
+
+fun gen_put_registration map (name, ps) attn =
+  map (fn regs =>
+      let
         val tab = getOpt (Symtab.lookup (regs, name), Termlisttab.empty);
       in
         Symtab.update ((name, Termlisttab.update_new ((ps, (attn, [])), tab)),
           regs)
-      end handle Termlisttab.DUP _ => regs));
+      end handle Termlisttab.DUP _ => regs);
 
-(* add witness theorem to registration in theory,
+val put_global_registration =
+     gen_put_registration (fn f =>
+       GlobalLocalesData.map (fn (space, locs, regs) =>
+         (space, locs, f regs)));
+val put_local_registration = gen_put_registration LocalLocalesData.map;
+
+fun smart_put_registration id attn ctxt =
+  (* ignore registration if already present in theory *)
+     let
+       val thy = ProofContext.theory_of ctxt;
+     in case get_global_registration thy id of
+          NONE => put_local_registration id attn ctxt
+        | SOME _ => ctxt
+     end;
+
+
+(* add witness theorem to registration in theory or context,
    ignored if registration not present *)
 
-fun global_add_witness (name, ps) thm =
-  LocalesData.map (fn (space, locs, regs) =>
-    (space, locs, let
+fun gen_add_witness map (name, ps) thm =
+  map (fn regs =>
+      let
         val tab = valOf (Symtab.lookup (regs, name));
         val (x, thms) = valOf (Termlisttab.lookup (tab, ps));
       in
         Symtab.update ((name, Termlisttab.update ((ps, (x, thm::thms)), tab)),
           regs)
-      end handle Option => regs))
+      end handle Option => regs);
 
-fun global_get_registration thy (name, ps) =
-  case Symtab.lookup (#3 (LocalesData.get thy), name) of
-      NONE => NONE
-    | SOME tab => Termlisttab.lookup (tab, ps);
+val add_global_witness =
+     gen_add_witness (fn f =>
+       GlobalLocalesData.map (fn (space, locs, regs) =>
+         (space, locs, f regs)));
+val add_local_witness = gen_add_witness LocalLocalesData.map;
 
 
 (* import hierarchy
@@ -255,27 +319,35 @@ fun imports thy (upper, lower) =
   end;
 
 
-(* registrations *)
+(* printing of registrations *)
 
-fun print_global_registrations thy loc =
+fun gen_print_registrations get_regs get_sign msg loc thy_ctxt =
   let
-    val sg = Theory.sign_of thy;
+    val sg = get_sign thy_ctxt;
     val loc_int = intern sg loc;
-    val (_, _, regs) = LocalesData.get thy;
+    val regs = get_regs thy_ctxt;
     val prt_term = Pretty.quote o Sign.pretty_term sg;
-    fun prt_inst (ts, ((prfx, _), thms)) = let
-in
+    fun prt_inst (ts, ((prfx, _), thms)) =
       Pretty.block [Pretty.str prfx, Pretty.str ":", Pretty.brk 1,
-        Pretty.list "(" ")" (map prt_term ts)]
-end;
+        Pretty.list "(" ")" (map prt_term ts)];
     val loc_regs = Symtab.lookup (regs, loc_int);
   in
     (case loc_regs of
-        NONE => Pretty.str "No interpretations."
-      | SOME r => Pretty.big_list "interpretations:"
+        NONE => Pretty.str ("No interpretations in " ^ msg ^ ".")
+      | SOME r => Pretty.big_list ("Interpretations in " ^ msg ^ ":")
           (map prt_inst (Termlisttab.dest r)))
     |> Pretty.writeln
   end;
+
+val print_global_registrations =
+     gen_print_registrations (#3 o GlobalLocalesData.get)
+       Theory.sign_of "theory";
+val print_local_registrations' =
+     gen_print_registrations LocalLocalesData.get
+       ProofContext.sign_of "context";
+fun print_local_registrations loc ctxt =
+  (print_global_registrations loc (ProofContext.theory_of ctxt);
+   print_local_registrations' loc ctxt);
 
 
 (* diagnostics *)
@@ -1747,53 +1819,83 @@ fun extract_asms_elems (id, elems) =
 fun extract_asms_elemss elemss =
       map extract_asms_elems elemss;
 
-(* add registration, without theorems, to theory *)
+(* activate instantiated facts in theory or context *)
 
-fun prep_reg_global attn (thy, (id, _)) =
-      global_put_registration id attn thy;
-
-(* activate instantiated facts in theory *)
-
-fun activate_facts_elem _ _ (thy, Fixes _) = thy
-  | activate_facts_elem _ _ (thy, Assumes _) = thy
-  | activate_facts_elem _ _ (thy, Defines _) = thy
-  | activate_facts_elem disch (prfx, atts) (thy, Notes facts) =
+fun activate_facts_elem _ _ _ _ (thy_ctxt, Fixes _) = thy_ctxt
+  | activate_facts_elem _ _ _ _ (thy_ctxt, Assumes _) = thy_ctxt
+  | activate_facts_elem _ _ _ _ (thy_ctxt, Defines _) = thy_ctxt
+  | activate_facts_elem note_thmss which
+        disch (prfx, atts) (thy_ctxt, Notes facts) =
       let
-        (* extract theory attributes *)
-        val (Notes facts) = map_attrib_element_i fst (Notes facts);
+        (* extract theory or context attributes *)
+        val (Notes facts) = map_attrib_element_i which (Notes facts);
         (* add attributs from registration *)
         val facts' = map (apfst (apsnd (fn a => a @ atts))) facts;
         (* discharge hyps and varify *)
-        val facts'' = map (apsnd (map (apfst (map (Drule.standard o disch))))) facts';
+        val facts'' = map (apsnd (map (apfst (map disch)))) facts';
+        (* prefix names *)
+        val facts''' = map (apfst (apfst (fn name =>
+          if prfx = "" orelse name = "" then name
+          else NameSpace.pack [prfx, name]))) facts'';
       in
-        fst (note_thmss_qualified' "" prfx facts'' thy)
+        fst (note_thmss prfx facts''' thy_ctxt)
       end;
 
-fun activate_facts_elems disch (thy, (id, elems)) =
+fun activate_facts_elems get_reg note_thmss which
+        disch (thy_ctxt, (id, elems)) =
       let
-        val ((prfx, atts2), _) = valOf (global_get_registration thy id)
+        val ((prfx, atts2), _) = valOf (get_reg thy_ctxt id)
           handle Option => error ("(internal) unknown registration of " ^
             quote (fst id) ^ " while activating facts.");
       in
-        Library.foldl (activate_facts_elem disch (prfx, atts2)) (thy, elems)
+        Library.foldl (activate_facts_elem note_thmss which
+          disch (prfx, atts2)) (thy_ctxt, elems)
       end;
 
-fun activate_facts_elemss all_elemss new_elemss thy =
+fun gen_activate_facts_elemss get_reg note_thmss which standard
+        all_elemss new_elemss thy_ctxt =
       let
         val prems = List.concat (List.mapPartial (fn (id, _) =>
-              Option.map snd (global_get_registration thy id)
+              Option.map snd (get_reg thy_ctxt id)
                 handle Option => error ("(internal) unknown registration of " ^
                   quote (fst id) ^ " while activating facts.")) all_elemss);
-      in Library.foldl (activate_facts_elems (Drule.satisfy_hyps prems))
-        (thy, new_elemss) end;
+      in Library.foldl (activate_facts_elems get_reg note_thmss which
+        (standard o Drule.satisfy_hyps prems)) (thy_ctxt, new_elemss) end;
 
-in
+fun loc_accesses prfx name =
+  (* full qualified name is T.p.r.n where
+       T: theory name, p: interpretation prefix, r: renaming prefix, n: name
+  *)
+     if prfx = "" then
+       case NameSpace.unpack name of
+	   [] => [""]
+	 | [T, n] => map NameSpace.pack [[T, n], [n]]
+	 | [T, r, n] => map NameSpace.pack [[T, r, n], (*[T, n],*) [r, n], [n]]
+	 | _ => error ("Locale accesses: illegal name " ^ quote name)
+     else case NameSpace.unpack name of
+           [] => [""]
+         | [T, p, n] => map NameSpace.pack [[T, p, n], [p, n]]
+         | [T, p, r, n] => map NameSpace.pack
+             [[T, p, r, n], [T, p, n], [p, r, n], [p, n]]
+         | _ => error ("Locale accesses: illegal name " ^ quote name);
 
-fun prep_registration attn expr insts thy =
+val global_activate_facts_elemss = gen_activate_facts_elemss
+      get_global_registration
+      (fn prfx => PureThy.note_thmss_qualified_i (loc_accesses prfx)
+        (Drule.kind ""))
+      fst Drule.standard;
+val local_activate_facts_elemss = gen_activate_facts_elemss
+      get_local_registration (fn prfx => fn _ => fn ctxt => (ctxt, ctxt)) snd I;
+(*
+val local_activate_facts_elemss = gen_activate_facts_elemss
+      get_local_registration (fn prfx => ProofContext.note_thmss_i) snd I;
+*)
+
+fun gen_prep_registration mk_ctxt read_terms test_reg put_reg activate
+    attn expr insts thy_ctxt =
   let
-    val ctxt = ProofContext.init thy;
-    val sign = Theory.sign_of thy;
-    val tsig = Sign.tsig_of sign;
+    val ctxt = mk_ctxt thy_ctxt;
+    val sign = ProofContext.sign_of ctxt;
 
     val (ids, raw_elemss) =
           flatten (ctxt, intern_expr sign) ([], Expr expr);
@@ -1819,8 +1921,7 @@ fun prep_registration attn expr insts thy =
     val tvars = foldr Term.add_typ_tvars [] pvTs;
     val used = foldr Term.add_typ_varnames [] pvTs;
     fun sorts (a, i) = assoc (tvars, (a, i));
-    val (vs, vinst) = Sign.read_def_terms (sign, K NONE, sorts) used true
-         given_insts;
+    val (vs, vinst) = read_terms thy_ctxt sorts used given_insts;
     (* replace new types (which are TFrees) by ones with new names *)
     val new_Tnames = foldr Term.add_term_tfree_names [] vs;
     val new_Tnames' = Term.invent_names used "'a" (length new_Tnames);
@@ -1858,9 +1959,9 @@ fun prep_registration attn expr insts thy =
             map (fn Int e => e) elems)) 
           (ids' ~~ all_elemss);
 
-    (* remove fragments already registered with theory *)
+    (* remove fragments already registered with theory or context *)
     val new_inst_elemss = List.filter (fn (id, _) =>
-          is_none (global_get_registration thy id)) inst_elemss;
+          not (test_reg thy_ctxt id)) inst_elemss;
 
     val propss = extract_asms_elemss new_inst_elemss;
 
@@ -1868,9 +1969,27 @@ fun prep_registration attn expr insts thy =
     (** add registrations to theory,
         without theorems, these are added after the proof **)
 
-    val thy' = Library.foldl (prep_reg_global attn) (thy, new_inst_elemss);
+    val thy_ctxt' = Library.foldl (fn (thy_ctxt, (id, _)) =>
+          put_reg id attn thy_ctxt) (thy_ctxt, new_inst_elemss);
 
-  in (thy', propss, activate_facts_elemss inst_elemss new_inst_elemss) end;
+  in (thy_ctxt', propss, activate inst_elemss new_inst_elemss) end;
+
+in
+
+val prep_global_registration = gen_prep_registration
+     ProofContext.init
+     (fn thy => fn sorts => fn used =>
+       Sign.read_def_terms (Theory.sign_of thy, K NONE, sorts) used true)
+     test_global_registration
+     put_global_registration
+     global_activate_facts_elemss;
+
+val prep_local_registration = gen_prep_registration
+     I
+     (fn ctxt => ProofContext.read_termTs ctxt (K false) (K NONE))
+     smart_test_registration
+     put_local_registration
+     local_activate_facts_elemss;
 
 end;  (* local *)
 
@@ -1879,7 +1998,7 @@ end;  (* local *)
 (** locale theory setup **)
 
 val setup =
- [LocalesData.init,
+ [GlobalLocalesData.init, LocalLocalesData.init,
   add_locale_i true "var" empty [Fixes [(Syntax.internal "x", NONE, SOME Syntax.NoSyn)]],
   add_locale_i true "struct" empty [Fixes [(Syntax.internal "S", NONE, NONE)]]];
 

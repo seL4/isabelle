@@ -199,8 +199,8 @@ datatype context =
       sort Vartab.table *                                     (*default sorts*)
       string list *                                           (*used type variables*)
       term list Symtab.table,
-      delta: Object.T Symtab.table (* difference between local and global claset and simpset*),
-      delta_count: int ref (* number of local anonymous thms *)
+    delta: Object.T Symtab.table (* difference between local and global claset and simpset*),
+    delta_count: int ref (* number of local anonymous thms *)
 };                                (*type variable occurrences*)
 
 exception CONTEXT of string * context;

@@ -74,6 +74,7 @@
     "init_toplevel"
     "instance"
     "instantiate"
+    "interpret"
     "interpretation"
     "judgment"
     "kill"
@@ -389,6 +390,7 @@
 (defconst isar-keywords-proof-goal
   '("have"
     "hence"
+    "interpret"
     "show"
     "thus"))
 

@@ -157,6 +157,9 @@ sig
   val register_globally:
     ((string * Args.src list) * Locale.expr) * string option list ->
     bool -> theory -> ProofHistory.T
+  val register_locally:
+    ((string * Args.src list) * Locale.expr) * string option list ->
+    ProofHistory.T -> ProofHistory.T
 
 end;
 
@@ -625,16 +628,16 @@ fun init_context f x = Toplevel.init_theory (fn _ => fetch_context f x) (K ()) (
 val context = init_context (ThyInfo.quiet_update_thy true);
 
 
-(* global registration of locale interpretation *)
+(* registration of locale interpretation *)
 
-fun register_globally (((prfx, atts), expr), insts) b (* bool *) thy =
+fun register_globally (((prfx, atts), expr), insts) b thy =
   let
-    val (thy', propss, activate) = Locale.prep_registration
+    val (thy', propss, activate) = Locale.prep_global_registration
           (prfx, map (Attrib.global_attribute thy) atts) expr insts thy;
     fun witness id (thy, thm) = let
         val thm' = Drule.freeze_all thm;
       in
-        (Locale.global_add_witness id thm' thy, thm')
+        (Locale.add_global_witness id thm' thy, thm')
       end;
   in
     multi_theorem_i Drule.internalK activate ("", []) [] 
@@ -642,5 +645,18 @@ fun register_globally (((prfx, atts), expr), insts) b (* bool *) thy =
         map (fn prop => (prop, ([], []))) props)) propss) b thy'
   end;
 
+fun register_locally (((prfx, atts), expr), insts) =
+  ProofHistory.apply (fn state =>
+    let
+      val ctxt = Proof.context_of state;
+      val (ctxt', propss, activate) = Locale.prep_local_registration
+            (prfx, map (Attrib.local_attribute' ctxt) atts) expr insts ctxt;
+      fun witness id (ctxt, thm) = (Locale.add_local_witness id thm ctxt, thm);
+    in state
+      |> Proof.map_context (fn _ => ctxt')
+      |> Proof.interpret_i activate Seq.single true
+           (map (fn (id as (n, _), props) => ((NameSpace.base n, [witness id]),
+             map (fn prop => (prop, ([], []))) props)) propss)
+    end);
 
 end;

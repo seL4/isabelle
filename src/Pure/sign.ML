@@ -54,6 +54,7 @@ sig
   val typeK: string
   val constK: string
   val full_name: sg -> bstring -> string
+  val full_name': sg -> bstring -> string
   val full_name_path: sg -> string -> bstring -> string
   val base_name: string -> bstring
   val intern: sg -> string -> xstring -> string
@@ -491,7 +492,7 @@ fun change_space f spaces kind x = overwrite (spaces, (kind, f (space_of spaces 
 fun add_names x = change_space NameSpace.extend x;
 fun hide_names b x = change_space (NameSpace.hide b) x;
 
-(*make full names*)
+(*make full names, standard version*)
 fun full _ "" = error "Attempt to declare empty name \"\""
   | full NONE bname = bname
   | full (SOME path) bname =
@@ -502,6 +503,18 @@ fun full _ "" = error "Attempt to declare empty name \"\""
           if Syntax.is_identifier bname then ()
           else warning ("Declared non-identifier " ^ quote name); name
         end;
+
+(*make full names, variant permitting qualified names*)
+fun full' _ "" = error "Attempt to declare empty name \"\""
+  | full' NONE bname = bname
+  | full' (SOME path) bname =
+      let
+        val bnames = NameSpace.unpack bname;
+        val name = NameSpace.pack (path @ bnames)
+      in
+        if forall Syntax.is_identifier bnames then ()
+        else warning ("Declared non-identifier " ^ quote name); name
+      end;
 
 (*base name*)
 val base_name = NameSpace.base;
@@ -566,6 +579,7 @@ in
   val intern_tycons = intrn_tycons o spaces_of;
 
   val full_name = full o #path o rep_sg;
+  val full_name' = full' o #path o rep_sg;
 
   fun full_name_path sg elems =
     full (SOME (getOpt (#path (rep_sg sg), []) @ NameSpace.unpack elems));

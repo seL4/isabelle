@@ -45,10 +45,24 @@ sig
   val add_thms: ((bstring * thm) * theory attribute list) list -> theory -> theory * thm list
   val add_thmss: ((bstring * thm list) * theory attribute list) list -> theory
     -> theory * thm list list
-  val note_thmss: theory attribute -> ((bstring * theory attribute list) *
-    (thmref * theory attribute list) list) list -> theory -> theory * (bstring * thm list) list
-  val note_thmss_i: theory attribute -> ((bstring * theory attribute list) *
-    (thm list * theory attribute list) list) list -> theory -> theory * (bstring * thm list) list
+  val note_thmss:
+    theory attribute -> ((bstring * theory attribute list) *
+    (thmref * theory attribute list) list) list -> theory ->
+    theory * (bstring * thm list) list
+  val note_thmss_i:
+    theory attribute -> ((bstring * theory attribute list) *
+    (thm list * theory attribute list) list) list -> theory ->
+    theory * (bstring * thm list) list
+  val note_thmss_qualified:
+    (string -> string list) ->
+    theory attribute -> ((bstring * theory attribute list) *
+    (thmref * theory attribute list) list) list -> theory ->
+    theory * (bstring * thm list) list
+  val note_thmss_qualified_i:
+    (string -> string list) ->
+    theory attribute -> ((bstring * theory attribute list) *
+    (thm list * theory attribute list) list) list -> theory ->
+    theory * (bstring * thm list) list
   val add_axioms: ((bstring * string) * theory attribute list) list -> theory -> theory * thm list
   val add_axioms_i: ((bstring * term) * theory attribute list) list -> theory -> theory * thm list
   val add_axiomss: ((bstring * string list) * theory attribute list) list -> theory
@@ -309,15 +323,15 @@ fun name_thmss name xs = (case filter_out (null o fst) xs of
 fun warn_overwrite name = warning ("Replaced old copy of theorems " ^ quote name);
 fun warn_same name = warning ("Theorem database already contains a copy of " ^ quote name);
 
-fun enter_thms _ _ _ app_att thy ("", thms) = app_att (thy, thms)
-  | enter_thms sg pre_name post_name app_att thy (bname, thms) =
+fun gen_enter_thms _ _ _ _ _ app_att thy ("", thms) = app_att (thy, thms)
+  | gen_enter_thms full acc sg pre_name post_name app_att thy (bname, thms) =
       let
-        val name = Sign.full_name sg bname;
+        val name = full sg bname;
         val (thy', thms') = app_att (thy, pre_name name thms);
         val named_thms = post_name name thms';
 
         val r as ref {space, thms_tab, index} = get_theorems_sg sg;
-        val space' = NameSpace.extend (space, [name]);
+        val space' = NameSpace.extend' acc (space, [name]);
         val thms_tab' = Symtab.update ((name, named_thms), thms_tab);
         val index' = FactIndex.add (K false) (index, (name, named_thms));
       in
@@ -330,6 +344,7 @@ fun enter_thms _ _ _ app_att thy ("", thms) = app_att (thy, thms)
         (thy', named_thms)
       end;
 
+fun enter_thms sg = gen_enter_thms Sign.full_name NameSpace.accesses sg;
 
 (* add_thms(s) *)
 
@@ -351,21 +366,31 @@ val add_thms = gen_add_thms (name_thms true);
 
 local
 
-fun gen_note_thss get kind_att (thy, ((bname, more_atts), ths_atts)) =
+fun gen_note_thss enter get kind_att (thy, ((bname, more_atts), ths_atts)) =
   let
     fun app (x, (ths, atts)) = Thm.applys_attributes ((x, ths), atts);
-    val (thy', thms) = enter_thms (Theory.sign_of thy)
+    val (thy', thms) = enter (Theory.sign_of thy)
       name_thmss (name_thms false) (apsnd List.concat o foldl_map app) thy
       (bname, map (fn (ths, atts) => (get thy ths, atts @ more_atts @ [kind_att])) ths_atts);
   in (thy', (bname, thms)) end;
 
-fun gen_note_thmss get kind_att args thy =
-  foldl_map (gen_note_thss get kind_att) (thy, args);
+fun gen_note_thmss enter get kind_att args thy =
+  foldl_map (gen_note_thss enter get kind_att) (thy, args);
 
 in
 
-val note_thmss = gen_note_thmss get_thms;
-val note_thmss_i = gen_note_thmss (K I);
+(* if path is set, only permit unqualified names *)
+
+val note_thmss = gen_note_thmss enter_thms get_thms;
+val note_thmss_i = gen_note_thmss enter_thms (K I);
+
+(* always permit qualified names,
+   clients may specify non-standard access policy *)
+
+fun note_thmss_qualified acc =
+  gen_note_thmss (gen_enter_thms Sign.full_name' acc) get_thms;
+fun note_thmss_qualified_i acc =
+  gen_note_thmss (gen_enter_thms Sign.full_name' acc) (K I);
 
 end;
 

@@ -222,10 +222,9 @@ fun print_locale (import, body) = Toplevel.unknown_theory o Toplevel.keep (fn st
     Locale.print_locale thy import (map (Locale.map_attrib_element (Attrib.multi_attribute thy)) body)
   end);
 
-fun print_registrations name = Toplevel.unknown_theory o
-  Toplevel.keep (fn state => let val thy = Toplevel.theory_of state in
-    Locale.print_global_registrations thy name
-  end);
+fun print_registrations name = Toplevel.unknown_context o
+  Toplevel.keep (Toplevel.node_case (Locale.print_global_registrations name)
+    (Locale.print_local_registrations name o Proof.context_of));
 
 val print_attributes = Toplevel.unknown_theory o
   Toplevel.keep (Attrib.print_attributes o Toplevel.theory_of);

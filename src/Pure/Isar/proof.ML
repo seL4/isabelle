@@ -115,6 +115,12 @@ sig
   val have_i: (state -> state Seq.seq) -> bool
     -> ((string * context attribute list) * (term * (term list * term list)) list) list
     -> state -> state
+  val interpret: (context -> context) -> (state -> state Seq.seq) -> bool
+    -> ((string * context attribute list) * (string * (string list * string list)) list) list
+    -> state -> state
+  val interpret_i: (context -> context) -> (state -> state Seq.seq) -> bool
+    -> ((string * context attribute list) * (term * (term list * term list)) list) list
+    -> state -> state
   val at_bottom: state -> bool
   val local_qed: (state -> state Seq.seq)
     -> (context -> string * (string * thm list) list -> unit) * (context -> thm -> unit)
@@ -143,11 +149,12 @@ type context = ProofContext.context;
 
 (* type goal *)
 
-(* CB: three kinds of Isar goals are distinguished:
+(* CB: four kinds of Isar goals are distinguished:
    - Theorem: global goal in a theory, corresponds to Isar commands theorem,
      lemma and corollary,
    - Have: local goal in a proof, Isar command have
    - Show: local goal in a proof, Isar command show
+   - Interpret: local goal in a proof, Isar command interpret
 *)
 
 datatype kind =
@@ -156,10 +163,14 @@ datatype kind =
     locale_spec: (string * (Locale.multi_attribute list * Locale.multi_attribute list list)) option,
     view: cterm list * cterm list, (* target view and includes view *)
     thy_mod: theory -> theory} |   (* used in finish_global to modify final
-      theory, normally set to I;
-      used by registration command to activate registrations *)
+                                      theory, normally set to I; used by
+                                      registration command to activate
+                                      registrations *)
   Show of context attribute list list |
-  Have of context attribute list list;
+  Have of context attribute list list |
+  Interpret of {attss: context attribute list list,
+    ctxt_mod: context -> context}; (* used in finish_local to modify final
+                                      context *)
 
 (* CB: this function prints the goal kind (Isar command), name and target in
    the proof state *)
@@ -170,7 +181,8 @@ fun kind_name _ (Theorem {kind = s, theory_spec = ((a, _), _),
         locale_spec = SOME (name, _), ...}) =
       s ^ " (in " ^ Locale.cond_extern sg name ^ ")" ^ (if a = "" then "" else " " ^ a)
   | kind_name _ (Show _) = "show"
-  | kind_name _ (Have _) = "have";
+  | kind_name _ (Have _) = "have"
+  | kind_name _ (Interpret _) = "interpret";
 
 type goal =
  (kind *             (*result kind*)
@@ -824,7 +836,10 @@ val show = local_goal' ProofContext.bind_propp Show;
 val show_i = local_goal' ProofContext.bind_propp_i Show;
 val have = local_goal ProofContext.bind_propp Have;
 val have_i = local_goal ProofContext.bind_propp_i Have;
-
+fun interpret ctxt_mod = local_goal ProofContext.bind_propp
+  (fn attss => Interpret {attss = attss, ctxt_mod = ctxt_mod});
+fun interpret_i ctxt_mod = local_goal ProofContext.bind_propp_i
+  (fn attss => Interpret {attss = attss, ctxt_mod = ctxt_mod});
 
 
 (** conclusions **)
@@ -872,19 +887,28 @@ fun finish_local (print_result, print_rule) state =
       results |> map (ProofContext.export false goal_ctxt outer_ctxt)
       |> Seq.commute |> Seq.map (Library.unflat tss);
 
-    val (attss, opt_solve) =
+    val (attss, opt_solve, ctxt_mod) =
       (case kind of
         Show attss => (attss,
-          export_goals goal_ctxt (if pr then print_rule else (K (K ()))) results)
-      | Have attss => (attss, Seq.single)
+          export_goals goal_ctxt (if pr then print_rule else (K (K ())))
+            results, I)
+      | Have attss => (attss, Seq.single, I)
+      | Interpret {attss, ctxt_mod} => (attss, Seq.single, ctxt_mod)
       | _ => err_malformed "finish_local" state);
   in
     conditional pr (fn () => print_result goal_ctxt
       (kind_name (sign_of state) kind, names ~~ Library.unflat tss results));
     outer_state
     |> auto_bind_facts (ProofContext.generalize goal_ctxt outer_ctxt ts)
+(* original version
     |> (fn st => Seq.map (fn res =>
-      note_thmss_i ((names ~~ attss) ~~ map (single o Thm.no_attributes) res) st) resultq)
+      note_thmss_i ((names ~~ attss) ~~
+          map (single o Thm.no_attributes) res) st) resultq)
+*)
+    |> (fn st => Seq.map (fn res =>
+      st |> note_thmss_i ((names ~~ attss) ~~
+              map (single o Thm.no_attributes) res)
+         |> map_context ctxt_mod) resultq)
     |> (Seq.flat o Seq.map opt_solve)
     |> (Seq.flat o Seq.map after_qed)
   end;

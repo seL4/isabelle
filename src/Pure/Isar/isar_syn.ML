@@ -317,11 +317,17 @@ val view_val =
 
 val interpretationP =
   OuterSyntax.command "interpretation"
-  "prove and register interpretation of locale expression" K.thy_goal
+  "prove and register interpretation of locale expression in theory" K.thy_goal
   ((P.opt_thm_name ":" -- P.locale_expr -- P.!!! view_val
      >> IsarThy.register_globally)
    >> (Toplevel.print oo Toplevel.theory_to_proof));
 
+val interpretP =
+  OuterSyntax.command "interpret"
+    "prove and register interpretation of locale expression in context"
+    K.prf_goal
+    (P.opt_thm_name ":" -- P.locale_expr -- P.!!! view_val >>
+      ((Toplevel.print oo Toplevel.proof) o IsarThy.register_locally));
 
 (** proof commands **)
 
@@ -800,7 +806,7 @@ val parsers = [
   default_proofP, immediate_proofP, done_proofP, skip_proofP,
   forget_proofP, deferP, preferP, applyP, apply_endP, proofP, alsoP,
   finallyP, moreoverP, ultimatelyP, backP, cannot_undoP, clear_undosP,
-  redoP, undos_proofP, undoP, killP, interpretationP, instantiateP,
+  redoP, undos_proofP, undoP, killP, interpretationP, interpretP, instantiateP,
   (*diagnostic commands*)
   pretty_setmarginP, print_commandsP, print_contextP, print_theoryP,
   print_syntaxP, print_theoremsP, print_localesP, print_localeP,

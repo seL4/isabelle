@@ -20,7 +20,7 @@ interpretation test [simp]: L + M a b c [x y z] .
 print_interps L
 print_interps M
 
-interpretation test [simp]: L .
+interpretation test [simp]: L print_interps M .
 
 interpretation L .
 
@@ -52,8 +52,19 @@ interpretation p1: C ["X::'b" "Y::'b"] by (auto intro: A.intro C_axioms.intro)
 
 print_interps A
 
-(*
-thm asm_A a.asm_A p1.a.asm_A
+(* possible accesses
+thm p1.a.asm_A thm LocaleTest.p1.a.asm_A
+thm LocaleTest.asm_A thm p1.asm_A
+*)
+
+(* without prefix *)
+
+interpretation C ["W::'b" "Z::'b"] by (auto intro: A.intro C_axioms.intro)
+
+print_interps A
+
+(* possible accesses
+thm a.asm_A thm asm_A thm LocaleTest.a.asm_A thm LocaleTest.asm_A
 *)
 
 interpretation p2: D [X Y "Y = X"] by (auto intro: A.intro simp: eq_commute)
@@ -64,7 +75,7 @@ print_interps D
 thm p2.a.asm_A
 *)
 
-interpretation p3: D [X Y] by (auto intro: A.intro)
+interpretation p3: D [X Y] .
 
 (* duplicate: not registered *)
 (*
@@ -86,5 +97,19 @@ print_interps A
 (* TODO!!!
 interpretation A [Z] apply - apply (auto intro: A.intro) done
 *)
+
+theorem True
+proof -
+  fix alpha::i and beta::i and gamma::i
+  assume "A(alpha)"
+  then interpret p5: A [alpha] .
+  print_interps A
+  interpret p6: C [alpha beta] by (auto intro: C_axioms.intro)
+  print_interps A   (* p6 not added! *)
+  print_interps C
+qed rule
+
+(* lemma "bla.bla": True by rule *)
+
 
 end
