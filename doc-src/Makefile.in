@@ -1,0 +1,35 @@
+#
+# $Id$
+#
+# Common part for Doc Makefiles
+#
+
+## settings
+
+LATEX = latex
+BIBTEX = bibtex
+RAIL = rail
+SEDINDEX = ../sedindex
+
+GARBAGE = *.aux *.log *.toc *.idx *.rai *.bbl *.ind *.blg
+OUTPUT = *.dvi *.pdf *.ps
+
+
+## actions
+
+nothing:
+
+clean:
+	@rm -f $(GARBAGE)
+
+veryclean:
+	@rm -f $(OUTPUT) $(GARBAGE)
+
+isabelle.eps:
+	test -r $* || ln -s ../gfx/$* .
+
+isabelle_hol.eps:
+	test -r $* || ln -s ../gfx/$* .
+
+isabelle_zf.eps:
+	test -r $* || ln -s ../gfx/$* .
