@@ -296,7 +296,7 @@ fun update () =
                              let val ThyInfo {children, ...} = the thy
                              in children union (next_level ts)
                              end
-                         else []
+                         else next_level ts
                       end
                   | next_level [] = [];
                   
