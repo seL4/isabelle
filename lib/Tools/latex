@@ -78,18 +78,7 @@ function run_pdflatex () { $ISABELLE_PDFLATEX "\\nonstopmode\\input{$FILEBASE.te
 function run_bibtex () { $ISABELLE_BIBTEX </dev/null "$FILEBASE"; }
 function run_dvips () { $ISABELLE_DVIPS -q -o "$FILEBASE.ps" "$FILEBASE.dvi"; }
 function run_thumbpdf () { [ -n "$ISABELLE_THUMBPDF" ] && $ISABELLE_THUMBPDF "$FILEBASE"; }
-
-function update_styles ()
-{
-  for NAME in "$ISABELLE_HOME/lib/texinputs"/*.sty
-  do
-    DEST="$DIR"/$(basename "$NAME")
-    if [ ! -e "$DEST" -o "$NAME" -nt "$DEST" ]; then
-      echo "updating $DEST"
-      cp -f "$NAME" "$DEST"
-    fi
-  done
-}
+function copy_styles () { cp -f "$ISABELLE_HOME/lib/texinputs"/*.sty "$DIR"; }
 
 case "$OUTFORMAT" in
   dvi)
@@ -132,7 +121,7 @@ case "$OUTFORMAT" in
     RC="$?"
     ;;
   sty)
-    update_styles
+    copy_styles
     RC="$?"
     ;;
   *)
