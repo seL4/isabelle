@@ -650,21 +650,24 @@ fun setup_goal opt_block prepp autofix kind after_qed names raw_propss state =
 
 (*global goals*)
 fun global_goal prepp prep_locale activate kind a raw_locale elems args thy =
-  let val locale = apsome (apfst (prep_locale (Theory.sign_of thy))) raw_locale in
-    thy
-    |> init_state
+  let
+    val st = thy |> init_state |> open_block;
+    val (activate_locale, activate_elems) = activate (context_of st)
+      ((case raw_locale of None => Locale.empty | Some (name, _) => Locale.Locale name), elems);
+    val locale = apsome (apfst (prep_locale (Theory.sign_of thy))) raw_locale;
+  in
+    st
+    |> map_context activate_locale
     |> open_block
-    |> (case locale of Some (name, _) => map_context (Locale.activate_locale_i name) | None => I)
-    |> open_block
-    |> map_context (activate elems)
+    |> map_context activate_elems
     |> setup_goal I prepp ProofContext.fix_frees (Theorem (kind, a, locale, map (snd o fst) args))
       Seq.single (map (fst o fst) args) (map snd args)
   end;
 
 val multi_theorem =
-  global_goal ProofContext.bind_propp_schematic Locale.intern Locale.activate_elements;
+  global_goal ProofContext.bind_propp_schematic Locale.intern Locale.activate_context;
 val multi_theorem_i =
-  global_goal ProofContext.bind_propp_schematic_i (K I) Locale.activate_elements_i;
+  global_goal ProofContext.bind_propp_schematic_i (K I) Locale.activate_context_i;
 
 fun theorem k locale elems name atts p =
   multi_theorem k (name, atts) locale elems [(("", []), [p])];
