@@ -819,6 +819,13 @@ fun devar (T as TVar(v, _), tye) = (case  assoc(tye, v)  of
         | None   =>  T)
   | devar (T, tye) = T;
 
+(* use add_to_tye(t,tye) instead of t::tye
+to avoid chains of the form 'a |-> 'b |-> 'c ... *)
+
+fun add_to_tye(p,[]) = [p]
+  | add_to_tye(vT as (v,T),(xU as (x,TVar(w,S)))::ps) =
+      (if v=w then (x,T) else xU) :: (add_to_tye(vT,ps))
+  | add_to_tye(v,x::xs) = x::(add_to_tye(v,xs));
 
 (* 'dom' returns for a type constructor t the list of those domains
    which deliver a given range class C *)
@@ -843,7 +850,7 @@ fun W ((T, S), tsig as TySg{subclass, arities, ...}, tye) =
   let fun Wd ((T, S), tye) = W ((devar (T, tye), S), tsig, tye)
       fun Wk(T as TVar(v, S')) =
               if sortorder subclass (S', S) then tye
-              else (v, gen_tyvar(union_sort subclass (S', S)))::tye
+              else add_to_tye((v, gen_tyvar(union_sort subclass (S', S))),tye)
         | Wk(T as TFree(v, S')) = if sortorder subclass (S', S) then tye
                                  else raise TUNIFY
         | Wk(T as Type(f, Ts)) =
@@ -860,14 +867,14 @@ fun unify1 (tsig as TySg{subclass, arities, ...}) =
         case (devar(T, tye), devar(U, tye)) of
           (T as TVar(v, S1), U as TVar(w, S2)) =>
              if v=w then tye else
-             if sortorder subclass (S1, S2) then (w, T)::tye else
-             if sortorder subclass (S2, S1) then (v, U)::tye
+             if sortorder subclass (S1, S2) then add_to_tye((w, T),tye) else
+             if sortorder subclass (S2, S1) then add_to_tye((v, U),tye)
              else let val nu = gen_tyvar (union_sort subclass (S1, S2))
-                  in (v, nu)::(w, nu)::tye end
+                  in add_to_tye((v, nu),add_to_tye((w, nu),tye)) end
         | (T as TVar(v, S), U) =>
-             if occ v tye U then raise TUNIFY else W ((U,S), tsig, (v, U)::tye)
+             if occ v tye U then raise TUNIFY else W ((U,S), tsig, add_to_tye((v, U),tye))
         | (U, T as TVar (v, S)) =>
-             if occ v tye U then raise TUNIFY else W ((U,S), tsig, (v, U)::tye)
+             if occ v tye U then raise TUNIFY else W ((U,S), tsig, add_to_tye((v, U),tye))
         | (Type(a, Ts), Type(b, Us)) =>
              if a<>b then raise TUNIFY else foldr unif (Ts~~Us, tye)
         | (T, U) => if T=U then tye else raise TUNIFY
