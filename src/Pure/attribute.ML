@@ -149,15 +149,16 @@ val get_attributes = get_attributes_sg o Theory.sign_of;
 
 (* get global / local attributes *)
 
-fun gen_attr which thy (raw_name, args) =
+fun gen_attr which thy =
   let
     val {space, attrs} = get_attributes thy;
-    val name = NameSpace.intern space raw_name;
-  in
-    (case Symtab.lookup (attrs, name) of
-      None => raise FAIL (name, "unknown attribute")
-    | Some p => which p args)
-  end;
+    val intern = NameSpace.intern space;
+
+    fun attr (raw_name, args) x_th =
+      (case Symtab.lookup (attrs, intern raw_name) of
+        None => raise FAIL (intern raw_name, "unknown attribute")
+      | Some p => which p args x_th);
+  in attr end;
 
 val global_attr = gen_attr fst;
 val local_attr = gen_attr snd;
