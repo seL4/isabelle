@@ -5,4 +5,8 @@
 Top theory for HOLCF system.
 *)
 
-HOLCF = Sprod + Ssum + Up + Lift + Discrete + One + Tr
+theory HOLCF
+imports Sprod Ssum Up Lift Discrete One Tr
+begin
+
+end

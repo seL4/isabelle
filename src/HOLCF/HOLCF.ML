@@ -3,6 +3,11 @@
     Author:     Franz Regensburger
 *)
 
+structure HOLCF =
+struct
+  val thy = the_context ();
+end;
+
 use"adm.ML";
 
 simpset_ref() := simpset() addSolver
