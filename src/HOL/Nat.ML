@@ -95,9 +95,9 @@ by (rtac Suc_Rep_not_Zero_Rep 1);
 by (REPEAT (resolve_tac [Rep_Nat, Suc_RepI, Zero_RepI] 1));
 qed "Suc_not_Zero";
 
-bind_thm ("Zero_not_Suc", (Suc_not_Zero RS not_sym));
+bind_thm ("Zero_not_Suc", Suc_not_Zero RS not_sym);
 
-Addsimps [Suc_not_Zero,Zero_not_Suc];
+AddIffs [Suc_not_Zero,Zero_not_Suc];
 
 bind_thm ("Suc_neq_Zero", (Suc_not_Zero RS notE));
 val Zero_neq_Suc = sym RS Suc_neq_Zero;
@@ -118,9 +118,11 @@ goal Nat.thy "(Suc(m)=Suc(n)) = (m=n)";
 by (EVERY1 [rtac iffI, etac Suc_inject, etac arg_cong]); 
 qed "Suc_Suc_eq";
 
+AddIffs [Suc_Suc_eq];
+
 goal Nat.thy "n ~= Suc(n)";
 by (nat_ind_tac "n" 1);
-by (ALLGOALS(asm_simp_tac (!simpset addsimps [Suc_Suc_eq])));
+by (ALLGOALS Asm_simp_tac);
 qed "n_not_Suc_n";
 
 bind_thm ("Suc_n_not_n", n_not_Suc_n RS not_sym);
@@ -128,12 +130,11 @@ bind_thm ("Suc_n_not_n", n_not_Suc_n RS not_sym);
 (*** nat_case -- the selection operator for nat ***)
 
 goalw Nat.thy [nat_case_def] "nat_case a f 0 = a";
-by (fast_tac (!claset addIs [select_equality] addEs [Zero_neq_Suc]) 1);
+by (fast_tac (!claset addIs [select_equality]) 1);
 qed "nat_case_0";
 
 goalw Nat.thy [nat_case_def] "nat_case a f (Suc k) = f(k)";
-by (fast_tac (!claset addIs [select_equality] 
-                       addEs [make_elim Suc_inject, Suc_neq_Zero]) 1);
+by (fast_tac (!claset addIs [select_equality]) 1);
 qed "nat_case_Suc";
 
 (** Introduction rules for 'pred_nat' **)
@@ -152,9 +153,8 @@ qed "pred_natE";
 goalw Nat.thy [wf_def] "wf(pred_nat)";
 by (strip_tac 1);
 by (nat_ind_tac "x" 1);
-by (fast_tac (!claset addSEs [mp, pred_natE, Pair_inject, 
-                             make_elim Suc_inject]) 2);
-by (fast_tac (!claset addSEs [mp, pred_natE, Pair_inject, Zero_neq_Suc]) 1);
+by (fast_tac (!claset addSEs [mp, pred_natE]) 2);
+by (fast_tac (!claset addSEs [mp, pred_natE]) 1);
 qed "wf_pred_nat";
 
 
@@ -226,7 +226,7 @@ by (rtac lessI 1);
 by (etac less_trans 1);
 by (rtac lessI 1);
 qed "zero_less_Suc";
-Addsimps [zero_less_Suc];
+AddIffs [zero_less_Suc];
 
 (** Elimination properties **)
 
@@ -265,19 +265,19 @@ by (etac lessE 1);
 by (etac Zero_neq_Suc 1);
 by (etac Zero_neq_Suc 1);
 qed "not_less0";
-Addsimps [not_less0];
+
+AddIffs [not_less0];
 
 (* n<0 ==> R *)
-bind_thm ("less_zeroE", (not_less0 RS notE));
-AddSEs [less_zeroE];
+bind_thm ("less_zeroE", not_less0 RS notE);
 
 val [major,less,eq] = goal Nat.thy
     "[| m < Suc(n);  m<n ==> P;  m=n ==> P |] ==> P";
 by (rtac (major RS lessE) 1);
 by (rtac eq 1);
-by (fast_tac (!claset addSDs [Suc_inject]) 1);
+by (Fast_tac 1);
 by (rtac less 1);
-by (fast_tac (!claset addSDs [Suc_inject]) 1);
+by (Fast_tac 1);
 qed "less_SucE";
 
 goal Nat.thy "(m < Suc(n)) = (m < n | m = n)";
@@ -305,11 +305,8 @@ qed_goal "zero_less_eq" Nat.thy "0 < n = (n ~= 0)" (fn _ => [
 val [prem] = goal Nat.thy "Suc(m) < n ==> m<n";
 by (rtac (prem RS rev_mp) 1);
 by (nat_ind_tac "n" 1);
-by (rtac impI 1);
-by (etac less_zeroE 1);
-by (fast_tac (!claset addSIs [lessI RS less_SucI]
-                     addSDs [Suc_inject]
-                     addEs  [less_trans, lessE]) 1);
+by (ALLGOALS (fast_tac (!claset addSIs [lessI RS less_SucI]
+                                addEs  [less_trans, lessE])));
 qed "Suc_lessD";
 
 val [major,minor] = goal Nat.thy 
@@ -321,21 +318,15 @@ by (etac (Suc_lessD RS minor) 1);
 by (assume_tac 1);
 qed "Suc_lessE";
 
-val [major] = goal Nat.thy "Suc(m) < Suc(n) ==> m<n";
-by (rtac (major RS lessE) 1);
-by (REPEAT (rtac lessI 1
-     ORELSE eresolve_tac [make_elim Suc_inject, ssubst, Suc_lessD] 1));
+goal Nat.thy "!!m n. Suc(m) < Suc(n) ==> m<n";
+by (fast_tac (!claset addEs [lessE, Suc_lessD] addIs [lessI]) 1);
 qed "Suc_less_SucD";
 
-val prems = goal Nat.thy "m<n ==> Suc(m) < Suc(n)";
-by (subgoal_tac "m<n --> Suc(m) < Suc(n)" 1);
-by (fast_tac (!claset addIs prems) 1);
+goal Nat.thy "!!m n. m<n ==> Suc(m) < Suc(n)";
+by (etac rev_mp 1);
 by (nat_ind_tac "n" 1);
-by (rtac impI 1);
-by (etac less_zeroE 1);
-by (fast_tac (!claset addSIs [lessI]
-                     addSDs [Suc_inject]
-                     addEs  [less_trans, lessE]) 1);
+by (ALLGOALS (fast_tac (!claset addSIs [lessI]
+                                addEs  [less_trans, lessE])));
 qed "Suc_mono";
 
 
@@ -411,7 +402,7 @@ qed "le_0_eq";
 
 Addsimps [less_not_refl,
           (*less_Suc_eq, makes simpset non-confluent*) le0, le_0_eq,
-          Suc_Suc_eq, Suc_n_not_le_n,
+          Suc_n_not_le_n,
           n_not_Suc_n, Suc_n_not_n,
           nat_case_0, nat_case_Suc, nat_rec_0, nat_rec_Suc];
 

@@ -276,6 +276,3 @@ goalw Trancl.thy [trancl_def]
 by (fast_tac (!claset addSDs [lemma]) 1);
 qed "trancl_subset_Sigma";
 
-(* Don't add r_into_rtrancl: it messes up the proofs in Lambda *)
-val trancl_cs = rel_cs addIs [rtrancl_refl];
-

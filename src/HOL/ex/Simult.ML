@@ -64,7 +64,7 @@ qed "TF_induct_lemma";
 
 AddSIs [PartI];
 AddSDs [In0_inject, In1_inject];
-AddSEs [In0_neq_In1, In1_neq_In0, PartE];
+AddSEs [PartE];
 
 (*Could prove  ~ TCONS M N : Part (TF A) In1  etc. *)
 

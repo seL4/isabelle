@@ -8,10 +8,8 @@ List lemmas
 
 open List;
 
-val [Nil_not_Cons,Cons_not_Nil] = list.distinct;
-
-bind_thm("Cons_neq_Nil", Cons_not_Nil RS notE);
-bind_thm("Nil_neq_Cons", sym RS Cons_neq_Nil);
+AddIffs list.distinct;
+AddIffs list.inject;
 
 bind_thm("Cons_inject", (hd list.inject) RS iffD1 RS conjE);
 

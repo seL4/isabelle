@@ -156,10 +156,7 @@ qed "suc_leq_suc";
 
 goal Arith.thy "~0<n --> n = 0";
   by (nat_ind_tac "n" 1);
-  by (Asm_simp_tac 1);
-  by (safe_tac (!claset));
-  by (Asm_full_simp_tac 1);
-  by (Asm_full_simp_tac 1);
+  by (Auto_tac ());
 qed "zero_eq";
 
 goal Arith.thy "x < Suc(y) --> x<=y";

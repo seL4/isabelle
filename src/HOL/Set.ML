@@ -3,7 +3,7 @@
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1991  University of Cambridge
 
-For set.thy.  Set theory for higher-order logic.  A set is simply a predicate.
+Set theory for higher-order logic.  A set is simply a predicate.
 *)
 
 open Set;

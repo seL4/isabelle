@@ -165,7 +165,7 @@ val lemma = (*makes the link between the two induction rules*)
 
 (*Simplification largely reduces the mutual induction rule to the 
   standard rule*)
-val mut_ss = min_ss addsimps [Inl_Inr_eq, Inr_Inl_eq, Inl_eq, Inr_eq, split];
+val mut_ss = min_ss addsimps [Inl_not_Inr, Inr_not_Inl, Inl_eq, Inr_eq, split];
 
 val all_defs = [split RS eq_reflection] @ Inductive.con_defs @ part_rec_defs;
 

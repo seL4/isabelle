@@ -74,10 +74,7 @@ by (rtac (CONS_not_NIL RS (inj_onto_Abs_list RS inj_onto_contraD)) 1);
 by (REPEAT (resolve_tac (list.intrs @ [rangeI, Rep_list]) 1));
 qed "Cons_not_Nil";
 
-bind_thm ("Nil_not_Cons", (Cons_not_Nil RS not_sym));
-
-bind_thm ("Cons_neq_Nil2", (Cons_not_Nil RS notE));
-val Nil_neq_Cons = sym RS Cons_neq_Nil2;
+bind_thm ("Nil_not_Cons", Cons_not_Nil RS not_sym);
 
 (** Injectiveness of CONS and Cons **)
 
@@ -85,11 +82,11 @@ goalw SList.thy [CONS_def] "(CONS K M=CONS L N) = (K=L & M=N)";
 by (fast_tac (!claset addSEs [Scons_inject, make_elim In1_inject]) 1);
 qed "CONS_CONS_eq";
 
-bind_thm ("CONS_inject", (CONS_CONS_eq RS iffD1 RS conjE));
-
 (*For reasoning about abstract list constructors*)
 AddIs ([Rep_list] @ list.intrs);
-AddSEs [CONS_neq_NIL,NIL_neq_CONS,CONS_inject];
+
+AddIffs [CONS_not_NIL, NIL_not_CONS, CONS_CONS_eq];
+
 AddSDs [inj_onto_Abs_list RS inj_ontoD,
         inj_Rep_list RS injD, Leaf_inject];
 
@@ -111,9 +108,10 @@ by (fast_tac (!claset addSDs [Scons_D]) 1);
 qed "sexp_CONS_D";
 
 
-(*Basic ss with constructors and their freeness*)
-Addsimps ([Cons_not_Nil, Nil_not_Cons, Cons_Cons_eq, CONS_not_NIL,
-           NIL_not_CONS, CONS_CONS_eq] @ list.intrs);
+(*Reasoning about constructors and their freeness*)
+Addsimps list.intrs;
+
+AddIffs [Cons_not_Nil, Nil_not_Cons, Cons_Cons_eq];
 
 goal SList.thy "!!N. N: list(A) ==> !M. N ~= CONS M N";
 by (etac list.induct 1);

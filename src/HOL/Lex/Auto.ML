@@ -29,7 +29,7 @@ by(safe_tac (!claset));
   by (case_tac "zs=[]" 1);
    by(hyp_subst_tac 1);
    by(Asm_full_simp_tac 1);
-  by(fast_tac (!claset addSEs [Cons_neq_Nil]) 1);
+  by(Fast_tac 1);
  by(res_inst_tac [("x","[x]")] exI 1);
  by(asm_simp_tac (!simpset addsimps [eq_sym_conv]) 1);
 by(res_inst_tac [("x","x#us")] exI 1);

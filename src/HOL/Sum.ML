@@ -40,16 +40,13 @@ by (rtac Inl_RepI 1);
 by (rtac Inr_RepI 1);
 qed "Inl_not_Inr";
 
-bind_thm ("Inl_neq_Inr", (Inl_not_Inr RS notE));
+bind_thm ("Inr_not_Inl", Inl_not_Inr RS not_sym);
+
+AddIffs [Inl_not_Inr, Inr_not_Inl];
+
+bind_thm ("Inl_neq_Inr", Inl_not_Inr RS notE);
+
 val Inr_neq_Inl = sym RS Inl_neq_Inr;
-
-goal Sum.thy "(Inl(a)=Inr(b)) = False";
-by (simp_tac (!simpset addsimps [Inl_not_Inr]) 1);
-qed "Inl_Inr_eq";
-
-goal Sum.thy "(Inr(b)=Inl(a))  =  False";
-by (simp_tac (!simpset addsimps [Inl_not_Inr RS not_sym]) 1);
-qed "Inr_Inl_eq";
 
 
 (** Injectiveness of Inl and Inr **)
@@ -88,16 +85,18 @@ goal Sum.thy "(Inr(x)=Inr(y)) = (x=y)";
 by (fast_tac (!claset addSEs [Inr_inject]) 1);
 qed "Inr_eq";
 
+AddIffs [Inl_eq, Inr_eq];
+
 (*** Rules for the disjoint sum of two SETS ***)
 
 (** Introduction rules for the injections **)
 
 goalw Sum.thy [sum_def] "!!a A B. a : A ==> Inl(a) : A plus B";
-by (REPEAT (ares_tac [UnI1,imageI] 1));
+by (Fast_tac 1);
 qed "InlI";
 
 goalw Sum.thy [sum_def] "!!b A B. b : B ==> Inr(b) : A plus B";
-by (REPEAT (ares_tac [UnI2,imageI] 1));
+by (Fast_tac 1);
 qed "InrI";
 
 (** Elimination rules **)
@@ -113,13 +112,8 @@ by (REPEAT (rtac refl 1
 qed "plusE";
 
 
-val sum_cs = set_cs addSIs [InlI, InrI] 
-                    addSEs [plusE, Inl_neq_Inr, Inr_neq_Inl]
-                    addSDs [Inl_inject, Inr_inject];
-
 AddSIs [InlI, InrI]; 
-AddSEs [plusE, Inl_neq_Inr, Inr_neq_Inl];
-AddSDs [Inl_inject, Inr_inject];
+AddSEs [plusE];
 
 
 (** sum_case -- the selection operator for sums **)
@@ -131,6 +125,8 @@ qed "sum_case_Inl";
 goalw Sum.thy [sum_case_def] "sum_case f g (Inr x) = g(x)";
 by (fast_tac (!claset addIs [select_equality]) 1);
 qed "sum_case_Inr";
+
+Addsimps [sum_case_Inl, sum_case_Inr];
 
 (** Exhaustion rule for sums -- a degenerate form of induction **)
 
@@ -152,22 +148,14 @@ qed "surjective_sum";
 
 goal Sum.thy "R(sum_case f g s) = \
 \             ((! x. s = Inl(x) --> R(f(x))) & (! y. s = Inr(y) --> R(g(y))))";
-by (rtac sumE 1);
-by (etac ssubst 1);
-by (stac sum_case_Inl 1);
-by (fast_tac (!claset addSEs [make_elim Inl_inject, Inl_neq_Inr]) 1);
-by (etac ssubst 1);
-by (stac sum_case_Inr 1);
-by (fast_tac (!claset addSEs [make_elim Inr_inject, Inr_neq_Inl]) 1);
+by (res_inst_tac [("s","s")] sumE 1);
+by (Auto_tac());
 qed "expand_sum_case";
-
-Addsimps [Inl_eq, Inr_eq, Inl_Inr_eq, Inr_Inl_eq,  sum_case_Inl, sum_case_Inr];
 
 (*Prevents simplification of f and g: much faster*)
 qed_goal "sum_case_weak_cong" Sum.thy
   "s=t ==> sum_case f g s = sum_case f g t"
   (fn [prem] => [rtac (prem RS arg_cong) 1]);
-
 
 
 

@@ -362,10 +362,10 @@ by (rtac (CONS_not_NIL RS (inj_onto_Abs_llist RS inj_onto_contraD)) 1);
 by (REPEAT (resolve_tac (llist.intrs @ [rangeI, Rep_llist]) 1));
 qed "LCons_not_LNil";
 
-bind_thm ("LNil_not_LCons", (LCons_not_LNil RS not_sym));
+bind_thm ("LNil_not_LCons", LCons_not_LNil RS not_sym);
 
-bind_thm ("LCons_neq_LNil", (LCons_not_LNil RS notE));
-val LNil_neq_LCons = sym RS LCons_neq_LNil;
+AddIffs [LCons_not_LNil, LNil_not_LCons];
+
 
 (** llist constructors **)
 
@@ -392,14 +392,14 @@ bind_thm ("CONS_inject", (CONS_CONS_eq RS iffD1 RS conjE));
 (*For reasoning about abstract llist constructors*)
 
 AddIs ([Rep_llist]@llist.intrs);
-AddSEs [CONS_neq_NIL,NIL_neq_CONS,CONS_inject];
 AddSDs [inj_onto_Abs_llist RS inj_ontoD,
-                              inj_Rep_llist RS injD, Leaf_inject];
+	inj_Rep_llist RS injD, Leaf_inject];
 
 goalw LList.thy [LCons_def] "(LCons x xs=LCons y ys) = (x=y & xs=ys)";
 by (Fast_tac 1);
 qed "LCons_LCons_eq";
-bind_thm ("LCons_inject", (LCons_LCons_eq RS iffD1 RS conjE));
+
+AddIffs [LCons_LCons_eq];
 
 val [major] = goal LList.thy "CONS M N: llist(A) ==> M: A & N: llist(A)";
 by (rtac (major RS llist.elim) 1);

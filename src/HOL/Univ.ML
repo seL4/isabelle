@@ -27,13 +27,13 @@ qed "apfst_convE";
 
 (** Push -- an injection, analogous to Cons on lists **)
 
-val [major] = goalw Univ.thy [Push_def] "Push i f =Push j g  ==> i=j";
+val [major] = goalw Univ.thy [Push_def] "Push i f = Push j g  ==> i=j";
 by (rtac (major RS fun_cong RS box_equals RS Suc_inject) 1);
 by (rtac nat_case_0 1);
 by (rtac nat_case_0 1);
 qed "Push_inject1";
 
-val [major] = goalw Univ.thy [Push_def] "Push i f =Push j g  ==> f=g";
+val [major] = goalw Univ.thy [Push_def] "Push i f = Push j g  ==> f=g";
 by (rtac (major RS fun_cong RS ext RS box_equals) 1);
 by (rtac (nat_case_Suc RS ext) 1);
 by (rtac (nat_case_Suc RS ext) 1);
@@ -90,10 +90,8 @@ by (REPEAT (eresolve_tac [imageE, Abs_Node_inject RS apfst_convE,
                           Pair_inject, sym RS Push_neq_K0] 1
      ORELSE resolve_tac [Node_K0_I, Rep_Node RS Node_Push_I] 1));
 qed "Scons_not_Atom";
-bind_thm ("Atom_not_Scons", (Scons_not_Atom RS not_sym));
+bind_thm ("Atom_not_Scons", Scons_not_Atom RS not_sym);
 
-bind_thm ("Scons_neq_Atom", (Scons_not_Atom RS notE));
-val Atom_neq_Scons = sym RS Scons_neq_Atom;
 
 (*** Injectiveness ***)
 
@@ -104,12 +102,18 @@ by (fast_tac (!claset addSIs [Node_K0_I] addSDs [Abs_Node_inject]) 1);
 qed "inj_Atom";
 val Atom_inject = inj_Atom RS injD;
 
+goal Univ.thy "(Atom(a)=Atom(b)) = (a=b)";
+by (fast_tac (!claset addSEs [Atom_inject]) 1);
+qed "Atom_Atom_eq";
+AddIffs [Atom_Atom_eq];
+
 goalw Univ.thy [Leaf_def,o_def] "inj(Leaf)";
 by (rtac injI 1);
 by (etac (Atom_inject RS Inl_inject) 1);
 qed "inj_Leaf";
 
 val Leaf_inject = inj_Leaf RS injD;
+AddSDs [Leaf_inject];
 
 goalw Univ.thy [Numb_def,o_def] "inj(Numb)";
 by (rtac injI 1);
@@ -117,6 +121,7 @@ by (etac (Atom_inject RS Inr_inject) 1);
 qed "inj_Numb";
 
 val Numb_inject = inj_Numb RS injD;
+AddSDs [Numb_inject];
 
 (** Injectiveness of Push_Node **)
 
@@ -131,7 +136,7 @@ by (etac Pair_inject 1);
 by (etac (Push_inject1 RS sym) 1);
 by (rtac (inj_Rep_Node RS injD) 1);
 by (etac trans 1);
-by (safe_tac (!claset addSEs [Pair_inject,Push_inject,sym]));
+by (safe_tac (!claset addSEs [Push_inject,sym]));
 qed "Push_Node_inject";
 
 
@@ -139,14 +144,12 @@ qed "Push_Node_inject";
 
 val [major] = goalw Univ.thy [Scons_def] "M$N <= M'$N' ==> M<=M'";
 by (cut_facts_tac [major] 1);
-by (fast_tac (!claset addSDs [Suc_inject]
-                     addSEs [Push_Node_inject, Zero_neq_Suc]) 1);
+by (fast_tac (!claset addSEs [Push_Node_inject]) 1);
 qed "Scons_inject_lemma1";
 
 val [major] = goalw Univ.thy [Scons_def] "M$N <= M'$N' ==> N<=N'";
 by (cut_facts_tac [major] 1);
-by (fast_tac (!claset addSDs [Suc_inject]
-                     addSEs [Push_Node_inject, Suc_neq_Zero]) 1);
+by (fast_tac (!claset addSEs [Push_Node_inject]) 1);
 qed "Scons_inject_lemma2";
 
 val [major] = goal Univ.thy "M$N = M'$N' ==> M=M'";
@@ -165,10 +168,7 @@ val [major,minor] = goal Univ.thy
 by (rtac ((major RS Scons_inject2) RS ((major RS Scons_inject1) RS minor)) 1);
 qed "Scons_inject";
 
-(*rewrite rules*)
-goal Univ.thy "(Atom(a)=Atom(b)) = (a=b)";
-by (fast_tac (!claset addSEs [Atom_inject]) 1);
-qed "Atom_Atom_eq";
+AddSDs [Scons_inject];
 
 goal Univ.thy "(M$N = M'$N') = (M=M' & N=N')";
 by (fast_tac (!claset addSEs [Scons_inject]) 1);
@@ -181,35 +181,35 @@ qed "Scons_Scons_eq";
 goalw Univ.thy [Leaf_def,o_def] "(M$N) ~= Leaf(a)";
 by (rtac Scons_not_Atom 1);
 qed "Scons_not_Leaf";
-bind_thm ("Leaf_not_Scons", (Scons_not_Leaf RS not_sym));
+bind_thm ("Leaf_not_Scons", Scons_not_Leaf RS not_sym);
 
-bind_thm ("Scons_neq_Leaf", (Scons_not_Leaf RS notE));
-val Leaf_neq_Scons = sym RS Scons_neq_Leaf;
+AddIffs [Scons_not_Leaf, Leaf_not_Scons];
+
 
 (** Scons vs Numb **)
 
 goalw Univ.thy [Numb_def,o_def] "(M$N) ~= Numb(k)";
 by (rtac Scons_not_Atom 1);
 qed "Scons_not_Numb";
-bind_thm ("Numb_not_Scons", (Scons_not_Numb RS not_sym));
+bind_thm ("Numb_not_Scons", Scons_not_Numb RS not_sym);
 
-bind_thm ("Scons_neq_Numb", (Scons_not_Numb RS notE));
-val Numb_neq_Scons = sym RS Scons_neq_Numb;
+AddIffs [Scons_not_Numb, Numb_not_Scons];
+
 
 (** Leaf vs Numb **)
 
 goalw Univ.thy [Leaf_def,Numb_def] "Leaf(a) ~= Numb(k)";
-by (simp_tac (!simpset addsimps [Atom_Atom_eq,Inl_not_Inr]) 1);
+by (simp_tac (!simpset addsimps [Inl_not_Inr]) 1);
 qed "Leaf_not_Numb";
-bind_thm ("Numb_not_Leaf", (Leaf_not_Numb RS not_sym));
+bind_thm ("Numb_not_Leaf", Leaf_not_Numb RS not_sym);
 
-bind_thm ("Leaf_neq_Numb", (Leaf_not_Numb RS notE));
-val Numb_neq_Leaf = sym RS Leaf_neq_Numb;
+AddIffs [Leaf_not_Numb, Numb_not_Leaf];
 
 
 (*** ndepth -- the depth of a node ***)
 
-Addsimps [apfst_conv,Scons_not_Atom,Atom_not_Scons,Scons_Scons_eq];
+Addsimps [apfst_conv];
+AddIffs  [Scons_not_Atom, Atom_not_Scons, Scons_Scons_eq];
 
 
 goalw Univ.thy [ndepth_def] "ndepth (Abs_Node((%k.0, x))) = 0";
@@ -244,13 +244,11 @@ qed "ndepth_Push_Node";
 (*** ntrunc applied to the various node sets ***)
 
 goalw Univ.thy [ntrunc_def] "ntrunc 0 M = {}";
-by (safe_tac (!claset addSIs [equalityI] addSEs [less_zeroE]));
+by (Fast_tac 1);
 qed "ntrunc_0";
 
 goalw Univ.thy [Atom_def,ntrunc_def] "ntrunc (Suc k) (Atom a) = Atom(a)";
-by (safe_tac (!claset addSIs [equalityI]));
-by (stac ndepth_K0 1);
-by (rtac zero_less_Suc 1);
+by (fast_tac (!claset addss (!simpset addsimps [ndepth_K0])) 1);
 qed "ntrunc_Atom";
 
 goalw Univ.thy [Leaf_def,o_def] "ntrunc (Suc k) (Leaf a) = Leaf(a)";
@@ -275,7 +273,7 @@ qed "ntrunc_Scons";
 goalw Univ.thy [In0_def] "ntrunc (Suc 0) (In0 M) = {}";
 by (simp_tac (!simpset addsimps [ntrunc_Scons,ntrunc_0]) 1);
 by (rewtac Scons_def);
-by (safe_tac (!claset addSIs [equalityI]));
+by (Fast_tac 1);
 qed "ntrunc_one_In0";
 
 goalw Univ.thy [In0_def]
@@ -286,7 +284,7 @@ qed "ntrunc_In0";
 goalw Univ.thy [In1_def] "ntrunc (Suc 0) (In1 M) = {}";
 by (simp_tac (!simpset addsimps [ntrunc_Scons,ntrunc_0]) 1);
 by (rewtac Scons_def);
-by (safe_tac (!claset addSIs [equalityI]));
+by (Fast_tac 1);
 qed "ntrunc_one_In1";
 
 goalw Univ.thy [In1_def]
@@ -348,9 +346,9 @@ by (rtac notI 1);
 by (etac (Scons_inject1 RS Numb_inject RS Zero_neq_Suc) 1);
 qed "In0_not_In1";
 
-bind_thm ("In1_not_In0", (In0_not_In1 RS not_sym));
-bind_thm ("In0_neq_In1", (In0_not_In1 RS notE));
-val In1_neq_In0 = sym RS In0_neq_In1;
+bind_thm ("In1_not_In0", In0_not_In1 RS not_sym);
+
+AddIffs [In0_not_In1, In1_not_In0];
 
 val [major] = goalw Univ.thy [In0_def] "In0(M) = In0(N) ==>  M=N";
 by (rtac (major RS Scons_inject2) 1);
@@ -360,6 +358,7 @@ val [major] = goalw Univ.thy [In1_def] "In1(M) = In1(N) ==>  M=N";
 by (rtac (major RS Scons_inject2) 1);
 qed "In1_inject";
 
+AddSDs [In0_inject, In1_inject];
 
 (*** proving equality of sets and functions using ntrunc ***)
 
@@ -414,17 +413,15 @@ qed "In1_mono";
 (*** Split and Case ***)
 
 goalw Univ.thy [Split_def] "Split c (M$N) = c M N";
-by (fast_tac (!claset addIs [select_equality] addEs [Scons_inject]) 1);
+by (fast_tac (!claset addIs [select_equality]) 1);
 qed "Split";
 
 goalw Univ.thy [Case_def] "Case c d (In0 M) = c(M)";
-by (fast_tac (!claset addIs [select_equality] 
-                     addEs [make_elim In0_inject, In0_neq_In1]) 1);
+by (fast_tac (!claset addIs [select_equality]) 1);
 qed "Case_In0";
 
 goalw Univ.thy [Case_def] "Case c d (In1 N) = d(N)";
-by (fast_tac (!claset addIs [select_equality] 
-                     addEs [make_elim In1_inject, In1_neq_In0]) 1);
+by (fast_tac (!claset addIs [select_equality]) 1);
 qed "Case_In1";
 
 (**** UN x. B(x) rules ****)
@@ -506,11 +503,6 @@ by (DEPTH_SOLVE (ares_tac prems 1 ORELSE hyp_subst_tac 1));
 qed "dsumE";
 
 
-val univ_cs =
-    prod_cs addSIs [diagI, uprodI, dprodI]
-            addIs  [usum_In0I, usum_In1I, dsum_In0I, dsum_In1I]
-            addSEs [diagE, uprodE, dprodE, usumE, dsumE];
-
 AddSIs [diagI, uprodI, dprodI];
 AddIs  [usum_In0I, usum_In1I, dsum_In0I, dsum_In1I];
 AddSEs [diagE, uprodE, dprodE, usumE, dsumE];
@@ -556,18 +548,15 @@ val dsum_subset_Sigma = [dsum_mono, dsum_Sigma] MRS subset_trans |> standard;
 (*** Domain ***)
 
 goal Univ.thy "fst `` diag(A) = A";
-by (fast_tac (!claset addIs [diagI] addSEs [diagE]) 1);
+by (Fast_tac 1);
 qed "fst_image_diag";
 
 goal Univ.thy "fst `` (r<**>s) = (fst``r) <*> (fst``s)";
-by (fast_tac (!claset addIs [uprodI, dprodI]
-                     addSEs [uprodE, dprodE]) 1);
+by (Fast_tac 1);
 qed "fst_image_dprod";
 
 goal Univ.thy "fst `` (r<++>s) = (fst``r) <+> (fst``s)";
-by (fast_tac (!claset addIs [usum_In0I, usum_In1I, 
-                             dsum_In0I, dsum_In1I]
-                     addSEs [usumE, dsumE]) 1);
+by (Fast_tac 1);
 qed "fst_image_dsum";
 
 Addsimps [fst_image_diag, fst_image_dprod, fst_image_dsum];
