@@ -34,8 +34,7 @@ val if_def = thm "if_def";
 val arbitrary_def = thm "arbitrary_def";
 
 
-(** Equality **)
-section "=";
+section "Equality";
 
 Goal "s=t ==> t=s";
 by (etac subst 1);
@@ -65,8 +64,8 @@ by (rtac sym 1);
 by (REPEAT (assume_tac 1)) ;
 qed "box_equals";
 
-(** Congruence rules for meta-application **)
-section "Congruence";
+
+section "Congruence rules for application";
 
 (*similar to AP_THM in Gordon's HOL*)
 Goal "(f::'a=>'b) = g ==> f(x)=g(x)";
@@ -86,8 +85,8 @@ by (etac subst 1);
 by (rtac refl 1);
 qed "cong";
 
-(** Equality of booleans -- iff **)
-section "iff";
+
+section "Equality of booleans -- iff";
 
 val prems = Goal "[| P ==> Q;  Q ==> P |] ==> P=Q";
 by (REPEAT (ares_tac (prems@[impI, iff RS mp RS mp]) 1));
@@ -111,7 +110,6 @@ by (REPEAT (ares_tac [p1 RS iffD2, p1 RS iffD1, p2, impI] 1));
 qed "iffE";
 
 
-(** True **)
 section "True";
 
 Goalw [True_def] "True";
@@ -128,8 +126,7 @@ by (rtac TrueI 1);
 qed "eqTrueE";
 
 
-(** Universal quantifier **)
-section "!";
+section "Universal quantifier";
 
 val prems = Goalw [All_def] "(!!x::'a. P(x)) ==> ALL x. P(x)";
 by (resolve_tac (prems RL [eqTrueI RS ext]) 1);
@@ -150,9 +147,8 @@ by (REPEAT (resolve_tac (prems @ (prems RL [spec])) 1)) ;
 qed "all_dupE";
 
 
-(** False ** Depends upon spec; it is impossible to do propositional logic
-             before quantifiers! **)
 section "False";
+(*Depends upon spec; it is impossible to do propositional logic before quantifiers!*)
 
 Goalw [False_def] "False ==> P";
 by (etac spec 1);
@@ -163,8 +159,7 @@ by (etac (eqTrueE RS FalseE) 1);
 qed "False_neq_True";
 
 
-(** Negation **)
-section "~";
+section "Negation";
 
 val prems = Goalw [not_def] "(P ==> False) ==> ~P";
 by (rtac impI 1);
@@ -191,8 +186,7 @@ qed "notE";
 bind_thm ("notI2", notE RS notI);
 
 
-(** Implication **)
-section "-->";
+section "Implication";
 
 val prems = Goal "[| P-->Q;  P;  Q ==> R |] ==> R";
 by (REPEAT (resolve_tac (prems@[mp]) 1));
@@ -217,8 +211,7 @@ qed "rev_contrapos";
 bind_thm("not_sym", sym COMP rev_contrapos);
 
 
-(** Existential quantifier **)
-section "EX ";
+section "Existential quantifier";
 
 Goalw [Ex_def] "P x ==> EX x::'a. P x";
 by (etac someI 1) ;
@@ -230,8 +223,7 @@ by (rtac (major RS minor) 1);
 qed "exE";
 
 
-(** Conjunction **)
-section "&";
+section "Conjunction";
 
 Goalw [and_def] "[| P; Q |] ==> P&Q";
 by (rtac (impI RS allI) 1);
@@ -264,8 +256,7 @@ by (REPEAT (resolve_tac (conjI::prems) 1));
 qed "context_conjI";
 
 
-(** Disjunction *)
-section "|";
+section "Disjunction";
 
 Goalw [or_def] "P ==> P|Q";
 by (REPEAT (resolve_tac [allI,impI] 1));
@@ -284,8 +275,8 @@ by (DEPTH_SOLVE (ares_tac [impI,minorP,minorQ] 1));
 qed "disjE";
 
 
-(** CCONTR -- classical logic **)
-section "classical logic";
+section "Classical logic";
+(*CCONTR -- classical logic*)
 
 val [prem] = Goal  "(~P ==> P) ==> P";
 by (rtac (True_or_False RS disjE RS eqTrueE) 1);
@@ -325,8 +316,8 @@ by (etac notE 1);
 by (rtac p1 1);
 qed "swap2";
 
-(** Unique existence **)
-section "EX!";
+
+section "Unique existence";
 
 val prems = Goalw [Ex1_def] "[| P(a);  !!x. P(x) ==> x=a |] ==> EX! x. P(x)";
 by (REPEAT (ares_tac (prems@[exI,conjI,allI,impI]) 1));
@@ -352,8 +343,7 @@ by (assume_tac 1);
 qed "ex1_implies_ex";
 
 
-(** Select: Hilbert's Epsilon-operator **)
-section "@";
+section "SOME: Hilbert's Epsilon-operator";
 
 (*Easier to apply than someI if witness ?a comes from an EX-formula*)
 Goal "EX x. P x ==> P (SOME x. P x)";
@@ -415,8 +405,8 @@ by (rtac refl 1);
 by (etac sym 1);
 qed "some_sym_eq_trivial";
 
-(** Classical intro rules for disjunction and existential quantifiers *)
-section "classical intro rules";
+
+section "Classical intro rules for disjunction and existential quantifiers";
 
 val prems = Goal "(~Q ==> P) ==> P|Q";
 by (rtac classical 1);
