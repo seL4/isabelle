@@ -47,7 +47,6 @@ sig
   val of_sort: sg -> typ * sort -> bool
   val witness_sorts: sg -> sort list -> sort list -> (typ * sort) list
   val univ_witness: sg -> (typ * sort) option
-  val is_type_abbr: sg -> string -> bool
   val classK: string
   val typeK: string
   val constK: string
@@ -81,8 +80,11 @@ sig
   val str_of_arity: sg -> string * sort list * sort -> string
   val pprint_term: sg -> term -> pprint_args -> unit
   val pprint_typ: sg -> typ -> pprint_args -> unit
+  val certify_class: sg -> class -> class
+  val certify_sort: sg -> sort -> sort
   val certify_typ: sg -> typ -> typ
   val certify_term: sg -> term -> term * typ * int
+  val read_sort: sg -> string -> sort
   val read_raw_typ: sg * (indexname -> sort option) -> string -> typ
   val read_typ: sg * (indexname -> sort option) -> string -> typ
   val infer_types: sg -> (indexname -> typ option) ->
@@ -99,13 +101,13 @@ sig
   val add_classes_i: (bclass * class list) list -> sg -> sg
   val add_classrel: (xclass * xclass) list -> sg -> sg
   val add_classrel_i: (class * class) list -> sg -> sg
-  val add_defsort: xsort -> sg -> sg
+  val add_defsort: string -> sg -> sg
   val add_defsort_i: sort -> sg -> sg
   val add_types: (bstring * int * mixfix) list -> sg -> sg
   val add_nonterminals: bstring list -> sg -> sg
   val add_tyabbrs: (bstring * string list * string * mixfix) list -> sg -> sg
   val add_tyabbrs_i: (bstring * string list * typ * mixfix) list -> sg -> sg
-  val add_arities: (xstring * xsort list * xsort) list -> sg -> sg
+  val add_arities: (xstring * string list * string) list -> sg -> sg
   val add_arities_i: (string * sort list * sort) list -> sg -> sg
   val add_consts: (bstring * string * mixfix) list -> sg -> sg
   val add_consts_i: (bstring * typ * mixfix) list -> sg -> sg
@@ -271,7 +273,6 @@ val norm_sort = Type.norm_sort o tsig_of;
 val of_sort = Type.of_sort o tsig_of;
 val witness_sorts = Type.witness_sorts o tsig_of;
 val univ_witness = Type.univ_witness o tsig_of;
-val is_type_abbr = Type.is_type_abbr o tsig_of;
 
 
 
@@ -541,6 +542,23 @@ fun pprint_typ sg = Pretty.pprint o Pretty.quote o (pretty_typ sg);
 
 
 
+(** read sorts **)  (*exception ERROR*)
+
+fun err_in_sort s =
+  error ("The error(s) above occurred in sort " ^ quote s);
+
+fun rd_sort syn tsig spaces str =
+  let val S = intrn_sort spaces (Syntax.read_sort syn str handle ERROR => err_in_sort str)
+  in Type.cert_sort tsig S handle TYPE (msg, _, _) => (error_msg msg; err_in_sort str) end;
+
+(*read and certify sort wrt a signature*)
+fun read_sort (sg as Sg (_, {tsig, syn, spaces, ...})) str =
+  (check_stale sg; rd_sort syn tsig spaces str);
+
+fun cert_sort _ tsig _ = Type.cert_sort tsig;
+
+
+
 (** read types **)  (*exception ERROR*)
 
 fun err_in_type s =
@@ -561,10 +579,10 @@ fun read_typ (sg, def_sort) str =
 
 
 
-(** certify types and terms **)   (*exception TYPE*)
+(** certify classes, sorts, types and terms **)   (*exception TYPE*)
 
-(* certify_typ *)
-
+val certify_class = Type.cert_class o tsig_of;
+val certify_sort = Type.cert_sort o tsig_of;
 val certify_typ = Type.cert_typ o tsig_of;
 
 
@@ -760,9 +778,11 @@ fun no_read _ _ _ decl = decl;
 
 (* add default sort *)
 
-fun ext_defsort int (syn, tsig, ctab, (path, spaces), data) S =
-  (syn, Type.ext_tsig_defsort tsig (if int then intrn_sort spaces S else S),
-    ctab, (path, spaces), data);
+fun ext_defS prep_sort (syn, tsig, ctab, (path, spaces), data) S =
+  (syn, Type.ext_tsig_defsort tsig (prep_sort syn tsig spaces S), ctab, (path, spaces), data);
+
+val ext_defsort = ext_defS rd_sort;
+val ext_defsort_i = ext_defS cert_sort;
 
 
 (* add type constructors *)
@@ -804,16 +824,19 @@ fun ext_tyabbrs_i abbrs = ext_abbrs no_read abbrs;
 
 (* add type arities *)
 
-fun ext_arities int (syn, tsig, ctab, (path, spaces), data) arities =
+fun ext_ars int prep_sort (syn, tsig, ctab, (path, spaces), data) arities =
   let
-    fun intrn_arity (c, Ss, S) =
-      (intrn spaces typeK c, map (intrn_sort spaces) Ss, intrn_sort spaces S);
-    val intrn = if int then map intrn_arity else I;
-    val tsig' = Type.ext_tsig_arities tsig (intrn arities);
+    val prepS = prep_sort syn tsig spaces;
+    fun prep_arity (c, Ss, S) =
+      (if int then intrn spaces typeK c else c, map prepS Ss, prepS S);
+    val tsig' = Type.ext_tsig_arities tsig (map prep_arity arities);
     val log_types = Type.logical_types tsig';
   in
     (Syntax.extend_log_types syn log_types, tsig', ctab, (path, spaces), data)
   end;
+
+val ext_arities = ext_ars true rd_sort;
+val ext_arities_i = ext_ars false cert_sort;
 
 
 (* add term constants and syntax *)
@@ -964,14 +987,14 @@ val add_classes       = extend_sign true (ext_classes true) "#";
 val add_classes_i     = extend_sign true (ext_classes false) "#";
 val add_classrel      = extend_sign true (ext_classrel true) "#";
 val add_classrel_i    = extend_sign true (ext_classrel false) "#";
-val add_defsort       = extend_sign true (ext_defsort true) "#";
-val add_defsort_i     = extend_sign true (ext_defsort false) "#";
+val add_defsort       = extend_sign true ext_defsort "#";
+val add_defsort_i     = extend_sign true ext_defsort_i "#";
 val add_types         = extend_sign true ext_types "#";
 val add_nonterminals  = extend_sign true ext_nonterminals "#";
 val add_tyabbrs       = extend_sign true ext_tyabbrs "#";
 val add_tyabbrs_i     = extend_sign true ext_tyabbrs_i "#";
-val add_arities       = extend_sign true (ext_arities true) "#";
-val add_arities_i     = extend_sign true (ext_arities false) "#";
+val add_arities       = extend_sign true ext_arities "#";
+val add_arities_i     = extend_sign true ext_arities_i "#";
 val add_consts        = extend_sign true ext_consts "#";
 val add_consts_i      = extend_sign true ext_consts_i "#";
 val add_syntax        = extend_sign true ext_syntax "#";
