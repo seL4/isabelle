@@ -55,20 +55,17 @@ primrec
   "substb f (And b1 b2) = And (substb f b1) (substb f b2)"
   "substb f (Neg b) = Neg (substb f b)"
 
-lemma subst1_aexp_bexp:
-  "evala env (substa (Var (v := a')) a) = evala (env (v := evala env a')) a \<and>
-  evalb env (substb (Var (v := a')) b) = evalb (env (v := evala env a')) b"
+lemma subst1_aexp:
+  "evala env (substa (Var (v := a')) a) = evala (env (v := evala env a')) a"
+and subst1_bexp:
+  "evalb env (substb (Var (v := a')) b) = evalb (env (v := evala env a')) b"
     --  {* one variable *}
-  apply (induct a and b)
-         apply simp_all
-  done
+  by (induct a and b) simp_all
 
-lemma subst_all_aexp_bexp:
-  "evala env (substa s a) = evala (\<lambda>x. evala env (s x)) a \<and>
-  evalb env (substb s b) = evalb (\<lambda>x. evala env (s x)) b"
-    -- {* all variables *}
-  apply (induct a and b)
-         apply auto
-  done
+lemma subst_all_aexp:
+  "evala env (substa s a) = evala (\<lambda>x. evala env (s x)) a"
+and subst_all_bexp:
+  "evalb env (substb s b) = evalb (\<lambda>x. evala env (s x)) b"
+  by (induct a and b) auto
 
 end

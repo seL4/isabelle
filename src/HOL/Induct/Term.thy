@@ -32,31 +32,25 @@ primrec
 text {* \medskip A simple theorem about composition of substitutions *}
 
 lemma subst_comp:
-  "(subst_term ((subst_term f1) \<circ> f2) t) =
-    (subst_term f1 (subst_term f2 t)) \<and>
-  (subst_term_list ((subst_term f1) \<circ> f2) ts) =
-    (subst_term_list f1 (subst_term_list f2 ts))"
-  apply (induct t and ts)
-     apply simp_all
-  done
+  "subst_term (subst_term f1 \<circ> f2) t =
+    subst_term f1 (subst_term f2 t)"
+and "subst_term_list (subst_term f1 \<circ> f2) ts =
+    subst_term_list f1 (subst_term_list f2 ts)"
+  by (induct t and ts) simp_all
 
 
 text {* \medskip Alternative induction rule *}
 
-lemma term_induct2:
-  "(!!v. P (Var v)) ==>
-    (!!f ts. list_all P ts ==> P (App f ts))
-  ==> P t"
-proof -
-  case rule_context
-  have "P t \<and> list_all P ts"
-    apply (induct t and ts)
-       apply (rule rule_context)
-      apply (rule rule_context)
-      apply assumption
-     apply simp_all
-    done
-  thus ?thesis ..
-qed
+lemma
+  (assumes var: "!!v. P (Var v)"
+    and app: "!!f ts. list_all P ts ==> P (App f ts)")
+  term_induct2: "P t"
+and "list_all P ts"
+  apply (induct t and ts)
+     apply (rule var)
+    apply (rule app)
+    apply assumption
+   apply simp_all
+  done
 
 end

@@ -182,12 +182,9 @@ lemma lift_IT [intro!]: "t \<in> IT \<Longrightarrow> (\<And>i. lift t i \<in> I
 lemma lifts_IT: "ts \<in> lists IT \<Longrightarrow> map (\<lambda>t. lift t 0) ts \<in> lists IT"
   by (induct ts) auto
 
-lemma lift_type [intro!]: "e \<turnstile> t : T \<Longrightarrow> e\<langle>i:U\<rangle> \<turnstile> lift t i : T"
-proof -
-  assume "e \<turnstile> t : T"
-  thus "\<And>i U. e\<langle>i:U\<rangle> \<turnstile> lift t i : T"
-    by induct auto
-qed
+lemma lift_type [intro!]: "e \<turnstile> t : T \<Longrightarrow> (\<And>i U. e\<langle>i:U\<rangle> \<turnstile> lift t i : T)"
+  by (induct set: typing) auto
+
 
 lemma lift_typings:
   "\<And>Ts. e \<tturnstile> ts : Ts \<Longrightarrow> e\<langle>i:U\<rangle> \<tturnstile> (map (\<lambda>t. lift t i) ts) : Ts"
@@ -472,6 +469,7 @@ proof (induct U)
     }
   qed
 qed
+
 
 subsection {* Well-typed terms are strongly normalizing *}
 

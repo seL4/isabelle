@@ -101,7 +101,7 @@ lemma domino_finite [simp]: "d \<in> domino ==> finite d"
 text {* \medskip Tilings of dominoes *}
 
 lemma tiling_domino_finite [simp]: "t \<in> tiling domino ==> finite t"
-  apply (erule tiling.induct)
+  apply (induct set: tiling)
    apply auto
   done
 
@@ -111,7 +111,7 @@ declare
 
 lemma tiling_domino_0_1:
   "t \<in> tiling domino ==> card (coloured 0 \<inter> t) = card (coloured (Suc 0) \<inter> t)"
-  apply (erule tiling.induct)
+  apply (induct set: tiling)
    apply (drule_tac [2] domino_singletons)
    apply auto
   apply (subgoal_tac "\<forall>p C. C \<inter> a = {p} --> p \<notin> t")
