@@ -13,16 +13,21 @@ for \isa{($a@1$,($a@2$,$a@3$))} and $\tau@1 \times \tau@2 \times \tau@3$ for
 $\tau@1 \times (\tau@2 \times \tau@3)$. Therefore we have
 \isa{fst(snd($a@1$,$a@2$,$a@3$)) = $a@2$}.
 
+Remarks:
+\begin{itemize}
+\item
 There is also the type \isaindexbold{unit}, which contains exactly one
 element denoted by \ttindexboldpos{()}{$Isatype}. This type can be viewed
-as a degenerate Cartesian product of 0 types.
-
-Note that products, like type @{typ nat}, are datatypes, which means
+as a degenerate product with 0 components.
+\item
+Products, like type @{typ nat}, are datatypes, which means
 in particular that @{text induct_tac} and @{text case_tac} are applicable to
-products (see \S\ref{sec:products}).
-
+terms of product type.
+\item
 Instead of tuples with many components (where ``many'' is not much above 2),
-it is far preferable to use records (see \S\ref{sec:records}).
+it is preferable to use records.
+\end{itemize}
+For more information on pairs and records see Chapter~\ref{ch:more-types}.
 *}
 (*<*)
 end
