@@ -273,44 +273,64 @@ below).  They may perform a form of Modus Ponens: if there are assumptions
 $P\imp Q$ and~$P$, then replace $P\imp Q$ by~$Q$.
 
 The classical reasoner allows you to modify this basic proof strategy by
-applying an arbitrary {\bf wrapper tactical} to it.  This affects each step of
-the search.  Usually it is the identity tactical, but it could apply another
-tactic before or after the step tactic.  It affects \ttindex{step_tac},
-\ttindex{slow_step_tac} and the tactics that call them.
+applying two arbitrary {\bf wrapper tactical}s to it. This affects each step of
+the search.  Usually they are the identity tacticals, but they could apply 
+another tactic before or after the step tactic. The first one, which is
+considered to be safe, affects \ttindex{safe_step_tac} and all the tactics that
+call it. The the second one, which may be unsafe, affects 
+\ttindex{safe_step_tac}, \ttindex{slow_step_tac} and the tactics that call them.
 
 \begin{ttbox} 
 addss       : claset * simpset -> claset                  \hfill{\bf infix 4}
-addbefore   : claset * tactic -> claset                   \hfill{\bf infix 4}
-addafter    : claset * tactic -> claset                   \hfill{\bf infix 4}
-setwrapper  : claset * (tactic->tactic) -> claset         \hfill{\bf infix 4}
-compwrapper : claset * (tactic->tactic) -> claset         \hfill{\bf infix 4}
+addSbefore   : claset * (int -> tactic) -> claset         \hfill{\bf infix 4}
+addSaltern   : claset * (int -> tactic) -> claset         \hfill{\bf infix 4}
+setSWrapper  : claset * ((int -> tactic) -> (int -> tactic)) -> claset \hfill{\bf infix 4}
+compSWrapper : claset * ((int -> tactic) -> (int -> tactic)) -> claset \hfill{\bf infix 4}
+addbefore    : claset * (int -> tactic) -> claset         \hfill{\bf infix 4}
+addaltern    : claset * (int -> tactic) -> claset         \hfill{\bf infix 4}
+setWrapper   : claset * ((int -> tactic) -> (int -> tactic)) -> claset \hfill{\bf infix 4}
+compWrapper  : claset * ((int -> tactic) -> (int -> tactic)) -> claset \hfill{\bf infix 4}
 \end{ttbox}
 %
 \index{simplification!from classical reasoner} 
-The wrapper tactical underlies the operator \ttindex{addss}, which precedes
+The wrapper tacticals underly the operator \ttindex{addss}, which combines
 each search step by simplification.  Strictly speaking, {\tt addss} is not
-part of the classical reasoner.  It should be defined (using {\tt addbefore})
-when the simplifier is installed.
+part of the classical reasoner.  It should be defined (using {\tt addSaltern (CHANGED o (safe_asm_more_full_simp_tac ss)}) when the simplifier is installed.
 
 \begin{ttdescription}
 \item[$cs$ addss $ss$] \indexbold{*addss}
-adds the simpset~$ss$ to the classical set.  The assumptions and goal will be
-simplified before each step of the search.
+adds the simpset~$ss$ to the classical set. The assumptions and goal will be
+simplified, in a safe way, after the safe steps of the search.
+
+\item[$cs$ addSbefore $tac$] \indexbold{*addSbefore}
+changes the safe wrapper tactical to apply the given tactic {\em before}
+each safe step of the search.
+
+\item[$cs$ addSaltern $tac$] \indexbold{*addSaltern}
+changes the safe wrapper tactical to apply the given tactic when a safe step 
+of the search would fail.
+
+\item[$cs$ setSWrapper $tactical$] \indexbold{*setSWrapper}
+specifies a new safe wrapper tactical.  
+
+\item[$cs$ compSWrapper $tactical$] \indexbold{*compSWrapper}
+composes the $tactical$ with the existing safe wrapper tactical, 
+to combine their effects. 
 
 \item[$cs$ addbefore $tac$] \indexbold{*addbefore}
-changes the wrapper tactical to apply the given tactic {\em before}
-each step of the search.
+changes the (unsafe) wrapper tactical to apply the given tactic, which should
+be safe, {\em before} each step of the search.
 
-\item[$cs$ addafter $tac$] \indexbold{*addafter}
-changes the wrapper tactical to apply the given tactic {\em after}
-each step of the search.
+\item[$cs$ addaltern $tac$] \indexbold{*addaltern}
+changes the (unsafe) wrapper tactical to apply the given tactic 
+{\em alternatively} after each step of the search.
 
-\item[$cs$ setwrapper $tactical$] \indexbold{*setwrapper}
-specifies a new wrapper tactical.  
+\item[$cs$ setWrapper $tactical$] \indexbold{*setWrapper}
+specifies a new (unsafe) wrapper tactical.  
 
-\item[$cs$ compwrapper $tactical$] \indexbold{*compwrapper}
-composes the $tactical$ with the existing wrapper tactical, to combine their
-effects. 
+\item[$cs$ compWrapper $tactical$] \indexbold{*compWrapper}
+composes the $tactical$ with the existing (unsafe) wrapper tactical, 
+to combine their effects. 
 \end{ttdescription}
 
 
@@ -383,8 +403,9 @@ The automatic proof procedures call these tactics.  By calling them
 yourself, you can execute these procedures one step at a time.
 \begin{ttdescription}
 \item[\ttindexbold{safe_step_tac} $cs$ $i$] performs a safe step on
-subgoal~$i$.  This may include proof by assumption or Modus Ponens (taking
-care not to instantiate unknowns), or {\tt hyp_subst_tac}.
+subgoal~$i$. The safe wrapper tactical is applied to a tactic that may include 
+proof by assumption or Modus Ponens (taking care not to instantiate unknowns), 
+or {\tt hyp_subst_tac}.
 
 \item[\ttindexbold{safe_tac} $cs$] repeatedly performs safe steps on all 
 subgoals.  It is deterministic, with at most one outcome.  If the automatic
@@ -395,8 +416,8 @@ can replicate certain quantifiers explicitly by applying appropriate rules.
 but allows unknowns to be instantiated.
 
 \item[\ttindexbold{step_tac} $cs$ $i$] is the basic step of the proof
-  procedure.  The wrapper tactical is applied to a tactic that tries {\tt
-    safe_tac}, {\tt inst_step_tac}, or applies an unsafe rule from~$cs$.
+  procedure.  The (unsafe) wrapper tactical is applied to a tactic that tries
+ {\tt safe_tac}, {\tt inst_step_tac}, or applies an unsafe rule from~$cs$.
 
 \item[\ttindexbold{slow_step_tac}] 
   resembles {\tt step_tac}, but allows backtracking between using safe
