@@ -74,7 +74,7 @@ function \isa{f} is only applied to elements of list \isa{xs}.  Congruence
 rules for other higher-order functions on lists are similar.  If you get
 into a situation where you need to supply \isacommand{recdef} with new
 congruence rules, you can append a hint after the end of
-the recursion equations:%
+the recursion equations:\cmmdx{hints}%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isamarkupfalse%
@@ -92,8 +92,6 @@ by giving them the \attrdx{recdef_cong} attribute:%
 The \isa{cong} and \isa{recdef{\isacharunderscore}cong} attributes are
 intentionally kept apart because they control different activities, namely
 simplification and making recursive definitions.
-% The local \isa{cong} in
-% the hints section of \isacommand{recdef} is merely short for \isa{recdef{\isacharunderscore}cong}.
 %The simplifier's congruence rules cannot be used by recdef.
 %For example the weak congruence rules for if and case would prevent
 %recdef from generating sensible termination conditions.%

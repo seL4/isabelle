@@ -39,7 +39,7 @@ Now we retry the above definition but supply the lemma(s) just found (or
 proved). Because \isacommand{recdef}'s termination prover involves
 simplification, we include in our second attempt a hint: the
 \attrdx{recdef_simp} attribute says to use @{thm[source]less_Suc_eq_le} as a
-simplification rule.  *}
+simplification rule.\cmmdx{hints}  *}
 
 (*<*)global consts qs :: "nat list \<Rightarrow> nat list" (*>*)
 recdef qs "measure length"

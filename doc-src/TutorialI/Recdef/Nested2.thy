@@ -64,7 +64,7 @@ function @{term"f"} is only applied to elements of list @{term"xs"}.  Congruence
 rules for other higher-order functions on lists are similar.  If you get
 into a situation where you need to supply \isacommand{recdef} with new
 congruence rules, you can append a hint after the end of
-the recursion equations:
+the recursion equations:\cmmdx{hints}
 *}
 (*<*)
 consts dummy :: "nat => nat"
@@ -84,8 +84,6 @@ text{*
 The @{text cong} and @{text recdef_cong} attributes are
 intentionally kept apart because they control different activities, namely
 simplification and making recursive definitions.
-% The local @{text cong} in
-% the hints section of \isacommand{recdef} is merely short for @{text recdef_cong}.
 %The simplifier's congruence rules cannot be used by recdef.
 %For example the weak congruence rules for if and case would prevent
 %recdef from generating sensible termination conditions.
