@@ -231,11 +231,14 @@ text {*
   contexts is rather light-weight and convenient to use for abstract
   reasoning.  Here the ``components'' (the group operations) have been
   exhibited directly as context parameters; logically this corresponds
-  to a curried predicate definition.  Occasionally, this
-  ``externalized'' version of the informal idea of classes of tuple
-  structures may cause some inconveniences, especially in
-  meta-theoretical studies (involving functors from groups to groups,
-  for example).
+  to a curried predicate definition:
+
+  @{thm [display] group_context_axioms_def [no_vars]}
+
+  Occasionally, this ``externalized'' version of the informal idea of
+  classes of tuple structures may cause some inconveniences,
+  especially in meta-theoretical studies (involving functors from
+  groups to groups, for example).
 
   Another minor drawback of the naive approach above is that concrete
   syntax will get lost on any kind of operation on the locale itself
