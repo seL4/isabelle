@@ -7,7 +7,7 @@ Fibonacci numbers and other simple examples of recursive definitions
 	(the TFL package)
 *)
 
-Fib = WF_Rel +
+Fib = WF_Rel + Divides +
 
 consts fib  :: "nat => nat"
 recdef fib "less_than"
