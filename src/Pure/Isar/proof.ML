@@ -289,32 +289,35 @@ val verbose = ProofContext.verbose;
 
 fun print_facts _ None = ()
   | print_facts s (Some ths) =
-      Pretty.writeln (Pretty.big_list (s ^ " facts:") (map pretty_thm ths));
+     (Pretty.writeln (Pretty.big_list (s ^ "this:") (map pretty_thm ths)); writeln "");
 
 fun print_state nr (state as State (Node {context, facts, mode, goal = _}, nodes)) =
   let
     val ref (_, _, begin_goal) = Goals.current_goals_markers;
 
     fun levels_up 0 = ""
-      | levels_up 1 = " (1 level up)"
-      | levels_up i = " (" ^ string_of_int i ^ " levels up)";
+      | levels_up 1 = ", 1 level up"
+      | levels_up i = ", " ^ string_of_int i ^ " levels up";
 
     fun print_goal (_, (i, (((kind, name, _), (goal_facts, thm)), _))) =
-      (print_facts "Using"
+      (print_facts "using "
           (if mode <> Backward orelse null goal_facts then None else Some goal_facts);
-        writeln (kind_name kind ^ " " ^ quote name ^ levels_up (i div 2) ^ ":");
+        writeln ("goal (" ^ kind_name kind ^ (if name = "" then "" else " " ^ name) ^
+          levels_up (i div 2) ^ "):");
         Locale.print_goals_marker begin_goal (! goals_limit) thm);
 
-    val ctxt_strings = ProofContext.strings_of_context context;
+    val ctxt_strings =
+      if ! verbose orelse mode = Forward then ProofContext.strings_of_context context
+      else if mode = Backward then ProofContext.strings_of_prems context
+      else [];
   in
     writeln ("Proof(" ^ mode_name mode ^ "): step " ^ string_of_int nr ^
       ", depth " ^ string_of_int (length nodes div 2));
     writeln "";
+    if null ctxt_strings then () else (seq writeln ctxt_strings; writeln "");
     if ! verbose orelse mode = Forward then
-      (if null ctxt_strings then () else (seq writeln ctxt_strings; writeln "");
-        print_facts "Current" facts;
-        print_goal (find_goal 0 state))
-    else if mode = ForwardChain then print_facts "Picking" facts
+      (print_facts "" facts; print_goal (find_goal 0 state))
+    else if mode = ForwardChain then print_facts "picking " facts
     else print_goal (find_goal 0 state)
   end;
 

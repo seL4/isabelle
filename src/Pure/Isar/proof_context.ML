@@ -17,6 +17,7 @@ sig
   val verbose: bool ref
   val print_binds: context -> unit
   val print_thms: context -> unit
+  val strings_of_prems: context -> string list
   val strings_of_context: context -> string list
   val print_proof_data: theory -> unit
   val init: theory -> context
@@ -112,7 +113,10 @@ fun prems_of (Context {asms = ((_, asms), _), ...}) = flat (map #2 asms);
 (** print context information **)
 
 val show_hyps = ref false;
-fun pretty_thm th = setmp Display.show_hyps (! show_hyps) Display.pretty_thm th;
+
+fun pretty_thm thm =
+  if ! show_hyps then setmp Display.show_hyps true Display.pretty_thm_no_quote thm
+  else Display.pretty_cterm (#prop (Thm.crep_thm thm));
 
 val verbose = ref false;
 fun verb f x = if ! verbose then f x else [];
@@ -130,13 +134,13 @@ fun strings_of_items prt name items =
 
 (* term bindings *)
 
-fun strings_of_binds (Context {thy, binds, ...}) =
+fun strings_of_binds (ctxt as Context {binds, ...}) =
   let
-    val prt_term = Sign.pretty_term (Theory.sign_of thy);
+    val prt_term = Sign.pretty_term (sign_of ctxt);
     fun pretty_bind (xi, (t, T)) = prt_term (Logic.mk_equals (Var (xi, T), t));
   in
     if Vartab.is_empty binds andalso not (! verbose) then []
-    else [Pretty.string_of (Pretty.big_list "Term bindings:"
+    else [Pretty.string_of (Pretty.big_list "term bindings:"
       (map pretty_bind (Vartab.dest binds)))]
   end;
 
@@ -146,18 +150,22 @@ val print_binds = seq writeln o strings_of_binds;
 (* local theorems *)
 
 fun strings_of_thms (Context {thms, ...}) =
-  strings_of_items pretty_thm "Local theorems:" (Symtab.dest thms);
+  strings_of_items pretty_thm "local theorems:" (Symtab.dest thms);
 
 val print_thms = seq writeln o strings_of_thms;
 
 
 (* main context *)
 
-fun strings_of_context (ctxt as Context {thy, data = _, asms = (_, (fixes, _)), binds = _,
-    thms = _, defs = (types, sorts, maxidx, used)}) =
+fun strings_of_prems ctxt =
+  (case prems_of ctxt of
+    [] => []
+  | prems => [Pretty.string_of (Pretty.big_list "prems:" (map pretty_thm prems))]);
+
+fun strings_of_context (ctxt as Context {asms = (_, (fixes, _)),
+    defs = (types, sorts, maxidx, used), ...}) =
   let
-    val sign = Theory.sign_of thy;
-    val prems = prems_of ctxt;
+    val sign = sign_of ctxt;
 
     val prt_term = Sign.pretty_term sign;
     val prt_typ = Sign.pretty_typ sign;
@@ -167,7 +175,7 @@ fun strings_of_context (ctxt as Context {thy, data = _, asms = (_, (fixes, _)), 
     val pretty_thy = Pretty.block [Pretty.str "Theory:", Pretty.brk 1, Sign.pretty_sg sign];
 
     (*fixes*)
-    fun prt_fixes xs = Pretty.block (Pretty.str "Fixed variables:" :: Pretty.brk 1 ::
+    fun prt_fixes xs = Pretty.block (Pretty.str "fixed variables:" :: Pretty.brk 1 ::
       Pretty.commas (map (fn (x, x') => Pretty.str (x ^ " = " ^ x')) xs));
 
 
@@ -186,17 +194,14 @@ fun strings_of_context (ctxt as Context {thy, data = _, asms = (_, (fixes, _)), 
     val prt_defS = prt_atom prt_varT prt_sort;
   in
     verb_string pretty_thy @
-    (if null fixes andalso not (! verbose) then []
-      else [Pretty.string_of (prt_fixes (rev fixes))]) @
-    (if null prems andalso not (! verbose) then []
-      else [Pretty.string_of (Pretty.big_list "Assumptions:"
-        (map (prt_term o #prop o Thm.rep_thm) prems))]) @
+    (if null fixes then [] else [Pretty.string_of (prt_fixes (rev fixes))]) @
+    strings_of_prems ctxt @
     verb strings_of_binds ctxt @
     verb strings_of_thms ctxt @
-    verb_string (Pretty.big_list "Type constraints:" (map prt_defT (Vartab.dest types))) @
-    verb_string (Pretty.big_list "Default sorts:" (map prt_defS (Vartab.dest sorts))) @
-    verb_string (Pretty.str ("Maxidx: " ^ string_of_int maxidx)) @
-    verb_string (Pretty.strs ("Used type variable names:" :: used))
+    verb_string (Pretty.big_list "type constraints:" (map prt_defT (Vartab.dest types))) @
+    verb_string (Pretty.big_list "default sorts:" (map prt_defS (Vartab.dest sorts))) @
+    verb_string (Pretty.str ("maxidx: " ^ string_of_int maxidx)) @
+    verb_string (Pretty.strs ("used type variable names:" :: used))
   end;
 
 
@@ -298,11 +303,8 @@ fun init thy =
 (** prepare types **)
 
 fun read_typ (ctxt as Context {defs = (_, sorts, _, _), ...}) s =
-  let
-    val sign = sign_of ctxt;
-    fun def_sort xi = Vartab.lookup (sorts, xi);
-  in
-    transform_error (Sign.read_typ (sign, def_sort)) s
+  let fun def_sort xi = Vartab.lookup (sorts, xi) in
+    transform_error (Sign.read_typ (sign_of ctxt, def_sort)) s
       handle ERROR_MESSAGE msg => raise CONTEXT (msg, ctxt)
   end;
 
@@ -425,8 +427,6 @@ end;
 
 fun gen_read read app is_pat (ctxt as Context {binds, defs = (types, sorts, _, used), ...}) s =
   let
-    val sign = sign_of ctxt;
-
     fun def_type xi =
       (case Vartab.lookup (types, xi) of
         None => if is_pat then None else apsome #2 (Vartab.lookup (binds, xi))
@@ -434,7 +434,7 @@ fun gen_read read app is_pat (ctxt as Context {binds, defs = (types, sorts, _, u
 
     fun def_sort xi = Vartab.lookup (sorts, xi);
   in
-    (transform_error (read sign (def_type, def_sort, used)) s
+    (transform_error (read (sign_of ctxt) (def_type, def_sort, used)) s
       handle TERM (msg, _) => raise CONTEXT (msg, ctxt)
       | ERROR_MESSAGE msg => raise CONTEXT (msg, ctxt))
     |> app (intern_skolem ctxt true)
@@ -642,10 +642,9 @@ local
 fun gen_assm prepp tac (ctxt, (name, attrs, raw_prop_pats)) =
   let
     val (ctxt', props) = foldl_map prepp (ctxt, raw_prop_pats);
-    val sign = sign_of ctxt';
     val Context {defs = (_, _, maxidx, _), ...} = ctxt';
 
-    val cprops = map (Thm.cterm_of sign) props;
+    val cprops = map (Thm.cterm_of (sign_of ctxt')) props;
     val cprops_tac = map (rpair tac) cprops;
     val asms = map (Drule.forall_elim_vars (maxidx + 1) o Drule.assume_goal) cprops;
 
