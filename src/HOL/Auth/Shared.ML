@@ -9,6 +9,10 @@ Server keys; initial states of agents; new nonces and keys; function "sees"
 *)
 
 
+Addsimps [de_Morgan_conj, de_Morgan_disj, not_all, not_ex];
+(**Addsimps [all_conj_distrib, ex_disj_distrib];**)
+
+
 val prems = goal HOL.thy "[| P ==> Q(True); ~P ==> Q(False) |] ==> Q(P)";
 by (excluded_middle_tac "P" 1);
 by (asm_simp_tac (!simpset addsimps prems) 1);
@@ -164,9 +168,6 @@ by (list.induct_tac "evs" 1);
 by (Auto_tac ());
 qed_spec_mp "Says_imp_sees_Spy";
 
-Addsimps [Says_imp_sees_Spy];
-AddIs    [Says_imp_sees_Spy];
-
 goal thy  
  "!!evs. [| Says A B (Crypt X (shrK C)) : set_of_list evs;        \
 \           C   : lost |]                                         \
@@ -174,6 +175,14 @@ goal thy
 by (fast_tac (!claset addSDs [Says_imp_sees_Spy RS analz.Inj]
                       addss (!simpset)) 1);
 qed "Says_Crypt_lost";
+
+goal thy  
+ "!!evs. [| Says A B (Crypt X (shrK C)) : set_of_list evs;        \
+\           X ~: analz (sees lost Spy evs) |]                     \
+\        ==> C ~: lost";
+by (fast_tac (!claset addSDs [Says_imp_sees_Spy RS analz.Inj]
+                      addss (!simpset)) 1);
+qed "Says_Crypt_not_lost";
 
 goal thy "initState lost C <= Key `` range shrK";
 by (agent.induct_tac "C" 1);
