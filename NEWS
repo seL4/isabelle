@@ -92,6 +92,11 @@ New in this Isabelle release
   Moreover, the low-level mk_simproc no longer applies Logic.varify
   internally, to allow for use in a context of fixed variables.
 
+* Pure/Simplifier: Command "find_rewrites" takes a string and lists all
+  equality theorems (not just those with attribute simp!) whose left-hand
+  side matches the term given via the string. In PG the command can be
+  activated via Isabelle -> Show me -> matching rewrites.
+
 * Provers: Simplifier and Classical Reasoner now support proof context
   dependent plug-ins (simprocs, solvers, wrappers etc.).  These extra
   components are stored in the theory and patched into the
