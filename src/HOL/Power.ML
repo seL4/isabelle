@@ -34,7 +34,6 @@ Addsimps [one_le_power];
 Goalw [dvd_def] "!!i::nat. m<=n ==> i^m dvd i^n";
 by (etac (not_less_iff_le RS iffD2 RS add_diff_inverse RS subst) 1);
 by (asm_simp_tac (simpset() addsimps [power_add]) 1);
-by (Blast_tac 1);
 qed "le_imp_power_dvd";
 
 Goal "!!i::nat. [| 0 < i; i^m < i^n |] ==> m < n";

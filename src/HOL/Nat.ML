@@ -256,14 +256,6 @@ by (simp_tac (simpset() delsimps [neq0_conv] addsimps [neq0_conv RS sym]) 1);
 qed "add_gr_0";
 AddIffs [add_gr_0];
 
-(* Could be generalized, eg to "k<n ==> m+(n-(Suc k)) = (m+n)-(Suc k)" *)
-Goal "!!m::nat. 0<n ==> m + (n-1) = (m+n)-1";
-by (case_tac "m" 1);
-by (ALLGOALS (asm_simp_tac (simpset() addsimps [diff_Suc, Suc_n_not_n]
-                                      addsplits [nat.split])));
-qed "add_pred";
-Addsimps [add_pred];
-
 Goal "!!m::nat. m + n = m ==> n = 0";
 by (dtac (add_0_right RS ssubst) 1);
 by (asm_full_simp_tac (simpset() addsimps [add_assoc]
@@ -673,54 +665,57 @@ by (fast_tac (claset() addss simpset()) 1);
 qed "mult_eq_1_iff";
 Addsimps [mult_eq_1_iff];
 
-Goal "!!m::nat. 0<k ==> (m*k < n*k) = (m<n)";
+Goal "!!m::nat. (m*k < n*k) = (0<k & m<n)";
 by (safe_tac (claset() addSIs [mult_less_mono1]));
-by (cut_facts_tac [less_linear] 1);
-by (blast_tac (claset() addIs [mult_less_mono1] addEs [less_asym]) 1);
+by (case_tac "k" 1);
+by Auto_tac;  
+by (full_simp_tac (simpset() delsimps [le_0_eq]
+			     addsimps [linorder_not_le RS sym]) 1);
+by (blast_tac (claset() addIs [mult_le_mono1]) 1); 
 qed "mult_less_cancel2";
 
-Goal "!!m::nat. 0<k ==> (k*m < k*n) = (m<n)";
-by (dtac mult_less_cancel2 1);
-by (etac subst 1);
-by (simp_tac (simpset() addsimps [mult_commute]) 1);
+Goal "!!m::nat. (k*m < k*n) = (0<k & m<n)";
+by (simp_tac (simpset() addsimps [mult_less_cancel2, 
+                                  inst "m" "k" mult_commute]) 1);
 qed "mult_less_cancel1";
 Addsimps [mult_less_cancel1, mult_less_cancel2];
 
-Goal "!!m::nat. 0<k ==> (m*k <= n*k) = (m<=n)";
-by (asm_full_simp_tac (simpset() addsimps [linorder_not_less RS sym]) 1);
+Goal "!!m::nat. (m*k <= n*k) = (0<k --> m<=n)";
+by (simp_tac (simpset() addsimps [linorder_not_less RS sym]) 1);
+by Auto_tac;  
 qed "mult_le_cancel2";
 
-Goal "!!m::nat. 0<k ==> (k*m <= k*n) = (m<=n)";
-by (asm_full_simp_tac (simpset() addsimps [linorder_not_less RS sym]) 1);
+Goal "!!m::nat. (k*m <= k*n) = (0<k --> m<=n)";
+by (simp_tac (simpset() addsimps [linorder_not_less RS sym]) 1);
+by Auto_tac;  
 qed "mult_le_cancel1";
 Addsimps [mult_le_cancel1, mult_le_cancel2];
 
-Goal "(Suc k * m < Suc k * n) = (m < n)";
-by (rtac mult_less_cancel1 1);
-by (Simp_tac 1);
-qed "Suc_mult_less_cancel1";
-
-Goalw [le_def] "(Suc k * m <= Suc k * n) = (m <= n)";
-by (simp_tac (simpset_of HOL.thy) 1);
-by (rtac Suc_mult_less_cancel1 1);
-qed "Suc_mult_le_cancel1";
-
-Goal "0 < (k::nat) ==> (m*k = n*k) = (m=n)";
+Goal "(m*k = n*k) = (m=n | (k = (0::nat)))";
 by (cut_facts_tac [less_linear] 1);
 by Safe_tac;
-by (assume_tac 2);
+by Auto_tac; 	
 by (ALLGOALS (dtac mult_less_mono1 THEN' assume_tac));
 by (ALLGOALS Asm_full_simp_tac);
 qed "mult_cancel2";
 
-Goal "0 < (k::nat) ==> (k*m = k*n) = (m=n)";
-by (dtac mult_cancel2 1);
-by (asm_full_simp_tac (simpset() addsimps [mult_commute]) 1);
+Goal "(k*m = k*n) = (m=n | (k = (0::nat)))";
+by (simp_tac (simpset() addsimps [mult_cancel2, inst "m" "k" mult_commute]) 1);
 qed "mult_cancel1";
 Addsimps [mult_cancel1, mult_cancel2];
 
+Goal "(Suc k * m < Suc k * n) = (m < n)";
+by (stac mult_less_cancel1 1);
+by (Simp_tac 1);
+qed "Suc_mult_less_cancel1";
+
+Goal "(Suc k * m <= Suc k * n) = (m <= n)";
+by (stac mult_le_cancel1 1);
+by (Simp_tac 1);
+qed "Suc_mult_le_cancel1";
+
 Goal "(Suc k * m = Suc k * n) = (m = n)";
-by (rtac mult_cancel1 1);
+by (stac mult_cancel1 1);
 by (Simp_tac 1);
 qed "Suc_mult_cancel1";
 

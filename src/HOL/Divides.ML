@@ -424,7 +424,6 @@ qed "dvd_mod_imp_dvd";
 Goalw [dvd_def]  "!!k::nat. [| (k*m) dvd (k*n); 0<k |] ==> m dvd n";
 by (etac exE 1);
 by (asm_full_simp_tac (simpset() addsimps mult_ac) 1);
-by (Blast_tac 1);
 qed "dvd_mult_cancel";
 
 Goalw [dvd_def] "[| i dvd m; j dvd n|] ==> (i*j) dvd (m*n :: nat)";
