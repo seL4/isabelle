@@ -37,7 +37,7 @@ THY_FILES = Thy/ROOT.ML		Thy/thy_scan.ML		Thy/thy_parse.ML\
 
 #Uses cp rather than make_database because Poly/ML allows only 3 levels
 $(BIN)/Pure:   $(FILES)	 $(SYNTAX_FILES)  $(THY_FILES)	$(ML_DBASE)
-	case "$(COMP)" in \
+	@case `expr "//$(COMP)" : '[^ ]*/\(.*\)'` in \
 	poly*)	echo database=$${ML_DBASE:?'No Poly/ML database specified'};\
 		cp $(ML_DBASE) $(BIN)/Pure; chmod u+w $(BIN)/Pure;\
 		echo 'PolyML.use"POLY";use"ROOT" handle _=> exit 1;' \
@@ -50,7 +50,7 @@ $(BIN)/Pure:   $(FILES)	 $(SYNTAX_FILES)  $(THY_FILES)	$(ML_DBASE)
 		fi;\
 		echo 'use"NJ.ML"; use"ROOT.ML" handle _=> exit 1;				     xML"$(BIN)/Pure" banner;' | $(COMP);;\
 	*)	echo Bad value for ISABELLECOMP: \
-			$(COMP) is not poly or sml;;\
+			\"$(COMP)\" is not poly or sml;;\
 	esac
 
 

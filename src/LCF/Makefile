@@ -25,7 +25,7 @@ FILES =	 ROOT.ML LCF.thy LCF.ML simpdata.ML pair.ML fix.ML
 
 #Uses cp rather than make_database because Poly/ML allows only 3 levels
 $(BIN)/LCF:   $(BIN)/FOL  $(FILES) 
-	case "$(COMP)" in \
+	@case `expr "//$(COMP)" : '[^ ]*/\(.*\)'` in \
 	poly*)	cp $(BIN)/FOL $(BIN)/LCF;\
 		if [ "$${MAKE_HTML}" = "true" ]; \
 		then echo 'open PolyML; make_html := true; exit_use_dir".";' \
@@ -45,18 +45,18 @@ $(BIN)/LCF:   $(BIN)/FOL  $(FILES)
 		       | $(BIN)/FOL;\
 		fi;;\
 	*)	echo Bad value for ISABELLECOMP: \
-			$(COMP) is not poly or sml;;\
+			\"$(COMP)\" is not poly or sml;;\
 	esac
 
 (BIN)/FOL:
 	cd ../FOL;  $(MAKE)
 
 test:	ex.ML  $(BIN)/LCF
-	case "$(COMP)" in \
+	@case `expr "//$(COMP)" : '[^ ]*/\(.*\)'` in \
 	poly*)	echo 'exit_use"ex.ML"; quit();' | $(COMP) $(BIN)/LCF ;;\
 	sml*)	echo 'exit_use"ex.ML";' | $(BIN)/LCF;;\
 	*)	echo Bad value for ISABELLECOMP: \
-			$(COMP) is not poly or sml;;\
+			\"$(COMP)\" is not poly or sml;;\
 	esac
 
 .PRECIOUS:   $(BIN)/FOL	 $(BIN)/LCF 

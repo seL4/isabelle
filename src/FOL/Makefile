@@ -30,12 +30,12 @@ EX_FILES = ex/ROOT.ML ex/cla.ML ex/foundn.ML  ex/int.ML ex/intro.ML\
 	   ex/prop.ML ex/quant.ML $(EX_NAMES:%=ex/%.thy) $(EX_NAMES:%=ex/%.ML)
 
 $(BIN)/FOL:   $(BIN)/Pure  $(FILES) 
-	if [ -d $${ISABELLEBIN:?}/Pure ];\
+	@if [ -d $${ISABELLEBIN:?}/Pure ];\
 		then echo Bad value for ISABELLEBIN: \
 			$(BIN) is the Isabelle source directory; \
 			exit 1; \
-		fi;\
-	case "$(COMP)" in \
+	fi
+	@case `expr "//$(COMP)" : '[^ ]*/\(.*\)'` in \
 	poly*)	echo 'make_database"$(BIN)/FOL"; quit();' \
 		  | $(COMP) $(BIN)/Pure;\
 		if [ "$${MAKE_HTML}" = "true" ]; \
@@ -56,14 +56,14 @@ $(BIN)/FOL:   $(BIN)/Pure  $(FILES)
 		       | $(BIN)/Pure;\
 		fi;;\
 	*)	echo Bad value for ISABELLECOMP: \
-			$(COMP) is not poly or sml;;\
+			\"$(COMP)\" is not poly or sml;;\
 	esac
 
 $(BIN)/Pure:
 	cd ../Pure;  $(MAKE)
 
 test:	ex/ROOT.ML  $(BIN)/FOL	$(EX_FILES) 
-	case "$(COMP)" in \
+	@case `expr "//$(COMP)" : '[^ ]*/\(.*\)'` in \
 	poly*)	if [ "$${MAKE_HTML-undefined}" != "undefined" ]; \
 		then echo 'make_html := true; exit_use_dir"ex"; quit();' \
 		       | $(COMP) $(BIN)/FOL;\
@@ -75,7 +75,7 @@ test:	ex/ROOT.ML  $(BIN)/FOL	$(EX_FILES)
 		else echo 'exit_use_dir"ex";' | $(BIN)/FOL;\
 		fi;;\
 	*)	echo Bad value for ISABELLECOMP: \
-			$(COMP) is not poly or sml;;\
+			\"$(COMP)\" is not poly or sml;;\
 	esac
 
 .PRECIOUS:   $(BIN)/Pure  $(BIN)/FOL 

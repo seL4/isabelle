@@ -27,12 +27,12 @@ FILES =		ROOT.ML CTT.thy CTT.ML Bool.thy Bool.ML \
 EX_FILES = ex/ROOT.ML ex/elim.ML ex/equal.ML ex/synth.ML ex/typechk.ML
 
 $(BIN)/CTT:   $(BIN)/Pure  $(FILES) 
-	if [ -d $${ISABELLEBIN:?}/Pure ];\
+	@if [ -d $${ISABELLEBIN:?}/Pure ];\
 		then echo Bad value for ISABELLEBIN: \
 			$(BIN) is the Isabelle source directory; \
 			exit 1; \
-		fi;\
-	case "$(COMP)" in \
+	fi
+	@case `expr "//$(COMP)" : '[^ ]*/\(.*\)'` in \
 	poly*)	echo 'make_database"$(BIN)/CTT"; quit();'  \
 			| $(COMP) $(BIN)/Pure;\
 		if [ "$${MAKE_HTML}" = "true" ]; \
@@ -53,18 +53,18 @@ $(BIN)/CTT:   $(BIN)/Pure  $(FILES)
 		       | $(BIN)/Pure;\
 		fi;;\
 	*)	echo Bad value for ISABELLECOMP: \
-			$(COMP) is not poly or sml;;\
+			\"$(COMP)\" is not poly or sml;;\
 	esac
 
 $(BIN)/Pure:
 	cd ../Pure;  $(MAKE)
 
 test:	ex/ROOT.ML $(BIN)/CTT  $(EX_FILES) 
-	case "$(COMP)" in \
+	@case `expr "//$(COMP)" : '[^ ]*/\(.*\)'` in \
 	poly*)	echo 'exit_use"ex/ROOT.ML"; quit();' | $(COMP) $(BIN)/CTT ;;\
 	sml*)	echo 'exit_use"ex/ROOT.ML";' | $(BIN)/CTT;;\
 	*)	echo Bad value for ISABELLECOMP: \
-			$(COMP) is not poly or sml;;\
+			\"$(COMP)\" is not poly or sml;;\
 	esac
 
 .PRECIOUS:  $(BIN)/Pure	 $(BIN)/CTT 

@@ -34,7 +34,7 @@ FILES = ROOT.ML Porder0.thy  $(THYS) $(THYS:.thy=.ML)
 
 #Uses cp rather than make_database because Poly/ML allows only 3 levels
 $(BIN)/HOLCF:	$(BIN)/HOL  $(FILES) 
-	case "$(COMP)" in \
+	@case `expr "//$(COMP)" : '[^ ]*/\(.*\)'` in \
 	poly*)	cp $(BIN)/HOL $(BIN)/HOLCF; chmod u+w $(BIN)/HOLCF;\
 		if [ "$${MAKE_HTML}" = "true" ]; \
 		then echo 'open PolyML; make_html := true; exit_use_dir".";' \
@@ -54,7 +54,7 @@ $(BIN)/HOLCF:	$(BIN)/HOL  $(FILES)
 		       | $(BIN)/HOL;\
 		fi;;\
 	*)	echo Bad value for ISABELLECOMP: \
-			$(COMP) is not poly or sml;;\
+			\"$(COMP)\" is not poly or sml;;\
 	esac
 
 $(BIN)/HOL:
@@ -66,7 +66,7 @@ EX_THYS =  ex/Fix2.thy ex/Hoare.thy \
 EX_FILES = ex/ROOT.ML ex/loeckx.ML $(EX_THYS) $(EX_THYS:.thy=.ML)
 
 test:	ex/ROOT.ML  $(BIN)/HOLCF  $(EX_FILES) 
-	case "$(COMP)" in \
+	@case `expr "//$(COMP)" : '[^ ]*/\(.*\)'` in \
 	poly*)	if [ "$${MAKE_HTML-undefined}" != "undefined" ]; \
 		then echo 'make_html := true; exit_use_dir"ex"; quit();' \
 		       | $(COMP) $(BIN)/HOLCF;\
@@ -78,7 +78,7 @@ test:	ex/ROOT.ML  $(BIN)/HOLCF  $(EX_FILES)
 		else echo 'exit_use_dir"ex";' | $(BIN)/HOLCF;\
 		fi;;\
 	*)	echo Bad value for ISABELLECOMP: \
-			$(COMP) is not poly or sml;;\
+			\"$(COMP)\" is not poly or sml;;\
 	esac
 
 EXPLICIT_DOMAINS_THYS = explicit_domains/Coind.thy explicit_domains/Dlist.thy \
@@ -90,7 +90,7 @@ EXPLICIT_DOMAINS_FILES = explicit_domains/ROOT.ML $(EXPLICIT_DOMAINS_THYS)\
 			 $(EXPLICIT_DOMAINS_THYS:.thy=.ML)
 
 test2:	explicit_domains/ROOT.ML  $(BIN)/HOLCF	$(EXPLICIT_DOMAINS_FILES) 
-	case "$(COMP)" in \
+	@case `expr "//$(COMP)" : '[^ ]*/\(.*\)'` in \
 	poly*)	if [ "$${MAKE_HTML-undefined}" != "undefined" ]; \
 		then echo 'make_html := true; exit_use_dir"explicit_domains";				  quit();' | $(COMP) $(BIN)/HOLCF;\
 		else echo 'exit_use_dir"explicit_domains"; quit();' \
@@ -102,7 +102,7 @@ test2:	explicit_domains/ROOT.ML  $(BIN)/HOLCF	$(EXPLICIT_DOMAINS_FILES)
 		else echo 'exit_use_dir"explicit_domains";' | $(BIN)/HOLCF;\
 		fi;;\
 	*)	echo Bad value for ISABELLECOMP: \
-			$(COMP) is not poly or sml;;\
+			\"$(COMP)\" is not poly or sml;;\
 	esac
 
 .PRECIOUS:  $(BIN)/HOL	$(BIN)/HOLCF 

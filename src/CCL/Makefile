@@ -34,7 +34,7 @@ EX_FILES = ex/ROOT.ML ex/Flag.ML ex/Flag.thy ex/List.ML ex/List.thy\
 
 #Uses cp rather than make_database because Poly/ML allows only 3 levels
 $(BIN)/CCL:   $(BIN)/FOL  $(SET_FILES)	$(CCL_FILES) 
-	case "$(COMP)" in \
+	@case `expr "//$(COMP)" : '[^ ]*/\(.*\)'` in \
 	poly*)	cp $(BIN)/FOL $(BIN)/CCL;\
 		if [ "$${MAKE_HTML}" = "true" ]; \
 		then echo 'open PolyML; make_html := true; exit_use_dir".";' \
@@ -54,14 +54,14 @@ $(BIN)/CCL:   $(BIN)/FOL  $(SET_FILES)	$(CCL_FILES)
 		       | $(BIN)/FOL;\
 		fi;;\
 	*)	echo Bad value for ISABELLECOMP: \
-			$(COMP) is not poly or sml;;\
+			\"$(COMP)\" is not poly or sml;;\
 	esac
 
 $(BIN)/FOL:
 	cd ../FOL;  $(MAKE)
 
 test:	ex/ROOT.ML  $(BIN)/CCL	$(EX_FILES)
-	case "$(COMP)" in \
+	@case `expr "//$(COMP)" : '[^ ]*/\(.*\)'` in \
 	poly*)	if [ "$${MAKE_HTML-undefined}" != "undefined" ]; \
 		then echo 'make_html := true; exit_use_dir"ex"; quit();' \
 		       | $(COMP) $(BIN)/CCL;\
@@ -73,7 +73,7 @@ test:	ex/ROOT.ML  $(BIN)/CCL	$(EX_FILES)
 		else echo 'exit_use_dir"ex";' | $(BIN)/CCL;\
 		fi;;\
 	*)	echo Bad value for ISABELLECOMP: \
-			$(COMP) is not poly or sml;;\
+			\"$(COMP)\" is not poly or sml;;\
 	esac
 
 .PRECIOUS:  $(BIN)/FOL $(BIN)/CCL 

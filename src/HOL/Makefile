@@ -33,12 +33,12 @@ FILES = ROOT.ML add_ind_def.ML datatype.ML hologic.ML\
 	$(NAMES:%=%.thy) $(NAMES:%=%.ML)
 
 $(BIN)/HOL:   $(BIN)/Pure  $(FILES) 
-	if [ -d $${ISABELLEBIN:?}/Pure ];\
+	@if [ -d $${ISABELLEBIN:?}/Pure ];\
 		then echo Bad value for ISABELLEBIN: \
 			$(BIN) is the Isabelle source directory; \
 			exit 1; \
-		fi;\
-	case "$(COMP)" in \
+	fi
+	@case `expr "//$(COMP)" : '[^ ]*/\(.*\)'` in \
 	poly*)	echo 'make_database"$(BIN)/HOL"; quit();'  \
 		  | $(COMP) $(BIN)/Pure;\
 		if [ "$${MAKE_HTML}" = "true" ]; \
@@ -59,7 +59,7 @@ $(BIN)/HOL:   $(BIN)/Pure  $(FILES)
 		       | $(BIN)/Pure;\
 		fi;;\
 	*)	echo Bad value for ISABELLECOMP: \
-			$(COMP) is not poly or sml; exit 1;;\
+			\"$(COMP)\" is not poly or sml; exit 1;;\
 	esac
 
 $(BIN)/Pure:
@@ -68,11 +68,11 @@ $(BIN)/Pure:
 #### Testing of HOL
 
 #A macro referring to the object-logic (depends on ML compiler)
-LOGIC:sh=case $ISABELLECOMP in \
+LOGIC:sh=case `expr "//$ISABELLECOMP" : '[^ ]*/\(.*\)'` in \
 	poly*)	echo "$ISABELLECOMP $ISABELLEBIN/HOL" ;;\
 	sml*)	echo "$ISABELLEBIN/HOL" ;;\
-	*)	echo "echo Bad value for ISABELLECOMP: \
-			$ISABELLEBIN is not poly or sml; exit 1" ;;\
+	*)	echo "echo; echo Bad value for ISABELLECOMP: \
+			$ISABELLECOMP is not poly or sml; exit 1" ;;\
 	esac
 
 ##IMP-semantics example
@@ -80,7 +80,7 @@ IMP_NAMES = Expr Com Natural Transition Denotation Hoare VC
 IMP_FILES = IMP/ROOT.ML $(IMP_NAMES:%=IMP/%.thy) $(IMP_NAMES:%=IMP/%.ML)
 
 IMP:	$(BIN)/HOL  $(IMP_FILES)
-	if [ "$${MAKE_HTML-undefined}" != "undefined" ]; \
+	@if [ "$${MAKE_HTML-undefined}" != "undefined" ]; \
 	then echo 'make_html := true; exit_use_dir"IMP";quit();' | $(LOGIC); \
 	else echo 'exit_use_dir"IMP";quit();' | $(LOGIC); \
 	fi
@@ -91,7 +91,7 @@ Hoare_FILES = Hoare/ROOT.ML $(Hoare_NAMES:%=Hoare/%.thy) \
 	      $(Hoare_NAMES:%=Hoare/%.ML)
 
 Hoare:	$(BIN)/HOL  $(Hoare_FILES)
-	if [ "$${MAKE_HTML-undefined}" != "undefined" ]; \
+	@if [ "$${MAKE_HTML-undefined}" != "undefined" ]; \
 	then echo 'make_html := true; exit_use_dir"Hoare";quit();' | $(LOGIC);\
 	else echo 'exit_use_dir"Hoare";quit();' | $(LOGIC); \
 	fi
@@ -103,7 +103,7 @@ INTEG_FILES = Integ/ROOT.ML \
 	      $(INTEG_NAMES:%=Integ/%.thy) $(INTEG_NAMES:%=Integ/%.ML)
 
 Integ:	$(BIN)/HOL  $(INTEG_FILES)
-	if [ "$${MAKE_HTML-undefined}" != "undefined" ]; \
+	@if [ "$${MAKE_HTML-undefined}" != "undefined" ]; \
 	then echo 'make_html := true; exit_use_dir"Integ";quit();' | $(LOGIC);\
 	else echo 'exit_use_dir"Integ";quit();' | $(LOGIC); \
 	fi
@@ -123,7 +123,7 @@ IOA_FILES = IOA/NTP/ROOT.ML IOA/ABP/ROOT.ML IOA/NTP/Spec.thy\
  $(IOA_MT_NAMES:%=IOA/meta_theory/%.thy) $(IOA_MT_NAMES:%=IOA/meta_theory/%.ML)
 
 IOA:	$(BIN)/HOL  $(IOA_FILES)
-	if [ "$${MAKE_HTML-undefined}" != "undefined" ]; \
+	@if [ "$${MAKE_HTML-undefined}" != "undefined" ]; \
 	then echo 'make_html := true; exit_use_dir"IOA/NTP";quit();' \
 	       | $(LOGIC);\
 	     echo 'make_html := true; exit_use_dir"IOA/ABP";quit();' \
@@ -134,12 +134,13 @@ IOA:	$(BIN)/HOL  $(IOA_FILES)
 
 
 ##Authentication & Security Protocols
-Auth_NAMES = Message Shared NS_Shared OtwayRees OtwayRees_AN Yahalom
+Auth_NAMES = Message Shared NS_Shared OtwayRees OtwayRees_AN OtwayRees_Bad \
+	     Yahalom Yahalom2
 
 AUTH_FILES = Auth/ROOT.ML $(AUTH_NAMES:%=Auth/%.thy) $(AUTH_NAMES:%=Auth/%.ML)
 
 Auth:	$(BIN)/HOL  $(AUTH_FILES)
-	if [ "$${MAKE_HTML-undefined}" != "undefined" ]; \
+	@if [ "$${MAKE_HTML-undefined}" != "undefined" ]; \
 	then echo 'make_html := true; exit_use_dir"Auth";quit();' | $(LOGIC);\
 	else echo 'exit_use_dir"Auth";quit();' | $(LOGIC); \
 	fi
@@ -152,7 +153,7 @@ SUBST_FILES = Subst/ROOT.ML \
 	      $(SUBST_NAMES:%=Subst/%.thy) $(SUBST_NAMES:%=Subst/%.ML)
 
 Subst:	$(BIN)/HOL  $(SUBST_FILES)
-	if [ "$${MAKE_HTML-undefined}" != "undefined" ]; \
+	@if [ "$${MAKE_HTML-undefined}" != "undefined" ]; \
 	then echo 'make_html := true; exit_use_dir"Subst";quit();' | $(LOGIC);\
 	else echo 'exit_use_dir"Subst";quit();' | $(LOGIC); \
 	fi
@@ -164,7 +165,7 @@ LAMBDA_FILES = Lambda/ROOT.ML \
 	      $(LAMBDA_NAMES:%=Lambda/%.thy) $(LAMBDA_NAMES:%=Lambda/%.ML)
 
 Lambda:	 $(BIN)/HOL $(LAMBDA_FILES)
-	if [ "$${MAKE_HTML-undefined}" != "undefined" ]; \
+	@if [ "$${MAKE_HTML-undefined}" != "undefined" ]; \
 	then echo 'make_html := true; exit_use_dir"Lambda";quit();' \
 	       | $(LOGIC);\
 	else echo 'exit_use_dir"Lambda";quit();' | $(LOGIC); \
@@ -177,7 +178,7 @@ MINIML_FILES = MiniML/ROOT.ML \
 	      $(MINIML_NAMES:%=MiniML/%.thy) $(MINIML_NAMES:%=MiniML/%.ML)
 
 MiniML: $(BIN)/HOL  $(MINIML_FILES)
-	if [ "$${MAKE_HTML-undefined}" != "undefined" ]; \
+	@if [ "$${MAKE_HTML-undefined}" != "undefined" ]; \
 	then echo 'make_html := true; exit_use_dir"MiniML";quit();' \
 	       | $(LOGIC);\
 	else echo 'exit_use_dir"MiniML";quit();' | $(LOGIC); \
@@ -190,7 +191,7 @@ LEX_FILES = Lex/ROOT.ML \
 	    $(LEX_NAMES:%=Lex/%.thy) $(LEX_NAMES:%=Lex/%.ML)
 
 Lex:	$(BIN)/HOL  $(LEX_FILES)
-	if [ "$${MAKE_HTML-undefined}" != "undefined" ]; \
+	@if [ "$${MAKE_HTML-undefined}" != "undefined" ]; \
 	then echo 'make_html := true; exit_use_dir"Lex";quit();' | $(LOGIC);\
 	else echo 'exit_use_dir"Lex";quit();' | $(LOGIC); \
 	fi
@@ -203,7 +204,7 @@ EX_FILES = ex/ROOT.ML ex/cla.ML ex/meson.ML ex/mesontest.ML ex/rel.ML \
 	   ex/set.ML $(EX_NAMES:%=ex/%.thy) $(EX_NAMES:%=ex/%.ML)
 
 ex:	$(BIN)/HOL  $(EX_FILES)
-	if [ "$${MAKE_HTML-undefined}" != "undefined" ]; \
+	@if [ "$${MAKE_HTML-undefined}" != "undefined" ]; \
 	then echo 'make_html := true; exit_use_dir"ex";quit();' | $(LOGIC);\
 	else echo 'exit_use_dir"ex";quit();' | $(LOGIC); \
 	fi

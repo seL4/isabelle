@@ -35,7 +35,7 @@ FILES = ROOT.ML thy_syntax.ML ../Pure/section_utils.ML \
 
 #Uses cp rather than make_database because Poly/ML allows only 3 levels
 $(BIN)/ZF:   $(BIN)/FOL	 $(FILES) 
-	case "$(COMP)" in \
+	@case `expr "//$(COMP)" : '[^ ]*/\(.*\)'` in \
 	poly*)	cp $(BIN)/FOL $(BIN)/ZF;\
 		if [ "$${MAKE_HTML}" = "true" ]; \
 		then echo 'open PolyML; make_html := true; exit_use_dir".";' \
@@ -55,7 +55,7 @@ $(BIN)/ZF:   $(BIN)/FOL	 $(FILES)
 		       | $(BIN)/FOL;\
 		fi;;\
 	*)	echo Bad value for ISABELLECOMP: \
-			$(COMP) is not poly or sml; exit 1;;\
+			\"$(COMP)\" is not poly or sml; exit 1;;\
 	esac
 
 $(BIN)/FOL:
@@ -64,11 +64,11 @@ $(BIN)/FOL:
 #### Testing of ZF
 
 #A macro referring to the object-logic (depends on ML compiler)
-LOGIC:sh=case $ISABELLECOMP in \
+LOGIC:sh=case `expr "//$ISABELLECOMP" : '[^ ]*/\(.*\)'` in \
 	poly*)	echo "$ISABELLECOMP $ISABELLEBIN/ZF" ;;\
 	sml*)	echo "$ISABELLEBIN/ZF" ;;\
-	*)	echo "echo Bad value for ISABELLECOMP: \
-			$ISABELLEBIN is not poly or sml; exit 1" ;;\
+	*)	echo "echo; echo Bad value for ISABELLECOMP: \
+			$ISABELLECOMP is not poly or sml; exit 1" ;;\
 	esac
 
 ##IMP-semantics example
@@ -76,7 +76,7 @@ IMP_NAMES = Com Denotation Equiv
 IMP_FILES = IMP/ROOT.ML $(IMP_NAMES:%=IMP/%.thy) $(IMP_NAMES:%=IMP/%.ML)
 
 IMP:   $(BIN)/ZF  $(IMP_FILES)
-	if [ "$${MAKE_HTML-undefined}" != "undefined" ]; \
+	@if [ "$${MAKE_HTML-undefined}" != "undefined" ]; \
 	then echo 'make_html := true; exit_use_dir"IMP";quit();' | $(LOGIC); \
 	else echo 'exit_use_dir"IMP";quit();' | $(LOGIC); \
 	fi
@@ -88,7 +88,7 @@ COIND_FILES = Coind/ROOT.ML Coind/BCR.thy  Coind/Dynamic.thy \
 	      $(COIND_NAMES:%=Coind/%.thy) $(COIND_NAMES:%=Coind/%.ML)
 
 Coind:	$(BIN)/ZF  $(COIND_FILES)
-	if [ "$${MAKE_HTML-undefined}" != "undefined" ]; \
+	@if [ "$${MAKE_HTML-undefined}" != "undefined" ]; \
 	then echo 'make_html := true; exit_use_dir"Coind";quit();' | $(LOGIC);\
 	else echo 'exit_use_dir"Coind";quit();' | $(LOGIC); \
 	fi
@@ -105,7 +105,7 @@ AC_FILES = AC/ROOT.ML AC/AC0_AC1.ML AC/AC10_AC15.ML AC/AC1_AC17.ML \
 	   $(AC_NAMES:%=AC/%.thy) $(AC_NAMES:%=AC/%.ML)
 
 AC:  $(BIN)/ZF	$(AC_FILES)
-	if [ "$${MAKE_HTML-undefined}" != "undefined" ]; \
+	@if [ "$${MAKE_HTML-undefined}" != "undefined" ]; \
 	then echo 'make_html := true; exit_use_dir"AC";quit();' | $(LOGIC); \
 	else echo 'exit_use_dir"AC";quit();' | $(LOGIC); \
 	fi
@@ -119,7 +119,7 @@ RESID_FILES = Resid/ROOT.ML $(RESID_NAMES:%=Resid/%.thy) \
 			    $(RESID_NAMES:%=Resid/%.ML)
 
 Resid:	$(BIN)/ZF  $(RESID_FILES)
-	if [ "$${MAKE_HTML-undefined}" != "undefined" ]; \
+	@if [ "$${MAKE_HTML-undefined}" != "undefined" ]; \
 	then echo 'make_html := true; exit_use_dir"Resid";quit();' | $(LOGIC);\
 	else echo 'exit_use_dir"Resid";quit();' | $(LOGIC); \
 	fi
@@ -132,7 +132,7 @@ EX_FILES = ex/ROOT.ML ex/misc.ML $(EX_NAMES:%=ex/%.thy) $(EX_NAMES:%=ex/%.ML)
 
 #Test ZF by loading the examples in directory ex
 ex:	$(BIN)/ZF  $(EX_FILES)
-	if [ "$${MAKE_HTML-undefined}" != "undefined" ]; \
+	@if [ "$${MAKE_HTML-undefined}" != "undefined" ]; \
 	then echo 'make_html := true; exit_use_dir"ex";quit();' | $(LOGIC); \
 	else echo 'exit_use_dir"ex";quit();' | $(LOGIC); \
 	fi

@@ -25,7 +25,7 @@ COMP = $(ISABELLECOMP)
 FILES =		ROOT.ML	 Cube.thy  Cube.ML
 
 $(BIN)/Cube:   $(BIN)/Pure  $(FILES) 
-	case "$(COMP)" in \
+	@case `expr "//$(COMP)" : '[^ ]*/\(.*\)'` in \
 	poly*)	echo 'make_database"$(BIN)/Cube"; quit();'  \
 			| $(COMP) $(BIN)/Pure;\
 		if [ "$${MAKE_HTML}" = "true" ]; \
@@ -46,18 +46,18 @@ $(BIN)/Cube:   $(BIN)/Pure  $(FILES)
 		       | $(BIN)/Pure;\
 		fi;;\
 	*)	echo Bad value for ISABELLECOMP: \
-			$(COMP) is not poly or sml;;\
+			\"$(COMP)\" is not poly or sml;;\
 	esac
 
 $(BIN)/Pure:
 	cd ../Pure;  $(MAKE)
 
 test:	ex.ML $(BIN)/Cube
-	case "$(COMP)" in \
+	@case `expr "//$(COMP)" : '[^ ]*/\(.*\)'` in \
 	poly*)	echo 'exit_use"ex.ML"; quit();' | $(COMP) $(BIN)/Cube ;;\
 	sml*)	echo 'exit_use"ex.ML";' | $(BIN)/Cube;;\
 	*)	echo Bad value for ISABELLECOMP: \
-			$(COMP) is not poly or sml;;\
+			\"$(COMP)\" is not poly or sml;;\
 	esac
 
 .PRECIOUS:  $(BIN)/Pure	 $(BIN)/Cube 
