@@ -55,7 +55,7 @@ fun load_thy name chs =
     val txt_out = ThyParse.parse_thy (! syntax) chs;
   in
     File.write tmp_path txt_out;
-    Symbol.use tmp_path;
+    File.symbol_use tmp_path;
     if ! delete_tmpfiles then File.rm tmp_path else ()
   end;
 

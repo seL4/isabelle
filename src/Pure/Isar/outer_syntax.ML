@@ -198,7 +198,7 @@ end;
 
 fun deps_thy name ml path =
   let
-    val src = Source.of_file path;
+    val src = File.source path;
     val is_old = warn_theory_style path (is_old_theory src);
     val (name', parents, files) =
       (*Note: old style headers dynamically depend on the current lexicon :-( *)
@@ -248,7 +248,7 @@ fun parse_thy (src, pos) =
   end;
 
 fun run_thy name path =
-  let val (src, pos) = Source.of_file path in
+  let val (src, pos) = File.source path in
     Present.theory_source name src;
     if is_old_theory (src, pos) then ThySyn.load_thy name (Source.exhaust src)
     else (Toplevel.excursion (parse_thy (src, pos))

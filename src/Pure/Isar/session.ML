@@ -61,7 +61,7 @@ val root_file = ThyLoad.ml_path "ROOT";
 fun use_dir reset info parent name =
   (init reset parent name;
     Present.init info (path ()) name;
-    Symbol.use root_file;
+    File.symbol_use root_file;
     finish ()) handle exn => (writeln (Toplevel.exn_message exn); exit 1);
 
 
