@@ -140,12 +140,13 @@ follows:\footnote{Internal bookkeeping such as proper handling of
 \section{Named local contexts (cases)}\label{sec:cases}
 
 \indexisarcmd{case}\indexisarcmd{print-cases}
-\indexisaratt{case-names}\indexisaratt{params}
+\indexisaratt{case-names}\indexisaratt{params}\indexisaratt{consumes}
 \begin{matharray}{rcl}
   \isarcmd{case} & : & \isartrans{proof(state)}{proof(state)} \\
   \isarcmd{print_cases}^* & : & \isarkeep{proof} \\
   case_names & : & \isaratt \\
   params & : & \isaratt \\
+  consumes & : & \isaratt \\
 \end{matharray}
 
 Basically, Isar proof contexts are built up explicitly using commands like
@@ -186,6 +187,8 @@ may be used in advanced case analysis later.
   ;
   'params' ((name * ) + 'and')
   ;
+  'consumes' nat?
+  ;
 \end{rail}
 %FIXME bug in rail
 
@@ -205,6 +208,17 @@ may be used in advanced case analysis later.
 
   Note that the default usage of case rules does \emph{not} directly expose
   parameters to the proof context (see also \S\ref{sec:induct-method-proper}).
+\item [$consumes~n$] declares the number of ``major premises'' of a rule,
+  i.e.\ the number of facts to be consumed when it is applied by an
+  appropriate proof method (cf.\ \S\ref{sec:induct-method}).  The default
+  value of $consumes$ is $n = 1$, which is appropriate for the usual kind of
+  cases and induction rules for inductive sets (cf.\ \S\ref{sec:inductive}).
+  Rules without any $consumes$ declaration given are treated as if
+  $consumes~0$ had been specified.
+  
+  Note that explicit $consumes$ declarations are only rarely needed; this is
+  already taken care of automatically by the higher-level $cases$ and $induct$
+  declarations, see also \S\ref{sec:induct-att}.
 \end{descr}
 
 
