@@ -19,6 +19,10 @@ sig
   val add_subsubsect: Comment.text -> ProofHistory.T -> ProofHistory.T
   val add_txt: Comment.text -> ProofHistory.T -> ProofHistory.T
   val add_txt_raw: Comment.text -> ProofHistory.T -> ProofHistory.T
+  val global_path: Comment.text -> theory -> theory
+  val local_path: Comment.text -> theory -> theory
+  val hide_space: (string * xstring list) * Comment.text -> theory -> theory
+  val hide_space_i: (string * string list) * Comment.text -> theory -> theory
   val add_classes: (bclass * xclass list) list * Comment.text -> theory -> theory
   val add_classes_i: (bclass * class list) list * Comment.text  -> theory -> theory
   val add_classrel: (xclass * xclass) * Comment.text -> theory -> theory
@@ -188,6 +192,19 @@ val add_txt_raw = add_txt;
 val add_sect = add_txt;
 val add_subsect = add_txt;
 val add_subsubsect = add_txt;
+
+
+(* name spaces *)
+
+fun global_path comment_ignore = PureThy.global_path;
+fun local_path comment_ignore = PureThy.local_path;
+
+fun gen_hide f ((kind, names), comment_ignore) thy =
+  if kind mem_string [Sign.classK, Sign.typeK, Sign.constK] then f (kind, names) thy
+  else error ("Bad name space specification: " ^ quote kind);
+
+val hide_space = gen_hide Theory.hide_space;
+val hide_space_i = gen_hide Theory.hide_space_i;
 
 
 (* signature and syntax *)
