@@ -123,7 +123,11 @@ by (rename_tac "k" 1);
 by (cut_inst_tac [("m","k*n"),("n","n")] mod_add_self2 1);
 by (asm_full_simp_tac (simpset() addsimps [add_commute]) 1);
 qed "mod_mult_self_is_0";
-Addsimps [mod_mult_self_is_0];
+
+Goal "(n*m) mod n = 0";
+by (simp_tac (simpset() addsimps [mult_commute, mod_mult_self_is_0]) 1);
+qed "mod_mult_self1_is_0";
+Addsimps [mod_mult_self_is_0, mod_mult_self1_is_0];
 
 
 (*** Quotient ***)
@@ -351,7 +355,11 @@ Goal "0<n ==> (m*n) div n = m";
 by (cut_inst_tac [("m", "m*n"),("n","n")] mod_div_equality 1);
 by (asm_full_simp_tac (simpset() addsimps [mod_mult_self_is_0]) 1);
 qed "div_mult_self_is_m";
-Addsimps [div_mult_self_is_m];
+
+Goal "0<n ==> (n*m) div n = m";
+by (asm_simp_tac (simpset() addsimps [mult_commute, div_mult_self_is_m]) 1);
+qed "div_mult_self1_is_m";
+Addsimps [div_mult_self_is_m, div_mult_self1_is_m];
 
 (*Cancellation law for division*)
 Goal "0<k ==> (k*m) div (k*n) = m div n";
