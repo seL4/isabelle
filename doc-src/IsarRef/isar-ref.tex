@@ -51,7 +51,7 @@
   Isabelle/Isar input may consist either of \emph{proper document
     constructors}, or \emph{improper auxiliary commands} (for diagnostics,
   exploration etc.).  Proof texts consisting of proper document constructors
-  only admit a purely static reading, thus being intelligible later without
+  only, admit a purely static reading, thus being intelligible later without
   requiring dynamic replay that is so typical for traditional proof scripts.
   Any of the Isabelle/Isar commands may be executed in single-steps, so
   basically the interpreter has a proof text debugger already built-in.
@@ -63,12 +63,11 @@
   including forward and backward tracing of partial documents; intermediate
   states may be inspected by diagnostic commands.
   
-  The Isar subsystem of Isabelle is tightly integrated into the Isabelle/Pure
-  meta-logic implementation.  Theories, theorems, proof procedures etc.\ may
-  be used interchangeably between Isabelle-classic proof scripts and
-  Isabelle/Isar documents.  Isar is as generic as Isabelle, able to support a
-  wide range of object-logics.  The current end-user setup is mainly for
-  Isabelle/HOL.
+  The Isar subsystem is tightly integrated into the Isabelle/Pure meta-logic
+  implementation.  Theories, theorems, proof procedures etc.\ may be used
+  interchangeably between Isabelle-classic proof scripts and Isabelle/Isar
+  documents.  Isar is as generic as Isabelle, able to support a wide range of
+  object-logics.  The current end-user setup is mainly for Isabelle/HOL.
 \end{abstract}
 
 \pagenumbering{roman} \tableofcontents \clearfirst

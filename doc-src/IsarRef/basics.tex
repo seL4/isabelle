@@ -13,16 +13,16 @@ Isabelle/Isar offers two main improvements over classic Isabelle:
 
 The Isar proof language is embedded into the new theory format as a proper
 sub-language.  Proof mode is entered by stating some $\THEOREMNAME$ or
-$\LEMMANAME$ at the theory levels, and left with the final end of proof (e.g.\ 
+$\LEMMANAME$ at the theory level, and left with the final end of proof (e.g.\ 
 via $\QEDNAME$).  Some theory extension mechanisms require proof as well, such
-as the HOL $\isarkeyword{typedef}$ mechanism that only works for non-empty
-representing sets.
+as the HOL $\isarkeyword{typedef}$ which only works for non-empty representing
+sets.
 
 New-style theory files may still be associated with an ML file consisting of
 plain old tactic scripts.  There is no longer any ML binding generated for the
 theory and theorems, though.  Functions \texttt{theory}, \texttt{thm}, and
-\texttt{thms} may be used to retrieve this information from ML (see also
-\cite{isabelle-ref}).  Nevertheless, migration between classic Isabelle and
+\texttt{thms} may be used to retrieve this information from ML
+\cite{isabelle-ref}.  Nevertheless, migration between classic Isabelle and
 Isabelle/Isar is relatively easy.  Thus users may start to benefit from
 interactive theory development even before they have any idea of the Isar
 proof language.
@@ -30,15 +30,15 @@ proof language.
 \begin{warn}
   Proof~General does \emph{not} support mixed interactive development of
   classic Isabelle theory files and tactic scripts together with Isar
-  documents at the same time.  The \texttt{isa} and \texttt{isar} versions of
-  Proof~General appear as two different theorem proving systems; only one
-  prover may be active at any time.
+  documents at the same time.  The ``\texttt{isa}'' and ``\texttt{isar}''
+  versions of Proof~General are handled as two different theorem proving
+  systems, only one may be active at the same time.
 \end{warn}
 
 
 \section{The Isar proof language}
 
-This rather important section has not been written yet!  Refer to
+Sorry, this rather important section has not been written yet!  Refer to
 \cite{Wenzel:1999:TPHOL} for the time being.
 
 \subsection{Commands}

@@ -24,9 +24,9 @@
 \item [$\isarkeyword{typedef}~(\vec\alpha)t = A$] sets up a goal stating
   non-emptiness of the set $A$.  After finishing the proof, the theory will be
   augmented by a Gordon/HOL-style type definition.  See \cite{isabelle-HOL}
-  for more information.  Note that user-level work usually does not directly
-  refer to the HOL $\isarkeyword{typedef}$ primitive, but uses more advanced
-  packages such as $\isarkeyword{record}$ (see \S\ref{sec:record}) or
+  for more information.  Note that user-level theories usually do not directly
+  refer to the HOL $\isarkeyword{typedef}$ primitive, but use more advanced
+  packages such as $\isarkeyword{record}$ (see \S\ref{sec:record}) and
   $\isarkeyword{datatype}$ (see \S\ref{sec:datatype}).
 \end{descr}
 
@@ -51,10 +51,9 @@
 \item [$\isarkeyword{record}~(\vec\alpha)t = \tau + \vec c :: \vec\sigma$]
   defines extensible record type $(\vec\alpha)t$, derived from the optional
   parent record $\tau$ by adding new field components $\vec c :: \vec\sigma$.
+  See \cite{isabelle-HOL,NaraschewskiW-TPHOLs98} for more information only
+  simply-typed extensible records.
 \end{descr}
-
-See \cite{isabelle-HOL,NaraschewskiW-TPHOLs98} for more information only
-simply-typed extensible records.
 
 
 \section{Datatypes}\label{sec:datatype}
@@ -86,7 +85,8 @@ simply-typed extensible records.
 \end{descr}
 
 See \cite{isabelle-HOL} for more details on datatypes.  Note that the theory
-syntax above has been slightly simplified over the old version.
+syntax above has been slightly simplified over the old version, usually
+requiring more quotes and less parentheses.
 
 
 \section{Recursive functions}
@@ -113,7 +113,7 @@ syntax above has been slightly simplified over the old version.
   functions (using the TFL package).
 \end{descr}
 
-See \cite{isabelle-HOL} for more information.
+See \cite{isabelle-HOL} for more information on both mechanisms.
 
 
 \section{(Co)Inductive sets}
@@ -178,7 +178,7 @@ induction rules.
   by $insts$.  The latter either consists of pairs $P$ $x$ (induction
   predicate and variable), where $P$ is optional.  If $kind$ is omitted, the
   default is to pick a datatype induction rule according to the type of some
-  induction variable (at least one has to be given in that case).
+  induction variable, which may not be omitted that case.
 \end{descr}
 
 
