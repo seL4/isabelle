@@ -10,6 +10,7 @@ signature INDUCT_METHOD =
 sig
   val vars_of: term -> term list
   val concls_of: thm -> term list
+  val rewrite_cterm: thm list -> cterm -> cterm
   val simp_case_tac: bool -> simpset -> int -> tactic
   val setup: (theory -> theory) list
 end;
@@ -71,6 +72,9 @@ fun prep_inst align cert f (tm, ts) =
     align "Rule has fewer variables than instantiations given" (vars_of tm) ts
     |> mapfilter prep_var
   end;
+
+fun rewrite_cterm rews =
+  #2 o Thm.dest_comb o #prop o Thm.crep_thm o Simplifier.full_rewrite (HOL_basic_ss addsimps rews);
 
 
 (* simplifying cases rules *)
@@ -199,9 +203,6 @@ end;
 *)
 
 local
-
-fun rewrite_cterm rews =
-  #2 o Thm.dest_comb o #prop o Thm.crep_thm o Simplifier.full_rewrite (HOL_basic_ss addsimps rews);
 
 fun drop_Trueprop ct =
   let
