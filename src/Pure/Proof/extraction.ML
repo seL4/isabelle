@@ -478,7 +478,7 @@ fun extract thms thy =
                     val args = vfs_of prop;
                     val corr_prf' = foldr forall_intr_prf (args, corr_prf);
                   in
-                    ((name, (vs', ((nullt, nullt), corr_prf'))) :: defs',
+                    ((name, (vs', ((nullt, nullt), corr_prf'))) :: defs'',
                      prf_subst_TVars tye' corr_prf')
                   end
               | Some (_, prf') => (defs', prf_subst_TVars tye' prf'))
@@ -580,7 +580,7 @@ fun extract thms thy =
                                   Some (map TVar (term_tvars eqn))))) %%
                             corr_prf)))
                   in
-                    ((s, (vs', ((t', u), corr_prf'))) :: defs',
+                    ((s, (vs', ((t', u), corr_prf'))) :: defs'',
                      subst_TVars tye' u)
                   end
               | Some ((_, u), _) => (defs, subst_TVars tye' u))
