@@ -264,8 +264,12 @@ result();
 
 writeln"Problem 24";
 goal IFOLP.thy "?p : ~(EX x. S(x)&Q(x)) & (ALL x. P(x) --> Q(x)|R(x)) &  \
-\    ~(EX x.P(x)) --> (EX x.Q(x)) & (ALL x. Q(x)|R(x) --> S(x))  \
-\   --> (EX x. P(x)&R(x))";
+\    (~(EX x.P(x)) --> (EX x.Q(x))) & (ALL x. Q(x)|R(x) --> S(x))  \
+\   --> ~~(EX x. P(x)&R(x))";
+(*Not clear why fast_tac, best_tac, ASTAR and ITER_DEEPEN all take forever*)
+by Int.safe_tac; 
+by (etac impE 1);
+by (Int.fast_tac 1); 
 by (Int.fast_tac 1); 
 result();
 

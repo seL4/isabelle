@@ -260,7 +260,7 @@ result();
 
 writeln"Problem 21";
 goal IFOL.thy "(EX x. P-->Q(x)) & (EX x. Q(x)-->P) --> ~~(EX x. P<->Q(x))";
-(*NOT PROVED*)
+(*NOT PROVED; needs quantifier duplication*)
 
 writeln"Problem 22";
 goal IFOL.thy "(ALL x. P <-> Q(x))  -->  (P <-> (ALL x. Q(x)))";
@@ -274,8 +274,12 @@ result();
 
 writeln"Problem 24";
 goal IFOL.thy "~(EX x. S(x)&Q(x)) & (ALL x. P(x) --> Q(x)|R(x)) &  \
-\    ~(EX x.P(x)) --> (EX x.Q(x)) & (ALL x. Q(x)|R(x) --> S(x))  \
-\   --> (EX x. P(x)&R(x))";
+\    (~(EX x.P(x)) --> (EX x.Q(x))) & (ALL x. Q(x)|R(x) --> S(x))  \
+\   --> ~~(EX x. P(x)&R(x))";
+(*Not clear why fast_tac, best_tac, ASTAR and ITER_DEEPEN all take forever*)
+by Int.safe_tac; 
+by (etac impE 1);
+by (Int.fast_tac 1); 
 by (Int.fast_tac 1); 
 result();
 
