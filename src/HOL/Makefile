@@ -138,7 +138,7 @@ ex:     $(BIN)/HOL  $(EX_FILES)
 	echo 'exit_use"ex/ROOT.ML";quit();' | $(LOGIC)
 
 #Full test. (IOA has been removed temporarily)
-test:   $(BIN)/HOL IMP Integ Subst Lambda MiniML ex
+test:   $(BIN)/HOL IMP Integ Subst Lambda MiniML IOA ex
 	echo 'Test examples ran successfully' > test
 
 .PRECIOUS:  $(BIN)/Pure $(BIN)/HOL 
