@@ -1,7 +1,0 @@
-#!/bin/bash
-#
-# $Id$
-#
-# ucat - uninterruptible cat.
-
-exec tee -i /dev/null "$@"
