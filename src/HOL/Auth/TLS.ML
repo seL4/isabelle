@@ -125,11 +125,12 @@ result();
 
 (*Another one, for CertVerify (which is optional)*)
 goal thy 
- "!!A B. A ~= B ==> EX NB. EX evs: tls.     \
+ "!!A B. A ~= B ==> EX NB M. EX evs: tls.     \
 \  Says A B (Crypt (priK A)                 \
-\            (Hash{|Nonce NB, certificate B (pubK B)|})) : set evs";
+\            (Hash{|Nonce NB, certificate B (pubK B), Nonce M|})) : set evs";
 by (REPEAT (resolve_tac [exI,bexI] 1));
-by (rtac (tls.Nil RS tls.ClientHello RS tls.ServerHello RS tls.CertVerify) 2);
+by (rtac (tls.Nil RS tls.ClientHello RS tls.ServerHello RS tls.ClientCertKeyEx
+	  RS tls.CertVerify) 2);
 by possibility_tac;
 result();
 
@@ -226,26 +227,24 @@ by (ALLGOALS Asm_simp_tac);
 by (step_tac (!claset addSDs [Says_imp_sees_Spy' RS parts.Inj]
 		      addSEs partsEs) 1);
 by (ALLGOALS (asm_full_simp_tac (!simpset addsimps [parts_insert_sees])));
-(*ServerFinished*)
-by (Blast_tac 3);
-(*ClientFinished*)
-by (Blast_tac 2);
 by (Fake_parts_insert_tac 1);
+(*CertVerify, ClientFinished, ServerFinished (?)*)
+by (REPEAT (Blast_tac 1));
 qed "Hash_imp_Nonce_seen";
 
 
 (*** Protocol goal: if B receives CERTIFICATE VERIFY, then A sent it ***)
 
-(*Perhaps B~=Spy is unnecessary, but there's no obvious proof if the first
+(*B can check A's signature if he has received A's certificate.
+  Perhaps B~=Spy is unnecessary, but there's no obvious proof if the first
   message is Fake.  We don't need guarantees for the Spy anyway.  We must
   assume A~:lost; otherwise, the Spy can forge A's signature.*)
 goalw thy [certificate_def]
- "!!evs. [| X = Crypt (priK A)                          \
-\                 (Hash{|Nonce NB,                                      \
-\                        certificate B KB|});    \
-\           evs : tls;  A ~: lost;  B ~= Spy |]         \
-\    ==> Says B A {|Nonce NA, Nonce NB, Agent XB,       \
-\                   certificate B KB|} : set evs --> \
+ "!!evs. [| X = Crypt (priK A)                                        \
+\                 (Hash{|Nonce NB, certificate B KB, Nonce M|});      \
+\           evs : tls;  A ~: lost;  B ~= Spy |]                       \
+\    ==> Says B A {|Nonce NA, Nonce NB, Agent XB, certificate B KB|}  \
+\          : set evs --> \
 \        X : parts (sees lost Spy evs) --> Says A B X : set evs";
 by (hyp_subst_tac 1);
 by (etac tls.induct 1);
@@ -257,14 +256,23 @@ by (blast_tac (!claset addSDs [Hash_imp_Nonce1]
 qed_spec_mp "TrustCertVerify";
 
 
+goal thy
+ "!!evs. [| evs : tls;  A ~= Spy |]                                      \
+\ ==> Says A B (Crypt (priK A)                                           \
+\               (Hash{|Nonce NB, certificate B KB, Nonce M|})) : set evs \
+\     --> Says A B {|certificate A (pubK A), Crypt KB (Nonce M)|} : set evs";
+by (etac tls.induct 1);
+by (ALLGOALS Asm_full_simp_tac);
+bind_thm ("UseCertVerify", result() RSN (2, rev_mp));
+
+
 (*This lemma says that no false certificates exist.  One might extend the
   model to include bogus certificates for the lost agents, but there seems
   little point in doing so: the loss of their private keys is a worse
   breach of security.*)
 goalw thy [certificate_def]
  "!!evs. evs : tls     \
-\    ==> certificate B KB : parts (sees lost Spy evs) \
-\        --> KB = pubK B";
+\        ==> certificate B KB : parts (sees lost Spy evs) --> KB = pubK B";
 by (etac tls.induct 1);
 by (ALLGOALS Asm_simp_tac);
 by (Fake_parts_insert_tac 2);
@@ -359,10 +367,9 @@ qed_spec_mp "analz_image_keys";
   The assumption is A~=Spy, not A~:lost, since A doesn't use her private key
   here.*)
 goalw thy [certificate_def]
- "!!evs. [| evs : tls;  A~=Spy;  B ~: lost |]                       \
-\        ==> Says A B {|certificate A (pubK A), \
-\                       Crypt KB (Nonce M)|} : set evs -->             \
-\            Nonce M ~: analz (sees lost Spy evs)";
+ "!!evs. [| evs : tls;  A~=Spy;  B ~: lost |]                        \
+\        ==> Says A B {|certificate A (pubK A), Crypt KB (Nonce M)|} \
+\              : set evs  -->  Nonce M ~: analz (sees lost Spy evs)";
 by (analz_induct_tac 1);
 (*ClientHello*)
 by (blast_tac (!claset addSEs sees_Spy_partsEs) 3);
@@ -420,11 +427,10 @@ goalw thy [certificate_def]
  "!!evs. [| X = Crypt (serverK(NA,NB,M))                            \
 \                 (Hash{|Hash{|Nonce NA, Nonce NB, Nonce M|},       \
 \                        Nonce NA, Agent XA, Agent A,               \
-\                        Nonce NB, Agent XB,                        \
-\                        certificate B (pubK B)|}); \
+\                        Nonce NB, Agent XB, certificate B (pubK B)|}); \
 \           evs : tls;  A~=Spy;  B ~: lost |]                       \
-\    ==> Says A B {|certificate A (pubK A),  \
-\                   Crypt KB (Nonce M)|} : set evs -->              \
+\    ==> Says A B {|certificate A (pubK A), Crypt KB (Nonce M)|} \
+\          : set evs -->              \
 \        X : parts (sees lost Spy evs) --> Says B A X : set evs";
 by (hyp_subst_tac 1);
 by (etac tls.induct 1);
@@ -444,8 +450,8 @@ qed_spec_mp "TrustServerFinished";
 
 (*** Protocol goal: if B receives CLIENT FINISHED, then A has used the
      quoted values XA, XB, etc., which B can then check.  BUT NOTE:
-     B has no way of knowing that A is the sender of CERTIFICATE VERIFY
- ***)
+     B has no way of knowing that A is the sender of CLIENT CERTIFICATE!
+***)
 goalw thy [certificate_def]
  "!!evs. [| X = Crypt (clientK(NA,NB,M))                        \
 \                 (Hash{|Hash{|Nonce NA, Nonce NB, Nonce M|},   \
@@ -454,7 +460,7 @@ goalw thy [certificate_def]
 \                        Nonce NB, Agent XB, Agent B|});        \
 \           evs : tls;  A~=Spy;  B ~: lost |]                   \
 \     ==> Says A B {|certificate A (pubK A),                    \
-\                    Crypt KB (Nonce M)|} : set evs -->              \
+\                    Crypt KB (Nonce M)|} : set evs -->         \
 \         X : parts (sees lost Spy evs) --> Says A B X : set evs";
 by (hyp_subst_tac 1);
 by (etac tls.induct 1);
@@ -470,3 +476,29 @@ by (asm_simp_tac (!simpset addsimps [Spy_not_see_premaster_secret,
 				     not_parts_not_analz]) 2);
 by (Fake_parts_insert_tac 1);
 qed_spec_mp "TrustClientFinished";
+
+
+(*** Protocol goal: if B receives CLIENT FINISHED, and if B is able to
+     check a CERTIFICATE VERIFY from A, then A has used the quoted
+     values XA, XB, etc.  Even this one requires A to be uncompromised.
+ ***)
+goal thy
+ "!!evs. [| X = Crypt (clientK(NA,NB,M))                        \
+\                 (Hash{|Hash{|Nonce NA, Nonce NB, Nonce M|},   \
+\                        Nonce NA, Agent XA,                    \
+\                        certificate A (pubK A),                \
+\                        Nonce NB, Agent XB, Agent B|});        \
+\           Says A' B X : set evs;                              \
+\           Says B A {|Nonce NA, Nonce NB, Agent XB, certificate B KB|}  \
+\             : set evs;                                        \
+\           Says A'' B (Crypt (priK A)                                   \
+\                       (Hash{|Nonce NB, certificate B KB, Nonce M|}))   \
+\             : set evs;                                        \
+\        evs : tls;  A ~: lost;  B ~: lost |]                   \
+\     ==> Says A B X : set evs";
+br TrustClientFinished 1;
+br (TrustCertVerify RS UseCertVerify) 5;
+by (REPEAT_FIRST (ares_tac [refl]));
+by (ALLGOALS 
+    (asm_full_simp_tac (!simpset addsimps [Says_imp_sees_Spy RS parts.Inj])));
+qed_spec_mp "AuthClientFinished";
