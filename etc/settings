@@ -42,17 +42,17 @@ fi
 #ML_OPTIONS="@SMLdebug=/dev/null"
 #ML_PLATFORM=$(eval $("$ML_HOME/.arch-n-opsys" 2>/dev/null); echo "$HEAP_SUFFIX")
 
-# Moscow ML 2.00 or later (experimental!)
-#ML_SYSTEM=mosml
-#ML_HOME="$ISABELLE_HOME/../mosml/bin"
-#ML_PLATFORM=""
-#ML_OPTIONS=""
-
 # MLWorks 2.0
 #ML_SYSTEM=mlworks
 #ML_HOME="$ISABELLE_HOME/../mlworks/bin"
 #ML_OPTIONS=""
 #ML_PLATFORM=""
+
+# Moscow ML 2.00 or later (experimental!)
+#ML_SYSTEM=mosml
+#ML_HOME="$ISABELLE_HOME/../mosml/bin"
+#ML_PLATFORM=""
+#ML_OPTIONS=""
 
 # Standard ML of New Jersey 0.93
 #ML_SYSTEM=smlnj-0.93
@@ -79,8 +79,11 @@ ISABELLE_PDFLATEX="pdflatex"
 ISABELLE_BIBTEX="bibtex"
 ISABELLE_DVIPS="dvips -D 600"
 
+# Paranoia setting ...
+#unset TEXMF
+
 # The thumbpdf tool is probably not generally available ...
-#ISABELLE_THUMBPDF="thumbpdf"
+#type -path thumbpdf >/dev/null && ISABELLE_THUMBPDF="thumbpdf"
 
 
 ###
@@ -175,7 +178,7 @@ XSYMBOL_HOME=$(choosefrom \
   "/usr/local/x-symbol" \
   "/opt/x-symbol" \
   "")
-#required for remote fonts only ...
+# Required for remote fonts only ...
 #XSYMBOL_INSTALLFONTS="xset fp+ tcp/isafonts.informatik.tu-muenchen.de:7200"
 
 

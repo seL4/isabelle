@@ -2,6 +2,9 @@
 Isabelle NEWS -- history user-relevant changes
 ==============================================
 
+New in Isabelle99-2 (February 2001)
+-----------------------------------
+
 *** Overview of INCOMPATIBILITIES ***
 
 * HOL: inductive package no longer splits induction rule aggressively,
@@ -45,7 +48,7 @@ type-writer);
 like this: "A\<^sup>*" or "A\<^sup>\<star>";
 
 * some more standard symbols; see Appendix A of the system manual for
-the complete list;
+the complete list of symbols defined in isabellesym.sty;
 
 * improved isabelle style files; more abstract symbol implementation
 (should now use \isamath{...} and \isatext{...} in custom symbol
@@ -56,10 +59,13 @@ state; Note that presentation of goal states does not conform to
 actual human-readable proof documents.  Please do not include goal
 states into document output unless you really know what you are doing!
 
-* isatool unsymbolize tunes sources for plain ASCII communication;
+* proper indentation of antiquoted output with proportional LaTeX
+fonts;
 
 * no_document ML operator temporarily disables LaTeX document
 generation;
+
+* isatool unsymbolize tunes sources for plain ASCII communication;
 
 
 *** Isar ***
@@ -159,7 +165,7 @@ and Arith);
 * print modes "brackets" and "no_brackets" control output of nested =>
 (types) and ==> (props); the default behaviour is "brackets";
 
-* system: support Poly/ML 4.0 (current beta versions);
+* system: support Poly/ML 4.0;
 
 * Pure: the Simplifier has been implemented properly as a derived rule
 outside of the actual kernel (at last!); the overall performance

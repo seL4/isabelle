@@ -1,63 +1,43 @@
 
-Subject: Announcing Isabelle99-1
+Subject: Announcing Isabelle99-2
 To: isabelle-users@cl.cam.ac.uk
 
-Isabelle99-1 is now available.  This release continues the line of
-Isabelle99, introducing numerous improvements, both internal and user
-visible.
+Isabelle99-2 is now available.  This release continues the line of
+Isabelle99, introducing various improvements in robustness and
+usability.
 
-In particular, great care has been taken to improve robustness and
-ease use and installation of the complete Isabelle working
-environment.  This includes Proof General user interface support, WWW
-presentation of theories and the Isabelle document preparation system.
-
-The most prominent highlights of Isabelle99-1 are as follows.  See the
+The most prominent highlights of Isabelle99-2 are as follows.  See the
 NEWS file distributed with Isabelle for more details.
 
-  * Isabelle/Isar improvements (Markus Wenzel)
-      o Support of tactic-emulation scripts for easy porting of legacy ML
-        scripts (see also the HOL/Lambda example).
-      o Better support for scalable verification tasks (manage large
-        contexts in induction, generalized existence reasoning etc.)
-      o Hindley-Milner polymorphism for proof texts.
-      o More robust document preparation, better LaTeX output due to
-        fake math-mode.
-      o Extended "Isabelle/Isar Reference Manual".
+  * Poly/ML 4.0 used by default
+    More robust, less disk space required.
 
-  * HOL/Algebra (Clemens Ballarin)
-    Rings and univariate polynomials.
+  * Pure/Simplifier (Stefan Berghofer)
+    Proper implementation as a derived rule, outside the kernel!
 
-  * HOL/BCV (Tobias Nipkow)
-    Generic model of bytecode verification.
+  * Isabelle/Isar (Markus Wenzel)
+    Numerous usability improvements, e.g. support for initial
+    schematic goals, failure prediction of subgoal statements,
+    handling of non-atomic statements in induction.
 
-  * HOL/IMPP (David von Oheimb)
-    Extension of IMP with local variables and mutually recursive procedures.
+  * Improved document preparation (Markus Wenzel)
+    Near math-mode, sub/super scripts, more symbols etc.
 
-  * HOL/Isar_examples (Markus Wenzel)
-    More examples, including a formulation of Hoare Logic in Isabelle/Isar.
+  * HOL/Library (Gertrud Bauer, Tobias Nipkow, Lawrence C Paulson,
+      Thomas M Rasmussen, Markus Wenzel)
+    A collection of generic theories to be used together with main HOL.
 
-  * HOL/Lambda (Stefan Berghofer and Tobias Nipkow)
-    More on termination of simply-typed lambda-terms (Isar script).
+  * HOL/Real and HOL/Hyperreal (Lawrence C Paulson and Jacques Fleuriot)
+    General cleanup, more on nonstandard real analysis.
 
-  * HOL/Lattice (Markus Wenzel)
-    Lattices and orders in Isabelle/Isar.
+  * HOL/Unix (Markus Wenzel)
+    Some Aspects of Unix file-system security; demonstrates
+    Isabelle/Isar in typical system modelling and verification tasks.
 
-  * HOL/MicroJava (Gerwin Klein, Tobias Nipkow, David von Oheimb, and
-    Cornelia Pusch)
-    Formalization of a fragment of Java, together with a corresponding
-    virtual machine and a specification of its bytecode verifier.
+  * HOL/Tutorial (Tobias Nipkow, Lawrence C Paulson)
+    Extended version of the Isabelle/HOL tutorial.
 
-  * HOL/NumberTheory (Thomas Rasmussen)
-    Fundamental Theorem of Arithmetic, Chinese Remainder Theorem,
-    Fermat/Euler Theorem, Wilson's Theorem.
-
-  * HOL/Prolog (David von Oheimb)
-    A (bare-bones) implementation of Lambda-Prolog.
-
-  * HOL/Real (Jacques Fleuriot)
-    More on nonstandard real analysis.
-
-You may get Isabelle99-1 from any of the following mirror sites:
+You may get Isabelle99-2 from any of the following mirror sites:
 
   Cambridge (UK)    http://www.cl.cam.ac.uk/Research/HVG/Isabelle/dist/
   Munich (Germany)  http://isabelle.in.tum.de/dist/

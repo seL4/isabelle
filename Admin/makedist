@@ -36,10 +36,10 @@ THIS=$(cd $(dirname "$0"); echo "$PWD")
 
 function usage()
 {
-  echo "###"
-  echo "### Usage: $PRG VERSION"
-  echo "###"
   cat <<EOF
+
+Usage: $PRG VERSION
+
   Make Isabelle distribution from the master sources at TUM.
 
   VERSION may be either a tag like "Isabelle99-XX" that specifies the
@@ -49,22 +49,12 @@ function usage()
 
   Checklist for official releases (before running this script):
 
-    * Check release name and date in NEWS!
-    * Check that README files are up to date (should have Id: lines).
-    * Check Admin/index.html.
-EOF
-  #Wicked! We just won't tell other users ...
-  if [ $LOGNAME = paulson -o $LOGNAME = nipkow -o $LOGNAME = wenzelm -o $LOGNAME = berghofe ]; then
-    cat <<EOF
+    * Check Admin/page contents.
+    * Check ANNOUNCE, README, INSTALL, NEWS.
+    * Try "isatool makeall all" with Poly/ML, SML/NJ, etc.
     * Tag the current repository version, e.g.:
         cvs -d /usr/proj/isabelle-repository/archive rtag Isabelle99-X isabelle
-      PLEASE DON'T DO THIS UNLESS YOU KNOW WHAT YOU'RE DOING!
-EOF
-  fi
-  cat <<EOF
-
-  After the distribution has been created succesfully, you might want
-  to run some makeall tests using different ML systems.
+      PLEASE DO NOT DO THIS UNLESS YOU KNOW WHAT YOU ARE DOING!
 
 EOF
   exit 1

@@ -106,19 +106,8 @@ changed to anything appropriate).
 
 <p>
 
-The installation may be finished as follows:
-
-<p>
-
-<tt>
-&nbsp;&nbsp; <!-- _GP_ "cd /usr/local/" . distname --> <br>
-&nbsp;&nbsp; ./bin/isatool install -p /usr/local/bin <br>
-</tt>
-
-<p>
-
-Users can now invoke the Isabelle executables without further ado,
-e.g. just start the main <tt>Isabelle</tt> executable to lauch the
+Users may now invoke Isabelle without further ado, e.g. run the main
+executable <tt>/usr/local/Isabelle/bin/Isabelle</tt> to launch the
 Isabelle Proof General interface.
 
 <p>
