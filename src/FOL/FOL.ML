@@ -8,25 +8,10 @@ Tactics and lemmas for fol.thy (classical First-Order Logic)
 
 open FOL;
 
-signature FOL_LEMMAS = 
-  sig
-  val disjCI 		: thm
-  val excluded_middle 	: thm
-  val excluded_middle_tac: string -> int -> tactic
-  val exCI 		: thm
-  val ex_classical 	: thm
-  val iffCE 		: thm
-  val impCE 		: thm
-  val notnotD 		: thm
-  end;
-
-
-structure FOL_Lemmas : FOL_LEMMAS = 
-struct
 
 (*** Classical introduction rules for | and EX ***)
 
-val disjCI = prove_goal FOL.thy 
+qed_goal "disjCI" FOL.thy 
    "(~Q ==> P) ==> P|Q"
  (fn prems=>
   [ (resolve_tac [classical] 1),
@@ -34,14 +19,14 @@ val disjCI = prove_goal FOL.thy
     (REPEAT (ares_tac (prems@[disjI2,notE]) 1)) ]);
 
 (*introduction rule involving only EX*)
-val ex_classical = prove_goal FOL.thy 
+qed_goal "ex_classical" FOL.thy 
    "( ~(EX x. P(x)) ==> P(a)) ==> EX x.P(x)"
  (fn prems=>
   [ (resolve_tac [classical] 1),
     (eresolve_tac (prems RL [exI]) 1) ]);
 
 (*version of above, simplifying ~EX to ALL~ *)
-val exCI = prove_goal FOL.thy 
+qed_goal "exCI" FOL.thy 
    "(ALL x. ~P(x) ==> P(a)) ==> EX x.P(x)"
  (fn [prem]=>
   [ (resolve_tac [ex_classical] 1),
@@ -49,7 +34,7 @@ val exCI = prove_goal FOL.thy
     (eresolve_tac [notE] 1),
     (eresolve_tac [exI] 1) ]);
 
-val excluded_middle = prove_goal FOL.thy "~P | P"
+qed_goal "excluded_middle" FOL.thy "~P | P"
  (fn _=> [ rtac disjCI 1, assume_tac 1 ]);
 
 (*For disjunctive case analysis*)
@@ -60,14 +45,14 @@ fun excluded_middle_tac sP =
 
 
 (*Classical implies (-->) elimination. *)
-val impCE = prove_goal FOL.thy 
+qed_goal "impCE" FOL.thy 
     "[| P-->Q;  ~P ==> R;  Q ==> R |] ==> R"
  (fn major::prems=>
   [ (resolve_tac [excluded_middle RS disjE] 1),
     (DEPTH_SOLVE (ares_tac (prems@[major RS mp]) 1)) ]);
 
 (*Double negation law*)
-val notnotD = prove_goal FOL.thy "~~P ==> P"
+qed_goal "notnotD" FOL.thy "~~P ==> P"
  (fn [major]=>
   [ (resolve_tac [classical] 1), (eresolve_tac [major RS notE] 1) ]);
 
@@ -76,14 +61,9 @@ val notnotD = prove_goal FOL.thy "~~P ==> P"
 
 (*Classical <-> elimination.  Proof substitutes P=Q in 
     ~P ==> ~Q    and    P ==> Q  *)
-val iffCE = prove_goalw FOL.thy [iff_def]
+qed_goalw "iffCE" FOL.thy [iff_def]
     "[| P<->Q;  [| P; Q |] ==> R;  [| ~P; ~Q |] ==> R |] ==> R"
  (fn prems =>
   [ (resolve_tac [conjE] 1),
     (REPEAT (DEPTH_SOLVE_1 
 	(etac impCE 1  ORELSE  mp_tac 1  ORELSE  ares_tac prems 1))) ]);
-
-
-end;
-
-open FOL_Lemmas;
