@@ -258,7 +258,7 @@ qed "power_dvd_bound";
 
 Goal "[|p^k dvd n;  p\\<in>prime;  0<n|] ==> k <= exponent p n";
 by (asm_full_simp_tac (simpset() addsimps [exponent_def]) 1); 
-by (etac GreatestM_nat_le 1);
+by (etac Greatest_le 1);
 by (blast_tac (claset() addDs [prime_imp_one_less, power_dvd_bound]) 1);  
 qed_spec_mp "exponent_ge";
 

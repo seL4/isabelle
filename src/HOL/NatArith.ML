@@ -182,7 +182,7 @@ Goalw [Greatest_def]
      "[|P x;  ! y. P y --> y < b|] ==> (x::nat) <= (GREATEST x. P x)";
 by (rtac GreatestM_nat_le 1); 
 by Auto_tac;  
-qed "GreatestM_nat_le";
+qed "Greatest_le";
 
 (*No analogue of not_less_Least or Least_Suc yet, since it isn't used much*)
 
