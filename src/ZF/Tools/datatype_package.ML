@@ -66,7 +66,7 @@ fun add_datatype_i (dom_sum, rec_tms) con_ty_lists (monos, type_intrs, type_elim
   val intr_tms = Ind_Syntax.mk_all_intr_tms sign (rec_tms, con_ty_lists);
 
   val dummy =
-    writeln ((if coind then "Codatatype" else "Datatype") ^ " definition " ^ big_rec_name);
+    writeln ((if coind then "Codatatype" else "Datatype") ^ " definition " ^ quote big_rec_name);
 
   val case_varname = "f";                (*name for case variables*)
 

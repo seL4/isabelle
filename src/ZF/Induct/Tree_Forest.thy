@@ -37,7 +37,7 @@ lemma tree_subset_TF: "tree(A) \<subseteq> tree_forest(A)"
   apply (rule Part_subset)
   done
 
-lemma treeI [TC]: "x : tree(A) ==> x : tree_forest(A)"
+lemma treeI [TC]: "x \<in> tree(A) ==> x \<in> tree_forest(A)"
   by (rule tree_subset_TF [THEN subsetD])
 
 lemma forest_subset_TF: "forest(A) \<subseteq> tree_forest(A)"
@@ -45,7 +45,7 @@ lemma forest_subset_TF: "forest(A) \<subseteq> tree_forest(A)"
   apply (rule Part_subset)
   done
 
-lemma treeI [TC]: "x : forest(A) ==> x : tree_forest(A)"
+lemma treeI [TC]: "x \<in> forest(A) ==> x \<in> tree_forest(A)"
   by (rule forest_subset_TF [THEN subsetD])
 
 lemma TF_equals_Un: "tree(A) \<union> forest(A) = tree_forest(A)"
@@ -54,7 +54,7 @@ lemma TF_equals_Un: "tree(A) \<union> forest(A) = tree_forest(A)"
   done
 
 lemma (notes rews = tree_forest.con_defs tree_def forest_def)
-  tree_forest_unfold: "tree_forest(A) = (A*forest(A)) + ({0} + tree(A)*forest(A))"
+  tree_forest_unfold: "tree_forest(A) = (A \<times> forest(A)) + ({0} + tree(A) \<times> forest(A))"
     -- {* NOT useful, but interesting \dots *}
   apply (unfold tree_def forest_def)
   apply (fast intro!: tree_forest.intros [unfolded rews, THEN PartD1]
@@ -86,23 +86,23 @@ text {*
 lemma TF_rec_type:
   "[| z \<in> tree_forest(A);
       !!x f r. [| x \<in> A;  f \<in> forest(A);  r \<in> C(f)
-                |] ==> b(x,f,r): C(Tcons(x,f));
+                |] ==> b(x,f,r) \<in> C(Tcons(x,f));
       c \<in> C(Fnil);
-      !!t f r1 r2. [| t \<in> tree(A);  f \<in> forest(A);  r1: C(t); r2: C(f)
-                    |] ==> d(t,f,r1,r2): C(Fcons(t,f))
+      !!t f r1 r2. [| t \<in> tree(A);  f \<in> forest(A);  r1 \<in> C(t); r2 \<in> C(f)
+                    |] ==> d(t,f,r1,r2) \<in> C(Fcons(t,f))
    |] ==> tree_forest_rec(b,c,d,z) \<in> C(z)"
   by (induct_tac z) simp_all
 
 lemma tree_forest_rec_type:
   "[| !!x f r. [| x \<in> A;  f \<in> forest(A);  r \<in> D(f)
-                |] ==> b(x,f,r): C(Tcons(x,f));
+                |] ==> b(x,f,r) \<in> C(Tcons(x,f));
       c \<in> D(Fnil);
-      !!t f r1 r2. [| t \<in> tree(A);  f \<in> forest(A);  r1: C(t); r2: D(f)
-                    |] ==> d(t,f,r1,r2): D(Fcons(t,f))
-   |] ==> (\<forall>t \<in> tree(A).    tree_forest_rec(b,c,d,t)  \<in> C(t)) &
+      !!t f r1 r2. [| t \<in> tree(A);  f \<in> forest(A);  r1 \<in> C(t); r2 \<in> D(f)
+                    |] ==> d(t,f,r1,r2) \<in> D(Fcons(t,f))
+   |] ==> (\<forall>t \<in> tree(A).    tree_forest_rec(b,c,d,t) \<in> C(t)) \<and>
           (\<forall>f \<in> forest(A). tree_forest_rec(b,c,d,f) \<in> D(f))"
     -- {* Mutually recursive version. *}
-  apply (unfold Ball_def)  (* FIXME *)
+  apply (unfold Ball_def)
   apply (rule tree_forest.mutual_induct)
   apply simp_all
   done
@@ -159,7 +159,7 @@ lemma list_of_TF_type [TC]:
   apply simp_all
   done
 
-lemma map_type [TC]: "l \<in> list(tree(A)) ==> of_list(l) \<in> forest(A)"
+lemma of_list_type [TC]: "l \<in> list(tree(A)) ==> of_list(l) \<in> forest(A)"
   apply (erule list.induct)
   apply simp_all
   done
@@ -168,15 +168,13 @@ text {*
   \medskip @{text map}.
 *}
 
-lemma map_type:
-  "[| !!x. x \<in> A ==> h(x): B |] ==>
-     (\<forall>t \<in> tree(A). map(h,t) \<in> tree(B)) &
-     (\<forall>f \<in> forest(A). map(h,f) \<in> forest(B))"
-  apply (unfold Ball_def)  (* FIXME *)
-  apply (rule tree_forest.mutual_induct)
-  apply simp_all
+lemma (assumes h_type: "!!x. x \<in> A ==> h(x): B")
+    map_tree_type: "t \<in> tree(A) ==> map(h,t) \<in> tree(B)"
+  and map_forest_type: "f \<in> forest(A) ==> map(h,f) \<in> forest(B)"
+  apply (induct rule: tree_forest.mutual_induct)
+    apply (insert h_type)
+    apply simp_all
   done
-
 
 text {*
   \medskip @{text size}.

@@ -1,9 +1,9 @@
-(*  Title:      ZF/ind-syntax.ML
+(*  Title:      ZF/ind_syntax.ML
     ID:         $Id$
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1993  University of Cambridge
 
-Abstract Syntax functions for Inductive Definitions
+Abstract Syntax functions for Inductive Definitions.
 *)
 
 (*The structure protects these items from redeclaration (somewhat!).  The 

@@ -152,7 +152,7 @@ let
 
 
   val dummy = conditional verbose (fn () =>
-    writeln ((if coind then "Coind" else "Ind") ^ "uctive definition " ^ big_rec_name));
+    writeln ((if coind then "Coind" else "Ind") ^ "uctive definition " ^ quote big_rec_name));
 
   (*Forbid the inductive definition structure from clashing with a theory
     name.  This restriction may become obsolete as ML is de-emphasized.*)
