@@ -9,6 +9,8 @@ infix 1 THEN_MAYBE THEN_MAYBE';
 
 signature SEARCH =
   sig
+  val DEEPEN  	        : int*int -> (int->int->tactic) -> int -> int -> tactic
+
   val THEN_MAYBE	: tactic * tactic -> tactic
   val THEN_MAYBE'	: ('a -> tactic) * ('a -> tactic) -> ('a -> tactic)
 
@@ -83,7 +85,7 @@ val DEPTH_SOLVE = DEPTH_FIRST (has_fewer_prems 1);
 
 
 
-(**** Iterative deepening ****)
+(**** Iterative deepening with pruning ****)
 
 fun has_vars (Var _) = true
   | has_vars (Abs (_,_,t)) = has_vars t
@@ -160,6 +162,17 @@ fun THEN_ITER_DEEPEN tac0 satp tac1 = traced_tac (fn st =>
 
 val ITER_DEEPEN = THEN_ITER_DEEPEN all_tac;
 
+
+(*Simple iterative deepening tactical.  It merely "deepens" any search tactic
+  using increment "inc" up to limit "lim". *)
+fun DEEPEN (inc,lim) tacf m i = 
+  let fun dpn m = STATE(fn state => 
+			if has_fewer_prems i state then no_tac
+			else if m>lim then 
+			     (writeln "Giving up..."; no_tac)
+			else (writeln ("Depth = " ^ string_of_int m);
+			      tacf m i  ORELSE  dpn (m+inc)))
+  in  dpn m  end;
 
 (*** Best-first search ***)
 
