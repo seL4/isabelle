@@ -135,8 +135,8 @@ sig
     -> Toplevel.transition -> Toplevel.transition
   val finally_i: (thm list * Comment.interest) option * Comment.text
     -> Toplevel.transition -> Toplevel.transition
-  val use_mltext: string -> theory option -> theory option
-  val use_mltext_theory: string -> theory -> theory
+  val use_mltext: string -> bool -> theory option -> unit
+  val use_mltext_theory: string -> bool -> theory -> theory
   val use_setup: string -> theory -> theory
   val parse_ast_translation: string -> theory -> theory
   val parse_translation: string -> theory -> theory
@@ -431,10 +431,10 @@ end;
 
 (* use ML text *)
 
-fun use_mltext txt opt_thy = #2 (Context.pass opt_thy (use_text false) txt);
-fun use_mltext_theory txt thy = #2 (Context.pass_theory thy (use_text false) txt);
+fun use_mltext txt verb opt_thy = Context.setmp opt_thy (use_text verb) txt;
+fun use_mltext_theory txt verb thy = #2 (Context.pass_theory thy (use_text verb) txt);
 
-fun use_context txt = use_mltext_theory ("Context.>> (" ^ txt ^ ");");
+fun use_context txt = use_mltext_theory ("Context.>> (" ^ txt ^ ");") false;
 
 fun use_let name body txt =
   use_context ("let val " ^ name ^ " = " ^ txt ^ " in\n" ^ body ^ " end");
