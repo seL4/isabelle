@@ -595,11 +595,51 @@ fun split_rule_var' (t as Var (v, Type ("fun", [T1, T2])), rl) =
       end
   | split_rule_var' (t, rl) = rl;
 
+(*** Complete splitting of partially splitted rules ***)
+
+fun ap_split' (T::Ts) U u = Abs ("v", T, ap_split' Ts U
+      (ap_split T (flat (map HOLogic.prodT_factors Ts) ---> U)
+        (incr_boundvars 1 u) $ Bound 0))
+  | ap_split' _ _ u = u;
+
+fun complete_split_rule_var ((t as Var (v, T), ts), (rl, vs)) =
+      let
+        val cterm = Thm.cterm_of (#sign (rep_thm rl))
+        val (Us', U') = strip_type T;
+        val Us = take (length ts, Us');
+        val U = drop (length ts, Us') ---> U';
+        val T' = flat (map HOLogic.prodT_factors Us) ---> U;
+        fun mk_tuple (xs, v as Var ((a, _), T)) =
+          let
+            val Ts = HOLogic.prodT_factors T;
+            val ys = variantlist (replicate (length Ts) a, xs);
+          in (xs @ ys, (cterm v, cterm (HOLogic.mk_tuple T
+            (map (Var o apfst (rpair 0)) (ys ~~ Ts)))))
+          end;
+        val newt = ap_split' Us U (Var (v, T'));
+        val cterm = Thm.cterm_of (#sign (rep_thm rl));
+        val (vs', insts) = foldl_map mk_tuple (vs, ts);
+      in
+        (instantiate ([], [(cterm t, cterm newt)] @ insts) rl, vs')
+      end
+  | complete_split_rule_var (_, x) = x;
+
+fun collect_vars (vs, Abs (_, _, t)) = collect_vars (vs, t)
+  | collect_vars (vs, t) = (case strip_comb t of
+        (v as Var _, ts) =>
+          (case filter is_Var ts of [] => vs | ts' => (v, ts')::vs)
+      | (t, ts) => foldl collect_vars (vs, ts));
+
 in
 
 val split_rule_var = standard o remove_split o split_rule_var';
 
 (*Curries ALL function variables occurring in a rule's conclusion*)
 fun split_rule rl = standard (remove_split (foldr split_rule_var' (term_vars (concl_of rl), rl)));
+
+fun complete_split_rule rl =
+  standard (remove_split (fst (foldr complete_split_rule_var
+    (collect_vars ([], concl_of rl),
+     (rl, map (fst o fst o dest_Var) (term_vars (#prop (rep_thm rl))))))));
 
 end;
