@@ -33,8 +33,8 @@ constdefs
 			       extend_act h `` Acts F)"
 
   (*Argument C allows weak safety laws to be projected*)
-  project :: "['c set, 'a*'b => 'c, 'c program] => 'a program"
-    "project C h F == mk_program (project_set h (Init F),
+  project :: "['a*'b => 'c, 'c set, 'c program] => 'a program"
+    "project h C F == mk_program (project_set h (Init F),
 		  	          project_act h `` Restrict C `` Acts F)"
 
 locale Extend =

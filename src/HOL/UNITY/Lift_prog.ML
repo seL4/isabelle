@@ -72,12 +72,12 @@ by (auto_tac (claset() addIs [Id_in_Acts RSN (2,image_eqI)], simpset()));
 qed "Acts_lift_prog";
 Addsimps [Acts_lift_prog];
 
-Goalw [drop_prog_def] "Init (drop_prog C i F) = drop_set i (Init F)";
+Goalw [drop_prog_def] "Init (drop_prog i C F) = drop_set i (Init F)";
 by Auto_tac;
 qed "Init_drop_prog";
 Addsimps [Init_drop_prog];
 
-Goal "Acts (drop_prog C i F) = insert Id (drop_act i `` Restrict C `` Acts F)";
+Goal "Acts (drop_prog i C F) = insert Id (drop_act i `` Restrict C `` Acts F)";
 by (auto_tac (claset() addIs [Id_in_Acts RSN (2,image_eqI)], 
 	      simpset() addsimps [drop_prog_def]));
 qed "Acts_drop_prog";
@@ -181,7 +181,7 @@ by (simp_tac (simpset()
 			lift_act_correct]) 1);
 qed "lift_prog_correct";
 
-Goal "drop_prog C i = project C (lift_map i)";
+Goal "drop_prog i C = project (lift_map i) C";
 by (rtac (program_equalityI RS ext) 1);
 by (simp_tac (simpset() addsimps [drop_set_correct]) 1);
 by (simp_tac (simpset() 
@@ -234,7 +234,7 @@ qed "lift_act_inverse";
 Addsimps [lift_act_inverse];
 *)
 
-Goal "UNIV <= drop_set i C ==> drop_prog C i (lift_prog i F) = F";
+Goal "UNIV <= drop_set i C ==> drop_prog i C (lift_prog i F) = F";
 by (asm_full_simp_tac
     (simpset() addsimps [drop_set_correct, drop_prog_correct, 
 			 lift_prog_correct, lift_export extend_inverse]) 1);
@@ -297,14 +297,14 @@ qed "constrains_imp_lift_prog_constrains";
 
 (** Safety and drop_prog **)
 
-Goal "(drop_prog C i F : A co B)  =  \
+Goal "(drop_prog i C F : A co B)  =  \
 \     (F : (C Int lift_set i A) co (lift_set i B) & A <= B)";
 by (simp_tac
     (simpset() addsimps [drop_prog_correct, 
 			 lift_set_correct, lift_export project_constrains]) 1);
 qed "drop_prog_constrains";
 
-Goal "(drop_prog UNIV i F : stable A)  =  (F : stable (lift_set i A))";
+Goal "(drop_prog i UNIV F : stable A)  =  (F : stable (lift_set i A))";
 by (simp_tac (simpset() addsimps [stable_def, drop_prog_constrains]) 1);
 qed "drop_prog_stable";
 
@@ -312,7 +312,7 @@ qed "drop_prog_stable";
 (*** Diff, needed for localTo ***)
 
 Goal "[| Diff C G (lift_act i `` acts) : (lift_set i A) co (lift_set i B) |] \
-\     ==> Diff (drop_set i C) (drop_prog C i G) acts : A co B";
+\     ==> Diff (drop_set i C) (drop_prog i C G) acts : A co B";
 by (asm_full_simp_tac
     (simpset() addsimps [drop_set_correct, drop_prog_correct, 
 			 lift_set_correct, lift_act_correct, 
@@ -321,7 +321,7 @@ qed "Diff_drop_prog_constrains";
 
 Goalw [stable_def]
      "[| Diff C G (lift_act i `` acts) : stable (lift_set i A) |]  \
-\     ==> Diff (drop_set i C) (drop_prog C i G) acts : stable A";
+\     ==> Diff (drop_set i C) (drop_prog i C G) acts : stable A";
 by (blast_tac (claset() addIs [Diff_drop_prog_constrains]) 1);
 qed "Diff_drop_prog_stable";
 
@@ -347,7 +347,7 @@ by (simp_tac (simpset() addsimps [Stable_def, lift_prog_Constrains]) 1);
 qed "lift_prog_Stable";
 
 Goal "[| reachable (lift_prog i F Join G) <= C;    \
-\        F Join drop_prog C i G : A Co B |] \
+\        F Join drop_prog i C G : A Co B |] \
 \     ==> lift_prog i F Join G : (lift_set i A) Co (lift_set i B)";
 by (asm_full_simp_tac
     (simpset() addsimps [lift_prog_correct, drop_prog_correct, 
@@ -356,13 +356,13 @@ qed "drop_prog_Constrains_D";
 
 Goalw [Stable_def]
      "[| reachable (lift_prog i F Join G) <= C;    \
-\        F Join drop_prog C i G : Stable A |]  \
+\        F Join drop_prog i C G : Stable A |]  \
 \     ==> lift_prog i F Join G : Stable (lift_set i A)";
 by (asm_simp_tac (simpset() addsimps [drop_prog_Constrains_D]) 1);
 qed "drop_prog_Stable_D";
 
 Goal "[| reachable (lift_prog i F Join G) <= C;  \
-\        F Join drop_prog C i G : Always A |]   \
+\        F Join drop_prog i C G : Always A |]   \
 \     ==> lift_prog i F Join G : Always (lift_set i A)";
 by (asm_full_simp_tac
     (simpset() addsimps [lift_prog_correct, drop_prog_correct, 
@@ -371,7 +371,7 @@ qed "drop_prog_Always_D";
 
 Goalw [Increasing_def]
      "[| reachable (lift_prog i F Join G) <= C;  \
-\        F Join drop_prog C i G : Increasing func |] \
+\        F Join drop_prog i C G : Increasing func |] \
 \     ==> lift_prog i F Join G : Increasing (func o (sub i))";
 by Auto_tac;
 by (stac Collect_eq_lift_set 1);
@@ -381,7 +381,7 @@ qed "project_Increasing_D";
 
 (*UNUSED*)
 Goal "UNIV <= drop_set i C \
-\     ==> drop_prog C i ((lift_prog i F) Join G) = F Join (drop_prog C i G)";
+\     ==> drop_prog i C ((lift_prog i F) Join G) = F Join (drop_prog i C G)";
 by (asm_full_simp_tac
     (simpset() addsimps [lift_prog_correct, drop_prog_correct, 
 		     drop_set_correct, lift_export project_extend_Join]) 1);

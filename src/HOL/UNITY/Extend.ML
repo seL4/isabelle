@@ -304,7 +304,7 @@ Goalw [extend_def] "Init (extend h F) = extend_set h (Init F)";
 by Auto_tac;
 qed "Init_extend";
 
-Goalw [project_def] "Init (project C h F) = project_set h (Init F)";
+Goalw [project_def] "Init (project h C F) = project_set h (Init F)";
 by Auto_tac;
 qed "Init_project";
 
@@ -313,7 +313,7 @@ by (auto_tac (claset() addSIs [extend_act_Id RS sym],
 	      simpset() addsimps [extend_def, image_iff]));
 qed "Acts_extend";
 
-Goal "Acts (project C h F) = insert Id (project_act h `` Restrict C `` Acts F)";
+Goal "Acts (project h C F) = insert Id (project_act h `` Restrict C `` Acts F)";
 by (auto_tac (claset(), 
 	      simpset() addsimps [project_def, image_iff]));
 qed "Acts_project";
@@ -332,7 +332,7 @@ Addsimps [project_set_UNIV];
 
 (*ALL act: Acts F. Domain act is MUCH TOO STRONG since Domain Id = UNIV!*)
 Goal "UNIV <= project_set h C \
-\     ==> project C h (extend h F) = F";
+\     ==> project h C (extend h F) = F";
 by (simp_tac (simpset() addsimps [extend_def, project_def]) 1);
 by (rtac program_equalityI 1);
 by (asm_simp_tac (simpset() addsimps [image_image_eq_UN, image_UN, 
@@ -369,7 +369,7 @@ by (full_simp_tac (simpset() addsimps [component_eq_subset]) 1);
 by Auto_tac;
 qed "extend_mono";
 
-Goal "F <= G ==> project C h F <= project C h G";
+Goal "F <= G ==> project h C F <= project h C G";
 by (full_simp_tac
     (simpset() addsimps [component_eq_subset, project_set_def]) 1);
 by Auto_tac;
@@ -420,7 +420,7 @@ qed "Diff_extend_eq";
 (*Opposite inclusion fails; this inclusion's more general than that of
   Diff_extend_eq*)     
 Goal "Diff (project_set h C) G acts \
-\     <= project C h (Diff C (extend h G) (extend_act h `` acts))";
+\     <= project h C (Diff C (extend h G) (extend_act h `` acts))";
 by (simp_tac
     (simpset() addsimps [component_eq_subset, Diff_def,image_UN,
 			 image_image, image_Diff_image_eq,

@@ -31,8 +31,8 @@ constdefs
 		   lift_act i `` Acts F)"
 
   (*Argument C allows weak safety laws to be projected*)
-  drop_prog :: "[('a=>'b) set, 'a, ('a=>'b) program] => 'b program"
-    "drop_prog C i F ==
+  drop_prog :: "['a, ('a=>'b) set, ('a=>'b) program] => 'b program"
+    "drop_prog i C F ==
        mk_program (drop_set i (Init F),
 		   drop_act i `` Restrict C `` (Acts F))"
 

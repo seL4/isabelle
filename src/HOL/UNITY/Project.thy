@@ -14,12 +14,12 @@ constdefs
   projecting :: "['c program => 'c set, 'a*'b => 'c, 
 		  'a program, 'c program set, 'a program set] => bool"
   "projecting C h F X' X ==
-     ALL G. extend h F Join G : X' --> F Join project (C G) h G : X"
+     ALL G. extend h F Join G : X' --> F Join project h (C G) G : X"
 
   extending :: "['c program => 'c set, 'a*'b => 'c, 'a program, 
 		 'c program set, 'c program set, 'a program set] => bool"
   "extending C h F X' Y' Y ==
-     ALL G. F Join project (C G) h G : Y & extend h F Join G : X' &
+     ALL G. F Join project h (C G) G : Y & extend h F Join G : X' &
             Disjoint UNIV (extend h F) G
             --> extend h F Join G : Y'"
 
