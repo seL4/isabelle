@@ -7,7 +7,7 @@ representation where the subtries are held in an association list, i.e.\ a
 list of (letter,trie) pairs.  Abstracting over the alphabet \isa{'a} and the
 values \isa{'v} we define a trie as follows:%
 \end{isamarkuptext}%
-\isacommand{datatype}~('a,'v)trie~=~Trie~~{"}'v~option{"}~~{"}('a~*~('a,'v)trie)list{"}%
+\isacommand{datatype}\ ('a,'v)trie\ =\ Trie\ \ {"}'v\ option{"}\ \ {"}('a\ *\ ('a,'v)trie)list{"}%
 \begin{isamarkuptext}%
 \noindent
 The first component is the optional value, the second component the
@@ -15,48 +15,48 @@ association list of subtries.  This is an example of nested recursion involving 
 which is fine because products are datatypes as well.
 We define two selector functions:%
 \end{isamarkuptext}%
-\isacommand{consts}~value~::~{"}('a,'v)trie~{\isasymRightarrow}~'v~option{"}\isanewline
-~~~~~~~alist~::~{"}('a,'v)trie~{\isasymRightarrow}~('a~*~('a,'v)trie)list{"}\isanewline
-\isacommand{primrec}~{"}value(Trie~ov~al)~=~ov{"}\isanewline
-\isacommand{primrec}~{"}alist(Trie~ov~al)~=~al{"}%
+\isacommand{consts}\ value\ ::\ {"}('a,'v)trie\ {\isasymRightarrow}\ 'v\ option{"}\isanewline
+\ \ \ \ \ \ \ alist\ ::\ {"}('a,'v)trie\ {\isasymRightarrow}\ ('a\ *\ ('a,'v)trie)list{"}\isanewline
+\isacommand{primrec}\ {"}value(Trie\ ov\ al)\ =\ ov{"}\isanewline
+\isacommand{primrec}\ {"}alist(Trie\ ov\ al)\ =\ al{"}%
 \begin{isamarkuptext}%
 \noindent
 Association lists come with a generic lookup function:%
 \end{isamarkuptext}%
-\isacommand{consts}~~~assoc~::~{"}('key~*~'val)list~{\isasymRightarrow}~'key~{\isasymRightarrow}~'val~option{"}\isanewline
-\isacommand{primrec}~{"}assoc~[]~x~=~None{"}\isanewline
-~~~~~~~~{"}assoc~(p\#ps)~x~=\isanewline
-~~~~~~~~~~~(let~(a,b)~=~p~in~if~a=x~then~Some~b~else~assoc~ps~x){"}%
+\isacommand{consts}\ \ \ assoc\ ::\ {"}('key\ *\ 'val)list\ {\isasymRightarrow}\ 'key\ {\isasymRightarrow}\ 'val\ option{"}\isanewline
+\isacommand{primrec}\ {"}assoc\ []\ x\ =\ None{"}\isanewline
+\ \ \ \ \ \ \ \ {"}assoc\ (p\#ps)\ x\ =\isanewline
+\ \ \ \ \ \ \ \ \ \ \ (let\ (a,b)\ =\ p\ in\ if\ a=x\ then\ Some\ b\ else\ assoc\ ps\ x){"}%
 \begin{isamarkuptext}%
 Now we can define the lookup function for tries. It descends into the trie
 examining the letters of the search string one by one. As
 recursion on lists is simpler than on tries, let us express this as primitive
 recursion on the search string argument:%
 \end{isamarkuptext}%
-\isacommand{consts}~~~lookup~::~{"}('a,'v)trie~{\isasymRightarrow}~'a~list~{\isasymRightarrow}~'v~option{"}\isanewline
-\isacommand{primrec}~{"}lookup~t~[]~=~value~t{"}\isanewline
-~~~~~~~~{"}lookup~t~(a\#as)~=~(case~assoc~(alist~t)~a~of\isanewline
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~None~{\isasymRightarrow}~None\isanewline
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~|~Some~at~{\isasymRightarrow}~lookup~at~as){"}%
+\isacommand{consts}\ \ \ lookup\ ::\ {"}('a,'v)trie\ {\isasymRightarrow}\ 'a\ list\ {\isasymRightarrow}\ 'v\ option{"}\isanewline
+\isacommand{primrec}\ {"}lookup\ t\ []\ =\ value\ t{"}\isanewline
+\ \ \ \ \ \ \ \ {"}lookup\ t\ (a\#as)\ =\ (case\ assoc\ (alist\ t)\ a\ of\isanewline
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ None\ {\isasymRightarrow}\ None\isanewline
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ |\ Some\ at\ {\isasymRightarrow}\ lookup\ at\ as){"}%
 \begin{isamarkuptext}%
 As a first simple property we prove that looking up a string in the empty
 trie \isa{Trie~None~[]} always returns \isa{None}. The proof merely
 distinguishes the two cases whether the search string is empty or not:%
 \end{isamarkuptext}%
-\isacommand{lemma}~[simp]:~{"}lookup~(Trie~None~[])~as~=~None{"}\isanewline
-\isacommand{by}(case\_tac~as,~auto)%
+\isacommand{lemma}\ [simp]:\ {"}lookup\ (Trie\ None\ [])\ as\ =\ None{"}\isanewline
+\isacommand{by}(case\_tac\ as,\ auto)%
 \begin{isamarkuptext}%
 Things begin to get interesting with the definition of an update function
 that adds a new (string,value) pair to a trie, overwriting the old value
 associated with that string:%
 \end{isamarkuptext}%
-\isacommand{consts}~update~::~{"}('a,'v)trie~{\isasymRightarrow}~'a~list~{\isasymRightarrow}~'v~{\isasymRightarrow}~('a,'v)trie{"}\isanewline
+\isacommand{consts}\ update\ ::\ {"}('a,'v)trie\ {\isasymRightarrow}\ 'a\ list\ {\isasymRightarrow}\ 'v\ {\isasymRightarrow}\ ('a,'v)trie{"}\isanewline
 \isacommand{primrec}\isanewline
-~~{"}update~t~[]~~~~~v~=~Trie~(Some~v)~(alist~t){"}\isanewline
-~~{"}update~t~(a\#as)~v~=\isanewline
-~~~~~(let~tt~=~(case~assoc~(alist~t)~a~of\isanewline
-~~~~~~~~~~~~~~~~~~None~{\isasymRightarrow}~Trie~None~[]~|~Some~at~{\isasymRightarrow}~at)\isanewline
-~~~~~~in~Trie~(value~t)~((a,update~tt~as~v)\#alist~t)){"}%
+\ \ {"}update\ t\ []\ \ \ \ \ v\ =\ Trie\ (Some\ v)\ (alist\ t){"}\isanewline
+\ \ {"}update\ t\ (a\#as)\ v\ =\isanewline
+\ \ \ \ \ (let\ tt\ =\ (case\ assoc\ (alist\ t)\ a\ of\isanewline
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ None\ {\isasymRightarrow}\ Trie\ None\ []\ |\ Some\ at\ {\isasymRightarrow}\ at)\isanewline
+\ \ \ \ \ \ in\ Trie\ (value\ t)\ ((a,update\ tt\ as\ v)\#alist\ t)){"}%
 \begin{isamarkuptext}%
 \noindent
 The base case is obvious. In the recursive case the subtrie
@@ -70,8 +70,8 @@ Before we start on any proofs about \isa{update} we tell the simplifier to
 expand all \isa{let}s and to split all \isa{case}-constructs over
 options:%
 \end{isamarkuptext}%
-\isacommand{theorems}~[simp]~=~Let\_def\isanewline
-\isacommand{theorems}~[split]~=~option.split%
+\isacommand{theorems}\ [simp]\ =\ Let\_def\isanewline
+\isacommand{theorems}\ [split]\ =\ option.split%
 \begin{isamarkuptext}%
 \noindent
 The reason becomes clear when looking (probably after a failed proof
@@ -81,8 +81,8 @@ attempt) at the body of \isa{update}: it contains both
 Our main goal is to prove the correct interaction of \isa{update} and
 \isa{lookup}:%
 \end{isamarkuptext}%
-\isacommand{theorem}~{"}{\isasymforall}t~v~bs.~lookup~(update~t~as~v)~bs~=\isanewline
-~~~~~~~~~~~~~~~~~~~~(if~as=bs~then~Some~v~else~lookup~t~bs){"}%
+\isacommand{theorem}\ {"}{\isasymforall}t\ v\ bs.\ lookup\ (update\ t\ as\ v)\ bs\ =\isanewline
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ (if\ as=bs\ then\ Some\ v\ else\ lookup\ t\ bs){"}%
 \begin{isamarkuptxt}%
 \noindent
 Our plan is to induct on \isa{as}; hence the remaining variables are
@@ -93,7 +93,7 @@ if \isa{update} has already been simplified, which can only happen if
 \isa{as} is instantiated.
 The start of the proof is completely conventional:%
 \end{isamarkuptxt}%
-\isacommand{apply}(induct\_tac~as,~auto)%
+\isacommand{apply}(induct\_tac\ as,\ auto)%
 \begin{isamarkuptxt}%
 \noindent
 Unfortunately, this time we are left with three intimidating looking subgoals:
@@ -106,7 +106,7 @@ Clearly, if we want to make headway we have to instantiate \isa{bs} as
 well now. It turns out that instead of induction, case distinction
 suffices:%
 \end{isamarkuptxt}%
-\isacommand{apply}(case\_tac[!]~bs)\isanewline
+\isacommand{apply}(case\_tac[!]\ bs)\isanewline
 \isacommand{by}(auto)%
 \begin{isamarkuptext}%
 \noindent
