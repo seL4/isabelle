@@ -27,7 +27,7 @@
   \item {\tt abstract_over}, \bold{63}
   \item {\tt abstract_rule}, \bold{49}
   \item {\tt aconv}, \bold{63}
-  \item {\tt add_path}, \bold{59}
+  \item {\tt add_path}, \bold{60}
   \item {\tt addaltern}, \bold{137}
   \item {\tt addbefore}, \bold{137}
   \item {\tt Addcongs}, \bold{107}
@@ -189,7 +189,7 @@
   \item {\tt cprems_of}, \bold{45}
   \item {\tt cprop_of}, \bold{44}
   \item {\tt CPure} theory, 55
-  \item {\tt CPure.thy}, \bold{60}
+  \item {\tt CPure.thy}, \bold{61}
   \item {\tt crep_thm}, \bold{45}
   \item {\tt cterm} ML type, 64
   \item {\tt cterm_instantiate}, \bold{43}
@@ -423,7 +423,6 @@
   \item {\tt match_tac}, \bold{21}, 134
   \item {\tt max_pri}, 70, \bold{76}
   \item {\tt merge_ss}, \bold{109}
-  \item {\tt merge_theories}, \bold{61}
   \item meta-assumptions, 37, 46, 48, 51
     \subitem printing of, 5
   \item meta-equality, 47--49
@@ -434,10 +433,10 @@
     \subitem in theorems, 43
   \item meta-rules, \see{meta-rules}{1}, 46--52
   \item {\tt METAHYPS}, 19, \bold{37}
-  \item mixfix declarations, 56, 75--80
+  \item mixfix declarations, 57, 75--80
   \item {\tt mk_atomize}, \bold{127}
   \item {\tt mk_simproc}, \bold{123}
-  \item {\tt ML} section, 57, 97, 99
+  \item {\tt ML} section, 58, 97, 99
   \item model checkers, 81
   \item {\tt mp} theorem, \bold{143}
   \item {\tt mp_tac}, \bold{142}
@@ -529,7 +528,7 @@
   \item {\tt PROP} symbol, 71
   \item {\textit {prop}} type, 65, 72
   \item {\tt prop} nonterminal, \bold{70}, 82
-  \item {\tt ProtoPure.thy}, \bold{60}
+  \item {\tt ProtoPure.thy}, \bold{61}
   \item {\tt prove_goal}, 14, \bold{16}
   \item {\tt prove_goalw}, \bold{16}
   \item {\tt prove_goalw_cterm}, \bold{16}
@@ -540,7 +539,7 @@
   \item {\tt pttrn} nonterminal, \bold{72}
   \item {\tt pttrns} nonterminal, \bold{72}
   \item {\tt Pure} theory, 55, 70, 74
-  \item {\tt Pure.thy}, \bold{60}
+  \item {\tt Pure.thy}, \bold{61}
   \item {\tt push_proof}, \bold{17}
   \item {\tt pwd}, \bold{3}
 
@@ -636,14 +635,14 @@
   \item {\tt settermless}, \bold{121}
   \item {\tt setup}
     \subitem simplifier, 129
-    \subitem theory, 57
+    \subitem theory, 58
   \item shortcuts
     \subitem for \texttt{by} commands, 14
     \subitem for tactics, 23
   \item {\tt show_brackets}, \bold{5}
   \item {\tt show_consts}, \bold{6}
   \item {\tt show_hyps}, \bold{5}
-  \item {\tt show_path}, \bold{59}
+  \item {\tt show_path}, \bold{60}
   \item {\tt show_sorts}, \bold{5}, 89, 97
   \item {\tt show_tags}, \bold{5}
   \item {\tt show_types}, \bold{5}, 89, 92, 99
@@ -795,7 +794,6 @@
     \subitem taking apart, 44
   \item theories, 55--68
     \subitem axioms of, 11
-    \subitem constructing, \bold{60}
     \subitem inspecting, \bold{61}
     \subitem parent, \bold{55}
     \subitem reading, 3, 59
@@ -838,7 +836,7 @@
     \subitem of tactics, 30
     \subitem of unification, 46
   \item {\tt transfer}, \bold{60}
-  \item {\tt transfer_sg}, \bold{60}
+  \item {\tt transfer_sg}, \bold{61}
   \item {\tt transitive}, \bold{49}
   \item translations, 96--99
     \subitem parse, 80, 88

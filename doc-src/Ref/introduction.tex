@@ -44,6 +44,8 @@ automatically by the shell, e.g.\ by adding {\tt \(\langle isabellehome
     isabellehome \rangle\)/bin/isabelle}, though!  See \texttt{isatool
     install} in \emph{The Isabelle System Manual} of how to do this properly.}
 
+\medskip
+
 The object-logic image to load may be also specified explicitly as an argument
 to the {\tt isabelle} command, e.g.
 \begin{ttbox}
@@ -76,7 +78,7 @@ isabelle Foo
 \medskip Saving the {\ML} state is not enough.  Record, on a file, the
 top-level commands that generate your theories and proofs.  Such a record
 allows you to replay the proofs whenever required, for instance after making
-minor changes to the axioms.  Ideally, your these sources will be somewhat
+minor changes to the axioms.  Ideally, these sources will be somewhat
 intelligible to others as a formal description of your work.
 
 It is good practice to put all source files that constitute a separate
@@ -84,7 +86,7 @@ Isabelle session into an individual directory, together with an {\ML} file
 called \texttt{ROOT.ML} that contains appropriate commands to load all other
 files required.  Running \texttt{isabelle} with option \texttt{-u}
 automatically loads \texttt{ROOT.ML} on entering the session.  The
-\texttt{isatool usedir} utility provides some more options to manage your
+\texttt{isatool usedir} utility provides some more options to manage Isabelle
 sessions, such as automatic generation of theory browsing information.
 
 \medskip More details about the \texttt{isabelle} and \texttt{isatool}
@@ -145,7 +147,8 @@ The $dir$ and $file$ specifications of the \texttt{cd} and \texttt{use}
 commands may contain path variables (e.g.\ \texttt{\$ISABELLE_HOME}) that are
 expanded appropriately.  Note that \texttt{\~\relax} abbreviates
 \texttt{\$HOME}, and \texttt{\~\relax\~\relax} abbreviates
-\texttt{\$ISABELLE_HOME}\index{*\$ISABELLE_HOME}.
+\texttt{\$ISABELLE_HOME}\index{*\$ISABELLE_HOME}.  The syntax for path
+specifications follows Unix conventions.
 
 
 \section{Reading theories}\label{sec:intro-theories}
@@ -181,10 +184,11 @@ time_use_thy : string -> unit
   the internal database of loaded theories, raising an error if absent.
   
 \item[\ttindexbold{use_thy} "$name$";] reads theory $name$ from the file
-  system, looking for $name$\texttt{.thy} and (optionally) $name$\texttt{.ML};
-  also makes sure that all parent theories are loaded as well.  In case some
-  older versions have already been present, \texttt{use_thy} only tries to
-  reload $name$ itself, but is content with any version of its parents.
+  system, looking for $name$\texttt{.thy} and $name$\texttt{.ML} (the latter
+  being optional).  It also ensures that all parent theories are loaded as
+  well.  In case some older versions have already been present,
+  \texttt{use_thy} only tries to reload $name$ itself, but is content with any
+  version of its ancestors.
   
 \item[\ttindexbold{time_use_thy} "$name$";] same as \texttt{use_thy}, but
   reports the time taken to process the actual theory parts and {\ML} files
@@ -221,11 +225,10 @@ which limits the number of subgoals printed
 (\S\ref{sec:goals-printing}).
 
 \begin{ttdescription}
-\item[\ttindexbold{Pretty.setdepth} \(d\);]  
-  tells Isabelle's pretty printer to limit the printing depth to~$d$.  This
-  affects Isabelle's display of theorems and terms.  The default value
-  is~0, which permits printing to an arbitrary depth.  Useful values for
-  $d$ are~10 and~20.
+\item[\ttindexbold{Pretty.setdepth} \(d\);] tells Isabelle's pretty printer to
+  limit the printing depth to~$d$.  This affects the display of theorems and
+  terms.  The default value is~0, which permits printing to an arbitrary
+  depth.  Useful values for $d$ are~10 and~20.
 
 \item[\ttindexbold{Pretty.setmargin} \(m\);]  
   tells Isabelle's pretty printer to assume a right margin (page width)

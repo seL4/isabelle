@@ -27,11 +27,11 @@ that looks for subgoals of a particular form.  Terms and types may be
 
 \section{Defining theories}\label{sec:ref-defining-theories}
 
-Theories are usually defined using theory definition files (which have a name
-suffix {\tt .thy}).  There is also a low level interface provided by certain
-\ML{} functions (see \S\ref{BuildingATheory}).
-Appendix~\ref{app:TheorySyntax} presents the concrete syntax for theory
-definitions; here is an explanation of the constituent parts:
+Theories are defined via theory files $name$\texttt{.thy} (there are also
+\ML-level interfaces which are only intended for people building advanced
+theory definition packages).  Appendix~\ref{app:TheorySyntax} presents the
+concrete syntax for theory files; here follows an explanation of the
+constituent parts.
 \begin{description}
 \item[{\it theoryDef}] is the full definition.  The new theory is called $id$.
   It is the union of the named {\bf parent
@@ -39,6 +39,15 @@ definitions; here is an explanation of the constituent parts:
   components.  \thydx{Pure} and \thydx{CPure} are the basic theories, which
   contain only the meta-logic.  They differ just in their concrete syntax for
   function applications.
+  
+  The new theory begins as a merge of its parents.
+  \begin{ttbox}
+    Attempt to merge different versions of theories: "\(T@1\)", \(\ldots\), "\(T@n\)"
+  \end{ttbox}
+  This error may especially occur when a theory is redeclared --- say to
+  change an inappropriate definition --- and bindings to old versions persist.
+  Isabelle ensures that old and new theories of the same name are not involved
+  in a proof.
 
 \item[$classes$]
   is a series of class declarations.  Declaring {\tt$id$ < $id@1$ \dots\
@@ -250,7 +259,8 @@ delete_tmpfiles : bool ref \hfill{\bf initially true}
   
 \item[\ttindexbold{update_thy} "$name$";] is similar to \texttt{use_thy}, but
   ensures that theory $name$ is fully up-to-date with respect to the file
-  system --- apart from $name$ itself its parents may be reloaded as well.
+  system --- apart from $name$ itself any of its ancestors may be reloaded as
+  well.
   
 \item[\ttindexbold{touch_thy} "$name$";] marks theory node $name$ of the
   internal graph as outdated.  While the theory remains usable, subsequent
@@ -261,7 +271,7 @@ delete_tmpfiles : bool ref \hfill{\bf initially true}
   afterwards.  Resetting the \texttt{delete_tmpfiles} flag inhibits this,
   leaving the generated code for debugging purposes.  The basic location for
   temporary files is determined by the \texttt{ISABELLE_TMP} environment
-  variable, which is private to the running Isabelle process (it may be
+  variable (which is private to the running Isabelle process and may be
   retrieved by \ttindex{getenv} from {\ML}).
 \end{ttdescription}
 
@@ -279,7 +289,7 @@ reset_path: unit -> unit
 
 \begin{ttdescription}
 \item[\ttindexbold{show_path}();] displays the load path components in
-  canonical string representation, which is always according to Unix rules.
+  canonical string representation (which is always according to Unix rules).
   
 \item[\ttindexbold{add_path} "$dir$";] adds component $dir$ to the beginning
   of the load path.
@@ -291,11 +301,11 @@ reset_path: unit -> unit
   (current directory) only.
 \end{ttdescription}
 
-In operations referring indirectly to some file, such as
-\texttt{use_thy~"$name$"}, the argument may be prefixed by some directory that
-will be used as temporary load path.  Note that, depending on which parts of
-the ancestry of $name$ are already loaded, the dynamic change of paths might
-be hard to predict.  Use this feature with care only.
+In operations referring indirectly to some file, the argument may be prefixed
+by a directory that will be used as temporary load path, e.g.\ 
+\texttt{use_thy~"$dir/name$"}.  Note that, depending on which parts of the
+ancestry of $name$ are already loaded, the dynamic change of paths might be
+hard to predict.  Use this feature with care only.
 
 
 \section{Basic operations on theories}\label{BasicOperationsOnTheories}
@@ -334,14 +344,11 @@ pretty printing of theorems).
 \end{ttdescription}
 
 
-\subsection{*Building a theory}
-\label{BuildingATheory}
-\index{theories!constructing|bold}
+\subsection{*Primitive theories}
 \begin{ttbox}
 ProtoPure.thy  : theory
 Pure.thy       : theory
 CPure.thy      : theory
-merge_theories : string -> theory * theory -> theory
 \end{ttbox}
 \begin{description}
 \item[\ttindexbold{ProtoPure.thy}, \ttindexbold{Pure.thy},
@@ -352,20 +359,14 @@ merge_theories : string -> theory * theory -> theory
   $t(u@1, \ldots, u@n)$ in \texttt{Pure} vs.\ $t\,u@1,\ldots\,u@n$ in
   \texttt{CPure}.  \texttt{ProtoPure} is their common parent,
   containing no syntax for printing prefix applications at all!
-  
-\item[\ttindexbold{merge_theories} $name$ ($thy@1$, $thy@2$)] merges
-  the two theories $thy@1$ and $thy@2$, creating a new named theory
-  node.  The resulting theory contains all of the syntax, signature
-  and axioms of the constituent theories.  Merging theories that
-  contain different identification stamps of the same name fails with
-  the following message
-\begin{ttbox}
-Attempt to merge different versions of theories: "\(T@1\)", \(\ldots\), "\(T@n\)"
-\end{ttbox}
-This error may especially occur when a theory is redeclared --- say to
-change an inappropriate definition --- and bindings to old versions
-persist.  Isabelle ensures that old and new theories of the same name
-are not involved in a proof.
+
+%%FIXME  
+%\item[\ttindexbold{merge_theories} $name$ ($thy@1$, $thy@2$)] merges
+%  the two theories $thy@1$ and $thy@2$, creating a new named theory
+%  node.  The resulting theory contains all of the syntax, signature
+%  and axioms of the constituent theories.  Merging theories that
+%  contain different identification stamps of the same name fails with
+%  the following message
 
 %% FIXME
 %\item [\ttindexbold{extend_theory} $thy$ {\tt"}$T${\tt"} $\cdots$] extends
