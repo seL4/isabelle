@@ -1736,19 +1736,13 @@ qed "lemma_BOLZANO2";
 (*----------------------------------------------------------------------------*)
 (* Intermediate Value Theorem (prove contrapositive by bisection)             *)
 (*----------------------------------------------------------------------------*)
-(* proved elsewhere surely? *)
-Goal "!!P. (~P ==> ~Q) ==> Q ==> P";
-by (auto_tac (claset() addIs [ccontr],simpset()));
-qed "contrapos2";
 
-(*
-see junk.ML
 Goal "[| f(a) <= y & y <= f(b); \
 \        a <= b; \
 \        (ALL x. a <= x & x <= b --> isCont f x) \
 \     |] ==> EX x. a <= x & x <= b & f(x) = y";
-by (rtac contrapos2 1);
-by (assume_tac 2);
+by (rtac contrapos_pp 1);
+by (assume_tac 1);
 by (cut_inst_tac [("P","%(u,v). a <= u & u <= v & v <= b --> \
 \   ~(f(u) <= y & y <= f(v))")] lemma_BOLZANO2 1);
 by (Step_tac 1);
@@ -1761,8 +1755,8 @@ by (Asm_full_simp_tac 2);
 by (rotate_tac 3 2);
 by (dres_inst_tac [("x","1r")] spec 2);
 by (Step_tac 2);
-by (asm_full_simp_tac (simpset() addsimps []) 2);
-by (asm_full_simp_tac (simpset() addsimps []) 2);
+by (Asm_full_simp_tac 2);
+by (Asm_full_simp_tac 2);
 by (REPEAT(blast_tac (claset() addIs [real_le_trans]) 2));
 by (REPEAT(dres_inst_tac [("x","x")] spec 1));
 by (Asm_full_simp_tac 1);
@@ -1779,13 +1773,15 @@ by (Step_tac 1);
 by (cut_inst_tac [("R1.0","f x"),("R2.0","y")] real_linear 1);
 by (Auto_tac);
 by (dres_inst_tac [("x","ba - x")] spec 1);
-by (auto_tac (claset(),simpset() addsimps [abs_iff,real_diff_le_eq,
-       (real_diff_def RS meta_eq_to_obj_eq) RS sym,real_less_le_iff,
-       real_le_diff_eq,CLAIM "(~(x::real) <= y) = (y < x)",
+by (auto_tac (claset(),
+     simpset() 
+	       addsimps [abs_iff, real_diff_le_eq,
+       (real_diff_def RS meta_eq_to_obj_eq) RS sym,
+       real_less_le_iff, real_le_diff_eq, 
+       CLAIM "(~(x::real) <= y) = (y < x)",
        CLAIM "(-x < -y) = ((y::real) < x)",
-       CLAIM "(-(y - x)) = (x - (y::real))"]));
-by (dres_inst_tac [("z","x"),("w","ba")] real_le_anti_sym 1);
-by (assume_tac 1 THEN Asm_full_simp_tac 1);
+       CLAIM "(-(y - x)) = (x - (y::real))",
+       CLAIM "(x-y=#0) = (x = (y::real))"]));
 by (dres_inst_tac [("x","aa - x")] spec 1);
 by (case_tac "x <= aa" 1);
 by (auto_tac (claset(),simpset() addsimps [real_minus_zero_le_iff2,
@@ -1907,8 +1903,3 @@ qed "isCont_has_Ub";
 (*----------------------------------------------------------------------------*)
 (* Now show that it attains its upper bound                                   *)
 (*----------------------------------------------------------------------------*)
-
-
-
-
- *)
