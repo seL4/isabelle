@@ -1,6 +1,6 @@
-(*  Title: 	FOL/ex/prolog.thy
+(*  Title:      FOL/ex/prolog.thy
     ID:         $Id$
-    Author: 	Lawrence C Paulson, Cambridge University Computer Laboratory
+    Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1992  University of Cambridge
 
 First-Order Logic: PROLOG examples
