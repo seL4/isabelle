@@ -9,34 +9,24 @@ This file builds the theory parser and autoloading system.
 (* FIXME remove (still needed by HOL/Datatype.ML) *)
 use "scan.ML"; use "parse.ML";
 
+
 use "thy_scan.ML";
 use "thy_parse.ML";
-use "thy_read.ML";
 
 structure ThyScan = ThyScanFun(Scanner);
 structure ThyParse = ThyParseFun(structure Symtab = Symtab
   and ThyScan = ThyScan);
-structure ThyRead = ThyReadFun(structure ThyParse = ThyParse);
-open ThyRead;
 
+use "thy_syn.ML";
+use "thy_read.ML";
 
-(* FIXME tmp hack *)
+structure ThySyn = ThySynFun(val user_keywords = [] and user_sections = []);
+structure Readthy = ReadthyFUN(structure ThySyn = ThySyn);
+open Readthy;
 
-fun eval txt =
-  let
-    val tmp_name = "/tmp/.eval.tmp";
-    val tmp_file = open_out tmp_name;
-  in
-    output (tmp_file, txt);
-    close_out tmp_file;
-    use tmp_name;
-    delete_file tmp_name
-  end;
-
-
-fun init_thy_reader () = 
-  eval   (* FIXME use_string *)
-    "structure ThyRead = ThyReadFun(structure ThyParse = ThyParse);\n\
-    \ThyRead.loaded_thys := ! loaded_thys;\n\
-    \open ThyRead;\n";
+fun init_thy_reader () =
+  use_string
+   ["structure Readthy = ReadthyFUN(structure ThySyn = ThySyn);",
+    "Readthy.loaded_thys := ! loaded_thys;",
+    "open Readthy;"];
 
