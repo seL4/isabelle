@@ -8,10 +8,6 @@ Weak Fairness versions of transient, ensures, leadsTo.
 From Misra, "A Logic for Concurrent Programming", 1994
 *)
 
-    Goal "[| x:A;  P(x) |] ==> ? x:A. P(x)";
-    by (Blast_tac 1);
-    qed "rev_bexI";
-
 
 overload_1st_set "WFair.transient";
 overload_1st_set "WFair.ensures";
@@ -112,9 +108,16 @@ val prems = Goalw [leadsTo_def]
 by (blast_tac (claset() addIs [leadsto.Union] addDs prems) 1);
 qed "leadsTo_Union";
 
+val prems = Goalw [leadsTo_def]
+    "(!!A. A : S ==> F : leadsTo (A Int C) B) \
+\    ==> F : leadsTo (Union S Int C) B";
+by (simp_tac (HOL_ss addsimps [Int_Union_Union]) 1);
+by (blast_tac (claset() addIs [leadsto.Union] addDs prems) 1);
+qed "leadsTo_Union_Int";
+
 val prems = Goal
     "(!!i. i : I ==> F : leadsTo (A i) B) ==> F : leadsTo (UN i:I. A i) B";
-by (simp_tac (simpset() addsimps [Union_image_eq RS sym]) 1);
+by (stac (Union_image_eq RS sym) 1);
 by (blast_tac (claset() addIs leadsTo_Union::prems) 1);
 qed "leadsTo_UN";
 
@@ -152,10 +155,8 @@ Goal "[| F : leadsTo A A'; A'<=B' |] ==> F : leadsTo A B'";
 by (blast_tac (claset() addIs [subset_imp_leadsTo, leadsTo_Trans]) 1);
 qed "leadsTo_weaken_R";
 
-
 Goal "[| F : leadsTo A A'; B<=A |] ==> F : leadsTo B A'";
-by (blast_tac (claset() addIs [leadsTo_Basis, leadsTo_Trans, 
-			       subset_imp_leadsTo]) 1);
+by (blast_tac (claset() addIs [leadsTo_Trans, subset_imp_leadsTo]) 1);
 qed_spec_mp "leadsTo_weaken_L";
 
 (*Distributes over binary unions*)
@@ -190,7 +191,7 @@ qed "leadsTo_Diff";
 val prems = goal thy
    "(!! i. i:I ==> F : leadsTo (A i) (A' i)) \
 \   ==> F : leadsTo (UN i:I. A i) (UN i:I. A' i)";
-by (simp_tac (simpset() addsimps [Union_image_eq RS sym]) 1);
+by (simp_tac (HOL_ss addsimps [Union_image_eq RS sym]) 1);
 by (blast_tac (claset() addIs [leadsTo_Union, leadsTo_weaken_R] 
                         addIs prems) 1);
 qed "leadsTo_UN_UN";
@@ -269,8 +270,7 @@ Goalw [stable_def]
    "[| F : leadsTo A A'; F : stable B |] \
 \   ==> F : leadsTo (A Int B) (A' Int B)";
 by (etac leadsTo_induct 1);
-by (simp_tac (simpset() addsimps [Int_Union_Union]) 3);
-by (blast_tac (claset() addIs [leadsTo_Union]) 3);
+by (blast_tac (claset() addIs [leadsTo_Union_Int]) 3);
 by (blast_tac (claset() addIs [leadsTo_Trans]) 2);
 by (rtac leadsTo_Basis 1);
 by (asm_full_simp_tac
@@ -293,8 +293,7 @@ qed "psp_ensures";
 Goal "[| F : leadsTo A A'; F : constrains B B' |] \
 \     ==> F : leadsTo (A Int B) ((A' Int B) Un (B' - B))";
 by (etac leadsTo_induct 1);
-by (simp_tac (simpset() addsimps [Int_Union_Union]) 3);
-by (blast_tac (claset() addIs [leadsTo_Union]) 3);
+by (blast_tac (claset() addIs [leadsTo_Union_Int]) 3);
 (*Transitivity case has a delicate argument involving "cancellation"*)
 by (rtac leadsTo_Un_duplicate2 2);
 by (etac leadsTo_cancel_Diff1 2);

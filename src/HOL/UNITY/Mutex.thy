@@ -52,8 +52,7 @@ constdefs
     "cmd4V == {(s,s'). s' = s (|PP:=False, NN:=#0|) & NN s = #4}"
 
   Mprg :: state program
-    "Mprg == mk_program (UNIV,
-			 {s. ~ UU s & ~ VV s & MM s = #0 & NN s = #0},
+    "Mprg == mk_program ({s. ~ UU s & ~ VV s & MM s = #0 & NN s = #0},
 			 {cmd0U, cmd1U, cmd2U, cmd3U, cmd4U, 
 			  cmd0V, cmd1V, cmd2V, cmd3V, cmd4V})"
 

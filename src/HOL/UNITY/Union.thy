@@ -11,24 +11,17 @@ Partly from Misra's Chapter 5: Asynchronous Compositions of Programs
 Union = SubstAx + FP +
 
 constdefs
-  eqStates :: ['a set, 'a => 'b program] => bool
-    "eqStates I F == EX St. ALL i:I. States (F i) = St"
-
   JOIN  :: ['a set, 'a => 'b program] => 'b program
-    "JOIN I F == mk_program (INT i:I. States (F i),
-			     INT i:I. Init (F i),
-			     UN i:I. Acts (F i))"
+    "JOIN I F == mk_program (INT i:I. Init (F i), UN i:I. Acts (F i))"
 
   Join :: ['a program, 'a program] => 'a program      (infixl 65)
-    "F Join G == mk_program (States F Int States G,
-			     Init F Int Init G,
-			     Acts F Un Acts G)"
+    "F Join G == mk_program (Init F Int Init G, Acts F Un Acts G)"
 
-  SKIP :: 'a set => 'a program
-    "SKIP states == mk_program (states, states, {})"
+  SKIP :: 'a program
+    "SKIP == mk_program (UNIV, {})"
 
   Diff :: "['a program, ('a * 'a)set set] => 'a program"
-    "Diff F acts == mk_program (States F, Init F, Acts F - acts)"
+    "Diff F acts == mk_program (Init F, Acts F - acts)"
 
   (*The set of systems that regard "v" as local to F*)
   localTo :: ['a => 'b, 'a program] => 'a program set  (infixl 80)
@@ -36,8 +29,7 @@ constdefs
 
   (*Two programs with disjoint actions, except for identity actions *)
   Disjoint :: ['a program, 'a program] => bool
-    "Disjoint F G == States F = States G &
-                     Acts F Int Acts G <= {diag (States G)}"
+    "Disjoint F G == Acts F Int Acts G <= {Id}"
 
 syntax
   "@JOIN"      :: [pttrn, 'a set, 'b set] => 'b set  ("(3JN _:_./ _)" 10)

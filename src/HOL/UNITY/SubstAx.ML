@@ -79,7 +79,7 @@ qed "LeadsTo_Un_duplicate2";
 
 val prems = 
 Goal "(!!i. i : I ==> F : LeadsTo (A i) B) ==> F : LeadsTo (UN i:I. A i) B";
-by (simp_tac (simpset() addsimps [Union_image_eq RS sym]) 1);
+by (simp_tac (HOL_ss addsimps [Union_image_eq RS sym]) 1);
 by (blast_tac (claset() addIs (LeadsTo_Union::prems)) 1);
 qed "LeadsTo_UN";
 
@@ -190,7 +190,7 @@ qed "LeadsTo_Diff";
 val prems = 
 Goal "(!! i. i:I ==> F : LeadsTo (A i) (A' i)) \
 \     ==> F : LeadsTo (UN i:I. A i) (UN i:I. A' i)";
-by (simp_tac (simpset() addsimps [Union_image_eq RS sym]) 1);
+by (simp_tac (HOL_ss addsimps [Union_image_eq RS sym]) 1);
 by (blast_tac (claset() addIs [LeadsTo_Union, LeadsTo_weaken_R] 
                         addIs prems) 1);
 qed "LeadsTo_UN_UN";

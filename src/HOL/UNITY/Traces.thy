@@ -25,32 +25,17 @@ inductive "traces Init Acts"
 
 
 typedef (Program)
-  'a program = "{(states :: 'a set,
-		  init   :: 'a set,
-		  acts   :: ('a * 'a)set set).
-		 init <= states &
-		 acts <= Pow(states Times states) &
-		 diag states : acts}"
+  'a program = "{(init:: 'a set, acts :: ('a * 'a)set set). Id:acts}"
 
 constdefs
-  restrict_rel :: "['a set, ('a * 'a) set] => ('a * 'a) set"
-    "restrict_rel A r == (A Times A) Int r"
-
-  mk_program :: "('a set * 'a set * ('a * 'a)set set) => 'a program"
-    "mk_program ==
-       %(states, init, acts).
-	Abs_Program (states,
-		     states Int init,
-		     restrict_rel states `` (insert Id acts))"
-
-  States :: "'a program => 'a set"
-    "States F == (%(states, init, acts). states) (Rep_Program F)"
+    mk_program :: "('a set * ('a * 'a)set set) => 'a program"
+    "mk_program == %(init, acts). Abs_Program (init, insert Id acts)"
 
   Init :: "'a program => 'a set"
-    "Init F == (%(states, init, acts). init) (Rep_Program F)"
+    "Init F == (%(init, acts). init) (Rep_Program F)"
 
   Acts :: "'a program => ('a * 'a)set set"
-    "Acts F == (%(states, init, acts). acts) (Rep_Program F)"
+    "Acts F == (%(init, acts). acts) (Rep_Program F)"
 
 
 consts reachable :: "'a program => 'a set"

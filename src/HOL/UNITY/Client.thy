@@ -48,8 +48,7 @@ constdefs
 		          size (ask s) = size (rel s))}"
 
   Cli_prg :: state program
-    "Cli_prg == mk_program (UNIV,
-			    {s. tok s : atMost Max &
+    "Cli_prg == mk_program ({s. tok s : atMost Max &
 			        giv s = [] &
 			        ask s = [] &
 			        rel s = []},

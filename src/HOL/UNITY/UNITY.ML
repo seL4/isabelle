@@ -14,11 +14,6 @@ HOL_quantifiers := false;
 
 (*** General lemmas ***)
 
-    Goal "Pow UNIV = UNIV";
-    by (Blast_tac 1);
-    qed "Pow_UNIV";
-    Addsimps [Pow_UNIV];
-
 Goal "UNIV Times UNIV = UNIV";
 by Auto_tac;
 qed "UNIV_Times_UNIV"; 
@@ -106,23 +101,23 @@ Goalw [constrains_def]
 by (Blast_tac 1);
 qed "ball_constrains_INT";
 
-Goalw [constrains_def] "[| F : constrains A A'; A <= States F |] ==> A <= A'";
-by (Force_tac 1);
+Goalw [constrains_def] "F : constrains A A' ==> A <= A'";
+by Auto_tac;
 qed "constrains_imp_subset";
 
 (*The reasoning is by subsets since "constrains" refers to single actions
   only.  So this rule isn't that useful.*)
-Goal "[| F : constrains A B; F : constrains B C; B <= States F |]   \
+Goalw [constrains_def]
+    "[| F : constrains A B; F : constrains B C |]   \
 \    ==> F : constrains A C";
-by (etac constrains_weaken_R 1);
-by (etac constrains_imp_subset 1);
-by (assume_tac 1);
+by (Blast_tac 1);
 qed "constrains_trans";
 
-Goal "[| F : constrains A (A' Un B); F : constrains B B'; B <= States F|] \
-\     ==> F : constrains A (A' Un B')";
-by (etac constrains_weaken_R 1);
-by (blast_tac (claset() addDs [impOfSubs constrains_imp_subset]) 1);
+Goalw [constrains_def]
+   "[| F : constrains A (A' Un B); F : constrains B B' |] \
+\   ==> F : constrains A (A' Un B')";
+by (Clarify_tac 1);
+by (Blast_tac 1);
 qed "constrains_cancel";
 
 

@@ -24,7 +24,7 @@ constdefs
     "asgt u v == {(s,s'). s' = s(v:= s u | s v)}"
 
   Rprg :: state program
-    "Rprg == mk_program (UNIV, {%v. v=init}, UN (u,v): edges. {asgt u v})"
+    "Rprg == mk_program ({%v. v=init}, UN (u,v): edges. {asgt u v})"
 
   reach_invariant :: state set
     "reach_invariant == {s. (ALL v. s v --> (init, v) : edges^*) & s init}"

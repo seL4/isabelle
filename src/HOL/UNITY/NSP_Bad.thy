@@ -54,6 +54,6 @@ constdefs
 constdefs
   Nprg :: state program
     (*Initial trace is empty*)
-    "Nprg == mk_program(UNIV, {[]}, {Fake, NS1, NS2, NS3})"
+    "Nprg == mk_program({[]}, {Fake, NS1, NS2, NS3})"
 
 end
