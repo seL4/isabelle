@@ -191,8 +191,8 @@ fun open_locale xname thy =
        | Some(loc') => 
            if loc' mem (map fst cur_sc) 
            then opn loc thy
-           else (Pretty.writeln(Pretty.str 
-                   ("Opening locale " ^ quote loc' ^ ", required by " ^ quote xname));
+           else (warning ("Opening locale " ^ quote loc' ^ ", required by " ^ 
+			  quote xname);
                  opn loc (open_locale (Sign.base_name loc') thy))
   end;
 
@@ -200,12 +200,11 @@ fun pop_locale [] = error "Currently no open locales"
   | pop_locale (_ :: locs) = locs;
 
 fun close_locale name thy = 
-   let val cur_sc = get_scope thy;
-       val lname = if null(cur_sc) then "" else (fst (hd cur_sc));
-       val bname = Sign.base_name lname
-   in if (name = bname) then (change_scope pop_locale thy; thy)
-      else (Pretty.writeln(Pretty.str ("locale " ^ name ^ " is not top of scope"));
-            Pretty.writeln(Pretty.str ("Command has no effect, top is " ^ lname)); thy)
+   let val lname = (case get_scope thy of (ln,_)::_ => ln
+                                        | _ => error "No locales are open!")
+       val ok = (name = Sign.base_name lname) handle _ => false
+   in if ok then (change_scope pop_locale thy; thy)
+      else error ("locale " ^ name ^ " is not top of scope; top is " ^ lname)
    end;
 
 fun print_scope thy = 
