@@ -163,7 +163,6 @@ section "range";
 Goal "{u. ? x. u = f x} = range f";
 by Auto_tac;
 qed "full_SetCompr_eq";
-Addsimps[full_SetCompr_eq];
 
 
 section "Int";
