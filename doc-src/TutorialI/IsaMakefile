@@ -115,8 +115,8 @@ $(LOG)/HOL-Advanced.gz: $(OUT)/HOL Advanced/simp.thy Advanced/ROOT.ML Advanced/W
 HOL-Rules: HOL $(LOG)/HOL-Rules.gz
 
 $(LOG)/HOL-Rules.gz: $(OUT)/HOL Rules/Basic.thy \
-	Rules/Blast.thy Rules/Force.thy Rules/Primes.thy Rules/Forward.thy  \
-	Rules/ROOT.ML 
+	Rules/Blast.thy Rules/Force.thy Rules/Primes.thy Rules/Forward.thy \
+	Rules/Tacticals.thy Rules/ROOT.ML 
 	@$(USEDIR) Rules
 	@rm -f tutorial.dvi
 
