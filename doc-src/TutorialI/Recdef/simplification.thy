@@ -11,7 +11,7 @@ terminate because of automatic splitting of @{text"if"}.
 Let us look at an example:
 *}
 
-consts gcd :: "nat*nat \\<Rightarrow> nat";
+consts gcd :: "nat\<times>nat \\<Rightarrow> nat";
 recdef gcd "measure (\\<lambda>(m,n).n)"
   "gcd (m, n) = (if n=0 then m else gcd(n, m mod n))";
 
@@ -48,7 +48,7 @@ rather than @{text"if"} on the right. In the case of @{term"gcd"} the
 following alternative definition suggests itself:
 *}
 
-consts gcd1 :: "nat*nat \\<Rightarrow> nat";
+consts gcd1 :: "nat\<times>nat \\<Rightarrow> nat";
 recdef gcd1 "measure (\\<lambda>(m,n).n)"
   "gcd1 (m, 0) = m"
   "gcd1 (m, n) = gcd1(n, m mod n)";
@@ -63,7 +63,7 @@ A very simple alternative is to replace @{text"if"} by @{text"case"}, which
 is also available for @{typ"bool"} but is not split automatically:
 *}
 
-consts gcd2 :: "nat*nat \\<Rightarrow> nat";
+consts gcd2 :: "nat\<times>nat \\<Rightarrow> nat";
 recdef gcd2 "measure (\\<lambda>(m,n).n)"
   "gcd2(m,n) = (case n=0 of True \\<Rightarrow> m | False \\<Rightarrow> gcd2(n,m mod n))";
 
@@ -83,7 +83,7 @@ text{*\noindent
 after which we can disable the original simplification rule:
 *}
 
-lemmas [simp del] = gcd.simps;
+declare gcd.simps [simp del]
 
 (*<*)
 end

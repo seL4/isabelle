@@ -1,36 +1,24 @@
-\chapter{The Tricks of the Trade}
+%\chapter{The Tricks of the Trade}
+\chapter{Advanced Simplification, Recursion, and Induction}
+\markboth{}{CHAPTER 4: ADVANCED}
 
-\section{Simplification}
-\label{sec:simplification-II}
-\index{simplification|(}
+Although we have already learned a lot about simplification, recursion and
+induction, there are some advanced proof techniques that we have not covered
+yet and which are worth knowing about if you intend to beome a serious
+(human) theorem prover. The three sections of this chapter are almost
+independent of each other and can be read in any order. Only the notion of
+\emph{congruence rules}, introduced in the section on simplification, is
+required for parts of the section on recursion.
 
-\subsection{Advanced features}
+\input{Advanced/document/simp.tex}
 
-\subsubsection{Congruence rules}
-
-
-\subsubsection{Permutative rewrite rules}
-
-A rewrite rule is \textbf{permutative} if the left-hand side and right-hand
-side are the same up to renaming of variables.  The most common permutative
-rule is commutativity: $x+y = y+x$.  Another example is $(x-y)-z = (x-z)-y$.
-Such rules are problematic because once they apply, they can be used forever.
-The simplifier is aware of this danger and treats permutative rules
-separately. For details see~\cite{isabelle-ref}.
-
-
-
-\subsection{How it works}
-\label{sec:SimpHow}
-
-\subsubsection{Higher-order patterns}
-
-\subsubsection{Local assumptions}
-
-\subsubsection{The preprocessor}
-
-\index{simplification|)}
-
+\section{Advanced forms of recursion}
+\label{sec:advanced-recdef}
+\index{*recdef|(}
+\input{Recdef/document/Nested0.tex}
+\input{Recdef/document/Nested1.tex}
+\input{Recdef/document/Nested2.tex}
+\index{*recdef|)}
 
 \section{Advanced induction techniques}
 \label{sec:advanced-ind}

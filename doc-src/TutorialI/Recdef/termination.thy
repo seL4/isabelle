@@ -18,9 +18,9 @@ In general, Isabelle may not be able to prove all termination condition
 termination of the following artificial function
 *}
 
-consts f :: "nat*nat \\<Rightarrow> nat";
-recdef f "measure(\\<lambda>(x,y). x-y)"
-  "f(x,y) = (if x \\<le> y then x else f(x,y+1))";
+consts f :: "nat\<times>nat \<Rightarrow> nat";
+recdef f "measure(\<lambda>(x,y). x-y)"
+  "f(x,y) = (if x \<le> y then x else f(x,y+1))";
 
 text{*\noindent
 is not proved automatically (although maybe it should be). Isabelle prints a
@@ -29,7 +29,7 @@ have to prove it as a separate lemma before you attempt the definition
 of your function once more. In our case the required lemma is the obvious one:
 *}
 
-lemma termi_lem[simp]: "\\<not> x \\<le> y \\<Longrightarrow> x - Suc y < x - y";
+lemma termi_lem: "\<not> x \<le> y \<Longrightarrow> x - Suc y < x - y";
 
 txt{*\noindent
 It was not proved automatically because of the special nature of @{text"-"}
@@ -40,13 +40,14 @@ by(arith);
 
 text{*\noindent
 Because \isacommand{recdef}'s termination prover involves simplification,
-we have turned our lemma into a simplification rule. Therefore our second
-attempt to define our function will automatically take it into account:
+we include with our second attempt the hint to use @{thm[source]termi_lem} as
+a simplification rule:
 *}
 
-consts g :: "nat*nat \\<Rightarrow> nat";
-recdef g "measure(\\<lambda>(x,y). x-y)"
-  "g(x,y) = (if x \\<le> y then x else g(x,y+1))";
+consts g :: "nat\<times>nat \<Rightarrow> nat";
+recdef g "measure(\<lambda>(x,y). x-y)"
+  "g(x,y) = (if x \<le> y then x else g(x,y+1))"
+(hints simp: termi_lem)
 
 text{*\noindent
 This time everything works fine. Now @{thm[source]g.simps} contains precisely
@@ -54,20 +55,17 @@ the stated recursion equation for @{term"g"} and they are simplification
 rules. Thus we can automatically prove
 *}
 
-theorem wow: "g(1,0) = g(1,1)";
+theorem "g(1,0) = g(1,1)";
 by(simp);
 
 text{*\noindent
 More exciting theorems require induction, which is discussed below.
 
-Because lemma @{thm[source]termi_lem} above was only turned into a
-simplification rule for the sake of the termination proof, we may want to
-disable it again:
-*}
+If the termination proof requires a new lemma that is of general use, you can
+turn it permanently into a simplification rule, in which case the above
+\isacommand{hint} is not necessary. But our @{thm[source]termi_lem} is not
+sufficiently general to warrant this distinction.
 
-lemmas [simp del] = termi_lem;
-
-text{*
 The attentive reader may wonder why we chose to call our function @{term"g"}
 rather than @{term"f"} the second time around. The reason is that, despite
 the failed termination proof, the definition of @{term"f"} did not
@@ -87,7 +85,7 @@ allows arbitrary wellfounded relations. For example, termination of
 Ackermann's function requires the lexicographic product @{text"<*lex*>"}:
 *}
 
-consts ack :: "nat*nat \\<Rightarrow> nat";
+consts ack :: "nat\<times>nat \<Rightarrow> nat";
 recdef ack "measure(\<lambda>m. m) <*lex*> measure(\<lambda>n. n)"
   "ack(0,n)         = Suc n"
   "ack(Suc m,0)     = ack(m, 1)"

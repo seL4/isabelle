@@ -6,8 +6,8 @@ text{*
 Here is a simple example, the Fibonacci function:
 *}
 
-consts fib :: "nat \\<Rightarrow> nat";
-recdef fib "measure(\\<lambda>n. n)"
+consts fib :: "nat \<Rightarrow> nat";
+recdef fib "measure(\<lambda>n. n)"
   "fib 0 = 0"
   "fib 1 = 1"
   "fib (Suc(Suc x)) = fib x + fib (Suc x)";
@@ -26,8 +26,8 @@ Slightly more interesting is the insertion of a fixed element
 between any two elements of a list:
 *}
 
-consts sep :: "'a * 'a list \\<Rightarrow> 'a list";
-recdef sep "measure (\\<lambda>(a,xs). length xs)"
+consts sep :: "'a \<times> 'a list \<Rightarrow> 'a list";
+recdef sep "measure (\<lambda>(a,xs). length xs)"
   "sep(a, [])     = []"
   "sep(a, [x])    = [x]"
   "sep(a, x#y#zs) = x # a # sep(a,y#zs)";
@@ -39,8 +39,8 @@ recursive call; the first component of the argument tuple is irrelevant.
 Pattern matching need not be exhaustive:
 *}
 
-consts last :: "'a list \\<Rightarrow> 'a";
-recdef last "measure (\\<lambda>xs. length xs)"
+consts last :: "'a list \<Rightarrow> 'a";
+recdef last "measure (\<lambda>xs. length xs)"
   "last [x]      = x"
   "last (x#y#zs) = last (y#zs)";
 
@@ -49,8 +49,8 @@ Overlapping patterns are disambiguated by taking the order of equations into
 account, just as in functional programming:
 *}
 
-consts sep1 :: "'a * 'a list \\<Rightarrow> 'a list";
-recdef sep1 "measure (\\<lambda>(a,xs). length xs)"
+consts sep1 :: "'a \<times> 'a list \<Rightarrow> 'a list";
+recdef sep1 "measure (\<lambda>(a,xs). length xs)"
   "sep1(a, x#y#zs) = x # a # sep1(a,y#zs)"
   "sep1(a, xs)     = xs";
 
@@ -67,17 +67,17 @@ This defines exactly the same function as @{term"sep"} above, i.e.\
   arguments as in the following definition:
 \end{warn}
 *}
-consts sep2 :: "'a list \\<Rightarrow> 'a \\<Rightarrow> 'a list";
+consts sep2 :: "'a list \<Rightarrow> 'a \<Rightarrow> 'a list";
 recdef sep2 "measure length"
-  "sep2 (x#y#zs) = (\\<lambda>a. x # a # sep2 zs a)"
-  "sep2 xs       = (\\<lambda>a. xs)";
+  "sep2 (x#y#zs) = (\<lambda>a. x # a # sep2 zs a)"
+  "sep2 xs       = (\<lambda>a. xs)";
 
 text{*
 Because of its pattern-matching syntax, \isacommand{recdef} is also useful
 for the definition of non-recursive functions:
 *}
 
-consts swap12 :: "'a list \\<Rightarrow> 'a list";
+consts swap12 :: "'a list \<Rightarrow> 'a list";
 recdef swap12 "{}"
   "swap12 (x#y#zs) = y#x#zs"
   "swap12 zs       = zs";

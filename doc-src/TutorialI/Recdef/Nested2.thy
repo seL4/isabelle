@@ -23,7 +23,6 @@ induction schema for type @{text"term"} but the simpler one arising from
 @{term"trev"}:
 *};
 
-lemmas [cong] = map_cong;
 lemma "trev(trev t) = t";
 apply(induct_tac t rule:trev.induct);
 txt{*\noindent
@@ -32,12 +31,12 @@ This leaves us with a trivial base case @{term"trev (trev (Var x)) = Var x"} and
 both of which are solved by simplification:
 *};
 
-by(simp_all add:rev_map sym[OF map_compose]);
+by(simp_all add:rev_map sym[OF map_compose] cong:map_cong);
 
 text{*\noindent
 If the proof of the induction step mystifies you, we recommend to go through
 the chain of simplification steps in detail; you will probably need the help of
-@{text"trace_simp"}.
+@{text"trace_simp"}. Theorem @{thm[source]map_cong} is discussed below.
 %\begin{quote}
 %{term[display]"trev(trev(App f ts))"}\\
 %{term[display]"App f (rev(map trev (rev(map trev ts))))"}\\
@@ -84,5 +83,8 @@ Note that \isacommand{recdef} feeds on exactly the same \emph{kind} of
 congruence rules as the simplifier (\S\ref{sec:simp-cong}) but that
 declaring a congruence rule for the simplifier does not make it
 available to \isacommand{recdef}, and vice versa. This is intentional.
+%The simplifier's congruence rules cannot be used by recdef.
+%For example the weak congruence rules for if and case would prevent
+%recdef from generating sensible termination conditions.
 *};
 (*<*)end;(*>*)

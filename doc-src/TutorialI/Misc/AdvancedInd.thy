@@ -17,7 +17,7 @@ So far we have assumed that the theorem we want to prove is already in a form
 that is amenable to induction, but this is not always the case:
 *};
 
-lemma "xs \\<noteq> [] \\<Longrightarrow> hd(rev xs) = last xs";
+lemma "xs \<noteq> [] \<Longrightarrow> hd(rev xs) = last xs";
 apply(induct_tac xs);
 
 txt{*\noindent
@@ -49,7 +49,7 @@ using @{text"\<longrightarrow>"}.}
 This means we should prove
 *};
 (*<*)oops;(*>*)
-lemma hd_rev: "xs \\<noteq> [] \\<longrightarrow> hd(rev xs) = last xs";
+lemma hd_rev: "xs \<noteq> [] \<longrightarrow> hd(rev xs) = last xs";
 (*<*)
 by(induct_tac xs, auto);
 (*>*)
@@ -82,7 +82,7 @@ which can yield a fairly complex conclusion.
 Here is a simple example (which is proved by @{text"blast"}):
 *};
 
-lemma simple: "\\<forall>y. A y \\<longrightarrow> B y \<longrightarrow> B y & A y";
+lemma simple: "\<forall>y. A y \<longrightarrow> B y \<longrightarrow> B y & A y";
 (*<*)by blast;(*>*)
 
 text{*\noindent
@@ -105,7 +105,7 @@ You can go one step further and include these derivations already in the
 statement of your original lemma, thus avoiding the intermediate step:
 *};
 
-lemma myrule[rulified]:  "\\<forall>y. A y \\<longrightarrow> B y \<longrightarrow> B y & A y";
+lemma myrule[rulified]:  "\<forall>y. A y \<longrightarrow> B y \<longrightarrow> B y & A y";
 (*<*)
 by blast;
 (*>*)
@@ -134,8 +134,8 @@ be helpful. We show how to apply such induction schemas by an example.
 Structural induction on @{typ"nat"} is
 usually known as ``mathematical induction''. There is also ``complete
 induction'', where you must prove $P(n)$ under the assumption that $P(m)$
-holds for all $m<n$. In Isabelle, this is the theorem @{thm [source] nat_less_induct}:
-@{thm[display] nat_less_induct [no_vars]}
+holds for all $m<n$. In Isabelle, this is the theorem @{thm[source]nat_less_induct}:
+@{thm[display]"nat_less_induct"[no_vars]}
 Here is an example of its application.
 *};
 
@@ -152,10 +152,10 @@ be proved by induction on @{term"f n"}. Following the recipy outlined
 above, we have to phrase the proposition as follows to allow induction:
 *};
 
-lemma f_incr_lem: "\\<forall>i. k = f i \\<longrightarrow> i \\<le> f i";
+lemma f_incr_lem: "\<forall>i. k = f i \<longrightarrow> i \<le> f i";
 
 txt{*\noindent
-To perform induction on @{term"k"} using @{thm [source] nat_less_induct}, we use the same
+To perform induction on @{term"k"} using @{thm[source]nat_less_induct}, we use the same
 general induction method as for recursion induction (see
 \S\ref{sec:recdef-induction}):
 *};
@@ -213,7 +213,7 @@ The final @{thm[source]refl} gets rid of the premise @{text"?k = f ?i"}. Again,
 we could have included this derivation in the original statement of the lemma:
 *};
 
-lemma f_incr[rulified, OF refl]: "\\<forall>i. k = f i \\<longrightarrow> i \\<le> f i";
+lemma f_incr[rulified, OF refl]: "\<forall>i. k = f i \<longrightarrow> i \<le> f i";
 (*<*)oops;(*>*)
 
 text{*
@@ -242,49 +242,46 @@ subsection{*Derivation of new induction schemas*};
 text{*\label{sec:derive-ind}
 Induction schemas are ordinary theorems and you can derive new ones
 whenever you wish.  This section shows you how to, using the example
-of @{thm [source] nat_less_induct}. Assume we only have structural induction
+of @{thm[source]nat_less_induct}. Assume we only have structural induction
 available for @{typ"nat"} and want to derive complete induction. This
 requires us to generalize the statement first:
 *};
 
-lemma induct_lem: "(\\<And>n::nat. \\<forall>m<n. P m \\<Longrightarrow> P n) \\<Longrightarrow> \\<forall>m<n. P m";
+lemma induct_lem: "(\<And>n::nat. \<forall>m<n. P m \<Longrightarrow> P n) \<Longrightarrow> \<forall>m<n. P m";
 apply(induct_tac n);
 
 txt{*\noindent
 The base case is trivially true. For the induction step (@{prop"m <
-Suc n"}) we distinguish two cases: @{prop"m < n"} is true by induction
-hypothesis and @{prop"m = n"} follow from the assumption again using
+Suc n"}) we distinguish two cases: case @{prop"m < n"} is true by induction
+hypothesis and case @{prop"m = n"} follows from the assumption, again using
 the induction hypothesis:
 *};
-
 apply(blast);
-(* apply(blast elim:less_SucE); *)
-ML"set quick_and_dirty"
-sorry;
-ML"reset quick_and_dirty"
+by(blast elim:less_SucE)
 
 text{*\noindent
 The elimination rule @{thm[source]less_SucE} expresses the case distinction:
 @{thm[display]"less_SucE"[no_vars]}
 
 Now it is straightforward to derive the original version of
-@{thm [source] nat_less_induct} by manipulting the conclusion of the above lemma:
+@{thm[source]nat_less_induct} by manipulting the conclusion of the above lemma:
 instantiate @{term"n"} by @{term"Suc n"} and @{term"m"} by @{term"n"} and
 remove the trivial condition @{prop"n < Sc n"}. Fortunately, this
 happens automatically when we add the lemma as a new premise to the
 desired goal:
 *};
 
-theorem nat_less_induct: "(\\<And>n::nat. \\<forall>m<n. P m \\<Longrightarrow> P n) \\<Longrightarrow> P n";
+theorem nat_less_induct: "(\<And>n::nat. \<forall>m<n. P m \<Longrightarrow> P n) \<Longrightarrow> P n";
 by(insert induct_lem, blast);
 
-text{*\noindent
+text{*
 Finally we should mention that HOL already provides the mother of all
 inductions, \emph{wellfounded induction} (@{thm[source]wf_induct}):
 @{thm[display]"wf_induct"[no_vars]}
 where @{term"wf r"} means that the relation @{term"r"} is wellfounded.
-For example @{thm [source] nat_less_induct} is the special case where @{term"r"} is
-@{text"<"} on @{typ"nat"}. For details see the library.
+For example, theorem @{thm[source]nat_less_induct} can be viewed (and
+derived) as a special case of @{thm[source]wf_induct} where 
+@{term"r"} is @{text"<"} on @{typ"nat"}. For details see the library.
 *};
 
 (*<*)

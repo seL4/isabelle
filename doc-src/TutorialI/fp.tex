@@ -225,29 +225,7 @@ A more general method for defining total recursive functions is introduced in
 \end{warn}
 
 
-\subsection{Case study: boolean expressions}
-\label{sec:boolex}
-
-The aim of this case study is twofold: it shows how to model boolean
-expressions and some algorithms for manipulating them, and it demonstrates
-the constructs introduced above.
-
 \input{Ifexpr/document/Ifexpr.tex}
-\medskip
-
-How does one come up with the required lemmas? Try to prove the main theorems
-without them and study carefully what \isa{auto} leaves unproved. This has
-to provide the clue.  The necessity of universal quantification
-(\isa{\isasymforall{}t e}) in the two lemmas is explained in
-\S\ref{sec:InductionHeuristics}
-
-\begin{exercise}
-  We strengthen the definition of a \isa{normal} If-expression as follows:
-  the first argument of all \isa{IF}s must be a variable. Adapt the above
-  development to this changed requirement. (Hint: you may need to formulate
-  some of the goals as implications (\isasymimp) rather than equalities
-  (\isa{=}).)
-\end{exercise}
 
 \section{Some basic types}
 
@@ -417,9 +395,10 @@ simplification steps:
 \begin{ttbox}\makeatother
 (0#1#[]) @ []  \(\leadsto\)  0#((1#[]) @ [])  \(\leadsto\)  0#(1#([] @ []))  \(\leadsto\)  0#1#[]
 \end{ttbox}
-This is also known as \bfindex{term rewriting} and the equations are referred
-to as \bfindex{rewrite rules}. ``Rewriting'' is more honest than ``simplification''
-because the terms do not necessarily become simpler in the process.
+This is also known as \bfindex{term rewriting}\indexbold{rewriting} and the
+equations are referred to as \textbf{rewrite rules}\indexbold{rewrite rule}.
+``Rewriting'' is more honest than ``simplification'' because the terms do not
+necessarily become simpler in the process.
 
 \input{Misc/document/simp.tex}
 
@@ -592,12 +571,4 @@ supplied) sense.
 
 \index{induction!recursion|)}
 \index{recursion induction|)}
-
-\subsection{Advanced forms of recursion}
-\label{sec:advanced-recdef}
-
-\input{Recdef/document/Nested0.tex}
-\input{Recdef/document/Nested1.tex}
-\input{Recdef/document/Nested2.tex}
-
 \index{*recdef|)}

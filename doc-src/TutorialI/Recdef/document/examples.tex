@@ -24,7 +24,7 @@ obviously true because the measure function is the identity and
 Slightly more interesting is the insertion of a fixed element
 between any two elements of a list:%
 \end{isamarkuptext}%
-\isacommand{consts}\ sep\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}{\isacharprime}a\ {\isacharasterisk}\ {\isacharprime}a\ list\ {\isasymRightarrow}\ {\isacharprime}a\ list{\isachardoublequote}\isanewline
+\isacommand{consts}\ sep\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}{\isacharprime}a\ {\isasymtimes}\ {\isacharprime}a\ list\ {\isasymRightarrow}\ {\isacharprime}a\ list{\isachardoublequote}\isanewline
 \isacommand{recdef}\ sep\ {\isachardoublequote}measure\ {\isacharparenleft}{\isasymlambda}{\isacharparenleft}a{\isacharcomma}xs{\isacharparenright}{\isachardot}\ length\ xs{\isacharparenright}{\isachardoublequote}\isanewline
 \ \ {\isachardoublequote}sep{\isacharparenleft}a{\isacharcomma}\ {\isacharbrackleft}{\isacharbrackright}{\isacharparenright}\ \ \ \ \ {\isacharequal}\ {\isacharbrackleft}{\isacharbrackright}{\isachardoublequote}\isanewline
 \ \ {\isachardoublequote}sep{\isacharparenleft}a{\isacharcomma}\ {\isacharbrackleft}x{\isacharbrackright}{\isacharparenright}\ \ \ \ {\isacharequal}\ {\isacharbrackleft}x{\isacharbrackright}{\isachardoublequote}\isanewline
@@ -44,7 +44,7 @@ Pattern matching need not be exhaustive:%
 Overlapping patterns are disambiguated by taking the order of equations into
 account, just as in functional programming:%
 \end{isamarkuptext}%
-\isacommand{consts}\ sep\isadigit{1}\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}{\isacharprime}a\ {\isacharasterisk}\ {\isacharprime}a\ list\ {\isasymRightarrow}\ {\isacharprime}a\ list{\isachardoublequote}\isanewline
+\isacommand{consts}\ sep\isadigit{1}\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}{\isacharprime}a\ {\isasymtimes}\ {\isacharprime}a\ list\ {\isasymRightarrow}\ {\isacharprime}a\ list{\isachardoublequote}\isanewline
 \isacommand{recdef}\ sep\isadigit{1}\ {\isachardoublequote}measure\ {\isacharparenleft}{\isasymlambda}{\isacharparenleft}a{\isacharcomma}xs{\isacharparenright}{\isachardot}\ length\ xs{\isacharparenright}{\isachardoublequote}\isanewline
 \ \ {\isachardoublequote}sep\isadigit{1}{\isacharparenleft}a{\isacharcomma}\ x{\isacharhash}y{\isacharhash}zs{\isacharparenright}\ {\isacharequal}\ x\ {\isacharhash}\ a\ {\isacharhash}\ sep\isadigit{1}{\isacharparenleft}a{\isacharcomma}y{\isacharhash}zs{\isacharparenright}{\isachardoublequote}\isanewline
 \ \ {\isachardoublequote}sep\isadigit{1}{\isacharparenleft}a{\isacharcomma}\ xs{\isacharparenright}\ \ \ \ \ {\isacharequal}\ xs{\isachardoublequote}%

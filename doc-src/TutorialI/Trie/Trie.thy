@@ -81,8 +81,7 @@ expand all @{text"let"}s and to split all @{text"case"}-constructs over
 options:
 *};
 
-lemmas [simp] = Let_def;
-lemmas [split] = option.split;
+declare Let_def[simp] option.split[split]
 
 text{*\noindent
 The reason becomes clear when looking (probably after a failed proof

@@ -227,15 +227,12 @@ requires us to generalize the statement first:%
 \isacommand{apply}{\isacharparenleft}induct{\isacharunderscore}tac\ n{\isacharparenright}%
 \begin{isamarkuptxt}%
 \noindent
-The base case is trivially true. For the induction step (\isa{m\ {\isacharless}\ Suc\ n}) we distinguish two cases: \isa{m\ {\isacharless}\ n} is true by induction
-hypothesis and \isa{m\ {\isacharequal}\ n} follow from the assumption again using
+The base case is trivially true. For the induction step (\isa{m\ {\isacharless}\ Suc\ n}) we distinguish two cases: case \isa{m\ {\isacharless}\ n} is true by induction
+hypothesis and case \isa{m\ {\isacharequal}\ n} follows from the assumption, again using
 the induction hypothesis:%
 \end{isamarkuptxt}%
 \isacommand{apply}{\isacharparenleft}blast{\isacharparenright}\isanewline
-\isanewline
-\isacommand{ML}{\isachardoublequote}set\ quick{\isacharunderscore}and{\isacharunderscore}dirty{\isachardoublequote}\isanewline
-\isacommand{sorry}\isanewline
-\isacommand{ML}{\isachardoublequote}reset\ quick{\isacharunderscore}and{\isacharunderscore}dirty{\isachardoublequote}%
+\isacommand{by}{\isacharparenleft}blast\ elim{\isacharcolon}less{\isacharunderscore}SucE{\isacharparenright}%
 \begin{isamarkuptext}%
 \noindent
 The elimination rule \isa{less{\isacharunderscore}SucE} expresses the case distinction:
@@ -253,15 +250,15 @@ desired goal:%
 \isacommand{theorem}\ nat{\isacharunderscore}less{\isacharunderscore}induct{\isacharcolon}\ {\isachardoublequote}{\isacharparenleft}{\isasymAnd}n{\isacharcolon}{\isacharcolon}nat{\isachardot}\ {\isasymforall}m{\isacharless}n{\isachardot}\ P\ m\ {\isasymLongrightarrow}\ P\ n{\isacharparenright}\ {\isasymLongrightarrow}\ P\ n{\isachardoublequote}\isanewline
 \isacommand{by}{\isacharparenleft}insert\ induct{\isacharunderscore}lem{\isacharcomma}\ blast{\isacharparenright}%
 \begin{isamarkuptext}%
-\noindent
 Finally we should mention that HOL already provides the mother of all
 inductions, \emph{wellfounded induction} (\isa{wf{\isacharunderscore}induct}):
 \begin{isabelle}%
 \ \ \ \ \ {\isasymlbrakk}wf\ r{\isacharsemicolon}\ {\isasymAnd}x{\isachardot}\ {\isasymforall}y{\isachardot}\ {\isacharparenleft}y{\isacharcomma}\ x{\isacharparenright}\ {\isasymin}\ r\ {\isasymlongrightarrow}\ P\ y\ {\isasymLongrightarrow}\ P\ x{\isasymrbrakk}\ {\isasymLongrightarrow}\ P\ a%
 \end{isabelle}
 where \isa{wf\ r} means that the relation \isa{r} is wellfounded.
-For example \isa{nat{\isacharunderscore}less{\isacharunderscore}induct} is the special case where \isa{r} is
-\isa{{\isacharless}} on \isa{nat}. For details see the library.%
+For example, theorem \isa{nat{\isacharunderscore}less{\isacharunderscore}induct} can be viewed (and
+derived) as a special case of \isa{wf{\isacharunderscore}induct} where 
+\isa{r} is \isa{{\isacharless}} on \isa{nat}. For details see the library.%
 \end{isamarkuptext}%
 \end{isabellebody}%
 %%% Local Variables:

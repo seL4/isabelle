@@ -8,7 +8,7 @@ definition they occurred only at the top-level, i.e.\ directly below a
 constructor. This is not the case any longer for the following model of terms
 where function symbols can be applied to a list of arguments:
 *}
-
+(*<*)hide const Var(*>*)
 datatype ('a,'b)"term" = Var 'a | App 'b "('a,'b)term list";
 
 text{*\noindent
@@ -53,7 +53,7 @@ primrec
   "substs s (t # ts) = subst s t # substs s ts";
 
 text{*\noindent
-You should ignore the label @{thm[source]subst_App} for the moment.
+(Please ignore the label @{thm[source]subst_App} for the moment.)
 
 Similarly, when proving a statement about terms inductively, we need
 to prove a related statement about term lists simultaneously. For example,
@@ -105,7 +105,7 @@ What is more, we can now disable the old defining equation as a
 simplification rule:
 *}
 
-lemmas [simp del] = subst_App
+declare subst_App [simp del]
 
 text{*\noindent
 The advantage is that now we have replaced @{term"substs"} by

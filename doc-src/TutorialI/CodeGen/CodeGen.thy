@@ -111,11 +111,11 @@ by(induct_tac xs, simp, simp split: instr.split);
 
 text{*\noindent
 Note that because \isaindex{auto} performs simplification, it can
-also be modified in the same way @{text"simp"} can. Thus the proof can be
+also be modified in the same way @{text simp} can. Thus the proof can be
 rewritten as
 *}
 (*<*)
-lemmas [simp del] = exec_app;
+declare exec_app[simp del];
 lemma [simp]: "\\<forall>vs. exec (xs@ys) s vs = exec ys s (exec xs s vs)"; 
 (*>*)
 by(induct_tac xs, auto split: instr.split);

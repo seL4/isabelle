@@ -15,7 +15,7 @@ Note that we need to quote \isa{term} on the left to avoid confusion with
 the command \isacommand{term}.
 Parameter \isa{{\isacharprime}a} is the type of variables and \isa{{\isacharprime}b} the type of
 function symbols.
-A mathematical term like $f(x,g(y))$ becomes \isa{App\ f\ {\isacharbrackleft}term{\isachardot}Var\ x{\isacharcomma}\ App\ g\ {\isacharbrackleft}term{\isachardot}Var\ y{\isacharbrackright}{\isacharbrackright}}, where \isa{f}, \isa{g}, \isa{x}, \isa{y} are
+A mathematical term like $f(x,g(y))$ becomes \isa{App\ f\ {\isacharbrackleft}Var\ x{\isacharcomma}\ App\ g\ {\isacharbrackleft}Var\ y{\isacharbrackright}{\isacharbrackright}}, where \isa{f}, \isa{g}, \isa{x}, \isa{y} are
 suitable values, e.g.\ numbers or strings.
 
 What complicates the definition of \isa{term} is the nested occurrence of
@@ -50,7 +50,7 @@ substs{\isacharcolon}{\isacharcolon}\ {\isachardoublequote}{\isacharparenleft}{\
 \ \ {\isachardoublequote}substs\ s\ {\isacharparenleft}t\ {\isacharhash}\ ts{\isacharparenright}\ {\isacharequal}\ subst\ s\ t\ {\isacharhash}\ substs\ s\ ts{\isachardoublequote}%
 \begin{isamarkuptext}%
 \noindent
-You should ignore the label \isa{subst{\isacharunderscore}App} for the moment.
+(Please ignore the label \isa{subst{\isacharunderscore}App} for the moment.)
 
 Similarly, when proving a statement about terms inductively, we need
 to prove a related statement about term lists simultaneously. For example,
@@ -62,8 +62,8 @@ strengthened and proved as follows:%
 \isacommand{by}{\isacharparenleft}induct{\isacharunderscore}tac\ t\ \isakeyword{and}\ ts{\isacharcomma}\ simp{\isacharunderscore}all{\isacharparenright}%
 \begin{isamarkuptext}%
 \noindent
-Note that \isa{term{\isachardot}Var} is the identity substitution because by definition it
-leaves variables unchanged: \isa{subst\ term{\isachardot}Var\ {\isacharparenleft}term{\isachardot}Var\ x{\isacharparenright}\ {\isacharequal}\ term{\isachardot}Var\ x}. Note also
+Note that \isa{Var} is the identity substitution because by definition it
+leaves variables unchanged: \isa{subst\ Var\ {\isacharparenleft}Var\ x{\isacharparenright}\ {\isacharequal}\ Var\ x}. Note also
 that the type annotations are necessary because otherwise there is nothing in
 the goal to enforce that both halves of the goal talk about the same type
 parameters \isa{{\isacharparenleft}{\isacharprime}a{\isacharcomma}{\isacharprime}b{\isacharparenright}}. As a result, induction would fail
@@ -103,7 +103,7 @@ that the suggested equation holds:%
 What is more, we can now disable the old defining equation as a
 simplification rule:%
 \end{isamarkuptext}%
-\isacommand{lemmas}\ {\isacharbrackleft}simp\ del{\isacharbrackright}\ {\isacharequal}\ subst{\isacharunderscore}App%
+\isacommand{declare}\ subst{\isacharunderscore}App\ {\isacharbrackleft}simp\ del{\isacharbrackright}%
 \begin{isamarkuptext}%
 \noindent
 The advantage is that now we have replaced \isa{substs} by

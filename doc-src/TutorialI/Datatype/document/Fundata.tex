@@ -36,16 +36,18 @@ Isabelle because the termination proof is not as obvious since
 The following lemma has a canonical proof%
 \end{isamarkuptext}%
 \isacommand{lemma}\ {\isachardoublequote}map{\isacharunderscore}bt\ {\isacharparenleft}g\ o\ f{\isacharparenright}\ T\ {\isacharequal}\ map{\isacharunderscore}bt\ g\ {\isacharparenleft}map{\isacharunderscore}bt\ f\ T{\isacharparenright}{\isachardoublequote}\isanewline
-\isacommand{by}{\isacharparenleft}induct{\isacharunderscore}tac\ {\isachardoublequote}T{\isachardoublequote}{\isacharcomma}\ simp{\isacharunderscore}all{\isacharparenright}%
+\isacommand{by}{\isacharparenleft}induct{\isacharunderscore}tac\ T{\isacharcomma}\ simp{\isacharunderscore}all{\isacharparenright}%
 \begin{isamarkuptext}%
 \noindent
+%apply(induct_tac T);
+%pr(latex xsymbols symbols)
 but it is worth taking a look at the proof state after the induction step
 to understand what the presence of the function type entails:
 \begin{isabelle}
-~1.~map\_bt~g~(map\_bt~f~Tip)~=~map\_bt~(g~{\isasymcirc}~f)~Tip\isanewline
-~2.~{\isasymAnd}a~F.\isanewline
-~~~~~~{\isasymforall}x.~map\_bt~g~(map\_bt~f~(F~x))~=~map\_bt~(g~{\isasymcirc}~f)~(F~x)~{\isasymLongrightarrow}\isanewline
-~~~~~~map\_bt~g~(map\_bt~f~(Branch~a~F))~=~map\_bt~(g~{\isasymcirc}~f)~(Branch~a~F)%
+\ \isadigit{1}{\isachardot}\ map{\isacharunderscore}bt\ {\isacharparenleft}g\ {\isasymcirc}\ f{\isacharparenright}\ Tip\ {\isacharequal}\ map{\isacharunderscore}bt\ g\ {\isacharparenleft}map{\isacharunderscore}bt\ f\ Tip{\isacharparenright}\isanewline
+\ \isadigit{2}{\isachardot}\ {\isasymAnd}a\ F{\isachardot}\isanewline
+\ \ \ \ \ \ \ {\isasymforall}x{\isachardot}\ map{\isacharunderscore}bt\ {\isacharparenleft}g\ {\isasymcirc}\ f{\isacharparenright}\ {\isacharparenleft}F\ x{\isacharparenright}\ {\isacharequal}\ map{\isacharunderscore}bt\ g\ {\isacharparenleft}map{\isacharunderscore}bt\ f\ {\isacharparenleft}F\ x{\isacharparenright}{\isacharparenright}\ {\isasymLongrightarrow}\isanewline
+\ \ \ \ \ \ \ map{\isacharunderscore}bt\ {\isacharparenleft}g\ {\isasymcirc}\ f{\isacharparenright}\ {\isacharparenleft}Branch\ a\ F{\isacharparenright}\ {\isacharequal}\ map{\isacharunderscore}bt\ g\ {\isacharparenleft}map{\isacharunderscore}bt\ f\ {\isacharparenleft}Branch\ a\ F{\isacharparenright}{\isacharparenright}
 \end{isabelle}%
 \end{isamarkuptext}%
 \end{isabellebody}%

@@ -1,10 +1,376 @@
 %
 \begin{isabellebody}%
 \def\isabellecontext{simp}%
-\isanewline
-\isacommand{theory}\ simp\ {\isacharequal}\ Main{\isacharcolon}\isanewline
-\isanewline
-\isacommand{end}\isanewline
+%
+\isamarkupsubsubsection{Simplification rules}
+%
+\begin{isamarkuptext}%
+\indexbold{simplification rule}
+To facilitate simplification, theorems can be declared to be simplification
+rules (with the help of the attribute \isa{{\isacharbrackleft}simp{\isacharbrackright}}\index{*simp
+  (attribute)}), in which case proofs by simplification make use of these
+rules automatically. In addition the constructs \isacommand{datatype} and
+\isacommand{primrec} (and a few others) invisibly declare useful
+simplification rules. Explicit definitions are \emph{not} declared
+simplification rules automatically!
+
+Not merely equations but pretty much any theorem can become a simplification
+rule. The simplifier will try to make sense of it.  For example, a theorem
+\isa{{\isasymnot}\ P} is automatically turned into \isa{P\ {\isacharequal}\ False}. The details
+are explained in \S\ref{sec:SimpHow}.
+
+The simplification attribute of theorems can be turned on and off as follows:
+\begin{quote}
+\isacommand{declare} \textit{theorem-name}\isa{{\isacharbrackleft}simp{\isacharbrackright}}\\
+\isacommand{declare} \textit{theorem-name}\isa{{\isacharbrackleft}simp\ del{\isacharbrackright}}
+\end{quote}
+As a rule of thumb, equations that really simplify (like \isa{rev\ {\isacharparenleft}rev\ xs{\isacharparenright}\ {\isacharequal}\ xs} and \isa{xs\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackright}\ {\isacharequal}\ xs}) should be made simplification
+rules.  Those of a more specific nature (e.g.\ distributivity laws, which
+alter the structure of terms considerably) should only be used selectively,
+i.e.\ they should not be default simplification rules.  Conversely, it may
+also happen that a simplification rule needs to be disabled in certain
+proofs.  Frequent changes in the simplification status of a theorem may
+indicate a badly designed theory.
+\begin{warn}
+  Simplification may not terminate, for example if both $f(x) = g(x)$ and
+  $g(x) = f(x)$ are simplification rules. It is the user's responsibility not
+  to include simplification rules that can lead to nontermination, either on
+  their own or in combination with other simplification rules.
+\end{warn}%
+\end{isamarkuptext}%
+%
+\isamarkupsubsubsection{The simplification method}
+%
+\begin{isamarkuptext}%
+\index{*simp (method)|bold}
+The general format of the simplification method is
+\begin{quote}
+\isa{simp} \textit{list of modifiers}
+\end{quote}
+where the list of \emph{modifiers} helps to fine tune the behaviour and may
+be empty. Most if not all of the proofs seen so far could have been performed
+with \isa{simp} instead of \isa{auto}, except that \isa{simp} attacks
+only the first subgoal and may thus need to be repeated---use
+\isaindex{simp_all} to simplify all subgoals.
+Note that \isa{simp} fails if nothing changes.%
+\end{isamarkuptext}%
+%
+\isamarkupsubsubsection{Adding and deleting simplification rules}
+%
+\begin{isamarkuptext}%
+If a certain theorem is merely needed in a few proofs by simplification,
+we do not need to make it a global simplification rule. Instead we can modify
+the set of simplification rules used in a simplification step by adding rules
+to it and/or deleting rules from it. The two modifiers for this are
+\begin{quote}
+\isa{add{\isacharcolon}} \textit{list of theorem names}\\
+\isa{del{\isacharcolon}} \textit{list of theorem names}
+\end{quote}
+In case you want to use only a specific list of theorems and ignore all
+others:
+\begin{quote}
+\isa{only{\isacharcolon}} \textit{list of theorem names}
+\end{quote}%
+\end{isamarkuptext}%
+%
+\isamarkupsubsubsection{Assumptions}
+%
+\begin{isamarkuptext}%
+\index{simplification!with/of assumptions}
+By default, assumptions are part of the simplification process: they are used
+as simplification rules and are simplified themselves. For example:%
+\end{isamarkuptext}%
+\isacommand{lemma}\ {\isachardoublequote}{\isasymlbrakk}\ xs\ {\isacharat}\ zs\ {\isacharequal}\ ys\ {\isacharat}\ xs{\isacharsemicolon}\ {\isacharbrackleft}{\isacharbrackright}\ {\isacharat}\ xs\ {\isacharequal}\ {\isacharbrackleft}{\isacharbrackright}\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackright}\ {\isasymrbrakk}\ {\isasymLongrightarrow}\ ys\ {\isacharequal}\ zs{\isachardoublequote}\isanewline
+\isacommand{by}\ simp%
+\begin{isamarkuptext}%
+\noindent
+The second assumption simplifies to \isa{xs\ {\isacharequal}\ {\isacharbrackleft}{\isacharbrackright}}, which in turn
+simplifies the first assumption to \isa{zs\ {\isacharequal}\ ys}, thus reducing the
+conclusion to \isa{ys\ {\isacharequal}\ ys} and hence to \isa{True}.
+
+In some cases this may be too much of a good thing and may lead to
+nontermination:%
+\end{isamarkuptext}%
+\isacommand{lemma}\ {\isachardoublequote}{\isasymforall}x{\isachardot}\ f\ x\ {\isacharequal}\ g\ {\isacharparenleft}f\ {\isacharparenleft}g\ x{\isacharparenright}{\isacharparenright}\ {\isasymLongrightarrow}\ f\ {\isacharbrackleft}{\isacharbrackright}\ {\isacharequal}\ f\ {\isacharbrackleft}{\isacharbrackright}\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackright}{\isachardoublequote}%
+\begin{isamarkuptxt}%
+\noindent
+cannot be solved by an unmodified application of \isa{simp} because the
+simplification rule \isa{f\ x\ {\isacharequal}\ g\ {\isacharparenleft}f\ {\isacharparenleft}g\ x{\isacharparenright}{\isacharparenright}} extracted from the assumption
+does not terminate. Isabelle notices certain simple forms of
+nontermination but not this one. The problem can be circumvented by
+explicitly telling the simplifier to ignore the assumptions:%
+\end{isamarkuptxt}%
+\isacommand{by}{\isacharparenleft}simp\ {\isacharparenleft}no{\isacharunderscore}asm{\isacharparenright}{\isacharparenright}%
+\begin{isamarkuptext}%
+\noindent
+There are three options that influence the treatment of assumptions:
+\begin{description}
+\item[\isa{{\isacharparenleft}no{\isacharunderscore}asm{\isacharparenright}}]\indexbold{*no_asm}
+ means that assumptions are completely ignored.
+\item[\isa{{\isacharparenleft}no{\isacharunderscore}asm{\isacharunderscore}simp{\isacharparenright}}]\indexbold{*no_asm_simp}
+ means that the assumptions are not simplified but
+  are used in the simplification of the conclusion.
+\item[\isa{{\isacharparenleft}no{\isacharunderscore}asm{\isacharunderscore}use{\isacharparenright}}]\indexbold{*no_asm_use}
+ means that the assumptions are simplified but are not
+  used in the simplification of each other or the conclusion.
+\end{description}
+Neither \isa{{\isacharparenleft}no{\isacharunderscore}asm{\isacharunderscore}simp{\isacharparenright}} nor \isa{{\isacharparenleft}no{\isacharunderscore}asm{\isacharunderscore}use{\isacharparenright}} allow to simplify
+the above problematic subgoal.
+
+Note that only one of the above options is allowed, and it must precede all
+other arguments.%
+\end{isamarkuptext}%
+%
+\isamarkupsubsubsection{Rewriting with definitions}
+%
+\begin{isamarkuptext}%
+\index{simplification!with definitions}
+Constant definitions (\S\ref{sec:ConstDefinitions}) can
+be used as simplification rules, but by default they are not.  Hence the
+simplifier does not expand them automatically, just as it should be:
+definitions are introduced for the purpose of abbreviating complex
+concepts. Of course we need to expand the definitions initially to derive
+enough lemmas that characterize the concept sufficiently for us to forget the
+original definition. For example, given%
+\end{isamarkuptext}%
+\isacommand{constdefs}\ exor\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}bool\ {\isasymRightarrow}\ bool\ {\isasymRightarrow}\ bool{\isachardoublequote}\isanewline
+\ \ \ \ \ \ \ \ \ {\isachardoublequote}exor\ A\ B\ {\isasymequiv}\ {\isacharparenleft}A\ {\isasymand}\ {\isasymnot}B{\isacharparenright}\ {\isasymor}\ {\isacharparenleft}{\isasymnot}A\ {\isasymand}\ B{\isacharparenright}{\isachardoublequote}%
+\begin{isamarkuptext}%
+\noindent
+we may want to prove%
+\end{isamarkuptext}%
+\isacommand{lemma}\ {\isachardoublequote}exor\ A\ {\isacharparenleft}{\isasymnot}A{\isacharparenright}{\isachardoublequote}%
+\begin{isamarkuptxt}%
+\noindent
+Typically, the opening move consists in \emph{unfolding} the definition(s), which we need to
+get started, but nothing else:\indexbold{*unfold}\indexbold{definition!unfolding}%
+\end{isamarkuptxt}%
+\isacommand{apply}{\isacharparenleft}simp\ only{\isacharcolon}exor{\isacharunderscore}def{\isacharparenright}%
+\begin{isamarkuptxt}%
+\noindent
+In this particular case, the resulting goal
+\begin{isabelle}
+~1.~A~{\isasymand}~{\isasymnot}~{\isasymnot}~A~{\isasymor}~{\isasymnot}~A~{\isasymand}~{\isasymnot}~A%
+\end{isabelle}
+can be proved by simplification. Thus we could have proved the lemma outright%
+\end{isamarkuptxt}%
+\isacommand{by}{\isacharparenleft}simp\ add{\isacharcolon}\ exor{\isacharunderscore}def{\isacharparenright}%
+\begin{isamarkuptext}%
+\noindent
+Of course we can also unfold definitions in the middle of a proof.
+
+You should normally not turn a definition permanently into a simplification
+rule because this defeats the whole purpose of an abbreviation.
+
+\begin{warn}
+  If you have defined $f\,x\,y~\isasymequiv~t$ then you can only expand
+  occurrences of $f$ with at least two arguments. Thus it is safer to define
+  $f$~\isasymequiv~\isasymlambda$x\,y.\;t$.
+\end{warn}%
+\end{isamarkuptext}%
+%
+\isamarkupsubsubsection{Simplifying let-expressions}
+%
+\begin{isamarkuptext}%
+\index{simplification!of let-expressions}
+Proving a goal containing \isaindex{let}-expressions almost invariably
+requires the \isa{let}-con\-structs to be expanded at some point. Since
+\isa{let}-\isa{in} is just syntactic sugar for a predefined constant
+(called \isa{Let}), expanding \isa{let}-constructs means rewriting with
+\isa{Let{\isacharunderscore}def}:%
+\end{isamarkuptext}%
+\isacommand{lemma}\ {\isachardoublequote}{\isacharparenleft}let\ xs\ {\isacharequal}\ {\isacharbrackleft}{\isacharbrackright}\ in\ xs{\isacharat}ys{\isacharat}xs{\isacharparenright}\ {\isacharequal}\ ys{\isachardoublequote}\isanewline
+\isacommand{by}{\isacharparenleft}simp\ add{\isacharcolon}\ Let{\isacharunderscore}def{\isacharparenright}%
+\begin{isamarkuptext}%
+If, in a particular context, there is no danger of a combinatorial explosion
+of nested \isa{let}s one could even simlify with \isa{Let{\isacharunderscore}def} by
+default:%
+\end{isamarkuptext}%
+\isacommand{declare}\ Let{\isacharunderscore}def\ {\isacharbrackleft}simp{\isacharbrackright}%
+\isamarkupsubsubsection{Conditional equations}
+%
+\begin{isamarkuptext}%
+So far all examples of rewrite rules were equations. The simplifier also
+accepts \emph{conditional} equations, for example%
+\end{isamarkuptext}%
+\isacommand{lemma}\ hd{\isacharunderscore}Cons{\isacharunderscore}tl{\isacharbrackleft}simp{\isacharbrackright}{\isacharcolon}\ {\isachardoublequote}xs\ {\isasymnoteq}\ {\isacharbrackleft}{\isacharbrackright}\ \ {\isasymLongrightarrow}\ \ hd\ xs\ {\isacharhash}\ tl\ xs\ {\isacharequal}\ xs{\isachardoublequote}\isanewline
+\isacommand{by}{\isacharparenleft}case{\isacharunderscore}tac\ xs{\isacharcomma}\ simp{\isacharcomma}\ simp{\isacharparenright}%
+\begin{isamarkuptext}%
+\noindent
+Note the use of ``\ttindexboldpos{,}{$Isar}'' to string together a
+sequence of methods. Assuming that the simplification rule
+\isa{{\isacharparenleft}rev\ xs\ {\isacharequal}\ {\isacharbrackleft}{\isacharbrackright}{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}xs\ {\isacharequal}\ {\isacharbrackleft}{\isacharbrackright}{\isacharparenright}}
+is present as well,%
+\end{isamarkuptext}%
+\isacommand{lemma}\ {\isachardoublequote}xs\ {\isasymnoteq}\ {\isacharbrackleft}{\isacharbrackright}\ {\isasymLongrightarrow}\ hd{\isacharparenleft}rev\ xs{\isacharparenright}\ {\isacharhash}\ tl{\isacharparenleft}rev\ xs{\isacharparenright}\ {\isacharequal}\ rev\ xs{\isachardoublequote}%
+\begin{isamarkuptext}%
+\noindent
+is proved by plain simplification:
+the conditional equation \isa{hd{\isacharunderscore}Cons{\isacharunderscore}tl} above
+can simplify \isa{hd\ {\isacharparenleft}rev\ xs{\isacharparenright}\ {\isacharhash}\ tl\ {\isacharparenleft}rev\ xs{\isacharparenright}} to \isa{rev\ xs}
+because the corresponding precondition \isa{rev\ xs\ {\isasymnoteq}\ {\isacharbrackleft}{\isacharbrackright}}
+simplifies to \isa{xs\ {\isasymnoteq}\ {\isacharbrackleft}{\isacharbrackright}}, which is exactly the local
+assumption of the subgoal.%
+\end{isamarkuptext}%
+%
+\isamarkupsubsubsection{Automatic case splits}
+%
+\begin{isamarkuptext}%
+\indexbold{case splits}\index{*split|(}
+Goals containing \isa{if}-expressions are usually proved by case
+distinction on the condition of the \isa{if}. For example the goal%
+\end{isamarkuptext}%
+\isacommand{lemma}\ {\isachardoublequote}{\isasymforall}xs{\isachardot}\ if\ xs\ {\isacharequal}\ {\isacharbrackleft}{\isacharbrackright}\ then\ rev\ xs\ {\isacharequal}\ {\isacharbrackleft}{\isacharbrackright}\ else\ rev\ xs\ {\isasymnoteq}\ {\isacharbrackleft}{\isacharbrackright}{\isachardoublequote}%
+\begin{isamarkuptxt}%
+\noindent
+can be split into
+\begin{isabelle}
+~1.~{\isasymforall}xs.~(xs~=~[]~{\isasymlongrightarrow}~rev~xs~=~[])~{\isasymand}~(xs~{\isasymnoteq}~[]~{\isasymlongrightarrow}~rev~xs~{\isasymnoteq}~[])
+\end{isabelle}
+by a degenerate form of simplification%
+\end{isamarkuptxt}%
+\isacommand{apply}{\isacharparenleft}simp\ only{\isacharcolon}\ split{\isacharcolon}\ split{\isacharunderscore}if{\isacharparenright}%
+\begin{isamarkuptext}%
+\noindent
+where no simplification rules are included (\isa{only{\isacharcolon}} is followed by the
+empty list of theorems) but the rule \isaindexbold{split_if} for
+splitting \isa{if}s is added (via the modifier \isa{split{\isacharcolon}}). Because
+case-splitting on \isa{if}s is almost always the right proof strategy, the
+simplifier performs it automatically. Try \isacommand{apply}\isa{{\isacharparenleft}simp{\isacharparenright}}
+on the initial goal above.
+
+This splitting idea generalizes from \isa{if} to \isaindex{case}:%
+\end{isamarkuptext}%
+\isacommand{lemma}\ {\isachardoublequote}{\isacharparenleft}case\ xs\ of\ {\isacharbrackleft}{\isacharbrackright}\ {\isasymRightarrow}\ zs\ {\isacharbar}\ y{\isacharhash}ys\ {\isasymRightarrow}\ y{\isacharhash}{\isacharparenleft}ys{\isacharat}zs{\isacharparenright}{\isacharparenright}\ {\isacharequal}\ xs{\isacharat}zs{\isachardoublequote}%
+\begin{isamarkuptxt}%
+\noindent
+becomes
+\begin{isabelle}\makeatother
+~1.~(xs~=~[]~{\isasymlongrightarrow}~zs~=~xs~@~zs)~{\isasymand}\isanewline
+~~~~({\isasymforall}a~list.~xs~=~a~\#~list~{\isasymlongrightarrow}~a~\#~list~@~zs~=~xs~@~zs)
+\end{isabelle}
+by typing%
+\end{isamarkuptxt}%
+\isacommand{apply}{\isacharparenleft}simp\ only{\isacharcolon}\ split{\isacharcolon}\ list{\isachardot}split{\isacharparenright}%
+\begin{isamarkuptext}%
+\noindent
+In contrast to \isa{if}-expressions, the simplifier does not split
+\isa{case}-expressions by default because this can lead to nontermination
+in case of recursive datatypes. Again, if the \isa{only{\isacharcolon}} modifier is
+dropped, the above goal is solved,%
+\end{isamarkuptext}%
+\isacommand{by}{\isacharparenleft}simp\ split{\isacharcolon}\ list{\isachardot}split{\isacharparenright}%
+\begin{isamarkuptext}%
+\noindent%
+which \isacommand{apply}\isa{{\isacharparenleft}simp{\isacharparenright}} alone will not do.
+
+In general, every datatype $t$ comes with a theorem
+$t$\isa{{\isachardot}split} which can be declared to be a \bfindex{split rule} either
+locally as above, or by giving it the \isa{split} attribute globally:%
+\end{isamarkuptext}%
+\isacommand{declare}\ list{\isachardot}split\ {\isacharbrackleft}split{\isacharbrackright}%
+\begin{isamarkuptext}%
+\noindent
+The \isa{split} attribute can be removed with the \isa{del} modifier,
+either locally%
+\end{isamarkuptext}%
+\isacommand{apply}{\isacharparenleft}simp\ split\ del{\isacharcolon}\ split{\isacharunderscore}if{\isacharparenright}%
+\begin{isamarkuptext}%
+\noindent
+or globally:%
+\end{isamarkuptext}%
+\isacommand{declare}\ list{\isachardot}split\ {\isacharbrackleft}split\ del{\isacharbrackright}%
+\begin{isamarkuptext}%
+The above split rules intentionally only affect the conclusion of a
+subgoal.  If you want to split an \isa{if} or \isa{case}-expression in
+the assumptions, you have to apply \isa{split{\isacharunderscore}if{\isacharunderscore}asm} or
+$t$\isa{{\isachardot}split{\isacharunderscore}asm}:%
+\end{isamarkuptext}%
+\isacommand{lemma}\ {\isachardoublequote}if\ xs\ {\isacharequal}\ {\isacharbrackleft}{\isacharbrackright}\ then\ ys\ {\isachartilde}{\isacharequal}\ {\isacharbrackleft}{\isacharbrackright}\ else\ ys\ {\isacharequal}\ {\isacharbrackleft}{\isacharbrackright}\ {\isacharequal}{\isacharequal}{\isachargreater}\ xs\ {\isacharat}\ ys\ {\isachartilde}{\isacharequal}\ {\isacharbrackleft}{\isacharbrackright}{\isachardoublequote}\isanewline
+\isacommand{apply}{\isacharparenleft}simp\ only{\isacharcolon}\ split{\isacharcolon}\ split{\isacharunderscore}if{\isacharunderscore}asm{\isacharparenright}%
+\begin{isamarkuptext}%
+\noindent
+In contrast to splitting the conclusion, this actually creates two
+separate subgoals (which are solved by \isa{simp{\isacharunderscore}all}):
+\begin{isabelle}
+\ \isadigit{1}{\isachardot}\ {\isasymlbrakk}\mbox{xs}\ {\isacharequal}\ {\isacharbrackleft}{\isacharbrackright}{\isacharsemicolon}\ \mbox{ys}\ {\isasymnoteq}\ {\isacharbrackleft}{\isacharbrackright}{\isasymrbrakk}\ {\isasymLongrightarrow}\ {\isacharbrackleft}{\isacharbrackright}\ {\isacharat}\ \mbox{ys}\ {\isasymnoteq}\ {\isacharbrackleft}{\isacharbrackright}\isanewline
+\ \isadigit{2}{\isachardot}\ {\isasymlbrakk}\mbox{xs}\ {\isasymnoteq}\ {\isacharbrackleft}{\isacharbrackright}{\isacharsemicolon}\ \mbox{ys}\ {\isacharequal}\ {\isacharbrackleft}{\isacharbrackright}{\isasymrbrakk}\ {\isasymLongrightarrow}\ \mbox{xs}\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackright}\ {\isasymnoteq}\ {\isacharbrackleft}{\isacharbrackright}
+\end{isabelle}
+If you need to split both in the assumptions and the conclusion,
+use $t$\isa{{\isachardot}splits} which subsumes $t$\isa{{\isachardot}split} and
+$t$\isa{{\isachardot}split{\isacharunderscore}asm}. Analogously, there is \isa{if{\isacharunderscore}splits}.
+
+\begin{warn}
+  The simplifier merely simplifies the condition of an \isa{if} but not the
+  \isa{then} or \isa{else} parts. The latter are simplified only after the
+  condition reduces to \isa{True} or \isa{False}, or after splitting. The
+  same is true for \isaindex{case}-expressions: only the selector is
+  simplified at first, until either the expression reduces to one of the
+  cases or it is split.
+\end{warn}
+
+\index{*split|)}%
+\end{isamarkuptext}%
+%
+\isamarkupsubsubsection{Arithmetic}
+%
+\begin{isamarkuptext}%
+\index{arithmetic}
+The simplifier routinely solves a small class of linear arithmetic formulae
+(over type \isa{nat} and other numeric types): it only takes into account
+assumptions and conclusions that are (possibly negated) (in)equalities
+(\isa{{\isacharequal}}, \isasymle, \isa{{\isacharless}}) and it only knows about addition. Thus%
+\end{isamarkuptext}%
+\isacommand{lemma}\ {\isachardoublequote}{\isasymlbrakk}\ {\isasymnot}\ m\ {\isacharless}\ n{\isacharsemicolon}\ m\ {\isacharless}\ n{\isacharplus}\isadigit{1}\ {\isasymrbrakk}\ {\isasymLongrightarrow}\ m\ {\isacharequal}\ n{\isachardoublequote}%
+\begin{isamarkuptext}%
+\noindent
+is proved by simplification, whereas the only slightly more complex%
+\end{isamarkuptext}%
+\isacommand{lemma}\ {\isachardoublequote}{\isasymnot}\ m\ {\isacharless}\ n\ {\isasymand}\ m\ {\isacharless}\ n{\isacharplus}\isadigit{1}\ {\isasymLongrightarrow}\ m\ {\isacharequal}\ n{\isachardoublequote}%
+\begin{isamarkuptext}%
+\noindent
+is not proved by simplification and requires \isa{arith}.%
+\end{isamarkuptext}%
+%
+\isamarkupsubsubsection{Tracing}
+%
+\begin{isamarkuptext}%
+\indexbold{tracing the simplifier}
+Using the simplifier effectively may take a bit of experimentation.  Set the
+\isaindexbold{trace_simp} \rmindex{flag} to get a better idea of what is going
+on:%
+\end{isamarkuptext}%
+\isacommand{ML}\ {\isachardoublequote}set\ trace{\isacharunderscore}simp{\isachardoublequote}\isanewline
+\isacommand{lemma}\ {\isachardoublequote}rev\ {\isacharbrackleft}a{\isacharbrackright}\ {\isacharequal}\ {\isacharbrackleft}{\isacharbrackright}{\isachardoublequote}\isanewline
+\isacommand{apply}{\isacharparenleft}simp{\isacharparenright}%
+\begin{isamarkuptext}%
+\noindent
+produces the trace
+
+\begin{ttbox}\makeatother
+Applying instance of rewrite rule:
+rev (?x1 \# ?xs1) == rev ?xs1 @ [?x1]
+Rewriting:
+rev [x] == rev [] @ [x]
+Applying instance of rewrite rule:
+rev [] == []
+Rewriting:
+rev [] == []
+Applying instance of rewrite rule:
+[] @ ?y == ?y
+Rewriting:
+[] @ [x] == [x]
+Applying instance of rewrite rule:
+?x3 \# ?t3 = ?t3 == False
+Rewriting:
+[x] = [] == False
+\end{ttbox}
+
+In more complicated cases, the trace can be quite lenghty, especially since
+invocations of the simplifier are often nested (e.g.\ when solving conditions
+of rewrite rules). Thus it is advisable to reset it:%
+\end{isamarkuptext}%
+\isacommand{ML}\ {\isachardoublequote}reset\ trace{\isacharunderscore}simp{\isachardoublequote}\isanewline
 \end{isabellebody}%
 %%% Local Variables:
 %%% mode: latex

@@ -72,8 +72,7 @@ Before we start on any proofs about \isa{update} we tell the simplifier to
 expand all \isa{let}s and to split all \isa{case}-constructs over
 options:%
 \end{isamarkuptext}%
-\isacommand{lemmas}\ {\isacharbrackleft}simp{\isacharbrackright}\ {\isacharequal}\ Let{\isacharunderscore}def\isanewline
-\isacommand{lemmas}\ {\isacharbrackleft}split{\isacharbrackright}\ {\isacharequal}\ option{\isachardot}split%
+\isacommand{declare}\ Let{\isacharunderscore}def{\isacharbrackleft}simp{\isacharbrackright}\ option{\isachardot}split{\isacharbrackleft}split{\isacharbrackright}%
 \begin{isamarkuptext}%
 \noindent
 The reason becomes clear when looking (probably after a failed proof

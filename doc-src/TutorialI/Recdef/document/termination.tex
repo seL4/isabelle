@@ -17,7 +17,7 @@ In general, Isabelle may not be able to prove all termination condition
 (there is one for each recursive call) automatically. For example,
 termination of the following artificial function%
 \end{isamarkuptext}%
-\isacommand{consts}\ f\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}nat{\isacharasterisk}nat\ {\isasymRightarrow}\ nat{\isachardoublequote}\isanewline
+\isacommand{consts}\ f\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}nat{\isasymtimes}nat\ {\isasymRightarrow}\ nat{\isachardoublequote}\isanewline
 \isacommand{recdef}\ f\ {\isachardoublequote}measure{\isacharparenleft}{\isasymlambda}{\isacharparenleft}x{\isacharcomma}y{\isacharparenright}{\isachardot}\ x{\isacharminus}y{\isacharparenright}{\isachardoublequote}\isanewline
 \ \ {\isachardoublequote}f{\isacharparenleft}x{\isacharcomma}y{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}if\ x\ {\isasymle}\ y\ then\ x\ else\ f{\isacharparenleft}x{\isacharcomma}y{\isacharplus}\isadigit{1}{\isacharparenright}{\isacharparenright}{\isachardoublequote}%
 \begin{isamarkuptext}%
@@ -27,7 +27,7 @@ kind of error message showing you what it was unable to prove. You will then
 have to prove it as a separate lemma before you attempt the definition
 of your function once more. In our case the required lemma is the obvious one:%
 \end{isamarkuptext}%
-\isacommand{lemma}\ termi{\isacharunderscore}lem{\isacharbrackleft}simp{\isacharbrackright}{\isacharcolon}\ {\isachardoublequote}{\isasymnot}\ x\ {\isasymle}\ y\ {\isasymLongrightarrow}\ x\ {\isacharminus}\ Suc\ y\ {\isacharless}\ x\ {\isacharminus}\ y{\isachardoublequote}%
+\isacommand{lemma}\ termi{\isacharunderscore}lem{\isacharcolon}\ {\isachardoublequote}{\isasymnot}\ x\ {\isasymle}\ y\ {\isasymLongrightarrow}\ x\ {\isacharminus}\ Suc\ y\ {\isacharless}\ x\ {\isacharminus}\ y{\isachardoublequote}%
 \begin{isamarkuptxt}%
 \noindent
 It was not proved automatically because of the special nature of \isa{{\isacharminus}}
@@ -37,30 +37,30 @@ on \isa{nat}. This requires more arithmetic than is tried by default:%
 \begin{isamarkuptext}%
 \noindent
 Because \isacommand{recdef}'s termination prover involves simplification,
-we have turned our lemma into a simplification rule. Therefore our second
-attempt to define our function will automatically take it into account:%
+we include with our second attempt the hint to use \isa{termi{\isacharunderscore}lem} as
+a simplification rule:%
 \end{isamarkuptext}%
-\isacommand{consts}\ g\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}nat{\isacharasterisk}nat\ {\isasymRightarrow}\ nat{\isachardoublequote}\isanewline
+\isacommand{consts}\ g\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}nat{\isasymtimes}nat\ {\isasymRightarrow}\ nat{\isachardoublequote}\isanewline
 \isacommand{recdef}\ g\ {\isachardoublequote}measure{\isacharparenleft}{\isasymlambda}{\isacharparenleft}x{\isacharcomma}y{\isacharparenright}{\isachardot}\ x{\isacharminus}y{\isacharparenright}{\isachardoublequote}\isanewline
-\ \ {\isachardoublequote}g{\isacharparenleft}x{\isacharcomma}y{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}if\ x\ {\isasymle}\ y\ then\ x\ else\ g{\isacharparenleft}x{\isacharcomma}y{\isacharplus}\isadigit{1}{\isacharparenright}{\isacharparenright}{\isachardoublequote}%
+\ \ {\isachardoublequote}g{\isacharparenleft}x{\isacharcomma}y{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}if\ x\ {\isasymle}\ y\ then\ x\ else\ g{\isacharparenleft}x{\isacharcomma}y{\isacharplus}\isadigit{1}{\isacharparenright}{\isacharparenright}{\isachardoublequote}\isanewline
+{\isacharparenleft}\isakeyword{hints}\ simp{\isacharcolon}\ termi{\isacharunderscore}lem{\isacharparenright}%
 \begin{isamarkuptext}%
 \noindent
 This time everything works fine. Now \isa{g{\isachardot}simps} contains precisely
 the stated recursion equation for \isa{g} and they are simplification
 rules. Thus we can automatically prove%
 \end{isamarkuptext}%
-\isacommand{theorem}\ wow{\isacharcolon}\ {\isachardoublequote}g{\isacharparenleft}\isadigit{1}{\isacharcomma}\isadigit{0}{\isacharparenright}\ {\isacharequal}\ g{\isacharparenleft}\isadigit{1}{\isacharcomma}\isadigit{1}{\isacharparenright}{\isachardoublequote}\isanewline
+\isacommand{theorem}\ {\isachardoublequote}g{\isacharparenleft}\isadigit{1}{\isacharcomma}\isadigit{0}{\isacharparenright}\ {\isacharequal}\ g{\isacharparenleft}\isadigit{1}{\isacharcomma}\isadigit{1}{\isacharparenright}{\isachardoublequote}\isanewline
 \isacommand{by}{\isacharparenleft}simp{\isacharparenright}%
 \begin{isamarkuptext}%
 \noindent
 More exciting theorems require induction, which is discussed below.
 
-Because lemma \isa{termi{\isacharunderscore}lem} above was only turned into a
-simplification rule for the sake of the termination proof, we may want to
-disable it again:%
-\end{isamarkuptext}%
-\isacommand{lemmas}\ {\isacharbrackleft}simp\ del{\isacharbrackright}\ {\isacharequal}\ termi{\isacharunderscore}lem%
-\begin{isamarkuptext}%
+If the termination proof requires a new lemma that is of general use, you can
+turn it permanently into a simplification rule, in which case the above
+\isacommand{hint} is not necessary. But our \isa{termi{\isacharunderscore}lem} is not
+sufficiently general to warrant this distinction.
+
 The attentive reader may wonder why we chose to call our function \isa{g}
 rather than \isa{f} the second time around. The reason is that, despite
 the failed termination proof, the definition of \isa{f} did not
@@ -79,7 +79,7 @@ Although all the above examples employ measure functions, \isacommand{recdef}
 allows arbitrary wellfounded relations. For example, termination of
 Ackermann's function requires the lexicographic product \isa{{\isacharless}{\isacharasterisk}lex{\isacharasterisk}{\isachargreater}}:%
 \end{isamarkuptext}%
-\isacommand{consts}\ ack\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}nat{\isacharasterisk}nat\ {\isasymRightarrow}\ nat{\isachardoublequote}\isanewline
+\isacommand{consts}\ ack\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}nat{\isasymtimes}nat\ {\isasymRightarrow}\ nat{\isachardoublequote}\isanewline
 \isacommand{recdef}\ ack\ {\isachardoublequote}measure{\isacharparenleft}{\isasymlambda}m{\isachardot}\ m{\isacharparenright}\ {\isacharless}{\isacharasterisk}lex{\isacharasterisk}{\isachargreater}\ measure{\isacharparenleft}{\isasymlambda}n{\isachardot}\ n{\isacharparenright}{\isachardoublequote}\isanewline
 \ \ {\isachardoublequote}ack{\isacharparenleft}\isadigit{0}{\isacharcomma}n{\isacharparenright}\ \ \ \ \ \ \ \ \ {\isacharequal}\ Suc\ n{\isachardoublequote}\isanewline
 \ \ {\isachardoublequote}ack{\isacharparenleft}Suc\ m{\isacharcomma}\isadigit{0}{\isacharparenright}\ \ \ \ \ {\isacharequal}\ ack{\isacharparenleft}m{\isacharcomma}\ \isadigit{1}{\isacharparenright}{\isachardoublequote}\isanewline

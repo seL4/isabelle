@@ -2,9 +2,17 @@
 theory Ifexpr = Main:;
 (*>*)
 
-text{*
-\subsubsection{How can we model boolean expressions?}
+subsection{*Case study: boolean expressions*}
 
+text{*\label{sec:boolex}
+The aim of this case study is twofold: it shows how to model boolean
+expressions and some algorithms for manipulating them, and it demonstrates
+the constructs introduced above.
+*}
+
+subsubsection{*How can we model boolean expressions?*}
+
+text{*
 We want to represent boolean expressions built up from variables and
 constants by negation and conjunction. The following datatype serves exactly
 that purpose:
@@ -161,6 +169,23 @@ by(auto);
 theorem "normal(norm b)";
 apply(induct_tac b);
 by(auto);
+(*>*)
 
+text{*\medskip
+How does one come up with the required lemmas? Try to prove the main theorems
+without them and study carefully what @{text auto} leaves unproved. This has
+to provide the clue.  The necessity of universal quantification
+(@{text"\<forall>t e"}) in the two lemmas is explained in
+\S\ref{sec:InductionHeuristics}
+
+\begin{exercise}
+  We strengthen the definition of a @{term normal} If-expression as follows:
+  the first argument of all @{term IF}s must be a variable. Adapt the above
+  development to this changed requirement. (Hint: you may need to formulate
+  some of the goals as implications (@{text"\<longrightarrow>"}) rather than
+  equalities (@{text"="}).)
+\end{exercise}
+*}
+(*<*)
 end
 (*>*)
