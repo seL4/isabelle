@@ -6,6 +6,8 @@
 Example of Mutual Induction via Iteratived Inductive Definitions: Commands
 *)
 
+header{*Mutual Induction via Iteratived Inductive Definitions*}
+
 theory Com = Main:
 
 typedecl loc
@@ -26,6 +28,9 @@ and
       | Semi  com com          ("_;;_"  [60, 60] 60)
       | Cond  exp com com      ("IF _ THEN _ ELSE _"  60)
       | While exp com          ("WHILE _ DO _"  60)
+
+
+subsection {* Commands *}
 
 text{* Execution of commands *}
 consts  exec    :: "((exp*state) * (nat*state)) set => ((com*state)*state)set"
@@ -97,7 +102,7 @@ apply (blast elim: exec_WHILE_case)+
 done
 
 
-section {* Expressions *}
+subsection {* Expressions *}
 
 text{* Evaluation of arithmetic expressions *}
 consts  eval    :: "((exp*state) * (nat*state)) set"
