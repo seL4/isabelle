@@ -9,10 +9,9 @@ Root file for UNITY proofs.
 writeln"Root file for HOL/UNITY";
 
 set proof_timing;
+set HOL_quantifiers;
 
-add_path "../Lex";	(*to find Prefix.thy*)
-
-time_use_thy"UNITY";
+time_use_thy "UNITY";
 time_use_thy "Deadlock";
 time_use_thy "WFair";
 time_use_thy "Common";
