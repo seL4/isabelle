@@ -107,8 +107,9 @@ fun print_thy thy =
     val axioms = Symtab.dest new_axioms;
     val oras = map fst (Symtab.dest oracles);
 
-    fun prt_axm (a, t) = Pretty.block [Pretty.str (a ^ ":"), Pretty.brk 1,
-      Pretty.quote (Sign.pretty_term sign t)];
+    fun prt_axm (a, t) = Pretty.block
+      [Pretty.str (Sign.cond_extern sign Theory.thmK a ^ ":"), Pretty.brk 1,
+        Pretty.quote (Sign.pretty_term sign t)];
   in
     Pretty.writeln (Pretty.big_list "additional axioms:" (map prt_axm axioms));
     Pretty.writeln (Pretty.strs ("oracles:" :: oras))
