@@ -133,10 +133,13 @@ qed "zminus_0";
 
 (**** znegative: the test for negative integers ****)
 
+(*No natural number is negative!*)
 goalw Integ.thy [znegative_def, znat_def]  "~ znegative($# n)";
-by (asm_full_simp_tac (intrel_ss setloop K(safe_tac intrel_cs)) 1);
-by (etac rev_mp 1);
-by (asm_simp_tac (arith_ss addsimps [add_le_self2 RS le_imp_not_lt]) 1);
+by (safe_tac intrel_cs);
+by (dres_inst_tac [("psi", "?lhs=?rhs")] asm_rl 1);
+by (dres_inst_tac [("psi", "?lhs<?rhs")] asm_rl 1);
+by (fast_tac (FOL_cs addss
+	      (intrel_ss addsimps [add_le_self2 RS le_imp_not_lt])) 1);
 qed "not_znegative_znat";
 
 goalw Integ.thy [znegative_def, znat_def]
