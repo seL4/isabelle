@@ -137,7 +137,7 @@ fun is_quasi "_" = true
 fun is_quasi_letter s = is_quasi s orelse is_letter s;
 
 val is_blank =
-  fn " " => true | "\t" => true | "\n" => true | "\^L" => true
+  fn " " => true | "\t" => true | "\r" => true | "\n" => true | "\^L" => true
     | "\160" => true | "\\<spacespace>" => true
     | _ => false;
 
