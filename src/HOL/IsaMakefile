@@ -183,10 +183,11 @@ AxClasses: $(OUT)/HOL $(AXCLASSES_FILES)
 	@$(ISATOOL) usedir -s AxClasses-Tutorial $(OUT)/HOL AxClasses/Tutorial
 
 
-## Higher-order quotients
+## Higher-order quotients and example fractionals
 
-QUOT_FILES = Quot/ROOT.ML
-
+QUOT_FILES = Quot/ROOT.ML Quot/PER0.thy Quot/PER0.ML Quot/PER.thy Quot/PER.ML \
+	Quot/HQUOT.thy Quot/HQUOT.ML Quot/NPAIR.thy Quot/NPAIR.ML \
+	Quot/FRACT.thy Quot/FRACT.ML
 Quot:	$(OUT)/HOL $(QUOT_FILES)
 	@$(ISATOOL) usedir $(OUT)/HOL Quot
 
