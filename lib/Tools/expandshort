@@ -10,50 +10,31 @@ PRG=$(basename $0)
 function usage()
 {
   echo
-  echo "Usage: $PRG [FILES ...]"
+  echo "Usage: $PRG [FILES|DIRS...]"
   echo
-  echo "  Expand shorthand goal commands in FILES.  Also contracts uses of"
-  echo "  resolve_tac, dresolve_tac, eresolve_tac, rewrite_goals_tac on"
-  echo "  1-element lists; furthermore expands tabs, since they are now"
-  echo "  forbidden in ML string constants."
+  echo "  Recursively find .ML files, expand shorthand goal commands."
+  echo "  Also contracts uses of resolve_tac, dresolve_tac, eresolve_tac,"
+  echo "  rewrite_goals_tac on 1-element lists; furthermore expands tabs,"
+  echo "  since they are now forbidden in ML string constants."
   echo
-  echo "  Renames old versions of FILES by appending \"~~\"."
+  echo "  Renames old versions of files by appending \"~~\"."
   echo
   exit 1
 }
 
-function fail()
-{
-  echo "$1" >&2
-  exit 2
-}
+
+## process command line
+
+[ $# -eq 0 -o "$1" = "-?" ] && usage
+
+SPECS="$@"; shift $#
 
 
 ## main
 
-[ "$1" = "-?" ] && usage
-
-for f in "$@"
-do
-echo Expanding shorthands in $f. \ Backup file is $f~~
-if [ ! -s $f ]; then echo "File $f is EMPTY!!"; exit 1; fi
-mv $f $f~~; sed -e '
-s/\<by(/by (/
-s/\<ba \([0-9][0-9]*\);/by (assume_tac \1);/
-s/\<br \([^;]*\) \([0-9][0-9]*\);/by (rtac \1 \2);/
-s/\<brs \([^;]*\) \([0-9][0-9]*\);/by (resolve_tac \1 \2);/
-s/\<bd \([^;]*\) \([0-9][0-9]*\);/by (dtac \1 \2);/
-s/\<bds \([^;]*\) \([0-9][0-9]*\);/by (dresolve_tac \1 \2);/
-s/\<be \([^;]*\) \([0-9][0-9]*\);/by (etac \1 \2);/
-s/\<bes \([^;]*\) \([0-9][0-9]*\);/by (eresolve_tac \1 \2);/
-s/\<bw \([^;]*\);/by (rewtac \1);/
-s/\<bws \([^;]*\);/by (rewrite_goals_tac \1);/
-s/\<auto *()/by (Auto_tac())/
-s/dresolve_tac *\[\([a-zA-Z0-9_]*\)\] */dtac \1 /g
-s/eresolve_tac *\[\([a-zA-Z0-9_]*\)\] */etac \1 /g
-s/resolve_tac *\[\([a-zA-Z0-9_]*\)\] */rtac \1 /g
-s/rewrite_goals_tac *\[\([a-zA-Z0-9_]*\)\]\( *\)/rewtac \1\2/g
-s/rtac *(\([a-zA-Z0-9_]*\)  *RS  *ssubst)  */stac \1 /g
-' $f~~ | expand > $f
-done
-echo Finished.
+PERL=$(type -path perl)
+if [ -z $PERL ]; then
+  echo "$PRG fatal error: no perl!?"
+else
+  find $SPECS -name \*.ML -print | xargs $PERL $ISABELLE_HOME/lib/scripts/expandshort.pl
+fi
