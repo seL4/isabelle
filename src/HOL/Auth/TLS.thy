@@ -165,7 +165,7 @@ inductive tls
              Notes A {|Agent B, Nonce PMS|} : set evsCF;
 	     M = PRF(PMS,NA,NB) |]
           ==> Says A B (Crypt (clientK(NA,NB,M))
-			(Hash{|Nonce M, Number SID,
+			(Hash{|Number SID, Nonce M,
 			       Nonce NA, Number PA, Agent A, 
 			       Nonce NB, Number PB, Agent B|}))
               # evsCF  :  tls"
@@ -180,7 +180,7 @@ inductive tls
 	     Says A'' B (Crypt (pubK B) (Nonce PMS)) : set evsSF;
 	     M = PRF(PMS,NA,NB) |]
           ==> Says B A (Crypt (serverK(NA,NB,M))
-			(Hash{|Nonce M, Number SID,
+			(Hash{|Number SID, Nonce M,
 			       Nonce NA, Number PA, Agent A, 
 			       Nonce NB, Number PB, Agent B|}))
               # evsSF  :  tls"
@@ -193,7 +193,7 @@ inductive tls
          "[| evsCA: tls;
 	     Notes A {|Agent B, Nonce PMS|} : set evsCA;
 	     M = PRF(PMS,NA,NB);  
-	     X = Hash{|Nonce M, Number SID,
+	     X = Hash{|Number SID, Nonce M,
 	               Nonce NA, Number PA, Agent A, 
 		       Nonce NB, Number PB, Agent B|};
              Says A  B (Crypt (clientK(NA,NB,M)) X) : set evsCA;
@@ -209,7 +209,7 @@ inductive tls
          "[| evsSA: tls;
              Says A'' B (Crypt (pubK B) (Nonce PMS)) : set evsSA;
 	     M = PRF(PMS,NA,NB);  
-	     X = Hash{|Nonce M, Number SID,
+	     X = Hash{|Number SID, Nonce M,
 	               Nonce NA, Number PA, Agent A, 
 		       Nonce NB, Number PB, Agent B|};
              Says B  A (Crypt (serverK(NA,NB,M)) X) : set evsSA;
@@ -225,7 +225,7 @@ inductive tls
 	     Says A' B {|Agent A, Nonce NA, Number SID, Number PA|}
 	       : set evsSR |]
           ==> Says B A (Crypt (serverK(NA,NB,M))
-			(Hash{|Nonce M, Number SID,
+			(Hash{|Number SID, Nonce M,
 			       Nonce NA, Number PA, Agent A, 
 			       Nonce NB, Number PB, Agent B|})) # evsSR
 	        :  tls"
@@ -239,7 +239,7 @@ inductive tls
              Says B' A {|Nonce NB, Number SID, Number PB|} : set evsCR;
              Notes A {|Number SID, Agent A, Agent B, Nonce M|} : set evsCR |]
           ==> Says A B (Crypt (clientK(NA,NB,M))
-			(Hash{|Nonce M, Number SID,
+			(Hash{|Number SID, Nonce M,
 			       Nonce NA, Number PA, Agent A, 
 			       Nonce NB, Number PB, Agent B|}))
               # evsCR  :  tls"
