@@ -1,6 +1,6 @@
 #########################################################################
 #									#
-# 			Makefile for Isabelle (CHOL)			#
+# 			Makefile for Isabelle (HOL)			#
 #									#
 #########################################################################
 
@@ -28,17 +28,17 @@ FILES = ROOT.ML add_ind_def.ML datatype.ML hologic.ML\
         ../Provers/simplifier.ML ../Provers/splitter.ML\
  	$(NAMES:%=%.thy) $(NAMES:%=%.ML)
 
-$(BIN)/CHOL:   $(BIN)/Pure  $(FILES) 
+$(BIN)/HOL:   $(BIN)/Pure  $(FILES) 
 	if [ -d $${ISABELLEBIN:?}/Pure ];\
            	then echo Bad value for ISABELLEBIN: \
                 	$(BIN) is the Isabelle source directory; \
                 	exit 1; \
            	fi;\
 	case "$(COMP)" in \
-	poly*)	echo 'make_database"$(BIN)/CHOL"; quit();'  \
+	poly*)	echo 'make_database"$(BIN)/HOL"; quit();'  \
 			| $(COMP) $(BIN)/Pure;\
-		echo 'open PolyML; exit_use"ROOT";' | $(COMP) $(BIN)/CHOL ;;\
-	sml*)	echo 'exit_use"ROOT.ML"; xML"$(BIN)/CHOL" banner;' | $(BIN)/Pure ;;\
+		echo 'open PolyML; exit_use"ROOT";' | $(COMP) $(BIN)/HOL ;;\
+	sml*)	echo 'exit_use"ROOT.ML"; xML"$(BIN)/HOL" banner;' | $(BIN)/Pure ;;\
 	*)	echo Bad value for ISABELLECOMP: \
                 	$(COMP) is not poly or sml; exit 1;;\
 	esac
@@ -46,12 +46,12 @@ $(BIN)/CHOL:   $(BIN)/Pure  $(FILES)
 $(BIN)/Pure:
 	cd ../Pure;  $(MAKE)
 
-#### Testing of CHOL
+#### Testing of HOL
 
 #A macro referring to the object-logic (depends on ML compiler)
 LOGIC:sh=case $ISABELLECOMP in \
-	poly*)	echo "$ISABELLECOMP $ISABELLEBIN/CHOL" ;;\
-	sml*)	echo "$ISABELLEBIN/CHOL" ;;\
+	poly*)	echo "$ISABELLECOMP $ISABELLEBIN/HOL" ;;\
+	sml*)	echo "$ISABELLEBIN/HOL" ;;\
 	*)	echo "echo Bad value for ISABELLECOMP: \
                 	$ISABELLEBIN is not poly or sml; exit 1" ;;\
 	esac
@@ -60,16 +60,16 @@ LOGIC:sh=case $ISABELLECOMP in \
 IMP_NAMES = Com Denotation Equiv Properties
 IMP_FILES = IMP/ROOT.ML $(IMP_NAMES:%=IMP/%.thy) $(IMP_NAMES:%=IMP/%.ML)
 
-IMP:    $(BIN)/CHOL  $(IMP_FILES)
+IMP:    $(BIN)/HOL  $(IMP_FILES)
 	echo 'exit_use"IMP/ROOT.ML";quit();' | $(LOGIC)
 
-##The integers in CHOL
+##The integers in HOL
 INTEG_NAMES = Equiv Integ 
 
 INTEG_FILES = Integ/ROOT.ML \
               $(INTEG_NAMES:%=Integ/%.thy) $(INTEG_NAMES:%=Integ/%.ML)
 
-Integ:  $(BIN)/CHOL  $(INTEG_FILES)
+Integ:  $(BIN)/HOL  $(INTEG_FILES)
 	echo 'exit_use"Integ/ROOT.ML";quit();' | $(LOGIC)
 
 ##I/O Automata
@@ -86,7 +86,7 @@ IOA_FILES = IOA/ROOT.ML IOA/NTP/Spec.thy\
  $(IOA_ABP_NAMES:%=IOA/ABP/%.thy) $(IOA_ABP_NAMES:%=IOA/ABP/%.ML)\
  $(IOA_MT_NAMES:%=IOA/meta_theory/%.thy) $(IOA_MT_NAMES:%=IOA/meta_theory/%.ML)
 
-IOA:    $(BIN)/CHOL  $(IOA_FILES)
+IOA:    $(BIN)/HOL  $(IOA_FILES)
 	echo 'exit_use"IOA/ROOT.ML";quit();' | $(LOGIC)
 
 ##Properties of substitutions
@@ -95,7 +95,7 @@ SUBST_NAMES = AList Setplus Subst Unifier UTerm UTLemmas
 SUBST_FILES = Subst/ROOT.ML \
               $(SUBST_NAMES:%=Subst/%.thy) $(SUBST_NAMES:%=Subst/%.ML)
 
-Subst:  $(BIN)/CHOL  $(SUBST_FILES)
+Subst:  $(BIN)/HOL  $(SUBST_FILES)
 	echo 'exit_use"Subst/ROOT.ML";quit();' | $(LOGIC)
 
 ##Confluence of Lambda-calculus
@@ -104,7 +104,7 @@ LAMBDA_NAMES = Lambda ParRed Confluence
 LAMBDA_FILES = Lambda/ROOT.ML \
               $(LAMBDA_NAMES:%=Lambda/%.thy) $(LAMBDA_NAMES:%=Lambda/%.ML)
 
-Lambda:  $(BIN)/CHOL  $(LAMBDA_FILES)
+Lambda:  $(BIN)/HOL  $(LAMBDA_FILES)
 	echo 'exit_use"Lambda/ROOT.ML";quit();' | $(LOGIC)
 
 ##Miscellaneous examples
@@ -113,11 +113,11 @@ EX_NAMES = LexProd MT Acc PropLog Puzzle Qsort LList Rec Simult Term String
 EX_FILES = ex/ROOT.ML ex/cla.ML ex/meson.ML ex/mesontest.ML ex/rel.ML \
            ex/set.ML $(EX_NAMES:%=ex/%.thy) $(EX_NAMES:%=ex/%.ML)
 
-ex:     $(BIN)/CHOL  $(EX_FILES)
+ex:     $(BIN)/HOL  $(EX_FILES)
 	echo 'exit_use"ex/ROOT.ML";quit();' | $(LOGIC)
 
 #Full test.
-test:   $(BIN)/CHOL IMP Integ IOA Subst Lambda ex
+test:   $(BIN)/HOL IMP Integ IOA Subst Lambda ex
 	echo 'Test examples ran successfully' > test
 
-.PRECIOUS:  $(BIN)/Pure $(BIN)/CHOL 
+.PRECIOUS:  $(BIN)/Pure $(BIN)/HOL 
