@@ -322,3 +322,28 @@ goal ZF.thy "converse(A) - converse(B) = converse(A - B)";
 by (fast_tac eq_cs 1);
 val converse_diff = result();
 
+(** Pow **)
+
+goal ZF.thy "Pow(A) Un Pow(B) <= Pow(A Un B)";
+by (fast_tac upair_cs 1);
+val Un_Pow_subset = result();
+
+goal ZF.thy "(UN x:A. Pow(B(x))) <= Pow(UN x:A. B(x))";
+by (fast_tac upair_cs 1);
+val UN_Pow_subset = result();
+
+goal ZF.thy "A <= Pow(Union(A))";
+by (fast_tac upair_cs 1);
+val subset_Pow_Union = result();
+
+goal ZF.thy "Union(Pow(A)) = A";
+by (fast_tac eq_cs 1);
+val Union_Pow_eq = result();
+
+goal ZF.thy "Pow(A) Int Pow(B) = Pow(A Int B)";
+by (fast_tac eq_cs 1);
+val Int_Pow_eq = result();
+
+goal ZF.thy "!!x A. x:A ==> (INT x:A. Pow(B(x))) = Pow(INT x:A. B(x))";
+by (fast_tac eq_cs 1);
+val INT_Pow_subset = result();
