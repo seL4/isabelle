@@ -15,7 +15,7 @@ fun is_rigid_elem (Const("Trueprop",_) $ (Const("op :",_) $ a $ _)) =
 (*Try solving a:A by assumption provided a is rigid!*) 
 val test_assume_tac = SUBGOAL(fn (prem,i) =>
     if is_rigid_elem (Logic.strip_assums_concl prem)
-    then  assume_tac i  else  no_tac);
+    then  assume_tac i  else  eq_assume_tac i);
 
 (*Type checking solves a:?A (a rigid, ?A maybe flexible).  
   match_tac is too strict; would refuse to instantiate ?A*)
