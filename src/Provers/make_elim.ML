@@ -34,13 +34,14 @@ local
 in
 
 fun make_elim rl =
-    let fun making (i,rl) =
-	case compose_extra 2 (cla_dist_concl,i,rl) of
-	    [] => rl
-	  | rl'::_ => making (i+1,rl')
-    in  making (2, hd (compose_extra 1 (rl, 1, revcut_rl)))  end
-    handle THM _ => (*in default, use the previous version, which never fails*)
-             Tactic.make_elim rl;
+    let val revcut_rl' = incr_indexes_wrt [] [] [] [rl] revcut_rl
+        fun making (i,rl) =
+	    case compose_extra 2 (cla_dist_concl,i,rl) of
+		[] => rl     (*terminates by clash of variables!*)
+	      | rl'::_ => making (i+1,rl')
+    in  making (2, hd (compose_extra 1 (rl, 1, revcut_rl')))  end
+    handle (*in default, use the previous version, which never fails*)
+	   THM _ => Tactic.make_elim rl | LIST _ => Tactic.make_elim rl;
 
 end
  
