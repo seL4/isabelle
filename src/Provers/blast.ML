@@ -41,7 +41,6 @@ Known problems:
         "no DETERM" flag would prevent proofs failing here.
 *)
 
-
 (*Should be a type abbreviation?*)
 type netpair = (int*(bool*thm)) Net.net * (int*(bool*thm)) Net.net;
 
@@ -464,15 +463,21 @@ fun convertRule vars t =
 fun rev_dup_elim th = th RSN (2, revcut_rl) |> assumption 2 |> Seq.hd;
 
 
-(*Count new hyps so that they can be rotated*)
-fun nNewHyps []                         = 0
-  | nNewHyps (Const "*Goal*" $ _ :: Ps) = nNewHyps Ps
-  | nNewHyps (P::Ps)                    = 1 + nNewHyps Ps;
+(*Rotate the assumptions in all new subgoals for the LIFO discipline*)
+local
+  (*Count new hyps so that they can be rotated*)
+  fun nNewHyps []                         = 0
+    | nNewHyps (Const "*Goal*" $ _ :: Ps) = nNewHyps Ps
+    | nNewHyps (P::Ps)                    = 1 + nNewHyps Ps;
 
-fun rot_subgoals_tac [] i st      = Seq.single st
-  | rot_subgoals_tac (k::ks) i st =
-      rot_subgoals_tac ks (i+1) (Seq.hd (rotate_tac (~k) i st))
-      handle OPTION => Seq.empty;
+  fun rot_tac [] i st      = Seq.single st
+    | rot_tac (0::ks) i st = rot_tac ks (i+1) st
+    | rot_tac (k::ks) i st = rot_tac ks (i+1) (rotate_rule (~k) i st);
+in
+fun rot_subgoals_tac (rot, rl) =
+     rot_tac (if rot then map nNewHyps rl else []) 
+end;
+
 
 fun TRACE rl tac st i = if !trace then (prth rl; tac st i) else tac st i;
 
@@ -480,10 +485,10 @@ fun TRACE rl tac st i = if !trace then (prth rl; tac st i) else tac st i;
   affected formula.*)
 fun fromRule vars rl = 
   let val trl = rl |> rep_thm |> #prop |> fromTerm |> convertRule vars
-      fun tac dup i = 
-	  TRACE rl (etac (if dup then rev_dup_elim rl else rl)) i
-	  THEN rot_subgoals_tac (map nNewHyps (#2 trl)) i
-	  
+      fun tac (dup,rot) i = 
+	TRACE rl (etac (if dup then rev_dup_elim rl else rl)) i
+	THEN
+	rot_subgoals_tac (rot, #2 trl) i
   in Option.SOME (trl, tac) end
   handle Bind => (*reject: conclusion is not just a variable*)
    (if !trace then (warning ("ignoring ill-formed elimination rule\n" ^
@@ -506,9 +511,10 @@ fun convertIntrRule vars t =
   "dup" is always FALSE for introduction rules.*)
 fun fromIntrRule vars rl = 
   let val trl = rl |> rep_thm |> #prop |> fromTerm |> convertIntrRule vars
-      fun tac dup i = 
-	  TRACE rl (DETERM o (rtac (if dup then Data.dup_intr rl else rl))) i
-	  THEN rot_subgoals_tac (map nNewHyps (#2 trl)) i
+      fun tac (dup,rot) i = 
+	 TRACE rl (rtac (if dup then Data.dup_intr rl else rl)) i
+	 THEN
+	 rot_subgoals_tac (rot, #2 trl) i
   in (trl, tac) end;
 
 
@@ -720,7 +726,7 @@ fun orientGoal (t,u) = case (t,u) of
 
 (*Substitute through the branch if an equality goal (else raise DEST_EQ).
   Moves affected literals back into the branch, but it is not clear where
-  they should go: this could make proofs fail.  ??? *)
+  they should go: this could make proofs fail.*)
 fun equalSubst sign (G, pairs, lits, vars, lim) = 
   let val (t,u) = orientGoal(dest_eq G)
       val subst = subst_atomic (t,u)
@@ -752,9 +758,11 @@ exception NEWBRANCHES and CLOSEF;
 
 exception PROVE;
 
-val eq_contr_tac = eresolve_tac [Data.notE]  THEN'  eq_assume_tac;
+(*Trying eq_contr_tac first INCREASES the effort, slowing reconstruction*)
+val contr_tac = ematch_tac [Data.notE] THEN' 
+                (eq_assume_tac ORELSE' assume_tac);
 
-val eContr_tac  = TRACE Data.notE (eq_contr_tac ORELSE' Data.contr_tac);
+val eContr_tac  = TRACE Data.notE contr_tac;
 val eAssume_tac = TRACE asm_rl   (eq_assume_tac ORELSE' assume_tac);
 
 (*Try to unify complementary literals and return the corresponding tactic. *) 
@@ -793,7 +801,8 @@ fun negOfGoal2 (G,md) = (negOfGoal G, md);
 fun negOfGoals pairs = map (fn (Gs,haz) => (map negOfGoal2 Gs, haz)) pairs;
 
 (*Tactic.  Convert *Goal* to negated assumption in FIRST position*)
-val negOfGoal_tac = rtac Data.ccontr THEN' rotate_tac ~1;
+fun negOfGoal_tac i = TRACE Data.ccontr (rtac Data.ccontr) i THEN
+                      rotate_tac ~1 i;
 
 
 (** Backtracking and Pruning **)
@@ -888,24 +897,26 @@ fun match (Var _) u   = true
 val nclosed = ref 0
 and ntried  = ref 1;
 
-fun printStats (b, start) =
+fun printStats (b, start, tacs) =
   if b then
     writeln (endTiming start ^ " for search.  Closed: " 
 	     ^ Int.toString (!nclosed) ^
-             " tried: " ^ Int.toString (!ntried))
+             " tried: " ^ Int.toString (!ntried) ^
+             " tactics: " ^ Int.toString (length tacs))
   else ();
 
 
 (*Tableau prover based on leanTaP.  Argument is a list of branches.  Each 
   branch contains a list of unexpanded formulae, a list of literals, and a 
-  bound on unsafe expansions.*)
-fun prove (sign, cs, brs, cont) =
- let val start = startTiming()
-     val {safe0_netpair, safep_netpair, haz_netpair, ...} = Data.rep_claset cs
+  bound on unsafe expansions.
+ "start" is CPU time at start, for printing search time
+*)
+fun prove (sign, start, cs, brs, cont) =
+ let val {safe0_netpair, safep_netpair, haz_netpair, ...} = Data.rep_claset cs
      val safeList = [safe0_netpair, safep_netpair]
      and hazList  = [haz_netpair]
      fun prv (tacs, trs, choices, []) = 
-	        (printStats (!trace orelse !stats, start); 
+	        (printStats (!trace orelse !stats, start, tacs); 
 		 cont (tacs, trs, choices))   (*all branches closed!*)
        | prv (tacs, trs, choices, 
 	      brs0 as (((G,md)::br, haz)::pairs, lits, vars, lim) :: brs) =
@@ -942,8 +953,8 @@ fun prove (sign, cs, brs, cont) =
 			 val vars  = vars_in_vars vars
 			 val vars' = foldr add_terms_vars (prems, vars)
 			 val choices' = (ntrl, nbrs, PRV) :: choices
-			 val tacs' = (DETERM o (tac false)) :: tacs 
-					 (*no duplication*)
+			 val tacs' = (DETERM o tac(false,true)) :: tacs 
+					 (*no duplication; rotate*)
 		     in
 			 traceNew prems;  traceVars sign ntrl;
 			 (if null prems then (*closed the branch: prune!*)
@@ -1028,15 +1039,18 @@ fun prove (sign, cs, brs, cont) =
 	      val ntrl = !ntrail
 	      val rules = netMkRules H vars hazList
 	      (*new premises of haz rules may NOT be duplicated*)
-	      fun newPrem (vars,recur,dup,lim') prem = 
-		  let val Gs' = map (fn P => (P,false)) prem
+	      fun newPrem (vars,P,dup,lim') prem = 
+		  let val Gs' = map (fn Q => (Q,false)) prem
 		      and Hs' = if dup then Hs @ [(negOfGoal H, md)] else Hs
 		      and lits' = if (exists isGoal prem) 
 			          then map negOfGoal lits
 				  else lits
-                  in  (if recur (*send new haz premises to the BACK of the
-				  queue to prevent exclusion of others*)
-		       then [(Gs',Hs')] 
+                  in  (if exists (match P) prem
+		       then (*Recursive in this premise.
+			      Don't make new "stack frame".
+			      New haz premises will end up at the BACK of the
+				  queue, preventing exclusion of others*)
+			    [(Gs',Hs')] 
 		       else [(Gs',[]), ([],Hs')], 
 		       lits', vars, lim')
 		  end
@@ -1073,23 +1087,26 @@ fun prove (sign, cs, brs, cont) =
 			     not(null grls)   (*other rules to try?*)
 			     orelse ntrl < ntrl' (*variables updated?*)
 			     orelse vars=vars'   (*no new Vars?*)
-			 val tac' = if mayUndo then tac dup
-				    else DETERM o (tac dup) 
+			 val tac' = if mayUndo then tac(dup, true)
+				    else   DETERM o tac(dup, true) 
+			       (*if recur then doesn't call rotate_tac: 
+				 new formulae should be last*)
 		     in
 		       if lim'<0 andalso not (null prems)
 		       then (*it's faster to kill ALL the alternatives*)
 			   (traceMsg"Excessive branching: KILLED\n";
 			    clearTo ntrl;  raise NEWBRANCHES)
 		       else 
-			 traceNew prems;  traceVars sign ntrl;
+			 traceNew prems;  
+			 if !trace andalso recur then prs" (recursive)"
+					         else ();
+			 traceVars sign ntrl;
 			 if null prems then nclosed := !nclosed + 1
 			 else ntried := !ntried + length prems - 1;
-			 prv(tac dup :: tacs, 
-			       (*FIXME: if recur then the tactic should not
-				 call rotate_tac: new formulae should be last*)
+			 prv(tac' :: tacs, 
 			     brs0::trs, 
 			     (ntrl, length brs0, PRV) :: choices, 
-			     newBr (vars', recur, dup, lim') prems)
+			     newBr (vars', P, dup, lim') prems)
 			  handle PRV => 
 			      if mayUndo
 			      then (*reset Vars and try another rule*)
@@ -1189,8 +1206,10 @@ fun initialize() =
 
 
 (*Tactic using tableau engine and proof reconstruction.  
+ "start" is CPU time at start, for printing SEARCH time
+	(also prints reconstruction time)
  "lim" is depth limit.*)
-fun depth_tac cs lim i st = 
+fun timing_depth_tac start cs lim i st = 
  (initialize();
   let val {sign,...} = rep_thm st
       val skoprem = fromSubgoal (List.nth(prems_of st, i-1))
@@ -1208,12 +1227,16 @@ fun depth_tac cs lim i st =
 		       else ();
 		       Seq.make(fn()=> cell))
           end
-  in prove (sign, cs, [initBranch (mkGoal concl :: hyps, lim)], cont) 
+  in prove (sign, start, cs, [initBranch (mkGoal concl :: hyps, lim)], cont) 
   end
   handle PROVE     => Seq.empty);
 
-fun blast_tac cs i st = (DEEPEN (1,20) (depth_tac cs) 0) i st
-     handle TRANS s => (warning ("Blast_tac: " ^ s); Seq.empty);
+(*Public version with fixed depth*)
+fun depth_tac cs lim i st = timing_depth_tac (startTiming()) cs lim i st;
+
+fun blast_tac cs i st = 
+    (DEEPEN (1,20) (timing_depth_tac (startTiming()) cs) 0) i st
+    handle TRANS s => (warning ("Blast_tac: " ^ s); Seq.empty);
 
 fun Blast_tac i = blast_tac (Data.claset()) i;
 
@@ -1229,7 +1252,8 @@ fun trygl cs lim i =
 	 val skoprem = fromSubgoal (List.nth(prems_of st, i-1))
          val hyps  = strip_imp_prems skoprem
          and concl = strip_imp_concl skoprem
-     in timeap prove (sign, cs, [initBranch (mkGoal concl :: hyps, lim)], I)
+     in timeap prove (sign, startTiming(), cs, 
+		      [initBranch (mkGoal concl :: hyps, lim)], I)
      end
      handle Subscript => error("There is no subgoal " ^ Int.toString i));
 
@@ -1242,6 +1266,7 @@ fun readGoal sign s = read_cterm sign (s,propT) |>
 fun tryInThy thy lim s = 
     (initialize();
      timeap prove (sign_of thy, 
+		   startTiming(), 
 		   Data.claset(), 
 		   [initBranch ([readGoal (sign_of thy) s], lim)], 
 		   I));
