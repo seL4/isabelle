@@ -1169,6 +1169,19 @@ fun check_conv(thm as Thm{hyps,prop,sign,...}, prop0) =
      | _ => err()
   end;
 
+(* This code doesn't help at the moment because many bound vars in rewrite
+   rules are eliminated by eta-contraction. Thus the names of bound vars are
+   lost upon rewriting.
+fun ren_inst(insts,prop,pat,obj) =
+  let val ren = match_bvs(pat,obj,[])
+      fun renAbs(Abs(x,T,b)) =
+            Abs(case assoc(ren,x) of None => x | Some(y) => y, T, renAbs(b))
+        | renAbs(f$t) = renAbs(f) $ renAbs(t)
+        | renAbs(t) = t
+  in subst_vars insts (if null(ren) then prop else renAbs(prop)) end;
+*)
+fun ren_inst(insts,prop,_,_) = subst_vars insts prop;
+
 (*Conversion to apply the meta simpset to a term*)
 fun rewritec (prover,signt) (mss as Mss{net,...}) (hypst,t) =
   let val t = Pattern.eta_contract t;
@@ -1178,7 +1191,7 @@ fun rewritec (prover,signt) (mss as Mss{net,...}) (hypst,t) =
                           thm;
                         raise Pattern.MATCH)
             val insts = Pattern.match (#tsig(Sign.rep_sg signt)) (lhs,t)
-            val prop' = subst_vars insts prop;
+            val prop' = ren_inst(insts,prop,lhs,t);
             val hyps' = hyps union hypst;
             val thm' = Thm{sign=signt, hyps=hyps', prop=prop', maxidx=maxidx}
             val (lhs',rhs') = Logic.dest_equals(Logic.strip_imp_concl prop')
@@ -1209,7 +1222,7 @@ fun congc (prover,signt) {thm=cong,lhs=lhs} (hypst,t) =
       val tsig = #tsig(Sign.rep_sg signt)
       val insts = Pattern.match tsig (lhs,t) handle Pattern.MATCH =>
                   error("Congruence rule did not match")
-      val prop' = subst_vars insts prop;
+      val prop' = ren_inst(insts,prop,lhs,t);
       val thm' = Thm{sign=signt, hyps=hyps union hypst,
                      prop=prop', maxidx=maxidx}
       val unit = trace_thm "Applying congruence rule" thm';
