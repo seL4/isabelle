@@ -528,8 +528,8 @@ It is important to note that $\CASENAME$ does \emph{not} provide means to peek
 at the current goal state, which is considered strictly non-observable in
 Isar.  Instead, the cases considered here typically emerge in a canonical way
 from certain pieces of specification that appears in the theory somewhere,
-such as an inductive definition, or recursive function.  See \S\ref{sec:FIXME}
-for more details of how this works in HOL.
+such as an inductive definition, or recursive function.  See
+\S\ref{sec:induct-method} for more details of how this works in HOL.
 
 \begin{rail}
   'fix' (vars + 'and') comment?
@@ -538,7 +538,7 @@ for more details of how this works in HOL.
   ;
   'def' thmdecl? \\ var '==' term termpat? comment?
   ;
-  'case' name
+  'case' name attributes?
   ;
 
   var: name ('::' type)?
@@ -822,7 +822,7 @@ the latter are calculational proofs (see \S\ref{sec:calculation}).
 
 \indexisarcmd{next}\indexisarcmd{\{\{}\indexisarcmd{\}\}}
 \begin{matharray}{rcl}
-  \isarcmd{next} & : & \isartrans{proof(state)}{proof(state)} \\
+  \NEXT & : & \isartrans{proof(state)}{proof(state)} \\
   \BG & : & \isartrans{proof(state)}{proof(state)} \\
   \EN & : & \isartrans{proof(state)}{proof(state)} \\
 \end{matharray}
@@ -831,17 +831,17 @@ While Isar is inherently block-structured, opening and closing blocks is
 mostly handled rather casually, with little explicit user-intervention.  Any
 local goal statement automatically opens \emph{two} blocks, which are closed
 again when concluding the sub-proof (by $\QEDNAME$ etc.).  Sections of
-different context within a sub-proof may be switched via $\isarkeyword{next}$,
-which is just a single block-close followed by block-open again.  Thus the
-effect of $\isarkeyword{next}$ to reset the local proof context. There is no
-goal focus involved here!
+different context within a sub-proof may be switched via $\NEXT$, which is
+just a single block-close followed by block-open again.  Thus the effect of
+$\NEXT$ to reset the local proof context. There is no goal focus involved
+here!
 
 For slightly more advanced applications, there are explicit block parentheses
 as well.  These typically achieve a stronger forward style of reasoning.
 
 \begin{descr}
-\item [$\isarkeyword{next}$] switches to a fresh block within a sub-proof,
-  resetting the local context to the initial one.
+\item [$\NEXT$] switches to a fresh block within a sub-proof, resetting the
+  local context to the initial one.
 \item [$\isarkeyword{\{\{}$ and $\isarkeyword{\}\}}$] explicitly open and
   close blocks.  Any current facts pass through ``$\isarkeyword{\{\{}$''
   unchanged, while ``$\isarkeyword{\}\}}$'' causes any result to be
@@ -855,7 +855,7 @@ as well.  These typically achieve a stronger forward style of reasoning.
 
 \section{Other commands}
 
-\subsection{Diagnostics}
+\subsection{Diagnostics}\label{sec:diag}
 
 \indexisarcmd{thm}\indexisarcmd{term}\indexisarcmd{prop}\indexisarcmd{typ}
 \indexisarcmd{print-facts}\indexisarcmd{print-binds}\indexisarcmd{print-cases}
