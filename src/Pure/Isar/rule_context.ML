@@ -5,17 +5,11 @@
 
 Declarations of intro/elim/dest rules in Pure; see
 Provers/classical.ML for a more specialized version.
-
-TODO:
-  - del rules;
-  - tactics;
-  - add/del ML interface (?);
 *)
 
 signature RULE_CONTEXT =
 sig
   type T
-  val empty_rules: T
   val print_global_rules: theory -> unit
   val print_local_rules: Proof.context -> unit
   val intro_bang_global: int option -> theory attribute
@@ -27,6 +21,7 @@ sig
   val intro_query_global: int option -> theory attribute
   val elim_query_global: int option -> theory attribute
   val dest_query_global: int option -> theory attribute
+  val rule_del_global: theory attribute
   val intro_bang_local: int option -> Proof.context attribute
   val elim_bang_local: int option -> Proof.context attribute
   val dest_bang_local: int option -> Proof.context attribute
@@ -36,6 +31,7 @@ sig
   val intro_query_local: int option -> Proof.context attribute
   val elim_query_local: int option -> Proof.context attribute
   val dest_query_local: int option -> Proof.context attribute
+  val rule_del_local: Proof.context attribute
   val setup: (theory -> theory) list
 end;
 
@@ -69,18 +65,7 @@ val rule_indexes = distinct (map #1 rule_kinds);
 (* netpairs *)
 
 type net = ((int * int) * (bool * thm)) Net.net;
-
 val empty_netpairs = replicate (length rule_indexes) (Net.empty: net, Net.empty: net);
-
-fun make_netpairs rules =
-  let
-    fun add (netpairs, (n, (w, ((i, b), th)))) =
-      map_nth_elem i (curry insert_tagged_brl ((w, n), (b, th))) netpairs;
-    val next = ~ (length rules);
-  in (next - 1, foldl add (empty_netpairs, next upto ~1 ~~ rules)) end;
-
-
-(* rules *)
 
 datatype T = Rules of
  {next: int,
@@ -88,14 +73,22 @@ datatype T = Rules of
   netpairs: (net * net) list,
   wrappers: ((bool * ((int -> tactic) -> int -> tactic)) * stamp) list};
 
-val empty_rules = Rules {next = ~1, rules = [], netpairs = empty_netpairs, wrappers = []};
+fun make_rules next rules netpairs wrappers =
+  Rules {next = next, rules = rules, netpairs = netpairs, wrappers = wrappers};
 
 fun add_rule (i, b) opt_w th (Rules {next, rules, netpairs, wrappers}) =
   let val w = (case opt_w of Some w => w | None => Tactic.subgoals_of_brl (b, th)) in
-    Rules {next = next - 1,
-      rules = (w, ((i, b), th)) :: rules,
-      netpairs = map_nth_elem i (curry insert_tagged_brl ((w, next), (b, th))) netpairs,
-      wrappers = wrappers}
+    make_rules (next - 1) ((w, ((i, b), th)) :: rules)
+      (map_nth_elem i (curry insert_tagged_brl ((w, next), (b, th))) netpairs) wrappers
+  end;
+
+fun del_rule th (rs as Rules {next, rules, netpairs, wrappers}) =
+  let
+    fun eq_th (_, (_, th')) = Thm.eq_thm (th, th');
+    fun del b netpair = delete_tagged_brl ((b, th), netpair);
+  in
+    if not (exists eq_th rules) then rs
+    else make_rules next (filter_out eq_th rules) (map (del false o del true) netpairs) wrappers
   end;
 
 fun print_rules prt x (Rules {rules, ...}) =
@@ -113,7 +106,7 @@ struct
   val name = "Isar/rule_context";
   type T = T;
 
-  val empty = empty_rules;
+  val empty = make_rules ~1 [] empty_netpairs [];
   val copy = I;
   val prep_ext = I;
 
@@ -127,7 +120,7 @@ struct
       val netpairs = foldl (fn (nps, (n, (w, ((i, b), th)))) =>
           map_nth_elem i (curry insert_tagged_brl ((w, n), (b, th))) nps)
         (empty_netpairs, next upto ~1 ~~ rules);
-    in Rules {next = next - 1, rules = rules, netpairs = netpairs, wrappers = wrappers} end;
+    in make_rules (next - 1) rules netpairs wrappers end;
 
   val print = print_rules Display.pretty_thm_sg;
 end;
@@ -150,33 +143,39 @@ val print_local_rules = LocalRules.print;
 
 (** attributes **)
 
-(* add rules *)
+(* add and del rules *)
 
 local
 
-fun mk_att k view map_data opt_w (x, th) = (map_data (add_rule k opt_w th) x, th);
+fun del map_data (x, th) =
+  (map_data (del_rule th o del_rule (Tactic.make_elim th)) x, th);
+
+fun add k view map_data opt_w =
+  (fn (x, th) => (map_data (add_rule k opt_w th) x, th)) o del map_data;
 
 in
 
-val intro_bang_global  = mk_att intro_bangK I GlobalRules.map;
-val elim_bang_global   = mk_att elim_bangK I GlobalRules.map;
-val dest_bang_global   = mk_att elim_bangK Tactic.make_elim GlobalRules.map;
-val intro_global       = mk_att introK I GlobalRules.map;
-val elim_global        = mk_att elimK I GlobalRules.map;
-val dest_global        = mk_att elimK Tactic.make_elim GlobalRules.map;
-val intro_query_global = mk_att intro_queryK I GlobalRules.map;
-val elim_query_global  = mk_att elim_queryK I GlobalRules.map;
-val dest_query_global  = mk_att elim_queryK Tactic.make_elim GlobalRules.map;
+val intro_bang_global  = add intro_bangK I GlobalRules.map;
+val elim_bang_global   = add elim_bangK I GlobalRules.map;
+val dest_bang_global   = add elim_bangK Tactic.make_elim GlobalRules.map;
+val intro_global       = add introK I GlobalRules.map;
+val elim_global        = add elimK I GlobalRules.map;
+val dest_global        = add elimK Tactic.make_elim GlobalRules.map;
+val intro_query_global = add intro_queryK I GlobalRules.map;
+val elim_query_global  = add elim_queryK I GlobalRules.map;
+val dest_query_global  = add elim_queryK Tactic.make_elim GlobalRules.map;
+val rule_del_global    = del GlobalRules.map;
 
-val intro_bang_local   = mk_att intro_bangK I LocalRules.map;
-val elim_bang_local    = mk_att elim_bangK I LocalRules.map;
-val dest_bang_local    = mk_att elim_bangK Tactic.make_elim LocalRules.map;
-val intro_local        = mk_att introK I LocalRules.map;
-val elim_local         = mk_att elimK I LocalRules.map;
-val dest_local         = mk_att elimK Tactic.make_elim LocalRules.map;
-val intro_query_local  = mk_att intro_queryK I LocalRules.map;
-val elim_query_local   = mk_att elim_queryK I LocalRules.map;
-val dest_query_local   = mk_att elim_queryK Tactic.make_elim LocalRules.map;
+val intro_bang_local   = add intro_bangK I LocalRules.map;
+val elim_bang_local    = add elim_bangK I LocalRules.map;
+val dest_bang_local    = add elim_bangK Tactic.make_elim LocalRules.map;
+val intro_local        = add introK I LocalRules.map;
+val elim_local         = add elimK I LocalRules.map;
+val dest_local         = add elimK Tactic.make_elim LocalRules.map;
+val intro_query_local  = add intro_queryK I LocalRules.map;
+val elim_query_local   = add elim_queryK I LocalRules.map;
+val dest_query_local   = add elim_queryK Tactic.make_elim LocalRules.map;
+val rule_del_local     = del LocalRules.map;
 
 end;
 
@@ -186,6 +185,9 @@ end;
 fun add_args a b c x = Attrib.syntax
   (Scan.lift (Scan.option (Args.bracks Args.nat) --
     (Args.bang >> K a || Args.query >> K c || Scan.succeed b) >> op |>)) x;
+
+fun del_args att = Attrib.syntax (Scan.lift Args.del >> K att);
+
 
 val rule_atts =
  [("intro",
@@ -199,7 +201,9 @@ val rule_atts =
   ("dest",
    (add_args dest_bang_global dest_global dest_query_global,
     add_args dest_bang_local dest_local dest_query_local),
-    "declaration of destruction rule")];
+    "declaration of destruction rule"),
+  ("rule", (del_args rule_del_global, del_args rule_del_local),
+    "remove declaration of intro/elim/dest rule")];
 
 
 
