@@ -127,18 +127,12 @@ fun prems_of_ss(SS{mss,...}) = prems_of_mss mss;
 
 fun rep_ss(SS{simps,congs,...}) = {simps=simps,congs=congs};
 
-fun add_asms (SS{mss,simps,congs,subgoal_tac,finish_tac,loop_tac}) prems =
-  let val rews = flat(map (mk_rews_of_mss mss) prems)
-  in SS{mss= add_prems(add_simps(mss,rews),prems), simps=simps, congs=congs,
-        subgoal_tac=subgoal_tac,finish_tac=finish_tac,
-        loop_tac=loop_tac}
-  end;
-
 fun NEWSUBGOALS tac tacf =
   STATE(fn state0 =>
     tac THEN STATE(fn state1 => tacf(nprems_of state1 - nprems_of state0)));
 
-fun asm_full_simp_tac(SS{mss,simps,congs,subgoal_tac,finish_tac,loop_tac}) =
+fun gen_simp_tac mode =
+  fn (SS{mss,simps,congs,subgoal_tac,finish_tac,loop_tac}) =>
   let fun solve_all_tac mss =
         let val ss = SS{mss=mss,simps=simps,congs=congs,
                         subgoal_tac=subgoal_tac,
@@ -149,18 +143,17 @@ fun asm_full_simp_tac(SS{mss,simps,congs,subgoal_tac,finish_tac,loop_tac}) =
         in DEPTH_SOLVE(solve1_tac) end
 
       fun simp_loop i thm =
-        tapply(asm_rewrite_goal_tac solve_all_tac mss i THEN
+        tapply(asm_rewrite_goal_tac mode solve_all_tac mss i THEN
                (finish_tac (prems_of_mss mss) i  ORELSE  looper i),
                thm)
       and allsimp i n = EVERY(map (fn j => simp_loop_tac (i+j)) (n downto 0))
       and looper i = TRY(NEWSUBGOALS (loop_tac i) (allsimp i))
       and simp_loop_tac i = Tactic(simp_loop i)
 
-  in fn i => COND (has_fewer_prems 1) no_tac (simp_loop_tac i) end;
+  in simp_loop_tac end;
 
-fun asm_simp_tac ss =
-      METAHYPS(fn prems => asm_full_simp_tac (add_asms ss prems) 1);
-
-fun simp_tac ss = METAHYPS(fn _ => asm_full_simp_tac ss 1);
+val asm_full_simp_tac = gen_simp_tac (true,true);
+val asm_simp_tac = gen_simp_tac (false,true);
+val simp_tac = gen_simp_tac (false,false);
 
 end;
