@@ -6,6 +6,10 @@
 
 Datatype = Univ +
 
+rep_datatype bool
+  distinct True_not_False, False_not_True
+  induct   bool_induct
+
 rep_datatype sum
   distinct Inl_not_Inr, Inr_not_Inl
   inject   Inl_eq, Inr_eq
@@ -14,5 +18,8 @@ rep_datatype sum
 rep_datatype prod
   inject   Pair_eq
   induct   prod_induct
+
+rep_datatype unit
+  induct   unit_induct
 
 end
