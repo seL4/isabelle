@@ -81,6 +81,7 @@ sig
   val cons: 'a -> 'a list -> 'a list
   val single: 'a -> 'a list
   val append: 'a list -> 'a list -> 'a list
+  val rev_append: 'a list -> 'a list -> 'a list
   val apply: ('a -> 'a) list -> 'a -> 'a
   val foldl: ('a * 'b -> 'a) -> 'a * 'b list -> 'a
   val foldr: ('a * 'b -> 'b) -> 'a list * 'b -> 'b
@@ -452,6 +453,10 @@ fun cons x xs = x :: xs;
 fun single x = [x];
 
 fun append xs ys = xs @ ys;
+
+(* tail recursive version *)
+fun rev_append [] ys = ys
+  | rev_append (x :: xs) ys = rev_append xs (x :: ys);
 
 fun apply [] x = x
   | apply (f :: fs) x = apply fs (f x);
