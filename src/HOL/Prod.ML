@@ -145,15 +145,47 @@ qed_goal "split_eta" Prod.thy "(%(x,y). f(x,y)) = f"
 qed_goal "cond_split_eta" Prod.thy 
 	"!!f. (!!x y. f x y = g(x,y)) ==> (%(x,y). f x y) = g"
   (K [asm_simp_tac (simpset() addsimps [split_eta]) 1]);
-(*Addsimps [cond_split_eta];  with this version of split_eta, the simplifier 
-			      can eta-contract arbitrarily tupled functions.
-  Unfortunately, this renders some existing proofs very inefficient.
-                 stac split_eta does not work in general either. *)
-val split_etas = split_eta::map (fn s => prove_goal Prod.thy s 
-  (K [simp_tac (simpset() addsimps [cond_split_eta]) 1]))
-["(%(a,b,c    ). f(a,b,c    )) = f","(%(a,b,c,d    ). f(a,b,c,d    )) = f",
- "(%(a,b,c,d,e). f(a,b,c,d,e)) = f","(%(a,b,c,d,e,g). f(a,b,c,d,e,g)) = f"];
-Addsimps split_etas; (* pragmatic solution *)
+
+
+(*simplification procedure for cond_split_eta. 
+  using split_eta a rewrite rule is not general enough, and using 
+  cond_split_eta directly would render some existing proofs very inefficient*)
+local
+  val split_eta_pat = Thm.read_cterm (sign_of thy) 
+		("split (%x. split (%y. f x y))", HOLogic.termTVar);
+  val split_eta_meta_eq = standard (mk_meta_eq cond_split_eta);
+  fun  Pair_pat 0      (Bound 0) = true
+  |    Pair_pat k      (Const ("Pair",  _) $ Bound m $ t) = 
+			m = k andalso Pair_pat (k-1) t
+  |    Pair_pat _ _ = false;
+  fun split_pat k (Abs  (_, _, f $ 
+			(Const ("Pair",_) $ Bound m $ 
+			(Const ("Pair",_) $ Bound n $ t)))) =
+			if m = k andalso n = k-1 andalso Pair_pat (k-2) t
+			then Some f else None
+  |   split_pat k (Const ("split", _) $ Abs (_, _, t)) = split_pat (k+1) t
+  |   split_pat k _ = None;
+  fun proc _ _	(s as
+	(Const ("split", _) $ Abs (_, _, 
+	(Const ("split", _) $ Abs (_, _, t))))) = (case split_pat 2 t of
+	  Some f => (let val fvar = Free ("f", fastype_of f);
+			 fun atom_fun t = if t = f then fvar else atom t
+			 and atom     (Abs (x, T, t)) = Abs (x, T,atom_fun t)
+			   | atom     (t $ u)         = atom_fun t $ atom_fun u
+			   | atom     x               = x;
+			 val ct   = cterm_of (sign_of thy) (HOLogic.mk_Trueprop
+				   (HOLogic.mk_eq (atom_fun s,fvar)));
+			 val ss   = HOL_basic_ss addsimps [cond_split_eta];
+         in Some (mk_meta_eq (prove_goalw_cterm [] ct (K [simp_tac ss 1]))) end)
+	| None => None)
+  |   proc _ _ _ = None;
+
+in
+  val split_eta_proc = Simplifier.mk_simproc "split_eta" [split_eta_pat] proc;
+end;
+
+Addsimprocs [split_eta_proc];
+
 
 qed_goal "split_beta" Prod.thy "(%(x,y). P x y) z = P (fst z) (snd z)"
 	(K [stac surjective_pairing 1, stac split 1, rtac refl 1]);
