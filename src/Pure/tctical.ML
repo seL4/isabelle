@@ -198,7 +198,7 @@ val goals_limit = ref 10;
 fun print_tac msg = 
     (fn st => 
      (writeln msg;
-      print_goals (!goals_limit) st; Seq.single st));
+      Display.print_goals (!goals_limit) st; Seq.single st));
 
 (*Pause until a line is typed -- if non-empty then fail. *)
 fun pause_tac st =  
@@ -235,7 +235,7 @@ fun exec_trace_command flag (tac, st) =
 (*Extract from a tactic, a thm->thm seq function that handles tracing*)
 fun tracify flag tac st =
   if !flag andalso not (!suppress_tracing)
-           then (print_goals (!goals_limit) st;
+           then (Display.print_goals (!goals_limit) st;
                  writeln "** Press RETURN to continue:";
                  exec_trace_command flag (tac,st))
   else tac st;
