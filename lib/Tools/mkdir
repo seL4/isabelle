@@ -16,9 +16,9 @@ function usage()
   echo
   echo "  Options are:"
   echo "    -I FILE      alternative IsaMakefile output"
+  echo "    -P           include parent logic target"
   echo "    -b           setup build mode (session outputs heap image)"
   echo "    -d           setup document"
-  echo "    -p           include parent logic target"
   echo
   echo "  Prepare session directory, including IsaMakefile, document etc."
   echo "  with parent LOGIC (default ISABELLE_LOGIC=$ISABELLE_LOGIC)"
@@ -38,24 +38,24 @@ function fail()
 # options
 
 ISAMAKEFILE="IsaMakefile"
+PARENT=""
 BUILD=""
 DOCUMENT=""
-PARENT=""
 
-while getopts "I:bdp" OPT
+while getopts "I:Pbd" OPT
 do
   case "$OPT" in
     I)
       ISAMAKEFILE="$OPTARG"
+      ;;
+    P)
+      PARENT=true
       ;;
     b)
       BUILD=true
       ;;
     d)
       DOCUMENT=true
-      ;;
-    p)
-      PARENT=true
       ;;
     \?)
       usage
@@ -95,7 +95,7 @@ if [ -n "$BUILD" ]; then
 else
   IMAGES=""
   TEST="$NAME"
-  TARGET="\$(LOG)/$NAME.gz"
+  TARGET="\$(LOG)/$LOGIC-$NAME.gz"
   USEDIR="\$(USEDIR)"
 fi
 

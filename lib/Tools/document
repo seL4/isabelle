@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -x
 #
 # $Id$
 #
@@ -13,10 +13,11 @@ function usage()
   echo "Usage: $PRG [OPTIONS] [DIR]"
   echo
   echo "  Options are:"
+  echo "    -c           clean -- remove DIR after succesful run"
   echo "    -o FORMAT    specify output format: dvi (default), dvi.gz, ps,"
   echo "                 ps.gz, pdf"
   echo
-  echo "  Prepare the theory session document in DIR (default '.')"
+  echo "  Prepare the theory session document in DIR (default 'document')"
   echo "  producing the specified output format."
   echo
   exit 1
@@ -33,11 +34,15 @@ function fail()
 
 # options
 
+CLEAN=""
 OUTFORMAT=dvi
 
-while getopts "o:" OPT
+while getopts "co:" OPT
 do
   case "$OPT" in
+    c)
+      CLEAN=true
+      ;;
     o)
       OUTFORMAT="$OPTARG"
       ;;
@@ -52,7 +57,7 @@ shift $(($OPTIND - 1))
 
 # args
 
-DIR="."
+DIR="document"
 [ $# -ge 1 ] && { DIR="$1"; shift; }
 
 [ $# -ne 0 ] && usage
@@ -73,8 +78,6 @@ esac
 
 # prepare document
 
-cd "$DIR" || fail "Bad directory '$DIR'"
-
 function pre_latex ()
 {
   local FMT="$1"
@@ -89,25 +92,39 @@ function pre_latex ()
   fi
 }
 
-if [ -f IsaMakefile ]; then
-  $ISATOOL make "$OUTFORMAT"
-  RC=$?   #FIXME !??
-elif [ "$OUTFORMAT" = pdf ]; then
-  pre_latex pdf && \
-  $ISATOOL latex -o pdf && \
-  { if [ -n "$ISABELLE_THUMBPDF" ]; then
-      $ISATOOL latex -o png && \
-      $ISATOOL latex -o pdf
-    fi; }
-  RC=$?
-else
-  pre_latex dvi && \
-  $ISATOOL latex -o "$OUTFORMAT"
-  RC=$?
-fi
+(
+  cd "$DIR" || fail "Bad directory '$DIR'"
+
+  if [ -f IsaMakefile ]; then
+    $ISATOOL make "$OUTFORMAT"
+    RC=$?
+  elif [ "$OUTFORMAT" = pdf ]; then
+    pre_latex pdf && \
+    $ISATOOL latex -o pdf && \
+    { if [ -n "$ISABELLE_THUMBPDF" ]; then
+        $ISATOOL latex -o png && \
+        $ISATOOL latex -o pdf
+      fi; }
+    RC=$?
+  else
+    pre_latex dvi && \
+    $ISATOOL latex -o "$OUTFORMAT"
+    RC=$?
+  fi
+
+  [ "$RC" -eq 0 -a -f "root.$OUTFORMAT" ] && \
+    cp -f "root.$OUTFORMAT" "../document.$OUTFORMAT"
+
+  exit $RC
+)
+RC=$?
 
 
 # install
 
-[ "$RC" -gt 0 -o ! -f "root.$OUTFORMAT" ] && fail "Failed to prepare document in directory '$DIR'"
-cp -f "root.$OUTFORMAT" "../document.$OUTFORMAT"
+[ "$RC" -ne 0 ] && fail "Failed to prepare document in directory '$DIR'"
+
+#beware!
+[ -n "$CLEAN" ] && rm -rf "$DIR"
+
+exit "$RC"
