@@ -24,7 +24,7 @@ sig
   val rep_ss: simpset ->
    {rules: rrule Net.net,
     prems: thm list,
-    bounds: string list,
+    bounds: int,
     depth: int} *
    {congs: (string * cong) list * string list,
     procs: proc Net.net,
@@ -193,7 +193,7 @@ val merge_solvers = gen_merge_lists eq_solver;
 (*A simpset contains data required during conversion:
     rules: discrimination net of rewrite rules;
     prems: current premises;
-    bounds: names of bound variables already used
+    bounds: maximal index of bound variables already used
       (for generating new names when rewriting under lambda abstractions);
     depth: depth of conditional rewriting;
     congs: association list of congruence rules and
@@ -218,7 +218,7 @@ datatype simpset =
   Simpset of
    {rules: rrule Net.net,
     prems: thm list,
-    bounds: string list,
+    bounds: int,
     depth: int} *
    {congs: (string * cong) list * string list,
     procs: proc Net.net,
@@ -297,7 +297,7 @@ fun print_ss ss =
 local
 
 fun init_ss mk_rews termless subgoal_tac solvers =
-  make_simpset ((Net.empty, [], [], 0),
+  make_simpset ((Net.empty, [], 0, 0),
     (([], []), Net.empty, mk_rews, termless, subgoal_tac, [], solvers));
 
 val basic_mk_rews: mk_rews =
@@ -329,7 +329,7 @@ fun merge_ss (ss1, ss2) =
 
     val rules' = Net.merge (rules1, rules2, eq_rrule);
     val prems' = gen_merge_lists Drule.eq_thm_prop prems1 prems2;
-    val bounds' = merge_lists bounds1 bounds2;
+    val bounds' = Int.max (bounds1, bounds2);
     val congs' = gen_merge_lists (eq_cong o pairself #2) congs1 congs2;
     val weak' = merge_lists weak1 weak2;
     val procs' = Net.merge (procs1, procs2, eq_proc);
@@ -363,8 +363,8 @@ fun simproc sg name = simproc_i sg name o map (Sign.simple_read_term sg TypeInfe
 
 (* bounds and prems *)
 
-fun add_bound b = map_simpset1 (fn (rules, prems, bounds, depth) =>
-  (rules, prems, b :: bounds, depth));
+val incr_bounds = map_simpset1 (fn (rules, prems, bounds, depth) =>
+  (rules, prems, bounds + 1, depth));
 
 fun add_prems ths = map_simpset1 (fn (rules, prems, bounds, depth) =>
   (rules, ths @ prems, bounds, depth));
@@ -928,9 +928,8 @@ fun bottomc ((simprem, useprem, mutsimp), prover, sign, maxidx) =
        (case term_of t0 of
            Abs (a, T, t) =>
              let
-                 val b = variant bounds a;
-                 val (v, t') = Thm.dest_abs (Some ("." ^ b)) t0;
-                 val ss' = add_bound b ss;
+                 val (v, t') = Thm.dest_abs (Some ("." ^ a ^ "." ^ string_of_int bounds)) t0;
+                 val ss' = incr_bounds ss;
                  val skel' = case skel of Abs (_, _, sk) => sk | _ => skel0;
              in case botc skel' ss' t' of
                   Some thm => Some (abstract_rule a v thm)
