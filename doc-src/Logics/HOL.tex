@@ -1985,6 +1985,11 @@ recdef fib "less_than"
     "fib (Suc(Suc x)) = (fib x + fib (Suc x))"
 \end{ttbox}
 
+With \texttt{recdef}, function definitions may be incomplete, and patterns may
+overlap, as in functional programming.  The \texttt{recdef} package
+disambiguates overlapping patterns by taking the order of rules into account.
+For missing patterns, the function is defined to return an arbitrary value.
+
 The well-founded relation defines a notion of ``smaller'' for the function's
 argument type.  The relation $\prec$ is \textbf{well-founded} provided it
 admits no infinitely decreasing chains
@@ -2028,7 +2033,7 @@ recdef gcd "measure ((\%(m,n).n) ::nat*nat=>nat)"
     "gcd (m, n) = (if n=0 then m else gcd(n, m mod n))"
 \end{ttbox}
 
-The general form of a primitive recursive definition is
+The general form of a well-founded recursive definition is
 \begin{ttbox}
 recdef {\it function} {\it rel}
     congs   {\it congruence rules}      {\bf(optional)}
@@ -2057,9 +2062,8 @@ where
   left-hand side must have the form $f\,t$, where $f$ is the function and $t$
   is a tuple of distinct variables.  If more than one equation is present then
   $f$ is defined by pattern-matching on components of its argument whose type
-  is a \texttt{datatype}.  The patterns must be exhaustive and
-  non-overlapping.  
-  
+  is a \texttt{datatype}.  
+
   Unlike with \texttt{primrec}, the reduction rules are not added to the
   default simpset, and individual rules may not be labelled with identifiers.
   However, the identifier $f$\texttt{.rules} is visible at the \ML\ level
