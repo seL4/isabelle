@@ -84,9 +84,9 @@ overloading (usually false);
 *** Document preparation ***
 
 * formal comments (text blocks etc.) in new-style theories may now
-contain antiquotations of thm/prop/term/typ to be presented according
-to latex print mode; concrete syntax is like this: @{term[show_types]
-"f(x) = a + x"};
+contain antiquotations of thm/prop/term/typ/text to be presented
+according to latex print mode; concrete syntax is like this:
+@{term[show_types] "f(x) = a + x"};
 
 * isatool mkdir provides easy setup of Isabelle session directories,
 including proper document sources;
