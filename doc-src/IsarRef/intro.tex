@@ -136,7 +136,61 @@ Proof~General sessions, one for replaying the old script and the other for the
 emerging Isabelle/Isar document.
 
 
-\section{How to write Isar proofs anyway?}
+\subsection{Document preparation}
+
+Isabelle/Isar provides a simple document preparation system based on current
+(PDF) {\LaTeX} technology, with full support of hyper-links (both local
+references and URLs), bookmarks, thumbnails etc.  Thus the results are equally
+well suited for WWW browsing and as printed copies.
+
+\medskip
+
+Isabelle generates {\LaTeX} output as part of the run of a \emph{logic
+  session} (see also \cite{isabelle-sys}).  Getting started with a working
+configuration for common situations is quite easy by using the Isabelle
+\texttt{mkdir} and \texttt{make} tools.  Just invoke
+\begin{ttbox}
+  isatool mkdir -d Foo
+\end{ttbox}
+to setup a separate directory for session \texttt{Foo}.\footnote{It is safe to
+  experiment, since \texttt{isatool mkdir} never overwrites existing files.}
+Ensure that \texttt{Foo/ROOT.ML} loads all theories required for this session.
+Furthermore \texttt{Foo/document/root.tex} should include any special {\LaTeX}
+macro packages required for your document (the default is usually sufficient
+as a start).
+
+The session is controlled by a separate \texttt{IsaMakefile} (with very crude
+source dependencies only by default).  This file is located one level up from
+the \texttt{Foo} directory location.  At that point just invoke
+\begin{ttbox}
+  isatool make Foo
+\end{ttbox}
+to run the \texttt{Foo} session, with browser information and document
+preparation enabled.  Unless any errors are reported by Isabelle or {\LaTeX},
+the output will appear inside the directory indicated by \texttt{isatool
+  getenv ISABELLE_BROWSER_INFO}, with the logical session prefix added (e.g.\ 
+\texttt{HOL/Foo}).  Note that the \texttt{index.html} located there provides a
+link to the finished {\LaTeX} document, too.
+
+Note that this really is batch processing --- better let Isabelle check your
+theory and proof developments beforehand in interactive mode.
+
+\medskip
+
+You may also consider to tune the \texttt{usedir} options in
+\texttt{IsaMakefile}, for example to change the output format from
+\texttt{dvi} to \texttt{pdf}, or activate the \texttt{-D document} option in
+order to preserve a copy of the generated {\LaTeX} sources.  The latter
+feature is very useful for debugging {\LaTeX} errors, while avoiding repeated
+runs of Isabelle.
+
+\medskip
+
+See \emph{The Isabelle System Manual} \cite{isabelle-sys} for further details
+on Isabelle logic sessions and theory presentation.
+
+
+\subsection{How to write Isar proofs anyway?}
 
 This is one of the key questions, of course.  Isar offers a rather different
 approach to formal proof documents than plain old tactic scripts.  Experienced

@@ -131,18 +131,20 @@ tools).
     package to be included in {\LaTeX}, of course.}
 \end{descr}
 
-Any markup command (except $\isarkeyword{text_raw}$) corresponds to a {\LaTeX}
-macro with the name prefixed by \verb,\isamarkup, (e.g.\ 
-\verb,\isamarkupchapter, for $\isarkeyword{chapter}$). The \railqtoken{text}
-argument is passed to that macro unchanged, i.e.\ further {\LaTeX} commands
-may be included here as well.
+Any of these markup elements corresponds to a {\LaTeX} command with the name
+prefixed by \verb,\isamarkup,.  For the sectioning commands this is a plain
+macro with a single argument, e.g.\ \verb,\isamarkupchapter{,\dots\verb,}, for
+$\isarkeyword{chapter}$.  The $\isarkeyword{text}$ markup results in a
+{\LaTeX} environment \verb,\begin{isamarkuptext}, {\dots}
+  \verb,\end{isamarkuptext},, while $\isarkeyword{text_raw}$ causes the text
+to be inserted directly into the {\LaTeX} source.
 
 \medskip
 
 Additional markup commands are available for proofs (see
 \S\ref{sec:markup-prf}).  Also note that the $\isarkeyword{header}$
-declaration (see \S\ref{sec:begin-thy}) admits to insert document markup
-elements just preceding the actual theory definition.
+declaration (see \S\ref{sec:begin-thy}) admits to insert section markup just
+preceding the actual theory definition.
 
 
 \subsection{Type classes and sorts}\label{sec:classes}
@@ -475,8 +477,7 @@ of operation:
 \end{matharray}
 
 These markup commands for proof mode closely correspond to the ones of theory
-mode (see \S\ref{sec:markup-thy}).  Note that $\isarkeyword{txt_raw}$ is
-special in the same way as $\isarkeyword{text_raw}$.
+mode (see \S\ref{sec:markup-thy}).
 
 \railalias{txtraw}{txt\_raw}
 \railterm{txtraw}
