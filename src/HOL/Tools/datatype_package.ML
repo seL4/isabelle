@@ -204,17 +204,22 @@ fun exhaust_tac aterm i state =
 
 (**** simplification procedure for showing distinctness of constructors ****)
 
+fun stripT (i, Type ("fun", [_, T])) = stripT (i + 1, T)
+  | stripT p = p;
+
+fun stripC (i, f $ x) = stripC (i + 1, f)
+  | stripC p = p;
+
 val distinctN = "constr_distinct";
 
 exception ConstrDistinct of term;
 
-
 fun distinct_proc sg _ (t as Const ("op =", _) $ t1 $ t2) =
-  (case (pairself strip_comb (t1, t2)) of
-     ((Const (cname1, _), xs), (Const (cname2, _), ys)) =>
-         (case (fastype_of t1, fastype_of t2) of
-            (Type (tname1, _), Type (tname2, _)) =>
-                if tname1 = tname2 andalso not (cname1 = cname2) then
+  (case (stripC (0, t1), stripC (0, t2)) of
+     ((i, Const (cname1, T1)), (j, Const (cname2, T2))) =>
+         (case (stripT (0, T1), stripT (0, T2)) of
+            ((i', Type (tname1, _)), (j', Type (tname2, _))) =>
+                if tname1 = tname2 andalso not (cname1 = cname2) andalso i = i' andalso j = j' then
                    (case (constrs_of_sg sg tname1) of
                       Some constrs => let val cnames = map (fst o dest_Const) constrs
                         in if cname1 mem cnames andalso cname2 mem cnames then
