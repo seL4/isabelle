@@ -452,6 +452,8 @@ fun strip_tac i = REPEAT(resolve_tac [impI,allI] i);
 
 (** strip ! and --> from proved goal while preserving !-bound var names **)
 
+(** THIS CODE IS A MESS!!! **)
+
 local
 
 (* Use XXX to avoid forall_intr failing because of duplicate variable name *)
