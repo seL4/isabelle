@@ -12,6 +12,7 @@ fine with common object-logics (HOL, FOL, ZF etc.).
 signature AUTO_BIND =
 sig
   val is_judgment: term -> bool
+  val atomic_judgment: theory -> string -> term
   val add_judgment: bstring * string * mixfix -> theory -> theory
   val add_judgment_i: bstring * typ * mixfix -> theory -> theory
   val goal: term -> (indexname * term option) list
@@ -25,19 +26,30 @@ struct
 
 (** judgments **)
 
-fun strip_judgment prop =
-  (case (Logic.strip_assums_concl prop) of
-    Const ("Trueprop", _) $ t => t
-  | t => t);
+val TruepropN = "Trueprop";
 
-fun is_judgment (Const ("Trueprop", _) $ _) = true
+fun strip_judgment prop =
+  (case Logic.strip_assums_concl prop of
+    tm as (Const (c, _) $ t) => if c = TruepropN then t else tm
+  | tm => tm);
+
+fun is_judgment (Const (c, _) $ _) = c = TruepropN
   | is_judgment _ = false;
+
+fun atomic_judgment thy x =
+  let  (*be robust wrt. low-level errors*)
+    val aT = TFree ("'a", logicS);
+    val T =
+      if_none (Sign.const_type (Theory.sign_of thy) TruepropN) (aT --> propT)
+      |> Term.map_type_tvar (fn ((x, _), S) => TFree (x, S));
+    val U = Term.domain_type T handle Match => aT;
+  in Const (TruepropN, T) $ Free (x, U) end;
 
 
 fun gen_add_judgment add (name, T, syn) thy =
-  if name = "Trueprop" then
+  if name = TruepropN then
     thy |> PureThy.global_path |> add [(name, T, syn)] |> PureThy.local_path
-  else error "Judgment name has to be \"Trueprop\"";
+  else error ("Judgment name has to be " ^ quote TruepropN);
 
 val add_judgment = gen_add_judgment Theory.add_consts;
 val add_judgment_i = gen_add_judgment Theory.add_consts_i;
