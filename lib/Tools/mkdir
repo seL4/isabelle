@@ -227,6 +227,8 @@ else
 %\usepackage[only,bigsqcap]{stmaryrd}
 %\usepackage{wasysym}
 %\usepackage{eufrak}
+%\usepackage{textcomp}
+%\usepackage{marvosym}
 
 % this should be the last package used
 \usepackage{pdfsetup}
