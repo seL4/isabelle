@@ -11,7 +11,6 @@ TODO:
   - witness: eliminate (!?);
   - result (interactive): print current result (?);
   - check evaluation of transformers (exns!);
-  - print_thm: attributes;
   - 'result' command;
   - '--' (comment) option everywhere;
   - 'chapter', 'section' etc.;
@@ -315,8 +314,9 @@ fun gen_stepP meth int name cmt f =
 
 val stepP = gen_stepP method;
 
-val tacP = stepP true "tac" "unstructured backward proof step, ignoring facts" IsarThy.tac;
-val etacP = stepP true "etac" "unstructured backward proof step, using facts" IsarThy.etac;
+val refineP = stepP true "refine" "unstructured backward proof step, ignoring facts" IsarThy.tac;
+val then_refineP =
+  stepP true "then_refine" "unstructured backward proof step, using facts" IsarThy.then_tac;
 
 
 val proofP = gen_stepP (Scan.option method) false "proof" "backward proof" IsarThy.proof;
@@ -377,12 +377,16 @@ val print_syntaxP =
   OuterSyntax.parser true "print_syntax" "print inner syntax of theory (verbose!)"
     (Scan.succeed IsarCmd.print_syntax);
 
+val print_theoremsP =
+  OuterSyntax.parser true "print_theorems" "print theorems known in this theory"
+    (Scan.succeed IsarCmd.print_theorems);
+
 val print_attributesP =
-  OuterSyntax.parser true "print_attributes" "print attributes known in theory"
+  OuterSyntax.parser true "print_attributes" "print attributes known in this theory"
     (Scan.succeed IsarCmd.print_attributes);
 
 val print_methodsP =
-  OuterSyntax.parser true "print_methods" "print methods known in theory"
+  OuterSyntax.parser true "print_methods" "print methods known in this theory"
     (Scan.succeed IsarCmd.print_methods);
 
 val print_bindsP =
@@ -395,7 +399,7 @@ val print_lthmsP =
 
 val print_thmP =
   OuterSyntax.parser true "print_thm" "print stored theorem(s)"
-    (xname >> IsarCmd.print_thms);
+    (xname -- opt_attribs >> IsarCmd.print_thms);
 
 val print_propP =
   OuterSyntax.parser true "print_prop" "read and print proposition"
@@ -427,7 +431,7 @@ val use_thyP =
 
 val loadP =
   OuterSyntax.parser true "load" "load theory file"
-    (string >> IsarCmd.load);
+    (name >> IsarCmd.load);
 
 val prP =
   OuterSyntax.parser true "pr" "print current toplevel state"
@@ -476,13 +480,13 @@ val parsers = [
   token_translationP, oracleP,
   (*proof commands*)
   theoremP, lemmaP, showP, haveP, assumeP, fixP, letP, thenP, fromP,
-  beginP, nextP, qedP, qed_withP, kill_proofP, tacP, etacP, proofP,
-  terminal_proofP, trivial_proofP, default_proofP, clear_undoP, undoP,
-  redoP, backP, prevP, upP, topP,
+  beginP, nextP, qedP, qed_withP, kill_proofP, refineP, then_refineP,
+  proofP, terminal_proofP, trivial_proofP, default_proofP,
+  clear_undoP, undoP, redoP, backP, prevP, upP, topP,
   (*diagnostic commands*)
   print_commandsP, print_theoryP, print_syntaxP, print_attributesP,
-  print_methodsP, print_bindsP, print_lthmsP, print_thmP, print_propP,
-  print_termP, print_typeP,
+  print_methodsP, print_theoremsP, print_bindsP, print_lthmsP,
+  print_thmP, print_propP, print_termP, print_typeP,
   (*system commands*)
   cdP, pwdP, use_thyP, loadP, prP, commitP, quitP, exitP, breakP];
 
