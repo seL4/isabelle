@@ -13,7 +13,7 @@ sig
   datatype token_kind =
     Keyword | Ident | LongIdent | Var | TypeVar | Nat | String | Verbatim | Ignore | EOF
   val name_of_kind: token_kind -> string
-  val tokenize: Scan.lexicon -> string -> (token_kind * string * int) list
+  val tokenize: Scan.lexicon -> string list -> (token_kind * string * int) list
 end;
 
 structure ThyScan: THY_SCAN =
@@ -138,9 +138,8 @@ fun scan_token lex x =
 
 (* tokenize *)
 
-fun tokenize lex str =
+fun tokenize lex chs =
   let
-    val chs = explode str;	(*sic!*)
     val scan_toks = Scan.repeat (scan_token lex);
     val ignore = fn (Ignore, _, _) => true | _ => false;
   in
