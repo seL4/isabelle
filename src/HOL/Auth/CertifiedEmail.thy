@@ -48,26 +48,26 @@ FakeSSL: --{*The Spy may open SSL sessions with TTP, who is the only agent
           ==> Notes TTP {|Agent Spy, Agent TTP, X|} # evsfssl \<in> certified_mail"
 
 CM1: --{*The sender approaches the recipient.  The message is a number.*}
-"[|evs1 \<in> certified_mail;
-   Key K \<notin> used evs1;
-   K \<in> symKeys;
-   Nonce q \<notin> used evs1;
-   hs = Hash {|Number cleartext, Nonce q, response S R q, Crypt K (Number m)|};
-   S2TTP = Crypt (pubEK TTP) {|Agent S, Number BothAuth, Key K, Agent R, hs|}|]
- ==> Says S R {|Agent S, Agent TTP, Crypt K (Number m), Number BothAuth, 
-                Number cleartext, Nonce q, S2TTP|} # evs1 
-       \<in> certified_mail"
+ "[|evs1 \<in> certified_mail;
+    Key K \<notin> used evs1;
+    K \<in> symKeys;
+    Nonce q \<notin> used evs1;
+    hs = Hash{|Number cleartext, Nonce q, response S R q, Crypt K (Number m)|};
+    S2TTP = Crypt(pubEK TTP) {|Agent S, Number BothAuth, Key K, Agent R, hs|}|]
+  ==> Says S R {|Agent S, Agent TTP, Crypt K (Number m), Number BothAuth, 
+		 Number cleartext, Nonce q, S2TTP|} # evs1 
+	\<in> certified_mail"
 
 CM2: --{*The recipient records @{term S2TTP} while transmitting it and her
      password to @{term TTP} over an SSL channel.*}
-"[|evs2 \<in> certified_mail;
-   Gets R {|Agent S, Agent TTP, em, Number BothAuth, Number cleartext, 
-            Nonce q, S2TTP|} \<in> set evs2;
-   TTP \<noteq> R;  
-   hr = Hash {|Number cleartext, Nonce q, response S R q, em|} |]
- ==> 
-  Notes TTP {|Agent R, Agent TTP, S2TTP, Key(RPwd R), hr|} # evs2
-     \<in> certified_mail"
+ "[|evs2 \<in> certified_mail;
+    Gets R {|Agent S, Agent TTP, em, Number BothAuth, Number cleartext, 
+	     Nonce q, S2TTP|} \<in> set evs2;
+    TTP \<noteq> R;  
+    hr = Hash {|Number cleartext, Nonce q, response S R q, em|} |]
+  ==> 
+   Notes TTP {|Agent R, Agent TTP, S2TTP, Key(RPwd R), hr|} # evs2
+      \<in> certified_mail"
 
 CM3: --{*@{term TTP} simultaneously reveals the key to the recipient and gives
          a receipt to the sender.  The SSL channel does not authenticate 
@@ -79,10 +79,10 @@ CM3: --{*@{term TTP} simultaneously reveals the key to the recipient and gives
     S2TTP = Crypt (pubEK TTP) 
                      {|Agent S, Number BothAuth, Key k, Agent R, hs|};
     TTP \<noteq> R;  hs = hr;  k \<in> symKeys|]
- ==> 
-  Notes R {|Agent TTP, Agent R, Key k, hr|} # 
-  Gets S (Crypt (priSK TTP) S2TTP) # 
-  Says TTP S (Crypt (priSK TTP) S2TTP) # evs3 \<in> certified_mail"
+  ==> 
+   Notes R {|Agent TTP, Agent R, Key k, hr|} # 
+   Gets S (Crypt (priSK TTP) S2TTP) # 
+   Says TTP S (Crypt (priSK TTP) S2TTP) # evs3 \<in> certified_mail"
 
 Reception:
  "[|evsr \<in> certified_mail; Says A B X \<in> set evsr|]

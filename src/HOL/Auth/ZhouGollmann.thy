@@ -178,7 +178,7 @@ text{*Below we prove that if @{term NRO} exists then @{term A} definitely
 sent it, provided @{term A} is not broken.*}
 
 text{*Strong conclusion for a good agent*}
-lemma NRO_authenticity_good:
+lemma NRO_validity_good:
      "[|NRO = Crypt (priK A) {|Number f_nro, Agent B, Nonce L, C|};
         NRO \<in> parts (spies evs);
         A \<notin> bad;  evs \<in> zg |]
@@ -197,7 +197,7 @@ apply (erule zg.induct, simp_all)
 done
 
 text{*Holds also for @{term "A = Spy"}!*}
-theorem NRO_authenticity:
+theorem NRO_validity:
      "[|Gets B {|Number f_nro, Agent B, Nonce L, C, NRO|} \<in> set evs;
         NRO = Crypt (priK A) {|Number f_nro, Agent B, Nonce L, C|};
         A \<notin> broken;  evs \<in> zg |]
@@ -207,8 +207,8 @@ apply clarify
 apply (frule NRO_sender, auto)
 txt{*We are left with the case where the sender is @{term Spy} and not
   equal to @{term A}, because @{term "A \<notin> bad"}. 
-  Thus theorem @{text NRO_authenticity_good} applies.*}
-apply (blast dest: NRO_authenticity_good [OF refl])
+  Thus theorem @{text NRO_validity_good} applies.*}
+apply (blast dest: NRO_validity_good [OF refl])
 done
 
 
@@ -218,7 +218,7 @@ text{*Below we prove that if @{term NRR} exists then @{term B} definitely
 sent it, provided @{term B} is not broken.*}
 
 text{*Strong conclusion for a good agent*}
-lemma NRR_authenticity_good:
+lemma NRR_validity_good:
      "[|NRR = Crypt (priK B) {|Number f_nrr, Agent A, Nonce L, C|};
         NRR \<in> parts (spies evs);
         B \<notin> bad;  evs \<in> zg |]
@@ -237,7 +237,7 @@ apply (erule zg.induct, simp_all)
 done
 
 text{*Holds also for @{term "B = Spy"}!*}
-theorem NRR_authenticity:
+theorem NRR_validity:
      "[|Says B' A {|Number f_nrr, Agent A, Nonce L, NRR|} \<in> set evs;
         NRR = Crypt (priK B) {|Number f_nrr, Agent A, Nonce L, C|};
         B \<notin> broken; evs \<in> zg|]
@@ -245,8 +245,8 @@ theorem NRR_authenticity:
 apply clarify 
 apply (frule NRR_sender, auto)
 txt{*We are left with the case where @{term "B' = Spy"} and  @{term "B' \<noteq> B"},
-  i.e. @{term "B \<notin> bad"}, when we can apply @{text NRR_authenticity_good}.*}
- apply (blast dest: NRR_authenticity_good [OF refl])
+  i.e. @{term "B \<notin> bad"}, when we can apply @{text NRR_validity_good}.*}
+ apply (blast dest: NRR_validity_good [OF refl])
 done
 
 
@@ -256,7 +256,7 @@ text{*Below we prove that if @{term sub_K} exists then @{term A} definitely
 sent it, provided @{term A} is not broken.  *}
 
 text{*Strong conclusion for a good agent*}
-lemma sub_K_authenticity_good:
+lemma sub_K_validity_good:
      "[|sub_K = Crypt (priK A) {|Number f_sub, Agent B, Nonce L, Key K|};
         sub_K \<in> parts (spies evs);
         A \<notin> bad;  evs \<in> zg |]
@@ -277,7 +277,7 @@ apply (erule zg.induct, simp_all)
 done
 
 text{*Holds also for @{term "A = Spy"}!*}
-theorem sub_K_authenticity:
+theorem sub_K_validity:
      "[|Gets TTP {|Number f_sub, Agent B, Nonce L, Key K, sub_K|} \<in> set evs;
         sub_K = Crypt (priK A) {|Number f_sub, Agent B, Nonce L, Key K|};
         A \<notin> broken;  evs \<in> zg |]
@@ -287,8 +287,8 @@ apply clarify
 apply (frule sub_K_sender, auto)
 txt{*We are left with the case where the sender is @{term Spy} and not
   equal to @{term A}, because @{term "A \<notin> bad"}. 
-  Thus theorem @{text sub_K_authenticity_good} applies.*}
-apply (blast dest: sub_K_authenticity_good [OF refl])
+  Thus theorem @{text sub_K_validity_good} applies.*}
+apply (blast dest: sub_K_validity_good [OF refl])
 done
 
 
@@ -299,7 +299,7 @@ text{*Below we prove that if @{term con_K} exists, then @{term TTP} has it,
 and therefore @{term A} and @{term B}) can get it too.  Moreover, we know
 that @{term A} sent @{term sub_K}*}
 
-lemma con_K_authenticity:
+lemma con_K_validity:
      "[|con_K \<in> used evs;
         con_K = Crypt (priK TTP)
                   {|Number f_con, Agent A, Agent B, Nonce L, Key K|};
@@ -331,19 +331,19 @@ apply (erule zg.induct)
 apply (frule_tac [5] ZG2_msg_in_parts_spies, simp_all)
 txt{*ZG4*}
 apply clarify 
-apply (rule sub_K_authenticity, auto) 
+apply (rule sub_K_validity, auto) 
 done
 
 text{*If @{term con_K} exists, then @{term A} sent @{term sub_K}.  We again
    assume that @{term A} is not broken. *}
-theorem B_sub_K_authenticity:
+theorem B_sub_K_validity:
      "[|con_K \<in> used evs;
         con_K = Crypt (priK TTP) {|Number f_con, Agent A, Agent B,
                                    Nonce L, Key K|};
         sub_K = Crypt (priK A) {|Number f_sub, Agent B, Nonce L, Key K|};
         A \<notin> broken; evs \<in> zg|]
      ==> Says A TTP {|Number f_sub, Agent B, Nonce L, Key K, sub_K|} \<in> set evs"
-by (blast dest: con_K_authenticity Notes_TTP_imp_Says_A)
+by (blast dest: con_K_validity Notes_TTP_imp_Says_A)
 
 
 subsection{*Proving fairness*}
@@ -456,7 +456,7 @@ done
 
 
 text{*If @{term con_K} exists at all, then @{term B} can get it, by @{text
-con_K_authenticity}.  Cannot conclude that also NRO is available to @{term B},
+con_K_validity}.  Cannot conclude that also NRO is available to @{term B},
 because if @{term A} were unfair, @{term A} could build message 3 without
 building message 1, which contains NRO. *}
 
