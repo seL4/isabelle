@@ -155,8 +155,7 @@ struct
     fun lit (Const("Numeral.number_of", _) $ w) =
           (HOLogic.dest_binum w handle TERM _ => raise Match)
       | lit (Const("0", _)) = 0
-      | lit (Const("RealDef.0r", _)) = 0
-      | lit (Const("RealDef.1r", _)) = 1
+      | lit (Const("1", _)) = 1
     (*translation of a literal expression [no variables]*)
     fun litExp (Const("op +", T) $ x $ y) = 
 	  if is_numeric_op T then (litExp x) + (litExp y)

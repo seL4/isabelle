@@ -47,8 +47,8 @@ fun svc_abstract t =
       | rat ((c as Const("op /", _)) $ x $ y) = c $ (rat x) $ (rat y)
       | rat ((c as Const("op *", _)) $ x $ y) = c $ (rat x) $ (rat y)
       | rat ((c as Const("uminus", _)) $ x) = c $ (rat x)
-      | rat ((c as Const("RealDef.0r", _))) = c
-      | rat ((c as Const("RealDef.1r", _))) = c 
+      | rat ((c as Const("0", _))) = c
+      | rat ((c as Const("1", _))) = c
       | rat (t as Const("Numeral.number_of", _) $ w) = t
       | rat t = replace t
     (*abstraction of an integer expression: no div, mod*)
