@@ -45,8 +45,8 @@ sig
   val put_tthm: string * tthm -> context -> context
   val put_tthms: string * tthm list -> context -> context
   val put_tthmss: (string * tthm list) list -> context -> context
-  val have_tthms: string -> context attribute list
-    -> (tthm * context attribute list) list -> context -> context * (string * tthm list)
+  val have_tthmss: string -> context attribute list
+    -> (tthm list * context attribute list) list -> context -> context * (string * tthm list)
   val assumptions: context -> tthm list
   val fixed_names: context -> string list
   val assume: string -> context attribute list -> string list -> context
@@ -556,15 +556,15 @@ fun put_tthmss [] ctxt = ctxt
   | put_tthmss (th :: ths) ctxt = ctxt |> put_tthms th |> put_tthmss ths;
 
 
-(* have_tthms *)
+(* have_tthmss *)
 
-fun have_tthms name more_attrs ths_attrs ctxt =
+fun have_tthmss name more_attrs ths_attrs ctxt =
   let
     fun app ((ct, ths), (th, attrs)) =
-      let val (ct', th') = Attribute.apply ((ct, th), attrs @ more_attrs)
+      let val (ct', th') = Attribute.applys ((ct, th), attrs @ more_attrs)
       in (ct', th' :: ths) end
     val (ctxt', rev_thms) = foldl app ((ctxt, []), ths_attrs);
-    val thms = rev rev_thms;
+    val thms = flat (rev rev_thms);
   in (ctxt' |> put_tthms (name, thms), (name, thms)) end;
 
 
@@ -583,16 +583,18 @@ fun gen_assume prep name attrs raw_props ctxt =
   let
     val (ctxt', props) = foldl_map prep (ctxt, raw_props);
     val sign = sign_of ctxt';
-    val ths = map (fn t => ((Thm.assume (Thm.cterm_of sign t), []), [])) props;
 
+    val asms = map (Attribute.tthm_of o Thm.assume o Thm.cterm_of sign) props;
+
+    val ths = map (fn th => ([th], [])) asms;
     val (ctxt'', (_, tthms)) =
       ctxt'
-      |> have_tthms name (Attribute.tag_assumption :: attrs) ths
+      |> have_tthmss name (attrs @ [Attribute.tag_assumption]) ths
 
     val ctxt''' =
       ctxt''
       |> map_context (fn (thy, data, (assumes, fixes), binds, thms, defs) =>
-        (thy, data, (assumes @ [(name, tthms)], fixes), binds, thms, defs));
+        (thy, data, (assumes @ [(name, asms)], fixes), binds, thms, defs));
   in (ctxt''', (name, tthms)) end;
 
 val assume = gen_assume (prep_declare read_prop);
