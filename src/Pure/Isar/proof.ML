@@ -424,7 +424,7 @@ fun HEADGOAL tac = tac 1;
 (* export results *)
 
 fun refine_tac rule =
-  Tactic.rtac rule THEN_ALL_NEW (SUBGOAL (fn (goal, i) =>
+  Tactic.norm_hhf_tac THEN' Tactic.rtac rule THEN_ALL_NEW (SUBGOAL (fn (goal, i) =>
     if can Logic.dest_goal (Logic.strip_assums_concl goal) then
       Tactic.etac Drule.triv_goal i
     else all_tac));
@@ -748,46 +748,25 @@ fun local_qed finalize print state =
   |> (Seq.flat o Seq.map (finish_local print));
 
 
-(* global_qed *)  (* FIXME tune *)
+(* global_qed *)
 
 fun finish_global state =
   let
-    fun export inner outer th =
-      (case Seq.pull (ProofContext.export false inner outer th) of
-        Some (th', _) => th' |> Drule.local_standard
-      | None => raise STATE ("Internal failure of theorem export", state));
-
-    fun add_thmss None _ _ add_global thy = add_global thy
-      | add_thmss (Some (loc, atts)) names ths add_global thy =
-          let val n = length names - length atts in
-            if n < 0 then raise STATE ("Bad number of local attributes", state)
-            else
-              thy
-              |> Locale.add_thmss loc ((names ~~ ths) ~~ (atts @ replicate n []))
-              |> Theory.add_path (Sign.base_name loc)
-              |> add_global
-              |>> (fn thy' => thy' |> PureThy.hide_thms false
-                (map (Sign.full_name (Theory.sign_of thy')) (filter_out (equal "") names)))
-              |>> Theory.parent_path
-          end;
-
+    val export = Drule.local_standard ooo ProofContext.export_single;
     val (goal_ctxt, (((kind, names, tss), (_, raw_thm)), _)) = current_goal state;
     val locale_ctxt = context_of (state |> close_block);
     val theory_ctxt = context_of (state |> close_block |> close_block);
 
     val ts = flat tss;
-    val locale_results =
-      prep_result state ts raw_thm |> map (export goal_ctxt locale_ctxt);
-    val results = locale_results
-      |> map (Drule.strip_shyps_warning o export locale_ctxt theory_ctxt);
-
+    val locale_results = map (export goal_ctxt locale_ctxt) (prep_result state ts raw_thm);
+    val results = map (Drule.strip_shyps_warning o export locale_ctxt theory_ctxt) locale_results;
     val (k, (cname, catts), locale, attss) =
       (case kind of Theorem x => x | _ => err_malformed "finish_global" state);
+
     val (thy1, res') =
-      theory_of state |>
-      add_thmss locale names (Library.unflat tss locale_results)
-        (PureThy.have_thmss [Drule.kind k]
-          ((names ~~ attss) ~~ map (single o Thm.no_attributes) (Library.unflat tss results)));
+      theory_of state |> Locale.add_thmss_hybrid k
+        ((names ~~ attss) ~~ map (single o Thm.no_attributes) (Library.unflat tss results))
+        locale (Library.unflat tss locale_results);
     val thy2 = thy1 |> PureThy.add_thmss [((cname, flat (map #2 res')), catts)] |> #1;
   in (thy2, ((k, cname), res')) end;
 
