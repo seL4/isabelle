@@ -56,10 +56,7 @@ Addsimps [bound_tv_gen];
 
 Goal "new_tv n t --> new_tv n (gen A t)";
 by (induct_tac "t" 1);
-by (Simp_tac 1);
-by (case_tac "nat : free_tv A" 1);
-by (Asm_simp_tac 1);
-by (Asm_simp_tac 1);
+by Auto_tac;
 qed_spec_mp "new_tv_compatible_gen";
 
 Goalw [gen_ML_def] "gen A t = gen_ML A t";
