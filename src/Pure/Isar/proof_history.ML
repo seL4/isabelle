@@ -9,13 +9,12 @@ signature PROOF_HISTORY =
 sig
   type T
   exception FAIL of string
-  val init: Proof.state -> T
+  val init: int option -> Proof.state -> T
+  val is_initial: T -> bool
   val current: T -> Proof.state
   val clear: T -> T
   val undo: T -> T
   val redo: T -> T
-  val undos: int -> T -> T
-  val redos: int -> T -> T
   val position: T -> int
   val nesting: T -> int
   val prev: T -> T
@@ -54,14 +53,12 @@ fun hist_app f = app (History.apply f);
 
 (* generic history operations *)
 
-fun init st = ProofHistory (History.init (((st, Seq.empty), 0), []));
+fun init lim st = ProofHistory (History.init lim (((st, Seq.empty), 0), []));
+fun is_initial (ProofHistory prf) = History.is_initial prf;
 fun current (ProofHistory prf) = fst (fst (fst (History.current prf)));
 val clear = app History.clear;
 val undo = app History.undo;
 val redo = app History.redo;
-
-fun undos n = funpow n undo;
-fun redos n = funpow n redo;
 
 
 (* navigate *)
