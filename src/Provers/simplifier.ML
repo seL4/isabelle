@@ -6,8 +6,8 @@
 Generic simplifier, suitable for most logics.
  
 *)
-infix addsimps addeqcongs delsimps
-      setsolver setloop setmksimps setsubgoaler;
+infix 4 addsimps addeqcongs delsimps
+        setsolver setloop setmksimps setsubgoaler;
 
 signature SIMPLIFIER =
 sig
