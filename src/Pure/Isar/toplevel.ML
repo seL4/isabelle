@@ -343,7 +343,7 @@ fun excur [] x = x
 fun excursion trs =
   (case excur trs (State []) of
     State [] => ()
-  | _ => raise ERROR_MESSAGE "Pending blocks at end of excursion");
+  | _ => raise ERROR_MESSAGE "Open block(s) pending at end of input");
 
 
 
