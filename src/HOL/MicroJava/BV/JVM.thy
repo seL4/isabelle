@@ -3,10 +3,9 @@
     Author:     Tobias Nipkow
     Copyright   2000 TUM
 
-A micro-JVM
 *)
 
-header "JVM"
+header "Kildall for the JVM"
 
 theory JVM = Kildall + JType + Opt + Product + DFA_err + StepMono + BVSpec:
 
@@ -41,6 +40,17 @@ constdefs
   "kiljvm G maxs maxr rT bs ==
   kildall (sl G maxs maxr) (exec G maxs rT bs) (\<lambda>pc. succs (bs!pc) pc)"
 
+  wt_kil :: "jvm_prog \<Rightarrow> cname \<Rightarrow> ty list \<Rightarrow> ty \<Rightarrow> nat \<Rightarrow> nat \<Rightarrow> instr list \<Rightarrow> bool"
+  "wt_kil G C pTs rT mxs mxl ins ==
+   bounded (\<lambda>n. succs (ins!n) n) (size ins) \<and> 0 < size ins \<and> 
+   (let first  = Some ([],(OK (Class C))#((map OK pTs))@(replicate mxl Err));
+        start  = OK first#(replicate (size ins-1) (OK None));
+        result = kiljvm G mxs (1+size pTs+mxl) rT ins start
+    in \<forall>n < size ins. result!n \<noteq> Err)"
+
+  wt_jvm_prog_kildall :: "jvm_prog => bool"
+  "wt_jvm_prog_kildall G ==
+  wf_prog (\<lambda>G C (sig,rT,(maxs,maxl,b)). wt_kil G C (snd sig) rT maxs maxl b) G"
 
 lemma JVM_states_unfold: 
   "states S maxs maxr == err(opt((Union {list n (types S) |n. n <= maxs}) <*>
@@ -155,32 +165,34 @@ theorem exec_pres_type:
  apply clarify
  apply (case_tac "bs!p")
 
- apply clarsimp
- apply clarsimp
- apply clarsimp
- apply clarsimp
- apply clarsimp
- apply clarsimp
- defer
- apply clarsimp
- apply clarsimp
+ apply fastsimp
+ apply fastsimp
+ apply fastsimp
+ apply fastsimp
+ apply fastsimp
  apply clarsimp
  defer
+ apply fastsimp
+ apply fastsimp
  apply clarsimp
- apply clarsimp
- apply clarsimp
- apply clarsimp
- apply clarsimp
- apply clarsimp
- apply clarsimp
- apply clarsimp
- apply clarsimp
+ defer
+ apply fastsimp
+ apply fastsimp
+ apply fastsimp
+ apply fastsimp
+ apply fastsimp
+ apply fastsimp
+ apply fastsimp
+ apply fastsimp
+ apply fastsimp
  defer
 
+ (* Invoke *)
  apply (simp add: Un_subset_iff)
  apply (drule method_wf_mdecl, assumption+)
  apply (simp add: wf_mdecl_def wf_mhead_def)
 
+ (* Getfield *)
  apply (rule_tac fn = "(vname,cname)" in fields_is_type)
  defer
  apply assumption+
@@ -251,26 +263,27 @@ theorem is_bcv_kiljvm:
   apply (erule exec_mono)
   done
 
-theorem 
-  "[| wf_prog wf_mb G; bounded (\<lambda>pc. succs (bs!pc) pc) (size bs); 
-      0 < size bs;
-      r = kiljvm G maxs maxr rT bs 
-      (OK (Some ([],(OK (Class C))#((map OK pTs))@(replicate mxl Err)))#(replicate (size bs-1) (OK None)));       
-      \<forall>n < size bs. r!n \<noteq> Err; maxr = Suc (length pTs + mxl);
+
+theorem wt_kil_correct:
+  "[| wt_kil G C pTs rT maxs mxl bs; wf_prog wf_mb G; 
       is_class G C; \<forall>x \<in> set pTs. is_type G x |]
   ==> \<exists>phi. wt_method G C pTs rT maxs mxl bs phi"
 proof -
   let ?start = "OK (Some ([],(OK (Class C))#((map OK pTs))@(replicate mxl Err)))
                 #(replicate (size bs-1) (OK None))"
 
-  assume wf:        "wf_prog wf_mb G"
-  assume bounded:   "bounded (\<lambda>pc. succs (bs!pc) pc) (size bs)"
-  assume result:    "r = kiljvm G maxs maxr rT bs ?start"
-  assume success:   "\<forall>n < size bs. r!n \<noteq> Err"  
-  assume instrs:    "0 < size bs"
-  assume maxr:      "maxr = Suc (length pTs + mxl)"
-  assume isclass:   "is_class G C"
-  assume istype:    "\<forall>x \<in> set pTs. is_type G x"
+  assume wf:      "wf_prog wf_mb G"
+  assume isclass: "is_class G C"
+  assume istype:  "\<forall>x \<in> set pTs. is_type G x"
+
+  assume "wt_kil G C pTs rT maxs mxl bs"
+  then obtain maxr r where    
+    bounded: "bounded (\<lambda>pc. succs (bs!pc) pc) (size bs)" and
+    result:  "r = kiljvm G maxs maxr rT bs ?start" and
+    success: "\<forall>n < size bs. r!n \<noteq> Err" and
+    instrs:  "0 < size bs" and
+    maxr:    "maxr = Suc (length pTs + mxl)" 
+    by (unfold wt_kil_def) simp
 
   { fix pc
     have "succs (bs!pc) pc \<noteq> []"
@@ -345,7 +358,6 @@ proof -
   have phi0: "OK (map ok_val phi' ! 0) = phi' ! 0"
     by clarsimp
 
-
   from l bounded
   have "bounded (\<lambda>pc. succs (bs ! pc) pc) (length phi')"
     by simp
@@ -369,6 +381,60 @@ proof -
     apply (clarsimp simp add: lesub_def wt_instr_def)
     apply (unfold bounded_def)
     apply blast    
+    done
+
+  thus ?thesis by blast
+qed
+
+lemma is_type_pTs:
+  "[| wf_prog wf_mb G; (C,S,fs,mdecls) \<in> set G; (sig,rT,code) \<in> set mdecls; 
+      t \<in> set (snd sig) |]
+  ==> is_type G t"
+proof -
+  assume "wf_prog wf_mb G" 
+         "(C,S,fs,mdecls) \<in> set G"
+         "(sig,rT,code) \<in> set mdecls"
+  hence "wf_mdecl wf_mb G C (sig,rT,code)"
+    by (unfold wf_prog_def wf_cdecl_def) auto
+  hence "\<forall>t \<in> set (snd sig). is_type G t" 
+    by (unfold wf_mdecl_def wf_mhead_def) auto
+  moreover
+  assume "t \<in> set (snd sig)"
+  ultimately
+  show ?thesis by blast
+qed
+
+
+theorem jvm_kildall_correct:
+  "wt_jvm_prog_kildall G ==> \<exists>Phi. wt_jvm_prog G Phi"
+proof -  
+  assume wtk: "wt_jvm_prog_kildall G"
+
+  then obtain wf_mb where
+    wf: "wf_prog wf_mb G"
+    by (auto simp add: wt_jvm_prog_kildall_def)
+
+  let ?Phi = "\<lambda>C sig. let (C,rT,(maxs,maxl,ins)) = the (method (G,C) sig) in 
+              SOME phi. wt_method G C (snd sig) rT maxs maxl ins phi"
+   
+  { fix C S fs mdecls sig rT code
+    assume "(C,S,fs,mdecls) \<in> set G" "(sig,rT,code) \<in> set mdecls"
+    with wf
+    have "method (G,C) sig = Some (C,rT,code) \<and> is_class G C \<and> (\<forall>t \<in> set (snd sig). is_type G t)"
+      by (simp add: methd is_type_pTs)
+  } note this [simp]
+ 
+  from wtk
+  have "wt_jvm_prog G ?Phi"
+    apply (unfold wt_jvm_prog_def wt_jvm_prog_kildall_def wf_prog_def wf_cdecl_def)
+    apply clarsimp
+    apply (drule bspec, assumption)
+    apply (unfold wf_mdecl_def)
+    apply clarsimp
+    apply (drule bspec, assumption)
+    apply clarsimp
+    apply (drule wt_kil_correct [OF _ wf])
+    apply (auto intro: someI)
     done
 
   thus ?thesis by blast
