@@ -487,7 +487,7 @@ val simp_modifiers' =
 
 fun simp_method tac =
   (fn prems => fn ctxt => Method.METHOD (fn facts =>
-    FIRSTGOAL (Method.insert_tac (prems @ facts) THEN' tac (get_local_simpset ctxt))))
+    FINDGOAL (Method.insert_tac (prems @ facts) THEN' tac (get_local_simpset ctxt))))
   |> Method.bang_sectioned_args simp_modifiers';
   
 

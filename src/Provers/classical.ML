@@ -1057,7 +1057,7 @@ end;
 (* METHOD_CLASET' *)
 
 fun METHOD_CLASET' tac ctxt =
-  Method.METHOD (FIRSTGOAL o tac (get_local_claset ctxt));
+  Method.METHOD (FINDGOAL o tac (get_local_claset ctxt));
 
 
 val trace_rules = ref false;
@@ -1149,7 +1149,7 @@ fun cla_meth tac prems ctxt = Method.METHOD (fn facts =>
   ALLGOALS (Method.insert_tac (prems @ facts)) THEN tac (get_local_claset ctxt));
 
 fun cla_meth' tac prems ctxt = Method.METHOD (fn facts =>
-  FIRSTGOAL (Method.insert_tac (prems @ facts) THEN' tac (get_local_claset ctxt)));
+  FINDGOAL (Method.insert_tac (prems @ facts) THEN' tac (get_local_claset ctxt)));
 
 val cla_method = Method.bang_sectioned_args cla_modifiers o cla_meth;
 val cla_method' = Method.bang_sectioned_args cla_modifiers o cla_meth';

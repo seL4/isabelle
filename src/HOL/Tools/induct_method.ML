@@ -72,7 +72,7 @@ val inst = term -- term >> (apfst Some) || term >> pair None;
 
 fun induct ctxt =
   Args.and_list inst -- Scan.option (Scan.lift (kind -- Args.name))
-  >> (fn (is, k) => Method.METHOD (FIRSTGOAL o induct_tac (ProofContext.theory_of ctxt) is k));
+  >> (fn (is, k) => Method.METHOD (FINDGOAL o induct_tac (ProofContext.theory_of ctxt) is k));
 
 fun induct_meth src ctxt = #2 (Method.syntax (induct ctxt) ctxt src);
 val induct_method = ("induct", induct_meth, "induction on types, sets, functions etc.");
