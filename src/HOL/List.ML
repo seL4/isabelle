@@ -896,6 +896,20 @@ by (case_tac "xs" 1);
  by Auto_tac;
 qed_spec_mp "drop_map";
 
+Goal "!i. rev (take i xs) = drop (length xs - i) (rev xs)";
+by(induct_tac "xs" 1);
+ by Auto_tac;
+by (case_tac "i" 1);
+ by Auto_tac;
+qed_spec_mp "rev_take";
+
+Goal "!i. rev (drop i xs) = take (length xs - i) (rev xs)";
+by(induct_tac "xs" 1);
+ by Auto_tac;
+by (case_tac "i" 1);
+ by Auto_tac;
+qed_spec_mp "rev_drop";
+
 Goal "!n i. i < n --> (take n xs)!i = xs!i";
 by (induct_tac "xs" 1);
  by Auto_tac;
