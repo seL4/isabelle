@@ -40,9 +40,6 @@ adjust type of ^ in tab:overloading
 explanation of term "contrapositive"/contraposition in Rules?
 Index the notion and maybe the rules contrapos_xy
 
-If Advanced and Types chapter ar swapped:
-Make forward ref from ... = True in Axioms to preprocessor section.
-
 get rid of use_thy in tutorial?
 
 Orderings on numbers (with hint that it is overloaded):
@@ -75,17 +72,13 @@ Move section on rule inversion further to the front, and combine
 Minor additions to the tutorial, unclear where
 ==============================================
 
-case_tac on bool?
+unfold?
 
 Tacticals: , ? +
 Note: + is used in typedef section!
 
 A list of further useful commands (rules? tricks?)
 prefer, defer, print_simpset (-> print_simps?)
-
-Advanced Ind expects rule_format incl (no_asm) (which it currently explains!)
-Where explained? Should go into a separate section as Inductive needs it as
-well.
 
 demonstrate x : set xs in Sets. Or Tricks chapter?
 

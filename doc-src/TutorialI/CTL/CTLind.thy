@@ -131,8 +131,7 @@ in which case the assumption @{prop"t \<in> Avoid s A"} is trivially true
 by the first @{term Avoid}-rule. Isabelle confirms this:
 *}
 
-theorem AF_lemma2:
-  "{s. \<forall>p \<in> Paths s. \<exists> i. p i \<in> A} \<subseteq> lfp(af A)";
+theorem AF_lemma2:  "{s. \<forall>p \<in> Paths s. \<exists> i. p i \<in> A} \<subseteq> lfp(af A)";
 by(auto elim:Avoid_in_lfp intro:Avoid.intros);
 
 
