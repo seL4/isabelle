@@ -4,22 +4,15 @@
     Copyright   1995  University of Cambridge
 *)
 
-open Dynamic ECR;
-
 (* Specialised co-induction rule *)
 
-Goal "[| x:ExVar; e:Exp; t:Ty; ve:ValEnv; te:TyEnv; \
-\    <te, e_fn(x, e), t>:ElabRel; ve_dom(ve) = te_dom(te); \
-\    {<ve_app(ve,y),te_app(te,y)>.y:ve_dom(ve)}: \
-\    Pow({<v_clos(x,e,ve),t>} Un HasTyRel) |] ==>  \
-\ <v_clos(x, e, ve),t>:HasTyRel";
-by (rtac HasTyRel.coinduct 1);
-by (rtac singletonI 1);
-by (fast_tac (claset() addIs Val_ValEnv.intrs) 1);
-by (rtac disjI2 1);
-by (etac singletonE 1); 
-by (REPEAT_FIRST (resolve_tac [conjI,exI]));
-by (REPEAT (atac 1));
+Goal "[| x:ExVar; e:Exp; t:Ty; ve:ValEnv; te:TyEnv;  \
+\        <te, e_fn(x, e), t>:ElabRel; ve_dom(ve) = te_dom(te); \
+\        {<ve_app(ve,y),te_app(te,y)>.y:ve_dom(ve)}: \
+\        Pow({<v_clos(x,e,ve),t>} Un HasTyRel) |]    \
+\     ==> <v_clos(x, e, ve),t>:HasTyRel";
+by (rtac (singletonI RS HasTyRel.coinduct) 1);
+by (ALLGOALS Blast_tac);
 qed "htr_closCI";
 
 (* Specialised elimination rules *)

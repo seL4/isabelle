@@ -199,8 +199,7 @@ by (Asm_simp_tac 1);
 by (etac (bspec RS lt_trans2) 1);
 by (rtac (add_le_self2 RS succ_leI) 2);
 by Auto_tac;
-qed "PROJ_case_lemma";
-val PROJ_case = PROJ_case_lemma RS bspec;
+qed_spec_mp "PROJ_case";
 
 (** COMP case **)
 
@@ -211,8 +210,8 @@ Goal "fs : list({f: prim_rec .                                 \
 \                list_add(map(%f. f ` l, fs)) < ack(k, list_add(l))";
 by (etac list.induct 1);
 by (res_inst_tac [("x","0")] bexI 1);
-by (asm_simp_tac (simpset() addsimps [lt_ack1, nat_0_le]) 1);
-by Auto_tac;
+by (ALLGOALS (asm_simp_tac (simpset() addsimps [lt_ack1, nat_0_le])));
+by (Clarify_tac 1);
 by (rtac (ballI RS bexI) 1);
 by (rtac (add_lt_mono RS lt_trans) 1);
 by (REPEAT (FIRSTGOAL (etac bspec)));
@@ -255,7 +254,7 @@ by (induct_tac "a" 1);
 (*base case*)
 by (EVERY1 [Asm_simp_tac, rtac lt_trans, etac bspec,
 	    assume_tac, rtac (add_le_self RS ack_lt_mono1)]);
-by Auto_tac;
+by (ALLGOALS Asm_simp_tac);
 (*ind step*)
 by (rtac (succ_leI RS lt_trans1) 1);
 by (res_inst_tac [("j", "g ` ?ll #+ ?mm")] lt_trans1 1);

@@ -42,54 +42,35 @@ qed "ValE";
 
 (* Nonempty sets *)
 
-val prems = goal Values.thy "A ~= 0 ==> EX a. a:A";
-by (cut_facts_tac prems 1);
-by (rtac (foundation RS disjE) 1);
-by (Fast_tac 1);
-by (Fast_tac 1);
-qed "set_notemptyE";
-
-Goalw (sum_def::QPair_def::QInl_def::QInr_def::Val_ValEnv.con_defs)
+Goalw (QPair_def::QInl_def::QInr_def::Val_ValEnv.con_defs)
   "v_clos(x,e,ve) ~= 0";
-by (rtac not_emptyI 1);
-by (rtac UnI2 1);
-by (rtac SigmaI 1);
-by (rtac singletonI 1);
-by (rtac UnI1 1);
-by (Fast_tac 1);
+by (Blast_tac 1);
 qed "v_closNE";
 
-Goalw (sum_def::QPair_def::QInl_def::QInr_def::Val_ValEnv.con_defs)
+Addsimps [v_closNE];
+AddSEs [v_closNE RS notE];
+
+Goalw (QPair_def::QInl_def::QInr_def::Val_ValEnv.con_defs)
   "c:Const ==> v_const(c) ~= 0";
 by (dtac constNEE 1);
-by (etac not_emptyE 1);
-by (rtac not_emptyI 1);
-by (rtac UnI2 1);
-by (rtac SigmaI 1);
-by (rtac singletonI 1);
-by (rtac UnI2 1);
-by (rtac SigmaI 1);
-by (rtac singletonI 1);
-by (assume_tac 1);
+by Auto_tac;
 qed "v_constNE";
+
+Addsimps [v_constNE];
 
 (* Proving that the empty set is not a value *)
 
 Goal "v:Val ==> v ~= 0";
 by (etac ValE 1);
-by (ALLGOALS hyp_subst_tac);
-by (etac v_constNE 1);
-by (rtac v_closNE 1);
+by Auto_tac;
 qed "ValNEE";
 
 (* Equalities for value environments *)
 
 Goal "[| ve:ValEnv; v ~=0 |] ==> ve_dom(ve_owr(ve,x,v)) = ve_dom(ve) Un {x}";
 by (etac ValEnvE 1);
-by (Asm_full_simp_tac 1);
-by (stac map_domain_owr 1);
-by (assume_tac 1);
-by (rtac Un_commute 1);
+by (auto_tac (claset(),
+	      simpset() addsimps [map_domain_owr]));
 qed "ve_dom_owr";
 
 Goal "ve:ValEnv \

@@ -9,7 +9,7 @@
 (*       Setting up rule lists                                               *)
 (* ------------------------------------------------------------------------- *)
 
-AddIs (Sres.intrs @ redexes.intrs @ Sreg.intrs @ [subst_type]); 
+AddIs (Sres.intrs @ Sreg.intrs @ [subst_type]); 
 AddSEs (map Sres.mk_cases
 	     ["residuals(Var(n),Var(n),v)",
 	      "residuals(Fun(t),Fun(u),v)",

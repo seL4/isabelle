@@ -28,8 +28,7 @@ Goalw [hastyenv_def]
 by (Blast_tac 1);
 qed "consistency_fn";
 
-AddIs (Ty.intrs@TyEnv.intrs@Val_ValEnv.intrs);
-AddDs [te_owrE,(ElabRel.dom_subset RS subsetD)];
+AddDs [te_owrE, ElabRel.dom_subset RS subsetD];
 
 Addsimps [ve_dom_owr, ve_app_owr1, ve_app_owr2, 
           te_app_owr1, te_app_owr2];
@@ -71,9 +70,7 @@ by (etac subst 1);
 by (rtac v_closNE 1);
 by (rtac subsetI 1);
 by (etac RepFunE 1);
-by (excluded_middle_tac "f=y" 1);
-by (rtac UnI1 2);
-by (rtac UnI2 1);
+by (case_tac "f=y" 1);
 by Auto_tac;
 qed "consistency_fix";
 
@@ -147,6 +144,6 @@ Goal "[| ve:ValEnv; te:TyEnv;              \
 \     |] ==> isof(c,t)";
 by (rtac htr_constE 1);
 by (dtac consistency 1);
-by (fast_tac (claset() addSIs [basic_consistency_lem]) 1);
+by (blast_tac (claset() addSIs [basic_consistency_lem]) 1);
 by (assume_tac 1);
 qed "basic_consistency";

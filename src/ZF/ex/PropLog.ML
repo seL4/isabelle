@@ -75,11 +75,11 @@ qed "weaken_right";
 (*The deduction theorem*)
 Goal "[| cons(p,H) |- q;  p:prop |] ==>  H |- p=>q";
 by (etac thms.induct 1);
-by (fast_tac (claset() addIs [thms_I, thms.H RS weaken_right]) 1);
-by (fast_tac (claset() addIs [thms.K RS weaken_right]) 1);
-by (fast_tac (claset() addIs [thms.S RS weaken_right]) 1);
-by (fast_tac (claset() addIs [thms.DN RS weaken_right]) 1);
-by (fast_tac (claset() addIs [thms.S RS thms_MP RS thms_MP]) 1);
+by (blast_tac (claset() addIs [thms_I, thms.H RS weaken_right]) 1);
+by (blast_tac (claset() addIs [thms.K RS weaken_right]) 1);
+by (blast_tac (claset() addIs [thms.S RS weaken_right]) 1);
+by (blast_tac (claset() addIs [thms.DN RS weaken_right]) 1);
+by (blast_tac (claset() addIs [thms.S RS thms_MP RS thms_MP]) 1);
 qed "deduction";
 
 
@@ -128,11 +128,11 @@ qed "Imp_Fls";
 (*Typical example of strengthening the induction formula*)
 Goal "p: prop ==> hyps(p,t) |- (if is_true(p,t) then p else p=>Fls)";
 by (Simp_tac 1);
-by (etac prop.induct 1);
+by (induct_tac "p" 1);
 by (ALLGOALS (asm_simp_tac (simpset() addsimps [thms_I, thms.H])));
 by (safe_tac (claset() addSEs [Fls_Imp RS weaken_left_Un1, 
 			       Fls_Imp RS weaken_left_Un2]));
-by (ALLGOALS (fast_tac (claset() addIs [weaken_left_Un1, weaken_left_Un2, 
+by (ALLGOALS (blast_tac (claset() addIs [weaken_left_Un1, weaken_left_Un2, 
 					weaken_right, Imp_Fls])));
 qed "hyps_thms_if";
 
@@ -165,14 +165,14 @@ qed "thms_excluded_middle_rule";
 (*For the case hyps(p,t)-cons(#v,Y) |- p;
   we also have hyps(p,t)-{#v} <= hyps(p, t-{v}) *)
 Goal "p: prop ==> hyps(p, t-{v}) <= cons(#v=>Fls, hyps(p,t)-{#v})";
-by (etac prop.induct 1);
+by (induct_tac "p" 1);
 by Auto_tac;
 qed "hyps_Diff";
 
 (*For the case hyps(p,t)-cons(#v => Fls,Y) |- p;
   we also have hyps(p,t)-{#v=>Fls} <= hyps(p, cons(v,t)) *)
 Goal "p: prop ==> hyps(p, cons(v,t)) <= cons(#v, hyps(p,t)-{#v=>Fls})";
-by (etac prop.induct 1);
+by (induct_tac "p" 1);
 by Auto_tac;
 qed "hyps_cons";
 
@@ -189,10 +189,10 @@ qed "cons_Diff_subset2";
 (*The set hyps(p,t) is finite, and elements have the form #v or #v=>Fls;
  could probably prove the stronger hyps(p,t) : Fin(hyps(p,0) Un hyps(p,nat))*)
 Goal "p: prop ==> hyps(p,t) : Fin(UN v:nat. {#v, #v=>Fls})";
-by (etac prop.induct 1);
+by (induct_tac "p" 1);
 by (asm_simp_tac (simpset() addsimps [UN_I]) 2);
 by (ALLGOALS Asm_simp_tac);
-by (fast_tac (claset() addIs Fin.intrs) 1);
+by (blast_tac (claset() addIs Fin.intrs) 1);
 qed "hyps_finite";
 
 val Diff_weaken_left = subset_refl RSN (2, Diff_mono) RS weaken_left;
@@ -230,8 +230,7 @@ qed "completeness_0";
 
 (*A semantic analogue of the Deduction Theorem*)
 Goalw [logcon_def] "[| cons(p,H) |= q |] ==> H |= p=>q";
-by (Simp_tac 1);
-by (Fast_tac 1);
+by Auto_tac;
 qed "logcon_Imp";
 
 Goal "H: Fin(prop) ==> ALL p:prop. H |= p --> H |- p";

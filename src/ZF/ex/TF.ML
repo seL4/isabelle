@@ -127,11 +127,7 @@ qed "preorder_type";
 val treeI = tree_subset_TF RS subsetD
 and forestI = forest_subset_TF RS subsetD;
 
-val typechecks =
-    [treeI, forestI,
-     list_of_TF_type, map_type, size_type, preorder_type];
-
-Addsimps typechecks;
+AddTCs [treeI, forestI, list_of_TF_type, map_type, size_type, preorder_type];
 
 (** theorems about list_of_TF and of_list **)
 
@@ -176,16 +172,12 @@ qed "size_map";
 
 Goal "z: tree_forest(A) ==> size(z) = length(preorder(z))";
 by (etac tree_forest.induct 1);
-by (ALLGOALS   (*TYPECHECKING: why so explicit?*)
-    (asm_simp_tac
-     (simpset() addsimps [treeI RS preorder_type RS length_app])));
+by (ALLGOALS (asm_simp_tac (simpset() addsimps [length_app])));
 qed "size_length";
 
 (** theorems about preorder **)
 
 Goal "z: tree_forest(A) ==> preorder(TF.map(h,z)) = List.map(h, preorder(z))";
 by (etac tree_forest.induct 1);
-by (ALLGOALS  (*TYPECHECKING: why so explicit?*)
-    (asm_simp_tac
-     (simpset() addsimps [treeI RS preorder_type RS map_app_distrib])));
+by (ALLGOALS (asm_simp_tac (simpset() addsimps [map_app_distrib])));
 qed "preorder_map";

@@ -355,7 +355,7 @@ fun add_datatype_i (dom_sum, rec_tms, con_ty_lists,
 
   val free_SEs = Ind_Syntax.mk_free_SEs free_iffs;
 
-  val {elim, induct, mutual_induct, ...} = ind_result
+  val {intrs, elim, induct, mutual_induct, ...} = ind_result
 
   (*Typical theorems have the form ~con1=con2, con1=con2==>False,
     con1(x)=con1(y) ==> x=y, con1(x)=con1(y) <-> x=y, etc.  *)
@@ -390,7 +390,10 @@ fun add_datatype_i (dom_sum, rec_tms, con_ty_lists,
  in
   (*Updating theory components: simprules and datatype info*)
   (thy1 |> Theory.add_path big_rec_base_name
-        |> PureThy.add_thmss [(("simps", simps), [Simplifier.simp_add_global])]
+        |> PureThy.add_thmss [(("simps", simps), 
+			       [Simplifier.simp_add_global])]
+        |> PureThy.add_thmss [(("intrs", intrs), 
+			       [Classical.safe_intro_global])]
         |> DatatypesData.put 
 	    (Symtab.update
 	     ((big_rec_name, dt_info), DatatypesData.get thy1)) 
