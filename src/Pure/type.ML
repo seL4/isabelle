@@ -129,7 +129,7 @@ fun str_of_arity (t, [], S) = t ^ " :: " ^ str_of_sort S
   subclass:
     an association list representing the subclass relation; (c, cs) is
     interpreted as "c is a proper subclass of all elemenst of cs"; note that
-    c itself is not a memeber of cs;
+    c itself is not a member of cs;
 
   default:
     the default sort attached to all unconstrained type vars;
