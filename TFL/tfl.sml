@@ -1,29 +1,62 @@
-(*  Title:      TFL/tfl
+(*  Title:      TFL/tfl.sml
     ID:         $Id$
     Author:     Konrad Slind, Cambridge University Computer Laboratory
     Copyright   1997  University of Cambridge
 
-Main module
+First part of main module.
 *)
 
-structure Prim : TFL_sig =
+signature TFL_sig =
+sig
+  val trace: bool ref
+  type pattern
+  val mk_functional: theory -> term list -> {functional: term, pats: pattern list}
+  val wfrec_definition0: theory -> string -> term -> term -> theory * thm
+  val post_definition: thm list -> theory * (thm * pattern list) ->
+   {theory: theory,
+    rules: thm,
+    rows: int list,
+    TCs: term list list,
+    full_pats_TCs: (term * term list) list}
+  val wfrec_eqns: theory -> xstring -> thm list -> term list ->
+   {WFR: term,
+    SV: term list,
+    proto_def: term,
+    extracta: (thm * term list) list,
+    pats: pattern list}
+  val lazyR_def: theory -> xstring -> thm list -> term list ->
+   {theory: theory,
+    rules: thm,
+    R: term,
+    SV: term list,
+    full_pats_TCs: (term * term list) list,
+    patterns : pattern list}
+  val mk_induction: theory ->
+    {fconst: term, R: term, SV: term list, pat_TCs_list: (term * term list) list} -> thm
+  val postprocess: {wf_tac: tactic, terminator: tactic, simplifier: cterm -> thm} -> theory ->
+    {rules: thm, induction: thm, TCs: term list list} ->
+    {rules: thm, induction: thm, nested_tcs: thm list}
+end;
+
+
+structure Prim: TFL_sig =
 struct
 
 val trace = ref false;
 
-open BasisLibrary; (*restore original structures*)
+open BasisLibrary;
 
-(* Abbreviations *)
 structure R = Rules;
 structure S = USyntax;
 structure U = S.Utils;
 
-fun TFL_ERR{func,mesg} = U.ERR{module = "Tfl", func = func, mesg = mesg};
+
+fun TFL_ERR {func, mesg} = U.ERR {module = "Tfl", func = func, mesg = mesg};
 
 val concl = #2 o R.dest_thm;
 val hyp = #1 o R.dest_thm;
 
-val list_mk_type = U.end_itlist (curry(op -->));
+val list_mk_type = U.end_itlist (curry (op -->));
 
 fun enumerate xs = ListPair.zip(xs, 0 upto (length xs - 1));
 
@@ -34,79 +67,6 @@ fun front_last [] = raise TFL_ERR {func="front_last", mesg="empty list"}
      in
         (h::pref,x)
      end;
-
-
-
-(*---------------------------------------------------------------------------
-          handling of user-supplied congruence rules: tnn *)
-
-(*Convert conclusion from = to ==*)
-val eq_reflect_list = map (fn th => (th RS eq_reflection) handle _ => th);
-
-val cong_hd = fst o dest_Const o head_of o fst o Logic.dest_equals o concl_of;
-
-fun add_cong(congs,thm) =
-  let val c = cong_hd thm
-  in overwrite_warn (congs,(c,thm))
-       ("Overwriting congruence rule for " ^ quote c)
-  end
-
-fun del_cong(congs,thm) =
-  let val c = cong_hd thm
-      val (del, rest) = partition (fn (n, _) => n = c) congs
-  in if null del
-     then (warning ("No congruence rule for " ^ quote c ^ " present"); congs)
-     else rest
-  end;
-
-fun add_congs(congs,thms) = foldl add_cong (congs, eq_reflect_list thms);
-fun del_congs(congs,thms) = foldl del_cong (congs, eq_reflect_list thms);
-
-(** recdef data **)
-
-(* theory data kind 'Provers/simpset' *)
-
-structure RecdefCongsArgs =
-struct
-  val name = "HOL/recdef-congs";
-  type T = (string * thm) list ref;
-
-  val empty = ref(add_congs([], [Thms.LET_CONG, if_cong]));
-  fun copy (ref congs) = (ref congs): T;            (*create new reference!*)
-  val prep_ext = copy;
-  fun merge (ref congs1, ref congs2) = ref (merge_alists congs1 congs2);
-  fun print _ (ref congs) = print_thms(map snd congs);
-end;
-
-structure RecdefCongs = TheoryDataFun(RecdefCongsArgs);
-val print_recdef_congs = RecdefCongs.print;
-val recdef_congs_ref_of_sg = RecdefCongs.get_sg;
-val recdef_congs_ref_of = RecdefCongs.get;
-val init = RecdefCongs.init;
-
-
-(* access global recdef_congs *)
-val recdef_congs_of_sg = ! o recdef_congs_ref_of_sg;
-val recdef_congs_of = recdef_congs_of_sg o Theory.sign_of;
-
-(* change global recdef_congs *)
-
-fun change_recdef_congs_of f x thy =
-  let val r = recdef_congs_ref_of thy
-  in r := f (! r, x); thy end;
-
-fun change_recdef_congs f x =
- (change_recdef_congs_of f x (Context.the_context ()); ());
-
-val Add_recdef_congs = change_recdef_congs add_congs;
-val Del_recdef_congs = change_recdef_congs del_congs;
-
-
-fun congs thy ths = map snd (recdef_congs_of thy) @ eq_reflect_list ths;
-
-val default_simps =
-    [less_Suc_eq RS iffD2, lex_prod_def, measure_def, inv_image_def];
-
 
 
 (*---------------------------------------------------------------------------
@@ -477,7 +437,6 @@ end;
 
 fun givens pats = map pat_of (filter given pats);
 
-(*called only by Tfl.simplify_defn*)
 fun post_definition meta_tflCongs (theory, (def, pats)) =
  let val tych = Thry.typecheck theory
      val f = #lhs(S.dest_eq(concl def))
@@ -569,7 +528,7 @@ fun wfrec_eqns thy fid tflCongs eqns =
 
 fun lazyR_def thy fid tflCongs eqns =
  let val {proto_def,WFR,pats,extracta,SV} =
-           wfrec_eqns thy fid (congs thy tflCongs) eqns
+           wfrec_eqns thy fid tflCongs eqns
      val R1 = S.rand WFR
      val f = #lhs(S.dest_eq proto_def)
      val (extractants,TCl) = ListPair.unzip extracta
@@ -952,7 +911,7 @@ fun elim_tc tcthm (rule,induction) =
    (R.MP rule tcthm, R.PROVE_HYP tcthm induction)
 
 
-fun postprocess{WFtac, terminator, simplifier} theory {rules,induction,TCs} =
+fun postprocess{wf_tac, terminator, simplifier} theory {rules,induction,TCs} =
 let val tych = Thry.typecheck theory
 
    (*---------------------------------------------------------------------
@@ -961,7 +920,7 @@ let val tych = Thry.typecheck theory
    val (rules1,induction1)  =
        let val thm = R.prove(tych(HOLogic.mk_Trueprop
                                   (hd(#1(R.dest_thm rules)))),
-                             WFtac)
+                             wf_tac)
        in (R.PROVE_HYP thm rules,  R.PROVE_HYP thm induction)
        end handle _ => (rules,induction)
 
@@ -1044,7 +1003,4 @@ in
   {induction = ind2, rules = R.LIST_CONJ rules2, nested_tcs = extras}
 end;
 
-end; (* TFL *)
-
-val Add_recdef_congs = Prim.Add_recdef_congs;
-val Del_recdef_congs = Prim.Del_recdef_congs;
+end;
