@@ -112,8 +112,7 @@ fun setup_state () =
     let
       val begin_state = oct_char "366";
       val end_state= oct_char "367";
-      val begin_goal = oct_char "370";
-    in (begin_state, end_state, begin_goal) end;
+    in (begin_state, end_state, "") end;
   Toplevel.print_state_fn := plain_writeln Toplevel.print_state_default;
   Toplevel.prompt_state_fn := (suffix (oct_char "372") o Toplevel.prompt_state_default);
   Goals.print_current_goals_fn := print_current_goals);
