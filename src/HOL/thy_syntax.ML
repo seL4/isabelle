@@ -53,7 +53,7 @@ fun inductive_decl coind =
   let
     val no_atts = map (mk_pair o rpair "[]");
     fun mk_intr_name (s, _) =   (*the "op" cancels any infix status*)
-      if Syntax.is_identifier s then "op " ^ s else "_";
+      if ThmDatabase.is_ml_identifier s then "op " ^ s else "_";
     fun mk_params ((recs, ipairs), monos) =
       let val big_rec_name = space_implode "_" (map (scan_to_id o unenclose) recs)
           and srec_tms = mk_list recs
@@ -94,7 +94,7 @@ local
   (*** and bindig theorems to ML identifiers    ***)
 
   fun mk_bind_thms_string names =
-   (case find_first (not o Syntax.is_identifier) names of
+   (case find_first (not o ThmDatabase.is_ml_identifier) names of
       Some id => (warning (id ^ " is not a valid identifier"); "")
     | None =>
         let
