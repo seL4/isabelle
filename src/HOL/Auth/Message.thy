@@ -100,6 +100,6 @@ inductive "synth H"
     Inj     "X: H ==> X: synth H"
     Agent   "Agent agt : synth H"
     MPair   "[| X: synth H;  Y: synth H |] ==> {|X,Y|} : synth H"
-    Crypt   "[| X: synth H; Key(K): synth H |] ==> Crypt X K : synth H"
+    Crypt   "[| X: synth H; Key(K): H |] ==> Crypt X K : synth H"
 
 end
