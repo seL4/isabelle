@@ -14,5 +14,6 @@ time_use_thy "ex/Coind";
 time_use_thy "ex/Hoare";
 time_use_thy "ex/Loop";
 time_use_thy "ex/Dagstuhl";
+time_use "ex/loeckx.ML";
 
 maketest     "END: Root file for HOLCF examples";
