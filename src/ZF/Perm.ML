@@ -63,6 +63,10 @@ by (REPEAT (eresolve_tac [asm_rl, Pair_mem_PiE, CollectE] 1));
 by (fast_tac ZF_cs 1);
 qed "inj_equality";
 
+goalw thy [inj_def] "!!A B f. [| f:inj(A,B);  a:A;  b:A;  f`a=f`b |] ==> a=b";
+by (fast_tac ZF_cs 1);
+val inj_apply_equality = result();
+
 (** A function with a left inverse is an injection **)
 
 val prems = goal Perm.thy
@@ -121,6 +125,10 @@ goalw Perm.thy [id_def] "id(A) : A->A";
 by (rtac lam_type 1);
 by (assume_tac 1);
 qed "id_type";
+
+goalw Perm.thy [id_def] "!!A x. x:A ==> id(A)`x = x";
+by (asm_simp_tac ZF_ss 1);
+val id_conv = result();
 
 val [prem] = goalw Perm.thy [id_def] "A<=B ==> id(A) <= id(B)";
 by (rtac (prem RS lam_mono) 1);
