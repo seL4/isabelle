@@ -8,14 +8,14 @@ header "Conformity Relations for Type Soundness Proof"
 
 theory Conform = State + WellType:
 
-types	'c env_ = "'c prog \<times> (vname \<leadsto> ty)" (* same as env of WellType.thy *)
+types 'c env_ = "'c prog \<times> (vname \<leadsto> ty)"  -- "same as @{text env} of @{text WellType.thy}"
 
 constdefs
 
   hext :: "aheap => aheap => bool" ("_ <=| _" [51,51] 50)
  "h<=|h' == \<forall>a C fs. h a = Some(C,fs) --> (\<exists>fs'. h' a = Some(C,fs'))"
 
-  conf :: "'c prog => aheap => val => ty => bool"	
+  conf :: "'c prog => aheap => val => ty => bool" 
                                    ("_,_ |- _ ::<= _"  [51,51,51,51] 50)
  "G,h|-v::<=T == \<exists>T'. typeof (option_map obj_ty o h) v = Some T' \<and> G\<turnstile>T'\<preceq>T"
 
@@ -29,7 +29,7 @@ constdefs
   hconf :: "'c prog => aheap => bool" ("_ |-h _ [ok]" [51,51] 50)
  "G|-h h [ok]    == \<forall>a obj. h a = Some obj --> G,h|-obj [ok]"
 
-  conforms :: "state => java_mb env_ => bool"	("_ ::<= _" [51,51] 50)
+  conforms :: "state => java_mb env_ => bool" ("_ ::<= _" [51,51] 50)
  "s::<=E == prg E|-h heap s [ok] \<and> prg E,heap s|-locals s[::<=]localT E"
 
 
@@ -112,7 +112,8 @@ apply (unfold conf_def)
 apply (simp)
 done
 
-lemma defval_conf [rule_format (no_asm)]: "is_type G T --> G,h\<turnstile>default_val T::\<preceq>T"
+lemma defval_conf [rule_format (no_asm)]: 
+  "is_type G T --> G,h\<turnstile>default_val T::\<preceq>T"
 apply (unfold conf_def)
 apply (rule_tac "y" = "T" in ty.exhaust)
 apply  (erule ssubst)
@@ -127,7 +128,8 @@ apply (rule val.induct)
 apply auto
 done
 
-lemma conf_widen [rule_format (no_asm)]: "wf_prog wf_mb G ==> G,h\<turnstile>x::\<preceq>T --> G\<turnstile>T\<preceq>T' --> G,h\<turnstile>x::\<preceq>T'"
+lemma conf_widen [rule_format (no_asm)]: 
+  "wf_prog wf_mb G ==> G,h\<turnstile>x::\<preceq>T --> G\<turnstile>T\<preceq>T' --> G,h\<turnstile>x::\<preceq>T'"
 apply (unfold conf_def)
 apply (rule val.induct)
 apply (auto intro: widen_trans)
@@ -168,7 +170,8 @@ lemma non_np_objD: "!!G. [|a' \<noteq> Null; G,h\<turnstile>a'::\<preceq> Class 
 apply (fast dest: non_npD)
 done
 
-lemma non_np_objD' [rule_format (no_asm)]: "a' \<noteq> Null ==> wf_prog wf_mb G ==> G,h\<turnstile>a'::\<preceq>RefT t --> 
+lemma non_np_objD' [rule_format (no_asm)]: 
+  "a' \<noteq> Null ==> wf_prog wf_mb G ==> G,h\<turnstile>a'::\<preceq>RefT t --> 
   (\<forall>C. t = ClassT C --> C \<noteq> Object) -->  
   (\<exists>a C fs. a' = Addr a \<and>  h a = Some (C,fs) \<and>  G\<turnstile>Class C\<preceq>RefT t)"
 apply(rule_tac "y" = "t" in ref_ty.exhaust)
@@ -176,7 +179,9 @@ apply(rule_tac "y" = "t" in ref_ty.exhaust)
 apply (fast dest: non_np_objD)
 done
 
-lemma conf_list_gext_widen [rule_format (no_asm)]: "wf_prog wf_mb G ==> \<forall>Ts Ts'. list_all2 (conf G h) vs Ts --> list_all2 (\<lambda>T T'. G\<turnstile>T\<preceq>T') Ts Ts' -->  list_all2 (conf G h) vs Ts'"
+lemma conf_list_gext_widen [rule_format (no_asm)]: 
+  "wf_prog wf_mb G ==> \<forall>Ts Ts'. list_all2 (conf G h) vs Ts --> 
+  list_all2 (\<lambda>T T'. G\<turnstile>T\<preceq>T') Ts Ts' -->  list_all2 (conf G h) vs Ts'"
 apply(induct_tac "vs")
  apply(clarsimp)
 apply(clarsimp)
@@ -208,7 +213,8 @@ apply (unfold lconf_def)
 apply auto
 done
 
-lemma lconf_init_vars_lemma [rule_format (no_asm)]: "\<forall>x. P x --> R (dv x) x ==> (\<forall>x. map_of fs f = Some x --> P x) -->  
+lemma lconf_init_vars_lemma [rule_format (no_asm)]: 
+  "\<forall>x. P x --> R (dv x) x ==> (\<forall>x. map_of fs f = Some x --> P x) -->  
   (\<forall>T. map_of fs f = Some T -->  
   (\<exists>v. map_of (map (\<lambda>(f,ft). (f, dv ft)) fs) f = Some v \<and>  R v T))"
 apply( induct_tac "fs")
@@ -231,7 +237,9 @@ apply (unfold lconf_def)
 apply auto
 done
 
-lemma lconf_ext_list [rule_format (no_asm)]: "G,h\<turnstile>l[::\<preceq>]L ==> \<forall>vs Ts. nodups vns --> length Ts = length vns --> list_all2 (\<lambda>v T. G,h\<turnstile>v::\<preceq>T) vs Ts --> G,h\<turnstile>l(vns[\<mapsto>]vs)[::\<preceq>]L(vns[\<mapsto>]Ts)"
+lemma lconf_ext_list [rule_format (no_asm)]: 
+  "G,h\<turnstile>l[::\<preceq>]L ==> \<forall>vs Ts. nodups vns --> length Ts = length vns --> 
+  list_all2 (\<lambda>v T. G,h\<turnstile>v::\<preceq>T) vs Ts --> G,h\<turnstile>l(vns[\<mapsto>]vs)[::\<preceq>]L(vns[\<mapsto>]Ts)"
 apply (unfold lconf_def)
 apply( induct_tac "vns")
 apply(  clarsimp)
@@ -291,12 +299,14 @@ lemma conforms_hext: "[|(h,l)::\<preceq>(G,lT); h\<le>|h'; G\<turnstile>h h'\<su
 apply( fast dest: conforms_localD elim!: conformsI lconf_hext)
 done
 
-lemma conforms_upd_obj: "[|(h,l)::\<preceq>(G, lT); G,h(a\<mapsto>obj)\<turnstile>obj\<surd>; h\<le>|h(a\<mapsto>obj)|] ==> (h(a\<mapsto>obj),l)::\<preceq>(G, lT)"
-apply( rule conforms_hext)
-apply   auto
-apply( rule hconfI)
-apply( drule conforms_heapD)
-apply( tactic {* auto_tac (HOL_cs addEs [thm "oconf_hext"] addDs [thm "hconfD"], simpset() delsimps [split_paired_All]) *})
+lemma conforms_upd_obj: 
+  "[|(h,l)::\<preceq>(G, lT); G,h(a\<mapsto>obj)\<turnstile>obj\<surd>; h\<le>|h(a\<mapsto>obj)|] ==> (h(a\<mapsto>obj),l)::\<preceq>(G, lT)"
+apply(rule conforms_hext)
+apply  auto
+apply(rule hconfI)
+apply(drule conforms_heapD)
+apply(tactic {* auto_tac (HOL_cs addEs [thm "oconf_hext"] 
+                addDs [thm "hconfD"], simpset() delsimps [split_paired_All]) *})
 done
 
 lemma conforms_upd_local: 

@@ -161,7 +161,7 @@ declare fun_upd_apply [simp del]
 declare fun_upd_same [simp]
 ML{*
 val forward_hyp_tac = ALLGOALS (TRY o (EVERY' [dtac spec, mp_tac,
-	(mp_tac ORELSE' (dtac spec THEN' mp_tac)), REPEAT o (etac conjE)]))
+  (mp_tac ORELSE' (dtac spec THEN' mp_tac)), REPEAT o (etac conjE)]))
 *}
 ML{*
 Unify.search_bound := 40;
@@ -181,15 +181,16 @@ theorem eval_evals_exec_type_sound:
 apply( rule eval_evals_exec_induct)
 apply( unfold c_hupd_def)
 
-(* several simplifications, XcptE, XcptEs, XcptS, Skip, Nil?? *)
+-- "several simplifications, XcptE, XcptEs, XcptS, Skip, Nil??"
 apply( simp_all)
 apply( tactic "ALLGOALS strip_tac")
-apply( tactic {* ALLGOALS (eresolve_tac (thms "ty_expr_ty_exprs_wt_stmt.elims") THEN_ALL_NEW Full_simp_tac) *})
-apply( tactic "ALLGOALS (EVERY' [REPEAT o (etac conjE), REPEAT o hyp_subst_tac])")
+apply( tactic {* ALLGOALS (eresolve_tac (thms "ty_expr_ty_exprs_wt_stmt.elims") 
+                 THEN_ALL_NEW Full_simp_tac) *})
+apply(tactic "ALLGOALS (EVERY' [REPEAT o (etac conjE), REPEAT o hyp_subst_tac])")
 
-(* Level 7 *)
+-- "Level 7"
 
-(* 15 NewC *)
+-- "15 NewC"
 apply( drule new_AddrD)
 apply( erule disjE)
 prefer 2
@@ -201,13 +202,13 @@ apply( rule conf_obj_AddrI)
 apply(  rule_tac [2] rtrancl_refl)
 apply( simp (no_asm))
 
-(* for Cast *)
+-- "for Cast"
 defer 1
 
-(* 14 Lit *)
+-- "14 Lit"
 apply( erule conf_litval)
 
-(* 13 BinOp *)
+-- "13 BinOp"
 apply (tactic "forward_hyp_tac")
 apply (tactic "forward_hyp_tac")
 apply( rule conjI, erule (1) hext_trans)
@@ -216,46 +217,48 @@ apply( clarsimp)
 apply( drule eval_no_xcpt)
 apply( simp split add: binop.split)
 
-(* 12 LAcc *)
+-- "12 LAcc"
 apply( fast elim: conforms_localD [THEN lconfD])
 
-(* for FAss *)
-apply( tactic {* EVERY'[eresolve_tac (thms "ty_expr_ty_exprs_wt_stmt.elims") THEN_ALL_NEW Full_simp_tac, REPEAT o (etac conjE), hyp_subst_tac] 3*})
+-- "for FAss"
+apply( tactic {* EVERY'[eresolve_tac (thms "ty_expr_ty_exprs_wt_stmt.elims") 
+       THEN_ALL_NEW Full_simp_tac, REPEAT o (etac conjE), hyp_subst_tac] 3*})
 
-(* for if *)
+-- "for if"
 apply( tactic {* (case_tac "the_Bool v" THEN_ALL_NEW Asm_full_simp_tac) 8*})
 
 apply (tactic "forward_hyp_tac")
 
-(* 11+1 if *)
+-- "11+1 if"
 prefer 8
 apply(  fast intro: hext_trans)
 prefer 8
 apply(  fast intro: hext_trans)
 
-(* 10 Expr *)
+-- "10 Expr"
 prefer 6
 apply( fast)
 
-(* 9 ??? *)
+-- "9 ???"
 apply( simp_all)
 
-(* 8 Cast *)
+-- "8 Cast"
 prefer 8
 apply (rule impI)
 apply (drule raise_if_NoneD)
 apply (clarsimp)
 apply (fast elim: Cast_conf)
 
-(* 7 LAss *)
+-- "7 LAss"
 apply (fold fun_upd_def)
-apply( tactic {* (eresolve_tac (thms "ty_expr_ty_exprs_wt_stmt.elims") THEN_ALL_NEW Full_simp_tac) 1 *})
+apply( tactic {* (eresolve_tac (thms "ty_expr_ty_exprs_wt_stmt.elims") 
+                 THEN_ALL_NEW Full_simp_tac) 1 *})
 apply( blast intro: conforms_upd_local conf_widen)
 
-(* 6 FAcc *)
+-- "6 FAcc"
 apply( fast elim!: FAcc_type_sound)
 
-(* 5 While *)
+-- "5 While"
 prefer 5
 apply(erule_tac V = "?a \<longrightarrow> ?b" in thin_rl)
 apply(drule (1) ty_expr_ty_exprs_wt_stmt.Loop)
@@ -263,15 +266,15 @@ apply(force elim: hext_trans)
 
 apply (tactic "forward_hyp_tac")
 
-(* 4 Cons *)
+-- "4 Cons"
 prefer 3
 apply( fast dest: evals_no_xcpt intro: conf_hext hext_trans)
 
-(* 3 ;; *)
+-- "3 ;;"
 prefer 3
 apply( fast intro: hext_trans)
 
-(* 2 FAss *)
+-- "2 FAss"
 apply( case_tac "x2 = None")
 prefer 2
 apply(  simp (no_asm_simp))
@@ -281,9 +284,9 @@ apply( drule eval_no_xcpt)
 apply( erule FAss_type_sound, rule HOL.refl, assumption+)
 
 apply( tactic prune_params_tac)
-(* Level 52 *)
+-- "Level 52"
 
-(* 1 Call *)
+-- "1 Call"
 apply( case_tac "x")
 prefer 2
 apply(  clarsimp)

@@ -9,9 +9,9 @@ header "Relations between Java Types"
 theory TypeRel = Decl:
 
 consts
-  subcls1 :: "'c prog => (cname \<times> cname) set"  (* subclass *)
-  widen   :: "'c prog => (ty    \<times> ty   ) set"  (* widening *)
-  cast    :: "'c prog => (cname \<times> cname) set"  (* casting *)
+  subcls1 :: "'c prog => (cname \<times> cname) set"  -- "subclass"
+  widen   :: "'c prog => (ty    \<times> ty   ) set"  -- "widening"
+  cast    :: "'c prog => (cname \<times> cname) set"  -- "casting"
 
 syntax (xsymbols)
   subcls1 :: "'c prog => [cname, cname] => bool" ("_ \<turnstile> _ \<prec>C1 _" [71,71,71] 70)
@@ -31,9 +31,8 @@ translations
   "G\<turnstile>S \<preceq>   T" == "(S,T) \<in> widen   G"
   "G\<turnstile>C \<preceq>?  D" == "(C,D) \<in> cast    G"
 
+-- "direct subclass, cf. 8.1.3"
 inductive "subcls1 G" intros
-
-  (* direct subclass, cf. 8.1.3 *)
   subcls1I: "\<lbrakk>class G C = Some (D,rest); C \<noteq> Object\<rbrakk> \<Longrightarrow> G\<turnstile>C\<prec>C1D"
   
 lemma subcls1D: 
@@ -91,7 +90,7 @@ consts
   field  :: "'c prog \<times> cname => ( vname \<leadsto> cname \<times> ty     )" (* ###curry *)
   fields :: "'c prog \<times> cname => ((vname \<times> cname) \<times> ty) list" (* ###curry *)
 
-(* methods of a class, with inheritance, overriding and hiding, cf. 8.4.6 *)
+-- "methods of a class, with inheritance, overriding and hiding, cf. 8.4.6"
 defs method_def: "method \<equiv> \<lambda>(G,C). class_rec (G,C) empty (\<lambda>C fs ms ts.
                            ts ++ map_of (map (\<lambda>(s,m). (s,(C,m))) ms))"
 
@@ -105,7 +104,7 @@ apply auto
 done
 
 
-(* list of fields of a class, including inherited and hidden ones *)
+-- "list of fields of a class, including inherited and hidden ones"
 defs fields_def: "fields \<equiv> \<lambda>(G,C). class_rec (G,C) []    (\<lambda>C fs ms ts.
                            map (\<lambda>(fn,ft). ((fn,C),ft)) fs @ ts)"
 
@@ -129,14 +128,15 @@ apply simp
 done
 
 
-inductive "widen G" intros (*widening, viz. method invocation conversion,cf. 5.3
-			     i.e. sort of syntactic subtyping *)
-  refl   [intro!, simp]:       "G\<turnstile>      T \<preceq> T" 	 (* identity conv., cf. 5.1.1 *)
+-- "widening, viz. method invocation conversion,cf. 5.3 i.e. sort of syntactic subtyping"
+inductive "widen G" intros 
+  refl   [intro!, simp]:       "G\<turnstile>      T \<preceq> T"   -- "identity conv., cf. 5.1.1"
   subcls         : "G\<turnstile>C\<preceq>C D ==> G\<turnstile>Class C \<preceq> Class D"
   null   [intro!]:             "G\<turnstile>     NT \<preceq> RefT R"
 
-inductive "cast G" intros (* casting conversion, cf. 5.5 / 5.1.5 *)
-                          (* left out casts on primitve types    *)
+-- "casting conversion, cf. 5.5 / 5.1.5"
+-- "left out casts on primitve types"
+inductive "cast G" intros
   widen:  "G\<turnstile>C\<preceq>C D ==> G\<turnstile>C \<preceq>? D"
   subcls: "G\<turnstile>D\<preceq>C C ==> G\<turnstile>C \<preceq>? D"
 
@@ -173,45 +173,11 @@ apply (ind_cases "G\<turnstile>S\<preceq>T")
 apply (auto elim: widen.subcls)
 done
 
-lemma widen_trans [rule_format (no_asm)]: "G\<turnstile>S\<preceq>U ==> \<forall>T. G\<turnstile>U\<preceq>T --> G\<turnstile>S\<preceq>T"
-apply (erule widen.induct)
-apply   safe
-apply  (frule widen_Class)
-apply  (frule_tac [2] widen_RefT)
-apply  safe
-apply(erule (1) rtrancl_trans)
-done
-
-
-(*####theorem widen_trans: "\<lbrakk>G\<turnstile>S\<preceq>U; G\<turnstile>U\<preceq>T\<rbrakk> \<Longrightarrow> G\<turnstile>S\<preceq>T"
+theorem widen_trans[trans]: "\<lbrakk>G\<turnstile>S\<preceq>U; G\<turnstile>U\<preceq>T\<rbrakk> \<Longrightarrow> G\<turnstile>S\<preceq>T"
 proof -
-  assume "G\<turnstile>S\<preceq>U"
-  thus "\<And>T. G\<turnstile>U\<preceq>T \<Longrightarrow> G\<turnstile>S\<preceq>T" ( *(is "PROP ?P S U")* )
-  proof (induct ( *cases* ) (open) ( *?P S U* ) rule: widen.induct [consumes 1])
-    case refl
-    fix T' assume "G\<turnstile>T\<preceq>T'" thus "G\<turnstile>T\<preceq>T'".
-      ( * fix T' show "PROP ?P T T".* )
-  next
-    case subcls
-    fix T assume "G\<turnstile>Class D\<preceq>T"
-    then obtain E where "T = Class E" by (blast dest: widen_Class)
-    from prems show "G\<turnstile>Class C\<preceq>T" proof (auto elim: rtrancl_trans) qed
-  next
-    case null
-    fix RT assume "G\<turnstile>RefT R\<preceq>RT"
-    then obtain rt where "RT = RefT rt" by (blast dest: widen_RefT)
-    thus "G\<turnstile>NT\<preceq>RT" by auto
-  qed
-qed
-*)
-
-theorem widen_trans: "\<lbrakk>G\<turnstile>S\<preceq>U; G\<turnstile>U\<preceq>T\<rbrakk> \<Longrightarrow> G\<turnstile>S\<preceq>T"
-proof -
-  assume "G\<turnstile>S\<preceq>U"
-  thus "\<And>T. G\<turnstile>U\<preceq>T \<Longrightarrow> G\<turnstile>S\<preceq>T"
+  assume "G\<turnstile>S\<preceq>U" thus "\<And>T. G\<turnstile>U\<preceq>T \<Longrightarrow> G\<turnstile>S\<preceq>T"
   proof induct
-    case (refl T T')
-    thus "G\<turnstile>T\<preceq>T'" .
+    case (refl T T') thus "G\<turnstile>T\<preceq>T'" .
   next
     case (subcls C D T)
     then obtain E where "T = Class E" by (blast dest: widen_Class)

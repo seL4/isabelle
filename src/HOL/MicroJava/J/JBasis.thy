@@ -13,9 +13,8 @@ lemmas [simp] = Let_def
 section "unique"
  
 constdefs
-
   unique  :: "('a \<times> 'b) list => bool"
- "unique  == nodups \<circ> map fst"
+  "unique  == nodups \<circ> map fst"
 
 
 lemma fst_in_set_lemma [rule_format (no_asm)]: 
@@ -71,4 +70,3 @@ apply  auto
 done
 
 end
-

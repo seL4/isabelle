@@ -8,15 +8,19 @@ header "Java Values"
 
 theory Value = Type:
 
-typedecl loc (* locations, i.e. abstract references on objects *)
+typedecl loc_ -- "locations, i.e. abstract references on objects" 
+
+datatype loc 
+  = XcptRef xcpt -- "special locations for pre-allocated system exceptions"
+  | Loc loc_     -- "usual locations (references on objects)"
 
 datatype val
-  = Unit        (* dummy result value of void methods *)
-  | Null        (* null reference *)
-  | Bool bool   (* Boolean value *)
-  | Intg int    (* integer value, name Intg instead of Int because
-                   of clash with HOL/Set.thy *)
-  | Addr loc    (* addresses, i.e. locations of objects *)
+  = Unit        -- "dummy result value of void methods"
+  | Null        -- "null reference"
+  | Bool bool   -- "Boolean value"
+  | Intg int    -- "integer value, name Intg instead of Int because
+                   of clash with HOL/Set.thy" 
+  | Addr loc    -- "addresses, i.e. locations of objects "
 
 consts
   the_Bool :: "val => bool"
@@ -33,8 +37,8 @@ primrec
   "the_Addr (Addr a) = a"
 
 consts
-  defpval :: "prim_ty => val"  (* default value for primitive types *)
-  default_val :: "ty => val"   (* default value for all types *)
+  defpval :: "prim_ty => val"  -- "default value for primitive types"
+  default_val :: "ty => val"   -- "default value for all types"
 
 primrec
   "defpval Void    = Unit"

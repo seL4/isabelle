@@ -8,29 +8,47 @@ header "Java types"
 
 theory Type = JBasis:
 
-typedecl cname  (* class name *)
-typedecl vnam   (* variable or field name *)
-typedecl mname  (* method name *)
+typedecl cnam 
 
-datatype vname    (* names for This pointer and local/field variables *)
+ -- "exceptions"
+datatype 
+  xcpt   
+  = NullPointer
+  | ClassCast
+  | OutOfMemory
+
+-- "class names"
+datatype cname  
+  = Object 
+  | Xcpt xcpt 
+  | Cname cname 
+
+typedecl vnam   -- "variable or field name"
+typedecl mname  -- "method name"
+
+-- "names for @{text This} pointer and local/field variables"
+datatype vname 
   = This
   | VName vnam
 
-datatype prim_ty  (* primitive type, cf. 4.2 *)
-  = Void          (* 'result type' of void methods *)
+-- "primitive type, cf. 4.2"
+datatype prim_ty 
+  = Void          -- "'result type' of void methods"
   | Boolean
   | Integer
 
-datatype ref_ty   (* reference type, cf. 4.3 *)
-  = NullT         (* null type, cf. 4.1 *)
-  | ClassT cname  (* class type *)
+-- "reference type, cf. 4.3"
+datatype ref_ty   
+  = NullT         -- "null type, cf. 4.1"
+  | ClassT cname  -- "class type"
 
-datatype ty       (* any type, cf. 4.1 *)
-  = PrimT prim_ty (* primitive type *)
-  | RefT  ref_ty  (* reference type *)
+-- "any type, cf. 4.1"
+datatype ty 
+  = PrimT prim_ty -- "primitive type"
+  | RefT  ref_ty  -- "reference type"
 
 syntax
-  NT    :: "          ty"
+  NT    :: "ty"
   Class :: "cname  => ty"
 
 translations

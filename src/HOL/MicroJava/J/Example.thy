@@ -1,4 +1,4 @@
-(*  Title:      isabelle/Bali/Example.thy
+(*  Title:      HOL/MicroJava/J/Example.thy
     ID:         $Id$
     Author:     David von Oheimb
     Copyright   1999 Technische Universitaet Muenchen
@@ -41,12 +41,12 @@ datatype cnam_ = Base_ | Ext_
 datatype vnam_ = vee_ | x_ | e_
 
 consts
-
   cnam_ :: "cnam_ => cname"
   vnam_ :: "vnam_ => vnam"
 
-axioms (* cnam_ and vnam_ are intended to be isomorphic to cnam and vnam *)
-
+-- "@{text cnam_} and @{text vnam_} are intended to be isomorphic 
+    to @{text cnam} and @{text vnam}"
+axioms 
   inj_cnam_:  "(cnam_ x = cnam_ y) = (x = y)"
   inj_vnam_:  "(vnam_ x = vnam_ y) = (x = y)"
 
@@ -56,7 +56,6 @@ axioms (* cnam_ and vnam_ are intended to be isomorphic to cnam and vnam *)
 declare inj_cnam_ [simp] inj_vnam_ [simp]
 
 syntax
-
   Base :: cname
   Ext  :: cname
   vee  :: vname
@@ -64,15 +63,13 @@ syntax
   e    :: vname
 
 translations
-
   "Base" == "cnam_ Base_"
-  "Ext"	 == "cnam_ Ext_"
+  "Ext"  == "cnam_ Ext_"
   "vee"  == "VName (vnam_ vee_)"
-  "x"	 == "VName (vnam_ x_)"
-  "e"	 == "VName (vnam_ e_)"
+  "x"  == "VName (vnam_ x_)"
+  "e"  == "VName (vnam_ e_)"
 
 axioms
-
   Base_not_Object: "Base \<noteq> Object"
   Ext_not_Object:  "Ext  \<noteq> Object"
   e_not_This:      "e \<noteq> This"
@@ -83,28 +80,26 @@ declare Base_not_Object [THEN not_sym, simp]
 declare Ext_not_Object  [THEN not_sym, simp]
 
 consts
-
   foo_Base::  java_mb
   foo_Ext ::  java_mb
   BaseC   :: "java_mb cdecl"
   ExtC    :: "java_mb cdecl"
-  test	  ::  stmt
-  foo	  ::  mname
-  a	  ::  loc
+  test    ::  stmt
+  foo   ::  mname
+  a   ::  loc
   b       ::  loc
 
 defs
-
   foo_Base_def:"foo_Base == ([x],[],Skip,LAcc x)"
   BaseC_def:"BaseC == (Base, (Object, 
-			     [(vee, PrimT Boolean)], 
-			     [((foo,[Class Base]),Class Base,foo_Base)]))"
+           [(vee, PrimT Boolean)], 
+           [((foo,[Class Base]),Class Base,foo_Base)]))"
   foo_Ext_def:"foo_Ext == ([x],[],Expr( {Ext}Cast Ext
-				       (LAcc x)..vee:=Lit (Intg 1)),
-				   Lit Null)"
+               (LAcc x)..vee:=Lit (Intg Numeral1)),
+           Lit Null)"
   ExtC_def: "ExtC  == (Ext,  (Base  , 
-			     [(vee, PrimT Integer)], 
-			     [((foo,[Class Base]),Class Ext,foo_Ext)]))"
+           [(vee, PrimT Integer)], 
+           [((foo,[Class Base]),Class Ext,foo_Ext)]))"
 
   test_def:"test == Expr(e::=NewC Ext);; 
                     Expr({Base}LAcc e..foo({[Class Base]}[Lit Null]))"
@@ -112,22 +107,21 @@ defs
 
 syntax
 
-  NP	:: xcpt
-  tprg 	::"java_mb prog"
-  obj1	:: obj
-  obj2	:: obj
-  s0 	:: state
-  s1 	:: state
-  s2 	:: state
-  s3 	:: state
-  s4 	:: state
+  NP  :: xcpt
+  tprg  ::"java_mb prog"
+  obj1  :: obj
+  obj2  :: obj
+  s0  :: state
+  s1  :: state
+  s2  :: state
+  s3  :: state
+  s4  :: state
 
 translations
-
   "NP"   == "NullPointer"
   "tprg" == "[ObjectC, BaseC, ExtC]"
   "obj1"    <= "(Ext, empty((vee, Base)\<mapsto>Bool False)
-			   ((vee, Ext )\<mapsto>Intg 0))"
+         ((vee, Ext )\<mapsto>Intg 0))"
   "s0" == " Norm    (empty, empty)"
   "s1" == " Norm    (empty(a\<mapsto>obj1),empty(e\<mapsto>Addr a))"
   "s2" == " Norm    (empty(a\<mapsto>obj1),empty(x\<mapsto>Null)(This\<mapsto>Addr a))"
@@ -141,7 +135,7 @@ done
 lemma map_of_Cons2 [simp]: "aa\<noteq>k ==> map_of ((k,bb)#ps) aa = map_of ps aa"
 apply (simp (no_asm_simp))
 done
-declare map_of_Cons [simp del]; (* sic! *)
+declare map_of_Cons [simp del] -- "sic!"
 
 lemma class_tprg_Object [simp]: "class tprg Object = Some (arbitrary, [], [])"
 apply (unfold ObjectC_def class_def)
@@ -150,7 +144,7 @@ done
 
 lemma class_tprg_Base [simp]: 
 "class tprg Base = Some (Object,  
-	  [(vee, PrimT Boolean)],  
+    [(vee, PrimT Boolean)],  
           [((foo, [Class Base]), Class Base, foo_Base)])"
 apply (unfold ObjectC_def BaseC_def ExtC_def class_def)
 apply (simp (no_asm))
@@ -158,7 +152,7 @@ done
 
 lemma class_tprg_Ext [simp]: 
 "class tprg Ext = Some (Base,  
-	  [(vee, PrimT Integer)],  
+    [(vee, PrimT Integer)],  
           [((foo, [Class Base]), Class Ext, foo_Ext)])"
 apply (unfold ObjectC_def BaseC_def ExtC_def class_def)
 apply (simp (no_asm))
@@ -328,25 +322,25 @@ done
 ML {* fun t thm = resolve_tac (thms "ty_expr_ty_exprs_wt_stmt.intros") 1 thm *}
 lemma wt_test: "(tprg, empty(e\<mapsto>Class Base))\<turnstile>  
   Expr(e::=NewC Ext);; Expr({Base}LAcc e..foo({?pTs'}[Lit Null]))\<surd>"
-apply (tactic t) (* ;; *)
-apply  (tactic t) (* Expr *)
-apply  (tactic t) (* LAss *)
-apply    simp (* e \<noteq> This *)
-apply    (tactic t) (* LAcc *)
+apply (tactic t) -- ";;"
+apply  (tactic t) -- "Expr"
+apply  (tactic t) -- "LAss"
+apply    simp -- {* @{text "e \<noteq> This"} *}
+apply    (tactic t) -- "LAcc"
 apply     (simp (no_asm))
 apply    (simp (no_asm))
-apply   (tactic t) (* NewC *)
+apply   (tactic t) -- "NewC"
 apply   (simp (no_asm))
 apply  (simp (no_asm))
-apply (tactic t) (* Expr *)
-apply (tactic t) (* Call *)
-apply   (tactic t) (* LAcc *)
+apply (tactic t) -- "Expr"
+apply (tactic t) -- "Call"
+apply   (tactic t) -- "LAcc"
 apply    (simp (no_asm))
 apply   (simp (no_asm))
-apply  (tactic t) (* Cons *)
-apply   (tactic t) (* Lit *)
+apply  (tactic t) -- "Cons"
+apply   (tactic t) -- "Lit"
 apply   (simp (no_asm))
-apply  (tactic t) (* Nil *)
+apply  (tactic t) -- "Nil"
 apply (simp (no_asm))
 apply (rule max_spec_foo_Base)
 done
@@ -359,38 +353,38 @@ lemma exec_test:
 " [|new_Addr (heap (snd s0)) = (a, None)|] ==>  
   tprg\<turnstile>s0 -test-> ?s"
 apply (unfold test_def)
-(* ?s = s3 *)
-apply (tactic e) (* ;; *)
-apply  (tactic e) (* Expr *)
-apply  (tactic e) (* LAss *)
-apply   (tactic e) (* NewC *)
+-- "?s = s3 "
+apply (tactic e) -- ";;"
+apply  (tactic e) -- "Expr"
+apply  (tactic e) -- "LAss"
+apply   (tactic e) -- "NewC"
 apply    force
 apply   force
 apply  (simp (no_asm))
 apply (erule thin_rl)
-apply (tactic e) (* Expr *)
-apply (tactic e) (* Call *)
-apply       (tactic e) (* LAcc *)
+apply (tactic e) -- "Expr"
+apply (tactic e) -- "Call"
+apply       (tactic e) -- "LAcc"
 apply      force
-apply     (tactic e) (* Cons *)
-apply      (tactic e) (* Lit *)
-apply     (tactic e) (* Nil *)
+apply     (tactic e) -- "Cons"
+apply      (tactic e) -- "Lit"
+apply     (tactic e) -- "Nil"
 apply    (simp (no_asm))
 apply   (force simp add: foo_Ext_def)
 apply  (simp (no_asm))
-apply  (tactic e) (* Expr *)
-apply  (tactic e) (* FAss *)
-apply       (tactic e) (* Cast *)
-apply        (tactic e) (* LAcc *)
+apply  (tactic e) -- "Expr"
+apply  (tactic e) -- "FAss"
+apply       (tactic e) -- "Cast"
+apply        (tactic e) -- "LAcc"
 apply       (simp (no_asm))
 apply      (simp (no_asm))
 apply     (simp (no_asm))
-apply     (tactic e) (* XcptE *)
+apply     (tactic e) -- "XcptE"
 apply    (simp (no_asm))
 apply   (rule surjective_pairing [THEN sym, THEN[2]trans], subst Pair_eq, force)
 apply  (simp (no_asm))
 apply (simp (no_asm))
-apply (tactic e) (* XcptE *)
+apply (tactic e) -- "XcptE"
 done
 
 end

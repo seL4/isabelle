@@ -57,7 +57,7 @@ apply (fast dest: map_of_SomeD)
 done
 
 lemma class_Object [simp]: 
-	"wf_prog wf_mb G ==> class G Object = Some (arbitrary, [], [])"
+  "wf_prog wf_mb G ==> class G Object = Some (arbitrary, [], [])"
 apply (unfold wf_prog_def ObjectC_def class_def)
 apply (auto intro: map_of_SomeI)
 done
@@ -205,13 +205,15 @@ apply( erule r_into_rtrancl [THEN rtrancl_trans])
 apply auto
 done
 
-lemma widen_fields_defpl: "[|((fn,fd),fT) \<in> set (fields (G,C)); wf_prog wf_mb G; is_class G C|] ==>  
+lemma widen_fields_defpl: 
+  "[|((fn,fd),fT) \<in> set (fields (G,C)); wf_prog wf_mb G; is_class G C|] ==>  
   G\<turnstile>C\<preceq>C fd"
 apply( drule (1) widen_fields_defpl')
 apply (fast)
 done
 
-lemma unique_fields: "[|is_class G C; wf_prog wf_mb G|] ==> unique (fields (G,C))"
+lemma unique_fields: 
+  "[|is_class G C; wf_prog wf_mb G|] ==> unique (fields (G,C))"
 apply( erule subcls1_induct)
 apply(   assumption)
 apply(  safe dest!: wf_cdecl_supD)
@@ -232,7 +234,8 @@ apply(  simp)
 apply(auto dest!: widen_fields_defpl)
 done
 
-lemma fields_mono_lemma [rule_format (no_asm)]: "[|wf_prog wf_mb G; (C',C)\<in>(subcls1 G)^*|] ==>  
+lemma fields_mono_lemma [rule_format (no_asm)]: 
+  "[|wf_prog wf_mb G; (C',C)\<in>(subcls1 G)^*|] ==>  
   x \<in> set (fields (G,C)) --> x \<in> set (fields (G,C'))"
 apply(erule converse_rtrancl_induct)
 apply( safe dest!: subcls1D)
@@ -260,7 +263,8 @@ apply (drule trancl_into_rtrancl)
 apply (fast dest: fields_mono)
 done
 
-lemma method_wf_mdecl [rule_format (no_asm)]: "wf_prog wf_mb G ==> is_class G C \<Longrightarrow>   
+lemma method_wf_mdecl [rule_format (no_asm)]: 
+  "wf_prog wf_mb G ==> is_class G C \<Longrightarrow>   
      method (G,C) sig = Some (md,mh,m) 
    --> G\<turnstile>C\<preceq>C md \<and> wf_mdecl wf_mb G md (sig,(mh,m))"
 apply( erule subcls1_induct)
@@ -322,10 +326,13 @@ lemma subtype_widen_methd:
  "[| G\<turnstile> C\<preceq>C D; wf_prog wf_mb G;  
      method (G,D) sig = Some (md, rT, b) |]  
   ==> \<exists>mD' rT' b'. method (G,C) sig= Some(mD',rT',b') \<and> G\<turnstile>rT'\<preceq>rT"
-apply(auto dest: subcls_widen_methd method_wf_mdecl simp add: wf_mdecl_def wf_mhead_def split_def)
+apply(auto dest: subcls_widen_methd method_wf_mdecl 
+           simp add: wf_mdecl_def wf_mhead_def split_def)
 done
 
-lemma method_in_md [rule_format (no_asm)]: "wf_prog wf_mb G ==> is_class G C \<Longrightarrow> \<forall>D. method (G,C) sig = Some(D,mh,code) --> is_class G D \<and> method (G,D) sig = Some(D,mh,code)"
+lemma method_in_md [rule_format (no_asm)]: 
+  "wf_prog wf_mb G ==> is_class G C \<Longrightarrow> \<forall>D. method (G,C) sig = Some(D,mh,code) 
+  --> is_class G D \<and> method (G,D) sig = Some(D,mh,code)"
 apply (erule (1) subcls1_induct)
  apply (simp)
 apply (erule conjE)
@@ -366,7 +373,8 @@ apply auto
 done
 
 
-lemma fields_is_type_lemma [rule_format (no_asm)]: "[|is_class G C; wf_prog wf_mb G|] ==>  
+lemma fields_is_type_lemma [rule_format (no_asm)]: 
+  "[|is_class G C; wf_prog wf_mb G|] ==>  
   \<forall>f\<in>set (fields (G,C)). is_type G (snd f)"
 apply( erule (1) subcls1_induct)
 apply(  simp (no_asm_simp))
@@ -385,7 +393,8 @@ apply( unfold wf_fdecl_def)
 apply auto
 done
 
-lemma fields_is_type: "[|map_of (fields (G,C)) fn = Some f; wf_prog wf_mb G; is_class G C|] ==>  
+lemma fields_is_type: 
+  "[|map_of (fields (G,C)) fn = Some f; wf_prog wf_mb G; is_class G C|] ==>  
   is_type G f"
 apply(drule map_of_SomeD)
 apply(drule (2) fields_is_type_lemma)
@@ -401,31 +410,19 @@ proof -
 
   assume m: "(sig,rT,code) \<in> set mdecls"
   moreover
-  from wf
-  have "class G Object = Some (arbitrary, [], [])"
-    by simp 
+  from wf have "class G Object = Some (arbitrary, [], [])" by simp 
   moreover
-  from wf C
-  have c: "class G C = Some (S,fs,mdecls)"
+  from wf C have c: "class G C = Some (S,fs,mdecls)"
     by (auto simp add: wf_prog_def class_def is_class_def intro: map_of_SomeI)
   ultimately
-  have O: "C \<noteq> Object"
-    by auto
-      
-  from wf C
-  have "unique mdecls"
-    by (unfold wf_prog_def wf_cdecl_def) auto
+  have O: "C \<noteq> Object" by auto      
 
-  hence "unique (map (\<lambda>(s,m). (s,C,m)) mdecls)"
-    by - (induct mdecls, auto)
-
-  with m
-  have "map_of (map (\<lambda>(s,m). (s,C,m)) mdecls) sig = Some (C,rT,code)"
+  from wf C have "unique mdecls" by (unfold wf_prog_def wf_cdecl_def) auto
+  hence "unique (map (\<lambda>(s,m). (s,C,m)) mdecls)" by (induct mdecls, auto)
+  with m have "map_of (map (\<lambda>(s,m). (s,C,m)) mdecls) sig = Some (C,rT,code)"
     by (force intro: map_of_SomeI)
-
   with wf C m c O
-  show ?thesis
-    by (auto simp add: is_class_def dest: method_rec)
+  show ?thesis by (auto simp add: is_class_def dest: method_rec)
 qed
 
 end
