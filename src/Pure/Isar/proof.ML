@@ -249,9 +249,7 @@ fun put_facts facts state =
 val reset_facts = put_facts None;
 
 fun these_factss (state, named_factss) =
-  state
-  |> put_thmss named_factss
-  |> put_facts (Some (flat (map #2 named_factss)));
+  state |> put_facts (Some (flat (map #2 named_factss)));
 
 
 (* goal *)
