@@ -769,12 +769,22 @@ by (induct xs) auto
 lemma filter_False [simp]: "\<forall>x \<in> set xs. \<not> P x ==> filter P xs = []"
 by (induct xs) auto
 
-lemma length_filter [simp]: "length (filter P xs) \<le> length xs"
+lemma length_filter_le [simp]: "length (filter P xs) \<le> length xs"
 by (induct xs) (auto simp add: le_SucI)
 
 lemma filter_is_subset [simp]: "set (filter P xs) \<le> set xs"
 by auto
 
+lemma length_filter_less:
+  "\<lbrakk> x : set xs; ~ P x \<rbrakk> \<Longrightarrow> length(filter P xs) < length xs"
+proof (induct xs)
+  case Nil thus ?case by simp
+next
+  case (Cons x xs) thus ?case
+    apply (auto split:split_if_asm)
+    using length_filter_le[of P xs] apply arith
+  done
+qed
 
 subsection {* @{text concat} *}
 
