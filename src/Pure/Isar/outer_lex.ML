@@ -247,7 +247,7 @@ fun scan (lex1, lex2) (pos, cs) =
 (* source of (proper) tokens *)
 
 val is_junk = (not o Symbol.is_blank) andf Symbol.not_sync andf Symbol.not_eof;
-fun recover xs = keep_line (Scan.any1 is_junk) xs;
+fun recover xs = keep_line (Scan.any is_junk) xs;
 
 fun source do_recover get_lex pos src =
   Source.source' pos Symbol.stopper (Scan.bulk (fn xs => scan (get_lex ()) xs))

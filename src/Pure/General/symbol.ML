@@ -275,7 +275,7 @@ val scan =
 
 (* source *)
 
-val recover = Scan.any1 ((not o is_blank) andf not_eof);
+val recover = Scan.any ((not o is_blank) andf not_eof);
 
 fun source do_recover src =
   Source.source stopper (Scan.bulk scan) (if do_recover then Some recover else None) src;
