@@ -8,17 +8,13 @@ Map lemmas.
 
 section "empty";
 
-Goalw [empty_def] "empty k = None";
-by (Simp_tac 1);
-qed "empty_def2";
-Addsimps [empty_def2];
-
 Goal "empty(x := None) = empty";
 by (rtac ext 1);
 by (Simp_tac 1);
 qed "empty_upd_none";
 Addsimps [empty_upd_none];
 
+(* FIXME: what is this sum_case nonsense?? *)
 Goal "sum_case empty empty = empty";
 by (rtac ext 1);
 by (simp_tac (simpset() addsplits [sum.split]) 1);
@@ -48,6 +44,7 @@ by Auto_tac;
 qed "finite_range_updI";
 
 
+(* FIXME: what is this sum_case nonsense?? *)
 section "sum_case and empty/map_upd";
 
 Goal "sum_case (m(k|->y)) empty =  (sum_case m empty)(Inl k|->y)";

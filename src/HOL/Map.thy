@@ -11,7 +11,6 @@ Map = List +
 types ('a,'b) "~=>" = 'a => 'b option (infixr 0)
 
 consts
-empty	::  "'a ~=> 'b"
 chg_map	:: "('b => 'b) => 'a => ('a ~=> 'b) => ('a ~=> 'b)"
 override:: "('a ~=> 'b) => ('a ~=> 'b) => ('a ~=> 'b)" (infixl "++" 100)
 dom	:: "('a ~=> 'b) => 'a set"
@@ -20,6 +19,7 @@ map_of	:: "('a * 'b)list => 'a ~=> 'b"
 map_upds:: "('a ~=> 'b) => 'a list => 'b list => 
 	    ('a ~=> 'b)"			 ("_/'(_[|->]_/')" [900,0,0]900)
 syntax
+empty	::  "'a ~=> 'b"
 map_upd	:: "('a ~=> 'b) => 'a => 'b => ('a ~=> 'b)"
 					         ("_/'(_/|->_')"   [900,0,0]900)
 
@@ -31,12 +31,12 @@ syntax (xsymbols)
 				         ("_/'(_/[\\<mapsto>]/_')" [900,0,0]900)
 
 translations
+  "empty"    => "_K None"
+  "empty"    <= "%x. None"
 
   "m(a|->b)" == "m(a:=Some b)"
 
 defs
-
-empty_def    "empty == %x. None"
 
 chg_map_def  "chg_map f a m == case m a of None => m | Some b => m(a|->f b)"
 

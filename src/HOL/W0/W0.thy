@@ -133,7 +133,7 @@ lemma o_id_subst [simp]: "$s o id_subst = s"
   by (rule ext) (simp add: id_subst_def)
 
 lemma dom_id_subst [simp]: "dom id_subst = {}"
-  by (simp add: dom_def id_subst_def empty_def)
+  by (simp add: dom_def id_subst_def)
 
 lemma cod_id_subst [simp]: "cod id_subst = {}"
   by (simp add: cod_def)

@@ -89,7 +89,7 @@ fun new_addr p none loc hp =
 *}
 
 generate_code
-  test = "example_prg\<turnstile>Norm (Map.empty, Map.empty)
+  test = "example_prg\<turnstile>Norm (empty, empty)
     -(Expr (l1_name::=NewC list_name);;
       Expr ({list_name}(LAcc l1_name)..val_name:=Lit (Intg 1));;
       Expr (l2_name::=NewC list_name);;
