@@ -91,7 +91,9 @@ fun mk_intinf ty n =
 	    else if n = minus_one then HOLogic.min_const
 	    else 
 		let 
-		    val (q,r) = IntInf.divMod (n, two)
+		    (*val (q,r) = IntInf.divMod (n, two): doesn't work in SML 10.0.7, but in newer versions!!!*)
+	            val q = IntInf.div (n, two)
+		    val r = IntInf.mod (n, two)
 		in
 		    HOLogic.bit_const $ bin_of q $ mk_bit r
 		end
