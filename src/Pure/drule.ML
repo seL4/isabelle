@@ -386,7 +386,7 @@ fun cterm_instantiate ctpairs0 th =
   in  instantiate (map ctyp2 tye, map instT ctpairs0) th  end
   handle TERM _ =>
            raise THM("cterm_instantiate: incompatible signatures",0,[th])
-       | TYPE (msg, _, _) => raise THM("cterm_instantiate: " ^ msg, 0, [th])
+       | TYPE (msg, _, _) => raise THM(msg, 0, [th])
 end;
 
 
@@ -680,7 +680,9 @@ fun incr_indexes 0 thm = thm
 
         fun inc_tvar ((x, i), S) = Some (Thm.ctyp_of sign (TVar ((x, i + inc), S)));
         fun inc_var ((x, i), T) = Some (Thm.cterm_of sign (Var ((x, i + inc), T)));
-      in instantiate' (map inc_tvar (tvars_of thm)) (map inc_var (vars_of thm)) thm end;
+        val thm' = instantiate' (map inc_tvar (tvars_of thm)) [] thm;
+        val thm'' = instantiate' [] (map inc_var (vars_of thm')) thm';
+      in thm'' end;
 
 fun incr_indexes_wrt is cTs cts thms =
   let
