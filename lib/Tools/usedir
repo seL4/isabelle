@@ -76,7 +76,7 @@ NAME="$1"; shift
 if [ $INFO = "true" -a ! -d $ISABELLE_BROWSER_INFO ]; then
   mkdir -p $ISABELLE_BROWSER_INFO/gif
   cp $ISABELLE_HOME/lib/images/*arrow.gif $ISABELLE_BROWSER_INFO/gif
-  cp $ISABELLE_HOME/lib/logo/isabelle_transparent.gif $ISABELLE_BROWSER_INFO/gif/isabelle.gif
+  cp $ISABELLE_HOME/lib/logo/isabelle.gif $ISABELLE_BROWSER_INFO/gif/isabelle.gif
   cp $ISABELLE_HOME/lib/html/index1.html $ISABELLE_BROWSER_INFO/index.html
   mkdir -p $ISABELLE_BROWSER_INFO/graph
   cp $ISABELLE_HOME/lib/html/index2.html $ISABELLE_BROWSER_INFO/graph/index.html
