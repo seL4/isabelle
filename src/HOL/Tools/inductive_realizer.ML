@@ -389,11 +389,11 @@ fun add_ind_realizer rsets intrs induct raw_induct elims (thy, vs) =
         val (prem :: prems) = prems_of elim;
         fun reorder1 (p, intr) =
           foldl (fn (t, ((s, _), T)) => all T $ lambda (Free (s, T)) t)
-            (strip_all p, Term.add_vars ([], prop_of intr));
+            (strip_all p, Term.add_vars ([], prop_of intr) \\ params');
         fun reorder2 (intr, i) =
           let
-            val fs1 = term_vars (prop_of intr);
-            val fs2 = Term.add_vars ([], prop_of intr)
+            val fs1 = term_vars (prop_of intr) \\ params;
+            val fs2 = Term.add_vars ([], prop_of intr) \\ params'
           in foldl (fn (t, x) => lambda (Var x) t)
             (list_comb (Bound (i + length fs1), fs1), fs2)
           end;
