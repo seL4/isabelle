@@ -122,7 +122,8 @@ local
 
 fun addIff dest elim intro simp ((cs, ss), th) =
   (          dest (intro (cs, [zero_var_indexes (th RS Data.iffD2)]),
-                              [zero_var_indexes (th RS Data.iffD1)])
+                              [zero_var_indexes (rotate_prems (nprems_of th)
+                                                (th RS Data.iffD1))])
    handle THM _ => (elim (cs, [zero_var_indexes (th RS Data.notE )])
                     handle THM _ => intro (cs, [th])),
    simp (ss, [th]));
