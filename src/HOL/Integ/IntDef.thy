@@ -15,7 +15,7 @@ typedef (Integ)
   int = "UNIV/intrel"            (Equiv.quotient_def)
 
 instance
-  int :: {ord, plus, times, minus}
+  int :: {ord, zero, plus, times, minus}
 
 defs
   zminus_def
@@ -34,6 +34,8 @@ constdefs
   "iszero z == z = int 0"
   
 defs
+  Zero_def      "0 == int 0"
+
   zadd_def
    "z + w == 
        Abs_Integ(UN (x1,y1):Rep_Integ(z). UN (x2,y2):Rep_Integ(w).   

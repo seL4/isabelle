@@ -7,6 +7,9 @@ The integers as equivalence classes over nat*nat.
 *)
 
 
+(*Rewrite the overloaded 0::int to (int 0)*)
+Addsimps [Zero_def];
+
 (*** Proving that intrel is an equivalence relation ***)
 
 val eqa::eqb::prems = goal Arith.thy 
