@@ -35,19 +35,6 @@ signature FP =          (** Description of a fixed point operator **)
   val induct    : thm                   (*induction/coinduction rule*)
   end;
 
-signature PR =                  (** Description of a Cartesian product **)
-  sig
-  val sigma     : term                  (*Cartesian product operator*)
-  val pair      : term                  (*pairing operator*)
-  val split_const  : term               (*splitting operator*)
-  val fsplit_const : term               (*splitting operator for formulae*)
-  val pair_iff  : thm                   (*injectivity of pairing, using <->*)
-  val split_eq  : thm                   (*equality rule for split*)
-  val fsplitI   : thm                   (*intro rule for fsplit*)
-  val fsplitD   : thm                   (*destruct rule for fsplit*)
-  val fsplitE   : thm                   (*elim rule; apparently never used*)
-  end;
-
 signature SU =                  (** Description of a disjoint sum **)
   sig
   val sum       : term                  (*disjoint sum operator*)
@@ -76,7 +63,8 @@ signature ADD_INDUCTIVE_DEF =
 
 (*Declares functions to add fixedpoint/constructor defs to a theory*)
 functor Add_inductive_def_Fun 
-    (structure Fp: FP and Pr : PR and Su : SU) : ADD_INDUCTIVE_DEF =
+    (structure Fp: FP and Pr : PR and CP: CARTPROD and Su : SU)
+    : ADD_INDUCTIVE_DEF =
 struct
 open Logic Ind_Syntax;
 
@@ -205,8 +193,11 @@ fun add_constructs_def (rec_names, con_ty_lists) thy =
 
     (*Combine split terms using case; yields the case operator for one part*)
     fun call_case case_list = 
-      let fun call_f (free,args) = 
-              ap_split Pr.split_const free (map (#2 o dest_Free) args)
+      let fun call_f (free,[]) = Abs("null", iT, free)
+	    | call_f (free,args) =
+                  CP.ap_split (foldr1 CP.mk_prod (map (#2 o dest_Free) args))
+		              Ind_Syntax.iT 
+			      free 
       in  fold_bal (app Su.elim) (map call_f case_list)  end;
 
     (** Generating function variables for the case definition
