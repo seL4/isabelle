@@ -174,6 +174,8 @@ Addsimps [Range_id];
 
 (*** Image of a set under a relation ***)
 
+Blast.overloaded ("Relation.op ^^", HOLogic.dest_setT o domain_type);
+
 qed_goalw "Image_iff" thy [Image_def]
     "b : r^^A = (? x:A. (x,b):r)"
  (fn _ => [ Blast_tac 1 ]);
