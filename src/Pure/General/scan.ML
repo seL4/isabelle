@@ -30,9 +30,6 @@ sig
   val ^^ : ('a -> string * 'b) * ('b -> string * 'c) -> 'a -> string * 'c
   (*one element literal*)
   val $$ : ''a -> ''a list -> ''a * ''a list
-  (*literal list*)
-  val this: ''a list -> ''a list -> ''a list * ''a list
-  val this_string: string -> string list -> string * string list
 end;
 
 signature SCAN =
@@ -41,6 +38,8 @@ sig
   val fail: 'a -> 'b
   val fail_with: ('a -> string) -> 'a -> 'b
   val succeed: 'a -> 'b -> 'a * 'b
+  val this: ''a list -> ''a list -> ''a list * ''a list
+  val this_string: string -> string list -> string * string list
   val one: ('a -> bool) -> 'a list -> 'a * 'a list
   val any: ('a -> bool) -> 'a list -> 'a list * 'a list
   val any1: ('a -> bool) -> 'a list -> 'a list * 'a list
@@ -52,6 +51,7 @@ sig
   val ahead: ('a -> 'b * 'c) -> 'a -> 'b * 'a
   val unless: ('a -> 'b * 'a) -> ('a -> 'c * 'd) -> 'a -> 'c * 'd
   val first: ('a -> 'b) list -> 'a -> 'b
+  val trace: ('a list -> 'b * 'c list) -> 'a list -> ('b * 'a list) * 'c list
   val state: 'a * 'b -> 'a * ('a * 'b)
   val depend: ('a -> 'b -> ('c * 'd) * 'e) -> 'a * 'b -> 'd * ('c * 'e)
   val lift: ('a -> 'b * 'c) -> 'd * 'a -> 'b * ('d * 'c)
@@ -202,6 +202,10 @@ fun unless test scan =
 
 fun first [] = fail
   | first (scan :: scans) = scan || first scans;
+
+fun trace scan toks =
+  let val (x, toks') = scan toks
+  in ((x, take (length toks - length toks', toks)), toks') end;
 
 
 (* state based scanners *)
