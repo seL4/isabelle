@@ -27,7 +27,7 @@
 #   Must be delimited by "
 #
 
-CONV_SOURCE_DIR "../c-sources/isa2latex"
+CONV_SOURCE_DIR "/home/proj/bali/isabelle/src/Tools/8bit/c-sources/isa2latex"
 
 # End of  general setup
 ############################################################ 

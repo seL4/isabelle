@@ -42,5 +42,4 @@ conv-translate.o: conv-translate.c conv-defs.h
 # ----------------------------------------------------
 
 clean:
-	@echo "     cleaning up object and tmp files..."
 	@rm -f *.o tmp.c tmp.txt

@@ -61,7 +61,7 @@ STEM = /usr/wiss/oheimb/isabelle/
 # configuration for configuration files in ./config
 ###############################################
 
-CONV_SOURCE_DIR="$(ISABELLE8BIT)/c-sources/isa2latex"
+CONV_SOURCE_DIR=$(ISABELLE8BIT)/c-sources/isa2latex
 
 ###############################################
 # configuration for GNU emacs
@@ -108,20 +108,19 @@ XEMACS_INIT=.emacs_xemacs_isa
 all:  $(CONFIGFILES)\
 	bin/gen-isa2latex bin/gen-isaterm bin/gen-isavim bin/gen-isaaxe\
 	bin/gen-isa_gnu_emacs bin/gen-isa_xemacs bin/gen-isadoc\
-	configuration a2isa bin/isa2latex bin/a2isa bin/ax2isa\
+	configuration manual a2isa bin/isa2latex bin/a2isa bin/ax2isa\
 	bin/isa_gnu_emacs bin/isa_xemacs bin/isavim bin/isaaxe\
 	bin/isaterm bin/isa_xmosaic bin/isapal bin/codetable bin/patcher\
 	fonts/install keyboard/install\
 	isa-patches/HOL/add-HOL.cfg isa-patches/HOL/clean-HOL.cfg\
 	isa-patches/HOL/extract-HOL.cfg\
 	isa-patches/HOLCF/add-HOLCF.cfg isa-patches/HOLCF/clean-HOLCF.cfg\
-	isa-patches/HOLCF/extract-HOLCF.cfg\
-	manual\
+	isa-patches/HOLCF/extract-HOLCF.cfg
 
 # ----------------------------------------------------
 
 clean:
-	cd bin; rm -f *2isa codetable gen-* isa* patcher
+#	cd bin; rm -f *2isa codetable gen-* isa* patcher
 	cd c-sources/a2isa; $(GMAKE) clean
 	cd c-sources/isa2latex; $(GMAKE) clean
 	cd doc; $(GMAKE) clean
@@ -145,8 +144,9 @@ $(CONFIGFILES): Makefile
 		key-table.inp
 	@cd config;\
 	$(PERL) -pi \
-	-e "s#^CONV_SOURCE_DIR\s*\".*#CONV_SOURCE_DIR \"$(CONV_SOURCE_DIR)\"#g;" \
-	 conv-tables.inp
+		-e "s#^CONV_SOURCE_DIR\s*\".*#CONV_SOURCE_DIR \"$(CONV_SOURCE_DIR)\"#g;" \
+		conv-tables.inp
+	@echo $(CONV_SOURCE_DIR)
 
 #######      Generators        
 
@@ -227,6 +227,8 @@ bin/gen-isadoc: Makefile #perl/generators/gen-isadoc.pl
 		gen-isadoc.pl
 	@rm -f bin/gen-isadoc;\
 	ln -s ../perl/generators/gen-isadoc.pl bin/gen-isadoc
+	@rm -f doc/isa2latex.sty;\
+	ln -s ../latex/isa2latex.sty doc/isa2latex.sty
 
 
 #######      Converter        
@@ -236,6 +238,9 @@ bin/gen-isadoc: Makefile #perl/generators/gen-isadoc.pl
 #isa2latex, editor support, font documentation:
 configuration:
 	@cd config; $(GMAKE)
+
+manual:
+	@cd doc; $(GMAKE) manual.dvi
 
 a2isa:
 	@cd c-sources/a2isa; $(GMAKE); $(GMAKE) clean
@@ -401,5 +406,3 @@ isa-patches/HOLCF/extract-HOLCF.cfg: Makefile
 
 # ----------------------------------------------------
 
-manual:
-	@cd doc; $(GMAKE) manual.dvi

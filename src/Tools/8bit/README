@@ -26,7 +26,8 @@ INSTALLATION of 8bit package:
 
 to install,
 	- change directory to $ISABELLE8BIT
-	- run gmake (the gnu version of make) on the Makefile there
+	- run mk
+(after further changes, if may be sufficient to call gmake)
 
 for adaptions of the configuration (in directory config/):
 	- configure the files: conv-tables.inp key-table.inp

@@ -11,7 +11,7 @@
 MAKEFLAGS='s'
 
 LATEX=latex2e
-ISA2LATEX=isa2latex
+ISA2LATEX=../bin/isa2latex
 
 CHECKOUT=co
 
@@ -30,7 +30,7 @@ all: manual.dvi fontdocfiles
 
 fontdocfiles: $(FONTDOCFILES)
 
-manual.dvi: manual.itex
-
+manual.dvi: manual.tex
+	$(LATEX) $< >/dev/null; $(LATEX) $<
 clean:
 	rm -f *.tex *.aux *.log

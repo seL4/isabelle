@@ -1,0 +1,11 @@
+#!/bin/bash
+#
+# $Id$
+#
+# mk - build 8bit.
+#
+# Assumes to be called with current directory 'Tools/8bit'
+
+export ISABELLE8BIT=$(pwd)
+touch Makefile
+gmake

@@ -33,5 +33,4 @@ ax2isa: $(AXOBJECTS)
 # ----------------------------------------------------
 
 clean:
-	@echo "     cleaning up object and tmp files..."
 	@rm -f *.o lex.yy.c
