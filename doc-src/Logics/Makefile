@@ -10,7 +10,7 @@ FILES =  logics.tex intro.tex FOL.tex ZF.tex HOL.tex LK.tex CTT.tex\
 	 ../rail.sty ../proof.sty ../iman.sty ../extra.sty
 
 logics.dvi.gz:   $(FILES) 
-	@ln -sf ../gfx/isabelle.eps .
+	test -r isabelle.eps || ln -s ../gfx/isabelle.eps .
 	-rm logics.dvi*
 	latex logics
 	rail logics
@@ -22,7 +22,7 @@ logics.dvi.gz:   $(FILES)
 	gzip -f logics.dvi
 
 dist:   $(FILES) 
-	@ln -sf ../gfx/isabelle.eps .
+	test -r isabelle.eps || ln -s ../gfx/isabelle.eps .
 	-rm logics.dvi*
 	latex logics
 	latex logics

@@ -10,7 +10,7 @@ FILES =  system.tex \
 	 ../iman.sty ../extra.sty
 
 system.dvi.gz:   $(FILES)
-	@ln -sf ../gfx/isabelle.eps .
+	test -r isabelle.eps || ln -s ../gfx/isabelle.eps .
 	-rm system.dvi*
 	latex system
 	latex system
@@ -19,7 +19,7 @@ system.dvi.gz:   $(FILES)
 	gzip -f system.dvi
 
 dist:   $(FILES)
-	@ln -sf ../gfx/isabelle.eps .
+	test -r isabelle.eps || ln -s ../gfx/isabelle.eps .
 	-rm system.dvi*
 	latex system
 	latex system

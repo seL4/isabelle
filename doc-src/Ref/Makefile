@@ -12,8 +12,8 @@ FILES =  ref.tex introduction.tex goals.tex tactic.tex tctical.tex\
 	 ../rail.sty ../proof.sty ../iman.sty ../extra.sty
 
 ref.dvi.gz:   $(FILES) 
-	/bin/test -e isabelle.eps || ln -s ../gfx/isabelle.eps .
-	rm -f ref.dvi*
+	test -r isabelle.eps || ln -s ../gfx/isabelle.eps .
+	-rm ref.dvi*
 	latex ref
 	rail ref
 	bibtex ref
@@ -24,7 +24,7 @@ ref.dvi.gz:   $(FILES)
 	gzip -f ref.dvi
 
 dist:   $(FILES) 
-	/bin/test -e isabelle.eps || ln -s ../gfx/isabelle.eps .
+	test -f isabelle.eps || ln -s ../gfx/isabelle.eps .
 	rm -f ref.dvi*
 	latex ref
 	latex ref

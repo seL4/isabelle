@@ -11,7 +11,7 @@ FILES =  tutorial.tex basics.tex fp.tex appendix.tex \
 
 tutorial.ps.gz:   $(FILES)
 	isatool make
-	-ln -sf ../gfx/isabelle_hol.eps .
+	test -r isabelle_hol.eps || ln -s ../gfx/isabelle_hol.eps .
 	-rm tutorial.dvi*
 	latex tutorial
 	bibtex tutorial
@@ -23,7 +23,7 @@ tutorial.ps.gz:   $(FILES)
 	gzip tutorial.ps
 
 dist:   $(FILES) 
-	-ln -sf ../gfx/isabelle_hol.eps .
+	test -r isabelle_hol.eps || ln -s ../gfx/isabelle_hol.eps .
 	-rm tutorial.dvi*
 	latex tutorial
 	latex tutorial
