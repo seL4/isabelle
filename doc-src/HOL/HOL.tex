@@ -1826,6 +1826,9 @@ newly defined type constructors $t@1,\ldots,t@n$, or
 \item $\tau = (\tau'@1,\ldots,\tau'@{h'})t'$, where $t'$ is
 the type constructor of an already existing datatype and $\tau'@1,\ldots,\tau'@{h'}$
 are admissible types.
+\item $\tau = \sigma \rightarrow \tau'$, where $\tau'$ is an admissible
+type and $\sigma$ is non-recursive (i.e. the occurrences of the newly defined
+types are {\em strictly positive})
 \end{itemize}
 If some $(\alpha@1,\ldots,\alpha@h)t@{j'}$ occurs in a type $\tau^j@{i,i'}$
 of the form
@@ -1855,7 +1858,11 @@ The datatype \texttt{term}, which is defined by
 datatype ('a, 'b) term = Var 'a
                        | App 'b ((('a, 'b) term) list)
 \end{ttbox}
-is an example for a datatype with nested recursion.
+is an example for a datatype with nested recursion. Using nested recursion
+involving function spaces, we may also define infinitely branching datatypes, e.g.
+\begin{ttbox}
+datatype 'a tree = Atom 'a | Branch "nat => 'a tree"
+\end{ttbox}
 
 \medskip
 
@@ -1890,16 +1897,12 @@ The constructor functions are injective:
 (C^j@i~x@1~\dots~x@{m^j@i} = C^j@i~y@1~\dots~y@{m^j@i}) =
 (x@1 = y@1 \land \dots \land x@{m^j@i} = y@{m^j@i})
 \]
-Because the number of distinctness inequalities is quadratic in the number of
-constructors, a different representation is used if there are $7$ or more of
-them.  In that case every constructor term is mapped to a natural number:
-\[
-t@j_ord \, (C^j@i \, x@1 \, \dots \, x@{m^j@i}) = i - 1
-\]
-Then distinctness of constructor terms is expressed by:
-\[
-t@j_ord \, x \neq t@j_ord \, y \Imp x \neq y.
-\]
+Since the number of distinctness inequalities is quadratic in the number of
+constructors, the datatype package avoids proving them separately if there are
+too many constructors. Instead, specific inequalities are proved by a suitable
+simplification procedure on demand.\footnote{This procedure, which is already part
+of the default simpset, may be referred to by the ML identifier
+\texttt{DatatypePackage.distinct_simproc}.}
 
 \subsubsection{Structural induction}
 
@@ -1973,6 +1976,14 @@ constructors \texttt{Nil} and \texttt{Cons}. Thus, the structural induction rule
 Note that there are two predicates $P@1$ and $P@2$, one for the type \texttt{('a,'b) term}
 and one for the type \texttt{(('a, 'b) term) list}.
 
+For a datatype with function types such as \texttt{'a tree}, the induction rule
+is of the form
+\[
+\infer{P~t}
+  {\Forall a.~P~(\mathtt{Atom}~a) &
+   \Forall ts.~(\forall x.~P~(ts~x)) \Imp P~(\mathtt{Branch}~ts)}
+\]
+
 \medskip In principle, inductive types are already fully determined by
 freeness and structural induction.  For convenience in applications,
 the following derived constructions are automatically provided for any
@@ -2023,10 +2034,7 @@ size(C^j@i~x@1~\dots~x@{m^j@i}) = \!
 \left\{
 \begin{array}{ll}
 0 & \!\mbox{if $Rec^j@i = \emptyset$} \\
-\!\!\begin{array}{l}
-size~x@{r^j@{i,1}} + \cdots \\
-\cdots + size~x@{r^j@{i,l^j@i}} + 1
-\end{array} &
+1+\sum\limits@{h=1}^{l^j@i}size~x@{r^j@{i,h}} &
  \!\mbox{if $Rec^j@i = \left\{\left(r^j@{i,1},s^j@{i,1}\right),\ldots,
   \left(r^j@{i,l^j@i},s^j@{i,l^j@i}\right)\right\}$}
 \end{array}
@@ -2341,51 +2349,51 @@ by (ALLGOALS Asm\_simp\_tac);
 \end{ttbox}
 
 \subsubsection{Example: Evaluation of expressions}
-Using mutual primitive recursion, we can define evaluation functions \texttt{eval_aexp}
+Using mutual primitive recursion, we can define evaluation functions \texttt{evala}
 and \texttt{eval_bexp} for the datatypes of arithmetic and boolean expressions mentioned in
 \S\ref{subsec:datatype:basics}:
 \begin{ttbox}
 consts
-  eval_aexp :: "['a => nat, 'a aexp] => nat"
-  eval_bexp :: "['a => nat, 'a bexp] => bool"
+  evala :: "['a => nat, 'a aexp] => nat"
+  evalb :: "['a => nat, 'a bexp] => bool"
 
 primrec
-  "eval_aexp env (If_then_else b a1 a2) =
-     (if eval_bexp env b then eval_aexp env a1 else eval_aexp env a2)"
-  "eval_aexp env (Sum a1 a2) = eval_aexp env a1 + eval_aexp env a2"
-  "eval_aexp env (Diff a1 a2) = eval_aexp env a1 - eval_aexp env a2"
-  "eval_aexp env (Var v) = env v"
-  "eval_aexp env (Num n) = n"
+  "evala env (If_then_else b a1 a2) =
+     (if evalb env b then evala env a1 else evala env a2)"
+  "evala env (Sum a1 a2) = evala env a1 + evala env a2"
+  "evala env (Diff a1 a2) = evala env a1 - evala env a2"
+  "evala env (Var v) = env v"
+  "evala env (Num n) = n"
 
-  "eval_bexp env (Less a1 a2) = (eval_aexp env a1 < eval_aexp env a2)"
-  "eval_bexp env (And b1 b2) = (eval_bexp env b1 & eval_bexp env b2)"
-  "eval_bexp env (Or b1 b2) = (eval_bexp env b1 & eval_bexp env b2)"
+  "evalb env (Less a1 a2) = (evala env a1 < evala env a2)"
+  "evalb env (And b1 b2) = (evalb env b1 & evalb env b2)"
+  "evalb env (Or b1 b2) = (evalb env b1 & evalb env b2)"
 \end{ttbox}
 Since the value of an expression depends on the value of its variables,
-the functions \texttt{eval_aexp} and \texttt{eval_bexp} take an additional
+the functions \texttt{evala} and \texttt{evalb} take an additional
 parameter, an {\em environment} of type \texttt{'a => nat}, which maps
 variables to their values.
 
-Similarly, we may define substitution functions \texttt{subst_aexp}
-and \texttt{subst_bexp} for expressions: The mapping \texttt{f} of type
+Similarly, we may define substitution functions \texttt{substa}
+and \texttt{substb} for expressions: The mapping \texttt{f} of type
 \texttt{'a => 'a aexp} given as a parameter is lifted canonically
-on the types {'a aexp} and {'a bexp}:
+on the types \texttt{'a aexp} and \texttt{'a bexp}:
 \begin{ttbox}
 consts
-  subst_aexp :: "['a => 'b aexp, 'a aexp] => 'b aexp"
-  subst_bexp :: "['a => 'b aexp, 'a bexp] => 'b bexp"
+  substa :: "['a => 'b aexp, 'a aexp] => 'b aexp"
+  substb :: "['a => 'b aexp, 'a bexp] => 'b bexp"
 
 primrec
-  "subst_aexp f (If_then_else b a1 a2) =
-     If_then_else (subst_bexp f b) (subst_aexp f a1) (subst_aexp f a2)"
-  "subst_aexp f (Sum a1 a2) = Sum (subst_aexp f a1) (subst_aexp f a2)"
-  "subst_aexp f (Diff a1 a2) = Diff (subst_aexp f a1) (subst_aexp f a2)"
-  "subst_aexp f (Var v) = f v"
-  "subst_aexp f (Num n) = Num n"
+  "substa f (If_then_else b a1 a2) =
+     If_then_else (substb f b) (substa f a1) (substa f a2)"
+  "substa f (Sum a1 a2) = Sum (substa f a1) (substa f a2)"
+  "substa f (Diff a1 a2) = Diff (substa f a1) (substa f a2)"
+  "substa f (Var v) = f v"
+  "substa f (Num n) = Num n"
 
-  "subst_bexp f (Less a1 a2) = Less (subst_aexp f a1) (subst_aexp f a2)"
-  "subst_bexp f (And b1 b2) = And (subst_bexp f b1) (subst_bexp f b2)"
-  "subst_bexp f (Or b1 b2) = Or (subst_bexp f b1) (subst_bexp f b2)"
+  "substb f (Less a1 a2) = Less (substa f a1) (substa f a2)"
+  "substb f (And b1 b2) = And (substb f b1) (substb f b2)"
+  "substb f (Or b1 b2) = Or (substb f b1) (substb f b2)"
 \end{ttbox}
 In textbooks about semantics one often finds {\em substitution theorems},
 which express the relationship between substitution and evaluation. For
@@ -2393,10 +2401,10 @@ which express the relationship between substitution and evaluation. For
 induction, followed by simplification:
 \begin{ttbox}
 Goal
-  "eval_aexp env (subst_aexp (Var(v := a')) a) =
-     eval_aexp (env(v := eval_aexp env a')) a &
-   eval_bexp env (subst_bexp (Var(v := a')) b) =
-     eval_bexp (env(v := eval_aexp env a')) b";
+  "evala env (substa (Var(v := a')) a) =
+     evala (env(v := evala env a')) a &
+   evalb env (substb (Var(v := a')) b) =
+     evalb (env(v := evala env a')) b";
 by (mutual_induct_tac ["a","b"] 1);
 by (ALLGOALS Asm_full_simp_tac);
 \end{ttbox}
@@ -2406,7 +2414,7 @@ Functions on datatypes with nested recursion, such as the type
 \texttt{term} mentioned in \S\ref{subsec:datatype:basics}, are
 also defined by mutual primitive recursion. A substitution
 function \texttt{subst_term} on type \texttt{term}, similar to the functions
-\texttt{subst_aexp} and \texttt{subst_bexp} described above, can
+\texttt{substa} and \texttt{substb} described above, can
 be defined as follows:
 \begin{ttbox}
 consts
@@ -2434,6 +2442,22 @@ Goal
 by (mutual_induct_tac ["t", "ts"] 1);
 by (ALLGOALS Asm_full_simp_tac);
 \end{ttbox}
+
+\subsubsection{Example: A map function for infinitely branching trees}
+Defining functions on infinitely branching datatypes by primitive
+recursion is just as easy. For example, we can define a function
+\texttt{map_tree} on \texttt{'a tree} as follows:
+\begin{ttbox}
+consts
+  map_tree :: "('a => 'b) => 'a tree => 'b tree"
+
+primrec
+  "map_tree f (Atom a) = Atom (f a)"
+  "map_tree f (Branch ts) = Branch (\%x. map_tree f (ts x))"
+\end{ttbox}
+Note that all occurrences of functions such as \texttt{ts} in the
+\texttt{primrec} clauses must be applied to an argument. In particular,
+\texttt{map_tree f o ts} is not allowed.
 
 \index{recursion!primitive|)}
 \index{*primrec|)}
