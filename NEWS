@@ -4,6 +4,11 @@ Isabelle NEWS -- history user-relevant changes
 
 *** Overview of INCOMPATIBILITIES ***
 
+* HOL: inductive package no longer splits induction rule aggressively,
+but only as far as specified by the introductions given; the old
+format may recovered via ML function complete_split_rule or attribute
+'split_rule (complete)';
+
 * HOL: induct renamed to lfp_induct, lfp_Tarski to lfp_unfold,
 gfp_Tarski to gfp_unfold;
 
