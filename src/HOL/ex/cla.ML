@@ -347,7 +347,7 @@ goal HOL.thy
     "(! x::'a. ! y::'a. q x y = (! z. p z x = (p z y::bool)))   \
 \ --> (! x. (! y. q x y = (q y x::bool)))";
 by (Blast_tac 1);
-
+result();
 
 writeln"Problem 44";
 goal HOL.thy "(! x. f(x) -->                                    \
