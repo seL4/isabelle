@@ -491,7 +491,8 @@ fun default_tycodegen thy gr dep brack (TVar ((s, i), _)) =
 fun output_code gr xs = implode (map (snd o Graph.get_node gr)
   (rev (Graph.all_preds gr xs)));
 
-fun gen_generate_code prep_term thy = Pretty.setmp_margin (!margin) (fn xs =>
+fun gen_generate_code prep_term thy =
+  setmp print_mode [] (Pretty.setmp_margin (!margin) (fn xs =>
   let
     val sg = sign_of thy;
     val gr = Graph.new_node ("<Top>", (None, "")) Graph.empty;
@@ -504,7 +505,7 @@ fun gen_generate_code prep_term thy = Pretty.setmp_margin (!margin) (fn xs =>
     space_implode "\n\n" (map (fn (s', p) => Pretty.string_of (Pretty.block
       [Pretty.str ("val " ^ s' ^ " ="), Pretty.brk 1, p, Pretty.str ";"])) ps) ^
     "\n\nend;\n\nopen Generated;\n"
-  end);
+  end));
 
 val generate_code_i = gen_generate_code (K I);
 val generate_code = gen_generate_code
@@ -574,7 +575,7 @@ fun test_term thy sz i t =
               Pretty.block [Pretty.str "Library.Some ", Pretty.block (Pretty.str "[" ::
                 flat (separate [Pretty.str ",", Pretty.brk 1]
                   (map (fn (s, T) => [Pretty.block
-                    [Pretty.str ("(" ^ quote s ^ ","), Pretty.brk 1,
+                    [Pretty.str ("(" ^ Library.quote s ^ ","), Pretty.brk 1,
                      mk_app false (mk_term_of sg false T)
                        [Pretty.str s], Pretty.str ")"]]) frees)) @
                   [Pretty.str "]"])]],

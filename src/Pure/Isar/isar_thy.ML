@@ -565,7 +565,7 @@ fun method_setup (name, txt, cmt) =
     \val thms = PureThy.get_thms_closure (Context.the_context ());\n\
     \val method: bstring * (Args.src -> Proof.context -> Proof.method) * string"
     "PureIsar.Method.add_method method"
-    ("(" ^ quote name ^ ", " ^ txt ^ ", " ^ quote cmt ^ ")");
+    ("(" ^ Library.quote name ^ ", " ^ txt ^ ", " ^ Library.quote cmt ^ ")");
 
 
 (* add_oracle *)
@@ -574,7 +574,7 @@ fun add_oracle (name, txt) =
   Context.use_let
     "val oracle: bstring * (Sign.sg * Object.T -> term)"
     "Theory.add_oracle oracle"
-    ("(" ^ quote name ^ ", " ^ txt ^ ")");
+    ("(" ^ Library.quote name ^ ", " ^ txt ^ ")");
 
 
 (* add_locale *)

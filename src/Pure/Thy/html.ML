@@ -244,7 +244,7 @@ val _ = Symbol.add_mode htmlN (output_width, Symbol.default_indent);
 (* token translations *)
 
 fun style stl =
-  apfst (enclose ("<span class=" ^ quote stl ^ ">") "</span>") o output_width;
+  apfst (enclose ("<span class=" ^ Library.quote stl ^ ">") "</span>") o output_width;
 
 val html_trans =
  [("class", style "tclass"),
@@ -273,7 +273,7 @@ val file_path = file_name o Url.pack;
 
 (* misc *)
 
-fun href_name s txt = "<a href=" ^ quote s ^ ">" ^ txt ^ "</a>";
+fun href_name s txt = "<a href=" ^ Library.quote s ^ ">" ^ txt ^ "</a>";
 fun href_path path txt = href_name (Url.pack path) txt;
 
 fun href_opt_name None txt = txt

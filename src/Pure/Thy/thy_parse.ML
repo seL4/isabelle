@@ -138,7 +138,7 @@ fun kind k1 ((k2, s, n) :: toks) =
 val ident = kind Ident;
 val long_ident = kind LongIdent;
 val long_id = ident || long_ident;
-val type_var = kind TypeVar >> quote;
+val type_var = kind TypeVar >> Library.quote;
 val nat = kind Nat;
 val string = kind String;
 val verbatim = kind Verbatim;
@@ -181,7 +181,7 @@ fun split_decls l = flat (map (fn (xs, y) => map (rpair y) xs) l);
 
 (* names *)
 
-val name = ident >> quote || string;
+val name = ident >> Library.quote || string;
 val names = list name;
 val names1 = list1 name;
 val name_list = names >> mk_list;
@@ -202,7 +202,7 @@ val class_decls = repeat1 (subclass >> mk_pair) >> mk_big_list;
 
 (* arities *)
 
-val sort = name || "{" $$-- list ident --$$ "}" >> (quote o enclose "{" "}" o commas);
+val sort = name || "{" $$-- list ident --$$ "}" >> (Library.quote o enclose "{" "}" o commas);
 val sort_list1 = list1 sort >> mk_list;
 
 val arity = optional ("(" $$-- !! (sort_list1 --$$")")) "[]" -- sort;
@@ -273,7 +273,7 @@ fun const_type allow_comma toks =
       "(" $$-- const_type true --$$ ")" >> parens) toks
   end;
 
-val typ = string || (const_type false >> quote);
+val typ = string || (const_type false >> Library.quote);
 
 
 fun mk_old_type_decl ((ts, n), syn) =
@@ -352,8 +352,8 @@ val trfun_args =
 
 (* axioms *)
 
-val mk_axms = mk_big_list o map (mk_pair o apfst quote);
-val mk_axms' = mk_big_list o map (mk_pair o rpair "[]" o mk_pair o apfst quote);
+val mk_axms = mk_big_list o map (mk_pair o apfst Library.quote);
+val mk_axms' = mk_big_list o map (mk_pair o rpair "[]" o mk_pair o apfst Library.quote);
 
 fun mk_axiom_decls axms = (mk_axms axms, map fst axms);
 
@@ -371,7 +371,7 @@ fun mk_constaxiom_decls x =
   let
     val (axms_defs, axms_names) =
       mk_axiom_decls (map (fn ((id, _), def) => (id ^ "_def", def)) x);
-  in ((mk_big_list o map mk_triple2 o map (apfst quote o fst)) x ^
+  in ((mk_big_list o map mk_triple2 o map (apfst Library.quote o fst)) x ^
        "\n\n|> (#1 oo (PureThy.add_defs false o map Thm.no_attributes))\n" ^ axms_defs, axms_names)
   end;
 
@@ -416,16 +416,16 @@ val instance_decl =
 
 val locale_decl =
   (name --$$ "=") -- 
-    (optional ((ident >> (fn x => parens ("Some" ^ quote x))) --$$ "+") ("None")) --
+    (optional ((ident >> (fn x => parens ("Some" ^ Library.quote x))) --$$ "+") ("None")) --
     ("fixes" $$--
       (repeat (name --$$ "::" -- !! (typ -- opt_mixfix)) 
        >> (mk_big_list o map mk_triple2))) --
     (optional 
-     ("assumes" $$-- (repeat ((ident >> quote) -- !! string) 
+     ("assumes" $$-- (repeat ((ident >> Library.quote) -- !! string) 
 		     >> (mk_list o map mk_pair)))
      "[]") --
     (optional 
-     ("defines" $$-- (repeat ((ident >> quote) -- !! string) 
+     ("defines" $$-- (repeat ((ident >> Library.quote) -- !! string) 
 		      >> (mk_list o map mk_pair)))
      "[]")
   >> (fn ((((nm, ext), cs), asms), defs) => cat_lines [nm, ext, cs, asms, defs]);
@@ -454,7 +454,7 @@ fun make_syntax keywords sects =
 (* header *)
 
 fun mk_header (thy_name, parents) =
-  (thy_name, "IsarThy.begin_theory " ^ cat (quote thy_name) (mk_list parents) ^ " []");
+  (thy_name, "IsarThy.begin_theory " ^ cat (Library.quote thy_name) (mk_list parents) ^ " []");
 
 val header = ident --$$ "=" -- enum1 "+" name >> mk_header;
 
@@ -524,7 +524,7 @@ fun parse_thy (lex, sectab) chs = #1 (!! (theory_defn sectab) (tokenize lex chs)
 
 (* standard sections *)
 
-fun mk_val ax = "val " ^ ax ^ " = PureThy.get_thm thy " ^ quote ax ^ ";";
+fun mk_val ax = "val " ^ ax ^ " = PureThy.get_thm thy " ^ Library.quote ax ^ ";";
 val mk_vals = cat_lines o map mk_val;
 
 fun mk_axm_sect "" (txt, axs) = (txt, mk_vals axs)

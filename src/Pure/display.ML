@@ -64,7 +64,7 @@ val goals_limit = ref 10;       (*max number of goals to print -- set by user*)
 val show_hyps = ref false;      (*false: print meta-hypotheses as dots*)
 val show_tags = ref false;      (*false: suppress tags*)
 
-fun pretty_tag (name, args) = Pretty.strs (name :: map quote args);
+fun pretty_tag (name, args) = Pretty.strs (name :: map Library.quote args);
 val pretty_tags = Pretty.list "[" "]" o map pretty_tag;
 
 fun pretty_flexpair pretty_term (t, u) = Pretty.block
@@ -166,8 +166,8 @@ val print_syntax = Syntax.print_syntax o Theory.syn_of;
 fun pretty_name_space (kind, space) =
   let
     fun prt_entry (name, accs) = Pretty.block
-      (Pretty.str (quote name ^ " =") :: Pretty.brk 1 ::
-        Pretty.commas (map (Pretty.str o quote) accs));
+      (Pretty.str (Library.quote name ^ " =") :: Pretty.brk 1 ::
+        Pretty.commas (map (Pretty.quote o Pretty.str) accs));
   in
     Pretty.fbreaks (Pretty.str (kind ^ ":") :: map prt_entry (NameSpace.dest space))
     |> Pretty.block

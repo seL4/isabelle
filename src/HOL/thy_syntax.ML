@@ -57,7 +57,7 @@ fun inductive_decl coind =
     fun mk_params ((recs, ipairs), monos) =
       let val big_rec_name = space_implode "_" (map (scan_to_id o unenclose) recs)
           and srec_tms = mk_list recs
-          and sintrs   = mk_big_list (no_atts (map (mk_pair o apfst quote) ipairs))
+          and sintrs   = mk_big_list (no_atts (map (mk_pair o apfst Library.quote) ipairs))
       in
         ";\n\n\
         \local\n\
@@ -133,7 +133,7 @@ local
       val names = map (fn ((((alt_name, _), name), _), _) =>
         unenclose (if_none alt_name name)) dts;
 
-      val add_datatype_args = brackets (commas (map quote names)) ^ " " ^
+      val add_datatype_args = brackets (commas (map Library.quote names)) ^ " " ^
         brackets (commas (map (fn ((((_, vs), name), mx), cs) =>
           parens (brackets (commas vs) ^ ", " ^ name ^ ", " ^ mx ^ ", " ^
             brackets (commas cs))) dts));
@@ -156,7 +156,7 @@ local
     \  case_thms, split_thms, induction, size, simps}) =\n\
     \ DatatypePackage.rep_datatype " ^
     (case names of
-        Some names => "(Some [" ^ commas_quote names ^ "])\n " ^
+        Some names => "(Some [" ^ Library.commas_quote names ^ "])\n " ^
           mk_thmss distinct ^ "\n " ^ mk_thmss inject ^
             "\n " ^ mk_thm induct ^ " thy;\nin\n" ^ mk_bind_thms_string names
       | None => "None\n " ^ mk_thmss distinct ^ "\n " ^ mk_thmss inject ^
@@ -179,7 +179,7 @@ local
   val opt_typs = repeat ((string >> unenclose) ||
     simple_typ || ("(" $$-- complex_typ --$$ ")"));
   val constructor = name -- opt_typs -- opt_mixfix >> (fn ((n, Ts), mx) =>
-    parens (n ^ ", " ^ brackets (commas_quote Ts) ^ ", " ^ mx));
+    parens (n ^ ", " ^ brackets (Library.commas_quote Ts) ^ ", " ^ mx));
   val opt_name = optional ("(" $$-- name --$$ ")" >> Some) None
 
   fun optlistlist s = optional (s $$-- enum "and" (list name)) [[]]
@@ -199,7 +199,7 @@ end;
 (** primrec **)
 
 fun mk_patterns eqns = mk_list (map (fn (s, _) => if s = "" then "_" else s) eqns);
-fun mk_eqns eqns = mk_list (map (fn (x, y) => mk_pair (mk_pair (quote x, y), "[]")) eqns);
+fun mk_eqns eqns = mk_list (map (fn (x, y) => mk_pair (mk_pair (Library.quote x, y), "[]")) eqns);
 
 fun mk_primrec_decl (alt_name, eqns) =
   ";\nval (thy, " ^ mk_patterns eqns ^ ") = PrimrecPackage.add_primrec " ^ alt_name ^ " "
@@ -221,7 +221,7 @@ fun mk_recdef_decl ((((fname, rel), congs), ss), eqns) =
     ";\n\n\
     \local\n\
     \fun simpset() = Simplifier.simpset_of thy;\n\
-    \val (thy, result) = thy |> RecdefPackage.add_recdef_old " ^ quote fid ^ " " ^ rel ^ "\n" ^
+    \val (thy, result) = thy |> RecdefPackage.add_recdef_old " ^ Library.quote fid ^ " " ^ rel ^ "\n" ^
     mk_eqns eqns ^ "\n(" ^ ss ^ ",\n " ^ mk_list congs ^ ");\n\
     \in\n\
     \structure " ^ fid ^ " =\n\
@@ -251,7 +251,7 @@ fun mk_defer_recdef_decl ((fname, congs), axms) =
   in
     ";\n\n\
     \local\n\
-    \val (thy, result) = thy |> RecdefPackage.defer_recdef " ^ quote fid ^ "\n" ^
+    \val (thy, result) = thy |> RecdefPackage.defer_recdef " ^ Library.quote fid ^ "\n" ^
     axms_text ^ "\n" ^ congs_text ^ ";\n\
     \in\n\
     \structure " ^ fid ^ " =\n\

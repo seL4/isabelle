@@ -100,7 +100,7 @@ type graph_node =
 fun write_graph gr path =
   File.write path (cat_lines (map (fn {name, ID, dir, unfold, path, parents} =>
     "\"" ^ name ^ "\" \"" ^ ID ^ "\" \"" ^ dir ^ (if unfold then "\" + \"" else "\" \"") ^
-    path ^ "\" > " ^ space_implode " " (map quote parents) ^ " ;") gr));
+    path ^ "\" > " ^ space_implode " " (map Library.quote parents) ^ " ;") gr));
 
 fun ID_of sess s = space_implode "/" (sess @ [s]);
 

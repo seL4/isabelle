@@ -43,7 +43,7 @@ fun inductive_decl coind =
                            (map (scan_to_id o unenclose) recs)
           and srec_tms = mk_list recs
           and sintrs   =
-            mk_big_list (map (fn (x, y) => mk_pair (mk_pair (quote x, y), "[]")) ipairs)
+            mk_big_list (map (fn (x, y) => mk_pair (mk_pair (Library.quote x, y), "[]")) ipairs)
           and inames   = mk_list (map (mk_bind "" o fst) ipairs)
       in
          ";\n\n\
@@ -155,7 +155,7 @@ val rep_datatype_decl =
 fun mk_primrec_decl eqns =
   let val binds = map (mk_bind "" o fst) eqns in
     ";\nval (thy, " ^ mk_list binds ^ ") = PrimrecPackage.add_primrec " ^
-      mk_list (map (fn p => mk_pair (mk_pair p, "[]")) (map (apfst quote) eqns)) ^ " " ^ " thy;\n\
+      mk_list (map (fn p => mk_pair (mk_pair p, "[]")) (map (apfst Library.quote) eqns)) ^ " " ^ " thy;\n\
     \val thy = thy\n"
   end;
 

@@ -44,7 +44,7 @@ fun escape "\\" = "\\\\"
   | escape "\"" = "\\\""
   | escape s = s;
 
-val quote_escape = quote o implode o map escape o Symbol.explode;
+val quote_escape = Library.quote o implode o map escape o Symbol.explode;
 
 val scan_ant =
   T.scan_blank ||

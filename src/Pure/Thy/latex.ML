@@ -102,7 +102,7 @@ fun output_tok (Basic tok, _) =
           "\\isacommand{" ^ output_syms s ^ "}"
         else if T.is_kind T.Keyword tok andalso Syntax.is_identifier s then
           "\\isakeyword{" ^ output_syms s ^ "}"
-        else if T.is_kind T.String tok then output_syms (quote s)
+        else if T.is_kind T.String tok then output_syms (Library.quote s)
         else if T.is_kind T.Verbatim tok then output_syms (enclose "{*" "*}" s)
         else output_syms s
       end
