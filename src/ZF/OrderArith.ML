@@ -254,7 +254,7 @@ Goal "well_ord({x},xr) ==>  \
 \         (lam z:A. <x,z>) : ord_iso(A, r, {x}*A, rmult({x}, xr, A, r))";
 by (resolve_tac [singleton_prod_bij RS ord_isoI] 1);
 by (Asm_simp_tac 1);
-by (blast_tac (claset() addEs [well_ord_is_wf RS wf_on_not_refl RS notE]) 1);
+by (blast_tac (claset() addDs [well_ord_is_wf RS wf_on_not_refl]) 1);
 qed "singleton_prod_ord_iso";
 
 (*Here we build a complicated function term, then simplify it using
@@ -281,10 +281,8 @@ Goal "[| a:A;  well_ord(A,r) |] ==> \
 by (resolve_tac [prod_sum_singleton_bij RS ord_isoI] 1);
 by (asm_simp_tac
     (simpset() addsimps [pred_iff, well_ord_is_wf RS wf_on_not_refl]) 1);
-by (Asm_simp_tac 1);
-by (REPEAT_FIRST (eresolve_tac [SigmaE, sumE, predE]));
-by (ALLGOALS Asm_simp_tac);
-by (ALLGOALS (blast_tac (claset() addEs [well_ord_is_wf RS wf_on_asym])));
+by (auto_tac (claset() addSEs [well_ord_is_wf RS wf_on_asym, predE], 
+	      simpset()));
 qed "prod_sum_singleton_ord_iso";
 
 (** Distributive law **)

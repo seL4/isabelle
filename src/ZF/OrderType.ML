@@ -510,14 +510,14 @@ Goal "[| Ord(i);  !!x. x:A ==> Ord(j(x));  a:A |] ==> \
 \     i ++ (UN x:A. j(x)) = (UN x:A. i++j(x))";
 by (blast_tac (claset() addIs prems @ [ltI, Ord_UN, Ord_oadd, 
 				       lt_oadd1 RS ltD, oadd_lt_mono2 RS ltD]
-                        addSEs [ltE, ltI RS lt_oadd_disj RS disjE]) 1);
+                        addSEs [ltE] addSDs [ltI RS lt_oadd_disj]) 1);
 qed "oadd_UN";
 
 Goal "[| Ord(i);  Limit(j) |] ==> i++j = (UN k:j. i++k)";
 by (forward_tac [Limit_has_0 RS ltD] 1);
 by (asm_simp_tac (simpset() addsimps [Limit_is_Ord RS Ord_in_Ord,
-                                  oadd_UN RS sym, Union_eq_UN RS sym, 
-                                  Limit_Union_eq]) 1);
+				      oadd_UN RS sym, Union_eq_UN RS sym, 
+				      Limit_Union_eq]) 1);
 qed "oadd_Limit";
 
 (** Order/monotonicity properties of ordinal addition **)

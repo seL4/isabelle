@@ -193,9 +193,10 @@ by (REPEAT (ares_tac [ltD RS UN_I] 1));
 qed "Limit_VfromI";
 
 val prems = Goal
-    "[| a: Vfrom(A,i);  Limit(i);               \
+    "[| a: Vfrom(A,i);  ~R ==> Limit(i);               \
 \       !!x. [| x<i;  a: Vfrom(A,x) |] ==> R    \
 \    |] ==> R";
+by (rtac classical 1);
 by (rtac (Limit_Vfrom_eq RS equalityD1 RS subsetD RS UN_E) 1);
 by (REPEAT (ares_tac (prems @ [ltI, Limit_is_Ord]) 1));
 qed "Limit_VfromE";
@@ -209,8 +210,8 @@ by (etac ([singleton_in_Vfrom, limiti] MRS Limit_VfromI) 1);
 by (etac (limiti RS Limit_has_succ) 1);
 qed "singleton_in_VLimit";
 
-val Vfrom_UnI1 = Un_upper1 RS (subset_refl RS Vfrom_mono RS subsetD)
-and Vfrom_UnI2 = Un_upper2 RS (subset_refl RS Vfrom_mono RS subsetD);
+bind_thm ("Vfrom_UnI1", Un_upper1 RS (subset_refl RS Vfrom_mono RS subsetD));
+bind_thm ("Vfrom_UnI2", Un_upper2 RS (subset_refl RS Vfrom_mono RS subsetD));
 
 (*Hard work is finding a single j:i such that {a,b}<=Vfrom(A,j)*)
 val [aprem,bprem,limiti] = goal Univ.thy
@@ -403,7 +404,7 @@ qed "Pow_in_Vfrom";
 
 Goal "[| a: Vfrom(A,i);  Limit(i);  Transset(A) |] ==> Pow(a) : Vfrom(A,i)";
 by (blast_tac (claset() addEs [Limit_VfromE]
-		        addIs [Limit_has_succ, Pow_in_Vfrom, Limit_VfromI]) 1);
+	                addIs [Limit_has_succ, Pow_in_Vfrom, Limit_VfromI]) 1);
 qed "Pow_in_VLimit";
 
 

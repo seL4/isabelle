@@ -449,8 +449,8 @@ by (res_inst_tac [("x", "lam x:A. if f`x=v then f`u else f`x")] exI 1);
 by (rtac CollectI 1);
 (*Proving it's in the function space A->B*)
 by (rtac (if_type RS lam_type) 1);
-by (blast_tac (claset() addEs [apply_funtype RS consE]) 1);
-by (blast_tac (claset() addSEs [mem_irrefl] addEs [apply_funtype RS consE]) 1);
+by (blast_tac (claset() addDs [apply_funtype]) 1);
+by (blast_tac (claset() addSEs [mem_irrefl] addDs [apply_funtype]) 1);
 (*Proving it's injective*)
 by (Asm_simp_tac 1);
 by (Blast_tac 1);
@@ -481,7 +481,7 @@ Goal "[| m:nat; n: nat |] ==> m eqpoll n <-> m = n";
 by (rtac iffI 1);
 by (asm_simp_tac (simpset() addsimps [eqpoll_refl]) 2);
 by (blast_tac (claset() addIs [nat_lepoll_imp_le, le_anti_sym] 
-                    addSEs [eqpollE]) 1);
+                        addSEs [eqpollE]) 1);
 qed "nat_eqpoll_iff";
 
 (*The object of all this work: every natural number is a (finite) cardinal*)

@@ -177,8 +177,7 @@ Goal "f : FiniteFun(A, {y:B. P(y)})  \
 \     <-> f : FiniteFun(A,B) & (ALL x:domain(f). P(f`x))";
 by Auto_tac;
 by (blast_tac (claset() addIs [impOfSubs FiniteFun_mono]) 1);
-by (blast_tac (claset() addDs [FiniteFun_is_fun]
-                        addEs [Pair_mem_PiE]) 1);
+by (blast_tac (claset() addDs [Pair_mem_PiD, FiniteFun_is_fun]) 1);
 by (res_inst_tac [("A1", "domain(f)")]
     (subset_refl RSN(2, FiniteFun_mono) RS subsetD) 1);
 by (fast_tac (claset() addDs

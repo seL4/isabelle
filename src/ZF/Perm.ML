@@ -57,8 +57,7 @@ qed "inj_is_fun";
 (*Good for dealing with sets of pairs, but a bit ugly in use [used in AC]*)
 Goalw [inj_def]
     "[| <a,b>:f;  <c,b>:f;  f: inj(A,B) |] ==> a=c";
-by (REPEAT (eresolve_tac [asm_rl, Pair_mem_PiE, CollectE] 1));
-by (Blast_tac 1);
+by (blast_tac (claset() addDs [Pair_mem_PiD]) 1);
 qed "inj_equality";
 
 Goalw [inj_def] "[| f:inj(A,B);  a:A;  b:A;  f`a=f`b |] ==> a=b";

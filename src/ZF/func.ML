@@ -142,14 +142,9 @@ by (etac (fun_is_rel RS subsetD RS SigmaD2) 1);
 by (assume_tac 1);
 qed "range_type";
 
-val prems = Goal
-    "[| <a,b>: f;  f: Pi(A,B);       \
-\       [| a:A;  b:B(a);  f`a = b |] ==> P  \
-\    |] ==> P";
-by (cut_facts_tac prems 1);
-by (resolve_tac prems 1);
-by (REPEAT (eresolve_tac [asm_rl,domain_type,range_type,apply_equality] 1));
-qed "Pair_mem_PiE";
+Goal "[| <a,b>: f;  f: Pi(A,B) |] ==> a:A & b:B(a) & f`a = b";
+by (blast_tac (claset() addIs [domain_type, range_type, apply_equality]) 1);
+qed "Pair_mem_PiD";
 
 (*** Lambda Abstraction ***)
 

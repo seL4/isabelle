@@ -17,8 +17,6 @@ epsilon.ML.  Expanding out the definition of wftrec in wfrec would yield
 a mess.
 *)
 
-open WF;
-
 
 (*** Well-founded relations ***)
 
@@ -159,15 +157,9 @@ by (wf_on_ind_tac "a" [] 1);
 by (Blast_tac 1);
 qed_spec_mp "wf_on_not_sym";
 
-(* [| wf[A](r);  <a,b> : r;  a:A;  b:A;  ~P ==> <b,a> : r |] ==> P *)
-bind_thm ("wf_on_asym", wf_on_not_sym RS swap);
-
-val prems =
-Goal "[| wf[A](r);  <a,b>:r;  ~P ==> <b,a>:r;  a:A;  b:A |] ==> P";
-by (rtac ccontr 1);
-by (rtac (wf_on_not_sym RS notE) 1);
-by (DEPTH_SOLVE (ares_tac prems 1));
-qed "wf_on_asym";
+(* [| wf[A](r); ~Z ==> <a,b> : r;
+      <b,a> ~: r ==> Z; ~Z ==> a : A; ~Z ==> b : A |] ==> Z *)
+bind_thm ("wf_on_asym", permute_prems 1 2 (cla_make_elim wf_on_not_sym));
 
 (*Needed to prove well_ordI.  Could also reason that wf[A](r) means
   wf(r Int A*A);  thus wf( (r Int A*A)^+ ) and use wf_not_refl *)
