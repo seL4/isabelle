@@ -12,8 +12,6 @@ Proof of characteristic theorems:
 
 *)
 
-val foo = ref [TrueI];
-
 signature DATATYPE_REP_PROOFS =
 sig
   val representation_proofs : bool -> DatatypeAux.datatype_info Symtab.table ->
