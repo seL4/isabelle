@@ -1,10 +1,10 @@
-(*  Title:      HOL/MicroJava/BV/BVLightSpec.thy
+(*  Title:      HOL/MicroJava/BV/LBVSpec.thy
     ID:         $Id$
     Author:     Gerwin Klein
     Copyright   1999 Technische Universitaet Muenchen
 *)
 
-header {* Specification of the LBV *}
+header {* The Lightweight Bytecode Verifier *}
 
 
 theory LBVSpec = Step :
@@ -14,256 +14,181 @@ types
   class_certificate = "sig \<Rightarrow> certificate"
   prog_certificate  = "cname \<Rightarrow> class_certificate"
 
-constdefs
-wtl_inst :: "[instr,jvm_prog,ty,state_type,state_type,certificate,p_count,p_count] \<Rightarrow> bool"
-
-"wtl_inst i G rT s s' cert max_pc pc \<equiv> app (i,G,rT,s) \<and> 
-                                       (let s'' = the (step (i,G,s)) in
-                                          (\<forall> pc' \<in> (succs i pc). pc' < max_pc \<and>  
-                                             ((pc' \<noteq> pc+1) \<longrightarrow> cert!pc' \<noteq> None \<and> G \<turnstile> s'' <=s the (cert!pc'))) \<and>  
-                                          (if (pc+1) \<in> (succs i pc) then  
-                                             s' = s'' 
-                                           else 
-                                             cert ! (pc+1) = Some s'))" 
-
-lemma [simp]: 
-"succs i pc = {pc+1} \<Longrightarrow> 
-  wtl_inst i G rT s s' cert max_pc pc = (app (i,G,rT,s) \<and> pc+1 < max_pc \<and> (s' = the (step (i,G,s))))"
-by (unfold wtl_inst_def, auto)
-
-lemma [simp]:
-"succs i pc = {} \<Longrightarrow> wtl_inst i G rT s s' cert max_pc pc = (app (i,G,rT,s) \<and> cert!(pc+1) = Some s')"
-by (unfold wtl_inst_def, auto)
-
 
 constdefs
-wtl_inst_option :: "[instr,jvm_prog,ty,state_type,state_type,certificate,p_count,p_count] \<Rightarrow> bool"
-"wtl_inst_option i G rT s0 s1 cert max_pc pc \<equiv>
-     (case cert!pc of 
-          None     \<Rightarrow> wtl_inst i G rT s0 s1 cert max_pc pc
-        | Some s0' \<Rightarrow> (G \<turnstile> s0 <=s s0') \<and>
-                      wtl_inst i G rT s0' s1 cert max_pc pc)"
-  
-consts
- wtl_inst_list :: "[instr list,jvm_prog,ty,state_type,state_type,certificate,p_count,p_count] \<Rightarrow> bool"
+  check_cert :: "[instr, jvm_prog, state_type option, certificate, p_count, p_count]
+                 \<Rightarrow> bool"
+  "check_cert i G s cert pc max_pc \<equiv> \<forall>pc' \<in> set (succs i pc). pc' < max_pc \<and>  
+                                     (pc' \<noteq> pc+1 \<longrightarrow> G \<turnstile> step i G s <=' cert!pc')"
+
+  wtl_inst :: "[instr,jvm_prog,ty,state_type option,certificate,p_count,p_count] 
+               \<Rightarrow> state_type option err" 
+  "wtl_inst i G rT s cert max_pc pc \<equiv> 
+     if app i G rT s \<and> check_cert i G s cert pc max_pc then 
+       if pc+1 mem (succs i pc) then Ok (step i G s) else Ok (cert!(pc+1))
+     else Err";
+
+lemma wtl_inst_Ok:
+"(wtl_inst i G rT s cert max_pc pc = Ok s') =
+ (app i G rT s \<and> (\<forall>pc' \<in> set (succs i pc). 
+                   pc' < max_pc \<and> (pc' \<noteq> pc+1 \<longrightarrow> G \<turnstile> step i G s <=' cert!pc')) \<and> 
+ (if pc+1 \<in> set (succs i pc) then s' = step i G s else s' = cert!(pc+1)))"
+  by (auto simp add: wtl_inst_def check_cert_def set_mem_eq);
+
+
+constdefs
+  wtl_cert :: "[instr,jvm_prog,ty,state_type option,certificate,p_count,p_count] 
+               \<Rightarrow> state_type option err"  
+  "wtl_cert i G rT s cert max_pc pc \<equiv>
+     case cert!pc of
+        None    \<Rightarrow> wtl_inst i G rT s cert max_pc pc
+      | Some s' \<Rightarrow> if G \<turnstile> s <=' (Some s') then 
+                    wtl_inst i G rT (Some s') cert max_pc pc 
+                  else Err"
+
+consts 
+  wtl_inst_list :: "[instr list,jvm_prog,ty,certificate,p_count,p_count, 
+                     state_type option] \<Rightarrow> state_type option err"
 primrec
-  "wtl_inst_list [] G rT s0 s2 cert max_pc pc = (s0 = s2)"
-
-  "wtl_inst_list (instr#is) G rT s0 s2 cert max_pc pc =
-     (\<exists>s1. wtl_inst_option instr G rT s0 s1 cert max_pc pc \<and> 
-           wtl_inst_list is G rT s1 s2 cert max_pc (pc+1))"
+  "wtl_inst_list []     G rT cert max_pc pc s = Ok s"
+  "wtl_inst_list (i#is) G rT cert max_pc pc s = 
+    (let s' = wtl_cert i G rT s cert max_pc pc in
+     strict (wtl_inst_list is G rT cert max_pc (pc+1)) s')";
+              
 
 constdefs
- wtl_method :: "[jvm_prog,cname,ty list,ty,nat,instr list,certificate] \<Rightarrow> bool" 
- "wtl_method G C pTs rT mxl ins cert \<equiv> 
-	let max_pc = length ins 
-        in 
-	0 < max_pc \<and>  
-        (\<exists>s2. wtl_inst_list ins G rT 
-                            ([],(Some(Class C))#((map Some pTs))@(replicate mxl None))
-                            s2 cert max_pc 0)"
+ wtl_method :: "[jvm_prog,cname,ty list,ty,nat,instr list,certificate] \<Rightarrow> bool"  
+ "wtl_method G C pTs rT mxl ins cert \<equiv>  
+	let max_pc = length ins  
+  in 
+  0 < max_pc \<and>   
+  wtl_inst_list ins G rT cert max_pc 0 
+                (Some ([],(Ok (Class C))#((map Ok pTs))@(replicate mxl Err))) \<noteq> Err"
 
- wtl_jvm_prog :: "[jvm_prog,prog_certificate] \<Rightarrow> bool"
- "wtl_jvm_prog G cert \<equiv> 
-    wf_prog (\<lambda>G C (sig,rT,maxl,b). 
-               wtl_method G C (snd sig) rT maxl b (cert C sig)) G" 
+ wtl_jvm_prog :: "[jvm_prog,prog_certificate] \<Rightarrow> bool" 
+ "wtl_jvm_prog G cert \<equiv>  
+  wf_prog (\<lambda>G C (sig,rT,maxl,b). wtl_method G C (snd sig) rT maxl b (cert C sig)) G"
 
-text {* \medskip *}
+text {* \medskip *} 
 
-lemma rev_eq: "\<lbrakk>length a = n; length x = n; rev a @ b # c = rev x @ y # z\<rbrakk> \<Longrightarrow> a = x \<and> b = y \<and> c = z"
-by auto
+lemma strict_Some [simp]: 
+"(strict f x = Ok y) = (\<exists> z. x = Ok z \<and> f z = Ok y)"
+  by (cases x, auto)
 
-lemma wtl_inst_unique: 
-"wtl_inst i G rT s0 s1 cert max_pc pc \<longrightarrow>
- wtl_inst i G rT s0 s1' cert max_pc pc \<longrightarrow> s1 = s1'" (is "?P i")
-by (unfold wtl_inst_def, auto)
+lemma wtl_Cons:
+  "wtl_inst_list (i#is) G rT cert max_pc pc s \<noteq> Err = 
+  (\<exists>s'. wtl_cert i G rT s cert max_pc pc = Ok s' \<and> 
+        wtl_inst_list is G rT cert max_pc (pc+1) s' \<noteq> Err)"
+by (auto simp del: split_paired_Ex)
 
-lemma wtl_inst_option_unique:
-"\<lbrakk>wtl_inst_option i G rT s0 s1 cert max_pc pc; 
-  wtl_inst_option i G rT s0 s1' cert max_pc pc\<rbrakk> \<Longrightarrow> s1 = s1'"
-by (cases "cert!pc") (auto simp add: wtl_inst_unique wtl_inst_option_def)
+lemma wtl_append:
+"\<forall> s pc. (wtl_inst_list (a@b) G rT cert mpc pc s = Ok s') =
+   (\<exists>s''. wtl_inst_list a G rT cert mpc pc s = Ok s'' \<and> 
+          wtl_inst_list b G rT cert mpc (pc+length a) s'' = Ok s')" 
+  (is "\<forall> s pc. ?C s pc a" is "?P a")
+proof (induct ?P a)
 
-lemma wtl_inst_list_unique: 
-"\<forall> s0 pc. wtl_inst_list is G rT s0 s1 cert max_pc pc \<longrightarrow> 
- wtl_inst_list is G rT s0 s1' cert max_pc pc \<longrightarrow> s1=s1'" (is "?P is")
-proof (induct (open) ?P "is")
-  case Nil
+  show "?P []" by simp
+  
+  fix x xs
+  assume IH: "?P xs"
+
+  show "?P (x#xs)"
+  proof (intro allI)
+    fix s pc 
+
+    show "?C s pc (x#xs)"
+    proof (cases "wtl_cert x G rT s cert mpc pc")
+      case Err thus ?thesis by simp
+    next
+      fix s0
+      assume Ok: "wtl_cert x G rT s cert mpc pc = Ok s0"
+
+      with IH
+      have "?C s0 (Suc pc) xs" by blast
+      
+      with Ok
+      show ?thesis by simp
+    qed
+  qed
+qed
+
+lemma wtl_take:
+  "wtl_inst_list is G rT cert mpc pc s = Ok s'' ==>
+   \<exists>s'. wtl_inst_list (take pc' is) G rT cert mpc pc s = Ok s'"
+proof -
+  assume "wtl_inst_list is G rT cert mpc pc s = Ok s''"
+
+  hence "wtl_inst_list (take pc' is @ drop pc' is) G rT cert mpc pc s = Ok s''"
+    by simp
+
+  thus ?thesis 
+    by (auto simp add: wtl_append simp del: append_take_drop_id)
+qed
+
+lemma take_Suc:
+  "\<forall>n. n < length l \<longrightarrow> take (Suc n) l = (take n l)@[l!n]" (is "?P l")
+proof (induct l)
   show "?P []" by simp
 
-  case Cons
-  show "?P (a # list)" 
-  proof intro
-    fix s0 fix pc 
-    let "?o s0 s1" = "wtl_inst_option a G rT s0 s1 cert max_pc pc"
-    let "?l l s1 s2 pc" = "wtl_inst_list l G rT s1 s2 cert max_pc pc" 
-    assume a: "?l (a#list) s0 s1 pc"
-    assume b: "?l (a#list) s0 s1' pc"
-    with a
-    obtain s s' where   "?o s0 s" "?o s0 s'"
-                and l:  "?l list s s1 (Suc pc)"
-                and l': "?l list s' s1' (Suc pc)" by auto
-
-    have "s=s'" by(rule wtl_inst_option_unique)
-    with l l' Cons
-    show "s1 = s1'" by blast
-  qed
-qed
-        
-lemma wtl_partial:
-"\<forall> pc' pc s. 
-   wtl_inst_list is G rT s s' cert mpc pc \<longrightarrow> \
-   pc' < length is \<longrightarrow> \
-   (\<exists> a b s1. a @ b = is \<and> length a = pc' \<and> \
-              wtl_inst_list a G rT s  s1 cert mpc pc \<and> \
-              wtl_inst_list b G rT s1 s' cert mpc (pc+length a))" (is "?P is")
-proof (induct (open) ?P "is")
-  case Nil
-  show "?P []" by auto
+  fix x xs
+  assume IH: "?P xs"
   
-  case Cons
-  show "?P (a#list)"
-  proof (intro allI impI)
-    fix pc' pc s
-    assume length: "pc' < length (a # list)"
-    assume wtl:    "wtl_inst_list (a # list) G rT s s' cert mpc pc"
-    show "\<exists> a' b s1. 
-            a' @ b = a#list \<and> length a' = pc' \<and> \
-            wtl_inst_list a' G rT s  s1 cert mpc pc \<and> \
-            wtl_inst_list b G rT s1 s' cert mpc (pc+length a')"
-        (is "\<exists> a b s1. ?E a b s1")
-    proof (cases (open) pc')
-      case 0
-      with wtl
-      have "?E [] (a#list) s" by simp
-      thus ?thesis by blast
-    next
-      case Suc
-      with wtl      
-      obtain s0 where wtlSuc: "wtl_inst_list list G rT s0 s' cert mpc (Suc pc)"
-                and   wtlOpt: "wtl_inst_option a G rT s s0 cert mpc pc" by auto
-      from Cons
-      obtain a' b s1' 
-        where "a' @ b = list" "length a' = nat"
-        and w:"wtl_inst_list a' G rT s0 s1' cert mpc (Suc pc)"
-        and   "wtl_inst_list b G rT s1' s' cert mpc (Suc pc + length a')" 
-      proof (elim allE impE)
-        from length Suc show "nat < length list" by simp 
-        from wtlSuc     show "wtl_inst_list list G rT s0 s' cert mpc (Suc pc)" . 
-      qed (elim exE conjE, auto)
-      with Suc wtlOpt          
-      have "?E (a#a') b s1'" by (auto simp del: split_paired_Ex)   
-      thus ?thesis by blast
-    qed
+  show "?P (x#xs)"
+  proof (intro strip)
+    fix n
+    assume "n < length (x#xs)"
+    with IH
+    show "take (Suc n) (x # xs) = take n (x # xs) @ [(x # xs) ! n]"
+      by - (cases n, auto)
   qed
 qed
 
-lemma "wtl_append1":
-"\<lbrakk>wtl_inst_list x G rT s0 s1 cert (length (x@y)) 0; 
-  wtl_inst_list y G rT s1 s2 cert (length (x@y)) (length x)\<rbrakk> \<Longrightarrow>
-  wtl_inst_list (x@y) G rT s0 s2 cert (length (x@y)) 0"
+lemma wtl_Suc:
+ "[| wtl_inst_list (take pc is) G rT cert (length is) 0 s = Ok s'; 
+     wtl_cert (is!pc) G rT s' cert (length is) pc = Ok s'';
+     Suc pc < length is |] ==>
+  wtl_inst_list (take (Suc pc) is)  G rT cert (length is) 0 s = Ok s''" 
 proof -
-  assume w:
-    "wtl_inst_list x G rT s0 s1 cert (length (x@y)) 0"
-    "wtl_inst_list y G rT s1 s2 cert (length (x@y)) (length x)"
+  assume wtt: "wtl_inst_list (take pc is) G rT cert (length is) 0 s = Ok s'"
+  assume wtc: "wtl_cert (is!pc) G rT s' cert (length is) pc = Ok s''"
+  assume pc: "Suc pc < length is"
 
-  have
-    "\<forall> pc s0. 
-    wtl_inst_list x G rT s0 s1 cert (pc+length (x@y)) pc \<longrightarrow> 
-    wtl_inst_list y G rT s1 s2 cert (pc+length (x@y)) (pc+length x) \<longrightarrow>
-    wtl_inst_list (x@y) G rT s0 s2 cert (pc+length (x@y)) pc" (is "?P x")
-  proof (induct (open) ?P x)
-    case Nil
-    show "?P []" by simp
-  next
-    case Cons
-    show "?P (a#list)" 
-    proof intro
-      fix pc s0
-      assume y: 
-        "wtl_inst_list y G rT s1 s2 cert (pc + length ((a # list) @ y)) (pc + length (a # list))"
-      assume al: 
-        "wtl_inst_list (a # list) G rT s0 s1 cert (pc + length ((a # list) @ y)) pc"
-      from this
-      obtain s' where 
-        a: "wtl_inst_option a G rT s0 s' cert (Suc pc + length (list@y)) pc" and
-        l: "wtl_inst_list list G rT s' s1 cert (Suc pc + length (list@y)) (Suc pc)" by auto      
-      with y Cons
-      have "wtl_inst_list (list @ y) G rT s' s2 cert (Suc pc + length (list @ y)) (Suc pc)"
-        by (elim allE impE) (assumption, simp+)
-      with a
-      show "wtl_inst_list ((a # list) @ y) G rT s0 s2 cert (pc + length ((a # list) @ y)) pc"
-        by (auto simp del: split_paired_Ex)
-    qed
-  qed
-  
-  with w
-  show ?thesis 
-  proof (elim allE impE)
-    from w show "wtl_inst_list x G rT s0 s1 cert (0+length (x @ y)) 0" by simp
-  qed simp+
+  hence "take (Suc pc) is = (take pc is)@[is!pc]" 
+    by (simp add: take_Suc)
+
+  with wtt wtc pc
+  show ?thesis
+    by (simp add: wtl_append min_def)
 qed
 
-lemma wtl_cons_appendl:
-"\<lbrakk>wtl_inst_list a G rT s0 s1 cert (length (a@i#b)) 0; 
-  wtl_inst_option i G rT s1 s2 cert (length (a@i#b)) (length a); 
-  wtl_inst_list b G rT s2 s3 cert (length (a@i#b)) (Suc (length a))\<rbrakk> \<Longrightarrow> 
-  wtl_inst_list (a@i#b) G rT s0 s3 cert (length (a@i#b)) 0"
+lemma wtl_all:
+  "[| wtl_inst_list is G rT cert (length is) 0 s \<noteq> Err;
+      pc < length is |] ==> 
+   \<exists>s' s''. wtl_inst_list (take pc is) G rT cert (length is) 0 s = Ok s' \<and> 
+            wtl_cert (is!pc) G rT s' cert (length is) pc = Ok s''"
 proof -
-  assume a: "wtl_inst_list a G rT s0 s1 cert (length (a@i#b)) 0"
+  assume all: "wtl_inst_list is G rT cert (length is) 0 s \<noteq> Err"
 
-  assume "wtl_inst_option i G rT s1 s2 cert (length (a@i#b)) (length a)"
-         "wtl_inst_list b G rT s2 s3 cert (length (a@i#b)) (Suc (length a))"
+  assume pc: "pc < length is"
+  hence  "0 < length (drop pc is)" by simp
+  then 
+  obtain i r where 
+    Cons: "drop pc is = i#r" 
+    by (auto simp add: neq_Nil_conv simp del: length_drop)
+  hence "i#r = drop pc is" ..
+  with all
+  have take: "wtl_inst_list (take pc is@i#r) G rT cert (length is) 0 s \<noteq> Err"
+    by simp
+ 
+  from pc
+  have "is!pc = drop pc is ! 0" by simp
+  with Cons
+  have "is!pc = i" by simp
 
-  hence "wtl_inst_list (i#b) G rT s1 s3 cert (length (a@i#b)) (length a)"
-    by (auto simp del: split_paired_Ex)
-
-  with a
-  show ?thesis by (rule wtl_append1)
-qed
-
-lemma "wtl_append":
-"\<lbrakk>wtl_inst_list a G rT s0 s1 cert (length (a@i#b)) 0; 
-  wtl_inst_option i G rT s1 s2 cert (length (a@i#b)) (length a); 
-  wtl_inst_list b G rT s2 s3 cert (length (a@i#b)) (Suc (length a))\<rbrakk> \<Longrightarrow> 
-  wtl_inst_list (a@[i]) G rT s0 s2 cert (length (a@i#b)) 0"
-proof -
-  assume a: "wtl_inst_list a G rT s0 s1 cert (length (a@i#b)) 0"
-  assume i: "wtl_inst_option i G rT s1 s2 cert (length (a@i#b)) (length a)"
-  assume b: "wtl_inst_list b G rT s2 s3 cert (length (a@i#b)) (Suc (length a))"
-
-  have "\<forall> s0 pc. wtl_inst_list a G rT s0 s1 cert (pc+length (a@i#b)) pc \<longrightarrow> 
-        wtl_inst_option i G rT s1 s2 cert (pc+length (a@i#b)) (pc + length a) \<longrightarrow> 
-        wtl_inst_list b G rT s2 s3 cert (pc+length (a@i#b)) (Suc pc + length a) \<longrightarrow> 
-          wtl_inst_list (a@[i]) G rT s0 s2 cert (pc+length (a@i#b)) pc" (is "?P a")
-  proof (induct (open) ?P a)
-    case Nil
-    show "?P []" by (simp del: split_paired_Ex)
-    case Cons
-    show "?P (a#list)" (is "\<forall>s0 pc. ?x s0 pc \<longrightarrow> ?y s0 pc \<longrightarrow> ?z s0 pc \<longrightarrow> ?p s0 pc") 
-    proof intro
-      fix s0 pc
-      assume y: "?y s0 pc"
-      assume z: "?z s0 pc"
-      assume "?x s0 pc"
-      from this
-      obtain s0' where opt: "wtl_inst_option a G rT s0 s0' cert (pc + length ((a # list) @ i # b)) pc"
-                  and list: "wtl_inst_list list G rT s0' s1 cert (Suc pc + length (list @ i # b)) (Suc pc)"
-        by (auto simp del: split_paired_Ex)
-      with y z Cons
-      have "wtl_inst_list (list @ [i]) G rT s0' s2 cert (Suc pc + length (list @ i # b)) (Suc pc)" 
-      proof (elim allE impE) 
-        from list show "wtl_inst_list list G rT s0' s1 cert (Suc pc + length (list @ i # b)) (Suc pc)" .
-      qed auto
-      with opt
-      show "?p s0 pc"
-        by (auto simp del: split_paired_Ex)
-    qed
-  qed
-  with a i b
-  show ?thesis 
-  proof (elim allE impE)
-    from a show "wtl_inst_list a G rT s0 s1 cert (0+length (a@i#b)) 0" by simp
-  qed auto
+  with take pc
+  show ?thesis
+    by (auto simp add: wtl_append min_def)
 qed
 
 end

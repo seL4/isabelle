@@ -14,7 +14,8 @@ lemma PrimT_PrimT: "(G \<turnstile> xb \<preceq> PrimT p) = (xb = PrimT p)"
 
 
 lemma sup_loc_some [rulify]:
-"\<forall> y n. (G \<turnstile> b <=l y) \<longrightarrow> n < length y \<longrightarrow> y!n = Some t \<longrightarrow> (\<exists>t. b!n = Some t \<and> (G \<turnstile> (b!n) <=o (y!n)))" (is "?P b")
+"\<forall> y n. (G \<turnstile> b <=l y) \<longrightarrow> n < length y \<longrightarrow> y!n = Ok t \<longrightarrow> 
+  (\<exists>t. b!n = Ok t \<and> (G \<turnstile> (b!n) <=o (y!n)))" (is "?P b")
 proof (induct (open) ?P b)
   show "?P []" by simp
 
@@ -24,12 +25,12 @@ proof (induct (open) ?P b)
     fix z zs n
     assume * : 
       "G \<turnstile> a <=o z" "list_all2 (sup_ty_opt G) list zs" 
-      "n < Suc (length zs)" "(z # zs) ! n = Some t"
+      "n < Suc (length zs)" "(z # zs) ! n = Ok t"
 
-    show "(\<exists>t. (a # list) ! n = Some t) \<and> G \<turnstile>(a # list) ! n <=o Some t" 
+    show "(\<exists>t. (a # list) ! n = Ok t) \<and> G \<turnstile>(a # list) ! n <=o Ok t" 
     proof (cases n) 
       case 0
-      with * show ?thesis by (simp add: sup_ty_opt_Some)
+      with * show ?thesis by (simp add: sup_ty_opt_Ok)
     next
       case Suc
       with Cons *
@@ -40,7 +41,8 @@ qed
    
 
 lemma all_widen_is_sup_loc:
-"\<forall>b. length a = length b \<longrightarrow> (\<forall>x\<in>set (zip a b). x \<in> widen G) = (G \<turnstile> (map Some a) <=l (map Some b))" 
+"\<forall>b. length a = length b \<longrightarrow> 
+     (\<forall>x\<in>set (zip a b). x \<in> widen G) = (G \<turnstile> (map Ok a) <=l (map Ok b))" 
  (is "\<forall>b. length a = length b \<longrightarrow> ?Q a b" is "?P a")
 proof (induct "a")
   show "?P []" by simp
@@ -116,196 +118,211 @@ qed
 
 
 lemma app_mono: 
-"\<lbrakk>G \<turnstile> s2 <=s s1; app (i, G, rT, s1)\<rbrakk> \<Longrightarrow> app (i, G, rT, s2)";
+"\<lbrakk>G \<turnstile> s <=' s'; app i G rT s'\<rbrakk> \<Longrightarrow> app i G rT s";
 proof -
-  assume G:   "G \<turnstile> s2 <=s s1"
-  assume app: "app (i, G, rT, s1)"
-  
-  show ?thesis
-  proof (cases (open) i)
-    case Load
+
+  { fix s1 s2
+    assume G:   "G \<turnstile> s2 <=s s1"
+    assume app: "app i G rT (Some s1)"
+
+    have "app i G rT (Some s2)"
+    proof (cases (open) i)
+      case Load
     
-    from G
-    have l: "length (snd s1) = length (snd s2)" by (simp add: sup_state_length)
+      from G
+      have l: "length (snd s1) = length (snd s2)" by (simp add: sup_state_length)
+      
+      from G Load app
+      have "G \<turnstile> snd s2 <=l snd s1" by (auto simp add: sup_state_def)
+      
+      with G Load app l
+      show ?thesis by clarsimp (drule sup_loc_some, simp+)
+    next
+      case Store
+      with G app
+      show ?thesis
+        by - (cases s2,
+              auto simp add: map_eq_Cons sup_loc_Cons2 sup_loc_length sup_state_def)
+    next
+      case Bipush
+      thus ?thesis by simp 
+    next
+      case Aconst_null
+      thus ?thesis by simp
+    next
+      case New
+      with app
+      show ?thesis by simp
+    next
+      case Getfield
+      with app G
+      show ?thesis
+        by - (cases s2, clarsimp simp add: sup_state_Cons2, rule widen_trans)
+    next
+      case Putfield
+      
+      with app 
+      obtain vT oT ST LT b
+        where s1: "s1 = (vT # oT # ST, LT)" and
+                  "field (G, cname) vname = Some (cname, b)" 
+                  "is_class G cname" and
+              oT: "G\<turnstile> oT\<preceq> (Class cname)" and
+              vT: "G\<turnstile> vT\<preceq> b"
+        by simp (elim exE conjE, rule that) 
+      moreover
+      from s1 G
+      obtain vT' oT' ST' LT'
+        where s2:  "s2 = (vT' # oT' # ST', LT')" and
+              oT': "G\<turnstile> oT' \<preceq> oT" and
+              vT': "G\<turnstile> vT' \<preceq> vT"
+        by - (cases s2, simp add: sup_state_Cons2, elim exE conjE, simp, rule that)
+      moreover
+      from vT' vT
+      have "G \<turnstile> vT' \<preceq> b" by (rule widen_trans)
+      moreover
+      from oT' oT
+      have "G\<turnstile> oT' \<preceq> (Class cname)" by (rule widen_trans)
+      ultimately
+      show ?thesis
+        by (auto simp add: Putfield)
+    next
+      case Checkcast
+      with app G
+      show ?thesis 
+        by - (cases s2, auto intro!: widen_RefT2 simp add: sup_state_Cons2)
+    next
+      case Return
+      with app G
+      show ?thesis
+        by - (cases s2, auto simp add: sup_state_Cons2, rule widen_trans)
+    next
+      case Pop
+      with app G
+      show ?thesis
+        by - (cases s2, clarsimp simp add: sup_state_Cons2)
+    next
+      case Dup
+      with app G
+      show ?thesis
+        by - (cases s2, clarsimp simp add: sup_state_Cons2)
+    next
+      case Dup_x1
+      with app G
+      show ?thesis
+        by - (cases s2, clarsimp simp add: sup_state_Cons2)
+    next
+      case Dup_x2
+      with app G
+      show ?thesis
+        by - (cases s2, clarsimp simp add: sup_state_Cons2)
+    next
+      case Swap
+      with app G
+      show ?thesis
+        by - (cases s2, clarsimp simp add: sup_state_Cons2)
+    next
+      case IAdd
+      with app G
+      show ?thesis
+        by - (cases s2, auto simp add: sup_state_Cons2 PrimT_PrimT)
+    next
+      case Goto 
+      with app
+      show ?thesis by simp
+    next
+      case Ifcmpeq
+      with app G
+      show ?thesis
+        by - (cases s2, auto simp add: sup_state_Cons2 PrimT_PrimT widen_RefT2)
+    next
+      case Invoke
+      
+      with app
+      obtain apTs X ST LT mD' rT' b' where
+        s1: "s1 = (rev apTs @ X # ST, LT)" and
+        l:  "length apTs = length list" and
+        C:  "G \<turnstile> X \<preceq> Class cname" and
+        w:  "\<forall>x \<in> set (zip apTs list). x \<in> widen G" and
+        m:  "method (G, cname) (mname, list) = Some (mD', rT', b')"
+        by (simp, elim exE conjE) (rule that)
 
-    from G Load app
-    have "G \<turnstile> snd s2 <=l snd s1" by (auto simp add: sup_state_def)
+      obtain apTs' X' ST' LT' where
+        s2: "s2 = (rev apTs' @ X' # ST', LT')" and
+        l': "length apTs' = length list"
+      proof -
+        from l s1 G 
+        have "length list < length (fst s2)" 
+          by (simp add: sup_state_length)
+        hence "\<exists>a b c. (fst s2) = rev a @ b # c \<and> length a = length list"
+          by (rule rev_append_cons [rulify])
+        thus ?thesis
+          by -  (cases s2, elim exE conjE, simp, rule that) 
+      qed
+
+      from l l'
+      have "length (rev apTs') = length (rev apTs)" by simp
     
-    with G Load app l
-    show ?thesis by clarsimp (drule sup_loc_some, simp+)
-  next
-    case Store
-    with G app
-    show ?thesis
-      by - (cases s2,
-            auto simp add: map_eq_Cons sup_loc_Cons2 sup_loc_length sup_state_def)
-  next
-    case Bipush
-    thus ?thesis by simp 
-  next
-    case Aconst_null
-    thus ?thesis by simp
-  next
-    case New
-    with app
-    show ?thesis by simp
-  next
-    case Getfield
-    with app G
-    show ?thesis
-      by - (cases s2, clarsimp simp add: sup_state_Cons2, rule widen_trans)
-  next
-    case Putfield
-
-    with app 
-    obtain vT oT ST LT b
-      where s1: "s1 = (vT # oT # ST, LT)" and
-                "field (G, cname) vname = Some (cname, b)" 
-                "is_class G cname" and
-            oT: "G\<turnstile> oT\<preceq> (Class cname)" and
-            vT: "G\<turnstile> vT\<preceq> b"
-      by simp (elim exE conjE, simp, rule that)
-    moreover
-    from s1 G
-    obtain vT' oT' ST' LT'
-      where s2:  "s2 = (vT' # oT' # ST', LT')" and
-            oT': "G\<turnstile> oT' \<preceq> oT" and
-            vT': "G\<turnstile> vT' \<preceq> vT"
-      by - (cases s2, simp add: sup_state_Cons2, elim exE conjE, simp, rule that)
-    moreover
-    from vT' vT
-    have "G \<turnstile> vT' \<preceq> b" by (rule widen_trans)
-    moreover
-    from oT' oT
-    have "G\<turnstile> oT' \<preceq> (Class cname)" by (rule widen_trans)
-    ultimately
-    show ?thesis
-      by (auto simp add: Putfield)
-  next
-    case Checkcast
-    with app G
-    show ?thesis 
-      by - (cases s2, auto intro!: widen_RefT2 simp add: sup_state_Cons2)
-  next
-    case Return
-    with app G
-    show ?thesis
-      by - (cases s2, auto simp add: sup_state_Cons2, rule widen_trans)
-  next
-    case Pop
-    with app G
-    show ?thesis
-      by - (cases s2, clarsimp simp add: sup_state_Cons2)
-  next
-    case Dup
-    with app G
-    show ?thesis
-      by - (cases s2, clarsimp simp add: sup_state_Cons2)
-  next
-    case Dup_x1
-    with app G
-    show ?thesis
-      by - (cases s2, clarsimp simp add: sup_state_Cons2)
-  next
-    case Dup_x2
-    with app G
-    show ?thesis
-      by - (cases s2, clarsimp simp add: sup_state_Cons2)
-  next
-    case Swap
-    with app G
-    show ?thesis
-      by - (cases s2, clarsimp simp add: sup_state_Cons2)
-  next
-    case IAdd
-    with app G
-    show ?thesis
-      by - (cases s2, auto simp add: sup_state_Cons2 PrimT_PrimT)
-  next
-    case Goto 
-    with app
-    show ?thesis by simp
-  next
-    case Ifcmpeq
-    with app G
-    show ?thesis
-      by - (cases s2, auto simp add: sup_state_Cons2 PrimT_PrimT widen_RefT2)
-  next
-    case Invoke
-
-    with app
-    obtain apTs X ST LT where
-      s1: "s1 = (rev apTs @ X # ST, LT)" and
-      l:  "length apTs = length list" and
-      C:  "G \<turnstile> X \<preceq> Class cname" and
-      w:  "\<forall>x \<in> set (zip apTs list). x \<in> widen G" and
-      m:  "method (G, cname) (mname, list) \<noteq> None"
-      by (simp del: not_None_eq, elim exE conjE) (rule that)
-
-    obtain apTs' X' ST' LT' where
-      s2: "s2 = (rev apTs' @ X' # ST', LT')" and
-      l': "length apTs' = length list"
-    proof -
-      from l s1 G 
-      have "length list < length (fst s2)" 
-        by (simp add: sup_state_length)
-      hence "\<exists>a b c. (fst s2) = rev a @ b # c \<and> length a = length list"
-        by (rule rev_append_cons [rulify])
-      thus ?thesis
-        by -  (cases s2, elim exE conjE, simp, rule that) 
-    qed
-
-    from l l'
-    have "length (rev apTs') = length (rev apTs)" by simp
-    
-    from this s1 s2 G 
-    obtain
-      G': "G \<turnstile> (apTs',LT') <=s (apTs,LT)" and
-      X : "G \<turnstile>  X' \<preceq> X" and "G \<turnstile> (ST',LT') <=s (ST,LT)"
-      by (simp add: sup_state_rev_fst sup_state_append_fst sup_state_Cons1);
+      from this s1 s2 G 
+      obtain
+        G': "G \<turnstile> (apTs',LT') <=s (apTs,LT)" and
+        X : "G \<turnstile>  X' \<preceq> X" and "G \<turnstile> (ST',LT') <=s (ST,LT)"
+        by (simp add: sup_state_rev_fst sup_state_append_fst sup_state_Cons1)
         
-    with C
-    have C': "G \<turnstile> X' \<preceq> Class cname"
-      by - (rule widen_trans, auto)
+      with C
+      have C': "G \<turnstile> X' \<preceq> Class cname"
+        by - (rule widen_trans, auto)
     
-    from G'
-    have "G \<turnstile> map Some apTs' <=l map Some apTs"
-      by (simp add: sup_state_def)
-    also
-    from l w
-    have "G \<turnstile> map Some apTs <=l map Some list" 
-      by (simp add: all_widen_is_sup_loc)
-    finally
-    have "G \<turnstile> map Some apTs' <=l map Some list" .
+      from G'
+      have "G \<turnstile> map Ok apTs' <=l map Ok apTs"
+        by (simp add: sup_state_def)
+      also
+      from l w
+      have "G \<turnstile> map Ok apTs <=l map Ok list" 
+        by (simp add: all_widen_is_sup_loc)
+      finally
+      have "G \<turnstile> map Ok apTs' <=l map Ok list" .
 
-    with l'
-    have w': "\<forall>x \<in> set (zip apTs' list). x \<in> widen G"
-      by (simp add: all_widen_is_sup_loc)
+      with l'
+      have w': "\<forall>x \<in> set (zip apTs' list). x \<in> widen G"
+        by (simp add: all_widen_is_sup_loc)
 
-    from Invoke s2 l' w' C' m
-    show ?thesis 
-      by simp blast
-  qed
+      from Invoke s2 l' w' C' m
+      show ?thesis 
+        by simp blast
+    qed
+  } note mono_Some = this
+
+  assume "G \<turnstile> s <=' s'" "app i G rT s'"
+  
+  thus ?thesis 
+    by - (cases s, cases s', auto simp add: mono_Some)
 qed
     
+lemmas [simp del] = split_paired_Ex
+lemmas [simp] = step_def
 
-lemma step_mono:
-"\<lbrakk>succs i pc \<noteq> {}; app (i,G,rT,s2); G \<turnstile> s1 <=s s2\<rbrakk> \<Longrightarrow> 
-  G \<turnstile> the (step (i,G,s1)) <=s the (step (i,G,s2))"
+lemma step_mono_Some:
+"[| succs i pc \<noteq> []; app i G rT (Some s2); G \<turnstile> s1 <=s s2 |] ==>
+  G \<turnstile> the (step i G (Some s1)) <=s the (step i G (Some s2))"
 proof (cases s1, cases s2) 
   fix a1 b1 a2 b2
   assume s: "s1 = (a1,b1)" "s2 = (a2,b2)"
-  assume succs: "succs i pc \<noteq> {}"
-  assume app2: "app (i,G,rT,s2)"
+  assume succs: "succs i pc \<noteq> []"
+  assume app2: "app i G rT (Some s2)"
   assume G: "G \<turnstile> s1 <=s s2"
 
-  from G app2
-  have app1: "app (i,G,rT,s1)" by (rule app_mono)
-
-  from app1 app2 succs
+  hence "G \<turnstile> Some s1 <=' Some s2" 
+    by simp
+  from this app2
+  have app1: "app i G rT (Some s1)" by (rule app_mono)
+  
+  have "step i G (Some s1) \<noteq> None \<and> step i G (Some s2) \<noteq> None"
+    by simp
+  then 
   obtain a1' b1' a2' b2'
-    where step: "step (i,G,s1) = Some (a1',b1')" "step (i,G,s2) = Some (a2',b2')";
-    by (auto dest!: app_step_some);
+    where step: "step i G (Some s1) = Some (a1',b1')" 
+                "step i G (Some s2) = Some (a2',b2')"
+    by (auto simp del: step_def simp add: s)
 
   have "G \<turnstile> (a1',b1') <=s (a2',b2')"
   proof (cases (open) i)
@@ -313,11 +330,11 @@ proof (cases s1, cases s2)
 
     with s app1
     obtain y where
-       y:  "nat < length b1" "b1 ! nat = Some y" by clarsimp
+       y:  "nat < length b1" "b1 ! nat = Ok y" by clarsimp
 
     from Load s app2
     obtain y' where
-       y': "nat < length b2" "b2 ! nat = Some y'" by clarsimp
+       y': "nat < length b2" "b2 ! nat = Ok y'" by clarsimp
 
     from G s 
     have "G \<turnstile> b1 <=l b2" by (simp add: sup_state_def)
@@ -446,6 +463,12 @@ proof (cases s1, cases s2)
   show ?thesis by auto  
 qed
 
+lemma step_mono:
+  "[| succs i pc \<noteq> []; app i G rT s2; G \<turnstile> s1 <=' s2 |] ==>
+  G \<turnstile> step i G s1 <=' step i G s2"
+  by (cases s1, cases s2, auto dest: step_mono_Some)
 
+lemmas [simp del] = step_def
 
 end
+
