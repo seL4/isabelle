@@ -75,6 +75,29 @@ LOGIC="$1"; shift
 NAME="$1"; shift
 
 
+# prepare directories for html and graph output
+
+if [ $HTML = "true" -o $GRAPH = "true" ]; then
+  if [ ! -d $ISABELLE_BROWSER_INFO/gif ]; then
+    mkdir -p $ISABELLE_BROWSER_INFO/gif
+    cp $ISABELLE_HOME/lib/images/*.gif $ISABELLE_BROWSER_INFO/gif
+  fi
+fi
+
+if [ $HTML = "true" -a ! -d $ISABELLE_BROWSER_INFO/html ]; then
+  mkdir -p $ISABELLE_BROWSER_INFO/html
+  cp $ISABELLE_HOME/lib/html/index1.html $ISABELLE_BROWSER_INFO/html/index.html
+fi
+
+if [ $GRAPH = "true" -a ! -d $ISABELLE_BROWSER_INFO/graph ]; then
+  mkdir -p $ISABELLE_BROWSER_INFO/graph
+  cp $ISABELLE_HOME/lib/html/index2.html $ISABELLE_BROWSER_INFO/graph/index.html
+  mkdir $ISABELLE_BROWSER_INFO/graph/GraphBrowser
+  mkdir $ISABELLE_BROWSER_INFO/graph/awtUtilities
+  cp $ISABELLE_HOME/lib/browser/G*/*.class $ISABELLE_BROWSER_INFO/graph/G*
+  cp $ISABELLE_HOME/lib/browser/a*/*.class $ISABELLE_BROWSER_INFO/graph/a*
+fi
+
 
 ## main
 
@@ -82,10 +105,10 @@ NAME="$1"; shift
 
 if [ -n "$BUILD" ]; then
   exec $ISABELLE \
-    -e "make_html := $HTML; set_session\"$SESSION\"; exit_use_dir\".\"; make_html := false;" \
+    -e "make_html := $HTML; make_graph := $GRAPH; output_dir := \"$ISABELLE_BROWSER_INFO\"; home_path := \"$HOME\"; set_session\"$SESSION\"; exit_use_dir\".\"; make_html := false; make_graph := false;" \
     -q -w $LOGIC $NAME
 else
   exec $ISABELLE \
-    -e "make_html := $HTML; set_session\"$SESSION\"; exit_use_dir\"$NAME\"; make_html := false; quit();" \
+    -e "make_html := $HTML; make_graph := $GRAPH; output_dir := \"$ISABELLE_BROWSER_INFO\"; home_path := \"$HOME\"; set_session\"$SESSION\"; exit_use_dir\"$NAME\"; make_html := false; make_graph := false; quit();" \
     -r -q $LOGIC
 fi
