@@ -14,7 +14,7 @@ structure Bin = Datatype_Fun
 	  [(["Plus", "Minus"],	"i"),
 	   (["op $$"],		"[i,i]=>i")])];
   val rec_styp = "i";
-  val ext = Some (Syntax.simple_sext [Infixl("$$", "[i,i] => i", 60)]);
+  val ext = Some (Syntax.simple_sext [OldMixfix.Infixl("$$", "[i,i] => i", 60)]);
   val sintrs = 
 	  ["Plus : bin",
 	   "Minus : bin",

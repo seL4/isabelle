@@ -17,8 +17,8 @@ structure Prop = Datatype_Fun
 	   (["op =>"],	"[i,i]=>i")])];
   val rec_styp = "i";
   val ext = Some (Syntax.simple_sext
-		    [Mixfix("#_", "i => i", "Var", [100], 100),
-		     Infixr("=>", "[i,i] => i", 90)]);
+		    [OldMixfix.Mixfix("#_", "i => i", "Var", [100], 100),
+		     OldMixfix.Infixr("=>", "[i,i] => i", 90)]);
   val sintrs = 
 	  ["Fls : prop",
 	   "n: nat ==> #n : prop",
