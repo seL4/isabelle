@@ -298,7 +298,7 @@ $(LOG)/HOL-Lex.gz: $(OUT)/HOL \
   Lex/Automata.thy Lex/Automata.ML Lex/Chopper.thy Lex/DA.thy Lex/DA.ML \
   Lex/MaxChop.thy Lex/MaxChop.ML Lex/MaxPrefix.thy Lex/MaxPrefix.ML \
   Lex/NA.thy Lex/NA.ML Lex/NAe.thy Lex/NAe.ML Lex/RegExp2NAe.thy \
-  Lex/RegExp2NAe.ML Lex/RegExp2NA.thy Lex/RegExp2NA.ML \
+  Lex/Scanner.thy Lex/RegExp2NAe.ML Lex/RegExp2NA.thy Lex/RegExp2NA.ML \
   Lex/ROOT.ML Lex/RegExp.thy Lex/RegSet.thy Lex/RegSet.ML \
   Lex/RegSet_of_nat_DA.thy Lex/RegSet_of_nat_DA.ML Library/List_Prefix.thy
 	@$(ISATOOL) usedir $(OUT)/HOL Lex
