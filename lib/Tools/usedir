@@ -82,16 +82,10 @@ NAME="$1"; shift
 
 if [ -n "$BUILD" ]; then
   exec $ISABELLE \
-    -e "make_html := $HTML;" \
-    -e "set_session\"$SESSION\";" \
-    -e "exit_use_dir\".\";" \
-    -e "reset make_html;" \
+    -e "make_html := $HTML; set_session\"$SESSION\"; exit_use_dir\".\"; make_html := false;" \
     -q $LOGIC $NAME
 else
   exec $ISABELLE \
-    -e "make_html := $HTML;" \
-    -e "set_session\"$SESSION\";" \
-    -e "exit_use_dir\"$NAME\"; quit();" \
-    -e "reset make_html;" \
+    -e "make_html := $HTML; set_session\"$SESSION\"; exit_use_dir\"$NAME\"; make_html := false; quit();" \
     -r -q $LOGIC
 fi
