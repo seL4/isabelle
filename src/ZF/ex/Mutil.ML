@@ -11,20 +11,9 @@ open Mutil;
 
 (** Basic properties of evnodd **)
 
-goalw thy [evnodd_def]
-    "!!i j. [| <i,j>: A;  (i#+j) mod 2 = b |] ==> <i,j>: evnodd(A,b)";
-by (fast_tac ZF_cs 1);
-qed "evnoddI";
-
-val major::prems = goalw thy [evnodd_def]
-    "[| z: evnodd(A,b);     \
-\       !!i j. [| z=<i,j>;  <i,j>: A;  (i#+j) mod 2 = b |] ==> P |] ==> P";
-br (major RS CollectE) 1;
-by (REPEAT (eresolve_tac [exE,conjE] 1));
-by (resolve_tac prems 1);
-by (REPEAT (fast_tac ZF_cs 1));
-qed "evnoddE";
-
+goalw thy [evnodd_def] "<i,j>: evnodd(A,b) <-> <i,j>: A & (i#+j) mod 2 = b";
+by (fast_tac eq_cs 1);
+qed "evnodd_iff";
 
 goalw thy [evnodd_def] "evnodd(A, b) <= A";
 by (fast_tac ZF_cs 1);
@@ -72,12 +61,6 @@ by (REPEAT (asm_simp_tac (arith_ss addsimps [evnodd_cons, evnodd_0, mod_succ,
            THEN fast_tac (ZF_cs addDs [ltD]) 1));
 qed "domino_singleton";
 
-val prems = goal thy "[| d:domino; b<2 |] ==> |evnodd(d,b)| = 1";
-by (cut_facts_tac [prems MRS domino_singleton] 1);
-by (REPEAT (etac exE 1));
-by (asm_simp_tac (ZF_ss addsimps [cardinal_singleton]) 1);
-qed "cardinal_evnodd_domino";
-
 
 (*** Tilings ***)
 
@@ -107,18 +90,19 @@ by (resolve_tac [Finite_0] 1);
 by (fast_tac (ZF_cs addIs [domino_Finite, Finite_Un]) 1);
 qed "tiling_domino_Finite";
 
-(*Uses AC in the form of cardinal_disjoint_Un; could instead use
-  tiling_domino_Finite, well_ord_cardinal_eqE and Finite_imp_well_ord*)
 goal thy "!!t. t: tiling(domino) ==> |evnodd(t,0)| = |evnodd(t,1)|";
 by (eresolve_tac [tiling.induct] 1);
 by (simp_tac (ZF_ss addsimps [evnodd_def]) 1);
-by (asm_simp_tac (ZF_ss addsimps [evnodd_Un]) 1);
-by (rtac cardinal_disjoint_Un 1);
-by (asm_simp_tac (arith_ss addsimps [cardinal_evnodd_domino]) 1);
-by (asm_simp_tac (arith_ss addsimps [cardinal_evnodd_domino]) 1);
-bw evnodd_def;
-by (fast_tac (eq_cs addSEs [equalityE]) 1);
-by (fast_tac (eq_cs addSEs [equalityE]) 1);
+by (res_inst_tac [("b1","0")] (domino_singleton RS exE) 1);
+by (simp_tac arith_ss 2 THEN assume_tac 1);
+by (res_inst_tac [("b1","1")] (domino_singleton RS exE) 1);
+by (simp_tac arith_ss 2 THEN assume_tac 1);
+by (step_tac ZF_cs 1);
+by (subgoal_tac "ALL p b. p:evnodd(a,b) --> p~:evnodd(ta,b)" 1);
+by (asm_simp_tac (ZF_ss addsimps [evnodd_Un, Un_cons, tiling_domino_Finite,
+				  evnodd_subset RS subset_Finite,
+				  Finite_imp_cardinal_cons]) 1);
+by (fast_tac (ZF_cs addSDs [evnodd_subset RS subsetD] addEs [equalityE]) 1);
 qed "tiling_domino_0_1";
 
 goal thy "!!i n. [| i: nat;  n: nat |] ==> {i} * (n #+ n) : tiling(domino)";
@@ -152,6 +136,7 @@ by (dresolve_tac [tiling_domino_0_1] 1);
 by (subgoal_tac "|evnodd(t',0)| < |evnodd(t',1)|" 1);
 by (asm_full_simp_tac (ZF_ss addsimps [lt_not_refl]) 1);
 by (subgoal_tac "t : tiling(domino)" 1);
+(*Requires a small simpset that won't move the succ applications*)
 by (asm_simp_tac (ZF_ss addsimps [nat_succI, add_type, 
 				  dominoes_tile_matrix]) 2);
 by (subgoal_tac "(m#+m)#+(n#+n) = (m#+n)#+(m#+n)" 1);
@@ -166,5 +151,6 @@ by (REPEAT
      asm_simp_tac (arith_ss addsimps [tiling_domino_Finite, Finite_evnodd, 
 				      Finite_Diff]) 1 
      THEN
-     asm_simp_tac (arith_ss addsimps [evnoddI, nat_0_le RS ltD, mod2_add_self]) 1));
+     asm_simp_tac (arith_ss addsimps [evnodd_iff, nat_0_le RS ltD, 
+				      mod2_add_self]) 1));
 qed "mutil_not_tiling";

@@ -4,11 +4,9 @@
     Copyright   1996  University of Cambridge
 
 The Mutilated Checkerboard Problem, formalized inductively
-
-Really needs only CardinalArith, not AC, as sets are finite
 *)
 
-Mutil = Cardinal_AC +
+Mutil = CardinalArith +
 consts
   domino  :: i
   evnodd  :: [i,i]=>i
@@ -33,6 +31,4 @@ inductive
   type_intrs "[empty_subsetI, Union_upper, Un_least, PowI]"
   type_elims "[make_elim PowD]"
 
-
 end
-
