@@ -5,7 +5,7 @@
     Description : Absolute value function for the reals
 *) 
 
-RealAbs = Real +
+RealAbs = RealOrd +
 
 constdefs
    rabs   :: real => real

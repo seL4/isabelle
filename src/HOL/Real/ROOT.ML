@@ -11,6 +11,6 @@ writeln"Root file for HOL/Real";
 set proof_timing;
 time_use_thy "RealDef";
 use          "simproc.ML";
-time_use_thy "RComplete";
+time_use_thy "Real";
 time_use_thy "Hyperreal/Filter";
 time_use_thy "Hyperreal/HyperDef";

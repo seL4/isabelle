@@ -5,7 +5,7 @@
     Description: Embedding the integers in the reals
 *)
 
-RealInt = Real + Int + 
+RealInt = RealOrd + Int + 
 
 constdefs 
    real_of_int :: int => real
