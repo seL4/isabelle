@@ -3,7 +3,7 @@
 
 \chapter{Theories, Terms and Types} \label{theories}
 \index{theories|(}\index{signatures|bold}
-\index{reading!axioms|see{{\tt assume_ax}}} Theories organize the
+\index{reading!axioms|see{\texttt{assume_ax}}} Theories organize the
 syntax, declarations and axioms of a mathematical development.  They
 are built, starting from the {\Pure} or {\CPure} theory, by extending
 and merging existing theories.  They have the \ML\ type
@@ -54,7 +54,7 @@ constituent parts.
     $id@n$} makes $id$ a subclass of the existing classes $id@1\dots
   id@n$.  This rules out cyclic class structures.  Isabelle automatically
   computes the transitive closure of subclass hierarchies; it is not
-  necessary to declare {\tt c < e} in addition to {\tt c < d} and {\tt d <
+  necessary to declare \texttt{c < e} in addition to \texttt{c < d} and \texttt{d <
     e}.
 
 \item[$default$]
@@ -79,7 +79,7 @@ constituent parts.
 
 \item[$infix$]
   declares a type or constant to be an infix operator of priority $nat$
-  associating to the left ({\tt infixl}) or right ({\tt infixr}).  Only
+  associating to the left (\texttt{infixl}) or right (\texttt{infixr}).  Only
   2-place type constructors can have infix status; an example is {\tt
   ('a,'b)~"*"~(infixr~20)}, which may express binary product types.
 
@@ -116,14 +116,14 @@ constituent parts.
     infix} status.
 
   \item A constant $f$ of type $(\tau@1\To\tau@2)\To\tau$ can be given {\bf
-    binder} status.  The declaration {\tt binder} $\cal Q$ $p$ causes
+    binder} status.  The declaration \texttt{binder} $\cal Q$ $p$ causes
   ${\cal Q}\,x.F(x)$ to be treated
   like $f(F)$, where $p$ is the priority.
   \end{itemize}
 
 \item[$trans$]
   specifies syntactic translation rules (macros).  There are three forms:
-  parse rules ({\tt =>}), print rules ({\tt <=}), and parse/print rules ({\tt
+  parse rules (\texttt{=>}), print rules (\texttt{<=}), and parse/print rules ({\tt
   ==}).
 
 \item[$rules$]
@@ -178,7 +178,7 @@ constituent parts.
 \end{description}
 %
 Chapters~\ref{Defining-Logics} and \ref{chap:syntax} explain mixfix
-declarations, translation rules and the {\tt ML} section in more detail.
+declarations, translation rules and the \texttt{ML} section in more detail.
 
 
 \subsection{Definitions}\indexbold{definitions}
@@ -312,6 +312,224 @@ by a directory that will be used as temporary load path, e.g.\
 \texttt{use_thy~"$dir/name$"}.  Note that, depending on which parts of the
 ancestry of $name$ are already loaded, the dynamic change of paths might be
 hard to predict.  Use this feature with care only.
+
+
+\section{Locales}
+\label{Locales}
+
+Locales \cite{kammueller-locales} are a concept of local proof contexts.  They
+are introduced as named syntactic objects within theories and can be
+opened in any descendant theory.
+
+\subsection{Declaring Locales}
+
+A locale is declared in a theory section that starts with the
+keyword \texttt{locale}.  It consists typically of three parts, the
+\texttt{fixes} part, the \texttt{assumes} part, and the \texttt{defines} part.
+Appendix \ref{app:TheorySyntax} presents the full syntax.
+
+\subsubsection{Parts of Locales}
+
+The subsection introduced by the keyword \texttt{fixes} declares the locale
+constants in a way that closely resembles a global \texttt{consts}
+declaration.  In particular, there may be an optional pretty printing syntax
+for the locale constants.
+
+The subsequent \texttt{assumes} part specifies the locale rules.  They are
+defined like \texttt{rules}: by an identifier followed by the rule
+given as a string.  Locale rules admit the statement of local assumptions
+about the locale constants.  The \texttt{assumes} part is optional.  Non-fixed
+variables in locale rules are automatically bound by the universal quantifier
+\texttt{!!} of the meta-logic.
+
+Finally, the \texttt{defines} part introduces the definitions that are
+available in the locale.  Locale constants declared in the \texttt{fixes}
+section are defined using the meta-equality \texttt{==}.  If the
+locale constant is a functiond then its definition can (as usual) have
+variables on the left-hand side acting as formal parameters; they are
+considered as schematic variables and are automatically generalized by
+universal quantification of the meta-logic.  The right hand side of a
+definition must not contain variables that are not already on the left hand
+side.  In so far locale definitions behave like theory level definitions.
+However, the locale concept realizes \emph{dependent definitions}: any variable
+that is fixed as a locale constant can occur on the right hand side of
+definitions.  For an illustration of these dependent definitions see the
+occurrence of the locale constant \texttt{G} on the right hand side of the
+definitions of the locale \texttt{group} below.  Naturally, definitions can
+already use the syntax of the locale constants in the \texttt{fixes}
+subsection.  The \texttt{defines} part is, as the \texttt{assumes} part,
+optional.
+
+\subsubsection{Example for Definition}
+The concrete syntax of locale definitions is demonstrated by example below.
+
+Locale \texttt{group} assumes the definition of groups in a theory
+file\footnote{This and other examples are from \texttt{HOL/ex}.}.  A locale
+defining a convenient proof environment for group related proofs may be
+added to the theory as follows:
+\begin{ttbox}
+  locale group =
+    fixes 
+      G         :: "'a grouptype"
+      e         :: "'a"
+      binop     :: "'a => 'a => 'a"        (infixr "#" 80)
+      inv       :: "'a => 'a"              ("i(_)" [90] 91)
+    assumes
+      Group_G   "G: Group"
+    defines
+      e_def     "e == unit G"
+      binop_def "x # y == bin_op G x y"
+      inv_def   "i(x) == inverse G x"
+\end{ttbox}
+
+\subsubsection{Polymorphism}
+
+In contrast to polymorphic definitions in theories, the use of the
+same type variable for the declaration of different locale constants in the
+fixes part means \emph{the same} type.  In other words, the scope of the
+polymorphic variables is extended over all constant declarations of a locale.
+In the above example \texttt{'a} refers to the same type which is fixed inside
+the locale.  In an exported theorem (see \S\ref{sec:locale-export}) the
+constructors of locale \texttt{group} are polymorphic, yet only simultaneously
+instantiatable.
+
+\subsubsection{Nested Locales}
+
+A locale can be defined as the extension of a previously defined
+locale.  This operation of extension is optional and is syntactically
+expressed as 
+\begin{ttbox}
+locale foo = bar + ...
+\end{ttbox}
+The locale \texttt{foo} builds on the constants and syntax of the locale {\tt
+bar}.  That is, all contents of the locale \texttt{bar} can be used in
+definitions and rules of the corresponding parts of the locale {\tt
+foo}.  Although locale \texttt{foo} assumes the \texttt{fixes} part of \texttt{bar} it
+does not automatically subsume its rules and definitions.  Normally, one
+expects to use locale \texttt{foo} only if locale \texttt{bar} is already
+active.  These aspects of use and activation of locales are considered in the
+subsequent section.
+
+
+\subsection{Locale Scope}
+
+Locales are by default inactive, but they can be invoked.  The list of
+currently active locales is called \emph{scope}.  The process of activating
+them is called \emph{opening}; the reverse is \emph{closing}.
+
+\subsubsection{Scope}
+The locale scope is part of each theory.  It is a dynamic stack containing
+all active locales at a certain point in an interactive session.
+The scope lives until all locales are explicitly closed.  At one time there
+can be more than one locale open.  The contents of these various active
+locales are all visible in the scope.  In case of nested locales for example,
+the nesting is actually reflected to the scope, which contains the nested
+locales as layers.  To check the state of the scope during a development the
+function \texttt{Print\_scope} may be used.  It displays the names of all open
+locales on the scope.  The function \texttt{print\_locales} applied to a theory
+displays all locales contained in that theory and in addition also the
+current scope.
+
+The scope is manipulated by the commands for opening and closing of locales. 
+
+\subsubsection{Opening}
+Locales can be \emph{opened} at any point during a session where
+we want to prove theorems concerning the locale.  Opening a locale means
+making its contents visible by pushing it onto the scope of the current
+theory.  Inside a scope of opened locales, theorems can use all definitions and
+rules contained in the locales on the scope.  The rules and definitions may
+be accessed individually using the function \ttindex{thm}.  This function is
+applied to the names assigned to locale rules and definitions as
+strings.  The opening command is called \texttt{Open\_locale} and takes the 
+name of the locale to be opened as its argument.
+
+If one opens a locale \texttt{foo} that is defined by extension from locale
+\texttt{bar}, the function \texttt{Open\_locale} checks if locale \texttt{bar}
+is open.  If so, then it just opens \texttt{foo}, if not, then it prints a
+message and opens \texttt{bar} before opening \texttt{foo}.  Naturally, this
+carries on, if \texttt{bar} is again an extension.
+
+\subsubsection{Closing}
+
+\emph{Closing} means to cancel the last opened locale, pushing it out of the
+scope.  Theorems proved during the life cycle of this locale will be disabled,
+unless they have been explicitly exported, as described below.  However, when
+the same locale is opened again these theorems may be used again as well,
+provided that they were saved as theorems in the first place, using
+\texttt{qed} or ML assignment.  The command \texttt{Close\_locale} takes a
+locale name as a string and checks if this locale is actually the topmost
+locale on the scope.  If this is the case, it removes this locale, otherwise
+it prints a warning message and does not change the scope.
+
+\subsubsection{Export of Theorems}
+\label{sec:locale-export}
+
+Export of theorems transports theorems out of the scope of locales.  Locale
+rules that have been used in the proof of an exported theorem inside the
+locale are carried by the exported form of the theorem as its individual
+meta-assumptions.  The locale constants are universally quantified variables
+in these theorems, hence such theorems can be instantiated individually.
+Definitions become unfolded; locale constants that were merely used for
+definitions vanish.  Logically, exporting corresponds to a combined
+application of introduction rules for implication and universal
+quantification.  Exporting forms a kind of normalization of theorems in a
+locale scope.
+
+According to the possibility of nested locales there are two different forms
+of export.  The first one is realized by the function \texttt{export} that
+exports theorems through all layers of opened locales of the scope.  Hence,
+the application of export to a theorem yields a theorem of the global level,
+that is, the current theory context without any local assumptions or
+definitions.
+
+When locales are nested we might want to export a theorem, not to the global
+level of the current theory but just to the previous level.  The other export
+function, \texttt{Export}, transports theorems one level up in the scope; the
+theorem still uses locale constants, definitions and rules of the locales
+underneath.
+
+\subsection{Functions for Locales}
+\label{Syntax}
+\index{locales!functions}
+
+Here is a quick reference list of locale functions.
+\begin{ttbox}
+  Open_locale  : xstring -> unit 
+  Close_locale : xstring -> unit
+  export       :     thm -> thm
+  Export       :     thm -> thm
+  thm          : xstring -> thm
+  Print_scope  :    unit -> unit
+  print_locales:  theory -> unit
+\end{ttbox}
+\begin{ttdescription}
+\item[\ttindexbold{Open_locale} $xstring$] 
+    opens the locale {\it xstring}, adding it to the scope of the theory of the
+  current context.  If the opened locale is built by extension, the ancestors
+  are opened automatically.
+  
+\item[\ttindexbold{Close_locale} $xstring$] eliminates the locale {\it
+    xstring} from the scope if it is the topmost item on it, otherwise it does
+  not change the scope and produces a warning.
+
+\item[\ttindexbold{export} $thm$] locale definitions become expanded in {\it
+    thm} and locale rules that were used in the proof of {\it thm} become part
+  of its individual assumptions.  This normalization happens with respect to
+  \emph{all open locales} on the scope.
+  
+\item[\ttindexbold{Export} $thm$] works like \texttt{export} but normalizes
+  theorems only up to the previous level of locales on the scope.
+  
+\item[\ttindexbold{thm} $xstring$] applied to the name of a locale definition
+  or rule it returns the definition as a theorem.
+  
+\item[\ttindexbold{Print_scope}()] prints the names of the locales in the
+  current scope of the current theory context.
+  
+\item[\ttindexbold{print_locale} $theory$] prints all locales that are
+  contained in {\it theory} directly or indirectly.  It also displays the
+  current scope similar to \texttt{Print\_scope}.
+\end{ttdescription}
 
 
 \section{Basic operations on theories}\label{BasicOperationsOnTheories}
@@ -524,8 +742,8 @@ bound variables.
 \begin{ttdescription}
 \item[\ttindexbold{loose_bnos} $t$]
   returns the list of all dangling bound variable references.  In
-  particular, {\tt Bound~0} is loose unless it is enclosed in an
-  abstraction.  Similarly {\tt Bound~1} is loose unless it is enclosed in
+  particular, \texttt{Bound~0} is loose unless it is enclosed in an
+  abstraction.  Similarly \texttt{Bound~1} is loose unless it is enclosed in
   at least two abstractions; if enclosed in just one, the list will contain
   the number 0.  A well-formed term does not contain any loose variables.
 
@@ -537,7 +755,7 @@ bound variables.
 
 \item[\ttindexbold{abstract_over} $(v,t)$]
   forms the abstraction of~$t$ over~$v$, which may be any well-formed term.
-  It replaces every occurrence of \(v\) by a {\tt Bound} variable with the
+  It replaces every occurrence of \(v\) by a \texttt{Bound} variable with the
   correct index.
 
 \item[\ttindexbold{variant_abs} $(a,T,u)$]
@@ -552,7 +770,7 @@ bound variables.
   to renaming of bound variables.
 \begin{itemize}
   \item
-    Two constants, {\tt Free}s, or {\tt Var}s are \(\alpha\)-convertible
+    Two constants, \texttt{Free}s, or \texttt{Var}s are \(\alpha\)-convertible
     if their names and types are equal.
     (Variables having the same name but different types are thus distinct.
     This confusing situation should be avoided!)
@@ -573,7 +791,7 @@ bound variables.
 A term $t$ can be {\bf certified} under a signature to ensure that every type
 in~$t$ is well-formed and every constant in~$t$ is a type instance of a
 constant declared in the signature.  The term must be well-typed and its use
-of bound variables must be well-formed.  Meta-rules such as {\tt forall_elim}
+of bound variables must be well-formed.  Meta-rules such as \texttt{forall_elim}
 take certified terms as arguments.
 
 Certified terms belong to the abstract type \mltydx{cterm}.
@@ -745,7 +963,7 @@ Theory.add_oracle : bstring * (Sign.sg * object -> term) -> theory
 \end{ttdescription}
 
 A curious feature of {\ML} exceptions is that they are ordinary constructors.
-The {\ML} type {\tt exn} is a datatype that can be extended at any time.  (See
+The {\ML} type \texttt{exn} is a datatype that can be extended at any time.  (See
 my {\em {ML} for the Working Programmer}~\cite{paulson-ml2}, especially
 page~136.)  The oracle mechanism takes advantage of this to allow an oracle to
 take any information whatever.
@@ -766,7 +984,7 @@ exception object.
   solve the specified problem.
 \end{itemize}
 
-A trivial example is provided in theory {\tt FOL/ex/IffOracle}.  This
+A trivial example is provided in theory \texttt{FOL/ex/IffOracle}.  This
 oracle generates tautologies of the form $P\bimp\cdots\bimp P$, with
 an even number of $P$s.
 
@@ -779,20 +997,20 @@ defines the oracle function itself.
 exception IffOracleExn of int;\medskip
 fun mk_iff_oracle (sign, IffOracleExn n) =
   if n > 0 andalso n mod 2 = 0
-  then Trueprop $ mk_iff n
+  then Trueprop \$ mk_iff n
   else raise IffOracleExn n;
 \end{ttbox}
-Observe the function's two arguments, the signature {\tt sign} and the
+Observe the function's two arguments, the signature \texttt{sign} and the
 exception given as a pattern.  The function checks its argument for
 validity.  If $n$ is positive and even then it creates a tautology
 containing $n$ occurrences of~$P$.  Otherwise it signals error by
 raising its own exception (just by happy coincidence).  Errors may be
-signalled by other means, such as returning the theorem {\tt True}.
+signalled by other means, such as returning the theorem \texttt{True}.
 Please ensure that the oracle's result is correctly typed; Isabelle
 will reject ill-typed theorems by raising a cryptic exception at top
 level.
 
-The \texttt{oracle} section of {\tt IffOracle.thy} installs above
+The \texttt{oracle} section of \texttt{IffOracle.thy} installs above
 \texttt{ML} function as follows:
 \begin{ttbox}
 IffOracle = FOL +\medskip

@@ -52,6 +52,7 @@ section : classes
         | axclass
         | instance
         | oracle
+        | locale
         | local
         | global
         | setup
@@ -136,6 +137,22 @@ instance : 'instance' ( name '<' name | name '::' arity) witness
 
 witness : (() | '(' ((string | id | longident) + ',') ')') (() | verbatim)
         ;
+
+locale : 'locale' name '=' ( () | name '+' ) localeBody
+       ;
+
+localeBody : localeConsts ( () | localeAsms ) ( () | localeDefs )
+       ;
+
+localeConsts: ( 'fixes' ( ( (name '::' ( string | type )) ( () | '(' mixfix ')' ) ) + ) )
+       ;
+
+
+localeAsms:    ( 'assumes' ( ( id string ) + ) )
+       ;
+
+localeDefs:   ( 'defines' ( ( id string ) +) )
+       ;
 
 oracle : 'oracle' name '=' name
        ;
