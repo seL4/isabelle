@@ -6,10 +6,7 @@
 Distributed Resource Management System: the Client
 *)
 
-Client = Rename + 
-
-consts
-  NbT :: nat       (*Maximum number of tokens*)
+Client = Rename + AllocBase +
 
 types
   tokbag = nat	   (*tokbags could be multisets...or any ordered type?*)
@@ -62,8 +59,5 @@ constdefs
   (*Renaming map to put a Client into the standard form*)
   client_map :: "'a state_u => state*'a"
     "client_map == funPair non_extra extra"
-
-rules
-  NbT_pos  "0 < NbT"
 
 end
