@@ -58,6 +58,12 @@ sig
   val have: string -> Args.src list -> string * string list -> ProofHistory.T -> ProofHistory.T
   val have_i: string -> Proof.context attribute list -> term * term list
     -> ProofHistory.T -> ProofHistory.T
+  val thus: string -> Args.src list -> string * string list -> ProofHistory.T -> ProofHistory.T
+  val thus_i: string -> Proof.context attribute list -> term * term list
+    -> ProofHistory.T -> ProofHistory.T
+  val hence: string -> Args.src list -> string * string list -> ProofHistory.T -> ProofHistory.T
+  val hence_i: string -> Proof.context attribute list -> term * term list
+    -> ProofHistory.T -> ProofHistory.T
   val begin_block: ProofHistory.T -> ProofHistory.T
   val next_block: ProofHistory.T -> ProofHistory.T
   val end_block: ProofHistory.T -> ProofHistory.T
@@ -181,22 +187,28 @@ val match_bind_i = ProofHistory.apply o Proof.match_bind_i;
 fun global_statement f name src s thy =
   ProofHistory.init (f name (map (Attrib.global_attribute thy) src) s thy);
 
-fun local_statement do_open f name src s = ProofHistory.apply_cond_open do_open (fn state =>
-  f name (map (Attrib.local_attribute (Proof.theory_of state)) src) s state);
-
 fun global_statement_i f name atts t thy = ProofHistory.init (f name atts t thy);
-fun local_statement_i do_open f name atts t = ProofHistory.apply_cond_open do_open (f name atts t);
 
-val theorem = global_statement Proof.theorem;
+fun local_statement do_open f g name src s = ProofHistory.apply_cond_open do_open (fn state =>
+  f name (map (Attrib.local_attribute (Proof.theory_of state)) src) s (g state));
+
+fun local_statement_i do_open f g name atts t =
+  ProofHistory.apply_cond_open do_open (f name atts t o g);
+
+val theorem   = global_statement Proof.theorem;
 val theorem_i = global_statement_i Proof.theorem_i;
-val lemma = global_statement Proof.lemma;
-val lemma_i = global_statement_i Proof.lemma_i;
-val assume = local_statement false Proof.assume;
-val assume_i = local_statement_i false Proof.assume_i;
-val show = local_statement true Proof.show;
-val show_i = local_statement_i true Proof.show_i;
-val have = local_statement true Proof.have;
-val have_i = local_statement_i true Proof.have_i;
+val lemma     = global_statement Proof.lemma;
+val lemma_i   = global_statement_i Proof.lemma_i;
+val assume    = local_statement false Proof.assume I;
+val assume_i  = local_statement_i false Proof.assume_i I;
+val show      = local_statement true Proof.show I;
+val show_i    = local_statement_i true Proof.show_i I;
+val have      = local_statement true Proof.have I;
+val have_i    = local_statement_i true Proof.have_i I;
+val thus      = local_statement true Proof.show Proof.chain;
+val thus_i    = local_statement_i true Proof.show_i Proof.chain;
+val hence     = local_statement true Proof.have Proof.chain;
+val hence_i   = local_statement_i true Proof.have_i Proof.chain;
 
 
 (* blocks *)

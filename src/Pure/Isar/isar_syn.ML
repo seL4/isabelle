@@ -3,14 +3,6 @@
     Author:     Markus Wenzel, TU Muenchen
 
 Isar/Pure outer syntax.
-
-TODO:
-  - '--' (comment) option almost everywhere:
-  - add_parsers: warn if command name coincides with other keyword (if
-    not already present) (!?);
-  - 'result' (interactive): print current result (?);
-  - check evaluation of transformers (exns!);
-  - 'thms': xthms1 (vs. 'thm' (!?));
 *)
 
 signature ISAR_SYN =
@@ -261,6 +253,14 @@ val haveP =
   OuterSyntax.command "have" "state local goal"
     (statement IsarThy.have >> (fn f => Toplevel.print o Toplevel.proof f));
 
+val thusP =
+  OuterSyntax.command "thus" "abbreviates \"then show\""
+    (statement IsarThy.thus >> (fn f => Toplevel.print o Toplevel.proof f));
+
+val henceP =
+  OuterSyntax.command "hence" "abbreviates \"then have\""
+    (statement IsarThy.hence >> (fn f => Toplevel.print o Toplevel.proof f));
+
 
 (* facts *)
 
@@ -509,8 +509,8 @@ val parsers = [
   print_translationP, typed_print_translationP,
   print_ast_translationP, token_translationP, oracleP,
   (*proof commands*)
-  theoremP, lemmaP, showP, haveP, assumeP, fixP, letP, thenP, fromP,
-  factsP, beginP, nextP, kill_proofP, qed_withP, qedP,
+  theoremP, lemmaP, showP, haveP, thusP, henceP, assumeP, fixP, letP,
+  thenP, fromP, factsP, beginP, nextP, kill_proofP, qed_withP, qedP,
   terminal_proofP, immediate_proofP, default_proofP, refineP,
   then_refineP, proofP, clear_undoP, undoP, redoP, undosP, redosP,
   backP, prevP, upP, topP,
