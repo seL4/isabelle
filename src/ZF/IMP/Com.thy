@@ -23,11 +23,11 @@ datatype <= "univ(loc Un (nat->nat) Un ((nat*nat) -> nat) )"
 
 (** Evaluation of arithmetic expressions **)
 consts  evala    :: i
-       "@evala"  :: [i,i,i] => o                ("<_,_>/ -a-> _"  [0,0,50] 50)
+        "-a->"   :: [i,i] => o                  (infixl 50)
 translations
-    "<ae,sig> -a-> n" == "<ae,sig,n> : evala"
+    "p -a-> n" == "<p,n> : evala"
 inductive
-  domains "evala" <= "aexp * (loc -> nat) * nat"
+  domains "evala" <= "(aexp * (loc -> nat)) * nat"
   intrs 
     N   "[| n:nat;  sigma:loc->nat |] ==> <N(n),sigma> -a-> n"
     X   "[| x:loc;  sigma:loc->nat |] ==> <X(x),sigma> -a-> sigma`x"
@@ -52,13 +52,13 @@ datatype <= "univ(aexp Un ((nat*nat)->bool) )"
 
 (** Evaluation of boolean expressions **)
 consts evalb    :: i    
-       "@evalb" :: [i,i,i] => o         ("<_,_>/ -b-> _" [0,0,50] 50)
+       "-b->"   :: [i,i] => o                   (infixl 50)
 
 translations
-    "<be,sig> -b-> b" == "<be,sig,b> : evalb"
+    "p -b-> b" == "<p,b> : evalb"
 
 inductive
-  domains "evalb" <= "bexp * (loc -> nat) * bool"
+  domains "evalb" <= "(bexp * (loc -> nat)) * bool"
   intrs (*avoid clash with ML constructors true, false*)
     tru   "[| sigma:loc -> nat |] ==> <true,sigma> -b-> 1"
     fls   "[| sigma:loc -> nat |] ==> <false,sigma> -b-> 0"
@@ -90,17 +90,17 @@ datatype <= "univ(loc Un aexp Un bexp)"
 
 (** Execution of commands **)
 consts  evalc    :: i
-        "@evalc" :: [i,i,i] => o                ("<_,_>/ -c-> _" [0,0,50] 50)
-        "assign" :: [i,i,i] => i                ("_[_'/_]"       [95,0,0] 95)
+        "-c->"   :: [i,i] => o                   (infixl 50)
+        "assign" :: [i,i,i] => i                 ("_[_'/_]"       [95,0,0] 95)
 
 translations
-       "<ce,sig> -c-> s" == "<ce,sig,s> : evalc"
+       "p -c-> s" == "<p,s> : evalc"
 
 defs 
         assign_def      "sigma[m/x] == lam y:loc. if(y=x,m,sigma`y)"
 
 inductive
-  domains "evalc" <= "com * (loc -> nat) * (loc -> nat)"
+  domains "evalc" <= "(com * (loc -> nat)) * (loc -> nat)"
   intrs
     skip    "[| sigma: loc -> nat |] ==> <skip,sigma> -c-> sigma"
 
