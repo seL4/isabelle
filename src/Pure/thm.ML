@@ -12,15 +12,15 @@ sig
   structure Envir : ENVIR
   structure Sequence : SEQUENCE
   structure Sign : SIGN
-  type cterm
   type ctyp
-  type meta_simpset
-  type theory
+  type cterm
   type thm
+  type theory
+  type meta_simpset
   exception THM of string * int * thm list
   exception THEORY of string * theory list
   exception SIMPLIFIER of string * thm
-  (*Certified terms/types; previously in sign.ML*)
+  (*certified terms/types; previously in sign.ML*)
   val cterm_of: Sign.sg -> term -> cterm
   val ctyp_of: Sign.sg -> typ -> ctyp
   val read_ctyp: Sign.sg -> string -> ctyp
@@ -30,14 +30,41 @@ sig
   val term_of: cterm -> term
   val typ_of: ctyp -> typ
   val cterm_fun: (term -> term) -> (cterm -> cterm)
-  (*End of cterm/ctyp functions*)
+  (*end of cterm/ctyp functions*)
+
+  (* FIXME *)
+  local open Sign.Syntax Sign.Syntax.Mixfix in  (* FIXME remove ...Mixfix *)
+    val add_classes: (class list * class * class list) list -> theory -> theory
+    val add_defsort: sort -> theory -> theory
+    val add_types: (string * int * mixfix) list -> theory -> theory
+    val add_tyabbrs: (string * string list * string * mixfix) list
+      -> theory -> theory
+    val add_tyabbrs_i: (string * string list * typ * mixfix) list
+      -> theory -> theory
+    val add_arities: (string * sort list * sort) list -> theory -> theory
+    val add_consts: (string * string * mixfix) list -> theory -> theory
+    val add_consts_i: (string * typ * mixfix) list -> theory -> theory
+    val add_syntax: (string * string * mixfix) list -> theory -> theory
+    val add_syntax_i: (string * typ * mixfix) list -> theory -> theory
+    val add_trfuns:
+      (string * (ast list -> ast)) list *
+      (string * (term list -> term)) list *
+      (string * (term list -> term)) list *
+      (string * (ast list -> ast)) list -> theory -> theory
+    val add_trrules: xrule list -> theory -> theory
+    val add_axioms: (string * string) list -> theory -> theory
+    val add_axioms_i: (string * term) list -> theory -> theory
+    val add_thyname: string -> theory -> theory
+  end
+  val cert_axm: Sign.sg -> string * term -> string * term
+  val read_axm: Sign.sg -> string * string -> string * term
   val abstract_rule: string -> cterm -> thm -> thm
   val add_congs: meta_simpset * thm list -> meta_simpset
   val add_prems: meta_simpset * thm list -> meta_simpset
   val add_simps: meta_simpset * thm list -> meta_simpset
   val assume: cterm -> thm
   val assumption: int -> thm -> thm Sequence.seq
-  val axioms_of: theory -> (string * thm) list
+  val axioms_of: theory -> (string * term) list
   val beta_conversion: cterm -> thm
   val bicompose: bool -> bool * thm * int -> int -> thm -> thm Sequence.seq
   val biresolution: bool -> (bool*thm)list -> int -> thm -> thm Sequence.seq
@@ -72,6 +99,7 @@ sig
                    -> thm -> thm
   val lift_rule: (thm * int) -> thm -> thm
   val merge_theories: theory * theory -> theory
+  val merge_thy_list: bool -> theory list -> theory
   val mk_rews_of_mss: meta_simpset -> thm -> thm list
   val mss_of: thm list -> meta_simpset
   val nprems_of: thm -> int
@@ -89,6 +117,10 @@ sig
          bool*bool -> meta_simpset -> (meta_simpset -> thm -> thm option)
            -> cterm -> thm
   val set_mk_rews: meta_simpset * (thm -> thm list) -> meta_simpset
+  val rep_theory: theory ->
+    {sign: Sign.sg, ext_axtab: term Symtab.table, parents: theory list}
+  val subthy: theory * theory -> bool
+  val eq_thy: theory * theory -> bool
   val sign_of: theory -> Sign.sg
   val syn_of: theory -> Sign.Syntax.syntax
   val stamps_of_thm: thm -> string ref list
@@ -102,7 +134,7 @@ sig
 end;
 
 functor ThmFun (structure Logic: LOGIC and Unify: UNIFY and Pattern: PATTERN
-  and Net:NET sharing type Pattern.type_sig = Unify.Sign.Type.type_sig) : THM =
+  and Net:NET sharing type Pattern.type_sig = Unify.Sign.Type.type_sig)(*: THM *) (* FIXME debug *) =
 struct
 
 structure Sequence = Unify.Sequence;
@@ -112,6 +144,8 @@ structure Type = Sign.Type;
 structure Syntax = Sign.Syntax;
 structure Symtab = Sign.Symtab;
 
+
+(*** Certified terms and types ***)
 
 (** certified types **)
 
@@ -180,78 +214,224 @@ fun read_def_cterm (sign, types, sorts) (a, T) =
     val ct = cterm_of sign t' handle TERM (msg, _) => error msg;
   in (ct, tye) end;
 
-fun read_cterm sign = #1 o (read_def_cterm (sign, K None, K None));
+fun read_cterm sign = #1 o read_def_cterm (sign, K None, K None);
 
 
 
-(**** META-THEOREMS ****)
+(*** Meta theorems ***)
 
 datatype thm = Thm of
   {sign: Sign.sg, maxidx: int, hyps: term list, prop: term};
 
 fun rep_thm (Thm args) = args;
 
-(*Errors involving theorems*)
+(*errors involving theorems*)
 exception THM of string * int * thm list;
 
-(*maps object-rule to tpairs *)
-fun tpairs_of (Thm{prop,...}) = #1 (Logic.strip_flexpairs prop);
 
-(*maps object-rule to premises *)
-fun prems_of (Thm{prop,...}) =
-    Logic.strip_imp_prems (Logic.skip_flexpairs prop);
+val sign_of_thm = #sign o rep_thm;
+val stamps_of_thm = #stamps o Sign.rep_sg o sign_of_thm;
+
+(*merge signatures of two theorems; raise exception if incompatible*)
+fun merge_thm_sgs (th1, th2) =
+  Sign.merge (pairself sign_of_thm (th1, th2))
+    handle TERM _ => raise THM ("incompatible signatures", 0, [th1, th2]);
+
+
+(*maps object-rule to tpairs*)
+fun tpairs_of (Thm {prop, ...}) = #1 (Logic.strip_flexpairs prop);
+
+(*maps object-rule to premises*)
+fun prems_of (Thm {prop, ...}) =
+  Logic.strip_imp_prems (Logic.skip_flexpairs prop);
 
 (*counts premises in a rule*)
-fun nprems_of (Thm{prop,...}) =
-    Logic.count_prems (Logic.skip_flexpairs prop, 0);
+fun nprems_of (Thm {prop, ...}) =
+  Logic.count_prems (Logic.skip_flexpairs prop, 0);
 
-(*maps object-rule to conclusion *)
-fun concl_of (Thm{prop,...}) = Logic.strip_imp_concl prop;
+(*maps object-rule to conclusion*)
+fun concl_of (Thm {prop, ...}) = Logic.strip_imp_concl prop;
 
-(*The statement of any Thm is a Cterm*)
-fun cprop_of (Thm{sign,maxidx,hyps,prop}) =
-        Cterm{sign=sign, maxidx=maxidx, T=propT, t=prop};
+(*the statement of any thm is a cterm*)
+fun cprop_of (Thm {sign, maxidx, hyps, prop}) =
+  Cterm {sign = sign, maxidx = maxidx, T = propT, t = prop};
 
-(*Stamps associated with a signature*)
-val stamps_of_thm = #stamps o Sign.rep_sg o #sign o rep_thm;
 
-(*Theories.  There is one pure theory.
-  A theory can be extended.  Two theories can be merged.*)
+
+(*** Theories ***)
+
 datatype theory =
-    Pure of {sign: Sign.sg}
-  | Extend of {sign: Sign.sg,  axioms: thm Symtab.table,  thy: theory}
-  | Merge of {sign: Sign.sg,  thy1: theory,  thy2: theory};
+  Theory of {sign: Sign.sg, ext_axtab: term Symtab.table, parents: theory list};
 
-(*Errors involving theories*)
+fun rep_theory (Theory args) = args;
+
+(*errors involving theories*)
 exception THEORY of string * theory list;
 
-fun sign_of (Pure {sign}) = sign
-  | sign_of (Extend {sign,...}) = sign
-  | sign_of (Merge {sign,...}) = sign;
 
+val sign_of = #sign o rep_theory;
 val syn_of = #syn o Sign.rep_sg o sign_of;
 
-(*return the axioms of a theory and its ancestors*)
-fun axioms_of (Pure _) = []
-  | axioms_of (Extend {axioms, thy, ...}) =
-      axioms_of thy @ Symtab.alist_of axioms
-  | axioms_of (Merge {thy1, thy2, ...}) = axioms_of thy1 @ axioms_of thy2;
-
-(*return the immediate ancestors -- also distinguishes the kinds of theories*)
-fun parents_of (Pure _) = []
-  | parents_of (Extend{thy,...}) = [thy]
-  | parents_of (Merge{thy1,thy2,...}) = [thy1,thy2];
-
-
-(*Merge theories of two theorems.  Raise exception if incompatible.
-  Prefers (via Sign.merge) the signature of th1.  *)
-fun merge_theories(th1,th2) =
-  let val Thm{sign=sign1,...} = th1 and Thm{sign=sign2,...} = th2
-  in  Sign.merge (sign1,sign2)  end
-  handle TERM _ => raise THM("incompatible signatures", 0, [th1,th2]);
-
-(*Stamps associated with a theory*)
+(*stamps associated with a theory*)
 val stamps_of_thy = #stamps o Sign.rep_sg o sign_of;
+
+(*return additional axioms of this theory node*)
+val axioms_of = Symtab.dest o #ext_axtab o rep_theory;
+
+(*return the immediate ancestors*)
+val parents_of = #parents o rep_theory;
+
+
+(*compare theories*)
+val subthy = Sign.subsig o pairself sign_of;
+val eq_thy = Sign.eq_sg o pairself sign_of;
+
+
+(*look up the named axiom in the theory*)
+fun get_axiom theory name =
+  let
+    fun get_ax [] = raise Match
+      | get_ax (Theory {sign, ext_axtab, parents} :: thys) =
+          (case Symtab.lookup (ext_axtab, name) of
+            Some t =>
+              Thm {sign = sign, maxidx = maxidx_of_term t, hyps = [], prop = t}
+          | None => get_ax parents handle Match => get_ax thys);
+  in
+    get_ax [theory] handle Match
+      => raise THEORY ("get_axiom: no axiom " ^ quote name, [theory])
+  end;
+
+
+(* the Pure theory *)
+
+val pure_thy =
+  Theory {sign = Sign.pure, ext_axtab = Symtab.null, parents = []};
+
+
+
+(** extend theory **)
+
+fun err_dup_axms names =
+  error ("Duplicate axiom name(s) " ^ commas_quote names);
+
+fun ext_thy (thy as Theory {sign, ext_axtab, parents}) sign1 new_axms =
+  let
+    val draft = Sign.is_draft sign;
+    val ext_axtab1 =
+      Symtab.extend_new (if draft then ext_axtab else Symtab.null, new_axms)
+        handle Symtab.DUPS names => err_dup_axms names;
+    val parents1 = if draft then parents else [thy];
+  in
+    Theory {sign = sign1, ext_axtab = ext_axtab1, parents = parents1}
+  end;
+
+
+(* extend signature of a theory *)
+
+fun ext_sg extfun decls (thy as Theory {sign, ...}) =
+  ext_thy thy (extfun decls sign) [];
+
+val add_classes   = ext_sg Sign.add_classes;
+val add_defsort   = ext_sg Sign.add_defsort;
+val add_types     = ext_sg Sign.add_types;
+val add_tyabbrs   = ext_sg Sign.add_tyabbrs;
+val add_tyabbrs_i = ext_sg Sign.add_tyabbrs_i;
+val add_arities   = ext_sg Sign.add_arities;
+val add_consts    = ext_sg Sign.add_consts;
+val add_consts_i  = ext_sg Sign.add_consts_i;
+val add_syntax    = ext_sg Sign.add_syntax;
+val add_syntax_i  = ext_sg Sign.add_syntax_i;
+val add_trfuns    = ext_sg Sign.add_trfuns;
+val add_trrules   = ext_sg Sign.add_trrules;
+val add_thyname   = ext_sg Sign.add_name;
+
+
+(* prepare axioms *)
+
+fun err_in_axm name =
+  error ("The error(s) above occurred in axiom " ^ quote name);
+
+fun no_vars tm =
+  if null (term_vars tm) andalso null (term_tvars tm) then tm
+  else error "Illegal schematic variable(s) in term";
+
+fun cert_axm sg (name, raw_tm) =
+  let
+    val Cterm {t, T, ...} = cterm_of sg raw_tm
+      handle TERM (msg, _) => error msg;
+  in
+    assert (T = propT) "Term not of type prop";
+    (name, no_vars t)
+  end
+  handle ERROR => err_in_axm name;
+
+fun read_axm sg (name, str) =
+  (name, no_vars (term_of (read_cterm sg (str, propT))))
+    handle ERROR => err_in_axm name;
+
+
+(* extend axioms of a theory *)
+
+fun ext_axms prep_axm axms (thy as Theory {sign, ...}) =
+  let
+    val sign1 = Sign.make_draft sign;
+    val new_axioms = map (apsnd Logic.varify o prep_axm sign) axms;
+  in
+    ext_thy thy sign1 new_axioms
+  end;
+
+val add_axioms = ext_axms read_axm;
+val add_axioms_i = ext_axms cert_axm;
+
+
+(* extend theory (old) *)   (* FIXME remove *)
+
+(*converts Frees to Vars: axioms can be written without question marks*)
+fun prepare_axiom sign sP =
+  Logic.varify (term_of (read_cterm sign (sP, propT)));
+
+(*read an axiom for a new theory*)
+fun read_ax sign (a, sP) =
+  (a, prepare_axiom sign sP) handle ERROR => err_in_axm a;
+
+(*extension of a theory with given classes, types, constants and syntax;
+  reads the axioms from strings: axpairs have the form (axname, axiom)*)
+fun extend_theory thy thyname ext axpairs =
+  let
+    val Theory {sign, ...} = thy;
+
+    val sign1 = Sign.extend sign thyname ext;
+    val new_axioms = map (read_ax sign1) axpairs;
+  in
+    writeln "WARNING: called obsolete function \"extend_theory\"";
+    ext_thy thy sign1 new_axioms
+  end;
+
+
+
+(** merge theories **)
+
+fun merge_thy_list mk_draft thys =
+  let
+    fun is_union thy = forall (fn t => subthy (t, thy)) thys;
+    val is_draft = Sign.is_draft o sign_of;
+
+    fun add_sign (sg, Theory {sign, ...}) =
+      Sign.merge (sg, sign) handle TERM (msg, _) => error msg;
+  in
+    (case (find_first is_union thys, exists is_draft thys) of
+      (Some thy, _) => thy
+    | (None, true) => raise THEORY ("Illegal merge of draft theories", thys)
+    | (None, false) => Theory {
+        sign =
+          (if mk_draft then Sign.make_draft else I)
+          (foldl add_sign (Sign.pure, thys)),
+        ext_axtab = Symtab.null,
+        parents = thys})
+  end;
+
+fun merge_theories (thy1, thy2) = merge_thy_list false [thy1, thy2];
+
 
 
 (**** Primitive rules ****)
@@ -295,7 +475,7 @@ fun implies_elim thAB thA : thm =
     in  case prop of
             imp$A$B =>
                 if imp=implies andalso  A aconv propA
-                then  Thm{sign= merge_theories(thAB,thA),
+                then  Thm{sign= merge_thm_sgs(thAB,thA),
                           maxidx= max[maxA,maxidx],
                           hyps= hypsA union hyps,  (*dups suppressed*)
                           prop= B}
@@ -375,7 +555,7 @@ fun transitive th1 th2 =
   in case (prop1,prop2) of
        ((eq as Const("==",_)) $ t1 $ u, Const("==",_) $ u' $ t2) =>
           if not (u aconv u') then err"middle term"  else
-              Thm{sign= merge_theories(th1,th2), hyps= hyps1 union hyps2,
+              Thm{sign= merge_thm_sgs(th1,th2), hyps= hyps1 union hyps2,
                   maxidx= max[max1,max2], prop= eq$t1$t2}
      | _ =>  err"premises"
   end;
@@ -445,7 +625,7 @@ fun combination th1 th2 =
       and Thm{maxidx=max2, hyps=hyps2, prop=prop2,...} = th2
   in  case (prop1,prop2)  of
        (Const("==",_) $ f $ g, Const("==",_) $ t $ u) =>
-              Thm{sign= merge_theories(th1,th2), hyps= hyps1 union hyps2,
+              Thm{sign= merge_thm_sgs(th1,th2), hyps= hyps1 union hyps2,
                   maxidx= max[max1,max2], prop= Logic.mk_equals(f$t, g$u)}
      | _ =>  raise THM("combination: premises", 0, [th1,th2])
   end;
@@ -462,7 +642,7 @@ fun equal_elim th1 th2 =
   in  case prop1  of
        Const("==",_) $ A $ B =>
           if not (prop2 aconv A) then err"not equal"  else
-              Thm{sign= merge_theories(th1,th2), hyps= hyps1 union hyps2,
+              Thm{sign= merge_thm_sgs(th1,th2), hyps= hyps1 union hyps2,
                   maxidx= max[max1,max2], prop= B}
      | _ =>  err"major premise"
   end;
@@ -479,7 +659,7 @@ let val Thm{maxidx=max1, hyps=hyps1, prop=prop1,...} = th1
 in case (prop1,prop2) of
      (Const("==>",_) $ A $ B, Const("==>",_) $ B' $ A')  =>
         if A aconv A' andalso B aconv B'
-        then Thm{sign= merge_theories(th1,th2), hyps= hyps1 union hyps2,
+        then Thm{sign= merge_thm_sgs(th1,th2), hyps= hyps1 union hyps2,
                  maxidx= max[max1,max2], prop= Logic.mk_equals(A,B)}
         else err"not equal"
    | _ =>  err"premises"
@@ -607,7 +787,7 @@ fun lift_rule (state, i) orule =
       val (lift_abs,lift_all) = Logic.lift_fns(Bi,smax+1);
       val (Thm{sign,maxidx,hyps,prop}) = orule
       val (tpairs,As,B) = Logic.strip_horn prop
-  in  Thm{hyps=hyps, sign= merge_theories(state,orule),
+  in  Thm{hyps=hyps, sign= merge_thm_sgs(state,orule),
           maxidx= maxidx+smax+1,
           prop= Logic.rule_of(map (pairself lift_abs) tpairs,
                               map lift_all As,    lift_all B)}
@@ -743,7 +923,7 @@ fun bicompose_aux match (state, (stpairs, Bs, Bi, C), lifted)
                         (eres_flg, orule, nsubgoal) =
  let val Thm{maxidx=smax, hyps=shyps, ...} = state
      and Thm{maxidx=rmax, hyps=rhyps, prop=rprop,...} = orule;
-     val sign = merge_theories(state,orule);
+     val sign = merge_thm_sgs(state,orule);
      (** Add new theorem with prop = '[| Bs; As |] ==> C' to thq **)
      fun addth As ((env as Envir.Envir {maxidx, ...}, tpairs), thq) =
        let val normt = Envir.norm_term env;
@@ -826,51 +1006,6 @@ fun biresolution match brules i state =
               else res brules
     in  Sequence.flats (res brules)  end;
 
-
-(**** THEORIES ****)
-
-val pure_thy = Pure{sign = Sign.pure};
-
-(*Look up the named axiom in the theory*)
-fun get_axiom thy axname =
-    let fun get (Pure _) = raise Match
-          | get (Extend{axioms,thy,...}) =
-             (case Symtab.lookup(axioms,axname) of
-                  Some th => th
-                | None => get thy)
-         | get (Merge{thy1,thy2,...}) =
-                get thy1  handle Match => get thy2
-    in  get thy
-        handle Match => raise THEORY("get_axiom: No axiom "^axname, [thy])
-    end;
-
-(*Converts Frees to Vars: axioms can be written without question marks*)
-fun prepare_axiom sign sP =
-    Logic.varify (term_of (read_cterm sign (sP,propT)));
-
-(*Read an axiom for a new theory*)
-fun read_ax sign (a, sP) : string*thm =
-  let val prop = prepare_axiom sign sP
-  in  (a, Thm{sign=sign, hyps=[], maxidx= maxidx_of_term prop, prop= prop})
-  end
-  handle ERROR =>
-        error("extend_theory: The error above occurred in axiom " ^ a);
-
-fun mk_axioms sign axpairs =
-        Symtab.st_of_alist(map (read_ax sign) axpairs, Symtab.null)
-        handle Symtab.DUPLICATE(a) => error("Two axioms named " ^ a);
-
-(*Extension of a theory with given classes, types, constants and syntax.
-  Reads the axioms from strings: axpairs have the form (axname, axiom). *)
-fun extend_theory thy thyname ext axpairs =
-  let val sign = Sign.extend (sign_of thy) thyname ext;
-      val axioms= mk_axioms sign axpairs
-  in  Extend{sign=sign, axioms= axioms, thy = thy}  end;
-
-(*The union of two theories*)
-fun merge_theories (thy1, thy2) =
-  Merge {sign = Sign.merge (sign_of thy1, sign_of thy2),
-         thy1 = thy1, thy2 = thy2} handle TERM (msg, _) => error msg;
 
 
 (*** Meta simp sets ***)
