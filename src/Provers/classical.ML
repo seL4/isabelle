@@ -25,16 +25,6 @@ infix 4 addSIs addSEs addSDs addIs addEs addDs delrules
 type netpair = (int * (bool * thm)) Net.net * (int * (bool * thm)) Net.net;
 type wrapper = (int -> tactic) -> (int -> tactic);
 
-signature CLASET_THY_DATA =
-sig
-  val clasetN: string
-  val clasetK: Object.kind
-  exception ClasetData of Object.T ref
-  val setup: (theory -> theory) list
-  val fix_methods: Object.T * (Object.T -> Object.T) * (Object.T -> Object.T) *
-    (Object.T * Object.T -> Object.T) * (Sign.sg -> Object.T -> unit) -> unit
-end;
-
 signature CLASSICAL_DATA =
 sig
   val mp	: thm    	(* [| P-->Q;  P |] ==> Q *)
@@ -179,43 +169,11 @@ sig
   val setup: (theory -> theory) list
 end;
 
-structure ClasetThyData: CLASET_THY_DATA =
-struct
-
-(* data kind claset -- forward declaration *)
-
-val clasetN = "Provers/claset";
-val clasetK = Object.kind clasetN;
-exception ClasetData of Object.T ref;
-
-local
-  fun undef _ = raise Match;
-
-  val empty_ref = ref ERROR;
-  val copy_fn = ref (undef: Object.T -> Object.T);
-  val prep_ext_fn = ref (undef: Object.T -> Object.T);
-  val merge_fn = ref (undef: Object.T * Object.T -> Object.T);
-  val print_fn = ref (undef: Sign.sg -> Object.T -> unit);
-
-  val empty = ClasetData empty_ref;
-  fun copy exn = ! copy_fn exn;
-  fun prep_ext exn = ! prep_ext_fn exn;
-  fun merge exn = ! merge_fn exn;
-  fun print sg exn = ! print_fn sg exn;
-in
-  val setup = [Theory.init_data clasetK (empty, copy, prep_ext, merge, print)];
-  fun fix_methods (e, cp, ext, mrg, prt) =
-    (empty_ref := e; copy_fn := cp; prep_ext_fn := ext; merge_fn := mrg; print_fn := prt);
-end;
-
-
-end;
-
 
 functor ClassicalFun(Data: CLASSICAL_DATA): CLASSICAL =
 struct
 
-local open ClasetThyData Data in
+local open Data in
 
 (*** Useful tactics for classical reasoning ***)
 
@@ -937,34 +895,28 @@ fun deepen_tac cs = DEEPEN (2,10) (safe_depth_tac cs);
 
 (** claset theory data **)
 
-(* init data kind claset *)
+(* theory data kind 'Provers/claset' *)
 
-exception CSData of claset ref;
+structure GlobalClasetArgs =
+struct
+  val name = "Provers/claset";
+  type T = claset ref;
 
-local
-  val empty = CSData (ref empty_cs);
-
-  (*create new references*)
-  fun copy (ClasetData (ref (CSData (ref cs)))) =
-    ClasetData (ref (CSData (ref cs)));
+  val empty = ref empty_cs;
+  fun copy (ref cs) = (ref cs): T;            (*create new reference!*)
   val prep_ext = copy;
-
-  fun merge (ClasetData (ref (CSData (ref cs1))), ClasetData (ref (CSData (ref cs2)))) =
-    ClasetData (ref (CSData (ref (merge_cs (cs1, cs2)))));
-
-  fun print (_: Sign.sg) (ClasetData (ref (CSData (ref cs)))) = print_cs cs;
-in
-  val _ = fix_methods (empty, copy, prep_ext, merge, print);
+  fun merge (ref cs1, ref cs2) = ref (merge_cs (cs1, cs2));
+  fun print _ (ref cs) = print_cs cs;
 end;
+
+structure GlobalClaset = TheoryDataFun(GlobalClasetArgs);
+val print_claset = GlobalClaset.print;
+val claset_ref_of_sg = GlobalClaset.get_sg;
+val claset_ref_of = GlobalClaset.get;
 
 
 (* access claset *)
 
-val print_claset = Theory.print_data clasetK;
-
-val claset_ref_of_sg = Sign.get_data clasetK (fn ClasetData (ref (CSData r)) => r);
-
-val claset_ref_of = claset_ref_of_sg o Theory.sign_of;
 val claset_of_sg = ! o claset_ref_of_sg;
 val claset_of = claset_of_sg o Theory.sign_of;
 
@@ -1227,9 +1179,7 @@ val setup_methods = Method.add_methods
 
 (** theory setup **)
 
-(* FIXME claset theory data *)
-
-val setup = [LocalClaset.init, setup_attrs, setup_methods];
+val setup = [GlobalClaset.init, LocalClaset.init, setup_attrs, setup_methods];
 
 
 end;
