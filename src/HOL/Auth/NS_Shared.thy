@@ -55,15 +55,23 @@ inductive "ns_shared lost"
              Says A' B (Crypt {|Key K, Agent A|} (shrK B)) : set_of_list evs |]
           ==> Says B A (Crypt (Nonce (newN evs)) K) # evs : ns_shared lost"
 
-         (*Alice responds with the Nonce, if she has seen the key before.
-           We do NOT use N-1 or similar as the Spy cannot spoof such things.
-           Allowing the Spy to add or subtract 1 allows him to send ALL
-               nonces.  Instead we distinguish the messages by sending the
-               nonce twice.*)
+         (*Alice responds with Nonce NB if she has seen the key before.
+           Maybe should somehow check Nonce NA again.
+           We do NOT send NB-1 or similar as the Spy cannot spoof such things.
+           Letting the Spy add or subtract 1 lets him send ALL nonces.
+           Instead we distinguish the messages by sending the nonce twice.*)
     NS5  "[| evs: ns_shared lost;  A ~= B;  
-             Says B' A (Crypt (Nonce N) K) : set_of_list evs;
+             Says B' A (Crypt (Nonce NB) K) : set_of_list evs;
              Says S  A (Crypt {|Nonce NA, Agent B, Key K, X|} (shrK A))
                : set_of_list evs |]
-          ==> Says A B (Crypt {|Nonce N, Nonce N|} K) # evs : ns_shared lost"
+          ==> Says A B (Crypt {|Nonce NB, Nonce NB|} K) # evs : ns_shared lost"
+  
+         (*This message models possible leaks of session keys.
+           The two Nonces identify the protocol run.*)
+    Revl "[| evs: ns_shared lost;  A ~= Spy;
+             Says B' A (Crypt (Nonce NB) K) : set_of_list evs;
+             Says S  A (Crypt {|Nonce NA, Agent B, Key K, X|} (shrK A))
+               : set_of_list evs |]
+          ==> Says A Spy {|Nonce NA, Nonce NB, Key K|} # evs : ns_shared lost"
 
 end
