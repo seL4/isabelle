@@ -185,3 +185,37 @@ by (dres_inst_tac [("n","-n")] pos_zmult_eq_1_iff 1);
 by Auto_tac;  
 qed "zmult_eq_1_iff";
 
+
+(*** More about nat ***)
+
+Goal "[| (0::int) <= z;  0 <= z' |] ==> nat (z+z') = nat z + nat z'";
+by (rtac (inj_int RS injD) 1);
+by (asm_simp_tac (simpset() addsimps [zadd_int RS sym]) 1);
+qed "nat_add_distrib";
+
+Goal "[| (0::int) <= z';  z' <= z |] ==> nat (z-z') = nat z - nat z'";
+by (rtac (inj_int RS injD) 1);
+by (asm_simp_tac (simpset() addsimps [zdiff_int RS sym, nat_le_eq_zle]) 1);
+qed "nat_diff_distrib";
+
+Goal "(0::int) <= z ==> nat (z*z') = nat z * nat z'";
+by (case_tac "0 <= z'" 1);
+by (asm_full_simp_tac (simpset() addsimps [zmult_le_0_iff]) 2);
+by (rtac (inj_int RS injD) 1);
+by (asm_simp_tac (simpset() addsimps [zmult_int RS sym,
+				      int_0_le_mult_iff]) 1);
+qed "nat_mult_distrib";
+
+Goal "z <= (0::int) ==> nat(z*z') = nat(-z) * nat(-z')"; 
+by (rtac trans 1); 
+by (rtac nat_mult_distrib 2); 
+by Auto_tac;  
+qed "nat_mult_distrib_neg";
+
+Goal "nat (abs (w * z)) = nat (abs w) * nat (abs z)";
+by (case_tac "z=0 | w=0" 1);
+by Auto_tac;  
+by (simp_tac (simpset() addsimps [zabs_def, nat_mult_distrib RS sym, 
+                          nat_mult_distrib_neg RS sym, zmult_less_0_iff]) 1);
+by (arith_tac 1);
+qed "nat_abs_mult_distrib";

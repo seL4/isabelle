@@ -319,7 +319,7 @@ by (auto_tac (claset() addIs [inst "x" "0::nat" exI]
 qed "zle_iff_zadd";
 
 Goal "abs (int m) = int m";
-by (simp_tac (simpset() addsimps [zabs_def]) 1); 
+by (simp_tac (simpset() addsimps [Int.zabs_def]) 1); 
 qed "abs_int_eq";
 Addsimps [abs_int_eq];
 
@@ -393,7 +393,6 @@ Goal "(nat w < nat z) = (0 < z & w < z)";
 by (case_tac "0 < z" 1);
 by (auto_tac (claset(), simpset() addsimps [lemma, linorder_not_less])); 
 qed "zless_nat_conj";
-
 
 (* a case theorem distinguishing non-negative and negative int *)  
 

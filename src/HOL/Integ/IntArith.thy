@@ -7,7 +7,12 @@ files ("int_arith1.ML") ("int_arith2.ML"):
 use "int_arith1.ML"
 setup int_arith_setup
 use "int_arith2.ML"
+
 declare zabs_split [arith_split]
+
+lemma zabs_eq_iff:
+    "(abs (z::int) = w) = (z = w \<and> 0 <= z \<or> z = -w \<and> z < 0)"
+  by (auto simp add: zabs_def)
 
 lemma split_nat[arith_split]:
   "P(nat(i::int)) = ((ALL n. i = int n \<longrightarrow> P n) & (i < 0 \<longrightarrow> P 0))"

@@ -465,7 +465,7 @@ apply (case_tac "v1 = v2")
 
 (* case v1 = v2 *)
 apply (rule_tac "instrs1.0" = "[LitPush (Bool True)]" in jump_fwd_progression)
-apply (auto simp: NatBin.nat_add_distrib)
+apply (auto simp: nat_add_distrib)
 apply (rule progression_one_step) apply simp
 
 (* case v1 \<noteq> v2 *)
@@ -474,7 +474,7 @@ apply auto
 apply (rule progression_one_step [THEN HOL.refl [THEN progression_transitive], simplified]) 
 apply auto
 apply (rule_tac "instrs1.0" = "[]" in jump_fwd_progression)
-apply (auto simp: NatBin.nat_add_distrib intro: progression_refl)
+apply (auto simp: nat_add_distrib intro: progression_refl)
 done
 
 
@@ -1008,14 +1008,14 @@ apply (rule_tac "instrs0.0" = "(compStmt (gmb G CL S) c1)" in progression_transi
 apply fast
 apply (rule_tac "instrs1.0" = "[]" in jump_fwd_progression)
 apply (simp, rule conjI, (rule HOL.refl)+)
-apply simp apply (rule conjI, simp) apply (simp add: NatBin.nat_add_distrib)
+apply simp apply (rule conjI, simp) apply (simp add: nat_add_distrib)
 apply (rule progression_refl)
 
  (* case b= False *)
 apply simp
 apply (rule_tac "instrs1.0" = "compStmt (gmb G CL S) c2" in jump_fwd_progression)
 apply (simp, rule conjI, (rule HOL.refl)+)
-apply (simp, rule conjI, rule HOL.refl, simp add: NatBin.nat_add_distrib)
+apply (simp, rule conjI, rule HOL.refl, simp add: nat_add_distrib)
 apply fast
 
 (* case exit Loop *)
@@ -1043,7 +1043,7 @@ apply (rule_tac "instrs0.0" = "compExpr (gmb G CL S) e" in progression_transitiv
 apply fast
 apply (rule_tac "instrs1.0" = "[]" in jump_fwd_progression)
 apply (simp, rule conjI, rule HOL.refl, rule HOL.refl)
-apply (simp, rule conjI, rule HOL.refl, simp add: NatBin.nat_add_distrib)
+apply (simp, rule conjI, rule HOL.refl, simp add: nat_add_distrib)
 apply (rule progression_refl)
 
 

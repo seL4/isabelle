@@ -8,6 +8,7 @@ Binary arithmetic for the natural numbers
 
 val nat_number_of_def = thm "nat_number_of_def";
 
+
 (** nat (coercion from int to nat) **)
 
 Goal "nat (number_of w) = number_of w";
@@ -30,6 +31,50 @@ qed "numeral_1_eq_Suc_0";
 Goalw [nat_number_of_def] "2 = Suc (Suc 0)";
 by (rtac nat_2 1); 
 qed "numeral_2_eq_2";
+
+
+(** Distributive laws for "nat".  The others are in IntArith.ML, but these
+    require div and mod to be defined for type "int".  They also need 
+    some of the lemmas proved just above.**)
+
+Goal "(0::int) <= z ==> nat (z div z') = nat z div nat z'";
+by (case_tac "0 <= z'" 1);
+by (auto_tac (claset(), 
+	      simpset() addsimps [div_nonneg_neg_le0, DIVISION_BY_ZERO_DIV]));
+by (case_tac "z' = 0" 1 THEN asm_simp_tac (simpset() addsimps [DIVISION_BY_ZERO]) 1);
+ by (simp_tac (simpset() addsimps [numeral_0_eq_0, DIVISION_BY_ZERO_DIV]) 1);
+by (auto_tac (claset() addSEs [nonneg_eq_int], simpset()));
+by (rename_tac "m m'" 1);
+by (subgoal_tac "0 <= int m div int m'" 1);
+ by (asm_full_simp_tac 
+     (simpset() addsimps [numeral_0_eq_0, pos_imp_zdiv_nonneg_iff]) 2);
+by (rtac (inj_int RS injD) 1);
+by (Asm_simp_tac 1);
+by (res_inst_tac [("r", "int (m mod m')")] quorem_div 1);
+ by (Force_tac 2);
+by (asm_full_simp_tac 
+    (simpset() addsimps [nat_less_iff RS sym, quorem_def, 
+	                 numeral_0_eq_0, zadd_int, zmult_int]) 1);
+qed "nat_div_distrib";
+
+(*Fails if z'<0: the LHS collapses to (nat z) but the RHS doesn't*)
+Goal "[| (0::int) <= z;  0 <= z' |] ==> nat (z mod z') = nat z mod nat z'";
+by (case_tac "z' = 0" 1 THEN asm_simp_tac (simpset() addsimps [DIVISION_BY_ZERO]) 1);
+ by (simp_tac (simpset() addsimps [numeral_0_eq_0, DIVISION_BY_ZERO_MOD]) 1);
+by (auto_tac (claset() addSEs [nonneg_eq_int], simpset()));
+by (rename_tac "m m'" 1);
+by (subgoal_tac "0 <= int m mod int m'" 1);
+ by (asm_full_simp_tac 
+     (simpset() addsimps [nat_less_iff, numeral_0_eq_0, pos_mod_sign]) 2);
+by (rtac (inj_int RS injD) 1);
+by (Asm_simp_tac 1);
+by (res_inst_tac [("q", "int (m div m')")] quorem_mod 1);
+ by (Force_tac 2);
+by (asm_full_simp_tac 
+     (simpset() addsimps [nat_less_iff RS sym, quorem_def, 
+		          numeral_0_eq_0, zadd_int, zmult_int]) 1);
+qed "nat_mod_distrib";
+
 
 (** int (coercion from nat to int) **)
 
@@ -78,11 +123,6 @@ val nat_bin_arith_setup =
 
 (** Addition **)
 
-Goal "[| (0::int) <= z;  0 <= z' |] ==> nat (z+z') = nat z + nat z'";
-by (rtac (inj_int RS injD) 1);
-by (asm_simp_tac (simpset() addsimps [zadd_int RS sym]) 1);
-qed "nat_add_distrib";
-
 (*"neg" is used in rewrite rules for binary comparisons*)
 Goal "(number_of v :: nat) + number_of v' = \
 \        (if neg (number_of v) then number_of v' \
@@ -97,12 +137,6 @@ Addsimps [add_nat_number_of];
 
 
 (** Subtraction **)
-
-Goal "[| (0::int) <= z';  z' <= z |] ==> nat (z-z') = nat z - nat z'";
-by (rtac (inj_int RS injD) 1);
-by (asm_simp_tac (simpset() addsimps [zdiff_int RS sym, nat_le_eq_zle]) 1);
-qed "nat_diff_distrib";
-
 
 Goal "nat z - nat z' = \
 \       (if neg z' then nat z  \
@@ -129,20 +163,6 @@ Addsimps [diff_nat_number_of];
 
 (** Multiplication **)
 
-Goal "(0::int) <= z ==> nat (z*z') = nat z * nat z'";
-by (case_tac "0 <= z'" 1);
-by (asm_full_simp_tac (simpset() addsimps [zmult_le_0_iff]) 2);
-by (rtac (inj_int RS injD) 1);
-by (asm_simp_tac (simpset() addsimps [zmult_int RS sym,
-				      int_0_le_mult_iff]) 1);
-qed "nat_mult_distrib";
-
-Goal "z <= (0::int) ==> nat(z*z') = nat(-z) * nat(-z')"; 
-by (rtac trans 1); 
-by (rtac nat_mult_distrib 2); 
-by Auto_tac;  
-qed "nat_mult_distrib_neg";
-
 Goal "(number_of v :: nat) * number_of v' = \
 \      (if neg (number_of v) then 0 else number_of (bin_mult v v'))";
 by (simp_tac
@@ -156,26 +176,6 @@ Addsimps [mult_nat_number_of];
 
 (** Quotient **)
 
-Goal "(0::int) <= z ==> nat (z div z') = nat z div nat z'";
-by (case_tac "0 <= z'" 1);
-by (auto_tac (claset(), 
-	      simpset() addsimps [div_nonneg_neg_le0, DIVISION_BY_ZERO_DIV]));
-by (case_tac "z' = 0" 1 THEN asm_simp_tac (simpset() addsimps [DIVISION_BY_ZERO]) 1);
- by (simp_tac (simpset() addsimps [numeral_0_eq_0, DIVISION_BY_ZERO_DIV]) 1);
-by (auto_tac (claset() addSEs [nonneg_eq_int], simpset()));
-by (rename_tac "m m'" 1);
-by (subgoal_tac "0 <= int m div int m'" 1);
- by (asm_full_simp_tac 
-     (simpset() addsimps [numeral_0_eq_0, pos_imp_zdiv_nonneg_iff]) 2);
-by (rtac (inj_int RS injD) 1);
-by (Asm_simp_tac 1);
-by (res_inst_tac [("r", "int (m mod m')")] quorem_div 1);
- by (Force_tac 2);
-by (asm_full_simp_tac 
-    (simpset() addsimps [nat_less_iff RS sym, quorem_def, 
-	                 numeral_0_eq_0, zadd_int, zmult_int]) 1);
-qed "nat_div_distrib";
-
 Goal "(number_of v :: nat)  div  number_of v' = \
 \         (if neg (number_of v) then 0 \
 \          else nat (number_of v div number_of v'))";
@@ -188,24 +188,6 @@ Addsimps [div_nat_number_of];
 
 
 (** Remainder **)
-
-(*Fails if z'<0: the LHS collapses to (nat z) but the RHS doesn't*)
-Goal "[| (0::int) <= z;  0 <= z' |] ==> nat (z mod z') = nat z mod nat z'";
-by (case_tac "z' = 0" 1 THEN asm_simp_tac (simpset() addsimps [DIVISION_BY_ZERO]) 1);
- by (simp_tac (simpset() addsimps [numeral_0_eq_0, DIVISION_BY_ZERO_MOD]) 1);
-by (auto_tac (claset() addSEs [nonneg_eq_int], simpset()));
-by (rename_tac "m m'" 1);
-by (subgoal_tac "0 <= int m mod int m'" 1);
- by (asm_full_simp_tac 
-     (simpset() addsimps [nat_less_iff, numeral_0_eq_0, pos_mod_sign]) 2);
-by (rtac (inj_int RS injD) 1);
-by (Asm_simp_tac 1);
-by (res_inst_tac [("q", "int (m div m')")] quorem_mod 1);
- by (Force_tac 2);
-by (asm_full_simp_tac 
-     (simpset() addsimps [nat_less_iff RS sym, quorem_def, 
-		          numeral_0_eq_0, zadd_int, zmult_int]) 1);
-qed "nat_mod_distrib";
 
 Goal "(number_of v :: nat)  mod  number_of v' = \
 \       (if neg (number_of v) then 0 \
@@ -470,16 +452,6 @@ Goal "(number_of bin.Pls ::int) ~= number_of bin.Min";
 by Auto_tac;
 qed "eq_number_of_Pls_Min"; 
 
-
-(*** Further lemmas about "nat" ***)
-
-Goal "nat (abs (w * z)) = nat (abs w) * nat (abs z)";
-by (case_tac "z=0 | w=0" 1);
-by Auto_tac;  
-by (simp_tac (simpset() addsimps [zabs_def, nat_mult_distrib RS sym, 
-                          nat_mult_distrib_neg RS sym, zmult_less_0_iff]) 1);
-by (arith_tac 1);
-qed "nat_abs_mult_distrib";
 
 (*Distributive laws for literals*)
 Addsimps (map (inst "k" "number_of ?v")

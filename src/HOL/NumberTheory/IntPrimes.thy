@@ -50,10 +50,6 @@ constdefs
   "[a = b] (mod m) == m dvd (a - b)"
 
 
-lemma zabs_eq_iff:
-    "(abs (z::int) = w) = (z = w \<and> 0 <= z \<or> z = -w \<and> z < 0)"
-  by (auto simp add: zabs_def)
-
 
 text {* \medskip @{term gcd} lemmas *}
 
@@ -63,167 +59,6 @@ lemma gcd_add1_eq: "gcd (m + k, k) = gcd (m + k, m)"
 lemma gcd_diff2: "m \<le> n ==> gcd (n, n - m) = gcd (n, m)"
   apply (subgoal_tac "n = m + (n - m)")
    apply (erule ssubst, rule gcd_add1_eq, simp)
-  done
-
-
-subsection {* Divides relation *}
-
-lemma zdvd_0_right [iff]: "(m::int) dvd 0"
-  apply (unfold dvd_def)
-  apply (blast intro: zmult_0_right [symmetric])
-  done
-
-lemma zdvd_0_left [iff]: "(0 dvd (m::int)) = (m = 0)"
-  by (unfold dvd_def, auto)
-
-lemma zdvd_1_left [iff]: "1 dvd (m::int)"
-  by (unfold dvd_def, simp)
-
-lemma zdvd_refl [simp]: "m dvd (m::int)"
-  apply (unfold dvd_def)
-  apply (blast intro: zmult_1_right [symmetric])
-  done
-
-lemma zdvd_trans: "m dvd n ==> n dvd k ==> m dvd (k::int)"
-  apply (unfold dvd_def)
-  apply (blast intro: zmult_assoc)
-  done
-
-lemma zdvd_zminus_iff: "(m dvd -n) = (m dvd (n::int))"
-  apply (unfold dvd_def, auto)
-   apply (rule_tac [!] x = "-k" in exI, auto)
-  done
-
-lemma zdvd_zminus2_iff: "(-m dvd n) = (m dvd (n::int))"
-  apply (unfold dvd_def, auto)
-   apply (rule_tac [!] x = "-k" in exI, auto)
-  done
-
-lemma zdvd_anti_sym:
-    "0 < m ==> 0 < n ==> m dvd n ==> n dvd m ==> m = (n::int)"
-  apply (unfold dvd_def, auto)
-  apply (simp add: zmult_assoc zmult_eq_self_iff int_0_less_mult_iff zmult_eq_1_iff)
-  done
-
-lemma zdvd_zadd: "k dvd m ==> k dvd n ==> k dvd (m + n :: int)"
-  apply (unfold dvd_def)
-  apply (blast intro: zadd_zmult_distrib2 [symmetric])
-  done
-
-lemma zdvd_zdiff: "k dvd m ==> k dvd n ==> k dvd (m - n :: int)"
-  apply (unfold dvd_def)
-  apply (blast intro: zdiff_zmult_distrib2 [symmetric])
-  done
-
-lemma zdvd_zdiffD: "k dvd m - n ==> k dvd n ==> k dvd (m::int)"
-  apply (subgoal_tac "m = n + (m - n)")
-   apply (erule ssubst)
-   apply (blast intro: zdvd_zadd, simp)
-  done
-
-lemma zdvd_zmult: "k dvd (n::int) ==> k dvd m * n"
-  apply (unfold dvd_def)
-  apply (blast intro: zmult_left_commute)
-  done
-
-lemma zdvd_zmult2: "k dvd (m::int) ==> k dvd m * n"
-  apply (subst zmult_commute)
-  apply (erule zdvd_zmult)
-  done
-
-lemma [iff]: "(k::int) dvd m * k"
-  apply (rule zdvd_zmult)
-  apply (rule zdvd_refl)
-  done
-
-lemma [iff]: "(k::int) dvd k * m"
-  apply (rule zdvd_zmult2)
-  apply (rule zdvd_refl)
-  done
-
-lemma zdvd_zmultD2: "j * k dvd n ==> j dvd (n::int)"
-  apply (unfold dvd_def)
-  apply (simp add: zmult_assoc, blast)
-  done
-
-lemma zdvd_zmultD: "j * k dvd n ==> k dvd (n::int)"
-  apply (rule zdvd_zmultD2)
-  apply (subst zmult_commute, assumption)
-  done
-
-lemma zdvd_zmult_mono: "i dvd m ==> j dvd (n::int) ==> i * j dvd m * n"
-  apply (unfold dvd_def, clarify)
-  apply (rule_tac x = "k * ka" in exI)
-  apply (simp add: zmult_ac)
-  done
-
-lemma zdvd_reduce: "(k dvd n + k * m) = (k dvd (n::int))"
-  apply (rule iffI)
-   apply (erule_tac [2] zdvd_zadd)
-   apply (subgoal_tac "n = (n + k * m) - k * m")
-    apply (erule ssubst)
-    apply (erule zdvd_zdiff, simp_all)
-  done
-
-lemma zdvd_zmod: "f dvd m ==> f dvd (n::int) ==> f dvd m mod n"
-  apply (unfold dvd_def)
-  apply (auto simp add: zmod_zmult_zmult1)
-  done
-
-lemma zdvd_zmod_imp_zdvd: "k dvd m mod n ==> k dvd n ==> k dvd (m::int)"
-  apply (subgoal_tac "k dvd n * (m div n) + m mod n")
-   apply (simp add: zmod_zdiv_equality [symmetric])
-  apply (simp only: zdvd_zadd zdvd_zmult2)
-  done
-
-lemma zdvd_iff_zmod_eq_0: "(k dvd n) = (n mod (k::int) = 0)"
-  by (unfold dvd_def, auto)
-
-lemma zdvd_not_zless: "0 < m ==> m < n ==> \<not> n dvd (m::int)"
-  apply (unfold dvd_def, auto)
-  apply (subgoal_tac "0 < n")
-   prefer 2
-   apply (blast intro: zless_trans)
-  apply (simp add: int_0_less_mult_iff)
-  apply (subgoal_tac "n * k < n * 1")
-   apply (drule zmult_zless_cancel1 [THEN iffD1], auto)
-  done
-
-lemma int_dvd_iff: "(int m dvd z) = (m dvd nat (abs z))"
-  apply (auto simp add: dvd_def nat_abs_mult_distrib)
-  apply (auto simp add: nat_eq_iff zabs_eq_iff)
-   apply (rule_tac [2] x = "-(int k)" in exI)
-  apply (auto simp add: zmult_int [symmetric])
-  done
-
-lemma dvd_int_iff: "(z dvd int m) = (nat (abs z) dvd m)"
-  apply (auto simp add: dvd_def zabs_def zmult_int [symmetric])
-    apply (rule_tac [3] x = "nat k" in exI)
-    apply (rule_tac [2] x = "-(int k)" in exI)
-    apply (rule_tac x = "nat (-k)" in exI)
-    apply (cut_tac [3] k = m in int_less_0_conv)
-    apply (cut_tac k = m in int_less_0_conv)
-    apply (auto simp add: int_0_le_mult_iff zmult_less_0_iff
-      nat_mult_distrib [symmetric] nat_eq_iff2)
-  done
-
-lemma nat_dvd_iff: "(nat z dvd m) = (if 0 \<le> z then (z dvd int m) else m = 0)"
-  apply (auto simp add: dvd_def zmult_int [symmetric])
-  apply (rule_tac x = "nat k" in exI)
-  apply (cut_tac k = m in int_less_0_conv)
-  apply (auto simp add: int_0_le_mult_iff zmult_less_0_iff
-    nat_mult_distrib [symmetric] nat_eq_iff2)
-  done
-
-lemma zminus_dvd_iff [iff]: "(-z dvd w) = (z dvd (w::int))"
-  apply (auto simp add: dvd_def)
-   apply (rule_tac [!] x = "-k" in exI, auto)
-  done
-
-lemma dvd_zminus_iff [iff]: "(z dvd -w) = (z dvd (w::int))"
-  apply (auto simp add: dvd_def)
-   apply (drule zminus_equation [THEN iffD1])
-   apply (rule_tac [!] x = "-k" in exI, auto)
   done
 
 
@@ -321,6 +156,14 @@ lemma zrelprime_zdvd_zmult: "zgcd (n, k) = 1 ==> k dvd m * n ==> k dvd m"
 
 lemma zgcd_geq_zero: "0 <= zgcd(x,y)"
   by (auto simp add: zgcd_def)
+
+text{*This is merely a sanity check on zprime, since the previous version
+      denoted the empty set.*}
+lemma "2 \<in> zprime"
+  apply (auto simp add: zprime_def) 
+  apply (frule zdvd_imp_le, simp) 
+  apply (auto simp add: order_le_less dvd_def) 
+  done
 
 lemma zprime_imp_zrelprime:
     "p \<in> zprime ==> \<not> p dvd n ==> zgcd (n, p) = 1"
@@ -688,8 +531,7 @@ lemma xzgcda_linear [rule_format]:
 lemma xzgcd_linear:
     "0 < n ==> xzgcd m n = (r, s, t) ==> r = s * m + t * n"
   apply (unfold xzgcd_def)
-  apply (erule xzgcda_linear, assumption)
-   apply auto
+  apply (erule xzgcda_linear, assumption, auto)
   done
 
 lemma zgcd_ex_linear:
