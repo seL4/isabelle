@@ -80,6 +80,7 @@ sig
   val nth_elem: int * 'a list -> 'a
   val last_elem: 'a list -> 'a
   val split_last: 'a list -> 'a list * 'a
+  val nth_update: 'a -> int * 'a list -> 'a list
   val find_index: ('a -> bool) -> 'a list -> int
   val find_index_eq: ''a -> ''a list -> int
   val find_first: ('a -> bool) -> 'a list -> 'a option
@@ -445,6 +446,17 @@ fun last_elem [] = raise LIST "last_elem"
 fun split_last [] = raise LIST "split_last"
   | split_last [x] = ([], x)
   | split_last (x :: xs) = apfst (cons x) (split_last xs);
+
+(*update nth element*)
+fun nth_update x (n, xs) =
+  let
+    val prfx = take (n, xs);
+    val sffx = drop (n, xs);
+  in
+    (case sffx of
+      [] => raise LIST "nth_update"
+    | _ :: sffx' => prfx @ (x :: sffx'))
+  end;
 
 (*find the position of an element in a list*)
 fun find_index pred =
