@@ -813,3 +813,89 @@ by (asm_simp_tac (simpset()
 		  addsimps [nat_cadd_eq_add RS sym, cadd_def, eqpoll_refl]) 1);
 qed "nat_sum_eqpoll_sum";
 
+
+(*** Theorems by Sidi Ehmety ***)
+
+(*The contrapositive says ~Finite(A) ==> ~Finite(A-{a}) *)
+Goalw [Finite_def] "Finite(A - {a}) ==> Finite(A)";
+by (case_tac "a:A" 1);
+by (subgoal_tac "A-{a}=A" 2);
+by Auto_tac;
+by (res_inst_tac [("x", "succ(n)")] bexI 1);
+by (subgoal_tac "cons(a, A - {a}) = A & cons(n, n) = succ(n)" 1);
+by (dres_inst_tac [("a", "a"), ("b", "n")] cons_eqpoll_cong 1);
+by (auto_tac (claset() addDs [mem_irrefl], simpset()));
+qed "Diff_sing_Finite";
+
+(*And the contrapositive of this says
+   [| ~Finite(A); Finite(B) |] ==> ~Finite(A-B) *)
+Goal "Finite(B) ==> Finite(A-B) --> Finite(A)";
+by (etac Finite_induct 1);
+by Auto_tac;
+by (case_tac "x:A" 1);
+ by (subgoal_tac "A-cons(x, B) = A - B" 2);
+by (subgoal_tac "A - cons(x, B) = (A - B) - {x}" 1);
+by (rotate_tac ~1 1);
+by (Asm_full_simp_tac 1);
+by (dtac Diff_sing_Finite 1);
+by Auto_tac;
+qed_spec_mp "Diff_Finite";
+
+Goal "Ord(i) ==> i <= nat --> i : nat | i=nat";
+by (etac trans_induct3 1); 
+by Auto_tac; 
+by (blast_tac (claset() addSDs [nat_le_Limit RS le_imp_subset]) 1); 
+qed_spec_mp "Ord_subset_natD";
+
+Goal "[| Ord(i); i <= nat |] ==> Card(i)";
+by (blast_tac (claset() addDs [Ord_subset_natD]
+			addIs [Card_nat, nat_into_Card]) 1); 
+qed "Ord_nat_subset_into_Card";
+
+Goal "Finite(A) ==> |A| : nat";
+by (etac Finite_induct 1);
+by (auto_tac (claset(), 
+              simpset() addsimps 
+                      [cardinal_0, Finite_imp_cardinal_cons]));
+qed "Finite_cardinal_in_nat";
+Addsimps [Finite_cardinal_in_nat];
+
+Goal "[| Finite(A); x:A |] ==> |A-{x}| = |A| #- 1";
+by (rtac succ_inject 1);
+by (res_inst_tac [("b", "|A|")] trans 1);
+by (asm_simp_tac (simpset() addsimps 
+                 [Finite_imp_succ_cardinal_Diff]) 1);
+by (subgoal_tac "1 lepoll A" 1);
+by (blast_tac (claset() addIs [not_0_is_lepoll_1]) 2);
+by (forward_tac [Finite_imp_well_ord] 1);
+by (Clarify_tac 1);
+by (rotate_tac ~1 1);
+by (dtac well_ord_lepoll_imp_Card_le 1);
+by (auto_tac (claset(), simpset() addsimps [cardinal_1]));
+by (rtac trans 1);
+by (rtac diff_succ 2);
+by (auto_tac (claset(), simpset() addsimps [Finite_cardinal_in_nat]));
+qed "Finite_Diff_sing_eq_diff_1";
+
+Goal "Finite(B) ==> ALL A. |B|<|A| --> A - B ~= 0";
+by (etac Finite_induct 1);
+by (ALLGOALS(Clarify_tac));
+by (ALLGOALS(asm_full_simp_tac (simpset() addsimps
+                [cardinal_0,Finite_imp_cardinal_cons])));
+by (case_tac "Finite(A)" 1);
+by (subgoal_tac "Finite(cons(x, B))" 2);
+by (dres_inst_tac [("B", "cons(x, B)")] Diff_Finite 2);
+by (auto_tac (claset(), simpset() addsimps [Finite_0, Finite_cons]));
+by (subgoal_tac "|B|<|A|" 1);
+by (blast_tac (claset() addIs [lt_trans, Ord_cardinal]) 2);
+by (case_tac "x:A" 1);
+by (subgoal_tac "A - cons(x, B)= A - B" 2);
+by Auto_tac;
+by (subgoal_tac "|A| le |cons(x, B)|" 1);
+by (blast_tac (claset() addDs [Finite_cons RS Finite_imp_well_ord]
+              addIs [well_ord_lepoll_imp_Card_le, subset_imp_lepoll]) 2);
+by (auto_tac (claset(), simpset() addsimps [Finite_imp_cardinal_cons])); 
+by (auto_tac (claset() addSDs [Finite_cardinal_in_nat], 
+               simpset() addsimps [le_iff])); 
+by (blast_tac (claset() addIs [lt_trans]) 1);
+qed_spec_mp "cardinal_lt_imp_Diff_not_0";
