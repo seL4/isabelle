@@ -6,7 +6,7 @@
 Based on "A Family of 2-Process Mutual Exclusion Algorithms" by J Misra
 *)
 
-Mutex = UNITY + Traces + SubstAx +
+Mutex = SubstAx +
 
 (*WE NEED A GENERAL TREATMENT OF NUMBERS!!*)
 syntax

@@ -64,15 +64,53 @@ structure reachable =
   end;
 
 
-(*The strongest invariant is the set of all reachable states!*)
-Goalw [stable_def, constrains_def]
-    "[| Init<=A;  stable Acts A |] ==> reachable(Init,Acts) <= A";
+
+Goal "stable Acts (reachable(Init,Acts))";
+by (blast_tac (claset() addIs ([stableI, constrainsI] @ reachable.intrs)) 1);
+qed "stable_reachable";
+
+(*The set of all reachable states is an invariant...*)
+Goal "invariant (Init,Acts) (reachable(Init,Acts))";
+by (simp_tac (simpset() addsimps [invariant_def]) 1);
+by (blast_tac (claset() addIs (stable_reachable::reachable.intrs)) 1);
+qed "invariant_reachable";
+
+(*...in fact the strongest invariant!*)
+Goal "invariant (Init,Acts) A ==> reachable(Init,Acts) <= A";
+by (full_simp_tac 
+    (simpset() addsimps [stable_def, constrains_def, invariant_def]) 1);
 by (rtac subsetI 1);
 by (etac reachable.induct 1);
 by (REPEAT (blast_tac (claset() addIs reachable.intrs) 1));
-qed "strongest_invariant";
+qed "invariant_includes_reachable";
 
-Goal "stable Acts (reachable(Init,Acts))";
-by (REPEAT (blast_tac (claset() addIs [stableI, constrainsI]
-				addIs reachable.intrs) 1));
-qed "stable_reachable";
+(*If "A" includes the initial states and is stable then "A" is invariant.
+  Result is trivial from the definition, but it is handy.*)
+Goal "[| Init<=A;  stable Acts A |] ==> invariant (Init,Acts) A";
+by (asm_simp_tac (simpset() addsimps [invariant_def]) 1);
+qed "invariantI";
+
+
+(** Conjoining invariants **)
+
+Goal "[| invariant (Init,Acts) A;  invariant (Init,Acts) B |] \
+\     ==> invariant (Init,Acts) (A Int B)";
+by (asm_full_simp_tac (simpset() addsimps [invariant_def, stable_Int]) 1);
+by Auto_tac;
+qed "invariant_Int";
+
+(*Delete the nearest invariance assumption (which will be the second one
+  used by invariant_Int) *)
+val invariant_thin =
+    read_instantiate_sg (sign_of thy)
+                [("V", "invariant ?Prg ?A")] thin_rl;
+
+(*Combines two invariance ASSUMPTIONS into one.  USEFUL??*)
+val invariant_Int_tac = dtac invariant_Int THEN' 
+                        assume_tac THEN'
+			etac invariant_thin;
+
+(*Combines two invariance THEOREMS into one.*)
+val invariant_Int_rule = foldr1 (fn (th1,th2) => [th1,th2] MRS invariant_Int);
+
+

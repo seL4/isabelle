@@ -28,8 +28,8 @@ by (blast_tac (claset() addSEs [subsetCE]
 qed "common_stable";
 
 Goal "[| ALL m. constrains Acts {m} (maxfg m); n: common |] \
-\     ==> reachable ({0},Acts) <= atMost n";
-by (rtac strongest_invariant 1);
+\     ==> invariant ({0},Acts) (atMost n)";
+by (rtac invariantI 1);
 by (asm_simp_tac (simpset() addsimps [common_stable]) 2);
 by (simp_tac (simpset() addsimps [atMost_def]) 1);
 qed "common_invariant";

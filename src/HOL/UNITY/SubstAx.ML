@@ -392,16 +392,59 @@ by (assume_tac 2);
 by (Blast_tac 1);
 qed "reachable_transient";
 
-(*Eliminates the set "reachable (Init,Acts)" from the subgoals.  This boosts
-  efficiency because the term contains a full copy of the program.*)
-Goal "[| reachable (Init,Acts) <= INV;      \
+(*Uses the premise "invariant (Init,Acts)".  Raw theorem-proving on this
+  inclusion is slow: the term contains a copy of the program.*)
+Goal "[| invariant (Init,Acts) INV;      \
 \        constrains Acts (INV Int (A - A')) (A Un A'); \
 \        transient  Acts (INV Int (A-A')) |]   \
 \     ==> LeadsTo(Init,Acts) A A'";
+bd invariant_includes_reachable 1;
 by (rtac LeadsTo_Basis 1);
 by (blast_tac (claset() addSIs [reachable_transient]) 2);
 by (rewtac constrains_def);
 by (Blast_tac 1);
-qed "reachable_LeadsTo_Basis";
+qed "invariant_LeadsTo_Basis";
+
+
+Goal "[| invariant (Init,Acts) INV;      \
+\        LeadsTo(Init,Acts) A A'; id: Acts;   \
+\        INV Int B  <= A;  INV Int A' <= B' |] \
+\     ==> LeadsTo(Init,Acts) B B'";
+by (blast_tac (claset() addDs [invariant_includes_reachable]
+			addIs [LeadsTo_weaken]) 1);
+qed "invariant_LeadsTo_weaken";
+
+
+(** Constrains/Ensures tactics 
+    main_def defines the main program as a set;
+    cmd_defs defines the separate commands
+**)
+
+(*proves "constrains" properties when the program is specified*)
+fun constrains_tac (main_def::cmd_defs) = 
+   SELECT_GOAL
+      (EVERY [TRY (rtac stableI 1),
+	      rtac constrainsI 1,
+	      rewtac main_def,
+	      REPEAT_FIRST (eresolve_tac [insertE, emptyE]),
+	      rewrite_goals_tac cmd_defs,
+	      ALLGOALS (SELECT_GOAL Auto_tac)]);
+
+
+(*proves "ensures" properties when the program is specified*)
+fun ensures_tac (main_def::cmd_defs) sact = 
+    SELECT_GOAL
+      (EVERY [REPEAT (invariant_Int_tac 1),
+	      etac invariant_LeadsTo_Basis 1 
+	          ORELSE   (*subgoal may involve LeadsTo, leadsTo or ensures*)
+		  REPEAT (ares_tac [leadsTo_imp_LeadsTo, leadsTo_Basis, 
+				    ensuresI] 1),
+	      res_inst_tac [("act", sact)] transient_mem 2,
+	      simp_tac (simpset() addsimps (Domain_partial_func::cmd_defs)) 3,
+	      simp_tac (simpset() addsimps [main_def]) 2,
+	      constrains_tac (main_def::cmd_defs) 1,
+	      rewrite_goals_tac cmd_defs,
+	      ALLGOALS Clarify_tac,
+	      Auto_tac]);
 
 

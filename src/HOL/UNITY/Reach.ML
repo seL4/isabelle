@@ -29,54 +29,21 @@ AddIffs [id_in_racts];
 (*All vertex sets are finite*)
 AddIffs [[subset_UNIV, finite_graph] MRS finite_subset];
 
+Addsimps [reach_invariant_def];
 
-(** Constrains/Ensures tactics: NEED TO BE GENERALIZED OVER ALL PROGRAMS **)
-
-(*proves "constrains" properties when the program is specified*)
-val constrains_tac = 
-   SELECT_GOAL
-      (EVERY [rtac constrainsI 1,
-	      rewtac racts_def,
-	      REPEAT_FIRST (eresolve_tac [insertE, emptyE]),
-	      rewrite_goals_tac [racts_def, asgt_def],
-	      ALLGOALS (SELECT_GOAL Auto_tac)]);
-
-
-(*proves "ensures" properties when the program is specified*)
-fun ensures_tac sact = 
-    SELECT_GOAL
-      (EVERY [REPEAT (resolve_tac [LeadsTo_Basis, leadsTo_Basis, ensuresI] 1),
-	      res_inst_tac [("act", sact)] transient_mem 2,
-	      Simp_tac 2,
-	      constrains_tac 1,
-	      rewrite_goals_tac [racts_def, asgt_def],
-	      Auto_tac]);
-
-
-Goalw [stable_def, invariant_def]
-    "stable racts invariant";
-by (constrains_tac 1);
+Goalw [rinit_def] "invariant (rinit,racts) reach_invariant";
+by (rtac invariantI 1);
+by Auto_tac;  (*for the initial state; proof of stability remains*)
+by (constrains_tac [racts_def, asgt_def] 1);
 by (blast_tac (claset() addIs [r_into_rtrancl,rtrancl_trans]) 1);
-qed "stable_invariant";
-
-Goalw [rinit_def, invariant_def] "rinit <= invariant";
-by Auto_tac;
-qed "rinit_invariant";
-
-Goal "reachable (rinit,racts) <= invariant";
-by (simp_tac (simpset() addsimps
-	      [strongest_invariant, stable_invariant, rinit_invariant]) 1); 
-qed "reachable_subset_invariant";
-
-val reachable_subset_invariant' = 
-    rewrite_rule [invariant_def] reachable_subset_invariant;
+qed "reach_invariant";
 
 
 (*** Fixedpoint ***)
 
 (*If it reaches a fixedpoint, it has found a solution*)
-Goalw [fixedpoint_def, invariant_def]
-    "fixedpoint Int invariant = { %v. (init, v) : edges^* }";
+Goalw [fixedpoint_def, reach_invariant_def]
+    "fixedpoint Int reach_invariant = { %v. (init, v) : edges^* }";
 by (rtac equalityI 1);
 by (blast_tac (claset() addIs [r_into_rtrancl,rtrancl_trans]) 2);
 by (auto_tac (claset() addSIs [ext], simpset()));
@@ -153,7 +120,7 @@ qed "metric_le";
 Goal "(u,v): edges ==> \
 \              ensures racts ((metric-``{m}) Int {s. s u & ~ s v})  \
 \                            (metric-``(lessThan m))";
-by (ensures_tac "asgt u v" 1);
+by (ensures_tac [racts_def, asgt_def] "asgt u v" 1);
 by (cut_facts_tac [metric_le] 1);
 by (fast_tac (claset() addSDs [le_imp_less_or_eq]) 1);
 qed "edges_ensures";
@@ -180,8 +147,8 @@ qed "leadsTo_fixedpoint";
 
 Goal "LeadsTo(rinit,racts) UNIV { %v. (init, v) : edges^* }";
 by (stac (fixedpoint_invariant_correct RS sym) 1);
-by (rtac (leadsTo_fixedpoint RS leadsTo_imp_LeadsTo RS LeadsTo_weaken_R) 1); 
-by (cut_facts_tac [reachable_subset_invariant] 1);
-by (Blast_tac 1);
+by (rtac ([reach_invariant,
+	   leadsTo_fixedpoint RS leadsTo_imp_LeadsTo] 
+	  MRS invariant_LeadsTo_weaken) 1); 
+by Auto_tac;
 qed "LeadsTo_correct";
-

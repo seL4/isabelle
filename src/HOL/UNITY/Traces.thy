@@ -24,7 +24,11 @@ inductive "traces Init Acts"
 	   ==> (s', s#evs) : traces Init Acts"
 
 
-constdefs reachable :: "'a set * ('a * 'a)set set => 'a set"
+constdefs
+  reachable :: "'a set * ('a * 'a)set set => 'a set"
   "reachable == %(Init,Acts). {s. EX evs. (s,evs): traces Init Acts}"
+
+  invariant :: "['a set * ('a * 'a)set set, 'a set] => bool"
+  "invariant == %(Init,Acts) A. Init <= A & stable Acts A"
 
 end

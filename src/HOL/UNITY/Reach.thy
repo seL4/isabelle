@@ -29,8 +29,8 @@ constdefs
   rinit :: "state set"
     "rinit == {%v. v=init}"
 
-  invariant :: state set
-    "invariant == {s. (ALL v. s v --> (init, v) : edges^*) & s init}"
+  reach_invariant :: state set
+    "reach_invariant == {s. (ALL v. s v --> (init, v) : edges^*) & s init}"
 
   fixedpoint :: state set
     "fixedpoint == {s. ALL (u,v): edges. s u --> s v}"
