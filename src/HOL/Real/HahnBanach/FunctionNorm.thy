@@ -66,7 +66,7 @@ Thus we define the set $B$ the supremum is taken from as
 constdefs
   B :: "[ 'a set, 'a => real, 'a::{plus, minus, zero} => real ] => real set"
   "B V norm f == 
-  {#0} \<union> {|f x| * rinv (norm x) | x. x \<noteq> 0 \<and> x \<in> V}"
+  {#0} \<union> {|f x| * inverse (norm x) | x. x \<noteq> 0 \<and> x \<in> V}"
 
 text{* $n$ is the function norm of $f$, iff 
 $n$ is the supremum of $B$. 
@@ -146,12 +146,12 @@ proof (unfold function_norm_def is_function_norm_def
 	fix x y
         assume "x \<in> V" "x \<noteq> 0" (***
 
-         have ge: "#0 <= rinv (norm x)";
-          by (rule real_less_imp_le, rule real_rinv_gt_zero, 
+         have ge: "#0 <= inverse (norm x)";
+          by (rule real_less_imp_le, rule real_inverse_gt_zero, 
                 rule normed_vs_norm_gt_zero); ( ***
           proof (rule real_less_imp_le);
-            show "#0 < rinv (norm x)";
-            proof (rule real_rinv_gt_zero);
+            show "#0 < inverse (norm x)";
+            proof (rule real_inverse_gt_zero);
               show "#0 < norm x"; ..;
             qed;
           qed; *** )
@@ -168,17 +168,17 @@ proof (unfold function_norm_def is_function_norm_def
         txt {* The thesis follows by a short calculation using the 
         fact that $f$ is bounded. *}
     
-        assume "y = |f x| * rinv (norm x)"
-        also have "... <= c * norm x * rinv (norm x)"
+        assume "y = |f x| * inverse (norm x)"
+        also have "... <= c * norm x * inverse (norm x)"
         proof (rule real_mult_le_le_mono2)
-          show "#0 <= rinv (norm x)"
-            by (rule real_less_imp_le, rule real_rinv_gt_zero1, 
+          show "#0 <= inverse (norm x)"
+            by (rule real_less_imp_le, rule real_inverse_gt_zero1, 
                 rule normed_vs_norm_gt_zero)
           from a show "|f x| <= c * norm x" ..
         qed
-        also have "... = c * (norm x * rinv (norm x))" 
+        also have "... = c * (norm x * inverse (norm x))" 
           by (rule real_mult_assoc)
-        also have "(norm x * rinv (norm x)) = (#1::real)" 
+        also have "(norm x * inverse (norm x)) = (#1::real)" 
         proof (rule real_mult_inv_right1)
           show nz: "norm x \<noteq> #0" 
             by (rule not_sym, rule lt_imp_not_eq, 
@@ -211,14 +211,14 @@ proof -
            elim UnE singletonE CollectE exE conjE) 
       fix x r
       assume "x \<in> V" "x \<noteq> 0" 
-        and r: "r = |f x| * rinv (norm x)"
+        and r: "r = |f x| * inverse (norm x)"
 
       have ge: "#0 <= |f x|" by (simp! only: abs_ge_zero)
-      have "#0 <= rinv (norm x)" 
-        by (rule real_less_imp_le, rule real_rinv_gt_zero1, rule)(***
+      have "#0 <= inverse (norm x)" 
+        by (rule real_less_imp_le, rule real_inverse_gt_zero1, rule)(***
         proof (rule real_less_imp_le);
-          show "#0 < rinv (norm x)"; 
-          proof (rule real_rinv_gt_zero);
+          show "#0 < inverse (norm x)"; 
+          proof (rule real_inverse_gt_zero);
             show "#0 < norm x"; ..;
           qed;
         qed; ***)
@@ -282,12 +282,12 @@ proof -
     txt {* For the case $x\neq \zero$ we derive the following
     fact from the definition of the function norm:*}
 
-    have l: "|f x| * rinv (norm x) <= \<parallel>f\<parallel>V,norm"
+    have l: "|f x| * inverse (norm x) <= \<parallel>f\<parallel>V,norm"
     proof (unfold function_norm_def, rule sup_ub)
       from ex_fnorm [OF _ c]
       show "is_Sup UNIV (B V norm f) (Sup UNIV (B V norm f))"
          by (simp! add: is_function_norm_def function_norm_def)
-      show "|f x| * rinv (norm x) \<in> B V norm f" 
+      show "|f x| * inverse (norm x) \<in> B V norm f" 
         by (unfold B_def, intro UnI2 CollectI exI [of _ x]
             conjI, simp)
     qed
@@ -295,9 +295,9 @@ proof -
     txt {* The thesis now follows by a short calculation: *}
 
     have "|f x| = |f x| * #1" by (simp!)
-    also from nz have "#1 = rinv (norm x) * norm x" 
+    also from nz have "#1 = inverse (norm x) * norm x" 
       by (simp add: real_mult_inv_left1)
-    also have "|f x| * ... = |f x| * rinv (norm x) * norm x"
+    also have "|f x| * ... = |f x| * inverse (norm x) * norm x"
       by (simp! add: real_mult_assoc)
     also from n l have "... <= \<parallel>f\<parallel>V,norm * norm x"
       by (simp add: real_mult_le_le_mono2)
@@ -365,13 +365,13 @@ proof (unfold function_norm_def)
             by (simp! add: order_less_imp_not_eq)
         qed
             
-	from lz have "#0 < rinv (norm x)"
-	  by (simp! add: real_rinv_gt_zero1)
-	hence rinv_gez: "#0 <= rinv (norm x)"
+	from lz have "#0 < inverse (norm x)"
+	  by (simp! add: real_inverse_gt_zero1)
+	hence inverse_gez: "#0 <= inverse (norm x)"
           by (rule real_less_imp_le)
 
-	assume "y = |f x| * rinv (norm x)" 
-	also from rinv_gez have "... <= c * norm x * rinv (norm x)"
+	assume "y = |f x| * inverse (norm x)" 
+	also from inverse_gez have "... <= c * norm x * inverse (norm x)"
 	  proof (rule real_mult_le_le_mono2)
 	    show "|f x| <= c * norm x" by (rule bspec)
 	  qed

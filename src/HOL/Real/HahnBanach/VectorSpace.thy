@@ -348,9 +348,9 @@ lemma vs_mult_zero_uniq:
 proof (rule classical)
   assume "is_vectorspace V" "x \<in> V" "a \<cdot> x = 0" "x \<noteq> 0"
   assume "a \<noteq> #0"
-  have "x = (rinv a * a) \<cdot> x" by (simp!)
-  also have "... = rinv a \<cdot> (a \<cdot> x)" by (rule vs_mult_assoc)
-  also have "... = rinv a \<cdot> 0" by (simp!)
+  have "x = (inverse a * a) \<cdot> x" by (simp!)
+  also have "... = inverse a \<cdot> (a \<cdot> x)" by (rule vs_mult_assoc)
+  also have "... = inverse a \<cdot> 0" by (simp!)
   also have "... = 0" by (simp!)
   finally have "x = 0" .
   thus "a = #0" by contradiction 
@@ -363,11 +363,11 @@ lemma vs_mult_left_cancel:
 proof
   assume "is_vectorspace V" "x \<in> V" "y \<in> V" "a \<noteq> #0"
   have "x = #1 \<cdot> x" by (simp!)
-  also have "... = (rinv a * a) \<cdot> x" by (simp!)
-  also have "... = rinv a \<cdot> (a \<cdot> x)" 
+  also have "... = (inverse a * a) \<cdot> x" by (simp!)
+  also have "... = inverse a \<cdot> (a \<cdot> x)" 
     by (simp! only: vs_mult_assoc)
   also assume ?L
-  also have "rinv a \<cdot> ... = y" by (simp!)
+  also have "inverse a \<cdot> ... = y" by (simp!)
   finally show ?R .
 qed simp
 

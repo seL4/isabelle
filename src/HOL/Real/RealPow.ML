@@ -20,13 +20,13 @@ by (rtac ccontr 1);
 by (auto_tac (claset() addDs [realpow_not_zero], simpset()));
 qed "realpow_zero_zero";
 
-Goal "r ~= #0 --> rinv(r ^ n) = (rinv r) ^ n";
+Goal "(r::real) ~= #0 --> inverse (r ^ n) = (inverse r) ^ n";
 by (induct_tac "n" 1);
 by (Auto_tac);
 by (forw_inst_tac [("n","n")] realpow_not_zero 1);
-by (auto_tac (claset() addDs [rename_numerals real_rinv_distrib],
+by (auto_tac (claset() addDs [rename_numerals real_inverse_distrib],
 	      simpset()));
-qed_spec_mp "realpow_rinv";
+qed_spec_mp "realpow_inverse";
 
 Goal "abs (r::real) ^ n = abs (r ^ n)";
 by (induct_tac "n" 1);
@@ -360,11 +360,11 @@ by (auto_tac (claset(),simpset()
 qed_spec_mp "realpow_minus_mult";
 Addsimps [realpow_minus_mult];
 
-Goal "r ~= #0 ==> r * rinv(r) ^ 2 = rinv r";
+Goal "r ~= #0 ==> r * inverse r ^ 2 = inverse (r::real)";
 by (asm_simp_tac (simpset() addsimps [realpow_two,
                   real_mult_assoc RS sym]) 1);
-qed "realpow_two_mult_rinv";
-Addsimps [realpow_two_mult_rinv];
+qed "realpow_two_mult_inverse";
+Addsimps [realpow_two_mult_inverse];
 
 (* 05/00 *)
 Goal "(-x) ^ 2 = (x::real) ^ 2";
@@ -393,7 +393,7 @@ by (auto_tac (claset() addDs [rename_numerals real_add_minus_eq_minus],
 qed "realpow_two_disj";
 
 (* used in Transc *)
-Goal  "[|x ~= #0; m <= n |] ==> x ^ (n - m) = x ^ n * rinv(x ^ m)";
+Goal  "[|(x::real) ~= #0; m <= n |] ==> x ^ (n - m) = x ^ n * inverse (x ^ m)";
 by (auto_tac (claset(),
               simpset() addsimps [le_eq_less_or_eq,
                                   less_iff_Suc_add,realpow_add,
@@ -414,11 +414,11 @@ qed "realpow_real_of_nat_two_pos";
 Addsimps [realpow_real_of_nat_two_pos];
 
 
-(***	REALORD.ML, AFTER real_rinv_less_iff ***)
-Goal "[| 0 < r; 0 < x|] ==> (rinv x <= rinv r) = (r <= x)";
+(***	REALORD.ML, AFTER real_inverse_less_iff ***)
+Goal "[| 0 < r; 0 < x|] ==> (inverse x <= inverse r) = (r <= (x::real))";
 by (asm_simp_tac (simpset() addsimps [linorder_not_less RS sym, 
-                                      real_rinv_less_iff]) 1); 
-qed "real_rinv_le_iff";
+                                      real_inverse_less_iff]) 1); 
+qed "real_inverse_le_iff";
 
 Goal "(#0::real) <= x --> #0 <= y --> x ^ Suc n <= y ^ Suc n --> x <= y";
 by (induct_tac "n" 1);
@@ -427,12 +427,12 @@ by (rtac real_leI 1);
 by (auto_tac (claset(), 
               simpset() addsimps [inst "x" "#0" order_le_less,
                                   real_mult_le_0_iff])); 
-by (subgoal_tac "rinv x * (x * (x * x ^ n)) <= rinv y * (y * (y * y ^ n))" 1);
+by (subgoal_tac "inverse x * (x * (x * x ^ n)) <= inverse y * (y * (y * y ^ n))" 1);
 by (rtac real_mult_le_mono 2);
 by (asm_full_simp_tac (simpset() addsimps [realpow_ge_zero, real_0_le_mult_iff]) 4); 
-by (asm_full_simp_tac (simpset() addsimps [real_rinv_le_iff]) 3);
+by (asm_full_simp_tac (simpset() addsimps [real_inverse_le_iff]) 3);
 by (asm_full_simp_tac (simpset() addsimps [real_mult_assoc RS sym]) 1);
-by (rtac real_rinv_gt_zero 1);  
+by (rtac real_inverse_gt_zero 1);  
 by Auto_tac; 
 qed_spec_mp "realpow_increasing";
   

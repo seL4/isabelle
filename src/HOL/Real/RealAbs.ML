@@ -90,17 +90,17 @@ by (auto_tac (claset() addSDs [order_antisym],
 	      simpset() addsimps [real_0_le_mult_iff]));
 qed "abs_mult";
 
-Goalw [abs_real_def] "x~= (#0::real) ==> abs(rinv(x)) = rinv(abs(x))";
+Goalw [abs_real_def] "x~= (#0::real) ==> abs(inverse(x)) = inverse(abs(x))";
 by (auto_tac (claset(), 
               simpset() addsimps [real_le_less] @ 
-	    (map rename_numerals [real_minus_rinv, real_rinv_gt_zero])));
-by (etac (rename_numerals (real_rinv_less_zero RSN (2,real_less_asym))) 1);
+	    (map rename_numerals [real_minus_inverse, real_inverse_gt_zero])));
+by (etac (rename_numerals (real_inverse_less_zero RSN (2,real_less_asym))) 1);
 by (arith_tac 1);
-qed "abs_rinv";
+qed "abs_inverse";
 
-Goal "y ~= #0 ==> abs(x*rinv(y)) = abs(x)*rinv(abs(y))";
-by (asm_simp_tac (simpset() addsimps [abs_mult, abs_rinv]) 1);
-qed "abs_mult_rinv";
+Goal "y ~= #0 ==> abs (x * inverse y) = (abs x) * inverse (abs (y::real))";
+by (asm_simp_tac (simpset() addsimps [abs_mult, abs_inverse]) 1);
+qed "abs_mult_inverse";
 
 Goalw [abs_real_def] "abs(x+y) <= abs x + abs (y::real)";
 by (Simp_tac 1);

@@ -284,22 +284,22 @@ proof
     next
       assume lz: "a < #0" hence nz: "a \<noteq> #0" by simp
       from a1 
-      have "- p (rinv a \<cdot> y + x0) - h (rinv a \<cdot> y) <= xi"
+      have "- p (inverse a \<cdot> y + x0) - h (inverse a \<cdot> y) <= xi"
         by (rule bspec) (simp!)
 
       txt {* The thesis for this case now follows by a short  
       calculation. *}      
-      hence "a * xi <= a * (- p (rinv a \<cdot> y + x0) - h (rinv a \<cdot> y))"
+      hence "a * xi <= a * (- p (inverse a \<cdot> y + x0) - h (inverse a \<cdot> y))"
         by (rule real_mult_less_le_anti [OF lz])
       also 
-      have "... = - a * (p (rinv a \<cdot> y + x0)) - a * (h (rinv a \<cdot> y))"
+      have "... = - a * (p (inverse a \<cdot> y + x0)) - a * (h (inverse a \<cdot> y))"
         by (rule real_mult_diff_distrib)
       also from lz vs y 
-      have "- a * (p (rinv a \<cdot> y + x0)) = p (a \<cdot> (rinv a \<cdot> y + x0))"
+      have "- a * (p (inverse a \<cdot> y + x0)) = p (a \<cdot> (inverse a \<cdot> y + x0))"
         by (simp add: seminorm_abs_homogenous abs_minus_eqI2)
       also from nz vs y have "... = p (y + a \<cdot> x0)"
         by (simp add: vs_add_mult_distrib1)
-      also from nz vs y have "a * (h (rinv a \<cdot> y)) =  h y"
+      also from nz vs y have "a * (h (inverse a \<cdot> y)) =  h y"
         by (simp add: linearform_mult [symmetric])
       finally have "a * xi <= p (y + a \<cdot> x0) - h y" .
 
@@ -312,23 +312,23 @@ proof
 
     next 
       assume gz: "#0 < a" hence nz: "a \<noteq> #0" by simp
-      from a2 have "xi <= p (rinv a \<cdot> y + x0) - h (rinv a \<cdot> y)"
+      from a2 have "xi <= p (inverse a \<cdot> y + x0) - h (inverse a \<cdot> y)"
         by (rule bspec) (simp!)
 
       txt {* The thesis for this case follows by a short
       calculation: *}
 
       with gz 
-      have "a * xi <= a * (p (rinv a \<cdot> y + x0) - h (rinv a \<cdot> y))"
+      have "a * xi <= a * (p (inverse a \<cdot> y + x0) - h (inverse a \<cdot> y))"
         by (rule real_mult_less_le_mono)
-      also have "... = a * p (rinv a \<cdot> y + x0) - a * h (rinv a \<cdot> y)"
+      also have "... = a * p (inverse a \<cdot> y + x0) - a * h (inverse a \<cdot> y)"
         by (rule real_mult_diff_distrib2) 
       also from gz vs y 
-      have "a * p (rinv a \<cdot> y + x0) = p (a \<cdot> (rinv a \<cdot> y + x0))"
+      have "a * p (inverse a \<cdot> y + x0) = p (a \<cdot> (inverse a \<cdot> y + x0))"
         by (simp add: seminorm_abs_homogenous abs_eqI2)
       also from nz vs y have "... = p (y + a \<cdot> x0)"
         by (simp add: vs_add_mult_distrib1)
-      also from nz vs y have "a * h (rinv a \<cdot> y) = h y"
+      also from nz vs y have "a * h (inverse a \<cdot> y) = h y"
         by (simp add: linearform_mult [symmetric]) 
       finally have "a * xi <= p (y + a \<cdot> x0) - h y" .
  

@@ -493,27 +493,27 @@ by (asm_simp_tac (simpset() addsimps [real_mult_commute,
 				      real_mult_inv_right_ex]) 1);
 qed "real_mult_inv_left_ex";
 
-Goalw [rinv_def] "x ~= 0 ==> rinv(x)*x = 1r";
+Goalw [real_inverse_def] "x ~= 0 ==> inverse(x)*x = 1r";
 by (ftac real_mult_inv_left_ex 1);
 by (Step_tac 1);
 by (rtac someI2 1);
 by Auto_tac;
 qed "real_mult_inv_left";
 
-Goal "x ~= 0 ==> x*rinv(x) = 1r";
+Goal "x ~= 0 ==> x*inverse(x) = 1r";
 by (auto_tac (claset() addIs [real_mult_commute RS subst],
               simpset() addsimps [real_mult_inv_left]));
 qed "real_mult_inv_right";
 
 Goal "(c::real) ~= 0 ==> (c*a=c*b) = (a=b)";
 by Auto_tac;
-by (dres_inst_tac [("f","%x. x*rinv c")] arg_cong 1);
+by (dres_inst_tac [("f","%x. x*inverse c")] arg_cong 1);
 by (asm_full_simp_tac (simpset() addsimps [real_mult_inv_right] @ real_mult_ac)  1);
 qed "real_mult_left_cancel";
     
 Goal "(c::real) ~= 0 ==> (a*c=b*c) = (a=b)";
 by (Step_tac 1);
-by (dres_inst_tac [("f","%x. x*rinv c")] arg_cong 1);
+by (dres_inst_tac [("f","%x. x*inverse c")] arg_cong 1);
 by (asm_full_simp_tac
     (simpset() addsimps [real_mult_inv_right] @ real_mult_ac)  1);
 qed "real_mult_right_cancel";
@@ -526,53 +526,53 @@ Goal "a*c ~= b*c ==> a ~= b";
 by Auto_tac;
 qed "real_mult_right_cancel_ccontr";
 
-Goalw [rinv_def] "x ~= 0 ==> rinv(x) ~= 0";
+Goalw [real_inverse_def] "x ~= 0 ==> inverse(x::real) ~= 0";
 by (ftac real_mult_inv_left_ex 1);
 by (etac exE 1);
 by (rtac someI2 1);
 by (auto_tac (claset(),
 	      simpset() addsimps [real_mult_0,
     real_zero_not_eq_one]));
-qed "rinv_not_zero";
+qed "real_inverse_not_zero";
 
 Addsimps [real_mult_inv_left,real_mult_inv_right];
 
 Goal "[| x ~= 0; y ~= 0 |] ==> x * y ~= (0::real)";
 by (Step_tac 1);
-by (dres_inst_tac [("f","%z. rinv x*z")] arg_cong 1);
+by (dres_inst_tac [("f","%z. inverse x*z")] arg_cong 1);
 by (asm_full_simp_tac (simpset() addsimps [real_mult_assoc RS sym]) 1);
 qed "real_mult_not_zero";
 
 bind_thm ("real_mult_not_zeroE",real_mult_not_zero RS notE);
 
-Goal "x ~= 0 ==> rinv(rinv x) = x";
-by (res_inst_tac [("c1","rinv x")] (real_mult_right_cancel RS iffD1) 1);
-by (etac rinv_not_zero 1);
-by (auto_tac (claset() addDs [rinv_not_zero],simpset()));
-qed "real_rinv_rinv";
+Goal "x ~= 0 ==> inverse(inverse (x::real)) = x";
+by (res_inst_tac [("c1","inverse x")] (real_mult_right_cancel RS iffD1) 1);
+by (etac real_inverse_not_zero 1);
+by (auto_tac (claset() addDs [real_inverse_not_zero],simpset()));
+qed "real_inverse_inverse";
 
-Goalw [rinv_def] "rinv(1r) = 1r";
+Goalw [real_inverse_def] "inverse(1r) = 1r";
 by (cut_facts_tac [real_zero_not_eq_one RS 
                    not_sym RS real_mult_inv_left_ex] 1);
 by (auto_tac (claset(),
 	      simpset() addsimps [real_zero_not_eq_one RS not_sym]));
-qed "real_rinv_1";
-Addsimps [real_rinv_1];
+qed "real_inverse_1";
+Addsimps [real_inverse_1];
 
-Goal "x ~= 0 ==> rinv(-x) = -rinv(x)";
+Goal "x ~= 0 ==> inverse(-x) = -inverse(x::real)";
 by (res_inst_tac [("c1","-x")] (real_mult_right_cancel RS iffD1) 1);
 by (stac real_mult_inv_left 2);
 by Auto_tac;
-qed "real_minus_rinv";
+qed "real_minus_inverse";
 
-Goal "[| x ~= 0; y ~= 0 |] ==> rinv(x*y) = rinv(x)*rinv(y)";
+Goal "[| x ~= 0; y ~= 0 |] ==> inverse(x*y) = inverse(x)*inverse(y::real)";
 by (forw_inst_tac [("y","y")] real_mult_not_zero 1 THEN assume_tac 1);
 by (res_inst_tac [("c1","x")] (real_mult_left_cancel RS iffD1) 1);
 by (auto_tac (claset(),simpset() addsimps [real_mult_assoc RS sym]));
 by (res_inst_tac [("c1","y")] (real_mult_left_cancel RS iffD1) 1);
 by (auto_tac (claset(),simpset() addsimps [real_mult_left_commute]));
 by (asm_simp_tac (simpset() addsimps [real_mult_assoc RS sym]) 1);
-qed "real_rinv_distrib";
+qed "real_inverse_distrib";
 
 (*---------------------------------------------------------
      Theorems for ordering

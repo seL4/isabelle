@@ -15,7 +15,7 @@ typedef real = "UNIV//realrel"  (Equiv.quotient_def)
 
 
 instance
-   real  :: {ord, zero, plus, times, minus}
+   real  :: {ord, zero, plus, times, minus, inverse}
 
 consts 
 
@@ -24,26 +24,30 @@ consts
 defs
 
   real_zero_def  
-     "0 == Abs_real(realrel^^{(preal_of_prat(prat_of_pnat 1p),
+  "0 == Abs_real(realrel^^{(preal_of_prat(prat_of_pnat 1p),
                                 preal_of_prat(prat_of_pnat 1p))})"
   real_one_def   
-     "1r == Abs_real(realrel^^{(preal_of_prat(prat_of_pnat 1p) + 
+  "1r == Abs_real(realrel^^{(preal_of_prat(prat_of_pnat 1p) + 
             preal_of_prat(prat_of_pnat 1p),preal_of_prat(prat_of_pnat 1p))})"
 
   real_minus_def
-    "- R ==  Abs_real(UN (x,y):Rep_real(R). realrel^^{(y,x)})"
+  "- R ==  Abs_real(UN (x,y):Rep_real(R). realrel^^{(y,x)})"
 
-  real_diff_def "x - y == x + (- y :: real)"
+  real_diff_def
+  "R - (S::real) == R + - S"
 
+  real_inverse_def
+  "inverse (R::real) == (@S. R ~= 0 & S*R = 1r)"
+
+  real_divide_def
+  "R / (S::real) == R * inverse S"
+  
 constdefs
 
   real_of_preal :: preal => real            
   "real_of_preal m     ==
            Abs_real(realrel^^{(m+preal_of_prat(prat_of_pnat 1p),
                                preal_of_prat(prat_of_pnat 1p))})"
-
-  rinv       :: real => real
-  "rinv(R)   == (@S. R ~= 0 & S*R = 1r)"
 
   real_of_posnat :: nat => real             
   "real_of_posnat n == real_of_preal(preal_of_prat(prat_of_pnat(pnat_of_nat n)))"

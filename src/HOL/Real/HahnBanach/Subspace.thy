@@ -382,9 +382,9 @@ proof
             assume "a = (#0::real)" show ?thesis by (simp!)
           next
             assume "a \<noteq> (#0::real)" 
-            from h have "rinv a \<cdot> a \<cdot> x' \<in> H" 
+            from h have "inverse a \<cdot> a \<cdot> x' \<in> H" 
               by (rule subspace_mult_closed) (simp!)
-            also have "rinv a \<cdot> a \<cdot> x' = x'" by (simp!)
+            also have "inverse a \<cdot> a \<cdot> x' = x'" by (simp!)
             finally have "x' \<in> H" .
             thus ?thesis by contradiction
           qed

@@ -202,8 +202,8 @@ qed "reals_complete";
         Related: Archimedean property of reals
  ----------------------------------------------------------------*)
 
-Goal "#0 < x ==> EX n. rinv(real_of_posnat n) < x";
-by (stac real_of_posnat_rinv_Ex_iff 1);
+Goal "#0 < x ==> EX n. inverse (real_of_posnat n) < x";
+by (stac real_of_posnat_inverse_Ex_iff 1);
 by (EVERY1[rtac ccontr, Asm_full_simp_tac]);
 by (fold_tac [real_le_def]);
 by (subgoal_tac "isUb (UNIV::real set) \
@@ -233,9 +233,9 @@ by (res_inst_tac [("x","0")] exI 1);
 by (res_inst_tac [("x","0")] exI 2);
 by (auto_tac (claset() addEs [real_less_trans],
 	      simpset() addsimps [real_of_posnat_one,real_zero_less_one]));
-by (ftac ((rename_numerals real_rinv_gt_zero) RS reals_Archimedean) 1);
+by (ftac ((rename_numerals real_inverse_gt_zero) RS reals_Archimedean) 1);
 by (Step_tac 1 THEN res_inst_tac [("x","n")] exI 1);
-by (forw_inst_tac [("y","rinv x")]
+by (forw_inst_tac [("y","inverse x")]
     (rename_numerals real_mult_less_mono1) 1);
 by (auto_tac (claset(),simpset() addsimps [real_not_refl2 RS not_sym]));
 by (dres_inst_tac [("n1","n"),("y","#1")] 

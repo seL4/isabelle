@@ -95,18 +95,18 @@ proof -
   thus ?thesis by (simp only: real_mult_commute)
 qed
 
-lemma real_rinv_gt_zero1: "#0 < x ==> #0 < rinv x"
+lemma real_inverse_gt_zero1: "#0 < (x::real) ==> #0 < inverse x"
 proof - 
   assume "#0 < x"
   have "0 < x" by simp
-  hence "0 < rinv x" by (rule real_rinv_gt_zero)
+  hence "0 < inverse x" by (rule real_inverse_gt_zero)
   thus ?thesis by simp
 qed
 
-lemma real_mult_inv_right1: "x \<noteq> #0 ==> x * rinv(x) = #1"
+lemma real_mult_inv_right1: "(x::real) \<noteq> #0 ==> x * inverse x = #1"
   by simp
 
-lemma real_mult_inv_left1: "x \<noteq> #0 ==> rinv(x) * x = #1"
+lemma real_mult_inv_left1: "(x::real) \<noteq> #0 ==> inverse x * x = #1"
   by simp
 
 lemma real_le_mult_order1a: 
