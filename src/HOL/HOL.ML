@@ -77,7 +77,7 @@ section "True";
 qed_goalw "TrueI" HOL.thy [True_def] "True"
   (fn _ => [rtac refl 1]);
 
-qed_goal "eqTrueI " HOL.thy "P ==> P=True" 
+qed_goal "eqTrueI" HOL.thy "P ==> P=True" 
  (fn prems => [REPEAT(resolve_tac ([iffI,TrueI]@prems) 1)]);
 
 qed_goal "eqTrueE" HOL.thy "P=True ==> P" 
