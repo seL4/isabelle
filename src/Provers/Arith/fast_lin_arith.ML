@@ -301,7 +301,9 @@ fun mkthm sg asms just =
   let val {add_mono_thms, mult_mono_thms, inj_thms, lessD, simpset} = Data.get_sg sg;
       val atoms = foldl (fn (ats,(lhs,_,_,rhs,_,_)) =>
                             map fst lhs  union  (map fst rhs  union  ats))
-                        ([], mapfilter (LA_Data.decomp sg o concl_of) asms)
+                        ([], mapfilter (fn thm => if Thm.no_prems thm
+                                        then LA_Data.decomp sg (concl_of thm)
+                                        else None) asms)
 
       fun add2 thm1 thm2 =
         let val conj = thm1 RS (thm2 RS LA_Logic.conjI)
@@ -334,8 +336,7 @@ fun mkthm sg asms just =
         in if LA_Logic.is_False thm' then raise FalseE thm' else thm' end
 
       fun mk(Asm i) = trace_thm "Asm" (nth_elem(i,asms))
-        | mk(Nat(i)) = (trace_msg "Nat";
-			LA_Logic.mk_nat_thm sg (nth_elem(i,atoms)))
+        | mk(Nat i) = (trace_msg "Nat"; LA_Logic.mk_nat_thm sg (nth_elem(i,atoms)))
         | mk(LessD(j)) = trace_thm "L" (hd([mk j] RL lessD))
         | mk(NotLeD(j)) = trace_thm "NLe" (mk j RS LA_Logic.not_leD)
         | mk(NotLeDD(j)) = trace_thm "NLeD" (hd([mk j RS LA_Logic.not_leD] RL lessD))
@@ -412,6 +413,31 @@ applies the generated refutation thms (see function 'refute_tac').
 
 For variables n of type nat, a constraint 0 <= n is added.
 *)
+fun split_items(items) =
+  let fun elim_neq front _ [] = [rev front]
+        | elim_neq front n (None::ineqs) = elim_neq front (n+1) ineqs
+        | elim_neq front n (Some(ineq as (l,i,rel,r,j,d))::ineqs) =
+          if rel = "~=" then elim_neq front n (ineqs @ [Some(l,i,"<",r,j,d)]) @
+                             elim_neq front n (ineqs @ [Some(r,j,"<",l,i,d)])
+          else elim_neq ((ineq,n) :: front) (n+1) ineqs
+  in elim_neq [] 0 items end;
+
+fun mklineqss(pTs,items) =
+let
+  fun mklineqs(ineqs) =
+  let
+    fun add(ats,((lhs,_,_,rhs,_,_),_)) =
+             (map fst lhs) union ((map fst rhs) union ats)
+    val atoms = foldl add ([],ineqs)
+    val mkleq = mklineq atoms
+    val ixs = 0 upto (length(atoms)-1)
+    val iatoms = atoms ~~ ixs
+    val natlineqs = mapfilter (mknat pTs ixs) iatoms
+  in map mkleq ineqs @ natlineqs end
+
+in map mklineqs (split_items items) end;
+
+(*
 fun mklineqss(pTs,items) =
   let fun add(ats,None) = ats
         | add(ats,Some(lhs,_,_,rhs,_,_)) =
@@ -430,10 +456,12 @@ fun mklineqss(pTs,items) =
           else elim_neq (mkleq(ineq,n) :: front) (n+1) ineqs
 
   in elim_neq natlineqs 0 items end;
+*)
 
 fun elim_all (ineqs::ineqss) js =
-  (case elim ineqs of None => None
-   | Some(Lineq(_,_,_,j)) => elim_all ineqss (js@[j]))
+  (case elim ineqs of None => (trace_msg "No contradiction!"; None)
+   | Some(Lineq(_,_,_,j)) => (trace_msg "Contradiction!";
+                              elim_all ineqss (js@[j])))
   | elim_all [] js = Some js
 
 fun refute(pTsitems) = elim_all (mklineqss pTsitems) [];
@@ -468,8 +496,8 @@ fun lin_arith_tac i st = SUBGOAL (fn (A,_) =>
       val concl = Logic.strip_assums_concl A
   in trace_thm ("Trying to refute subgoal " ^ string_of_int i) st;
      case prove (Thm.sign_of_thm st) (pTs,Hs,concl) of
-       None => no_tac
-     | Some js => refute_tac(i,js)
+       None => (trace_msg "Refutation failed."; no_tac)
+     | Some js => (trace_msg "Refutation succeeded."; refute_tac(i,js))
   end) i st;
 
 fun cut_lin_arith_tac thms i = cut_facts_tac thms i THEN lin_arith_tac i;
