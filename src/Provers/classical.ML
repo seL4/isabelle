@@ -1056,8 +1056,8 @@ end;
 
 (* METHOD_CLASET' *)
 
-fun METHOD_CLASET' tac =
-  Method.METHOD (FIRSTGOAL o (fn facts => CLASET' (fn cs => tac cs facts)));
+fun METHOD_CLASET' tac ctxt =
+  Method.METHOD (FIRSTGOAL o tac (get_local_claset ctxt));
 
 
 val trace_rules = ref false;
@@ -1159,11 +1159,11 @@ val cla_method' = Method.bang_sectioned_args cla_modifiers o cla_meth';
 (** setup_methods **)
 
 val setup_methods = Method.add_methods
- [("default", Method.thms_args rule, "apply some rule"),
-  ("rule", Method.thms_args rule, "apply some rule"),
+ [("default", Method.thms_ctxt_args rule, "apply some rule"),
+  ("rule", Method.thms_ctxt_args rule, "apply some rule"),
   ("contradiction", Method.no_args contradiction, "proof by contradiction"),
-  ("intro", Method.thms_args intro, "repeatedly apply introduction rules"),
-  ("elim", Method.thms_args elim, "repeatedly apply elimination rules"),
+  ("intro", Method.thms_ctxt_args intro, "repeatedly apply introduction rules"),
+  ("elim", Method.thms_ctxt_args elim, "repeatedly apply elimination rules"),
   ("safe_tac", cla_method safe_tac, "safe_tac (improper!)"),
   ("safe_step_tac", cla_method' safe_step_tac, "safe_step_tac (improper!)"),
   ("step_tac", cla_method' step_tac, "step_tac (improper!)"),
