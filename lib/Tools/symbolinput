@@ -4,4 +4,7 @@
 #
 # DESCRIPTION: translate symbols into \<...> sequences
 
-exec perl -w $ISABELLE_HOME/lib/scripts/symbolinput.pl "$@"
+#set by configure
+AUTO_PERL=perl
+
+exec $AUTO_PERL -w $ISABELLE_HOME/lib/scripts/symbolinput.pl "$@"

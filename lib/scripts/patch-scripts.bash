@@ -38,7 +38,9 @@ PERL=$(findbin /usr/bin/perl)
 for FILE in $(find . -type f -print)
 do
   if [ -x "$FILE" ]; then
-    sed -e "s:^#!.*/bash:#!$BASH:" -e "s:^#!.*/perl:#!$PERL:" $FILE >$FILE~~
+    sed -e "s:^#!.*/bash:#!$BASH:" -e "s:^#!.*/perl:#!$PERL:" \
+      -e "s:^AUTO_BASH=.*/bash:AUTO_BASH=$BASH:" \
+      -e "s:^AUTO_PERL=.*/bash:AUTO_PERL=$PERL:" $FILE >$FILE~~
     if cmp -s $FILE $FILE~~; then
       rm $FILE~~
     else

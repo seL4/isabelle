@@ -61,8 +61,8 @@ BINDIR=""
 
 mkdir -p "$BINDIR" || fail "Bad directory: $BINDIR"
 
-BASH=$(type -path bash)
-[ -z "$BASH" ] && fail "Cannot find bash!"
+#set by configure
+AUTO_BASH=/bin/bash
 
 echo "using $DISTDIR"
 
@@ -71,7 +71,7 @@ do
   BIN="$BINDIR/$NAME"
   DIST="$DISTDIR/bin/$NAME"
   echo "installing $BIN"
-  echo "#!$BASH" >$BIN || fail "Cannot write file: $BIN"
+  echo "#!$AUTO_BASH" >$BIN || fail "Cannot write file: $BIN"
   echo >>$BIN
   echo "exec $DIST \"\$@\"" >>$BIN
   chmod +x $BIN

@@ -29,6 +29,9 @@ SPECS="$@"; shift $#
 
 ## main
 
+#set by configure
+AUTO_PERL=perl
+
 find $SPECS \( -name \*.ML -o -name \*.thy \) -print | \
-  xargs perl -w -e \
+  xargs $AUTO_PERL -w -e \
     'while(<ARGV>) { if (m/[\x80-\xff]/) { print "$ARGV: $_"; }}'

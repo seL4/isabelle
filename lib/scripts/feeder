@@ -79,4 +79,7 @@ shift $(($OPTIND - 1))
 
 ## main
 
-exec perl -w $DIR/feeder.pl "$HEAD" "$EMITPID" "$QUIT" "$SYMBOLS" "$TAIL"
+#set by configure
+AUTO_PERL=perl
+
+exec $AUTO_PERL -w $DIR/feeder.pl "$HEAD" "$EMITPID" "$QUIT" "$SYMBOLS" "$TAIL"
