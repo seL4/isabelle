@@ -38,7 +38,7 @@ commands.
 * inductive definitions now handle disjunctive premises correctly (HOL
 and ZF);
 
-* new toplevel commands 'Thm' and 'Thms' for retrieving theorems from
+* new toplevel commands 'thm' and 'thms' for retrieving theorems from
 the current theory context;
 
 * new toplevel commands `Goal' and `Goalw' that improve upon `goal'

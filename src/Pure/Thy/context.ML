@@ -9,8 +9,8 @@ signature BASIC_CONTEXT =
 sig
   val context: theory -> unit
   val the_context: unit -> theory
-  val Thm: xstring -> thm
-  val Thms: xstring -> thm list
+  val thm: xstring -> thm
+  val thms: xstring -> thm list
   val Goal: string -> thm list
   val Goalw: thm list -> string -> thm list
 end;
@@ -73,8 +73,8 @@ fun >> f = set_context (Some (f (the_context ())));
 
 (* retrieve thms *)
 
-fun Thm name = PureThy.get_thm (the_context ()) name;
-fun Thms name = PureThy.get_thms (the_context ()) name;
+fun thm name = PureThy.get_thm (the_context ()) name;
+fun thms name = PureThy.get_thms (the_context ()) name;
 
 
 (* shortcut goal commands *)
