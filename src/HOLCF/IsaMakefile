@@ -23,7 +23,7 @@ ONLYTHYS = Lift.thy
 FILES = ROOT.ML $(THYS) $(ONLYTHYS) $(THYS:.thy=.ML)
 
 $(OUT)/HOLCF: $(OUT)/HOL $(FILES)
-	@$(ISABELLE) -e "make_html := $(ISABELLE_HTML);" -qu -c $(OUT)/HOL HOLCF
+	@$(ISATOOL) usedir -b -c $(OUT)/HOL HOLCF
 	@chmod -w $@
 
 $(OUT)/HOL:
@@ -39,7 +39,7 @@ IMP_THYS = IMP/Denotational.thy
 IMP_FILES = IMP/ROOT.ML $(IMP_THYS) $(IMP_THYS:.thy=.ML)
 
 IMP:	$(OUT)/HOLCF $(IMP_FILES)
-	@$(ISATOOL) testdir $(OUT)/HOLCF IMP
+	@$(ISATOOL) usedir $(OUT)/HOLCF IMP
 
 ## Miscellaneous examples
 
@@ -51,7 +51,7 @@ EX_THYS = ex/Classlib.thy ex/Witness.thy\
 EX_FILES = ex/ROOT.ML ex/loeckx.ML $(EX_THYS) $(EX_THYS:.thy=.ML)
 
 EX:	ex/ROOT.ML $(EX_FILES)
-	@$(ISATOOL) testdir $(OUT)/HOLCF ex
+	@$(ISATOOL) usedir $(OUT)/HOLCF ex
 
 ## Full test
 

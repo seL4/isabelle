@@ -21,7 +21,7 @@ FILES = ROOT.ML thy_syntax.ML ../Pure/section_utils.ML simpdata.ML typechk.ML \
 	$(NAMES:%=%.thy) $(NAMES:%=%.ML)
 
 $(OUT)/ZF: $(OUT)/FOL $(FILES)
-	@$(ISABELLE) -e "make_html := $(ISABELLE_HTML);" -qu -c $(OUT)/FOL ZF
+	@$(ISATOOL) usedir -b -c $(OUT)/FOL ZF
 	@chmod -w $@
 
 $(OUT)/FOL:
@@ -37,7 +37,7 @@ IMP_NAMES = Com Denotation Equiv
 IMP_FILES = IMP/ROOT.ML $(IMP_NAMES:%=IMP/%.thy) $(IMP_NAMES:%=IMP/%.ML)
 
 IMP: $(OUT)/ZF $(IMP_FILES)
-	@$(ISATOOL) testdir $(OUT)/ZF IMP
+	@$(ISATOOL) usedir $(OUT)/ZF IMP
 
 
 ## Coinduction example
@@ -48,7 +48,7 @@ COIND_FILES = Coind/ROOT.ML Coind/Language.thy Coind/BCR.thy Coind/Dynamic.thy \
 	      $(COIND_NAMES:%=Coind/%.thy) $(COIND_NAMES:%=Coind/%.ML)
 
 Coind: $(OUT)/ZF $(COIND_FILES)
-	@$(ISATOOL) testdir $(OUT)/ZF Coind
+	@$(ISATOOL) usedir $(OUT)/ZF Coind
 
 
 ## AC examples
@@ -64,7 +64,7 @@ AC_FILES = AC/ROOT.ML AC/AC0_AC1.ML AC/AC10_AC15.ML AC/AC1_AC17.ML \
 	   $(AC_NAMES:%=AC/%.thy) $(AC_NAMES:%=AC/%.ML)
 
 AC: $(OUT)/ZF $(AC_FILES)
-	@$(ISATOOL) testdir $(OUT)/ZF AC
+	@$(ISATOOL) usedir $(OUT)/ZF AC
 
 
 ## Residuals example
@@ -75,7 +75,7 @@ RESID_NAMES = Confluence Redex SubUnion Conversion Reduction Substitution \
 RESID_FILES = Resid/ROOT.ML $(RESID_NAMES:%=Resid/%.thy) $(RESID_NAMES:%=Resid/%.ML)
 
 Resid: $(OUT)/ZF $(RESID_FILES)
-	@$(ISATOOL) testdir $(OUT)/ZF Resid
+	@$(ISATOOL) usedir $(OUT)/ZF Resid
 
 
 ## Miscellaneous examples
@@ -86,7 +86,7 @@ EX_NAMES = Primes Ramsey Limit Integ twos_compl Bin BT Term TF Ntree Brouwer \
 EX_FILES = ex/ROOT.ML ex/misc.ML $(EX_NAMES:%=ex/%.thy) $(EX_NAMES:%=ex/%.ML)
 
 ex: $(OUT)/ZF $(EX_FILES)
-	@$(ISATOOL) testdir $(OUT)/ZF ex
+	@$(ISATOOL) usedir $(OUT)/ZF ex
 
 
 ## Full test
