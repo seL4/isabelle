@@ -54,3 +54,9 @@ isabelle_hol.pdf:
 
 isabelle_zf.pdf:
 	test -r isabelle_zf.pdf || ln -s ../gfx/isabelle_zf.pdf .
+
+typedef.ps:
+	test -r typedef.ps || ln -s ../gfx/typedef.ps .
+
+typedef.pdf:
+	test -r typedef.pdf || ln -s ../gfx/typedef.pdf .
