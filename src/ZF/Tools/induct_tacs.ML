@@ -3,21 +3,20 @@
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1994  University of Cambridge
 
-Induction and exhaustion tactics for Isabelle/ZF
-
-The theory information needed to support them (and to support primrec)
-
-Also, a function to install other sets as if they were datatypes
+Induction and exhaustion tactics for Isabelle/ZF.  The theory
+information needed to support them (and to support primrec).  Also a
+function to install other sets as if they were datatypes.
 *)
-
 
 signature DATATYPE_TACTICS =
 sig
-  val induct_tac : string -> int -> tactic
-  val exhaust_tac : string -> int -> tactic
-  val rep_datatype_i : thm -> thm -> thm list -> thm list -> theory -> theory
+  val induct_tac: string -> int -> tactic
+  val exhaust_tac: string -> int -> tactic
+  val rep_datatype_i: thm -> thm -> thm list -> thm list -> theory -> theory
+  val rep_datatype: xstring * Args.src list -> xstring * Args.src list ->
+    (xstring * Args.src list) list -> (xstring * Args.src list) list -> theory -> theory
+  val setup: (theory -> theory) list
 end;
-
 
 
 (** Datatype information, e.g. associated theorems **)
@@ -181,15 +180,24 @@ fun rep_datatype_i elim induct case_eqns recursor_eqns thy =
           |> ConstructorsData.put
                (foldr Symtab.update (con_pairs, ConstructorsData.get thy))
           |> Theory.parent_path
-  end
-  handle exn => (writeln "Failure in rep_datatype"; raise exn);
+  end;
 
-end;
+fun rep_datatype raw_elim raw_induct raw_case_eqns raw_recursor_eqns thy =
+  let
+    val (thy', (((elims, inducts), case_eqns), recursor_eqns)) = thy
+      |> IsarThy.apply_theorems [raw_elim]
+      |>>> IsarThy.apply_theorems [raw_induct]
+      |>>> IsarThy.apply_theorems raw_case_eqns
+      |>>> IsarThy.apply_theorems raw_recursor_eqns;
+  in
+    thy' |> rep_datatype_i (PureThy.single_thm "elimination" elims)
+      (PureThy.single_thm "induction" inducts) case_eqns recursor_eqns
+  end;
 
-val exhaust_tac = DatatypeTactics.exhaust_tac;
-val induct_tac  = DatatypeTactics.induct_tac;
 
-val induct_tacs_setup =
+(* theory setup *)
+
+val setup =
  [DatatypesData.init,
   ConstructorsData.init,
   Method.add_methods
@@ -197,3 +205,30 @@ val induct_tacs_setup =
       "induct_tac emulation (dynamic instantiation!)"),
      ("case_tac", Method.goal_args Args.name case_tac,
       "case_tac emulation (dynamic instantiation!)")]];
+
+
+(* outer syntax *)
+
+local structure P = OuterParse and K = OuterSyntax.Keyword in
+
+val rep_datatype_decl =
+  (P.$$$ "elimination" |-- P.!!! P.xthm) --
+  (P.$$$ "induction" |-- P.!!! P.xthm) --
+  (P.$$$ "case_eqns" |-- P.!!! P.xthms1) --
+  Scan.optional (P.$$$ "recursor_eqns" |-- P.!!! P.xthms1) []
+  >> (fn (((x, y), z), w) => rep_datatype x y z w);
+
+val rep_datatypeP =
+  OuterSyntax.command "rep_datatype" "represent existing set inductively" K.thy_decl
+    (rep_datatype_decl >> Toplevel.theory);
+
+val _ = OuterSyntax.add_keywords ["elimination", "induction", "case_eqns", "recursor_eqns"];
+val _ = OuterSyntax.add_parsers [rep_datatypeP];
+
+end;
+
+end;
+
+
+val exhaust_tac = DatatypeTactics.exhaust_tac;
+val induct_tac  = DatatypeTactics.induct_tac;
