@@ -6,7 +6,7 @@
 Parallel reduction and a complete developments function "cd".
 *)
 
-ParRed = Lambda + Confluence +
+ParRed = Lambda + Commutation +
 
 consts  par_beta :: "(db * db) set"
 

@@ -1,10 +1,13 @@
-(*  Title: 	HOL/IMP/ROOT.ML
+(*  Title: 	HOL/Lambda/ROOT.ML
     ID:         $Id$
     Author: 	Tobias Nipkow
     Copyright   1995 TUM
 
 Confluence proof for untyped lambda-calculus using de Bruijn's notation.
-Extremely slick proof; follows the first two pages of
+Covers beta, eta, and beta+eta.
+
+Beta is proved confluent both in the traditional way and also following the
+first two pages of
 
 @article{Takahashi-IC-95,author="Masako Takahashi",
 title="Parallel Reductions in $\lambda$-Calculus",
@@ -16,4 +19,4 @@ HOL_build_completed;	(*Make examples fail if HOL did*)
 
 writeln"Root file for HOL/Lambda";
 loadpath := [".","Lambda"];
-time_use_thy "ParRed";
+time_use_thy "Eta";
