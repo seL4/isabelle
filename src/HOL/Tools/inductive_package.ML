@@ -185,7 +185,7 @@ fun unify_consts sign cs intr_ts =
 
 val Const _ $ (vimage_f $ _) $ _ = HOLogic.dest_Trueprop (concl_of vimageD);
 
-val vimage_name = Sign.intern_const (Theory.sign_of Vimage.thy) "op -``";
+val vimage_name = Sign.intern_const (Theory.sign_of Vimage.thy) "vimage";
 val mono_name = Sign.intern_const (Theory.sign_of Ord.thy) "mono";
 
 (* make injections needed in mutually recursive definitions *)

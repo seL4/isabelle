@@ -45,6 +45,8 @@ sometimes be needed;
 
 * HOL: the constant for "f``x" is now "image" rather than "op ``";
 
+* HOL: the constant for "f-``x" is now "vimage" rather than "op -``";
+
 * HOL: the disjoint sum is now "<+>" instead of "Plus"; the cartesian
 product is now "<*>" instead of "Times"; the lexicographic product is
 now "<*lex*>" instead of "**";
