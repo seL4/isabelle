@@ -1388,10 +1388,10 @@ for simplifications.
   transaction; this allows to inspect the result of advanced definitional
   packages, such as $\isarkeyword{datatype}$.
   
-\item [$\isarkeyword{thms_containing}~\vec t$] retrieves theorems from the
-  theory context containing all of the constants occurring in the terms $\vec
-  t$.  Note that giving the empty list yields \emph{all} theorems of the
-  current theory.
+\item [$\isarkeyword{thms_containing}~\vec t$] retrieves facts from the theory
+  or proof context containing all of the constants or variables occurring in
+  terms $\vec t$.  Note that giving the empty list yields \emph{all} currently
+  known facts.
   
 \item [$\isarkeyword{thm_deps}~\vec a$] visualizes dependencies of facts,
   using Isabelle's graph browser tool (see also \cite{isabelle-sys}).
