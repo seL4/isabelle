@@ -9,7 +9,7 @@ Arithmetic and boolean expressions
 ABexp = Main +
 
 datatype
-  'a aexp = If_then_else ('a bexp) ('a aexp) ('a aexp)
+  'a aexp = IF ('a bexp) ('a aexp) ('a aexp)
           | Sum ('a aexp) ('a aexp)
           | Diff ('a aexp) ('a aexp)
           | Var 'a
@@ -17,44 +17,44 @@ datatype
 and
   'a bexp = Less ('a aexp) ('a aexp)
           | And ('a bexp) ('a bexp)
-          | Or ('a bexp) ('a bexp)
+          | Neg ('a bexp)
 
 
 (** evaluation of arithmetic and boolean expressions **)
 
 consts
-  eval_aexp :: "['a => nat, 'a aexp] => nat"
-  eval_bexp :: "['a => nat, 'a bexp] => bool"
+  evala :: ('a => nat) => 'a aexp => nat
+  evalb :: ('a => nat) => 'a bexp => bool
 
 primrec
-  "eval_aexp env (If_then_else b a1 a2) =
-     (if eval_bexp env b then eval_aexp env a1 else eval_aexp env a2)"
-  "eval_aexp env (Sum a1 a2) = eval_aexp env a1 + eval_aexp env a2"
-  "eval_aexp env (Diff a1 a2) = eval_aexp env a1 - eval_aexp env a2"
-  "eval_aexp env (Var v) = env v"
-  "eval_aexp env (Num n) = n"
+  "evala env (IF b a1 a2) =
+     (if evalb env b then evala env a1 else evala env a2)"
+  "evala env (Sum a1 a2) = evala env a1 + evala env a2"
+  "evala env (Diff a1 a2) = evala env a1 - evala env a2"
+  "evala env (Var v) = env v"
+  "evala env (Num n) = n"
 
-  "eval_bexp env (Less a1 a2) = (eval_aexp env a1 < eval_aexp env a2)"
-  "eval_bexp env (And b1 b2) = (eval_bexp env b1 & eval_bexp env b2)"
-  "eval_bexp env (Or b1 b2) = (eval_bexp env b1 & eval_bexp env b2)"
+  "evalb env (Less a1 a2) = (evala env a1 < evala env a2)"
+  "evalb env (And b1 b2) = (evalb env b1 & evalb env b2)"
+  "evalb env (Neg b) = (~ evalb env b)"
 
 
 (** substitution on arithmetic and boolean expressions **)
 
 consts
-  subst_aexp :: "['a => 'b aexp, 'a aexp] => 'b aexp"
-  subst_bexp :: "['a => 'b aexp, 'a bexp] => 'b bexp"
+  substa :: ('a => 'b aexp) => 'a aexp => 'b aexp
+  substb :: ('a => 'b aexp) => 'a bexp => 'b bexp
 
 primrec
-  "subst_aexp f (If_then_else b a1 a2) =
-     If_then_else (subst_bexp f b) (subst_aexp f a1) (subst_aexp f a2)"
-  "subst_aexp f (Sum a1 a2) = Sum (subst_aexp f a1) (subst_aexp f a2)"
-  "subst_aexp f (Diff a1 a2) = Diff (subst_aexp f a1) (subst_aexp f a2)"
-  "subst_aexp f (Var v) = f v"
-  "subst_aexp f (Num n) = Num n"
+  "substa f (IF b a1 a2) =
+     IF (substb f b) (substa f a1) (substa f a2)"
+  "substa f (Sum a1 a2) = Sum (substa f a1) (substa f a2)"
+  "substa f (Diff a1 a2) = Diff (substa f a1) (substa f a2)"
+  "substa f (Var v) = f v"
+  "substa f (Num n) = Num n"
 
-  "subst_bexp f (Less a1 a2) = Less (subst_aexp f a1) (subst_aexp f a2)"
-  "subst_bexp f (And b1 b2) = And (subst_bexp f b1) (subst_bexp f b2)"
-  "subst_bexp f (Or b1 b2) = Or (subst_bexp f b1) (subst_bexp f b2)"
+  "substb f (Less a1 a2) = Less (substa f a1) (substa f a2)"
+  "substb f (And b1 b2) = And (substb f b1) (substb f b2)"
+  "substb f (Neg b) = Neg (substb f b)"
 
 end

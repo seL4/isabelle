@@ -6,11 +6,20 @@
 Arithmetic and boolean expressions
 *)
 
-(** substitution theorem for arithmetic and boolean expressions **)
+(** substitution theorems for arithmetic and boolean expressions **)
 
+(* One variable *)
 Goal
-  "eval_aexp env (subst_aexp (Var(v := a')) a) = eval_aexp (env(v := eval_aexp env a')) a &  \
- \ eval_bexp env (subst_bexp (Var(v := a')) b) = eval_bexp (env(v := eval_aexp env a')) b";
+  "evala env (substa (Var(v := a')) a) = evala (env(v := evala env a')) a &  \
+ \ evalb env (substb (Var(v := a')) b) = evalb (env(v := evala env a')) b";
 by (mutual_induct_tac ["a","b"] 1);
 by (ALLGOALS Asm_full_simp_tac);
-qed "subst_aexp_bexp";
+qed "subst1_aexp_bexp";
+
+(* All variables *)
+Goal
+  "evala env (substa s a) = evala (%x. evala env (s x)) a &  \
+ \ evalb env (substb s b) = evalb (%x. evala env (s x)) b";
+by (mutual_induct_tac ["a","b"] 1);
+by (Auto_tac);
+qed "subst_all_aexp_bexp";
