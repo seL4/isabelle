@@ -631,7 +631,7 @@ fun hounifiers (sg,env, tus : (term*term)list)
 	      [] => Some (foldr add_ffpair (flexflex, (env',[])), reseq)
 	    | dp::frigid' => 
 		if tdepth > !search_bound then
-		    (prs"***Unification bound exceeded\n"; Seq.pull reseq)
+		    (warning "Unification bound exceeded"; Seq.pull reseq)
 		else
 		(if tdepth > !trace_bound then
 		    print_dpairs "Enter MATCH" (env',flexrigid@flexflex)
