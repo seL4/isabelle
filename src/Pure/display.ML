@@ -10,6 +10,7 @@ signature DISPLAY =
 sig
   val show_hyps		: bool ref
   val show_tags		: bool ref
+  val pretty_thm_no_quote: thm -> Pretty.T
   val pretty_thm	: thm -> Pretty.T
   val pretty_thms	: thm list -> Pretty.T
   val string_of_thm	: thm -> string
@@ -46,13 +47,13 @@ val show_tags = ref false;	(*false: suppress tags*)
 fun pretty_tag (name, args) = Pretty.strs (name :: args);
 val pretty_tags = Pretty.list "[" "]" o map pretty_tag;
 
-fun pretty_thm th =
+fun pretty_thm_aux quote th =
   let
     val {sign, hyps, prop, ...} = rep_thm th;
     val xshyps = Thm.extra_shyps th;
     val (_, tags) = Thm.get_name_tags th;
 
-    val prt_term = Pretty.quote o Sign.pretty_term sign;
+    val prt_term = (if quote then Pretty.quote else I) o Sign.pretty_term sign;
 
     val hlen = length xshyps + length hyps;
     val hsymbs =
@@ -66,6 +67,9 @@ fun pretty_thm th =
       if null tags orelse not (! show_tags) then []
       else [Pretty.brk 1, pretty_tags tags];
   in Pretty.block (prt_term prop :: (hsymbs @ tsymbs)) end;
+
+val pretty_thm_no_quote = pretty_thm_aux false;
+val pretty_thm = pretty_thm_aux true;
 
 val string_of_thm = Pretty.string_of o pretty_thm;
 val pprint_thm = Pretty.pprint o pretty_thm;
