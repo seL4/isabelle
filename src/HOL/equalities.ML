@@ -83,7 +83,7 @@ by (Blast_tac 1);
 qed "mk_disjoint_insert";
 
 bind_thm ("insert_Collect", prove_goal thy 
-	"insert a (Collect P) = {u. u ~= a --> P u}" (K [Auto_tac]));
+	  "insert a (Collect P) = {u. u ~= a --> P u}" (K [Auto_tac]));
 
 Goal "A~={} ==> (UN x:A. insert a (B x)) = insert a (UN x:A. B x)";
 by (Blast_tac 1);
@@ -128,15 +128,14 @@ by (Blast_tac 1);
 qed "image_Collect";
 Addsimps [image_Collect];
 
-Goalw [image_def]
-"(%x. if P x then f x else g x) `` S                    \
-\ = (f `` (S Int {x. P x})) Un (g `` (S Int {x. ~(P x)}))";
+Goalw [image_def] "(%x. if P x then f x else g x) `` S   \
+\                = (f `` (S Int {x. P x})) Un (g `` (S Int {x. ~(P x)}))";
 by (Simp_tac 1);
 by (Blast_tac 1);
 qed "if_image_distrib";
 Addsimps[if_image_distrib];
 
-val prems= Goal "[|M = N; !!x. x:N ==> f x = g x|] ==> f``M = g``N";
+val prems = Goal "[|M = N; !!x. x:N ==> f x = g x|] ==> f``M = g``N";
 by (rtac set_ext 1);
 by (simp_tac (simpset() addsimps image_def::prems) 1);
 qed "image_cong";
@@ -149,11 +148,11 @@ by (Blast_tac 1);
 qed "Int_absorb";
 Addsimps[Int_absorb];
 
-Goal " A Int (A Int B) = A Int B";
+Goal "A Int (A Int B) = A Int B";
 by (Blast_tac 1);
 qed "Int_left_absorb";
 
-Goal "A Int B  =  B Int A";
+Goal "A Int B = B Int A";
 by (Blast_tac 1);
 qed "Int_commute";
 
@@ -161,7 +160,7 @@ Goal "A Int (B Int C) = B Int (A Int C)";
 by (Blast_tac 1);
 qed "Int_left_commute";
 
-Goal "(A Int B) Int C  =  A Int (B Int C)";
+Goal "(A Int B) Int C = A Int (B Int C)";
 by (Blast_tac 1);
 qed "Int_assoc";
 
@@ -204,11 +203,11 @@ Goal "A Int B = Inter{A,B}";
 by (Blast_tac 1);
 qed "Int_eq_Inter";
 
-Goal "A Int (B Un C)  =  (A Int B) Un (A Int C)";
+Goal "A Int (B Un C) = (A Int B) Un (A Int C)";
 by (Blast_tac 1);
 qed "Int_Un_distrib";
 
-Goal "(B Un C) Int A =  (B Int A) Un (C Int A)";
+Goal "(B Un C) Int A = (B Int A) Un (C Int A)";
 by (Blast_tac 1);
 qed "Int_Un_distrib2";
 
@@ -233,7 +232,7 @@ Goal " A Un (A Un B) = A Un B";
 by (Blast_tac 1);
 qed "Un_left_absorb";
 
-Goal "A Un B  =  B Un A";
+Goal "A Un B = B Un A";
 by (Blast_tac 1);
 qed "Un_commute";
 
@@ -241,7 +240,7 @@ Goal "A Un (B Un C) = B Un (A Un C)";
 by (Blast_tac 1);
 qed "Un_left_commute";
 
-Goal "(A Un B) Un C  =  A Un (B Un C)";
+Goal "(A Un B) Un C = A Un (B Un C)";
 by (Blast_tac 1);
 qed "Un_assoc";
 
@@ -291,26 +290,27 @@ qed "Un_insert_right";
 Addsimps[Un_insert_right];
 
 Goal "(insert a B) Int C = (if a:C then insert a (B Int C) \
-\                                      else        B Int C)";
+\                                  else        B Int C)";
 by (Simp_tac 1);
 by (Blast_tac 1);
 qed "Int_insert_left";
 
 Goal "A Int (insert a B) = (if a:A then insert a (A Int B) \
-\                                      else        A Int B)";
+\                                  else        A Int B)";
 by (Simp_tac 1);
 by (Blast_tac 1);
 qed "Int_insert_right";
 
-Goal "A Un (B Int C)  =  (A Un B) Int (A Un C)";
+Goal "A Un (B Int C) = (A Un B) Int (A Un C)";
 by (Blast_tac 1);
 qed "Un_Int_distrib";
 
-Goal "(B Int C) Un A =  (B Un A) Int (C Un A)";
+Goal "(B Int C) Un A = (B Un A) Int (C Un A)";
 by (Blast_tac 1);
 qed "Un_Int_distrib2";
 
-Goal "(A Int B) Un (B Int C) Un (C Int A) = (A Un B) Int (B Un C) Int (C Un A)";
+Goal "(A Int B) Un (B Int C) Un (C Int A) = \
+\     (A Un B) Int (B Un C) Int (C Un A)";
 by (Blast_tac 1);
 qed "Un_Int_crazy";
 
