@@ -7,6 +7,12 @@ New in Isabelle99-2 (February 2001)
 
 *** Overview of INCOMPATIBILITIES ***
 
+* HOL/Algebra: special summation operator SUM no longer exists, it has
+been replaced by setsum; infix 'assoc' now has priority 50 (like 'dvd');
+
+* HOL/Algebra: axiom 'one_not_zero' has been moved from axclass 'ring'
+to 'domain', this makes the theory consistent with mathematical literature;
+ 
 * HOL: inductive package no longer splits induction rule aggressively,
 but only as far as specified by the introductions given; the old
 format may recovered via ML function complete_split_rule or attribute
