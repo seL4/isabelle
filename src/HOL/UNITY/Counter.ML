@@ -61,9 +61,7 @@ qed "sumj_sum_eq";
 
 Goal "ALL i. i<I-->(sum I s = s (c i) +  sumj I i s)";
 by (induct_tac "I" 1);
-by Auto_tac;
-by (etac nat_neqE 1);
-by (ALLGOALS(asm_simp_tac (simpset() addsimps [sumj_sum_eq])));
+by (auto_tac (claset(), simpset() addsimps [linorder_neq_iff, sumj_sum_eq]));  
 qed_spec_mp "sum_sumj";
 
 (* Correctness proofs for Components *)

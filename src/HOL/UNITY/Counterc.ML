@@ -24,17 +24,14 @@ qed_spec_mp  "sum_sumj_eq1";
 
 Goal "i<I --> sum I s  = c s i + sumj I i s";
 by (induct_tac "I" 1);
-by (auto_tac (claset() addSEs [nat_neqE],
-              simpset() addsimps [sum_sumj_eq1]));
+by (auto_tac (claset(), simpset() addsimps [linorder_neq_iff, sum_sumj_eq1]));
 qed_spec_mp "sum_sumj_eq2";
 
-Goal 
-"(ALL i. i<I --> c s' i = c s i) --> (sum I s' = sum I s)";
+Goal "(ALL i. i<I --> c s' i = c s i) --> (sum I s' = sum I s)";
 by (induct_tac "I" 1 THEN Auto_tac);
 qed_spec_mp "sum_ext";
 
-Goal 
-"(ALL j. j<I & j~=i --> c s' j =  c s j) --> (sumj I i s' = sumj I i s)";
+Goal "(ALL j. j<I & j~=i --> c s' j =  c s j) --> (sumj I i s' = sumj I i s)";
 by (induct_tac "I" 1);
 by Safe_tac;
 by (auto_tac (claset() addSIs [sum_ext], simpset()));
@@ -52,7 +49,7 @@ qed "sum0";
 Goal "(Component i ok G) = \
 \     (G: preserves (%s. c s i) & Component i:Allowed G)";
 by (auto_tac (claset(), 
-  simpset() addsimps [ok_iff_Allowed, Component_def RS def_prg_Allowed]));  
+      simpset() addsimps [ok_iff_Allowed, Component_def RS def_prg_Allowed]));
 qed "Component_ok_iff";
 AddIffs [Component_ok_iff];
 AddIffs [OK_iff_ok];
@@ -63,9 +60,8 @@ Goal "Component i: stable {s. C s = (c s) i + k}";
 by (constrains_tac 1);
 qed "p2";
 
-Goal 
-"[| OK I Component; i:I |] ==> \
-\ Component i: stable {s. ALL j:I. j~=i --> c s j = c k j}";
+Goal "[| OK I Component; i:I |]  \
+\      ==> Component i: stable {s. ALL j:I. j~=i --> c s j = c k j}";
 by (full_simp_tac (simpset() addsimps [stable_def, constrains_def]) 1);
 by (Blast_tac 1);
 qed "p3";
@@ -79,26 +75,24 @@ by (blast_tac (claset() addIs [[p2, p3] MRS stable_Int]) 1);
 qed "p2_p3_lemma1";
 
 
-Goal 
-"(ALL k. F:stable ({s. C s = (c s) i + sumj I i k} Int \
-\                 {s. ALL j:{i. i<I}. j~=i --> c s j = c k j})) ==> \
-\ (F:stable {s. C s = c s i + sumj I i s})";
+Goal "(ALL k. F:stable ({s. C s = (c s) i + sumj I i k} Int \
+\                       {s. ALL j:{i. i<I}. j~=i --> c s j = c k j}))  \
+\     ==> (F:stable {s. C s = c s i + sumj I i s})";
 by (full_simp_tac (simpset() addsimps [constrains_def, stable_def]) 1);
 by (force_tac (claset() addSIs [sumj_ext], simpset()) 1);
 qed "p2_p3_lemma2";
 
 
-Goal 
-"[| OK {i. i<I} Component; i<I |] ==> \
-\ Component i: stable {s. C s = c s i + sumj I i s}";
+Goal "[| OK {i. i<I} Component; i<I |] \
+\     ==> Component i: stable {s. C s = c s i + sumj I i s}";
 by (blast_tac (claset() addIs [p2_p3_lemma1 RS p2_p3_lemma2]) 1);
 qed "p2_p3";
 
 
 (* Compositional correctness *)
 Goalw [invariant_def]
- "[| 0<I; OK {i. i<I} Component |] ==> \
-\     (JN i:{i. i<I}. (Component i)) : invariant {s. C s = sum I s}";
+     "[| 0<I; OK {i. i<I} Component |]  \
+\     ==> (JN i:{i. i<I}. (Component i)) : invariant {s. C s = sum I s}";
 by (simp_tac (simpset() addsimps [JN_stable, sum_sumj_eq2]) 1);
 by (auto_tac (claset() addSIs [sum0 RS mp, p2_p3], 
               simpset()));
