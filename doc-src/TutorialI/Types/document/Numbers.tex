@@ -95,24 +95,9 @@ these form add_ac; similarly there is mult_ac%
 %
 \begin{isamarkuptext}%
 \begin{isabelle}%
-{\isasymlbrakk}i\ {\isasymle}\ j{\isacharsemicolon}\ k\ {\isasymle}\ l{\isasymrbrakk}\ {\isasymLongrightarrow}\ i\ {\isacharasterisk}\ k\ {\isasymle}\ j\ {\isacharasterisk}\ l%
-\end{isabelle}
-\rulename{mult_le_mono}
-
-\begin{isabelle}%
-{\isasymlbrakk}i\ {\isacharless}\ j{\isacharsemicolon}\ {\isadigit{0}}\ {\isacharless}\ k{\isasymrbrakk}\ {\isasymLongrightarrow}\ i\ {\isacharasterisk}\ k\ {\isacharless}\ j\ {\isacharasterisk}\ k%
-\end{isabelle}
-\rulename{mult_less_mono1}
-
-\begin{isabelle}%
 m\ {\isasymle}\ n\ {\isasymLongrightarrow}\ m\ div\ k\ {\isasymle}\ n\ div\ k%
 \end{isabelle}
 \rulename{div_le_mono}
-
-\begin{isabelle}%
-{\isacharparenleft}m\ {\isacharplus}\ n{\isacharparenright}\ {\isacharasterisk}\ k\ {\isacharequal}\ m\ {\isacharasterisk}\ k\ {\isacharplus}\ n\ {\isacharasterisk}\ k%
-\end{isabelle}
-\rulename{add_mult_distrib}
 
 \begin{isabelle}%
 {\isacharparenleft}m\ {\isacharminus}\ n{\isacharparenright}\ {\isacharasterisk}\ k\ {\isacharequal}\ m\ {\isacharasterisk}\ k\ {\isacharminus}\ n\ {\isacharasterisk}\ k%
@@ -274,12 +259,7 @@ a\ {\isacharasterisk}\ b\ mod\ c\ {\isacharequal}\ a\ {\isacharasterisk}\ {\isac
 \begin{isabelle}%
 {\isadigit{0}}\ {\isacharless}\ c\ {\isasymLongrightarrow}\ a\ mod\ {\isacharparenleft}b\ {\isacharasterisk}\ c{\isacharparenright}\ {\isacharequal}\ b\ {\isacharasterisk}\ {\isacharparenleft}a\ div\ b\ mod\ c{\isacharparenright}\ {\isacharplus}\ a\ mod\ b%
 \end{isabelle}
-\rulename{zmod_zmult2_eq}
-
-\begin{isabelle}%
-{\isasymbar}a\ {\isacharasterisk}\ b{\isasymbar}\ {\isacharequal}\ {\isasymbar}a{\isasymbar}\ {\isacharasterisk}\ {\isasymbar}b{\isasymbar}%
-\end{isabelle}
-\rulename{abs_mult}%
+\rulename{zmod_zmult2_eq}%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{lemma}\ {\isachardoublequote}abs\ {\isacharparenleft}x{\isacharplus}y{\isacharparenright}\ {\isasymle}\ abs\ x\ {\isacharplus}\ abs\ {\isacharparenleft}y\ {\isacharcolon}{\isacharcolon}\ int{\isacharparenright}{\isachardoublequote}\isanewline
@@ -317,17 +297,12 @@ Induction rules for the Integers
 \isamarkuptrue%
 %
 \begin{isamarkuptext}%
-REALS
+FIELDS
 
 \begin{isabelle}%
 a\ {\isacharless}\ b\ {\isasymLongrightarrow}\ {\isasymexists}r{\isachardot}\ a\ {\isacharless}\ r\ {\isasymand}\ r\ {\isacharless}\ b%
 \end{isabelle}
 \rulename{dense}
-
-\begin{isabelle}%
-{\isasymbar}a\ {\isacharcircum}\ n{\isasymbar}\ {\isacharequal}\ {\isasymbar}a{\isasymbar}\ {\isacharcircum}\ n%
-\end{isabelle}
-\rulename{power_abs}
 
 \begin{isabelle}%
 a\ {\isacharasterisk}\ {\isacharparenleft}b\ {\isacharslash}\ c{\isacharparenright}\ {\isacharequal}\ a\ {\isacharasterisk}\ b\ {\isacharslash}\ c%
@@ -414,11 +389,82 @@ This last NOT a simprule
 \isamarkupfalse%
 \isacommand{apply}\ simp\ \isanewline
 \isamarkupfalse%
-\isacommand{oops}\isanewline
-\isanewline
-\isanewline
-\isanewline
-\isamarkupfalse%
+\isacommand{oops}\isamarkupfalse%
+%
+\begin{isamarkuptext}%
+Ring and Field
+
+Requires a field, or else an ordered ring
+
+\begin{isabelle}%
+{\isacharparenleft}a\ {\isacharasterisk}\ b\ {\isacharequal}\ {\isacharparenleft}{\isadigit{0}}{\isasymColon}{\isacharprime}a{\isacharparenright}{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}a\ {\isacharequal}\ {\isacharparenleft}{\isadigit{0}}{\isasymColon}{\isacharprime}a{\isacharparenright}\ {\isasymor}\ b\ {\isacharequal}\ {\isacharparenleft}{\isadigit{0}}{\isasymColon}{\isacharprime}a{\isacharparenright}{\isacharparenright}%
+\end{isabelle}
+\rulename{mult_eq_0_iff}
+
+\begin{isabelle}%
+{\isacharparenleft}a\ {\isacharasterisk}\ b\ {\isacharequal}\ {\isacharparenleft}{\isadigit{0}}{\isasymColon}{\isacharprime}a{\isacharparenright}{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}a\ {\isacharequal}\ {\isacharparenleft}{\isadigit{0}}{\isasymColon}{\isacharprime}a{\isacharparenright}\ {\isasymor}\ b\ {\isacharequal}\ {\isacharparenleft}{\isadigit{0}}{\isasymColon}{\isacharprime}a{\isacharparenright}{\isacharparenright}%
+\end{isabelle}
+\rulename{field_mult_eq_0_iff}
+
+\begin{isabelle}%
+{\isacharparenleft}a\ {\isacharasterisk}\ c\ {\isacharequal}\ b\ {\isacharasterisk}\ c{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}c\ {\isacharequal}\ {\isacharparenleft}{\isadigit{0}}{\isasymColon}{\isacharprime}a{\isacharparenright}\ {\isasymor}\ a\ {\isacharequal}\ b{\isacharparenright}%
+\end{isabelle}
+\rulename{mult_cancel_right}
+
+\begin{isabelle}%
+{\isacharparenleft}a\ {\isacharasterisk}\ c\ {\isacharequal}\ b\ {\isacharasterisk}\ c{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}c\ {\isacharequal}\ {\isacharparenleft}{\isadigit{0}}{\isasymColon}{\isacharprime}a{\isacharparenright}\ {\isasymor}\ a\ {\isacharequal}\ b{\isacharparenright}%
+\end{isabelle}
+\rulename{field_mult_cancel_right}%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{ML}{\isacharbraceleft}{\isacharasterisk}set\ show{\isacharunderscore}sorts{\isacharasterisk}{\isacharbraceright}\isamarkupfalse%
+%
+\begin{isamarkuptext}%
+effect of show sorts on the above
+
+\begin{isabelle}%
+{\isacharparenleft}{\isacharparenleft}a{\isasymColon}{\isacharprime}a{\isasymColon}field{\isacharparenright}\ {\isacharasterisk}\ {\isacharparenleft}c{\isasymColon}{\isacharprime}a{\isasymColon}field{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}b{\isasymColon}{\isacharprime}a{\isasymColon}field{\isacharparenright}\ {\isacharasterisk}\ c{\isacharparenright}\ {\isacharequal}\isanewline
+{\isacharparenleft}c\ {\isacharequal}\ {\isacharparenleft}{\isadigit{0}}{\isasymColon}{\isacharprime}a{\isasymColon}field{\isacharparenright}\ {\isasymor}\ a\ {\isacharequal}\ b{\isacharparenright}%
+\end{isabelle}
+\rulename{field_mult_cancel_right}%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{ML}{\isacharbraceleft}{\isacharasterisk}reset\ show{\isacharunderscore}sorts{\isacharasterisk}{\isacharbraceright}\isamarkupfalse%
+%
+\begin{isamarkuptext}%
+absolute value
+
+\begin{isabelle}%
+{\isasymbar}a\ {\isacharasterisk}\ b{\isasymbar}\ {\isacharequal}\ {\isasymbar}a{\isasymbar}\ {\isacharasterisk}\ {\isasymbar}b{\isasymbar}%
+\end{isabelle}
+\rulename{abs_mult}
+
+\begin{isabelle}%
+{\isacharparenleft}{\isasymbar}a{\isasymbar}\ {\isasymle}\ b{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}a\ {\isasymle}\ b\ {\isasymand}\ {\isacharminus}\ a\ {\isasymle}\ b{\isacharparenright}%
+\end{isabelle}
+\rulename{abs_le_iff}
+
+\begin{isabelle}%
+{\isasymbar}a\ {\isacharplus}\ b{\isasymbar}\ {\isasymle}\ {\isasymbar}a{\isasymbar}\ {\isacharplus}\ {\isasymbar}b{\isasymbar}%
+\end{isabelle}
+\rulename{abs_triangle_ineq}
+
+\begin{isabelle}%
+a\ {\isacharcircum}\ {\isacharparenleft}m\ {\isacharplus}\ n{\isacharparenright}\ {\isacharequal}\ a\ {\isacharcircum}\ m\ {\isacharasterisk}\ a\ {\isacharcircum}\ n%
+\end{isabelle}
+\rulename{power_add}
+
+\begin{isabelle}%
+a\ {\isacharcircum}\ {\isacharparenleft}m\ {\isacharasterisk}\ n{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}a\ {\isacharcircum}\ m{\isacharparenright}\ {\isacharcircum}\ n%
+\end{isabelle}
+\rulename{power_mult}
+
+\begin{isabelle}%
+{\isasymbar}a\ {\isacharcircum}\ n{\isasymbar}\ {\isacharequal}\ {\isasymbar}a{\isasymbar}\ {\isacharcircum}\ n%
+\end{isabelle}
+\rulename{power_abs}%
+\end{isamarkuptext}%
+\isamarkuptrue%
 \isacommand{end}\isanewline
 \isamarkupfalse%
 \end{isabellebody}%

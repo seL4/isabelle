@@ -10,16 +10,19 @@ numbers},
 zero  and successor, so it works well with inductive proofs and primitive
 recursive function definitions.  HOL also provides the type
 \isa{int} of \textbf{integers}, which lack induction but support true
-subtraction.  The integers are preferable to the natural numbers for reasoning about
-complicated arithmetic expressions, even for some expressions whose
-value is non-negative.  The logic HOL-Complex also has the types
-\isa{real} and \isa{complex}: the real and complex numbers.  Isabelle has no 
+subtraction.  With subtraction, arithmetic reasoning is easier, which makes
+the integers preferable to the natural numbers for
+complicated arithmetic expressions, even if they are non-negative.  The logic HOL-Complex also has the types
+\isa{rat}, \isa{real} and \isa{complex}: the rational, real and complex numbers.  Isabelle has no 
 subtyping,  so the numeric
 types are distinct and there are functions to convert between them.
-Fortunately most numeric operations are overloaded: the same symbol can be
+Most numeric operations are overloaded: the same symbol can be
 used at all numeric types. Table~\ref{tab:overloading} in the appendix
 shows the most important operations, together with the priorities of the
-infix symbols.
+infix symbols. Algebraic properties are organized using type classes
+around algebraic concepts such as rings and fields;
+a property such as the commutativity of addition is a single theorem 
+(\isa{add_commute}) that applies to all numeric types.
 
 \index{linear arithmetic}%
 Many theorems involving numeric types can be proved automatically by
@@ -29,8 +32,7 @@ and multiplication by constant factors; subterms involving other operators
 are regarded as variables.  The procedure can be slow, especially if the
 subgoal to be proved involves subtraction over type \isa{nat}, which 
 causes case splits.  On types \isa{nat} and \isa{int}, \methdx{arith}
-can deal with quantifiers (this is known as ``Presburger Arithmetic''),
-whereas on type \isa{real} it cannot.
+can deal with quantifiers---this is known as Presburger arithmetic---whereas on type \isa{real} it cannot.
 
 The simplifier reduces arithmetic expressions in other
 ways, such as dividing through by common factors.  For problems that lie
@@ -46,16 +48,13 @@ is available.
 \index{numeric literals|(}%
 The constants \cdx{0} and \cdx{1} are overloaded.  They denote zero and one,
 respectively, for all numeric types.  Other values are expressed by numeric
-literals, which consist of one or more decimal digits optionally preceeded by
-a minus sign (\isa{-}).  Examples are \isa{2}, \isa{-3} and
-\isa{441223334678}.  Literals are available for the types of natural numbers,
-integers and reals; they denote integer values of arbitrary size.
+literals, which consist of one or more decimal digits optionally preceeded by a minus sign (\isa{-}).  Examples are \isa{2}, \isa{-3} and\isa{441223334678}.  Literals are available for the types of naturalnumbers, integers, rationals, reals, etc.; they denote integer values ofarbitrary size.
 
 Literals look like constants, but they abbreviate 
 terms representing the number in a two's complement binary notation. 
 Isabelle performs arithmetic on literals by rewriting rather 
 than using the hardware arithmetic. In most cases arithmetic 
-is fast enough, even for large numbers. The arithmetic operations 
+is fast enough, even for numbers in the millions. The arithmetic operations 
 provided for literals include addition, subtraction, multiplication, 
 integer division and remainder.  Fractions of literals (expressed using
 division) are reduced to lowest terms.
@@ -98,14 +97,14 @@ You should use a conditional expression instead:
 \end{warn}
 
 
-
 \subsection{The Type of Natural Numbers, {\tt\slshape nat}}
 
 \index{natural numbers|(}\index{*nat (type)|(}%
 This type requires no introduction: we have been using it from the
 beginning.  Hundreds of theorems about the natural numbers are
-proved in the theories \isa{Nat}, \isa{NatArith} and \isa{Divides}.  Only
-in exceptional circumstances should you resort to induction.
+proved in the theories \isa{Nat}, \isa{NatArith} and \isa{Divides}.  
+Basic properties of addition and multiplication are available through the
+axiomatic type class for semirings (\S\ref{sec:numeric-axclasses}).
 
 \subsubsection{Literals}
 \index{numeric literals!for type \protect\isa{nat}}%
@@ -134,30 +133,6 @@ It is less easy to transform \isa{100} into \isa{Suc\ 99} (for example), and
 the simplifier will normally reverse this transformation.  Novices should
 express natural numbers using \isa{0} and \isa{Suc} only.
 
-\subsubsection{Typical lemmas}
-Inequalities involving addition and subtraction alone can be proved
-automatically.  Lemmas such as these can be used to prove inequalities
-involving multiplication and division:
-\begin{isabelle}
-\isasymlbrakk i\ \isasymle \ j;\ k\ \isasymle \ l\isasymrbrakk \ \isasymLongrightarrow \ i\ *\ k\ \isasymle \ j\ *\ l%
-\rulename{mult_le_mono}\isanewline
-\isasymlbrakk i\ <\ j;\ 0\ <\ k\isasymrbrakk \ \isasymLongrightarrow \ i\
-*\ k\ <\ j\ *\ k%
-\rulename{mult_less_mono1}\isanewline
-m\ \isasymle \ n\ \isasymLongrightarrow \ m\ div\ k\ \isasymle \ n\ div\ k%
-\rulename{div_le_mono}
-\end{isabelle}
-%
-Various distributive laws concerning multiplication are available:
-\begin{isabelle}
-(m\ +\ n)\ *\ k\ =\ m\ *\ k\ +\ n\ *\ k%
-\rulenamedx{add_mult_distrib}\isanewline
-(m\ -\ n)\ *\ k\ =\ m\ *\ k\ -\ n\ *\ k%
-\rulenamedx{diff_mult_distrib}\isanewline
-(m\ mod\ n)\ *\ k\ =\ (m\ *\ k)\ mod\ (n\ *\ k)
-\rulenamedx{mod_mult_distrib}
-\end{isabelle}
-
 \subsubsection{Division}
 \index{division!for type \protect\isa{nat}}%
 The infix operators \isa{div} and \isa{mod} are overloaded.
@@ -182,7 +157,11 @@ a\ div\ (b*c)\ =\ a\ div\ b\ div\ c%
 a\ mod\ (b*c)\ =\ b * (a\ div\ b\ mod\ c)\ +\ a\ mod\ b%
 \rulename{mod_mult2_eq}\isanewline
 0\ <\ c\ \isasymLongrightarrow \ (c\ *\ a)\ div\ (c\ *\ b)\ =\ a\ div\ b%
-\rulename{div_mult_mult1}
+\rulename{div_mult_mult1}\isanewline
+(m\ mod\ n)\ *\ k\ =\ (m\ *\ k)\ mod\ (n\ *\ k)
+\rulenamedx{mod_mult_distrib}\isanewline
+m\ \isasymle \ n\ \isasymLongrightarrow \ m\ div\ k\ \isasymle \ n\ div\ k%
+\rulename{div_le_mono}
 \end{isabelle}
 
 Surprisingly few of these results depend upon the
@@ -196,8 +175,7 @@ a\ div\ 0\ =\ 0
 a\ mod\ 0\ =\ a%
 \rulename{DIVISION_BY_ZERO_MOD}
 \end{isabelle}
-As a concession to convention, these equations are not installed as default
-simplification rules.  In \isa{div_mult_mult1} above, one of
+In \isa{div_mult_mult1} above, one of
 the two divisors (namely~\isa{c}) must still be nonzero.
 
 The \textbf{divides} relation\index{divides relation}
@@ -217,19 +195,26 @@ relation.  Here are some of the facts proved about it:
 \rulenamedx{dvd_add}
 \end{isabelle}
 
-\subsubsection{Simplifier Tricks}
-The rule \isa{diff_mult_distrib} shown above is one of the few facts
+\subsubsection{Subtraction}
+
+There are no negative natural numbers, so \isa{m\ -\ n} equals zero unless 
+\isa{m} exceeds~\isa{n}. The following is one of the few facts
 about \isa{m\ -\ n} that is not subject to
-the condition \isa{n\ \isasymle \  m}.  Natural number subtraction has few
+the condition \isa{n\ \isasymle \  m}. 
+\begin{isabelle}
+(m\ -\ n)\ *\ k\ =\ m\ *\ k\ -\ n\ *\ k%
+\rulenamedx{diff_mult_distrib}
+\end{isabelle}
+Natural number subtraction has few
 nice properties; often you should remove it by simplifying with this split
-rule:
+rule.
 \begin{isabelle}
 P(a-b)\ =\ ((a<b\ \isasymlongrightarrow \ P\
 0)\ \isasymand \ (\isasymforall d.\ a\ =\ b+d\ \isasymlongrightarrow \ P\
 d))
 \rulename{nat_diff_split}
 \end{isabelle}
-For example, splitting helps to prove the following fact:
+For example, splitting helps to prove the following fact.
 \begin{isabelle}
 \isacommand{lemma}\ "(n\ -\ 2)\ *\ (n\ +\ 2)\ =\ n\ *\ n\ -\ (4::nat)"\isanewline
 \isacommand{apply}\ (simp\ split:\ nat_diff_split,\ clarify)\isanewline
@@ -241,82 +226,24 @@ if we explicitly split \isa{n<2} as \isa{n=0} or \isa{n=1}:
 \begin{isabelle}
 \isacommand{apply}\ (subgoal_tac\ "n=0\ |\ n=1",\ force,\ arith)\isanewline
 \isacommand{done}
-\end{isabelle}
-
-Suppose that two expressions are equal, differing only in 
-associativity and commutativity of addition.  Simplifying with the
-following equations sorts the terms and groups them to the right, making
-the two expressions identical:
-\begin{isabelle}
-m\ +\ n\ +\ k\ =\ m\ +\ (n\ +\ k)
-\rulenamedx{add_assoc}\isanewline
-m\ +\ n\ =\ n\ +\ m%
-\rulenamedx{add_commute}\isanewline
-x\ +\ (y\ +\ z)\ =\ y\ +\ (x\
-+\ z)
-\rulename{add_left_commute}
-\end{isabelle}
-The name \isa{add_ac}\index{*add_ac (theorems)} 
-refers to the list of all three theorems; similarly
-there is \isa{mult_ac}.\index{*mult_ac (theorems)} 
-Here is an example of the sorting effect.  Start
-with this goal:
-\begin{isabelle}
-\ 1.\ Suc\ (i\ +\ j\ *\ l\ *\ k\ +\ m\ *\ n)\ =\
-f\ (n\ *\ m\ +\ i\ +\ k\ *\ j\ *\ l)
-\end{isabelle}
-%
-Simplify using  \isa{add_ac} and \isa{mult_ac}:
-\begin{isabelle}
-\isacommand{apply}\ (simp\ add:\ add_ac\ mult_ac)
-\end{isabelle}
-%
-Here is the resulting subgoal:
-\begin{isabelle}
-\ 1.\ Suc\ (i\ +\ (m\ *\ n\ +\ j\ *\ (k\ *\ l)))\
-=\ f\ (i\ +\ (m\ *\ n\ +\ j\ *\ (k\ *\ l)))%
-\end{isabelle}%
+\end{isabelle}%%%%%%
 \index{natural numbers|)}\index{*nat (type)|)}
-
 
 
 \subsection{The Type of Integers, {\tt\slshape int}}
 
 \index{integers|(}\index{*int (type)|(}%
-Reasoning methods resemble those for the natural numbers, but induction and
-the constant \isa{Suc} are not available.  HOL provides many lemmas
-for proving inequalities involving integer multiplication and division,
-similar to those shown above for type~\isa{nat}.  
+Reasoning methods for the integers resemble those for the natural numbers, 
+but induction andthe constant \isa{Suc} are not available.  HOL provides many lemmas forproving inequalities involving integer multiplication and division, similarto those shown above for type~\isa{nat}. The laws of addition, subtractionand multiplication are available through the axiomatic type class for rings(\S\ref{sec:numeric-axclasses}).
 
-The \rmindex{absolute value} function \cdx{abs} is overloaded for the numeric types.
-It is defined for the integers; we have for example the obvious law
-\begin{isabelle}
-\isasymbar x\ *\ y\isasymbar \ =\ \isasymbar x\isasymbar \ *\ \isasymbar y\isasymbar 
-\rulename{abs_mult}
-\end{isabelle}
-
-\begin{warn}
-The absolute value bars shown above cannot be typed on a keyboard.  They
-can be entered using the X-symbol package.  In \textsc{ascii}, type \isa{abs x} to
-get \isa{\isasymbar x\isasymbar}.
-\end{warn}
-
+The \rmindex{absolute value} function \cdx{abs} is overloaded, and is 
+defined for all types that involve negative numbers, including the integers.
 The \isa{arith} method can prove facts about \isa{abs} automatically, 
 though as it does so by case analysis, the cost can be exponential.
 \begin{isabelle}
 \isacommand{lemma}\ "abs\ (x+y)\ \isasymle \ abs\ x\ +\ abs\ (y\ ::\ int)"\isanewline
 \isacommand{by}\ arith
 \end{isabelle}
-
-Concerning simplifier tricks, we have no need to eliminate subtraction: it
-is well-behaved.  As with the natural numbers, the simplifier can sort the
-operands of sums and products.  The name \isa{zadd_ac}\index{*zadd_ac (theorems)}
-refers to the
-associativity and commutativity theorems for integer addition, while
-\isa{zmult_ac}\index{*zmult_ac (theorems)}
-has the analogous theorems for multiplication.  The
-prefix~\isa{z} in many theorem names recalls the use of $\mathbb{Z}$ to
-denote the set of integers.
 
 For division and remainder,\index{division!by negative numbers}
 the treatment of negative divisors follows
@@ -363,7 +290,9 @@ The last two differ from their natural number analogues by requiring
 \isa{c} to be zero.  However, \isa{c} cannot be negative: a counterexample
 is
 $\isa{a} = 7$, $\isa{b} = 2$ and $\isa{c} = -3$, when the left-hand side of
-\isa{zdiv_zmult2_eq} is $-2$ while the right-hand side is~$-1$.%
+\isa{zdiv_zmult2_eq} is $-2$ while the right-hand side is~$-1$.
+The prefix~\isa{z} in many theorem names recalls the use of $\mathbb{Z}$ to
+denote the set of integers.%
 \index{integers|)}\index{*int (type)|)}
 
 Induction is less important for integers than it is for the natural numbers, but it can be valuable if the range of integers has a lower or upper bound.  There are four rules for integer induction, corresponding to the possible relations of the bound ($\geq$, $>$, $\leq$ and $<$):
@@ -379,26 +308,146 @@ Induction is less important for integers than it is for the natural numbers, but
 \end{isabelle}
 
 
-\subsection{The Type of Real Numbers, {\tt\slshape real}}
+\subsection{The Types of Rational, Real and Complex Numbers}
 
+\index{rational numbers|(}\index{*rat (type)|(}%
 \index{real numbers|(}\index{*real (type)|(}%
-The real numbers enjoy two significant properties that the integers lack. 
-They are
-\textbf{dense}: between every two distinct real numbers there lies another.
-This property follows from the division laws, since if $x<y$ then between
-them lies $(x+y)/2$.  The second property is that they are
-\textbf{complete}: every set of reals that is bounded above has a least
-upper bound.  Completeness distinguishes the reals from the rationals, for
-which the set $\{x\mid x^2<2\}$ has no least upper bound.  (It could only be
-$\surd2$, which is irrational.)
-The formalization of completeness is complicated; rather than
-reproducing it here, we refer you to the theory \texttt{RComplete} in
-directory \texttt{Real}.
-Density, however, is trivial to express:
+\index{complex numbers|(}\index{*complex (type)|(}%
+These types provide true division, the overloaded operator \isa{/}, 
+which differs from the operator \isa{div} of the 
+natural numbers and integers. The rationals and reals are 
+\textbf{dense}: between every two distinct numbers lies another.
+This property follows from the division laws, since if $x\not=y$ then $(x+y)/2$ lies between them:
 \begin{isabelle}
-x\ <\ y\ \isasymLongrightarrow \ \isasymexists r.\ x\ <\ r\ \isasymand \ r\ <\ y%
+a\ <\ b\ \isasymLongrightarrow \ \isasymexists r.\ a\ <\ r\ \isasymand \ r\ <\ b%
 \rulename{dense}
 \end{isabelle}
+
+The real numbers are, moreover, \textbf{complete}: every set of reals thatis bounded above has a least upper bound.  Completeness distinguishes thereals from the rationals, for which the set $\{x\mid x^2<2\}$ has no leastupper bound.  (It could only be $\surd2$, which is irrational. Theformalization of completeness, which is complicated, 
+can be found in theory \texttt{RComplete} of directory\texttt{Real}.
+
+Numeric literals\index{numeric literals!for type \protect\isa{real}}
+for type \isa{real} have the same syntax as those for type
+\isa{int} and only express integral values.  Fractions expressed
+using the division operator are automatically simplified to lowest terms:
+\begin{isabelle}
+\ 1.\ P\ ((3\ /\ 4)\ *\ (8\ /\ 15))\isanewline
+\isacommand{apply} simp\isanewline
+\ 1.\ P\ (2\ /\ 5)
+\end{isabelle}
+Exponentiation can express floating-point values such as
+\isa{2 * 10\isacharcircum6}, but at present no special simplification
+is performed.
+
+\begin{warn}
+Type \isa{real} is only available in the logic HOL-Complex, which
+is  HOL extended with a definitional development of the real and complex
+numbers.  Base your theory upon theory
+\thydx{Complex_Main}, not the usual \isa{Main}.%
+\index{real numbers|)}\index{*real (type)|)}
+Launch Isabelle using the command 
+\begin{verbatim}
+Isabelle -l HOL-Complex
+\end{verbatim}
+\end{warn}
+
+Also available in HOL-Complex is the
+theory \isa{Hyperreal}, which define the type \tydx{hypreal} of 
+\rmindex{non-standard reals}.  These
+\textbf{hyperreals} include infinitesimals, which represent infinitely
+small and infinitely large quantities; they facilitate proofs
+about limits, differentiation and integration~\cite{fleuriot-jcm}.  The
+development defines an infinitely large number, \isa{omega} and an
+infinitely small positive number, \isa{epsilon}.  The 
+relation $x\approx y$ means ``$x$ is infinitely close to~$y$.''
+Theory \isa{Hyperreal} also defines transcendental functions such as sine,
+cosine, exponential and logarithm --- even the versions for type
+\isa{real}, because they are defined using nonstandard limits.%
+\index{rational numbers|)}\index{*rat (type)|)}%
+\index{real numbers|)}\index{*real (type)|)}%
+\index{complex numbers|)}\index{*complex (type)|)}
+
+
+\subsection{The Numeric Type Classes}\label{sec:numeric-axclasses}
+
+Isabelle/HOL organises its numeric theories using axiomatic type classes.
+Hundreds of basic properties are proved in the theory \isa{Ring_and_Field}.
+These lemmas are available (as simprules if they were declared as such)
+for all numeric types satisfying the necessary axioms. The theory defines
+the following type classes:
+\begin{itemize}
+\item 
+\tcdx{semiring} and \tcdx{ordered_semiring}: a \emph{semiring}provides the operators \isa{+} and~\isa{*}, which are commutative andassociative, with the usual distributive law and with \isa{0} and~\isa{1}as their respective identities. An \emph{ordered semiring} is also linearlyordered, with addition and multiplication respecting the ordering. Type \isa{nat} is an ordered semiring.
+\item 
+\tcdx{ring} and \tcdx{ordered_ring}: a \emph{ring} extends a semiringwith unary minus (the additive inverse) and subtraction (bothdenoted~\isa{-}). An \emph{ordered ring} includes the absolute valuefunction, \cdx{abs}. Type \isa{int} is an ordered ring.
+\item 
+\tcdx{field} and \tcdx{ordered_field}: a field extends a ring with themultiplicative inverse (called simply \cdx{inverse} and division~(\isa{/}).An ordered field is based on an ordered ring. Type \isa{complex} is a field, while type \isa{real} is an ordered field.
+\item 
+\tcdx{division_by_zero} includes all types where \isa{inverse 0 = 0}
+and \isa{a / 0 = 0}. These include all of Isabelle's standard numeric types.
+However, the basic properties of fields are derived without assuming
+division by zero.\end{itemize}
+
+Theory \thydx{Ring_and_Field} proves over 250 lemmas, each of whichholds for all types in the corresponding type class. In mostcases, it is obvious whether a property is valid for a particular type. Allabstract properties involving subtraction require a ring, and therefore donot hold for type \isa{nat}, although we have theorems such as\isa{diff_mult_distrib} proved specifically about subtraction ontype~\isa{nat}. All abstract properties involving division require a field.Obviously, all properties involving orderings required an orderedstructure.
+
+The following two theorems are less obvious. Although they
+mention no ordering, they require an ordered ring. However, if we have a 
+field, then an ordering is no longer required.
+\begin{isabelle}
+(a\ *\ b\ =\ (0::'a))\ =\ (a\ =\ (0::'a)\ \isasymor \ b\ =\ (0::'a))
+\rulename{mult_eq_0_iff}\isanewline
+(a\ *\ c\ =\ b\ *\ c)\ =\ (c\ =\ (0::'a)\ \isasymor \ a\ =\ b)
+\rulename{mult_cancel_right}
+\end{isabelle}
+Theorems \isa{field_mult_eq_0_iff} and \isa{field_mult_cancel_right}
+express the same properties, only for fields. When working with such
+theorems, setting the \texttt{show_sorts}\index{*show_sorts (flag)}
+flag will display the type classes of all type variables. Here is how the 
+theorem \isa{field_mult_cancel_right} appears with the flag set.
+\begin{isabelle}
+((a::'a::field)\ *\ (c::'a::field)\ =\ (b::'a::field)\ *\ c)\ =\isanewline
+(c\ =\ (0::'a::field)\ \isasymor \ a\ =\ b)
+\end{isabelle}
+
+
+\subsubsection{Simplifying with the AC-Laws}
+Suppose that two expressions are equal, differing only in 
+associativity and commutativity of addition.  Simplifying with the
+following equations sorts the terms and groups them to the right, making
+the two expressions identical.
+\begin{isabelle}
+a\ +\ b\ +\ c\ =\ a\ +\ (b\ +\ c)
+\rulenamedx{add_assoc}\isanewline
+a\ +\ b\ =\ b\ +\ a%
+\rulenamedx{add_commute}\isanewline
+a\ +\ (b\ +\ c)\ =\ b\ +\ (a\ +\ c)
+\rulename{add_left_commute}
+\end{isabelle}
+The name \isa{add_ac}\index{*add_ac (theorems)} 
+refers to the list of all three theorems; similarly
+there is \isa{mult_ac}.\index{*mult_ac (theorems)} 
+They are all proved for semirings and therefore hold for all numeric types.
+
+Here is an example of the sorting effect.  Start
+with this goal, which involves type \isa{nat}.
+\begin{isabelle}
+\ 1.\ Suc\ (i\ +\ j\ *\ l\ *\ k\ +\ m\ *\ n)\ =\
+f\ (n\ *\ m\ +\ i\ +\ k\ *\ j\ *\ l)
+\end{isabelle}
+%
+Simplify using  \isa{add_ac} and \isa{mult_ac}.
+\begin{isabelle}
+\isacommand{apply}\ (simp\ add:\ add_ac\ mult_ac)
+\end{isabelle}
+%
+Here is the resulting subgoal.
+\begin{isabelle}
+\ 1.\ Suc\ (i\ +\ (m\ *\ n\ +\ j\ *\ (k\ *\ l)))\
+=\ f\ (i\ +\ (m\ *\ n\ +\ j\ *\ (k\ *\ l)))%
+\end{isabelle}
+
+
+\subsubsection{Division Laws for Fields}
 
 Here is a selection of rules about the division operator.  The following
 are installed as default simplification rules in order to express
@@ -430,56 +479,41 @@ simplification rule.
 \rulename{add_divide_distrib}
 \end{isabelle}
 
-As with the other numeric types, the simplifier can sort the operands of
-addition and multiplication.  The name \isa{real_add_ac} refers to the
-associativity and commutativity theorems for addition, while similarly
-\isa{real_mult_ac} contains those properties for multiplication. 
 
-The absolute value function \isa{abs} is
-defined for the reals, along with many theorems such as this one about
-exponentiation:
+\subsubsection{Absolute Value}
+
+The \rmindex{absolute value} function \cdx{abs} is available for all 
+ordered rings, including types \isa{int}, \isa{rat} and \isa{real}.
+It satisfies many properties,
+such as the following:
 \begin{isabelle}
-\isasymbar a\ \isacharcircum \ n\isasymbar\ =\ 
-\isasymbar a\isasymbar \ \isacharcircum \ n
-\rulename{power_abs}
+\isasymbar x\ *\ y\isasymbar \ =\ \isasymbar x\isasymbar \ *\ \isasymbar y\isasymbar 
+\rulename{abs_mult}\isanewline
+(\isasymbar a\isasymbar \ \isasymle \ b)\ =\ (a\ \isasymle \ b\ \isasymand \ -\ a\ \isasymle \ b)
+\rulename{abs_le_iff}\isanewline
+\isasymbar a\ +\ b\isasymbar \ \isasymle \ \isasymbar a\isasymbar \ +\ \isasymbar b\isasymbar 
+\rulename{abs_triangle_ineq}
 \end{isabelle}
-
-Numeric literals\index{numeric literals!for type \protect\isa{real}}
-for type \isa{real} have the same syntax as those for type
-\isa{int} and only express integral values.  Fractions expressed
-using the division operator are automatically simplified to lowest terms:
-\begin{isabelle}
-\ 1.\ P\ ((3\ /\ 4)\ *\ (8\ /\ 15))\isanewline
-\isacommand{apply} simp\isanewline
-\ 1.\ P\ (2\ /\ 5)
-\end{isabelle}
-Exponentiation can express floating-point values such as
-\isa{2 * 10\isacharcircum6}, but at present no special simplification
-is performed.
-
 
 \begin{warn}
-Type \isa{real} is only available in the logic HOL-Complex, which
-is  HOL extended with a definitional development of the real and complex
-numbers.  Base your theory upon theory
-\thydx{Complex_Main}, not the usual \isa{Main}.%
-\index{real numbers|)}\index{*real (type)|)}
-Launch Isabelle using the command 
-\begin{verbatim}
-Isabelle -l HOL-Complex
-\end{verbatim}
+The absolute value bars shown above cannot be typed on a keyboard.  They
+can be entered using the X-symbol package.  In \textsc{ascii}, type \isa{abs x} to
+get \isa{\isasymbar x\isasymbar}.
 \end{warn}
 
-Also available in HOL-Complex is the
-theory \isa{Hyperreal}, which define the type \tydx{hypreal} of 
-\rmindex{non-standard reals}.  These
-\textbf{hyperreals} include infinitesimals, which represent infinitely
-small and infinitely large quantities; they facilitate proofs
-about limits, differentiation and integration~\cite{fleuriot-jcm}.  The
-development defines an infinitely large number, \isa{omega} and an
-infinitely small positive number, \isa{epsilon}.  The 
-relation $x\approx y$ means ``$x$ is infinitely close to~$y$.''
-Theory \isa{Hyperreal} also defines transcendental functions such as sine,
-cosine, exponential and logarithm --- even the versions for type
-\isa{real}, because they are defined using nonstandard limits.%
+
+\subsubsection{Raising to a Power}
+
+Another type class, \tcdx{ringppower}, specifies rings that also have 
+exponentation to a natural number power, defined using the obvious primitive
+recursion. Theory \thydx{Power} proves various theorems, such as the 
+following.
+\begin{isabelle}
+a\ \isacharcircum \ (m\ +\ n)\ =\ a\ \isacharcircum \ m\ *\ a\ \isacharcircum \ n%
+\rulename{power_add}\isanewline
+a\ \isacharcircum \ (m\ *\ n)\ =\ (a\ \isacharcircum \ m)\ \isacharcircum \ n%
+\rulename{power_mult}\isanewline
+\isasymbar a\ \isacharcircum \ n\isasymbar \ =\ \isasymbar a\isasymbar \ \isacharcircum \ n%
+\rulename{power_abs}
+\end{isabelle}%%%%%%%%%%%%%%%%%%%%%%%%%
 \index{numbers|)}

@@ -1,4 +1,5 @@
 \documentclass{article}
+%%\includeonly{Types/types} %%UNCOMMENT to process only selected chapters
 \usepackage{cl2emono-modified,isabelle,isabellesym}
 \usepackage{../proof,amsmath,amsfonts}
 \usepackage{latexsym,wasysym,verbatim,graphicx,tutorial,../ttbox,comment}
@@ -52,26 +53,26 @@
 \vspace*{\fill}
 \vspace*{\fill}
 \newpage
-\input{preface}
+\include{preface}
 
 \tableofcontents
 
 \cleardoublepage\pagenumbering{arabic}
 
 \part{Elementary Techniques}
-\input{basics}
-\input{fp}
-\input{Documents/documents}
+\include{basics}
+\include{fp}
+\include{Documents/documents}
 
 \part{Logic and Sets}
-\input{Rules/rules}
-\input{Sets/sets}\input{CTL/ctl}  %these constitute ONE chapter
-\input{Inductive/inductive}
+\include{Rules/rules}
+\include{Sets/sets}
+\include{Inductive/inductive}
 
 \part{Advanced Material}
-\input{Types/types}
-\input{Advanced/advanced}
-\input{Protocol/protocol}
+\include{Types/types}
+\include{Advanced/advanced}
+\include{Protocol/protocol}
 
 \markboth{}{}
 \cleardoublepage
@@ -85,9 +86,12 @@ Sherlock Holmes
 \vspace*{\fill}
 \vspace*{\fill}
 
-\input{appendix}
+\underscoreoff
+
+\include{appendix}
 
 \bibliographystyle{plain}
 \bibliography{../manual}
+\underscoreoff
 \printindex
 \end{document}

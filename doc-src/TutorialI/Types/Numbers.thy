@@ -60,17 +60,9 @@ txt{*
 oops
 
 text{*
-@{thm[display] mult_le_mono[no_vars]}
-\rulename{mult_le_mono}
-
-@{thm[display] mult_less_mono1[no_vars]}
-\rulename{mult_less_mono1}
 
 @{thm[display] div_le_mono[no_vars]}
 \rulename{div_le_mono}
-
-@{thm[display] add_mult_distrib[no_vars]}
-\rulename{add_mult_distrib}
 
 @{thm[display] diff_mult_distrib[no_vars]}
 \rulename{diff_mult_distrib}
@@ -168,9 +160,6 @@ Division, remainder of negatives
 
 @{thm[display] zmod_zmult2_eq[no_vars]}
 \rulename{zmod_zmult2_eq}
-
-@{thm[display] abs_mult[no_vars]}
-\rulename{abs_mult}
 *}  
 
 lemma "abs (x+y) \<le> abs x + abs (y :: int)"
@@ -195,13 +184,10 @@ text {*Induction rules for the Integers
 \rulename{int_less_induct}
 *}  
 
-text {*REALS
+text {*FIELDS
 
 @{thm[display] dense[no_vars]}
 \rulename{dense}
-
-@{thm[display] power_abs[no_vars]}
-\rulename{power_abs}
 
 @{thm[display] times_divide_eq_right[no_vars]}
 \rulename{times_divide_eq_right}
@@ -254,6 +240,59 @@ lemma "(3/4) * (10^15) < (x :: real)"
 apply simp 
 oops
 
+text{*
+Ring and Field
+
+Requires a field, or else an ordered ring
+
+@{thm[display] mult_eq_0_iff[no_vars]}
+\rulename{mult_eq_0_iff}
+
+@{thm[display] field_mult_eq_0_iff[no_vars]}
+\rulename{field_mult_eq_0_iff}
+
+@{thm[display] mult_cancel_right[no_vars]}
+\rulename{mult_cancel_right}
+
+@{thm[display] field_mult_cancel_right[no_vars]}
+\rulename{field_mult_cancel_right}
+*}
+
+ML{*set show_sorts*}
+
+text{*
+effect of show sorts on the above
+
+@{thm[display] field_mult_cancel_right[no_vars]}
+\rulename{field_mult_cancel_right}
+*}
+
+ML{*reset show_sorts*}
+
+
+text{*
+absolute value
+
+@{thm[display] abs_mult[no_vars]}
+\rulename{abs_mult}
+
+@{thm[display] abs_le_iff[no_vars]}
+\rulename{abs_le_iff}
+
+@{thm[display] abs_triangle_ineq[no_vars]}
+\rulename{abs_triangle_ineq}
+
+@{thm[display] power_add[no_vars]}
+\rulename{power_add}
+
+@{thm[display] power_mult[no_vars]}
+\rulename{power_mult}
+
+@{thm[display] power_abs[no_vars]}
+\rulename{power_abs}
+
+
+*}
 
 
 end

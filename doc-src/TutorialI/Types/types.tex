@@ -6,36 +6,28 @@ So far we have learned about a few basic types (for example \isa{bool} and
 (\isacommand{datatype}). This chapter will introduce more
 advanced material:
 \begin{itemize}
-\item More about basic types: numbers ({\S}\ref{sec:numbers}), pairs
-  ({\S}\ref{sec:products}) and records ({\S}\ref{sec:records}), and how to
-  reason about them.
+\item Pairs ({\S}\ref{sec:products}) and records ({\S}\ref{sec:records}),and how to reason about them.
 \item Type classes: how to specify and reason about axiomatic collections of
-  types ({\S}\ref{sec:axclass}).
-\item Introducing your own types: how to introduce new types that
+  types ({\S}\ref{sec:axclass}). This section leads on to a discussion of
+  Isabelle's numeric types ({\S}\ref{sec:numbers}).  
+\item Introducing your own types: how to define types that
   cannot be constructed with any of the basic methods
   ({\S}\ref{sec:adv-typedef}).
 \end{itemize}
 
-The material in this section goes beyond the needs of most novices.  Serious
-users should at least skim the sections on basic types and on type classes.
-The latter material is fairly advanced; read the beginning to understand what
-it is 
-about, but consult the rest only when necessary.
-
-\input{Types/numerics}
+The material in this section goes beyond the needs of most novices.Serious users should at least skim the sections as far as type classes.That material is fairly advanced; read the beginning to understand what itis about, but consult the rest only when necessary.
 
 \index{pairs and tuples|(}
-\input{Types/document/Pairs}
+\input{Types/document/Pairs}    %%%Section "Pairs and Tuples"
 \index{pairs and tuples|)}
 
-\input{Types/document/Records}
+\input{Types/document/Records}  %%%Section "Records"
 
 
-\section{Axiomatic Type Classes}
+\section{Axiomatic Type Classes} %%%Section
 \label{sec:axclass}
 \index{axiomatic type classes|(}
 \index{*axclass|(}
-
 
 The programming language Haskell has popularized the notion of type classes.
 In its simplest form, a type class is a set of types with a common interface:
@@ -67,5 +59,6 @@ by means of a running example, ordering relations.
 \index{axiomatic type classes|)}
 \index{*axclass|)}
 
+\input{Types/numerics}             %%%Section "Numbers"
 
-\input{Types/document/Typedefs}
+\input{Types/document/Typedefs}    %%%Section "Introducing New Types"
