@@ -78,25 +78,25 @@ qed "lam_mono";
 
 (** Quine-inspired ordered pairs, products, injections and sums **)
 
-goalw QPair.thy [QPair_def] "!!a b c d. [| a<=c;  b<=d |] ==> <a;b> <= <c;d>";
+goalw thy [QPair_def] "!!a b c d. [| a<=c;  b<=d |] ==> <a;b> <= <c;d>";
 by (REPEAT (ares_tac [sum_mono] 1));
 qed "QPair_mono";
 
-goal QPair.thy "!!A B C D. [| A<=C;  ALL x:A. B(x) <= D(x) |] ==>  \
+goal thy "!!A B C D. [| A<=C;  ALL x:A. B(x) <= D(x) |] ==>  \
 \                          QSigma(A,B) <= QSigma(C,D)";
 by (Blast_tac 1);
 qed "QSigma_mono_lemma";
 val QSigma_mono = ballI RSN (2,QSigma_mono_lemma);
 
-goalw QPair.thy [QInl_def] "!!a b. a<=b ==> QInl(a) <= QInl(b)";
+goalw thy [QInl_def] "!!a b. a<=b ==> QInl(a) <= QInl(b)";
 by (REPEAT (ares_tac [subset_refl RS QPair_mono] 1));
 qed "QInl_mono";
 
-goalw QPair.thy [QInr_def] "!!a b. a<=b ==> QInr(a) <= QInr(b)";
+goalw thy [QInr_def] "!!a b. a<=b ==> QInr(a) <= QInr(b)";
 by (REPEAT (ares_tac [subset_refl RS QPair_mono] 1));
 qed "QInr_mono";
 
-goal QPair.thy "!!A B C D. [| A<=C;  B<=D |] ==> A <+> B <= C <+> D";
+goal thy "!!A B C D. [| A<=C;  B<=D |] ==> A <+> B <= C <+> D";
 by (Blast_tac 1);
 qed "qsum_mono";
 
