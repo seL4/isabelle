@@ -1,9 +1,6 @@
 (*  Title:      HOL/Isar_examples/Cantor.thy
     ID:         $Id$
     Author:     Markus Wenzel, TU Muenchen
-
-Cantor's theorem -- Isar'ized version of the final section of the HOL
-chapter of "Isabelle's Object-Logics" (Larry Paulson).
 *)
 
 header {* Cantor's Theorem *};
@@ -11,21 +8,26 @@ header {* Cantor's Theorem *};
 theory Cantor = Main:;
 
 text {*
-  Cantor's Theorem states that every set has more subsets than it has
-  elements.  It has become a favorite basic example in pure
-  higher-order logic since it is so easily expressed: \[\all{f::\alpha
-  \To \alpha \To \idt{bool}} \ex{S::\alpha \To \idt{bool}}
-  \all{x::\alpha}. f \ap x \not= S\]
+ This is an Isar'ized version of the final example of the Isabelle/HOL
+ manual \cite{isabelle-HOL}.
+*};
+
+text {*
+ Cantor's Theorem states that every set has more subsets than it has
+ elements.  It has become a favorite basic example in pure
+ higher-order logic since it is so easily expressed: \[\all{f::\alpha
+ \To \alpha \To \idt{bool}} \ex{S::\alpha \To \idt{bool}}
+ \all{x::\alpha}. f \ap x \not= S\]
   
-  Viewing types as sets, $\alpha \To \idt{bool}$ represents the powerset of
-  $\alpha$.  This version of the theorem states that for every function from
-  $\alpha$ to its powerset, some subset is outside its range.  The
-  Isabelle/Isar proofs below use HOL's set theory, with the type $\alpha \ap
-  \idt{set}$ and the operator $\idt{range}$.
+ Viewing types as sets, $\alpha \To \idt{bool}$ represents the
+ powerset of $\alpha$.  This version of the theorem states that for
+ every function from $\alpha$ to its powerset, some subset is outside
+ its range.  The Isabelle/Isar proofs below use HOL's set theory, with
+ the type $\alpha \ap \idt{set}$ and the operator $\idt{range}$.
   
-  \bigskip We first consider a rather verbose version of the proof, with the
-  reasoning expressed quite naively.  We only make use of the pure core of the
-  Isar proof language.
+ \bigskip We first consider a rather verbose version of the proof,
+ with the reasoning expressed quite naively.  We only make use of the
+ pure core of the Isar proof language.
 *};
 
 theorem "EX S. S ~: range(f :: 'a => 'a set)";
@@ -55,9 +57,9 @@ proof;
 qed;
 
 text {*
-  The following version of the proof essentially does the same reasoning, only
-  that it is expressed more neatly, with some derived Isar language elements
-  involved.
+ The following version of the proof essentially does the same
+ reasoning, only that it is expressed more neatly, with some derived
+ Isar language elements involved.
 *};
 
 theorem "EX S. S ~: range(f :: 'a => 'a set)";
@@ -85,23 +87,23 @@ proof;
 qed;
 
 text {*
-  How much creativity is required?  As it happens, Isabelle can prove this
-  theorem automatically.  The default classical set contains rules for most of
-  the constructs of HOL's set theory.  We must augment it with
-  \name{equalityCE} to break up set equalities, and then apply best-first
-  search.  Depth-first search would diverge, but best-first search
-  successfully navigates through the large search space.
+ How much creativity is required?  As it happens, Isabelle can prove
+ this theorem automatically.  The default classical set contains rules
+ for most of the constructs of HOL's set theory.  We must augment it
+ with \name{equalityCE} to break up set equalities, and then apply
+ best-first search.  Depth-first search would diverge, but best-first
+ search successfully navigates through the large search space.
 *};
 
 theorem "EX S. S ~: range(f :: 'a => 'a set)";
   by (best elim: equalityCE);
 
 text {*
-  While this establishes the same theorem internally, we do not get any idea
-  of how the proof actually works.  There is currently no way to transform
-  internal system-level representations of Isabelle proofs back into Isar
-  documents.  Note that writing Isabelle/Isar proof documents actually
-  \emph{is} a creative process.
+ While this establishes the same theorem internally, we do not get any
+ idea of how the proof actually works.  There is currently no way to
+ transform internal system-level representations of Isabelle proofs
+ back into Isar documents.  Writing proof documents really is a
+ creative process.
 *};
 
 end;
