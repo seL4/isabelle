@@ -72,8 +72,9 @@ qed "bexE";
 (*Trival rewrite rule;   (! x:A.P)=P holds only if A is nonempty!*)
 goal Set.thy "(! x:A. True) = True";
 by (REPEAT (ares_tac [TrueI,ballI,iffI] 1));
-qed "ball_rew";
-Addsimps [ball_rew];
+qed "ball_True";
+
+Addsimps [ball_True];
 
 (** Congruence rules **)
 
@@ -289,6 +290,15 @@ qed_goal "equals0D" Set.thy "[| A={};  a:A |] ==> P"
 
 qed_goal "empty_iff" Set.thy "(c : {}) = False"
  (fn _ => [ (fast_tac (!claset addSEs [emptyE]) 1) ]);
+
+goal Set.thy "Ball {} P = True";
+by (simp_tac (HOL_ss addsimps [mem_Collect_eq, Ball_def, empty_def]) 1);
+qed "ball_empty";
+
+goal Set.thy "Bex {} P = False";
+by (simp_tac (HOL_ss addsimps [mem_Collect_eq, Bex_def, empty_def]) 1);
+qed "bex_empty";
+Addsimps [ball_empty, bex_empty];
 
 
 section "Augmenting a set -- insert";
