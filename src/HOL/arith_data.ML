@@ -7,10 +7,12 @@ Setup various arithmetic proof procedures.
 
 signature ARITH_DATA =
 sig
+  val nat_cancel_sums: simproc list
+  val nat_cancel_factor: simproc list
   val nat_cancel: simproc list
 end;
 
-structure ArithData (* FIXME :ARITH_DATA *) =
+structure ArithData: ARITH_DATA =
 struct
 
 
@@ -182,13 +184,17 @@ val eq_pats = prep_pats ["(l::nat) + m = n", "(l::nat) = m + n", "Suc m = n", "m
 val less_pats = prep_pats ["(l::nat) + m < n", "(l::nat) < m + n", "Suc m < n", "m < Suc n"];
 val le_pats = prep_pats ["(l::nat) + m <= n", "(l::nat) <= m + n", "Suc m <= n", "m <= Suc n"];
 
-val nat_cancel = map prep_simproc
-  [("nateq_cancel_factor", eq_pats, EqCancelFactor.proc),
-   ("natless_cancel_factor", less_pats, LessCancelFactor.proc),
-   ("natle_cancel_factor", le_pats, LeCancelFactor.proc),
-   ("nateq_cancel_sums", eq_pats, EqCancelSums.proc),
+val nat_cancel_sums = map prep_simproc
+  [("nateq_cancel_sums", eq_pats, EqCancelSums.proc),
    ("natless_cancel_sums", less_pats, LessCancelSums.proc),
    ("natle_cancel_sums", le_pats, LeCancelSums.proc)];
+
+val nat_cancel_factor = map prep_simproc
+  [("nateq_cancel_factor", eq_pats, EqCancelFactor.proc),
+   ("natless_cancel_factor", less_pats, LessCancelFactor.proc),
+   ("natle_cancel_factor", le_pats, LeCancelFactor.proc)];
+
+val nat_cancel = nat_cancel_factor @ nat_cancel_sums;
 
 
 end;
