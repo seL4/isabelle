@@ -4,6 +4,9 @@
     Copyright   1993  University of Cambridge
 
 Classical First-Order Sequent Calculus
+
+There may be printing problems if a seqent is in expanded normal form
+	(eta-expanded, beta-contracted)
 *)
 
 LK = Pure +
@@ -13,33 +16,35 @@ classes term < logic
 default term
 
 types
- o sequence seqobj seqcont sobj
+  o sequence seqobj seqcont sobj
 
 arities
- o :: logic
+  o :: logic
 
 consts
- True,False     :: "o"
- "="            :: "['a,'a] => o"       (infixl 50)
- "Not"          :: "o => o"             ("~ _" [40] 40)
- "&"            :: "[o,o] => o"         (infixr 35)
- "|"            :: "[o,o] => o"         (infixr 30)
- "-->","<->"    :: "[o,o] => o"         (infixr 25)
- The            :: "('a => o) => 'a"    (binder "THE " 10)
- All            :: "('a => o) => o"     (binder "ALL " 10)
- Ex             :: "('a => o) => o"     (binder "EX " 10)
+  True,False   :: o
+  "="          :: ['a,'a] => o       (infixl 50)
+  Not          :: o => o             ("~ _" [40] 40)
+  "&"          :: [o,o] => o         (infixr 35)
+  "|"          :: [o,o] => o         (infixr 30)
+  "-->","<->"  :: [o,o] => o         (infixr 25)
+  The          :: ('a => o) => 'a    (binder "THE " 10)
+  All          :: ('a => o) => o     (binder "ALL " 10)
+  Ex           :: ('a => o) => o     (binder "EX " 10)
 
- (*Representation of sequents*)
- Trueprop       :: "[sobj=>sobj,sobj=>sobj] => prop"
- Seqof          :: "o => sobj=>sobj"
- "@Trueprop"    :: "[sequence,sequence] => prop" ("((_)/ |- (_))" [6,6] 5)
- "@MtSeq"       :: "sequence"                           ("" [] 1000)
- "@NmtSeq"      :: "[seqobj,seqcont] => sequence"       ("__" [] 1000)
- "@MtSeqCont"   :: "seqcont"                            ("" [] 1000)
- "@SeqCont"     :: "[seqobj,seqcont] => seqcont"        (",/ __" [] 1000)
- ""             :: "o => seqobj"                        ("_" [] 1000)
- "@SeqId"       :: "id => seqobj"                       ("$_" [] 1000)
- "@SeqVar"      :: "var => seqobj"                      ("$_")
+  (*Representation of sequents*)
+  Trueprop     :: [sobj=>sobj, sobj=>sobj] => prop
+  Seqof        :: [o, sobj] => sobj
+
+syntax
+  "@Trueprop"  :: [sequence,sequence] => prop     ("((_)/ |- (_))" [6,6] 5)
+  NullSeq      :: sequence                        ("" [] 1000)
+  NonNullSeq   :: [seqobj,seqcont] => sequence    ("__" [] 1000)
+  NullSeqCont  :: seqcont                         ("" [] 1000)
+  SeqCont      :: [seqobj,seqcont] => seqcont     (",/ __" [] 1000)
+  ""           :: o => seqobj                     ("_" [] 1000)
+  SeqId        :: id => seqobj                    ("$_" [] 1000)
+  SeqVar       :: var => seqobj                   ("$_")
 
 rules
   (*Structural rules*)
@@ -99,31 +104,31 @@ fun abs_sobj t = Abs("sobj", Type("sobj",[]), t);
 (*Representation of empty sequence*)
 val Sempty =  abs_sobj (Bound 0);
 
-fun seq_obj_tr(Const("@SeqId",_)$id) = id |
-    seq_obj_tr(Const("@SeqVar",_)$id) = id |
-    seq_obj_tr(fm) = Const("Seqof",dummyT)$fm;
+fun seq_obj_tr (Const("SeqId",_)$id) = id
+  | seq_obj_tr (Const("SeqVar",_)$id) = id
+  | seq_obj_tr (fm) = Const("Seqof",dummyT)$fm;
 
-fun seq_tr(_$obj$seq) = seq_obj_tr(obj)$seq_tr(seq) |
-    seq_tr(_) = Bound 0;
+fun seq_tr (_$obj$seq) = seq_obj_tr(obj)$seq_tr(seq)
+  | seq_tr (_) = Bound 0;
 
-fun seq_tr1(Const("@MtSeq",_)) = Sempty |
-    seq_tr1(seq) = abs_sobj(seq_tr seq);
+fun seq_tr1 (Const("NullSeq",_)) = Sempty
+  | seq_tr1 (seq) = abs_sobj(seq_tr seq);
 
 fun true_tr[s1,s2] = Const("Trueprop",dummyT)$seq_tr1 s1$seq_tr1 s2;
 
-fun seq_obj_tr'(Const("Seqof",_)$fm) = fm |
-    seq_obj_tr'(id) = Const("@SeqId",dummyT)$id;
+fun seq_obj_tr' (Const("Seqof",_)$fm) = fm
+  | seq_obj_tr' (id) = Const("SeqId",dummyT)$id;
 
-fun seq_tr'(obj$sq,C) =
+fun seq_tr' (obj$sq,C) =
       let val sq' = case sq of
-            Bound 0 => Const("@MtSeqCont",dummyT) |
-            _ => seq_tr'(sq,Const("@SeqCont",dummyT))
+            Bound 0 => Const("NullSeqCont",dummyT)
+  |         _ => seq_tr'(sq,Const("SeqCont",dummyT))
       in C $ seq_obj_tr' obj $ sq' end;
 
-fun seq_tr1'(Bound 0) = Const("@MtSeq",dummyT) |
-    seq_tr1' s = seq_tr'(s,Const("@NmtSeq",dummyT));
+fun seq_tr1' (Bound 0) = Const("NullSeq",dummyT)
+  | seq_tr1' s = seq_tr'(s,Const("NonNullSeq",dummyT));
 
-fun true_tr'[Abs(_,_,s1),Abs(_,_,s2)] =
+fun true_tr' [Abs(_,_,s1),Abs(_,_,s2)] =
       Const("@Trueprop",dummyT)$seq_tr1' s1$seq_tr1' s2;
 
 val parse_translation = [("@Trueprop",true_tr)];
