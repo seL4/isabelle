@@ -17,7 +17,6 @@ sig
   structure ProtoPure:
     sig
       val thy: theory
-      val flexpair_def: thm
       val Goal_def: thm
     end
 end;
@@ -538,7 +537,6 @@ val proto_pure =
     (Term.dummy_patternN, "aprop", Delimfix "'_")]
   |> Theory.add_consts
    [("==", "['a::{}, 'a] => prop", InfixrName ("==", 2)),
-    ("=?=", "['a::{}, 'a] => prop", InfixrName ("=?=", 2)),
     ("==>", "[prop, prop] => prop", Mixfix ("(_/ ==> _)", [2, 1], 1)),
     ("all", "('a => prop) => prop", Binder ("!!", 0, 0)),
     ("Goal", "prop => prop", NoSyn),
@@ -549,8 +547,6 @@ val proto_pure =
   |> Theory.add_trfuns Syntax.pure_trfuns
   |> Theory.add_trfunsT Syntax.pure_trfunsT
   |> local_path
-  |> (#1 oo (add_defs false o map Thm.no_attributes))
-   [("flexpair_def", "(t =?= u) == (t == u::'a::{})")]
   |> (#1 oo (add_defs_i false o map Thm.no_attributes))
    [("Goal_def", let val A = Free ("A", propT) in Logic.mk_equals (Logic.mk_goal A, A) end)]
   |> (#1 o add_thmss [(("nothing", []), [])])
@@ -560,7 +556,6 @@ val proto_pure =
 structure ProtoPure =
 struct
   val thy = proto_pure;
-  val flexpair_def = get_axiom thy "flexpair_def";
   val Goal_def = get_axiom thy "Goal_def";
 end;
 
