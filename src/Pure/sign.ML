@@ -132,12 +132,6 @@ fun extend (Sg {tsig, const_tab, syn, stamps}) name
     (*read and check the type mentioned in a const declaration; zero type var
       indices because type inference requires it*)
 
-    (* FIXME bug / feature: varifyT'ed TFrees may clash with user specified
-      TVars e.g. foo :: "'a => ?'a" *)
-    (* FIXME if user supplied TVars were disallowed, zero_tvar_indices would
-      become obsolete *)
-    (* FIXME disallow "" as const name *)
-
     fun read_consts tsg sy (cs, s) =
       let val ty = zero_tvar_indices (Type.varifyT (read_typ tsg sy s));
       in
@@ -164,7 +158,6 @@ fun extend (Sg {tsig, const_tab, syn, stamps}) name
 
     val const_decs' =
       map (read_consts tsig' syn') (Syntax.constants sext @ const_decs);
-                    (* FIXME ^^^^ should be syn *)
   in
     Sg {
       tsig = tsig',
@@ -191,7 +184,7 @@ val pure = extend sg0 "Pure"
   (Syntax.syntax_types, 0)],
  [(["fun"],  ([["logic"], ["logic"]], "logic")),
   (["prop"], ([], "logic"))],
- [([Syntax.constrainC], "'a::logic => 'a")],  (* FIXME replace logic by {} (?) *)
+ [([Syntax.constrainC], "'a::logic => 'a")],
  Some Syntax.pure_sext);
 
 

@@ -110,12 +110,12 @@ fun extend_ruletab tab rules =
 
 (* empty_tables *)
 
+(*(* FIXME *)
 val empty_tables =
   Tabs {
     lexicon = empty_lexicon,
     roots = [],
-    (* gram = empty_gram, *)    (* FIXME *)
-    gram = mk_gram [] [],       (* FIXME *)
+    gram = empty_gram,
     consts = [],
     parse_ast_trtab = Symtab.null,
     parse_ruletab = Symtab.null,
@@ -123,6 +123,7 @@ val empty_tables =
     print_trtab = Symtab.null,
     print_ruletab = Symtab.null,
     prtab = empty_prtab};
+*)
 
 
 (* extend_tables *)
@@ -158,6 +159,7 @@ fun extend_tables (Tabs tabs) (XGram xgram) =
 
 (* mk_tables *)
 
+(* FIXME *)
 (* val mk_tables = extend_tables empty_tables; *)
 
 (* FIXME *)
@@ -426,7 +428,7 @@ fun string_of_typ syn ty = Pretty.string_of (pretty_typ syn ty);
 val type_syn = mk_syntax (ref (ExtGG (ref EmptyGG, type_ext)));
 
 
-(* extend *)  (* FIXME *) (* FIXME check *)
+(* extend *)  (* FIXME *)
 
 fun old_extend syn read_ty (roots, xconsts, sext) =
   let

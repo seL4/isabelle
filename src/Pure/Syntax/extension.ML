@@ -3,10 +3,6 @@
     Author:     Tobias Nipkow and Markus Wenzel, TU Muenchen
 
 External grammar definition (internal interface).
-
-TODO:
-  ext = {roots, mfix, extra_consts} | {.._translation} | {.._rules} (?)
-  extend_xgram: move '.. \\ roots1' to Syntax.extend_tables (no?)
 *)
 
 signature EXTENSION0 =
@@ -83,21 +79,36 @@ datatype ext =
 
 (* ext_components *)
 
-fun ext_components (Ext ext) =
-      {roots = #roots ext, mfix = #mfix ext, extra_consts = #extra_consts ext,
+fun ext_components (Ext ext) = {
+      roots = #roots ext,
+      mfix = #mfix ext,
+      extra_consts = #extra_consts ext,
       parse_ast_translation = #parse_ast_translation ext,
+      parse_rules = [],
       parse_translation = #parse_translation ext,
       print_translation = #print_translation ext,
-      print_ast_translation = #print_ast_translation ext,
-      parse_rules = [], print_rules = []}
-  | ext_components (ExtRules {parse_rules, print_rules}) =
-      {parse_rules = parse_rules, print_rules = print_rules, roots = [], mfix = [],
-      extra_consts = [], parse_ast_translation = [], parse_translation = [],
-      print_translation = [], print_ast_translation = []}
-  | ext_components (ExtRoots roots) =
-      {roots = roots, mfix = [], extra_consts = [], parse_ast_translation = [],
-      parse_rules = [], parse_translation = [], print_translation = [],
-      print_rules = [], print_ast_translation = []};
+      print_rules = [],
+      print_ast_translation = #print_ast_translation ext}
+  | ext_components (ExtRules {parse_rules, print_rules}) = {
+      roots = [],
+      mfix = [],
+      extra_consts = [],
+      parse_ast_translation = [],
+      parse_rules = parse_rules,
+      parse_translation = [],
+      print_translation = [],
+      print_rules = print_rules,
+      print_ast_translation = []}
+  | ext_components (ExtRoots roots) = {
+      roots = roots,
+      mfix = [],
+      extra_consts = [],
+      parse_ast_translation = [],
+      parse_rules = [],
+      parse_translation = [],
+      print_translation = [],
+      print_rules = [],
+      print_ast_translation = []};
 
 
 (* empty_xgram *)
