@@ -226,7 +226,7 @@ in typings (of consts etc.); internally the class is called
 
 * HOL: linorder_less_split superseded by linorder_cases;
 
-* HOL/List: "nodups" renamed to "distinct"
+* HOL/List: "nodups" renamed to "distinct";
 
 * HOL: added "The" definite description operator; move Hilbert's "Eps"
 to peripheral theory "Hilbert_Choice";
@@ -245,9 +245,9 @@ Isabelle's type classes, ^ on functions and relations has too general
 a domain, namely ('a * 'b) set and 'a => 'b; this means that it may be
 necessary to attach explicit type constraints;
 
-* HOL/Relation: the prefix name of the infix "O" has been changed from "comp"
-to "rel_comp"; INCOMPATIBILITY: a few theorems have been renamed accordingly
-(eg "compI" -> "rel_compI").
+* HOL/Relation: the prefix name of the infix "O" has been changed from
+"comp" to "rel_comp"; INCOMPATIBILITY: a few theorems have been
+renamed accordingly (eg "compI" -> "rel_compI").
 
 * HOL: syntax translations now work properly with numerals and records
 expressions;
