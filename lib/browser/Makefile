@@ -7,7 +7,7 @@ all: GraphBrowser.jar
 GraphBrowser.jar: GraphBrowser/*.java awtUtilities/*.java
 	mkdir -p $(DST)
 	javac -d $(DST) GraphBrowser/GraphBrowser.java GraphBrowser/Console.java
-	jar -C $(DST) -c -f GraphBrowser.jar . 
+	jar cf GraphBrowser.jar -C $(DST) . 
 	rm -rf $(DST)
 
 clean:
