@@ -353,7 +353,7 @@ lemma subst_type_IT [rulify]:
     txt {* @{term Var} *}
     apply (intro strip)
     apply (case_tac "n = i")
-     txt {* #{term "n = i"} *}
+     txt {* @{term "n = i"} *}
      apply (case_tac rs)
       apply simp
      apply simp
