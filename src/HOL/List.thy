@@ -755,6 +755,14 @@ by simp
 
 declare take_Cons [simp del] and drop_Cons [simp del]
 
+lemma take_Suc_conv_app_nth:
+ "!!i. i < length xs \<Longrightarrow> take (Suc i) xs = take i xs @ [xs!i]"
+apply(induct xs)
+ apply simp
+apply(case_tac i)
+apply auto
+done
+
 lemma length_take [simp]: "!!xs. length (take n xs) = min (length xs) n"
 by (induct n) (auto, case_tac xs, auto)
 
@@ -886,6 +894,18 @@ by (induct xs) auto
 
 lemma set_take_whileD: "x : set (takeWhile P xs) ==> x : set xs \<and> P x"
 by (induct xs) (auto split: split_if_asm)
+
+lemma takeWhile_eq_all_conv[simp]:
+ "(takeWhile P xs = xs) = (\<forall>x \<in> set xs. P x)"
+by(induct xs, auto)
+
+lemma dropWhile_eq_Nil_conv[simp]:
+ "(dropWhile P xs = []) = (\<forall>x \<in> set xs. P x)"
+by(induct xs, auto)
+
+lemma dropWhile_eq_Cons_conv:
+ "(dropWhile P xs = y#ys) = (xs = takeWhile P xs @ y # ys & \<not> P y)"
+by(induct xs, auto)
 
 
 subsection {* @{text zip} *}
