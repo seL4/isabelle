@@ -445,7 +445,7 @@ on the right-hard side as in the following fictitious definition:
 defs  prime_def "prime(p) == (m divides p) --> (m=1 | m=p)"
 \end{ttbox}
 Isabelle rejects this ``definition'' because of the extra {\tt m} on the
-right-hard side, which would introduce an inconsistency. What you should have
+right-hand side, which would introduce an inconsistency. What you should have
 written is
 \begin{ttbox}
 defs  prime_def "prime(p) == ALL m. (m divides p) --> (m=1 | m=p)"
