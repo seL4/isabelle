@@ -55,7 +55,7 @@ HYPER_R=20
 CONFIGFILES = config/Makefile config/key-table.inp config/conv-tables.inp
 
 #path stem to isabelle source, used by patcher
-STEM = /usr/stud/oheimb/isabelle/
+STEM = /usr/wiss/oheimb/isabelle/
 
 ###############################################
 # configuration for configuration files in ./config

@@ -45,7 +45,7 @@ INITFILE=$ISABELLE8BIT/$EDIR/$PREFIX.emacs
 
 # set font as XResource
 # needed for versions later than LEmacs 19.9 
-echo "$PREFIX*default.attributeFont: isacr14" | xrdb -merge - >/dev/null
+echo "$PREFIX.default.attributeFont: isacr14" | xrdb -merge - >/dev/null
 
 # pop up isabelle emacs
 $ENAME \

@@ -413,7 +413,9 @@ an argument. See the man page on \bt{gen-isa2latex} for more details about
 command line arguments. According to the configuration file, the perl script
 patches specific portions of the C source of the 
 converter in the directory \bt{\$ISABELLE8BIT/c-sources/isa2latex} and
-calls the C compiler to generate a new binary for \bt{isa2latex}.
+calls the C compiler to generate a new binary for \bt{isa2latex}\footnote{
+The \bt{Makefile} uses the lexical analyzer \bt{flex}. Make sure that you
+use a recent version of it.}.
 
 If you want to alter the keyboard bindings for the various editors and the
 terminal, you have to change the configuration file \bt{key-table.inp}. 

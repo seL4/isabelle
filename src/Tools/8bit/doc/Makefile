@@ -28,9 +28,7 @@ FONTDOCFILES = fontindex.dvi keyindex.dvi fkmatrix.dvi
 
 fontdocfiles: $(FONTDOCFILES)
 
-manual: manual.tex manual.dvi
-
-manual.tex: manual.itex
+manual: manual.dvi
 
 clean:
 	rm -f *.aux *.log
