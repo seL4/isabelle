@@ -232,27 +232,53 @@ inverse image of an ordinal.  Key step is the construction (in M) of a
 rank function.*}
 
 
-(*NEEDS RELATIVIZATION*)
 locale M_wfrank = M_trancl +
   assumes wfrank_separation:
      "M(r) ==>
       separation (M, \<lambda>x. 
-         ~ (\<exists>f[M]. M_is_recfun(M, r^+, x, %mm x f y. y = range(f), f)))"
- and wfrank_strong_replacement':
+         \<forall>rplus[M]. tran_closure(M,r,rplus) -->
+         ~ (\<exists>f[M]. M_is_recfun(M, rplus, x, %x f y. is_range(M,f,y), f)))"
+ and wfrank_strong_replacement:
      "M(r) ==>
-      strong_replacement(M, \<lambda>x z. \<exists>y[M]. \<exists>f[M]. 
-		  pair(M,x,y,z) & is_recfun(r^+, x, %x f. range(f), f) &
-		  y = range(f))"
+      strong_replacement(M, \<lambda>x z. 
+         \<forall>rplus[M]. tran_closure(M,r,rplus) -->
+         (\<exists>y[M]. \<exists>f[M]. pair(M,x,y,z)  & 
+                        M_is_recfun(M, rplus, x, %x f y. is_range(M,f,y), f) &
+                        is_range(M,f,y)))"
  and Ord_wfrank_separation:
      "M(r) ==>
-      separation (M, \<lambda>x. ~ (\<forall>f. M(f) \<longrightarrow>
-                       is_recfun(r^+, x, \<lambda>x. range, f) \<longrightarrow> Ord(range(f))))" 
+      separation (M, \<lambda>x.
+         \<forall>rplus[M]. tran_closure(M,r,rplus) --> 
+          ~ (\<forall>f[M]. \<forall>rangef[M]. 
+             is_range(M,f,rangef) -->
+             M_is_recfun(M, rplus, x, \<lambda>x f y. is_range(M,f,y), f) -->
+             ordinal(M,rangef)))" 
+
+text{*Proving that the relativized instances of Separation or Replacement
+agree with the "real" ones.*}
 
 lemma (in M_wfrank) wfrank_separation':
      "M(r) ==>
       separation
 	   (M, \<lambda>x. ~ (\<exists>f[M]. is_recfun(r^+, x, %x f. range(f), f)))"
 apply (insert wfrank_separation [of r])
+apply (simp add: is_recfun_iff_M [of concl: _ _ "%x. range", THEN iff_sym])
+done
+
+lemma (in M_wfrank) wfrank_strong_replacement':
+     "M(r) ==>
+      strong_replacement(M, \<lambda>x z. \<exists>y[M]. \<exists>f[M]. 
+		  pair(M,x,y,z) & is_recfun(r^+, x, %x f. range(f), f) &
+		  y = range(f))"
+apply (insert wfrank_strong_replacement [of r])
+apply (simp add: is_recfun_iff_M [of concl: _ _ "%x. range", THEN iff_sym])
+done
+
+lemma (in M_wfrank) Ord_wfrank_separation':
+     "M(r) ==>
+      separation (M, \<lambda>x. 
+         ~ (\<forall>f[M]. is_recfun(r^+, x, \<lambda>x. range, f) --> Ord(range(f))))" 
+apply (insert Ord_wfrank_separation [of r])
 apply (simp add: is_recfun_iff_M [of concl: _ _ "%x. range", THEN iff_sym])
 done
 
@@ -290,11 +316,11 @@ done
 
 lemma (in M_wfrank) Ord_wfrank_range [rule_format]:
     "[| wellfounded(M,r); a\<in>A; M(r); M(A) |]
-     ==> \<forall>f. M(f) --> is_recfun(r^+, a, %x f. range(f), f) --> Ord(range(f))"
+     ==> \<forall>f[M]. is_recfun(r^+, a, %x f. range(f), f) --> Ord(range(f))"
 apply (drule wellfounded_trancl, assumption)
 apply (rule wellfounded_induct, assumption+)
   apply simp
- apply (blast intro: Ord_wfrank_separation, clarify)
+ apply (blast intro: Ord_wfrank_separation', clarify)
 txt{*The reasoning in both cases is that we get @{term y} such that
    @{term "\<langle>y, x\<rangle> \<in> r^+"}.  We find that
    @{term "f`y = restrict(f, r^+ -`` {y})"}. *}
@@ -314,7 +340,8 @@ apply (frule is_recfun_restrict)
     apply (simp add: trans_trancl trancl_subset_times)+
 apply (drule spec [THEN mp], assumption)
 apply (subgoal_tac "M(restrict(f, r^+ -`` {y}))")
- apply (drule_tac x="restrict(f, r^+ -`` {y})" in spec)
+ apply (drule_tac x="restrict(f, r^+ -`` {y})" in rspec)
+apply assumption
  apply (simp add: function_apply_equality [OF _ is_recfun_imp_function])
 apply (blast dest: pair_components_in_M)
 done

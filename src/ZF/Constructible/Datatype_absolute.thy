@@ -121,7 +121,6 @@ by (simp add: iterates_nat_def recursor_def transrec_def
               wf_Memrel trans_Memrel relation_Memrel nat_case_closed)
 
 
-
 locale M_datatypes = M_wfrank +
 (*THEY NEED RELATIVIZATION*)
   assumes list_replacement1: 
@@ -133,7 +132,7 @@ locale M_datatypes = M_wfrank +
 		     is_recfun (memr, x,
 				\<lambda>n f. nat_case(0, \<lambda>m. {0} + A \<times> f`m, n), g) &
 		     y = nat_case(0, \<lambda>m. {0} + A \<times> g`m, x))"
-      and list_replacement2': 
+      and list_replacement2: 
            "M(A) ==> strong_replacement(M, \<lambda>x y. y = (\<lambda>X. {0} + A \<times> X)^x (0))"
 
 
@@ -145,6 +144,10 @@ lemma (in M_datatypes) list_replacement1':
 		          \<lambda>n f. nat_case(0, \<lambda>m. {0} + A \<times> f`m, n), g) &
  	       z = nat_case(0, \<lambda>m. {0} + A \<times> g ` m, x)))"
 by (insert list_replacement1, simp add: nat_into_M) 
+
+lemma (in M_datatypes) list_replacement2': 
+  "M(A) ==> strong_replacement(M, \<lambda>x y. y = (\<lambda>X. {0} + A \<times> X)^x (0))"
+by (insert list_replacement2, simp add: nat_into_M) 
 
 
 lemma (in M_datatypes) list_closed [intro,simp]:

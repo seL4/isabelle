@@ -884,6 +884,46 @@ apply (intro FOL_reflections pair_reflection)
 done
 
 
+subsubsection{*Pre-Image under a Relation, Internalized*}
+
+(* "pre_image(M,r,A,z) == 
+	\<forall>x[M]. x \<in> z <-> (\<exists>w[M]. w\<in>r & (\<exists>y[M]. y\<in>A & pair(M,x,y,w)))" *)
+constdefs pre_image_fm :: "[i,i,i]=>i"
+    "pre_image_fm(r,A,z) == 
+       Forall(Iff(Member(0,succ(z)),
+                  Exists(And(Member(0,succ(succ(r))),
+                             Exists(And(Member(0,succ(succ(succ(A)))),
+	 			        pair_fm(2,0,1)))))))"
+
+lemma pre_image_type [TC]:
+     "[| x \<in> nat; y \<in> nat; z \<in> nat |] ==> pre_image_fm(x,y,z) \<in> formula"
+by (simp add: pre_image_fm_def) 
+
+lemma arity_pre_image_fm [simp]:
+     "[| x \<in> nat; y \<in> nat; z \<in> nat |] 
+      ==> arity(pre_image_fm(x,y,z)) = succ(x) \<union> succ(y) \<union> succ(z)"
+by (simp add: pre_image_fm_def succ_Un_distrib [symmetric] Un_ac) 
+
+lemma sats_pre_image_fm [simp]:
+   "[| x \<in> nat; y \<in> nat; z \<in> nat; env \<in> list(A)|]
+    ==> sats(A, pre_image_fm(x,y,z), env) <-> 
+        pre_image(**A, nth(x,env), nth(y,env), nth(z,env))"
+by (simp add: pre_image_fm_def Relative.pre_image_def)
+
+lemma pre_image_iff_sats:
+      "[| nth(i,env) = x; nth(j,env) = y; nth(k,env) = z; 
+          i \<in> nat; j \<in> nat; k \<in> nat; env \<in> list(A)|]
+       ==> pre_image(**A, x, y, z) <-> sats(A, pre_image_fm(i,j,k), env)"
+by (simp add: sats_pre_image_fm)
+
+theorem pre_image_reflection:
+     "REFLECTS[\<lambda>x. pre_image(L,f(x),g(x),h(x)), 
+               \<lambda>i x. pre_image(**Lset(i),f(x),g(x),h(x))]"
+apply (simp only: Relative.pre_image_def setclass_simps)
+apply (intro FOL_reflections pair_reflection)  
+done
+
+
 subsubsection{*The Concept of Relation, Internalized*}
 
 (* "is_relation(M,r) == 
@@ -1000,7 +1040,7 @@ lemmas function_reflections =
         fun_apply_reflection subset_reflection
 	transitive_set_reflection membership_reflection
 	pred_set_reflection domain_reflection range_reflection field_reflection
-        image_reflection
+        image_reflection pre_image_reflection
 	is_relation_reflection is_function_reflection
 
 lemmas function_iff_sats = 
@@ -1008,7 +1048,7 @@ lemmas function_iff_sats =
 	cons_iff_sats successor_iff_sats
         fun_apply_iff_sats  Memrel_iff_sats
 	pred_set_iff_sats domain_iff_sats range_iff_sats field_iff_sats
-        image_iff_sats
+        image_iff_sats pre_image_iff_sats 
 	relation_iff_sats function_iff_sats
 
 
@@ -1189,6 +1229,46 @@ apply (intro And_reflection injection_reflection surjection_reflection)
 done
 
 
+subsubsection{*Restriction of a Relation, Internalized*}
+
+
+(* "restriction(M,r,A,z) == 
+	\<forall>x[M]. x \<in> z <-> (x \<in> r & (\<exists>u[M]. u\<in>A & (\<exists>v[M]. pair(M,u,v,x))))" *)
+constdefs restriction_fm :: "[i,i,i]=>i"
+    "restriction_fm(r,A,z) == 
+       Forall(Iff(Member(0,succ(z)),
+                  And(Member(0,succ(r)),
+                      Exists(And(Member(0,succ(succ(A))),
+                                 Exists(pair_fm(1,0,2)))))))"
+
+lemma restriction_type [TC]:
+     "[| x \<in> nat; y \<in> nat; z \<in> nat |] ==> restriction_fm(x,y,z) \<in> formula"
+by (simp add: restriction_fm_def) 
+
+lemma arity_restriction_fm [simp]:
+     "[| x \<in> nat; y \<in> nat; z \<in> nat |] 
+      ==> arity(restriction_fm(x,y,z)) = succ(x) \<union> succ(y) \<union> succ(z)"
+by (simp add: restriction_fm_def succ_Un_distrib [symmetric] Un_ac) 
+
+lemma sats_restriction_fm [simp]:
+   "[| x \<in> nat; y \<in> nat; z \<in> nat; env \<in> list(A)|]
+    ==> sats(A, restriction_fm(x,y,z), env) <-> 
+        restriction(**A, nth(x,env), nth(y,env), nth(z,env))"
+by (simp add: restriction_fm_def restriction_def)
+
+lemma restriction_iff_sats:
+      "[| nth(i,env) = x; nth(j,env) = y; nth(k,env) = z; 
+          i \<in> nat; j \<in> nat; k \<in> nat; env \<in> list(A)|]
+       ==> restriction(**A, x, y, z) <-> sats(A, restriction_fm(i,j,k), env)"
+by simp
+
+theorem restriction_reflection:
+     "REFLECTS[\<lambda>x. restriction(L,f(x),g(x),h(x)), 
+               \<lambda>i x. restriction(**Lset(i),f(x),g(x),h(x))]"
+apply (simp only: restriction_def setclass_simps)
+apply (intro FOL_reflections pair_reflection)  
+done
+
 subsubsection{*Order-Isomorphisms, Internalized*}
 
 (*  order_isomorphism :: "[i=>o,i,i,i,i,i] => o"
@@ -1327,12 +1407,14 @@ done
 lemmas fun_plus_reflections =
         typed_function_reflection composition_reflection
         injection_reflection surjection_reflection
-        bijection_reflection order_isomorphism_reflection
+        bijection_reflection restriction_reflection
+        order_isomorphism_reflection
         ordinal_reflection limit_ordinal_reflection omega_reflection
 
 lemmas fun_plus_iff_sats = 
 	typed_function_iff_sats composition_iff_sats
-        injection_iff_sats surjection_iff_sats bijection_iff_sats 
+        injection_iff_sats surjection_iff_sats 
+        bijection_iff_sats restriction_iff_sats 
         order_isomorphism_iff_sats
         ordinal_iff_sats limit_ordinal_iff_sats omega_iff_sats
 

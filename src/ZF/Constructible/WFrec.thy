@@ -275,17 +275,17 @@ apply (rule exists_is_recfun_indstep)
 done
 
 constdefs
- M_is_recfun :: "[i=>o, i, i, [i=>o,i,i,i]=>o, i] => o"
+ M_is_recfun :: "[i=>o, i, i, [i,i,i]=>o, i] => o"
    "M_is_recfun(M,r,a,MH,f) == 
      \<forall>z[M]. z \<in> f <-> 
             (\<exists>x[M]. \<exists>y[M]. \<exists>xa[M]. \<exists>sx[M]. \<exists>r_sx[M]. \<exists>f_r_sx[M]. 
 	       pair(M,x,y,z) & pair(M,x,a,xa) & upair(M,x,x,sx) &
                pre_image(M,r,sx,r_sx) & restriction(M,f,r_sx,f_r_sx) &
-               xa \<in> r & MH(M, x, f_r_sx, y))"
+               xa \<in> r & MH(x, f_r_sx, y))"
 
 lemma (in M_axioms) is_recfun_iff_M:
      "[| M(r); M(a); M(f); \<forall>x[M]. \<forall>g[M]. function(g) --> M(H(x,g));
-       \<forall>x g y. M(x) --> M(g) --> M(y) --> MH(M,x,g,y) <-> y = H(x,g) |] ==>
+       \<forall>x g y. M(x) --> M(g) --> M(y) --> MH(x,g,y) <-> y = H(x,g) |] ==>
        is_recfun(r,a,H,f) <-> M_is_recfun(M,r,a,MH,f)"
 apply (simp add: M_is_recfun_def is_recfun_relativize)
 apply (rule rall_cong)
@@ -294,7 +294,7 @@ done
 
 lemma M_is_recfun_cong [cong]:
      "[| r = r'; a = a'; f = f'; 
-       !!x g y. [| M(x); M(g); M(y) |] ==> MH(M,x,g,y) <-> MH'(M,x,g,y) |]
+       !!x g y. [| M(x); M(g); M(y) |] ==> MH(x,g,y) <-> MH'(x,g,y) |]
       ==> M_is_recfun(M,r,a,MH,f) <-> M_is_recfun(M,r',a',MH',f')"
 by (simp add: M_is_recfun_def) 
 
@@ -309,7 +309,7 @@ constdefs
        (\<forall>sj msj. M(sj) --> M(msj) --> 
                  successor(M,j,sj) --> membership(M,sj,msj) --> 
 	         M_is_recfun(M, msj, x, 
-		     %M x g y. \<exists>gx. M(gx) & image(M,g,x,gx) & union(M,i,gx,y),
+		     %x g y. \<exists>gx[M]. image(M,g,x,gx) & union(M,i,gx,y),
 		     f))"
 
  is_oadd :: "[i=>o,i,i,i] => o"

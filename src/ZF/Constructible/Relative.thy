@@ -532,7 +532,7 @@ apply (blast dest: transM)
 done
 
 text{*Probably the premise and conclusion are equivalent*}
-lemma (in M_triv_axioms) strong_replacementI [OF rallI]:
+lemma (in M_triv_axioms) strong_replacementI [rule_format]:
     "[| \<forall>A[M]. separation(M, %u. \<exists>x[M]. x\<in>A & P(x,u)) |]
      ==> strong_replacement(M,P)"
 apply (simp add: strong_replacement_def, clarify) 
