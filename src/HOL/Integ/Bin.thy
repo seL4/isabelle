@@ -137,7 +137,7 @@ qed
 lemma odd_nonzero: "1 + z + z \<noteq> (0::int)";
 proof (cases z rule: int_cases)
   case (nonneg n)
-  have le: "0 \<le> z+z" by (simp add: prems add_increasing) 
+  have le: "0 \<le> z+z" by (simp add: nonneg add_increasing) 
   thus ?thesis using  le_imp_0_less [OF le]
     by (auto simp add: add_assoc) 
 next
@@ -147,7 +147,8 @@ next
     assume eq: "1 + z + z = 0"
     have "0 < 1 + (int n + int n)"
       by (simp add: le_imp_0_less add_increasing) 
-    also have "... = - (1 + z + z)" by (simp add: prems int_Suc add_ac) 
+    also have "... = - (1 + z + z)"
+      by (simp add: neg add_assoc [symmetric], simp add: add_commute) 
     also have "... = 0" by (simp add: eq) 
     finally have "0<0" ..
     thus False by blast
@@ -235,9 +236,9 @@ proof (unfold Ints_def)
   assume "a \<in> range of_int"
   then obtain z where a: "a = of_int z" ..
   hence "((1::'a) + a + a < 0) = (of_int (1 + z + z) < (of_int 0 :: 'a))"
-    by (simp add: prems)
+    by (simp add: a)
   also have "... = (z < 0)" by (simp only: of_int_less_iff odd_less_0)
-  also have "... = (a < 0)" by (simp add: prems)
+  also have "... = (a < 0)" by (simp add: a)
   finally show ?thesis .
 qed
 

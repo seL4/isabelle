@@ -24,7 +24,7 @@ val div_mod_eqs =
 val trans = trans
 
 val prove_eq_sums =
-  let val simps = zdiff_def :: Int_Numeral_Simprocs.add_0s @ zadd_ac
+  let val simps = diff_int_def :: Int_Numeral_Simprocs.add_0s @ zadd_ac
   in NatArithUtils.prove_conv all_tac (NatArithUtils.simp_all simps) end
 
 end;

@@ -40,17 +40,6 @@ qed
 
 subsection{*Inequality Reasoning for the Arithmetic Simproc*}
 
-lemma zero_less_nat_eq [simp]: "(0 < nat z) = (0 < z)"
-by (cut_tac w = 0 in zless_nat_conj, auto)
-
-lemma zless_imp_add1_zle: "w<z ==> w + (1::int) \<le> z"
-apply (rule eq_Abs_Integ [of z])
-apply (rule eq_Abs_Integ [of w])
-apply (simp add: linorder_not_le [symmetric] zle int_def zadd One_int_def)
-done
-
-
-
 lemma add_numeral_0: "Numeral0 + a = (a::'a::number_ring)"
 by simp 
 
@@ -170,10 +159,10 @@ by arith
 lemma add1_zle_eq: "(w + (1::int) \<le> z) = (w<z)"
 by arith
 
-lemma zle_diff1_eq [simp]: "(w \<le> z - (1::int)) = (w<(z::int))"
+lemma zle_diff1_eq [simp]: "(w \<le> z - (1::int)) = (w<z)"
 by arith
 
-lemma zle_add1_eq_le [simp]: "(w < z + 1) = (w\<le>(z::int))"
+lemma zle_add1_eq_le [simp]: "(w < z + (1::int)) = (w\<le>z)"
 by arith
 
 lemma int_one_le_iff_zero_less: "((1::int) \<le> z) = (0 < z)"
@@ -182,32 +171,13 @@ by arith
 
 subsection{*The Functions @{term nat} and @{term int}*}
 
-lemma nonneg_eq_int: "[| 0 \<le> z;  !!m. z = int m ==> P |] ==> P"
-by (blast dest: nat_0_le sym)
-
-lemma nat_eq_iff: "(nat w = m) = (if 0 \<le> w then w = int m else m=0)"
-by auto
-
-lemma nat_eq_iff2: "(m = nat w) = (if 0 \<le> w then w = int m else m=0)"
-by auto
-
-lemma nat_less_iff: "0 \<le> w ==> (nat w < m) = (w < int m)"
-apply (rule iffI)
-apply (erule nat_0_le [THEN subst])
-apply (simp_all del: zless_int add: zless_int [symmetric]) 
-done
-
-lemma int_eq_iff: "(int m = z) = (m = nat z & 0 \<le> z)"
-by (auto simp add: nat_eq_iff2)
-
-
 text{*Simplify the terms @{term "int 0"}, @{term "int(Suc 0)"} and
   @{term "w + - z"}*}
 declare Zero_int_def [symmetric, simp]
 declare One_int_def [symmetric, simp]
 
 text{*cooper.ML refers to this theorem*}
-lemmas zdiff_def_symmetric = zdiff_def [symmetric, simp]
+lemmas diff_int_def_symmetric = diff_int_def [symmetric, simp]
 
 lemma nat_0: "nat 0 = 0"
 by (simp add: nat_eq_iff)
@@ -218,21 +188,9 @@ by (subst nat_eq_iff, simp)
 lemma nat_2: "nat 2 = Suc (Suc 0)"
 by (subst nat_eq_iff, simp)
 
-lemma nat_less_eq_zless: "0 \<le> w ==> (nat w < nat z) = (w<z)"
-apply (case_tac "z < 0")
-apply (auto simp add: nat_less_iff)
-done
-
-lemma nat_le_eq_zle: "0 < w | 0 \<le> z ==> (nat w \<le> nat z) = (w\<le>z)"
-by (auto simp add: linorder_not_less [symmetric] zless_nat_conj)
-
-
 text{*This simplifies expressions of the form @{term "int n = z"} where
       z is an integer literal.*}
 declare int_eq_iff [of _ "number_of v", standard, simp]
-
-lemma int_nat_eq [simp]: "int (nat z) = (if 0 \<le> z then z else 0)"
-  by simp
 
 lemma split_nat [arith_split]:
   "P(nat(i::int)) = ((\<forall>n. i = int n \<longrightarrow> P n) & (i < 0 \<longrightarrow> P 0))"
@@ -249,6 +207,29 @@ next
   qed
   with False show ?thesis by simp
 qed
+
+
+(*Analogous to zadd_int*)
+lemma zdiff_int: "n \<le> m ==> int m - int n = int (m-n)"
+by (induct m n rule: diff_induct, simp_all)
+
+lemma nat_mult_distrib: "(0::int) \<le> z ==> nat (z*z') = nat z * nat z'"
+apply (case_tac "0 \<le> z'")
+apply (rule inj_int [THEN injD])
+apply (simp add: zmult_int [symmetric] zero_le_mult_iff)
+apply (simp add: mult_le_0_iff)
+done
+
+lemma nat_mult_distrib_neg: "z \<le> (0::int) ==> nat(z*z') = nat(-z) * nat(-z')"
+apply (rule trans)
+apply (rule_tac [2] nat_mult_distrib, auto)
+done
+
+lemma nat_abs_mult_distrib: "nat (abs (w * z)) = nat (abs w) * nat (abs z)"
+apply (case_tac "z=0 | w=0")
+apply (auto simp add: zabs_def nat_mult_distrib [symmetric] 
+                      nat_mult_distrib_neg [symmetric] mult_less_0_iff)
+done
 
 
 subsubsection "Induction principles for int"
@@ -389,42 +370,6 @@ apply (subgoal_tac "0 < -m")
 apply (drule_tac n = "-n" in pos_zmult_eq_1_iff, auto)
 done
 
-
-subsection{*More about nat*}
-
-(*Analogous to zadd_int*)
-lemma zdiff_int: "n \<le> m ==> int m - int n = int (m-n)"
-by (induct m n rule: diff_induct, simp_all)
-
-lemma nat_add_distrib:
-     "[| (0::int) \<le> z;  0 \<le> z' |] ==> nat (z+z') = nat z + nat z'"
-apply (rule inj_int [THEN injD])
-apply (simp add: zadd_int [symmetric])
-done
-
-lemma nat_diff_distrib:
-     "[| (0::int) \<le> z';  z' \<le> z |] ==> nat (z-z') = nat z - nat z'"
-apply (rule inj_int [THEN injD])
-apply (simp add: zdiff_int [symmetric] nat_le_eq_zle)
-done
-
-lemma nat_mult_distrib: "(0::int) \<le> z ==> nat (z*z') = nat z * nat z'"
-apply (case_tac "0 \<le> z'")
-apply (rule inj_int [THEN injD])
-apply (simp add: zmult_int [symmetric] zero_le_mult_iff)
-apply (simp add: mult_le_0_iff)
-done
-
-lemma nat_mult_distrib_neg: "z \<le> (0::int) ==> nat(z*z') = nat(-z) * nat(-z')"
-apply (rule trans)
-apply (rule_tac [2] nat_mult_distrib, auto)
-done
-
-lemma nat_abs_mult_distrib: "nat (abs (w * z)) = nat (abs w) * nat (abs z)"
-apply (case_tac "z=0 | w=0")
-apply (auto simp add: zabs_def nat_mult_distrib [symmetric] 
-                      nat_mult_distrib_neg [symmetric] mult_less_0_iff)
-done
 
 
 ML

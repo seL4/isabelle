@@ -1949,6 +1949,16 @@ lemma vimage_mono: "A \<subseteq> B ==> f -` A \<subseteq> f -` B"
   by blast
 
 
+subsection {* Getting the Contents of a Singleton Set *}
+
+constdefs
+  contents :: "'a set => 'a"
+   "contents X == THE x. X = {x}"
+
+lemma contents_eq [simp]: "contents {x} = x"
+by (simp add: contents_def)
+
+
 subsection {* Transitivity rules for calculational reasoning *}
 
 lemma forw_subst: "a = b ==> P b ==> P a"

@@ -44,7 +44,7 @@ open CooperDec;
 (*-----------------------------------------------------------------*)
 
 val presburger_ss = simpset_of (theory "Presburger")
-  addsimps [zdiff_def] delsimps [thm"zdiff_def_symmetric"];
+  addsimps [diff_int_def] delsimps [thm"diff_int_def_symmetric"];
 val cboolT = ctyp_of (sign_of HOL.thy) HOLogic.boolT;
 
 (*Theorems that will be used later for the proofgeneration*)
