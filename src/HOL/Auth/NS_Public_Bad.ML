@@ -67,13 +67,8 @@ by (auto_tac(claset() addDs [impOfSubs analz_subset_parts], simpset()));
 qed "Spy_analz_priK";
 Addsimps [Spy_analz_priK];
 
-goal thy  "!!A. [| Key (priK A) : parts (spies evs);       \
-\                  evs : ns_public |] ==> A:bad";
-by (blast_tac (claset() addDs [Spy_see_priK]) 1);
-qed "Spy_see_priK_D";
-
-bind_thm ("Spy_analz_priK_D", analz_subset_parts RS subsetD RS Spy_see_priK_D);
-AddSDs [Spy_see_priK_D, Spy_analz_priK_D];
+AddSDs [Spy_see_priK RSN (2, rev_iffD1), 
+	Spy_analz_priK RSN (2, rev_iffD1)];
 
 
 (**** Authenticity properties obtained from NS2 ****)
@@ -104,7 +99,8 @@ goal thy
 by (etac rev_mp 1);
 by (parts_induct_tac 1);
 by (ALLGOALS
-    (asm_simp_tac (simpset() addsimps [all_conj_distrib, parts_insert_spies])));
+    (asm_simp_tac (simpset() addsimps [all_conj_distrib, 
+				       parts_insert_spies])));
 (*NS1*)
 by (expand_case_tac "NA = ?y" 2 THEN blast_tac (claset() addSEs partsEs) 2);
 (*Fake*)
@@ -138,7 +134,7 @@ by (etac rev_mp 1);
 by (analz_induct_tac 1);
 (*NS3*)
 by (blast_tac (claset() addDs  [Says_imp_spies RS parts.Inj]
-                       addEs  [no_nonce_NS1_NS2 RSN (2, rev_notE)]) 4);
+                        addEs  [no_nonce_NS1_NS2 RSN (2, rev_notE)]) 4);
 (*NS2*)
 by (blast_tac (claset() addSEs [MPair_parts]
 		       addDs  [Says_imp_spies RS parts.Inj,
