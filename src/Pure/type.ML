@@ -31,6 +31,7 @@ sig
     (string list * (sort list * class)) list -> type_sig
   val ext_tsig_subclass: type_sig -> (class * class) list -> type_sig
   val ext_tsig_defsort: type_sig -> sort -> type_sig
+  val ext_tsig_types: type_sig -> (string * int) list -> type_sig
   val ext_tsig_abbrs: type_sig -> (string * (indexname list * typ)) list
     -> type_sig
   val merge_tsigs: type_sig * type_sig -> type_sig
@@ -131,7 +132,7 @@ fun rep_tsig (TySg comps) = comps;
 fun defaultS (TySg {default, ...}) = default;
 
 
-(* error messages *)    (* FIXME move? *)
+(* error messages *)
 
 fun undcl_class c = "Undeclared class " ^ quote c;
 val err_undcl_class = error o undcl_class;
@@ -142,11 +143,11 @@ fun err_dup_classes cs =
 fun undcl_type c = "Undeclared type constructor " ^ quote c;
 val err_undcl_type = error o undcl_type;
 
-fun err_dup_tycon c =
-  error ("Duplicate declaration of type constructor " ^ quote c);
-
 fun err_neg_args c =
   error ("Negative number of arguments of type constructor " ^ quote c);
+
+fun err_dup_tycon c =
+  error ("Duplicate declaration of type constructor " ^ quote c);
 
 fun err_dup_tyabbr c =
   error ("Duplicate declaration of type abbreviation " ^ quote c);
@@ -616,6 +617,65 @@ fun ext_tsig_defsort (TySg {classes, subclass, args, abbrs, coreg, ...}) default
 
 
 
+(** add types **)   (* FIXME check *)
+
+fun ext_tsig_types (TySg {classes, subclass, default, args, abbrs, coreg}) ts =
+  let
+    fun check_type (c, n) =
+      if n < 0 then err_neg_args c
+      else if is_some (assoc (args, c)) then err_dup_tycon c
+      else if is_some (assoc (abbrs, c)) then err_ty_confl c
+      else ();
+  in
+    seq check_type ts;
+    make_tsig (classes, subclass, default, ts @ args, abbrs,
+      map (rpair [] o #1) ts @ coreg)    (* FIXME (t, []) needed? *)
+  end;
+
+
+
+(** add type abbreviations **)
+
+fun abbr_errors tsig (a, (lhs_vs, rhs)) =
+  let
+    val TySg {args, abbrs, ...} = tsig;
+    val rhs_vs = map #1 (typ_tvars rhs);
+    val show_idxs = commas_quote o map fst;
+
+    val dup_lhs_vars =
+      (case duplicates lhs_vs of
+        [] => []
+      | vs => ["Duplicate variables on lhs: " ^ show_idxs vs]);
+
+    val extra_rhs_vars =
+      (case gen_rems (op =) (rhs_vs, lhs_vs) of
+        [] => []
+      | vs => ["Extra variables on rhs: " ^ show_idxs vs]);
+
+    val tycon_confl =
+      if is_none (assoc (args, a)) then []
+      else [ty_confl a];
+
+    val dup_abbr =
+      if is_none (assoc (abbrs, a)) then []
+      else ["Duplicate declaration of abbreviation"];
+  in
+    dup_lhs_vars @ extra_rhs_vars @ tycon_confl @ dup_abbr @
+      typ_errors tsig (rhs, [])
+  end;
+
+fun add_abbr (tsig, abbr as (a, _)) =
+  let val TySg {classes, subclass, default, args, coreg, abbrs} = tsig in
+    (case abbr_errors tsig abbr of
+      [] => make_tsig (classes, subclass, default, args, abbr :: abbrs, coreg)
+    | errs => (seq writeln errs;
+        error ("The error(s) above occurred in type abbreviation " ^ quote a)))
+  end;
+
+fun ext_tsig_abbrs tsig abbrs = foldl add_abbr (tsig, abbrs);
+
+
+
 (** add arities **)
 
 (* 'coregular' checks
@@ -668,6 +728,7 @@ fun close (coreg, subclass) =
 
 (** add types **)
 
+(* FIXME old *)
 fun add_types (aca, (ts, n)) =
   let
     fun add_type ((args, coreg, abbrs), t) =
@@ -685,66 +746,21 @@ fun add_types (aca, (ts, n)) =
 
 
 
-(** add type abbreviations **)
-
-fun abbr_errors tsig (a, (lhs_vs, rhs)) =
-  let
-    val TySg {args, abbrs, ...} = tsig;
-    val rhs_vs = map #1 (typ_tvars rhs);
-    val show_idxs = commas_quote o map fst;
-
-    val dup_lhs_vars =
-      (case duplicates lhs_vs of
-        [] => []
-      | vs => ["Duplicate variables on lhs: " ^ show_idxs vs]);
-
-    val extra_rhs_vars =
-      (case gen_rems (op =) (rhs_vs, lhs_vs) of
-        [] => []
-      | vs => ["Extra variables on rhs: " ^ show_idxs vs]);
-
-    val tycon_confl =
-      if is_none (assoc (args, a)) then []
-      else [ty_confl a];
-
-    val dup_abbr =
-      if is_none (assoc (abbrs, a)) then []
-      else ["Duplicate declaration of abbreviation"];
-  in
-    dup_lhs_vars @ extra_rhs_vars @ tycon_confl @ dup_abbr @
-      typ_errors tsig (rhs, [])
-  end;
-
-fun add_abbr (tsig, abbr as (a, _)) =
-  let val TySg {classes, subclass, default, args, coreg, abbrs} = tsig in
-    (case abbr_errors tsig abbr of
-      [] => make_tsig (classes, subclass, default, args, abbr :: abbrs, coreg)
-    | errs => (seq writeln errs;
-        error ("The error(s) above occurred in type abbreviation " ^ quote a)))
-  end;
-
-fun ext_tsig_abbrs tsig abbrs = foldl add_abbr (tsig, abbrs);
-
-
-
 (* 'extend_tsig' takes the above described check- and extend-functions to
    extend a given type signature with new classes and new type declarations *)
 
 fun extend_tsig (TySg{classes, default, subclass, args, coreg, abbrs})
-            (newclasses, newdefault, types, arities) =
+            (newclasses, [], types, arities) =
   let
     val (classes', subclass') = extend_classes(classes, subclass, newclasses);
     val (args', coreg', _) = foldl add_types ((args, coreg, abbrs), types);
 
-    val old_coreg = map #1 coreg;
     val coreg'' =
       foldl (coregular (classes', subclass', args'))
         (coreg', min_domain subclass' arities);
     val coreg''' = close (coreg'', subclass');
-
-    val default' = if null newdefault then default else newdefault;
   in
-    TySg {classes = classes', subclass = subclass', default = default',
+    TySg {classes = classes', subclass = subclass', default = default,
       args = args', coreg = coreg''', abbrs = abbrs}
   end;
 
