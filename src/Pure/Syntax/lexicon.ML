@@ -24,6 +24,10 @@ sig
   val const: string -> term
   val free: string -> term
   val var: indexname -> term
+  val binding: string -> string
+  val is_binding: string -> bool
+  val skolem: string -> string
+  val is_skolem: string -> bool
 end;
 
 signature LEXICON =
@@ -319,6 +323,15 @@ fun read_var str =
   in
     #1 (Scan.error (Scan.finite Symbol.stopper scan) (Symbol.explode str))
   end;
+
+
+(* variable kinds *)
+
+fun binding x = x ^ "_";
+fun is_binding x = size x >= 1 andalso last_elem (explode x) = "_";
+
+fun skolem x = x ^ "__";
+fun is_skolem x = size x >= 2 andalso drop (size x - 2, explode x) = ["_", "_"];
 
 
 end;
