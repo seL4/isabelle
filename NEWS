@@ -28,6 +28,9 @@ creates a new theory node; implicit merge of thms' signatures is
 restricted to 'trivial' ones, thus one may have to use
 transfer:theory->thm->thm in (rare) cases;
 
+* improved handling of draft signatures / theories; draft thms (and
+ctyps, cterms) are automatically promoted to real ones;
+
 * slightly changed interfaces for oracles: admit many per theory, named
 (e.g. oracle foo = mlfun), additional name argument for invoke_oracle;
 
