@@ -263,7 +263,7 @@ fun err_uninit sg kind =
 
 (* prepare data *)
 
-val empty_data = Data Symtab.null;
+val empty_data = Data Symtab.empty;
 
 fun merge_data (Data tab1, Data tab2) =
   let
@@ -290,7 +290,7 @@ fun prep_ext_data data = merge_data (data, empty_data);
 
 fun init_data_sg sg (Data tab) kind e ext mrg prt =
   Data (Symtab.update_new ((kind, (e, (ext, mrg, prt))), tab))
-    handle Symtab.DUPLICATE _ => err_dup_init sg kind;
+    handle Symtab.DUP _ => err_dup_init sg kind;
 
 
 (* access data *)
@@ -373,13 +373,14 @@ fun extrn spaces kind = NameSpace.extern (space_of spaces kind);
 
 (*add names*)
 fun add_names spaces kind names =
-  let val space' = NameSpace.extend (names, space_of spaces kind) in
+  let val space' = NameSpace.extend (space_of spaces kind, names) in
     overwrite (spaces, (kind, space'))
   end;
 
 (*make full names*)
 fun full path name =
-  if NameSpace.qualified name then
+  if name = "" then error "Attempt to declare empty name \"\""
+  else if NameSpace.qualified name then
     error ("Attempt to declare qualified name " ^ quote name)
   else NameSpace.pack (path @ [name]);
 
@@ -739,7 +740,7 @@ fun ext_cnsts rd_const syn_only prmode (syn, tsig, ctab, (path, spaces), data) r
       else decls_of path Syntax.const_name consts;
   in
     (Syntax.extend_const_gram syn prmode consts, tsig,
-      Symtab.extend_new (ctab, decls)
+      Symtab.extend (ctab, decls)
         handle Symtab.DUPS cs => err_dup_consts cs,
       (path, add_names spaces constK (map fst decls)), data)
   end;
@@ -935,11 +936,11 @@ fun merge sg1_sg2 =
 (** partial Pure signature **)
 
 val dummy_sg = make_sign (ref "", SgRef None, Type.tsig0,
-  Symtab.null, Syntax.pure_syn, [], [], empty_data, []);
+  Symtab.empty, Syntax.pure_syn, [], [], empty_data, []);
 
 val pre_pure =
   create_sign (SgRef (Some (ref dummy_sg))) [] "#"
-    (Syntax.pure_syn, Type.tsig0, Symtab.null, ([], []), empty_data);
+    (Syntax.pure_syn, Type.tsig0, Symtab.empty, ([], []), empty_data);
 
 
 end;
