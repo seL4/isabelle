@@ -447,12 +447,13 @@ qed_goalw "fix_def2" thy [fix_def]
 (* access to definitions                                                    *)
 (* ------------------------------------------------------------------------ *)
 
-qed_goalw "adm_def2" thy [adm_def]
-        "adm(P) = (!Y. is_chain(Y) --> (!i.P(Y(i))) --> P(lub(range(Y))))"
- (fn prems =>
-        [
-        (rtac refl 1)
-        ]);
+qed_goalw "admI" thy [adm_def]
+        "(!!Y. [| is_chain(Y); !i.P(Y(i)) |] ==> P(lub(range(Y)))) ==> adm(P)"
+ (fn prems => [fast_tac (HOL_cs addIs prems) 1]);
+
+qed_goalw "admD" thy [adm_def]
+        "!!P. [| adm(P); is_chain(Y); !i.P(Y(i)) |] ==> P(lub(range(Y)))"
+ (fn prems => [fast_tac HOL_cs 1]);
 
 qed_goalw "admw_def2" thy [admw_def]
         "admw(P) = (!F.(!n.P(iterate n F UU)) -->\
@@ -466,13 +467,11 @@ qed_goalw "admw_def2" thy [admw_def]
 (* an admissible formula is also weak admissible                            *)
 (* ------------------------------------------------------------------------ *)
 
-qed_goalw "adm_impl_admw"  thy [admw_def] "adm(P)==>admw(P)"
+qed_goalw "adm_impl_admw"  thy [admw_def] "!!P. adm(P)==>admw(P)"
  (fn prems =>
         [
-        (cut_facts_tac prems 1),
         (strip_tac 1),
-        (rtac (adm_def2 RS iffD1 RS spec RS mp RS mp) 1),
-        (atac 1),
+        (etac admD 1),
         (rtac is_chain_iterate 1),
         (atac 1)
         ]);
@@ -487,8 +486,7 @@ qed_goal "fix_ind"  thy
         [
         (cut_facts_tac prems 1),
         (stac fix_def2 1),
-        (rtac (adm_def2 RS iffD1 RS spec RS mp RS mp) 1),
-        (atac 1),
+        (etac admD 1),
         (rtac is_chain_iterate 1),
         (rtac allI 1),
         (nat_ind_tac "i" 1),
@@ -569,7 +567,7 @@ qed_goalw "adm_chfindom" thy [adm_def] "adm (%(u::'a::cpo->'b::chfin). P(u`s))"
 (* improved admisibility introduction                                       *)
 (* ------------------------------------------------------------------------ *)
 
-qed_goalw "admI" thy [adm_def]
+qed_goalw "admI2" thy [adm_def]
  "(!!Y. [| is_chain Y; !i. P (Y i); !i. ? j. i < j & Y i ~= Y j & Y i << Y j |]\
 \ ==> P(lub (range Y))) ==> adm P" 
  (fn prems => [
@@ -601,47 +599,21 @@ qed_goalw "adm_less"  thy [adm_def]
         (atac 1),
         (atac 1)
         ]);
+Addsimps [adm_less];
 
 qed_goal "adm_conj"  thy  
-        "[| adm P; adm Q |] ==> adm(%x. P x & Q x)"
- (fn prems =>
-        [
-        (cut_facts_tac prems 1),
-        (rtac (adm_def2 RS iffD2) 1),
-        (strip_tac 1),
-        (rtac conjI 1),
-        (rtac (adm_def2 RS iffD1 RS spec RS mp RS mp) 1),
-        (atac 1),
-        (atac 1),
-        (fast_tac HOL_cs 1),
-        (rtac (adm_def2 RS iffD1 RS spec RS mp RS mp) 1),
-        (atac 1),
-        (atac 1),
-        (fast_tac HOL_cs 1)
-        ]);
-
-qed_goal "adm_cong"  thy  
-        "(!x. P x = Q x) ==> adm P = adm Q "
- (fn prems =>
-        [
-        (cut_facts_tac prems 1),
-        (res_inst_tac [("s","P"),("t","Q")] subst 1),
-        (rtac refl 2),
-        (rtac ext 1),
-        (etac spec 1)
-        ]);
+        "!!P. [| adm P; adm Q |] ==> adm(%x. P x & Q x)"
+ (fn prems => [fast_tac (HOL_cs addEs [admD] addIs [admI]) 1]);
+Addsimps [adm_conj];
 
 qed_goalw "adm_not_free"  thy [adm_def] "adm(%x.t)"
- (fn prems =>
-        [
-        (fast_tac HOL_cs 1)
-        ]);
+ (fn prems => [fast_tac HOL_cs 1]);
+Addsimps [adm_not_free];
 
 qed_goalw "adm_not_less"  thy [adm_def]
-        "cont t ==> adm(%x.~ (t x) << u)"
+        "!!t. cont t ==> adm(%x.~ (t x) << u)"
  (fn prems =>
         [
-        (cut_facts_tac prems 1),
         (strip_tac 1),
         (rtac contrapos 1),
         (etac spec 1),
@@ -652,54 +624,33 @@ qed_goalw "adm_not_less"  thy [adm_def]
         (atac 1)
         ]);
 
-qed_goal "adm_all"  thy  
-        " !y.adm(P y) ==> adm(%x.!y.P y x)"
- (fn prems =>
-        [
-        (cut_facts_tac prems 1),
-        (rtac (adm_def2 RS iffD2) 1),
-        (strip_tac 1),
-        (rtac (adm_def2 RS iffD1 RS spec RS mp RS mp) 1),
-        (etac spec 1),
-        (atac 1),
-        (rtac allI 1),
-        (dtac spec 1),
-        (etac spec 1)
-        ]);
+qed_goal "adm_all" thy  
+        "!!P. !y.adm(P y) ==> adm(%x.!y.P y x)"
+ (fn prems => [fast_tac (HOL_cs addIs [admI] addEs [admD]) 1]);
 
 bind_thm ("adm_all2", allI RS adm_all);
 
 qed_goal "adm_subst"  thy  
-        "[|cont t; adm P|] ==> adm(%x. P (t x))"
+        "!!P. [|cont t; adm P|] ==> adm(%x. P (t x))"
  (fn prems =>
         [
-        (cut_facts_tac prems 1),
-        (rtac (adm_def2 RS iffD2) 1),
-        (strip_tac 1),
+        (rtac admI 1),
         (stac (cont2contlub RS contlubE RS spec RS mp) 1),
         (atac 1),
         (atac 1),
-        (rtac (adm_def2 RS iffD1 RS spec RS mp RS mp) 1),
-        (atac 1),
-        (rtac (cont2mono RS ch2ch_monofun) 1),
-        (atac 1),
+        (etac admD 1),
+        (etac (cont2mono RS ch2ch_monofun) 1),
         (atac 1),
         (atac 1)
         ]);
 
 qed_goal "adm_UU_not_less"  thy "adm(%x.~ UU << t(x))"
- (fn prems =>
-        [
-        (res_inst_tac [("P2","%x.False")] (adm_cong RS iffD1) 1),
-        (Asm_simp_tac 1),
-        (rtac adm_not_free 1)
-        ]);
+ (fn prems => [Simp_tac 1]);
 
 qed_goalw "adm_not_UU"  thy [adm_def] 
-        "cont(t)==> adm(%x.~ (t x) = UU)"
+        "!!t. cont(t)==> adm(%x.~ (t x) = UU)"
  (fn prems =>
         [
-        (cut_facts_tac prems 1),
         (strip_tac 1),
         (rtac contrapos 1),
         (etac spec 1),
@@ -714,25 +665,9 @@ qed_goalw "adm_not_UU"  thy [adm_def]
         ]);
 
 qed_goal "adm_eq"  thy 
-        "[|cont u ; cont v|]==> adm(%x. u x = v x)"
- (fn prems =>
-        [
-        (rtac (adm_cong RS iffD1) 1),
-        (rtac allI 1),
-        (rtac iffI 1),
-        (rtac antisym_less 1),
-        (rtac antisym_less_inverse 3),
-        (atac 3),
-        (etac conjunct1 1),
-        (etac conjunct2 1),
-        (rtac adm_conj 1),
-        (rtac adm_less 1),
-        (resolve_tac prems 1),
-        (resolve_tac prems 1),
-        (rtac adm_less 1),
-        (resolve_tac prems 1),
-        (resolve_tac prems 1)
-        ]);
+        "!!u. [|cont u ; cont v|]==> adm(%x. u x = v x)"
+ (fn prems => [asm_simp_tac (!simpset addsimps [po_eq_conv]) 1]);
+
 
 
 (* ------------------------------------------------------------------------ *)
@@ -752,8 +687,7 @@ local
   val adm_disj_lemma2 = prove_goal thy  
   "!!Q. [| adm(Q); ? X.is_chain(X) & (!n.Q(X(n))) &\
   \   lub(range(Y))=lub(range(X))|] ==> Q(lub(range(Y)))"
- (fn _ => [fast_tac (!claset addEs [adm_def2 RS iffD1 RS spec RS mp RS mp]
-                             addss !simpset) 1]);
+ (fn _ => [fast_tac (!claset addEs [admD] addss !simpset) 1]);
 
   val adm_disj_lemma3 = prove_goalw thy [is_chain]
   "!!Q. is_chain(Y) ==> is_chain(%m. if m < Suc i then Y(Suc i) else Y m)"
@@ -916,12 +850,10 @@ val adm_lemma11 = prove_goal thy
         ]);
 
 val adm_disj = prove_goal thy  
-        "[| adm P; adm Q |] ==> adm(%x.P x | Q x)"
+        "!!P. [| adm P; adm Q |] ==> adm(%x.P x | Q x)"
  (fn prems =>
         [
-        (cut_facts_tac prems 1),
-        (rtac (adm_def2 RS iffD2) 1),
-        (strip_tac 1),
+        (rtac admI 1),
         (rtac (adm_disj_lemma1 RS disjE) 1),
         (atac 1),
         (rtac disjI2 1),
@@ -940,16 +872,25 @@ bind_thm("adm_lemma11",adm_lemma11);
 bind_thm("adm_disj",adm_disj);
 
 qed_goal "adm_imp"  thy  
-        "[| adm(%x.~(P x)); adm Q |] ==> adm(%x.P x --> Q x)"
+        "!!P. [| adm(%x.~(P x)); adm Q |] ==> adm(%x.P x --> Q x)"
  (fn prems =>
         [
-        (cut_facts_tac prems 1),
-        (res_inst_tac [("P2","%x.~(P x)|Q x")] (adm_cong RS iffD1) 1),
-        (fast_tac HOL_cs 1),
-        (rtac adm_disj 1),
+        subgoal_tac "(%x.P x --> Q x) = (%x. ~P x | Q x)" 1,
+        (Asm_simp_tac 1),
+        (etac adm_disj 1),
         (atac 1),
-        (atac 1)
+        (rtac ext 1),
+        (fast_tac HOL_cs 1)
         ]);
+
+goal Fix.thy "!! P. [| adm (%x. P x --> Q x); adm (%x.Q x --> P x) |] \
+\           ==> adm (%x. P x = Q x)";
+by(subgoal_tac "(%x.P x = Q x) = (%x. (P x --> Q x) & (Q x --> P x))" 1);
+by (Asm_simp_tac 1);
+by (rtac ext 1);
+by (fast_tac HOL_cs 1);
+qed"adm_iff";
+
 
 qed_goal "adm_not_conj"  thy  
 "[| adm (%x. ~ P x); adm (%x. ~ Q x) |] ==> adm (%x. ~ (P x & Q x))"(fn prems=>[
@@ -963,7 +904,7 @@ qed_goal "adm_not_conj"  thy
         atac 1]);
 
 val adm_lemmas = [adm_imp,adm_disj,adm_eq,adm_not_UU,adm_UU_not_less,
-        adm_all2,adm_not_less,adm_not_free,adm_not_conj,adm_conj,adm_less];
+        adm_all2,adm_not_less,adm_not_free,adm_not_conj,adm_conj,adm_less,
+        adm_iff];
 
 Addsimps adm_lemmas;
-

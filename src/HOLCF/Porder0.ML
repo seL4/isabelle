@@ -47,3 +47,6 @@ qed_goal "box_less" thy
         (atac 1)
         ]);
 
+goal Porder0.thy "((x::'a::po)=y) = (x << y & y << x)";
+by(fast_tac (HOL_cs addSEs [antisym_less_inverse] addSIs [antisym_less]) 1);
+qed "po_eq_conv";
