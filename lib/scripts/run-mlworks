@@ -42,7 +42,7 @@ MLEXIT="commit ();"
 
 ## run it!
 
-START_MLWORKS="$ML_HOME/$MLWORKS $ML_OPTIONS"
+START_MLWORKS="$ML_HOME/$MLWORKS 2>&1 $ML_OPTIONS"
 
 if [ -n "$TERMINATE" ]; then
   sh -c "echo '$MLTEXT' '$MLEXIT' | $START_MLWORKS"
@@ -54,10 +54,6 @@ else
   sh -c "{ echo '$MLTEXT'; $ISABELLE_HOME/lib/Tools/symbolinput; echo '$MLEXIT'; } | $START_MLWORKS"
   RC=$?
 fi
-
-#fix heap file name
-[ -n "$OUTFILE" -a -n "$SUFFIX" -a -f "$OUTFILE$SUFFIX" ] \
-  && mv "$OUTFILE$SUFFIX" "$OUTFILE"
 
 [ -n "$OUTFILE" -a -n "$NOWRITE" ] && chmod -w "$OUTFILE"
 
