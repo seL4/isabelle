@@ -84,9 +84,9 @@ fun mk_info (name, children, parents, theory) =
 (*preloaded theories*)
 val loaded_thys =
   ref (Symtab.make (map mk_info
-    [("ProtoPure", ["Pure", "CPure"], [], Theory.proto_pure),
-     ("Pure", [], ["ProtoPure"], Theory.pure),
-     ("CPure", [], ["ProtoPure"], Theory.cpure)]));
+    [("ProtoPure", ["Pure", "CPure"], [], ProtoPure.thy),
+     ("Pure", [], ["ProtoPure"], Pure.thy),
+     ("CPure", [], ["ProtoPure"], CPure.thy)]));
 
 
 (* retrieve info *)
