@@ -1,9 +1,9 @@
-(*  Title: 	FOL/ifol.ML
+(*  Title: 	FOL/IFOL.ML
     ID:         $Id$
     Author: 	Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1992  University of Cambridge
 
-Tactics and lemmas for ifol.thy (intuitionistic first-order logic)
+Tactics and lemmas for IFOL.thy (intuitionistic first-order logic)
 *)
 
 open IFOL;

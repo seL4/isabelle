@@ -1,9 +1,9 @@
-(*  Title: 	FOL/fol.ML
+(*  Title: 	FOL/FOL.ML
     ID:         $Id$
     Author: 	Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1991  University of Cambridge
 
-Tactics and lemmas for fol.thy (classical First-Order Logic)
+Tactics and lemmas for FOL.thy (classical First-Order Logic)
 *)
 
 open FOL;
