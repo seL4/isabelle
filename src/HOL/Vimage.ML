@@ -80,10 +80,6 @@ Goal "f-``(insert a B) = (f-``{a}) Un (f-``B)";
 by (Blast_tac 1);
 qed "vimage_insert";
 
-Goal "f-``(A Int B) = (f-``A) Int (f-``B)";
-by (Blast_tac 1);
-qed "vimage_Int";
-
 Goal "f-``(A-B) = (f-``A) - (f-``B)";
 by (Blast_tac 1);
 qed "vimage_Diff";

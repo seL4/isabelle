@@ -381,12 +381,6 @@ by (ALLGOALS Asm_simp_tac);
 qed "set_map";
 Addsimps [set_map];
 
-Goal "set(map f xs) = f``(set xs)";
-by (induct_tac "xs" 1);
-by (ALLGOALS Asm_simp_tac);
-qed "set_map";
-Addsimps [set_map];
-
 Goal "(x : set(filter P xs)) = (x : set xs & P x)";
 by (induct_tac "xs" 1);
 by (ALLGOALS Asm_simp_tac);
