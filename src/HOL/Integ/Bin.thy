@@ -40,7 +40,8 @@ primrec
   NCons_BIT "NCons (w BIT x) b = (w BIT x) BIT b"
 
 instance
-  int :: numeral 
+  int :: number
+
 primrec
   number_of_Pls  "number_of Pls = int 0"
   number_of_Min  "number_of Min = - (int 1)"

@@ -14,10 +14,10 @@ datatype
       | Bit bin bool	(infixl "BIT" 90);
 
 axclass
-  numeral < "term";
+  number < "term";      (*for numeric types: nat, int, real, ...*)
 
 consts
-  number_of :: "bin => 'a::numeral";
+  number_of :: "bin => 'a::number";
 
 syntax
   "_Numeral" :: "xnum => 'a"	("_");
