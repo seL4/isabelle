@@ -2,64 +2,99 @@
 
 subsection{*Computation tree logic---CTL*}
 
-datatype ctl_form = Atom atom
-                  | NOT ctl_form
-                  | And ctl_form ctl_form
-                  | AX ctl_form
-                  | EF ctl_form
-                  | AF ctl_form;
+text{*
+The semantics of PDL only needs transitive reflexive closure.
+Let us now be a bit more adventurous and introduce a new temporal operator
+that goes beyond transitive reflexive closure. We extend the datatype
+@{text formula} by a new constructor
+*}
+(*<*)
+datatype formula = Atom atom
+                  | Neg formula
+                  | And formula formula
+                  | AX formula
+                  | EF formula(*>*)
+                  | AF formula
 
-consts valid :: "state \<Rightarrow> ctl_form \<Rightarrow> bool" ("(_ \<Turnstile> _)" [80,80] 80)
+text{*\noindent
+which stands for "always in the future":
+on all paths, at some point the formula holds. 
+Introducing the notion of paths (in @{term M})
+*}
 
 constdefs Paths :: "state \<Rightarrow> (nat \<Rightarrow> state)set"
-"Paths s \<equiv> {p. s = p 0 \<and> (\<forall>i. (p i, p(i+1)) \<in> M)}";
+         "Paths s \<equiv> {p. s = p 0 \<and> (\<forall>i. (p i, p(i+1)) \<in> M)}";
+
+text{*\noindent
+allows a very succinct definition of the semantics of @{term AF}:
+\footnote{Do not be mislead: neither datatypes nor recursive functions can be
+extended by new constructors or equations. This is just a trick of the
+presentation. In reality one has to define a new datatype and a new function.}
+*}
+(*<*)
+consts valid :: "state \<Rightarrow> formula \<Rightarrow> bool" ("(_ \<Turnstile> _)" [80,80] 80)
 
 primrec
 "s \<Turnstile> Atom a  =  (a \<in> L s)"
-"s \<Turnstile> NOT f   = (~(s \<Turnstile> f))"
+"s \<Turnstile> Neg f   = (~(s \<Turnstile> f))"
 "s \<Turnstile> And f g = (s \<Turnstile> f \<and> s \<Turnstile> g)"
 "s \<Turnstile> AX f    = (\<forall>t. (s,t) \<in> M \<longrightarrow> t \<Turnstile> f)"
 "s \<Turnstile> EF f    = (\<exists>t. (s,t) \<in> M^* \<and> t \<Turnstile> f)"
+(*>*)
 "s \<Turnstile> AF f    = (\<forall>p \<in> Paths s. \<exists>i. p i \<Turnstile> f)";
 
+text{*\noindent
+Model checking @{term AF} involves a function which
+is just large enough to warrant a separate definition:
+*}
+
 constdefs af :: "state set \<Rightarrow> state set \<Rightarrow> state set"
-"af A T \<equiv> A \<union> {s. \<forall>t. (s, t) \<in> M \<longrightarrow> t \<in> T}";
+         "af A T \<equiv> A \<union> {s. \<forall>t. (s, t) \<in> M \<longrightarrow> t \<in> T}";
+
+text{*\noindent
+This function is monotone in its second argument (and also its first, but
+that is irrelevant), and hence @{term"af A"} has a least fixpoint.
+*}
 
 lemma mono_af: "mono(af A)";
-by(force simp add: af_def intro:monoI);
+apply(simp add: mono_def af_def)
+by(blast);
 
-consts mc :: "ctl_form \<Rightarrow> state set";
+text{*\noindent
+Now we can define @{term "mc(AF f)"} as the least set @{term T} that contains
+@{term"mc f"} and all states all of whose direct successors are in @{term T}:
+*}
+(*<*)
+consts mc :: "formula \<Rightarrow> state set";
 primrec
 "mc(Atom a)  = {s. a \<in> L s}"
-"mc(NOT f)   = -mc f"
+"mc(Neg f)   = -mc f"
 "mc(And f g) = mc f \<inter> mc g"
 "mc(AX f)    = {s. \<forall>t. (s,t) \<in> M  \<longrightarrow> t \<in> mc f}"
-"mc(EF f)    = lfp(\<lambda>T. mc f \<union> {s. \<exists>t. (s,t)\<in>M \<and> t\<in>T})"
+"mc(EF f)    = lfp(\<lambda>T. mc f \<union> M^-1 ^^ T)"(*>*)
 "mc(AF f)    = lfp(af(mc f))";
+(*<*)
+lemma mono_ef: "mono(\<lambda>T. A \<union> M^-1 ^^ T)"
+apply(rule monoI)
+by(blast)
 
-lemma mono_ef: "mono(\<lambda>T. A \<union> {s. \<exists>t. (s,t)\<in>M \<and> t\<in>T})";
-apply(rule monoI);
-by(blast);
-
-lemma lfp_conv_EF:
-"lfp(\<lambda>T. A \<union> {s. \<exists>t. (s,t)\<in>M \<and> t\<in>T}) = {s. \<exists>t. (s,t) \<in> M^* \<and> t \<in> A}";
+lemma EF_lemma:
+  "lfp(\<lambda>T. A \<union> M^-1 ^^ T) = {s. \<exists>t. (s,t) \<in> M^* \<and> t \<in> A}"
 apply(rule equalityI);
  apply(rule subsetI);
- apply(simp);
- apply(erule Lfp.induct);
-  apply(rule mono_ef);
- apply(simp);
+ apply(simp)
+ apply(erule Lfp.induct)
+  apply(rule mono_ef)
+ apply(simp)
  apply(blast intro: r_into_rtrancl rtrancl_trans);
-apply(rule subsetI);
-apply(simp);
-apply(erule exE);
-apply(erule conjE);
-apply(erule_tac P = "t\<in>A" in rev_mp);
-apply(erule converse_rtrancl_induct);
- apply(rule ssubst [OF lfp_Tarski[OF mono_ef]]);
- apply(blast);
-apply(rule ssubst [OF lfp_Tarski[OF mono_ef]]);
-by(blast);
+apply(rule subsetI)
+apply(simp, clarify)
+apply(erule converse_rtrancl_induct)
+ apply(rule ssubst[OF lfp_Tarski[OF mono_ef]])
+ apply(blast)
+apply(rule ssubst[OF lfp_Tarski[OF mono_ef]])
+by(blast)
+(*>*)
 
 theorem lfp_subset_AF:
 "lfp(af A) \<subseteq> {s. \<forall> p \<in> Paths s. \<exists> i. p i \<in> A}";
@@ -227,6 +262,6 @@ by(rule Avoid.intros);
 
 theorem "mc f = {s. s \<Turnstile> f}";
 apply(induct_tac f);
-by(auto simp add: lfp_conv_EF equalityI[OF lfp_subset_AF AF_subset_lfp]);
+by(auto simp add: EF_lemma equalityI[OF lfp_subset_AF AF_subset_lfp]);
 
 (*<*)end(*>*)

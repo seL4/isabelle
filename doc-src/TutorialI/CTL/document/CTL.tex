@@ -3,65 +3,51 @@
 \def\isabellecontext{CTL}%
 %
 \isamarkupsubsection{Computation tree logic---CTL}
-\isacommand{datatype}\ ctl{\isacharunderscore}form\ {\isacharequal}\ Atom\ atom\isanewline
-\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ {\isacharbar}\ NOT\ ctl{\isacharunderscore}form\isanewline
-\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ {\isacharbar}\ And\ ctl{\isacharunderscore}form\ ctl{\isacharunderscore}form\isanewline
-\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ {\isacharbar}\ AX\ ctl{\isacharunderscore}form\isanewline
-\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ {\isacharbar}\ EF\ ctl{\isacharunderscore}form\isanewline
-\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ {\isacharbar}\ AF\ ctl{\isacharunderscore}form\isanewline
-\isanewline
-\isacommand{consts}\ valid\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}state\ {\isasymRightarrow}\ ctl{\isacharunderscore}form\ {\isasymRightarrow}\ bool{\isachardoublequote}\ {\isacharparenleft}{\isachardoublequote}{\isacharparenleft}{\isacharunderscore}\ {\isasymTurnstile}\ {\isacharunderscore}{\isacharparenright}{\isachardoublequote}\ {\isacharbrackleft}\isadigit{8}\isadigit{0}{\isacharcomma}\isadigit{8}\isadigit{0}{\isacharbrackright}\ \isadigit{8}\isadigit{0}{\isacharparenright}\isanewline
-\isanewline
+%
+\begin{isamarkuptext}%
+The semantics of PDL only needs transitive reflexive closure.
+Let us now be a bit more adventurous and introduce a new temporal operator
+that goes beyond transitive reflexive closure. We extend the datatype
+\isa{formula} by a new constructor%
+\end{isamarkuptext}%
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ {\isacharbar}\ AF\ formula%
+\begin{isamarkuptext}%
+\noindent
+which stands for "always in the future":
+on all paths, at some point the formula holds. 
+Introducing the notion of paths (in \isa{M})%
+\end{isamarkuptext}%
 \isacommand{constdefs}\ Paths\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}state\ {\isasymRightarrow}\ {\isacharparenleft}nat\ {\isasymRightarrow}\ state{\isacharparenright}set{\isachardoublequote}\isanewline
-{\isachardoublequote}Paths\ s\ {\isasymequiv}\ {\isacharbraceleft}p{\isachardot}\ s\ {\isacharequal}\ p\ \isadigit{0}\ {\isasymand}\ {\isacharparenleft}{\isasymforall}i{\isachardot}\ {\isacharparenleft}p\ i{\isacharcomma}\ p{\isacharparenleft}i{\isacharplus}\isadigit{1}{\isacharparenright}{\isacharparenright}\ {\isasymin}\ M{\isacharparenright}{\isacharbraceright}{\isachardoublequote}\isanewline
-\isanewline
-\isacommand{primrec}\isanewline
-{\isachardoublequote}s\ {\isasymTurnstile}\ Atom\ a\ \ {\isacharequal}\ \ {\isacharparenleft}a\ {\isasymin}\ L\ s{\isacharparenright}{\isachardoublequote}\isanewline
-{\isachardoublequote}s\ {\isasymTurnstile}\ NOT\ f\ \ \ {\isacharequal}\ {\isacharparenleft}{\isachartilde}{\isacharparenleft}s\ {\isasymTurnstile}\ f{\isacharparenright}{\isacharparenright}{\isachardoublequote}\isanewline
-{\isachardoublequote}s\ {\isasymTurnstile}\ And\ f\ g\ {\isacharequal}\ {\isacharparenleft}s\ {\isasymTurnstile}\ f\ {\isasymand}\ s\ {\isasymTurnstile}\ g{\isacharparenright}{\isachardoublequote}\isanewline
-{\isachardoublequote}s\ {\isasymTurnstile}\ AX\ f\ \ \ \ {\isacharequal}\ {\isacharparenleft}{\isasymforall}t{\isachardot}\ {\isacharparenleft}s{\isacharcomma}t{\isacharparenright}\ {\isasymin}\ M\ {\isasymlongrightarrow}\ t\ {\isasymTurnstile}\ f{\isacharparenright}{\isachardoublequote}\isanewline
-{\isachardoublequote}s\ {\isasymTurnstile}\ EF\ f\ \ \ \ {\isacharequal}\ {\isacharparenleft}{\isasymexists}t{\isachardot}\ {\isacharparenleft}s{\isacharcomma}t{\isacharparenright}\ {\isasymin}\ M{\isacharcircum}{\isacharasterisk}\ {\isasymand}\ t\ {\isasymTurnstile}\ f{\isacharparenright}{\isachardoublequote}\isanewline
-{\isachardoublequote}s\ {\isasymTurnstile}\ AF\ f\ \ \ \ {\isacharequal}\ {\isacharparenleft}{\isasymforall}p\ {\isasymin}\ Paths\ s{\isachardot}\ {\isasymexists}i{\isachardot}\ p\ i\ {\isasymTurnstile}\ f{\isacharparenright}{\isachardoublequote}\isanewline
-\isanewline
+\ \ \ \ \ \ \ \ \ {\isachardoublequote}Paths\ s\ {\isasymequiv}\ {\isacharbraceleft}p{\isachardot}\ s\ {\isacharequal}\ p\ \isadigit{0}\ {\isasymand}\ {\isacharparenleft}{\isasymforall}i{\isachardot}\ {\isacharparenleft}p\ i{\isacharcomma}\ p{\isacharparenleft}i{\isacharplus}\isadigit{1}{\isacharparenright}{\isacharparenright}\ {\isasymin}\ M{\isacharparenright}{\isacharbraceright}{\isachardoublequote}%
+\begin{isamarkuptext}%
+\noindent
+allows a very succinct definition of the semantics of \isa{AF}:
+\footnote{Do not be mislead: neither datatypes nor recursive functions can be
+extended by new constructors or equations. This is just a trick of the
+presentation. In reality one has to define a new datatype and a new function.}%
+\end{isamarkuptext}%
+{\isachardoublequote}s\ {\isasymTurnstile}\ AF\ f\ \ \ \ {\isacharequal}\ {\isacharparenleft}{\isasymforall}p\ {\isasymin}\ Paths\ s{\isachardot}\ {\isasymexists}i{\isachardot}\ p\ i\ {\isasymTurnstile}\ f{\isacharparenright}{\isachardoublequote}%
+\begin{isamarkuptext}%
+\noindent
+Model checking \isa{AF} involves a function which
+is just large enough to warrant a separate definition:%
+\end{isamarkuptext}%
 \isacommand{constdefs}\ af\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}state\ set\ {\isasymRightarrow}\ state\ set\ {\isasymRightarrow}\ state\ set{\isachardoublequote}\isanewline
-{\isachardoublequote}af\ A\ T\ {\isasymequiv}\ A\ {\isasymunion}\ {\isacharbraceleft}s{\isachardot}\ {\isasymforall}t{\isachardot}\ {\isacharparenleft}s{\isacharcomma}\ t{\isacharparenright}\ {\isasymin}\ M\ {\isasymlongrightarrow}\ t\ {\isasymin}\ T{\isacharbraceright}{\isachardoublequote}\isanewline
-\isanewline
+\ \ \ \ \ \ \ \ \ {\isachardoublequote}af\ A\ T\ {\isasymequiv}\ A\ {\isasymunion}\ {\isacharbraceleft}s{\isachardot}\ {\isasymforall}t{\isachardot}\ {\isacharparenleft}s{\isacharcomma}\ t{\isacharparenright}\ {\isasymin}\ M\ {\isasymlongrightarrow}\ t\ {\isasymin}\ T{\isacharbraceright}{\isachardoublequote}%
+\begin{isamarkuptext}%
+\noindent
+This function is monotone in its second argument (and also its first, but
+that is irrelevant), and hence \isa{af\ A} has a least fixpoint.%
+\end{isamarkuptext}%
 \isacommand{lemma}\ mono{\isacharunderscore}af{\isacharcolon}\ {\isachardoublequote}mono{\isacharparenleft}af\ A{\isacharparenright}{\isachardoublequote}\isanewline
-\isacommand{by}{\isacharparenleft}force\ simp\ add{\isacharcolon}\ af{\isacharunderscore}def\ intro{\isacharcolon}monoI{\isacharparenright}\isanewline
-\isanewline
-\isacommand{consts}\ mc\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}ctl{\isacharunderscore}form\ {\isasymRightarrow}\ state\ set{\isachardoublequote}\isanewline
-\isacommand{primrec}\isanewline
-{\isachardoublequote}mc{\isacharparenleft}Atom\ a{\isacharparenright}\ \ {\isacharequal}\ {\isacharbraceleft}s{\isachardot}\ a\ {\isasymin}\ L\ s{\isacharbraceright}{\isachardoublequote}\isanewline
-{\isachardoublequote}mc{\isacharparenleft}NOT\ f{\isacharparenright}\ \ \ {\isacharequal}\ {\isacharminus}mc\ f{\isachardoublequote}\isanewline
-{\isachardoublequote}mc{\isacharparenleft}And\ f\ g{\isacharparenright}\ {\isacharequal}\ mc\ f\ {\isasyminter}\ mc\ g{\isachardoublequote}\isanewline
-{\isachardoublequote}mc{\isacharparenleft}AX\ f{\isacharparenright}\ \ \ \ {\isacharequal}\ {\isacharbraceleft}s{\isachardot}\ {\isasymforall}t{\isachardot}\ {\isacharparenleft}s{\isacharcomma}t{\isacharparenright}\ {\isasymin}\ M\ \ {\isasymlongrightarrow}\ t\ {\isasymin}\ mc\ f{\isacharbraceright}{\isachardoublequote}\isanewline
-{\isachardoublequote}mc{\isacharparenleft}EF\ f{\isacharparenright}\ \ \ \ {\isacharequal}\ lfp{\isacharparenleft}{\isasymlambda}T{\isachardot}\ mc\ f\ {\isasymunion}\ {\isacharbraceleft}s{\isachardot}\ {\isasymexists}t{\isachardot}\ {\isacharparenleft}s{\isacharcomma}t{\isacharparenright}{\isasymin}M\ {\isasymand}\ t{\isasymin}T{\isacharbraceright}{\isacharparenright}{\isachardoublequote}\isanewline
+\isacommand{apply}{\isacharparenleft}simp\ add{\isacharcolon}\ mono{\isacharunderscore}def\ af{\isacharunderscore}def{\isacharparenright}\isanewline
+\isacommand{by}{\isacharparenleft}blast{\isacharparenright}%
+\begin{isamarkuptext}%
+\noindent
+Now we can define \isa{mc\ {\isacharparenleft}AF\ f{\isacharparenright}} as the least set \isa{T} that contains
+\isa{mc\ f} and all states all of whose direct successors are in \isa{T}:%
+\end{isamarkuptext}%
 {\isachardoublequote}mc{\isacharparenleft}AF\ f{\isacharparenright}\ \ \ \ {\isacharequal}\ lfp{\isacharparenleft}af{\isacharparenleft}mc\ f{\isacharparenright}{\isacharparenright}{\isachardoublequote}\isanewline
-\isanewline
-\isacommand{lemma}\ mono{\isacharunderscore}ef{\isacharcolon}\ {\isachardoublequote}mono{\isacharparenleft}{\isasymlambda}T{\isachardot}\ A\ {\isasymunion}\ {\isacharbraceleft}s{\isachardot}\ {\isasymexists}t{\isachardot}\ {\isacharparenleft}s{\isacharcomma}t{\isacharparenright}{\isasymin}M\ {\isasymand}\ t{\isasymin}T{\isacharbraceright}{\isacharparenright}{\isachardoublequote}\isanewline
-\isacommand{apply}{\isacharparenleft}rule\ monoI{\isacharparenright}\isanewline
-\isacommand{by}{\isacharparenleft}blast{\isacharparenright}\isanewline
-\isanewline
-\isacommand{lemma}\ lfp{\isacharunderscore}conv{\isacharunderscore}EF{\isacharcolon}\isanewline
-{\isachardoublequote}lfp{\isacharparenleft}{\isasymlambda}T{\isachardot}\ A\ {\isasymunion}\ {\isacharbraceleft}s{\isachardot}\ {\isasymexists}t{\isachardot}\ {\isacharparenleft}s{\isacharcomma}t{\isacharparenright}{\isasymin}M\ {\isasymand}\ t{\isasymin}T{\isacharbraceright}{\isacharparenright}\ {\isacharequal}\ {\isacharbraceleft}s{\isachardot}\ {\isasymexists}t{\isachardot}\ {\isacharparenleft}s{\isacharcomma}t{\isacharparenright}\ {\isasymin}\ M{\isacharcircum}{\isacharasterisk}\ {\isasymand}\ t\ {\isasymin}\ A{\isacharbraceright}{\isachardoublequote}\isanewline
-\isacommand{apply}{\isacharparenleft}rule\ equalityI{\isacharparenright}\isanewline
-\ \isacommand{apply}{\isacharparenleft}rule\ subsetI{\isacharparenright}\isanewline
-\ \isacommand{apply}{\isacharparenleft}simp{\isacharparenright}\isanewline
-\ \isacommand{apply}{\isacharparenleft}erule\ Lfp{\isachardot}induct{\isacharparenright}\isanewline
-\ \ \isacommand{apply}{\isacharparenleft}rule\ mono{\isacharunderscore}ef{\isacharparenright}\isanewline
-\ \isacommand{apply}{\isacharparenleft}simp{\isacharparenright}\isanewline
-\ \isacommand{apply}{\isacharparenleft}blast\ intro{\isacharcolon}\ r{\isacharunderscore}into{\isacharunderscore}rtrancl\ rtrancl{\isacharunderscore}trans{\isacharparenright}\isanewline
-\isacommand{apply}{\isacharparenleft}rule\ subsetI{\isacharparenright}\isanewline
-\isacommand{apply}{\isacharparenleft}simp{\isacharparenright}\isanewline
-\isacommand{apply}{\isacharparenleft}erule\ exE{\isacharparenright}\isanewline
-\isacommand{apply}{\isacharparenleft}erule\ conjE{\isacharparenright}\isanewline
-\isacommand{apply}{\isacharparenleft}erule{\isacharunderscore}tac\ P\ {\isacharequal}\ {\isachardoublequote}t{\isasymin}A{\isachardoublequote}\ \isakeyword{in}\ rev{\isacharunderscore}mp{\isacharparenright}\isanewline
-\isacommand{apply}{\isacharparenleft}erule\ converse{\isacharunderscore}rtrancl{\isacharunderscore}induct{\isacharparenright}\isanewline
-\ \isacommand{apply}{\isacharparenleft}rule\ ssubst\ {\isacharbrackleft}OF\ lfp{\isacharunderscore}Tarski{\isacharbrackleft}OF\ mono{\isacharunderscore}ef{\isacharbrackright}{\isacharbrackright}{\isacharparenright}\isanewline
-\ \isacommand{apply}{\isacharparenleft}blast{\isacharparenright}\isanewline
-\isacommand{apply}{\isacharparenleft}rule\ ssubst\ {\isacharbrackleft}OF\ lfp{\isacharunderscore}Tarski{\isacharbrackleft}OF\ mono{\isacharunderscore}ef{\isacharbrackright}{\isacharbrackright}{\isacharparenright}\isanewline
-\isacommand{by}{\isacharparenleft}blast{\isacharparenright}\isanewline
-\isanewline
 \isacommand{theorem}\ lfp{\isacharunderscore}subset{\isacharunderscore}AF{\isacharcolon}\isanewline
 {\isachardoublequote}lfp{\isacharparenleft}af\ A{\isacharparenright}\ {\isasymsubseteq}\ {\isacharbraceleft}s{\isachardot}\ {\isasymforall}\ p\ {\isasymin}\ Paths\ s{\isachardot}\ {\isasymexists}\ i{\isachardot}\ p\ i\ {\isasymin}\ A{\isacharbraceright}{\isachardoublequote}\isanewline
 \isacommand{apply}{\isacharparenleft}rule\ subsetI{\isacharparenright}\isanewline
@@ -214,7 +200,7 @@ From this proposition the original goal follows easily%
 \isanewline
 \isacommand{theorem}\ {\isachardoublequote}mc\ f\ {\isacharequal}\ {\isacharbraceleft}s{\isachardot}\ s\ {\isasymTurnstile}\ f{\isacharbraceright}{\isachardoublequote}\isanewline
 \isacommand{apply}{\isacharparenleft}induct{\isacharunderscore}tac\ f{\isacharparenright}\isanewline
-\isacommand{by}{\isacharparenleft}auto\ simp\ add{\isacharcolon}\ lfp{\isacharunderscore}conv{\isacharunderscore}EF\ equalityI{\isacharbrackleft}OF\ lfp{\isacharunderscore}subset{\isacharunderscore}AF\ AF{\isacharunderscore}subset{\isacharunderscore}lfp{\isacharbrackright}{\isacharparenright}\isanewline
+\isacommand{by}{\isacharparenleft}auto\ simp\ add{\isacharcolon}\ EF{\isacharunderscore}lemma\ equalityI{\isacharbrackleft}OF\ lfp{\isacharunderscore}subset{\isacharunderscore}AF\ AF{\isacharunderscore}subset{\isacharunderscore}lfp{\isacharbrackright}{\isacharparenright}\isanewline
 \end{isabellebody}%
 %%% Local Variables:
 %%% mode: latex
