@@ -12,8 +12,9 @@ Sums are used only for mutual recursion;
 Products are used only to derive "streamlined" induction rules for relations
 *)
 
-local open Ind_Syntax
-in
+val iT = Ind_Syntax.iT
+and oT = Ind_Syntax.oT;
+
 structure Lfp =
   struct
   val oper	= Const("lfp",      [iT,iT-->iT]--->iT)
@@ -49,21 +50,33 @@ structure Standard_Sum =
   val inr_iff	= Inr_iff
   val distinct	= Inl_Inr_iff
   val distinct' = Inr_Inl_iff
+  val free_SEs  = Ind_Syntax.mk_free_SEs 
+            [distinct, distinct', inl_iff, inr_iff, Standard_Prod.pair_iff]
   end;
-end;
+
 
 functor Ind_section_Fun (Inductive: sig include INDUCTIVE_ARG INDUCTIVE_I end) 
   : sig include INTR_ELIM INDRULE end =
-struct
-structure Intr_elim = 
-    Intr_elim_Fun(structure Inductive=Inductive and Fp=Lfp and 
-		  Pr=Standard_Prod and Su=Standard_Sum);
+let
+  structure Intr_elim = 
+      Intr_elim_Fun(structure Inductive=Inductive and Fp=Lfp and 
+		    Pr=Standard_Prod and Su=Standard_Sum);
 
-structure Indrule = 
-    Indrule_Fun (structure Inductive=Inductive and 
-		 Pr=Standard_Prod and Su=Standard_Sum and Intr_elim=Intr_elim);
-
-open Intr_elim Indrule
+  structure Indrule = 
+      Indrule_Fun (structure Inductive=Inductive and 
+		   Pr=Standard_Prod and Su=Standard_Sum and 
+		       Intr_elim=Intr_elim)
+in 
+   struct 
+   val thy	= Intr_elim.thy
+   val defs	= Intr_elim.defs
+   val bnd_mono	= Intr_elim.bnd_mono
+   val dom_subset = Intr_elim.dom_subset
+   val intrs	= Intr_elim.intrs
+   val elim	= Intr_elim.elim
+   val mk_cases	= Intr_elim.mk_cases
+   open Indrule 
+   end
 end;
 
 
@@ -71,8 +84,6 @@ structure Ind = Add_inductive_def_Fun
     (structure Fp=Lfp and Pr=Standard_Prod and Su=Standard_Sum);
 
 
-local open Ind_Syntax
-in
 structure Gfp =
   struct
   val oper	= Const("gfp",      [iT,iT-->iT]--->iT)
@@ -108,8 +119,9 @@ structure Quine_Sum =
   val inr_iff	= QInr_iff
   val distinct	= QInl_QInr_iff
   val distinct' = QInr_QInl_iff
+  val free_SEs  = Ind_Syntax.mk_free_SEs 
+            [distinct, distinct', inl_iff, inr_iff, Quine_Prod.pair_iff]
   end;
-end;
 
 
 signature COINDRULE =
@@ -121,17 +133,23 @@ signature COINDRULE =
 functor CoInd_section_Fun
  (Inductive: sig include INDUCTIVE_ARG INDUCTIVE_I end) 
     : sig include INTR_ELIM COINDRULE end =
-struct
-structure Intr_elim = 
-    Intr_elim_Fun(structure Inductive=Inductive and Fp=Gfp and 
-		  Pr=Quine_Prod and Su=Quine_Sum);
-
-open Intr_elim 
-val coinduct = raw_induct
+let
+  structure Intr_elim = 
+      Intr_elim_Fun(structure Inductive=Inductive and Fp=Gfp and 
+		    Pr=Quine_Prod and Su=Quine_Sum);
+in
+   struct
+   val thy	= Intr_elim.thy
+   val defs	= Intr_elim.defs
+   val bnd_mono	= Intr_elim.bnd_mono
+   val dom_subset = Intr_elim.dom_subset
+   val intrs	= Intr_elim.intrs
+   val elim	= Intr_elim.elim
+   val mk_cases	= Intr_elim.mk_cases
+   val coinduct = Intr_elim.raw_induct
+   end
 end;
-
 
 structure CoInd = 
     Add_inductive_def_Fun(structure Fp=Gfp and Pr=Quine_Prod and Su=Quine_Sum);
-
 

@@ -60,6 +60,7 @@ signature SU =			(** Description of a disjoint sum **)
   val inr_iff	: thm			(*injectivity of inr, using <->*)
   val distinct	: thm			(*distinctness of inl, inr using <->*)
   val distinct'	: thm			(*distinctness of inr, inl using <->*)
+  val free_SEs  : thm list		(*elim rules for SU, and pair_iff!*)
   end;
 
 signature ADD_INDUCTIVE_DEF =

@@ -24,36 +24,38 @@ fun inductive_decl co =
         in
 	   (";\n\n\
             \structure " ^ stri_name ^ " =\n\
-            \ let open Ind_Syntax in\n\
             \  struct\n\
             \  val _ = writeln \"" ^ co ^ 
 	               "Inductive definition " ^ big_rec_name ^ "\"\n\
-            \  val rec_tms\t= map (readtm (sign_of thy) iT) "
+            \  val rec_tms\t= map (readtm (sign_of thy) Ind_Syntax.iT) "
 	                     ^ srec_tms ^ "\n\
-            \  and dom_sum\t= readtm (sign_of thy) iT " ^ sdom_sum ^ "\n\
+            \  and dom_sum\t= readtm (sign_of thy) Ind_Syntax.iT " ^ sdom_sum ^ "\n\
             \  and intr_tms\t= map (readtm (sign_of thy) propT)\n"
 	                     ^ sintrs ^ "\n\
-            \  end\n\
-            \ end;\n\n\
+            \  end;\n\n\
             \val thy = thy |> " ^ co ^ "Ind.add_fp_def_i \n    (" ^ 
 	       stri_name ^ ".rec_tms, " ^
                stri_name ^ ".dom_sum, " ^
                stri_name ^ ".intr_tms)"
            ,
 	    "structure " ^ big_rec_name ^ " =\n\
-            \  struct\n\
+            \ let\n\
             \  val _ = writeln \"Proofs for " ^ co ^ 
 	               "Inductive definition " ^ big_rec_name ^ "\"\n\
             \  structure Result = " ^ co ^ "Ind_section_Fun\n\
-            \  (open " ^ stri_name ^ "\n\
-            \   val thy\t\t= thy\n\
-            \   val monos\t\t= " ^ monos ^ "\n\
-            \   val con_defs\t\t= " ^ con_defs ^ "\n\
-            \   val type_intrs\t= " ^ type_intrs ^ "\n\
-            \   val type_elims\t= " ^ type_elims ^ ");\n\n\
+            \\t  (open " ^ stri_name ^ "\n\
+            \\t   val thy\t\t= thy\n\
+            \\t   val monos\t\t= " ^ monos ^ "\n\
+            \\t   val con_defs\t\t= " ^ con_defs ^ "\n\
+            \\t   val type_intrs\t= " ^ type_intrs ^ "\n\
+            \\t   val type_elims\t= " ^ type_elims ^ ")\n\
+            \ in\n\
+            \  struct\n\
             \  val " ^ mk_list (map mk_intr_name ipairs) ^ " = Result.intrs;\n\
             \  open Result\n\
-            \  end\n"
+            \  end\n\
+            \ end;\n\n\
+            \structure " ^ stri_name ^ " = struct end;\n\n"
 	   )
 	end
       val domains = "domains" $$-- enum1 "+" string --$$ "<=" -- !! string
@@ -80,24 +82,23 @@ fun datatype_decl co =
 	    and srec_tms = mk_list (map fst rec_pairs)
             and scons    = mk_scons rec_pairs
             and sdom_sum = 
-		if dom = ""  then co ^ "data_domain rec_tms" (*default*)
-		else "readtm (sign_of thy) iT " ^ dom
+		if dom = "" then  (*default domain: univ or quniv*)
+		    "Ind_Syntax." ^ co ^ "data_domain rec_tms"
+		else "readtm (sign_of thy) Ind_Syntax.iT " ^ dom
             val stri_name = big_rec_name ^ "_Intrnl"
             val con_names = flat (map (map (trim o #1 o #1) o snd) rec_pairs)
         in
 	   (";\n\n\
             \structure " ^ stri_name ^ " =\n\
-            \ let open Ind_Syntax in\n\
             \  struct\n\
             \  val _ = writeln \"" ^ co ^ 
 	               "Datatype definition " ^ big_rec_name ^ "\"\n\
-            \  val rec_tms\t= map (readtm (sign_of thy) iT) " ^ srec_tms ^ "\n\
+            \  val rec_tms\t= map (readtm (sign_of thy) Ind_Syntax.iT) " ^ srec_tms ^ "\n\
             \  val dom_sum\t= " ^ sdom_sum ^ "\n\
-            \  and con_ty_lists\t= read_constructs (sign_of thy)\n" 
+            \  and con_ty_lists\t= Ind_Syntax.read_constructs (sign_of thy)\n" 
 	           ^ scons ^ "\n\
-            \  val intr_tms\t= mk_all_intr_tms (rec_tms, con_ty_lists)\n\
-            \  end\n\
-            \ end;\n\n\
+            \  val intr_tms\t= Ind_Syntax.mk_all_intr_tms (rec_tms, con_ty_lists)\n\
+            \  end;\n\n\
             \val thy = thy |> " ^ co ^ "Ind.add_constructs_def(" ^ 
 	         mk_list (map quote rec_names) ^ ", " ^ 
                  stri_name ^ ".con_ty_lists) \n\
@@ -107,19 +108,23 @@ fun datatype_decl co =
                stri_name ^ ".intr_tms)"
            ,
 	    "structure " ^ big_rec_name ^ " =\n\
-            \  struct\n\
+            \ let\n\
             \  val _ = writeln \"Proofs for " ^ co ^ 
 	               "Datatype definition " ^ big_rec_name ^ "\"\n\
             \  structure Result = " ^ co ^ "Data_section_Fun\n\
-            \  (open " ^ stri_name ^ "\n\
-            \   val thy\t\t= thy\n\
-            \   val big_rec_name\t= \"" ^ big_rec_name ^ "\"\n\
-            \   val monos\t\t= " ^ monos ^ "\n\
-            \   val type_intrs\t= " ^ type_intrs ^ "\n\
-            \   val type_elims\t= " ^ type_elims ^ ");\n\n\
+            \\t  (open " ^ stri_name ^ "\n\
+            \\t   val thy\t\t= thy\n\
+            \\t   val big_rec_name\t= \"" ^ big_rec_name ^ "\"\n\
+            \\t   val monos\t\t= " ^ monos ^ "\n\
+            \\t   val type_intrs\t= " ^ type_intrs ^ "\n\
+            \\t   val type_elims\t= " ^ type_elims ^ ");\n\
+            \ in\n\
+            \  struct\n\
             \  val " ^ mk_list (map mk_intr_name con_names) ^ " = Result.intrs;\n\
             \  open Result\n\
-            \  end\n"
+            \  end\n\
+            \ end;\n\n\
+            \structure " ^ stri_name ^ " = struct end;\n\n"
 	   )
 	end
       fun optstring s = optional (s $$-- string) "\"[]\"" >> trim
