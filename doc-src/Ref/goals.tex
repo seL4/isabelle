@@ -135,6 +135,7 @@ tactics})}.
 \index{theorems!extracting proved}
 \begin{ttbox} 
 qed        : string -> unit
+no_qed     : unit -> unit
 result     : unit -> thm
 uresult    : unit -> thm
 bind_thm   : string * thm -> unit
@@ -147,6 +148,11 @@ store_thms : string * thm list -> thm list
   It combines \texttt{result} and \texttt{bind_thm}: it gets the theorem
   using \texttt{result()} and stores it the theorem database associated
   with its theory.  See below for details.
+  
+\item[\ttindexbold{no_qed}();] indicates that the proof is not concluded by a
+  proper \texttt{qed} command.  This is a do-nothing operation, it merely
+  helps user interfaces such as Proof~General \cite{proofgeneral} to figure
+  out the structure of the {\ML} text.
 
 \item[\ttindexbold{result}()]\index{assumptions!of main goal}
   returns the final theorem, after converting the free variables to

@@ -14,6 +14,7 @@ sig
   val qed: string -> unit
   val qed_goal: string -> theory -> string -> (thm list -> tactic list) -> unit
   val qed_goalw: string -> theory -> thm list -> string -> (thm list -> tactic list) -> unit
+  val no_qed: unit -> unit
   (*these peek at the proof state!*)
   val thms_containing: xstring list -> (string * thm) list
   val findI: int -> (string * thm) list
@@ -79,9 +80,12 @@ fun ml_store_thms (name, thms) =
 
 fun bind_thm (name, thm) = ml_store_thm (name, standard thm);
 fun bind_thms (name, thms) = ml_store_thms (name, map standard thms);
+
 fun qed name = ml_store_thm (name, Goals.result ());
 fun qed_goal name thy goal tacsf = ml_store_thm (name, prove_goal thy goal tacsf);
 fun qed_goalw name thy rews goal tacsf = ml_store_thm (name, prove_goalw thy rews goal tacsf);
+
+fun no_qed () = ();
 
 
 
