@@ -12,6 +12,8 @@ theory Sprod
 imports Cfun
 begin
 
+subsection {* Definition of strict product type *}
+
 constdefs
   Spair_Rep     :: "['a,'b] => ['a,'b] => bool"
  "Spair_Rep == (%a b. %x y.(~a=UU & ~b=UU --> x=a  & y=b ))"
@@ -23,8 +25,6 @@ syntax (xsymbols)
   "**"		:: "[type, type] => type"	 ("(_ \<otimes>/ _)" [21,20] 20)
 syntax (HTML output)
   "**"		:: "[type, type] => type"	 ("(_ \<otimes>/ _)" [21,20] 20)
-
-subsection {* @{term Ispair}, @{term Isfst}, and @{term Issnd} *}
 
 consts
   Ispair        :: "['a,'b] => ('a ** 'b)"
@@ -42,9 +42,7 @@ defs
   Issnd_def:     "Issnd(p) == @z.        (p=Ispair UU UU  --> z=UU)
                 &(! a b. ~a=UU & ~b=UU & p=Ispair a b    --> z=b)"  
 
-(* ------------------------------------------------------------------------ *)
-(* A non-emptyness result for Sprod                                         *)
-(* ------------------------------------------------------------------------ *)
+text {* A non-emptiness result for Sprod *}
 
 lemma SprodI: "(Spair_Rep a b):Sprod"
 apply (unfold Sprod_def)
@@ -56,9 +54,7 @@ apply (rule inj_on_inverseI)
 apply (erule Abs_Sprod_inverse)
 done
 
-(* ------------------------------------------------------------------------ *)
-(* Strictness and definedness of Spair_Rep                                  *)
-(* ------------------------------------------------------------------------ *)
+text {* Strictness and definedness of @{term Spair_Rep} *}
 
 lemma strict_Spair_Rep: 
  "(a=UU | b=UU) ==> (Spair_Rep a b) = (Spair_Rep UU UU)"
@@ -78,9 +74,7 @@ apply assumption
 apply (fast dest: fun_cong)
 done
 
-(* ------------------------------------------------------------------------ *)
-(* injectivity of Spair_Rep and Ispair                                      *)
-(* ------------------------------------------------------------------------ *)
+text {* injectivity of @{term Spair_Rep} and @{term Ispair} *}
 
 lemma inject_Spair_Rep: 
 "[|~aa=UU ; ~ba=UU ; Spair_Rep a b = Spair_Rep aa ba |] ==> a=aa & b=ba"
@@ -102,9 +96,7 @@ apply (rule SprodI)
 apply (rule SprodI)
 done
 
-(* ------------------------------------------------------------------------ *)
-(* strictness and definedness of Ispair                                     *)
-(* ------------------------------------------------------------------------ *)
+text {* strictness and definedness of @{term Ispair} *}
 
 lemma strict_Ispair: 
  "(a=UU | b=UU) ==> Ispair a b = Ispair UU UU"
@@ -152,10 +144,7 @@ apply (erule conjI)
 apply assumption
 done
 
-
-(* ------------------------------------------------------------------------ *)
-(* Exhaustion of the strict product **                                      *)
-(* ------------------------------------------------------------------------ *)
+text {* Exhaustion of the strict product @{typ "'a ** 'b"} *}
 
 lemma Exh_Sprod:
         "z=Ispair UU UU | (? a b. z=Ispair a b & a~=UU & b~=UU)"
@@ -179,9 +168,7 @@ apply (erule trans)
 apply (erule strict_Spair_Rep)
 done
 
-(* ------------------------------------------------------------------------ *)
-(* general elimination rule for strict product                              *)
-(* ------------------------------------------------------------------------ *)
+text {* general elimination rule for strict product *}
 
 lemma IsprodE:
 assumes prem1: "p=Ispair UU UU ==> Q"
@@ -198,9 +185,7 @@ apply assumption
 apply assumption
 done
 
-(* ------------------------------------------------------------------------ *)
-(* some results about the selectors Isfst, Issnd                            *)
-(* ------------------------------------------------------------------------ *)
+text {* some results about the selectors @{term Isfst}, @{term Issnd} *}
 
 lemma strict_Isfst: "p=Ispair UU UU ==> Isfst p = UU"
 apply (unfold Isfst_def)
@@ -297,9 +282,7 @@ apply (rule strict_Issnd2)
 done
 
 
-(* ------------------------------------------------------------------------ *)
-(* instantiate the simplifier                                               *)
-(* ------------------------------------------------------------------------ *)
+text {* instantiate the simplifier *}
 
 lemmas Sprod0_ss = strict_Isfst1 strict_Isfst2 strict_Issnd1 strict_Issnd2
                  Isfst2 Issnd2
@@ -316,9 +299,7 @@ apply (simp add: Sprod0_ss)
 done
 
 
-(* ------------------------------------------------------------------------ *)
-(* Surjective pairing: equivalent to Exh_Sprod                              *)
-(* ------------------------------------------------------------------------ *)
+text {* Surjective pairing: equivalent to @{thm [source] Exh_Sprod} *}
 
 lemma surjective_pairing_Sprod: "z = Ispair(Isfst z)(Issnd z)"
 apply (rule_tac z1 = "z" in Exh_Sprod [THEN disjE])
@@ -334,16 +315,12 @@ apply (simp (no_asm_use) add: surjective_pairing_Sprod[symmetric])
 apply simp
 done
 
-subsection {* The strict product is a partial order *}
+subsection {* Type @{typ "'a ** 'b"} is a partial order *}
 
-instance "**"::(sq_ord,sq_ord)sq_ord ..
+instance "**" :: (sq_ord, sq_ord) sq_ord ..
 
 defs (overloaded)
   less_sprod_def: "p1 << p2 == Isfst p1 << Isfst p2 & Issnd p1 << Issnd p2"
-
-(* ------------------------------------------------------------------------ *)
-(* less_sprod is a partial order on Sprod                                   *)
-(* ------------------------------------------------------------------------ *)
 
 lemma refl_less_sprod: "(p::'a ** 'b) << p"
 apply (unfold less_sprod_def)
@@ -359,40 +336,24 @@ apply (fast intro: antisym_less)
 done
 
 lemma trans_less_sprod: 
-        "[|(p1::'a**'b) << p2;p2 << p3|] ==> p1 << p3"
+        "[|(p1::'a ** 'b) << p2;p2 << p3|] ==> p1 << p3"
 apply (unfold less_sprod_def)
 apply (blast intro: trans_less)
 done
 
-instance "**"::(pcpo,pcpo)po
+instance "**" :: (pcpo, pcpo) po
 by intro_classes
   (assumption | rule refl_less_sprod antisym_less_sprod trans_less_sprod)+
 
-(* for compatibility with old HOLCF-Version *)
+text {* for compatibility with old HOLCF-Version *}
 lemma inst_sprod_po: "(op <<)=(%x y. Isfst x<<Isfst y&Issnd x<<Issnd y)"
 apply (fold less_sprod_def)
 apply (rule refl)
 done
 
-subsection {* The strict product is pointed *}
-(* ------------------------------------------------------------------------ *)
-(* type sprod is pointed                                                    *)
-(* ------------------------------------------------------------------------ *)
-(*
-lemma minimal_sprod: "Ispair UU UU << p"
-apply (simp add: inst_sprod_po minimal)
-done
+subsection {* Monotonicity of @{term Ispair}, @{term Isfst}, @{term Issnd} *}
 
-lemmas UU_sprod_def = minimal_sprod [THEN minimal2UU, symmetric, standard]
-
-lemma least_sprod: "? x::'a**'b.!y. x<<y"
-apply (rule_tac x = "Ispair UU UU" in exI)
-apply (rule minimal_sprod [THEN allI])
-done
-*)
-(* ------------------------------------------------------------------------ *)
-(* Ispair is monotone in both arguments                                     *)
-(* ------------------------------------------------------------------------ *)
+text {* @{term Ispair} is monotone in both arguments *}
 
 lemma monofun_Ispair1: "monofun(Ispair)"
 apply (unfold monofun)
@@ -424,24 +385,15 @@ apply assumption
 apply assumption
 done
 
-(* ------------------------------------------------------------------------ *)
-(* Isfst and Issnd are monotone                                             *)
-(* ------------------------------------------------------------------------ *)
+text {* @{term Isfst} and @{term Issnd} are monotone *}
 
 lemma monofun_Isfst: "monofun(Isfst)"
-apply (unfold monofun)
-apply (simp add: inst_sprod_po)
-done
+by (simp add: monofun inst_sprod_po)
 
 lemma monofun_Issnd: "monofun(Issnd)"
-apply (unfold monofun)
-apply (simp add: inst_sprod_po)
-done
+by (simp add: monofun inst_sprod_po)
 
-subsection {* The strict product is a cpo *}
-(* ------------------------------------------------------------------------ *)
-(* the type 'a ** 'b is a cpo                                               *)
-(* ------------------------------------------------------------------------ *)
+subsection {* Type @{typ "'a ** 'b"} is a cpo *}
 
 lemma lub_sprod: 
 "[|chain(S)|] ==> range(S) <<|  
@@ -474,8 +426,7 @@ done
 instance "**" :: (pcpo, pcpo) cpo
 by intro_classes (rule cpo_sprod)
 
-
-subsection {* The strict product is a pcpo *}
+subsection {* Type @{typ "'a ** 'b"} is pointed *}
 
 lemma minimal_sprod: "Ispair UU UU << p"
 apply (simp add: inst_sprod_po minimal)
@@ -491,8 +442,13 @@ done
 instance "**" :: (pcpo, pcpo) pcpo
 by intro_classes (rule least_sprod)
 
+text {* for compatibility with old HOLCF-Version *}
+lemma inst_sprod_pcpo: "UU = Ispair UU UU"
+by (simp add: UU_def UU_sprod_def)
 
-subsection {* Other constants *}
+declare inst_sprod_pcpo [symmetric, simp]
+
+subsection {* Continuous versions of constants *}
 
 consts  
   spair		:: "'a -> 'b -> ('a**'b)" (* continuous strict pairing *)
@@ -513,16 +469,7 @@ sfst_def:        "sfst   == (LAM p. Isfst p)"
 ssnd_def:        "ssnd   == (LAM p. Issnd p)"     
 ssplit_def:      "ssplit == (LAM f. strictify$(LAM p. f$(sfst$p)$(ssnd$p)))"
 
-(* for compatibility with old HOLCF-Version *)
-lemma inst_sprod_pcpo: "UU = Ispair UU UU"
-apply (simp add: UU_def UU_sprod_def)
-done
-
-declare inst_sprod_pcpo [symmetric, simp]
-
-(* ------------------------------------------------------------------------ *)
-(* continuity of Ispair, Isfst, Issnd                                       *)
-(* ------------------------------------------------------------------------ *)
+subsection {* Continuity of @{term Ispair}, @{term Isfst}, @{term Issnd} *}
 
 lemma sprod3_lemma1: 
 "[| chain(Y);  x~= UU;  lub(range(Y))~= UU |] ==> 
@@ -741,9 +688,7 @@ lemma spair_eq: "[|x1=x2;y1=y2|] ==> (:x1,y1:) = (:x2,y2:)"
 apply fast
 done
 
-(* ------------------------------------------------------------------------ *)
-(* convert all lemmas to the continuous versions                            *)
-(* ------------------------------------------------------------------------ *)
+text {* convert all lemmas to the continuous versions *}
 
 lemma beta_cfun_sprod [simp]: 
         "(LAM x y. Ispair x y)$a$b = Ispair a b"
@@ -813,7 +758,7 @@ apply (rule defined_Ispair_rev)
 apply auto
 done
 
-lemma defined_spair: 
+lemma defined_spair [simp]: 
         "[|a~=UU; b~=UU|] ==> (:a,b:) ~= UU"
 apply (unfold spair_def)
 apply (subst beta_cfun_sprod)
@@ -840,7 +785,6 @@ apply fast
 apply fast
 done
 
-
 lemma sprodE:
 assumes prem1: "p=UU ==> Q"
 assumes prem2: "!!x y. [| p=(:x,y:); x~=UU; y~=UU|] ==> Q"
@@ -857,9 +801,7 @@ apply (subst beta_cfun_sprod)
 apply assumption
 done
 
-
-lemma strict_sfst: 
-        "p=UU==>sfst$p=UU"
+lemma strict_sfst: "p=UU==>sfst$p=UU"
 apply (unfold sfst_def)
 apply (subst beta_cfun)
 apply (rule cont_Isfst)
@@ -868,17 +810,15 @@ apply (rule inst_sprod_pcpo [THEN subst])
 apply assumption
 done
 
-lemma strict_sfst1: 
-        "sfst$(:UU,y:) = UU"
+lemma strict_sfst1 [simp]: "sfst$(:UU,y:) = UU"
 apply (unfold sfst_def spair_def)
 apply (subst beta_cfun_sprod)
 apply (subst beta_cfun)
 apply (rule cont_Isfst)
 apply (rule strict_Isfst1)
 done
- 
-lemma strict_sfst2: 
-        "sfst$(:x,UU:) = UU"
+
+lemma strict_sfst2 [simp]: "sfst$(:x,UU:) = UU"
 apply (unfold sfst_def spair_def)
 apply (subst beta_cfun_sprod)
 apply (subst beta_cfun)
@@ -886,8 +826,7 @@ apply (rule cont_Isfst)
 apply (rule strict_Isfst2)
 done
 
-lemma strict_ssnd: 
-        "p=UU==>ssnd$p=UU"
+lemma strict_ssnd: "p=UU==>ssnd$p=UU"
 apply (unfold ssnd_def)
 apply (subst beta_cfun)
 apply (rule cont_Issnd)
@@ -896,8 +835,7 @@ apply (rule inst_sprod_pcpo [THEN subst])
 apply assumption
 done
 
-lemma strict_ssnd1: 
-        "ssnd$(:UU,y:) = UU"
+lemma strict_ssnd1 [simp]: "ssnd$(:UU,y:) = UU"
 apply (unfold ssnd_def spair_def)
 apply (subst beta_cfun_sprod)
 apply (subst beta_cfun)
@@ -905,8 +843,7 @@ apply (rule cont_Issnd)
 apply (rule strict_Issnd1)
 done
 
-lemma strict_ssnd2: 
-        "ssnd$(:x,UU:) = UU"
+lemma strict_ssnd2 [simp]: "ssnd$(:x,UU:) = UU"
 apply (unfold ssnd_def spair_def)
 apply (subst beta_cfun_sprod)
 apply (subst beta_cfun)
@@ -914,8 +851,7 @@ apply (rule cont_Issnd)
 apply (rule strict_Issnd2)
 done
 
-lemma sfst2: 
-        "y~=UU ==>sfst$(:x,y:)=x"
+lemma sfst2 [simp]: "y~=UU ==>sfst$(:x,y:)=x"
 apply (unfold sfst_def spair_def)
 apply (subst beta_cfun_sprod)
 apply (subst beta_cfun)
@@ -923,8 +859,7 @@ apply (rule cont_Isfst)
 apply (erule Isfst2)
 done
 
-lemma ssnd2: 
-        "x~=UU ==>ssnd$(:x,y:)=y"
+lemma ssnd2 [simp]: "x~=UU ==>ssnd$(:x,y:)=y"
 apply (unfold ssnd_def spair_def)
 apply (subst beta_cfun_sprod)
 apply (subst beta_cfun)
@@ -933,8 +868,7 @@ apply (erule Issnd2)
 done
 
 
-lemma defined_sfstssnd: 
-        "p~=UU ==> sfst$p ~=UU & ssnd$p ~=UU"
+lemma defined_sfstssnd: "p~=UU ==> sfst$p ~=UU & ssnd$p ~=UU"
 apply (unfold sfst_def ssnd_def spair_def)
 apply (simplesubst beta_cfun)
 apply (rule cont_Issnd)
@@ -967,7 +901,6 @@ apply (rule cont_Isfst)
 apply (erule lub_sprod)
 done
 
-
 lemmas thelub_sprod2 = lub_sprod2 [THEN thelubI, standard]
 (*
  "chain ?S1 ==>
@@ -975,57 +908,22 @@ lemmas thelub_sprod2 = lub_sprod2 [THEN thelubI, standard]
  (:lub (range (%i. sfst$(?S1 i))), lub (range (%i. ssnd$(?S1 i))):)" : thm
 *)
 
-lemma ssplit1: 
-        "ssplit$f$UU=UU"
-apply (unfold ssplit_def)
-apply (subst beta_cfun)
-apply (simp (no_asm))
-apply (subst strictify1)
-apply (rule refl)
+lemma ssplit1 [simp]: "ssplit$f$UU=UU"
+by (simp add: ssplit_def)
+
+lemma ssplit2 [simp]: "[|x~=UU;y~=UU|] ==> ssplit$f$(:x,y:)= f$x$y"
+by (simp add: ssplit_def)
+
+lemma ssplit3: "ssplit$spair$z=z"
+apply (simp add: ssplit_def)
+apply (simp add: surjective_pairing_Sprod2)
+apply (case_tac "z=UU", simp_all)
 done
 
-lemma ssplit2: 
-        "[|x~=UU;y~=UU|] ==> ssplit$f$(:x,y:)= f$x$y"
-apply (unfold ssplit_def)
-apply (subst beta_cfun)
-apply (simp (no_asm))
-apply (subst strictify2)
-apply (rule defined_spair)
-apply assumption
-apply assumption
-apply (subst beta_cfun)
-apply (simp (no_asm))
-apply (subst sfst2)
-apply assumption
-apply (subst ssnd2)
-apply assumption
-apply (rule refl)
-done
-
-
-lemma ssplit3: 
-  "ssplit$spair$z=z"
-apply (unfold ssplit_def)
-apply (subst beta_cfun)
-apply (simp (no_asm))
-apply (case_tac "z=UU")
-apply (erule ssubst)
-apply (rule strictify1)
-apply (rule trans)
-apply (rule strictify2)
-apply assumption
-apply (subst beta_cfun)
-apply (simp (no_asm))
-apply (rule surjective_pairing_Sprod2)
-done
-
-(* ------------------------------------------------------------------------ *)
-(* install simplifier for Sprod                                             *)
-(* ------------------------------------------------------------------------ *)
+text {* install simplifier for Sprod *}
 
 lemmas Sprod_rews = strict_sfst1 strict_sfst2
                 strict_ssnd1 strict_ssnd2 sfst2 ssnd2 defined_spair
                 ssplit1 ssplit2
-declare Sprod_rews [simp]
 
 end
