@@ -72,6 +72,4 @@ use "simpdata.ML";
 use "../Pure/install_pp.ML";
 print_depth 8;
 
-make_chart ();   (*make HTML chart*)
-
 val FOL_build_completed = ();	(*indicate successful build*)
