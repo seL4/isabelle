@@ -493,6 +493,7 @@ by (ALLGOALS Asm_simp_tac);
 qed "diff_add_0";
 Addsimps [diff_add_0];
 
+
 (** Difference distributes over multiplication **)
 
 Goal "!!m::nat. (m - n) * k = (m * k) - (n * k)";
@@ -674,6 +675,17 @@ bd diff_Suc_less_diff 1;
 by (auto_tac (claset(), simpset() addsimps [leI RS le_imp_less_Suc]));
 qed "diff_Suc_le_diff";
 AddIffs [diff_Suc_le_diff];
+
+Goal "0 < n ==> (m <= n-1) = (m<n)";
+by (exhaust_tac "n" 1);
+by Auto_tac;
+by (ALLGOALS trans_tac);
+qed "le_pred_eq";
+
+Goal "0 < n ==> (m-1 < n) = (m<=n)";
+by (exhaust_tac "m" 1);
+by (auto_tac (claset(), simpset() addsimps [Suc_le_eq]));
+qed "less_pred_eq";
 
 
 
