@@ -115,7 +115,7 @@ qed "not_mem_Rep_preal_Ex";
 Goal "{xa::prat. xa < y} : preal";
 by (cut_facts_tac [qless_Ex] 1);
 by (auto_tac (claset() addIs[prat_less_trans]
-                       addSEs [equalityCE, prat_less_irrefl], 
+                       addSEs [prat_less_irrefl], 
 	      simpset()));
 by (blast_tac (claset() addDs [prat_dense]) 1);
 qed "lemma_prat_less_set_mem_preal";
@@ -125,8 +125,7 @@ by (cut_inst_tac [("q1.0","x"),("q2.0","y")] prat_linear 1);
 by Auto_tac;
 by (dtac prat_dense 2 THEN etac exE 2);
 by (dtac prat_dense 1 THEN etac exE 1);
-by (auto_tac (claset() addDs [prat_less_not_sym] addSEs [equalityCE],
-              simpset()));
+by (auto_tac (claset() addDs [prat_less_not_sym], simpset()));
 qed "lemma_prat_set_eq";
 
 Goal "inj(preal_of_prat)";
@@ -204,7 +203,7 @@ qed "preal_add_commute";
 (** Part 1 of Dedekind sections def **)
 Goal "{} < {w. EX x: Rep_preal R. EX y:Rep_preal S. w = x + y}";
 by (cut_facts_tac [mem_Rep_preal_Ex,mem_Rep_preal_Ex] 1);
-by (auto_tac (claset() addSIs [psubsetI] addEs [equalityCE],simpset()));
+by (auto_tac (claset() addSIs [psubsetI], simpset()));
 qed "preal_add_set_not_empty";
 
 (** Part 2 of Dedekind sections def **)
@@ -222,8 +221,6 @@ qed "preal_not_mem_add_set_Ex";
 Goal "{w. EX x: Rep_preal R. EX y:Rep_preal S. w = x + y} < UNIV";
 by (auto_tac (claset() addSIs [psubsetI],simpset()));
 by (cut_inst_tac [("R","R"),("S","S")] preal_not_mem_add_set_Ex 1);
-by (etac exE 1);
-by (eres_inst_tac [("c","q")] equalityCE 1);
 by Auto_tac;
 qed "preal_add_set_not_prat_set";
 
@@ -292,7 +289,7 @@ qed "preal_mult_commute";
 (** Part 1 of Dedekind sections def **)
 Goal "{} < {w. EX x: Rep_preal R. EX y:Rep_preal S. w = x * y}";
 by (cut_facts_tac [mem_Rep_preal_Ex,mem_Rep_preal_Ex] 1);
-by (auto_tac (claset() addSIs [psubsetI] addEs [equalityCE],simpset()));
+by (auto_tac (claset() addSIs [psubsetI], simpset()));
 qed "preal_mult_set_not_empty";
 
 (** Part 2 of Dedekind sections def **)
@@ -310,8 +307,6 @@ qed "preal_not_mem_mult_set_Ex";
 Goal "{w. EX x: Rep_preal R. EX y:Rep_preal S. w = x * y} < UNIV";
 by (auto_tac (claset() addSIs [psubsetI],simpset()));
 by (cut_inst_tac [("R","R"),("S","S")] preal_not_mem_mult_set_Ex 1);
-by (etac exE 1);
-by (eres_inst_tac [("c","q")] equalityCE 1);
 by Auto_tac;
 qed "preal_mult_set_not_prat_set";
 
@@ -509,7 +504,7 @@ qed "lemma_preal_mem_inv_set_ex";
 (** Part 1 of Dedekind sections def **)
 Goal "{} < {x. EX y. x < y & qinv y ~:  Rep_preal A}";
 by (cut_facts_tac [lemma_preal_mem_inv_set_ex] 1);
-by (auto_tac (claset() addSIs [psubsetI] addEs [equalityCE],simpset()));
+by (auto_tac (claset() addSIs [psubsetI], simpset()));
 qed "preal_inv_set_not_empty";
 
 (** Part 2 of Dedekind sections def **)
@@ -533,8 +528,6 @@ qed "preal_not_mem_inv_set_Ex";
 Goal "{x. EX y. x < y & qinv y ~:  Rep_preal A} < UNIV";
 by (auto_tac (claset() addSIs [psubsetI],simpset()));
 by (cut_inst_tac [("A","A")]  preal_not_mem_inv_set_Ex 1);
-by (etac exE 1);
-by (eres_inst_tac [("c","x")] equalityCE 1);
 by Auto_tac;
 qed "preal_inv_set_not_prat_set";
 
@@ -831,7 +824,7 @@ qed "lemma_ex_mem_less_left_add1";
 
 Goal "A < B ==> {} < {d. EX n. n ~: Rep_preal(A) & n + d : Rep_preal(B)}";
 by (dtac lemma_ex_mem_less_left_add1 1);
-by (auto_tac (claset() addSIs [psubsetI] addEs [equalityCE],simpset()));
+by (auto_tac (claset() addSIs [psubsetI], simpset()));
 qed "preal_less_set_not_empty";
 
 (** Part 2 of Dedekind sections def **)
@@ -847,8 +840,6 @@ qed "lemma_ex_not_mem_less_left_add1";
 Goal "{d. EX n. n ~: Rep_preal(A) & n + d : Rep_preal(B)} < UNIV";
 by (auto_tac (claset() addSIs [psubsetI],simpset()));
 by (cut_inst_tac [("A","A"),("B","B")] lemma_ex_not_mem_less_left_add1 1);
-by (etac exE 1);
-by (eres_inst_tac [("c","q")] equalityCE 1);
 by Auto_tac;
 qed "preal_less_set_not_prat_set";
 
@@ -1059,7 +1050,7 @@ qed "preal_sup_mem_Ex";
 Goal "EX (X::preal). X: P ==> \
 \         {} < {w. EX X : P. w : Rep_preal X}";
 by (dtac preal_sup_mem_Ex 1);
-by (auto_tac (claset() addSIs [psubsetI] addEs [equalityCE],simpset()));
+by (auto_tac (claset() addSIs [psubsetI], simpset()));
 qed "preal_sup_set_not_empty";
 
 (** Part 2 of Dedekind sections def **) 

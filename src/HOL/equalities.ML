@@ -68,7 +68,7 @@ by (Blast_tac 1);
 qed "insert_is_Un";
 
 Goal "insert a A ~= {}";
-by (blast_tac (claset() addEs [equalityCE]) 1);
+by (Blast_tac 1);
 qed"insert_not_empty";
 Addsimps[insert_not_empty];
 
@@ -136,7 +136,7 @@ qed "insert_image";
 Addsimps [insert_image];
 
 Goal "(f`A = {}) = (A = {})";
-by (blast_tac (claset() addSEs [equalityCE]) 1);
+by (Blast_tac 1);
 qed "image_is_empty";
 AddIffs [image_is_empty];
 
@@ -216,7 +216,7 @@ qed "Int_empty_right";
 Addsimps[Int_empty_right];
 
 Goal "(A Int B = {}) = (A <= -B)";
-by (blast_tac (claset() addSEs [equalityCE]) 1);
+by (Blast_tac 1);
 qed "disjoint_eq_subset_Compl";
 
 Goal "(A Int B = {}) = (ALL x:A. ALL y:B. x ~= y)";
@@ -246,7 +246,7 @@ by (Blast_tac 1);
 qed "Int_Un_distrib2";
 
 Goal "(A Int B = UNIV) = (A = UNIV & B = UNIV)";
-by (blast_tac (claset() addEs [equalityCE]) 1);
+by (Blast_tac 1);
 qed "Int_UNIV";
 Addsimps[Int_UNIV];
 
@@ -352,11 +352,11 @@ by (Blast_tac 1);
 qed "Un_Int_crazy";
 
 Goal "(A<=B) = (A Un B = B)";
-by (blast_tac (claset() addSEs [equalityCE]) 1);
+by (Blast_tac 1);
 qed "subset_Un_eq";
 
 Goal "(A Un B = {}) = (A = {} & B = {})";
-by (blast_tac (claset() addEs [equalityCE]) 1);
+by (Blast_tac 1);
 qed "Un_empty";
 AddIffs[Un_empty];
 
@@ -413,7 +413,7 @@ qed "subset_Compl_self_eq";
 
 (*Halmos, Naive Set Theory, page 16.*)
 Goal "((A Int B) Un C = A Int (B Un C)) = (C<=A)";
-by (blast_tac (claset() addSEs [equalityCE]) 1);
+by (Blast_tac 1);
 qed "Un_Int_assoc_eq";
 
 Goal "-UNIV = {}";
@@ -469,7 +469,7 @@ qed "Union_empty_conv";
 AddIffs [Union_empty_conv];
 
 Goal "(Union(C) Int A = {}) = (ALL B:C. B Int A = {})";
-by (blast_tac (claset() addSEs [equalityCE]) 1);
+by (Blast_tac 1);
 qed "Union_disjoint";
 
 section "Inter";

@@ -157,13 +157,13 @@ qed"externals_of_par";
 Goalw [externals_def,actions_def,compat_ioas_def,compat_asigs_def]
  "[| compat_ioas A1 A2; a:externals(asig_of(A1))|] ==> a~:internals(asig_of(A2))";
 by (Asm_full_simp_tac 1);
-by (best_tac (claset() addEs [equalityCE]) 1);
+by (Best_tac 1);
 qed"ext1_is_not_int2";
 
 Goalw [externals_def,actions_def,compat_ioas_def,compat_asigs_def]
  "[| compat_ioas A2 A1 ; a:externals(asig_of(A1))|] ==> a~:internals(asig_of(A2))";
 by (Asm_full_simp_tac 1);
-by (best_tac (claset() addEs [equalityCE]) 1);
+by (Best_tac 1);
 qed"ext2_is_not_int1";
 
 val ext1_ext2_is_not_act2 = ext1_is_not_int2 RS int_and_ext_is_act;

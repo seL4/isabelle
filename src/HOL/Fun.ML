@@ -283,7 +283,7 @@ by (Blast_tac 1);
 qed "inj_image_subset_iff";
 
 Goal "inj f ==> (f`A = f`B) = (A = B)";
-by (blast_tac (claset() addSEs [equalityE] addDs [injD]) 1);
+by (blast_tac (claset() addDs [injD]) 1);
 qed "inj_image_eq_iff";
 
 Goal  "(f ` (UNION A B)) = (UN x:A.(f ` (B x)))";
