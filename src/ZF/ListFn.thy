@@ -18,6 +18,8 @@ consts
   length,rev :: "i=>i"
   flat       :: "i=>i"
   list_add   :: "i=>i"
+  hd,tl      :: "i=>i"
+  drop	     :: "[i,i]=>i"
 
  (* List Enumeration *)
  "[]"        :: "i" 	                           	("[]")
@@ -31,6 +33,11 @@ translations
 
 
 rules
+
+  hd_def	"hd(l)	     == list_case(0, %x xs.x, l)"
+  tl_def	"tl(l)       == list_case(Nil, %x xs.xs, l)"
+  drop_def	"drop(i,l)   == rec(i, l, %j r. tl(r))"
+
   list_rec_def
       "list_rec(l,c,h) == Vrec(l, %l g.list_case(c, %x xs. h(x, xs, g`xs), l))"
 
@@ -40,5 +47,4 @@ rules
   rev_def       "rev(l)      == list_rec(l,  Nil,  %x xs r. r @ [x])"
   flat_def      "flat(ls)    == list_rec(ls, Nil,  %l ls r. l @ r)"
   list_add_def  "list_add(l) == list_rec(l, 0,  %x xs r. x#+r)"
-
 end

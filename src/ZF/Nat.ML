@@ -31,7 +31,7 @@ by (rtac (RepFunI RS UnI2) 1);
 by (resolve_tac prems 1);
 val nat_succI = result();
 
-goalw Nat.thy [one_def] "1 : nat";
+goal Nat.thy "1 : nat";
 by (rtac (nat_0I RS nat_succI) 1);
 val nat_1I = result();
 
@@ -59,7 +59,7 @@ fun nat_ind_tac a prems i =
 
 val major::prems = goal Nat.thy
     "[| n: nat;  n=0 ==> P;  !!x. [| x: nat; n=succ(x) |] ==> P |] ==> P";
-br (major RS (nat_unfold RS equalityD1 RS subsetD) RS UnE) 1;
+by (rtac (major RS (nat_unfold RS equalityD1 RS subsetD) RS UnE) 1);
 by (DEPTH_SOLVE (eresolve_tac [singletonE,RepFunE] 1
           ORELSE ares_tac prems 1));
 val natE = result();
@@ -69,10 +69,13 @@ by (nat_ind_tac "n" prems 1);
 by (REPEAT (ares_tac [Ord_0, Ord_succ] 1));
 val naturals_are_ordinals = result();
 
+(* i: nat ==> 0: succ(i) *)
+val nat_0_in_succ = naturals_are_ordinals RS Ord_0_in_succ;
+
 goal Nat.thy "!!n. n: nat ==> n=0 | 0:n";
 by (etac nat_induct 1);
 by (fast_tac ZF_cs 1);
-by (fast_tac (ZF_cs addIs [naturals_are_ordinals RS Ord_0_mem_succ]) 1);
+by (fast_tac (ZF_cs addIs [nat_0_in_succ]) 1);
 val natE0 = result();
 
 goal Nat.thy "Ord(nat)";
@@ -83,6 +86,12 @@ by (rtac ballI 1);
 by (etac nat_induct 1);
 by (REPEAT (ares_tac [empty_subsetI,succ_subsetI] 1));
 val Ord_nat = result();
+
+(* succ(i): nat ==> i: nat *)
+val succ_natD = [succI1, asm_rl, Ord_nat] MRS Ord_trans;
+
+(* [| succ(i): k;  k: nat |] ==> i: k *)
+val succ_in_naturalD = [succI1, asm_rl, naturals_are_ordinals] MRS Ord_trans;
 
 (** Variations on mathematical induction **)
 
@@ -97,7 +106,7 @@ by (nat_ind_tac "n" prems 1);
 by (ALLGOALS
     (asm_simp_tac
      (ZF_ss addsimps (prems@distrib_rews@[subset_empty_iff, subset_succ_iff, 
-					 Ord_nat RS Ord_in_Ord]))));
+					  naturals_are_ordinals]))));
 val nat_induct_from_lemma = result();
 
 (*Induction starting from m rather than 0*)
@@ -124,6 +133,28 @@ by (rtac ballI 2);
 by (nat_ind_tac "x" [] 2);
 by (REPEAT (ares_tac (prems@[ballI]) 1 ORELSE etac bspec 1));
 val diff_induct = result();
+
+(** Induction principle analogous to trancl_induct **)
+
+goal Nat.thy
+ "!!m. m: nat ==> P(m,succ(m)) --> (ALL x: nat. P(m,x) --> P(m,succ(x))) --> \
+\               (ALL n:nat. m:n --> P(m,n))";
+by (etac nat_induct 1);
+by (ALLGOALS
+    (EVERY' [rtac (impI RS impI), rtac (nat_induct RS ballI), assume_tac,
+	     fast_tac ZF_cs, fast_tac ZF_cs]));
+val succ_less_induct_lemma = result();
+
+val prems = goal Nat.thy
+    "[| m: n;  n: nat;  	\
+\       P(m,succ(m));  		\
+\       !!x. [| x: nat;  P(m,x) |] ==> P(m,succ(x)) \
+\    |] ==> P(m,n)";
+by (res_inst_tac [("P4","P")] 
+     (succ_less_induct_lemma RS mp RS mp RS bspec RS mp) 1);
+by (rtac (Ord_nat RSN (3,Ord_trans)) 1);
+by (REPEAT (ares_tac (prems @ [ballI,impI]) 1));
+val succ_less_induct = result();
 
 (** nat_case **)
 
@@ -157,18 +188,16 @@ val nat_rec_0 = result();
 
 val [prem] = goal Nat.thy 
     "m: nat ==> nat_rec(succ(m),a,b) = b(m, nat_rec(m,a,b))";
-val nat_rec_ss = ZF_ss 
-      addsimps [prem, nat_case_succ, nat_succI, Memrel_iff, 
-		vimage_singleton_iff];
 by (rtac nat_rec_trans 1);
-by (simp_tac nat_rec_ss 1);
+by (simp_tac (ZF_ss addsimps [prem, nat_case_succ, nat_succI, Memrel_iff, 
+			      vimage_singleton_iff]) 1);
 val nat_rec_succ = result();
 
 (** The union of two natural numbers is a natural number -- their maximum **)
 
-(*  [| ?i : nat; ?j : nat |] ==> ?i Un ?j : nat  *)
+(*  [| i : nat; j : nat |] ==> i Un j : nat  *)
 val Un_nat_type = standard (Ord_nat RSN (3,Ord_member_UnI));
 
-(*  [| ?i : nat; ?j : nat |] ==> ?i Int ?j : nat  *)
+(*  [| i : nat; j : nat |] ==> i Int j : nat  *)
 val Int_nat_type = standard (Ord_nat RSN (3,Ord_member_IntI));
 

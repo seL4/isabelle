@@ -8,6 +8,47 @@ For list-fn.thy.  Lists in Zermelo-Fraenkel Set Theory
 
 open ListFn;
 
+(** hd and tl **)
+
+goalw ListFn.thy [hd_def] "hd(Cons(a,l)) = a";
+by (resolve_tac List.case_eqns 1);
+val hd_Cons = result();
+
+goalw ListFn.thy [tl_def] "tl(Nil) = Nil";
+by (resolve_tac List.case_eqns 1);
+val tl_Nil = result();
+
+goalw ListFn.thy [tl_def] "tl(Cons(a,l)) = l";
+by (resolve_tac List.case_eqns 1);
+val tl_Cons = result();
+
+goal ListFn.thy "!!l. l: list(A) ==> tl(l) : list(A)";
+by (etac List.elim 1);
+by (ALLGOALS (asm_simp_tac (ZF_ss addsimps (List.intrs @ [tl_Nil,tl_Cons]))));
+val tl_type = result();
+
+(** drop **)
+
+goalw ListFn.thy [drop_def] "drop(0, l) = l";
+by (rtac rec_0 1);
+val drop_0 = result();
+
+goalw ListFn.thy [drop_def] "!!i. i:nat ==> drop(i, Nil) = Nil";
+by (etac nat_induct 1);
+by (ALLGOALS (asm_simp_tac (nat_ss addsimps [tl_Nil])));
+val drop_Nil = result();
+
+goalw ListFn.thy [drop_def]
+    "!!i. i:nat ==> drop(succ(i), Cons(a,l)) = drop(i,l)";
+by (etac nat_induct 1);
+by (ALLGOALS (asm_simp_tac (nat_ss addsimps [tl_Cons])));
+val drop_succ_Cons = result();
+
+goalw ListFn.thy [drop_def] 
+    "!!i l. [| i:nat; l: list(A) |] ==> drop(i,l) : list(A)";
+by (etac nat_induct 1);
+by (ALLGOALS (asm_simp_tac (nat_ss addsimps [tl_type])));
+val drop_type = result();
 
 (** list_rec -- by Vset recursion **)
 
@@ -67,18 +108,18 @@ val map_type2 = result();
 
 val [length_Nil,length_Cons] = list_recs length_def;
 
-val prems = goalw ListFn.thy [length_def] 
-    "l: list(A) ==> length(l) : nat";
-by (REPEAT (ares_tac (prems @ [list_rec_type, nat_0I, nat_succI]) 1));
+goalw ListFn.thy [length_def] 
+    "!!l. l: list(A) ==> length(l) : nat";
+by (REPEAT (ares_tac [list_rec_type, nat_0I, nat_succI] 1));
 val length_type = result();
 
 (** app **)
 
 val [app_Nil,app_Cons] = list_recs app_def;
 
-val prems = goalw ListFn.thy [app_def] 
-    "[| xs: list(A);  ys: list(A) |] ==> xs@ys : list(A)";
-by (REPEAT (ares_tac (prems @ [list_rec_type, ConsI]) 1));
+goalw ListFn.thy [app_def] 
+    "!!xs ys. [| xs: list(A);  ys: list(A) |] ==> xs@ys : list(A)";
+by (REPEAT (ares_tac [list_rec_type, ConsI] 1));
 val app_type = result();
 
 (** rev **)
@@ -203,6 +244,38 @@ val prems = goal ListFn.thy
 by (list_ind_tac "ls" prems 1);
 by (ALLGOALS (asm_simp_tac (list_ss addsimps [length_app])));
 val length_flat = result();
+
+(** Length and drop **)
+
+(*Lemma for the inductive step of drop_length*)
+goal ListFn.thy
+    "!!xs. xs: list(A) ==> \
+\          ALL x.  EX z zs. drop(length(xs), Cons(x,xs)) = Cons(z,zs)";
+by (etac List.induct 1);
+by (ALLGOALS (asm_simp_tac (list_ss addsimps [drop_0,drop_succ_Cons])));
+by (fast_tac ZF_cs 1);
+val drop_length_Cons_lemma = result();
+val drop_length_Cons = standard (drop_length_Cons_lemma RS spec);
+
+goal ListFn.thy
+    "!!l. l: list(A) ==> ALL i: length(l).  EX z zs. drop(i,l) = Cons(z,zs)";
+by (etac List.induct 1);
+by (ALLGOALS (asm_simp_tac (list_ss addsimps bquant_simps)));
+by (rtac conjI 1);
+by (etac drop_length_Cons 1);
+by (rtac ballI 1);
+by (rtac natE 1);
+by (etac ([asm_rl, length_type, Ord_nat] MRS Ord_trans) 1);
+by (assume_tac 1);
+by (asm_simp_tac (list_ss addsimps [drop_0]) 1);
+by (fast_tac ZF_cs 1);
+by (asm_simp_tac (list_ss addsimps [drop_succ_Cons]) 1);
+by (dtac bspec 1);
+by (fast_tac ZF_cs 2);
+by (fast_tac (ZF_cs addEs [succ_in_naturalD,length_type]) 1);
+val drop_length_lemma = result();
+val drop_length = standard (drop_length_lemma RS bspec);
+
 
 (*** theorems about app ***)
 
