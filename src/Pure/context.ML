@@ -56,7 +56,7 @@ fun pass opt_thy f x =
 fun pass_theory thy f x =
   (case pass (Some thy) f x of
     (y, Some thy') => (y, thy')
-  | (_, None) => error "Missing ML theory context");
+  | (_, None) => error "Lost theory context in ML");
 
 fun save f x = setmp (get_context ()) f x;
 
