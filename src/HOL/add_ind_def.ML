@@ -31,9 +31,10 @@ Nestings of disjoint sum types:
 
 signature FP =          (** Description of a fixed point operator **)
   sig
+  val checkThy  : theory -> unit   (*signals error if Lfp/Gfp is missing*)
   val oper      : string * typ * term -> term   (*fixed point operator*)
-  val Tarski    : thm                   (*Tarski's fixed point theorem*)
-  val induct    : thm                   (*induction/coinduction rule*)
+  val Tarski    : thm              (*Tarski's fixed point theorem*)
+  val induct    : thm              (*induction/coinduction rule*)
   end;
 
 
@@ -52,6 +53,8 @@ open Ind_Syntax;
 (*internal version*)
 fun add_fp_def_i (rec_tms, intr_tms) thy = 
   let
+    val dummy = Fp.checkThy thy		(*has essential ancestors?*)
+    
     val sign = sign_of thy;
 
     (*rec_params should agree for all mutually recursive components*)
