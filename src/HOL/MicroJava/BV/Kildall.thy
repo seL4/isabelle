@@ -59,7 +59,7 @@ primrec
 "merges f s (p#ps) ss = merges f s ps (ss[p := s +_f ss!p])"
 
 
-lemmas [simp] = Let_def le_iff_plus_unchanged [symmetric];
+lemmas [simp] = Let_def le_iff_plus_unchanged [symmetric]
 
 
 lemma pres_typeD:
@@ -206,26 +206,16 @@ lemma decomp_propa [rule_format]:
 
 (** iter **)
 
-ML_setup {*
-let
-val thy = the_context ()
-val [iter_wf,iter_tc] = RecdefPackage.tcs_of thy "iter";
-in
-goalw_cterm [] (cterm_of (sign_of thy) (HOLogic.mk_Trueprop iter_wf));
-by (REPEAT(rtac wf_same_fst 1));
-by (split_all_tac 1);
-by (asm_full_simp_tac (simpset() addsimps [thm "lesssub_def"]) 1);
-by (REPEAT(rtac wf_same_fst 1));
-by (rtac wf_lex_prod 1);
- by (rtac wf_finite_psubset 2);
-by (Clarify_tac 1);
-by (dtac (thm "semilatDorderI" RS (thm "acc_le_listI")) 1);
- by (assume_tac 1);
-by (rewrite_goals_tac [thm "acc_def",thm "lesssub_def"]);
-by (assume_tac 1);
-qed "iter_wf"
-end
-*}
+recdef_tc iter_wf: iter (1)
+  apply (rule wf_same_fst)+
+  apply (simp add: split_tupled_all lesssub_def)
+  apply (rule wf_lex_prod)
+   prefer 2
+   apply (rule wf_finite_psubset)
+  apply clarify
+  apply (drule (1) semilatDorderI [THEN acc_le_listI])
+  apply (simp only: acc_def lesssub_def)
+  done
 
 lemma inter_tc_lemma:  
   "[| semilat(A,r,f); ss : list n A; t:A; ! q:set qs. q < n; p:w |] ==> 
@@ -243,27 +233,22 @@ lemma inter_tc_lemma:
   apply simp
   done
 
-ML_setup {*
-let
-val thy = the_context ()
-val [iter_wf,iter_tc] = RecdefPackage.tcs_of thy "iter";
-in
-goalw_cterm [] (cterm_of (sign_of thy) (HOLogic.mk_Trueprop iter_tc)); 
-by (asm_simp_tac (simpset() addsimps [same_fst_def,thm "pres_type_def"]) 1);
-by (clarify_tac (claset() delrules [disjCI]) 1);
-by (subgoal_tac "(@p. p:w) : w" 1);
- by (fast_tac (claset() addIs [someI]) 2);
-by (subgoal_tac "ss : list (size ss) A" 1);
- by (blast_tac (claset() addSIs [thm "listI"]) 2);
-by (subgoal_tac "!q:set(succs (@ p. p : w)). q < size ss" 1);
- by (blast_tac (claset() addDs [thm "boundedD"]) 2);
-by (rotate_tac 1 1);
-by (asm_full_simp_tac (simpset() delsimps [thm "listE_length"]
-      addsimps [thm "decomp_propa",finite_psubset_def,thm "inter_tc_lemma",
-                bounded_nat_set_is_finite]) 1);
-qed "iter_tc"
-end
-*}
+recdef_tc iter_tc: iter (2)
+  apply (simp add: same_fst_def pres_type_def)
+  apply (clarify del: disjCI)
+  apply (subgoal_tac "(@p. p:w) : w")
+   prefer 2
+   apply (fast intro: someI)
+  apply (subgoal_tac "ss : list (size ss) A")
+   prefer 2
+   apply (blast intro!: listI)
+  apply (subgoal_tac "!q:set(succs (@ p. p : w)). q < size ss")
+   prefer 2
+   apply (blast dest: boundedD)
+  apply (rotate_tac 1)
+  apply (simp del: listE_length
+    add: decomp_propa finite_psubset_def inter_tc_lemma bounded_nat_set_is_finite)
+  done
 
 lemma iter_induct:
   "(!!A r f step succs ss w. 
