@@ -251,7 +251,7 @@ qed "less_not_refl";
 bind_thm ("less_irrefl", (less_not_refl RS notE));
 
 goal thy "!!m. n<m ==> m ~= (n::nat)";
-by (blast_tac (!claset addEs [less_irrefl]) 1);
+by (blast_tac (!claset addSEs [less_irrefl]) 1);
 qed "less_not_refl2";
 
 
@@ -468,7 +468,7 @@ qed "not_leE";
 
 goalw thy [le_def] "!!m. m < n ==> Suc(m) <= n";
 by (simp_tac (!simpset addsimps [less_Suc_eq]) 1);
-by (blast_tac (!claset addEs [less_irrefl,less_asym]) 1);
+by (blast_tac (!claset addSEs [less_irrefl,less_asym]) 1);
 qed "lessD";
 
 goalw thy [le_def] "!!m. Suc(m) <= n ==> m <= n";
@@ -505,8 +505,7 @@ qed "le_imp_less_or_eq";
 
 goalw thy [le_def] "!!m. m<n | m=n ==> m <=(n::nat)";
 by (cut_facts_tac [less_linear] 1);
-by (blast_tac (!claset addEs [less_irrefl,less_asym]) 1);
-by (flexflex_tac);
+by (blast_tac (!claset addSEs [less_irrefl] addEs [less_asym]) 1);
 qed "less_or_eq_imp_le";
 
 goal thy "(x <= (y::nat)) = (x < y | x=y)";
