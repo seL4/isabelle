@@ -798,6 +798,21 @@ fun prove_nchotomy induct_tac ctm =
  end
  handle _ => raise DTYPE_ERR {func="prove_nchotomy", mesg="failed"};
 
+(*---------------------------------------------------------------------------
+ * Turn nchotomy into exhaustion:
+ *    [| !!y1..yi. v = C1 y1..yi ==> P; ...; !!y1..yj. v = Cn y1..yj ==> P |]
+ *    ==> P
+ *---------------------------------------------------------------------------*)
+fun mk_exhaust nchotomy =
+  let val tac = rtac impI 1 THEN
+                REPEAT(SOMEGOAL(eresolve_tac [disjE,exE]))
+  in standard(rule_by_tactic tac (nchotomy RS spec RS rev_mp)) end;
+
+(* find name of v in exhaustion: *)
+fun exhaust_var thm =
+  let val _ $ ( _ $ Var((x,_),_) $ _ ) =
+        hd(Logic.strip_assums_hyp(hd(prems_of thm)))
+  in x end;
 
 (*---------------------------------------------------------------------------
  * Brings the preceeding functions together.
@@ -841,6 +856,9 @@ fun build_record (thy,(ty,cl),itac) =
      fun const s = Const(s, the(Sign.const_type sign s))
      val case_rewrites = map (fn c => get_fact thy (ty^"_case_"^c)) cl
      val {nchotomy,case_cong} = case_thms sign case_rewrites itac
+     val exhaustion = mk_exhaust nchotomy
+     val exh_var = exhaust_var exhaustion;
+     fun exhaust_tac a = res_inst_tac [(exh_var,a)] exhaustion;
      fun induct_tac a i =
            STATE(fn st =>
              (if Datatype.occs_in_prems a i st
@@ -853,6 +871,8 @@ fun build_record (thy,(ty,cl),itac) =
         case_rewrites = map mk_rw case_rewrites,
         induct_tac = induct_tac,
         nchotomy = nchotomy,
+        exhaustion = exhaustion,
+        exhaust_tac = exhaust_tac,
         case_cong = case_cong})
  end
 end;

@@ -49,27 +49,48 @@ fun extract_info thy =
               in (map #case_cong info, flat (map #case_rewrites info)) end;
   in {case_congs = congs, case_rewrites = rewrites} end;
 
+local
+
+fun find_tname var Bi =
+  let val frees = map dest_Free (term_frees Bi)
+      val params = Logic.strip_params Bi;
+  in case assoc (frees@params, var) of
+       None => error("No such variable in subgoal: " ^ quote var)
+     | Some(Type(tn,_)) => tn
+     | _ => error("Cannot induct on type of " ^ quote var)
+  end;
+
+fun get_dt_info sign tn =
+      case get_thydata (thyname_of_sign sign) "datatypes" of
+        None => error ("No such datatype: " ^ quote tn)
+      | Some (DT_DATA ds) =>
+          case assoc (ds, tn) of
+            Some info => info
+          | None => error ("Not a datatype: " ^ quote tn)
+
+in
+
 (* generic induction tactic for datatypes *)
 fun induct_tac var i =
-  let fun find_tname Bi =
-        let val frees = map dest_Free (term_frees Bi)
-            val params = Logic.strip_params Bi;
-        in case assoc (frees@params, var) of
-             None => error("No such variable in subgoal: " ^ quote var)
-           | Some(Type(tn,_)) => tn
-           | _ => error("Cannot induct on type of " ^ quote var)
-        end;
-      fun get_ind_tac sign tn =
-        (case get_thydata (thyname_of_sign sign) "datatypes" of
-           None => error ("No such datatype: " ^ quote tn)
-         | Some (DT_DATA ds) =>
-             (case assoc (ds, tn) of
-                Some {induct_tac, ...} => induct_tac
-              | None => error ("Not a datatype: " ^ quote tn)));
-      fun induct state =
-        let val (_, _, Bi, _) = dest_state (state, i) 
-        in get_ind_tac (#sign(rep_thm state)) (find_tname Bi) var i end
+  let fun induct state =
+        let val (_, _, Bi, _) = dest_state (state, i)
+            val sign = #sign(rep_thm state)
+            val tn = find_tname var Bi
+            val ind_tac = #induct_tac(get_dt_info sign tn)
+        in ind_tac var i end
   in STATE induct end;
+
+(* generic exhaustion tactic for datatypes *)
+fun exhaust_tac var i =
+  let fun exhaust state =
+        let val (_, _, Bi, _) = dest_state (state, i) 
+            val sign = #sign(rep_thm state)
+            val tn = find_tname var Bi
+            val exh_tac = #exhaust_tac(get_dt_info sign tn)
+        in exh_tac var i end
+  in STATE exhaust end;
+
+end;
 
 (*Must be redefined in order to refer to the new instance of bind_thm
   created by init_thy_reader.*)

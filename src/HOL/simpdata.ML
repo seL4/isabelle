@@ -351,7 +351,9 @@ type dtype_info = {case_const:term,
                    case_rewrites:thm list,
                    constructors:term list,
                    induct_tac: string -> int -> tactic,
-                   nchotomy:thm,
+                   nchotomy: thm,
+                   exhaustion: thm,
+                   exhaust_tac: string -> int -> tactic,
                    case_cong:thm};
 
 exception DT_DATA of (string * dtype_info) list;
