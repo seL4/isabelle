@@ -178,7 +178,7 @@ fun extend_syntax (Syntax tabs) syn_ext =
     Syntax {
       lexicon = extend_lexicon lexicon (delims_of xprods),
       logtypes = extend_list logtypes1 logtypes2,
-      gram = extend_gram gram (logtypes1 @ logtypes2) xprods,
+      gram = extend_gram gram xprods,
       consts = consts2 union consts1,
       parse_ast_trtab =
         extend_trtab parse_ast_trtab parse_ast_translation "parse ast translation",
