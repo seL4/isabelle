@@ -420,7 +420,8 @@ fun ensures_tac sact =
       (EVERY [REPEAT (Always_Int_tac 1),
 	      etac Always_LeadsTo_Basis 1 
 	          ORELSE   (*subgoal may involve LeadsTo, leadsTo or ensures*)
-		  REPEAT (ares_tac [LeadsTo_Basis, ensuresI] 1),
+		  REPEAT (ares_tac [LeadsTo_Basis, leadsTo_Basis,
+				    ensuresI] 1),
 	      (*now there are two subgoals: co & transient*)
 	      simp_tac (simpset() addsimps !program_defs_ref) 2,
 	      res_inst_tac [("act", sact)] transient_mem 2,
@@ -429,5 +430,3 @@ fun ensures_tac sact =
 	      constrains_tac 1,
 	      ALLGOALS Clarify_tac,
 	      ALLGOALS Asm_full_simp_tac]);
-
-
