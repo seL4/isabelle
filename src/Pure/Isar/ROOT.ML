@@ -7,9 +7,11 @@ Isar -- Intelligible Semi-Automated Reasoning for Isabelle.
 *)
 
 (*basic proof engine*)
+use "object_logic.ML";
 use "auto_bind.ML";
 use "rule_cases.ML";
 use "proof_context.ML";
+use "locale.ML";
 use "proof.ML";
 use "proof_data.ML";
 use "proof_history.ML";
@@ -20,8 +22,8 @@ use "induct_attrib.ML";
 use "method.ML";
 
 (*derived proof elements*)
-use "local_defs.ML";
 use "calculation.ML";
+use "obtain.ML";
 use "skip_proof.ML";
 
 (*outer syntax*)
@@ -45,20 +47,21 @@ use "outer_syntax.ML";
 use "isar_syn.ML";
 
 (*main ML interfaces*)
-use "obtain.ML";
 use "isar.ML";
 
 structure PureIsar =
 struct
+  structure ObjectLogic = ObjectLogic;
   structure AutoBind = AutoBind;
   structure ProofContext = ProofContext;
+  structure Locale = Locale;
   structure Proof = Proof;
   structure ProofHistory = ProofHistory;
   structure Args = Args;
   structure Attrib = Attrib;
   structure Method = Method;
-  structure LocalDefs = LocalDefs;
   structure Calculation = Calculation;
+  structure Obtain = Obtain;
   structure SkipProof = SkipProof;
   structure OuterLex = OuterLex;
   structure Antiquote = Antiquote;
@@ -72,6 +75,5 @@ struct
   structure ThyHeader = ThyHeader;
   structure OuterSyntax = OuterSyntax;
   structure IsarSyn = IsarSyn;
-  structure Obtain = Obtain;
   structure Isar = Isar;
 end;
