@@ -1,35 +1,31 @@
-#  $Id$
-#########################################################################
-#									#
-#	Makefile for the report "The Isabelle Reference Manual"		#
-#									#
-#########################################################################
+#
+# $Id$
+#
+
+## targets
+
+default: dvi
+dist: dvi
 
 
-FILES =  ref.tex introduction.tex goals.tex tactic.tex tctical.tex\
-         thm.tex theories.tex defining.tex syntax.tex substitution.tex\
-         simplifier.tex classical.tex theory-syntax.tex\
-	 ../rail.sty ../proof.sty ../iman.sty ../extra.sty
+## dependencies
 
-ref.dvi.gz:   $(FILES) 
-	test -r isabelle.eps || ln -s ../gfx/isabelle.eps .
-	-rm ref.dvi*
-	latex ref
-	rail ref
-	bibtex ref
-	latex ref
-	latex ref
-	../sedindex ref
-	latex ref
-	gzip -f ref.dvi
+include ../Makefile.in
 
-dist:   $(FILES) 
-	test -f isabelle.eps || ln -s ../gfx/isabelle.eps .
-	rm -f ref.dvi*
-	latex ref
-	latex ref
-	../sedindex ref
-	latex ref
+NAME = ref
+FILES = ref.tex introduction.tex goals.tex tactic.tex tctical.tex \
+	thm.tex theories.tex defining.tex syntax.tex substitution.tex \
+	simplifier.tex classical.tex theory-syntax.tex \
+	../rail.sty ../proof.sty ../iman.sty ../extra.sty
 
-clean:
-	@rm *.aux *.log *.toc *.idx *.rai
+dvi: $(NAME).dvi
+
+$(NAME).dvi: $(FILES) isabelle.eps
+	touch $(NAME).ind
+	$(LATEX) $(NAME)
+	$(RAIL) $(NAME)
+	$(BIBTEX) $(NAME)
+	$(LATEX) $(NAME)
+	$(LATEX) $(NAME)
+	$(SEDINDEX) $(NAME)
+	$(LATEX) $(NAME)

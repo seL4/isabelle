@@ -1,30 +1,25 @@
-#  $Id$
-#########################################################################
-#									#
-#	Makefile for the report "The Isabelle System Manual"		#
-#									#
-#########################################################################
+#
+# $Id$
+#
+
+## targets
+
+default: dvi
+dist: dvi
 
 
-FILES =  system.tex \
-	 ../iman.sty ../extra.sty
+## dependencies
 
-system.dvi.gz:   $(FILES)
-	test -r isabelle.eps || ln -s ../gfx/isabelle.eps .
-	-rm system.dvi*
-	latex system
-	latex system
-	../sedindex system
-	latex system
-	gzip -f system.dvi
+include ../Makefile.in
 
-dist:   $(FILES)
-	test -r isabelle.eps || ln -s ../gfx/isabelle.eps .
-	-rm system.dvi*
-	latex system
-	latex system
-	../sedindex system
-	latex system
+NAME = system
+FILES = system.tex ../iman.sty ../extra.sty
 
-clean:
-	@rm *.aux *.log *.toc *.idx
+dvi: $(NAME).dvi
+
+$(NAME).dvi: $(FILES) isabelle.eps
+	touch $(NAME).ind
+	$(LATEX) $(NAME)
+	$(LATEX) $(NAME)
+	$(SEDINDEX) $(NAME)
+	$(LATEX) $(NAME)

@@ -1,34 +1,29 @@
-#  $Id$
-#########################################################################
-#									#
-#	Makefile for the report "Isabelle/HOL. The Tutorial"		#
-#									#
-#########################################################################
+#
+# $Id$
+#
+
+## targets
+
+default: dvi
+dist: dvi
 
 
-FILES =  tutorial.tex basics.tex fp.tex appendix.tex \
-	 ../iman.sty ttbox.sty extra.sty
+## dependencies
 
-tutorial.ps.gz:   $(FILES)
-	isatool make
-	test -r isabelle_hol.eps || ln -s ../gfx/isabelle_hol.eps .
-	-rm tutorial.dvi*
-	latex tutorial
-	bibtex tutorial
-	latex tutorial
-	latex tutorial
-	../sedindex tutorial
-	latex tutorial
-	dvips tutorial.dvi -o tutorial.ps
-	gzip tutorial.ps
+include ../Makefile.in
 
-dist:   $(FILES) 
-	test -r isabelle_hol.eps || ln -s ../gfx/isabelle_hol.eps .
-	-rm tutorial.dvi*
-	latex tutorial
-	latex tutorial
-	../sedindex tutorial
-	latex tutorial
+NAME = tutorial
+FILES = tutorial.tex basics.tex fp.tex appendix.tex \
+	../iman.sty ttbox.sty extra.sty
 
-clean:
-	@rm *.aux *.log *.toc *.idx
+dvi: $(NAME).dvi
+
+$(NAME).dvi: $(FILES) isabelle_hol.eps
+	touch $(NAME).ind
+	$(LATEX) $(NAME)
+	$(RAIL) $(NAME)
+	$(BIBTEX) $(NAME)
+	$(LATEX) $(NAME)
+	$(LATEX) $(NAME)
+	$(SEDINDEX) $(NAME)
+	$(LATEX) $(NAME)
