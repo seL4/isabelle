@@ -235,16 +235,16 @@ apply (cut_tac a = a and b = b in divAlg_correct)
 apply (auto simp add: quorem_def mod_def)
 done
 
-lemmas pos_mod_sign  = pos_mod_conj [THEN conjunct1, standard]
-   and pos_mod_bound = pos_mod_conj [THEN conjunct2, standard]
+lemmas pos_mod_sign[simp]  = pos_mod_conj [THEN conjunct1, standard]
+   and pos_mod_bound[simp] = pos_mod_conj [THEN conjunct2, standard]
 
 lemma neg_mod_conj : "b < (0::int) ==> a mod b <= 0 & b < a mod b"
 apply (cut_tac a = a and b = b in divAlg_correct)
 apply (auto simp add: quorem_def div_def mod_def)
 done
 
-lemmas neg_mod_sign  = neg_mod_conj [THEN conjunct1, standard]
-   and neg_mod_bound = neg_mod_conj [THEN conjunct2, standard]
+lemmas neg_mod_sign[simp]  = neg_mod_conj [THEN conjunct1, standard]
+   and neg_mod_bound[simp] = neg_mod_conj [THEN conjunct2, standard]
 
 
 
@@ -252,8 +252,7 @@ lemmas neg_mod_sign  = neg_mod_conj [THEN conjunct1, standard]
 
 lemma quorem_div_mod: "b ~= 0 ==> quorem ((a, b), (a div b, a mod b))"
 apply (cut_tac a = a and b = b in zmod_zdiv_equality)
-apply (force simp add: quorem_def linorder_neq_iff pos_mod_sign pos_mod_bound
-                       neg_mod_sign neg_mod_bound)
+apply (force simp add: quorem_def linorder_neq_iff)
 done
 
 lemma quorem_div: "[| quorem((a,b),(q,r));  b ~= 0 |] ==> a div b = q"
@@ -459,15 +458,17 @@ declare negDivAlg_eqn [of "number_of v" "number_of w", standard, simp]
 
 lemma zmod_1 [simp]: "a mod (1::int) = 0"
 apply (cut_tac a = a and b = 1 in pos_mod_sign)
-apply (cut_tac [2] a = a and b = 1 in pos_mod_bound, auto)
-done 
+apply (cut_tac [2] a = a and b = 1 in pos_mod_bound)
+apply (auto simp del:pos_mod_bound pos_mod_sign)
+done
 
 lemma zdiv_1 [simp]: "a div (1::int) = a"
 by (cut_tac a = a and b = 1 in zmod_zdiv_equality, auto)
 
 lemma zmod_minus1_right [simp]: "a mod (-1::int) = 0"
 apply (cut_tac a = a and b = "-1" in neg_mod_sign)
-apply (cut_tac [2] a = a and b = "-1" in neg_mod_bound, auto)
+apply (cut_tac [2] a = a and b = "-1" in neg_mod_bound)
+apply (auto simp del: neg_mod_sign neg_mod_bound)
 done
 
 lemma zdiv_minus1_right [simp]: "a div (-1::int) = -a"
@@ -493,7 +494,7 @@ apply (cut_tac a = a' and b = b in zmod_zdiv_equality)
 apply (rule unique_quotient_lemma)
 apply (erule subst)
 apply (erule subst)
-apply (simp_all add: pos_mod_sign pos_mod_bound)
+apply (simp_all)
 done
 
 lemma zdiv_mono1_neg: "[| a <= a';  (b::int) < 0 |] ==> a' div b <= a div b"
@@ -502,7 +503,7 @@ apply (cut_tac a = a' and b = b in zmod_zdiv_equality)
 apply (rule unique_quotient_lemma_neg)
 apply (erule subst)
 apply (erule subst)
-apply (simp_all add: neg_mod_sign neg_mod_bound)
+apply (simp_all)
 done
 
 
@@ -538,7 +539,7 @@ apply (cut_tac a = a and b = b' in zmod_zdiv_equality)
 apply (rule zdiv_mono2_lemma)
 apply (erule subst)
 apply (erule subst)
-apply (simp_all add: pos_mod_sign pos_mod_bound)
+apply (simp_all)
 done
 
 lemma q_neg_lemma:
@@ -569,7 +570,7 @@ apply (cut_tac a = a and b = b' in zmod_zdiv_equality)
 apply (rule zdiv_mono2_neg_lemma)
 apply (erule subst)
 apply (erule subst)
-apply (simp_all add: pos_mod_sign pos_mod_bound)
+apply (simp_all)
 done
 
 
@@ -580,8 +581,7 @@ done
 lemma zmult1_lemma:
      "[| quorem((b,c),(q,r));  c ~= 0 |]  
       ==> quorem ((a*b, c), (a*q + a*r div c, a*r mod c))"
-by (force simp add: split_ifs quorem_def linorder_neq_iff zadd_zmult_distrib2
-                    pos_mod_sign pos_mod_bound neg_mod_sign neg_mod_bound)
+by (force simp add: split_ifs quorem_def linorder_neq_iff zadd_zmult_distrib2)
 
 lemma zdiv_zmult1_eq: "(a*b) div c = a*(b div c) + a*(b mod c) div (c::int)"
 apply (case_tac "c = 0", simp add: DIVISION_BY_ZERO)
@@ -636,8 +636,7 @@ by(simp add:dvd_def zmod_eq_0_iff)
 lemma zadd1_lemma:
      "[| quorem((a,c),(aq,ar));  quorem((b,c),(bq,br));  c ~= 0 |]  
       ==> quorem ((a+b, c), (aq + bq + (ar+br) div c, (ar+br) mod c))"
-by (force simp add: split_ifs quorem_def linorder_neq_iff zadd_zmult_distrib2
-                    pos_mod_sign pos_mod_bound neg_mod_sign neg_mod_bound)
+by (force simp add: split_ifs quorem_def linorder_neq_iff zadd_zmult_distrib2)
 
 (*NOT suitable for rewriting: the RHS has an instance of the LHS*)
 lemma zdiv_zadd1_eq:
@@ -653,15 +652,12 @@ done
 
 lemma mod_div_trivial [simp]: "(a mod b) div b = (0::int)"
 apply (case_tac "b = 0", simp add: DIVISION_BY_ZERO)
-apply (auto simp add: linorder_neq_iff pos_mod_sign pos_mod_bound
-            div_pos_pos_trivial neg_mod_sign neg_mod_bound div_neg_neg_trivial)
+apply (auto simp add: linorder_neq_iff div_pos_pos_trivial div_neg_neg_trivial)
 done
 
 lemma mod_mod_trivial [simp]: "(a mod b) mod b = a mod (b::int)"
 apply (case_tac "b = 0", simp add: DIVISION_BY_ZERO)
-apply (force simp add: linorder_neq_iff pos_mod_sign pos_mod_bound
-                       mod_pos_pos_trivial neg_mod_sign neg_mod_bound 
-                       mod_neg_neg_trivial)
+apply (force simp add: linorder_neq_iff mod_pos_pos_trivial mod_neg_neg_trivial)
 done
 
 lemma zmod_zadd_left_eq: "(a+b) mod (c::int) = ((a mod c) + b) mod c"
@@ -714,13 +710,13 @@ done
 lemma zmult2_lemma_aux2: "[| (0::int) < c;   b < r;  r <= 0 |] ==> b * (q mod c) + r <= 0"
 apply (subgoal_tac "b * (q mod c) <= 0")
  apply arith
-apply (simp add: zmult_le_0_iff pos_mod_sign)
+apply (simp add: zmult_le_0_iff)
 done
 
 lemma zmult2_lemma_aux3: "[| (0::int) < c;  0 <= r;  r < b |] ==> 0 <= b * (q mod c) + r"
 apply (subgoal_tac "0 <= b * (q mod c) ")
 apply arith
-apply (simp add: int_0_le_mult_iff pos_mod_sign)
+apply (simp add: int_0_le_mult_iff)
 done
 
 lemma zmult2_lemma_aux4: "[| (0::int) < c; 0 <= r; r < b |] ==> b * (q mod c) + r < b * c"
@@ -811,7 +807,7 @@ apply (rule iffI)
 txt{*converse direction*}
 apply (drule_tac x = "n div k" in spec) 
 apply (drule_tac x = "n mod k" in spec) 
-apply (simp add: pos_mod_bound pos_mod_sign) 
+apply (simp)
 done
 
 lemma split_neg_lemma:
@@ -826,7 +822,7 @@ apply (rule iffI)
 txt{*converse direction*}
 apply (drule_tac x = "n div k" in spec) 
 apply (drule_tac x = "n mod k" in spec) 
-apply (simp add: neg_mod_bound neg_mod_sign) 
+apply (simp)
 done
 
 lemma split_zdiv:
@@ -879,7 +875,7 @@ apply (simp add: zdiv_zmult_zmult2 zmod_zmult_zmult2 div_pos_pos_trivial)
 apply (subst div_pos_pos_trivial)
 apply (auto simp add: mod_pos_pos_trivial)
 apply (subgoal_tac "0 <= b mod a", arith)
-apply (simp add: pos_mod_sign)
+apply (simp)
 done
 
 
@@ -929,7 +925,7 @@ apply (simp add: zmod_zmult_zmult2 mod_pos_pos_trivial)
 apply (rule mod_pos_pos_trivial)
 apply (auto simp add: mod_pos_pos_trivial)
 apply (subgoal_tac "0 <= b mod a", arith)
-apply (simp add: pos_mod_sign)
+apply (simp)
 done
 
 

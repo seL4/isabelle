@@ -31,7 +31,6 @@ recdef xzgcda
   "xzgcda (m, n, r', r, s', s, t', t) =
     (if r \<le> 0 then (r', s', t')
      else xzgcda (m, n, r, r' mod r, s, s' - (r' div r) * s, t, t' - (r' div r) * t))"
-  (hints simp: pos_mod_bound)
 
 constdefs
   zgcd :: "int * int => int"
@@ -263,11 +262,10 @@ lemma zgcd_zminus2 [simp]: "zgcd (m, -n) = zgcd (m, n)"
 
 lemma zgcd_non_0: "0 < n ==> zgcd (m, n) = zgcd (n, m mod n)"
   apply (frule_tac b = n and a = m in pos_mod_sign)
-  apply (simp add: zgcd_def zabs_def nat_mod_distrib)
+  apply (simp add: zgcd_def zabs_def nat_mod_distrib del:pos_mod_sign)
   apply (auto simp add: gcd_non_0 nat_mod_distrib [symmetric] zmod_zminus1_eq_if)
   apply (frule_tac a = m in pos_mod_bound)
-  apply (simp add: nat_diff_distrib gcd_diff2 nat_le_eq_zle)
-  apply (simp add: gcd_non_0 nat_mod_distrib [symmetric])
+  apply (simp add: nat_diff_distrib gcd_diff2 nat_le_eq_zle del:pos_mod_bound)
   done
 
 lemma zgcd_eq: "zgcd (m, n) = zgcd (n, m mod n)"
@@ -598,7 +596,7 @@ lemma zcong_zless_unique:
         simp add: zcong_sym)
   apply (unfold zcong_def dvd_def)
   apply (rule_tac x = "a mod m" in exI)
-  apply (auto simp add: pos_mod_sign pos_mod_bound)
+  apply (auto)
   apply (rule_tac x = "-(a div m)" in exI)
   apply (simp add:zdiff_eq_eq eq_zdiff_eq zadd_commute)
   done
@@ -633,7 +631,7 @@ lemma zcong_zmod_eq: "0 < m ==> [a = b] (mod m) = (a mod m = b mod m)"
    apply (rule_tac m = m in zcong_zless_imp_eq)
        prefer 5
        apply (subst zcong_zmod [symmetric])
-       apply (simp_all add: pos_mod_bound pos_mod_sign)
+       apply (simp_all)
   apply (unfold zcong_def dvd_def)
   apply (rule_tac x = "a div m - b div m" in exI)
   apply (rule_tac m1 = m in zcong_zmod_aux [THEN trans])
@@ -659,7 +657,7 @@ lemma "[a = b] (mod m) = (a mod m = b mod m)"
   apply (subst zcong_zmod_eq)
    apply arith
   apply (frule neg_mod_bound [of _ a], frule neg_mod_bound [of _ b]) 
-  apply (simp add: zmod_zminus2_eq_if)
+  apply (simp add: zmod_zminus2_eq_if del: neg_mod_bound)
   done
 
 subsection {* Modulo *}
@@ -809,7 +807,7 @@ lemma zcong_lineq_unique:
     apply auto
   apply (rule_tac x = "x * b mod n" in exI)
   apply safe
-    apply (simp_all (no_asm_simp) add: pos_mod_bound pos_mod_sign)
+    apply (simp_all (no_asm_simp))
   apply (subst zcong_zmod)
   apply (subst zmod_zmult1_eq [symmetric])
   apply (subst zcong_zmod [symmetric])

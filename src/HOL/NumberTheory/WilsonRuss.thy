@@ -124,7 +124,7 @@ lemma inv_g_1:
        apply (rule_tac [5] inv_not_1)
          apply auto
   apply (unfold inv_def zprime_def)
-  apply (simp add: pos_mod_sign)
+  apply (simp)
   done
 
 lemma inv_less_p_minus_1:
@@ -134,7 +134,7 @@ lemma inv_less_p_minus_1:
    apply (simp add: inv_not_p_minus_1)
   apply auto
   apply (unfold inv_def zprime_def)
-  apply (simp add: pos_mod_bound)
+  apply (simp)
   done
 
 lemma inv_inv_aux: "5 \<le> p ==>
@@ -170,7 +170,7 @@ lemma inv_inv: "p \<in> zprime \<Longrightarrow>
          apply (rule_tac [4] zcong_zpower_zmult)
          apply (erule_tac [4] Little_Fermat)
          apply (rule_tac [4] zdvd_not_zless)
-          apply (simp_all add: pos_mod_bound pos_mod_sign)
+          apply (simp_all)
   done
 
 
