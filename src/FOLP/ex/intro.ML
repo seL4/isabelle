@@ -12,7 +12,7 @@ To generate similar output to manual, execute these commands:
 *)
 
 
-(**** Some simple backward proofs ****)
+(**** SOME simple backward proofs ****)
 
 goal FOLP.thy "?p:P|P --> P";
 by (rtac impI 1);

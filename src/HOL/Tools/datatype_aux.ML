@@ -130,11 +130,11 @@ fun indtac indrule i st =
     val ts' = HOLogic.dest_conj (HOLogic.dest_Trueprop
       (Logic.strip_imp_concl (nth_elem (i - 1, prems_of st))));
     val getP = if can HOLogic.dest_imp (hd ts) then
-      (apfst Some) o HOLogic.dest_imp else pair None;
+      (apfst SOME) o HOLogic.dest_imp else pair NONE;
     fun abstr (t1, t2) = (case t1 of
-        None => let val [Free (s, T)] = add_term_frees (t2, [])
+        NONE => let val [Free (s, T)] = add_term_frees (t2, [])
           in absfree (s, T, t2) end
-      | Some (_ $ t' $ _) => Abs ("x", fastype_of t', abstract_over (t', t2)))
+      | SOME (_ $ t' $ _) => Abs ("x", fastype_of t', abstract_over (t', t2)))
     val cert = cterm_of (Thm.sign_of_thm st);
     val Ps = map (cert o head_of o snd o getP) ts;
     val indrule' = cterm_instantiate (Ps ~~
@@ -197,8 +197,8 @@ fun mk_Free s T i = Free (s ^ (string_of_int i), T);
 
 fun subst_DtTFree _ substs (T as (DtTFree name)) =
       (case assoc (substs, name) of
-         None => T
-       | Some U => U)
+         NONE => T
+       | SOME U => U)
   | subst_DtTFree i substs (DtType (name, ts)) =
       DtType (name, map (subst_DtTFree i substs) ts)
   | subst_DtTFree i _ (DtRec j) = DtRec (i + j);
@@ -237,8 +237,8 @@ fun dtyp_of_typ _ (TFree (n, _)) = DtTFree n
   | dtyp_of_typ _ (TVar _) = error "Illegal schematic type variable(s)"
   | dtyp_of_typ new_dts (Type (tname, Ts)) =
       (case assoc (new_dts, tname) of
-         None => DtType (tname, map (dtyp_of_typ new_dts) Ts)
-       | Some vs => if map (try dest_TFree) Ts = map Some vs then
+         NONE => DtType (tname, map (dtyp_of_typ new_dts) Ts)
+       | SOME vs => if map (try dest_TFree) Ts = map SOME vs then
              DtRec (find_index (curry op = tname o fst) new_dts)
            else error ("Illegal occurence of recursive type " ^ tname));
 
@@ -300,9 +300,9 @@ fun unfold_datatypes sign orig_descr sorts (dt_info : datatype_info Symtab.table
 
     fun get_dt_descr T i tname dts =
       (case Symtab.lookup (dt_info, tname) of
-         None => typ_error T (tname ^ " is not a datatype - can't use it in\
+         NONE => typ_error T (tname ^ " is not a datatype - can't use it in\
            \ nested recursion")
-       | (Some {index, descr, ...}) =>
+       | (SOME {index, descr, ...}) =>
            let val (_, vars, _) = the (assoc (descr, index));
                val subst = ((map dest_DtTFree vars) ~~ dts) handle LIST _ =>
                  typ_error T ("Type constructor " ^ tname ^ " used with wrong\

@@ -303,8 +303,8 @@ fun init_ss mk_rews termless subgoal_tac solvers =
 val basic_mk_rews: mk_rews =
  {mk = fn th => if can Logic.dest_equals (Thm.concl_of th) then [th] else [],
   mk_cong = I,
-  mk_sym = Some o Drule.symmetric_fun,
-  mk_eq_True = K None};
+  mk_sym = SOME o Drule.symmetric_fun,
+  mk_eq_True = K NONE};
 
 in
 
@@ -445,8 +445,8 @@ fun decomp_simp' thm =
 
 fun mk_eq_True (Simpset (_, {mk_rews = {mk_eq_True, ...}, ...})) (thm, name) =
   (case mk_eq_True thm of
-    None => []
-  | Some eq_True =>
+    NONE => []
+  | SOME eq_True =>
       let val (_, _, lhs, elhs, _, _) = decomp_simp eq_True
       in [{thm = eq_True, name = name, lhs = lhs, elhs = elhs, perm = false}] end);
 
@@ -478,8 +478,8 @@ fun orient_rrule ss (thm, name) =
       else
         let val Simpset (_, {mk_rews = {mk_sym, ...}, ...}) = ss in
           (case mk_sym thm of
-            None => []
-          | Some thm' =>
+            NONE => []
+          | SOME thm' =>
               let val (_, _, lhs', elhs', rhs', _) = decomp_simp thm'
               in rrule_eq_True (thm', name, lhs', elhs', rhs', ss, thm) end)
         end
@@ -516,9 +516,9 @@ fun ss delsimps thms =
 
 (* congs *)
 
-fun cong_name (Const (a, _)) = Some a
-  | cong_name (Free (a, _)) = Some ("Free: " ^ a)
-  | cong_name _ = None;
+fun cong_name (Const (a, _)) = SOME a
+  | cong_name (Free (a, _)) = SOME ("Free: " ^ a)
+  | cong_name _ = NONE;
 
 local
 
@@ -551,7 +551,7 @@ fun add_cong (ss, thm) = ss |>
       val (lhs, _) = Drule.dest_equals (Drule.strip_imp_concl (Thm.cprop_of thm))
         handle TERM _ => raise SIMPLIFIER ("Congruence not a meta-equality", thm);
     (*val lhs = Pattern.eta_contract lhs;*)
-      val a = the (cong_name (head_of (term_of lhs))) handle Library.OPTION =>
+      val a = the (cong_name (head_of (term_of lhs))) handle Option =>
         raise SIMPLIFIER ("Congruence must start with a constant or free variable", thm);
       val (alist, weak) = congs;
       val alist2 = overwrite_warn (alist, (a, {lhs = lhs, thm = thm}))
@@ -565,12 +565,12 @@ fun del_cong (ss, thm) = ss |>
       val (lhs, _) = Logic.dest_equals (Thm.concl_of thm) handle TERM _ =>
         raise SIMPLIFIER ("Congruence not a meta-equality", thm);
     (*val lhs = Pattern.eta_contract lhs;*)
-      val a = the (cong_name (head_of lhs)) handle Library.OPTION =>
+      val a = the (cong_name (head_of lhs)) handle Option =>
         raise SIMPLIFIER ("Congruence must start with a constant", thm);
       val (alist, _) = congs;
       val alist2 = filter (fn (x, _) => x <> a) alist;
       val weak2 = alist2 |> mapfilter (fn (a, {thm, ...}) =>
-        if is_full_cong thm then None else Some a);
+        if is_full_cong thm then NONE else SOME a);
     in ((alist2, weak2), procs, mk_rews, termless, subgoal_tac, loop_tacs, solvers) end);
 
 fun mk_cong (Simpset (_, {mk_rews = {mk_cong = f, ...}, ...})) = f;
@@ -710,12 +710,12 @@ fun check_conv msg thm thm' =
   let
     val thm'' = transitive thm (transitive
       (symmetric (Drule.beta_eta_conversion (lhs_of thm'))) thm')
-  in if msg then trace_thm "SUCCEEDED" thm' else (); Some thm'' end
+  in if msg then trace_thm "SUCCEEDED" thm' else (); SOME thm'' end
   handle THM _ =>
     let val {sign, prop = _ $ _ $ prop0, ...} = Thm.rep_thm thm in
       trace_thm "Proved wrong thm (Check subgoaler?)" thm';
       trace_term false "Should have proved:" sign prop0;
-      None
+      NONE
     end;
 
 
@@ -764,12 +764,12 @@ fun incr_depth ss =
     val Simpset ({depth = depth', ...}, _) = ss';
   in
     if depth' > ! simp_depth_limit
-    then (warning "simp_depth_limit exceeded - giving up"; None)
+    then (warning "simp_depth_limit exceeded - giving up"; NONE)
     else
      (if depth' mod 10 = 0
       then warning ("Simplification depth " ^ string_of_int depth')
       else ();
-      Some ss')
+      SOME ss')
   end;
 
 (*
@@ -803,34 +803,34 @@ fun rewritec (prover, signt, maxt) ss t =
       in
         if perm andalso not (termless (rhs', lhs'))
         then (trace_named_thm "Cannot apply permutative rewrite rule" (thm, name);
-              trace_thm "Term does not become smaller:" thm'; None)
+              trace_thm "Term does not become smaller:" thm'; NONE)
         else (trace_named_thm "Applying instance of rewrite rule" (thm, name);
            if unconditional
            then
              (trace_thm "Rewriting:" thm';
               let val lr = Logic.dest_equals prop;
-                  val Some thm'' = check_conv false eta_thm thm'
-              in Some (thm'', uncond_skel (congs, lr)) end)
+                  val SOME thm'' = check_conv false eta_thm thm'
+              in SOME (thm'', uncond_skel (congs, lr)) end)
            else
              (trace_thm "Trying to rewrite:" thm';
               case incr_depth ss of
-                None => (trace_thm "FAILED - reached depth limit" thm'; None)
-              | Some ss' =>
+                NONE => (trace_thm "FAILED - reached depth limit" thm'; NONE)
+              | SOME ss' =>
               (case prover ss' thm' of
-                None => (trace_thm "FAILED" thm'; None)
-              | Some thm2 =>
+                NONE => (trace_thm "FAILED" thm'; NONE)
+              | SOME thm2 =>
                   (case check_conv true eta_thm thm2 of
-                     None => None |
-                     Some thm2' =>
+                     NONE => NONE |
+                     SOME thm2' =>
                        let val concl = Logic.strip_imp_concl prop
                            val lr = Logic.dest_equals concl
-                       in Some (thm2', cond_skel (congs, lr)) end))))
+                       in SOME (thm2', cond_skel (congs, lr)) end))))
       end
 
-    fun rews [] = None
+    fun rews [] = NONE
       | rews (rrule :: rrules) =
-          let val opt = rew rrule handle Pattern.MATCH => None
-          in case opt of None => rews rrules | some => some end;
+          let val opt = rew rrule handle Pattern.MATCH => NONE
+          in case opt of NONE => rews rrules | some => some end;
 
     fun sort_rrules rrs = let
       fun is_simple({thm, ...}:rrule) = case Thm.prop_of thm of
@@ -842,25 +842,25 @@ fun rewritec (prover, signt, maxt) ss t =
                                      else sort rrs (re1,rr::re2)
     in sort rrs ([],[]) end
 
-    fun proc_rews [] = None
+    fun proc_rews [] = NONE
       | proc_rews (Proc {name, proc, lhs, ...} :: ps) =
           if Pattern.matches tsigt (Thm.term_of lhs, Thm.term_of t) then
             (debug_term false ("Trying procedure " ^ quote name ^ " on:") signt eta_t;
              case transform_failure (curry SIMPROC_FAIL name)
                  (fn () => proc signt ss eta_t) () of
-               None => (debug false "FAILED"; proc_rews ps)
-             | Some raw_thm =>
+               NONE => (debug false "FAILED"; proc_rews ps)
+             | SOME raw_thm =>
                  (trace_thm ("Procedure " ^ quote name ^ " produced rewrite rule:") raw_thm;
                   (case rews (mk_procrule raw_thm) of
-                    None => (trace_cterm true ("IGNORED result of simproc " ^ quote name ^
+                    NONE => (trace_cterm true ("IGNORED result of simproc " ^ quote name ^
                       " -- does not match") t; proc_rews ps)
                   | some => some)))
           else proc_rews ps;
   in case eta_t of
-       Abs _ $ _ => Some (transitive eta_thm
+       Abs _ $ _ => SOME (transitive eta_thm
          (beta_conversion false eta_t'), skel0)
      | _ => (case rews (sort_rrules (Net.match_term rules eta_t)) of
-               None => proc_rews (Net.match_term procs eta_t)
+               NONE => proc_rews (Net.match_term procs eta_t)
              | some => some)
   end;
 
@@ -876,67 +876,67 @@ fun congc (prover,signt,maxt) {thm=cong,lhs=lhs} t =
          is handled when congc is called *)
       val thm' = Thm.instantiate insts (Thm.rename_boundvars (term_of rlhs) (term_of t) rthm);
       val unit = trace_thm "Applying congruence rule:" thm';
-      fun err (msg, thm) = (trace_thm msg thm; None)
+      fun err (msg, thm) = (trace_thm msg thm; NONE)
   in case prover thm' of
-       None => err ("Congruence proof failed.  Could not prove", thm')
-     | Some thm2 => (case check_conv true (Drule.beta_eta_conversion t) thm2 of
-          None => err ("Congruence proof failed.  Should not have proved", thm2)
-        | Some thm2' =>
+       NONE => err ("Congruence proof failed.  Could not prove", thm')
+     | SOME thm2 => (case check_conv true (Drule.beta_eta_conversion t) thm2 of
+          NONE => err ("Congruence proof failed.  Should not have proved", thm2)
+        | SOME thm2' =>
             if op aconv (pairself term_of (dest_equals (cprop_of thm2')))
-            then None else Some thm2')
+            then NONE else SOME thm2')
   end;
 
 val (cA, (cB, cC)) =
   apsnd dest_equals (dest_implies (hd (cprems_of Drule.imp_cong)));
 
-fun transitive1 None None = None
-  | transitive1 (Some thm1) None = Some thm1
-  | transitive1 None (Some thm2) = Some thm2
-  | transitive1 (Some thm1) (Some thm2) = Some (transitive thm1 thm2)
+fun transitive1 NONE NONE = NONE
+  | transitive1 (SOME thm1) NONE = SOME thm1
+  | transitive1 NONE (SOME thm2) = SOME thm2
+  | transitive1 (SOME thm1) (SOME thm2) = SOME (transitive thm1 thm2)
 
-fun transitive2 thm = transitive1 (Some thm);
-fun transitive3 thm = transitive1 thm o Some;
+fun transitive2 thm = transitive1 (SOME thm);
+fun transitive3 thm = transitive1 thm o SOME;
 
 fun bottomc ((simprem, useprem, mutsimp), prover, sign, maxidx) =
   let
     fun botc skel ss t =
-          if is_Var skel then None
+          if is_Var skel then NONE
           else
           (case subc skel ss t of
-             some as Some thm1 =>
+             some as SOME thm1 =>
                (case rewritec (prover, sign, maxidx) ss (rhs_of thm1) of
-                  Some (thm2, skel2) =>
+                  SOME (thm2, skel2) =>
                     transitive2 (transitive thm1 thm2)
                       (botc skel2 ss (rhs_of thm2))
-                | None => some)
-           | None =>
+                | NONE => some)
+           | NONE =>
                (case rewritec (prover, sign, maxidx) ss t of
-                  Some (thm2, skel2) => transitive2 thm2
+                  SOME (thm2, skel2) => transitive2 thm2
                     (botc skel2 ss (rhs_of thm2))
-                | None => None))
+                | NONE => NONE))
 
     and try_botc ss t =
           (case botc skel0 ss t of
-             Some trec1 => trec1 | None => (reflexive t))
+             SOME trec1 => trec1 | NONE => (reflexive t))
 
     and subc skel (ss as Simpset ({bounds, ...}, {congs, ...})) t0 =
        (case term_of t0 of
            Abs (a, T, t) =>
              let
-                 val (v, t') = Thm.dest_abs (Some ("." ^ a ^ "." ^ string_of_int bounds)) t0;
+                 val (v, t') = Thm.dest_abs (SOME ("." ^ a ^ "." ^ string_of_int bounds)) t0;
                  val ss' = incr_bounds ss;
                  val skel' = case skel of Abs (_, _, sk) => sk | _ => skel0;
              in case botc skel' ss' t' of
-                  Some thm => Some (abstract_rule a v thm)
-                | None => None
+                  SOME thm => SOME (abstract_rule a v thm)
+                | NONE => NONE
              end
          | t $ _ => (case t of
              Const ("==>", _) $ _  => impc t0 ss
            | Abs _ =>
                let val thm = beta_conversion false t0
                in case subc skel0 ss (rhs_of thm) of
-                    None => Some thm
-                  | Some thm' => Some (transitive thm thm')
+                    NONE => SOME thm
+                  | SOME thm' => SOME (transitive thm thm')
                end
            | _  =>
                let fun appc () =
@@ -947,21 +947,21 @@ fun bottomc ((simprem, useprem, mutsimp), prover, sign, maxidx) =
                        val (ct, cu) = Thm.dest_comb t0
                      in
                      (case botc tskel ss ct of
-                        Some thm1 =>
+                        SOME thm1 =>
                           (case botc uskel ss cu of
-                             Some thm2 => Some (combination thm1 thm2)
-                           | None => Some (combination thm1 (reflexive cu)))
-                      | None =>
+                             SOME thm2 => SOME (combination thm1 thm2)
+                           | NONE => SOME (combination thm1 (reflexive cu)))
+                      | NONE =>
                           (case botc uskel ss cu of
-                             Some thm1 => Some (combination (reflexive ct) thm1)
-                           | None => None))
+                             SOME thm1 => SOME (combination (reflexive ct) thm1)
+                           | NONE => NONE))
                      end
                    val (h, ts) = strip_comb t
                in case cong_name h of
-                    Some a =>
+                    SOME a =>
                       (case assoc_string (fst congs, a) of
-                         None => appc ()
-                       | Some cong =>
+                         NONE => appc ()
+                       | SOME cong =>
   (*post processing: some partial applications h t1 ... tj, j <= length ts,
     may be a redex. Example: map (%x. x) = (%xs. xs) wrt map_cong*)
                           (let
@@ -972,14 +972,14 @@ fun bottomc ((simprem, useprem, mutsimp), prover, sign, maxidx) =
                              val skel =
                                list_comb (h, replicate (length ts) dVar)
                            in case botc skel ss cl of
-                                None => thm
-                              | Some thm' => transitive3 thm
+                                NONE => thm
+                              | SOME thm' => transitive3 thm
                                   (combination thm' (reflexive cr))
                            end handle TERM _ => error "congc result"
                                     | Pattern.MATCH => appc ()))
                   | _ => appc ()
                end)
-         | _ => None)
+         | _ => NONE)
 
     and impc ct ss =
       if mutsimp then mut_impc0 [] ct [] [] ss else nonmut_impc ct ss
@@ -987,10 +987,10 @@ fun bottomc ((simprem, useprem, mutsimp), prover, sign, maxidx) =
     and rules_of_prem ss prem =
       if maxidx_of_term (term_of prem) <> ~1
       then (trace_cterm true
-        "Cannot add premise as rewrite rule because it contains (type) unknowns:" prem; ([], None))
+        "Cannot add premise as rewrite rule because it contains (type) unknowns:" prem; ([], NONE))
       else
         let val asm = assume prem
-        in (extract_safe_rrules (ss, asm), Some asm) end
+        in (extract_safe_rrules (ss, asm), SOME asm) end
 
     and add_rrules (rrss, asms) ss =
       foldl (insert_rrule true) (ss, flat rrss) |> add_prems (mapfilter I asms)
@@ -1021,8 +1021,8 @@ fun bottomc ((simprem, useprem, mutsimp), prover, sign, maxidx) =
               Drule.mk_implies (prem, if_none (apsome rhs_of eq) concl);
             val dprem = apsome (curry (disch false) prem)
           in case rewritec (prover, sign, maxidx) ss' concl' of
-              None => rebuild prems concl' rrss asms ss (dprem eq)
-            | Some (eq', _) => transitive2 (foldl (disch false o swap)
+              NONE => rebuild prems concl' rrss asms ss (dprem eq)
+            | SOME (eq', _) => transitive2 (foldl (disch false o swap)
                   (the (transitive3 (dprem eq) eq'), prems))
                 (mut_impc0 (rev prems) (rhs_of eq') (rev rrss) (rev asms) ss)
           end
@@ -1037,7 +1037,7 @@ fun bottomc ((simprem, useprem, mutsimp), prover, sign, maxidx) =
 
     and mut_impc [] concl [] [] prems' rrss' asms' eqns ss changed k =
         transitive1 (foldl (fn (eq2, (eq1, prem)) => transitive1 eq1
-            (apsome (curry (disch false) prem) eq2)) (None, eqns ~~ prems'))
+            (apsome (curry (disch false) prem) eq2)) (NONE, eqns ~~ prems'))
           (if changed > 0 then
              mut_impc (rev prems') concl (rev rrss') (rev asms')
                [] [] [] [] ss ~1 changed
@@ -1046,12 +1046,12 @@ fun bottomc ((simprem, useprem, mutsimp), prover, sign, maxidx) =
 
       | mut_impc (prem :: prems) concl (rrs :: rrss) (asm :: asms)
           prems' rrss' asms' eqns ss changed k =
-        case (if k = 0 then None else botc skel0 (add_rrules
+        case (if k = 0 then NONE else botc skel0 (add_rrules
           (rev rrss' @ rrss, rev asms' @ asms) ss) prem) of
-            None => mut_impc prems concl rrss asms (prem :: prems')
-              (rrs :: rrss') (asm :: asms') (None :: eqns) ss changed
+            NONE => mut_impc prems concl rrss asms (prem :: prems')
+              (rrs :: rrss') (asm :: asms') (NONE :: eqns) ss changed
               (if k = 0 then 0 else k - 1)
-          | Some eqn =>
+          | SOME eqn =>
             let
               val prem' = rhs_of eqn;
               val tprems = map term_of prems;
@@ -1059,7 +1059,7 @@ fun bottomc ((simprem, useprem, mutsimp), prover, sign, maxidx) =
                 find_index_eq p tprems) (#hyps (rep_thm eqn)));
               val (rrs', asm') = rules_of_prem ss prem'
             in mut_impc prems concl rrss asms (prem' :: prems')
-              (rrs' :: rrss') (asm' :: asms') (Some (foldr (disch true)
+              (rrs' :: rrss') (asm' :: asms') (SOME (foldr (disch true)
                 (take (i, prems), Drule.imp_cong' eqn (reflexive (Drule.list_implies
                   (drop (i, prems), concl))))) :: eqns) ss (length prems') ~1
             end
@@ -1067,20 +1067,20 @@ fun bottomc ((simprem, useprem, mutsimp), prover, sign, maxidx) =
      (*legacy code - only for backwards compatibility*)
      and nonmut_impc ct ss =
        let val (prem, conc) = dest_implies ct;
-           val thm1 = if simprem then botc skel0 ss prem else None;
+           val thm1 = if simprem then botc skel0 ss prem else NONE;
            val prem1 = if_none (apsome rhs_of thm1) prem;
            val ss1 = if not useprem then ss else add_rrules
              (apsnd single (apfst single (rules_of_prem ss prem1))) ss
        in (case botc skel0 ss1 conc of
-           None => (case thm1 of
-               None => None
-             | Some thm1' => Some (Drule.imp_cong' thm1' (reflexive conc)))
-         | Some thm2 =>
+           NONE => (case thm1 of
+               NONE => NONE
+             | SOME thm1' => SOME (Drule.imp_cong' thm1' (reflexive conc)))
+         | SOME thm2 =>
            let val thm2' = disch false (prem1, thm2)
            in (case thm1 of
-               None => Some thm2'
-             | Some thm1' =>
-                 Some (transitive (Drule.imp_cong' thm1' (reflexive conc)) thm2'))
+               NONE => SOME thm2'
+             | SOME thm1' =>
+                 SOME (transitive (Drule.imp_cong' thm1' (reflexive conc)) thm2'))
            end)
        end
 

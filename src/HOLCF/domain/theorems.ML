@@ -18,7 +18,7 @@ infix 9 `   ; infix 9 `% ; infix 9 `%%; infixr 9 oo;
 (* ----- general proof facilities ------------------------------------------- *)
 
 fun inferT sg pre_tm =
-  #1 (Sign.infer_types (Sign.pp sg) sg (K None) (K None) [] true ([pre_tm],propT));
+  #1 (Sign.infer_types (Sign.pp sg) sg (K NONE) (K NONE) [] true ([pre_tm],propT));
 
 fun pg'' thy defs t = let val sg = sign_of thy;
                           val ct = Thm.cterm_of sg (inferT sg t);
@@ -65,7 +65,7 @@ val pg = pg' thy;
 
 (* ----- getting the axioms and definitions --------------------------------- *)
 
-local fun ga s dn = get_thm thy (dn ^ "." ^ s, None) in
+local fun ga s dn = get_thm thy (dn ^ "." ^ s, NONE) in
 val ax_abs_iso    = ga "abs_iso"  dname;
 val ax_rep_iso    = ga "rep_iso"  dname;
 val ax_when_def   = ga "when_def" dname;
@@ -341,7 +341,7 @@ val pg = pg' thy;
 
 (* ----- getting the composite axiom and definitions ------------------------ *)
 
-local fun ga s dn = get_thm thy (dn ^ "." ^ s, None) in
+local fun ga s dn = get_thm thy (dn ^ "." ^ s, NONE) in
 val axs_reach      = map (ga "reach"     ) dnames;
 val axs_take_def   = map (ga "take_def"  ) dnames;
 val axs_finite_def = map (ga "finite_def") dnames;
@@ -349,8 +349,8 @@ val ax_copy2_def   =      ga "copy_def"  comp_dnam;
 val ax_bisim_def   =      ga "bisim_def" comp_dnam;
 end; (* local *)
 
-local fun gt  s dn = get_thm  thy (dn ^ "." ^ s, None);
-      fun gts s dn = get_thms thy (dn ^ "." ^ s, None) in
+local fun gt  s dn = get_thm  thy (dn ^ "." ^ s, NONE);
+      fun gts s dn = get_thms thy (dn ^ "." ^ s, NONE) in
 val cases     =       map (gt  "casedist" ) dnames;
 val con_rews  = flat (map (gts "con_rews" ) dnames);
 val copy_rews = flat (map (gts "copy_rews") dnames);

@@ -42,8 +42,8 @@ fun smart_cases thy ss read_prop s =
       (Logic.strip_imp_concl A)))))) handle TERM _ => err ();
   in
     (case Symtab.lookup (IndCasesData.get thy, c) of
-      None => error ("Unknown inductive cases rule for set " ^ quote c)
-    | Some f => f ss (Thm.cterm_of (Theory.sign_of thy) A))
+      NONE => error ("Unknown inductive cases rule for set " ^ quote c)
+    | SOME f => f ss (Thm.cterm_of (Theory.sign_of thy) A))
   end;
 
 

@@ -105,8 +105,8 @@ fun proc sg ss t =
 	       (t', Data.mk_bal (Data.mk_sum T terms1', 
 				 newshape(n2-n1,terms2'))))
   end
-  handle TERM _ => None
-       | TYPE _ => None;   (*Typically (if thy doesn't include Numeral)
+  handle TERM _ => NONE
+       | TYPE _ => NONE;   (*Typically (if thy doesn't include Numeral)
 			     Undeclared type constructor "Numeral.bin"*)
 
 end;

@@ -104,7 +104,7 @@ type deps =
 fun make_deps present outdated master files =
   {present = present, outdated = outdated, master = master, files = files}: deps;
 
-fun init_deps master files = Some (make_deps false true master (map (rpair None) files));
+fun init_deps master files = SOME (make_deps false true master (map (rpair NONE) files));
 
 
 type thy = deps option * theory option;
@@ -130,7 +130,7 @@ fun get_names () =
 (* access thy *)
 
 fun lookup_thy name =
-  Some (thy_graph Graph.get_node name) handle Graph.UNDEF _ => None;
+  SOME (thy_graph Graph.get_node name) handle Graph.UNDEF _ => NONE;
 
 val known_thy = is_some o lookup_thy;
 fun check_known_thy name = known_thy name orelse (warning ("Unknown theory " ^ quote name); false);
@@ -138,8 +138,8 @@ fun if_known_thy f name = if check_known_thy name then f name else ();
 
 fun get_thy name =
   (case lookup_thy name of
-    Some thy => thy
-  | None => error (loader_msg "nothing known about theory" [name]));
+    SOME thy => thy
+  | NONE => error (loader_msg "nothing known about theory" [name]));
 
 fun change_thy name f = (get_thy name; change_thys (Graph.map_node name f));
 
@@ -151,13 +151,13 @@ val get_deps = #1 o get_thy;
 fun change_deps name f = change_thy name (fn (deps, x) => (f deps, x));
 
 fun is_finished name = is_none (get_deps name);
-fun get_files name = (case get_deps name of Some {files, ...} => files | _ => []);
+fun get_files name = (case get_deps name of SOME {files, ...} => files | _ => []);
 
 fun loaded_files name =
   (case get_deps name of
-    None => []
-  | Some {master, files, ...} =>
-      (case master of Some m => [#1 (ThyLoad.get_thy m)] | None => []) @
+    NONE => []
+  | SOME {master, files, ...} =>
+      (case master of SOME m => [#1 (ThyLoad.get_thy m)] | NONE => []) @
       (mapfilter (apsome #1 o #2) files));
 
 fun get_preds name =
@@ -169,18 +169,18 @@ fun get_preds name =
 
 fun lookup_theory name =
   (case lookup_thy name of
-    Some (_, Some thy) => Some thy
-  | _ => None);
+    SOME (_, SOME thy) => SOME thy
+  | _ => NONE);
 
 fun get_theory name =
   (case lookup_theory name of
-    (Some theory) => theory
+    (SOME theory) => theory
   | _ => error (loader_msg "undefined theory entry for" [name]));
 
 val theory_of_sign = get_theory o Sign.name_of;
 val theory_of_thm = theory_of_sign o Thm.sign_of_thm;
 
-fun put_theory name theory = change_thy name (fn (deps, _) => (deps, Some theory));
+fun put_theory name theory = change_thy name (fn (deps, _) => (deps, SOME theory));
 
 
 
@@ -192,7 +192,7 @@ local
 
 fun is_outdated name =
   (case lookup_deps name of
-    Some (Some {outdated, ...}) => outdated
+    SOME (SOME {outdated, ...}) => outdated
   | _ => false);
 
 fun outdate_thy name =
@@ -201,8 +201,8 @@ fun outdate_thy name =
     make_deps present true master files)); perform Outdate name);
 
 fun check_unfinished name =
-  if is_finished name then (warning (loader_msg "tried to touch finished theory" [name]); None)
-  else Some name;
+  if is_finished name then (warning (loader_msg "tried to touch finished theory" [name]); NONE)
+  else SOME name;
 
 in
 
@@ -228,25 +228,25 @@ fun check_unfinished fail name =
 (* load_file *)
 
 val opt_path = apsome (Path.dir o fst o ThyLoad.get_thy);
-fun opt_path' (d : deps option) = if_none (apsome (opt_path o #master) d) None;
-fun opt_path'' d = if_none (apsome opt_path' d) None;
+fun opt_path' (d : deps option) = if_none (apsome (opt_path o #master) d) NONE;
+fun opt_path'' d = if_none (apsome opt_path' d) NONE;
 
 local
 
-fun provide path name info (deps as Some {present, outdated, master, files}) =
+fun provide path name info (deps as SOME {present, outdated, master, files}) =
      (if exists (equal path o #1) files then ()
       else warning (loader_msg "undeclared dependency of theory" [name] ^
         " on file: " ^ quote (Path.pack path));
-      Some (make_deps present outdated master (overwrite (files, (path, Some info)))))
-  | provide _ _ _ None = None;
+      SOME (make_deps present outdated master (overwrite (files, (path, SOME info)))))
+  | provide _ _ _ NONE = NONE;
 
 fun run_file path =
   (case apsome PureThy.get_name (Context.get_context ()) of
-    None => (ThyLoad.load_file None path; ())
-  | Some name => (case lookup_deps name of
-      Some deps => change_deps name (provide path name
+    NONE => (ThyLoad.load_file NONE path; ())
+  | SOME name => (case lookup_deps name of
+      SOME deps => change_deps name (provide path name
         (ThyLoad.load_file (opt_path' deps) path))
-    | None => (ThyLoad.load_file None path; ())));
+    | NONE => (ThyLoad.load_file NONE path; ())));
 
 in
 
@@ -283,12 +283,12 @@ fun load_thy really ml time initiators dir name =
       else #1 (ThyLoad.deps_thy dir name ml);
 
     val files = get_files name;
-    val missing_files = mapfilter (fn (path, None) => Some (Path.pack path) | _ => None) files;
+    val missing_files = mapfilter (fn (path, NONE) => SOME (Path.pack path) | _ => NONE) files;
   in
     if null missing_files then ()
     else warning (loader_msg "unresolved dependencies of theory" [name] ^
       " on file(s): " ^ commas_quote missing_files);
-    change_deps name (fn _ => Some (make_deps true false (Some master) files));
+    change_deps name (fn _ => SOME (make_deps true false (SOME master) files));
     perform Update name
   end;
 
@@ -301,27 +301,27 @@ local
 
 fun load_deps ml dir name =
   let val (master, (parents, files)) = ThyLoad.deps_thy dir name ml
-  in (Some (init_deps (Some master) files), parents) end;
+  in (SOME (init_deps (SOME master) files), parents) end;
 
-fun file_current master (_, None) = false
+fun file_current master (_, NONE) = false
   | file_current master (path, info) =
       (info = ThyLoad.check_file (opt_path master) path);
 
 fun current_deps ml strict dir name =
   (case lookup_deps name of
-    None => (false, load_deps ml dir name)
-  | Some deps =>
+    NONE => (false, load_deps ml dir name)
+  | SOME deps =>
       let
-        fun get_name s = (case opt_path'' (lookup_deps s) of None => s
-          | Some p => Path.pack (Path.append p (Path.basic s)));
-        val same_deps = (None, map get_name (thy_graph Graph.imm_preds name))
+        fun get_name s = (case opt_path'' (lookup_deps s) of NONE => s
+          | SOME p => Path.pack (Path.append p (Path.basic s)));
+        val same_deps = (NONE, map get_name (thy_graph Graph.imm_preds name))
       in
         (case deps of
-          None => (true, same_deps)
-        | Some {present, outdated, master, files} =>
+          NONE => (true, same_deps)
+        | SOME {present, outdated, master, files} =>
             if present andalso not strict then (true, same_deps)
             else
-              let val master' = Some (ThyLoad.check_thy dir name ml) in
+              let val master' = SOME (ThyLoad.check_thy dir name ml) in
                 if master <> master' then (false, load_deps ml dir name)
                 else (not outdated andalso forall (file_current master') files, same_deps)
               end)
@@ -347,13 +347,13 @@ fun require_thy really ml time strict keep_strict initiators prfx (visited, str)
         val dir' = if_none (opt_path'' new_deps) dir;
         val (visited', parent_results) = foldl_map (req_parent dir') (name :: visited, parents);
 
-        val thy = if not really then Some (get_theory name) else None;
+        val thy = if not really then SOME (get_theory name) else NONE;
         val result =
           if current andalso forall #1 parent_results then true
           else
             ((case new_deps of
-              Some deps => change_thys (update_node name (map base_of_path parents) (deps, thy))
-            | None => ());
+              SOME deps => change_thys (update_node name (map base_of_path parents) (deps, thy))
+            | NONE => ());
              load_thy really ml (time orelse ! Output.timing) initiators dir name;
              false);
       in (visited', (result, name)) end
@@ -408,10 +408,10 @@ fun begin_theory present upd name parents paths =
     val theory = PureThy.begin_theory name (map get_theory bparents);
     val deps =
       if known_thy name then get_deps name
-      else (init_deps None (map #1 paths));   (*records additional ML files only!*)
-    val use_paths = mapfilter (fn (x, true) => Some x | _ => None) paths;
+      else (init_deps NONE (map #1 paths));   (*records additional ML files only!*)
+    val use_paths = mapfilter (fn (x, true) => SOME x | _ => NONE) paths;
 
-    val _ = change_thys (update_node name bparents (deps, Some (Theory.copy theory)));
+    val _ = change_thys (update_node name bparents (deps, SOME (Theory.copy theory)));
     val theory' = theory |> present dir' name bparents paths;
     val _ = put_theory name (Theory.copy theory');
     val ((), theory'') = Context.pass_theory theory' (seq (load_file false)) use_paths;
@@ -427,7 +427,7 @@ fun end_theory theory =
 
 (* finish all theories *)
 
-fun finish () = change_thys (Graph.map_nodes (fn (_, entry) => (None, entry)));
+fun finish () = change_thys (Graph.map_nodes (fn (_, entry) => (NONE, entry)));
 
 
 (* register existing theories *)
@@ -443,12 +443,12 @@ fun register_theory theory =
 
     val nonfinished = filter_out is_finished parent_names;
     fun get_variant (x, y_name) =
-      if Theory.eq_thy (x, get_theory y_name) then None
-      else Some y_name;
+      if Theory.eq_thy (x, get_theory y_name) then NONE
+      else SOME y_name;
     val variants = mapfilter get_variant (parents ~~ parent_names);
 
     fun register G =
-      (Graph.new_node (name, (None, Some theory)) G
+      (Graph.new_node (name, (NONE, SOME theory)) G
         handle Graph.DUP _ => err "duplicate theory entry" [])
       |> add_deps name parent_names;
   in

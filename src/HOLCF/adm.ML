@@ -141,15 +141,15 @@ fun nth_subgoal i thm = nth_elem (i-1, prems_of thm);
 (*** the admissibility tactic ***)
 
 fun try_dest_adm (Const _ $ (Const (name, _) $ Abs abs)) =
-      if name = adm_name then Some abs else None
-  | try_dest_adm _ = None;
+      if name = adm_name then SOME abs else NONE
+  | try_dest_adm _ = NONE;
 
 fun adm_tac tac i state =
   state |>
   let val goali = nth_subgoal i state in
     (case try_dest_adm (Logic.strip_assums_concl goali) of
-      None => no_tac
-    | Some (s, T, t) =>
+      NONE => no_tac
+    | SOME (s, T, t) =>
         let
           val sign = sign_of_thm state;
           val prems = Logic.strip_assums_hyp goali;

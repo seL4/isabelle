@@ -263,27 +263,27 @@ local open MinTermS open UpTermLib in
         handle out_of_term_exception  _=> ft;
 
   (* focus tools for working directly with the focus representation *)
-  fun focus_up_appr (focus(t, appl(l,m))) = None
-    | focus_up_appr (focus(t, appr(r,m))) = Some (focus(t$r, m))
-    | focus_up_appr (focus(t, abs(s,ty,m))) = None
-    | focus_up_appr (focus(t, root)) = None;
+  fun focus_up_appr (focus(t, appl(l,m))) = NONE
+    | focus_up_appr (focus(t, appr(r,m))) = SOME (focus(t$r, m))
+    | focus_up_appr (focus(t, abs(s,ty,m))) = NONE
+    | focus_up_appr (focus(t, root)) = NONE;
 
-  fun focus_up_appl (focus(t, appl(l,m))) = Some (focus(l$t, m))
-    | focus_up_appl (focus(t, appr(r,m))) = None
-    | focus_up_appl (focus(t, abs(s,ty,m))) = None
-    | focus_up_appl (focus(t, root)) = None;
+  fun focus_up_appl (focus(t, appl(l,m))) = SOME (focus(l$t, m))
+    | focus_up_appl (focus(t, appr(r,m))) = NONE
+    | focus_up_appl (focus(t, abs(s,ty,m))) = NONE
+    | focus_up_appl (focus(t, root)) = NONE;
 
-  fun focus_up_abs (focus(t, appl(l,m))) = None
-    | focus_up_abs (focus(t, appr(r,m))) = None
+  fun focus_up_abs (focus(t, appl(l,m))) = NONE
+    | focus_up_abs (focus(t, appr(r,m))) = NONE
     | focus_up_abs (focus(t, abs(s,ty,m))) = 
-      Some (focus_up (focus(Abs(s,ty,t), m)))
-    | focus_up_abs (focus(t, root)) = None;
+      SOME (focus_up (focus(Abs(s,ty,t), m)))
+    | focus_up_abs (focus(t, root)) = NONE;
 
-  fun focus_up_abs_or_appr (focus(t, appl(l,m))) = None
-    | focus_up_abs_or_appr (focus(t, appr(r,m))) = Some (focus(t$r, m))
+  fun focus_up_abs_or_appr (focus(t, appl(l,m))) = NONE
+    | focus_up_abs_or_appr (focus(t, appr(r,m))) = SOME (focus(t$r, m))
     | focus_up_abs_or_appr (focus(t, abs(s,ty,m))) = 
-      Some (focus_up (focus(Abs(s,ty,t), m)))
-    | focus_up_abs_or_appr (focus(t, root)) = None;
+      SOME (focus_up (focus(Abs(s,ty,t), m)))
+    | focus_up_abs_or_appr (focus(t, root)) = NONE;
 
 
   fun tyenv_of_focus (focus(t, u)) = tyenv_of_upterm u;
@@ -310,8 +310,8 @@ local open MinTermS open UpTermLib in
   fun next_leaf_of_fcterm_seq_aux t () = 
     let val nextt = next_leaf_fcterm t
     in 
-        Some (nextt, Seq.make (next_leaf_of_fcterm_seq_aux nextt))
-    end handle out_of_term_exception _ => None;
+        SOME (nextt, Seq.make (next_leaf_of_fcterm_seq_aux nextt))
+    end handle out_of_term_exception _ => NONE;
 
   (* sequence of next upterms from start upterm... 
      ie a sequence of all leafs after this one*)

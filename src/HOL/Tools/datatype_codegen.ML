@@ -27,17 +27,17 @@ fun mk_tuple [p] = p
 fun find_nonempty (descr: DatatypeAux.descr) is i =
   let
     val (_, _, constrs) = the (assoc (descr, i));
-    fun arg_nonempty (_, DatatypeAux.DtRec i) = if i mem is then None
+    fun arg_nonempty (_, DatatypeAux.DtRec i) = if i mem is then NONE
           else apsome (curry op + 1 o snd) (find_nonempty descr (i::is) i)
-      | arg_nonempty _ = Some 0;
+      | arg_nonempty _ = SOME 0;
     fun max xs = foldl
-      (fn (None, _) => None
-        | (Some i, Some j) => Some (Int.max (i, j))
-        | (_, None) => None) (Some 0, xs);
+      (fn (NONE, _) => NONE
+        | (SOME i, SOME j) => SOME (Int.max (i, j))
+        | (_, NONE) => NONE) (SOME 0, xs);
     val xs = sort (int_ord o pairself snd)
       (mapfilter (fn (s, dts) => apsome (pair s)
         (max (map (arg_nonempty o DatatypeAux.strip_dtyp) dts))) constrs)
-  in case xs of [] => None | x :: _ => Some x end;
+  in case xs of [] => NONE | x :: _ => SOME x end;
 
 fun add_dt_defs thy dep gr (descr: DatatypeAux.descr) =
   let
@@ -109,7 +109,7 @@ fun add_dt_defs thy dep gr (descr: DatatypeAux.descr) =
             val sorts = map (rpair []) tvs;
             val (cs1, cs2) =
               partition (exists DatatypeAux.is_rec_type o snd) cs;
-            val Some (cname, _) = find_nonempty descr [i] i;
+            val SOME (cname, _) = find_nonempty descr [i] i;
 
             fun mk_delay p = Pretty.block
               [Pretty.str "fn () =>", Pretty.brk 1, p];
@@ -173,10 +173,10 @@ fun add_dt_defs thy dep gr (descr: DatatypeAux.descr) =
         handle Graph.CYCLES _ => gr) handle Graph.UNDEF _ =>
          let
            val gr1 = Graph.add_edge (dname, dep)
-             (Graph.new_node (dname, (None, "")) gr);
+             (Graph.new_node (dname, (NONE, "")) gr);
            val (gr2, dtdef) = mk_dtdef gr1 "datatype " descr';
          in
-           Graph.map_node dname (K (None,
+           Graph.map_node dname (K (NONE,
              Pretty.string_of (Pretty.blk (0, separate Pretty.fbrk dtdef @
                [Pretty.str ";"])) ^ "\n\n" ^
              (if "term_of" mem !mode then
@@ -259,33 +259,33 @@ fun datatype_codegen thy gr dep brack t = (case strip_comb t of
          s = case_name orelse
            is_some (assoc (#3 (the (assoc (descr, index))), s)))
              (Symtab.dest (DatatypePackage.get_datatypes thy)) of
-          None => None
-        | Some (tname, {index, descr, ...}) =>
-           if is_some (get_assoc_code thy s T) then None else
-           let val Some (_, _, constrs) = assoc (descr, index)
+          NONE => NONE
+        | SOME (tname, {index, descr, ...}) =>
+           if is_some (get_assoc_code thy s T) then NONE else
+           let val SOME (_, _, constrs) = assoc (descr, index)
            in (case (assoc (constrs, s), strip_type T) of
-               (None, _) => Some (pretty_case thy gr dep brack
+               (NONE, _) => SOME (pretty_case thy gr dep brack
                  (#3 (the (assoc (descr, index)))) c ts)
-             | (Some args, (_, Type _)) => Some (pretty_constr thy
+             | (SOME args, (_, Type _)) => SOME (pretty_constr thy
                  (fst (invoke_tycodegen thy dep false (gr, snd (strip_type T))))
                  dep brack args c ts)
-             | _ => None)
+             | _ => NONE)
            end)
- |  _ => None);
+ |  _ => NONE);
 
 fun datatype_tycodegen thy gr dep brack (Type (s, Ts)) =
       (case Symtab.lookup (DatatypePackage.get_datatypes thy, s) of
-         None => None
-       | Some {descr, ...} =>
-           if is_some (get_assoc_type thy s) then None else
+         NONE => NONE
+       | SOME {descr, ...} =>
+           if is_some (get_assoc_type thy s) then NONE else
            let val (gr', ps) = foldl_map
              (invoke_tycodegen thy dep false) (gr, Ts)
-           in Some (add_dt_defs thy dep gr' descr,
+           in SOME (add_dt_defs thy dep gr' descr,
              Pretty.block ((if null Ts then [] else
                [mk_tuple ps, Pretty.str " "]) @
                [Pretty.str (mk_type_id (sign_of thy) s)]))
            end)
-  | datatype_tycodegen _ _ _ _ _ = None;
+  | datatype_tycodegen _ _ _ _ _ = NONE;
 
 
 val setup =

@@ -47,21 +47,21 @@ fun remove (_, _, []) = (*impossible, since #m*u was found by find_repeated*)
       raise TERM("combine_numerals: remove", [])  
   | remove (m, u, t::terms) =
       case try Data.dest_coeff t of
-	  Some(n,v) => if m=n andalso u aconv v then terms
+	  SOME(n,v) => if m=n andalso u aconv v then terms
 		       else t :: remove (m, u, terms)
-	| None      =>  t :: remove (m, u, terms);
+	| NONE      =>  t :: remove (m, u, terms);
 
 (*a left-to-right scan of terms, seeking another term of the form #n*u, where
   #m*u is already in terms for some m*)
 fun find_repeated (tab, _, []) = raise TERM("find_repeated", []) 
   | find_repeated (tab, past, t::terms) =
       case try Data.dest_coeff t of
-	  Some(n,u) => 
+	  SOME(n,u) => 
 	      (case Termtab.lookup (tab, u) of
-		  Some m => (u, m, n, rev (remove (m,u,past)) @ terms)
-		| None => find_repeated (Termtab.update ((u,n), tab), 
+		  SOME m => (u, m, n, rev (remove (m,u,past)) @ terms)
+		| NONE => find_repeated (Termtab.update ((u,n), tab), 
 					 t::past,  terms))
-	| None => find_repeated (tab, t::past, terms);
+	| NONE => find_repeated (tab, t::past, terms);
 
 (*the simplification procedure*)
 fun proc sg _ t =
@@ -84,8 +84,8 @@ fun proc sg _ t =
 	     Data.numeral_simp_tac] sg xs
 	    (t', Data.mk_sum T (Data.mk_coeff(Data.add(m,n), u) :: terms)))
   end
-  handle TERM _ => None
-       | TYPE _ => None;   (*Typically (if thy doesn't include Numeral)
+  handle TERM _ => NONE
+       | TYPE _ => NONE;   (*Typically (if thy doesn't include Numeral)
 			     Undeclared type constructor "Numeral.bin"*)
 
 end;

@@ -74,8 +74,8 @@ fun group f [] = []
 	val key = f x
     in
 	case assoc (g, key) of
-	    None => (key, [x])::g
-	  | Some l => overwrite (g, (key, x::l))
+	    NONE => (key, [x])::g
+	  | SOME l => overwrite (g, (key, x::l))
     end
     
 fun prepare_thms ths = 

@@ -430,12 +430,12 @@ fun list_eq sg _ (F as (eq as Const(_,eqT)) $ lhs $ rhs) =
         val F2 = eq $ (app$lhs1$lastl) $ (app$rhs1$lastr)
         val eq = HOLogic.mk_Trueprop (HOLogic.mk_eq (F,F2));
         val thm = Tactic.prove sg [] [] eq (K (rearr_tac 1));
-      in Some ((conv RS (thm RS trans)) RS eq_reflection) end;
+      in SOME ((conv RS (thm RS trans)) RS eq_reflection) end;
 
   in
     if list1 lastl andalso list1 lastr then rearr append1_eq_conv
     else if lastl aconv lastr then rearr append_same_eq
-    else None
+    else NONE
   end;
 
 in
@@ -2118,17 +2118,17 @@ local
 fun list_codegen thy gr dep b t =
   let val (gr', ps) = foldl_map (Codegen.invoke_codegen thy dep false)
     (gr, HOLogic.dest_list t)
-  in Some (gr', Pretty.list "[" "]" ps) end handle TERM _ => None;
+  in SOME (gr', Pretty.list "[" "]" ps) end handle TERM _ => NONE;
 
 fun dest_nibble (Const (s, _)) = int_of_nibble (unprefix "List.nibble.Nibble" s)
   | dest_nibble _ = raise Match;
 
 fun char_codegen thy gr dep b (Const ("List.char.Char", _) $ c1 $ c2) =
     (let val c = chr (dest_nibble c1 * 16 + dest_nibble c2)
-     in if Symbol.is_printable c then Some (gr, Pretty.quote (Pretty.str c))
-       else None
-     end handle LIST _ => None | Match => None)
-  | char_codegen thy gr dep b _ = None;
+     in if Symbol.is_printable c then SOME (gr, Pretty.quote (Pretty.str c))
+       else NONE
+     end handle LIST _ => NONE | Match => NONE)
+  | char_codegen thy gr dep b _ = NONE;
 
 in
 

@@ -127,9 +127,9 @@ fun rule_error (rule as (lhs, rhs)) =
     val lvars = vars_of lhs;
     val rvars = vars_of rhs;
   in
-    if not (unique lvars) then Some "duplicate vars in lhs"
-    else if not (rvars subset lvars) then Some "rhs contains extra variables"
-    else None
+    if not (unique lvars) then SOME "duplicate vars in lhs"
+    else if not (rvars subset lvars) then SOME "rhs contains extra variables"
+    else NONE
   end;
 
 
@@ -195,7 +195,7 @@ fun match ast pat =
           end
       | _ => (ast, []));
   in
-    Some (mtch head pat Symtab.empty, args) handle NO_MATCH => None
+    SOME (mtch head pat Symtab.empty, args) handle NO_MATCH => NONE
   end;
 
 
@@ -215,15 +215,15 @@ fun normalize trace stat get_rules pre_ast =
 
     fun try_rules ((lhs, rhs) :: pats) ast =
           (case match ast lhs of
-            Some (env, args) =>
-              (inc changes; Some (mk_appl (subst env rhs) args))
-          | None => (inc failed_matches; try_rules pats ast))
-      | try_rules [] _ = None;
+            SOME (env, args) =>
+              (inc changes; SOME (mk_appl (subst env rhs) args))
+          | NONE => (inc failed_matches; try_rules pats ast))
+      | try_rules [] _ = NONE;
     val try_headless_rules = try_rules (get_rules "");
 
     fun try ast a =
       (case try_rules (get_rules a) ast of
-        None => try_headless_rules ast
+        NONE => try_headless_rules ast
       | some => some);
 
     fun rewrite (ast as Constant a) = try ast a
@@ -238,8 +238,8 @@ fun normalize trace stat get_rules pre_ast =
 
     fun norm_root ast =
       (case rewrite ast of
-        Some new_ast => (rewrote ast new_ast; norm_root new_ast)
-      | None => ast);
+        SOME new_ast => (rewrote ast new_ast; norm_root new_ast)
+      | NONE => ast);
 
     fun norm ast =
       (case norm_root ast of

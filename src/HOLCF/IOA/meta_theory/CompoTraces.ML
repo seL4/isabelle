@@ -5,7 +5,7 @@
 Compositionality on Trace level.
 *) 
 
-simpset_ref () := simpset() setmksym (K None);
+simpset_ref () := simpset() setmksym (K NONE);
 
 (* ---------------------------------------------------------------- *)
                    section "mksch rewrite rules";
@@ -1225,4 +1225,4 @@ by (asm_full_simp_tac (simpset() addsimps [compositionality_tr,externals_of_par]
 qed"compositionality_tr_modules";
 
 
-simpset_ref () := simpset() setmksym (Some o symmetric_fun);
+simpset_ref () := simpset() setmksym (SOME o symmetric_fun);

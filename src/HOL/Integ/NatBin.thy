@@ -859,14 +859,14 @@ consts_code
 ML {*
 fun number_of_codegen thy gr s b (Const ("Numeral.number_of",
       Type ("fun", [_, Type ("IntDef.int", [])])) $ bin) =
-        (Some (gr, Pretty.str (string_of_int (HOLogic.dest_binum bin)))
-        handle TERM _ => None)
+        (SOME (gr, Pretty.str (string_of_int (HOLogic.dest_binum bin)))
+        handle TERM _ => NONE)
   | number_of_codegen thy gr s b (Const ("Numeral.number_of",
       Type ("fun", [_, Type ("nat", [])])) $ bin) =
-        Some (Codegen.invoke_codegen thy s b (gr,
+        SOME (Codegen.invoke_codegen thy s b (gr,
           Const ("IntDef.nat", HOLogic.intT --> HOLogic.natT) $
             (Const ("Numeral.number_of", HOLogic.binT --> HOLogic.intT) $ bin)))
-  | number_of_codegen _ _ _ _ _ = None;
+  | number_of_codegen _ _ _ _ _ = NONE;
 *}
 
 setup {* [Codegen.add_codegen "number_of_codegen" number_of_codegen] *}

@@ -57,8 +57,8 @@ sig
 
      Returns one of the following:
 
-     None if not an instance of a relation,
-     Some (x, y, r, s) if instance of a relation, where
+     NONE if not an instance of a relation,
+     SOME (x, y, r, s) if instance of a relation, where
        x: left hand side argument, y: right hand side argument,
        r: the relation,
        s: the kind of closure, one of
@@ -121,7 +121,7 @@ fun getprf   (Trans   (_, _, p)) = p
 
 fun mkasm_trancl  Rel  (t, n) =
   case Cls.decomp t of
-    Some (x, y, rel,r) => if rel aconv Rel then  
+    SOME (x, y, rel,r) => if rel aconv Rel then  
     
     (case r of
       "r"   => [Trans (x,y, Thm([Asm n], Cls.r_into_trancl))]
@@ -129,7 +129,7 @@ fun mkasm_trancl  Rel  (t, n) =
     | "r*"  => []
     | _     => error ("trancl_tac: unknown relation symbol"))
     else [] 
-  | None => [];
+  | NONE => [];
   
 (* ************************************************************************ *)
 (*                                                                          *)
@@ -144,14 +144,14 @@ fun mkasm_trancl  Rel  (t, n) =
 
 fun mkasm_rtrancl Rel (t, n) =
   case Cls.decomp t of
-   Some (x, y, rel, r) => if rel aconv Rel then
+   SOME (x, y, rel, r) => if rel aconv Rel then
     (case r of
       "r"   => [ Trans (x,y, Thm([Asm n], Cls.r_into_trancl))]
     | "r+"  => [ Trans (x,y, Asm n)]
     | "r*"  => [ RTrans(x,y, Asm n)]
     | _     => error ("rtrancl_tac: unknown relation symbol" ))
    else [] 
-  | None => [];
+  | NONE => [];
 
 (* ************************************************************************ *)
 (*                                                                          *)
@@ -168,18 +168,18 @@ fun mkasm_rtrancl Rel (t, n) =
 
 fun mkconcl_trancl  t =
   case Cls.decomp t of
-    Some (x, y, rel, r) => (case r of
+    SOME (x, y, rel, r) => (case r of
       "r+"  => (rel, Trans (x,y, Asm ~1), Asm 0)
     | _     => raise Cannot)
-  | None => raise Cannot;
+  | NONE => raise Cannot;
 
 fun mkconcl_rtrancl  t =
   case Cls.decomp t of
-    Some (x,  y, rel,r ) => (case r of
+    SOME (x,  y, rel,r ) => (case r of
       "r+"  => (rel, Trans (x,y, Asm ~1),  Asm 0)
     | "r*"  => (rel, RTrans (x,y, Asm ~1), Asm 0)
     | _     => raise Cannot)
-  | None => raise Cannot;
+  | NONE => raise Cannot;
 
 (* ************************************************************************ *)
 (*                                                                          *)

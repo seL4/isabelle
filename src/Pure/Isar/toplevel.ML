@@ -115,13 +115,13 @@ fun pretty_node prf_only (Theory thy) = if prf_only then [] else pretty_context 
 
 datatype state = State of (node History.T * ((node -> unit) * (node -> unit))) option;
 
-val toplevel = State None;
+val toplevel = State NONE;
 
-fun is_toplevel (State None) = true
+fun is_toplevel (State NONE) = true
   | is_toplevel _ = false;
 
-fun str_of_state (State None) = "at top level"
-  | str_of_state (State (Some (node, _))) = str_of_node (History.current node);
+fun str_of_state (State NONE) = "at top level"
+  | str_of_state (State (SOME (node, _))) = str_of_node (History.current node);
 
 
 (* prompt_state hook *)
@@ -134,8 +134,8 @@ fun prompt_state state = ! prompt_state_fn state;
 
 (* print state *)
 
-fun pretty_current_node _ (State None) = []
-  | pretty_current_node prt (State (Some (node, _))) = prt (History.current node);
+fun pretty_current_node _ (State NONE) = []
+  | pretty_current_node prt (State (SOME (node, _))) = prt (History.current node);
 
 val print_state_context =
   Pretty.writeln o Pretty.chunks o pretty_current_node pretty_node_context;
@@ -157,8 +157,8 @@ fun print_state state = ! print_state_fn state;
 
 exception UNDEF;
 
-fun node_history_of (State None) = raise UNDEF
-  | node_history_of (State (Some (node, _))) = node;
+fun node_history_of (State NONE) = raise UNDEF
+  | node_history_of (State (SOME (node, _))) = node;
 
 val node_of = History.current o node_history_of;
 
@@ -199,30 +199,30 @@ fun copy_node true (Theory thy) = Theory (Theory.copy thy)
   | copy_node _ node = node;
 
 fun interruptible f x =
-  let val y = ref (None: node History.T option);
-  in raise_interrupt (fn () => y := Some (f x)) (); the (! y) end;
+  let val y = ref (NONE: node History.T option);
+  in raise_interrupt (fn () => y := SOME (f x)) (); the (! y) end;
 
 val rollback = ERROR_MESSAGE "Stale signature encountered after succesful execution!";
 
-fun return (result, None) = result
-  | return (result, Some exn) = raise FAILURE (result, exn);
+fun return (result, NONE) = result
+  | return (result, SOME exn) = raise FAILURE (result, exn);
 
 in
 
-fun node_trans _ _ _ (State None) = raise UNDEF
-  | node_trans int hist f (State (Some (node, term))) =
+fun node_trans _ _ _ (State NONE) = raise UNDEF
+  | node_trans int hist f (State (SOME (node, term))) =
       let
-        fun mk_state nd = State (Some (nd, term));
+        fun mk_state nd = State (SOME (nd, term));
 
         val cont_node = History.map (checkpoint_node int) node;
         val back_node = History.map (copy_node int) cont_node;
 
         val trans = if hist then History.apply_copy (copy_node int) else History.map;
         val (result, opt_exn) =
-          (mk_state (transform_error (interruptible (trans (f int))) cont_node), None)
-            handle exn => (mk_state cont_node, Some exn);
+          (mk_state (transform_error (interruptible (trans (f int))) cont_node), NONE)
+            handle exn => (mk_state cont_node, SOME exn);
       in
-        if is_stale result then return (mk_state back_node, Some (if_none opt_exn rollback))
+        if is_stale result then return (mk_state back_node, SOME (if_none opt_exn rollback))
         else return (result, opt_exn)
       end;
 
@@ -253,23 +253,23 @@ datatype trans =
   MapCurrent of bool -> node -> node |          (*change node, bypassing history*)
   AppCurrent of bool -> node -> node;           (*change node, recording history*)
 
-fun undo_limit int = if int then None else Some 0;
+fun undo_limit int = if int then NONE else SOME 0;
 
 local
 
 fun apply_tr _ Reset _ = toplevel
-  | apply_tr int (Init (f, term)) (State None) =
-      State (Some (History.init (undo_limit int) (f int), term))
-  | apply_tr _ (Init _ ) (State (Some _)) = raise UNDEF
-  | apply_tr _ Exit (State None) = raise UNDEF
-  | apply_tr _ Exit (State (Some (node, (exit, _)))) =
-      (exit (History.current node); State None)
-  | apply_tr _ Kill (State None) = raise UNDEF
-  | apply_tr _ Kill (State (Some (node, (_, kill)))) =
-      (kill (History.current node); State None)
+  | apply_tr int (Init (f, term)) (State NONE) =
+      State (SOME (History.init (undo_limit int) (f int), term))
+  | apply_tr _ (Init _ ) (State (SOME _)) = raise UNDEF
+  | apply_tr _ Exit (State NONE) = raise UNDEF
+  | apply_tr _ Exit (State (SOME (node, (exit, _)))) =
+      (exit (History.current node); State NONE)
+  | apply_tr _ Kill (State NONE) = raise UNDEF
+  | apply_tr _ Kill (State (SOME (node, (_, kill)))) =
+      (kill (History.current node); State NONE)
   | apply_tr int (Keep f) state = (raise_interrupt (f int) state; state)
-  | apply_tr _ (History _) (State None) = raise UNDEF
-  | apply_tr _ (History f) (State (Some (node, term))) = State (Some (f node, term))
+  | apply_tr _ (History _) (State NONE) = raise UNDEF
+  | apply_tr _ (History f) (State (SOME (node, term))) = State (SOME (f node, term))
   | apply_tr int (MapCurrent f) state = node_trans int false f state
   | apply_tr int (AppCurrent f) state = node_trans int true f state;
 
@@ -283,8 +283,8 @@ fun apply_union _ [] state = raise FAILURE (state, UNDEF)
 
 in
 
-fun apply_trans int trs state = (apply_union int trs state, None)
-  handle FAILURE (alt_state, exn) => (alt_state, Some exn) | exn => (state, Some exn);
+fun apply_trans int trs state = (apply_union int trs state, NONE)
+  handle FAILURE (alt_state, exn) => (alt_state, SOME exn) | exn => (state, SOME exn);
 
 end;
 
@@ -307,7 +307,7 @@ fun make_transition (name, pos, source, int_only, print, no_timing, trans) =
 fun map_transition f (Transition {name, pos, source, int_only, print, no_timing, trans}) =
   make_transition (f (name, pos, source, int_only, print, no_timing, trans));
 
-val empty = make_transition ("<unknown>", Position.none, None, false, false, false, []);
+val empty = make_transition ("<unknown>", Position.none, NONE, false, false, false, []);
 
 fun name_of (Transition {name, ...}) = name;
 fun source_of (Transition {source, ...}) = source;
@@ -333,7 +333,7 @@ fun position pos = map_transition (fn (name, _, source, int_only, print, no_timi
   (name, pos, source, int_only, print, no_timing, trans));
 
 fun source src = map_transition (fn (name, pos, _, int_only, print, no_timing, trans) =>
-  (name, pos, Some src, int_only, print, no_timing, trans));
+  (name, pos, SOME src, int_only, print, no_timing, trans));
 
 fun interactive int_only = map_transition (fn (name, pos, source, _, print, no_timing, trans) =>
   (name, pos, source, int_only, print, no_timing, trans));
@@ -428,7 +428,7 @@ fun msg_on_debug (THM (msg, i, thms)) =
      else msg
   | msg_on_debug (TERM (msg, ts)) =
      (case (!debug, Context.get_context ()) of
-         (true, Some thy) =>
+         (true, SOME thy) =>
            let val sg = Theory.sign_of thy in
              raised_msg "TERM"
                (cat_lines
@@ -437,7 +437,7 @@ fun msg_on_debug (THM (msg, i, thms)) =
        | _ => raised_msg "TERM" msg)
   | msg_on_debug (TYPE (msg, Ts, ts)) =
      (case (!debug, Context.get_context ()) of
-         (true, Some thy) =>
+         (true, SOME thy) =>
            let val sg = Theory.sign_of thy in
              raised_msg "TYPE"
                (cat_lines
@@ -480,14 +480,14 @@ fun exn_message TERMINATE = "Exit."
   | exn_message (TYPE (msg, Ts, ts)) = msg_on_debug (TYPE (msg, Ts, ts))
   | exn_message (TERM (msg, ts)) = msg_on_debug (TERM (msg, ts))
   | exn_message (THM (msg, i, thms)) = msg_on_debug (THM (msg, i, thms))
-  | exn_message Library.OPTION = raised "Library.OPTION"
+  | exn_message Option = raised "Option"
   | exn_message (Library.LIST msg) = raised_msg "Library.LIST" msg
   | exn_message exn = General.exnMessage exn
 and fail_message kind ((name, pos), exn) =
   "Error in " ^ kind ^ " " ^ quote name ^ Position.str_of pos ^ ":\n" ^ exn_message exn;
 
-fun print_exn None = ()
-  | print_exn (Some (exn, s)) = error_msg (cat_lines [exn_message exn, s]);
+fun print_exn NONE = ()
+  | print_exn (SOME (exn, s)) = error_msg (cat_lines [exn_message exn, s]);
 
 
 (* apply transitions *)
@@ -509,11 +509,11 @@ in
 
 fun apply int tr st =
   (case app int tr st of
-    (_, Some TERMINATE) => None
-  | (_, Some RESTART) => Some (toplevel, None)
-  | (state', Some (EXCURSION_FAIL exn_info)) => Some (state', Some exn_info)
-  | (state', Some exn) => Some (state', Some (exn, at_command tr))
-  | (state', None) => Some (state', None));
+    (_, SOME TERMINATE) => NONE
+  | (_, SOME RESTART) => SOME (toplevel, NONE)
+  | (state', SOME (EXCURSION_FAIL exn_info)) => SOME (state', SOME exn_info)
+  | (state', SOME exn) => SOME (state', SOME (exn, at_command tr))
+  | (state', NONE) => SOME (state', NONE));
 
 end;
 
@@ -525,17 +525,17 @@ local
 fun excur [] x = x
   | excur ((tr, f) :: trs) (st, res) =
       (case apply false tr st of
-        Some (st', None) =>
+        SOME (st', NONE) =>
           excur trs (st', transform_error (fn () => f st st' res) () handle exn =>
             raise EXCURSION_FAIL (exn, "Presentation failed\n" ^ at_command tr))
-      | Some (st', Some exn_info) => raise EXCURSION_FAIL exn_info
-      | None => raise EXCURSION_FAIL (TERMINATE, at_command tr));
+      | SOME (st', SOME exn_info) => raise EXCURSION_FAIL exn_info
+      | NONE => raise EXCURSION_FAIL (TERMINATE, at_command tr));
 
 in
 
 fun excursion_result (trs, res) =
-  (case excur trs (State None, res) of
-    (State None, res') => res'
+  (case excur trs (State NONE, res) of
+    (State NONE, res') => res'
   | _ => raise ERROR_MESSAGE "Unfinished development at end of input")
   handle exn => error (exn_message exn);
 
@@ -550,9 +550,9 @@ end;
 
 (* the global state reference *)
 
-val global_state = ref (toplevel, None: (exn * string) option);
+val global_state = ref (toplevel, NONE: (exn * string) option);
 
-fun set_state state = global_state := (state, None);
+fun set_state state = global_state := (state, NONE);
 fun get_state () = fst (! global_state);
 fun exn () = snd (! global_state);
 
@@ -572,8 +572,8 @@ nonfix >> >>>;
 
 fun >> tr =
   (case apply true tr (get_state ()) of
-    None => false
-  | Some (state', exn_info) =>
+    NONE => false
+  | SOME (state', exn_info) =>
       (global_state := (state', exn_info);
         check_stale state'; print_exn exn_info;
         true));
@@ -583,13 +583,13 @@ fun >>> [] = ()
 
 (*Note: this is for Poly/ML only, we really do not intend to exhibit
   interrupts here*)
-fun get_interrupt src = Some (Source.get_single src) handle Interrupt => None;
+fun get_interrupt src = SOME (Source.get_single src) handle Interrupt => NONE;
 
 fun raw_loop src =
   (case get_interrupt (Source.set_prompt (prompt_state (get_state ())) src) of
-    None => (writeln "\nInterrupt."; raw_loop src)
-  | Some None => ()
-  | Some (Some (tr, src')) => if >> tr then raw_loop src' else ());
+    NONE => (writeln "\nInterrupt."; raw_loop src)
+  | SOME NONE => ()
+  | SOME (SOME (tr, src')) => if >> tr then raw_loop src' else ());
 
 
 fun loop src = ignore_interrupt raw_loop src;

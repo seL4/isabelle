@@ -72,11 +72,11 @@ sig
 
   (* finding a free var to split *)
   val find_term_split :
-      Term.term * Term.term -> (string * Term.typ) Library.option
+      Term.term * Term.term -> (string * Term.typ) option
   val find_thm_split :
-      Thm.thm -> int -> Thm.thm -> (string * Term.typ) Library.option
+      Thm.thm -> int -> Thm.thm -> (string * Term.typ) option
   val find_thms_split :
-      Thm.thm list -> int -> Thm.thm -> (string * Term.typ) Library.option
+      Thm.thm list -> int -> Thm.thm -> (string * Term.typ) option
 
   (* try to recursively split conjectured thm to given list of thms *)
   val splitto : Thm.thm list -> Thm.thm -> Thm.thm
@@ -129,8 +129,8 @@ fun case_thm_of_ty sgn ty  =
                    | TVar((s,i),_) => raise ERROR_MESSAGE 
                                             ("Free variable: " ^ s)   
       val dt = case (Symtab.lookup (dtypestab,ty_str))
-                of Some dt => dt
-                 | None => raise ERROR_MESSAGE ("Not a Datatype: " ^ ty_str)
+                of SOME dt => dt
+                 | NONE => raise ERROR_MESSAGE ("Not a Datatype: " ^ ty_str)
     in
       cases_thm_of_induct_thm (#induction dt)
     end;
@@ -206,11 +206,11 @@ fun casesplit_name vstr i th =
       fun getter x = 
           let val (n,ty) = Term.dest_Free x in 
             (if vstr = n orelse vstr = Syntax.dest_skolem n 
-             then Some (n,ty) else None )
-            handle LIST _ => None
+             then SOME (n,ty) else NONE )
+            handle LIST _ => NONE
           end;
       val (n,ty) = case Library.get_first getter freets 
-                of Some (n, ty) => (n, ty)
+                of SOME (n, ty) => (n, ty)
                  | _ => raise ERROR_MESSAGE ("no such variable " ^ vstr);
       val sgn = Thm.sign_of_thm th;
 
@@ -247,22 +247,22 @@ think) term matching equivalent to find where to do the next split *)
 subterm, or constant in another, ie assume that one term is a plit of
 another, then gives back the free variable that has been split. *)
 exception find_split_exp of string
-fun find_term_split (Free v, _ $ _) = Some v
-  | find_term_split (Free v, Const _) = Some v
-  | find_term_split (Free v, Abs _) = Some v (* do we really want this case? *)
-  | find_term_split (Free v, Var _) = None (* keep searching *)
+fun find_term_split (Free v, _ $ _) = SOME v
+  | find_term_split (Free v, Const _) = SOME v
+  | find_term_split (Free v, Abs _) = SOME v (* do we really want this case? *)
+  | find_term_split (Free v, Var _) = NONE (* keep searching *)
   | find_term_split (a $ b, a2 $ b2) = 
     (case find_term_split (a, a2) of 
-       None => find_term_split (b,b2)  
+       NONE => find_term_split (b,b2)  
      | vopt => vopt)
   | find_term_split (Abs(_,ty,t1), Abs(_,ty2,t2)) = 
     find_term_split (t1, t2)
   | find_term_split (Const (x,ty), Const(x2,ty2)) = 
-    if x = x2 then None else (* keep searching *)
+    if x = x2 then NONE else (* keep searching *)
     raise find_split_exp (* stop now *)
             "Terms are not identical upto a free varaible! (Consts)"
   | find_term_split (Bound i, Bound j) =     
-    if i = j then None else (* keep searching *)
+    if i = j then NONE else (* keep searching *)
     raise find_split_exp (* stop now *)
             "Terms are not identical upto a free varaible! (Bound)"
   | find_term_split (a, b) = 
@@ -274,7 +274,7 @@ then look for a free variable to split, breaking the subgoal closer to
 splitth. *)
 fun find_thm_split splitth i genth =
     find_term_split (Logic.get_goal (Thm.prop_of genth) i, 
-                     Thm.concl_of splitth) handle find_split_exp _ => None;
+                     Thm.concl_of splitth) handle find_split_exp _ => NONE;
 
 (* as above but searches "splitths" for a theorem that suggest a case split *)
 fun find_thms_split splitths i genth =
@@ -304,12 +304,12 @@ fun splitto splitths genth =
 
       fun split th = 
           (case find_thms_split splitths 1 th of 
-             None => 
+             NONE => 
              (writeln "th:";
               Display.print_thm th; writeln "split ths:";
               Display.print_thms splitths; writeln "\n--";
               raise ERROR_MESSAGE "splitto: cannot find variable to split on")
-            | Some v => 
+            | SOME v => 
              let 
                val gt = Data.dest_Trueprop (nth_elem(0, Thm.prems_of th));
                val split_thm = mk_casesplit_goal_thm sgn v gt;
@@ -322,8 +322,8 @@ fun splitto splitths genth =
           (* note: multiple unifiers! we only take the first element,
              probably fine -- there is probably only one anyway. *)
           (case Library.get_first (Seq.pull o solve_by_splitth th) splitths of
-             None => split th
-           | Some (solved_th, more) => solved_th)
+             NONE => split th
+           | SOME (solved_th, more) => solved_th)
     in
       recsplitf genth
     end;
@@ -340,7 +340,7 @@ prefer leaving more fine grain control to the user. *)
    the well-foundness conditions have been solved. *)
 local
   fun get_related_thms i = 
-      mapfilter ((fn (r,x) => if x = i then Some r else None));
+      mapfilter ((fn (r,x) => if x = i then SOME r else NONE));
       
   fun solve_eq (th, [], i) = 
       raise ERROR_MESSAGE "derive_init_eqs: missing rules"

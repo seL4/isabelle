@@ -74,7 +74,7 @@ sig
     -> Proof.context attribute Locale.element_i Locale.elem_expr list
     -> ((bstring * Proof.context attribute list) * (term * (term list * term list)) list) list
     -> bool -> theory -> ProofHistory.T
-  val smart_multi_theorem: string -> xstring Library.option
+  val smart_multi_theorem: string -> xstring option
     -> bstring * Args.src list -> Args.src Locale.element Locale.elem_expr list
     -> ((bstring * Args.src list) * (string * (string list * string list)) list) list
     -> bool -> theory -> ProofHistory.T
@@ -172,7 +172,7 @@ val kinds =
 
 fun gen_hide intern (kind, xnames) thy =
   (case assoc (kinds, kind) of
-    Some check =>
+    SOME check =>
       let
         val sg = Theory.sign_of thy;
         val names = map (intern sg kind) xnames;
@@ -181,7 +181,7 @@ fun gen_hide intern (kind, xnames) thy =
         if null bads then Theory.hide_space_i true (kind, names) thy
         else error ("Attempt to hide undeclared item(s): " ^ commas_quote bads)
       end
-  | None => error ("Bad name space specification: " ^ quote kind));
+  | NONE => error ("Bad name space specification: " ^ quote kind));
 
 in
 
@@ -223,7 +223,7 @@ local
 
 fun present_thmss kind (thy, named_thmss) =
  (conditional (kind <> "" andalso kind <> Drule.internalK) (fn () =>
-    Context.setmp (Some thy) (Present.results (kind ^ "s")) named_thmss);
+    Context.setmp (SOME thy) (Present.results (kind ^ "s")) named_thmss);
   (thy, named_thmss));
 
 in
@@ -241,8 +241,8 @@ fun locale_theorems k loc args thy = thy
 
 fun smart_theorems k opt_loc args thy = thy
   |> (case opt_loc of
-    None => PureThy.note_thmss (Drule.kind k) (global_attribs thy args)
-  | Some loc => Locale.note_thmss k loc (local_attribs thy args))
+    NONE => PureThy.note_thmss (Drule.kind k) (global_attribs thy args)
+  | SOME loc => Locale.note_thmss k loc (local_attribs thy args))
   |> present_thmss k;
 
 fun declare_theorems opt_loc args = #1 o smart_theorems "" opt_loc [(("", []), args)];
@@ -332,20 +332,20 @@ fun proof'' f = Toplevel.proof' (f o cond_print_result_rule);
 fun check_goal false state = state
   | check_goal true state =
       let
-        val rule = ref (None: thm option);
+        val rule = ref (NONE: thm option);
         fun fail exn =
           (["Problem! Local statement will fail to solve any pending goal"] @
-          (case exn of None => [] | Some e => [Toplevel.exn_message e]) @
-          (case ! rule of None => [] | Some thm =>
+          (case exn of NONE => [] | SOME e => [Toplevel.exn_message e]) @
+          (case ! rule of NONE => [] | SOME thm =>
             [Pretty.string_of (pretty_rule "Failed attempt" (Proof.context_of state) thm)]))
           |> cat_lines |> error;
         val check =
           (fn () => Seq.pull (SkipProof.local_skip_proof (K (K ()),
-            fn _ => fn thm => rule := Some thm) true state))
+            fn _ => fn thm => rule := SOME thm) true state))
           |> setmp proofs 0
           |> transform_error;
-        val result = (check (), None) handle Interrupt => raise Interrupt | e => (None, Some e);
-      in (case result of (Some _, None) => () | (_, exn) => fail exn); state end;
+        val result = (check (), NONE) handle Interrupt => raise Interrupt | e => (NONE, SOME e);
+      in (case result of (SOME _, NONE) => () | (_, exn) => fail exn); state end;
 
 end;
 
@@ -371,27 +371,27 @@ fun local_statement_i f g args = local_statement_i' (K o f) g args ();
 in
 
 fun multi_theorem k a elems concl int thy =
-  global_statement (Proof.multi_theorem k None (apsnd (map (Attrib.global_attribute thy)) a)
+  global_statement (Proof.multi_theorem k NONE (apsnd (map (Attrib.global_attribute thy)) a)
     (map (Locale.map_attrib_elem_or_expr (Attrib.local_attribute thy)) elems)) concl int thy;
 
-fun multi_theorem_i k a = global_statement_i o Proof.multi_theorem_i k None a;
+fun multi_theorem_i k a = global_statement_i o Proof.multi_theorem_i k NONE a;
 
 fun locale_multi_theorem k locale (name, atts) elems concl int thy =
   global_statement (Proof.multi_theorem k
-      (Some (locale, (map (Attrib.local_attribute thy) atts,
+      (SOME (locale, (map (Attrib.local_attribute thy) atts,
           map (map (Attrib.local_attribute thy) o snd o fst) concl)))
       (name, []) (map (Locale.map_attrib_elem_or_expr (Attrib.local_attribute thy)) elems))
       (map (apfst (apsnd (K []))) concl) int thy;
 
 fun locale_multi_theorem_i k locale (name, atts) elems concl =
-  global_statement_i (Proof.multi_theorem_i k (Some (locale, (atts, map (snd o fst) concl)))
+  global_statement_i (Proof.multi_theorem_i k (SOME (locale, (atts, map (snd o fst) concl)))
       (name, []) elems) (map (apfst (apsnd (K []))) concl);
 
 fun theorem k (a, t) = multi_theorem k a [] [(("", []), [t])];
 fun theorem_i k (a, t) = multi_theorem_i k a [] [(("", []), [t])];
 
-fun smart_multi_theorem k None a elems = multi_theorem k a elems
-  | smart_multi_theorem k (Some locale) a elems = locale_multi_theorem k locale a elems;
+fun smart_multi_theorem k NONE a elems = multi_theorem k a elems
+  | smart_multi_theorem k (SOME locale) a elems = locale_multi_theorem k locale a elems;
 
 val assume      = local_statement Proof.assume I;
 val assume_i    = local_statement_i Proof.assume_i I;
@@ -466,7 +466,7 @@ fun global_result finish = Toplevel.proof_to_theory' (fn int => fn prf =>
   in
     if kind = "" orelse kind = Drule.internalK then ()
     else (print_result (Proof.context_of state) ((kind, name), res);
-      Context.setmp (Some thy) (Present.results kind) res);
+      Context.setmp (SOME thy) (Present.results kind) res);
     thy
   end);
 
@@ -612,9 +612,9 @@ fun theory spec = Toplevel.init_theory (bg_theory spec) en_theory (kill_theory o
 (* context switch *)
 
 fun fetch_context f x =
-  (case Context.pass None f x of
-    ((), None) => raise Toplevel.UNDEF
-  | ((), Some thy) => thy);
+  (case Context.pass NONE f x of
+    ((), NONE) => raise Toplevel.UNDEF
+  | ((), SOME thy) => thy);
 
 fun init_context f x = Toplevel.init_theory (fn _ => fetch_context f x) (K ()) (K ());
 

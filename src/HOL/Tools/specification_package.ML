@@ -86,8 +86,8 @@ local
 in
 fun proc_exprop axiomatic cos arg =
     case axiomatic of
-	Some axname => mk_axiomatic axname cos (apsnd (HOLogic.dest_Trueprop o concl_of) arg)
-      | None => mk_definitional cos arg
+	SOME axname => mk_axiomatic axname cos (apsnd (HOLogic.dest_Trueprop o concl_of) arg)
+      | NONE => mk_definitional cos arg
 end
 
 fun add_specification_i axiomatic cos arg =
@@ -109,8 +109,8 @@ fun unvarify t fmap =
 	val fmap' = map Library.swap fmap
 	fun unthaw (f as (a,S)) =
 	    (case assoc (fmap',a) of
-		 None => TVar f
-	       | Some b => TFree (b,S))
+		 NONE => TVar f
+	       | SOME b => TFree (b,S))
     in
 	map_term_types (map_type_tvar unthaw) t
     end
@@ -190,7 +190,7 @@ fun process_spec axiomatic cos alt_props int thy =
 		    let
 			val cv = cterm_of sg v
 			val cT = ctyp_of_term cv
-			val spec' = instantiate' [Some cT] [None,Some cv] spec
+			val spec' = instantiate' [SOME cT] [NONE,SOME cv] spec
 		    in
 			thm RS spec'
 		    end
@@ -257,7 +257,7 @@ val specificationP =
   OuterSyntax.command "specification" "define constants by specification" K.thy_goal
     (specification_decl >> (fn (cos,alt_props) =>
 			       Toplevel.print o (Toplevel.theory_to_proof
-						     (process_spec None cos alt_props))))
+						     (process_spec NONE cos alt_props))))
 
 val ax_specification_decl =
     P.name --
@@ -268,7 +268,7 @@ val ax_specificationP =
   OuterSyntax.command "ax_specification" "define constants by specification" K.thy_goal
     (ax_specification_decl >> (fn (axname,(cos,alt_props)) =>
 			       Toplevel.print o (Toplevel.theory_to_proof
-						     (process_spec (Some axname) cos alt_props))))
+						     (process_spec (SOME axname) cos alt_props))))
 
 val _ = OuterSyntax.add_parsers [specificationP,ax_specificationP]
 

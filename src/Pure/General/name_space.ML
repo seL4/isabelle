@@ -133,11 +133,11 @@ fun hide fully (NameSpace tab, names) = NameSpace (foldr (hide_aux fully) (names
 
 fun lookup (NameSpace tab) xname =
   (case Symtab.lookup (tab, xname) of
-    None => (xname, true)
-  | Some ([name], _) => (name, true)
-  | Some (name :: _, _) => (name, false)
-  | Some ([], []) => (xname, true)
-  | Some ([], name' :: _) => (hidden name', true));
+    NONE => (xname, true)
+  | SOME ([name], _) => (name, true)
+  | SOME (name :: _, _) => (name, false)
+  | SOME ([], []) => (xname, true)
+  | SOME ([], name' :: _) => (hidden name', true));
 
 fun intern spc xname = #1 (lookup spc xname);
 
@@ -170,8 +170,8 @@ fun cond_extern_table space tab =
 
 (* dest *)
 
-fun dest_entry (xname, ([], _)) = None
-  | dest_entry (xname, (name :: _, _)) = Some (name, xname);
+fun dest_entry (xname, ([], _)) = NONE
+  | dest_entry (xname, (name :: _, _)) = SOME (name, xname);
 
 fun dest (NameSpace tab) =
   map (apsnd (sort (int_ord o pairself size)))

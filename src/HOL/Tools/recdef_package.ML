@@ -210,8 +210,8 @@ fun prepare_hints thy opt_src =
     val ctxt0 = ProofContext.init thy;
     val ctxt =
       (case opt_src of
-        None => ctxt0
-      | Some src => Method.only_sectioned_args recdef_modifiers I src ctxt0);
+        NONE => ctxt0
+      | SOME src => Method.only_sectioned_args recdef_modifiers I src ctxt0);
     val {simps, congs, wfs} = get_local_hints ctxt;
     val cs = local_claset_of ctxt;
     val ss = local_simpset_of ctxt addsimps simps;
@@ -310,8 +310,8 @@ fun gen_recdef_tc prep_att prep_name (bname, raw_atts) raw_name opt_i int thy =
     val atts = map (prep_att thy) raw_atts;
     val tcs =
       (case get_recdef thy name of
-        None => error ("No recdef definition of constant: " ^ quote name)
-      | Some {tcs, ...} => tcs);
+        NONE => error ("No recdef definition of constant: " ^ quote name)
+      | SOME {tcs, ...} => tcs);
     val i = if_none opt_i 1;
     val tc = Library.nth_elem (i - 1, tcs) handle Library.LIST _ =>
       error ("No termination condition #" ^ string_of_int i ^

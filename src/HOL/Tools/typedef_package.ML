@@ -101,7 +101,7 @@ fun message s = if ! quiet_mode then () else writeln s;
 fun prove_nonempty thy cset goal (witn1_tac, witn_names, witn_thms, witn2_tac) =
   let
     val is_def = Logic.is_equals o #prop o Thm.rep_thm;
-    val thms = PureThy.get_thmss thy (map (rpair None) witn_names) @ witn_thms;
+    val thms = PureThy.get_thmss thy (map (rpair NONE) witn_names) @ witn_thms;
     val tac =
       witn1_tac THEN
       TRY (rewrite_goals_tac (filter is_def thms)) THEN
@@ -116,7 +116,7 @@ fun prove_nonempty thy cset goal (witn1_tac, witn_names, witn_thms, witn2_tac) =
 (* prepare_typedef *)
 
 fun read_term sg used s =
-  #1 (Thm.read_def_cterm (sg, K None, K None) used true (s, HOLogic.typeT));
+  #1 (Thm.read_def_cterm (sg, K NONE, K NONE) used true (s, HOLogic.typeT));
 
 fun cert_term sg _ t = Thm.cterm_of sg t handle TERM (msg, _) => error msg;
 
@@ -172,9 +172,9 @@ fun prepare_typedef prep_term def name (t, vs, mx) raw_set opt_morphs thy =
        ((if def then [(name, setT, NoSyn)] else []) @
         [(Rep_name, newT --> oldT, NoSyn),
          (Abs_name, oldT --> newT, NoSyn)])
-      |> (if def then (apsnd (Some o hd) oo (PureThy.add_defs_i false o map Thm.no_attributes))
+      |> (if def then (apsnd (SOME o hd) oo (PureThy.add_defs_i false o map Thm.no_attributes))
            [Logic.mk_defpair (setC, set)]
-          else rpair None)
+          else rpair NONE)
       |>>> PureThy.add_axioms_i [((typedef_name, typedef_prop),
           [apsnd (fn cond_axm => Drule.standard (nonempty RS cond_axm))])]
       |>> Theory.add_finals_i false [RepC, AbsC]
@@ -251,10 +251,10 @@ fun gen_typedef prep_term def name typ set opt_morphs tac1 names thms tac2 thy =
 
 fun sane_typedef prep_term def opt_name typ set opt_morphs tac =
   gen_typedef prep_term def
-    (if_none opt_name (#1 typ)) typ set opt_morphs all_tac [] [] (Some tac);
+    (if_none opt_name (#1 typ)) typ set opt_morphs all_tac [] [] (SOME tac);
 
 fun add_typedef_x name typ set names thms tac =
-  #1 o gen_typedef read_term true name typ set None (Tactic.rtac exI 1) names thms tac;
+  #1 o gen_typedef read_term true name typ set NONE (Tactic.rtac exI 1) names thms tac;
 
 val add_typedef = sane_typedef read_term;
 val add_typedef_i = sane_typedef cert_term;
@@ -284,7 +284,7 @@ fun typedef_codegen thy gr dep brack t =
         val (gr'', ps) =
           foldl_map (Codegen.invoke_codegen thy dep true) (gr', ts);
         val id = Codegen.mk_const_id (sign_of thy) s
-      in Some (gr'', Codegen.mk_app brack (Pretty.str id) ps) end;
+      in SOME (gr'', Codegen.mk_app brack (Pretty.str id) ps) end;
     fun get_name (Type (tname, _)) = tname
       | get_name _ = "";
     fun lookup f T = if_none (apsome f (Symtab.lookup
@@ -298,8 +298,8 @@ fun typedef_codegen thy gr dep brack t =
          else if lookup #3 U = s andalso
            is_none (Codegen.get_assoc_type thy (get_name U))
          then mk_fun s U ts
-         else None
-     | _ => None)
+         else NONE
+     | _ => NONE)
   end;
 
 fun mk_tyexpr [] s = Pretty.str s
@@ -308,9 +308,9 @@ fun mk_tyexpr [] s = Pretty.str s
 
 fun typedef_tycodegen thy gr dep brack (Type (s, Ts)) =
       (case Symtab.lookup (TypedefData.get thy, s) of
-         None => None
-       | Some (newT as Type (tname, Us), oldT, Abs_name, Rep_name) =>
-           if is_some (Codegen.get_assoc_type thy tname) then None else
+         NONE => NONE
+       | SOME (newT as Type (tname, Us), oldT, Abs_name, Rep_name) =>
+           if is_some (Codegen.get_assoc_type thy tname) then NONE else
            let
              val sg = sign_of thy;
              val Abs_id = Codegen.mk_const_id sg Abs_name;
@@ -323,7 +323,7 @@ fun typedef_tycodegen thy gr dep brack (Type (s, Ts)) =
                  val (gr'', p :: ps) = foldl_map
                    (Codegen.invoke_tycodegen thy Abs_id false)
                    (Graph.add_edge (Abs_id, dep)
-                      (Graph.new_node (Abs_id, (None, "")) gr'), oldT :: Us);
+                      (Graph.new_node (Abs_id, (NONE, "")) gr'), oldT :: Us);
                  val s =
                    Pretty.string_of (Pretty.block [Pretty.str "datatype ",
                      mk_tyexpr ps ty_id,
@@ -351,11 +351,11 @@ fun typedef_tycodegen thy gr dep brack (Type (s, Ts)) =
                           Codegen.mk_gen sg false [] "" oldT, Pretty.brk 1,
                           Pretty.str "i);"]]) ^ "\n\n"
                     else "")
-               in Graph.map_node Abs_id (K (None, s)) gr'' end
+               in Graph.map_node Abs_id (K (NONE, s)) gr'' end
            in
-             Some (gr'', mk_tyexpr qs ty_id)
+             SOME (gr'', mk_tyexpr qs ty_id)
            end)
-  | typedef_tycodegen thy gr dep brack _ = None;
+  | typedef_tycodegen thy gr dep brack _ = NONE;
 
 val setup =
   [TypedefData.init,
@@ -376,8 +376,8 @@ val typedeclP =
 
 val typedef_proof_decl =
   Scan.optional (P.$$$ "(" |-- P.!!!
-      (((P.$$$ "open" >> K false) -- Scan.option P.name || P.name >> (fn s => (true, Some s)))
-        --| P.$$$ ")")) (true, None) --
+      (((P.$$$ "open" >> K false) -- Scan.option P.name || P.name >> (fn s => (true, SOME s)))
+        --| P.$$$ ")")) (true, NONE) --
     (P.type_args -- P.name) -- P.opt_infix -- (P.$$$ "=" |-- P.term) --
     Scan.option (P.$$$ "morphisms" |-- P.!!! (P.name -- P.name));
 

@@ -149,7 +149,7 @@ val prep_ext = I
 val merge : T * T -> T = StringPair.merge (K true)
 fun print sg tab =
     Pretty.writeln (Pretty.big_list "HOL4 mappings:"
-	(StringPair.foldl (fn (xl,((bthy,bthm),isathm)) => (Pretty.str (bthy ^ "." ^ bthm ^ (case isathm of Some th => " --> " ^ th | None => "IGNORED"))::xl)) ([],tab)))
+	(StringPair.foldl (fn (xl,((bthy,bthm),isathm)) => (Pretty.str (bthy ^ "." ^ bthm ^ (case isathm of SOME th => " --> " ^ th | NONE => "IGNORED"))::xl)) ([],tab)))
 end;
 
 structure HOL4Maps = TheoryDataFun(HOL4MapsArgs);
@@ -277,7 +277,7 @@ fun ignore_hol4 bthy bthm thy =
     let
 	val _ = message ("Ignoring " ^ bthy ^ "." ^ bthm)
 	val curmaps = HOL4Maps.get thy
-	val newmaps = StringPair.update_new(((bthy,bthm),None),curmaps)
+	val newmaps = StringPair.update_new(((bthy,bthm),NONE),curmaps)
 	val upd_thy = HOL4Maps.put newmaps thy
     in
 	upd_thy
@@ -312,8 +312,8 @@ fun follow_name thmname thy =
 	val moves = HOL4Moves.get thy
 	fun F thmname =
 	    case Symtab.lookup(moves,thmname) of
-		Some name => F name
-	      | None => thmname
+		SOME name => F name
+	      | NONE => thmname
     in
 	F thmname
     end
@@ -338,8 +338,8 @@ fun follow_cname thmname thy =
 	val moves = HOL4CMoves.get thy
 	fun F thmname =
 	    case Symtab.lookup(moves,thmname) of
-		Some name => F name
-	      | None => thmname
+		SOME name => F name
+	      | NONE => thmname
     in
 	F thmname
     end
@@ -349,7 +349,7 @@ fun add_hol4_mapping bthy bthm isathm thy =
 	val isathm = follow_name isathm thy
 	val _ = message ("Adding theorem map: " ^ bthy ^ "." ^ bthm ^ " --> " ^ isathm)
 	val curmaps = HOL4Maps.get thy
-	val newmaps = StringPair.update_new(((bthy,bthm),Some isathm),curmaps)
+	val newmaps = StringPair.update_new(((bthy,bthm),SOME isathm),curmaps)
 	val upd_thy = HOL4Maps.put newmaps thy
     in
 	upd_thy
@@ -378,7 +378,7 @@ fun add_hol4_const_mapping bthy bconst internal isaconst thy =
 				    else thy
 	val _ = message ("Adding cmap " ^ bthy ^ "." ^ bconst ^ " -> " ^ isaconst ^ (if internal then " (*)" else ""))
 	val curmaps = HOL4ConstMaps.get thy
-	val newmaps = StringPair.update_new(((bthy,bconst),(internal,isaconst,None)),curmaps)
+	val newmaps = StringPair.update_new(((bthy,bconst),(internal,isaconst,NONE)),curmaps)
 	val upd_thy = HOL4ConstMaps.put newmaps thy
     in
 	upd_thy
@@ -404,8 +404,8 @@ fun get_hol4_const_renaming bthy bconst thy =
 fun get_hol4_const_mapping bthy bconst thy =
     let
 	val bconst = case get_hol4_const_renaming bthy bconst thy of
-			 Some name => name
-		       | None => bconst
+			 SOME name => name
+		       | NONE => bconst
 	val maps = HOL4ConstMaps.get thy
     in
 	StringPair.lookup(maps,(bthy,bconst))
@@ -420,7 +420,7 @@ fun add_hol4_const_wt_mapping bthy bconst internal isaconst typ thy =
 				    else thy
 	val _ = message ("Adding cmap " ^ bthy ^ "." ^ bconst ^ " -> " ^ isaconst ^ (if internal then " (*)" else ""))
 	val curmaps = HOL4ConstMaps.get thy
-	val newmaps = StringPair.update_new(((bthy,bconst),(internal,isaconst,Some typ)),curmaps)
+	val newmaps = StringPair.update_new(((bthy,bconst),(internal,isaconst,SOME typ)),curmaps)
 	val upd_thy = HOL4ConstMaps.put newmaps thy
     in
 	upd_thy
@@ -549,7 +549,7 @@ fun get_import_thy thy =
 
 fun should_ignore thyname thy thmname =
     case get_hol4_mapping thyname thmname thy of
-	Some None => true 
+	SOME NONE => true 
       | _ => false
 
 val trans_string =
@@ -577,8 +577,8 @@ fun dump_import_thy thyname thy =
 	    StringPair.foldl (fn ((ign,map),((bthy,bthm),v)) =>
 				 if bthy = thyname
 				 then (case v of
-					   None => (bthm::ign,map)
-					 | Some w => (ign,(bthm,w)::map))
+					   NONE => (bthm::ign,map)
+					 | SOME w => (ign,(bthm,w)::map))
 				 else (ign,map))
 				 (([],[]),HOL4Maps.get thy)
 	val constmaps =
@@ -650,8 +650,8 @@ fun dump_import_thy thyname thy =
 	val _ = app (fn (hol,(internal,isa,opt_ty)) =>
 			(out ("\n  " ^ (trans_string hol) ^ " > " ^ (trans_string (follow_cname isa thy)));
 			 case opt_ty of
-			     Some ty => out (" :: \"" ^ (string_of_ctyp (ctyp_of sg ty)) ^ "\"")
-			   | None => ())) constmaps
+			     SOME ty => out (" :: \"" ^ (string_of_ctyp (ctyp_of sg ty)) ^ "\"")
+			   | NONE => ())) constmaps
 	val _ = if null constmaps
 		then ()
 		else out "\n\n"
@@ -721,8 +721,8 @@ fun get_defname thyname name thy =
 	fun F dname = (dname,add_defmap thyname name dname thy)
     in
 	case StringPair.lookup(maps,(thyname,name)) of
-	    Some thmname => (thmname,thy)
-	  | None =>
+	    SOME thmname => (thmname,thy)
+	  | NONE =>
 	    let
 		val used = HOL4UNames.get thy
 		val defname = def_name name

@@ -97,8 +97,8 @@ fun (sc1 || sc2) toks =
 
 fun one p toks =
     case LazySeq.getItem toks of
-	None => raise SyntaxError
-      | Some(t,toks) => if p t
+	NONE => raise SyntaxError
+      | SOME(t,toks) => if p t
 			then (t,toks)
 			else raise SyntaxError
 
@@ -106,8 +106,8 @@ fun succeed e toks = (e,toks)
 
 fun any p toks =
     case LazySeq.getItem toks of
-	None =>  ([],toks)
-      | Some(x,toks2) => if p x
+	NONE =>  ([],toks)
+      | SOME(x,toks2) => if p x
 			 then
 			     let
 				 val (xs,toks3) = any p toks2
@@ -125,7 +125,7 @@ fun any1 p toks =
     end
 
 fun optional sc def =  sc || succeed def
-fun option sc = (sc >> Some) || succeed None
+fun option sc = (sc >> SOME) || succeed NONE
 
 (*
 fun repeat sc =
@@ -152,9 +152,9 @@ fun repeat sc =
 fun repeat sc =
     let
 	fun R xs toks =
-	    case Some (sc toks) handle SyntaxError => None of
-		Some (x,toks2) => R (x::xs) toks2
-	      | None => (List.rev xs,toks)
+	    case SOME (sc toks) handle SyntaxError => NONE of
+		SOME (x,toks2) => R (x::xs) toks2
+	      | NONE => (List.rev xs,toks)
     in
 	R []
     end
@@ -187,12 +187,12 @@ fun scan_full sc toks =
     let
 	fun F toks =
 	    if LazySeq.null toks
-	    then None
+	    then NONE
 	    else
 		let
 		    val (x,toks') = sc toks
 		in
-		    Some(x,LazySeq.make (fn () => F toks'))
+		    SOME(x,LazySeq.make (fn () => F toks'))
 		end
     in
 	LazySeq.make (fn () => F toks)

@@ -139,29 +139,29 @@ fun (scan1 || scan2) xs = scan1 xs handle FAIL _ => scan2 xs;
 
 (* generic scanners *)
 
-fun fail _ = raise FAIL None;
-fun fail_with msg_of xs = raise FAIL (Some (msg_of xs));
+fun fail _ = raise FAIL NONE;
+fun fail_with msg_of xs = raise FAIL (SOME (msg_of xs));
 fun succeed y xs = (y, xs);
 
-fun one _ [] = raise MORE None
+fun one _ [] = raise MORE NONE
   | one pred (x :: xs) =
-      if pred x then (x, xs) else raise FAIL None;
+      if pred x then (x, xs) else raise FAIL NONE;
 
-fun $$ _ [] = raise MORE None
+fun $$ _ [] = raise MORE NONE
   | $$ a (x :: xs) =
-      if a = x then (x, xs) else raise FAIL None;
+      if a = x then (x, xs) else raise FAIL NONE;
 
 fun this ys xs =
   let
     fun drop_prefix [] xs = xs
-      | drop_prefix (_ :: _) [] = raise MORE None
+      | drop_prefix (_ :: _) [] = raise MORE NONE
       | drop_prefix (y :: ys) (x :: xs) =
-          if y = x then drop_prefix ys xs else raise FAIL None;
+          if y = x then drop_prefix ys xs else raise FAIL NONE;
   in (ys, drop_prefix ys xs) end;
 
 fun this_string s = this (explode s) >> K s;  (*primitive string -- no symbols yet!*)
 
-fun any _ [] = raise MORE None
+fun any _ [] = raise MORE NONE
   | any pred (lst as x :: xs) =
       if pred x then apfst (cons x) (any pred xs)
       else ([], lst);
@@ -173,11 +173,11 @@ fun any1 p toks =
   in (x :: xs, toks3) end;
 
 fun optional scan def =  scan || succeed def
-fun option scan = (scan >> Some) || succeed None
+fun option scan = (scan >> SOME) || succeed NONE
 
 fun repeat scan =
-  let fun rep ys xs = (case (Some (scan xs) handle FAIL _ => None) of
-    None => (rev ys, xs) | Some (y, xs') => rep (y :: ys) xs')
+  let fun rep ys xs = (case (SOME (scan xs) handle FAIL _ => NONE) of
+    NONE => (rev ys, xs) | SOME (y, xs') => rep (y :: ys) xs')
   in rep [] end;
 
 fun repeat1 scan toks =
@@ -188,16 +188,16 @@ fun repeat1 scan toks =
 
 fun max leq scan1 scan2 xs =
   (case (option scan1 xs, option scan2 xs) of
-    ((None, _), (None, _)) => raise FAIL None           (*looses FAIL msg!*)
-  | ((Some tok1, xs'), (None, _)) => (tok1, xs')
-  | ((None, _), (Some tok2, xs')) => (tok2, xs')
-  | ((Some tok1, xs1'), (Some tok2, xs2')) =>
+    ((NONE, _), (NONE, _)) => raise FAIL NONE           (*looses FAIL msg!*)
+  | ((SOME tok1, xs'), (NONE, _)) => (tok1, xs')
+  | ((NONE, _), (SOME tok2, xs')) => (tok2, xs')
+  | ((SOME tok1, xs1'), (SOME tok2, xs2')) =>
       if leq (tok2, tok1) then (tok1, xs1') else (tok2, xs2'));
 
 fun ahead scan xs = (fst (scan xs), xs);
 
 fun unless test scan =
-  ahead (option test) :-- (fn None => scan | _ => fail) >> #2;
+  ahead (option test) :-- (fn NONE => scan | _ => fail) >> #2;
 
 fun first [] = fail
   | first (scan :: scans) = scan || first scans;
@@ -227,10 +227,10 @@ fun pass st scan xs =
 (* exception handling *)
 
 fun !! err scan xs = scan xs handle FAIL msg => raise ABORT (err (xs, msg));
-fun try scan xs = scan xs handle MORE _ => raise FAIL None | ABORT _ => raise FAIL None;
-fun force scan xs = scan xs handle MORE _ => raise FAIL None;
-fun prompt str scan xs = scan xs handle MORE None => raise MORE (Some str);
-fun catch scan xs = scan xs handle ABORT msg => raise FAIL (Some msg);
+fun try scan xs = scan xs handle MORE _ => raise FAIL NONE | ABORT _ => raise FAIL NONE;
+fun force scan xs = scan xs handle MORE _ => raise FAIL NONE;
+fun prompt str scan xs = scan xs handle MORE NONE => raise MORE (SOME str);
+fun catch scan xs = scan xs handle ABORT msg => raise FAIL (SOME msg);
 fun error scan xs = scan xs handle ABORT msg => Output.error msg;
 
 
@@ -256,8 +256,8 @@ fun finite stopper scan xs =
 
 fun read stopper scan xs =
   (case error (finite stopper (option scan)) xs of
-    (y as Some _, []) => y
-  | _ => None);
+    (y as SOME _, []) => y
+  | _ => NONE);
 
 
 (* infinite scans -- draining state-based source *)
@@ -279,8 +279,8 @@ fun source' def_prmpt get unget stopper scanner opt_recover (state, src) =
     val ((ys, (state', xs')), src') =
       (case (get def_prmpt src, opt_recover) of
         (([], s), _) => (([], (state, [])), s)
-      | ((xs, s), None) => drain_with (error scanner) ((state, xs), s)
-      | ((xs, s), Some r) => drain_loop (unless (lift (one (#2 stopper))) r) ((state, xs), s));
+      | ((xs, s), NONE) => drain_with (error scanner) ((state, xs), s)
+      | ((xs, s), SOME r) => drain_loop (unless (lift (one (#2 stopper))) r) ((state, xs), s));
   in (ys, (state', unget (xs', src'))) end;
 
 fun source def_prmpt get unget stopper scan opt_recover src =
@@ -364,16 +364,16 @@ fun is_literal Empty _ = false
 fun literal lex chrs =
   let
     fun lit Empty res _ = res
-      | lit (Branch _) _ [] = raise MORE None
+      | lit (Branch _) _ [] = raise MORE NONE
       | lit (Branch (d, a, lt, eq, gt)) res (chs as c :: cs) =
           (case String.compare (c, d) of
             LESS => lit lt res chs
-          | EQUAL => lit eq (if a = no_literal then res else Some (a, cs)) cs
+          | EQUAL => lit eq (if a = no_literal then res else SOME (a, cs)) cs
           | GREATER => lit gt res chs);
   in
-    (case lit lex None chrs of
-      None => raise FAIL None
-    | Some res => res)
+    (case lit lex NONE chrs of
+      NONE => raise FAIL NONE
+    | SOME res => res)
   end;
 
 end;

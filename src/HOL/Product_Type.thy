@@ -34,7 +34,7 @@ ML_setup {*
   val unit_eq_proc =
     let val unit_meta_eq = mk_meta_eq (thm "unit_eq") in
       Simplifier.simproc (Theory.sign_of (the_context ())) "unit_eq" ["x::unit"]
-      (fn _ => fn _ => fn t => if HOLogic.is_unit t then None else Some unit_meta_eq)
+      (fn _ => fn _ => fn t => if HOLogic.is_unit t then NONE else SOME unit_meta_eq)
     end;
 
   Addsimprocs [unit_eq_proc];
@@ -409,9 +409,9 @@ local
   |   no_args k i (t $ u) = no_args k i t andalso no_args k i u
   |   no_args k i (Bound m) = m < k orelse m > k+i
   |   no_args _ _ _ = true;
-  fun split_pat tp i (Abs  (_,_,t)) = if tp 0 i t then Some (i,t) else None
+  fun split_pat tp i (Abs  (_,_,t)) = if tp 0 i t then SOME (i,t) else NONE
   |   split_pat tp i (Const ("split", _) $ Abs (_, _, t)) = split_pat tp (i+1) t
-  |   split_pat tp i _ = None;
+  |   split_pat tp i _ = NONE;
   fun metaeq sg lhs rhs = mk_meta_eq (Tactic.prove sg [] []
         (HOLogic.mk_Trueprop (HOLogic.mk_eq (lhs,rhs)))
         (K (simp_tac (HOL_basic_ss addsimps [cond_split_eta]) 1)));
@@ -428,14 +428,14 @@ local
   |   subst arg k i t = t;
   fun beta_proc sg _ (s as Const ("split", _) $ Abs (_, _, t) $ arg) =
         (case split_pat beta_term_pat 1 t of
-        Some (i,f) => Some (metaeq sg s (subst arg 0 i f))
-        | None => None)
-  |   beta_proc _ _ _ = None;
+        SOME (i,f) => SOME (metaeq sg s (subst arg 0 i f))
+        | NONE => NONE)
+  |   beta_proc _ _ _ = NONE;
   fun eta_proc sg _ (s as Const ("split", _) $ Abs (_, _, t)) =
         (case split_pat eta_term_pat 1 t of
-          Some (_,ft) => Some (metaeq sg s (let val (f $ arg) = ft in f end))
-        | None => None)
-  |   eta_proc _ _ _ = None;
+          SOME (_,ft) => SOME (metaeq sg s (let val (f $ arg) = ft in f end))
+        | NONE => NONE)
+  |   eta_proc _ _ _ = NONE;
 in
   val split_beta_proc = Simplifier.simproc (Theory.sign_of (the_context ()))
     "split_beta" ["split f z"] beta_proc;
@@ -810,13 +810,13 @@ fun let_codegen thy gr dep brack (t as Const ("Let", _) $ _ $ _) =
           val (gr2, pr) = Codegen.invoke_codegen thy dep false (gr1, r);
         in (gr2, (pl, pr)) end
     in case dest_let t of
-        ([], _) => None
+        ([], _) => NONE
       | (ps, u) =>
           let
             val (gr1, qs) = foldl_map mk_code (gr, ps);
             val (gr2, pu) = Codegen.invoke_codegen thy dep false (gr1, u)
           in
-            Some (gr2, Pretty.blk (0, [Pretty.str "let ", Pretty.blk (0, flat
+            SOME (gr2, Pretty.blk (0, [Pretty.str "let ", Pretty.blk (0, flat
                 (separate [Pretty.str ";", Pretty.brk 1] (map (fn (pl, pr) =>
                   [Pretty.block [Pretty.str "val ", pl, Pretty.str " =",
                      Pretty.brk 1, pr]]) qs))),
@@ -824,7 +824,7 @@ fun let_codegen thy gr dep brack (t as Const ("Let", _) $ _ $ _) =
               Pretty.brk 1, Pretty.str "end"]))
           end
     end
-  | let_codegen thy gr dep brack t = None;
+  | let_codegen thy gr dep brack t = NONE;
 
 fun split_codegen thy gr dep brack (t as Const ("split", _) $ _) =
     (case strip_abs 1 t of
@@ -833,11 +833,11 @@ fun split_codegen thy gr dep brack (t as Const ("split", _) $ _) =
            val (gr1, q) = Codegen.invoke_codegen thy dep false (gr, p);
            val (gr2, pu) = Codegen.invoke_codegen thy dep false (gr1, u)
          in
-           Some (gr2, Pretty.block [Pretty.str "(fn ", q, Pretty.str " =>",
+           SOME (gr2, Pretty.block [Pretty.str "(fn ", q, Pretty.str " =>",
              Pretty.brk 1, pu, Pretty.str ")"])
          end
-     | _ => None)
-  | split_codegen thy gr dep brack t = None;
+     | _ => NONE)
+  | split_codegen thy gr dep brack t = NONE;
 
 in
 

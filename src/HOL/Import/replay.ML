@@ -57,8 +57,8 @@ fun replay_proof int_thms thyname thmname prf thy =
 	  | rp (PHyp tm) thy = P.ASSUME tm thy
 	  | rp (PDef(seg,name,rhs)) thy =
 	    (case P.get_def seg name rhs thy of
-		 (thy',Some res) => (thy',res)
-	       | (thy',None) => 
+		 (thy',SOME res) => (thy',res)
+	       | (thy',NONE) => 
 		 if seg = thyname
 		 then P.new_definition seg name rhs thy'
 		 else raise ERR "replay_proof" "Too late for term definition")
@@ -208,25 +208,25 @@ fun replay_proof int_thms thyname thmname prf thy =
 	    in
 		case pc of
 		    PDisk => (case disk_info_of p of
-				  Some(thyname',thmname) =>
+				  SOME(thyname',thmname) =>
 				  (case Int.fromString thmname of
 				       SOME i =>
 				       if thyname' = thyname
 				       then
 					   (case Array.sub(int_thms,i-1) of
-						None =>
+						NONE =>
 						let
 						    val (thy',th) = rp' (snd (import_proof thyname' thmname thy) thy) thy
-						    val _ = Array.update(int_thms,i-1,Some th)
+						    val _ = Array.update(int_thms,i-1,SOME th)
 						in
 						    (thy',th)
 						end
-					      | Some th => (thy,th))
+					      | SOME th => (thy,th))
 				       else raise ERR "replay_proof" ("Library " ^ thyname' ^ " should be built before " ^ thyname ^ " (" ^ thmname ^ ")")
 				     | NONE => 
 				       (case P.get_thm thyname' thmname thy of
-					    (thy',Some res) => (thy',res)
-					  | (thy',None) => 
+					    (thy',SOME res) => (thy',res)
+					  | (thy',NONE) => 
 					    if thyname' = thyname
 					    then
 						let
@@ -242,11 +242,11 @@ fun replay_proof int_thms thyname thmname prf thy =
 						      | _ => P.store_thm thyname' thmname th thy'
 						end
 					    else raise ERR "replay_proof" ("Library " ^ thyname' ^ " should be built before " ^ thyname ^ " (" ^ thmname ^ ")")))
-				| None => raise ERR "rp'.PDisk" "Not enough information")
+				| NONE => raise ERR "rp'.PDisk" "Not enough information")
 		  | PAxm(name,c) =>
 		    (case P.get_axiom thyname name thy of
-			    (thy',Some res) => (thy',res)
-			  | (thy',None) => P.new_axiom name c thy')
+			    (thy',SOME res) => (thy',res)
+			  | (thy',NONE) => P.new_axiom name c thy')
 		  | PTmSpec(seg,names,prf') =>
 		    let
 			val (thy',th) = rp' prf' thy
@@ -275,8 +275,8 @@ fun setup_int_thms thyname thy =
     let
 	val fname =
 	    case P.get_proof_dir thyname thy of
-		Some p => OS.Path.joinDirFile {dir=p,file=OS.Path.joinBaseExt{base = "facts",ext=SOME "lst"}}
-	      | None => error "Cannot find proof files"
+		SOME p => OS.Path.joinDirFile {dir=p,file=OS.Path.joinBaseExt{base = "facts",ext=SOME "lst"}}
+	      | NONE => error "Cannot find proof files"
 	val is = TextIO.openIn fname
 	val (num_int_thms,facts) =
 	    let
@@ -290,7 +290,7 @@ fun setup_int_thms thyname thy =
 		get_facts []
 	    end
 	val _ = TextIO.closeIn is
-	val int_thms = Array.array(num_int_thms,None:thm option)
+	val int_thms = Array.array(num_int_thms,NONE:thm option)
     in
 	(int_thms,facts)
     end

@@ -24,17 +24,17 @@ local
     fun add_word thy =
 	let
  (*lcp**	    val fast1_th = PureThy.get_thm thy "Word.fast_nat_to_bv_def"**)
-	    val fast2_th = PureThy.get_thm thy ("Word.fast_bv_to_nat_def", None)
+	    val fast2_th = PureThy.get_thm thy ("Word.fast_bv_to_nat_def", NONE)
  (*lcp**	    fun f sg thms (Const("Word.nat_to_bv",_) $ (Const("Numeral.number_of",_) $ t)) =
 		if num_is_usable t
-		then Some (Drule.cterm_instantiate [(cterm_of sg (Var(("w",0),Type("Numeral.bin",[]))),cterm_of sg t)] fast1_th)
-		else None
-	      | f _ _ _ = None **)
+		then SOME (Drule.cterm_instantiate [(cterm_of sg (Var(("w",0),Type("Numeral.bin",[]))),cterm_of sg t)] fast1_th)
+		else NONE
+	      | f _ _ _ = NONE **)
 	    fun g sg thms (Const("Word.bv_to_nat",_) $ (t as (Const("List.list.Cons",_) $ _ $ _))) =
 		if vec_is_usable t
-		then Some (Drule.cterm_instantiate [(cterm_of sg (Var(("bs",0),Type("List.list",[Type("Word.bit",[])]))),cterm_of sg t)] fast2_th)
-		else None
-	      | g _ _ _ = None
+		then SOME (Drule.cterm_instantiate [(cterm_of sg (Var(("bs",0),Type("List.list",[Type("Word.bit",[])]))),cterm_of sg t)] fast2_th)
+		else NONE
+	      | g _ _ _ = NONE
   (*lcp**	    val simproc1 = Simplifier.simproc (sign_of thy) "nat_to_bv" ["Word.nat_to_bv (number_of ?w)"] f ***)
 	    val simproc2 = Simplifier.simproc (sign_of thy) "bv_to_nat" ["Word.bv_to_nat (?x # ?xs)"] g
 	in

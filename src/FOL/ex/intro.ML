@@ -14,7 +14,7 @@ To generate similar output to manual, execute these commands:
 
 context FOL.thy;
 
-(**** Some simple backward proofs ****)
+(**** SOME simple backward proofs ****)
 
 Goal "P|P --> P";
 by (rtac impI 1);

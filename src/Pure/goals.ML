@@ -163,8 +163,8 @@ fun pretty_locale sg (name, {ancestor, consts, rules, defs, nosyn = _, thms = _,
       [Pretty.str (a ^ ":"), Pretty.brk 1, prt_term t];
 
     val anc = case ancestor of
-                  None => ""
-                | Some(loc) => ((Sign.base_name loc) ^ " +")
+                  NONE => ""
+                | SOME(loc) => ((Sign.base_name loc) ^ " +")
   in
     Pretty.big_list (name ^ " = " ^ anc)
      [Pretty.big_list "consts:" (map pretty_const consts),
@@ -259,8 +259,8 @@ fun change_scope f thy =
 
 fun the_locale thy xname =
   (case lookup_locale thy xname of
-    Some loc => loc
-  | None => error ("Unknown locale " ^ quote xname));
+    SOME loc => loc
+  | NONE => error ("Unknown locale " ^ quote xname));
 
 fun open_locale xname thy =
   let val loc = the_locale thy xname;
@@ -268,8 +268,8 @@ fun open_locale xname thy =
       val cur_sc = get_scope thy;
       fun opn lc th = (change_scope (cons lc) th; th)
   in case anc of
-         None => opn loc thy
-       | Some(loc') => 
+         NONE => opn loc thy
+       | SOME(loc') => 
            if loc' mem (map fst cur_sc) 
            then opn loc thy
            else (warning ("Opening locale " ^ quote loc' ^ ", required by " ^ 
@@ -329,8 +329,8 @@ fun get_thm_locale name ((_, {thms, ...}: locale)) = assoc (thms, name);
 
 fun get_thmx f get thy name =
   (case get_first (get_thm_locale name) (get_scope thy) of
-    Some thm => f thm
-  | None => get thy (name, None));
+    SOME thm => f thm
+  | NONE => get thy (name, NONE));
 
 val get_thm = get_thmx I PureThy.get_thm;
 val get_thms = get_thmx (fn x => [x]) PureThy.get_thms;
@@ -354,7 +354,7 @@ fun get_defaults thy name =
 fun read_typ sg (envT, s) =
   let
     fun def_sort (x, ~1) = assoc (envT, x)
-      | def_sort _ = None;
+      | def_sort _ = NONE;
     val T = Type.no_tvars (Sign.read_typ (sg, def_sort) s) handle TYPE (msg, _, _) => error msg;
   in (Term.add_typ_tfrees (T, envT), T) end;
 
@@ -373,9 +373,9 @@ fun enter_term t (envS, envT, used) =
 fun read_axm sg ((envS, envT, used), (name, s)) =
   let
     fun def_sort (x, ~1) = assoc (envS, x)
-      | def_sort _ = None;
+      | def_sort _ = NONE;
     fun def_type (x, ~1) = assoc (envT, x)
-      | def_type _ = None;
+      | def_type _ = NONE;
     val (_, t) = Theory.read_def_axm (sg, def_type, def_sort) used (name, s);
   in
     (enter_term t (envS, envT, used), t)
@@ -398,9 +398,9 @@ fun read_cterm sign =
         val envT = flat (map #2 defaults);
         val used = flat (map #3 defaults);
         fun def_sort (x, ~1) = assoc (envS, x)
-          | def_sort _ = None;
+          | def_sort _ = NONE;
         fun def_type (x, ~1) = assoc (envT, x)
-          | def_type _ = None;
+          | def_type _ = NONE;
     in (if (is_open_loc_sg sign)
         then (#1 o read_def_cterm (sign, def_type, def_sort) used true)
         else Thm.read_cterm sign)
@@ -471,17 +471,17 @@ fun gen_add_locale prep_typ prep_term bname bancestor raw_consts raw_rules raw_d
 
     val (envSb, old_loc_consts, _) = 
                     case bancestor of
-                       Some(loc) => (get_defaults thy loc)
-                     | None      => ([],[],[]);
+                       SOME(loc) => (get_defaults thy loc)
+                     | NONE      => ([],[],[]);
 
     val old_nosyn = case bancestor of 
-                       Some(loc) => #nosyn(#2(the_locale thy loc))
-                     | None      => [];
+                       SOME(loc) => #nosyn(#2(the_locale thy loc))
+                     | NONE      => [];
 
     (* Get the full name of the ancestor *)
     val ancestor = case bancestor of 
-                       Some(loc) => Some(#1(the_locale thy loc))
-                     | None      => None;
+                       SOME(loc) => SOME(#1(the_locale thy loc))
+                     | NONE      => NONE;
 
      (* prepare locale consts *)
 
@@ -492,7 +492,7 @@ fun gen_add_locale prep_typ prep_term bname bancestor raw_consts raw_rules raw_d
         val mx = Syntax.fix_mixfix raw_c raw_mx;
         val (envS', T) = prep_typ sign (envS, raw_T) handle ERROR =>
           error ("The error(s) above occured in locale constant " ^ quote c);
-        val trfun = if mx = Syntax.NoSyn then None else Some (c_syn, mk_loc_tr c);
+        val trfun = if mx = Syntax.NoSyn then NONE else SOME (c_syn, mk_loc_tr c);
       in (envS', ((c, T), (c_syn, T, mx), trfun)) end;
 
     val (envS0, loc_consts_syn) = foldl_map prep_const (envSb, raw_consts);
@@ -823,7 +823,7 @@ fun prove_goalw_cterm_general check rths chorn tacsf =
       val tac = EVERY (tacsf prems)
       fun statef() = 
 	  (case Seq.pull (tac st0) of 
-	       Some(st,_) => st
+	       SOME(st,_) => st
 	     | _ => error ("prove_goal: tactic failed"))
   in  mkresult (check, cond_timeit (!Output.timing) statef)  end
   handle e => (print_sign_exn_unit (#sign (rep_cterm chorn)) e;
@@ -975,8 +975,8 @@ fun simple_prove_goal_cterm G f =
     val As = Drule.strip_imp_prems G;
     val B = Drule.strip_imp_concl G;
     val asms = map (norm_hhf_rule o assume) As;
-    fun check None = error "prove_goal: tactic failed"
-      | check (Some (thm, _)) = (case nprems_of thm of
+    fun check NONE = error "prove_goal: tactic failed"
+      | check (SOME (thm, _)) = (case nprems_of thm of
             0 => thm
           | i => !result_error_fn thm (string_of_int i ^ " unsolved goals!"))
   in
@@ -988,8 +988,8 @@ fun simple_prove_goal_cterm G f =
 (*Proof step "by" the given tactic -- apply tactic to the proof state*)
 fun by_com tac ((th,ths), pairs) : gstack =
   (case  Seq.pull(tac th)  of
-     None      => error"by: tactic failed"
-   | Some(th2,ths2) => 
+     NONE      => error"by: tactic failed"
+   | SOME(th2,ths2) => 
        (if eq_thm(th,th2) 
 	  then warning "Warning: same as previous level"
 	  else if eq_thm_sg(th,th2) then ()
@@ -1010,8 +1010,8 @@ val byev = by o EVERY;
 fun backtrack [] = error"back: no alternatives"
   | backtrack ((th,thstr) :: pairs) =
      (case Seq.pull thstr of
-	  None      => (writeln"Going back a level..."; backtrack pairs)
-	| Some(th2,thstr2) =>  
+	  NONE      => (writeln"Going back a level..."; backtrack pairs)
+	| SOME(th2,thstr2) =>  
 	   (if eq_thm(th,th2) 
 	      then warning "Warning: same as previous choice at this level"
 	      else if eq_thm_sg(th,th2) then ()

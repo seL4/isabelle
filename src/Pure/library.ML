@@ -36,8 +36,6 @@ sig
   val stamp: unit -> stamp
 
   (*options*)
-  datatype 'a option = None | Some of 'a
-  exception OPTION
   val the: 'a option -> 'a
   val if_none: 'a option -> 'a -> 'a
   val is_some: 'a option -> bool
@@ -80,7 +78,6 @@ sig
 
   (*lists*)
   exception LIST of string
-  val null: 'a list -> bool
   val hd: 'a list -> 'a
   val tl: 'a list -> 'a list
   val cons: 'a -> 'a list -> 'a list
@@ -315,33 +312,26 @@ val stamp: unit -> stamp = ref;
 
 (** options **)
 
-datatype 'a option = None | Some of 'a;
-
-exception OPTION;
-
-fun the (Some x) = x
-  | the None = raise OPTION;
+fun the opt = valOf opt;
 
 (*strict!*)
-fun if_none None y = y
-  | if_none (Some x) _ = x;
+fun if_none opt a = getOpt(opt,a);
 
-fun is_some (Some _) = true
-  | is_some None = false;
+fun is_some opt = isSome opt;
 
-fun is_none (Some _) = false
-  | is_none None = true;
+fun is_none (SOME _) = false
+  | is_none NONE = true;
 
-fun apsome f (Some x) = Some (f x)
-  | apsome _ None = None;
+fun apsome f (SOME x) = SOME (f x)
+  | apsome _ NONE = NONE;
 
 
 (* exception handling *)
 
 exception ERROR;
 
-fun try f x = Some (f x)
-  handle Interrupt => raise Interrupt | ERROR => raise ERROR | _ => None;
+fun try f x = SOME (f x)
+  handle Interrupt => raise Interrupt | ERROR => raise ERROR | _ => NONE;
 
 fun can f x = is_some (try f x);
 
@@ -355,11 +345,11 @@ fun capture f x = Result (f x) handle e => Exn e;
 fun release (Result y) = y
   | release (Exn e) = raise e;
 
-fun get_result (Result x) = Some x
-  | get_result _ = None;
+fun get_result (Result x) = SOME x
+  | get_result _ = NONE;
 
-fun get_exn (Exn exn) = Some exn
-  | get_exn _ = None;
+fun get_exn (Exn exn) = SOME exn
+  | get_exn _ = NONE;
 
 
 
@@ -441,9 +431,6 @@ fun conditional b f = if b then f () else ();
 
 exception LIST of string;
 
-fun null [] = true
-  | null (_ :: _) = false;
-
 fun hd [] = raise LIST "hd"
   | hd (x :: _) = x;
 
@@ -456,8 +443,7 @@ fun single x = [x];
 fun append xs ys = xs @ ys;
 
 (* tail recursive version *)
-fun rev_append [] ys = ys
-  | rev_append (x :: xs) ys = rev_append xs (x :: ys);
+fun rev_append xs ys = List.revAppend(xs,ys);
 
 fun apply [] x = x
   | apply (f :: fs) x = apply fs (f x);
@@ -561,19 +547,19 @@ fun find_index pred =
 fun find_index_eq x = find_index (equal x);
 
 (*find first element satisfying predicate*)
-fun find_first _ [] = None
+fun find_first _ [] = NONE
   | find_first pred (x :: xs) =
-      if pred x then Some x else find_first pred xs;
+      if pred x then SOME x else find_first pred xs;
 
 (*get first element by lookup function*)
-fun get_first _ [] = None
+fun get_first _ [] = NONE
   | get_first f (x :: xs) =
       (case f x of
-        None => get_first f xs
+        NONE => get_first f xs
       | some => some);
 
 (*flatten a list of lists to a list*)
-fun flat (ls: 'c list list) : 'c list = foldr (op @) (ls, []);
+val flat = List.concat;
 
 fun unflat (xs :: xss) ys =
       let val (ps,qs) = splitAt(length xs,ys)
@@ -616,18 +602,15 @@ fun product _ [] = []
 (* filter *)
 
 (*copy the list preserving elements that satisfy the predicate*)
-fun filter (pred: 'a->bool) : 'a list -> 'a list =
-  let fun filt [] = []
-        | filt (x :: xs) = if pred x then x :: filt xs else filt xs
-  in filt end;
+val filter = List.filter;
 
 fun filter_out f = filter (not o f);
 
 fun mapfilter (f: 'a -> 'b option) ([]: 'a list) = [] : 'b list
   | mapfilter f (x :: xs) =
       (case f x of
-        None => mapfilter f xs
-      | Some y => y :: mapfilter f xs);
+        NONE => mapfilter f xs
+      | SOME y => y :: mapfilter f xs);
 
 
 (* lists of pairs *)
@@ -767,8 +750,8 @@ fun oct_char s = chr (#1 (read_radixint (8, explode s)));
 
 fun nth_elem_string (i, str) =
   (case try String.substring (str, i, 1) of
-    Some s => s
-  | None => raise LIST "nth_elem_string");
+    SOME s => s
+  | NONE => raise LIST "nth_elem_string");
 
 fun foldl_string f (x0, str) =
   let
@@ -1011,40 +994,40 @@ fun duplicates l = gen_duplicates (op =) l;
 (** association lists **)
 
 (*association list lookup*)
-fun assoc ([], key) = None
+fun assoc ([], key) = NONE
   | assoc ((keyi, xi) :: pairs, key) =
-      if key = keyi then Some xi else assoc (pairs, key);
+      if key = keyi then SOME xi else assoc (pairs, key);
 
 (*association list lookup, optimized version for ints*)
-fun assoc_int ([], (key:int)) = None
+fun assoc_int ([], (key:int)) = NONE
   | assoc_int ((keyi, xi) :: pairs, key) =
-      if key = keyi then Some xi else assoc_int (pairs, key);
+      if key = keyi then SOME xi else assoc_int (pairs, key);
 
 (*association list lookup, optimized version for strings*)
-fun assoc_string ([], (key:string)) = None
+fun assoc_string ([], (key:string)) = NONE
   | assoc_string ((keyi, xi) :: pairs, key) =
-      if key = keyi then Some xi else assoc_string (pairs, key);
+      if key = keyi then SOME xi else assoc_string (pairs, key);
 
 (*association list lookup, optimized version for string*ints*)
-fun assoc_string_int ([], (key:string*int)) = None
+fun assoc_string_int ([], (key:string*int)) = NONE
   | assoc_string_int ((keyi, xi) :: pairs, key) =
-      if key = keyi then Some xi else assoc_string_int (pairs, key);
+      if key = keyi then SOME xi else assoc_string_int (pairs, key);
 
 fun assocs ps x =
   (case assoc (ps, x) of
-    None => []
-  | Some ys => ys);
+    NONE => []
+  | SOME ys => ys);
 
 (*two-fold association list lookup*)
 fun assoc2 (aal, (key1, key2)) =
   (case assoc (aal, key1) of
-    Some al => assoc (al, key2)
-  | None => None);
+    SOME al => assoc (al, key2)
+  | NONE => NONE);
 
 (*generalized association list lookup*)
-fun gen_assoc eq ([], key) = None
+fun gen_assoc eq ([], key) = NONE
   | gen_assoc eq ((keyi, xi) :: pairs, key) =
-      if eq (key, keyi) then Some xi else gen_assoc eq (pairs, key);
+      if eq (key, keyi) then SOME xi else gen_assoc eq (pairs, key);
 
 (*association list update*)
 fun overwrite (al, p as (key, _)) =

@@ -209,7 +209,7 @@ fun struct_tr structs (*"_struct"*) [Const ("_indexdefault", _)] =
       Lexicon.free (the_struct structs 1)
   | struct_tr structs (*"_struct"*) [t as (Const ("_indexnum", _) $ Const (s, _))] =
       Lexicon.free (the_struct structs
-        (case Lexicon.read_nat s of Some n => n | None => raise TERM ("struct_tr", [t])))
+        (case Lexicon.read_nat s of SOME n => n | NONE => raise TERM ("struct_tr", [t])))
   | struct_tr _ (*"_struct"*) ts = raise TERM ("struct_tr", ts);
 
 
@@ -430,8 +430,8 @@ fun index_ast_tr' (*"_index"*) [Ast.Appl [Ast.Constant "_struct", ast]] = ast
 
 fun the_struct' structs s =
   [(case Lexicon.read_nat s of
-    Some i => Ast.Variable (the_struct structs i handle ERROR_MESSAGE _ => raise Match)
-  | None => raise Match)] |> Ast.mk_appl (Ast.Constant "_free");
+    SOME i => Ast.Variable (the_struct structs i handle ERROR_MESSAGE _ => raise Match)
+  | NONE => raise Match)] |> Ast.mk_appl (Ast.Constant "_free");
 ;
 
 fun struct_ast_tr' structs (*"_struct"*) [Ast.Constant "_indexdefault"] =
@@ -473,8 +473,8 @@ fun pts_to_asts trf pts =
   let
     fun trans a args =
       (case trf a of
-        None => Ast.mk_appl (Ast.Constant a) args
-      | Some f => f args handle exn => raise TRANSLATION (a, exn));
+        NONE => Ast.mk_appl (Ast.Constant a) args
+      | SOME f => f args handle exn => raise TRANSLATION (a, exn));
 
     (*translate pt bottom-up*)
     fun ast_of (Parser.Node (a, pts)) = trans a (map ast_of pts)
@@ -498,8 +498,8 @@ fun asts_to_terms trf asts =
   let
     fun trans a args =
       (case trf a of
-        None => Term.list_comb (Lexicon.const a, args)
-      | Some f => f args handle exn => raise TRANSLATION (a, exn));
+        NONE => Term.list_comb (Lexicon.const a, args)
+      | SOME f => f args handle exn => raise TRANSLATION (a, exn));
 
     fun term_of (Ast.Constant a) = trans a []
       | term_of (Ast.Variable x) = Lexicon.read_var x

@@ -39,8 +39,8 @@ fun svc_abstract t =
 	    Free _  => t  (*but not existing Vars, lest the names clash*)
 	  | Bound _ => t
 	  | _ => (case gen_assoc Pattern.aeconv (!pairs, t) of
-		      Some v => v
-		    | None   => insert t)
+		      SOME v => v
+		    | NONE   => insert t)
     (*abstraction of a numeric literal*)
     fun lit (t as Const("0", _)) = t
       | lit (t as Const("1", _)) = t

@@ -12,10 +12,10 @@ local
 
 (* --- generation of bindings for axioms and theorems in .thy.ML - *)
 
-  fun get      dname name   = "get_thm thy (" ^ Library.quote (dname ^ "." ^ name) ^ ", None)";
+  fun get      dname name   = "get_thm thy (" ^ Library.quote (dname ^ "." ^ name) ^ ", NONE)";
   fun gen_vals dname name   = "val "^ name ^ " = get_thm" ^ 
 			(if hd (rev (Symbol.explode name)) = "s" then "s" else "")^
-			" thy (" ^ Library.quote (dname ^ "." ^ name) ^ ", None);";
+			" thy (" ^ Library.quote (dname ^ "." ^ name) ^ ", NONE);";
   fun gen_vall       name l = "val "^name^" = "^ mk_list l^";";
   val rews = "iso_rews @ when_rews @\n\
  	   \  con_rews @ sel_rews @ dis_rews @ dist_les @ dist_eqs @\n\
@@ -49,9 +49,9 @@ local
     val comp_dname = implode (separate "_" dnames);
     val conss' = ListPair.map 
 	(fn (dnam,cons'') => let fun sel n m = upd_second 
-			     (fn None   => dnam^"_sel_"^(string_of_int n)^
+			     (fn NONE   => dnam^"_sel_"^(string_of_int n)^
 						    "_"^(string_of_int m)
-			       | Some s => s)
+			       | SOME s => s)
 	      fun fill_sels n con = upd_third (mapn (sel n) 1) con;
 	  in mapn fill_sels 1 cons'' end)
 	(dnames, map snd eqs'');
@@ -119,10 +119,10 @@ local
                       (* here ident may be used instead of name' 
                          to avoid ambiguity with standard mixfix option *)
   val domain_arg  = "(" $$-- (optional ($$ "lazy" >> K true) false)
-			  -- (optional ((name' >> Some) --$$ "::") None)
+			  -- (optional ((name' >> SOME) --$$ "::") NONE)
 			  -- typ --$$ ")" 
 		    >> (fn ((lazy,sel),tp) => (lazy,sel,tp))
-		 || typ >> (fn x => (false,None,x)) 
+		 || typ >> (fn x => (false,NONE,x)) 
   val domain_cons = name' -- !! (repeat domain_arg) 
 		    -- ThyParse.opt_mixfix
 		    >> (fn ((con,args),syn) => (con,syn,args));

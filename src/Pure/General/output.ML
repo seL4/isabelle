@@ -90,10 +90,10 @@ exception MISSING_DEFAULT_OUTPUT;
 fun lookup_mode name = Symtab.lookup (! modes, name);
 
 fun get_mode () =
-  (case Library.get_first lookup_mode (! print_mode) of Some p => p
-  | None =>
-      (case lookup_mode "" of Some p => p
-      | None => raise MISSING_DEFAULT_OUTPUT));  (*sys_error would require output again!*)
+  (case Library.get_first lookup_mode (! print_mode) of SOME p => p
+  | NONE =>
+      (case lookup_mode "" of SOME p => p
+      | NONE => raise MISSING_DEFAULT_OUTPUT));  (*sys_error would require output again!*)
 
 fun output_width x = #output_width (get_mode ()) x;
 val output = #1 o output_width;
@@ -171,11 +171,11 @@ datatype 'a error =
   Error of string |
   OK of 'a;
 
-fun get_error (Error msg) = Some msg
-  | get_error _ = None;
+fun get_error (Error msg) = SOME msg
+  | get_error _ = NONE;
 
-fun get_ok (OK x) = Some x
-  | get_ok _ = None;
+fun get_ok (OK x) = SOME x
+  | get_ok _ = NONE;
 
 fun handle_error f x =
   let

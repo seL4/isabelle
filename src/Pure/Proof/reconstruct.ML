@@ -35,7 +35,7 @@ fun forall_intr_vfs prop = foldr forall_intr
 
 fun forall_intr_prf (t, prf) =
   let val (a, T) = (case t of Var ((a, _), T) => (a, T) | Free p => p)
-  in Abst (a, Some T, prf_abstract_over t prf) end;
+  in Abst (a, SOME T, prf_abstract_over t prf) end;
 
 fun forall_intr_vfs_prf prop prf = foldr forall_intr_prf
   (vars_of prop @ sort (make_ord atless) (term_frees prop), prf);
@@ -68,13 +68,13 @@ fun unifyT sg env T U =
     Sign.string_of_typ sg T ^ "\n\n" ^ Sign.string_of_typ sg U);
 
 fun chaseT (env as Envir.Envir {iTs, ...}) (T as TVar (ixn, _)) =
-      (case Vartab.lookup (iTs, ixn) of None => T | Some T' => chaseT env T')
+      (case Vartab.lookup (iTs, ixn) of NONE => T | SOME T' => chaseT env T')
   | chaseT _ T = T;
 
 fun infer_type sg (env as Envir.Envir {maxidx, asol, iTs}) Ts vTs
       (t as Const (s, T)) = if T = dummyT then (case Sign.const_type sg s of
-          None => error ("reconstruct_proof: No such constant: " ^ quote s)
-        | Some T => 
+          NONE => error ("reconstruct_proof: No such constant: " ^ quote s)
+        | SOME T => 
             let val T' = incr_tvar (maxidx + 1) T
             in (Const (s, T'), T', vTs,
               Envir.Envir {maxidx = maxidx + 1, asol = asol, iTs = iTs})
@@ -82,10 +82,10 @@ fun infer_type sg (env as Envir.Envir {maxidx, asol, iTs}) Ts vTs
       else (t, T, vTs, env)
   | infer_type sg env Ts vTs (t as Free (s, T)) =
       if T = dummyT then (case Symtab.lookup (vTs, s) of
-          None =>
+          NONE =>
             let val (env', T) = mk_tvar (env, [])
             in (Free (s, T), T, Symtab.update_new ((s, T), vTs), env') end
-        | Some T => (Free (s, T), T, vTs, env))
+        | SOME T => (Free (s, T), T, vTs, env))
       else (t, T, vTs, env)
   | infer_type sg env Ts vTs (Var _) = error "reconstruct_proof: internal error"
   | infer_type sg env Ts vTs (Abs (s, T, t)) =
@@ -146,13 +146,13 @@ fun make_constraints_cprf sg env cprf =
             val tfrees = term_tfrees prop;
             val (prop', fmap) = Type.varify (prop, []);
             val (env', Ts) = (case opTs of
-                None => foldl_map mk_tvar (env, map snd tvars @ map snd tfrees)
-              | Some Ts => (env, Ts));
+                NONE => foldl_map mk_tvar (env, map snd tvars @ map snd tfrees)
+              | SOME Ts => (env, Ts));
             val prop'' = subst_TVars (map fst tvars @ map snd fmap ~~ Ts)
               (forall_intr_vfs prop') handle LIST _ =>
                 error ("Wrong number of type arguments for " ^
                   quote (fst (get_name_tags [] prop prf)))
-          in (prop'', change_type (Some Ts) prf, [], env', vTs) end;
+          in (prop'', change_type (SOME Ts) prf, [], env', vTs) end;
 
     fun head_norm (prop, prf, cnstrts, env, vTs) =
       (Envir.head_norm env prop, prf, cnstrts, env, vTs);
@@ -161,23 +161,23 @@ fun make_constraints_cprf sg env cprf =
       | mk_cnstrts env Ts Hs vTs (Abst (s, opT, cprf)) =
           let
             val (env', T) = (case opT of
-              None => mk_tvar (env, []) | Some T => (env, T));
+              NONE => mk_tvar (env, []) | SOME T => (env, T));
             val (t, prf, cnstrts, env'', vTs') =
               mk_cnstrts env' (T::Ts) (map (incr_boundvars 1) Hs) vTs cprf;
-          in (Const ("all", (T --> propT) --> propT) $ Abs (s, T, t), Abst (s, Some T, prf),
+          in (Const ("all", (T --> propT) --> propT) $ Abs (s, T, t), Abst (s, SOME T, prf),
             cnstrts, env'', vTs')
           end
-      | mk_cnstrts env Ts Hs vTs (AbsP (s, Some t, cprf)) =
+      | mk_cnstrts env Ts Hs vTs (AbsP (s, SOME t, cprf)) =
           let
             val (t', _, vTs', env') = infer_type sg env Ts vTs t;
             val (u, prf, cnstrts, env'', vTs'') = mk_cnstrts env' Ts (t'::Hs) vTs' cprf;
-          in (Logic.mk_implies (t', u), AbsP (s, Some t', prf), cnstrts, env'', vTs'')
+          in (Logic.mk_implies (t', u), AbsP (s, SOME t', prf), cnstrts, env'', vTs'')
           end
-      | mk_cnstrts env Ts Hs vTs (AbsP (s, None, cprf)) =
+      | mk_cnstrts env Ts Hs vTs (AbsP (s, NONE, cprf)) =
           let
             val (env', t) = mk_var env Ts propT;
             val (u, prf, cnstrts, env'', vTs') = mk_cnstrts env' Ts (t::Hs) vTs cprf;
-          in (Logic.mk_implies (t, u), AbsP (s, Some t, prf), cnstrts, env'', vTs')
+          in (Logic.mk_implies (t, u), AbsP (s, SOME t, prf), cnstrts, env'', vTs')
           end
       | mk_cnstrts env Ts Hs vTs (cprf1 %% cprf2) =
           let val (u, prf2, cnstrts, env', vTs') = mk_cnstrts env Ts Hs vTs cprf2
@@ -191,27 +191,27 @@ fun make_constraints_cprf sg env cprf =
                   env''' vTs'' (t, Logic.mk_implies (u, v))
                 end)
           end
-      | mk_cnstrts env Ts Hs vTs (cprf % Some t) =
+      | mk_cnstrts env Ts Hs vTs (cprf % SOME t) =
           let val (t', U, vTs1, env1) = infer_type sg env Ts vTs t
           in (case head_norm (mk_cnstrts env1 Ts Hs vTs1 cprf) of
              (Const ("all", Type ("fun", [Type ("fun", [T, _]), _])) $ f,
                  prf, cnstrts, env2, vTs2) =>
                let val env3 = unifyT sg env2 T U
-               in (betapply (f, t'), prf % Some t', cnstrts, env3, vTs2)
+               in (betapply (f, t'), prf % SOME t', cnstrts, env3, vTs2)
                end
            | (u, prf, cnstrts, env2, vTs2) =>
                let val (env3, v) = mk_var env2 Ts (U --> propT);
                in
-                 add_cnstrt Ts (v $ t') (prf % Some t') cnstrts env3 vTs2
+                 add_cnstrt Ts (v $ t') (prf % SOME t') cnstrts env3 vTs2
                    (u, Const ("all", (U --> propT) --> propT) $ v)
                end)
           end
-      | mk_cnstrts env Ts Hs vTs (cprf % None) =
+      | mk_cnstrts env Ts Hs vTs (cprf % NONE) =
           (case head_norm (mk_cnstrts env Ts Hs vTs cprf) of
              (Const ("all", Type ("fun", [Type ("fun", [T, _]), _])) $ f,
                  prf, cnstrts, env', vTs') =>
                let val (env'', t) = mk_var env' Ts T
-               in (betapply (f, t), prf % Some t, cnstrts, env'', vTs')
+               in (betapply (f, t), prf % SOME t, cnstrts, env'', vTs')
                end
            | (u, prf, cnstrts, env', vTs') =>
                let
@@ -219,7 +219,7 @@ fun make_constraints_cprf sg env cprf =
                  val (env2, v) = mk_var env1 Ts (T --> propT);
                  val (env3, t) = mk_var env2 Ts T
                in
-                 add_cnstrt Ts (v $ t) (prf % Some t) cnstrts env3 vTs'
+                 add_cnstrt Ts (v $ t) (prf % SOME t) cnstrts env3 vTs'
                    (u, Const ("all", (T --> propT) --> propT) $ v)
                end)
       | mk_cnstrts env _ _ vTs (prf as PThm (_, _, prop, opTs)) =
@@ -294,7 +294,7 @@ fun solve _ [] bigenv = bigenv
 
 fun reconstruct_proof sg prop cprf =
   let
-    val (cprf' % Some prop', thawf) = freeze_thaw_prf (cprf % Some prop);
+    val (cprf' % SOME prop', thawf) = freeze_thaw_prf (cprf % SOME prop);
     val _ = message "Collecting constraints...";
     val (t, prf, cs, env, _) = make_constraints_cprf sg
       (Envir.empty (maxidx_of_proof cprf)) cprf';
@@ -315,20 +315,20 @@ fun prop_of_atom prop Ts =
 val head_norm = Envir.head_norm (Envir.empty 0);
 
 fun prop_of0 Hs (PBound i) = nth_elem (i, Hs)
-  | prop_of0 Hs (Abst (s, Some T, prf)) =
+  | prop_of0 Hs (Abst (s, SOME T, prf)) =
       all T $ (Abs (s, T, prop_of0 Hs prf))
-  | prop_of0 Hs (AbsP (s, Some t, prf)) =
+  | prop_of0 Hs (AbsP (s, SOME t, prf)) =
       Logic.mk_implies (t, prop_of0 (t :: Hs) prf)
-  | prop_of0 Hs (prf % Some t) = (case head_norm (prop_of0 Hs prf) of
+  | prop_of0 Hs (prf % SOME t) = (case head_norm (prop_of0 Hs prf) of
       Const ("all", _) $ f => f $ t
     | _ => error "prop_of: all expected")
   | prop_of0 Hs (prf1 %% prf2) = (case head_norm (prop_of0 Hs prf1) of
       Const ("==>", _) $ P $ Q => Q
     | _ => error "prop_of: ==> expected")
   | prop_of0 Hs (Hyp t) = t
-  | prop_of0 Hs (PThm (_, _, prop, Some Ts)) = prop_of_atom prop Ts
-  | prop_of0 Hs (PAxm (_, prop, Some Ts)) = prop_of_atom prop Ts
-  | prop_of0 Hs (Oracle (_, prop, Some Ts)) = prop_of_atom prop Ts
+  | prop_of0 Hs (PThm (_, _, prop, SOME Ts)) = prop_of_atom prop Ts
+  | prop_of0 Hs (PAxm (_, prop, SOME Ts)) = prop_of_atom prop Ts
+  | prop_of0 Hs (Oracle (_, prop, SOME Ts)) = prop_of_atom prop Ts
   | prop_of0 _ _ = error "prop_of: partial proof object";
 
 val prop_of' = Pattern.eta_contract oo (Envir.beta_norm oo prop_of0);
@@ -353,16 +353,16 @@ fun expand_proof sg thms prf =
       | expand maxidx prfs (prf % t) =
           let val (maxidx', prfs', prf') = expand maxidx prfs prf
           in (maxidx', prfs', prf' % t) end
-      | expand maxidx prfs (prf as PThm ((a, _), cprf, prop, Some Ts)) =
+      | expand maxidx prfs (prf as PThm ((a, _), cprf, prop, SOME Ts)) =
           if not (exists
-            (fn (b, None) => a = b
-              | (b, Some prop') => a = b andalso prop = prop') thms)
+            (fn (b, NONE) => a = b
+              | (b, SOME prop') => a = b andalso prop = prop') thms)
           then (maxidx, prfs, prf) else
           let
             fun inc i =
               map_proof_terms (Logic.incr_indexes ([], i)) (incr_tvar i);
             val (maxidx', prf, prfs') = (case assoc (prfs, (a, prop)) of
-                None =>
+                NONE =>
                   let
                     val _ = message ("Reconstructing proof of " ^ a);
                     val _ = message (Sign.string_of_term sg prop);
@@ -373,7 +373,7 @@ fun expand_proof sg thms prf =
                   in (maxidx' + maxidx + 1, inc (maxidx + 1) prf,
                     ((a, prop), (maxidx', prf)) :: prfs')
                   end
-              | Some (maxidx', prf) => (maxidx' + maxidx + 1,
+              | SOME (maxidx', prf) => (maxidx' + maxidx + 1,
                   inc (maxidx + 1) prf, prfs));
             val tfrees = term_tfrees prop;
             val tye = map (fn ((s, j), _) => (s, maxidx + 1 + j))

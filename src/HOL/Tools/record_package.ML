@@ -82,8 +82,8 @@ val AbsN = "Abs_";
 (*** utilities ***)
 
 fun but_last xs = fst (split_last xs);
-fun list None = []
-  | list (Some x) = [x]
+fun list NONE = []
+  | list (SOME x) = [x]
 
 (* messages *)
 
@@ -159,12 +159,12 @@ fun mk_upd sfx c v s =
 
 fun dest_recT (typ as Type (c_ext_type, Ts as (T::_))) =
       (case try (unsuffix ext_typeN) c_ext_type of
-        None => raise TYPE ("RecordPackage.dest_recT", [typ], [])
-      | Some c => ((c, Ts), last_elem Ts))
+        NONE => raise TYPE ("RecordPackage.dest_recT", [typ], [])
+      | SOME c => ((c, Ts), last_elem Ts))
   | dest_recT typ = raise TYPE ("RecordPackage.dest_recT", [typ], []);
 
 fun is_recT T =
-  (case try dest_recT T of None => false | Some _ => true); 
+  (case try dest_recT T of NONE => false | SOME _ => true); 
 
 fun dest_recTs T =
   let val ((c, Ts), U) = dest_recT T
@@ -174,9 +174,9 @@ fun dest_recTs T =
 fun last_extT T =
   let val ((c, Ts), U) = dest_recT T
   in (case last_extT U of
-        None => Some (c,Ts)
-      | Some l => Some l)
-  end handle TYPE _ => None
+        NONE => SOME (c,Ts)
+      | SOME l => SOME l)
+  end handle TYPE _ => NONE
 
 fun rec_id i T = 
   let val rTs = dest_recTs T
@@ -282,8 +282,8 @@ struct
     let
       val prt_typ = Sign.pretty_typ sg;
 
-      fun pretty_parent None = []
-        | pretty_parent (Some (Ts, name)) =
+      fun pretty_parent NONE = []
+        | pretty_parent (SOME (Ts, name)) =
             [Pretty.block [prt_typ (Type (name, Ts)), Pretty.str " +"]];
 
       fun pretty_field (c, T) = Pretty.block
@@ -319,8 +319,8 @@ fun get_sel_upd sg = #sel_upd (RecordsData.get_sg sg);
 fun get_selectors sg name = Symtab.lookup (#selectors (get_sel_upd sg), name);
 fun is_selector sg name = 
   case get_selectors sg (Sign.intern_const sg name) of 
-     None => false
-   | Some _ => true
+     NONE => false
+   | SOME _ => true
 
                              
 fun get_updates sg name = Symtab.lookup (#updates (get_sel_upd sg), name);
@@ -399,8 +399,8 @@ fun get_splits sg name =
 (* extension of a record name *)
 fun get_extension sg name =
  case Symtab.lookup (#records (RecordsData.get_sg sg),name) of
-        Some s => Some (#extension s)
-      | None => None;
+        SOME s => SOME (#extension s)
+      | NONE => NONE;
 
 (* access 'extfields' *)
 
@@ -461,18 +461,18 @@ fun get_fieldext sg name =
 
 (* parent records *)
 
-fun add_parents thy None parents = parents
-  | add_parents thy (Some (types, name)) parents =
+fun add_parents thy NONE parents = parents
+  | add_parents thy (SOME (types, name)) parents =
       let
         val sign = Theory.sign_of thy;
         fun err msg = error (msg ^ " parent record " ^ quote name);
 
         val {args, parent, fields, extension, induct} =
-          (case get_record thy name of Some info => info | None => err "Unknown");
+          (case get_record thy name of SOME info => info | NONE => err "Unknown");
         val _ = if length types <> length args then err "Bad number of arguments for" else ();
 
         fun bad_inst ((x, S), T) =
-          if Sign.of_sort sign (T, S) then None else Some x
+          if Sign.of_sort sign (T, S) then NONE else SOME x
         val bads = mapfilter bad_inst (args ~~ types);
 
         val inst = map fst args ~~ types;
@@ -537,16 +537,16 @@ fun gen_ext_fields_tr sep mark sfx more sg t =
 
     fun mk_ext (fargs as (name,arg)::_) =
          (case get_fieldext sg (Sign.intern_const sg name) of
-            Some (ext,_) => (case get_extfields sg ext of
-                               Some flds 
+            SOME (ext,_) => (case get_extfields sg ext of
+                               SOME flds 
                                  => let val (args,rest) = 
                                                splitargs (map fst (but_last flds)) fargs;
                                         val more' = mk_ext rest;  
                                     in list_comb (Syntax.const (suffix sfx ext),args@[more'])
                                     end
-                             | None => raise TERM(msg ^ "no fields defined for "
+                             | NONE => raise TERM(msg ^ "no fields defined for "
                                                    ^ ext,[t]))
-          | None => raise TERM (msg ^ name ^" is no proper field",[t]))
+          | NONE => raise TERM (msg ^ name ^" is no proper field",[t]))
       | mk_ext [] = more
 
   in mk_ext fieldargs end;   
@@ -565,8 +565,8 @@ fun gen_ext_type_tr sep mark sfx more sg t =
       | splitargs _ _ = ([],[]);
 
     fun get_sort xs n = (case assoc (xs,n) of 
-                                Some s => s 
-                              | None => Sign.defaultS sg);
+                                SOME s => s 
+                              | NONE => Sign.defaultS sg);
     fun to_type t = Sign.intern_typ sg 
                       (Syntax.typ_of_term (get_sort (Syntax.raw_term_sorts t)) I t);
  
@@ -575,9 +575,9 @@ fun gen_ext_type_tr sep mark sfx more sg t =
     
     fun mk_ext (fargs as (name,arg)::_) =
          (case get_fieldext sg (Sign.intern_const sg name) of
-            Some (ext,alphas) => 
+            SOME (ext,alphas) => 
               (case get_extfields sg ext of
-                 Some flds 
+                 SOME flds 
                   => (let
                        val flds' = but_last flds;
                        val types = map snd flds'; 
@@ -593,8 +593,8 @@ fun gen_ext_type_tr sep mark sfx more sg t =
                      in list_comb (Syntax.const (suffix sfx ext),alphas'@[more']) 
                      end handle TUNIFY => raise 
                            TERM (msg ^ "type is no proper record (extension)", [t]))
-               | None => raise TERM (msg ^ "no fields defined for " ^ ext,[t]))
-          | None => raise TERM (msg ^ name ^" is no proper field",[t]))
+               | NONE => raise TERM (msg ^ "no fields defined for " ^ ext,[t]))
+          | NONE => raise TERM (msg ^ name ^" is no proper field",[t]))
       | mk_ext [] = more
 
   in mk_ext fieldargs end;   
@@ -642,9 +642,9 @@ val print_record_type_as_fields = ref true;
 
 fun gen_field_upds_tr' mark sfx (tm as Const (name_field, _) $ t $ u) =
     (case try (unsuffix sfx) name_field of
-      Some name =>
+      SOME name =>
         apfst (cons (Syntax.const mark $ Syntax.free name $ t)) (gen_field_upds_tr' mark sfx u)
-     | None => ([], tm))
+     | NONE => ([], tm))
   | gen_field_upds_tr' _ _ tm = ([], tm);
 
 fun record_update_tr' tm =
@@ -663,17 +663,17 @@ fun record_tr' sep mark record record_scheme unit sg t =
       (case strip_comb t of
         (Const (ext,_),args) 
          => (case try (unsuffix extN) (Sign.intern_const sg ext) of
-               Some ext' 
+               SOME ext' 
                => (case get_extfields sg ext' of
-                     Some flds 
+                     SOME flds 
                      => (let
                           val (f::fs) = but_last (map fst flds);
                           val flds' = Sign.extern sg Sign.constK f::map NameSpace.base fs; 
                           val (args',more) = split_last args; 
                          in (flds'~~args')@field_lst more end
                          handle LIST _ => [("",t)]) 
-                   | None => [("",t)])
-             | None => [("",t)])
+                   | NONE => [("",t)])
+             | NONE => [("",t)])
        | _ => [("",t)])
 
     val (flds,(_,more)) = split_last (field_lst t);
@@ -705,8 +705,8 @@ fun record_type_abbr_tr' default_tr' abbr alphas zeta lastExt schemeT sg tm =
       (* type from tm so that we can continue on the type level rather then the term level.*)
 
       fun get_sort xs n = (case assoc (xs,n) of 
-                             Some s => s 
-                           | None => Sign.defaultS sg);
+                             SOME s => s 
+                           | NONE => Sign.defaultS sg);
 
       (* WORKAROUND:
        * If a record type occurs in an error message of type inference there  
@@ -734,7 +734,7 @@ fun record_type_abbr_tr' default_tr' abbr alphas zeta lastExt schemeT sg tm =
 
    in if !print_record_type_abbr
       then (case last_extT T of
-             Some (name,_) 
+             SOME (name,_) 
               => if name = lastExt 
                  then
 		  (let 
@@ -752,8 +752,8 @@ fun record_type_abbr_tr' default_tr' abbr alphas zeta lastExt schemeT sg tm =
 fun record_type_tr' sep mark record record_scheme sg t =
   let
     fun get_sort xs n = (case assoc (xs,n) of 
-                             Some s => s 
-                           | None => Sign.defaultS sg);
+                             SOME s => s 
+                           | NONE => Sign.defaultS sg);
 
     val T = Sign.intern_typ sg (Syntax.typ_of_term (get_sort (Syntax.raw_term_sorts t)) I t)
 
@@ -766,11 +766,11 @@ fun record_type_tr' sep mark record record_scheme sg t =
       (case T of
         Type (ext,args) 
          => (case try (unsuffix ext_typeN) ext of
-               Some ext' 
+               SOME ext' 
                => (case get_extfields sg ext' of
-                     Some flds 
+                     SOME flds 
                      => (case get_fieldext sg (fst (hd flds)) of
-                           Some (_,alphas) 
+                           SOME (_,alphas) 
                            => (let
                                 val (f::fs) = but_last flds;
                                 val flds' = apfst (Sign.extern sg Sign.constK) f
@@ -783,9 +783,9 @@ fun record_type_tr' sep mark record record_scheme sg t =
                               in flds''@field_lst more end
                               handle TUNIFY => [("",T)] 
                                    | LIST _=> [("",T)])
-                         | None => [("",T)])
-                   | None => [("",T)])
-             | None => [("",T)]) 
+                         | NONE => [("",T)])
+                   | NONE => [("",T)])
+             | NONE => [("",T)]) 
         | _ => [("",T)])
 
     val (flds,(_,moreT)) = split_last (field_lst T);
@@ -843,10 +843,10 @@ fun prove_split_simp sg T prop =
             foldl (fn (thms,(n,_)) => (list (Symtab.lookup (extsplit,n)))@thms) 
                     ([],dest_recTs T);
     val thms = (case get_splits sg (rec_id (~1) T) of
-                   Some (all_thm,_,_,_) => 
+                   SOME (all_thm,_,_,_) => 
                      all_thm::(case extsplits of [thm] => [] | _ => extsplits)
                               (* [thm] is the same as all_thm *)
-                 | None => extsplits)                                
+                 | NONE => extsplits)                                
   in (quick_and_dirty_prove true sg [] prop (fn _ => (simp_tac (simpset addsimps thms) 1)))
   end;
 
@@ -873,53 +873,53 @@ val record_simproc =
   Simplifier.simproc (Theory.sign_of HOL.thy) "record_simp" ["s (u k r)"]
     (fn sg => fn _ => fn t =>
       (case t of (sel as Const (s, Type (_,[domS,rangeS])))$((upd as Const (u, _)) $ k $ r)=>
-        (case get_selectors sg s of Some () =>
-          (case get_updates sg u of Some u_name =>
+        (case get_selectors sg s of SOME () =>
+          (case get_updates sg u of SOME u_name =>
             let
               fun mk_abs_var x t = (x, fastype_of t);
               val {sel_upd={updates,...},extfields,...} = RecordsData.get_sg sg;
               
               fun mk_eq_terms ((upd as Const (u,Type(_,[updT,_]))) $ k $ r) =
 		  (case (Symtab.lookup (updates,u)) of
-                     None => None
-                   | Some u_name 
+                     NONE => NONE
+                   | SOME u_name 
                      => if u_name = s
                         then let 
                                val rv = mk_abs_var "r" r
                                val rb = Bound 0
                                val kv = mk_abs_var "k" k
                                val kb = Bound 1 
-                             in Some (upd$kb$rb,kb,[kv,rv],true) end
+                             in SOME (upd$kb$rb,kb,[kv,rv],true) end
                         else if u_name mem (map fst (get_fields extfields rangeS))
                              orelse s mem (map fst (get_fields extfields updT))
-                             then None
+                             then NONE
 			     else (case mk_eq_terms r of 
-                                     Some (trm,trm',vars,update_s) 
+                                     SOME (trm,trm',vars,update_s) 
                                      => let   
 					  val kv = mk_abs_var "k" k
                                           val kb = Bound (length vars)
-		                        in Some (upd$kb$trm,trm',kv::vars,update_s) end
-                                   | None
+		                        in SOME (upd$kb$trm,trm',kv::vars,update_s) end
+                                   | NONE
                                      => let 
 					  val rv = mk_abs_var "r" r
                                           val rb = Bound 0
                                           val kv = mk_abs_var "k" k
                                           val kb = Bound 1 
-                                        in Some (upd$kb$rb,rb,[kv,rv],false) end))
-                | mk_eq_terms r = None     
+                                        in SOME (upd$kb$rb,rb,[kv,rv],false) end))
+                | mk_eq_terms r = NONE     
             in
 	      (case mk_eq_terms (upd$k$r) of
-                 Some (trm,trm',vars,update_s) 
+                 SOME (trm,trm',vars,update_s) 
                  => if update_s 
-		    then Some (prove_split_simp sg domS 
+		    then SOME (prove_split_simp sg domS 
                                  (list_all(vars,(Logic.mk_equals (sel$trm,trm')))))
-                    else Some (prove_split_simp sg domS 
+                    else SOME (prove_split_simp sg domS 
                                  (list_all(vars,(Logic.mk_equals (sel$trm,sel$trm')))))
-               | None => None)
+               | NONE => NONE)
             end
-          | None => None)
-        | None => None)
-      | _ => None));
+          | NONE => NONE)
+        | NONE => NONE)
+      | _ => NONE));
 
 (* record_upd_simproc *) 
 (* simplify multiple updates:
@@ -953,9 +953,9 @@ val record_upd_simproc =
 
              fun is_upd_same (sprout,skeleton) u ((sel as Const (s,_))$r) =
                    if (unsuffix updateN u) = s andalso (seed s sprout) = r 
-                   then Some (sel,seed s skeleton)
-                   else None
-               | is_upd_same _ _ _ = None
+                   then SOME (sel,seed s skeleton)
+                   else NONE
+               | is_upd_same _ _ _ = NONE
  
              fun init_seed r = ((r,Bound 0), [mk_abs_var "r" r]);
                        
@@ -995,22 +995,22 @@ val record_upd_simproc =
                           (case rest (Symtab.update ((u,()),already)) r of 
 			     Init ((sprout,skel),vars) => 
                               (case is_upd_same (sprout,skel) u k of
-                                 Some (sel,skel') => 
+                                 SOME (sel,skel') => 
                                  let
 		                   val (sprout',vars') = grow u uT k vars (sprout,skel); 
                                   in Inter(upd$(sel$skel')$skel,skel,vars',sprout') end
-                               | None =>  
+                               | NONE =>  
                                  let
 	                           val kv = mk_abs_var (sel_name u) k;
                                    val kb = Bound (length vars);
                                  in Init ((upd$k$sprout,upd$kb$skel),kv::vars) end)
 		           | Inter (trm,trm',vars,sprout) => 
                                (case is_upd_same sprout u k of
-                                  Some (sel,skel) =>
+                                  SOME (sel,skel) =>
                                   let
                                     val (sprout',vars') = grow u uT k vars sprout
                                   in Inter(upd$(sel$skel)$trm,trm',vars',sprout') end
-                                | None =>
+                                | NONE =>
                                   let
 				    val kv = mk_abs_var (sel_name u) k
                                     val kb = Bound (length vars)
@@ -1022,11 +1022,11 @@ val record_upd_simproc =
 
 	 in (case mk_updterm updates Symtab.empty t of
 	       Inter (trm,trm',vars,_)
-                => Some (prove_split_simp sg T  
+                => SOME (prove_split_simp sg T  
                           (list_all(vars,(Logic.mk_equals (trm,trm')))))
-             | _ => None)
+             | _ => NONE)
 	 end
-       | _ => None));
+       | _ => NONE));
 end
 
 (* record_eq_simproc *)
@@ -1047,11 +1047,11 @@ val record_eq_simproc =
     (fn sg => fn _ => fn t =>
       (case t of Const ("op =", Type (_, [T, _])) $ _ $ _ =>
         (case rec_id (~1) T of
-           "" => None
+           "" => NONE
          | name => (case get_equalities sg name of
-                                None => None
-                              | Some thm => Some (thm RS Eq_TrueI)))
-       | _ => None));
+                                NONE => NONE
+                              | SOME thm => SOME (thm RS Eq_TrueI)))
+       | _ => NONE));
 
 (* record_split_simproc *)
 (* splits quantified occurrences of records, for which P holds. P can peek on the 
@@ -1066,22 +1066,22 @@ fun record_split_simproc P =
       (case t of (Const (quantifier, Type (_, [Type (_, [T, _]), _])))$trm =>
          if quantifier = "All" orelse quantifier = "all" orelse quantifier = "Ex"
          then (case rec_id (~1) T of
-                 "" => None
+                 "" => NONE
                | name
                   => let val split = P t 
                      in if split <> 0 then 
                         (case get_splits sg (rec_id split T) of
-                              None => None
-                            | Some (all_thm, All_thm, Ex_thm,_) 
-                               => Some (case quantifier of
+                              NONE => NONE
+                            | SOME (all_thm, All_thm, Ex_thm,_) 
+                               => SOME (case quantifier of
                                           "all" => all_thm
                                         | "All" => All_thm RS HOL.eq_reflection
                                         | "Ex"  => Ex_thm RS HOL.eq_reflection
                                         | _     => error "record_split_simproc"))
-                        else None
+                        else NONE
                       end)
-         else None
-       | _ => None))
+         else NONE
+       | _ => NONE))
 
 val record_ex_sel_eq_simproc =
   Simplifier.simproc (Theory.sign_of HOL.thy) "record_ex_sel_eq_simproc" ["Ex t"]
@@ -1092,14 +1092,14 @@ val record_ex_sel_eq_simproc =
                                         addsimprocs [record_split_simproc (K ~1)]) 1)));
 
          fun mkeq (lr,Teq,(sel,Tsel),x) i =
-              (case get_selectors sg sel of Some () =>
+              (case get_selectors sg sel of SOME () =>
                  let val x' = if not (loose_bvar1 (x,0)) 
                               then Free ("x" ^ string_of_int i, range_type Tsel) 
                               else raise TERM ("",[x]);
                      val sel' = Const (sel,Tsel)$Bound 0;
                      val (l,r) = if lr then (sel',x') else (x',sel');
                   in Const ("op =",Teq)$l$r end
-               | None => raise TERM ("",[Const (sel,Tsel)]));
+               | NONE => raise TERM ("",[Const (sel,Tsel)]));
 
          fun dest_sel_eq (Const ("op =",Teq)$(Const (sel,Tsel)$Bound 0)$X) = 
                            (true,Teq,(sel,Tsel),X)
@@ -1114,9 +1114,9 @@ val record_ex_sel_eq_simproc =
                  val prop = list_all ([("r",T)],
                               Logic.mk_equals (Const ("Ex",Tex)$Abs(s,T,eq),
                                                HOLogic.true_const));
-             in Some (prove prop) end
-             handle TERM _ => None
-          | _ => None)                      
+             in SOME (prove prop) end
+             handle TERM _ => NONE
+          | _ => NONE)                      
          end)
 
 
@@ -1161,16 +1161,16 @@ fun record_split_simp_tac thms P i st =
 
     fun split_free_tac P i (free as Free (n,T)) = 
 	(case rec_id (~1) T of
-           "" => None
+           "" => NONE
          | name => let val split = P free 
                    in if split <> 0 then 
                       (case get_splits sg (rec_id split T) of
-                             None => None
-                           | Some (_,_,_,induct_thm)
-                               => Some (mk_split_free_tac free induct_thm i))
-                      else None
+                             NONE => NONE
+                           | SOME (_,_,_,induct_thm)
+                               => SOME (mk_split_free_tac free induct_thm i))
+                      else NONE
                    end)
-     | split_free_tac _ _ _ = None;
+     | split_free_tac _ _ _ = NONE;
 
     val split_frees_tacs = mapfilter (split_free_tac P i) frees;
    
@@ -1217,14 +1217,14 @@ val record_split_wrapper = (record_split_name, fn tac => record_split_tac ORELSE
 
 (*note: read_raw_typ avoids expanding type abbreviations*)
 fun read_raw_parent sign s =
-  (case Sign.read_raw_typ (sign, K None) s handle TYPE (msg, _, _) => error msg of
+  (case Sign.read_raw_typ (sign, K NONE) s handle TYPE (msg, _, _) => error msg of
     Type (name, Ts) => (Ts, name)
   | _ => error ("Bad parent record specification: " ^ quote s));
 
 fun read_typ sign (env, s) =
   let
     fun def_sort (x, ~1) = assoc (env, x)
-      | def_sort _ = None;
+      | def_sort _ = NONE;
     val T = Type.no_tvars (Sign.read_typ (sign, def_sort) s) handle TYPE (msg, _, _) => error msg;
   in (Term.add_typ_tfrees (T, env), T) end;
 
@@ -1264,8 +1264,8 @@ fun try_param_tac s rule i st =
       | [x] => (head_of x, false));
     val rule'' = cterm_instantiate (map (pairself cert) (case (rev params) of
         [] => (case assoc (map dest_Free (term_frees (prop_of st)), s) of
-          None => sys_error "try_param_tac: no such variable"
-        | Some T => [(P, if ca then concl else lambda (Free (s, T)) concl),
+          NONE => sys_error "try_param_tac: no such variable"
+        | SOME T => [(P, if ca then concl else lambda (Free (s, T)) concl),
             (x, Free (s, T))])
       | (_, T) :: _ => [(P, list_abs (params, if ca then concl
           else incr_boundvars 1 (Abs (s, T, concl)))),
@@ -1295,11 +1295,11 @@ fun extension_typedef name repT alphas thy =
   let
     val UNIV = HOLogic.mk_UNIV repT;
 
-    val (thy',{set_def=Some def, Abs_induct = abs_induct, 
+    val (thy',{set_def=SOME def, Abs_induct = abs_induct, 
                Abs_inject=abs_inject, Abs_inverse = abs_inverse,...}) =
         thy |> setmp TypedefPackage.quiet_mode true
-           (TypedefPackage.add_typedef_i true None
-             (suffix ext_typeN (Sign.base_name name), alphas, Syntax.NoSyn) UNIV None
+           (TypedefPackage.add_typedef_i true NONE
+             (suffix ext_typeN (Sign.base_name name), alphas, Syntax.NoSyn) UNIV NONE
              (Tactic.rtac UNIV_witness 1))
     val rewrite_rule = Tactic.rewrite_rule [def, rec_UNIV_I, rec_True_simp];
   in (thy',map rewrite_rule [abs_inject, abs_inverse, abs_induct])
@@ -1557,9 +1557,9 @@ fun mk_recordT extT parent_exts =
 
 fun obj_to_meta_all thm =
   let
-    fun E thm = case (Some (spec OF [thm]) handle THM _ => None) of 
-                  Some thm' => E thm'
-                | None => thm;
+    fun E thm = case (SOME (spec OF [thm]) handle THM _ => NONE) of 
+                  SOME thm' => E thm'
+                | NONE => thm;
     val th1 = E thm;
     val th2 = Drule.forall_intr_vars th1;
   in th2 end;
@@ -2047,8 +2047,8 @@ fun gen_add_record prep_typ prep_raw_parent (params, bname) raw_parent raw_field
 
     val init_env =
       (case parent of
-        None => []
-      | Some (types, _) => foldr Term.add_typ_tfrees (types, []));
+        NONE => []
+      | SOME (types, _) => foldr Term.add_typ_tfrees (types, []));
 
 
     (* fields *)

@@ -59,10 +59,10 @@ fun convert_prog (cplexProg (s, goal, constrs, bounds)) =
 
 	val (varcount, i2s_tab, s2i_tab) = build_naming 0 Inttab.empty Symtab.empty bounds
 
-	fun i2s i = case Inttab.lookup (i2s_tab, i) of None => raise (Converter "index not found")
-						     | Some n => n
-	fun s2i s = case Symtab.lookup (s2i_tab, s) of None => raise (Converter ("name not found: "^s))
-						     | Some i => i
+	fun i2s i = case Inttab.lookup (i2s_tab, i) of NONE => raise (Converter "index not found")
+						     | SOME n => n
+	fun s2i s = case Symtab.lookup (s2i_tab, s) of NONE => raise (Converter ("name not found: "^s))
+						     | SOME i => i
 	fun num2str positive (cplexNeg t) = num2str (not positive) t
 	  | num2str positive (cplexNum num) = if positive then num else "-"^num			
 	  | num2str _ _ = raise (Converter "term is not a (possibly signed) number")
@@ -82,8 +82,8 @@ fun convert_prog (cplexProg (s, goal, constrs, bounds)) =
 	  | constrs2Ab j A b ((_, cplexConstr (cplexGeq, (t1,t2)))::cs) = 
 	    constrs2Ab (j+1) (set_vector A j (sum2vec (neg_term t1))) (set_elem b j (num2str true (neg_term t2))) cs
 	  | constrs2Ab j A b ((_, cplexConstr (cplexEq, (t1,t2)))::cs) =
-	    constrs2Ab j A b ((None, cplexConstr (cplexLeq, (t1,t2)))::
-			      (None, cplexConstr (cplexGeq, (t1, t2)))::cs)
+	    constrs2Ab j A b ((NONE, cplexConstr (cplexLeq, (t1,t2)))::
+			      (NONE, cplexConstr (cplexGeq, (t1, t2)))::cs)
 	  | constrs2Ab _ _ _ _ = raise (Converter "no strict constraints allowed")
 
 	val (A, b) = constrs2Ab 0 empty_matrix empty_vector constrs

@@ -95,7 +95,7 @@ fun make_rules next rules netpairs wrappers =
   Rules {next = next, rules = rules, netpairs = netpairs, wrappers = wrappers};
 
 fun add_rule (i, b) opt_w th (Rules {next, rules, netpairs, wrappers}) =
-  let val w = (case opt_w of Some w => w | None => Tactic.subgoals_of_brl (b, th)) in
+  let val w = (case opt_w of SOME w => w | NONE => Tactic.subgoals_of_brl (b, th)) in
     make_rules (next - 1) ((w, ((i, b), th)) :: rules)
       (map_nth_elem i (curry insert_tagged_brl ((w, next), (b, th))) netpairs) wrappers
   end;
@@ -113,7 +113,7 @@ fun print_rules prt x (Rules {rules, ...}) =
   let
     fun prt_kind (i, b) =
       Pretty.big_list (the (assoc (kind_names, (i, b))) ^ ":")
-        (mapfilter (fn (_, (k, th)) => if k = (i, b) then Some (prt x th) else None)
+        (mapfilter (fn (_, (k, th)) => if k = (i, b) then SOME (prt x th) else NONE)
           (sort (Int.compare o pairself fst) rules));
   in Pretty.writeln (Pretty.chunks (map prt_kind rule_kinds)) end;
 
@@ -254,14 +254,14 @@ end;
 fun modifier att (x, ths) =
   #1 (Thm.applys_attributes ((x, rev ths), [att]));
 
-val addXIs_global = modifier (intro_query_global None);
-val addXEs_global = modifier (elim_query_global None);
-val addXDs_global = modifier (dest_query_global None);
+val addXIs_global = modifier (intro_query_global NONE);
+val addXEs_global = modifier (elim_query_global NONE);
+val addXDs_global = modifier (dest_query_global NONE);
 val delrules_global = modifier rule_del_global;
 
-val addXIs_local = modifier (intro_query_local None);
-val addXEs_local = modifier (elim_query_local None);
-val addXDs_local = modifier (dest_query_local None);
+val addXIs_local = modifier (intro_query_local NONE);
+val addXEs_local = modifier (elim_query_local NONE);
+val addXDs_local = modifier (dest_query_local NONE);
 val delrules_local = modifier rule_del_local;
 
 

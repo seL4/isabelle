@@ -23,7 +23,7 @@ fun prf_of thm =
 
 fun forall_intr_prf (t, prf) =
   let val (a, T) = (case t of Var ((a, _), T) => (a, T) | Free p => p)
-  in Abst (a, Some T, Proofterm.prf_abstract_over t prf) end;
+  in Abst (a, SOME T, Proofterm.prf_abstract_over t prf) end;
 
 fun subsets [] = [[]]
   | subsets (x::xs) =
@@ -75,7 +75,7 @@ fun mk_rlz T = Const ("realizes", [T, HOLogic.boolT] ---> HOLogic.boolT);
 fun gen_rvar vs (t as Var ((a, 0), T)) =
       let val U = TVar (("'" ^ a, 0), HOLogic.typeS)
       in case try HOLogic.dest_setT T of
-          None => if body_type T <> HOLogic.boolT then t else
+          NONE => if body_type T <> HOLogic.boolT then t else
             let
               val Ts = binder_types T;
               val i = length Ts;
@@ -86,7 +86,7 @@ fun gen_rvar vs (t as Var ((a, 0), T)) =
                 list_abs (("r", U) :: xs, mk_rlz U $ Bound i $ u)
               else list_abs (xs, mk_rlz Extraction.nullT $ Extraction.nullt $ u)
             end
-        | Some T' => if a mem vs then
+        | SOME T' => if a mem vs then
               Abs ("r", U, Abs ("x", T', mk_rlz U $ Bound 1 $
                 (HOLogic.mk_mem (Bound 0, t))))
             else Abs ("x", T', mk_rlz Extraction.nullT $ Extraction.nullt $
@@ -112,7 +112,7 @@ fun mk_realizes_eqn n vs intrs =
     val rname = space_implode "_" (s ^ "R" :: vs);
 
     fun mk_Tprem n v =
-      let val Some T = assoc (rvs, v)
+      let val SOME T = assoc (rvs, v)
       in (Const ("typeof", T --> Type ("Type", [])) $ Var ((v, 0), T),
         Extraction.mk_typ (if n then Extraction.nullT
           else TVar (("'" ^ v, 0), HOLogic.typeS)))
@@ -199,11 +199,11 @@ fun indrule_realizer thy induct raw_induct rsets params vs rec_names rss intrs d
   let
     val concls = HOLogic.dest_conj (HOLogic.dest_Trueprop (concl_of raw_induct));
     val premss = mapfilter (fn (s, rs) => if s mem rsets then
-      Some (map (fn r => nth_elem (find_index_eq (prop_of r) (map prop_of intrs),
-        prems_of raw_induct)) rs) else None) rss;
+      SOME (map (fn r => nth_elem (find_index_eq (prop_of r) (map prop_of intrs),
+        prems_of raw_induct)) rs) else NONE) rss;
     val concls' = mapfilter (fn (s, _) => if s mem rsets then
         find_first (fn concl => s mem term_consts concl) concls
-      else None) rss;
+      else NONE) rss;
     val fs = flat (snd (foldl_map (fn (intrs, (prems, dummy)) =>
       let
         val (intrs1, intrs2) = splitAt (length prems, intrs);
@@ -217,8 +217,8 @@ fun indrule_realizer thy induct raw_induct rsets params vs rec_names rss intrs d
     val Ts = map fastype_of fs;
     val rlzs = mapfilter (fn (a, concl) =>
       let val T = Extraction.etype_of thy vs [] concl
-      in if T = Extraction.nullT then None
-        else Some (list_comb (Const (a, Ts ---> T), fs))
+      in if T = Extraction.nullT then NONE
+        else SOME (list_comb (Const (a, Ts ---> T), fs))
       end) (rec_names ~~ concls')
   in if null rlzs then Extraction.nullt else
     let
@@ -259,8 +259,8 @@ fun mk_realizer thy vs params ((rule, rrule), rt) =
     fun mk_prf _ [] prf = prf
       | mk_prf rs ((prem, rprem) :: prems) prf =
           if Extraction.etype_of thy vs [] prem = Extraction.nullT
-          then AbsP ("H", Some rprem, mk_prf rs prems prf)
-          else forall_intr_prf (Var (hd rs), AbsP ("H", Some rprem,
+          then AbsP ("H", SOME rprem, mk_prf rs prems prf)
+          else forall_intr_prf (Var (hd rs), AbsP ("H", SOME rprem,
             mk_prf (tl rs) prems prf));
 
   in (Thm.name_of_thm rule, (vs,
@@ -301,13 +301,13 @@ fun add_ind_realizer rsets intrs induct raw_induct elims (thy, vs) =
         (s, replicate ar HOLogic.typeS, HOLogic.typeS)) tnames) |>
         Extraction.add_typeof_eqns_i ty_eqs;
     val dts = mapfilter (fn (s, rs) => if s mem rsets then
-      Some (dt_of_intrs thy1' vs rs) else None) rss;
+      SOME (dt_of_intrs thy1' vs rs) else NONE) rss;
 
     (** datatype representing computational content of inductive set **)
 
     val (thy2, (dummies, dt_info)) = thy1 |>
-      (if null dts then rpair ([], None) else
-        apsnd (apsnd Some) o add_dummies (DatatypePackage.add_datatype_i false false
+      (if null dts then rpair ([], NONE) else
+        apsnd (apsnd SOME) o add_dummies (DatatypePackage.add_datatype_i false false
           (map #2 dts)) (map (pair false) dts) []) |>>
       Extraction.add_typeof_eqns_i ty_eqs |>>
       Extraction.add_realizes_eqns_i rlz_eqs;
@@ -346,7 +346,7 @@ fun add_ind_realizer rsets intrs induct raw_induct elims (thy, vs) =
     (** realizer for induction rule **)
 
     val Ps = mapfilter (fn _ $ M $ P => if set_of M mem rsets then
-      Some (fst (fst (dest_Var (head_of P)))) else None)
+      SOME (fst (fst (dest_Var (head_of P)))) else NONE)
         (HOLogic.dest_conj (HOLogic.dest_Trueprop (concl_of raw_induct)));
 
     fun add_ind_realizer (thy, Ps) =
@@ -434,7 +434,7 @@ fun add_ind_realizer rsets intrs induct raw_induct elims (thy, vs) =
     val elimps = mapfilter (fn (s, intrs) => if s mem rsets then
         apsome (rpair intrs) (find_first (fn (thm, _) =>
           s mem term_consts (hd (prems_of thm))) (elims ~~ #elims ind_info))
-      else None) rss;
+      else NONE) rss;
     val thy6 = foldl (fn (thy, p as (((((elim, _), _), _), _), _)) => thy |>
       add_elim_realizer [] p |> add_elim_realizer [fst (fst (dest_Var
         (HOLogic.dest_Trueprop (concl_of elim))))] p) (thy5,
@@ -446,8 +446,8 @@ fun add_ind_realizers name rsets thy =
   let
     val (_, {intrs, induct, raw_induct, elims, ...}) =
       (case InductivePackage.get_inductive thy name of
-         None => error ("Unknown inductive set " ^ quote name)
-       | Some info => info);
+         NONE => error ("Unknown inductive set " ^ quote name)
+       | SOME info => info);
     val _ $ (_ $ _ $ S) = concl_of (hd intrs);
     val vss = sort (int_ord o pairself length)
       (subsets (map fst (relevant_vars S)))
@@ -465,8 +465,8 @@ fun rlz_attrib arg (thy, thm) =
          handle TERM _ => err () | LIST _ => err ();
   in 
     (add_ind_realizers (hd sets) (case arg of
-        None => sets | Some None => []
-      | Some (Some sets') => sets \\ map (Sign.intern_const (sign_of thy)) sets')
+        NONE => sets | SOME NONE => []
+      | SOME (SOME sets') => sets \\ map (Sign.intern_const (sign_of thy)) sets')
       thy, thm)
   end;
 

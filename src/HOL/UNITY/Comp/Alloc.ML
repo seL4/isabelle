@@ -715,7 +715,7 @@ by (blast_tac (claset() addIs [System_safety, System_Progress]) 1);
 qed "System_correct";
 
 
-(** Some lemmas no longer used **)
+(** SOME lemmas no longer used **)
 
 Goal "non_dummy = (% (g,a,r). (| giv = g, ask = a, rel = r |)) o \
 \                             (funPair giv (funPair ask rel))";

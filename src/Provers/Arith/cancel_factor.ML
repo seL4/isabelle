@@ -56,18 +56,18 @@ fun div_sum d tks =
 
 fun proc sg _ t =
   (case try Data.dest_bal t of
-    None => None
-  | Some bal =>
+    NONE => NONE
+  | SOME bal =>
       (case pairself Data.dest_sum bal of
-        ([_], _) => None
-      | (_, [_]) => None
+        ([_], _) => NONE
+      | (_, [_]) => NONE
       | ts_us =>
           let
             val (tks, uks) = pairself count_terms ts_us;
             val d = gcds (gcds (0, map snd tks), map snd uks);
           in
-            if d = 0 orelse d = 1 then None
-            else Some
+            if d = 0 orelse d = 1 then NONE
+            else SOME
               (Data.prove_conv (Data.multiply_tac d) Data.norm_tac sg
                 (t, Data.mk_bal (div_sum d tks, div_sum d uks)))
           end));

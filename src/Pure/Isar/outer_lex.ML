@@ -186,8 +186,8 @@ val scan_symid =
 
 fun is_symid str =
   (case try Symbol.explode str of
-    Some [s] => Symbol.is_symbolic s orelse is_sym_char s
-  | Some ss => forall is_sym_char ss
+    SOME [s] => Symbol.is_symbolic s orelse is_sym_char s
+  | SOME ss => forall is_sym_char ss
   | _ => false);
 
 val is_sid = is_symid orf Syntax.is_identifier;
@@ -282,7 +282,7 @@ fun recover xs = (keep_line (Scan.any is_junk) >> (fn ts => [malformed_of ts])) 
 
 fun source do_recover get_lex pos src =
   Source.source' pos Symbol.stopper (Scan.bulk (fn xs => scan (get_lex ()) xs))
-    (if do_recover then Some recover else None) src;
+    (if do_recover then SOME recover else NONE) src;
 
 fun source_proper src = src |> Source.filter is_proper;
 

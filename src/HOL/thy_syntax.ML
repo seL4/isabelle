@@ -23,7 +23,7 @@ fun mk_typedef_decl (((((opt_name, vs), t), mx), rhs), wt) =
   end;
 
 val typedef_decl =
-  optional ("(" $$-- name --$$ ")" >> Some) None --
+  optional ("(" $$-- name --$$ ")" >> SOME) NONE --
   type_args -- name -- opt_infix --$$ "=" -- string -- opt_witness
   >> mk_typedef_decl;
 
@@ -33,7 +33,7 @@ val typedef_decl =
 
 val record_decl =
   (type_args -- name >> (mk_pair o apfst mk_list)) --$$ "="
-    -- optional (typ --$$ "+" >> (parens o cat "Some")) "None"
+    -- optional (typ --$$ "+" >> (parens o cat "SOME")) "NONE"
     -- repeat1 ((name --$$ "::" -- !! (typ -- opt_mixfix)) >> mk_triple2)
   >> (fn ((x, y), zs) => cat_lines [x, y, mk_big_list zs]);
 
@@ -95,8 +95,8 @@ local
 
   fun mk_bind_thms_string names =
    (case find_first (not o ThmDatabase.is_ml_identifier) names of
-      Some id => (warning (id ^ " is not a valid identifier"); "")
-    | None =>
+      SOME id => (warning (id ^ " is not a valid identifier"); "")
+    | NONE =>
         let
           fun mk_dt_struct (s, (id, i)) =
             s ^ "structure " ^ id ^ " =\n\
@@ -156,10 +156,10 @@ local
     \  case_thms, split_thms, induction, size, simps}) =\n\
     \ DatatypePackage.rep_datatype " ^
     (case names of
-        Some names => "(Some [" ^ Library.commas_quote names ^ "])\n " ^
+        SOME names => "(SOME [" ^ Library.commas_quote names ^ "])\n " ^
           mk_thmss distinct ^ "\n " ^ mk_thmss inject ^
             "\n " ^ mk_thm induct ^ " thy;\nin\n" ^ mk_bind_thms_string names
-      | None => "None\n " ^ mk_thmss distinct ^ "\n " ^ mk_thmss inject ^
+      | NONE => "NONE\n " ^ mk_thmss distinct ^ "\n " ^ mk_thmss inject ^
             "\n " ^ mk_thm induct ^ " thy;\nin\n") ^
     "val thy = thy;\nend;\nval thy = thy\n";
 
@@ -180,7 +180,7 @@ local
     simple_typ || ("(" $$-- complex_typ --$$ ")"));
   val constructor = name -- opt_typs -- opt_mixfix >> (fn ((n, Ts), mx) =>
     parens (n ^ ", " ^ brackets (Library.commas_quote Ts) ^ ", " ^ mx));
-  val opt_name = optional ("(" $$-- name --$$ ")" >> Some) None
+  val opt_name = optional ("(" $$-- name --$$ ")" >> SOME) NONE
 
   fun optlistlist s = optional (s $$-- enum "and" (list name)) [[]]
 
@@ -189,7 +189,7 @@ in
     enum1 "and" (opt_name -- type_args -- name -- opt_infix --$$ "=" --
       enum1 "|" constructor) >> mk_dt_string;
   val rep_datatype_decl =
-    ((optional ((repeat1 (name >> unenclose)) >> Some) None) --
+    ((optional ((repeat1 (name >> unenclose)) >> SOME) NONE) --
       optlistlist "distinct" -- optlistlist "inject" --
         ("induct" $$-- name)) >> mk_rep_dt_string;
 end;

@@ -24,7 +24,7 @@ Known problems:
   "Recursive" chains of rules can sometimes exclude other unsafe formulae
 	from expansion.  This happens because newly-created formulae always
 	have priority over existing ones.  But obviously recursive rules 
-	such as transitivity are treated specially to prevent this.  Sometimes
+	such as transitivity are treated specially to prevent this.  SOMEtimes
 	the formulae get into the wrong order (see WRONG below).
 
   With substition for equalities (hyp_subst_tac):
@@ -174,10 +174,10 @@ fun fromType alist (Term.Type(a,Ts)) = list_comb (Const a,
   | fromType alist (Term.TFree(a,_)) = Free a
   | fromType alist (Term.TVar (ixn,_)) =
 	      (case (assoc_string_int(!alist,ixn)) of
-		   None => let val t' = Var(ref None)
+		   NONE => let val t' = Var(ref NONE)
 		           in  alist := (ixn, t') :: !alist;  t'
 			   end
-		 | Some v => v)
+		 | SOME v => v)
 
 (*Monomorphic constants used in blast, plus binary propositional connectives.*)
 val standard_consts = 
@@ -192,8 +192,8 @@ val standard_const_table = Symtab.make (map (rpair()) standard_consts)
   known to be monomorphic, which promotes efficiency. *)
 fun fromConst alist (a,T) = 
     case Symtab.lookup(standard_const_table, a) of
-	None => TConst(a, fromType alist T)
-      | Some() => Const(a)
+	NONE => TConst(a, fromType alist T)
+      | SOME() => Const(a)
 
 
 (*Tests whether 2 terms are alpha-convertible; chases instantiations*)
@@ -201,8 +201,8 @@ fun (Const a)      aconv (Const b)      = a=b
   | (TConst (a,ta)) aconv (TConst (b,tb)) = a=b andalso ta aconv tb
   | (Skolem (a,_)) aconv (Skolem (b,_)) = a=b  (*arglists must then be equal*)
   | (Free a)       aconv (Free b)       = a=b
-  | (Var(ref(Some t))) aconv u          = t aconv u
-  | t          aconv (Var(ref(Some u))) = t aconv u
+  | (Var(ref(SOME t))) aconv u          = t aconv u
+  | t          aconv (Var(ref(SOME u))) = t aconv u
   | (Var v)        aconv (Var w)        = v=w	(*both Vars are un-assigned*)
   | (Bound i)      aconv (Bound j)      = i=j
   | (Abs(_,t))     aconv (Abs(_,u))     = t aconv u
@@ -225,8 +225,8 @@ fun ins_var(v,vs) = if mem_var(v,vs) then vs else v :: vs;
 
 (*Accumulates the Vars in the term, suppressing duplicates*)
 fun add_term_vars (Skolem(a,args),	vars) = add_vars_vars(args,vars)
-  | add_term_vars (Var (v as ref None),	vars) = ins_var (v, vars)
-  | add_term_vars (Var (ref (Some u)), vars)  = add_term_vars(u,vars)
+  | add_term_vars (Var (v as ref NONE),	vars) = ins_var (v, vars)
+  | add_term_vars (Var (ref (SOME u)), vars)  = add_term_vars(u,vars)
   | add_term_vars (TConst (_,t),	vars) = add_term_vars(t,vars)
   | add_term_vars (Abs (_,body),	vars) = add_term_vars(body,vars)
   | add_term_vars (f$t,	vars) =  add_term_vars (f, add_term_vars(t, vars))
@@ -236,9 +236,9 @@ and add_terms_vars ([],    vars) = vars
   | add_terms_vars (t::ts, vars) = add_terms_vars (ts, add_term_vars(t,vars))
 (*Var list version.*)
 and add_vars_vars ([],    vars) = vars
-  | add_vars_vars (ref (Some u) :: vs, vars) = 
+  | add_vars_vars (ref (SOME u) :: vs, vars) = 
 	add_vars_vars (vs, add_term_vars(u,vars))
-  | add_vars_vars (v::vs, vars) =   (*v must be a ref None*)
+  | add_vars_vars (v::vs, vars) =   (*v must be a ref NONE*)
 	add_vars_vars (vs, ins_var (v, vars));
 
 
@@ -285,8 +285,8 @@ fun subst_bound (arg, t) : term =
 fun norm t = case t of
     Skolem (a,args)      => Skolem(a, vars_in_vars args)
   | TConst(a,aT)         => TConst(a, norm aT)
-  | (Var (ref None))     => t
-  | (Var (ref (Some u))) => norm u
+  | (Var (ref NONE))     => t
+  | (Var (ref (SOME u))) => norm u
   | (f $ u) => (case norm f of
                     Abs(_,body) => norm (subst_bound (u, body))
                   | nf => nf $ norm u)
@@ -296,8 +296,8 @@ fun norm t = case t of
 (*Weak (one-level) normalize for use in unification*)
 fun wkNormAux t = case t of
     (Var v) => (case !v of
-		    Some u => wkNorm u
-		  | None   => t)
+		    SOME u => wkNorm u
+		  | NONE   => t)
   | (f $ u) => (case wkNormAux f of
 		    Abs(_,body) => wkNorm (subst_bound (u, body))
 		  | nf          => nf $ u)
@@ -324,8 +324,8 @@ fun varOccur v =
 	| occL lev (u::us) = occ lev u orelse occL lev us
       and occ lev (Var w) = 
 	      v=w orelse
-              (case !w of None   => false
-	                | Some u => occ lev u)
+              (case !w of NONE   => false
+	                | SOME u => occ lev u)
         | occ lev (Skolem(_,args)) = occL lev (map Var args)
             (*ignore TConst, since term variables can't occur in types (?) *)
         | occ lev (Bound i)  = lev <= i
@@ -343,7 +343,7 @@ val ntrail = ref 0;
 (*Restore the trail to some previous state: for backtracking*)
 fun clearTo n =
     while !ntrail<>n do
-	(hd(!trail) := None;
+	(hd(!trail) := NONE;
 	 trail := tl (!trail);
 	 ntrail := !ntrail - 1);
 
@@ -357,11 +357,11 @@ fun unify(vars,t,u) =
 	fun update (t as Var v, u) =
 	    if t aconv u then ()
 	    else if varOccur v u then raise UNIFY 
-	    else if mem_var(v, vars) then v := Some u
+	    else if mem_var(v, vars) then v := SOME u
 		 else (*avoid updating Vars in the branch if possible!*)
 		      if is_Var u andalso mem_var(dest_Var u, vars)
-		      then dest_Var u := Some t
-		      else (v := Some u;
+		      then dest_Var u := SOME t
+		      else (v := SOME u;
 			    trail := v :: !trail;  ntrail := !ntrail + 1)
 	fun unifyAux (t,u) = 
 	    case (wkNorm t,  wkNorm u) of
@@ -387,10 +387,10 @@ fun fromTerm t =
 	| from (Term.Bound i)     = Bound i
 	| from (Term.Var (ixn,T)) = 
 	      (case (assoc_string_int(!alistVar,ixn)) of
-		   None => let val t' = Var(ref None)
+		   NONE => let val t' = Var(ref NONE)
 		           in  alistVar := (ixn, t') :: !alistVar;  t'
 			   end
-		 | Some v => v)
+		 | SOME v => v)
 	| from (Term.Abs (a,_,u)) = 
 	      (case  from u  of
 		u' as (f $ Bound 0) => 
@@ -406,13 +406,13 @@ fun instVars t =
   let val name = ref "a"
       val updated = ref []
       fun inst (TConst(a,t)) = inst t
-	| inst (Var(v as ref None)) = (updated := v :: (!updated);
-				       v       := Some (Free ("?" ^ !name)); 
+	| inst (Var(v as ref NONE)) = (updated := v :: (!updated);
+				       v       := SOME (Free ("?" ^ !name)); 
 				       name    := Symbol.bump_string (!name))
 	| inst (Abs(a,t))    = inst t
 	| inst (f $ u)       = (inst f; inst u)
 	| inst _             = ()
-      fun revert() = seq (fn v => v:=None) (!updated)
+      fun revert() = seq (fn v => v:=NONE) (!updated)
   in  inst t; revert  end;
 
 
@@ -436,9 +436,9 @@ exception ElimBadConcl and ElimBadPrem;
   If we don't find it then the premise is ill-formed and could cause 
   PROOF FAILED*)
 fun delete_concl [] = raise ElimBadPrem
-  | delete_concl (Const "*Goal*" $ (Var (ref (Some (Const"*False*")))) :: Ps) =
+  | delete_concl (Const "*Goal*" $ (Var (ref (SOME (Const"*False*")))) :: Ps) =
 	Ps
-  | delete_concl (Const "Not" $ (Var (ref (Some (Const"*False*")))) :: Ps) =
+  | delete_concl (Const "Not" $ (Var (ref (SOME (Const"*False*")))) :: Ps) =
 	Ps
   | delete_concl (P::Ps) = P :: delete_concl Ps;
 
@@ -453,7 +453,7 @@ fun convertPrem t =
 fun convertRule vars t =
   let val (P::Ps) = strip_imp_prems t
       val Var v   = strip_imp_concl t
-  in  v := Some (Const"*False*");
+  in  v := SOME (Const"*False*");
       (P, map (convertPrem o skoPrem vars) Ps) 
   end
   handle Bind => raise ElimBadConcl;
@@ -595,12 +595,12 @@ fun showType (Free a)  = Term.TFree (a,[])
 	 | _ => dummyT);
 
 (*Display top-level overloading if any*)
-fun topType (TConst(a,t)) = Some (showType t)
+fun topType (TConst(a,t)) = SOME (showType t)
   | topType (Abs(a,t))    = topType t
   | topType (f $ u)       = (case topType f of
-				 None => topType u
+				 NONE => topType u
 			       | some => some)
-  | topType _             = None;
+  | topType _             = NONE;
 
 
 (*Convert from prototerms to ordinary terms with dummy types for tracing*)
@@ -609,8 +609,8 @@ fun showTerm d (Const a)     = Term.Const (a,dummyT)
   | showTerm d (Skolem(a,_)) = Term.Const (a,dummyT)
   | showTerm d (Free a)      = Term.Free  (a,dummyT)
   | showTerm d (Bound i)     = Term.Bound i
-  | showTerm d (Var(ref(Some u))) = showTerm d u
-  | showTerm d (Var(ref None))    = dummyVar2
+  | showTerm d (Var(ref(SOME u))) = showTerm d u
+  | showTerm d (Var(ref NONE))    = dummyVar2
   | showTerm d (Abs(a,t))    = if d=0 then dummyVar
 			       else Term.Abs(a, dummyT, showTerm (d-1) t)
   | showTerm d (f $ u)       = if d=0 then dummyVar
@@ -623,8 +623,8 @@ fun traceTerm sign t =
       val stm = string_of sign 8 t'
   in  
       case topType t' of
-	  None   => stm   (*no type to attach*)
-	| Some T => stm ^ "\t:: " ^ Sign.string_of_typ sign T
+	  NONE   => stm   (*no type to attach*)
+	| SOME T => stm ^ "\t:: " ^ Sign.string_of_typ sign T
   end;
 
 
@@ -672,7 +672,7 @@ fun traceNew prems =
 
 (*Replace the ATOMIC term "old" by "new" in t*)  
 fun subst_atomic (old,new) t =
-    let fun subst (Var(ref(Some u))) = subst u
+    let fun subst (Var(ref(SOME u))) = subst u
 	  | subst (Abs(a,body))      = Abs(a, subst body)
 	  | subst (f$t)              = subst f $ subst t
 	  | subst t                  = if t aconv old then new else t
@@ -708,7 +708,7 @@ fun substOccur t =
                      Skolem(_,vars) => vars
 		   | _ => []
       fun occEq u = (t aconv u) orelse occ u
-      and occ (Var(ref(Some u))) = occEq u
+      and occ (Var(ref(SOME u))) = occEq u
         | occ (Var v)            = not (mem_var (v, vars))
 	| occ (Abs(_,u))         = occEq u
         | occ (f$u)              = occEq u  orelse  occEq f
@@ -785,14 +785,14 @@ val eAssume_tac = TRACE asm_rl   (eq_assume_tac ORELSE' assume_tac);
 
 (*Try to unify complementary literals and return the corresponding tactic. *) 
 fun tryClose (Const"*Goal*" $ G,  L) = 
-	if unify([],G,L) then Some eAssume_tac else None
+	if unify([],G,L) then SOME eAssume_tac else NONE
   | tryClose (G,  Const"*Goal*" $ L) = 
-	if unify([],G,L) then Some eAssume_tac else None
+	if unify([],G,L) then SOME eAssume_tac else NONE
   | tryClose (Const"Not" $ G,  L)    = 
-	if unify([],G,L) then Some eContr_tac else None
+	if unify([],G,L) then SOME eContr_tac else NONE
   | tryClose (G,  Const"Not" $ L)    = 
-	if unify([],G,L) then Some eContr_tac else None
-  | tryClose _                       = None;
+	if unify([],G,L) then SOME eContr_tac else NONE
+  | tryClose _                       = NONE;
 
 
 (*Were there Skolem terms in the premise?  Must NOT chase Vars*)
@@ -1006,8 +1006,8 @@ fun prove (sign, start, cs, brs, cont) =
 	      fun closeF [] = raise CLOSEF
 		| closeF (L::Ls) = 
 		    case tryClose(G,L) of
-			None     => closeF Ls
-		      | Some tac => 
+			NONE     => closeF Ls
+		      | SOME tac => 
 			    let val choices' = 
 				    (if !trace then (immediate_output"branch closed";
 						     traceVars sign ntrl)
@@ -1222,10 +1222,10 @@ fun fromSubgoal t =
 	    | Term.Bound i     => apply (Bound i)
 	    | Term.Var (ix,_) => 
 		  (case (assoc_string_int(!alistVar,ix)) of
-		       None => (alistVar := (ix, (ref None, bounds ts))
+		       NONE => (alistVar := (ix, (ref NONE, bounds ts))
 					  :: !alistVar;
 				Var (hdvar(!alistVar)))
-		     | Some(v,is) => if is=bounds ts then Var v
+		     | SOME(v,is) => if is=bounds ts then Var v
 			    else raise TRANS
 				("Discrepancy among occurrences of "
 				 ^ Syntax.string_of_vname ix))
@@ -1267,7 +1267,7 @@ fun timing_depth_tac start cs lim i st0 =
 	  let val start = startTiming()
 	  in
 	  case Seq.pull(EVERY' (rev tacs) i st) of
-	      None => (writeln ("PROOF FAILED for depth " ^
+	      NONE => (writeln ("PROOF FAILED for depth " ^
 				Int.toString lim);
 		       if !trace then writeln "************************\n"
 		       else ();
@@ -1333,8 +1333,8 @@ fun blast_args m =
   Method.bang_sectioned_args' 
       Data.cla_modifiers (Scan.lift (Scan.option Args.nat)) m;
 
-fun blast_meth None = Data.cla_meth' blast_tac
-  | blast_meth (Some lim) = Data.cla_meth' (fn cs => depth_tac cs lim);
+fun blast_meth NONE = Data.cla_meth' blast_tac
+  | blast_meth (SOME lim) = Data.cla_meth' (fn cs => depth_tac cs lim);
 
 val setup = [Method.add_methods [("blast", blast_args blast_meth, 
 				  "tableau prover")]];

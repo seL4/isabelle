@@ -77,7 +77,7 @@ by (etac (less_up2c  RS iffD1) 1);
 qed "monofun_Ifup2";
 
 (* ------------------------------------------------------------------------ *)
-(* Some kind of surjectivity lemma                                          *)
+(* SOME kind of surjectivity lemma                                          *)
 (* ------------------------------------------------------------------------ *)
 
 Goal  "z=Iup(x) ==> Iup(Ifup(LAM x. x)(z)) = z";

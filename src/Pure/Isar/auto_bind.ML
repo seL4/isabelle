@@ -23,21 +23,21 @@ val thisN = "this";
 fun strip_judgment sg = ObjectLogic.drop_judgment sg o Logic.strip_assums_concl;
 
 fun statement_binds sg name prop =
-  [((name, 0), Some (Term.list_abs (Logic.strip_params prop, strip_judgment sg prop)))];
+  [((name, 0), SOME (Term.list_abs (Logic.strip_params prop, strip_judgment sg prop)))];
 
 
 (* goal *)
 
 fun goal sg [prop] = statement_binds sg thesisN prop
-  | goal _ _ = [((thesisN, 0), None)];
+  | goal _ _ = [((thesisN, 0), NONE)];
 
 
 (* facts *)
 
 fun get_arg sg prop =
   (case strip_judgment sg prop of
-    _ $ t => Some (Term.list_abs (Logic.strip_params prop, t))
-  | _ => None);
+    _ $ t => SOME (Term.list_abs (Logic.strip_params prop, t))
+  | _ => NONE);
 
 fun facts _ [] = []
   | facts sg props =

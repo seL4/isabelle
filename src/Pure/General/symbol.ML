@@ -361,13 +361,13 @@ fun is_letdig s = let val k = kind s in k = Letter orelse k = Digit orelse k = Q
 
 fun scanner msg scan chs =
   let
-    fun message (cs, None) = msg ^ ": " ^ quote (beginning 10 cs)
-      | message (cs, Some msg') = msg ^ ", " ^ msg' ^ ": " ^ quote (beginning 10 cs);
+    fun message (cs, NONE) = msg ^ ": " ^ quote (beginning 10 cs)
+      | message (cs, SOME msg') = msg ^ ", " ^ msg' ^ ": " ^ quote (beginning 10 cs);
     val fin_scan = Scan.error (Scan.finite stopper (!! message scan));
   in
     (case fin_scan chs of
       (result, []) => result
-    | (_, rest) => error (message (rest, None)))
+    | (_, rest) => error (message (rest, NONE)))
   end;
 
 
@@ -404,7 +404,7 @@ val recover =
   Scan.any ((not o is_blank) andf not_equal "\"" andf not_eof) >> K [malformed];
 
 fun source do_recover src =
-  Source.source stopper (Scan.bulk scan) (if do_recover then Some recover else None) src;
+  Source.source stopper (Scan.bulk scan) (if do_recover then SOME recover else NONE) src;
 
 
 (* explode *)

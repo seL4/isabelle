@@ -340,9 +340,9 @@ fun allpairs f xs ys =
   flat(map (fn x => map (fn y => f x y) ys) xs);
 
 fun extract_first p =
-  let fun extract xs (y::ys) = if p y then (Some y,xs@ys)
+  let fun extract xs (y::ys) = if p y then (SOME y,xs@ys)
                                else extract (y::xs) ys
-        | extract xs []      = (None,xs)
+        | extract xs []      = (NONE,xs)
   in extract [] end;
 
 fun print_ineqs ineqs =
@@ -361,8 +361,8 @@ fun elim(ineqs,hist) =
       val (triv,nontriv) = partition is_trivial ineqs in
   if not(null triv)
   then case Library.find_first is_answer triv of
-         None => elim(nontriv,hist)
-       | Some(Lineq(_,_,_,j)) => Success j
+         NONE => elim(nontriv,hist)
+       | SOME(Lineq(_,_,_,j)) => Success j
   else
   if null nontriv then Failure(hist)
   else
@@ -372,7 +372,7 @@ fun elim(ineqs,hist) =
          val sclist = sort (fn (x,y) => int_ord(abs(x),abs(y)))
                            (filter (fn i => i<>0) clist)
          val c = hd sclist
-         val (Some(eq as Lineq(_,_,ceq,_)),othereqs) =
+         val (SOME(eq as Lineq(_,_,ceq,_)),othereqs) =
                extract_first (fn Lineq(_,_,l,_) => c mem l) eqs
          val v = find_index_eq c ceq
          val (ioth,roth) = partition (fn (Lineq(_,_,l,_)) => el v l = 0)
@@ -424,41 +424,41 @@ fun mkthm sg asms just =
                             map fst lhs  union  (map fst rhs  union  ats))
                         ([], mapfilter (fn thm => if Thm.no_prems thm
                                         then LA_Data.decomp sg (concl_of thm)
-                                        else None) asms)
+                                        else NONE) asms)
 
       fun add2 thm1 thm2 =
         let val conj = thm1 RS (thm2 RS LA_Logic.conjI)
-        in get_first (fn th => Some(conj RS th) handle THM _ => None) add_mono_thms
+        in get_first (fn th => SOME(conj RS th) handle THM _ => NONE) add_mono_thms
         end;
 
-      fun try_add [] _ = None
+      fun try_add [] _ = NONE
         | try_add (thm1::thm1s) thm2 = case add2 thm1 thm2 of
-             None => try_add thm1s thm2 | some => some;
+             NONE => try_add thm1s thm2 | some => some;
 
       fun addthms thm1 thm2 =
         case add2 thm1 thm2 of
-          None => (case try_add ([thm1] RL inj_thms) thm2 of
-                     None => ( the(try_add ([thm2] RL inj_thms) thm1)
+          NONE => (case try_add ([thm1] RL inj_thms) thm2 of
+                     NONE => ( the(try_add ([thm2] RL inj_thms) thm1)
                                handle OPTION =>
                                (trace_thm "" thm1; trace_thm "" thm2;
                                 sys_error "Lin.arith. failed to add thms")
                              )
-                   | Some thm => thm)
-        | Some thm => thm;
+                   | SOME thm => thm)
+        | SOME thm => thm;
 
       fun multn(n,thm) =
         let fun mul(i,th) = if i=1 then th else mul(i-1, addthms thm th)
         in if n < 0 then mul(~n,thm) RS LA_Logic.sym else mul(n,thm) end;
 (*
       fun multn2(n,thm) =
-        let val Some(mth,cv) =
-              get_first (fn (th,cv) => Some(thm RS th,cv) handle THM _ => None) mult_mono_thms
+        let val SOME(mth,cv) =
+              get_first (fn (th,cv) => SOME(thm RS th,cv) handle THM _ => NONE) mult_mono_thms
             val ct = cterm_of sg (LA_Data.number_of(n,#T(rep_cterm cv)))
         in instantiate ([],[(cv,ct)]) mth end
 *)
       fun multn2(n,thm) =
-        let val Some(mth) =
-              get_first (fn th => Some(thm RS th) handle THM _ => None) mult_mono_thms
+        let val SOME(mth) =
+              get_first (fn th => SOME(thm RS th) handle THM _ => NONE) mult_mono_thms
             fun cvar(th,_ $ (_ $ _ $ var)) = cterm_of (#sign(rep_thm th)) var;
             val cv = cvar(mth, hd(prems_of mth));
             val ct = cterm_of sg (LA_Data.number_of(n,#T(rep_cterm cv)))
@@ -494,7 +494,7 @@ fun mkthm sg asms just =
   end
 end;
 
-fun coeff poly atom = case assoc(poly,atom) of None => 0 | Some i => i;
+fun coeff poly atom = case assoc(poly,atom) of NONE => 0 | SOME i => i;
 
 fun lcms is = foldl lcm (1,is);
 
@@ -563,12 +563,12 @@ fun trace_ex(sg,params,atoms,discr,n,hist:history) =
 fun mknat pTs ixs (atom,i) =
   if LA_Logic.is_nat(pTs,atom)
   then let val l = map (fn j => if j=i then 1 else 0) ixs
-       in Some(Lineq(0,Le,l,Nat(i))) end
-  else None
+       in SOME(Lineq(0,Le,l,Nat(i))) end
+  else NONE
 
 (* This code is tricky. It takes a list of premises in the order they occur
-in the subgoal. Numerical premises are coded as Some(tuple), non-numerical
-ones as None. Going through the premises, each numeric one is converted into
+in the subgoal. Numerical premises are coded as SOME(tuple), non-numerical
+ones as NONE. Going through the premises, each numeric one is converted into
 a Lineq. The tricky bit is to convert ~= which is split into two cases < and
 >. Thus split_items returns a list of equation systems. This may blow up if
 there are many ~=, but in practice it does not seem to happen. The really
@@ -580,10 +580,10 @@ For variables n of type nat, a constraint 0 <= n is added.
 *)
 fun split_items(items) =
   let fun elim_neq front _ [] = [rev front]
-        | elim_neq front n (None::ineqs) = elim_neq front (n+1) ineqs
-        | elim_neq front n (Some(ineq as (l,i,rel,r,j,d))::ineqs) =
-          if rel = "~=" then elim_neq front n (ineqs @ [Some(l,i,"<",r,j,d)]) @
-                             elim_neq front n (ineqs @ [Some(r,j,"<",l,i,d)])
+        | elim_neq front n (NONE::ineqs) = elim_neq front (n+1) ineqs
+        | elim_neq front n (SOME(ineq as (l,i,rel,r,j,d))::ineqs) =
+          if rel = "~=" then elim_neq front n (ineqs @ [SOME(l,i,"<",r,j,d)]) @
+                             elim_neq front n (ineqs @ [SOME(r,j,"<",l,i,d)])
           else elim_neq ((ineq,n) :: front) (n+1) ineqs
   in elim_neq [] 0 items end;
 
@@ -611,9 +611,9 @@ let
        | Failure(hist) =>
            (if not ex then ()
             else trace_ex(sg,params,atoms,discr initems,n,hist);
-            None)
+            NONE)
     end
-    | refute [] js = Some js
+    | refute [] js = SOME js
 in refute end;
 
 fun refute sg ps ex items = refutes sg ps ex (split_items items) [];
@@ -637,15 +637,15 @@ val fast_arith_neq_limit = ref 9;
 
 fun prove sg ps ex Hs concl =
 let val Hitems = map (LA_Data.decomp sg) Hs
-in if count (fn None => false | Some(_,_,r,_,_,_) => r = "~=") Hitems
-      > !fast_arith_neq_limit then None
+in if count (fn NONE => false | SOME(_,_,r,_,_,_) => r = "~=") Hitems
+      > !fast_arith_neq_limit then NONE
    else
    case LA_Data.decomp sg concl of
-     None => refute sg ps ex (Hitems@[None])
-   | Some(citem as (r,i,rel,l,j,d)) =>
+     NONE => refute sg ps ex (Hitems@[NONE])
+   | SOME(citem as (r,i,rel,l,j,d)) =>
        let val neg::rel0 = explode rel
            val nrel = if neg = "~" then implode rel0 else "~"^rel
-       in refute sg ps ex (Hitems @ [Some(r,i,nrel,l,j,d)]) end
+       in refute sg ps ex (Hitems @ [SOME(r,i,nrel,l,j,d)]) end
 end;
 
 (*
@@ -659,8 +659,8 @@ fun lin_arith_tac ex i st = SUBGOAL (fn (A,_) =>
       val concl = Logic.strip_assums_concl A
   in trace_thm ("Trying to refute subgoal " ^ string_of_int i) st;
      case prove (Thm.sign_of_thm st) (pTs,params) ex Hs concl of
-       None => (trace_msg "Refutation failed."; no_tac)
-     | Some js => (trace_msg "Refutation succeeded."; refute_tac(i,js))
+       NONE => (trace_msg "Refutation failed."; no_tac)
+     | SOME js => (trace_msg "Refutation succeeded."; refute_tac(i,js))
   end) i st;
 
 fun cut_lin_arith_tac thms i = cut_facts_tac thms i THEN lin_arith_tac false i;
@@ -702,7 +702,7 @@ fun fwdproof sg (Tip asms) (j::js) = (mkthm sg asms j, js)
         val thm1' = implies_intr ct1 thm1
         val thm2' = implies_intr ct2 thm2
     in (thm2' COMP (thm1' COMP thm), js2) end;
-(* needs handle THM _ => None ? *)
+(* needs handle THM _ => NONE ? *)
 
 fun prover sg thms Tconcl js pos =
 let val nTconcl = LA_Logic.neg_prop Tconcl
@@ -711,9 +711,9 @@ let val nTconcl = LA_Logic.neg_prop Tconcl
     val tree = splitasms (thms @ [nTconclthm])
     val (thm,_) = fwdproof sg tree js
     val contr = if pos then LA_Logic.ccontr else LA_Logic.notI
-in Some(LA_Logic.mk_Eq((implies_intr cnTconcl thm) COMP contr)) end
+in SOME(LA_Logic.mk_Eq((implies_intr cnTconcl thm) COMP contr)) end
 (* in case concl contains ?-var, which makes assume fail: *)
-handle THM _ => None;
+handle THM _ => NONE;
 
 (* PRE: concl is not negated!
    This assumption is OK because
@@ -727,11 +727,11 @@ let
     val Hs = map (#prop o rep_thm) thms
     val Tconcl = LA_Logic.mk_Trueprop concl
 in case prove sg ([],[]) false Hs Tconcl of (* concl provable? *)
-     Some js => prover sg thms Tconcl js true
-   | None => let val nTconcl = LA_Logic.neg_prop Tconcl
+     SOME js => prover sg thms Tconcl js true
+   | NONE => let val nTconcl = LA_Logic.neg_prop Tconcl
           in case prove sg ([],[]) false Hs nTconcl of (* ~concl provable? *)
-               Some js => prover sg thms nTconcl js false
-             | None => None
+               SOME js => prover sg thms nTconcl js false
+             | NONE => NONE
           end
 end;
 

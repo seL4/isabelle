@@ -1,22 +1,22 @@
 (* search_mu t searches for Mu terms in term t. In the case of nested Mu's,
-   it yields innermost one. If no Mu term is present, search_mu yields None
+   it yields innermost one. If no Mu term is present, search_mu yields NONE
 *)
 
 (* extended for treatment of nu (TH) *)
 fun search_mu ((Const("MuCalculus.mu",tp)) $ t2) = 
 	(case (search_mu t2) of
-	      Some t => Some t 
-	    | None => Some ((Const("MuCalculus.mu",tp)) $ t2))
+	      SOME t => SOME t 
+	    | NONE => SOME ((Const("MuCalculus.mu",tp)) $ t2))
   | search_mu ((Const("MuCalculus.nu",tp)) $ t2) =
         (case (search_mu t2) of
-              Some t => Some t
-            | None => Some ((Const("MuCalculus.nu",tp)) $ t2))
+              SOME t => SOME t
+            | NONE => SOME ((Const("MuCalculus.nu",tp)) $ t2))
   | search_mu (t1 $ t2) = 
 	(case (search_mu t1) of
-	      Some t => Some t 
-	    | None     => search_mu t2)
+	      SOME t => SOME t 
+	    | NONE     => search_mu t2)
   | search_mu (Abs(_,_,t)) = search_mu t
-  | search_mu _ = None;
+  | search_mu _ = NONE;
 
 
 
@@ -27,11 +27,11 @@ fun search_mu ((Const("MuCalculus.mu",tp)) $ t2) =
 fun search_var s t =
 case t of
      t1 $ t2 => (case (search_var s t1) of
-		             Some tt => Some tt |
-			     None => search_var s t2) |
+		             SOME tt => SOME tt |
+			     NONE => search_var s t2) |
      Abs(_,_,t) => search_var s t |
-     Var((s1,_),_) => if s = s1 then Some t else None |
-     _ => None;
+     Var((s1,_),_) => if s = s1 then SOME t else NONE |
+     _ => NONE;
 	
 
 (* function move_mus:
@@ -65,8 +65,8 @@ let val sign = #sign (rep_thm state);
 	      if t < 0 then 1 else t+1 end;
 in
 case redex of
-     None => all_tac state |
-     Some redexterm => 
+     NONE => all_tac state |
+     SOME redexterm => 
 	let val Credex = cterm_of sign redexterm;
 	    val aiCterm = 
 		cterm_of sig_move_thm (Logic.incr_indexes ([],idx) (term_of aCterm));
@@ -99,8 +99,8 @@ qed "ext_rl";
 
 infix cc;
 
-fun None cc xl = xl
-  | (Some x) cc xl = x::xl;
+fun NONE cc xl = xl
+  | (SOME x) cc xl = x::xl;
 
 fun getargs ((x $ y) $ (Var ((z,_),_))) = getargs (x $ y) ^ " " ^z
   | getargs (x $ (Var ((y,_),_))) = y;
@@ -126,18 +126,18 @@ fun delete_bold_string s = implode(delete_bold (explode s));
 in
 
 (* extension with removing bold font (TH) *)
-fun mk_lam_def (_::_) _ _ = None  
-  | mk_lam_def [] ((Const("==",_) $ (Const _)) $ RHS) t = Some t
+fun mk_lam_def (_::_) _ _ = NONE  
+  | mk_lam_def [] ((Const("==",_) $ (Const _)) $ RHS) t = SOME t
   | mk_lam_def [] ((Const("==",_) $ LHS) $ RHS) t = 
     let val tsig = #sign (rep_thm t);
 	val fnam = Sign.string_of_term tsig (getfun LHS);
 	val rhs = Sign.string_of_term tsig (freeze_thaw RHS)
 	val gl = delete_bold_string (fnam ^" == % " ^ (getargs LHS) ^" . " ^ rhs);
     in
-	Some (prove_goal (theory_of_sign tsig) gl (fn prems =>
+	SOME (prove_goal (theory_of_sign tsig) gl (fn prems =>
   		[(REPEAT (rtac ext_rl 1)), (rtac t 1) ]))
     end
-| mk_lam_def [] _ t= None; 
+| mk_lam_def [] _ t= NONE; 
 
 fun mk_lam_defs ([]:thm list) = ([]: thm list) 
   | mk_lam_defs (t::l) = 
@@ -157,8 +157,8 @@ val pair_eta_expand_proc =
   Simplifier.simproc (Theory.sign_of (the_context ()))
     "pair_eta_expand" ["f::'a*'b=>'c"]
     (fn _ => fn _ => fn t =>
-      case t of Abs _ => Some (mk_meta_eq pair_eta_expand)
-      | _ => None);
+      case t of Abs _ => SOME (mk_meta_eq pair_eta_expand)
+      | _ => NONE);
 
 val Mucke_ss = simpset() addsimprocs [pair_eta_expand_proc] addsimps [Let_def];
 

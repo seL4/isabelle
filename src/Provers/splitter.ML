@@ -332,8 +332,8 @@ fun split_tac [] i = no_tac
                (case strip_comb lhs of (Const(a,aT),args) =>
                   let val info = (aT,lhs,thm,fastype_of t,length args)
                   in case assoc(cmap,a) of
-                       Some infos => overwrite(cmap,(a,info::infos))
-                     | None => (a,[info])::cmap
+                       SOME infos => overwrite(cmap,(a,info::infos))
+                     | NONE => (a,[info])::cmap
                   end
                 | _ => split_format_err())
              | _ => split_format_err())

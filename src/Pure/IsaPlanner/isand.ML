@@ -175,9 +175,9 @@ fun allify_for_sg_term ctermify vs t =
 (* lookup type of a free var name from a list *)
 fun lookupfree vs vn  = 
     case Library.find_first (fn (n,ty) => n = vn) vs of 
-      None => raise ERROR_MESSAGE ("prepare_goal_export:lookupfree: " 
+      NONE => raise ERROR_MESSAGE ("prepare_goal_export:lookupfree: " 
                     ^ vn ^ " does not occur in the term")
-    | Some x => x;
+    | SOME x => x;
 in
 fun export_back (export {fixes = vs, assumes = hprems, 
                          sgid = i, gth = gth}) newth = 

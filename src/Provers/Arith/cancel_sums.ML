@@ -60,14 +60,14 @@ fun uncancel_sums_tac _ [] = all_tac
 
 fun proc sg _ t =
   (case try Data.dest_bal t of
-    None => None
-  | Some bal =>
+    NONE => NONE
+  | SOME bal =>
       let
         val (ts, us) = pairself (sort Term.term_ord o Data.dest_sum) bal;
         val (ts', us', vs) = cancel ts us [];
       in
-        if null vs then None
-        else Some
+        if null vs then NONE
+        else SOME
           (Data.prove_conv (uncancel_sums_tac sg vs) Data.norm_tac sg
             (t, Data.mk_bal (Data.mk_sum ts', Data.mk_sum us')))
       end);

@@ -39,8 +39,8 @@ fun name_of_kind Keyword = "keyword"
 
 (* diagnostics *)
 
-fun lex_err None msg = "Outer lexical error: " ^ msg
-  | lex_err (Some n) msg = "Outer lexical error on line " ^ string_of_int n ^ ": " ^ msg;
+fun lex_err NONE msg = "Outer lexical error: " ^ msg
+  | lex_err (SOME n) msg = "Outer lexical error on line " ^ string_of_int n ^ ": " ^ msg;
 
 
 (* line numbering *)
@@ -109,8 +109,8 @@ val scan_comment =
 
 (* scan token *)
 
-fun token k None x = (k, x, 0)
-  | token k (Some n) x = (k, x, n);
+fun token k NONE x = (k, x, 0)
+  | token k (SOME n) x = (k, x, n);
 
 fun scan_tok lex (n, cs) =
  (scan_string >> token String n ||
@@ -129,7 +129,7 @@ val scan_rest = Scan.any Symbol.not_eof >> implode;
 
 fun scan_token lex x =
   (case scan_tok lex x of
-    ((Keyword, "ML", n), x') => (keep_line scan_rest >> token Verbatim (Some n)) x'
+    ((Keyword, "ML", n), x') => (keep_line scan_rest >> token Verbatim (SOME n)) x'
   | tok_x' => tok_x');
 
 
@@ -140,7 +140,7 @@ fun tokenize lex chs =
     val scan_toks = Scan.repeat (scan_token lex);
     val ignore = fn (Ignore, _, _) => true | _ => false;
   in
-    (case Scan.error (Scan.finite' Symbol.stopper scan_toks) (Some 1, chs) of
+    (case Scan.error (Scan.finite' Symbol.stopper scan_toks) (SOME 1, chs) of
       (toks, (n, [])) => filter_out ignore toks @ [token EOF n "end-of-file"]
     | (_, (n, cs)) => error (lex_err n ("Bad input " ^ quote (Symbol.beginning 10 cs))))
   end;

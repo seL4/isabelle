@@ -163,9 +163,9 @@ datatype kind =
    the proof state *)
 
 fun kind_name _ (Theorem {kind = s, theory_spec = ((a, _), _),
-        locale_spec = None, view = _}) = s ^ (if a = "" then "" else " " ^ a)
+        locale_spec = NONE, view = _}) = s ^ (if a = "" then "" else " " ^ a)
   | kind_name sg (Theorem {kind = s, theory_spec = ((a, _), _),
-        locale_spec = Some (name, _), view = _}) =
+        locale_spec = SOME (name, _), view = _}) =
       s ^ " (in " ^ Locale.cond_extern sg name ^ ")" ^ (if a = "" then "" else " " ^ a)
   | kind_name _ (Show _) = "show"
   | kind_name _ (Have _) = "have";
@@ -208,15 +208,15 @@ fun err_malformed name state =
 
 fun check_result msg state sq =
   (case Seq.pull sq of
-    None => raise STATE (msg, state)
-  | Some s_sq => Seq.cons s_sq);
+    NONE => raise STATE (msg, state)
+  | SOME s_sq => Seq.cons s_sq);
 
 
 fun map_current f (State (Node {context, facts, mode, goal}, nodes)) =
   State (make_node (f (context, facts, mode, goal)), nodes);
 
 fun init_state thy =
-  State (make_node (ProofContext.init thy, None, Forward, None), []);
+  State (make_node (ProofContext.init thy, NONE, Forward, NONE), []);
 
 
 
@@ -247,7 +247,7 @@ val get_case = ProofContext.get_case o context_of;
 
 (* facts *)
 
-fun the_facts (State (Node {facts = Some facts, ...}, _)) = facts
+fun the_facts (State (Node {facts = SOME facts, ...}, _)) = facts
   | the_facts state = raise STATE ("No current facts available", state);
 
 fun the_fact state =
@@ -264,19 +264,19 @@ val thisN = "this";
 fun put_facts facts state =
   state
   |> map_current (fn (ctxt, _, mode, goal) => (ctxt, facts, mode, goal))
-  |> (case facts of None => reset_thms thisN | Some ths => put_thms (thisN, ths));
+  |> (case facts of NONE => reset_thms thisN | SOME ths => put_thms (thisN, ths));
 
-val reset_facts = put_facts None;
+val reset_facts = put_facts NONE;
 
 fun these_factss (state, named_factss) =
-  state |> put_facts (Some (flat (map snd named_factss)));
+  state |> put_facts (SOME (flat (map snd named_factss)));
 
 
 (* goal *)
 
 local
-  fun find i (state as State (Node {goal = Some goal, ...}, _)) = (context_of state, (i, goal))
-    | find i (State (Node {goal = None, ...}, node :: nodes)) = find (i + 1) (State (node, nodes))
+  fun find i (state as State (Node {goal = SOME goal, ...}, _)) = (context_of state, (i, goal))
+    | find i (State (Node {goal = NONE, ...}, node :: nodes)) = find (i + 1) (State (node, nodes))
     | find _ (state as State (_, [])) = err_malformed "find_goal" state;
 in val find_goal = find 0 end;
 
@@ -287,12 +287,12 @@ fun get_goal state =
 
 (*
 (* Jia: added here: get all goals from the state 10/01/05 *)
-fun find_all i (state as State (Node {goal = Some goal, ...}, node::nodes)) = 
+fun find_all i (state as State (Node {goal = SOME goal, ...}, node::nodes)) = 
     let val others = find_all (i+1) (State (node, nodes))
     in
 	(context_of state, (i, goal)) :: others
     end
-  | find_all i (State (Node {goal = None, ...}, node :: nodes)) = find_all (i + 1) (State (node, nodes))
+  | find_all i (State (Node {goal = NONE, ...}, node :: nodes)) = find_all (i + 1) (State (node, nodes))
   | find_all _ (state as State (_, [])) = [];
 
 val find_all_goals = find_all 0;
@@ -308,8 +308,8 @@ fun find_all_goals_ctxts state =
 
 fun put_goal goal = map_current (fn (ctxt, facts, mode, _) => (ctxt, facts, mode, goal));
 
-fun map_goal f g (State (Node {context, facts, mode, goal = Some goal}, nodes)) =
-      State (make_node (f context, facts, mode, Some (g goal)), nodes)
+fun map_goal f g (State (Node {context, facts, mode, goal = SOME goal}, nodes)) =
+      State (make_node (f context, facts, mode, SOME (g goal)), nodes)
   | map_goal f g (State (nd, node :: nodes)) =
       let val State (node', nodes') = map_goal f g (State (node, nodes))
       in map_context f (State (nd, node' :: nodes')) end
@@ -381,7 +381,7 @@ fun open_block (State (node, nodes)) = State (node, node :: nodes);
 fun new_block state =
   state
   |> open_block
-  |> put_goal None;
+  |> put_goal NONE;
 
 fun close_block (state as State (_, node :: nodes)) = State (node, nodes)
   | close_block state = raise STATE ("Unbalanced block parentheses", state);
@@ -396,8 +396,8 @@ val verbose = ProofContext.verbose;
 
 val pretty_goals_local = Display.pretty_goals_aux o ProofContext.pp;
 
-fun pretty_facts _ _ None = []
-  | pretty_facts s ctxt (Some ths) =
+fun pretty_facts _ _ NONE = []
+  | pretty_facts s ctxt (SOME ths) =
       [Pretty.big_list (s ^ "this:") (map (ProofContext.pretty_thm ctxt) ths), Pretty.str ""];
 
 fun pretty_state nr (state as State (Node {context = ctxt, facts, mode, goal = _}, nodes)) =
@@ -419,7 +419,7 @@ fun pretty_state nr (state as State (Node {context = ctxt, facts, mode, goal = _
 
     fun prt_goal (_, (i, (((kind, names, _), (goal_facts, thm)), _))) =
       pretty_facts "using " ctxt
-        (if mode <> Backward orelse null goal_facts then None else Some goal_facts) @
+        (if mode <> Backward orelse null goal_facts then NONE else SOME goal_facts) @
       [Pretty.str ("goal (" ^ kind_name (sign_of state) kind ^ prt_names names ^
           levels_up (i div 2) ^ subgoals (Thm.nprems_of thm) ^ "):")] @
       pretty_goals_local ctxt begin_goal (true, !show_main_goal) (! Display.goals_limit) thm;
@@ -517,12 +517,12 @@ fun export_goals inner print_rule raw_rules =
 
 fun transfer_facts inner_state state =
   (case get_facts inner_state of
-    None => Seq.single (reset_facts state)
-  | Some thms =>
+    NONE => Seq.single (reset_facts state)
+  | SOME thms =>
       let
         val exp_tac = ProofContext.export false (context_of inner_state) (context_of state);
         val thmqs = map exp_tac thms;
-      in Seq.map (fn ths => put_facts (Some ths) state) (Seq.commute thmqs) end);
+      in Seq.map (fn ths => put_facts (SOME ths) state) (Seq.commute thmqs) end);
 
 
 (* prepare result *)
@@ -634,7 +634,7 @@ end;
 (* locale instantiation *)
 
 fun instantiate_locale (loc_name, prfx_attribs) state = let
-    val facts = if is_chain state then get_facts state else None;
+    val facts = if is_chain state then get_facts state else NONE;
   in
     state
     |> assert_forward_or_chain
@@ -689,7 +689,7 @@ fun gen_def fix prep_term prep_pats raw_name atts (x, (raw_rhs, raw_pats)) state
     val lhs = ProofContext.bind_skolem ctxt [x] (Free (x, T));
   in
     state
-    |> fix [([x], None)]
+    |> fix [([x], NONE)]
     |> match_bind_i [(pats, rhs)]
     |> assm_i ProofContext.export_def [((name, atts), [(Logic.mk_equals (lhs, rhs), ([], []))])]
   end;
@@ -731,7 +731,7 @@ fun chain state =
 
 fun from_facts facts state =
   state
-  |> put_facts (Some facts)
+  |> put_facts (SOME facts)
   |> chain;
 
 
@@ -764,11 +764,11 @@ fun setup_goal opt_block prepp autofix kind after_qed pr names raw_propp state =
       commas (map (ProofContext.string_of_term (context_of state')) vars));
     state'
     |> map_context (autofix props)
-    |> put_goal (Some (((kind, names, propss), ([], goal)),
+    |> put_goal (SOME (((kind, names, propss), ([], goal)),
       (after_qed o map_context gen_binds, pr)))
     |> map_context (ProofContext.add_cases
      (if length props = 1 then
-      RuleCases.make true None (Thm.sign_of_thm goal, Thm.prop_of goal) [rule_contextN]
+      RuleCases.make true NONE (Thm.sign_of_thm goal, Thm.prop_of goal) [rule_contextN]
       else [(rule_contextN, RuleCases.empty)]))
     |> auto_bind_goal props
     |> (if is_chain state then use_facts else reset_facts)
@@ -793,7 +793,7 @@ fun global_goal prep kind raw_locale a elems concl thy =
     |> setup_goal I ProofContext.bind_propp_schematic_i ProofContext.fix_frees
       (Theorem {kind = kind,
         theory_spec = (a, map (snd o fst) concl),
-        locale_spec = (case raw_locale of None => None | Some (_, x) => Some (the opt_name, x)),
+        locale_spec = (case raw_locale of NONE => NONE | SOME (_, x) => SOME (the opt_name, x)),
         view = view})
       Seq.single true (map (fst o fst) concl) propp
   end;
@@ -823,12 +823,12 @@ val have_i = local_goal ProofContext.bind_propp_i Have;
 
 (* current goal *)
 
-fun current_goal (State (Node {context, goal = Some goal, ...}, _)) = (context, goal)
+fun current_goal (State (Node {context, goal = SOME goal, ...}, _)) = (context, goal)
   | current_goal state = raise STATE ("No current goal!", state);
 
-fun assert_current_goal true (state as State (Node {goal = None, ...}, _)) =
+fun assert_current_goal true (state as State (Node {goal = NONE, ...}, _)) =
       raise STATE ("No goal in this block!", state)
-  | assert_current_goal false (state as State (Node {goal = Some _, ...}, _)) =
+  | assert_current_goal false (state as State (Node {goal = SOME _, ...}, _)) =
       raise STATE ("Goal present in this block!", state)
   | assert_current_goal _ state = state;
 
@@ -907,7 +907,7 @@ fun finish_global state =
 
     val (theory', results') =
       theory_of state
-      |> (case locale_spec of None => I | Some (loc, (loc_atts, loc_attss)) => fn thy =>
+      |> (case locale_spec of NONE => I | SOME (loc, (loc_atts, loc_attss)) => fn thy =>
         if length names <> length loc_attss then
           raise THEORY ("Bad number of locale attributes", [thy])
         else (thy, locale_ctxt)

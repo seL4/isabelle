@@ -64,10 +64,10 @@ fun mk_var_names ids : string list = let
     fun nonreserved s = if s mem ["n","x","f","P"] then s^"'" else s;
     fun index_vnames(vn::vns,occupied) =
           (case assoc(occupied,vn) of
-             None => if vn mem vns
+             NONE => if vn mem vns
                      then (vn^"1") :: index_vnames(vns,(vn,1)  ::occupied)
                      else  vn      :: index_vnames(vns,          occupied)
-           | Some(i) => (vn^(string_of_int (i+1)))
+           | SOME(i) => (vn^(string_of_int (i+1)))
 				   :: index_vnames(vns,(vn,i+1)::occupied))
       | index_vnames([],occupied) = [];
 in index_vnames(map nonreserved ids, [("O",0),("o",0)]) end;

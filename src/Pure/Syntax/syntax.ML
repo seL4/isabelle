@@ -335,7 +335,7 @@ fun read_asts is_logtype (Syntax tabs) xids root str =
     val pts = Parser.parse gram root' (Lexicon.tokenize lexicon xids chars);
 
     fun show_pt pt =
-      warning (Pretty.string_of (Ast.pretty_ast (hd (SynTrans.pts_to_asts (K None) [pt]))));
+      warning (Pretty.string_of (Ast.pretty_ast (hd (SynTrans.pts_to_asts (K NONE) [pt]))));
   in
     if length pts > ! ambiguity_level then
         if ! ambiguity_is_error then
@@ -389,21 +389,21 @@ fun map_trrule f (ParseRule (x, y)) = ParseRule (f x, f y)
   | map_trrule f (PrintRule (x, y)) = PrintRule (f x, f y)
   | map_trrule f (ParsePrintRule (x, y)) = ParsePrintRule (f x, f y);
 
-fun parse_rule (ParseRule pats) = Some pats
-  | parse_rule (PrintRule _) = None
-  | parse_rule (ParsePrintRule pats) = Some pats;
+fun parse_rule (ParseRule pats) = SOME pats
+  | parse_rule (PrintRule _) = NONE
+  | parse_rule (ParsePrintRule pats) = SOME pats;
 
-fun print_rule (ParseRule _) = None
-  | print_rule (PrintRule pats) = Some (swap pats)
-  | print_rule (ParsePrintRule pats) = Some (swap pats);
+fun print_rule (ParseRule _) = NONE
+  | print_rule (PrintRule pats) = SOME (swap pats)
+  | print_rule (ParsePrintRule pats) = SOME (swap pats);
 
 
 fun check_rule (rule as (lhs, rhs)) =
   (case Ast.rule_error rule of
-    Some msg =>
+    SOME msg =>
       error ("Error in syntax translation rule: " ^ msg ^ "\n" ^
         Ast.str_of_ast lhs ^ "  ->  " ^ Ast.str_of_ast rhs)
-  | None => rule);
+  | NONE => rule);
 
 
 fun read_pattern is_logtype syn (root, str) =

@@ -124,7 +124,7 @@ struct
 (*Discover which goal is chosen:  SOMEGOAL(trace_goalno_tac tac) *)
 fun trace_goalno_tac tac i st =
     case Seq.pull(tac i st) of
-        None    => Seq.empty
+        NONE    => Seq.empty
       | seqcell => (tracing ("Subgoal " ^ string_of_int i ^ " selected");
                          Seq.make(fn()=> seqcell));
 
@@ -132,8 +132,8 @@ fun trace_goalno_tac tac i st =
 fun rule_by_tactic tac rl =
   let val (st, thaw) = freeze_thaw (zero_var_indexes rl)
   in case Seq.pull (tac st)  of
-        None        => raise THM("rule_by_tactic", 0, [rl])
-      | Some(st',_) => Thm.varifyT (thaw st')
+        NONE        => raise THM("rule_by_tactic", 0, [rl])
+      | SOME(st',_) => Thm.varifyT (thaw st')
   end;
 
 (*** Basic tactics ***)
@@ -227,7 +227,7 @@ fun read_insts_in_state (st, i, sinsts, rule) =
 	let val {sign,...} = rep_thm st
 	    and params = params_of_state st i
 	    and rts = types_sorts rule and (types,sorts) = types_sorts st
-	    fun types'(a,~1) = (case assoc(params,a) of None => types(a,~1) | sm => sm)
+	    fun types'(a,~1) = (case assoc(params,a) of NONE => types(a,~1) | sm => sm)
 	      | types'(ixn) = types ixn;
 	    val used = add_term_tvarnames
 	                  (prop_of st $ prop_of rule,[])
@@ -420,8 +420,8 @@ fun orderlist kbrls = untaglist (sort (int_ord o pairself fst) kbrls);
 fun insert_tagged_brl (kbrl as (k, (eres, th)), (inet, enet)) =
   if eres then
     (case try Thm.major_prem_of th of
-      Some prem => (inet, Net.insert_term ((prem, kbrl), enet, K false))
-    | None => error "insert_tagged_brl: elimination rule with no premises")
+      SOME prem => (inet, Net.insert_term ((prem, kbrl), enet, K false))
+    | NONE => error "insert_tagged_brl: elimination rule with no premises")
   else (Net.insert_term ((concl_of th, kbrl), inet, K false), enet);
 
 (*build a pair of nets for biresolution*)
@@ -435,8 +435,8 @@ in
 fun delete_tagged_brl (brl as (eres, th), (inet, enet)) =
   (if eres then
     (case try Thm.major_prem_of th of
-      Some prem => (inet, Net.delete_term ((prem, ((), brl)), enet, eq_kbrl))
-    | None => (inet, enet))  (*no major premise: ignore*)
+      SOME prem => (inet, Net.delete_term ((prem, ((), brl)), enet, eq_kbrl))
+    | NONE => (inet, enet))  (*no major premise: ignore*)
   else (Net.delete_term ((Thm.concl_of th, ((), brl)), inet, eq_kbrl), enet))
   handle Net.DELETE => (inet,enet);
 end;
@@ -575,8 +575,8 @@ fun fold_goals_tac defs = EVERY (map rewrite_goals_tac (rev_defs defs));
   it affects nothing but the names of bound variables!*)
 fun rename_params_tac xs i =
   case Library.find_first (not o Syntax.is_identifier) xs of
-      Some x => error ("Not an identifier: " ^ x)
-    | None => 
+      SOME x => error ("Not an identifier: " ^ x)
+    | NONE => 
        (if !Logic.auto_rename
 	 then (warning "Resetting Logic.auto_rename";
 	     Logic.auto_rename := false)
@@ -613,15 +613,15 @@ fun defer_tac i = PRIMITIVE (permute_prems (i-1) 1);
 
 (* remove premises that do not satisfy p; fails if all prems satisfy p *)
 fun filter_prems_tac p =
-  let fun Then None tac = Some tac
-        | Then (Some tac) tac' = Some(tac THEN' tac');
+  let fun Then NONE tac = SOME tac
+        | Then (SOME tac) tac' = SOME(tac THEN' tac');
       fun thins ((tac,n),H) =
         if p H then (tac,n+1)
         else (Then tac (rotate_tac n THEN' etac thin_rl),0);
   in SUBGOAL(fn (subg,n) =>
        let val Hs = Logic.strip_assums_hyp subg
-       in case fst(foldl thins ((None,0),Hs)) of
-            None => no_tac | Some tac => tac n
+       in case fst(foldl thins ((NONE,0),Hs)) of
+            NONE => no_tac | SOME tac => tac n
        end)
   end;
 
@@ -663,7 +663,7 @@ fun prove sign xs asms prop tac =
     val goal = Drule.mk_triv_goal (cert_safe prop);
 
     val goal' =
-      (case Seq.pull (tac prems goal) of Some (goal', _) => goal' | _ => err "Tactic failed.");
+      (case Seq.pull (tac prems goal) of SOME (goal', _) => goal' | _ => err "Tactic failed.");
     val ngoals = Thm.nprems_of goal';
     val raw_result = goal' RS Drule.rev_triv_goal;
     val prop' = prop_of raw_result;

@@ -92,8 +92,8 @@ fun maximals (Graph tab) =
 
 fun get_entry (Graph tab) x =
   (case Table.lookup (tab, x) of
-    Some entry => entry
-  | None => raise UNDEF x);
+    SOME entry => entry
+  | NONE => raise UNDEF x);
 
 fun map_entry x f (G as Graph tab) = Graph (Table.update ((x, f (get_entry G x)), tab));
 
@@ -154,8 +154,8 @@ fun new_node (x, info) (Graph tab) =
 fun del_nodes xs (Graph tab) =
   let
     fun del (x, (i, (preds, succs))) =
-      if x mem_key xs then None
-      else Some (x, (i, (foldl op del_key (preds, xs), foldl op del_key (succs, xs))));
+      if x mem_key xs then NONE
+      else SOME (x, (i, (foldl op del_key (preds, xs), foldl op del_key (succs, xs))));
   in Graph (Table.make (mapfilter del (Table.dest tab))) end;
 
 
@@ -177,7 +177,7 @@ fun del_edge (x, y) G =
 
 fun diff_edges G1 G2 =
   flat (dest G1 |> map (fn (x, ys) => ys |> mapfilter (fn y =>
-    if is_edge G2 (x, y) then None else Some (x, y))));
+    if is_edge G2 (x, y) then NONE else SOME (x, y))));
 
 fun edges G = diff_edges G empty;
 

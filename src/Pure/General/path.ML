@@ -130,7 +130,7 @@ fun unpack str = Path (norm
 
 fun split_path f (path as Path xs) =
   (case try split_last xs of
-    Some (prfx, Basic s) => f (prfx, s)
+    SOME (prfx, Basic s) => f (prfx, s)
   | _ => error ("Cannot split path into dir/base: " ^ quote (pack path)));
 
 val dir = split_path (fn (prfx, _) => Path prfx);

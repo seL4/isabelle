@@ -223,15 +223,15 @@ let
       (case Symbol.explode a of "'" :: _ => true | _ => false);
     val (tvs, vs) = partition is_tv insts;
     fun readT (ixn, st) =
-        let val S = case rsorts ixn of Some S => S | None => absent ixn;
+        let val S = case rsorts ixn of SOME S => S | NONE => absent ixn;
             val T = Sign.read_typ (sign,sorts) st;
         in if Sign.typ_instance sign (T, TVar(ixn,S)) then (ixn,T)
            else inst_failure ixn
         end
     val tye = map readT tvs;
     fun mkty(ixn,st) = (case rtypes ixn of
-                          Some T => (ixn,(st,typ_subst_TVars tye T))
-                        | None => absent ixn);
+                          SOME T => (ixn,(st,typ_subst_TVars tye T))
+                        | NONE => absent ixn);
     val ixnsTs = map mkty vs;
     val ixns = map fst ixnsTs
     and sTs  = map snd ixnsTs
@@ -294,7 +294,7 @@ val internalK = "internal";
 
 fun get_kind thm =
   (case Library.assoc (#2 (Thm.get_name_tags thm), "kind") of
-    Some (k :: _) => k
+    SOME (k :: _) => k
   | _ => "unknown");
 
 fun kind_rule k = tag_rule ("kind", [k]) o untag_rule "kind";
@@ -667,7 +667,7 @@ fun forall_conv cv ct =
   let val p as (ct1, ct2) = Thm.dest_comb ct
   in (case pairself term_of p of
       (Const ("all", _), Abs (s, _, _)) =>
-         let val (v, ct') = Thm.dest_abs (Some "@") ct2;
+         let val (v, ct') = Thm.dest_abs (SOME "@") ct2;
          in Thm.combination (Thm.reflexive ct1)
            (Thm.abstract_rule s v (forall_conv cv ct'))
          end
@@ -677,7 +677,7 @@ fun forall_conv cv ct =
 (*Use a conversion to transform a theorem*)
 fun fconv_rule cv th = equal_elim (cv (cprop_of th)) th;
 
-(*** Some useful meta-theorems ***)
+(*** SOME useful meta-theorems ***)
 
 (*The rule V/V, obtains assumption solving for eresolve_tac*)
 val asm_rl = store_standard_thm_open "asm_rl" (Thm.trivial (read_prop "PROP ?psi"));
@@ -913,8 +913,8 @@ fun instantiate' cTs cts thm =
         handle TYPE (msg, _, _) => err msg;
 
     fun zip_vars _ [] = []
-      | zip_vars (_ :: vs) (None :: opt_ts) = zip_vars vs opt_ts
-      | zip_vars (v :: vs) (Some t :: opt_ts) = (v, t) :: zip_vars vs opt_ts
+      | zip_vars (_ :: vs) (NONE :: opt_ts) = zip_vars vs opt_ts
+      | zip_vars (v :: vs) (SOME t :: opt_ts) = (v, t) :: zip_vars vs opt_ts
       | zip_vars [] _ = err "more instantiations than variables in thm";
 
     (*instantiate types first!*)
@@ -972,14 +972,14 @@ fun rename_bvars' xs thm =
 fun unvarifyT thm =
   let
     val cT = Thm.ctyp_of (Thm.sign_of_thm thm);
-    val tfrees = map (fn ((x, _), S) => Some (cT (TFree (x, S)))) (tvars_of thm);
+    val tfrees = map (fn ((x, _), S) => SOME (cT (TFree (x, S)))) (tvars_of thm);
   in instantiate' tfrees [] thm end;
 
 fun unvarify raw_thm =
   let
     val thm = unvarifyT raw_thm;
     val ct = Thm.cterm_of (Thm.sign_of_thm thm);
-    val frees = map (fn ((x, _), T) => Some (ct (Free (x, T)))) (vars_of thm);
+    val frees = map (fn ((x, _), T) => SOME (ct (Free (x, T)))) (vars_of thm);
   in instantiate' [] frees thm end;
 
 
@@ -1014,14 +1014,14 @@ fun freeze_all_TVars thm =
     [] => thm
   | tvars =>
       let val cert = Thm.ctyp_of (Thm.sign_of_thm thm)
-      in instantiate' (map (fn ((x, _), S) => Some (cert (TFree (x, S)))) tvars) [] thm end);
+      in instantiate' (map (fn ((x, _), S) => SOME (cert (TFree (x, S)))) tvars) [] thm end);
 
 fun freeze_all_Vars thm =
   (case vars_of thm of
     [] => thm
   | vars =>
       let val cert = Thm.cterm_of (Thm.sign_of_thm thm)
-      in instantiate' [] (map (fn ((x, _), T) => Some (cert (Free (x, T)))) vars) thm end);
+      in instantiate' [] (map (fn ((x, _), T) => SOME (cert (Free (x, T)))) vars) thm end);
 
 val freeze_all = freeze_all_Vars o freeze_all_TVars;
 
@@ -1029,7 +1029,7 @@ val freeze_all = freeze_all_Vars o freeze_all_TVars;
 (* mk_triv_goal *)
 
 (*make an initial proof state, "PROP A ==> (PROP A)" *)
-fun mk_triv_goal ct = instantiate' [] [Some ct] triv_goal;
+fun mk_triv_goal ct = instantiate' [] [SOME ct] triv_goal;
 
 
 

@@ -42,12 +42,12 @@ struct
   val name = "Pure/object-logic";
   type T = string option * (thm list * thm list);
 
-  val empty = (None, ([], [Drule.norm_hhf_eq]));
+  val empty = (NONE, ([], [Drule.norm_hhf_eq]));
   val copy = I;
   val prep_ext = I;
 
-  fun merge_judgment (Some x, Some y) =
-        if x = y then Some x else error "Attempt to merge different object-logics"
+  fun merge_judgment (SOME x, SOME y) =
+        if x = y then SOME x else error "Attempt to merge different object-logics"
     | merge_judgment (j1, j2) = if is_some j1 then j1 else j2;
 
   fun merge ((judgment1, (atomize1, rulify1)), (judgment2, (atomize2, rulify2))) =
@@ -66,14 +66,14 @@ structure ObjectLogicData = TheoryDataFun(ObjectLogicDataArgs);
 
 local
 
-fun new_judgment name (None, rules) = (Some name, rules)
-  | new_judgment _ (Some _, _) = error "Attempt to redeclare object-logic judgment";
+fun new_judgment name (NONE, rules) = (SOME name, rules)
+  | new_judgment _ (SOME _, _) = error "Attempt to redeclare object-logic judgment";
 
 fun add_final name thy =
   let
     val typ = case Sign.const_type (sign_of thy) name of
-		Some T => T
-	      | None => error "Internal error in ObjectLogic.gen_add_judgment";
+		SOME T => T
+	      | NONE => error "Internal error in ObjectLogic.gen_add_judgment";
   in
     Theory.add_finals_i false [Const(name,typ)] thy
   end;
@@ -100,7 +100,7 @@ end;
 
 fun judgment_name sg =
   (case ObjectLogicData.get_sg sg of
-    (Some name, _) => name
+    (SOME name, _) => name
   | _ => raise TERM ("Unknown object-logic judgment", []));
 
 fun is_judgment sg (Const (c, _) $ _) = c = judgment_name sg
@@ -166,7 +166,7 @@ fun full_atomize_tac i st =
   rewrite_goal_tac (get_atomize (Thm.sign_of_thm st)) i st;
 
 fun atomize_goal i st =
-  (case Seq.pull (atomize_tac i st) of None => st | Some (st', _) => st');
+  (case Seq.pull (atomize_tac i st) of NONE => st | SOME (st', _) => st');
 
 
 (* rulify *)

@@ -117,8 +117,8 @@ fun remove_suc thy thms =
     val eqs1 = flat (map
       (fn th => map (pair th) (find_vars (lhs_of th))) thms);
     val eqs2 = map (fn x as (_, ((_, ctzero), _)) => (x, mapfilter (fn th =>
-      Some (th, Thm.cterm_match (lhs_of th, ctzero))
-        handle Pattern.MATCH => None) thms)) eqs1;
+      SOME (th, Thm.cterm_match (lhs_of th, ctzero))
+        handle Pattern.MATCH => NONE) thms)) eqs1;
     fun distinct_vars vs = forall is_Var vs andalso null (duplicates vs);
     val eqs2' = map (apsnd (filter (fn (_, (_, s)) =>
       distinct_vars (map (term_of o snd) s)))) eqs2;
@@ -129,21 +129,21 @@ fun remove_suc thy thms =
           Thm.implies_elim (Thm.implies_elim
            (Drule.fconv_rule (Thm.beta_conversion true)
              (Drule.instantiate'
-               [Some (ctyp_of_term ct)] [Some (Thm.cabs cv ct),
-                 Some (rhs_of th''), Some (Thm.cabs cv' (rhs_of th)), Some cv']
+               [SOME (ctyp_of_term ct)] [SOME (Thm.cabs cv ct),
+                 SOME (rhs_of th''), SOME (Thm.cabs cv' (rhs_of th)), SOME cv']
                Suc_if_eq')) th'') (Thm.forall_intr cv' th)
       in
         mapfilter (fn thm =>
-          if thm = th then Some th'''
-          else if b andalso thm = th' then None
-          else Some thm) thms
+          if thm = th then SOME th'''
+          else if b andalso thm = th' then NONE
+          else SOME thm) thms
       end
   in
     case Library.find_first (not o null o snd) eqs2' of
-      None => (case Library.find_first (not o null o snd) eqs2 of
-        None => thms
-      | Some x => remove_suc thy (mk_thms false x))
-    | Some x => remove_suc thy (mk_thms true x)
+      NONE => (case Library.find_first (not o null o snd) eqs2 of
+        NONE => thms
+      | SOME x => remove_suc thy (mk_thms false x))
+    | SOME x => remove_suc thy (mk_thms true x)
   end;
 
 fun eqn_suc_preproc thy ths =
@@ -161,25 +161,25 @@ fun remove_suc_clause thy thms =
     val Suc_clause' = Thm.transfer thy Suc_clause;
     val vname = variant (map fst
       (foldl add_term_varnames ([], map prop_of thms))) "x";
-    fun find_var (t as Const ("Suc", _) $ (v as Var _)) = Some (t, v)
-      | find_var (t $ u) = (case find_var t of None => find_var u | x => x)
-      | find_var _ = None;
+    fun find_var (t as Const ("Suc", _) $ (v as Var _)) = SOME (t, v)
+      | find_var (t $ u) = (case find_var t of NONE => find_var u | x => x)
+      | find_var _ = NONE;
     fun find_thm th =
       let val th' = ObjectLogic.atomize_thm th
       in apsome (pair (th, th')) (find_var (prop_of th')) end
   in
     case get_first find_thm thms of
-      None => thms
-    | Some ((th, th'), (Sucv, v)) =>
+      NONE => thms
+    | SOME ((th, th'), (Sucv, v)) =>
         let
           val cert = cterm_of (sign_of_thm th);
           val th'' = ObjectLogic.rulify (Thm.implies_elim
             (Drule.fconv_rule (Thm.beta_conversion true)
               (Drule.instantiate' []
-                [Some (cert (lambda v (Abs ("x", HOLogic.natT,
+                [SOME (cert (lambda v (Abs ("x", HOLogic.natT,
                    abstract_over (Sucv,
                      HOLogic.dest_Trueprop (prop_of th')))))),
-                 Some (cert v)] Suc_clause'))
+                 SOME (cert v)] Suc_clause'))
             (Thm.forall_intr (cert v) th'))
         in
           remove_suc_clause thy (map (fn th''' =>

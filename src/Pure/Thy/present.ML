@@ -177,8 +177,8 @@ fun init_theory_info name info =
 fun change_theory_info name f =
   change_browser_info (fn (info as (theories, files, tex_index, html_index, graph)) =>
     (case Symtab.lookup (theories, name) of
-      None => (warning ("Browser info: cannot access theory document " ^ quote name); info)
-    | Some info => (Symtab.update ((name, map_theory_info f info), theories), files,
+      NONE => (warning ("Browser info: cannot access theory document " ^ quote name); info)
+    | SOME info => (Symtab.update ((name, map_theory_info f info), theories), files,
         tex_index, html_index, graph)));
 
 
@@ -231,9 +231,9 @@ fun make_session_info
 
 (* state *)
 
-val session_info = ref (None: session_info option);
+val session_info = ref (NONE: session_info option);
 
-fun with_session x f = (case ! session_info of None => x | Some info => f info);
+fun with_session x f = (case ! session_info of NONE => x | SOME info => f info);
 fun with_context f = f (PureThy.get_name (Context.the_context ()));
 
 
@@ -260,8 +260,8 @@ fun create_index dir =
 
 fun update_index dir name =
   (case try get_entries dir of
-    None => warning ("Browser info: cannot access session index of " ^ quote (Path.pack dir))
-  | Some es => (put_entries ((es \ name) @ [name]) dir; create_index dir));
+    NONE => warning ("Browser info: cannot access session index of " ^ quote (Path.pack dir))
+  | SOME es => (put_entries ((es \ name) @ [name]) dir; create_index dir));
 
 
 (* init session *)
@@ -280,7 +280,7 @@ fun name_of_session elems = space_implode "/" ("Isabelle" :: elems);
 
 fun init build info doc doc_graph path name doc_prefix2 (remote_path, first_time) verbose =
   if not build andalso not info andalso doc = "" andalso is_none doc_prefix2 then
-    (browser_info := empty_browser_info; session_info := None)
+    (browser_info := empty_browser_info; session_info := NONE)
   else
     let
       val parent_name = name_of_session (Library.take (length path - 1, path));
@@ -289,25 +289,25 @@ fun init build info doc doc_graph path name doc_prefix2 (remote_path, first_time
       val html_prefix = Path.append (Path.expand output_path) sess_prefix;
 
       val (doc_prefix1, document_path) =
-        if doc = "" then (None, None)
+        if doc = "" then (NONE, NONE)
         else if not (File.exists doc_path) then (conditional verbose (fn () =>
-          std_error "Warning: missing document directory\n"); (None, None))
-        else (Some (Path.append html_prefix doc_path), Some (Path.ext doc doc_path));
+          std_error "Warning: missing document directory\n"); (NONE, NONE))
+        else (SOME (Path.append html_prefix doc_path), SOME (Path.ext doc doc_path));
 
       val parent_index_path = Path.append Path.parent index_path;
       val index_up_lnk = if first_time then
           Url.append (the remote_path) (Url.File (Path.append sess_prefix parent_index_path))
         else Url.File parent_index_path;
       val readme =
-        if File.exists readme_html_path then Some readme_html_path
-        else if File.exists readme_path then Some readme_path
-        else None;
+        if File.exists readme_html_path then SOME readme_html_path
+        else if File.exists readme_path then SOME readme_path
+        else NONE;
 
       val index_text = HTML.begin_index (index_up_lnk, parent_name)
         (Url.File index_path, session_name) (apsome Url.File readme)
           (apsome Url.File document_path) (Url.unpack "medium.html");
     in
-      session_info := Some (make_session_info (name, parent_name, session_name, path, html_prefix,
+      session_info := SOME (make_session_info (name, parent_name, session_name, path, html_prefix,
       info, doc, doc_graph, doc_prefix1, doc_prefix2, remote_path, verbose, readme));
       browser_info := init_browser_info remote_path path;
       add_html_index index_text
@@ -364,13 +364,13 @@ fun finish () = with_session () (fn {name, info, html_prefix, doc_format, doc_gr
 
     val opt_graphs =
       if doc_graph andalso (is_some doc_prefix1 orelse is_some doc_prefix2) then
-        Some (isatool_browser graph)
-      else None;
+        SOME (isatool_browser graph)
+      else NONE;
 
     fun prepare_sources path =
      (copy_all doc_path path;
       copy_files (Path.unpack "~~/lib/texinputs/*.sty") path;
-      (case opt_graphs of None => () | Some (pdf, eps) =>
+      (case opt_graphs of NONE => () | SOME (pdf, eps) =>
         (File.write (Path.append path graph_pdf_path) pdf;
           File.write (Path.append path graph_eps_path) eps));
       write_tex_index tex_index path;
@@ -382,7 +382,7 @@ fun finish () = with_session () (fn {name, info, html_prefix, doc_format, doc_gr
       File.write (Path.append html_prefix session_entries_path) "";
       create_index html_prefix;
       if length path > 1 then update_index parent_html_prefix name else ();
-      (case readme of None => () | Some path => File.copy path (Path.append html_prefix path));
+      (case readme of NONE => () | SOME path => File.copy path (Path.append html_prefix path));
       write_graph graph (Path.append html_prefix graph_path);
       copy_files (Path.unpack "~~/lib/browser/GraphBrowser.jar") html_prefix;
       seq (fn (a, txt) => File.write (Path.append html_prefix (Path.basic a)) txt)
@@ -393,18 +393,18 @@ fun finish () = with_session () (fn {name, info, html_prefix, doc_format, doc_gr
       conditional verbose (fn () =>
         std_error ("Browser info at " ^ show_path html_prefix ^ "\n"))));
 
-    (case doc_prefix2 of None => () | Some path =>
+    (case doc_prefix2 of NONE => () | SOME path =>
      (prepare_sources path;
       conditional verbose (fn () => std_error ("Document sources at " ^ show_path path ^ "\n"))));
 
-    (case doc_prefix1 of None => () | Some path =>
+    (case doc_prefix1 of NONE => () | SOME path =>
      (prepare_sources path;
       isatool_document true doc_format path;
       conditional verbose (fn () =>
         std_error ("Document at " ^ show_path (Path.ext doc_format path) ^ "\n"))));
 
     browser_info := empty_browser_info;
-    session_info := None
+    session_info := NONE
   end);
 
 
@@ -425,8 +425,8 @@ fun theory_output name s =
 
 fun parent_link remote_path curr_session name =
   let val {name = _, session, is_local} = get_info (ThyInfo.theory name)
-  in (if null session then None else
-     Some (if is_some remote_path andalso not is_local then
+  in (if null session then NONE else
+     SOME (if is_some remote_path andalso not is_local then
        Url.append (the remote_path) (Url.File
          (Path.append (Path.make session) (html_path name)))
      else Url.File (Path.append (mk_rel_path curr_session session)
@@ -438,22 +438,22 @@ fun begin_theory optpath name raw_parents orig_files thy =
   let
     val parents = map (parent_link remote_path path) raw_parents;
     val ml_path = ThyLoad.ml_path name;
-    val files = map (apsnd Some) orig_files @
-      (if is_some (ThyLoad.check_file optpath ml_path) then [(ml_path, None)] else []);
+    val files = map (apsnd SOME) orig_files @
+      (if is_some (ThyLoad.check_file optpath ml_path) then [(ml_path, NONE)] else []);
 
     fun prep_file (raw_path, loadit) =
       (case ThyLoad.check_file optpath raw_path of
-        Some (path, _) =>
+        SOME (path, _) =>
           let
             val base = Path.base path;
             val base_html = html_ext base;
           in
             add_file (Path.append html_prefix base_html,
               HTML.ml_file (Url.File base) (File.read path));
-            (Some (Url.File base_html), Url.File raw_path, loadit)
+            (SOME (Url.File base_html), Url.File raw_path, loadit)
           end
-      | None => (warning ("Browser info: expected to find ML file" ^ quote (Path.pack raw_path));
-          (None, Url.File raw_path, loadit)));
+      | NONE => (warning ("Browser info: expected to find ML file" ^ quote (Path.pack raw_path));
+          (NONE, Url.File raw_path, loadit)));
 
     val files_html = map prep_file files;
 

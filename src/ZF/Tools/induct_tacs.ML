@@ -78,8 +78,8 @@ struct
 
 fun datatype_info_sg sign name =
   (case Symtab.lookup (DatatypesData.get_sg sign, name) of
-    Some info => info
-  | None => error ("Unknown datatype " ^ quote name));
+    SOME info => info
+  | NONE => error ("Unknown datatype " ^ quote name));
 
 
 (*Given a variable, find the inductive set associated it in the assumptions*)
@@ -92,8 +92,8 @@ fun find_tname var Bi =
       val pairs = mapfilter (try (mk_pair o FOLogic.dest_Trueprop))
           (#2 (strip_context Bi))
   in case assoc (pairs, var) of
-       None => raise Find_tname ("Cannot determine datatype of " ^ quote var)
-     | Some t => t
+       NONE => raise Find_tname ("Cannot determine datatype of " ^ quote var)
+     | SOME t => t
   end;
 
 (** generic exhaustion and induction tactic for datatypes

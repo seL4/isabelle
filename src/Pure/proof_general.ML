@@ -136,15 +136,15 @@ fun tagit (kind, bg_tag) x =
 
 fun free_or_skolem x =
   (case try Syntax.dest_skolem x of
-    None => tagit free_tag x
-  | Some x' => tagit skolem_tag x');
+    NONE => tagit free_tag x
+  | SOME x' => tagit skolem_tag x');
 
 fun var_or_skolem s =
   (case Syntax.read_var s of
     Var ((x, i), _) =>
       (case try Syntax.dest_skolem x of
-        None => tagit var_tag s
-      | Some x' => tagit skolem_tag (Syntax.string_of_vname (x', i)))
+        NONE => tagit var_tag s
+      | SOME x' => tagit skolem_tag (Syntax.string_of_vname (x', i)))
   | _ => tagit var_tag s);
 
 val proof_general_trans =
@@ -161,8 +161,8 @@ in val setup = [Theory.add_tokentrfuns proof_general_trans] end;
 
 (* assembling PGIP packets *)
 
-val pgip_refseq = ref None : string option ref
-val pgip_refid = ref None : string option ref
+val pgip_refseq = ref NONE : string option ref
+val pgip_refid = ref NONE : string option ref
 
 local
     val myseq_no = ref 1;      (* PGIP packet counter *)
@@ -370,7 +370,7 @@ end
 (* misc commands for ProofGeneral/isa *)
 
 fun thms_containing ss =
-  ProofContext.print_thms_containing (ProofContext.init (the_context ())) None ss;
+  ProofContext.print_thms_containing (ProofContext.init (the_context ())) NONE ss;
 
 val welcome = priority o Session.welcome;
 val help = welcome;
@@ -414,14 +414,14 @@ val update_thy_only = setmp MetaSimplifier.trace_simp
 
 fun which_context () =
   (case Context.get_context () of
-    Some thy => "  Using current (dynamic!) one: " ^
-      (case try PureThy.get_name thy of Some name => quote name | None => "<unnamed>")
-  | None => "");
+    SOME thy => "  Using current (dynamic!) one: " ^
+      (case try PureThy.get_name thy of SOME name => quote name | NONE => "<unnamed>")
+  | NONE => "");
 
 fun try_update_thy_only file =
   ThyLoad.cond_add_path (Path.dir (Path.unpack file)) (fn () =>
     let val name = thy_name file in
-      if is_some (ThyLoad.check_file None (ThyLoad.thy_path name)) 
+      if is_some (ThyLoad.check_file NONE (ThyLoad.thy_path name)) 
       then update_thy_only name
       else warning ("Unkown theory context of ML file." ^ which_context ())
     end) ();
@@ -521,8 +521,8 @@ in
 fun nat_option r = (pgipnat,
   withdefault (fn () => string_of_int (!r)),
   (fn s => (case Syntax.read_nat s of
-       None => error ("nat_option: illegal value " ^ s)
-     | Some i => r := i)));
+       NONE => error ("nat_option: illegal value " ^ s)
+     | SOME i => r := i)));
 
 fun bool_option r = (pgipbool,
   withdefault (fn () => Bool.toString (!r)),
@@ -547,8 +547,8 @@ in
 val print_depth_option = (pgipnat,
   withdefault (fn () => string_of_int (!pg_print_depth_val)),
   (fn s => (case Syntax.read_nat s of
-       None => error ("print_depth_option: illegal value" ^ s)
-     | Some i => pg_print_depth i)))
+       NONE => error ("print_depth_option: illegal value" ^ s)
+     | SOME i => pg_print_depth i)))
 end
 
 val preferences = ref 
@@ -656,8 +656,8 @@ local
 		       
     fun xml_idtable ty ctx ids = 
 	let
-            fun ctx_attr (Some c)= [("context", c)]
-              | ctx_attr None    = []
+            fun ctx_attr (SOME c)= [("context", c)]
+              | ctx_attr NONE    = []
 	    fun xmlid x = XML.element "identifier" [] [XML.text x];
 	in 
 	    XML.element "idtable" (("objtype", ty)::ctx_attr ctx)
@@ -669,7 +669,7 @@ fun setids t = issue_pgip "setids" [] t
 fun addids t = issue_pgip "addids" [] t
 fun delids t = issue_pgip "delids" [] t
 
-fun delallids ty = setids (xml_idtable ty None [])
+fun delallids ty = setids (xml_idtable ty NONE [])
 
 fun send_thy_idtable ctx thys = setids (xml_idtable objtype_thy ctx thys)
 fun clear_thy_idtable () = delallids objtype_thy
@@ -688,24 +688,24 @@ end
 
 local
  val topthy = Toplevel.theory_of o Toplevel.get_state
- fun pthm thy name = print_thm (get_thm thy (name, None))
+ fun pthm thy name = print_thm (get_thm thy (name, NONE))
 
  fun idvalue tp nm = ("idvalue",[("objtype",tp),("name",nm)])
 in
-fun askids (None, Some "theory")  = send_thy_idtable None (ThyInfo.names())
-  | askids (None, None) =  send_thy_idtable None (ThyInfo.names())
+fun askids (NONE, SOME "theory")  = send_thy_idtable NONE (ThyInfo.names())
+  | askids (NONE, NONE) =  send_thy_idtable NONE (ThyInfo.names())
                            (* only theories known in top context *)
-  | askids (Some thy, Some "theory") = send_thy_idtable (Some thy) (ThyInfo.get_preds thy)
-  | askids (Some thy, Some "theorem") = send_thm_idtable (Some thy) (ThyInfo.get_theory thy)
-  | askids (Some thy, None) = (send_thy_idtable (Some thy) (ThyInfo.get_preds thy);
-                               send_thm_idtable (Some thy) (ThyInfo.get_theory thy)) 
-  | askids (_, Some ot) = error ("No objects of type "^(quote ot)^" are available here.")
+  | askids (SOME thy, SOME "theory") = send_thy_idtable (SOME thy) (ThyInfo.get_preds thy)
+  | askids (SOME thy, SOME "theorem") = send_thm_idtable (SOME thy) (ThyInfo.get_theory thy)
+  | askids (SOME thy, NONE) = (send_thy_idtable (SOME thy) (ThyInfo.get_preds thy);
+                               send_thm_idtable (SOME thy) (ThyInfo.get_theory thy)) 
+  | askids (_, SOME ot) = error ("No objects of type "^(quote ot)^" are available here.")
 
 fun showid (_,        "theory", n) = 
     with_displaywrap (idvalue "theory" n) (fn ()=>(print_theory (ThyInfo.get_theory n)))
-  | showid (Some thy, "theorem", t) = 
+  | showid (SOME thy, "theorem", t) = 
     with_displaywrap (idvalue "theorem" t) (fn ()=>(pthm (ThyInfo.get_theory thy) t))
-  | showid (None,     "theorem", t) = 
+  | showid (NONE,     "theorem", t) = 
     with_displaywrap (idvalue "theorem" t) (fn ()=>pthm (topthy()) t)
   | showid (_, ot, _) = error ("Cannot show objects of type "^ot)
 
@@ -779,15 +779,15 @@ local
     (* FIXME: allow dynamic extensions to language here: we need a hook in
        outer_syntax.ML to reset this table. *)
 
-    val keywords_classification_table = ref (None:(string Symtab.table) option)
+    val keywords_classification_table = ref (NONE:(string Symtab.table) option)
 
     fun get_keywords_classification_table () = 
 	case (!keywords_classification_table) of
-	    Some t => t
-	  | None => (let
+	    SOME t => t
+	  | NONE => (let
 			 val tab = foldl (fn (tab,(c,_,k,_))=>Symtab.update((c,k),tab)) 
 					 (Symtab.empty,OuterSyntax.dest_parsers())
-		     in (keywords_classification_table := Some tab; tab) end)
+		     in (keywords_classification_table := SOME tab; tab) end)
 
 
 		    
@@ -929,8 +929,8 @@ fun xmls_of_transition (name,str,toks) =
    let 
        val classification = Symtab.lookup (get_keywords_classification_table(),name)
    in case classification of
-	  Some k => (xmls_of_kind k (name,toks,str))
-	| None => (* an uncategorized keyword ignored for undo (maybe wrong) *)
+	  SOME k => (xmls_of_kind k (name,toks,str))
+	| NONE => (* an uncategorized keyword ignored for undo (maybe wrong) *)
 	  (parse_warning ("Uncategorized command found: " ^ name ^ " -- using spuriouscmd");
 	   markup_text str "spuriouscmd")
    end 
@@ -1063,13 +1063,13 @@ fun allprefs () = foldl (op @) ([], map snd (!preferences))
 	
 fun setpref name value = 
     (case assoc (allprefs(), name) of
-	 None => warning ("Unknown pref: " ^ quote name)
-       | Some (_, (_, _, set)) => set value);
+	 NONE => warning ("Unknown pref: " ^ quote name)
+       | SOME (_, (_, _, set)) => set value);
 
 fun getpref name = 
     (case assoc (allprefs(), name) of
-	 None => warning ("Unknown pref: " ^ quote name)
-       | Some (_, (_, (_,get), _)) => 
+	 NONE => warning ("Unknown pref: " ^ quote name)
+       | SOME (_, (_, (_,get), _)) => 
 	   issue_pgip "prefval" [("name", name)] (get ()));
 
 
@@ -1116,8 +1116,8 @@ local
 
   fun xmlattr attr attrs = 
       (case xmlattro attr attrs of 
-	   Some value => value 
-	 | None => raise PGIP ("Missing attribute: " ^ attr))
+	   SOME value => value 
+	 | NONE => raise PGIP ("Missing attribute: " ^ attr))
 
   val thyname_attro = xmlattro "thyname"
   val thyname_attr = xmlattr "thyname"
@@ -1137,7 +1137,7 @@ local
   val topthy = Toplevel.theory_of o Toplevel.get_state
   val topthy_name = PureThy.get_name o topthy
 
-  val currently_open_file = ref (None : string option)
+  val currently_open_file = ref (NONE : string option)
 in
 
 fun process_pgip_element pgipxml = (case pgipxml of 
@@ -1202,12 +1202,12 @@ fun process_pgip_element pgipxml = (case pgipxml of
      | "retracttheory"  => isarcmd ("kill_thy " ^ (quote (thyname_attr attrs)))
      | "loadfile"       => use_thy_or_ml_file (fileurl_of attrs)
      | "openfile"       => (inform_file_retracted (fileurl_of attrs);
-			    currently_open_file := Some (fileurl_of attrs))
+			    currently_open_file := SOME (fileurl_of attrs))
      | "closefile"      => (case !currently_open_file of 
-				Some f => (inform_file_processed f;
-					   currently_open_file := None)
-			      | None => raise PGIP ("closefile when no file is open!"))
-     | "abortfile"      => (currently_open_file := None) (* perhaps error for no file open *)
+				SOME f => (inform_file_processed f;
+					   currently_open_file := NONE)
+			      | NONE => raise PGIP ("closefile when no file is open!"))
+     | "abortfile"      => (currently_open_file := NONE) (* perhaps error for no file open *)
      | "changecwd"      => ThyLoad.add_path (dirname_attr attrs)
      | "systemcmd"	=> isarscript data
      (* unofficial command for debugging *)
@@ -1215,8 +1215,8 @@ fun process_pgip_element pgipxml = (case pgipxml of
      | _ => raise PGIP ("Unrecognized PGIP element: " ^ elem)))
 
 fun process_pgip_tree xml = 
-    (pgip_refseq := None; 
-     pgip_refid := None;
+    (pgip_refseq := NONE; 
+     pgip_refid := NONE;
      (case xml of
 	  XML.Elem ("pgip", attrs, pgips) => 
 	  (let 
@@ -1254,28 +1254,28 @@ fun loop src : unit =
 			handle e => raise XML_PARSE
     in
 	case pgipo of  
-	     None  => ()
-	   | Some (pgip,src') =>  
-	     ((process_pgip_tree pgip); loop src') handle e => handler (e,Some src')
-    end handle e => handler (e,Some src)  (* i.e. error in ready/XML parse *)
+	     NONE  => ()
+	   | SOME (pgip,src') =>  
+	     ((process_pgip_tree pgip); loop src') handle e => handler (e,SOME src')
+    end handle e => handler (e,SOME src)  (* i.e. error in ready/XML parse *)
 
 and handler (e,srco) = 
     case (e,srco) of
-        (XML_PARSE,Some src) => 
+        (XML_PARSE,SOME src) => 
 	(* (!error_fn "Invalid XML input, aborting"; ()) NB: loop OK for tty, but want exit on EOF *)
          panic "Invalid XML input, aborting"
       | (PGIP_QUIT,_) => ()
-      | (ERROR,Some src) => loop src (* message already given *)
-      | (Interrupt,Some src) => (!error_fn "Interrupt during PGIP processing"; loop src)
-      | (Toplevel.UNDEF,Some src) => (error "No working context defined"; loop src) (* usually *)
-      | (e,Some src) => (error (Toplevel.exn_message e); loop src)
-      | (_,None) => ()
+      | (ERROR,SOME src) => loop src (* message already given *)
+      | (Interrupt,SOME src) => (!error_fn "Interrupt during PGIP processing"; loop src)
+      | (Toplevel.UNDEF,SOME src) => (error "No working context defined"; loop src) (* usually *)
+      | (e,SOME src) => (error (Toplevel.exn_message e); loop src)
+      | (_,NONE) => ()
 in
   (* NB: simple tty for now; later might read from other tty-style sources (e.g. sockets). *)
 
   val xmlP = XML.scan_comment_whspc |-- XML.parse_elem >> single
 
-  val tty_src = Source.set_prompt "" (Source.source Symbol.stopper xmlP None Source.tty)
+  val tty_src = Source.set_prompt "" (Source.source Symbol.stopper xmlP NONE Source.tty)
 
   val pgip_toplevel =  loop 
 end
@@ -1388,7 +1388,7 @@ fun defconst name strs =
 
 fun make_elisp_commands commands kind =
   defconst kind (mapfilter 
-		     (fn (c, _, k, _) => if k = kind then Some c else None) 
+		     (fn (c, _, k, _) => if k = kind then SOME c else NONE) 
 		     commands);
 
 fun make_elisp_syntax (keywords, commands) =

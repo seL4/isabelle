@@ -67,7 +67,7 @@ sig
   val add_locale: bool -> bstring -> expr -> context attribute element list -> theory -> theory
   val add_locale_i: bool -> bstring -> expr -> context attribute element_i list
     -> theory -> theory
-  val smart_note_thmss: string -> (string * 'a) Library.option ->
+  val smart_note_thmss: string -> (string * 'a) option ->
     ((bstring * theory attribute list) * (thm list * theory attribute list) list) list ->
     theory -> theory * (bstring * thm list) list
   val note_thmss: string -> xstring ->
@@ -138,7 +138,7 @@ struct
 
   (*joining of locale elements: only facts may be added later!*)
   fun join ({predicate, import, elems, params}: locale, {elems = elems', ...}: locale) =
-    Some {predicate = predicate, import = import, elems = gen_merge_lists eq_snd elems elems',
+    SOME {predicate = predicate, import = import, elems = gen_merge_lists eq_snd elems elems',
       params = params};
   fun merge ((space1, locs1), (space2, locs2)) =
     (NameSpace.merge (space1, space2), Symtab.join join (locs1, locs2));
@@ -165,8 +165,8 @@ fun get_locale thy name = Symtab.lookup (#2 (LocalesData.get thy), name);
 
 fun the_locale thy name =
   (case get_locale thy name of
-    Some loc => loc
-  | None => error ("Unknown locale " ^ quote name));
+    SOME loc => loc
+  | NONE => error ("Unknown locale " ^ quote name));
 
 
 (* import hierarchy
@@ -178,8 +178,8 @@ fun imports thy (upper, lower) =
     val sign = sign_of thy;
     fun imps (Locale name) low = (name = low) orelse
       (case get_locale thy name of
-           None => false
-         | Some {import, ...} => imps import low)
+           NONE => false
+         | SOME {import, ...} => imps import low)
       | imps (Rename (expr, _)) low = imps expr low
       | imps (Merge es) low = exists (fn e => imps e low) es;
   in
@@ -239,7 +239,7 @@ fun rename_thm ren th =
 fun rename_elem ren (Fixes fixes) = Fixes (fixes |> map (fn (x, T, mx) =>
       let val x' = rename ren x in
         if x = x' then (x, T, mx)
-        else (x', T, if mx = None then mx else Some Syntax.NoSyn)    (*drop syntax*)
+        else (x', T, if mx = NONE then mx else SOME Syntax.NoSyn)    (*drop syntax*)
       end))
   | rename_elem ren (Assumes asms) = Assumes (map (apsnd (map (fn (t, (ps, qs)) =>
       (rename_term ren t, (map (rename_term ren) ps, map (rename_term ren) qs))))) asms)
@@ -317,14 +317,14 @@ fun frozen_tvars ctxt Ts =
 
 fun unify_frozen ctxt maxidx Ts Us =
   let
-    fun paramify (i, None) = (i, None)
-      | paramify (i, Some T) = apsnd Some (TypeInfer.paramify_dummies (i, T));
+    fun paramify (i, NONE) = (i, NONE)
+      | paramify (i, SOME T) = apsnd SOME (TypeInfer.paramify_dummies (i, T));
 
     val (maxidx', Ts') = foldl_map paramify (maxidx, Ts);
     val (maxidx'', Us') = foldl_map paramify (maxidx', Us);
     val tsig = Sign.tsig_of (ProofContext.sign_of ctxt);
 
-    fun unify (env, (Some T, Some U)) = (Type.unify tsig env (U, T)
+    fun unify (env, (SOME T, SOME U)) = (Type.unify tsig env (U, T)
           handle Type.TUNIFY =>
             raise TYPE ("unify_frozen: failed to unify types", [U, T], []))
       | unify (env, _) = env;
@@ -337,8 +337,8 @@ fun params_of elemss = gen_distinct eq_fst (flat (map (snd o fst) elemss));
 fun params_of' elemss = gen_distinct eq_fst (flat (map (snd o fst o fst) elemss));
 
 (* CB: param_types has the following type:
-  ('a * 'b Library.option) list -> ('a * 'b) list *)
-fun param_types ps = mapfilter (fn (_, None) => None | (x, Some T) => Some (x, T)) ps;
+  ('a * 'b option) list -> ('a * 'b) list *)
+fun param_types ps = mapfilter (fn (_, NONE) => NONE | (x, SOME T) => SOME (x, T)) ps;
 
 
 (* flatten expressions *)
@@ -357,15 +357,15 @@ fun unique_parms ctxt elemss =
       |> Symtab.make_multi |> Symtab.dest;
   in
     (case find_first (fn (_, ids) => length ids > 1) param_decls of
-      Some (q, ids) => err_in_locale ctxt ("Multiple declaration of parameter " ^ quote q)
+      SOME (q, ids) => err_in_locale ctxt ("Multiple declaration of parameter " ^ quote q)
           (map (apsnd (map fst)) ids)
-    | None => map (apfst (apfst (apsnd #1))) elemss)
+    | NONE => map (apfst (apfst (apsnd #1))) elemss)
   end;
 
 (* CB: unify_parms has the following type:
      ProofContext.context ->
      (string * Term.typ) list ->
-     (string * Term.typ Library.option) list list ->
+     (string * Term.typ option) list list ->
      ((string * Term.sort) * Term.typ) list list *)
 
 fun unify_parms ctxt fixed_parms raw_parmss =
@@ -398,7 +398,7 @@ fun unify_parms ctxt fixed_parms raw_parmss =
       foldr Term.add_typ_tfrees (mapfilter snd ps, [])
       |> mapfilter (fn (a, S) =>
           let val T = Envir.norm_type unifier' (TVar ((a, i), S))
-          in if T = TFree (a, S) then None else Some ((a, S), T) end)
+          in if T = TFree (a, S) then NONE else SOME ((a, S), T) end)
   in map inst_parms idx_parmss end;
 
 in
@@ -429,11 +429,11 @@ fun flatten_expr ctxt (prev_idents, expr) =
   let
     val thy = ProofContext.theory_of ctxt;
 
-    fun renaming (Some x :: xs) (y :: ys) = (y, x) :: renaming xs ys
-      | renaming (None :: xs) (y :: ys) = renaming xs ys
+    fun renaming (SOME x :: xs) (y :: ys) = (y, x) :: renaming xs ys
+      | renaming (NONE :: xs) (y :: ys) = renaming xs ys
       | renaming [] _ = []
       | renaming xs [] = raise ERROR_MESSAGE ("Too many arguments in renaming: " ^
-          commas (map (fn None => "_" | Some x => quote x) xs));
+          commas (map (fn NONE => "_" | SOME x => quote x) xs));
 
     fun rename_parms top ren ((name, ps), (parms, axs)) =
       let val ps' = map (rename ren) ps in
@@ -460,7 +460,7 @@ fun flatten_expr ctxt (prev_idents, expr) =
                  (foldl_map (fn (axs, ((name, parms), _)) => let
                    val {elems, ...} = the_locale thy name;
                    val ts = flat (mapfilter (fn (Assumes asms, _) =>
-                     Some (flat (map (map #1 o #2) asms)) | _ => None) elems);
+                     SOME (flat (map (map #1 o #2) asms)) | _ => NONE) elems);
                    val (axs1, axs2) = splitAt (length ts, axs);
                  in (axs2, ((name, parms), (ps, axs1))) end) (axioms, ids''))
                else ids'';
@@ -508,7 +508,7 @@ fun flatten_expr ctxt (prev_idents, expr) =
          elemss;
     fun inst_ax th = let
          val {hyps, prop, ...} = Thm.rep_thm th;
-         val ps = map (apsnd Some) (foldl Term.add_frees ([], prop :: hyps));
+         val ps = map (apsnd SOME) (foldl Term.add_frees ([], prop :: hyps));
          val [env] = unify_parms ctxt all_params [ps];
          val th' = inst_thm ctxt env th;
        in th' end;
@@ -653,13 +653,13 @@ datatype ('a, 'b) int_ext = Int of 'a | Ext of 'b;
    information (for expr it is the identifier, where parameters additionially
    contain type information (extracted from the locale record), for a Fixes
    element, it is an identifier with name = "" and parameters with type
-   information None, for other elements it is simply ("", [])).
+   information NONE, for other elements it is simply ("", [])).
    The implementation of activate_facts relies on identifier names being
    empty strings for external elements.
 TODO: correct this comment wrt axioms. *)
 
 fun flatten _ (ids, Elem (Fixes fixes)) =
-      (ids, [((("", map (rpair None o #1) fixes), []), Ext (Fixes fixes))])
+      (ids, [((("", map (rpair NONE o #1) fixes), []), Ext (Fixes fixes))])
   | flatten _ (ids, Elem elem) = (ids, [((("", []), []), Ext elem)])
   | flatten (ctxt, prep_expr) (ids, Expr expr) =
       apsnd (map (apsnd Int)) (flatten_expr ctxt (ids, prep_expr expr));
@@ -700,7 +700,7 @@ fun declare_elemss prep_fixes fixed_params raw_elemss ctxt =
       ProofContext.declare_terms (map Free fixed_params) ctxt;
     val int_elemss =
       raw_elemss
-      |> mapfilter (fn (id, Int es) => Some (id, es) | _ => None)
+      |> mapfilter (fn (id, Int es) => SOME (id, es) | _ => NONE)
       |> unify_elemss ctxt_with_fixed fixed_params;
     val (_, raw_elemss') =
       foldl_map (fn ((_, es) :: elemss, (id, Int _)) => (elemss, (id, Int es)) | x => x)
@@ -789,7 +789,7 @@ fun finish_ext_elem parms _ (Fixes fixes, _) = Fixes (map (fn (x, _, mx) =>
   | finish_ext_elem _ _ (Notes facts, _) = Notes facts;
 
 (* CB: finish_parms introduces type info from parms to identifiers *)
-(* CB: only needed for types that have been None so far???
+(* CB: only needed for types that have been NONE so far???
    If so, which are these??? *)
 
 fun finish_parms parms (((name, ps), axs), elems) =
@@ -958,8 +958,8 @@ fun gen_statement prep_locale prep_ctxt raw_locale elems concl ctxt =
     val thy = ProofContext.theory_of ctxt;
     val locale = apsome (prep_locale (Theory.sign_of thy)) raw_locale;
     val (target_stmt, fixed_params, import) =
-      (case locale of None => ([], [], empty)
-      | Some name =>
+      (case locale of NONE => ([], [], empty)
+      | SOME name =>
           let val {predicate = (stmt, _), params = (ps, _), ...} =
             the_locale thy name
           in (stmt, param_types ps, Locale name) end);
@@ -1008,20 +1008,20 @@ fun instantiate loc_name (prfx, attribs) raw_inst ctxt =
     (** analyse the instantiation theorem inst **)
 
     val inst = case raw_inst of
-        None => if null ints
-	  then None
+        NONE => if null ints
+	  then NONE
 	  else error "Locale has assumptions but no chained fact was found"
-      | Some [] => if null ints
-	  then None
+      | SOME [] => if null ints
+	  then NONE
 	  else error "Locale has assumptions but no chained fact was found"
-      | Some [thm] => if null ints
-	  then (warning "Locale has no assumptions: fact ignored"; None)
-	  else Some thm
-      | Some _ => error "Multiple facts are not allowed";
+      | SOME [thm] => if null ints
+	  then (warning "Locale has no assumptions: fact ignored"; NONE)
+	  else SOME thm
+      | SOME _ => error "Multiple facts are not allowed";
 
     val args = case inst of
-            None => []
-          | Some thm => thm |> prop_of |> ObjectLogic.drop_judgment sign
+            NONE => []
+          | SOME thm => thm |> prop_of |> ObjectLogic.drop_judgment sign
               |> Term.strip_comb
               |>> (fn t as (Const (s, _)) => if (intern sign loc_name = s)
                         then t
@@ -1097,15 +1097,15 @@ fun instantiate loc_name (prfx, attribs) raw_inst ctxt =
         val hyps = #hyps (rep_thm thm);
         val ass = map (fn ax => (prop_of ax, ax)) axioms;
         val axs' = foldl (fn (axs, hyp) => 
-              (case gen_assoc (op aconv) (ass, hyp) of None => axs
-                 | Some ax => axs @ [ax])) ([], hyps);
+              (case gen_assoc (op aconv) (ass, hyp) of NONE => axs
+                 | SOME ax => axs @ [ax])) ([], hyps);
         val thm' = Drule.satisfy_hyps axs' thm;
         (* instantiate types *)
         val thm'' = inst_thm ctxt Tenv' thm';
         (* substitute arguments and discharge hypotheses *)
         val thm''' = case inst of
-                None => thm''
-              | Some inst_thm => let
+                NONE => thm''
+              | SOME inst_thm => let
 		    val hyps = #hyps (rep_thm thm'');
 		    val th = thm'' |> implies_intr_hyps
 		      |> forall_intr_list (cparams' @ cdefined')
@@ -1168,11 +1168,11 @@ fun print_locale thy import body =
     val prt_thm = Pretty.quote o ProofContext.pretty_thm ctxt;
 
     fun prt_syn syn =
-      let val s = (case syn of None => "(structure)" | Some mx => Syntax.string_of_mixfix mx)
+      let val s = (case syn of NONE => "(structure)" | SOME mx => Syntax.string_of_mixfix mx)
       in if s = "" then [] else [Pretty.brk 2, Pretty.str s] end;
-    fun prt_fix (x, Some T, syn) = Pretty.block (Pretty.str (x ^ " ::") :: Pretty.brk 1 ::
+    fun prt_fix (x, SOME T, syn) = Pretty.block (Pretty.str (x ^ " ::") :: Pretty.brk 1 ::
           prt_typ T :: Pretty.brk 1 :: prt_syn syn)
-      | prt_fix (x, None, syn) = Pretty.block (Pretty.str x :: Pretty.brk 1 :: prt_syn syn);
+      | prt_fix (x, NONE, syn) = Pretty.block (Pretty.str x :: Pretty.brk 1 :: prt_syn syn);
 
     fun prt_name "" = [Pretty.brk 1]
       | prt_name name = [Pretty.str (ProofContext.cond_extern ctxt name ^ ":"), Pretty.brk 1];
@@ -1210,8 +1210,8 @@ fun note_thmss_qualified kind name args thy =
   |>> hide_bound_names (map (#1 o #1) args)
   |>> Theory.parent_path;
 
-fun smart_note_thmss kind None = PureThy.note_thmss_i (Drule.kind kind)
-  | smart_note_thmss kind (Some (loc, _)) = note_thmss_qualified kind loc;
+fun smart_note_thmss kind NONE = PureThy.note_thmss_i (Drule.kind kind)
+  | smart_note_thmss kind (SOME (loc, _)) = note_thmss_qualified kind loc;
   (* CB: only used in Proof.finish_global. *)
 
 end;
@@ -1231,7 +1231,7 @@ fun gen_note_thmss prep_locale get_thms kind raw_loc raw_args thy =
     val thy_ctxt = ProofContext.init thy;
     val loc = prep_locale (Theory.sign_of thy) raw_loc;
     val (_, (stmt, _), loc_ctxt, _, _) =
-      cert_context_statement (Some loc) [] [] thy_ctxt;
+      cert_context_statement (SOME loc) [] [] thy_ctxt;
     val args = map (apsnd (map (apfst (get_thms loc_ctxt)))) raw_args;
     val export = ProofContext.export_standard stmt loc_ctxt thy_ctxt;
     val results = map (map export o #2) (#2 (ProofContext.note_thmss_i args loc_ctxt));
@@ -1367,10 +1367,10 @@ in
 fun define_preds bname (parms, ((exts, exts'), (ints, ints')), defs) elemss thy =
   let
     val (thy', (elemss', more_ts)) =
-      if Library.null exts then (thy, (elemss, []))
+      if null exts then (thy, (elemss, []))
       else
         let
-          val aname = if Library.null ints then bname else bname ^ "_" ^ axiomsN;
+          val aname = if null ints then bname else bname ^ "_" ^ axiomsN;
           val (def_thy, (statement, intro, axioms)) =
             thy |> def_pred aname parms defs exts exts';
           val elemss' = change_elemss axioms elemss @
@@ -1381,7 +1381,7 @@ fun define_preds bname (parms, ((exts, exts'), (ints, ints')), defs) elemss thy 
           |> #1 |> rpair (elemss', [statement])
         end;
     val (thy'', predicate) =
-      if Library.null ints then (thy', ([], []))
+      if null ints then (thy', ([], []))
       else
         let
           val (def_thy, (statement, intro, axioms)) =
@@ -1424,7 +1424,7 @@ fun gen_add_locale prep_ctxt prep_expr do_pred bname raw_import raw_body thy =
     fun axiomify axioms elemss = 
       (axioms, elemss) |> foldl_map (fn (axs, (id, elems)) => let
                    val ts = flat (mapfilter (fn (Assumes asms) =>
-                     Some (flat (map (map #1 o #2) asms)) | _ => None) elems);
+                     SOME (flat (map (map #1 o #2) asms)) | _ => NONE) elems);
                    val (axs1, axs2) = splitAt (length ts, axs);
                  in (axs2, ((id, axs1), elems)) end)
         |> snd;
@@ -1455,7 +1455,7 @@ end;
 
 val setup =
  [LocalesData.init,
-  add_locale_i true "var" empty [Fixes [(Syntax.internal "x", None, Some Syntax.NoSyn)]],
-  add_locale_i true "struct" empty [Fixes [(Syntax.internal "S", None, None)]]];
+  add_locale_i true "var" empty [Fixes [(Syntax.internal "x", NONE, SOME Syntax.NoSyn)]],
+  add_locale_i true "struct" empty [Fixes [(Syntax.internal "S", NONE, NONE)]]];
 
 end;

@@ -470,8 +470,8 @@ structure Trancl_Tac = Trancl_Tac_Fun (
 	      | decr (Const ("Transitive_Closure.trancl", _ ) $ r)  = (r,"r+")
 	      | decr r = (r,"r");
 	    val (rel,r) = decr rel;
-	in Some (a,b,rel,r) end
-      | dec _ =  None 
+	in SOME (a,b,rel,r) end
+      | dec _ =  NONE 
     in dec t end;
   
   end); (* struct *)

@@ -213,8 +213,8 @@ struct
 
 	fun interpret thy model args t =
 		(case get_first (fn (_, f) => f thy model args t) (#interpreters (RefuteData.get thy)) of
-		  None   => raise REFUTE ("interpret", "unable to interpret term " ^ quote (Sign.string_of_term (sign_of thy) t))
-		| Some x => x);
+		  NONE   => raise REFUTE ("interpret", "unable to interpret term " ^ quote (Sign.string_of_term (sign_of thy) t))
+		| SOME x => x);
 
 (* ------------------------------------------------------------------------- *)
 (* print: tries to convert the constant denoted by the term 't' into a term  *)
@@ -225,8 +225,8 @@ struct
 
 	fun print thy model t intr assignment =
 		(case get_first (fn (_, f) => f thy model t intr assignment) (#printers (RefuteData.get thy)) of
-		  None   => Const ("<<no printer available>>", fastype_of t)
-		| Some x => x);
+		  NONE   => Const ("<<no printer available>>", fastype_of t)
+		| SOME x => x);
 
 (* ------------------------------------------------------------------------- *)
 (* print_model: turns the model into a string, using a fixed interpretation  *)
@@ -256,9 +256,9 @@ struct
 				space_implode "\n" (mapfilter (fn (t,intr) =>
 					(* print constants only if 'show_consts' is true *)
 					if (!show_consts) orelse not (is_Const t) then
-						Some (Sign.string_of_term (sign_of thy) t ^ ": " ^ Sign.string_of_term (sign_of thy) (print thy model t intr assignment))
+						SOME (Sign.string_of_term (sign_of thy) t ^ ": " ^ Sign.string_of_term (sign_of thy) (print thy model t intr assignment))
 					else
-						None) terms) ^ "\n"
+						NONE) terms) ^ "\n"
 	in
 		typs_msg ^ show_consts_msg ^ terms_msg
 	end;
@@ -275,8 +275,8 @@ struct
 		val {interpreters, printers, parameters} = RefuteData.get thy
 	in
 		case assoc (interpreters, name) of
-		  None   => RefuteData.put {interpreters = (name, f) :: interpreters, printers = printers, parameters = parameters} thy
-		| Some _ => error ("Interpreter " ^ name ^ " already declared")
+		  NONE   => RefuteData.put {interpreters = (name, f) :: interpreters, printers = printers, parameters = parameters} thy
+		| SOME _ => error ("Interpreter " ^ name ^ " already declared")
 	end;
 
 	(* string -> (theory -> model -> Term.term -> interpretation -> (int -> bool) -> Term.term option) -> theory -> theory *)
@@ -286,8 +286,8 @@ struct
 		val {interpreters, printers, parameters} = RefuteData.get thy
 	in
 		case assoc (printers, name) of
-		  None   => RefuteData.put {interpreters = interpreters, printers = (name, f) :: printers, parameters = parameters} thy
-		| Some _ => error ("Printer " ^ name ^ " already declared")
+		  NONE   => RefuteData.put {interpreters = interpreters, printers = (name, f) :: printers, parameters = parameters} thy
+		| SOME _ => error ("Printer " ^ name ^ " already declared")
 	end;
 
 (* ------------------------------------------------------------------------- *)
@@ -302,9 +302,9 @@ struct
 		val {interpreters, printers, parameters} = RefuteData.get thy
 	in
 		case Symtab.lookup (parameters, name) of
-		  None   => RefuteData.put
+		  NONE   => RefuteData.put
 			{interpreters = interpreters, printers = printers, parameters = Symtab.extend (parameters, [(name, value)])} thy
-		| Some _ => RefuteData.put
+		| SOME _ => RefuteData.put
 			{interpreters = interpreters, printers = printers, parameters = Symtab.update ((name, value), parameters)} thy
 	end;
 
@@ -339,15 +339,15 @@ struct
 		(* (string * string) list * string -> int *)
 		fun read_int (parms, name) =
 			case assoc_string (parms, name) of
-			  Some s => (case Int.fromString s of
+			  SOME s => (case Int.fromString s of
 				  SOME i => i
 				| NONE   => error ("parameter " ^ quote name ^ " (value is " ^ quote s ^ ") must be an integer value"))
-			| None   => error ("parameter " ^ quote name ^ " must be assigned a value")
+			| NONE   => error ("parameter " ^ quote name ^ " must be assigned a value")
 		(* (string * string) list * string -> string *)
 		fun read_string (parms, name) =
 			case assoc_string (parms, name) of
-			  Some s => s
-			| None   => error ("parameter " ^ quote name ^ " must be assigned a value")
+			  SOME s => s
+			| NONE   => error ("parameter " ^ quote name ^ " must be assigned a value")
 		(* (string * string) list *)
 		val allparams = override @ (get_default_params thy)  (* 'override' first, defaults last *)
 		(* int *)
@@ -363,7 +363,7 @@ struct
 		(*       whose name is one of the other parameters (e.g. 'maxvars')    *)
 		(* (string * int) list *)
 		val sizes     = mapfilter
-			(fn (name,value) => (case Int.fromString value of SOME i => Some (name, i) | NONE => None))
+			(fn (name,value) => (case Int.fromString value of SOME i => SOME (name, i) | NONE => NONE))
 			(filter (fn (name,_) => name<>"minsize" andalso name<>"maxsize" andalso name<>"maxvars" andalso name<>"maxtime" andalso name<>"satsolver")
 				allparams)
 	in
@@ -431,27 +431,27 @@ struct
 		let
 			fun find_typeSubs (Const (s', T')) =
 				(if s=s' then
-					Some (Type.typ_match (Sign.tsig_of (sign_of thy)) (Vartab.empty, (T', T)))
+					SOME (Type.typ_match (Sign.tsig_of (sign_of thy)) (Vartab.empty, (T', T)))
 				else
-					None
-				handle Type.TYPE_MATCH => None)
-			  | find_typeSubs (Free _)           = None
-			  | find_typeSubs (Var _)            = None
-			  | find_typeSubs (Bound _)          = None
+					NONE
+				handle Type.TYPE_MATCH => NONE)
+			  | find_typeSubs (Free _)           = NONE
+			  | find_typeSubs (Var _)            = NONE
+			  | find_typeSubs (Bound _)          = NONE
 			  | find_typeSubs (Abs (_, _, body)) = find_typeSubs body
-			  | find_typeSubs (t1 $ t2)          = (case find_typeSubs t1 of Some x => Some x | None => find_typeSubs t2)
+			  | find_typeSubs (t1 $ t2)          = (case find_typeSubs t1 of SOME x => SOME x | NONE => find_typeSubs t2)
 			val typeSubs = (case find_typeSubs t of
-				  Some x => x
-				| None   => raise REFUTE ("collect_axioms", "no type instantiation found for " ^ quote s ^ " in " ^ Sign.string_of_term (sign_of thy) t))
+				  SOME x => x
+				| NONE   => raise REFUTE ("collect_axioms", "no type instantiation found for " ^ quote s ^ " in " ^ Sign.string_of_term (sign_of thy) t))
 		in
 			map_term_types
 				(map_type_tvar
 					(fn (v,_) =>
 						case Vartab.lookup (typeSubs, v) of
-						  None =>
+						  NONE =>
 							(* schematic type variable not instantiated *)
 							raise REFUTE ("collect_axioms", "term " ^ Sign.string_of_term (sign_of thy) t ^ " still has a polymorphic type (after instantiating type of " ^ quote s ^ ")")
-						| Some typ =>
+						| SOME typ =>
 							typ))
 					t
 		end
@@ -462,10 +462,10 @@ struct
 			map_term_types (map_type_tvar
 				(fn (v,_) =>
 					case Vartab.lookup (typeSubs, v) of
-					  None =>
+					  NONE =>
 						(* schematic type variable not instantiated *)
 						raise ERROR
-					| Some typ =>
+					| SOME typ =>
 						typ)) t
 		(* Term.term list * Term.typ -> Term.term list *)
 		fun collect_type_axioms (axs, T) =
@@ -479,30 +479,30 @@ struct
 					(* look up the definition of a type, as created by "typedef" *)
 					(* (string * Term.term) list -> (string * Term.term) option *)
 					fun get_typedefn [] =
-						None
+						NONE
 					  | get_typedefn ((axname,ax)::axms) =
 						(let
 							(* Term.term -> Term.typ option *)
 							fun type_of_type_definition (Const (s', T')) =
 								if s'="Typedef.type_definition" then
-									Some T'
+									SOME T'
 								else
-									None
-							  | type_of_type_definition (Free _)           = None
-							  | type_of_type_definition (Var _)            = None
-							  | type_of_type_definition (Bound _)          = None
+									NONE
+							  | type_of_type_definition (Free _)           = NONE
+							  | type_of_type_definition (Var _)            = NONE
+							  | type_of_type_definition (Bound _)          = NONE
 							  | type_of_type_definition (Abs (_, _, body)) = type_of_type_definition body
-							  | type_of_type_definition (t1 $ t2)          = (case type_of_type_definition t1 of Some x => Some x | None => type_of_type_definition t2)
+							  | type_of_type_definition (t1 $ t2)          = (case type_of_type_definition t1 of SOME x => SOME x | NONE => type_of_type_definition t2)
 						in
 							case type_of_type_definition ax of
-							  Some T' =>
+							  SOME T' =>
 								let
 									val T''      = (domain_type o domain_type) T'
 									val typeSubs = Type.typ_match (Sign.tsig_of (sign_of thy)) (Vartab.empty, (T'', T))
 								in
-									Some (axname, monomorphic_term typeSubs ax)
+									SOME (axname, monomorphic_term typeSubs ax)
 								end
-							| None =>
+							| NONE =>
 								get_typedefn axms
 						end
 						handle ERROR           => get_typedefn axms
@@ -510,19 +510,19 @@ struct
 						     | Type.TYPE_MATCH => get_typedefn axms)
 				in
 					case DatatypePackage.datatype_info thy s of
-					  Some info =>  (* inductive datatype *)
+					  SOME info =>  (* inductive datatype *)
 							(* only collect relevant type axioms for the argument types *)
 							foldl collect_type_axioms (axs, Ts)
-					| None =>
+					| NONE =>
 						(case get_typedefn axioms of
-						  Some (axname, ax) => 
+						  SOME (axname, ax) => 
 							if mem_term (ax, axs) then
 								(* collect relevant type axioms for the argument types *)
 								foldl collect_type_axioms (axs, Ts)
 							else
 								(immediate_output (" " ^ axname);
 								collect_term_axioms (ax :: axs, ax))
-						| None =>
+						| NONE =>
 							(* at least collect relevant type axioms for the argument types *)
 							foldl collect_type_axioms (axs, Ts))
 				end
@@ -579,7 +579,7 @@ struct
 					(* look up the definition of a constant, as created by "constdefs" *)
 					(* string -> Term.typ -> (string * Term.term) list -> (string * Term.term) option *)
 					fun get_defn [] =
-						None
+						NONE
 					  | get_defn ((axname,ax)::axms) =
 						(let
 							val (lhs, _) = Logic.dest_equals ax  (* equations only *)
@@ -590,7 +590,7 @@ struct
 								let
 									val typeSubs = Type.typ_match (Sign.tsig_of (sign_of thy)) (Vartab.empty, (T', T))
 								in
-									Some (axname, monomorphic_term typeSubs ax)
+									SOME (axname, monomorphic_term typeSubs ax)
 								end
 							else
 								get_defn axms
@@ -603,7 +603,7 @@ struct
 							(case body_type T of
 							  Type (s', _) =>
 								(case DatatypePackage.constrs_of thy s' of
-								  Some constrs =>
+								  SOME constrs =>
 									Library.exists (fn c =>
 										(case c of
 										  Const (cname, ctype) =>
@@ -611,7 +611,7 @@ struct
 										| _ =>
 											raise REFUTE ("collect_axioms", "IDT constructor is not a constant")))
 										constrs
-								| None =>
+								| NONE =>
 									false)
 							| _  =>
 								false)
@@ -622,8 +622,8 @@ struct
 							((case last_elem (binder_types T) of
 							  Type (s', _) =>
 								(case DatatypePackage.datatype_info thy s' of
-								  Some info => s mem (#rec_names info)
-								| None      => false)  (* not an inductive datatype *)
+								  SOME info => s mem (#rec_names info)
+								| NONE      => false)  (* not an inductive datatype *)
 							| _ =>  (* a (free or schematic) type variable *)
 								false)
 							handle LIST "last_elem" => false)  (* not even a function type *)
@@ -641,14 +641,14 @@ struct
 						collect_type_axioms (axs, T)
 					) else
 						(case get_defn axioms of
-						  Some (axname, ax) => 
+						  SOME (axname, ax) => 
 							if mem_term (ax, axs) then
 								(* collect relevant type axioms *)
 								collect_type_axioms (axs, T)
 							else
 								(immediate_output (" " ^ axname);
 								collect_term_axioms (ax :: axs, ax))
-						| None =>
+						| NONE =>
 							(* collect relevant type axioms *)
 							collect_type_axioms (axs, T))
 				end
@@ -698,7 +698,7 @@ struct
 				| Type ("set", [T1])     => collect_types (T1, acc)
 				| Type (s, Ts)           =>
 					(case DatatypePackage.datatype_info thy s of
-					  Some info =>  (* inductive datatype *)
+					  SOME info =>  (* inductive datatype *)
 						let
 							val index               = #index info
 							val descr               = #descr info
@@ -723,7 +723,7 @@ struct
 						in
 							acc_constrs
 						end
-					| None =>  (* not an inductive datatype, e.g. defined via "typedef" or "typedecl" *)
+					| NONE =>  (* not an inductive datatype, e.g. defined via "typedef" or "typedecl" *)
 						T ins (foldr collect_types (Ts, acc)))
 				| TFree _                => T ins acc
 				| TVar _                 => T ins acc)
@@ -756,8 +756,8 @@ struct
 	let
 		fun size_of_typ T =
 			case assoc (sizes, string_of_typ T) of
-			  Some n => n
-			| None   => minsize
+			  SOME n => n
+			| NONE   => minsize
 	in
 		map (fn T => (T, size_of_typ T)) xs
 	end;
@@ -775,15 +775,15 @@ struct
 	let
 		(* int -> int list -> int list option *)
 		fun add1 _ [] =
-			None  (* overflow *)
+			NONE  (* overflow *)
 		  | add1 max (x::xs) =
 		 	if x<max orelse max<0 then
-				Some ((x+1)::xs)  (* add 1 to the head *)
+				SOME ((x+1)::xs)  (* add 1 to the head *)
 			else
 				apsome (fn xs' => 0 :: xs') (add1 max xs)  (* carry-over *)
 		(* int -> int list * int list -> int list option *)
 		fun shift _ (_, []) =
-			None
+			NONE
 		  | shift max (zeros, x::xs) =
 			if x=0 then
 				shift max (0::zeros, xs)
@@ -794,9 +794,9 @@ struct
 		(* int -> int -> int -> int list option *)
 		fun make_first 0 sum _ =
 			if sum=0 then
-				Some []
+				SOME []
 			else
-				None
+				NONE
 		  | make_first len sum max =
 			if sum<=max orelse max<0 then
 				apsome (fn xs' => sum :: xs') (make_first (len-1) 0 max)
@@ -807,29 +807,29 @@ struct
 		(* int -> int list -> int list option *)
 		fun next max xs =
 			(case shift max ([], xs) of
-			  Some xs' =>
-				Some xs'
-			| None =>
+			  SOME xs' =>
+				SOME xs'
+			| NONE =>
 				let
 					val (len, sum) = foldl (fn ((l, s), x) => (l+1, s+x)) ((0, 0), xs)
 				in
 					make_first len (sum+1) max  (* increment 'sum' by 1 *)
 				end)
 		(* only consider those types for which the size is not fixed *)
-		val mutables = filter (fn (T, _) => assoc (sizes, string_of_typ T) = None) xs
+		val mutables = filter (fn (T, _) => assoc (sizes, string_of_typ T) = NONE) xs
 		(* subtract 'minsize' from every size (will be added again at the end) *)
 		val diffs = map (fn (_, n) => n-minsize) mutables
 	in
 		case next (maxsize-minsize) diffs of
-		  Some diffs' =>
+		  SOME diffs' =>
 			(* merge with those types for which the size is fixed *)
-			Some (snd (foldl_map (fn (ds, (T, _)) =>
+			SOME (snd (foldl_map (fn (ds, (T, _)) =>
 				case assoc (sizes, string_of_typ T) of
-				  Some n => (ds, (T, n))                      (* return the fixed size *)
-				| None   => (tl ds, (T, minsize + (hd ds))))  (* consume the head of 'ds', add 'minsize' *)
+				  SOME n => (ds, (T, n))                      (* return the fixed size *)
+				| NONE   => (tl ds, (T, minsize + (hd ds))))  (* consume the head of 'ds', add 'minsize' *)
 				(diffs', xs)))
-		| None =>
-			None
+		| NONE =>
+			NONE
 	end;
 
 (* ------------------------------------------------------------------------- *)
@@ -901,12 +901,12 @@ struct
 				immediate_output " invoking SAT solver...";
 				(case SatSolver.invoke_solver satsolver fm of
 				  SatSolver.SATISFIABLE assignment =>
-					writeln ("\n*** Model found: ***\n" ^ print_model thy model (fn i => case assignment i of Some b => b | None => true))
+					writeln ("\n*** Model found: ***\n" ^ print_model thy model (fn i => case assignment i of SOME b => b | NONE => true))
 				| _ =>  (* SatSolver.UNSATISFIABLE, SatSolver.UNKNOWN *)
 					(immediate_output " no model found.\n";
 					case next_universe universe sizes minsize maxsize of
-					  Some universe' => find_model_loop universe'
-					| None           => writeln "Search terminated, no larger universe within the given limits."))
+					  SOME universe' => find_model_loop universe'
+					| NONE           => writeln "Search terminated, no larger universe within the given limits."))
 				handle SatSolver.NOT_CONFIGURED =>
 					error ("SAT solver " ^ quote satsolver ^ " is not configured.")
 			end handle MAXVARS_EXCEEDED =>
@@ -1207,7 +1207,7 @@ struct
 				val wf   = (if size=1 then True else if size=2 then True else exactly_one_true fms)
 			in
 				(* extend the model, increase 'next_idx', add well-formedness condition *)
-				Some (intr, (typs, (t, intr)::terms), {maxvars = maxvars, next_idx = next, bounds = bounds, wellformed = SAnd (wellformed, wf)})
+				SOME (intr, (typs, (t, intr)::terms), {maxvars = maxvars, next_idx = next, bounds = bounds, wellformed = SAnd (wellformed, wf)})
 			end
 		in
 			case T of
@@ -1235,7 +1235,7 @@ struct
 					val intr = Node copies
 				in
 					(* extend the model, increase 'next_idx', add well-formedness condition *)
-					Some (intr, (typs, (t, intr)::terms), {maxvars = maxvars, next_idx = next, bounds = bounds, wellformed = SAnd (wellformed, wf)})
+					SOME (intr, (typs, (t, intr)::terms), {maxvars = maxvars, next_idx = next, bounds = bounds, wellformed = SAnd (wellformed, wf)})
 				end
 			| Type _  => interpret_groundtype ()
 			| TFree _ => interpret_groundtype ()
@@ -1243,10 +1243,10 @@ struct
 		end
 	in
 		case assoc (terms, t) of
-		  Some intr =>
+		  SOME intr =>
 			(* return an existing interpretation *)
-			Some (intr, model, args)
-		| None =>
+			SOME (intr, model, args)
+		| NONE =>
 			(case t of
 			  Const (_, T)     =>
 				interpret_groundterm T
@@ -1255,7 +1255,7 @@ struct
 			| Var (_, T)       =>
 				interpret_groundterm T
 			| Bound i          =>
-				Some (nth_elem (i, #bounds args), model, args)
+				SOME (nth_elem (i, #bounds args), model, args)
 			| Abs (x, T, body) =>
 				let
 					(* create all constants of type 'T' *)
@@ -1273,7 +1273,7 @@ struct
 							end)
 						((model, args), constants)
 				in
-					Some (Node bodies, model', args')
+					SOME (Node bodies, model', args')
 				end
 			| t1 $ t2          =>
 				let
@@ -1321,7 +1321,7 @@ struct
 					val (intr1, model1, args1) = interpret thy model args t1
 					val (intr2, model2, args2) = interpret thy model1 args1 t2
 				in
-					Some (interpretation_apply (intr1,intr2), model2, args2)
+					SOME (interpretation_apply (intr1,intr2), model2, args2)
 				end)
 	end;
 
@@ -1339,7 +1339,7 @@ struct
 						val fmTrue  = PropLogic.all (map toTrue xs)
 						val fmFalse = PropLogic.exists (map toFalse xs)
 					in
-						Some (Leaf [fmTrue, fmFalse], m, a)
+						SOME (Leaf [fmTrue, fmFalse], m, a)
 					end
 				| _ =>
 					raise REFUTE ("Pure_interpreter", "\"all\" is not followed by a function")
@@ -1349,11 +1349,11 @@ struct
 				val (i1, m1, a1) = interpret thy model args t1
 				val (i2, m2, a2) = interpret thy m1 a1 t2
 			in
-				Some (make_equality (i1, i2), m2, a2)
+				SOME (make_equality (i1, i2), m2, a2)
 			end
 		| Const ("==>", _) =>  (* simpler than translating 'Const ("==>", _) $ t1 $ t2' *)
-			Some (Node [Node [TT, FF], Node [TT, TT]], model, args)
-		| _ => None;
+			SOME (Node [Node [TT, FF], Node [TT, TT]], model, args)
+		| _ => NONE;
 
 	(* theory -> model -> arguments -> Term.term -> (interpretation * model * arguments) option *)
 
@@ -1366,13 +1366,13 @@ struct
 	(* ------------------------------------------------------------------------- *)
 		case t of
 		  Const ("Trueprop", _) =>
-			Some (Node [TT, FF], model, args)
+			SOME (Node [TT, FF], model, args)
 		| Const ("Not", _) =>
-			Some (Node [FF, TT], model, args)
+			SOME (Node [FF, TT], model, args)
 		| Const ("True", _) =>  (* redundant, since 'True' is also an IDT constructor *)
-			Some (TT, model, args)
+			SOME (TT, model, args)
 		| Const ("False", _) =>  (* redundant, since 'False' is also an IDT constructor *)
-			Some (FF, model, args)
+			SOME (FF, model, args)
 		| Const ("All", _) $ t1 =>
 		(* if "All" occurs without an argument (i.e. as argument to a higher-order *)
 		(* function or  predicate), it is handled by the 'stlc_interpreter' (i.e.  *)
@@ -1386,7 +1386,7 @@ struct
 						val fmTrue  = PropLogic.all (map toTrue xs)
 						val fmFalse = PropLogic.exists (map toFalse xs)
 					in
-						Some (Leaf [fmTrue, fmFalse], m, a)
+						SOME (Leaf [fmTrue, fmFalse], m, a)
 					end
 				| _ =>
 					raise REFUTE ("HOLogic_interpreter", "\"All\" is followed by a non-function")
@@ -1404,7 +1404,7 @@ struct
 						val fmTrue  = PropLogic.exists (map toTrue xs)
 						val fmFalse = PropLogic.all (map toFalse xs)
 					in
-						Some (Leaf [fmTrue, fmFalse], m, a)
+						SOME (Leaf [fmTrue, fmFalse], m, a)
 					end
 				| _ =>
 					raise REFUTE ("HOLogic_interpreter", "\"Ex\" is followed by a non-function")
@@ -1414,19 +1414,19 @@ struct
 				val (i1, m1, a1) = interpret thy model args t1
 				val (i2, m2, a2) = interpret thy m1 a1 t2
 			in
-				Some (make_equality (i1, i2), m2, a2)
+				SOME (make_equality (i1, i2), m2, a2)
 			end
 		| Const ("op =", _) $ t1 =>
-			Some (interpret thy model args (eta_expand t 1))
+			SOME (interpret thy model args (eta_expand t 1))
 		| Const ("op =", _) =>
-			Some (interpret thy model args (eta_expand t 2))
+			SOME (interpret thy model args (eta_expand t 2))
 		| Const ("op &", _) =>
-			Some (Node [Node [TT, FF], Node [FF, FF]], model, args)
+			SOME (Node [Node [TT, FF], Node [FF, FF]], model, args)
 		| Const ("op |", _) =>
-			Some (Node [Node [TT, TT], Node [TT, FF]], model, args)
+			SOME (Node [Node [TT, TT], Node [TT, FF]], model, args)
 		| Const ("op -->", _) =>
-			Some (Node [Node [TT, FF], Node [TT, TT]], model, args)
-		| _ => None;
+			SOME (Node [Node [TT, FF], Node [TT, TT]], model, args)
+		| _ => NONE;
 
 	(* theory -> model -> arguments -> Term.term -> (interpretation * model * arguments) option *)
 
@@ -1436,42 +1436,42 @@ struct
 		val (typs, terms) = model
 	in
 		case assoc (terms, t) of
-		  Some intr =>
+		  SOME intr =>
 			(* return an existing interpretation *)
-			Some (intr, model, args)
-		| None =>
+			SOME (intr, model, args)
+		| NONE =>
 			(case t of
 			  Free (x, Type ("set", [T])) =>
 				let
 					val (intr, _, args') = interpret thy (typs, []) args (Free (x, T --> HOLogic.boolT))
 				in
-					Some (intr, (typs, (t, intr)::terms), args')
+					SOME (intr, (typs, (t, intr)::terms), args')
 				end
 			| Var ((x,i), Type ("set", [T])) =>
 				let
 					val (intr, _, args') = interpret thy (typs, []) args (Var ((x,i), T --> HOLogic.boolT))
 				in
-					Some (intr, (typs, (t, intr)::terms), args')
+					SOME (intr, (typs, (t, intr)::terms), args')
 				end
 			| Const (s, Type ("set", [T])) =>
 				let
 					val (intr, _, args') = interpret thy (typs, []) args (Const (s, T --> HOLogic.boolT))
 				in
-					Some (intr, (typs, (t, intr)::terms), args')
+					SOME (intr, (typs, (t, intr)::terms), args')
 				end
 			(* 'Collect' == identity *)
 			| Const ("Collect", _) $ t1 =>
-				Some (interpret thy model args t1)
+				SOME (interpret thy model args t1)
 			| Const ("Collect", _) =>
-				Some (interpret thy model args (eta_expand t 1))
+				SOME (interpret thy model args (eta_expand t 1))
 			(* 'op :' == application *)
 			| Const ("op :", _) $ t1 $ t2 =>
-				Some (interpret thy model args (t2 $ t1))
+				SOME (interpret thy model args (t2 $ t1))
 			| Const ("op :", _) $ t1 =>
-				Some (interpret thy model args (eta_expand t 1))
+				SOME (interpret thy model args (eta_expand t 1))
 			| Const ("op :", _) =>
-				Some (interpret thy model args (eta_expand t 2))
-			| _ => None)
+				SOME (interpret thy model args (eta_expand t 2))
+			| _ => NONE)
 	end;
 
 	(* theory -> model -> arguments -> Term.term -> (interpretation * model * arguments) option *)
@@ -1482,15 +1482,15 @@ struct
 		(* Term.typ -> (interpretation * model * arguments) option *)
 		fun interpret_variable (Type (s, Ts)) =
 			(case DatatypePackage.datatype_info thy s of
-			  Some info =>  (* inductive datatype *)
+			  SOME info =>  (* inductive datatype *)
 				let
 					val (typs, terms) = model
 					(* int option -- only recursive IDTs have an associated depth *)
 					val depth         = assoc (typs, Type (s, Ts))
 				in
-					if depth = (Some 0) then  (* termination condition to avoid infinite recursion *)
+					if depth = (SOME 0) then  (* termination condition to avoid infinite recursion *)
 						(* return a leaf of size 0 *)
-						Some (Leaf [], model, args)
+						SOME (Leaf [], model, args)
 					else
 						let
 							val index               = #index info
@@ -1505,7 +1505,7 @@ struct
 								else
 									())
 							(* if the model specifies a depth for the current type, decrement it to avoid infinite recursion *)
-							val typs'    = (case depth of None => typs | Some n => overwrite (typs, (Type (s, Ts), n-1)))
+							val typs'    = (case depth of NONE => typs | SOME n => overwrite (typs, (Type (s, Ts), n-1)))
 							(* recursively compute the size of the datatype *)
 							val size     = size_of_dtyp thy typs' descr typ_assoc constrs
 							val next_idx = #next_idx args
@@ -1525,19 +1525,19 @@ struct
 							val wf       = (if size=1 then True else if size=2 then True else exactly_one_true fms)
 						in
 							(* extend the model, increase 'next_idx', add well-formedness condition *)
-							Some (intr, (typs, (t, intr)::terms), {maxvars = #maxvars args, next_idx = next, bounds = #bounds args, wellformed = SAnd (#wellformed args, wf)})
+							SOME (intr, (typs, (t, intr)::terms), {maxvars = #maxvars args, next_idx = next, bounds = #bounds args, wellformed = SAnd (#wellformed args, wf)})
 						end
 				end
-			| None =>  (* not an inductive datatype *)
-				None)
+			| NONE =>  (* not an inductive datatype *)
+				NONE)
 		  | interpret_variable _ =  (* a (free or schematic) type variable *)
-			None
+			NONE
 	in
 		case assoc (terms, t) of
-		  Some intr =>
+		  SOME intr =>
 			(* return an existing interpretation *)
-			Some (intr, model, args)
-		| None =>
+			SOME (intr, model, args)
+		| NONE =>
 			(case t of
 			  Free (_, T)  => interpret_variable T
 			| Var (_, T)   => interpret_variable T
@@ -1549,7 +1549,7 @@ struct
 						(case body_type T of
 						  Type (s', Ts') =>
 							(case DatatypePackage.datatype_info thy s' of
-							  Some info =>  (* body type is an inductive datatype *)
+							  SOME info =>  (* body type is an inductive datatype *)
 								let
 									val index               = #index info
 									val descr               = #descr info
@@ -1570,12 +1570,12 @@ struct
 									case constrs2 of
 									  [] =>
 										(* 'Const (s, T)' is not a constructor of this datatype *)
-										None
+										NONE
 									| c::cs =>
 										let
 											(* int option -- only recursive IDTs have an associated depth *)
 											val depth = assoc (typs, Type (s', Ts'))
-											val typs' = (case depth of None => typs | Some n => overwrite (typs, (Type (s', Ts'), n-1)))
+											val typs' = (case depth of NONE => typs | SOME n => overwrite (typs, (Type (s', Ts'), n-1)))
 											(* constructors before 'Const (s, T)' generate elements of the datatype *)
 											val offset  = size_of_dtyp thy typs' descr typ_assoc constrs1
 											(* 'Const (s, T)' and constructors after it generate elements of the datatype *)
@@ -1620,19 +1620,19 @@ struct
 													(new_offset, Node (intrs @ (replicate (size-size') (make_partial ds))))
 												end
 										in
-											Some ((snd o make_constr) (offset, snd c), model, args)
+											SOME ((snd o make_constr) (offset, snd c), model, args)
 										end
 								end
-							| None =>  (* body type is not an inductive datatype *)
-								None)
+							| NONE =>  (* body type is not an inductive datatype *)
+								NONE)
 						| _ =>  (* body type is a (free or schematic) type variable *)
-							None)
+							NONE)
 				in
 					case interpret_constructor () of
-					  Some x => Some x
-					| None   => interpret_variable T
+					  SOME x => SOME x
+					| NONE   => interpret_variable T
 				end
-			| _ => None)
+			| _ => NONE)
 	end;
 
 	(* theory -> model -> arguments -> Term.term -> (interpretation * model * arguments) option *)
@@ -1667,10 +1667,10 @@ struct
 							Leaf (replicate size_nat False)
 					end
 			in
-				Some (Node (map card constants), model, args)
+				SOME (Node (map card constants), model, args)
 			end
 		| _ =>
-			None;
+			NONE;
 
 
 (* ------------------------------------------------------------------------- *)
@@ -1682,10 +1682,10 @@ struct
 	fun stlc_printer thy model t intr assignment =
 	let
 		(* Term.term -> Term.typ option *)
-		fun typeof (Free (_, T))  = Some T
-		  | typeof (Var (_, T))   = Some T
-		  | typeof (Const (_, T)) = Some T
-		  | typeof _              = None
+		fun typeof (Free (_, T))  = SOME T
+		  | typeof (Var (_, T))   = SOME T
+		  | typeof (Const (_, T)) = SOME T
+		  | typeof _              = NONE
 		(* string -> string *)
 		fun strip_leading_quote s =
 			(implode o (fn ss => case ss of [] => [] | x::xs => if x="'" then xs else ss) o explode) s
@@ -1707,7 +1707,7 @@ struct
 			raise REFUTE ("stlc_printer", "interpretation for ground type is not a leaf")
 	in
 		case typeof t of
-		  Some T =>
+		  SOME T =>
 			(case T of
 			  Type ("fun", [T1, T2]) =>
 				let
@@ -1731,18 +1731,18 @@ struct
 					val HOLogic_empty_set = Const ("{}", HOLogic_setT)
 					val HOLogic_insert    = Const ("insert", HOLogic_prodT --> HOLogic_setT --> HOLogic_setT)
 				in
-					Some (foldr (fn (pair, acc) => HOLogic_insert $ pair $ acc) (pairs, HOLogic_empty_set))
+					SOME (foldr (fn (pair, acc) => HOLogic_insert $ pair $ acc) (pairs, HOLogic_empty_set))
 				end
 			| Type ("prop", [])      =>
 				(case index_from_interpretation intr of
-				  0 => Some (HOLogic.mk_Trueprop HOLogic.true_const)
-				| 1 => Some (HOLogic.mk_Trueprop HOLogic.false_const)
+				  0 => SOME (HOLogic.mk_Trueprop HOLogic.true_const)
+				| 1 => SOME (HOLogic.mk_Trueprop HOLogic.false_const)
 				| _ => raise REFUTE ("stlc_interpreter", "illegal interpretation for a propositional value"))
-			| Type _  => Some (Const (string_of_typ T ^ string_of_int (index_from_interpretation intr), T))
-			| TFree _ => Some (Const (string_of_typ T ^ string_of_int (index_from_interpretation intr), T))
-			| TVar _  => Some (Const (string_of_typ T ^ string_of_int (index_from_interpretation intr), T)))
-		| None =>
-			None
+			| Type _  => SOME (Const (string_of_typ T ^ string_of_int (index_from_interpretation intr), T))
+			| TFree _ => SOME (Const (string_of_typ T ^ string_of_int (index_from_interpretation intr), T))
+			| TVar _  => SOME (Const (string_of_typ T ^ string_of_int (index_from_interpretation intr), T)))
+		| NONE =>
+			NONE
 	end;
 
 	(* theory -> model -> Term.term -> interpretation -> (int -> bool) -> string option *)
@@ -1750,13 +1750,13 @@ struct
 	fun set_printer thy model t intr assignment =
 	let
 		(* Term.term -> Term.typ option *)
-		fun typeof (Free (_, T))  = Some T
-		  | typeof (Var (_, T))   = Some T
-		  | typeof (Const (_, T)) = Some T
-		  | typeof _              = None
+		fun typeof (Free (_, T))  = SOME T
+		  | typeof (Var (_, T))   = SOME T
+		  | typeof (Const (_, T)) = SOME T
+		  | typeof _              = NONE
 	in
 		case typeof t of
-		  Some (Type ("set", [T])) =>
+		  SOME (Type ("set", [T])) =>
 			let
 				(* create all constants of type 'T' *)
 				val (i, _, _) = interpret thy model {maxvars=0, next_idx=1, bounds=[], wellformed=True} (Free ("dummy", T))
@@ -1770,9 +1770,9 @@ struct
 					case result of
 					  Leaf [fmTrue, fmFalse] =>
 						if PropLogic.eval assignment fmTrue then
-							Some (print thy model (Free ("dummy", T)) arg assignment)
+							SOME (print thy model (Free ("dummy", T)) arg assignment)
 						else if PropLogic.eval assignment fmFalse then
-							None
+							NONE
 						else
 							raise REFUTE ("set_printer", "illegal interpretation: no value assigned (SAT solver unsound?)")
 					| _ =>
@@ -1784,10 +1784,10 @@ struct
 				val HOLogic_empty_set = Const ("{}", HOLogic_setT)
 				val HOLogic_insert    = Const ("insert", T --> HOLogic_setT --> HOLogic_setT)
 			in
-				Some (foldl (fn (acc, elem) => HOLogic_insert $ elem $ acc) (HOLogic_empty_set, elements))
+				SOME (foldl (fn (acc, elem) => HOLogic_insert $ elem $ acc) (HOLogic_empty_set, elements))
 			end
 		| _ =>
-			None
+			NONE
 	end;
 
 	(* theory -> model -> Term.term -> interpretation -> (int -> bool) -> Term.term option *)
@@ -1795,15 +1795,15 @@ struct
 	fun IDT_printer thy model t intr assignment =
 	let
 		(* Term.term -> Term.typ option *)
-		fun typeof (Free (_, T))  = Some T
-		  | typeof (Var (_, T))   = Some T
-		  | typeof (Const (_, T)) = Some T
-		  | typeof _              = None
+		fun typeof (Free (_, T))  = SOME T
+		  | typeof (Var (_, T))   = SOME T
+		  | typeof (Const (_, T)) = SOME T
+		  | typeof _              = NONE
 	in
 		case typeof t of
-		  Some (Type (s, Ts)) =>
+		  SOME (Type (s, Ts)) =>
 			(case DatatypePackage.datatype_info thy s of
-			  Some info =>  (* inductive datatype *)
+			  SOME info =>  (* inductive datatype *)
 				let
 					val (typs, _)           = model
 					val index               = #index info
@@ -1824,7 +1824,7 @@ struct
 					val _ = (if element<0 then raise REFUTE ("IDT_printer", "invalid interpretation (no value assigned)") else ())
 					(* int option -- only recursive IDTs have an associated depth *)
 					val depth = assoc (typs, Type (s, Ts))
-					val typs' = (case depth of None => typs | Some n => overwrite (typs, (Type (s, Ts), n-1)))
+					val typs' = (case depth of NONE => typs | SOME n => overwrite (typs, (Type (s, Ts), n-1)))
 					(* int -> DatatypeAux.dtyp list -> Term.term list *)
 					fun make_args n [] =
 						if n<>0 then
@@ -1860,12 +1860,12 @@ struct
 								make_term (n-c_size) cs
 						end
 				in
-					Some (make_term element constrs)
+					SOME (make_term element constrs)
 				end
-			| None =>  (* not an inductive datatype *)
-				None)
+			| NONE =>  (* not an inductive datatype *)
+				NONE)
 		| _ =>  (* a (free or schematic) type variable *)
-			None
+			NONE
 	end;
 
 

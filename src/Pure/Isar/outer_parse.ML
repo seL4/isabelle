@@ -102,8 +102,8 @@ fun cut kind scan =
     fun get_pos [] = " (past end-of-file!)"
       | get_pos (tok :: _) = T.pos_of tok;
 
-    fun err (toks, None) = kind ^ get_pos toks
-      | err (toks, Some msg) = kind ^ get_pos toks ^ ": " ^ msg;
+    fun err (toks, NONE) = kind ^ get_pos toks
+      | err (toks, SOME msg) = kind ^ get_pos toks ^ ": " ^ msg;
   in Scan.!! err scan end;
 
 fun !!! scan = cut "Outer syntax error" scan;
@@ -179,7 +179,7 @@ val xname = group "name reference" (short_ident || long_ident || sym_ident || st
 val text = group "text" (short_ident || long_ident || sym_ident || string || number || verbatim);
 val path = group "file name/path specification" name >> Path.unpack;
 
-val uname = underscore >> K None || name >> Some;
+val uname = underscore >> K NONE || name >> SOME;
 
 
 (* sorts and arities *)
@@ -308,7 +308,7 @@ val xthms1 = Scan.repeat1 xthm;
 
 local
 
-val loc_mixfix = $$$ "(" -- $$$ "structure" -- !!! ($$$ ")") >> K None || opt_mixfix >> Some;
+val loc_mixfix = $$$ "(" -- $$$ "structure" -- !!! ($$$ ")") >> K NONE || opt_mixfix >> SOME;
 val loc_keyword = $$$ "fixes" || $$$ "assumes" || $$$ "defines" || $$$ "notes" || $$$ "includes";
 
 val loc_element =

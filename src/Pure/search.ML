@@ -58,13 +58,13 @@ val trace_DEPTH_FIRST = ref false;
   Suppresses duplicate solutions to minimize search space.*)
 fun DEPTH_FIRST satp tac = 
  let val tac = tracify trace_DEPTH_FIRST tac
-     fun depth used [] = None
+     fun depth used [] = NONE
        | depth used (q::qs) =
 	  case Seq.pull q of
-	      None         => depth used qs
-	    | Some(st,stq) => 
+	      NONE         => depth used qs
+	    | SOME(st,stq) => 
 		if satp st andalso not (gen_mem eq_thm (st, used))
-		then Some(st, Seq.make
+		then SOME(st, Seq.make
 			         (fn()=> depth (st::used) (stq::qs)))
 		else depth used (tac st :: stq :: qs)
   in  traced_tac (fn st => depth [] ([Seq.single st]))  end;
@@ -156,10 +156,10 @@ fun THEN_ITER_DEEPEN tac0 satp tac1 = traced_tac (fn st =>
 			     implode (map (fn _ => "*") qs))
 		else ();
 		Seq.pull q) of
-	     None         => depth (bnd,inc) qs
-	   | Some(st,stq) => 
+	     NONE         => depth (bnd,inc) qs
+	   | SOME(st,stq) => 
 	       if satp st	(*solution!*)
-	       then Some(st, Seq.make
+	       then SOME(st, Seq.make
 			 (fn()=> depth (bnd,inc) ((k,np,rgd,stq)::qs)))
 
 	       else 
@@ -197,8 +197,8 @@ fun DEEPEN (inc,lim) tacf m i =
 val trace_BEST_FIRST = ref false;
 
 (*For creating output sequence*)
-fun some_of_list []     = None
-  | some_of_list (x::l) = Some (x, Seq.make (fn () => some_of_list l));
+fun some_of_list []     = NONE
+  | some_of_list (x::l) = SOME (x, Seq.make (fn () => some_of_list l));
 
 (*Check for and delete duplicate proof states*)
 fun deleteAllMin prf heap = 
@@ -219,7 +219,7 @@ fun THEN_BEST_FIRST tac0 (satp, sizef) tac1 =
 					(map pairsize nonsats, nprf_heap)) 
 	      | (sats,_)  => some_of_list sats)
       and next nprf_heap =
-            if ThmHeap.is_empty nprf_heap then None
+            if ThmHeap.is_empty nprf_heap then NONE
 	    else 
 	    let val (n,prf) = ThmHeap.min nprf_heap
 	    in if !trace_BEST_FIRST 
@@ -266,8 +266,8 @@ fun insert_with_level (lnth: int*int*thm, []) = [lnth]
               else (l,m,th)::(l',n,th')::nths;
 
 (*For creating output sequence*)
-fun some_of_list []     = None
-  | some_of_list (x::l) = Some (x, Seq.make (fn () => some_of_list l));
+fun some_of_list []     = NONE
+  | some_of_list (x::l) = SOME (x, Seq.make (fn () => some_of_list l));
 
 val trace_ASTAR = ref false; 
 
@@ -280,7 +280,7 @@ fun THEN_ASTAR tac0 (satp, costf) tac1 =
 		 => next (foldr insert_with_level (map cost nonsats, nprfs))
           | (sats,_)  => some_of_list sats)
       end and    
-      next []  = None
+      next []  = NONE
         | next ((level,n,prf)::nprfs)  =
             (if !trace_ASTAR 
                then tracing("level = " ^ string_of_int level ^

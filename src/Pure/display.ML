@@ -193,22 +193,22 @@ fun pretty_full_theory thy =
     fun pretty_default S = Pretty.block
       [Pretty.str "default sort:", Pretty.brk 1, prt_sort S];
 
-    fun pretty_witness None = Pretty.str "universal non-emptiness witness: -"
-      | pretty_witness (Some (T, S)) = Pretty.block
+    fun pretty_witness NONE = Pretty.str "universal non-emptiness witness: -"
+      | pretty_witness (SOME (T, S)) = Pretty.block
           [Pretty.str "universal non-emptiness witness:", Pretty.brk 1,
             prt_typ_no_tvars T, Pretty.str " ::", Pretty.brk 1, prt_sort S];
 
     val tfrees = map (fn v => TFree (v, []));
     fun pretty_type syn (t, Type.LogicalType n) =
-          if syn then None
-          else Some (prt_typ (Type (t, tfrees (Term.invent_names [] "'a" n))))
+          if syn then NONE
+          else SOME (prt_typ (Type (t, tfrees (Term.invent_names [] "'a" n))))
       | pretty_type syn (t, Type.Abbreviation (vs, U, syn')) =
-          if syn <> syn' then None
-          else Some (Pretty.block
+          if syn <> syn' then NONE
+          else SOME (Pretty.block
             [prt_typ (Type (t, tfrees vs)), Pretty.str " =", Pretty.brk 1, prt_typ U])
       | pretty_type syn (t, Type.Nonterminal) =
-          if not syn then None
-          else Some (prt_typ (Type (t, [])));
+          if not syn then NONE
+          else SOME (prt_typ (Type (t, [])));
 
     val pretty_arities = flat o map (fn (t, ars) => map (prt_arity t) ars);
 

@@ -47,10 +47,10 @@ fun make_deps_graph (p, AbsP (_, _, prf)) = make_deps_graph (p, prf)
                 (case prefx of
                   (x :: _) =>
                     (case ThyInfo.lookup_theory x of
-                      Some thy =>
+                      SOME thy =>
                         let val name = #name (Present.get_info thy)
                         in if name = "" then [] else [name] end 
-                    | None => [])
+                    | NONE => [])
                  | _ => ["global"]);
             in
               if name mem parents' then (gra', parents union parents')

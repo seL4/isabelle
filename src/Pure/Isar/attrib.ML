@@ -89,8 +89,8 @@ fun gen_attribute which thy =
         val name = NameSpace.intern space raw_name;
       in
         (case Symtab.lookup (attrs, name) of
-          None => error ("Unknown attribute: " ^ quote name ^ Position.str_of pos)
-        | Some ((p, _), _) => transform_failure (curry ATTRIB_FAIL (name, pos)) (which p src))
+          NONE => error ("Unknown attribute: " ^ quote name ^ Position.str_of pos)
+        | SOME ((p, _), _) => transform_failure (curry ATTRIB_FAIL (name, pos)) (which p src))
       end;
   in attr end;
 
@@ -228,7 +228,7 @@ fun read_instantiate _ [] _ thm = thm
                Syntax.string_of_vname xi);
         val (rtypes, rsorts) = types_sorts thm;
         fun readT (xi, s) =
-            let val S = case rsorts xi of Some S => S | None => absent xi;
+            let val S = case rsorts xi of SOME S => S | NONE => absent xi;
                 val T = ProofContext.read_typ ctxt s;
             in if Sign.typ_instance sign (T, TVar (xi, S)) then (xi, T)
                else error
@@ -244,8 +244,8 @@ fun read_instantiate _ [] _ thm = thm
         val vars = Drule.vars_of thm';
         fun get_typ xi =
           (case assoc (vars, xi) of
-            Some T => T
-          | None => error ("No such variable in theorem: " ^ Syntax.string_of_vname xi));
+            SOME T => T
+          | NONE => error ("No such variable in theorem: " ^ Syntax.string_of_vname xi));
 
         val (xs, ss) = Library.split_list tinsts;
         val Ts = map get_typ xs;
@@ -256,7 +256,7 @@ fun read_instantiate _ [] _ thm = thm
            are distinct from those occuring in the theorem. *)
 
         val (ts, envT) =
-          ProofContext.read_termTs ctxt (K false) (K None) (K None) used (ss ~~ Ts);
+          ProofContext.read_termTs ctxt (K false) (K NONE) (K NONE) used (ss ~~ Ts);
 
         val cenvT = map (apsnd (Thm.ctyp_of sign)) envT;
         val cenv =
@@ -283,8 +283,8 @@ fun read_instantiate' _ ([], []) _ thm = thm
   | read_instantiate' context_of (args, concl_args) x thm =
       let
         fun zip_vars _ [] = []
-          | zip_vars (_ :: xs) (None :: opt_ts) = zip_vars xs opt_ts
-          | zip_vars ((x, _) :: xs) (Some t :: opt_ts) = (x, t) :: zip_vars xs opt_ts
+          | zip_vars (_ :: xs) (NONE :: opt_ts) = zip_vars xs opt_ts
+          | zip_vars ((x, _) :: xs) (SOME t :: opt_ts) = (x, t) :: zip_vars xs opt_ts
           | zip_vars [] _ = error "More instantiations than variables in theorem";
         val insts =
           zip_vars (Drule.vars_of_terms [Thm.prop_of thm]) args @

@@ -385,11 +385,11 @@ fun mk_vstruct ty V =
 (* Search a term for a sub-term satisfying the predicate p. *)
 fun find_term p =
    let fun find tm =
-      if (p tm) then Some tm
+      if (p tm) then SOME tm
       else case tm of
           Abs(_,_,body) => find body
-        | (t$u)         => (case find t of None => find u | some => some)
-        | _             => None
+        | (t$u)         => (case find t of NONE => find u | some => some)
+        | _             => NONE
    in find
    end;
 

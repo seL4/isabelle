@@ -114,8 +114,8 @@ fun kill_thy name = Toplevel.imperative (fn () => IsarThy.kill_theory name);
 fun with_modes modes e =
   Library.setmp print_mode (modes @ ! print_mode) e ();
 
-fun set_limit _ None = ()
-  | set_limit r (Some n) = r := n;
+fun set_limit _ NONE = ()
+  | set_limit r (SOME n) = r := n;
 
 fun pr (ms, (lim1, lim2)) = Toplevel.keep (fn state =>
   (set_limit goals_limit lim1; set_limit ProofContext.prems_limit lim2; Toplevel.quiet := false;
@@ -280,7 +280,7 @@ fun string_of_thms state ms args = with_modes ms (fn () =>
 
 fun string_of_prfs full state ms arg = with_modes ms (fn () =>
   Pretty.string_of (case arg of    (* FIXME context syntax!? *)
-      None =>
+      NONE =>
         let
           val (_, (_, thm)) = Proof.get_goal state;
           val {sign, prop, der = (_, prf), ...} = rep_thm thm;
@@ -289,7 +289,7 @@ fun string_of_prfs full state ms arg = with_modes ms (fn () =>
           ProofSyntax.pretty_proof sign
             (if full then Reconstruct.reconstruct_proof sign prop prf' else prf')
         end
-    | Some args => Pretty.chunks
+    | SOME args => Pretty.chunks
         (map (ProofSyntax.pretty_proof_of full) (IsarThy.get_thmss args state))));
 
 fun string_of_prop state ms s =
@@ -337,7 +337,7 @@ local
 
 fun present_text assert_proof present (s, pos) = Toplevel.keep' (fn int => fn state =>
   (if can Toplevel.proof_of state = assert_proof then () else raise Toplevel.UNDEF;
-    Context.setmp (Some (Toplevel.theory_of state)) present s;
+    Context.setmp (SOME (Toplevel.theory_of state)) present s;
     OuterSyntax.check_text (s, pos) int state;
     raise Toplevel.UNDEF));
 

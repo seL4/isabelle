@@ -50,14 +50,14 @@ type dpair = binderlist * term * term;
 fun body_type(Envir.Envir{iTs,...}) = 
 let fun bT(Type("fun",[_,T])) = bT T
       | bT(T as TVar(ixn,_)) = (case Vartab.lookup (iTs,ixn) of
-		None => T | Some(T') => bT T')
+		NONE => T | SOME(T') => bT T')
       | bT T = T
 in bT end;
 
 fun binder_types(Envir.Envir{iTs,...}) = 
 let fun bTs(Type("fun",[T,U])) = T :: bTs U
       | bTs(T as TVar(ixn,_)) = (case Vartab.lookup (iTs,ixn) of
-		None => [] | Some(T') => bTs T')
+		NONE => [] | SOME(T') => bTs T')
       | bTs _ = []
 in bTs end;
 
@@ -72,7 +72,7 @@ fun eta_norm(env as Envir.Envir{iTs,...}) =
 	    Abs("", T, etif(U, incr_boundvars 1 t $ Bound 0))
 	| etif (TVar(ixn,_),t) = 
 	    (case Vartab.lookup (iTs,ixn) of
-		  None => t | Some(T) => etif(T,t))
+		  NONE => t | SOME(T) => etif(T,t))
 	| etif (_,t) = t;
       fun eta_nm (rbinder, Abs(a,T,body)) =
 	    Abs(a, T, eta_nm ((a,T)::rbinder, body))
@@ -98,8 +98,8 @@ fun occurs_terms (seen: (indexname list) ref,
 	      (*no need to lookup: v has no assignment*)
 	    else (seen := w:: !seen;  
 	          case  Envir.lookup(env,w)  of
-		      None    => false
-		    | Some t => occur t)
+		      NONE    => false
+		    | SOME t => occur t)
 	| occur (Abs(_,_,body)) = occur body
 	| occur (f$t) = occur t  orelse   occur f
   in  occurs ts  end;
@@ -110,7 +110,7 @@ fun occurs_terms (seen: (indexname list) ref,
 fun head_of_in (env,t) : term = case t of
     f$_ => head_of_in(env,f)
   | Var (v,_) => (case  Envir.lookup(env,v)  of  
-			Some u => head_of_in(env,u)  |  None   => t)
+			SOME u => head_of_in(env,u)  |  NONE   => t)
   | _ => t;
 
 
@@ -160,8 +160,8 @@ fun rigid_occurs_term (seen: (indexname list)ref, env, v: indexname, t) =
 	    else if eq_ix(v,w) then Rigid
 	    else (seen := w:: !seen;  
 	          case  Envir.lookup(env,w)  of
-		      None    => NoOcc
-		    | Some t => occur t)
+		      NONE    => NoOcc
+		    | SOME t => occur t)
 	| occur (Abs(_,_,body)) = occur body
 	| occur (t as f$_) =  (*switch to nonrigid search?*)
 	   (case head_of_in (env,f) of
@@ -283,7 +283,7 @@ fun SIMPL0 (dp0, (env,flexflex,flexrigid))
 (* changed(env,t) checks whether the head of t is a variable assigned in env*)
 fun changed (env, f$_) = changed (env,f)
   | changed (env, Var (v,_)) =
-      (case Envir.lookup(env,v) of None=>false  |  _ => true)
+      (case Envir.lookup(env,v) of NONE=>false  |  _ => true)
   | changed _ = false;
 
 
@@ -358,7 +358,7 @@ let (*Produce copies of uarg and cons them in front of uargs*)
 		val dp = (rbinder, list_comb(targ, map plugin args), u);
 		val (env2,frigid,fflex) = SIMPL (env', dp::dpairs)
 		    (*may raise exception CANTUNIFY*)
-	    in  Some ((list_comb(head,args), (env2, frigid@fflex)),
+	    in  SOME ((list_comb(head,args), (env2, frigid@fflex)),
 			tail)
 	    end  handle CANTUNIFY => Seq.pull tail)
 	end handle CANTUNIFY => tail;
@@ -400,8 +400,8 @@ fun MATCH (env, (rbinder,t,u), dpairs)
       fun new_dset (u', (env',dpairs')) =
 	  (*if v was updated to s, must unify s with u' *)
 	  case Envir.lookup(env',v) of
-	      None => (Envir.update ((v, types_abs(Ts, u')), env'),  dpairs')
-	    | Some s => (env', ([], s, types_abs(Ts, u'))::dpairs')
+	      NONE => (Envir.update ((v, types_abs(Ts, u')), env'),  dpairs')
+	    | SOME s => (env', ([], s, types_abs(Ts, u'))::dpairs')
   in Seq.map new_dset
          (matchcopy (#1 v) (rbinder, targs, u, (env,dpairs)))
   end;
@@ -575,7 +575,7 @@ fun hounifiers (sg,env, tus : (term*term)list)
 		then print_dpairs "Enter SIMPL" (env,dpairs)  else ();
 		SIMPL (env,dpairs))
 	  in case flexrigid of
-	      [] => Some (foldr add_ffpair (flexflex, (env',[])), reseq)
+	      [] => SOME (foldr add_ffpair (flexflex, (env',[])), reseq)
 	    | dp::frigid' => 
 		if tdepth > !search_bound then
 		    (warning "Unification bound exceeded"; Seq.pull reseq)

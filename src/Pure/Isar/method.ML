@@ -349,7 +349,7 @@ fun bires_inst_tac bires_flag ctxt insts thm =
           ("No such variable in theorem: " ^ Syntax.string_of_vname xi);
     val (rtypes, rsorts) = types_sorts thm;
     fun readT (xi, s) =
-        let val S = case rsorts xi of Some S => S | None => absent xi;
+        let val S = case rsorts xi of SOME S => S | NONE => absent xi;
             val T = Sign.read_typ (sign, sorts) s;
         in if Sign.typ_instance sign (T, TVar (xi, S)) then (xi, T)
            else error
@@ -359,8 +359,8 @@ fun bires_inst_tac bires_flag ctxt insts thm =
     (* Preprocess rule: extract vars and their types, apply Tinsts *)
     fun get_typ xi =
       (case rtypes xi of
-           Some T => typ_subst_TVars Tinsts_env T
-         | None => absent xi);
+           SOME T => typ_subst_TVars Tinsts_env T
+         | NONE => absent xi);
     val (xis, ss) = Library.split_list tinsts;
     val Ts = map get_typ xis;
         val (_, _, Bi, _) = dest_state(st,i)
@@ -370,7 +370,7 @@ fun bires_inst_tac bires_flag ctxt insts thm =
                            (* as they are printed: bound variables with *)
                            (* the same name are renamed during printing *)
         fun types' (a, ~1) = (case assoc (params, a) of
-                None => types (a, ~1)
+                NONE => types (a, ~1)
               | some => some)
           | types' xi = types xi;
         fun internal x = is_some (types' (x, ~1));
@@ -487,12 +487,12 @@ fun set_tactic f = tactic_ref := f;
 fun tactic txt ctxt = METHOD (fn facts =>
   (Context.use_mltext
     ("let fun tactic (ctxt: PureIsar.Proof.context) (facts: thm list) : tactic = \
-     \let val thm = PureIsar.ProofContext.get_thm_closure ctxt o rpair None\n\
-     \  and thms = PureIsar.ProofContext.get_thms_closure ctxt o rpair None in\n"
+     \let val thm = PureIsar.ProofContext.get_thm_closure ctxt o rpair NONE\n\
+     \  and thms = PureIsar.ProofContext.get_thms_closure ctxt o rpair NONE in\n"
      ^ txt ^
      "\nend in PureIsar.Method.set_tactic tactic end")
-    false None;
-    Context.setmp (Some (ProofContext.theory_of ctxt)) (! tactic_ref ctxt) facts));
+    false NONE;
+    Context.setmp (SOME (ProofContext.theory_of ctxt)) (! tactic_ref ctxt) facts));
 
 
 
@@ -543,8 +543,8 @@ fun method thy =
         val name = NameSpace.intern space raw_name;
       in
         (case Symtab.lookup (meths, name) of
-          None => error ("Unknown proof method: " ^ quote name ^ Position.str_of pos)
-        | Some ((mth, _), _) => transform_failure (curry METHOD_FAIL (name, pos)) (mth src))
+          NONE => error ("Unknown proof method: " ^ quote name ^ Position.str_of pos)
+        | SOME ((mth, _), _) => transform_failure (curry METHOD_FAIL (name, pos)) (mth src))
       end;
   in meth end;
 
@@ -633,7 +633,7 @@ val destN = "dest";
 val ruleN = "rule";
 
 fun modifier name kind kind' att =
-  Args.$$$ name |-- (kind >> K None || kind' |-- Args.nat --| Args.colon >> Some)
+  Args.$$$ name |-- (kind >> K NONE || kind' |-- Args.nat --| Args.colon >> SOME)
     >> (pair (I: Proof.context -> Proof.context) o att);
 
 val rules_modifiers =
@@ -726,8 +726,8 @@ val done_text = Basic (K (SIMPLE_METHOD all_tac));
 fun close_text asm = Basic (fn ctxt => METHOD (K
   (FILTER Thm.no_prems ((if asm then ALLGOALS (assm_tac ctxt) else all_tac) THEN flexflex_tac))));
 
-fun finish_text asm None = close_text asm
-  | finish_text asm (Some txt) = Then [txt, close_text asm];
+fun finish_text asm NONE = close_text asm
+  | finish_text asm (SOME txt) = Then [txt, close_text asm];
 
 fun proof opt_text state =
   state
@@ -738,10 +738,10 @@ fun proof opt_text state =
 
 fun local_qed asm opt_text = Proof.local_qed (refine (finish_text asm opt_text));
 fun local_terminal_proof (text, opt_text) pr =
-  Seq.THEN (proof (Some text), local_qed true opt_text pr);
-val local_default_proof = local_terminal_proof (default_text, None);
-val local_immediate_proof = local_terminal_proof (this_text, None);
-fun local_done_proof pr = Seq.THEN (proof (Some done_text), local_qed false None pr);
+  Seq.THEN (proof (SOME text), local_qed true opt_text pr);
+val local_default_proof = local_terminal_proof (default_text, NONE);
+val local_immediate_proof = local_terminal_proof (this_text, NONE);
+fun local_done_proof pr = Seq.THEN (proof (SOME done_text), local_qed false NONE pr);
 
 
 fun global_qeds asm opt_text = Proof.global_qed (refine (finish_text asm opt_text));
@@ -754,16 +754,16 @@ fun global_qed asm opt_text state =
 
 fun global_term_proof asm (text, opt_text) state =
   state
-  |> proof (Some text)
+  |> proof (SOME text)
   |> Proof.check_result "Terminal proof method failed" state
   |> (Seq.flat o Seq.map (global_qeds asm opt_text))
   |> Proof.check_result "Failed to finish proof (after successful terminal method)" state
   |> Seq.hd;
 
 val global_terminal_proof = global_term_proof true;
-val global_default_proof = global_terminal_proof (default_text, None);
-val global_immediate_proof = global_terminal_proof (this_text, None);
-val global_done_proof = global_term_proof false (done_text, None);
+val global_default_proof = global_terminal_proof (default_text, NONE);
+val global_immediate_proof = global_terminal_proof (this_text, NONE);
+val global_done_proof = global_term_proof false (done_text, NONE);
 
 
 
@@ -814,7 +814,7 @@ val pure_methods =
 
 val setup =
  [MethodsData.init, add_methods pure_methods,
-  (#1 o PureThy.add_thms [(("", Drule.equal_intr_rule), [ContextRules.intro_query_global None])])];
+  (#1 o PureThy.add_thms [(("", Drule.equal_intr_rule), [ContextRules.intro_query_global NONE])])];
 
 
 end;

@@ -72,8 +72,8 @@ fun get_prompt prompt src = get (set_prompt prompt src);
 
 fun get_single src =
   (case get src of
-    ([], _) => None
-  | (x :: xs, src') => Some (x, unget (xs, src')));
+    ([], _) => NONE
+  | (x :: xs, src') => SOME (x, unget (xs, src')));
 
 fun exhaust src =
   (case get src of
@@ -93,7 +93,7 @@ fun drain_mapfilter f prompt src =
   end;
 
 fun mapfilter f src = make_source [] src default_prompt (drain_mapfilter f);
-fun filter pred = mapfilter (fn x => if pred x then Some x else None);
+fun filter pred = mapfilter (fn x => if pred x then SOME x else NONE);
 
 
 

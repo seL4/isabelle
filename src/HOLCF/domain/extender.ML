@@ -13,7 +13,7 @@ yields
 Exception-
    TERM
       ("typ_of_term: bad encoding of type",
-         [Abs ("uu", "_", Const ("None", "_"))]) raised
+         [Abs ("uu", "_", Const ("NONE", "_"))]) raised
 but this works fine:
 domain Empty = silly Empty
 
@@ -67,15 +67,15 @@ open Domain_Library;
 	|   rm_sorts (TVar(s,_))  = TVar(s,[])
 	and remove_sorts l = map rm_sorts l;
 	fun analyse indirect (TFree(v,s))  = (case assoc_string(tvars,v) of 
-		    None => error ("Free type variable " ^ quote v ^ " on rhs.")
-	          | Some sort => if eq_set_string (s,defaultS) orelse
+		    NONE => error ("Free type variable " ^ quote v ^ " on rhs.")
+	          | SOME sort => if eq_set_string (s,defaultS) orelse
 				    eq_set_string (s,sort    )
 				 then TFree(distinct_name v,sort)
 				 else error ("Inconsistent sort constraint" ^
 				             " for type variable " ^ quote v))
         |   analyse indirect (t as Type(s,typl)) = (case assoc_string(dtnvs,s)of
-		None          => Type(s,map (analyse true) typl)
-	      | Some typevars => if indirect 
+		NONE          => Type(s,map (analyse true) typl)
+	      | SOME typevars => if indirect 
                            then error ("Indirect recursion of type " ^ 
 				        quote (string_of_typ sg t))
                            else if dname <> s orelse (** BUG OR FEATURE?: 
@@ -160,7 +160,7 @@ val domain_decl = (type_args' -- P.name >> Library.swap) --
 val domains_decl =
   Scan.option (P.$$$ "(" |-- P.name --| P.$$$ ")") -- P.and_list1 domain_decl
   >> (fn (opt_name, doms) =>
-      (case opt_name of None => space_implode "_" (map (#1 o #1) doms) | Some s => s, doms));
+      (case opt_name of NONE => space_implode "_" (map (#1 o #1) doms) | SOME s => s, doms));
 
 val domainP =
   OuterSyntax.command "domain" "define recursive domains (HOLCF)" K.thy_decl

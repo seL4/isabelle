@@ -15,19 +15,19 @@ subsection {* Setup *}
 ML_setup {*
 fun realizes_set_proc (Const ("realizes", Type ("fun", [Type ("Null", []), _])) $ r $
       (Const ("op :", _) $ x $ S)) = (case strip_comb S of
-        (Var (ixn, U), ts) => Some (list_comb (Var (ixn, binder_types U @
+        (Var (ixn, U), ts) => SOME (list_comb (Var (ixn, binder_types U @
            [HOLogic.dest_setT (body_type U)] ---> HOLogic.boolT), ts @ [x]))
-      | (Free (s, U), ts) => Some (list_comb (Free (s, binder_types U @
+      | (Free (s, U), ts) => SOME (list_comb (Free (s, binder_types U @
            [HOLogic.dest_setT (body_type U)] ---> HOLogic.boolT), ts @ [x]))
-      | _ => None)
+      | _ => NONE)
   | realizes_set_proc (Const ("realizes", Type ("fun", [T, _])) $ r $
       (Const ("op :", _) $ x $ S)) = (case strip_comb S of
-        (Var (ixn, U), ts) => Some (list_comb (Var (ixn, T :: binder_types U @
+        (Var (ixn, U), ts) => SOME (list_comb (Var (ixn, T :: binder_types U @
            [HOLogic.dest_setT (body_type U)] ---> HOLogic.boolT), r :: ts @ [x]))
-      | (Free (s, U), ts) => Some (list_comb (Free (s, T :: binder_types U @
+      | (Free (s, U), ts) => SOME (list_comb (Free (s, T :: binder_types U @
            [HOLogic.dest_setT (body_type U)] ---> HOLogic.boolT), r :: ts @ [x]))
-      | _ => None)
-  | realizes_set_proc _ = None;
+      | _ => NONE)
+  | realizes_set_proc _ = NONE;
 
 fun mk_realizes_set r rT s (setT as Type ("set", [elT])) =
   Abs ("x", elT, Const ("realizes", rT --> HOLogic.boolT --> HOLogic.boolT) $
@@ -36,8 +36,8 @@ fun mk_realizes_set r rT s (setT as Type ("set", [elT])) =
 
   Context.>> (fn thy => thy |>
     Extraction.add_types
-      [("bool", ([], None)),
-       ("set", ([realizes_set_proc], Some mk_realizes_set))] |>
+      [("bool", ([], NONE)),
+       ("set", ([realizes_set_proc], SOME mk_realizes_set))] |>
     Extraction.set_preprocessor (fn sg =>
       Proofterm.rewrite_proof_notypes
         ([], ("HOL/elim_cong", RewriteHOLProof.elim_cong) ::

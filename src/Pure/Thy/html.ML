@@ -275,11 +275,11 @@ val file_path = file_name o Url.pack;
 fun href_name s txt = "<a href=" ^ Library.quote s ^ ">" ^ txt ^ "</a>";
 fun href_path path txt = href_name (Url.pack path) txt;
 
-fun href_opt_name None txt = txt
-  | href_opt_name (Some s) txt = href_name s txt;
+fun href_opt_name NONE txt = txt
+  | href_opt_name (SOME s) txt = href_name s txt;
 
-fun href_opt_path None txt = txt
-  | href_opt_path (Some p) txt = href_path p txt;
+fun href_opt_path NONE txt = txt
+  | href_opt_path (SOME p) txt = href_path p txt;
 
 fun para txt = "\n<p>" ^ txt ^ "</p>\n";
 fun preform txt = "<pre>" ^ txt ^ "</pre>";
@@ -314,8 +314,8 @@ val back_link = gen_link "Back";
 fun begin_index up (index_path, session) opt_readme opt_doc graph =
   begin_document ("Index of " ^ session) ^ up_link up ^
   para ("View " ^ href_path graph "theory dependencies" ^
-    (case opt_readme of None => "" | Some p => "<br>\nView " ^ href_path p "README") ^
-    (case opt_doc of None => "" | Some p => "<br>\nView " ^ href_path p "document")) ^
+    (case opt_readme of NONE => "" | SOME p => "<br>\nView " ^ href_path p "README") ^
+    (case opt_doc of NONE => "" | SOME p => "<br>\nView " ^ href_path p "document")) ^
   "\n</div>\n<hr>\n<div class=\"theories\">\n<h2>Theories</h2>\n<ul>\n";
 
 val end_index = end_document;
@@ -365,9 +365,9 @@ fun verbatim_source ss =
 
 
 local
-  fun encl None = enclose "[" "]"
-    | encl (Some false) = enclose "(" ")"
-    | encl (Some true) = I;
+  fun encl NONE = enclose "[" "]"
+    | encl (SOME false) = enclose "(" ")"
+    | encl (SOME true) = I;
 
   fun file (opt_ref, path, loadit) = href_opt_path opt_ref (encl loadit (file_path path));
   val files = space_implode " " o map file;

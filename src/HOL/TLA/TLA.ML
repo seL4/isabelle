@@ -818,7 +818,7 @@ by (resolve_tac ((map temp_use (prems RL [STL4])) RL [box_stp_actD]) 1);
 by (asm_simp_tac (simpset() addsimps [split_box_conj,box_stp_actI]) 1);
 qed "WF1";
 
-(* Sometimes easier to use; designed for action B rather than state predicate Q *)
+(* SOMEtimes easier to use; designed for action B rather than state predicate Q *)
 val [prem1,prem2,prem3] = goalw thy [leadsto_def]
   "[| |- N & $P --> $Enabled (<A>_v);            \
 \     |- N & <A>_v --> B;                  \ 

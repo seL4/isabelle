@@ -36,26 +36,26 @@ val case_conclN = "case";
 fun lookup_consumes thm =
   let fun err () = raise THM ("Malformed 'consumes' tag of theorem", 0, [thm]) in
     (case Library.assoc (Thm.tags_of_thm thm, consumes_tagN) of
-      None => None
-    | Some [s] => (case Syntax.read_nat s of Some n => Some n | _ => err ())
+      NONE => NONE
+    | SOME [s] => (case Syntax.read_nat s of SOME n => SOME n | _ => err ())
     | _ => err ())
   end;
 
-fun put_consumes None th = th
-  | put_consumes (Some n) th = th
+fun put_consumes NONE th = th
+  | put_consumes (SOME n) th = th
       |> Drule.untag_rule consumes_tagN
       |> Drule.tag_rule (consumes_tagN, [Library.string_of_int n]);
 
 val save_consumes = put_consumes o lookup_consumes;
 
-fun consumes n x = Drule.rule_attribute (K (put_consumes (Some n))) x;
+fun consumes n x = Drule.rule_attribute (K (put_consumes (SOME n))) x;
 fun consumes_default n x = if Library.is_some (lookup_consumes (#2 x)) then x else consumes n x;
 
 
 (* case names *)
 
-fun put_case_names None thm = thm
-  | put_case_names (Some names) thm =
+fun put_case_names NONE thm = thm
+  | put_case_names (SOME names) thm =
       thm
       |> Drule.untag_rule cases_tagN
       |> Drule.tag_rule (cases_tagN, names);
@@ -63,7 +63,7 @@ fun put_case_names None thm = thm
 fun lookup_case_names thm = Library.assoc (Thm.tags_of_thm thm, cases_tagN);
 
 val save_case_names = put_case_names o lookup_case_names;
-val name = put_case_names o Some;
+val name = put_case_names o SOME;
 fun case_names ss = Drule.rule_attribute (K (name ss));
 
 
@@ -76,8 +76,8 @@ fun get thm =
     val n = if_none (lookup_consumes thm) 0;
     val ss =
       (case lookup_case_names thm of
-        None => map Library.string_of_int (1 upto (Thm.nprems_of thm - n))
-      | Some ss => ss);
+        NONE => map Library.string_of_int (1 upto (Thm.nprems_of thm - n))
+      | SOME ss => ss);
   in (ss, n) end;
 
 fun add thm = (thm, get thm);
@@ -102,20 +102,20 @@ fun prep_case is_open split sg prop name i =
   let
     val Bi = Drule.norm_hhf sg (nth_subgoal(i,prop));
     val all_xs = Logic.strip_params Bi
-    val n = (case split of None => length all_xs
-             | Some t => length (Logic.strip_params(nth_subgoal(i,t))))
+    val n = (case split of NONE => length all_xs
+             | SOME t => length (Logic.strip_params(nth_subgoal(i,t))))
     val (ind_xs, goal_xs) = splitAt(n,all_xs)
     val rename = if is_open then I else apfst Syntax.internal
     val xs = map rename ind_xs @ goal_xs
     val asms = map (curry Term.list_abs xs) (Logic.strip_assums_hyp Bi);
     val named_asms =
-      (case split of None => [("", asms)]
-      | Some t =>
+      (case split of NONE => [("", asms)]
+      | SOME t =>
           let val h = length (Logic.strip_assums_hyp(nth_subgoal(i,t)))
               val (ps,qs) = splitAt(h, asms)
           in [(hypsN, ps), (premsN, qs)] end);
     val concl = Term.list_abs (xs, Logic.strip_assums_concl Bi);
-    val bind = ((case_conclN, 0), Some (ObjectLogic.drop_judgment sg concl));
+    val bind = ((case_conclN, 0), SOME (ObjectLogic.drop_judgment sg concl));
   in (name, {fixes = xs, assumes = named_asms, binds = [bind]}) end;
 
 fun make is_open split (sg, prop) names =

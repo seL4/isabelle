@@ -89,30 +89,30 @@ fun dest tab = rev (foldl_table (fn (rev_ps, p) => p :: rev_ps) ([], tab));
 fun keys tab = rev (foldl_table (fn (rev_ks, (k, _)) => k :: rev_ks) ([], tab));
 fun exists P tab = foldl_table (fn (false, e) => P e | (b, _) => b) (false, tab);
 
-fun min_key Empty = None
-  | min_key (Branch2 (left, (k, _), _)) = Some (if_none (min_key left) k)
-  | min_key (Branch3 (left, (k, _), _, _, _)) = Some (if_none (min_key left) k);
+fun min_key Empty = NONE
+  | min_key (Branch2 (left, (k, _), _)) = SOME (if_none (min_key left) k)
+  | min_key (Branch3 (left, (k, _), _, _, _)) = SOME (if_none (min_key left) k);
 
-fun max_key Empty = None
-  | max_key (Branch2 (_, (k, _), right)) = Some (if_none (max_key right) k)
-  | max_key (Branch3 (_, _, _, (k,_), right)) = Some (if_none (max_key right) k);
+fun max_key Empty = NONE
+  | max_key (Branch2 (_, (k, _), right)) = SOME (if_none (max_key right) k)
+  | max_key (Branch3 (_, _, _, (k,_), right)) = SOME (if_none (max_key right) k);
 
 (* lookup *)
 
-fun lookup (Empty, _) = None
+fun lookup (Empty, _) = NONE
   | lookup (Branch2 (left, (k, x), right), key) =
       (case Key.ord (key, k) of
         LESS => lookup (left, key)
-      | EQUAL => Some x
+      | EQUAL => SOME x
       | GREATER => lookup (right, key))
   | lookup (Branch3 (left, (k1, x1), mid, (k2, x2), right), key) =
       (case Key.ord (key, k1) of
         LESS => lookup (left, key)
-      | EQUAL => Some x1
+      | EQUAL => SOME x1
       | GREATER =>
           (case Key.ord (key, k2) of
             LESS => lookup (mid, key)
-          | EQUAL => Some x2
+          | EQUAL => SOME x2
           | GREATER => lookup (right, key)));
 
 
@@ -175,7 +175,7 @@ fun extend (table, pairs) =
   let
     fun add ((tab, dups), (key, x)) =
       (case lookup (tab, key) of
-        None => (update ((key, x), tab), dups)
+        NONE => (update ((key, x), tab), dups)
       | _ => (tab, key :: dups));
   in
     (case foldl add ((table, []), pairs) of
@@ -188,17 +188,17 @@ fun make pairs = extend (empty, pairs);
 
 (* delete *)
 
-fun compare' None (k2, _) = LESS
-  | compare' (Some k1) (k2, _) = Key.ord (k1, k2);
+fun compare' NONE (k2, _) = LESS
+  | compare' (SOME k1) (k2, _) = Key.ord (k1, k2);
 
 fun if_eq EQUAL x y = x
   | if_eq _ x y = y;
 
 exception UNDEF of key;
 
-fun del (Some k) Empty = raise UNDEF k
-  | del None (Branch2 (Empty, p, Empty)) = (p, (true, Empty))
-  | del None (Branch3 (Empty, p, Empty, q, Empty)) =
+fun del (SOME k) Empty = raise UNDEF k
+  | del NONE (Branch2 (Empty, p, Empty)) = (p, (true, Empty))
+  | del NONE (Branch3 (Empty, p, Empty, q, Empty)) =
       (p, (false, Branch2 (Empty, q, Empty)))
   | del k (Branch2 (Empty, p, Empty)) = (case compare' k p of
       EQUAL => (p, (true, Empty)) | _ => raise UNDEF (the k))
@@ -215,7 +215,7 @@ fun del (Some k) Empty = raise UNDEF k
             (true, Branch3 (l', p, rl, rp, rr))
         | Branch3 (rl, rp, rm, rq, rr) => (false, Branch2
             (Branch2 (l', p, rl), rp, Branch2 (rm, rq, rr)))))
-    | ord => (case del (if_eq ord None k) r of
+    | ord => (case del (if_eq ord NONE k) r of
         (p', (false, r')) => (p', (false, Branch2 (l, if_eq ord p' p, r')))
       | (p', (true, r')) => (p', case l of
           Branch2 (ll, lp, lr) =>
@@ -234,7 +234,7 @@ fun del (Some k) Empty = raise UNDEF k
           | (Branch2 (ml, mp, mr), Branch3 (rl, rp, rm, rq, rr)) =>
               Branch3 (Branch2 (l', p, ml), mp, Branch2 (mr, q, rl), rp,
                 Branch2 (rm, rq, rr)))))
-      | ord => (case del (if_eq ord None k) m of
+      | ord => (case del (if_eq ord NONE k) m of
           (p', (false, m')) =>
             (p', (false, Branch3 (l, if_eq ord p' p, m', q, r)))
         | (p', (true, m')) => (p', (false, case (l, r) of
@@ -246,7 +246,7 @@ fun del (Some k) Empty = raise UNDEF k
           | (_, Branch3 (rl, rp, rm, rq, rr)) =>
               Branch3 (l, if_eq ord p' p, Branch2 (m', q, rl), rp,
                 Branch2 (rm, rq, rr))))))
-    | ord => (case del (if_eq ord None k) r of
+    | ord => (case del (if_eq ord NONE k) r of
         (q', (false, r')) =>
           (q', (false, Branch3 (l, p, m, if_eq ord q' q, r')))
       | (q', (true, r')) => (q', (false, case (l, m) of
@@ -259,7 +259,7 @@ fun del (Some k) Empty = raise UNDEF k
             Branch3 (Branch2 (ll, lp, lm), lq, Branch2 (lr, p, ml), mp,
               Branch2 (mr, if_eq ord q' q, r'))))));
 
-fun delete k t = snd (snd (del (Some k) t));
+fun delete k t = snd (snd (del (SOME k) t));
 
 
 (* join and merge *)
@@ -268,18 +268,18 @@ fun join f (table1, table2) =
   let
     fun add ((tab, dups), (key, x)) =
       (case lookup (tab, key) of
-        None => (update ((key, x), tab), dups)
-      | Some y =>
+        NONE => (update ((key, x), tab), dups)
+      | SOME y =>
           (case f (y, x) of
-            Some z => (update ((key, z), tab), dups)
-          | None => (tab, key :: dups)));
+            SOME z => (update ((key, z), tab), dups)
+          | NONE => (tab, key :: dups)));
   in
     (case foldl_table add ((table1, []), table2) of
       (table', []) => table'
     | (_, dups) => raise DUPS (rev dups))
   end;
 
-fun merge eq tabs = join (fn (y, x) => if eq (y, x) then Some y else None) tabs;
+fun merge eq tabs = join (fn (y, x) => if eq (y, x) then SOME y else NONE) tabs;
 
 
 (* tables with multiple entries per key (preserving order) *)
@@ -289,8 +289,8 @@ fun update_multi ((key, x), tab) = update ((key, x :: lookup_multi (tab, key)), 
 
 fun make_multi pairs = foldr update_multi (pairs, empty);
 fun dest_multi tab = flat (map (fn (key, xs) => map (Library.pair key) xs) (dest tab));
-fun merge_multi eq tabs = join (fn (xs, xs') => Some (gen_merge_lists eq xs xs')) tabs;
-fun merge_multi' eq tabs = join (fn (xs, xs') => Some (gen_merge_lists' eq xs xs')) tabs;
+fun merge_multi eq tabs = join (fn (xs, xs') => SOME (gen_merge_lists eq xs xs')) tabs;
+fun merge_multi' eq tabs = join (fn (xs, xs') => SOME (gen_merge_lists' eq xs xs')) tabs;
 
 
 (*final declarations of this structure!*)

@@ -61,8 +61,8 @@ fun proc f_number_of_eq sg _ t =
            [Data.norm_tac [Data.numeral_0_eq_0, Data.numeral_1_eq_1]] sg
                           (t, t'))
   end
-  handle TERM _ => None
-       | TYPE _ => None;   (*Typically (if thy doesn't include Numeral)
+  handle TERM _ => NONE
+       | TYPE _ => NONE;   (*Typically (if thy doesn't include Numeral)
 			     Undeclared type constructor "Numeral.bin"*)
 
 end;

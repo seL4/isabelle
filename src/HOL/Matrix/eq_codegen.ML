@@ -12,8 +12,8 @@ fun my_mk_meta_eq thm =
     val (_, eq) = Thm.dest_comb (cprop_of thm);
     val (ct, rhs) = Thm.dest_comb eq;
     val (_, lhs) = Thm.dest_comb ct
-  in Thm.implies_elim (Drule.instantiate' [Some (ctyp_of_term lhs)]
-    [Some lhs, Some rhs] eq_reflection) thm
+  in Thm.implies_elim (Drule.instantiate' [SOME (ctyp_of_term lhs)]
+    [SOME lhs, SOME rhs] eq_reflection) thm
   end; 
 
 structure SimprocsCodegen =
@@ -51,7 +51,7 @@ fun decomp_term_code cn ((vs, bs, ps), (v, t)) =
         decomp_term_code cn ((v1 :: v2 :: vs,
           bs @ [(Free (s, T), v1)],
           ps @ [mk_val [v1, v2] [Pretty.str "Thm.dest_abs", Pretty.brk 1,
-            Pretty.str "None", Pretty.brk 1, Pretty.str v]]), (v2, t))
+            Pretty.str "NONE", Pretty.brk 1, Pretty.str v]]), (v2, t))
       end
     | t $ u =>
       let
@@ -143,7 +143,7 @@ fun mk_cterm_code b ty_bs ts xs (vals, t $ u) =
   | mk_cterm_code b ty_bs ts xs (vals, Abs (s, T, t)) =
       let
         val u = Free (s, T);
-        val Some s' = assoc (ts, u);
+        val SOME s' = assoc (ts, u);
         val p = Pretty.str s';
         val (vals', p') = mk_cterm_code true ty_bs ts (p :: xs)
           (if null (typ_tvars T) then vals
@@ -153,13 +153,13 @@ fun mk_cterm_code b ty_bs ts xs (vals, t $ u) =
       end
   | mk_cterm_code b ty_bs ts xs (vals, Bound i) = (vals, nth_elem (i, xs))
   | mk_cterm_code b ty_bs ts xs (vals, t) = (case assoc (vals, t) of
-        None =>
-          let val Some s = assoc (ts, t)
+        NONE =>
+          let val SOME s = assoc (ts, t)
           in (if is_Const t andalso not (null (term_tvars t)) then
               vals @ [(t, (("", s), [mk_val [s] [inst_ty true ty_bs t s]]))]
             else vals, Pretty.str s)
           end
-      | Some ((_, s), _) => (vals, Pretty.str s));
+      | SOME ((_, s), _) => (vals, Pretty.str s));
 
 fun get_cases sg =
   Symtab.foldl (fn (tab, (k, {case_rewrites, ...})) => Symtab.update_new
@@ -195,8 +195,8 @@ fun lookup sg fs t = apsome snd (Library.find_first
 *)
 
 fun lookup sg fs t = (case Library.find_first (is_instance sg t o fst) fs of
-    None => (bla := (t ins !bla); None)
-  | Some (_, x) => Some x);
+    NONE => (bla := (t ins !bla); NONE)
+  | SOME (_, x) => SOME x);
 
 fun unint sg fs t = forall (is_none o lookup sg fs) (term_consts' t);
 
@@ -220,15 +220,15 @@ fun mk_let s i xs ys =
 
 fun mk_simpl_code sg case_tab mkeq fs ts ty_bs thm_bs ((vs, vals), t) =
   (case assoc (vals, t) of
-    Some ((eq, ct), ps) =>  (* binding already generated *) 
+    SOME ((eq, ct), ps) =>  (* binding already generated *) 
       if mkeq andalso eq="" then
         let val eq' = variant vs "eq"
         in ((eq' :: vs, overwrite (vals,
           (t, ((eq', ct), ps @ [mk_refleq eq' ct])))), (eq', ct))
         end
       else ((vs, vals), (eq, ct))
-  | None => (case assoc (ts, t) of
-      Some v =>  (* atomic term *)
+  | NONE => (case assoc (ts, t) of
+      SOME v =>  (* atomic term *)
         let val xs = if not (null (term_tvars t)) andalso is_Const t then
           [mk_val [v] [inst_ty false ty_bs t v]] else []
         in
@@ -240,10 +240,10 @@ fun mk_simpl_code sg case_tab mkeq fs ts ty_bs thm_bs ((vs, vals), t) =
           else ((vs, if null xs then vals else vals @
             [(t, (("", v), xs))]), ("", v))
         end
-    | None =>  (* complex term *)
+    | NONE =>  (* complex term *)
         let val (f as Const (cname, _), us) = strip_comb t
         in case Symtab.lookup (case_tab, cname) of
-            Some cases =>  (* case expression *)
+            SOME cases =>  (* case expression *)
               let
                 val (us', u) = split_last us;
                 val b = unint sg fs u;
@@ -329,7 +329,7 @@ fun mk_simpl_code sg case_tab mkeq fs ts ty_bs thm_bs ((vs, vals), t) =
                   end
               end
           
-          | None =>
+          | NONE =>
             let
               val b = forall (unint sg fs) us;
               val (q, eqs) = foldl_map
@@ -345,18 +345,18 @@ fun mk_simpl_code sg case_tab mkeq fs ts ty_bs thm_bs ((vs, vals), t) =
                 (Pretty.str eqf) (map (Pretty.str o fst) eqs)
             in
               case (lookup sg fs f, b) of
-                (None, true) =>  (* completely uninterpreted *)
+                (NONE, true) =>  (* completely uninterpreted *)
                   if mkeq then ((ct :: eq :: vs', vals' @
                     [(t, ((eq, ct), [ctv, mk_refleq eq ct]))]), (eq, ct))
                   else ((ct :: vs', vals' @ [(t, (("", ct), [ctv]))]), ("", ct))
-              | (None, false) =>  (* function uninterpreted *)
+              | (NONE, false) =>  (* function uninterpreted *)
                   ((eq :: ct :: vs', vals' @
                      [(t, ((eq, ct), [ctv, mk_val [eq] [combp false]]))]), (eq, ct))
-              | (Some (s, _, _), true) =>  (* arguments uninterpreted *)
+              | (SOME (s, _, _), true) =>  (* arguments uninterpreted *)
                   ((eq :: ct :: vs', vals' @
                      [(t, ((eq, ct), [mk_val [ct, eq] (separate (Pretty.brk 1)
                        (Pretty.str s :: map (Pretty.str o snd) eqs))]))]), (eq, ct))
-              | (Some (s, _, _), false) =>  (* function and arguments interpreted *)
+              | (SOME (s, _, _), false) =>  (* function and arguments interpreted *)
                   let val eq' = variant (eq :: ct :: vs') "eq"
                   in ((eq' :: eq :: ct :: vs', vals' @ [(t, ((eq', ct),
                     [mk_val [ct, eq] (separate (Pretty.brk 1)
@@ -373,8 +373,8 @@ fun rhs_of thm = snd (Logic.dest_equals (prop_of thm));
 fun mk_funs_code sg case_tab fs fs' =
   let
     val case_thms = mapfilter (fn s => (case Symtab.lookup (case_tab, s) of
-        None => None
-      | Some thms => Some (unsuffix "_case" (Sign.base_name s) ^ ".cases",
+        NONE => NONE
+      | SOME thms => SOME (unsuffix "_case" (Sign.base_name s) ^ ".cases",
           map (fn i => Sign.base_name s ^ "_" ^ string_of_int i)
             (1 upto length thms) ~~ thms)))
       (foldr add_term_consts (map (prop_of o snd)
@@ -423,7 +423,7 @@ fun mk_funs_code sg case_tab fs fs' =
 
         val default = if d then
             let
-              val Some s = assoc (thm_bs, f);
+              val SOME s = assoc (thm_bs, f);
               val ct = variant vs' "ct"
             in [Pretty.brk 1, Pretty.str "handle", Pretty.brk 1,
               Pretty.str "Match =>", Pretty.brk 1, mk_let "let" 2

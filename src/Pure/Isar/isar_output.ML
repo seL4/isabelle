@@ -76,14 +76,14 @@ val add_options = Library.change global_options o (add_items "option");
 fun command src =
   let val ((name, _), pos) = Args.dest_src src in
     (case Symtab.lookup (! global_commands, name) of
-      None => error ("Unknown antiquotation command: " ^ quote name ^ Position.str_of pos)
-    | Some f => transform_failure (curry Antiquote.ANTIQUOTE_FAIL (name, pos)) (f src))
+      NONE => error ("Unknown antiquotation command: " ^ quote name ^ Position.str_of pos)
+    | SOME f => transform_failure (curry Antiquote.ANTIQUOTE_FAIL (name, pos)) (f src))
   end;
 
 fun option (name, s) f () =
   (case Symtab.lookup (! global_options, name) of
-    None => error ("Unknown antiquotation option: " ^ quote name)
-  | Some opt => opt s f ());
+    NONE => error ("Unknown antiquotation option: " ^ quote name)
+  | SOME opt => opt s f ());
 
 fun options [] f = f
   | options (opt :: opts) f = option opt (options opts f);
@@ -124,7 +124,7 @@ fun args scan f src state : string =
   let
     val ctxt0 =
       if ! locale = "" then Toplevel.context_of state
-      else #3 (Locale.read_context_statement (Some (! locale)) [] []
+      else #3 (Locale.read_context_statement (SOME (! locale)) [] []
         (ProofContext.init (Toplevel.theory_of state)));
     val (ctxt, x) = syntax scan src ctxt0;
   in f src ctxt x end;
@@ -145,7 +145,7 @@ fun antiq_args_aux keyword_lexicon (str, pos) =
   |> Symbol.source false
   |> T.source false (K (keyword_lexicon, Scan.empty_lexicon)) pos
   |> T.source_proper
-  |> Source.source T.stopper (Scan.error (Scan.bulk (P.!!! antiq))) None
+  |> Source.source T.stopper (Scan.error (Scan.bulk (P.!!! antiq))) NONE
   |> Source.exhaust;
 
 in
@@ -201,16 +201,16 @@ fun is_hidden (Latex.Basic tk, _) =
   | is_hidden _ = false;
 
 fun filter_newlines toks = (case mapfilter
-    (fn (tk, i) => if is_newline tk then Some tk else None) toks of
+    (fn (tk, i) => if is_newline tk then SOME tk else NONE) toks of
   [] => [] | [tk] => [tk] | _ :: toks' => toks');
 
 fun present_tokens lex (flag, toks) state state' =
-  Buffer.add (case flag of None => "" | Some b => Latex.flag_markup b) o
+  Buffer.add (case flag of NONE => "" | SOME b => Latex.flag_markup b) o
    ((if !hide_commands andalso exists (is_hidden o fst) toks then []
      else if !hide_commands andalso is_proof state then
        if is_proof state' then [] else filter_newlines toks
      else mapfilter (fn (tk, i) =>
-       if i > ! interest_level then None else Some tk) toks)
+       if i > ! interest_level then NONE else SOME tk) toks)
     |> map (apsnd (eval_antiquote lex state'))
     |> Latex.output_tokens
     |> Buffer.add);
@@ -234,7 +234,7 @@ val ignore =
     (opt_newline -- check_level i) >> pair (i - 1));
 
 val ignore_cmd = Scan.state -- ignore
-  >> (fn (i, (x, pos)) => (false, (None, ((Latex.Basic x, ("", pos)), i))));
+  >> (fn (i, (x, pos)) => (false, (NONE, ((Latex.Basic x, ("", pos)), i))));
 
 
 val is_improper = not o (T.is_proper orf T.is_begin_ignore orf T.is_end_ignore);
@@ -249,7 +249,7 @@ val improper_end =
 
 
 val stopper =
-  ((false, (None, ((Latex.Basic (#1 T.stopper), ("", Position.none)), 0))),
+  ((false, (NONE, ((Latex.Basic (#1 T.stopper), ("", Position.none)), 0))),
     fn (_, (_, ((Latex.Basic x, _), _))) => (#2 T.stopper x) | _ => false);
 
 in
@@ -259,15 +259,15 @@ fun parse_thy markup lex trs src =
     val text = P.position P.text;
     val token = Scan.depend (fn i =>
      (improper |-- markup Markup -- P.!!!! (improper |-- text --| improper_end)
-        >> (fn (x, y) => (true, (Some true, ((Latex.Markup (T.val_of x), y), i)))) ||
+        >> (fn (x, y) => (true, (SOME true, ((Latex.Markup (T.val_of x), y), i)))) ||
       improper |-- markup MarkupEnv -- P.!!!! (improper |-- text --| improper_end)
-        >> (fn (x, y) => (true, (Some true, ((Latex.MarkupEnv (T.val_of x), y), i)))) ||
+        >> (fn (x, y) => (true, (SOME true, ((Latex.MarkupEnv (T.val_of x), y), i)))) ||
       (P.$$$ "--" |-- P.!!!! (improper |-- text))
-        >> (fn y => (false, (None, ((Latex.Markup "cmt", y), i)))) ||
+        >> (fn y => (false, (NONE, ((Latex.Markup "cmt", y), i)))) ||
       (improper -- markup Verbatim) |-- P.!!!! (improper |-- text --| improper_end)
-        >> (fn y => (true, (None, ((Latex.Verbatim, y), i)))) ||
+        >> (fn y => (true, (NONE, ((Latex.Verbatim, y), i)))) ||
       P.position (Scan.one T.not_eof)
-        >> (fn (x, pos) => (T.is_kind T.Command x, (Some false, ((Latex.Basic x, ("", pos)), i)))))
+        >> (fn (x, pos) => (T.is_kind T.Command x, (SOME false, ((Latex.Basic x, ("", pos)), i)))))
       >> pair i);
 
     val body = Scan.any (not o fst andf not o #2 stopper);
@@ -277,8 +277,8 @@ fun parse_thy markup lex trs src =
     val cmds =
       src
       |> Source.filter (not o T.is_semicolon)
-      |> Source.source' 0 T.stopper (Scan.error (Scan.bulk (ignore_cmd || token))) None
-      |> Source.source stopper (Scan.error (Scan.bulk section)) None
+      |> Source.source' 0 T.stopper (Scan.error (Scan.bulk (ignore_cmd || token))) NONE
+      |> Source.source stopper (Scan.error (Scan.bulk section)) NONE
       |> Source.exhaust;
   in
     if length cmds = length trs then

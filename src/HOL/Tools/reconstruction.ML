@@ -149,11 +149,11 @@ local
     case Thm.name_of_thm th of
         "" => ResAxioms.meta_cnf_axiom th (*no name, so can't cache*)
       | s  => case Symtab.lookup (!cc,s) of
-      	        None => 
+      	        NONE => 
       	        	let val cls = ResAxioms.meta_cnf_axiom th
       	        	in  cc := Symtab.update ((s, (th,cls)), !cc); cls
       	        	end
-      	      | Some(th',cls) =>
+      	      | SOME(th',cls) =>
       	      	    if eq_thm(th,th') then cls
       	      	    else (*New theorem stored under the same name? Possible??*)
       	      	      let val cls = ResAxioms.meta_cnf_axiom th

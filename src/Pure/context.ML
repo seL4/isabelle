@@ -36,7 +36,7 @@ struct
 (* theory context *)
 
 local
-  val current_theory = ref (None: theory option);
+  val current_theory = ref (NONE: theory option);
 in
   fun get_context () = ! current_theory;
   fun set_context opt_thy = current_theory := opt_thy;
@@ -45,19 +45,19 @@ end;
 
 fun the_context () =
   (case get_context () of
-    Some thy => thy
+    SOME thy => thy
   | _ => error "Unknown theory context");
 
-fun context thy = set_context (Some thy);
-fun reset_context () = set_context None;
+fun context thy = set_context (SOME thy);
+fun reset_context () = set_context NONE;
 
 fun pass opt_thy f x =
   setmp opt_thy (fn x => let val y = f x in (y, get_context ()) end) x;
 
 fun pass_theory thy f x =
-  (case pass (Some thy) f x of
-    (y, Some thy') => (y, thy')
-  | (_, None) => error "Lost theory context in ML");
+  (case pass (SOME thy) f x of
+    (y, SOME thy') => (y, thy')
+  | (_, NONE) => error "Lost theory context in ML");
 
 fun save f x = setmp (get_context ()) f x;
 
@@ -65,7 +65,7 @@ fun save f x = setmp (get_context ()) f x;
 (* map context *)
 
 nonfix >>;
-fun >> f = set_context (Some (f (the_context ())));
+fun >> f = set_context (SOME (f (the_context ())));
 
 
 (* use ML text *)

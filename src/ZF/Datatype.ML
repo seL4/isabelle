@@ -74,9 +74,9 @@ struct
        val lname = #1 (dest_Const lhead) handle TERM _ => raise Match;
        val rname = #1 (dest_Const rhead) handle TERM _ => raise Match;
        val lcon_info = the (Symtab.lookup (ConstructorsData.get_sg sg, lname))
-         handle Library.OPTION => raise Match;
+         handle Option => raise Match;
        val rcon_info = the (Symtab.lookup (ConstructorsData.get_sg sg, rname))
-         handle Library.OPTION => raise Match;
+         handle Option => raise Match;
        val new = 
            if #big_rec_name lcon_info = #big_rec_name rcon_info 
                andalso not (null (#free_iffs lcon_info)) then
@@ -92,8 +92,8 @@ struct
          handle ERROR_MESSAGE msg =>
          (warning (msg ^ "\ndata_free simproc:\nfailed to prove " ^ Sign.string_of_term sg goal);
           raise Match)
-   in Some thm end
-   handle Match => None;
+   in SOME thm end
+   handle Match => NONE;
 
 
  val conv = 

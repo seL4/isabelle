@@ -231,7 +231,7 @@ fun quant_rewrite sg assumes (t as Const("all",T1) $ (Abs(x,xT,Const("all",T2) $
 	val res = (find_bound 0 body;2) handle RESULT i => i
     in
 	case res of
-	    0 => Some (rew_th sg (x,xT) (y,yT) body)
+	    0 => SOME (rew_th sg (x,xT) (y,yT) body)
 	  | 1 => if string_ord(y,x) = LESS
 		 then
 		     let
@@ -239,12 +239,12 @@ fun quant_rewrite sg assumes (t as Const("all",T1) $ (Abs(x,xT,Const("all",T2) $
 			 val t_th    = reflexive (cterm_of sg t)
 			 val newt_th = reflexive (cterm_of sg newt)
 		     in
-			 Some (transitive t_th newt_th)
+			 SOME (transitive t_th newt_th)
 		     end
-		 else None
+		 else NONE
 	  | _ => error "norm_term (quant_rewrite) internal error"
      end
-  | quant_rewrite _ _ _ = (warning "quant_rewrite: Unknown lhs"; None)
+  | quant_rewrite _ _ _ = (warning "quant_rewrite: Unknown lhs"; NONE)
 
 fun freeze_thaw_term t =
     let
@@ -304,7 +304,7 @@ fun eta_contract sg assumes origt =
 		val lhs = #1 (Logic.dest_equals (prop_of (final init)))
 	    in
 		if not (lhs aconv origt)
-		then (writeln "Something is utterly wrong: (orig,lhs,frozen type,t,tinst)";
+		then (writeln "SOMEthing is utterly wrong: (orig,lhs,frozen type,t,tinst)";
 		      writeln (string_of_cterm (cterm_of sg origt));
 		      writeln (string_of_cterm (cterm_of sg lhs));
 		      writeln (string_of_cterm (cterm_of sg typet));
@@ -338,15 +338,15 @@ fun eta_contract sg assumes origt =
 		      val res = final rew_th
 		      val lhs = (#1 (Logic.dest_equals (prop_of res)))
 		  in
-		       Some res
+		       SOME res
 		  end
-	      else None)
+	      else NONE)
 	     handle e => (writeln "eta_contract:";print_exn e))
-	  | _ => (error ("Bad eta_contract argument" ^ (string_of_cterm (cterm_of sg t))); None)
+	  | _ => (error ("Bad eta_contract argument" ^ (string_of_cterm (cterm_of sg t))); NONE)
     end
 
 fun beta_fun sg assume t =
-    Some (beta_conversion true (cterm_of sg t))
+    SOME (beta_conversion true (cterm_of sg t))
 
 fun eta_expand sg assumes origt =
     let
@@ -359,7 +359,7 @@ fun eta_expand sg assumes origt =
 		val lhs = #1 (Logic.dest_equals (prop_of (final init)))
 	    in
 		if not (lhs aconv origt)
-		then (writeln "Something is utterly wrong: (orig,lhs,frozen type,t,tinst)";
+		then (writeln "SOMEthing is utterly wrong: (orig,lhs,frozen type,t,tinst)";
 		      writeln (string_of_cterm (cterm_of sg origt));
 		      writeln (string_of_cterm (cterm_of sg lhs));
 		      writeln (string_of_cterm (cterm_of sg typet));
@@ -396,11 +396,11 @@ fun eta_expand sg assumes origt =
 			  val res = equal_intr th1 (th2' |> implies_intr concl)
 			  val res' = final res
 		      in
-			  Some res'
+			  SOME res'
 		      end
-		    | _ => None)
-	    else None
-	  | _ => (error ("Bad eta_expand argument" ^ (string_of_cterm (cterm_of sg t))); None)
+		    | _ => NONE)
+	    else NONE
+	  | _ => (error ("Bad eta_expand argument" ^ (string_of_cterm (cterm_of sg t))); NONE)
     end
     handle e => (writeln "eta_expand internal error";print_exn e)
 
@@ -519,19 +519,19 @@ fun norm_thm thy th =
     end
 
 (* make_equal sg t u tries to construct the theorem t == u under the
-signature sg.  If it succeeds, Some (t == u) is returned, otherwise
-None is returned. *)
+signature sg.  If it succeeds, SOME (t == u) is returned, otherwise
+NONE is returned. *)
 
 fun make_equal sg t u =
     let
 	val t_is_t' = norm_term sg t
 	val u_is_u' = norm_term sg u
 	val th = transitive t_is_t' (symmetric u_is_u')
-	val _ = message ("make_equal: Some " ^ (string_of_thm th))
+	val _ = message ("make_equal: SOME " ^ (string_of_thm th))
     in
-	Some th
+	SOME th
     end
-    handle e as THM _ => (message "make_equal: None";None)
+    handle e as THM _ => (message "make_equal: NONE";NONE)
 			 
 fun match_consts ignore t (* th *) =
     let
@@ -564,7 +564,7 @@ val collect_ignored =
 
 (* set_prop t thms tries to make a theorem with the proposition t from
 one of the theorems thms, by shuffling the propositions around.  If it
-succeeds, Some theorem is returned, otherwise None.  *)
+succeeds, SOME theorem is returned, otherwise NONE.  *)
 
 fun set_prop thy t =
     let
@@ -576,34 +576,34 @@ fun set_prop thy t =
 	val rhs = snd (dest_equals (cprop_of rew_th))
 
 	val shuffles = ShuffleData.get thy
-	fun process [] = None
+	fun process [] = NONE
 	  | process ((name,th)::thms) =
 	    let
 		val norm_th = varifyT (norm_thm thy (close_thm (transfer_sg sg th)))
 		val triv_th = trivial rhs
 		val _ = message ("Shuffler.set_prop: Gluing together " ^ (string_of_thm norm_th) ^ " and " ^ (string_of_thm triv_th))
 		val mod_th = case Seq.pull (bicompose true (false,norm_th,0) 1 triv_th) of
-				 Some(th,_) => Some th
-			       | None => None
+				 SOME(th,_) => SOME th
+			       | NONE => NONE
 	    in
 		case mod_th of
-		    Some mod_th =>
+		    SOME mod_th =>
 		    let
 			val closed_th = equal_elim (symmetric rew_th) mod_th
 		    in
 			message ("Shuffler.set_prop succeeded by " ^ name);
-			Some (name,forall_elim_list (map (cterm_of sg) vars) closed_th)
+			SOME (name,forall_elim_list (map (cterm_of sg) vars) closed_th)
 		    end
-		  | None => process thms
+		  | NONE => process thms
 	    end
 	    handle e as THM _ => process thms
     in
 	fn thms =>
 	   case process thms of
-	       res as Some (name,th) => if (prop_of th) aconv t
+	       res as SOME (name,th) => if (prop_of th) aconv t
 					then res
 					else error "Internal error in set_prop"
-	     | None => None
+	     | NONE => NONE
     end
     handle e => (writeln "set_prop internal error"; print_exn e)
 
@@ -624,8 +624,8 @@ fun gen_shuffle_tac thy search thms i st =
 	val set = set_prop thy t
 	fun process_tac thms st =
 	    case set thms of
-		Some (_,th) => Seq.of_list (compose (th,i,st))
-	      | None => Seq.empty
+		SOME (_,th) => Seq.of_list (compose (th,i,st))
+	      | NONE => Seq.empty
     in
 	(process_tac thms APPEND (if search
 				  then process_tac (find_potential thy t)

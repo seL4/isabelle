@@ -45,9 +45,9 @@ fun redo (History (_, (_, _, _, []))) = error "No further redo information"
   | redo (History (x, (lim, len, undo_list, r :: redo_list))) =
       History (r, (lim, len + 1, x :: undo_list, redo_list));
 
-fun push None _ x xs = x :: xs
-  | push (Some 0) _ _ _ = []
-  | push (Some n) len x xs = if len < n then x :: xs else take (n, x :: xs);
+fun push NONE _ x xs = x :: xs
+  | push (SOME 0) _ _ _ = []
+  | push (SOME n) len x xs = if len < n then x :: xs else take (n, x :: xs);
 
 fun apply_copy cp f (History (x, (lim, len, undo_list, _))) =
   let val x' = cp x

@@ -45,8 +45,8 @@ fun indexify_names names =
   let
     fun index (x :: xs) tab =
       (case assoc (tab, x) of
-        None => if x mem xs then (x ^ "1") :: index xs ((x, 2) :: tab) else x :: index xs tab
-      | Some i => (x ^ Library.string_of_int i) :: index xs ((x, i + 1) :: tab))
+        NONE => if x mem xs then (x ^ "1") :: index xs ((x, 2) :: tab) else x :: index xs tab
+      | SOME i => (x ^ Library.string_of_int i) :: index xs ((x, i + 1) :: tab))
     | index [] _ = [];
   in index names [] end;
 

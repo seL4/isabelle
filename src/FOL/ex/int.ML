@@ -296,7 +296,7 @@ getgoal 1;
 writeln"Hard examples with quantifiers";
 
 (*The ones that have not been proved are not known to be valid!
-  Some will require quantifier duplication -- not currently available*)
+  SOME will require quantifier duplication -- not currently available*)
 
 writeln"Problem ~~18";
 Goal "~~(EX y. ALL x. P(y)-->P(x))";

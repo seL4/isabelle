@@ -109,7 +109,7 @@ section {* Big step execution *}
 
 ML {*
 
-val Library.Some ((_, (heap, locs)), _) = Seq.pull test;
+val SOME ((_, (heap, locs)), _) = Seq.pull test;
 locs l1_name;
 locs l2_name;
 locs l3_name;

@@ -197,7 +197,7 @@ fun tabs_of prtabs modes =
 
 (* xprod_to_fmt *)
 
-fun xprod_to_fmt (SynExt.XProd (_, _, "", _)) = None
+fun xprod_to_fmt (SynExt.XProd (_, _, "", _)) = NONE
   | xprod_to_fmt (SynExt.XProd (_, xsymbs, const, pri)) =
       let
         fun cons_str s (String s' :: syms) = String (s ^ s') :: syms
@@ -233,7 +233,7 @@ fun xprod_to_fmt (SynExt.XProd (_, _, "", _)) = None
           | nargs [] = 0;
       in
         (case xsyms_to_syms xsymbs of
-          (symbs, []) => Some (const, (symbs, nargs symbs, pri))
+          (symbs, []) => SOME (const, (symbs, nargs symbs, pri))
         | _ => sys_error "xprod_to_fmt: unbalanced blocks")
       end;
 
@@ -269,9 +269,9 @@ fun pretty tabs trf tokentrf type_mode curried ast0 p0 =
 
     fun token_trans c [Ast.Variable x] =
           (case tokentrf c of
-            None => None
-          | Some f => Some (f x))
-      | token_trans _ _ = None;
+            NONE => NONE
+          | SOME f => SOME (f x))
+      | token_trans _ _ = NONE;
 
     (*default applications: prefix / postfix*)
     val appT =
@@ -339,8 +339,8 @@ fun pretty tabs trf tokentrf type_mode curried ast0 p0 =
               else prnt (prnps, tbs);
       in
         (case token_trans a args of     (*try token translation function*)
-          Some s_len => [Pretty.raw_str s_len]
-        | None =>                       (*try print translation functions*)
+          SOME s_len => [Pretty.raw_str s_len]
+        | NONE =>                       (*try print translation functions*)
             astT (trans a (trf a) args, p) handle Match => prnt ([], tabs))
       end
 

@@ -23,8 +23,8 @@ fun lookup_thm thy =
     (flat (map thms_of (thy :: Theory.ancestors_of thy)), Symtab.empty)
   in
     (fn s => case Symtab.lookup (tab, s) of
-       None => error ("Unknown theorem " ^ quote s)
-     | Some thm => thm)
+       NONE => error ("Unknown theorem " ^ quote s)
+     | SOME thm => thm)
   end;
 
 val beta_eta_convert =
@@ -45,7 +45,7 @@ fun thm_of_proof thy prf =
         Thm.instantiate (ctye, []) (forall_intr_vars (forall_intr_frees thm'))
       end;
 
-    fun thm_of _ _ (PThm ((name, _), _, prop', Some Ts)) =
+    fun thm_of _ _ (PThm ((name, _), _, prop', SOME Ts)) =
           let
             val thm = Thm.implies_intr_hyps (lookup name);
             val {prop, ...} = rep_thm thm;
@@ -55,12 +55,12 @@ fun thm_of_proof thy prf =
                 Sign.string_of_term sg prop');
           in thm_of_atom thm Ts end
 
-      | thm_of _ _ (PAxm (name, _, Some Ts)) =
+      | thm_of _ _ (PAxm (name, _, SOME Ts)) =
           thm_of_atom (get_axiom thy name) Ts
 
       | thm_of _ Hs (PBound i) = nth_elem (i, Hs)
 
-      | thm_of vs Hs (Abst (s, Some T, prf)) =
+      | thm_of vs Hs (Abst (s, SOME T, prf)) =
           let
             val x = variant (names @ map fst vs) s;
             val thm = thm_of ((x, T) :: vs) Hs prf
@@ -68,13 +68,13 @@ fun thm_of_proof thy prf =
             Thm.forall_intr (Thm.cterm_of sg (Free (x, T))) thm
           end
 
-      | thm_of vs Hs (prf % Some t) =
+      | thm_of vs Hs (prf % SOME t) =
           let
             val thm = thm_of vs Hs prf
             val ct = Thm.cterm_of sg (Term.subst_bounds (map Free vs, t))
           in Thm.forall_elim ct thm end
 
-      | thm_of vs Hs (AbsP (s, Some t, prf)) =
+      | thm_of vs Hs (AbsP (s, SOME t, prf)) =
           let
             val ct = Thm.cterm_of sg (Term.subst_bounds (map Free vs, t));
             val thm = thm_of vs (Thm.assume ct :: Hs) prf

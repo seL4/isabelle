@@ -73,9 +73,9 @@ fun process_eqn sign (eq, rec_fns) =
       check_vars "extra variables on rhs: "
         (map dest_Free (term_frees rhs) \\ lfrees);
       case assoc (rec_fns, fname) of
-        None =>
+        NONE =>
           (fname, (tname, rpos, [(cname, (ls, cargs, rs, rhs, eq))]))::rec_fns
-      | Some (_, rpos', eqns) =>
+      | SOME (_, rpos', eqns) =>
           if is_some (assoc (eqns, cname)) then
             raise RecError "constructor already occurred as pattern"
           else if rpos <> rpos' then
@@ -113,11 +113,11 @@ fun process_fun sign descr rec_eqns ((i, fname), (fnames, fnss)) =
                 val (x, xs) = strip_comb x'
               in 
                 (case assoc (subs, x) of
-                    None =>
+                    NONE =>
                       let
                         val (fs', ts') = foldl_map (subst subs) (fs, ts)
                       in (fs', list_comb (f, ts')) end
-                  | Some (i', y) =>
+                  | SOME (i', y) =>
                       let
                         val (fs', ts') = foldl_map (subst subs) (fs, xs @ ls @ rs);
                         val fs'' = process_fun sign descr rec_eqns ((i', fname'), fs')
@@ -135,10 +135,10 @@ fun process_fun sign descr rec_eqns ((i, fname), (fnames, fnss)) =
 
     fun trans eqns ((cname, cargs), (fnames', fnss', fns)) =
       (case assoc (eqns, cname) of
-          None => (warning ("No equation for constructor " ^ quote cname ^
+          NONE => (warning ("No equation for constructor " ^ quote cname ^
             "\nin definition of function " ^ quote fname);
               (fnames', fnss', (Const ("arbitrary", dummyT))::fns))
-        | Some (ls, cargs', rs, rhs, eq) =>
+        | SOME (ls, cargs', rs, rhs, eq) =>
             let
               val recs = filter (is_rec_type o snd) (cargs' ~~ cargs);
               val rargs = map fst recs;
@@ -155,7 +155,7 @@ fun process_fun sign descr rec_eqns ((i, fname), (fnames, fnss)) =
             end)
 
   in (case assoc (fnames, i) of
-      None =>
+      NONE =>
         if exists (equal fname o snd) fnames then
           raise RecError ("inconsistent functions for datatype " ^ quote tname)
         else
@@ -166,7 +166,7 @@ fun process_fun sign descr rec_eqns ((i, fname), (fnames, fnss)) =
           in
             (fnames', (i, (fname, #1 (snd (hd eqns)), fns))::fnss')
           end
-    | Some fname' =>
+    | SOME fname' =>
         if fname = fname' then (fnames, fnss)
         else raise RecError ("inconsistent functions for datatype " ^ quote tname))
   end;
@@ -176,7 +176,7 @@ fun process_fun sign descr rec_eqns ((i, fname), (fnames, fnss)) =
 
 fun get_fns fns (((i, (tname, _, constrs)), rec_name), (fs, defs)) =
   case assoc (fns, i) of
-     None =>
+     NONE =>
        let
          val dummy_fns = map (fn (_, cargs) => Const ("arbitrary",
            replicate ((length cargs) + (length (filter is_rec_type cargs)))
@@ -185,7 +185,7 @@ fun get_fns fns (((i, (tname, _, constrs)), rec_name), (fs, defs)) =
        in
          (dummy_fns @ fs, defs)
        end
-   | Some (fname, ls, fs') => (fs' @ fs, (fname, ls, rec_name, tname)::defs);
+   | SOME (fname, ls, fs') => (fs' @ fs, (fname, ls, rec_name, tname)::defs);
 
 
 (* make definition *)
@@ -206,8 +206,8 @@ fun make_def sign fs (fname, ls, rec_name, tname) =
 fun find_dts (dt_info : datatype_info Symtab.table) _ [] = []
   | find_dts dt_info tnames' (tname::tnames) =
       (case Symtab.lookup (dt_info, tname) of
-          None => primrec_err (quote tname ^ " is not a datatype")
-        | Some dt =>
+          NONE => primrec_err (quote tname ^ " is not a datatype")
+        | SOME dt =>
             if tnames' subset (map (#1 o snd) (#descr dt)) then
               (tname, dt)::(find_dts dt_info tnames' tnames)
             else find_dts dt_info tnames' tnames);

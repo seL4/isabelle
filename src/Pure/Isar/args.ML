@@ -112,8 +112,8 @@ fun !!! scan =
     fun get_pos [] = " (past end-of-text!)"
       | get_pos (Arg (_, (_, pos)) :: _) = Position.str_of pos;
 
-    fun err (args, None) = "Argument syntax error" ^ get_pos args
-      | err (args, Some msg) = "Argument syntax error" ^ get_pos args ^ ": " ^ msg;
+    fun err (args, NONE) = "Argument syntax error" ^ get_pos args
+      | err (args, SOME msg) = "Argument syntax error" ^ get_pos args ^ ": " ^ msg;
   in Scan.!! err scan end;
 
 
@@ -135,14 +135,14 @@ fun bracks scan = $$$ "[" |-- scan --| $$$ "]";
 fun mode s = Scan.lift (Scan.optional (parens ($$$$ s) >> K true) false);
 
 val name = Scan.one (fn Arg (k, (x, _)) => k = Ident orelse k = String) >> val_of;
-val name_dummy = $$$ "_" >> K None || name >> Some;
+val name_dummy = $$$ "_" >> K NONE || name >> SOME;
 
 val keyword_symid =
   Scan.one (fn Arg (k, (x, _)) => k = Keyword andalso OuterLex.is_sid x) >> val_of;
 
 fun kind f = Scan.one (K true) :--
   (fn Arg (Ident, (x, _)) =>
-    (case f x of Some y => Scan.succeed y | _ => Scan.fail)
+    (case f x of SOME y => Scan.succeed y | _ => Scan.fail)
   | _ => Scan.fail) >> #2;
 
 val nat = kind Syntax.read_nat;
@@ -150,9 +150,9 @@ val int = Scan.optional ($$$ "-" >> K ~1) 1 -- nat >> op *;
 
 (*read variable name; leading '?' may be omitted if name contains no dot*)
 val var = kind (apsome #1 o (fn s =>
-  Some (Term.dest_Var (Syntax.read_var s))
-    handle _ => Some (Term.dest_Var (Syntax.read_var ("?" ^ s)))
-    handle _ => None));
+  SOME (Term.dest_Var (Syntax.read_var s))
+    handle _ => SOME (Term.dest_Var (Syntax.read_var ("?" ^ s)))
+    handle _ => NONE));
 
 
 (* enumerations *)
@@ -234,7 +234,7 @@ fun err_in_src kind msg (Src ((s, args), pos)) =
 
 fun syntax kind scan (src as Src ((s, args), pos)) st =
   (case Scan.error (Scan.finite' stopper (Scan.option scan)) (st, args) of
-    (Some x, (st', [])) => (st', x)
+    (SOME x, (st', [])) => (st', x)
   | (_, (_, args')) => err_in_src kind "bad arguments" (Src ((s, args'), pos)));
 
 

@@ -170,8 +170,8 @@ ML {*
             |> mk_meta_eq;
           val (t', u) = Logic.dest_equals (Thm.prop_of rew);
       in if t' aconv u 
-        then None
-        else Some rew 
+        then NONE
+        else SOME rew 
     end;
   in
     val ring_simproc = Simplifier.simproc (sign_of (the_context ())) "ring" lhss proc;

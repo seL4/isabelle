@@ -25,7 +25,7 @@ val pure = "Pure";
 val session = ref ([pure]: string list);
 val session_path = ref ([]: string list);
 val session_finished = ref false;
-val rpath = ref (None: Url.T option);
+val rpath = ref (NONE: Url.T option);
 
 
 (* access path *)
@@ -76,7 +76,7 @@ fun get_rpath rpath_str =
      if is_some (!rpath) then
        error "Path for remote theory browsing information may only be set once"
      else
-       rpath := Some (Url.unpack rpath_str);
+       rpath := SOME (Url.unpack rpath_str);
    (!rpath, rpath_str <> ""));
 
 fun use_dir root_file build modes reset info doc doc_graph parent name dump rpath_str level verbose hide =
@@ -84,7 +84,7 @@ fun use_dir root_file build modes reset info doc doc_graph parent name dump rpat
     (Library.setmp Proofterm.proofs level (Library.setmp IsarOutput.hide_commands hide (fn () =>
       (init reset parent name;
        Present.init build info doc doc_graph (path ()) name
-         (if dump = "" then None else Some (Path.unpack dump)) (get_rpath rpath_str) verbose;
+         (if dump = "" then NONE else SOME (Path.unpack dump)) (get_rpath rpath_str) verbose;
        File.use (Path.basic root_file);
        finish ())))) ()
   handle exn => (writeln (Toplevel.exn_message exn); exit 1);

@@ -60,8 +60,8 @@ fun prove thy xs asms prop tac =
 fun cheating int ctxt = Method.METHOD (K (setmp quick_and_dirty (int orelse ! quick_and_dirty)
     (cheat_tac (ProofContext.theory_of ctxt))));
 
-fun local_skip_proof x int = Method.local_terminal_proof (Method.Basic (cheating int), None) x;
-fun global_skip_proof int = Method.global_terminal_proof (Method.Basic (cheating int), None);
+fun local_skip_proof x int = Method.local_terminal_proof (Method.Basic (cheating int), NONE) x;
+fun global_skip_proof int = Method.global_terminal_proof (Method.Basic (cheating int), NONE);
 
 end;
 

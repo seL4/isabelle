@@ -133,41 +133,41 @@ fun proof_of_term thy tab ty =
 
     fun prf_of [] (Bound i) = PBound i
       | prf_of Ts (Const (s, Type ("proof", _))) =
-          change_type (if ty then Some Ts else None)
+          change_type (if ty then SOME Ts else NONE)
             (case NameSpace.unpack s of
                "axm" :: xs =>
                  let
                    val name = NameSpace.pack xs;
                    val prop = (case assoc (axms, name) of
-                       Some prop => prop
-                     | None => error ("Unknown axiom " ^ quote name))
-                 in PAxm (name, prop, None) end
+                       SOME prop => prop
+                     | NONE => error ("Unknown axiom " ^ quote name))
+                 in PAxm (name, prop, NONE) end
              | "thm" :: xs =>
                  let val name = NameSpace.pack xs;
                  in (case assoc (thms, name) of
-                     Some thm => fst (strip_combt (Thm.proof_of thm))
-                   | None => (case Symtab.lookup (tab, name) of
-                         Some prf => prf
-                       | None => error ("Unknown theorem " ^ quote name)))
+                     SOME thm => fst (strip_combt (Thm.proof_of thm))
+                   | NONE => (case Symtab.lookup (tab, name) of
+                         SOME prf => prf
+                       | NONE => error ("Unknown theorem " ^ quote name)))
                  end
              | _ => error ("Illegal proof constant name: " ^ quote s))
       | prf_of Ts (Const ("Hyp", _) $ prop) = Hyp prop
       | prf_of Ts (v as Var ((_, Type ("proof", _)))) = Hyp v
       | prf_of [] (Const ("Abst", _) $ Abs (s, T, prf)) =
-          Abst (s, if ty then Some T else None,
+          Abst (s, if ty then SOME T else NONE,
             incr_pboundvars (~1) 0 (prf_of [] prf))
       | prf_of [] (Const ("AbsP", _) $ t $ Abs (s, _, prf)) =
           AbsP (s, case t of
-                Const ("dummy_pattern", _) => None
-              | _ $ Const ("dummy_pattern", _) => None
-              | _ => Some (mk_term t),
+                Const ("dummy_pattern", _) => NONE
+              | _ $ Const ("dummy_pattern", _) => NONE
+              | _ => SOME (mk_term t),
             incr_pboundvars 0 (~1) (prf_of [] prf))
       | prf_of [] (Const ("AppP", _) $ prf1 $ prf2) =
           prf_of [] prf1 %% prf_of [] prf2
       | prf_of Ts (Const ("Appt", _) $ prf $ Const ("TYPE", Type (_, [T]))) =
           prf_of (T::Ts) prf
       | prf_of [] (Const ("Appt", _) $ prf $ t) = prf_of [] prf %
-          (case t of Const ("dummy_pattern", _) => None | _ => Some (mk_term t))
+          (case t of Const ("dummy_pattern", _) => NONE | _ => SOME (mk_term t))
       | prf_of _ t = error ("Not a proof term:\n" ^
           Sign.string_of_term (sign_of thy) t)
 
@@ -183,12 +183,12 @@ val MinProoft = Const ("MinProof", proofT);
 val mk_tyapp = foldl (fn (prf, T) => Const ("Appt",
   [proofT, itselfT T] ---> proofT) $ prf $ Logic.mk_type T);
 
-fun term_of _ (PThm ((name, _), _, _, None)) =
+fun term_of _ (PThm ((name, _), _, _, NONE)) =
       Const (add_prefix "thm" name, proofT)
-  | term_of _ (PThm ((name, _), _, _, Some Ts)) =
+  | term_of _ (PThm ((name, _), _, _, SOME Ts)) =
       mk_tyapp (Const (add_prefix "thm" name, proofT), Ts)
-  | term_of _ (PAxm (name, _, None)) = Const (add_prefix "axm" name, proofT)
-  | term_of _ (PAxm (name, _, Some Ts)) =
+  | term_of _ (PAxm (name, _, NONE)) = Const (add_prefix "axm" name, proofT)
+  | term_of _ (PAxm (name, _, SOME Ts)) =
       mk_tyapp (Const (add_prefix "axm" name, proofT), Ts)
   | term_of _ (PBound i) = Bound i
   | term_of Ts (Abst (s, opT, prf)) = 

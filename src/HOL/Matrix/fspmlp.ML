@@ -47,12 +47,12 @@ fun add_row_bound g dest_key row_index row_bound =
     let 
 	val x = 
 	    case VarGraph.lookup (g, dest_key) of
-		None => (None, Inttab.update ((row_index, (row_bound, [])), Inttab.empty))
-	      | Some (sure_bound, f) =>
+		NONE => (NONE, Inttab.update ((row_index, (row_bound, [])), Inttab.empty))
+	      | SOME (sure_bound, f) =>
 		(sure_bound,
 		 case Inttab.lookup (f, row_index) of
-		     None => Inttab.update ((row_index, (row_bound, [])), f)
-		   | Some _ => raise (Internal "add_row_bound"))				     
+		     NONE => Inttab.update ((row_index, (row_bound, [])), f)
+		   | SOME _ => raise (Internal "add_row_bound"))				     
     in
 	VarGraph.update ((dest_key, x), g)
     end    
@@ -61,10 +61,10 @@ fun update_sure_bound g (key as (_, btype)) bound =
     let
 	val x = 
 	    case VarGraph.lookup (g, key) of
-		None => (Some bound, Inttab.empty)
-	      | Some (None, f) => (Some bound, f)
-	      | Some (Some old_bound, f) => 
-		(Some ((case btype of 
+		NONE => (SOME bound, Inttab.empty)
+	      | SOME (NONE, f) => (SOME bound, f)
+	      | SOME (SOME old_bound, f) => 
+		(SOME ((case btype of 
 			    UPPER => FloatArith.min 
 			  | LOWER => FloatArith.max) 
 			   old_bound bound), f)
@@ -74,32 +74,32 @@ fun update_sure_bound g (key as (_, btype)) bound =
 
 fun get_sure_bound g key = 
     case VarGraph.lookup (g, key) of 
-	None => None
-      | Some (sure_bound, _) => sure_bound
+	NONE => NONE
+      | SOME (sure_bound, _) => sure_bound
 
 (*fun get_row_bound g key row_index = 
     case VarGraph.lookup (g, key) of
-	None => None
-      | Some (sure_bound, f) =>
+	NONE => NONE
+      | SOME (sure_bound, f) =>
 	(case Inttab.lookup (f, row_index) of 
-	     None => None
-	   | Some (row_bound, _) => (sure_bound, row_bound))*)
+	     NONE => NONE
+	   | SOME (row_bound, _) => (sure_bound, row_bound))*)
     
 fun add_edge g src_key dest_key row_index coeff = 
     case VarGraph.lookup (g, dest_key) of
-	None => raise (Internal "add_edge: dest_key not found")
-      | Some (sure_bound, f) =>
+	NONE => raise (Internal "add_edge: dest_key not found")
+      | SOME (sure_bound, f) =>
 	(case Inttab.lookup (f, row_index) of
-	     None => raise (Internal "add_edge: row_index not found")
-	   | Some (row_bound, sources) => 
+	     NONE => raise (Internal "add_edge: row_index not found")
+	   | SOME (row_bound, sources) => 
 	     VarGraph.update ((dest_key, (sure_bound, Inttab.update ((row_index, (row_bound, (coeff, src_key) :: sources)), f))), g))
 
 fun split_graph g = 
     let
 	fun split ((r1, r2), (key, (sure_bound, _))) = 
 	    case sure_bound of
-		None => (r1, r2)
-	      | Some bound => 
+		NONE => (r1, r2)
+	      | SOME bound => 
 		(case key of
 		     (u, UPPER) => (r1, Inttab.update ((u, bound), r2))
 		   | (u, LOWER) => (Inttab.update ((u, bound), r1), r2))
@@ -118,7 +118,7 @@ fun it2list t =
    If safe is false, termination is not guaranteed, but on termination the sure bounds are optimal (relative to the algorithm) *)
 fun propagate_sure_bounds safe names g = 
     let		 	    	
-	(* returns None if no new sure bound could be calculated, otherwise the new sure bound is returned *)
+	(* returns NONE if no new sure bound could be calculated, otherwise the new sure bound is returned *)
 	fun calc_sure_bound_from_sources g (key as (_, btype)) = 
 	    let		
 		fun mult_upper x (lower, upper) = 
@@ -139,40 +139,40 @@ fun propagate_sure_bounds safe names g =
 		    let
 			fun add_src_bound (sum, (coeff, src_key)) = 
 			    case sum of 
-				None => None
-			      | Some x => 
+				NONE => NONE
+			      | SOME x => 
 				(case get_sure_bound g src_key of
-				     None => None
-				   | Some src_sure_bound => Some (FloatArith.add x (mult_btype src_sure_bound coeff)))
+				     NONE => NONE
+				   | SOME src_sure_bound => SOME (FloatArith.add x (mult_btype src_sure_bound coeff)))
 		    in
-			case foldl add_src_bound (Some row_bound, sources) of
-			    None => sure_bound
-			  | new_sure_bound as (Some new_bound) => 
+			case foldl add_src_bound (SOME row_bound, sources) of
+			    NONE => sure_bound
+			  | new_sure_bound as (SOME new_bound) => 
 			    (case sure_bound of 
-				 None => new_sure_bound
-			       | Some old_bound => 
-				 Some (case btype of 
+				 NONE => new_sure_bound
+			       | SOME old_bound => 
+				 SOME (case btype of 
 					   UPPER => FloatArith.min old_bound new_bound
 					 | LOWER => FloatArith.max old_bound new_bound))				 
 		    end		
 	    in
 		case VarGraph.lookup (g, key) of
-		    None => None
-		  | Some (sure_bound, f) =>
+		    NONE => NONE
+		  | SOME (sure_bound, f) =>
 		    let
 			val x = Inttab.foldl calc_sure_bound (sure_bound, f) 
 		    in
-			if x = sure_bound then None else x
+			if x = sure_bound then NONE else x
 		    end		
     	    end
 
 	fun propagate ((g, b), (key, _)) = 
 	    case calc_sure_bound_from_sources g key of 
-		None => (g,b)
-	      | Some bound => (update_sure_bound g key bound, 
+		NONE => (g,b)
+	      | SOME bound => (update_sure_bound g key bound, 
 			       if safe then 
 				   case get_sure_bound g key of
-				       None => true
+				       NONE => true
 				     | _ => b
 			       else
 				   true)
@@ -203,7 +203,7 @@ fun calcr safe_propagation xlen names prec A b =
 	fun calcr (g, (row_index, a)) = 
 	    let				
 		val b =  FloatSparseMatrixBuilder.v_elem_at b row_index
-		val (_, b2) = ExactFloatingPoint.approx_decstr_by_bin prec (case b of None => "0" | Some b => b)
+		val (_, b2) = ExactFloatingPoint.approx_decstr_by_bin prec (case b of NONE => "0" | SOME b => b)
 		val approx_a = FloatSparseMatrixBuilder.v_fold (fn (l, (i,s)) => 
 								   (i, ExactFloatingPoint.approx_decstr_by_bin prec s)::l) [] a
 			       
@@ -265,8 +265,8 @@ fun calcr safe_propagation xlen names prec A b =
 		let
 		    val index = xlen-i
 		    val r = abs_estimate (i-1) r1 r2 
-		    val b1 = case Inttab.lookup (r1, index) of None => raise (Load ("x-value not bounded from below: "^(names index))) | Some x => x
-		    val b2 = case Inttab.lookup (r2, index) of None => raise (Load ("x-value not bounded from above: "^(names index))) | Some x => x
+		    val b1 = case Inttab.lookup (r1, index) of NONE => raise (Load ("x-value not bounded from below: "^(names index))) | SOME x => x
+		    val b2 = case Inttab.lookup (r2, index) of NONE => raise (Load ("x-value not bounded from above: "^(names index))) | SOME x => x
 		    val abs_max = FloatArith.max (FloatArith.neg (FloatArith.negative_part b1)) (FloatArith.positive_part b2)    
 		    val vec = FloatSparseMatrixBuilder.cons_spvec (FloatSparseMatrixBuilder.mk_spvec_entry 0 abs_max) FloatSparseMatrixBuilder.empty_spvec
 		in
@@ -287,7 +287,7 @@ fun load filename prec safe_propagation =
 	val (dualprog, indexof) = FloatSparseMatrixBuilder.dual_cplexProg c A b
 	val results = Cplex.solve dualprog
 	val (optimal,v) = CplexFloatSparseMatrixConverter.convert_results results indexof
-	val A = FloatSparseMatrixBuilder.cut_matrix v None A
+	val A = FloatSparseMatrixBuilder.cut_matrix v NONE A
 	fun id x = x
 	val v = FloatSparseMatrixBuilder.set_vector FloatSparseMatrixBuilder.empty_matrix 0 v
 	val b = FloatSparseMatrixBuilder.transpose_matrix (FloatSparseMatrixBuilder.set_vector FloatSparseMatrixBuilder.empty_matrix 0 b)

@@ -57,11 +57,11 @@ val redo = app History.redo;
 
 fun back_fun recur ((_, stq), nodes) =
   (case Seq.pull stq of
-    None =>
+    NONE =>
       if recur andalso not (null nodes) then
         (writeln "back: trying previous proof state ..."; back_fun recur (hd nodes, tl nodes))
       else raise FAIL "back: no alternatives"
-  | Some result => (result, nodes));
+  | SOME result => (result, nodes));
 
 val back = hist_app o back_fun;
 
@@ -70,8 +70,8 @@ val back = hist_app o back_fun;
 
 fun applys f = hist_app (fn (node as (st, _), nodes) =>
   (case Seq.pull (f st) of
-    None => raise FAIL "empty result sequence -- proof command failed"
-  | Some results => (results, node :: nodes)));
+    NONE => raise FAIL "empty result sequence -- proof command failed"
+  | SOME results => (results, node :: nodes)));
 
 fun apply f = applys (Seq.single o f);
 

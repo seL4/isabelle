@@ -44,8 +44,8 @@ local
  (*Permits forward proof from rules that discharge assumptions*)
  fun forward_res nf st =
    case Seq.pull (ALLGOALS (METAHYPS (fn [prem] => rtac (nf prem) 1)) st)
-   of Some(th,_) => th
-    | None => raise THM("forward_res", 0, [st]);
+   of SOME(th,_) => th
+    | NONE => raise THM("forward_res", 0, [st]);
 
 
  (*Are any of the constants in "bs" present in the term?*)
@@ -126,8 +126,8 @@ local
          (REPEAT
           (METAHYPS (fn major::minors => rtac (nf (minors@hyps) major) 1) 1)
           st)
-   of Some(th,_) => th
-    | None => raise THM("forward_res2", 0, [st]);
+   of SOME(th,_) => th
+    | NONE => raise THM("forward_res2", 0, [st]);
 
  (*Remove duplicates in P|Q by assuming ~P in Q
    rls (initially []) accumulates assumptions of the form P==>False*)

@@ -225,11 +225,11 @@ fun pth (HOLThm(ren,thm)) =
     end
 
 fun disk_info_of (Proof(Info{disk_info,...},_)) = !disk_info
-fun mk_proof p = Proof(Info{disk_info = ref None},p)
+fun mk_proof p = Proof(Info{disk_info = ref NONE},p)
 fun content_of (Proof(_,p)) = p
 
 fun set_disk_info_of (Proof(Info{disk_info,...},_)) thyname thmname =
-    disk_info := Some(thyname,thmname)
+    disk_info := SOME(thyname,thmname)
 
 structure Lib =
 struct
@@ -307,11 +307,11 @@ fun scan_string str c =
 	fun F [] toks = (c,toks)
 	  | F (c::cs) toks =
 	    case LazySeq.getItem toks of
-		Some(c',toks') =>
+		SOME(c',toks') =>
 		if c = c'
 		then F cs toks'
 		else raise SyntaxError
-	      | None => raise SyntaxError
+	      | NONE => raise SyntaxError
     in
 	F (String.explode str)
     end
@@ -326,12 +326,12 @@ local
 in
 fun scan_nonquote toks =
     case LazySeq.getItem toks of
-	Some (c,toks') =>
+	SOME (c,toks') =>
 	(case c of
 	     #"\"" => raise SyntaxError
 	   | #"&" => scan_entity toks'
 	   | c => (c,toks'))
-      | None => raise SyntaxError
+      | NONE => raise SyntaxError
 end
 
 val scan_string = $$ #"\"" |-- repeat scan_nonquote --| $$ #"\"" >>
@@ -383,15 +383,15 @@ fun mk_teq name rhs thy =
 
 fun intern_const_name thyname const thy =
     case get_hol4_const_mapping thyname const thy of
-	Some (_,cname,_) => cname
-      | None => (case get_hol4_const_renaming thyname const thy of
-		     Some cname => Sign.intern_const (sign_of thy) (thyname ^ "." ^ cname)
-		   | None => Sign.intern_const (sign_of thy) (thyname ^ "." ^ const))
+	SOME (_,cname,_) => cname
+      | NONE => (case get_hol4_const_renaming thyname const thy of
+		     SOME cname => Sign.intern_const (sign_of thy) (thyname ^ "." ^ cname)
+		   | NONE => Sign.intern_const (sign_of thy) (thyname ^ "." ^ const))
 
 fun intern_type_name thyname const thy =
     case get_hol4_type_mapping thyname const thy of
-	Some (_,cname) => cname
-      | None => Sign.intern_const (sign_of thy) (thyname ^ "." ^ const)
+	SOME (_,cname) => cname
+      | NONE => Sign.intern_const (sign_of thy) (thyname ^ "." ^ const)
 
 fun mk_vartype name = TFree(name,["HOL.type"])
 fun mk_thy_type thy Thy Tyop Args = Type(intern_type_name Thy Tyop thy,Args)
@@ -406,8 +406,8 @@ fun mk_thy_const thy Thy Name Ty = Const(intern_const_name Thy Name thy,Ty)
 local
     fun get_type sg thyname name =
 	case Sign.const_type sg name of
-	    Some ty => ty
-	  | None => raise ERR "get_type" (name ^ ": No such constant")
+	    SOME ty => ty
+	  | NONE => raise ERR "get_type" (name ^ ": No such constant")
 in
 fun prim_mk_const thy Thy Name =
     let
@@ -415,7 +415,7 @@ fun prim_mk_const thy Thy Name =
 	val cmaps = HOL4ConstMaps.get thy
     in
 	case StringPair.lookup(cmaps,(Thy,Name)) of
-	    Some(_,_,Some ty) => Const(name,ty)
+	    SOME(_,_,SOME ty) => Const(name,ty)
 	  | _ => Const(name,get_type (sign_of thy) Thy name)
     end
 end
@@ -511,8 +511,8 @@ fun get_term_from_index thy thyname types terms is =
       | NONE => raise ERR "get_term_from_index" "Bad index"
 and get_term_from_xml thy thyname types terms =
     let
-	fun get_type [] = None
-	  | get_type [ty] = Some (TypeNet.get_type_from_xml thy thyname types ty)
+	fun get_type [] = NONE
+	  | get_type [ty] = SOME (TypeNet.get_type_from_xml thy thyname types ty)
 	  | get_type _ = raise ERR "get_term" "Bad type"
 
 	fun gtfx (Elem("tmv",[("n",name),("t",tyi)],[])) =
@@ -566,17 +566,17 @@ fun get_proof_dir (thyname:string) thy =
     let
 	val import_segment =
 	    case get_segment2 thyname thy of
-		Some seg => seg
-	      | None => get_import_segment thy
+		SOME seg => seg
+	      | NONE => get_import_segment thy
 	val defpath = [OS.Path.joinDirFile {dir=getenv "ISABELLE_HOME_USER",file="proofs"}]
 	val path = space_explode ":" (getenv "PROOF_DIRS") @ defpath
-	fun find [] = None
+	fun find [] = NONE
 	  | find (p::ps) =
 	    (let
 		 val dir = OS.Path.joinDirFile {dir = p,file=import_segment}
 	     in
 		 if OS.FileSys.isDir dir
-		 then Some dir
+		 then SOME dir
 		 else find ps
 	     end) handle OS.SysErr _ => find ps
     in
@@ -586,8 +586,8 @@ fun get_proof_dir (thyname:string) thy =
 fun proof_file_name thyname thmname thy =
     let
 	val path = case get_proof_dir thyname thy of
-		       Some p => p
-		     | None => error "Cannot find proof files"
+		       SOME p => p
+		     | NONE => error "Cannot find proof files"
 	val _ = OS.FileSys.mkDir path handle OS.SysErr _ => ()
     in
 	OS.Path.joinDirFile {dir = path, file = OS.Path.joinBaseExt {base = thmname, ext = SOME "prf"}}
@@ -705,14 +705,14 @@ fun xml_to_proof thyname types terms prf thy =
 		val p = x2p prf
 		val tml = map xml_to_term tms
 	    in
-		mk_proof (PGenAbs(p,None,tml))
+		mk_proof (PGenAbs(p,NONE,tml))
 	    end
 	  | x2p (Elem("pgenabs",[("i",is)],prf::tms)) =
 	    let
 		val p = x2p prf
 		val tml = map xml_to_term tms
 	    in
-		mk_proof (PGenAbs(p,Some (index_to_term is),tml))
+		mk_proof (PGenAbs(p,SOME (index_to_term is),tml))
 	    end
 	  | x2p (Elem("pimpas",[],[prf1,prf2])) =
 	    let
@@ -848,8 +848,8 @@ fun import_proof thyname thmname thy =
 		val terms = TermNet.input_terms thyname types xterms
 	    in
 		(case rest of
-		     [] => None
-		   | [xtm] => Some (fn thy => TermNet.get_term_from_xml thy thyname types terms xtm)
+		     [] => NONE
+		   | [xtm] => SOME (fn thy => TermNet.get_term_from_xml thy thyname types terms xtm)
 		   | _ => raise ERR "import_proof" "Bad argument list",
 		 xml_to_proof thyname types terms prf)
 	    end
@@ -861,10 +861,10 @@ fun uniq_compose m th i st =
 	val res = bicompose false (false,th,m) i st
     in
 	case Seq.pull res of
-	    Some (th,rest) => (case Seq.pull rest of
-				   Some _ => raise ERR "uniq_compose" "Not unique!"
-				 | None => th)
-	  | None => raise ERR "uniq_compose" "No result"
+	    SOME (th,rest) => (case Seq.pull rest of
+				   SOME _ => raise ERR "uniq_compose" "Not unique!"
+				 | NONE => th)
+	  | NONE => raise ERR "uniq_compose" "No result"
     end
 
 val reflexivity_thm = thm "refl"
@@ -932,7 +932,7 @@ fun mk_GEN v th sg =
 	val cvty = ctyp_of_term cv
 	val th1 = implies_elim_all th
 	val th2 = beta_eta_thm (forall_intr cv th1)
-	val th3 = th2 COMP (beta_eta_thm (Drule.instantiate' [Some cvty] [Some clc] gen_thm))
+	val th3 = th2 COMP (beta_eta_thm (Drule.instantiate' [SOME cvty] [SOME clc] gen_thm))
 	val c = prop_of th3
 	val vname = fst(dest_Free v)
 	val (cold,cnew) = case c of
@@ -978,8 +978,8 @@ fun apply_tyinst_typ tyinst =
     let
 	fun G (ty as TFree _) =
 	    (case try (Lib.assoc ty) tyinst of
-		 Some ty' => ty'
-	       | None => ty)
+		 SOME ty' => ty'
+	       | NONE => ty)
 	  | G (Type(tyname,tys)) = Type(tyname,map G tys)
 	  | G (TVar _) = raise ERR "apply_tyinst_typ" "Scematic variable found"
     in
@@ -1004,8 +1004,8 @@ fun apply_inst_term tminst =
 	fun F (tm as Bound _) = tm
 	  | F (tm as Free _) =
 	    (case try (Lib.assoc tm) tminst of
-		 Some tm' => tm'
-	       | None => tm)
+		 SOME tm' => tm'
+	       | NONE => tm)
 	  | F (tm as Const _) = tm
 	  | F (tm1 $ tm2) = (F tm1) $ (F tm2)
 	  | F (Abs(vname,ty,body)) = Abs(vname,ty,F body)
@@ -1045,8 +1045,8 @@ fun disamb_helper {vars,rens} tm =
 	    if v mem vars
 	    then (vars,rens,inst)
 	    else (case try (Lib.assoc v) rens of
-		      Some vnew => (vars,rens,(v,vnew)::inst)
-		    | None => if exists (fn Free(vname',_) => vname = vname' | _ => raise ERR "disamb_helper" "Bad varlist") vars
+		      SOME vnew => (vars,rens,(v,vnew)::inst)
+		    | NONE => if exists (fn Free(vname',_) => vname = vname' | _ => raise ERR "disamb_helper" "Bad varlist") vars
 			      then
 				  let
 				      val tmnames = map name_of_var varstm
@@ -1130,10 +1130,10 @@ fun norm_hthm sg (hth as HOLThm([],_)) = hth
 	    foldr (fn((ren as (vold as Free(vname,_),vnew)),
 		      (rens,inst,vars)) =>
 		     (case Library.find_first (fn Free(v,_) => v = vname | _ => false) vars of
-			  Some v' => if v' = vold
+			  SOME v' => if v' = vold
 				     then (rens,(vnew,vold)::inst,vold::vars)
 				     else (ren::rens,(vold,vnew)::inst,vnew::vars)
-			| None => (rens,(vnew,vold)::inst,vold::vars))
+			| NONE => (rens,(vnew,vold)::inst,vold::vars))
 		   | _ => raise ERR "norm_hthm" "Internal error")
 		  (rens,([],[],vars))
 	val (dom,rng) = ListPair.unzip inst
@@ -1156,14 +1156,14 @@ val conjE_helper = Thm.permute_prems 0 1 conjE
 
 fun get_hol4_thm thyname thmname thy =
     case get_hol4_theorem thyname thmname thy of
-	Some hth => Some (HOLThm hth)
-      | None => 
+	SOME hth => SOME (HOLThm hth)
+      | NONE => 
 	let
 	    val pending = HOL4Pending.get thy
 	in
 	    case StringPair.lookup (pending,(thyname,thmname)) of
-		Some hth => Some (HOLThm hth)
-	      | None => None
+		SOME hth => SOME (HOLThm hth)
+	      | NONE => NONE
 	end
 
 fun non_trivial_term_consts tm =
@@ -1199,10 +1199,10 @@ fun split_name str =
 	val (newstr,u) = apboth Substring.string (Substring.splitr (fn c => c = #"_") f)
     in
 	if not (idx = "") andalso u = "_"
-	then Some (newstr,valOf(Int.fromString idx))
-	else None
+	then SOME (newstr,valOf(Int.fromString idx))
+	else NONE
     end
-    handle _ => None
+    handle _ => NONE
 
 fun rewrite_hol4_term t thy =
     let
@@ -1233,25 +1233,25 @@ fun get_isabelle_thm thyname thmname hol4conc thy =
 	fun mk_res th = HOLThm(rens_of info,equal_elim i2h_conc th)
     in
 	case get_hol4_mapping thyname thmname thy of
-	    Some (Some thmname) =>
+	    SOME (SOME thmname) =>
 	    let
 		val _ = message ("Looking for " ^ thmname)
-		val th1 = (Some (transform_error (PureThy.get_thm thy) (thmname, None))
+		val th1 = (SOME (transform_error (PureThy.get_thm thy) (thmname, NONE))
 			   handle ERROR_MESSAGE _ =>
 				  (case split_name thmname of
-				       Some (listname,idx) => (Some (nth_elem(idx-1,PureThy.get_thms thy (listname, None)))
-							       handle _ => None)
-				     | None => None))
+				       SOME (listname,idx) => (SOME (nth_elem(idx-1,PureThy.get_thms thy (listname, NONE)))
+							       handle _ => NONE)
+				     | NONE => NONE))
 	    in
 		case th1 of
-		    Some th2 =>
+		    SOME th2 =>
 		    (case Shuffler.set_prop thy isaconc [(thmname,th2)] of
-			 Some (_,th) => (message "YES";(thy, Some (mk_res th)))
-		       | None => (message "NO2";error "get_isabelle_thm" "Bad mapping"))
-		  | None => (message "NO1";error "get_isabelle_thm" "Bad mapping")
+			 SOME (_,th) => (message "YES";(thy, SOME (mk_res th)))
+		       | NONE => (message "NO2";error "get_isabelle_thm" "Bad mapping"))
+		  | NONE => (message "NO1";error "get_isabelle_thm" "Bad mapping")
 	    end
-	  | Some None => error ("Trying to access ignored theorem " ^ thmname)
-	  | None =>
+	  | SOME NONE => error ("Trying to access ignored theorem " ^ thmname)
+	  | NONE =>
 	    let
 		val _ = (message "Looking for conclusion:";
 			 if_debug prin isaconc)
@@ -1262,32 +1262,32 @@ fun get_isabelle_thm thyname thmname hol4conc thy =
 		val _ = message ((Int.toString (length pot_thms)) ^ " potential theorems")
 	    in
 		case Shuffler.set_prop thy isaconc pot_thms of
-		    Some (isaname,th) =>
+		    SOME (isaname,th) =>
 		    let
 			val hth as HOLThm args = mk_res th
 			val thy' =  thy |> add_hol4_theorem thyname thmname args
 					|> add_hol4_mapping thyname thmname isaname
 		    in
-			(thy',Some hth)
+			(thy',SOME hth)
 		    end
-		  | None => (thy,None)
+		  | NONE => (thy,NONE)
 	    end
     end
-    handle _ => (thy,None)
+    handle _ => (thy,NONE)
 
 fun get_thm thyname thmname thy =
     case get_hol4_thm thyname thmname thy of
-	Some hth => (thy,Some hth)
-      | None => ((case fst (import_proof thyname thmname thy) of
-		      Some f => get_isabelle_thm thyname thmname (f thy) thy
-		    | None => (thy,None))
-		 handle e as IO.Io _ => (thy,None)
-		      | e as PK _ => (thy,None))
+	SOME hth => (thy,SOME hth)
+      | NONE => ((case fst (import_proof thyname thmname thy) of
+		      SOME f => get_isabelle_thm thyname thmname (f thy) thy
+		    | NONE => (thy,NONE))
+		 handle e as IO.Io _ => (thy,NONE)
+		      | e as PK _ => (thy,NONE))
 
 fun rename_const thyname thy name =
     case get_hol4_const_renaming thyname name thy of
-	Some cname => cname
-      | None => name
+	SOME cname => cname
+      | NONE => name
 
 fun get_def thyname constname rhs thy =
     let
@@ -1300,7 +1300,7 @@ fun get_def thyname constname rhs thy =
 
 fun get_axiom thyname axname thy =
     case get_thm thyname axname thy of
-	arg as (_,Some _) => arg
+	arg as (_,SOME _) => arg
       | _ => raise ERR "get_axiom" ("Trying to retrieve axiom (" ^ axname ^ ")")
 
 fun intern_store_thm gen_output thyname thmname hth thy =
@@ -1325,7 +1325,7 @@ fun mk_REFL ctm =
     let
 	val cty = Thm.ctyp_of_term ctm
     in
-	Drule.instantiate' [Some cty] [Some ctm] reflexivity_thm
+	Drule.instantiate' [SOME cty] [SOME ctm] reflexivity_thm
     end
 
 fun REFL tm thy =
@@ -1363,8 +1363,8 @@ fun INST_TYPE lambda (hth as HOLThm(rens,th)) thy =
 	val tys_after = add_term_tvars (prop_of th1,[])
 	val tyinst = map (fn (bef,(i,_)) =>
 			     (case try (Lib.assoc (TFree bef)) lambda of
-				  Some ty => (i,ctyp_of sg ty)
-				| None => (i,ctyp_of sg (TFree bef))
+				  SOME ty => (i,ctyp_of sg ty)
+				| NONE => (i,ctyp_of sg (TFree bef))
 			     ))
 			 (zip tys_before tys_after)
 	val res = Drule.instantiate (tyinst,[]) th1
@@ -1433,9 +1433,9 @@ fun mk_COMB th1 th2 sg =
 	val fty = type_of f
 	val (fd,fr) = dom_rng fty
 	val comb_thm' = Drule.instantiate'
-			    [Some (ctyp_of sg fd),Some (ctyp_of sg fr)]
-			    [Some (cterm_of sg f),Some (cterm_of sg g),
-			     Some (cterm_of sg x),Some (cterm_of sg y)] comb_thm
+			    [SOME (ctyp_of sg fd),SOME (ctyp_of sg fr)]
+			    [SOME (cterm_of sg f),SOME (cterm_of sg g),
+			     SOME (cterm_of sg x),SOME (cterm_of sg y)] comb_thm
     in
 	[th1,th2] MRS comb_thm'
     end
@@ -1495,7 +1495,7 @@ fun DISJ1 hth tm thy =
 	val (info',tm') = disamb_term_from info tm
 	val sg = sign_of thy
 	val ct = Thm.cterm_of sg tm'
-	val disj1_thm' = Drule.instantiate' [] [None,Some ct] disj1_thm
+	val disj1_thm' = Drule.instantiate' [] [NONE,SOME ct] disj1_thm
 	val res = HOLThm(rens_of info',th RS disj1_thm')
 	val _ = message "RESULT:"
 	val _ = if_debug pth res
@@ -1512,7 +1512,7 @@ fun DISJ2 tm hth thy =
 	val (info',tm') = disamb_term_from info tm
 	val sg = sign_of thy
 	val ct = Thm.cterm_of sg tm'
-	val disj2_thm' = Drule.instantiate' [] [None,Some ct] disj2_thm
+	val disj2_thm' = Drule.instantiate' [] [NONE,SOME ct] disj2_thm
 	val res = HOLThm(rens_of info',th RS disj2_thm')
 	val _ = message "RESULT:"
 	val _ = if_debug pth res
@@ -1611,7 +1611,7 @@ fun EXISTS ex wit hth thy =
 		    (Const("Ex",_) $ a) => a
 		  | _ => raise ERR "EXISTS" "Argument not existential"
 	val ca = cterm_of sg a
-	val exists_thm' = beta_eta_thm (Drule.instantiate' [Some cty] [Some ca,Some cwit] exists_thm)
+	val exists_thm' = beta_eta_thm (Drule.instantiate' [SOME cty] [SOME ca,SOME cwit] exists_thm)
 	val th1 = beta_eta_thm th
 	val th2 = implies_elim_all th1
 	val th3 = th2 COMP exists_thm'
@@ -1645,7 +1645,7 @@ fun CHOOSE v hth1 hth2 thy =
 		    _ $ (Const("Ex",_) $ a) => a
 		  | _ => raise ERR "CHOOSE" "Conclusion not existential"
 	val ca = cterm_of (sign_of_thm th1) a
-	val choose_thm' = beta_eta_thm (Drule.instantiate' [Some cvty] [Some ca,Some cc] choose_thm)
+	val choose_thm' = beta_eta_thm (Drule.instantiate' [SOME cvty] [SOME ca,SOME cc] choose_thm)
 	val th21 = rearrange sg (HOLogic.mk_Trueprop (a $ v')) th2
 	val th22 = strip ((nprems_of th21)-1) (cprems_of th21) th21
 	val th23 = beta_eta_thm (forall_intr cv th22)
@@ -1683,7 +1683,7 @@ fun SPEC tm hth thy =
 	val sg = sign_of thy
 	val ctm = Thm.cterm_of sg tm'
 	val cty = Thm.ctyp_of_term ctm
-	val spec' = Drule.instantiate' [Some cty] [None,Some ctm] spec_thm
+	val spec' = Drule.instantiate' [SOME cty] [NONE,SOME ctm] spec_thm
 	val th = th RS spec'
 	val res = HOLThm(rens_of info',th)
 	val _ = message "RESULT:"
@@ -1732,7 +1732,7 @@ fun CCONTR tm hth thy =
 	val sg = sign_of thy
 	val ct = cterm_of sg tm'
 	val th1 = rearrange sg (HOLogic.mk_Trueprop (Const("Not",boolT-->boolT) $ tm')) th
-	val ccontr_thm' = Drule.instantiate' [] [Some ct] ccontr_thm
+	val ccontr_thm' = Drule.instantiate' [] [SOME ct] ccontr_thm
 	val res1 = uniq_compose ((nprems_of th1) - 1) th1 1 ccontr_thm'
 	val res = HOLThm(rens_of info',res1)
 	val _ = message "RESULT:"
@@ -1749,7 +1749,7 @@ fun mk_ABS v th sg =
 			_ $ (Const("op =",_) $ f $ g) => (Term.lambda v f,Term.lambda v g)
 		      | _ => raise ERR "mk_ABS" "Bad conclusion"
 	val (fd,fr) = dom_rng (type_of f)
-	val abs_thm' = Drule.instantiate' [Some (ctyp_of sg fd), Some (ctyp_of sg fr)] [Some (cterm_of sg f), Some (cterm_of sg g)] abs_thm
+	val abs_thm' = Drule.instantiate' [SOME (ctyp_of sg fd), SOME (ctyp_of sg fr)] [SOME (cterm_of sg f), SOME (cterm_of sg g)] abs_thm
 	val th2 = forall_intr cv th1
 	val th3 = th2 COMP abs_thm'
 	val res = implies_intr_hyps th3
@@ -1776,8 +1776,8 @@ fun GEN_ABS copt vlist hth thy =
     let
 	val _ = message "GEN_ABS:"
 	val _ = case copt of
-		    Some c => if_debug prin c
-		  | None => ()
+		    SOME c => if_debug prin c
+		  | NONE => ()
 	val _ = if_debug (app prin) vlist
 	val _ = if_debug pth hth
 	val (info,th) = disamb_thm hth
@@ -1785,7 +1785,7 @@ fun GEN_ABS copt vlist hth thy =
 	val sg = sign_of thy
 	val th1 =
 	    case copt of
-		Some (c as Const(cname,cty)) =>
+		SOME (c as Const(cname,cty)) =>
 		let
 		    fun inst_type ty1 ty2 (TVar _) = raise ERR "GEN_ABS" "Type variable found!"
 		      | inst_type ty1 ty2 (ty as TFree _) = if ty1 = ty
@@ -1804,8 +1804,8 @@ fun GEN_ABS copt vlist hth thy =
 				  mk_COMB (mk_REFL cc) (mk_ABS v th sg) sg
 			      end) (vlist',th)
 		end
-	      | Some _ => raise ERR "GEN_ABS" "Bad constant"
-	      | None => 
+	      | SOME _ => raise ERR "GEN_ABS" "Bad constant"
+	      | NONE => 
 		foldr (fn (v,th) => mk_ABS v th sg) (vlist',th)
 	val res = HOLThm(rens_of info',th1)
 	val _ = message "RESULT:"
@@ -1824,7 +1824,7 @@ fun NOT_INTRO (hth as HOLThm(rens,th)) thy =
 		    _ $ (Const("op -->",_) $ a $ Const("False",_)) => a
 		  | _ => raise ERR "NOT_INTRO" "Conclusion of bad form"
 	val ca = cterm_of sg a
-	val th2 = equal_elim (Drule.instantiate' [] [Some ca] not_intro_thm) th1
+	val th2 = equal_elim (Drule.instantiate' [] [SOME ca] not_intro_thm) th1
 	val res = HOLThm(rens,implies_intr_hyps th2)
 	val _ = message "RESULT:"
 	val _ = if_debug pth res
@@ -1842,7 +1842,7 @@ fun NOT_ELIM (hth as HOLThm(rens,th)) thy =
 		    _ $ (Const("Not",_) $ a) => a
 		  | _ => raise ERR "NOT_ELIM" "Conclusion of bad form"
 	val ca = cterm_of sg a
-	val th2 = equal_elim (Drule.instantiate' [] [Some ca] not_elim_thm) th1
+	val th2 = equal_elim (Drule.instantiate' [] [SOME ca] not_elim_thm) th1
 	val res = HOLThm(rens,implies_intr_hyps th2)
 	val _ = message "RESULT:"
 	val _ = if_debug pth res
@@ -1905,8 +1905,8 @@ fun new_definition thyname constname rhs thy =
 				 thy''
 
 	val hth = case Shuffler.set_prop thy22 (HOLogic.mk_Trueprop tm24) [("",th)] of
-		     Some (_,res) => HOLThm(rens_of linfo,res)
-		   | None => raise ERR "new_definition" "Bad conclusion"
+		     SOME (_,res) => HOLThm(rens_of linfo,res)
+		   | NONE => raise ERR "new_definition" "Bad conclusion"
 	val fullname = Sign.full_name sg thmname
 	val thy22' = case opt_get_output_thy thy22 of
 			 "" => add_hol4_mapping thyname thmname fullname thy22
@@ -1973,7 +1973,7 @@ fun new_specification thyname thmname names hth thy =
 	    val thy1 = foldr (fn(name,thy)=>
 				snd (get_defname thyname name thy)) (names,thy1)
 	    fun new_name name = fst (get_defname thyname name thy1)
-	    val (thy',res) = SpecificationPackage.add_specification_i None
+	    val (thy',res) = SpecificationPackage.add_specification_i NONE
 				 (map (fn name => (new_name name,name,false)) names)
 				 (thy1,th)
 	    val res' = Drule.freeze_all res
@@ -2041,7 +2041,7 @@ fun new_type_definition thyname thmname tycname hth thy =
 	    val tnames = map fst tfrees
 	    val tsyn = mk_syn thy tycname
 	    val typ = (tycname,tnames,tsyn)
-	    val (thy',typedef_info) = TypedefPackage.add_typedef_i false (Some thmname) typ c None (rtac th2 1) thy
+	    val (thy',typedef_info) = TypedefPackage.add_typedef_i false (SOME thmname) typ c NONE (rtac th2 1) thy
 				      
 	    val th3 = (#type_definition typedef_info) RS typedef_hol2hol4
 
@@ -2093,9 +2093,9 @@ fun type_introduction thyname thmname tycname abs_name rep_name (P,t) hth thy =
 	    val sg = sign_of thy
 	    val tT = type_of t
 	    val light_nonempty' =
-		Drule.instantiate' [Some (ctyp_of sg tT)]
-				   [Some (cterm_of sg P),
-				    Some (cterm_of sg t)] light_nonempty
+		Drule.instantiate' [SOME (ctyp_of sg tT)]
+				   [SOME (cterm_of sg P),
+				    SOME (cterm_of sg t)] light_nonempty
 	    val th2 = beta_eta_thm (td_th RS (beta_eta_thm light_nonempty'))
 	    val c = case concl_of th2 of
 			_ $ (Const("Ex",_) $ Abs(_,_,Const("op :",_) $ _ $ c)) => c
@@ -2104,7 +2104,7 @@ fun type_introduction thyname thmname tycname abs_name rep_name (P,t) hth thy =
 	    val tnames = map fst tfrees
 	    val tsyn = mk_syn thy tycname
 	    val typ = (tycname,tnames,tsyn)
-	    val (thy',typedef_info) = TypedefPackage.add_typedef_i false (Some thmname) typ c (Some(rep_name,abs_name)) (rtac th2 1) thy
+	    val (thy',typedef_info) = TypedefPackage.add_typedef_i false (SOME thmname) typ c (SOME(rep_name,abs_name)) (rtac th2 1) thy
 				      
 	    val th3 = (#type_definition typedef_info) RS typedef_hol2hollight
 

@@ -114,28 +114,28 @@ val print_datatypes = DatatypesData.print;
 fun datatype_info_sg sg name = Symtab.lookup (get_datatypes_sg sg, name);
 
 fun datatype_info_sg_err sg name = (case datatype_info_sg sg name of
-      Some info => info
-    | None => error ("Unknown datatype " ^ quote name));
+      SOME info => info
+    | NONE => error ("Unknown datatype " ^ quote name));
 
 val datatype_info = datatype_info_sg o Theory.sign_of;
 
 fun datatype_info_err thy name = (case datatype_info thy name of
-      Some info => info
-    | None => error ("Unknown datatype " ^ quote name));
+      SOME info => info
+    | NONE => error ("Unknown datatype " ^ quote name));
 
 fun constrs_of_sg sg tname = (case datatype_info_sg sg tname of
-   Some {index, descr, ...} =>
+   SOME {index, descr, ...} =>
      let val (_, _, constrs) = the (assoc (descr, index))
-     in Some (map (fn (cname, _) => Const (cname, the (Sign.const_type sg cname))) constrs)
+     in SOME (map (fn (cname, _) => Const (cname, the (Sign.const_type sg cname))) constrs)
      end
- | _ => None);
+ | _ => NONE);
 
 val constrs_of = constrs_of_sg o Theory.sign_of;
 
 fun case_const_of thy tname = (case datatype_info thy tname of
-   Some {case_name, ...} => Some (Const (case_name, the (Sign.const_type
+   SOME {case_name, ...} => SOME (Const (case_name, the (Sign.const_type
      (Theory.sign_of thy) case_name)))
- | _ => None);
+ | _ => NONE);
 
 val weak_case_congs_of_sg = map (#weak_case_cong o #2) o Symtab.dest o get_datatypes_sg;
 val weak_case_congs_of = weak_case_congs_of_sg o Theory.sign_of;
@@ -144,8 +144,8 @@ fun find_tname var Bi =
   let val frees = map dest_Free (term_frees Bi)
       val params = rename_wrt_term Bi (Logic.strip_params Bi);
   in case assoc (frees @ params, var) of
-       None => error ("No such variable in subgoal: " ^ quote var)
-     | Some(Type (tn, _)) => tn
+       NONE => error ("No such variable in subgoal: " ^ quote var)
+     | SOME(Type (tn, _)) => tn
      | _ => error ("Cannot determine type of " ^ quote var)
   end;
 
@@ -156,7 +156,7 @@ fun infer_tname state i aterm =
     val params = Logic.strip_params Bi;   (*params of subgoal i*)
     val params = rev (rename_wrt_term Bi params);   (*as they are printed*)
     val (types, sorts) = types_sorts state;
-    fun types' (a, ~1) = (case assoc (params, a) of None => types(a, ~1) | sm => sm)
+    fun types' (a, ~1) = (case assoc (params, a) of NONE => types(a, ~1) | sm => sm)
       | types' ixn = types ixn;
     val (ct, _) = read_def_cterm (sign, types', sorts) [] false (aterm, TypeInfer.logicT);
   in case #T (rep_cterm ct) of
@@ -179,8 +179,8 @@ fun occs_in_prems tacf vars =
 
 local
 
-fun prep_var (Var (ixn, _), Some x) = Some (ixn, x)
-  | prep_var _ = None;
+fun prep_var (Var (ixn, _), SOME x) = SOME (ixn, x)
+  | prep_var _ = NONE;
 
 fun prep_inst (concl, xs) =	(*exception LIST*)
   let val vs = InductAttrib.vars_of concl
@@ -194,8 +194,8 @@ fun gen_induct_tac inst_tac (varss, opt_rule) i state =
     val {sign, ...} = Thm.rep_thm state;
     val (rule, rule_name) =
       (case opt_rule of
-        Some r => (r, "Induction rule")
-      | None =>
+        SOME r => (r, "Induction rule")
+      | NONE =>
           let val tn = find_tname (hd (mapfilter I (flat varss))) Bi
           in (#induction (datatype_info_sg_err sign tn), "Induction rule for type " ^ tn) end);
 
@@ -206,11 +206,11 @@ fun gen_induct_tac inst_tac (varss, opt_rule) i state =
 
 fun induct_tac s =
   gen_induct_tac Tactic.res_inst_tac'
-    (map (Library.single o Some) (Syntax.read_idents s), None);
+    (map (Library.single o SOME) (Syntax.read_idents s), NONE);
 
 fun induct_thm_tac th s =
   gen_induct_tac Tactic.res_inst_tac'
-    ([map Some (Syntax.read_idents s)], Some th);
+    ([map SOME (Syntax.read_idents s)], SOME th);
 
 end;
 
@@ -223,9 +223,9 @@ fun case_inst_tac inst_tac t rule i state =
       (hd (Logic.strip_assums_hyp (hd (Thm.prems_of rule))));
   in inst_tac [(ixn, t)] rule i state end;
 
-fun gen_case_tac inst_tac (t, Some rule) i state =
+fun gen_case_tac inst_tac (t, SOME rule) i state =
       case_inst_tac inst_tac t rule i state
-  | gen_case_tac inst_tac (t, None) i state =
+  | gen_case_tac inst_tac (t, NONE) i state =
       let val tn = infer_tname state i t in
         if tn = HOLogic.boolN then inst_tac [(("P", 0), t)] case_split_thm i state
         else case_inst_tac inst_tac t
@@ -233,7 +233,7 @@ fun gen_case_tac inst_tac (t, Some rule) i state =
                i state
       end handle THM _ => Seq.empty;
 
-fun case_tac t = gen_case_tac Tactic.res_inst_tac' (t, None);
+fun case_tac t = gen_case_tac Tactic.res_inst_tac' (t, NONE);
 
 
 
@@ -349,34 +349,34 @@ fun distinct_proc sg _ (t as Const ("op =", _) $ t1 $ t2) =
             ((i', Type (tname1, _)), (j', Type (tname2, _))) =>
                 if tname1 = tname2 andalso not (cname1 = cname2) andalso i = i' andalso j = j' then
                    (case (constrs_of_sg sg tname1) of
-                      Some constrs => let val cnames = map (fst o dest_Const) constrs
+                      SOME constrs => let val cnames = map (fst o dest_Const) constrs
                         in if cname1 mem cnames andalso cname2 mem cnames then
                              let val eq_t = Logic.mk_equals (t, Const ("False", HOLogic.boolT));
                                  val eq_ct = cterm_of sg eq_t;
                                  val Datatype_thy = theory "Datatype";
                                  val [In0_inject, In1_inject, In0_not_In1, In1_not_In0] =
-                                   map (get_thm Datatype_thy o rpair None)
+                                   map (get_thm Datatype_thy o rpair NONE)
                                      ["In0_inject", "In1_inject", "In0_not_In1", "In1_not_In0"]
                              in (case (#distinct (datatype_info_sg_err sg tname1)) of
-                                 QuickAndDirty => Some (Thm.invoke_oracle
+                                 QuickAndDirty => SOME (Thm.invoke_oracle
                                    Datatype_thy distinctN (sg, ConstrDistinct eq_t))
-                               | FewConstrs thms => Some (Tactic.prove sg [] [] eq_t (K
+                               | FewConstrs thms => SOME (Tactic.prove sg [] [] eq_t (K
                                    (EVERY [rtac eq_reflection 1, rtac iffI 1, rtac notE 1,
                                     atac 2, resolve_tac thms 1, etac FalseE 1])))
-                               | ManyConstrs (thm, ss) => Some (Tactic.prove sg [] [] eq_t (K
+                               | ManyConstrs (thm, ss) => SOME (Tactic.prove sg [] [] eq_t (K
                                    (EVERY [rtac eq_reflection 1, rtac iffI 1, dtac thm 1,
                                     full_simp_tac ss 1,
                                     REPEAT (dresolve_tac [In0_inject, In1_inject] 1),
                                     eresolve_tac [In0_not_In1 RS notE, In1_not_In0 RS notE] 1,
                                     etac FalseE 1]))))
                              end
-                           else None
+                           else NONE
                         end
-                    | None => None)
-                else None
-          | _ => None)
-   | _ => None)
-  | distinct_proc sg _ _ = None;
+                    | NONE => NONE)
+                else NONE
+          | _ => NONE)
+   | _ => NONE)
+  | distinct_proc sg _ _ = NONE;
 
 val distinct_simproc =
   Simplifier.simproc (Theory.sign_of HOL.thy) distinctN ["s = t"] distinct_proc;
@@ -397,52 +397,52 @@ fun case_tr sg [t, u] =
       fun dest_case1 (Const ("_case1", _) $ t $ u) = (case strip_comb t of
             (Const (s, _), ts) => (Sign.intern_const sg s, ts)
           | (Free (s, _), ts) => (Sign.intern_const sg s, ts)
-          | _ => case_error "Head is not a constructor" None [t, u], u)
+          | _ => case_error "Head is not a constructor" NONE [t, u], u)
         | dest_case1 t = raise TERM ("dest_case1", [t]);
       fun dest_case2 (Const ("_case2", _) $ t $ u) = t :: dest_case2 u
         | dest_case2 t = [t];
       val cases as ((cname, _), _) :: _ = map dest_case1 (dest_case2 u);
       val tab = Symtab.dest (get_datatypes_sg sg);
       val (cases', default) = (case split_last cases of
-          (cases', (("dummy_pattern", []), t)) => (cases', Some t)
-        | _ => (cases, None))
+          (cases', (("dummy_pattern", []), t)) => (cases', SOME t)
+        | _ => (cases, NONE))
       fun abstr (Free (x, T), body) = Term.absfree (x, T, body)
         | abstr (Const ("_constrain", _) $ Free (x, T) $ tT, body) =
             Syntax.const Syntax.constrainAbsC $ Term.absfree (x, T, body) $ tT
         | abstr (Const ("Pair", _) $ x $ y, body) =
             Syntax.const "split" $ abstr (x, abstr (y, body))
-        | abstr (t, _) = case_error "Illegal pattern" None [t];
+        | abstr (t, _) = case_error "Illegal pattern" NONE [t];
     in case find_first (fn (_, {descr, index, ...}) =>
       exists (equal cname o fst) (#3 (snd (nth_elem (index, descr))))) tab of
-        None => case_error ("Not a datatype constructor: " ^ cname) None [u]
-      | Some (tname, {descr, case_name, index, ...}) =>
+        NONE => case_error ("Not a datatype constructor: " ^ cname) NONE [u]
+      | SOME (tname, {descr, case_name, index, ...}) =>
         let
           val _ = if exists (equal "dummy_pattern" o fst o fst) cases' then
-            case_error "Illegal occurrence of '_' dummy pattern" (Some tname) [u] else ();
+            case_error "Illegal occurrence of '_' dummy pattern" (SOME tname) [u] else ();
           val (_, (_, dts, constrs)) = nth_elem (index, descr);
           val sorts = map (rpair [] o dest_DtTFree) dts;
           fun find_case (cases, (s, dt)) =
             (case find_first (equal s o fst o fst) cases' of
-               None => (case default of
-                   None => case_error ("No clause for constructor " ^ s) (Some tname) [u]
-                 | Some t => (cases, list_abs (map (rpair dummyT) (DatatypeProp.make_tnames
+               NONE => (case default of
+                   NONE => case_error ("No clause for constructor " ^ s) (SOME tname) [u]
+                 | SOME t => (cases, list_abs (map (rpair dummyT) (DatatypeProp.make_tnames
                      (map (typ_of_dtyp descr sorts) dt)), t)))
-             | Some (c as ((_, vs), t)) =>
+             | SOME (c as ((_, vs), t)) =>
                  if length dt <> length vs then
                     case_error ("Wrong number of arguments for constructor " ^ s)
-                      (Some tname) vs
+                      (SOME tname) vs
                  else (cases \ c, foldr abstr (vs, t)))
           val (cases'', fs) = foldl_map find_case (cases', constrs)
         in case (cases'', length constrs = length cases', default) of
-            ([], true, Some _) =>
-              case_error "Extra '_' dummy pattern" (Some tname) [u]
+            ([], true, SOME _) =>
+              case_error "Extra '_' dummy pattern" (SOME tname) [u]
           | (_ :: _, _, _) =>
               let val extra = distinct (map (fst o fst) cases'')
               in case extra \\ map fst constrs of
                   [] => case_error ("More than one clause for constructor(s) " ^
-                    commas extra) (Some tname) [u]
+                    commas extra) (SOME tname) [u]
                 | extra' => case_error ("Illegal constructor(s): " ^ commas extra')
-                    (Some tname) [u]
+                    (SOME tname) [u]
               end
           | _ => list_comb (Syntax.const case_name, fs) $ t
         end
@@ -470,8 +470,8 @@ fun case_tr' constrs sg ts =
       (constrs ~~ fs);
     fun count_cases (cs, (_, _, true)) = cs
       | count_cases (cs, (cname, (_, body), false)) = (case assoc (cs, body) of
-          None => (body, [cname]) :: cs
-        | Some cnames => overwrite (cs, (body, cnames @ [cname])));
+          NONE => (body, [cname]) :: cs
+        | SOME cnames => overwrite (cs, (body, cnames @ [cname])));
     val cases' = sort (int_ord o Library.swap o pairself (length o snd))
       (foldl count_cases ([], cases));
     fun mk_case1 (cname, (vs, body), _) = Syntax.const "_case1" $
@@ -660,7 +660,7 @@ fun add_datatype_axm flat_names new_type_names descr sorts types_syntax constr_s
       Theory.parent_path |>>>
       add_and_get_axiomss "inject" new_type_names
         (DatatypeProp.make_injs descr sorts);
-    val size_thms = if no_size then [] else get_thms thy3 ("size", None);
+    val size_thms = if no_size then [] else get_thms thy3 ("size", NONE);
     val (thy4, distinct) = add_and_get_axiomss "distinct" new_type_names
       (DatatypeProp.make_distincts new_type_names descr sorts thy3) thy3;
 
@@ -945,7 +945,7 @@ fun gen_add_datatype prep_typ err flat_names new_type_names dts thy =
     val dt_info = get_datatypes thy;
     val (descr, _) = unfold_datatypes sign dts' sorts dt_info dts' i;
     val _ = check_nonempty descr handle (exn as Datatype_Empty s) =>
-      if err then error ("Nonemptiness check failed for datatype " ^ s)
+      if err then error ("NONEmptiness check failed for datatype " ^ s)
       else raise exn;
 
     val descr' = flat descr;
@@ -978,7 +978,7 @@ val datatype_decl =
 
 fun mk_datatype args =
   let
-    val names = map (fn ((((None, _), t), _), _) => t | ((((Some t, _), _), _), _) => t) args;
+    val names = map (fn ((((NONE, _), t), _), _) => t | ((((SOME t, _), _), _), _) => t) args;
     val specs = map (fn ((((_, vs), t), mx), cons) =>
       (vs, t, mx, map (fn ((x, y), z) => (x, y, z)) cons)) args;
   in #1 o add_datatype false names specs end;

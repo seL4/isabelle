@@ -292,8 +292,8 @@ fun get_new_skolem epss (t as (Const ("Hilbert_Choice.Eps",_) $ Abs(_,tp,_)))  =
     end;
 
 
-fun sk_lookup [] t = None
-  | sk_lookup ((tm,sk_tm)::tms) t = if (t = tm) then Some (sk_tm) else (sk_lookup tms t);
+fun sk_lookup [] t = NONE
+  | sk_lookup ((tm,sk_tm)::tms) t = if (t = tm) then SOME (sk_tm) else (sk_lookup tms t);
 
 
 
@@ -301,8 +301,8 @@ fun sk_lookup [] t = None
 fun get_skolem epss t = 
     let val sk_fun = sk_lookup epss t
     in
-	case sk_fun of None => get_new_skolem epss t
-		     | Some sk => (sk,epss)
+	case sk_fun of NONE => get_new_skolem epss t
+		     | SOME sk => (sk,epss)
     end;
 
 

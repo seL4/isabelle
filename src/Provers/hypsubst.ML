@@ -204,8 +204,8 @@ fun all_imp_intr_tac hyps i =
                                    (r+1, imp_intr_tac i)
            in
                case Seq.pull(tac st) of
-                   None       => Seq.single(st)
-                 | Some(st',_) => imptac (r',hyps) st'
+                   NONE       => Seq.single(st)
+                 | SOME(st',_) => imptac (r',hyps) st'
            end handle _ => error "?? in blast_hyp_subst_tac"
   in  imptac (0, rev hyps)  end;
 

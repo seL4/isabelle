@@ -132,18 +132,18 @@ fun trace false parse = parse
 
 fun body cmd trc (name, _) =
   (case cmd name of
-    Some (int_only, parse) =>
+    SOME (int_only, parse) =>
       P.!!! (Scan.prompt (name ^ "# ") (trace trc parse >> pair int_only))
-  | None => sys_error ("no parser for outer syntax command " ^ quote name));
+  | NONE => sys_error ("no parser for outer syntax command " ^ quote name));
 
 in
 
 fun command do_terminate do_trace cmd =
-  P.semicolon >> K None ||
-  P.sync >> K None ||
+  P.semicolon >> K NONE ||
+  P.sync >> K NONE ||
   (P.position P.command :-- body cmd do_trace) --| terminate do_terminate
     >> (fn ((name, pos), (int_only, f)) =>
-      Some (Toplevel.empty |> Toplevel.name name |> Toplevel.position pos |>
+      SOME (Toplevel.empty |> Toplevel.name name |> Toplevel.position pos |>
         Toplevel.interactive int_only |> f));
 
 end;
@@ -167,7 +167,7 @@ fun change_lexicons f =
     | bads => error ("Clash of outer syntax commands and keywords: " ^ commas_quote bads))
   end;
 
-fun get_markup (ms, (name, (_, Some m))) = (name, m) :: ms
+fun get_markup (ms, (name, (_, SOME m))) = (name, m) :: ms
   | get_markup (ms, _) = ms;
 
 fun make_markups () = global_markups := Symtab.foldl get_markup ([], ! global_parsers);
@@ -186,7 +186,7 @@ fun get_parsers () = ! global_parsers;
 fun get_parser () = apsome (#2 o #1) o curry Symtab.lookup (! global_parsers);
 
 fun is_markup kind name =
-  (case assoc (! global_markups, name) of Some k => k = kind | None => false);
+  (case assoc (! global_markups, name) of SOME k => k = kind | NONE => false);
 fun markup kind = Scan.one (T.is_kind T.Command andf is_markup kind o T.val_of);
 
 
@@ -241,16 +241,16 @@ fun toplevel_source term trc do_recover cmd src =
   let
     val no_terminator =
       Scan.unless P.semicolon (Scan.one (T.not_sync andf T.not_eof));
-    fun recover x = (Scan.prompt "recover# " (Scan.repeat no_terminator) >> K [None]) x;
+    fun recover x = (Scan.prompt "recover# " (Scan.repeat no_terminator) >> K [NONE]) x;
   in
     src
     |> T.source_proper
     |> Source.source T.stopper
-      (Scan.bulk (P.$$$ "--" -- P.!!! P.text >> K None || P.not_eof >> Some))
-      (if do_recover then Some recover else None)
+      (Scan.bulk (P.$$$ "--" -- P.!!! P.text >> K NONE || P.not_eof >> SOME))
+      (if do_recover then SOME recover else NONE)
     |> Source.mapfilter I
     |> Source.source T.stopper (Scan.bulk (fn xs => P.!!! (command term trc (cmd ())) xs))
-      (if do_recover then Some recover else None)
+      (if do_recover then SOME recover else NONE)
     |> Source.mapfilter I
   end;
 
@@ -296,7 +296,7 @@ fun deps_thy name ml path =
     val pos = Path.position path;
     val (name', parents, files) = ThyHeader.scan (src, pos);
     val ml_path = ThyLoad.ml_path name;
-    val ml_file = if ml andalso is_some (ThyLoad.check_file None ml_path) then [ml_path] else [];
+    val ml_file = if ml andalso is_some (ThyLoad.check_file NONE ml_path) then [ml_path] else [];
   in
     if name <> name' then
       error ("Filename " ^ quote (Path.pack path) ^
@@ -315,7 +315,7 @@ fun try_ml_file name time =
     val tr = Toplevel.imperative (fn () => ThyInfo.load_file time path);
     val tr_name = if time then "time_use" else "use";
   in
-    if is_none (ThyLoad.check_file None path) then ()
+    if is_none (ThyLoad.check_file NONE path) then ()
     else Toplevel.excursion [Toplevel.empty |> Toplevel.name tr_name |> tr]
   end;
 
@@ -383,9 +383,9 @@ fun sync_loop () = gen_loop true true;
 
 
 (*final declarations of this structure!*)
-val command = parser false None;
-val markup_command = parser false o Some;
-val improper_command = parser true None;
+val command = parser false NONE;
+val markup_command = parser false o SOME;
+val improper_command = parser true NONE;
 
 
 end;

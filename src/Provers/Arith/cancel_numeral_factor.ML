@@ -80,8 +80,8 @@ fun proc sg ss t =
 	       [Data.trans_tac reshape, rtac Data.cancel 1,
 		Data.numeral_simp_tac] sg hyps xs (t', rhs))
   end
-  handle TERM _ => None
-       | TYPE _ => None;   (*Typically (if thy doesn't include Numeral)
+  handle TERM _ => NONE
+       | TYPE _ => NONE;   (*Typically (if thy doesn't include Numeral)
 			     Undeclared type constructor "Numeral.bin"*)
 
 end;

@@ -113,8 +113,8 @@ val const_maps = Scan.repeat1 (P.name --| P.$$$ ">" -- P.xname -- Scan.option (P
 				     let
 					 val thyname = get_import_thy thy
 				     in
-					 foldl (fn (thy,((hol,isa),None)) => add_hol4_const_mapping thyname hol false isa thy
-						 | (thy,((hol,isa),Some ty)) => add_hol4_const_wt_mapping thyname hol false isa (typ_of (read_ctyp (sign_of thy) ty)) thy) (thy,constmaps)
+					 foldl (fn (thy,((hol,isa),NONE)) => add_hol4_const_mapping thyname hol false isa thy
+						 | (thy,((hol,isa),SOME ty)) => add_hol4_const_wt_mapping thyname hol false isa (typ_of (read_ctyp (sign_of thy) ty)) thy) (thy,constmaps)
 				     end)
 
 val const_moves = Scan.repeat1 (P.name --| P.$$$ ">" -- P.xname -- Scan.option (P.$$$ "::" |-- P.typ))
@@ -123,8 +123,8 @@ val const_moves = Scan.repeat1 (P.name --| P.$$$ ">" -- P.xname -- Scan.option (
 				      let
 					  val thyname = get_import_thy thy
 				      in
-					  foldl (fn (thy,((hol,isa),None)) => add_hol4_const_mapping thyname hol true isa thy
-						  | (thy,((hol,isa),Some ty)) => add_hol4_const_wt_mapping thyname hol true isa (typ_of (read_ctyp (sign_of thy) ty)) thy) (thy,constmaps)
+					  foldl (fn (thy,((hol,isa),NONE)) => add_hol4_const_mapping thyname hol true isa thy
+						  | (thy,((hol,isa),SOME ty)) => add_hol4_const_wt_mapping thyname hol true isa (typ_of (read_ctyp (sign_of thy) ty)) thy) (thy,constmaps)
 				      end)
 
 fun import_thy s =
@@ -160,16 +160,16 @@ fun create_int_thms thyname thy =
     then thy
     else
 	case ImportData.get thy of
-	    None => ImportData.put (Some (fst (Replay.setup_int_thms thyname thy))) thy
-	  | Some _ => error "Import data not closed - forgotten an end_setup, mayhap?"
+	    NONE => ImportData.put (SOME (fst (Replay.setup_int_thms thyname thy))) thy
+	  | SOME _ => error "Import data not closed - forgotten an end_setup, mayhap?"
 
 fun clear_int_thms thy =
     if !SkipProof.quick_and_dirty
     then thy
     else
 	case ImportData.get thy of
-	    None => error "Import data already cleared - forgotten a setup_theory?"
-	  | Some _ => ImportData.put None thy
+	    NONE => error "Import data already cleared - forgotten a setup_theory?"
+	  | SOME _ => ImportData.put NONE thy
 
 val setup_theory = P.name
 		       >>

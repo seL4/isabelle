@@ -278,9 +278,9 @@ val typ = string || (const_type false >> Library.quote);
 fun mk_old_type_decl ((ts, n), syn) =
   map (fn t => (mk_triple (t, n, syn), false)) ts;
 
-fun mk_type_decl (((xs, t), None), syn) =
+fun mk_type_decl (((xs, t), NONE), syn) =
       [(mk_triple (t, string_of_int (length xs), syn), false)]
-  | mk_type_decl (((xs, t), Some rhs), syn) =
+  | mk_type_decl (((xs, t), SOME rhs), syn) =
       [(parens (commas [t, mk_list xs, rhs, syn]), true)];
 
 fun mk_type_decls tys =
@@ -296,7 +296,7 @@ val type_args =
   empty >> K [];
 
 val type_decl = type_args -- name --
-  optional ("=" $$-- typ >> Some) None -- opt_infix >> mk_type_decl;
+  optional ("=" $$-- typ >> SOME) NONE -- opt_infix >> mk_type_decl;
 
 val type_decls =
   repeat1 (old_type_decl || type_decl) >> (mk_type_decls o flat);
@@ -401,7 +401,7 @@ val axm_or_thm =
 
 val opt_witness =
   optional ("(" $$-- list1 axm_or_thm --$$ ")") [] --
-  optional (verbatim >> (parens o cat "Some" o parens)) "None"
+  optional (verbatim >> (parens o cat "SOME" o parens)) "NONE"
   >> mk_witness;
 
 val instance_decl =
@@ -415,7 +415,7 @@ val instance_decl =
 
 val locale_decl =
   (name --$$ "=") -- 
-    (optional ((ident >> (fn x => parens ("Some" ^ Library.quote x))) --$$ "+") ("None")) --
+    (optional ((ident >> (fn x => parens ("SOME" ^ Library.quote x))) --$$ "+") ("NONE")) --
     ("fixes" $$--
       (repeat (name --$$ "::" -- !! (typ -- opt_mixfix)) 
        >> (mk_big_list o map mk_triple2))) --
@@ -470,8 +470,8 @@ fun mk_extension (txts, mltxt) =
 
 fun sect tab ((Keyword, s, n) :: toks) =
       (case Symtab.lookup (tab, s) of
-        Some parse => !! parse toks
-      | None => syn_err "section" s n)
+        SOME parse => !! parse toks
+      | NONE => syn_err "section" s n)
   | sect _ ((_, s, n) :: _) = syn_err "section" s n
   | sect _ [] = eof_err ();
 
@@ -523,7 +523,7 @@ fun parse_thy (lex, sectab) chs = #1 (!! (theory_defn sectab) (tokenize lex chs)
 
 (* standard sections *)
 
-fun mk_val ax = "val " ^ ax ^ " = PureThy.get_thm thy (" ^ Library.quote ax ^ ", None);";
+fun mk_val ax = "val " ^ ax ^ " = PureThy.get_thm thy (" ^ Library.quote ax ^ ", NONE);";
 val mk_vals = cat_lines o map mk_val;
 
 fun mk_axm_sect "" (txt, axs) = (txt, mk_vals axs)

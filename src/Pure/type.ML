@@ -112,7 +112,7 @@ fun build_tsig (classes, default, types, arities) =
       |> Library.sort (Library.int_ord o pairself #2) |> map #1;
     val witness =
       (case Sorts.witness_sorts (classes, arities) log_types [] [Graph.keys classes] of
-        [w] => Some w | _ => None);
+        [w] => SOME w | _ => NONE);
   in make_tsig (classes, default, types, arities, log_types, witness) end;
 
 fun change_tsig f (TSig {classes, default, types, arities, log_types = _, witness = _}) =
@@ -165,13 +165,13 @@ fun certify_typ normalize syntax tsig ty =
             fun nargs n = if length Ts <> n then err (bad_nargs c) else ();
           in
             (case Symtab.lookup (types, c) of
-              Some (LogicalType n, _) => (nargs n; Type (c, Ts'))
-            | Some (Abbreviation (vs, U, syn), _) => (nargs (length vs);
+              SOME (LogicalType n, _) => (nargs n; Type (c, Ts'))
+            | SOME (Abbreviation (vs, U, syn), _) => (nargs (length vs);
                 if syn then check_syntax c else ();
                 if normalize then inst_typ (vs ~~ Ts') U
                 else Type (c, Ts'))
-            | Some (Nonterminal, _) => (nargs 0; check_syntax c; T)
-            | None => err (undecl_type c))
+            | SOME (Nonterminal, _) => (nargs 0; check_syntax c; T)
+            | NONE => err (undecl_type c))
           end
       | cert (TFree (x, S)) = TFree (x, Sorts.certify_sort classes S)
       | cert (TVar (xi as (_, i), S)) =
@@ -224,8 +224,8 @@ fun varify (t, fixed) =
     val fmap = fs ~~ map (rpair 0) (variantlist (fs, map #1 ixns))
     fun thaw (f as (a, S)) =
       (case assoc (fmap, a) of
-        None => TFree f
-      | Some b => TVar (b, S));
+        NONE => TFree f
+      | SOME b => TVar (b, S));
   in (map_term_types (map_type_tfree thaw) t, fmap) end;
 
 
@@ -239,11 +239,11 @@ fun new_name (ix, (pairs,used)) =
 
 fun freeze_one alist (ix,sort) =
   TFree (the (assoc (alist, ix)), sort)
-    handle OPTION =>
+    handle Option =>
       raise TYPE ("Failure during freezing of ?" ^ string_of_indexname ix, [], []);
 
 fun thaw_one alist (a,sort) = TVar (the (assoc (alist,a)), sort)
-  handle OPTION => TFree(a, sort);
+  handle Option => TFree(a, sort);
 
 in
 
@@ -279,10 +279,10 @@ fun inst_typ_tvars pp tsig tye =
   let
     fun inst (var as (v, S)) =
       (case assoc_string_int (tye, v) of
-        Some U =>
+        SOME U =>
           if of_sort tsig (U, S) then U
           else raise TYPE ("Type not of sort " ^ Pretty.string_of_sort pp S, [U], [])
-      | None => TVar var);
+      | NONE => TVar var);
   in map_type_tvar inst end;
 
 fun inst_term_tvars _ _ [] t = t
@@ -297,10 +297,10 @@ fun typ_match tsig =
   let
     fun match (subs, (TVar (v, S), T)) =
           (case Vartab.lookup (subs, v) of
-            None =>
+            NONE =>
               if of_sort tsig (T, S) then Vartab.update ((v, T), subs)
               else raise TYPE_MATCH
-          | Some U => if U = T then subs else raise TYPE_MATCH)
+          | SOME U => if U = T then subs else raise TYPE_MATCH)
       | match (subs, (Type (a, Ts), Type (b, Us))) =
           if a <> b then raise TYPE_MATCH
           else foldl match (subs, Ts ~~ Us)
@@ -325,15 +325,15 @@ fun occurs v tye =
       | occ (TVar (w, _)) =
           eq_ix (v, w) orelse
             (case Vartab.lookup (tye, w) of
-              None => false
-            | Some U => occ U);
+              NONE => false
+            | SOME U => occ U);
   in occ end;
 
 (*chase variable assignments; if devar returns a type var then it must be unassigned*)
 fun devar (T as TVar (v, _), tye) =
       (case  Vartab.lookup (tye, v) of
-        Some U => devar (U, tye)
-      | None => T)
+        SOME U => devar (U, tye)
+      | NONE => T)
   | devar (T, tye) = T;
 
 fun unify (tsig as TSig {classes, arities, ...}) (tyenv, maxidx) TU =
@@ -397,8 +397,8 @@ local
 
 fun err_decl t decl = error ("Illegal " ^ str_of_decl decl ^ ": " ^ quote t);
 
-fun for_classes _ None = ""
-  | for_classes pp (Some (c1, c2)) =
+fun for_classes _ NONE = ""
+  | for_classes pp (SOME (c1, c2)) =
       " for classes " ^ Pretty.string_of_classrel pp [c1, c2];
 
 fun err_conflict pp t cc (c, Ss) (c', Ss') =
@@ -410,24 +410,24 @@ fun coregular pp C t (c, Ss) ars =
   let
     fun conflict (c', Ss') =
       if Sorts.class_le C (c, c') andalso not (Sorts.sorts_le C (Ss, Ss')) then
-        Some ((c, c'), (c', Ss'))
+        SOME ((c, c'), (c', Ss'))
       else if Sorts.class_le C (c', c) andalso not (Sorts.sorts_le C (Ss', Ss)) then
-        Some ((c', c), (c', Ss'))
-      else None;
+        SOME ((c', c), (c', Ss'))
+      else NONE;
   in
     (case Library.get_first conflict ars of
-      Some ((c1, c2), (c', Ss')) => err_conflict pp t (Some (c1, c2)) (c, Ss) (c', Ss')
-    | None => (c, Ss) :: ars)
+      SOME ((c1, c2), (c', Ss')) => err_conflict pp t (SOME (c1, c2)) (c, Ss) (c', Ss')
+    | NONE => (c, Ss) :: ars)
   end;
 
 fun insert pp C t ((c, Ss), ars) =
   (case assoc_string (ars, c) of
-    None => coregular pp C t (c, Ss) ars
-  | Some Ss' =>
+    NONE => coregular pp C t (c, Ss) ars
+  | SOME Ss' =>
       if Sorts.sorts_le C (Ss, Ss') then ars
       else if Sorts.sorts_le C (Ss', Ss)
       then coregular pp C t (c, Ss) (ars \ (c, Ss'))
-      else err_conflict pp t None (c, Ss) (c, Ss'));
+      else err_conflict pp t NONE (c, Ss) (c, Ss'));
 
 fun complete C (c, Ss) = map (rpair Ss) (Graph.all_succs C [c]);
 
@@ -446,13 +446,13 @@ fun add_arities pp decls tsig = tsig |> change_tsig (fn (classes, default, types
   let
     fun prep (t, Ss, S) =
       (case Symtab.lookup (types, t) of
-        Some (LogicalType n, _) =>
+        SOME (LogicalType n, _) =>
           if length Ss = n then
             (t, map (cert_sort tsig) Ss, cert_sort tsig S)
               handle TYPE (msg, _, _) => error msg
           else error (bad_nargs t)
-      | Some (decl, _) => err_decl t decl
-      | None => error (undecl_type t));
+      | SOME (decl, _) => err_decl t decl
+      | NONE => error (undecl_type t));
 
     val ars = decls |> map ((fn (t, Ss, S) => (t, map (fn c => (c, Ss)) S)) o prep);
     val arities' = foldl (insert_arities pp classes) (arities, ars);
@@ -530,8 +530,8 @@ fun err_in_decls c decl decl' =
 
 fun new_decl (c, decl) types =
   (case Symtab.lookup (types, c) of
-    Some (decl', _) => err_in_decls c decl decl'
-  | None => Symtab.update ((c, (decl, stamp ())), types));
+    SOME (decl', _) => err_in_decls c decl decl'
+  | NONE => Symtab.update ((c, (decl, stamp ())), types));
 
 fun the_decl types c = fst (the (Symtab.lookup (types, c)));
 
@@ -539,7 +539,7 @@ fun change_types f = change_tsig (fn (classes, default, types, arities) =>
   (classes, default, f types, arities));
 
 fun syntactic types (Type (c, Ts)) =
-      (case Symtab.lookup (types, c) of Some (Nonterminal, _) => true | _ => false)
+      (case Symtab.lookup (types, c) of SOME (Nonterminal, _) => true | _ => false)
         orelse exists (syntactic types) Ts
   | syntactic _ _ = false;
 

@@ -28,11 +28,11 @@ fun scan_header get_lex scan (src, pos) =
     |> Symbol.source false
     |> T.source false (fn () => (get_lex (), Scan.empty_lexicon)) pos
     |> T.source_proper
-    |> Source.source T.stopper (Scan.single scan) None
+    |> Source.source T.stopper (Scan.single scan) NONE
     |> Source.get_single;
   in
-    (case res of Some (x, _) => x
-    | None => error ("Unexpected end of input" ^ Position.str_of pos))
+    (case res of SOME (x, _) => x
+    | NONE => error ("Unexpected end of input" ^ Position.str_of pos))
   end;
 
 

@@ -70,13 +70,13 @@ fun add (p as (thy, thm)) =
 fun get_clauses thy s =
   let val {intros, graph, ...} = CodegenData.get thy
   in case Symtab.lookup (intros, s) of
-      None => (case InductivePackage.get_inductive thy s of
-        None => None
-      | Some ({names, ...}, {intrs, ...}) => Some (names, preprocess thy intrs))
-    | Some _ =>
-        let val Some names = find_first
+      NONE => (case InductivePackage.get_inductive thy s of
+        NONE => NONE
+      | SOME ({names, ...}, {intrs, ...}) => SOME (names, preprocess thy intrs))
+    | SOME _ =>
+        let val SOME names = find_first
           (fn xs => s mem xs) (Graph.strong_conn graph)
-        in Some (names, preprocess thy
+        in SOME (names, preprocess thy
           (flat (map (fn s => the (Symtab.lookup (intros, s))) names)))
         end
   end;
@@ -115,17 +115,17 @@ fun dest_factors (FVar f) = f
 fun infer_factors sg extra_fs (fs, (optf, t)) =
   let fun err s = error (s ^ "\n" ^ Sign.string_of_term sg t)
   in (case (optf, strip_comb t) of
-      (Some f, (Const (name, _), args)) =>
+      (SOME f, (Const (name, _), args)) =>
         (case assoc (extra_fs, name) of
-           None => overwrite (fs, (name, if_none
+           NONE => overwrite (fs, (name, if_none
              (apsome (mg_factor f) (assoc (fs, name))) f))
-         | Some (fs', f') => (mg_factor f (FFix f');
+         | SOME (fs', f') => (mg_factor f (FFix f');
              foldl (infer_factors sg extra_fs)
                (fs, map (apsome FFix) fs' ~~ args)))
-    | (Some f, (Var ((name, _), _), [])) =>
+    | (SOME f, (Var ((name, _), _), [])) =>
         overwrite (fs, (name, if_none
           (apsome (mg_factor f) (assoc (fs, name))) f))
-    | (None, _) => fs
+    | (NONE, _) => fs
     | _ => err "Illegal term")
       handle Factors => err "Product factor mismatch in"
   end;
@@ -145,8 +145,8 @@ fun is_constrt thy =
     fun check t = (case strip_comb t of
         (Var _, []) => true
       | (Const (s, _), ts) => (case assoc (cnstrs, s) of
-            None => false
-          | Some i => length ts = i andalso forall check ts)
+            NONE => false
+          | SOME i => length ts = i andalso forall check ts)
       | _ => false)
   in check end;
 
@@ -158,9 +158,9 @@ fun is_eqT (Type (s, Ts)) = s <> "fun" andalso forall is_eqT Ts
 (**** mode inference ****)
 
 fun string_of_mode (iss, is) = space_implode " -> " (map
-  (fn None => "X"
-    | Some js => enclose "[" "]" (commas (map string_of_int js)))
-       (iss @ [Some is]));
+  (fn NONE => "X"
+    | SOME js => enclose "[" "]" (commas (map string_of_int js)))
+       (iss @ [SOME is]));
 
 fun print_modes modes = message ("Inferred modes:\n" ^
   space_implode "\n" (map (fn (s, ms) => s ^ ": " ^ commas (map
@@ -198,8 +198,8 @@ fun modes_of modes t =
   let
     fun mk_modes name args = flat
       (map (fn (m as (iss, is)) => map (Mode o pair m) (cprods (map
-        (fn (None, _) => [None]
-          | (Some js, arg) => map Some
+        (fn (NONE, _) => [NONE]
+          | (SOME js, arg) => map SOME
               (filter (fn Mode ((_, js'), _) => js=js') (modes_of modes arg)))
                 (iss ~~ args)))) (the (assoc (modes, name))))
 
@@ -230,18 +230,18 @@ fun select_mode_prem thy modes vs ps =
             forall is_eqT dupTs
           end)
             (modes_of modes t handle OPTION => [Mode (([], []), [])])
-      | Sidecond t => if term_vs t subset vs then Some (Mode (([], []), []))
-          else None) ps);
+      | Sidecond t => if term_vs t subset vs then SOME (Mode (([], []), []))
+          else NONE) ps);
 
 fun check_mode_clause thy arg_vs modes (iss, is) (ts, ps) =
   let
     val modes' = modes @ mapfilter
-      (fn (_, None) => None | (v, Some js) => Some (v, [([], js)]))
+      (fn (_, NONE) => NONE | (v, SOME js) => SOME (v, [([], js)]))
         (arg_vs ~~ iss);
-    fun check_mode_prems vs [] = Some vs
+    fun check_mode_prems vs [] = SOME vs
       | check_mode_prems vs ps = (case select_mode_prem thy modes' vs ps of
-          None => None
-        | Some (x, _) => check_mode_prems
+          NONE => NONE
+        | SOME (x, _) => check_mode_prems
             (case x of Prem (us, _) => vs union terms_vs us | _ => vs)
             (filter_out (equal x) ps));
     val (in_ts, in_ts') = partition (is_constrt thy) (fst (get_args is 1 ts));
@@ -251,12 +251,12 @@ fun check_mode_clause thy arg_vs modes (iss, is) (ts, ps) =
     forall is_eqT (map snd (duplicates (flat (map term_vTs in_ts)))) andalso
     forall (is_eqT o fastype_of) in_ts' andalso
     (case check_mode_prems (arg_vs union in_vs) ps of
-       None => false
-     | Some vs => concl_vs subset vs)
+       NONE => false
+     | SOME vs => concl_vs subset vs)
   end;
 
 fun check_modes_pred thy arg_vs preds modes (p, ms) =
-  let val Some rs = assoc (preds, p)
+  let val SOME rs = assoc (preds, p)
   in (p, filter (fn m => case find_index
     (not o check_mode_clause thy arg_vs modes m) rs of
       ~1 => true
@@ -271,8 +271,8 @@ fun fixp f x =
 fun infer_modes thy extra_modes factors arg_vs preds = fixp (fn modes =>
   map (check_modes_pred thy arg_vs preds (modes @ extra_modes)) modes)
     (map (fn (s, (fs, f)) => (s, cprod (cprods (map
-      (fn None => [None]
-        | Some f' => map Some (subsets 1 (length f' + 1))) fs),
+      (fn NONE => [NONE]
+        | SOME f' => map SOME (subsets 1 (length f' + 1))) fs),
       subsets 1 (length f + 1)))) factors);
 
 (**** code generation ****)
@@ -332,8 +332,8 @@ fun conv_ntuple' fs T ps =
   end;
 
 fun mk_v ((names, vs), s) = (case assoc (vs, s) of
-      None => ((names, (s, [s])::vs), s)
-    | Some xs => let val s' = variant names s in
+      NONE => ((names, (s, [s])::vs), s)
+    | SOME xs => let val s' = variant names s in
         ((s'::names, overwrite (vs, (s, s'::xs))), s') end);
 
 fun distinct_v (nvs, Var ((s, 0), T)) =
@@ -369,11 +369,11 @@ fun modename thy s (iss, is) = space_implode "__"
   (mk_const_id (sign_of thy) s ::
     map (space_implode "_" o map string_of_int) (mapfilter I iss @ [is]));
 
-fun compile_expr thy dep brack (gr, (None, t)) =
+fun compile_expr thy dep brack (gr, (NONE, t)) =
       apsnd single (invoke_codegen thy dep brack (gr, t))
-  | compile_expr _ _ _ (gr, (Some _, Var ((name, _), _))) =
+  | compile_expr _ _ _ (gr, (SOME _, Var ((name, _), _))) =
       (gr, [Pretty.str name])
-  | compile_expr thy dep brack (gr, (Some (Mode (mode, ms)), t)) =
+  | compile_expr thy dep brack (gr, (SOME (Mode (mode, ms)), t)) =
       let
         val (Const (name, _), args) = strip_comb t;
         val (gr', ps) = foldl_map
@@ -387,7 +387,7 @@ fun compile_expr thy dep brack (gr, (None, t)) =
 fun compile_clause thy gr dep all_vs arg_vs modes (iss, is) (ts, ps) =
   let
     val modes' = modes @ mapfilter
-      (fn (_, None) => None | (v, Some js) => Some (v, [([], js)]))
+      (fn (_, NONE) => NONE | (v, SOME js) => SOME (v, [([], js)]))
         (arg_vs ~~ iss);
 
     fun check_constrt ((names, eqs), t) =
@@ -427,7 +427,7 @@ fun compile_clause thy gr dep all_vs arg_vs modes (iss, is) (ts, ps) =
       | compile_prems out_ts vs names gr ps =
           let
             val vs' = distinct (flat (vs :: map term_vs out_ts));
-            val Some (p, mode as Some (Mode ((_, js), _))) =
+            val SOME (p, mode as SOME (Mode ((_, js), _))) =
               select_mode_prem thy modes' vs' ps;
             val ps' = filter_out (equal p) ps;
             val ((names', eqs), out_ts') =
@@ -503,28 +503,28 @@ exception Modes of
   (string * (int list list option list * int list list)) list;
 
 fun lookup_modes gr dep = apfst flat (apsnd flat (ListPair.unzip
-  (map ((fn (Some (Modes x), _) => x | _ => ([], [])) o Graph.get_node gr)
+  (map ((fn (SOME (Modes x), _) => x | _ => ([], [])) o Graph.get_node gr)
     (Graph.all_preds gr [dep]))));
 
 fun print_factors factors = message ("Factors:\n" ^
   space_implode "\n" (map (fn (s, (fs, f)) => s ^ ": " ^
     space_implode " -> " (map
-      (fn None => "X" | Some f' => string_of_factors [] f')
-        (fs @ [Some f]))) factors));
+      (fn NONE => "X" | SOME f' => string_of_factors [] f')
+        (fs @ [SOME f]))) factors));
 
 fun prep_intrs intrs = map (rename_term o #prop o rep_thm o standard) intrs;
 
 fun constrain cs [] = []
   | constrain cs ((s, xs) :: ys) = (s, case assoc (cs, s) of
-      None => xs
-    | Some xs' => xs inter xs') :: constrain cs ys;
+      NONE => xs
+    | SOME xs' => xs inter xs') :: constrain cs ys;
 
 fun mk_extra_defs thy gr dep names ts =
   foldl (fn (gr, name) =>
     if name mem names then gr
     else (case get_clauses thy name of
-        None => gr
-      | Some (names, intrs) =>
+        NONE => gr
+      | SOME (names, intrs) =>
           mk_ind_def thy gr dep names [] [] (prep_intrs intrs)))
             (gr, foldr add_term_consts (ts, []))
 
@@ -539,8 +539,8 @@ and mk_ind_def thy gr dep names modecs factorcs intrs =
       fun dest_prem factors (_ $ (p as (Const ("op :", _) $ t $ u))) =
             (case assoc (factors, case head_of u of
                  Const (name, _) => name | Var ((name, _), _) => name) of
-               None => Prem (full_split_prod t, u)
-             | Some f => Prem (split_prod [] f t, u))
+               NONE => Prem (full_split_prod t, u)
+             | SOME f => Prem (split_prod [] f t, u))
         | dest_prem factors (_ $ ((eq as Const ("op =", _)) $ t $ u)) =
             Prem ([t, u], eq)
         | dest_prem factors (_ $ t) = Sidecond t;
@@ -562,20 +562,20 @@ and mk_ind_def thy gr dep names modecs factorcs intrs =
       fun add_prod_factors extra_fs (fs, _ $ (Const ("op :", _) $ t $ u)) =
             if check_set (head_of u)
             then infer_factors (sign_of thy) extra_fs
-              (fs, (Some (FVar (prod_factors [] t)), u))
+              (fs, (SOME (FVar (prod_factors [] t)), u))
             else fs
         | add_prod_factors _ (fs, _) = fs;
 
       val gr' = mk_extra_defs thy
         (Graph.add_edge (hd ids, dep)
-          (Graph.new_node (hd ids, (None, "")) gr)) (hd ids) names intrs;
+          (Graph.new_node (hd ids, (NONE, "")) gr)) (hd ids) names intrs;
       val (extra_modes, extra_factors) = lookup_modes gr' (hd ids);
       val fs = constrain factorcs (map (apsnd dest_factors)
         (foldl (add_prod_factors extra_factors) ([], flat (map (fn t =>
           Logic.strip_imp_concl t :: Logic.strip_imp_prems t) intrs))));
       val factors = mapfilter (fn (name, f) =>
-        if name mem arg_vs then None
-        else Some (name, (map (curry assoc fs) arg_vs, f))) fs;
+        if name mem arg_vs then NONE
+        else SOME (name, (map (curry assoc fs) arg_vs, f))) fs;
       val clauses =
         foldl (add_clause (fs @ map (apsnd snd) extra_factors)) ([], intrs);
       val modes = constrain modecs
@@ -585,19 +585,19 @@ and mk_ind_def thy gr dep names modecs factorcs intrs =
       val (gr'', s) = compile_preds thy gr' (hd ids) (terms_vs intrs) arg_vs
         (modes @ extra_modes) clauses;
     in
-      (Graph.map_node (hd ids) (K (Some (Modes (modes, factors)), s)) gr'')
+      (Graph.map_node (hd ids) (K (SOME (Modes (modes, factors)), s)) gr'')
     end      
   end;
 
 fun find_mode s u modes is = (case find_first (fn Mode ((_, js), _) => is=js)
   (modes_of modes u handle OPTION => []) of
-     None => error ("No such mode for " ^ s ^ ": " ^ string_of_mode ([], is))
+     NONE => error ("No such mode for " ^ s ^ ": " ^ string_of_mode ([], is))
    | mode => mode);
 
 fun mk_ind_call thy gr dep t u is_query = (case head_of u of
   Const (s, T) => (case (get_clauses thy s, get_assoc_code thy s T) of
-       (None, _) => None
-     | (Some (names, intrs), None) =>
+       (NONE, _) => NONE
+     | (SOME (names, intrs), NONE) =>
          let
           fun mk_mode (((ts, mode), i), Const ("dummy_pattern", _)) =
                 ((ts, mode), i+1)
@@ -615,16 +615,16 @@ fun mk_ind_call thy gr dep t u is_query = (case head_of u of
              (invoke_codegen thy dep false) (gr1, ts');
            val (gr3, ps) = compile_expr thy dep false (gr2, (mode, u))
          in
-           Some (gr3, Pretty.block
+           SOME (gr3, Pretty.block
              (ps @ [Pretty.brk 1, mk_tuple in_ps]))
          end
-     | _ => None)
-  | _ => None);
+     | _ => NONE)
+  | _ => NONE);
 
 fun list_of_indset thy gr dep brack u = (case head_of u of
   Const (s, T) => (case (get_clauses thy s, get_assoc_code thy s T) of
-       (None, _) => None
-     | (Some (names, intrs), None) =>
+       (NONE, _) => NONE
+     | (SOME (names, intrs), NONE) =>
          let
            val gr1 = mk_extra_defs thy
              (mk_ind_def thy gr dep names [] [] (prep_intrs intrs)) dep names [u];
@@ -632,7 +632,7 @@ fun list_of_indset thy gr dep brack u = (case head_of u of
            val mode = find_mode s u modes [];
            val (gr2, ps) = compile_expr thy dep false (gr1, (mode, u))
          in
-           Some (gr2, (if brack then parens else I)
+           SOME (gr2, (if brack then parens else I)
              (Pretty.block ([Pretty.str "Seq.list_of", Pretty.brk 1,
                Pretty.str "("] @
                conv_ntuple' (snd (the (assoc (factors, s))))
@@ -640,8 +640,8 @@ fun list_of_indset thy gr dep brack u = (case head_of u of
                  (ps @ [Pretty.brk 1, Pretty.str "()"]) @
                [Pretty.str ")"])))
          end
-     | _ => None)
-  | _ => None);
+     | _ => NONE)
+  | _ => NONE);
 
 fun clause_of_eqn eqn =
   let
@@ -671,7 +671,7 @@ fun mk_fun thy name eqns dep gr =
          parens (Pretty.block [Pretty.str (modename thy pname ([], mode)),
            Pretty.brk 1, mk_tuple vars])]) ^ ";\n\n";
       val gr' = mk_ind_def thy (Graph.add_edge (id, dep)
-        (Graph.new_node (id, (None, s)) gr)) id [pname]
+        (Graph.new_node (id, (NONE, s)) gr)) id [pname]
         [(pname, [([], mode)])]
         [(pname, map (fn i => replicate i 2) (0 upto arity-1))]
         clauses;
@@ -683,21 +683,21 @@ fun mk_fun thy name eqns dep gr =
 
 fun inductive_codegen thy gr dep brack (Const ("op :", _) $ t $ u) =
       ((case mk_ind_call thy gr dep (Term.no_dummy_patterns t) u false of
-         None => None
-       | Some (gr', call_p) => Some (gr', (if brack then parens else I)
+         NONE => NONE
+       | SOME (gr', call_p) => SOME (gr', (if brack then parens else I)
            (Pretty.block [Pretty.str "?! (", call_p, Pretty.str ")"])))
         handle TERM _ => mk_ind_call thy gr dep t u true)
   | inductive_codegen thy gr dep brack t = (case strip_comb t of
       (Const (s, _), ts) => (case Symtab.lookup (#eqns (CodegenData.get thy), s) of
-        None => list_of_indset thy gr dep brack t
-      | Some eqns =>
+        NONE => list_of_indset thy gr dep brack t
+      | SOME eqns =>
           let
             val gr' = mk_fun thy s (preprocess thy eqns) dep gr
             val (gr'', ps) = foldl_map (invoke_codegen thy dep true) (gr', ts);
-          in Some (gr'', mk_app brack (Pretty.str (mk_const_id
+          in SOME (gr'', mk_app brack (Pretty.str (mk_const_id
             (sign_of thy) s)) ps)
           end)
-    | _ => None);
+    | _ => NONE);
 
 val setup =
   [add_codegen "inductive" inductive_codegen,

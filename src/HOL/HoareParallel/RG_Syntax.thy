@@ -69,8 +69,8 @@ print_translation {*
 
     fun upd_tr' (x_upd, T) =
       (case try (unsuffix RecordPackage.updateN) x_upd of
-        Some x => (x, if T = dummyT then T else Term.domain_type T)
-      | None => raise Match);
+        SOME x => (x, if T = dummyT then T else Term.domain_type T)
+      | NONE => raise Match);
 
     fun update_name_tr' (Free x) = Free (upd_tr' x)
       | update_name_tr' ((c as Const ("_free", _)) $ Free x) =

@@ -93,10 +93,10 @@ val arith_special = thms"arith_special";
 structure Bin_Simprocs =
   struct
   fun prove_conv tacs sg (hyps: thm list) xs (t, u) =
-    if t aconv u then None
+    if t aconv u then NONE
     else
       let val eq = HOLogic.mk_Trueprop (HOLogic.mk_eq (t, u))
-      in Some (Tactic.prove sg xs [] eq (K (EVERY tacs))) end
+      in SOME (Tactic.prove sg xs [] eq (K (EVERY tacs))) end
 
   fun prove_conv_nohyps tacs sg = prove_conv tacs sg [];
   fun prove_conv_nohyps_novars tacs sg = prove_conv tacs sg [] [];
@@ -119,10 +119,10 @@ structure Bin_Simprocs =
     0 = x, 1 = x, nnn = x provided x isn't 0, 1 or a numeral.*)
   fun reorient_proc sg _ (_ $ t $ u) =
     case u of
-	Const("0", _) => None
-      | Const("1", _) => None
-      | Const("Numeral.number_of", _) $ _ => None
-      | _ => Some (case t of
+	Const("0", _) => NONE
+      | Const("1", _) => NONE
+      | Const("Numeral.number_of", _) $ _ => NONE
+      | _ => SOME (case t of
 		  Const("0", _) => meta_zero_reorient
 		| Const("1", _) => meta_one_reorient
 		| Const("Numeral.number_of", _) $ _ => meta_number_of_reorient)
@@ -305,8 +305,8 @@ val mult_minus_simps =
     [mult_assoc, minus_mult_left, minus_mult_eq_1_to_2];
 
 (*Apply the given rewrite (if present) just once*)
-fun trans_tac None      = all_tac
-  | trans_tac (Some th) = ALLGOALS (rtac (th RS trans));
+fun trans_tac NONE      = all_tac
+  | trans_tac (SOME th) = ALLGOALS (rtac (th RS trans));
 
 fun simplify_meta_eq rules =
     simplify (HOL_basic_ss addeqcongs[eq_cong2] addsimps rules)
@@ -538,7 +538,7 @@ val fast_int_arith_simproc =
 Addsimprocs [fast_int_arith_simproc]
 
 
-(* Some test data
+(* SOME test data
 Goal "!!a::int. [| a <= b; c <= d; x+y<z |] ==> a+c <= b+d";
 by (fast_arith_tac 1);
 Goal "!!a::int. [| a < b; c < d |] ==> a-d+ 2 <= b+(-c)";

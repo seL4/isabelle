@@ -94,7 +94,7 @@ fun (tac1 THEN tac2) st = Seq.flat (Seq.map tac2 (tac1 st));
   Does not backtrack to tac2 if tac1 was initially chosen. *)
 fun (tac1 ORELSE tac2) st =
     case Seq.pull(tac1 st) of
-        None       => tac2 st
+        NONE       => tac2 st
       | sequencecell => Seq.make(fn()=> sequencecell);
 
 
@@ -116,7 +116,7 @@ fun (tac1 INTLEAVE tac2) st =
 *)
 fun (tac THEN_ELSE (tac1, tac2)) st =
     case Seq.pull(tac st) of
-        None    => tac2 st              (*failed; try tactic 2*)
+        NONE    => tac2 st              (*failed; try tactic 2*)
       | seqcell => Seq.flat       (*succeeded; use tactic 1*)
                     (Seq.map tac1 (Seq.make(fn()=> seqcell)));
 
@@ -152,17 +152,17 @@ local
   (*This version of EVERY avoids backtracking over repeated states*)
 
   fun EVY (trail, []) st =
-        Seq.make (fn()=> Some(st,
+        Seq.make (fn()=> SOME(st,
                         Seq.make (fn()=> Seq.pull (evyBack trail))))
     | EVY (trail, tac::tacs) st =
           case Seq.pull(tac st) of
-              None    => evyBack trail              (*failed: backtrack*)
-            | Some(st',q) => EVY ((st',q,tacs)::trail, tacs) st'
+              NONE    => evyBack trail              (*failed: backtrack*)
+            | SOME(st',q) => EVY ((st',q,tacs)::trail, tacs) st'
   and evyBack [] = Seq.empty (*no alternatives*)
     | evyBack ((st',q,tacs)::trail) =
           case Seq.pull q of
-              None        => evyBack trail
-            | Some(st,q') => if eq_thm (st',st)
+              NONE        => evyBack trail
+            | SOME(st,q') => if eq_thm (st',st)
                              then evyBack ((st',q',tacs)::trail)
                              else EVY ((st,q',tacs)::trail, tacs) st
 in
@@ -246,17 +246,17 @@ fun tracify flag tac st =
 fun traced_tac seqf st =
     (suppress_tracing := false;
      Seq.make (fn()=> seqf st
-                         handle TRACE_EXIT st' => Some(st', Seq.empty)));
+                         handle TRACE_EXIT st' => SOME(st', Seq.empty)));
 
 
 (*Deterministic DO..UNTIL: only retains the first outcome; tail recursive.
   Forces repitition until predicate on state is fulfilled.*)
 fun DETERM_UNTIL p tac =
 let val tac = tracify trace_REPEAT tac
-    fun drep st = if p st then Some (st, Seq.empty)
+    fun drep st = if p st then SOME (st, Seq.empty)
                           else (case Seq.pull(tac st) of
-                                  None        => None
-                                | Some(st',_) => drep st')
+                                  NONE        => NONE
+                                | SOME(st',_) => drep st')
 in  traced_tac drep  end;
 
 (*Deterministic REPEAT: only retains the first outcome;
@@ -264,11 +264,11 @@ in  traced_tac drep  end;
   If non-negative, n bounds the number of repetitions.*)
 fun REPEAT_DETERM_N n tac =
   let val tac = tracify trace_REPEAT tac
-      fun drep 0 st = Some(st, Seq.empty)
+      fun drep 0 st = SOME(st, Seq.empty)
         | drep n st =
            (case Seq.pull(tac st) of
-                None       => Some(st, Seq.empty)
-              | Some(st',_) => drep (n-1) st')
+                NONE       => SOME(st, Seq.empty)
+              | SOME(st',_) => drep (n-1) st')
   in  traced_tac (drep n)  end;
 
 (*Allows any number of repetitions*)
@@ -279,12 +279,12 @@ fun REPEAT tac =
   let val tac = tracify trace_REPEAT tac
       fun rep qs st =
         case Seq.pull(tac st) of
-            None       => Some(st, Seq.make(fn()=> repq qs))
-          | Some(st',q) => rep (q::qs) st'
-      and repq [] = None
+            NONE       => SOME(st, Seq.make(fn()=> repq qs))
+          | SOME(st',q) => rep (q::qs) st'
+      and repq [] = NONE
         | repq(q::qs) = case Seq.pull q of
-            None       => repq qs
-          | Some(st,q) => rep (q::qs) st
+            NONE       => repq qs
+          | SOME(st,q) => rep (q::qs) st
   in  traced_tac (rep [])  end;
 
 (*Repeat 1 or more times*)

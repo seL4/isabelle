@@ -116,8 +116,8 @@ fun get_inductive thy name = Symtab.lookup (fst (InductiveData.get thy), name);
 
 fun the_inductive thy name =
   (case get_inductive thy name of
-    None => error ("Unknown (co)inductive set " ^ quote name)
-  | Some info => info);
+    NONE => error ("Unknown (co)inductive set " ^ quote name)
+  | SOME info => info);
 
 val the_mk_cases = (#mk_cases o #2) oo the_inductive;
 
@@ -387,20 +387,20 @@ fun mk_indrule cs cTs params intr_ts =
 
         fun subst (s as ((m as Const ("op :", T)) $ t $ u)) =
               (case pred_of u of
-                  None => (m $ fst (subst t) $ fst (subst u), None)
-                | Some P => (HOLogic.mk_binop inductive_conj_name (s, P $ t), Some (s, P $ t)))
+                  NONE => (m $ fst (subst t) $ fst (subst u), NONE)
+                | SOME P => (HOLogic.mk_binop inductive_conj_name (s, P $ t), SOME (s, P $ t)))
           | subst s =
               (case pred_of s of
-                  Some P => (HOLogic.mk_binop "op Int"
+                  SOME P => (HOLogic.mk_binop "op Int"
                     (s, HOLogic.Collect_const (HOLogic.dest_setT
-                      (fastype_of s)) $ P), None)
-                | None => (case s of
-                     (t $ u) => (fst (subst t) $ fst (subst u), None)
-                   | (Abs (a, T, t)) => (Abs (a, T, fst (subst t)), None)
-                   | _ => (s, None)));
+                      (fastype_of s)) $ P), NONE)
+                | NONE => (case s of
+                     (t $ u) => (fst (subst t) $ fst (subst u), NONE)
+                   | (Abs (a, T, t)) => (Abs (a, T, fst (subst t)), NONE)
+                   | _ => (s, NONE)));
 
         fun mk_prem (s, prems) = (case subst s of
-              (_, Some (t, u)) => t :: u :: prems
+              (_, SOME (t, u)) => t :: u :: prems
             | (t, _) => t :: prems);
 
         val Const ("op :", _) $ t $ u =
@@ -562,8 +562,8 @@ fun mk_cases_i elims ss cprop =
     fun mk_elim rl = Drule.standard (Tactic.rule_by_tactic tac (prem RS rl));
   in
     (case get_first (try mk_elim) elims of
-      Some r => r
-    | None => error (Pretty.string_of (Pretty.block
+      SOME r => r
+    | NONE => error (Pretty.string_of (Pretty.block
         [Pretty.str mk_cases_err, Pretty.fbrk, Display.pretty_cterm cprop])))
   end;
 
@@ -617,11 +617,11 @@ fun prove_indrule cs cTs sumT rec_const params intr_ts mono
     val sign = Theory.sign_of thy;
 
     val sum_case_rewrites =
-      (if PureThy.get_name thy = "Datatype" then PureThy.get_thms thy ("sum.cases", None)
+      (if PureThy.get_name thy = "Datatype" then PureThy.get_thms thy ("sum.cases", NONE)
         else
           (case ThyInfo.lookup_theory "Datatype" of
-            None => []
-          | Some thy' => PureThy.get_thms thy' ("sum.cases", None))) |> map mk_meta_eq;
+            NONE => []
+          | SOME thy' => PureThy.get_thms thy' ("sum.cases", NONE))) |> map mk_meta_eq;
 
     val (preds, ind_prems, mutual_ind_concl, factors) =
       mk_indrule cs cTs params intr_ts;
@@ -817,8 +817,8 @@ fun add_ind_def verbose declare_consts alt_name coind no_elim no_ind cs
 
 fun try_term f msg sign t =
   (case Library.try f t of
-    Some x => x
-  | None => error (msg ^ Sign.string_of_term sign t));
+    SOME x => x
+  | NONE => error (msg ^ Sign.string_of_term sign t));
 
 fun add_inductive_i verbose declare_consts alt_name coind no_elim no_ind cs pre_intros monos thy =
   let

@@ -126,7 +126,7 @@ fun getprf   (Less (_, _, p)) = p
 
 fun mkasm_partial sign (t, n) =
   case Less.decomp_part sign t of
-    Some (x, rel, y) => (case rel of
+    SOME (x, rel, y) => (case rel of
       "<"   => if (x aconv y) then raise Contr (Thm ([Asm n], Less.less_reflE)) 
                else [Less (x, y, Asm n)]
     | "~<"  => []
@@ -140,7 +140,7 @@ fun mkasm_partial sign (t, n) =
                       NotEq (y, x,Thm ( [Asm n], thm "not_sym"))] 
     | _     => error ("partial_tac: unknown relation symbol ``" ^ rel ^
                  "''returned by decomp_part."))
-  | None => [];
+  | NONE => [];
 
 (* ************************************************************************ *)
 (*                                                                          *)
@@ -154,7 +154,7 @@ fun mkasm_partial sign (t, n) =
  
 fun mkasm_linear sign (t, n) =
   case Less.decomp_lin sign t of
-    Some (x, rel, y) => (case rel of
+    SOME (x, rel, y) => (case rel of
       "<"   => if (x aconv y) then raise Contr (Thm ([Asm n], Less.less_reflE)) 
                else [Less (x, y, Asm n)]
     | "~<"  => [Le (y, x, Thm ([Asm n], Less.not_lessD))]
@@ -170,7 +170,7 @@ fun mkasm_linear sign (t, n) =
                       NotEq (y, x,Thm ( [Asm n], thm "not_sym"))] 
     | _     => error ("linear_tac: unknown relation symbol ``" ^ rel ^
                  "''returned by decomp_lin."))
-  | None => [];
+  | NONE => [];
 
 (* ************************************************************************ *)
 (*                                                                          *)
@@ -183,14 +183,14 @@ fun mkasm_linear sign (t, n) =
 
 fun mkconcl_partial sign t =
   case Less.decomp_part sign t of
-    Some (x, rel, y) => (case rel of
+    SOME (x, rel, y) => (case rel of
       "<"   => ([Less (x, y, Asm ~1)], Asm 0)
     | "<="  => ([Le (x, y, Asm ~1)], Asm 0)
     | "="   => ([Le (x, y, Asm ~1), Le (y, x, Asm ~1)],
                  Thm ([Asm 0, Asm 1], Less.eqI))
     | "~="  => ([NotEq (x,y, Asm ~1)], Asm 0)
     | _  => raise Cannot)
-  | None => raise Cannot;
+  | NONE => raise Cannot;
 
 (* ************************************************************************ *)
 (*                                                                          *)
@@ -203,7 +203,7 @@ fun mkconcl_partial sign t =
 
 fun mkconcl_linear sign t =
   case Less.decomp_lin sign t of
-    Some (x, rel, y) => (case rel of
+    SOME (x, rel, y) => (case rel of
       "<"   => ([Less (x, y, Asm ~1)], Asm 0)
     | "~<"  => ([Le (y, x, Asm ~1)], Thm ([Asm 0], Less.not_lessI))
     | "<="  => ([Le (x, y, Asm ~1)], Asm 0)
@@ -212,7 +212,7 @@ fun mkconcl_linear sign t =
                  Thm ([Asm 0, Asm 1], Less.eqI))
     | "~="  => ([NotEq (x,y, Asm ~1)], Asm 0)
     | _  => raise Cannot)
-  | None => raise Cannot;
+  | NONE => raise Cannot;
  
 (* ******************************************************************* *)
 (*                                                                     *)
@@ -312,16 +312,16 @@ fun (Less (x, y, _)) subsumes (Le (x', y', _)) =
 
 (* ******************************************************************* *)
 (*                                                                     *)
-(* triv_solv less1 : less ->  proof Library.option                     *)
+(* triv_solv less1 : less ->  proof option                     *)
 (*                                                                     *)
 (* Solves trivial goal x <= x.                                         *)
 (*                                                                     *)
 (* ******************************************************************* *)
 
 fun triv_solv (Le (x, x', _)) =
-    if x aconv x' then  Some (Thm ([], Less.le_refl)) 
-    else None
-|   triv_solv _ = None;
+    if x aconv x' then  SOME (Thm ([], Less.le_refl)) 
+    else NONE
+|   triv_solv _ = NONE;
 
 (* ********************************************************************* *)
 (* Graph functions                                                       *)
@@ -692,12 +692,12 @@ let
 	         val xypath = (completeComponentPath x u xupred)@[e]@(completeComponentPath v y vypred)
 	         val xyLesss = transPath (tl xypath, hd xypath)
 	        in 
-		 if xyLesss subsumes subgoal then Some (getprf xyLesss) 
-                 else None
+		 if xyLesss subsumes subgoal then SOME (getprf xyLesss) 
+                 else NONE
 	       end)
-	       else None
+	       else NONE
 	      end)
-	     else None
+	     else NONE
 	    end
        |  _   => 
          let val (uvfound, uvpred) =  dfs (op =) sccGraph (getIndex u ntc) (getIndex v ntc) 
@@ -717,16 +717,16 @@ let
 		    val xypath = (completeComponentPath  x u xupred)@[uvLesss]@(completeComponentPath v y vypred)
 		    val xyLesss = transPath (tl xypath, hd xypath)
 		   in 
-		    if xyLesss subsumes subgoal then Some (getprf xyLesss)
-                    else None
+		    if xyLesss subsumes subgoal then SOME (getprf xyLesss)
+                    else NONE
 		   end )
-		  else None   
+		  else NONE   
 	         end)
-		else None
+		else NONE
 	       end ) 
-	      else None
+	      else NONE
 	     end )
-    ) else None
+    ) else NONE
 end;  
    
          
@@ -769,7 +769,7 @@ in
     (* for all edges u ~= v or u < v check if they are part of path x < y *)
     fun processNeqEdges [] = raise Cannot 
     |   processNeqEdges (e::es) = 
-      case  (findLess e x y xi yi xreachable yreachable) of (Some prf) => prf  
+      case  (findLess e x y xi yi xreachable yreachable) of (SOME prf) => prf  
       | _ => processNeqEdges es
         
     in 
@@ -783,10 +783,10 @@ in
   (* if there aren't any edges that are candidate for <= then just search a edge in neqE that implies the subgoal *)
   else if sccSubgraphs = [] then (
      (case (Library.find_first (fn fact => fact subsumes subgoal) neqE, subgoal) of
-       ( Some (NotEq (x, y, p)), NotEq (x', y', _)) =>
+       ( SOME (NotEq (x, y, p)), NotEq (x', y', _)) =>
           if  (x aconv x' andalso y aconv y') then p 
 	  else Thm ([p], thm "not_sym")
-     | ( Some (Less (x, y, p)), NotEq (x', y', _)) => 
+     | ( SOME (Less (x, y, p)), NotEq (x', y', _)) => 
           if x aconv x' andalso y aconv y' then (Thm ([p], Less.less_imp_neq))
           else (Thm ([(Thm ([p], Less.less_imp_neq))], thm "not_sym"))
      | _ => raise Cannot) 
@@ -864,14 +864,14 @@ in
                        (* there exists a path x < y or y < x such that
                           x ~= y may be concluded *)
 	        	case  (findLess e x y xi yi xreachable yreachable) of 
-		              (Some prf) =>  (Thm ([prf], Less.less_imp_neq))  
-                             | None =>  (
+		              (SOME prf) =>  (Thm ([prf], Less.less_imp_neq))  
+                             | NONE =>  (
 		               let 
 		                val yr = dfs_int_reachable sccGraph yi
 	                        val xr = dfs_int_reachable sccGraph_transpose xi
 		               in 
 		                case  (findLess e y x yi xi yr xr) of 
-		                      (Some prf) => (Thm ([(Thm ([prf], Less.less_imp_neq))], thm "not_sym")) 
+		                      (SOME prf) => (Thm ([(Thm ([prf], Less.less_imp_neq))], thm "not_sym")) 
                                       | _ => processNeqEdges es
 		               end)
 		 ) end) 
@@ -949,12 +949,12 @@ fun mk_sccGraphs _ [] _ _ = ([],[])
         val neqEdges = map snd (flat (map (adjacent (op aconv) neqG) comp));
 
        (* find an edge leading to a contradiction *)   
-       fun findContr [] = None
+       fun findContr [] = NONE
        |   findContr (e::es) = 
 		    let val ui = (getIndex (lower e) ntc) 
 			val vi = (getIndex (upper e) ntc) 
 		    in 
-		        if ui = vi then  Some e
+		        if ui = vi then  SOME e
 		        else findContr es
 		    end; 
 		   
@@ -997,7 +997,7 @@ fun mk_sccGraphs _ [] _ _ = ([],[])
                  val subGraph = sccSubGraph intern [];
 		  
      in  
-         case findContr neqEdges of Some e => handleContr e subGraph
+         case findContr neqEdges of SOME e => handleContr e subGraph
 	 | _ => ((k, (reOrganizeEdges (extern) [])), subGraph)
      end; 
   
@@ -1025,8 +1025,8 @@ fun solvePartialOrder sign (asms, concl) =
    let 
    val (subgoals, prf) = mkconcl_partial sign concl
    fun solve facts less =
-       (case triv_solv less of None => findProof (sccGraph, neqE, ntc, sccSubgraphs ) less
-       | Some prf => prf )
+       (case triv_solv less of NONE => findProof (sccGraph, neqE, ntc, sccSubgraphs ) less
+       | SOME prf => prf )
   in
    map (solve asms) subgoals
   end
@@ -1051,8 +1051,8 @@ fun solveTotalOrder sign (asms, concl) =
    let 
    val (subgoals, prf) = mkconcl_linear sign concl
    fun solve facts less =
-      (case triv_solv less of None => findProof (sccGraph, neqE, ntc, sccSubgraphs) less
-      | Some prf => prf )
+      (case triv_solv less of NONE => findProof (sccGraph, neqE, ntc, sccSubgraphs) less
+      | SOME prf => prf )
   in
    map (solve asms) subgoals
   end

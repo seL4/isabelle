@@ -23,7 +23,7 @@ sig
     (* Matching/unification with exceptions handled *)
     val clean_match : Type.tsig -> Term.term * Term.term 
                       -> ((Term.indexname * Term.typ) list 
-                         * (Term.indexname * Term.term) list) Library.option
+                         * (Term.indexname * Term.term) list) option
     val clean_unify : Sign.sg -> int -> Term.term * Term.term 
                       -> ((Term.indexname * Term.typ) list 
                          * (Term.indexname * Term.term) list) Seq.seq
@@ -75,7 +75,7 @@ sig
        Term.term ->
        Term.term ->
        (Term.term * Term.term) list ->
-       (Term.term * Term.term) list Library.option
+       (Term.term * Term.term) list option
 
      (* is the typ a function or is it atomic *)
      val is_fun_typ : Term.typ -> bool
@@ -84,7 +84,7 @@ sig
     (* variable analysis *)
     val is_some_kind_of_var : Term.term -> bool
     val same_var_check :
-       ''a -> ''b -> (''a * ''b) list -> (''a * ''b) list Library.option
+       ''a -> ''b -> (''a * ''b) list -> (''a * ''b) list option
 		val has_new_vars : Term.term * Term.term -> bool
     val has_new_typ_vars : Term.term * Term.term -> bool
    (* checks to see if the lhs -> rhs is a invalid rewrite rule *)
@@ -143,7 +143,7 @@ fun ho_term_height  (a $ b) =
 (* Higher order matching with exception handled *)
 (* returns optional instantiation *)
 fun clean_match tsig (a as (pat, t)) = 
-    Some (Pattern.match tsig a) handle Pattern.MATCH => None;
+    SOME (Pattern.match tsig a) handle Pattern.MATCH => NONE;
 (* Higher order unification with exception handled, return the instantiations *)
 (* given Signature, max var index, pat, tgt *)
 (* returns Seq of instantiations *)
@@ -156,12 +156,12 @@ fun clean_unify sgn ix (a as (pat, tgt)) =
       (* is it OK to ignore the type instantiation info? 
          or should I be using it? *)
       val typs_unify = 
-          (Some (Type.unify (Sign.tsig_of sgn) (Term.Vartab.empty, ix) 
+          (SOME (Type.unify (Sign.tsig_of sgn) (Term.Vartab.empty, ix) 
                             (pat_ty, tgt_ty)))
-          handle Type.TUNIFY => None;
+          handle Type.TUNIFY => NONE;
     in
       case typs_unify of
-        Some (typinsttab, ix2) =>
+        SOME (typinsttab, ix2) =>
         let 
       (* is it right to throw away teh flexes? 
          or should I be using them somehow? *)
@@ -174,14 +174,14 @@ fun clean_unify sgn ix (a as (pat, tgt)) =
                    | Term.TERM _ => Seq.empty;
           fun clean_unify' useq () = 
               (case (Seq.pull useq) of 
-                 None => None
-               | Some (h,t) => Some (mk_insts h, Seq.make (clean_unify' t)))
-              handle Library.LIST _ => None
-                   | Term.TERM _ => None;
+                 NONE => NONE
+               | SOME (h,t) => SOME (mk_insts h, Seq.make (clean_unify' t)))
+              handle Library.LIST _ => NONE
+                   | Term.TERM _ => NONE;
         in
           (Seq.make (clean_unify' useq))
         end
-      | None => Seq.empty
+      | NONE => Seq.empty
     end;
 
 fun asm_mk t = (assume (cterm_of (Theory.sign_of (the_context())) t));
@@ -295,15 +295,15 @@ fun triv_thm_from_string s =
   Note frees and vars must all have unique names. *)
   fun same_var_check a b L =
   let 
-    fun bterm_from t [] = None
+    fun bterm_from t [] = NONE
       | bterm_from t ((a,b)::m) = 
-          if t = a then Some b else bterm_from t m
+          if t = a then SOME b else bterm_from t m
 
     val bl_opt = bterm_from a L
   in
 		case bterm_from a L of
-			None => Some ((a,b)::L)
-		| Some b2 => if b2 = b then Some L else None
+			NONE => SOME ((a,b)::L)
+		| SOME b2 => if b2 = b then SOME L else NONE
   end;
 
   (* FIXME: make more efficient, only require a single new var! *)
@@ -334,11 +334,11 @@ local
   fun myadd (n,ty) (L as (renames, names)) = 
       let val n' = Syntax.dest_skolem n in 
         case (Library.find_first (fn (_,n2) => (n2 = n)) renames) of 
-          None => 
+          NONE => 
           let val renamedn = Term.variant names n' in 
             (renamedn, (((renamedn, ty), n) :: renames, 
                         renamedn :: names)) end
-        | (Some ((renamedn, _), _)) => (renamedn, L)
+        | (SOME ((renamedn, _), _)) => (renamedn, L)
       end
       handle LIST _ => (n, L);
 
@@ -363,7 +363,7 @@ end
         let 
           fun fmap fv = 
               let (n,ty) = (Term.dest_Free fv) in 
-                Some (fv, Free (Syntax.dest_skolem n, ty)) handle LIST _ => None
+                SOME (fv, Free (Syntax.dest_skolem n, ty)) handle LIST _ => NONE
               end
           val substfrees = mapfilter fmap (Term.term_frees t)
         in
@@ -389,7 +389,7 @@ fun readwty tstr tystr =
     let 
       val sgn = Theory.sign_of (the_context())
     in
-      Sign.simple_read_term sgn (Sign.read_typ (sgn, K None) tystr) tstr
+      Sign.simple_read_term sgn (Sign.read_typ (sgn, K NONE) tystr) tstr
     end;
 
 
@@ -402,7 +402,7 @@ fun readwty tstr tystr =
 
   fun term_name_eq (Abs(_,ty1,t1)) (Abs(_,ty2,t2)) l = 
     if ty1 = ty2 then term_name_eq t1 t2 l
-    else None
+    else NONE
 
   | term_name_eq (ah $ at) (bh $ bt) l =
     let 
@@ -411,12 +411,12 @@ fun readwty tstr tystr =
       if is_some lopt then 
 	term_name_eq at bt (the lopt)
       else
-        None
+        NONE
     end
 
   | term_name_eq (Const(a,T)) (Const(b,U)) l = 
-    if a=b andalso T=U then Some l
-    else None
+    if a=b andalso T=U then SOME l
+    else NONE
 
   | term_name_eq (a as Free(s1,ty1)) (b as Free(s2,ty2)) l = 
     same_var_check a b l
@@ -431,14 +431,14 @@ fun readwty tstr tystr =
     same_var_check a b l
 
   | term_name_eq (Bound i) (Bound j) l = 
-    if i = j then Some l else None
+    if i = j then SOME l else NONE
 
-  | term_name_eq a b l = ((*writeln ("unchecked case:\n" ^ "a:\n" ^ (pretty_print_term a) ^ "\nb:\n" ^ (pretty_print_term b));*) None);
+  | term_name_eq a b l = ((*writeln ("unchecked case:\n" ^ "a:\n" ^ (pretty_print_term a) ^ "\nb:\n" ^ (pretty_print_term b));*) NONE);
 
  (* checks to see if the term in a name-equivalent member of the list of terms. *)
-  fun get_name_eq_member a [] = None
+  fun get_name_eq_member a [] = NONE
     | get_name_eq_member a (h :: t) = 
-        if is_some (term_name_eq a h []) then Some h 
+        if is_some (term_name_eq a h []) then SOME h 
 				else get_name_eq_member a t;
 
   fun name_eq_member a [] = false
@@ -474,13 +474,13 @@ is a valid wave rule... *)
   pattern in the variables. *)
   fun term_contains1 (Bs, FVs) (Abs(s,ty,t)) (Abs(s2,ty2,t2)) = 
 			if ty = ty2 then 
-				term_contains1 ((Some(s,s2,ty)::Bs), FVs) t t2
+				term_contains1 ((SOME(s,s2,ty)::Bs), FVs) t t2
 			else []
 
   | term_contains1 T t1 (Abs(s2,ty2,t2)) = []
 
   | term_contains1 (Bs, FVs) (Abs(s,ty,t)) t2 = 
-    term_contains1 (None::Bs, FVs) t t2
+    term_contains1 (NONE::Bs, FVs) t t2
 
   | term_contains1 T (ah $ at) (bh $ bt) =
     (term_contains1 T ah (bh $ bt)) @ 
@@ -499,9 +499,9 @@ is a valid wave rule... *)
   list mapping, if it is then it checks that the pair are mapped to
   each other, if so returns the current mapping list, else none. *)
 		let 
-			fun bterm_from t [] = None
+			fun bterm_from t [] = NONE
 				| bterm_from t ((a,b)::m) = 
-					if t = a then Some b else bterm_from t m
+					if t = a then SOME b else bterm_from t m
 
   (* check to see if, w.r.t. the variable mapping, two terms are leaf
   terms and are mapped to each other. Note constants are only mapped
@@ -509,11 +509,11 @@ is a valid wave rule... *)
 			fun same_leaf_check (T as (Bs,FVs)) (Bound i) (Bound j) =
 					let 
 						fun aux_chk (i1,i2) [] = false
-							| aux_chk (0,0) ((Some _) :: bnds) = true
-							| aux_chk (i1,0) (None :: bnds) = false
-							| aux_chk (i1,i2) ((Some _) :: bnds) =
+							| aux_chk (0,0) ((SOME _) :: bnds) = true
+							| aux_chk (i1,0) (NONE :: bnds) = false
+							| aux_chk (i1,i2) ((SOME _) :: bnds) =
 								aux_chk (i1 - 1,i2 - 1) bnds
-							| aux_chk (i1,i2) (None :: bnds) =
+							| aux_chk (i1,i2) (NONE :: bnds) =
 								aux_chk (i1,i2 - 1) bnds 
 					in
 						if (aux_chk (i,j) Bs) then [T]
@@ -523,16 +523,16 @@ is a valid wave rule... *)
                           (a as (Free (an,aty))) 
                           (b as (Free (bn,bty))) =
 					(case bterm_from an Fs of 
-						 Some b2n => if bn = b2n then [T]
+						 SOME b2n => if bn = b2n then [T]
 												 else [] (* conflict of var name *)
-					 | None => [(Bs,((an,bn)::Fs,Vs))])
+					 | NONE => [(Bs,((an,bn)::Fs,Vs))])
 				| same_leaf_check (T as (Bs,(Fs,Vs))) 
                           (a as (Var (an,aty))) 
                           (b as (Var (bn,bty))) =
 					(case bterm_from an Vs of 
-						 Some b2n => if bn = b2n then [T]
+						 SOME b2n => if bn = b2n then [T]
 												 else [] (* conflict of var name *)
-					 | None => [(Bs,(Fs,(an,bn)::Vs))])
+					 | NONE => [(Bs,(Fs,(an,bn)::Vs))])
 				| same_leaf_check T (a as (Const _)) (b as (Const _)) =
 					if a = b then [T] else []
 				| same_leaf_check T _ _ = []
@@ -585,13 +585,13 @@ structure fvartabS = TableFun(type key = string val ord = string_ord);
 unique name *)
 fun unique_namify_aux (ntab,(Abs(s,ty,t))) = 
     (case (fvartabS.lookup (ntab,s)) of
-       None => 
+       NONE => 
        let 
 				 val (ntab2,t2) = unique_namify_aux ((fvartabS.update ((s,s),ntab)), t)
        in
 				 (ntab2,Abs(s,ty,t2))
        end
-     | Some s2 => 
+     | SOME s2 => 
        let 
 				 val s_new = (Term.variant (fvartabS.keys ntab) s)
 				 val (ntab2,t2) = 
@@ -609,12 +609,12 @@ fun unique_namify_aux (ntab,(Abs(s,ty,t))) =
   | unique_namify_aux (nt as (ntab,Const x)) = nt
   | unique_namify_aux (nt as (ntab,f as Free (s,ty))) = 
     (case (fvartabS.lookup (ntab,s)) of
-       None => ((fvartabS.update ((s,s),ntab)), f)
-     | Some _ => nt)
+       NONE => ((fvartabS.update ((s,s),ntab)), f)
+     | SOME _ => nt)
   | unique_namify_aux (nt as (ntab,v as Var ((s,i),ty))) = 
     (case (fvartabS.lookup (ntab,s)) of
-       None => ((fvartabS.update ((s,s),ntab)), v)
-     | Some _ => nt)
+       NONE => ((fvartabS.update ((s,s),ntab)), v)
+     | SOME _ => nt)
   | unique_namify_aux (nt as (ntab, Bound i)) = nt;
 		
 fun unique_namify t = 
@@ -628,14 +628,14 @@ sematics of the term. This is really a trick for our embedding code. *)
 
 fun bounds_to_frees_aux T (ntab,(Abs(s,ty,t))) = 
     (case (fvartabS.lookup (ntab,s)) of
-      None => 
+      NONE => 
       let 
 	val (ntab2,t2) = bounds_to_frees_aux ((s,ty)::T)
 				       ((fvartabS.update ((s,s),ntab)), t)
       in
 	(ntab2,Abs(s,ty,t2))
       end
-    | Some s2 => 
+    | SOME s2 => 
       let 
 	val s_new = (Term.variant (fvartabS.keys ntab) s)
 	val (ntab2,t2) = 
@@ -654,12 +654,12 @@ fun bounds_to_frees_aux T (ntab,(Abs(s,ty,t))) =
   | bounds_to_frees_aux T (nt as (ntab,Const x)) = nt
   | bounds_to_frees_aux T (nt as (ntab,f as Free (s,ty))) = 
     (case (fvartabS.lookup (ntab,s)) of
-      None => ((fvartabS.update ((s,s),ntab)), f)
-    | Some _ => nt)
+      NONE => ((fvartabS.update ((s,s),ntab)), f)
+    | SOME _ => nt)
   | bounds_to_frees_aux T (nt as (ntab,v as Var ((s,i),ty))) = 
      (case (fvartabS.lookup (ntab,s)) of
-      None => ((fvartabS.update ((s,s),ntab)), v)
-    | Some _ => nt)
+      NONE => ((fvartabS.update ((s,s),ntab)), v)
+    | SOME _ => nt)
   | bounds_to_frees_aux T (nt as (ntab, Bound i)) = 
     let 
       val (s,ty) = Library.nth_elem (i,T) 

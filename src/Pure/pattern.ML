@@ -95,8 +95,8 @@ fun ocheck_fail sg (F,t,binders,env) =
 
 fun occurs(F,t,env) =
     let fun occ(Var(G,_))   = (case Envir.lookup(env,G) of
-                                 Some(t) => occ t
-                               | None    => F=G)
+                                 SOME(t) => occ t
+                               | NONE    => F=G)
           | occ(t1$t2)      = occ t1 orelse occ t2
           | occ(Abs(_,_,t)) = occ t
           | occ _           = false
@@ -359,9 +359,9 @@ fun fomatch tsig =
         (Var(ixn,T), t)  =>
           if loose_bvar(t,0) then raise MATCH
           else (case assoc_string_int(insts,ixn) of
-                  None => (typ_match tsig (tyinsts, (T, fastype_of t)),
+                  NONE => (typ_match tsig (tyinsts, (T, fastype_of t)),
                            (ixn,t)::insts)
-                | Some u => if t aeconv u then instsp else raise MATCH)
+                | SOME u => if t aeconv u then instsp else raise MATCH)
       | (Free (a,T), Free (b,U)) =>
           if a=b then (typ_match tsig (tyinsts,(T,U)), insts) else raise MATCH
       | (Const (a,T), Const (b,U))  =>
@@ -415,8 +415,8 @@ let
          Var(ixn,_) =>
            let val is = ints_of pargs
            in case assoc_string_int(itms,ixn) of
-                None => (iTs,match_bind(itms,binders,ixn,is,obj))
-              | Some u => if obj aeconv (red u is []) then env
+                NONE => (iTs,match_bind(itms,binders,ixn,is,obj))
+              | SOME u => if obj aeconv (red u is []) then env
                           else raise MATCH
            end
        | _ =>
@@ -486,49 +486,49 @@ fun rewrite_term tsig rules procs tm =
 
     fun match_rew tm (tm1, tm2) =
       let val rtm = if_none (Term.rename_abs tm1 tm tm2) tm2
-      in Some (subst_vars (match tsig (tm1, tm)) rtm, rtm)
-        handle MATCH => None
+      in SOME (subst_vars (match tsig (tm1, tm)) rtm, rtm)
+        handle MATCH => NONE
       end;
 
-    fun rew (Abs (_, _, body) $ t) = Some (subst_bound (t, body), skel0)
+    fun rew (Abs (_, _, body) $ t) = SOME (subst_bound (t, body), skel0)
       | rew tm = (case get_first (match_rew tm) rules of
-          None => apsome (rpair skel0) (get_first (fn p => p tm) procs)
+          NONE => apsome (rpair skel0) (get_first (fn p => p tm) procs)
         | x => x);
 
-    fun rew1 (Var _) _ = None
+    fun rew1 (Var _) _ = NONE
       | rew1 skel tm = (case rew2 skel tm of
-          Some tm1 => (case rew tm1 of
-              Some (tm2, skel') => Some (if_none (rew1 skel' tm2) tm2)
-            | None => Some tm1)
-        | None => (case rew tm of
-              Some (tm1, skel') => Some (if_none (rew1 skel' tm1) tm1)
-            | None => None))
+          SOME tm1 => (case rew tm1 of
+              SOME (tm2, skel') => SOME (if_none (rew1 skel' tm2) tm2)
+            | NONE => SOME tm1)
+        | NONE => (case rew tm of
+              SOME (tm1, skel') => SOME (if_none (rew1 skel' tm1) tm1)
+            | NONE => NONE))
 
     and rew2 skel (tm1 $ tm2) = (case tm1 of
             Abs (_, _, body) =>
               let val tm' = subst_bound (tm2, body)
-              in Some (if_none (rew2 skel0 tm') tm') end
+              in SOME (if_none (rew2 skel0 tm') tm') end
           | _ =>
             let val (skel1, skel2) = (case skel of
                 skel1 $ skel2 => (skel1, skel2)
               | _ => (skel0, skel0))
             in case rew1 skel1 tm1 of
-                Some tm1' => (case rew1 skel2 tm2 of
-                    Some tm2' => Some (tm1' $ tm2')
-                  | None => Some (tm1' $ tm2))
-              | None => (case rew1 skel2 tm2 of
-                    Some tm2' => Some (tm1 $ tm2')
-                  | None => None)
+                SOME tm1' => (case rew1 skel2 tm2 of
+                    SOME tm2' => SOME (tm1' $ tm2')
+                  | NONE => SOME (tm1' $ tm2))
+              | NONE => (case rew1 skel2 tm2 of
+                    SOME tm2' => SOME (tm1 $ tm2')
+                  | NONE => NONE)
             end)
       | rew2 skel (Abs (x, T, tm)) =
           let
             val (abs, tm') = variant_absfree (x, T, tm);
             val skel' = (case skel of Abs (_, _, skel') => skel' | _ => skel0)
           in case rew1 skel' tm' of
-              Some tm'' => Some (abs tm'')
-            | None => None
+              SOME tm'' => SOME (abs tm'')
+            | NONE => NONE
           end
-      | rew2 _ _ = None
+      | rew2 _ _ = NONE
 
   in if_none (rew1 skel0 tm) tm end;
 

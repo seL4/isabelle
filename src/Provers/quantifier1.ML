@@ -72,34 +72,34 @@ open Data;
 fun def xs eq =
   let val n = length xs
   in case dest_eq eq of
-      Some(c,s,t) =>
+      SOME(c,s,t) =>
         s = Bound n andalso not(loose_bvar1(t,n)) orelse
         t = Bound n andalso not(loose_bvar1(s,n))
-    | None => false
+    | NONE => false
   end;
 
-fun extract_conj xs t = case dest_conj t of None => None
-    | Some(conj,P,Q) =>
-        (if def xs P then Some(xs,P,Q) else
-         if def xs Q then Some(xs,Q,P) else
+fun extract_conj xs t = case dest_conj t of NONE => NONE
+    | SOME(conj,P,Q) =>
+        (if def xs P then SOME(xs,P,Q) else
+         if def xs Q then SOME(xs,Q,P) else
          (case extract_conj xs P of
-            Some(xs,eq,P') => Some(xs,eq, conj $ P' $ Q)
-          | None => (case extract_conj xs Q of
-                       Some(xs,eq,Q') => Some(xs,eq,conj $ P $ Q')
-                     | None => None)));
+            SOME(xs,eq,P') => SOME(xs,eq, conj $ P' $ Q)
+          | NONE => (case extract_conj xs Q of
+                       SOME(xs,eq,Q') => SOME(xs,eq,conj $ P $ Q')
+                     | NONE => NONE)));
 
-fun extract_imp xs t = case dest_imp t of None => None
-    | Some(imp,P,Q) => if def xs P then Some(xs,P,Q)
+fun extract_imp xs t = case dest_imp t of NONE => NONE
+    | SOME(imp,P,Q) => if def xs P then SOME(xs,P,Q)
                        else (case extract_conj xs P of
-                               Some(xs,eq,P') => Some(xs, eq, imp $ P' $ Q)
-                             | None => (case extract_imp xs Q of
-                                          None => None
-                                        | Some(xs,eq,Q') =>
-                                            Some(xs,eq,imp$P$Q')));
+                               SOME(xs,eq,P') => SOME(xs, eq, imp $ P' $ Q)
+                             | NONE => (case extract_imp xs Q of
+                                          NONE => NONE
+                                        | SOME(xs,eq,Q') =>
+                                            SOME(xs,eq,imp$P$Q')));
 
 fun extract_quant extract q =
   let fun exqu xs ((qC as Const(qa,_)) $ Abs(x,T,Q)) =
-            if qa = q then exqu ((qC,x,T)::xs) Q else None
+            if qa = q then exqu ((qC,x,T)::xs) Q else NONE
         | exqu xs P = extract xs P
   in exqu end;
 
@@ -147,33 +147,33 @@ fun quantify qC x T xs P =
 
 fun rearrange_all sg _ (F as (all as Const(q,_)) $ Abs(x,T, P)) =
      (case extract_quant extract_imp q [] P of
-        None => None
-      | Some(xs,eq,Q) =>
+        NONE => NONE
+      | SOME(xs,eq,Q) =>
           let val R = quantify all x T xs (imp $ eq $ Q)
-          in Some(prove_conv prove_one_point_all_tac sg (F,R)) end)
-  | rearrange_all _ _ _ = None;
+          in SOME(prove_conv prove_one_point_all_tac sg (F,R)) end)
+  | rearrange_all _ _ _ = NONE;
 
 fun rearrange_ball tac sg _ (F as Ball $ A $ Abs(x,T,P)) =
      (case extract_imp [] P of
-        None => None
-      | Some(xs,eq,Q) => if not(null xs) then None else
+        NONE => NONE
+      | SOME(xs,eq,Q) => if not(null xs) then NONE else
           let val R = imp $ eq $ Q
-          in Some(prove_conv tac sg (F,Ball $ A $ Abs(x,T,R))) end)
-  | rearrange_ball _ _ _ _ = None;
+          in SOME(prove_conv tac sg (F,Ball $ A $ Abs(x,T,R))) end)
+  | rearrange_ball _ _ _ _ = NONE;
 
 fun rearrange_ex sg _ (F as (ex as Const(q,_)) $ Abs(x,T,P)) =
      (case extract_quant extract_conj q [] P of
-        None => None
-      | Some(xs,eq,Q) =>
+        NONE => NONE
+      | SOME(xs,eq,Q) =>
           let val R = quantify ex x T xs (conj $ eq $ Q)
-          in Some(prove_conv prove_one_point_ex_tac sg (F,R)) end)
-  | rearrange_ex _ _ _ = None;
+          in SOME(prove_conv prove_one_point_ex_tac sg (F,R)) end)
+  | rearrange_ex _ _ _ = NONE;
 
 fun rearrange_bex tac sg _ (F as Bex $ A $ Abs(x,T,P)) =
      (case extract_conj [] P of
-        None => None
-      | Some(xs,eq,Q) => if not(null xs) then None else
-          Some(prove_conv tac sg (F,Bex $ A $ Abs(x,T,conj$eq$Q))))
-  | rearrange_bex _ _ _ _ = None;
+        NONE => NONE
+      | SOME(xs,eq,Q) => if not(null xs) then NONE else
+          SOME(prove_conv tac sg (F,Bex $ A $ Abs(x,T,conj$eq$Q))))
+  | rearrange_bex _ _ _ _ = NONE;
 
 end;

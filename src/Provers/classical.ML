@@ -224,7 +224,7 @@ fun dup_elim th =
   (case try (fn () =>
     rule_by_tactic (TRYALL (etac revcut_rl))
       (th RSN (2, revcut_rl) |> assumption 2 |> Seq.hd)) () of
-    Some th' => th'
+    SOME th' => th'
   | _ => error ("Bad format for elimination rule\n" ^ string_of_thm th));
 
 

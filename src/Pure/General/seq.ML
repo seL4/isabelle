@@ -56,17 +56,17 @@ datatype 'a seq = Seq of unit -> ('a * 'a seq) option;
 (*the abstraction for making a sequence*)
 val make = Seq;
 
-(*return next sequence element as None or Some (x, xq)*)
+(*return next sequence element as NONE or SOME (x, xq)*)
 fun pull (Seq f) = f ();
 
 
 (*the empty sequence*)
-val empty = Seq (fn () => None);
+val empty = Seq (fn () => NONE);
 
 (*prefix an element to the sequence -- use cons (x, xq) only if
   evaluation of xq need not be delayed, otherwise use
-  make (fn () => Some (x, xq))*)
-fun cons x_xq = make (fn () => Some x_xq);
+  make (fn () => SOME (x, xq))*)
+fun cons x_xq = make (fn () => SOME x_xq);
 
 fun single x = cons (x, empty);
 
@@ -77,8 +77,8 @@ and tl xq = #2 (the (pull xq));
 (*partial function as procedure*)
 fun try f x =
   (case Library.try f x of
-    Some y => single y
-  | None => empty);
+    SOME y => single y
+  | NONE => empty);
 
 
 (*the list of the first n elements, paired with rest of sequence;
@@ -87,14 +87,14 @@ fun chop (n, xq) =
   if n <= 0 then ([], xq)
   else
     (case pull xq of
-      None => ([], xq)
-    | Some (x, xq') => apfst (Library.cons x) (chop (n - 1, xq')));
+      NONE => ([], xq)
+    | SOME (x, xq') => apfst (Library.cons x) (chop (n - 1, xq')));
 
 (*conversion from sequence to list*)
 fun list_of xq =
   (case pull xq of
-    None => []
-  | Some (x, xq') => x :: list_of xq');
+    NONE => []
+  | SOME (x, xq') => x :: list_of xq');
 
 (*conversion from list to sequence*)
 fun of_list xs = foldr cons (xs, empty);
@@ -104,8 +104,8 @@ fun of_list xs = foldr cons (xs, empty);
 fun map f xq =
   make (fn () =>
     (case pull xq of
-      None => None
-    | Some (x, xq') => Some (f x, map f xq')));
+      NONE => NONE
+    | SOME (x, xq') => SOME (f x, map f xq')));
 
 (*map over a sequence xq, append the sequence yq*)
 fun mapp f xq yq =
@@ -113,8 +113,8 @@ fun mapp f xq yq =
     fun copy s =
       make (fn () =>
         (case pull s of
-          None => pull yq
-        | Some (x, s') => Some (f x, copy s')))
+          NONE => pull yq
+        | SOME (x, s') => SOME (f x, copy s')))
   in copy xq end;
 
 (*sequence append:  put the elements of xq in front of those of yq*)
@@ -123,8 +123,8 @@ fun append (xq, yq) =
     fun copy s =
       make (fn () =>
         (case pull s of
-          None => pull yq
-        | Some (x, s') => Some (x, copy s')))
+          NONE => pull yq
+        | SOME (x, s') => SOME (x, copy s')))
   in copy xq end;
 
 (*filter sequence by predicate*)
@@ -133,23 +133,23 @@ fun filter pred xq =
     fun copy s =
       make (fn () =>
         (case pull s of
-          None => None
-        | Some (x, s') => if pred x then Some (x, copy s') else pull (copy s')));
+          NONE => NONE
+        | SOME (x, s') => if pred x then SOME (x, copy s') else pull (copy s')));
   in copy xq end;
 
 (*flatten a sequence of sequences to a single sequence*)
 fun flat xqq =
   make (fn () =>
     (case pull xqq of
-      None => None
-    | Some (xq, xqq') => pull (append (xq, flat xqq'))));
+      NONE => NONE
+    | SOME (xq, xqq') => pull (append (xq, flat xqq'))));
 
 (*interleave elements of xq with those of yq -- fairer than append*)
 fun interleave (xq, yq) =
   make (fn () =>
     (case pull xq of
-      None => pull yq
-    | Some (x, xq') => Some (x, interleave (yq, xq'))));
+      NONE => pull yq
+    | SOME (x, xq') => SOME (x, interleave (yq, xq'))));
 
 
 (*functional to print a sequence, up to "count" elements;
@@ -160,8 +160,8 @@ fun print prelem count seq =
       if k > count then ()
       else
         (case pull xq of
-          None => ()
-        | Some (x, xq') => (prelem k x; writeln ""; pr (k + 1, xq')))
+          NONE => ()
+        | SOME (x, xq') => (prelem k x; writeln ""; pr (k + 1, xq')))
   in pr (1, seq) end;
 
 (*accumulating a function over a sequence; this is lazy*)
@@ -170,8 +170,8 @@ fun it_right f (xq, yq) =
     fun its s =
       make (fn () =>
         (case pull s of
-          None => pull yq
-        | Some (a, s') => pull (f (a, its s'))))
+          NONE => pull yq
+        | SOME (a, s') => pull (f (a, its s'))))
   in its xq end;
 
 (*turn a list of sequences into a sequence of lists*)
@@ -179,12 +179,12 @@ fun commute [] = single []
   | commute (xq :: xqs) =
       make (fn () =>
         (case pull xq of
-          None => None
-        | Some (x, xq') =>
+          NONE => NONE
+        | SOME (x, xq') =>
             (case pull (commute xqs) of
-              None => None
-            | Some (xs, xsq) =>
-                Some (x :: xs, append (map (Library.cons x) xsq, commute (xq' :: xqs))))));
+              NONE => NONE
+            | SOME (xs, xsq) =>
+                SOME (x :: xs, append (map (Library.cons x) xsq, commute (xq' :: xqs))))));
 
 
 
@@ -197,7 +197,7 @@ fun op THEN (f, g) x = flat (map g (f x));
 
 fun op ORELSE (f, g) x =
   (case pull (f x) of
-    None => g x
+    NONE => g x
   | some => make (fn () => some));
 
 fun op APPEND (f, g) x =
@@ -212,13 +212,13 @@ fun REPEAT f =
   let
     fun rep qs x =
       (case pull (f x) of
-        None => Some (x, make (fn () => repq qs))
-      | Some (x', q) => rep (q :: qs) x')
-    and repq [] = None
+        NONE => SOME (x, make (fn () => repq qs))
+      | SOME (x', q) => rep (q :: qs) x')
+    and repq [] = NONE
       | repq (q :: qs) =
           (case pull q of
-            None => repq qs
-          | Some (x, q) => rep (q :: qs) x);
+            NONE => repq qs
+          | SOME (x, q) => rep (q :: qs) x);
   in fn x => make (fn () => rep [] x) end;
 
 fun REPEAT1 f = THEN (f, REPEAT f);
@@ -229,7 +229,7 @@ fun INTERVAL f i j x =
 
 fun DETERM f x =
   (case pull (f x) of
-    None => empty
-  | Some (x', _) => cons (x', empty));
+    NONE => empty
+  | SOME (x', _) => cons (x', empty));
 
 end;

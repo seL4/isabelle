@@ -166,8 +166,8 @@ Example? something to do with Bin Yangs examples?
 fun rename_term_bvars ns (Abs(s,ty,t)) = 
     let val s2opt = Library.find_first (fn (x,y) => s = x) ns
     in case s2opt of 
-         None => (Abs(s,ty,rename_term_bvars  ns t))
-       | Some (_,s2) => Abs(s2,ty, rename_term_bvars ns t) end
+         NONE => (Abs(s,ty,rename_term_bvars  ns t))
+       | SOME (_,s2) => Abs(s2,ty, rename_term_bvars ns t) end
   | rename_term_bvars ns (a$b) = 
     (rename_term_bvars ns a) $ (rename_term_bvars ns b)
   | rename_term_bvars _ x = x;

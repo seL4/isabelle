@@ -276,11 +276,11 @@ fun read_def_axm (sg, types, sorts) used (name, str) =
   in cert_axm sg (name, t) end
   handle ERROR => err_in_axm name;
 
-fun read_axm sg name_str = read_def_axm (sg, K None, K None) [] name_str;
+fun read_axm sg name_str = read_def_axm (sg, K NONE, K NONE) [] name_str;
 
 fun inferT_axm sg (name, pre_tm) =
   let val (t, _) = Sign.infer_types (Sign.pp sg) sg
-    (K None) (K None) [] true ([pre_tm], propT);
+    (K NONE) (K NONE) [] true ([pre_tm], propT);
   in (name, no_vars sg t) end
   handle ERROR => err_in_axm name;
 
@@ -329,8 +329,8 @@ fun clash_consts (c1, ty1) (c2, ty2) =
 
 fun clash_defn c_ty (name, tm) =
   let val (c, ty') = dest_Const (head_of (fst (Logic.dest_equals (Logic.strip_imp_concl tm)))) in
-    if clash_consts c_ty (c, ty') then Some (name, ty') else None
-  end handle TERM _ => None;
+    if clash_consts c_ty (c, ty') then SOME (name, ty') else NONE
+  end handle TERM _ => NONE;
 
 fun clash_defns c_ty axms =
   distinct (mapfilter (clash_defn c_ty) axms);
@@ -402,9 +402,9 @@ fun check_defn sg overloaded final_consts ((deps, axms), def as (name, tm)) =
   let
     fun is_final (c, ty) =
       case Symtab.lookup(final_consts,c) of
-        Some [] => true
-      | Some tys => exists (curry (Sign.typ_instance sg) ty) tys
-      | None => false;
+        SOME [] => true
+      | SOME tys => exists (curry (Sign.typ_instance sg) ty) tys
+      | NONE => false;
 
     fun pretty_const (c, ty) = [Pretty.str c, Pretty.str " ::", Pretty.brk 1,
       Pretty.quote (Sign.pretty_typ sg (#1 (Type.freeze_thaw_type ty)))];
@@ -419,8 +419,8 @@ fun check_defn sg overloaded final_consts ((deps, axms), def as (name, tm)) =
     val (c_ty as (c, ty), rhs) = dest_defn tm
       handle TERM (msg, _) => err_in_defn sg name msg;
     val c_decl =
-      (case Sign.const_type sg c of Some T => T
-      | None => err_in_defn sg name ("Undeclared constant " ^ quote c));
+      (case Sign.const_type sg c of SOME T => T
+      | NONE => err_in_defn sg name ("Undeclared constant " ^ quote c));
 
     val clashed = clash_defns c_ty axms;
   in
@@ -479,8 +479,8 @@ fun ext_finals prep_term overloaded raw_terms thy =
         val (c,ty) = dest_Const tm
           handle TERM _ => err "Can only make constants final";
         val c_decl =
-          (case Sign.const_type sign c of Some T => T
-          | None => err ("Undeclared constant " ^ quote c));
+          (case Sign.const_type sign c of SOME T => T
+          | NONE => err ("Undeclared constant " ^ quote c));
         val simple =
 	  case overloading sign c_decl ty of
 	    NoOverloading => true
@@ -491,15 +491,15 @@ fun ext_finals prep_term overloaded raw_terms thy =
       in
         if simple then
 	  (case Symtab.lookup(finals,c) of
-	    Some [] => err "Constant already final"
+	    SOME [] => err "Constant already final"
 	  | _ => Symtab.update((c,[]),finals))
 	else
 	  (case Symtab.lookup(finals,c) of
-	    Some [] => err "Constant already completely final"
-          | Some tys => if exists (curry typ_instance ty) tys
+	    SOME [] => err "Constant already completely final"
+          | SOME tys => if exists (curry typ_instance ty) tys
 			then err "Instance of constant is already final"
 			else Symtab.update((c,ty::gen_rem typ_instance (tys,ty)),finals)
-	  | None => Symtab.update((c,[ty]),finals))
+	  | NONE => Symtab.update((c,[ty]),finals))
       end;
     val consts = map (prep_term sign) raw_terms;
     val final_consts' = foldl mk_final (final_consts,consts);
@@ -525,7 +525,7 @@ fun merge_final sg =
       | merge (_,[]) = []
       | merge input = foldl merge_single input;
   in
-    Some o merge
+    SOME o merge
   end;
 
 

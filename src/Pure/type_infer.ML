@@ -120,8 +120,8 @@ fun pretyp_of is_param (params, typ) =
 
     fun pre_of (TVar (v as (xi, _))) =
           (case assoc (params', xi) of
-            None => PTVar v
-          | Some p => p)
+            NONE => PTVar v
+          | SOME p => p)
       | pre_of (TFree ("'_dummy_", S)) = mk_param S
       | pre_of (TFree v) = PTFree v
       | pre_of (T as Type (a, Ts)) =
@@ -162,8 +162,8 @@ fun preterm_of const_type is_param ((vparams, params), tm) =
 
     fun pre_of (ps, Const (c, T)) =
           (case const_type c of
-            Some U => constrain (ps, PConst (c, snd (pretyp_of (K true) ([], U)))) T
-          | None => raise TYPE ("No such constant: " ^ quote c, [], []))
+            SOME U => constrain (ps, PConst (c, snd (pretyp_of (K true) ([], U)))) T
+          | NONE => raise TYPE ("No such constant: " ^ quote c, [], []))
       | pre_of (ps, Var (xi, Type ("_polymorphic_", [T]))) =
           (ps, PVar (xi, snd (pretyp_of (K true) ([], T))))
       | pre_of (ps, Var (xi, T)) = constrain (ps, PVar (xi, var_param xi)) T
@@ -408,8 +408,8 @@ fun basic_infer_types pp const_type classes arities used freeze is_param ts Ts =
     val _ = seq (fn t => (infer pp classes arities t; ())) tTs';
 
     (*collect result unifier*)
-    fun ch_var (xi, Link (r as ref (Param S))) = (r := PTVar (xi, S); None)
-      | ch_var xi_T = Some xi_T;
+    fun ch_var (xi, Link (r as ref (Param S))) = (r := PTVar (xi, S); NONE)
+      | ch_var xi_T = SOME xi_T;
     val env = mapfilter ch_var Tps;
 
     (*convert back to terms/typs*)
@@ -458,10 +458,10 @@ fun get_sort tsig def_sort map_sort raw_env =
 
     fun get xi =
       (case (assoc (env, xi), def_sort xi) of
-        (None, None) => Type.defaultS tsig
-      | (None, Some S) => S
-      | (Some S, None) => S
-      | (Some S, Some S') =>
+        (NONE, NONE) => Type.defaultS tsig
+      | (NONE, SOME S) => S
+      | (SOME S, NONE) => S
+      | (SOME S, SOME S') =>
           if Type.eq_sort tsig (S, S') then S'
           else error ("Sort constraint inconsistent with default for type variable " ^
             quote (Syntax.string_of_vname' xi)));

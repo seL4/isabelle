@@ -64,7 +64,7 @@ fun dest_varT (TFree (x, S)) = ((x, ~1), S)
 val is_def = Logic.is_equals o #prop o rep_thm;
 
 fun witnesses thy names thms =
-  PureThy.get_thmss thy (map (rpair None) names) @ thms @ filter is_def (map snd (axioms_of thy));
+  PureThy.get_thmss thy (map (rpair NONE) names) @ thms @ filter is_def (map snd (axioms_of thy));
 
 
 
@@ -201,8 +201,8 @@ fun lookup_axclass_info_sg sg c = Symtab.lookup (AxclassesData.get_sg sg, c);
 
 fun get_axclass_info thy c =
   (case lookup_axclass_info_sg (Theory.sign_of thy) c of
-    None => error ("Unknown axclass " ^ quote c)
-  | Some info => info);
+    NONE => error ("Unknown axclass " ^ quote c)
+  | SOME info => info);
 
 fun put_axclass_info c info thy =
   thy |> AxclassesData.put (Symtab.update ((c, info), AxclassesData.get thy));
@@ -391,8 +391,8 @@ fun ext_inst_arity prep_arity (raw_t, raw_Ss, raw_cs) names thms usr_tac thy =
         prove_arity sign (t, Ss, c) wthms usr_tac);
   in add_arity_thms (map prove cs) thy end;
 
-fun sane_inst_subclass prep sub tac = ext_inst_subclass prep sub [] [] (Some tac);
-fun sane_inst_arity prep arity tac = ext_inst_arity prep arity [] [] (Some tac);
+fun sane_inst_subclass prep sub tac = ext_inst_subclass prep sub [] [] (SOME tac);
+fun sane_inst_arity prep arity tac = ext_inst_arity prep arity [] [] (SOME tac);
 
 val add_inst_subclass_x = ext_inst_subclass read_classrel;
 val add_inst_subclass = sane_inst_subclass read_classrel;

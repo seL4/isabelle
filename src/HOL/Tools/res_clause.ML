@@ -19,7 +19,7 @@ signature RES_CLAUSE =
     val make_axiom_arity_clause :
        string * (string * string list list) -> arityClause
     val make_axiom_classrelClause :
-       string * string Library.option -> classrelClause
+       string * string option -> classrelClause
     val make_axiom_clause : Term.term -> string * int -> clause
     val make_axiom_clause_thm : Thm.thm -> string * int -> clause
     val make_conjecture_clause : Term.term -> clause
@@ -105,8 +105,8 @@ fun make_type_class clas = class_prefix ^ (ascii_of clas);
 
 fun lookup_const c =
     case Symtab.lookup (const_trans_table,c) of
-        Some c' => c'
-      | None =>  make_fixed_const c;
+        SOME c' => c'
+      | NONE =>  make_fixed_const c;
 
 
 
@@ -501,7 +501,7 @@ fun make_axiom_arity_clause (tcons,(res,args)) =
 datatype classrelClause = 
 	 ClassrelClause of {clause_id: clause_id,
 			    subclass: class,
-			    superclass: class Library.option};
+			    superclass: class option};
 
 fun make_classrelClause (clause_id,subclass,superclass) =
     ClassrelClause {clause_id = clause_id,subclass = subclass, superclass = superclass};
@@ -510,8 +510,8 @@ fun make_classrelClause (clause_id,subclass,superclass) =
 fun make_axiom_classrelClause (subclass,superclass) =
     let val cls_id = generate_id()
 	val sub = make_type_class subclass
-	val sup = case superclass of None => None 
-				   | Some s => Some (make_type_class s)
+	val sup = case superclass of NONE => NONE 
+				   | SOME s => SOME (make_type_class s)
     in
 	make_classrelClause(cls_id,sub,sup)
     end;
@@ -519,11 +519,11 @@ fun make_axiom_classrelClause (subclass,superclass) =
 
 
 fun classrelClauses_of_aux (sub,[]) = []
-  | classrelClauses_of_aux (sub,(sup::sups)) = make_axiom_classrelClause(sub,Some sup) :: (classrelClauses_of_aux (sub,sups));
+  | classrelClauses_of_aux (sub,(sup::sups)) = make_axiom_classrelClause(sub,SOME sup) :: (classrelClauses_of_aux (sub,sups));
 
 
 fun classrelClauses_of (sub,sups) = 
-    case sups of [] => [make_axiom_classrelClause (sub,None)]
+    case sups of [] => [make_axiom_classrelClause (sub,NONE)]
 	       | _ => classrelClauses_of_aux (sub, sups);
 
 
@@ -673,8 +673,8 @@ val clrelclause_prefix = "relcls_";
 fun tptp_classrelLits sub sup = 
     let val tvar = "(T)"
     in 
-	case sup of None => "[++" ^ sub ^ tvar ^ "]"
-		  | (Some supcls) =>  "[--" ^ sub ^ tvar ^ ",++" ^ supcls ^ tvar ^ "]"
+	case sup of NONE => "[++" ^ sub ^ tvar ^ "]"
+		  | (SOME supcls) =>  "[--" ^ sub ^ tvar ^ ",++" ^ supcls ^ tvar ^ "]"
     end;
 
 

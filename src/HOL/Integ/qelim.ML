@@ -51,7 +51,7 @@ fun decomp_qe is_at afnp nfnp qfnp sg P =
       end
 
    |(Const("All",_)$Abs(xn,xT,p)) => ([(HOLogic.exists_const xT)$Abs(xn,xT,HOLogic.Not $ p)], fn [th] => th RS qe_ALL)
-   | _ => ([],fn [] => instantiate' [Some (ctyp_of sg (type_of P))] [Some (cterm_of sg P)] refl);
+   | _ => ([],fn [] => instantiate' [SOME (ctyp_of sg (type_of P))] [SOME (cterm_of sg P)] refl);
  
 
 fun tproof_of_mlift_qelim sg isat afnp nfnp qfnp p = 

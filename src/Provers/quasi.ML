@@ -57,7 +57,7 @@ sig
   val less_imp_neq : thm (* x < y ==> x ~= y *)
 
   (* Analysis of premises and conclusion *)
-  (* decomp_x (`x Rel y') should yield Some (x, Rel, y)
+  (* decomp_x (`x Rel y') should yield SOME (x, Rel, y)
        where Rel is one of "<", "<=", "=" and "~=",
        other relation symbols cause an error message *)
   (* decomp_trans is used by trans_tac, it may only return Rel = "<=" *)
@@ -127,12 +127,12 @@ fun getprf   (Less (_, _, p)) = p
 
 fun mkasm_trans sign (t, n) =
   case Less.decomp_trans sign t of
-    Some (x, rel, y) => 
+    SOME (x, rel, y) => 
     (case rel of
      "<="  =>  [Le (x, y, Asm n)]
     | _     => error ("trans_tac: unknown relation symbol ``" ^ rel ^
                  "''returned by decomp_trans."))
-  | None => [];
+  | NONE => [];
   
 (* ************************************************************************ *)
 (*                                                                          *)
@@ -146,7 +146,7 @@ fun mkasm_trans sign (t, n) =
 
 fun mkasm_quasi sign (t, n) =
   case Less.decomp_quasi sign t of
-    Some (x, rel, y) => (case rel of
+    SOME (x, rel, y) => (case rel of
       "<"   => if (x aconv y) then raise Contr (Thm ([Asm n], Less.less_reflE)) 
                else [Less (x, y, Asm n)]
     | "<="  => [Le (x, y, Asm n)]
@@ -158,7 +158,7 @@ fun mkasm_quasi sign (t, n) =
                       NotEq (y, x,Thm ( [Asm n], thm "not_sym"))] 
     | _     => error ("quasi_tac: unknown relation symbol ``" ^ rel ^
                  "''returned by decomp_quasi."))
-  | None => [];
+  | NONE => [];
 
 
 (* ************************************************************************ *)
@@ -173,10 +173,10 @@ fun mkasm_quasi sign (t, n) =
   
 fun mkconcl_trans sign t =
   case Less.decomp_trans sign t of
-    Some (x, rel, y) => (case rel of
+    SOME (x, rel, y) => (case rel of
      "<="  => (Le (x, y, Asm ~1), Asm 0) 
     | _  => raise Cannot)
-  | None => raise Cannot;
+  | NONE => raise Cannot;
   
   
 (* ************************************************************************ *)
@@ -190,12 +190,12 @@ fun mkconcl_trans sign t =
 
 fun mkconcl_quasi sign t =
   case Less.decomp_quasi sign t of
-    Some (x, rel, y) => (case rel of
+    SOME (x, rel, y) => (case rel of
       "<"   => ([Less (x, y, Asm ~1)], Asm 0)
     | "<="  => ([Le (x, y, Asm ~1)], Asm 0)
     | "~="  => ([NotEq (x,y, Asm ~1)], Asm 0)
     | _  => raise Cannot)
-| None => raise Cannot;
+| NONE => raise Cannot;
   
   
 (* ******************************************************************* *)
@@ -266,16 +266,16 @@ fun (Le (x, y, _)) subsumes (Le (x', y', _)) =
 
 (* ******************************************************************* *)
 (*                                                                     *)
-(* triv_solv less1 : less ->  proof Library.option                     *)
+(* triv_solv less1 : less ->  proof option                     *)
 (*                                                                     *)
 (* Solves trivial goal x <= x.                                         *)
 (*                                                                     *)
 (* ******************************************************************* *)
 
 fun triv_solv (Le (x, x', _)) =
-    if x aconv x' then  Some (Thm ([], Less.le_refl)) 
-    else None
-|   triv_solv _ = None;
+    if x aconv x' then  SOME (Thm ([], Less.le_refl)) 
+    else NONE
+|   triv_solv _ = NONE;
 
 (* ********************************************************************* *)
 (* Graph functions                                                       *)
@@ -463,15 +463,15 @@ fun findQuasiProof (leG, neqE) subgoal =
    end )
   | (Less (x,y,_))  => (
    let 
-    fun findParallelNeq []  = None
+    fun findParallelNeq []  = NONE
     |   findParallelNeq (e::es)  =
-     if      (x aconv (lower e) andalso y aconv (upper e)) then Some e
-     else if (y aconv (lower e) andalso x aconv (upper e)) then Some (NotEq (x,y, (Thm ([getprf e], thm "not_sym"))))
+     if      (x aconv (lower e) andalso y aconv (upper e)) then SOME e
+     else if (y aconv (lower e) andalso x aconv (upper e)) then SOME (NotEq (x,y, (Thm ([getprf e], thm "not_sym"))))
      else findParallelNeq es ;  
    in
    (* test if there is a edge x ~= y respectivly  y ~= x and     *)
    (* if it possible to find a path x <= y in leG, thus we can conclude x < y *)
-    (case findParallelNeq neqE of (Some e) => 
+    (case findParallelNeq neqE of (SOME e) => 
       let 
        val (xyLeFound,xyLePath) = findPath x y leG 
       in
@@ -487,7 +487,7 @@ fun findQuasiProof (leG, neqE) subgoal =
  | (NotEq (x,y,_)) => 
   (* First check if a single premiss is sufficient *)
   (case (Library.find_first (fn fact => fact subsumes subgoal) neqE, subgoal) of
-    (Some (NotEq (x, y, p)), NotEq (x', y', _)) =>
+    (SOME (NotEq (x, y, p)), NotEq (x', y', _)) =>
       if  (x aconv x' andalso y aconv y') then p 
       else Thm ([p], thm "not_sym")
     | _  => raise Cannot 
@@ -540,8 +540,8 @@ fun solveQuasiOrder sign (asms, concl) =
    let 
    val (subgoals, prf) = mkconcl_quasi sign concl
    fun solve facts less =
-       (case triv_solv less of None => findQuasiProof (leG, neqE) less
-       | Some prf => prf )
+       (case triv_solv less of NONE => findQuasiProof (leG, neqE) less
+       | SOME prf => prf )
   in   map (solve asms) subgoals end
  end;
 

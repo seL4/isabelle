@@ -606,10 +606,10 @@ val meta_number_of_approx_reorient = number_of_approx_reorient RS eq_reflection
   0 = x, 1 = x, nnn = x provided x isn't 0, 1 or a numeral.*)
 fun reorient_proc sg _ (_ $ t $ u) =
   case u of
-      Const("0", _) => None
-    | Const("1", _) => None
-    | Const("Numeral.number_of", _) $ _ => None
-    | _ => Some (case t of
+      Const("0", _) => NONE
+    | Const("1", _) => NONE
+    | Const("Numeral.number_of", _) $ _ => NONE
+    | _ => SOME (case t of
                 Const("0", _) => meta_zero_approx_reorient
               | Const("1", _) => meta_one_approx_reorient
               | Const("Numeral.number_of", _) $ _ =>

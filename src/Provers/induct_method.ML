@@ -43,19 +43,19 @@ fun align_right msg xs ys =
 
 fun prep_inst align cert tune (tm, ts) =
   let
-    fun prep_var (x, Some t) =
+    fun prep_var (x, SOME t) =
           let
             val cx = cert x;
             val {T = xT, sign, ...} = Thm.rep_cterm cx;
             val ct = cert (tune t);
           in
-            if Sign.typ_instance sign (#T (Thm.rep_cterm ct), xT) then Some (cx, ct)
+            if Sign.typ_instance sign (#T (Thm.rep_cterm ct), xT) then SOME (cx, ct)
             else raise ERROR_MESSAGE (Pretty.string_of (Pretty.block
              [Pretty.str "Ill-typed instantiation:", Pretty.fbrk,
               Display.pretty_cterm ct, Pretty.str " ::", Pretty.brk 1,
               Display.pretty_ctyp (#T (Thm.crep_cterm ct))]))
           end
-      | prep_var (_, None) = None;
+      | prep_var (_, NONE) = NONE;
     val xs = InductAttrib.vars_of tm;
   in
     align "Rule has fewer variables than instantiations given" xs ts
@@ -82,7 +82,7 @@ fun resolveq_cases_tac make ruleq i st =
     |> Seq.map (rpair (make (Thm.sign_of_thm rule, Thm.prop_of rule) cases)))
   |> Seq.flat;
 
-fun find_casesT ctxt ((Some t :: _) :: _) = InductAttrib.find_casesT ctxt (fastype_of t)
+fun find_casesT ctxt ((SOME t :: _) :: _) = InductAttrib.find_casesT ctxt (fastype_of t)
   | find_casesT _ _ = [];
 
 fun find_casesS ctxt (fact :: _) = InductAttrib.find_casesS ctxt fact
@@ -101,16 +101,16 @@ fun cases_tac (ctxt, (is_open, (insts, opt_rule))) facts =
 
     val ruleq =
       (case opt_rule of
-        None =>
+        NONE =>
           let val rules = find_casesS ctxt facts @ find_casesT ctxt insts @ [Data.cases_default] in
             Method.trace ctxt rules;
             Seq.flat (Seq.map (Seq.try inst_rule) (Seq.of_list rules))
           end
-      | Some r => Seq.single (inst_rule r));
+      | SOME r => Seq.single (inst_rule r));
 
     fun prep_rule (th, (cases, n)) = Seq.map (apsnd (rpair (drop (n, facts))) o rpair cases)
       (Method.multi_resolves (take (n, facts)) [th]);
-  in resolveq_cases_tac (RuleCases.make is_open None) (Seq.flat (Seq.map prep_rule ruleq)) end;
+  in resolveq_cases_tac (RuleCases.make is_open NONE) (Seq.flat (Seq.map prep_rule ruleq)) end;
 
 in
 
@@ -229,7 +229,7 @@ fun resolveq_cases_tac' make is_open ruleq i st =
     |> (Method.insert_tac more_facts THEN' atomize_tac) i
     |> Seq.map (fn st' => divinate_inst (internalize k rule) i st' |> Seq.map (fn rule' =>
           st' |> Tactic.rtac rule' i
-          |> Seq.map (rpair (make is_open (Some (Thm.prop_of rule')) (rulified_term rule') cases)))
+          |> Seq.map (rpair (make is_open (SOME (Thm.prop_of rule')) (rulified_term rule') cases)))
       |> Seq.flat)
     |> Seq.flat)
   |> Seq.flat;
@@ -245,7 +245,7 @@ fun (tac1 THEN_ALL_NEW_CASES tac2) i st =
 
 (* rename all outermost !!-bound vars of type T in all premises of thm to x,
    possibly indexed to avoid clashes *)
-fun rename [[Some(Free(x,Type(T,_)))]] thm =
+fun rename [[SOME(Free(x,Type(T,_)))]] thm =
   let
     fun index i [] = []
       | index i (y::ys) = if x=y then x^string_of_int i :: index (i+1) ys
@@ -268,7 +268,7 @@ fun rename [[Some(Free(x,Type(T,_)))]] thm =
   | rename _ thm = thm;
 
 fun find_inductT ctxt insts =
-  foldr multiply (insts |> mapfilter (fn [] => None | ts => last_elem ts)
+  foldr multiply (insts |> mapfilter (fn [] => NONE | ts => last_elem ts)
     |> map (InductAttrib.find_inductT ctxt o fastype_of), [[]])
   |> map join_rules |> flat |> map (rename insts);
 
@@ -284,7 +284,7 @@ fun induct_tac (ctxt, (is_open, (insts, opt_rule))) facts =
     val cert = Thm.cterm_of sg;
 
     fun rule_versions r = Seq.cons (r, Seq.filter (not o curry Thm.eq_thm r)
-        (Seq.make (fn () => Some (localize r, Seq.empty))))
+        (Seq.make (fn () => SOME (localize r, Seq.empty))))
       |> Seq.map (rpair (RuleCases.get r));
 
     val inst_rule = apfst (fn r =>
@@ -296,13 +296,13 @@ fun induct_tac (ctxt, (is_open, (insts, opt_rule))) facts =
 
     val ruleq =
       (case opt_rule of
-        None =>
+        NONE =>
           let val rules = find_inductS ctxt facts @ find_inductT ctxt insts in
             conditional (null rules) (fn () => error "Unable to figure out induct rule");
             Method.trace ctxt rules;
             rules |> Seq.THEN (Seq.of_list, Seq.THEN (rule_versions, Seq.try inst_rule))
           end
-      | Some r => r |> Seq.THEN (rule_versions, Seq.single o inst_rule));
+      | SOME r => r |> Seq.THEN (rule_versions, Seq.single o inst_rule));
 
     fun prep_rule (th, (cases, n)) =
       Seq.map (rpair (cases, n - length facts, drop (n, facts)))
@@ -327,8 +327,8 @@ val ofN = "of";
 local
 
 fun check k get name =
-  (case get name of Some x => x
-  | None => error ("No rule for " ^ k ^ " " ^ quote name));
+  (case get name of SOME x => x
+  | NONE => error ("No rule for " ^ k ^ " " ^ quote name));
 
 fun spec k = (Args.$$$ k -- Args.colon) |-- Args.!!! Args.name;
 
@@ -350,7 +350,7 @@ val kind_inst =
     -- Args.colon;
 val term = Scan.unless (Scan.lift kind_inst) Args.local_term;
 val term_dummy = Scan.unless (Scan.lift kind_inst)
-  (Scan.lift (Args.$$$ "_") >> K None || Args.local_term >> Some);
+  (Scan.lift (Args.$$$ "_") >> K NONE || Args.local_term >> SOME);
 
 val instss = Args.and_list (Scan.repeat term_dummy);
 

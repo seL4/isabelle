@@ -76,8 +76,8 @@ struct
 			">/dev/null 2>&1"))
       val svc_output =
         (case Library.try File.read svc_output_file of
-          Some out => out
-        | None => error "SVC returned no output");
+          SOME out => out
+        | NONE => error "SVC returned no output");
   in
       if ! trace then tracing ("SVC Returns:\n" ^ svc_output)
       else (File.rm svc_input_file; File.rm svc_output_file);

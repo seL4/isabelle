@@ -40,13 +40,13 @@ fun gen_constdef prep_typ prep_term prep_att
 
     val ctxt =
       ProofContext.init thy |> ProofContext.add_fixes
-        (flat (map (fn (As, T) => map (fn A => (A, T, None)) As) structs));
+        (flat (map (fn (As, T) => map (fn A => (A, T, NONE)) As) structs));
     val (ctxt', d, mx) =
-      (case decl of None => (ctxt, None, Syntax.NoSyn) | Some (x, raw_T, mx) =>
+      (case decl of NONE => (ctxt, NONE, Syntax.NoSyn) | SOME (x, raw_T, mx) =>
         let
           val x' = Syntax.const_name x mx and mx' = Syntax.fix_mixfix x mx;
           val T = apsome (prep_typ ctxt) raw_T;
-        in (ProofContext.add_fixes_liberal [(x', T, Some mx')] ctxt, Some x', mx') end);
+        in (ProofContext.add_fixes_liberal [(x', T, SOME mx')] ctxt, SOME x', mx') end);
 
     val prop = prep_term ctxt' raw_prop;
     val concl = Logic.strip_imp_concl prop;
@@ -55,7 +55,7 @@ fun gen_constdef prep_typ prep_term prep_att
     val head = Term.head_of lhs;
     val (c, T) = Term.dest_Free head handle TERM _ =>
       err "Locally fixed variable required as head of definition:" [head];
-    val _ = (case d of None => () | Some c' =>
+    val _ = (case d of NONE => () | SOME c' =>
       if c <> c' then
         err ("Head of definition " ^ quote c ^ " differs from declaration " ^ quote c') []
       else ());

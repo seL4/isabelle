@@ -20,7 +20,7 @@ sig
   val NTH : int -> ('a -> 'b Seq.seq) -> 'a -> 'b Seq.seq
   val all_but_last_of_seq : 'a Seq.seq -> 'a Seq.seq
   val nat_seq : int Seq.seq
-  val nth_of_seq : int -> 'a Seq.seq -> 'a Library.option
+  val nth_of_seq : int -> 'a Seq.seq -> 'a option
   val pair_seq : 'a Seq.seq -> 'b Seq.seq -> ('a * 'b) Seq.seq
   val seq_is_empty : 'a Seq.seq -> bool
   val number_seq : 'a Seq.seq -> (int * 'a) Seq.seq
@@ -51,9 +51,9 @@ sig
   val string_of_list : ('a -> string) -> 'a list -> string
 
   (* options *)
-  val aptosome : 'a Library.option -> ('a -> 'b) -> 'b Library.option
-  val seq_mapfilter : ('a -> 'b Library.option) -> 'a Seq.seq -> 'b Seq.seq
-  val seq_map_to_some_filter : ('a -> 'b) -> 'a Library.option Seq.seq 
+  val aptosome : 'a option -> ('a -> 'b) -> 'b option
+  val seq_mapfilter : ('a -> 'b option) -> 'a Seq.seq -> 'b Seq.seq
+  val seq_map_to_some_filter : ('a -> 'b) -> 'a option Seq.seq 
                                -> 'b Seq.seq
 end;
 
@@ -70,20 +70,20 @@ fun seq_map_to_some_filter f s0 =
     let 
       fun recf s () = 
           case (Seq.pull s) of 
-            None => None
-          | Some (None,s') => recf s' ()
-          | Some (Some d, s') => 
-            Some (f d, Seq.make (recf s'))
+            NONE => NONE
+          | SOME (NONE,s') => recf s' ()
+          | SOME (SOME d, s') => 
+            SOME (f d, Seq.make (recf s'))
     in Seq.make (recf s0) end;
 
 fun seq_mapfilter f s0 =
     let 
       fun recf s () = 
           case (Seq.pull s) of 
-            None => None
-          | Some (a,s') => 
-            (case f a of None => recf s' ()
-                       | Some b => Some (b, Seq.make (recf s')))
+            NONE => NONE
+          | SOME (a,s') => 
+            (case f a of NONE => recf s' ()
+                       | SOME b => SOME (b, Seq.make (recf s')))
     in Seq.make (recf s0) end;
 
 
@@ -98,7 +98,7 @@ fun seq_is_empty s = is_none (Seq.pull s);
 
 (* the sequence of natural numbers *)
 val nat_seq = 
-      let fun nseq i () = Some (i, Seq.make (nseq (i+1)))
+      let fun nseq i () = SOME (i, Seq.make (nseq (i+1)))
       in Seq.make (nseq 1)
       end;
 
@@ -119,12 +119,12 @@ fun pair_seq seq1 seq2 =
     let
       fun pseq s1 s2 () = 
 	        case Seq.pull s1 of 
-	          None => None
-	        | Some (s1h, s1t) => 
+	          NONE => NONE
+	        | SOME (s1h, s1t) => 
 	          case Seq.pull s2 of 
-		          None => None
-	          | Some (s2h, s2t) =>
-		          Some ((s1h, s2h), Seq.make (pseq s1t s2t))
+		          NONE => NONE
+	          | SOME (s2h, s2t) =>
+		          SOME ((s1h, s2h), Seq.make (pseq s1t s2t))
     in
       Seq.make (pseq seq1 seq2)
     end;
@@ -137,12 +137,12 @@ fun all_but_last_of_seq s =
     let 
       fun f () = 
 	  case Seq.pull s of
-	    None => None
-	  | Some (a, s2) => 
+	    NONE => NONE
+	  | SOME (a, s2) => 
 	    (case Seq.pull s2 of 
-	       None => None
-	     | Some (a2,s3) => 
-	       Some (a, all_but_last_of_seq (Seq.cons (a2,s3))))
+	       NONE => NONE
+	     | SOME (a2,s3) => 
+	       SOME (a, all_but_last_of_seq (Seq.cons (a2,s3))))
     in
       Seq.make f
     end;
@@ -152,8 +152,8 @@ fun all_but_last_of_seq s =
 
   (* nth elem for sequenes, return none if out of bounds *)
   fun nth_of_seq i l = 
-           if (seq_is_empty l) then None 
-           else if i <= 1 then Some (Seq.hd l)
+           if (seq_is_empty l) then NONE 
+           else if i <= 1 then SOME (Seq.hd l)
            else nth_of_seq (i-1) (Seq.tl l);
 
   (* for use with tactics... gives no_tac if element isn't there *)
@@ -290,7 +290,7 @@ fun forall_list f [] = true
 
 
   (* options *)
-  fun aptosome None f = None
-    | aptosome (Some x) f = Some (f x);
+  fun aptosome NONE f = NONE
+    | aptosome (SOME x) f = SOME (f x);
 
 end;

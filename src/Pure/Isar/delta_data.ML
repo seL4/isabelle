@@ -31,8 +31,8 @@ fun get ctxt =
     let val delta_tab = ProofContext.get_delta ctxt
 	val delta_data = Symtab.lookup(delta_tab,key) 
     in
-	case delta_data of (Some (Data d)) => d 
-			 | None => (Args.empty)
+	case delta_data of (SOME (Data d)) => d 
+			 | NONE => (Args.empty)
     end;
 
 fun put delta_data ctxt = 

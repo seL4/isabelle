@@ -71,7 +71,7 @@ fun cabs a t = Thm.cabs a t
 
 
 (*---------------------------------------------------------------------------
- * Some simple constructor functions.
+ * SOME simple constructor functions.
  *---------------------------------------------------------------------------*)
 
 val mk_hol_const = Thm.cterm_of (Theory.sign_of HOL.thy) o Const;
@@ -124,7 +124,7 @@ fun dest_binop expected tm =
  in (dest_monop expected M, N) handle U.ERR _ => err () end;
 
 fun dest_binder expected tm =
-  dest_abs None (dest_monop expected tm)
+  dest_abs NONE (dest_monop expected tm)
   handle U.ERR _ => raise ERR "dest_binder" ("Not a(n) " ^ quote expected);
 
 
@@ -175,7 +175,7 @@ fun rev2swap (x,l) = (rev l, x);
 
 val strip_comb   = strip (Library.swap o dest_comb)  (* Goes to the "left" *)
 val strip_imp    = rev2swap o strip dest_imp
-val strip_abs    = rev2swap o strip (dest_abs None)
+val strip_abs    = rev2swap o strip (dest_abs NONE)
 val strip_forall = rev2swap o strip dest_forall
 val strip_exists = rev2swap o strip dest_exists
 

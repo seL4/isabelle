@@ -92,7 +92,7 @@ fun mk_numeral 0 = Const("0",HOLogic.intT)
 fun dest_numeral (Const("0",Type ("IntDef.int", []))) = 0
    |dest_numeral (Const("1",Type ("IntDef.int", []))) = 1
    |dest_numeral (Const ("Numeral.number_of",_) $ n)= HOLogic.dest_binum n; 
-(*Some terms often used for pattern matching*) 
+(*SOME terms often used for pattern matching*) 
  
 val zero = mk_numeral 0; 
 val one = mk_numeral 1; 
@@ -450,7 +450,7 @@ val operations =
   [("op =",op=), ("op <",op<), ("op >",op>), ("op <=",op<=) , ("op >=",op>=), 
    ("Divides.op dvd",fn (x,y) =>((y mod x) = 0))]; 
  
-fun applyoperation (Some f) (a,b) = f (a, b) 
+fun applyoperation (SOME f) (a,b) = f (a, b) 
     |applyoperation _ (_, _) = false; 
  
 (*Evaluation of constant atomic formulas*) 
@@ -464,12 +464,12 @@ fun evalc_atom at = case at of
       handle _ => at)
     else
   case assoc (operations,p) of 
-    Some f => ((if (f ((dest_numeral s),(dest_numeral t))) then HOLogic.true_const else HOLogic.false_const)  
+    SOME f => ((if (f ((dest_numeral s),(dest_numeral t))) then HOLogic.true_const else HOLogic.false_const)  
     handle _ => at) 
       | _ =>  at) 
       |Const("Not",_)$(Const (p,_) $ s $ t) =>(  
   case assoc (operations,p) of 
-    Some f => ((if (f ((dest_numeral s),(dest_numeral t))) then 
+    SOME f => ((if (f ((dest_numeral s),(dest_numeral t))) then 
     HOLogic.false_const else HOLogic.true_const)  
     handle _ => at) 
       | _ =>  at) 
@@ -480,12 +480,12 @@ fun evalc_atom at = case at of
 fun evalc_atom at = case at of  
   (Const (p,_) $ s $ t) =>
    ( case assoc (operations,p) of 
-    Some f => ((if (f ((dest_numeral s),(dest_numeral t))) then HOLogic.true_const else HOLogic.false_const)  
+    SOME f => ((if (f ((dest_numeral s),(dest_numeral t))) then HOLogic.true_const else HOLogic.false_const)  
     handle _ => at) 
       | _ =>  at) 
       |Const("Not",_)$(Const (p,_) $ s $ t) =>(  
   case assoc (operations,p) of 
-    Some f => ((if (f ((dest_numeral s),(dest_numeral t))) then 
+    SOME f => ((if (f ((dest_numeral s),(dest_numeral t))) then 
     HOLogic.false_const else HOLogic.true_const)  
     handle _ => at) 
       | _ =>  at) 
@@ -711,14 +711,14 @@ fun cooperpi vars1 fm =
 fun inf_w mi d vars x p = 
   let val f = if mi then minusinf else plusinf in
    case (simpl (minusinf x p)) of
-   Const("True",_)  => (Some (mk_numeral 1), HOLogic.true_const)
-  |Const("False",_) => (None,HOLogic.false_const)
+   Const("True",_)  => (SOME (mk_numeral 1), HOLogic.true_const)
+  |Const("False",_) => (NONE,HOLogic.false_const)
   |F => 
       let 
       fun h n =
        case ((simpl o evalc) (linrep vars x (mk_numeral n) F)) of 
-	Const("True",_) => (Some (mk_numeral n),HOLogic.true_const)
-       |F' => if n=1 then (None,F')
+	Const("True",_) => (SOME (mk_numeral n),HOLogic.true_const)
+       |F' => if n=1 then (NONE,F')
 	     else let val (rw,rf) = h (n-1) in 
 	       (rw,HOLogic.mk_disj(F',rf))
 	     end
@@ -729,9 +729,9 @@ fun inf_w mi d vars x p =
 
 fun set_w d b st vars x p = let 
     fun h ns = case ns of 
-    [] => (None,HOLogic.false_const)
+    [] => (NONE,HOLogic.false_const)
    |n::nl => ( case ((simpl o evalc) (linrep vars x n p)) of
-      Const("True",_) => (Some n,HOLogic.true_const)
+      Const("True",_) => (SOME n,HOLogic.true_const)
       |F' => let val (rw,rf) = h nl 
              in (rw,HOLogic.mk_disj(F',rf)) 
 	     end)
@@ -741,10 +741,10 @@ fun set_w d b st vars x p = let
     end;
 
 fun withness d b st vars x p = case (inf_w b d vars x p) of 
-   (Some n,_) => (Some n,HOLogic.true_const)
-  |(None,Pinf) => (case (set_w d b st vars x p) of 
-    (Some n,_) => (Some n,HOLogic.true_const)
-    |(_,Pst) => (None,HOLogic.mk_disj(Pinf,Pst)));
+   (SOME n,_) => (SOME n,HOLogic.true_const)
+  |(NONE,Pinf) => (case (set_w d b st vars x p) of 
+    (SOME n,_) => (SOME n,HOLogic.true_const)
+    |(_,Pst) => (NONE,HOLogic.mk_disj(Pinf,Pst)));
 
 
 

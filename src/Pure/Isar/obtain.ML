@@ -97,7 +97,7 @@ fun gen_obtain prep_vars prep_propp raw_vars raw_asms print state =
     val raw_parms = map occs_var xs;
     val parms = mapfilter I raw_parms;
     val parm_names =
-      mapfilter (fn (Some (Free a), x) => Some (a, x) | _ => None) (raw_parms ~~ xs);
+      mapfilter (fn (SOME (Free a), x) => SOME (a, x) | _ => NONE) (raw_parms ~~ xs);
 
     val that_prop =
       Term.list_all_free (map #1 parm_names, Logic.list_implies (asm_props, bound_thesis))
@@ -107,7 +107,7 @@ fun gen_obtain prep_vars prep_propp raw_vars raw_asms print state =
         Term.list_all_free ([bound_thesis_var], Logic.mk_implies (that_prop, bound_thesis)));
 
     fun after_qed st = st
-      |> Method.local_qed false None print
+      |> Method.local_qed false NONE print
       |> Seq.map (fn st' => st'
         |> Proof.fix_i vars
         |> Proof.assm_i (export_obtain state parms (Proof.the_fact st')) asms);
@@ -115,9 +115,9 @@ fun gen_obtain prep_vars prep_propp raw_vars raw_asms print state =
     state
     |> Proof.enter_forward
     |> Proof.have_i Seq.single true [(("", []), [(obtain_prop, ([], []))])]
-    |> Method.proof (Some (Method.Basic (K Method.succeed))) |> Seq.hd
-    |> Proof.fix_i [([thesisN], None)]
-    |> Proof.assume_i [((thatN, [ContextRules.intro_query_local None]), [(that_prop, ([], []))])]
+    |> Method.proof (SOME (Method.Basic (K Method.succeed))) |> Seq.hd
+    |> Proof.fix_i [([thesisN], NONE)]
+    |> Proof.assume_i [((thatN, [ContextRules.intro_query_local NONE]), [(that_prop, ([], []))])]
     |> (fn state' =>
         state'
         |> Proof.from_facts chain_facts

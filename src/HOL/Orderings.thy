@@ -290,21 +290,21 @@ fun decomp_gen sort sign (Trueprop $ t) =
   let fun of_sort t = Sign.of_sort sign (type_of t, sort)
   fun dec (Const ("Not", _) $ t) = (
 	  case dec t of
-	    None => None
-	  | Some (t1, rel, t2) => Some (t1, "~" ^ rel, t2))
+	    NONE => NONE
+	  | SOME (t1, rel, t2) => SOME (t1, "~" ^ rel, t2))
 	| dec (Const ("op =",  _) $ t1 $ t2) =
 	    if of_sort t1
-	    then Some (t1, "=", t2)
-	    else None
+	    then SOME (t1, "=", t2)
+	    else NONE
 	| dec (Const ("op <=",  _) $ t1 $ t2) =
 	    if of_sort t1
-	    then Some (t1, "<=", t2)
-	    else None
+	    then SOME (t1, "<=", t2)
+	    else NONE
 	| dec (Const ("op <",  _) $ t1 $ t2) =
 	    if of_sort t1
-	    then Some (t1, "<", t2)
-	    else None
-	| dec _ = None
+	    then SOME (t1, "<", t2)
+	    else NONE
+	| dec _ = NONE
   in dec t end;
 
 structure Quasi_Tac = Quasi_Tac_Fun (

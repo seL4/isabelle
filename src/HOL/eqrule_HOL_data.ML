@@ -25,9 +25,9 @@ val conjunct2 = thm "conjunct2";
 val conjunct1 = thm "conjunct1";
 
 fun mk_eq th = case concl_of th of
-        Const("==",_)$_$_       => Some (th)
-    |   _$(Const("op =",_)$_$_) => Some (th RS eq_reflection)
-    |   _ => None;
+        Const("==",_)$_$_       => SOME (th)
+    |   _$(Const("op =",_)$_$_) => SOME (th RS eq_reflection)
+    |   _ => NONE;
 
 val tranformation_pairs =
   [("op -->", [mp]), ("op &", [conjunct1,conjunct2]),
@@ -45,8 +45,8 @@ fun mk_atomize pairs =
              (case Term.head_of p of
                 Const(a,_) =>
                   (case Library.assoc(pairs,a) of
-                     Some(rls) => flat (map atoms ([th] RL rls))
-                   | None => [th])
+                     SOME(rls) => flat (map atoms ([th] RL rls))
+                   | NONE => [th])
               | _ => [th])
          | _ => [th])
   in atoms end;

@@ -86,42 +86,42 @@ fun make f = Seq (delay f)
 fun null s = is_some (getItem s)
 
 local
-    fun F n None = n
-      | F n (Some(_,s)) = F (n+1) (getItem s)
+    fun F n NONE = n
+      | F n (SOME(_,s)) = F (n+1) (getItem s)
 in
 fun length s = F 0 (getItem s)
 end
 
 fun s1 @ s2 =
     let
-	fun F None = getItem s2
-	  | F (Some(x,s1')) = Some(x,F' s1')
+	fun F NONE = getItem s2
+	  | F (SOME(x,s1')) = SOME(x,F' s1')
 	and F' s = make (fn () => F (getItem s))
     in
 	F' s1
     end
 
 local
-    fun F None = raise Empty
-      | F (Some arg) = arg
+    fun F NONE = raise Empty
+      | F (SOME arg) = arg
 in
 fun hd s = #1 (F (getItem s))
 fun tl s = #2 (F (getItem s))
 end
 
 local
-    fun F x None = x
-      | F _ (Some(x,s)) = F x (getItem s)
-    fun G None = raise Empty
-      | G (Some(x,s)) = F x (getItem s)
+    fun F x NONE = x
+      | F _ (SOME(x,s)) = F x (getItem s)
+    fun G NONE = raise Empty
+      | G (SOME(x,s)) = F x (getItem s)
 in
 fun last s = G (getItem s)
 end
 
 local
-    fun F None _ = raise Subscript
-      | F (Some(x,_)) 0 = x
-      | F (Some(_,s)) n = F (getItem s) (n-1)
+    fun F NONE _ = raise Subscript
+      | F (SOME(x,_)) 0 = x
+      | F (SOME(_,s)) n = F (getItem s) (n-1)
 in
 fun nth(s,n) =
     if n < 0
@@ -130,9 +130,9 @@ fun nth(s,n) =
 end
 
 local
-    fun F None _ = raise Subscript
-      | F (Some(x,s)) n = Some(x,F' s (n-1))
-    and F' s 0 = Seq (value None)
+    fun F NONE _ = raise Subscript
+      | F (SOME(x,s)) n = SOME(x,F' s (n-1))
+    and F' s 0 = Seq (value NONE)
       | F' s n = make (fn () => F (getItem s) n)
 in
 fun take (s,n) =
@@ -143,8 +143,8 @@ end
 
 local
     fun F s 0 = s
-      | F None _ = raise Subscript
-      | F (Some(_,s)) n = F (getItem s) (n-1)
+      | F NONE _ = raise Subscript
+      | F (SOME(_,s)) n = F (getItem s) (n-1)
 in
 fun drop (s,0) = s
   | drop (s,n) = 
@@ -154,25 +154,25 @@ fun drop (s,0) = s
 end
 
 local
-    fun F s None = s
-      | F s (Some(x,s')) = F (Some(x, Seq (value s))) (getItem s')
+    fun F s NONE = s
+      | F s (SOME(x,s')) = F (SOME(x, Seq (value s))) (getItem s')
 in
-fun rev s = make (fn () => F None (getItem s))
+fun rev s = make (fn () => F NONE (getItem s))
 end
 
 local
-    fun F s None = getItem s
-      | F s (Some(x,s')) = F (Seq (value (Some(x,s)))) (getItem s')
+    fun F s NONE = getItem s
+      | F s (SOME(x,s')) = F (Seq (value (SOME(x,s)))) (getItem s')
 in
 fun revAppend (s1,s2) = make (fn () => F s2 (getItem s1))
 end
 
 local
-    fun F None = None
-      | F (Some(s1,s2)) =
+    fun F NONE = NONE
+      | F (SOME(s1,s2)) =
 	let
-	    fun G None = F (getItem s2)
-	      | G (Some(x,s)) = Some(x,make (fn () => G (getItem s)))
+	    fun G NONE = F (getItem s2)
+	      | G (SOME(x,s)) = SOME(x,make (fn () => G (getItem s)))
 	in
 	    G (getItem s1)
 	end
@@ -182,8 +182,8 @@ end
 
 fun app f =
     let
-	fun F None = ()
-	  | F (Some(x,s)) =
+	fun F NONE = ()
+	  | F (SOME(x,s)) =
 	    (f x;
 	     F (getItem s))
     in
@@ -192,8 +192,8 @@ fun app f =
 
 fun map f =
     let
-	fun F None = None
-	  | F (Some(x,s)) = Some(f x,F' s)
+	fun F NONE = NONE
+	  | F (SOME(x,s)) = SOME(f x,F' s)
 	and F' s = make (fn() => F (getItem s))
     in
 	F'
@@ -201,11 +201,11 @@ fun map f =
 
 fun mapPartial f =
     let
-	fun F None = None
-	  | F (Some(x,s)) =
+	fun F NONE = NONE
+	  | F (SOME(x,s)) =
 	    (case f x of
-		 Some y => Some(y,F' s)
-	       | None => F (getItem s))
+		 SOME y => SOME(y,F' s)
+	       | NONE => F (getItem s))
 	and F' s = make (fn()=> F (getItem s))
     in
 	F'
@@ -213,23 +213,23 @@ fun mapPartial f =
 
 fun find P =
     let
-	fun F None = None
-	  | F (Some(x,s)) =
+	fun F NONE = NONE
+	  | F (SOME(x,s)) =
 	    if P x
-	    then Some x
+	    then SOME x
 	    else F (getItem s)
     in
 	F o getItem
     end
 
-(*fun filter p = mapPartial (fn x => if p x then Some x else None)*)
+(*fun filter p = mapPartial (fn x => if p x then SOME x else NONE)*)
 
 fun filter P =
     let
-	fun F None = None
-	  | F (Some(x,s)) =
+	fun F NONE = NONE
+	  | F (SOME(x,s)) =
 	    if P x
-	    then Some(x,F' s)
+	    then SOME(x,F' s)
 	    else F (getItem s)
 	and F' s = make (fn () => F (getItem s))
     in
@@ -240,22 +240,22 @@ fun partition f s =
     let
 	val s' = map (fn x => (x,f x)) s
     in
-	(mapPartial (fn (x,true) => Some x | _ => None) s',
-	 mapPartial (fn (x,false) => Some x | _ => None) s')
+	(mapPartial (fn (x,true) => SOME x | _ => NONE) s',
+	 mapPartial (fn (x,false) => SOME x | _ => NONE) s')
     end
 
 fun exists P =
     let
-	fun F None = false
-	  | F (Some(x,s)) = P x orelse F (getItem s)
+	fun F NONE = false
+	  | F (SOME(x,s)) = P x orelse F (getItem s)
     in
 	F o getItem
     end
 
 fun all P =
     let
-	fun F None = true
-	  | F (Some(x,s)) = P x andalso F (getItem s)
+	fun F NONE = true
+	  | F (SOME(x,s)) = P x andalso F (getItem s)
     in
 	F o getItem
     end
@@ -264,16 +264,16 @@ fun all P =
 
 fun tabulate (n,f) =
     let
-	fun F n = make (fn () => Some(f n,F (n+1)))
+	fun F n = make (fn () => SOME(f n,F (n+1)))
     in
 	F n
     end
 
 fun collate c (s1,s2) =
     let
-	fun F None _ = LESS
-	  | F _ None = GREATER
-	  | F (Some(x,s1)) (Some(y,s2)) =
+	fun F NONE _ = LESS
+	  | F _ NONE = GREATER
+	  | F (SOME(x,s1)) (SOME(y,s2)) =
 	    (case c (x,y) of
 		 LESS => LESS
 	       | GREATER => GREATER
@@ -283,13 +283,13 @@ fun collate c (s1,s2) =
 	F' s1 s2
     end
 
-fun empty  _ = Seq (value None)
-fun single x = Seq(value (Some(x,Seq (value None))))
-fun cons a = Seq(value (Some a))
+fun empty  _ = Seq (value NONE)
+fun single x = Seq(value (SOME(x,Seq (value NONE))))
+fun cons a = Seq(value (SOME a))
 
 fun cycle seqfn =
     let
-	val knot = ref (Seq (value None))
+	val knot = ref (Seq (value NONE))
     in
 	knot := seqfn (fn () => !knot);
 	!knot
@@ -297,15 +297,15 @@ fun cycle seqfn =
 
 fun iterates f =
     let
-	fun F x = make (fn() => Some(x,F (f x)))
+	fun F x = make (fn() => SOME(x,F (f x)))
     in
 	F
     end
 
 fun interleave (s1,s2) =
     let
-	fun F None = getItem s2
-	  | F (Some(x,s1')) = Some(x,interleave(s2,s1'))
+	fun F NONE = getItem s2
+	  | F (SOME(x,s1')) = SOME(x,interleave(s2,s1'))
     in
 	make (fn()=> F (getItem s1))
     end
@@ -313,8 +313,8 @@ fun interleave (s1,s2) =
 (* val force_all = app ignore *)
 
 local
-    fun F None = ()
-      | F (Some(x,s)) = F (getItem s)
+    fun F NONE = ()
+      | F (SOME(x,s)) = F (getItem s)
 in
 fun force_all s = F (getItem s)
 end
@@ -322,15 +322,15 @@ end
 fun of_function f =
     let
 	fun F () = case f () of
-		       Some x => Some(x,make F)
-		     | None => None
+		       SOME x => SOME(x,make F)
+		     | NONE => NONE
     in
 	make F
     end
 
 local
-    fun F [] = None
-      | F (x::xs) = Some(x,F' xs)
+    fun F [] = NONE
+      | F (x::xs) = SOME(x,F' xs)
     and F' xs = make (fn () => F xs)
 in
 fun of_list xs = F' xs
@@ -344,18 +344,18 @@ fun of_instream is =
 	fun get_input () =
 	    case !buffer of
 		(c::cs) => (buffer:=cs;
-			    Some c)
+			    SOME c)
 	      |	[] => (case String.explode (TextIO.input is) of
-			   [] => None
+			   [] => NONE
 			 | (c::cs) => (buffer := cs;
-				       Some c))
+				       SOME c))
     in
 	of_function get_input
     end
 
 local
-    fun F k None = k []
-      | F k (Some(x,s)) = F (fn xs => k (x::xs)) (getItem s)
+    fun F k NONE = k []
+      | F k (SOME(x,s)) = F (fn xs => k (x::xs)) (getItem s)
 in
 fun list_of s = F (fn x => x) (getItem s)
 end
@@ -363,17 +363,17 @@ end
 (* Adapted from seq.ML *)
 
 val succeed = single
-fun fail _ = Seq (value None)
+fun fail _ = Seq (value NONE)
 
 (* fun op THEN (f, g) x = flat (map g (f x)) *)
 
 fun op THEN (f, g) =
     let
-	fun F None = None
-	  | F (Some(x,xs)) =
+	fun F NONE = NONE
+	  | F (SOME(x,xs)) =
 	    let
-		fun G None = F (getItem xs)
-		  | G (Some(y,ys)) = Some(y,make (fn () => G (getItem ys)))
+		fun G NONE = F (getItem xs)
+		  | G (SOME(y,ys)) = SOME(y,make (fn () => G (getItem ys)))
 	    in
 		G (getItem (g x))
 	    end
@@ -384,15 +384,15 @@ fun op THEN (f, g) =
 fun op ORELSE (f, g) x =
     make (fn () =>
 	     case getItem (f x) of
-		 None => getItem (g x)
+		 NONE => getItem (g x)
 	       | some => some)
 
 fun op APPEND (f, g) x =
     let
 	fun copy s =
 	    case getItem s of
-		None => getItem (g x)
-	      | Some(x,xs) => Some(x,make (fn () => copy xs))
+		NONE => getItem (g x)
+	      | SOME(x,xs) => SOME(x,make (fn () => copy xs))
     in
 	make (fn () => copy (f x))
     end
@@ -403,20 +403,20 @@ fun FIRST fs = foldr ORELSE (fs, fail)
 fun TRY f x =
     make (fn () =>
 	     case getItem (f x) of
-		 None => Some(x,Seq (value None))
+		 NONE => SOME(x,Seq (value NONE))
 	       | some => some)
 
 fun REPEAT f =
     let
 	fun rep qs x =
 	    case getItem (f x) of
-		None => Some(x, make (fn () => repq qs))
-	      | Some (x', q) => rep (q :: qs) x'
-	and repq [] = None
+		NONE => SOME(x, make (fn () => repq qs))
+	      | SOME (x', q) => rep (q :: qs) x'
+	and repq [] = NONE
 	  | repq (q :: qs) =
             case getItem q of
-		None => repq qs
-              | Some (x, q) => rep (q :: qs) x
+		NONE => repq qs
+              | SOME (x, q) => rep (q :: qs) x
     in
      fn x => make (fn () => rep [] x)
     end
@@ -434,15 +434,15 @@ fun INTERVAL f i =
 fun DETERM f x =
     make (fn () =>
 	     case getItem (f x) of
-		 None => None
-	       | Some (x', _) => Some(x',Seq (value None)))
+		 NONE => NONE
+	       | SOME (x', _) => SOME(x',Seq (value NONE)))
 
 (*partial function as procedure*)
 fun try f x =
     make (fn () =>
 	     case Library.try f x of
-		 Some y => Some(y,Seq (value None))
-	       | None => None)
+		 SOME y => SOME(y,Seq (value NONE))
+	       | NONE => NONE)
 
 (*functional to print a sequence, up to "count" elements;
   the function prelem should print the element number and also the element*)
@@ -453,8 +453,8 @@ fun print prelem count seq =
 	    then ()
 	    else
 		case getItem xq of
-		    None => ()
-		  | Some (x, xq') =>
+		    NONE => ()
+		  | SOME (x, xq') =>
 		    (prelem k x;
 		     writeln "";
 		     pr (k + 1) xq')
@@ -468,8 +468,8 @@ fun it_right f (xq, yq) =
 	fun its s =
 	    make (fn () =>
 		     case getItem s of
-			 None => getItem yq
-		       | Some (a, s') => getItem(f (a, its s')))
+			 NONE => getItem yq
+		       | SOME (a, s') => getItem(f (a, its s')))
     in
 	its xq
     end
@@ -477,8 +477,8 @@ fun it_right f (xq, yq) =
 (*map over a sequence s1, append the sequence s2*)
 fun mapp f s1 s2 =
     let
-	fun F None = getItem s2
-	  | F (Some(x,s1')) = Some(f x,F' s1')
+	fun F NONE = getItem s2
+	  | F (SOME(x,s1')) = SOME(f x,F' s1')
 	and F' s = make (fn () => F (getItem s))
     in
 	F' s1
@@ -486,22 +486,22 @@ fun mapp f s1 s2 =
 
 (*turn a list of sequences into a sequence of lists*)
 local
-    fun F [] = Some([],Seq (value None))
+    fun F [] = SOME([],Seq (value NONE))
       | F (xq :: xqs) =
         case getItem xq of
-            None => None
-          | Some (x, xq') =>
+            NONE => NONE
+          | SOME (x, xq') =>
             (case F xqs of
-		 None => None
-	       | Some (xs, xsq) =>
+		 NONE => NONE
+	       | SOME (xs, xsq) =>
 		 let
 		     fun G s =
 			 make (fn () =>
 				  case getItem s of
-				      None => F (xq' :: xqs)
-				    | Some(ys,ysq) => Some(x::ys,G ysq))
+				      NONE => F (xq' :: xqs)
+				    | SOME(ys,ysq) => SOME(x::ys,G ysq))
 		 in
-		     Some (x :: xs, G xsq)
+		     SOME (x :: xs, G xsq)
 		 end)
 in
 fun commute xqs = make (fn () => F xqs)
@@ -514,21 +514,21 @@ fun chop (n, xq) =
     then ([], xq)
     else
 	case getItem xq of
-	    None => ([], xq)
-	  | Some (x, xq') => apfst (Library.cons x) (chop (n - 1, xq'))
+	    NONE => ([], xq)
+	  | SOME (x, xq') => apfst (Library.cons x) (chop (n - 1, xq'))
 
 fun foldl f e s =
     let
-	fun F k None = k e
-	  | F k (Some(x,s)) = F (fn y => k (f(x,y))) (getItem s)
+	fun F k NONE = k e
+	  | F k (SOME(x,s)) = F (fn y => k (f(x,y))) (getItem s)
     in
 	F (fn x => x) (getItem s)
     end
 
 fun foldr f e s =
     let
-	fun F e None = e
-	  | F e (Some(x,s)) = F (f(x,e)) (getItem s)
+	fun F e NONE = e
+	  | F e (SOME(x,s)) = F (f(x,e)) (getItem s)
     in
 	F e (getItem s)
     end

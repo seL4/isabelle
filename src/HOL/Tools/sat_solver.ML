@@ -43,7 +43,7 @@ struct
 	exception NOT_CONFIGURED;
 
 (* ------------------------------------------------------------------------- *)
-(* type of partial (satisfying) assignments: 'a i = None' means that 'a' is  *)
+(* type of partial (satisfying) assignments: 'a i = NONE' means that 'a' is  *)
 (*      a satisfying assigment regardless of the value of variable 'i'       *)
 (* ------------------------------------------------------------------------- *)
 
@@ -186,20 +186,20 @@ struct
 
 	fun parse_std_result_file path (satisfiable, assignment_prefix, unsatisfiable) =
 	let
-		(* 'a option -> 'a Library.option *)
+		(* 'a option -> 'a option *)
 		fun option (SOME a) =
-			Some a
+			SOME a
 		  | option NONE =
-			None
+			NONE
 		(* string -> int list *)
 		fun int_list_from_string s =
 			mapfilter (option o Int.fromString) (space_explode " " s)
 		(* int list -> assignment *)
 		fun assignment_from_list [] i =
-			None  (* the SAT solver didn't provide a value for this variable *)
+			NONE  (* the SAT solver didn't provide a value for this variable *)
 		  | assignment_from_list (x::xs) i =
-			if x=i then (Some true)
-			else if x=(~i) then (Some false)
+			if x=i then (SOME true)
+			else if x=(~i) then (SOME false)
 			else assignment_from_list xs i
 		(* int list -> string list -> assignment *)
 		fun parse_assignment xs [] =
@@ -365,27 +365,27 @@ let
 		(* int list -> int list -> int list option *)
 		(* binary increment: list 'xs' of current bits, list 'ys' of all bits (lower bits first) *)
 		fun next_list _ ([]:int list) =
-			None
+			NONE
 		  | next_list [] (y::ys) =
-			Some [y]
+			SOME [y]
 		  | next_list (x::xs) (y::ys) =
 			if x=y then
 				(* reset the bit, continue *)
 				next_list xs ys
 			else
 				(* set the lowest bit that wasn't set before, keep the higher bits *)
-				Some (y::x::xs)
+				SOME (y::x::xs)
 		(* int list -> int -> bool *)
 		fun assignment_from_list xs i =
 			i mem xs
 		(* int list -> SatSolver.result *)
 		fun solver_loop xs =
 			if PropLogic.eval (assignment_from_list xs) fm then
-				SatSolver.SATISFIABLE (Some o (assignment_from_list xs))
+				SatSolver.SATISFIABLE (SOME o (assignment_from_list xs))
 			else
 				(case next_list xs indices of
-				  Some xs' => solver_loop xs'
-				| None     => SatSolver.UNSATISFIABLE)
+				  SOME xs' => solver_loop xs'
+				| NONE     => SatSolver.UNSATISFIABLE)
 	in
 		(* start with the "first" assignment (all variables are interpreted as 'false') *)
 		solver_loop []
@@ -454,29 +454,29 @@ let
 				val (xs', fm') = eval_and_force xs fm
 			in
 				case fm' of
-				  True  => Some xs'
-				| False => None
+				  True  => SOME xs'
+				| False => NONE
 				| _     =>
 					let
 						val x = the (fresh_var xs')  (* a fresh variable must exist since 'fm' did not evaluate to 'True'/'False' *)
 					in
 						case dpll (x::xs') fm' of  (* passing fm' rather than fm should save some simplification work *)
-						  Some xs'' => Some xs''
-						| None      => dpll ((~x)::xs') fm'  (* now try interpreting 'x' as 'False' *)
+						  SOME xs'' => SOME xs''
+						| NONE      => dpll ((~x)::xs') fm'  (* now try interpreting 'x' as 'False' *)
 					end
 			end
 			(* int list -> assignment *)
 			fun assignment_from_list [] i =
-				None  (* the DPLL procedure didn't provide a value for this variable *)
+				NONE  (* the DPLL procedure didn't provide a value for this variable *)
 			  | assignment_from_list (x::xs) i =
-				if x=i then (Some true)
-				else if x=(~i) then (Some false)
+				if x=i then (SOME true)
+				else if x=(~i) then (SOME false)
 				else assignment_from_list xs i
 		in
 			(* initially, no variable is interpreted yet *)
 			case dpll [] fm' of
-			  Some assignment => SatSolver.SATISFIABLE (assignment_from_list assignment)
-			| None            => SatSolver.UNSATISFIABLE
+			  SOME assignment => SatSolver.SATISFIABLE (assignment_from_list assignment)
+			| NONE            => SatSolver.UNSATISFIABLE
 		end
 	end  (* local *)
 in

@@ -92,8 +92,8 @@ datatype info = Info of string;
 fun info path =
   let val name = sysify_path path in
     (case file_info name of
-      "" => None
-    | s => Some (Info s))
+      "" => NONE
+    | s => SOME (Info s))
   end;
 
 val exists = is_some o info;

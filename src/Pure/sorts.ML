@@ -176,8 +176,8 @@ fun mg_domain _ _ [] = sys_error "mg_domain"  (*don't know number of args!*)
       let
         fun mg_dom c =
           (case Library.assoc_string (Symtab.lookup_multi (arities, a), c) of
-            None => raise DOMAIN (a, c)
-          | Some Ss => Ss);
+            NONE => raise DOMAIN (a, c)
+          | SOME Ss => Ss);
         val doms = map mg_dom S;
       in foldl (ListPair.map (inter_sort classes)) (hd doms, tl doms) end;
 
@@ -205,27 +205,27 @@ fun witness_aux (classes, arities) log_types hyps sorts =
   let
     val top_witn = (propT, []);
     fun le S1 S2 = sort_le classes (S1, S2);
-    fun get_solved S2 (T, S1) = if le S1 S2 then Some (T, S2) else None;
-    fun get_hyp S2 S1 = if le S1 S2 then Some (TFree ("'hyp", S1), S2) else None;
-    fun mg_dom t S = Some (mg_domain (classes, arities) t S) handle DOMAIN _ => None;
+    fun get_solved S2 (T, S1) = if le S1 S2 then SOME (T, S2) else NONE;
+    fun get_hyp S2 S1 = if le S1 S2 then SOME (TFree ("'hyp", S1), S2) else NONE;
+    fun mg_dom t S = SOME (mg_domain (classes, arities) t S) handle DOMAIN _ => NONE;
 
-    fun witn_sort _ (solved_failed, []) = (solved_failed, Some top_witn)
+    fun witn_sort _ (solved_failed, []) = (solved_failed, SOME top_witn)
       | witn_sort path ((solved, failed), S) =
-          if exists (le S) failed then ((solved, failed), None)
+          if exists (le S) failed then ((solved, failed), NONE)
           else
             (case get_first (get_solved S) solved of
-              Some w => ((solved, failed), Some w)
-            | None =>
+              SOME w => ((solved, failed), SOME w)
+            | NONE =>
                 (case get_first (get_hyp S) hyps of
-                  Some w => ((w :: solved, failed), Some w)
-                | None => witn_types path log_types ((solved, failed), S)))
+                  SOME w => ((w :: solved, failed), SOME w)
+                | NONE => witn_types path log_types ((solved, failed), S)))
 
     and witn_sorts path x = foldl_map (witn_sort path) x
 
-    and witn_types _ [] ((solved, failed), S) = ((solved, S :: failed), None)
+    and witn_types _ [] ((solved, failed), S) = ((solved, S :: failed), NONE)
       | witn_types path (t :: ts) (solved_failed, S) =
           (case mg_dom t S of
-            Some SS =>
+            SOME SS =>
               (*do not descend into stronger args (achieving termination)*)
               if exists (fn D => le D S orelse exists (le D) path) SS then
                 witn_types path ts (solved_failed, S)
@@ -233,10 +233,10 @@ fun witness_aux (classes, arities) log_types hyps sorts =
                 let val ((solved', failed'), ws) = witn_sorts (S :: path) (solved_failed, SS) in
                   if forall is_some ws then
                     let val w = (Type (t, map (#1 o the) ws), S)
-                    in ((w :: solved', failed'), Some w) end
+                    in ((w :: solved', failed'), SOME w) end
                   else witn_types path ts ((solved', failed'), S)
                 end
-          | None => witn_types path ts (solved_failed, S));
+          | NONE => witn_types path ts (solved_failed, S));
 
   in witn_sorts [] (([], []), sorts) end;
 
@@ -248,9 +248,9 @@ in
 fun witness_sorts (classes, arities) log_types hyps sorts =
   let
     (*double check result of witness search*)
-    fun check_result None = None
-      | check_result (Some (T, S)) =
-          if of_sort (classes, arities) (T, S) then Some (T, S)
+    fun check_result NONE = NONE
+      | check_result (SOME (T, S)) =
+          if of_sort (classes, arities) (T, S) then SOME (T, S)
           else sys_error ("Sorts.witness_sorts: bad witness for sort " ^ str_of_sort S);
   in mapfilter check_result (#2 (witness_aux (classes, arities) log_types hyps sorts)) end;
 

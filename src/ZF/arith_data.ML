@@ -53,8 +53,8 @@ fun dest_sum (Const("0",_)) = []
   | dest_sum tm = [tm];
 
 (*Apply the given rewrite (if present) just once*)
-fun gen_trans_tac th2 None      = all_tac
-  | gen_trans_tac th2 (Some th) = ALLGOALS (rtac (th RS th2));
+fun gen_trans_tac th2 NONE      = all_tac
+  | gen_trans_tac th2 (SOME th) = ALLGOALS (rtac (th RS th2));
 
 (*Use <-> or = depending on the type of t*)
 fun mk_eq_iff(t,u) =
@@ -69,14 +69,14 @@ fun is_eq_thm th =
 fun add_chyps chyps ct = Drule.list_implies (map cprop_of chyps, ct);
 
 fun prove_conv name tacs sg hyps xs (t,u) =
-  if t aconv u then None
+  if t aconv u then NONE
   else
   let val hyps' = filter (not o is_eq_thm) hyps
       val goal = Logic.list_implies (map (#prop o Thm.rep_thm) hyps',
         FOLogic.mk_Trueprop (mk_eq_iff (t, u)));
-  in Some (hyps' MRS Tactic.prove sg xs [] goal (K (EVERY tacs)))
+  in SOME (hyps' MRS Tactic.prove sg xs [] goal (K (EVERY tacs)))
       handle ERROR_MESSAGE msg =>
-        (warning (msg ^ "\nCancellation failed: no typing information? (" ^ name ^ ")"); None)
+        (warning (msg ^ "\nCancellation failed: no typing information? (" ^ name ^ ")"); NONE)
   end;
 
 fun prep_simproc (name, pats, proc) =

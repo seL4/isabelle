@@ -63,7 +63,7 @@ fun connected_with _ [] relatives = relatives
 
 (* convert productions to grammar;
    N.B. that the chains parameter has the form [(from, [to])];
-   prod_count is of type "int option" and is only updated if it is <> None*)
+   prod_count is of type "int option" and is only updated if it is <> NONE*)
 fun add_prods _ chains lambdas prod_count [] = (chains, lambdas, prod_count)
   | add_prods prods chains lambdas prod_count
               ((lhs, new_prod as (rhs, name, pri)) :: ps) =
@@ -73,13 +73,13 @@ fun add_prods _ chains lambdas prod_count [] = (chains, lambdas, prod_count)
         let (*store chain if it does not already exist*)
             fun store_chain from =
               let val old_tos = assocs chains from;
-              in if lhs mem old_tos then (None, chains)
-                 else (Some from, overwrite (chains, (from, lhs ins old_tos)))
+              in if lhs mem old_tos then (NONE, chains)
+                 else (SOME from, overwrite (chains, (from, lhs ins old_tos)))
               end;
         in if pri = ~1 then
              case rhs of [Nonterminal (id, ~1)] => store_chain id
-                       | _ => (None, chains)
-           else (None, chains)
+                       | _ => (NONE, chains)
+           else (NONE, chains)
         end;
 
       (*propagate new chain in lookahead and lambda lists;
@@ -118,12 +118,12 @@ fun add_prods _ chains lambdas prod_count [] = (chains, lambdas, prod_count)
 
       (*list optional terminal and all nonterminals on which the lookahead
         of a production depends*)
-      fun lookahead_dependency _ [] nts = (None, nts)
-        | lookahead_dependency _ ((Terminal tk) :: _) nts = (Some tk, nts)
+      fun lookahead_dependency _ [] nts = (NONE, nts)
+        | lookahead_dependency _ ((Terminal tk) :: _) nts = (SOME tk, nts)
         | lookahead_dependency lambdas ((Nonterminal (nt, _)) :: symbs) nts =
             if nt mem lambdas then
               lookahead_dependency lambdas symbs (nt :: nts)
-            else (None, nt :: nts);
+            else (NONE, nt :: nts);
 
       (*get all known starting tokens for a nonterminal*)
       fun starts_for_nt nt = snd (fst (Array.sub (prods, nt)));
@@ -170,8 +170,8 @@ fun add_prods _ chains lambdas prod_count [] = (chains, lambdas, prod_count)
                             end;
   
                         val nt_prods' =
-                          let val new_opt_tks = map Some new_tks;
-                          in copy ((if new_lambda then [None] else []) @
+                          let val new_opt_tks = map SOME new_tks;
+                          in copy ((if new_lambda then [NONE] else []) @
                                    new_opt_tks) nt_prods
                           end;
                       in examine_prods ps (add_lambda orelse new_lambda)
@@ -193,7 +193,7 @@ fun add_prods _ chains lambdas prod_count [] = (chains, lambdas, prod_count)
                       (*existing productions whose lookahead may depend on l*)
                       val tk_prods =
                         assocs nt_prods
-                               (Some (hd l_starts  handle LIST _ => UnknownStart));
+                               (SOME (hd l_starts  handle LIST _ => UnknownStart));
 
                       (*add_lambda is true if an existing production of the nt
                         produces lambda due to the new lambda NT l*)
@@ -242,9 +242,9 @@ fun add_prods _ chains lambdas prod_count [] = (chains, lambdas, prod_count)
                           (if is_some start_tk then [the start_tk] else [],
                            map starts_for_nt start_nts);
 
-          val opt_starts = (if new_lambda then [None]
-                            else if null start_tks then [Some UnknownStart]
-                            else []) @ (map Some start_tks);
+          val opt_starts = (if new_lambda then [NONE]
+                            else if null start_tks then [SOME UnknownStart]
+                            else []) @ (map SOME start_tks);
 
           (*add lhs NT to list of dependent NTs in lookahead*)
           fun add_nts [] = ()
@@ -271,7 +271,7 @@ fun add_prods _ chains lambdas prod_count [] = (chains, lambdas, prod_count)
                   | store (tk :: tks) prods is_new =
                     let val tk_prods = assocs prods tk;
 
-                        (*if prod_count = None then we can assume that
+                        (*if prod_count = NONE then we can assume that
                           grammar does not contain new production already*)
                         val (tk_prods', is_new') =
                           if is_some prod_count then
@@ -309,11 +309,11 @@ fun add_prods _ chains lambdas prod_count [] = (chains, lambdas, prod_count)
                 val key =
                  case find_first (fn t => not (t mem new_tks))
                                  (starts_for_nt changed_nt) of
-                      None => Some UnknownStart
+                      NONE => SOME UnknownStart
                     | t => t;
 
                 (*copy productions whose lookahead depends on changed_nt;
-                  if key = Some UnknownToken then tk_prods is used to hold
+                  if key = SOME UnknownToken then tk_prods is used to hold
                   the productions not copied*)
                 fun update_prods [] result = result
                   | update_prods ((p as (rhs, _, _)) :: ps)
@@ -335,7 +335,7 @@ fun add_prods _ chains lambdas prod_count [] = (chains, lambdas, prod_count)
                       fun copy [] nt_prods = nt_prods
                         | copy (tk :: tks) nt_prods =
                           let
-                            val tk_prods = assocs nt_prods (Some tk);
+                            val tk_prods = assocs nt_prods (SOME tk);
 
                             val tk_prods' =
                               if not lambda then p :: tk_prods
@@ -343,12 +343,12 @@ fun add_prods _ chains lambdas prod_count [] = (chains, lambdas, prod_count)
                                       (*if production depends on lambda NT we
                                         have to look for duplicates*)
                          in copy tks
-                                 (overwrite (nt_prods, (Some tk, tk_prods')))
+                                 (overwrite (nt_prods, (SOME tk, tk_prods')))
                          end;
                       val result =
                         if update then
                           (tk_prods, copy new_tks nt_prods)
-                        else if key = Some UnknownStart then
+                        else if key = SOME UnknownStart then
                           (p :: tk_prods, nt_prods)
                         else (tk_prods, nt_prods);
                     in update_prods ps result end;
@@ -367,7 +367,7 @@ fun add_prods _ chains lambdas prod_count [] = (chains, lambdas, prod_count)
                         update_prods tk_prods ([], nt_prods);
 
                       val nt_prods' =
-                        if key = Some UnknownStart then
+                        if key = SOME UnknownStart then
                           overwrite (nt_prods', (key, tk_prods'))
                         else nt_prods';
 
@@ -449,8 +449,8 @@ fun extend_gram gram [] = gram
     (*Get tag for existing nonterminal or create a new one*)
     fun get_tag nt_count tags nt =
       case Symtab.lookup (tags, nt) of
-        Some tag => (nt_count, tags, tag)
-      | None => (nt_count+1, Symtab.update_new ((nt, nt_count), tags),
+        SOME tag => (nt_count, tags, tag)
+      | NONE => (nt_count+1, Symtab.update_new ((nt, nt_count), tags),
                  nt_count);
 
     (*Convert symbols to the form used by the parser;
@@ -463,10 +463,10 @@ fun extend_gram gram [] = gram
           let
             val (nt_count', tags', new_symb) =
               case predef_term s of
-                None =>
+                NONE =>
                   let val (nt_count', tags', s_tag) = get_tag nt_count tags s;
                   in (nt_count', tags', Nonterminal (s_tag, p)) end
-              | Some tk => (nt_count, tags, Terminal tk);
+              | SOME tk => (nt_count, tags, Terminal tk);
           in symb_of ss nt_count' tags' (new_symb :: result) end
       | symb_of (_ :: ss) nt_count tags result =
           symb_of ss nt_count tags result;
@@ -499,7 +499,7 @@ fun extend_gram gram [] = gram
 
     (*Add new productions to old ones*)
     val (fromto_chains', lambdas', _) =
-      add_prods prods' fromto_chains lambdas None xprods';
+      add_prods prods' fromto_chains lambdas NONE xprods';
 
     val chains' = inverse_chains fromto_chains' [];
   in Gram {nt_count = nt_count', prod_count = prod_count', tags = tags',
@@ -524,8 +524,8 @@ fun merge_grams gram_a gram_b =
     (*get existing tag from grammar1 or create a new one*)
     fun get_tag nt_count tags nt =
       case Symtab.lookup (tags, nt) of
-        Some tag => (nt_count, tags, tag)
-      | None => (nt_count+1, Symtab.update_new ((nt, nt_count), tags),
+        SOME tag => (nt_count, tags, tag)
+      | NONE => (nt_count+1, Symtab.update_new ((nt, nt_count), tags),
                 nt_count)
 
     val ((nt_count1', tags1'), tag_table) =
@@ -591,8 +591,8 @@ fun merge_grams gram_a gram_b =
 
     val fromto_chains = inverse_chains chains1 [];
 
-    val (fromto_chains', lambdas', Some prod_count1') =
-      add_prods prods1' fromto_chains lambdas1 (Some prod_count1) raw_prods;
+    val (fromto_chains', lambdas', SOME prod_count1') =
+      add_prods prods1' fromto_chains lambdas1 (SOME prod_count1) raw_prods;
 
     val chains' = inverse_chains fromto_chains' [];
   in Gram {nt_count = nt_count1', prod_count = prod_count1',
@@ -629,10 +629,10 @@ fun mkStates i minPrec lhsID rhss =
 
 (*Add parse tree to list and eliminate duplicates 
   saving the maximum precedence*)
-fun conc (t, prec:int) [] = (None, [(t, prec)])
+fun conc (t, prec:int) [] = (NONE, [(t, prec)])
   | conc (t, prec) ((t', prec') :: ts) =
       if t = t' then
-        (Some prec', if prec' >= prec then (t', prec') :: ts 
+        (SOME prec', if prec' >= prec then (t', prec') :: ts 
                      else (t, prec) :: ts)
       else
         let val (n, ts') = conc (t, prec) ts
@@ -697,7 +697,7 @@ val branching_level = ref 600;                   (*trigger value for warnings*)
 (*get all productions of a NT and NTs chained to it which can
   be started by specified token*)
 fun prods_for prods chains include_none tk nts =
-let (*similar to token_assoc but does not automatically include 'None' key*)
+let (*similar to token_assoc but does not automatically include 'NONE' key*)
     fun token_assoc2 (list, key) =
       let fun assoc [] result = result
             | assoc ((keyi, pi) :: pairs) result =
@@ -725,7 +725,7 @@ fun processS used [] (Si, Sii) = (Si, Sii)
           let                                       (*predictor operation*)
             val (used', new_states) =
               (case assoc (used, nt) of
-                Some (usedPrec, l) =>       (*nonterminal has been processed*)
+                SOME (usedPrec, l) =>       (*nonterminal has been processed*)
                   if usedPrec <= minPrec then
                                       (*wanted precedence has been processed*)
                     (used, movedot_lambda S l)
@@ -739,7 +739,7 @@ fun processS used [] (Si, Sii) = (Si, Sii)
                         movedot_lambda S l @ States')
                     end
 
-              | None =>           (*nonterminal is parsed for the first time*)
+              | NONE =>           (*nonterminal is parsed for the first time*)
                   let val tk_prods = all_prods_for nt;
                       val States' = mkStates i minPrec nt
                                       (getRHS minPrec tk_prods);
@@ -766,11 +766,11 @@ fun processS used [] (Si, Sii) = (Si, Sii)
                 val (used', O) = update_trees used (A, (tt, prec));
               in
                 case O of
-                  None =>
+                  NONE =>
                     let val Slist = getS A prec Si;
                         val States' = map (movedot_nonterm tt) Slist;
                     in processS used' (States' @ States) (S :: Si, Sii) end
-                | Some n =>
+                | SOME n =>
                     if n >= prec then processS used' States (S :: Si, Sii)
                     else
                       let val Slist = getS' A prec n Si;
@@ -825,12 +825,12 @@ fun produce prods chains stateset i indata prev_token =
               fun get_starts [] result = result
                 | get_starts ((nt, minPrec:int) :: nts) result =
                   let fun get [] result = result
-                        | get ((Some tk, prods) :: ps) result =
+                        | get ((SOME tk, prods) :: ps) result =
                             if not (null prods) andalso
                                exists (reduction tk minPrec [nt]) prods
                             then get ps (tk :: result)
                             else get ps result
-                        | get ((None, _) :: ps) result = get ps result;
+                        | get ((NONE, _) :: ps) result = get ps result;
 
                       val (_, nt_prods) = Array.sub (prods, nt);
 
@@ -842,12 +842,12 @@ fun produce prods chains stateset i indata prev_token =
 
               val nts =
                 mapfilter (fn (_, _, _, Nonterminal (a, prec) :: _, _, _) => 
-                           Some (a, prec) | _ => None)
+                           SOME (a, prec) | _ => NONE)
                           (Array.sub (stateset, i-1));
               val allowed =
                 distinct (get_starts nts [] @
-                  (mapfilter (fn (_, _, _, Terminal a :: _, _, _) => Some a
-                               | _ => None)
+                  (mapfilter (fn (_, _, _, Terminal a :: _, _, _) => SOME a
+                               | _ => NONE)
                              (Array.sub (stateset, i-1))));
           in syntax_error (if prev_token = EndToken then indata
                            else prev_token :: indata) allowed
@@ -863,14 +863,14 @@ fun produce prods chains stateset i indata prev_token =
        end));
 
 
-fun get_trees l = mapfilter (fn (_, _, [pt], _, _, _) => Some pt | _ => None) 
+fun get_trees l = mapfilter (fn (_, _, [pt], _, _, _) => SOME pt | _ => NONE) 
                             l;
 
 fun earley prods tags chains startsymbol indata =
   let
     val start_tag = case Symtab.lookup (tags, startsymbol) of
-                       Some tag => tag
-                     | None   => error ("parse: Unknown startsymbol " ^ 
+                       SOME tag => tag
+                     | NONE   => error ("parse: Unknown startsymbol " ^ 
                                         quote startsymbol);
     val S0 = [(~1, 0, [], [Nonterminal (start_tag, 0), Terminal EndToken],
                "", 0)];

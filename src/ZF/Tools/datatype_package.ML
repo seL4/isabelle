@@ -296,9 +296,9 @@ fun add_datatype_i (dom_sum, rec_tms) con_ty_lists (monos, type_intrs, type_elim
   (*** Prove the recursor theorems ***)
 
   val recursor_eqns = case try (get_def thy1) recursor_base_name of
-     None => (writeln "  [ No recursion operator ]";
+     NONE => (writeln "  [ No recursion operator ]";
               [])
-   | Some recursor_def =>
+   | SOME recursor_def =>
       let
         (*Replace subterms rec`x (where rec is a Free var) by recursor_tm(x) *)
         fun subst_rec (Const("op `",_) $ Free _ $ arg) = recursor_tm $ arg

@@ -135,14 +135,14 @@ type thmref = xstring * int list option;
 
 (* selections *)
 
-fun the_thms _ (Some thms) = thms
-  | the_thms name None = error ("Unknown theorem(s) " ^ quote name);
+fun the_thms _ (SOME thms) = thms
+  | the_thms name NONE = error ("Unknown theorem(s) " ^ quote name);
 
 fun single_thm _ [thm] = thm
   | single_thm name _ = error ("Single theorem expected " ^ quote name);
 
-fun select_thm (s, None) xs = xs
-  | select_thm (s, Some is) xs = map
+fun select_thm (s, NONE) xs = xs
+  | select_thm (s, SOME is) xs = map
       (fn i => (if i < 1 then raise LIST "" else nth_elem (i-1, xs)) handle LIST _ =>
          error ("Bad subscript " ^ string_of_int i ^ " for " ^ quote s)) is;
 
@@ -195,9 +195,9 @@ fun thms_of thy =
 fun thms_containing thy idx =
   let
     fun valid (name, ths) =
-      (case try (transform_error (get_thms thy)) (name, None) of
-        None => false
-      | Some ths' => Library.equal_lists Thm.eq_thm (ths, ths'));
+      (case try (transform_error (get_thms thy)) (name, NONE) of
+        NONE => false
+      | SOME ths' => Library.equal_lists Thm.eq_thm (ths, ths'));
   in
     (thy :: Theory.ancestors_of thy)
     |> map (gen_distinct eq_fst o filter valid o FactIndex.find idx o #index o ! o get_theorems)
@@ -214,7 +214,7 @@ fun thms_containing_consts thy consts =
 (* elim: given a theorem thm,
          find a theorem whose major premise eliminates the conclusion of thm *)
 
-fun top_const t = (case head_of t of Const (c, _) => Some c | _ => None);
+fun top_const t = (case head_of t of Const (c, _) => SOME c | _ => NONE);
 
 (* This is a hack to remove the Trueprop constant that most logics use *)
 fun rem_top (_ $ t) = t
@@ -259,8 +259,8 @@ fun select_match(c,obj, signobj, named_thms, (extract_thms,extract_term)) =
   in map (fn (_,_,t) => t) (sort thm_ord (select(named_thms, []))) end;
 
 fun find_matching_thms extract thy prop =
-  (case top_const prop of None => []
-   | Some c => let val thms = thms_containing_consts thy [c]
+  (case top_const prop of NONE => []
+   | SOME c => let val thms = thms_containing_consts thy [c]
                in select_match(c,prop,Theory.sign_of thy,thms,extract) end)
 
 val find_intros =
@@ -322,8 +322,8 @@ fun enter_thms _ _ _ app_att thy ("", thms) = app_att (thy, thms)
         val index' = FactIndex.add (K false) (index, (name, named_thms));
       in
         (case Symtab.lookup (thms_tab, name) of
-          None => ()
-        | Some thms' =>
+          NONE => ()
+        | SOME thms' =>
             if Library.equal_lists Thm.eq_thm (thms', named_thms) then warn_same name
             else warn_overwrite name);
         r := {space = space', thms_tab = thms_tab', index = index'};

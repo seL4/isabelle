@@ -286,10 +286,10 @@ val rews = map (pairself (ProofSyntax.proof_of_term (the_context ()) Symtab.empt
 
 (** Replace congruence rules by substitution rules **)
 
-fun strip_cong ps (PThm (("HOL.cong", _), _, _, _) % _ % _ % Some x % Some y %%
+fun strip_cong ps (PThm (("HOL.cong", _), _, _, _) % _ % _ % SOME x % SOME y %%
       prf1 %% prf2) = strip_cong (((x, y), prf2) :: ps) prf1
-  | strip_cong ps (PThm (("HOL.refl", _), _, _, _) % Some f) = Some (f, ps)
-  | strip_cong _ _ = None;
+  | strip_cong ps (PThm (("HOL.refl", _), _, _, _) % SOME f) = SOME (f, ps)
+  | strip_cong _ _ = NONE;
 
 val subst_prf = fst (strip_combt (#2 (#der (rep_thm subst))));
 val sym_prf = fst (strip_combt (#2 (#der (rep_thm sym))));
@@ -298,7 +298,7 @@ fun make_subst Ts prf xs (_, []) = prf
   | make_subst Ts prf xs (f, ((x, y), prf') :: ps) =
       let val T = fastype_of1 (Ts, x)
       in if x aconv y then make_subst Ts prf (xs @ [x]) (f, ps)
-        else change_type (Some [T]) subst_prf %> x %> y %>
+        else change_type (SOME [T]) subst_prf %> x %> y %>
           Abs ("z", T, list_comb (incr_boundvars 1 f,
             map (incr_boundvars 1) xs @ Bound 0 ::
             map (incr_boundvars 1 o snd o fst) ps)) %% prf' %%
@@ -306,7 +306,7 @@ fun make_subst Ts prf xs (_, []) = prf
       end;
 
 fun make_sym Ts ((x, y), prf) =
-  ((y, x), change_type (Some [fastype_of1 (Ts, x)]) sym_prf %> x %> y %% prf);
+  ((y, x), change_type (SOME [fastype_of1 (Ts, x)]) sym_prf %> x %> y %% prf);
 
 fun mk_AbsP P t = AbsP ("H", P, t);
 
@@ -321,6 +321,6 @@ fun elim_cong Ts (PThm (("HOL.iffD1", _), _, _, _) % _ % _ %% prf1 %% prf2) =
   | elim_cong Ts (PThm (("HOL.iffD2", _), _, _, _) % _ % P %% prf) =
       apsome (mk_AbsP P o make_subst Ts (PBound 0) [] o
         apsnd (map (make_sym Ts))) (strip_cong [] (incr_pboundvars 1 0 prf))
-  | elim_cong _ _ = None;
+  | elim_cong _ _ = NONE;
 
 end;

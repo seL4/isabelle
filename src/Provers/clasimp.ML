@@ -331,8 +331,8 @@ val clasimp_method' = Method.bang_sectioned_args clasimp_modifiers o clasimp_met
 fun auto_args m =
   Method.bang_sectioned_args' clasimp_modifiers (Scan.lift (Scan.option (Args.nat -- Args.nat))) m;
 
-fun auto_meth None = clasimp_meth (CHANGED_PROP o auto_tac)
-  | auto_meth (Some (m, n)) = clasimp_meth (CHANGED_PROP o (fn css => mk_auto_tac css m n));
+fun auto_meth NONE = clasimp_meth (CHANGED_PROP o auto_tac)
+  | auto_meth (SOME (m, n)) = clasimp_meth (CHANGED_PROP o (fn css => mk_auto_tac css m n));
 
 
 (* theory setup *)

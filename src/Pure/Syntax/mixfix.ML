@@ -141,13 +141,13 @@ fun syn_ext_types type_decls =
     fun mfix_of decl =
       let val t = name_of decl in
         (case decl of
-          (_, _, NoSyn) => None
-        | (_, 2, InfixName (sy, p)) => Some (mk_infix sy t (p + 1) (p + 1) p)
-        | (_, 2, InfixlName (sy, p)) => Some (mk_infix sy t p (p + 1) p)
-        | (_, 2, InfixrName (sy, p)) => Some (mk_infix sy t (p + 1) p p)
-        | (sy, 2, Infix p) => Some (mk_infix sy t (p + 1) (p + 1) p)
-        | (sy, 2, Infixl p) => Some (mk_infix sy t p (p + 1) p)
-        | (sy, 2, Infixr p) => Some (mk_infix sy t (p + 1) p p)
+          (_, _, NoSyn) => NONE
+        | (_, 2, InfixName (sy, p)) => SOME (mk_infix sy t (p + 1) (p + 1) p)
+        | (_, 2, InfixlName (sy, p)) => SOME (mk_infix sy t p (p + 1) p)
+        | (_, 2, InfixrName (sy, p)) => SOME (mk_infix sy t (p + 1) p p)
+        | (sy, 2, Infix p) => SOME (mk_infix sy t (p + 1) (p + 1) p)
+        | (sy, 2, Infixl p) => SOME (mk_infix sy t p (p + 1) p)
+        | (sy, 2, Infixr p) => SOME (mk_infix sy t (p + 1) p p)
         | _ => error ("Bad mixfix declaration for type: " ^ quote t))
       end;
 
@@ -186,8 +186,8 @@ fun syn_ext_consts is_logtype const_decls =
             [SynExt.Mfix ("(3" ^ sy ^ "_./ _)", binder_typ c ty, sy, [0, p], q)])
     end;
 
-    fun binder (c, _, Binder (sy, _, _)) = Some (sy, c)
-      | binder _ = None;
+    fun binder (c, _, Binder (sy, _, _)) = SOME (sy, c)
+      | binder _ = NONE;
 
     val mfix = flat (map mfix_of const_decls);
     val xconsts = map name_of const_decls;

@@ -158,7 +158,7 @@ fun context_ss ctxt ss ctxt_ss =
     fun add_solver add (ContextSolver ((name, f), _)) simpset =
       add (simpset, mk_solver name (f ctxt));
   in
-    ((case subgoal_tac of None => ss | Some tac => ss setsubgoaler tac ctxt)
+    ((case subgoal_tac of NONE => ss | SOME tac => ss setsubgoaler tac ctxt)
       addsimprocs map prep_simproc simprocs)
     |> fold_rev add_loop loop_tacs
     |> fold_rev (add_solver (op addSolver)) unsafe_solvers
@@ -169,7 +169,7 @@ fun make_context_ss (simprocs, subgoal_tac, loop_tacs, unsafe_solvers, solvers) 
   ContextSS {simprocs = simprocs, subgoal_tac = subgoal_tac, loop_tacs = loop_tacs,
     unsafe_solvers = unsafe_solvers, solvers = solvers};
 
-val empty_context_ss = make_context_ss ([], None, [], [], []);
+val empty_context_ss = make_context_ss ([], NONE, [], [], []);
 
 fun merge_context_ss (ctxt_ss1, ctxt_ss2) =
   let
@@ -179,7 +179,7 @@ fun merge_context_ss (ctxt_ss1, ctxt_ss2) =
       unsafe_solvers = unsafe_solvers2, solvers = solvers2} = ctxt_ss2;
 
     val simprocs' = merge_context_simprocs simprocs1 simprocs2;
-    val subgoal_tac' = (case subgoal_tac1 of None => subgoal_tac2 | some => some);
+    val subgoal_tac' = (case subgoal_tac1 of NONE => subgoal_tac2 | some => some);
     val loop_tacs' = merge_alists loop_tacs1 loop_tacs2;
     val unsafe_solvers' = merge_context_solvers unsafe_solvers1 unsafe_solvers2;
     val solvers' = merge_context_solvers solvers1 solvers2;
@@ -272,11 +272,11 @@ fun del_context_simprocs procs =
 
 fun set_context_subgoaler tac =
   map_context_ss (fn (simprocs, _, loop_tacs, unsafe_solvers, solvers) =>
-    (simprocs, Some tac, loop_tacs, unsafe_solvers, solvers));
+    (simprocs, SOME tac, loop_tacs, unsafe_solvers, solvers));
 
 val reset_context_subgoaler =
   map_context_ss (fn (simprocs, _, loop_tacs, unsafe_solvers, solvers) =>
-    (simprocs, None, loop_tacs, unsafe_solvers, solvers));
+    (simprocs, NONE, loop_tacs, unsafe_solvers, solvers));
 
 fun add_context_looper (name, tac) =
   map_context_ss (fn (simprocs, subgoal_tac, loop_tacs, unsafe_solvers, solvers) =>

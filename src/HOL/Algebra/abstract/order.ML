@@ -60,7 +60,7 @@ fun ring_ord a =
 
 fun termless_ring (a, b) = (term_lpo ring_ord (a, b) = LESS);
 
-(* Some code useful for debugging
+(* SOME code useful for debugging
 
 val intT = HOLogic.intT;
 val a = Free ("a", intT);

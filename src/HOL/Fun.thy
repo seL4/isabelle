@@ -474,14 +474,14 @@ val print_translation = [("Pi", dependent_tr' ("@Pi", "op funcset"))];
 
 (* simplifies terms of the form f(...,x:=y,...,x:=z,...) to f(...,x:=z,...) *)
 local
-  fun gen_fun_upd None T _ _ = None
-    | gen_fun_upd (Some f) T x y = Some (Const ("Fun.fun_upd",T) $ f $ x $ y)
+  fun gen_fun_upd NONE T _ _ = NONE
+    | gen_fun_upd (SOME f) T x y = SOME (Const ("Fun.fun_upd",T) $ f $ x $ y)
   fun dest_fun_T1 (Type (_, T :: Ts)) = T
   fun find_double (t as Const ("Fun.fun_upd",T) $ f $ x $ y) =
     let
       fun find (Const ("Fun.fun_upd",T) $ g $ v $ w) =
-            if v aconv x then Some g else gen_fun_upd (find g) T v w
-        | find t = None
+            if v aconv x then SOME g else gen_fun_upd (find g) T v w
+        | find t = NONE
     in (dest_fun_T1 T, gen_fun_upd (find f) T x y) end
 
   val ss = simpset ()
@@ -491,8 +491,8 @@ in
     Simplifier.simproc (Theory.sign_of (the_context ()))
       "fun_upd2" ["f(v := w, x := y)"]
       (fn sg => fn _ => fn t =>
-        case find_double t of (T, None) => None
-        | (T, Some rhs) => Some (Tactic.prove sg [] [] (Term.equals T $ t $ rhs) fun_upd_prover))
+        case find_double t of (T, NONE) => NONE
+        | (T, SOME rhs) => SOME (Tactic.prove sg [] [] (Term.equals T $ t $ rhs) fun_upd_prover))
 end;
 Addsimprocs[fun_upd2_simproc];
 

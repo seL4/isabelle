@@ -96,12 +96,12 @@ in
 structure Quantifier1 = Quantifier1Fun
 (struct
   (*abstract syntax*)
-  fun dest_eq((c as Const("op =",_)) $ s $ t) = Some(c,s,t)
-    | dest_eq _ = None;
-  fun dest_conj((c as Const("op &",_)) $ s $ t) = Some(c,s,t)
-    | dest_conj _ = None;
-  fun dest_imp((c as Const("op -->",_)) $ s $ t) = Some(c,s,t)
-    | dest_imp _ = None;
+  fun dest_eq((c as Const("op =",_)) $ s $ t) = SOME(c,s,t)
+    | dest_eq _ = NONE;
+  fun dest_conj((c as Const("op &",_)) $ s $ t) = SOME(c,s,t)
+    | dest_conj _ = NONE;
+  fun dest_imp((c as Const("op -->",_)) $ s $ t) = SOME(c,s,t)
+    | dest_imp _ = NONE;
   val conj = HOLogic.conj
   val imp  = HOLogic.imp
   (*rules*)
@@ -150,9 +150,9 @@ val let_simproc =
   Simplifier.simproc (Theory.sign_of (the_context ())) "let_simp" ["Let x f"] 
    (fn sg => fn ss => fn t =>
       (case t of (Const ("Let",_)$x$f) => (* x and f are already in normal form *)
-         if not (!use_let_simproc) then None
+         if not (!use_let_simproc) then NONE
          else if is_Free x orelse is_Bound x orelse is_Const x 
-         then Some Let_def  
+         then SOME Let_def  
          else
           let
              val n = case f of (Abs (x,_,_)) => x | _ => "x";
@@ -166,8 +166,8 @@ val let_simproc =
                then
                   let
                     val rl = cterm_instantiate [(f_Let_unfold,cf)] Let_unfold;
-                  in Some (rl OF [fx_g]) end 
-               else if betapply (f,x) aconv g then None (* avoid identity conversion *)
+                  in SOME (rl OF [fx_g]) end 
+               else if betapply (f,x) aconv g then NONE (* avoid identity conversion *)
                else let 
                      val abs_g'= Abs (n,xT,g');
                      val g'x = abs_g'$x;
@@ -176,9 +176,9 @@ val let_simproc =
                                [(f_Let_folded,cterm_of sg f),
                                 (g_Let_folded,cterm_of sg abs_g')]
                                Let_folded; 
-                   in Some (rl OF [transitive fx_g g_g'x]) end)
+                   in SOME (rl OF [transitive fx_g g_g'x]) end)
            end
-        | _ => None))
+        | _ => NONE))
 end
 
 (*** Case splitting ***)
@@ -196,7 +196,7 @@ fun mk_eq th = case concl_of th of
 (* Expects Trueprop(.) if not == *)
 
 fun mk_eq_True r =
-  Some (r RS meta_eq_to_obj_eq RS Eq_TrueI) handle Thm.THM _ => None;
+  SOME (r RS meta_eq_to_obj_eq RS Eq_TrueI) handle Thm.THM _ => NONE;
 
 (*Congruence rules for = (instead of ==)*)
 fun mk_meta_cong rl =
@@ -253,8 +253,8 @@ fun mk_atomize pairs =
              (case head_of p of
                 Const(a,_) =>
                   (case assoc(pairs,a) of
-                     Some(rls) => flat (map atoms ([th] RL rls))
-                   | None => [th])
+                     SOME(rls) => flat (map atoms ([th] RL rls))
+                   | NONE => [th])
               | _ => [th])
          | _ => [th])
   in atoms end;

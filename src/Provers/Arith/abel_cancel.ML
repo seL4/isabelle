@@ -119,8 +119,8 @@ open Data;
                             simp_tac prepare_ss 1 THEN
                             IF_UNSOLVED (simp_tac cancel_ss 1) THEN
                             IF_UNSOLVED (simp_tac inverse_ss 1))
-   in Some thm end
-   handle Cancel => None;
+   in SOME thm end
+   handle Cancel => NONE;
 
 
  val sum_conv =
@@ -178,8 +178,8 @@ open Data;
                             simp_tac prepare_ss 1 THEN
                             simp_tac sum_cancel_ss 1 THEN
                             IF_UNSOLVED (simp_tac add_ac_ss 1))
-   in Some thm end
-   handle Cancel => None;
+   in SOME thm end
+   handle Cancel => NONE;
 
  val rel_conv =
      Simplifier.simproc_i (Sign.deref sg_ref) "cancel_relations"

@@ -116,8 +116,8 @@ fun mk_atomize pairs =
              (case head_of p of
                 Const(a,_) =>
                   (case assoc(pairs,a) of
-                     Some(rls) => flat (map atoms ([th] RL rls))
-                   | None => [th])
+                     SOME(rls) => flat (map atoms ([th] RL rls))
+                   | NONE => [th])
               | _ => [th])
          | _ => [th])
   in atoms end;
@@ -239,12 +239,12 @@ in
 structure Quantifier1 = Quantifier1Fun(
 struct
   (*abstract syntax*)
-  fun dest_eq((c as Const("op =",_)) $ s $ t) = Some(c,s,t)
-    | dest_eq _ = None;
-  fun dest_conj((c as Const("op &",_)) $ s $ t) = Some(c,s,t)
-    | dest_conj _ = None;
-  fun dest_imp((c as Const("op -->",_)) $ s $ t) = Some(c,s,t)
-    | dest_imp _ = None;
+  fun dest_eq((c as Const("op =",_)) $ s $ t) = SOME(c,s,t)
+    | dest_eq _ = NONE;
+  fun dest_conj((c as Const("op &",_)) $ s $ t) = SOME(c,s,t)
+    | dest_conj _ = NONE;
+  fun dest_imp((c as Const("op -->",_)) $ s $ t) = SOME(c,s,t)
+    | dest_imp _ = NONE;
   val conj = FOLogic.conj
   val imp  = FOLogic.imp
   (*rules*)

@@ -14,10 +14,10 @@ structure ImportDataArgs: THEORY_DATA_ARGS =
 struct
 val name = "HOL4/import_data"
 type T = ProofKernel.thm option array option
-val empty = None
+val empty = NONE
 val copy = I
 val prep_ext = I
-fun merge _ = None
+fun merge _ = NONE
 fun print sg import_segment =
     Pretty.writeln (Pretty.str ("Pretty printing of importer data not implemented"))
 end
@@ -44,8 +44,8 @@ fun import_tac (thyname,thmname) =
 	    val prem = hd (prems_of th)
 	    val _ = message ("Import trying to prove " ^ (string_of_cterm (cterm_of sg prem)))
 	    val int_thms = case ImportData.get thy of
-			       None => fst (Replay.setup_int_thms thyname thy)
-			     | Some a => a
+			       NONE => fst (Replay.setup_int_thms thyname thy)
+			     | SOME a => a
 	    val proof = snd (ProofKernel.import_proof thyname thmname thy) thy
 	    val hol4thm = snd (Replay.replay_proof int_thms thyname thmname proof thy)
 	    val thm = snd (ProofKernel.to_isa_thm hol4thm)
@@ -56,7 +56,7 @@ fun import_tac (thyname,thmname) =
 	    val _ = message ("Import proved " ^ (string_of_thm thm))  
 	in
 	    case Shuffler.set_prop thy prem' [("",thm)] of
-		Some (_,thm) =>
+		SOME (_,thm) =>
 		let
 		    val _ = if prem' aconv (prop_of thm)
 			    then message "import: Terms match up"
@@ -66,7 +66,7 @@ fun import_tac (thyname,thmname) =
 		in
 		    res
 		end
-	      | None => (message "import: set_prop didn't succeed"; no_tac th)
+	      | NONE => (message "import: set_prop didn't succeed"; no_tac th)
 	end
 	
 val import_meth = Method.simple_args (Args.name -- Args.name)

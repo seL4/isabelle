@@ -70,8 +70,8 @@ fun proc sg ss t =
   in
       apsome Data.simplify_meta_eq reshape
   end
-  handle TERM _ => None
-       | TYPE _ => None;   (*Typically (if thy doesn't include Numeral)
+  handle TERM _ => NONE
+       | TYPE _ => NONE;   (*Typically (if thy doesn't include Numeral)
 			     Undeclared type constructor "Numeral.bin"*)
 
 end;

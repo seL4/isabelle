@@ -24,7 +24,7 @@ fun subsets i j = if i <= j then
 
 fun forall_intr_prf (t, prf) =
   let val (a, T) = (case t of Var ((a, _), T) => (a, T) | Free p => p)
-  in Abst (a, Some T, Proofterm.prf_abstract_over t prf) end;
+  in Abst (a, SOME T, Proofterm.prf_abstract_over t prf) end;
 
 fun prf_of thm =
   let val {sign, prop, der = (_, prf), ...} = rep_thm thm
@@ -108,9 +108,9 @@ fun make_ind sorts ({descr, rec_names, rec_rewrites, induction, ...} : datatype_
         (descr ~~ recTs ~~ rec_result_Ts ~~ rec_names);
     val r = if null is then Extraction.nullt else
       foldr1 HOLogic.mk_prod (mapfilter (fn (((((i, _), T), U), s), tname) =>
-        if i mem is then Some
+        if i mem is then SOME
           (list_comb (Const (s, fTs ---> T --> U), rec_fns) $ Free (tname, T))
-        else None) (descr ~~ recTs ~~ rec_result_Ts ~~ rec_names ~~ tnames));
+        else NONE) (descr ~~ recTs ~~ rec_result_Ts ~~ rec_names ~~ tnames));
     val concl = HOLogic.mk_Trueprop (foldr1 (HOLogic.mk_binop "op &")
       (map (fn ((((i, _), T), U), tname) =>
         make_pred i U T (mk_proj i is r) (Free (tname, T)))
@@ -149,10 +149,10 @@ fun make_ind sorts ({descr, rec_names, rec_rewrites, induction, ...} : datatype_
         (case head_of (strip_abs_body f) of
            Free (s, T) =>
              let val T' = Type.varifyT T
-             in Abst (s, Some T', Proofterm.prf_abstract_over
-               (Var ((s, 0), T')) (AbsP ("H", Some p, prf)))
+             in Abst (s, SOME T', Proofterm.prf_abstract_over
+               (Var ((s, 0), T')) (AbsP ("H", SOME p, prf)))
              end
-         | _ => AbsP ("H", Some p, prf)))
+         | _ => AbsP ("H", SOME p, prf)))
            (rec_fns ~~ prems_of thm, Proofterm.proof_combP
              (prf_of thm', map PBound (length prems - 1 downto 0))));
 
@@ -183,7 +183,7 @@ fun make_casedists sorts ({index, descr, case_name, case_rewrites, exhaustion, .
             list_comb (r, free_ts)))))
       end;
 
-    val Some (_, _, constrs) = assoc (descr, index);
+    val SOME (_, _, constrs) = assoc (descr, index);
     val T = nth_elem (index, get_rec_types descr sorts);
     val (rs, prems) = split_list (map (make_casedist_prem T) constrs);
     val r = Const (case_name, map fastype_of rs ---> T --> rT);
@@ -210,7 +210,7 @@ fun make_casedists sorts ({index, descr, case_name, case_rewrites, exhaustion, .
     val P = Var (("P", 0), rT' --> HOLogic.boolT);
     val prf = forall_intr_prf (y, forall_intr_prf (P,
       foldr (fn ((p, r), prf) =>
-        forall_intr_prf (Logic.varify r, AbsP ("H", Some (Logic.varify p),
+        forall_intr_prf (Logic.varify r, AbsP ("H", SOME (Logic.varify p),
           prf))) (prems ~~ rs, Proofterm.proof_combP (prf_of thm',
             map PBound (length prems - 1 downto 0)))));
     val r' = Logic.varify (Abs ("y", Type.varifyT T,

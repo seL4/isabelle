@@ -53,8 +53,8 @@ fun del (p as (thy, thm)) =
     val tab = CodegenData.get thy;
     val (s, _) = const_of (prop_of thm);
   in case Symtab.lookup (tab, s) of
-      None => p
-    | Some thms => (CodegenData.put (Symtab.update ((s,
+      NONE => p
+    | SOME thms => (CodegenData.put (Symtab.update ((s,
         gen_rem eq_thm (thms, thm)), tab)) thy, thm)
   end handle TERM _ => (warn thm; p);
 
@@ -68,14 +68,14 @@ fun del_redundant thy eqs [] = eqs
 
 fun get_equations thy (s, T) =
   (case Symtab.lookup (CodegenData.get thy, s) of
-     None => []
-   | Some thms => preprocess thy (del_redundant thy []
+     NONE => []
+   | SOME thms => preprocess thy (del_redundant thy []
        (filter (fn thm => is_instance thy T
          (snd (const_of (prop_of thm)))) thms)));
 
 fun mk_poly_id thy (s, T) = mk_const_id (sign_of thy) s ^
   (case get_defn thy s T of
-     Some (_, Some i) => "_def" ^ string_of_int i
+     SOME (_, SOME i) => "_def" ^ string_of_int i
    | _ => "");
 
 exception EQN of string * typ * string;
@@ -104,19 +104,19 @@ fun add_rec_funs thy gr dep eqs =
       end;
 
     fun put_code fundef = Graph.map_node dname
-      (K (Some (EQN ("", dummyT, dname)), Pretty.string_of (Pretty.blk (0,
+      (K (SOME (EQN ("", dummyT, dname)), Pretty.string_of (Pretty.blk (0,
       separate Pretty.fbrk fundef @ [Pretty.str ";"])) ^ "\n\n"));
 
   in
     (case try (Graph.get_node gr) dname of
-       None =>
+       NONE =>
          let
            val gr1 = Graph.add_edge (dname, dep)
-             (Graph.new_node (dname, (Some (EQN (s, T, "")), "")) gr);
+             (Graph.new_node (dname, (SOME (EQN (s, T, "")), "")) gr);
            val (gr2, fundef) = mk_fundef "" "fun " gr1 eqs';
            val xs = cycle gr2 ([], dname);
            val cs = map (fn x => case Graph.get_node gr2 x of
-               (Some (EQN (s, T, _)), _) => (s, T)
+               (SOME (EQN (s, T, _)), _) => (s, T)
              | _ => error ("RecfunCodegen: illegal cyclic dependencies:\n" ^
                 implode (separate ", " xs))) xs
          in (case xs of
@@ -129,12 +129,12 @@ fun add_rec_funs thy gr dep eqs =
                  val (gr3, fundef') = mk_fundef "" "fun "
                    (Graph.add_edge (dname, dep)
                      (foldr (uncurry Graph.new_node) (map (fn k =>
-                       (k, (Some (EQN ("", dummyT, dname)), ""))) xs,
+                       (k, (SOME (EQN ("", dummyT, dname)), ""))) xs,
                          Graph.del_nodes xs gr2))) eqs''
                in put_code fundef' gr3 end
              else gr2)
          end
-     | Some (Some (EQN (_, _, s)), _) =>
+     | SOME (SOME (EQN (_, _, s)), _) =>
          if s = "" then
            if dname = dep then gr else Graph.add_edge (dname, dep) gr
          else if s = dep then gr else Graph.add_edge (s, dep) gr)
@@ -142,15 +142,15 @@ fun add_rec_funs thy gr dep eqs =
 
 fun recfun_codegen thy gr dep brack t = (case strip_comb t of
     (Const (p as (s, T)), ts) => (case (get_equations thy p, get_assoc_code thy s T) of
-       ([], _) => None
-     | (_, Some _) => None
-     | (eqns, None) =>
+       ([], _) => NONE
+     | (_, SOME _) => NONE
+     | (eqns, NONE) =>
         let val (gr', ps) = foldl_map (invoke_codegen thy dep true) (gr, ts)
         in
-          Some (add_rec_funs thy gr' dep (map prop_of eqns),
+          SOME (add_rec_funs thy gr' dep (map prop_of eqns),
             mk_app brack (Pretty.str (mk_poly_id thy p)) ps)
         end)
-  | _ => None);
+  | _ => NONE);
 
 
 val setup =

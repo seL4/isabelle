@@ -57,7 +57,7 @@ fun representation_proofs flat_names (dt_info : datatype_info Symtab.table)
 
     val [In0_inject, In1_inject, Scons_inject, Leaf_inject,
          In0_eq, In1_eq, In0_not_In1, In1_not_In0,
-         Lim_inject, Suml_inject, Sumr_inject] = map (get_thm Datatype_thy o rpair None)
+         Lim_inject, Suml_inject, Sumr_inject] = map (get_thm Datatype_thy o rpair NONE)
         ["In0_inject", "In1_inject", "Scons_inject", "Leaf_inject",
          "In0_eq", "In1_eq", "In0_not_In1", "In1_not_In0",
          "Lim_inject", "Suml_inject", "Sumr_inject"];
@@ -181,7 +181,7 @@ fun representation_proofs flat_names (dt_info : datatype_info Symtab.table)
 
     val thy3 = add_path flat_names big_name (foldl (fn (thy, ((((name, mx), tvs), c), name')) =>
       setmp TypedefPackage.quiet_mode true
-        (TypedefPackage.add_typedef_i false (Some name') (name, tvs, mx) c None
+        (TypedefPackage.add_typedef_i false (SOME name') (name, tvs, mx) c NONE
           (rtac exI 1 THEN
             QUIET_BREADTH_FIRST (has_fewer_prems 1)
             (resolve_tac rep_intrs 1))) thy |> #1)
@@ -261,9 +261,9 @@ fun representation_proofs flat_names (dt_info : datatype_info Symtab.table)
     (* get axioms from theory *)
 
     val newT_iso_axms = map (fn s =>
-      (get_thm thy4 ("Abs_" ^ s ^ "_inverse", None),
-       get_thm thy4 ("Rep_" ^ s ^ "_inverse", None),
-       get_thm thy4 ("Rep_" ^ s, None))) new_type_names;
+      (get_thm thy4 ("Abs_" ^ s ^ "_inverse", NONE),
+       get_thm thy4 ("Rep_" ^ s ^ "_inverse", NONE),
+       get_thm thy4 ("Rep_" ^ s, NONE))) new_type_names;
 
     (*------------------------------------------------*)
     (* prove additional theorems:                     *)

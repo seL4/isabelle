@@ -237,7 +237,7 @@ fun const_type (Sg (_, {consts, ...})) c = apsome #1 (Symtab.lookup (consts, c))
 (* id and self *)
 
 fun check_stale (sg as Sg ({id, ...},
-        {self = SgRef (Some (ref (Sg ({id = id', ...}, _)))), ...})) =
+        {self = SgRef (SOME (ref (Sg ({id = id', ...}, _)))), ...})) =
       if id = id' then sg
       else raise TERM ("Stale signature: " ^ str_of_sg sg, [])
   | check_stale _ = sys_error "Sign.check_stale";
@@ -246,8 +246,8 @@ fun is_stale sg = (check_stale sg; false) handle TERM _ => true;
 
 fun self_ref (sg as Sg (_, {self, ...})) = (check_stale sg; self);
 
-fun deref (SgRef (Some (ref sg))) = sg
-  | deref (SgRef None) = sys_error "Sign.deref";
+fun deref (SgRef (SOME (ref sg))) = sg
+  | deref (SgRef NONE) = sys_error "Sign.deref";
 
 fun name_of (sg as Sg ({id = ref name, ...}, _)) =
   if name = "" orelse ord name = ord "#" then
@@ -378,8 +378,8 @@ fun merge_data (Data tab1, Data tab2) =
 
    fun entry data kind =
      (case gen_assoc Object.eq_kind (data, kind) of
-       None => []
-     | Some x => [(kind, x)]);
+       NONE => []
+     | SOME x => [(kind, x)]);
 
     fun merge_entries [(kind, (e, mths as (_, ext, _, _)))] =
           (kind, (ext e handle exn => err_method "prep_ext" (Object.name_of_kind kind) exn, mths))
@@ -411,10 +411,10 @@ fun data_kinds (Data tab) = map fst (Symtab.dest tab);
 fun lookup_data sg tab kind =
   let val name = Object.name_of_kind kind in
     (case Symtab.lookup (tab, name) of
-      Some (k, x) =>
+      SOME (k, x) =>
         if Object.eq_kind (kind, k) then x
         else err_access sg name
-    | None => err_uninit sg name)
+    | NONE => err_uninit sg name)
   end;
 
 fun get_data kind f (sg as Sg (_, {data = Data tab, ...})) =
@@ -447,7 +447,7 @@ fun create_sign self stamps name (syn, tsig, ctab, (path, spaces), data) =
       make_sign (id, self, tsig, ctab, syn, path, spaces, data, ext_stamps stamps id);
   in
     (case self of
-      SgRef (Some r) => r := sign
+      SgRef (SOME r) => r := sign
     | _ => sys_error "Sign.create_sign");
     sign
   end;
@@ -458,7 +458,7 @@ fun extend_sign keep extfun name decls
     val _ = check_stale sg;
     val (self', data') =
       if is_draft sg andalso keep then (self, data)
-      else (SgRef (Some (ref sg)), prep_ext_data data);
+      else (SgRef (SOME (ref sg)), prep_ext_data data);
   in
     create_sign self' stamps name
       (extfun sg (syn, tsig, consts, (path, spaces), data') decls)
@@ -493,8 +493,8 @@ fun hide_names b x = change_space (NameSpace.hide b) x;
 
 (*make full names*)
 fun full _ "" = error "Attempt to declare empty name \"\""
-  | full None bname = bname
-  | full (Some path) bname =
+  | full NONE bname = bname
+  | full (SOME path) bname =
       if NameSpace.is_qualified bname then
         error ("Attempt to declare qualified name " ^ quote bname)
       else
@@ -513,7 +513,7 @@ local
   (*prepare mapping of names*)
   fun mapping f add_xs t =
     let
-      fun f' x = let val y = f x in if x = y then None else Some (x, y) end;
+      fun f' x = let val y = f x in if x = y then NONE else SOME (x, y) end;
       val table = mapfilter f' (add_xs (t, []));
       fun lookup x = if_none (assoc (table, x)) x;
     in lookup end;
@@ -568,7 +568,7 @@ in
   val full_name = full o #path o rep_sg;
 
   fun full_name_path sg elems =
-    full (Some (if_none (#path (rep_sg sg)) [] @ NameSpace.unpack elems));
+    full (SOME (if_none (#path (rep_sg sg)) [] @ NameSpace.unpack elems));
 
 end;
 
@@ -579,12 +579,12 @@ end;
 val pure_syn =
   Syn (Syntax.pure_syn, (Symtab.empty, Symtab.empty, Symtab.empty, Symtab.empty));
 
-val dummy_sg = make_sign (ref "", SgRef None, Type.empty_tsig,
-  Symtab.empty, pure_syn, Some [], [], empty_data, []);
+val dummy_sg = make_sign (ref "", SgRef NONE, Type.empty_tsig,
+  Symtab.empty, pure_syn, SOME [], [], empty_data, []);
 
 val pre_pure =
-  create_sign (SgRef (Some (ref dummy_sg))) [] "#"
-    (pure_syn, Type.empty_tsig, Symtab.empty, (Some [], []), empty_data);
+  create_sign (SgRef (SOME (ref dummy_sg))) [] "#"
+    (pure_syn, Type.empty_tsig, Symtab.empty, (SOME [], []), empty_data);
 
 val PureN = "Pure";
 val CPureN = "CPure";
@@ -734,18 +734,18 @@ fun type_check pp sg tm =
 fun nodup_tvars (env, Type (_, Ts)) = nodup_tvars_list (env, Ts)
   | nodup_tvars (env as (tfrees, tvars), T as TFree (v as (a, S))) =
       (case assoc_string (tfrees, a) of
-        Some S' =>
+        SOME S' =>
           if S = S' then env
           else raise TYPE ("Type variable " ^ quote a ^
             " has two distinct sorts", [TFree (a, S'), T], [])
-      | None => (v :: tfrees, tvars))
+      | NONE => (v :: tfrees, tvars))
   | nodup_tvars (env as (tfrees, tvars), T as TVar (v as (a, S))) =
       (case assoc_string_int (tvars, a) of
-        Some S' =>
+        SOME S' =>
           if S = S' then env
           else raise TYPE ("Type variable " ^ quote (Syntax.string_of_vname a) ^
             " has two distinct sorts", [TVar (a, S'), T], [])
-      | None => (tfrees, v :: tvars))
+      | NONE => (tfrees, v :: tvars))
 (*equivalent to foldl nodup_tvars_list, but 3X faster under Poly/ML*)
 and nodup_tvars_list (env, []) = env
   | nodup_tvars_list (env, T :: Ts) = nodup_tvars_list (nodup_tvars (env, T), Ts);
@@ -760,18 +760,18 @@ fun nodup_vars tm =
         Const (c, T) => (env, nodup_tvars (envT, T))
       | Free (v as (a, T)) =>
           (case assoc_string (frees, a) of
-            Some T' =>
+            SOME T' =>
               if T = T' then (env, nodup_tvars (envT, T))
               else raise TYPE ("Variable " ^ quote a ^
                 " has two distinct types", [T', T], [])
-          | None => ((v :: frees, vars), nodup_tvars (envT, T)))
+          | NONE => ((v :: frees, vars), nodup_tvars (envT, T)))
       | Var (v as (ixn, T)) =>
           (case assoc_string_int (vars, ixn) of
-            Some T' =>
+            SOME T' =>
               if T = T' then (env, nodup_tvars (envT, T))
               else raise TYPE ("Variable " ^ quote (Syntax.string_of_vname ixn) ^
                 " has two distinct types", [T', T], [])
-          | None => ((frees, v :: vars), nodup_tvars (envT, T)))
+          | NONE => ((frees, v :: vars), nodup_tvars (envT, T)))
       | Bound _ => envs
       | Abs (_, T, t) => nodups (env, nodup_tvars (envT, T)) t
       | s $ t => nodups (nodups envs s) t)
@@ -792,8 +792,8 @@ fun certify_term pp sg tm =
       | check_atoms (Abs (_, _, t)) = check_atoms t
       | check_atoms (Const (a, T)) =
           (case const_type sg a of
-            None => err ("Undeclared constant " ^ show_const a T)
-          | Some U =>
+            NONE => err ("Undeclared constant " ^ show_const a T)
+          | SOME U =>
               if typ_instance sg (T, U) then ()
               else err ("Illegal type for constant " ^ show_const a T))
       | check_atoms (Var ((x, i), _)) =
@@ -884,7 +884,7 @@ fun read_def_terms (sign, types, sorts) =
   read_def_terms' (pp sign) (is_logtype sign) (syn_of sign) (sign, types, sorts);
 
 fun simple_read_term sign T s =
-  (read_def_terms (sign, K None, K None) [] true [(s, T)]
+  (read_def_terms (sign, K NONE, K NONE) [] true [(s, T)]
     handle ERROR => error ("The error(s) above occurred for " ^ s)) |> #1 |> hd;
 
 
@@ -922,7 +922,7 @@ fun ext_types sg (syn, tsig, ctab, (path, spaces), data) types =
 (* add type abbreviations *)
 
 fun read_abbr sg syn tsig spaces (t, vs, rhs_src) =
-  (t, vs, rd_raw_typ (make_syntax sg syn) tsig spaces (K None) rhs_src)
+  (t, vs, rd_raw_typ (make_syntax sg syn) tsig spaces (K NONE) rhs_src)
     handle ERROR => error ("in type abbreviation " ^ t);
 
 fun ext_abbrs rd_abbr sg (syn, tsig, ctab, (path, spaces), data) abbrs =
@@ -978,7 +978,7 @@ fun err_dup_consts cs =
 
 
 fun read_const sg syn tsig (path, spaces) (c, ty_src, mx) =
-  (c, rd_raw_typ (make_syntax sg syn) tsig spaces (K None) ty_src, mx)
+  (c, rd_raw_typ (make_syntax sg syn) tsig spaces (K NONE) ty_src, mx)
     handle ERROR => err_in_const (const_name path c mx);
 
 fun ext_cnsts rd_const syn_only prmode sg (syn, tsig, ctab, (path, spaces), data)
@@ -1086,11 +1086,11 @@ fun ext_trrules_i _ (syn, tsig, ctab, names, data) args =
 fun ext_path _ (syn, tsig, ctab, (path, spaces), data) elems =
   let
     val path' =
-      if elems = "//" then None
-      else if elems = "/" then Some []
-      else if elems = ".." andalso is_some path andalso path <> Some [] then
-        Some (fst (split_last (the path)))
-      else Some (if_none path [] @ NameSpace.unpack elems);
+      if elems = "//" then NONE
+      else if elems = "/" then SOME []
+      else if elems = ".." andalso is_some path andalso path <> SOME [] then
+        SOME (fst (split_last (the path)))
+      else SOME (if_none path [] @ NameSpace.unpack elems);
   in
     (syn, tsig, ctab, (path', spaces), data)
   end;
@@ -1123,7 +1123,7 @@ fun copy_data (k, (e, mths as (cp, _, _, _))) =
 fun copy (sg as Sg ({id = _, stamps, syn}, {self, tsig, consts, path, spaces, data})) =
   let
     val _ = check_stale sg;
-    val self' = SgRef (Some (ref sg));
+    val self' = SgRef (SOME (ref sg));
     val Data tab = data;
     val data' = Data (Symtab.map copy_data tab);
   in create_sign self' stamps "#" (syn, tsig, consts, (path, spaces), data') end;
@@ -1182,8 +1182,8 @@ fun merge_stamps stamps1 stamps2 =
 
 (* trivial merge *)
 
-fun merge_refs (sgr1 as SgRef (Some (ref (sg1 as Sg ({stamps = s1, ...}, _)))),
-        sgr2 as SgRef (Some (ref (sg2 as Sg ({stamps = s2, ...}, _))))) =
+fun merge_refs (sgr1 as SgRef (SOME (ref (sg1 as Sg ({stamps = s1, ...}, _)))),
+        sgr2 as SgRef (SOME (ref (sg2 as Sg ({stamps = s2, ...}, _))))) =
       if fast_subsig (sg2, sg1) then sgr1
       else if fast_subsig (sg1, sg2) then sgr2
       else if subsig (sg2, sg1) then sgr1
@@ -1220,7 +1220,7 @@ fun nontriv_merge (sg1, sg2) =
       val consts = Symtab.merge eq_snd (consts1, consts2)
         handle Symtab.DUPS cs => err_dup_consts cs;
 
-      val path = Some [];
+      val path = SOME [];
       val kinds = distinct (map fst (spaces1 @ spaces2));
       val spaces =
         kinds ~~
@@ -1229,12 +1229,12 @@ fun nontriv_merge (sg1, sg2) =
 
       val data = merge_data (data1, data2);
 
-      val pre_sign = make_sign (ref "", SgRef (Some (ref dummy_sg)),
+      val pre_sign = make_sign (ref "", SgRef (SOME (ref dummy_sg)),
         tsig1, consts, Syn (syntax, trfuns), path, spaces, data, ref "#" :: stamps1);
       val tsig = Type.merge_tsigs (pp pre_sign) (tsig1, tsig2);
 
       val self_ref = ref dummy_sg;
-      val self = SgRef (Some self_ref);
+      val self = SgRef (SOME self_ref);
       val sign = make_sign (ref "", self, tsig, consts, Syn (syntax, trfuns),
         path, spaces, data, stamps);
     in self_ref := sign; syn_of sign; sign end;

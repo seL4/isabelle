@@ -3,7 +3,7 @@
     Author:     Tobias Nipkow
     Copyright   1991  University of Cambridge
 
-Some examples from Lawrence Paulson's book Logic and Computation.
+SOME examples from Lawrence Paulson's book Logic and Computation.
 *)
 
 time_use_thy "Ex1";

@@ -136,8 +136,8 @@ fun oracles_of_proof prfs prf =
       | oras_of (tabs, prf1 %% prf2) = oras_of (oras_of (tabs, prf1), prf2)
       | oras_of (tabs as (thms, oras), PThm ((name, _), prf, prop, _)) =
           (case Symtab.lookup (thms, name) of
-             None => oras_of ((Symtab.update ((name, [prop]), thms), oras), prf)
-           | Some ps => if prop mem ps then tabs else
+             NONE => oras_of ((Symtab.update ((name, [prop]), thms), oras), prf)
+           | SOME ps => if prop mem ps then tabs else
                oras_of ((Symtab.update ((name, prop::ps), thms), oras), prf))
       | oras_of ((thms, oras), prf as Oracle _) = (thms, prf ins oras)
       | oras_of (tabs, MinProof prfs) = foldl oras_of (tabs, prfs)
@@ -152,8 +152,8 @@ fun thms_of_proof tab (Abst (_, _, prf)) = thms_of_proof tab prf
   | thms_of_proof tab (prf % _) = thms_of_proof tab prf
   | thms_of_proof tab (prf' as PThm ((s, _), prf, prop, _)) =
       (case Symtab.lookup (tab, s) of
-         None => thms_of_proof (Symtab.update ((s, [(prop, prf')]), tab)) prf
-       | Some ps => if exists (equal prop o fst) ps then tab else
+         NONE => thms_of_proof (Symtab.update ((s, [(prop, prf')]), tab)) prf
+       | SOME ps => if exists (equal prop o fst) ps then tab else
            thms_of_proof (Symtab.update ((s, (prop, prf')::ps), tab)) prf)
   | thms_of_proof tab (MinProof prfs) = foldl (uncurry thms_of_proof) (tab, prfs)
   | thms_of_proof tab _ = tab;
@@ -197,7 +197,7 @@ fun infer_derivs f (ora1, prf1) (ora2, prf2) =
 
 fun infer_derivs' f = infer_derivs (K f) (false, MinProof []);
 
-fun (prf %> t) = prf % Some t;
+fun (prf %> t) = prf % SOME t;
 
 val proof_combt = foldl (op %>);
 val proof_combt' = foldl (op %);
@@ -217,11 +217,11 @@ fun strip_thm prf = (case strip_combt (fst (strip_combP prf)) of
       (PThm (_, prf', _, _), _) => prf'
     | _ => prf);
 
-val mk_Abst = foldr (fn ((s, T:typ), prf) => Abst (s, None, prf));
-fun mk_AbsP (i, prf) = funpow i (fn prf => AbsP ("H", None, prf)) prf;
+val mk_Abst = foldr (fn ((s, T:typ), prf) => Abst (s, NONE, prf));
+fun mk_AbsP (i, prf) = funpow i (fn prf => AbsP ("H", NONE, prf)) prf;
 
-fun apsome' f None = raise SAME
-  | apsome' f (Some x) = Some (f x);
+fun apsome' f NONE = raise SAME
+  | apsome' f (SOME x) = SOME (f x);
 
 fun same f x =
   let val x' = f x
@@ -237,25 +237,25 @@ fun map_proof_terms f g =
           handle SAME => prf % apsome' (same f) t)
       | mapp (prf1 %% prf2) = (mapp prf1 %% mapph prf2
           handle SAME => prf1 %% mapp prf2)
-      | mapp (PThm (a, prf, prop, Some Ts)) =
-          PThm (a, prf, prop, Some (same (map g) Ts))
-      | mapp (PAxm (a, prop, Some Ts)) =
-          PAxm (a, prop, Some (same (map g) Ts))
+      | mapp (PThm (a, prf, prop, SOME Ts)) =
+          PThm (a, prf, prop, SOME (same (map g) Ts))
+      | mapp (PAxm (a, prop, SOME Ts)) =
+          PAxm (a, prop, SOME (same (map g) Ts))
       | mapp _ = raise SAME
     and mapph prf = (mapp prf handle SAME => prf)
 
   in mapph end;
 
-fun fold_proof_terms f g (a, Abst (_, Some T, prf)) = fold_proof_terms f g (g (T, a), prf)
-  | fold_proof_terms f g (a, Abst (_, None, prf)) = fold_proof_terms f g (a, prf)
-  | fold_proof_terms f g (a, AbsP (_, Some t, prf)) = fold_proof_terms f g (f (t, a), prf)
-  | fold_proof_terms f g (a, AbsP (_, None, prf)) = fold_proof_terms f g (a, prf)
-  | fold_proof_terms f g (a, prf % Some t) = f (t, fold_proof_terms f g (a, prf))
-  | fold_proof_terms f g (a, prf % None) = fold_proof_terms f g (a, prf)
+fun fold_proof_terms f g (a, Abst (_, SOME T, prf)) = fold_proof_terms f g (g (T, a), prf)
+  | fold_proof_terms f g (a, Abst (_, NONE, prf)) = fold_proof_terms f g (a, prf)
+  | fold_proof_terms f g (a, AbsP (_, SOME t, prf)) = fold_proof_terms f g (f (t, a), prf)
+  | fold_proof_terms f g (a, AbsP (_, NONE, prf)) = fold_proof_terms f g (a, prf)
+  | fold_proof_terms f g (a, prf % SOME t) = f (t, fold_proof_terms f g (a, prf))
+  | fold_proof_terms f g (a, prf % NONE) = fold_proof_terms f g (a, prf)
   | fold_proof_terms f g (a, prf1 %% prf2) = fold_proof_terms f g
       (fold_proof_terms f g (a, prf1), prf2)
-  | fold_proof_terms _ g (a, PThm (_, _, _, Some Ts)) = foldr g (Ts, a)
-  | fold_proof_terms _ g (a, PAxm (_, prop, Some Ts)) = foldr g (Ts, a)
+  | fold_proof_terms _ g (a, PThm (_, _, _, SOME Ts)) = foldr g (Ts, a)
+  | fold_proof_terms _ g (a, PAxm (_, prop, SOME Ts)) = foldr g (Ts, a)
   | fold_proof_terms _ _ (a, _) = a;
 
 val add_prf_names = fold_proof_terms add_term_names ((uncurry K) o swap);
@@ -342,10 +342,10 @@ fun incr_pboundvars  0 0 prf = prf
 
 
 fun prf_loose_bvar1 (prf1 %% prf2) k = prf_loose_bvar1 prf1 k orelse prf_loose_bvar1 prf2 k
-  | prf_loose_bvar1 (prf % Some t) k = prf_loose_bvar1 prf k orelse loose_bvar1 (t, k)
-  | prf_loose_bvar1 (_ % None) _ = true
-  | prf_loose_bvar1 (AbsP (_, Some t, prf)) k = loose_bvar1 (t, k) orelse prf_loose_bvar1 prf k
-  | prf_loose_bvar1 (AbsP (_, None, _)) k = true
+  | prf_loose_bvar1 (prf % SOME t) k = prf_loose_bvar1 prf k orelse loose_bvar1 (t, k)
+  | prf_loose_bvar1 (_ % NONE) _ = true
+  | prf_loose_bvar1 (AbsP (_, SOME t, prf)) k = loose_bvar1 (t, k) orelse prf_loose_bvar1 prf k
+  | prf_loose_bvar1 (AbsP (_, NONE, _)) k = true
   | prf_loose_bvar1 (Abst (_, _, prf)) k = prf_loose_bvar1 prf (k+1)
   | prf_loose_bvar1 _ _ = false;
 
@@ -363,12 +363,12 @@ fun prf_add_loose_bnos plev tlev (PBound i) (is, js) =
         (prf_add_loose_bnos plev tlev prf1 p)
   | prf_add_loose_bnos plev tlev (prf % opt) (is, js) =
       prf_add_loose_bnos plev tlev prf (case opt of
-          None => (is, ~1 ins js)
-        | Some t => (is, add_loose_bnos (t, tlev, js)))
+          NONE => (is, ~1 ins js)
+        | SOME t => (is, add_loose_bnos (t, tlev, js)))
   | prf_add_loose_bnos plev tlev (AbsP (_, opt, prf)) (is, js) =
       prf_add_loose_bnos (plev+1) tlev prf (case opt of
-          None => (is, ~1 ins js)
-        | Some t => (is, add_loose_bnos (t, tlev, js)))
+          NONE => (is, ~1 ins js)
+        | SOME t => (is, add_loose_bnos (t, tlev, js)))
   | prf_add_loose_bnos plev tlev (Abst (_, _, prf)) p =
       prf_add_loose_bnos plev (tlev+1) prf p
   | prf_add_loose_bnos _ _ _ _ = ([], []);
@@ -455,8 +455,8 @@ fun frzT names =
 
 fun thawT names =
   map_type_tfree (fn (s, xs) => case assoc (names, s) of
-      None => TFree (s, xs)
-    | Some ixn => TVar (ixn, xs));
+      NONE => TFree (s, xs)
+    | SOME ixn => TVar (ixn, xs));
 
 fun freeze names names' (t $ u) =
       freeze names names' t $ freeze names names' u
@@ -476,8 +476,8 @@ fun thaw names names' (t $ u) =
   | thaw names names' (Free (s, T)) = 
       let val T' = thawT names' T
       in case assoc (names, s) of
-          None => Free (s, T')
-        | Some ixn => Var (ixn, T')
+          NONE => Free (s, T')
+        | SOME ixn => Var (ixn, T')
       end
   | thaw names names' (Var (ixn, T)) = Var (ixn, thawT names' T)
   | thaw names names' t = t;
@@ -517,13 +517,13 @@ fun implies_intr_proof h prf =
       | abshyp _ _ = raise SAME
     and abshyph i prf = (abshyp i prf handle SAME => prf)
   in
-    AbsP ("H", None (*h*), abshyph 0 prf)
+    AbsP ("H", NONE (*h*), abshyph 0 prf)
   end;
 
 
 (***** forall introduction *****)
 
-fun forall_intr_proof x a prf = Abst (a, None, prf_abstract_over x prf);
+fun forall_intr_proof x a prf = Abst (a, NONE, prf_abstract_over x prf);
 
 
 (***** varify *****)
@@ -535,8 +535,8 @@ fun varify_proof t fixed prf =
     val fmap = fs ~~ variantlist (fs, map #1 ixns)
     fun thaw (f as (a, S)) =
       (case assoc (fmap, a) of
-        None => TFree f
-      | Some b => TVar ((b, 0), S));
+        NONE => TFree f
+      | SOME b => TVar ((b, 0), S));
   in map_proof_terms (map_term_types (map_type_tfree thaw)) (map_type_tfree thaw) prf
   end;
 
@@ -548,8 +548,8 @@ fun new_name (ix, (pairs,used)) =
   in  ((ix, v) :: pairs, v :: used)  end;
 
 fun freeze_one alist (ix, sort) = (case assoc (alist, ix) of
-    None => TVar (ix, sort)
-  | Some name => TFree (name, sort));
+    NONE => TVar (ix, sort)
+  | SOME name => TFree (name, sort));
 
 in
 
@@ -633,9 +633,9 @@ fun lift_proof Bi inc prop prf =
           if b then (i-1, j, prf %% PBound i) else (i, j-1, prf %> Bound j);
 
     fun lift Us bs i j (Const ("==>", _) $ A $ B) =
-	    AbsP ("H", None (*A*), lift Us (true::bs) (i+1) j B)
+	    AbsP ("H", NONE (*A*), lift Us (true::bs) (i+1) j B)
       | lift Us bs i j (Const ("all", _) $ Abs (a, T, t)) = 
-	    Abst (a, None (*T*), lift (T::Us) (false::bs) i (j+1) t)
+	    Abst (a, NONE (*T*), lift (T::Us) (false::bs) i (j+1) t)
       | lift Us bs i j _ = proof_combP (lifth' (rev Us) [] prf,
             map (fn k => (#3 (foldr mk_app (bs, (i-1, j-1, PBound k)))))
               (i + k - 1 downto i));
@@ -646,8 +646,8 @@ fun lift_proof Bi inc prop prf =
 
 (***** proof by assumption *****)
 
-fun mk_asm_prf (Const ("==>", _) $ A $ B) i = AbsP ("H", None (*A*), mk_asm_prf B (i+1))
-  | mk_asm_prf (Const ("all", _) $ Abs (a, T, t)) i = Abst (a, None (*T*), mk_asm_prf t i)
+fun mk_asm_prf (Const ("==>", _) $ A $ B) i = AbsP ("H", NONE (*A*), mk_asm_prf B (i+1))
+  | mk_asm_prf (Const ("all", _) $ Abs (a, T, t)) i = Abst (a, NONE (*T*), mk_asm_prf t i)
   | mk_asm_prf _ i = PBound i;
 
 fun assumption_proof Bs Bi n prf =
@@ -658,9 +658,9 @@ fun assumption_proof Bs Bi n prf =
 (***** Composition of object rule with proof state *****)
 
 fun flatten_params_proof i j n (Const ("==>", _) $ A $ B, k) =
-      AbsP ("H", None (*A*), flatten_params_proof (i+1) j n (B, k))
+      AbsP ("H", NONE (*A*), flatten_params_proof (i+1) j n (B, k))
   | flatten_params_proof i j n (Const ("all", _) $ Abs (a, T, t), k) =
-      Abst (a, None (*T*), flatten_params_proof i (j+1) n (t, k))
+      Abst (a, NONE (*T*), flatten_params_proof i (j+1) n (t, k))
   | flatten_params_proof i j n (_, k) = proof_combP (proof_combt (PBound (k+i),
       map Bound (j-1 downto 0)), map PBound (i-1 downto 0 \ i-n));
 
@@ -706,24 +706,24 @@ val equality_axms =
 
 val [reflexive_axm, symmetric_axm, transitive_axm, equal_intr_axm,
   equal_elim_axm, abstract_rule_axm, combination_axm] =
-    map (fn (s, t) => PAxm ("ProtoPure." ^ s, varify t, None)) equality_axms;
+    map (fn (s, t) => PAxm ("ProtoPure." ^ s, varify t, NONE)) equality_axms;
 
 end;
 
-val reflexive = reflexive_axm % None;
+val reflexive = reflexive_axm % NONE;
 
 fun symmetric (prf as PAxm ("ProtoPure.reflexive", _, _) % _) = prf
-  | symmetric prf = symmetric_axm % None % None %% prf;
+  | symmetric prf = symmetric_axm % NONE % NONE %% prf;
 
 fun transitive _ _ (PAxm ("ProtoPure.reflexive", _, _) % _) prf2 = prf2
   | transitive _ _ prf1 (PAxm ("ProtoPure.reflexive", _, _) % _) = prf1
   | transitive u (Type ("prop", [])) prf1 prf2 =
-      transitive_axm % None % Some (remove_types u) % None %% prf1 %% prf2
+      transitive_axm % NONE % SOME (remove_types u) % NONE %% prf1 %% prf2
   | transitive u T prf1 prf2 =
-      transitive_axm % None % None % None %% prf1 %% prf2;
+      transitive_axm % NONE % NONE % NONE %% prf1 %% prf2;
 
 fun abstract_rule x a prf =
-  abstract_rule_axm % None % None %% forall_intr_proof x a prf;
+  abstract_rule_axm % NONE % NONE %% forall_intr_proof x a prf;
 
 fun check_comb (PAxm ("ProtoPure.combination", _, _) % f % g % _ % _ %% prf %% _) =
       is_some f orelse check_comb prf
@@ -737,23 +737,23 @@ fun combination f g t u (Type (_, [T, U])) prf1 prf2 =
     val f = Envir.beta_norm f;
     val g = Envir.beta_norm g;
     val prf =  if check_comb prf1 then
-        combination_axm % None % None
+        combination_axm % NONE % NONE
       else (case prf1 of
           PAxm ("ProtoPure.reflexive", _, _) % _ =>
-            combination_axm %> remove_types f % None
+            combination_axm %> remove_types f % NONE
         | _ => combination_axm %> remove_types f %> remove_types g)
   in
     (case T of
        Type ("fun", _) => prf %
          (case head_of f of
-            Abs _ => Some (remove_types t)
-          | Var _ => Some (remove_types t)
-          | _ => None) %
+            Abs _ => SOME (remove_types t)
+          | Var _ => SOME (remove_types t)
+          | _ => NONE) %
          (case head_of g of
-            Abs _ => Some (remove_types u)
-          | Var _ => Some (remove_types u)
-          | _ => None) %% prf1 %% prf2
-     | _ => prf % None % None %% prf1 %% prf2)
+            Abs _ => SOME (remove_types u)
+          | Var _ => SOME (remove_types u)
+          | _ => NONE) %% prf1 %% prf2
+     | _ => prf % NONE % NONE %% prf1 %% prf2)
   end;
 
 fun equal_intr A B prf1 prf2 =
@@ -780,7 +780,7 @@ fun is_fun (Type ("fun", _)) = true
 fun add_funvars Ts (vs, t) =
   if is_fun (fastype_of1 (Ts, t)) then
     vs union mapfilter (fn Var (ixn, T) =>
-      if is_fun T then Some ixn else None | _ => None) (vars_of t)
+      if is_fun T then SOME ixn else NONE | _ => NONE) (vars_of t)
   else vs;
 
 fun add_npvars q p Ts (vs, Const ("==>", _) $ t $ u) =
@@ -821,10 +821,10 @@ fun gen_axm_proof c name prop =
   let
     val nvs = needed_vars prop;
     val args = map (fn (v as Var (ixn, _)) =>
-        if ixn mem nvs then Some v else None) (vars_of prop) @
-      map Some (sort (make_ord atless) (term_frees prop));
+        if ixn mem nvs then SOME v else NONE) (vars_of prop) @
+      map SOME (sort (make_ord atless) (term_frees prop));
   in
-    proof_combt' (c (name, prop, None), args)
+    proof_combt' (c (name, prop, NONE), args)
   end;
 
 val axm_proof = gen_axm_proof PAxm;
@@ -835,7 +835,7 @@ fun shrink ls lev (prf as Abst (a, T, body)) =
       in (b, is, ch, if ch then Abst (a, T, body') else prf) end
   | shrink ls lev (prf as AbsP (a, t, body)) =
       let val (b, is, ch, body') = shrink (lev::ls) lev body
-      in (b orelse 0 mem is, mapfilter (fn 0 => None | i => Some (i-1)) is,
+      in (b orelse 0 mem is, mapfilter (fn 0 => NONE | i => SOME (i-1)) is,
         ch, if ch then AbsP (a, t, body') else prf)
       end
   | shrink ls lev prf =
@@ -852,9 +852,9 @@ and shrink' ls lev ts prfs (prf as prf1 %% prf2) =
       let val (is, ch, (ch', t')::ts', prf') = shrink' ls lev (t::ts) prfs prf1
       in (is, ch orelse ch', ts', if ch orelse ch' then prf' % t' else prf) end
   | shrink' ls lev ts prfs (prf as PBound i) =
-      (if exists (fn Some (Bound j) => lev-j <= nth_elem (i, ls) | _ => true) ts
+      (if exists (fn SOME (Bound j) => lev-j <= nth_elem (i, ls) | _ => true) ts
          orelse not (null (duplicates
-           (foldl (fn (js, Some (Bound j)) => j :: js | (js, _) => js) ([], ts))))
+           (foldl (fn (js, SOME (Bound j)) => j :: js | (js, _) => js) ([], ts))))
          orelse exists #1 prfs then [i] else [], false, map (pair false) ts, prf)
   | shrink' ls lev ts prfs (prf as Hyp _) = ([], false, map (pair false) ts, prf)
   | shrink' ls lev ts prfs (prf as MinProof _) =
@@ -868,11 +868,11 @@ and shrink' ls lev ts prfs (prf as prf1 %% prf2) =
         val insts = take (length ts', map (fst o dest_Var) vs) ~~ ts';
         val nvs = foldl (fn (ixns', (ixn, ixns)) =>
           ixn ins (case assoc (insts, ixn) of
-              Some (Some t) => if is_proj t then ixns union ixns' else ixns'
+              SOME (SOME t) => if is_proj t then ixns union ixns' else ixns'
             | _ => ixns union ixns'))
               (needed prop ts'' prfs, add_npvars false true [] ([], prop));
         val insts' = map
-          (fn (ixn, x as Some _) => if ixn mem nvs then (false, x) else (true, None)
+          (fn (ixn, x as SOME _) => if ixn mem nvs then (false, x) else (true, NONE)
             | (_, x) => (false, x)) insts
       in ([], false, insts' @ map (pair false) ts'', prf) end
 and needed (Const ("==>", _) $ t $ u) ts ((b, _, _, _)::prfs) =
@@ -908,9 +908,9 @@ fun fomatch Ts tymatch j =
 
 fun match_proof Ts tymatch =
   let
-    fun optmatch _ inst (None, _) = inst
-      | optmatch _ _ (Some _, None) = raise PMatch
-      | optmatch mtch inst (Some x, Some y) = mtch inst (x, y)
+    fun optmatch _ inst (NONE, _) = inst
+      | optmatch _ _ (SOME _, NONE) = raise PMatch
+      | optmatch mtch inst (SOME x, SOME y) = mtch inst (x, y)
 
     fun matcht Ts j (pinst, tinst) (t, u) =
       (pinst, fomatch Ts tymatch j tinst (t, Envir.beta_norm u));
@@ -958,8 +958,8 @@ fun prf_subst (pinst, (tyinsts, insts)) =
     val substT = typ_subst_TVars_Vartab tyinsts;
 
     fun subst' lev (t as Var (ixn, _)) = (case assoc (insts, ixn) of
-          None => t
-        | Some u => incr_boundvars lev u)
+          NONE => t
+        | SOME u => incr_boundvars lev u)
       | subst' lev (Const (s, T)) = Const (s, substT T)
       | subst' lev (Free (s, T)) = Free (s, substT T)
       | subst' lev (Abs (a, T, body)) = Abs (a, substT T, subst' (lev+1) body)
@@ -973,8 +973,8 @@ fun prf_subst (pinst, (tyinsts, insts)) =
       | subst plev tlev (prf %% prf') = subst plev tlev prf %% subst plev tlev prf'
       | subst plev tlev (prf % t) = subst plev tlev prf % apsome (subst' tlev) t
       | subst plev tlev (prf as Hyp (Var (ixn, _))) = (case assoc (pinst, ixn) of
-          None => prf
-        | Some prf' => incr_pboundvars plev tlev prf')
+          NONE => prf
+        | SOME prf' => incr_pboundvars plev tlev prf')
       | subst _ _ (PThm (id, prf, prop, Ts)) =
           PThm (id, prf, prop, apsome (map substT) Ts)
       | subst _ _ (PAxm (id, prop, Ts)) =
@@ -988,7 +988,7 @@ fun could_unify prf1 prf2 =
   let
     fun matchrands (prf1 %% prf2) (prf1' %% prf2') =
           could_unify prf2 prf2' andalso matchrands prf1 prf1'
-      | matchrands (prf % Some t) (prf' % Some t') =
+      | matchrands (prf % SOME t) (prf' % SOME t') =
           Term.could_unify (t, t') andalso matchrands prf prf'
       | matchrands (prf % _) (prf' % _) = matchrands prf prf'
       | matchrands _ _ = true
@@ -1017,69 +1017,69 @@ val skel0 = PBound 0;
 
 fun rewrite_prf tymatch (rules, procs) prf =
   let
-    fun rew _ (Abst (_, _, body) % Some t) = Some (prf_subst_bounds [t] body, skel0)
-      | rew _ (AbsP (_, _, body) %% prf) = Some (prf_subst_pbounds [prf] body, skel0)
+    fun rew _ (Abst (_, _, body) % SOME t) = SOME (prf_subst_bounds [t] body, skel0)
+      | rew _ (AbsP (_, _, body) %% prf) = SOME (prf_subst_pbounds [prf] body, skel0)
       | rew Ts prf = (case get_first (fn (_, r) => r Ts prf) procs of
-          Some prf' => Some (prf', skel0)
-        | None => get_first (fn (prf1, prf2) => Some (prf_subst
+          SOME prf' => SOME (prf', skel0)
+        | NONE => get_first (fn (prf1, prf2) => SOME (prf_subst
             (match_proof Ts tymatch ([], (Vartab.empty, [])) (prf1, prf)) prf2, prf2)
-               handle PMatch => None) (filter (could_unify prf o fst) rules));
+               handle PMatch => NONE) (filter (could_unify prf o fst) rules));
 
     fun rew0 Ts (prf as AbsP (_, _, prf' %% PBound 0)) =
           if prf_loose_Pbvar1 prf' 0 then rew Ts prf
           else
             let val prf'' = incr_pboundvars (~1) 0 prf'
-            in Some (if_none (rew Ts prf'') (prf'', skel0)) end
-      | rew0 Ts (prf as Abst (_, _, prf' % Some (Bound 0))) =
+            in SOME (if_none (rew Ts prf'') (prf'', skel0)) end
+      | rew0 Ts (prf as Abst (_, _, prf' % SOME (Bound 0))) =
           if prf_loose_bvar1 prf' 0 then rew Ts prf
           else
             let val prf'' = incr_pboundvars 0 (~1) prf'
-            in Some (if_none (rew Ts prf'') (prf'', skel0)) end
+            in SOME (if_none (rew Ts prf'') (prf'', skel0)) end
       | rew0 Ts prf = rew Ts prf;
 
-    fun rew1 _ (Hyp (Var _)) _ = None
+    fun rew1 _ (Hyp (Var _)) _ = NONE
       | rew1 Ts skel prf = (case rew2 Ts skel prf of
-          Some prf1 => (case rew0 Ts prf1 of
-              Some (prf2, skel') => Some (if_none (rew1 Ts skel' prf2) prf2)
-            | None => Some prf1)
-        | None => (case rew0 Ts prf of
-              Some (prf1, skel') => Some (if_none (rew1 Ts skel' prf1) prf1)
-            | None => None))
+          SOME prf1 => (case rew0 Ts prf1 of
+              SOME (prf2, skel') => SOME (if_none (rew1 Ts skel' prf2) prf2)
+            | NONE => SOME prf1)
+        | NONE => (case rew0 Ts prf of
+              SOME (prf1, skel') => SOME (if_none (rew1 Ts skel' prf1) prf1)
+            | NONE => NONE))
 
-    and rew2 Ts skel (prf % Some t) = (case prf of
+    and rew2 Ts skel (prf % SOME t) = (case prf of
             Abst (_, _, body) =>
               let val prf' = prf_subst_bounds [t] body
-              in Some (if_none (rew2 Ts skel0 prf') prf') end
+              in SOME (if_none (rew2 Ts skel0 prf') prf') end
           | _ => (case rew1 Ts (case skel of skel' % _ => skel' | _ => skel0) prf of
-              Some prf' => Some (prf' % Some t)
-            | None => None))
-      | rew2 Ts skel (prf % None) = apsome (fn prf' => prf' % None)
+              SOME prf' => SOME (prf' % SOME t)
+            | NONE => NONE))
+      | rew2 Ts skel (prf % NONE) = apsome (fn prf' => prf' % NONE)
           (rew1 Ts (case skel of skel' % _ => skel' | _ => skel0) prf)
       | rew2 Ts skel (prf1 %% prf2) = (case prf1 of
             AbsP (_, _, body) =>
               let val prf' = prf_subst_pbounds [prf2] body
-              in Some (if_none (rew2 Ts skel0 prf') prf') end
+              in SOME (if_none (rew2 Ts skel0 prf') prf') end
           | _ =>
             let val (skel1, skel2) = (case skel of
                 skel1 %% skel2 => (skel1, skel2)
               | _ => (skel0, skel0))
             in case rew1 Ts skel1 prf1 of
-                Some prf1' => (case rew1 Ts skel2 prf2 of
-                    Some prf2' => Some (prf1' %% prf2')
-                  | None => Some (prf1' %% prf2))
-              | None => (case rew1 Ts skel2 prf2 of
-                    Some prf2' => Some (prf1 %% prf2')
-                  | None => None)
+                SOME prf1' => (case rew1 Ts skel2 prf2 of
+                    SOME prf2' => SOME (prf1' %% prf2')
+                  | NONE => SOME (prf1' %% prf2))
+              | NONE => (case rew1 Ts skel2 prf2 of
+                    SOME prf2' => SOME (prf1 %% prf2')
+                  | NONE => NONE)
             end)
       | rew2 Ts skel (Abst (s, T, prf)) = (case rew1 (if_none T dummyT :: Ts)
               (case skel of Abst (_, _, skel') => skel' | _ => skel0) prf of
-            Some prf' => Some (Abst (s, T, prf'))
-          | None => None)
+            SOME prf' => SOME (Abst (s, T, prf'))
+          | NONE => NONE)
       | rew2 Ts skel (AbsP (s, t, prf)) = (case rew1 Ts
               (case skel of AbsP (_, _, skel') => skel' | _ => skel0) prf of
-            Some prf' => Some (AbsP (s, t, prf'))
-          | None => None)
-      | rew2 _ _ _ = None
+            SOME prf' => SOME (AbsP (s, t, prf'))
+          | NONE => NONE)
+      | rew2 _ _ _ = NONE
 
   in if_none (rew1 [] skel0 prf) prf end;
 
@@ -1123,20 +1123,20 @@ fun thm_proof sign (name, tags) hyps prop prf =
     val prop = Logic.list_implies (hyps, prop);
     val nvs = needed_vars prop;
     val args = map (fn (v as Var (ixn, _)) =>
-        if ixn mem nvs then Some v else None) (vars_of prop) @
-      map Some (sort (make_ord atless) (term_frees prop));
+        if ixn mem nvs then SOME v else NONE) (vars_of prop) @
+      map SOME (sort (make_ord atless) (term_frees prop));
     val opt_prf = if ! proofs = 2 then
         #4 (shrink [] 0 (rewrite_prf fst (ProofData.get_sg sign)
           (foldr (uncurry implies_intr_proof) (hyps, prf))))
       else MinProof (mk_min_proof ([], prf));
     val head = (case strip_combt (fst (strip_combP prf)) of
-        (PThm ((old_name, _), prf', prop', None), args') =>
+        (PThm ((old_name, _), prf', prop', NONE), args') =>
           if (old_name="" orelse old_name=name) andalso
              prop = prop' andalso args = args' then
-            PThm ((name, tags), prf', prop, None)
+            PThm ((name, tags), prf', prop, NONE)
           else
-            PThm ((name, tags), opt_prf, prop, None)
-      | _ => PThm ((name, tags), opt_prf, prop, None))
+            PThm ((name, tags), opt_prf, prop, NONE)
+      | _ => PThm ((name, tags), opt_prf, prop, NONE))
   in
     proof_combP (proof_combt' (head, args), map Hyp hyps)
   end;

@@ -42,18 +42,18 @@ fun term_of_fun_type _ T _ U _ = Free ("<function>", T --> U);
 val eq_codegen_setup = [Codegen.add_codegen "eq_codegen"
   (fn thy => fn gr => fn dep => fn b => fn t =>
     (case strip_comb t of
-       (Const ("op =", Type (_, [Type ("fun", _), _])), _) => None
+       (Const ("op =", Type (_, [Type ("fun", _), _])), _) => NONE
      | (Const ("op =", _), [t, u]) =>
           let
             val (gr', pt) = Codegen.invoke_codegen thy dep false (gr, t);
             val (gr'', pu) = Codegen.invoke_codegen thy dep false (gr', u)
           in
-            Some (gr'', Codegen.parens
+            SOME (gr'', Codegen.parens
               (Pretty.block [pt, Pretty.str " =", Pretty.brk 1, pu]))
           end
-     | (t as Const ("op =", _), ts) => Some (Codegen.invoke_codegen
+     | (t as Const ("op =", _), ts) => SOME (Codegen.invoke_codegen
          thy dep b (gr, Codegen.eta_expand t ts 2))
-     | _ => None))];
+     | _ => NONE))];
 
 fun gen_bool i = one_of [false, true];
 

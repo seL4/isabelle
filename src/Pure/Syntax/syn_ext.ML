@@ -140,8 +140,8 @@ val chain_pri = ~1;   (*dummy for chain productions*)
 
 fun delims_of xprods =
   let
-    fun del_of (Delim s) = Some s
-      | del_of _ = None;
+    fun del_of (Delim s) = SOME s
+      | del_of _ = NONE;
 
     fun dels_of (XProd (_, xsymbs, _, _)) =
       mapfilter del_of xsymbs;
@@ -202,8 +202,8 @@ local
     Scan.repeat1 scan_delim_char >> (Delim o implode);
 
   val scan_symb =
-    scan_sym >> Some ||
-    $$ "'" -- Scan.one Symbol.is_blank >> K None;
+    scan_sym >> SOME ||
+    $$ "'" -- Scan.one Symbol.is_blank >> K NONE;
 
   val scan_symbs = Scan.repeat scan_symb --| Scan.ahead (Scan.one (not_equal "'"));
   val read_symbs = mapfilter I o the o Scan.read Symbol.stopper scan_symbs;

@@ -226,8 +226,8 @@ fun transpose_matrix matrix =
     let
 	fun upd m j i x =
 	    case Inttab.lookup (m, j) of
-		Some v => Inttab.update ((j, Inttab.update ((i, x), v)), m)
-	      | None => Inttab.update ((j, Inttab.update ((i, x), Inttab.empty)), m) 
+		SOME v => Inttab.update ((j, Inttab.update ((i, x), v)), m)
+	      | NONE => Inttab.update ((j, Inttab.update ((i, x), Inttab.empty)), m) 
 
 	fun updv j (m, (i, s)) = upd m i j s
 
@@ -274,11 +274,11 @@ fun cplexProg c A b =
 		       		       
 	fun mk_constr index vector c = 
 	    let 
-		val s = case Inttab.lookup (c, index) of Some s => s | None => "0"
+		val s = case Inttab.lookup (c, index) of SOME s => s | NONE => "0"
 		val (p, s) = split_numstr s
 		val num = if p then cplex.cplexNum s else cplex.cplexNeg (cplex.cplexNum s)
 	    in
-		(None, cplex.cplexConstr (cplex.cplexLeq, (vec2sum vector, num)))
+		(NONE, cplex.cplexConstr (cplex.cplexLeq, (vec2sum vector, num)))
 	    end
 
 	fun delete index c = Inttab.delete index c handle Inttab.UNDEF _ => c
@@ -327,11 +327,11 @@ fun dual_cplexProg c A b =
 		       		       
 	fun mk_constr index vector c = 
 	    let 
-		val s = case Inttab.lookup (c, index) of Some s => s | None => "0"
+		val s = case Inttab.lookup (c, index) of SOME s => s | NONE => "0"
 		val (p, s) = split_numstr s
 		val num = if p then cplex.cplexNum s else cplex.cplexNeg (cplex.cplexNum s)
 	    in
-		(None, cplex.cplexConstr (cplex.cplexEq, (vec2sum vector, num)))
+		(NONE, cplex.cplexConstr (cplex.cplexEq, (vec2sum vector, num)))
 	    end
 
 	fun delete index c = Inttab.delete index c handle Inttab.UNDEF _ => c
@@ -361,12 +361,12 @@ fun cut_vector size v =
 fun cut_matrix vfilter vsize m = 
     let 
 	fun app (m, (i, v)) = 
-	    if (Inttab.lookup (vfilter, i) = None) then 
+	    if (Inttab.lookup (vfilter, i) = NONE) then 
 		m 
 	    else 
 		case vsize of
-		    None => Inttab.update ((i,v), m)
-		  | Some s => Inttab.update((i, cut_vector s v),m)
+		    NONE => Inttab.update ((i,v), m)
+		  | SOME s => Inttab.update((i, cut_vector s v),m)
     in
 	Inttab.foldl app (empty_matrix, m)
     end
@@ -376,10 +376,10 @@ fun m_elem_at m i = Inttab.lookup (m,i)
 
 fun v_only_elem v = 
     case Inttab.min_key v of
-	None => None
-      | Some vmin => (case Inttab.max_key v of
-			  None => Some vmin
-			| Some vmax => if vmin = vmax then Some vmin else None)
+	NONE => NONE
+      | SOME vmin => (case Inttab.max_key v of
+			  NONE => SOME vmin
+			| SOME vmax => if vmin = vmax then SOME vmin else NONE)
 
 fun v_fold f a v = Inttab.foldl f (a,v) 
 

@@ -80,8 +80,8 @@ fun check_file current src_path =
     fun find_dir dir =
       get_first (find_ext (Path.append dir path)) ml_exts;
 
-    fun add_current ps = (case current of None => ps
-          | (Some p) => if Path.is_current p then ps else p :: ps);
+    fun add_current ps = (case current of NONE => ps
+          | (SOME p) => if Path.is_current p then ps else p :: ps);
 
     val paths =
       if Path.is_current path then error "Bad file specification"
@@ -94,8 +94,8 @@ fun check_file current src_path =
 
 fun load_file current raw_path =
   (case check_file current raw_path of
-    None => error ("Could not find ML file " ^ quote (Path.pack raw_path))
-  | Some (path, info) => (File.use path; (path, info)));
+    NONE => error ("Could not find ML file " ^ quote (Path.pack raw_path))
+  | SOME (path, info) => (File.use path; (path, info)));
 
 
 (* datatype master *)
@@ -110,10 +110,10 @@ fun get_thy (Master (thy, _)) = thy;
 local
 
 fun check_thy_aux (name, ml) =
-  (case check_file None (thy_path name) of
-    None => error ("Could not find theory file for " ^ quote name ^ " in dir(s) " ^
+  (case check_file NONE (thy_path name) of
+    NONE => error ("Could not find theory file for " ^ quote name ^ " in dir(s) " ^
       commas_quote (show_path ()))
-  | Some thy_info => (thy_info, if ml then check_file None (ml_path name) else None));
+  | SOME thy_info => (thy_info, if ml then check_file NONE (ml_path name) else NONE));
 
 in
 

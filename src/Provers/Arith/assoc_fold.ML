@@ -57,8 +57,8 @@ struct
        val th = Tactic.prove sg [] [] (Logic.mk_equals (lhs, rhs))
                    (fn _ => rtac Data.eq_reflection 1 THEN
                             simp_tac assoc_ss 1)
-   in Some th end
-   handle Assoc_fail => None;
+   in SOME th end
+   handle Assoc_fail => NONE;
 
 end;
 

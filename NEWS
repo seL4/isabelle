@@ -6,6 +6,11 @@ New in this Isabelle release
 
 *** General ***
 
+* The type Library.option is no more, along with the exception
+  Library.OPTION: Isabelle now uses the standard option type.  The
+  functions the, is_some, is_none, etc. are still in Library, but
+  the constructors are now SOME and NONE instead of Some and None.
+
 * Document preparation: new antiquotations @{lhs thm} and @{rhs thm}
   printing the lhs/rhs of definitions, equations, inequations etc. 
 

@@ -152,7 +152,7 @@ fun ctyp_of sign T =
   Ctyp {sign_ref = Sign.self_ref sign, T = Sign.certify_typ sign T};
 
 fun read_ctyp sign s =
-  Ctyp {sign_ref = Sign.self_ref sign, T = Sign.read_typ (sign, K None) s};
+  Ctyp {sign_ref = Sign.self_ref sign, T = Sign.read_typ (sign, K NONE) s};
 
 fun dest_ctyp (Ctyp {sign_ref, T = Type (s, Ts)}) =
       map (fn T => Ctyp {sign_ref = sign_ref, T = T}) Ts
@@ -279,7 +279,7 @@ fun read_def_cterm args used freeze aT =
   let val ([ct],tye) = read_def_cterms args used freeze [aT]
   in (ct,tye) end;
 
-fun read_cterm sign = #1 o read_def_cterm (sign, K None, K None) [] true;
+fun read_cterm sign = #1 o read_def_cterm (sign, K NONE, K NONE) [] true;
 
 
 (*tags provide additional comment, apart from the axiom/theorem name*)
@@ -479,12 +479,12 @@ fun get_axiom theory raw_name =
   let
     val name = Sign.intern (Theory.sign_of theory) Theory.axiomK raw_name;
 
-    fun get_ax [] = None
+    fun get_ax [] = NONE
       | get_ax (thy :: thys) =
           let val {sign, axioms, ...} = Theory.rep_theory thy in
             (case Symtab.lookup (axioms, name) of
-              Some t =>
-                Some (fix_shyps [] []
+              SOME t =>
+                SOME (fix_shyps [] []
                   (Thm {sign_ref = Sign.self_ref sign,
                     der = Pt.infer_derivs' I
                       (false, Pt.axm_proof name t),
@@ -493,12 +493,12 @@ fun get_axiom theory raw_name =
                     hyps = [], 
                     tpairs = [],
                     prop = t}))
-            | None => get_ax thys)
+            | NONE => get_ax thys)
           end;
   in
     (case get_ax (theory :: Theory.ancestors_of theory) of
-      Some thm => thm
-    | None => raise THEORY ("No axiom " ^ quote name, [theory]))
+      SOME thm => thm
+    | NONE => raise THEORY ("No axiom " ^ quote name, [theory]))
   end;
 
 fun def_name name = name ^ "_def";
@@ -669,7 +669,7 @@ fun forall_elim ct (th as Thm{sign_ref,der,maxidx,hyps,tpairs,prop,...}) : thm =
               raise THM("forall_elim: type mismatch", 0, [th])
           else let val thm = fix_shyps [th] []
                     (Thm{sign_ref= Sign.merge_refs(sign_ref,sign_reft),
-                         der = Pt.infer_derivs' (Pt.% o rpair (Some t)) der,
+                         der = Pt.infer_derivs' (Pt.% o rpair (SOME t)) der,
                          maxidx = Int.max(maxidx, maxt),
                          shyps = [],
                          hyps = hyps,  
@@ -1012,7 +1012,7 @@ fun trivial ct : thm =
             raise THM("trivial: the term must have type prop", 0, [])
       else fix_shyps [] []
         (Thm{sign_ref = sign_ref, 
-             der = Pt.infer_derivs' I (false, Pt.AbsP ("H", None, Pt.PBound 0)),
+             der = Pt.infer_derivs' I (false, Pt.AbsP ("H", NONE, Pt.PBound 0)),
              maxidx = maxidx, 
              shyps = [], 
              hyps = [],
@@ -1029,7 +1029,7 @@ fun class_triv sign c =
     fix_shyps [] []
       (Thm {sign_ref = sign_ref, 
             der = Pt.infer_derivs' I
-              (false, Pt.PAxm ("ProtoPure.class_triv:" ^ c, t, Some [])),
+              (false, Pt.PAxm ("ProtoPure.class_triv:" ^ c, t, SOME [])),
             maxidx = maxidx, 
             shyps = [], 
             hyps = [], 
@@ -1256,8 +1256,8 @@ fun rename_params_rule (cs, i) state =
 
 fun rename_boundvars pat obj (thm as Thm {sign_ref, der, maxidx, hyps, shyps, tpairs, prop}) =
   (case Term.rename_abs pat obj prop of
-    None => thm
-  | Some prop' => Thm
+    NONE => thm
+  | SOME prop' => Thm
       {sign_ref = sign_ref,
        der = der,
        maxidx = maxidx,
@@ -1288,9 +1288,9 @@ fun rename_bvs([],_,_,_) = I
         val vids = map (#1 o #1 o dest_Var) vars;
         fun rename(t as Var((x,i),T)) =
                 (case assoc(al,x) of
-                   Some(y) => if x mem_string vids orelse y mem_string vids then t
+                   SOME(y) => if x mem_string vids orelse y mem_string vids then t
                               else Var((y,i),T)
-                 | None=> t)
+                 | NONE=> t)
           | rename(Abs(x,T,t)) =
               Abs(if_none(assoc_string(al,x)) x, T, rename t)
           | rename(f$t) = rename f $ rename t
@@ -1403,17 +1403,17 @@ fun bicompose_aux match (state, (stpairs, Bs, Bi, C), lifted)
      fun tryasms (_, _, _, []) = Seq.empty
        | tryasms (A, As, n, (t,u)::apairs) =
           (case Seq.pull(Unify.unifiers(sign, env, (t,u)::dpairs))  of
-	      None                   => tryasms (A, As, n+1, apairs)
-	    | cell as Some((_,tpairs),_) =>
+	      NONE                   => tryasms (A, As, n+1, apairs)
+	    | cell as SOME((_,tpairs),_) =>
 		Seq.it_right (addth A (newAs(As, n, [BBi,(u,t)], tpairs)))
 		    (Seq.make(fn()=> cell),
 		     Seq.make(fn()=> Seq.pull (tryasms(A, As, n+1, apairs)))))
      fun eres [] = raise THM("bicompose: no premises", 0, [orule,state])
-       | eres (A1::As) = tryasms(Some A1, As, 1, Logic.assum_pairs(nlift+1,A1))
+       | eres (A1::As) = tryasms(SOME A1, As, 1, Logic.assum_pairs(nlift+1,A1))
      (*ordinary resolution*)
-     fun res(None) = Seq.empty
-       | res(cell as Some((_,tpairs),_)) =
-             Seq.it_right (addth None (newAs(rev rAs, 0, [BBi], tpairs)))
+     fun res(NONE) = Seq.empty
+       | res(cell as SOME((_,tpairs),_)) =
+             Seq.it_right (addth NONE (newAs(rev rAs, 0, [BBi], tpairs)))
                        (Seq.make (fn()=> cell), Seq.empty)
  in  if eres_flg then eres(rev rAs)
      else res(Seq.pull(Unify.unifiers(sign, env, dpairs)))
@@ -1446,7 +1446,7 @@ fun biresolution match brules i state =
               if !Pattern.trace_unify_fail orelse
                  could_bires (Hs, B, eres_flg, rule)
               then Seq.make (*delay processing remainder till needed*)
-                  (fn()=> Some(comp (eres_flg, lift rule, nprems_of rule),
+                  (fn()=> SOME(comp (eres_flg, lift rule, nprems_of rule),
                                res brules))
               else res brules
     in  Seq.flat (res brules)  end;
@@ -1460,8 +1460,8 @@ fun invoke_oracle thy raw_name =
     val name = Sign.intern sg Theory.oracleK raw_name;
     val oracle =
       (case Symtab.lookup (oracles, name) of
-        None => raise THM ("Unknown oracle: " ^ name, 0, [])
-      | Some (f, _) => f);
+        NONE => raise THM ("Unknown oracle: " ^ name, 0, [])
+      | SOME (f, _) => f);
   in
     fn (sign, exn) =>
       let

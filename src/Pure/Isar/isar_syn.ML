@@ -186,9 +186,9 @@ val structs =
   Scan.optional ((P.$$$ "(" -- P.$$$ "structure") |-- P.!!! (vars --| P.$$$ ")")) [];
 
 val constdecl =
-  (P.name --| P.$$$ "where") >> (fn x => (x, None, Syntax.NoSyn)) ||
-    P.name -- (P.$$$ "::" |-- P.!!! P.typ >> Some) -- P.opt_mixfix' >> P.triple1 ||
-    P.name -- (P.mixfix' >> pair None) >> P.triple2;
+  (P.name --| P.$$$ "where") >> (fn x => (x, NONE, Syntax.NoSyn)) ||
+    P.name -- (P.$$$ "::" |-- P.!!! P.typ >> SOME) -- P.opt_mixfix' >> P.triple1 ||
+    P.name -- (P.mixfix' >> pair NONE) >> P.triple2;
 
 val constdef = Scan.option constdecl -- (P.opt_thm_name ":" -- P.prop);
 

@@ -74,10 +74,10 @@ fun is_empty (Envir {asol, iTs, ...}) = Vartab.is_empty asol andalso Vartab.is_e
 (*Determine if the least index updated exceeds lim*)
 fun above (lim, Envir {asol, iTs, ...}) =
   (case (Vartab.min_key asol, Vartab.min_key iTs) of
-     (None, None) => true
-   | (Some (_, i), None) => i > lim
-   | (None, Some (_, i')) => i' > lim
-   | (Some (_, i), Some (_, i')) => i > lim andalso i' > lim);
+     (NONE, NONE) => true
+   | (SOME (_, i), NONE) => i > lim
+   | (NONE, SOME (_, i')) => i' > lim
+   | (SOME (_, i), SOME (_, i')) => i > lim andalso i' > lim);
 
 (*Update, checking Var-Var assignments: try to suppress higher indexes*)
 fun vupdate((a,t), env) = case t of
@@ -85,8 +85,8 @@ fun vupdate((a,t), env) = case t of
         if a=name' then env     (*cycle!*)
         else if xless(a, name')  then
            (case lookup(env,name') of  (*if already assigned, chase*)
-                None => update((name', Var(a,T)), env)
-              | Some u => vupdate((a,u), env))
+                NONE => update((name', Var(a,T)), env)
+              | SOME u => vupdate((a,u), env))
         else update((a,t), env)
     | _ => update((a,t), env);
 
@@ -105,8 +105,8 @@ exception SAME;
 fun norm_term1 same (asol,t) : term =
   let fun norm (Var (w,T)) =
             (case Vartab.lookup (asol, w) of
-                Some u => (norm u handle SAME => u)
-              | None   => raise SAME)
+                SOME u => (norm u handle SAME => u)
+              | NONE   => raise SAME)
         | norm (Abs(a,T,body)) =  Abs(a, T, norm body)
         | norm (Abs(_,_,body) $ t) = normh(subst_bound (t, body))
         | norm (f $ t) =
@@ -121,8 +121,8 @@ fun norm_term1 same (asol,t) : term =
 fun normT iTs (Type (a, Ts)) = Type (a, normTs iTs Ts)
   | normT iTs (TFree _) = raise SAME
   | normT iTs (TVar(v, _)) = (case Vartab.lookup (iTs, v) of
-          Some U => normTh iTs U
-        | None => raise SAME)
+          SOME U => normTh iTs U
+        | NONE => raise SAME)
 and normTh iTs T = ((normT iTs T) handle SAME => T)
 and normTs iTs [] = raise SAME
   | normTs iTs (T :: Ts) =
@@ -134,8 +134,8 @@ fun norm_term2 same (asol, iTs, t) : term =
         | norm (Free (a, T)) = Free(a, normT iTs T)
         | norm (Var (w, T)) =
             (case Vartab.lookup (asol, w) of
-                Some u => normh u
-              | None   => Var(w, normT iTs T))
+                SOME u => normh u
+              | NONE   => Var(w, normT iTs T))
         | norm (Abs (a, T, body)) =
                (Abs (a, normT iTs T, normh body) handle SAME => Abs (a, T, norm body))
         | norm (Abs(_, _, body) $ t) = normh (subst_bound (t, body))
@@ -170,8 +170,8 @@ fun norm_types_same iTs =
 fun head_norm env t =
   let
     fun hnorm (Var (v, T)) = (case lookup (env, v) of
-          Some u => head_norm env u
-        | None => raise SAME)
+          SOME u => head_norm env u
+        | NONE => raise SAME)
       | hnorm (Abs (a, T, body)) =  Abs (a, T, hnorm body)
       | hnorm (Abs (_, _, body) $ t) =
           head_norm env (subst_bound (t, body))
@@ -191,7 +191,7 @@ let val funerr = "fastype: expected function type";
 	   Type ("fun", [_, T]) => T
 	 | TVar(ixn, _) =>
 		(case Vartab.lookup (iTs, ixn) of
-		   Some (Type ("fun", [_, T])) => T
+		   SOME (Type ("fun", [_, T])) => T
 		 | _ => raise TERM (funerr, [f $ u]))
 	 | _ => raise TERM (funerr, [f $ u]))
       | fast Ts (Const (_, T)) = T

@@ -38,11 +38,11 @@ fun dest_sum tm =
   if HOLogic.is_zero tm then []
   else
     (case try HOLogic.dest_Suc tm of
-      Some t => one :: dest_sum t
-    | None =>
+      SOME t => one :: dest_sum t
+    | NONE =>
         (case try dest_plus tm of
-          Some (t, u) => dest_sum t @ dest_sum u
-        | None => [tm]));
+          SOME (t, u) => dest_sum t @ dest_sum u
+        | NONE => [tm]));
 
 
 (** generic proof tools **)
@@ -96,7 +96,7 @@ struct
 end;
 
 fun gen_uncancel_tac rule ct =
-  rtac (instantiate' [] [None, Some ct] (rule RS subst_equals)) 1;
+  rtac (instantiate' [] [NONE, SOME ct] (rule RS subst_equals)) 1;
 
 
 (* nat eq *)
@@ -207,7 +207,7 @@ struct
   val name = "HOL/arith";
   type T = {splits: thm list, inj_consts: (string * typ)list, discrete: string  list, presburger: (int -> tactic) option};
 
-  val empty = {splits = [], inj_consts = [], discrete = [], presburger = None};
+  val empty = {splits = [], inj_consts = [], discrete = [], presburger = NONE};
   val copy = I;
   val prep_ext = I;
   fun merge ({splits= splits1, inj_consts= inj_consts1, discrete= discrete1, presburger= presburger1},
@@ -215,7 +215,7 @@ struct
    {splits = Drule.merge_rules (splits1, splits2),
     inj_consts = merge_lists inj_consts1 inj_consts2,
     discrete = merge_lists discrete1 discrete2,
-    presburger = (case presburger1 of None => presburger2 | p => p)};
+    presburger = (case presburger1 of NONE => presburger2 | p => p)};
   fun print _ _ = ();
 end;
 
@@ -239,8 +239,8 @@ struct
 fun nT (Type("fun",[N,_])) = N = HOLogic.natT
   | nT _ = false;
 
-fun add_atom(t,m,(p,i)) = (case assoc(p,t) of None => ((t,m)::p,i)
-                           | Some n => (overwrite(p,(t,ratadd(n,m))), i));
+fun add_atom(t,m,(p,i)) = (case assoc(p,t) of NONE => ((t,m)::p,i)
+                           | SOME n => (overwrite(p,(t,ratadd(n,m))), i));
 
 exception Zero;
 
@@ -282,19 +282,19 @@ fun demult((mC as Const("op *",_)) $ s $ t,m) = ((case s of
   | demult(atom as Const("HOL.divide",_) $ t $ (Const("Numeral.number_of",_)$dent), m) =
       (let val den = HOLogic.dest_binum dent
        in if den = 0 then raise Zero else demult(t,ratmul(m, ratinv(rat_of_int den))) end
-       handle TERM _ => (Some atom,m))
-  | demult(Const("0",_),m) = (None, rat_of_int 0)
-  | demult(Const("1",_),m) = (None, m)
+       handle TERM _ => (SOME atom,m))
+  | demult(Const("0",_),m) = (NONE, rat_of_int 0)
+  | demult(Const("1",_),m) = (NONE, m)
   | demult(t as Const("Numeral.number_of",_)$n,m) =
-      ((None,ratmul(m,rat_of_int(HOLogic.dest_binum n)))
-       handle TERM _ => (Some t,m))
+      ((NONE,ratmul(m,rat_of_int(HOLogic.dest_binum n)))
+       handle TERM _ => (SOME t,m))
   | demult(Const("uminus",_)$t, m) = demult(t,ratmul(m,rat_of_int(~1)))
   | demult(t as Const f $ x, m) =
-      (if f mem inj_consts then Some x else Some t,m)
-  | demult(atom,m) = (Some atom,m)
+      (if f mem inj_consts then SOME x else SOME t,m)
+  | demult(atom,m) = (SOME atom,m)
 
-and atomult(mC,atom,t,m) = (case demult(t,m) of (None,m') => (Some atom,m')
-                            | (Some t',m') => (Some(mC $ atom $ t'),m'))
+and atomult(mC,atom,t,m) = (case demult(t,m) of (NONE,m') => (SOME atom,m')
+                            | (SOME t',m') => (SOME(mC $ atom $ t'),m'))
 in demult end;
 
 fun decomp2 inj_consts (rel,lhs,rhs) =
@@ -310,12 +310,12 @@ fun poly(Const("op +",_) $ s $ t, m, pi) = poly(s,m,poly(t,m,pi))
   | poly(Const("Suc",_)$t, m, (p,i)) = poly(t, m, (p,ratadd(i,m)))
   | poly(t as Const("op *",_) $ _ $ _, m, pi as (p,i)) =
       (case demult inj_consts (t,m) of
-         (None,m') => (p,ratadd(i,m))
-       | (Some u,m') => add_atom(u,m',pi))
+         (NONE,m') => (p,ratadd(i,m))
+       | (SOME u,m') => add_atom(u,m',pi))
   | poly(t as Const("HOL.divide",_) $ _ $ _, m, pi as (p,i)) =
       (case demult inj_consts (t,m) of
-         (None,m') => (p,ratadd(i,m'))
-       | (Some u,m') => add_atom(u,m',pi))
+         (NONE,m') => (p,ratadd(i,m'))
+       | (SOME u,m') => add_atom(u,m',pi))
   | poly(all as (Const("Numeral.number_of",_)$t,m,(p,i))) =
       ((p,ratadd(i,ratmul(m,rat_of_int(HOLogic.dest_binum t))))
        handle TERM _ => add_atom all)
@@ -327,14 +327,14 @@ val (p,i) = poly(lhs,rat_of_int 1,([],rat_of_int 0))
 and (q,j) = poly(rhs,rat_of_int 1,([],rat_of_int 0))
 
   in case rel of
-       "op <"  => Some(p,i,"<",q,j)
-     | "op <=" => Some(p,i,"<=",q,j)
-     | "op ="  => Some(p,i,"=",q,j)
-     | _       => None
-  end handle Zero => None;
+       "op <"  => SOME(p,i,"<",q,j)
+     | "op <=" => SOME(p,i,"<=",q,j)
+     | "op ="  => SOME(p,i,"=",q,j)
+     | _       => NONE
+  end handle Zero => NONE;
 
-fun negate(Some(x,i,rel,y,j,d)) = Some(x,i,"~"^rel,y,j,d)
-  | negate None = None;
+fun negate(SOME(x,i,rel,y,j,d)) = SOME(x,i,"~"^rel,y,j,d)
+  | negate NONE = NONE;
 
 fun of_lin_arith_sort sg U =
   Type.of_sort (Sign.tsig_of sg) (U,["Ring_and_Field.ordered_idom"])
@@ -350,15 +350,15 @@ fun decomp1 (sg,discrete,inj_consts) (T,xxx) =
   (case T of
      Type("fun",[U,_]) =>
        (case allows_lin_arith sg discrete U of
-          (true,d) => (case decomp2 inj_consts xxx of None => None
-                       | Some(p,i,rel,q,j) => Some(p,i,rel,q,j,d))
-        | (false,_) => None)
-   | _ => None);
+          (true,d) => (case decomp2 inj_consts xxx of NONE => NONE
+                       | SOME(p,i,rel,q,j) => SOME(p,i,rel,q,j,d))
+        | (false,_) => NONE)
+   | _ => NONE);
 
 fun decomp2 data (_$(Const(rel,T)$lhs$rhs)) = decomp1 data (T,(rel,lhs,rhs))
   | decomp2 data (_$(Const("Not",_)$(Const(rel,T)$lhs$rhs))) =
       negate(decomp1 data (T,(rel,lhs,rhs)))
-  | decomp2 data _ = None
+  | decomp2 data _ = NONE
 
 fun decomp sg =
   let val {discrete, inj_consts, ...} = ArithTheoryData.get_sg sg
@@ -463,7 +463,7 @@ fun raw_arith_tac ex i st =
 
 fun presburger_tac i st =
   (case ArithTheoryData.get_sg (sign_of_thm st) of
-     {presburger = Some tac, ...} =>
+     {presburger = SOME tac, ...} =>
        (tracing "Simple arithmetic decision procedure failed.\nNow trying full Presburger arithmetic..."; tac i st)
    | _ => no_tac st);
 
@@ -502,26 +502,26 @@ fun antisym_eq prems thm =
         let val r' = Tr $ (c $ t $ s)
         in
           case Library.find_first (prp r') prems of
-            None =>
+            NONE =>
               let val r' = Tr $ (HOLogic.not_const $ (Const("op <",T) $ s $ t))
               in case Library.find_first (prp r') prems of
-                   None => []
-                 | Some thm' => [(thm' RS not_lessD) RS (thm RS antisym)]
+                   NONE => []
+                 | SOME thm' => [(thm' RS not_lessD) RS (thm RS antisym)]
               end
-          | Some thm' => [thm' RS (thm RS antisym)]
+          | SOME thm' => [thm' RS (thm RS antisym)]
         end
     | Tr $ (Const("Not",_) $ (Const("op <",T) $ s $ t)) =>
         let val r' = Tr $ (Const("op <=",T) $ s $ t)
         in
           case Library.find_first (prp r') prems of
-            None =>
+            NONE =>
               let val r' = Tr $ (HOLogic.not_const $ (Const("op <",T) $ t $ s))
               in case Library.find_first (prp r') prems of
-                   None => []
-                 | Some thm' =>
+                   NONE => []
+                 | SOME thm' =>
                      [(thm' RS not_lessD) RS ((thm RS not_lessD) RS antisym)]
               end
-          | Some thm' => [thm' RS ((thm RS not_lessD) RS antisym)]
+          | SOME thm' => [thm' RS ((thm RS not_lessD) RS antisym)]
         end
     | _ => []
   end

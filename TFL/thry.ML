@@ -58,14 +58,14 @@ fun get_info thy ty = Symtab.lookup (DatatypePackage.get_datatypes thy, ty);
 
 fun match_info thy tname =
   case (DatatypePackage.case_const_of thy tname, DatatypePackage.constrs_of thy tname) of
-      (Some case_const, Some constructors) =>
-        Some {case_const = case_const, constructors = constructors}
-    | _ => None;
+      (SOME case_const, SOME constructors) =>
+        SOME {case_const = case_const, constructors = constructors}
+    | _ => NONE;
 
 fun induct_info thy tname = case get_info thy tname of
-        None => None
-      | Some {nchotomy, ...} =>
-          Some {nchotomy = nchotomy,
+        NONE => NONE
+      | SOME {nchotomy, ...} =>
+          SOME {nchotomy = nchotomy,
                 constructors = the (DatatypePackage.constrs_of thy tname)};
 
 fun extract_info thy =

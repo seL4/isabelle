@@ -290,13 +290,13 @@ fun lookup_data (ctxt as Context {data, ...}) kind =
     val name = Object.name_of_kind kind;
   in
     (case Symtab.lookup (ProofDataData.get thy, name) of
-      Some (k, meths) =>
+      SOME (k, meths) =>
         if Object.eq_kind (kind, k) then
           (case Symtab.lookup (data, name) of
-            Some x => (x, meths)
-          | None => err_undef ctxt name)
+            SOME x => (x, meths)
+          | NONE => err_undef ctxt name)
         else err_access ctxt name
-    | None => err_uninit ctxt name)
+    | NONE => err_uninit ctxt name)
   end;
 
 fun get_data kind f ctxt =
@@ -379,18 +379,18 @@ fun mixfix_type mx = replicate (Syntax.mixfix_args mx) TypeInfer.logicT ---> Typ
 
 local
 
-fun mixfix x None mx = (fixedN ^ x, mixfix_type mx, Syntax.fix_mixfix x mx)
-  | mixfix x (Some T) mx = (fixedN ^ x, T, Syntax.fix_mixfix x mx);
+fun mixfix x NONE mx = (fixedN ^ x, mixfix_type mx, Syntax.fix_mixfix x mx)
+  | mixfix x (SOME T) mx = (fixedN ^ x, T, Syntax.fix_mixfix x mx);
 
-fun prep_mixfix (_, _, None) = None
-  | prep_mixfix (x, opt_T, Some mx) = Some (mixfix x opt_T mx);
+fun prep_mixfix (_, _, NONE) = NONE
+  | prep_mixfix (x, opt_T, SOME mx) = SOME (mixfix x opt_T mx);
 
-fun prep_mixfix' (_, _, None) = None
-  | prep_mixfix' (x, _, Some Syntax.NoSyn) = None
-  | prep_mixfix' (x, opt_T, _) = Some (x, mixfix x opt_T (Syntax.literal x));
+fun prep_mixfix' (_, _, NONE) = NONE
+  | prep_mixfix' (x, _, SOME Syntax.NoSyn) = NONE
+  | prep_mixfix' (x, opt_T, _) = SOME (x, mixfix x opt_T (Syntax.literal x));
 
-fun prep_struct (x, _, None) = Some x
-  | prep_struct _ = None;
+fun prep_struct (x, _, NONE) = SOME x
+  | prep_struct _ = NONE;
 
 in
 
@@ -450,11 +450,11 @@ fun def_sort (Context {defs = (_, sorts, _, _), ...}) xi = Vartab.lookup (sorts,
 
 fun def_type (Context {binds, defs = (types, _, _, _), ...}) pattern xi =
   (case Vartab.lookup (types, xi) of
-    None =>
-      if pattern then None else
+    NONE =>
+      if pattern then NONE else
         (case Vartab.lookup (binds, xi) of
-          Some (Some (_, T)) => Some (TypeInfer.polymorphicT T)
-        | _ => None)
+          SOME (SOME (_, T)) => SOME (TypeInfer.polymorphicT T)
+        | _ => NONE)
   | some => some);
 
 fun default_type (Context {defs = (types, _, _, _), ...}) x = Vartab.lookup (types, (x, ~1));
@@ -504,8 +504,8 @@ fun intern_skolem ctxt internal =
           if internal x then t
           else
             (case lookup_skolem ctxt (no_skolem false ctxt x) of
-              Some x' => Free (x', T)
-            | None => t)
+              SOME x' => Free (x', T)
+            | NONE => t)
       | intern (t $ u) = intern t $ intern u
       | intern (Abs (x, T, t)) = Abs (x, T, intern t)
       | intern a = a;
@@ -520,8 +520,8 @@ fun extern_skolem ctxt =
 
     fun extern (t as Free (x, T)) =
           (case assoc (rev_fixes, x) of
-            Some x' => Free (if lookup_skolem ctxt x' = Some x then x' else NameSpace.hidden x', T)
-          | None => t)
+            SOME x' => Free (if lookup_skolem ctxt x' = SOME x then x' else NameSpace.hidden x', T)
+          | NONE => t)
       | extern (t $ u) = extern t $ extern u
       | extern (Abs (x, T, t)) = Abs (x, T, extern t)
       | extern a = a;
@@ -581,7 +581,7 @@ fun norm_term (ctxt as Context {binds, ...}) schematic =
 
     fun norm (t as Var (xi, T)) =
           (case Vartab.lookup (binds, xi) of
-            Some (Some (u, U)) =>
+            SOME (SOME (u, U)) =>
               let
                 val env = unifyT ctxt (T, U) handle Type.TUNIFY =>
                   raise TYPE ("norm_term: ill-typed variable assignment", [T, U], [t, u]);
@@ -613,7 +613,7 @@ fun reject_dummies ctxt t = Term.no_dummy_patterns t
 
 local
 
-fun append_env e1 e2 x = (case e2 x of None => e1 x | some => some);
+fun append_env e1 e2 x = (case e2 x of NONE => e1 x | some => some);
 
 fun gen_read' read app pattern dummies schematic
     ctxt internal more_types more_sorts more_used s =
@@ -631,7 +631,7 @@ fun gen_read' read app pattern dummies schematic
   end;
 
 fun gen_read read app pattern dummies schematic ctxt =
-  gen_read' read app pattern dummies schematic ctxt (K false) (K None) (K None) [];
+  gen_read' read app pattern dummies schematic ctxt (K false) (K NONE) (K NONE) [];
 
 in
 
@@ -643,7 +643,7 @@ fun read_term_pats T ctxt =
 val read_prop_pats = read_term_pats propT;
 
 fun read_term_liberal ctxt =
-  gen_read' (read_term_sg true) I false false false ctxt (K true) (K None) (K None) [];
+  gen_read' (read_term_sg true) I false false false ctxt (K true) (K NONE) (K NONE) [];
 
 val read_term              = gen_read (read_term_sg true) I false false false;
 val read_term_dummies      = gen_read (read_term_sg true) I false true false;
@@ -700,8 +700,8 @@ val ins_occs = foldl_term_types (fn t => foldl_atyps
 fun ins_skolem def_ty = foldr
   (fn ((x, x'), types) =>
     (case def_ty x' of
-      Some T => Vartab.update (((x, ~1), T), types)
-    | None => types));
+      SOME T => Vartab.update (((x, ~1), T), types)
+    | NONE => types));
 
 fun map_defaults f = map_context (fn (thy, syntax, data, asms, binds, thms, cases, defs, delta, delta_count) =>
   (thy, syntax, data, asms, binds, thms, cases, f defs, delta, delta_count));
@@ -744,8 +744,8 @@ fun warn_extra_tfrees
       Library.gen_rems Library.eq_fst (Symtab.dest occ2, Symtab.dest occ1)
       |> map (fn (a, ts) => map (pair a) (mapfilter (try (#1 o Term.dest_Free)) ts)) |> flat
       |> mapfilter (fn (a, x) =>
-          (case def_type ctxt1 false (x, ~1) of None => Some (a, x)
-          | Some T => if known_tfree a T then None else Some (a, x)));
+          (case def_type ctxt1 false (x, ~1) of NONE => SOME (a, x)
+          | SOME T => if known_tfree a T then NONE else SOME (a, x)));
     val tfrees = map #1 extras |> Library.sort_strings |> Library.unique_strings;
     val frees = map #2 extras |> Library.sort_strings |> Library.unique_strings;
   in
@@ -781,10 +781,10 @@ fun generalize inner outer ts =
 
 (** export theorems **)
 
-fun get_free x (None, t as Free (y, _)) = if x = y then Some t else None
+fun get_free x (NONE, t as Free (y, _)) = if x = y then SOME t else NONE
   | get_free _ (opt, _) = opt;
 
-fun find_free t x = foldl_aterms (get_free x) (None, t);
+fun find_free t x = foldl_aterms (get_free x) (NONE, t);
 
 fun export_view view is_goal inner outer =
   let
@@ -815,8 +815,8 @@ fun export_standard view inner outer =
   let val exp = export_view view false inner outer in
     fn th =>
       (case Seq.pull (exp th) of
-        Some (th', _) => th' |> Drule.local_standard
-      | None => raise CONTEXT ("Internal failure while exporting theorem", inner))
+        SOME (th', _) => th' |> Drule.local_standard
+      | NONE => raise CONTEXT ("Internal failure while exporting theorem", inner))
   end;
 
 
@@ -828,7 +828,7 @@ fun export_standard view inner outer =
 fun del_bind (ctxt, xi) =
   ctxt
   |> map_context (fn (thy, syntax, data, asms, binds, thms, cases, defs, delta, delta_count) =>
-      (thy, syntax, data, asms, Vartab.update ((xi, None), binds), thms, cases, defs, delta, delta_count));
+      (thy, syntax, data, asms, Vartab.update ((xi, NONE), binds), thms, cases, defs, delta, delta_count));
 
 fun upd_bind (ctxt, ((x, i), t)) =
   let
@@ -840,11 +840,11 @@ fun upd_bind (ctxt, ((x, i), t)) =
     ctxt
     |> declare_term t'
     |> map_context (fn (thy, syntax, data, asms, binds, thms, cases, defs, delta, delta_count) =>
-      (thy, syntax, data, asms, Vartab.update (((x, i), Some (t', T)), binds), thms, cases, defs, delta, delta_count))
+      (thy, syntax, data, asms, Vartab.update (((x, i), SOME (t', T)), binds), thms, cases, defs, delta, delta_count))
   end;
 
-fun del_upd_bind (ctxt, (xi, None)) = del_bind (ctxt, xi)
-  | del_upd_bind (ctxt, (xi, Some t)) = upd_bind (ctxt, (xi, t));
+fun del_upd_bind (ctxt, (xi, NONE)) = del_bind (ctxt, xi)
+  | del_upd_bind (ctxt, (xi, SOME t)) = upd_bind (ctxt, (xi, t));
 
 fun update_binds bs ctxt = foldl upd_bind (ctxt, bs);
 fun delete_update_binds bs ctxt = foldl del_upd_bind (ctxt, bs);
@@ -863,14 +863,14 @@ fun simult_matches ctxt [] = []
           map swap pairs);    (*prefer assignment of variables from patterns*)
         val env =
           (case Seq.pull envs of
-            None => fail ()
-          | Some (env, _) => env);    (*ignore further results*)
+            NONE => fail ()
+          | SOME (env, _) => env);    (*ignore further results*)
         val domain =
           filter_out Term.is_replaced_dummy_pattern (map #1 (Drule.vars_of_terms (map #1 pairs)));
         val _ =    (*may not assign variables from text*)
           if null (map #1 (Envir.alist_of env) inter (map #1 (Drule.vars_of_terms (map #2 pairs))))
           then () else fail ();
-        fun norm_bind (xi, t) = if xi mem domain then Some (xi, Envir.norm_term env t) else None;
+        fun norm_bind (xi, t) = if xi mem domain then SOME (xi, Envir.norm_term env t) else NONE;
       in mapfilter norm_bind (Envir.alist_of env) end;
 
 
@@ -885,7 +885,7 @@ fun gen_binds prep binds ctxt = foldl (gen_bind prep) (ctxt, binds);
 
 in
 
-fun drop_schematic (b as (xi, Some t)) = if null (Term.term_vars t) then b else (xi, None)
+fun drop_schematic (b as (xi, SOME t)) = if null (Term.term_vars t) then b else (xi, NONE)
   | drop_schematic b = b;
 
 val add_binds = gen_binds read_term;
@@ -917,7 +917,7 @@ fun gen_binds prep_terms prep_pats gen raw_binds ctxt =
     val binds' =
       if gen then map #1 binds ~~ generalize ctxt' ctxt (map #2 binds)
       else binds;
-    val binds'' = map (apsnd Some) binds';
+    val binds'' = map (apsnd SOME) binds';
   in
     warn_extra_tfrees ctxt
      (if gen then ctxt (*sic!*) |> declare_terms (map #2 binds') |> add_binds_i binds''
@@ -959,8 +959,8 @@ fun gen_bind_propp prepp (ctxt, raw_args) =
 
     (*generalize result: context evaluated now, binds added later*)
     val gen = generalize ctxt' ctxt;
-    fun gen_binds c = c |> add_binds_i (map #1 binds ~~ map Some (gen (map #2 binds)));
-  in (ctxt' |> add_binds_i (map (apsnd Some) binds), (propss, gen_binds)) end;
+    fun gen_binds c = c |> add_binds_i (map #1 binds ~~ map SOME (gen (map #2 binds)));
+  in (ctxt' |> add_binds_i (map (apsnd SOME) binds), (propss, gen_binds)) end;
 
 in
 
@@ -990,7 +990,7 @@ fun retrieve_thms f g (ctxt as Context {thy, thms = (_, space, tab, _), ...}) =
   in
     fn xnamei as (xname, _) =>
       (case Symtab.lookup (tab, NameSpace.intern space xname) of
-        Some (Some ths) => map (Thm.transfer_sg (Sign.deref sg_ref))
+        SOME (SOME ths) => map (Thm.transfer_sg (Sign.deref sg_ref))
           (PureThy.select_thm xnamei ths)
       | _ => get_from_thy xnamei) |> g xname
   end;
@@ -1025,7 +1025,7 @@ fun put_thms ("", _) ctxt = ctxt
         if not q andalso NameSpace.is_qualified name then
           raise CONTEXT ("Attempt to declare qualified name " ^ quote name, ctxt)
         else (thy, syntax, data, asms, binds, (q, NameSpace.extend (space, [name]),
-          Symtab.update ((name, Some ths), tab),
+          Symtab.update ((name, SOME ths), tab),
             FactIndex.add (is_known ctxt) (index, (name, ths))), cases, defs, delta, delta_count));
 
 fun put_thm (name, th) = put_thms (name, [th]);
@@ -1038,7 +1038,7 @@ fun put_thmss [] ctxt = ctxt
 
 fun reset_thms name =
   map_context (fn (thy, syntax, data, asms, binds, (q, space, tab, index), cases, defs, delta, delta_count) =>
-    (thy, syntax, data, asms, binds, (q, space, Symtab.update ((name, None), tab), index),
+    (thy, syntax, data, asms, binds, (q, space, Symtab.update ((name, NONE), tab), index),
       cases, defs, delta,delta_count));
 
 
@@ -1192,7 +1192,7 @@ fun map_fixes f =
 fun err_dups ctxt xs = raise CONTEXT ("Duplicate variable(s): " ^ commas_quote xs, ctxt);
 
 val declare =
-  declare_terms_syntax o mapfilter (fn (_, None) => None | (x, Some T) => Some (Free (x, T)));
+  declare_terms_syntax o mapfilter (fn (_, NONE) => NONE | (x, SOME T) => SOME (Free (x, T)));
 
 fun add_vars xs Ts ctxt =
   let val xs' = Term.variantlist (map Syntax.skolem xs, map #2 (fixes_of ctxt)) in
@@ -1221,7 +1221,7 @@ fun gen_fix prep add raw_vars ctxt =
     ctxt' |> add xs Ts
   end;
 
-fun prep_type (x, None, Some mx) = ([x], Some (mixfix_type mx))
+fun prep_type (x, NONE, SOME mx) = ([x], SOME (mixfix_type mx))
   | prep_type (x, opt_T, _) = ([x], opt_T);
 
 in
@@ -1240,17 +1240,17 @@ end;
 fun fix_frees ts ctxt =
   let
     val frees = foldl Term.add_frees ([], ts);
-    fun new (x, T) = if is_fixed ctxt x then None else Some ([x], Some T);
+    fun new (x, T) = if is_fixed ctxt x then NONE else SOME ([x], SOME T);
   in fix_direct false (rev (mapfilter new frees)) ctxt end;
 
 
 (*Note: improper use may result in variable capture / dynamic scoping!*)
 fun bind_skolem ctxt xs =
   let
-    val ctxt' = ctxt |> fix_i [(xs, None)];
+    val ctxt' = ctxt |> fix_i [(xs, NONE)];
     fun bind (t as Free (x, T)) =
           if x mem_string xs then
-            (case lookup_skolem ctxt' x of Some x' => Free (x', T) | None => t)
+            (case lookup_skolem ctxt' x of SOME x' => Free (x', T) | NONE => t)
           else t
       | bind (t $ u) = bind t $ bind u
       | bind (Abs (x, T, t)) = Abs (x, T, bind t)
@@ -1275,8 +1275,8 @@ fun prep_case ctxt name xs {fixes, assumes, binds} =
 
 fun get_case (ctxt as Context {cases, ...}) name xs =
   (case assoc (cases, name) of
-    None => raise CONTEXT ("Unknown case: " ^ quote name, ctxt)
-  | Some c => prep_case ctxt name xs c);
+    NONE => raise CONTEXT ("Unknown case: " ^ quote name, ctxt)
+  | SOME c => prep_case ctxt name xs c);
 
 
 fun add_cases xs = map_context (fn (thy, syntax, data, asms, binds, thms, cases, defs, delta, delta_count) =>
@@ -1309,7 +1309,7 @@ val print_syntax = Syntax.print_syntax o syn_of;
 
 (* term bindings *)
 
-val smash_option = fn (_, None) => None | (xi, Some b) => Some (xi, b);
+val smash_option = fn (_, NONE) => NONE | (xi, SOME b) => SOME (xi, b);
 
 fun pretty_binds (ctxt as Context {binds, ...}) =
   let
@@ -1336,7 +1336,7 @@ val print_lthms = Pretty.writeln o Pretty.chunks o pretty_lthms;
 
 fun apply_case ({fixes, assumes, binds}: RuleCases.T) ctxt =
   let
-    fun bind (c, (x, T)) = (c |> fix_i [([x], Some T)], bind_skolem c [x] (Free (x, T)));
+    fun bind (c, (x, T)) = (c |> fix_i [([x], SOME T)], bind_skolem c [x] (Free (x, T)));
     val (ctxt', xs) = foldl_map bind (ctxt, fixes);
     fun app t = foldl Term.betapply (t, xs);
   in (ctxt', (map (apsnd (apsome app)) binds, map (apsnd (map app)) assumes)) end;
@@ -1360,7 +1360,7 @@ fun pretty_cases (ctxt as Context {cases, ...}) =
       (Pretty.str (name ^ ":") ::
         prt_sect "fix" [] (Pretty.str o fst) fixes @
         prt_sect "let" [Pretty.str "and"] prt_let
-          (mapfilter (fn (xi, Some t) => Some (xi, t) | _ => None) lets) @
+          (mapfilter (fn (xi, SOME t) => SOME (xi, t) | _ => NONE) lets) @
         (if forall (null o #2) asms then []
           else prt_sect "assume" [Pretty.str "and"] prt_asm asms)));
 
@@ -1450,9 +1450,9 @@ fun pretty_context (ctxt as Context {cases, defs = (types, sorts, used, _), ...}
 fun lthms_containing (ctxt as Context {thms = (_, _, _, index), ...}) idx =
   let
     fun valid (name, ths) =
-      (case try (transform_error (fn () => get_thms ctxt (name, None))) () of
-        None => false
-      | Some ths' => Library.equal_lists Thm.eq_thm (ths, ths'));
+      (case try (transform_error (fn () => get_thms ctxt (name, NONE))) () of
+        NONE => false
+      | SOME ths' => Library.equal_lists Thm.eq_thm (ths, ths'));
   in gen_distinct eq_fst (filter valid (FactIndex.find idx index)) end;
 
 
@@ -1471,7 +1471,7 @@ fun print_thms_containing ctxt opt_limit ss =
 
     val (cs, xs) = foldl (FactIndex.index_term (is_known ctxt))
       (([], []), map (read_term_dummies ctxt) ss);
-    val empty_idx = Library.null cs andalso Library.null xs;
+    val empty_idx = null cs andalso null xs;
 
     val header =
       if empty_idx then [Pretty.block [Pretty.str "Known facts:", Pretty.fbrk]]
@@ -1484,7 +1484,7 @@ fun print_thms_containing ctxt opt_limit ss =
     val len = length facts;
     val limit = if_none opt_limit (! thms_containing_limit);
   in
-    if empty_idx andalso not (Library.null ss) then
+    if empty_idx andalso not (null ss) then
       warning "thms_containing: no consts/frees in specification"
     else (header @ (if len <= limit then [] else [Pretty.str "..."]) @
         map prt_fact (Library.drop (len - limit, facts))) |> Pretty.chunks |> Pretty.writeln

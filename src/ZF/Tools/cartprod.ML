@@ -61,7 +61,7 @@ signature CARTPROD =            (** Derived syntactic functions for produts **)
 functor CartProd_Fun (Pr: PR) : CARTPROD =
 struct
 
-(* Some of these functions expect "pseudo-types" containing products,
+(* SOME of these functions expect "pseudo-types" containing products,
    as in HOL; the true ZF types would just be "i" *)
 
 fun mk_prod (T1,T2) = Type("*", [T1,T2]);

@@ -130,8 +130,8 @@ in mk trans_thms end;
 
 (*Applies tactic and returns the first resulting state, FAILS if none!*)
 fun one_result(tac,thm) = case Seq.pull(tac thm) of
-	Some(thm',_) => thm'
-      | None => raise THM("Simplifier: could not continue", 0, [thm]);
+	SOME(thm',_) => thm'
+      | NONE => raise THM("Simplifier: could not continue", 0, [thm]);
 
 fun res1(thm,thms,i) = one_result(resolve_tac thms i,thm);
 
@@ -174,8 +174,8 @@ fun add_new_asm_vars new_asms =
 		  Abs (_,_,body) => add_vars(body,vars)
 		| r$s => (case head_of tm of
 			  Const(c,T) => (case assoc(new_asms,c) of
-				  None => add_vars(r,add_vars(s,vars))
-				| Some(al) => add_list(tm,al,vars))
+				  NONE => add_vars(r,add_vars(s,vars))
+				| SOME(al) => add_list(tm,al,vars))
 			| _ => add_vars(r,add_vars(s,vars)))
 		| _ => vars
     in add_vars end;
@@ -205,7 +205,7 @@ let val thm' = mk_trans2 thm;
 	  | Free _ => resolve_tac congs 1 ORELSE refl1_tac
 	  | _ => refl1_tac))
     val add_norm_tac = DEPTH_FIRST (has_fewer_prems nops) norm_step_tac
-    val Some(thm'',_) = Seq.pull(add_norm_tac thm')
+    val SOME(thm'',_) = Seq.pull(add_norm_tac thm')
 in thm'' end;
 
 fun add_norm_tags congs =
@@ -444,14 +444,14 @@ fun simp_lhs(thm,ss,anet,ats,cs) =
     if var_lhs(thm,i) then (ss,thm,anet,ats,cs) else
     if lhs_is_NORM(thm,i) then (ss, res1(thm,trans_norms,i), anet,ats,cs)
     else case Seq.pull(cong_tac i thm) of
-	    Some(thm',_) =>
+	    SOME(thm',_) =>
 		    let val ps = prems_of thm and ps' = prems_of thm';
 			val n = length(ps')-length(ps);
 			val a = length(strip_assums_hyp(nth_elem(i-1,ps)))
 			val l = map (fn p => length(strip_assums_hyp(p)))
 				    (take(n,drop(i-1,ps')));
 		    in (simp_refl(rev(l),a,REW::ss),thm',anet,ats,cs) end
-	  | None => (REW::ss,thm,anet,ats,cs);
+	  | NONE => (REW::ss,thm,anet,ats,cs);
 
 (*NB: the "Adding rewrites:" trace will look strange because assumptions
       are represented by rules, generalized over their parameters*)
@@ -468,22 +468,22 @@ fun add_asms(ss,thm,a,anet,ats,cs) =
     end;
 
 fun rew(seq,thm,ss,anet,ats,cs, more) = case Seq.pull seq of
-      Some(thm',seq') =>
+      SOME(thm',seq') =>
 	    let val n = (nprems_of thm') - (nprems_of thm)
 	    in pr_rew(i,n,thm,thm',more);
 	       if n=0 then (SIMP_LHS::ss, thm', anet, ats, cs)
 	       else ((replicate n PROVE) @ (POP_CS::SIMP_LHS::ss),
 		     thm', anet, ats, (ss,thm,anet,ats,seq',more)::cs)
 	    end
-    | None => if more
+    | NONE => if more
 	    then rew(tapply(lhs_net_tac anet i THEN assume_tac i,thm),
 		     thm,ss,anet,ats,cs,false)
 	    else (ss,thm,anet,ats,cs);
 
 fun try_true(thm,ss,anet,ats,cs) =
     case Seq.pull(auto_tac i thm) of
-      Some(thm',_) => (ss,thm',anet,ats,cs)
-    | None => let val (ss0,thm0,anet0,ats0,seq,more)::cs0 = cs
+      SOME(thm',_) => (ss,thm',anet,ats,cs)
+    | NONE => let val (ss0,thm0,anet0,ats0,seq,more)::cs0 = cs
 	      in if !tracing
 		 then (writeln"*** Failed to prove precondition. Normal form:";
 		       pr_goal_concl i thm;  writeln"")
@@ -494,8 +494,8 @@ fun try_true(thm,ss,anet,ats,cs) =
 fun split(thm,ss,anet,ats,cs) =
 	case Seq.pull(tapply(split_tac
                                   (cong_tac i,splits,split_consts) i,thm)) of
-		Some(thm',_) => (SIMP_LHS::SPLIT::ss,thm',anet,ats,cs)
-	      | None => (ss,thm,anet,ats,cs);
+		SOME(thm',_) => (SIMP_LHS::SPLIT::ss,thm',anet,ats,cs)
+	      | NONE => (ss,thm,anet,ats,cs);
 
 fun step(s::ss, thm, anet, ats, cs) = case s of
 	  MK_EQ => (ss, res1(thm,[red2],i), anet, ats, cs)
@@ -575,10 +575,10 @@ let fun find (thm::thms) =
 	let val (Const(_,cT), va, vb) =	dest_red(hd(prems_of thm));
 	    val [P] = term_vars(concl_of thm) \\ [va,vb]
 	    val eqT::_ = binder_types cT
-        in if Type.typ_instance tsig (T,eqT) then Some(thm,va,vb,P)
+        in if Type.typ_instance tsig (T,eqT) then SOME(thm,va,vb,P)
 	   else find thms
 	end
-      | find [] = None
+      | find [] = NONE
 in find subst_thms end;
 
 fun mk_cong sg (f,aTs,rT) (refl,eq) =
@@ -595,8 +595,8 @@ let val tsig = Sign.tsig_of sg;
     fun mk(c,T::Ts,i,yik) =
 	let val si = radixstring(26,"a",i)
 	in case find_subst tsig T of
-	     None => mk(c,Ts,i-1,eta_Var(("X"^si,0),T)::yik)
-	   | Some s => let val c' = c RSN (2,ri(s,i,si,T,yik))
+	     NONE => mk(c,Ts,i-1,eta_Var(("X"^si,0),T)::yik)
+	   | SOME s => let val c' = c RSN (2,ri(s,i,si,T,yik))
 		       in mk(c',Ts,i-1,eta_Var(("Y"^si,0),T)::yik) end
 	end
       | mk(c,[],_,_) = c;
@@ -608,17 +608,17 @@ let val (aTs,rT) = strip_type T;
     fun find_refl(r::rs) =
 	let val (Const(eq,eqT),_,_) = dest_red(concl_of r)
 	in if Type.typ_instance tsig (rT, hd(binder_types eqT))
-	   then Some(r,(eq,body_type eqT)) else find_refl rs
+	   then SOME(r,(eq,body_type eqT)) else find_refl rs
 	end
-      | find_refl([]) = None;
+      | find_refl([]) = NONE;
 in case find_refl refl_thms of
-     None => []  |  Some(refl) => [mk_cong sg (f,aTs,rT) refl]
+     NONE => []  |  SOME(refl) => [mk_cong sg (f,aTs,rT) refl]
 end;
 
 fun mk_cong_thy thy f =
 let val sg = sign_of thy;
     val T = case Sign.const_type sg f of
-		None => error(f^" not declared") | Some(T) => T;
+		NONE => error(f^" not declared") | SOME(T) => T;
     val T' = incr_tvar 9 T;
 in mk_cong_type sg (Const(f,T'),T') end;
 
@@ -628,9 +628,9 @@ fun mk_typed_congs thy =
 let val sg = sign_of thy;
     val S0 = Sign.defaultS sg;
     fun readfT(f,s) =
-	let val T = incr_tvar 9 (Sign.read_typ(sg,K(Some(S0))) s);
+	let val T = incr_tvar 9 (Sign.read_typ(sg,K(SOME(S0))) s);
 	    val t = case Sign.const_type sg f of
-		      Some(_) => Const(f,T) | None => Free(f,T)
+		      SOME(_) => Const(f,T) | NONE => Free(f,T)
 	in (t,T) end
 in flat o map (mk_cong_type sg o readfT) end;
 

@@ -468,7 +468,7 @@ fun rename_abs pat obj t =
           Abs (if_none (assoc_string (ren, x)) x, T, ren_abs b)
       | ren_abs (f $ t) = ren_abs f $ ren_abs t
       | ren_abs t = t
-  in if null ren then None else Some (ren_abs t) end;
+  in if null ren then NONE else SOME (ren_abs t) end;
 
 (*Accumulate all 'loose' bound vars referring to level 'lev' or beyond.
    (Bound 0) is loose at level 0 *)
@@ -596,8 +596,8 @@ fun subst_free [] = (fn t=>t)
   | subst_free pairs =
       let fun substf u =
             case gen_assoc (op aconv) (pairs, u) of
-                Some u' => u'
-              | None => (case u of Abs(a,T,t) => Abs(a, T, substf t)
+                SOME u' => u'
+              | NONE => (case u of Abs(a,T,t) => Abs(a, T, substf t)
                                  | t$u' => substf t $ substf u'
                                  | _ => u)
       in  substf  end;
@@ -671,8 +671,8 @@ fun subst_vars(iTs,itms) = if null iTs then subst_Vars itms else
   let fun subst(Const(a,T)) = Const(a,typ_subst_TVars iTs T)
         | subst(Free(a,T)) = Free(a,typ_subst_TVars iTs T)
         | subst(v as Var(ixn,T)) = (case assoc(itms,ixn) of
-            None   => Var(ixn,typ_subst_TVars iTs T)
-          | Some t => t)
+            NONE   => Var(ixn,typ_subst_TVars iTs T)
+          | SOME t => t)
         | subst(b as Bound _) = b
         | subst(Abs(a,T,t)) = Abs(a,typ_subst_TVars iTs T,subst t)
         | subst(f$t) = subst f $ subst t
@@ -1011,7 +1011,7 @@ fun typ_subst_TVars_Vartab iTs T = if Vartab.is_empty iTs then T else
   let fun subst(Type(a, Ts)) = Type(a, map subst Ts)
         | subst(T as TFree _) = T
         | subst(T as TVar(ixn, _)) =
-            (case Vartab.lookup (iTs, ixn) of None => T | Some(U) => U)
+            (case Vartab.lookup (iTs, ixn) of NONE => T | SOME(U) => U)
   in subst T end;
 
 (*Substitute for type Vars in a term, version using Vartab*)
@@ -1029,8 +1029,8 @@ val memo_types = ref (Typtab.empty: typ Typtab.table);
 
 fun compress_type T =
   (case Typtab.lookup (! memo_types, T) of
-    Some T' => T'
-  | None =>
+    SOME T' => T'
+  | NONE =>
       let val T' = (case T of Type (a, Ts) => Type (a, map compress_type Ts) | _ => T)
       in memo_types := Typtab.update ((T', T'), ! memo_types); T' end);
 
@@ -1043,8 +1043,8 @@ fun share_term (t $ u) = share_term t $ share_term u
   | share_term (Abs (a, T, u)) = Abs (a, T, share_term u)
   | share_term t =
       (case Termtab.lookup (! memo_terms, t) of
-        Some t' => t'
-      | None => (memo_terms := Termtab.update ((t, t), ! memo_terms); t));
+        SOME t' => t'
+      | NONE => (memo_terms := Termtab.update ((t, t), ! memo_terms); t));
 
 val compress_term = share_term o map_term_types compress_type;
 

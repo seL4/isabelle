@@ -25,24 +25,24 @@ struct
 datatype T =
   Pos of int option * string option;
 
-val none = Pos (None, None);
-fun line n = Pos (Some n, None);
-fun name s = Pos (None, Some s);
-fun line_name n s = Pos (Some n, Some s);
+val none = Pos (NONE, NONE);
+fun line n = Pos (SOME n, NONE);
+fun name s = Pos (NONE, SOME s);
+fun line_name n s = Pos (SOME n, SOME s);
 
 
 (* increment *)
 
-fun inc (pos as Pos (None, _)) = pos
-  | inc (Pos (Some n, opt_s)) = Pos (Some (n + 1), opt_s);
+fun inc (pos as Pos (NONE, _)) = pos
+  | inc (Pos (SOME n, opt_s)) = Pos (SOME (n + 1), opt_s);
 
 
 (* str_of *)
 
-fun str_of (Pos (None, None)) = ""
-  | str_of (Pos (Some n, None)) = " (line " ^ string_of_int n ^ ")"
-  | str_of (Pos (None, Some s)) = " (" ^ s ^ ")"
-  | str_of (Pos (Some n, Some s)) = " (line " ^ string_of_int n ^ " of " ^ s ^ ")";
+fun str_of (Pos (NONE, NONE)) = ""
+  | str_of (Pos (SOME n, NONE)) = " (line " ^ string_of_int n ^ ")"
+  | str_of (Pos (NONE, SOME s)) = " (" ^ s ^ ")"
+  | str_of (Pos (SOME n, SOME s)) = " (line " ^ string_of_int n ^ " of " ^ s ^ ")";
 
 
 end;

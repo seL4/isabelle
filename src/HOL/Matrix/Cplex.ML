@@ -81,8 +81,8 @@ fun rev_cmp cplexLe = cplexGe
   | rev_cmp cplexGeq = cplexLeq
   | rev_cmp cplexEq = cplexEq
 
-fun the None = raise (Load_cplexFile "Some expected")
-  | the (Some x) = x; 
+fun the NONE = raise (Load_cplexFile "SOME expected")
+  | the (SOME x) = x; 
     
 fun modulo_signed is_something (cplexNeg u) = is_something u
   | modulo_signed is_something u = is_something u
@@ -189,25 +189,25 @@ fun keyword x =
 	val a = to_upper x 
     in
 	if a = "BOUNDS" orelse a = "BOUND" then
-	    Some "BOUNDS"
+	    SOME "BOUNDS"
 	else if a = "MINIMIZE" orelse a = "MINIMUM" orelse a = "MIN" then
-	    Some "MINIMIZE"
+	    SOME "MINIMIZE"
 	else if a = "MAXIMIZE" orelse a = "MAXIMUM" orelse a = "MAX" then
-	    Some "MAXIMIZE"
+	    SOME "MAXIMIZE"
 	else if a = "ST" orelse a = "S.T." orelse a = "ST." then
-	    Some "ST"
+	    SOME "ST"
 	else if a = "FREE" orelse a = "END" then
-	    Some a
+	    SOME a
 	else if a = "GENERAL" orelse a = "GENERALS" orelse a = "GEN" then
-	    Some "GENERAL"
+	    SOME "GENERAL"
 	else if a = "INTEGER" orelse a = "INTEGERS" orelse a = "INT" then
-	    Some "INTEGER"
+	    SOME "INTEGER"
 	else if a = "BINARY" orelse a = "BINARIES" orelse a = "BIN" then
-	    Some "BINARY"
+	    SOME "BINARY"
 	else if a = "INF" orelse a = "INFINITY" then
-	    Some "INF"
+	    SOME "INF"
 	else								   
-	    None
+	    NONE
     end
 	        
 val TOKEN_ERROR = ~1
@@ -303,12 +303,12 @@ fun load_cplexFile name =
 		let val u = hd (!rest) in 
 		    (
 		     rest := tl (!rest); 
-		     Some u
+		     SOME u
 		    ) 
 		end
 	    else 
 		let val s = TextIO.inputLine f in
-		    if s = "" then None else
+		    if s = "" then NONE else
 		    let val t = tokenize s in
 			if (length t >= 2 andalso 
 			    snd(hd (tl t)) = ":") 
@@ -326,12 +326,12 @@ fun load_cplexFile name =
 	
 	fun readToken_helper2 () = 
 		let val c = readToken_helper () in
-		    if c = None then None
+		    if c = NONE then NONE
                     else if !ignore_NL andalso fst (the c) = TOKEN_NL then
 			readToken_helper2 ()
 		    else if fst (the c) = TOKEN_SYMBOL 
-			    andalso keyword (snd (the c)) <> None
-		    then Some (TOKEN_KEYWORD, the (keyword (snd (the c))))
+			    andalso keyword (snd (the c)) <> NONE
+		    then SOME (TOKEN_KEYWORD, the (keyword (snd (the c))))
 		    else c
 		end
 		
@@ -354,78 +354,78 @@ fun load_cplexFile name =
 					    
 	fun readTerm_Product only_num = 
 	    let val c = readToken () in
-		if c = None then None
+		if c = NONE then NONE
 		else if fst (the c) = TOKEN_SYMBOL 
 		then (
-		    if only_num then (pushToken (the c); None) 
-		    else Some (cplexVar (snd (the c)))
+		    if only_num then (pushToken (the c); NONE) 
+		    else SOME (cplexVar (snd (the c)))
 		    ) 
 		else if only_num andalso is_value (the c) then
-		    Some (get_value (the c))
+		    SOME (get_value (the c))
 		else if is_value (the c) then  
 		    let val t1 = get_value (the c) 
 			val d = readToken () 
 		    in
-			if d = None then Some t1 
+			if d = NONE then SOME t1 
 			else if fst (the d) = TOKEN_SYMBOL then 
-			    Some (cplexProd (t1, cplexVar (snd (the d))))
+			    SOME (cplexProd (t1, cplexVar (snd (the d))))
 			else
-			    (pushToken (the d); Some t1)
+			    (pushToken (the d); SOME t1)
 		    end
-		else (pushToken (the c); None)
+		else (pushToken (the c); NONE)
 	    end
 	    
 	fun readTerm_Signed only_signed only_num = 
 	    let
 		val c = readToken ()
 	    in
-		if c = None then None 
+		if c = NONE then NONE 
 		else 
 		    let val d = the c in 
 			if d = (TOKEN_DELIMITER, "+") then 
 			    readTerm_Product only_num
 			 else if d = (TOKEN_DELIMITER, "-") then 
-			     Some (cplexNeg (the (readTerm_Product 
+			     SOME (cplexNeg (the (readTerm_Product 
 						      only_num)))
 			 else (pushToken d; 
-			       if only_signed then None 
+			       if only_signed then NONE 
 			       else readTerm_Product only_num)
 		    end
 	    end
     
 	fun readTerm_Sum first_signed = 
 	    let val c = readTerm_Signed first_signed false in
-		if c = None then [] else (the c)::(readTerm_Sum true)
+		if c = NONE then [] else (the c)::(readTerm_Sum true)
 	    end
 	    
 	fun readTerm () = 
 	    let val c = readTerm_Sum false in
-		if c = [] then None 
-		else if tl c = [] then Some (hd c)
-		else Some (cplexSum c) 
+		if c = [] then NONE 
+		else if tl c = [] then SOME (hd c)
+		else SOME (cplexSum c) 
 	    end
 	    
 	fun readLabeledTerm () = 
 	    let val c = readToken () in
-		if c = None then (None, None) 
+		if c = NONE then (NONE, NONE) 
 		else if fst (the c) = TOKEN_LABEL then 
 		    let val t = readTerm () in
-			if t = None then 
+			if t = NONE then 
 			    raise (Load_cplexFile ("term after label "^
 						   (snd (the c))^
 						   " expected"))
-			else (Some (snd (the c)), t)
+			else (SOME (snd (the c)), t)
 		    end
-		else (pushToken (the c); (None, readTerm ()))
+		else (pushToken (the c); (NONE, readTerm ()))
 	    end
             
 	fun readGoal () = 
 	    let 
 		val g = readToken ()
 	    in
-    		if g = Some (TOKEN_KEYWORD, "MAXIMIZE") then 
+    		if g = SOME (TOKEN_KEYWORD, "MAXIMIZE") then 
 		    cplexMaximize (the (snd (readLabeledTerm ()))) 
-		else if g = Some (TOKEN_KEYWORD, "MINIMIZE") then 
+		else if g = SOME (TOKEN_KEYWORD, "MINIMIZE") then 
 		    cplexMinimize (the (snd (readLabeledTerm ())))
 		else raise (Load_cplexFile "MAXIMIZE or MINIMIZE expected")
 	    end
@@ -447,17 +447,17 @@ fun load_cplexFile name =
 			(str2cmp b,
 			 (t1, t2))		
 	    in
-		if snd t = None then None
+		if snd t = NONE then NONE
 		else 
 		    let val c = readToken () in
-			if c = None orelse fst (the c) <> TOKEN_CMP 
+			if c = NONE orelse fst (the c) <> TOKEN_CMP 
 			then raise (Load_cplexFile "TOKEN_CMP expected")
 			else 
 			    let val n = readTerm_Signed false true in
-				if n = None then 
+				if n = NONE then 
 				    raise (Load_cplexFile "num expected")
 				else
-				    Some (fst t,
+				    SOME (fst t,
 					  make_constraint (snd (the c)) 
 							  (the (snd t)) 
 							  (the n))
@@ -469,10 +469,10 @@ fun load_cplexFile name =
 	    let 
 		fun readbody () = 
 		    let val t = readConstraint () in
-			if t = None then []
+			if t = NONE then []
 			else if (is_normed_Constr (snd (the t))) then
 			    (the t)::(readbody ())
-			else if (fst (the t) <> None) then 
+			else if (fst (the t) <> NONE) then 
 			    raise (Load_cplexFile 
 				       ("constraint '"^(the (fst (the t)))^ 
 					"'is not normed"))
@@ -481,7 +481,7 @@ fun load_cplexFile name =
 				       "constraint is not normed")
 		    end
 	    in    		
-		if readToken () = Some (TOKEN_KEYWORD, "ST") 
+		if readToken () = SOME (TOKEN_KEYWORD, "ST") 
 		then 
 		    readbody ()
 		else 
@@ -490,15 +490,15 @@ fun load_cplexFile name =
 	    
 	fun readCmp () = 
 	    let val c = readToken () in
-		if c = None then None
+		if c = NONE then NONE
 		else if fst (the c) = TOKEN_CMP then 
-		    Some (str2cmp (snd (the c)))
-		else (pushToken (the c); None)
+		    SOME (str2cmp (snd (the c)))
+		else (pushToken (the c); NONE)
 	    end
 	    
 	fun skip_NL () =
 	    let val c = readToken () in
-		if c <> None andalso fst (the c) = TOKEN_NL then
+		if c <> NONE andalso fst (the c) = TOKEN_NL then
 		    skip_NL ()
 		else
 		    (pushToken (the c); ())
@@ -515,17 +515,17 @@ fun load_cplexFile name =
 		val _ = skip_NL ()
 		val t1 = readTerm ()
 	    in
-		if t1 = None then None 
+		if t1 = NONE then NONE 
 		else 
 		    let 
 			val c1 = readCmp () 
 		    in
-			if c1 = None then
+			if c1 = NONE then
 			    let 
 				val c = readToken () 
 			    in
-				if c = Some (TOKEN_KEYWORD, "FREE") then
-				    Some (
+				if c = SOME (TOKEN_KEYWORD, "FREE") then
+				    SOME (
 				    cplexBounds (cplexNeg cplexInf,
 						 cplexLeq,
 						 the t1,
@@ -538,16 +538,16 @@ fun load_cplexFile name =
 			    let 
 				val t2 = readTerm () 
 			    in
-				if t2 = None then
+				if t2 = NONE then
 				    raise (Load_cplexFile "term expected")
 				else
 				    let val c2 = readCmp () in
-					if c2 = None then
-					    Some (make_bounds (the c1) 
+					if c2 = NONE then
+					    SOME (make_bounds (the c1) 
 							      (the t1)
 							      (the t2))
 					else
-					    Some (
+					    SOME (
 					    cplexBounds (the t1,
 							 the c1,
 							 the t2,
@@ -565,7 +565,7 @@ fun load_cplexFile name =
 		    let 
 			val b = readBound ()
 		    in
-			if b = None then []
+			if b = NONE then []
 			else if (is_normed_Bounds (the b)) then
 			    (the b)::(readbody())
 			else (
@@ -574,13 +574,13 @@ fun load_cplexFile name =
 					(makestring (the b)))))
 		    end
 	    in
-		if readToken () = Some (TOKEN_KEYWORD, "BOUNDS") then 
+		if readToken () = SOME (TOKEN_KEYWORD, "BOUNDS") then 
 		    readbody ()
 		else raise (Load_cplexFile "BOUNDS expected")
 	    end
 
         fun readEnd () = 
-	    if readToken () = Some (TOKEN_KEYWORD, "END") then ()
+	    if readToken () = SOME (TOKEN_KEYWORD, "END") then ()
 	    else raise (Load_cplexFile "END expected")
 		    
 	val result_Goal = readGoal ()  
@@ -648,7 +648,7 @@ fun save_cplexFile filename (cplexProg (name, goal, constraints, bounds)) =
         
 	fun write_constraints [] = ()
 	  | write_constraints (c::cs) = 
-	    (if (fst c <> None) 
+	    (if (fst c <> NONE) 
 	     then 
 		 (write (the (fst c)); write ": ") 
 	     else 
@@ -767,7 +767,7 @@ fun elim_nonfree_bounds (cplexProg (name, goal, constraints, bounds)) =
 	val zero = cplexNum "0"
 	
 	fun make_pos_constr v = 
-	    (None, cplexConstr (cplexGeq, ((cplexVar v), zero)))
+	    (NONE, cplexConstr (cplexGeq, ((cplexVar v), zero)))
 	
 	fun make_free_bound v = 
 	    cplexBounds (cplexNeg cplexInf, cplexLeq, 
@@ -777,7 +777,7 @@ fun elim_nonfree_bounds (cplexProg (name, goal, constraints, bounds)) =
 	val pos_constrs = rev(Symtab.foldl 
 			      (fn (l, (k,v)) => (make_pos_constr k) :: l)
 			      ([], positive_vars))
-        val bound_constrs = map (fn x => (None, x)) 
+        val bound_constrs = map (fn x => (NONE, x)) 
 				(flat (map bound2constr bounds))
 	val constraints' = constraints @ pos_constrs @ bound_constrs	   
 	val bounds' = rev(Symtab.foldl (fn (l, (v,_)) => 
@@ -859,17 +859,17 @@ fun load_cplexResult name =
 		let val u = hd (!rest) in 
 		    (
 		     rest := tl (!rest); 
-		     Some u
+		     SOME u
 		    ) 
 		end
 	    else 
 		let val s = TextIO.inputLine f in
-		    if s = "" then None else (rest := tokenize s; readToken_helper())					     
+		    if s = "" then NONE else (rest := tokenize s; readToken_helper())					     
 		end           
 		
-	fun is_tt tok ty = (tok <> None andalso (fst (the tok)) = ty)
+	fun is_tt tok ty = (tok <> NONE andalso (fst (the tok)) = ty)
 
-	fun pushToken a = if a = None then () else (rest := ((the a)::(!rest)))
+	fun pushToken a = if a = NONE then () else (rest := ((the a)::(!rest)))
 	
 	fun readToken () =
 	    let val t = readToken_helper () in
@@ -878,14 +878,14 @@ fun load_cplexResult name =
 		else if is_tt t TOKEN_NL then 
 		    let val t2 = readToken_helper () in
 			if is_tt t2 TOKEN_SIGN then 
-			    (pushToken (Some (TOKEN_SEPARATOR, "-")); t)
+			    (pushToken (SOME (TOKEN_SEPARATOR, "-")); t)
 			else 
 			    (pushToken t2; t)
 		    end
 		else if is_tt t TOKEN_SIGN then
 		    let val t2 = readToken_helper () in
 			if is_tt t2 TOKEN_NUM then
-			    (Some (TOKEN_NUM, (snd (the t))^(snd (the t2))))
+			    (SOME (TOKEN_NUM, (snd (the t))^(snd (the t2))))
 			else
 			    (pushToken t2; t)
 		    end
@@ -897,7 +897,7 @@ fun load_cplexResult name =
 	    let 
 		val t = readToken ()
 	    in
-		if is_tt t TOKEN_NL orelse t = None 
+		if is_tt t TOKEN_NL orelse t = NONE 
 		then P
 		else readRestOfLine P
 	    end			
@@ -940,26 +940,26 @@ fun load_cplexResult name =
 			val k = readToken ()
 		    in
 			if is_tt k TOKEN_NUM then
-			    readRestOfLine (Some (snd (the t2), snd (the k)))
+			    readRestOfLine (SOME (snd (the t2), snd (the k)))
 			else
 			    raise (Load_cplexResult "number expected")
 		    end				
 		else
-		    (pushToken t2; pushToken t1; None)
+		    (pushToken t2; pushToken t1; NONE)
 	    end
 
 	fun load_values () = 
 	    let val v = load_value () in
-		if v = None then [] else (the v)::(load_values ())
+		if v = NONE then [] else (the v)::(load_values ())
 	    end
 	
 	val header = readHeader () 
 
 	val result = 
 	    case assoc (header, "STATUS") of
-		Some "INFEASIBLE" => Infeasible
-	      | Some "UNBOUNDED" => Unbounded
-	      | Some "OPTIMAL" => Optimal (the (assoc (header, "OBJECTIVE")), 
+		SOME "INFEASIBLE" => Infeasible
+	      | SOME "UNBOUNDED" => Unbounded
+	      | SOME "OPTIMAL" => Optimal (the (assoc (header, "OBJECTIVE")), 
 					   (skip_until_sep (); 
 					    skip_until_sep ();
 					    load_values ()))

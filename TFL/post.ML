@@ -207,7 +207,7 @@ prefer leaving more fine-grain control to the user.
 -- Lucas Dixon, Aug 2004 *)
 local
   fun get_related_thms i = 
-      mapfilter ((fn (r,x) => if x = i then Some r else None));
+      mapfilter ((fn (r,x) => if x = i then SOME r else NONE));
 
   fun solve_eq (th, [], i) = 
       raise ERROR_MESSAGE "derive_init_eqs: missing rules"

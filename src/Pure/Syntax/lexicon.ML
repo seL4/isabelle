@@ -217,15 +217,15 @@ fun valued_token (Token _) = false
 
 (* predef_term *)
 
-fun predef_term "id" = Some (IdentSy "id")
-  | predef_term "longid" = Some (LongIdentSy "longid")
-  | predef_term "var" = Some (VarSy "var")
-  | predef_term "tid" = Some (TFreeSy "tid")
-  | predef_term "tvar" = Some (TVarSy "tvar")
-  | predef_term "num" = Some (NumSy "num")
-  | predef_term "xnum" = Some (XNumSy "xnum")
-  | predef_term "xstr" = Some (StrSy "xstr")
-  | predef_term _ = None;
+fun predef_term "id" = SOME (IdentSy "id")
+  | predef_term "longid" = SOME (LongIdentSy "longid")
+  | predef_term "var" = SOME (VarSy "var")
+  | predef_term "tid" = SOME (TFreeSy "tid")
+  | predef_term "tvar" = SOME (TVarSy "tvar")
+  | predef_term "num" = SOME (NumSy "num")
+  | predef_term "xnum" = SOME (XNumSy "xnum")
+  | predef_term "xstr" = SOME (StrSy "xstr")
+  | predef_term _ = NONE;
 
 
 (* xstr tokens *)
@@ -247,7 +247,7 @@ fun implode_xstr cs = enclose "''" "''" (implode (map (fn "'" => "\\'" | c => c)
 
 fun explode_xstr str =
   (case Scan.read Symbol.stopper scan_str (Symbol.explode str) of
-    Some cs => cs
+    SOME cs => cs
   | _ => error ("Inner lexical error: literal string expected at " ^ quote str));
 
 
@@ -286,10 +286,10 @@ fun tokenize lex xids chs =
     val scan_lit = Scan.literal lex >> (pair Token o implode);
 
     val scan_token =
-      scan_comment >> K None ||
-      Scan.max (op <= o pairself snd) scan_lit scan_val >> (fn (tk, s) => Some (tk s)) ||
-      scan_str >> (Some o StrSy o implode_xstr) ||
-      Scan.one Symbol.is_blank >> K None;
+      scan_comment >> K NONE ||
+      Scan.max (op <= o pairself snd) scan_lit scan_val >> (fn (tk, s) => SOME (tk s)) ||
+      scan_str >> (SOME o StrSy o implode_xstr) ||
+      Scan.one Symbol.is_blank >> K NONE;
   in
     (case Scan.error (Scan.finite Symbol.stopper (Scan.repeat scan_token)) chs of
       (toks, []) => mapfilter I toks @ [EndToken]
@@ -330,7 +330,7 @@ val scan_indexname =
 
 fun indexname cs =
   (case Scan.read Symbol.stopper scan_indexname (Symbol.explode cs) of
-    Some xi => xi
+    SOME xi => xi
   | _ => error ("Lexical error in variable name: " ^ quote cs));
 
 
@@ -385,9 +385,9 @@ fun read_idents str =
     val idents = Scan.repeat1 (blanks |-- scan_id --| blanks) -- junk;
   in
     (case Scan.read Symbol.stopper idents (Symbol.explode str) of
-      Some (ids, []) => ids
-    | Some (_, bad) => error ("Bad identifier: " ^ quote (implode bad))
-    | None => error ("No identifier found in: " ^ quote str))
+      SOME (ids, []) => ids
+    | SOME (_, bad) => error ("Bad identifier: " ^ quote (implode bad))
+    | NONE => error ("No identifier found in: " ^ quote str))
   end;
 
 end;

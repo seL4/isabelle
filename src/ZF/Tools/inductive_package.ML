@@ -301,8 +301,8 @@ let
      fun add_induct_prem ind_alist (prem as Const("Trueprop",_) $
                       (Const("op :",_)$t$X), iprems) =
           (case gen_assoc (op aconv) (ind_alist, X) of
-               Some pred => prem :: FOLogic.mk_Trueprop (pred $ t) :: iprems
-             | None => (*possibly membership in M(rec_tm), for M monotone*)
+               SOME pred => prem :: FOLogic.mk_Trueprop (pred $ t) :: iprems
+             | NONE => (*possibly membership in M(rec_tm), for M monotone*)
                  let fun mk_sb (rec_tm,pred) =
                              (rec_tm, Ind_Syntax.Collect_const$rec_tm$pred)
                  in  subst_free (map mk_sb ind_alist) prem :: iprems  end)
@@ -314,7 +314,7 @@ let
            val iprems = foldr (add_induct_prem ind_alist)
                               (Logic.strip_imp_prems intr,[])
            val (t,X) = Ind_Syntax.rule_concl intr
-           val (Some pred) = gen_assoc (op aconv) (ind_alist, X)
+           val (SOME pred) = gen_assoc (op aconv) (ind_alist, X)
            val concl = FOLogic.mk_Trueprop (pred $ t)
        in list_all_free (quantfrees, Logic.list_implies (iprems,concl)) end
        handle Bind => error"Recursion term not found in conclusion";

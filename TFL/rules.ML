@@ -430,7 +430,7 @@ fun IT_EXISTS blist th =
 fun SUBS thl =
   rewrite_rule (map (fn th => th RS eq_reflection handle THM _ => th) thl);
 
-val rew_conv = MetaSimplifier.rewrite_cterm (true, false, false) (K (K None));
+val rew_conv = MetaSimplifier.rewrite_cterm (true, false, false) (K (K NONE));
 
 fun simpl_conv ss thl ctm =
  rew_conv (ss addsimps thl) ctm RS meta_eq_to_obj_eq;
@@ -753,8 +753,8 @@ fun CONTEXT_REWRITE_RULE (func, G, cut_lemma, congs) th =
                      else q_eliminate (thm,imp,sign))
                             (* Assume that the leading constant is ==,   *)
                 | _ => thm  (* if it is not a ==>                        *)
-         in Some(eliminate (rename thm)) end
-         handle U.ERR _ => None    (* FIXME handle THM as well?? *)
+         in SOME(eliminate (rename thm)) end
+         handle U.ERR _ => NONE    (* FIXME handle THM as well?? *)
 
         fun restrict_prover ss thm =
           let val dummy = say "restrict_prover:"
@@ -797,8 +797,8 @@ fun CONTEXT_REWRITE_RULE (func, G, cut_lemma, congs) th =
                                          (LIST_CONJ rcontext)
                              end
               val th'' = th' RS thm
-          in Some (th'')
-          end handle U.ERR _ => None    (* FIXME handle THM as well?? *)
+          in SOME (th'')
+          end handle U.ERR _ => NONE    (* FIXME handle THM as well?? *)
     in
     (if (is_cong thm) then cong_prover else restrict_prover) ss thm
     end

@@ -201,7 +201,7 @@ by (DEPTH_SOLVE_1(ares_tac CC 2));
 by (EVERY[etac pi_elim 1, assume_tac 1, assume_tac 1]);
 uresult();
 
-(* Some random examples *)
+(* SOME random examples *)
 
 goal LP2.thy "A:* c:A f:A->A |- \
 \       Lam a:A. Pi P:A->*.P^c -> (Pi x:A. P^x->P^(f^x)) -> P^a : ?T";

@@ -2,7 +2,7 @@
     ID:         $Id$
     Author:     Stefan Berghofer, David von Oheimb, and Markus Wenzel, TU Muenchen
 
-Some tools for managing tupled arguments and abstractions in rules.
+SOME tools for managing tupled arguments and abstractions in rules.
 *)
 
 signature BASIC_SPLIT_RULE =

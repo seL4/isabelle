@@ -31,7 +31,7 @@ sig
        Term.term ->
        (
        ((Term.indexname * Term.typ) list * (Term.indexname * Term.term) list)
-       * (string * Type) list * Term.term) Library.option
+       * (string * Type) list * Term.term) option
     val clean_unify_ft :
        Sign.sg ->
        int ->
@@ -97,7 +97,7 @@ struct
 open BasicIsaFTerm;
 
 
-(* Some general search within a focus term... *)
+(* SOME general search within a focus term... *)
 
 (* Note: only upterms with a free or constant are going to yeald a
 match, thus if we get anything else (bound or var) skip it! This is
@@ -122,8 +122,8 @@ fun search_nonvar_bl_ur_f f ft =
 
       fun mk_match_up_seq ft =
           case focus_up_abs_or_appr ft of 
-            Some ft' => Seq.append(f ft, mk_match_up_seq ft')
-          | None => f ft
+            SOME ft' => Seq.append(f ft, mk_match_up_seq ft')
+          | NONE => f ft
     in
       Seq.flat (Seq.map mk_match_up_seq fts)
     end;
@@ -134,8 +134,8 @@ fun search_bl_ur_f f ft =
 
       fun mk_match_up_seq ft =
           case focus_up_abs_or_appr ft of 
-            Some ft' => Seq.append(f ft, mk_match_up_seq ft')
-          | None => f ft
+            SOME ft' => Seq.append(f ft, mk_match_up_seq ft')
+          | NONE => f ft
     in
       Seq.flat (Seq.map mk_match_up_seq fts)
     end;
@@ -294,8 +294,8 @@ fun prepmatch ft =
 fun clean_match_ft tsig pat ft = 
     let val (t, (Ts,absterm)) = prepmatch ft in
       case TermLib.clean_match tsig (pat, t) of 
-        None => None 
-      | Some insts => Some (insts, Ts, absterm) end;
+        NONE => NONE 
+      | SOME insts => SOME (insts, Ts, absterm) end;
 (* ix = max var index *)
 fun clean_unify_ft sgn ix pat ft = 
     let val (t, (Ts,absterm)) = prepmatch ft in

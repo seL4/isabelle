@@ -260,8 +260,8 @@ fun mk_case ty_info ty_match usednames range_ty =
      let val pty as Type (ty_name,_) = type_of p
      in
      case (ty_info ty_name)
-     of None => mk_case_fail("Not a known datatype: "^ty_name)
-      | Some{case_const,constructors} =>
+     of NONE => mk_case_fail("Not a known datatype: "^ty_name)
+      | SOME{case_const,constructors} =>
         let
             val case_const_name = #1(dest_Const case_const)
             val nrows = List.concat (map (expand constructors pty) rows)
@@ -371,7 +371,7 @@ end end;
 
 (*For Isabelle, the lhs of a definition must be a constant.*)
 fun mk_const_def sign (Name, Ty, rhs) =
-    Sign.infer_types (Sign.pp sign) sign (K None) (K None) [] false
+    Sign.infer_types (Sign.pp sign) sign (K NONE) (K NONE) [] false
                ([Const("==",dummyT) $ Const(Name,Ty) $ rhs], propT)
     |> #1;
 
@@ -623,7 +623,7 @@ fun alpha_ex_unroll (xlist, tm) =
       val vlist = #2(S.strip_comb (S.rhs body))
       val plist = ListPair.zip (vlist, xlist)
       val args = map (fn qv => the (gen_assoc (op aconv) (plist, qv))) qvars
-                   handle Library.OPTION => sys_error
+                   handle Option => sys_error
                        "TFL fault [alpha_ex_unroll]: no correspondence"
       fun build ex      []   = []
         | build (_$rex) (v::rst) =
@@ -666,8 +666,8 @@ fun mk_case ty_info usednames thy =
      let val Type (ty_name,_) = type_of p
      in
      case (ty_info ty_name)
-     of None => fail("Not a known datatype: "^ty_name)
-      | Some{constructors,nchotomy} =>
+     of NONE => fail("Not a known datatype: "^ty_name)
+      | SOME{constructors,nchotomy} =>
         let val thm' = R.ISPEC (tych u) nchotomy
             val disjuncts = S.strip_disj (concl thm')
             val subproblems = divide(constructors, rows)

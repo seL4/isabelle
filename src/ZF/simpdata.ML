@@ -16,9 +16,9 @@ fun atomize (conn_pairs, mem_pairs) th =
           case head_of t of
               Const(a,_) =>
                 (case assoc(pairs,a) of
-                     Some rls => flat (map (atomize (conn_pairs, mem_pairs))
+                     SOME rls => flat (map (atomize (conn_pairs, mem_pairs))
                                        ([th] RL rls))
-                   | None     => [th])
+                   | NONE     => [th])
             | _ => [th]
   in case concl_of th of
          Const("Trueprop",_) $ P =>
