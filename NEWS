@@ -7,7 +7,8 @@ New in Isabelle??? (FIXME)
 
 * Rewrite rules for case distinctions can now be added permanently to the
   default simpset using Addsplits just like Addsimps. They can be removed via
-  Delsplits just like Delsimps. For applications see HOL below.
+  Delsplits just like Delsimps. Lower-case versions are also available.
+  For applications see HOL below.
 
 * Changed wrapper mechanism for the classical reasoner now allows for selected
   deletion of wrappers, by introduction of names for wrapper functionals.
@@ -24,7 +25,9 @@ New in Isabelle??? (FIXME)
 
 * HOL/Arithmetic: removed 'pred' (predecessor) function;
 
-* The rule expand_if is now part of the default simpset. This means that
+* Simplifier:
+
+ -The rule expand_if is now part of the default simpset. This means that
   the simplifier will eliminate all ocurrences of if-then-else in the
   conclusion of a goal. To prevent this, you can either remove expand_if
   completely from the default simpset by `Delsplits [expand_if]' or
@@ -33,6 +36,14 @@ New in Isabelle??? (FIXME)
   You can also add/delete other case splitting rules to/from the default
   simpset: every datatype generates a suitable rule `split_t_case' (where t
   is the name of the datatype).
+
+ -Asm_full_simp_tac is now more aggressive:
+  1. It will sometimes reorient premises if that increases their power to
+     simplify.
+  2. It does no longer proceed strictly from left to right but may also
+     rotate premises to achieve further simplification.
+  For compatibility reasons there is now Asm_lr_simp_tac which is like the
+  old Asm_full_simp_tac in that it does not rotate premises.
 
 * new theory Vimage (inverse image of a function, syntax f-``B);
 
