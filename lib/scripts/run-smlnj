@@ -1,13 +1,11 @@
 #!/bin/bash
 #
-# SML/NJ startup script (for 1.06 or later).
-#
 # $Id$
+#
+# SML/NJ startup script (for 1.06 or later).
 #
 # Global vars: INFILE OUTFILE COPYDB MLTEXT OPTIONS TERMINATE,
 # and from settings
-#
-# MMW 30-Nov-1996
 
 
 ## diagnostics
@@ -62,7 +60,7 @@ elif [ -z "$MLTEXT" ]; then
 else
   TMP_FILE=/tmp/mltext-$$
   echo "$MLTEXT" >$TMP_FILE
-  cat $TMP_FILE - | $START_SML
+  $ISABELLE_HOME/lib/scripts/ucat $TMP_FILE - | $START_SML
   RC=$?
   rm $TMP_FILE
 fi
