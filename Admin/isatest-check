@@ -17,9 +17,9 @@ shopt -s nullglob
 ## global settings
 
 # send mail to:
-MAILTO="kleing@in.tum.de nipkow@in.tum.de berghofe@in.tum.de schirmer@in.tum.de lp15@cam.ac.uk"
+MAILTO="kleing@in.tum.de nipkow@in.tum.de berghofe@in.tum.de schirmer@in.tum.de lp15@cam.ac.uk skalberg@in.tum.de"
 
-ADMIN="kleing@in.tum.de"
+ADMIN="berghofe@in.tum.de"
 
 # canoncical home for all platforms
 HOME=/usr/stud/isatest

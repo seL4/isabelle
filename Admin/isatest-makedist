@@ -13,7 +13,7 @@
 HOME=/usr/stud/isatest
 
 ## global settings
-MAILTO="kleing@in.tum.de nipkow@in.tum.de berghofe@in.tum.de schirmer@in.tum.de lp15@cam.ac.uk"
+MAILTO="kleing@in.tum.de nipkow@in.tum.de berghofe@in.tum.de schirmer@in.tum.de lp15@cam.ac.uk skalberg@in.tum.de"
 
 TMP=/tmp/isatest-makedist.$$
 MAIL=$HOME/bin/pmail
