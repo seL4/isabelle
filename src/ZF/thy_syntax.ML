@@ -27,6 +27,13 @@ fun optlist s =
 	       || list1 (name>>unenclose) >> mk_list)) 
     "[]";
 
+(*Skipping initial blanks, find the first identifier*)  (* FIXME slightly broken! *)
+fun scan_to_id s =
+    s |> Symbol.explode
+    |> Scan.error (Scan.finite Symbol.stopper
+      (Scan.!! (fn _ => "Expected to find an identifier in " ^ s)
+        (Scan.any Symbol.is_blank |-- Syntax.scan_id)))
+    |> #1;
 
 (*(Co)Inductive definitions theory section."*)
 fun inductive_decl coind =
