@@ -44,7 +44,10 @@ datatype thy_info =
                           init_thy_reader is invoked
         data: user defined data; exn is used to allow arbitrary types;
               first element of pairs contains result that get returned after
-              thy file was read, second element after ML file was read
+              thy file was read, second element after ML file was read;
+              if ML files has not been read, second element is identical to
+              first one because get_thydata, which is meant to return the
+              latest data, always accesses the 2nd element
        *)
 
 signature READTHY =
@@ -661,8 +664,8 @@ fun use_thy1 tmp_loadpath_valid name =
 
           val new_data = get_data (Symtab.dest methods) Symtab.null;
 
-          val data' = if thy_only then (new_data, snd data)
-                      else (fst data, new_data);
+          val data' = (if thy_only then new_data else fst data, new_data)
+                      (* 2nd component must be up to date *)
       in loaded_thys := Symtab.update
            ((tname, ThyInfo {path = path,
                              children = children, parents = parents,
