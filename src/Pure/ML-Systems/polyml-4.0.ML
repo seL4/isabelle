@@ -121,7 +121,8 @@ fun change_signal new_handler f x =
 in
 
 fun mask_interrupt f = change_signal Signal.SIG_IGN f;
-fun exhibit_interrupt f = change_signal Signal.SIG_DFL f;
+fun exhibit_interrupt f =
+  change_signal (Signal.SIG_HANDLE (fn _ => Process.interruptConsoleProcesses ())) f;
 
 end;
 
