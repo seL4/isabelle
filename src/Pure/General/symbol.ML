@@ -22,6 +22,7 @@ sig
   val is_quasi_letter: symbol -> bool
   val is_letdig: symbol -> bool
   val is_blank: symbol -> bool
+  val is_symbolic: symbol -> bool
   val is_printable: symbol -> bool
   val length: symbol list -> int
   val beginning: symbol list -> string
@@ -92,9 +93,13 @@ val is_blank =
 
 val is_letdig = is_quasi_letter orf is_digit;
 
+fun is_symbolic s =
+  size s > 2 andalso nth_elem_string (2, s) <> "^";
+
 fun is_printable s =
   size s = 1 andalso ord space <= ord s andalso ord s <= ord "~" orelse
-  size s > 2 andalso nth_elem_string (2, s) <> "^";
+  is_symbolic s;
+
 
 fun sym_length ss = foldl (fn (n, s) => if is_printable s then n + 1 else n) (0, ss);
 
