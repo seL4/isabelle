@@ -241,13 +241,11 @@ fun add_oracle (name, txt) =
 
 fun the_theory name () = ThyInfo.theory name;
 
-fun begin_theory (name, names) () =
-  PureThy.begin_theory name (map ThyInfo.theory names);
-
+fun begin_theory (name, names) () = ThyInfo.begin_theory name names;
 
 fun end_theory thy =
   let val thy' = PureThy.end_theory thy in
-    transform_error ThyInfo.store_theory thy'
+    transform_error ThyInfo.put_theory thy'
       handle exn => raise PureThy.ROLLBACK (thy', Some exn)     (* FIXME !!?? *)
   end;
 
