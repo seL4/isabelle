@@ -470,7 +470,7 @@ end)
 (* external interfaces *)
 
 fun read_term sg str =
-  read_cterm sg (str, HOLogic.termTVar);
+  read_cterm sg (str, HOLogic.termT);
 
 fun cert_term sg tm =
   cterm_of sg tm handle TERM (msg, _) => error msg;

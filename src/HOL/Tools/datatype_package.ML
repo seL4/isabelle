@@ -150,8 +150,7 @@ fun infer_tname state sign i aterm =
     val (types, sorts) = types_sorts state;
     fun types' (a, ~1) = (case assoc (params, a) of None => types(a, ~1) | sm => sm)
       | types' ixn = types ixn;
-    val (ct, _) = read_def_cterm (sign, types', sorts) [] false
-                                  (aterm, TVar (("", 0), []));
+    val (ct, _) = read_def_cterm (sign, types', sorts) [] false (aterm, TypeInfer.logicT);
   in case #T (rep_cterm ct) of
        Type (tn, _) => tn
      | _ => error ("Cannot determine type of " ^ quote aterm)
@@ -248,7 +247,7 @@ fun distinct_proc sg _ (t as Const ("op =", _) $ t1 $ t2) =
    | _ => None)
   | distinct_proc sg _ _ = None;
 
-val distinct_pats = [Thm.read_cterm (Theory.sign_of HOL.thy) ("s = t", HOLogic.termTVar)];
+val distinct_pats = [Thm.read_cterm (Theory.sign_of HOL.thy) ("s = t", HOLogic.termT)];
 val distinct_simproc = mk_simproc distinctN distinct_pats distinct_proc;
 
 val dist_ss = HOL_ss addsimprocs [distinct_simproc];

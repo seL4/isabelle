@@ -777,7 +777,7 @@ fun add_inductive_i verbose declare_consts alt_name coind no_elim no_ind cs
 fun add_inductive verbose coind c_strings srcs intro_srcs raw_monos raw_con_defs thy =
   let
     val sign = Theory.sign_of thy;
-    val cs = map (term_of o Thm.read_cterm sign o rpair HOLogic.termTVar) c_strings;
+    val cs = map (term_of o Thm.read_cterm sign o rpair HOLogic.termT) c_strings;
 
     val atts = map (Attrib.global_attribute thy) srcs;
     val intr_names = map (fst o fst) intro_srcs;

@@ -466,7 +466,7 @@ fun add_parents thy (None, parents) = parents
 
 local
 
-val sel_upd_pat = [Thm.read_cterm (Theory.sign_of HOL.thy) ("s (u k r)", HOLogic.termTVar)];
+val sel_upd_pat = [Thm.read_cterm (Theory.sign_of HOL.thy) ("s (u k r)", HOLogic.termT)];
 
 fun proc sg _ t =
   (case t of (sel as Const (s, _)) $ ((upd as Const (u, _)) $ k $ r) =>

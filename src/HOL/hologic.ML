@@ -9,7 +9,7 @@ signature HOLOGIC =
 sig
   val termC: class
   val termS: sort
-  val termTVar: typ
+  val termT: typ
   val boolT: typ
   val false_const: term
   val true_const: term
@@ -75,8 +75,7 @@ struct
 
 val termC: class = "term";
 val termS: sort = [termC];
-
-val termTVar = TVar (("'a", 0), termS);
+val termT = TypeInfer.anyT termS;
 
 
 (* bool and set *)

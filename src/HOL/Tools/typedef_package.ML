@@ -89,7 +89,7 @@ fun prove_nonempty thy cset (witn_names, witn_thms, witn_tac) =
 (* prepare_typedef *)
 
 fun read_term sg used s =
-  #1 (Thm.read_def_cterm (sg, K None, K None) used true (s, HOLogic.termTVar));
+  #1 (Thm.read_def_cterm (sg, K None, K None) used true (s, HOLogic.termT));
 
 fun cert_term sg _ t = Thm.cterm_of sg t handle TERM (msg, _) => error msg;
 

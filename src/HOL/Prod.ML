@@ -171,7 +171,7 @@ local
 	(cterm_of sg (HOLogic.mk_Trueprop (HOLogic.mk_eq (lhs,rhs))))
 	(K [simp_tac (HOL_basic_ss addsimps [cond_split_eta]) 1]));
   fun simproc name patstr = Simplifier.mk_simproc name 
-		[Thm.read_cterm (sign_of Prod.thy) (patstr, HOLogic.termTVar)];
+		[Thm.read_cterm (sign_of Prod.thy) (patstr, HOLogic.termT)];
 
   val beta_patstr = "split f z";
   val  eta_patstr = "split f";

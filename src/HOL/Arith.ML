@@ -821,7 +821,7 @@ end);
 
 (** prepare nat_cancel simprocs **)
 
-fun prep_pat s = Thm.read_cterm (Theory.sign_of Arith.thy) (s, HOLogic.termTVar);
+fun prep_pat s = Thm.read_cterm (Theory.sign_of Arith.thy) (s, HOLogic.termT);
 val prep_pats = map prep_pat;
 
 fun prep_simproc (name, pats, proc) = Simplifier.mk_simproc name pats proc;
