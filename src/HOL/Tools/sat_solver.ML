@@ -281,6 +281,7 @@ struct
 				  []      => [xs1]
 				| (0::[]) => [xs1]
 				| (0::tl) => xs1 :: clauses tl
+				| _       => raise ERROR  (* this cannot happen *)
 			end
 		(* int -> PropLogic.prop_formula *)
 		fun literal_from_int i =
