@@ -1097,7 +1097,7 @@ Goal "[| CDERIV f x :> d; f(x) ~= 0 |] \
 \     ==> CDERIV (%x. inverse(f x)) x :> (- (d * inverse(f(x) ^ 2)))";
 by (rtac (complex_mult_commute RS subst) 1);
 by (asm_simp_tac (simpset() addsimps [complex_minus_mult_eq1,
-    complexpow_inverse] delsimps [complexpow_Suc, minus_mult_left RS sym,
+    power_inverse] delsimps [complexpow_Suc, minus_mult_left RS sym,
 complex_minus_mult_eq1 RS sym]) 1);
 by (fold_goals_tac [o_def]);
 by (blast_tac (claset() addSIs [CDERIV_chain,CDERIV_inverse]) 1);
@@ -1127,7 +1127,7 @@ by (dtac CDERIV_mult 2);
 by (REPEAT(assume_tac 1));
 by (asm_full_simp_tac
     (simpset() addsimps [complex_divide_def, complex_add_mult_distrib2,
-                         complexpow_inverse,complex_minus_mult_eq1] @ complex_mult_ac 
+                         power_inverse,complex_minus_mult_eq1] @ complex_mult_ac 
        delsimps [complexpow_Suc, minus_mult_right RS sym, minus_mult_left RS sym]) 1);
 qed "CDERIV_quotient";
 
