@@ -41,7 +41,7 @@ equivalent list of verification conditions in HOL:
 by(hoare_tac tac i);
 </PRE>
 applies the tactic to subgoal <kbd>i</kbd> and applies the parameter
-<kbd>tac</kbd> (of type <kbd>int -> tactic</kbd>) to all generated
+<kbd>tac</kbd> (of type <kbd>int -&gt; tactic</kbd>) to all generated
 verification conditions. A typical call is
 <PRE>
 by(hoare_tac Asm_full_simp_tac 1);
