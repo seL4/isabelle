@@ -16,18 +16,20 @@ init_thy_reader();
 print_depth 1;  
 use_thy "FOL";
 
-use "../Provers/hypsubst.ML";
-use "../Provers/classical.ML";
 use "../Provers/simplifier.ML";
 use "../Provers/splitter.ML";
 use "../Provers/ind.ML";
+use "../Provers/hypsubst.ML";
+use "../Provers/classical.ML";
 
 (*** Applying HypsubstFun to generate hyp_subst_tac ***)
 
 structure Hypsubst_Data =
   struct
-  (*Take apart an equality judgement; otherwise raise Match!*)
-  fun dest_eq (Const("Trueprop",_) $ (Const("op =",_)  $ t $ u)) = (t,u);
+  structure Simplifier = Simplifier
+    (*Take apart an equality judgement; otherwise raise Match!*)
+  fun dest_eq (Const("Trueprop",_) $ (Const("op =",_)  $ t $ u)) = (t,u)
+  val eq_reflection = eq_reflection
   val imp_intr = impI
   val rev_mp = rev_mp
   val subst = subst
