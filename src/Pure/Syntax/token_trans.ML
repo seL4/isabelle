@@ -51,7 +51,7 @@ struct
 fun tokentrans_mode m trs = map (fn (s, f) => (m, s, f)) trs;
 
 val standard_token_classes =
-  ["class", "tfree", "tvar", "free", "bound", "var", "xnum", "xstr"];
+  ["class", "tfree", "tvar", "free", "bound", "var", "num", "xnum", "xstr"];
 
 
 

@@ -46,6 +46,7 @@ sig
     TFreeSy of string |
     TVarSy of string |
     NumSy of string |
+    XNumSy of string |
     StrSy of string |
     EndToken
   val idT: typ
@@ -132,6 +133,7 @@ datatype token =
   TFreeSy of string |
   TVarSy of string |
   NumSy of string |
+  XNumSy of string |
   StrSy of string |
   EndToken;
 
@@ -144,7 +146,7 @@ val varT = Type ("var", []);
 val tidT = Type ("tid", []);
 val tvarT = Type ("tvar", []);
 
-val terminals = ["id", "longid", "var", "tid", "tvar", "xnum", "xstr"];
+val terminals = ["id", "longid", "var", "tid", "tvar", "num", "xnum", "xstr"];
 
 fun is_terminal s = s mem terminals;
 
@@ -158,6 +160,7 @@ fun str_of_token (Token s) = s
   | str_of_token (TFreeSy s) = s
   | str_of_token (TVarSy s) = s
   | str_of_token (NumSy s) = s
+  | str_of_token (XNumSy s) = s
   | str_of_token (StrSy s) = s
   | str_of_token EndToken = "EOF";
 
@@ -170,7 +173,8 @@ fun display_token (Token s) = quote s
   | display_token (VarSy s) = "var(" ^ s ^ ")"
   | display_token (TFreeSy s) = "tid(" ^ s ^ ")"
   | display_token (TVarSy s) = "tvar(" ^ s ^ ")"
-  | display_token (NumSy s) = "xnum(" ^ s ^ ")"
+  | display_token (NumSy s) = "num(" ^ s ^ ")"
+  | display_token (XNumSy s) = "xnum(" ^ s ^ ")"
   | display_token (StrSy s) = "xstr(" ^ s ^ ")"
   | display_token EndToken = "";
 
@@ -184,6 +188,7 @@ fun matching_tokens (Token x, Token y) = (x = y)
   | matching_tokens (TFreeSy _, TFreeSy _) = true
   | matching_tokens (TVarSy _, TVarSy _) = true
   | matching_tokens (NumSy _, NumSy _) = true
+  | matching_tokens (XNumSy _, XNumSy _) = true
   | matching_tokens (StrSy _, StrSy _) = true
   | matching_tokens (EndToken, EndToken) = true
   | matching_tokens _ = false;
@@ -210,6 +215,7 @@ fun valued_token (Token _) = false
   | valued_token (TFreeSy _) = true
   | valued_token (TVarSy _) = true
   | valued_token (NumSy _) = true
+  | valued_token (XNumSy _) = true
   | valued_token (StrSy _) = true
   | valued_token EndToken = false;
 
@@ -221,7 +227,8 @@ fun predef_term "id" = Some (IdentSy "id")
   | predef_term "var" = Some (VarSy "var")
   | predef_term "tid" = Some (TFreeSy "tid")
   | predef_term "tvar" = Some (TVarSy "tvar")
-  | predef_term "xnum" = Some (NumSy "xnum")
+  | predef_term "num" = Some (NumSy "num")
+  | predef_term "xnum" = Some (XNumSy "xnum")
   | predef_term "xstr" = Some (StrSy "xstr")
   | predef_term _ = None;
 
@@ -261,7 +268,8 @@ fun tokenize lex xids chs =
       scan_tvar >> pair TVarSy ||
       scan_var >> pair VarSy ||
       scan_tid >> pair TFreeSy ||
-      $$ "#" ^^ scan_int >> pair NumSy ||
+      scan_int >> pair NumSy ||
+      $$ "#" ^^ scan_int >> pair XNumSy ||
       scan_longid >> pair LongIdentSy ||
       scan_xid >> pair IdentSy;
 
@@ -351,7 +359,8 @@ fun read_xnum str =
       (case Symbol.explode str of
         "#" :: "-" :: cs => (~1, cs)
       | "#" :: cs => (1, cs)
-      | _ => error ("Malformed number token: " ^ quote str));
+      | "-" :: cs => (~1, cs)
+      | cs => (1, cs));
   in sign * #1 (Term.read_int digs) end;
 
 
