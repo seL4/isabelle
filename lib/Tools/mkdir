@@ -138,7 +138,7 @@ else
     echo "OUT = \$(ISABELLE_OUTPUT)"
     echo "LOG = \$(OUT)/log"
     echo
-    echo "USEDIR = \$(ISATOOL) usedir ${VERBOSE}-i true -d dvi  ## -D document"
+    echo "USEDIR = \$(ISATOOL) usedir ${VERBOSE}-i true -d dvi  ## -D generated"
     echo
     echo
     echo "## $NAME"
