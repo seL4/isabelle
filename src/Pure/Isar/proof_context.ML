@@ -114,6 +114,7 @@ sig
   val pretty_sort: context -> sort -> Pretty.T
   val pretty_thm: context -> thm -> Pretty.T
   val pretty_thms: context -> thm list -> Pretty.T
+  val pretty_fact: context -> string * thm list -> Pretty.T
   val string_of_term: context -> term -> string
   val verbose: bool ref
   val setmp_verbose: ('a -> 'b) -> 'a -> 'b
@@ -124,6 +125,7 @@ sig
   val prems_limit: int ref
   val pretty_asms: context -> Pretty.T list
   val pretty_context: context -> Pretty.T list
+  val print_thms_containing: context -> string list -> unit
   val setup: (theory -> theory) list
 end;
 
@@ -155,7 +157,8 @@ datatype context =
         (string * thm list) list) *
       (string * string) list,                                 (*fixes: !!x. _*)
     binds: (term * typ) option Vartab.table,                  (*term bindings*)
-    thms: bool * NameSpace.T * thm list option Symtab.table,  (*local thms*)
+    thms: bool * NameSpace.T * thm list option Symtab.table
+      * FactIndex.T,                                          (*local thms*)
     cases: (string * RuleCases.T) list,                       (*local contexts*)
     defs:
       typ Vartab.table *                                      (*type constraints*)
@@ -180,6 +183,8 @@ fun syntax_of (Context {syntax, ...}) = syntax;
 fun fixes_of (Context {asms = (_, fixes), ...}) = fixes;
 val fixed_names_of = map #2 o fixes_of;
 fun is_fixed ctxt x = exists (equal x o #2) (fixes_of ctxt);
+fun is_known (ctxt as Context {defs = (types, _, _, _), ...}) x =
+  is_some (Vartab.lookup (types, (x, ~1))) orelse is_fixed ctxt x;
 fun type_occs (Context {defs = (_, _, _, tab), ...}) = tab;
 
 fun assumptions_of (Context {asms = ((asms, _), _), ...}) = asms;
@@ -277,7 +282,8 @@ fun put_data kind f x ctxt =
 fun init thy =
   let val data = Symtab.map (fn (_, (f, _)) => f thy) (ProofDataData.get thy) in
     make_context (thy, (Theory.syn_of thy, [], []), data, (([], []), []), Vartab.empty,
-      (false, NameSpace.empty, Symtab.empty), [], (Vartab.empty, Vartab.empty, [], Symtab.empty))
+      (false, NameSpace.empty, Symtab.empty, FactIndex.empty), [],
+      (Vartab.empty, Vartab.empty, [], Symtab.empty))
   end;
 
 
@@ -657,6 +663,12 @@ fun pretty_thm ctxt thm =
 fun pretty_thms ctxt [th] = pretty_thm ctxt th
   | pretty_thms ctxt ths = Pretty.blk (0, Pretty.fbreaks (map (pretty_thm ctxt) ths));
 
+fun pretty_fact ctxt ("", ths) = pretty_thms ctxt ths
+  | pretty_fact ctxt (a, [th]) =
+      Pretty.block [Pretty.str (a ^ ":"), Pretty.brk 1, pretty_thm ctxt th]
+  | pretty_fact ctxt (a, ths) =
+      Pretty.block (Pretty.fbreaks (Pretty.str (a ^ ":") :: map (pretty_thm ctxt) ths));
+
 
 
 (** Hindley-Milner polymorphism **)
@@ -909,7 +921,7 @@ end;
 (* get_thm(s) *)
 
 (*beware of proper order of evaluation!*)
-fun retrieve_thms f g (ctxt as Context {thy, thms = (_, space, tab), ...}) =
+fun retrieve_thms f g (ctxt as Context {thy, thms = (_, space, tab, _), ...}) =
   let
     val sg_ref = Sign.self_ref (Theory.sign_of thy);
     val get_from_thy = f thy;
@@ -928,10 +940,11 @@ val get_thms_closure = retrieve_thms PureThy.get_thms_closure (K I);
 
 (* qualified names *)
 
-fun cond_extern (Context {thms = (_, space, _), ...}) = NameSpace.cond_extern space;
+fun cond_extern (Context {thms = (_, space, _, _), ...}) = NameSpace.cond_extern space;
 
-fun set_qual q = map_context (fn (thy, syntax, data, asms, binds, (_, space, tab), cases, defs) =>
-  (thy, syntax, data, asms, binds, (q, space, tab), cases, defs));
+fun set_qual q = map_context (fn (thy, syntax, data, asms, binds,
+    (_, space, tab, index), cases, defs) =>
+  (thy, syntax, data, asms, binds, (q, space, tab, index), cases, defs));
 
 fun qualified_result f (ctxt as Context {thms, ...}) =
   ctxt |> set_qual true |> f |>> set_qual (#1 thms);
@@ -941,11 +954,12 @@ fun qualified_result f (ctxt as Context {thms, ...}) =
 
 fun put_thms ("", _) ctxt = ctxt
   | put_thms (name, ths) ctxt = ctxt |> map_context
-      (fn (thy, syntax, data, asms, binds, (q, space, tab), cases, defs) =>
+      (fn (thy, syntax, data, asms, binds, (q, space, tab, index), cases, defs) =>
         if not q andalso NameSpace.is_qualified name then
           raise CONTEXT ("Attempt to declare qualified name " ^ quote name, ctxt)
         else (thy, syntax, data, asms, binds, (q, NameSpace.extend (space, [name]),
-          Symtab.update ((name, Some ths), tab)), cases, defs));
+          Symtab.update ((name, Some ths), tab),
+            FactIndex.add (is_known ctxt) (index, (name, ths))), cases, defs));
 
 fun put_thm (name, th) = put_thms (name, [th]);
 
@@ -956,8 +970,9 @@ fun put_thmss [] ctxt = ctxt
 (* reset_thms *)
 
 fun reset_thms name =
-  map_context (fn (thy, syntax, data, asms, binds, (q, space, tab), cases, defs) =>
-    (thy, syntax, data, asms, binds, (q, space, Symtab.update ((name, None), tab)), cases, defs));
+  map_context (fn (thy, syntax, data, asms, binds, (q, space, tab, index), cases, defs) =>
+    (thy, syntax, data, asms, binds, (q, space, Symtab.update ((name, None), tab), index),
+      cases, defs));
 
 
 (* have_thmss *)
@@ -1236,7 +1251,7 @@ val print_binds = Pretty.writeln o Pretty.chunks o pretty_binds;
 
 (* local theorems *)
 
-fun pretty_lthms (ctxt as Context {thms = (_, space, tab), ...}) =
+fun pretty_lthms (ctxt as Context {thms = (_, space, tab, _), ...}) =
   pretty_items (pretty_thm ctxt) "facts:"
     (mapfilter smash_option (NameSpace.cond_extern_table space tab));
 
@@ -1349,6 +1364,47 @@ fun pretty_context (ctxt as Context {cases, defs = (types, sorts, used, _), ...}
     verb_single (fn () => Pretty.big_list "type constraints:" (map prt_defT (Vartab.dest types))) @
     verb_single (fn () => Pretty.big_list "default sorts:" (map prt_defS (Vartab.dest sorts))) @
     verb_single (fn () => Pretty.strs ("used type variable names:" :: used))
+  end;
+
+
+(* print_thms_containing *)
+
+fun lthms_containing (ctxt as Context {thms = (_, _, _, index), ...}) idx =
+  let
+    fun valid (name, ths) =
+      (case try (transform_error (fn () => get_thms ctxt name)) () of
+        None => false
+      | Some ths' => Library.equal_lists Thm.eq_thm (ths, ths'));
+  in gen_distinct eq_fst (filter valid (FactIndex.find idx index)) end;
+
+
+fun print_thms_containing ctxt ss =
+  let
+    val prt_term = pretty_term ctxt;
+    val prt_fact = pretty_fact ctxt o apsnd (map (#1 o Drule.freeze_thaw));
+    fun prt_consts [] = []
+      | prt_consts cs = [Pretty.block (Pretty.breaks (Pretty.str "constants" ::
+          map (Pretty.quote o prt_term o Syntax.const) cs))];
+    fun prt_frees [] = []
+      | prt_frees xs = [Pretty.block (Pretty.breaks (Pretty.str "variables" ::
+          map (Pretty.quote o prt_term o Syntax.free) xs))];
+
+    val (cs, xs) = foldl (FactIndex.index_term (is_known ctxt))
+      (([], []), map (read_term ctxt) ss);
+    val empty_idx = Library.null cs andalso Library.null xs;
+
+    val header =
+      if empty_idx then []
+      else [Pretty.block (Pretty.breaks (Pretty.str "Facts containing" ::
+        separate (Pretty.str "and") (prt_consts cs @ prt_frees xs)) @
+          [Pretty.str ":", Pretty.fbrk])]
+    val globals = PureThy.thms_containing (theory_of ctxt) (cs, xs);
+    val locals = lthms_containing ctxt (cs, xs);
+  in
+    if empty_idx andalso not (Library.null ss) then
+      warning "thms_containing: no consts/frees in specification"
+    else (header @ map prt_fact (sort_wrt #1 (globals @ locals)))
+      |> Pretty.chunks |> Pretty.writeln
   end;
 
 
