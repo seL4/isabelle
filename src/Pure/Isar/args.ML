@@ -222,7 +222,7 @@ val src = Src;
 fun dest_src (Src src) = src;
 
 fun err_in_src kind msg (Src ((s, args), pos)) =
-  error (kind ^ " " ^ s ^ Position.str_of pos ^ ": " ^ msg ^ "\n  " ^
+  error (kind ^ " " ^ quote s ^ Position.str_of pos ^ ": " ^ msg ^ "\n  " ^
     space_implode " " (map str_of args));
 
 
