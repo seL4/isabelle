@@ -25,13 +25,13 @@ by (safe_tac comp_cs);
   by(ALLGOALS Asm_full_simp_tac);
 qed_spec_mp "hoare_sound";
 
-goalw Hoare.thy [swp_def] "swp Skip Q = Q";
+goalw Hoare.thy [swp_def] "swp SKIP Q = Q";
 by(Simp_tac 1);
 br ext 1;
 by(fast_tac HOL_cs 1);
-qed "swp_Skip";
+qed "swp_SKIP";
 
-goalw Hoare.thy [swp_def] "swp (x:=a) Q = (%s.Q(s[A a s/x]))";
+goalw Hoare.thy [swp_def] "swp (x:=a) Q = (%s.Q(s[a s/x]))";
 by(Simp_tac 1);
 br ext 1;
 by(fast_tac HOL_cs 1);
@@ -44,33 +44,28 @@ by(fast_tac comp_cs 1);
 qed "swp_Semi";
 
 goalw Hoare.thy [swp_def]
-  "swp (IF b THEN c ELSE d) Q = (%s. (B b s --> swp c Q s) & \
-\                                    (~B b s --> swp d Q s))";
+  "swp (IF b THEN c ELSE d) Q = (%s. (b s --> swp c Q s) & \
+\                                    (~b s --> swp d Q s))";
 by(Simp_tac 1);
 br ext 1;
 by(fast_tac comp_cs 1);
 qed "swp_If";
 
 goalw Hoare.thy [swp_def]
-  "!!s. B b s ==> swp (WHILE b DO c) Q s = swp (c;WHILE b DO c) Q s";
+  "!!s. b s ==> swp (WHILE b DO c) Q s = swp (c;WHILE b DO c) Q s";
 by(stac C_While_If 1);
 by(Asm_simp_tac 1);
 qed "swp_While_True";
 
-goalw Hoare.thy [swp_def] "!!s. ~B b s ==> swp (WHILE b DO c) Q s = Q s";
+goalw Hoare.thy [swp_def] "!!s. ~b s ==> swp (WHILE b DO c) Q s = Q s";
 by(stac C_While_If 1);
 by(Asm_simp_tac 1);
 by(fast_tac HOL_cs 1);
 qed "swp_While_False";
 
-Addsimps [swp_Skip,swp_Ass,swp_Semi,swp_If,swp_While_True,swp_While_False];
+Addsimps [swp_SKIP,swp_Ass,swp_Semi,swp_If,swp_While_True,swp_While_False];
 
 Delsimps [C_while];
-
-goalw Hoare.thy [hoare_valid_def,swp_def]
-  "!!c. |= {P}c{Q} ==> !s. P s --> swp c Q s";
-by(fast_tac HOL_cs 1);
-qed "swp_is_weakest";
 
 goal Hoare.thy "!Q. |- {swp c Q} c {Q}";
 by(com.induct_tac "c" 1);
@@ -88,9 +83,9 @@ by(ALLGOALS Simp_tac);
   by(fast_tac HOL_cs 2);
  by(fast_tac HOL_cs 1);
 br hoare.conseq 1;
-  br hoare.While 2;
   be thin_rl 1;
   by(fast_tac HOL_cs 1);
+ br hoare.While 1;
  br hoare.conseq 1;
    be thin_rl 3;
    br allI 3;
@@ -107,5 +102,6 @@ qed_spec_mp "swp_is_pre";
 goal Hoare.thy "!!c. |= {P}c{Q} ==> |- {P}c{Q}";
 br (swp_is_pre RSN (2,hoare.conseq)) 1;
  by(fast_tac HOL_cs 2);
-be swp_is_weakest 1;
+by(rewrite_goals_tac [hoare_valid_def,swp_def]);
+by(fast_tac HOL_cs 1);
 qed "hoare_relative_complete";
