@@ -275,13 +275,7 @@ Addsimps [zminus_number_of_zmult];
 Goal "(m*n = (#0::int)) = (m = #0 | n = #0)";
 by (stac (int_0 RS sym) 1 THEN rtac zmult_eq_int0_iff 1);
 qed "zmult_eq_0_iff";
-
-Goal "((#0::int) = m*n) = (#0 = m | #0 = n)";
-by (stac eq_commute 1 THEN stac zmult_eq_0_iff 1);
-by Auto_tac;
-qed "zmult_0_eq_iff";
-
-AddIffs [zmult_eq_0_iff, zmult_0_eq_iff];
+AddIffs [zmult_eq_0_iff];
 
 Goal "(w < z + (#1::int)) = (w<z | w=z)";
 by (simp_tac (simpset() addsimps [zless_add_int_Suc_eq]) 1);
@@ -325,16 +319,11 @@ Goal "(int k = #0) = (k=0)";
 by (Simp_tac 1);
 qed "int_eq_0_conv";
 
-Goal "(#0 = int k) = (k=0)";
-by Auto_tac;
-qed "int_eq_0_conv'";
-
 Goal "(#0 < int k) = (0<k)";
 by (Simp_tac 1);
 qed "zero_less_int_conv";
 
-Addsimps [int_less_0_conv, int_le_0_conv, int_eq_0_conv, int_eq_0_conv',
-          zero_less_int_conv];
+Addsimps [int_less_0_conv, int_le_0_conv, int_eq_0_conv, zero_less_int_conv];
 
 Goal "(0 < nat z) = (#0 < z)";
 by (cut_inst_tac [("w","#0")] zless_nat_conj 1);
@@ -350,8 +339,8 @@ Addsimps [zero_less_nat_eq];
 Goalw [iszero_def]
   "((number_of x::int) = number_of y) = \
 \  iszero (number_of (bin_add x (bin_minus y)))"; 
-by (simp_tac (simpset() addsimps
-              (zcompare_rls @ [number_of_add, number_of_minus])) 1); 
+by (simp_tac (simpset() delsimps [number_of_reorient] 
+                 addsimps zcompare_rls @ [number_of_add, number_of_minus]) 1); 
 qed "eq_number_of_eq"; 
 
 Goalw [iszero_def] "iszero ((number_of Pls)::int)"; 
@@ -364,12 +353,10 @@ qed "nonzero_number_of_Min";
 
 Goalw [iszero_def]
      "iszero (number_of (w BIT x)) = (~x & iszero (number_of w::int))"; 
-by (Simp_tac 1);
 by (int_case_tac "number_of w" 1); 
 by (ALLGOALS (asm_simp_tac 
 	      (simpset() addsimps zcompare_rls @ 
-				  [zminus_zadd_distrib RS sym, 
-				   zadd_int]))); 
+				  [zminus_zadd_distrib RS sym, zadd_int]))); 
 qed "iszero_number_of_BIT"; 
 
 Goal "iszero (number_of (w BIT False)) = iszero (number_of w::int)"; 

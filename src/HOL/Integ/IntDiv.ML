@@ -203,7 +203,7 @@ by (auto_tac (claset(),
 	      simpset() addsimps [quorem_def, linorder_neq_iff]));
 qed "divAlg_correct";
 
-(** Aribtrary definitions for division by zero.  Useful to simplify 
+(** Arbitrary definitions for division by zero.  Useful to simplify 
     certain equations **)
 
 Goal "a div (#0::int) = #0";
@@ -912,11 +912,10 @@ Goal "number_of (v BIT b) div number_of (w BIT False) = \
 \          else (number_of v + (#1::int)) div (number_of w))";
 by (simp_tac (simpset_of Int.thy addsimps [zadd_assoc, number_of_BIT]) 1);
 by (asm_simp_tac (simpset()
-                  delsimps bin_arith_extra_simps@bin_rel_simps
-		  addsimps [zdiv_zmult_zmult1,
-			    pos_zdiv_mult_2, lemma, neg_zdiv_mult_2]) 1);
+           delsimps [number_of_reorient]@bin_arith_extra_simps@bin_rel_simps
+ 	   addsimps [zdiv_zmult_zmult1, pos_zdiv_mult_2, lemma, 
+                     neg_zdiv_mult_2]) 1);
 qed "zdiv_number_of_BIT";
-
 Addsimps [zdiv_number_of_BIT];
 
 
