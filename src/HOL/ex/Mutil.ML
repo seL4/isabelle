@@ -13,12 +13,11 @@ Addsimps tiling.intrs;
 (** The union of two disjoint tilings is a tiling **)
 
 goal thy "!!t. t: tiling A ==> \
-\              u: tiling A --> t Int u = {} --> t Un u : tiling A";
+\              u: tiling A --> t <= Compl u --> t Un u : tiling A";
 by (etac tiling.induct 1);
 by (Simp_tac 1);
 by (fast_tac (!claset addIs tiling.intrs
-                      addss (HOL_ss addsimps [Un_assoc,
-                                              subset_empty_iff RS sym])) 1);
+                      addss (!simpset addsimps [Un_assoc])) 1);
 qed_spec_mp "tiling_UnI";
 
 

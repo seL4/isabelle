@@ -564,9 +564,44 @@ val INT1_simps = map prover
                  "(INT x. A x - B)   = ((INT x.A x) - B)",
                  "(INT x. A - B x)   = (A - (UN x.B x))"];
 
-(*Analogous laws for bounded Unions and Intersections are conditional
+val UN_simps = map prover 
+                ["(UN x:C. A x Int B)  = ((UN x:C.A x) Int B)",
+                 "(UN x:C. A Int B x)  = (A Int (UN x:C.B x))",
+                 "(UN x:C. A x - B)    = ((UN x:C.A x) - B)",
+                 "(UN x:C. A - B x)    = (A - (INT x:C.B x))"];
+
+val INT_simps = map prover
+                ["(INT x:C. insert a (B x)) = insert a (INT x:C. B x)",
+                 "(INT x:C. A x Un B)  = ((INT x:C.A x) Un B)",
+                 "(INT x:C. A Un B x)  = (A Un (INT x:C.B x))"];
+
+(*The missing laws for bounded Unions and Intersections are conditional
   on the index set's being non-empty.  Thus they are probably NOT worth 
   adding as default rewrites.*)
+
+val ball_simps = map prover
+    ["(ALL x:A. P x | Q) = ((ALL x:A. P x) | Q)",
+     "(ALL x:A. P | Q x) = (P | (ALL x:A. Q x))",
+     "(ALL x:{}. P x) = True",
+     "(ALL x:insert a B. P x) = (P(a) & (ALL x:B. P x))",
+     "(ALL x:Union(A). P x) = (ALL y:A. ALL x:y. P x)",
+     "(ALL x:Collect Q. P x) = (ALL x. Q x --> P x)"];
+
+val ball_conj_distrib = 
+    prover "(ALL x:A. P x & Q x) = ((ALL x:A. P x) & (ALL x:A. Q x))";
+
+val bex_simps = map prover
+    ["(EX x:A. P x & Q) = ((EX x:A. P x) & Q)",
+     "(EX x:A. P & Q x) = (P & (EX x:A. Q x))",
+     "(EX x:{}. P x) = False",
+     "(EX x:insert a B. P x) = (P(a) | (EX x:B. P x))",
+     "(EX x:Union(A). P x) = (EX y:A. EX x:y.  P x)",
+     "(EX x:Collect Q. P x) = (EX x. Q x & P x)"];
+
+val bex_conj_distrib = 
+    prover "(EX x:A. P x | Q x) = ((EX x:A. P x) | (EX x:A. Q x))";
+
 end;
 
-Addsimps (UN1_simps @ INT1_simps);
+Addsimps (UN1_simps @ INT1_simps @ UN_simps @ INT_simps @ 
+	  ball_simps @ bex_simps);

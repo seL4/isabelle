@@ -113,7 +113,6 @@ goalw Solve.thy [is_weak_pmap_def] "!!f g.[| is_weak_pmap f C1 A1 & \
  by (rtac conjI 1);
 (* start_states *)
  by (asm_full_simp_tac (!simpset addsimps [par_def, starts_of_def]) 1);
- by (Fast_tac 1);
 (* transitions *)
 by (REPEAT (rtac allI 1));
 by (rtac imp_conj_lemma 1);

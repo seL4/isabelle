@@ -54,7 +54,7 @@ qed "reachable_0";
 
 goalw IOA.thy (reachable_def::exec_rws)
 "!!A. [| reachable A s; (s,a,t) : trans_of(A) |] ==> reachable A t";
-  by (Asm_full_simp_tac 1);
+  by (asm_full_simp_tac (!simpset delsimps bex_simps) 1);
   by (safe_tac (!claset));
   by (res_inst_tac [("x","(%i.if i<n then fst ex i                    \
 \                            else (if i=n then Some a else None),    \
