@@ -10,8 +10,6 @@ infix 0 RS RSN RL RLN MRS MRL COMP;
 
 signature DRULE =
   sig
-  structure Thm : THM
-  local open Thm  in
   val add_defs		: (string * string) list -> theory -> theory
   val add_defs_i	: (string * term) list -> theory -> theory
   val asm_rl		: thm
@@ -43,7 +41,7 @@ signature DRULE =
   val pprint_ctyp	: ctyp -> pprint_args -> unit
   val pprint_theory	: theory -> pprint_args -> unit
   val pprint_thm	: thm -> pprint_args -> unit
-  val pretty_thm	: thm -> Sign.Syntax.Pretty.T
+  val pretty_thm	: thm -> Pretty.T
   val print_cterm	: cterm -> unit
   val print_ctyp	: ctyp -> unit
   val print_goals	: int -> thm -> unit
@@ -83,21 +81,11 @@ signature DRULE =
   val triv_forall_equality: thm
   val types_sorts: thm -> (indexname-> typ option) * (indexname-> sort option)
   val zero_var_indexes	: thm -> thm
-  end
   end;
 
 
-functor DruleFun (structure Logic: LOGIC and Thm: THM): DRULE =
+structure Drule : DRULE =
 struct
-structure Thm = Thm;
-structure Sign = Thm.Sign;
-structure Type = Sign.Type;
-structure Syntax = Sign.Syntax;
-structure Pretty = Syntax.Pretty
-structure Symtab = Sign.Symtab;
-
-local open Thm
-in
 
 (**** Extend Theories ****)
 
@@ -824,6 +812,6 @@ val triv_forall_equality =
                            (implies_intr V  (forall_intr x (assume V))))
   end;
 
-end
 end;
 
+open Drule;
