@@ -228,8 +228,7 @@ by (etac yahalom.induct 1);
 by analz_sees_tac;
 by (ALLGOALS
     (asm_simp_tac 
-     (!simpset addsimps [analz_insert_eq, not_parts_not_analz, 
-			 analz_insert_freshK]
+     (!simpset addsimps [analz_insert_eq, analz_insert_freshK]
                setloop split_tac [expand_if])));
 (*Oops*)
 by (blast_tac (!claset addDs [unique_session_keys]) 3);
@@ -387,7 +386,7 @@ by (REPEAT_FIRST (rtac lemma));
 by (ALLGOALS  (*22 seconds*)
     (asm_simp_tac 
      (analz_image_freshK_ss addsimps
-        ([all_conj_distrib, not_parts_not_analz, analz_image_freshK,
+        ([all_conj_distrib, analz_image_freshK,
 	  KeyWithNonce_Says, fresh_not_KeyWithNonce, 
 	  imp_disj_not1,  (*Moves NBa~=NB to the front*)
 	  Says_Server_KeyWithNonce] 
@@ -507,8 +506,7 @@ by (etac yahalom.induct 1);
 by analz_sees_tac;
 by (ALLGOALS
     (asm_simp_tac 
-     (!simpset addsimps ([analz_insert_eq, not_parts_not_analz,
-                          analz_insert_freshK] @ pushes)
+     (!simpset addsimps ([analz_insert_eq, analz_insert_freshK] @ pushes)
                setloop split_tac [expand_if])));
 (*Prove YM3 by showing that no NB can also be an NA*)
 by (blast_tac (!claset addDs [Says_imp_sees_Spy RS parts.Inj]
