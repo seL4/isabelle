@@ -174,7 +174,7 @@ fun add_header comment =
   Toplevel.keep (fn state => if Toplevel.is_toplevel state then () else raise Toplevel.UNDEF);
 
 fun add_text comment thy = thy:theory;
-val add_text_raw = add_text;
+fun add_text_raw _ x = x;
 val add_chapter = add_text;
 
 fun gen_add_section add present txt thy =
@@ -185,7 +185,7 @@ val add_subsection = gen_add_section add_text Present.subsection;
 val add_subsubsection = gen_add_section add_text Present.subsubsection;
 
 fun add_txt comment = ProofHistory.apply Proof.assert_forward;
-val add_txt_raw = add_txt;
+val add_txt_raw = add_text_raw;
 val add_sect = add_txt;
 val add_subsect = add_txt;
 val add_subsubsect = add_txt;
