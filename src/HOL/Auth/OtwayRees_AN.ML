@@ -151,16 +151,17 @@ goal thy "!!evs. evs : otway lost ==>          \
 \                length evs <= length evs' --> \
 \                newK evs' ~: keysFor (parts (sees lost Spy evs))";
 by (parts_induct_tac 1);
-(*OR1 and OR3*)
-by (EVERY (map (fast_tac (!claset addDs [Suc_leD] addss (!simpset))) [4,2]));
-(*Fake, OR2, OR4: these messages send unknown (X) components*)
-by (REPEAT
-    (best_tac
+(*Fake, OR4: these messages send unknown (X) components*)
+by (EVERY
+    (map 
+     (best_tac
       (!claset addDs [impOfSubs (analz_subset_parts RS keysFor_mono),
                       impOfSubs (parts_insert_subset_Un RS keysFor_mono),
                       Suc_leD]
                addEs [new_keys_not_seen RS not_parts_not_analz RSN(2,rev_notE)]
-               addss (!simpset)) 1));
+               addss (!simpset))) [5,1]));
+(*Remaining subgoals*)
+by (REPEAT (fast_tac (!claset addDs [Suc_leD] addss (!simpset)) 1));
 qed_spec_mp "new_keys_not_used";
 
 bind_thm ("new_keys_not_analzd",
@@ -336,15 +337,14 @@ goal thy
 by (etac otway.induct 1);
 by analz_Fake_tac;
 by (ALLGOALS
-    (asm_full_simp_tac 
-     (!simpset addsimps ([analz_subset_parts RS contra_subsetD,
-                          analz_insert_Key_newK] @ pushes)
-               setloop split_tac [expand_if])));
+    (asm_simp_tac (!simpset addsimps ([not_parts_not_analz,
+				       analz_insert_Key_newK] @ pushes)
+		            setloop split_tac [expand_if])));
 (*OR3*)
 by (fast_tac (!claset addEs [Says_imp_old_keys RS less_irrefl]
                       addss (!simpset addsimps [parts_insert2])) 2);
 (*OR4, Fake*) 
-by (REPEAT_FIRST (resolve_tac [conjI, impI] ORELSE' spy_analz_tac));
+by (REPEAT_FIRST spy_analz_tac);
 (*Oops*) 
 by (fast_tac (!claset addDs [unique_session_keys] addss (!simpset)) 1);
 val lemma = result() RS mp RS mp RSN(2,rev_notE);

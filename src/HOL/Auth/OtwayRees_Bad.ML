@@ -336,15 +336,14 @@ goal thy
 by (etac otway.induct 1);
 by analz_Fake_tac;
 by (ALLGOALS
-    (asm_full_simp_tac 
-     (!simpset addsimps ([analz_subset_parts RS contra_subsetD,
-                          analz_insert_Key_newK] @ pushes)
-               setloop split_tac [expand_if])));
+    (asm_simp_tac (!simpset addsimps ([not_parts_not_analz,
+				       analz_insert_Key_newK] @ pushes)
+		            setloop split_tac [expand_if])));
 (*OR3*)
 by (fast_tac (!claset addEs [Says_imp_old_keys RS less_irrefl]
                       addss (!simpset addsimps [parts_insert2])) 3);
 (*OR4, OR2, Fake*) 
-by (REPEAT_FIRST (resolve_tac [conjI, impI] ORELSE' spy_analz_tac));
+by (REPEAT_FIRST spy_analz_tac);
 (*Oops*) (** LEVEL 5 **)
 by (fast_tac (!claset delrules [disjE]
 		      addDs [unique_session_keys] addss (!simpset)) 1);
