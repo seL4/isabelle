@@ -226,6 +226,12 @@ Addsimps (map (inst "y" "number_of ?v")
 (*Moving negation out of products*)
 Addsimps [zmult_zminus, zmult_zminus_right];
 
+(*Cancellation of constant factors in comparisons (< and <=) *)
+Addsimps (map (inst "k" "number_of ?v")
+	  [zmult_zless_cancel1, zmult_zless_cancel2,
+	   zmult_zle_cancel1, zmult_zle_cancel2]);
+
+
 (** Special-case simplification for small constants **)
 
 Goal "#0 * z = (#0::int)";

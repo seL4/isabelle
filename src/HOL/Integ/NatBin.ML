@@ -305,7 +305,7 @@ val basic_renamed_arith_simps =
 (*Non-trivial simplifications*)	 
 val other_renamed_arith_simps =
     map rename_numerals
-	[add_pred, diff_is_0_eq, zero_is_diff_eq, zero_less_diff,
+	[diff_is_0_eq, zero_is_diff_eq, zero_less_diff,
 	 mult_is_0, zero_is_mult, zero_less_mult_iff, mult_eq_1_iff];
 
 Addsimps (basic_renamed_arith_simps @ other_renamed_arith_simps);

@@ -73,7 +73,8 @@ qed "zmult_le_0_iff";
 
 Goal "(m = m*(n::int)) = (n = #1 | m = #0)";
 by Auto_tac;
-by (stac (zmult_cancel1 RS sym) 1);
+by (subgoal_tac "m*#1 = m*n" 1);
+by (dtac (zmult_cancel1 RS iffD1) 1); 
 by Auto_tac;
 qed "zmult_eq_self_iff";
 

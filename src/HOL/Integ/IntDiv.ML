@@ -45,7 +45,7 @@ by (full_simp_tac (simpset() addsimps [zdiff_zmult_distrib2,
 by (subgoal_tac "b * q' < b * (#1 + q)" 1);
 by (full_simp_tac (simpset() addsimps [zdiff_zmult_distrib2,
 				       zadd_zmult_distrib2]) 2);
-by (Asm_full_simp_tac 1);
+by (asm_full_simp_tac (simpset() addsimps [zmult_zless_cancel1]) 1); 
 qed "unique_quotient_lemma";
 
 Goal "[| b*q' + r' <= b*q + r;  r <= #0;  b < #0;  b < r' |] \
@@ -492,7 +492,7 @@ by (subgoal_tac "#0 <= q'" 1);
   by (asm_simp_tac (simpset() addsimps [zadd_zmult_distrib2]) 3);
  by (asm_full_simp_tac (simpset() addsimps [int_0_less_mult_iff]) 2);
 by (subgoal_tac "b*q < b*(q' + #1)" 1);
- by (Asm_full_simp_tac 1);
+ by (asm_full_simp_tac (simpset() addsimps [zmult_zless_cancel1]) 1); 
 by (subgoal_tac "b*q = r' - r + b'*q'" 1);
  by (Simp_tac 2);
 by (asm_simp_tac (simpset() addsimps [zadd_zmult_distrib2]) 1);
@@ -521,7 +521,7 @@ by (subgoal_tac "q' < #0" 1);
   by (arith_tac 3);
  by (asm_full_simp_tac (simpset() addsimps [zmult_less_0_iff]) 2);
 by (subgoal_tac "b*q' < b*(q + #1)" 1);
- by (Asm_full_simp_tac 1);
+ by (asm_full_simp_tac (simpset() addsimps [zmult_zless_cancel1]) 1); 
 by (asm_simp_tac (simpset() addsimps [zadd_zmult_distrib2]) 1);
 by (subgoal_tac "b*q' <= b'*q'" 1);
  by (asm_simp_tac (simpset() addsimps [zmult_zle_mono1_neg]) 2);
