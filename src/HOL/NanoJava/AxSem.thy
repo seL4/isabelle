@@ -9,102 +9,150 @@ header "Axiomatic Semantics (Hoare Logic)"
 theory AxSem = State:
 
 types assn   = "state => bool"
-      triple = "assn \<times> stmt \<times> assn"
+     vassn   = "val \<Rightarrow> assn"
+      triple = "assn \<times> stmt \<times>  assn"
+     etriple = "assn \<times> expr \<times> vassn"
 translations
   "assn"   \<leftharpoondown> (type)"state => bool"
-  "triple" \<leftharpoondown> (type)"assn \<times> stmt \<times> assn"
+ "vassn"   \<leftharpoondown> (type)"val => assn"
+  "triple" \<leftharpoondown> (type)"assn \<times> stmt \<times>  assn"
+ "etriple" \<leftharpoondown> (type)"assn \<times> expr \<times> vassn"
 
-consts   hoare   :: "(triple set \<times> triple set) set"
+consts   hoare   :: "(triple set \<times>  triple set) set"
+consts  ehoare   :: "(triple set \<times> etriple    ) set"
 syntax (xsymbols)
  "@hoare"  :: "[triple set,  triple set    ] => bool" ("_ |\<turnstile>/ _" [61,61]    60)
  "@hoare1" :: "[triple set,  assn,stmt,assn] => bool" 
                                    ("_ \<turnstile>/ ({(1_)}/ (_)/ {(1_)})" [61,3,90,3]60)
+"@ehoare"  :: "[triple set,  etriple       ] => bool" ("_ |\<turnstile>e/ _"[61,61]60)
+"@ehoare1" :: "[triple set,  assn,expr,vassn]=> bool"
+                                  ("_ \<turnstile>e/ ({(1_)}/ (_)/ {(1_)})" [61,3,90,3]60)
 syntax
  "@hoare"  :: "[triple set,  triple set    ] => bool" ("_ ||-/ _" [61,61] 60)
  "@hoare1" :: "[triple set,  assn,stmt,assn] => bool" 
                                   ("_ |-/ ({(1_)}/ (_)/ {(1_)})" [61,3,90,3] 60)
+"@ehoare"  :: "[triple set,  etriple       ] => bool" ("_ ||-e/ _"[61,61] 60)
+"@ehoare1" :: "[triple set,  assn,expr,vassn]=> bool"
+                                 ("_ |-e/ ({(1_)}/ (_)/ {(1_)})" [61,3,90,3] 60)
 
-translations "A |\<turnstile> C"       \<rightleftharpoons> "(A,C) \<in> hoare"
-             "A  \<turnstile> {P}c{Q}" \<rightleftharpoons> "A |\<turnstile> {(P,c,Q)}"
+translations "A |\<turnstile> C"        \<rightleftharpoons> "(A,C) \<in> hoare"
+             "A  \<turnstile> {P}c{Q}"  \<rightleftharpoons> "A |\<turnstile> {(P,c,Q)}"
+             "A |\<turnstile>e t"       \<rightleftharpoons> "(A,t) \<in> ehoare"
+             "A |\<turnstile>e (P,e,Q)" \<rightleftharpoons> "(A,P,e,Q) \<in> ehoare" (** shouldn't be necess.**)
+             "A  \<turnstile>e{P}e{Q}"  \<rightleftharpoons> "A |\<turnstile>e (P,e,Q)"
 
-inductive hoare
+
+inductive hoare ehoare
 intros
 
   Skip:  "A |- {P} Skip {P}"
 
   Comp: "[| A |- {P} c1 {Q}; A |- {Q} c2 {R} |] ==> A |- {P} c1;;c2 {R}"
 
-  Cond: "[| A |- {\<lambda>s. P s \<and> s<e> \<noteq> Null} c1 {Q}; 
-            A |- {\<lambda>s. P s \<and> s<e> = Null} c2 {Q}  |] ==>
-            A |- {P} If(e) c1 Else c2 {Q}"
+  Cond: "[| A |-e {P} e {Q}; 
+            \<forall>v. A |- {Q v} (if v \<noteq> Null then c1 else c2) {R} |] ==>
+            A |- {P} If(e) c1 Else c2 {R}"
 
-  Loop: "A |- {\<lambda>s. P s \<and> s<e> \<noteq> Null} c {P} ==>
-         A |- {P} While(e) c {\<lambda>s. P s \<and> s<e> = Null}"
+  Loop: "A |- {\<lambda>s. P s \<and> s<x> \<noteq> Null} c {P} ==>
+         A |- {P} While(x) c {\<lambda>s. P s \<and> s<x> = Null}"
 
-  NewC: "A |- {\<lambda>s.\<forall>a. new_Addr s=Addr a--> P (lupd(x|->Addr a)(new_obj a C s))}
-              x:=new C {P}"
+  LAcc: "A |-e {\<lambda>s. P (s<x>) s} LAcc x {P}"
 
-  Cast: "A |- {\<lambda>s.(case s<y> of Null=> True | Addr a=> obj_class s a <=C C) -->
-              P (lupd(x|->s<y>) s)} x:=(C)y {P}"
+  LAss: "A |-e {P} e {\<lambda>v s.  Q (lupd(x\<mapsto>v) s)} ==>
+         A |-  {P} x:==e {Q}"
 
-  FAcc: "A |- {\<lambda>s.\<forall>a. s<y>=Addr a-->P(lupd(x|->get_field s a f) s)} x:=y..f{P}"
+  FAcc: "A |-e {P} e {\<lambda>v s. \<forall>a. v=Addr a --> Q (get_field s a f) s} ==>
+         A |-e {P} e..f {Q}"
 
-  FAss: "A |- {\<lambda>s. \<forall>a. s<y>=Addr a --> P (upd_obj a f (s<x>) s)} y..f:=x {P}"
+  FAss: "[| A |-e {P} e1 {\<lambda>v s. \<forall>a. v=Addr a --> Q a s};
+        \<forall>a. A |-e {Q a} e2 {\<lambda>v s. R (upd_obj a f v s)} |] ==>
+            A |-  {P} e1..f:==e2 {R}"
 
-  Call: "\<forall>l. A |- {\<lambda>s'. \<exists>s. P s \<and> l = s \<and> 
-                    s' = lupd(This|->s<y>)(lupd(Param|->s<p>)(init_locs C m s))}
-                  Meth C m {\<lambda>s. Q (lupd(x|->s<Res>)(set_locs l s))} ==>
-             A |- {P} x:={C}y..m(p) {Q}"
+  NewC: "A |-e {\<lambda>s. \<forall>a. new_Addr s = Addr a --> P (Addr a) (new_obj a C s)}
+                new C {P}"
+
+  Cast: "A |-e {P} e {\<lambda>v s. (case v of Null => True 
+                                 | Addr a => obj_class s a <=C C) --> Q v s} ==>
+         A |-e {P} Cast C e {Q}"
+
+  Call: "[| A |-e {P} e1 {Q}; \<forall>a. A |-e {Q a} e2 {R a};
+    \<forall>a p l. A |- {\<lambda>s'. \<exists>s. R a p s \<and> l = s \<and> 
+                    s' = lupd(This\<mapsto>a)(lupd(Param\<mapsto>p)(init_locs C m s))}
+                  Meth C m {\<lambda>s. S (s<Res>) (set_locs l s)} |] ==>
+             A |-e {P} {C}e1..m(e2) {S}"
 
   Meth: "\<forall>D. A |- {\<lambda>s. \<exists>a. s<This> = Addr a \<and> D=obj_class s a \<and> D <=C C \<and> P s}
                   Impl D m {Q} ==>
              A |- {P} Meth C m {Q}"
 
   (*\<Union>z instead of \<forall>z in the conclusion and
-      z restricted to type state due to limitations of the inductive paackage *)
+      z restricted to type state due to limitations of the inductive package *)
   Impl: "A\<union>   (\<Union>z::state. (\<lambda>(C,m). (P z C m, Impl C m, Q z C m))`ms) ||- 
                (\<Union>z::state. (\<lambda>(C,m). (P z C m, body C m, Q z C m))`ms) ==>
          A ||- (\<Union>z::state. (\<lambda>(C,m). (P z C m, Impl C m, Q z C m))`ms)"
 
 (* structural rules *)
 
-  (* z restricted to type state due to limitations of the inductive paackage *)
-  Conseq:"[| \<forall>z::state. A |- {P' z} c {Q' z};
-             \<forall>s t. (\<forall>z::state. P' z s --> Q' z t) --> (P s --> Q t) |] ==>
-            A |- {P} c {Q }"
-
   Asm:  "   a \<in> A ==> A ||- {a}"
 
   ConjI: " \<forall>c \<in> C. A ||- {c} ==> A ||- C"
 
-  ConjE: "[|A ||- C; c \<in> C |] ==> A ||- {c}";
+  ConjE: "[|A ||- C; c \<in> C |] ==> A ||- {c}"
+
+  (* z restricted to type state due to limitations of the inductive package *)
+  Conseq:"[| \<forall>z::state. A |- {P' z} c {Q' z};
+             \<forall>s t. (\<forall>z::state. P' z s --> Q' z t) --> (P s --> Q t) |] ==>
+            A |- {P} c {Q }"
+
+  (* z restricted to type state due to limitations of the inductive package *)
+ eConseq:"[| \<forall>z::state. A |-e {P' z} c {Q' z};
+             \<forall>s v t. (\<forall>z::state. P' z s --> Q' z v t) --> (P s --> Q v t) |] ==>
+            A |-e {P} c {Q }"
 
 
 subsection "Derived Rules"
 
 lemma Conseq1: "\<lbrakk>A \<turnstile> {P'} c {Q}; \<forall>s. P s \<longrightarrow> P' s\<rbrakk> \<Longrightarrow> A \<turnstile> {P} c {Q}"
-apply (rule hoare.Conseq)
+apply (rule hoare_ehoare.Conseq)
+apply  (rule allI, assumption)
+apply fast
+done
+
+lemma Conseq2: "\<lbrakk>A \<turnstile> {P} c {Q'}; \<forall>t. Q' t \<longrightarrow> Q t\<rbrakk> \<Longrightarrow> A \<turnstile> {P} c {Q}"
+apply (rule hoare_ehoare.Conseq)
+apply  (rule allI, assumption)
+apply fast
+done
+
+lemma eConseq1: "\<lbrakk>A \<turnstile>e {P'} e {Q}; \<forall>s. P s \<longrightarrow> P' s\<rbrakk> \<Longrightarrow> A \<turnstile>e {P} e {Q}"
+apply (rule hoare_ehoare.eConseq)
+apply  (rule allI, assumption)
+apply fast
+done
+
+lemma eConseq2: "\<lbrakk>A \<turnstile>e {P} e {Q'}; \<forall>v t. Q' v t \<longrightarrow> Q v t\<rbrakk> \<Longrightarrow> A \<turnstile>e {P} e {Q}"
+apply (rule hoare_ehoare.eConseq)
 apply  (rule allI, assumption)
 apply fast
 done
 
 lemma Weaken: "\<lbrakk>A |\<turnstile> C'; C \<subseteq> C'\<rbrakk> \<Longrightarrow> A |\<turnstile> C"
-apply (rule hoare.ConjI)
+apply (rule hoare_ehoare.ConjI)
 apply clarify
-apply (drule hoare.ConjE)
+apply (drule hoare_ehoare.ConjE)
 apply  fast
 apply assumption
 done
 
 lemma Union: "A |\<turnstile> (\<Union>z. C z) = (\<forall>z. A |\<turnstile> C z)"
-by (auto intro: hoare.ConjI hoare.ConjE)
+by (auto intro: hoare_ehoare.ConjI hoare_ehoare.ConjE)
 
 lemma Impl': 
   "\<forall>z. A\<union> (\<Union>z. (\<lambda>(C,m). (P z C m, Impl C m, Q (z::state) C m))`ms) ||- 
                 (\<lambda>(C,m). (P z C m, body C m, Q (z::state) C m))`ms ==>
        A    ||- (\<lambda>(C,m). (P z C m, Impl C m, Q (z::state) C m))`ms"
 apply (drule Union[THEN iffD2])
-apply (drule hoare.Impl)
+apply (drule hoare_ehoare.Impl)
 apply (drule Union[THEN iffD1])
 apply (erule spec)
 done

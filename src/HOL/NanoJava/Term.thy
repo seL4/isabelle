@@ -23,20 +23,22 @@ datatype vname  (* variable for special names *)
 
 datatype stmt
   = Skip                   (* empty statement *)
-  | Comp       stmt stmt   ("_;; _"             [91,90]    90)
-  | Cond vname stmt stmt   ("If '(_') _ Else _" [99,91,91] 91)
+  | Comp       stmt stmt   ("_;; _"             [91,90   ] 90)
+  | Cond expr  stmt stmt   ("If '(_') _ Else _" [99,91,91] 91)
   | Loop vname stmt        ("While '(_') _"     [99,91   ] 91)
-
-  | NewC vname cname       ("_:=new _"  [99,   99] 95) (* object creation  *)
-  | Cast vname cname vname ("_:='(_')_" [99,99,99] 95) (* assignment, cast *)
-  | FAcc vname vname vnam  ("_:=_.._"   [99,99,99] 95) (* field access     *)
-  | FAss vname vnam  vname ("_.._:=_"   [99,99,99] 95) (* field assigment  *)
-  | Call vname cname vname mname vname                 (* method call      *)
-                           ("_:={_}_.._'(_')" [99,99,99,99,99] 95)
+  | LAss vname expr        ("_ :== _"           [99,   95] 94) (* local ass. *)
+  | FAss expr  vnam expr   ("_.._:==_"          [95,99,95] 94) (* field ass. *)
   | Meth cname mname       (* virtual method *)
   | Impl cname mname       (* method implementation *)
+and expr
+  = NewC cname       ("new _"        [   99] 95) (* object creation  *)
+  | Cast cname expr                              (* type cast        *)
+  | LAcc vname                                   (* local access     *)
+  | FAcc expr  vnam  ("_.._"         [95,99] 95) (* field access     *)
+  | Call cname expr mname expr                   (* method call      *)
+                     ("{_}_.._'(_')" [99,95,99,95] 95)
 
-(*###TO Product_Type_lemmas.ML*)
+
 lemma pair_imageI [intro]: "(a, b) \<in> A ==> f a b : (%(a, b). f a b) ` A"
 apply (rule_tac x = "(a,b)" in image_eqI)
 apply  auto
