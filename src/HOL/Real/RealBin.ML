@@ -153,59 +153,6 @@ bind_thm ("real_mult_le_0_iff",
   done in Integ/NatBin.ML*)
 
 
-(*  Author:     Tobias Nipkow, TU Muenchen
-    Copyright   1999 TU Muenchen
-
-Instantiate linear arithmetic decision procedure for the reals.
-FIXME: multiplication with constants (eg #2 * x) does not work yet.
-Solution: there should be a simproc for combining coefficients.
-*)
-
-let
-
-(* reduce contradictory <= to False *)
-val simps = [order_less_irrefl,zero_eq_numeral_0,one_eq_numeral_1,
-  add_real_number_of,minus_real_number_of,diff_real_number_of,
-  mult_real_number_of,eq_real_number_of,less_real_number_of,
-  le_real_number_of_eq_not_less];
-
-val simprocs = [Real_Cancel.sum_conv, Real_Cancel.rel_conv];
-
-val add_mono_thms =
-  map (fn s => prove_goal thy s
-                 (fn prems => [cut_facts_tac prems 1,
-                      asm_simp_tac (simpset() addsimps
-     [real_add_le_mono,real_add_less_mono,
-      real_add_less_le_mono,real_add_le_less_mono]) 1]))
-    ["(i <= j) & (k <= l) ==> i + k <= j + (l::real)",
-     "(i  = j) & (k <= l) ==> i + k <= j + (l::real)",
-     "(i <= j) & (k  = l) ==> i + k <= j + (l::real)",
-     "(i  = j) & (k  = l) ==> i + k  = j + (l::real)",
-     "(i < j) & (k = l)   ==> i + k < j + (l::real)",
-     "(i = j) & (k < l)   ==> i + k < j + (l::real)",
-     "(i < j) & (k <= l)  ==> i + k < j + (l::real)",
-     "(i <= j) & (k < l)  ==> i + k < j + (l::real)",
-     "(i < j) & (k < l)   ==> i + k < j + (l::real)"];
-
-in
-LA_Data_Ref.add_mono_thms := !LA_Data_Ref.add_mono_thms @ add_mono_thms;
-LA_Data_Ref.ss_ref := !LA_Data_Ref.ss_ref addsimps simps
-                      addsimprocs simprocs;
-LA_Data_Ref.discrete := !LA_Data_Ref.discrete @ [("RealDef.real",false)]
-end;
-
-let
-val real_arith_simproc_pats =
-  map (fn s => Thm.read_cterm (Theory.sign_of thy) (s, HOLogic.boolT))
-      ["(m::real) < n","(m::real) <= n", "(m::real) = n"];
-
-val fast_real_arith_simproc = mk_simproc
-  "fast_real_arith" real_arith_simproc_pats Fast_Arith.lin_arith_prover;
-in
-Addsimprocs [fast_real_arith_simproc]
-end;
- 
-
 Addsimps [zero_eq_numeral_0,one_eq_numeral_1];
 
 
@@ -251,15 +198,15 @@ Addsimps [real_of_nat_number_of];
 (** Combining of literal coefficients in sums of products **)
 
 Goal "(x < y) = (x-y < (#0::real))";
-by Auto_tac; 
+by (simp_tac (simpset() addsimps [real_diff_less_eq]) 1);   
 qed "real_less_iff_diff_less_0";
 
 Goal "(x = y) = (x-y = (#0::real))";
-by Auto_tac; 
+by (simp_tac (simpset() addsimps [real_diff_eq_eq]) 1);   
 qed "real_eq_iff_diff_eq_0";
 
 Goal "(x <= y) = (x-y <= (#0::real))";
-by Auto_tac; 
+by (simp_tac (simpset() addsimps [real_diff_le_eq]) 1);   
 qed "real_le_iff_diff_le_0";
 
 
@@ -600,22 +547,26 @@ structure Real_Times_Assoc = Assoc_Fold (Real_Times_Assoc_Data);
 Addsimprocs [Real_Times_Assoc.conv];
 
 
-(*** decision procedure for linear arithmetic ***)
-
 (*---------------------------------------------------------------------------*)
 (* Linear arithmetic                                                         *)
 (*---------------------------------------------------------------------------*)
 
-(*
-Instantiation of the generic linear arithmetic package for real.
+(* Instantiation of the generic linear arithmetic package for type real. *)
+
+(*  Author:     Tobias Nipkow, TU Muenchen
+    Copyright   1999 TU Muenchen   
 *)
 
-(* Update parameters of arithmetic prover *)
 let
 
 (* reduce contradictory <= to False *)
+val simps = [order_less_irrefl, zero_eq_numeral_0, one_eq_numeral_1, 
+	     add_real_number_of, minus_real_number_of, diff_real_number_of, 
+	     mult_real_number_of, eq_real_number_of, less_real_number_of, 
+	     le_real_number_of_eq_not_less, real_diff_def,
+	     real_minus_add_distrib, real_minus_minus];
+
 val add_rules =  
-    real_diff_def ::
     map (rename_numerals thy) 
         [real_add_zero_left, real_add_zero_right, 
 	 real_add_minus, real_add_minus_left, 
@@ -626,23 +577,30 @@ val add_rules =
 val simprocs = [Real_Times_Assoc.conv, Real_Numeral_Simprocs.combine_numerals]@
                Real_Numeral_Simprocs.cancel_numerals;
 
+val mono_ss = simpset() addsimps
+                [real_add_le_mono,real_add_less_mono,
+		 real_add_less_le_mono,real_add_le_less_mono];
+
 val add_mono_thms =
-  map (fn s => prove_goal RealBin.thy s
-                 (fn prems => [cut_facts_tac prems 1,
-                      asm_simp_tac (simpset() addsimps [real_add_le_mono]) 1]))
+  map (fn s => prove_goal thy s
+                 (fn prems => [cut_facts_tac prems 1, asm_simp_tac mono_ss 1]))
     ["(i <= j) & (k <= l) ==> i + k <= j + (l::real)",
      "(i  = j) & (k <= l) ==> i + k <= j + (l::real)",
      "(i <= j) & (k  = l) ==> i + k <= j + (l::real)",
-     "(i  = j) & (k  = l) ==> i + k  = j + (l::real)"
-    ];
+     "(i  = j) & (k  = l) ==> i + k  = j + (l::real)",
+     "(i < j) & (k = l)   ==> i + k < j + (l::real)",
+     "(i = j) & (k < l)   ==> i + k < j + (l::real)",
+     "(i < j) & (k <= l)  ==> i + k < j + (l::real)",
+     "(i <= j) & (k < l)  ==> i + k < j + (l::real)",
+     "(i < j) & (k < l)   ==> i + k < j + (l::real)"];
 
 in
 LA_Data_Ref.add_mono_thms := !LA_Data_Ref.add_mono_thms @ add_mono_thms;
-(*We don't change LA_Data_Ref.lessD and LA_Data_Ref.discrete
- because the real ordering is dense!*)
-LA_Data_Ref.ss_ref := !LA_Data_Ref.ss_ref addsimps add_rules
-                      addsimprocs simprocs
-                      addcongs [if_weak_cong]
+LA_Data_Ref.ss_ref := !LA_Data_Ref.ss_ref addsimps simps@add_rules
+                                          addsimprocs simprocs
+                                          addcongs [if_weak_cong];
+LA_Data_Ref.discrete := !LA_Data_Ref.discrete @ [("RealDef.real",false)]
+(*We don't change LA_Data_Ref.lessD because the real ordering is dense!*)
 end;
 
 let
