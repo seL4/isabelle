@@ -126,7 +126,7 @@ comprehension, general union/intersection, general sums/products, and
 bounded quantifiers.  In most other respects, Isabelle implements precisely
 Zermelo-Fraenkel set theory.
 
-Figure~\ref{zf-constanus} lists the constants and infixes of~\ZF, while
+Figure~\ref{zf-constants} lists the constants and infixes of~\ZF, while
 Figure~\ref{zf-trans} presents the syntax translations.  Finally,
 Figure~\ref{zf-syntax} presents the full grammar for set theory, including
 the constructs of \FOL.
@@ -347,8 +347,8 @@ write
 \tdx{subset_def}         A <= B  == ALL x:A. x:B
 \tdx{extension}          A = B  <->  A <= B & B <= A
 
-\tdx{union_iff}          A : Union(C) <-> (EX B:C. A:B)
-\tdx{power_set}          A : Pow(B) <-> A <= B
+\tdx{Union_iff}          A : Union(C) <-> (EX B:C. A:B)
+\tdx{Pow_iff}            A : Pow(B) <-> A <= B
 \tdx{foundation}         A=0 | (EX x:A. ALL y:x. ~ y:A)
 
 \tdx{replacement}        (ALL x:A. ALL y z. P(x,y) & P(x,z) --> y=z) ==>
@@ -619,7 +619,7 @@ similar premises.
 
 \tdx{DiffI}        [| c : A;  ~ c : B |] ==> c : A - B
 \tdx{DiffD1}       c : A - B ==> c : A
-\tdx{DiffD2}       [| c : A - B;  c : B |] ==> P
+\tdx{DiffD2}       c : A - B ==> c ~: B
 \tdx{DiffE}        [| c : A - B;  [| c:A; ~ c:B |] ==> P |] ==> P
 \end{ttbox}
 \caption{Union, intersection, difference} \label{zf-Un}
