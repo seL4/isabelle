@@ -306,11 +306,11 @@ $P\imp Q$ and~$P$, then replace $P\imp Q$ by~$Q$.
 
 The classical reasoning tactics --- except {\tt blast_tac}! --- allow
 you to modify this basic proof strategy by applying two arbitrary {\bf
-  wrapper tacticals} to it. This affects each step of the search.
+  wrapper tacticals} to it.  This affects each step of the search.
 Usually they are the identity tacticals, but they could apply another
-tactic before or after the step tactic. The first one, which is
+tactic before or after the step tactic.  The first one, which is
 considered to be safe, affects \ttindex{safe_step_tac} and all the
-tactics that call it. The the second one, which may be unsafe, affects
+tactics that call it.  The the second one, which may be unsafe, affects
 \ttindex{step_tac}, \ttindex{slow_step_tac} and the tactics that call
 them.
 
@@ -339,7 +339,7 @@ installed.
 
 \begin{ttdescription}
 \item[$cs$ addss $ss$] \indexbold{*addss}
-adds the simpset~$ss$ to the classical set. The assumptions and goal will be
+adds the simpset~$ss$ to the classical set.  The assumptions and goal will be
 simplified, in a safe way, after the safe steps of the search.
 
 \item[$cs$ addSbefore $tac$] \indexbold{*addSbefore}
@@ -509,7 +509,7 @@ The automatic proof procedures call these tactics.  By calling them
 yourself, you can execute these procedures one step at a time.
 \begin{ttdescription}
 \item[\ttindexbold{safe_step_tac} $cs$ $i$] performs a safe step on
-subgoal~$i$. The safe wrapper tactical is applied to a tactic that may include 
+subgoal~$i$.  The safe wrapper tactical is applied to a tactic that may include 
 proof by assumption or Modus Ponens (taking care not to instantiate unknowns), 
 or {\tt hyp_subst_tac}.
 
@@ -549,7 +549,7 @@ Step_tac     : int -> tactic
 \indexbold{*Blast_tac}\indexbold{*Auto_tac}
 \indexbold{*Best_tac}\indexbold{*Fast_tac}%
 \indexbold{*Deepen_tac}\indexbold{*Step_tac}
-make use of the current claset. E.g. {\tt Blast_tac} is defined as follows:
+make use of the current claset.  E.g. {\tt Blast_tac} is defined as follows:
 \begin{ttbox}
 fun Blast_tac i = fast_tac (!claset) i;
 \end{ttbox}
@@ -560,7 +560,7 @@ AddSIs, AddSEs, AddSDs, AddIs, AddEs, AddDs: thm list -> unit
 \end{ttbox}
 \indexbold{*AddSIs} \indexbold{*AddSEs} \indexbold{*AddSDs}
 \indexbold{*AddIs} \indexbold{*AddEs} \indexbold{*AddDs}
-are used to add rules to the current claset. They work exactly like their
+are used to add rules to the current claset.  They work exactly like their
 lower case counterparts, such as {\tt addSIs}.  Calling
 \begin{ttbox}
 Delrules : thm list -> unit

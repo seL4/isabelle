@@ -182,9 +182,9 @@ nonterminals:
 \end{warn}
 
 \begin{warn}
-  Type constraints bind very weakly. For example, \verb!x<y::nat! is normally
+  Type constraints bind very weakly.  For example, \verb!x<y::nat! is normally
   parsed as \verb!(x<y)::nat!, unless \verb$<$ has priority of 3 or less, in
-  which case the string is likely to be ambiguous. The correct form is
+  which case the string is likely to be ambiguous.  The correct form is
   \verb!x<(y::nat)!.
 \end{warn}
 
@@ -217,10 +217,10 @@ appear in typewriter font, for example {\tt ==}, {\tt =?=} and
 Name tokens have a predefined syntax.  The lexer distinguishes six disjoint
 classes of names: \rmindex{identifiers}, \rmindex{unknowns}, type
 identifiers\index{type identifiers}, type unknowns\index{type unknowns},
-\rmindex{numerals}, \rmindex{strings}. They are denoted by \ndxbold{id},
+\rmindex{numerals}, \rmindex{strings}.  They are denoted by \ndxbold{id},
 \ndxbold{var}, \ndxbold{tid}, \ndxbold{tvar}, \ndxbold{xnum}, \ndxbold{xstr},
 respectively.  Typical examples are {\tt x}, {\tt ?x7}, {\tt 'a}, {\tt ?'a3},
-{\tt \#42}, {\tt ''foo bar''}. Here is the precise syntax:
+{\tt \#42}, {\tt ''foo bar''}.  Here is the precise syntax:
 \begin{eqnarray*}
 id        & =   & letter~quasiletter^* \\
 var       & =   & \mbox{\tt ?}id ~~|~~ \mbox{\tt ?}id\mbox{\tt .}nat \\
@@ -331,7 +331,7 @@ explanation of the various sections.
     analysis.\index{delimiters}
 
   \item[{\tt logtypes}] lists the types that are regarded the same as {\tt
-    logic} syntactically. Thus types of object-logics (e.g.\ {\tt nat}, say)
+    logic} syntactically.  Thus types of object-logics (e.g.\ {\tt nat}, say)
     will be automatically equipped with the standard syntax of
     $\lambda$-calculus.
 
@@ -445,7 +445,7 @@ any}.
 
 \begin{warn}
   Theories must sometimes declare types for purely syntactic purposes ---
-  merely playing the role of nonterminals. One example is \tydx{type}, the
+  merely playing the role of nonterminals.  One example is \tydx{type}, the
   built-in type of types.  This is a `type of all types' in the syntactic
   sense only.  Do not declare such types under {\tt arities} as belonging to
   class {\tt logic}\index{*logic class}, for that would make them useless as
@@ -527,11 +527,11 @@ Syntax.print_gram (syn_of ExpSyntax.thy);
 \end{ttbox}
 
 Note that because {\tt exp} is not of class {\tt logic}, it has been
-retained as a separate nonterminal. This also entails that the syntax
+retained as a separate nonterminal.  This also entails that the syntax
 does not provide for identifiers or paranthesized expressions.
 Normally you would also want to add the declaration {\tt arities
   exp::logic} after {\tt types} and use {\tt consts} instead of {\tt
-  syntax}. Try this as an exercise and study the changes in the
+  syntax}.  Try this as an exercise and study the changes in the
 grammar.
 
 \subsection{The mixfix template}
@@ -600,7 +600,7 @@ escaped, as in delimiters, using a single quote.
 
 A slightly more general form of infix declarations allows constant
 names to be independent from their concrete syntax, namely \texttt{$c$
-  ::\ $\sigma$\ (infixl "$sy$" $p$)}, the same for \texttt{infixr}. As
+  ::\ $\sigma$\ (infixl "$sy$" $p$)}, the same for \texttt{infixr}.  As
 an example consider:
 \begin{ttbox}
 and :: [bool, bool] => bool  (infixr "&" 35)
@@ -621,7 +621,7 @@ constant declaration
 introduces a constant~$c$ of type~$\sigma$, which must have the form
 $(\tau@1 \To \tau@2) \To \tau@3$.  Its concrete syntax is $\Q~x.P$, where
 $x$ is a bound variable of type~$\tau@1$, the body~$P$ has type $\tau@2$
-and the whole term has type~$\tau@3$. The optional integer $pb$
+and the whole term has type~$\tau@3$.  The optional integer $pb$
 specifies the body's priority, by default~$p$.  Special characters
 in $\Q$ must be escaped using a single quote.
 
@@ -660,8 +660,8 @@ can be polymorphic.
 \section{*Alternative print modes} \label{sec:prmodes}
 \index{print modes|(}
 %
-Isabelle's pretty printer supports alternative output syntaxes. These
-may be used independently or in cooperation. The currently active
+Isabelle's pretty printer supports alternative output syntaxes.  These
+may be used independently or in cooperation.  The currently active
 print modes (with precedence from left to right) are determined by a
 reference variable.
 \begin{ttbox}\index{*print_mode}
@@ -669,7 +669,7 @@ print_mode: string list ref
 \end{ttbox}
 Initially this may already contain some print mode identifiers,
 depending on how Isabelle has been invoked (e.g.\ by some user
-interface). So changes should be incremental --- adding or deleting
+interface).  So changes should be incremental --- adding or deleting
 modes relative to the current value.
 
 Any \ML{} string is a legal print mode identifier, without any
@@ -678,7 +678,7 @@ reserved, though: \texttt{""} (yes, the empty string),
 \texttt{symbols}, \texttt{latex}, \texttt{xterm}.
 
 There is a separate table of mixfix productions for pretty printing
-associated with each print mode. The currently active ones are
+associated with each print mode.  The currently active ones are
 conceptually just concatenated from left to right, with the standard
 syntax output table always coming last as default.  Thus mixfix
 productions of preceding modes in the list may override those of later
@@ -687,7 +687,7 @@ print mode (see \S\ref{sec:tok_tr}).
 
 \medskip The canonical application of print modes is optional printing
 of mathematical symbols from a special screen font instead of {\sc
-  ascii}. Another example is to re-use Isabelle's advanced
+  ascii}.  Another example is to re-use Isabelle's advanced
 $\lambda$-term printing mechanisms to generate completely different
 output, say for interfacing external tools like \rmindex{model
   checkers} (see also \texttt{HOL/Modelcheck}).
@@ -700,21 +700,21 @@ output, say for interfacing external tools like \rmindex{model
 
 To keep the grammar small and allow common productions to be shared
 all logical types (except {\tt prop}) are internally represented
-by one nonterminal, namely {\tt logic}. This and omitted or too freely
+by one nonterminal, namely {\tt logic}.  This and omitted or too freely
 chosen priorities may lead to ways of parsing an expression that were
-not intended by the theory's maker. In most cases Isabelle is able to
+not intended by the theory's maker.  In most cases Isabelle is able to
 select one of multiple parse trees that an expression has lead
-to by checking which of them can be typed correctly. But this may not
+to by checking which of them can be typed correctly.  But this may not
 work in every case and always slows down parsing.
 The warning and error messages that can be produced during this process are
 as follows:
 
 If an ambiguity can be resolved by type inference the following
 warning is shown to remind the user that parsing is (unnecessarily)
-slowed down. In cases where it's not easily possible to eliminate the
+slowed down.  In cases where it's not easily possible to eliminate the
 ambiguity the frequency of the warning can be controlled by changing
 the value of {\tt Syntax.ambiguity_level} which has type {\tt int
-ref}. Its default value is 1 and by increasing it one can control how
+ref}.  Its default value is 1 and by increasing it one can control how
 many parse trees are necessary to generate the warning.
 
 \begin{ttbox}
@@ -738,7 +738,7 @@ syntax in two different productions:
 
 Ambiguities occuring in syntax translation rules cannot be resolved by
 type inference because it is not necessary for these rules to be type
-correct. Therefore Isabelle always generates an error message and the
+correct.  Therefore Isabelle always generates an error message and the
 ambiguity should be eliminated by changing the grammar or the rule.
 
 

@@ -10,7 +10,7 @@ and others from the literature.  Set theory~({\tt ZF}) and
 Constructive Type Theory~({\tt CTT}) form a richer world for
 mathematical reasoning and, again, many examples are in the
 literature.  Higher-order logic~({\tt HOL}) is Isabelle's most
-elaborate logic. Its types and functions are identified with those of
+elaborate logic.  Its types and functions are identified with those of
 the meta-logic.
 
 Choose a logic that you already understand.  Isabelle is a proof
@@ -367,7 +367,7 @@ any order, except that the {\ML} section must be last (after the {\tt
   end} keyword).  In the simplest case, $T$ is just the union of
 $S@1$,~\ldots,~$S@n$.  New theories always extend one or more other
 theories, inheriting their types, constants, syntax, etc.  The theory
-\thydx{Pure} contains nothing but Isabelle's meta-logic. The variant
+\thydx{Pure} contains nothing but Isabelle's meta-logic.  The variant
 \thydx{CPure} offers the more usual higher-order function application
 syntax $t\,u@1\ldots\,u@n$ instead of $t(u@1,\ldots,u@n)$ in \Pure.
 
@@ -384,7 +384,7 @@ Errors may arise during the translation to {\ML} (say, a misspelled
 keyword) or during creation of the new theory (say, a type error in a
 rule).  But if all goes well, {\tt use_thy} will finally read the file
 {\it T}{\tt.ML} (if it exists).  This file typically contains proofs
-that refer to the components of~$T$. The structure is automatically
+that refer to the components of~$T$.  The structure is automatically
 opened, so its components may be referred to by unqualified names,
 e.g.\ just {\tt thy} instead of $T${\tt .thy}.
 
@@ -429,14 +429,14 @@ enclosed in quotation marks.
 \indexbold{definitions} The {\bf definition part} is similar, but with
 the keyword {\tt defs} instead of {\tt rules}.  {\bf Definitions} are
 rules of the form $s \equiv t$, and should serve only as
-abbreviations. The simplest form of a definition is $f \equiv t$,
-where $f$ is a constant. Also allowed are $\eta$-equivalent forms of
+abbreviations.  The simplest form of a definition is $f \equiv t$,
+where $f$ is a constant.  Also allowed are $\eta$-equivalent forms of
 this, where the arguments of~$f$ appear applied on the left-hand side
 of the equation instead of abstracted on the right-hand side.
 
 Isabelle checks for common errors in definitions, such as extra
 variables on the right-hand side, but currently does not a complete
-test of well-formedness. Thus determined users can write
+test of well-formedness.  Thus determined users can write
 non-conservative `definitions' by using mutual recursion, for example;
 the consequences of such actions are their responsibility.
 
@@ -461,7 +461,7 @@ constdefs  nand :: [o,o] => o
 end
 \end{ttbox}
 {\tt constdefs} generates the names {\tt nand_def} and {\tt xor_def}
-automatically, which is why it is restricted to alphanumeric identifiers. In
+automatically, which is why it is restricted to alphanumeric identifiers.  In
 general it has the form
 \begin{ttbox}
 constdefs  \(id@1\) :: \(\tau@1\)
@@ -479,7 +479,7 @@ on the right-hand side as in the following fictitious definition:
 defs  prime_def "prime(p) == (m divides p) --> (m=1 | m=p)"
 \end{ttbox}
 Isabelle rejects this ``definition'' because of the extra {\tt m} on the
-right-hand side, which would introduce an inconsistency. What you should have
+right-hand side, which would introduce an inconsistency.  What you should have
 written is
 \begin{ttbox}
 defs  prime_def "prime(p) == ALL m. (m divides p) --> (m=1 | m=p)"
@@ -622,7 +622,7 @@ automatically, just as in \ML.  Hence you may write propositions like
 Q.True \xor Q$ and $\lambda Q.True \nand Q$ are identical.
 
 \medskip Infix syntax and constant names may be also specified
-independently. For example, consider this version of $\nand$:
+independently.  For example, consider this version of $\nand$:
 \begin{ttbox}
 consts  nand     :: [o,o] => o         (infixl "~&" 35)
 \end{ttbox}

@@ -270,16 +270,16 @@ this may result in some sorts becoming {\em empty\/}: where one cannot exhibit
 a type belonging to it because certain axioms are unsatisfiable.
 
 If a theorem contains a type variable that is constrained by an empty
-sort, then that theorem has no instances. It is basically an instance
+sort, then that theorem has no instances.  It is basically an instance
 of {\em ex falso quodlibet}.  But what if it is used to prove another
 theorem that no longer involves that sort?  The latter theorem holds
 only if under an additional non-emptiness assumption.
 
-Therefore, Isabelle's theorems carry around sort hypotheses. The {\tt
+Therefore, Isabelle's theorems carry around sort hypotheses.  The {\tt
 shyps} field is a list of sorts occurring in type variables in the current
 {\tt prop} and {\tt hyps} fields.  It may also includes sorts used in the
 theorem's proof that no longer appear in the {\tt prop} or {\tt hyps}
-fields --- so-called {\em dangling\/} sort constraints. These are the
+fields --- so-called {\em dangling\/} sort constraints.  These are the
 critical ones, asserting non-emptiness of the corresponding sorts.
  
 Isabelle tries to remove extraneous sorts from the {\tt shyps} field whenever
@@ -339,7 +339,7 @@ assertions of the form
 \[ \phi \quad [\phi@1,\ldots,\phi@n], \]
 where $\phi@1$,~\ldots,~$\phi@n$ are the assumptions.  This can be
 also read as a single conclusion sequent $\phi@1,\ldots,\phi@n \vdash
-\phi$. Do not confuse meta-level assumptions with the object-level
+\phi$.  Do not confuse meta-level assumptions with the object-level
 assumptions in a subgoal, which are represented in the meta-logic
 using~$\Imp$.
 

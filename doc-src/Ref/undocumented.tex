@@ -162,7 +162,7 @@ For finding premise (or subgoal) $i$: given the triple
 \( (i, [], \phi_1;\ldots \phi_i\Imp \phi) \)
 it returns another triple,
 \((\phi_i, [\phi_{i-1},\ldots, \phi_1], \phi)\),
-where $\phi$ need not be atomic. Raises an exception if $i$ is out of
+where $\phi$ need not be atomic.  Raises an exception if $i$ is out of
 range.
 
 
@@ -240,8 +240,8 @@ a list of flex-flex pairs (these are discussed below).
 smash_unifiers: env * (term*term)list -> env seq
 \endprog
 This unification function maps an environment and a list of disagreement
-pairs to a sequence of updated environments. The function obliterates
-flex-flex pairs by choosing the obvious unifier. It may be used to tidy up
+pairs to a sequence of updated environments.  The function obliterates
+flex-flex pairs by choosing the obvious unifier.  It may be used to tidy up
 any flex-flex pairs remaining at the end of a proof.
 
 

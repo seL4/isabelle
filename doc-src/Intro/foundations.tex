@@ -79,7 +79,7 @@ types.  Curried function types may be abbreviated:
 Note that there are two versions of function application syntax
 available in Isabelle: either $t\,u$, which is the usual form for
 higher-order languages, or $t(u)$, trying to look more like
-first-order. The latter syntax is used throughout the manual.
+first-order.  The latter syntax is used throughout the manual.
 \[ 
 \index{lambda abs@$\lambda$-abstractions}\index{function applications}
 \begin{array}{ll}
@@ -602,7 +602,7 @@ match the corresponding variables.
 
   \item Even an equation such as $\Var{f}(a)\qeq a+a$ is all right.  It has
 four solutions, but Isabelle evaluates them lazily, trying projection before
-imitation. The first solution is usually the one desired:
+imitation.  The first solution is usually the one desired:
 \[ \Var{f}\equiv \lambda x. x+x \quad
    \Var{f}\equiv \lambda x. a+x \quad
    \Var{f}\equiv \lambda x. x+a \quad

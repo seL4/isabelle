@@ -4,9 +4,9 @@ Let us consider how to perform simple proofs using Isabelle.  At
 present, Isabelle's user interface is \ML.  Proofs are conducted by
 applying certain \ML{} functions, which update a stored proof state.
 Basically, all syntax must be expressed using plain {\sc ascii}
-characters. There are also mechanisms built into Isabelle that support
+characters.  There are also mechanisms built into Isabelle that support
 alternative syntaxes, for example using mathematical symbols from a
-special screen font. The meta-logic and major object-logics already
+special screen font.  The meta-logic and major object-logics already
 provide such fancy output as an option.
 
 Object-logics are built upon Pure Isabelle, which implements the
@@ -599,8 +599,8 @@ Let us contrast a proof of the theorem $\forall x.\exists y.x=y$ with an
 attempted proof of the non-theorem $\exists y.\forall x.x=y$.  The former
 proof succeeds, and the latter fails, because of the scope of quantified
 variables~\cite{paulson-found}.  Unification helps even in these trivial
-proofs. In $\forall x.\exists y.x=y$ the $y$ that `exists' is simply $x$,
-but we need never say so. This choice is forced by the reflexive law for
+proofs.  In $\forall x.\exists y.x=y$ the $y$ that `exists' is simply $x$,
+but we need never say so.  This choice is forced by the reflexive law for
 equality, and happens automatically.
 
 \paragraph{The successful proof.}

@@ -28,7 +28,7 @@ that looks for subgoals of a particular form.  Terms and types may be
 \section{Defining theories}\label{sec:ref-defining-theories}
 
 Theories are usually defined using theory definition files (which have a name
-suffix {\tt .thy}). There is also a low level interface provided by certain
+suffix {\tt .thy}).  There is also a low level interface provided by certain
 \ML{} functions (see \S\ref{BuildingATheory}).
 Appendix~\ref{app:TheorySyntax} presents the concrete syntax for theory
 definitions; here is an explanation of the constituent parts:
@@ -37,7 +37,7 @@ definitions; here is an explanation of the constituent parts:
   called $id$.  It is the union of the named {\bf parent
     theories}\indexbold{theories!parent}, possibly extended with new
   components.  \thydx{Pure} and \thydx{CPure} are the basic theories,
-  which contain only the meta-logic. They differ just in their
+  which contain only the meta-logic.  They differ just in their
   concrete syntax for function applications.
 
   Normally each {\it name\/} is an identifier, the name of the parent theory.
@@ -74,7 +74,7 @@ definitions; here is an explanation of the constituent parts:
 
 \item[$infix$]
   declares a type or constant to be an infix operator of priority $nat$
-  associating to the left ({\tt infixl}) or right ({\tt infixr}). Only
+  associating to the left ({\tt infixl}) or right ({\tt infixr}).  Only
   2-place type constructors can have infix status; an example is {\tt
   ('a,'b)~"*"~(infixr~20)}, which may express binary product types.
 
@@ -89,8 +89,8 @@ definitions; here is an explanation of the constituent parts:
 \item[$syntax$] \index{*syntax section}\index{print mode} is a variant
   of $consts$ which adds just syntax without actually declaring
   logical constants.  This gives full control over a theory's context
-  free grammar. The optional $mode$ specifies the print mode where the
-  mixfix productions should be added. If there is no \texttt{output}
+  free grammar.  The optional $mode$ specifies the print mode where the
+  mixfix productions should be added.  If there is no \texttt{output}
   option given, all productions are also added to the input syntax
   (regardless of the print mode).
 
@@ -126,19 +126,19 @@ definitions; here is an explanation of the constituent parts:
   that every $string$ must be a definition (see below for details).
 
 \item[$constdefs$] combines the declaration of constants and their
-  definition. The first $string$ is the type, the second the definition.
+  definition.  The first $string$ is the type, the second the definition.
   
 \item[$axclass$] \index{*axclass section} defines an
   \rmindex{axiomatic type class} as the intersection of existing
-  classes, with additional axioms holding. Class axioms may not
-  contain more than one type variable. The class axioms (with implicit
+  classes, with additional axioms holding.  Class axioms may not
+  contain more than one type variable.  The class axioms (with implicit
   sort constraints added) are bound to the given names.  Furthermore a
   class introduction rule is generated, which is automatically
   employed by $instance$ to prove instantiations of this class.
   
 \item[$instance$] \index{*instance section} proves class inclusions or
   type arities at the logical level and then transfers these to the
-  type signature. The instantiation is proven and checked properly.
+  type signature.  The instantiation is proven and checked properly.
   The user has to supply sufficient witness information: theorems
   ($longident$), axioms ($string$), or even arbitrary \ML{} tactic
   code $verbatim$.
@@ -157,7 +157,7 @@ declarations, translation rules and the {\tt ML} section in more detail.
 
 \subsection{Definitions}\indexbold{definitions}
 
-{\bf Definitions} are intended to express abbreviations. The simplest
+{\bf Definitions} are intended to express abbreviations.  The simplest
 form of a definition is $f \equiv t$, where $f$ is a constant.
 Isabelle also allows a derived forms where the arguments of~$f$ appear
 on the left, abbreviating a string of $\lambda$-abstractions.
@@ -327,20 +327,20 @@ B = \(\ldots\) + "orphan" + \(\ldots\)
 \end{ttbox}
 Quoted strings stand for theories which have to be loaded before the
 current theory is read but which are not used in building the base of
-theory~$B$. Whenever {\tt orphan} changes and is reloaded, Isabelle
+theory~$B$.  Whenever {\tt orphan} changes and is reloaded, Isabelle
 knows that $B$ has to be updated, too.
 
 Note that it's necessary for {\tt orphan} to declare a special ML
-object of type {\tt theory} which is present in all theories. This is
+object of type {\tt theory} which is present in all theories.  This is
 normally achieved by adding the file {\tt orphan.thy} to make {\tt
-orphan} a {\bf pseudo theory}. A minimum version of {\tt orphan.thy}
+orphan} a {\bf pseudo theory}.  A minimum version of {\tt orphan.thy}
 would be
 
 \begin{ttbox}
 orphan = Pure
 \end{ttbox}
 
-which uses {\tt Pure} to make a dummy theory. Normally though the
+which uses {\tt Pure} to make a dummy theory.  Normally though the
 orphaned file has its own dependencies.  If {\tt orphan.ML} depends on
 theories or files $A@1$, \ldots, $A@n$, record this by creating the
 pseudo theory in the following way:
@@ -372,7 +372,7 @@ assume_ax : theory -> string -> thm
   to have the same name; {\tt get_axiom} returns an arbitrary one.
 
 \item[\ttindexbold{get_thm} $thy$ $name$]
-  is analogous to {\tt get_axiom}, but looks for a stored theorem. Like
+  is analogous to {\tt get_axiom}, but looks for a stored theorem.  Like
   {\tt get_axiom} it searches all parents of a theory if the theorem
   is not associated with $thy$.
 
@@ -399,13 +399,13 @@ merge_theories : theory * theory -> theory
 \begin{description}
 \item[\ttindexbold{Pure.thy}, \ttindexbold{CPure.thy}] contain the
   syntax and signature of the meta-logic.  There are no axioms:
-  meta-level inferences are carried out by \ML\ functions. The two
+  meta-level inferences are carried out by \ML\ functions.  The two
   \Pure s just differ in their concrete syntax of function
   application: $t(u@1, \ldots, u@n)$ vs.\ $t\,u@1,\ldots\,u@n$.
 
 \item[\ttindexbold{merge_theories} ($thy@1$, $thy@2$)] merges the two
   theories $thy@1$ and $thy@2$.  The resulting theory contains all of the
-  syntax, signature and axioms of the constituent theories. Merging theories
+  syntax, signature and axioms of the constituent theories.  Merging theories
   that contain different identification stamps of the same name fails with
   the following message
 \begin{ttbox}

@@ -63,13 +63,13 @@ There are four basic simplification tactics:
 \end{ttdescription}
 
 {\tt Asm_full_simp_tac} is the most powerful of this quartet but may also
-loop where some of the others terminate. For example,
+loop where some of the others terminate.  For example,
 \begin{ttbox}
 {\out  1. ALL x. f(x) = g(f(g(x))) ==> f(0) = f(0)+0}
 \end{ttbox}
 is solved by {\tt Simp_tac}, but {\tt Asm_simp_tac} and {\tt Asm_simp_tac}
 loop because the rewrite rule $f(\Var{x}) = f(g(f(\Var{x})))$ extracted from
-the assumption does not terminate. Isabelle notices certain simple forms of
+the assumption does not terminate.  Isabelle notices certain simple forms of
 nontermination, but not this one.
  
 \begin{warn}
@@ -79,7 +79,7 @@ misses opportunities for simplification: given the subgoal
 {\out [| P(f(a)); f(a) = t |] ==> ...}
 \end{ttbox}
 \verb$Asm_full_simp_tac$ will not simplify the first assumption using the
-second but will leave the assumptions unchanged. See
+second but will leave the assumptions unchanged.  See
 \S\ref{sec:reordering-asms} for ways around this problem.
 \end{warn}
 
@@ -88,12 +88,12 @@ Using the simplifier effectively may take a bit of experimentation.
 be traced by setting \verb$trace_simp := true$.
 
 There is not just one global current simpset, but one associated with each
-theory as well. How are these simpset built up?
+theory as well.  How are these simpset built up?
 \begin{enumerate}
 \item When loading {\tt T.thy}, the current simpset is initialized with the
-  union of the simpsets associated with all the ancestors of {\tt T}. In
+  union of the simpsets associated with all the ancestors of {\tt T}.  In
   addition, certain constructs in {\tt T} may add new rules to the simpset,
-  e.g.\ \ttindex{datatype} and \ttindex{primrec} in \HOL. Definitions are not
+  e.g.\ \ttindex{datatype} and \ttindex{primrec} in \HOL.  Definitions are not
   added automatically!
 \item The script in {\tt T.ML} may manipulate the current simpset further by
   explicitly adding/deleting theorems to/from it (see below).
@@ -110,10 +110,10 @@ Addsimps, Delsimps: thm list -> unit
 \end{ttdescription}
 
 Generally useful simplification rules $\Var{n}+0 = \Var{n}$ should be added
-to the current simpset right after they have been proved. Those of a more
+to the current simpset right after they have been proved.  Those of a more
 specific nature (e.g.\ the laws of de~Morgan, which alter the structure of a
 formula) should only be added for specific proofs and deleted again
-afterwards. Conversely, it may also happen that a generally useful rule needs
+afterwards.  Conversely, it may also happen that a generally useful rule needs
 to be removed for a certain proof and is added again afterwards.  Well
 designed simpsets need few temporary additions or deletions.
 
@@ -133,7 +133,7 @@ designed simpsets need few temporary additions or deletions.
   If you execute proofs interactively, or load them from an ML file without
   associated {\tt .thy} file, you must set the current simpset by calling
   \ttindex{set_current_thy}~{\tt"}$T${\tt"}, where $T$ is the name of the
-  theory you want to work in. If you have just loaded $T$, this is not
+  theory you want to work in.  If you have just loaded $T$, this is not
   necessary.
 \end{warn}
 
@@ -177,7 +177,7 @@ where all unknowns are of base type.  Hence ${\Var{i}+(\Var{j}+\Var{k})} =
 {(\Var{i}+\Var{j})+\Var{k}}$ is ok.
 
 It will also deal gracefully with all rules whose left-hand sides are
-so-called {\em higher-order patterns}~\cite{nipkow-patterns}. These are terms
+so-called {\em higher-order patterns}~\cite{nipkow-patterns}.  These are terms
 in $\beta$-normal form (this will always be the case unless you have done
 something strange) where each occurrence of an unknown is of the form
 $\Var{F}(x@1,\dots,x@n)$, where the $x@i$ are distinct bound variables.
@@ -187,7 +187,7 @@ Hence $(\forall x.\Var{P}(x) \land \Var{Q}(x)) \bimp (\forall x.\Var{P}(x))
 In some rare cases the rewriter will even deal with quite general rules: for
 example ${\Var{f}(\Var{x})\in range(\Var{f})} = True$ rewrites $g(a) \in
 range(g)$ to $True$, but will fail to match $g(h(b)) \in range(\lambda
-x.g(h(x)))$. However, you can replace the offending subterms (in our case
+x.g(h(x)))$.  However, you can replace the offending subterms (in our case
 $\Var{f}(\Var{x})$, which is not a pattern) by adding new variables and
 conditions: $\Var{y} = \Var{f}(\Var{x}) \Imp \Var{y}\in range(\Var{f})
 = True$ is acceptable as a conditional rewrite rule since conditions can
@@ -277,20 +277,20 @@ cannot prove $a\in \Var{A}$ since this requires
 instantiating~$\Var{A}$.  The solver, however, is an arbitrary tactic
 and may instantiate unknowns as it pleases.  This is the only way the
 simplifier can handle a conditional rewrite rule whose condition
-contains extra variables. When a simplification tactic is to be
+contains extra variables.  When a simplification tactic is to be
 combined with other provers, especially with the classical reasoner,
-it is important whether it can be considered safe or not. Therefore,
-the solver is split into a safe and an unsafe part. Both parts can be
+it is important whether it can be considered safe or not.  Therefore,
+the solver is split into a safe and an unsafe part.  Both parts can be
 set independently, using either \ttindex{setSSolver} with a safe
 tactic as argument, or \ttindex{setSolver} with an unsafe tactic.
 Additional solvers, which are tried after the already set solvers, may
 be added using \ttindex{addSSolver} and \ttindex{addSolver}.
 
 The standard simplification strategy solely uses the unsafe solver,
-which is appropriate in most cases. But for special applications where
+which is appropriate in most cases.  But for special applications where
 the simplification process is not allowed to instantiate unknowns
 within the goal, the tactic \ttindexbold{safe_asm_full_simp_tac} is
-provided. It uses the \emph{safe} solver for the current subgoal, but
+provided.  It uses the \emph{safe} solver for the current subgoal, but
 applies ordinary unsafe {\tt asm_full_simp_tac} for recursive internal
 simplifications (for conditional rules or congruences).
 
@@ -331,7 +331,7 @@ generated by the looper is attacked in turn, in reverse order.  A
 typical looper is case splitting: the expansion of a conditional.  Another
 possibility is to apply an elimination rule on the assumptions.  More
 adventurous loopers could start an induction.  The looper is set with 
-\ttindex{setloop}. Additional loopers, which are tried after the already set
+\ttindex{setloop}.  Additional loopers, which are tried after the already set
 looper, may be added with \ttindex{addloop}.
 
 
@@ -420,9 +420,9 @@ end;
 
 The actual simplification work is performed by the following basic tactics:
 \ttindexbold{simp_tac}, \ttindexbold{asm_simp_tac},
-\ttindexbold{full_simp_tac} and \ttindexbold{asm_full_simp_tac}. They work
+\ttindexbold{full_simp_tac} and \ttindexbold{asm_full_simp_tac}.  They work
 exactly like their namesakes in \S\ref{sec:simp-for-dummies}, except that
-they are explicitly supplied with a simpset. This is because the ones in
+they are explicitly supplied with a simpset.  This is because the ones in
 \S\ref{sec:simp-for-dummies} are defined in terms of the ones above, e.g.
 \begin{ttbox}
 fun Simp_tac i = simp_tac (!simpset) i;
@@ -440,7 +440,7 @@ implement \ttindex{Addsimps} and \ttindex{Delsimps}, e.g.
 \begin{ttbox}
 fun Addsimps thms = (simpset := (!simpset addsimps thms));
 \end{ttbox}
-and can also be used directly, even in the presence of a current simpset. For
+and can also be used directly, even in the presence of a current simpset.  For
 example
 \begin{ttbox}
 Addsimps \(thms\);
@@ -626,7 +626,7 @@ by (asm_simp_tac (!simpset addsimps [prem]) 1);
 \index{assumptions!reordering}
 
 As mentioned above, \ttindex{asm_full_simp_tac} may require the assumptions
-to be permuted to be more effective. Given the subgoal
+to be permuted to be more effective.  Given the subgoal
 \begin{ttbox}
 {\out 1. [| P(f(a)); Q; f(a) = t; R |] ==> S}
 \end{ttbox}
@@ -643,7 +643,7 @@ which enables \verb$asm_full_simp_tac$ to simplify \verb$P(f(a))$ to
 
 Since rotation alone cannot produce arbitrary permutations, you can also pick
 out a particular assumption which needs to be rewritten and move it the the
-right end of the assumptions. In the above case rotation can be replaced by
+right end of the assumptions.  In the above case rotation can be replaced by
 \begin{ttbox}
 by (dres_inst_tac [("psi","P(f(a))")] asm_rl 1);
 \end{ttbox}
@@ -653,7 +653,7 @@ which is more directed and leads to
 \end{ttbox}
 
 Note that reordering assumptions usually leads to brittle proofs and should
-therefore be avoided. Future versions of \verb$asm_full_simp_tac$ may remove
+therefore be avoided.  Future versions of \verb$asm_full_simp_tac$ may remove
 the need for such manipulations.
 
 \section{Permutative rewrite rules}

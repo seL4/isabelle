@@ -114,7 +114,7 @@ mapping $\astofpt{-}$ is derived from the productions as follows:
 \begin{itemize}
 \item Name tokens: $\astofpt{t} = \Variable s$, where $t$ is an \ndx{id},
   \ndx{var}, \ndx{tid}, \ndx{tvar}, \ndx{xnum} or \ndx{xstr} token, and $s$
-  its associated string. Note that for {\tt xstr} this does not include the
+  its associated string.  Note that for {\tt xstr} this does not include the
   quotes.
 
 \item Copy productions:\index{productions!copy}
@@ -606,7 +606,7 @@ line break is required then a space is printed instead.
 The nonterminal is declared as the type~{\tt is}, but with no {\tt arities}
 declaration.  Hence {\tt is} is not a logical type and may be used safely as
 a new nonterminal for custom syntax.  The nonterminal~{\tt is} can later be
-re-used for other enumerations of type~{\tt i} like lists or tuples. If we
+re-used for other enumerations of type~{\tt i} like lists or tuples.  If we
 had needed polymorphic enumerations, we could have used the predefined
 nonterminal symbol \ndx{args} and skipped this part altogether.
 
@@ -850,7 +850,7 @@ correct type~{\tt T}, so this is the only place where a type
 constraint might appear.
 
 Also note that we are responsible to mark free identifiers that
-actually represent bound variables. This is achieved by
+actually represent bound variables.  This is achieved by
 \ttindex{Syntax.variant_abs'} and \ttindex{Syntax.mark_boundT} above.
 Failing to do so may cause these names to be printed in the wrong
 style.  \index{translations|)} \index{syntax!transformations|)}
@@ -861,24 +861,24 @@ style.  \index{translations|)} \index{syntax!transformations|)}
 %
 Isabelle's meta-logic features quite a lot of different kinds of
 identifiers, namely {\em class}, {\em tfree}, {\em tvar}, {\em free},
-{\em bound}, {\em var}. One might want to have these printed in
+{\em bound}, {\em var}.  One might want to have these printed in
 different styles, e.g.\ in bold or italic, or even transcribed into
 something more readable like $\alpha, \alpha', \beta$ instead of {\tt
-  'a}, {\tt 'aa}, {\tt 'b} for type variables. Token translations
+  'a}, {\tt 'aa}, {\tt 'b} for type variables.  Token translations
 provide a means to such ends, enabling the user to install certain
 \ML{} functions associated with any logical \rmindex{token class} and
 depending on some \rmindex{print mode}.
 
 The logical class of identifiers can not necessarily be determined by
-its syntactic category, though. For example, consider free vs.\ bound
-variables. So Isabelle's pretty printing mechanism, starting from
+its syntactic category, though.  For example, consider free vs.\ bound
+variables.  So Isabelle's pretty printing mechanism, starting from
 fully typed terms, has to be careful to preserve this additional
 information\footnote{This is done by marking atoms in abstract syntax
-  trees appropriately. The marks are actually visible by print
+  trees appropriately.  The marks are actually visible by print
   translation functions -- they are just special constants applied to
   atomic asts, for example \texttt{("_bound" x)}.}.  In particular,
 user-supplied print translation functions operating on terms have to
-be well-behaved in this respect. Free identifiers introduced to
+be well-behaved in this respect.  Free identifiers introduced to
 represent bound variables have to be marked appropriately (cf.\ the
 example at the end of \S\ref{sec:tr_funs}).
 
@@ -890,12 +890,12 @@ val token_translation: (string * string * (string -> string * int)) list
 \end{ttbox}\index{token_translation}
 The elements of this list are of the form $(m, c, f)$, where $m$ is a
 print mode identifier, $c$ a token class, and $f\colon string \to
-string \times int$ the actual translation function. Assuming that $x$
+string \times int$ the actual translation function.  Assuming that $x$
 is of identifier class $c$, and print mode $m$ is the first one of all
 currently active modes that provide some translation for $c$, then $x$
-is output according to $f(x) = (x', len)$. Thereby $x'$ is the
+is output according to $f(x) = (x', len)$.  Thereby $x'$ is the
 modified identifier name and $len$ its visual length approximated in
-terms of whole characters. Thus $x'$ may include non-printing parts
+terms of whole characters.  Thus $x'$ may include non-printing parts
 like control sequences or markup information for typesetting systems.
 
 %FIXME example (?)

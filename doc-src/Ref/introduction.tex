@@ -28,13 +28,13 @@ properly --- otherwise see the {\tt INSTALL} file in the top-level
 directory of the distribution on how to build it.
 
 \medskip Let $\langle isabellehome \rangle$ denote the location where
-the distribution has been installed. To run Isabelle from a the shell
+the distribution has been installed.  To run Isabelle from a the shell
 prompt within an ordinary text terminal session, simply type:
 \begin{ttbox}
 \({\langle}isabellehome{\rangle}\)/bin/isabelle
 \end{ttbox}
 This should start an interactive \ML{} session with the default
-object-logic already preloaded. All Isabelle commands are bound to
+object-logic already preloaded.  All Isabelle commands are bound to
 \ML{} identifiers.
 
 Subsequently we assume that {\tt \(\langle isabellehome \rangle\)/bin}
@@ -52,11 +52,11 @@ This should put you into the world of polymorphic first-order logic
 \index{saving your work|bold} Isabelle provides no means of storing
 theorems or proofs on files.  Theorems are simply part of the \ML{}
 state and are named by \ML{} identifiers.  To save your work between
-sessions, you must dump the \ML{} system state to a file. This is done
+sessions, you must dump the \ML{} system state to a file.  This is done
 automatically when ending the session normally (e.g.\ by typing
 control-D), provided that the image has been opened \emph{writable} in
-the first place. The standard object-logics are usually read-only, so
-you probably have to create a private working copy first. For example,
+the first place.  The standard object-logics are usually read-only, so
+you probably have to create a private working copy first.  For example,
 the following shell command puts you into a writable Isabelle session
 of name \texttt{Foo} that initially contains just \FOL:
 \begin{ttbox}
@@ -65,7 +65,7 @@ isabelle FOL Foo
 Ending the \texttt{Foo} session with control-D will cause the complete
 \ML{} world to be saved somewhere in your home directory\footnote{The
   default location is in \texttt{\~\relax/isabelle/heaps}, but this
-  depends on your local configuration.}. Make sure there is enough
+  depends on your local configuration.}.  Make sure there is enough
 space available! Then one may later continue at exactly the same point
 by running
 \begin{ttbox}
@@ -83,10 +83,10 @@ be somewhat intelligible to others as a formal description of your
 work.
 
 \medskip There are more comfortable user interfaces than the
-bare-bones \ML{} top-level run from a text terminal. The
+bare-bones \ML{} top-level run from a text terminal.  The
 \texttt{Isabelle} executable (note the capital I) runs one such
 interface, depending on your local configuration.  Furthermore there
-are a number of external utilities available. These are started
+are a number of external utilities available.  These are started
 uniformly via the \texttt{isatool} wrapper.
 
 Again, see the \emph{System Manual} for more information user
@@ -145,7 +145,7 @@ set     : bool ref -> bool
 reset   : bool ref -> bool
 toggle  : bool ref -> bool
 \end{ttbox}\index{*set}\index{*reset}\index{*toggle}
-These are some shorthands for manipulating boolean references. The new
+These are some shorthands for manipulating boolean references.  The new
 value is returned.
 
 
