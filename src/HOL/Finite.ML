@@ -149,6 +149,22 @@ by (dtac lemma 1);
 by (Blast_tac 1);
 qed "finite_imageD";
 
+(** The finite UNION of finite sets **)
+
+val [prem] = goal Finite.thy
+ "finite A ==> (!a:A. finite(B a)) --> finite(UN a:A. B a)";
+br (prem RS finite_induct) 1;
+by(ALLGOALS Asm_simp_tac);
+bind_thm("finite_UnionI", ballI RSN (2, result() RS mp));
+Addsimps [finite_UnionI];
+
+(** Sigma of finite sets **)
+
+goalw Finite.thy [Sigma_def]
+ "!!A. [| finite A; !a:A. finite(B a) |] ==> finite(SIGMA a:A. B a)";
+by(blast_tac (!claset addSIs [finite_UnionI]) 1);
+bind_thm("finite_SigmaI", ballI RSN (2,result()));
+Addsimps [finite_SigmaI];
 
 (** The powerset of a finite set **)
 
