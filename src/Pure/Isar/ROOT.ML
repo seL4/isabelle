@@ -71,5 +71,6 @@ struct
   structure ThyHeader = ThyHeader;
   structure OuterSyntax = OuterSyntax;
   structure IsarSyn = IsarSyn;
+  structure Obtain = Obtain;
   structure Isar = Isar;
 end;
