@@ -8,7 +8,7 @@ types, which is used to bootstrap Pure.
 
 signature TYPE_EXT0 =
 sig
-  val raw_term_sorts: (sort * sort -> bool) -> term -> (indexname * sort) list
+  val raw_term_sorts: term -> (indexname * sort) list
   val typ_of_term: (indexname -> sort) -> term -> typ
 end;
 
@@ -31,35 +31,27 @@ open Lexicon SynExt Ast;
 
 (* raw_term_sorts *)
 
-fun raw_term_sorts eq_sort tm =
+fun raw_term_sorts tm =
   let
     fun classes (Const (c, _)) = [c]
       | classes (Free (c, _)) = [c]
-      | classes (Const ("_classes", _) $ Const (c, _) $ cls) = c :: classes cls
-      | classes (Const ("_classes", _) $ Free (c, _) $ cls) = c :: classes cls
-      | classes tm = raise_term "raw_term_sorts: bad encoding of classes" [tm];
+      | classes (Const ("_classes", _) $ Const (c, _) $ cs) = c :: classes cs
+      | classes (Const ("_classes", _) $ Free (c, _) $ cs) = c :: classes cs
+      | classes tm = raise TERM ("raw_term_sorts: bad encoding of classes", [tm]);
 
     fun sort (Const ("_topsort", _)) = []
       | sort (Const (c, _)) = [c]
       | sort (Free (c, _)) = [c]
-      | sort (Const ("_sort", _) $ cls) = classes cls
-      | sort tm = raise_term "raw_term_sorts: bad encoding of sort" [tm];
+      | sort (Const ("_sort", _) $ cs) = classes cs
+      | sort tm = raise TERM ("raw_term_sorts: bad encoding of sort", [tm]);
 
-    fun eq ((xi, S), (xi', S')) =
-      xi = xi' andalso eq_sort (S, S');
-
-    fun env_of (Const ("_ofsort", _) $ Free (x, _) $ cls) = [((x, ~1), sort cls)]
-      | env_of (Const ("_ofsort", _) $ Var (xi, _) $ cls) = [(xi, sort cls)]
-      | env_of (Abs (_, _, t)) = env_of t
-      | env_of (t1 $ t2) = gen_union eq (env_of t1, env_of t2)
-      | env_of t = [];
-
-    val env = env_of tm;
+    fun add_env (Const ("_ofsort", _) $ Free (x, _) $ cs) env = ((x, ~1), sort cs) ins env
+      | add_env (Const ("_ofsort", _) $ Var (xi, _) $ cs) env = (xi, sort cs) ins env
+      | add_env (Abs (_, _, t)) env = add_env t env
+      | add_env (t1 $ t2) env = add_env t1 (add_env t2 env)
+      | add_env t env = env;
   in
-    (case gen_duplicates eq_fst env of
-      [] => env
-    | dups => error ("Inconsistent sort constraints for type variable(s) " ^
-        commas (map (quote o string_of_vname' o #1) dups)))
+    add_env tm []
   end;
 
 
@@ -82,7 +74,7 @@ fun typ_of_term get_sort t =
               (case t of
                 Const (x, _) => x
               | Free (x, _) => x
-              | _ => raise_term "typ_of_term: bad encoding of type" [tm]);
+              | _ => raise TERM ("typ_of_term: bad encoding of type", [tm]));
           in
             Type (a, map typ_of ts)
           end;
@@ -133,20 +125,20 @@ fun term_of_typ show_sorts ty =
 (* parse ast translations *)
 
 fun tapp_ast_tr (*"_tapp"*) [ty, f] = Appl [f, ty]
-  | tapp_ast_tr (*"_tapp"*) asts = raise_ast "tapp_ast_tr" asts;
+  | tapp_ast_tr (*"_tapp"*) asts = raise AST ("tapp_ast_tr", asts);
 
 fun tappl_ast_tr (*"_tappl"*) [ty, tys, f] =
       Appl (f :: ty :: unfold_ast "_types" tys)
-  | tappl_ast_tr (*"_tappl"*) asts = raise_ast "tappl_ast_tr" asts;
+  | tappl_ast_tr (*"_tappl"*) asts = raise AST ("tappl_ast_tr", asts);
 
 fun bracket_ast_tr (*"_bracket"*) [dom, cod] =
       fold_ast_p "fun" (unfold_ast "_types" dom, cod)
-  | bracket_ast_tr (*"_bracket"*) asts = raise_ast "bracket_ast_tr" asts;
+  | bracket_ast_tr (*"_bracket"*) asts = raise AST ("bracket_ast_tr", asts);
 
 
 (* print ast translations *)
 
-fun tappl_ast_tr' (f, []) = raise_ast "tappl_ast_tr'" [f]
+fun tappl_ast_tr' (f, []) = raise AST ("tappl_ast_tr'", [f])
   | tappl_ast_tr' (f, [ty]) = Appl [Constant "_tapp", ty, f]
   | tappl_ast_tr' (f, ty :: tys) =
       Appl [Constant "_tappl", ty, fold_ast "_types" tys, f];
