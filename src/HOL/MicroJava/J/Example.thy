@@ -80,8 +80,8 @@ defs
   BaseC_def "BaseC \\<equiv> (Base, (Some Object, 
 			     [(vee, PrimT Boolean)], 
 			     [((foo,[Class Base]),Class Base,foo_Base)]))"
-  foo_Ext_def "foo_Ext \\<equiv> ([x],[],Expr( {Ext}Cast (ClassT Ext)
-					(LAcc x)..vee:=Lit (Intg #1)),
+  foo_Ext_def "foo_Ext \\<equiv> ([x],[],Expr( {Ext}Cast Ext
+				       (LAcc x)..vee:=Lit (Intg #1)),
 				   Lit Null)"
   ExtC_def  "ExtC  \\<equiv> (Ext,  (Some Base  , 
 			     [(vee, PrimT Integer)], 
@@ -113,5 +113,5 @@ translations
   "s0" == " Norm    (empty          ,empty                        )"
   "s1" == " Norm    (empty(a\\<mapsto>obj1),empty(e\\<mapsto>Addr a)             )"
   "s2" == " Norm    (empty(a\\<mapsto>obj1),empty(x\\<mapsto>Null)(This\\<mapsto>Addr a))"
-  "s3" == "(Some NP, empty(a\\<mapsto>obj1),empty(x\\<mapsto>Null)(This\\<mapsto>Addr a))"
+  "s3" == "(Some NP, empty(a\\<mapsto>obj1),empty(e\\<mapsto>Addr a))"
 end

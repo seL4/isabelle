@@ -260,4 +260,4 @@ by   (EVERY'[rtac (surjective_pairing RS sym RSN (2,trans)), stac Pair_eq,
 by  (Simp_tac 1);
 by (Simp_tac 1);
 by e;	(* XcptE *)
-qed "exec_test";
+bind_thm ("exec_test", simplify (simpset()) (result()));

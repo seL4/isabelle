@@ -1,4 +1,4 @@
-(*  Title:      HOL/MicroJava/J/Prog.ML
+(*  Title:      HOL/MicroJava/J/Decl.ML
     ID:         $Id$
     Author:     David von Oheimb
     Copyright   1999 Technische Universitaet Muenchen

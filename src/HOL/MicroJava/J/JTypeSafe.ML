@@ -17,24 +17,15 @@ by(  auto_tac (claset() addSDs [is_type_fields, map_of_SomeD], simpset()));
 qed "NewC_conforms";
 
 Goalw [cast_ok_def]
- "\\<lbrakk> wf_prog wf_mb G; G,h\\<turnstile>v\\<Colon>\\<preceq>Tb; G\\<turnstile>Tb\\<preceq>? RefT T'; cast_ok G T' h v\\<rbrakk> \
-\ \\<Longrightarrow> G,h\\<turnstile>v\\<Colon>\\<preceq>RefT T'";
+ "\\<lbrakk> wf_prog wf_mb G; G,h\\<turnstile>v\\<Colon>\\<preceq>Class C; G\\<turnstile>C\\<preceq>? D; cast_ok G D h v\\<rbrakk> \
+\ \\<Longrightarrow> G,h\\<turnstile>v\\<Colon>\\<preceq>Class D";
 by( case_tac1 "v = Null" 1);
 by(  Asm_full_simp_tac 1);
 by(  dtac widen_RefT 1);
 by(  Clarify_tac 1);
-by(  forward_tac [cast_RefT] 1);
-by(  Clarify_tac 1);
 by(  rtac widen.null 1);
-by( Asm_full_simp_tac 1);
-by( forward_tac [cast_RefT2] 1);
-by( strip_tac1 1);
-by( dtac non_npD 1);
-by(  atac 1);
-by( rewrite_goals_tac [obj_ty_def]);
-by Auto_tac ;
-by(  ALLGOALS (rtac conf_AddrI));
-by     Auto_tac;
+by( datac non_npD 1 1);
+by( auto_tac (claset() addSIs [conf_AddrI], simpset() addsimps [obj_ty_def]));
 qed "Cast_conf";
 
 Goal "\\<lbrakk> wf_prog wf_mb G; field (G,C) fn = Some (fd, ft); (h,l)\\<Colon>\\<preceq>(G,lT); \
@@ -283,7 +274,7 @@ by( dtac eval_no_xcpt 1);
 by( SELECT_GOAL (etac FAss_type_sound 1 THEN rtac refl 1 THEN ALLGOALS atac) 1);
 
 by prune_params_tac;
-(* Level 45 *)
+(* Level 51 *)
 
 (* 1 Call *)
 by( case_tac "x" 1);
@@ -303,7 +294,8 @@ by(  Asm_full_simp_tac 1);
 by(  dtac eval_xcpt 1);
 by(  Asm_full_simp_tac 1);
 by(  fast_tac (HOL_cs addEs [hext_trans]) 1);
-by( (rtac (rewrite_rule[wf_java_prog_def]Call_type_sound) THEN_ALL_NEW Asm_simp_tac) 1);
+by( (rtac (rewrite_rule[wf_java_prog_def]Call_type_sound) 
+    THEN_ALL_NEW Asm_simp_tac) 1);
 qed "eval_evals_exec_type_sound";
 
 Goal "\\<And>E s s'. \

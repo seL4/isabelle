@@ -95,9 +95,9 @@ inductive "ty_expr E" "ty_exprs E" "wt_stmt E" intrs
 						 E\\<turnstile>NewC C\\<Colon>Class C"
 
   (* cf. 15.15 *)
-  Cast	"\\<lbrakk>E\\<turnstile>e\\<Colon>T;
-	  prg E\\<turnstile>T\\<preceq>? RefT rt\\<rbrakk> \\<Longrightarrow>
-						 E\\<turnstile>Cast rt e\\<Colon>RefT rt"
+  Cast	"\\<lbrakk>E\\<turnstile>e\\<Colon>Class C;
+	  prg E\\<turnstile>C\\<preceq>? D\\<rbrakk> \\<Longrightarrow>
+						 E\\<turnstile>Cast D e\\<Colon>Class D"
 
   (* cf. 15.7.1 *)
   Lit	"\\<lbrakk>typeof (\\<lambda>v. None) x = Some T\\<rbrakk> \\<Longrightarrow>

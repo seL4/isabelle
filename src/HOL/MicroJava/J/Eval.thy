@@ -42,8 +42,8 @@ inductive "eval G" "evals G" "exec G" intrs
 
   (* cf. 15.15 *)
   Cast	"\\<lbrakk>G\\<turnstile>Norm s0 -e\\<succ>v\\<rightarrow> (x1,s1);
-	  x2=raise_if (\\<not> cast_ok G T (heap s1) v) ClassCast x1\\<rbrakk> \\<Longrightarrow>
-			        G\\<turnstile>Norm s0 -Cast T e\\<succ>v\\<rightarrow> (x2,s1)"
+	  x2=raise_if (\\<not> cast_ok G C (heap s1) v) ClassCast x1\\<rbrakk> \\<Longrightarrow>
+			        G\\<turnstile>Norm s0 -Cast C e\\<succ>v\\<rightarrow> (x2,s1)"
 
   (* cf. 15.7.1 *)
   Lit				   "G\\<turnstile>Norm s -Lit v\\<succ>v\\<rightarrow> Norm s"

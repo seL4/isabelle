@@ -65,7 +65,7 @@ consts
 primrec
   "exec_ch (Checkcast C) G hp stk pc =
 	(let oref	= hd stk;
-	     xp'	= raise_xcpt (\\<not> cast_ok G (ClassT C) hp oref) ClassCast;
+	     xp'	= raise_xcpt (\\<not> cast_ok G C hp oref) ClassCast;
 	     stk'	= if xp'=None then stk else tl stk
 	 in
 	 (xp' , stk' , pc+1))"

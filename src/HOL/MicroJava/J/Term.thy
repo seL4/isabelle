@@ -12,7 +12,7 @@ datatype binop = Eq | Add	   (* function codes for binary operation *)
 
 datatype expr
 	= NewC	cname		   (* class instance creation *)
-	| Cast	ref_ty expr	   (* type cast *)
+	| Cast	cname expr	   (* type cast *)
 	| Lit	val		   (* literal value, also references *)
         | BinOp binop  expr expr   (* binary operation *)
 	| LAcc vname		   (* local (incl. parameter) access *)

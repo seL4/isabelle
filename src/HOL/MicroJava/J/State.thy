@@ -60,7 +60,7 @@ constdefs
   c_hupd	:: "aheap \\<Rightarrow> xstate \\<Rightarrow> xstate"
  "c_hupd h'\\<equiv> \\<lambda>(xo,(h,l)). if xo = None then (None,(h',l)) else (xo,(h,l))"
 
-  cast_ok	:: "'c prog \\<Rightarrow> ref_ty \\<Rightarrow> aheap \\<Rightarrow> val \\<Rightarrow> bool"
- "cast_ok G T h v \\<equiv> (v=Null) | G\\<turnstile>obj_ty (the (h (the_Addr v)))\\<preceq>RefT T"
+  cast_ok	:: "'c prog \\<Rightarrow> cname \\<Rightarrow> aheap \\<Rightarrow> val \\<Rightarrow> bool"
+ "cast_ok G C h v \\<equiv> v = Null \\<or> G\\<turnstile>obj_ty (the (h (the_Addr v)))\\<preceq> Class C"
 
 end

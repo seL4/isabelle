@@ -108,8 +108,8 @@ qed "LS_correct";
 (**** CH ****)
 
 Goalw [cast_ok_def]
- "\\<lbrakk> wf_prog ok G; G,h\\<turnstile>v\\<Colon>\\<preceq>RefT rt; cast_ok G (ClassT C) h v ; G\\<turnstile>(Class C)\\<preceq>T'; is_class G C \\<rbrakk> \
-\ \\<Longrightarrow> G,h\\<turnstile>v\\<Colon>\\<preceq>T'";
+ "\\<lbrakk> wf_prog ok G; G,h\\<turnstile>v\\<Colon>\\<preceq>RefT rt; cast_ok G C h v ; G\\<turnstile>Class C\\<preceq>T; is_class G C \\<rbrakk> \
+\ \\<Longrightarrow> G,h\\<turnstile>v\\<Colon>\\<preceq>T";
 by (forward_tac [widen_Class] 1);
 by (Clarify_tac 1);
 be disjE 1;
@@ -134,7 +134,6 @@ by (asm_full_simp_tac (simpset() addsimps [map_eq_Cons,
 by (fast_tac (claset() addIs [approx_stk_imp_approx_stk_sup,approx_loc_imp_approx_loc_sup,Cast_conf2] 
 	addss (simpset() addsimps [map_eq_Cons,approx_val_def])) 1);
 qed "Checkcast_correct";
-
 
 Goal
 "\\<lbrakk> wt_jvm_prog G phi; \

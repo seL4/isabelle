@@ -65,6 +65,11 @@ val np_Addr = prove_goalw thy [np_def, raise_if_def] "np (Addr a) None = None"
 	(fn _ => [Auto_tac ]);
 Addsimps[np_None, np_Some,np_Null,np_Addr];
 
+Goalw [raise_if_def] "(np Null (raise_if c xc None)) = \
+\ Some (if c then xc else NullPointer)";
+by (Simp_tac 1);
+qed "np_raise_if";
+Addsimps[np_raise_if];
 
 
 
