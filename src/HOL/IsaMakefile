@@ -233,7 +233,7 @@ $(LOG)/HOL-Induct.gz: $(OUT)/HOL \
 
 HOL-IMP: HOL $(LOG)/HOL-IMP.gz
 
-$(LOG)/HOL-IMP.gz: $(OUT)/HOL IMP/Com.thy IMP/Compiler.thy \
+$(LOG)/HOL-IMP.gz: $(OUT)/HOL IMP/Com.thy IMP/Compiler0.thy IMP/Compiler.thy \
   IMP/Denotation.thy IMP/Expr.thy IMP/Hoare.thy \
   IMP/Natural.thy IMP/Examples.thy \
   IMP/Transition.thy IMP/VC.thy IMP/ROOT.ML IMP/document/root.tex \
