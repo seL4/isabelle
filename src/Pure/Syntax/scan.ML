@@ -37,6 +37,8 @@ sig
   val repeat1: ('a -> 'b * 'a) -> 'a -> 'b list * 'a
   val max: ('a * 'a -> bool) -> ('b -> 'a * 'b) -> ('b -> 'a * 'b) -> 'b -> 'a * 'b
   val ahead: ('a -> 'b * 'c) -> 'a -> 'b * 'a
+  val unless: ('a -> 'b * 'a) -> ('a -> 'c * 'd) -> 'a -> 'c * 'd
+  val first: ('a -> 'b) list -> 'a -> 'b
   val depend: ('a -> 'b -> ('c * 'd) * 'e) -> 'a * 'b -> 'd * ('c * 'e)
   val lift: ('a -> 'b * 'c) -> 'd * 'a -> 'b * ('d * 'c)
   val pass: 'a -> ('a * 'b -> 'c * ('d * 'e)) -> 'b -> 'c * 'e
@@ -131,6 +133,12 @@ fun max leq scan1 scan2 xs =
       if leq (tok2, tok1) then (tok1, xs1') else (tok2, xs2'));
 
 fun ahead scan xs = (fst (scan xs), xs);
+
+fun unless test scan =
+  ahead (option test) :-- (fn None => scan | _ => fail) >> #2;
+
+fun first [] = fail
+  | first (scan :: scans) = scan || first scans;
 
 
 (* state based scanners *)
