@@ -8,6 +8,7 @@ Formal comments.
 signature COMMENT =
 sig
   type text
+  val string_of: text -> string
   val plain: string -> text
   val none: text
   val ignore: 'a * text -> 'a
@@ -25,6 +26,8 @@ struct
 (** text **)
 
 datatype text = Text of string;
+
+fun string_of (Text s) = s;
 val plain = Text;
 val none = plain "";
 
