@@ -405,7 +405,10 @@ fun read_const syn tsig (c, ty_src, mx) =
 
 fun ext_cnsts rd_const syn_only (syn, tsig, ctab) raw_consts =
   let
-    fun prep_const (c, ty, mx) = (c, varifyT (cert_typ tsig (no_tvars ty)), mx)
+    fun prep_const (c, ty, mx) = 
+	  (c, 
+	   compress_type (varifyT (cert_typ tsig (no_tvars ty))), 
+	   mx)
       handle TYPE (msg, _, _) => (writeln msg; err_in_const (Syntax.const_name c mx));
 
     val consts = map (prep_const o rd_const syn tsig) raw_consts;
