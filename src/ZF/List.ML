@@ -19,7 +19,7 @@ structure List = Datatype_Fun
        "[| a: A;  l: list(A) |] ==> Cons(a,l) : list(A)"];
   val monos = [];
   val type_intrs = datatype_intrs
-  val type_elims = []);
+  val type_elims = datatype_elims);
 
 val [NilI, ConsI] = List.intrs;
 
