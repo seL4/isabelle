@@ -202,11 +202,28 @@ fun has_bool (Type("bool",_)) = true
   | has_bool (Type(_, Ts)) = exists has_bool Ts
   | has_bool _ = false;
   
+(*Is the string the name of a connective? It doesn't matter if this list is
+  incomplete, since when actually called, the only connectives likely to
+  remain are & | Not.*)  
+fun is_conn c = c mem_string
+    ["Trueprop", "op &", "op |", "op -->", "op =", "Not", 
+     "All", "Ex", "Ball", "Bex"];
+
+(*True if the term contains a function where the type of any argument contains
+  bool.*)
+val has_bool_arg_const = 
+    exists_Const
+      (fn (c,T) => not(is_conn c) andalso exists (has_bool) (binder_types T));
+  
 (*Raises an exception if any Vars in the theorem mention type bool. That would mean
-  they are higher-order, and in addition, they could cause make_horn to loop!*)
+  they are higher-order, and in addition, they could cause make_horn to loop!
+  Functions taking Boolean arguments are also rejected.*)
 fun check_no_bool th =
-  if exists (has_bool o fastype_of) (term_vars (#prop (rep_thm th)))
-  then raise THM ("check_no_bool", 0, [th]) else th;
+  let val {prop,...} = rep_thm th
+  in if exists (has_bool o fastype_of) (term_vars prop) orelse
+        has_bool_arg_const prop
+  then raise THM ("check_no_bool", 0, [th]) else th
+  end;
 
 (*Create a meta-level Horn clause*)
 fun make_horn crules th = make_horn crules (tryres(th,crules))
@@ -270,10 +287,6 @@ fun check_tac st =
 fun prolog_step_tac horns i =
     (assume_tac i APPEND resolve_tac horns i) THEN check_tac THEN
     TRYALL eq_assume_tac;
-
-
-
-
 
 (*Sums the sizes of the subgoals, ignoring hypotheses (ancestors)*)
 fun addconcl(prem,sz) = size_of_term(Logic.strip_assums_concl prem) + sz
