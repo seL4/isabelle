@@ -27,7 +27,7 @@ better in printed text;
 
 * added default LaTeX bindings for \<tturnstile> and \<TTurnstile>;
 note that these symbols are currently unavailable in Proof General /
-X-Symbol; added \<euro> symbol;
+X-Symbol; new symbols \<zero>, \<one>, ..., \<nine>, and \<euro>;
 
 * isatool latex no longer depends on changed TEXINPUTS, instead
 isatool document copies the Isabelle style files to the target
