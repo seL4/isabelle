@@ -9,6 +9,8 @@ Postprocessing of TFL definitions
 signature TFL = 
   sig
    structure Prim : TFL_sig
+   val quiet_mode : bool ref
+   val message : string -> unit
 
    val tgoalw : theory -> thm list -> thm list -> thm list
    val tgoal: theory -> thm list -> thm list
@@ -39,6 +41,13 @@ structure Tfl: TFL =
 struct
  structure Prim = Prim
  structure S = USyntax
+
+
+(* messages *)
+
+val quiet_mode = ref false;
+fun message s = if ! quiet_mode then () else writeln s;
+
 
 (*---------------------------------------------------------------------------
  * Extract termination goals so that they can be put it into a goalstack, or 
@@ -138,16 +147,16 @@ fun join_assums th =
   val gen_all = S.gen_all
 in
 fun proof_stage ss theory {f, R, rules, full_pats_TCs, TCs} =
-  let val dummy = writeln "Proving induction theorem..  "
+  let val dummy = message "Proving induction theorem..  "
       val ind = Prim.mk_induction theory f R full_pats_TCs
-      val dummy = writeln "Proved induction theorem.\nPostprocessing..  "
+      val dummy = message "Proved induction theorem.\nPostprocessing..  "
       val {rules, induction, nested_tcs} = 
 	  std_postprocessor ss theory {rules=rules, induction=ind, TCs=TCs}
   in
   case nested_tcs
-  of [] => (writeln "Postprocessing done.";
+  of [] => (message "Postprocessing done.";
             {induction=induction, rules=rules,tcs=[]})
-  | L  => let val dummy = writeln "Simplifying nested TCs..  "
+  | L  => let val dummy = message "Simplifying nested TCs..  "
               val (solved,simplified,stubborn) =
                U.itlist (fn th => fn (So,Si,St) =>
                      if (id_thm th) then (So, Si, th::St) else
@@ -157,7 +166,7 @@ fun proof_stage ss theory {f, R, rules, full_pats_TCs, TCs} =
               val rewr = full_simplify (ss addsimps (solved @ simplified'));
               val induction' = rewr induction
               and rules'     = rewr rules
-              val dummy = writeln "Postprocessing done."
+              val dummy = message "Postprocessing done."
           in
           {induction = induction',
                rules = rules',
@@ -232,13 +241,13 @@ end;
 local structure R = Rules
 in
 fun function theory eqs = 
- let val dummy = writeln "Making definition..   "
+ let val dummy = message "Making definition..   "
      val {rules,R,theory,full_pats_TCs,...} = Prim.lazyR_def theory eqs
      val f = func_of_cond_eqn (concl(R.CONJUNCT1 rules handle _ => rules))
-     val dummy = writeln "Definition made."
-     val dummy = writeln "Proving induction theorem..  "
+     val dummy = message "Definition made."
+     val dummy = message "Proving induction theorem..  "
      val induction = Prim.mk_induction theory f R full_pats_TCs
-     val dummy = writeln "Induction theorem proved."
+     val dummy = message "Induction theorem proved."
  in {theory = theory, 
      eq_ind = standard (induction RS (rules RS conjI))}
  end
