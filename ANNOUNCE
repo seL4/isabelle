@@ -39,10 +39,10 @@ Isabelle2002.  The most prominent highlights of Isabelle2003 are as follows
    Gray and Kramer)
 
  * ZF/Constructible: Gödel's proof of the relative consistency of the axiom
-   of choice is mechanized using Isabelle/ZF, following, Kunen's famous
+   of choice is mechanized using Isabelle/ZF, following Kunen's well-known
    textbook "Set Theory". (Paulson)
 
-You may get Isabelle2003 from any of the following mirror sites:
+You may get Isabelle2003 from the following mirror sites:
 
   Cambridge (UK)    http://www.cl.cam.ac.uk/Research/HVG/Isabelle/dist/
   Munich (Germany)  http://isabelle.in.tum.de/dist/
