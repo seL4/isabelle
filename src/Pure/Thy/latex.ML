@@ -69,7 +69,8 @@ fun output_sym s =
   if size s = 1 then output_chr s
   else
     (case explode s of
-      "\\" :: "<" :: "^" :: cs => "\\isactrl" ^ implode (#1 (Library.split_last cs)) ^ " "
+      "\\" :: "<" :: "^" :: "r"::"a"::"w":: cs => implode (#1 (Library.split_last cs)) ^ " "
+    | "\\" :: "<" :: "^" :: cs => "\\isactrl" ^ implode (#1 (Library.split_last cs)) ^ " "
     | "\\" :: "<" :: cs => "{\\isasym" ^ implode (#1 (Library.split_last cs)) ^ "}"
     | _ => sys_error "output_sym");
 

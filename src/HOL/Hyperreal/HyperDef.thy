@@ -11,7 +11,7 @@ files ("fuf.ML"):  (*Warning: file fuf.ML refers to the name Hyperdef!*)
 
 constdefs
 
-  FreeUltrafilterNat   :: "nat set set"    ("\\<U>")
+  FreeUltrafilterNat   :: "nat set set"    ("\<U>")
     "FreeUltrafilterNat == (SOME U. U \<in> FreeUltrafilter (UNIV:: nat set))"
 
   hyprel :: "((nat=>real)*(nat=>real)) set"

@@ -59,7 +59,7 @@ struct
   string, may be of the following form:
     (a) ASCII symbols: a
     (b) printable symbols: \<ident>
-    (c) control symbols: \<^ident>
+    (c) control symbols: \<^ctrlident>
 
   output is subject to the print_mode variable (default: verbatim),
   actual interpretation in display is up to front-end tools;
@@ -156,6 +156,9 @@ fun is_printable s =
   is_ext_letter s orelse
   is_symbolic s;
 
+fun is_ctrl_letter s =
+  size s = 1 andalso ord space <= ord s andalso ord s <= ord "~" andalso s <> ">";
+
 fun is_identifier s =
   case (explode s) of
       [] => false
@@ -203,13 +206,13 @@ fun scanner msg scan chs =
 (* scan *)
 
 val scan_id = Scan.one is_letter ^^ (Scan.any is_letdig >> implode);
+val scan_ctrlid = Scan.one is_letter ^^ (Scan.any is_ctrl_letter >> implode);
 
 val scan =
-  ($$ "\\" --| Scan.optional ($$ "\\") "") ^^ $$ "<" ^^
+  $$ "\\" ^^ $$ "<" ^^
     !! (fn (cs, _) => "Malformed symbolic character specification: \\" ^ "<" ^ beginning cs)
-      (Scan.optional ($$ "^") "" ^^ scan_id ^^ $$ ">") ||
+       ((($$ "^" ^^ scan_ctrlid) || scan_id) ^^ $$ ">") ||
   Scan.one not_eof;
-
 
 (* source *)
 
