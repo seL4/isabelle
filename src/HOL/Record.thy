@@ -35,6 +35,7 @@ syntax
   "_record_scheme"      :: "[fields, 'a] => 'a"                 ("(3'(| _,/ (2... =/ _) |'))")
 
   (*record updates*)
+  "_update_name"        :: idt
   "_update"             :: "[ident, 'a] => update"                      ("(2_ :=/ _)")
   ""                    :: "update => updates"                          ("_")
   "_updates"            :: "[update, updates] => updates"               ("_,/ _")
@@ -46,6 +47,19 @@ syntax (xsymbols)
   "_record"             :: "fields => 'a"                               ("(3\<lparr>_\<rparr>)")
   "_record_scheme"      :: "[fields, 'a] => 'a"                 ("(3\<lparr>_,/ (2\<dots> =/ _)\<rparr>)")
   "_record_update"      :: "['a, updates] => 'b"                ("_/(3\<lparr>_\<rparr>)" [900,0] 900)
+
+parse_translation {*
+  let
+    fun update_name_tr (Free (x, T) :: ts) =
+          Term.list_comb (Free (suffix RecordPackage.updateN x, T), ts)
+      | update_name_tr (Const (x, T) :: ts) =
+          Term.list_comb (Const (suffix RecordPackage.updateN x, T), ts)
+      | update_name_tr (((c as Const ("_constrain", _)) $ t $ ty) :: ts) =
+          Term.list_comb (c $ update_name_tr [t] $
+            (Syntax.const "fun" $ ty $ Syntax.const "dummy"), ts)
+      | update_name_tr ts = raise TERM ("update_name_tr", ts);
+  in [("_update_name", update_name_tr)] end
+*}
 
 
 (* type class for record extensions *)
