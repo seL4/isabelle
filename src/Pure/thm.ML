@@ -41,8 +41,8 @@ signature THM =
   val keep_derivs       : deriv_kind ref
   datatype rule = 
       MinProof                          
-    | Oracle of theory * string * Sign.sg * object
-    | Axiom               of theory * string
+    | Oracle		  of string * Sign.sg * object
+    | Axiom               of string
     | Theorem             of string       
     | Assume              of cterm
     | Implies_intr        of cterm
@@ -67,7 +67,7 @@ signature THM =
     | Instantiate         of (indexname * ctyp) list * (cterm * cterm) list
     | Bicompose           of bool * bool * int * int * Envir.env
     | Flexflex_rule       of Envir.env            
-    | Class_triv          of theory * class       
+    | Class_triv          of class       
     | VarifyT
     | FreezeT
     | RewriteC            of cterm
@@ -303,9 +303,9 @@ fun read_cterms sg (bs, Ts) =
   executed in ML.*)
 datatype rule = 
     MinProof                            (*for building minimal proof terms*)
-  | Oracle              of theory * string * Sign.sg * object       (*oracles*)
+  | Oracle              of string * Sign.sg * object       (*oracles*)
 (*Axioms/theorems*)
-  | Axiom               of theory * string
+  | Axiom               of string
   | Theorem             of string
 (*primitive inferences and compound versions of them*)
   | Assume              of cterm
@@ -335,7 +335,7 @@ datatype rule =
   | Bicompose           of bool * bool * int * int * Envir.env
   | Flexflex_rule       of Envir.env            (*identifies unifier chosen*)
 (*other derived rules*)
-  | Class_triv          of theory * class
+  | Class_triv          of class
   | VarifyT
   | FreezeT
 (*for the simplifier*)
@@ -585,7 +585,7 @@ fun get_axiom theory raw_name =
           in case Symtab.lookup (axioms, name) of
                 Some t => fix_shyps [] []
                            (Thm {sign_ref = Sign.self_ref sign,
-                                 der = infer_derivs (Axiom(theory,name), []),
+                                 der = infer_derivs (Axiom name, []),
                                  maxidx = maxidx_of_term t,
                                  shyps = [], 
                                  hyps = [], 
@@ -614,7 +614,7 @@ fun name_thm (name, th as Thm {sign_ref, der, maxidx, shyps, hyps, prop}) =
 fun name_of_thm (Thm {der, ...}) =
   (case der of
     Join (Theorem name, _) => name
-  | Join (Axiom (_, name), _) => name
+  | Join (Axiom name, _) => name
   | _ => "");
 
 
@@ -1095,7 +1095,7 @@ fun class_triv thy c =
   in
     fix_shyps [] []
       (Thm {sign_ref = sign_ref, 
-            der = infer_derivs (Class_triv(thy,c), []), 
+            der = infer_derivs (Class_triv c, []), 
             maxidx = maxidx, 
             shyps = [], 
             hyps = [], 
@@ -2024,7 +2024,7 @@ fun invoke_oracle thy raw_name =
           raise THM ("Oracle's result must have type prop: " ^ name, 0, [])
         else fix_shyps [] []
           (Thm {sign_ref = sign_ref', 
-            der = Join (Oracle (thy, name, sign, exn), []),
+            der = Join (Oracle (name, sign, exn), []),
             maxidx = maxidx,
             shyps = [], 
             hyps = [], 
