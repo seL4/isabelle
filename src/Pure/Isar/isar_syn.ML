@@ -457,6 +457,10 @@ val use_thyP =
   OuterSyntax.improper_command "use_thy" "use theory file"
     (name >> IsarCmd.use_thy);
 
+val use_thy_onlyP =
+  OuterSyntax.improper_command "use_thy_only" "use theory file only, ignoring associated ML"
+    (name >> IsarCmd.use_thy_only);
+
 val update_thyP =
   OuterSyntax.improper_command "update_thy" "update theory file"
     (name >> IsarCmd.update_thy);
@@ -522,8 +526,8 @@ val parsers = [
   print_methodsP, print_theoremsP, print_bindsP, print_lthmsP,
   print_thmsP, print_propP, print_termP, print_typeP,
   (*system commands*)
-  cdP, pwdP, use_thyP, update_thyP, prP, commitP, quitP, exitP,
-  restartP, breakP];
+  cdP, pwdP, use_thyP, use_thy_onlyP, update_thyP, prP, commitP,
+  quitP, exitP, restartP, breakP];
 
 
 end;

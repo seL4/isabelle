@@ -22,6 +22,7 @@ sig
   val cd: string -> Toplevel.transition -> Toplevel.transition
   val pwd: Toplevel.transition -> Toplevel.transition
   val use_thy: string -> Toplevel.transition -> Toplevel.transition
+  val use_thy_only: string -> Toplevel.transition -> Toplevel.transition
   val update_thy: string -> Toplevel.transition -> Toplevel.transition
   val print_theory: Toplevel.transition -> Toplevel.transition
   val print_syntax: Toplevel.transition -> Toplevel.transition
@@ -97,6 +98,7 @@ val pwd = Toplevel.imperative print_cd;
 (* load theory files *)
 
 fun use_thy name = Toplevel.imperative (fn () => Context.save ThyInfo.use_thy name);
+fun use_thy_only name = Toplevel.imperative (fn () => Context.save ThyInfo.use_thy_only name);
 fun update_thy name = Toplevel.imperative (fn () => Context.save ThyInfo.update_thy name);
 
 
