@@ -8,6 +8,10 @@ Converse, domain, range of a relation or function
 
 (*** converse ***)
 
+val converse_iff = prove_goalw ZF.thy [converse_def]
+    "<a,b>: converse(r) <-> <b,a>:r"
+ (fn _ => [ (fast_tac pair_cs 1) ]);
+
 val converseI = prove_goalw ZF.thy [converse_def]
     "!!a b r. <a,b>:r ==> <b,a>:converse(r)"
  (fn _ => [ (fast_tac pair_cs 1) ]);
