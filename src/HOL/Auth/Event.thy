@@ -6,6 +6,9 @@
 Theory of events for security protocols
 
 Datatype of events; function "sees"; freshness
+
+"lost" agents have been broken by the Spy; their private keys and internal
+    stores are visible to him
 *)
 
 Event = Message + List + 
@@ -18,21 +21,22 @@ datatype  (*Messages--could add another constructor for agent knowledge*)
         | Notes agent       msg
 
 consts  
-  sees1 :: [agent, event] => msg set
-
-primrec sees1 event
-           (*Spy reads all traffic whether addressed to him or not*)
-  sees1_Says  "sees1 A (Says A' B X)  = (if A:{B,Spy} then {X} else {})"
-  sees1_Notes "sees1 A (Notes A' X)   = (if A = A'    then {X} else {})"
-
-consts  
-  lost :: agent set        (*agents whose private keys have been compromised*)
+  lost :: agent set        (*compromised agents*)
   sees :: [agent, event list] => msg set
 
 rules
   (*Spy has access to his own key for spoof messages, but Server is secure*)
   Spy_in_lost     "Spy: lost"
   Server_not_lost "Server ~: lost"
+
+consts  
+  sees1 :: [agent, event] => msg set
+
+primrec sees1 event
+           (*Spy reads all traffic whether addressed to him or not*)
+  sees1_Says  "sees1 A (Says A' B X)  = (if A:{B,Spy} then {X} else {})"
+  sees1_Notes "sees1 A (Notes A' X)   = (if A=A' | A=Spy & A':lost then {X}
+					 else {})"
 
 primrec sees list
   sees_Nil  "sees A []       = initState A"

@@ -12,34 +12,59 @@ open Event;
 
 AddIffs [Spy_in_lost, Server_not_lost];
 
-(*** Function "sees" ***)
+(**** Function "sees" ****)
 
-(** Specialized rewrite rules for (sees A (Says...#evs)) **)
+(** Specialized rewrite rules for (sees A' (Says A B X #evs)) **)
 
 goal thy "sees B (Says A B X # evs) = insert X (sees B evs)";
 by (Simp_tac 1);
-qed "sees_own";
-
-goal thy "sees B (Notes A X # evs) = \
-\         (if A=B then insert X (sees B evs) else sees B evs)";
-by (simp_tac (!simpset setloop split_tac [expand_if]) 1);
-qed "sees_Notes";
+qed "sees_own_Says";
 
 (** Three special-case rules for rewriting of sees A **)
 
 goal thy "!!A. Server ~= B ==> \
-\          sees Server (Says A B X # evs) = sees Server evs";
+\              sees Server (Says A B X # evs) = sees Server evs";
 by (Asm_simp_tac 1);
-qed "sees_Server";
+qed "sees_Server_Says";
 
 goal thy "!!A. Friend i ~= B ==> \
-\          sees (Friend i) (Says A B X # evs) = sees (Friend i) evs";
+\              sees (Friend i) (Says A B X # evs) = sees (Friend i) evs";
 by (Asm_simp_tac 1);
-qed "sees_Friend";
+qed "sees_Friend_Says";
 
 goal thy "sees Spy (Says A B X # evs) = insert X (sees Spy evs)";
 by (Simp_tac 1);
-qed "sees_Spy";
+qed "sees_Spy_Says";
+
+
+(** Specialized rewrite rules for (sees A' (Notes A X evs)) **)
+
+goal thy "sees A (Notes A X # evs) = insert X (sees A evs)";
+by (Simp_tac 1);
+qed "sees_own_Notes";
+
+(** Three special-case rules for rewriting of sees A **)
+
+goal thy "!!A. Server ~= A ==> \
+\              sees Server (Notes A X # evs) = sees Server evs";
+by (Asm_simp_tac 1);
+qed "sees_Server_Notes";
+
+goal thy "!!A. Friend i ~= A ==> \
+\              sees (Friend i) (Notes A X # evs) = sees (Friend i) evs";
+by (Asm_simp_tac 1);
+qed "sees_Friend_Notes";
+
+(*The point of letting the Spy see "lost" agents' notes is to prevent
+  redundant case-splits on whether A=Spy and whether A:lost*)
+goal thy "sees Spy (Notes A X # evs) = \
+\         (if A:lost then insert X (sees Spy evs) else sees Spy evs)";
+by (simp_tac (!simpset setloop split_tac [expand_if]) 1);
+by (Blast_tac 1);
+qed "sees_Spy_Notes";
+
+
+(** Other "sees" lemmas **)
 
 goal thy "sees A (Says A' B X # evs) <= insert X (sees A evs)";
 by (simp_tac (!simpset setloop split_tac [expand_if]) 1);
@@ -75,16 +100,24 @@ by (ALLGOALS
 				       setloop split_tac [expand_if]))));
 qed "UN_parts_sees_Notes";
 
+(*Spy sees all traffic*)
 goal thy "Says A B X : set evs --> X : sees Spy evs";
 by (induct_tac "evs" 1);
 by (Auto_tac ());
 qed_spec_mp "Says_imp_sees_Spy";
 
+(*Spy sees Notes of lost agents*)
+goal thy "Notes A X : set evs --> A: lost --> X : sees Spy evs";
+by (induct_tac "evs" 1);
+by (Auto_tac ());
+qed_spec_mp "Notes_imp_sees_Spy";
+
 (*Use with addSEs to derive contradictions from old Says events containing
   items known to be fresh*)
-val sees_Spy_partsEs = make_elim (Says_imp_sees_Spy RS parts.Inj):: partsEs;
+val sees_Spy_partsEs = make_elim (Says_imp_sees_Spy RS parts.Inj) :: partsEs;
 
-Addsimps [sees_own, sees_Notes, sees_Server, sees_Friend, sees_Spy];
+Addsimps [sees_own_Says, sees_Server_Says, sees_Friend_Says, sees_Spy_Says,
+      sees_own_Notes, sees_Server_Notes, sees_Friend_Notes, sees_Spy_Notes];
 
 (**** NOTE REMOVAL--laws above are cleaner--def of sees1 is messy ****)
 Delsimps [sees_Cons];   
@@ -104,8 +137,7 @@ qed "used_Says";
 Addsimps [used_Says];
 
 goal thy "used (Notes A X # evs) = parts{X} Un used evs";
-by (simp_tac (!simpset delsimps [sees_Notes]
-		       addsimps [used_def, UN_parts_sees_Notes]) 1);
+by (simp_tac (!simpset addsimps [used_def, UN_parts_sees_Notes]) 1);
 qed "used_Notes";
 Addsimps [used_Notes];
 
