@@ -5,8 +5,6 @@
 Root of Isabelle's syntax module.
 *)
 
-infix |-> <-| <->;
-
 signature BASIC_SYNTAX =
 sig
   include AST0
@@ -25,9 +23,9 @@ sig
   include MIXFIX1
   include PRINTER0
   datatype 'a trrule =
-    |-> of 'a * 'a |
-    <-| of 'a * 'a |
-    <-> of 'a * 'a
+    ParseRule of 'a * 'a |
+    PrintRule of 'a * 'a |
+    ParsePrintRule of 'a * 'a
   type syntax
   val extend_log_types: syntax -> string list -> syntax
   val extend_type_gram: syntax -> (string * int * mixfix) list -> syntax
@@ -355,11 +353,11 @@ fun read_asts (Syntax tabs) xids root str =
     val chars = SymbolFont.read_charnames (explode str);
     val pts = parse gram root' (tokenize lexicon xids chars);
 
-    fun show_pt pt = writeln (str_of_ast (pt_to_ast (K None) pt));
+    fun show_pt pt = warning (str_of_ast (pt_to_ast (K None) pt));
   in
     if length pts > ! ambiguity_level then
       (warning ("Ambiguous input " ^ quote str);
-       writeln "produces the following parse trees:";
+       warning "produces the following parse trees:";
        seq show_pt pts)
     else ();
     map (pt_to_ast (lookup_trtab parse_ast_trtab)) pts
@@ -395,21 +393,21 @@ fun simple_read_typ str =
 (** prepare translation rules **)
 
 datatype 'a trrule =
-  op |-> of 'a * 'a |
-  op <-| of 'a * 'a |
-  op <-> of 'a * 'a;
+  ParseRule of 'a * 'a |
+  PrintRule of 'a * 'a |
+  ParsePrintRule of 'a * 'a;
 
-fun map_rule f (x |-> y) = (f x |-> f y)
-  | map_rule f (x <-| y) = (f x <-| f y)
-  | map_rule f (x <-> y) = (f x <-> f y);
+fun map_rule f (ParseRule (x, y)) = ParseRule (f x, f y)
+  | map_rule f (PrintRule (x, y)) = PrintRule (f x, f y)
+  | map_rule f (ParsePrintRule (x, y)) = ParsePrintRule (f x, f y);
 
-fun right_rule (pat1 |-> pat2) = Some (pat1, pat2)
-  | right_rule (pat1 <-| pat2) = None
-  | right_rule (pat1 <-> pat2) = Some (pat1, pat2);
+fun parse_rule (ParseRule pats) = Some pats
+  | parse_rule (PrintRule _) = None
+  | parse_rule (ParsePrintRule pats) = Some pats;
 
-fun left_rule (pat1 |-> pat2) = None
-  | left_rule (pat1 <-| pat2) = Some (pat2, pat1)
-  | left_rule (pat1 <-> pat2) = Some (pat2, pat1);
+fun print_rule (ParseRule _) = None
+  | print_rule (PrintRule pats) = Some (swap pats)
+  | print_rule (ParsePrintRule pats) = Some (swap pats);
 
 
 fun check_rule (rule as (lhs, rhs)) =
@@ -439,8 +437,8 @@ fun read_pattern syn (root, str) =
 
 fun prep_rules rd_pat raw_rules =
   let val rules = map (map_rule rd_pat) raw_rules in
-    (map check_rule (mapfilter right_rule rules),
-      map check_rule (mapfilter left_rule rules))
+    (map check_rule (mapfilter parse_rule rules),
+      map check_rule (mapfilter print_rule rules))
   end
 
 
