@@ -28,7 +28,7 @@ qed "length_induct";
 
 (** "lists": the list-forming operator over sets **)
 
-Goalw lists.defs "!!A B. A<=B ==> lists A <= lists B";
+Goalw lists.defs "A<=B ==> lists A <= lists B";
 by (rtac lfp_mono 1);
 by (REPEAT (ares_tac basic_monos 1));
 qed "lists_mono";
@@ -37,7 +37,7 @@ val listsE = lists.mk_cases list.simps  "x#l : lists A";
 AddSEs [listsE];
 AddSIs lists.intrs;
 
-Goal "!!l. l: lists A ==> l: lists B --> l: lists (A Int B)";
+Goal "l: lists A ==> l: lists B --> l: lists (A Int B)";
 by (etac lists.induct 1);
 by (ALLGOALS Blast_tac);
 qed_spec_mp "lists_IntI";
@@ -88,7 +88,7 @@ by (ALLGOALS Asm_simp_tac);
 qed "length_rev";
 Addsimps [length_rev];
 
-Goal "!!xs. xs ~= [] ==> length(tl xs) = (length xs) - 1";
+Goal "xs ~= [] ==> length(tl xs) = (length xs) - 1";
 by (exhaust_tac "xs" 1);
 by (ALLGOALS Asm_full_simp_tac);
 qed "length_tl";
@@ -209,7 +209,7 @@ by (induct_tac "xs" 1);
 by (ALLGOALS Asm_simp_tac);
 qed "hd_append";
 
-Goal "!!xs. xs ~= [] ==> hd(xs @ ys) = hd xs";
+Goal "xs ~= [] ==> hd(xs @ ys) = hd xs";
 by (asm_simp_tac (simpset() addsimps [hd_append]
                            addsplits [split_list_case]) 1);
 qed "hd_append2";
@@ -219,7 +219,7 @@ Goal "tl(xs@ys) = (case xs of [] => tl(ys) | z#zs => zs@ys)";
 by (simp_tac (simpset() addsplits [split_list_case]) 1);
 qed "tl_append";
 
-Goal "!!xs. xs ~= [] ==> tl(xs @ ys) = (tl xs) @ ys";
+Goal "xs ~= [] ==> tl(xs @ ys) = (tl xs) @ ys";
 by (asm_simp_tac (simpset() addsimps [tl_append]
                            addsplits [split_list_case]) 1);
 qed "tl_append2";
@@ -568,12 +568,12 @@ by (induct_tac "xs" 1);
 by (ALLGOALS Asm_simp_tac);
 qed_spec_mp "in_set_butlastD";
 
-Goal "!!xs. x:set(butlast xs) ==> x:set(butlast(xs@ys))";
+Goal "x:set(butlast xs) ==> x:set(butlast(xs@ys))";
 by (asm_simp_tac (simpset() addsimps [butlast_append]) 1);
 by (blast_tac (claset() addDs [in_set_butlastD]) 1);
 qed "in_set_butlast_appendI1";
 
-Goal "!!xs. x:set(butlast ys) ==> x:set(butlast(xs@ys))";
+Goal "x:set(butlast ys) ==> x:set(butlast(xs@ys))";
 by (asm_simp_tac (simpset() addsimps [butlast_append]) 1);
 by (Clarify_tac 1);
 by (Full_simp_tac 1);
@@ -792,7 +792,7 @@ by (induct_tac "n" 1);
 by (ALLGOALS Asm_full_simp_tac);
 val lemma = result();
 
-Goal "!!n. n ~= 0 ==> set(replicate n x) = {x}";
+Goal "n ~= 0 ==> set(replicate n x) = {x}";
 by (fast_tac (claset() addSDs [not0_implies_Suc] addSIs [lemma]) 1);
 qed "set_replicate";
 Addsimps [set_replicate];
