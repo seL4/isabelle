@@ -354,10 +354,6 @@ Goal "(A<=B) = (A Un B = B)";
 by (blast_tac (claset() addSEs [equalityCE]) 1);
 qed "subset_Un_eq";
 
-Goal "(A <= insert b C) = (A <= C | b:A & A-{b} <= C)";
-by (Blast_tac 1);
-qed "subset_insert_iff";
-
 Goal "(A Un B = {}) = (A = {} & B = {})";
 by (blast_tac (claset() addEs [equalityCE]) 1);
 qed "Un_empty";

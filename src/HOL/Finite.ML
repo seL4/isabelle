@@ -41,10 +41,10 @@ qed "finite_UnI";
 (*Every subset of a finite set is finite*)
 Goal "finite B ==> ALL A. A<=B --> finite A";
 by (etac finite_induct 1);
- by (Simp_tac 1);
-by (safe_tac (claset() addSDs [subset_insert_iff RS iffD1]));
-by (eres_inst_tac [("t","A")] (insert_Diff RS subst) 2);
-by (ALLGOALS Asm_simp_tac);
+by (ALLGOALS (simp_tac (simpset() addsimps [subset_insert_iff])));
+by Safe_tac;
+ by (eres_inst_tac [("t","A")] (insert_Diff RS subst) 1);
+ by (ALLGOALS Blast_tac);
 val lemma = result();
 
 Goal "[| A<=B;  finite B |] ==> finite A";
@@ -784,10 +784,10 @@ by (case_tac "finite B" 1);
 by (simp_tac (simpset() addsimps prems) 1);
 by (subgoal_tac 
     "ALL C. C <= B --> (ALL x:C. f x = g x) --> setsum f C = setsum g C" 1);
-by (asm_simp_tac (simpset() addsimps prems) 1); 
+ by (asm_simp_tac (simpset() addsimps prems) 1); 
 by (etac finite_induct 1);
  by (Simp_tac 1);
- by (asm_simp_tac (simpset() addsimps subset_insert_iff::prems) 1); 
+by (asm_simp_tac (simpset() addsimps subset_insert_iff::prems) 1); 
 by (Clarify_tac 1); 
 by (subgoal_tac "finite C" 1);
  by (blast_tac (claset() addDs [rotate_prems 1 finite_subset]) 2); 
@@ -796,7 +796,7 @@ by (subgoal_tac "C = insert x (C-{x})" 1);
 by (etac ssubst 1); 
 by (dtac spec 1); 
 by (mp_tac 1);
- by (asm_full_simp_tac (simpset() addsimps Ball_def::prems) 1); 
+by (asm_full_simp_tac (simpset() addsimps Ball_def::prems) 1); 
 qed "setsum_cong";
 
 
