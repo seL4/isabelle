@@ -16,10 +16,11 @@ fun cs addss ss = cs addbefore asm_full_simp_tac ss 1;
 
 fun Addss ss = (claset := !claset addbefore asm_full_simp_tac ss 1);
 
-(*Maybe swap the safe_tac and simp_tac lines?**)
+(*Designed to be idempotent, except if best_tac instantiates variables
+  in some of the subgoals*)
 fun auto_tac (cs,ss) = 
-    TRY (safe_tac cs) THEN 
     ALLGOALS (asm_full_simp_tac ss) THEN
+    REPEAT (safe_tac cs THEN ALLGOALS (asm_full_simp_tac ss)) THEN
     REPEAT (FIRSTGOAL (best_tac (cs addss ss)));
 
 fun Auto_tac() = auto_tac (!claset, !simpset);
