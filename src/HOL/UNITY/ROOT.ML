@@ -21,3 +21,6 @@ time_use_thy "FP";
 time_use_thy "Reach";
 time_use_thy "Handshake";
 time_use_thy "Lift";
+
+loadpath := "../Auth" :: !loadpath;  (*necessary to find the Auth theories*)
+use_thy"NSP_Bad";
