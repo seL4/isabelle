@@ -180,6 +180,12 @@ by (Blast_tac 1);
 qed "image_set_diff";
 
 
+
+val [major] = Goalw [surj_def] "(!! x. g(f x) = x) ==> surj g";
+by (blast_tac (claset() addIs [major RS sym]) 1);
+qed "surjI";
+
+
 val set_cs = claset() delrules [equalityI];
 
 
