@@ -25,36 +25,36 @@ qed "Transset_sum_Int_subset";
 
 (** Introduction and elimination rules avoid tiresome folding/unfolding **)
 
-goalw QUniv.thy [quniv_def]
+Goalw [quniv_def]
     "!!X A. X <= univ(eclose(A)) ==> X : quniv(A)";
 by (etac PowI 1);
 qed "qunivI";
 
-goalw QUniv.thy [quniv_def]
+Goalw [quniv_def]
     "!!X A. X : quniv(A) ==> X <= univ(eclose(A))";
 by (etac PowD 1);
 qed "qunivD";
 
-goalw QUniv.thy [quniv_def] "!!A B. A<=B ==> quniv(A) <= quniv(B)";
+Goalw [quniv_def] "!!A B. A<=B ==> quniv(A) <= quniv(B)";
 by (etac (eclose_mono RS univ_mono RS Pow_mono) 1);
 qed "quniv_mono";
 
 (*** Closure properties ***)
 
-goalw QUniv.thy [quniv_def] "univ(eclose(A)) <= quniv(A)";
+Goalw [quniv_def] "univ(eclose(A)) <= quniv(A)";
 by (rtac (Transset_iff_Pow RS iffD1) 1);
 by (rtac (Transset_eclose RS Transset_univ) 1);
 qed "univ_eclose_subset_quniv";
 
 (*Key property for proving A_subset_quniv; requires eclose in def of quniv*)
-goal QUniv.thy "univ(A) <= quniv(A)";
+Goal "univ(A) <= quniv(A)";
 by (rtac (arg_subset_eclose RS univ_mono RS subset_trans) 1);
 by (rtac univ_eclose_subset_quniv 1);
 qed "univ_subset_quniv";
 
 bind_thm ("univ_into_quniv", univ_subset_quniv RS subsetD);
 
-goalw QUniv.thy [quniv_def] "Pow(univ(A)) <= quniv(A)";
+Goalw [quniv_def] "Pow(univ(A)) <= quniv(A)";
 by (rtac (arg_subset_eclose RS univ_mono RS Pow_mono) 1);
 qed "Pow_univ_subset_quniv";
 
@@ -73,14 +73,14 @@ val A_into_quniv = A_subset_quniv RS subsetD;
 (*** univ(A) closure for Quine-inspired pairs and injections ***)
 
 (*Quine ordered pairs*)
-goalw QUniv.thy [QPair_def]
+Goalw [QPair_def]
     "!!A a. [| a <= univ(A);  b <= univ(A) |] ==> <a;b> <= univ(A)";
 by (REPEAT (ares_tac [sum_subset_univ] 1));
 qed "QPair_subset_univ";
 
 (** Quine disjoint sum **)
 
-goalw QUniv.thy [QInl_def] "!!A a. a <= univ(A) ==> QInl(a) <= univ(A)";
+Goalw [QInl_def] "!!A a. a <= univ(A) ==> QInl(a) <= univ(A)";
 by (etac (empty_subsetI RS QPair_subset_univ) 1);
 qed "QInl_subset_univ";
 
@@ -91,20 +91,20 @@ val naturals_subset_nat =
 val naturals_subset_univ = 
     [naturals_subset_nat, nat_subset_univ] MRS subset_trans;
 
-goalw QUniv.thy [QInr_def] "!!A a. a <= univ(A) ==> QInr(a) <= univ(A)";
+Goalw [QInr_def] "!!A a. a <= univ(A) ==> QInr(a) <= univ(A)";
 by (etac (nat_1I RS naturals_subset_univ RS QPair_subset_univ) 1);
 qed "QInr_subset_univ";
 
 (*** Closure for Quine-inspired products and sums ***)
 
 (*Quine ordered pairs*)
-goalw QUniv.thy [quniv_def,QPair_def]
+Goalw [quniv_def,QPair_def]
     "!!A a. [| a: quniv(A);  b: quniv(A) |] ==> <a;b> : quniv(A)";
 by (REPEAT (dtac PowD 1));
 by (REPEAT (ares_tac [PowI, sum_subset_univ] 1));
 qed "QPair_in_quniv";
 
-goal QUniv.thy "quniv(A) <*> quniv(A) <= quniv(A)";
+Goal "quniv(A) <*> quniv(A) <= quniv(A)";
 by (REPEAT (ares_tac [subsetI, QPair_in_quniv] 1
      ORELSE eresolve_tac [QSigmaE, ssubst] 1));
 qed "QSigma_quniv";
@@ -113,7 +113,7 @@ bind_thm ("QSigma_subset_quniv",
           [QSigma_mono, QSigma_quniv] MRS subset_trans);
 
 (*The opposite inclusion*)
-goalw QUniv.thy [quniv_def,QPair_def]
+Goalw [quniv_def,QPair_def]
     "!!A a b. <a;b> : quniv(A) ==> a: quniv(A) & b: quniv(A)";
 by (etac ([Transset_eclose RS Transset_univ, PowD] MRS 
           Transset_includes_summands RS conjE) 1);
@@ -122,7 +122,7 @@ qed "quniv_QPair_D";
 
 bind_thm ("quniv_QPair_E", quniv_QPair_D RS conjE);
 
-goal QUniv.thy "<a;b> : quniv(A) <-> a: quniv(A) & b: quniv(A)";
+Goal "<a;b> : quniv(A) <-> a: quniv(A) & b: quniv(A)";
 by (REPEAT (ares_tac [iffI, QPair_in_quniv, quniv_QPair_D] 1
      ORELSE etac conjE 1));
 qed "quniv_QPair_iff";
@@ -130,15 +130,15 @@ qed "quniv_QPair_iff";
 
 (** Quine disjoint sum **)
 
-goalw QUniv.thy [QInl_def] "!!A a. a: quniv(A) ==> QInl(a) : quniv(A)";
+Goalw [QInl_def] "!!A a. a: quniv(A) ==> QInl(a) : quniv(A)";
 by (REPEAT (ares_tac [zero_in_quniv,QPair_in_quniv] 1));
 qed "QInl_in_quniv";
 
-goalw QUniv.thy [QInr_def] "!!A b. b: quniv(A) ==> QInr(b) : quniv(A)";
+Goalw [QInr_def] "!!A b. b: quniv(A) ==> QInr(b) : quniv(A)";
 by (REPEAT (ares_tac [one_in_quniv, QPair_in_quniv] 1));
 qed "QInr_in_quniv";
 
-goal QUniv.thy "quniv(C) <+> quniv(C) <= quniv(C)";
+Goal "quniv(C) <+> quniv(C) <= quniv(C)";
 by (REPEAT (ares_tac [subsetI, QInl_in_quniv, QInr_in_quniv] 1
      ORELSE eresolve_tac [qsumE, ssubst] 1));
 qed "qsum_quniv";
@@ -198,7 +198,7 @@ qed "product_Int_Vfrom_subset";
 
 (*** Intersecting <a;b> with Vfrom... ***)
 
-goalw QUniv.thy [QPair_def,sum_def]
+Goalw [QPair_def,sum_def]
  "!!X. Transset(X) ==>          \
 \      <a;b> Int Vfrom(X, succ(i))  <=  <a Int Vfrom(X,i);  b Int Vfrom(X,i)>";
 by (stac Int_Un_distrib 1);
@@ -211,7 +211,7 @@ qed "QPair_Int_Vfrom_succ_subset";
 
 (*Rule for level i -- preserving the level, not decreasing it*)
 
-goalw QUniv.thy [QPair_def]
+Goalw [QPair_def]
  "!!X. Transset(X) ==>          \
 \      <a;b> Int Vfrom(X,i)  <=  <a Int Vfrom(X,i);  b Int Vfrom(X,i)>";
 by (etac (Transset_Vfrom RS Transset_sum_Int_subset) 1);
@@ -221,7 +221,7 @@ qed "QPair_Int_Vfrom_subset";
 bind_thm ("QPair_Int_Vset_subset_trans", 
           [Transset_0 RS QPair_Int_Vfrom_subset, QPair_mono] MRS subset_trans);
 
-goal QUniv.thy 
+Goal 
  "!!i. [| Ord(i) \
 \      |] ==> <a;b> Int Vset(i)  <=  (UN j:i. <a Int Vset(j); b Int Vset(j)>)";
 by (etac Ord_cases 1 THEN REPEAT_FIRST hyp_subst_tac);

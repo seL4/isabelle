@@ -490,12 +490,12 @@ goal ZF.thy "r-``(A Int B) <= (r-``A) Int (r-``B)";
 by (Blast_tac 1);
 qed "vimage_Int_subset";
 
-goalw thy [function_def]
+Goalw [function_def]
     "!!f. function(f) ==> f-``(A Int B) = (f-``A)  Int  (f-``B)";
 by (Blast_tac 1);
 qed "function_vimage_Int";
 
-goalw thy [function_def]
+Goalw [function_def]
     "!!f. function(f) ==> f-``(A-B) = (f-``A) - (f-``B)";
 by (Blast_tac 1);
 qed "function_vimage_Diff";

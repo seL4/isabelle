@@ -8,7 +8,7 @@ For nat.thy.  Natural numbers in Zermelo-Fraenkel Set Theory
 
 open Nat;
 
-goal Nat.thy "bnd_mono(Inf, %X. {0} Un {succ(i). i:X})";
+Goal "bnd_mono(Inf, %X. {0} Un {succ(i). i:X})";
 by (rtac bnd_monoI 1);
 by (REPEAT (ares_tac [subset_refl, RepFun_mono, Un_mono] 2)); 
 by (cut_facts_tac [infinity] 1);
@@ -20,7 +20,7 @@ val nat_unfold = nat_bnd_mono RS (nat_def RS def_lfp_Tarski);
 
 (** Type checking of 0 and successor **)
 
-goal Nat.thy "0 : nat";
+Goal "0 : nat";
 by (stac nat_unfold 1);
 by (rtac (singletonI RS UnI1) 1);
 qed "nat_0I";
@@ -31,18 +31,18 @@ by (rtac (RepFunI RS UnI2) 1);
 by (resolve_tac prems 1);
 qed "nat_succI";
 
-goal Nat.thy "1 : nat";
+Goal "1 : nat";
 by (rtac (nat_0I RS nat_succI) 1);
 qed "nat_1I";
 
-goal Nat.thy "2 : nat";
+Goal "2 : nat";
 by (rtac (nat_1I RS nat_succI) 1);
 qed "nat_2I";
 
 Addsimps [nat_0I, nat_1I, nat_2I, nat_succI];
 AddSIs   [nat_0I, nat_1I, nat_2I];
 
-goal Nat.thy "bool <= nat";
+Goal "bool <= nat";
 by (REPEAT (ares_tac [subsetI,nat_0I,nat_1I] 1
             ORELSE eresolve_tac [boolE,ssubst] 1));
 qed "bool_subset_nat";
@@ -83,7 +83,7 @@ bind_thm ("nat_0_le", nat_into_Ord RS Ord_0_le);
 (* i: nat ==> i le i; same thing as i<succ(i)  *)
 bind_thm ("nat_le_refl", nat_into_Ord RS le_refl);
 
-goal Nat.thy "Ord(nat)";
+Goal "Ord(nat)";
 by (rtac OrdI 1);
 by (etac (nat_into_Ord RS Ord_is_Transset) 2);
 by (rewtac Transset_def);
@@ -92,7 +92,7 @@ by (etac nat_induct 1);
 by (REPEAT (ares_tac [empty_subsetI,succ_subsetI] 1));
 qed "Ord_nat";
 
-goalw Nat.thy [Limit_def] "Limit(nat)";
+Goalw [Limit_def] "Limit(nat)";
 by (safe_tac (claset() addSIs [ltI, nat_succI, Ord_nat]));
 by (etac ltD 1);
 qed "Limit_nat";
@@ -100,7 +100,7 @@ qed "Limit_nat";
 Addsimps [Ord_nat, Limit_nat];
 AddSIs   [Ord_nat, Limit_nat];
 
-goal Nat.thy "!!i. Limit(i) ==> nat le i";
+Goal "!!i. Limit(i) ==> nat le i";
 by (rtac subset_imp_le 1);
 by (rtac subsetI 1);
 by (etac nat_induct 1);
@@ -115,7 +115,7 @@ val succ_natD = [succI1, asm_rl, Ord_nat] MRS Ord_trans;
 (* [| succ(i): k;  k: nat |] ==> i: k *)
 val succ_in_naturalD = [succI1, asm_rl, nat_into_Ord] MRS Ord_trans;
 
-goal Nat.thy "!!m n. [| m<n;  n: nat |] ==> m: nat";
+Goal "!!m n. [| m<n;  n: nat |] ==> m: nat";
 by (etac ltE 1);
 by (etac (Ord_nat RSN (3,Ord_trans)) 1);
 by (assume_tac 1);
@@ -164,7 +164,7 @@ qed "diff_induct";
 
 (** Induction principle analogous to trancl_induct **)
 
-goal Nat.thy
+Goal
  "!!m. m: nat ==> P(m,succ(m)) --> (ALL x: nat. P(m,x) --> P(m,succ(x))) --> \
 \                 (ALL n:nat. m<n --> P(m,n))";
 by (etac nat_induct 1);
@@ -185,11 +185,11 @@ qed "succ_lt_induct";
 
 (** nat_case **)
 
-goalw Nat.thy [nat_case_def] "nat_case(a,b,0) = a";
+Goalw [nat_case_def] "nat_case(a,b,0) = a";
 by (blast_tac (claset() addIs [the_equality]) 1);
 qed "nat_case_0";
 
-goalw Nat.thy [nat_case_def] "nat_case(a,b,succ(m)) = b(m)";
+Goalw [nat_case_def] "nat_case(a,b,succ(m)) = b(m)";
 by (blast_tac (claset() addIs [the_equality]) 1);
 qed "nat_case_succ";
 
@@ -208,7 +208,7 @@ qed "nat_case_type";
 
 val nat_rec_trans = wf_Memrel RS (nat_rec_def RS def_wfrec RS trans);
 
-goal Nat.thy "nat_rec(0,a,b) = a";
+Goal "nat_rec(0,a,b) = a";
 by (rtac nat_rec_trans 1);
 by (rtac nat_case_0 1);
 qed "nat_rec_0";
@@ -221,12 +221,12 @@ qed "nat_rec_succ";
 
 (** The union of two natural numbers is a natural number -- their maximum **)
 
-goal Nat.thy "!!i j. [| i: nat; j: nat |] ==> i Un j: nat";
+Goal "!!i j. [| i: nat; j: nat |] ==> i Un j: nat";
 by (rtac (Un_least_lt RS ltD) 1);
 by (REPEAT (ares_tac [ltI, Ord_nat] 1));
 qed "Un_nat_type";
 
-goal Nat.thy "!!i j. [| i: nat; j: nat |] ==> i Int j: nat";
+Goal "!!i j. [| i: nat; j: nat |] ==> i Int j: nat";
 by (rtac (Int_greatest_lt RS ltD) 1);
 by (REPEAT (ares_tac [ltI, Ord_nat] 1));
 qed "Int_nat_type";

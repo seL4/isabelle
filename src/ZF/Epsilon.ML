@@ -10,14 +10,14 @@ open Epsilon;
 
 (*** Basic closure properties ***)
 
-goalw Epsilon.thy [eclose_def] "A <= eclose(A)";
+Goalw [eclose_def] "A <= eclose(A)";
 by (rtac (nat_rec_0 RS equalityD2 RS subset_trans) 1);
 by (rtac (nat_0I RS UN_upper) 1);
 qed "arg_subset_eclose";
 
 val arg_into_eclose = arg_subset_eclose RS subsetD;
 
-goalw Epsilon.thy [eclose_def,Transset_def] "Transset(eclose(A))";
+Goalw [eclose_def,Transset_def] "Transset(eclose(A))";
 by (rtac (subsetI RS ballI) 1);
 by (etac UN_E 1);
 by (rtac (nat_succI RS UN_I) 1);
@@ -60,7 +60,7 @@ fun eps_ind_tac a =
 
 (** eclose(A) is the least transitive set including A as a subset. **)
 
-goalw Epsilon.thy [Transset_def]
+Goalw [Transset_def]
     "!!X A n. [| Transset(X);  A<=X;  n: nat |] ==> \
 \             nat_rec(n, A, %m r. Union(r)) <= X";
 by (etac nat_induct 1);
@@ -69,7 +69,7 @@ by (asm_simp_tac (simpset() addsimps [nat_rec_succ]) 1);
 by (Blast_tac 1);
 qed "eclose_least_lemma";
 
-goalw Epsilon.thy [eclose_def]
+Goalw [eclose_def]
      "!!X A. [| Transset(X);  A<=X |] ==> eclose(A) <= X";
 by (rtac (eclose_least_lemma RS UN_least) 1);
 by (REPEAT (assume_tac 1));
@@ -89,7 +89,7 @@ by (rewtac Transset_def);
 by (blast_tac (claset() addIs [step,ecloseD]) 1);
 qed "eclose_induct_down";
 
-goal Epsilon.thy "!!X. Transset(X) ==> eclose(X) = X";
+Goal "!!X. Transset(X) ==> eclose(X) = X";
 by (etac ([eclose_least, arg_subset_eclose] MRS equalityI) 1);
 by (rtac subset_refl 1);
 qed "Transset_eclose_eq_arg";
@@ -98,19 +98,19 @@ qed "Transset_eclose_eq_arg";
 (*** Epsilon recursion ***)
 
 (*Unused...*)
-goal Epsilon.thy "!!A B C. [| A: eclose(B);  B: eclose(C) |] ==> A: eclose(C)";
+Goal "!!A B C. [| A: eclose(B);  B: eclose(C) |] ==> A: eclose(C)";
 by (rtac ([Transset_eclose, eclose_subset] MRS eclose_least RS subsetD) 1);
 by (REPEAT (assume_tac 1));
 qed "mem_eclose_trans";
 
 (*Variant of the previous lemma in a useable form for the sequel*)
-goal Epsilon.thy
+Goal
     "!!A B C. [| A: eclose({B});  B: eclose({C}) |] ==> A: eclose({C})";
 by (rtac ([Transset_eclose, singleton_subsetI] MRS eclose_least RS subsetD) 1);
 by (REPEAT (assume_tac 1));
 qed "mem_eclose_sing_trans";
 
-goalw Epsilon.thy [Transset_def]
+Goalw [Transset_def]
     "!!i j. [| Transset(i);  j:i |] ==> Memrel(i)-``{j} = j";
 by (blast_tac (claset() addSIs [MemrelI] addSEs [MemrelE]) 1);
 qed "under_Memrel";
@@ -136,7 +136,7 @@ by (rtac (arg_in_eclose_sing RS wfrec_eclose_eq) 1);
 by (rtac (prem RS arg_into_eclose_sing) 1);
 qed "wfrec_eclose_eq2";
 
-goalw Epsilon.thy [transrec_def]
+Goalw [transrec_def]
     "transrec(a,H) = H(a, lam x:a. transrec(x,H))";
 by (rtac wfrec_ssubst 1);
 by (simp_tac (simpset() addsimps [wfrec_eclose_eq2, arg_in_eclose_sing,
@@ -158,7 +158,7 @@ by (stac transrec 1);
 by (REPEAT (ares_tac (prems @ [lam_type]) 1 ORELSE etac bspec 1));
 qed "transrec_type";
 
-goal Epsilon.thy "!!i. Ord(i) ==> eclose({i}) <= succ(i)";
+Goal "!!i. Ord(i) ==> eclose({i}) <= succ(i)";
 by (etac (Ord_is_Transset RS Transset_succ RS eclose_least) 1);
 by (rtac (succI1 RS singleton_subsetI) 1);
 qed "eclose_sing_Ord";
@@ -176,12 +176,12 @@ qed "Ord_transrec_type";
 (*** Rank ***)
 
 (*NOT SUITABLE FOR REWRITING -- RECURSIVE!*)
-goal Epsilon.thy "rank(a) = (UN y:a. succ(rank(y)))";
+Goal "rank(a) = (UN y:a. succ(rank(y)))";
 by (stac (rank_def RS def_transrec) 1);
 by (Simp_tac 1);
 qed "rank";
 
-goal Epsilon.thy "Ord(rank(a))";
+Goal "Ord(rank(a))";
 by (eps_ind_tac "a" 1);
 by (stac rank 1);
 by (rtac (Ord_succ RS Ord_UN) 1);
@@ -195,7 +195,7 @@ by (stac rank 1);
 by (asm_simp_tac (simpset() addsimps [Ord_equality]) 1);
 qed "rank_of_Ord";
 
-goal Epsilon.thy "!!a b. a:b ==> rank(a) < rank(b)";
+Goal "!!a b. a:b ==> rank(a) < rank(b)";
 by (res_inst_tac [("a1","b")] (rank RS ssubst) 1);
 by (etac (UN_I RS ltI) 1);
 by (rtac succI1 1);
@@ -209,7 +209,7 @@ by (etac (rank_lt RS lt_trans) 1);
 by (assume_tac 1);
 qed "eclose_rank_lt";
 
-goal Epsilon.thy "!!a b. a<=b ==> rank(a) le rank(b)";
+Goal "!!a b. a<=b ==> rank(a) le rank(b)";
 by (rtac subset_imp_le 1);
 by (stac rank 1);
 by (stac rank 1);
@@ -217,7 +217,7 @@ by (etac UN_mono 1);
 by (REPEAT (resolve_tac [subset_refl, Ord_rank] 1));
 qed "rank_mono";
 
-goal Epsilon.thy "rank(Pow(a)) = succ(rank(a))";
+Goal "rank(Pow(a)) = succ(rank(a))";
 by (rtac (rank RS trans) 1);
 by (rtac le_anti_sym 1);
 by (DO_GOAL [rtac (Ord_rank RS Ord_succ RS UN_least_le),
@@ -226,12 +226,12 @@ by (DO_GOAL [rtac ([Pow_top, le_refl] MRS UN_upper_le),
              REPEAT o rtac (Ord_rank RS Ord_succ)] 1);
 qed "rank_Pow";
 
-goal Epsilon.thy "rank(0) = 0";
+Goal "rank(0) = 0";
 by (rtac (rank RS trans) 1);
 by (Blast_tac 1);
 qed "rank_0";
 
-goal Epsilon.thy "rank(succ(x)) = succ(rank(x))";
+Goal "rank(succ(x)) = succ(rank(x))";
 by (rtac (rank RS trans) 1);
 by (rtac ([UN_least, succI1 RS UN_upper] MRS equalityI) 1);
 by (etac succE 1);
@@ -239,7 +239,7 @@ by (Blast_tac 1);
 by (etac (rank_lt RS leI RS succ_leI RS le_imp_subset) 1);
 qed "rank_succ";
 
-goal Epsilon.thy "rank(Union(A)) = (UN x:A. rank(x))";
+Goal "rank(Union(A)) = (UN x:A. rank(x))";
 by (rtac equalityI 1);
 by (rtac (rank_mono RS le_imp_subset RS UN_least) 2);
 by (etac Union_upper 2);
@@ -251,7 +251,7 @@ by (etac (RepFunI RS Union_upper) 2);
 by (etac (rank_lt RS succ_leI RS le_imp_subset) 1);
 qed "rank_Union";
 
-goal Epsilon.thy "rank(eclose(a)) = rank(a)";
+Goal "rank(eclose(a)) = rank(a)";
 by (rtac le_anti_sym 1);
 by (rtac (arg_subset_eclose RS rank_mono) 2);
 by (res_inst_tac [("a1","eclose(a)")] (rank RS ssubst) 1);
@@ -259,24 +259,24 @@ by (rtac (Ord_rank RS UN_least_le) 1);
 by (etac (eclose_rank_lt RS succ_leI) 1);
 qed "rank_eclose";
 
-goalw Epsilon.thy [Pair_def] "rank(a) < rank(<a,b>)";
+Goalw [Pair_def] "rank(a) < rank(<a,b>)";
 by (rtac (consI1 RS rank_lt RS lt_trans) 1);
 by (rtac (consI1 RS consI2 RS rank_lt) 1);
 qed "rank_pair1";
 
-goalw Epsilon.thy [Pair_def] "rank(b) < rank(<a,b>)";
+Goalw [Pair_def] "rank(b) < rank(<a,b>)";
 by (rtac (consI1 RS consI2 RS rank_lt RS lt_trans) 1);
 by (rtac (consI1 RS consI2 RS rank_lt) 1);
 qed "rank_pair2";
 
 (*** Corollaries of leastness ***)
 
-goal Epsilon.thy "!!A B. A:B ==> eclose(A)<=eclose(B)";
+Goal "!!A B. A:B ==> eclose(A)<=eclose(B)";
 by (rtac (Transset_eclose RS eclose_least) 1);
 by (etac (arg_into_eclose RS eclose_subset) 1);
 qed "mem_eclose_subset";
 
-goal Epsilon.thy "!!A B. A<=B ==> eclose(A) <= eclose(B)";
+Goal "!!A B. A<=B ==> eclose(A) <= eclose(B)";
 by (rtac (Transset_eclose RS eclose_least) 1);
 by (etac subset_trans 1);
 by (rtac arg_subset_eclose 1);
@@ -284,7 +284,7 @@ qed "eclose_mono";
 
 (** Idempotence of eclose **)
 
-goal Epsilon.thy "eclose(eclose(A)) = eclose(A)";
+Goal "eclose(eclose(A)) = eclose(A)";
 by (rtac equalityI 1);
 by (rtac ([Transset_eclose, subset_refl] MRS eclose_least) 1);
 by (rtac arg_subset_eclose 1);
@@ -293,23 +293,23 @@ qed "eclose_idem";
 (*Transfinite recursion for definitions based on the three cases of ordinals.
 *)
 
-goal thy "transrec2(0,a,b) = a";
+Goal "transrec2(0,a,b) = a";
 by (rtac (transrec2_def RS def_transrec RS trans) 1);
 by (Simp_tac 1);
 qed "transrec2_0";
 
-goal thy "(THE j. i=j) = i";
+Goal "(THE j. i=j) = i";
 by (blast_tac (claset() addSIs [the_equality]) 1);
 qed "THE_eq";
 
-goal thy "transrec2(succ(i),a,b) = b(i, transrec2(i,a,b))";
+Goal "transrec2(succ(i),a,b) = b(i, transrec2(i,a,b))";
 by (rtac (transrec2_def RS def_transrec RS trans) 1);
 by (simp_tac (simpset() addsimps [succ_not_0, THE_eq, if_P]
                     setloop split_tac [expand_if]) 1);
 by (Blast_tac 1);
 qed "transrec2_succ";
 
-goal thy "!!i. Limit(i) ==> transrec2(i,a,b) = (UN j<i. transrec2(j,a,b))";
+Goal "!!i. Limit(i) ==> transrec2(i,a,b) = (UN j<i. transrec2(j,a,b))";
 by (rtac (transrec2_def RS def_transrec RS trans) 1);
 by (simp_tac (simpset() setloop split_tac [expand_if]) 1);
 by (blast_tac (claset() addSDs [Limit_has_0] addSEs [succ_LimitE]) 1);

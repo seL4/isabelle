@@ -8,7 +8,7 @@ Transitive closure of a relation
 
 open Trancl;
 
-goal Trancl.thy "bnd_mono(field(r)*field(r), %s. id(field(r)) Un (r O s))";
+Goal "bnd_mono(field(r)*field(r), %s. id(field(r)) Un (r O s))";
 by (rtac bnd_monoI 1);
 by (REPEAT (ares_tac [subset_refl, Un_mono, comp_mono] 2));
 by (Blast_tac 1);
@@ -54,7 +54,7 @@ by (cut_facts_tac prems 1);
 by (blast_tac (claset() addIs [r_into_rtrancl]) 1);
 qed "r_subset_rtrancl";
 
-goal Trancl.thy "field(r^*) = field(r)";
+Goal "field(r^*) = field(r)";
 by (blast_tac (claset() addIs [r_into_rtrancl] 
                     addSDs [rtrancl_type RS subsetD]) 1);
 qed "rtrancl_field";
@@ -89,7 +89,7 @@ by (ALLGOALS (blast_tac (claset() addIs prems)));
 qed "rtrancl_induct";
 
 (*transitivity of transitive closure!! -- by induction.*)
-goalw Trancl.thy [trans_def] "trans(r^*)";
+Goalw [trans_def] "trans(r^*)";
 by (REPEAT (resolve_tac [allI,impI] 1));
 by (eres_inst_tac [("b","z")] rtrancl_induct 1);
 by (DEPTH_SOLVE (eresolve_tac [asm_rl, rtrancl_into_rtrancl] 1));
@@ -110,29 +110,29 @@ qed "rtranclE";
 (**** The relation trancl ****)
 
 (*Transitivity of r^+ is proved by transitivity of r^*  *)
-goalw Trancl.thy [trans_def,trancl_def] "trans(r^+)";
+Goalw [trans_def,trancl_def] "trans(r^+)";
 by (blast_tac (claset() addIs [rtrancl_into_rtrancl RS 
 			      (trans_rtrancl RS transD RS compI)]) 1);
 qed "trans_trancl";
 
 (** Conversions between trancl and rtrancl **)
 
-goalw Trancl.thy [trancl_def] "!!r. <a,b> : r^+ ==> <a,b> : r^*";
+Goalw [trancl_def] "!!r. <a,b> : r^+ ==> <a,b> : r^*";
 by (blast_tac (claset() addIs [rtrancl_into_rtrancl]) 1);
 qed "trancl_into_rtrancl";
 
 (*r^+ contains all pairs in r  *)
-goalw Trancl.thy [trancl_def] "!!r. <a,b> : r ==> <a,b> : r^+";
+Goalw [trancl_def] "!!r. <a,b> : r ==> <a,b> : r^+";
 by (blast_tac (claset() addSIs [rtrancl_refl]) 1);
 qed "r_into_trancl";
 
 (*The premise ensures that r consists entirely of pairs*)
-goal Trancl.thy "!!r. r <= Sigma(A,B) ==> r <= r^+";
+Goal "!!r. r <= Sigma(A,B) ==> r <= r^+";
 by (blast_tac (claset() addIs [r_into_trancl]) 1);
 qed "r_subset_trancl";
 
 (*intro rule by definition: from r^* and r  *)
-goalw Trancl.thy [trancl_def]
+Goalw [trancl_def]
     "!!r. [| <a,b> : r^*;  <b,c> : r |]   ==>  <a,c> : r^+";
 by (Blast_tac 1);
 qed "rtrancl_into_trancl1";
@@ -174,7 +174,7 @@ by (etac rtranclE 1);
 by (ALLGOALS (blast_tac (claset() addIs [rtrancl_into_trancl1])));
 qed "tranclE";
 
-goalw Trancl.thy [trancl_def] "r^+ <= field(r)*field(r)";
+Goalw [trancl_def] "r^+ <= field(r)*field(r)";
 by (blast_tac (claset() addEs [rtrancl_type RS subsetD RS SigmaE2]) 1);
 qed "trancl_type";
 

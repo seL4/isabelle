@@ -25,12 +25,12 @@ qed "Inter_lemma0";
 
 (*** Section 2.  The Transfinite Construction ***)
 
-goalw Zorn.thy [increasing_def]
+Goalw [increasing_def]
     "!!f A. f: increasing(A) ==> f: Pow(A)->Pow(A)";
 by (etac CollectD1 1);
 qed "increasingD1";
 
-goalw Zorn.thy [increasing_def]
+Goalw [increasing_def]
     "!!f A. [| f: increasing(A); x<=A |] ==> x <= f`x";
 by (eresolve_tac [CollectD2 RS spec RS mp] 1);
 by (assume_tac 1);
@@ -106,7 +106,7 @@ by (REPEAT (ares_tac [TFin_is_subset] 1));
 qed "TFin_linear_lemma2";
 
 (*a more convenient form for Lemma 2*)
-goal Zorn.thy
+Goal
     "!!m n. [| n<=m;  m: TFin(S,next);  n: TFin(S,next);  next: increasing(S) \
 \           |] ==> n=m | next`n<=m";
 by (rtac (TFin_linear_lemma2 RS bspec RS mp) 1);
@@ -114,7 +114,7 @@ by (REPEAT (assume_tac 1));
 qed "TFin_subsetD";
 
 (*Consequences from section 3.3 -- Property 3.2, the ordering is total*)
-goal Zorn.thy
+Goal
     "!!m n. [| m: TFin(S,next);  n: TFin(S,next);  next: increasing(S) \
 \           |] ==> n<=m | m<=n";
 by (rtac (TFin_linear_lemma2 RSN (3,TFin_linear_lemma1) RS disjE) 1);
@@ -136,7 +136,7 @@ by (blast_tac (subset_cs addIs [TFin_is_subset]) 1);
 qed "equal_next_upper";
 
 (*Property 3.3 of section 3.3*)
-goal Zorn.thy
+Goal
     "!!m. [| m: TFin(S,next);  next: increasing(S) \
 \         |] ==> m = next`m <-> m = Union(TFin(S,next))";
 by (rtac iffI 1);
@@ -155,19 +155,19 @@ qed "equal_next_Union";
 
 (** Defining the "next" operation for Hausdorff's Theorem **)
 
-goalw Zorn.thy [chain_def] "chain(A) <= Pow(A)";
+Goalw [chain_def] "chain(A) <= Pow(A)";
 by (rtac Collect_subset 1);
 qed "chain_subset_Pow";
 
-goalw Zorn.thy [super_def] "super(A,c) <= chain(A)";
+Goalw [super_def] "super(A,c) <= chain(A)";
 by (rtac Collect_subset 1);
 qed "super_subset_chain";
 
-goalw Zorn.thy [maxchain_def] "maxchain(A) <= chain(A)";
+Goalw [maxchain_def] "maxchain(A) <= chain(A)";
 by (rtac Collect_subset 1);
 qed "maxchain_subset_chain";
 
-goal Zorn.thy
+Goal
     "!!S. [| ch : (PROD X:Pow(chain(S)) - {0}. X);      \
 \            X : chain(S);  X ~: maxchain(S)            \
 \         |] ==> ch ` super(S,X) : super(S,X)";
@@ -176,7 +176,7 @@ by (rewrite_goals_tac [super_def, maxchain_def]);
 by (Blast_tac 1);
 qed "choice_super";
 
-goal Zorn.thy
+Goal
     "!!S. [| ch : (PROD X:Pow(chain(S)) - {0}. X);      \
 \            X : chain(S);  X ~: maxchain(S)            \
 \         |] ==> ch ` super(S,X) ~= X";
@@ -188,7 +188,7 @@ by (asm_full_simp_tac (simpset() addsimps [super_def]) 1);
 qed "choice_not_equals";
 
 (*This justifies Definition 4.4*)
-goal Zorn.thy
+Goal
     "!!S. ch: (PROD X: Pow(chain(S))-{0}. X) ==>        \
 \          EX next: increasing(S). ALL X: Pow(S).       \
 \                     next`X = if(X: chain(S)-maxchain(S), ch`super(S,X), X)";
@@ -214,7 +214,7 @@ by (Blast_tac 1);
 qed "Hausdorff_next_exists";
 
 (*Lemma 4*)
-goal Zorn.thy
+Goal
  "!!S. [| c: TFin(S,next);                              \
 \         ch: (PROD X: Pow(chain(S))-{0}. X);           \
 \         next: increasing(S);                          \
@@ -233,7 +233,7 @@ by (res_inst_tac  [("m1","B"), ("n1","Ba")] (TFin_subset_linear RS disjE) 1);
 by (ALLGOALS Fast_tac);
 qed "TFin_chain_lemma4";
 
-goal Zorn.thy "EX c. c : maxchain(S)";
+Goal "EX c. c : maxchain(S)";
 by (rtac (AC_Pi_Pow RS exE) 1);
 by (rtac (Hausdorff_next_exists RS bexE) 1);
 by (assume_tac 1);
@@ -260,12 +260,12 @@ qed "Hausdorff";
                                then S contains a maximal element ***)
 
 (*Used in the proof of Zorn's Lemma*)
-goalw Zorn.thy [chain_def]
+Goalw [chain_def]
     "!!c. [| c: chain(A);  z: A;  ALL x:c. x<=z |] ==> cons(z,c) : chain(A)";
 by (Blast_tac 1);
 qed "chain_extend";
 
-goal Zorn.thy
+Goal
     "!!S. ALL c: chain(S). Union(c) : S ==> EX y:S. ALL z:S. y<=z --> y=z";
 by (resolve_tac [Hausdorff RS exE] 1);
 by (asm_full_simp_tac (simpset() addsimps [maxchain_def]) 1);
@@ -302,7 +302,7 @@ by (Blast_tac 1);
 qed "TFin_well_lemma5";
 
 (*Well-ordering of TFin(S,next)*)
-goal Zorn.thy "!!Z. [| Z <= TFin(S,next);  z:Z |] ==> Inter(Z) : Z";
+Goal "!!Z. [| Z <= TFin(S,next);  z:Z |] ==> Inter(Z) : Z";
 by (rtac classical 1);
 by (subgoal_tac "Z = {Union(TFin(S,next))}" 1);
 by (asm_simp_tac (simpset() addsimps [Inter_singleton]) 1);
@@ -313,7 +313,7 @@ by (REPEAT_SOME (eresolve_tac [asm_rl,subsetD]));
 qed "well_ord_TFin_lemma";
 
 (*This theorem just packages the previous result*)
-goal Zorn.thy
+Goal
     "!!S. next: increasing(S) ==> \
 \         well_ord(TFin(S,next), Subset_rel(TFin(S,next)))";
 by (rtac well_ordI 1);
@@ -344,7 +344,7 @@ by (blast_tac (claset() addSEs [equalityE]) 1);
 qed "choice_Diff";
 
 (*This justifies Definition 6.1*)
-goal Zorn.thy
+Goal
     "!!S. ch: (PROD X: Pow(S)-{0}. X) ==>               \
 \          EX next: increasing(S). ALL X: Pow(S).       \
 \                     next`X = if(X=S, S, cons(ch`(S-X), X))";
@@ -368,7 +368,7 @@ qed "Zermelo_next_exists";
 
 
 (*The construction of the injection*)
-goal Zorn.thy
+Goal
   "!!S. [| ch: (PROD X: Pow(S)-{0}. X);                 \
 \          next: increasing(S);                         \
 \          ALL X: Pow(S). next`X = if(X=S, S, cons(ch`(S-X), X))        \
@@ -404,7 +404,7 @@ by (REPEAT (eresolve_tac [asm_rl, consE, sym, notE] 1));
 qed "choice_imp_injection";
 
 (*The wellordering theorem*)
-goal Zorn.thy "EX r. well_ord(S,r)";
+Goal "EX r. well_ord(S,r)";
 by (rtac (AC_Pi_Pow RS exE) 1);
 by (rtac (Zermelo_next_exists RS bexE) 1);
 by (assume_tac 1);

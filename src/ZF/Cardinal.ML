@@ -14,7 +14,7 @@ open Cardinal;
 
 (** Lemma: Banach's Decomposition Theorem **)
 
-goal Cardinal.thy "bnd_mono(X, %W. X - g``(Y - f``W))";
+Goal "bnd_mono(X, %W. X - g``(Y - f``W))";
 by (rtac bnd_monoI 1);
 by (REPEAT (ares_tac [Diff_subset, subset_refl, Diff_mono, image_mono] 1));
 qed "decomp_bnd_mono";
@@ -54,25 +54,25 @@ qed "schroeder_bernstein";
 
 (** Equipollence is an equivalence relation **)
 
-goalw Cardinal.thy [eqpoll_def] "!!f A B. f: bij(A,B) ==> A eqpoll B";
+Goalw [eqpoll_def] "!!f A B. f: bij(A,B) ==> A eqpoll B";
 by (etac exI 1);
 qed "bij_imp_eqpoll";
 
 (*A eqpoll A*)
 bind_thm ("eqpoll_refl", id_bij RS bij_imp_eqpoll);
 
-goalw Cardinal.thy [eqpoll_def] "!!X Y. X eqpoll Y ==> Y eqpoll X";
+Goalw [eqpoll_def] "!!X Y. X eqpoll Y ==> Y eqpoll X";
 by (blast_tac (claset() addIs [bij_converse_bij]) 1);
 qed "eqpoll_sym";
 
-goalw Cardinal.thy [eqpoll_def]
+Goalw [eqpoll_def]
     "!!X Y. [| X eqpoll Y;  Y eqpoll Z |] ==> X eqpoll Z";
 by (blast_tac (claset() addIs [comp_bij]) 1);
 qed "eqpoll_trans";
 
 (** Le-pollence is a partial ordering **)
 
-goalw Cardinal.thy [lepoll_def] "!!X Y. X<=Y ==> X lepoll Y";
+Goalw [lepoll_def] "!!X Y. X<=Y ==> X lepoll Y";
 by (rtac exI 1);
 by (etac id_subset_inj 1);
 qed "subset_imp_lepoll";
@@ -81,18 +81,18 @@ bind_thm ("lepoll_refl", subset_refl RS subset_imp_lepoll);
 
 bind_thm ("le_imp_lepoll", le_imp_subset RS subset_imp_lepoll);
 
-goalw Cardinal.thy [eqpoll_def, bij_def, lepoll_def]
+Goalw [eqpoll_def, bij_def, lepoll_def]
     "!!X Y. X eqpoll Y ==> X lepoll Y";
 by (Blast_tac 1);
 qed "eqpoll_imp_lepoll";
 
-goalw Cardinal.thy [lepoll_def]
+Goalw [lepoll_def]
     "!!X Y. [| X lepoll Y;  Y lepoll Z |] ==> X lepoll Z";
 by (blast_tac (claset() addIs [comp_inj]) 1);
 qed "lepoll_trans";
 
 (*Asymmetry law*)
-goalw Cardinal.thy [lepoll_def,eqpoll_def]
+Goalw [lepoll_def,eqpoll_def]
     "!!X Y. [| X lepoll Y;  Y lepoll X |] ==> X eqpoll Y";
 by (REPEAT (etac exE 1));
 by (rtac schroeder_bernstein 1);
@@ -105,22 +105,22 @@ by (rtac minor 1);
 by (REPEAT (resolve_tac [major, eqpoll_imp_lepoll, eqpoll_sym] 1));
 qed "eqpollE";
 
-goal Cardinal.thy "X eqpoll Y <-> X lepoll Y & Y lepoll X";
+Goal "X eqpoll Y <-> X lepoll Y & Y lepoll X";
 by (blast_tac (claset() addIs [eqpollI] addSEs [eqpollE]) 1);
 qed "eqpoll_iff";
 
-goalw Cardinal.thy [lepoll_def, inj_def] "!!A. A lepoll 0 ==> A = 0";
+Goalw [lepoll_def, inj_def] "!!A. A lepoll 0 ==> A = 0";
 by (blast_tac (claset() addDs [apply_type]) 1);
 qed "lepoll_0_is_0";
 
 (*0 lepoll Y*)
 bind_thm ("empty_lepollI", empty_subsetI RS subset_imp_lepoll);
 
-goal Cardinal.thy "A lepoll 0 <-> A=0";
+Goal "A lepoll 0 <-> A=0";
 by (blast_tac (claset() addIs [lepoll_0_is_0, lepoll_refl]) 1);
 qed "lepoll_0_iff";
 
-goalw Cardinal.thy [lepoll_def] 
+Goalw [lepoll_def] 
     "!!A. [| A lepoll B; C lepoll D; B Int D = 0 |] ==> A Un C lepoll B Un D";
 by (blast_tac (claset() addIs [inj_disjoint_Un]) 1);
 qed "Un_lepoll_Un";
@@ -128,11 +128,11 @@ qed "Un_lepoll_Un";
 (*A eqpoll 0 ==> A=0*)
 bind_thm ("eqpoll_0_is_0",  eqpoll_imp_lepoll RS lepoll_0_is_0);
 
-goal Cardinal.thy "A eqpoll 0 <-> A=0";
+Goal "A eqpoll 0 <-> A=0";
 by (blast_tac (claset() addIs [eqpoll_0_is_0, eqpoll_refl]) 1);
 qed "eqpoll_0_iff";
 
-goalw Cardinal.thy [eqpoll_def] 
+Goalw [eqpoll_def] 
     "!!A. [| A eqpoll B;  C eqpoll D;  A Int C = 0;  B Int D = 0 |] ==> \
 \         A Un C eqpoll B Un D";
 by (blast_tac (claset() addIs [bij_disjoint_Un]) 1);
@@ -141,20 +141,20 @@ qed "eqpoll_disjoint_Un";
 
 (*** lesspoll: contributions by Krzysztof Grabczewski ***)
 
-goalw Cardinal.thy [lesspoll_def] "!!A. A lesspoll B ==> A lepoll B";
+Goalw [lesspoll_def] "!!A. A lesspoll B ==> A lepoll B";
 by (Blast_tac 1);
 qed "lesspoll_imp_lepoll";
 
-goalw Cardinal.thy [lepoll_def]
+Goalw [lepoll_def]
         "!!A. [| A lepoll B; well_ord(B,r) |] ==> EX s. well_ord(A,s)";
 by (blast_tac (claset() addIs [well_ord_rvimage]) 1);
 qed "lepoll_well_ord";
 
-goalw Cardinal.thy [lesspoll_def] "A lepoll B <-> A lesspoll B | A eqpoll B";
+Goalw [lesspoll_def] "A lepoll B <-> A lesspoll B | A eqpoll B";
 by (blast_tac (claset() addSIs [eqpollI] addSEs [eqpollE]) 1);
 qed "lepoll_iff_leqpoll";
 
-goalw Cardinal.thy [inj_def, surj_def] 
+Goalw [inj_def, surj_def] 
   "!!f. [| f : inj(A, succ(m)); f ~: surj(A, succ(m)) |] ==> EX f. f:inj(A,m)";
 by (safe_tac (claset_of ZF.thy));
 by (swap_res_tac [exI] 1);
@@ -168,17 +168,17 @@ qed "inj_not_surj_succ";
 
 (** Variations on transitivity **)
 
-goalw Cardinal.thy [lesspoll_def]
+Goalw [lesspoll_def]
       "!!X. [| X lesspoll Y; Y lesspoll Z |] ==> X lesspoll Z";
 by (blast_tac (claset() addSEs [eqpollE] addIs [eqpollI, lepoll_trans]) 1);
 qed "lesspoll_trans";
 
-goalw Cardinal.thy [lesspoll_def]
+Goalw [lesspoll_def]
       "!!X. [| X lesspoll Y; Y lepoll Z |] ==> X lesspoll Z";
 by (blast_tac (claset() addSEs [eqpollE] addIs [eqpollI, lepoll_trans]) 1);
 qed "lesspoll_lepoll_lesspoll";
 
-goalw Cardinal.thy [lesspoll_def] 
+Goalw [lesspoll_def] 
       "!!X. [| X lesspoll Y; Z lepoll X |] ==> Z lesspoll Y";
 by (blast_tac (claset() addSEs [eqpollE] addIs [eqpollI, lepoll_trans]) 1);
 qed "lepoll_lesspoll_lesspoll";
@@ -195,7 +195,7 @@ by (etac (premOrd RS Ord_linear_lt) 1);
 by (ALLGOALS (blast_tac (claset() addSIs [premP] addSDs [premNot])));
 qed "Least_equality";
 
-goal Cardinal.thy "!!i. [| P(i);  Ord(i) |] ==> P(LEAST x. P(x))";
+Goal "!!i. [| P(i);  Ord(i) |] ==> P(LEAST x. P(x))";
 by (etac rev_mp 1);
 by (trans_ind_tac "i" [] 1);
 by (rtac impI 1);
@@ -206,7 +206,7 @@ by (blast_tac (claset() addSEs [ltE]) 1);
 qed "LeastI";
 
 (*Proof is almost identical to the one above!*)
-goal Cardinal.thy "!!i. [| P(i);  Ord(i) |] ==> (LEAST x. P(x)) le i";
+Goal "!!i. [| P(i);  Ord(i) |] ==> (LEAST x. P(x)) le i";
 by (etac rev_mp 1);
 by (trans_ind_tac "i" [] 1);
 by (rtac impI 1);
@@ -217,7 +217,7 @@ by (blast_tac (claset() addEs [ltE] addIs [leI, ltI, lt_trans1]) 1);
 qed "Least_le";
 
 (*LEAST really is the smallest*)
-goal Cardinal.thy "!!i. [| P(i);  i < (LEAST x. P(x)) |] ==> Q";
+Goal "!!i. [| P(i);  i < (LEAST x. P(x)) |] ==> Q";
 by (rtac (Least_le RSN (2,lt_trans2) RS lt_irrefl) 1);
 by (REPEAT (eresolve_tac [asm_rl, ltE] 1));
 qed "less_LeastE";
@@ -231,13 +231,13 @@ qed_goal "LeastI2" Cardinal.thy
                 resolve_tac prems 1 ]);
 
 (*If there is no such P then LEAST is vacuously 0*)
-goalw Cardinal.thy [Least_def]
+Goalw [Least_def]
     "!!P. [| ~ (EX i. Ord(i) & P(i)) |] ==> (LEAST x. P(x)) = 0";
 by (rtac the_0 1);
 by (Blast_tac 1);
 qed "Least_0";
 
-goal Cardinal.thy "Ord(LEAST x. P(x))";
+Goal "Ord(LEAST x. P(x))";
 by (excluded_middle_tac "EX i. Ord(i) & P(i)" 1);
 by Safe_tac;
 by (rtac (Least_le RS ltE) 2);
@@ -257,13 +257,13 @@ qed "Least_cong";
 
 (*Need AC to get X lepoll Y ==> |X| le |Y|;  see well_ord_lepoll_imp_Card_le
   Converse also requires AC, but see well_ord_cardinal_eqE*)
-goalw Cardinal.thy [eqpoll_def,cardinal_def] "!!X Y. X eqpoll Y ==> |X| = |Y|";
+Goalw [eqpoll_def,cardinal_def] "!!X Y. X eqpoll Y ==> |X| = |Y|";
 by (rtac Least_cong 1);
 by (blast_tac (claset() addIs [comp_bij, bij_converse_bij]) 1);
 qed "cardinal_cong";
 
 (*Under AC, the premise becomes trivial; one consequence is ||A|| = |A|*)
-goalw Cardinal.thy [cardinal_def]
+Goalw [cardinal_def]
     "!!A. well_ord(A,r) ==> |A| eqpoll A";
 by (rtac LeastI 1);
 by (etac Ord_ordertype 2);
@@ -273,14 +273,14 @@ qed "well_ord_cardinal_eqpoll";
 (* Ord(A) ==> |A| eqpoll A *)
 bind_thm ("Ord_cardinal_eqpoll", well_ord_Memrel RS well_ord_cardinal_eqpoll);
 
-goal Cardinal.thy
+Goal
     "!!X Y. [| well_ord(X,r);  well_ord(Y,s);  |X| = |Y| |] ==> X eqpoll Y";
 by (rtac (eqpoll_sym RS eqpoll_trans) 1);
 by (etac well_ord_cardinal_eqpoll 1);
 by (asm_simp_tac (simpset() addsimps [well_ord_cardinal_eqpoll]) 1);
 qed "well_ord_cardinal_eqE";
 
-goal Cardinal.thy
+Goal
     "!!X Y. [| well_ord(X,r);  well_ord(Y,s) |] ==> |X| = |Y| <-> X eqpoll Y";
 by (blast_tac (claset() addIs [cardinal_cong, well_ord_cardinal_eqE]) 1);
 qed "well_ord_cardinal_eqpoll_iff";
@@ -288,11 +288,11 @@ qed "well_ord_cardinal_eqpoll_iff";
 
 (** Observations from Kunen, page 28 **)
 
-goalw Cardinal.thy [cardinal_def] "!!i. Ord(i) ==> |i| le i";
+Goalw [cardinal_def] "!!i. Ord(i) ==> |i| le i";
 by (etac (eqpoll_refl RS Least_le) 1);
 qed "Ord_cardinal_le";
 
-goalw Cardinal.thy [Card_def] "!!K. Card(K) ==> |K| = K";
+Goalw [Card_def] "!!K. Card(K) ==> |K| = K";
 by (etac sym 1);
 qed "Card_cardinal_eq";
 
@@ -303,21 +303,21 @@ by (stac Least_equality 1);
 by (REPEAT (ares_tac ([refl,eqpoll_refl]@prems) 1));
 qed "CardI";
 
-goalw Cardinal.thy [Card_def, cardinal_def] "!!i. Card(i) ==> Ord(i)";
+Goalw [Card_def, cardinal_def] "!!i. Card(i) ==> Ord(i)";
 by (etac ssubst 1);
 by (rtac Ord_Least 1);
 qed "Card_is_Ord";
 
-goal Cardinal.thy "!!K. Card(K) ==> K le |K|";
+Goal "!!K. Card(K) ==> K le |K|";
 by (asm_simp_tac (simpset() addsimps [le_refl, Card_is_Ord, Card_cardinal_eq]) 1);
 qed "Card_cardinal_le";
 
-goalw Cardinal.thy [cardinal_def] "Ord(|A|)";
+Goalw [cardinal_def] "Ord(|A|)";
 by (rtac Ord_Least 1);
 qed "Ord_cardinal";
 
 (*The cardinals are the initial ordinals*)
-goal Cardinal.thy "Card(K) <-> Ord(K) & (ALL j. j<K --> ~ j eqpoll K)";
+Goal "Card(K) <-> Ord(K) & (ALL j. j<K --> ~ j eqpoll K)";
 by (safe_tac (claset() addSIs [CardI, Card_is_Ord]));
 by (Blast_tac 2);
 by (rewrite_goals_tac [Card_def, cardinal_def]);
@@ -326,12 +326,12 @@ by (etac subst 2);
 by (ALLGOALS assume_tac);
 qed "Card_iff_initial";
 
-goalw Cardinal.thy [lesspoll_def] "!!a. [| Card(a); i<a |] ==> i lesspoll a";
+Goalw [lesspoll_def] "!!a. [| Card(a); i<a |] ==> i lesspoll a";
 by (dresolve_tac [Card_iff_initial RS iffD1] 1);
 by (blast_tac (claset() addSIs [leI RS le_imp_lepoll]) 1);
 qed "lt_Card_imp_lesspoll";
 
-goal Cardinal.thy "Card(0)";
+Goal "Card(0)";
 by (rtac (Ord_0 RS CardI) 1);
 by (blast_tac (claset() addSEs [ltE]) 1);
 qed "Card_0";
@@ -347,7 +347,7 @@ qed "Card_Un";
 
 (*Infinite unions of cardinals?  See Devlin, Lemma 6.7, page 98*)
 
-goalw Cardinal.thy [cardinal_def] "Card(|A|)";
+Goalw [cardinal_def] "Card(|A|)";
 by (excluded_middle_tac "EX i. Ord(i) & i eqpoll A" 1);
 by (etac (Least_0 RS ssubst) 1 THEN rtac Card_0 1);
 by (rtac (Ord_Least RS CardI) 1);
@@ -359,7 +359,7 @@ by (REPEAT (ares_tac [LeastI] 1));
 qed "Card_cardinal";
 
 (*Kunen's Lemma 10.5*)
-goal Cardinal.thy "!!i j. [| |i| le j;  j le i |] ==> |j| = |i|";
+Goal "!!i j. [| |i| le j;  j le i |] ==> |j| = |i|";
 by (rtac (eqpollI RS cardinal_cong) 1);
 by (etac le_imp_lepoll 1);
 by (rtac lepoll_trans 1);
@@ -369,7 +369,7 @@ by (rtac Ord_cardinal_eqpoll 1);
 by (REPEAT (eresolve_tac [ltE, Ord_succD] 1));
 qed "cardinal_eq_lemma";
 
-goal Cardinal.thy "!!i j. i le j ==> |i| le |j|";
+Goal "!!i j. i le j ==> |i| le |j|";
 by (res_inst_tac [("i","|i|"),("j","|j|")] Ord_linear_le 1);
 by (REPEAT_FIRST (ares_tac [Ord_cardinal, le_eqI]));
 by (rtac cardinal_eq_lemma 1);
@@ -380,30 +380,30 @@ by (etac Ord_cardinal_le 1);
 qed "cardinal_mono";
 
 (*Since we have |succ(nat)| le |nat|, the converse of cardinal_mono fails!*)
-goal Cardinal.thy "!!i j. [| |i| < |j|;  Ord(i);  Ord(j) |] ==> i < j";
+Goal "!!i j. [| |i| < |j|;  Ord(i);  Ord(j) |] ==> i < j";
 by (rtac Ord_linear2 1);
 by (REPEAT_SOME assume_tac);
 by (etac (lt_trans2 RS lt_irrefl) 1);
 by (etac cardinal_mono 1);
 qed "cardinal_lt_imp_lt";
 
-goal Cardinal.thy "!!i j. [| |i| < K;  Ord(i);  Card(K) |] ==> i < K";
+Goal "!!i j. [| |i| < K;  Ord(i);  Card(K) |] ==> i < K";
 by (asm_simp_tac (simpset() addsimps 
                   [cardinal_lt_imp_lt, Card_is_Ord, Card_cardinal_eq]) 1);
 qed "Card_lt_imp_lt";
 
-goal Cardinal.thy "!!i j. [| Ord(i);  Card(K) |] ==> (|i| < K) <-> (i < K)";
+Goal "!!i j. [| Ord(i);  Card(K) |] ==> (|i| < K) <-> (i < K)";
 by (blast_tac (claset() addIs [Card_lt_imp_lt, Ord_cardinal_le RS lt_trans1]) 1);
 qed "Card_lt_iff";
 
-goal Cardinal.thy "!!i j. [| Ord(i);  Card(K) |] ==> (K le |i|) <-> (K le i)";
+Goal "!!i j. [| Ord(i);  Card(K) |] ==> (K le |i|) <-> (K le i)";
 by (asm_simp_tac (simpset() addsimps 
                   [Card_lt_iff, Card_is_Ord, Ord_cardinal, 
                    not_lt_iff_le RS iff_sym]) 1);
 qed "Card_le_iff";
 
 (*Can use AC or finiteness to discharge first premise*)
-goal Cardinal.thy
+Goal
     "!!A B. [| well_ord(B,r);  A lepoll B |] ==> |A| le |B|";
 by (res_inst_tac [("i","|A|"),("j","|B|")] Ord_linear_le 1);
 by (REPEAT_FIRST (ares_tac [Ord_cardinal, le_eqI]));
@@ -421,7 +421,7 @@ by (assume_tac 1);
 qed "well_ord_lepoll_imp_Card_le";
 
 
-goal Cardinal.thy "!!A. [| A lepoll i; Ord(i) |] ==> |A| le i";
+Goal "!!A. [| A lepoll i; Ord(i) |] ==> |A| le i";
 by (rtac le_trans 1);
 by (etac (well_ord_Memrel RS well_ord_lepoll_imp_Card_le) 1);
 by (assume_tac 1);
@@ -431,7 +431,7 @@ qed "lepoll_cardinal_le";
 
 (*** The finite cardinals ***)
 
-goalw Cardinal.thy [lepoll_def, inj_def]
+Goalw [lepoll_def, inj_def]
  "!!A B. [| cons(u,A) lepoll cons(v,B);  u~:A;  v~:B |] ==> A lepoll B";
 by Safe_tac;
 by (res_inst_tac [("x", "lam x:A. if(f`x=v, f`u, f`x)")] exI 1);
@@ -445,14 +445,14 @@ by (asm_simp_tac (simpset() setloop split_tac [expand_if]) 1);
 by (Blast_tac 1);
 qed "cons_lepoll_consD";
 
-goal Cardinal.thy
+Goal
  "!!A B. [| cons(u,A) eqpoll cons(v,B);  u~:A;  v~:B |] ==> A eqpoll B";
 by (asm_full_simp_tac (simpset() addsimps [eqpoll_iff]) 1);
 by (blast_tac (claset() addIs [cons_lepoll_consD]) 1);
 qed "cons_eqpoll_consD";
 
 (*Lemma suggested by Mike Fourman*)
-goalw Cardinal.thy [succ_def] "!!m n. succ(m) lepoll succ(n) ==> m lepoll n";
+Goalw [succ_def] "!!m n. succ(m) lepoll succ(n) ==> m lepoll n";
 by (etac cons_lepoll_consD 1);
 by (REPEAT (rtac mem_not_refl 1));
 qed "succ_lepoll_succD";
@@ -470,7 +470,7 @@ qed "nat_lepoll_imp_le_lemma";
 
 bind_thm ("nat_lepoll_imp_le", nat_lepoll_imp_le_lemma RS bspec RS mp);
 
-goal Cardinal.thy
+Goal
     "!!m n. [| m:nat; n: nat |] ==> m eqpoll n <-> m = n";
 by (rtac iffI 1);
 by (asm_simp_tac (simpset() addsimps [eqpoll_refl]) 2);
@@ -479,7 +479,7 @@ by (blast_tac (claset() addIs [nat_lepoll_imp_le, le_anti_sym]
 qed "nat_eqpoll_iff";
 
 (*The object of all this work: every natural number is a (finite) cardinal*)
-goalw Cardinal.thy [Card_def,cardinal_def]
+Goalw [Card_def,cardinal_def]
     "!!n. n: nat ==> Card(n)";
 by (stac Least_equality 1);
 by (REPEAT_FIRST (ares_tac [eqpoll_refl, nat_into_Ord, refl]));
@@ -488,7 +488,7 @@ by (blast_tac (claset() addSEs [lt_irrefl]) 1);
 qed "nat_into_Card";
 
 (*Part of Kunen's Lemma 10.6*)
-goal Cardinal.thy "!!n. [| succ(n) lepoll n;  n:nat |] ==> P";
+Goal "!!n. [| succ(n) lepoll n;  n:nat |] ==> P";
 by (rtac (nat_lepoll_imp_le RS lt_irrefl) 1);
 by (REPEAT (ares_tac [nat_succI] 1));
 qed "succ_lepoll_natE";
@@ -496,7 +496,7 @@ qed "succ_lepoll_natE";
 
 (** lepoll, lesspoll and natural numbers **)
 
-goalw Cardinal.thy [lesspoll_def]
+Goalw [lesspoll_def]
       "!!m. [| A lepoll m; m:nat |] ==> A lesspoll succ(m)";
 by (rtac conjI 1);
 by (blast_tac (claset() addIs [subset_imp_lepoll RSN (2,lepoll_trans)]) 1);
@@ -506,18 +506,18 @@ by (dtac lepoll_trans 1 THEN assume_tac 1);
 by (etac succ_lepoll_natE 1 THEN assume_tac 1);
 qed "lepoll_imp_lesspoll_succ";
 
-goalw Cardinal.thy [lesspoll_def, lepoll_def, eqpoll_def, bij_def]
+Goalw [lesspoll_def, lepoll_def, eqpoll_def, bij_def]
       "!!m. [| A lesspoll succ(m); m:nat |] ==> A lepoll m";
 by (Clarify_tac 1);
 by (blast_tac (claset() addSIs [inj_not_surj_succ]) 1);
 qed "lesspoll_succ_imp_lepoll";
 
-goal Cardinal.thy "!!m. m:nat ==> A lesspoll succ(m) <-> A lepoll m";
+Goal "!!m. m:nat ==> A lesspoll succ(m) <-> A lepoll m";
 by (blast_tac (claset() addSIs [lepoll_imp_lesspoll_succ, 
                             lesspoll_succ_imp_lepoll]) 1);
 qed "lesspoll_succ_iff";
 
-goal Cardinal.thy "!!A m. [| A lepoll succ(m);  m:nat |] ==>  \
+Goal "!!A m. [| A lepoll succ(m);  m:nat |] ==>  \
 \                         A lepoll m | A eqpoll succ(m)";
 by (rtac disjCI 1);
 by (rtac lesspoll_succ_imp_lepoll 1);
@@ -529,7 +529,7 @@ qed "lepoll_succ_disj";
 (*** The first infinite cardinal: Omega, or nat ***)
 
 (*This implies Kunen's Lemma 10.6*)
-goal Cardinal.thy "!!n. [| n<i;  n:nat |] ==> ~ i lepoll n";
+Goal "!!n. [| n<i;  n:nat |] ==> ~ i lepoll n";
 by (rtac notI 1);
 by (rtac succ_lepoll_natE 1 THEN assume_tac 2);
 by (rtac lepoll_trans 1 THEN assume_tac 2);
@@ -537,7 +537,7 @@ by (etac ltE 1);
 by (REPEAT (ares_tac [Ord_succ_subsetI RS subset_imp_lepoll] 1));
 qed "lt_not_lepoll";
 
-goal Cardinal.thy "!!i n. [| Ord(i);  n:nat |] ==> i eqpoll n <-> i=n";
+Goal "!!i n. [| Ord(i);  n:nat |] ==> i eqpoll n <-> i=n";
 by (rtac iffI 1);
 by (asm_simp_tac (simpset() addsimps [eqpoll_refl]) 2);
 by (rtac Ord_linear_lt 1);
@@ -548,7 +548,7 @@ by (rtac (lt_not_lepoll RS notE) 1 THEN (REPEAT (assume_tac 1)));
 by (etac eqpoll_imp_lepoll 1);
 qed "Ord_nat_eqpoll_iff";
 
-goalw Cardinal.thy [Card_def,cardinal_def] "Card(nat)";
+Goalw [Card_def,cardinal_def] "Card(nat)";
 by (stac Least_equality 1);
 by (REPEAT_FIRST (ares_tac [eqpoll_refl, Ord_nat, refl]));
 by (etac ltE 1);
@@ -556,7 +556,7 @@ by (asm_simp_tac (simpset() addsimps [eqpoll_iff, lt_not_lepoll, ltI]) 1);
 qed "Card_nat";
 
 (*Allows showing that |i| is a limit cardinal*)
-goal Cardinal.thy  "!!i. nat le i ==> nat le |i|";
+Goal  "!!i. nat le i ==> nat le |i|";
 by (rtac (Card_nat RS Card_cardinal_eq RS subst) 1);
 by (etac cardinal_mono 1);
 qed "nat_le_cardinal";
@@ -566,7 +566,7 @@ qed "nat_le_cardinal";
 (** Congruence laws for successor, cardinal addition and multiplication **)
 
 (*Congruence law for  cons  under equipollence*)
-goalw Cardinal.thy [lepoll_def]
+Goalw [lepoll_def]
     "!!A B. [| A lepoll B;  b ~: B |] ==> cons(a,A) lepoll cons(b,B)";
 by Safe_tac;
 by (res_inst_tac [("x", "lam y: cons(a,A).if(y=a, b, f`y)")] exI 1);
@@ -578,51 +578,51 @@ by (asm_simp_tac (simpset() addsimps [inj_is_fun RS apply_type, left_inverse]
                         setloop etac consE') 1);
 qed "cons_lepoll_cong";
 
-goal Cardinal.thy
+Goal
     "!!A B. [| A eqpoll B;  a ~: A;  b ~: B |] ==> cons(a,A) eqpoll cons(b,B)";
 by (asm_full_simp_tac (simpset() addsimps [eqpoll_iff, cons_lepoll_cong]) 1);
 qed "cons_eqpoll_cong";
 
-goal Cardinal.thy
+Goal
     "!!A B. [| a ~: A;  b ~: B |] ==> \
 \           cons(a,A) lepoll cons(b,B)  <->  A lepoll B";
 by (blast_tac (claset() addIs [cons_lepoll_cong, cons_lepoll_consD]) 1);
 qed "cons_lepoll_cons_iff";
 
-goal Cardinal.thy
+Goal
     "!!A B. [| a ~: A;  b ~: B |] ==> \
 \           cons(a,A) eqpoll cons(b,B)  <->  A eqpoll B";
 by (blast_tac (claset() addIs [cons_eqpoll_cong, cons_eqpoll_consD]) 1);
 qed "cons_eqpoll_cons_iff";
 
-goalw Cardinal.thy [succ_def] "{a} eqpoll 1";
+Goalw [succ_def] "{a} eqpoll 1";
 by (blast_tac (claset() addSIs [eqpoll_refl RS cons_eqpoll_cong]) 1);
 qed "singleton_eqpoll_1";
 
-goal Cardinal.thy "|{a}| = 1";
+Goal "|{a}| = 1";
 by (resolve_tac [singleton_eqpoll_1 RS cardinal_cong RS trans] 1);
 by (simp_tac (simpset() addsimps [nat_into_Card RS Card_cardinal_eq]) 1);
 qed "cardinal_singleton";
 
 (*Congruence law for  succ  under equipollence*)
-goalw Cardinal.thy [succ_def]
+Goalw [succ_def]
     "!!A B. A eqpoll B ==> succ(A) eqpoll succ(B)";
 by (REPEAT (ares_tac [cons_eqpoll_cong, mem_not_refl] 1));
 qed "succ_eqpoll_cong";
 
 (*Congruence law for + under equipollence*)
-goalw Cardinal.thy [eqpoll_def]
+Goalw [eqpoll_def]
     "!!A B C D. [| A eqpoll C;  B eqpoll D |] ==> A+B eqpoll C+D";
 by (blast_tac (claset() addSIs [sum_bij]) 1);
 qed "sum_eqpoll_cong";
 
 (*Congruence law for * under equipollence*)
-goalw Cardinal.thy [eqpoll_def]
+Goalw [eqpoll_def]
     "!!A B C D. [| A eqpoll C;  B eqpoll D |] ==> A*B eqpoll C*D";
 by (blast_tac (claset() addSIs [prod_bij]) 1);
 qed "prod_eqpoll_cong";
 
-goalw Cardinal.thy [eqpoll_def]
+Goalw [eqpoll_def]
     "!!f. [| f: inj(A,B);  A Int B = 0 |] ==> A Un (B - range(f)) eqpoll B";
 by (rtac exI 1);
 by (res_inst_tac [("c", "%x. if(x:A, f`x, x)"),
@@ -645,7 +645,7 @@ qed "inj_disjoint_eqpoll";
      Could easily generalise from succ to cons. ***)
 
 (*If A has at most n+1 elements and a:A then A-{a} has at most n.*)
-goalw Cardinal.thy [succ_def]
+Goalw [succ_def]
       "!!A a n. [| a:A;  A lepoll succ(n) |] ==> A - {a} lepoll n";
 by (rtac cons_lepoll_consD 1);
 by (rtac mem_not_refl 3);
@@ -654,7 +654,7 @@ by Safe_tac;
 qed "Diff_sing_lepoll";
 
 (*If A has at least n+1 elements then A-{a} has at least n.*)
-goalw Cardinal.thy [succ_def]
+Goalw [succ_def]
       "!!A a n. [| succ(n) lepoll A |] ==> n lepoll A - {a}";
 by (rtac cons_lepoll_consD 1);
 by (rtac mem_not_refl 2);
@@ -662,19 +662,19 @@ by (Blast_tac 2);
 by (blast_tac (claset() addIs [subset_imp_lepoll RSN (2, lepoll_trans)]) 1);
 qed "lepoll_Diff_sing";
 
-goal Cardinal.thy "!!A a n. [| a:A; A eqpoll succ(n) |] ==> A - {a} eqpoll n";
+Goal "!!A a n. [| a:A; A eqpoll succ(n) |] ==> A - {a} eqpoll n";
 by (blast_tac (claset() addSIs [eqpollI] addSEs [eqpollE] 
                     addIs [Diff_sing_lepoll,lepoll_Diff_sing]) 1);
 qed "Diff_sing_eqpoll";
 
-goal Cardinal.thy "!!A. [| A lepoll 1; a:A |] ==> A = {a}";
+Goal "!!A. [| A lepoll 1; a:A |] ==> A = {a}";
 by (forward_tac [Diff_sing_lepoll] 1);
 by (assume_tac 1);
 by (dtac lepoll_0_is_0 1);
 by (blast_tac (claset() addEs [equalityE]) 1);
 qed "lepoll_1_is_sing";
 
-goalw Cardinal.thy [lepoll_def] "A Un B lepoll A+B";
+Goalw [lepoll_def] "A Un B lepoll A+B";
 by (res_inst_tac [("x","lam x: A Un B. if (x:A,Inl(x),Inr(x))")] exI 1);
 by (res_inst_tac [("d","%z. snd(z)")] lam_injective 1);
 by (split_tac [expand_if] 1);
@@ -686,11 +686,11 @@ qed "Un_lepoll_sum";
 
 (*** Finite and infinite sets ***)
 
-goalw Cardinal.thy [Finite_def] "Finite(0)";
+Goalw [Finite_def] "Finite(0)";
 by (blast_tac (claset() addSIs [eqpoll_refl, nat_0I]) 1);
 qed "Finite_0";
 
-goalw Cardinal.thy [Finite_def]
+Goalw [Finite_def]
     "!!A. [| A lepoll n;  n:nat |] ==> Finite(A)";
 by (etac rev_mp 1);
 by (etac nat_induct 1);
@@ -698,7 +698,7 @@ by (blast_tac (claset() addSDs [lepoll_0_is_0] addSIs [eqpoll_refl,nat_0I]) 1);
 by (blast_tac (claset() addSDs [lepoll_succ_disj] addSIs [nat_succI]) 1);
 qed "lepoll_nat_imp_Finite";
 
-goalw Cardinal.thy [Finite_def]
+Goalw [Finite_def]
      "!!X. [| Y lepoll X;  Finite(X) |] ==> Finite(Y)";
 by (blast_tac 
     (claset() addSEs [eqpollE] 
@@ -710,7 +710,7 @@ bind_thm ("subset_Finite", subset_imp_lepoll RS lepoll_Finite);
 
 bind_thm ("Finite_Diff", Diff_subset RS subset_Finite);
 
-goalw Cardinal.thy [Finite_def] "!!x. Finite(x) ==> Finite(cons(y,x))";
+Goalw [Finite_def] "!!x. Finite(x) ==> Finite(cons(y,x))";
 by (excluded_middle_tac "y:x" 1);
 by (asm_simp_tac (simpset() addsimps [cons_absorb]) 2);
 by (etac bexE 1);
@@ -720,18 +720,18 @@ by (asm_simp_tac
     (simpset() addsimps [succ_def, cons_eqpoll_cong, mem_not_refl]) 1);
 qed "Finite_cons";
 
-goalw Cardinal.thy [succ_def] "!!x. Finite(x) ==> Finite(succ(x))";
+Goalw [succ_def] "!!x. Finite(x) ==> Finite(succ(x))";
 by (etac Finite_cons 1);
 qed "Finite_succ";
 
-goalw Cardinal.thy [Finite_def] 
+Goalw [Finite_def] 
       "!!i. [| Ord(i);  ~ Finite(i) |] ==> nat le i";
 by (eresolve_tac [Ord_nat RSN (2,Ord_linear2)] 1);
 by (assume_tac 2);
 by (blast_tac (claset() addSIs [eqpoll_refl] addSEs [ltE]) 1);
 qed "nat_le_infinite_Ord";
 
-goalw Cardinal.thy [Finite_def, eqpoll_def]
+Goalw [Finite_def, eqpoll_def]
     "!!A. Finite(A) ==> EX r. well_ord(A,r)";
 by (blast_tac (claset() addIs [well_ord_rvimage, bij_is_inj, well_ord_Memrel, 
 			      nat_into_Ord]) 1);
@@ -753,14 +753,14 @@ by (dres_inst_tac [("x", "Z")] spec 1);
 by (Blast.depth_tac (claset()) 4 1);
 qed "nat_wf_on_converse_Memrel";
 
-goal Cardinal.thy "!!n. n:nat ==> well_ord(n,converse(Memrel(n)))";
+Goal "!!n. n:nat ==> well_ord(n,converse(Memrel(n)))";
 by (forward_tac [transfer thy Ord_nat RS Ord_in_Ord RS well_ord_Memrel] 1);
 by (rewtac well_ord_def);
 by (blast_tac (claset() addSIs [tot_ord_converse, 
 			       nat_wf_on_converse_Memrel]) 1);
 qed "nat_well_ord_converse_Memrel";
 
-goal Cardinal.thy
+Goal
     "!!A. [| well_ord(A,r);     \
 \            well_ord(ordertype(A,r), converse(Memrel(ordertype(A, r)))) \
 \         |] ==> well_ord(A,converse(r))";
@@ -772,7 +772,7 @@ by (asm_full_simp_tac
                      ordertype_ord_iso RS ord_iso_rvimage_eq]) 1);
 qed "well_ord_converse";
 
-goal Cardinal.thy
+Goal
     "!!A. [| well_ord(A,r);  A eqpoll n;  n:nat |] ==> ordertype(A,r)=n";
 by (rtac (Ord_ordertype RS Ord_nat_eqpoll_iff RS iffD1) 1 THEN 
     REPEAT (assume_tac 1));
@@ -781,7 +781,7 @@ by (rewtac eqpoll_def);
 by (blast_tac (claset() addSIs [ordermap_bij RS bij_converse_bij]) 1);
 qed "ordertype_eq_n";
 
-goalw Cardinal.thy [Finite_def]
+Goalw [Finite_def]
     "!!A. [| Finite(A);  well_ord(A,r) |] ==> well_ord(A,converse(r))";
 by (rtac well_ord_converse 1 THEN assume_tac 1);
 by (blast_tac (claset() addDs [ordertype_eq_n] 

@@ -12,19 +12,19 @@ open mono;
 
 (*Not easy to express monotonicity in P, since any "bigger" predicate
   would have to be single-valued*)
-goal thy "!!A B. A<=B ==> Replace(A,P) <= Replace(B,P)";
+Goal "!!A B. A<=B ==> Replace(A,P) <= Replace(B,P)";
 by (blast_tac (claset() addSEs [ReplaceE]) 1);
 qed "Replace_mono";
 
-goal thy "!!A B. A<=B ==> {f(x). x:A} <= {f(x). x:B}";
+Goal "!!A B. A<=B ==> {f(x). x:A} <= {f(x). x:B}";
 by (Blast_tac 1);
 qed "RepFun_mono";
 
-goal thy "!!A B. A<=B ==> Pow(A) <= Pow(B)";
+Goal "!!A B. A<=B ==> Pow(A) <= Pow(B)";
 by (Blast_tac 1);
 qed "Pow_mono";
 
-goal thy "!!A B. A<=B ==> Union(A) <= Union(B)";
+Goal "!!A B. A<=B ==> Union(A) <= Union(B)";
 by (Blast_tac 1);
 qed "Union_mono";
 
@@ -35,95 +35,95 @@ by (blast_tac (claset() addIs (prems RL [subsetD])) 1);
 qed "UN_mono";
 
 (*Intersection is ANTI-monotonic.  There are TWO premises! *)
-goal thy "!!A B. [| A<=B;  a:A |] ==> Inter(B) <= Inter(A)";
+Goal "!!A B. [| A<=B;  a:A |] ==> Inter(B) <= Inter(A)";
 by (Blast_tac 1);
 qed "Inter_anti_mono";
 
-goal thy "!!C D. C<=D ==> cons(a,C) <= cons(a,D)";
+Goal "!!C D. C<=D ==> cons(a,C) <= cons(a,D)";
 by (Blast_tac 1);
 qed "cons_mono";
 
-goal thy "!!A B C D. [| A<=C;  B<=D |] ==> A Un B <= C Un D";
+Goal "!!A B C D. [| A<=C;  B<=D |] ==> A Un B <= C Un D";
 by (Blast_tac 1);
 qed "Un_mono";
 
-goal thy "!!A B C D. [| A<=C;  B<=D |] ==> A Int B <= C Int D";
+Goal "!!A B C D. [| A<=C;  B<=D |] ==> A Int B <= C Int D";
 by (Blast_tac 1);
 qed "Int_mono";
 
-goal thy "!!A B C D. [| A<=C;  D<=B |] ==> A-B <= C-D";
+Goal "!!A B C D. [| A<=C;  D<=B |] ==> A-B <= C-D";
 by (Blast_tac 1);
 qed "Diff_mono";
 
 (** Standard products, sums and function spaces **)
 
-goal thy "!!A B C D. [| A<=C;  ALL x:A. B(x) <= D(x) |] ==> \
+Goal "!!A B C D. [| A<=C;  ALL x:A. B(x) <= D(x) |] ==> \
 \                       Sigma(A,B) <= Sigma(C,D)";
 by (Blast_tac 1);
 qed "Sigma_mono_lemma";
 val Sigma_mono = ballI RSN (2,Sigma_mono_lemma);
 
-goalw thy sum_defs "!!A B C D. [| A<=C;  B<=D |] ==> A+B <= C+D";
+Goalw sum_defs "!!A B C D. [| A<=C;  B<=D |] ==> A+B <= C+D";
 by (REPEAT (ares_tac [subset_refl,Un_mono,Sigma_mono] 1));
 qed "sum_mono";
 
 (*Note that B->A and C->A are typically disjoint!*)
-goal thy "!!A B C. B<=C ==> A->B <= A->C";
+Goal "!!A B C. B<=C ==> A->B <= A->C";
 by (blast_tac (claset() addIs [lam_type] addEs [Pi_lamE]) 1);
 qed "Pi_mono";
 
-goalw thy [lam_def] "!!A B. A<=B ==> Lambda(A,c) <= Lambda(B,c)";
+Goalw [lam_def] "!!A B. A<=B ==> Lambda(A,c) <= Lambda(B,c)";
 by (etac RepFun_mono 1);
 qed "lam_mono";
 
 (** Quine-inspired ordered pairs, products, injections and sums **)
 
-goalw thy [QPair_def] "!!a b c d. [| a<=c;  b<=d |] ==> <a;b> <= <c;d>";
+Goalw [QPair_def] "!!a b c d. [| a<=c;  b<=d |] ==> <a;b> <= <c;d>";
 by (REPEAT (ares_tac [sum_mono] 1));
 qed "QPair_mono";
 
-goal thy "!!A B C D. [| A<=C;  ALL x:A. B(x) <= D(x) |] ==>  \
+Goal "!!A B C D. [| A<=C;  ALL x:A. B(x) <= D(x) |] ==>  \
 \                          QSigma(A,B) <= QSigma(C,D)";
 by (Blast_tac 1);
 qed "QSigma_mono_lemma";
 val QSigma_mono = ballI RSN (2,QSigma_mono_lemma);
 
-goalw thy [QInl_def] "!!a b. a<=b ==> QInl(a) <= QInl(b)";
+Goalw [QInl_def] "!!a b. a<=b ==> QInl(a) <= QInl(b)";
 by (REPEAT (ares_tac [subset_refl RS QPair_mono] 1));
 qed "QInl_mono";
 
-goalw thy [QInr_def] "!!a b. a<=b ==> QInr(a) <= QInr(b)";
+Goalw [QInr_def] "!!a b. a<=b ==> QInr(a) <= QInr(b)";
 by (REPEAT (ares_tac [subset_refl RS QPair_mono] 1));
 qed "QInr_mono";
 
-goal thy "!!A B C D. [| A<=C;  B<=D |] ==> A <+> B <= C <+> D";
+Goal "!!A B C D. [| A<=C;  B<=D |] ==> A <+> B <= C <+> D";
 by (Blast_tac 1);
 qed "qsum_mono";
 
 
 (** Converse, domain, range, field **)
 
-goal thy "!!r s. r<=s ==> converse(r) <= converse(s)";
+Goal "!!r s. r<=s ==> converse(r) <= converse(s)";
 by (Blast_tac 1);
 qed "converse_mono";
 
-goal thy "!!r s. r<=s ==> domain(r)<=domain(s)";
+Goal "!!r s. r<=s ==> domain(r)<=domain(s)";
 by (Blast_tac 1);
 qed "domain_mono";
 
 bind_thm ("domain_rel_subset", [domain_mono, domain_subset] MRS subset_trans);
 
-goal thy "!!r s. r<=s ==> range(r)<=range(s)";
+Goal "!!r s. r<=s ==> range(r)<=range(s)";
 by (Blast_tac 1);
 qed "range_mono";
 
 bind_thm ("range_rel_subset", [range_mono, range_subset] MRS subset_trans);
 
-goal thy "!!r s. r<=s ==> field(r)<=field(s)";
+Goal "!!r s. r<=s ==> field(r)<=field(s)";
 by (Blast_tac 1);
 qed "field_mono";
 
-goal thy "!!r A. r <= A*A ==> field(r) <= A";
+Goal "!!r A. r <= A*A ==> field(r) <= A";
 by (etac (field_mono RS subset_trans) 1);
 by (Blast_tac 1);
 qed "field_rel_subset";
@@ -141,11 +141,11 @@ val [prem1,prem2] = goal thy
 by (blast_tac (claset() addIs [prem1, prem2 RS subsetD]) 1);
 qed "vimage_pair_mono";
 
-goal thy "!!r s. [| r<=s;  A<=B |] ==> r``A <= s``B";
+Goal "!!r s. [| r<=s;  A<=B |] ==> r``A <= s``B";
 by (Blast_tac 1);
 qed "image_mono";
 
-goal thy "!!r s. [| r<=s;  A<=B |] ==> r-``A <= s-``B";
+Goal "!!r s. [| r<=s;  A<=B |] ==> r-``A <= s-``B";
 by (Blast_tac 1);
 qed "vimage_mono";
 
@@ -156,7 +156,7 @@ qed "Collect_mono";
 
 (** Monotonicity of implications -- some could go to FOL **)
 
-goal thy "!!A B x. A<=B ==> x:A --> x:B";
+Goal "!!A B x. A<=B ==> x:A --> x:B";
 by (Blast_tac 1);
 qed "in_mono";
 

@@ -9,7 +9,7 @@ Basic introduction and elimination rules for Zermelo-Fraenkel Set Theory
 open ZF;
 
 (*Useful examples:  singletonI RS subst_elem,  subst_elem RSN (2,IntI) *)
-goal ZF.thy "!!a b A. [| b:A;  a=b |] ==> a:A";
+Goal "!!a b A. [| b:A;  a=b |] ==> a:A";
 by (etac ssubst 1);
 by (assume_tac 1);
 val subst_elem = result();
@@ -271,7 +271,7 @@ qed_goalw "RepFun_iff" ZF.thy [Bex_def]
     "b : {f(x). x:A} <-> (EX x:A. b=f(x))"
  (fn _ => [Blast_tac 1]);
 
-goal ZF.thy "{x. x:A} = A";
+Goal "{x. x:A} = A";
 by (Blast_tac 1);
 qed "triv_RepFun";
 

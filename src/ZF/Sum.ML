@@ -10,12 +10,12 @@ open Sum;
 
 (*** Rules for the Part primitive ***)
 
-goalw Sum.thy [Part_def]
+Goalw [Part_def]
     "a : Part(A,h) <-> a:A & (EX y. a=h(y))";
 by (rtac separation 1);
 qed "Part_iff";
 
-goalw Sum.thy [Part_def]
+Goalw [Part_def]
     "!!a b A h. [| a : A;  a=h(b) |] ==> a : Part(A,h)";
 by (Blast_tac 1);
 qed "Part_eqI";
@@ -33,7 +33,7 @@ qed "PartE";
 AddIs  [Part_eqI];
 AddSEs [PartE];
 
-goalw Sum.thy [Part_def] "Part(A,h) <= A";
+Goalw [Part_def] "Part(A,h) <= A";
 by (rtac Collect_subset 1);
 qed "Part_subset";
 
@@ -42,17 +42,17 @@ qed "Part_subset";
 
 val sum_defs = [sum_def,Inl_def,Inr_def,case_def];
 
-goalw Sum.thy (bool_def::sum_defs) "Sigma(bool,C) = C(0) + C(1)";
+Goalw (bool_def::sum_defs) "Sigma(bool,C) = C(0) + C(1)";
 by (Blast_tac 1);
 qed "Sigma_bool";
 
 (** Introduction rules for the injections **)
 
-goalw Sum.thy sum_defs "!!a A B. a : A ==> Inl(a) : A+B";
+Goalw sum_defs "!!a A B. a : A ==> Inl(a) : A+B";
 by (Blast_tac 1);
 qed "InlI";
 
-goalw Sum.thy sum_defs "!!b A B. b : B ==> Inr(b) : A+B";
+Goalw sum_defs "!!b A B. b : B ==> Inr(b) : A+B";
 by (Blast_tac 1);
 qed "InrI";
 
@@ -70,23 +70,23 @@ qed "sumE";
 
 (** Injection and freeness equivalences, for rewriting **)
 
-goalw Sum.thy sum_defs "Inl(a)=Inl(b) <-> a=b";
+Goalw sum_defs "Inl(a)=Inl(b) <-> a=b";
 by (Simp_tac 1);
 qed "Inl_iff";
 
-goalw Sum.thy sum_defs "Inr(a)=Inr(b) <-> a=b";
+Goalw sum_defs "Inr(a)=Inr(b) <-> a=b";
 by (Simp_tac 1);
 qed "Inr_iff";
 
-goalw Sum.thy sum_defs "Inl(a)=Inr(b) <-> False";
+Goalw sum_defs "Inl(a)=Inr(b) <-> False";
 by (Simp_tac 1);
 qed "Inl_Inr_iff";
 
-goalw Sum.thy sum_defs "Inr(b)=Inl(a) <-> False";
+Goalw sum_defs "Inr(b)=Inl(a) <-> False";
 by (Simp_tac 1);
 qed "Inr_Inl_iff";
 
-goalw Sum.thy sum_defs "0+0 = 0";
+Goalw sum_defs "0+0 = 0";
 by (Simp_tac 1);
 qed "sum_empty";
 
@@ -103,39 +103,39 @@ AddSDs [Inl_inject, Inr_inject];
 
 Addsimps [InlI, InrI, Inl_iff, Inr_iff, Inl_Inr_iff, Inr_Inl_iff, sum_empty];
 
-goal Sum.thy "!!A B. Inl(a): A+B ==> a: A";
+Goal "!!A B. Inl(a): A+B ==> a: A";
 by (Blast_tac 1);
 qed "InlD";
 
-goal Sum.thy "!!A B. Inr(b): A+B ==> b: B";
+Goal "!!A B. Inr(b): A+B ==> b: B";
 by (Blast_tac 1);
 qed "InrD";
 
-goal Sum.thy "u: A+B <-> (EX x. x:A & u=Inl(x)) | (EX y. y:B & u=Inr(y))";
+Goal "u: A+B <-> (EX x. x:A & u=Inl(x)) | (EX y. y:B & u=Inr(y))";
 by (Blast_tac 1);
 qed "sum_iff";
 
-goal Sum.thy "A+B <= C+D <-> A<=C & B<=D";
+Goal "A+B <= C+D <-> A<=C & B<=D";
 by (Blast_tac 1);
 qed "sum_subset_iff";
 
-goal Sum.thy "A+B = C+D <-> A=C & B=D";
+Goal "A+B = C+D <-> A=C & B=D";
 by (simp_tac (simpset() addsimps [extension,sum_subset_iff]) 1);
 by (Blast_tac 1);
 qed "sum_equal_iff";
 
-goalw Sum.thy [sum_def] "A+A = 2*A";
+Goalw [sum_def] "A+A = 2*A";
 by (Blast_tac 1);
 qed "sum_eq_2_times";
 
 
 (*** Eliminator -- case ***)
 
-goalw Sum.thy sum_defs "case(c, d, Inl(a)) = c(a)";
+Goalw sum_defs "case(c, d, Inl(a)) = c(a)";
 by (simp_tac (simpset() addsimps [cond_0]) 1);
 qed "case_Inl";
 
-goalw Sum.thy sum_defs "case(c, d, Inr(b)) = d(b)";
+Goalw sum_defs "case(c, d, Inr(b)) = d(b)";
 by (simp_tac (simpset() addsimps [cond_1]) 1);
 qed "case_Inr";
 
@@ -151,7 +151,7 @@ by (ALLGOALS (etac ssubst));
 by (ALLGOALS (asm_simp_tac (simpset() addsimps prems)));
 qed "case_type";
 
-goal Sum.thy
+Goal
   "!!u. u: A+B ==>   \
 \       R(case(c,d,u)) <-> \
 \       ((ALL x:A. u = Inl(x) --> R(c(x))) & \
@@ -168,7 +168,7 @@ by (resolve_tac [major RS sumE] 1);
 by (ALLGOALS (asm_simp_tac (simpset() addsimps prems)));
 qed "case_cong";
 
-goal Sum.thy
+Goal
   "!!z. z: A+B ==>   \
 \       case(c, d, case(%x. Inl(c'(x)), %y. Inr(d'(y)), z)) = \
 \       case(%x. c(c'(x)), %y. d(d'(y)), z)";
@@ -178,36 +178,36 @@ qed "case_case";
 
 (*** More rules for Part(A,h) ***)
 
-goal Sum.thy "!!A B h. A<=B ==> Part(A,h)<=Part(B,h)";
+Goal "!!A B h. A<=B ==> Part(A,h)<=Part(B,h)";
 by (Blast_tac 1);
 qed "Part_mono";
 
-goal Sum.thy "Part(Collect(A,P), h) = Collect(Part(A,h), P)";
+Goal "Part(Collect(A,P), h) = Collect(Part(A,h), P)";
 by (Blast_tac 1);
 qed "Part_Collect";
 
 bind_thm ("Part_CollectE", Part_Collect RS equalityD1 RS subsetD RS CollectE);
 
-goal Sum.thy "Part(A+B,Inl) = {Inl(x). x: A}";
+Goal "Part(A+B,Inl) = {Inl(x). x: A}";
 by (Blast_tac 1);
 qed "Part_Inl";
 
-goal Sum.thy "Part(A+B,Inr) = {Inr(y). y: B}";
+Goal "Part(A+B,Inr) = {Inr(y). y: B}";
 by (Blast_tac 1);
 qed "Part_Inr";
 
-goalw Sum.thy [Part_def] "!!a. a : Part(A,h) ==> a : A";
+Goalw [Part_def] "!!a. a : Part(A,h) ==> a : A";
 by (etac CollectD1 1);
 qed "PartD1";
 
-goal Sum.thy "Part(A,%x. x) = A";
+Goal "Part(A,%x. x) = A";
 by (Blast_tac 1);
 qed "Part_id";
 
-goal Sum.thy "Part(A+B, %x. Inr(h(x))) = {Inr(y). y: Part(B,h)}";
+Goal "Part(A+B, %x. Inr(h(x))) = {Inr(y). y: Part(B,h)}";
 by (Blast_tac 1);
 qed "Part_Inr2";
 
-goal Sum.thy "!!A B C. C <= A+B ==> Part(C,Inl) Un Part(C,Inr) = C";
+Goal "!!A B C. C <= A+B ==> Part(C,Inl) Un Part(C,Inr) = C";
 by (Blast_tac 1);
 qed "Part_sum_equality";

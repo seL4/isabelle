@@ -116,7 +116,7 @@ qed_goal "qsnd_type" thy
     "!!p. p:QSigma(A,B) ==> qsnd(p) : B(qfst(p))"
  (fn _=> [ Auto_tac ]);
 
-goal thy "!!a A B. a: QSigma(A,B) ==> <qfst(a); qsnd(a)> = a";
+Goal "!!a A B. a: QSigma(A,B) ==> <qfst(a); qsnd(a)> = a";
 by Auto_tac;
 qed "QPair_qfst_qsnd_eq";
 
@@ -139,7 +139,7 @@ qed_goal "qsplit_type" thy
   [ (rtac (major RS QSigmaE) 1),
     (asm_simp_tac (simpset() addsimps prems) 1) ]);
 
-goalw thy [qsplit_def]
+Goalw [qsplit_def]
   "!!u. u: A<*>B ==>   \
 \       R(qsplit(c,u)) <-> (ALL x:A. ALL y:B. u = <x;y> --> R(c(x,y)))";
 by Auto_tac;
@@ -148,7 +148,7 @@ qed "expand_qsplit";
 
 (*** qsplit for predicates: result type o ***)
 
-goalw thy [qsplit_def] "!!R a b. R(a,b) ==> qsplit(R, <a;b>)";
+Goalw [qsplit_def] "!!R a b. R(a,b) ==> qsplit(R, <a;b>)";
 by (Asm_simp_tac 1);
 qed "qsplitI";
 
@@ -162,7 +162,7 @@ by (REPEAT (ares_tac prems 1));
 by (Asm_full_simp_tac 1);
 qed "qsplitE";
 
-goalw thy [qsplit_def] "!!R a b. qsplit(R,<a;b>) ==> R(a,b)";
+Goalw [qsplit_def] "!!R a b. qsplit(R,<a;b>) ==> R(a,b)";
 by (Asm_full_simp_tac 1);
 qed "qsplitD";
 
@@ -211,11 +211,11 @@ val qsum_defs = [qsum_def,QInl_def,QInr_def,qcase_def];
 
 (** Introduction rules for the injections **)
 
-goalw thy qsum_defs "!!a A B. a : A ==> QInl(a) : A <+> B";
+Goalw qsum_defs "!!a A B. a : A ==> QInl(a) : A <+> B";
 by (Blast_tac 1);
 qed "QInlI";
 
-goalw thy qsum_defs "!!b A B. b : B ==> QInr(b) : A <+> B";
+Goalw qsum_defs "!!b A B. b : B ==> QInr(b) : A <+> B";
 by (Blast_tac 1);
 qed "QInrI";
 
@@ -235,23 +235,23 @@ AddSIs [QInlI, QInrI];
 
 (** Injection and freeness equivalences, for rewriting **)
 
-goalw thy qsum_defs "QInl(a)=QInl(b) <-> a=b";
+Goalw qsum_defs "QInl(a)=QInl(b) <-> a=b";
 by (Simp_tac 1);
 qed "QInl_iff";
 
-goalw thy qsum_defs "QInr(a)=QInr(b) <-> a=b";
+Goalw qsum_defs "QInr(a)=QInr(b) <-> a=b";
 by (Simp_tac 1);
 qed "QInr_iff";
 
-goalw thy qsum_defs "QInl(a)=QInr(b) <-> False";
+Goalw qsum_defs "QInl(a)=QInr(b) <-> False";
 by (Simp_tac 1);
 qed "QInl_QInr_iff";
 
-goalw thy qsum_defs "QInr(b)=QInl(a) <-> False";
+Goalw qsum_defs "QInr(b)=QInl(a) <-> False";
 by (Simp_tac 1);
 qed "QInr_QInl_iff";
 
-goalw thy qsum_defs "0<+>0 = 0";
+Goalw qsum_defs "0<+>0 = 0";
 by (Simp_tac 1);
 qed "qsum_empty";
 
@@ -266,37 +266,37 @@ AddSEs [qsumE, QInl_neq_QInr, QInr_neq_QInl];
 AddSDs [QInl_inject, QInr_inject];
 Addsimps [QInl_iff, QInr_iff, QInl_QInr_iff, QInr_QInl_iff, qsum_empty];
 
-goal thy "!!A B. QInl(a): A<+>B ==> a: A";
+Goal "!!A B. QInl(a): A<+>B ==> a: A";
 by (Blast_tac 1);
 qed "QInlD";
 
-goal thy "!!A B. QInr(b): A<+>B ==> b: B";
+Goal "!!A B. QInr(b): A<+>B ==> b: B";
 by (Blast_tac 1);
 qed "QInrD";
 
 (** <+> is itself injective... who cares?? **)
 
-goal thy
+Goal
     "u: A <+> B <-> (EX x. x:A & u=QInl(x)) | (EX y. y:B & u=QInr(y))";
 by (Blast_tac 1);
 qed "qsum_iff";
 
-goal thy "A <+> B <= C <+> D <-> A<=C & B<=D";
+Goal "A <+> B <= C <+> D <-> A<=C & B<=D";
 by (Blast_tac 1);
 qed "qsum_subset_iff";
 
-goal thy "A <+> B = C <+> D <-> A=C & B=D";
+Goal "A <+> B = C <+> D <-> A=C & B=D";
 by (simp_tac (simpset() addsimps [extension,qsum_subset_iff]) 1);
 by (Blast_tac 1);
 qed "qsum_equal_iff";
 
 (*** Eliminator -- qcase ***)
 
-goalw thy qsum_defs "qcase(c, d, QInl(a)) = c(a)";
+Goalw qsum_defs "qcase(c, d, QInl(a)) = c(a)";
 by (Simp_tac 1);
 qed "qcase_QInl";
 
-goalw thy qsum_defs "qcase(c, d, QInr(b)) = d(b)";
+Goalw qsum_defs "qcase(c, d, QInr(b)) = d(b)";
 by (Simp_tac 1);
 qed "qcase_QInr";
 
@@ -314,18 +314,18 @@ qed "qcase_type";
 
 (** Rules for the Part primitive **)
 
-goal thy "Part(A <+> B,QInl) = {QInl(x). x: A}";
+Goal "Part(A <+> B,QInl) = {QInl(x). x: A}";
 by (Blast_tac 1);
 qed "Part_QInl";
 
-goal thy "Part(A <+> B,QInr) = {QInr(y). y: B}";
+Goal "Part(A <+> B,QInr) = {QInr(y). y: B}";
 by (Blast_tac 1);
 qed "Part_QInr";
 
-goal thy "Part(A <+> B, %x. QInr(h(x))) = {QInr(y). y: Part(B,h)}";
+Goal "Part(A <+> B, %x. QInr(h(x))) = {QInr(y). y: Part(B,h)}";
 by (Blast_tac 1);
 qed "Part_QInr2";
 
-goal thy "!!A B C. C <= A <+> B ==> Part(C,QInl) Un Part(C,QInr) = C";
+Goal "!!A B C. C <= A <+> B ==> Part(C,QInl) Un Part(C,QInr) = C";
 by (Blast_tac 1);
 qed "Part_qsum_equality";

@@ -29,7 +29,7 @@ val prems = goalw Rel.thy [sym_def]
 by (REPEAT (ares_tac (prems @ [allI,impI]) 1));
 qed "symI";
 
-goalw Rel.thy [sym_def] "!!r. [| sym(r); <x,y>: r |]  ==>  <y,x>: r";
+Goalw [sym_def] "!!r. [| sym(r); <x,y>: r |]  ==>  <y,x>: r";
 by (Blast_tac 1);
 qed "symE";
 
@@ -48,12 +48,12 @@ qed "antisymE";
 
 (* transitivity *)
 
-goalw Rel.thy [trans_def]
+Goalw [trans_def]
     "!!r. [| trans(r);  <a,b>:r;  <b,c>:r |] ==> <a,c>:r";
 by (Blast_tac 1);
 qed "transD";
 
-goalw Rel.thy [trans_on_def]
+Goalw [trans_on_def]
     "!!r. [| trans[A](r);  <a,b>:r;  <b,c>:r;  a:A;  b:A;  c:A |] ==> <a,c>:r";
 by (Blast_tac 1);
 qed "trans_onD";

@@ -38,14 +38,14 @@ by (rtac minor 1);
 by (rtac subset_refl 1);
 qed "bnd_mono_subset";
 
-goal Fixedpt.thy "!!A B. [| bnd_mono(D,h);  A <= D;  B <= D |] ==> \
+Goal "!!A B. [| bnd_mono(D,h);  A <= D;  B <= D |] ==> \
 \                         h(A) Un h(B) <= h(A Un B)";
 by (REPEAT (ares_tac [Un_upper1, Un_upper2, Un_least] 1
      ORELSE etac bnd_monoD2 1));
 qed "bnd_mono_Un";
 
 (*Useful??*)
-goal Fixedpt.thy "!!A B. [| bnd_mono(D,h);  A <= D;  B <= D |] ==> \
+Goal "!!A B. [| bnd_mono(D,h);  A <= D;  B <= D |] ==> \
 \                        h(A Int B) <= h(A) Int h(B)";
 by (REPEAT (ares_tac [Int_lower1, Int_lower2, Int_greatest] 1
      ORELSE etac bnd_monoD2 1));
@@ -54,14 +54,14 @@ qed "bnd_mono_Int";
 (**** Proof of Knaster-Tarski Theorem for the lfp ****)
 
 (*lfp is contained in each pre-fixedpoint*)
-goalw Fixedpt.thy [lfp_def]
+Goalw [lfp_def]
     "!!A. [| h(A) <= A;  A<=D |] ==> lfp(D,h) <= A";
 by (Blast_tac 1);
 (*or  by (rtac (PowI RS CollectI RS Inter_lower) 1); *)
 qed "lfp_lowerbound";
 
 (*Unfolding the defn of Inter dispenses with the premise bnd_mono(D,h)!*)
-goalw Fixedpt.thy [lfp_def,Inter_def] "lfp(D,h) <= D";
+Goalw [lfp_def,Inter_def] "lfp(D,h) <= D";
 by (Blast_tac 1);
 qed "lfp_subset";
 
@@ -189,7 +189,7 @@ by (rtac (PowI RS CollectI RS Union_upper) 1);
 by (REPEAT (resolve_tac prems 1));
 qed "gfp_upperbound";
 
-goalw Fixedpt.thy [gfp_def] "gfp(D,h) <= D";
+Goalw [gfp_def] "gfp(D,h) <= D";
 by (Blast_tac 1);
 qed "gfp_subset";
 
@@ -244,7 +244,7 @@ qed "def_gfp_Tarski";
 (*** Coinduction rules for greatest fixed points ***)
 
 (*weak version*)
-goal Fixedpt.thy "!!X h. [| a: X;  X <= h(X);  X <= D |] ==> a : gfp(D,h)";
+Goal "!!X h. [| a: X;  X <= h(X);  X <= D |] ==> a : gfp(D,h)";
 by (REPEAT (ares_tac [gfp_upperbound RS subsetD] 1));
 qed "weak_coinduct";
 
@@ -258,7 +258,7 @@ by (rtac ([mono, subs_D, gfp_subset] MRS bnd_mono_Un) 1);
 qed "coinduct_lemma";
 
 (*strong version*)
-goal Fixedpt.thy
+Goal
     "!!X D. [| bnd_mono(D,h);  a: X;  X <= h(X Un gfp(D,h));  X <= D |] ==> \
 \           a : gfp(D,h)";
 by (rtac weak_coinduct 1);

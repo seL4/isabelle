@@ -12,38 +12,38 @@ open Cardinal_AC;
 
 (*** Strengthened versions of existing theorems about cardinals ***)
 
-goal Cardinal_AC.thy "|A| eqpoll A";
+Goal "|A| eqpoll A";
 by (resolve_tac [AC_well_ord RS exE] 1);
 by (etac well_ord_cardinal_eqpoll 1);
 qed "cardinal_eqpoll";
 
 val cardinal_idem = cardinal_eqpoll RS cardinal_cong;
 
-goal Cardinal_AC.thy "!!X Y. |X| = |Y| ==> X eqpoll Y";
+Goal "!!X Y. |X| = |Y| ==> X eqpoll Y";
 by (resolve_tac [AC_well_ord RS exE] 1);
 by (resolve_tac [AC_well_ord RS exE] 1);
 by (rtac well_ord_cardinal_eqE 1);
 by (REPEAT_SOME assume_tac);
 qed "cardinal_eqE";
 
-goal Cardinal_AC.thy "|X| = |Y| <-> X eqpoll Y";
+Goal "|X| = |Y| <-> X eqpoll Y";
 by (blast_tac (claset() addIs [cardinal_cong, cardinal_eqE]) 1);
 qed "cardinal_eqpoll_iff";
 
-goal Cardinal_AC.thy
+Goal
     "!!A. [| |A|=|B|;  |C|=|D|;  A Int C = 0;  B Int D = 0 |] ==> \
 \         |A Un C| = |B Un D|";
 by (asm_full_simp_tac (simpset() addsimps [cardinal_eqpoll_iff, 
                                        eqpoll_disjoint_Un]) 1);
 qed "cardinal_disjoint_Un";
 
-goal Cardinal_AC.thy "!!A B. A lepoll B ==> |A| le |B|";
+Goal "!!A B. A lepoll B ==> |A| le |B|";
 by (resolve_tac [AC_well_ord RS exE] 1);
 by (etac well_ord_lepoll_imp_Card_le 1);
 by (assume_tac 1);
 qed "lepoll_imp_Card_le";
 
-goal Cardinal_AC.thy "(i |+| j) |+| k = i |+| (j |+| k)";
+Goal "(i |+| j) |+| k = i |+| (j |+| k)";
 by (resolve_tac [AC_well_ord RS exE] 1);
 by (resolve_tac [AC_well_ord RS exE] 1);
 by (resolve_tac [AC_well_ord RS exE] 1);
@@ -51,7 +51,7 @@ by (rtac well_ord_cadd_assoc 1);
 by (REPEAT_SOME assume_tac);
 qed "cadd_assoc";
 
-goal Cardinal_AC.thy "(i |*| j) |*| k = i |*| (j |*| k)";
+Goal "(i |*| j) |*| k = i |*| (j |*| k)";
 by (resolve_tac [AC_well_ord RS exE] 1);
 by (resolve_tac [AC_well_ord RS exE] 1);
 by (resolve_tac [AC_well_ord RS exE] 1);
@@ -59,7 +59,7 @@ by (rtac well_ord_cmult_assoc 1);
 by (REPEAT_SOME assume_tac);
 qed "cmult_assoc";
 
-goal Cardinal_AC.thy "(i |+| j) |*| k = (i |*| k) |+| (j |*| k)";
+Goal "(i |+| j) |*| k = (i |*| k) |+| (j |*| k)";
 by (resolve_tac [AC_well_ord RS exE] 1);
 by (resolve_tac [AC_well_ord RS exE] 1);
 by (resolve_tac [AC_well_ord RS exE] 1);
@@ -67,7 +67,7 @@ by (rtac well_ord_cadd_cmult_distrib 1);
 by (REPEAT_SOME assume_tac);
 qed "cadd_cmult_distrib";
 
-goal Cardinal_AC.thy "!!A. InfCard(|A|) ==> A*A eqpoll A";
+Goal "!!A. InfCard(|A|) ==> A*A eqpoll A";
 by (resolve_tac [AC_well_ord RS exE] 1);
 by (etac well_ord_InfCard_square_eq 1);
 by (assume_tac 1);
@@ -76,20 +76,20 @@ qed "InfCard_square_eq";
 
 (*** Other applications of AC ***)
 
-goal Cardinal_AC.thy "!!A B. |A| le |B| ==> A lepoll B";
+Goal "!!A B. |A| le |B| ==> A lepoll B";
 by (resolve_tac [cardinal_eqpoll RS eqpoll_sym RS eqpoll_imp_lepoll RS 
                  lepoll_trans] 1);
 by (eresolve_tac [le_imp_subset RS subset_imp_lepoll RS lepoll_trans] 1);
 by (resolve_tac [cardinal_eqpoll RS eqpoll_imp_lepoll] 1);
 qed "Card_le_imp_lepoll";
 
-goal Cardinal_AC.thy "!!A K. Card(K) ==> |A| le K <-> A lepoll K";
+Goal "!!A K. Card(K) ==> |A| le K <-> A lepoll K";
 by (eresolve_tac [Card_cardinal_eq RS subst] 1 THEN
     rtac iffI 1 THEN
     DEPTH_SOLVE (eresolve_tac [Card_le_imp_lepoll,lepoll_imp_Card_le] 1));
 qed "le_Card_iff";
 
-goalw Cardinal_AC.thy [surj_def] "!!f. f: surj(X,Y) ==> EX g. g: inj(Y,X)";
+Goalw [surj_def] "!!f. f: surj(X,Y) ==> EX g. g: inj(Y,X)";
 by (etac CollectE 1);
 by (res_inst_tac [("A1", "Y"), ("B1", "%y. f-``{y}")] (AC_Pi RS exE) 1);
 by (fast_tac (claset() addSEs [apply_Pair]) 1);
@@ -98,7 +98,7 @@ by (blast_tac (claset() addDs [apply_type, Pi_memberD]
 qed "surj_implies_inj";
 
 (*Kunen's Lemma 10.20*)
-goal Cardinal_AC.thy "!!f. f: surj(X,Y) ==> |Y| le |X|";
+Goal "!!f. f: surj(X,Y) ==> |Y| le |X|";
 by (rtac lepoll_imp_Card_le 1);
 by (eresolve_tac [surj_implies_inj RS exE] 1);
 by (rewtac lepoll_def);
@@ -106,7 +106,7 @@ by (etac exI 1);
 qed "surj_implies_cardinal_le";
 
 (*Kunen's Lemma 10.21*)
-goal Cardinal_AC.thy
+Goal
     "!!K. [| InfCard(K);  ALL i:K. |X(i)| le K |] ==> |UN i:K. X(i)| le K";
 by (asm_full_simp_tac (simpset() addsimps [InfCard_is_Card, le_Card_iff]) 1);
 by (rtac lepoll_trans 1);
@@ -134,7 +134,7 @@ by (asm_simp_tac (simpset() addsimps [left_inverse]) 1);
 qed "cardinal_UN_le";
 
 (*The same again, using csucc*)
-goal Cardinal_AC.thy
+Goal
     "!!K. [| InfCard(K);  ALL i:K. |X(i)| < csucc(K) |] ==> \
 \         |UN i:K. X(i)| < csucc(K)";
 by (asm_full_simp_tac 
@@ -144,7 +144,7 @@ qed "cardinal_UN_lt_csucc";
 
 (*The same again, for a union of ordinals.  In use, j(i) is a bit like rank(i),
   the least ordinal j such that i:Vfrom(A,j). *)
-goal Cardinal_AC.thy
+Goal
     "!!K. [| InfCard(K);  ALL i:K. j(i) < csucc(K) |] ==> \
 \         (UN i:K. j(i)) < csucc(K)";
 by (resolve_tac [cardinal_UN_lt_csucc RS Card_lt_imp_lt] 1);
@@ -178,7 +178,7 @@ val inj_UN_subset = result();
 
 (*Simpler to require |W|=K; we'd have a bijection; but the theorem would
   be weaker.*)
-goal Cardinal_AC.thy
+Goal
     "!!K. [| InfCard(K);  |W| le K;  ALL w:W. j(w) < csucc(K) |] ==> \
 \         (UN w:W. j(w)) < csucc(K)";
 by (excluded_middle_tac "W=0" 1);

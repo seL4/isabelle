@@ -11,7 +11,7 @@ val fun_Limit_VfromE =
      transfer InfDatatype.thy Limit_VfromE 
    |> standard;
 
-goal InfDatatype.thy
+Goal
     "!!K. [| f: W -> Vfrom(A,csucc(K));  |W| le K;  InfCard(K)  \
 \         |] ==> EX j. f: W -> Vfrom(A,j) & j < csucc(K)";
 by (res_inst_tac [("x", "UN w:W. LEAST i. f`w : Vfrom(A,i)")] exI 1);
@@ -29,14 +29,14 @@ by (eresolve_tac [[subset_refl, UN_upper] MRS Vfrom_mono RS subsetD] 1);
 by (assume_tac 1);
 qed "fun_Vcsucc_lemma";
 
-goal InfDatatype.thy
+Goal
     "!!K. [| W <= Vfrom(A,csucc(K));  |W| le K;  InfCard(K)     \
 \         |] ==> EX j. W <= Vfrom(A,j) & j < csucc(K)";
 by (asm_full_simp_tac (simpset() addsimps [subset_iff_id, fun_Vcsucc_lemma]) 1);
 qed "subset_Vcsucc";
 
 (*Version for arbitrary index sets*)
-goal InfDatatype.thy
+Goal
     "!!K. [| |W| le K;  InfCard(K);  W <= Vfrom(A,csucc(K)) |] ==> \
 \         W -> Vfrom(A,csucc(K)) <= Vfrom(A,csucc(K))";
 by (safe_tac (claset() addSDs [fun_Vcsucc_lemma, subset_Vcsucc]));
@@ -50,7 +50,7 @@ by (REPEAT (ares_tac [ltD, InfCard_csucc, InfCard_is_Limit,
                       Limit_has_succ, Un_least_lt] 1));
 qed "fun_Vcsucc";
 
-goal InfDatatype.thy
+Goal
     "!!K. [| f: W -> Vfrom(A, csucc(K));  |W| le K;  InfCard(K);        \
 \            W <= Vfrom(A,csucc(K))                                     \
 \         |] ==> f: Vfrom(A,csucc(K))";
@@ -62,7 +62,7 @@ val fun_in_Vcsucc' = subsetI RSN (4, fun_in_Vcsucc);
 
 (** Version where K itself is the index set **)
 
-goal InfDatatype.thy
+Goal
     "!!K. InfCard(K) ==> K -> Vfrom(A,csucc(K)) <= Vfrom(A,csucc(K))";
 by (forward_tac [InfCard_is_Card RS Card_is_Ord] 1);
 by (REPEAT (ares_tac [fun_Vcsucc, Ord_cardinal_le,
@@ -70,7 +70,7 @@ by (REPEAT (ares_tac [fun_Vcsucc, Ord_cardinal_le,
                       lt_csucc RS leI RS le_imp_subset RS subset_trans] 1));
 qed "Card_fun_Vcsucc";
 
-goal InfDatatype.thy
+Goal
     "!!K. [| f: K -> Vfrom(A, csucc(K));  InfCard(K) \
 \         |] ==> f: Vfrom(A,csucc(K))";
 by (REPEAT (ares_tac [Card_fun_Vcsucc RS subsetD] 1));

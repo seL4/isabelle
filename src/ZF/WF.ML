@@ -24,25 +24,25 @@ open WF;
 
 (** Equivalences between wf and wf_on **)
 
-goalw WF.thy [wf_def, wf_on_def] "!!A r. wf(r) ==> wf[A](r)";
+Goalw [wf_def, wf_on_def] "!!A r. wf(r) ==> wf[A](r)";
 by (Clarify_tac 1);  (*essential for Blast_tac's efficiency*)
 by (Blast_tac 1);
 qed "wf_imp_wf_on";
 
-goalw WF.thy [wf_def, wf_on_def] "!!r. wf[field(r)](r) ==> wf(r)";
+Goalw [wf_def, wf_on_def] "!!r. wf[field(r)](r) ==> wf(r)";
 by (Fast_tac 1);
 qed "wf_on_field_imp_wf";
 
-goal WF.thy "wf(r) <-> wf[field(r)](r)";
+Goal "wf(r) <-> wf[field(r)](r)";
 by (blast_tac (claset() addIs [wf_imp_wf_on, wf_on_field_imp_wf]) 1);
 qed "wf_iff_wf_on_field";
 
-goalw WF.thy [wf_on_def, wf_def] "!!A B r. [| wf[A](r);  B<=A |] ==> wf[B](r)";
+Goalw [wf_on_def, wf_def] "!!A B r. [| wf[A](r);  B<=A |] ==> wf[B](r)";
 by (Clarify_tac 1);  (*essential for Blast_tac's efficiency*)
 by (Blast_tac 1);
 qed "wf_on_subset_A";
 
-goalw WF.thy [wf_on_def, wf_def] "!!A r s. [| wf[A](r);  s<=r |] ==> wf[A](s)";
+Goalw [wf_on_def, wf_def] "!!A r s. [| wf[A](r);  s<=r |] ==> wf[A](s)";
 by (Clarify_tac 1);  (*essential for Blast_tac's efficiency*)
 by (Blast_tac 1);
 qed "wf_on_subset_r";
@@ -136,24 +136,24 @@ qed "wfI";
 
 (*** Properties of well-founded relations ***)
 
-goal WF.thy "!!r. wf(r) ==> <a,a> ~: r";
+Goal "!!r. wf(r) ==> <a,a> ~: r";
 by (wf_ind_tac "a" [] 1);
 by (Blast_tac 1);
 qed "wf_not_refl";
 
-goal WF.thy "!!r. [| wf(r);  <a,x>:r;  <x,a>:r |] ==> P";
+Goal "!!r. [| wf(r);  <a,x>:r;  <x,a>:r |] ==> P";
 by (subgoal_tac "ALL x. <a,x>:r --> <x,a>:r --> P" 1);
 by (wf_ind_tac "a" [] 2);
 by (Blast_tac 2);
 by (Blast_tac 1);
 qed "wf_asym";
 
-goal WF.thy "!!r. [| wf[A](r); a: A |] ==> <a,a> ~: r";
+Goal "!!r. [| wf[A](r); a: A |] ==> <a,a> ~: r";
 by (wf_on_ind_tac "a" [] 1);
 by (Blast_tac 1);
 qed "wf_on_not_refl";
 
-goal WF.thy "!!r. [| wf[A](r);  <a,b>:r;  <b,a>:r;  a:A;  b:A |] ==> P";
+Goal "!!r. [| wf[A](r);  <a,b>:r;  <b,a>:r;  a:A;  b:A |] ==> P";
 by (subgoal_tac "ALL y:A. <a,y>:r --> <y,a>:r --> P" 1);
 by (wf_on_ind_tac "a" [] 2);
 by (Blast_tac 2);
@@ -162,7 +162,7 @@ qed "wf_on_asym";
 
 (*Needed to prove well_ordI.  Could also reason that wf[A](r) means
   wf(r Int A*A);  thus wf( (r Int A*A)^+ ) and use wf_not_refl *)
-goal WF.thy
+Goal
     "!!r. [| wf[A](r); <a,b>:r; <b,c>:r; <c,a>:r; a:A; b:A; c:A |] ==> P";
 by (subgoal_tac
     "ALL y:A. ALL z:A. <a,y>:r --> <y,z>:r --> <z,a>:r --> P" 1);
@@ -185,7 +185,7 @@ by (cut_facts_tac [subs] 1);
 by (blast_tac (claset() addEs [tranclE]) 1);
 qed "wf_on_trancl";
 
-goal WF.thy "!!r. wf(r) ==> wf(r^+)";
+Goal "!!r. wf(r) ==> wf(r^+)";
 by (asm_full_simp_tac (simpset() addsimps [wf_iff_wf_on_field]) 1);
 by (rtac (trancl_type RS field_rel_subset RSN (2, wf_on_subset_A)) 1);
 by (etac wf_on_trancl 1);
@@ -293,7 +293,7 @@ by (REPEAT (ares_tac (prems @ [is_recfun_cut, unfold_the_recfun]) 1));
 qed "the_recfun_cut";
 
 (*NOT SUITABLE FOR REWRITING: it is recursive!*)
-goalw WF.thy [wftrec_def]
+Goalw [wftrec_def]
     "!!r. [| wf(r);  trans(r) |] ==> \
 \         wftrec(r,a,H) = H(a, lam x: r-``{a}. wftrec(r,x,H))";
 by (stac (rewrite_rule [is_recfun_def] unfold_the_recfun) 1);
@@ -333,7 +333,7 @@ by (REPEAT (ares_tac (prems@[lam_type]) 1
 qed "wfrec_type";
 
 
-goalw WF.thy [wf_on_def, wfrec_on_def]
+Goalw [wf_on_def, wfrec_on_def]
  "!!A r. [| wf[A](r);  a: A |] ==> \
 \        wfrec[A](r,a,H) = H(a, lam x: (r-``{a}) Int A. wfrec[A](r,x,H))";
 by (etac (wfrec RS trans) 1);

@@ -253,7 +253,7 @@ by (asm_full_simp_tac (FOL_ss addsimps [beta, image_lam, subset_iff]
                               addcongs [RepFun_cong]) 1);
 qed "image_fun";
 
-goal thy "!!f. [| f: Pi(A,B);  x: A |] ==> f `` cons(x,y) = cons(f`x, f``y)";
+Goal "!!f. [| f: Pi(A,B);  x: A |] ==> f `` cons(x,y) = cons(f`x, f``y)";
 by (blast_tac (claset() addDs [apply_equality, apply_Pair]) 1);
 qed "Pi_image_cons";
 
