@@ -13,61 +13,24 @@ FUNCTION nodups -- if done to goal clauses too!
 
 local
 
- (*Prove theorems using fast_tac*)
- fun prove_fun s =
-     prove_goal (the_context ()) s
-          (fn prems => [ cut_facts_tac prems 1, Fast_tac 1 ]);
-
- (**** Negation Normal Form ****)
-
- (*** de Morgan laws ***)
-
- val not_conjD = prove_fun "~(P&Q) ==> ~P | ~Q";
- val not_disjD = prove_fun "~(P|Q) ==> ~P & ~Q";
- val not_notD = prove_fun "~~P ==> P";
- val not_allD = prove_fun  "~(ALL x. P(x)) ==> EX x. ~P(x)";
- val not_exD = prove_fun   "~(EX x. P(x)) ==> ALL x. ~P(x)";
-
-
- (*** Removal of --> and <-> (positive and negative occurrences) ***)
-
- val imp_to_disjD = prove_fun "P-->Q ==> ~P | Q";
- val not_impD = prove_fun   "~(P-->Q) ==> P & ~Q";
-
- val iff_to_disjD = prove_fun "P=Q ==> (~P | Q) & (~Q | P)";
-
- (*Much more efficient than (P & ~Q) | (Q & ~P) for computing CNF*)
- val not_iffD = prove_fun "~(P=Q) ==> (P | Q) & (~P | ~Q)";
-
-
- (**** Pulling out the existential quantifiers ****)
-
- (*** Conjunction ***)
-
- val conj_exD1 = prove_fun "(EX x. P(x)) & Q ==> EX x. P(x) & Q";
- val conj_exD2 = prove_fun "P & (EX x. Q(x)) ==> EX x. P & Q(x)";
-
- (*** Disjunction ***)
-
- (*DO NOT USE with forall-Skolemization: makes fewer schematic variables!!
-   With ex-Skolemization, makes fewer Skolem constants*)
- val disj_exD = prove_fun "(EX x. P(x)) | (EX x. Q(x)) ==> EX x. P(x) | Q(x)";
-
- val disj_exD1 = prove_fun "(EX x. P(x)) | Q ==> EX x. P(x) | Q";
- val disj_exD2 = prove_fun "P | (EX x. Q(x)) ==> EX x. P | Q(x)";
-
-
-
- (***** Generating clauses for the Meson Proof Procedure *****)
-
- (*** Disjunctions ***)
-
- val disj_assoc = prove_fun "(P|Q)|R ==> P|(Q|R)";
-
- val disj_comm = prove_fun "P|Q ==> Q|P";
-
- val disj_FalseD1 = prove_fun "False|P ==> P";
- val disj_FalseD2 = prove_fun "P|False ==> P";
+ val not_conjD = thm "meson_not_conjD";
+ val not_disjD = thm "meson_not_disjD";
+ val not_notD = thm "meson_not_notD";
+ val not_allD = thm "meson_not_allD";
+ val not_exD = thm "meson_not_exD";
+ val imp_to_disjD = thm "meson_imp_to_disjD";
+ val not_impD = thm "meson_not_impD";
+ val iff_to_disjD = thm "meson_iff_to_disjD";
+ val not_iffD = thm "meson_not_iffD";
+ val conj_exD1 = thm "meson_conj_exD1";
+ val conj_exD2 = thm "meson_conj_exD2";
+ val disj_exD = thm "meson_disj_exD";
+ val disj_exD1 = thm "meson_disj_exD1";
+ val disj_exD2 = thm "meson_disj_exD2";
+ val disj_assoc = thm "meson_disj_assoc";
+ val disj_comm = thm "meson_disj_comm";
+ val disj_FalseD1 = thm "meson_disj_FalseD1";
+ val disj_FalseD2 = thm "meson_disj_FalseD2";
 
 
  (**** Operators for forward proof ****)
