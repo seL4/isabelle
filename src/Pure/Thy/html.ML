@@ -29,10 +29,11 @@ sig
   val session_entries: (Url.T * string) list -> text
   val source: (string, 'a) Source.source -> text
   val begin_theory: Url.T * string -> string -> (Url.T option * string) list ->
-    (Url.T option * Url.T * bool) list -> text -> text
+    (Url.T option * Url.T * bool option) list -> text -> text
   val end_theory: text
   val ml_file: Url.T -> string -> text
   val theorem: string -> thm -> text
+  val theorems: string -> thm list -> text
   val section: string -> text
   val setup: (theory -> theory) list
 end;
@@ -211,9 +212,11 @@ fun source src = "\n<hr>\n<pre>" ^ output_source src ^ "</pre>\n<hr>\n";
 
 
 local
-  fun file (opt_ref, path, loadit) = href_opt_path opt_ref
-    ((if not loadit then enclose "(" ")" else I) (file_path path));
+  fun encl None = enclose "[" "]"
+    | encl (Some false) = enclose "(" ")"
+    | encl (Some true) = I;
 
+  fun file (opt_ref, path, loadit) = href_opt_path opt_ref (encl loadit (file_path path));
   val files = space_implode " + " o map file;
   val parents = space_implode " + " o map (uncurry href_opt_path o apsnd name);
 
@@ -237,14 +240,17 @@ fun ml_file path str =
   "\n<hr>\n" ^ verbatim str ^ "\n<hr>\n" ^ end_document;
 
 
-(* theorem *)
+(* theorems *)
 
-val string_of_thm =             (* FIXME improve freeze_thaw (?) *)
+val string_of_thm =
   Pretty.setmp_margin 80 Pretty.string_of o
     Display.pretty_thm_no_quote o #1 o Drule.freeze_thaw;
 
 fun thm th = preform (prefix_lines "  " (html_mode string_of_thm th));
+
 fun theorem a th = para (keyword "theorem" ^ " " ^ name (a ^ ":") ^ "\n" ^ thm th);
+fun theorems a ths =
+  para (cat_lines ((keyword "theorems" ^ " " ^ name (a ^ ":")) :: map thm ths));
 
 
 (* section *)
