@@ -108,6 +108,10 @@ constdefs
          {(s,s'). s' = s (|floor := floor s - #1|)
 		       & ~ stop s & ~ up s & floor s ~: req s}"
 
+  (*This action is omitted from prior treatments, which therefore are
+    unrealistic: nobody asks the lift to do anything!  But adding this
+    action invalidates many of the existing progress arguments: various
+    "ensures" properties fail.*)
   button_press  :: "(state*state) set"
     "button_press ==
          {(s,s'). EX n. s' = s (|req := insert n (req s)|)
@@ -119,7 +123,8 @@ constdefs
     "Lift == mk_program ({s. floor s = Min & ~ up s & move s & stop s &
 		          ~ open s & req s = {}},
 			 {request_act, open_act, close_act,
-			  req_up, req_down, move_up, move_down})"
+			  req_up, req_down, move_up, move_down},
+			 UNIV)"
 
 
   (** Invariants **)

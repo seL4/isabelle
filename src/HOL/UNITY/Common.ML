@@ -36,21 +36,22 @@ by (simp_tac (simpset() addsimps [constrains_def, maxfg_def, le_max_iff_disj,
 result();
 
 (*This one is  t := ftime t || t := gtime t*)
-Goal "mk_program (UNIV, {range(%t.(t,ftime t)), range(%t.(t,gtime t))}) \
+Goal "mk_program (UNIV, {range(%t.(t,ftime t)), range(%t.(t,gtime t))}, UNIV) \
 \      : {m} co (maxfg m)";
 by (simp_tac (simpset() addsimps [constrains_def, maxfg_def, 
 				  le_max_iff_disj, fasc]) 1);
 result();
 
 (*This one is  t := max (ftime t) (gtime t)*)
-Goal "mk_program (UNIV, {range(%t.(t, max (ftime t) (gtime t)))}) \
+Goal "mk_program (UNIV, {range(%t.(t, max (ftime t) (gtime t)))}, UNIV) \
 \      : {m} co (maxfg m)";
 by (simp_tac 
     (simpset() addsimps [constrains_def, maxfg_def, max_def, gasc]) 1);
 result();
 
 (*This one is  t := t+1 if t <max (ftime t) (gtime t) *)
-Goal "mk_program (UNIV, { {(t, Suc t) | t. t < max (ftime t) (gtime t)} }) \
+Goal "mk_program  \
+\         (UNIV, { {(t, Suc t) | t. t < max (ftime t) (gtime t)} }, UNIV)  \
 \      : {m} co (maxfg m)";
 by (simp_tac 
     (simpset() addsimps [constrains_def, maxfg_def, max_def, gasc]) 1);

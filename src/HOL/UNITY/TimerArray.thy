@@ -18,6 +18,6 @@ constdefs
     "decr == UN n uu. {((Suc n, uu), (n,uu))}"
   
   Timer :: 'a state program
-    "Timer == mk_program (UNIV, {decr})"
+    "Timer == mk_program (UNIV, {decr}, UNIV)"
 
 end

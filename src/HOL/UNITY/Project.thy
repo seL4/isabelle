@@ -13,13 +13,16 @@ Project = Extend +
 constdefs
   projecting :: "['c program => 'c set, 'a*'b => 'c, 
 		  'a program, 'c program set, 'a program set] => bool"
-  "projecting C h F X' X ==
-     ALL G. extend h F Join G : X' --> F Join project h (C G) G : X"
+    "projecting C h F X' X ==
+       ALL G. extend h F Join G : X' --> F Join project h (C G) G : X"
 
-  extending :: "['c=>'d, 'c program => 'c set, 'a*'b => 'c, 'a program, 
+  extending :: "['c program => 'c set, 'a*'b => 'c, 'a program, 
 		 'c program set, 'a program set] => bool"
-  "extending v C h F Y' Y ==
-     ALL G. G : preserves v --> F Join project h (C G) G : Y
-            --> extend h F Join G : Y'"
+    "extending C h F Y' Y ==
+       ALL G. extend h F  ok G --> F Join project h (C G) G : Y
+	      --> extend h F Join G : Y'"
+
+  subset_closed :: "'a set set => bool"
+    "subset_closed U == ALL A: U. Pow A <= U"  
 
 end

@@ -76,6 +76,7 @@ Goalw [leadsETo_def]
      "[| F: A ensures B;  A-B: insert {} CC |] ==> F : A leadsTo[CC] B";
 by (blast_tac (claset() addIs [elt.Basis]) 1);
 qed "leadsETo_Basis";
+AddIs [leadsETo_Basis];
 
 Goalw [leadsETo_def]
      "[| F : A leadsTo[CC] B;  F : B leadsTo[CC] C |] ==> F : A leadsTo[CC] C";
@@ -350,7 +351,7 @@ by Safe_tac;
 by (etac leadsETo_induct 1);
 by (blast_tac (claset() addIs [leadsTo_Union]) 3);
 by (blast_tac (claset() addIs [leadsTo_Trans]) 2);
-by (blast_tac (claset() addIs [leadsTo_Basis]) 1);
+by (Blast_tac 1);
 qed "leadsETo_subset_leadsTo";
 
 Goal "(A leadsTo[UNIV] B) = (A leadsTo B)";
@@ -360,7 +361,7 @@ by (etac (impOfSubs leadsETo_subset_leadsTo) 1);
 by (etac leadsTo_induct 1);
 by (blast_tac (claset() addIs [leadsETo_Union]) 3);
 by (blast_tac (claset() addIs [leadsETo_Trans]) 2);
-by (blast_tac (claset() addIs [leadsETo_Basis]) 1);
+by (Blast_tac 1);
 qed "leadsETo_UNIV_eq_leadsTo";
 
 (**** weak ****)
@@ -595,7 +596,8 @@ by (blast_tac (claset() addIs [extend_set_givenBy_I]) 1);
 qed "project_LeadsETo_D";
 
 Goalw [extending_def]
-     "extending (v o f) (%G. UNIV) h F \
+     "(ALL G. extend h F ok G --> G : preserves (v o f)) \
+\     ==> extending (%G. UNIV) h F \
 \               (extend_set h A leadsTo[givenBy (v o f)] extend_set h B) \
 \               (A leadsTo[givenBy v] B)";
 by (auto_tac (claset(), simpset() addsimps [project_leadsETo_D]));
@@ -603,7 +605,8 @@ qed "extending_leadsETo";
 
 
 Goalw [extending_def]
-     "extending (v o f) (%G. reachable (extend h F Join G)) h F \
+     "(ALL G. extend h F ok G --> G : preserves (v o f)) \
+\     ==> extending (%G. reachable (extend h F Join G)) h F \
 \               (extend_set h A LeadsTo[givenBy (v o f)] extend_set h B) \
 \               (A LeadsTo[givenBy v]  B)";
 by (blast_tac (claset() addIs [project_LeadsETo_D]) 1);
@@ -637,8 +640,7 @@ by (blast_tac (claset() addIs [leadsTo_Trans, lemma]) 2);
 by (asm_full_simp_tac 
     (simpset() addsimps [givenBy_eq_extend_set]) 1);
 by (rtac leadsTo_Basis 1);
-by (blast_tac (claset() addIs [leadsTo_Basis,
-			       ensures_extend_set_imp_project_ensures]) 1);
+by (blast_tac (claset() addIs [ensures_extend_set_imp_project_ensures]) 1);
 
 qed "project_leadsETo_I_lemma";
 

@@ -19,7 +19,8 @@ by (auto_tac (claset(), simpset() addsimps Join_ac));
 qed "componentI";
 
 Goalw [component_def]
-     "(F <= G) = (Init G <= Init F & Acts F <= Acts G)";
+     "(F <= G) = \
+\     (Init G <= Init F & Acts F <= Acts G & AllowedActs G <= AllowedActs F)";
 by (force_tac (claset() addSIs [exI, program_equalityI], 
 	       simpset()) 1);
 qed "component_eq_subset";
@@ -110,7 +111,11 @@ by (simp_tac (simpset() addsimps [JN_stable, preserves_def]) 1);
 by (Blast_tac 1);
 qed "JN_preserves";
 
-AddIffs [Join_preserves, JN_preserves];
+Goal "SKIP : preserves v";
+by (auto_tac (claset(), simpset() addsimps [preserves_def]));
+qed "SKIP_preserves";
+
+AddIffs [Join_preserves, JN_preserves, SKIP_preserves];
 
 Goalw [funPair_def] "(funPair f g) x = (f x, g x)";
 by (Simp_tac 1);
@@ -131,7 +136,6 @@ Goal "(funPair f g) o h = funPair (f o h) (g o h)";
 by (simp_tac (simpset() addsimps [funPair_def, o_def]) 1);
 qed "funPair_o_distrib";
 
-
 Goal "fst o (funPair f g) = f";
 by (simp_tac (simpset() addsimps [funPair_def, o_def]) 1);
 qed "fst_o_funPair";
@@ -141,11 +145,9 @@ by (simp_tac (simpset() addsimps [funPair_def, o_def]) 1);
 qed "snd_o_funPair";
 Addsimps [fst_o_funPair, snd_o_funPair];
 
-
 Goal "preserves v <= preserves (w o v)";
 by (force_tac (claset(),
-	       simpset() addsimps [preserves_def, 
-				   stable_def, constrains_def]) 1);
+      simpset() addsimps [preserves_def, stable_def, constrains_def]) 1);
 qed "subset_preserves_o";
 
 Goal "preserves v <= stable {s. P (v s)}";
@@ -166,6 +168,15 @@ Goal "preserves id <= stable A";
 by (force_tac (claset(), 
 	   simpset() addsimps [preserves_def, stable_def, constrains_def]) 1);
 qed "preserves_id_subset_stable";
+
+
+(** For use with def_UNION_ok_iff **)
+
+Goal "safety_prop (preserves v)";
+by (auto_tac (claset() addIs [safety_prop_INTER1], 
+              simpset() addsimps [preserves_def]));
+qed "safety_prop_preserves";
+AddIffs [safety_prop_preserves];
 
 
 (** Some lemmas used only in Client.ML **)

@@ -288,6 +288,7 @@ Goalw [extend_act_def, project_act_def]
      "project_act h (extend_act h act) = act";
 by (Blast_tac 1);
 qed "extend_act_inverse";
+Addsimps [extend_act_inverse];
 
 Goalw [extend_act_def, project_act_def]
      "project_act h (Restrict C (extend_act h act)) = \
@@ -345,7 +346,7 @@ by (force_tac (claset(),
               simpset() addsimps [split_extended_all]) 1);
 qed "Domain_project_act";
 
-Addsimps [extend_act_Id];
+Addsimps [extend_act_Id, project_act_Id];
 
 
 (**** extend ****)
@@ -355,21 +356,43 @@ Addsimps [extend_act_Id];
 Goalw [extend_def] "Init (extend h F) = extend_set h (Init F)";
 by Auto_tac;
 qed "Init_extend";
+Addsimps [Init_extend];
 
 Goalw [project_def] "Init (project h C F) = project_set h (Init F)";
 by Auto_tac;
 qed "Init_project";
+Addsimps [Init_project];
 
 Goal "Acts (extend h F) = (extend_act h `` Acts F)";
 by (simp_tac (simpset() addsimps [extend_def, insert_Id_image_Acts]) 1);
 qed "Acts_extend";
+Addsimps [Acts_extend];
+
+Goal "AllowedActs (extend h F) = project_act h -`` AllowedActs F";
+by (simp_tac (simpset() addsimps [extend_def, insert_absorb]) 1);
+qed "AllowedActs_extend";
+Addsimps [AllowedActs_extend];
 
 Goal "Acts(project h C F) = insert Id (project_act h `` Restrict C `` Acts F)";
 by (auto_tac (claset(), 
 	      simpset() addsimps [project_def, image_iff]));
 qed "Acts_project";
+Addsimps [Acts_project];
 
-Addsimps [Init_extend, Init_project, Acts_extend, Acts_project];
+Goal "AllowedActs(project h C F) = \
+\       {act. Restrict (project_set h C) act \
+\              : project_act h `` Restrict C `` AllowedActs F}";
+by (simp_tac (simpset() addsimps [project_def, image_iff]) 1);
+by (stac insert_absorb 1);
+by (auto_tac (claset() addSIs [inst "x" "Id" bexI], 
+                 simpset() addsimps [project_act_def]));  
+qed "AllowedActs_project";
+Addsimps [AllowedActs_project];
+
+Goal "Allowed (extend h F) = project h UNIV -`` Allowed F";
+by (simp_tac (simpset() addsimps [AllowedActs_extend, Allowed_def]) 1);
+by (Blast_tac 1); 
+qed "Allowed_extend";
 
 Goalw [SKIP_def] "extend h SKIP = SKIP";
 by (rtac program_equalityI 1);
@@ -386,31 +409,51 @@ Goal "project_set h (Union A) = (UN X:A. project_set h X)";
 by (Blast_tac 1);
 qed "project_set_Union";
 
+(*Converse FAILS: the extended state contributing to project_set h C
+  may not coincide with the one contributing to project_act h act*)
+Goal "project_act h (Restrict C act) <= \
+\     Restrict (project_set h C) (project_act h act)";
+by (auto_tac (claset(), simpset() addsimps [project_act_def]));  
+qed "project_act_Restrict_subset";
+
+
+Goal "project_act h (Restrict C Id) = Restrict (project_set h C) Id";
+by (auto_tac (claset(), simpset() addsimps [project_act_def]));  
+qed "project_act_Restrict_Id_eq";
+
 Goal "project h C (extend h F) = \
-\     mk_program (Init F, Restrict (project_set h C) `` Acts F)";
+\     mk_program (Init F, Restrict (project_set h C) `` Acts F, \
+\                 {act. Restrict (project_set h C) act : project_act h `` Restrict C `` (project_act h -`` AllowedActs F)})";
 by (rtac program_equalityI 1);
 by (asm_simp_tac (simpset() addsimps [image_eq_UN]) 2);
 by (Simp_tac 1);
+by (simp_tac (simpset() addsimps [project_def]) 1);
 qed "project_extend_eq";
 
-(*ALL act: Acts F. Domain act is MUCH TOO STRONG since Domain Id = UNIV!*)
-Goal "UNIV <= project_set h C \
-\     ==> project h C (extend h F) = F";
+Goal "project h UNIV (extend h F) = F";
 by (asm_simp_tac (simpset() addsimps [project_extend_eq, image_eq_UN, 
                    subset_UNIV RS subset_trans RS Restrict_triv]) 1);
+by (rtac program_equalityI 1);
+by (ALLGOALS Simp_tac);
+by (stac insert_absorb 1);
+by (simp_tac (simpset() addsimps [inst "x" "Id" bexI]) 1); 
+by Auto_tac;  
+by (rename_tac "act" 1);
+by (res_inst_tac [("x","extend_act h act")] bexI 1);
+by Auto_tac;  
 qed "extend_inverse";
 Addsimps [extend_inverse];
 
 Goal "inj (extend h)";
 by (rtac inj_on_inverseI 1);
 by (rtac extend_inverse 1);
-by (Force_tac 1);
 qed "inj_extend";
 
 Goal "extend h (F Join G) = extend h F Join extend h G";
 by (rtac program_equalityI 1);
 by (simp_tac (simpset() addsimps [image_Un]) 2);
 by (simp_tac (simpset() addsimps [extend_set_Int_distrib]) 1);
+by Auto_tac;  
 qed "extend_Join";
 Addsimps [extend_Join];
 
@@ -418,6 +461,7 @@ Goal "extend h (JOIN I F) = (JN i:I. extend h (F i))";
 by (rtac program_equalityI 1);
 by (simp_tac (simpset() addsimps [image_UN]) 2);
 by (simp_tac (simpset() addsimps [extend_set_INT_distrib]) 1);
+by Auto_tac;  
 qed "extend_JN";
 Addsimps [extend_JN];
 
@@ -430,7 +474,7 @@ qed "extend_mono";
 
 Goal "F <= G ==> project h C F <= project h C G";
 by (full_simp_tac (simpset() addsimps [component_eq_subset]) 1);
-by Auto_tac;
+by (Blast_tac 1); 
 qed "project_mono";
 
 
@@ -685,9 +729,9 @@ qed "inj_extend_preserves";
 
 Goal "project h UNIV ((extend h F) Join G) = F Join (project h UNIV G)";
 by (rtac program_equalityI 1);
-by (asm_simp_tac
-    (simpset() addsimps [image_eq_UN, UN_Un, extend_act_inverse]) 2);
+by (simp_tac (simpset() addsimps [image_eq_UN, UN_Un]) 2);
 by (simp_tac (simpset() addsimps [project_set_extend_set_Int]) 1);
+by Auto_tac;  
 qed "project_extend_Join";
 
 Goal "(extend h F) Join G = extend h H ==> H = F Join (project h UNIV G)";
@@ -698,26 +742,44 @@ qed "extend_Join_eq_extend_D";
 (** Strong precondition and postcondition; only useful when
     the old and new state sets are in bijection **)
 
-Goal "F : X guarantees[v] Y ==> \
-\     extend h F : (extend h `` X) guarantees[v o f] (extend h `` Y)";
+
+Goal "extend h F ok G ==> F ok project h UNIV G";
+by (auto_tac (claset(), simpset() addsimps [ok_def]));
+by (dtac subsetD 1);   
+by (auto_tac (claset() addSIs [rev_image_eqI], simpset()));  
+qed "ok_extend_imp_ok_project";
+
+Goal "(extend h F ok extend h G) = (F ok G)";
+by (auto_tac (claset(), simpset() addsimps [ok_def]));  
+qed "ok_extend_iff";
+
+Goal "OK I (%i. extend h (F i)) = (OK I F)";
+by (auto_tac (claset(), simpset() addsimps [OK_def]));  
+by (dres_inst_tac [("x","i")] bspec 1); 
+by (dres_inst_tac [("x","j")] bspec 2); 
+by Auto_tac;  
+qed "OK_extend_iff";
+
+Goal "F : X guarantees Y ==> \
+\     extend h F : (extend h `` X) guarantees (extend h `` Y)";
 by (rtac guaranteesI 1);
-by Auto_tac;
-by (blast_tac (claset() addIs [project_preserves_I]
-			addDs [extend_Join_eq_extend_D, guaranteesD]) 1);
+by (Clarify_tac 1);
+by (blast_tac (claset() addDs [ok_extend_imp_ok_project, 
+                               extend_Join_eq_extend_D, guaranteesD]) 1);
 qed "guarantees_imp_extend_guarantees";
 
-Goal "extend h F : (extend h `` X) guarantees[v o f] (extend h `` Y) \
-\     ==> F : X guarantees[v] Y";
+Goal "extend h F : (extend h `` X) guarantees (extend h `` Y) \
+\     ==> F : X guarantees Y";
 by (auto_tac (claset(), simpset() addsimps [guar_def]));
-by (dres_inst_tac [("x", "extend h G")] bspec 1);
+by (dres_inst_tac [("x", "extend h G")] spec 1);
 by (asm_full_simp_tac 
     (simpset() delsimps [extend_Join] 
-           addsimps [extend_Join RS sym, inj_extend RS inj_image_mem_iff]) 2);
-by (asm_simp_tac (simpset() addsimps [extend_preserves]) 1);
+               addsimps [extend_Join RS sym, ok_extend_iff, 
+                         inj_extend RS inj_image_mem_iff]) 1);
 qed "extend_guarantees_imp_guarantees";
 
-Goal "(extend h F : (extend h `` X) guarantees[v o f] (extend h `` Y)) = \
-\    (F : X guarantees[v] Y)";
+Goal "(extend h F : (extend h `` X) guarantees (extend h `` Y)) = \
+\    (F : X guarantees Y)";
 by (blast_tac (claset() addIs [guarantees_imp_extend_guarantees,
 			       extend_guarantees_imp_guarantees]) 1);
 qed "extend_guarantees_eq";

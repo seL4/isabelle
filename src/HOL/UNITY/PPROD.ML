@@ -121,12 +121,21 @@ AddIs [PLam_preserves_snd];
   something like lift_preserves_sub to rewrite the third.  However there's
   no obvious way to alternative for the third premise.*)
 Goalw [PLam_def]
-    "[| lift i (F i): X guarantees[v] Y;  i : I;  \
-\        ALL j:I. i~=j --> lift j (F j) : preserves v |]  \
-\    ==> (PLam I F) : X guarantees[v] Y";
+    "[| lift i (F i): X guarantees Y;  i : I;  \
+\       OK I (%i. lift i (F i)) |]  \
+\    ==> (PLam I F) : X guarantees Y"; 
 by (asm_simp_tac (simpset() addsimps [guarantees_JN_I]) 1);
 qed "guarantees_PLam_I";
 
+Goal "Allowed (PLam I F) = (INT i:I. lift i `` Allowed(F i))";
+by (simp_tac (simpset() addsimps [PLam_def]) 1); 
+qed "Allowed_PLam";
+Addsimps [Allowed_PLam];
+
+Goal "(PLam I F) : preserves v = (ALL i:I. F i : preserves (v o lift_map i))";
+by (simp_tac (simpset() addsimps [PLam_def, lift_def, rename_preserves]) 1); 
+qed "PLam_preserves";
+Addsimps [PLam_preserves];
 
 (**UNUSED
     (*The f0 premise ensures that the product is well-defined.*)

@@ -48,9 +48,12 @@ constdefs
 		         (s' = s (|ask := ask s @ [tok s]|))}"
 
   Client :: 'a state_d program
-    "Client == mk_program ({s. tok s : atMost NbT &
-		               giv s = [] & ask s = [] & rel s = []},
-			   {rel_act, tok_act, ask_act})"
+    "Client ==
+       mk_program ({s. tok s : atMost NbT &
+		    giv s = [] & ask s = [] & rel s = []},
+		   {rel_act, tok_act, ask_act},
+		   UN G: preserves rel Int preserves ask Int preserves tok.
+		   Acts G)"
 
   (*Maybe want a special theory section to declare such maps*)
   non_dummy :: 'a state_d => state

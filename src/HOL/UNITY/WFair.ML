@@ -237,7 +237,7 @@ by (blast_tac (claset() addIs [leadsTo_weaken_R, leadsTo_weaken_L,
 qed "leadsTo_weaken";
 
 
-(*Set difference: maybe combine with leadsTo_weaken_L??*)
+(*Set difference: maybe combine with leadsTo_weaken_L?*)
 Goal "[| F : (A-B) leadsTo C; F : B leadsTo C |]   ==> F : A leadsTo C";
 by (blast_tac (claset() addIs [leadsTo_Un, leadsTo_weaken]) 1);
 qed "leadsTo_Diff";
@@ -373,7 +373,7 @@ by (blast_tac (claset() addIs [leadsTo_cancel1, leadsTo_Un_duplicate]) 1);
 val lemma = result();
 
 
-(** Meta or object quantifier ????? **)
+(** Meta or object quantifier ? **)
 Goal "[| wf r;     \
 \        ALL m. F : (A Int f-``{m}) leadsTo                     \
 \                   ((A Int f-``(r^-1 ^^ {m})) Un B) |] \

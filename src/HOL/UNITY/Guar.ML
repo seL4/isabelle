@@ -65,14 +65,14 @@ qed "uv_prop_finite";
 (*** guarantees ***)
 
 val prems = Goal
-     "(!!G. [| G : preserves v; F Join G : X |] ==> F Join G : Y) \
-\     ==> F : X guarantees[v] Y";
+     "(!!G. [| F ok G; F Join G : X |] ==> F Join G : Y) \
+\     ==> F : X guarantees Y";
 by (simp_tac (simpset() addsimps [guar_def, component_def]) 1);
 by (blast_tac (claset() addIs prems) 1);
 qed "guaranteesI";
 
 Goalw [guar_def, component_def]
-     "[| F : X guarantees[v] Y;  G : preserves v;  F Join G : X |] \
+     "[| F : X guarantees Y;  F ok G;  F Join G : X |] \
 \     ==> F Join G : Y";
 by (Blast_tac 1);
 qed "guaranteesD";
@@ -80,33 +80,27 @@ qed "guaranteesD";
 (*This version of guaranteesD matches more easily in the conclusion
   The major premise can no longer be  F<=H since we need to reason about G*)
 Goalw [guar_def]
-     "[| F : X guarantees[v] Y;  F Join G = H;  H : X;  G : preserves v |] \
+     "[| F : X guarantees Y;  F Join G = H;  H : X;  F ok G |] \
 \     ==> H : Y";
 by (Blast_tac 1);
 qed "component_guaranteesD";
 
 Goalw [guar_def]
-     "[| F: X guarantees[v] X'; Y <= X; X' <= Y' |] ==> F: Y guarantees[v] Y'";
+     "[| F: X guarantees X'; Y <= X; X' <= Y' |] ==> F: Y guarantees Y'";
 by (Blast_tac 1);
 qed "guarantees_weaken";
 
-Goalw [guar_def]
-     "[| F: X guarantees[v] Y;  preserves w <= preserves v |] \
-\     ==> F: X guarantees[w] Y";
-by (Blast_tac 1);
-qed "guarantees_weaken_var";
-
-Goalw [guar_def] "X <= Y ==> X guarantees[v] Y = UNIV";
+Goalw [guar_def] "X <= Y ==> X guarantees Y = UNIV";
 by (Blast_tac 1);
 qed "subset_imp_guarantees_UNIV";
 
 (*Equivalent to subset_imp_guarantees_UNIV but more intuitive*)
-Goalw [guar_def] "X <= Y ==> F : X guarantees[v] Y";
+Goalw [guar_def] "X <= Y ==> F : X guarantees Y";
 by (Blast_tac 1);
 qed "subset_imp_guarantees";
 
 (*Remark at end of section 4.1
-Goalw [guar_def] "ex_prop Y = (Y = UNIV guarantees[v] Y)";
+Goalw [guar_def] "ex_prop Y = (Y = UNIV guarantees Y)";
 by (simp_tac (simpset() addsimps [ex_prop_equiv]) 1);
 by (blast_tac (claset() addEs [equalityE]) 1);
 qed "ex_prop_equiv2";
@@ -115,40 +109,40 @@ qed "ex_prop_equiv2";
 (** Distributive laws.  Re-orient to perform miniscoping **)
 
 Goalw [guar_def]
-     "(UN i:I. X i) guarantees[v] Y = (INT i:I. X i guarantees[v] Y)";
+     "(UN i:I. X i) guarantees Y = (INT i:I. X i guarantees Y)";
 by (Blast_tac 1);
 qed "guarantees_UN_left";
 
 Goalw [guar_def]
-     "(X Un Y) guarantees[v] Z = (X guarantees[v] Z) Int (Y guarantees[v] Z)";
+     "(X Un Y) guarantees Z = (X guarantees Z) Int (Y guarantees Z)";
 by (Blast_tac 1);
 qed "guarantees_Un_left";
 
 Goalw [guar_def]
-     "X guarantees[v] (INT i:I. Y i) = (INT i:I. X guarantees[v] Y i)";
+     "X guarantees (INT i:I. Y i) = (INT i:I. X guarantees Y i)";
 by (Blast_tac 1);
 qed "guarantees_INT_right";
 
 Goalw [guar_def]
-     "Z guarantees[v] (X Int Y) = (Z guarantees[v] X) Int (Z guarantees[v] Y)";
+     "Z guarantees (X Int Y) = (Z guarantees X) Int (Z guarantees Y)";
 by (Blast_tac 1);
 qed "guarantees_Int_right";
 
-Goal "[| F : Z guarantees[v] X;  F : Z guarantees[v] Y |] \
-\    ==> F : Z guarantees[v] (X Int Y)";
+Goal "[| F : Z guarantees X;  F : Z guarantees Y |] \
+\    ==> F : Z guarantees (X Int Y)";
 by (asm_simp_tac (simpset() addsimps [guarantees_Int_right]) 1);
 qed "guarantees_Int_right_I";
 
-Goal "(F : X guarantees[v] (INTER I Y)) = \
-\     (ALL i:I. F : X guarantees[v] (Y i))";
+Goal "(F : X guarantees (INTER I Y)) = \
+\     (ALL i:I. F : X guarantees (Y i))";
 by (simp_tac (simpset() addsimps [guarantees_INT_right]) 1);
 qed "guarantees_INT_right_iff";
 
-Goalw [guar_def] "(X guarantees[v] Y) = (UNIV guarantees[v] (-X Un Y))";
+Goalw [guar_def] "(X guarantees Y) = (UNIV guarantees (-X Un Y))";
 by (Blast_tac 1);
 qed "shunting";
 
-Goalw [guar_def] "(X guarantees[v] Y) = -Y guarantees[v] -X";
+Goalw [guar_def] "(X guarantees Y) = -Y guarantees -X";
 by (Blast_tac 1);
 qed "contrapositive";
 
@@ -157,119 +151,115 @@ qed "contrapositive";
 **)
 
 Goalw [guar_def]
-    "[| F : V guarantees[v] X;  F : (X Int Y) guarantees[v] Z |]\
-\    ==> F : (V Int Y) guarantees[v] Z";
+    "[| F : V guarantees X;  F : (X Int Y) guarantees Z |]\
+\    ==> F : (V Int Y) guarantees Z";
 by (Blast_tac 1);
 qed "combining1";
 
 Goalw [guar_def]
-    "[| F : V guarantees[v] (X Un Y);  F : Y guarantees[v] Z |]\
-\    ==> F : V guarantees[v] (X Un Z)";
+    "[| F : V guarantees (X Un Y);  F : Y guarantees Z |]\
+\    ==> F : V guarantees (X Un Z)";
 by (Blast_tac 1);
 qed "combining2";
 
 (** The following two follow Chandy-Sanders, but the use of object-quantifiers
     does not suit Isabelle... **)
 
-(*Premise should be (!!i. i: I ==> F: X guarantees[v] Y i) *)
+(*Premise should be (!!i. i: I ==> F: X guarantees Y i) *)
 Goalw [guar_def]
-     "ALL i:I. F : X guarantees[v] (Y i) ==> F : X guarantees[v] (INT i:I. Y i)";
+     "ALL i:I. F : X guarantees (Y i) ==> F : X guarantees (INT i:I. Y i)";
 by (Blast_tac 1);
 qed "all_guarantees";
 
-(*Premises should be [| F: X guarantees[v] Y i; i: I |] *)
+(*Premises should be [| F: X guarantees Y i; i: I |] *)
 Goalw [guar_def]
-     "EX i:I. F : X guarantees[v] (Y i) ==> F : X guarantees[v] (UN i:I. Y i)";
+     "EX i:I. F : X guarantees (Y i) ==> F : X guarantees (UN i:I. Y i)";
 by (Blast_tac 1);
 qed "ex_guarantees";
 
 (*** Additional guarantees laws, by lcp ***)
 
 Goalw [guar_def]
-    "[| F: U guarantees[v] V;  G: X guarantees[v] Y; \
-\       F : preserves v;  G : preserves v |] \
-\    ==> F Join G: (U Int X) guarantees[v] (V Int Y)";
+    "[| F: U guarantees V;  G: X guarantees Y; F ok G |] \
+\    ==> F Join G: (U Int X) guarantees (V Int Y)"; 
 by (Simp_tac 1);
 by Safe_tac;
 by (asm_full_simp_tac (simpset() addsimps [Join_assoc]) 1);
 by (subgoal_tac "F Join G Join Ga = G Join (F Join Ga)" 1);
-by (Asm_full_simp_tac 1);
+by (asm_full_simp_tac (simpset() addsimps [ok_commute]) 1); 
 by (asm_simp_tac (simpset() addsimps Join_ac) 1);
 qed "guarantees_Join_Int";
 
 Goalw [guar_def]
-    "[| F: U guarantees[v] V;  G: X guarantees[v] Y; \
-\       F : preserves v;  G : preserves v |]  \
-\    ==> F Join G: (U Un X) guarantees[v] (V Un Y)";
+    "[| F: U guarantees V;  G: X guarantees Y; F ok G |]  \
+\    ==> F Join G: (U Un X) guarantees (V Un Y)";
 by (Simp_tac 1);
 by Safe_tac;
 by (asm_full_simp_tac (simpset() addsimps [Join_assoc]) 1);
 by (subgoal_tac "F Join G Join Ga = G Join (F Join Ga)" 1);
-by (Asm_full_simp_tac 1);
+by (asm_full_simp_tac (simpset() addsimps [ok_commute]) 1);
 by (asm_simp_tac (simpset() addsimps Join_ac) 1);
 qed "guarantees_Join_Un";
 
 Goalw [guar_def]
-     "[| ALL i:I. F i : X i guarantees[v] Y i;  \
-\        ALL i:I. F i : preserves v |] \
-\     ==> (JOIN I F) : (INTER I X) guarantees[v] (INTER I Y)";
+     "[| ALL i:I. F i : X i guarantees Y i;  OK I F |] \
+\     ==> (JOIN I F) : (INTER I X) guarantees (INTER I Y)";
 by Auto_tac;
 by (ball_tac 1);
-by (dres_inst_tac [("x", "JOIN I F Join G")] bspec 1);
+by (rename_tac "i" 1);
+by (dres_inst_tac [("x", "JOIN (I-{i}) F Join G")] spec 1);
 by (auto_tac
-    (claset(),
-     simpset() addsimps [Join_assoc RS sym, JN_absorb]));
+    (claset() addIs [OK_imp_ok],
+     simpset() addsimps [Join_assoc RS sym, JN_Join_diff, JN_absorb]));
 qed "guarantees_JN_INT";
 
 Goalw [guar_def]
-    "[| ALL i:I. F i : X i guarantees[v] Y i;  \
-\       ALL i:I. F i : preserves v |] \
-\    ==> (JOIN I F) : (INTER I X) guarantees[v] (INTER I Y)";
+    "[| ALL i:I. F i : X i guarantees Y i;  OK I F |] \
+\    ==> (JOIN I F) : (INTER I X) guarantees (INTER I Y)";
 by Auto_tac;
 by (ball_tac 1);
-by (dres_inst_tac [("x", "JOIN I F Join G")] bspec 1);
+by (rename_tac "i" 1);
+by (dres_inst_tac [("x", "JOIN (I-{i}) F Join G")] spec 1);
 by (auto_tac
-    (claset(),
-     simpset() addsimps [Join_assoc RS sym, JN_absorb]));
+    (claset() addIs [OK_imp_ok],
+     simpset() addsimps [Join_assoc RS sym, JN_Join_diff, JN_absorb]));
 qed "guarantees_JN_INT";
 
 Goalw [guar_def]
-    "[| ALL i:I. F i : X i guarantees[v] Y i;  \
-\       ALL i:I. F i : preserves v |] \
-\    ==> (JOIN I F) : (UNION I X) guarantees[v] (UNION I Y)";
+    "[| ALL i:I. F i : X i guarantees Y i;  OK I F |] \
+\    ==> (JOIN I F) : (UNION I X) guarantees (UNION I Y)";
 by Auto_tac;
 by (ball_tac 1);
-by (dres_inst_tac [("x", "JOIN I F Join G")] bspec 1);
+by (rename_tac "i" 1);
+by (dres_inst_tac [("x", "JOIN (I-{i}) F Join G")] spec 1);
 by (auto_tac
-    (claset(),
-     simpset() addsimps [Join_assoc RS sym, JN_absorb]));
+    (claset() addIs [OK_imp_ok],
+     simpset() addsimps [Join_assoc RS sym, JN_Join_diff, JN_absorb]));
 qed "guarantees_JN_UN";
 
 
-(*** guarantees[v] laws for breaking down the program, by lcp ***)
+(*** guarantees laws for breaking down the program, by lcp ***)
 
 Goalw [guar_def]
-     "[| F: X guarantees[v] Y;  G: preserves v |] \
-\     ==> F Join G: X guarantees[v] Y";
+     "[| F: X guarantees Y;  F ok G |] ==> F Join G: X guarantees Y";
 by (Simp_tac 1);
 by Safe_tac;
 by (asm_full_simp_tac (simpset() addsimps [Join_assoc]) 1);
 qed "guarantees_Join_I1";
 
-Goal "[| G: X guarantees[v] Y;  F: preserves v |] \
-\    ==> F Join G: X guarantees[v] Y";
-by (stac Join_commute 1);
+Goal "[| G: X guarantees Y;  F ok G |] ==> F Join G: X guarantees Y";
+by (asm_full_simp_tac (simpset() addsimps [inst "G" "G" Join_commute, 
+                                           inst "G" "G" ok_commute]) 1);
 by (blast_tac (claset() addIs [guarantees_Join_I1]) 1);
 qed "guarantees_Join_I2";
 
 Goalw [guar_def]
-     "[| i : I;  F i: X guarantees[v] Y;  \
-\        ALL j:I. i~=j --> F j : preserves v |] \
-\     ==> (JN i:I. (F i)) : X guarantees[v] Y";
+     "[| i : I;  F i: X guarantees Y;  OK I F |] \
+\     ==> (JN i:I. (F i)) : X guarantees Y";
 by (Clarify_tac 1);
-by (dres_inst_tac [("x", "JOIN (I-{i}) F Join G")] bspec 1);
-by (auto_tac (claset(),
-	      simpset() addsimps [JN_Join_diff, Join_assoc RS sym]));
+by (dres_inst_tac [("x", "JOIN (I-{i}) F Join G")] spec 1);
+by (auto_tac (claset() addIs [OK_imp_ok],
+	      simpset() addsimps [JN_Join_diff, JN_Join_diff, Join_assoc RS sym]));
 qed "guarantees_JN_I";
 
 

@@ -70,45 +70,47 @@ constdefs
   (*spec (3)*)
   client_increasing :: 'a clientState_d program set
     "client_increasing ==
-         UNIV guarantees[funPair rel ask]
-         Increasing ask Int Increasing rel"
+         UNIV guarantees  Increasing ask Int Increasing rel"
 
   (*spec (4)*)
   client_bounded :: 'a clientState_d program set
     "client_bounded ==
-         UNIV guarantees[ask]
-         Always {s. ALL elt : set (ask s). elt <= NbT}"
+         UNIV guarantees  Always {s. ALL elt : set (ask s). elt <= NbT}"
 
   (*spec (5)*)
   client_progress :: 'a clientState_d program set
     "client_progress ==
-	 Increasing giv
-	 guarantees[funPair rel ask]
+	 Increasing giv  guarantees
 	 (INT h. {s. h <= giv s & h pfixGe ask s}
 		 LeadsTo {s. tokens h <= (tokens o rel) s})"
 
   (*spec: preserves part*)
-    client_preserves :: 'a clientState_d program set
-    "client_preserves == preserves (funPair giv clientState_d.dummy)"
+  client_preserves :: 'a clientState_d program set
+    "client_preserves == preserves giv Int preserves clientState_d.dummy"
+
+  (*environmental constraints*)
+  client_allowed_acts :: 'a clientState_d program set
+    "client_allowed_acts ==
+       {F. AllowedActs F =
+	    insert Id (UNION (preserves (funPair rel ask)) Acts)}"
 
   client_spec :: 'a clientState_d program set
     "client_spec == client_increasing Int client_bounded Int client_progress
-                    Int client_preserves"
+                    Int client_allowed_acts Int client_preserves"
 
 (** Allocator specification (required) ***)
 
   (*spec (6)*)
   alloc_increasing :: 'a allocState_d program set
     "alloc_increasing ==
-	 UNIV
-         guarantees[allocGiv]
+	 UNIV  guarantees
 	 (INT i : lessThan Nclients. Increasing (sub i o allocGiv))"
 
   (*spec (7)*)
   alloc_safety :: 'a allocState_d program set
     "alloc_safety ==
 	 (INT i : lessThan Nclients. Increasing (sub i o allocRel))
-         guarantees[allocGiv]
+         guarantees
 	 Always {s. setsum(%i.(tokens o sub i o allocGiv)s) (lessThan Nclients)
          <= NbT + setsum(%i.(tokens o sub i o allocRel)s) (lessThan Nclients)}"
 
@@ -125,7 +127,7 @@ constdefs
 	  INT h. {s. h <= (sub i o allocGiv)s & h pfixGe (sub i o allocAsk)s}
 		 LeadsTo
 	         {s. tokens h <= (tokens o sub i o allocRel)s})
-         guarantees[allocGiv]
+         guarantees
 	     (INT i : lessThan Nclients.
 	      INT h. {s. h <= (sub i o allocAsk) s}
 	             LeadsTo
@@ -139,46 +141,62 @@ constdefs
     looked at.*)
 
   (*spec: preserves part*)
-    alloc_preserves :: 'a allocState_d program set
-    "alloc_preserves == preserves (funPair allocRel
-				   (funPair allocAsk allocState_d.dummy))"
+  alloc_preserves :: 'a allocState_d program set
+    "alloc_preserves == preserves allocRel Int preserves allocAsk Int
+                        preserves allocState_d.dummy"
   
+  (*environmental constraints*)
+  alloc_allowed_acts :: 'a allocState_d program set
+    "alloc_allowed_acts ==
+       {F. AllowedActs F =
+	    insert Id (UNION (preserves allocGiv) Acts)}"
+
   alloc_spec :: 'a allocState_d program set
     "alloc_spec == alloc_increasing Int alloc_safety Int alloc_progress Int
-                   alloc_preserves"
+                   alloc_allowed_acts Int alloc_preserves"
 
 (** Network specification ***)
 
   (*spec (9.1)*)
   network_ask :: 'a systemState program set
     "network_ask == INT i : lessThan Nclients.
-			Increasing (ask o sub i o client)
-			guarantees[allocAsk]
+			Increasing (ask o sub i o client)  guarantees
 			((sub i o allocAsk) Fols (ask o sub i o client))"
 
   (*spec (9.2)*)
   network_giv :: 'a systemState program set
     "network_giv == INT i : lessThan Nclients.
 			Increasing (sub i o allocGiv)
-			guarantees[giv o sub i o client]
+			guarantees
 			((giv o sub i o client) Fols (sub i o allocGiv))"
 
   (*spec (9.3)*)
   network_rel :: 'a systemState program set
     "network_rel == INT i : lessThan Nclients.
 			Increasing (rel o sub i o client)
-			guarantees[allocRel]
+			guarantees
 			((sub i o allocRel) Fols (rel o sub i o client))"
 
   (*spec: preserves part*)
-    network_preserves :: 'a systemState program set
-    "network_preserves == preserves allocGiv  Int
-                          (INT i : lessThan Nclients.
-                           preserves (funPair rel ask o sub i o client))"
+  network_preserves :: 'a systemState program set
+    "network_preserves ==
+       preserves allocGiv  Int
+       (INT i : lessThan Nclients. preserves (rel o sub i o client)  Int
+                                   preserves (ask o sub i o client))"
   
+  (*environmental constraints*)
+  network_allowed_acts :: 'a systemState program set
+    "network_allowed_acts ==
+       {F. AllowedActs F =
+           insert Id
+	    (UNION (preserves allocRel Int
+		    (INT i: lessThan Nclients. preserves(giv o sub i o client)))
+		  Acts)}"
+
   network_spec :: 'a systemState program set
     "network_spec == network_ask Int network_giv Int
-                     network_rel Int network_preserves"
+                     network_rel Int network_allowed_acts Int
+                     network_preserves"
 
 
 (** State mappings **)

@@ -8,16 +8,14 @@ The basic UNITY theory (revised version, based upon the "co" operator)
 From Misra, "A Logic for Concurrent Programming", 1994
 *)
 
-set timing;
-
 (*Perhaps equalities.ML shouldn't add this in the first place!*)
 Delsimps [image_Collect];
-
 
 (*** The abstract type of programs ***)
 
 val rep_ss = simpset() addsimps 
-                [Init_def, Acts_def, mk_program_def, Program_def, Rep_Program, 
+                [Init_def, Acts_def, AllowedActs_def, 
+		 mk_program_def, Program_def, Rep_Program, 
 		 Rep_Program_inverse, Abs_Program_inverse];
 
 
@@ -32,41 +30,59 @@ by (simp_tac (simpset() addsimps [insert_absorb, Id_in_Acts]) 1);
 qed "insert_Id_Acts";
 AddIffs [insert_Id_Acts];
 
+Goal "Id : AllowedActs F";
+by (cut_inst_tac [("x", "F")] Rep_Program 1);
+by (auto_tac (claset(), rep_ss));
+qed "Id_in_AllowedActs";
+AddIffs [Id_in_AllowedActs];
+
+Goal "insert Id (AllowedActs F) = AllowedActs F";
+by (simp_tac (simpset() addsimps [insert_absorb, Id_in_AllowedActs]) 1);
+qed "insert_Id_AllowedActs";
+AddIffs [insert_Id_AllowedActs];
+
 (** Inspectors for type "program" **)
 
-Goal "Init (mk_program (init,acts)) = init";
+Goal "Init (mk_program (init,acts,allowed)) = init";
 by (auto_tac (claset(), rep_ss));
 qed "Init_eq";
 
-Goal "Acts (mk_program (init,acts)) = insert Id acts";
+Goal "Acts (mk_program (init,acts,allowed)) = insert Id acts";
 by (auto_tac (claset(), rep_ss));
 qed "Acts_eq";
 
-Addsimps [Acts_eq, Init_eq];
+Goal "AllowedActs (mk_program (init,acts,allowed)) = insert Id allowed";
+by (auto_tac (claset(), rep_ss));
+qed "AllowedActs_eq";
 
+Addsimps [Init_eq, Acts_eq, AllowedActs_eq];
 
 (** Equality for UNITY programs **)
 
-Goal "mk_program (Init F, Acts F) = F";
+Goal "mk_program (Init F, Acts F, AllowedActs F) = F";
 by (cut_inst_tac [("x", "F")] Rep_Program 1);
 by (auto_tac (claset(), rep_ss));
 by (REPEAT (dres_inst_tac [("f", "Abs_Program")] arg_cong 1));
 by (asm_full_simp_tac (rep_ss addsimps [insert_absorb]) 1);
 qed "surjective_mk_program";
 
-Goal "[| Init F = Init G; Acts F = Acts G |] ==> F = G";
+Goal "[| Init F = Init G; Acts F = Acts G; AllowedActs F = AllowedActs G |] \
+\     ==> F = G";
 by (res_inst_tac [("t", "F")] (surjective_mk_program RS subst) 1);
 by (res_inst_tac [("t", "G")] (surjective_mk_program RS subst) 1);
 by (Asm_simp_tac 1);
 qed "program_equalityI";
 
 val [major,minor] =
-Goal "[| F = G; [| Init F = Init G; Acts F = Acts G |] ==> P |] ==> P";
+Goal "[| F = G; \
+\        [| Init F = Init G; Acts F = Acts G; AllowedActs F = AllowedActs G |]\
+\        ==> P |] ==> P";
 by (rtac minor 1);
 by (auto_tac (claset(), simpset() addsimps [major]));
 qed "program_equalityE";
 
-Goal "(F=G) = (Init F = Init G & Acts F = Acts G)";
+Goal "(F=G) =  \
+\     (Init F = Init G & Acts F = Acts G &AllowedActs F = AllowedActs G)";
 by (blast_tac (claset() addIs [program_equalityI, program_equalityE]) 1);
 qed "program_equality_iff";
 
@@ -77,13 +93,22 @@ Addsimps [surjective_mk_program];
      They avoid expanding the full program, which is a large expression
 ***)
 
-Goal "F == mk_program (init,acts) ==> Init F = init";
+Goal "F == mk_program (init,acts,allowed) ==> Init F = init";
 by Auto_tac;
 qed "def_prg_Init";
 
+Goal "F == mk_program (init,acts,allowed) ==> Acts F = insert Id acts";
+by Auto_tac;
+qed "def_prg_Acts";
+
+Goal "F == mk_program (init,acts,allowed) \
+\     ==> AllowedActs F = insert Id allowed";
+by Auto_tac;
+qed "def_prg_AllowedActs";
+
 (*The program is not expanded, but its Init and Acts are*)
 val [rew] = goal thy
-    "[| F == mk_program (init,acts) |] \
+    "[| F == mk_program (init,acts,allowed) |] \
 \    ==> Init F = init & Acts F = insert Id acts";
 by (rewtac rew);
 by Auto_tac;

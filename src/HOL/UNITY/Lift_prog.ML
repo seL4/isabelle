@@ -133,6 +133,11 @@ qed "lift_set_Diff_distrib";
 
 (*** the lattice operations ***)
 
+Goal "bij (lift i)";
+by (simp_tac (simpset() addsimps [lift_def]) 1);
+qed "bij_lift";
+AddIffs [bij_lift];
+
 Goalw [lift_def] "lift i SKIP = SKIP";
 by (Asm_simp_tac 1);
 qed "lift_SKIP";
@@ -209,15 +214,14 @@ qed "lift_LeadsTo";
 (** guarantees **)
 
 Goalw [lift_def]
-     "(lift i F : (lift i `` X) guarantees[v o drop_map i] (lift i `` Y)) = \
-\     (F : X guarantees[v] Y)";
+     "(lift i F : (lift i `` X) guarantees (lift i `` Y)) = \
+\     (F : X guarantees Y)";
 by (stac (bij_lift_map RS rename_rename_guarantees_eq RS sym) 1);
 by (asm_simp_tac (simpset() addsimps [o_def]) 1);
 qed "lift_lift_guarantees_eq";
 
-Goal "(lift i F : X guarantees[v] Y) = \
-\     (F : (rename (drop_map i) `` X) guarantees[v o lift_map i] \
-\          (rename (drop_map i) `` Y))";
+Goal "(lift i F : X guarantees Y) = \
+\     (F : (rename (drop_map i) `` X) guarantees (rename (drop_map i) `` Y))";
 by (asm_simp_tac 
     (simpset() addsimps [bij_lift_map RS rename_guarantees_eq_rename_inv,
 			 lift_def]) 1);
@@ -409,4 +413,74 @@ qed "snd_o_lift_map";
 Addsimps (make_o_equivs fst_o_lift_map @ make_o_equivs snd_o_lift_map);
 
 
+(*** More lemmas about extend and project 
+     They could be moved to {Extend,Project}.ML, but DON'T need the locale ***)
 
+Goal "extend_act h' (extend_act h act) = \
+\     extend_act (%(x,(y,y')). h'(h(x,y),y')) act";
+by (auto_tac (claset() addSEs [rev_bexI], 
+              simpset() addsimps [extend_act_def]));
+by (ALLGOALS Blast_tac);
+qed "extend_act_extend_act";
+
+Goal "project_act h (project_act h' act) = \
+\     project_act (%(x,(y,y')). h'(h(x,y),y')) act";
+by (auto_tac (claset() addSEs [rev_bexI], 
+              simpset() addsimps [project_act_def]));    
+qed "project_act_project_act";
+
+Goal "project_act h (extend_act h' act) = \
+\       {(x,x'). EX s s' y y' z. (s,s') : act & \
+\                h(x,y) = h'(s,z) & h(x',y') = h'(s',z)}";
+by (simp_tac (simpset() addsimps [extend_act_def, project_act_def]) 1); 
+by (Blast_tac 1); 
+qed "project_act_extend_act";
+
+
+(*** OK and "lift" ***)
+
+Goal "act <= {(x,x'). fst x = fst x'} ==> act : UNION (preserves fst) Acts";
+by (res_inst_tac [("a","mk_program(UNIV,{act},UNIV)")] UN_I 1);
+by (auto_tac (claset(),
+              simpset() addsimps [preserves_def,stable_def,constrains_def]));  
+qed "act_in_UNION_preserves_fst";
+
+Goal "[| ALL i:I. F i : preserves snd;  \
+\        ALL i:I. UNION (preserves fst) Acts <= AllowedActs (F i) |] \
+\     ==> OK I (%i. lift i (F i))";
+by (auto_tac (claset(), 
+      simpset() addsimps [OK_def, lift_def, rename_def, export Acts_extend,
+                export AllowedActs_extend, project_act_extend_act]));
+by (rename_tac "act" 1);
+by (subgoal_tac
+    "{(x, x'). EX s f u s' f' u'.   \
+\                ((s, f, u), s', f', u') : act &   \
+\                lift_map j x  = lift_map i (s, f, u) &   \
+\                lift_map j x' = lift_map i (s', f', u')}   \
+\    <= {(x,x'). fst x = fst x'}" 1);
+by (blast_tac (claset() addIs [act_in_UNION_preserves_fst]) 1);
+by (Clarify_tac 1); 
+by (REPEAT (dres_inst_tac [("x","j")] fun_cong 1) );
+by (dres_inst_tac [("x","i")] bspec 1); 
+by (assume_tac 1); 
+by (ftac preserves_imp_eq 1);
+by Auto_tac;  
+qed "UNION_OK_lift_I";
+
+Goal "[| ALL i:I. F i : preserves snd;  \
+\        ALL i:I. preserves fst <= Allowed (F i) |] \
+\     ==> OK I (%i. lift i (F i))";
+by (asm_full_simp_tac 
+    (simpset() addsimps [safety_prop_AllowedActs_iff_Allowed, 
+                         UNION_OK_lift_I]) 1); 
+qed "OK_lift_I";
+
+Goal "Allowed (lift i F) = lift i `` (Allowed F)";
+by (simp_tac (simpset() addsimps [lift_def, Allowed_rename]) 1); 
+qed "Allowed_lift"; 
+Addsimps [Allowed_lift];
+
+Goal "lift i `` preserves v = preserves (v o drop_map i)";
+by (simp_tac (simpset() addsimps [rename_image_preserves, lift_def, 
+                                  inv_lift_map_eq]) 1); 
+qed "lift_image_preserves";

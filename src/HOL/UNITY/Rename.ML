@@ -13,6 +13,7 @@ by (rewrite_goals_tac [bij_def, inj_on_def, surj_def]);
 by Auto_tac;
 qed "good_map_bij";
 Addsimps [good_map_bij];
+AddIs    [good_map_bij];
 
 fun bij_export th = good_map_bij RS export th |> simplify (simpset());
 
@@ -57,12 +58,35 @@ qed "extend_set_inv";
 (** for "rename" (programs) **)
 
 Goal "bij h \
-\     ==> extend_act (%(x,u::'c). inv h x) = project_act (%(x,u::'c). h x)";
+\     ==> extend_act (%(x,u::'c). h x) = project_act (%(x,u::'c). inv h x)";
 by (rtac ext 1);
 by (auto_tac (claset() addSIs [image_eqI], 
 	      simpset() addsimps [extend_act_def, project_act_def, bij_def,
 				  surj_f_inv_f]));
-qed "extend_act_inv";
+qed "bij_extend_act_eq_project_act";
+
+Goal "bij h ==> bij (extend_act (%(x,u::'c). h x))";
+by (rtac bijI 1);
+by (rtac (export inj_extend_act) 1);
+by (auto_tac (claset(), simpset() addsimps [bij_extend_act_eq_project_act]));  
+by (blast_tac (claset() addIs [bij_imp_bij_inv, surjI, 
+                               export extend_act_inverse]) 1); 
+qed "bij_extend_act";
+
+Goal "bij h ==> bij (project_act (%(x,u::'c). h x))";
+by (ftac (bij_imp_bij_inv RS bij_extend_act) 1);
+by (asm_full_simp_tac (simpset() addsimps [bij_extend_act_eq_project_act,
+                                    bij_imp_bij_inv, inv_inv_eq]) 1);  
+qed "bij_project_act";
+
+Goal "bij h ==> inv (project_act (%(x,u::'c). inv h x)) = \
+\               project_act (%(x,u::'c). h x)";
+by (asm_simp_tac
+    (simpset() addsimps [bij_extend_act_eq_project_act RS sym]) 1); 
+by (rtac surj_imp_inv_eq 1);
+by (blast_tac (claset() addIs [bij_extend_act, bij_is_surj]) 1);  
+by (asm_simp_tac (simpset() addsimps [export extend_act_inverse]) 1); 
+qed "bij_inv_project_act_eq";
 
 Goal "bij h  \
 \     ==> extend (%(x,u::'c). inv h x) = project (%(x,u::'c). h x) UNIV";
@@ -71,8 +95,14 @@ by (rtac ext 1);
 by (rtac program_equalityI 1);
 by (asm_simp_tac
     (simpset() addsimps [export project_act_Id, export Acts_extend,
-			 insert_Id_image_Acts, extend_act_inv]) 2);
+			 insert_Id_image_Acts, bij_extend_act_eq_project_act, 
+                         inv_inv_eq]) 2);
 by (asm_simp_tac (simpset() addsimps [extend_set_inv]) 1);
+by (asm_simp_tac
+    (simpset() addsimps [export AllowedActs_extend,
+			 export AllowedActs_project,
+			 bij_project_act, bij_vimage_eq_inv_image,
+                         bij_inv_project_act_eq]) 1);
 qed "extend_inv";
 
 Goal "bij h ==> rename (inv h) (rename h F) = F";
@@ -94,24 +124,45 @@ qed "rename_inv_eq";
 
 (** (rename h) is bijective <=> h is bijective **)
 
-Goal "bij h ==> inj (rename h)";
-by (asm_simp_tac (simpset() addsimps [inj_iff, expand_fun_eq, o_def, 
-				      rename_inv_eq RS sym]) 1);
-qed "inj_rename";
+Goal "bij h ==> bij (extend (%(x,u::'c). h x))";
+by (rtac bijI 1);
+by (blast_tac (claset() addIs [export inj_extend]) 1);
+by (res_inst_tac [("f","extend (%(x,u). inv h x)")] surjI 1); 
+by (stac ((inst "f" "h" inv_inv_eq) RS sym) 1
+    THEN stac extend_inv 2 THEN stac (export extend_inverse) 3);
+by (auto_tac (claset(), simpset() addsimps [bij_imp_bij_inv, inv_inv_eq]));
+qed "bij_extend";
 
-Goal "bij h ==> surj (rename h)";
-by (asm_simp_tac (simpset() addsimps [surj_iff, expand_fun_eq, o_def, 
-				      rename_inv_eq RS sym]) 1);
-qed "surj_rename";
+Goal "bij h ==> bij (project (%(x,u::'c). h x) UNIV)";
+by (stac (extend_inv RS sym) 1); 
+by (auto_tac (claset(), simpset() addsimps [bij_imp_bij_inv, bij_extend]));
+qed "bij_project";
+
+Goal "bij h  \
+\     ==> inv (project (%(x,u::'c). h x) UNIV) = extend (%(x,u::'c). h x)";
+by (rtac inj_imp_inv_eq 1); 
+by (etac (bij_project RS bij_is_inj) 1); 
+by (asm_simp_tac (simpset() addsimps [export extend_inverse]) 1); 
+qed "inv_project_eq";
+
+Goal "bij h ==> Allowed (rename h F) = rename h `` Allowed F";
+by (asm_simp_tac (simpset() addsimps [rename_def, export Allowed_extend]) 1);
+by (stac bij_vimage_eq_inv_image 1); 
+by (rtac bij_project 1); 
+by (Blast_tac 1); 
+by (asm_simp_tac (simpset() addsimps [inv_project_eq]) 1);
+qed "Allowed_rename"; 
+Addsimps [Allowed_rename];
 
 Goal "bij h ==> bij (rename h)";
-by (blast_tac (claset() addIs [bijI, inj_rename, surj_rename]) 1);
+by (asm_simp_tac (simpset() addsimps [rename_def, bij_extend]) 1); 
 qed "bij_rename";
+bind_thm ("surj_rename", bij_rename RS bij_is_surj);
 
 Goalw [inj_on_def] "inj (rename h) ==> inj h";
 by Auto_tac;
-by (dres_inst_tac [("x", "mk_program ({x}, {})")] spec 1);
-by (dres_inst_tac [("x", "mk_program ({y}, {})")] spec 1);
+by (dres_inst_tac [("x", "mk_program ({x}, {}, {})")] spec 1);
+by (dres_inst_tac [("x", "mk_program ({y}, {}, {})")] spec 1);
 by (auto_tac (claset(), 
 	      simpset() addsimps [program_equality_iff, 
                                   rename_def, extend_def]));
@@ -119,7 +170,7 @@ qed "inj_rename_imp_inj";
 
 Goalw [surj_def] "surj (rename h) ==> surj h";
 by Auto_tac;
-by (dres_inst_tac [("x", "mk_program ({y}, {})")] spec 1);
+by (dres_inst_tac [("x", "mk_program ({y}, {}, {})")] spec 1);
 by (auto_tac (claset(), 
 	      simpset() addsimps [program_equality_iff, 
                                   rename_def, extend_def]));
@@ -134,6 +185,7 @@ Goal "bij (rename h) = bij h";
 by (blast_tac (claset() addIs [bij_rename, bij_rename_imp_bij]) 1);
 qed "bij_rename_iff";
 AddIffs [bij_rename_iff];
+
 
 (*** the lattice operations ***)
 
@@ -236,16 +288,16 @@ by (etac (good_map_bij RS export extend_LeadsTo) 1);
 qed "rename_LeadsTo";
 
 Goalw [rename_def]
-     "bij h ==> (rename h F : (rename h `` X) guarantees[v o inv h] \
+     "bij h ==> (rename h F : (rename h `` X) guarantees \
 \                             (rename h `` Y)) = \
-\               (F : X guarantees[v] Y)";
+\               (F : X guarantees Y)";
 by (stac (good_map_bij RS export extend_guarantees_eq RS sym) 1);
 by (assume_tac 1);
 by (asm_simp_tac (simpset() addsimps [fst_o_inv_eq_inv, o_def]) 1);
 qed "rename_rename_guarantees_eq";
 
-Goal "bij h ==> (rename h F : X guarantees[v] Y) = \
-\               (F : (rename (inv h) `` X) guarantees[v o h] \
+Goal "bij h ==> (rename h F : X guarantees Y) = \
+\               (F : (rename (inv h) `` X) guarantees \
 \                    (rename (inv h) `` Y))";
 by (stac (rename_rename_guarantees_eq RS sym) 1);
 by (assume_tac 1);
@@ -259,6 +311,16 @@ by (assume_tac 1);
 by (asm_simp_tac (simpset() addsimps [o_def, fst_o_inv_eq_inv, rename_def,
 				      bij_is_surj RS surj_f_inv_f]) 1);
 qed "rename_preserves";
+
+Goal "bij h ==> (rename h F ok rename h G) = (F ok G)";
+by (asm_simp_tac (simpset() addsimps [export ok_extend_iff, rename_def]) 1); 
+qed "ok_rename_iff";
+Addsimps [ok_rename_iff];
+
+Goal "bij h ==> OK I (%i. rename h (F i)) = (OK I F)";
+by (asm_simp_tac (simpset() addsimps [export OK_extend_iff, rename_def]) 1); 
+qed "OK_rename_iff";
+Addsimps [OK_rename_iff];
 
 
 (*** "image" versions of the rules, for lifting "guarantees" properties ***)
@@ -293,6 +355,11 @@ qed "rename_image_invariant";
 Goal "bij h ==> rename h `` (A Co B) = (h `` A) Co (h``B)";
 by (rename_image_tac [rename_Constrains]);
 qed "rename_image_Constrains";
+
+Goal "bij h ==> rename h `` preserves v = preserves (v o inv h)";
+by (asm_simp_tac (simpset() addsimps [o_def, rename_image_stable,
+                    preserves_def, bij_image_INT, bij_image_Collect_eq]) 1); 
+qed "rename_image_preserves";
 
 Goal "bij h ==> rename h `` Stable A = Stable (h `` A)";
 by (rename_image_tac [rename_Stable]);

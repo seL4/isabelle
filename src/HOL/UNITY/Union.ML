@@ -19,7 +19,11 @@ Goal "Acts SKIP = {Id}";
 by (simp_tac (simpset() addsimps [SKIP_def]) 1);
 qed "Acts_SKIP";
 
-Addsimps [Init_SKIP, Acts_SKIP];
+Goal "AllowedActs SKIP = UNIV";
+by (auto_tac (claset(), simpset() addsimps [SKIP_def]));  
+qed "AllowedActs_SKIP";
+
+Addsimps [Init_SKIP, Acts_SKIP, AllowedActs_SKIP];
 
 Goal "reachable SKIP = UNIV";
 by (force_tac (claset() addEs [reachable.induct]
@@ -56,7 +60,11 @@ Goal "Acts (F Join G) = Acts F Un Acts G";
 by (auto_tac (claset(), simpset() addsimps [Join_def]));
 qed "Acts_Join";
 
-Addsimps [Init_Join, Acts_Join];
+Goal "AllowedActs (F Join G) = AllowedActs F Int AllowedActs G";
+by (auto_tac (claset(), simpset() addsimps [Join_def]));
+qed "AllowedActs_Join";
+
+Addsimps [Init_Join, Acts_Join, AllowedActs_Join];
 
 
 (** JN **)
@@ -68,7 +76,7 @@ Addsimps [JN_empty];
 
 Goal "(JN i:insert a I. F i) = (F a) Join (JN i:I. F i)";
 by (rtac program_equalityI 1);
-by (ALLGOALS (simp_tac (simpset() addsimps [JOIN_def, Join_def])));
+by (auto_tac (claset(), simpset() addsimps [JOIN_def, Join_def]));  
 qed "JN_insert";
 Addsimps[JN_empty, JN_insert];
 
@@ -80,7 +88,11 @@ Goal "Acts (JN i:I. F i) = insert Id (UN i:I. Acts (F i))";
 by (auto_tac (claset(), simpset() addsimps [JOIN_def]));
 qed "Acts_JN";
 
-Addsimps [Init_JN, Acts_JN];
+Goal "AllowedActs (JN i:I. F i) = (INT i:I. AllowedActs (F i))";
+by (auto_tac (claset(), simpset() addsimps [JOIN_def]));
+qed "AllowedActs_JN";
+
+Addsimps [Init_JN, Acts_JN, AllowedActs_JN];
 
 val prems = Goalw [JOIN_def]
     "[| I=J;  !!i. i:J ==> F i = G i |] ==> \
@@ -97,12 +109,14 @@ Goal "F Join G = G Join F";
 by (simp_tac (simpset() addsimps [Join_def, Un_commute, Int_commute]) 1);
 qed "Join_commute";
 
+
 Goal "A Join (B Join C) = B Join (A Join C)";
-by (simp_tac (simpset() addsimps Un_ac@Int_ac@[Join_def]) 1);
+by (simp_tac (simpset() addsimps Un_ac@Int_ac@[Join_def, insert_absorb]) 1);
 qed "Join_left_commute";
 
+
 Goal "(F Join G) Join H = F Join (G Join H)";
-by (simp_tac (simpset() addsimps Un_ac@[Join_def, Int_assoc]) 1);
+by (simp_tac (simpset() addsimps Un_ac@[Join_def, Int_assoc, insert_absorb]) 1);
 qed "Join_assoc";
  
 Goalw [Join_def, SKIP_def] "SKIP Join F = F";
@@ -316,3 +330,142 @@ by (blast_tac (claset() addIs [stable_Join_ensures1]) 1);
 qed "stable_Join_ensures2";
 
 
+(*** the ok and OK relations ***)
+
+Goal "SKIP ok F";
+by (auto_tac (claset(), simpset() addsimps [ok_def]));
+qed "ok_SKIP1";  
+
+Goal "F ok SKIP";
+by (auto_tac (claset(), simpset() addsimps [ok_def]));
+qed "ok_SKIP2";
+
+AddIffs [ok_SKIP1, ok_SKIP2];  
+
+Goal "(F ok G & (F Join G) ok H) = (G ok H & F ok (G Join H))";
+by (auto_tac (claset(), simpset() addsimps [ok_def]));
+qed "ok_Join_commute";
+
+Goal "(F ok G) = (G ok F)";
+by (auto_tac (claset(), simpset() addsimps [ok_def]));
+qed "ok_commute";
+
+bind_thm ("ok_sym", ok_commute RS iffD1);
+
+Goal "OK {(0,F),(1,G),(2,H)} snd = (F ok G & (F Join G) ok H)";
+by (asm_full_simp_tac
+    (simpset() addsimps [Ball_def, conj_disj_distribR, ok_def, Join_def, 
+                   OK_def, insert_absorb, all_conj_distrib, eq_commute]) 1); 
+by (Blast_tac 1); 
+qed "ok_iff_OK";
+
+Goal "F ok (G Join H) = (F ok G & F ok H)";
+by (auto_tac (claset(), simpset() addsimps [ok_def]));
+qed "ok_Join_iff1";
+
+Goal "(G Join H) ok F = (G ok F & H ok F)";
+by (auto_tac (claset(), simpset() addsimps [ok_def]));
+qed "ok_Join_iff2";
+AddIffs [ok_Join_iff1, ok_Join_iff2];
+
+(*useful?  Not with the previous two around*)
+Goal "[| F ok G; (F Join G) ok H |] ==> F ok (G Join H)";
+by (auto_tac (claset(), simpset() addsimps [ok_def]));
+qed "ok_Join_commute_I";
+
+Goal "F ok (JOIN I G) = (ALL i:I. F ok G i)";
+by (auto_tac (claset(), simpset() addsimps [ok_def]));
+qed "ok_JN_iff1";
+
+Goal "(JOIN I G) ok F =  (ALL i:I. G i ok F)";
+by (auto_tac (claset(), simpset() addsimps [ok_def]));
+qed "ok_JN_iff2";
+AddIffs [ok_JN_iff1, ok_JN_iff2];
+
+Goal "OK I F = (ALL i: I. ALL j: I-{i}. (F i) ok (F j))"; 
+by (auto_tac (claset(), simpset() addsimps [ok_def, OK_def]));  
+qed "OK_iff_ok";
+
+Goal "[| OK I F; i: I; j: I; i ~= j|] ==> (F i) ok (F j)"; 
+by (auto_tac (claset(), simpset() addsimps [OK_iff_ok]));  
+qed "OK_imp_ok";
+
+
+(*** Allowed ***)
+
+Goal "Allowed SKIP = UNIV";
+by (auto_tac (claset(), simpset() addsimps [Allowed_def]));  
+qed "Allowed_SKIP";
+
+Goal "Allowed (F Join G) = Allowed F Int Allowed G";
+by (auto_tac (claset(), simpset() addsimps [Allowed_def]));  
+qed "Allowed_Join";
+
+Goal "Allowed (JOIN I F) = (INT i:I. Allowed (F i))";
+by (auto_tac (claset(), simpset() addsimps [Allowed_def]));  
+qed "Allowed_JN";
+
+Addsimps [Allowed_SKIP, Allowed_Join, Allowed_JN];
+
+Goal "F ok G = (F : Allowed G & G : Allowed F)";
+by (simp_tac (simpset() addsimps [ok_def, Allowed_def]) 1);
+qed "ok_iff_Allowed";
+
+Goal "OK I F = (ALL i: I. ALL j: I-{i}. F i : Allowed(F j))"; 
+by (auto_tac (claset(), simpset() addsimps [OK_iff_ok, ok_iff_Allowed]));  
+qed "OK_iff_Allowed";
+
+(*** safety_prop, for reasoning about given instances of "ok" ***)
+
+Goal "safety_prop X ==> (Acts G <= insert Id (UNION X Acts)) = (G : X)";
+by (auto_tac (claset(), simpset() addsimps [safety_prop_def]));
+qed "safety_prop_Acts_iff";
+
+Goal "safety_prop X ==> (UNION X Acts <= AllowedActs F) = (X <= Allowed F)";
+by (auto_tac (claset(), 
+      simpset() addsimps [Allowed_def, safety_prop_Acts_iff RS sym]));  
+qed "safety_prop_AllowedActs_iff_Allowed";
+
+Goal "safety_prop X ==> Allowed (mk_program (init, acts, UNION X Acts)) = X";
+by (asm_simp_tac (simpset() addsimps [Allowed_def, safety_prop_Acts_iff]) 1); 
+qed "Allowed_eq";
+
+Goal "[| F == mk_program (init, acts, UNION X Acts) ; safety_prop X |] \
+\     ==> Allowed F = X";
+by (asm_simp_tac (simpset() addsimps [Allowed_eq]) 1); 
+qed "def_prg_Allowed";
+
+(*For safety_prop to hold, the property must be satisfiable!*)
+Goal "safety_prop (A co B) = (A <= B)";
+by (simp_tac (simpset() addsimps [safety_prop_def, constrains_def]) 1);
+by (Blast_tac 1); 
+qed "safety_prop_constrains";
+AddIffs [safety_prop_constrains];
+
+Goal "safety_prop (stable A)";
+by (simp_tac (simpset() addsimps [stable_def]) 1);
+qed "safety_prop_stable";
+AddIffs [safety_prop_stable];
+
+Goal "[| safety_prop X; safety_prop Y |] ==> safety_prop (X Int Y)";
+by (full_simp_tac (simpset() addsimps [safety_prop_def]) 1); 
+by (Blast_tac 1); 
+qed "safety_prop_Int";
+Addsimps [safety_prop_Int];
+
+Goal "(ALL i. safety_prop (X i)) ==> safety_prop (INT i. X i)";
+by (auto_tac (claset(), simpset() addsimps [safety_prop_def]));
+by (Blast_tac 1); 
+bind_thm ("safety_prop_INTER1", allI RS result());
+Addsimps [safety_prop_INTER1];
+							       
+Goal "(ALL i:I. safety_prop (X i)) ==> safety_prop (INT i:I. X i)";
+by (auto_tac (claset(), simpset() addsimps [safety_prop_def]));
+by (Blast_tac 1); 
+bind_thm ("safety_prop_INTER", ballI RS result());
+Addsimps [safety_prop_INTER];
+
+Goal "[| F == mk_program(init,acts,UNION X Acts); safety_prop X |] \
+\     ==> F ok G = (G : X & acts <= AllowedActs G)";
+by (auto_tac (claset(), simpset() addsimps [ok_def, safety_prop_Acts_iff]));  
+qed "def_UNION_ok_iff";

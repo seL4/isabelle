@@ -6,15 +6,23 @@
 Distributed Resource Management System: the Client
 *)
 
-Addsimps [Client_def RS def_prg_Init];
+Addsimps [Client_def RS def_prg_Init, 
+          Client_def RS def_prg_AllowedActs];
 program_defs_ref := [Client_def];
 
 Addsimps (map simp_of_act [rel_act_def, tok_act_def, ask_act_def]);
 
+Goal "(Client ok G) = \
+\     (G : preserves rel & G : preserves ask & G : preserves tok &\
+\      Client : Allowed G)";
+by (auto_tac (claset(), 
+      simpset() addsimps [ok_iff_Allowed, Client_def RS def_prg_Allowed]));  
+qed "Client_ok_iff";
+AddIffs [Client_ok_iff];
+
 
 (*Safety property 1: ask, rel are increasing*)
-Goal "Client: UNIV guarantees[funPair rel ask] \
-\             Increasing ask Int Increasing rel";
+Goal "Client: UNIV guarantees Increasing ask Int Increasing rel";
 by (auto_tac
     (claset() addSIs [increasing_imp_Increasing],
      simpset() addsimps [guar_def, impOfSubs preserves_subset_increasing]));
@@ -23,7 +31,6 @@ by (ALLGOALS constrains_tac);
 by Auto_tac;
 qed "increasing_ask_rel";
 
-
 Addsimps [nth_append, append_one_prefix];
 
 
@@ -31,10 +38,11 @@ Addsimps [nth_append, append_one_prefix];
       With no Substitution Axiom, we must prove the two invariants 
   simultaneously.
 *)
-Goal "G : preserves (funPair ask tok)  \
+Goal "Client ok G  \
 \     ==> Client Join G :  \
 \             Always ({s. tok s <= NbT}  Int  \
 \                     {s. ALL elt : set (ask s). elt <= NbT})";
+by Auto_tac;  
 by (rtac (invariantI RS stable_Join_Always2) 1);
 by (fast_tac (claset() addSEs [impOfSubs preserves_subset_stable]
 		       addSIs [stable_Int]) 3);
@@ -45,8 +53,7 @@ qed "ask_bounded_lemma";
 
 (*export version, with no mention of tok in the postcondition, but
   unfortunately tok must be declared local.*)
-Goal "Client: UNIV guarantees[funPair ask tok] \
-\             Always {s. ALL elt : set (ask s). elt <= NbT}";
+Goal "Client: UNIV guarantees Always {s. ALL elt : set (ask s). elt <= NbT}";
 by (rtac guaranteesI 1);
 by (etac (ask_bounded_lemma RS Always_weaken) 1);
 by (rtac Int_lower2 1);
@@ -83,7 +90,7 @@ by (blast_tac (claset() addIs [strict_prefix_length_less]) 1);
 qed "transient_lemma";
 
 
-Goal "[| Client Join G : Increasing giv;  G : preserves (funPair rel ask) |] \
+Goal "[| Client Join G : Increasing giv;  Client ok G |] \
 \ ==> Client Join G : {s. rel s = k & k<h & h <= giv s & h pfixGe ask s}  \
 \                     LeadsTo {s. k < rel s & rel s <= giv s & \
 \                                 h <= giv s & h pfixGe ask s}";
@@ -105,7 +112,7 @@ by (blast_tac (claset() addIs [order_less_imp_le, order_trans]) 1);
 qed "induct_lemma";
 
 
-Goal "[| Client Join G : Increasing giv;  G : preserves (funPair rel ask) |] \
+Goal "[| Client Join G : Increasing giv;  Client ok G |] \
 \ ==> Client Join G : {s. rel s < h & h <= giv s & h pfixGe ask s}  \
 \                     LeadsTo {s. h <= rel s}";
 by (res_inst_tac [("f", "%s. size h - size (rel s)")] LessThan_induct 1);
@@ -120,7 +127,7 @@ by (arith_tac 1);
 qed "rel_progress_lemma";
 
 
-Goal "[| Client Join G : Increasing giv;  G : preserves (funPair rel ask) |] \
+Goal "[| Client Join G : Increasing giv;  Client ok G |] \
 \ ==> Client Join G : {s. h <= giv s & h pfixGe ask s}  \
 \                     LeadsTo {s. h <= rel s}";
 by (rtac (Join_Always_rel_le_giv RS Always_LeadsToI) 1);
@@ -133,7 +140,7 @@ qed "client_progress_lemma";
 
 (*Progress property: all tokens that are given will be released*)
 Goal "Client : \
-\      Increasing giv  guarantees[funPair rel ask]  \
+\      Increasing giv  guarantees  \
 \      (INT h. {s. h <= giv s & h pfixGe ask s} LeadsTo {s. h <= rel s})";
 by (rtac guaranteesI 1);
 by (Clarify_tac 1);
@@ -158,7 +165,7 @@ by Auto_tac;
 qed "stable_size_rel_le_giv";
 
 (*clients return the right number of tokens*)
-Goal "Client : Increasing giv  guarantees[rel]  Always {s. rel s <= giv s}";
+Goal "Client : Increasing giv  guarantees  Always {s. rel s <= giv s}";
 by (rtac guaranteesI 1);
 by (rtac AlwaysI 1);
 by (Force_tac 1);

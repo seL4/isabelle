@@ -11,21 +11,38 @@ Addsimps [funPair_o_distrib];
 Addsimps [Always_INT_distrib];
 Delsimps [o_apply];
 
-(*Make a locale for M: merge_spec and G: preserves (funPair merge.Out iOut)?*)
+Open_locale "Merge";
 
-Goalw [merge_spec_def,merge_eqOut_def]
-     "[| M: merge_spec; G: preserves merge.Out; G: preserves merge.iOut |] \
-\ ==> M Join G : Always {s. length (merge.Out s) = length (merge.iOut s)}";  
-by (force_tac (claset() addDs [guaranteesD], simpset()) 1);
+val Merge = thm "Merge_spec";
+
+Goal "Allowed M = (preserves merge.Out) Int (preserves merge.iOut)";
+by (cut_facts_tac [Merge] 1);
+by (auto_tac (claset(), 
+              simpset() addsimps [merge_spec_def, merge_allowed_acts_def, 
+                                  Allowed_def, safety_prop_Acts_iff]));  
+qed "Merge_Allowed";
+
+Goal "M ok G = (G: preserves merge.Out & G: preserves merge.iOut & \
+\                    M : Allowed G)";
+by (auto_tac (claset(), simpset() addsimps [Merge_Allowed, ok_iff_Allowed]));  
+qed "M_ok_iff";
+AddIffs [M_ok_iff];
+
+Goal "[| G: preserves merge.Out; G: preserves merge.iOut; M : Allowed G |] \
+\     ==> M Join G : Always {s. length (merge.Out s) = length (merge.iOut s)}";
+by (cut_facts_tac [Merge] 1);
+by (force_tac (claset() addDs [guaranteesD], 
+               simpset() addsimps [merge_spec_def, merge_eqOut_def]) 1); 
 qed "Merge_Always_Out_eq_iOut";
 
-Goalw [merge_spec_def,merge_bounded_def]
-     "[| M: merge_spec; G: preserves merge.iOut |] \
-\ ==> M Join G : Always {s. ALL elt : set (merge.iOut s). elt < Nclients}";  
-by (force_tac (claset() addDs [guaranteesD], simpset()) 1);
+Goal "[| G: preserves merge.iOut; G: preserves merge.Out; M : Allowed G |] \
+\     ==> M Join G: Always {s. ALL elt : set (merge.iOut s). elt < Nclients}";
+by (cut_facts_tac [Merge] 1);
+by (force_tac (claset() addDs [guaranteesD], 
+               simpset() addsimps [merge_spec_def, merge_bounded_def]) 1); 
 qed "Merge_Bounded";
 
-Goal "[| M : merge_spec;  G : preserves (funPair merge.Out iOut) |] \
+Goal "[| G: preserves merge.iOut; G: preserves merge.Out; M : Allowed G |] \
 \ ==> M Join G : Always \
 \         {s. setsum (%i. bag_of (sublist (merge.Out s) \
 \                                 {k. k < length (iOut s) & iOut s ! k = i})) \
@@ -45,34 +62,43 @@ by (subgoal_tac
 by (asm_simp_tac (simpset() addsimps [o_def]) 1); 
 qed "Merge_Bag_Follows_lemma";
 
-Goal "M : merge_spec \
-\ ==> M : (INT i: lessThan Nclients. Increasing (sub i o merge.In)) \
-\             guarantees[funPair merge.Out merge.iOut]  \
-\                (bag_of o merge.Out) Fols \
-\                (%s. setsum (%i. (bag_of o sub i o merge.In) s) \
-\                            (lessThan Nclients))";
+Goal "M : (INT i: lessThan Nclients. Increasing (sub i o merge.In)) \
+\         guarantees  \
+\            (bag_of o merge.Out) Fols \
+\            (%s. setsum (%i. (bag_of o sub i o merge.In) s) \
+\                        (lessThan Nclients))";
 by (rtac (Merge_Bag_Follows_lemma RS Always_Follows1 RS guaranteesI) 1);
-by Auto_tac;
+by Auto_tac;  
 by (rtac Follows_setsum 1);
+by (cut_facts_tac [Merge] 1);
 by (auto_tac (claset(), 
-              simpset() addsimps [merge_spec_def,merge_follows_def, o_def]));
-by (best_tac (claset() addIs [impOfSubs (mono_bag_of RS mono_Follows_apply)]
-                       addDs [guaranteesD]) 1);
+              simpset() addsimps [merge_spec_def, merge_follows_def, o_def]));
+by (dtac guaranteesD 1); 
+by (best_tac
+    (claset() addIs [impOfSubs (mono_bag_of RS mono_Follows_apply)]) 3);
+by Auto_tac;  
 qed "Merge_Bag_Follows";
+
+Close_locale "Merge";
 
 
 (** Distributor **)
-	 
-Goalw [distr_follows_def]
-     "D : distr_follows \
-\ ==> D : Increasing distr.In Int Increasing distr.iIn Int \
-\        Always {s. ALL elt : set (distr.iIn s). elt < Nclients} \
-\        guarantees[distr.Out] \
-\        (INT i : lessThan Nclients. Increasing (sub i o distr.Out))";
+
+Open_locale "Distrib";
+
+val Distrib = thm "Distrib_spec";
+  
+
+Goal "D : Increasing distr.In Int Increasing distr.iIn Int \
+\         Always {s. ALL elt : set (distr.iIn s). elt < Nclients} \
+\         guarantees \
+\         (INT i : lessThan Nclients. Increasing (sub i o distr.Out))";
+by (cut_facts_tac [Distrib] 1);
+by (full_simp_tac (simpset() addsimps [distr_spec_def, distr_follows_def]) 1); 
+by (Clarify_tac 1); 
 by (blast_tac (claset() addIs [guaranteesI, Follows_Increasing1]
                         addDs [guaranteesD]) 1);
 qed "Distr_Increasing_Out";
-
 
 Goal "[| G : preserves distr.Out; \
 \        D Join G : Always {s. ALL elt: set (distr.iIn s). elt < Nclients} |] \
@@ -94,25 +120,36 @@ by (subgoal_tac
 by (Asm_simp_tac 1); 
 qed "Distr_Bag_Follows_lemma";
 
+Goal "D ok G = (G: preserves distr.Out & D : Allowed G)";
+by (cut_facts_tac [Distrib] 1);
+by (auto_tac (claset(), 
+     simpset() addsimps [distr_spec_def, distr_allowed_acts_def, 
+                         Allowed_def, safety_prop_Acts_iff, ok_iff_Allowed]));
+qed "D_ok_iff";
+AddIffs [D_ok_iff];
 
-Goal "D : distr_follows \
-\ ==> D : Increasing distr.In Int Increasing distr.iIn Int \
+Goal
+ "D : Increasing distr.In Int Increasing distr.iIn Int \
 \     Always {s. ALL elt : set (distr.iIn s). elt < Nclients} \
-\     guarantees[distr.Out] \
+\     guarantees  \
 \      (INT i : lessThan Nclients. \
 \       (%s. setsum (%i. (bag_of o sub i o distr.Out) s) (lessThan Nclients)) \
 \       Fols \
 \       (%s. bag_of (sublist (distr.In s) (lessThan (length(distr.iIn s))))))";
 by (rtac guaranteesI 1);
-by (Clarify_tac 1);
+by (Clarify_tac 1); 
 by (rtac (Distr_Bag_Follows_lemma RS Always_Follows2) 1);
-by Auto_tac;
+by Auto_tac;  
 by (rtac Follows_setsum 1);
+by (cut_facts_tac [Distrib] 1);
 by (auto_tac (claset(), 
-              simpset() addsimps [distr_follows_def, o_def]));
-by (best_tac (claset() addIs [impOfSubs (mono_bag_of RS mono_Follows_apply)]
-                       addDs [guaranteesD]) 1);
+              simpset() addsimps [distr_spec_def, distr_follows_def, o_def]));
+by (dtac guaranteesD 1); 
+by (best_tac (claset() addIs [impOfSubs (mono_bag_of RS mono_Follows_apply)]) 3);
+by Auto_tac;  
 qed "Distr_Bag_Follows";
+
+Close_locale "Distrib";
 
 
 Goal "!!f::nat=>nat. (INT i:(lessThan n). {s. f i <= g i s})  \

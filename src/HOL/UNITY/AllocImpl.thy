@@ -58,38 +58,43 @@ constdefs
   (*spec (10)*)
   merge_increasing :: ('a,'b) merge_d program set
     "merge_increasing ==
-         UNIV guarantees[funPair merge.Out merge.iOut]
-         (Increasing merge.Out) Int (Increasing merge.iOut)"
+         UNIV guarantees (Increasing merge.Out) Int (Increasing merge.iOut)"
 
   (*spec (11)*)
   merge_eqOut :: ('a,'b) merge_d program set
     "merge_eqOut ==
-         UNIV guarantees[funPair merge.Out merge.iOut]
+         UNIV guarantees
          Always {s. length (merge.Out s) = length (merge.iOut s)}"
 
   (*spec (12)*)
   merge_bounded :: ('a,'b) merge_d program set
     "merge_bounded ==
-         UNIV guarantees[merge.iOut]
+         UNIV guarantees
          Always {s. ALL elt : set (merge.iOut s). elt < Nclients}"
 
   (*spec (13)*)
   merge_follows :: ('a,'b) merge_d program set
     "merge_follows ==
 	 (INT i : lessThan Nclients. Increasing (sub i o merge.In))
-	 guarantees[funPair merge.Out merge.iOut]
+	 guarantees
 	 (INT i : lessThan Nclients. 
 	  (%s. sublist (merge.Out s) 
                        {k. k < size(merge.iOut s) & merge.iOut s! k = i})
 	  Fols (sub i o merge.In))"
 
   (*spec: preserves part*)
-    merge_preserves :: ('a,'b) merge_d program set
-    "merge_preserves == preserves (funPair merge.In merge_d.dummy)"
+  merge_preserves :: ('a,'b) merge_d program set
+    "merge_preserves == preserves merge.In Int preserves merge_d.dummy"
+
+  (*environmental constraints*)
+  merge_allowed_acts :: ('a,'b) merge_d program set
+    "merge_allowed_acts ==
+       {F. AllowedActs F =
+	    insert Id (UNION (preserves (funPair merge.Out merge.iOut)) Acts)}"
 
   merge_spec :: ('a,'b) merge_d program set
     "merge_spec == merge_increasing Int merge_eqOut Int merge_bounded Int
-                   merge_follows Int merge_preserves"
+                   merge_follows Int merge_allowed_acts Int merge_preserves"
 
 (** Distributor specification (the number of outputs is Nclients) ***)
 
@@ -98,24 +103,30 @@ constdefs
     "distr_follows ==
 	 Increasing distr.In Int Increasing distr.iIn Int
 	 Always {s. ALL elt : set (distr.iIn s). elt < Nclients}
-	 guarantees[distr.Out]
+	 guarantees
 	 (INT i : lessThan Nclients. 
 	  (sub i o distr.Out) Fols
 	  (%s. sublist (distr.In s) 
                        {k. k < size(distr.iIn s) & distr.iIn s ! k = i}))"
 
+  distr_allowed_acts :: ('a,'b) distr_d program set
+    "distr_allowed_acts ==
+       {D. AllowedActs D = insert Id (UNION (preserves distr.Out) Acts)}"
+
+  distr_spec :: ('a,'b) distr_d program set
+    "distr_spec == distr_follows Int distr_allowed_acts"
 
 (** Single-client allocator specification (required) ***)
 
   (*spec (18)*)
   alloc_increasing :: 'a allocState_d program set
-    "alloc_increasing == UNIV guarantees[giv] Increasing giv"
+    "alloc_increasing == UNIV  guarantees  Increasing giv"
 
   (*spec (19)*)
   alloc_safety :: 'a allocState_d program set
     "alloc_safety ==
 	 Increasing rel
-         guarantees[giv] Always {s. tokens (giv s) <= NbT + tokens (rel s)}"
+         guarantees  Always {s. tokens (giv s) <= NbT + tokens (rel s)}"
 
   (*spec (20)*)
   alloc_progress :: 'a allocState_d program set
@@ -126,86 +137,88 @@ constdefs
          (INT h. {s. h <= giv s & h pfixGe (ask s)}
 		 LeadsTo
 	         {s. tokens h <= tokens (rel s)})
-         guarantees[giv]
-	     (INT h. {s. h <= ask s} LeadsTo {s. h pfixLe giv s})"
+         guarantees  (INT h. {s. h <= ask s} LeadsTo {s. h pfixLe giv s})"
 
   (*spec: preserves part*)
-    alloc_preserves :: 'a allocState_d program set
-    "alloc_preserves == preserves (funPair rel
-				   (funPair ask allocState_d.dummy))"
+  alloc_preserves :: 'a allocState_d program set
+    "alloc_preserves == preserves rel Int
+                        preserves ask Int
+                        preserves allocState_d.dummy"
   
+
+  (*environmental constraints*)
+  alloc_allowed_acts :: 'a allocState_d program set
+    "alloc_allowed_acts ==
+       {F. AllowedActs F = insert Id (UNION (preserves giv) Acts)}"
+
   alloc_spec :: 'a allocState_d program set
     "alloc_spec == alloc_increasing Int alloc_safety Int alloc_progress Int
-                   alloc_preserves"
+                   alloc_allowed_acts Int alloc_preserves"
+
+locale Merge =
+  fixes 
+    M   :: ('a,'b::order) merge_d program
+  assumes
+    Merge_spec  "M  : merge_spec"
+
+locale Distrib =
+  fixes 
+    D   :: ('a,'b::order) distr_d program
+  assumes
+    Distrib_spec  "D : distr_spec"
+
 
 (****
-    (** Network specification ***)
+#  (** Network specification ***)
 
-      (*spec (9.1)*)
-      network_ask :: 'a systemState program set
-	"network_ask == INT i : lessThan Nclients.
-			    Increasing (ask o sub i o client)
-			    guarantees[ask]
-			    (ask  Fols (ask o sub i o client))"
+#    (*spec (9.1)*)
+#    network_ask :: 'a systemState program set
+#	"network_ask == INT i : lessThan Nclients.
+#			    Increasing (ask o sub i o client)
+#			    guarantees[ask]
+#			    (ask  Fols (ask o sub i o client))"
 
-      (*spec (9.2)*)
-      network_giv :: 'a systemState program set
-	"network_giv == INT i : lessThan Nclients.
-			    Increasing giv 
-			    guarantees[giv o sub i o client]
-			    ((giv o sub i o client) Fols giv )"
+#    (*spec (9.2)*)
+#    network_giv :: 'a systemState program set
+#	"network_giv == INT i : lessThan Nclients.
+#			    Increasing giv 
+#			    guarantees[giv o sub i o client]
+#			    ((giv o sub i o client) Fols giv )"
 
-      (*spec (9.3)*)
-      network_rel :: 'a systemState program set
-	"network_rel == INT i : lessThan Nclients.
-			    Increasing (rel o sub i o client)
-			    guarantees[rel]
-			    (rel  Fols (rel o sub i o client))"
+#    (*spec (9.3)*)
+#    network_rel :: 'a systemState program set
+#	"network_rel == INT i : lessThan Nclients.
+#			    Increasing (rel o sub i o client)
+#			    guarantees[rel]
+#			    (rel  Fols (rel o sub i o client))"
 
-      (*spec: preserves part*)
-	network_preserves :: 'a systemState program set
-	"network_preserves == preserves giv  Int
-			      (INT i : lessThan Nclients.
-			       preserves (funPair rel ask o sub i o client))"
+#    (*spec: preserves part*)
+#	network_preserves :: 'a systemState program set
+#	"network_preserves == preserves giv  Int
+#			      (INT i : lessThan Nclients.
+#			       preserves (funPair rel ask o sub i o client))"
 
-      network_spec :: 'a systemState program set
-	"network_spec == network_ask Int network_giv Int
-			 network_rel Int network_preserves"
-
-
-    (** State mappings **)
-      sysOfAlloc :: "((nat => merge) * 'a) allocState_d => 'a systemState"
-	"sysOfAlloc == %s. let (cl,xtr) = allocState_d.dummy s
-			   in (| giv = giv s,
-				 ask = ask s,
-				 rel = rel s,
-				 client   = cl,
-				 dummy    = xtr|)"
+#    network_spec :: 'a systemState program set
+#	"network_spec == network_ask Int network_giv Int
+#			 network_rel Int network_preserves"
 
 
-      sysOfClient :: "(nat => merge) * 'a allocState_d => 'a systemState"
-	"sysOfClient == %(cl,al). (| giv = giv al,
-				     ask = ask al,
-				     rel = rel al,
-				     client   = cl,
-				     systemState.dummy = allocState_d.dummy al|)"
+#  (** State mappings **)
+#    sysOfAlloc :: "((nat => merge) * 'a) allocState_d => 'a systemState"
+#	"sysOfAlloc == %s. let (cl,xtr) = allocState_d.dummy s
+#			   in (| giv = giv s,
+#				 ask = ask s,
+#				 rel = rel s,
+#				 client   = cl,
+#				 dummy    = xtr|)"
+
+
+#    sysOfClient :: "(nat => merge) * 'a allocState_d => 'a systemState"
+#	"sysOfClient == %(cl,al). (| giv = giv al,
+#				     ask = ask al,
+#				     rel = rel al,
+#				     client   = cl,
+#				     systemState.dummy = allocState_d.dummy al|)"
 ****)
-
-consts 
-    Alloc  :: 'a allocState_d program
-    Merge  :: ('a,'b) merge_d program
-
-(*    
-    Network :: 'a systemState program
-    System  :: 'a systemState program
-  *)
-  
-rules
-    Alloc   "Alloc   : alloc_spec"
-    Merge  "Merge  : merge_spec"
-
-(**    Network "Network : network_spec"**)
-
-
 
 end

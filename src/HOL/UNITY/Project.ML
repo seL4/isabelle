@@ -120,38 +120,36 @@ by Auto_tac;
 qed "projecting_weaken_L";
 
 Goalw [extending_def]
-     "[| extending v C h F YA' YA;  extending v C h F YB' YB |] \
-\     ==> extending v C h F (YA' Int YB') (YA Int YB)";
+     "[| extending C h F YA' YA;  extending C h F YB' YB |] \
+\     ==> extending C h F (YA' Int YB') (YA Int YB)";
 by (Blast_tac 1);
 qed "extending_Int";
 
 Goalw [extending_def]
-     "[| extending v C h F YA' YA;  extending v C h F YB' YB |] \
-\     ==> extending v C h F (YA' Un YB') (YA Un YB)";
+     "[| extending C h F YA' YA;  extending C h F YB' YB |] \
+\     ==> extending C h F (YA' Un YB') (YA Un YB)";
 by (Blast_tac 1);
 qed "extending_Un";
 
 val [prem] = Goalw [extending_def]
-     "[| !!i. i:I ==> extending v C h F (Y' i) (Y i) |] \
-\     ==> extending v C h F (INT i:I. Y' i) (INT i:I. Y i)";
+     "[| !!i. i:I ==> extending C h F (Y' i) (Y i) |] \
+\     ==> extending C h F (INT i:I. Y' i) (INT i:I. Y i)";
 by (blast_tac (claset() addDs [prem RS spec RS mp]) 1);
 qed "extending_INT";
 
 val [prem] = Goalw [extending_def]
-     "[| !!i. i:I ==> extending v C h F (Y' i) (Y i) |] \
-\     ==> extending v C h F (UN i:I. Y' i) (UN i:I. Y i)";
+     "[| !!i. i:I ==> extending C h F (Y' i) (Y i) |] \
+\     ==> extending C h F (UN i:I. Y' i) (UN i:I. Y i)";
 by (blast_tac (claset() addDs [prem RS spec RS mp]) 1);
 qed "extending_UN";
 
 Goalw [extending_def]
-     "[| extending v C h F Y' Y;  Y'<=V';  V<=Y; \
-\        preserves w <= preserves v |] \
-\     ==> extending w C h F V' V";
+     "[| extending C h F Y' Y;  Y'<=V';  V<=Y |] ==> extending C h F V' V";
 by Auto_tac;
 qed "extending_weaken";
 
 Goalw [extending_def]
-     "[| extending v C h F Y' Y;  Y'<=V' |] ==> extending v C h F V' Y";
+     "[| extending C h F Y' Y;  Y'<=V' |] ==> extending C h F V' Y";
 by Auto_tac;
 qed "extending_weaken_L";
 
@@ -174,22 +172,22 @@ Goalw [projecting_def]
 by (blast_tac (claset() addIs [project_increasing_I]) 1);
 qed "projecting_increasing";
 
-Goal "extending v C h F UNIV Y";
+Goal "extending C h F UNIV Y";
 by (simp_tac (simpset() addsimps [extending_def]) 1);
 qed "extending_UNIV";
 
 Goalw [extending_def]
-     "extending v (%G. UNIV) h F (extend_set h A co extend_set h B) (A co B)";
+     "extending (%G. UNIV) h F (extend_set h A co extend_set h B) (A co B)";
 by (blast_tac (claset() addIs [project_constrains_D]) 1);
 qed "extending_constrains";
 
 Goalw [stable_def]
-     "extending v (%G. UNIV) h F (stable (extend_set h A)) (stable A)";
+     "extending (%G. UNIV) h F (stable (extend_set h A)) (stable A)";
 by (rtac extending_constrains 1);
 qed "extending_stable";
 
 Goalw [extending_def]
-     "extending v (%G. UNIV) h F (increasing (func o f)) (increasing func)";
+     "extending (%G. UNIV) h F (increasing (func o f)) (increasing func)";
 by (simp_tac (HOL_ss addsimps [Join_project_increasing]) 1);
 qed "extending_increasing";
 
@@ -354,25 +352,25 @@ by (blast_tac (claset() addIs [project_Increasing_I]) 1);
 qed "projecting_Increasing";
 
 Goalw [extending_def]
-     "extending v (%G. reachable (extend h F Join G)) h F \
+     "extending (%G. reachable (extend h F Join G)) h F \
 \                 (extend_set h A Co extend_set h B) (A Co B)";
 by (blast_tac (claset() addIs [project_Constrains_D]) 1);
 qed "extending_Constrains";
 
 Goalw [extending_def]
-     "extending v (%G. reachable (extend h F Join G)) h F \
+     "extending (%G. reachable (extend h F Join G)) h F \
 \                 (Stable (extend_set h A)) (Stable A)";
 by (blast_tac (claset() addIs [project_Stable_D]) 1);
 qed "extending_Stable";
 
 Goalw [extending_def]
-     "extending v (%G. reachable (extend h F Join G)) h F \
+     "extending (%G. reachable (extend h F Join G)) h F \
 \                 (Always (extend_set h A)) (Always A)";
 by (blast_tac (claset() addIs [project_Always_D]) 1);
 qed "extending_Always";
 
 Goalw [extending_def]
-     "extending v (%G. reachable (extend h F Join G)) h F \
+     "extending (%G. reachable (extend h F Join G)) h F \
 \                 (Increasing (func o f)) (Increasing func)";
 by (blast_tac (claset() addIs [project_Increasing_D]) 1);
 qed "extending_Increasing";
@@ -596,31 +594,46 @@ qed "project_Ensures_D";
 
 (*** Guarantees ***)
 
+Goal "project_act h (Restrict C act) <= project_act h act";
+by (auto_tac (claset(), simpset() addsimps [project_act_def]));  
+qed "project_act_Restrict_subset_project_act";
+					   
+							   
+Goal "[| extend h F ok G; subset_closed (AllowedActs F) |] \
+\     ==> F ok project h C G";
+by (auto_tac (claset(), simpset() addsimps [ok_def]));
+by (dtac subsetD 1);   
+by (Blast_tac 1); 
+by (force_tac (claset() addSIs [rev_image_eqI], simpset()) 1);
+by (cut_facts_tac [project_act_Restrict_subset_project_act] 1);
+by (auto_tac (claset(), simpset() addsimps [subset_closed_def]));  
+qed "subset_closed_ok_extend_imp_ok_project";
+
+
 (*Weak precondition and postcondition
   Not clear that it has a converse [or that we want one!]*)
 
 (*The raw version; 3rd premise could be weakened by adding the
   precondition extend h F Join G : X' *)
-val [xguary,project,extend] =
-Goal "[| F : X guarantees[v] Y;  \
+val [xguary,closed,project,extend] =
+Goal "[| F : X guarantees Y;  subset_closed (AllowedActs F);  \
 \        !!G. extend h F Join G : X' ==> F Join project h (C G) G : X;  \
-\        !!G. [| F Join project h (C G) G : Y; G : preserves (v o f) |] \
+\        !!G. [| F Join project h (C G) G : Y |] \
 \             ==> extend h F Join G : Y' |] \
-\     ==> extend h F : X' guarantees[v o f] Y'";
+\     ==> extend h F : X' guarantees Y'";
 by (rtac (xguary RS guaranteesD RS extend RS guaranteesI) 1);
-by (etac project_preserves_I 1);
+by (blast_tac (claset() addIs [closed, 
+          subset_closed_ok_extend_imp_ok_project]) 1); 
 by (etac project 1);
-by Auto_tac;
 qed "project_guarantees_raw";
 
-Goal "[| F : X guarantees[v] Y;  \
-\        projecting C h F X' X;  extending w C h F Y' Y; \
-\        preserves w <= preserves (v o f) |] \
-\     ==> extend h F : X' guarantees[w] Y'";
+Goal "[| F : X guarantees Y;  subset_closed (AllowedActs F); \
+\        projecting C h F X' X;  extending C h F Y' Y |] \
+\     ==> extend h F : X' guarantees Y'";
 by (rtac guaranteesI 1);
 by (auto_tac (claset(), 
-        simpset() addsimps [project_preserves_I, guaranteesD, projecting_def,
-			    extending_def]));
+        simpset() addsimps [guaranteesD, projecting_def, 
+                    extending_def, subset_closed_ok_extend_imp_ok_project]));
 qed "project_guarantees";
 
 
@@ -631,28 +644,31 @@ qed "project_guarantees";
 
 (** Some could be deleted: the required versions are easy to prove **)
 
-Goal "F : UNIV guarantees[v] increasing func \
-\     ==> extend h F : X' guarantees[v o f] increasing (func o f)";
+Goal "[| F : UNIV guarantees increasing func;  \
+\        subset_closed (AllowedActs F) |] \
+\     ==> extend h F : X' guarantees increasing (func o f)";
 by (etac project_guarantees 1);
-by (rtac extending_increasing 2);
-by (rtac projecting_UNIV 1);
+by (rtac extending_increasing 3);
+by (rtac projecting_UNIV 2);
 by Auto_tac;
 qed "extend_guar_increasing";
 
-Goal "F : UNIV guarantees[v] Increasing func \
-\     ==> extend h F : X' guarantees[v o f] Increasing (func o f)";
+Goal "[| F : UNIV guarantees Increasing func;  \
+\        subset_closed (AllowedActs F) |] \
+\     ==> extend h F : X' guarantees Increasing (func o f)";
 by (etac project_guarantees 1);
-by (rtac extending_Increasing 2);
-by (rtac projecting_UNIV 1);
+by (rtac extending_Increasing 3);
+by (rtac projecting_UNIV 2);
 by Auto_tac;
 qed "extend_guar_Increasing";
 
-Goal "F : Always A guarantees[v] Always B \
-\     ==> extend h F : Always(extend_set h A) guarantees[v o f] \
-\                      Always(extend_set h B)";
+Goal "[| F : Always A guarantees Always B;  \
+\        subset_closed (AllowedActs F) |] \
+\     ==> extend h F                   \
+\           : Always(extend_set h A) guarantees Always(extend_set h B)";
 by (etac project_guarantees 1);
-by (rtac extending_Always 2);
-by (rtac projecting_Always 1);
+by (rtac extending_Always 3);
+by (rtac projecting_Always 2);
 by Auto_tac;
 qed "extend_guar_Always";
 
@@ -676,8 +692,8 @@ by (auto_tac (claset() addDs [preserves_project_transient_empty],
 	      simpset()));
 qed "project_leadsTo_D";
 
-Goal "[| F Join project h (reachable (extend h F Join G)) G : A LeadsTo B; \
-\         G : preserves f |]  \
+Goal "[| F Join project h (reachable (extend h F Join G)) G : A LeadsTo B;    \
+\        G : preserves f |]  \
 \      ==> extend h F Join G : (extend_set h A) LeadsTo (extend_set h B)";
 by (rtac (refl RS Join_project_LeadsTo) 1);
 by (auto_tac (claset() addDs [preserves_project_transient_empty], 
@@ -685,35 +701,17 @@ by (auto_tac (claset() addDs [preserves_project_transient_empty],
 qed "project_LeadsTo_D";
 
 Goalw [extending_def]
-     "extending f (%G. UNIV) h F \
+     "(ALL G. extend h F ok G --> G : preserves f) \
+\     ==> extending (%G. UNIV) h F \
 \                 (extend_set h A leadsTo extend_set h B) (A leadsTo B)";
 by (blast_tac (claset() addIs [project_leadsTo_D]) 1);
 qed "extending_leadsTo";
 
 Goalw [extending_def]
-     "extending f (%G. reachable (extend h F Join G)) h F \
+     "(ALL G. extend h F ok G --> G : preserves f) \
+\     ==> extending (%G. reachable (extend h F Join G)) h F \
 \                 (extend_set h A LeadsTo extend_set h B) (A LeadsTo B)";
 by (blast_tac (claset() addIs [project_LeadsTo_D]) 1);
 qed "extending_LeadsTo";
-
-(*STRONG precondition and postcondition*)
-Goal "F : (A co A') guarantees[v] (B leadsTo B')  \
-\ ==> extend h F : (extend_set h A co extend_set h A') \
-\                  guarantees[f] (extend_set h B leadsTo extend_set h B')";
-by (etac project_guarantees 1);
-by (rtac subset_preserves_o 3);
-by (rtac extending_leadsTo 2);
-by (rtac projecting_constrains 1);
-qed "extend_co_guar_leadsTo";
-
-(*WEAK precondition and postcondition*)
-Goal "F : (A Co A') guarantees[v] (B LeadsTo B')  \
-\ ==> extend h F : (extend_set h A Co extend_set h A') \
-\                  guarantees[f] (extend_set h B LeadsTo extend_set h B')";
-by (etac project_guarantees 1);
-by (rtac subset_preserves_o 3);
-by (rtac extending_LeadsTo 2);
-by (rtac projecting_Constrains 1);
-qed "extend_Co_guar_LeadsTo";
 
 Close_locale "Extend";
