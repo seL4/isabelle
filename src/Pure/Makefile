@@ -23,7 +23,8 @@ BIN = $(ISABELLEBIN)
 COMP = $(ISABELLECOMP)
 FILES =	POLY.ML NJ.ML ROOT.ML library.ML term.ML symtab.ML type.ML sign.ML\
 	sequence.ML envir.ML pattern.ML unify.ML logic.ML thm.ML net.ML\
-	drule.ML tctical.ML tactic.ML goals.ML axclass.ML install_pp.ML
+	drule.ML tctical.ML tactic.ML goals.ML axclass.ML install_pp.ML\
+        ../Provers/simplifier.ML
 
 SYNTAX_FILES =  Syntax/ROOT.ML	Syntax/ast.ML		Syntax/lexicon.ML\
 	Syntax/parser.ML	Syntax/type_ext.ML	Syntax/syn_trans.ML\
