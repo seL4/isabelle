@@ -253,7 +253,7 @@ goal thy
 \        |] ==> Crypt (pubK B) (Nonce PMS) : parts (spies evs)";
 by (etac rev_mp 1);
 by (parts_induct_tac 1);
-by clarify_tac;
+by (ALLGOALS Clarify_tac);
 (*Fake*)
 by (blast_tac (!claset addIs [parts_insertI]) 1);
 (*Client, Server Accept*)
@@ -610,7 +610,7 @@ goal thy
 \      Says A' B' (Crypt (clientK(Na,Nb,PRF(PMS,NA,NB))) Y) : set evs -->  \
 \      A = A'";
 by (analz_induct_tac 1);	(*17 seconds*)
-by clarify_tac;
+by (ALLGOALS Clarify_tac);
 (*ClientFinished, ClientResume: by unicity of PMS*)
 by (REPEAT 
     (blast_tac (!claset addSDs [Notes_master_imp_Notes_PMS]
@@ -632,7 +632,7 @@ goal thy
 by (etac tls.induct 1);
 (*This roundabout proof sequence avoids looping in simplification*)
 by (ALLGOALS Simp_tac);
-by clarify_tac;
+by (ALLGOALS Clarify_tac);
 by (Fake_parts_insert_tac 1);
 by (ALLGOALS Asm_simp_tac);
 (*Oops*)
@@ -654,7 +654,7 @@ goal thy
 \      Says B' A' (Crypt (serverK(Na,Nb,PRF(PMS,NA,NB))) Y) : set evs -->  \
 \      B = B'";
 by (analz_induct_tac 1);	(*17 seconds*)
-by clarify_tac;
+by (ALLGOALS Clarify_tac);
 (*ServerResume, ServerFinished: by unicity of PMS*)
 by (REPEAT
     (blast_tac (!claset addSEs [MPair_parts]
@@ -679,7 +679,7 @@ goal thy
 by (etac tls.induct 1);
 (*This roundabout proof sequence avoids looping in simplification*)
 by (ALLGOALS Simp_tac);
-by clarify_tac;
+by (ALLGOALS Clarify_tac);
 by (Fake_parts_insert_tac 1);
 by (ALLGOALS Asm_simp_tac);
 (*Oops*)
@@ -711,9 +711,8 @@ by (etac rev_mp 1);
 by (hyp_subst_tac 1);
 by (analz_induct_tac 1);        (*27 seconds*)
 by (ALLGOALS (asm_simp_tac (!simpset addsimps [all_conj_distrib])));
-by clarify_tac;
-(*ServerResume*)
-by (Blast_tac 3);
+(*proves ServerResume*)
+by (ALLGOALS Clarify_tac);
 (*ClientCertKeyEx*)
 by (fast_tac  (*blast_tac gives PROOF FAILED*)
     (!claset addSEs [PMS_Crypt_sessionK_not_spied RSN (2,rev_notE)]) 2);
@@ -758,7 +757,7 @@ by (etac rev_mp 1);
 by (hyp_subst_tac 1);
 by (analz_induct_tac 1);	(*20 seconds*)
 by (ALLGOALS (asm_simp_tac (!simpset addsimps [ex_disj_distrib])));
-by clarify_tac;
+by (ALLGOALS Clarify_tac);
 (*ServerResume, ServerFinished: by unicity of PMS*)
 by (REPEAT
     (blast_tac (!claset addSEs [MPair_parts]
@@ -805,7 +804,7 @@ goal thy
 \      Crypt (clientK(Na,Nb,PRF(PMS,NA,NB))) Y : parts (spies evs) -->  \
 \      Says A B (Crypt (clientK(Na,Nb,PRF(PMS,NA,NB))) Y) : set evs";
 by (analz_induct_tac 1);	(*23 seconds*)
-by clarify_tac;
+by (ALLGOALS Clarify_tac);
 (*ClientFinished, ClientResume: by unicity of PMS*)
 by (REPEAT (blast_tac (!claset delrules [conjI]
 		               addSDs [Notes_master_imp_Notes_PMS]
@@ -852,5 +851,6 @@ by (blast_tac (!claset addSIs [TrustClientMsg, UseCertVerify]
 qed "AuthClientFinished";
 
 (*22/9/97: loads in 622s, which is 10 minutes 22 seconds*)
+(*24/9/97: loads in 672s, which is 11 minutes 12 seconds [stronger theorems]*)
 
 
