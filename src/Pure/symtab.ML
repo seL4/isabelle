@@ -18,9 +18,7 @@ sig
   val update: (string * 'a) * 'a table -> 'a table
   val update_new: (string * 'a) * 'a table -> 'a table
   val map: ('a -> 'b) -> 'a table -> 'b table
-  val alist_of: 'a table -> (string * 'a) list  (*obsolete*)
   val balance: 'a table -> 'a table
-  val st_of_alist: (string * 'a) list * 'a table -> 'a table  (*obsolete*)
   val st_of_declist: (string list * 'a) list * 'a table -> 'a table
   val make: (string * 'a) list -> 'a table
   val dest: 'a table -> (string * 'a) list
@@ -32,7 +30,7 @@ sig
   val dest_multi: 'a list table -> (string * 'a) list
 end;
 
-functor SymtabFun(): SYMTAB =
+structure Symtab: SYMTAB =
 struct
 
 (*symbol table errors, such as from update_new*)
@@ -76,8 +74,7 @@ fun update ((key: string, entry: 'a), symtab : 'a table)
             else                    Branch (key, entry, left, right)
   in  upd symtab  end;
 
-(*Like update but fails if key is already defined in table.
-  Allows st_of_alist, etc. to detect multiple definitions*)
+(*Like update but fails if key is already defined in table.*)
 fun update_new ((key: string, entry: 'a), symtab : 'a table)
   : 'a table =
   let fun upd Tip = Branch (key, entry, Tip, Tip)
@@ -89,14 +86,12 @@ fun update_new ((key: string, entry: 'a), symtab : 'a table)
 
 
 (*conversion of symbol table to sorted association list*)
-fun alist_of (symtab : 'a table) : (string * 'a) list =
+fun dest (symtab : 'a table) : (string * 'a) list =
   let fun ali (symtab, cont) = case symtab of
                 Tip => cont
         | Branch (key, entry, left, right) =>
             ali(left, (key, entry) :: ali(right, cont))
   in  ali (symtab, [])  end;
-
-val dest = alist_of;
 
 
 (*Make a balanced tree of the first n members of the sorted alist (sal).
@@ -112,13 +107,9 @@ fun bal_of (sal, 0) = Tip
 
 
 fun balance symtab =
-  let val sal = alist_of symtab
+  let val sal = dest symtab
   in  bal_of (sal, length sal)  end;
 
-
-(*Addition of association list to a symbol table*)
-fun st_of_alist (al, symtab) =
-  foldr update_new (al, symtab);
 
 (*A "declaration" associates the same entry with a list of keys;
   does not allow overwriting of an entry*)
@@ -139,7 +130,7 @@ fun eq_pair eq ((key1, entry1), (key2, entry2)) =
 
 fun make alst =
   (case gen_duplicates eq_fst alst of
-    [] => balance (st_of_alist (alst, Tip))
+    [] => balance (foldr update_new (alst, Tip))
   | dups => raise DUPS (map fst dups));
 
 fun extend eq (tab, alst) =
