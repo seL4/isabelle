@@ -225,13 +225,15 @@ qed "eq_nat_nat_iff";
 
 (*"neg" is used in rewrite rules for binary comparisons*)
 Goal "((number_of v :: nat) = number_of v') = \
-\        (if neg (number_of v) then ((#0::nat) = number_of v') \
-\         else if neg (number_of v') then iszero (number_of v) \
-\         else iszero (number_of (bin_add v (bin_minus v'))))";
+\     (if neg (number_of v) then (iszero (number_of v') | neg (number_of v')) \
+\      else if neg (number_of v') then iszero (number_of v) \
+\      else iszero (number_of (bin_add v (bin_minus v'))))";
 by (simp_tac
     (simpset_of Int.thy addsimps [neg_nat, not_neg_eq_ge_0, nat_number_of_def, 
 				  eq_nat_nat_iff, eq_number_of_eq, nat_0]) 1);
-by (simp_tac (simpset_of Int.thy addsimps [nat_eq_iff, iszero_def]) 1);
+by (simp_tac (simpset_of Int.thy addsimps [nat_eq_iff, nat_eq_iff2, 
+					   iszero_def]) 1);
+by (simp_tac (simpset_of Int.thy addsimps [not_neg_eq_ge_0 RS sym]) 1);
 qed "eq_nat_number_of";
 
 Addsimps [eq_nat_number_of];
