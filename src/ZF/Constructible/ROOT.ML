@@ -9,3 +9,4 @@ Inner Models and Absoluteness
 use_thy "Reflection";
 use_thy "WF_absolute";
 use_thy "L_axioms";
+use_thy "Datatype_absolute";

@@ -62,8 +62,7 @@ done
 
 lemma replacement: "replacement(L,P)"
 apply (simp add: replacement_def, clarify)
-apply (frule LReplace_in_L, assumption+)
-apply clarify 
+apply (frule LReplace_in_L, assumption+, clarify) 
 apply (rule_tac x=Y in exI)   
 apply (simp add: Replace_iff univalent_def, blast) 
 done

@@ -2,6 +2,11 @@ header {*Relativization and Absoluteness*}
 
 theory Relative = Main:
 
+(*func.thy*)
+lemma succ_fun_eq: "succ(n) -> B = (\<Union>f \<in> n->B. \<Union>b\<in>B. {cons(<n,b>, f)})"
+by (simp add: succ_def mem_not_refl cons_fun_eq)
+
+
 subsection{* Relativized versions of standard set-theoretic concepts *}
 
 constdefs
@@ -95,6 +100,10 @@ constdefs
     "typed_function(M,A,B,r) == 
         is_function(M,r) & is_relation(M,r) & is_domain(M,r,A) &
         (\<forall>u\<in>r. M(u) --> (\<forall>x y. M(x) & M(y) & pair(M,x,y,u) --> y\<in>B))"
+
+  is_funspace :: "[i=>o,i,i,i] => o"
+    "is_funspace(M,A,B,F) == 
+        \<forall>f[M]. f \<in> F <-> typed_function(M,A,B,f)"
 
   composition :: "[i=>o,i,i,i] => o"
     "composition(M,r,s,t) == 
@@ -385,29 +394,28 @@ locale M_axioms =
       and Union_ax:	    "Union_ax(M)"
       and power_ax:         "power_ax(M)"
       and replacement:      "replacement(M,P)"
-      and M_nat:            "M(nat)"   (*i.e. the axiom of infinity*)
+      and M_nat [iff]:      "M(nat)"           (*i.e. the axiom of infinity*)
   and Inter_separation:
-     "M(A) ==> separation(M, \<lambda>x. \<forall>y\<in>A. M(y) --> x\<in>y)"
+     "M(A) ==> separation(M, \<lambda>x. \<forall>y[M]. y\<in>A --> x\<in>y)"
   and cartprod_separation:
      "[| M(A); M(B) |] 
       ==> separation(M, \<lambda>z. \<exists>x\<in>A. \<exists>y\<in>B. M(x) & M(y) & pair(M,x,y,z))"
   and image_separation:
      "[| M(A); M(r) |] 
-      ==> separation(M, \<lambda>y. \<exists>p\<in>r. M(p) & (\<exists>x\<in>A. M(x) & pair(M,x,y,p)))"
+      ==> separation(M, \<lambda>y. \<exists>p[M]. p\<in>r & (\<exists>x[M]. x\<in>A & pair(M,x,y,p)))"
   and vimage_separation:
      "[| M(A); M(r) |] 
-      ==> separation(M, \<lambda>x. \<exists>p\<in>r. M(p) & (\<exists>y\<in>A. M(x) & pair(M,x,y,p)))"
+      ==> separation(M, \<lambda>x. \<exists>p[M]. p\<in>r & (\<exists>y[M]. y\<in>A & pair(M,x,y,p)))"
   and converse_separation:
      "M(r) ==> separation(M, \<lambda>z. \<exists>p\<in>r. 
                     M(p) & (\<exists>x[M]. \<exists>y[M]. pair(M,x,y,p) & pair(M,y,x,z)))"
   and restrict_separation:
-     "M(A) 
-      ==> separation(M, \<lambda>z. \<exists>x\<in>A. M(x) & (\<exists>y. M(y) & pair(M,x,y,z)))"
+     "M(A) ==> separation(M, \<lambda>z. \<exists>x[M]. x\<in>A & (\<exists>y[M]. pair(M,x,y,z)))"
   and comp_separation:
      "[| M(r); M(s) |]
-      ==> separation(M, \<lambda>xz. \<exists>x y z. M(x) & M(y) & M(z) &
-			   (\<exists>xy\<in>s. \<exists>yz\<in>r. M(xy) & M(yz) & 
-		  pair(M,x,z,xz) & pair(M,x,y,xy) & pair(M,y,z,yz)))"
+      ==> separation(M, \<lambda>xz. \<exists>x[M]. \<exists>y[M]. \<exists>z[M]. \<exists>xy[M]. \<exists>yz[M]. 
+		  pair(M,x,z,xz) & pair(M,x,y,xy) & pair(M,y,z,yz) & 
+                  xy\<in>s & yz\<in>r)"
   and pred_separation:
      "[| M(r); M(x) |] ==> separation(M, \<lambda>y. \<exists>p\<in>r. M(p) & pair(M,y,x,p))"
   and Memrel_separation:
@@ -418,6 +426,10 @@ locale M_axioms =
       ==> separation(M, \<lambda>a. \<exists>x g mx par. M(x) & M(g) & M(mx) & M(par) & 
 	     ordinal(M,x) & membership(M,x,mx) & pred_set(M,A,a,r,par) &
 	     order_isomorphism(M,par,r,x,mx,g))"
+  and funspace_succ_replacement:
+     "M(n) ==> 
+      strong_replacement(M, \<lambda>p z. \<exists>f[M]. \<exists>b[M]. \<exists>nb[M]. 
+                pair(M,f,b,p) & pair(M,n,b,nb) & z = {cons(nb,f)})"
   and well_ord_iso_separation:
      "[| M(A); M(f); M(r) |] 
       ==> separation (M, \<lambda>x. x\<in>A --> (\<exists>y. M(y) & (\<exists>p. M(p) & 
@@ -440,15 +452,23 @@ locale M_axioms =
 	     ordinal(M,x) & pair(M,a,x,z) & membership(M,x,mx) & 
 	     pred_set(M,A,a,r,par) & order_isomorphism(M,par,r,x,mx,g))"
 
-lemma (in M_axioms) Ball_abs [simp]: 
+lemma (in M_axioms) ball_abs [simp]: 
      "M(A) ==> (\<forall>x\<in>A. M(x) --> P(x)) <-> (\<forall>x\<in>A. P(x))" 
 by (blast intro: transM) 
 
-lemma (in M_axioms) Bex_abs [simp]: 
+lemma (in M_axioms) rall_abs [simp]: 
+     "M(A) ==> (\<forall>x[M]. x\<in>A --> P(x)) <-> (\<forall>x\<in>A. P(x))" 
+by (blast intro: transM) 
+
+lemma (in M_axioms) bex_abs [simp]: 
      "M(A) ==> (\<exists>x\<in>A. M(x) & P(x)) <-> (\<exists>x\<in>A. P(x))" 
 by (blast intro: transM) 
 
-lemma (in M_axioms) Ball_iff_equiv: 
+lemma (in M_axioms) rex_abs [simp]: 
+     "M(A) ==> (\<exists>x[M]. x\<in>A & P(x)) <-> (\<exists>x\<in>A. P(x))" 
+by (blast intro: transM) 
+
+lemma (in M_axioms) ball_iff_equiv: 
      "M(A) ==> (\<forall>x. M(x) --> (x\<in>A <-> P(x))) <-> 
                (\<forall>x\<in>A. P(x)) & (\<forall>x. P(x) --> M(x) --> x\<in>A)" 
 by (blast intro: transM)
@@ -570,11 +590,9 @@ lemma (in M_axioms) strong_replacementI [rule_format]:
     "[| \<forall>A. M(A) --> separation(M, %u. \<exists>x\<in>A. P(x,u)) |]
      ==> strong_replacement(M,P)"
 apply (simp add: strong_replacement_def, clarify) 
-apply (frule replacementD [OF replacement], assumption)
-apply clarify 
+apply (frule replacementD [OF replacement], assumption, clarify) 
 apply (drule_tac x=A in spec, clarify)  
-apply (drule_tac z=Y in separationD, assumption)
-apply clarify 
+apply (drule_tac z=Y in separationD, assumption, clarify) 
 apply (blast dest: transM) 
 done
 
@@ -692,6 +710,10 @@ lemma (in M_axioms) cartprod_closed [intro,simp]:
      "[| M(A); M(B) |] ==> M(A*B)"
 by (frule cartprod_closed_lemma, assumption, force)
 
+lemma (in M_axioms) sum_closed [intro,simp]: 
+     "[| M(A); M(B) |] ==> M(A+B)"
+by (simp add: sum_def)
+
 lemma (in M_axioms) image_closed [intro,simp]: 
      "[| M(A); M(r) |] ==> M(r``A)"
 apply (simp add: image_iff_Collect)
@@ -758,9 +780,9 @@ lemma (in M_axioms) converse_abs [simp]:
      "[| M(r); M(z) |] ==> is_converse(M,r,z) <-> z = converse(r)"
 apply (simp add: is_converse_def)
 apply (rule iffI)
- prefer 2 apply (blast intro: elim:); 
+ prefer 2 apply blast 
 apply (rule M_equalityI)
-  apply (simp add: )
+  apply simp
   apply (blast dest: transM)+
 done
 
@@ -819,20 +841,20 @@ lemma (in M_axioms) restriction_is_function:
      "[| restriction(M,f,A,z); function(f); M(f); M(A); M(z) |] 
       ==> function(z)"
 apply (rotate_tac 1)
-apply (simp add: restriction_def Ball_iff_equiv) 
+apply (simp add: restriction_def ball_iff_equiv) 
 apply (unfold function_def, blast) 
 done
 
 lemma (in M_axioms) restriction_abs [simp]: 
      "[| M(f); M(A); M(z) |] 
       ==> restriction(M,f,A,z) <-> z = restrict(f,A)"
-apply (simp add: Ball_iff_equiv restriction_def restrict_def)
+apply (simp add: ball_iff_equiv restriction_def restrict_def)
 apply (blast intro!: equalityI dest: transM) 
 done
 
 
 lemma (in M_axioms) M_restrict_iff:
-     "M(r) ==> restrict(r,A) = {z \<in> r . \<exists>x\<in>A. \<exists>y. M(y) & z = \<langle>x, y\<rangle>}"
+     "M(r) ==> restrict(r,A) = {z \<in> r . \<exists>x\<in>A. \<exists>y[M]. z = \<langle>x, y\<rangle>}"
 by (simp add: restrict_def, blast dest: transM)
 
 lemma (in M_axioms) restrict_closed [intro,simp]: 
@@ -845,8 +867,7 @@ lemma (in M_axioms) M_comp_iff:
      "[| M(r); M(s) |] 
       ==> r O s = 
           {xz \<in> domain(s) * range(r).  
-            \<exists>x. M(x) & (\<exists>y. M(y) & (\<exists>z. M(z) & 
-                xz = \<langle>x,z\<rangle> & \<langle>x,y\<rangle> \<in> s & \<langle>y,z\<rangle> \<in> r))}"
+            \<exists>x[M]. \<exists>y[M]. \<exists>z[M]. xz = \<langle>x,z\<rangle> & \<langle>x,y\<rangle> \<in> s & \<langle>y,z\<rangle> \<in> r}"
 apply (simp add: comp_def)
 apply (rule equalityI) 
  apply clarify 
@@ -902,6 +923,8 @@ apply (subgoal_tac "M({A,B})")
 apply (frule Inter_closed, force+) 
 done
 
+subsection{*Functions and function space*}
+
 text{*M contains all finite functions*}
 lemma (in M_axioms) finite_fun_closed_lemma [rule_format]: 
      "[| n \<in> nat; M(A) |] ==> \<forall>f \<in> n -> A. M(f)"
@@ -918,6 +941,39 @@ done
 lemma (in M_axioms) finite_fun_closed [rule_format]: 
      "[| f \<in> n -> A; n \<in> nat; M(A) |] ==> M(f)"
 by (blast intro: finite_fun_closed_lemma) 
+
+text{*The assumption @{term "M(A->B)"} is unusual, but essential: in 
+all but trivial cases, A->B cannot be expected to belong to @{term M}.*}
+lemma (in M_axioms) is_funspace_abs [simp]:
+     "[|M(A); M(B); M(F); M(A->B)|] ==> is_funspace(M,A,B,F) <-> F = A->B";
+apply (simp add: is_funspace_def)
+apply (rule iffI)
+ prefer 2 apply blast 
+apply (rule M_equalityI)
+  apply simp_all
+done
+
+lemma (in M_axioms) succ_fun_eq2:
+     "[|M(B); M(n->B)|] ==>
+      succ(n) -> B = 
+      \<Union>{z. p \<in> (n->B)*B, \<exists>f[M]. \<exists>b[M]. p = <f,b> & z = {cons(<n,b>, f)}}"
+apply (simp add: succ_fun_eq)
+apply (blast dest: transM)  
+done
+
+lemma (in M_axioms) funspace_succ:
+     "[|M(n); M(B); M(n->B) |] ==> M(succ(n) -> B)"
+apply (insert funspace_succ_replacement [of n]) 
+apply (force simp add: succ_fun_eq2 univalent_def) 
+done
+
+text{*@{term M} contains all finite function spaces.  Needed to prove the
+absoluteness of transitive closure.*}
+lemma (in M_axioms) finite_funspace_closed [intro,simp]:
+     "[|n\<in>nat; M(B)|] ==> M(n->B)"
+apply (induct_tac n, simp)
+apply (simp add: funspace_succ nat_into_M) 
+done
 
 
 subsection{*Absoluteness for ordinals*}

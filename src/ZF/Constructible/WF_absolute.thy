@@ -1,5 +1,20 @@
 theory WF_absolute = WFrec:
 
+(*????move to Wellorderings.thy*)
+lemma (in M_axioms) wellfounded_on_field_imp_wellfounded:
+     "wellfounded_on(M, field(r), r) ==> wellfounded(M,r)"
+by (simp add: wellfounded_def wellfounded_on_iff_wellfounded, fast)
+
+lemma (in M_axioms) wellfounded_iff_wellfounded_on_field:
+     "M(r) ==> wellfounded(M,r) <-> wellfounded_on(M, field(r), r)"
+by (blast intro: wellfounded_imp_wellfounded_on
+                 wellfounded_on_field_imp_wellfounded)
+
+lemma (in M_axioms) wellfounded_on_subset_A:
+     "[| wellfounded_on(M,A,r);  B<=A |] ==> wellfounded_on(M,B,r)"
+by (simp add: wellfounded_on_def, blast)
+
+
 subsection{*Every well-founded relation is a subset of some inverse image of
       an ordinal*}
 
@@ -127,7 +142,7 @@ constdefs
 
   tran_closure :: "[i=>o,i,i] => o"
     "tran_closure(M,r,t) ==
-         \<exists>s. M(s) & rtran_closure(M,r,s) & composition(M,r,s,t)"
+         \<exists>s[M]. rtran_closure(M,r,s) & composition(M,r,s,t)"
 
 
 locale M_trancl = M_axioms +
@@ -135,11 +150,14 @@ locale M_trancl = M_axioms +
   assumes rtrancl_separation:
      "[| M(r); M(A) |] ==>
 	separation
-	   (M, \<lambda>p. \<exists>n\<in>nat. \<exists>f \<in> succ(n) -> A.
-                    (\<exists>x y. p = <x,y> &  f`0 = x & f`n = y) &
-                          (\<forall>i\<in>n. <f`i, f`succ(i)> \<in> r))"
+	   (M, \<lambda>p. \<exists>n[M]. n\<in>nat & 
+                    (\<exists>f[M]. 
+                     f \<in> succ(n) -> A &
+                     (\<exists>x[M]. \<exists>y[M]. pair(M,x,y,p) &  
+                           f`0 = x & f`n = y) &
+                           (\<forall>i\<in>n. <f`i, f`succ(i)> \<in> r)))"
       and wellfounded_trancl_separation:
-     "[| M(r); M(Z) |] ==> separation (M, \<lambda>x. \<exists>w. M(w) & \<langle>w,x\<rangle> \<in> r^+ & w \<in> Z)"
+     "[| M(r); M(Z) |] ==> separation (M, \<lambda>x. \<exists>w[M]. w \<in> Z & \<langle>w,x\<rangle> \<in> r^+)"
 
 
 lemma (in M_trancl) rtran_closure_rtrancl:
@@ -165,7 +183,7 @@ lemma (in M_trancl) rtrancl_closed [intro,simp]:
 apply (insert rtrancl_separation [of r "field(r)"])
 apply (simp add: rtrancl_alt_eq_rtrancl [symmetric]
                  rtrancl_alt_def field_closed typed_apply_abs apply_closed
-                 Ord_succ_mem_iff M_nat
+                 Ord_succ_mem_iff M_nat nat_into_M
                  nat_0_le [THEN ltD] leI [THEN ltD] ltI apply_funtype)
 done
 
@@ -215,11 +233,10 @@ lemma (in M_trancl) wellfounded_on_trancl:
 apply (simp add: wellfounded_on_def)
 apply (safe intro!: equalityI)
 apply (rename_tac Z x)
-apply (subgoal_tac "M({x\<in>A. \<exists>w. M(w) & \<langle>w,x\<rangle> \<in> r^+ & w \<in> Z})")
+apply (subgoal_tac "M({x\<in>A. \<exists>w[M]. w \<in> Z & \<langle>w,x\<rangle> \<in> r^+})")
  prefer 2
- apply (simp add: wellfounded_trancl_separation)
-apply (drule_tac x = "{x\<in>A. \<exists>w. M(w) & \<langle>w,x\<rangle> \<in> r^+ & w \<in> Z}" in spec)
-apply safe
+ apply (blast intro: wellfounded_trancl_separation) 
+apply (drule_tac x = "{x\<in>A. \<exists>w[M]. w \<in> Z & \<langle>w,x\<rangle> \<in> r^+}" in spec, safe)
 apply (blast dest: transM, simp)
 apply (rename_tac y w)
 apply (drule_tac x=w in bspec, assumption, clarify)
@@ -227,22 +244,6 @@ apply (erule tranclE)
   apply (blast dest: transM)   (*transM is needed to prove M(xa)*)
  apply blast
 done
-
-(*????move to Wellorderings.thy*)
-lemma (in M_axioms) wellfounded_on_field_imp_wellfounded:
-     "wellfounded_on(M, field(r), r) ==> wellfounded(M,r)"
-by (simp add: wellfounded_def wellfounded_on_iff_wellfounded, fast)
-
-lemma (in M_axioms) wellfounded_iff_wellfounded_on_field:
-     "M(r) ==> wellfounded(M,r) <-> wellfounded_on(M, field(r), r)"
-by (blast intro: wellfounded_imp_wellfounded_on
-                 wellfounded_on_field_imp_wellfounded)
-
-lemma (in M_axioms) wellfounded_on_subset_A:
-     "[| wellfounded_on(M,A,r);  B<=A |] ==> wellfounded_on(M,B,r)"
-by (simp add: wellfounded_on_def, blast)
-
-
 
 lemma (in M_trancl) wellfounded_trancl:
      "[|wellfounded(M,r); M(r)|] ==> wellfounded(M,r^+)"
@@ -259,14 +260,14 @@ rank function.*}
 
 
 (*NEEDS RELATIVIZATION*)
-locale M_recursion = M_trancl +
+locale M_wfrank = M_trancl +
   assumes wfrank_separation':
      "M(r) ==>
 	separation
-	   (M, \<lambda>x. ~ (\<exists>f. M(f) & is_recfun(r^+, x, %x f. range(f), f)))"
+	   (M, \<lambda>x. ~ (\<exists>f[M]. is_recfun(r^+, x, %x f. range(f), f)))"
  and wfrank_strong_replacement':
      "M(r) ==>
-      strong_replacement(M, \<lambda>x z. \<exists>y f. M(y) & M(f) &
+      strong_replacement(M, \<lambda>x z. \<exists>y[M]. \<exists>f[M]. 
 		  pair(M,x,y,z) & is_recfun(r^+, x, %x f. range(f), f) &
 		  y = range(f))"
  and Ord_wfrank_separation:
@@ -279,13 +280,13 @@ well-founded relations within the class M.*}
 constdefs
  wellfoundedrank :: "[i=>o,i,i] => i"
     "wellfoundedrank(M,r,A) ==
-        {p. x\<in>A, \<exists>y f. M(y) & M(f) &
+        {p. x\<in>A, \<exists>y[M]. \<exists>f[M]. 
                        p = <x,y> & is_recfun(r^+, x, %x f. range(f), f) &
                        y = range(f)}"
 
-lemma (in M_recursion) exists_wfrank:
+lemma (in M_wfrank) exists_wfrank:
     "[| wellfounded(M,r); M(a); M(r) |]
-     ==> \<exists>f. M(f) & is_recfun(r^+, a, %x f. range(f), f)"
+     ==> \<exists>f[M]. is_recfun(r^+, a, %x f. range(f), f)"
 apply (rule wellfounded_exists_is_recfun)
       apply (blast intro: wellfounded_trancl)
      apply (rule trans_trancl)
@@ -294,7 +295,7 @@ apply (rule wellfounded_exists_is_recfun)
 apply (simp_all add: trancl_subset_times)
 done
 
-lemma (in M_recursion) M_wellfoundedrank:
+lemma (in M_wfrank) M_wellfoundedrank:
     "[| wellfounded(M,r); M(r); M(A) |] ==> M(wellfoundedrank(M,r,A))"
 apply (insert wfrank_strong_replacement' [of r])
 apply (simp add: wellfoundedrank_def)
@@ -306,7 +307,7 @@ apply (rule strong_replacement_closed)
  apply (simp add: trancl_subset_times, blast)
 done
 
-lemma (in M_recursion) Ord_wfrank_range [rule_format]:
+lemma (in M_wfrank) Ord_wfrank_range [rule_format]:
     "[| wellfounded(M,r); a\<in>A; M(r); M(A) |]
      ==> \<forall>f. M(f) --> is_recfun(r^+, a, %x f. range(f), f) --> Ord(range(f))"
 apply (drule wellfounded_trancl, assumption)
@@ -337,7 +338,7 @@ apply (subgoal_tac "M(restrict(f, r^+ -`` {y}))")
 apply (blast dest: pair_components_in_M)
 done
 
-lemma (in M_recursion) Ord_range_wellfoundedrank:
+lemma (in M_wfrank) Ord_range_wellfoundedrank:
     "[| wellfounded(M,r); r \<subseteq> A*A;  M(r); M(A) |]
      ==> Ord (range(wellfoundedrank(M,r,A)))"
 apply (frule wellfounded_trancl, assumption)
@@ -349,23 +350,23 @@ apply (rule OrdI [OF _ Ord_is_Transset])
  apply (blast intro: Ord_wfrank_range)
 txt{*We still must show that the range is a transitive set.*}
 apply (simp add: Transset_def, clarify, simp)
-apply (rename_tac x i f u)
+apply (rename_tac x f i u)
 apply (frule is_recfun_imp_in_r, assumption)
 apply (subgoal_tac "M(u) & M(i) & M(x)")
  prefer 2 apply (blast dest: transM, clarify)
 apply (rule_tac a=u in rangeI)
 apply (rule ReplaceI)
-  apply (rule_tac x=i in exI, simp)
-  apply (rule_tac x="restrict(f, r^+ -`` {u})" in exI)
-  apply (blast intro: is_recfun_restrict trans_trancl dest: apply_recfun2)
- apply blast
+  apply (rule_tac x=i in rexI, simp)
+   apply (rule_tac x="restrict(f, r^+ -`` {u})" in rexI)
+    apply (blast intro: is_recfun_restrict trans_trancl dest: apply_recfun2)
+   apply (simp, simp, blast) 
 txt{*Unicity requirement of Replacement*}
 apply clarify
 apply (frule apply_recfun2, assumption)
 apply (simp add: trans_trancl is_recfun_cut)+
 done
 
-lemma (in M_recursion) function_wellfoundedrank:
+lemma (in M_wfrank) function_wellfoundedrank:
     "[| wellfounded(M,r); M(r); M(A)|]
      ==> function(wellfoundedrank(M,r,A))"
 apply (simp add: wellfoundedrank_def function_def, clarify)
@@ -375,7 +376,7 @@ apply (drule is_recfun_functional, assumption)
     apply (simp_all add: trancl_subset_times trans_trancl)
 done
 
-lemma (in M_recursion) domain_wellfoundedrank:
+lemma (in M_wfrank) domain_wellfoundedrank:
     "[| wellfounded(M,r); M(r); M(A)|]
      ==> domain(wellfoundedrank(M,r,A)) = A"
 apply (simp add: wellfoundedrank_def function_def)
@@ -384,9 +385,9 @@ apply (frule transM, assumption)
 apply (frule_tac a=x in exists_wfrank, assumption+, clarify)
 apply (rule domainI)
 apply (rule ReplaceI)
-  apply (rule_tac x="range(f)" in exI)
+  apply (rule_tac x="range(f)" in rexI)
   apply simp
-  apply (rule_tac x=f in exI, blast, assumption)
+  apply (rule_tac x=f in rexI, blast, simp_all)
 txt{*Uniqueness (for Replacement): repeated above!*}
 apply clarify
 apply (drule is_recfun_functional, assumption)
@@ -394,7 +395,7 @@ apply (drule is_recfun_functional, assumption)
     apply (simp_all add: trancl_subset_times trans_trancl)
 done
 
-lemma (in M_recursion) wellfoundedrank_type:
+lemma (in M_wfrank) wellfoundedrank_type:
     "[| wellfounded(M,r);  M(r); M(A)|]
      ==> wellfoundedrank(M,r,A) \<in> A -> range(wellfoundedrank(M,r,A))"
 apply (frule function_wellfoundedrank [of r A], assumption+)
@@ -404,13 +405,13 @@ apply (frule function_imp_Pi)
 apply (simp add: domain_wellfoundedrank)
 done
 
-lemma (in M_recursion) Ord_wellfoundedrank:
+lemma (in M_wfrank) Ord_wellfoundedrank:
     "[| wellfounded(M,r); a \<in> A; r \<subseteq> A*A;  M(r); M(A) |]
      ==> Ord(wellfoundedrank(M,r,A) ` a)"
 by (blast intro: apply_funtype [OF wellfoundedrank_type]
                  Ord_in_Ord [OF Ord_range_wellfoundedrank])
 
-lemma (in M_recursion) wellfoundedrank_eq:
+lemma (in M_wfrank) wellfoundedrank_eq:
      "[| is_recfun(r^+, a, %x. range, f);
          wellfounded(M,r);  a \<in> A; M(f); M(r); M(A)|]
       ==> wellfoundedrank(M,r,A) ` a = range(f)"
@@ -418,9 +419,9 @@ apply (rule apply_equality)
  prefer 2 apply (blast intro: wellfoundedrank_type)
 apply (simp add: wellfoundedrank_def)
 apply (rule ReplaceI)
-  apply (rule_tac x="range(f)" in exI)
+  apply (rule_tac x="range(f)" in rexI) 
   apply blast
- apply assumption
+ apply simp_all
 txt{*Unicity requirement of Replacement*}
 apply clarify
 apply (drule is_recfun_functional, assumption)
@@ -429,7 +430,7 @@ apply (drule is_recfun_functional, assumption)
 done
 
 
-lemma (in M_recursion) wellfoundedrank_lt:
+lemma (in M_wfrank) wellfoundedrank_lt:
      "[| <a,b> \<in> r;
          wellfounded(M,r); r \<subseteq> A*A;  M(r); M(A)|]
       ==> wellfoundedrank(M,r,A) ` a < wellfoundedrank(M,r,A) ` b"
@@ -454,7 +455,7 @@ apply (simp add: is_recfun_type [THEN apply_iff] vimage_singleton_iff
 done
 
 
-lemma (in M_recursion) wellfounded_imp_subset_rvimage:
+lemma (in M_wfrank) wellfounded_imp_subset_rvimage:
      "[|wellfounded(M,r); r \<subseteq> A*A; M(r); M(A)|]
       ==> \<exists>i f. Ord(i) & r <= rvimage(A, f, Memrel(i))"
 apply (rule_tac x="range(wellfoundedrank(M,r,A))" in exI)
@@ -465,12 +466,12 @@ apply (simp add: rvimage_iff wellfoundedrank_lt [THEN ltD])
 apply (blast intro: apply_rangeI wellfoundedrank_type)
 done
 
-lemma (in M_recursion) wellfounded_imp_wf:
+lemma (in M_wfrank) wellfounded_imp_wf:
      "[|wellfounded(M,r); relation(r); M(r)|] ==> wf(r)"
 by (blast dest!: relation_field_times_field wellfounded_imp_subset_rvimage
           intro: wf_rvimage_Ord [THEN wf_subset])
 
-lemma (in M_recursion) wellfounded_on_imp_wf_on:
+lemma (in M_wfrank) wellfounded_on_imp_wf_on:
      "[|wellfounded_on(M,A,r); relation(r); M(r); M(A)|] ==> wf[A](r)"
 apply (simp add: wellfounded_on_iff_wellfounded wf_on_def)
 apply (rule wellfounded_imp_wf)
@@ -478,11 +479,11 @@ apply (simp_all add: relation_def)
 done
 
 
-theorem (in M_recursion) wf_abs [simp]:
+theorem (in M_wfrank) wf_abs [simp]:
      "[|relation(r); M(r)|] ==> wellfounded(M,r) <-> wf(r)"
 by (blast intro: wellfounded_imp_wf wf_imp_relativized)
 
-theorem (in M_recursion) wf_on_abs [simp]:
+theorem (in M_wfrank) wf_on_abs [simp]:
      "[|relation(r); M(r); M(A)|] ==> wellfounded_on(M,A,r) <-> wf[A](r)"
 by (blast intro: wellfounded_on_imp_wf_on wf_on_imp_relativized)
 
@@ -493,20 +494,20 @@ text{*absoluteness for wfrec-defined functions.*}
 
 lemma (in M_trancl) wfrec_relativize:
   "[|wf(r); M(a); M(r);  
-     strong_replacement(M, \<lambda>x z. \<exists>y g. M(y) & M(g) &
+     strong_replacement(M, \<lambda>x z. \<exists>y[M]. \<exists>g[M].
           pair(M,x,y,z) & 
           is_recfun(r^+, x, \<lambda>x f. H(x, restrict(f, r -`` {x})), g) & 
           y = H(x, restrict(g, r -`` {x}))); 
      \<forall>x[M]. \<forall>g[M]. function(g) --> M(H(x,g))|] 
    ==> wfrec(r,a,H) = z <-> 
-       (\<exists>f. M(f) & is_recfun(r^+, a, \<lambda>x f. H(x, restrict(f, r -`` {x})), f) & 
+       (\<exists>f[M]. is_recfun(r^+, a, \<lambda>x f. H(x, restrict(f, r -`` {x})), f) & 
             z = H(a,restrict(f,r-``{a})))"
 apply (frule wf_trancl) 
 apply (simp add: wftrec_def wfrec_def, safe)
  apply (frule wf_exists_is_recfun 
               [of concl: "r^+" a "\<lambda>x f. H(x, restrict(f, r -`` {x}))"]) 
       apply (simp_all add: trans_trancl function_restrictI trancl_subset_times)
- apply (clarify, rule_tac x=f in exI) 
+ apply (clarify, rule_tac x=x in rexI) 
  apply (simp_all add: the_recfun_eq trans_trancl trancl_subset_times)
 done
 
@@ -516,10 +517,10 @@ text{*Assuming @{term r} is transitive simplifies the occurrences of @{text H}.
       before we can replace @{term "r^+"} by @{term r}. *}
 theorem (in M_trancl) trans_wfrec_relativize:
   "[|wf(r);  trans(r);  relation(r);  M(r);  M(a);
-     strong_replacement(M, \<lambda>x z. \<exists>y g. M(y) & M(g) &
+     strong_replacement(M, \<lambda>x z. \<exists>y[M]. \<exists>g[M].
                 pair(M,x,y,z) & is_recfun(r,x,H,g) & y = H(x,g)); 
      \<forall>x[M]. \<forall>g[M]. function(g) --> M(H(x,g))|] 
-   ==> wfrec(r,a,H) = z <-> (\<exists>f. M(f) & is_recfun(r,a,H,f) & z = H(a,f))" 
+   ==> wfrec(r,a,H) = z <-> (\<exists>f[M]. is_recfun(r,a,H,f) & z = H(a,f))" 
 by (simp cong: is_recfun_cong
          add: wfrec_relativize trancl_eq_r
                is_recfun_restrict_idem domain_restrict_idem)
@@ -527,11 +528,11 @@ by (simp cong: is_recfun_cong
 
 lemma (in M_trancl) trans_eq_pair_wfrec_iff:
   "[|wf(r);  trans(r); relation(r); M(r);  M(y); 
-     strong_replacement(M, \<lambda>x z. \<exists>y g. M(y) & M(g) &
+     strong_replacement(M, \<lambda>x z. \<exists>y[M]. \<exists>g[M].
                 pair(M,x,y,z) & is_recfun(r,x,H,g) & y = H(x,g)); 
      \<forall>x[M]. \<forall>g[M]. function(g) --> M(H(x,g))|] 
    ==> y = <x, wfrec(r, x, H)> <-> 
-       (\<exists>f. M(f) & is_recfun(r,x,H,f) & y = <x, H(x,f)>)"
+       (\<exists>f[M]. is_recfun(r,x,H,f) & y = <x, H(x,f)>)"
 apply safe  
  apply (simp add: trans_wfrec_relativize [THEN iff_sym]) 
 txt{*converse direction*}
@@ -543,7 +544,7 @@ done
 subsection{*M is closed under well-founded recursion*}
 
 text{*Lemma with the awkward premise mentioning @{text wfrec}.*}
-lemma (in M_recursion) wfrec_closed_lemma [rule_format]:
+lemma (in M_wfrank) wfrec_closed_lemma [rule_format]:
      "[|wf(r); M(r); 
         strong_replacement(M, \<lambda>x y. y = \<langle>x, wfrec(r, x, H)\<rangle>);
         \<forall>x[M]. \<forall>g[M]. function(g) --> M(H(x,g)) |] 
@@ -557,20 +558,20 @@ apply (blast intro: dest: pair_components_in_M )
 done
 
 text{*Eliminates one instance of replacement.*}
-lemma (in M_recursion) wfrec_replacement_iff:
-     "strong_replacement(M, \<lambda>x z. \<exists>y g. M(y) & M(g) &
+lemma (in M_wfrank) wfrec_replacement_iff:
+     "strong_replacement(M, \<lambda>x z. \<exists>y[M]. \<exists>g[M]. 
                 pair(M,x,y,z) & is_recfun(r,x,H,g) & y = H(x,g)) <->
       strong_replacement(M, 
-           \<lambda>x y. \<exists>f. M(f) & is_recfun(r,x,H,f) & y = <x, H(x,f)>)"
+           \<lambda>x y. \<exists>f[M]. is_recfun(r,x,H,f) & y = <x, H(x,f)>)"
 apply simp 
 apply (rule strong_replacement_cong, blast) 
 done
 
 text{*Useful version for transitive relations*}
-theorem (in M_recursion) trans_wfrec_closed:
+theorem (in M_wfrank) trans_wfrec_closed:
      "[|wf(r); trans(r); relation(r); M(r); M(a);
         strong_replacement(M, 
-             \<lambda>x z. \<exists>y g. M(y) & M(g) &
+             \<lambda>x z. \<exists>y[M]. \<exists>g[M].
                     pair(M,x,y,z) & is_recfun(r,x,H,g) & y = H(x,g)); 
         \<forall>x[M]. \<forall>g[M]. function(g) --> M(H(x,g)) |] 
       ==> M(wfrec(r,a,H))"
@@ -582,13 +583,13 @@ done
 section{*Absoluteness without assuming transitivity*}
 lemma (in M_trancl) eq_pair_wfrec_iff:
   "[|wf(r);  M(r);  M(y); 
-     strong_replacement(M, \<lambda>x z. \<exists>y g. M(y) & M(g) &
+     strong_replacement(M, \<lambda>x z. \<exists>y[M]. \<exists>g[M].
           pair(M,x,y,z) & 
           is_recfun(r^+, x, \<lambda>x f. H(x, restrict(f, r -`` {x})), g) & 
           y = H(x, restrict(g, r -`` {x}))); 
      \<forall>x[M]. \<forall>g[M]. function(g) --> M(H(x,g))|] 
    ==> y = <x, wfrec(r, x, H)> <-> 
-       (\<exists>f. M(f) & is_recfun(r^+, x, \<lambda>x f. H(x, restrict(f, r -`` {x})), f) & 
+       (\<exists>f[M]. is_recfun(r^+, x, \<lambda>x f. H(x, restrict(f, r -`` {x})), f) & 
             y = <x, H(x,restrict(f,r-``{x}))>)"
 apply safe  
  apply (simp add: wfrec_relativize [THEN iff_sym]) 
@@ -597,7 +598,7 @@ apply (rule sym)
 apply (simp add: wfrec_relativize, blast) 
 done
 
-lemma (in M_recursion) wfrec_closed_lemma [rule_format]:
+lemma (in M_wfrank) wfrec_closed_lemma [rule_format]:
      "[|wf(r); M(r); 
         strong_replacement(M, \<lambda>x y. y = \<langle>x, wfrec(r, x, H)\<rangle>);
         \<forall>x[M]. \<forall>g[M]. function(g) --> M(H(x,g)) |] 
@@ -611,9 +612,9 @@ apply (blast intro: dest: pair_components_in_M )
 done
 
 text{*Full version not assuming transitivity, but maybe not very useful.*}
-theorem (in M_recursion) wfrec_closed:
+theorem (in M_wfrank) wfrec_closed:
      "[|wf(r); M(r); M(a);
-     strong_replacement(M, \<lambda>x z. \<exists>y g. M(y) & M(g) &
+     strong_replacement(M, \<lambda>x z. \<exists>y[M]. \<exists>g[M].
           pair(M,x,y,z) & 
           is_recfun(r^+, x, \<lambda>x f. H(x, restrict(f, r -`` {x})), g) & 
           y = H(x, restrict(g, r -`` {x}))); 

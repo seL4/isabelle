@@ -316,8 +316,7 @@ apply (rule increasing_LimitI)
    --"this lemma is @{thm increasing_LimitI [no_vars]}"
  apply (blast intro: UN_upper_lt [of "1"]   Normal_imp_Ord
                      Ord_UN Ord_iterates lt_imp_0_lt
-                     iterates_Normal_increasing)
-apply clarify
+                     iterates_Normal_increasing, clarify)
 apply (rule bexI) 
  apply (blast intro: Ord_in_Ord [OF Ord_iterates_Normal]) 
 apply (rule UN_I, erule nat_succI) 

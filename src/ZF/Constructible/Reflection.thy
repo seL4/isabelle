@@ -55,7 +55,7 @@ by (simp add: Reflects_def)
 
 theorem (in reflection) Not_reflection [intro]:
      "Reflects(Cl,P,Q) ==> Reflects(Cl, \<lambda>x. ~P(x), \<lambda>a x. ~Q(a,x))"
-by (simp add: Reflects_def); 
+by (simp add: Reflects_def) 
 
 theorem (in reflection) And_reflection [intro]:
      "[| Reflects(Cl,P,Q); Reflects(C',P',Q') |] 

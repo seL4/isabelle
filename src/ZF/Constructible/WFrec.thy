@@ -117,9 +117,7 @@ done
 
 lemma (in M_axioms) is_recfun_functional:
      "[|is_recfun(r,a,H,f);  is_recfun(r,a,H,g);  
-       wellfounded(M,r); trans(r); 
-       M(f); M(g); M(r) |]   
-      ==> f=g"
+       wellfounded(M,r); trans(r); M(f); M(g); M(r) |] ==> f=g"
 apply (rule fun_extension)
 apply (erule is_recfun_type)+
 apply (blast intro!: is_recfun_equal dest: transM) 
@@ -183,9 +181,8 @@ lemma (in M_axioms) restrict_Y_lemma:
        \<forall>x[M]. \<forall>g[M]. function(g) --> M(H(x,g));  M(Y);
        \<forall>b. M(b) -->
 	   b \<in> Y <->
-	   (\<exists>x\<in>r -`` {a1}.
-	       \<exists>y. M(y) \<and>
-		   (\<exists>g. M(g) \<and> b = \<langle>x,y\<rangle> \<and> is_recfun(r,x,H,g) \<and> y = H(x,g)));
+	   (\<exists>x\<in>r -`` {a1}. \<exists>y[M]. \<exists>g[M]. 
+              b = \<langle>x,y\<rangle> & is_recfun(r,x,H,g) \<and> y = H(x,g));
           \<langle>x,a1\<rangle> \<in> r; M(f); is_recfun(r,x,H,f) |]
        ==> restrict(Y, r -`` {x}) = f"
 apply (subgoal_tac "\<forall>y \<in> r-``{x}. \<forall>z. <y,z>:Y <-> <y,z>:f") 
@@ -203,17 +200,17 @@ txt{*Opposite inclusion: something in f, show in Y*}
 apply (frule_tac y="<y,z>" in transM, assumption, simp) 
 apply (rule_tac x=y in bexI)
 prefer 2 apply (blast dest: transD)
-apply (rule_tac x=z in exI, simp) 
-apply (rule_tac x="restrict(f, r -`` {y})" in exI) 
-apply (simp add: vimage_closed restrict_closed is_recfun_restrict
-                 apply_recfun is_recfun_type [THEN apply_iff]) 
+apply (rule_tac x=z in rexI) 
+apply (rule_tac x="restrict(f, r -`` {y})" in rexI) 
+apply (simp_all add: is_recfun_restrict
+                     apply_recfun is_recfun_type [THEN apply_iff]) 
 done
 
 text{*For typical applications of Replacement for recursive definitions*}
 lemma (in M_axioms) univalent_is_recfun:
      "[|wellfounded(M,r); trans(r); M(r)|]
-      ==> univalent (M, A, \<lambda>x p. \<exists>y. M(y) &
-                    (\<exists>f. M(f) & p = \<langle>x, y\<rangle> & is_recfun(r,x,H,f) & y = H(x,f)))"
+      ==> univalent (M, A, \<lambda>x p. 
+              \<exists>y[M]. \<exists>f[M]. p = \<langle>x, y\<rangle> & is_recfun(r,x,H,f) & y = H(x,f))"
 apply (simp add: univalent_def) 
 apply (blast dest: is_recfun_functional) 
 done
@@ -221,60 +218,60 @@ done
 text{*Proof of the inductive step for @{text exists_is_recfun}, since
       we must prove two versions.*}
 lemma (in M_axioms) exists_is_recfun_indstep:
-    "[|\<forall>y. \<langle>y, a1\<rangle> \<in> r --> (\<exists>f. M(f) & is_recfun(r, y, H, f)); 
+    "[|\<forall>y. \<langle>y, a1\<rangle> \<in> r --> (\<exists>f[M]. is_recfun(r, y, H, f)); 
        wellfounded(M,r); trans(r); M(r); M(a1);
-       strong_replacement(M, \<lambda>x z. \<exists>y g. M(y) & M(g) &
-                   pair(M,x,y,z) & is_recfun(r,x,H,g) & y = H(x,g)); 
+       strong_replacement(M, \<lambda>x z. 
+              \<exists>y[M]. \<exists>g[M]. pair(M,x,y,z) & is_recfun(r,x,H,g) & y = H(x,g)); 
        \<forall>x[M]. \<forall>g[M]. function(g) --> M(H(x,g))|]   
-      ==> \<exists>f. M(f) & is_recfun(r,a1,H,f)"
+      ==> \<exists>f[M]. is_recfun(r,a1,H,f)"
 apply (drule_tac A="r-``{a1}" in strong_replacementD)
   apply blast 
  txt{*Discharge the "univalent" obligation of Replacement*}
  apply (simp add: univalent_is_recfun) 
 txt{*Show that the constructed object satisfies @{text is_recfun}*} 
 apply clarify 
-apply (rule_tac x=Y in exI)  
+apply (rule_tac x=Y in rexI)  
 txt{*Unfold only the top-level occurrence of @{term is_recfun}*}
 apply (simp (no_asm_simp) add: is_recfun_relativize [of concl: _ a1])
-txt{*The big iff-formula defininng @{term Y} is now redundant*}
+txt{*The big iff-formula defining @{term Y} is now redundant*}
 apply safe 
  apply (simp add: vimage_singleton_iff restrict_Y_lemma [of r H]) 
 txt{*one more case*}
 apply (simp (no_asm_simp) add: Bex_def vimage_singleton_iff)
 apply (rename_tac x) 
 apply (rule_tac x=x in exI, simp) 
-apply (rule_tac x="H(x, restrict(Y, r -`` {x}))" in exI) 
+apply (rule_tac x="H(x, restrict(Y, r -`` {x}))" in rexI) 
 apply (drule_tac x1=x in spec [THEN mp], assumption, clarify) 
-apply (rule_tac x=f in exI) 
-apply (simp add: restrict_Y_lemma [of r H]) 
+apply (rename_tac f) 
+apply (rule_tac x=f in rexI) 
+apply (simp add: restrict_Y_lemma [of r H], simp_all)
 done
 
 text{*Relativized version, when we have the (currently weaker) premise
       @{term "wellfounded(M,r)"}*}
 lemma (in M_axioms) wellfounded_exists_is_recfun:
     "[|wellfounded(M,r);  trans(r);  
-       separation(M, \<lambda>x. ~ (\<exists>f. M(f) \<and> is_recfun(r, x, H, f)));
-       strong_replacement(M, \<lambda>x z. \<exists>y g. M(y) & M(g) &
-                   pair(M,x,y,z) & is_recfun(r,x,H,g) & y = H(x,g)); 
+       separation(M, \<lambda>x. ~ (\<exists>f[M]. is_recfun(r, x, H, f)));
+       strong_replacement(M, \<lambda>x z. 
+          \<exists>y[M]. \<exists>g[M]. pair(M,x,y,z) & is_recfun(r,x,H,g) & y = H(x,g)); 
        M(r);  M(a);  
        \<forall>x[M]. \<forall>g[M]. function(g) --> M(H(x,g)) |]   
-      ==> \<exists>f. M(f) & is_recfun(r,a,H,f)"
+      ==> \<exists>f[M]. is_recfun(r,a,H,f)"
 apply (rule wellfounded_induct, assumption+, clarify)
 apply (rule exists_is_recfun_indstep, assumption+)
 done
 
 lemma (in M_axioms) wf_exists_is_recfun [rule_format]:
-    "[|wf(r);  trans(r);  
-       strong_replacement(M, \<lambda>x z. \<exists>y g. M(y) & M(g) &
-                   pair(M,x,y,z) & is_recfun(r,x,H,g) & y = H(x,g)); 
-        M(r);  
+    "[|wf(r);  trans(r);  M(r);  
+       strong_replacement(M, \<lambda>x z. 
+         \<exists>y[M]. \<exists>g[M]. pair(M,x,y,z) & is_recfun(r,x,H,g) & y = H(x,g)); 
        \<forall>x[M]. \<forall>g[M]. function(g) --> M(H(x,g)) |]   
-      ==> M(a) --> (\<exists>f. M(f) & is_recfun(r,a,H,f))"
+      ==> M(a) --> (\<exists>f[M]. is_recfun(r,a,H,f))"
 apply (rule wf_induct, assumption+)
 apply (frule wf_imp_relativized)
 apply (intro impI)
-apply (rule exists_is_recfun_indstep)
-      apply (blast dest: pair_components_in_M)+
+apply (rule exists_is_recfun_indstep) 
+      apply (blast dest: transM del: rev_rallE, assumption+)
 done
 
 constdefs
@@ -346,24 +343,23 @@ constdefs
                   fun_apply(M,f,j,fj) & fj = k"
 
 
-locale M_recursion = M_axioms +
+locale M_ord_arith = M_axioms +
   assumes oadd_strong_replacement:
    "[| M(i); M(j) |] ==>
     strong_replacement(M, 
-         \<lambda>x z. \<exists>y f fx. M(y) & M(f) & M(fx) & 
-		         pair(M,x,y,z) & is_oadd_fun(M,i,j,x,f) & 
-		         image(M,f,x,fx) & y = i Un fx)" 
+         \<lambda>x z. \<exists>y[M]. \<exists>f[M]. \<exists>fx[M]. pair(M,x,y,z) & is_oadd_fun(M,i,j,x,f) & 
+		                      image(M,f,x,fx) & y = i Un fx)" 
  and omult_strong_replacement':
    "[| M(i); M(j) |] ==>
-    strong_replacement(M, \<lambda>x z. \<exists>y g. M(y) & M(g) &
-	     pair(M,x,y,z) & 
+    strong_replacement(M, \<lambda>x z. \<exists>y[M]. \<exists>g[M]. 
+	     z = <x,y> &
 	     is_recfun(Memrel(succ(j)),x,%x g. THE z. omult_eqns(i,x,g,z),g) & 
 	     y = (THE z. omult_eqns(i, x, g, z)))" 
 
 
 
 text{*is_oadd_fun: Relating the pure "language of set theory" to Isabelle/ZF*}
-lemma (in M_recursion) is_oadd_fun_iff:
+lemma (in M_ord_arith) is_oadd_fun_iff:
    "[| a\<le>j; M(i); M(j); M(a); M(f) |] 
     ==> is_oadd_fun(M,i,j,a,f) <->
 	f \<in> a \<rightarrow> range(f) & (\<forall>x. M(x) --> x < a --> f`x = i Un f``x)"
@@ -377,10 +373,10 @@ apply (blast dest: transM)
 done
 
 
-lemma (in M_recursion) oadd_strong_replacement':
+lemma (in M_ord_arith) oadd_strong_replacement':
     "[| M(i); M(j) |] ==>
-     strong_replacement(M, \<lambda>x z. \<exists>y g. M(y) & M(g) &
-		  pair(M,x,y,z) & 
+     strong_replacement(M, \<lambda>x z. \<exists>y[M]. \<exists>g[M].
+		  z = <x,y> &
 		  is_recfun(Memrel(succ(j)),x,%x g. i Un g``x,g) & 
 		  y = i Un g``x)" 
 apply (insert oadd_strong_replacement [of i j]) 
@@ -389,28 +385,25 @@ apply (simp add: Memrel_closed Un_closed image_closed is_oadd_fun_def
 done
 
 
-lemma (in M_recursion) exists_oadd:
+lemma (in M_ord_arith) exists_oadd:
     "[| Ord(j);  M(i);  M(j) |]
-     ==> \<exists>f. M(f) & is_recfun(Memrel(succ(j)), j, %x g. i Un g``x, f)"
+     ==> \<exists>f[M]. is_recfun(Memrel(succ(j)), j, %x g. i Un g``x, f)"
 apply (rule wf_exists_is_recfun [OF wf_Memrel trans_Memrel])
-    apply simp 
-   apply (blast intro: oadd_strong_replacement') 
-  apply (simp_all add: Memrel_type Memrel_closed Un_closed image_closed)
-done
+    apply (simp_all add: Memrel_type oadd_strong_replacement') 
+done 
 
-lemma (in M_recursion) exists_oadd_fun:
-    "[| Ord(j);  M(i);  M(j) |] 
-     ==> \<exists>f. M(f) & is_oadd_fun(M,i,succ(j),succ(j),f)"
-apply (rule exists_oadd [THEN exE])
+lemma (in M_ord_arith) exists_oadd_fun:
+    "[| Ord(j);  M(i);  M(j) |] ==> \<exists>f[M]. is_oadd_fun(M,i,succ(j),succ(j),f)"
+apply (rule exists_oadd [THEN rexE])
 apply (erule Ord_succ, assumption, simp) 
-apply (rename_tac f, clarify) 
+apply (rename_tac f) 
 apply (frule is_recfun_type)
-apply (rule_tac x=f in exI) 
-apply (simp add: fun_is_function domain_of_fun lt_Memrel apply_recfun lt_def
-                 is_oadd_fun_iff Ord_trans [OF _ succI1])
+apply (rule_tac x=f in rexI) 
+ apply (simp add: fun_is_function domain_of_fun lt_Memrel apply_recfun lt_def
+                  is_oadd_fun_iff Ord_trans [OF _ succI1], assumption)
 done
 
-lemma (in M_recursion) is_oadd_fun_apply:
+lemma (in M_ord_arith) is_oadd_fun_apply:
     "[| x < j; M(i); M(j); M(f); is_oadd_fun(M,i,j,j,f) |] 
      ==> f`x = i Un (\<Union>k\<in>x. {f ` k})"
 apply (simp add: is_oadd_fun_iff lt_Ord2, clarify) 
@@ -419,7 +412,7 @@ apply (frule leI [THEN le_imp_subset])
 apply (simp add: image_fun, blast) 
 done
 
-lemma (in M_recursion) is_oadd_fun_iff_oadd [rule_format]:
+lemma (in M_ord_arith) is_oadd_fun_iff_oadd [rule_format]:
     "[| is_oadd_fun(M,i,J,J,f); M(i); M(J); M(f); Ord(i); Ord(j) |] 
      ==> j<J --> f`j = i++j"
 apply (erule_tac i=j in trans_induct, clarify) 
@@ -428,25 +421,25 @@ apply (subgoal_tac "\<forall>k\<in>x. k<J")
 apply (blast intro: lt_trans ltI lt_Ord) 
 done
 
-lemma (in M_recursion) oadd_abs_fun_apply_iff:
+lemma (in M_ord_arith) oadd_abs_fun_apply_iff:
     "[| M(i); M(J); M(f); M(k); j<J; is_oadd_fun(M,i,J,J,f) |] 
      ==> fun_apply(M,f,j,k) <-> f`j = k"
 by (force simp add: lt_def is_oadd_fun_iff subsetD typed_apply_abs) 
 
-lemma (in M_recursion) Ord_oadd_abs:
+lemma (in M_ord_arith) Ord_oadd_abs:
     "[| M(i); M(j); M(k); Ord(i); Ord(j) |] ==> is_oadd(M,i,j,k) <-> k = i++j"
 apply (simp add: is_oadd_def oadd_abs_fun_apply_iff is_oadd_fun_iff_oadd)
 apply (frule exists_oadd_fun [of j i], blast+)
 done
 
-lemma (in M_recursion) oadd_abs:
+lemma (in M_ord_arith) oadd_abs:
     "[| M(i); M(j); M(k) |] ==> is_oadd(M,i,j,k) <-> k = i++j"
 apply (case_tac "Ord(i) & Ord(j)")
  apply (simp add: Ord_oadd_abs)
 apply (auto simp add: is_oadd_def oadd_eq_if_raw_oadd)
 done
 
-lemma (in M_recursion) oadd_closed [intro,simp]:
+lemma (in M_ord_arith) oadd_closed [intro,simp]:
     "[| M(i); M(j) |] ==> M(i++j)"
 apply (simp add: oadd_eq_if_raw_oadd, clarify) 
 apply (simp add: raw_oadd_eq_oadd) 
@@ -490,7 +483,7 @@ lemma omult_eqns_Not: "~ Ord(x) ==> ~ omult_eqns(i,x,g,z)"
 by (simp add: omult_eqns_def)
 
 
-lemma (in M_recursion) the_omult_eqns_closed:
+lemma (in M_ord_arith) the_omult_eqns_closed:
     "[| M(i); M(x); M(g); function(g) |] 
      ==> M(THE z. omult_eqns(i, x, g, z))"
 apply (case_tac "Ord(x)")
@@ -501,39 +494,37 @@ apply (erule Ord_cases)
 apply (simp add: omult_eqns_Limit) 
 done
 
-lemma (in M_recursion) exists_omult:
+lemma (in M_ord_arith) exists_omult:
     "[| Ord(j);  M(i);  M(j) |]
-     ==> \<exists>f. M(f) & is_recfun(Memrel(succ(j)), j, %x g. THE z. omult_eqns(i,x,g,z), f)"
+     ==> \<exists>f[M]. is_recfun(Memrel(succ(j)), j, %x g. THE z. omult_eqns(i,x,g,z), f)"
 apply (rule wf_exists_is_recfun [OF wf_Memrel trans_Memrel])
-    apply simp
-   apply (blast intro: omult_strong_replacement') 
-  apply (simp_all add: Memrel_type Memrel_closed Un_closed image_closed)
+    apply (simp_all add: Memrel_type omult_strong_replacement') 
 apply (blast intro: the_omult_eqns_closed) 
 done
 
-lemma (in M_recursion) exists_omult_fun:
-    "[| Ord(j);  M(i);  M(j) |] ==> \<exists>f. M(f) & is_omult_fun(M,i,succ(j),f)"
-apply (rule exists_omult [THEN exE])
+lemma (in M_ord_arith) exists_omult_fun:
+    "[| Ord(j);  M(i);  M(j) |] ==> \<exists>f[M]. is_omult_fun(M,i,succ(j),f)"
+apply (rule exists_omult [THEN rexE])
 apply (erule Ord_succ, assumption, simp) 
-apply (rename_tac f, clarify) 
+apply (rename_tac f) 
 apply (frule is_recfun_type)
-apply (rule_tac x=f in exI) 
+apply (rule_tac x=f in rexI) 
 apply (simp add: fun_is_function domain_of_fun lt_Memrel apply_recfun lt_def
                  is_omult_fun_def Ord_trans [OF _ succI1])
-apply (force dest: Ord_in_Ord' 
-             simp add: omult_eqns_def the_omult_eqns_0 the_omult_eqns_succ
-                       the_omult_eqns_Limit) 
+ apply (force dest: Ord_in_Ord' 
+              simp add: omult_eqns_def the_omult_eqns_0 the_omult_eqns_succ
+                        the_omult_eqns_Limit, assumption)
 done
 
-lemma (in M_recursion) is_omult_fun_apply_0:
+lemma (in M_ord_arith) is_omult_fun_apply_0:
     "[| 0 < j; is_omult_fun(M,i,j,f) |] ==> f`0 = 0"
 by (simp add: is_omult_fun_def omult_eqns_def lt_def ball_conj_distrib)
 
-lemma (in M_recursion) is_omult_fun_apply_succ:
+lemma (in M_ord_arith) is_omult_fun_apply_succ:
     "[| succ(x) < j; is_omult_fun(M,i,j,f) |] ==> f`succ(x) = f`x ++ i"
 by (simp add: is_omult_fun_def omult_eqns_def lt_def, blast) 
 
-lemma (in M_recursion) is_omult_fun_apply_Limit:
+lemma (in M_ord_arith) is_omult_fun_apply_Limit:
     "[| x < j; Limit(x); M(j); M(f); is_omult_fun(M,i,j,f) |] 
      ==> f ` x = (\<Union>y\<in>x. f`y)"
 apply (simp add: is_omult_fun_def omult_eqns_def domain_closed lt_def, clarify)
@@ -541,7 +532,7 @@ apply (drule subset_trans [OF OrdmemD], assumption+)
 apply (simp add: ball_conj_distrib omult_Limit image_function)
 done
 
-lemma (in M_recursion) is_omult_fun_eq_omult:
+lemma (in M_ord_arith) is_omult_fun_eq_omult:
     "[| is_omult_fun(M,i,J,f); M(J); M(f); Ord(i); Ord(j) |] 
      ==> j<J --> f`j = i**j"
 apply (erule_tac i=j in trans_induct3)
@@ -555,12 +546,12 @@ apply (subgoal_tac "\<forall>k\<in>x. k<J")
 apply (blast intro: lt_trans ltI lt_Ord) 
 done
 
-lemma (in M_recursion) omult_abs_fun_apply_iff:
+lemma (in M_ord_arith) omult_abs_fun_apply_iff:
     "[| M(i); M(J); M(f); M(k); j<J; is_omult_fun(M,i,J,f) |] 
      ==> fun_apply(M,f,j,k) <-> f`j = k"
 by (auto simp add: lt_def is_omult_fun_def subsetD apply_abs) 
 
-lemma (in M_recursion) omult_abs:
+lemma (in M_ord_arith) omult_abs:
     "[| M(i); M(j); M(k); Ord(i); Ord(j) |] ==> is_omult(M,i,j,k) <-> k = i**j"
 apply (simp add: is_omult_def omult_abs_fun_apply_iff is_omult_fun_eq_omult)
 apply (frule exists_omult_fun [of j i], blast+)
