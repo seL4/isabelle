@@ -67,8 +67,8 @@ sig
   val get_state: unit -> state
   val exn: unit -> (exn * string) option
   val >> : transition -> bool
-  type isar
-  val loop: isar -> unit
+  type 'a isar
+  val loop: 'a isar -> unit
 end;
 
 structure Toplevel: TOPLEVEL =
@@ -471,10 +471,10 @@ fun exn () = snd (! global_state);
 
 (* the Isar source of transitions *)
 
-type isar =
+type 'a isar =
   (transition, (transition option,
     (OuterLex.token, (OuterLex.token option, (OuterLex.token, (OuterLex.token,
-      Position.T * (Symbol.symbol, (string, unit) Source.source) Source.source)
+      Position.T * (Symbol.symbol, (string, 'a) Source.source) Source.source)
           Source.source) Source.source) Source.source) Source.source) Source.source) Source.source;
 
 

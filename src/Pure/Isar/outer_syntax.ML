@@ -60,7 +60,8 @@ sig
   val check_text: string * Position.T -> bool -> Toplevel.state -> unit
   val deps_thy: string -> bool -> Path.T -> string list * Path.T list
   val load_thy: string -> bool -> bool -> Path.T -> unit
-  val isar: bool -> bool -> Toplevel.isar
+  val isar: bool -> bool -> unit Toplevel.isar
+  val isar_readstring: Position.T -> string -> (string list) Toplevel.isar
 end;
 
 structure OuterSyntax: OUTER_SYNTAX =
@@ -255,6 +256,15 @@ fun isar term no_pos =
   |> T.source true get_lexicons
     (if no_pos then Position.none else Position.line_name 1 "stdin")
   |> toplevel_source term true get_parser;
+
+
+(* string source of transformers (for Proof General) *)
+
+fun isar_readstring pos str =
+  Source.of_string str
+  |> Symbol.source false
+  |> T.source false get_lexicons pos
+  |> toplevel_source false true get_parser;
 
 
 
