@@ -469,7 +469,7 @@ fun nNewHyps []                         = 0
 fun rot_subgoals_tac [] i st      = Sequence.single st
   | rot_subgoals_tac (k::ks) i st =
       rot_subgoals_tac ks (i+1) (Sequence.hd (rotate_tac (~k) i st))
-      handle OPTION _ => Sequence.null;
+      handle OPTION => Sequence.null;
 
 fun TRACE rl tac st i = if !trace then (prth rl; tac st i) else tac st i;
 
