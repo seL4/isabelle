@@ -55,7 +55,6 @@ use "FOL_lemmas2.ML"
 
 use "simpdata.ML"
 setup simpsetup
-setup cong_attrib_setup
 setup "Simplifier.method_setup Splitter.split_modifiers"
 setup Splitter.setup
 setup Clasimp.setup

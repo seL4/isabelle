@@ -8,46 +8,46 @@ Instantiation of the generic simplifier for HOL.
 
 section "Simplifier";
 
-(*** Addition of rules to simpsets and clasets simultaneously ***)	(* FIXME move to Provers/clasimp.ML? *)
+(*** Addition of rules to simpsets and clasets simultaneously ***)      (* FIXME move to Provers/clasimp.ML? *)
 
 infix 4 addIffs delIffs;
 
-(*Takes UNCONDITIONAL theorems of the form A<->B to 
-        the Safe Intr     rule B==>A and 
+(*Takes UNCONDITIONAL theorems of the form A<->B to
+        the Safe Intr     rule B==>A and
         the Safe Destruct rule A==>B.
   Also ~A goes to the Safe Elim rule A ==> ?R
   Failing other cases, A is added as a Safe Intr rule*)
 local
   val iff_const = HOLogic.eq_const HOLogic.boolT;
 
-  fun addIff ((cla, simp), th) = 
+  fun addIff ((cla, simp), th) =
       (case HOLogic.dest_Trueprop (#prop (rep_thm th)) of
                 (Const("Not", _) $ A) =>
                     cla addSEs [zero_var_indexes (th RS notE)]
               | (con $ _ $ _) =>
                     if con = iff_const
-                    then cla addSIs [zero_var_indexes (th RS iffD2)]  
+                    then cla addSIs [zero_var_indexes (th RS iffD2)]
                               addSDs [zero_var_indexes (th RS iffD1)]
                     else  cla addSIs [th]
               | _ => cla addSIs [th],
        simp addsimps [th])
-      handle TERM _ => error ("AddIffs: theorem must be unconditional\n" ^ 
+      handle TERM _ => error ("AddIffs: theorem must be unconditional\n" ^
                          string_of_thm th);
 
-  fun delIff ((cla, simp), th) = 
+  fun delIff ((cla, simp), th) =
       (case HOLogic.dest_Trueprop (#prop (rep_thm th)) of
-	   (Const ("Not", _) $ A) =>
-	       cla delrules [zero_var_indexes (th RS notE)]
-	 | (con $ _ $ _) =>
-	       if con = iff_const
-	       then cla delrules 
-		        [zero_var_indexes (th RS iffD2),
-			 cla_make_elim (zero_var_indexes (th RS iffD1))]
-	       else cla delrules [th]
-	 | _ => cla delrules [th],
+           (Const ("Not", _) $ A) =>
+               cla delrules [zero_var_indexes (th RS notE)]
+         | (con $ _ $ _) =>
+               if con = iff_const
+               then cla delrules
+                        [zero_var_indexes (th RS iffD2),
+                         cla_make_elim (zero_var_indexes (th RS iffD1))]
+               else cla delrules [th]
+         | _ => cla delrules [th],
        simp delsimps [th])
-      handle TERM _ => (warning("DelIffs: ignoring conditional theorem\n" ^ 
-				string_of_thm th); (cla, simp));
+      handle TERM _ => (warning("DelIffs: ignoring conditional theorem\n" ^
+                                string_of_thm th); (cla, simp));
 
   fun store_clasimp (cla, simp) = (claset_ref () := cla; simpset_ref () := simp)
 in
@@ -89,6 +89,7 @@ fun mk_eq th = case concl_of th of
 
 fun mk_eq_True r = Some(r RS meta_eq_to_obj_eq RS Eq_TrueI);
 
+(*Congruence rules for = (instead of ==)*)
 fun mk_meta_cong rl =
   standard(mk_meta_eq(replicate (nprems_of rl) meta_eq_to_obj_eq MRS rl))
   handle THM _ =>
@@ -101,44 +102,22 @@ val simp_thms = [not_not] @ map prover
    "(~True) = False", "(~False) = True",
    "(~P) ~= P", "P ~= (~P)", "(P ~= Q) = (P = (~Q))",
    "(True=P) = P", "(P=True) = P", "(False=P) = (~P)", "(P=False) = (~P)",
-   "(True --> P) = P", "(False --> P) = True", 
+   "(True --> P) = P", "(False --> P) = True",
    "(P --> True) = True", "(P --> P) = True",
    "(P --> False) = (~P)", "(P --> ~P) = (~P)",
-   "(P & True) = P", "(True & P) = P", 
+   "(P & True) = P", "(True & P) = P",
    "(P & False) = False", "(False & P) = False",
    "(P & P) = P", "(P & (P & Q)) = (P & Q)",
    "(P & ~P) = False",    "(~P & P) = False",
-   "(P | True) = True", "(True | P) = True", 
+   "(P | True) = True", "(True | P) = True",
    "(P | False) = P", "(False | P) = P",
    "(P | P) = P", "(P | (P | Q)) = (P | Q)",
    "(P | ~P) = True",    "(~P | P) = True",
    "((~P) = (~Q)) = (P=Q)",
-   "(!x. P) = P", "(? x. P) = P", "? x. x=t", "? x. t=x", 
+   "(!x. P) = P", "(? x. P) = P", "? x. x=t", "? x. t=x",
 (*two needed for the one-point-rule quantifier simplification procs*)
-   "(? x. x=t & P(x)) = P(t)",		(*essential for termination!!*)
+   "(? x. x=t & P(x)) = P(t)",          (*essential for termination!!*)
    "(! x. t=x --> P(x)) = P(t)" ];      (*covers a stray case*)
-
-(* Add congruence rules for = (instead of ==) *)
-
-(* ###FIXME: Move to simplifier, 
-   taking mk_meta_cong as input, eliminating addeqcongs and deleqcongs *)
-infix 4 addcongs delcongs;
-fun ss addcongs congs = ss addeqcongs (map mk_meta_cong congs);
-fun ss delcongs congs = ss deleqcongs (map mk_meta_cong congs);
-fun Addcongs congs = (simpset_ref() := simpset() addcongs congs);
-fun Delcongs congs = (simpset_ref() := simpset() delcongs congs);
-
-val cong_add_global = Simplifier.change_global_ss (op addcongs);
-val cong_del_global = Simplifier.change_global_ss (op delcongs);
-val cong_add_local = Simplifier.change_local_ss (op addcongs);
-val cong_del_local = Simplifier.change_local_ss (op delcongs);
-
-val cong_attrib_setup =
- [Attrib.add_attributes [("cong",
-   (Attrib.add_del_args cong_add_global cong_del_global,
-    Attrib.add_del_args cong_add_local cong_del_local),
-    "declare Simplifier congruence rules")]];
-
 
 val imp_cong = impI RSN
     (2, prove_goal (the_context ()) "(P=P')--> (P'--> (Q=Q'))--> ((P-->Q) = (P'-->Q'))"
@@ -235,8 +214,8 @@ prove "imp_conv_disj" "(P --> Q) = ((~P) | Q)";
 prove "iff_conv_conj_imp" "(P = Q) = ((P --> Q) & (Q --> P))";
 
 
-(*Avoids duplication of subgoals after split_if, when the true and false 
-  cases boil down to the same thing.*) 
+(*Avoids duplication of subgoals after split_if, when the true and false
+  cases boil down to the same thing.*)
 prove "cases_simp" "((P --> Q) & (~P --> Q)) = Q";
 
 prove "not_all" "(~ (! x. P(x))) = (? x.~P(x))";
@@ -250,19 +229,19 @@ prove "all_conj_distrib" "(!x. P(x) & Q(x)) = ((! x. P(x)) & (! x. Q(x)))";
 (* '&' congruence rule: not included by default!
    May slow rewrite proofs down by as much as 50% *)
 
-let val th = prove_goal (the_context ()) 
+let val th = prove_goal (the_context ())
                 "(P=P')--> (P'--> (Q=Q'))--> ((P&Q) = (P'&Q'))"
                 (fn _=> [(Blast_tac 1)])
 in  bind_thm("conj_cong",standard (impI RSN (2, th RS mp RS mp)))  end;
 
-let val th = prove_goal (the_context ()) 
+let val th = prove_goal (the_context ())
                 "(Q=Q')--> (Q'--> (P=P'))--> ((P&Q) = (P'&Q'))"
                 (fn _=> [(Blast_tac 1)])
 in  bind_thm("rev_conj_cong",standard (impI RSN (2, th RS mp RS mp)))  end;
 
 (* '|' congruence rule: not included by default! *)
 
-let val th = prove_goal (the_context ()) 
+let val th = prove_goal (the_context ())
                 "(P=P')--> (~P'--> (Q=Q'))--> ((P|Q) = (P'|Q'))"
                 (fn _=> [(Blast_tac 1)])
 in  bind_thm("disj_cong",standard (impI RSN (2, th RS mp RS mp)))  end;
@@ -393,7 +372,7 @@ val Delsplits        = Splitter.Delsplits;
 
 (*In general it seems wrong to add distributive laws by default: they
   might cause exponential blow-up.  But imp_disjL has been in for a while
-  and cannot be removed without affecting existing proofs.  Moreover, 
+  and cannot be removed without affecting existing proofs.  Moreover,
   rewriting by "(P|Q --> R) = ((P-->R)&(Q-->R))" might be justified on the
   grounds that it allows simplification of R in the two cases.*)
 
@@ -433,14 +412,16 @@ fun safe_solver_tac prems =
          eq_assume_tac, ematch_tac [FalseE]];
 val safe_solver = mk_solver "HOL safe" safe_solver_tac;
 
-val HOL_basic_ss = empty_ss setsubgoaler asm_simp_tac
-			    setSSolver safe_solver
-			    setSolver  unsafe_solver
-			    setmksimps (mksimps mksimps_pairs)
-			    setmkeqTrue mk_eq_True;
+val HOL_basic_ss =
+  empty_ss setsubgoaler asm_simp_tac
+    setSSolver safe_solver
+    setSolver unsafe_solver
+    setmksimps (mksimps mksimps_pairs)
+    setmkeqTrue mk_eq_True
+    setmkcong mk_meta_cong;
 
-val HOL_ss = 
-    HOL_basic_ss addsimps 
+val HOL_ss =
+    HOL_basic_ss addsimps
      ([triv_forall_equality, (* prunes params *)
        True_implies_equals, (* prune asms `True' *)
        eta_contract_eq, (* prunes eta-expansions *)
@@ -486,7 +467,7 @@ qed "expand_case";
   during unification.*)
 fun expand_case_tac P i =
     res_inst_tac [("P",P)] expand_case i THEN
-    Simp_tac (i+1) THEN 
+    Simp_tac (i+1) THEN
     Simp_tac i;
 
 (*This lemma restricts the effect of the rewrite rule u=v to the left-hand
@@ -496,9 +477,8 @@ by (asm_simp_tac HOL_ss 1);
 qed "restrict_to_left";
 
 (* default simpset *)
-val simpsetup = 
-    [fn thy => (simpset_ref_of thy := HOL_ss addcongs [if_weak_cong]; 
-		thy)];
+val simpsetup =
+  [fn thy => (simpset_ref_of thy := HOL_ss addcongs [if_weak_cong]; thy)];
 
 
 (*** integration of simplifier with classical reasoner ***)
@@ -523,7 +503,7 @@ val iff_attrib_setup =
 
 
 (*** A general refutation procedure ***)
- 
+
 (* Parameters:
 
    test: term -> bool

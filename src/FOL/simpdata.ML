@@ -6,7 +6,7 @@
 Simplification data for FOL
 *)
 
-(*** Addition of rules to simpsets and clasets simultaneously ***)	(* FIXME move to Provers/clasimp.ML? *)
+(*** Addition of rules to simpsets and clasets simultaneously ***)      (* FIXME move to Provers/clasimp.ML? *)
 
 infix 4 addIffs delIffs;
 
@@ -30,15 +30,15 @@ local
 
   fun delIff ((cla, simp), th) = 
       (case FOLogic.dest_Trueprop (#prop (rep_thm th)) of
-	   (Const ("Not", _) $ A) =>
-	       cla delrules [zero_var_indexes (th RS notE)]
-	 | (Const("op <->", _) $ _ $ _) =>
-	       cla delrules [zero_var_indexes (th RS iffD2),
-			     cla_make_elim (zero_var_indexes (th RS iffD1))]
-	 | _ => cla delrules [th],
+           (Const ("Not", _) $ A) =>
+               cla delrules [zero_var_indexes (th RS notE)]
+         | (Const("op <->", _) $ _ $ _) =>
+               cla delrules [zero_var_indexes (th RS iffD2),
+                             cla_make_elim (zero_var_indexes (th RS iffD1))]
+         | _ => cla delrules [th],
        simp delsimps [th])
       handle TERM _ => (warning("DelIffs: ignoring conditional theorem\n" ^ 
-				string_of_thm th); (cla, simp));
+                                string_of_thm th); (cla, simp));
 
   fun store_clasimp (cla, simp) = (claset_ref () := cla; simpset_ref () := simp)
 in
@@ -139,6 +139,7 @@ val mk_meta_prems =
     rule_by_tactic 
       (REPEAT_FIRST (resolve_tac [meta_eq_to_obj_eq, def_imp_iff]));
 
+(*Congruence rules for = or <-> (instead of ==)*)
 fun mk_meta_cong rl =
   standard(mk_meta_eq (mk_meta_prems rl))
   handle THM _ =>
@@ -188,29 +189,29 @@ val cases_simp = prove_fun "(P --> Q) & (~P --> Q) <-> Q";
 
 (*existential miniscoping*)
 val int_ex_simps = map int_prove_fun 
-		     ["(EX x. P(x) & Q) <-> (EX x. P(x)) & Q",
-		      "(EX x. P & Q(x)) <-> P & (EX x. Q(x))",
-		      "(EX x. P(x) | Q) <-> (EX x. P(x)) | Q",
-		      "(EX x. P | Q(x)) <-> P | (EX x. Q(x))"];
+                     ["(EX x. P(x) & Q) <-> (EX x. P(x)) & Q",
+                      "(EX x. P & Q(x)) <-> P & (EX x. Q(x))",
+                      "(EX x. P(x) | Q) <-> (EX x. P(x)) | Q",
+                      "(EX x. P | Q(x)) <-> P | (EX x. Q(x))"];
 
 (*classical rules*)
 val cla_ex_simps = map prove_fun 
                      ["(EX x. P(x) --> Q) <-> (ALL x. P(x)) --> Q",
-		      "(EX x. P --> Q(x)) <-> P --> (EX x. Q(x))"];
+                      "(EX x. P --> Q(x)) <-> P --> (EX x. Q(x))"];
 
 val ex_simps = int_ex_simps @ cla_ex_simps;
 
 (*universal miniscoping*)
 val int_all_simps = map int_prove_fun
-		      ["(ALL x. P(x) & Q) <-> (ALL x. P(x)) & Q",
-		       "(ALL x. P & Q(x)) <-> P & (ALL x. Q(x))",
-		       "(ALL x. P(x) --> Q) <-> (EX x. P(x)) --> Q",
-		       "(ALL x. P --> Q(x)) <-> P --> (ALL x. Q(x))"];
+                      ["(ALL x. P(x) & Q) <-> (ALL x. P(x)) & Q",
+                       "(ALL x. P & Q(x)) <-> P & (ALL x. Q(x))",
+                       "(ALL x. P(x) --> Q) <-> (EX x. P(x)) --> Q",
+                       "(ALL x. P --> Q(x)) <-> P --> (ALL x. Q(x))"];
 
 (*classical rules*)
 val cla_all_simps = map prove_fun
                       ["(ALL x. P(x) | Q) <-> (ALL x. P(x)) | Q",
-		       "(ALL x. P | Q(x)) <-> P | (ALL x. Q(x))"];
+                       "(ALL x. P | Q(x)) <-> P | (ALL x. Q(x))"];
 
 val all_simps = int_all_simps @ cla_all_simps;
 
@@ -338,28 +339,6 @@ structure Induction = InductionFun(struct val spec=IFOL.spec end);
 open Induction;
 
 
-(* Add congruence rules for = or <-> (instead of ==) *)
-
-(* ###FIXME: Move to simplifier, 
-   taking mk_meta_cong as input, eliminating addeqcongs and deleqcongs *)
-infix 4 addcongs delcongs;
-fun ss addcongs congs = ss addeqcongs (map mk_meta_cong congs);
-fun ss delcongs congs = ss deleqcongs (map mk_meta_cong congs);
-fun Addcongs congs = (simpset_ref() := simpset() addcongs congs);
-fun Delcongs congs = (simpset_ref() := simpset() delcongs congs);
-
-val cong_add_global = Simplifier.change_global_ss (op addcongs);
-val cong_del_global = Simplifier.change_global_ss (op delcongs);
-val cong_add_local = Simplifier.change_local_ss (op addcongs);
-val cong_del_local = Simplifier.change_local_ss (op delcongs);
-
-val cong_attrib_setup =
- [Attrib.add_attributes [("cong",
-   (Attrib.add_del_args cong_add_global cong_del_global,
-    Attrib.add_del_args cong_add_local cong_del_local),
-    "declare Simplifier congruence rules")]];
-
-
 val meta_simps =
    [triv_forall_equality,  (* prunes params *)
     True_implies_equals];  (* prune asms `True' *)
@@ -372,27 +351,28 @@ val notFalseI = int_prove_fun "~False";
 val triv_rls = [TrueI,refl,reflexive_thm,iff_refl,notFalseI];
 
 fun unsafe_solver prems = FIRST'[resolve_tac (triv_rls@prems),
-				 atac, etac FalseE];
+                                 atac, etac FalseE];
 (*No premature instantiation of variables during simplification*)
 fun   safe_solver prems = FIRST'[match_tac (triv_rls@prems),
-				 eq_assume_tac, ematch_tac [FalseE]];
+                                 eq_assume_tac, ematch_tac [FalseE]];
 
 (*No simprules, but basic infastructure for simplification*)
-val FOL_basic_ss = empty_ss setsubgoaler asm_simp_tac
-                            addsimprocs [defALL_regroup,defEX_regroup]
-			    setSSolver  (mk_solver "FOL safe" safe_solver)
-			    setSolver  (mk_solver "FOL unsafe" unsafe_solver)
-			    setmksimps (mksimps mksimps_pairs);
-
+val FOL_basic_ss =
+  empty_ss setsubgoaler asm_simp_tac
+    addsimprocs [defALL_regroup, defEX_regroup]
+    setSSolver (mk_solver "FOL safe" safe_solver)
+    setSolver (mk_solver "FOL unsafe" unsafe_solver)
+    setmksimps (mksimps mksimps_pairs)
+    setmkcong mk_meta_cong;
 
 
 (*intuitionistic simprules only*)
-val IFOL_ss = 
-    FOL_basic_ss addsimps (meta_simps @ IFOL_simps @ 
-			   int_ex_simps @ int_all_simps)
+val IFOL_ss =
+    FOL_basic_ss addsimps (meta_simps @ IFOL_simps @
+                           int_ex_simps @ int_all_simps)
                  addcongs [imp_cong];
 
-val cla_simps = 
+val cla_simps =
     [de_Morgan_conj, de_Morgan_disj, imp_disj1, imp_disj2,
      not_all, not_ex, cases_simp] @
     map prove_fun
