@@ -13,22 +13,52 @@ correctness of computer hardware or software and proving properties of
 computer languages and protocols.
 </p>
 
-<p>Compared with similar tools, Isabelle's distinguishing feature is its flexibility. Most proof assistants are built around a single formal calculus, typically higher-order logic. Isabelle has the capacity to accept a variety of formal calculi. The distributed version supports higher-order logic but also axiomatic set theory and several <a href="logics.html">other formalisms</a>. Isabelle provides excellent notational support: new notations can be introduced, using normal mathematical symbols. Proofs can be written in a structured notation based upon traditional proof style, or more straightforwardly as sequences of commands. Definitions and proofs may include TeX source, from which Isabelle can automatically generate typeset documents.</p>
+<p>Compared with similar tools, Isabelle's distinguishing feature is
+its flexibility. Most proof assistants are built around a single
+formal calculus, typically higher-order logic. Isabelle has the
+capacity to accept a variety of formal calculi. The distributed
+version supports higher-order logic but also axiomatic set theory and
+several <a href="logics.html">other formalisms</a>. Isabelle provides
+excellent notational support: new notations can be introduced, using
+normal mathematical symbols. Proofs can be written in a structured
+notation based upon traditional proof style, or more straightforwardly
+as sequences of commands. Definitions and proofs may include TeX
+source, from which Isabelle can automatically generate typeset
+documents.</p>
 
-<p>The main limitation of all such systems is that proving theorems requires
-much effort from an expert user. Isabelle incorporates some tools to improve
-the user's productivity by automating some parts of the proof process. In
-particular, Isabelle's <em>classical reasoner</em> can perform long chains of
-reasoning steps to prove formulas. The <em>simplifier</em> can
-reason with and about equations.  Linear <em>arithmetic</em> facts
-are proved automatically. Isabelle is closely
-integrated with the
-<a href="http://www.cl.cam.ac.uk/users/lcp/papers/protocols.html">Proof
-General</a> user interface, which eases the task of writing and maintaining
-proof scripts.. </p>
+<p>The main limitation of all such systems is that proving theorems
+requires much effort from an expert user. Isabelle incorporates some
+tools to improve the user's productivity by automating some parts of
+the proof process. In particular, Isabelle's <em>classical
+reasoner</em> can perform long chains of reasoning steps to prove
+formulas. The <em>simplifier</em> can reason with and about equations.
+Linear <em>arithmetic</em> facts are proved automatically. Isabelle is
+closely integrated with the <a
+href="http://proofgeneral.inf.ed.ac.uk/">Proof
+General</a> user interface, which eases the task of writing and
+maintaining proof scripts.. </p>
 
-<p>Isabelle comes with large theories of formally verified mathematics, including elementary number theory (for example, Gauss's law of quadratic reciprocity), analysis (basic properties of limits, derivatives and integrals), algebra (up to Sylow's theorem) and set theory (the relative consistency of the Axiom of  Choice). Also provided are numerous examples arising from research into formal verification. Isabelle is <a href="dist/">distributed</a> free of charge to academic users.</p>
+<p>Isabelle comes with large theories of formally verified
+mathematics, including elementary number theory (for example, Gauss's
+law of quadratic reciprocity), analysis (basic properties of limits,
+derivatives and integrals), algebra (up to Sylow's theorem) and set
+theory (the relative consistency of the Axiom of Choice). Also
+provided are numerous examples arising from research into formal
+verification. Isabelle is <a href="dist/">distributed</a> free of
+charge to academic users.</p>
 
-<p>Ample <a href="dist/docs.html">documentation</a> is available, including a <a href="http://www4.in.tum.de/~nipkow/LNCS2283/">Tutorial</a> published by Springer-Verlag. Several <a href="http://www.cl.cam.ac.uk/users/lcp/papers/isabelle.html">papers</a> on the design of Isabelle are  available. There is also a list of past and present <a href="http://www.cl.cam.ac.uk/Research/HVG/Isabelle/projects.html">projects</a> undertaken using Isabelle. </p>
+<p>Ample <a href="dist/docs.html">documentation</a> is available,
+including a <a
+href="http://www4.in.tum.de/~nipkow/LNCS2283/">Tutorial</a> published
+by Springer-Verlag. Several <a
+href="http://www.cl.cam.ac.uk/users/lcp/papers/isabelle.html">papers</a>
+on the design of Isabelle are available. There is also a list of past
+and present <a
+href="http://www.cl.cam.ac.uk/Research/HVG/Isabelle/projects.html">projects</a>
+undertaken using Isabelle. </p>
 
-<p>Isabelle is a joint project between <a href="http://www.cl.cam.ac.uk/users/lcp/">Lawrence C. Paulson</a> (University of Cambridge, UK) and  <a href="http://www.in.tum.de/~nipkow/">Tobias Nipkow</a> (Technical University of Munich, Germany).</p>
+<p>Isabelle is a joint project between <a
+href="http://www.cl.cam.ac.uk/users/lcp/">Lawrence C. Paulson</a>
+(University of Cambridge, UK) and <a
+href="http://www.in.tum.de/~nipkow/">Tobias Nipkow</a> (Technical
+University of Munich, Germany).</p>
