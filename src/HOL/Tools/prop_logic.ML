@@ -20,11 +20,11 @@ sig
 	val SOr  : prop_formula * prop_formula -> prop_formula
 	val SAnd : prop_formula * prop_formula -> prop_formula
 
-	val indices : prop_formula -> int list  (* all variable indices *)
+	val indices : prop_formula -> int list  (* set of all variable indices *)
 	val maxidx  : prop_formula -> int  (* maximal variable index *)
 
 	val nnf    : prop_formula -> prop_formula  (* negation normal form *)
-	val cnf    : prop_formula -> prop_formula  (* clause normal form *)
+	val cnf    : prop_formula -> prop_formula  (* conjunctive normal form *)
 	val defcnf : prop_formula -> prop_formula  (* definitional cnf *)
 
 	val exists      : prop_formula list -> prop_formula  (* finite disjunction *)
@@ -136,9 +136,9 @@ struct
 	  | nnf (Not (Not fm))        = nnf fm;
 
 (* ------------------------------------------------------------------------- *)
-(* cnf: computes the clause normal form (i.e. a conjunction of disjunctions) *)
-(*      of a formula 'fm' of propositional logic.  The result formula may be *)
-(*      exponentially longer than 'fm'.                                      *)
+(* cnf: computes the conjunctive normal form (i.e. a conjunction of          *)
+(*      disjunctions) of a formula 'fm' of propositional logic.  The result  *)
+(*      formula may be exponentially longer than 'fm'.                       *)
 (* ------------------------------------------------------------------------- *)
 
 	(* prop_formula -> prop_formula *)
@@ -175,10 +175,10 @@ struct
 	end;
 
 (* ------------------------------------------------------------------------- *)
-(* defcnf: computes the definitional clause normal form of a formula 'fm' of *)
-(*      propositional logic, introducing auxiliary variables if necessary to *)
-(*      avoid an exponential blowup of the formula.  The result formula is   *)
-(*      satisfiable if and only if 'fm' is satisfiable.                      *)
+(* defcnf: computes the definitional conjunctive normal form of a formula    *)
+(*      'fm' of propositional logic, introducing auxiliary variables if      *)
+(*      necessary to avoid an exponential blowup of the formula.  The result *)
+(*      formula is satisfiable if and only if 'fm' is satisfiable.           *)
 (* ------------------------------------------------------------------------- *)
 
 	(* prop_formula -> prop_formula *)
