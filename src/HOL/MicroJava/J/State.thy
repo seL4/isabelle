@@ -6,38 +6,12 @@
 State for evaluation of Java expressions and statements
 *)
 
-State = WellType +
-
-consts
-  the_Bool	:: "val \\<Rightarrow> bool"
-  the_Intg	:: "val \\<Rightarrow> int"
-  the_Addr	:: "val \\<Rightarrow> loc"
-
-  defpval	:: "prim_ty \\<Rightarrow> val"	(* default value for primitive types *)
-  default_val	:: "ty \\<Rightarrow> val"		(* default value for all types *)
-
-primrec
- "the_Bool (Bool b) = b"
-
-primrec
- "the_Intg (Intg i) = i"
-
-primrec
- "the_Addr (Addr a) = a"
-
-primrec
-	"defpval Void    = Unit"
-	"defpval Boolean = Bool False"
-	"defpval Integer = Intg (#0)"
-
-primrec
-	"default_val (PrimT pt) = defpval pt"
-	"default_val (RefT  r ) = Null"
+State = TypeRel + Value +
 
 types	fields_
 	= "(vname \\<times> cname \\<leadsto> val)" (* field name, defining class, value *)
 
-types obj = "cname \\<times> fields_"	(* class instance with class name and fields *)
+        obj = "cname \\<times> fields_"	(* class instance with class name and fields *)
 
 constdefs
 
@@ -86,7 +60,7 @@ constdefs
   c_hupd	:: "aheap \\<Rightarrow> xstate \\<Rightarrow> xstate"
  "c_hupd h'\\<equiv> \\<lambda>(xo,(h,l)). if xo = None then (None,(h',l)) else (xo,(h,l))"
 
-  cast_ok	:: "'c prog \\<Rightarrow> ty \\<Rightarrow> aheap \\<Rightarrow> val \\<Rightarrow> bool"
- "cast_ok G T h v \\<equiv> ((\\<exists>pt. T = PrimT pt) | (v=Null) | G\\<turnstile>obj_ty (the (h (the_Addr v)))\\<preceq>T)"
+  cast_ok	:: "'c prog \\<Rightarrow> ref_ty \\<Rightarrow> aheap \\<Rightarrow> val \\<Rightarrow> bool"
+ "cast_ok G T h v \\<equiv> (v=Null) | G\\<turnstile>obj_ty (the (h (the_Addr v)))\\<preceq>RefT T"
 
 end

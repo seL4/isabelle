@@ -96,8 +96,8 @@ inductive "ty_expr E" "ty_exprs E" "wt_stmt E" intrs
 
   (* cf. 15.15 *)
   Cast	"\\<lbrakk>E\\<turnstile>e\\<Colon>T;
-	  prg E\\<turnstile>T\\<preceq>? T'\\<rbrakk> \\<Longrightarrow>
-						 E\\<turnstile>Cast T' e\\<Colon>T'"
+	  prg E\\<turnstile>T\\<preceq>? RefT rt\\<rbrakk> \\<Longrightarrow>
+						 E\\<turnstile>Cast rt e\\<Colon>RefT rt"
 
   (* cf. 15.7.1 *)
   Lit	"\\<lbrakk>typeof (\\<lambda>v. None) x = Some T\\<rbrakk> \\<Longrightarrow>
@@ -129,7 +129,7 @@ inductive "ty_expr E" "ty_exprs E" "wt_stmt E" intrs
   FAss  "\\<lbrakk>E\\<turnstile>{fd}a..fn\\<Colon>T;
 	  E\\<turnstile>v       \\<Colon>T';
 	  prg E\\<turnstile>T'\\<preceq>T\\<rbrakk> \\<Longrightarrow>
-					 	 E\\<turnstile>{fd}a..fn\\<in>=v\\<Colon>T'"
+					 	 E\\<turnstile>{fd}a..fn:=v\\<Colon>T'"
 
 
   (* cf. 15.11.1, 15.11.2, 15.11.3 *)

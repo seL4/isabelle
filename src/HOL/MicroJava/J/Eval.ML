@@ -4,6 +4,14 @@
     Copyright   1999 Technische Universitaet Muenchen
 *)
 
+Goal "\\<lbrakk>new_Addr (heap s) = (a,x); \
+\      s' = c_hupd (heap s(a\\<mapsto>(C,init_vars (fields (G,C))))) (x,s)\\<rbrakk> \\<Longrightarrow> \
+\      G\\<turnstile>Norm s -NewC C\\<succ>Addr a\\<rightarrow> s'";
+by (hyp_subst_tac 1);
+br eval_evals_exec.NewC 1;
+by Auto_tac;
+qed "NewCI";
+
 Goal "\\<And>s s'. (G\\<turnstile>(x,s) -e \\<succ>  v \\<rightarrow> (x',s') \\<longrightarrow> x'=None \\<longrightarrow> x=None) \\<and> \
 \             (G\\<turnstile>(x,s) -es[\\<succ>]vs\\<rightarrow> (x',s') \\<longrightarrow> x'=None \\<longrightarrow> x=None) \\<and> \
 \             (G\\<turnstile>(x,s) -c       \\<rightarrow> (x',s') \\<longrightarrow> x'=None \\<longrightarrow> x=None)";

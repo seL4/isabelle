@@ -6,7 +6,7 @@
 The relations between Java types
 *)
 
-TypeRel = Prog +
+TypeRel = Decl +
 
 consts
   subcls1	:: "'c prog \\<Rightarrow> (cname \\<times> cname) set" (*        subclass *)

@@ -7,7 +7,7 @@ Operational evaluation (big-step) semantics of the
 execution of Java expressions and statements
 *)
 
-Eval = State + 
+Eval = State + WellType +
 
 consts
   eval  :: "java_mb prog \\<Rightarrow> (xstate \\<times> expr      \\<times> val      \\<times> xstate) set"
@@ -73,7 +73,7 @@ inductive "eval G" "evals G" "exec G" intrs
 	  G\\<turnstile>(np a' x1,s1) -e2\\<succ>v \\<rightarrow> (x2,s2);
 	  h = heap s2; (c,fs) = the (h a);
 	  h' = h(a\\<mapsto>(c,(fs((fn,T)\\<mapsto>v))))\\<rbrakk> \\<Longrightarrow>
-			  G\\<turnstile>Norm s0 -{T}e1..fn\\<in>=e2\\<succ>v\\<rightarrow> c_hupd h' (x2,s2)"
+			  G\\<turnstile>Norm s0 -{T}e1..fn:=e2\\<succ>v\\<rightarrow> c_hupd h' (x2,s2)"
 
   (* cf. 15.11.4.1, 15.11.4.2, 15.11.4.4, 15.11.4.5, 14.15 *)
   Call	"\\<lbrakk>G\\<turnstile>Norm s0 -e\\<succ>a'\\<rightarrow> s1; a = the_Addr a';

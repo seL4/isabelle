@@ -6,19 +6,6 @@
 Type safety proof
 *)
 
-Goalw [conf_def] "G,s\\<turnstile>Unit\\<Colon>\\<preceq>PrimT Void";
-by( Simp_tac 1);
-qed "conf_VoidI";
-
-Goalw [conf_def] "G,s\\<turnstile>Bool b\\<Colon>\\<preceq>PrimT Boolean";
-by( Simp_tac 1);
-qed "conf_BooleanI";
-
-Goalw [conf_def] "G,s\\<turnstile>Intg i\\<Colon>\\<preceq>PrimT Integer";
-by( Simp_tac 1);
-qed "conf_IntegerI";
-
-Addsimps [conf_VoidI, conf_BooleanI, conf_IntegerI];
 
 Addsimps [split_beta];
 
@@ -30,8 +17,8 @@ by(  auto_tac (claset() addSDs [is_type_fields, map_of_SomeD], simpset()));
 qed "NewC_conforms";
 
 Goalw [cast_ok_def]
- "\\<lbrakk> wf_prog wf_mb G; G,h\\<turnstile>v\\<Colon>\\<preceq>Tb; G\\<turnstile>Tb\\<preceq>? T'; cast_ok G T' h v\\<rbrakk> \
-\ \\<Longrightarrow> G,h\\<turnstile>v\\<Colon>\\<preceq>T'";
+ "\\<lbrakk> wf_prog wf_mb G; G,h\\<turnstile>v\\<Colon>\\<preceq>Tb; G\\<turnstile>Tb\\<preceq>? RefT T'; cast_ok G T' h v\\<rbrakk> \
+\ \\<Longrightarrow> G,h\\<turnstile>v\\<Colon>\\<preceq>RefT T'";
 by( case_tac1 "v = Null" 1);
 by(  Asm_full_simp_tac 1);
 by(  dtac widen_RefT 1);
@@ -39,15 +26,7 @@ by(  Clarify_tac 1);
 by(  forward_tac [cast_RefT] 1);
 by(  Clarify_tac 1);
 by(  rtac widen.null 1);
-by( case_tac1 "\\<exists>pt. T' = PrimT pt" 1);
-by(  strip_tac1 1);
-by(  dtac cast_PrimT2 1);
-by(  etac conf_widen 1);
-by(   atac 1);
-by(  atac 1);
 by( Asm_full_simp_tac 1);
-by( dtac (non_PrimT RS iffD1) 1);
-by( strip_tac1 1);
 by( forward_tac [cast_RefT2] 1);
 by( strip_tac1 1);
 by( dtac non_npD 1);
