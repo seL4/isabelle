@@ -56,8 +56,9 @@ function fail()
 ALL=""
 BATCH=""
 TARGETS=""
+MAKEFLAGS=""
 
-while getopts "abim:t" OPT
+while getopts "abim:p:t" OPT
 do
   case "$OPT" in
     a)
@@ -74,6 +75,9 @@ do
       ;;
     t)
       TARGETS="$TARGETS test"
+      ;;
+    p)
+      MAKEFLAGS="$MAKEFLAGS HOL_PROOF_OBJECTS=-p $OPTARG"
       ;;
     \?)
       usage
@@ -168,7 +172,7 @@ echo "Started at $(date) ($ML_IDENTIFIER on $(hostname))"
 
 for L in $MAKE_LOGICS
 do
-  ( cd "$ISABELLE_HOME/src/$L"; "$ISATOOL" make $TARGETS )
+  ( cd "$ISABELLE_HOME/src/$L"; "$ISATOOL" make "$MAKEFLAGS" $TARGETS )
 done
 
 echo -n "Finished at "; date
