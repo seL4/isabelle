@@ -33,6 +33,7 @@ sig
   val name: token list -> bstring * token list
   val xname: token list -> xstring * token list
   val text: token list -> string * token list
+  val comment: token list -> string * token list
   val sort: token list -> xsort * token list
   val arity: token list -> (xsort list * xsort) * token list
   val type_args: token list -> string list * token list
@@ -133,11 +134,12 @@ fun list1 scan = enum1 "," scan;
 fun list scan = enum "," scan;
 
 
-(* names *)
+(* names and text *)
 
 val name = group "name declaration" (short_ident || sym_ident || string);
 val xname = group "name reference" (short_ident || long_ident || sym_ident || string);
 val text = group "text" (short_ident || long_ident || string || verbatim);
+val comment = Scan.optional ($$$ "--" |-- text) "";
 
 
 (* sorts *)
