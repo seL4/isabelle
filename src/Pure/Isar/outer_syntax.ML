@@ -42,6 +42,8 @@ sig
   type parser
   val command: string -> string -> string ->
     (token list -> (Toplevel.transition -> Toplevel.transition) * token list) -> parser
+  val markup_command: string -> string -> string ->
+    (token list -> (Toplevel.transition -> Toplevel.transition) * token list) -> parser
   val improper_command: string -> string -> string ->
     (token list -> (Toplevel.transition -> Toplevel.transition) * token list) -> parser
   val dest_keywords: unit -> string list
@@ -59,6 +61,7 @@ end;
 structure OuterSyntax: OUTER_SYNTAX =
 struct
 
+structure T = OuterLex;
 structure P = OuterParse;
 
 
@@ -93,13 +96,14 @@ end;
 
 (* parsers *)
 
-type token = OuterLex.token;
+type token = T.token;
 type parser_fn = token list -> (Toplevel.transition -> Toplevel.transition) * token list;
 
 datatype parser =
-  Parser of string * (string * string) * bool * parser_fn;
+  Parser of string * (string * string * bool) * bool * parser_fn;
 
-fun parser int_only name comment kind parse = Parser (name, (comment, kind), int_only, parse);
+fun parser int_only markup name comment kind parse =
+  Parser (name, (comment, kind, markup), int_only, parse);
 
 
 (* parse command *)
@@ -133,7 +137,9 @@ end;
 local
 
 val global_lexicons = ref (Scan.empty_lexicon, Scan.empty_lexicon);
-val global_parsers = ref (Symtab.empty: ((string * string) * (bool * parser_fn)) Symtab.table);
+val global_parsers =
+  ref (Symtab.empty: (((string * string) * (bool * parser_fn)) * bool) Symtab.table);
+val global_markups = ref ([]: string list);
 
 fun change_lexicons f =
   let val lexs = f (! global_lexicons) in
@@ -142,18 +148,24 @@ fun change_lexicons f =
     | bads => error ("Clash of outer syntax commands and keywords: " ^ commas_quote bads))
   end;
 
-fun change_parsers f = global_parsers := f (! global_parsers);
+fun get_markup (names, (name, (_, true))) = name :: names
+  | get_markup (names, _) = names;
+
+fun make_markups () = global_markups := Symtab.foldl get_markup ([], ! global_parsers);
+fun change_parsers f = (global_parsers := f (! global_parsers); make_markups ());
 
 in
 
-(* get current lexers / parsers *)
+
+(* get current syntax *)
 
 (*Note: the syntax for files is statically determined at the very
   beginning; for interactive processing it may change dynamically.*)
 
 fun get_lexicons () = ! global_lexicons;
 fun get_parsers () = ! global_parsers;
-fun get_parser () = apsome snd o curry Symtab.lookup (! global_parsers);
+fun get_parser () = apsome (#2 o #1) o curry Symtab.lookup (! global_parsers);
+fun is_markup name = name mem_string ! global_markups;
 
 
 (* augment syntax *)
@@ -161,10 +173,10 @@ fun get_parser () = apsome snd o curry Symtab.lookup (! global_parsers);
 fun add_keywords keywords = change_lexicons (apfst (fn lex =>
   (Scan.extend_lexicon lex (map Symbol.explode keywords))));
 
-fun add_parser (tab, Parser (name, comment, int_only, parse)) =
+fun add_parser (tab, Parser (name, (comment, kind, markup), int_only, parse)) =
  (if is_none (Symtab.lookup (tab, name)) then ()
   else warning ("Redefined outer syntax command " ^ quote name);
-  Symtab.update ((name, (comment, (int_only, parse))), tab));
+  Symtab.update ((name, (((comment, kind), (int_only, parse)), markup)), tab));
 
 fun add_parsers parsers =
   (change_parsers (fn tab => foldl add_parser (tab, parsers));
@@ -179,7 +191,7 @@ end;
 fun dest_keywords () = Scan.dest_lexicon (#1 (get_lexicons ()));
 
 fun dest_parsers () =
-  map (fn (name, ((cmt, kind), (int_only, _))) => (name, cmt, kind, int_only))
+  map (fn (name, (((cmt, kind), (int_only, _)), _)) => (name, cmt, kind, int_only))
     (Symtab.dest (get_parsers ()));
 
 fun print_outer_syntax () =
@@ -211,8 +223,8 @@ val print_help =
 val headerN = "header";
 val theoryN = "theory";
 
-val theory_keyword = OuterParse.$$$ theoryN;
-val header_keyword = OuterParse.$$$ headerN;
+val theory_keyword = P.$$$ theoryN;
+val header_keyword = P.$$$ headerN;
 val semicolon = P.$$$ ";";
 
 
@@ -221,7 +233,7 @@ val semicolon = P.$$$ ";";
 local
 
 val no_terminator =
-  Scan.unless semicolon (Scan.one (OuterLex.not_sync andf OuterLex.not_eof));
+  Scan.unless semicolon (Scan.one (T.not_sync andf T.not_eof));
 
 val recover = Scan.prompt "recover# " (Scan.repeat no_terminator);
 
@@ -229,8 +241,8 @@ in
 
 fun source term do_recover cmd src =
   src
-  |> Source.source OuterLex.stopper
-    (Scan.bulk (fn xs => OuterParse.!!! (command term (cmd ())) xs))
+  |> Source.source T.stopper
+    (Scan.bulk (fn xs => P.!!! (command term (cmd ())) xs))
     (if do_recover then Some recover else None)
   |> Source.mapfilter I;
 
@@ -239,11 +251,11 @@ end;
 fun token_source (src, pos) =
   src
   |> Symbol.source false
-  |> OuterLex.source false (K (get_lexicons ())) pos;
+  |> T.source false (K (get_lexicons ())) pos;
 
 fun filter_proper src =
   src
-  |> Source.filter OuterLex.is_proper;
+  |> Source.filter T.is_proper;
 
 
 (* scan header *)
@@ -251,9 +263,9 @@ fun filter_proper src =
 fun scan_header get_lex scan (src, pos) =
   src
   |> Symbol.source false
-  |> OuterLex.source false (fn () => (get_lex (), Scan.empty_lexicon)) pos
+  |> T.source false (fn () => (get_lex (), Scan.empty_lexicon)) pos
   |> filter_proper
-  |> Source.source OuterLex.stopper (Scan.single scan) None
+  |> Source.source T.stopper (Scan.single scan) None
   |> (fst o the o Source.get_single);
 
 
@@ -317,6 +329,35 @@ fun deps_thy name path =
 end;
 
 
+(* present theory source *)
+
+local
+
+val scan_markup =
+  Scan.one T.not_eof :-- (fn tok =>
+    if T.is_kind T.Command tok andalso is_markup (T.val_of tok) then
+      (Scan.any (not o T.is_proper) |-- P.text) >> Some
+    else Scan.succeed None);
+
+fun invisible_token (tok, arg) =
+  is_none arg andalso T.keyword_with (equal ";") tok orelse T.is_kind T.Comment tok;
+
+in
+
+(*note: lazy evaluation ahead*)
+
+fun present_toks text pos () =
+  token_source (Source.of_list (Library.untabify text), pos)
+  |> Source.source T.stopper (Scan.bulk scan_markup) None
+  |> Source.exhaust
+  |> filter_out invisible_token;
+
+fun present_text text () =
+  Source.exhaust (Symbol.source false (Source.of_list (Library.untabify text)));
+
+end;
+
+
 (* load_thy --- read text (including header) *)
 
 local
@@ -343,16 +384,13 @@ fun run_thy name path =
     val text = explode (File.read path);
     val src = Source.of_list text;
     val pos = Path.position path;
-
-    fun present_toks () =
-      Source.exhaust (token_source (Source.of_list (Library.untabify text), pos));
-    fun present_text () =
-      Source.exhaust (Symbol.source false (Source.of_list (Library.untabify text)));
   in
     Present.init_theory name;
     if is_old_theory (src, pos) then ThySyn.load_thy name text
-    else (Toplevel.excursion_error (parse_thy (src, pos)); Present.token_source name present_toks);
-    Present.verbatim_source name present_text
+    else
+     (Toplevel.excursion_error (parse_thy (src, pos));
+      Present.token_source name (present_toks text pos));
+    Present.verbatim_source name (present_text text)
   end;
 
 in
@@ -375,7 +413,7 @@ end;
 fun isar term no_pos =
   Source.tty
   |> Symbol.source true
-  |> OuterLex.source true get_lexicons
+  |> T.source true get_lexicons
     (if no_pos then Position.none else Position.line_name 1 "stdin")
   |> filter_proper
   |> source term true get_parser;
@@ -410,8 +448,9 @@ fun help () =
 
 
 (*final declarations of this structure!*)
-val command = parser false;
-val improper_command = parser true;
+val command = parser false false;
+val markup_command = parser false true;
+val improper_command = parser true false;
 
 
 end;
