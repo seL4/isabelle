@@ -13,7 +13,8 @@ function usage()
   echo "Usage: $PRG [OPTIONS] [FILE]"
   echo
   echo "  Options are:"
-  echo "    -o FORMAT    specify output format: dvi (default), dvi.gz, ps, ps.gz, pdf"
+  echo "    -o FORMAT    specify output format: dvi (default), dvi.gz, ps, ps.gz,"
+  echo "                 pdf, or bbl"
   echo
   echo
   echo "  Run LaTeX (and related tools) on FILE (default root.tex), producing the"
@@ -60,6 +61,8 @@ FILE="root.tex"
 
 ## main
 
+# check file
+
 DIR=$(dirname "$FILE")
 if [ "$DIR" = . ]; then
   FILEBASE=$(basename "$FILE" .tex)
@@ -69,29 +72,44 @@ fi
 
 [ -f "$FILEBASE.tex" ] || fail "Bad file '$FILE'"
 
+
+# operations
+
+function run_latex () { $ISABELLE_LATEX "\\nonstopmode\\input{$FILEBASE.tex}"; }
+function run_pdflatex () { $ISABELLE_PDFLATEX "\\nonstopmode\\input{$FILEBASE.tex}"; }
+function run_bibtex () { $ISABELLE_BIBTEX </dev/null "$FILEBASE"; }
+function run_dvips () { $ISABELLE_DVIPS -o "$FILEBASE.ps" "$FILEBASE.dvi"; }
+
+
+# process file
+
 case "$OUTFORMAT" in
   dvi)
-    $ISABELLE_LATEX "\\nonstopmode\\input{$FILEBASE.tex}"
+    run_latex
     RC=$?
     ;;
   dvi.gz)
-    $ISABELLE_LATEX "\\nonstopmode\\input{$FILEBASE.tex}" && \
+    run_latex && \
     gzip -f "$FILEBASE.dvi"
     RC=$?
     ;;
   ps)
-    $ISABELLE_LATEX "\\nonstopmode\\input{$FILEBASE.tex}" && \
-    $ISABELLE_DVIPS -o "$FILEBASE.ps" "$FILEBASE.dvi"
+    run_latex && \
+    run_dvips &&
     RC=$?
     ;;
   ps.gz)
-    $ISABELLE_LATEX "\\nonstopmode\\input{$FILEBASE.tex}" && \
-    $ISABELLE_DVIPS -o "$FILEBASE.ps" "$FILEBASE.dvi" && \
+    run_latex && \
+    run_dvips &&
     gzip -f "$FILEBASE.ps"
     RC=$?
     ;;
   pdf)
-    $ISABELLE_PDFLATEX "\\nonstopmode\\input{$FILEBASE.tex}"
+    run_pdflatex
+    RC=$?
+    ;;
+  bbl)
+    run_bibtex
     RC=$?
     ;;
   *)
