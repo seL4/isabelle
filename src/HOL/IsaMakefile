@@ -187,9 +187,9 @@ $(LOG)/HOL-Library.gz: $(OUT)/HOL Library/Accessible_Part.thy \
   Library/Quotient.thy Library/Ring_and_Field.thy \
   Library/Ring_and_Field_Example.thy Library/Nat_Infinity.thy \
   Library/README.html Library/Continuity.thy \
-  Library/Nested_Environment.thy Library/Rational_Numbers.thy Library/ROOT.ML \
-  Library/While_Combinator.thy
-	@$(ISATOOL) usedir $(OUT)/HOL Library
+  Library/Nested_Environment.thy Library/Rational_Numbers.thy \
+  Library/Library/ROOT.ML Library/While_Combinator.thy
+	@cd Library; $(ISATOOL) usedir $(OUT)/HOL Library
 
 
 ## HOL-Subst
