@@ -60,7 +60,7 @@ sig
   val print_cases: Toplevel.transition -> Toplevel.transition
   val print_thms: (string list * (string * Args.src list) list) * Comment.text
     -> Toplevel.transition -> Toplevel.transition
-  val print_prfs: bool -> (string list * (string * Args.src list) list) * Comment.text
+  val print_prfs: bool -> (string list * (string * Args.src list) list option) * Comment.text
     -> Toplevel.transition -> Toplevel.transition
   val print_prop: (string list * string) * Comment.text
     -> Toplevel.transition -> Toplevel.transition
@@ -240,9 +240,19 @@ fun string_of_thms state ms args = with_modes ms (fn () =>
   Pretty.string_of (ProofContext.pretty_thms (Proof.context_of state)
     (IsarThy.get_thmss args state)));
 
-fun string_of_prfs full state ms args = with_modes ms (fn () =>
-  Pretty.string_of (Pretty.chunks    (* FIXME context syntax!? *)
-    (map (ProofSyntax.pretty_proof_of full) (IsarThy.get_thmss args state))));
+fun string_of_prfs full state ms arg = with_modes ms (fn () =>
+  Pretty.string_of (case arg of    (* FIXME context syntax!? *)
+      None =>
+        let
+          val (_, (_, thm)) = Proof.get_goal state;
+          val {sign, prop, der = (_, prf), ...} = rep_thm thm;
+          val prf' = Proofterm.rewrite_proof_notypes ([], []) prf
+        in
+          ProofSyntax.pretty_proof sign
+            (if full then Reconstruct.reconstruct_proof sign prop prf' else prf')
+        end
+    | Some args => Pretty.chunks
+        (map (ProofSyntax.pretty_proof_of full) (IsarThy.get_thmss args state))));
 
 fun string_of_prop state ms s =
   let

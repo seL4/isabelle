@@ -613,11 +613,13 @@ val print_thmsP =
 
 val print_prfsP =
   OuterSyntax.improper_command "prf" "print proof terms of theorems" K.diag
-    (opt_modes -- P.xthms1 -- P.marg_comment >> (Toplevel.no_timing oo IsarCmd.print_prfs false));
+    (opt_modes -- Scan.option P.xthms1 -- P.marg_comment >>
+      (Toplevel.no_timing oo IsarCmd.print_prfs false));
 
 val print_full_prfsP =
   OuterSyntax.improper_command "full_prf" "print full proof terms of theorems" K.diag
-    (opt_modes -- P.xthms1 -- P.marg_comment >> (Toplevel.no_timing oo IsarCmd.print_prfs true));
+    (opt_modes -- Scan.option P.xthms1 -- P.marg_comment >>
+      (Toplevel.no_timing oo IsarCmd.print_prfs true));
 
 val print_propP =
   OuterSyntax.improper_command "prop" "read and print proposition" K.diag
