@@ -431,16 +431,17 @@ val local_path =
 (** theory syntax **)
 
 type syntax =
-  lexicon * (token list -> (string * string) * token list) Symtab.table;
+  Scan.lexicon * (token list -> (string * string) * token list) Symtab.table;
 
 fun make_syntax keywords sects =
   let
     val dups = duplicates (map fst sects);
     val sects' = gen_distinct eq_fst sects;
+    val keys = map Symbol.explode (map fst sects' @ keywords);
   in
     if null dups then ()
     else warning ("Duplicate declaration of theory file sections:\n" ^ commas_quote dups);
-    (make_lexicon (map fst sects' @ keywords), Symtab.make sects')
+    (Scan.make_lexicon keys, Symtab.make sects')
   end;
 
 
@@ -474,7 +475,7 @@ fun sect tab ((Keyword, s, n) :: toks) =
   | sect _ [] = eof_err ();
 
 fun extension sectab = "+" $$-- !!
-  (repeat (sect sectab) --$$ "end" -- optional ("ML" $$-- verbatim) "")
+  (repeat (sect sectab) --$$ "end" -- optional verbatim "")
     >> mk_extension;
 
 fun opt_extension sectab = optional (extension sectab) ("", "", "");

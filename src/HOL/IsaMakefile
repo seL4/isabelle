@@ -31,26 +31,26 @@ Pure:
 
 $(OUT)/HOL: $(OUT)/Pure $(SRC)/Provers/Arith/cancel_sums.ML \
   $(SRC)/Provers/Arith/nat_transitive.ML $(SRC)/Provers/blast.ML \
-  $(SRC)/Provers/classical.ML $(SRC)/Provers/hypsubst.ML \
-  $(SRC)/Provers/simplifier.ML $(SRC)/Provers/splitter.ML \
-  $(SRC)/Pure/section_utils.ML $(SRC)/TFL/dcterm.sml $(SRC)/TFL/post.sml \
-  $(SRC)/TFL/rules.new.sml $(SRC)/TFL/rules.sig $(SRC)/TFL/sys.sml \
-  $(SRC)/TFL/tfl.sig $(SRC)/TFL/tfl.sml $(SRC)/TFL/thms.sig \
-  $(SRC)/TFL/thms.sml $(SRC)/TFL/thry.sig $(SRC)/TFL/thry.sml \
-  $(SRC)/TFL/usyntax.sig $(SRC)/TFL/usyntax.sml $(SRC)/TFL/utils.sig \
-  $(SRC)/TFL/utils.sml Arith.ML Arith.thy Divides.ML Divides.thy \
-  Finite.ML Finite.thy Fun.ML Fun.thy Gfp.ML Gfp.thy HOL.ML HOL.thy \
-  Inductive.ML Inductive.thy Lfp.ML Lfp.thy List.ML List.thy Map.ML \
-  Map.thy Nat.ML Nat.thy NatDef.ML NatDef.thy Option.ML Option.thy \
-  Ord.ML Ord.thy Power.ML Power.thy Prod.ML Prod.thy ROOT.ML RelPow.ML \
-  RelPow.thy Relation.ML Relation.thy Set.ML Set.thy Sexp.ML Sexp.thy \
-  Sum.ML Sum.thy Trancl.ML Trancl.thy Univ.ML Univ.thy \
-  Vimage.ML Vimage.thy WF.ML WF.thy \
-  WF_Rel.ML WF_Rel.thy add_ind_def.ML arith_data.ML cladata.ML \
-  datatype.ML equalities.ML equalities.thy hologic.ML ind_syntax.ML \
-  indrule.ML indrule.thy intr_elim.ML intr_elim.thy mono.ML mono.thy \
-  record.ML simpdata.ML subset.ML subset.thy thy_data.ML thy_syntax.ML \
-  typedef.ML
+  $(SRC)/Provers/clasimp.ML $(SRC)/Provers/classical.ML \
+  $(SRC)/Provers/hypsubst.ML $(SRC)/Provers/simplifier.ML \
+  $(SRC)/Provers/splitter.ML $(SRC)/Pure/section_utils.ML \
+  $(SRC)/TFL/dcterm.sml $(SRC)/TFL/post.sml $(SRC)/TFL/rules.new.sml \
+  $(SRC)/TFL/rules.sig $(SRC)/TFL/sys.sml $(SRC)/TFL/tfl.sig \
+  $(SRC)/TFL/tfl.sml $(SRC)/TFL/thms.sig $(SRC)/TFL/thms.sml \
+  $(SRC)/TFL/thry.sig $(SRC)/TFL/thry.sml $(SRC)/TFL/usyntax.sig \
+  $(SRC)/TFL/usyntax.sml $(SRC)/TFL/utils.sig $(SRC)/TFL/utils.sml \
+  Arith.ML Arith.thy Divides.ML Divides.thy Finite.ML Finite.thy \
+  Fun.ML Fun.thy Gfp.ML Gfp.thy HOL.ML HOL.thy Inductive.ML \
+  Inductive.thy Lfp.ML Lfp.thy List.ML List.thy Map.ML Map.thy Nat.ML \
+  Nat.thy NatDef.ML NatDef.thy Option.ML Option.thy Ord.ML Ord.thy \
+  Power.ML Power.thy Prod.ML Prod.thy ROOT.ML RelPow.ML RelPow.thy \
+  Relation.ML Relation.thy Set.ML Set.thy Sexp.ML Sexp.thy Sum.ML \
+  Sum.thy Trancl.ML Trancl.thy Univ.ML Univ.thy Vimage.ML Vimage.thy \
+  WF.ML WF.thy WF_Rel.ML WF_Rel.thy add_ind_def.ML arith_data.ML \
+  cladata.ML datatype.ML equalities.ML equalities.thy hologic.ML \
+  ind_syntax.ML indrule.ML indrule.thy intr_elim.ML intr_elim.thy \
+  mono.ML mono.thy record.ML simpdata.ML subset.ML subset.thy \
+  thy_data.ML thy_syntax.ML typedef.ML
 	@$(ISATOOL) usedir -b $(OUT)/Pure HOL
 
 
