@@ -242,7 +242,7 @@ by (rtac notI 1);
 by (etac (wf_pred_nat RS wf_trancl RS wf_irrefl) 1);
 qed "less_not_refl";
 
-(* n(n ==> R *)
+(* n<n ==> R *)
 bind_thm ("less_irrefl", (less_not_refl RS notE));
 
 goal Nat.thy "!!m. n<m ==> m ~= (n::nat)";
@@ -456,6 +456,18 @@ goalw Nat.thy [le_def] "!!m. Suc(m) <= n ==> m <= n";
 by (asm_full_simp_tac (!simpset addsimps [less_Suc_eq]) 1);
 by (Fast_tac 1);
 qed "Suc_leD";
+
+(* stronger version of Suc_leD *)
+goalw Nat.thy [le_def] 
+        "!!m. Suc m <= n ==> m < n";
+by (asm_full_simp_tac (!simpset addsimps [less_Suc_eq]) 1);
+by (cut_facts_tac [less_linear] 1);
+by (fast_tac HOL_cs 1);
+qed "Suc_le_lessD";
+
+goal Nat.thy "(Suc m <= n) = (m < n)";
+by (fast_tac (!claset addIs [lessD, Suc_le_lessD]) 1);
+qed "Suc_le_eq";
 
 goalw Nat.thy [le_def] "!!m. m <= n ==> m <= Suc n";
 by (fast_tac (!claset addDs [Suc_lessD]) 1);
