@@ -14,9 +14,9 @@ constdefs
                       a = b$*q $+ r &
                       (#0$<b & #0$<=r & r$<b | ~(#0$<b) & b$<r & r $<= #0)"
 
-  adjust :: "[i,i,i] => i"
-    "adjust(a,b) == %<q,r>. if #0 $<= r$-b then <#2$*q $+ #1,r$-b>
-                            else <#2$*q,r>"
+  adjust :: "[i,i] => i"
+    "adjust(b) == %<q,r>. if #0 $<= r$-b then <#2$*q $+ #1,r$-b>
+                          else <#2$*q,r>"
 
 
 (** the division algorithm **)
@@ -28,7 +28,7 @@ constdefs posDivAlg :: "i => i"
        wfrec(measure(int*int, %<a,b>. nat_of (a $- b $+ #1)),
 	     ab,
 	     %<a,b> f. if (a$<b | b$<=#0) then <#0,a>
-                       else adjust(a, b, f ` <a,#2$*b>))"
+                       else adjust(b, f ` <a,#2$*b>))"
 
 
 (*for the case a<0, b>0*)
@@ -38,7 +38,7 @@ constdefs negDivAlg :: "i => i"
        wfrec(measure(int*int, %<a,b>. nat_of ($- a $- b)),
 	     ab,
 	     %<a,b> f. if (#0 $<= a$+b | b$<=#0) then <#-1,a$+b>
-                       else adjust(a, b, f ` <a,#2$*b>))"
+                       else adjust(b, f ` <a,#2$*b>))"
 
 (*for the general case b\\<noteq>0*)
 

@@ -333,9 +333,9 @@ qed "unique_remainder";
 
 (*** Correctness of posDivAlg, the division algorithm for a>=0 and b>0 ***)
 
-Goal "adjust(a, b, <q,r>) = (let diff = r$-b in \
+Goal "adjust(b, <q,r>) = (let diff = r$-b in \
 \                         if #0 $<= diff then <#2$*q $+ #1,diff>  \
-\                                       else <#2$*q,r>)";
+\                                        else <#2$*q,r>)";
 by (simp_tac (simpset() addsimps [Let_def,adjust_def]) 1);
 qed "adjust_eq";
 Addsimps [adjust_eq];
@@ -352,7 +352,7 @@ val posDivAlg_unfold = wf_measure RS (posDivAlg_def RS def_wfrec);
 
 Goal "[| #0 $< b; a \\<in> int; b \\<in> int |] ==> \
 \     posDivAlg(<a,b>) =      \
-\      (if a$<b then <#0,a> else adjust(a, b, posDivAlg (<a, #2$*b>)))";
+\      (if a$<b then <#0,a> else adjust(b, posDivAlg (<a, #2$*b>)))";
 by (rtac (posDivAlg_unfold RS trans) 1);
 by (asm_simp_tac (simpset() addsimps [not_zless_iff_zle RS iff_sym]) 1);
 by (asm_simp_tac (simpset() addsimps [vimage_iff, posDivAlg_termination]) 1); 
@@ -513,7 +513,7 @@ val negDivAlg_unfold = wf_measure RS (negDivAlg_def RS def_wfrec);
 Goal "[| #0 $< b; a \\<in> int; b \\<in> int |] ==> \
 \     negDivAlg(<a,b>) =      \
 \      (if #0 $<= a$+b then <#-1,a$+b> \
-\                      else adjust(a, b, negDivAlg (<a, #2$*b>)))";
+\                      else adjust(b, negDivAlg (<a, #2$*b>)))";
 by (rtac (negDivAlg_unfold RS trans) 1);
 by (asm_simp_tac (simpset() addsimps [not_zless_iff_zle RS iff_sym]) 1);
 by (asm_simp_tac (simpset() addsimps [not_zle_iff_zless, vimage_iff, 
