@@ -2,12 +2,25 @@
 #
 # $Id$
 #
-# Emacs / Isamode interface.
-#
-# TODO: isabelle fonts
+# GNU Emacs Isamode interface.
 
 
 ## diagnostics
+
+PRG=$(basename $0)
+
+function usage()
+{
+  echo
+  echo "Usage: $PRG [OPTIONS]"
+  echo
+  echo "  Options are:"
+  echo "    -g GEOM      main window geometry (default 80x20)"
+  echo
+  echo "  Starts GNU Emacs and Isamode."
+  echo
+  exit 1
+}
 
 function fail()
 {
@@ -16,17 +29,74 @@ function fail()
 }
 
 
+## process command line
+
+# options
+
+MAINGEOM="80x20"
+
+while getopts "g:" OPT
+do
+  case "$OPT" in
+    g)
+      MAINGEOM="$OPTARG"
+      ;;
+    \?)
+      usage
+      ;;
+  esac
+done
+
+shift $(($OPTIND - 1))
+
+
+# args
+
+[ $# != 0 ] && usage
+
+
 ## main
 
-if [ -f "$ISABELLE_HOME_USER/etc/isa-settings.el" ]; then
-  USER_SETTINGS="--load $ISABELLE_HOME_USER/etc/isa-settings.el"
-else
-  USER_SETTINGS=""
-fi
+# prepare startup file
 
-exec emacs -name "isabelle" \
-  --no-init-file "$@" \
-  --load "$ISAMODE_HOME/elisp/isa-site.el" \
-  $USER_SETTINGS \
-  --load $HOME/.emacs \
-  --funcall isabelle
+STARTUP=/tmp/isa-start$$.el
+
+{
+  echo "(load \"$ISAMODE_HOME/elisp/isa-site.el\")"
+  echo
+
+  echo "(setq isa-logic-paths"
+  echo -n "'("
+  for D in $(echo $ISABELLE_PATH | tr : " ")
+  do
+    DIR="$D/$ML_SYSTEM-$PLATFORM"
+    [ -d $DIR ] && echo "\"$DIR\""
+  done
+  echo "\"$ISAMODE_HOME/ruletables\"))"
+  echo
+
+  DOC=$(echo $ISABELLE_DOCS | cut -f1 -d:)       #first doc dir only
+  echo "(setq isa-manual-path \"$DOC\")"
+  echo
+
+  for FILE in ~/.emacs "$ISABELLE_HOME/etc/isa-settings.el" \
+    "$ISABELLE_HOME_USER/etc/isa-settings.el"
+  do
+    [ -f "$FILE" ] && echo "(load \"$FILE\")"
+  done
+  echo
+
+  echo "(isabelle)"
+} >$STARTUP
+
+
+# run it!
+
+$ISATOOL installfonts
+
+emacs -name "Isabelle" \
+  -fn isabelle14 -geometry $MAINGEOM \
+  --no-init-file \
+  --load $STARTUP
+
+rm $STARTUP
