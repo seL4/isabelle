@@ -191,20 +191,29 @@ fun induct_rule ctxt t =
   let val name = type_name t in
     (case lookup_inductT ctxt name of
       None => error ("No induct rule for type: " ^ quote name)
-    | Some thm => thm)
+    | Some thm => (name, thm))
   end;
 
-fun join_rules [thm] = thm
+fun join_rules [(_, thm)] = thm
   | join_rules raw_thms =
       let
-        val (thms, thm) = Library.split_last (map Drule.freeze_all raw_thms);
-        val cprems = Drule.cprems_of thm;
-        val asms = map Thm.assume cprems;
-        fun strip th = Drule.implies_elim_list th asms;
+        val thms = (map (apsnd Drule.freeze_all) raw_thms);
+        fun eq_prems ((_, th1), (_, th2)) =
+          Term.aconvs (Thm.prems_of th1, Thm.prems_of th2);
       in
-        foldr (fn (th, th') => [th, th'] MRS conjI) (map strip thms, strip thm)
-        |> Drule.implies_intr_list cprems
-        |> Drule.standard
+        (case Library.gen_distinct eq_prems thms of
+          [(_, thm)] =>
+            let
+              val cprems = Drule.cprems_of thm;
+              val asms = map Thm.assume cprems;
+              fun strip (_, th) = Drule.implies_elim_list th asms;
+            in
+              foldr1 (fn (th, th') => [th, th'] MRS conjI) (map strip thms)
+              |> Drule.implies_intr_list cprems
+              |> Drule.standard
+            end
+        | [] => error "No rule given"
+        | bads => error ("Incompatible rules for " ^ commas_quote (map #1 bads)))
       end;
 
 fun induct_tac (ctxt, args) facts =
