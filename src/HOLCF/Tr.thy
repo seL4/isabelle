@@ -6,7 +6,7 @@
 Introduce infix if_then_else_fi and boolean connectives andalso, orelse
 *)
 
-Tr = Lift +
+Tr = Lift + Fix +
 
 types
   tr = "bool lift"

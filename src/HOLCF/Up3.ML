@@ -345,5 +345,4 @@ qed_goal "fup3" thy "fup`up`x=x"
 (* install simplifier for ('a)u                                             *)
 (* ------------------------------------------------------------------------ *)
 
-val up_rews = [fup1,fup2,defined_up];
-
+Addsimps [fup1,fup2,defined_up];
