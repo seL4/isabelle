@@ -161,6 +161,12 @@ fun quote_antiquote_tr quoteN antiquoteN name =
   in (quoteN, tr) end;
 
 
+(* index variable *)
+
+fun indexvar_ast_tr [] = Ast.Variable "some_index"
+  | indexvar_ast_tr asts = raise Ast.AST ("indexvar_ast_tr", asts);
+
+
 
 (** print (ast) translations **)
 
@@ -344,7 +350,8 @@ fun quote_antiquote_tr' quoteN antiquoteN name =
 
 val pure_trfuns =
  ([("_constify", constify_ast_tr), ("_appl", appl_ast_tr), ("_applC", applC_ast_tr),
-   ("_lambda", lambda_ast_tr), ("_idtyp", idtyp_ast_tr), ("_bigimpl", bigimpl_ast_tr)],
+   ("_lambda", lambda_ast_tr), ("_idtyp", idtyp_ast_tr), ("_bigimpl", bigimpl_ast_tr),
+   ("_indexvar", indexvar_ast_tr)],
   [("_abs", abs_tr), ("_aprop", aprop_tr), ("_ofclass", ofclass_tr),
    ("_TYPE", type_tr), ("_DDDOT", dddot_tr), ("_K", k_tr)],
   []: (string * (term list -> term)) list,
