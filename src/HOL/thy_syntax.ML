@@ -172,7 +172,7 @@ end;
 
 (** primrec **)
 
-fun mk_primrec_decl ((fname, tname), axms) =
+fun mk_primrec_decl_1 ((fname, tname), axms) =
   let
     (*Isolate type name from the structure's identifier it may be stored in*)
     val tname' = implode (snd (take_suffix (not_equal ".") (explode tname)));
@@ -188,8 +188,25 @@ fun mk_primrec_decl ((fname, tname), axms) =
       ^ "\nval dummy = Addsimps " ^ mk_list (map fst axms) ^ ";")
   end;
 
+fun mk_primrec_decl_2 ((fname, tname), axms) =
+  let
+    (*Isolate type name from the structure's identifier it may be stored in*)
+    val tname' = implode (snd (take_suffix (not_equal ".") (explode tname)));
+
+    fun mk_prove eqn =
+      "prove_goalw thy [get_def thy "
+      ^ (quote (strip_quotes fname ^ "_" ^ tname')) ^ "] " ^ eqn ^ " \
+      \(fn _ => [Simp_tac 1])";
+
+    val axs = mk_list (map (fn a => mk_pair ("\"\"", a)) axms);
+  in ("|> " ^ tname ^ "_add_primrec " ^ axs,
+      "val dummy = Addsimps " ^
+      brackets(space_implode ",\n" (map mk_prove axms)) ^ ";")
+  end;
+
 val primrec_decl =
-  name -- long_id -- repeat1 (ident -- string) >> mk_primrec_decl;
+  (name -- long_id -- repeat1 (ident -- string) >> mk_primrec_decl_1) ||
+  (name -- long_id -- repeat1 string >> mk_primrec_decl_2) ;
 
 
 
