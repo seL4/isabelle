@@ -126,10 +126,10 @@ by blast
 subsubsection{*Projections: qfst, qsnd*}
 
 lemma qfst_conv [simp]: "qfst(<a;b>) = a"
-by (simp add: qfst_def, blast)
+by (simp add: qfst_def)
 
 lemma qsnd_conv [simp]: "qsnd(<a;b>) = b"
-by (simp add: qsnd_def, blast)
+by (simp add: qsnd_def)
 
 lemma qfst_type [TC]: "p:QSigma(A,B) ==> qfst(p) : A"
 by auto

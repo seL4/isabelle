@@ -576,6 +576,14 @@ by (rule SUM_Int_distrib2)
 lemma SUM_eq_UN: "(SUM i:I. A(i)) = (UN i:I. {i} * A(i))"
 by blast
 
+lemma times_subset_iff:
+     "(A'*B' <= A*B) <-> (A' = 0 | B' = 0 | (A'<=A) & (B'<=B))"
+by blast
+
+lemma Int_Sigma_eq:
+     "(\<Sigma>x \<in> A'. B'(x)) Int (\<Sigma>x \<in> A. B(x)) = (\<Sigma>x \<in> A' Int A. B'(x) Int B(x))"
+by blast
+
 (** Domain **)
 
 lemma domain_iff: "a: domain(r) <-> (EX y. <a,y>: r)"

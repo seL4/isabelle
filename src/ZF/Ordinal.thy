@@ -637,8 +637,17 @@ apply (unfold Limit_def)
 apply (erule conjunct2 [THEN conjunct1])
 done
 
+lemma Limit_nonzero: "Limit(i) ==> i ~= 0"
+by (drule Limit_has_0, blast)
+
 lemma Limit_has_succ: "[| Limit(i);  j<i |] ==> succ(j) < i"
 by (unfold Limit_def, blast)
+
+lemma Limit_succ_lt_iff [simp]: "Limit(i) ==> succ(j) < i <-> (j<i)"
+apply (safe intro!: Limit_has_succ)
+apply (frule lt_Ord)
+apply (blast intro: lt_trans)   
+done
 
 lemma zero_not_Limit [iff]: "~ Limit(0)"
 by (simp add: Limit_def)
@@ -647,7 +656,7 @@ lemma Limit_has_1: "Limit(i) ==> 1 < i"
 by (blast intro: Limit_has_0 Limit_has_succ)
 
 lemma increasing_LimitI: "[| 0<l; \<forall>x\<in>l. \<exists>y\<in>l. x<y |] ==> Limit(l)"
-apply (simp add: Limit_def lt_Ord2, clarify)
+apply (unfold Limit_def, simp add: lt_Ord2, clarify)
 apply (drule_tac i=y in ltD) 
 apply (blast intro: lt_trans1 [OF _ ltI] lt_Ord2)
 done

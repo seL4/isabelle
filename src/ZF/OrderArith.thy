@@ -356,7 +356,6 @@ done
 
 subsubsection{*Well-foundedness*}
 
-(*Not sure if wf_on_rvimage could be proved from this!*)
 lemma wf_rvimage [intro!]: "wf(r) ==> wf(rvimage(A,f,r))"
 apply (simp (no_asm_use) add: rvimage_def wf_eq_minimal)
 apply clarify
@@ -368,6 +367,8 @@ apply (subgoal_tac "EX w. w : {w: {f`x. x:Q}. EX x. x: Q & (f`x = w) }")
 apply blast 
 done
 
+text{*But note that the combination of @{text wf_imp_wf_on} and
+ @{text wf_rvimage} gives @{term "wf(r) ==> wf[C](rvimage(A,f,r))"}*}
 lemma wf_on_rvimage: "[| f: A->B;  wf[B](r) |] ==> wf[A](rvimage(A,f,r))"
 apply (rule wf_onI2)
 apply (subgoal_tac "ALL z:A. f`z=f`y --> z: Ba")
@@ -397,7 +398,34 @@ lemma ord_iso_rvimage_eq:
 by (unfold ord_iso_def rvimage_def, blast)
 
 
-subsubsection{*Other Results*}
+subsection{*Other Results*}
+
+lemma wf_times: "A Int B = 0 ==> wf(A*B)"
+by (simp add: wf_def, blast)
+
+text{*Could also be used to prove @{text wf_radd}*}
+lemma wf_Un:
+     "[| range(r) Int domain(s) = 0; wf(r);  wf(s) |] ==> wf(r Un s)"
+apply (simp add: wf_def, clarify) 
+apply (rule equalityI) 
+ prefer 2 apply blast 
+apply clarify 
+apply (drule_tac x=Z in spec)
+apply (drule_tac x="Z Int domain(s)" in spec)
+apply simp 
+apply (blast intro: elim: equalityE) 
+done
+
+subsubsection{*The Empty Relation*}
+
+lemma wf0: "wf(0)"
+by (simp add: wf_def, blast)
+
+lemma linear0: "linear(0,0)"
+by (simp add: linear_def)
+
+lemma well_ord0: "well_ord(0,0)"
+by (blast intro: wf_imp_wf_on well_ordI wf0 linear0)
 
 subsubsection{*The "measure" relation is useful with wfrec*}
 
@@ -413,6 +441,31 @@ by (simp (no_asm) add: measure_eq_rvimage_Memrel wf_Memrel wf_rvimage)
 
 lemma measure_iff [iff]: "<x,y> : measure(A,f) <-> x:A & y:A & f(x)<f(y)"
 by (simp (no_asm) add: measure_def)
+
+lemma linear_measure: 
+ assumes Ordf: "!!x. x \<in> A ==> Ord(f(x))"
+     and inj:  "!!x y. [|x \<in> A; y \<in> A; f(x) = f(y) |] ==> x=y"
+ shows "linear(A, measure(A,f))"
+apply (auto simp add: linear_def) 
+apply (rule_tac i="f(x)" and j="f(y)" in Ord_linear_lt) 
+    apply (simp_all add: Ordf) 
+apply (blast intro: inj) 
+done
+
+lemma wf_on_measure: "wf[B](measure(A,f))"
+by (rule wf_imp_wf_on [OF wf_measure])
+
+lemma well_ord_measure: 
+ assumes Ordf: "!!x. x \<in> A ==> Ord(f(x))"
+     and inj:  "!!x y. [|x \<in> A; y \<in> A; f(x) = f(y) |] ==> x=y"
+ shows "well_ord(A, measure(A,f))"
+apply (rule well_ordI)
+apply (rule wf_on_measure) 
+apply (blast intro: linear_measure Ordf inj) 
+done
+
+lemma measure_type: "measure(A,f) <= A*A"
+by (auto simp add: measure_def)
 
 subsubsection{*Well-foundedness of Unions*}
 

@@ -98,10 +98,10 @@ by blast
 subsection{*Projections @{term fst} and @{term snd}*}
 
 lemma fst_conv [simp]: "fst(<a,b>) = a"
-by (simp add: fst_def, blast)
+by (simp add: fst_def)
 
 lemma snd_conv [simp]: "snd(<a,b>) = b"
-by (simp add: snd_def, blast)
+by (simp add: snd_def)
 
 lemma fst_type [TC]: "p:Sigma(A,B) ==> fst(p) : A"
 by auto

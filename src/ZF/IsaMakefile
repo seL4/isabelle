@@ -80,7 +80,7 @@ ZF-Constructible: ZF $(LOG)/ZF-Constructible.gz
 $(LOG)/ZF-Constructible.gz: $(OUT)/ZF  Constructible/ROOT.ML \
   Constructible/Datatype_absolute.thy Constructible/DPow_absolute.thy\
   Constructible/Formula.thy Constructible/Internalize.thy \
-  Constructible/Relative.thy \
+  Constructible/AC_in_L.thy Constructible/Relative.thy \
   Constructible/L_axioms.thy    Constructible/Wellorderings.thy \
   Constructible/MetaExists.thy  Constructible/Normal.thy \
   Constructible/Rec_Separation.thy Constructible/Separation.thy \
