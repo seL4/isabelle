@@ -386,7 +386,7 @@ writeln"Problem 49  NOT PROVED AUTOMATICALLY";
   the type constraint ensures that x,y,z have the same type as a,b,u. *)
 goal FOL.thy "(EX x y::'a. ALL z. z=x | z=y) & P(a) & P(b) & a~=b \
 \               --> (ALL u::'a.P(u))";
-by (Step_tac 1);
+by Safe_tac;
 by (res_inst_tac [("x","a")] allE 1);
 by (assume_tac 1);
 by (res_inst_tac [("x","b")] allE 1);
@@ -431,7 +431,7 @@ goal FOL.thy
 \  (ALL x. EX y. ~hates(x,y)) & \
 \  ~ agatha=butler --> \
 \  killed(?who,agatha)";
-by (Step_tac 1);
+by Safe_tac;
 by (dres_inst_tac [("x1","x")] (spec RS mp) 1);
 by (assume_tac 1);
 by (etac (spec RS exE) 1);
