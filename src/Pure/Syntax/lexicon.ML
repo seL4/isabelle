@@ -48,20 +48,22 @@ sig
     VarSy of string |
     TFreeSy of string |
     TVarSy of string |
-    EndToken;
+    EndToken
   val id: string
   val var: string
   val tfree: string
   val tvar: string
+  val terminals: string list
+  val is_terminal: string -> bool
   val str_of_token: token -> string
   val display_token: token -> string
   val matching_tokens: token * token -> bool
   val valued_token: token -> bool
-  val predef_term: string -> token
-  val is_terminal: string -> bool
+  val predef_term: string -> token option
+  val dest_lexicon: lexicon -> string list
   val empty_lexicon: lexicon
   val extend_lexicon: lexicon -> string list -> lexicon
-  val mk_lexicon: string list -> lexicon
+  val merge_lexicons: lexicon -> lexicon -> lexicon
   val tokenize: lexicon -> bool -> string -> token list
 end;
 
@@ -112,12 +114,16 @@ datatype token =
   EndToken;
 
 
-(* names of valued tokens *)
+(* terminal arguments *)
 
 val id = "id";
 val var = "var";
 val tfree = "tfree";
 val tvar = "tvar";
+
+val terminals = [id, var, tfree, tvar];
+
+fun is_terminal s = s mem terminals;
 
 
 (* str_of_token *)
@@ -164,16 +170,11 @@ fun valued_token (Token _) = false
 (* predef_term *)
 
 fun predef_term name =
-  if name = id then IdentSy name
-  else if name = var then VarSy name
-  else if name = tfree then TFreeSy name
-  else if name = tvar then TVarSy name
-  else EndToken;
-
-
-(* is_terminal **)
-
-fun is_terminal s = s mem [id, var, tfree, tvar];
+  if name = id then Some (IdentSy name)
+  else if name = var then Some (VarSy name)
+  else if name = tfree then Some (TFreeSy name)
+  else if name = tvar then Some (TVarSy name)
+  else None;
 
 
 
@@ -186,12 +187,18 @@ datatype lexicon =
 val no_token = "";
 
 
-(* empty_lexicon *)
+(* dest_lexicon *)
+
+fun dest_lexicon Empty = []
+  | dest_lexicon (Branch (_, "", lt, eq, gt)) =
+      dest_lexicon eq @ dest_lexicon lt @ dest_lexicon gt
+  | dest_lexicon (Branch (_, str, lt, eq, gt)) =
+      str :: (dest_lexicon eq @ dest_lexicon lt @ dest_lexicon gt);
+
+
+(* empty, extend, merge lexicons *)
 
 val empty_lexicon = Empty;
-
-
-(* extend_lexicon *)
 
 fun extend_lexicon lexicon strs =
   let
@@ -210,17 +217,22 @@ fun extend_lexicon lexicon strs =
         val cs = explode s;
       in
         if exists is_blank cs then
-          error ("extend_lexicon: blank in literal " ^ quote s)
+          sys_error ("extend_lexicon: blank in delimiter " ^ quote s)
         else add lex cs
       end;
   in
-    foldl ext (lexicon, strs)
+    foldl ext (lexicon, strs \\ dest_lexicon lexicon)
   end;
 
-
-(* mk_lexicon *)
-
-val mk_lexicon = extend_lexicon empty_lexicon;
+fun merge_lexicons lex1 lex2 =
+  let
+    val strs1 = dest_lexicon lex1;
+    val strs2 = dest_lexicon lex2;
+  in
+    if strs2 subset strs1 then lex1
+    else if strs1 subset strs2 then lex2
+    else extend_lexicon lex1 strs2
+  end;
 
 
 

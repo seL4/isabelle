@@ -15,31 +15,29 @@ signature PRINTER =
 sig
   include PRINTER0
   structure Symtab: SYMTAB
-  structure XGram: XGRAM
-  structure Pretty: PRETTY
-  local open XGram XGram.Ast in
+  structure SynExt: SYN_EXT
+  local open SynExt SynExt.Ast SynExt.Ast.Pretty in
     val term_to_ast: (string -> (term list -> term) option) -> term -> ast
     val typ_to_ast: (string -> (term list -> term) option) -> typ -> ast
     type prtab
     val empty_prtab: prtab
-    val extend_prtab: prtab -> (string prod list) -> (string * (ast list -> ast)) list
-      -> prtab
-    val mk_prtab: (string prod list) -> (string * (ast list -> ast)) list -> prtab
-    val pretty_term_ast: prtab -> ast -> Pretty.T
-    val pretty_typ_ast: prtab -> ast -> Pretty.T
+    val extend_prtab: prtab -> xprod list -> prtab
+    val merge_prtabs: prtab -> prtab -> prtab
+    val pretty_term_ast: prtab -> (string -> (ast list -> ast) option)
+      -> ast -> Pretty.T
+    val pretty_typ_ast: prtab -> (string -> (ast list -> ast) option)
+      -> ast -> Pretty.T
   end
 end;
 
-functor PrinterFun(structure Symtab: SYMTAB and Lexicon: LEXICON
-  and TypeExt: TYPE_EXT and SExtension: SEXTENSION and Pretty: PRETTY
-  sharing TypeExt.Extension = SExtension.Extension): PRINTER =
+functor PrinterFun(structure Symtab: SYMTAB and TypeExt: TYPE_EXT
+  and SExtension: SEXTENSION sharing TypeExt.SynExt = SExtension.Parser.SynExt)
+  (*: PRINTER *) = (* FIXME *)
 struct
 
 structure Symtab = Symtab;
-structure Extension = TypeExt.Extension;
-structure XGram = Extension.XGram;
-structure Pretty = Pretty;
-open XGram XGram.Ast Lexicon TypeExt Extension SExtension;
+structure SynExt = TypeExt.SynExt;
+open SExtension.Parser.Lexicon SynExt.Ast SynExt TypeExt SExtension;
 
 
 (** options for printing **)
@@ -147,101 +145,77 @@ datatype symb =
   Break of int |
   Block of int * symb list;
 
-datatype format =
-  Prnt of symb list * int * int |
-  Trns of ast list -> ast |
-  TorP of (ast list -> ast) * (symb list * int * int);
-
-type prtab = format Symtab.table;
+type prtab = (symb list * int * int) Symtab.table;
 
 
-(* empty_prtab *)
+(* xprods_to_fmts *)
+
+fun xprod_to_fmt (XProd (_, _, "", _)) = None
+  | xprod_to_fmt (XProd (_, xsymbs, const, pri)) =
+      let
+        fun cons_str s (String s' :: syms) = String (s ^ s') :: syms
+          | cons_str s syms = String s :: syms;
+
+        fun arg (s, p) =
+          (if s = "type" then TypArg else Arg)
+          (if is_terminal s then 1000 else p);    (* FIXME 1000 vs. 0 vs. p (?) *)
+
+        fun xsyms_to_syms (Delim s :: xsyms) =
+              apfst (cons_str s) (xsyms_to_syms xsyms)
+          | xsyms_to_syms (Argument s_p :: xsyms) =
+              apfst (cons (arg s_p)) (xsyms_to_syms xsyms)
+          | xsyms_to_syms (Space s :: xsyms) =
+              apfst (cons_str s) (xsyms_to_syms xsyms)
+          | xsyms_to_syms (Bg i :: xsyms) =
+              let
+                val (bsyms, xsyms') = xsyms_to_syms xsyms;
+                val (syms, xsyms'') = xsyms_to_syms xsyms';
+              in
+                (Block (i, bsyms) :: syms, xsyms'')
+              end
+          | xsyms_to_syms (Brk i :: xsyms) =
+              apfst (cons (Break i)) (xsyms_to_syms xsyms)
+          | xsyms_to_syms (En :: xsyms) = ([], xsyms)
+          | xsyms_to_syms [] = ([], []);
+
+        fun nargs (Arg _ :: syms) = nargs syms + 1
+          | nargs (TypArg _ :: syms) = nargs syms + 1
+          | nargs (String _ :: syms) = nargs syms
+          | nargs (Break _ :: syms) = nargs syms
+          | nargs (Block (_, bsyms) :: syms) = nargs syms + nargs bsyms
+          | nargs [] = 0;
+      in
+        (case xsyms_to_syms xsymbs of
+          (symbs, []) => Some (const, (symbs, nargs symbs, pri))
+        | _ => sys_error "xprod_to_fmt: unbalanced blocks")
+      end;
+
+fun xprods_to_fmts xprods =
+  gen_distinct eq_fst (mapfilter xprod_to_fmt xprods);
+
+
+(* empty, extend, merge prtabs *)
+
+fun err_dup_fmt c =
+  sys_error ("duplicate fmt in prtab for " ^ quote c);
 
 val empty_prtab = Symtab.null;
 
+fun extend_prtab tab xprods =
+  Symtab.extend (op =) (tab, xprods_to_fmts xprods)
+    handle Symtab.DUPLICATE c => err_dup_fmt c;
 
-
-(** extend_prtab **)
-
-fun extend_prtab prtab prods trfuns =
-  let
-    fun nargs (Arg _ :: symbs) = nargs symbs + 1
-      | nargs (TypArg _ :: symbs) = nargs symbs + 1
-      | nargs (String _ :: symbs) = nargs symbs
-      | nargs (Break _ :: symbs) = nargs symbs
-      | nargs (Block (_, bsymbs) :: symbs) = nargs symbs + nargs bsymbs
-      | nargs [] = 0;
-
-    fun merge (s, String s' :: l) = String (s ^ s') :: l
-      | merge (s, l) = String s :: l;
-
-    fun mk_prnp sy c p =
-      let
-        val constr = (c = constrainC orelse c = constrainIdtC);
-
-        fun syn2pr (Terminal s :: sy) =
-              let val (symbs, sy') = syn2pr sy;
-              in (merge (s, symbs), sy') end
-          | syn2pr (Space s :: sy) =
-              let val (symbs, sy') = syn2pr sy;
-              in (merge (s, symbs), sy') end
-          | syn2pr (Nonterminal (s, p) :: sy) =
-              let
-                val (symbs, sy') = syn2pr sy;
-                val symb =
-                  (if constr andalso s = "type" then TypArg else Arg)
-                    (if is_terminal s then 0 else p);
-              in (symb :: symbs, sy') end
-          | syn2pr (Bg i :: sy) =
-              let
-                val (bsymbs, sy') = syn2pr sy;
-                val (symbs, sy'') = syn2pr sy';
-              in (Block (i, bsymbs) :: symbs, sy'') end
-          | syn2pr (Brk i :: sy) =
-              let val (symbs, sy') = syn2pr sy;
-              in (Break i :: symbs, sy') end
-          | syn2pr (En :: sy) = ([], sy)
-          | syn2pr [] = ([], []);
-
-        val (pr, _) = syn2pr sy;
-      in
-        (pr, nargs pr, p)
-      end;
-
-    fun trns_err c = error ("More than one parse ast translation for " ^ quote c);
-
-    fun add_fmt tab c fmt x = Symtab.update ((c, fmt x), tab);
-
-    fun add_prod (tab, Prod (_, _, "", _)) = tab
-      | add_prod (tab, Prod (_, sy, c, p)) =
-          (case Symtab.lookup (tab, c) of
-            None => add_fmt tab c Prnt (mk_prnp sy c p)
-          | Some (Prnt _) => add_fmt tab c Prnt (mk_prnp sy c p)
-          | Some (Trns f) => add_fmt tab c TorP (f, mk_prnp sy c p)
-          | Some (TorP (f, _)) => add_fmt tab c TorP (f, mk_prnp sy c p));
-
-    fun add_tr (tab, (c, f)) =
-      (case Symtab.lookup (tab, c) of
-        None => add_fmt tab c Trns f
-      | Some (Prnt pr) => add_fmt tab c TorP (f, pr)
-      | Some (Trns _) => trns_err c
-      | Some (TorP _) => trns_err c);
-  in
-    Symtab.balance (foldl add_prod (foldl add_tr (prtab, trfuns), prods))
-  end;
-
-
-(* mk_prtab *)
-
-val mk_prtab = extend_prtab empty_prtab;
+fun merge_prtabs tab1 tab2 =
+  Symtab.merge (op =) (tab1, tab2)
+    handle Symtab.DUPLICATE c => err_dup_fmt c;
 
 
 
-(** pretty term/typ asts **)
+(** pretty term or typ asts **)
 
-(*pretty assumes a syntax derived from Pure, otherwise it may loop forever*)
+(*assumes a syntax derived from Pure, otherwise may loop forever*)
 
-fun pretty tab type_mode ast0 p0 =
+fun pretty prtab trf type_mode ast0 p0 =
   let
     val trans = apply_trans "print ast translation";
 
@@ -252,8 +226,12 @@ fun pretty tab type_mode ast0 p0 =
           let val (Ts, args') = synT (symbs, args);
           in (astT (t, p) @ Ts, args') end
       | synT (TypArg p :: symbs, t :: args) =
-          let val (Ts, args') = synT (symbs, args);
-          in (pretty tab true t p @ Ts, args') end
+          let
+            val (Ts, args') = synT (symbs, args);
+          in
+            if type_mode then (astT (t, p) @ Ts, args')
+            else (pretty prtab trf true t p @ Ts, args')
+          end
       | synT (String s :: symbs, args) =
           let val (Ts, args') = synT (symbs, args);
           in (Pretty.str s :: Ts, args') end
@@ -265,7 +243,7 @@ fun pretty tab type_mode ast0 p0 =
       | synT (Break i :: symbs, args) =
           let val (Ts, args') = synT (symbs, args);
           in ((if i < 0 then Pretty.fbrk else Pretty.brk i) :: Ts, args') end
-      | synT (_ :: _, []) = error "synT"
+      | synT (_ :: _, []) = sys_error "synT"
 
     and parT (pr, args, p, p': int) =
       if p > p' then
@@ -278,7 +256,7 @@ fun pretty tab type_mode ast0 p0 =
     and splitT 0 ([x], ys) = (x, ys)
       | splitT 0 (rev_xs, ys) = (Appl (rev rev_xs), ys)
       | splitT n (rev_xs, y :: ys) = splitT (n - 1) (y :: rev_xs, ys)
-      | splitT _ _ = error "splitT"
+      | splitT _ _ = sys_error "splitT"
 
     and combT (tup as (c, a, args, p)) =
       let
@@ -289,12 +267,12 @@ fun pretty tab type_mode ast0 p0 =
           else if nargs < n orelse type_mode then prefixT tup
           else astT (appT (splitT n ([c], args)), p);
       in
-        (case Symtab.lookup (tab, a) of
-          None => prefixT tup
-        | Some (Prnt prnp) => prnt prnp
-        | Some (Trns f) =>
+        (case (trf a, Symtab.lookup (prtab, a)) of
+          (None, None) => prefixT tup
+        | (None, Some prnp) => prnt prnp
+        | (Some f, None) =>
             (astT (trans a f args, p) handle Match => prefixT tup)
-        | Some (TorP (f, prnp)) =>
+        | (Some f, Some prnp) =>
             (astT (trans a f args, p) handle Match => prnt prnp))
       end
 
@@ -311,14 +289,14 @@ fun pretty tab type_mode ast0 p0 =
 
 (* pretty_term_ast *)
 
-fun pretty_term_ast tab ast =
-  Pretty.blk (0, pretty tab false ast 0);
+fun pretty_term_ast prtab trf ast =
+  Pretty.blk (0, pretty prtab trf false ast 0);
 
 
 (* pretty_typ_ast *)
 
-fun pretty_typ_ast tab ast =
-  Pretty.blk (0, pretty tab true ast 0);
+fun pretty_typ_ast prtab trf ast =
+  Pretty.blk (0, pretty prtab trf true ast 0);
 
 
 end;

@@ -5,93 +5,110 @@
 Isabelle's main parser (used for terms and typs).
 
 TODO:
-  ~1 --> chain_pri
-  rename T, NT
-  improve syntax error
   fix ambiguous grammar problem
+  ~1 --> chain_pri
+  improve syntax error
+  extend_gram: remove 'roots' arg
 *)
 
 signature PARSER =
 sig
-  structure XGram: XGRAM
-  structure ParseTree: PARSE_TREE
-  local open XGram ParseTree ParseTree.Lexicon in
+  structure Lexicon: LEXICON
+  structure SynExt: SYN_EXT
+  local open Lexicon SynExt SynExt.Ast in
     type gram
     val empty_gram: gram
-    val extend_gram: gram -> string list -> string prod list -> gram
-    val mk_gram: string list -> string prod list -> gram
+    val extend_gram: gram -> string list -> xprod list -> gram
+    val merge_grams: gram -> gram -> gram
+    val pretty_gram: gram -> Pretty.T list
+    datatype parsetree =
+      Node of string * parsetree list |
+      Tip of token
     val parse: gram -> string -> token list -> parsetree
   end
 end;
 
-functor ParserFun(structure Symtab: SYMTAB and XGram: XGRAM
-  and ParseTree: PARSE_TREE)(*: PARSER *) =  (* FIXME *)
+functor ParserFun(structure Symtab: SYMTAB and Lexicon: LEXICON
+  and SynExt: SYN_EXT)(*: PARSER *) =  (* FIXME *)
 struct
 
-structure XGram = XGram;
-structure ParseTree = ParseTree;
-structure Lexicon = ParseTree.Lexicon;
-open XGram ParseTree Lexicon;
+structure Pretty = SynExt.Ast.Pretty;
+structure Lexicon = Lexicon;
+structure SynExt = SynExt;
+open Lexicon SynExt;
 
 
 (** datatype gram **)
 
-datatype symb = T of token | NT of string * int;
+datatype symb =
+  Terminal of token |
+  Nonterminal of string * int;
 
 datatype gram =
-  Gram of string list * (symb list * string * int) list Symtab.table;
+  Gram of (string * (symb list * string * int)) list
+    * (symb list * string * int) list Symtab.table;
+
+fun mk_gram prods = Gram (prods, Symtab.make_multi prods);
 
 
-(* empty_gram *)
+(* empty, extend, merge grams *)
 
-val empty_gram = Gram ([], Symtab.null);
+val empty_gram = mk_gram [];
 
-
-(* extend_gram *)
-
-(*prods are stored in reverse order*)
-
-fun extend_gram (Gram (roots, tab)) new_roots xprods =
+fun extend_gram (gram1 as Gram (prods1, _)) _ xprods2 =
   let
-    fun symb_of (Terminal s) = Some (T (Token s))
-      | symb_of (Nonterminal (s, p)) =
+    fun symb_of (Delim s) = Some (Terminal (Token s))
+      | symb_of (Argument (s, p)) =
           (case predef_term s of
-            EndToken => Some (NT (s, p))
-          | tk => Some (T tk))
+            None => Some (Nonterminal (s, p))
+          | Some tk => Some (Terminal tk))
       | symb_of _ = None;
 
-    fun prod_of (Prod (s, xsyms, c, p)) = (s, mapfilter symb_of xsyms, c, p);
+    fun prod_of (XProd (lhs, xsymbs, const, pri)) =
+      (lhs, (mapfilter symb_of xsymbs, const, pri));
 
-    fun add_prod (tab, (s, syms, c, p)) =
-      (case Symtab.lookup (tab, s) of
-        None => Symtab.update ((s, [(syms, c, p)]), tab)
-      | Some prods => Symtab.update ((s, (syms, c, p) :: prods), tab));
+    val prods2 = distinct (map prod_of xprods2);
   in
-    Gram (new_roots union roots,
-      Symtab.balance (foldl add_prod (tab, map prod_of xprods)))
+    if prods2 subset prods1 then gram1
+    else mk_gram (extend_list prods1 prods2)
   end;
 
+fun merge_grams (gram1 as Gram (prods1, _)) (gram2 as Gram (prods2, _)) =
+  if prods2 subset prods1 then gram1
+  else if prods1 subset prods2 then gram2
+  else mk_gram (merge_lists prods1 prods2);
 
-(* mk_gram *)
 
-val mk_gram = extend_gram empty_gram;
+(* pretty_gram *)
 
-
-(* get_prods *)
-
-fun get_prods tab s pred =
+fun pretty_gram (Gram (prods, _)) =
   let
-    fun rfilter [] ys = ys
-      | rfilter (x :: xs) ys = rfilter xs (if pred x then x :: ys else ys);
+    fun pretty_name name = [Pretty.str (name ^ " =")];
+
+    fun pretty_symb (Terminal (Token s)) = Pretty.str (quote s)
+      | pretty_symb (Terminal tok) = Pretty.str (str_of_token tok)
+      | pretty_symb (Nonterminal (s, p)) =
+          Pretty.str (s ^ "[" ^ string_of_int p ^ "]");
+
+    fun pretty_const "" = []
+      | pretty_const c = [Pretty.str ("=> " ^ quote c)];
+
+    fun pretty_pri p = [Pretty.str ("(" ^ string_of_int p ^ ")")];
+
+    fun pretty_prod (name, (symbs, const, pri)) =
+      Pretty.block (Pretty.breaks (pretty_name name @
+        map pretty_symb symbs @ pretty_const const @ pretty_pri pri));
   in
-    (case Symtab.lookup (tab, s) of
-      Some prods => rfilter prods []
-    | None => [])
+    map pretty_prod prods
   end;
 
 
 
 (** parse **)
+
+datatype parsetree =
+  Node of string * parsetree list |
+  Tip of token;
 
 type state =
   string * int
@@ -103,6 +120,9 @@ type earleystate = state list Array.array;
 
 
 
+fun get_prods tab lhs pred =
+  filter pred (Symtab.lookup_multi (tab, lhs));
+
 fun getProductions tab A i =
   get_prods tab A (fn (_, _, j) => j >= i orelse j = ~1);
 
@@ -111,183 +131,141 @@ fun getProductions' tab A i k =
 
 
 
-fun mkState i jj A ([NT(B,~1)],id,~1) =
-                     (A,max_pri,[],[NT (B,jj)],id,i)
-  | mkState i jj A (ss,id,j) = (A,j,[],ss,id,i) ;
+fun mkState i jj A ([Nonterminal (B, ~1)], id, ~1) =
+      (A, max_pri, [], [Nonterminal (B, jj)], id, i)
+  | mkState i jj A (ss, id, j) = (A, j, [], ss, id, i);
 
 
 
-fun conc (t,(k:int)) [] = (None, [(t,k)])
-  | conc (t,k) ((t',k')::ts) =
-      if (t = t')
-      then (Some k', ( if k' >= k
-                       then (t',k')::ts
-                       else (t,k)::ts )
-           )
-      else let val (n, ts') = conc (t,k) ts
-           in (n, (t',k')::ts')
-           end;
-
-
-fun update_tree ((B,(i,ts))::used) (A,t) =
-      if   (A = B)
-      then
-          let val (n,ts') = conc t ts
-          in  ((A,(i,ts'))::used, n)
-          end
+fun conc (t, k:int) [] = (None, [(t, k)])
+  | conc (t, k) ((t', k') :: ts) =
+      if t = t' then
+        (Some k', if k' >= k then (t', k') :: ts else (t, k) :: ts)
       else
-          let val (used', n) = update_tree used (A,t)
-          in  ((B,(i,ts)) :: used', n)
-          end;
+        let val (n, ts') = conc (t, k) ts
+        in (n, (t', k') :: ts') end;
 
 
+fun update_tree ((B, (i, ts)) :: used) (A, t) =
+  if A = B then
+    let val (n, ts') = conc t ts
+    in ((A, (i, ts')) :: used, n) end
+  else
+    let val (used', n) = update_tree used (A, t)
+    in ((B, (i, ts)) :: used', n) end;
 
-fun update_index ((B,(i,ts))::used) (A,j) =
-      if   (A = B)
-      then (A,(j,ts)) :: used
-      else (B,(i,ts)) :: (update_index used (A,j));
+
+fun update_index ((B, (i, ts)) :: used) (A, j) =
+  if A = B then (A, (j, ts)) :: used
+  else (B, (i, ts)) :: (update_index used (A, j));
 
 
 
 fun getS A i Si =
-       filter (fn (_,_,_,(NT(B,j))::_,_,_)
-                                    => (A=B andalso j<=i)
-               |      _             => false
-              ) Si;
-
-
+  filter
+    (fn (_, _, _, Nonterminal (B, j) :: _, _, _) => A = B andalso j <= i
+      | _ => false) Si;
 
 fun getS' A k n Si =
-       filter (fn (_,_,_,(NT(B,j))::_,_,_) => (A=B andalso
-                                               j<=k andalso
-                                               j>n )
-               |      _                    => false
-              ) Si;
-
-
+  filter
+    (fn (_, _, _, Nonterminal (B, j) :: _, _, _) => A = B andalso j <= k andalso j > n
+      | _ => false) Si;
 
 fun getStates Estate i ii A k =
-       filter (fn (_,_,_,(NT(B,j))::_,_,_)
-                                    => (A=B andalso j<=k)
-               |      _             => false
-              )
-              (Array.sub (Estate, ii))
-;
-
+  filter
+    (fn (_, _, _, Nonterminal (B, j) :: _, _, _) => A = B andalso j <= k
+      | _ => false)
+    (Array.sub (Estate, ii));
 
 
 (* MMW *)(* FIXME *)
-fun movedot_term (A,j,ts,T a::sa,id,i) c =
-                   if (valued_token c)
-                   then (A,j,(ts@[Tip c]),sa,id,i)
-                   else (A,j,ts,sa,id,i) ;
+fun movedot_term (A, j, ts, Terminal a :: sa, id, i) c =
+  if valued_token c then
+    (A, j, (ts @ [Tip c]), sa, id, i)
+  else (A, j, ts, sa, id, i);
 
+fun movedot_nonterm ts (A, j, tss, Nonterminal (B, k) :: sa, id, i) =
+  (A, j, tss @ ts, sa, id, i);
 
-
-fun movedot_nonterm ts  (A,j,tss,NT(B,k) ::sa,id,i) =
-                         (A,j,tss@ts,sa,id,i) ;
-
-
-
-fun movedot_lambda  _  [] = []
-  | movedot_lambda (B,j,tss,(NT(A,k))::sa,id,i) ((t,ki)::ts) =
-    if k <= ki
-    then (B,j,tss@t,sa,id,i) ::
-         (movedot_lambda (B,j,tss,(NT(A,k))::sa,id,i) ts)
-    else movedot_lambda (B,j,tss,(NT(A,k))::sa,id,i) ts
-  ;
-
+fun movedot_lambda _ [] = []
+  | movedot_lambda (B, j, tss, Nonterminal (A, k) :: sa, id, i) ((t, ki) :: ts) =
+      if k <= ki then
+        (B, j, tss @ t, sa, id, i) ::
+          movedot_lambda (B, j, tss, Nonterminal (A, k) :: sa, id, i) ts
+      else movedot_lambda (B, j, tss, Nonterminal (A, k) :: sa, id, i) ts;
 
 
 
 fun PROCESSS Estate grammar i c states =
-
 let
-fun processS used [] (Si,Sii) = (Si,Sii)
- |  processS used (S::States) (Si,Sii) =
-     ( case S of
-
-        (_,_,_,(NT (A,j))::_,_,_)  =>
+fun processS used [] (Si, Sii) = (Si, Sii)
+  | processS used (S :: States) (Si, Sii) =
+      (case S of
+        (_, _, _, Nonterminal (A, j) :: _, _, _) =>
           let
             val (used_neu, States_neu) =
-              ( case assoc (used, A) of
-                 Some (k,l) =>         (* A gehoert zu used *)
+              (case assoc (used, A) of
+                Some (k, l) =>      (*A gehoert zu used*)
+                  if k <= j         (*Prioritaet wurde behandelt*)
+                  then (used, movedot_lambda S l)
+                  else              (*Prioritaet wurde noch nicht behandelt*)
+                    let
+                      val L = getProductions' grammar A j k;
+                      val States' = map (mkState i j A) L;
+                    in
+                      (update_index used (A, j), States' @ movedot_lambda S l)
+                    end
 
-                   if (k <= j)          (* Prioritaet wurde
-                                           behandelt  *)
-                   then
-                        (used, movedot_lambda S l)
-
-                   else         (* Prioritaet wurde noch nicht
-                                        behandelt  *)
-                        let val L =
-                                getProductions' grammar A j k
-                            val States' = map (mkState i j A) L
-                        in
-                            (update_index used (A,j),
-                             States'@ movedot_lambda S l
-                            )
-                        end
-
-                | None =>       (* A gehoert nicht zu used *)
-                      let val L = getProductions grammar A j
-                          val States' = map (mkState i j A) L
-                      in
-                          ((A,(j,[]))::used, States')
-                      end
-              )
+              | None =>             (*A gehoert nicht zu used*)
+                  let
+                    val L = getProductions grammar A j;
+                    val States' = map (mkState i j A) L;
+                  in
+                    ((A, (j, [])) :: used, States')
+                  end)
           in
-             processS used_neu (States @ States_neu) (S::Si,Sii)
+            processS used_neu (States @ States_neu) (S :: Si, Sii)
           end
+      | (_, _, _, Terminal a :: _, _, _) =>
+          processS used States
+            (S :: Si,
+              if matching_tokens (a, c) then movedot_term S c :: Sii else Sii)
+                                          (* MMW *)(* FIXME *)
 
-     |  (_,_,_,(T a)::_,_,_)  =>
-                processS used States
-                    (S::Si, if (matching_tokens (a, c))
-                            then  (movedot_term S c)::Sii   (* MMW *)(* FIXME *)
-                            else Sii
-                    )
-
-
-     |  (A,k,ts,[],id,j) =>
-          let val tt = if id = ""
-                       then ts
-                       else [Node(id,ts)]
+      | (A, k, ts, [], id, j) =>
+          let
+            val tt = if id = "" then ts else [Node (id, ts)]
           in
-             if (j = i)
-             then
-                let val (used',O) = update_tree used (A,(tt,k))
-                in ( case O of
-                      None =>
-                         let val Slist = getS A k Si
-                             val States' =
-                              map (movedot_nonterm tt ) Slist
-                         in  processS used'
-                             (States @ States') (S::Si,Sii)
-                         end
-                   |  Some n =>
-                         if (n >= k)
-                         then
-                            processS used' States (S::Si,Sii)
-                         else
-                            let val Slist = getS' A k n Si
-                                val States' =
-                              map (movedot_nonterm tt ) Slist
-                            in
-                              processS used'
-                              (States @ States') (S::Si,Sii)
-                            end
-                   )
-                end
-
-              else
-                processS used (States @
-                               map (movedot_nonterm tt)
-                               (getStates Estate i j A k))
-                (S::Si,Sii)
-           end
-     )
+            if j = i then
+              let
+                val (used', O) = update_tree used (A, (tt, k));
+              in
+                (case O of
+                  None =>
+                    let
+                      val Slist = getS A k Si;
+                      val States' = map (movedot_nonterm tt) Slist;
+                    in
+                      processS used' (States @ States') (S :: Si, Sii)
+                    end
+                | Some n =>
+                    if n >= k then
+                      processS used' States (S :: Si, Sii)
+                    else
+                      let
+                        val Slist = getS' A k n Si;
+                        val States' = map (movedot_nonterm tt) Slist;
+                      in
+                        processS used' (States @ States') (S :: Si, Sii)
+                      end)
+              end
+            else
+              processS used
+                (States @ map (movedot_nonterm tt) (getStates Estate i j A k))
+                (S :: Si, Sii)
+          end)
 in
-   processS [] states ([],[])
+  processS [] states ([], [])
 end;
 
 
@@ -295,53 +273,53 @@ end;
 fun syntax_error toks =
   error ("Syntax error at: " ^ space_implode " " (map str_of_token toks));
 
-fun Produce grammar stateset i indata =
-      case (Array.sub (stateset,i)) of
-         [] => syntax_error indata (* MMW *)(* FIXME *)
-      |  s  =>
-           (case indata of
-                []  => Array.sub (stateset,i)
-             |  (c::cs) =>
-                       let val (si,sii) =
-                           PROCESSS stateset grammar i c s
-                       in
-                           Array.update (stateset,i,si);
-                           Array.update (stateset,i+1,sii);
-                           Produce grammar stateset (i+1) cs
-                       end
-           );
+fun produce grammar stateset i indata =
+  (case Array.sub (stateset, i) of
+    [] => syntax_error indata (* MMW *)(* FIXME *)
+  | s =>
+    (case indata of
+      [] => Array.sub (stateset, i)
+    | c :: cs =>
+      let
+        val (si, sii) = PROCESSS stateset grammar i c s;
+      in
+        Array.update (stateset, i, si);
+        Array.update (stateset, i + 1, sii);
+        produce grammar stateset (i + 1) cs
+      end));
 
+
+(*(* FIXME new *)
+val get_trees = mapfilter (fn (_, _, [pt], _, _, _) => Some pt | _ => None);
+*)
 
 fun get_trees [] = []
-  | get_trees ((_,_,pt_lst,_,_,_) :: stateset) =
-       let val l = get_trees stateset
-       in case pt_lst of
-            [ptree] => ptree :: l
-          |   _     => l
-       end;
-
-
+  | get_trees ((_, _, pt_lst, _, _, _) :: stateset) =
+      let val l = get_trees stateset
+      in case pt_lst of
+           [ptree] => ptree :: l
+         |   _     => l
+      end;
 
 fun earley grammar startsymbol indata =
-   let  val S0 =
-       [("S'",0,[],[NT (startsymbol,0), T EndToken],"",0)]
-        val s = length indata + 1     (* MMW *)(* FIXME was .. + 2 *)
-        val Estate = Array.array (s, [])
-   in   Array.update (Estate,0,S0);
-        let val l = Produce grammar Estate 0 indata    (* MMW *)(* FIXME was .. @ [EndToken] *)
-            val p_trees = get_trees l
-        in p_trees
-        end
-   end;
+  let
+    val S0 = [("S'", 0, [], [Nonterminal (startsymbol, 0), Terminal EndToken], "", 0)];
+    val s = length indata + 1;     (* MMW *)(* FIXME was .. + 2 *)
+    val Estate = Array.array (s, []);
+  in
+    Array.update (Estate, 0, S0);
+    let
+      val l = produce grammar Estate 0 indata;    (* MMW *)(* FIXME was .. @ [EndToken] *)
+      val p_trees = get_trees l;
+    in p_trees end
+  end;
 
 
 (* FIXME demo *)
-fun parse (Gram (roots, prod_tab)) root toks =
-  if root mem roots then
-    (case earley prod_tab root toks of
-      [] => error "parse: no parse trees"
-    | pt :: _ => pt)
-  else error ("Unparsable category: " ^ root);
+fun parse (Gram (_, prod_tab)) start toks =
+  (case earley prod_tab start toks of
+    [] => sys_error "parse: no parse trees"
+  | pt :: _ => pt);
 
 
 end;

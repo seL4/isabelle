@@ -7,34 +7,39 @@ WARNING: This file is about to disappear.
 
 signature PARSER =
 sig
-  structure XGram: XGRAM
-  structure ParseTree: PARSE_TREE
-  local open XGram ParseTree ParseTree.Lexicon in
+  structure Lexicon: LEXICON
+  structure SynExt: SYN_EXT
+  local open Lexicon SynExt SynExt.Ast in
     type gram
-    val mk_gram: string list -> string prod list -> gram
+    val empty_gram: gram
+    val extend_gram: gram -> string list -> xprod list -> gram
+    val merge_grams: gram -> gram -> gram
+    val pretty_gram: gram -> Pretty.T list
+    datatype parsetree =
+      Node of string * parsetree list |
+      Tip of token
     val parse: gram -> string -> token list -> parsetree
   end
-
-(*  exception SYNTAX_ERROR of token list *)
-(*  val compile_xgram: string list * token prod list -> Gram *)
-(*  val parsable: Gram * string -> bool *)
-(*  val print_gram: Gram * lexicon -> unit *)
 end;
 
-functor EarleyFun(structure Symtab: SYMTAB and XGram: XGRAM
-  and ParseTree: PARSE_TREE): PARSER =
+functor EarleyFun(structure Symtab: SYMTAB and Lexicon: LEXICON
+  and SynExt: SYN_EXT)(*: PARSER *) =  (* FIXME *)
 struct
 
-structure ParseTree = ParseTree;
-structure Lexicon = ParseTree.Lexicon;
-structure XGram = XGram;
-open ParseTree Lexicon;
+structure Pretty = SynExt.Ast.Pretty;
+structure Lexicon = Lexicon;
+structure SynExt = SynExt;
+open Lexicon;
 
 
-(** mk_pt (from parse_tree.ML) **)
+(** datatype parsetree **)
+
+datatype parsetree =
+  Node of string * parsetree list |
+  Tip of token;
 
 fun mk_pt ("", [pt]) = pt
-  | mk_pt ("", _) = error "mk_pt: funny copy op in parse tree"
+  | mk_pt ("", _) = sys_error "mk_pt: funny copy op in parse tree"
   | mk_pt (s, ptl) = Node (s, ptl);
 
 
@@ -88,7 +93,7 @@ fun llist_to_list (ref nilL) = [] |
 
 val len = length;
 
-local open Array XGram ParseTree ParseTree.Lexicon in
+local open Array SynExt in
 nonfix sub;
 
 fun forA(p: int -> unit, a: 'a array) : unit =
@@ -101,10 +106,16 @@ fun itA(a0:'a, b: 'b array)(f:'a * 'b -> 'a) : 'a =
         fun acc(a,i) = if i=ub then a else acc(f(a,sub(b,i)),i+1)
     in acc(a0,0) end;
 
-(*
-gram: name of nt -> number, nt number -> productions array,
-      nt number -> list of nt's reachable via copy ops
-*)
+
+
+(** grammars **)
+
+datatype 'a symb =
+  Dlm of 'a |
+  Arg of string * int;
+
+datatype 'a prod = Prod of string * 'a symb list * string * int;
+
 
 datatype Symbol = T of token | NT of int * int
      and Op = Op of OpSyn * string * int
@@ -112,56 +123,68 @@ withtype OpSyn = Symbol array
      and OpListA = Op array * int TokenMap
      and FastAcc = int TokenMap;
 
-type gram = int Symtab.table * OpListA array * int list array;
+(*gram_tabs: name of nt -> number, nt number -> productions array,
+  nt number -> list of nt's reachable via copy ops*)
 
-fun non_term(Nonterminal(s,_)) = if predef_term(s)=EndToken then [s] else []
-  | non_term(_) = [];
+type gram_tabs = int Symtab.table * OpListA array * int list array;
 
-fun non_terms(Prod(_,symbs,_,_)) = flat(map non_term symbs);
+type gram = string list * string prod list * gram_tabs;
 
-(* mk_pre_grammar converts a list of productions in external format into an
-internal gram object. *)
+
+fun non_term (Arg (s, _)) = if is_terminal s then None else Some s
+  | non_term _ = None;
+
+fun non_terms (Prod (_, symbs, _, _)) = mapfilter non_term symbs;
+
+
+(* mk_pre_grammar *)
+(* converts a list of productions in external format into an
+   internal gram object. *)
+
 val dummyTM:FastAcc = mkTokenMap[];
 
-fun mk_pre_grammar(prods): gram =
-let fun same_res(Prod(t1,_,_,_), Prod(t2,_,_,_)) = t1=t2;
+fun mk_pre_grammar prods : gram_tabs =
+  let
+    fun same_res (Prod(t1, _, _, _), Prod(t2, _, _, _)) = t1=t2;
     val partitioned0 = partition_eq same_res prods;
-    val nts0 = map (fn Prod(ty,_,_,_)::_ => ty) partitioned0;
+    val nts0 = map (fn Prod(ty, _, _, _)::_ => ty) partitioned0;
     val nts' = distinct(flat(map non_terms prods)) \\ nts0;
     val nts = nts' @ nts0;
     val partitioned = (replicate (len nts') []) @ partitioned0;
     val ntis = nts ~~ (0 upto (len(nts)-1));
-    val tab = foldr Symtab.update (ntis,Symtab.null);
+    val tab = foldr Symtab.update (ntis, Symtab.null);
 
-    fun nt_or_vt(s,p) =
-        (case predef_term(s) of
-           EndToken => let val Some(i) = Symtab.lookup(tab,s) in NT(i,p) end
-         | tk => T(tk));
+    fun nt_or_vt (s, p) =
+      (case predef_term s of
+        None => NT (the (Symtab.lookup (tab, s)), p)
+      | Some tk => T tk);
 
-    fun mksyn(Terminal(t)) = [T(t)]
-      | mksyn(Nonterminal(t)) = [nt_or_vt t]
-      | mksyn(_) = [];
+    fun mksyn(Dlm(t)) = T(t)
+      | mksyn(Arg(t)) = nt_or_vt t;
 
-    fun prod2op(Prod(nt,sy,opn,p)) =
-        let val syA = arrayoflist(flat(map mksyn sy)) in Op(syA,opn,p) end;
+    fun prod2op(Prod(nt, sy, opn, p)) =
+        let val syA = arrayoflist(map mksyn sy) in Op(syA, opn, p) end;
 
-    fun mkops prods = (arrayoflist(map prod2op prods),dummyTM);
+    fun mkops prods = (arrayoflist(map prod2op prods), dummyTM);
 
     val opLA = arrayoflist(map mkops partitioned);
 
-    val subs = array(length opLA,[]) : int list array;
-    fun newcp v (a,Op(syA,_,p)) =
+    val subs = array(length opLA, []) : int list array;
+    fun newcp v (a, Op(syA, _, p)) =
         if p=chain_pri
-        then let val NT(k,_) = sub(syA,0)
+        then let val NT(k, _) = sub(syA, 0)
              in if k mem v then a else k ins a end
         else a;
     fun reach v i =
-        let val new = itA ([],#1(sub(opLA,i))) (newcp v)
+        let val new = itA ([], #1(sub(opLA, i))) (newcp v)
             val v' = new union v
         in flat(map (reach v') new) union v' end;
-    fun rch(i) = update(subs,i,reach[i]i);
+    fun rch(i) = update(subs, i, reach[i]i);
 
-in forA(rch,subs); (tab,opLA,subs) end;
+  in
+    forA(rch, subs); (tab, opLA, subs)
+  end;
+
 
 val RootPref = "__";
 
@@ -170,7 +193,7 @@ nonterminals (in the form of OpList) to sets (lists) of token strings *)
 
 type Lkhd = token list list list;
 
-(* subst_syn(s,k) syn = [ pref k ts | ts is a token string derivable from sy
+(* subst_syn(s, k) syn = [ pref k ts | ts is a token string derivable from sy
                                       under substitution s ] *)
 (* This is the general version.
 fun cross l1 l2 = flat(map (fn e2 => (map (fn e1 => e1@e2) l1)) l2);
@@ -212,46 +235,107 @@ fun mk_lkhd(opLA:OpListA array,k:int):Lkhd =
     in writeln"Computing lookahead tables ...";
        iterate (replicate (length opLA) []) end;
 
-(* create look ahead tables *)
-fun mk_earley_gram(g as (tab,opLA,_):gram):gram =
-    let val lkhd = mk_lkhd(opLA,1);
+
+(* mk_earley_gram *)       (* create look ahead tables *)
+
+fun mk_earley_gram (g as (tab, opLA, _):gram_tabs):gram_tabs =
+    let val lkhd = mk_lkhd(opLA, 1);
         fun mk_fa(i):FastAcc =
-            let val opA = #1(sub(opLA,i));
-                fun start(j) = let val Op(sy,_,_) = sub(opA,j);
-                                   val pre = subst_syn(lkhd,1) sy
-                        in (j,if [] mem pre then [] else map hd pre) end;
+            let val opA = #1(sub(opLA, i));
+                fun start(j) = let val Op(sy, _, _) = sub(opA, j);
+                                   val pre = subst_syn(lkhd, 1) sy
+                        in (j, if [] mem pre then [] else map hd pre) end;
             in mkTokenMap(map start (0 upto(length(opA)-1))) end;
-        fun updt(i) = update(opLA,i,(#1(sub(opLA,i)),mk_fa(i)));
+        fun updt(i) = update(opLA, i, (#1(sub(opLA, i)), mk_fa(i)));
 
-    in forA(updt,opLA); g end;
+    in forA(updt, opLA); g end;
 
-fun compile_xgram(roots,prods) =
-      let fun mk_root nt = Prod(RootPref^nt,
-                [Nonterminal(nt,0),Terminal(EndToken)],"",0);
-          val prods' = (map mk_root roots) @ prods
-      in mk_earley_gram(mk_pre_grammar(prods')) end;
+
+(* compile_xgram *)
+
+fun compile_xgram (roots, prods) =
+  let
+    fun mk_root nt =
+      Prod (RootPref ^ nt, [Arg (nt, 0), Dlm EndToken], "", 0);
+
+    val prods' = (map mk_root roots) @ prods;
+  in
+    mk_earley_gram (mk_pre_grammar prods')
+  end;
 
 
 (* translate (from xgram.ML) *)
 
 fun translate trfn =
-  map
-    (fn Terminal t => Terminal (trfn t)
-      | Nonterminal s => Nonterminal s
-      | Space s => Space s
-      | Bg i => Bg i
-      | Brk i => Brk i
-      | En => En);
+  map (fn Dlm t => Dlm (trfn t) | Arg s => Arg s);
 
 
-(* mk_gram (from syntax.ML) *)
+(* mk_gram_tabs *)
 
 fun str_to_tok (opl: string prod list): token prod list =
   map
     (fn Prod (t, syn, s, pa) => Prod (t, translate Token syn, s, pa))
     opl;
 
-fun mk_gram roots prods = compile_xgram (roots, str_to_tok prods);
+fun mk_gram_tabs roots prods = compile_xgram (roots, str_to_tok prods);
+
+
+
+(** build gram **)
+
+fun mk_gram roots prods = (roots, prods, mk_gram_tabs roots prods);
+
+fun sub_gram (roots1, prods1, _) (roots2, prods2, _) =
+  roots1 subset roots2 andalso prods1 subset prods2;
+
+
+(* empty, extend, merge grams *)
+
+val empty_gram = mk_gram [] [];
+
+fun extend_gram (gram1 as (roots1, prods1, _)) roots2 xprods2 =
+  let
+    fun symb_of (Delim s) = Some (Dlm s)
+      | symb_of (Argument s_p) = Some (Arg s_p)
+      | symb_of _ = None;
+
+    fun prod_of (XProd (lhs, xsymbs, const, pri)) =
+      Prod (lhs, mapfilter symb_of xsymbs, const, pri);
+
+    val prods2 = distinct (map prod_of xprods2);
+  in
+    if roots2 subset roots1 andalso prods2 subset prods1 then gram1
+    else mk_gram (extend_list roots1 roots2) (extend_list prods1 prods2)
+  end;
+
+fun merge_grams (gram1 as (roots1, prods1, _)) (gram2 as (roots2, prods2, _)) =
+  if sub_gram gram2 gram1 then gram1
+  else if sub_gram gram1 gram2 then gram2
+  else mk_gram (merge_lists roots1 roots2) (merge_lists prods1 prods2);
+
+
+(* pretty_gram *)
+
+fun pretty_gram (_, prods, _) =
+  let
+    fun pretty_name name = [Pretty.str (name ^ " =")];
+
+    fun pretty_symb (Dlm s) = Pretty.str (quote s)
+      | pretty_symb (Arg (s, p)) =
+          if is_terminal s then Pretty.str s
+          else Pretty.str (s ^ "[" ^ string_of_int p ^ "]");
+
+    fun pretty_const "" = []
+      | pretty_const c = [Pretty.str ("=> " ^ quote c)];
+
+    fun pretty_pri p = [Pretty.str ("(" ^ string_of_int p ^ ")")];
+
+    fun pretty_prod (Prod (name, symbs, const, pri)) =
+      Pretty.block (Pretty.breaks (pretty_name name @
+        map pretty_symb symbs @ pretty_const const @ pretty_pri pri));
+  in
+    map pretty_prod prods
+  end;
 
 
 
@@ -324,85 +408,58 @@ fun predict(tk,isi,si,p',opLA) = fn nti =>
     in seq add (applyTokenMap(tm,tk)) end;
 
 
-(*(* FIXME *)
-fun parsable((tab,_,_):gram, root:string) =
-        not(Symtab.lookup(tab,RootPref^root) = None);
-*)
-
-(* exception SYNTAX_ERROR of token list; *) (* FIXME *)
 
 fun unknown c = error ("Unparsable category: " ^ c);
 
-fun syn_err toks = error ("Syntax error at: " ^ space_implode " " (map str_of_token toks));
+fun syn_err toks =
+  error ("Syntax error at: " ^ space_implode " " (map str_of_token toks));
 
-fun parse ((tab,opLA,rchA):gram) (root:string) (tl: token list): parsetree =
-    let val tl' = tl;   (* FIXME was ..@[EndToken] *)
-        val state_sets = mt_states(len tl' +1);
-        val s0 = mt_stateS();
-        val rooti = case Symtab.lookup(tab,RootPref^root) of
-                Some(ri) => ri | None => unknown root;
+fun parse ((_, _, (tab, opLA, rchA)):gram) (root:string) (tl: token list): parsetree =
+  let
+    val tl' = tl;
+    val state_sets = mt_states(len tl' + 1);
+    val s0 = mt_stateS();
+    val rooti = case Symtab.lookup(tab, RootPref^root) of
+            Some(ri) => ri | None => unknown root;
 
-        fun lr (tl,isi,si,t) =
-(*            if ismt_stateS(si) then raise SYNTAX_ERROR(t::tl) else  *)  (* FIXME *)
-            if ismt_stateS(si) then syn_err (t::tl) else
-            case tl of
-              [] => () |
-              t::tl =>
-                let val si1 = mt_stateS();
-                    fun process(St(nti,pi,ip,from,ptl)) =
-                          let val opA = #1(sub(opLA,nti))
-                              val Op(syA,opn,p) = sub(opA,pi) in
-                        if ip = length(syA)
-                        then complete(nti,syA,opn,p,ptl,
-                                        sub(state_sets,from),si,opLA,rchA)
-                        else case sub(syA,ip) of
-                          NT(ntj,p) =>
-                                seq (predict(t,isi,si,p,opLA)) (sub(rchA,ntj))
-                        | T(t') =>
-                            if matching_tokens(t,t')
-                            then add_state(nti,pi,ip+1,from,
-                                           if valued_token(t)
-                                           then ptl@[Tip(t)] else ptl,
-                                           si1)
-                            else () end;
+    fun lr (tl, isi, si, t) =
+        if ismt_stateS(si) then syn_err (t::tl) else
+        case tl of
+          [] => () |
+          t::tl =>
+            let val si1 = mt_stateS();
+                fun process(St(nti,pi,ip,from,ptl)) =
+                      let val opA = #1(sub(opLA,nti))
+                          val Op(syA,opn,p) = sub(opA,pi) in
+                    if ip = length(syA)
+                    then complete(nti,syA,opn,p,ptl,
+                                    sub(state_sets,from),si,opLA,rchA)
+                    else case sub(syA,ip) of
+                      NT(ntj,p) =>
+                            seq (predict(t,isi,si,p,opLA)) (sub(rchA,ntj))
+                    | T(t') =>
+                        if matching_tokens(t,t')
+                        then add_state(nti,pi,ip+1,from,
+                                       if valued_token(t)
+                                       then ptl@[Tip(t)] else ptl,
+                                       si1)
+                        else () end;
 
-            in apply_all_states(process,si);
-               update(state_sets,isi+1,si1);
-               lr(tl,isi+1,si1,t) end
+        in apply_all_states(process,si);
+           update(state_sets,isi+1,si1);
+           lr(tl,isi+1,si1,t) end
 
-    in update(state_sets,0,s0);
-       add_state(rooti,0,0,0,[],s0);
-       lr(tl',0,s0,EndToken(*dummy*));
-       (*print_stat state_sets;*)
-       let val St(_,_,_,_,[pt]) = fst_state(sub(state_sets,len tl'))
-       in pt end
-    end;
-
-
-(*(* FIXME *)
-fun print_gram ((st,opAA,rchA):gram,lex) =
-    let val tts = Lexicon.name_of_token;
-        val al = map (fn (x,y)=>(y,x)) (Symtab.alist_of st);
-        fun nt i = let val Some(s) = assoc(al,i) in s end;
-        fun print_sy(T(EndToken)) = prs". " |
-            print_sy(T(tk)) = (prs(tts tk); prs" ") |
-            print_sy(NT(i,p)) = (prs((nt i)^"[");print_int p;prs"] ");
-        fun print_opA(i) =
-                let val lhs = nt i;
-                    val (opA,_)=sub(opAA,i);
-                    fun print_op(j) =
-                        let val Op(sy,n,p) = sub(opA,j)
-                        in prs(lhs^" = "); forA(fn i=>print_sy(sub(sy,i)),sy);
-                           if n="" then () else prs(" => \""^n^"\"");
-                           prs" (";print_int p;prs")\n"
-                        end;
-                in forA(print_op,opA) end;
-        fun print_rch(i) = (print_int i; prs" -> ";
-                            print_list("[","]\n",print_int) (sub(rchA,i)))
-    in forA(print_opA,opAA) (*; forA(print_rch,rchA) *) end;
-*)
+  in
+    update (state_sets, 0, s0);
+    add_state (rooti, 0, 0, 0, [], s0);
+    lr (tl', 0, s0, EndToken(*dummy*));
+    (*print_stat state_sets;*)
+    let val St(_, _, _, _, [pt]) = fst_state(sub(state_sets, len tl'))
+    in pt end
+  end;
 
 end;
+
 
 end;
 
