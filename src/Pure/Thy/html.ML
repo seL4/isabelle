@@ -130,7 +130,6 @@ val html_trans =
   ("free",  color "blue"),
   ("bound", color "green"),
   ("var",   color "blue"),
-  ("xnum",  color "yellow"),
   ("xstr",  color "brown")];
 
 
