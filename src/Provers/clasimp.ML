@@ -8,7 +8,7 @@ simplifier.ML, splitter.ML classical.ML, blast.ML).
 *)
 
 infix 4 addSIs2 addSEs2 addSDs2 addIs2 addEs2 addDs2 addsimps2 delsimps2
-  addSss addss addIffs delIffs;
+  addSss addss addss' addIffs delIffs;
 
 signature CLASIMP_DATA =
 sig
@@ -40,6 +40,7 @@ sig
   val delsimps2: clasimpset * thm list -> clasimpset
   val addSss: claset * simpset -> claset
   val addss: claset * simpset -> claset
+  val addss': claset * simpset -> claset
   val addIffs: clasimpset * thm list -> clasimpset
   val delIffs: clasimpset * thm list -> clasimpset
   val AddIffs: thm list -> unit
@@ -110,6 +111,8 @@ fun cs addSss ss = Classical.addSafter (cs, ("safe_asm_full_simp_tac",
                             CHANGED o safe_asm_full_simp_tac ss));
 fun cs addss  ss = Classical.addbefore  (cs, ("asm_full_simp_tac",
                             CHANGED o Simplifier.asm_full_simp_tac ss));
+fun cs addss' ss = Classical.addbefore  (cs, ("asm_full_simp_tac",
+                            CHANGED o Simplifier.asm_lr_simp_tac ss));
 
 
 (* iffs: addition of rules to simpsets and clasets simultaneously *)
