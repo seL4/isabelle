@@ -53,7 +53,7 @@ by (blast_tac (claset() addIs [constrains_weaken, transient_strengthen]) 1);
 qed "ensures_weaken_R";
 
 Goalw [ensures_def, constrains_def, transient_def]
-    "Acts F ~= {} ==> F : ensures A UNIV";
+    "F : ensures A UNIV";
 by Auto_tac;
 qed "ensures_UNIV";
 
