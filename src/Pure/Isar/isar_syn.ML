@@ -43,23 +43,23 @@ val update_contextP =
 (* formal comments *)
 
 val textP = OuterSyntax.command "text" "formal comments"
-  (text >> (Toplevel.theory o IsarThy.add_text));
+  (comment >> (Toplevel.theory o IsarThy.add_text));
 
 val titleP = OuterSyntax.command "title" "document title"
-  ((text -- Scan.optional text "" -- Scan.optional text "")
+  ((comment -- Scan.optional comment Comment.empty -- Scan.optional comment Comment.empty)
     >> (fn ((x, y), z) => Toplevel.theory (IsarThy.add_title x y z)));
 
 val chapterP = OuterSyntax.command "chapter" "chapter heading"
-  (text >> (Toplevel.theory o IsarThy.add_chapter));
+  (comment >> (Toplevel.theory o IsarThy.add_chapter));
 
 val sectionP = OuterSyntax.command "section" "section heading"
-  (text >> (Toplevel.theory o IsarThy.add_section));
+  (comment >> (Toplevel.theory o IsarThy.add_section));
 
 val subsectionP = OuterSyntax.command "subsection" "subsection heading"
-  (text >> (Toplevel.theory o IsarThy.add_subsection));
+  (comment >> (Toplevel.theory o IsarThy.add_subsection));
 
 val subsubsectionP = OuterSyntax.command "subsubsection" "subsubsection heading"
-  (text >> (Toplevel.theory o IsarThy.add_subsubsection));
+  (comment >> (Toplevel.theory o IsarThy.add_subsubsection));
 
 
 (* classes and sorts *)
@@ -493,9 +493,9 @@ val breakP =
   outer_parse.ML, otherwise be prepared for unexpected errors*)
 
 val keywords =
- ["!", "(", ")", "*", "+", "--", ",", ":", "::", ";", "<", "<=", "=", "==", "=>",
-  "?", "[", "]", "and", "as", "binder", "files", "infixl", "infixr",
-  "is", "output", "{", "|", "}"];
+ ["!", "%", "(", ")", "*", "+", ",", "--", ":", "::", ";", "<", "<=",
+  "=", "==", "=>", "?", "[", "]", "and", "as", "binder", "files",
+  "infixl", "infixr", "is", "output", "{", "|", "}"];
 
 val parsers = [
   (*theory structure*)
