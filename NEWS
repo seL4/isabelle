@@ -269,16 +269,18 @@ case of overlap with user translations (e.g. judgements over tuples);
 
 *** ZF ***
 
-* simplification automatically cancels common terms in arithmetic expressions over nat;
+* simplification automatically cancels common terms in arithmetic expressions
+over nat and int;
 
 * new treatment of nat to minimize type-checking: all operators coerce their 
 operands to a natural number using the function natify, making the algebraic
 laws unconditional;
 
-* as above, for int;
+* as above, for int: operators coerce their operands to an integer using the
+function intify;
 
 * the integer library now contains many of the usual laws for the orderings, 
-including $<=; 
+including $<=, and monotonicity laws for $+ and $*; 
 
 
 *** FOL & ZF ***
