@@ -1259,7 +1259,7 @@ extension mechanisms which meet this criterion: {\em type synonyms\/} and
 described elsewhere.
 \begin{warn}
   Types in \HOL\ must be non-empty; otherwise the quantifier rules would be
-  unsound~\cite[\S7]{paulson-COLOG}.
+  unsound, because $\exists x. x=x$ is a theorem \cite[\S7]{paulson-COLOG}.
 \end{warn}
 A \bfindex{type definition} identifies the new type with a subset of an
 existing type. More precisely, the new type is defined by exhibiting an
@@ -1346,6 +1346,7 @@ abstract properties $P$.
 If you introduce a new type (constructor) $ty$ axiomatically, i.e.\ by
 declaring the type and its operations and by stating the desired axioms, you
 should make sure the type has a non-empty model. You must also have a clause
+\par
 \begin{ttbox}
 arities \(ty\): (term,\(\dots\),term)term
 \end{ttbox}
