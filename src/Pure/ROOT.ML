@@ -21,15 +21,17 @@ structure Hidden = struct end;
 (*basic tools*)
 use "library.ML";
 cd "General"; use "ROOT.ML"; cd "..";
+
+(*fundamental structures*)
 use "term.ML";
+use "sorts.ML";
+use "type.ML";
 
 (*inner syntax module*)
 cd "Syntax"; use "ROOT.ML"; cd "..";
 
 (*core system*)
-use "sorts.ML";
 use "type_infer.ML";
-use "type.ML";
 use "sign.ML";
 use "envir.ML";
 use "pattern.ML";
