@@ -432,12 +432,15 @@ fun pretty_gram (Gram {tags, prods, chains, ...}) =
   in flat (map pretty_nt taglist) end;
 
 
-(* empty, extend, merge grams *)
+(** Operations on gramars **)
 
+(*The mother of all grammars*)
 val empty_gram = Gram {nt_count = 0, prod_count = 0,
                        tags = Symtab.null, chains = [], lambdas = [],
                        prods = Array.array (0, (([], []), []))};
 
+
+(*Invert list of chain productions*)
 fun inverse_chains [] result = result
   | inverse_chains ((root, branches) :: cs) result =
     let fun add [] result = result
@@ -446,16 +449,22 @@ fun inverse_chains [] result = result
             in add ids (overwrite (result, (id, root :: old))) end;
     in inverse_chains cs (add branches result) end;
 
+
+(*Add productions to a grammar*)
 fun extend_gram gram [] = gram
   | extend_gram (Gram {nt_count, prod_count, tags, chains, lambdas, prods})
                 xprods =
   let
+    (*Get tag for existing nonterminal or create a new one*)
     fun get_tag nt_count tags nt =
       case Symtab.lookup (tags, nt) of
         Some tag => (nt_count, tags, tag)
       | None => (nt_count+1, Symtab.update_new ((nt, nt_count), tags),
                  nt_count);
-  
+
+    (*Convert symbols to the form used by the parser;
+      delimiters and predefined terms are stored as terminals,
+      nonterminals are converted to integer tags*)
     fun symb_of [] nt_count tags result = (nt_count, tags, rev result)
       | symb_of ((Delim s) :: ss) nt_count tags result =
           symb_of ss nt_count tags ((Terminal (Token s)) :: result)
@@ -471,6 +480,7 @@ fun extend_gram gram [] = gram
       | symb_of (_ :: ss) nt_count tags result =
           symb_of ss nt_count tags result;
 
+    (*Convert list of productions by invoking symb_of for each of them*)
     fun prod_of [] nt_count prod_count tags result =
           (nt_count, prod_count, tags, result)
       | prod_of ((XProd (lhs, xsymbs, const, pri)) :: ps)
@@ -483,11 +493,14 @@ fun extend_gram gram [] = gram
                    ((lhs_tag, (prods, const, pri)) :: result)
         end;
 
-    val (nt_count', prod_count', tags', prods2) =
+    val (nt_count', prod_count', tags', xprods') =
       prod_of xprods nt_count prod_count tags [];
 
     val dummy = writeln "Building new grammar...";
 
+    (*Copy array containing productions of old grammar;
+      this has to be done to preserve the old grammar while being able
+      to change the array's content*)
     val prods' =
       let fun get_prod i = if i < nt_count then Array.sub (prods, i)
                            else (([], []), []);
@@ -495,8 +508,9 @@ fun extend_gram gram [] = gram
 
     val fromto_chains = inverse_chains chains [];
 
+    (*Add new productions to old ones*)
     val (fromto_chains', lambdas', _) =
-      add_prods prods' fromto_chains lambdas None prods2;
+      add_prods prods' fromto_chains lambdas None xprods';
 
     val chains' = inverse_chains fromto_chains' [];
   in Gram {nt_count = nt_count', prod_count = prod_count', tags = tags',
@@ -504,6 +518,7 @@ fun extend_gram gram [] = gram
   end;
 
 
+(*Merge two grammars*)
 fun merge_grams gram_a gram_b =
   let
     val dummy = writeln "Building new grammar...";
@@ -599,7 +614,7 @@ fun merge_grams gram_a gram_b =
   end;
 
 
-(** parse **)
+(** Parser **)
 
 datatype parsetree =
   Node of string * parsetree list |
