@@ -137,13 +137,13 @@ constituent parts.
 \item[$constdefs$] combines the declaration of constants and their
   definition.  The first $string$ is the type, the second the definition.
   
-\item[$axclass$] \index{*axclass section} defines an
-  \rmindex{axiomatic type class} as the intersection of existing
-  classes, with additional axioms holding.  Class axioms may not
-  contain more than one type variable.  The class axioms (with implicit
-  sort constraints added) are bound to the given names.  Furthermore a
-  class introduction rule is generated, which is automatically
-  employed by $instance$ to prove instantiations of this class.
+\item[$axclass$] \index{*axclass section} defines an \rmindex{axiomatic type
+    class} \cite{Wenzel:1997:TPHOL} as the intersection of existing classes,
+  with additional axioms holding.  Class axioms may not contain more than one
+  type variable.  The class axioms (with implicit sort constraints added) are
+  bound to the given names.  Furthermore a class introduction rule is
+  generated, which is automatically employed by $instance$ to prove
+  instantiations of this class.
   
 \item[$instance$] \index{*instance section} proves class inclusions or
   type arities at the logical level and then transfers these to the
