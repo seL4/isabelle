@@ -41,7 +41,7 @@ and trace_simp = ref false	(*print dpairs before calling SIMPL*)
 and trace_types = ref false	(*announce potential incompleteness
 				  of type unification*)
 
-val sgr = ref(Sign.proto_pure);
+val sgr = ref(Sign.pre_pure);
 
 type binderlist = (string*typ) list;
 

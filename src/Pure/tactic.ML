@@ -310,7 +310,7 @@ fun eres_inst_tac sinsts rule i =
   increment revcut_rl instead.*)
 fun make_elim_preserve rl = 
   let val {maxidx,...} = rep_thm rl
-      fun cvar ixn = cterm_of Sign.proto_pure (Var(ixn,propT));
+      fun cvar ixn = cterm_of (sign_of ProtoPure.thy) (Var(ixn,propT));
       val revcut_rl' = 
 	  instantiate ([],  [(cvar("V",0), cvar("V",maxidx+1)),
 			     (cvar("W",0), cvar("W",maxidx+1))]) revcut_rl

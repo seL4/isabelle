@@ -334,7 +334,7 @@ fun SUBGOAL goalfun i st = goalfun (List.nth(prems_of st, i-1),  i) st
 (*SELECT_GOAL optimization: replace the conclusion by a variable X,
   to avoid copying.  Proof states have X==concl as an assuption.*)
 
-val prop_equals = cterm_of Sign.proto_pure 
+val prop_equals = cterm_of (sign_of ProtoPure.thy) 
                     (Const("==", propT-->propT-->propT));
 
 fun mk_prop_equals(t,u) = capply (capply prop_equals t) u;
@@ -343,7 +343,7 @@ fun mk_prop_equals(t,u) = capply (capply prop_equals t) u;
   It is paired with a function to undo the transformation.  If ct contains
   Vars then it returns ct==>ct.*)
 fun eq_trivial ct =
-  let val xfree = cterm_of Sign.proto_pure (Free (gensym"EQ_TRIVIAL_", propT))
+  let val xfree = cterm_of (sign_of ProtoPure.thy) (Free (gensym"EQ_TRIVIAL_", propT))
       val ct_eq_x = mk_prop_equals (ct, xfree)
       and refl_ct = reflexive ct
       fun restore th = 
@@ -367,7 +367,7 @@ fun select tac st0 i =
 
 (* (!!selct. PROP ?V) ==> PROP ?V ;  contains NO TYPE VARIABLES.*)
 val dummy_quant_rl = 
-  read_cterm Sign.proto_pure ("!!selct::prop. PROP V",propT) |>
+  read_cterm (sign_of ProtoPure.thy) ("!!selct::prop. PROP V",propT) |>
   assume |> forall_elim_var 0 |> standard;
 
 (* Prevent the subgoal's assumptions from becoming additional subgoals in the

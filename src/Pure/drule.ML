@@ -68,9 +68,9 @@ sig
   val zero_var_indexes	: thm -> thm
 end;
 
-
 structure Drule : DRULE =
 struct
+
 
 (** some cterm->cterm operations: much faster than calling cterm_of! **)
 
@@ -389,22 +389,22 @@ fun weak_eq_thm (tha,thb) =
 (*** Meta-Rewriting Rules ***)
 
 val reflexive_thm =
-  let val cx = cterm_of Sign.proto_pure (Var(("x",0),TVar(("'a",0),logicS)))
+  let val cx = cterm_of (sign_of ProtoPure.thy) (Var(("x",0),TVar(("'a",0),logicS)))
   in Thm.reflexive cx end;
 
 val symmetric_thm =
-  let val xy = read_cterm Sign.proto_pure ("x::'a::logic == y",propT)
+  let val xy = read_cterm (sign_of ProtoPure.thy) ("x::'a::logic == y",propT)
   in standard(Thm.implies_intr_hyps(Thm.symmetric(Thm.assume xy))) end;
 
 val transitive_thm =
-  let val xy = read_cterm Sign.proto_pure ("x::'a::logic == y",propT)
-      val yz = read_cterm Sign.proto_pure ("y::'a::logic == z",propT)
+  let val xy = read_cterm (sign_of ProtoPure.thy) ("x::'a::logic == y",propT)
+      val yz = read_cterm (sign_of ProtoPure.thy) ("y::'a::logic == z",propT)
       val xythm = Thm.assume xy and yzthm = Thm.assume yz
   in standard(Thm.implies_intr yz (Thm.transitive xythm yzthm)) end;
 
 (** Below, a "conversion" has type cterm -> thm **)
 
-val refl_implies = reflexive (cterm_of Sign.proto_pure implies);
+val refl_implies = reflexive (cterm_of (sign_of ProtoPure.thy) implies);
 
 (*In [A1,...,An]==>B, rewrite the selected A's only -- for rewrite_goals_tac*)
 (*Do not rewrite flex-flex pairs*)
@@ -474,8 +474,8 @@ local
     end
     handle THM _ => err th | bind => err th
 in
-val flexpair_intr = flexpair_inst (symmetric flexpair_def)
-and flexpair_elim = flexpair_inst flexpair_def
+val flexpair_intr = flexpair_inst (symmetric ProtoPure.flexpair_def)
+and flexpair_elim = flexpair_inst ProtoPure.flexpair_def
 end;
 
 (*Version for flexflex pairs -- this supports lifting.*)
@@ -486,17 +486,17 @@ fun flexpair_abs_elim_list cts =
 (*** Some useful meta-theorems ***)
 
 (*The rule V/V, obtains assumption solving for eresolve_tac*)
-val asm_rl = trivial(read_cterm Sign.proto_pure ("PROP ?psi",propT));
+val asm_rl = trivial(read_cterm (sign_of ProtoPure.thy) ("PROP ?psi",propT));
 
 (*Meta-level cut rule: [| V==>W; V |] ==> W *)
-val cut_rl = trivial(read_cterm Sign.proto_pure
+val cut_rl = trivial(read_cterm (sign_of ProtoPure.thy)
         ("PROP ?psi ==> PROP ?theta", propT));
 
 (*Generalized elim rule for one conclusion; cut_rl with reversed premises:
      [| PROP V;  PROP V ==> PROP W |] ==> PROP W *)
 val revcut_rl =
-  let val V = read_cterm Sign.proto_pure ("PROP V", propT)
-      and VW = read_cterm Sign.proto_pure ("PROP V ==> PROP W", propT);
+  let val V = read_cterm (sign_of ProtoPure.thy) ("PROP V", propT)
+      and VW = read_cterm (sign_of ProtoPure.thy) ("PROP V ==> PROP W", propT);
   in  standard (implies_intr V
                 (implies_intr VW
                  (implies_elim (assume VW) (assume V))))
@@ -504,16 +504,16 @@ val revcut_rl =
 
 (*for deleting an unwanted assumption*)
 val thin_rl =
-  let val V = read_cterm Sign.proto_pure ("PROP V", propT)
-      and W = read_cterm Sign.proto_pure ("PROP W", propT);
+  let val V = read_cterm (sign_of ProtoPure.thy) ("PROP V", propT)
+      and W = read_cterm (sign_of ProtoPure.thy) ("PROP W", propT);
   in  standard (implies_intr V (implies_intr W (assume W)))
   end;
 
 (* (!!x. PROP ?V) == PROP ?V       Allows removal of redundant parameters*)
 val triv_forall_equality =
-  let val V  = read_cterm Sign.proto_pure ("PROP V", propT)
-      and QV = read_cterm Sign.proto_pure ("!!x::'a. PROP V", propT)
-      and x  = read_cterm Sign.proto_pure ("x", TFree("'a",logicS));
+  let val V  = read_cterm (sign_of ProtoPure.thy) ("PROP V", propT)
+      and QV = read_cterm (sign_of ProtoPure.thy) ("!!x::'a. PROP V", propT)
+      and x  = read_cterm (sign_of ProtoPure.thy) ("x", TFree("'a",logicS));
   in  standard (equal_intr (implies_intr QV (forall_elim x (assume QV)))
                            (implies_intr V  (forall_intr x (assume V))))
   end;
@@ -523,12 +523,12 @@ val triv_forall_equality =
    `thm COMP swap_prems_rl' swaps the first two premises of `thm'
 *)
 val swap_prems_rl =
-  let val cmajor = read_cterm Sign.proto_pure
+  let val cmajor = read_cterm (sign_of ProtoPure.thy)
             ("PROP PhiA ==> PROP PhiB ==> PROP Psi", propT);
       val major = assume cmajor;
-      val cminor1 = read_cterm Sign.proto_pure  ("PROP PhiA", propT);
+      val cminor1 = read_cterm (sign_of ProtoPure.thy)  ("PROP PhiA", propT);
       val minor1 = assume cminor1;
-      val cminor2 = read_cterm Sign.proto_pure  ("PROP PhiB", propT);
+      val cminor2 = read_cterm (sign_of ProtoPure.thy)  ("PROP PhiB", propT);
       val minor2 = assume cminor2;
   in standard
        (implies_intr cmajor (implies_intr cminor2 (implies_intr cminor1
@@ -540,8 +540,8 @@ val swap_prems_rl =
    Introduction rule for == using ==> not meta-hyps.
 *)
 val equal_intr_rule =
-  let val PQ = read_cterm Sign.proto_pure ("PROP phi ==> PROP psi", propT)
-      and QP = read_cterm Sign.proto_pure ("PROP psi ==> PROP phi", propT)
+  let val PQ = read_cterm (sign_of ProtoPure.thy) ("PROP phi ==> PROP psi", propT)
+      and QP = read_cterm (sign_of ProtoPure.thy) ("PROP psi ==> PROP phi", propT)
   in  equal_intr (assume PQ) (assume QP)
       |> implies_intr QP
       |> implies_intr PQ
