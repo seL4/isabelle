@@ -349,11 +349,12 @@ proof scripts to refer to parameters of some subgoal, for example.
   ;
 \end{rail}
 
-By default, $case_tac$ and $induct_tac$ admit to reason about datatypes only,
-unless an alternative explicit rule is given; only variables may be given as
-instantiation for $induct_tac$.  Also note that named local contexts (see
-\S\ref{sec:cases}) are not provided as would be by the proper $induct$ and
-$cases$ proof methods (see \S\ref{sec:induct-method-proper}).
+By default, $case_tac$ and $induct_tac$ admit to reason about inductive
+datatypes only, unless an alternative rule is given explicitly.  Furthermore,
+$case_tac$ does a classical case split on booleans; $induct_tac$ allows only
+variables to be given as instantiation.  Also note that named local contexts
+(see \S\ref{sec:cases}) are not provided as would be by the proper $induct$
+and $cases$ proof methods (see \S\ref{sec:induct-method-proper}).
 
 
 \section{Arithmetic}
