@@ -18,6 +18,7 @@ sig
   val declare_atomize: theory attribute
   val declare_rulify: theory attribute
   val atomize_term: Sign.sg -> term -> term
+  val atomize_thm: thm -> thm
   val atomize_rule: Sign.sg -> cterm -> thm
   val atomize_tac: int -> tactic
   val full_atomize_tac: int -> tactic
@@ -152,6 +153,10 @@ fun atomize_term sg =
   drop_judgment sg o MetaSimplifier.rewrite_term sg (get_atomize sg) [];
 
 fun atomize_rule sg = Tactic.rewrite true (get_atomize sg);
+
+(*Convert a natural-deduction rule into a formula (probably in FOL)*)
+fun atomize_thm th =
+  rewrite_rule  (get_atomize (Thm.sign_of_thm th)) th;
 
 fun atomize_tac i st =
   if Logic.has_meta_prems (Thm.prop_of st) i then
