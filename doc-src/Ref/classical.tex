@@ -399,14 +399,15 @@ simplified, before the each unsafe step of the search.
 
 \index{simplification!from classical reasoner} The wrapper tacticals
 underly the operators addss and addSss, which are used as primitives 
-for the automatic tactics described in \S\label{sec:automatic-tactics}.
+for the automatic tactics described in \S\ref{sec:automatic-tactics}.
 Strictly speaking, both operators are not part of the classical reasoner. 
 They should be defined when the simplifier is installed:
 \begin{ttbox}
 infix 4 addSss addss;
 fun  cs addSss ss = cs addSaltern ("safe_asm_full_simp_tac",
                          CHANGED o (safe_asm_full_simp_tac ss));
-fun  cs addss  ss = cs addbefore  ("asm_full_simp_tac", asm_full_simp_tac ss);
+fun  cs addss  ss = cs addbefore  ("asm_full_simp_tac", 
+                                    asm_full_simp_tac ss);
 \end{ttbox}
 \begin{warn}
 Being defined as wrappers, these operators are inappropriate for adding more 
@@ -499,7 +500,7 @@ force           : int  -> unit
 \end{ttbox}
 The automatic tactics attempt to prove goals using a combination of
 simplification and classical reasoning. 
-\begin{itemize}
+\begin{ttdescription}
 \item[\ttindexbold{auto_tac $(cs,ss)$}] is intended for situations where 
 there are a lot of mostly trivial subgoals; it proves all the easy ones, 
 leaving the ones it cannot prove.
@@ -507,18 +508,13 @@ leaving the ones it cannot prove.
 \item[\ttindexbold{force_tac} $(cs,ss)$ $i$] is intended to prove subgoal~$i$ 
 completely. It tries to apply all fancy tactics it knows about, 
 performing a rather exhaustive search.
-\end{itemize}
+\end{ttdescription}
 They must be supplied both a simpset and a claset; therefore 
 they are most easily called as \texttt{Auto_tac} and \texttt{Force_tac}, which 
 use the default claset and simpset (see \S\ref{sec:current-claset} below). 
-For interactive use, the shorthand \texttt{auto();} abbreviates 
-\begin{ttbox}
-by Auto_tac;
-\end{ttbox}
-while \texttt{force 1;} abbreviates 
-\begin{ttbox}
-by (Force_tac 1);
-\end{ttbox}
+For interactive use, 
+the shorthand \texttt{auto();} abbreviates \texttt{by Auto_tac;} 
+while \texttt{force 1;} abbreviates \texttt{by (Force_tac 1);}
 
 \subsection{Other classical tactics}
 \begin{ttbox} 
