@@ -7,7 +7,7 @@ Configuration for ProofGeneral of LFCS Edinburgh.
 
 signature PROOF_GENERAL =
 sig
-  val write_keywords: string -> unit
+  val write_keywords: unit -> unit
   val setup: (theory -> theory) list
   val init: bool -> unit
 end;
@@ -41,10 +41,12 @@ fun make_elisp_syntax (keywords, commands) =
   implode (map (make_elisp_commands commands) OuterSyntax.Keyword.kinds) ^
   "\n(provide 'isar-keywords)\n";
 
+val keywords_file = "isar-keywords.el";
+
 in
 
-fun write_keywords file =
-  File.write (Path.unpack file) (make_elisp_syntax (OuterSyntax.dest_syntax ()));
+fun write_keywords () =
+  File.write (Path.unpack keywords_file) (make_elisp_syntax (OuterSyntax.dest_syntax ()));
 
 end;
 
