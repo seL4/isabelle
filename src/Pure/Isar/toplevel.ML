@@ -26,6 +26,7 @@ sig
   val sign_of: state -> Sign.sg
   val context_of: state -> Proof.context
   val proof_of: state -> Proof.state
+  val enter_forward_proof: state -> Proof.state
   type transition
   exception TERMINATE
   exception RESTART
@@ -151,6 +152,7 @@ val context_of = node_case ProofContext.init Proof.context_of;
 val sign_of = Theory.sign_of o theory_of;
 val proof_of = node_case (fn _ => raise UNDEF) I;
 
+val enter_forward_proof = node_case Proof.init_state Proof.enter_forward;
 
 
 (** toplevel transitions **)
