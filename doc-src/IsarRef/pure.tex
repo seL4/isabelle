@@ -1,12 +1,12 @@
 
 \chapter{Basic Isar Language Elements}\label{ch:pure-syntax}
 
-Subsequently, we introduce the main part of the basic Isar theory and proof
-commands as provided by Isabelle/Pure.  Chapter~\ref{ch:gen-tools} describes
-further Isar elements provided by generic tools and packages (such as the
-Simplifier) that are either part of Pure Isabelle or pre-loaded by most object
-logics.  Chapter~\ref{ch:hol-tools} refers to actual object-logic specific
-elements of Isabelle/HOL.
+Subsequently, we introduce the main part of Pure Isar theory and proof
+commands, together with a few fundamental proof methods and attributes.
+Chapter~\ref{ch:gen-tools} describes further Isar elements provided by generic
+tools and packages (such as the Simplifier) that are either part of Pure
+Isabelle or pre-installed by most object logics.  Chapter~\ref{ch:hol-tools}
+refers to actual object-logic specific elements of Isabelle/HOL.
 
 \medskip
 
@@ -532,12 +532,13 @@ Thus, exporting some result $x \equiv t \drv \phi[x]$ yields $\edrv \phi[t]$.
 \end{rail}
 
 \begin{descr}
-\item [$\FIX{x}$] introduces a local \emph{arbitrary, but fixed} variable $x$.
-\item [$\ASSUME{a}{\Phi}$ and $\PRESUME{a}{\Phi}$] introduce local theorems
-  $\Phi$ by assumption.  Subsequent results applied to an enclosing goal
-  (e.g.\ by $\SHOWNAME$) are handled as follows: $\ASSUMENAME$ expects to be
-  able to unify with existing premises in the goal, while $\PRESUMENAME$
-  leaves $\Phi$ as new subgoals.
+\item [$\FIX{\vec x}$] introduces a local \emph{arbitrary, but fixed}
+  variables $\vec x$.
+\item [$\ASSUME{a}{\vec\phi}$ and $\PRESUME{a}{\vec\phi}$] introduce local
+  theorems $\vec\phi$ by assumption.  Subsequent results applied to an
+  enclosing goal (e.g.\ by $\SHOWNAME$) are handled as follows: $\ASSUMENAME$
+  expects to be able to unify with existing premises in the goal, while
+  $\PRESUMENAME$ leaves $\vec\phi$ as new subgoals.
   
   Several lists of assumptions may be given (separated by
   $\isarkeyword{and}$); the resulting list of current facts consists of all of
@@ -586,7 +587,7 @@ $this$\indexisarthm{this} refers to the most recently established facts.
   establish the goal to be claimed next.  The initial proof method invoked to
   refine that will be offered the facts to do ``anything appropriate'' (cf.\ 
   also \S\ref{sec:proof-steps}).  For example, method $rule$ (see
-  \S\ref{sec:pure-meth}) would typically do an elimination rather than an
+  \S\ref{sec:pure-meth-att}) would typically do an elimination rather than an
   introduction.  Automatic methods usually insert the facts into the goal
   state before operation.
 \item [$\FROM{\vec b}$] abbreviates $\NOTE{}{\vec b}~\THEN$; thus $\THEN$ is
@@ -595,12 +596,12 @@ $this$\indexisarthm{this} refers to the most recently established facts.
   chaining is from earlier facts together with the current ones.
 \end{descr}
 
-Basic proof methods (such as $rule$, see \S\ref{sec:pure-meth}) expect
+Basic proof methods (such as $rule$, see \S\ref{sec:pure-meth-att}) expect
 multiple facts to be given in their proper order, corresponding to a prefix of
 the premises of the rule involved.  Note that positions may be easily skipped
 using a form like $\FROM{\text{\texttt{_}}~a~b}$, for example.  This involves
-the trivial rule $\PROP\psi \Imp \PROP\psi$, which is bound in Isabelle/Pure
-as ``\texttt{_}'' (underscore).\indexisarthm{_@\texttt{_}}
+the trivial rule $\PROP\psi \Imp \PROP\psi$, which happens to be bound in
+Isabelle/Pure as ``\texttt{_}'' (underscore).\indexisarthm{_@\texttt{_}}
 
 
 \subsection{Goal statements}
@@ -683,10 +684,6 @@ or constitute some well-understood reduction to new sub-goals.  Arbitrary
 automatic proof tools that are prone leave a large number of badly structured
 sub-goals are no help in continuing the proof document in any intelligible
 way.
-%FIXME
-%A more appropriate technique would be to $\SHOWNAME$ some non-trivial
-%reduction as an explicit rule, which is solved completely by some automated
-%method, and then applied to some pending goal.
 
 \medskip
 
@@ -729,15 +726,90 @@ solved by assumption as the very last step.
   by expanding its definition; in many cases $\PROOF{m@1}$ is already
   sufficient to see what is going wrong.
 \item [``$\DDOT$''] is a \emph{default proof}\index{proof!default}; it
-  abbreviates $\BY{default}$.
+  abbreviates $\BY{rule}$.
 \item [``$\DOT$''] is a \emph{trivial proof}\index{proof!trivial}; it
   abbreviates $\BY{this}$.
 \item [$\SORRY$] is a \emph{fake proof}\index{proof!fake}; provided that the
   \texttt{quick_and_dirty} flag is enabled, $\SORRY$ pretends to solve the
-  goal without further ado.  Of course, the result is a fake theorem only,
-  involving some oracle in its internal derivation object (this is indicated
-  as ``$[!]$'' in the printed result).  The main application of $\SORRY$ is to
-  support experimentation and top-down proof development.
+  goal without further ado.  Of course, the result would be a fake theorem
+  only, involving some oracle in its internal derivation object (this is
+  indicated as ``$[!]$'' in the printed result).  The main application of
+  $\SORRY$ is to support experimentation and top-down proof development.
+\end{descr}
+
+
+\subsection{Fundamental methods and attributes}\label{sec:pure-meth-att}
+
+The following proof methods and attributes refer to some basic logical
+operations of Isar.  Further methods and attributes are provided by several
+generic and object-logic specific tools and packages (see chapters
+\ref{ch:gen-tools} and \ref{ch:hol-tools}).
+
+\indexisarmeth{assumption}\indexisarmeth{this}\indexisarmeth{rule}\indexisarmeth{$-$}
+\indexisaratt{intro}\indexisaratt{elim}\indexisaratt{dest}
+\indexisaratt{OF}\indexisaratt{of}
+\begin{matharray}{rcl}
+  assumption & : & \isarmeth \\
+  this & : & \isarmeth \\
+  rule & : & \isarmeth \\
+  - & : & \isarmeth \\
+  OF & : & \isaratt \\
+  of & : & \isaratt \\
+  intro & : & \isaratt \\
+  elim & : & \isaratt \\
+  dest & : & \isaratt \\
+  delrule & : & \isaratt \\
+\end{matharray}
+
+\begin{rail}
+  'rule' thmrefs
+  ;
+  'OF' thmrefs
+  ;
+  'of' (inst * ) ('concl' ':' (inst * ))?
+  ;
+
+  inst: underscore | term
+  ;
+\end{rail}
+
+\begin{descr}
+\item [$assumption$] solves some goal by a single assumption step.  Any facts
+  given (${} \le 1$) are guaranteed to participate in the refinement.  Recall
+  that $\QEDNAME$ (see \S\ref{sec:proof-steps}) already concludes any
+  remaining sub-goals by assumption.
+\item [$this$] applies all of the current facts directly as rules.  Recall
+  that ``$\DOT$'' (dot) abbreviates $\BY{this}$.
+\item [$rule~thms$] applies some rule given as argument in backward manner;
+  facts are used to reduce the rule before applying it to the goal.  Thus
+  $rule$ without facts is plain \emph{introduction}, while with facts it
+  becomes \emph{elimination}.
+  
+  When omitting the $thms$ argument, the $rule$ method tries to pick
+  appropriate rules automatically, as declared in the current context using
+  the $intro$, $elim$, $dest$ attributes (see below).  This is the default
+  behavior of $\PROOFNAME$ and ``$\DDOT$'' (double-dot) steps (see
+  \S\ref{sec:proof-steps}).
+\item [``$-$''] does nothing but insert the forward chaining facts as premises
+  into the goal.  Note that command $\PROOFNAME$ without any method actually
+  performs a single reduction step using the $rule$ method; thus a plain
+  \emph{do-nothing} proof step would be $\PROOF{-}$ rather than $\PROOFNAME$
+  alone.
+\item [$OF~thms$] applies $thms$ in parallel (cf.\ \texttt{MRS} in
+  \cite[\S5]{isabelle-ref}, but note the reversed order).  Some premises may
+  be skipped by including ``$\_$'' (underscore) as argument.
+\item [$of~ts$] performs positional instantiation.  The terms $ts$ are
+  substituted for any schematic variables occurring in a theorem from left to
+  right; ``\texttt{_}'' (underscore) indicates to skip a position.  Arguments
+  following a ``$concl\colon$'' specification refer to positions of the
+  conclusion of a rule.
+\item [$intro$, $elim$, and $dest$] declare introduction, elimination, and
+  destruct rules, respectively.  Note that the classical reasoner (see
+  \S\ref{sec:classical-basic}) introduces different versions of these
+  attributes, and the $rule$ method, too.  In object-logics with classical
+  reasoning enabled, the latter version should be used all the time to avoid
+  confusion!
+\item [$delrule$] undeclares introduction or elimination rules.
 \end{descr}
 
 
@@ -832,6 +904,117 @@ as well.  These typically achieve a stronger forward style of reasoning.
 \end{descr}
 
 
+\subsection{Emulating tactic scripts}
+
+The following elements emulate unstructured tactic scripts to some extent.
+While these are anathema for writing proper Isar proof documents, they might
+come in handy for interactive exploration and debugging, or even actual
+tactical proof within new-style theories (to benefit from document
+preparation, for example).
+
+\indexisarcmd{apply}\indexisarcmd{apply-end}
+\indexisarcmd{defer}\indexisarcmd{prefer}\indexisarcmd{back}
+\indexisarmeth{tactic}
+\begin{matharray}{rcl}
+  \isarcmd{apply} & : & \isartrans{proof(prove)}{proof(prove)} \\
+  \isarcmd{apply_end} & : & \isartrans{proof(state)}{proof(state)} \\
+  \isarcmd{defer} & : & \isartrans{proof}{proof} \\
+  \isarcmd{prefer} & : & \isartrans{proof}{proof} \\
+  \isarcmd{back} & : & \isartrans{proof}{proof} \\
+  tactic & : & \isarmeth \\
+\end{matharray}
+
+\railalias{applyend}{apply\_end}
+\railterm{applyend}
+
+\begin{rail}
+  'apply' method
+  ;
+  applyend method
+  ;
+  'defer' nat?
+  ;
+  'prefer' nat
+  ;
+  'tactic' text
+  ;
+\end{rail}
+
+\begin{descr}
+\item [$\isarkeyword{apply}~(m)$] applies proof method $m$ in an initial
+  position, but retains ``$prove$'' mode (unlike $\PROOFNAME$).  Thus
+  consecutive method applications may be given just as in tactic scripts.  In
+  order to complete the proof properly, any of the actual structured proof
+  commands (e.g.\ ``$\DOT$'') has to be given eventually.
+  
+  Facts are passed to $m$ as indicated by the goal's forward-chain mode.
+  Common use of $\isarkeyword{apply}$ would be in a purely backward manner,
+  though.
+\item [$\isarkeyword{apply_end}~(m)$] applies proof method $m$ as if in
+  terminal position.  Basically, this simulates a multi-step tactic script for
+  $\QEDNAME$, but may be given anywhere within the proof body.
+  
+  No facts are passed to $m$.  Furthermore, the static context is that of the
+  enclosing goal (as for actual $\QEDNAME$).  Thus the proof method may not
+  refer to any assumptions introduced in the current body, for example.
+\item [$\isarkeyword{defer}~n$ and $\isarkeyword{prefer}~n$] shuffle the list
+  of pending goals: $defer$ puts off goal $n$ to the end of the list ($n = 1$
+  by default), while $prefer$ brings goal $n$ to the top.
+\item [$\isarkeyword{back}$] does back-tracking over the result sequence of
+  the latest proof command.\footnote{Unlike the ML function \texttt{back}
+    \cite{isabelle-ref}, the Isar command does not search upwards for further
+    branch points.} Basically, any proof command may return multiple results.
+\item [$tactic~text$] produces a proof method from any ML text of type
+  \texttt{tactic}.  Apart from the usual ML environment, and the current
+  implicit theory context, the ML code may refer to the following locally
+  bound values:
+%%FIXME ttbox produces too much trailing space (why?)
+{\footnotesize\begin{verbatim}
+val ctxt  : Proof.context
+val facts : thm list
+val thm   : string -> thm
+val thms  : string -> thm list
+\end{verbatim}}
+  Here \texttt{ctxt} refers to the current proof context, \texttt{facts}
+  indicates any current facts for forward-chaining, and
+  \texttt{thm}~/~\texttt{thms} retrieve named facts (including global
+  theorems) from the context.
+\end{descr}
+
+
+\subsection{Meta-linguistic features}
+
+\indexisarcmd{oops}
+\begin{matharray}{rcl}
+  \isarcmd{oops} & : & \isartrans{proof}{theory} \\
+\end{matharray}
+
+The $\OOPS$ command discontinues the current proof attempt, while considering
+the partial proof text as properly processed.  This is conceptually quite
+different from ``faking'' actual proofs via $\SORRY$ (see
+\S\ref{sec:proof-steps}): $\OOPS$ does not observe the proof structure at all,
+but goes back right to the theory level.  Furthermore, $\OOPS$ does not
+produce any result theorem --- there is no claim to be able to complete the
+proof anyhow.
+
+A typical application of $\OOPS$ is to explain Isar proofs \emph{within} the
+system itself, in conjunction with the document preparation tools of Isabelle
+described in \cite{isabelle-sys}.  Thus partial or even wrong proof attempts
+can be discussed in a logically sound manner.  Note that the Isabelle {\LaTeX}
+macros can be easily adapted to print something like ``$\dots$'' instead of an
+``$\OOPS$'' keyword.
+
+\medskip The $\OOPS$ command is undoable, in contrast to $\isarkeyword{kill}$
+(see \S\ref{sec:history}).  The effect is to get back to the theory
+\emph{before} the opening of the proof.
+
+%FIXME remove
+% \begin{descr}
+% \item [$\isarkeyword{oops}$] dismisses the current proof, leaving the text in
+%   as properly processed.
+% \end{descr}
+
+
 \section{Other commands}
 
 \subsection{Diagnostics}\label{sec:diag}
@@ -839,13 +1022,14 @@ as well.  These typically achieve a stronger forward style of reasoning.
 \indexisarcmd{pr}\indexisarcmd{thm}\indexisarcmd{term}\indexisarcmd{prop}\indexisarcmd{typ}
 \indexisarcmd{print-facts}\indexisarcmd{print-binds}
 \begin{matharray}{rcl}
-  \isarcmd{pr} & : & \isarkeep{theory~|~proof} \\
-  \isarcmd{thm} & : & \isarkeep{theory~|~proof} \\
-  \isarcmd{term} & : & \isarkeep{theory~|~proof} \\
-  \isarcmd{prop} & : & \isarkeep{theory~|~proof} \\
-  \isarcmd{typ} & : & \isarkeep{theory~|~proof} \\
-  \isarcmd{print_facts} & : & \isarkeep{proof} \\
-  \isarcmd{print_binds} & : & \isarkeep{proof} \\
+  \isarcmd{help}^* & : & \isarkeep{\cdot} \\
+  \isarcmd{pr}^* & : & \isarkeep{\cdot} \\
+  \isarcmd{thm}^* & : & \isarkeep{theory~|~proof} \\
+  \isarcmd{term}^* & : & \isarkeep{theory~|~proof} \\
+  \isarcmd{prop}^* & : & \isarkeep{theory~|~proof} \\
+  \isarcmd{typ}^* & : & \isarkeep{theory~|~proof} \\
+  \isarcmd{print_facts}^* & : & \isarkeep{proof} \\
+  \isarcmd{print_binds}^* & : & \isarkeep{proof} \\
 \end{matharray}
 
 These commands are not part of the actual Isabelle/Isar syntax, but assist
@@ -869,6 +1053,8 @@ theory or proof configuration is not changed.
 \end{rail}
 
 \begin{descr}
+\item [$\isarkeyword{help}$] prints a list of available language elements.
+  Note that methods and attributes depend on the current theory context.
 \item [$\isarkeyword{pr}~n$] prints the current top-level state, i.e.\ the
   theory identifier or proof state.  The latter includes the proof context,
   current facts and goals.  The optional argument $n$ affects the implicit
@@ -937,43 +1123,12 @@ undoable.
   result in utter confusion.
 \end{warn}
 
-\begin{descr}
-\item [$\isarkeyword{undo}$] revokes the latest state-transforming command.
-\item [$\isarkeyword{redo}$] undos the latest $\isarkeyword{undo}$.
-\item [$\isarkeyword{kill}$] aborts the current history level.
-\end{descr}
-
-
-\subsection{Meta-linguistic features}
-
-\indexisarcmd{oops}
-\begin{matharray}{rcl}
-  \isarcmd{oops}^* & : & \isartrans{proof}{theory} \\
-\end{matharray}
-
-The $\OOPS$ command discontinues the current proof attempt, while considering
-the partial proof text as properly processed.  This is conceptually quite
-different from ``faking'' actual proofs via $\SORRY$ (see
-\S\ref{sec:proof-steps}): $\OOPS$ does not observe the proof structure at all,
-but goes back right to the theory level.  Furthermore, $\OOPS$ does not
-produce any result theorem --- there is no claim to be able to complete the
-proof anyhow.
-
-A typical application of $\OOPS$ is to explain Isar proofs \emph{within} the
-system itself, in conjunction with the document preparation tools of Isabelle
-described in \cite{isabelle-sys}.  Thus partial or even wrong proof attempts
-can be discussed in a logically sound manner.  Note that the Isabelle {\LaTeX}
-macros can be easily adapted to print something like ``$\dots$'' instead of an
-``$\OOPS$'' keyword.
-
-\medskip The $\OOPS$ command is undoable, in contrast to $\isarkeyword{kill}$
-(see \S\ref{sec:history}).  The effect is to get back to the theory
-\emph{before} the opening of the proof.
-
-\begin{descr}
-\item [$\isarkeyword{oops}$] dismisses the current proof, leaving the text in
-  as properly processed.
-\end{descr}
+%FIXME remove
+% \begin{descr}
+% \item [$\isarkeyword{undo}$] revokes the latest state-transforming command.
+% \item [$\isarkeyword{redo}$] undos the latest $\isarkeyword{undo}$.
+% \item [$\isarkeyword{kill}$] aborts the current history level.
+% \end{descr}
 
 
 \subsection{System operations}
@@ -981,12 +1136,12 @@ macros can be easily adapted to print something like ``$\dots$'' instead of an
 \indexisarcmd{cd}\indexisarcmd{pwd}\indexisarcmd{use-thy}\indexisarcmd{use-thy-only}
 \indexisarcmd{update-thy}\indexisarcmd{update-thy-only}
 \begin{matharray}{rcl}
-  \isarcmd{cd} & : & \isarkeep{\cdot} \\
-  \isarcmd{pwd} & : & \isarkeep{\cdot} \\
-  \isarcmd{use_thy} & : & \isarkeep{\cdot} \\
-  \isarcmd{use_thy_only} & : & \isarkeep{\cdot} \\
-  \isarcmd{update_thy} & : & \isarkeep{\cdot} \\
-  \isarcmd{update_thy_only} & : & \isarkeep{\cdot} \\
+  \isarcmd{cd}^* & : & \isarkeep{\cdot} \\
+  \isarcmd{pwd}^* & : & \isarkeep{\cdot} \\
+  \isarcmd{use_thy}^* & : & \isarkeep{\cdot} \\
+  \isarcmd{use_thy_only}^* & : & \isarkeep{\cdot} \\
+  \isarcmd{update_thy}^* & : & \isarkeep{\cdot} \\
+  \isarcmd{update_thy_only}^* & : & \isarkeep{\cdot} \\
 \end{matharray}
 
 \begin{descr}
@@ -1004,82 +1159,6 @@ macros can be easily adapted to print something like ``$\dots$'' instead of an
 
 These system commands are scarcely used when working with the Proof~General
 interface, since loading of theories is done fully transparently.
-
-
-\subsection{Emulating tactic scripts}
-
-The following elements emulate unstructured tactic scripts to some extent.
-While these are anathema for writing proper Isar proof documents, they might
-come in handy for interactive exploration and debugging.
-
-\indexisarcmd{apply}\indexisarcmd{apply-end}
-\indexisarcmd{defer}\indexisarcmd{prefer}\indexisarcmd{back}
-\indexisarmeth{tactic}
-\begin{matharray}{rcl}
-  \isarcmd{apply} & : & \isartrans{proof(prove)}{proof(prove)} \\
-  \isarcmd{apply_end} & : & \isartrans{proof(state)}{proof(state)} \\
-  \isarcmd{defer} & : & \isartrans{proof}{proof} \\
-  \isarcmd{prefer} & : & \isartrans{proof}{proof} \\
-  \isarcmd{back} & : & \isartrans{proof}{proof} \\
-  tactic & : & \isarmeth \\
-\end{matharray}
-
-\railalias{applyend}{apply\_end}
-\railterm{applyend}
-
-\begin{rail}
-  'apply' method
-  ;
-  applyend method
-  ;
-  'defer' nat?
-  ;
-  'prefer' nat
-  ;
-  'tactic' text
-  ;
-\end{rail}
-
-\begin{descr}
-\item [$\isarkeyword{apply}~(m)$] applies proof method $m$ in an initial
-  position, but retains ``$prove$'' mode (unlike $\PROOFNAME$).  Thus
-  consecutive method applications may be given just as in tactic scripts.  In
-  order to complete the proof properly, any of the actual structured proof
-  commands (e.g.\ ``$\DOT$'') has to be given eventually.
-  
-  Facts are passed to $m$ as indicated by the goal's forward-chain mode.
-  Common use of $\isarkeyword{apply}$ would be in a purely backward manner,
-  though.
-\item [$\isarkeyword{apply_end}~(m)$] applies proof method $m$ as if in
-  terminal position.  Basically, this simulates a multi-step tactic script for
-  $\QEDNAME$, but may be given anywhere within the proof body.
-  
-  No facts are passed to $m$.  Furthermore, the static context is that of the
-  enclosing goal (as for actual $\QEDNAME$).  Thus the proof method may not
-  refer to any assumptions introduced in the current body, for example.
-\item [$\isarkeyword{defer}~n$ and $\isarkeyword{prefer}~n$] shuffle the list
-  of pending goals: $defer$ puts off goal $n$ to the end of the list ($n = 1$
-  by default), while $prefer$ brings goal $n$ to the top.
-\item [$\isarkeyword{back}$] does back-tracking over the result sequence of
-  the latest proof command.\footnote{Unlike the ML function \texttt{back}
-    \cite{isabelle-ref}, the Isar command does not search upwards for further
-    branch points.} Basically, any proof command may return multiple results.
-\item [$tactic~text$] produces a proof method from any ML text of type
-  \texttt{tactic}.  Apart from the usual ML environment, and the current
-  implicit theory context, the ML code may refer to the following locally
-  bound values:
-%%FIXME ttbox produces too much trailing space
-{\footnotesize\begin{verbatim}
-val ctxt  : Proof.context
-val facts : thm list
-val thm   : string -> thm
-val thms  : string -> thm list
-\end{verbatim}}
-  Here \texttt{ctxt} refers to the current proof context, \texttt{facts}
-  indicates any current facts for forward-chaining, and
-  \texttt{thm}~/~\texttt{thms} retrieve named facts (including global
-  theorems) from the context.
-\end{descr}
 
 
 %%% Local Variables: 
