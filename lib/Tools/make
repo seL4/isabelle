@@ -1,0 +1,31 @@
+#!/bin/bash -norc
+#
+# $Id$
+#
+# DESCRIPTION: Isabelle make utility
+
+
+PRG=$(basename $0)
+
+function usage()
+{
+  echo
+  echo "Usage: $PRG [ARGS ...]"
+  echo
+  echo "  Compiles logic in current directory using IsaMakefile."
+  echo "  ARGS are directly passed to the system make program."
+  echo
+  exit 1
+}
+
+
+## main
+
+[ "$1" = "-?" ] && usage
+
+
+. $ISABELLE_HOME/lib/scripts/getplatform
+
+export ISABELLE_OUTPUT_DIR="$ISABELLE_OUTPUT/$ML_SYSTEM-$PLATFORM"
+
+exec make -f IsaMakefile "$@"
