@@ -38,15 +38,12 @@ fun cons1 x (xs, y, z) = (x :: xs, y, z);
 fun cons2 y (x, ys, z) = (x, y :: ys, z);
 fun cons12 x y (xs, ys, z) = (x :: xs, y :: ys, z);
 
-(*symmetric difference of multisets -- assumed to be sorted wrt. Logic.termord*)
+(*symmetric difference of multisets -- assumed to be sorted wrt. Logic.term_ord*)
 fun cancel ts [] vs = (ts, [], vs)
   | cancel [] us vs = ([], us, vs)
   | cancel (t :: ts) (u :: us) vs =
-      (case Logic.termord (t, u) of
-        EQUAL =>
-          if t aconv u then cancel ts us (t :: vs)
-          else cons12 t u (cancel ts us vs)
-            (*potential incompleteness! -- termord not strictly antisymmetric*)
+      (case Logic.term_ord (t, u) of
+        EQUAL => cancel ts us (t :: vs)
       | LESS => cons1 t (cancel ts (u :: us) vs)
       | GREATER => cons2 u (cancel (t :: ts) us vs));
 
