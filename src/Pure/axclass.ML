@@ -217,7 +217,7 @@ fun ext_axclass int prep_axm (raw_class, raw_super_classes) raw_axioms old_thy =
     val intro_axm = Logic.list_implies
       (map inclass super_classes @ map (int_axm o snd) axioms, inclass class);
   in
-    Theory.add_axioms_i ((class ^ "I", intro_axm) :: abs_axioms) thy
+    Theory.add_axioms_i ((raw_class ^ "I", intro_axm) :: abs_axioms) thy
   end;
 
 
