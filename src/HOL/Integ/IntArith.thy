@@ -275,7 +275,7 @@ proof -
       from step[OF ki1 this] show ?case by simp
     qed
   }
-  from this ge show ?thesis by fast
+  with ge show ?thesis by fast
 qed
 
                      (* `set:int': dummy construction *)
@@ -311,7 +311,7 @@ proof -
       from step[OF ki1 this] show ?case by simp
     qed
   }
-  from this le show ?thesis by fast
+  with le show ?thesis by fast
 qed
 
 theorem int_less_induct [consumes 1,case_names base step]:

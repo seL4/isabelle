@@ -159,7 +159,7 @@ text{*The premise involving @{term Ints} prevents @{term "a = 1/2"}.*}
 lemma Ints_odd_nonzero: "a \<in> Ints ==> 1 + a + a \<noteq> (0::'a::ordered_ring)"
 proof (unfold Ints_def) 
   assume "a \<in> range of_int"
-  from this obtain z where a: "a = of_int z" ..
+  then obtain z where a: "a = of_int z" ..
   show ?thesis
   proof
     assume eq: "1 + a + a = 0"
@@ -233,7 +233,7 @@ lemma Ints_odd_less_0:
      "a \<in> Ints ==> (1 + a + a < 0) = (a < (0::'a::ordered_ring))";
 proof (unfold Ints_def) 
   assume "a \<in> range of_int"
-  from this obtain z where a: "a = of_int z" ..
+  then obtain z where a: "a = of_int z" ..
   hence "((1::'a) + a + a < 0) = (of_int (1 + z + z) < (of_int 0 :: 'a))"
     by (simp add: prems)
   also have "... = (z < 0)" by (simp only: of_int_less_iff odd_less_0)

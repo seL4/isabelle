@@ -267,12 +267,12 @@ lemma zero_le_power_iff:
       (is "?P n")
 proof cases
   assume even: "even n"
-  from this obtain k where "n = 2*k"
+  then obtain k where "n = 2*k"
     by (auto simp add: even_nat_equiv_def2 numeral_2_eq_2)
   thus ?thesis by (simp add: zero_le_even_power even) 
 next
   assume odd: "odd n"
-  from this obtain k where "n = Suc(2*k)"
+  then obtain k where "n = Suc(2*k)"
     by (auto simp add: odd_nat_equiv_def2 numeral_2_eq_2)
   thus ?thesis
     by (auto simp add: power_Suc zero_le_mult_iff zero_le_even_power 

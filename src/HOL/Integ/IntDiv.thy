@@ -624,7 +624,7 @@ by (simp add: zmult_commute zmod_zmult1_eq)
 lemma zmod_eq_0_iff: "(m mod d = 0) = (EX q::int. m = d*q)"
 proof
   assume "m mod d = 0"
-  from this zmod_zdiv_equality[of m d] show "EX q::int. m = d*q" by auto
+  with zmod_zdiv_equality[of m d] show "EX q::int. m = d*q" by auto
 next
   assume "EX q::int. m = d*q"
   thus "m mod d = 0" by auto
