@@ -188,6 +188,63 @@ lemmas FOL_iff_sats =
         disj_iff_sats imp_iff_sats iff_iff_sats imp_iff_sats ball_iff_sats
         bex_iff_sats
 
+
+subsection{*Arity of a Formula: Maximum Free de Bruijn Index*}
+
+consts   arity :: "i=>i"
+primrec
+  "arity(Member(x,y)) = succ(x) \<union> succ(y)"
+
+  "arity(Equal(x,y)) = succ(x) \<union> succ(y)"
+
+  "arity(Nand(p,q)) = arity(p) \<union> arity(q)"
+
+  "arity(Forall(p)) = Arith.pred(arity(p))"
+
+
+lemma arity_type [TC]: "p \<in> formula ==> arity(p) \<in> nat"
+by (induct_tac p, simp_all) 
+
+lemma arity_Neg [simp]: "arity(Neg(p)) = arity(p)"
+by (simp add: Neg_def) 
+
+lemma arity_And [simp]: "arity(And(p,q)) = arity(p) \<union> arity(q)"
+by (simp add: And_def) 
+
+lemma arity_Or [simp]: "arity(Or(p,q)) = arity(p) \<union> arity(q)"
+by (simp add: Or_def) 
+
+lemma arity_Implies [simp]: "arity(Implies(p,q)) = arity(p) \<union> arity(q)"
+by (simp add: Implies_def) 
+
+lemma arity_Iff [simp]: "arity(Iff(p,q)) = arity(p) \<union> arity(q)"
+by (simp add: Iff_def, blast)
+
+lemma arity_Exists [simp]: "arity(Exists(p)) = Arith.pred(arity(p))"
+by (simp add: Exists_def) 
+
+
+lemma arity_sats_iff [rule_format]:
+  "[| p \<in> formula; extra \<in> list(A) |]
+   ==> \<forall>env \<in> list(A). 
+           arity(p) \<le> length(env) --> 
+           sats(A, p, env @ extra) <-> sats(A, p, env)"
+apply (induct_tac p)
+apply (simp_all add: Arith.pred_def nth_append Un_least_lt_iff nat_imp_quasinat
+                split: split_nat_case, auto) 
+done
+
+lemma arity_sats1_iff:
+  "[| arity(p) \<le> succ(length(env)); p \<in> formula; x \<in> A; env \<in> list(A); 
+      extra \<in> list(A) |]
+   ==> sats(A, p, Cons(x, env @ extra)) <-> sats(A, p, Cons(x, env))"
+apply (insert arity_sats_iff [of p extra A "Cons(x,env)"])
+apply simp 
+done
+
+
+subsection{*Renaming Some de Bruijn Variables*}
+
 constdefs incr_var :: "[i,i]=>i"
     "incr_var(x,lev) == if x<lev then x else succ(x)"
 
@@ -214,22 +271,15 @@ primrec
       (\<lambda>lev \<in> nat. Forall (incr_bv(p) ` succ(lev)))"
 
 
-constdefs incr_boundvars :: "i => i"
-    "incr_boundvars(p) == incr_bv(p)`0"
-
-
 lemma [TC]: "x \<in> nat ==> incr_var(x,lev) \<in> nat"
 by (simp add: incr_var_def) 
 
 lemma incr_bv_type [TC]: "p \<in> formula ==> incr_bv(p) \<in> nat -> formula"
 by (induct_tac p, simp_all) 
 
-lemma incr_boundvars_type [TC]: "p \<in> formula ==> incr_boundvars(p) \<in> formula"
-by (simp add: incr_boundvars_def) 
-
-(*Obviously DPow is closed under complements and finite intersections and
-unions.  Needs an inductive lemma to allow two lists of parameters to 
-be combined.*)
+text{*Obviously, @{term DPow} is closed under complements and finite
+intersections and unions.  Needs an inductive lemma to allow two lists of
+parameters to be combined.*}
 
 lemma sats_incr_bv_iff [rule_format]:
   "[| p \<in> formula; env \<in> list(A); x \<in> A |]
@@ -241,76 +291,6 @@ apply (simp_all add: incr_var_def nth_append succ_lt_iff length_type)
 apply (auto simp add: diff_succ not_lt_iff_le)
 done
 
-(*UNUSED*)
-lemma sats_incr_boundvars_iff:
-  "[| p \<in> formula; env \<in> list(A); x \<in> A |]
-   ==> sats(A, incr_boundvars(p), Cons(x,env)) <-> sats(A, p, env)"
-apply (insert sats_incr_bv_iff [of p env A x Nil])
-apply (simp add: incr_boundvars_def) 
-done
-
-(*UNUSED
-lemma formula_add_params [rule_format]:
-  "[| p \<in> formula; n \<in> nat |]
-   ==> \<forall>bvs \<in> list(A). \<forall>env \<in> list(A). 
-         length(bvs) = n --> 
-         sats(A, iterates(incr_boundvars,n,p), bvs@env) <-> sats(A, p, env)"
-apply (induct_tac n, simp, clarify) 
-apply (erule list.cases)
-apply (auto simp add: sats_incr_boundvars_iff)  
-done
-*)
-
-consts   arity :: "i=>i"
-primrec
-  "arity(Member(x,y)) = succ(x) \<union> succ(y)"
-
-  "arity(Equal(x,y)) = succ(x) \<union> succ(y)"
-
-  "arity(Nand(p,q)) = arity(p) \<union> arity(q)"
-
-  "arity(Forall(p)) = nat_case(0, %x. x, arity(p))"
-
-
-lemma arity_type [TC]: "p \<in> formula ==> arity(p) \<in> nat"
-by (induct_tac p, simp_all) 
-
-lemma arity_Neg [simp]: "arity(Neg(p)) = arity(p)"
-by (simp add: Neg_def) 
-
-lemma arity_And [simp]: "arity(And(p,q)) = arity(p) \<union> arity(q)"
-by (simp add: And_def) 
-
-lemma arity_Or [simp]: "arity(Or(p,q)) = arity(p) \<union> arity(q)"
-by (simp add: Or_def) 
-
-lemma arity_Implies [simp]: "arity(Implies(p,q)) = arity(p) \<union> arity(q)"
-by (simp add: Implies_def) 
-
-lemma arity_Iff [simp]: "arity(Iff(p,q)) = arity(p) \<union> arity(q)"
-by (simp add: Iff_def, blast)
-
-lemma arity_Exists [simp]: "arity(Exists(p)) = nat_case(0, %x. x, arity(p))"
-by (simp add: Exists_def) 
-
-
-lemma arity_sats_iff [rule_format]:
-  "[| p \<in> formula; extra \<in> list(A) |]
-   ==> \<forall>env \<in> list(A). 
-           arity(p) \<le> length(env) --> 
-           sats(A, p, env @ extra) <-> sats(A, p, env)"
-apply (induct_tac p)
-apply (simp_all add: nth_append Un_least_lt_iff arity_type nat_imp_quasinat
-                split: split_nat_case, auto) 
-done
-
-lemma arity_sats1_iff:
-  "[| arity(p) \<le> succ(length(env)); p \<in> formula; x \<in> A; env \<in> list(A); 
-    extra \<in> list(A) |]
-   ==> sats(A, p, Cons(x, env @ extra)) <-> sats(A, p, Cons(x, env))"
-apply (insert arity_sats_iff [of p extra A "Cons(x,env)"])
-apply simp 
-done
 
 (*the following two lemmas prevent huge case splits in arity_incr_bv_lemma*)
 lemma incr_var_lemma:
@@ -336,7 +316,7 @@ lemma arity_incr_bv_lemma [rule_format]:
 apply (induct_tac p) 
 apply (simp_all add: imp_disj not_lt_iff_le Un_least_lt_iff lt_Un_iff le_Un_iff
                      succ_Un_distrib [symmetric] incr_var_lt incr_var_le
-                     Un_commute incr_var_lemma arity_type nat_imp_quasinat
+                     Un_commute incr_var_lemma Arith.pred_def nat_imp_quasinat
             split: split_nat_case) 
  txt{*the Forall case reduces to linear arithmetic*}
  prefer 2
@@ -350,24 +330,8 @@ apply (subst incr_And_lemma)
 apply (simp add: Un_commute)
 done
 
-lemma arity_incr_boundvars_eq:
-  "p \<in> formula
-   ==> arity(incr_boundvars(p)) =
-        (if 0 < arity(p) then succ(arity(p)) else arity(p))"
-apply (insert arity_incr_bv_lemma [of p 0])
-apply (simp add: incr_boundvars_def) 
-done
 
-lemma arity_iterates_incr_boundvars_eq:
-  "[| p \<in> formula; n \<in> nat |]
-   ==> arity(incr_boundvars^n(p)) =
-         (if 0 < arity(p) then n #+ arity(p) else arity(p))"
-apply (induct_tac n) 
-apply (simp_all add: arity_incr_boundvars_eq not_lt_iff_le) 
-done
-
-
-subsection{*Renaming all but the first bound variable*}
+subsection{*Renaming all but the First de Bruijn Variable*}
 
 constdefs incr_bv1 :: "i => i"
     "incr_bv1(p) == incr_bv(p)`1"
@@ -377,7 +341,7 @@ lemma incr_bv1_type [TC]: "p \<in> formula ==> incr_bv1(p) \<in> formula"
 by (simp add: incr_bv1_def) 
 
 (*For renaming all but the bound variable at level 0*)
-lemma sats_incr_bv1_iff [rule_format]:
+lemma sats_incr_bv1_iff:
   "[| p \<in> formula; env \<in> list(A); x \<in> A; y \<in> A |]
    ==> sats(A, incr_bv1(p), Cons(x, Cons(y, env))) <-> 
        sats(A, p, Cons(x,env))"
@@ -416,7 +380,10 @@ apply (blast intro: le_trans add_le_self2 arity_type)
 done
 
 
-(*Definable powerset operation: Kunen's definition 1.1, page 165.*)
+
+subsection{*Definable Powerset*}
+
+text{*The definable powerset operation: Kunen's definition VI 1.1, page 165.*}
 constdefs DPow :: "i => i"
   "DPow(A) == {X \<in> Pow(A). 
                \<exists>env \<in> list(A). \<exists>p \<in> formula. 
@@ -445,7 +412,7 @@ by (simp add: DPow_def)
 
 lemmas DPow_imp_subset = DPowD [THEN conjunct1]
 
-(*Lemma 1.2*)
+(*Kunen's Lemma VI 1.2*)
 lemma "[| p \<in> formula; env \<in> list(A); arity(p) \<le> succ(length(env)) |] 
        ==> {x\<in>A. sats(A, p, Cons(x,env))} \<in> DPow(A)"
 by (blast intro: DPowI)

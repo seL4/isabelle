@@ -666,6 +666,12 @@ done
 
 
 
+subsection {*Absoluteness of Well-Founded Relations*}
+
+text{*Relativized to @{term M}: Every well-founded relation is a subset of some
+inverse image of an ordinal.  Key step is the construction (in @{term M}) of a
+rank function.*}
+
 locale M_wfrank = M_trancl +
   assumes wfrank_separation:
      "M(r) ==>

@@ -425,7 +425,7 @@ apply (blast intro: formula_imp_formula_N)
 done
 
 
-
+text{*This result and the next are unused.*}
 lemma formula_N_mono [rule_format]:
   "[| m \<in> nat; n \<in> nat |] ==> m\<le>n --> formula_N(m) \<subseteq> formula_N(n)"
 apply (rule_tac m = m and n = n in diff_induct)
@@ -577,8 +577,6 @@ apply (rule M_equalityI, simp_all)
 done
 
 
-subsection{*Absoluteness for Some List Operators*}
-
 subsection{*Absoluteness for @{text \<epsilon>}-Closure: the @{term eclose} Operator*}
 
 text{*Re-expresses eclose using "iterates"*}
@@ -705,8 +703,9 @@ by (simp add: transrec_replacement_def wfrec_replacement_def)
 
 
 subsection{*Absoluteness for the List Operator @{term length}*}
-constdefs
+text{*But it is never used.*}
 
+constdefs
   is_length :: "[i=>o,i,i,i] => o"
     "is_length(M,A,l,n) == 
        \<exists>sn[M]. \<exists>list_n[M]. \<exists>list_sn[M]. 
@@ -729,7 +728,7 @@ lemma (in M_trivial) length_closed [intro,simp]:
 by (simp add: nat_into_M) 
 
 
-subsection {*Absoluteness for @{term nth}*}
+subsection {*Absoluteness for the List Operator @{term nth}*}
 
 lemma nth_eq_hd_iterates_tl [rule_format]:
      "xs \<in> list(A) ==> \<forall>n \<in> nat. nth(n,xs) = hd' (tl'^n (xs))"
@@ -828,7 +827,66 @@ lemma (in M_trivial) Forall_in_M_iff [iff]: "M(Forall(x)) <-> M(x)"
 by (simp add: Forall_def)
 
 
+
 subsection {*Absoluteness for @{term formula_rec}*}
+
+constdefs
+
+  formula_rec_case :: "[[i,i]=>i, [i,i]=>i, [i,i,i,i]=>i, [i,i]=>i, i, i] => i"
+    --{* the instance of @{term formula_case} in @{term formula_rec}*}
+   "formula_rec_case(a,b,c,d,h) ==
+        formula_case (a, b,
+                \<lambda>u v. c(u, v, h ` succ(depth(u)) ` u, 
+                              h ` succ(depth(v)) ` v),
+                \<lambda>u. d(u, h ` succ(depth(u)) ` u))"
+
+text{*Unfold @{term formula_rec} to @{term formula_rec_case}.
+     Express @{term formula_rec} without using @{term rank} or @{term Vset},
+neither of which is absolute.*}
+lemma (in M_trivial) formula_rec_eq:
+  "p \<in> formula ==>
+   formula_rec(a,b,c,d,p) = 
+   transrec (succ(depth(p)),
+             \<lambda>x h. Lambda (formula, formula_rec_case(a,b,c,d,h))) ` p"
+apply (simp add: formula_rec_case_def)
+apply (induct_tac p)
+   txt{*Base case for @{term Member}*}
+   apply (subst transrec, simp add: formula.intros) 
+  txt{*Base case for @{term Equal}*}
+  apply (subst transrec, simp add: formula.intros)
+ txt{*Inductive step for @{term Nand}*}
+ apply (subst transrec) 
+ apply (simp add: succ_Un_distrib formula.intros)
+txt{*Inductive step for @{term Forall}*}
+apply (subst transrec) 
+apply (simp add: formula_imp_formula_N formula.intros) 
+done
+
+
+subsubsection{*Absoluteness for the Formula Operator @{term depth}*}
+constdefs
+
+  is_depth :: "[i=>o,i,i] => o"
+    "is_depth(M,p,n) == 
+       \<exists>sn[M]. \<exists>formula_n[M]. \<exists>formula_sn[M]. 
+        is_formula_N(M,n,formula_n) & p \<notin> formula_n &
+        successor(M,n,sn) & is_formula_N(M,sn,formula_sn) & p \<in> formula_sn"
+
+
+lemma (in M_datatypes) depth_abs [simp]:
+     "[|p \<in> formula; n \<in> nat|] ==> is_depth(M,p,n) <-> n = depth(p)"
+apply (subgoal_tac "M(p) & M(n)")
+ prefer 2 apply (blast dest: transM)  
+apply (simp add: is_depth_def)
+apply (blast intro: formula_imp_formula_N nat_into_Ord formula_N_imp_eq_depth
+             dest: formula_N_imp_depth_lt)
+done
+
+text{*Proof is trivial since @{term depth} returns natural numbers.*}
+lemma (in M_trivial) depth_closed [intro,simp]:
+     "p \<in> formula ==> M(depth(p))"
+by (simp add: nat_into_M) 
+
 
 subsubsection{*@{term is_formula_case}: relativization of @{term formula_case}*}
 
@@ -866,73 +924,17 @@ lemma (in M_datatypes) formula_case_closed [intro,simp]:
 by (erule formula.cases, simp_all) 
 
 
-subsection{*Absoluteness for the Formula Operator @{term depth}*}
-constdefs
-
-  is_depth :: "[i=>o,i,i] => o"
-    "is_depth(M,p,n) == 
-       \<exists>sn[M]. \<exists>formula_n[M]. \<exists>formula_sn[M]. 
-        is_formula_N(M,n,formula_n) & p \<notin> formula_n &
-        successor(M,n,sn) & is_formula_N(M,sn,formula_sn) & p \<in> formula_sn"
-
-
-lemma (in M_datatypes) depth_abs [simp]:
-     "[|p \<in> formula; n \<in> nat|] ==> is_depth(M,p,n) <-> n = depth(p)"
-apply (subgoal_tac "M(p) & M(n)")
- prefer 2 apply (blast dest: transM)  
-apply (simp add: is_depth_def)
-apply (blast intro: formula_imp_formula_N nat_into_Ord formula_N_imp_eq_depth
-             dest: formula_N_imp_depth_lt)
-done
-
-text{*Proof is trivial since @{term depth} returns natural numbers.*}
-lemma (in M_trivial) depth_closed [intro,simp]:
-     "p \<in> formula ==> M(depth(p))"
-by (simp add: nat_into_M) 
-
-
-subsection {*Absoluteness for @{term formula_rec}*}
+subsubsection {*Absoluteness for @{term formula_rec}: Final Results*}
 
 constdefs
-
-  formula_rec_case :: "[[i,i]=>i, [i,i]=>i, [i,i,i,i]=>i, [i,i]=>i, i, i] => i"
-    --{* the instance of @{term formula_case} in @{term formula_rec}*}
-   "formula_rec_case(a,b,c,d,h) ==
-        formula_case (a, b,
-                \<lambda>u v. c(u, v, h ` succ(depth(u)) ` u, 
-                              h ` succ(depth(v)) ` v),
-                \<lambda>u. d(u, h ` succ(depth(u)) ` u))"
-
   is_formula_rec :: "[i=>o, [i,i,i]=>o, i, i] => o"
     --{* predicate to relativize the functional @{term formula_rec}*}
    "is_formula_rec(M,MH,p,z)  ==
       \<exists>dp[M]. \<exists>i[M]. \<exists>f[M]. finite_ordinal(M,dp) & is_depth(M,p,dp) & 
              successor(M,dp,i) & fun_apply(M,f,p,z) & is_transrec(M,MH,i,f)"
 
-text{*Unfold @{term formula_rec} to @{term formula_rec_case}.
-     Express @{term formula_rec} without using @{term rank} or @{term Vset},
-neither of which is absolute.*}
-lemma (in M_trivial) formula_rec_eq:
-  "p \<in> formula ==>
-   formula_rec(a,b,c,d,p) = 
-   transrec (succ(depth(p)),
-             \<lambda>x h. Lambda (formula, formula_rec_case(a,b,c,d,h))) ` p"
-apply (simp add: formula_rec_case_def)
-apply (induct_tac p)
-   txt{*Base case for @{term Member}*}
-   apply (subst transrec, simp add: formula.intros) 
-  txt{*Base case for @{term Equal}*}
-  apply (subst transrec, simp add: formula.intros)
- txt{*Inductive step for @{term Nand}*}
- apply (subst transrec) 
- apply (simp add: succ_Un_distrib formula.intros)
-txt{*Inductive step for @{term Forall}*}
-apply (subst transrec) 
-apply (simp add: formula_imp_formula_N formula.intros) 
-done
 
-
-text{*Sufficient conditions to relative the instance of @{term formula_case}
+text{*Sufficient conditions to relativize the instance of @{term formula_case}
       in @{term formula_rec}*}
 lemma (in M_datatypes) Relation1_formula_rec_case:
      "[|Relation2(M, nat, nat, is_a, a);

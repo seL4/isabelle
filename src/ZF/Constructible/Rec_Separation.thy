@@ -204,22 +204,9 @@ by (rule M_trancl.intro
 
 lemmas iterates_abs = M_trancl.iterates_abs [OF M_trancl_L]
   and rtran_closure_rtrancl = M_trancl.rtran_closure_rtrancl [OF M_trancl_L]
-  and rtrancl_closed = M_trancl.rtrancl_closed [OF M_trancl_L]
-  and rtrancl_abs = M_trancl.rtrancl_abs [OF M_trancl_L]
-  and trancl_closed = M_trancl.trancl_closed [OF M_trancl_L]
-  and trancl_abs = M_trancl.trancl_abs [OF M_trancl_L]
-  and wellfounded_on_trancl = M_trancl.wellfounded_on_trancl [OF M_trancl_L]
-  and wellfounded_trancl = M_trancl.wellfounded_trancl [OF M_trancl_L]
-  and wfrec_relativize = M_trancl.wfrec_relativize [OF M_trancl_L]
-  and trans_wfrec_relativize = M_trancl.trans_wfrec_relativize [OF M_trancl_L]
   and trans_wfrec_abs = M_trancl.trans_wfrec_abs [OF M_trancl_L]
-  and trans_eq_pair_wfrec_iff = M_trancl.trans_eq_pair_wfrec_iff [OF M_trancl_L]
   and eq_pair_wfrec_iff = M_trancl.eq_pair_wfrec_iff [OF M_trancl_L]
 
-declare rtrancl_closed [intro,simp]
-declare rtrancl_abs [simp]
-declare trancl_closed [intro,simp]
-declare trancl_abs [simp]
 
 
 subsection{*@{term L} is Closed Under the Operator @{term list}*}

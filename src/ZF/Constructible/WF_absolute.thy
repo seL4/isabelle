@@ -3,7 +3,7 @@
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
 *)
 
-header {*Absoluteness for Well-Founded Relations and Well-Founded Recursion*}
+header {*Absoluteness of Well-Founded Recursion*}
 
 theory WF_absolute = WFrec:
 
@@ -175,13 +175,8 @@ apply (rule wellfounded_on_subset_A, erule wellfounded_on_trancl)
   apply (simp_all add: trancl_type [THEN field_rel_subset])
 done
 
-text{*Relativized to M: Every well-founded relation is a subset of some
-inverse image of an ordinal.  Key step is the construction (in M) of a
-rank function.*}
 
-
-
-text{*absoluteness for wfrec-defined functions.*}
+text{*Absoluteness for wfrec-defined functions.*}
 
 (*first use is_recfun, then M_is_recfun*)
 
