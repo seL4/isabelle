@@ -37,6 +37,23 @@ signature SEARCH =
   val QUIET_BREADTH_FIRST	: (thm -> bool) -> tactic -> tactic
   end;
 
+
+(** Instantiation of leftist heaps for best-first search **)
+
+(*Termless makes the ordering total, allowing duplicates to be found*)
+structure MeasureThm : ORDERED =
+struct
+  type T = int * thm
+  fun eq ((m,th):T, (m',th')) = (m=m' andalso eq_thm(th,th'))
+  fun lt ((m,th):T, (m',th')) = 
+          (m<m' orelse 
+	   m=m' andalso Term.termless (#prop(rep_thm th), #prop(rep_thm th')))
+  fun leq (mth, mth') = not (lt (mth',mth))
+end;
+
+structure MeasureThmHeap = LeftistHeap(MeasureThm);
+
+
 structure Search : SEARCH = 
 struct
 
@@ -184,18 +201,16 @@ fun DEEPEN (inc,lim) tacf m i =
 
 val trace_BEST_FIRST = ref false;
 
-(*Insertion into priority queue of states *)
-fun insert (nth: int*thm, []) = [nth]
-  | insert ((m,th), (n,th')::nths) = 
-      if  n<m then (n,th') :: insert ((m,th), nths)
-      else if  n=m andalso eq_thm(th,th')
-              then (n,th')::nths
-              else (m,th)::(n,th')::nths;
-
 (*For creating output sequence*)
 fun some_of_list []     = None
   | some_of_list (x::l) = Some (x, Seq.make (fn () => some_of_list l));
 
+(*Check for and delete duplicate proof states*)
+fun deleteAllMin prf heap = 
+      if MeasureThmHeap.isEmpty heap then heap
+      else if eq_thm (prf, #2 (MeasureThmHeap.findMin heap))
+      then deleteAllMin prf (MeasureThmHeap.deleteMin heap)
+      else heap;
 
 (*Best-first search for a state that satisfies satp (incl initial state)
   Function sizef estimates size of problem remaining (smaller means better).
@@ -203,19 +218,22 @@ fun some_of_list []     = None
 fun THEN_BEST_FIRST tac0 (satp, sizef) tac1 = 
   let val tac = tracify trace_BEST_FIRST tac1
       fun pairsize th = (sizef th, th);
-      fun bfs (news,nprfs) =
+      fun bfs (news,nprf_heap) =
 	   (case  partition satp news  of
-		([],nonsats) => next(foldr insert
-					(map pairsize nonsats, nprfs)) 
+		([],nonsats) => next(foldr MeasureThmHeap.insert
+					(map pairsize nonsats, nprf_heap)) 
 	      | (sats,_)  => some_of_list sats)
-      and next [] = None
-        | next ((n,prf)::nprfs) =
-	    (if !trace_BEST_FIRST 
-	       then writeln("state size = " ^ string_of_int n ^ 
-		         "  queue length =" ^ string_of_int (length nprfs))  
+      and next nprf_heap =
+            if MeasureThmHeap.isEmpty nprf_heap then None
+	    else 
+	    let val (n,prf) = MeasureThmHeap.findMin nprf_heap
+	    in if !trace_BEST_FIRST 
+	       then writeln("state size = " ^ string_of_int n)  
                else ();
-	     bfs (Seq.list_of (tac prf), nprfs))
-      fun btac st = bfs (Seq.list_of (tac0 st),  [])
+	       bfs (Seq.list_of (tac prf), 
+		    deleteAllMin prf (MeasureThmHeap.deleteMin nprf_heap))
+            end
+      fun btac st = bfs (Seq.list_of (tac0 st),  MeasureThmHeap.empty)
   in traced_tac btac end;
 
 (*Ordinary best-first search, with no initial tactic*)
