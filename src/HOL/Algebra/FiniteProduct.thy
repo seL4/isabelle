@@ -441,9 +441,10 @@ proof -
 qed
 
 lemma (in comm_monoid) finprod_cong:
-  "[| A = B; !!i. i : B ==> f i = g i;
-      g : B -> carrier G = True |] ==> finprod G f A = finprod G g B"
-  by (rule finprod_cong') fast+
+  "[| A = B; f : B -> carrier G = True;
+      !!i. i : B ==> f i = g i |] ==> finprod G f A = finprod G g B"
+  (* This order of prems is slightly faster (3%) than the last two swapped. *)
+  by (rule finprod_cong') force+
 
 text {*Usually, if this rule causes a failed congruence proof error,
   the reason is that the premise @{text "g : B -> carrier G"} cannot be shown.

@@ -276,8 +276,8 @@ lemma (in abelian_monoid) finsum_add [simp]:
     simplified monoid_record_simps])
 
 lemma (in abelian_monoid) finsum_cong:
-  "[| A = B; !!i. i : B ==> f i = g i;
-      g : B -> carrier G = True |] ==> finsum G f A = finsum G g B"
+  "[| A = B;
+      f : B -> carrier G = True; !!i. i : B ==> f i = g i |] ==> finsum G f A = finsum G g B"
   by (rule comm_monoid.finprod_cong [OF a_comm_monoid, folded finsum_def,
     simplified monoid_record_simps]) auto
 
