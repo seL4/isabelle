@@ -166,8 +166,6 @@ val [major,minor] = goal Univ.thy
 by (rtac ((major RS Scons_inject2) RS ((major RS Scons_inject1) RS minor)) 1);
 qed "Scons_inject";
 
-AddSDs [Scons_inject];
-
 goal Univ.thy "(M$N = M'$N') = (M=M' & N=N')";
 by (blast_tac (!claset addSEs [Scons_inject]) 1);
 qed "Scons_Scons_eq";
