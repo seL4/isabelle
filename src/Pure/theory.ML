@@ -3,10 +3,9 @@
     Author:     Lawrence C Paulson and Markus Wenzel
     Copyright   1996  University of Cambridge
 
-Theories.
+The abstract type "theory" of theories.
 *)
 
-(*this part made pervasive*)
 signature BASIC_THEORY =
 sig
   type theory
