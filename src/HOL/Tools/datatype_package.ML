@@ -686,7 +686,7 @@ val rep_datatype_decl =
   Scan.option (Scan.repeat1 name) --
     Scan.optional ($$$ "distinct" |-- !!! (and_list1 xthms1)) [] --
     Scan.optional ($$$ "inject" |-- !!! (and_list1 xthms1)) [] --
-    ($$$ "induct" |-- !!! xthm);
+    ($$$ "induction" |-- !!! xthm);
 
 fun mk_rep_datatype (((opt_ts, dss), iss), ind) = #1 o rep_datatype opt_ts dss iss ind;
 
@@ -695,7 +695,7 @@ val rep_datatypeP =
     (rep_datatype_decl >> (Toplevel.theory o mk_rep_datatype));
 
 
-val _ = OuterSyntax.add_keywords ["distinct", "inject", "induct"];
+val _ = OuterSyntax.add_keywords ["distinct", "inject", "induction"];
 val _ = OuterSyntax.add_parsers [datatypeP, rep_datatypeP];
 
 end;
