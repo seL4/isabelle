@@ -10,6 +10,7 @@ sig
   datatype elem = Root | Parent | Basic of string | Variable of string
   eqtype T
   val rep: T -> elem list
+  val is_current: T -> bool
   val current: T
   val root: T
   val parent: T
@@ -58,6 +59,9 @@ fun is_var (Variable _) = true
 datatype T = Path of elem list;
 
 fun rep (Path xs) = xs;
+
+fun is_current (Path []) = true
+  | is_current _ = false;
 
 val current = Path [];
 val root = Path [Root];
