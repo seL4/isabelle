@@ -141,9 +141,12 @@ fun term_of_typ show_sorts ty =
 
 (* parse ast translations *)
 
-fun tappl_ast_tr (*"_tapp(l)"*) [types, f] =
-      Appl (f :: unfold_ast "_types" types)
-  | tappl_ast_tr (*"_tapp(l)"*) asts = raise_ast "tappl_ast_tr" asts;
+fun tapp_ast_tr (*"_tapp"*) [ty, f] = Appl [f, ty]
+  | tapp_ast_tr (*"_tapp"*) asts = raise_ast "tapp_ast_tr" asts;
+
+fun tappl_ast_tr (*"_tappl"*) [ty, tys, f] =
+      Appl (f :: ty :: unfold_ast "_types" tys)
+  | tappl_ast_tr (*"_tappl"*) asts = raise_ast "tappl_ast_tr" asts;
 
 fun bracket_ast_tr (*"_bracket"*) [dom, cod] =
       fold_ast_p "fun" (unfold_ast "_types" dom, cod)
@@ -154,7 +157,8 @@ fun bracket_ast_tr (*"_bracket"*) [dom, cod] =
 
 fun tappl_ast_tr' (f, []) = raise_ast "tappl_ast_tr'" [f]
   | tappl_ast_tr' (f, [ty]) = Appl [Constant "_tapp", ty, f]
-  | tappl_ast_tr' (f, tys) = Appl [Constant "_tappl", fold_ast "_types" tys, f];
+  | tappl_ast_tr' (f, ty :: tys) =
+      Appl [Constant "_tappl", ty, fold_ast "_types" tys, f];
 
 fun fun_ast_tr' (*"fun"*) asts =
   (case unfold_ast_p "fun" (Appl (Constant "fun" :: asts)) of
@@ -171,7 +175,7 @@ val typesT = Type ("types", []);
 
 val type_ext = syn_ext
   [logic, "type"] [logic, "type"]
-  [Mfix ("_",           tidT --> typeT,              "", [], max_pri),
+  [Mfix ("_",           tidT --> typeT,                "", [], max_pri),
    Mfix ("_",           tvarT --> typeT,               "", [], max_pri),
    Mfix ("_",           idT --> typeT,                 "", [], max_pri),
    Mfix ("_::_",        [tidT, sortT] ---> typeT,      "_ofsort", [max_pri, 0], max_pri),
@@ -188,7 +192,7 @@ val type_ext = syn_ext
    Mfix ("(_/ => _)",   [typeT, typeT] ---> typeT,     "fun", [1, 0], 0),
    Mfix ("([_]/ => _)", [typesT, typeT] ---> typeT,    "_bracket", [0, 0], 0)]
   []
-  ([("_tapp", tappl_ast_tr), ("_tappl", tappl_ast_tr), ("_bracket", bracket_ast_tr)],
+  ([("_tapp", tapp_ast_tr), ("_tappl", tappl_ast_tr), ("_bracket", bracket_ast_tr)],
    [],
    [],
    [("fun", fun_ast_tr')])
