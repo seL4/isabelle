@@ -384,7 +384,6 @@ apply(rule conjI)
 apply(rule refl)
 apply (simp add:eq_sym_conv)
 apply (simp add:eq_sym_conv)
-apply (fast)
 
 apply(rule conjI)
 apply clarsimp
@@ -403,7 +402,6 @@ apply(rule refl)
 apply (simp add:eq_sym_conv)
 apply(rule_tac x = bs in exI)
 apply (simp add:eq_sym_conv)
-apply fast
 
 apply(clarsimp simp add:List_app)
 done
