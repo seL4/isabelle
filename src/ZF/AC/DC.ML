@@ -365,9 +365,8 @@ by (eresolve_tac [rangeI RSN (2, subsetD) RSN (2, cons_fun_type2)] 2
 by (rtac ballI 1);
 by (etac succE 1);
 (** LEVEL 25 **)
-by (dresolve_tac [domain_of_fun RSN (2, export f_n_pairs_in_R)] 2
-        THEN REPEAT (assume_tac 2));
-by (dtac bspec 2 THEN (assume_tac 2));
+by (EVERY [dtac (domain_of_fun RSN (2, export f_n_pairs_in_R)) 2,
+  REPEAT (assume_tac 2), dtac bspec 2, assume_tac 2]);
 by (asm_full_simp_tac (simpset()
         addsimps [nat_into_Ord RS succ_in_succ, succI2, cons_val_k]) 2);
 by (asm_full_simp_tac (simpset() addsimps [cons_val_n, cons_val_k]) 1);
