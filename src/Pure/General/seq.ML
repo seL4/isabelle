@@ -171,14 +171,14 @@ fun succeed x = single x;
 fun fail _ = empty;
 
 
-fun THEN (f, g) x = flat (map g (f x));
+fun op THEN (f, g) x = flat (map g (f x));
 
-fun ORELSE (f, g) x =
+fun op ORELSE (f, g) x =
   (case pull (f x) of
     None => g x
   | some => make (fn () => some));
 
-fun APPEND (f, g) x =
+fun op APPEND (f, g) x =
   append (f x, make (fn () => pull (g x)));
 
 
