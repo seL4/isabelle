@@ -46,6 +46,9 @@ New in this Isabelle release
 
   - Accepts free variables as head terms in congruence rules.  Useful in Isar.
 
+  - No longer aborts on failed congruence proof.  Instead, the
+    congruence is ignored.
+
 * Pure: The main goal of the proof state is no longer shown by default, only
 the subgoals. This behaviour is controlled by a new flag.
    PG menu: Isabelle/Isar -> Settings -> Show Main Goal

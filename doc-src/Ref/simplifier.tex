@@ -624,11 +624,11 @@ with the theorem $\neg False$.
 \medskip
 
 \begin{warn}
-  If the simplifier aborts with the message \texttt{Failed congruence
-    proof!}, then the subgoaler or solver has failed to prove a
-  premise of a congruence rule.  This should never occur under normal
-  circumstances; it indicates that some congruence rule, or possibly
-  the subgoaler or solver, is faulty.
+  If a premise of a congruence rule cannot be proved, then the
+  congruence is ignored.  This should only happen if the rule is
+  \emph{conditional} --- that is, contains premises not of the form $t
+  = \Var{x}$; otherwise it indicates that some congruence rule, or
+  possibly the subgoaler or solver, is faulty.
 \end{warn}
 
 
