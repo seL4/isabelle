@@ -7,7 +7,7 @@ Skip subproofs (for quick_and_dirty mode only).
 
 signature SKIP_PROOF =
 sig
-  val local_skip_proof: ({kind: string, name: string, thm: thm} -> unit)
+  val local_skip_proof: ({kind: string, name: string, thm: thm} -> unit) * (thm -> unit)
     -> Proof.state -> Proof.state Seq.seq
   val global_skip_proof: Proof.state -> theory * {kind: string, name: string, thm: thm}
   val setup: (theory -> theory) list
