@@ -349,7 +349,7 @@ apply (simp_all add: succ_Un_distrib [symmetric])
 done
 
 
-subsection{*Separation for @{term "well_ord_iso"}*}
+subsection{*Separation for a Theorem about @{term "obase"}*}
 
 lemma obase_equals_reflects:
   "REFLECTS[\<lambda>x. x\<in>A --> ~(\<exists>y[L]. \<exists>g[L]. 

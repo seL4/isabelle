@@ -764,9 +764,13 @@ assumes Inter_separation:
 	     ordinal(M,x) & pair(M,a,x,z) & membership(M,x,mx) & 
 	     pred_set(M,A,a,r,par) & order_isomorphism(M,par,r,x,mx,g))"
   and is_recfun_separation:
-     --{*for well-founded recursion.  NEEDS RELATIVIZATION*}
-     "[| M(A); M(f); M(g); M(a); M(b) |] 
-     ==> separation(M, \<lambda>x. \<langle>x,a\<rangle> \<in> r & \<langle>x,b\<rangle> \<in> r & f`x \<noteq> g`x)"
+     --{*for well-founded recursion*}
+     "[| M(r); M(f); M(g); M(a); M(b) |] 
+     ==> separation(M, 
+            \<lambda>x. \<exists>xa[M]. \<exists>xb[M]. 
+                pair(M,x,a,xa) & xa \<in> r & pair(M,x,b,xb) & xb \<in> r & 
+                (\<exists>fx[M]. \<exists>gx[M]. fun_apply(M,f,x,fx) & fun_apply(M,g,x,gx) & 
+                                   fx \<noteq> gx))"
 
 lemma (in M_axioms) cartprod_iff_lemma:
      "[| M(C);  \<forall>u[M]. u \<in> C <-> (\<exists>x\<in>A. \<exists>y\<in>B. u = {{x}, {x,y}}); 

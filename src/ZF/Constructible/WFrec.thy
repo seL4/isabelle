@@ -64,6 +64,13 @@ apply (erule is_recfun_cong_lemma)
 apply (blast intro: sym)+
 done
 
+lemma (in M_axioms) is_recfun_separation':
+    "[| f \<in> r -`` {a} \<rightarrow> range(f); g \<in> r -`` {b} \<rightarrow> range(g);
+        M(r); M(f); M(g); M(a); M(b) |] 
+     ==> separation(M, \<lambda>x. \<not> (\<langle>x, a\<rangle> \<in> r \<longrightarrow> \<langle>x, b\<rangle> \<in> r \<longrightarrow> f ` x = g ` x))"
+apply (insert is_recfun_separation [of r f g a b]) 
+apply (simp add: typed_apply_abs vimage_singleton_iff)
+done
 
 text{*Stated using @{term "trans(r)"} rather than
       @{term "transitive_rel(M,A,r)"} because the latter rewrites to
@@ -82,7 +89,7 @@ apply (frule_tac f="g" in is_recfun_type)
 apply (simp add: is_recfun_def)
 apply (erule_tac a=x in wellfounded_induct, assumption+)
 txt{*Separation to justify the induction*}
- apply (force intro: is_recfun_separation)
+ apply (blast intro: is_recfun_separation') 
 txt{*Now the inductive argument itself*}
 apply clarify 
 apply (erule ssubst)+
