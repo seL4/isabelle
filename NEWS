@@ -9,10 +9,16 @@ New in this Isabelle version
 
 * HOL: Removed the obsolete syntax "Compl A"; use -A for set complement
 
-*** General ***
+
+*** Internal programming interfaces ***
 
 * tuned current_goals_markers semantics: begin / end goal avoids
 printing empty lines;
+
+* removed prs and prs_fn hook, which was broken because it did not
+include \n in its semantics, forcing writeln to add one
+uncoditionally; replaced prs_fn by writeln_fn; consider std_output:
+string -> unit if you really want to output text without newline;
 
 
 New in Isabelle98-1 (October 1998)
