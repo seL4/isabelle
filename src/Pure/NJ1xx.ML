@@ -79,9 +79,7 @@ fun cond_timeit flag f =
 
 (*Get time of last modification; if file doesn't exist return an empty string*)
 fun file_info "" = ""
-  | file_info name = Time.toString
-			 (Posix.FileSys.ST.mtime (Posix.FileSys.stat name))  
-		     handle _ => "";
+  | file_info name = Time.toString (OS.FileSys.modTime name) handle _ =>"";
 
 
 
