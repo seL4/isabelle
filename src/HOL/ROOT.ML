@@ -24,6 +24,7 @@ use "$ISABELLE_HOME/src/Provers/blast.ML";
 use "$ISABELLE_HOME/src/Provers/Arith/nat_transitive.ML";
 use "$ISABELLE_HOME/src/Provers/Arith/cancel_sums.ML";
 use "$ISABELLE_HOME/src/Provers/Arith/cancel_factor.ML";
+use "$ISABELLE_HOME/src/Provers/quantifier1.ML";
 
 use "thy_data.ML";
 

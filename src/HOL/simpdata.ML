@@ -52,6 +52,31 @@ val AddIffs = seq addIff
 val DelIffs = seq delIff
 end;
 
+(** instantiate generic simp procs for `quantifier elimination': **)
+structure Quantifier1 = Quantifier1Fun(
+struct
+  (*abstract syntax*)
+  fun dest_eq((c as Const("op =",_)) $ s $ t) = Some(c,s,t)
+    | dest_eq _ = None;
+  fun dest_conj((c as Const("op &",_)) $ s $ t) = Some(c,s,t)
+    | dest_conj _ = None;
+  val conj = HOLogic.conj
+  val imp  = HOLogic.imp
+  (*rules*)
+  val iff_reflection = eq_reflection
+  val iffI = iffI
+  val sym  = sym
+  val conjI= conjI
+  val conjE= conjE
+  val impI = impI
+  val impE = impE
+  val mp   = mp
+  val exI  = exI
+  val exE  = exE
+  val allI = allI
+  val allE = allE
+end);
+
 
 local
 
@@ -160,7 +185,6 @@ val all_simps = map prover
 NB Simproc is only triggered by "!x. P(x) & P'(x) --> Q(x)"
    "!x. x=t --> P(x)" and "!x. t=x --> P(x)"
    must be taken care of by ordinary rewrite rules.
-***)
 
 local
 
@@ -227,6 +251,9 @@ in
 val defEX_regroup = mk_simproc "defined EX" [ex_pattern] rearrange_ex;
 val defALL_regroup = mk_simproc "defined ALL" [all_pattern] rearrange_all;
 end;
+***)
+
+
 
 
 (* elimination of existential quantifiers in assumptions *)
@@ -355,7 +382,20 @@ qed_goal "if_bool_eq" HOL.thy
                    "(if P then Q else R) = ((P-->Q) & (~P-->R))"
                    (fn _ => [rtac expand_if 1]);
 
+(** make simp procs for quantifier elimination **)
+local
+val ex_pattern =
+  read_cterm (sign_of HOL.thy) ("? x. P(x) & Q(x)",HOLogic.boolT)
 
+val all_pattern =
+  read_cterm (sign_of HOL.thy) ("! x. P(x) & P'(x) --> Q(x)",HOLogic.boolT)
+
+in
+val defEX_regroup =
+  mk_simproc "defined EX" [ex_pattern] Quantifier1.rearrange_ex;
+val defALL_regroup =
+  mk_simproc "defined ALL" [all_pattern] Quantifier1.rearrange_all;
+end;
 
 (** Case splitting **)
 
