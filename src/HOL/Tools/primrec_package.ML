@@ -9,8 +9,10 @@ by primitive recursion
 
 signature PRIMREC_PACKAGE =
 sig
-  val add_primrec_i : term list -> theory -> theory * thm list
-  val add_primrec : string list -> theory -> theory * thm list
+  val add_primrec_i : string option -> string list ->
+    term list -> theory -> theory * thm list
+  val add_primrec : string option -> string list ->
+    string list -> theory -> theory * thm list
 end;
 
 structure PrimrecPackage : PRIMREC_PACKAGE =
@@ -196,7 +198,7 @@ fun find_dts (dt_info : datatype_info Symtab.table) _ [] = []
               (tname, dt)::(find_dts dt_info tnames' tnames)
             else find_dts dt_info tnames' tnames);
 
-fun add_primrec_i eqns thy =
+fun add_primrec_i alt_name eqn_names eqns thy =
   let
     val sg = sign_of thy;
     val dt_info = DatatypePackage.get_datatypes thy;
@@ -213,22 +215,28 @@ fun add_primrec_i eqns thy =
     val defs' = map (make_def sg fs) defs;
     val names1 = map snd fnames;
     val names2 = map fst rec_eqns;
-    val thy' = if eq_set (names1, names2) then
-        Theory.add_defs_i defs' thy
-      else
-        primrec_err ("functions " ^ commas names2 ^ "\nare not mutually recursive");
+    val thy' = thy |>
+      Theory.add_path (if_none alt_name (space_implode "_"
+        (map (Sign.base_name o #1) defs))) |>
+      (if eq_set (names1, names2) then Theory.add_defs_i defs'
+       else primrec_err ("functions " ^ commas names2 ^
+         "\nare not mutually recursive"));
     val rewrites = (map mk_meta_eq rec_rewrites) @ (map (get_axiom thy' o fst) defs');
     val _ = writeln ("Proving equations for primrec function(s)\n" ^
       commas names1 ^ " ...");
     val char_thms = map (fn t => prove_goalw_cterm rewrites (cterm_of (sign_of thy') t)
         (fn _ => [rtac refl 1])) eqns;
-    val simpref = simpset_ref_of thy';
-    val _ = simpref := !simpref addsimps char_thms
+    val tsimps = map Attribute.tthm_of char_thms;
+    val thy'' = thy' |>
+      PureThy.add_tthmss [(("simps", tsimps), [Simplifier.simp_add_global])] |>
+      (if null eqn_names then I
+       else PureThy.add_tthms (map (rpair []) (eqn_names ~~ tsimps))) |>
+      Theory.parent_path;
   in
-    (thy', char_thms)
+    (thy'', char_thms)
   end;
 
-fun add_primrec eqns thy =
-  add_primrec_i (map (readtm (sign_of thy) propT) eqns) thy;
+fun add_primrec alt_name eqn_names eqns thy =
+  add_primrec_i alt_name eqn_names (map (readtm (sign_of thy) propT) eqns) thy;
 
 end;
