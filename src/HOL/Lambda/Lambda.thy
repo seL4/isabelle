@@ -182,21 +182,19 @@ subsection {* Preservation theorems *}
 text {* Not used in Church-Rosser proof, but in Strong
   Normalization. \medskip *}
 
-theorem subst_preserves_beta [rule_format, simp]:
-    "r -> s ==> \<forall>t i. r[t/i] -> s[t/i]"
-  apply (erule beta.induct)
+theorem subst_preserves_beta [simp]:
+    "r -> s ==> (\<And>t i. r[t/i] -> s[t/i])"
+  apply (induct set: beta)
      apply (simp_all add: subst_subst [symmetric])
   done
 
-theorem lift_preserves_beta [rule_format, simp]:
-    "r -> s ==> \<forall>i. lift r i -> lift s i"
-  apply (erule beta.induct)
-     apply auto
-  done
+theorem lift_preserves_beta [simp]:
+    "r -> s ==> (\<And>i. lift r i -> lift s i)"
+  by (induct set: beta) auto
 
-theorem subst_preserves_beta2 [rule_format, simp]:
-    "\<forall>r s i. r -> s --> t[r/i] ->> t[s/i]"
-  apply (induct_tac t)
+theorem subst_preserves_beta2 [simp]:
+    "\<And>r s i. r -> s ==> t[r/i] ->> t[s/i]"
+  apply (induct t)
     apply (simp add: subst_Var r_into_rtrancl)
    apply (simp add: rtrancl_beta_App)
   apply (simp add: rtrancl_beta_Abs)

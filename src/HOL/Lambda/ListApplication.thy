@@ -18,18 +18,17 @@ lemma apps_eq_tail_conv [iff]: "(r \<degree>\<degree> ts = s \<degree>\<degree> 
    apply auto
   done
 
-lemma Var_eq_apps_conv [rule_format, iff]:
-    "\<forall>s. (Var m = s \<degree>\<degree> ss) = (Var m = s \<and> ss = [])"
-  apply (induct_tac ss)
+lemma Var_eq_apps_conv [iff]:
+    "\<And>s. (Var m = s \<degree>\<degree> ss) = (Var m = s \<and> ss = [])"
+  apply (induct ss)
    apply auto
   done
 
-lemma Var_apps_eq_Var_apps_conv [rule_format, iff]:
-    "\<forall>ss. (Var m \<degree>\<degree> rs = Var n \<degree>\<degree> ss) = (m = n \<and> rs = ss)"
-  apply (induct_tac rs rule: rev_induct)
+lemma Var_apps_eq_Var_apps_conv [iff]:
+    "\<And>ss. (Var m \<degree>\<degree> rs = Var n \<degree>\<degree> ss) = (m = n \<and> rs = ss)"
+  apply (induct rs rule: rev_induct)
    apply simp
    apply blast
-  apply (rule allI)
   apply (induct_tac ss rule: rev_induct)
    apply auto
   done
@@ -54,11 +53,10 @@ lemma apps_eq_Abs_conv [iff]: "(s \<degree>\<degree> ss = Abs r) = (s = Abs r \<
   done
 
 lemma Abs_apps_eq_Abs_apps_conv [iff]:
-    "\<forall>ss. (Abs r \<degree>\<degree> rs = Abs s \<degree>\<degree> ss) = (r = s \<and> rs = ss)"
-  apply (induct_tac rs rule: rev_induct)
+    "\<And>ss. (Abs r \<degree>\<degree> rs = Abs s \<degree>\<degree> ss) = (r = s \<and> rs = ss)"
+  apply (induct rs rule: rev_induct)
    apply simp
    apply blast
-  apply (rule allI)
   apply (induct_tac ss rule: rev_induct)
    apply auto
   done
@@ -69,11 +67,10 @@ lemma Abs_App_neq_Var_apps [iff]:
    apply auto
   done
 
-lemma Var_apps_neq_Abs_apps [rule_format, iff]:
-    "\<forall>ts. Var n \<degree>\<degree> ts ~= Abs r \<degree>\<degree> ss"
-  apply (induct_tac ss rule: rev_induct)
+lemma Var_apps_neq_Abs_apps [iff]:
+    "\<And>ts. Var n \<degree>\<degree> ts ~= Abs r \<degree>\<degree> ss"
+  apply (induct ss rule: rev_induct)
    apply simp
-  apply (rule allI)
   apply (induct_tac ts rule: rev_induct)
    apply auto
   done
