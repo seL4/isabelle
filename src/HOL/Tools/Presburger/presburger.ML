@@ -28,6 +28,8 @@ fun trace_msg s = if !trace then tracing s else ();
 (* Here still only one problem : The proof for the arithmetical transformations done on the dvd atomic formulae*)
 (*-----------------------------------------------------------------*)
 
+val presburger_ss = simpset_of (theory "Presburger");
+
 fun cooper_pp sg (fm as e$Abs(xn,xT,p)) = 
   let val (xn1,p1) = variant_abs (xn,xT,p)
   in (CooperProof.cooper_prv sg (Free (xn1, xT)) p1) end;
@@ -65,19 +67,6 @@ fun add_term_typed_consts (Const (c, T), cs) = (c,T) ins cs
 
 fun term_typed_consts t = add_term_typed_consts(t,[]);
 
-(* put a term into eta long beta normal form *)
-fun eta_long Ts (Abs (s, T, t)) = Abs (s, T, eta_long (T :: Ts) t)
-  | eta_long Ts t = (case strip_comb t of
-      (Abs _, _) => eta_long Ts (Envir.beta_norm t)
-    | (u, ts) => 
-      let
-        val Us = binder_types (fastype_of1 (Ts, t));
-        val i = length Us
-      in list_abs (map (pair "x") Us,
-        list_comb (incr_boundvars i u, map (eta_long (rev Us @ Ts))
-          (map (incr_boundvars i) ts @ map Bound (i - 1 downto 0))))
-      end);
-
 (* Some Types*)
 val bT = HOLogic.boolT;
 val iT = HOLogic.intT;
@@ -109,6 +98,8 @@ val allowed_consts =
    ("op *", iT --> iT --> iT), 
    ("HOL.abs", iT --> iT),
    ("uminus", iT --> iT),
+   ("HOL.max", iT --> iT --> iT),
+   ("HOL.min", iT --> iT --> iT),
 
    ("op <=", nT --> nT --> bT),
    ("op =", nT --> nT --> bT),
@@ -120,6 +111,8 @@ val allowed_consts =
    ("op -", nT --> nT --> nT),
    ("op *", nT --> nT --> nT), 
    ("Suc", nT --> nT),
+   ("HOL.max", nT --> nT --> nT),
+   ("HOL.min", nT --> nT --> nT),
 
    ("Numeral.bin.Bit", binT --> bT --> binT),
    ("Numeral.bin.Pls", binT),
@@ -268,7 +261,7 @@ fun presburger_tac q a i = ObjectLogic.atomize_tac i THEN (fn st =>
     val pre_thm = Seq.hd (EVERY
       [simp_tac simpset0 1,
        TRY (simp_tac simpset1 1), TRY (simp_tac simpset2 1),
-       TRY (simp_tac simpset3 1)]
+       TRY (simp_tac simpset3 1), TRY (simp_tac presburger_ss 1)]
       (trivial ct))
     fun assm_tac i = REPEAT_DETERM_N nh (assume_tac i)
     (* The result of the quantifier elimination *)
