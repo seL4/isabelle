@@ -181,7 +181,7 @@ fun ratle(r,s) = ratge0(ratadd(s,ratneg r))
 fun ratmin2(r,s) = if ratle(r,s) then r else s;
 fun ratmax2(r,s) = if ratle(r,s) then s else r;
 
-val ratmin = foldr1 ratmax2;
+val ratmin = foldr1 ratmin2;
 val ratmax = foldr1 ratmax2;
 
 fun ratroundup r = let val (p,q) = rep_rat r
