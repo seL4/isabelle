@@ -27,6 +27,19 @@ lemma prefixI [intro?]: "ys = xs @ zs ==> xs \<le> ys"
 lemma prefixE [elim?]: "xs \<le> ys ==> (!!zs. ys = xs @ zs ==> C) ==> C"
   by (unfold prefix_def) blast
 
+lemma strict_prefixI' [intro?]: "ys = xs @ z # zs ==> xs < ys"
+  by (unfold strict_prefix_def prefix_def) blast
+
+lemma strict_prefixE' [elim?]:
+    "xs < ys ==> (!!z zs. ys = xs @ z # zs ==> C) ==> C"
+proof -
+  assume r: "!!z zs. ys = xs @ z # zs ==> C"
+  assume "xs < ys"
+  then obtain us where "ys = xs @ us" and "xs \<noteq> ys"
+    by (unfold strict_prefix_def prefix_def) blast
+  with r show ?thesis by (auto simp add: neq_Nil_conv)
+qed
+
 lemma strict_prefixI [intro?]: "xs \<le> ys ==> xs \<noteq> ys ==> xs < (ys::'a list)"
   by (unfold strict_prefix_def) blast
 
