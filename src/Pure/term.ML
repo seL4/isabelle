@@ -985,8 +985,7 @@ fun find_type (T, []: typ list) = None
 
 fun compress_type T =
   let val tag = type_tag T
-      val tylist = the (Symtab.lookup (!memo_types, tag))
-	           handle _ => []
+      val tylist = Symtab.lookup_multi (!memo_types, tag)
   in  
       case find_type (T,tylist) of
 	Some T' => T'
@@ -1022,8 +1021,7 @@ fun share_term (t $ u) = share_term t $ share_term u
   | share_term (Abs (a,T,u)) = Abs (a, T, share_term u)
   | share_term t =
       let val tag = const_tag t
-	  val ts = the (Symtab.lookup (!memo_terms, tag))
-	               handle _ => []
+	  val ts = Symtab.lookup_multi (!memo_terms, tag)
       in 
 	  case find_term (t,ts) of
 	      Some t' => t'
