@@ -1,5 +1,4 @@
-
-theory HyperArith = HyperArith0
+theory HyperArith = HyperBin
 files "hypreal_arith.ML":
 
 setup hypreal_arith_setup

@@ -148,10 +148,6 @@ by (simp only: real_number_of_def real_of_int_power)
 declare power_real_number_of [of _ "number_of w", standard, simp]
 
 
-lemma real_power_two: "(r::real)\<twosuperior> = r * r"
-  by (simp add: numeral_2_eq_2)
-
-
 subsection{*Various Other Theorems*}
 
 text{*Used several times in Hyperreal/Transcendental.ML*}
@@ -213,17 +209,17 @@ done
 lemma realpow_two_sum_zero_iff [simp]:
      "(x ^ 2 + y ^ 2 = (0::real)) = (x = 0 & y = 0)"
 apply (auto intro: real_sum_squares_cancel real_sum_squares_cancel2 
-                   simp add: real_power_two)
+                   simp add: power2_eq_square)
 done
 
 lemma realpow_two_le_add_order [simp]: "(0::real) \<le> u ^ 2 + v ^ 2"
 apply (rule real_le_add_order)
-apply (auto simp add: real_power_two)
+apply (auto simp add: power2_eq_square)
 done
 
 lemma realpow_two_le_add_order2 [simp]: "(0::real) \<le> u ^ 2 + v ^ 2 + w ^ 2"
 apply (rule real_le_add_order)+
-apply (auto simp add: real_power_two)
+apply (auto simp add: power2_eq_square)
 done
 
 lemma real_sum_square_gt_zero: "x ~= 0 ==> (0::real) < x * x + y * y"
@@ -241,7 +237,7 @@ lemma real_minus_mult_self_le [simp]: "-(u * u) \<le> (x * (x::real))"
 by (rule_tac j = 0 in real_le_trans, auto)
 
 lemma realpow_square_minus_le [simp]: "-(u ^ 2) \<le> (x::real) ^ 2"
-by (auto simp add: real_power_two)
+by (auto simp add: power2_eq_square)
 
 lemma realpow_num_eq_if: "(m::real) ^ n = (if n=0 then 1 else m * m ^ (n - 1))"
 by (case_tac "n", auto)
@@ -259,7 +255,7 @@ apply (auto simp add: realpow_num_eq_if)
 done
 
 lemma zero_le_x_squared [simp]: "(0::real) \<le> x^2"
-by (simp add: real_power_two)
+by (simp add: power2_eq_square)
 
 
 
@@ -294,7 +290,6 @@ val zero_less_realpow_abs_iff = thm "zero_less_realpow_abs_iff";
 val zero_le_realpow_abs = thm "zero_le_realpow_abs";
 val real_of_int_power = thm "real_of_int_power";
 val power_real_number_of = thm "power_real_number_of";
-val real_power_two = thm "real_power_two";
 val real_sum_squares_cancel_a = thm "real_sum_squares_cancel_a";
 val real_mult_inverse_cancel2 = thm "real_mult_inverse_cancel2";
 val real_squared_diff_one_factored = thm "real_squared_diff_one_factored";

@@ -361,7 +361,7 @@ fun trans_tac None      = all_tac
 val simplify_meta_eq =
     Int_Numeral_Simprocs.simplify_meta_eq
          [add_0, add_0_right,
-          mult_left_zero, mult_right_zero, mult_1, mult_1_right];
+          mult_zero_left, mult_zero_right, mult_1, mult_1_right];
 
 fun prep_simproc (name, pats, proc) =
   Simplifier.simproc (Theory.sign_of (the_context ())) name pats proc;

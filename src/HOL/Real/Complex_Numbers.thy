@@ -126,9 +126,9 @@ proof
       thus ?thesis by rule (insert ge, arith+)
     qed
     with neq show "Re (inverse w * w) = Re 1"
-      by (simp add: inverse_complex_def real_power_two add_divide_distrib [symmetric])
+      by (simp add: inverse_complex_def power2_eq_square add_divide_distrib [symmetric])
     from neq show "Im (inverse w * w) = Im 1"
-      by (simp add: inverse_complex_def real_power_two
+      by (simp add: inverse_complex_def power2_eq_square
         mult_ac add_divide_distrib [symmetric])
   qed
 qed
@@ -164,7 +164,7 @@ lemma Im_cong [simp]: "Im (conjg z) = - Im z"
   by (simp add: conjg_def)
 
 lemma Re_conjg_self: "Re (z * conjg z) = (Re z)\<twosuperior> + (Im z)\<twosuperior>"
-  by (simp add: real_power_two)
+  by (simp add: power2_eq_square)
 
 lemma Im_conjg_self: "Im (z * conjg z) = 0"
   by simp

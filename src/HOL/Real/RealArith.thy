@@ -1,4 +1,4 @@
-theory RealArith = RealArith0
+theory RealArith = RealBin
 files ("real_arith.ML"):
 
 use "real_arith.ML"
@@ -149,8 +149,6 @@ val real_gt_half_sum = thm"real_gt_half_sum";
 val real_dense = thm"real_dense";
 
 val abs_nat_number_of = thm"abs_nat_number_of";
-val abs_split = thm"abs_split";
-val abs_zero = thm"abs_zero";
 val abs_eqI1 = thm"abs_eqI1";
 val abs_eqI2 = thm"abs_eqI2";
 val abs_minus_eqI2 = thm"abs_minus_eqI2";
