@@ -1,0 +1,2 @@
+qed "rev_app";
+Addsimps [rev_app];

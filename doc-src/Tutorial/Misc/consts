@@ -1,0 +1,1 @@
+consts nand, exor :: gate

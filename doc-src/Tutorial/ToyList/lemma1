@@ -1,0 +1,1 @@
+Goal "rev(xs @ ys) = (rev ys) @ (rev xs)";
