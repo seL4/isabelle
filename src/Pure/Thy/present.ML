@@ -27,6 +27,7 @@ sig
   val results: string -> string -> thm list -> unit
   val theorem: string -> thm -> unit
   val theorems: string -> thm list -> unit
+  val chapter: string -> unit
   val subsection: string -> unit
   val subsubsection: string -> unit
   val setup: (theory -> theory) list
@@ -427,6 +428,7 @@ fun result k a thm = with_session () (fn _ => with_context add_html (HTML.result
 fun results k a thms = with_session () (fn _ => with_context add_html (HTML.results k a thms));
 fun theorem a thm = with_session () (fn _ => with_context add_html (HTML.theorem a thm));
 fun theorems a thms = with_session () (fn _ => with_context add_html (HTML.theorems a thms));
+fun chapter s = with_session () (fn _ => with_context add_html (HTML.chapter s));
 fun section s = with_session () (fn _ => with_context add_html (HTML.section s));
 fun subsection s = with_session () (fn _ => with_context add_html (HTML.subsection s));
 fun subsubsection s = with_session () (fn _ => with_context add_html (HTML.subsubsection s));
