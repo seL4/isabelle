@@ -5,6 +5,42 @@ theory Tutorial = Main:
 
 chapter {* Introduction *}
 
+section {* Step-by-step examples *}
+
+subsection {* Summing natural numbers *}
+
+theorem "2 * (\<Sum>i < n + 1. i) = n * (n + 1)"  (is "?P n")
+proof (induct n)
+  case 0
+  then show "?P 0" by simp
+next
+  case (Suc n)
+  let "?S n = _" = "?P n"
+  have "?S (n + 1) = ?S n + 2 * (n + 1)" by simp
+  also have "?S n = n * (n + 1)" .
+  also have "\<dots> + 2 * (n + 1) = (n + 1) * (n + 2)" by simp
+  finally show "?P (Suc n)" by simp
+qed
+
+theorem "2 * (\<Sum>i < n + 1. i) = n * (n + 1)"
+proof (induct n)
+  case 0
+  then show ?case by simp
+next
+  case Suc
+  then show ?case by simp
+qed
+
+theorem "2 * (\<Sum>i < n + 1. i) = n * (n + 1)"
+  by (induct n) simp_all
+    
+theorem "2 * (\<Sum>i < n + 1. i) = n * (n + 1)"
+  apply (induct n)
+   apply simp_all
+  done
+
+
+
 chapter {* Interaction and debugging *}
 
 chapter {* Calculational reasoning *}
