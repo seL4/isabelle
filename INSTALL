@@ -3,7 +3,7 @@
 
 IMPORTANT NOTE: This file describes the *new* installation procedure
 using various scripts that are still supposed beta for Isabelle94-8.
-If you encounter any problems, you may want to consider compiling
+If you encounter serious problems, you may want to consider compiling
 Isabelle the olden way, as described in README.old.
 
 ***************************************************************************
