@@ -27,7 +27,7 @@ fun rew b =
       if b then PAxm (s, prop, Some Ts) else prf;
     fun ty T = if b then
         let val Type (_, [Type (_, [U, _]), _]) = T
-        in Some T end
+        in Some U end
       else None;
     val equal_intr_axm = ax equal_intr_axm [];
     val equal_elim_axm = ax equal_elim_axm [];
@@ -168,6 +168,15 @@ fun rew b =
           Some (equal_elim_axm %> B %> A %% (symmetric_axm % ? A % ? B %% prf1) %%
             (equal_elim_axm %> D %> B %% (symmetric_axm % ? B % ? D %% prf3) %%
               (equal_elim_axm %> C %> D %% prf2 %% prf4)))
+
+      | rew' _ ((prf as PAxm ("ProtoPure.combination", _, _) %
+        Some ((eq as Const ("==", T)) $ t) % _ % _ % _) %%
+          (PAxm ("ProtoPure.reflexive", _, _) % _)) =
+        let val (U, V) = (case T of
+          Type (_, [U, V]) => (U, V) | _ => (dummyT, dummyT))
+        in Some (prf %% (ax combination_axm [V, U] %> eq % ? eq % ? t % ? t %%
+          (ax reflexive_axm [T] % ? eq) %% (ax reflexive_axm [U] % ? t)))
+        end
 
       | rew' _ _ = None;
   in rew' end;
