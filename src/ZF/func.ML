@@ -380,12 +380,13 @@ val fun_extend_apply2 = result();
 (*For Finite.ML.  Inclusion of right into left is easy*)
 goal ZF.thy
     "!!c. c ~: A ==> cons(c,A) -> B = (UN f: A->B. UN b:B. {cons(<c,b>, f)})";
-by (safe_tac (eq_cs addSEs [fun_extend3]));
+by (rtac equalityI 1);
+by (safe_tac (ZF_cs addSEs [fun_extend3]));
 (*Inclusion of left into right*)
 by (subgoal_tac "restrict(x, A) : A -> B" 1);
 by (fast_tac (ZF_cs addEs [restrict_type2]) 2);
 by (rtac UN_I 1 THEN assume_tac 1);
-by (rtac UN_I 1 THEN fast_tac (ZF_cs addEs [apply_type]) 1);
+by (rtac (apply_funtype RS UN_I) 1 THEN REPEAT (ares_tac [consI1] 1));
 by (simp_tac (FOL_ss addsimps cons_iff::mem_simps) 1);
 by (resolve_tac [fun_extension] 1 THEN REPEAT (ares_tac [fun_extend] 1));
 by (etac consE 1);
