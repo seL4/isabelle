@@ -934,7 +934,7 @@ fun goals_conv pred cv =
         handle TERM _ => reflexive ct
   in gconv 1 end;
 
-(* Rewrite A in !!x1,...x1. A *)
+(* Rewrite A in !!x1,...,xn. A *)
 fun forall_conv cv ct =
   let val p as (ct1, ct2) = Thm.dest_comb ct
   in (case pairself term_of p of
