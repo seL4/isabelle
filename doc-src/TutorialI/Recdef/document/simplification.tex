@@ -23,7 +23,7 @@ Let us look at an example:%
 According to the measure function, the second argument should decrease with
 each recursive call. The resulting termination condition
 \begin{isabelle}%
-\ \ \ \ \ n\ {\isasymnoteq}\ {\isacharparenleft}{\isadigit{0}}{\isasymColon}{\isacharprime}a{\isacharparenright}\ {\isasymLongrightarrow}\ m\ mod\ n\ {\isacharless}\ n%
+\ \ \ \ \ n\ {\isasymnoteq}\ {\isadigit{0}}\ {\isasymLongrightarrow}\ m\ mod\ n\ {\isacharless}\ n%
 \end{isabelle}
 is proved automatically because it is already present as a lemma in
 HOL\@.  Thus the recursion equation becomes a simplification
@@ -70,7 +70,7 @@ following alternative definition suggests itself:%
 \begin{isamarkuptext}%
 \noindent
 The order of equations is important: it hides the side condition
-\isa{n\ {\isasymnoteq}\ {\isacharparenleft}{\isadigit{0}}{\isasymColon}{\isacharprime}a{\isacharparenright}}.  Unfortunately, in general the case distinction
+\isa{n\ {\isasymnoteq}\ {\isadigit{0}}}.  Unfortunately, in general the case distinction
 may not be expressible by pattern matching.
 
 A simple alternative is to replace \isa{if} by \isa{case}, 

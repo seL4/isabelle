@@ -19,7 +19,7 @@ recdef gcd "measure (\<lambda>(m,n).n)"
 text{*\noindent
 According to the measure function, the second argument should decrease with
 each recursive call. The resulting termination condition
-@{term[display]"n ~= 0 ==> m mod n < n"}
+@{term[display]"n ~= (0::nat) ==> m mod n < n"}
 is proved automatically because it is already present as a lemma in
 HOL\@.  Thus the recursion equation becomes a simplification
 rule. Of course the equation is nonterminating if we are allowed to unfold
@@ -58,7 +58,7 @@ recdef gcd1 "measure (\<lambda>(m,n).n)"
 
 text{*\noindent
 The order of equations is important: it hides the side condition
-@{prop"n ~= 0"}.  Unfortunately, in general the case distinction
+@{prop"n ~= (0::nat)"}.  Unfortunately, in general the case distinction
 may not be expressible by pattern matching.
 
 A simple alternative is to replace @{text if} by @{text case}, 

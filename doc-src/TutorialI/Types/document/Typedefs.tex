@@ -86,16 +86,17 @@ Let us work a simple example, the definition of a three-element type.
 It is easily represented by the first three natural numbers:%
 \end{isamarkuptext}%
 \isamarkuptrue%
-\isacommand{typedef}\ three\ {\isacharequal}\ {\isachardoublequote}{\isacharbraceleft}n{\isacharcolon}{\isacharcolon}nat{\isachardot}\ n\ {\isasymle}\ {\isadigit{2}}{\isacharbraceright}{\isachardoublequote}\isamarkupfalse%
+\isacommand{typedef}\ three\ {\isacharequal}\ {\isachardoublequote}{\isacharbraceleft}{\isadigit{0}}{\isacharcolon}{\isacharcolon}nat{\isacharcomma}\ {\isadigit{1}}{\isacharcomma}\ {\isadigit{2}}{\isacharbraceright}{\isachardoublequote}\isamarkupfalse%
 %
 \begin{isamarkuptxt}%
 \noindent
 In order to enforce that the representing set on the right-hand side is
 non-empty, this definition actually starts a proof to that effect:
 \begin{isabelle}%
-\ {\isadigit{1}}{\isachardot}\ {\isasymexists}x{\isachardot}\ x\ {\isasymin}\ {\isacharbraceleft}n{\isachardot}\ n\ {\isasymle}\ {\isadigit{2}}{\isacharbraceright}%
+\ {\isadigit{1}}{\isachardot}\ {\isasymexists}x{\isachardot}\ x\ {\isasymin}\ {\isacharbraceleft}{\isadigit{0}}{\isacharcomma}\ {\isadigit{1}}{\isacharcomma}\ {\isadigit{2}}{\isacharbraceright}%
 \end{isabelle}
-Fortunately, this is easy enough to show: take 0 as a witness.%
+Fortunately, this is easy enough to show, even \isa{auto} could do it.
+In general, one has to provide a witness, in our case 0:%
 \end{isamarkuptxt}%
 \isamarkuptrue%
 \isacommand{apply}{\isacharparenleft}rule{\isacharunderscore}tac\ x\ {\isacharequal}\ {\isadigit{0}}\ \isakeyword{in}\ exI{\isacharparenright}\isanewline
@@ -117,7 +118,7 @@ constants behind the scenes:
 \end{center}
 where constant \isa{three} is explicitly defined as the representing set:
 \begin{center}
-\isa{three\ {\isasymequiv}\ {\isacharbraceleft}n{\isachardot}\ n\ {\isasymle}\ {\isadigit{2}}{\isacharbraceright}}\hfill(\isa{three{\isacharunderscore}def})
+\isa{three\ {\isasymequiv}\ {\isacharbraceleft}{\isadigit{0}}{\isacharcomma}\ {\isadigit{1}}{\isacharcomma}\ {\isadigit{2}}{\isacharbraceright}}\hfill(\isa{three{\isacharunderscore}def})
 \end{center}
 The situation is best summarized with the help of the following diagram,
 where squares are types and circles are sets:
@@ -147,7 +148,7 @@ surjective on the subset \isa{three} and \isa{Abs{\isacharunderscore}three} and 
 %
 From this example it should be clear what \isacommand{typedef} does
 in general given a name (here \isa{three}) and a set
-(here \isa{{\isacharbraceleft}n{\isachardot}\ n\ {\isasymle}\ {\isadigit{2}}{\isacharbraceright}}).
+(here \isa{{\isacharbraceleft}{\isadigit{0}}{\isacharcomma}\ {\isadigit{1}}{\isacharcomma}\ {\isadigit{2}}{\isacharbraceright}}).
 
 Our next step is to define the basic functions expected on the new type.
 Although this depends on the type at hand, the following strategy works well:
@@ -179,17 +180,30 @@ we merely need to prove that \isa{A}, \isa{B} and \isa{C} are distinct
 and that they exhaust the type.
 
 In processing our \isacommand{typedef} declaration, 
-Isabelle helpfully proves several lemmas.
-One, \isa{Abs{\isacharunderscore}three{\isacharunderscore}inject},
-expresses that \isa{Abs{\isacharunderscore}three} is injective on the representing subset:
+Isabelle proves several helpful lemmas. The first two
+express injectivity of \isa{Rep{\isacharunderscore}three} and \isa{Abs{\isacharunderscore}three}:
 \begin{center}
-\isa{{\isasymlbrakk}x\ {\isasymin}\ three{\isacharsemicolon}\ y\ {\isasymin}\ three{\isasymrbrakk}\ {\isasymLongrightarrow}\ {\isacharparenleft}Abs{\isacharunderscore}three\ x\ {\isacharequal}\ Abs{\isacharunderscore}three\ y{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}x\ {\isacharequal}\ y{\isacharparenright}}
+\begin{tabular}{@ {}r@ {\qquad}l@ {}}
+\isa{{\isacharparenleft}Rep{\isacharunderscore}three\ x\ {\isacharequal}\ Rep{\isacharunderscore}three\ y{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}x\ {\isacharequal}\ y{\isacharparenright}} & (\isa{Rep{\isacharunderscore}three{\isacharunderscore}inject}) \\
+\begin{tabular}{@ {}l@ {}}
+\isa{{\isasymlbrakk}x\ {\isasymin}\ three{\isacharsemicolon}\ y\ {\isasymin}\ three\ {\isasymrbrakk}} \\
+\isa{{\isasymLongrightarrow}\ {\isacharparenleft}Abs{\isacharunderscore}three\ x\ {\isacharequal}\ Abs{\isacharunderscore}three\ y{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}x\ {\isacharequal}\ y{\isacharparenright}}
+\end{tabular} & (\isa{Abs{\isacharunderscore}three{\isacharunderscore}inject}) \\
+\end{tabular}
 \end{center}
-Another, \isa{Rep{\isacharunderscore}three{\isacharunderscore}inject}, expresses that the representation
-function is also injective:
+The following ones allow to replace some \isa{x{\isacharcolon}{\isacharcolon}three} by
+\isa{Abs{\isacharunderscore}three{\isacharparenleft}y{\isacharcolon}{\isacharcolon}nat{\isacharparenright}}, and conversely \isa{y} by \isa{Rep{\isacharunderscore}three\ x}:
 \begin{center}
-\isa{{\isacharparenleft}Rep{\isacharunderscore}three\ x\ {\isacharequal}\ Rep{\isacharunderscore}three\ y{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}x\ {\isacharequal}\ y{\isacharparenright}}
+\begin{tabular}{@ {}r@ {\qquad}l@ {}}
+\isa{{\isasymlbrakk}y\ {\isasymin}\ three{\isacharsemicolon}\ {\isasymAnd}x{\isachardot}\ y\ {\isacharequal}\ Rep{\isacharunderscore}three\ x\ {\isasymLongrightarrow}\ P{\isasymrbrakk}\ {\isasymLongrightarrow}\ P} & (\isa{Rep{\isacharunderscore}three{\isacharunderscore}cases}) \\
+\isa{{\isacharparenleft}{\isasymAnd}y{\isachardot}\ {\isasymlbrakk}x\ {\isacharequal}\ Abs{\isacharunderscore}three\ y{\isacharsemicolon}\ y\ {\isasymin}\ three{\isasymrbrakk}\ {\isasymLongrightarrow}\ P{\isacharparenright}\ {\isasymLongrightarrow}\ P} & (\isa{Abs{\isacharunderscore}three{\isacharunderscore}cases}) \\
+\isa{{\isasymlbrakk}y\ {\isasymin}\ three{\isacharsemicolon}\ {\isasymAnd}x{\isachardot}\ P\ {\isacharparenleft}Rep{\isacharunderscore}three\ x{\isacharparenright}{\isasymrbrakk}\ {\isasymLongrightarrow}\ P\ y} & (\isa{Rep{\isacharunderscore}three{\isacharunderscore}induct}) \\
+\isa{{\isacharparenleft}{\isasymAnd}y{\isachardot}\ y\ {\isasymin}\ three\ {\isasymLongrightarrow}\ P\ {\isacharparenleft}Abs{\isacharunderscore}three\ y{\isacharparenright}{\isacharparenright}\ {\isasymLongrightarrow}\ P\ x} & (\isa{Abs{\isacharunderscore}three{\isacharunderscore}induct}) \\
+\end{tabular}
 \end{center}
+These theorems are proved for any type definition, with \isa{three}
+replaced by the name of the type in question.
+
 Distinctness of \isa{A}, \isa{B} and \isa{C} follows immediately
 if we expand their definitions and rewrite with the injectivity
 of \isa{Abs{\isacharunderscore}three}:%
@@ -201,70 +215,31 @@ of \isa{Abs{\isacharunderscore}three}:%
 %
 \begin{isamarkuptext}%
 \noindent
-Of course we rely on the simplifier to solve goals like \isa{{\isacharparenleft}{\isadigit{0}}{\isasymColon}{\isacharprime}a{\isacharparenright}\ {\isasymnoteq}\ {\isacharparenleft}{\isadigit{1}}{\isasymColon}{\isacharprime}a{\isacharparenright}}.
+Of course we rely on the simplifier to solve goals like \isa{{\isadigit{0}}\ {\isasymnoteq}\ {\isadigit{1}}}.
 
 The fact that \isa{A}, \isa{B} and \isa{C} exhaust type \isa{three} is
 best phrased as a case distinction theorem: if you want to prove \isa{P\ x}
 (where \isa{x} is of type \isa{three}) it suffices to prove \isa{P\ A},
-\isa{P\ B} and \isa{P\ C}. First we prove the analogous proposition for the
-representation:%
-\end{isamarkuptext}%
-\isamarkuptrue%
-\isacommand{lemma}\ cases{\isacharunderscore}lemma{\isacharcolon}\ {\isachardoublequote}{\isasymlbrakk}\ Q\ {\isadigit{0}}{\isacharsemicolon}\ Q\ {\isadigit{1}}{\isacharsemicolon}\ Q\ {\isadigit{2}}{\isacharsemicolon}\ n\ {\isasymin}\ three\ {\isasymrbrakk}\ {\isasymLongrightarrow}\ \ Q\ n{\isachardoublequote}\isamarkupfalse%
-%
-\begin{isamarkuptxt}%
-\noindent
-Expanding \isa{three{\isacharunderscore}def} yields the premise \isa{n\ {\isasymle}\ {\isadigit{2}}}. Repeated
-elimination with \isa{le{\isacharunderscore}SucE}
-\begin{isabelle}%
-{\isasymlbrakk}{\isacharquery}m\ {\isasymle}\ Suc\ {\isacharquery}n{\isacharsemicolon}\ {\isacharquery}m\ {\isasymle}\ {\isacharquery}n\ {\isasymLongrightarrow}\ {\isacharquery}R{\isacharsemicolon}\ {\isacharquery}m\ {\isacharequal}\ Suc\ {\isacharquery}n\ {\isasymLongrightarrow}\ {\isacharquery}R{\isasymrbrakk}\ {\isasymLongrightarrow}\ {\isacharquery}R%
-\end{isabelle}
-reduces \isa{n\ {\isasymle}\ {\isadigit{2}}} to the three cases \isa{n\ {\isasymle}\ {\isadigit{0}}}, \isa{n\ {\isacharequal}\ {\isadigit{1}}} and
-\isa{n\ {\isacharequal}\ {\isadigit{2}}} which are trivial for simplification:%
-\end{isamarkuptxt}%
-\isamarkuptrue%
-\isacommand{apply}{\isacharparenleft}simp\ add{\isacharcolon}\ three{\isacharunderscore}def\ numerals{\isacharparenright}\ \ \ \isanewline
-\isamarkupfalse%
-\isacommand{apply}{\isacharparenleft}{\isacharparenleft}erule\ le{\isacharunderscore}SucE{\isacharparenright}{\isacharplus}{\isacharparenright}\isanewline
-\isamarkupfalse%
-\isacommand{apply}\ simp{\isacharunderscore}all\isanewline
-\isamarkupfalse%
-\isacommand{done}\isamarkupfalse%
-%
-\begin{isamarkuptext}%
-Now the case distinction lemma on type \isa{three} is easy to derive if you 
-know how:%
+\isa{P\ B} and \isa{P\ C}:%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{lemma}\ three{\isacharunderscore}cases{\isacharcolon}\ {\isachardoublequote}{\isasymlbrakk}\ P\ A{\isacharsemicolon}\ P\ B{\isacharsemicolon}\ P\ C\ {\isasymrbrakk}\ {\isasymLongrightarrow}\ P\ x{\isachardoublequote}\isamarkupfalse%
 %
 \begin{isamarkuptxt}%
-\noindent
-We start by replacing the \isa{x} by \isa{Abs{\isacharunderscore}three\ {\isacharparenleft}Rep{\isacharunderscore}three\ x{\isacharparenright}}:%
+\noindent Again this follows easily from a pre-proved general theorem:%
 \end{isamarkuptxt}%
 \isamarkuptrue%
-\isacommand{apply}{\isacharparenleft}rule\ subst{\isacharbrackleft}OF\ Rep{\isacharunderscore}three{\isacharunderscore}inverse{\isacharbrackright}{\isacharparenright}\isamarkupfalse%
-%
-\begin{isamarkuptxt}%
-\noindent
-This substitution step worked nicely because there was just a single
-occurrence of a term of type \isa{three}, namely \isa{x}.
-When we now apply \isa{cases{\isacharunderscore}lemma}, \isa{Q} becomes \isa{{\isasymlambda}n{\isachardot}\ P\ {\isacharparenleft}Abs{\isacharunderscore}three\ n{\isacharparenright}} because \isa{Rep{\isacharunderscore}three\ x} is the only term of type \isa{nat}:%
-\end{isamarkuptxt}%
-\isamarkuptrue%
-\isacommand{apply}{\isacharparenleft}rule\ cases{\isacharunderscore}lemma{\isacharparenright}\isamarkupfalse%
+\isacommand{apply}{\isacharparenleft}rule{\isacharunderscore}tac\ x\ {\isacharequal}\ x\ \isakeyword{in}\ Abs{\isacharunderscore}three{\isacharunderscore}induct{\isacharparenright}\isamarkupfalse%
 %
 \begin{isamarkuptxt}%
 \begin{isabelle}%
-\ {\isadigit{1}}{\isachardot}\ {\isasymlbrakk}P\ A{\isacharsemicolon}\ P\ B{\isacharsemicolon}\ P\ C{\isasymrbrakk}\ {\isasymLongrightarrow}\ P\ {\isacharparenleft}Abs{\isacharunderscore}three\ {\isadigit{0}}{\isacharparenright}\isanewline
-\ {\isadigit{2}}{\isachardot}\ {\isasymlbrakk}P\ A{\isacharsemicolon}\ P\ B{\isacharsemicolon}\ P\ C{\isasymrbrakk}\ {\isasymLongrightarrow}\ P\ {\isacharparenleft}Abs{\isacharunderscore}three\ {\isadigit{1}}{\isacharparenright}\isanewline
-\ {\isadigit{3}}{\isachardot}\ {\isasymlbrakk}P\ A{\isacharsemicolon}\ P\ B{\isacharsemicolon}\ P\ C{\isasymrbrakk}\ {\isasymLongrightarrow}\ P\ {\isacharparenleft}Abs{\isacharunderscore}three\ {\isadigit{2}}{\isacharparenright}\isanewline
-\ {\isadigit{4}}{\isachardot}\ {\isasymlbrakk}P\ A{\isacharsemicolon}\ P\ B{\isacharsemicolon}\ P\ C{\isasymrbrakk}\ {\isasymLongrightarrow}\ Rep{\isacharunderscore}three\ x\ {\isasymin}\ three%
+\ {\isadigit{1}}{\isachardot}\ {\isasymAnd}y{\isachardot}\ {\isasymlbrakk}P\ A{\isacharsemicolon}\ P\ B{\isacharsemicolon}\ P\ C{\isacharsemicolon}\ y\ {\isasymin}\ three{\isasymrbrakk}\ {\isasymLongrightarrow}\ P\ {\isacharparenleft}Abs{\isacharunderscore}three\ y{\isacharparenright}%
 \end{isabelle}
-The resulting subgoals are easily solved by simplification:%
+Simplification with \isa{three{\isacharunderscore}def} leads to the disjunction \isa{y\ {\isacharequal}\ {\isadigit{0}}\ {\isasymor}\ y\ {\isacharequal}\ {\isadigit{1}}\ {\isasymor}\ y\ {\isacharequal}\ {\isadigit{2}}} which \isa{auto} separates into three
+subgoals, each of which is easily solved by simplification:%
 \end{isamarkuptxt}%
 \isamarkuptrue%
-\isacommand{apply}{\isacharparenleft}simp{\isacharunderscore}all\ add{\isacharcolon}A{\isacharunderscore}def\ B{\isacharunderscore}def\ C{\isacharunderscore}def\ Rep{\isacharunderscore}three{\isacharparenright}\isanewline
+\isacommand{apply}{\isacharparenleft}auto\ simp\ add{\isacharcolon}\ three{\isacharunderscore}def\ A{\isacharunderscore}def\ B{\isacharunderscore}def\ C{\isacharunderscore}def{\isacharparenright}\isanewline
 \isamarkupfalse%
 \isacommand{done}\isamarkupfalse%
 %
@@ -289,7 +264,7 @@ Although \isa{three} could be defined in one line, we have chosen this
 example to demonstrate \isacommand{typedef} because its simplicity makes the
 key concepts particularly easy to grasp. If you would like to see a
 non-trivial example that cannot be defined more directly, we recommend the
-definition of \emph{finite multisets} in the Library~\cite{isabelle-HOL-lib}.
+definition of \emph{finite multisets} in the Library~\cite{HOL-Library}.
 
 Let us conclude by summarizing the above procedure for defining a new type.
 Given some abstract axiomatic description $P$ of a type $ty$ in terms of a

@@ -48,7 +48,7 @@ recdef f "measure(\<lambda>(x,y). x-y)"
 (*<*)local(*>*)
 text{*\noindent
 This time everything works fine. Now @{thm[source]f.simps} contains precisely
-the stated recursion equation for @{term f}, which has been stored as a
+the stated recursion equation for @{text f}, which has been turned into a
 simplification rule.  Thus we can automatically prove results such as this one:
 *}
 

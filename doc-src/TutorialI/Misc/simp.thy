@@ -197,6 +197,11 @@ Of course we can also unfold definitions in the middle of a proof.
   $f$ selectively, but it may also get in the way. Defining
   $f$~\isasymequiv~\isasymlambda$x\,y.\;t$ allows to unfold all occurrences of $f$.
 \end{warn}
+
+There is also the special method \isa{unfold}\index{*unfold (method)|bold}
+which merely unfolds
+one or several definitions, as in \isacommand{apply}\isa{(unfold xor_def)}.
+This is can be useful in situations where \isa{simp} does too much.
 *}
 
 subsection{*Simplifying {\tt\slshape let}-Expressions*}

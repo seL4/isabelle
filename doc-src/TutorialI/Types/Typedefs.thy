@@ -69,13 +69,14 @@ Let us work a simple example, the definition of a three-element type.
 It is easily represented by the first three natural numbers:
 *}
 
-typedef three = "{n::nat. n \<le> 2}"
+typedef three = "{0::nat, 1, 2}"
 
 txt{*\noindent
 In order to enforce that the representing set on the right-hand side is
 non-empty, this definition actually starts a proof to that effect:
 @{subgoals[display,indent=0]}
-Fortunately, this is easy enough to show: take 0 as a witness.
+Fortunately, this is easy enough to show, even \isa{auto} could do it.
+In general, one has to provide a witness, in our case 0:
 *}
 
 apply(rule_tac x = 0 in exI)
@@ -127,7 +128,7 @@ Rep_three} are inverses of each other:
 %
 From this example it should be clear what \isacommand{typedef} does
 in general given a name (here @{text three}) and a set
-(here @{term"{n::nat. n\<le>2}"}).
+(here @{term"{0::nat,1,2}"}).
 
 Our next step is to define the basic functions expected on the new type.
 Although this depends on the type at hand, the following strategy works well:
@@ -161,17 +162,30 @@ we merely need to prove that @{term A}, @{term B} and @{term C} are distinct
 and that they exhaust the type.
 
 In processing our \isacommand{typedef} declaration, 
-Isabelle helpfully proves several lemmas.
-One, @{thm[source]Abs_three_inject},
-expresses that @{term Abs_three} is injective on the representing subset:
+Isabelle proves several helpful lemmas. The first two
+express injectivity of @{term Rep_three} and @{term Abs_three}:
 \begin{center}
-@{thm Abs_three_inject[no_vars]}
+\begin{tabular}{@ {}r@ {\qquad}l@ {}}
+@{thm Rep_three_inject[no_vars]} & (@{thm[source]Rep_three_inject}) \\
+\begin{tabular}{@ {}l@ {}}
+@{text"\<lbrakk>x \<in> three; y \<in> three \<rbrakk>"} \\
+@{text"\<Longrightarrow> (Abs_three x = Abs_three y) = (x = y)"}
+\end{tabular} & (@{thm[source]Abs_three_inject}) \\
+\end{tabular}
 \end{center}
-Another, @{thm[source]Rep_three_inject}, expresses that the representation
-function is also injective:
+The following ones allow to replace some @{text"x::three"} by
+@{text"Abs_three(y::nat)"}, and conversely @{term y} by @{term"Rep_three x"}:
 \begin{center}
-@{thm Rep_three_inject[no_vars]}
+\begin{tabular}{@ {}r@ {\qquad}l@ {}}
+@{thm Rep_three_cases[no_vars]} & (@{thm[source]Rep_three_cases}) \\
+@{thm Abs_three_cases[no_vars]} & (@{thm[source]Abs_three_cases}) \\
+@{thm Rep_three_induct[no_vars]} & (@{thm[source]Rep_three_induct}) \\
+@{thm Abs_three_induct[no_vars]} & (@{thm[source]Abs_three_induct}) \\
+\end{tabular}
 \end{center}
+These theorems are proved for any type definition, with @{term three}
+replaced by the name of the type in question.
+
 Distinctness of @{term A}, @{term B} and @{term C} follows immediately
 if we expand their definitions and rewrite with the injectivity
 of @{term Abs_three}:
@@ -181,57 +195,26 @@ lemma "A \<noteq> B \<and> B \<noteq> A \<and> A \<noteq> C \<and> C \<noteq> A 
 by(simp add: Abs_three_inject A_def B_def C_def three_def)
 
 text{*\noindent
-Of course we rely on the simplifier to solve goals like @{prop"0 \<noteq> 1"}.
+Of course we rely on the simplifier to solve goals like @{prop"(0::nat) \<noteq> 1"}.
 
 The fact that @{term A}, @{term B} and @{term C} exhaust type @{typ three} is
 best phrased as a case distinction theorem: if you want to prove @{prop"P x"}
 (where @{term x} is of type @{typ three}) it suffices to prove @{prop"P A"},
-@{prop"P B"} and @{prop"P C"}. First we prove the analogous proposition for the
-representation: *}
-
-lemma cases_lemma: "\<lbrakk> Q 0; Q 1; Q 2; n \<in> three \<rbrakk> \<Longrightarrow>  Q n"
-
-txt{*\noindent
-Expanding @{thm[source]three_def} yields the premise @{prop"n\<le>2"}. Repeated
-elimination with @{thm[source]le_SucE}
-@{thm[display]le_SucE}
-reduces @{prop"n\<le>2"} to the three cases @{prop"n\<le>0"}, @{prop"n=1"} and
-@{prop"n=2"} which are trivial for simplification:
-*}
-
-apply(simp add: three_def numerals)   (* FIXME !? *)
-apply((erule le_SucE)+)
-apply simp_all
-done
-
-text{*
-Now the case distinction lemma on type @{typ three} is easy to derive if you 
-know how:
-*}
+@{prop"P B"} and @{prop"P C"}: *}
 
 lemma three_cases: "\<lbrakk> P A; P B; P C \<rbrakk> \<Longrightarrow> P x"
 
-txt{*\noindent
-We start by replacing the @{term x} by @{term"Abs_three(Rep_three x)"}:
-*}
+txt{*\noindent Again this follows easily from a pre-proved general theorem:*}
 
-apply(rule subst[OF Rep_three_inverse])
-
-txt{*\noindent
-This substitution step worked nicely because there was just a single
-occurrence of a term of type @{typ three}, namely @{term x}.
-When we now apply @{thm[source]cases_lemma}, @{term Q} becomes @{term"\<lambda>n. P(Abs_three
-n)"} because @{term"Rep_three x"} is the only term of type @{typ nat}:
-*}
-
-apply(rule cases_lemma)
+apply(rule_tac x = x in Abs_three_induct)
 
 txt{*
 @{subgoals[display,indent=0]}
-The resulting subgoals are easily solved by simplification:
-*}
+Simplification with @{thm[source]three_def} leads to the disjunction @{prop"y
+= 0 \<or> y = 1 \<or> y = (2::nat)"} which \isa{auto} separates into three
+subgoals, each of which is easily solved by simplification: *}
 
-apply(simp_all add:A_def B_def C_def Rep_three)
+apply(auto simp add: three_def A_def B_def C_def)
 done
 
 text{*\noindent
@@ -253,7 +236,7 @@ Although @{typ three} could be defined in one line, we have chosen this
 example to demonstrate \isacommand{typedef} because its simplicity makes the
 key concepts particularly easy to grasp. If you would like to see a
 non-trivial example that cannot be defined more directly, we recommend the
-definition of \emph{finite multisets} in the Library~\cite{isabelle-HOL-lib}.
+definition of \emph{finite multisets} in the Library~\cite{HOL-Library}.
 
 Let us conclude by summarizing the above procedure for defining a new type.
 Given some abstract axiomatic description $P$ of a type $ty$ in terms of a

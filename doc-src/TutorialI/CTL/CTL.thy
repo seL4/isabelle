@@ -460,7 +460,7 @@ text{* Let us close this section with a few words about the executability of
 our model checkers.  It is clear that if all sets are finite, they can be
 represented as lists and the usual set operations are easily
 implemented. Only @{term lfp} requires a little thought.  Fortunately, theory
-@{text While_Combinator} in the Library~\cite{isabelle-HOL-lib} provides a
+@{text While_Combinator} in the Library~\cite{HOL-Library} provides a
 theorem stating that in the case of finite sets and a monotone
 function~@{term F}, the value of \mbox{@{term"lfp F"}} can be computed by
 iterated application of @{term F} to~@{term"{}"} until a fixed point is
