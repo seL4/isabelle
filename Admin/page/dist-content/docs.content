@@ -13,10 +13,10 @@ The Isabelle distribution also includes a few text files with further
 information about the present release and additional installation
 instructions.
 <ul>
-<li> <!-- _GP_ href(distname . "/ANNOUNCE", "ANNOUNCE") -->
-<li> <!-- _GP_ href(distname . "/README.html", "README") -->
-<li> <!-- _GP_ href(distname . "/INSTALL", "INSTALL") -->
-<li> <!-- _GP_ href(distname . "/NEWS", "NEWS") -->
+<li><!-- _GP_ href(distname . "/ANNOUNCE", "ANNOUNCE") -->
+<li><!-- _GP_ href(distname . "/README.html", "README") -->
+<li><!-- _GP_ href(distname . "/INSTALL", "INSTALL") -->
+<li><!-- _GP_ href(distname . "/NEWS", "NEWS") -->
 </ul>
 
 <p>

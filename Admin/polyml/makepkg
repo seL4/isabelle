@@ -4,6 +4,8 @@ THIS="$(cd "$(dirname "$0")"; echo "$PWD")"
 SUPER="$(cd "$THIS"; cd ..; echo "$PWD")"
 NAME="$(basename "$THIS")"
 
+[ -h "$NAME" ] && { echo "$NAME is a symlink!"; exit 2; }
+
 TAR=tar
 type -path gtar >/dev/null && TAR=gtar
 

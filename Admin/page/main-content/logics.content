@@ -79,16 +79,16 @@ basically works as follows:
 
 <ol>
 
-<li> declare concrete syntax (via mixfix grammar and syntax macros),
+<li>declare concrete syntax (via mixfix grammar and syntax macros),
 
-<li> declare abstract syntax (as higher-order constants),
+<li>declare abstract syntax (as higher-order constants),
 
-<li> declare inference rules (as meta-logical propositions),
+<li>declare inference rules (as meta-logical propositions),
 
-<li> instantiate generic automatic proof tools (simplifier, classical
+<li>instantiate generic automatic proof tools (simplifier, classical
 tableau prover etc.),
 
-<li> manually code special proof procedures (via tacticals or
+<li>manually code special proof procedures (via tacticals or
 hand-written ML).
 
 </ol>

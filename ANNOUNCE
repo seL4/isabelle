@@ -12,22 +12,22 @@ NEWS file distributed with Isabelle for more details.
   * Poly/ML 4.0 used by default
     More robust, less disk space required.
 
-  * Pure/Simplifier (Stefan Berghofer)
+  * Simplifier (Stefan Berghofer)
     Proper implementation as a derived rule, outside the kernel!
+
+  * Improved document preparation (Markus Wenzel)
+    Near math-mode, sub/super scripts, more symbols etc.
 
   * Isabelle/Isar (Markus Wenzel)
     Numerous usability improvements, e.g. support for initial
     schematic goals, failure prediction of subgoal statements,
     handling of non-atomic statements in induction.
 
-  * Improved document preparation (Markus Wenzel)
-    Near math-mode, sub/super scripts, more symbols etc.
-
   * HOL/Library (Gertrud Bauer, Tobias Nipkow, Lawrence C Paulson,
       Thomas M Rasmussen, Markus Wenzel)
     A collection of generic theories to be used together with main HOL.
 
-  * HOL/Real and HOL/Hyperreal (Jacques Fleuriot and Lawrence C Paulson)
+  * HOL/Real and HOL/Hyperreal (Jacques Fleuriot, Lawrence C Paulson)
     General cleanup, more on nonstandard real analysis.
 
   * HOL/Unix (Markus Wenzel)
