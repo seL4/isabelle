@@ -504,9 +504,8 @@ All theories loaded from within the {\tt FOL} database and all
 databases derived from it will now cause HTML files to be written.
 This behaviour can be changed by assigning a value of {\tt false} to
 the boolean reference variable {\tt make_html}. Be careful when making
-such databases publicly available since it means that your users might
-get into trouble that they don't expect, like IO exceptions caused by
-insufficient write access.
+such databases publicly available since it means that your users will
+generate HTML files though they might not intend to do so.
 
 As some of Isabelle's logics are based on others (e.g. {\tt ZF} on
 {\tt FOL}) and because the HTML files list a theory's ancestors, you
