@@ -12,6 +12,6 @@ defs
 constdefs
   
   hypreal_of_nat :: nat => hypreal                   
-  "hypreal_of_nat n     == hypreal_of_real (real_of_nat n)"
+  "hypreal_of_nat (n::nat) == hypreal_of_real (real n)"
 
 end

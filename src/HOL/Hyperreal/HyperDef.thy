@@ -29,9 +29,7 @@ instance
 
 consts 
 
-  "1hr"       :: hypreal               ("1hr")  
-  "whr"       :: hypreal               ("whr")  
-  "ehr"       :: hypreal               ("ehr")  
+  "1hr"          :: hypreal               ("1hr")  
 
 
 defs
@@ -41,14 +39,6 @@ defs
 
   hypreal_one_def
   "1hr == Abs_hypreal(hyprel``{%n::nat. (#1::real)})"
-
-  (* an infinite number = [<1,2,3,...>] *)
-  omega_def
-  "whr == Abs_hypreal(hyprel``{%n::nat. real_of_nat (Suc n)})"
-    
-  (* an infinitesimal number = [<1,1/2,1/3,...>] *)
-  epsilon_def
-  "ehr == Abs_hypreal(hyprel``{%n::nat. inverse (real_of_nat (Suc n))})"
 
   hypreal_minus_def
   "- P == Abs_hypreal(UN X: Rep_hypreal(P). hyprel``{%n::nat. - (X n)})"
@@ -68,6 +58,17 @@ constdefs
   hypreal_of_real  :: real => hypreal                 
   "hypreal_of_real r         == Abs_hypreal(hyprel``{%n::nat. r})"
 
+  omega   :: hypreal   (*an infinite number = [<1,2,3,...>] *)
+  "omega == Abs_hypreal(hyprel``{%n::nat. real (Suc n)})"
+    
+  epsilon :: hypreal   (*an infinitesimal number = [<1,1/2,1/3,...>] *)
+  "epsilon == Abs_hypreal(hyprel``{%n::nat. inverse (real (Suc n))})"
+
+syntax (xsymbols)
+  omega   :: hypreal   ("\\<omega>")
+  epsilon :: hypreal   ("\\<epsilon>")
+
+  
 defs 
 
   hypreal_add_def  

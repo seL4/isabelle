@@ -232,7 +232,7 @@ Addsimps [hypreal_of_nat_less_iff RS sym];
 (*------------------------------------------------------------*)
 
 Goalw [hypreal_of_nat_def, hypreal_of_real_def, real_of_nat_def] 
-     "hypreal_of_nat  m = Abs_hypreal(hyprel``{%n. real_of_nat m})";
+     "hypreal_of_nat  m = Abs_hypreal(hyprel``{%n. real m})";
 by Auto_tac;
 qed "hypreal_of_nat_iff";
 

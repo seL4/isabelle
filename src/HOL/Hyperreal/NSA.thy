@@ -10,17 +10,17 @@ NSA = HRealAbs + RComplete +
 constdefs
 
   Infinitesimal  :: "hypreal set"
-   "Infinitesimal == {x. ALL r: SReal. 0 < r --> abs x < r}"
+   "Infinitesimal == {x. ALL r: Reals. 0 < r --> abs x < r}"
 
   HFinite :: "hypreal set"
-   "HFinite == {x. EX r: SReal. abs x < r}"
+   "HFinite == {x. EX r: Reals. abs x < r}"
 
   HInfinite :: "hypreal set"
-   "HInfinite == {x. ALL r: SReal. r < abs x}"
+   "HInfinite == {x. ALL r: Reals. r < abs x}"
 
   (* standard part map *)
   st        :: hypreal => hypreal
-   "st           == (%x. @r. x : HFinite & r:SReal & r @= x)"
+   "st           == (%x. @r. x : HFinite & r:Reals & r @= x)"
 
   monad     :: hypreal => hypreal set
    "monad x      == {y. x @= y}"
@@ -29,17 +29,17 @@ constdefs
    "galaxy x     == {y. (x + -y) : HFinite}"
  
   (* infinitely close *)
-  inf_close :: "[hypreal, hypreal] => bool"    (infixl "@=" 50)
+  approx :: "[hypreal, hypreal] => bool"    (infixl "@=" 50)
    "x @= y       == (x + -y) : Infinitesimal"     
 
 
 defs  
 
    (*standard real numbers as a subset of the hyperreals*)
-   SReal_def      "SReal == {x. EX r. x = hypreal_of_real r}"
+   SReal_def      "Reals == {x. EX r. x = hypreal_of_real r}"
 
 syntax (symbols)
-    inf_close :: "[hypreal, hypreal] => bool"    (infixl "\\<approx>" 50)
+    approx :: "[hypreal, hypreal] => bool"    (infixl "\\<approx>" 50)
   
 end
 

@@ -122,13 +122,13 @@ by (auto_tac (claset(), simpset() addsimps [hypnat_of_nat_def]));
 by (blast_tac (claset() addIs [FreeUltrafilterNat_subset]) 1);
 qed "NatStar_hypreal_of_real_image_subset";
 
-Goal "SNat <= *sNat* (UNIV:: nat set)";
+Goal "Nats <= *sNat* (UNIV:: nat set)";
 by (simp_tac (simpset() addsimps [SHNat_hypnat_of_nat_iff,
                           NatStar_hypreal_of_real_image_subset]) 1);
 qed "NatStar_SHNat_subset";
 
 Goalw [starsetNat_def] 
-     "*sNat* X Int SNat = hypnat_of_nat ` X";
+     "*sNat* X Int Nats = hypnat_of_nat ` X";
 by (auto_tac (claset(),
          simpset() addsimps 
            [hypnat_of_nat_def,SHNat_def]));
@@ -325,7 +325,7 @@ Addsimps [starfunNat2_eq];
 
 Goal "(*fNat* f) (hypnat_of_nat a) @= hypreal_of_real (f a)";
 by (Auto_tac);
-qed "starfunNat_inf_close";
+qed "starfunNat_approx";
 
 
 (*-----------------------------------------------------------------
@@ -393,16 +393,16 @@ by (auto_tac (claset(), simpset() addsimps [hyperpow,starfun]));
 qed "starfun_pow";
 
 (*----------------------------------------------------- 
-   hypreal_of_hypnat as NS extension of real_of_nat! 
+   hypreal_of_hypnat as NS extension of real (from "nat")! 
 -------------------------------------------------------*)
-Goal "(*fNat* real_of_nat) = hypreal_of_hypnat";
+Goal "(*fNat* real) = hypreal_of_hypnat";
 by (rtac ext 1);
 by (res_inst_tac [("z","x")] eq_Abs_hypnat 1);
 by (auto_tac (claset(), simpset() addsimps [hypreal_of_hypnat,starfunNat]));
 qed "starfunNat_real_of_nat";
 
 Goal "N : HNatInfinite \
-\  ==> (*fNat* (%x. inverse(real_of_nat x))) N = inverse(hypreal_of_hypnat N)";
+\  ==> (*fNat* (%x::nat. inverse(real x))) N = inverse(hypreal_of_hypnat N)";
 by (res_inst_tac [("f1","inverse")]  (starfun_stafunNat_o2 RS subst) 1);
 by (subgoal_tac "hypreal_of_hypnat N ~= #0" 1);
 by (auto_tac (claset(), 

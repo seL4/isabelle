@@ -12,9 +12,10 @@ instance preal :: order (preal_le_refl,preal_le_trans,preal_le_anti_sym,
 
 constdefs
   realrel   ::  "((preal * preal) * (preal * preal)) set"
-  "realrel == {p. ? x1 y1 x2 y2. p = ((x1,y1),(x2,y2)) & x1+y2 = x2+y1}" 
+  "realrel == {p. EX x1 y1 x2 y2. p = ((x1,y1),(x2,y2)) & x1+y2 = x2+y1}" 
 
-typedef real = "UNIV//realrel"  (Equiv.quotient_def)
+typedef (REAL)
+  real = "UNIV//realrel"  (Equiv.quotient_def)
 
 
 instance
@@ -25,20 +26,23 @@ consts
 
    (*Overloaded constants denoting the Nat and Real subsets of enclosing
      types such as hypreal and complex*)
-   SNat, SReal :: "'a set"
+   Nats, Reals :: "'a set"
   
+   (*overloaded constant for injecting other types into "real"*)
+   real :: 'a => real
+
 
 defs
 
   real_zero_def  
-  "0 == Abs_real(realrel``{(preal_of_prat(prat_of_pnat 1p),
+  "0 == Abs_REAL(realrel``{(preal_of_prat(prat_of_pnat 1p),
                                 preal_of_prat(prat_of_pnat 1p))})"
   real_one_def   
-  "1r == Abs_real(realrel``{(preal_of_prat(prat_of_pnat 1p) + 
+  "1r == Abs_REAL(realrel``{(preal_of_prat(prat_of_pnat 1p) + 
             preal_of_prat(prat_of_pnat 1p),preal_of_prat(prat_of_pnat 1p))})"
 
   real_minus_def
-  "- R ==  Abs_real(UN (x,y):Rep_real(R). realrel``{(y,x)})"
+  "- R ==  Abs_REAL(UN (x,y):Rep_REAL(R). realrel``{(y,x)})"
 
   real_diff_def
   "R - (S::real) == R + - S"
@@ -51,36 +55,39 @@ defs
   
 constdefs
 
+  (** these don't use the overloaded real because users don't see them **)
+  
   real_of_preal :: preal => real            
   "real_of_preal m     ==
-           Abs_real(realrel``{(m+preal_of_prat(prat_of_pnat 1p),
+           Abs_REAL(realrel``{(m+preal_of_prat(prat_of_pnat 1p),
                                preal_of_prat(prat_of_pnat 1p))})"
 
   real_of_posnat :: nat => real             
   "real_of_posnat n == real_of_preal(preal_of_prat(prat_of_pnat(pnat_of_nat n)))"
 
-  real_of_nat :: nat => real          
-  "real_of_nat n    == real_of_posnat n + (-1r)"
 
 defs
 
+  (*overloaded*)
+  real_of_nat_def   "real n == real_of_posnat n + (-1r)"
+
   real_add_def  
-  "P+Q == Abs_real(UN p1:Rep_real(P). UN p2:Rep_real(Q).
+  "P+Q == Abs_REAL(UN p1:Rep_REAL(P). UN p2:Rep_REAL(Q).
                    (%(x1,y1). (%(x2,y2). realrel``{(x1+x2, y1+y2)}) p2) p1)"
   
   real_mult_def  
-  "P*Q == Abs_real(UN p1:Rep_real(P). UN p2:Rep_real(Q).
+  "P*Q == Abs_REAL(UN p1:Rep_REAL(P). UN p2:Rep_REAL(Q).
                    (%(x1,y1). (%(x2,y2). realrel``{(x1*x2+y1*y2,x1*y2+x2*y1)})
 		   p2) p1)"
 
   real_less_def
   "P<Q == EX x1 y1 x2 y2. x1 + y2 < x2 + y1 & 
-                            (x1,y1):Rep_real(P) & (x2,y2):Rep_real(Q)" 
+                            (x1,y1):Rep_REAL(P) & (x2,y2):Rep_REAL(Q)" 
   real_le_def
   "P <= (Q::real) == ~(Q < P)"
 
 syntax (symbols)
-  SReal     :: "'a set"                   ("\\<real>")
-  SNat      :: "'a set"                   ("\\<nat>")
+  Reals     :: "'a set"                   ("\\<real>")
+  Nats      :: "'a set"                   ("\\<nat>")
 
 end

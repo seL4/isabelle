@@ -449,7 +449,7 @@ by (blast_tac (claset() addSIs [hyperpow_less_le]) 1);
 qed "hyperpow_less_le2";
 
 Goal "[| #0 <= r;  r < (#1::hypreal);  N : HNatInfinite |]  \
-\     ==> ALL n: SNat. r pow N <= r pow n";
+\     ==> ALL n: Nats. r pow N <= r pow n";
 by (auto_tac (claset() addSIs [hyperpow_less_le],
               simpset() addsimps [HNatInfinite_iff]));
 qed "hyperpow_SHNat_le";
@@ -460,7 +460,7 @@ by (auto_tac (claset(), simpset() addsimps [hyperpow]));
 qed "hyperpow_realpow";
 
 Goalw [SReal_def]
-     "(hypreal_of_real r) pow (hypnat_of_nat n) : SReal";
+     "(hypreal_of_real r) pow (hypnat_of_nat n) : Reals";
 by (auto_tac (claset(), simpset() addsimps [hyperpow_realpow]));
 qed "hyperpow_SReal";
 Addsimps [hyperpow_SReal];

@@ -133,7 +133,7 @@ by (rtac realpow_le 2);
 by (auto_tac (claset() addIs [order_less_imp_le], simpset()));
 qed "two_realpow_ge_one";
 
-Goal "real_of_nat n < #2 ^ n";
+Goal "real (n::nat) < #2 ^ n";
 by (induct_tac "n" 1);
 by (auto_tac (claset(), simpset() addsimps [real_of_nat_Suc]));
 by (stac real_mult_2 1);
@@ -319,13 +319,13 @@ by (auto_tac (claset(),
                            realpow_not_zero] @ real_mult_ac));
 qed "realpow_diff";
 
-Goal "real_of_nat (m) ^ n = real_of_nat (m ^ n)";
+Goal "real (m::nat) ^ n = real (m ^ n)";
 by (induct_tac "n" 1);
 by (auto_tac (claset(),
               simpset() addsimps [real_of_nat_one, real_of_nat_mult]));
 qed "realpow_real_of_nat";
 
-Goal "#0 < real_of_nat (2 ^ n)";
+Goal "#0 < real (2 ^ n)";
 by (induct_tac "n" 1);
 by (auto_tac (claset(),
           simpset() addsimps [real_of_nat_mult, real_zero_less_mult_iff]));

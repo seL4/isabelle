@@ -30,26 +30,26 @@ constdefs
   (* hypernaturals as members of the hyperreals; the set is defined as  *)
   (* the nonstandard extension of set of naturals embedded in the reals *)
   HNat         :: "hypreal set"
-  "HNat         == *s* {n. EX no. n = real_of_nat no}"
+  "HNat == *s* {n. EX no::nat. n = real no}"
 
   (* the set of infinite hypernatural numbers *)
   HNatInfinite :: "hypnat set"
-  "HNatInfinite == {n. n ~: SNat}"
+  "HNatInfinite == {n. n ~: Nats}"
 
   (* explicit embedding of the hypernaturals in the hyperreals *)    
   hypreal_of_hypnat :: hypnat => hypreal
   "hypreal_of_hypnat N  == Abs_hypreal(UN X: Rep_hypnat(N). 
-                            hyprel``{%n::nat. real_of_nat (X n)})"
+                                       hyprel``{%n::nat. real (X n)})"
   
 defs
 
-  (** the overloaded constant "SNat" **)
+  (** the overloaded constant "Nats" **)
   
   (* set of naturals embedded in the hyperreals*)
-  SNat_def             "SNat == {n. EX N. n = hypreal_of_nat N}"  
+  SNat_def             "Nats == {n. EX N. n = hypreal_of_nat N}"  
 
   (* set of naturals embedded in the hypernaturals*)
-  SHNat_def            "SNat == {n. EX N. n = hypnat_of_nat N}"  
+  SHNat_def            "Nats == {n. EX N. n = hypnat_of_nat N}"  
 
   (** hypernatural arithmetic **)
   

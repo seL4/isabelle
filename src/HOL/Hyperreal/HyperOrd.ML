@@ -386,7 +386,7 @@ Addsimps [hypreal_self_le_add_pos2];
                Existence of infinite hyperreal number
  ----------------------------------------------------------------------------*)
 
-Goalw [omega_def] "Rep_hypreal(whr) : hypreal";
+Goalw [omega_def] "Rep_hypreal(omega) : hypreal";
 by (rtac Rep_hypreal 1);
 qed "Rep_hypreal_omega";
 
@@ -394,24 +394,24 @@ qed "Rep_hypreal_omega";
 (* use assumption that member FreeUltrafilterNat is not finite       *)
 (* a few lemmas first *)
 
-Goal "{n::nat. x = real_of_nat n} = {} | \
-\     (EX y. {n::nat. x = real_of_nat n} = {y})";
+Goal "{n::nat. x = real n} = {} | \
+\     (EX y. {n::nat. x = real n} = {y})";
 by (auto_tac (claset() addDs [inj_real_of_nat RS injD], simpset()));
 qed "lemma_omega_empty_singleton_disj";
 
-Goal "finite {n::nat. x = real_of_nat n}";
+Goal "finite {n::nat. x = real n}";
 by (cut_inst_tac [("x","x")] lemma_omega_empty_singleton_disj 1);
 by Auto_tac;
 qed "lemma_finite_omega_set";
 
 Goalw [omega_def,hypreal_of_real_def] 
-      "~ (EX x. hypreal_of_real x = whr)";
+      "~ (EX x. hypreal_of_real x = omega)";
 by (auto_tac (claset(),
     simpset() addsimps [real_of_nat_Suc, real_diff_eq_eq RS sym, 
                     lemma_finite_omega_set RS FreeUltrafilterNat_finite]));
 qed "not_ex_hypreal_of_real_eq_omega";
 
-Goal "hypreal_of_real x ~= whr";
+Goal "hypreal_of_real x ~= omega";
 by (cut_facts_tac [not_ex_hypreal_of_real_eq_omega] 1);
 by Auto_tac;
 qed "hypreal_of_real_not_eq_omega";
@@ -419,39 +419,39 @@ qed "hypreal_of_real_not_eq_omega";
 (* existence of infinitesimal number also not *)
 (* corresponding to any real number *)
 
-Goal "inverse (real_of_nat x) = inverse (real_of_nat y) ==> x = y";
+Goal "inverse (real (x::nat)) = inverse (real y) ==> x = y";
 by (rtac (inj_real_of_nat RS injD) 1);
 by (Asm_full_simp_tac 1); 
 qed "real_of_nat_inverse_inj";
 
-Goal "{n::nat. x = inverse(real_of_nat(Suc n))} = {} | \
-\     (EX y. {n::nat. x = inverse(real_of_nat(Suc n))} = {y})";
+Goal "{n::nat. x = inverse(real(Suc n))} = {} | \
+\     (EX y. {n::nat. x = inverse(real(Suc n))} = {y})";
 by (auto_tac (claset(), simpset() addsimps [inj_real_of_nat RS inj_eq]));
 qed "lemma_epsilon_empty_singleton_disj";
 
-Goal "finite {n::nat. x = inverse(real_of_nat(Suc n))}";
+Goal "finite {n. x = inverse(real(Suc n))}";
 by (cut_inst_tac [("x","x")] lemma_epsilon_empty_singleton_disj 1);
 by Auto_tac;
 qed "lemma_finite_epsilon_set";
 
 Goalw [epsilon_def,hypreal_of_real_def] 
-      "~ (EX x. hypreal_of_real x = ehr)";
+      "~ (EX x. hypreal_of_real x = epsilon)";
 by (auto_tac (claset(),
   simpset() addsimps [lemma_finite_epsilon_set RS FreeUltrafilterNat_finite]));
 qed "not_ex_hypreal_of_real_eq_epsilon";
 
-Goal "hypreal_of_real x ~= ehr";
+Goal "hypreal_of_real x ~= epsilon";
 by (cut_facts_tac [not_ex_hypreal_of_real_eq_epsilon] 1);
 by Auto_tac;
 qed "hypreal_of_real_not_eq_epsilon";
 
-Goalw [epsilon_def,hypreal_zero_def] "ehr ~= 0";
+Goalw [epsilon_def,hypreal_zero_def] "epsilon ~= 0";
 by Auto_tac;  
 by (auto_tac (claset(),
      simpset() addsimps [real_of_nat_Suc_gt_zero RS real_not_refl2 RS not_sym]));
 qed "hypreal_epsilon_not_zero";
 
-Goal "ehr = inverse(whr)";
+Goal "epsilon = inverse(omega)";
 by (asm_full_simp_tac (simpset() addsimps 
                      [hypreal_inverse, omega_def, epsilon_def]) 1);
 qed "hypreal_epsilon_inverse_omega";

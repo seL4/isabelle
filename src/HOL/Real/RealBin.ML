@@ -6,9 +6,9 @@
 Binary arithmetic for the reals (integer literals only).
 *)
 
-(** real_of_int (coercion from int to real) **)
+(** real (coercion from int to real) **)
 
-Goal "real_of_int (number_of w) = number_of w";
+Goal "real (number_of w :: int) = number_of w";
 by (simp_tac (simpset() addsimps [real_number_of_def]) 1);
 qed "real_number_of";
 Addsimps [real_number_of];
@@ -156,15 +156,15 @@ bind_thm ("real_inverse_gt_0", rename_numerals real_inverse_gt_zero);
 Addsimps [zero_eq_numeral_0,one_eq_numeral_1];
 
 
-(** real_of_nat **)
+(** real from type "nat" **)
 
-Goal "(#0 < real_of_nat n) = (0<n)";
+Goal "(#0 < real (n::nat)) = (0<n)";
 by (simp_tac (HOL_ss addsimps [real_of_nat_less_iff, 
                          rename_numerals real_of_nat_zero RS sym]) 1);
 qed "zero_less_real_of_nat_iff";
 AddIffs [zero_less_real_of_nat_iff];
 
-Goal "(#0 <= real_of_nat n) = (0<=n)";
+Goal "(#0 <= real (n::nat)) = (0<=n)";
 by (simp_tac (HOL_ss addsimps [real_of_nat_le_iff, 
                          rename_numerals real_of_nat_zero RS sym]) 1);
 qed "zero_le_real_of_nat_iff";
@@ -197,7 +197,7 @@ Addsimps [real_add_number_of_left, real_mult_number_of_left,
 
 
 (*"neg" is used in rewrite rules for binary comparisons*)
-Goal "real_of_nat (number_of v :: nat) = \
+Goal "real (number_of v :: nat) = \
 \        (if neg (number_of v) then #0 \
 \         else (number_of v :: real))";
 by (simp_tac

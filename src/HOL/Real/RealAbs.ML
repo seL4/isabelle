@@ -213,7 +213,7 @@ by (arith_tac 1);
 qed "real_0_less_abs_iff";
 Addsimps [real_0_less_abs_iff];
 
-Goal "abs (real_of_nat x) = real_of_nat x";
+Goal "abs (real x) = real (x::nat)";
 by (auto_tac (claset() addIs [abs_eqI1],
               simpset() addsimps [rename_numerals real_of_nat_ge_zero]));
 qed "abs_real_of_nat_cancel";

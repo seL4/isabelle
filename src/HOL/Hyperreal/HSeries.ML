@@ -191,7 +191,7 @@ by (auto_tac (claset(),
 qed "sumhr_hypreal_of_hypnat_omega";
 
 Goalw [hypnat_omega_def,hypnat_zero_def,omega_def]  
-     "sumhr(0, whn, %i. #1) = whr - #1";
+     "sumhr(0, whn, %i. #1) = omega - #1";
 by (simp_tac (HOL_ss addsimps
              [one_eq_numeral_1 RS sym, hypreal_one_def]) 1); 
 by (auto_tac (claset(),
@@ -224,12 +224,12 @@ qed "starfunNat_sumr";
 Goal "sumhr (0, M, f) @= sumhr (0, N, f) \
 \     ==> abs (sumhr (M, N, f)) @= #0";
 by (cut_inst_tac [("x","M"),("y","N")] hypnat_linear 1);
-by (auto_tac (claset(), simpset() addsimps [inf_close_refl]));
-by (dtac (inf_close_sym RS (inf_close_minus_iff RS iffD1)) 1);
-by (auto_tac (claset() addDs [inf_close_hrabs],
+by (auto_tac (claset(), simpset() addsimps [approx_refl]));
+by (dtac (approx_sym RS (approx_minus_iff RS iffD1)) 1);
+by (auto_tac (claset() addDs [approx_hrabs],
               simpset() addsimps [sumhr_split_add_minus]));
-qed "sumhr_hrabs_inf_close";
-Addsimps [sumhr_hrabs_inf_close];
+qed "sumhr_hrabs_approx";
+Addsimps [sumhr_hrabs_approx];
 
 (*----------------------------------------------------------------
       infinite sums: Standard and NS theorems
@@ -276,10 +276,10 @@ by (auto_tac (claset(),
                  NSCauchy_NSconvergent_iff RS sym, NSCauchy_def,
                  starfunNat_sumr]));
 by (cut_inst_tac [("x","M"),("y","N")] hypnat_linear 1);
-by (auto_tac (claset(), simpset() addsimps [inf_close_refl]));
-by (rtac ((inf_close_minus_iff RS iffD2) RS inf_close_sym) 1);
-by (rtac (inf_close_minus_iff RS iffD2) 2);
-by (auto_tac (claset() addDs [inf_close_hrabs_zero_cancel],
+by (auto_tac (claset(), simpset() addsimps [approx_refl]));
+by (rtac ((approx_minus_iff RS iffD2) RS approx_sym) 1);
+by (rtac (approx_minus_iff RS iffD2) 2);
+by (auto_tac (claset() addDs [approx_hrabs_zero_cancel],
               simpset() addsimps [sumhr_split_add_minus]));
 qed "NSsummable_NSCauchy";
 
@@ -291,7 +291,7 @@ by (auto_tac (claset(), simpset() addsimps [NSsummable_NSCauchy]));
 by (dtac bspec 1 THEN Auto_tac);
 by (dres_inst_tac [("x","N + 1hn")] bspec 1);
 by (auto_tac (claset() addIs [HNatInfinite_add_one,
-                              inf_close_hrabs_zero_cancel],
+                              approx_hrabs_zero_cancel],
               simpset() addsimps [rename_numerals hypreal_of_real_zero]));
 qed "NSsummable_NSLIMSEQ_zero";
 

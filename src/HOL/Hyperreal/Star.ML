@@ -88,7 +88,7 @@ by (auto_tac (claset(),simpset() addsimps [hypreal_of_real_def]));
 by (blast_tac (claset() addIs [FreeUltrafilterNat_subset]) 1);
 qed "STAR_hypreal_of_real_image_subset";
 
-Goalw [starset_def] "*s* X Int SReal = hypreal_of_real ` X";
+Goalw [starset_def] "*s* X Int Reals = hypreal_of_real ` X";
 by (auto_tac (claset(),simpset() addsimps [hypreal_of_real_def,SReal_def]));
 by (fold_tac [hypreal_of_real_def]);
 by (rtac imageI 1 THEN rtac ccontr 1);
@@ -279,7 +279,7 @@ Addsimps [starfun_const_fun];
 Goal "x @= hypreal_of_real a ==> (*f* (%x. x)) x @= hypreal_of_real  a";
 by (res_inst_tac [("z","x")] eq_Abs_hypreal 1);
 by (auto_tac (claset(),simpset() addsimps [starfun]));
-qed "starfun_Idfun_inf_close";
+qed "starfun_Idfun_approx";
 
 Goal "(*f* (%x. x)) x = x";
 by (res_inst_tac [("z","x")] eq_Abs_hypreal 1);
@@ -330,7 +330,7 @@ Addsimps [starfun_eq];
 
 Goal "(*f* f) (hypreal_of_real a) @= hypreal_of_real (f a)";
 by (Auto_tac);
-qed "starfun_inf_close";
+qed "starfun_approx";
 
 (* useful for NS definition of derivatives *)
 Goal "(*f* (%h. f (x + h))) xa  = (*f* f) (hypreal_of_real  x + xa)";
@@ -348,16 +348,16 @@ qed "starfun_lambda_cancel2";
 Goal "[| (*f* f) xa @= l; (*f* g) xa @= m; \
 \                 l: HFinite; m: HFinite  \
 \              |] ==>  (*f* (%x. f x * g x)) xa @= l * m";
-by (dtac inf_close_mult_HFinite 1);
+by (dtac approx_mult_HFinite 1);
 by (REPEAT(assume_tac 1));
-by (auto_tac (claset() addIs [inf_close_sym RSN (2,inf_close_HFinite)],
+by (auto_tac (claset() addIs [approx_sym RSN (2,approx_HFinite)],
               simpset()));
-qed "starfun_mult_HFinite_inf_close";
+qed "starfun_mult_HFinite_approx";
 
 Goal "[| (*f* f) xa @= l; (*f* g) xa @= m \
 \              |] ==>  (*f* (%x. f x + g x)) xa @= l + m";
-by (auto_tac (claset() addIs [inf_close_add], simpset()));
-qed "starfun_add_inf_close";
+by (auto_tac (claset() addIs [approx_add], simpset()));
+qed "starfun_add_approx";
 
 (*----------------------------------------------------
     Examples: hrabs is nonstandard extension of rabs 
@@ -457,7 +457,7 @@ qed "STAR_starfun_rabs_add_minus";
  -------------------------------------------------------------------*)
 Goal "(x:Infinitesimal) = \
 \     (EX X:Rep_hypreal(x). \
-\       ALL m. {n. abs(X n) < inverse(real_of_nat(Suc m))} \
+\       ALL m. {n. abs(X n) < inverse(real(Suc m))} \
 \              : FreeUltrafilterNat)";
 by (res_inst_tac [("z","x")] eq_Abs_hypreal 1);
 by (auto_tac (claset() addSIs [bexI,lemma_hyprel_refl],
@@ -472,15 +472,15 @@ qed  "Infinitesimal_FreeUltrafilterNat_iff2";
 
 Goal "(Abs_hypreal(hyprel``{X}) @= Abs_hypreal(hyprel``{Y})) = \
 \     (ALL m. {n. abs (X n + - Y n) < \
-\                 inverse(real_of_nat(Suc m))} : FreeUltrafilterNat)";
-by (rtac (inf_close_minus_iff RS ssubst) 1);
+\                 inverse(real(Suc m))} : FreeUltrafilterNat)";
+by (rtac (approx_minus_iff RS ssubst) 1);
 by (rtac (mem_infmal_iff RS subst) 1);
 by (auto_tac (claset(), 
               simpset() addsimps [hypreal_minus, hypreal_add,
                                   Infinitesimal_FreeUltrafilterNat_iff2]));
 by (dres_inst_tac [("x","m")] spec 1);
 by (Fuf_tac 1);
-qed "inf_close_FreeUltrafilterNat_iff";
+qed "approx_FreeUltrafilterNat_iff";
 
 Goal "inj starfun";
 by (rtac injI 1);

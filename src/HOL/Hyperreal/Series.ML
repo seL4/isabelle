@@ -65,7 +65,7 @@ by (induct_tac "n" 1);
 by (Auto_tac);
 qed_spec_mp "sumr_fun_eq";
 
-Goal "sumr 0 n (%i. r) = real_of_nat n*r";
+Goal "sumr 0 n (%i. r) = real n * r";
 by (induct_tac "n" 1);
 by (auto_tac (claset(),
               simpset() addsimps [real_add_mult_distrib,real_of_nat_zero,
@@ -73,13 +73,13 @@ by (auto_tac (claset(),
 qed "sumr_const";
 Addsimps [sumr_const];
 
-Goal "sumr 0 n f + -(real_of_nat n*r) = sumr 0 n (%i. f i + -r)";
+Goal "sumr 0 n f + -(real n * r) = sumr 0 n (%i. f i + -r)";
 by (full_simp_tac (simpset() addsimps [sumr_add RS sym,
     real_minus_mult_eq2] delsimps [real_minus_mult_eq2 RS sym]) 1);
 qed "sumr_add_mult_const";
 
 Goalw [real_diff_def] 
-     "sumr 0 n f - (real_of_nat n*r) = sumr 0 n (%i. f i - r)";
+     "sumr 0 n f - (real n*r) = sumr 0 n (%i. f i - r)";
 by (full_simp_tac (simpset() addsimps [sumr_add_mult_const]) 1);
 qed "sumr_diff_mult_const";
 
@@ -113,7 +113,7 @@ by (Auto_tac);
 val Suc_diff_n = result();
 
 Goal "(ALL n. m <= Suc n --> f n = r) & m <= na \
-\                --> sumr m na f = (real_of_nat (na - m) * r)";
+\                --> sumr m na f = (real (na - m) * r)";
 by (induct_tac "na" 1);
 by (Step_tac 1);
 by (asm_full_simp_tac (simpset() addsimps [le_Suc_eq])  2);
@@ -125,7 +125,7 @@ by (asm_simp_tac (simpset() addsimps [real_add_mult_distrib, Suc_diff_n,
 qed_spec_mp "sumr_interval_const";
 
 Goal "(ALL n. m <= n --> f n = r) & m <= na \
-\     --> sumr m na f = (real_of_nat (na - m) * r)";
+\     --> sumr m na f = (real (na - m) * r)";
 by (induct_tac "na" 1);
 by (Step_tac 1);
 by (asm_full_simp_tac (simpset() addsimps [le_Suc_eq])  2);
@@ -226,14 +226,14 @@ by (Auto_tac);
 qed_spec_mp "sumr_subst";
 
 Goal "(ALL p. m <= p & p < m + n --> (f(p) <= K)) \
-\     --> (sumr m (m + n) f <= (real_of_nat n * K))";
+\     --> (sumr m (m + n) f <= (real n * K))";
 by (induct_tac "n" 1);
 by (auto_tac (claset() addIs [real_add_le_mono],
               simpset() addsimps [real_add_mult_distrib, real_of_nat_Suc]));
 qed_spec_mp "sumr_bound";
 
 Goal "(ALL p. 0 <= p & p < n --> (f(p) <= K)) \
-\     --> (sumr 0 n f <= (real_of_nat n * K))";
+\     --> (sumr 0 n f <= (real n * K))";
 by (induct_tac "n" 1);
 by (auto_tac (claset() addIs [real_add_le_mono],
         simpset() addsimps [real_add_mult_distrib, real_of_nat_Suc]));

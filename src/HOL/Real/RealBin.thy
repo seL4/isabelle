@@ -15,7 +15,7 @@ instance
 
 defs
   real_number_of_def
-    "number_of v == real_of_int (number_of v)"
-     (*::bin=>real               ::bin=>int*)
+    "number_of v == real (number_of v :: int)"
+     (*::bin=>real           ::bin=>int*)
 
 end
