@@ -1,3 +1,4 @@
+
 %% $Id$
 
 \chapter{Basic Use of Isabelle}\index{sessions|(} 
@@ -71,9 +72,8 @@ by running
 isabelle Foo  
 \end{ttbox}
 
-%FIXME not yet
-%More details about \texttt{isabelle} may be found in the \emph{System
-%  Manual}.
+More details about \texttt{isabelle} may be found in the \emph{System
+  Manual}.
 
 \medskip Saving the state is not enough.  Record, on a file, the
 top-level commands that generate your theories and proofs.  Such a
@@ -89,9 +89,8 @@ interface, depending on your local configuration.  Furthermore there
 are a number of external utilities available. These are started
 uniformly via the \texttt{isatool} wrapper.
 
-%FIXME not yet
-%Again, see the \emph{System Manual} for more information user
-%interfaces and utilities.
+Again, see the \emph{System Manual} for more information user
+interfaces and utilities.
 
 
 \section{Ending a session}
@@ -269,37 +268,5 @@ exception THEORY of string * theory list
   subgoal module.  The appearance of the output thus depends upon the
   theory used in the last interactive proof.
 \end{warn}
-
-%FIXME remove
-%\section{Shell scripts}\label{sec:shell-scripts}
-%\index{shell scripts|bold} The following files are distributed with
-%Isabelle, and work under Unix$^{\rm TM}$.  They can be executed as commands
-%to the Unix shell.  Some of them depend upon shell environment variables.
-%\begin{ttdescription}
-%\item[make-all $switches$] \index{*make-all shell script}
-%  compiles the Isabelle system, when executed on the source directory.
-%  Environment variables specify which \ML{} compiler to use.  These
-%  variables, and the {\it switches}, are documented on the file itself.
-%
-%\item[teeinput $program$] \index{*teeinput shell script}
-%  executes the {\it program}, while piping the standard input to a log file
-%  designated by the \verb|$LISTEN| environment variable.  Normally the
-%  program is Isabelle, and the log file receives a copy of all the Isabelle
-%  commands.
-%
-%\item[xlisten $program$] \index{*xlisten shell script}
-%  is a trivial `user interface' for the X Window System.  It creates two
-%  windows using {\tt xterm}.  One executes an interactive session via
-%  \hbox{\tt teeinput $program$}, while the other displays the log file.  To
-%  make a proof record, simply paste lines from the log file into an editor
-%  window.
-%
-%\item[expandshort $files$]  \index{*expandshort shell script}
-%  reads the {\it files\/} and replaces all occurrences of the shorthand
-%  commands {\tt br}, {\tt be}, {\tt brs}, {\tt bes}, etc., with the
-%  corresponding full commands.  Shorthand commands should appear one
-%  per line.  The old versions of the files
-%  are renamed to have the suffix~\verb'~~'.
-%\end{ttdescription}
 
 \index{sessions|)}
