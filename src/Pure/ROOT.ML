@@ -13,8 +13,8 @@ val version = "Isabelle98: January 1998";
 print_depth 1;
 
 use "library.ML";
+use "table.ML";
 use "seq.ML";
-use "symtab.ML";
 use "name_space.ML";
 use "term.ML";
 

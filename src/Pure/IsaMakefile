@@ -20,7 +20,7 @@ FILES = ML-Systems/mlworks.ML ML-Systems/polyml.ML ML-Systems/smlnj-0.93.ML \
 	axclass.ML basis.ML deriv.ML display.ML drule.ML envir.ML \
 	goals.ML install_pp.ML library.ML logic.ML name_space.ML net.ML \
 	pattern.ML pure_thy.ML search.ML section_utils.ML seq.ML sign.ML \
-	sorts.ML symtab.ML tactic.ML tctical.ML term.ML theory.ML thm.ML \
+	sorts.ML table.ML tactic.ML tctical.ML term.ML theory.ML thm.ML \
 	type.ML type_infer.ML unify.ML
 
 $(OUT)/Pure: $(FILES)
