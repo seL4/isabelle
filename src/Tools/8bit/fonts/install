@@ -1,8 +1,5 @@
 #!/bin/bash
-# add Isabelle 8bit fonts to X11 font path
 
-FONTDIR=$ISABELLE8BIT/fonts
+#NOTE: just a quick and dirty hack -- assumes correct isatool in PATH
 
-# remove it first to avoid accidental double inclusion
-xset fp- $FONTDIR 2>/dev/null
-xset fp+ $FONTDIR
+isatool installfonts

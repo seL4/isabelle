@@ -5,8 +5,8 @@
 ;;   
 
 ;;; Isabelle-Font as default
-;;(set-default-font "isacr14")
-;;(set-face-font 'default "isacr14")
+;;(set-default-font "isabelle14")
+;;(set-face-font 'default "isabelle14")
 
 ;;   activate 8bit chars 
 ;;   ...for all new buffers
@@ -21,11 +21,8 @@
   (interactive "@e")
   (popup-menu
   '("Isabelle fonts menu"
-;;    ["Isabelle 13" (set-face-font 'default "isacr13") t]
-    ["Isabelle 14" (set-face-font 'default "isacr14") t]
-    ["Isabelle 24" (set-face-font 'default "isacb24") t]
-;;    ["Old Isabelle 14" (set-face-font 'default "oldisacr14") t]
-;;    ["Spectrum 14" (set-face-font 'default "spcr14") t]
+    ["Isabelle 14" (set-face-font 'default "isabelle14") t]
+    ["Isabelle 24" (set-face-font 'default "isabelle24") t]
   )))
 
 (global-unset-key '(shift control button3))

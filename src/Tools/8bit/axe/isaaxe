@@ -45,9 +45,9 @@ export INPUTRC=$ISABELLE8BIT/keyboard/bash.inputrc
 # start axe ; keyboard translations are given as resource string
 # the fonts can be selected with the font pulldown menu
 
-axe -fn "isacr14" -title "IsaAxe" -geometry 80x40 -xrm "\
+axe -fn "isabelle14" -title "IsaAxe" -geometry 80x40 -xrm "\
 *fontMenu.label:    Fonts" -xrm "\
-*FontList: Isa14:isacr14 Isa24:isacb24" -xrm "\
+*FontList: Isa14:isabelle14 Isa24:isabelle24" -xrm "\
 *Axe*ed.translations: #override\
 	!Mod2 Shift <Key>g:		insert-string(0xa1)  \n\
 	!Mod2 Shift <Key>d:		insert-string(0xa2)  \n\

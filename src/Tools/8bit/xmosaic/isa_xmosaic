@@ -24,6 +24,6 @@ ISAXMOSAICDIR=$ISABELLE8BIT/xmosaic
 # start xmosaic ; 
 
 xmosaic  -title "isa_xmosaic"  -xrm "\
-Mosaic*font:isacr14" -xrm "\
-Mosaic*fixedFont:isacr14" -xrm "\
-Mosaic*plainFont:isacr14"
+Mosaic*font:isabelle14" -xrm "\
+Mosaic*fixedFont:isabelle14" -xrm "\
+Mosaic*plainFont:isabelle14"

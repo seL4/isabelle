@@ -48,26 +48,20 @@ export INPUTRC=$ISABELLE8BIT/keyboard/bash.inputrc
 # start xterm ; keyboard translations are given as resource string
 # the fonts can be selected in the xterm via ctrl-button3
 
-#xterm -fn "isacr14" -title "IsaVim" -geometry 80x40 -xrm "\
+#xterm -fn "isabelle14" -title "IsaVim" -geometry 80x40 -xrm "\
 #*fontMenu.Label:		8 Bit Fonts for Isabelle" -xrm "\
-#*fontMenu*font1*Label:		Isabelle 13"      -xrm "\
-#*VT100*font1:			isacr13"          -xrm "\
 #*fontMenu*font2*Label:		Isabelle 14"      -xrm "\
-#*VT100*font2:			isacr14"          -xrm "\
+#*VT100*font2:			isabelle14"          -xrm "\
 #*fontMenu*font3*Label:		Isabelle 24 bold" -xrm "\
-#*VT100*font3:			isacb24" -xrm "\
-#*fontMenu*font4*Label:		Old Isabelle 14"      -xrm "\
-#*VT100*font4:			oldisacr14"          -xrm "\
-#*fontMenu*font5*Label:		Spectrum 14"      -xrm "\
-#*VT100*font5:			spcr14"           -xrm "\
+#*VT100*font3:			isabelle24" -xrm "\
 #*xterm*vt100.translations: #override\
 
-xterm -fn "isacr14" -title "IsaVim" -geometry 80x40 -xrm "\
+xterm -fn "isabelle14" -title "IsaVim" -geometry 80x40 -xrm "\
 *fontMenu.Label:		8 Bit Fonts for Isabelle" -xrm "\
 *fontMenu*font1*Label:		Isabelle 14"      -xrm "\
-*VT100*font1:			isacr14"          -xrm "\
+*VT100*font1:			isabelle14"          -xrm "\
 *fontMenu*font2*Label:		Isabelle 24 bold"      -xrm "\
-*VT100*font2:			isacb24"          -xrm "\
+*VT100*font2:			isabelle24"          -xrm "\
 *xterm*vt100.translations: #override\
 	!Mod2 Shift <Key>g:		string(0xa1)  \n\
 	!Mod2 Shift <Key>d:		string(0xa2)  \n\
