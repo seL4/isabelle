@@ -1169,7 +1169,7 @@ lemma list_all2_dropI [simp,intro?]:
   apply (case_tac n, simp, simp)
   done
 
-lemma list_all2_mono [trans, intro?]:
+lemma list_all2_mono [intro?]:
   "\<And>y. list_all2 P x y \<Longrightarrow> (\<And>x y. P x y \<Longrightarrow> Q x y) \<Longrightarrow> list_all2 Q x y"
   apply (induct x, simp)
   apply (case_tac y, auto)
