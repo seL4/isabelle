@@ -86,7 +86,7 @@ defs
 			     [((foo,[Class Base]),Class Ext,foo_Ext)]))"
 
   test_def "test \\<equiv> Expr(e\\<Colon>=NewC Ext);; 
-		    Expr(LAcc e..foo({[Class Base]}[Lit Null]))"
+                    Expr(LAcc e..foo({[Class Base]}[Lit Null]))"
 
 
 syntax
@@ -102,8 +102,8 @@ translations
   "tprg" == "[ObjectC, BaseC, ExtC]"
   "obj1"    <= "(Ext, empty((vee, Base)\\<mapsto>Bool False)
 			   ((vee, Ext )\\<mapsto>Intg #0))"
-  "s0" == " Norm    (empty          ,empty                        )"
-  "s1" == " Norm    (empty(a\\<mapsto>obj1),empty(e\\<mapsto>Addr a)             )"
+  "s0" == " Norm    (empty, empty)"
+  "s1" == " Norm    (empty(a\\<mapsto>obj1),empty(e\\<mapsto>Addr a))"
   "s2" == " Norm    (empty(a\\<mapsto>obj1),empty(x\\<mapsto>Null)(This\\<mapsto>Addr a))"
   "s3" == "(Some NP, empty(a\\<mapsto>obj1),empty(e\\<mapsto>Addr a))"
 end
