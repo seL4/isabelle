@@ -14,16 +14,17 @@ text {*
  elements.  It has become a favorite basic example in pure
  higher-order logic since it is so easily expressed: \[\all{f::\alpha
  \To \alpha \To \idt{bool}} \ex{S::\alpha \To \idt{bool}}
- \all{x::\alpha}. f \ap x \not= S\]
+ \all{x::\alpha} f \ap x \not= S\]
   
  Viewing types as sets, $\alpha \To \idt{bool}$ represents the
  powerset of $\alpha$.  This version of the theorem states that for
  every function from $\alpha$ to its powerset, some subset is outside
  its range.  The Isabelle/Isar proofs below uses HOL's set theory,
- with the type $\alpha \ap \idt{set}$ and the operator $\idt{range}$.
+ with the type $\alpha \ap \idt{set}$ and the operator
+ $\idt{range}::(\alpha \To \beta) \To \beta \ap \idt{set}$.
   
  \bigskip We first consider a slightly awkward version of the proof,
- with the reasoning expressed quite naively.
+ with the innermost reasoning expressed quite naively.
 *};
 
 theorem "EX S. S ~: range(f :: 'a => 'a set)";
@@ -58,11 +59,11 @@ text {*
  change the order of assumptions introduced in the two cases of rule
  \name{equalityCE}, streamlining the flow of intermediate facts and
  avoiding explicit naming.\footnote{In general, neither the order of
- assumptions as introduced \isacommand{assume}, nor the order of goals
- as solved by \isacommand{show} matters.  The basic logical structure
- has to be left intact, though.  In particular, assumptions
- ``belonging'' to some goal have to be introduced \emph{before} its
- corresponding \isacommand{show}.}
+ assumptions as introduced by \isacommand{assume}, nor the order of
+ goals as solved by \isacommand{show} is of any significance.  The
+ basic logical structure has to be left intact, though.  In
+ particular, assumptions ``belonging'' to some goal have to be
+ introduced \emph{before} its corresponding \isacommand{show}.}
 *};
 
 theorem "EX S. S ~: range(f :: 'a => 'a set)";
@@ -91,10 +92,10 @@ qed;
 
 text {*
  How much creativity is required?  As it happens, Isabelle can prove
- this theorem automatically.  The default context of the classical
- proof tools contains rules for most of the constructs of HOL's set
- theory.  We must augment it with \name{equalityCE} to break up set
- equalities, and then apply best-first search.  Depth-first search
+ this theorem automatically.  The default context of the Isabelle's
+ classical prover contains rules for most of the constructs of HOL's
+ set theory.  We must augment it with \name{equalityCE} to break up
+ set equalities, and then apply best-first search.  Depth-first search
  would diverge, but best-first search successfully navigates through
  the large search space.
 *};
@@ -106,8 +107,8 @@ text {*
  While this establishes the same theorem internally, we do not get any
  idea of how the proof actually works.  There is currently no way to
  transform internal system-level representations of Isabelle proofs
- back into Isar documents.  Writing proof documents really is a
- creative process, after all.
+ back into Isar documents.  Writing intelligible proof documents
+ really is a creative process, after all.
 *};
 
 end;

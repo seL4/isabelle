@@ -13,10 +13,9 @@ theory KnasterTarski = Main:;
 subsection {* Prose version *};
 
 text {*
- According to the book ``Introduction to Lattices and Order''
- \cite[pages 93--94]{davey-priestley}, the Knaster-Tarski fixpoint
- theorem is as follows.\footnote{We have dualized the argument, and
- tuned the notation a little bit.}
+ According to the textbook \cite[pages 93--94]{davey-priestley}, the
+ Knaster-Tarski fixpoint theorem is as follows.\footnote{We have
+ dualized the argument, and tuned the notation a little bit.}
 
  \medskip \textbf{The Knaster-Tarski Fixpoint Theorem.}  Let $L$ be a
  complete lattice and $f \colon L \to L$ an order-preserving map.
@@ -51,10 +50,10 @@ proof;
   proof -;
     {{;
       fix x;
-      assume mem: "x : ?H";
+      assume H: "x : ?H";
       hence "?a <= x"; by (rule Inter_lower);
       with mono; have "f ?a <= f x"; ..;
-      also; from mem; have "... <= x"; ..;
+      also; from H; have "... <= x"; ..;
       finally; have "f ?a <= x"; .;
     }};
     hence ge: "f ?a <= ?a"; by (rule Inter_greatest);
@@ -77,7 +76,7 @@ text {*
  changed to achieve structured top-down decomposition of the problem
  at the outer level, while the small inner steps of reasoning or done
  in a forward manner.  Note that this requires only the most basic
- features of the Isar language.
+ features of the Isar language, we are certainly more at ease here.
 *};
 
 theorem KnasterTarski': "mono f ==> EX a::'a set. f a = a";
@@ -91,10 +90,10 @@ proof;
     show ge: "f ?a <= ?a";
     proof (rule Inter_greatest);
       fix x;
-      assume mem: "x : ?H";
+      assume H: "x : ?H";
       hence "?a <= x"; by (rule Inter_lower);
       with mono; have "f ?a <= f x"; ..;
-      also; from mem; have "... <= x"; ..;
+      also; from H; have "... <= x"; ..;
       finally; show "f ?a <= x"; .;
     qed;
     show "?a <= f ?a";

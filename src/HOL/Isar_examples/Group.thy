@@ -7,12 +7,13 @@ header {* Basic group theory *};
 
 theory Group = Main:;
 
-subsection {* Groups *}; 
+subsection {* Groups and calculational reasoning *}; 
 
 text {*
- We define an axiomatic type class of general groups over signature
- $({\times} :: \alpha \To \alpha \To \alpha, \idt{one} :: \alpha,
- \idt{inv} :: \alpha \To \alpha)$.
+ We define an axiomatic type class of groups over signature $({\times}
+ :: \alpha \To \alpha \To \alpha, \idt{one} :: \alpha, \idt{inv} ::
+ \alpha \To \alpha)$.  Note that the parent class $\idt{times}$ is
+ provided by the basic HOL theory.
 *};
 
 consts
@@ -27,9 +28,7 @@ axclass
 
 text {*
  The group axioms only state the properties of left unit and inverse,
- the right versions are derivable as follows.  The calculational proof
- style below closely follows typical presentations given in any basic
- course on algebra.
+ the right versions may be derived as follows.
 *};
 
 theorem group_right_inverse: "x * inv x = (one::'a::group)";
@@ -55,7 +54,7 @@ qed;
 
 text {*
  With \name{group-right-inverse} already at our disposal,
- \name{group-right-unit} is now obtained much easier as follows.
+ \name{group-right-unit} is now obtained much easier.
 *};
 
 theorem group_right_unit: "x * one = (x::'a::group)";
@@ -72,18 +71,27 @@ proof -;
 qed;
 
 text {*
- \bigskip There are only two Isar language elements for calculational
- proofs: \isakeyword{also} for initial or intermediate calculational
- steps, and \isakeyword{finally} for building the result of a
- calculation.  These constructs are not hardwired into Isabelle/Isar,
- but defined on top of the basic Isar/VM interpreter.  Expanding the
- \isakeyword{also} and \isakeyword{finally} derived language elements,
- calculations may be simulated as demonstrated below.
+ \medskip The calculational proof style above follows typical
+ presentations given in any introductory course on algebra.  The basic
+ technique is to form a transitive chain of equations, which in turn
+ are established by simplifying with appropriate rules.  The low-level
+ logical parts of equational reasoning are left implicit.
 
- Note that ``$\dots$'' is just a special term binding that happens to
- be bound automatically to the argument of the last fact established
- by assume or any local goal.  In contrast to $\var{thesis}$, the
- ``$\dots$'' variable is bound \emph{after} the proof is finished.
+ Note that ``$\dots$'' is just a special term variable that happens to
+ be bound automatically to the argument\footnote{The argument of a
+ curried infix expression happens to be its right-hand side.} of the
+ last fact achieved by any local assumption or proven statement.  In
+ contrast to $\var{thesis}$, the ``$\dots$'' variable is bound
+ \emph{after} the proof is finished.
+
+ There are only two separate Isar language elements for calculational
+ proofs: ``\isakeyword{also}'' for initial or intermediate
+ calculational steps, and ``\isakeyword{finally}'' for exhibiting the
+ result of a calculation.  These constructs are not hardwired into
+ Isabelle/Isar, but defined on top of the basic Isar/VM interpreter.
+ Expanding the \isakeyword{also} and \isakeyword{finally} derived
+ language elements, calculations may be simulated as demonstrated
+ below.
 *};
 
 theorem "x * one = (x::'a::group)";
@@ -112,16 +120,26 @@ proof -;
   note calculation = trans [OF calculation this]
     -- {* final calculational step: compose with transitivity rule ... *};
   from calculation
-    -- {* ... and pick up final result *};
+    -- {* ... and pick up the final result *};
 
   show ?thesis; .;
 qed;
+
+text {*
+ Note that this scheme of calculations is not restricted to plain
+ transitivity.  Rules like anti-symmetry, or even forward and backward
+ substitution work as well.  For the actual \isacommand{also} and
+ \isacommand{finally} commands, Isabelle/Isar maintains separate
+ context information of ``transitivity'' rules.  Rule selection takes
+ place automatically by higher-order unification.
+*};
 
 
 subsection {* Groups as monoids *};
 
 text {*
-  Monoids are usually defined like this.
+ Monoids over signature $({\times} :: \alpha \To \alpha \To \alpha,
+ \idt{one} :: \alpha)$ are defined like this.
 *};
 
 axclass monoid < times
@@ -143,5 +161,14 @@ instance group < monoid;
        rule group_assoc,
        rule group_left_unit,
        rule group_right_unit);
+
+text {*
+ The \isacommand{instance} command actually is a version of
+ \isacommand{theorem}, setting up a goal that reflects the intended
+ class relation (or type constructor arity).  Thus any Isar proof
+ language element may be involved to establish this statement.  When
+ concluding the proof, the result is transformed into the original
+ type signature extension behind the scenes.
+*};
 
 end;

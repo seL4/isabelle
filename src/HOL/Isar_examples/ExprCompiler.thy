@@ -10,9 +10,9 @@ header {* Correctness of a simple expression compiler *};
 theory ExprCompiler = Main:;
 
 text {*
- This is a (quite trivial) example of program verification.  We model
- a compiler translating expressions to stack machine instructions, and
- prove its correctness wrt.\ evaluation semantics.
+ This is a (rather trivial) example of program verification.  We model
+ a compiler for translating expressions to stack machine instructions,
+ and prove its correctness wrt.\ some evaluation semantics.
 *};
 
 
@@ -21,7 +21,7 @@ subsection {* Binary operations *};
 text {*
  Binary operations are just functions over some type of values.  This
  is both for syntax and semantics, i.e.\ we use a ``shallow
- embedding''.
+ embedding'' here.
 *};
 
 types
@@ -42,8 +42,8 @@ datatype ('adr, 'val) expr =
   Binop "'val binop" "('adr, 'val) expr" "('adr, 'val) expr";
 
 text {*
- Evaluation (wrt.\ an environment) is defined by primitive recursion
- over the structure of expressions.
+ Evaluation (wrt.\ some environment of variable assignments) is
+ defined by primitive recursion over the structure of expressions.
 *};
 
 consts

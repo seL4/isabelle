@@ -54,7 +54,7 @@ proof;
 qed;
 
 
-subsection {* Basic properties of below *};
+subsection {* Basic properties of ``below'' *};
 
 constdefs
   below :: "nat => nat set"
@@ -77,7 +77,7 @@ lemma Sigma_Suc2:
 lemmas Sigma_Suc = Sigma_Suc1 Sigma_Suc2;
 
 
-subsection {* Basic properties of evnodd *};
+subsection {* Basic properties of ``evnodd'' *};
 
 constdefs
   evnodd :: "(nat * nat) set => nat => (nat * nat) set"
@@ -223,7 +223,7 @@ proof -;
       thus "?thesis b";
       proof (elim exE);
 	have "?e (a Un t) b = ?e a b Un ?e t b"; by (rule evnodd_Un);
-	also; fix i j; assume e: "?e a b = {(i, j)}";
+	also; fix i j; assume "?e a b = {(i, j)}";
 	also; have "... Un ?e t b = insert (i, j) (?e t b)"; by simp;
 	also; have "card ... = Suc (card (?e t b))";
 	proof (rule card_insert_disjoint);
@@ -292,7 +292,7 @@ proof (unfold mutilated_board_def);
     also; have "?e ?t 1 = ?e ?t'' 1"; by simp;
     also; from t''; have "card ... = card (?e ?t'' 0)";
       by (rule tiling_domino_01 [RS sym]);
-    finally; show False; ..;
+    finally; have "... < ..."; .; thus False; ..;
   qed;
 qed;
 

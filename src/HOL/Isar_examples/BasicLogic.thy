@@ -54,7 +54,7 @@ qed;
 
 text {*
  Isar provides several ways to fine-tune the reasoning, avoiding
- irrelevant detail.  Several abbreviated language elements are
+ excessive detail.  Several abbreviated language elements are
  available, enabling the writer to express proofs in a more concise
  way, even without referring to any automated proof tools yet.
 
@@ -70,9 +70,9 @@ qed;
 text {*
  In fact, concluding any (sub-)proof already involves solving any
  remaining goals by assumption\footnote{This is not a completely
- trivial operation.  As usual in Isabelle, proof by assumption
- involves full higher-order unification.}.  Thus we may skip the
- rather vacuous body of the above proof as well.
+ trivial operation, as proof by assumption involves full higher-order
+ unification.}.  Thus we may skip the rather vacuous body of the above
+ proof as well.
 *};
 
 lemma "A --> A";
@@ -91,7 +91,7 @@ lemma "A --> A";
   by rule;
 
 text {*
- Proof by a single rule may be abbreviated as a double dot.
+ Proof by a single rule may be abbreviated as double-dot.
 *};
 
 lemma "A --> A"; ..;
@@ -103,7 +103,7 @@ text {*
 *};
 
 text {*
- Let us also reconsider $K$.  It's statement is composed of iterated
+ Let us also reconsider $K$.  Its statement is composed of iterated
  connectives.  Basic decomposition is by a single rule at a time,
  which is why our first version above was by nesting two proofs.
 
@@ -135,10 +135,10 @@ text {*
  \isacommand{proof}~($\idt{intro}$~\name{impI}~\name{allI}) to strip
  implications and universal quantifiers.
 
- Such well-tuned iterated decomposition of certain structure is the
- prime application of $\idt{intro}$ and $\idt{elim}$.  In general,
- terminal steps that solve a goal completely are typically performed
- by actual automated proof methods (such as
+ Such well-tuned iterated decomposition of certain structures is the
+ prime application of $\idt{intro}$ and $\idt{elim}$.  In contrast,
+ terminal steps that solve a goal completely are usually performed by
+ actual automated proof methods (such as
  \isacommand{by}~$\idt{blast}$).
 *};
 
@@ -206,8 +206,9 @@ proof;
 qed;
 
 text {*
- Subsequently, only the outermost decomposition step is left backward,
- all the rest is forward.
+ In the subsequent version we flatten the structure of the main body
+ by doing forward reasoning all the time.  Only the outermost
+ decomposition step is left as backward.
 *};
 
 lemma "A & B --> B & A";
@@ -247,9 +248,9 @@ text {*
  decomposition, and bottom-up forward composition.  In practice, there
  is no single best way to arrange some pieces of formal reasoning, of
  course.  Depending on the actual applications, the intended audience
- etc., certain aspects such as rules~/ methods vs.\ facts have to be
- emphasized in an appropriate way.  This requires the proof writer to
- develop good taste, and some practice, of course.
+ etc., rules (and methods) on the one hand vs.\ facts on the other
+ hand have to be emphasized in an appropriate way.  This requires the
+ proof writer to develop good taste, and some practice, of course.
 *};
 
 text {*
@@ -321,8 +322,8 @@ text {*
  case.
 
  \medskip In our example the situation is even simpler, since the two
- ``cases'' actually coincide.  Consequently the proof may be rephrased
- as follows.
+ cases actually coincide.  Consequently the proof may be rephrased as
+ follows.
 *};
 
 lemma "P | P --> P";

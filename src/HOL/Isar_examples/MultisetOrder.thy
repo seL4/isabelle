@@ -29,7 +29,8 @@ proof (unfold mult1_def);
       M0 + {#a#} = M0' + {#a'#} & N = M0' + K & ?r K a'"; by simp;
   thus "?case1 | ?case2";
   proof (elim exE conjE);
-    fix a' M0' K; assume N: "N = M0' + K" and r: "?r K a'";
+    fix a' M0' K;
+    assume N: "N = M0' + K" and r: "?r K a'";
     assume "M0 + {#a#} = M0' + {#a'#}";
     hence "M0 = M0' & a = a' |
         (EX K'. M0 = K' + {#a'#} & M0' = K' + {#a#})";
@@ -66,7 +67,8 @@ proof;
       and acc_hyp: "ALL M. (M, M0) : ?R --> M + {#a#} : ?W";
     have "M0 + {#a#} : ?W";
     proof (rule accI [of "M0 + {#a#}"]);
-      fix N; assume "(N, M0 + {#a#}) : ?R";
+      fix N;
+      assume "(N, M0 + {#a#}) : ?R";
       hence "((EX M. (M, M0) : ?R & N = M + {#a#}) |
           (EX K. (ALL b. elem K b --> (b, a) : r) & N = M0 + K))";
 	by (rule less_add);
