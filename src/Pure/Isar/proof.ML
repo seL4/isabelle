@@ -83,9 +83,8 @@ datatype kind =
   Goal of context attribute list |      (*intermediate result, solving subgoal*)
   Aux of context attribute list ;       (*intermediate result*)
 
-val theoremN = "theorem";
 val kind_name =
-  fn Theorem _ => theoremN | Lemma _ => "lemma" | Goal _ => "show" | Aux _ => "have";
+  fn Theorem _ => "theorem" | Lemma _ => "lemma" | Goal _ => "show" | Aux _ => "have";
 
 type goal =
  (kind *		(*result kind*)
@@ -631,7 +630,7 @@ fun finish_global alt_name alt_atts state =
       | _ => raise STATE ("No global goal!", state));
 
     val (thy', result') = PureThy.store_tthm ((name, (result, [])), atts) (theory_of state);
-  in (thy', (theoremN, name, result')) end;
+  in (thy', (kind_name kind, name, result')) end;
 
 fun qed meth_fun alt_name alt_atts state =
   state
