@@ -75,27 +75,11 @@ sub/superscripts allowed in identifiers.</li>
 <p>
 The <strong><!-- _GP_ distname --></strong> distribution is available
 from several <a href="dist/index.html">mirror sites</a>.  It includes
-source and binary packages and browsable documentation. There is also
-a nightly generated <a href="http://isabelle.in.tum.de/devel/">development 
-snapshot</a> available.
-
-<p>
-
-<h2>Out now</h2>
-
-The 
-<a href="dist/<!-- _GP_ distname -->/doc/tutorial.pdf">Tutorial on Isabelle/HOL</a> --
-published by Springer Verlag as <a
-href="http://www4.in.tum.de/~nipkow/LNCS2283/">LNCS 2283</a>.
-
-<p>
-
-You can also browse the <a href="library/index.html">Isabelle theory
-library</a>; the main logics are <a
-href="library/HOL/index.html">HOL</a>, <a
-href="library/HOLCF/index.html">HOLCF</a>, <a
-href="library/FOL/index.html">FOL</a> and <a
-href="library/ZF/index.html">ZF</a>.
+source and binary packages and browsable documentation. You can also
+browse the <a href="library/index.html">Isabelle theory library</a>
+online. For the curious, there is a nightly generated <a
+href="http://isabelle.in.tum.de/devel/">development snapshot</a>
+available.
 
 <p>
 
