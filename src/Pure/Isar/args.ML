@@ -33,7 +33,8 @@ sig
   val local_term: Proof.context * T list -> term * (Proof.context * T list)
   val local_prop: Proof.context * T list -> term * (Proof.context * T list)
   val bang_facts: Proof.context * T list -> thm list * (Proof.context * T list)
-  val goal_spec: T list -> ((int -> tactic) -> tactic) * T list
+  val goal_spec: ((int -> tactic) -> tactic) -> ('a * T list)
+    -> ((int -> tactic) -> tactic) * ('a * T list)
   type src
   val src: (string * T list) * Position.T -> src
   val dest_src: src -> (string * T list) * Position.T
@@ -143,10 +144,17 @@ val bang_facts = Scan.depend (fn ctxt =>
   ($$$ "!" >> K (ProofContext.prems_of ctxt) || Scan.succeed []) >> pair ctxt);
 
 
-(* goal specifier *)
+(* goal specification *)
 
-val tactical = $$$$ "!" >> K ALLGOALS || $$$$ "?" >> K FINDGOAL || nat >> curry op |>;
-val goal_spec = $$$$ "(" |-- tactical --| $$$$ ")";
+(* range *)
+
+val from_to =
+  nat -- ($$$$ "-" |-- nat) >> (fn (i, j) => fn tac => Seq.INTERVAL tac i j) ||
+  nat --| $$$$ "-" >> (fn i => fn tac => fn st => Seq.INTERVAL tac i (Thm.nprems_of st) st) ||
+  nat >> (fn i => fn tac => tac i);
+
+val goal = $$$$ "[" |-- !!! (from_to --| $$$$ "]");
+fun goal_spec def = Scan.lift (Scan.optional goal def);
 
 
 (* args *)
