@@ -12,7 +12,8 @@ sig
   val reconstruct_proof : Sign.sg -> term -> Proofterm.proof -> Proofterm.proof
   val prop_of' : term list -> Proofterm.proof -> term
   val prop_of : Proofterm.proof -> term
-  val expand_proof : Sign.sg -> string list -> Proofterm.proof -> Proofterm.proof
+  val expand_proof : Sign.sg -> (string * term option) list ->
+    Proofterm.proof -> Proofterm.proof
 end;
 
 structure Reconstruct : RECONSTRUCT =
@@ -330,7 +331,7 @@ val prop_of = prop_of' [];
   expand and reconstruct subproofs
 *********************************************************************************)
 
-fun expand_proof sg names prf =
+fun expand_proof sg thms prf =
   let
     fun expand maxidx prfs (AbsP (s, t, prf)) = 
           let val (maxidx', prfs', prf') = expand maxidx prfs prf
@@ -347,7 +348,10 @@ fun expand_proof sg names prf =
           let val (maxidx', prfs', prf') = expand maxidx prfs prf
           in (maxidx', prfs', prf' % t) end
       | expand maxidx prfs (prf as PThm ((a, _), cprf, prop, Some Ts)) =
-          if not (a mem names) then (maxidx, prfs, prf) else
+          if not (exists
+            (fn (b, None) => a = b
+              | (b, Some prop') => a = b andalso prop = prop') thms)
+          then (maxidx, prfs, prf) else
           let
             val (maxidx', (i, prf), prfs') = (case assoc (prfs, (a, prop)) of
                 None =>
