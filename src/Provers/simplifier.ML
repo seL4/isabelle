@@ -479,26 +479,24 @@ val setup_attrs = Attrib.add_attributes
 
 (* simplification *)
 
-val colon = Args.$$$ ":";
-
 val simp_options =
- (Args.$$$ "no_asm" -- colon >> K simp_tac ||
-  Args.$$$ "no_asm_simp" -- colon >> K asm_simp_tac ||
-  Args.$$$ "no_asm_use" -- colon >> K full_simp_tac ||
+ (Args.parens (Args.$$$ "no_asm") >> K simp_tac ||
+  Args.parens (Args.$$$ "no_asm_simp") >> K asm_simp_tac ||
+  Args.parens (Args.$$$ "no_asm_use") >> K full_simp_tac ||
   Scan.succeed asm_full_simp_tac);
 
 val simp_modifiers =
- [Args.$$$ simpN -- colon >> K (I, simp_add_local),
-  Args.$$$ simpN -- Args.$$$ addN -- colon >> K (I, simp_add_local),
-  Args.$$$ simpN -- Args.$$$ delN -- colon >> K (I, simp_del_local),
-  Args.$$$ simpN -- Args.$$$ onlyN -- colon >> K (map_local_simpset clear_ss, simp_add_local),
-  Args.$$$ otherN -- colon >> K (I, I)];
+ [Args.$$$ simpN -- Args.colon >> K (I, simp_add_local),
+  Args.$$$ simpN -- Args.$$$ addN -- Args.colon >> K (I, simp_add_local),
+  Args.$$$ simpN -- Args.$$$ delN -- Args.colon >> K (I, simp_del_local),
+  Args.$$$ simpN -- Args.$$$ onlyN -- Args.colon >> K (map_local_simpset clear_ss, simp_add_local),
+  Args.$$$ otherN -- Args.colon >> K (I, I)];
 
 val simp_modifiers' =
- [Args.$$$ addN -- colon >> K (I, simp_add_local),
-  Args.$$$ delN -- colon >> K (I, simp_del_local),
-  Args.$$$ onlyN -- colon >> K (map_local_simpset clear_ss, simp_add_local),
-  Args.$$$ otherN -- colon >> K (I, I)];
+ [Args.$$$ addN -- Args.colon >> K (I, simp_add_local),
+  Args.$$$ delN -- Args.colon >> K (I, simp_del_local),
+  Args.$$$ onlyN -- Args.colon >> K (map_local_simpset clear_ss, simp_add_local),
+  Args.$$$ otherN -- Args.colon >> K (I, I)];
 
 fun simp_args more_mods =
   Method.sectioned_args (Args.bang_facts -- Scan.lift simp_options) (more_mods @ simp_modifiers');

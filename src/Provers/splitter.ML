@@ -415,9 +415,9 @@ val setup_attrs =
 (* method modifiers *)
 
 val split_modifiers =
- [Args.$$$ splitN -- Args.$$$ ":" >> K ((I, split_add_local): Method.modifier),
-  Args.$$$ splitN -- Args.$$$ "add" -- Args.$$$ ":" >> K (I, split_add_local),
-  Args.$$$ splitN -- Args.$$$ "del" -- Args.$$$ ":" >> K (I, split_del_local)];
+ [Args.$$$ splitN -- Args.colon >> K ((I, split_add_local): Method.modifier),
+  Args.$$$ splitN -- Args.$$$ "add" -- Args.colon >> K (I, split_add_local),
+  Args.$$$ splitN -- Args.$$$ "del" -- Args.colon >> K (I, split_del_local)];
 
 
 

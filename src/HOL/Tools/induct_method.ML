@@ -364,7 +364,7 @@ val ruleN = "rule";
 
 (* attributes *)
 
-fun spec k = (Args.$$$ k -- Args.$$$ ":") |-- Args.!!! Args.name;
+fun spec k = (Args.$$$ k -- Args.colon) |-- Args.!!! Args.name;
 
 fun attrib sign_of add_type add_set = Scan.depend (fn x =>
   let val sg = sign_of x in
@@ -395,18 +395,18 @@ fun rule get_type get_set =
       spec typeN >> (err typeN (get_type ctxt) o Sign.intern_tycon sg) ||
       spec setN >> (err setN (get_set ctxt) o Sign.intern_const sg)
     end >> pair ctxt) ||
-  Scan.lift (Args.$$$ ruleN -- Args.$$$ ":") |-- Attrib.local_thm;
+  Scan.lift (Args.$$$ ruleN -- Args.colon) |-- Attrib.local_thm;
 
 val cases_rule = rule lookup_casesT lookup_casesS;
 val induct_rule = rule lookup_inductT lookup_inductS;
 
-val kind = (Args.$$$ typeN || Args.$$$ setN || Args.$$$ ruleN) -- Args.$$$ ":";
+val kind = (Args.$$$ typeN || Args.$$$ setN || Args.$$$ ruleN) -- Args.colon;
 val term = Scan.unless (Scan.lift kind) Args.local_term;
 val term_dummy = Scan.unless (Scan.lift kind)
   (Scan.lift (Args.$$$ "_") >> K None || Args.local_term >> Some);
 
 fun mode name =
-  Scan.lift (Scan.optional (Args.$$$ name -- Args.$$$ ":" >> K true) false);
+  Scan.lift (Scan.optional (Args.parens (Args.$$$ name) >> K true) false);
 
 in
 
