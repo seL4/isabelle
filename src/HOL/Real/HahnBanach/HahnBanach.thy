@@ -786,7 +786,7 @@ proof -;
           fix x; assume "x : F"; 
           from a; have "g x = f x"; ..;
           hence "rabs (f x) = rabs (g x)"; by simp;
-          also; from g_cont;
+          also; from _ _ g_cont;
           have "... <= function_norm E norm g * norm x";
           proof (rule norm_fx_le_norm_f_norm_x);
             show "x:E"; ..;
