@@ -54,12 +54,11 @@ The most prominent highlights of Isabelle99-1 are as follows.
     Fundamental Theorem of Arithmetic, Chinese Remainder Theorem,
     Fermat/Euler Theorem, Wilson's Theorem.
 
-  * HOL/Real (Jacques Fleuriot)
-    More on nonstandard real analysis.
-
   * HOL/Prolog (David von Oheimb)
     A (bare-bones) implementation of Lambda-Prolog.
 
+  * HOL/Real (Jacques Fleuriot)
+    More on nonstandard real analysis.
 
 
 See the NEWS file distributed with Isabelle for more details.
