@@ -37,7 +37,7 @@ Isabelle documentation.
   names.  Furthermore a class introduction rule is generated, which is
   employed by method $intro_classes$ to support instantiation proofs of this
   class.
-  
+
 \item [$\isarkeyword{instance}~c@1 < c@2$ and $\isarkeyword{instance}~t ::
   (\vec s)c$] setup a goal stating a class relation or type arity.  The proof
   would usually proceed by $intro_classes$, and then establish the
@@ -119,7 +119,7 @@ follows:\footnote{Internal bookkeeping such as proper handling of
   applied to $calculation$ and $this$ (in that order).  Transitivity rules are
   picked from the current context plus those given as explicit arguments (the
   latter have precedence).
-  
+
 \item [$\FINALLY~(\vec a)$] maintaining $calculation$ in the same way as
   $\ALSO$, and concludes the current calculational thread.  The final result
   is exhibited as fact for forward chaining towards the next goal. Basically,
@@ -127,15 +127,15 @@ follows:\footnote{Internal bookkeeping such as proper handling of
   ``$\FINALLY~\SHOW{}{\Var{thesis}}~\DOT$'' and
   ``$\FINALLY~\HAVE{}{\phi}~\DOT$'' are typical idioms for concluding
   calculational proofs.
-  
+
 \item [$\MOREOVER$ and $\ULTIMATELY$] are analogous to $\ALSO$ and $\FINALLY$,
   but collect results only, without applying rules.
-  
+
 \item [$\isarkeyword{print_trans_rules}$] prints the list of transitivity
   rules declared in the current context.
-  
+
 \item [$trans$] declares theorems as transitivity rules.
- 
+
 \end{descr}
 
 
@@ -204,10 +204,13 @@ may be used in advanced case analysis later.
 \item [$params~\vec p@1 \dots \vec p@n$] renames the innermost parameters of
   premises $1, \dots, n$ of some theorem.  An empty list of names may be given
   to skip positions, leaving the present parameters unchanged.
+
+  Note that the default usage of case rules does \emph{not} directly expose
+  parameters to the proof context (see also \S\ref{sec:induct-method-proper}).
 \end{descr}
 
 
-\section{Generalized existence}
+\section{Generalized existence}\label{sec:obtain}
 
 \indexisarcmd{obtain}
 \begin{matharray}{rcl}
@@ -287,7 +290,7 @@ where the result is treated as an assumption.
   elim-resolution, destruct-resolution, and forward-resolution, respectively
   \cite{isabelle-ref}.  These are improper method, mainly for experimentation
   and emulating tactic scripts.
-  
+
   Different modes of basic rule application are usually expressed in Isar at
   the proof language level, rather than via implicit proof state
   manipulations.  For example, a proper single-step elimination would be done
@@ -305,7 +308,7 @@ where the result is treated as an assumption.
 \indexisaratt{elimify}
 \indexisaratt{no-vars}
 
-\indexisaratt{RS}\indexisaratt{COMP}
+\indexisaratt{THEN}\indexisaratt{COMP}
 \indexisaratt{where}
 \indexisaratt{tag}\indexisaratt{untag}
 \indexisaratt{export}
@@ -313,7 +316,7 @@ where the result is treated as an assumption.
 \begin{matharray}{rcl}
   tag & : & \isaratt \\
   untag & : & \isaratt \\[0.5ex]
-  RS & : & \isaratt \\
+  THEN & : & \isaratt \\
   COMP & : & \isaratt \\[0.5ex]
   where & : & \isaratt \\[0.5ex]
   unfold & : & \isaratt \\
@@ -329,7 +332,7 @@ where the result is treated as an assumption.
   ;
   'untag' name
   ;
-  ('RS' | 'COMP') nat? thmref
+  ('THEN' | 'COMP') nat? thmref
   ;
   'where' (name '=' term * 'and')
   ;
@@ -343,32 +346,32 @@ where the result is treated as an assumption.
   tools (e.g.\ $\LEMMANAME$ causes the tag ``$lemma$'' to be added to the
   result).  The first string is considered the tag name, the rest its
   arguments.  Note that untag removes any tags of the same name.
-\item [$RS~n~a$ and $COMP~n~a$] compose rules.  $RS$ resolves with the $n$-th
-  premise of $a$; $COMP$ is a version of $RS$ that skips the automatic lifting
+\item [$THEN~n~a$ and $COMP~n~a$] compose rules.  $THEN$ resolves with the
+  $n$-th premise of $a$; the $COMP$ version skips the automatic lifting
   process that is normally intended (cf.\ \texttt{RS} and \texttt{COMP} in
   \cite[\S5]{isabelle-ref}).
 \item [$where~\vec x = \vec t$] perform named instantiation of schematic
   variables occurring in a theorem.  Unlike instantiation tactics such as
   $rule_tac$ (see \S\ref{sec:tactic-commands}), actual schematic variables
   have to be specified (e.g.\ $\Var{x@3}$).
-  
+
 \item [$unfold~\vec a$ and $fold~\vec a$] expand and fold back again the given
   meta-level definitions throughout a rule.
- 
+
 \item [$standard$] puts a theorem into the standard form of object-rules, just
   as the ML function \texttt{standard} (see \cite[\S5]{isabelle-ref}).
-  
+
 \item [$elimify$] turns an destruction rule into an elimination, just as the
   ML function \texttt{make\_elim} (see \cite{isabelle-ref}).
-  
+
 \item [$no_vars$] replaces schematic variables by free ones; this is mainly
   for tuning output of pretty printed theorems.
-  
+
 \item [$export$] lifts a local result out of the current proof context,
   generalizing all fixed variables and discharging all assumptions.  Note that
   proper incremental export is already done as part of the basic Isar
   machinery.  This attribute is mainly for experimentation.
-  
+
 \end{descr}
 
 
@@ -393,7 +396,8 @@ named $foo_tac$.
 \indexisarmeth{rule-tac}\indexisarmeth{erule-tac}
 \indexisarmeth{drule-tac}\indexisarmeth{frule-tac}
 \indexisarmeth{cut-tac}\indexisarmeth{thin-tac}
-\indexisarmeth{subgoal-tac}\indexisarmeth{tactic}
+\indexisarmeth{subgoal-tac}\indexisarmeth{rename_tac}
+\indexisarmeth{rotate-tac}\indexisarmeth{tactic}
 \begin{matharray}{rcl}
   rule_tac^* & : & \isarmeth \\
   erule_tac^* & : & \isarmeth \\
@@ -402,6 +406,8 @@ named $foo_tac$.
   cut_tac^* & : & \isarmeth \\
   thin_tac^* & : & \isarmeth \\
   subgoal_tac^* & : & \isarmeth \\
+  rename_tac^* & : & \isarmeth \\
+  rotate_tac^* & : & \isarmeth \\
   tactic^* & : & \isarmeth \\
 \end{matharray}
 
@@ -426,11 +432,21 @@ named $foo_tac$.
 \railalias{subgoaltac}{subgoal\_tac}
 \railterm{subgoaltac}
 
+\railalias{renametac}{rename\_tac}
+\railterm{renametac}
+
+\railalias{rotatetac}{rotate\_tac}
+\railterm{rotatetac}
+
 \begin{rail}
   ( ruletac | eruletac | druletac | fruletac | cuttac | thintac ) goalspec?
   ( insts thmref | thmrefs )
   ;
   subgoaltac goalspec? (prop +)
+  ;
+  renametac goalspec? (name +)
+  ;
+  rotatetac goalspec? int?
   ;
   'tactic' text
   ;
@@ -443,7 +459,7 @@ named $foo_tac$.
 \item [$rule_tac$ etc.] do resolution of rules with explicit instantiation.
   This works the same way as the ML tactics \texttt{res_inst_tac} etc. (see
   \cite[\S3]{isabelle-ref}).
-  
+
   Note that multiple rules may be only given there is no instantiation.  Then
   $rule_tac$ is the same as \texttt{resolve_tac} in ML (see
   \cite[\S3]{isabelle-ref}).
@@ -457,6 +473,12 @@ named $foo_tac$.
   \cite[\S3]{isabelle-ref}.
 \item [$subgoal_tac~\phi$] adds $\phi$ as an assumption to a subgoal.  See
   also \texttt{subgoal_tac} and \texttt{subgoals_tac} in
+  \cite[\S3]{isabelle-ref}.
+\item [$rename_tac~\vec x$] renames parameters of a goal according to the list
+  $\vec x$, which refers to the \emph{suffix} of variables.
+\item [$rotate_tac~n$] rotates the assumptions of a goal by $n$ positions:
+  from right to left if $n$ is positive, and from left to right if $n$ is
+  negative; the default value is $1$.  See also \texttt{rotate_tac} in
   \cite[\S3]{isabelle-ref}.
 \item [$tactic~text$] produces a proof method from any ML text of type
   \texttt{tactic}.  Apart from the usual ML environment and the current
@@ -477,7 +499,7 @@ val thms  : string -> thm list
 \end{descr}
 
 
-\section{The Simplifier}
+\section{The Simplifier}\label{sec:simplifier}
 
 \subsection{Simplification methods}\label{sec:simp}
 
@@ -514,12 +536,12 @@ val thms  : string -> thm list
   according to the arguments given.  Note that the \railtterm{only} modifier
   first removes all other rewrite rules, congruences, and looper tactics
   (including splits), and then behaves like \railtterm{add}.
-  
+
   The \railtterm{split} modifiers add or delete rules for the Splitter (see
   also \cite{isabelle-ref}), the default is to add.  This works only if the
   Simplifier method has been properly setup to include the Splitter (all major
   object logics such HOL, HOLCF, FOL, ZF do this already).
-  
+
   The \railtterm{other} modifier ignores its arguments.  Nevertheless,
   additional kinds of rules may be declared by including appropriate
   attributes in the specification.
@@ -536,9 +558,9 @@ assumptions is only included if the ``$!$'' (bang) argument is given, which
 should be used with some care, though.
 
 Additional Simplifier options may be specified to tune the behavior even
-further: $(no_asm)$ means assumptions are ignored completely (cf.\ 
+further: $(no_asm)$ means assumptions are ignored completely (cf.\
 \texttt{simp_tac}), $(no_asm_simp)$ means assumptions are used in the
-simplification of the conclusion but are not themselves simplified (cf.\ 
+simplification of the conclusion but are not themselves simplified (cf.\
 \texttt{asm_simp_tac}), and $(no_asm_use)$ means assumptions are simplified
 but are not used in the simplification of each other or the conclusion (cf.
 \texttt{full_simp_tac}).
@@ -596,6 +618,34 @@ See the ML functions of the same name in \cite[\S10]{isabelle-ref} for more
 information.
 
 
+\section{Basic equational reasoning}
+
+\indexisarmeth{subst}\indexisarmeth{hypsubst}\indexisaratt{symmetric}
+\begin{matharray}{rcl}
+  subst & : & \isarmeth \\
+  hypsubst^* & : & \isarmeth \\
+  symmetric & : & \isaratt \\
+\end{matharray}
+
+\begin{rail}
+  'subst' thmref
+  ;
+\end{rail}
+
+These methods and attributes provide basic facilities for equational reasoning
+that are intended for specialized applications only.  Normally, single step
+reasoning would be performed by calculation (see \S\ref{sec:calculation}),
+while the Simplifier is the canonical tool for automated normalization (see
+\S\ref{sec:simplifier}).
+
+\begin{descr}
+\item [$subst~thm$] performs a single substitution step using rule $thm$,
+  which may be either a meta or object equality.
+\item [$hypsubst$] performs substitution using some assumption.
+\item [$symmetric$] applies the symmetry rule of meta or object equality.
+\end{descr}
+
+
 \section{The Classical Reasoner}
 
 \subsection{Basic methods}\label{sec:classical-basic}
@@ -622,7 +672,7 @@ information.
   This is made the default method for basic proof steps, such as $\PROOFNAME$
   and ``$\DDOT$'' (two dots), see also \S\ref{sec:proof-steps} and
   \S\ref{sec:pure-meth-att}.
-  
+
 \item [$intro$ and $elim$] repeatedly refine some goal by intro- or
   elim-resolution, after having inserted any facts.  Omitting the arguments
   refers to any suitable rules declared in the context, otherwise only the
@@ -630,7 +680,7 @@ information.
   of what actually happens, thus it is very appropriate as an initial method
   for $\PROOFNAME$ that splits up certain connectives of the goal, before
   entering the actual sub-proof.
-  
+
 \item [$contradiction$] solves some goal by contradiction, deriving any result
   from both $\neg A$ and $A$.  Facts, which are guaranteed to participate, may
   appear in either order.
@@ -708,7 +758,7 @@ This is slightly less hazardous than for the Simplifier (see
   correspond to those given in \S\ref{sec:simp} and
   \S\ref{sec:classical-auto}.  Just note that the ones related to the
   Simplifier are prefixed by \railtterm{simp} here.
-  
+
   Facts provided by forward chaining are inserted into the goal before doing
   the search.  The ``!''~argument causes the full context of assumptions to be
   included as well.
@@ -745,7 +795,7 @@ This is slightly less hazardous than for the Simplifier (see
   single ``!'' classifies as \emph{safe}, and ``?'' as \emph{extra} (i.e.\ not
   applied in the search-oriented automated methods, but only in single-step
   methods such as $rule$).
-  
+
 \item [$iff$] declares equations both as rules for the Simplifier and
   Classical Reasoner.
 
@@ -755,7 +805,7 @@ This is slightly less hazardous than for the Simplifier (see
 \end{descr}
 
 
-%%% Local Variables: 
+%%% Local Variables:
 %%% mode: latex
 %%% TeX-master: "isar-ref"
-%%% End: 
+%%% End:
