@@ -1,4 +1,4 @@
-(*  Title:      HOL/Integ/IntRingDefs.thy
+(*  Title:      HOL/ex/IntRingDefs.thy
     ID:         $Id$
     Author:     Tobias Nipkow and Markus Wenzel
     Copyright   1996 TU Muenchen

@@ -83,6 +83,45 @@ by (Simp_tac 1);
 result();
 
 
+(** Testing the cancellation of complementary terms **)
+
+Goal "y + (x + -x) = int 0 + y";
+by (Simp_tac 1);
+result();
+
+Goal "y + (-x + (- y + x)) = int 0";
+by (Simp_tac 1);
+result();
+
+Goal "-x + (y + (- y + x)) = int 0";
+by (Simp_tac 1);
+result();
+
+Goal "x + (x + (- x + (- x + (- y + - z)))) = int 0 - y - z";
+by (Simp_tac 1);
+result();
+
+Goal "x + x - x - x - y - z = int 0 - y - z";
+by (Simp_tac 1);
+result();
+
+Goal "x + y + z - (x + z) = y - int 0";
+by (Simp_tac 1);
+result();
+
+Goal "x+(y+(y+(y+ (-x + -x)))) = int 0 + y - x + y + y";
+by (Simp_tac 1);
+result();
+
+Goal "x+(y+(y+(y+ (-y + -x)))) = y + int 0 + y";
+by (Simp_tac 1);
+result();
+
+Goal "x + y - x + z - x - y - z + x < int 1";
+by (Simp_tac 1);
+result();
+
+
 Addsimps normal.intrs;
 
 Goal "(w BIT b): normal ==> (w BIT b BIT c): normal";

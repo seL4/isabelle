@@ -1,4 +1,4 @@
-(*  Title:      HOL/Integ/IntRingDefs.thy
+(*  Title:      HOL/ex/IntRingDefs.thy
     ID:         $Id$
     Author:     Tobias Nipkow and Markus Wenzel
     Copyright   1996 TU Muenchen
@@ -10,6 +10,6 @@ Most of it has been defined and shown already.
 IntRingDefs = Main + Ring +
 
 instance int :: zero
-defs zero_int_def "zero::int == #0"
+defs zero_int_def "zero::int == int 0"
 
 end
