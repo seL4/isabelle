@@ -2,12 +2,12 @@
 
 \chapter{Theories, Terms and Types} \label{theories}
 \index{theories|(}\index{signatures|bold}
-\index{reading!axioms|see{{\tt assume_ax}}}
-Theories organize the syntax, declarations and axioms of a mathematical
-development.  They are built, starting from the Pure theory, by extending
-and merging existing theories.  They have the \ML\ type \mltydx{theory}.
-Theory operations signal errors by raising exception \xdx{THEORY},
-returning a message and a list of theories.
+\index{reading!axioms|see{{\tt assume_ax}}} Theories organize the
+syntax, declarations and axioms of a mathematical development.  They
+are built, starting from the {\Pure} or {\CPure} theory, by extending
+and merging existing theories.  They have the \ML\ type
+\mltydx{theory}.  Theory operations signal errors by raising exception
+\xdx{THEORY}, returning a message and a list of theories.
 
 Signatures, which contain information about sorts, types, constants and
 syntax, have the \ML\ type~\mltydx{Sign.sg}.  For identification, each
@@ -32,11 +32,12 @@ suffix {\tt .thy}). There is also a low level interface provided by certain
 Appendix~\ref{app:TheorySyntax} presents the concrete syntax for theory
 definitions; here is an explanation of the constituent parts:
 \begin{description}
-\item[{\it theoryDef}]
-  is the full definition.  The new theory is called $id$.  It is the union
-  of the named {\bf parent theories}\indexbold{theories!parent}, possibly
-  extended with new classes, etc.  The basic theory, which contains only
-  the meta-logic, is called \thydx{Pure}.
+\item[{\it theoryDef}] is the full definition.  The new theory is
+  called $id$.  It is the union of the named {\bf parent
+    theories}\indexbold{theories!parent}, possibly extended with new
+  components.  \thydx{Pure} and \thydx{CPure} are the basic theories,
+  which contain only the meta-logic. They differ just in their
+  concrete syntax for function applications.
 
   Normally each {\it name\/} is an identifier, the name of the parent theory.
   Quoted strings can be used to document additional file dependencies; see
@@ -56,10 +57,9 @@ definitions; here is an explanation of the constituent parts:
   variables created internally.  If omitted, the default sort is the listwise
   union of the default sorts of the parent theories (i.e.\ their logical
   intersection).
-
-\item[$sort$]
-  is a finite set of classes.  A single class $id$ abbreviates the singleton
-  set {\tt\{}$id${\tt\}}.
+  
+\item[$sort$] is a finite set of classes.  A single class $id$
+  abbreviates the sort $\ttlbrace id\ttrbrace$.
 
 \item[$types$]
   is a series of type declarations.  Each declares a new type constructor
@@ -75,19 +75,23 @@ definitions; here is an explanation of the constituent parts:
   declares a type or constant to be an infix operator of priority $nat$
   associating to the left ({\tt infixl}) or right ({\tt infixr}). Only
   2-place type constructors can have infix status; an example is {\tt
-  ('a,'b)~"*"~(infixr~20)}, which expresses binary product types.
+  ('a,'b)~"*"~(infixr~20)}, which may express binary product types.
 
-\item[$arities$]
-  is a series of arity declarations.  Each assigns arities to type
-  constructors.  The $name$ must be an existing type constructor, which is
-  given the additional arity $arity$.
-
-\item[$constDecl$]
-  is a series of constant declarations.  Each new constant $name$ is given
-  the specified type.  The optional $mixfix$ annotations may
-  attach concrete syntax to the constant. A variant of {\tt consts} is the
-  {\tt syntax} section\index{*syntax section}, which adds just syntax without
-  declaring logical constants.
+\item[$arities$] is a series of type arity declarations.  Each assigns
+  arities to type constructors.  The $name$ must be an existing type
+  constructor, which is given the additional arity $arity$.
+  
+\item[$consts$] is a series of constant declarations.  Each new
+  constant $name$ is given the specified type.  The optional $mixfix$
+  annotations may attach concrete syntax to the constant.
+  
+\item[$syntax$] \index{*syntax section}\index{print mode} is a variant
+  of $consts$ which adds just syntax without actually declaring
+  logical constants.  This gives full control over a theory's context
+  free grammar. The optional $mode$ specifies the print mode where the
+  mixfix productions should be added. If there is no \texttt{output}
+  option given, all productions are also added to the input syntax
+  (regardless of the print mode).
 
 \item[$mixfix$] \index{mixfix declarations}
   annotations can take three forms:
@@ -115,13 +119,28 @@ definitions; here is an explanation of the constituent parts:
 \item[$rules$]
   is a series of rule declarations.  Each has a name $id$ and the formula is
   given by the $string$.  Rule names must be distinct within any single
-  theory file.
+  theory.
 
 \item[$defs$] is a series of definitions.  They are just like $rules$, except
   that every $string$ must be a definition (see below for details).
 
 \item[$constdefs$] combines the declaration of constants and their
   definition. The first $string$ is the type, the second the definition.
+  
+\item[$axclass$] \index{*axclass section} defines an
+  \rmindex{axiomatic type class} as the intersection of existing
+  classes, with additional axioms holding. Class axioms may not
+  contain more than one type variable. The class axioms (with implicit
+  sort constraints added) are bound to the given names.  Furthermore a
+  class introduction rule is generated, which is automatically
+  employed by $instance$ to prove instantiations of this class.
+  
+\item[$instance$] \index{*instance section} proves class inclusions or
+  type arities at the logical level and then transfers these to the
+  type signature. The instantiation is proven and checked properly.
+  The user has to supply sufficient witness information: theorems
+  ($longident$), axioms ($string$), or even arbitrary \ML{} tactic
+  code $verbatim$.
 
 \item[$oracle$] links the theory to a trusted external reasoner.  It is
   allowed to create theorems, but each theorem carries a proof object
@@ -137,18 +156,19 @@ declarations, translation rules and the {\tt ML} section in more detail.
 
 \subsection{Definitions}\indexbold{definitions}
 
-{\bf Definitions} are intended to express abbreviations. The simplest form of
-a definition is $f \equiv t$, where $f$ is a constant. Isabelle also allows a
-derived form where the arguments of~$f$ appear on the left, abbreviating a
-string of $\lambda$-abstractions.
+{\bf Definitions} are intended to express abbreviations. The simplest
+form of a definition is $f \equiv t$, where $f$ is a constant.
+Isabelle also allows a derived forms where the arguments of~$f$ appear
+on the left, abbreviating a string of $\lambda$-abstractions.
 
 Isabelle makes the following checks on definitions:
 \begin{itemize}
-\item Arguments (on the left-hand side) must be distinct variables
+\item Arguments (on the left-hand side) must be distinct variables.
 \item All variables on the right-hand side must also appear on the left-hand
   side. 
-\item All type variables on the right-hand side must also appear on the
-  left-hand side; this prohibits definitions such as {\tt zero == length []}.
+\item All type variables on the right-hand side must also appear on
+  the left-hand side; this prohibits definitions such as {\tt
+    (zero::nat) == length ([]::'a list)}.
 \item The definition must not be recursive.  Most object-logics provide
   definitional principles that can be used to express recursion safely.
 \end{itemize}
@@ -164,31 +184,26 @@ made, but the cost might be overly strict rules on declaration order, etc.
 In order to guarantee principal types~\cite{nipkow-prehofer},
 arity declarations must obey two conditions:
 \begin{itemize}
-\item There must be no two declarations $ty :: (\vec{r})c$ and $ty ::
-  (\vec{s})c$ with $\vec{r} \neq \vec{s}$.  For example, the following is
-  forbidden:
+\item There must not be any two declarations $ty :: (\vec{r})c$ and
+  $ty :: (\vec{s})c$ with $\vec{r} \neq \vec{s}$.  For example, this
+  excludes the following:
 \begin{ttbox}
-types
-  'a ty
 arities
-  ty :: ({\ttlbrace}logic{\ttrbrace}) logic
-  ty :: ({\ttlbrace}{\ttrbrace})logic
+  foo :: ({\ttlbrace}logic{\ttrbrace}) logic
+  foo :: ({\ttlbrace}{\ttrbrace})logic
 \end{ttbox}
 
 \item If there are two declarations $ty :: (s@1,\dots,s@n)c$ and $ty ::
   (s@1',\dots,s@n')c'$ such that $c' < c$ then $s@i' \preceq s@i$ must hold
   for $i=1,\dots,n$.  The relationship $\preceq$, defined as
 \[ s' \preceq s \iff \forall c\in s. \exists c'\in s'.~ c'\le c, \]
-expresses that the set of types represented by $s'$ is a subset of the set of
-types represented by $s$.  For example, the following is forbidden:
+expresses that the set of types represented by $s'$ is a subset of the
+set of types represented by $s$.  Assuming $term \preceq logic$, the
+following is forbidden:
 \begin{ttbox}
-classes
-  term < logic
-types
-  'a ty
 arities
-  ty :: ({\ttlbrace}logic{\ttrbrace})logic
-  ty :: ({\ttlbrace}{\ttrbrace})term
+  foo :: ({\ttlbrace}logic{\ttrbrace})logic
+  foo :: ({\ttlbrace}{\ttrbrace})term
 \end{ttbox}
 
 \end{itemize}
@@ -219,14 +234,15 @@ delete_tmpfiles : bool ref \hfill{\bf initially true}
 suppresses the deletion of temporary files.
 \end{ttdescription}
 %
-Each theory definition must reside in a separate file.  Let the file {\it
-  T}{\tt.thy} contain the definition of a theory called~$T$, whose parent
-theories are $TB@1$ \dots $TB@n$.  Calling \ttindexbold{use_thy}~{\tt"{\it
-  T\/}"} reads the file {\it T}{\tt.thy}, writes a temporary \ML{}
-file {\tt.{\it T}.thy.ML}, and reads the latter file.  Recursive {\tt
-  use_thy} calls load those parent theories that have not been loaded
-previously; the recursive calls may continue to any depth.  One {\tt use_thy}
-call can read an entire logic provided all theories are linked appropriately.
+Each theory definition must reside in a separate file.  Let the file
+{\it T}{\tt.thy} contain the definition of a theory called~$T$, whose
+parent theories are $TB@1$ \dots $TB@n$.  Calling
+\ttindex{use_thy}~{\tt"{\it T\/}"} reads the file {\it T}{\tt.thy},
+writes a temporary \ML{} file {\tt.{\it T}.thy.ML}, and reads the
+latter file.  Recursive {\tt use_thy} calls load those parent theories
+that have not been loaded previously; the recursive calls may continue
+to any depth.  One {\tt use_thy} call can read an entire logic
+provided all theories are linked appropriately.
 
 The result is an \ML\ structure~$T$ containing at least a component {\tt thy}
 for the new theory and components for each of the rules.  The structure also
@@ -234,9 +250,9 @@ contains the definitions of the {\tt ML} section, if present.  The file
 {\tt.{\it T}.thy.ML} is then deleted if {\tt delete_tmpfiles} is set to {\tt
 true} and no errors occurred.
 
-Finally the file {\it T}{\tt.ML} is read, if it exists.  This file normally
-begins with the declaration {\tt open~$T$} and contains proofs involving
-the new theory.
+Finally the file {\it T}{\tt.ML} is read, if it exists.  Since the
+structure $T$ is automatically open in this context, proof scripts may
+(or even should) refer to its components by unqualified names.
 
 Some applications construct theories directly by calling \ML\ functions.  In
 this situation there is no {\tt.thy} file, only an {\tt.ML} file.  The
@@ -284,17 +300,18 @@ marks the children as out-of-date.
 \end{ttdescription}
 
 
-\goodbreak
-\subsection{Important note for Poly/ML users}\index{Poly/{\ML} compiler}
-The theory mechanism depends upon reference variables.  At the end of a
-Poly/\ML{} session, the contents of references are lost unless they are
-declared in the current database.  In particular, assignments to references
-of the {\tt Pure} database are lost, including all information about loaded
-theories. To avoid losing this information simply call
-\begin{ttbox}
-init_thy_reader();
-\end{ttbox}
-when building the new database.
+%FIXME remove
+%\goodbreak
+%\subsection{Important note for Poly/ML users}\index{Poly/{\ML} compiler}
+%The theory mechanism depends upon reference variables.  At the end of a
+%Poly/\ML{} session, the contents of references are lost unless they are
+%declared in the current database.  In particular, assignments to references
+%of the {\tt Pure} database are lost, including all information about loaded
+%theories. To avoid losing this information simply call
+%\begin{ttbox}
+%init_thy_reader();
+%\end{ttbox}
+%when building the new database.
 
 
 \subsection{*Pseudo theories}\label{sec:pseudo-theories}
@@ -346,9 +363,9 @@ orphan = \(A@1\) + \(\ldots\) + \(A@n\)
 The resulting theory ensures that {\tt update} reloads {\tt orphan}
 whenever it reloads one of the $A@i$.
 
-For an extensive example of how this technique can be used to link lots of
-theory files and load them by just a few {\tt use_thy} calls, consult the
-sources of \ZF{} set theory.
+For an extensive example of how this technique can be used to link
+lots of theory files and load them by just a few {\tt use_thy} calls
+see the sources of one of the major object-logics (e.g.\ \ZF).
 
 
 
@@ -384,17 +401,21 @@ For example, if {\it formula} is
 \hbox{\verb'?a=?b ==> ?b=?a  [!!a b. a=b ==> b=a]'}
 \end{ttdescription}
 
-\subsection{Building a theory}
+\subsection{*Building a theory}
 \label{BuildingATheory}
 \index{theories!constructing|bold}
 \begin{ttbox}
-pure_thy       : theory
+Pure.thy       : theory
+CPure.thy      : theory
 merge_theories : theory * theory -> theory
 \end{ttbox}
-\begin{ttdescription}
-\item[\ttindexbold{pure_thy}] contains just the syntax and signature
-  of the meta-logic.  There are no axioms: meta-level inferences are carried
-  out by \ML\ functions.
+\begin{description}
+\item[\ttindexbold{Pure.thy}, \ttindexbold{CPure.thy}] contain the
+  syntax and signature of the meta-logic.  There are no axioms:
+  meta-level inferences are carried out by \ML\ functions. The two
+  \Pure s just differ in their concrete syntax of function
+  application: $t(u@1, \ldots, u@n)$ vs.\ $t\,u@1,\ldots\,u@n$.
+
 \item[\ttindexbold{merge_theories} ($thy@1$, $thy@2$)] merges the two
   theories $thy@1$ and $thy@2$.  The resulting theory contains all of the
   syntax, signature and axioms of the constituent theories. Merging theories
@@ -419,7 +440,7 @@ Attempt to merge different versions of theories: "\(T@1\)", \(\ldots\), "\(T@n\)
 %\begin{ttbox}
 %Attempt to merge different versions of theory: \(T\)
 %\end{ttbox}
-\end{ttdescription}
+\end{description}
 
 %% FIXME
 %\item [\ttindexbold{extend_theory} $thy$ {\tt"}$T${\tt"}
@@ -456,6 +477,7 @@ Attempt to merge different versions of theories: "\(T@1\)", \(\ldots\), "\(T@n\)
 \subsection{Inspecting a theory}\label{sec:inspct-thy}
 \index{theories!inspecting|bold}
 \begin{ttbox}
+print_syntax  : theory -> unit
 print_theory  : theory -> unit
 axioms_of     : theory -> (string * thm) list
 thms_of       : theory -> (string * thm) list
@@ -465,9 +487,12 @@ stamps_of_thy : theory -> string ref list
 \end{ttbox}
 These provide means of viewing a theory's components.
 \begin{ttdescription}
-\item[\ttindexbold{print_theory} $thy$]
-prints the contents of $thy$ excluding the syntax related parts (which are
-shown by {\tt print_syntax}).  The output is quite verbose.
+\item[\ttindexbold{print_syntax} $thy$] prints the syntax of $thy$
+  (grammar, macros, translation functions etc., see
+  page~\pageref{pg:print_syn} for more details).
+  
+\item[\ttindexbold{print_theory} $thy$] prints the logical parts of
+  $thy$, excluding the syntax.
 
 \item[\ttindexbold{axioms_of} $thy$]
 returns the additional axioms of the most recent extend node of~$thy$.
@@ -487,223 +512,224 @@ returns the identification \rmindex{stamps} of the signature associated
 with~$thy$.
 \end{ttdescription}
 
+%FIXME move to sysman!
+%\section{Generating HTML documents}
+%\index{HTML|bold} 
+%
+%Isabelle is able to make HTML documents that show a theory's
+%definition, the theorems proved in its ML file and the relationship
+%with its ancestors and descendants. HTML stands for Hypertext Markup
+%Language and is used in the World Wide Web to represent text
+%containing images and links to other documents. Web browsers like
+%{\tt xmosaic} or {\tt netscape} are used to view these documents.
+%
+%Besides the three HTML files that are made for every theory
+%(definition and theorems, ancestors, descendants), Isabelle stores
+%links to all theories in an index file. These indexes are themself
+%linked with other indexes to represent the hierarchic structure of
+%Isabelle's logics.
+%
+%To make HTML files for logics that are part of the Isabelle
+%distribution, simply set the shell environment variable {\tt
+%MAKE_HTML} before compiling a logic. This works for single logics as
+%well as for the shell script {\tt make-all} (see
+%\ref{sec:shell-scripts}). To make HTML files for {\tt FOL} using a
+%{\tt csh} style shell, the following commands can be used:
+%
+%\begin{ttbox}
+%cd FOL
+%setenv MAKE_HTML
+%make
+%\end{ttbox}
+%
+%The databases made this way do not differ from the ones made with an
+%unset {\tt MAKE_HTML}; in particular no HTML files are written if the
+%database is used to manually load a theory.
+%
+%As you will see below, the HTML generation is controlled by a boolean
+%reference variable. If you want to make databases which define this
+%variable's value as {\tt true} and where therefore HTML files are
+%written each time {\tt use_thy} is invoked, you have to set {\tt
+%MAKE_HTML} to ``{\tt true}'':
+%
+%\begin{ttbox}
+%cd FOL
+%setenv MAKE_HTML true
+%make
+%\end{ttbox}
+%
+%All theories loaded from within the {\tt FOL} database and all
+%databases derived from it will now cause HTML files to be written.
+%This behaviour can be changed by assigning a value of {\tt false} to
+%the boolean reference variable {\tt make_html}. Be careful when making
+%such databases publicly available since it means that your users will
+%generate HTML files though they might not intend to do so.
+%
+%As some of Isabelle's logics are based on others (e.g. {\tt ZF} on
+%{\tt FOL}) and because the HTML files list a theory's ancestors, you
+%should not make HTML files for a logic if the HTML files for the base
+%logic do not exist. Otherwise some of the hypertext links might point
+%to non-existing documents.
+%
+%The entry point to all logics is the {\tt index.html} file located in
+%Isabelle's main directory. You can also access a HTML version of the
+%distribution package at
+%
+%\begin{ttbox}
+%http://www4.informatik.tu-muenchen.de/~nipkow/isabelle/
+%\end{ttbox}
+%
+%
+%\subsection*{Manual HTML generation}
+%
+%To manually control the generation of HTML files the following
+%commands and reference variables are used:
+%
+%\begin{ttbox}
+%init_html   : unit -> unit
+%make_html   : bool ref
+%finish_html : unit -> unit
+%\end{ttbox}
+%
+%\begin{ttdescription}
+%\item[\ttindexbold{init_html}]
+%activates the HTML facility. It stores the current working directory
+%as the place where the {\tt index.html} file for all theories loaded
+%afterwards will be stored.
+%
+%\item[\ttindexbold{make_html}]
+%is a boolean reference variable read by {\tt use_thy} and other
+%functions to decide whether HTML files should be made. After you have
+%used {\tt init_html} you can manually change {\tt make_html}'s value
+%to temporarily disable HTML generation.
+%
+%\item[\ttindexbold{finish_html}]
+%has to be called after all theories have been read that should be
+%listed in the current {\tt index.html} file. It reads a temporary
+%file with information about the theories read since the last use of
+%{\tt init_html} and makes the {\tt index.html} file. If {\tt
+%make_html} is {\tt false} nothing is done.
+%
+%The indexes made by this function also contain a link to the {\tt
+%README} file if there exists one in the directory where the index is
+%stored. If there's a {\tt README.html} file it is used instead of
+%{\tt README}.
+%
+%\end{ttdescription}
+%
+%The above functions could be used in the following way:
+%
+%\begin{ttbox}
+%init_html();
+%{\out Setting path for index.html to "/home/clasohm/isabelle/HOL"}
+%use_thy "List";
+%\dots
+%finish_html();
+%\end{ttbox}
+%
+%Please note that HTML files are made only for those theories that are
+%read while {\tt make_html} is {\tt true}. These files may contain
+%links to theories that were read with a {\tt false} {\tt make_html}
+%and therefore point to non-existing files.
+%
+%
+%\subsection*{Extending or adding a logic}
+%
+%If you add a new subdirectory to Isabelle's logics (or add a completly
+%new logic), you would have to call {\tt init_html} at the start of every
+%directory's {\tt ROOT.ML} file and {\tt finish_html} at the end of
+%it. This is automatically done if you use
+%
+%\begin{ttbox}\index{use_dir}
+%use_dir : string -> unit
+%\end{ttbox}
+%
+%This function takes a path as its parameter, changes the working
+%directory, calls {\tt init_html} if {\tt make_html} is {\tt true},
+%executes {\tt ROOT.ML}, and calls {\tt finish_html}. The {\tt
+%index.html} file written in this directory will be automatically
+%linked to the first index found in the (recursively searched)
+%superdirectories.
+%
+%Instead of adding something like
+%
+%\begin{ttbox}
+%use"ex/ROOT.ML";
+%\end{ttbox}
+%
+%to the logic's makefile you have to use this:
+%
+%\begin{ttbox}
+%use_dir"ex";
+%\end{ttbox}
+%
+%Since {\tt use_dir} calls {\tt init_html} only if {\tt make_html} is
+%{\tt true} the generation of HTML files depends on the value this
+%reference variable has. It can either be inherited from the used \ML{}
+%database or set in the makefile before {\tt use_dir} is invoked,
+%e.g. to set it's value according to the environment variable {\tt
+%MAKE_HTML}.
+%
+%The generated HTML files contain all theorems that were proved in the
+%theory's \ML{} file with {\tt qed}, {\tt qed_goal} and {\tt qed_goalw},
+%or stored with {\tt bind_thm} and {\tt store_thm}. Additionally there
+%is a hypertext link to the whole \ML{} file.
+%
+%You can add section headings to the list of theorems by using
+%
+%\begin{ttbox}\index{use_dir}
+%section: string -> unit
+%\end{ttbox}
+%
+%in a theory's ML file, which converts a plain string to a HTML
+%heading and inserts it before the next theorem proved or stored with
+%one of the above functions. If {\tt make_html} is {\tt false} nothing
+%is done.
+%
+%
+%\subsection*{Using someone else's database}
+%
+%To make them independent from their storage place, the HTML files only
+%contain relative paths which are derived from absolute ones like the
+%current working directory, {\tt gif_path} or {\tt base_path}. The
+%latter two are reference variables which are initialized at the time
+%when the {\tt Pure} database is made. Because you need write access
+%for the current directory to make HTML files and therefore (probably)
+%generate them in your home directory, the absolute {\tt base_path} is
+%not correct if you use someone else's database or a database derived
+%from it.
+%
+%In that case you first should set {\tt base_path} to the value of {\em
+%your} Isabelle main directory, i.e. the directory that contains the
+%subdirectories where standard logics like {\tt FOL} and {\tt HOL} or
+%your own logics are stored. If you do not do this, the generated HTML
+%files will still be usable but may contain incomplete titles and lack
+%some hypertext links.
+%
+%It's also a good idea to set {\tt gif_path} which points to the
+%directory containing two GIF images used in the HTML
+%documents. Normally this is the {\tt Tools} subdirectory of Isabelle's
+%main directory. While its value in general is still valid, your HTML
+%files would depend on files not owned by you. This prevents you from
+%changing the location of the HTML files (as they contain relative
+%paths) and also causes trouble if the database's maker (re)moves the
+%GIFs.
+%
+%Here's what you should do before invoking {\tt init_html} using
+%someone else's \ML{} database:
+%
+%\begin{ttbox}
+%base_path := "/home/smith/isabelle";
+%gif_path := "/home/smith/isabelle/Tools";
+%init_html();
+%\dots
+%\end{ttbox}
 
-\section{Generating HTML documents}
-\index{HTML|bold} 
-
-Isabelle is able to make HTML documents that show a theory's
-definition, the theorems proved in its ML file and the relationship
-with its ancestors and descendants. HTML stands for Hypertext Markup
-Language and is used in the World Wide Web to represent text
-containing images and links to other documents. Web browsers like
-{\tt xmosaic} or {\tt netscape} are used to view these documents.
-
-Besides the three HTML files that are made for every theory
-(definition and theorems, ancestors, descendants), Isabelle stores
-links to all theories in an index file. These indexes are themself
-linked with other indexes to represent the hierarchic structure of
-Isabelle's logics.
-
-To make HTML files for logics that are part of the Isabelle
-distribution, simply set the shell environment variable {\tt
-MAKE_HTML} before compiling a logic. This works for single logics as
-well as for the shell script {\tt make-all} (see
-\ref{sec:shell-scripts}). To make HTML files for {\tt FOL} using a
-{\tt csh} style shell, the following commands can be used:
-
-\begin{ttbox}
-cd FOL
-setenv MAKE_HTML
-make
-\end{ttbox}
-
-The databases made this way do not differ from the ones made with an
-unset {\tt MAKE_HTML}; in particular no HTML files are written if the
-database is used to manually load a theory.
-
-As you will see below, the HTML generation is controlled by a boolean
-reference variable. If you want to make databases which define this
-variable's value as {\tt true} and where therefore HTML files are
-written each time {\tt use_thy} is invoked, you have to set {\tt
-MAKE_HTML} to ``{\tt true}'':
-
-\begin{ttbox}
-cd FOL
-setenv MAKE_HTML true
-make
-\end{ttbox}
-
-All theories loaded from within the {\tt FOL} database and all
-databases derived from it will now cause HTML files to be written.
-This behaviour can be changed by assigning a value of {\tt false} to
-the boolean reference variable {\tt make_html}. Be careful when making
-such databases publicly available since it means that your users will
-generate HTML files though they might not intend to do so.
-
-As some of Isabelle's logics are based on others (e.g. {\tt ZF} on
-{\tt FOL}) and because the HTML files list a theory's ancestors, you
-should not make HTML files for a logic if the HTML files for the base
-logic do not exist. Otherwise some of the hypertext links might point
-to non-existing documents.
-
-The entry point to all logics is the {\tt index.html} file located in
-Isabelle's main directory. You can also access a HTML version of the
-distribution package at
-
-\begin{ttbox}
-http://www4.informatik.tu-muenchen.de/~nipkow/isabelle
-\end{ttbox}
-
-
-\subsection*{Manual HTML generation}
-
-To manually control the generation of HTML files the following
-commands and reference variables are used:
-
-\begin{ttbox}
-init_html   : unit -> unit
-make_html   : bool ref
-finish_html : unit -> unit
-\end{ttbox}
-
-\begin{ttdescription}
-\item[\ttindexbold{init_html}]
-activates the HTML facility. It stores the current working directory
-as the place where the {\tt index.html} file for all theories loaded
-afterwards will be stored.
-
-\item[\ttindexbold{make_html}]
-is a boolean reference variable read by {\tt use_thy} and other
-functions to decide whether HTML files should be made. After you have
-used {\tt init_html} you can manually change {\tt make_html}'s value
-to temporarily disable HTML generation.
-
-\item[\ttindexbold{finish_html}]
-has to be called after all theories have been read that should be
-listed in the current {\tt index.html} file. It reads a temporary
-file with information about the theories read since the last use of
-{\tt init_html} and makes the {\tt index.html} file. If {\tt
-make_html} is {\tt false} nothing is done.
-
-The indexes made by this function also contain a link to the {\tt
-README} file if there exists one in the directory where the index is
-stored. If there's a {\tt README.html} file it is used instead of
-{\tt README}.
-
-\end{ttdescription}
-
-The above functions could be used in the following way:
-
-\begin{ttbox}
-init_html();
-{\out Setting path for index.html to "/home/clasohm/isabelle/HOL"}
-use_thy "List";
-\dots
-finish_html();
-\end{ttbox}
-
-Please note that HTML files are made only for those theories that are
-read while {\tt make_html} is {\tt true}. These files may contain
-links to theories that were read with a {\tt false} {\tt make_html}
-and therefore point to non-existing files.
-
-
-\subsection*{Extending or adding a logic}
-
-If you add a new subdirectory to Isabelle's logics (or add a completly
-new logic), you would have to call {\tt init_html} at the start of every
-directory's {\tt ROOT.ML} file and {\tt finish_html} at the end of
-it. This is automatically done if you use
-
-\begin{ttbox}\index{use_dir}
-use_dir : string -> unit
-\end{ttbox}
-
-This function takes a path as its parameter, changes the working
-directory, calls {\tt init_html} if {\tt make_html} is {\tt true},
-executes {\tt ROOT.ML}, and calls {\tt finish_html}. The {\tt
-index.html} file written in this directory will be automatically
-linked to the first index found in the (recursively searched)
-superdirectories.
-
-Instead of adding something like
-
-\begin{ttbox}
-use"ex/ROOT.ML";
-\end{ttbox}
-
-to the logic's makefile you have to use this:
-
-\begin{ttbox}
-use_dir"ex";
-\end{ttbox}
-
-Since {\tt use_dir} calls {\tt init_html} only if {\tt make_html} is
-{\tt true} the generation of HTML files depends on the value this
-reference variable has. It can either be inherited from the used \ML{}
-database or set in the makefile before {\tt use_dir} is invoked,
-e.g. to set it's value according to the environment variable {\tt
-MAKE_HTML}.
-
-The generated HTML files contain all theorems that were proved in the
-theory's \ML{} file with {\tt qed}, {\tt qed_goal} and {\tt qed_goalw},
-or stored with {\tt bind_thm} and {\tt store_thm}. Additionally there
-is a hypertext link to the whole \ML{} file.
-
-You can add section headings to the list of theorems by using
-
-\begin{ttbox}\index{use_dir}
-section: string -> unit
-\end{ttbox}
-
-in a theory's ML file, which converts a plain string to a HTML
-heading and inserts it before the next theorem proved or stored with
-one of the above functions. If {\tt make_html} is {\tt false} nothing
-is done.
-
-
-\subsection*{Using someone else's database}
-
-To make them independent from their storage place, the HTML files only
-contain relative paths which are derived from absolute ones like the
-current working directory, {\tt gif_path} or {\tt base_path}. The
-latter two are reference variables which are initialized at the time
-when the {\tt Pure} database is made. Because you need write access
-for the current directory to make HTML files and therefore (probably)
-generate them in your home directory, the absolute {\tt base_path} is
-not correct if you use someone else's database or a database derived
-from it.
-
-In that case you first should set {\tt base_path} to the value of {\em
-your} Isabelle main directory, i.e. the directory that contains the
-subdirectories where standard logics like {\tt FOL} and {\tt HOL} or
-your own logics are stored. If you do not do this, the generated HTML
-files will still be usable but may contain incomplete titles and lack
-some hypertext links.
-
-It's also a good idea to set {\tt gif_path} which points to the
-directory containing two GIF images used in the HTML
-documents. Normally this is the {\tt Tools} subdirectory of Isabelle's
-main directory. While its value in general is still valid, your HTML
-files would depend on files not owned by you. This prevents you from
-changing the location of the HTML files (as they contain relative
-paths) and also causes trouble if the database's maker (re)moves the
-GIFs.
-
-Here's what you should do before invoking {\tt init_html} using
-someone else's \ML{} database:
-
-\begin{ttbox}
-base_path := "/home/smith/isabelle";
-gif_path := "/home/smith/isabelle/Tools";
-init_html();
-\dots
-\end{ttbox}
 
 \section{Terms}
 \index{terms|bold}
 Terms belong to the \ML\ type \mltydx{term}, which is a concrete datatype
-with six constructors: there are six kinds of term.
+with six constructors:
 \begin{ttbox}
 type indexname = string * int;
 infix 9 $;
@@ -844,7 +870,7 @@ cterm_of   : Sign.sg -> term -> cterm
 read_cterm : Sign.sg -> string * typ -> cterm
 cert_axm   : Sign.sg -> string * term -> string * term
 read_axm   : Sign.sg -> string * string -> string * term
-rep_cterm  : cterm -> \{T:typ, t:term, sign:Sign.sg, maxidx:int\}
+rep_cterm  : cterm -> {\ttlbrace}T:typ, t:term, sign:Sign.sg, maxidx:int\ttrbrace
 \end{ttbox}
 \begin{ttdescription}
 \item[\ttindexbold{cterm_of} $sign$ $t$] \index{signatures}
@@ -932,7 +958,7 @@ displays $T$ as a string, using the syntax of~$sign$.
 \subsection{Making and inspecting certified types}
 \begin{ttbox}
 ctyp_of  : Sign.sg -> typ -> ctyp
-rep_ctyp : ctyp -> \{T: typ, sign: Sign.sg\}
+rep_ctyp : ctyp -> {\ttlbrace}T: typ, sign: Sign.sg\ttrbrace
 \end{ttbox}
 \begin{ttdescription}
 \item[\ttindexbold{ctyp_of} $sign$ $T$] \index{signatures}
@@ -968,7 +994,7 @@ depends upon oracle calls.
 
 \item[\ttindexbold{set_oracle} $fn$ $thy$] sets the oracle of theory $thy$ to
   be $fn$.  It is seldom called explicitly, as there is syntax for oracles in
-  theory files.  A theory can have at most one oracle.
+  theory files.  Any theory node can have at most one oracle.
 \end{ttdescription}
 
 A curious feature of {\ML} exceptions is that they are ordinary constructors.

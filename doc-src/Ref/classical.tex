@@ -3,10 +3,11 @@
 \index{classical reasoner|(}
 \newcommand\ainfer[2]{\begin{array}{r@{\,}l}#2\\ \hline#1\end{array}}
 
-Although Isabelle is generic, many users will be working in some extension
-of classical first-order logic.  Isabelle's set theory~{\tt ZF} is built
-upon theory~{\tt FOL}, while higher-order logic contains first-order logic
-as a fragment.  Theorem-proving in predicate logic is undecidable, but many
+Although Isabelle is generic, many users will be working in some
+extension of classical first-order logic.  Isabelle's set theory~{\tt
+  ZF} is built upon theory~{\tt FOL}, while higher-order logic
+conceptually contains first-order logic as a fragment.
+Theorem-proving in predicate logic is undecidable, but many
 researchers have developed strategies to assist in this task.
 
 Isabelle's classical reasoner is an \ML{} functor that accepts certain
@@ -38,9 +39,10 @@ then it should be proved quickly.  However, to use the classical reasoner
 effectively, you need to know how it works and how to choose among the many
 tactics available, including {\tt Fast_tac} and {\tt Best_tac}.
 
-We shall first discuss the underlying principles, then present the classical
-reasoner.  Finally, we shall see how to instantiate it for new logics.  The
-logics {\tt FOL}, {\tt HOL} and {\tt ZF} have it already installed.
+We shall first discuss the underlying principles, then present the
+classical reasoner.  Finally, we shall see how to instantiate it for
+new logics.  The logics \FOL, \ZF, {\HOL} and {\HOLCF} have it already
+installed.
 
 
 \section{The sequent calculus}
@@ -71,14 +73,18 @@ Recall the natural deduction rules for
 \iflabelundefined{fol-fig}{from {\it Introduction to Isabelle}}%
                           {Fig.\ts\ref{fol-fig}}.
 The sequent calculus analogue of~$({\imp}I)$ is the rule
-$$ \ainfer{\Gamma &\turn \Delta, P\imp Q}{P,\Gamma &\turn \Delta,Q}
-   \eqno({\imp}R) $$
+$$
+\ainfer{\Gamma &\turn \Delta, P\imp Q}{P,\Gamma &\turn \Delta,Q}
+\eqno({\imp}R)
+$$
 This breaks down some implication on the right side of a sequent; $\Gamma$
 and $\Delta$ stand for the sets of formulae that are unaffected by the
 inference.  The analogue of the pair~$({\disj}I1)$ and~$({\disj}I2)$ is the
 single rule 
-$$ \ainfer{\Gamma &\turn \Delta, P\disj Q}{\Gamma &\turn \Delta,P,Q}
-   \eqno({\disj}R) $$
+$$
+\ainfer{\Gamma &\turn \Delta, P\disj Q}{\Gamma &\turn \Delta,P,Q}
+\eqno({\disj}R)
+$$
 This breaks down some disjunction on the right side, replacing it by both
 disjuncts.  Thus, the sequent calculus is a kind of multiple-conclusion logic.
 
@@ -115,15 +121,16 @@ achieves a similar effect as the corresponding sequent rules.  For the
 other connectives, we use sequent-style elimination rules instead of
 destruction rules such as $({\conj}E1,2)$ and $(\forall E)$.  But note that
 the rule $(\neg L)$ has no effect under our representation of sequents!
-$$ \ainfer{\neg P,\Gamma &\turn \Delta}{\Gamma &\turn \Delta,P}
-   \eqno({\neg}L) $$
+$$
+\ainfer{\neg P,\Gamma &\turn \Delta}{\Gamma &\turn \Delta,P}\eqno({\neg}L)
+$$
 What about reasoning on the right?  Introduction rules can only affect the
 formula in the conclusion, namely~$Q@1$.  The other right-side formulae are
 represented as negated assumptions, $\neg Q@2$, \ldots,~$\neg Q@n$.  
 \index{assumptions!negated}
 In order to operate on one of these, it must first be exchanged with~$Q@1$.
 Elim-resolution with the {\bf swap} rule has this effect:
-$$ \List{\neg P; \; \neg R\Imp P} \Imp R   \eqno(swap)$$
+$$ \List{\neg P; \; \neg R\Imp P} \Imp R   \eqno(swap)  $$
 To ensure that swaps occur only when necessary, each introduction rule is
 converted into a swapped form: it is resolved with the second premise
 of~$(swap)$.  The swapped form of~$({\conj}I)$, which might be
@@ -172,8 +179,10 @@ form:
 $$ \List{\forall x{.}P(x); P(t)\Imp Q} \Imp Q    \eqno(\forall E@2) $$
 Elim-resolution with this rule will delete the universal formula after a
 single use.  To replicate universal quantifiers, replace the rule by
-$$ \List{\forall x{.}P(x);\; \List{P(t); \forall x{.}P(x)}\Imp Q} \Imp Q.
-   \eqno(\forall E@3) $$
+$$
+\List{\forall x{.}P(x);\; \List{P(t); \forall x{.}P(x)}\Imp Q} \Imp Q.
+\eqno(\forall E@3)
+$$
 To replicate existential quantifiers, replace $(\exists I)$ by
 \[ \List{\neg(\exists x{.}P(x)) \Imp P(t)} \Imp \exists x{.}P(x). \]
 All introduction rules mentioned above are also useful in swapped form.
@@ -290,14 +299,15 @@ also apply {\tt hyp_subst_tac}, if they have been set up to do so (see
 below).  They may perform a form of Modus Ponens: if there are assumptions
 $P\imp Q$ and~$P$, then replace $P\imp Q$ by~$Q$.
 
-The classical reasoning tactics---except {\tt blast_tac}!---allow you to
-modify this basic proof strategy by 
-applying two arbitrary {\bf wrapper tacticals} to it. This affects each step of
-the search.  Usually they are the identity tacticals, but they could apply 
-another tactic before or after the step tactic. The first one, which is
-considered to be safe, affects \ttindex{safe_step_tac} and all the tactics that
-call it. The the second one, which may be unsafe, affects 
-\ttindex{step_tac}, \ttindex{slow_step_tac} and the tactics that call them.
+The classical reasoning tactics --- except {\tt blast_tac}! --- allow
+you to modify this basic proof strategy by applying two arbitrary {\bf
+  wrapper tacticals} to it. This affects each step of the search.
+Usually they are the identity tacticals, but they could apply another
+tactic before or after the step tactic. The first one, which is
+considered to be safe, affects \ttindex{safe_step_tac} and all the
+tactics that call it. The the second one, which may be unsafe, affects
+\ttindex{step_tac}, \ttindex{slow_step_tac} and the tactics that call
+them.
 
 \begin{ttbox} 
 addss        : claset * simpset -> claset                 \hfill{\bf infix 4}
@@ -315,10 +325,12 @@ compWrapper  : claset * ((int -> tactic) ->
                          (int -> tactic)) -> claset       \hfill{\bf infix 4}
 \end{ttbox}
 %
-\index{simplification!from classical reasoner} 
-The wrapper tacticals underly the operator \ttindex{addss}, which combines
-each search step by simplification.  Strictly speaking, {\tt addss} is not
-part of the classical reasoner.  It should be defined (using {\tt addSaltern (CHANGED o (safe_asm_more_full_simp_tac ss)}) when the simplifier is installed.
+\index{simplification!from classical reasoner} The wrapper tacticals
+underly the operator addss, which combines each search step by
+simplification.  Strictly speaking, {\tt addss} is not part of the
+classical reasoner.  It should be defined (using {\tt addSaltern
+  (CHANGED o (safe_asm_more_full_simp_tac ss)}) when the simplifier is
+installed.
 
 \begin{ttdescription}
 \item[$cs$ addss $ss$] \indexbold{*addss}
@@ -501,7 +513,7 @@ underlying idea is quite similar to that of a current simpset described in
 warnings.  Just like simpsets, clasets can be associated with theories.  The
 tactics
 \begin{ttbox}
-Blast_tac     : int -> tactic
+Blast_tac    : int -> tactic
 Fast_tac     : int -> tactic
 Best_tac     : int -> tactic
 Deepen_tac   : int -> int -> tactic
@@ -620,8 +632,8 @@ Chapter~\ref{substitution}).  This list can, of course, be empty.  The
 tactics are assumed to be safe!
 \end{ttdescription}
 The functor is not at all sensitive to the formalization of the
-object-logic.  It does not even examine the rules, but merely applies them
-according to its fixed strategy.  The functor resides in {\tt
-Provers/classical.ML} in the Isabelle distribution directory.
+object-logic.  It does not even examine the rules, but merely applies
+them according to its fixed strategy.  The functor resides in {\tt
+  Provers/classical.ML} in the Isabelle sources.
 
 \index{classical reasoner|)}

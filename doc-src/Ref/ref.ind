@@ -1,806 +1,811 @@
 \begin{theindex}
 
-  \item {\ptt !!} symbol, 64
+  \item {\tt !!} symbol, 65
     \subitem in main goal, 7
-  \item {\tt\$}, \bold{56}, 79
-  \item {\tt\%} symbol, 64
+  \item {\tt\$}, \bold{57}, 82
+  \item {\tt\%} symbol, 65
   \item *
-    \subitem claset, 121
-    \subitem simpset, 99
-  \item {\ptt ::} symbol, 64, 65
-  \item {\ptt ==} symbol, 64
-  \item {\ptt ==>} symbol, 64
-  \item {\ptt =>} symbol, 64
-  \item {\ptt =?=} symbol, 64
-  \item {\tt\at Enum} constant, 85
-  \item {\tt\at Finset} constant, 85
-  \item {\ptt [} symbol, 64
-  \item {\ptt [|} symbol, 64
-  \item {\ptt ]} symbol, 64
-  \item {\ptt _K} constant, 86, 88
-  \item \verb'{}' symbol, 85
-  \item {\tt\ttlbrace} symbol, 64
-  \item {\tt\ttrbrace} symbol, 64
-  \item {\ptt |]} symbol, 64
+    \subitem claset, 127
+    \subitem simpset, 106
+  \item {\tt ::} symbol, 65, 66
+  \item {\tt ==} symbol, 65
+  \item {\tt ==>} symbol, 65
+  \item {\tt =>} symbol, 65
+  \item {\tt =?=} symbol, 65
+  \item {\tt\at Enum} constant, 88
+  \item {\tt\at Finset} constant, 88, 89
+  \item {\tt [} symbol, 65
+  \item {\tt [|} symbol, 65
+  \item {\tt ]} symbol, 65
+  \item {\tt _K} constant, 90, 92
+  \item \verb'{}' symbol, 88
+  \item {\tt\ttlbrace} symbol, 65
+  \item {\tt\ttrbrace} symbol, 65
+  \item {\tt |]} symbol, 65
 
   \indexspace
 
-  \item {\ptt Abs}, \bold{56}, 79
-  \item {\ptt abstract_over}, \bold{57}
-  \item {\ptt abstract_rule}, \bold{41}
-  \item {\ptt aconv}, \bold{57}
-  \item {\ptt addaltern}, \bold{118}
-  \item {\ptt addbefore}, \bold{118}
-  \item {\ptt addcongs}, 97, 110, \bold{110}
-  \item {\ptt AddDs}, \bold{121}
-  \item {\ptt addDs}, \bold{116}
-  \item {\ptt addeqcongs}, \bold{97}, 100, 110
-  \item {\ptt AddEs}, \bold{121}
-  \item {\ptt addEs}, \bold{116}
-  \item {\ptt AddIs}, \bold{121}
-  \item {\ptt addIs}, \bold{116}
-  \item {\ptt addloop}, 99, 100
-  \item {\ptt addSaltern}, \bold{118}
-  \item {\ptt addSbefore}, \bold{118}
-  \item {\ptt AddSDs}, \bold{121}
-  \item {\ptt addSDs}, \bold{116}
-  \item {\ptt AddSEs}, \bold{121}
-  \item {\ptt addSEs}, \bold{116}
-  \item {\ptt Addsimps}, \bold{95}, 99, 100
-  \item {\ptt addsimps}, 96, 99, 100, 110
-  \item {\ptt AddSIs}, \bold{121}
-  \item {\ptt addSIs}, \bold{116}
-  \item {\ptt addSolver}, 98, 100
-  \item {\ptt addss}, 117, \bold{117}, 118
-  \item {\ptt addSSolver}, 98, 100
-  \item {\ptt all_tac}, \bold{27}
-  \item {\ptt ALLGOALS}, \bold{32}, 103, 106
+  \item {\tt Abs}, \bold{57}, 82
+  \item {\tt abstract_over}, \bold{58}
+  \item {\tt abstract_rule}, \bold{44}
+  \item {\tt aconv}, \bold{58}
+  \item {\tt addaltern}, \bold{124}
+  \item {\tt addbefore}, \bold{124}
+  \item {\tt addcongs}, 103, \bold{115}, 116
+  \item {\tt AddDs}, \bold{127}
+  \item {\tt addDs}, \bold{123}
+  \item {\tt addeqcongs}, \bold{103}, 105, 115
+  \item {\tt AddEs}, \bold{127}
+  \item {\tt addEs}, \bold{123}
+  \item {\tt AddIs}, \bold{127}
+  \item {\tt addIs}, \bold{123}
+  \item {\tt addloop}, 104, 105
+  \item {\tt addSaltern}, \bold{124}
+  \item {\tt addSbefore}, \bold{124}
+  \item {\tt AddSDs}, \bold{127}
+  \item {\tt addSDs}, \bold{123}
+  \item {\tt AddSEs}, \bold{127}
+  \item {\tt addSEs}, \bold{123}
+  \item {\tt Addsimps}, \bold{100}, 105, 106
+  \item {\tt addsimps}, 102, 105, 106, 116
+  \item {\tt AddSIs}, \bold{127}
+  \item {\tt addSIs}, \bold{123}
+  \item {\tt addSolver}, 104, 105
+  \item {\tt addss}, \bold{124}, 125
+  \item {\tt addSSolver}, 104, 105
+  \item {\tt all_tac}, \bold{30}
+  \item {\tt ALLGOALS}, \bold{34}, 108, 112
   \item ambiguity
-    \subitem of parsed expressions, 72
-  \item {\ptt any} nonterminal, \bold{63}
-  \item {\ptt APPEND}, \bold{26}, 27
-  \item {\ptt APPEND'}, 33
-  \item {\ptt Appl}, 76
-  \item {\ptt aprop} nonterminal, \bold{63}
-  \item {\ptt ares_tac}, \bold{18}
-  \item {\ptt args} nonterminal, 85
-  \item {\ptt Arith} theory, 105
+    \subitem of parsed expressions, 75
+  \item {\tt any} nonterminal, \bold{64}
+  \item {\tt APPEND}, \bold{28}, 30
+  \item {\tt APPEND'}, 35
+  \item {\tt Appl}, 79
+  \item {\tt aprop} nonterminal, \bold{66}
+  \item {\tt ares_tac}, \bold{19}
+  \item {\tt args} nonterminal, 89
+  \item {\tt Arith} theory, 111
   \item arities
-    \subitem context conditions, 48
-  \item {\ptt Asm_full_simp_tac}, \bold{95}, 100
-  \item {\ptt asm_full_simp_tac}, 20, \bold{99}, 100, 104
-  \item {\ptt asm_rl} theorem, 19
-  \item {\ptt Asm_simp_tac}, \bold{94}, 100
-  \item {\ptt asm_simp_tac}, \bold{99}, 100, 102, 110
-  \item associative-commutative operators, 105
-  \item {\ptt assume}, \bold{40}
-  \item {\ptt assume_ax}, 8, \bold{52}
-  \item {\ptt assume_tac}, \bold{16}, 116
-  \item {\ptt assumption}, \bold{43}
+    \subitem context conditions, 52
+  \item {\tt Asm_full_simp_tac}, \bold{100}, 105
+  \item {\tt asm_full_simp_tac}, 22, 105, \bold{106}, 109
+  \item {\tt asm_rl} theorem, 21
+  \item {\tt Asm_simp_tac}, \bold{100}, 105
+  \item {\tt asm_simp_tac}, 105, \bold{106}, 107, 116
+  \item associative-commutative operators, 110
+  \item {\tt assume}, \bold{42}
+  \item {\tt assume_ax}, 8, \bold{55}
+  \item {\tt assume_tac}, \bold{17}, 122
+  \item {\tt assumption}, \bold{45}
   \item assumptions
-    \subitem contradictory, 121
-    \subitem deleting, 20
-    \subitem in simplification, 94, 98
-    \subitem inserting, 18
-    \subitem negated, 114
-    \subitem of main goal, 6, 8, 13
-    \subitem reordering, 104
-    \subitem rotating, 20
-    \subitem substitution in, 91
-    \subitem tactics for, 16
-  \item ASTs, 76--80
-    \subitem made from parse trees, 77
-    \subitem made from terms, 79
-  \item {\ptt atac}, \bold{17}
+    \subitem contradictory, 128
+    \subitem deleting, 22
+    \subitem in simplification, 99, 104
+    \subitem inserting, 19
+    \subitem negated, 120
+    \subitem of main goal, 7--9, 14
+    \subitem reordering, 109
+    \subitem rotating, 22
+    \subitem substitution in, 96
+    \subitem tactics for, 17
+  \item ASTs, 79--84
+    \subitem made from parse trees, 80
+    \subitem made from terms, 82
+  \item {\tt atac}, \bold{19}
+  \item {\tt axclass} section, 51
+  \item axiomatic type class, 51
   \item axioms
-    \subitem extracting, 51
-  \item {\ptt axioms_of}, \bold{52}
+    \subitem extracting, 55
+  \item {\tt axioms_of}, \bold{56}
 
   \indexspace
 
-  \item {\ptt ba}, \bold{10}
-  \item {\ptt back}, \bold{9}
-  \item batch execution, 11
-  \item {\ptt bd}, \bold{10}
-  \item {\ptt bds}, \bold{10}
-  \item {\ptt be}, \bold{10}
-  \item {\ptt bes}, \bold{10}
-  \item {\ptt BEST_FIRST}, \bold{29}, 30
-  \item {\ptt Best_tac}, \bold{121}
-  \item {\ptt best_tac}, \bold{119}
-  \item {\ptt beta_conversion}, \bold{41}
-  \item {\ptt bicompose}, \bold{43}
-  \item {\ptt bimatch_tac}, \bold{22}
-  \item {\ptt bind_thm}, 8, \bold{8}, 35
-  \item binders, \bold{72}
-  \item {\ptt biresolution}, \bold{43}
-  \item {\ptt biresolve_tac}, \bold{22}, 121
-  \item {\ptt Blast.depth_tac}, \bold{119}
-  \item {\ptt Blast.trace}, \bold{119}
-  \item {\ptt Blast_tac}, \bold{121}
-  \item {\ptt blast_tac}, \bold{119}
-  \item {\ptt Bound}, \bold{56}, 77, 79, 80
-  \item {\ptt bound_hyp_subst_tac}, \bold{91}
-  \item {\ptt br}, \bold{10}
-  \item {\ptt BREADTH_FIRST}, \bold{29}
-  \item {\ptt brs}, \bold{10}
-  \item {\ptt bw}, \bold{11}
-  \item {\ptt bws}, \bold{11}
-  \item {\ptt by}, \bold{7}, 9, 10, 14
-  \item {\ptt byev}, \bold{7}
+  \item {\tt ba}, \bold{11}
+  \item {\tt back}, \bold{9}
+  \item batch execution, 12
+  \item {\tt bd}, \bold{11}
+  \item {\tt bds}, \bold{11}
+  \item {\tt be}, \bold{11}
+  \item {\tt bes}, \bold{11}
+  \item {\tt BEST_FIRST}, \bold{31}, 32
+  \item {\tt Best_tac}, \bold{127}
+  \item {\tt best_tac}, \bold{126}
+  \item {\tt beta_conversion}, \bold{43}
+  \item {\tt bicompose}, \bold{46}
+  \item {\tt bimatch_tac}, \bold{23}
+  \item {\tt bind_thm}, \bold{8}, 9, 37
+  \item binders, \bold{74}
+  \item {\tt biresolution}, \bold{45}
+  \item {\tt biresolve_tac}, \bold{23}, 128
+  \item {\tt Blast.depth_tac}, \bold{125}
+  \item {\tt Blast.trace}, \bold{125}
+  \item {\tt Blast_tac}, \bold{127}
+  \item {\tt blast_tac}, \bold{125}
+  \item {\tt Bound}, \bold{57}, 80, 82, 83
+  \item {\tt bound_hyp_subst_tac}, \bold{96}
+  \item {\tt br}, \bold{11}
+  \item {\tt BREADTH_FIRST}, \bold{31}
+  \item {\tt brs}, \bold{11}
+  \item {\tt bw}, \bold{12}
+  \item {\tt bws}, \bold{12}
+  \item {\tt by}, \bold{7}, 9, 10, 15
+  \item {\tt byev}, \bold{7}
 
   \indexspace
 
-  \item {\ptt cd}, \bold{2}, 50
-  \item {\ptt cert_axm}, \bold{58}
-  \item {\ptt CHANGED}, \bold{28}
-  \item {\ptt chop}, \bold{9}, 13
-  \item {\ptt choplev}, \bold{9}
+  \item {\tt cd}, \bold{3}, 53
+  \item {\tt cert_axm}, \bold{59}
+  \item {\tt CHANGED}, \bold{30}
+  \item {\tt chop}, \bold{9}, 13
+  \item {\tt choplev}, \bold{9}
   \item claset
-    \subitem current, 120
-  \item {\ptt claset} ML type, 116
+    \subitem current, 127
+  \item {\tt claset} ML type, 122
   \item classes
-    \subitem context conditions, 48
-  \item classical reasoner, 112--122
-    \subitem setting up, 122
-    \subitem tactics, 118
-  \item classical sets, 115
-  \item {\ptt ClassicalFun}, 122
-  \item {\ptt combination}, \bold{41}
-  \item {\ptt commit}, \bold{2}
-  \item {\ptt COMP}, \bold{43}
-  \item {\ptt compose}, \bold{43}
-  \item {\ptt compose_tac}, \bold{21}
-  \item {\ptt compSWrapper}, \bold{118}
-  \item {\ptt compWrapper}, \bold{118}
-  \item {\ptt concl_of}, \bold{37}
-  \item {\ptt COND}, \bold{30}
-  \item congruence rules, 97
-  \item {\ptt Const}, \bold{56}, 79, 88
-  \item {\ptt Constant}, 76, 88
-  \item constants, \bold{56}
-    \subitem for translations, 68
-    \subitem syntactic, 81
-  \item {\ptt contr_tac}, \bold{121}
-  \item {\ptt could_unify}, \bold{23}
-  \item {\ptt cterm} ML type, 58
-  \item {\ptt cterm_instantiate}, \bold{36}
-  \item {\ptt cterm_of}, \bold{58}
-  \item {\ptt ctyp}, \bold{59}
-  \item {\ptt ctyp_of}, \bold{59}
-  \item {\ptt cut_facts_tac}, 7, \bold{18}, 92
-  \item {\ptt cut_inst_tac}, \bold{18}
-  \item {\ptt cut_rl} theorem, 19
+    \subitem context conditions, 52
+  \item classical reasoner, 118--129
+    \subitem setting up, 128
+    \subitem tactics, 124
+  \item classical sets, 122
+  \item {\tt ClassicalFun}, 129
+  \item {\tt combination}, \bold{44}
+  \item {\tt commit}, \bold{2}
+  \item {\tt COMP}, \bold{46}
+  \item {\tt compose}, \bold{46}
+  \item {\tt compose_tac}, \bold{22}
+  \item {\tt compSWrapper}, \bold{124}
+  \item {\tt compWrapper}, \bold{124}
+  \item {\tt concl_of}, \bold{39}
+  \item {\tt COND}, \bold{32}
+  \item congruence rules, 102
+  \item {\tt Const}, \bold{57}, 82, 92
+  \item {\tt Constant}, 79, 92
+  \item constants, \bold{57}
+    \subitem for translations, 69
+    \subitem syntactic, 84
+  \item {\tt contr_tac}, \bold{128}
+  \item {\tt could_unify}, \bold{24}
+  \item {\tt CPure} theory, 49
+  \item {\tt CPure.thy}, \bold{55}
+  \item {\tt cterm} ML type, 59
+  \item {\tt cterm_instantiate}, \bold{38}
+  \item {\tt cterm_of}, 7, 13, \bold{59}
+  \item {\tt ctyp}, \bold{60}
+  \item {\tt ctyp_of}, \bold{61}
+  \item {\tt cut_facts_tac}, 7, \bold{19}, 97
+  \item {\tt cut_inst_tac}, \bold{19}
+  \item {\tt cut_rl} theorem, 21
 
   \indexspace
 
-  \item {\ptt datatype}, 95
-  \item {\ptt Deepen_tac}, \bold{121}
-  \item {\ptt deepen_tac}, \bold{120}
-  \item {\ptt defer_tac}, \bold{18}
-  \item definitions, \see{rewriting, meta-level}{0}, 18, \bold{48}
+  \item {\tt datatype}, 100
+  \item {\tt Deepen_tac}, \bold{127}
+  \item {\tt deepen_tac}, \bold{126}
+  \item {\tt defer_tac}, \bold{20}
+  \item definitions, \see{rewriting, meta-level}{1}, 20, \bold{51}
     \subitem unfolding, 7, 8
-  \item {\ptt delcongs}, 97
-  \item {\ptt deleqcongs}, 97, 100
-  \item {\ptt delete_tmpfiles}, \bold{49}
-  \item delimiters, \bold{65}, 67, 68, 70
-  \item {\ptt delrules}, \bold{116}
-  \item {\ptt Delsimps}, \bold{95}, 99, 100
-  \item {\ptt delsimps}, 99, 100
-  \item {\ptt dependent_tr'}, 86, \bold{88}
-  \item {\ptt DEPTH_FIRST}, \bold{29}
-  \item {\ptt DEPTH_SOLVE}, \bold{29}
-  \item {\ptt DEPTH_SOLVE_1}, \bold{29}
-  \item {\ptt depth_tac}, \bold{120}
-  \item {\ptt Deriv.drop}, \bold{45}
-  \item {\ptt Deriv.linear}, \bold{45}
-  \item {\ptt Deriv.size}, \bold{45}
-  \item {\ptt Deriv.tree}, \bold{45}
-  \item {\ptt dest_eq}, \bold{92}
-  \item {\ptt dest_state}, \bold{37}
-  \item destruct-resolution, 15
-  \item {\ptt DETERM}, \bold{30}
-  \item discrimination nets, \bold{22}
-  \item {\ptt dmatch_tac}, \bold{16}
-  \item {\ptt dres_inst_tac}, \bold{17}
-  \item {\ptt dresolve_tac}, \bold{15}
-  \item {\ptt dtac}, \bold{17}
-  \item {\ptt dummyT}, 79, 80, 89
+  \item {\tt delcongs}, 103
+  \item {\tt deleqcongs}, 103, 105
+  \item {\tt delete_tmpfiles}, \bold{53}
+  \item delimiters, \bold{66}, 69, 70, 72
+  \item {\tt delrules}, \bold{123}
+  \item {\tt Delsimps}, \bold{100}, 105, 106
+  \item {\tt delsimps}, 105, 106
+  \item {\tt dependent_tr'}, 90, \bold{92}
+  \item {\tt DEPTH_FIRST}, \bold{31}
+  \item {\tt DEPTH_SOLVE}, \bold{31}
+  \item {\tt DEPTH_SOLVE_1}, \bold{31}
+  \item {\tt depth_tac}, \bold{126}
+  \item {\tt Deriv.drop}, \bold{48}
+  \item {\tt Deriv.linear}, \bold{48}
+  \item {\tt Deriv.size}, \bold{48}
+  \item {\tt Deriv.tree}, \bold{48}
+  \item {\tt dest_eq}, \bold{97}
+  \item {\tt dest_state}, \bold{39}
+  \item destruct-resolution, 17
+  \item {\tt DETERM}, \bold{32}
+  \item discrimination nets, \bold{24}
+  \item {\tt dmatch_tac}, \bold{17}
+  \item {\tt dres_inst_tac}, \bold{18}
+  \item {\tt dresolve_tac}, \bold{17}
+  \item {\tt dtac}, \bold{19}
+  \item {\tt dummyT}, 82, 83, 93
 
   \indexspace
 
-  \item elim-resolution, 15
-  \item {\ptt ematch_tac}, \bold{16}
-  \item {\ptt empty} constant, 85
-  \item {\ptt empty_cs}, \bold{116}
-  \item {\ptt empty_ss}, 100, 110
-  \item {\ptt eq_assume_tac}, \bold{16}, 116
-  \item {\ptt eq_assumption}, \bold{43}
-  \item {\ptt eq_mp_tac}, \bold{121}
-  \item {\ptt eq_reflection} theorem, \bold{92}, 107
-  \item {\ptt eq_thm}, \bold{30}
-  \item {\ptt equal_elim}, \bold{41}
-  \item {\ptt equal_intr}, \bold{40}
-  \item equality, 90--93
-  \item {\ptt eres_inst_tac}, \bold{17}
-  \item {\ptt eresolve_tac}, \bold{15}
-  \item {\ptt eta_contract}, \bold{4}, 83
-  \item {\ptt etac}, \bold{17}
-  \item {\ptt EVERY}, \bold{27}
-  \item {\ptt EVERY'}, 33
-  \item {\ptt EVERY1}, \bold{33}
+  \item elim-resolution, 16
+  \item {\tt ematch_tac}, \bold{17}
+  \item {\tt empty} constant, 88
+  \item {\tt empty_cs}, \bold{122}
+  \item {\tt empty_ss}, 105, 116
+  \item {\tt eq_assume_tac}, \bold{17}, 122
+  \item {\tt eq_assumption}, \bold{45}
+  \item {\tt eq_mp_tac}, \bold{128}
+  \item {\tt eq_reflection} theorem, \bold{97}, 113
+  \item {\tt eq_thm}, \bold{32}
+  \item {\tt equal_elim}, \bold{43}
+  \item {\tt equal_intr}, \bold{43}
+  \item equality, 95--98
+  \item {\tt eres_inst_tac}, \bold{18}
+  \item {\tt eresolve_tac}, \bold{16}
+  \item {\tt eta_contract}, \bold{4}, 86
+  \item {\tt etac}, \bold{19}
+  \item {\tt EVERY}, \bold{29}
+  \item {\tt EVERY'}, 35
+  \item {\tt EVERY1}, \bold{35}
   \item examples
-    \subitem of logic definitions, 73
-    \subitem of macros, 85, 86
-    \subitem of mixfix declarations, 70
-    \subitem of simplification, 101
-    \subitem of translations, 88
+    \subitem of logic definitions, 76
+    \subitem of macros, 88, 89
+    \subitem of mixfix declarations, 71
+    \subitem of simplification, 106
+    \subitem of translations, 92
   \item exceptions
     \subitem printing of, 4
-  \item {\ptt expandshort} shell script, 5
-  \item {\ptt exportML}, \bold{2}
-  \item {\ptt extensional}, \bold{41}
+  \item {\tt exit}, \bold{2}
+  \item {\tt extensional}, \bold{44}
 
   \indexspace
 
-  \item {\ptt fa}, \bold{11}
-  \item {\ptt Fast_tac}, \bold{121}
-  \item {\ptt fast_tac}, \bold{119}
-  \item {\ptt fd}, \bold{11}
-  \item {\ptt fds}, \bold{11}
-  \item {\ptt fe}, \bold{11}
-  \item {\ptt fes}, \bold{11}
+  \item {\tt fa}, \bold{11}
+  \item {\tt Fast_tac}, \bold{127}
+  \item {\tt fast_tac}, \bold{126}
+  \item {\tt fd}, \bold{11}
+  \item {\tt fds}, \bold{11}
+  \item {\tt fe}, \bold{11}
+  \item {\tt fes}, \bold{11}
   \item files
-    \subitem reading, 2, 49
-  \item {\ptt filt_resolve_tac}, \bold{23}
-  \item {\ptt FILTER}, \bold{28}
-  \item {\ptt filter_goal}, \bold{14}
-  \item {\ptt filter_thms}, \bold{23}
-  \item {\ptt findE}, \bold{9}
-  \item {\ptt findEs}, \bold{9}
-  \item {\ptt findI}, \bold{8}
-  \item {\ptt finish_html}, \bold{54}
-  \item {\ptt FIRST}, \bold{27}
-  \item {\ptt FIRST'}, 33
-  \item {\ptt FIRST1}, \bold{33}
-  \item {\ptt FIRSTGOAL}, \bold{32}
-  \item flex-flex constraints, 20, 37, 44
-  \item {\ptt flexflex_rule}, \bold{44}
-  \item {\ptt flexflex_tac}, \bold{21}
-  \item {\ptt fold_goals_tac}, \bold{19}
-  \item {\ptt fold_tac}, \bold{19}
-  \item {\ptt forall_elim}, \bold{42}
-  \item {\ptt forall_elim_list}, \bold{42}
-  \item {\ptt forall_elim_var}, \bold{42}
-  \item {\ptt forall_elim_vars}, \bold{42}
-  \item {\ptt forall_intr}, \bold{41}
-  \item {\ptt forall_intr_frees}, \bold{42}
-  \item {\ptt forall_intr_list}, \bold{42}
-  \item {\ptt force_strip_shyps}, \bold{37}
-  \item {\ptt forw_inst_tac}, \bold{17}
-  \item forward proof, 15, 16, 35
-  \item {\ptt forward_tac}, \bold{16}
-  \item {\ptt fr}, \bold{11}
-  \item {\ptt Free}, \bold{56}, 79
-  \item {\ptt freezeT}, \bold{42}
-  \item {\ptt frs}, \bold{11}
-  \item {\ptt Full_simp_tac}, \bold{94}, 100
-  \item {\ptt full_simp_tac}, \bold{99}, 100
-  \item {\ptt fun} type, 59
-  \item function applications, \bold{56}
+    \subitem reading, 3, 52
+  \item {\tt filt_resolve_tac}, \bold{24}
+  \item {\tt FILTER}, \bold{30}
+  \item {\tt filter_goal}, \bold{15}
+  \item {\tt filter_thms}, \bold{25}
+  \item {\tt findE}, \bold{9}
+  \item {\tt findEs}, \bold{9}
+  \item {\tt findI}, \bold{9}
+  \item {\tt FIRST}, \bold{29}
+  \item {\tt FIRST'}, 35
+  \item {\tt FIRST1}, \bold{35}
+  \item {\tt FIRSTGOAL}, \bold{34}
+  \item flex-flex constraints, 22, 39, 47
+  \item {\tt flexflex_rule}, \bold{47}
+  \item {\tt flexflex_tac}, \bold{22}
+  \item {\tt fold_goals_tac}, \bold{20}
+  \item {\tt fold_tac}, \bold{20}
+  \item {\tt forall_elim}, \bold{44}
+  \item {\tt forall_elim_list}, \bold{44}
+  \item {\tt forall_elim_var}, \bold{44}
+  \item {\tt forall_elim_vars}, \bold{45}
+  \item {\tt forall_intr}, \bold{44}
+  \item {\tt forall_intr_frees}, \bold{44}
+  \item {\tt forall_intr_list}, \bold{44}
+  \item {\tt force_strip_shyps}, \bold{40}
+  \item {\tt forw_inst_tac}, \bold{18}
+  \item forward proof, 17, 37
+  \item {\tt forward_tac}, \bold{17}
+  \item {\tt fr}, \bold{11}
+  \item {\tt Free}, \bold{57}, 82
+  \item {\tt freezeT}, \bold{45}
+  \item {\tt frs}, \bold{11}
+  \item {\tt Full_simp_tac}, \bold{100}, 105
+  \item {\tt full_simp_tac}, 105, \bold{106}
+  \item {\tt fun} type, 60
+  \item function applications, \bold{57}
 
   \indexspace
 
-  \item {\ptt get_axiom}, \bold{51}
-  \item {\ptt get_thm}, \bold{51}
-  \item {\ptt getgoal}, \bold{14}
-  \item {\ptt gethyps}, \bold{14}, 31
-  \item {\ptt goal}, \bold{7}, 13
-  \item {\ptt goals_limit}, \bold{10}
-  \item {\ptt goalw}, \bold{7}
-  \item {\ptt goalw_cterm}, \bold{7}
+  \item {\tt get_axiom}, \bold{55}
+  \item {\tt get_thm}, \bold{55}
+  \item {\tt getgoal}, \bold{15}
+  \item {\tt gethyps}, \bold{15}, 33
+  \item {\tt goal}, \bold{7}, 13
+  \item {\tt goals_limit}, \bold{10}
+  \item {\tt goalw}, \bold{7}
+  \item {\tt goalw_cterm}, \bold{7}
 
   \indexspace
 
-  \item {\ptt has_fewer_prems}, \bold{30}
-  \item HTML, \bold{53}
-  \item {\ptt hyp_subst_tac}, \bold{91}
-  \item {\ptt hyp_subst_tacs}, \bold{122}
-  \item {\ptt HypsubstFun}, 92, 122
+  \item {\tt has_fewer_prems}, \bold{32}
+  \item {\tt hyp_subst_tac}, \bold{96}
+  \item {\tt hyp_subst_tacs}, \bold{129}
+  \item {\tt HypsubstFun}, 97, 129
 
   \indexspace
 
-  \item {\ptt id} nonterminal, \bold{65}, 77, 84
-  \item identifiers, 65
-  \item {\ptt idt} nonterminal, 83
-  \item {\ptt idts} nonterminal, \bold{65}, 72
-  \item {\ptt IF_UNSOLVED}, \bold{30}
-  \item {\ptt iff_reflection} theorem, 107
-  \item {\ptt imp_intr} theorem, \bold{92}
-  \item {\ptt implies_elim}, \bold{40}
-  \item {\ptt implies_elim_list}, \bold{40}
-  \item {\ptt implies_intr}, \bold{40}
-  \item {\ptt implies_intr_hyps}, \bold{40}
-  \item {\ptt implies_intr_list}, \bold{40}
-  \item {\ptt incr_boundvars}, \bold{57}, 88
-  \item {\ptt indexname} ML type, 56, 66
-  \item infixes, \bold{71}
-  \item {\ptt init_html}, \bold{54}
-  \item {\ptt insert} constant, 85
-  \item {\ptt inst_step_tac}, \bold{120}
-  \item {\ptt instantiate}, \bold{42}
-  \item instantiation, 16, 36, 42
-  \item {\ptt INTLEAVE}, \bold{26}, 27
-  \item {\ptt INTLEAVE'}, 33
-  \item {\ptt invoke_oracle}, \bold{60}
-  \item {\ptt is} nonterminal, 85
+  \item {\tt id} nonterminal, \bold{66}, 80, 87
+  \item identifiers, 66
+  \item {\tt idt} nonterminal, 86
+  \item {\tt idts} nonterminal, \bold{66}, 74
+  \item {\tt IF_UNSOLVED}, \bold{32}
+  \item {\tt iff_reflection} theorem, 113
+  \item {\tt imp_intr} theorem, \bold{97}
+  \item {\tt implies_elim}, \bold{43}
+  \item {\tt implies_elim_list}, \bold{43}
+  \item {\tt implies_intr}, \bold{42}
+  \item {\tt implies_intr_hyps}, \bold{43}
+  \item {\tt implies_intr_list}, \bold{42}
+  \item {\tt incr_boundvars}, \bold{58}, 92
+  \item {\tt indexname} ML type, 57, 67
+  \item infixes, \bold{73}
+  \item {\tt insert} constant, 88
+  \item {\tt inst_step_tac}, \bold{127}
+  \item {\tt instance} section, 51
+  \item {\tt instantiate}, \bold{45}
+  \item instantiation, 17, 38, 45
+  \item {\tt INTLEAVE}, \bold{28}, 30
+  \item {\tt INTLEAVE'}, 35
+  \item {\tt invoke_oracle}, \bold{61}
+  \item {\tt is} nonterminal, 88
 
   \indexspace
 
-  \item {\ptt joinrules}, \bold{121}
+  \item {\tt joinrules}, \bold{128}
 
   \indexspace
 
-  \item {\ptt keep_derivs}, \bold{45}
+  \item {\tt keep_derivs}, \bold{48}
 
   \indexspace
 
-  \item $\lambda$-abstractions, 22, \bold{56}
-  \item $\lambda$-calculus, 39, 41, 65
-  \item {\ptt lessb}, \bold{22}
-  \item lexer, \bold{65}
-  \item {\ptt lift_rule}, \bold{44}
-  \item lifting, 44
-  \item {\ptt loadpath}, \bold{49}
-  \item {\ptt logic} class, 63, 65, 69
-  \item {\ptt logic} nonterminal, \bold{63}
-  \item {\ptt Logic.auto_rename}, \bold{20}
-  \item {\ptt Logic.set_rename_prefix}, \bold{20}
-  \item {\ptt loose_bnos}, \bold{57}, 89
+  \item $\lambda$-abstractions, 24, \bold{57}
+  \item $\lambda$-calculus, 42, 43, 66
+  \item {\tt lessb}, \bold{23}
+  \item lexer, \bold{66}
+  \item {\tt lift_rule}, \bold{46}
+  \item lifting, 46
+  \item {\tt loadpath}, \bold{53}
+  \item {\tt logic} class, 66, 71
+  \item {\tt logic} nonterminal, \bold{66}
+  \item {\tt Logic.auto_rename}, \bold{21}
+  \item {\tt Logic.set_rename_prefix}, \bold{21}
+  \item {\tt loose_bnos}, \bold{58}, 93
 
   \indexspace
 
-  \item macros, 81--86
-  \item {\ptt make-all} shell script, 5
-  \item {\ptt make_elim}, \bold{37}, 117
-  \item {\ptt make_html}, \bold{54}
-  \item {\ptt Match} exception, 88, 92
-  \item {\ptt match_tac}, \bold{16}, 116
-  \item {\ptt max_pri}, 63, \bold{69}
-  \item {\ptt merge_ss}, 100
-  \item {\ptt merge_theories}, \bold{52}, \fnote{75}
-  \item meta-assumptions, 31, 39, 40, 43
-    \subitem printing of, 3
-  \item meta-equality, 39--41
-  \item meta-implication, 39, 40
-  \item meta-quantifiers, 40, 41
-  \item meta-rewriting, 7, 11, 12, \bold{18}, 
-		\seealso{tactics, theorems}{123}
-    \subitem in terms, 44
-    \subitem in theorems, 35
-  \item meta-rules, \see{meta-rules}{0}, 39--44
-  \item {\ptt METAHYPS}, 14, \bold{31}
-  \item mixfix declarations, 47, 68--72
-  \item {\ptt mk_case_split_tac}, \bold{111}
-  \item {\ptt ML} section, 48, 87, 89
-  \item {\ptt mp} theorem, \bold{122}
-  \item {\ptt mp_tac}, \bold{121}
-  \item {\ptt MRL}, \bold{35}
-  \item {\ptt MRS}, \bold{35}
+  \item macros, 84--90
+  \item {\tt make_elim}, \bold{39}, 123
+  \item {\tt Match} exception, 91, 97
+  \item {\tt match_tac}, \bold{17}, 122
+  \item {\tt max_pri}, 64, \bold{70}
+  \item {\tt merge_ss}, 105
+  \item {\tt merge_theories}, \bold{55}
+  \item meta-assumptions, 33, 41, 42, 45
+    \subitem printing of, 4
+  \item meta-equality, 41, 43
+  \item meta-implication, 41, 42
+  \item meta-quantifiers, 42, 44
+  \item meta-rewriting, 7, 12, 13, \bold{20}, 
+		\seealso{tactics, theorems}{130}
+    \subitem in terms, 47
+    \subitem in theorems, 38
+  \item meta-rules, \see{meta-rules}{1}, 41--47
+  \item {\tt METAHYPS}, 15, \bold{33}
+  \item mixfix declarations, 50, 69--74
+  \item {\tt mk_case_split_tac}, \bold{116}
+  \item {\tt ML} section, 51, 91, 93
+  \item {\tt mp} theorem, \bold{129}
+  \item {\tt mp_tac}, \bold{128}
+  \item {\tt MRL}, \bold{37}
+  \item {\tt MRS}, \bold{37}
 
   \indexspace
 
-  \item name tokens, \bold{65}
-  \item {\ptt net_bimatch_tac}, \bold{23}
-  \item {\ptt net_biresolve_tac}, \bold{23}
-  \item {\ptt net_match_tac}, \bold{23}
-  \item {\ptt net_resolve_tac}, \bold{22}
-  \item {\ptt no_tac}, \bold{27}
-  \item {\ptt None}, \bold{24}
-  \item {\ptt not_elim} theorem, \bold{122}
-  \item {\ptt nprems_of}, \bold{37}
-  \item numerals, 65
+  \item name tokens, \bold{66}
+  \item {\tt net_bimatch_tac}, \bold{24}
+  \item {\tt net_biresolve_tac}, \bold{24}
+  \item {\tt net_match_tac}, \bold{24}
+  \item {\tt net_resolve_tac}, \bold{24}
+  \item {\tt no_tac}, \bold{30}
+  \item {\tt None}, \bold{26}
+  \item {\tt not_elim} theorem, \bold{129}
+  \item {\tt nprems_of}, \bold{39}
+  \item numerals, 66
 
   \indexspace
 
-  \item {\ptt o} type, 73
-  \item {\ptt op} symbol, 71
-  \item {\ptt option} ML type, 24
-  \item oracles, 60--61
-  \item {\ptt ORELSE}, \bold{26}, 27, 28, 32
-  \item {\ptt ORELSE'}, 33
+  \item {\tt o} type, 76
+  \item {\tt op} symbol, 73
+  \item {\tt option} ML type, 26
+  \item oracles, 61--62
+  \item {\tt ORELSE}, \bold{28}, 30, 34
+  \item {\tt ORELSE'}, 35
 
   \indexspace
 
   \item parameters
-    \subitem removing unused, 20
-    \subitem renaming, 11, 19, 44
-  \item {\ptt parents_of}, \bold{52}
-  \item parse trees, 76
-  \item {\ptt parse_ast_translation}, 87
-  \item {\ptt parse_rules}, 83
-  \item {\ptt parse_translation}, 87
-  \item {\ptt pause_tac}, \bold{24}
-  \item Poly/{\ML} compiler, 1, 2, 4, 50
-  \item {\ptt pop_proof}, \bold{13}
-  \item {\ptt pr}, \bold{10}
-  \item {\ptt premises}, \bold{7}, 13
-  \item {\ptt prems_of}, \bold{37}
-  \item {\ptt prems_of_ss}, 100
-  \item pretty printing, 68, 71, 85
-  \item {\ptt Pretty.setdepth}, \bold{3}
-  \item {\ptt Pretty.setmargin}, \bold{3}
-  \item {\ptt PRIMITIVE}, \bold{24}
-  \item {\ptt primrec}, 95
-  \item {\ptt prin}, 4, \bold{14}
-  \item {\ptt print_ast_translation}, 87
-  \item {\ptt print_cs}, \bold{116}
-  \item {\ptt print_depth}, \bold{3}
-  \item {\ptt print_exn}, \bold{4}, 34
-  \item {\ptt print_goals}, \bold{35}
-  \item {\ptt print_rules}, 83
-  \item {\ptt print_syntax}, \bold{66}
-  \item {\ptt print_tac}, \bold{24}
-  \item {\ptt print_theory}, \bold{52}
-  \item {\ptt print_thm}, \bold{35}
-  \item {\ptt print_translation}, 87
+    \subitem removing unused, 22
+    \subitem renaming, 12, 21, 47
+  \item {\tt parents_of}, \bold{56}
+  \item parse trees, 79
+  \item {\tt parse_ast_translation}, 91
+  \item {\tt parse_rules}, 86
+  \item {\tt parse_translation}, 91
+  \item {\tt pause_tac}, \bold{26}
+  \item Poly/{\ML} compiler, 5
+  \item {\tt pop_proof}, \bold{14}
+  \item {\tt pr}, \bold{10}
+  \item {\tt premises}, \bold{7}, 14
+  \item {\tt prems_of}, \bold{39}
+  \item {\tt prems_of_ss}, 105
+  \item pretty printing, 70, 72--73, 89
+  \item {\tt Pretty.setdepth}, \bold{3}
+  \item {\tt Pretty.setmargin}, \bold{3}
+  \item {\tt PRIMITIVE}, \bold{25}
+  \item {\tt primrec}, 100
+  \item {\tt prin}, 5, \bold{14}
+  \item print mode, 50, 93
+  \item print modes, 74--75
+  \item {\tt print_ast_translation}, 91
+  \item {\tt print_cs}, \bold{122}
+  \item {\tt print_depth}, \bold{4}
+  \item {\tt print_exn}, \bold{5}, 36
+  \item {\tt print_goals}, \bold{37}
+  \item {\tt print_mode}, 74
+  \item {\tt print_modes}, 69
+  \item {\tt print_rules}, 86
+  \item {\tt print_syntax}, \bold{56}, \bold{68}
+  \item {\tt print_tac}, \bold{26}
+  \item {\tt print_theory}, \bold{56}
+  \item {\tt print_thm}, \bold{37}
+  \item {\tt print_translation}, 91
   \item printing control, 3--4
-  \item {\ptt printyp}, \bold{14}
-  \item priorities, 62, \bold{69}
-  \item priority grammars, 62--63
-  \item {\ptt prlev}, \bold{10}
-  \item {\ptt prlim}, \bold{10}
-  \item productions, 62, 67, 68
-    \subitem copy, \bold{67}, 68, 77
-  \item {\ptt proof} ML type, 13
-  \item proof objects, 44--45
+  \item {\tt printyp}, \bold{14}
+  \item priorities, 63, \bold{70}
+  \item priority grammars, 63--64
+  \item {\tt prlev}, \bold{10}
+  \item {\tt prlim}, \bold{10}
+  \item productions, 63, 69, 70
+    \subitem copy, \bold{69}, 70, 81
+  \item {\tt proof} ML type, 14
+  \item proof objects, 47--48
   \item proof state, 6
-    \subitem printing of, 9
-  \item {\ptt proof_timing}, \bold{10}
-  \item proofs, 6--14
-    \subitem inspecting the state, 14
-    \subitem managing multiple, 12
-    \subitem saving and restoring, 13
+    \subitem printing of, 10
+  \item {\tt proof_timing}, \bold{10}
+  \item proofs, 6--15
+    \subitem inspecting the state, 15
+    \subitem managing multiple, 13
+    \subitem saving and restoring, 14
     \subitem stacking, 13
     \subitem starting, 6
     \subitem timing, 10
-  \item {\ptt PROP} symbol, 64
-  \item {\ptt prop} nonterminal, \bold{63}, 73
-  \item {\ptt prop} type, 59, 63
-  \item {\ptt prove_goal}, 10, \bold{12}
-  \item {\ptt prove_goalw}, \bold{12}
-  \item {\ptt prove_goalw_cterm}, \bold{12}
-  \item {\ptt prth}, \bold{34}
-  \item {\ptt prthq}, \bold{35}
-  \item {\ptt prths}, \bold{34}
-  \item {\ptt prune_params_tac}, \bold{21}
-  \item {\ptt Pure} theory, 46, 63, 67
-  \item {\ptt pure_thy}, \bold{52}
-  \item {\ptt push_proof}, \bold{13}
-  \item {\ptt pwd}, \bold{2}
+  \item {\tt PROP} symbol, 65
+  \item {\tt prop} nonterminal, \bold{64}, 76
+  \item {\tt prop} type, 60, 66
+  \item {\tt prove_goal}, 10, \bold{12}
+  \item {\tt prove_goalw}, \bold{13}
+  \item {\tt prove_goalw_cterm}, \bold{13}
+  \item {\tt prth}, \bold{36}
+  \item {\tt prthq}, \bold{37}
+  \item {\tt prths}, \bold{37}
+  \item {\tt prune_params_tac}, \bold{22}
+  \item {\tt Pure} theory, 49, 64, 68
+  \item {\tt Pure.thy}, \bold{55}
+  \item {\tt push_proof}, \bold{14}
+  \item {\tt pwd}, \bold{3}
 
   \indexspace
 
-  \item {\ptt qed}, 8, \bold{8}
-  \item {\ptt qed_goal}, \bold{12}
-  \item {\ptt qed_goalw}, \bold{12}
-  \item quantifiers, 72
-  \item {\ptt quit}, \bold{2}
+  \item {\tt qed}, \bold{8}, 9
+  \item {\tt qed_goal}, \bold{13}
+  \item {\tt qed_goalw}, \bold{13}
+  \item quantifiers, 74
+  \item {\tt quit}, \bold{2}
 
   \indexspace
 
-  \item {\ptt read}, \bold{14}
-  \item {\ptt read_axm}, \bold{58}
-  \item {\ptt read_cterm}, \bold{58}
-  \item {\ptt read_instantiate}, \bold{36}
-  \item {\ptt read_instantiate_sg}, \bold{36}
+  \item {\tt read}, \bold{14}
+  \item {\tt read_axm}, \bold{59}
+  \item {\tt read_cterm}, \bold{59}
+  \item {\tt read_instantiate}, \bold{38}
+  \item {\tt read_instantiate_sg}, \bold{38}
   \item reading
-    \subitem axioms, \see{{\tt assume_ax}}{46}
+    \subitem axioms, \see{{\tt assume_ax}}{49}
     \subitem goals, \see{proofs, starting}{6}
-  \item {\ptt reflexive}, \bold{41}
-  \item {\ptt ren}, \bold{11}
-  \item {\ptt rename_last_tac}, \bold{20}
-  \item {\ptt rename_params_rule}, \bold{44}
-  \item {\ptt rename_tac}, \bold{20}
-  \item {\ptt rep_cterm}, \bold{58}
-  \item {\ptt rep_ctyp}, \bold{59}
-  \item {\ptt rep_ss}, 100
-  \item {\ptt rep_thm}, \bold{37}
-  \item {\ptt REPEAT}, \bold{27, 28}
-  \item {\ptt REPEAT1}, \bold{27}
-  \item {\ptt REPEAT_DETERM}, \bold{27}
-  \item {\ptt REPEAT_FIRST}, \bold{32}
-  \item {\ptt REPEAT_SOME}, \bold{32}
-  \item {\ptt res_inst_tac}, \bold{17}, 21
-  \item reserved words, 65, 86
-  \item resolution, 35, 43
-    \subitem tactics, 15
-    \subitem without lifting, 43
-  \item {\ptt resolve_tac}, \bold{15}, 116
-  \item {\ptt restore_proof}, \bold{13}
-  \item {\ptt result}, \bold{8}, 14, 52
-  \item {\ptt rev_mp} theorem, \bold{92}
-  \item rewrite rules, 96--97
-    \subitem permutative, 104--107
-  \item {\ptt rewrite_cterm}, \bold{44}
-  \item {\ptt rewrite_goals_rule}, \bold{36}
-  \item {\ptt rewrite_goals_tac}, \bold{19}, 36
-  \item {\ptt rewrite_rule}, \bold{36}
-  \item {\ptt rewrite_tac}, 8, \bold{19}
+  \item {\tt reflexive}, \bold{43}
+  \item {\tt ren}, \bold{12}
+  \item {\tt rename_last_tac}, \bold{21}
+  \item {\tt rename_params_rule}, \bold{46}
+  \item {\tt rename_tac}, \bold{21}
+  \item {\tt rep_cterm}, \bold{59}
+  \item {\tt rep_ctyp}, \bold{61}
+  \item {\tt rep_ss}, 105
+  \item {\tt rep_thm}, \bold{40}
+  \item {\tt REPEAT}, \bold{29, 30}
+  \item {\tt REPEAT1}, \bold{29}
+  \item {\tt REPEAT_DETERM}, \bold{29}
+  \item {\tt REPEAT_FIRST}, \bold{34}
+  \item {\tt REPEAT_SOME}, \bold{34}
+  \item {\tt res_inst_tac}, \bold{18}, 22
+  \item reserved words, 66, 89
+  \item {\tt reset}, 3
+  \item resolution, 37, 45
+    \subitem tactics, 16
+    \subitem without lifting, 46
+  \item {\tt resolve_tac}, \bold{16}, 122
+  \item {\tt restore_proof}, \bold{14}
+  \item {\tt result}, \bold{8}, 15, 55
+  \item {\tt rev_mp} theorem, \bold{97}
+  \item rewrite rules, 101--102
+    \subitem permutative, 110--113
+  \item {\tt rewrite_cterm}, \bold{47}
+  \item {\tt rewrite_goals_rule}, \bold{38}
+  \item {\tt rewrite_goals_tac}, \bold{20}, 38
+  \item {\tt rewrite_rule}, \bold{38}
+  \item {\tt rewrite_tac}, 8, \bold{20}
   \item rewriting
-    \subitem object-level, \see{simplification}{0}
-    \subitem ordered, 104
-    \subitem syntactic, 81--86
-  \item {\ptt rewtac}, \bold{18}
-  \item {\ptt RL}, \bold{35}
-  \item {\ptt RLN}, \bold{35}
-  \item {\ptt rotate_proof}, \bold{13}
-  \item {\ptt rotate_tac}, \bold{20}
-  \item {\ptt RS}, \bold{35}
-  \item {\ptt RSN}, \bold{35}
-  \item {\ptt rtac}, \bold{17}
-  \item {\ptt rule_by_tactic}, 21, \bold{37}
+    \subitem object-level, \see{simplification}{1}
+    \subitem ordered, 110
+    \subitem syntactic, 84--90
+  \item {\tt rewtac}, \bold{19}
+  \item {\tt RL}, \bold{37}
+  \item {\tt RLN}, \bold{37}
+  \item {\tt rotate_proof}, \bold{14}
+  \item {\tt rotate_tac}, \bold{22}
+  \item {\tt RS}, \bold{37}
+  \item {\tt RSN}, \bold{37}
+  \item {\tt rtac}, \bold{19}
+  \item {\tt rule_by_tactic}, 22, \bold{39}
   \item rules
-    \subitem converting destruction to elimination, 37
+    \subitem converting destruction to elimination, 39
 
   \indexspace
 
-  \item {\ptt safe_asm_full_simp_tac}, \bold{98}, 100
-  \item {\ptt safe_step_tac}, 117, \bold{120}
-  \item {\ptt safe_tac}, \bold{120}
-  \item {\ptt save_proof}, \bold{13}
+  \item {\tt safe_asm_full_simp_tac}, \bold{104}, 105
+  \item {\tt safe_step_tac}, 123, \bold{126}
+  \item {\tt safe_tac}, \bold{127}
+  \item {\tt save_proof}, \bold{14}
   \item saving your work, \bold{1}
-  \item search, 26
-    \subitem tacticals, 28--30
-  \item {\ptt SELECT_GOAL}, 19, \bold{30}
-  \item {\ptt Sequence.seq} ML type, 23
-  \item sequences (lazy lists), \bold{24}
-  \item sequent calculus, 112
+  \item search, 28
+    \subitem tacticals, 30--32
+  \item {\tt SELECT_GOAL}, 20, \bold{33}
+  \item {\tt Sequence.seq} ML type, 25
+  \item sequences (lazy lists), \bold{26}
+  \item sequent calculus, 118
   \item sessions, 1--5
-  \item {\ptt set_current_thy}, 96
-  \item {\ptt set_oracle}, \bold{60}
-  \item {\ptt setloop}, 99, 100
-  \item {\ptt setmksimps}, 96, 100, 110
-  \item {\ptt setSolver}, 98, 100, 110
-  \item {\ptt setSSolver}, 98, 100, 110
-  \item {\ptt setsubgoaler}, 98, 100, 110
-  \item {\ptt setSWrapper}, \bold{118}
-  \item {\ptt setWrapper}, \bold{118}
-  \item shell scripts, \bold{4}
+  \item {\tt set}, 3
+  \item {\tt set_current_thy}, 101
+  \item {\tt set_oracle}, \bold{61}
+  \item {\tt setloop}, 104, 105
+  \item {\tt setmksimps}, 102, 105, 116
+  \item {\tt setSolver}, 104, 105, 116
+  \item {\tt setSSolver}, 104, 105, 116
+  \item {\tt setsubgoaler}, 103, 105, 116
+  \item {\tt setSWrapper}, \bold{124}
+  \item {\tt setWrapper}, \bold{124}
   \item shortcuts
-    \subitem for tactics, 17
+    \subitem for tactics, 18
     \subitem for {\tt by} commands, 10
-  \item {\ptt show_brackets}, \bold{3}
-  \item {\ptt show_hyps}, \bold{3}
-  \item {\ptt show_sorts}, \bold{3}, 80
-  \item {\ptt show_types}, \bold{3}, 80, 83, 89
-  \item {\ptt Sign.cterm_of}, 7, 12
-  \item {\ptt Sign.sg} ML type, 46
-  \item {\ptt Sign.string_of_term}, \bold{58}
-  \item {\ptt Sign.string_of_typ}, \bold{59}
-  \item {\ptt sign_of}, 7, 12, \bold{52}
-  \item signatures, \bold{46}, 53, 57--59
-  \item {\ptt Simp_tac}, \bold{94}, 100
-  \item {\ptt simp_tac}, \bold{99}, 100
-  \item simplification, 94--111
-    \subitem from classical reasoner, 117
-    \subitem setting up, 107
-    \subitem tactics, 99
-  \item simplification sets, 96
+  \item {\tt show_brackets}, \bold{4}
+  \item {\tt show_hyps}, \bold{4}
+  \item {\tt show_sorts}, \bold{4}, 83
+  \item {\tt show_types}, \bold{4}, 83, 86, 93
+  \item {\tt Sign.sg} ML type, 49
+  \item {\tt Sign.string_of_term}, \bold{59}
+  \item {\tt Sign.string_of_typ}, \bold{60}
+  \item {\tt sign_of}, 7, 13, \bold{56}
+  \item signatures, \bold{49}, 56, 58, 59, 61
+  \item {\tt Simp_tac}, \bold{99}, 105
+  \item {\tt simp_tac}, 105, \bold{106}
+  \item simplification, 99--117
+    \subitem from classical reasoner, 124
+    \subitem setting up, 113
+    \subitem tactics, 106
+  \item simplification sets, 101
   \item simpset
-    \subitem current, 94, 96, 99
-  \item {\ptt simpset}, 100
-  \item {\ptt simpset} ML type, 100
-  \item {\tt simpset} ML value, 96
-  \item {\ptt simpset_of}, 101
-  \item {\ptt size_of_thm}, 29, \bold{30}, 122
-  \item {\ptt sizef}, \bold{122}
-  \item {\ptt slow_best_tac}, \bold{119}
-  \item {\ptt slow_step_tac}, 117, \bold{120}
-  \item {\ptt slow_tac}, \bold{119}
-  \item {\ptt Some}, \bold{24}
-  \item {\ptt SOMEGOAL}, \bold{32}
-  \item {\ptt sort} nonterminal, \bold{65}
-  \item sort constraints, 64
-  \item sort hypotheses, 37
+    \subitem current, 99, 101, 106
+  \item {\tt simpset}, 105
+  \item {\tt simpset} ML type, 105
+  \item {\tt simpset} ML value, 101
+  \item {\tt simpset_of}, 106
+  \item {\tt size_of_thm}, 31, \bold{32}, 129
+  \item {\tt sizef}, \bold{129}
+  \item {\tt slow_best_tac}, \bold{126}
+  \item {\tt slow_step_tac}, 123, \bold{127}
+  \item {\tt slow_tac}, \bold{126}
+  \item {\tt Some}, \bold{26}
+  \item {\tt SOMEGOAL}, \bold{34}
+  \item {\tt sort} nonterminal, \bold{66}
+  \item sort constraints, 65
+  \item sort hypotheses, 40
   \item sorts
-    \subitem printing of, 3
-  \item {\ptt split_tac}, \bold{111}
-  \item {\ptt ssubst} theorem, \bold{90}
-  \item {\ptt stac}, \bold{91}
-  \item stamps, 37, \bold{46}, 53
-  \item {\ptt stamps_of_thm}, \bold{37}
-  \item {\ptt stamps_of_thy}, \bold{53}
-  \item {\ptt standard}, \bold{36}
+    \subitem printing of, 4
+  \item {\tt split_tac}, \bold{116}
+  \item {\tt ssubst} theorem, \bold{95}
+  \item {\tt stac}, \bold{96}
+  \item stamps, 39, \bold{49}, 56
+  \item {\tt stamps_of_thm}, \bold{39}
+  \item {\tt stamps_of_thy}, \bold{56}
+  \item {\tt standard}, \bold{39}
   \item starting up, \bold{1}
-  \item {\ptt STATE}, \bold{24}
-  \item {\ptt Step_tac}, \bold{121}
-  \item {\ptt step_tac}, 117, \bold{120}
-  \item {\ptt store_thm}, \bold{8}
-  \item {\ptt string_of_cterm}, \bold{58}
-  \item {\ptt string_of_ctyp}, \bold{59}
-  \item {\ptt string_of_thm}, \bold{35}
-  \item strings, 65
-  \item {\ptt SUBGOAL}, \bold{24}
-  \item subgoal module, 6--14
-  \item {\ptt subgoal_tac}, \bold{18}
-  \item {\ptt subgoals_of_brl}, \bold{22}
-  \item {\ptt subgoals_tac}, \bold{18}
-  \item {\ptt subst} theorem, 90, \bold{92}
+  \item {\tt STATE}, \bold{25}
+  \item {\tt Step_tac}, \bold{127}
+  \item {\tt step_tac}, 123, \bold{127}
+  \item {\tt store_thm}, \bold{8}
+  \item {\tt string_of_cterm}, \bold{59}
+  \item {\tt string_of_ctyp}, \bold{60}
+  \item {\tt string_of_thm}, \bold{37}
+  \item strings, 66
+  \item {\tt SUBGOAL}, \bold{25}
+  \item subgoal module, 6--15
+  \item {\tt subgoal_tac}, \bold{19}
+  \item {\tt subgoals_of_brl}, \bold{23}
+  \item {\tt subgoals_tac}, \bold{19}
+  \item {\tt subst} theorem, 95, \bold{97}
   \item substitution
-    \subitem rules, 90
-  \item {\ptt swap} theorem, \bold{122}
-  \item {\ptt swap_res_tac}, \bold{121}
-  \item {\ptt swapify}, \bold{121}
-  \item {\ptt sym} theorem, 91, \bold{92}
-  \item {\ptt symmetric}, \bold{41}
-  \item {\ptt syn_of}, \bold{66}
+    \subitem rules, 95
+  \item {\tt swap} theorem, \bold{129}
+  \item {\tt swap_res_tac}, \bold{128}
+  \item {\tt swapify}, \bold{128}
+  \item {\tt sym} theorem, 96, \bold{97}
+  \item {\tt symmetric}, \bold{43}
+  \item {\tt syn_of}, \bold{68}
   \item syntax
-    \subitem Pure, 63--68
-    \subitem transformations, 76--89
-  \item {\ptt syntax} section, 47
-  \item {\ptt Syntax.ast} ML type, 76
-  \item {\ptt Syntax.print_gram}, \bold{67}
-  \item {\ptt Syntax.print_syntax}, \bold{66}
-  \item {\ptt Syntax.print_trans}, \bold{67}
-  \item {\ptt Syntax.stat_norm_ast}, 84
-  \item {\ptt Syntax.syntax} ML type, 66
-  \item {\ptt Syntax.test_read}, 70, 84
-  \item {\ptt Syntax.trace_norm_ast}, 84
+    \subitem Pure, 64--69
+    \subitem transformations, 79--93
+  \item {\tt syntax} section, 50
+  \item {\tt Syntax.ast} ML type, 79
+  \item {\tt Syntax.mark_boundT}, 93
+  \item {\tt Syntax.print_gram}, \bold{68}
+  \item {\tt Syntax.print_syntax}, \bold{68}
+  \item {\tt Syntax.print_trans}, \bold{68}
+  \item {\tt Syntax.stat_norm_ast}, 88
+  \item {\tt Syntax.syntax} ML type, 68
+  \item {\tt Syntax.test_read}, 72, 88
+  \item {\tt Syntax.trace_norm_ast}, 88
+  \item {\tt Syntax.variant_abs'}, 93
 
   \indexspace
 
-  \item {\ptt Tactic}, \bold{24}
-  \item {\ptt tactic} ML type, 15
-  \item tacticals, 26--33
-    \subitem conditional, 29
-    \subitem deterministic, 29
-    \subitem for filtering, 28
-    \subitem for restriction to a subgoal, 30
-    \subitem identities for, 27
-    \subitem joining a list of tactics, 26
-    \subitem joining tactic functions, 32, 33
-    \subitem joining two tactics, 26
-    \subitem repetition, 27
-    \subitem scanning for subgoals, 31
-    \subitem searching, 28, 29
-  \item tactics, 15--25
-    \subitem assumption, \bold{16}, 17
+  \item {\tt tactic} ML type, 16
+  \item tacticals, 28--35
+    \subitem conditional, 32
+    \subitem deterministic, 32
+    \subitem for filtering, 30
+    \subitem for restriction to a subgoal, 33
+    \subitem identities for, 29
+    \subitem joining a list of tactics, 29
+    \subitem joining tactic functions, 35
+    \subitem joining two tactics, 28
+    \subitem repetition, 29
+    \subitem scanning for subgoals, 34
+    \subitem searching, 31
+  \item tactics, 16--27
+    \subitem assumption, \bold{17}, 18
     \subitem commands for applying, 7
-    \subitem debugging, 13
-    \subitem filtering results of, 28
-    \subitem for composition, 21
-    \subitem for contradiction, 121
-    \subitem for inserting facts, 18
-    \subitem for Modus Ponens, 121
-    \subitem instantiation, 16
-    \subitem matching, 16
-    \subitem meta-rewriting, 17, \bold{18}
-    \subitem primitives for coding, 23
-    \subitem resolution, \bold{15}, 17, 21, 22
-    \subitem restricting to a subgoal, 30
-    \subitem simplification, 99
-    \subitem substitution, 90--93
-    \subitem tracing, 24
-  \item {\ptt tapply}, \bold{23}
-  \item {\ptt teeinput} shell script, 5
-  \item {\ptt TERM}, 58
-  \item {\ptt term} ML type, 56, 79
-  \item terms, \bold{56}
-    \subitem certified, \bold{57}
-    \subitem made from ASTs, 79
-    \subitem printing of, 14, 58
+    \subitem debugging, 14
+    \subitem filtering results of, 30
+    \subitem for composition, 22
+    \subitem for contradiction, 128
+    \subitem for inserting facts, 19
+    \subitem for Modus Ponens, 128
+    \subitem instantiation, 17
+    \subitem matching, 17
+    \subitem meta-rewriting, 18, \bold{20}
+    \subitem primitives for coding, 25
+    \subitem resolution, \bold{16}, 18, 23, 24
+    \subitem restricting to a subgoal, 33
+    \subitem simplification, 106
+    \subitem substitution, 95--98
+    \subitem tracing, 25
+  \item {\tt TERM}, 59
+  \item {\tt term} ML type, 57, 82
+  \item terms, \bold{57}
+    \subitem certified, \bold{58}
+    \subitem made from ASTs, 82
+    \subitem printing of, 14, 59
     \subitem reading of, 14
-  \item {\ptt TFree}, \bold{59}
-  \item {\ptt THEN}, \bold{26}, 27, 32
-  \item {\ptt THEN'}, 33
-  \item {\ptt THEN_BEST_FIRST}, \bold{29}
-  \item theorems, 34--45
-    \subitem equality of, 30
-    \subitem extracting, 51
+  \item {\tt TFree}, \bold{60}
+  \item {\tt THEN}, \bold{28}, 30, 34
+  \item {\tt THEN'}, 35
+  \item {\tt THEN_BEST_FIRST}, \bold{31}
+  \item theorems, 36--48
+    \subitem equality of, 32
+    \subitem extracting, 55
     \subitem extracting proved, 8
-    \subitem joining by resolution, 35
-    \subitem of pure theory, 19
-    \subitem printing of, 34
-    \subitem retrieving, 8
-    \subitem size of, 30
-    \subitem standardizing, 36
+    \subitem joining by resolution, 37
+    \subitem of pure theory, 20
+    \subitem printing of, 36
+    \subitem retrieving, 9
+    \subitem size of, 32
+    \subitem standardizing, 38
     \subitem storing, 8
-    \subitem taking apart, 37
-  \item theories, 46--61
-    \subitem axioms of, 51
-    \subitem constructing, \bold{52}
-    \subitem inspecting, \bold{52}
-    \subitem loading, 49
-    \subitem parent, \bold{46}
-    \subitem pseudo, \bold{50}
-    \subitem reloading, \bold{50}
-    \subitem removing, \bold{50}
-    \subitem theorems of, 51
-  \item {\ptt THEORY} exception, 46, 51
-  \item {\ptt theory} ML type, 46
-  \item {\ptt theory_of_thm}, \bold{37}
-  \item {\ptt thin_tac}, \bold{20}
-  \item {\ptt THM} exception, 34, 35, 39, 43
-  \item {\ptt thm} ML type, 34
-  \item {\ptt thms_containing}, \bold{9}
-  \item {\ptt thms_of}, \bold{52}
-  \item {\ptt tid} nonterminal, \bold{65}, 77, 84
-  \item {\ptt time_use}, \bold{2}
-  \item {\ptt time_use_thy}, \bold{49}
+    \subitem taking apart, 39
+  \item theories, 49--62
+    \subitem axioms of, 55
+    \subitem constructing, \bold{55}
+    \subitem inspecting, \bold{56}
+    \subitem loading, 52
+    \subitem parent, \bold{49}
+    \subitem pseudo, \bold{54}
+    \subitem reloading, \bold{53}
+    \subitem removing, \bold{54}
+    \subitem theorems of, 55
+  \item {\tt THEORY} exception, 49, 55
+  \item {\tt theory} ML type, 49
+  \item {\tt theory_of_thm}, \bold{39}
+  \item {\tt thin_tac}, \bold{22}
+  \item {\tt THM} exception, 36, 37, 41, 46
+  \item {\tt thm} ML type, 36
+  \item {\tt thms_containing}, \bold{9}
+  \item {\tt thms_of}, \bold{56}
+  \item {\tt tid} nonterminal, \bold{66}, 80, 87
+  \item {\tt time_use}, \bold{3}
+  \item {\tt time_use_thy}, \bold{53}
   \item timing statistics, 10
-  \item {\ptt topthm}, \bold{14}
-  \item {\ptt tpairs_of}, \bold{37}
-  \item {\ptt trace_BEST_FIRST}, \bold{29}
-  \item {\ptt trace_DEPTH_FIRST}, \bold{29}
-  \item {\ptt trace_goalno_tac}, \bold{32}
-  \item {\ptt trace_REPEAT}, \bold{27}
-  \item {\ptt trace_simp}, 95, 102--103
+  \item {\tt toggle}, 3
+  \item token class, 93
+  \item token translations, 93--94
+  \item token_translation, 94
+  \item {\tt token_translation}, 94
+  \item {\tt topthm}, \bold{15}
+  \item {\tt tpairs_of}, \bold{39}
+  \item {\tt trace_BEST_FIRST}, \bold{31}
+  \item {\tt trace_DEPTH_FIRST}, \bold{31}
+  \item {\tt trace_goalno_tac}, \bold{34}
+  \item {\tt trace_REPEAT}, \bold{29}
+  \item {\tt trace_simp}, 100, 108
   \item tracing
-    \subitem of classical prover, 119
-    \subitem of macros, 84
-    \subitem of searching tacticals, 28, 29
-    \subitem of simplification, 95, 102--103
-    \subitem of tactics, 24
-    \subitem of unification, 38
-  \item {\ptt transitive}, \bold{41}
-  \item translations, 86--89
-    \subitem parse, 72, 79
-    \subitem parse AST, \bold{77}, 78
-    \subitem print, 72
-    \subitem print AST, \bold{80}
-  \item {\ptt translations} section, 82
-  \item {\ptt trivial}, \bold{44}
-  \item {\ptt Trueprop} constant, 73
-  \item {\ptt TRY}, \bold{27, 28}
-  \item {\ptt TRYALL}, \bold{32}
-  \item {\ptt TVar}, \bold{59}
-  \item {\ptt tvar} nonterminal, \bold{65, 66}, 77, 84
-  \item {\ptt typ} ML type, 58
-  \item {\ptt Type}, \bold{59}
-  \item {\ptt type} nonterminal, \bold{65}
-  \item {\ptt type} type, 69
-  \item type constraints, 65, 72, 80
-  \item type constructors, \bold{59}
-  \item type identifiers, 65
-  \item type synonyms, \bold{47}
-  \item type unknowns, \bold{59}, 65
-    \subitem freezing/thawing of, 42
-  \item type variables, \bold{59}
-  \item types, \bold{58}
-    \subitem certified, \bold{59}
-    \subitem printing of, 3, 14, 59
+    \subitem of classical prover, 125
+    \subitem of macros, 88
+    \subitem of searching tacticals, 31
+    \subitem of simplification, 100, 108--109
+    \subitem of tactics, 25
+    \subitem of unification, 40
+  \item {\tt transitive}, \bold{43}
+  \item translations, 90--93
+    \subitem parse, 74, 82
+    \subitem parse AST, \bold{80}, 81
+    \subitem print, 74
+    \subitem print AST, \bold{83}
+  \item {\tt translations} section, 85
+  \item {\tt trivial}, \bold{46}
+  \item {\tt Trueprop} constant, 76
+  \item {\tt TRY}, \bold{29, 30}
+  \item {\tt TRYALL}, \bold{34}
+  \item {\tt TVar}, \bold{60}
+  \item {\tt tvar} nonterminal, \bold{66, 67}, 80, 87
+  \item {\tt typ} ML type, 60
+  \item {\tt Type}, \bold{60}
+  \item {\tt type} nonterminal, \bold{66}
+  \item {\tt type} type, 71
+  \item type constraints, 66, 74, 83
+  \item type constructors, \bold{60}
+  \item type identifiers, 66
+  \item type synonyms, \bold{50}
+  \item type unknowns, \bold{60}, 66
+    \subitem freezing/thawing of, 45
+  \item type variables, \bold{60}
+  \item types, \bold{60}
+    \subitem certified, \bold{60}
+    \subitem printing of, 4, 14, 60
 
   \indexspace
 
-  \item {\ptt undo}, 6, \bold{9}, 13
-  \item unknowns, \bold{56}, 65
-  \item {\ptt unlink_thy}, \bold{50}
-  \item {\ptt update}, \bold{50}
-  \item {\ptt uresult}, \bold{8}, 14, 52
-  \item {\ptt use}, \bold{2}
-  \item use_dir, 54, 55
-  \item {\ptt use_thy}, \bold{49}, 50
+  \item {\tt undo}, 6, \bold{9}, 13
+  \item unknowns, \bold{57}, 66
+  \item {\tt unlink_thy}, \bold{54}
+  \item {\tt update}, \bold{54}
+  \item {\tt uresult}, \bold{8}, 15, 55
+  \item {\tt use}, \bold{3}
+  \item {\tt use_thy}, \bold{52}, 53
 
   \indexspace
 
-  \item {\ptt Var}, \bold{56}, 79
-  \item {\ptt var} nonterminal, \bold{65, 66}, 77, 84
-  \item {\ptt Variable}, 76
+  \item {\tt Var}, \bold{57}, 82
+  \item {\tt var} nonterminal, \bold{66, 67}, 80, 87
+  \item {\tt Variable}, 79
   \item variables
-    \subitem bound, \bold{56}
-    \subitem free, \bold{56}
-  \item {\ptt variant_abs}, \bold{57}, 89
-  \item {\ptt varifyT}, \bold{42}
+    \subitem bound, \bold{57}
+    \subitem free, \bold{57}
+  \item {\tt variant_abs}, \bold{58}
+  \item {\tt varifyT}, \bold{45}
 
   \indexspace
 
-  \item {\ptt xlisten} shell script, 5
-  \item {\ptt xnum} nonterminal, \bold{65}, 77, 84
-  \item {\ptt xstr} nonterminal, \bold{65}, 77, 84
+  \item {\tt xnum} nonterminal, \bold{66}, 80, 87
+  \item {\tt xstr} nonterminal, \bold{66}, 80, 87
 
   \indexspace
 
-  \item {\ptt zero_var_indexes}, \bold{36}
+  \item {\tt zero_var_indexes}, \bold{39}
 
 \end{theindex}

@@ -31,7 +31,7 @@ can specify most forms of concrete syntax without writing any \ML{} code.
 \begin{center}
 \begin{tabular}{cl}
 string          & \\
-$\downarrow$    & parser \\
+$\downarrow$    & lexer, parser \\
 parse tree      & \\
 $\downarrow$    & parse \AST{} translation \\
 \AST{}             & \\
@@ -43,7 +43,7 @@ $\downarrow$    & print translation \\
 \AST{}             & \\
 $\downarrow$    & \AST{} rewriting (macros) \\
 \AST{}             & \\
-$\downarrow$    & print \AST{} translation, printer \\
+$\downarrow$    & print \AST{} translation, token translation \\
 string          &
 \end{tabular}
 
@@ -304,11 +304,13 @@ parentheses if its priority~$(p@i)$ requires this.  The resulting strings
 and their syntactic sugar (denoted by \dots{} above) are joined to make a
 single string.
 
-If an application $(\mtt"c\mtt"~ x@1 \ldots x@m)$ has more arguments than the
-corresponding production, it is first split into $((\mtt"c\mtt"~ x@1 \ldots
-x@n) ~ x@{n+1} \ldots x@m)$.  Applications with too few arguments or with
-non-constant head or without a corresponding production are printed as
-$f(x@1, \ldots, x@l)$ or $(\alpha@1, \ldots, \alpha@l) ty$.  An occurrence of
+If an application $(\mtt"c\mtt"~ x@1 \ldots x@m)$ has more arguments
+than the corresponding production, it is first split into
+$((\mtt"c\mtt"~ x@1 \ldots x@n) ~ x@{n+1} \ldots x@m)$.  Applications
+with too few arguments or with non-constant head or without a
+corresponding production are printed as $f(x@1, \ldots, x@l)$ or
+$(\alpha@1, \ldots, \alpha@l) ty$.  Multiple productions associated
+with some name $c$ are tried in order of appearance.  An occurrence of
 $\Variable x$ is simply printed as~$x$.
 
 Blanks are {\em not\/} inserted automatically.  If blanks are required to
@@ -318,7 +320,7 @@ by a slash~({\tt/}) to allow a line break.
 
 
 
-\section{Macros: Syntactic rewriting} \label{sec:macros}
+\section{Macros: syntactic rewriting} \label{sec:macros}
 \index{macros|(}\index{rewriting!syntactic|(}
 
 Mixfix declarations alone can handle situations where there is a direct
@@ -338,19 +340,20 @@ write.  Macros are specified by first-order rewriting systems that operate
 on abstract syntax trees.  They are usually easy to read and write, and can
 express all but the most obscure translations.
 
-Figure~\ref{fig:set_trans} defines a fragment of first-order logic and set
-theory.\footnote{This and the following theories are complete working
-  examples, though they specify only syntax, no axioms.  The file {\tt
-    ZF/ZF.thy} presents a full set theory definition, including many
-  macro rules.}  Theory {\tt SET} defines constants for set comprehension
-({\tt Collect}), replacement ({\tt Replace}) and bounded universal
-quantification ({\tt Ball}).  Each of these binds some variables.  Without
-additional syntax we should have to write $\forall x \in A.  P$ as {\tt
-  Ball(A,\%x.P)}, and similarly for the others.
+Figure~\ref{fig:set_trans} defines a fragment of first-order logic and
+set theory.\footnote{This and the following theories are complete
+  working examples, though they specify only syntax, no axioms.  The
+  file {\tt ZF/ZF.thy} presents a full set theory definition,
+  including many macro rules.} Theory {\tt SetSyntax} declares
+constants for set comprehension ({\tt Collect}), replacement ({\tt
+  Replace}) and bounded universal quantification ({\tt Ball}).  Each
+of these binds some variables.  Without additional syntax we should
+have to write $\forall x \in A.  P$ as {\tt Ball(A,\%x.P)}, and
+similarly for the others.
 
 \begin{figure}
 \begin{ttbox}
-SET = Pure +
+SetSyntax = Pure +
 types
   i o
 arities
@@ -425,8 +428,8 @@ nonterminal for parsing the $string$ and if omitted defaults to {\tt
 \item Every variable in~$r$ must also occur in~$l$.
 \end{itemize}
 
-Macro rules may refer to any syntax from the parent theories.  They may
-also refer to anything defined before the {\tt .thy} file's {\tt
+Macro rules may refer to any syntax from the parent theories.  They
+may also refer to anything defined before the current {\tt
   translations} section --- including any mixfix declarations.
 
 Upon declaration, both sides of the macro rule undergo parsing and parse
@@ -440,10 +443,11 @@ Some atoms of the macro rule's \AST{} are designated as constants for
 matching.  These are all names that have been declared as classes, types or
 constants (logical and syntactic).
 
-The result of this preprocessing is two lists of macro rules, each stored
-as a pair of \AST{}s.  They can be viewed using {\tt print_syntax}
-(sections \ttindex{parse_rules} and \ttindex{print_rules}).  For
-theory~{\tt SET} of Fig.~\ref{fig:set_trans} these are
+The result of this preprocessing is two lists of macro rules, each
+stored as a pair of \AST{}s.  They can be viewed using {\tt
+  print_syntax} (sections \ttindex{parse_rules} and
+\ttindex{print_rules}).  For theory~{\tt SetSyntax} of
+Fig.~\ref{fig:set_trans} these are
 \begin{ttbox}
 parse_rules:
   ("{\at}Collect" x A P)  ->  ("Collect" A ("_abs" x P))
@@ -484,9 +488,7 @@ appear in the external form, say \verb|{y::i:A::i. P::o}|.
 
 To allow such constraints to be re-read, your syntax should specify bound
 variables using the nonterminal~\ndx{idt}.  This is the case in our
-example.  Choosing {\tt id} instead of {\tt idt} is a common error,
-especially since it appears in former versions of most of Isabelle's
-object-logics.
+example.  Choosing {\tt id} instead of {\tt idt} is a common error.
 \end{warn}
 
 
@@ -552,17 +554,17 @@ The term {\tt Nil} will be printed as {\tt []}, just as expected.
 The term \verb|%Nil.t| will be printed as \verb|%[].t|, which might not be
 expected!  Guess how type~{\tt Nil} is printed?
 
-Normalizing an \AST{} involves repeatedly applying macro rules until none
-are applicable.  Macro rules are chosen in the order that they appear in the
-{\tt translations} section.  You can watch the normalization of \AST{}s
-during parsing and printing by setting \ttindex{Syntax.trace_norm_ast} to
-{\tt true}.\index{tracing!of macros} Alternatively, use
+Normalizing an \AST{} involves repeatedly applying macro rules until
+none are applicable.  Macro rules are chosen in order of appearance in
+the theory definitions.  You can watch the normalization of \AST{}s
+during parsing and printing by setting \ttindex{Syntax.trace_norm_ast}
+to {\tt true}.\index{tracing!of macros} Alternatively, use
 \ttindex{Syntax.test_read}.  The information displayed when tracing
-includes the \AST{} before normalization ({\tt pre}), redexes with results
-({\tt rewrote}), the normal form finally reached ({\tt post}) and some
-statistics ({\tt normalize}).  If tracing is off,
-\ttindex{Syntax.stat_norm_ast} can be set to {\tt true} in order to enable
-printing of the normal form and statistics only.
+includes the \AST{} before normalization ({\tt pre}), redexes with
+results ({\tt rewrote}), the normal form finally reached ({\tt post})
+and some statistics ({\tt normalize}).  If tracing is off,
+\ttindex{Syntax.stat_norm_ast} can be set to {\tt true} in order to
+enable printing of the normal form and statistics only.
 
 
 \subsection{Example: the syntax of finite sets}
@@ -574,7 +576,7 @@ convenient notation for finite sets.
 \index{"@Enum@{\tt\at Enum} constant}
 \index{"@Finset@{\tt\at Finset} constant}
 \begin{ttbox}
-FINSET = SET +
+FinSyntax = SetSyntax +
 types
   is
 syntax
@@ -654,7 +656,7 @@ must fall back on translation functions.  But a trick can make things
 readable in some cases: {\em calling\/} translation functions by parse
 macros:
 \begin{ttbox}
-PROD = FINSET +
+ProdSyntax = FinSyntax +
 consts
   Pi            :: [i, i => i] => i
 syntax
@@ -693,10 +695,10 @@ dependent_tr'} is exported by the syntax module for public use.  See
 \index{translations|(}
 %
 This section describes the translation function mechanism.  By writing
-\ML{} functions, you can do almost everything with terms or \AST{}s during
-parsing and printing.  The logic \LK\ is a good example of sophisticated
-transformations between internal and external representations of sequents;
-here, macros would be useless.
+\ML{} functions, you can do almost everything to terms or \AST{}s
+during parsing and printing.  The logic \LK\ is a good example of
+sophisticated transformations between internal and external
+representations of sequents; here, macros would be useless.
 
 A full understanding of translations requires some familiarity
 with Isabelle's internals, especially the datatypes {\tt term}, {\tt typ},
@@ -705,50 +707,55 @@ stages of the parsing or printing process.  Most users should never need to
 use translation functions.
 
 \subsection{Declaring translation functions}
-There are four kinds of translation functions.  Each such function is
-associated with a name, which triggers calls to it.  Such names can be
-constants (logical or syntactic) or type constructors.
+There are four kinds of translation functions, with one of these
+coming in two variants.  Each such function is associated with a name,
+which triggers calls to it.  Such names can be constants (logical or
+syntactic) or type constructors.
 
 {\tt print_syntax} displays the sets of names associated with the
-translation functions of a {\tt Syntax.syntax} under
+translation functions of a theory under
 \ttindex{parse_ast_translation}, \ttindex{parse_translation},
-\ttindex{print_translation} and \ttindex{print_ast_translation}.  You can
-add new ones via the {\tt ML} section\index{*ML section} of
-a {\tt .thy} file.  There may never be more than one function of the same
-kind per name.  Even though the {\tt ML} section is the very last part of a
-{\tt .thy} file, newly installed translation functions are effective when
-processing the preceding section.
+\ttindex{print_translation} and \ttindex{print_ast_translation}.  You
+can add new ones via the {\tt ML} section\index{*ML section} of a
+theory definition file.  There may never be more than one function of
+the same kind per name.  Even though the {\tt ML} section is the very
+last part of the file, newly installed translation functions are
+already effective when processing all of the preceding sections.
 
-The {\tt ML} section is copied verbatim near the beginning of the \ML\ file
-generated from a {\tt .thy} file.  Definitions made here are accessible as
-components of an \ML\ structure; to make some definitions private, use an
-\ML{} {\tt local} declaration.  The {\tt ML} section may install translation
-functions by declaring any of the following identifiers:
+The {\tt ML} section's contents are simply copied verbatim near the
+beginning of the \ML\ file generated from a theory definition file.
+Definitions made here are accessible as components of an \ML\ 
+structure; to make some parts private, use an \ML{} {\tt local}
+declaration.  The {\ML} code may install translation functions by
+declaring any of the following identifiers:
 \begin{ttbox}
-val parse_ast_translation : (string * (ast list -> ast)) list
-val print_ast_translation : (string * (ast list -> ast)) list
-val parse_translation     : (string * (term list -> term)) list
-val print_translation     : (string * (term list -> term)) list
+val parse_ast_translation   : (string * (ast list -> ast)) list
+val print_ast_translation   : (string * (ast list -> ast)) list
+val parse_translation       : (string * (term list -> term)) list
+val print_translation       : (string * (term list -> term)) list
+val typed_print_translation : (string * (typ -> term list -> term)) list
 \end{ttbox}
 
 \subsection{The translation strategy}
-All four kinds of translation functions are treated similarly.  They are
-called during the transformations between parse trees, \AST{}s and terms
-(recall Fig.\ts\ref{fig:parse_print}).  Whenever a combination of the form
-$(\mtt"c\mtt"~x@1 \ldots x@n)$ is encountered, and a translation function
-$f$ of appropriate kind exists for $c$, the result is computed by the \ML{}
-function call $f \mtt[ x@1, \ldots, x@n \mtt]$.
+The different kinds of translation functions are called during the
+transformations between parse trees, \AST{}s and terms (recall
+Fig.\ts\ref{fig:parse_print}).  Whenever a combination of the form
+$(\mtt"c\mtt"~x@1 \ldots x@n)$ is encountered, and a translation
+function $f$ of appropriate kind exists for $c$, the result is
+computed by the \ML{} function call $f \mtt[ x@1, \ldots, x@n \mtt]$.
 
-For \AST{} translations, the arguments $x@1, \ldots, x@n$ are \AST{}s.  A
-combination has the form $\Constant c$ or $\Appl{\Constant c, x@1, \ldots,
-  x@n}$.  For term translations, the arguments are terms and a combination
-has the form $\ttfct{Const} (c, \tau)$ or $\ttfct{Const} (c, \tau) \ttapp
-x@1 \ttapp \ldots \ttapp x@n$.  Terms allow more sophisticated
-transformations than \AST{}s do, typically involving abstractions and bound
-variables.
+For \AST{} translations, the arguments $x@1, \ldots, x@n$ are \AST{}s.
+A combination has the form $\Constant c$ or $\Appl{\Constant c, x@1,
+  \ldots, x@n}$.  For term translations, the arguments are terms and a
+combination has the form $\ttfct{Const} (c, \tau)$ or $\ttfct{Const}
+(c, \tau) \ttapp x@1 \ttapp \ldots \ttapp x@n$.  Terms allow more
+sophisticated transformations than \AST{}s do, typically involving
+abstractions and bound variables. {\em Typed} print translations may
+even peek at the type $\tau$ of the constant they are invoked on.
 
-Regardless of whether they act on terms or \AST{}s, parse translations differ
-from print translations in their overall behaviour fundamentally:
+Regardless of whether they act on terms or \AST{}s, translation
+functions called during the parsing process differ from those for
+printing more fundamentally in their overall behaviour:
 \begin{description}
 \item[Parse translations] are applied bottom-up.  The arguments are already
   in translated form.  The translations must not fail; exceptions trigger
@@ -804,40 +811,93 @@ Here is the print translation for dependent types:
 \begin{ttbox}
 fun dependent_tr' (q, r) (A :: Abs (x, T, B) :: ts) =
       if 0 mem (loose_bnos B) then
-        let val (x', B') = variant_abs (x, dummyT, B);
-        in list_comb (Const (q, dummyT) $ Free (x', T) $ A $ B', ts)
+        let val (x', B') = Syntax.variant_abs' (x, dummyT, B) in
+          list_comb
+            (Const (q, dummyT) $ Syntax.mark_boundT (x', T) $ A $ B', ts)
         end
       else list_comb (Const (r, dummyT) $ A $ B, ts)
   | dependent_tr' _ _ = raise Match;
 \end{ttbox}
-The argument {\tt (q,r)} is supplied to the curried function {\tt
-  dependent_tr'} by a partial application during its installation.  We
-can set up print translations for both {\tt Pi} and {\tt Sigma} by
-including
+The argument {\tt (q, r)} is supplied to the curried function {\tt
+  dependent_tr'} by a partial application during its installation.
+For example, we could set up print translations for both {\tt Pi} and
+{\tt Sigma} by including
 \begin{ttbox}\index{*ML section}
 val print_translation =
   [("Pi",    dependent_tr' ("{\at}PROD", "{\at}->")),
    ("Sigma", dependent_tr' ("{\at}SUM", "{\at}*"))];
 \end{ttbox}
-within the {\tt ML} section.  The first of these transforms ${\tt Pi}(A,
-\mtt{Abs}(x, T, B))$ into $\hbox{\tt{\at}PROD}(x', A, B')$ or
-$\hbox{\tt{\at}->}(A, B)$, choosing the latter form if $B$ does not depend
-on~$x$.  It checks this using \ttindex{loose_bnos}, yet another function
-from {\tt Pure/term.ML}.  Note that $x'$ is a version of $x$ renamed away
-from all names in $B$, and $B'$ is the body $B$ with {\tt Bound} nodes
-referring to the {\tt Abs} node replaced by $\ttfct{Free} (x',
-\mtt{dummyT})$.
+within the {\tt ML} section.  The first of these transforms ${\tt
+  Pi}(A, \mtt{Abs}(x, T, B))$ into $\hbox{\tt{\at}PROD}(x', A, B')$ or
+$\hbox{\tt{\at}->}(A, B)$, choosing the latter form if $B$ does not
+depend on~$x$.  It checks this using \ttindex{loose_bnos}, yet another
+function from {\tt Pure/term.ML}.  Note that $x'$ is a version of $x$
+renamed away from all names in $B$, and $B'$ is the body $B$ with {\tt
+  Bound} nodes referring to the {\tt Abs} node replaced by
+$\ttfct{Free} (x', \mtt{dummyT})$ (but marked as representing a bound
+variable).
 
 We must be careful with types here.  While types of {\tt Const}s are
 ignored, type constraints may be printed for some {\tt Free}s and
 {\tt Var}s if \ttindex{show_types} is set to {\tt true}.  Variables of type
 \ttindex{dummyT} are never printed with constraint, though.  The line
 \begin{ttbox}
-        let val (x', B') = variant_abs (x, dummyT, B);
-\end{ttbox}\index{*variant_abs}
+        let val (x', B') = Syntax.variant_abs' (x, dummyT, B);
+\end{ttbox}\index{*Syntax.variant_abs'}
 replaces bound variable occurrences in~$B$ by the free variable $x'$ with
 type {\tt dummyT}.  Only the binding occurrence of~$x'$ is given the
 correct type~{\tt T}, so this is the only place where a type
 constraint might appear.
-\index{translations|)}
-\index{syntax!transformations|)}
+
+Also note that we are responsible to mark free identifiers that
+actually represent bound variables. This is achieved by
+\ttindex{Syntax.variant_abs'} and \ttindex{Syntax.mark_boundT} above.
+Failing to do so may cause these names to be printed in the wrong
+style.  \index{translations|)} \index{syntax!transformations|)}
+
+
+\section{Token translations} \label{sec:tok_tr}
+\index{token translations|(}
+%
+Isabelle's meta-logic features quite a lot of different kinds of
+identifiers, namely {\em class}, {\em tfree}, {\em tvar}, {\em free},
+{\em bound}, {\em var}. One might want to have these printed in
+different styles, e.g.\ in bold or italic, or even transcribed into
+something more readable like $\alpha, \alpha', \beta$ instead of {\tt
+  'a}, {\tt 'aa}, {\tt 'b} for type variables. Token translations
+provide a means to such ends, enabling the user to install certain
+\ML{} functions associated with any logical \rmindex{token class} and
+depending on some \rmindex{print mode}.
+
+The logical class of identifiers can not necessarily be determined by
+its syntactic category, though. For example, consider free vs.\ bound
+variables. So Isabelle's pretty printing mechanism, starting from
+fully typed terms, has to be careful to preserve this additional
+information\footnote{This is done by marking atoms in abstract syntax
+  trees appropriately. The marks are actually visible by print
+  translation functions -- they are just special constants applied to
+  atomic asts, for example \texttt{("_bound" x)}.}.  In particular,
+user-supplied print translation functions operating on terms have to
+be well-behaved in this respect. Free identifiers introduced to
+represent bound variables have to be marked appropriately (cf.\ the
+example at the end of \S\ref{sec:tr_funs}).
+
+\medskip Token translations may be installed by declaring the
+\ttindex{token_translation} value within the \texttt{ML} section of a
+theory definition file:
+\begin{ttbox}
+val token_translation: (string * string * (string -> string * int)) list
+\end{ttbox}\index{token_translation}
+The elements of this list are of the form $(m, c, f)$, where $m$ is a
+print mode identifier, $c$ a token class, and $f\colon string \to
+string \times int$ the actual translation function. Assuming that $x$
+is of identifier class $c$, and print mode $m$ is the first one of all
+currently active modes that provide some translation for $c$, then $x$
+is output according to $f(x) = (x', len)$. Thereby $x'$ is the
+modified identifier name and $len$ its visual length approximated in
+terms of whole characters. Thus $x'$ may include non-printing parts
+like control sequences or markup information for typesetting systems.
+
+%FIXME example (?)
+
+\index{token translations|)}

@@ -4,45 +4,59 @@
 \newlinechar=-1  %mathsing.sty sets \newlinechar=`\|, which would cause mayhem
 
 \chapter{Syntax of Isabelle Theories}\label{app:TheorySyntax}
-Chapter~\ref{sec:ref-defining-theories} explains the meanings of these
-constructs.  The syntax obeys the following conventions:
+
+Below we present the full syntax of theory definition files as
+provided by {\Pure} Isabelle --- object-logics may add their own
+sections.  \S\ref{sec:ref-defining-theories} explains the meanings of
+these constructs.  The syntax obeys the following conventions:
 \begin{itemize}
 \item {\tt Typewriter font} denotes terminal symbols.
-\item $id$, $tid$, $nat$, $string$ and $text$ are the lexical classes of
-  identifiers, type identifiers, natural numbers, \ML\ strings (with their
-  quotation marks, but without the need for \verb$\$ at the end of a line and
-  the beginning of the next line) and arbitrary \ML\ text.  The first three
-  are fully defined in \iflabelundefined{Defining-Logics}%
-    {{\it The Isabelle Reference Manual}, chapter `Defining Logics'}%
-    {Chap.\ts\ref{Defining-Logics}}.
+  
+\item $id$, $tid$, $nat$, $string$ and $longident$ are the lexical
+  classes of identifiers, type identifiers, natural numbers, quoted
+  strings (without the need for \verb$\$\dots\verb$\$ between lines)
+  and long qualified \ML{} identifiers.
+  The categories $id$, $tid$, $nat$ are fully defined in \iflabelundefined{Defining-Logics}%
+  {{\it The Isabelle Reference Manual}, chapter `Defining Logics'}%
+  {\S\ref{Defining-Logics}}.
+  
+\item $text$ is all text from the current position to the end of file,
+  $verbatim$ is any text enclosed in \verb.{|.\dots\verb.|}.
+  
+\item Comments in theories take the form {\tt (*}\dots{\tt*)} and may
+  be nested, just as in \ML.
 \end{itemize}
-Comments in theories take the form {\tt (*} {\it text\/} {\tt*)}, where
-{\it text\/} should not contain the character sequence {\tt*)}.
 
 \begin{rail}
 
-theoryDef : id '=' (name + '+') ('+' extension | ());
+theoryDef : id '=' (name + '+') ('+' extension | ())
+          ;
 
-name: id | string;
+name: id | string
+    ;
 
-extension : (section +) 'end' ( () | ml );
+extension : (section +) 'end' ( () | ml )
+          ;
 
 section : classes
         | default
         | types
         | arities
         | consts
-        | constdefs
+        | syntax
         | trans
         | defs
+        | constdefs
         | rules
+        | axclass
+        | instance
         | oracle
         ;
 
-classes : 'classes' ( ( id (  ()
-                            | '<' (id + ',')
-                           ) 
-                       ) + )
+classes : 'classes' ( classDecl + )
+        ;
+
+classDecl : (id (() | '<' (id + ',')))
         ;
 
 default : 'default' sort 
@@ -55,7 +69,8 @@ sort :  id
 types : 'types' ( ( typeDecl ( () | '(' infix ')' ) ) + )
       ;
 
-infix : ( 'infixr' | 'infixl' ) nat;
+infix : ( 'infixr' | 'infixl' ) nat
+      ;
 
 typeDecl : typevarlist name
            ( () | '=' ( string | type ) );
@@ -66,29 +81,31 @@ type : simpleType | '(' type ')' | type '=>' type |
        '[' ( type + "," ) ']' '=>' type;
 
 simpleType: id | ( tid ( () | '::' id ) ) |
-            '(' ( type + "," ) ')' id | simpleType id;
+            '(' ( type + "," ) ')' id | simpleType id
+          ;
 
-
-arities : 'arities' ((( name + ',' ) '::' arity ) + )
+arities : 'arities' ((name + ',') '::' arity +)
         ;
 
-arity   : ( () 
-          | '(' (sort + ',') ')' 
-          ) id
-        ;
+arity : ( () | '(' (sort + ',') ')' ) sort
+      ;
 
-
-consts : 'consts' ( ( constDecl ( () | ( '(' mixfix ')' ) ) ) + )
+consts : 'consts' ( mixfixConstDecl + )
        ;
+
+syntax : 'syntax' (() | mode) ( mixfixConstDecl + );
+
+mode : '(' name (() | 'output') ')'
+     ;
+
+mixfixConstDecl : constDecl (() | ( '(' mixfix ')' ))
+                ;
 
 constDecl : ( name + ',') '::' (string | type);
 
 mixfix :  string ( () | ( () | ('[' (nat + ',') ']')) nat )
-       | infix
+       | ( 'infixr' | 'infixl' ) (() | string) nat
        | 'binder' string nat ;
-
-constdefs : 'constdefs' (id '::' (string | type) string +)
-          ;
 
 trans : 'translations' ( pat ( '==' | '=>' | '<=' ) pat + )
       ;
@@ -100,6 +117,18 @@ rules : 'rules' (( id string ) + )
 
 defs : 'defs' (( id string ) + )
      ;
+
+constdefs : 'constdefs' (id '::' (string | type) string +)
+          ;
+
+axclass : 'axclass' classDecl (() | ( id string ) +)
+        ;
+
+instance : 'instance' ( name '<' name | name '::' arity) witness
+         ;
+
+witness : (() | ((string | longident) + ',')) (() | verbatim)
+        ;
 
 oracle : 'oracle' name
        ;

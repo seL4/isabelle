@@ -25,14 +25,14 @@ Isabelle session, this state consists of a dummy formula.
 
 \section{Basic commands}
 Most proofs begin with {\tt goal} or {\tt goalw} and require no other
-commands than {\tt by}, {\tt chop} and {\tt undo}.  They typically end with
-a call to {\tt result}.
+commands than {\tt by}, {\tt chop} and {\tt undo}.  They typically end
+with a call to {\tt qed}.
 \subsection{Starting a backward proof}
 \index{proofs!starting}
 \begin{ttbox} 
 goal        : theory -> string -> thm list 
 goalw       : theory -> thm list -> string -> thm list 
-goalw_cterm : thm list -> Sign.cterm -> thm list 
+goalw_cterm : thm list -> cterm -> thm list 
 premises    : unit -> thm list
 \end{ttbox}
 The {\tt goal} commands start a new proof by setting the goal.  They
@@ -46,10 +46,11 @@ something like
 \begin{ttbox} 
 val prems = goal{\it theory\/ formula};
 \end{ttbox}\index{assumptions!of main goal}
-These assumptions serve as the premises when you are deriving a rule.  They
-are also stored internally and can be retrieved later by the function {\tt
-  premises}.  When the proof is finished, {\tt result} compares the
-stored assumptions with the actual assumptions in the proof state.
+These assumptions serve as the premises when you are deriving a rule.
+They are also stored internally and can be retrieved later by the
+function {\tt premises}.  When the proof is finished, {\tt qed}
+compares the stored assumptions with the actual assumptions in the
+proof state.
 
 \index{definitions!unfolding}
 Some of the commands unfold definitions using meta-rewrite rules.  This
@@ -74,11 +75,11 @@ is like {\tt goal} but also applies the list of {\it defs\/} as
 meta-rewrite rules to the first subgoal and the premises.
 \index{meta-rewriting}
 
-\item[\ttindexbold{goalw_cterm} {\it theory} {\it defs} {\it ct};] 
-is a version of {\tt goalw} for programming applications.  The main goal is
-supplied as a cterm, not as a string.  Typically, the cterm is created from
-a term~$t$ by \hbox{\tt Sign.cterm_of (sign_of thy) $t$}.
-\index{*Sign.cterm_of}\index{*sign_of}
+\item[\ttindexbold{goalw_cterm} {\it theory} {\it defs} {\it ct};] is
+  a version of {\tt goalw} for programming applications.  The main
+  goal is supplied as a cterm, not as a string.  Typically, the cterm
+  is created from a term~$t$ by \hbox{\tt cterm_of (sign_of thy) $t$}.
+  \index{*cterm_of}\index{*sign_of}
 
 \item[\ttindexbold{premises}()] 
 returns the list of meta-hypotheses associated with the current proof (in
@@ -398,7 +399,7 @@ prove_goal :         theory->          string->(thm list->tactic list)->thm
 qed_goal   : string->theory->          string->(thm list->tactic list)->unit
 prove_goalw:         theory->thm list->string->(thm list->tactic list)->thm
 qed_goalw  : string->theory->thm list->string->(thm list->tactic list)->unit
-prove_goalw_cterm: thm list->Sign.cterm->(thm list->tactic list)->thm
+prove_goalw_cterm: thm list->cterm->(thm list->tactic list)->thm
 \end{ttbox}
 These batch functions create an initial proof state, then apply a tactic to
 it, yielding a sequence of final proof states.  The head of the sequence is
@@ -413,11 +414,11 @@ the main goal.  The resulting tactics are applied in sequence (using {\tt
 \begin{ttbox} 
 val prems = goal {\it theory} {\it formula};
 by \(tac@1\);  \ldots  by \(tac@n\);
-val my_thm = result();
+qed "my_thm";
 \end{ttbox}
 can be transformed to an expression as follows:
 \begin{ttbox} 
-val my_thm = prove_goal {\it theory} {\it formula}
+qed_goal "my_thm" {\it theory} {\it formula}
  (fn prems=> [ \(tac@1\), \ldots, \(tac@n\) ]);
 \end{ttbox}
 The methods perform identical processing of the initial {\it formula} and
@@ -449,9 +450,9 @@ is a version of {\tt prove_goalw} for programming applications.  The main
 goal is supplied as a cterm, not as a string.  Typically, the cterm is
 created from a term~$t$ as follows:
 \begin{ttbox}
-Sign.cterm_of (sign_of thy) \(t\)
+cterm_of (sign_of thy) \(t\)
 \end{ttbox}
-\index{*Sign.cterm_of}\index{*sign_of}
+\index{*cterm_of}\index{*sign_of}
 \end{ttdescription}
 
 

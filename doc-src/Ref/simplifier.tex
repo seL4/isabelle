@@ -83,9 +83,9 @@ second but will leave the assumptions unchanged. See
 \S\ref{sec:reordering-asms} for ways around this problem.
 \end{warn}
 
-Using the simplifier effectively may take a bit of experimentation.  
-\index{tracing!of simplification|)}\ttindex{trace_simp}
-The tactics can be traced with the ML command \verb$trace_simp := true$.
+Using the simplifier effectively may take a bit of experimentation.
+\index{tracing!of simplification}\index{*trace_simp} The tactics can
+be traced by setting \verb$trace_simp := true$.
 
 There is not just one global current simpset, but one associated with each
 theory as well. How are these simpset built up?
@@ -145,10 +145,9 @@ solver and the looper.  The simplifier should be set up with sensible
 defaults so that most simplifier calls specify only rewrite rules.
 Experienced users can exploit the other components to streamline proofs.
 
-Logics like \HOL, which support a current simpset\index{simpset!current},
-store its value in an ML reference variable usually called {\tt
-  simpset}\index{simpset@{\tt simpset} ML value}. It can be accessed via
-{\tt!simpset} and updated via {\tt simpset := \dots}.
+Logics like \HOL, which support a current
+simpset\index{simpset!current}, store its value in an ML reference
+variable called {\tt simpset}\index{simpset@{\tt simpset} ML value}.
 
 \subsection{Rewrite rules}
 \index{rewrite rules|(}
@@ -159,7 +158,7 @@ Rewrite rules are theorems expressing some form of equality:
   \Var{A} \un \Var{B} &\equiv& \{x.x\in \Var{A} \disj x\in \Var{B}\}
 \end{eqnarray*}
 Conditional rewrites such as $\Var{m}<\Var{n} \Imp \Var{m}/\Var{n} =
-0$ are permitted; the conditions can be arbitrary terms.
+0$ are permitted; the conditions can be arbitrary formulas.
 
 Internally, all rewrite rules are translated into meta-equalities, theorems
 with conclusion $lhs \equiv rhs$.  Each simpset contains a function for
@@ -200,7 +199,7 @@ There is no restriction on the form of the right-hand sides.
 
 \subsection{*Congruence rules}\index{congruence rules}
 Congruence rules are meta-equalities of the form
-\[ \List{\dots} \Imp
+\[ \dots \Imp
    f(\Var{x@1},\ldots,\Var{x@n}) \equiv f(\Var{y@1},\ldots,\Var{y@n}).
 \]
 This governs the simplification of the arguments of~$f$.  For
@@ -272,26 +271,27 @@ simplification.  Typically it just proves trivial subgoals such as {\tt
   True} and $t=t$.  It could use sophisticated means such as {\tt
   fast_tac}, though that could make simplification expensive. 
 
-Rewriting does not instantiate unknowns.  For example, rewriting cannot
-prove $a\in \Var{A}$ since this requires instantiating~$\Var{A}$.  The
-solver, however, is an arbitrary tactic and may instantiate unknowns as it
-pleases.  This is the only way the simplifier can handle a conditional
-rewrite rule whose condition contains extra variables. When a simplification 
-tactic is to be combined with other provers, especially with the classical 
-reasoner, it is important whether it can be considered safe or not. Therefore,
-the solver is split into a safe and anunsafe part. Both parts can be set 
-independently of each other using 
-\ttindex{setSSolver} (with a safe tactic as argument) and \ttindex{setSolver}
-(with an unsafe tactic) . Additional solvers, which are tried after the already
-set solvers, may be added using \ttindex{addSSolver} and \ttindex{addSolver}. 
+Rewriting does not instantiate unknowns.  For example, rewriting
+cannot prove $a\in \Var{A}$ since this requires
+instantiating~$\Var{A}$.  The solver, however, is an arbitrary tactic
+and may instantiate unknowns as it pleases.  This is the only way the
+simplifier can handle a conditional rewrite rule whose condition
+contains extra variables. When a simplification tactic is to be
+combined with other provers, especially with the classical reasoner,
+it is important whether it can be considered safe or not. Therefore,
+the solver is split into a safe and an unsafe part. Both parts can be
+set independently, using either \ttindex{setSSolver} with a safe
+tactic as argument, or \ttindex{setSolver} with an unsafe tactic.
+Additional solvers, which are tried after the already set solvers, may
+be added using \ttindex{addSSolver} and \ttindex{addSolver}.
 
-The standard simplification procedures uses solely the unsafe solver, which is
-appropriate in most cases. But for special applications, where the simplification
-process is not allowed to instantiate unknowns within the goal, the tactic 
-\ttindexbold{safe_asm_full_simp_tac} is provided. Like {\tt asm_full_simp_tac}, 
-it uses the unsafe solver for any embedded simplification steps 
-(i.e. for solving subgoals created by the subgoaler), 
-but for the current subgoal, it applies the safe solver.
+The standard simplification strategy solely uses the unsafe solver,
+which is appropriate in most cases. But for special applications where
+the simplification process is not allowed to instantiate unknowns
+within the goal, the tactic \ttindexbold{safe_asm_full_simp_tac} is
+provided. It uses the \emph{safe} solver for the current subgoal, but
+applies ordinary unsafe {\tt asm_full_simp_tac} for recursive internal
+simplifications (for conditional rules or congruences).
 
 \index{assumptions!in simplification}
 The tactic is presented with the full goal, including the asssumptions.
@@ -308,16 +308,17 @@ solver, which must therefore be prepared to solve goals of the form $t =
 \Var{x}$, usually by reflexivity.  In particular, reflexivity should be
 tried before any of the fancy tactics like {\tt fast_tac}.  
 
-It may even happen that, due to simplification, the subgoal is no longer an
-equality.  For example $False \bimp \Var{Q}$ could be rewritten to
-$\neg\Var{Q}$.  To cover this case, the solver could try resolving with the
-theorem $\neg False$.
+It may even happen that due to simplification the subgoal is no longer
+an equality.  For example $False \bimp \Var{Q}$ could be rewritten to
+$\neg\Var{Q}$.  To cover this case, the solver could try resolving
+with the theorem $\neg False$.
 
 \begin{warn}
-  If the simplifier aborts with the message {\tt Failed congruence proof!},
-  then the subgoaler or solver has failed to prove a premise of a
-  congruence rule.  This should never occur; it indicates that some
-  congruence rule, or possibly the subgoaler or solver, is faulty.
+  If the simplifier aborts with the message {\tt Failed congruence
+    proof!}, then the subgoaler or solver has failed to prove a
+  premise of a congruence rule.  This should never occur under normal
+  circumstances; it indicates that some congruence rule, or possibly
+  the subgoaler or solver, is faulty.
 \end{warn}
 
 
@@ -430,9 +431,9 @@ congruence rules, which are applied while descending into a term.  Conditions
 in conditional rewrite rules are solved recursively before the rewrite rule
 is applied.
 
-The infix operations \ttindex{addsimps}/\ttindex{delsimps} add/delete rewrite
-rules to/from a simpset. They are used to implement \ttindex{Addsimps} and
-\ttindex{Delsimps}, e.g.
+The infix operation \ttindex{addsimps} adds rewrite rules to a
+simpset, while \ttindex{delsimps} deletes them.  They are used to
+implement \ttindex{Addsimps} and \ttindex{Delsimps}, e.g.
 \begin{ttbox}
 fun Addsimps thms = (simpset := (!simpset addsimps thms));
 \end{ttbox}
@@ -515,7 +516,7 @@ by (asm_simp_tac add_ss 1);
 \end{ttbox}
 
 \subsection{An example of tracing}
-\index{tracing!of simplification|(}\ttindex{trace_simp|(}
+\index{tracing!of simplification|(}\index{*trace_simp}
 Let us prove a similar result involving more complex terms.  The two
 equations together can be used to prove that addition is commutative.
 \begin{ttbox}
@@ -572,7 +573,7 @@ by (ALLGOALS (asm_simp_tac add_ss));
 {\out m + Suc(n) = Suc(m + n)}
 {\out No subgoals!}
 \end{ttbox}
-\index{tracing!of simplification|)}\ttindex{trace_simp|)}
+\index{tracing!of simplification|)}
 
 \subsection{Free variables and simplification}
 Here is a conjecture to be proved for an arbitrary function~$f$ satisfying
@@ -663,7 +664,7 @@ for sets.  Such rules are common enough to merit special attention.
 
 Because ordinary rewriting loops given such rules, the simplifier employs a
 special strategy, called {\bf ordered rewriting}\index{rewriting!ordered}.
-There is a built-in lexicographic ordering on terms.  A permutative rewrite
+There is a standard lexicographic ordering on terms.  A permutative rewrite
 rule is applied only if it decreases the given term with respect to this
 ordering.  For example, commutativity rewrites~$b+a$ to $a+b$, but then
 stops because $a+b$ is strictly less than $b+a$.  The Boyer-Moore theorem
@@ -692,74 +693,73 @@ Martin and Nipkow~\cite{martin-nipkow} discuss the theory and give many
 examples; other algebraic structures are amenable to ordered rewriting,
 such as boolean rings.
 
-\subsection{Example: sums of integers}
-This example is set in Isabelle's higher-order logic.  Theory
-\thydx{Arith} contains the theory of arithmetic.  The simpset {\tt
-  arith_ss} contains many arithmetic laws including distributivity
-of~$\times$ over~$+$, while {\tt add_ac} is a list consisting of the A, C
-and LC laws for~$+$.  Let us prove the theorem 
+\subsection{Example: sums of natural numbers}
+This example is set in \HOL\ (see \texttt{HOL/ex/NatSum}).  Theory
+\thydx{Arith} contains natural numbers arithmetic.  Its associated
+simpset contains many arithmetic laws including distributivity
+of~$\times$ over~$+$, while {\tt add_ac} is a list consisting of the
+A, C and LC laws for~$+$ on type \texttt{nat}.  Let us prove the
+theorem
 \[ \sum@{i=1}^n i = n\times(n+1)/2. \]
 %
 A functional~{\tt sum} represents the summation operator under the
-interpretation ${\tt sum}(f,n+1) = \sum@{i=0}^n f(i)$.  We extend {\tt
-  Arith} using a theory file:
+interpretation ${\tt sum} \, f \, (n + 1) = \sum@{i=0}^n f\,i$.  We
+extend {\tt Arith} using a theory file:
 \begin{ttbox}
 NatSum = Arith +
 consts sum     :: [nat=>nat, nat] => nat
-rules  sum_0      "sum(f,0) = 0"
-       sum_Suc    "sum(f,Suc(n)) = f(n) + sum(f,n)"
+rules  sum_0      "sum f 0 = 0"
+       sum_Suc    "sum f (Suc n) = f n + sum f n"
 end
 \end{ttbox}
-After declaring {\tt open NatSum}, we make the required simpset by adding
-the AC-rules for~$+$ and the axioms for~{\tt sum}:
+We make the required simpset by adding the AC-rules for~$+$ and the
+axioms for~{\tt sum}:
 \begin{ttbox}
-val natsum_ss = arith_ss addsimps ([sum_0,sum_Suc] \at add_ac);
-{\out val natsum_ss = SS \{\ldots\} : simpset}
+val natsum_ss = simpset_of "Arith" addsimps ([sum_0,sum_Suc] \at add_ac);
+{\out val natsum_ss = \ldots : simpset}
 \end{ttbox}
-Our desired theorem now reads ${\tt sum}(\lambda i.i,n+1) =
+Our desired theorem now reads ${\tt sum} \, (\lambda i.i) \, (n+1) =
 n\times(n+1)/2$.  The Isabelle goal has both sides multiplied by~$2$:
 \begin{ttbox}
-goal NatSum.thy "Suc(Suc(0))*sum(\%i.i,Suc(n)) = n*Suc(n)";
+goal NatSum.thy "2 * sum (\%i.i) (Suc n) = n * Suc n";
 {\out Level 0}
-{\out Suc(Suc(0)) * sum(\%i. i, Suc(n)) = n * Suc(n)}
-{\out  1. Suc(Suc(0)) * sum(\%i. i, Suc(n)) = n * Suc(n)}
+{\out 2 * sum (\%i. i) (Suc n) = n * Suc n}
+{\out  1. 2 * sum (\%i. i) (Suc n) = n * Suc n}
 \end{ttbox}
-Induction should not be applied until the goal is in the simplest form:
+Induction should not be applied until the goal is in the simplest
+form:
 \begin{ttbox}
 by (simp_tac natsum_ss 1);
 {\out Level 1}
-{\out Suc(Suc(0)) * sum(\%i. i, Suc(n)) = n * Suc(n)}
-{\out  1. n + (n + (sum(\%i. i, n) + sum(\%i. i, n))) = n + n * n}
+{\out 2 * sum (\%i. i) (Suc n) = n * Suc n}
+{\out  1. n + (sum (\%i. i) n + sum (\%i. i) n) = n * n}
 \end{ttbox}
-Ordered rewriting has sorted the terms in the left-hand side.
-The subgoal is now ready for induction:
+Ordered rewriting has sorted the terms in the left-hand side.  The
+subgoal is now ready for induction:
 \begin{ttbox}
 by (nat_ind_tac "n" 1);
 {\out Level 2}
-{\out Suc(Suc(0)) * sum(\%i. i, Suc(n)) = n * Suc(n)}
-{\out  1. 0 + (0 + (sum(\%i. i, 0) + sum(\%i. i, 0))) = 0 + 0 * 0}
+{\out 2 * sum (\%i. i) (Suc n) = n * Suc n}
+{\out  1. 0 + (sum (\%i. i) 0 + sum (\%i. i) 0) = 0 * 0}
 \ttbreak
-{\out  2. !!n1. n1 + (n1 + (sum(\%i. i, n1) + sum(\%i. i, n1))) =}
-{\out           n1 + n1 * n1 ==>}
-{\out           Suc(n1) +}
-{\out           (Suc(n1) + (sum(\%i. i, Suc(n1)) + sum(\%i. i, Suc(n1)))) =}
-{\out           Suc(n1) + Suc(n1) * Suc(n1)}
+{\out  2. !!n1. n1 + (sum (\%i. i) n1 + sum (\%i. i) n1) = n1 * n1}
+{\out           ==> Suc n1 + (sum (\%i. i) (Suc n1) + sum (\%i. i) (Suc n1)) =}
+{\out               Suc n1 * Suc n1}
 \end{ttbox}
 Simplification proves both subgoals immediately:\index{*ALLGOALS}
 \begin{ttbox}
 by (ALLGOALS (asm_simp_tac natsum_ss));
 {\out Level 3}
-{\out Suc(Suc(0)) * sum(\%i. i, Suc(n)) = n * Suc(n)}
+{\out 2 * sum (\%i. i) (Suc n) = n * Suc n}
 {\out No subgoals!}
 \end{ttbox}
 If we had omitted {\tt add_ac} from the simpset, simplification would have
 failed to prove the induction step:
 \begin{ttbox}
-Suc(Suc(0)) * sum(\%i. i, Suc(n)) = n * Suc(n)
- 1. !!n1. n1 + (n1 + (sum(\%i. i, n1) + sum(\%i. i, n1))) =
-          n1 + n1 * n1 ==>
-          n1 + (n1 + (n1 + sum(\%i. i, n1) + (n1 + sum(\%i. i, n1)))) =
-          n1 + (n1 + (n1 + n1 * n1))
+2 * sum (\%i. i) (Suc n) = n * Suc n
+ 1. !!n1. n1 + sum (\%i. i) n1 + (n1 + sum (\%i. i) n1) = n1 + n1 * n1
+          ==> n1 + (n1 + sum (\%i. i) n1) + (n1 + (n1 + sum (\%i. i) n1)) =
+              n1 + (n1 + (n1 + n1 * n1))
 \end{ttbox}
 Ordered rewriting proves this by sorting the left-hand side.  Proving
 arithmetic theorems without ordered rewriting requires explicit use of
@@ -811,7 +811,7 @@ use "../Provers/splitter.ML";
 Simplification works by reducing various object-equalities to
 meta-equality.  It requires rules stating that equal terms and equivalent
 formulae are also equal at the meta-level.  The rule declaration part of
-the file {\tt FOL/ifol.thy} contains the two lines
+the file {\tt FOL/IFOL.thy} contains the two lines
 \begin{ttbox}\index{*eq_reflection theorem}\index{*iff_reflection theorem}
 eq_reflection   "(x=y)   ==> (x==y)"
 iff_reflection  "(P<->Q) ==> (P==Q)"

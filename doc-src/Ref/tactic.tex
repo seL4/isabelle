@@ -1,10 +1,10 @@
 %% $Id$
 \chapter{Tactics} \label{tactics}
-\index{tactics|(}
-Tactics have type \mltydx{tactic}.  They are essentially
-functions from theorems to theorem sequences, where the theorems represent
-states of a backward proof.  Tactics seldom need to be coded from scratch,
-as functions; instead they are expressed using basic tactics and tacticals.
+\index{tactics|(} Tactics have type \mltydx{tactic}.  This is just an
+abbreviation for functions from theorems to theorem sequences, where
+the theorems represent states of a backward proof.  Tactics seldom
+need to be coded from scratch, as functions; instead they are
+expressed using basic tactics and tacticals.
 
 This chapter only presents the primitive tactics.  Substantial proofs require
 the power of simplification (Chapter~\ref{simp-chap}) and classical reasoning
@@ -561,26 +561,17 @@ really need to code tactics from scratch.
 \index{tactics!primitives for coding}
 A tactic maps theorems to theorem sequences (lazy lists).  The type
 constructor for sequences is called \mltydx{Sequence.seq}.  To simplify the
-types of tactics and tacticals, Isabelle defines a type of tactics:
+types of tactics and tacticals, Isabelle defines a type abbreviations:
 \begin{ttbox} 
-datatype tactic = Tactic of thm -> thm Sequence.seq
+type tactic = thm -> thm Sequence.seq
 \end{ttbox} 
-{\tt Tactic} and {\tt tapply} convert between tactics and functions.  The
-other operations provide means for coding tactics in a clean style.
+The following operations provide means for coding tactics in a clean style.
 \begin{ttbox} 
-tapply    : tactic * thm -> thm Sequence.seq
-Tactic    :     (thm -> thm Sequence.seq) -> tactic
 PRIMITIVE :                  (thm -> thm) -> tactic  
 STATE     :               (thm -> tactic) -> tactic
 SUBGOAL   : ((term*int) -> tactic) -> int -> tactic
 \end{ttbox} 
 \begin{ttdescription}
-\item[\ttindexbold{tapply}({\it tac}, {\it thm})]  
-returns the result of applying the tactic, as a function, to {\it thm}.
-
-\item[\ttindexbold{Tactic} {\it f}]  
-packages {\it f} as a tactic.
-
 \item[\ttindexbold{PRIMITIVE} $f$] 
 applies $f$ to the proof state and returns the result as a
 one-element sequence.  This packages the meta-rule~$f$ as a tactic.

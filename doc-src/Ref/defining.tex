@@ -266,7 +266,7 @@ terminals; they are just syntactic sugar and contribute nothing to the
 abstract syntax tree.
 
 
-\subsection{*Inspecting the syntax}
+\subsection{*Inspecting the syntax} \label{pg:print_syn}
 \begin{ttbox}
 syn_of              : theory -> Syntax.syntax
 print_syntax        : theory -> unit
@@ -311,6 +311,7 @@ Syntax.print_syntax (syn_of Pure.thy);
 {\out   type = tvar "::" sort[0]  => "_ofsort" (1000)}
 {\out   \vdots}
 \ttbreak
+{\out print modes: "symbols" "xterm"}
 {\out consts: "_K" "_appl" "_aprop" "_args" "_asms" "_bigimpl" \dots}
 {\out parse_ast_translation: "_appl" "_bigimpl" "_bracket"}
 {\out   "_idtyp" "_lambda" "_tapp" "_tappl"}
@@ -353,6 +354,9 @@ explanation of the various sections.
     conceptually, they are removed from the grammar by adding new
     productions.  Priority information attached to chain productions is
     ignored; only the dummy value $-1$ is displayed.
+    
+  \item[\ttindex{print_modes}] lists the alternative print modes
+    provided by this syntax (see \S\ref{sec:prmodes}).
 
   \item[{\tt consts}, {\tt parse_rules}, {\tt print_rules}]
     relate to macros (see \S\ref{sec:macros}).
@@ -483,7 +487,7 @@ This theory specification contains a {\tt syntax} section with mixfix
 declarations encoding the priority grammar from
 \S\ref{sec:priority_grammars}:
 \begin{ttbox}
-EXP = Pure +
+ExpSyntax = Pure +
 types
   exp
 syntax
@@ -493,10 +497,10 @@ syntax
   "-" :: exp => exp          ("- _"    [3] 3)
 end
 \end{ttbox}
-If you put this into a file {\tt EXP.thy} and load it via {\tt use_thy"EXP"},
-you can run some tests:
+If you put this into a file {\tt ExpSyntax.thy} and load it via {\tt
+  use_thy"ExpSyntax"}, you can run some tests:
 \begin{ttbox}
-val read_exp = Syntax.test_read (syn_of EXP.thy) "exp";
+val read_exp = Syntax.test_read (syn_of ExpSyntax.thy) "exp";
 {\out val it = fn : string -> unit}
 read_exp "0 * 0 * 0 * 0 + 0 + 0 + 0";
 {\out tokens: "0" "*" "0" "*" "0" "*" "0" "+" "0" "+" "0" "+" "0"}
@@ -515,18 +519,19 @@ provided by the macro expander (see \S\ref{sec:macros}).
 Executing {\tt Syntax.print_gram} reveals the productions derived from the
 above mixfix declarations (lots of additional information deleted):
 \begin{ttbox}
-Syntax.print_gram (syn_of EXP.thy);
+Syntax.print_gram (syn_of ExpSyntax.thy);
 {\out exp = "0"  => "0" (9)}
 {\out exp = exp[0] "+" exp[1]  => "+" (0)}
 {\out exp = exp[3] "*" exp[2]  => "*" (2)}
 {\out exp = "-" exp[3]  => "-" (3)}
 \end{ttbox}
 
-Note that because {\tt exp} is not of class {\tt logic}, it has been retained
-as a separate nonterminal. This also entails that the syntax does not provide
-for identifiers or paranthesized expressions. Normally you would also want to
-add the declaration {\tt arities exp :: logic} and use {\tt consts} instead
-of {\tt syntax}. Try this as an exercise and study the changes in the
+Note that because {\tt exp} is not of class {\tt logic}, it has been
+retained as a separate nonterminal. This also entails that the syntax
+does not provide for identifiers or paranthesized expressions.
+Normally you would also want to add the declaration {\tt arities
+  exp::logic} after {\tt types} and use {\tt consts} instead of {\tt
+  syntax}. Try this as an exercise and study the changes in the
 grammar.
 
 \subsection{The mixfix template}
@@ -576,10 +581,9 @@ Paulson~\cite{paulson91}.
 \subsection{Infixes}
 \indexbold{infixes}
 
-Infix operators associating to the left or right can be declared
-using {\tt infixl} or {\tt infixr}.
-Roughly speaking, the form {\tt $c$ ::\ $\sigma$ (infixl $p$)}
-abbreviates the mixfix declarations
+Infix operators associating to the left or right can be declared using
+{\tt infixl} or {\tt infixr}.  Basically, the form {\tt $c$ ::\ 
+  $\sigma$ (infixl $p$)} abbreviates the mixfix declarations
 \begin{ttbox}
 "op \(c\)" :: \(\sigma\)   ("(_ \(c\)/ _)" [\(p\), \(p+1\)] \(p\))
 "op \(c\)" :: \(\sigma\)   ("op \(c\)")
@@ -593,6 +597,16 @@ The infix operator is declared as a constant with the prefix {\tt op}.
 Thus, prefixing infixes with \sdx{op} makes them behave like ordinary
 function symbols, as in \ML.  Special characters occurring in~$c$ must be
 escaped, as in delimiters, using a single quote.
+
+A slightly more general form of infix declarations allows constant
+names to be independent from their concrete syntax, namely \texttt{$c$
+  ::\ $\sigma$\ (infixl "$sy$" $p$)}, the same for \texttt{infixr}. As
+an example consider:
+\begin{ttbox}
+and :: [bool, bool] => bool  (infixr "&" 35)
+\end{ttbox}
+The internal constant name will then be just \texttt{and}, without any
+\texttt{op} prefixed.
 
 
 \subsection{Binders}
@@ -641,6 +655,45 @@ can be polymorphic.
 \endgroup
 
 \index{mixfix declarations|)}
+
+
+\section{*Alternative print modes} \label{sec:prmodes}
+\index{print modes|(}
+%
+Isabelle's pretty printer supports alternative output syntaxes. These
+may be used independently or in cooperation. The currently active
+print modes (with precedence from left to right) are determined by a
+reference variable.
+\begin{ttbox}\index{*print_mode}
+print_mode: string list ref
+\end{ttbox}
+Initially this may already contain some print mode identifiers,
+depending on how Isabelle has been invoked (e.g.\ by some user
+interface). So changes should be incremental --- adding or deleting
+modes relative to the current value.
+
+Any \ML{} string is a legal print mode identifier, without any
+predeclaration required.  The following names should be considered
+reserved, though: \texttt{""} (yes, the empty string),
+\texttt{symbols}, \texttt{latex}, \texttt{xterm}.
+
+There is a separate table of mixfix productions for pretty printing
+associated with each print mode. The currently active ones are
+conceptually just concatenated from left to right, with the standard
+syntax output table always coming last as default.  Thus mixfix
+productions of preceding modes in the list may override those of later
+ones.  Also note that token translations are always relative to some
+print mode (see \S\ref{sec:tok_tr}).
+
+\medskip The canonical application of print modes is optional printing
+of mathematical symbols from a special screen font instead of {\sc
+  ascii}. Another example is to re-use Isabelle's advanced
+$\lambda$-term printing mechanisms to generate completely different
+output, say for interfacing external tools like model checkers (e.g.\ 
+see \texttt{HOL/ex/EindhovenMC.thy}).
+
+\index{print modes|)}
+
 
 \section{Ambiguity of parsed expressions} \label{sec:ambiguity}
 \index{ambiguity!of parsed expressions}
@@ -810,12 +863,7 @@ rules
 end
 \end{ttbox}
 And if we want to have all three connectives together, we create and load a
-theory file consisting of a single line:\footnote{We can combine the
-  theories without creating a theory file using the ML declaration
-\begin{ttbox}
-val MinIFC_thy = merge_theories(MinIF,MinC)
-\end{ttbox}
-\index{*merge_theories|fnote}}
+theory file consisting of a single line:
 \begin{ttbox}
 MinIFC = MinIF + MinC
 \end{ttbox}

@@ -2,15 +2,16 @@
 \chapter{Theorems and Forward Proof}
 \index{theorems|(}
 
-Theorems, which represent the axioms, theorems and rules of object-logics,
-have type \mltydx{thm}.  This chapter begins by describing operations that
-print theorems and that join them in forward proof.  Most theorem
-operations are intended for advanced applications, such as programming new
-proof procedures.  Many of these operations refer to signatures, certified
-terms and certified types, which have the \ML{} types {\tt Sign.sg}, {\tt
-  Sign.cterm} and {\tt Sign.ctyp} and are discussed in
-Chapter~\ref{theories}.  Beginning users should ignore such complexities
---- and skip all but the first section of this chapter.
+Theorems, which represent the axioms, theorems and rules of
+object-logics, have type \mltydx{thm}.  This chapter begins by
+describing operations that print theorems and that join them in
+forward proof.  Most theorem operations are intended for advanced
+applications, such as programming new proof procedures.  Many of these
+operations refer to signatures, certified terms and certified types,
+which have the \ML{} types {\tt Sign.sg}, {\tt cterm} and {\tt ctyp}
+and are discussed in Chapter~\ref{theories}.  Beginning users should
+ignore such complexities --- and skip all but the first section of
+this chapter.
 
 The theorem operations do not print error messages.  Instead, they raise
 exception~\xdx{THM}\@.  Use \ttindex{print_exn} to display
@@ -134,9 +135,9 @@ serves little purpose in forward proof.
 \subsection{Instantiating a theorem}
 \index{instantiation}
 \begin{ttbox}
-read_instantiate    :            (string*string)list -> thm -> thm
-read_instantiate_sg : Sign.sg -> (string*string)list -> thm -> thm
-cterm_instantiate   :    (Sign.cterm*Sign.cterm)list -> thm -> thm
+read_instantiate    :            (string * string) list -> thm -> thm
+read_instantiate_sg : Sign.sg -> (string * string) list -> thm -> thm
+cterm_instantiate   :              (cterm * cterm) list -> thm -> thm
 \end{ttbox}
 These meta-rules instantiate type and term unknowns in a theorem.  They are
 occasionally useful.  They can prevent difficulties with higher-order
@@ -177,10 +178,11 @@ make_elim        :           thm -> thm
 rule_by_tactic   : tactic -> thm -> thm
 \end{ttbox}
 \begin{ttdescription}
-\item[\ttindexbold{standard} $thm$]  
-puts $thm$ into the standard form of object-rules.  It discharges all
-meta-assumptions, replaces free variables by schematic variables, and
-renames schematic variables to have subscript zero.
+\item[\ttindexbold{standard} $thm$] puts $thm$ into the standard form
+  of object-rules.  It discharges all meta-assumptions, replaces free
+  variables by schematic variables, renames schematic variables to
+  have subscript zero, also strips outer (meta) quantifiers and
+  removes dangling sort hypotheses.
 
 \item[\ttindexbold{zero_var_indexes} $thm$] 
 makes all schematic variables have subscript zero, renaming them to avoid
@@ -213,8 +215,8 @@ tpairs_of     : thm -> (term*term)list
 stamps_of_thy : thm -> string ref list
 theory_of_thm : thm -> theory
 dest_state    : thm*int -> (term*term)list*term list*term*term
-rep_thm       : thm -> \{prop: term, hyps: term list, der: deriv, 
-                        maxidx: int, sign: Sign.sg, shyps: sort list\}
+rep_thm       : thm -> {\ttlbrace}prop: term, hyps: term list, der: deriv, 
+                        maxidx: int, sign: Sign.sg, shyps: sort list\ttrbrace
 \end{ttbox}
 \begin{ttdescription}
 \item[\ttindexbold{concl_of} $thm$] 
@@ -267,10 +269,11 @@ terms and other types.  But when type classes are introduced through axioms,
 this may result in some sorts becoming {\em empty\/}: where one cannot exhibit
 a type belonging to it because certain axioms are unsatisfiable.
 
-If a theorem contain a type variable whose sort is empty, then that theorem
-has no instances.  In effect, it asserts nothing.  But what if it is used to
-prove another theorem that no longer involves that sort?  The latter theorem
-holds only if the sort is non-empty.
+If a theorem contains a type variable that is constrained by an empty
+sort, then that theorem has no instances. It is basically an instance
+of {\em ex falso quodlibet}.  But what if it is used to prove another
+theorem that no longer involves that sort?  The latter theorem holds
+only if under an additional non-emptiness assumption.
 
 Therefore, Isabelle's theorems carry around sort hypotheses. The {\tt
 shyps} field is a list of sorts occurring in type variables in the current
@@ -334,9 +337,11 @@ discharge assumptions; in most other rules, the conclusion depends on all
 of the assumptions of the premises.  Formally, the system works with
 assertions of the form
 \[ \phi \quad [\phi@1,\ldots,\phi@n], \]
-where $\phi@1$,~\ldots,~$\phi@n$ are the assumptions.  Do not confuse
-meta-level assumptions with the object-level assumptions in a subgoal,
-which are represented in the meta-logic using~$\Imp$.
+where $\phi@1$,~\ldots,~$\phi@n$ are the assumptions.  This can be
+also read as a single conclusion sequent $\phi@1,\ldots,\phi@n \vdash
+\phi$. Do not confuse meta-level assumptions with the object-level
+assumptions in a subgoal, which are represented in the meta-logic
+using~$\Imp$.
 
 Each theorem has a signature.  Certified terms have a signature.  When a
 rule takes several premises and certified terms, it merges the signatures
@@ -385,7 +390,7 @@ E)$:\footnote{$(\Forall I)$ holds if $x$ is not free in the assumptions.}
 \subsection{Assumption rule}
 \index{meta-assumptions}
 \begin{ttbox} 
-assume: Sign.cterm -> thm
+assume: cterm -> thm
 \end{ttbox}
 \begin{ttdescription}
 \item[\ttindexbold{assume} $ct$] 
@@ -397,8 +402,8 @@ are not allowed in assumptions.
 \subsection{Implication rules}
 \index{meta-implication}
 \begin{ttbox} 
-implies_intr      : Sign.cterm -> thm -> thm
-implies_intr_list : Sign.cterm list -> thm -> thm
+implies_intr      : cterm -> thm -> thm
+implies_intr_list : cterm list -> thm -> thm
 implies_intr_hyps : thm -> thm
 implies_elim      : thm -> thm -> thm
 implies_elim_list : thm -> thm list -> thm
@@ -450,7 +455,7 @@ $\phi\equiv\psi$ and $\phi$ to the conclusion~$\psi$.
 \subsection{Equality rules}
 \index{meta-equality}
 \begin{ttbox} 
-reflexive  : Sign.cterm -> thm
+reflexive  : cterm -> thm
 symmetric  : thm -> thm
 transitive : thm -> thm -> thm
 \end{ttbox}
@@ -469,9 +474,9 @@ maps the premises $a\equiv b$ and $b\equiv c$ to the conclusion~${a\equiv c}$.
 \subsection{The $\lambda$-conversion rules}
 \index{lambda calc@$\lambda$-calculus}
 \begin{ttbox} 
-beta_conversion : Sign.cterm -> thm
+beta_conversion : cterm -> thm
 extensional     : thm -> thm
-abstract_rule   : string -> Sign.cterm -> thm -> thm
+abstract_rule   : string -> cterm -> thm -> thm
 combination     : thm -> thm -> thm
 \end{ttbox} 
 There is no rule for $\alpha$-conversion because Isabelle regards
@@ -503,9 +508,9 @@ g(b)$.
 \subsection{Forall introduction rules}
 \index{meta-quantifiers}
 \begin{ttbox} 
-forall_intr       : Sign.cterm      -> thm -> thm
-forall_intr_list  : Sign.cterm list -> thm -> thm
-forall_intr_frees :                    thm -> thm
+forall_intr       : cterm      -> thm -> thm
+forall_intr_list  : cterm list -> thm -> thm
+forall_intr_frees :               thm -> thm
 \end{ttbox}
 
 \begin{ttdescription}
@@ -526,10 +531,10 @@ of the premise.
 
 \subsection{Forall elimination rules}
 \begin{ttbox} 
-forall_elim       : Sign.cterm      -> thm -> thm
-forall_elim_list  : Sign.cterm list -> thm -> thm
-forall_elim_var   :             int -> thm -> thm
-forall_elim_vars  :             int -> thm -> thm
+forall_elim       : cterm      -> thm -> thm
+forall_elim_list  : cterm list -> thm -> thm
+forall_elim_var   :        int -> thm -> thm
+forall_elim_vars  :        int -> thm -> thm
 \end{ttbox}
 
 \begin{ttdescription}
@@ -552,8 +557,7 @@ applies {\tt forall_elim_var} repeatedly, for every element of the list~$ks$.
 \subsection{Instantiation of unknowns}
 \index{instantiation}
 \begin{ttbox} 
-instantiate: (indexname*Sign.ctyp)list * 
-             (Sign.cterm*Sign.cterm)list  -> thm -> thm
+instantiate: (indexname * ctyp) list * (cterm * cterm) list -> thm -> thm
 \end{ttbox}
 \begin{ttdescription}
 \item[\ttindexbold{instantiate} ($tyinsts$, $insts$) $thm$] 
@@ -656,10 +660,10 @@ assumption.  If $match$ is~{\tt true}, the $state$ is not instantiated.
 
 \subsection{Other meta-rules}
 \begin{ttbox} 
-trivial            : Sign.cterm -> thm
+trivial            : cterm -> thm
 lift_rule          : (thm * int) -> thm -> thm
 rename_params_rule : string list * int -> thm -> thm
-rewrite_cterm      : thm list -> Sign.cterm -> thm
+rewrite_cterm      : thm list -> cterm -> thm
 flexflex_rule      : thm -> thm Sequence.seq
 \end{ttbox}
 \begin{ttdescription}
@@ -730,8 +734,7 @@ Each theorem's derivation is stored as the {\tt der} field of its internal
 record: 
 \begin{ttbox} 
 #der (rep_thm conjI);
-{\out Join (Theorem ({ProtoPure, CPure, HOL},"conjI"),}
-{\out       [Join (MinProof,[])]) : deriv}
+{\out Join (Theorem "conjI", [Join (MinProof,[])]) : deriv}
 \end{ttbox}
 This proof object identifies a labelled theorem, {\tt conjI}, whose underlying
 proof has not been recorded; all we have is {\tt MinProof}.

@@ -21,8 +21,10 @@ Chapter~\ref{simp-chap} discusses Isabelle's rewriting tactics.
 \section{Substitution rules}
 \index{substitution!rules}\index{*subst theorem}
 Many logics include a substitution rule of the form
-$$ \List{\Var{a}=\Var{b}; \Var{P}(\Var{a})} \Imp 
-   \Var{P}(\Var{b})  \eqno(subst)$$
+$$
+\List{\Var{a}=\Var{b}; \Var{P}(\Var{a})} \Imp 
+\Var{P}(\Var{b})  \eqno(subst)
+$$
 In backward proof, this may seem difficult to use: the conclusion
 $\Var{P}(\Var{b})$ admits far too many unifiers.  But, if the theorem {\tt
 eqth} asserts $t=u$, then \hbox{\tt eqth RS subst} is the derived rule
@@ -42,8 +44,10 @@ subgoal~$i$, use
 resolve_tac [eqth RS ssubst] \(i\){\it,}
 \end{ttbox}
 where \tdxbold{ssubst} is the `swapped' substitution rule
-$$ \List{\Var{a}=\Var{b}; \Var{P}(\Var{b})} \Imp 
-   \Var{P}(\Var{a}).  \eqno(ssubst)$$
+$$
+\List{\Var{a}=\Var{b}; \Var{P}(\Var{b})} \Imp 
+\Var{P}(\Var{a}).  \eqno(ssubst)
+$$
 If \tdx{sym} denotes the symmetry rule
 \(\Var{a}=\Var{b}\Imp\Var{b}=\Var{a}\), then {\tt ssubst} is just
 \hbox{\tt sym RS subst}.  Many logics with equality include the rules {\tt
@@ -57,7 +61,7 @@ To replace $u$ by~$t$ or $t$ by~$u$ in subgoal~$i$, use
 eresolve_tac [subst] \(i\)    {\rm or}    eresolve_tac [ssubst] \(i\){\it.}
 \end{ttbox}
 
-Logics HOL, FOL and ZF define the tactic \ttindexbold{stac} by
+Logics \HOL, {\FOL} and {\ZF} define the tactic \ttindexbold{stac} by
 \begin{ttbox} 
 fun stac eqth = CHANGED o rtac (eqth RS ssubst);
 \end{ttbox}

@@ -126,9 +126,8 @@ as follows:
 \begin{ttbox} 
 fun TRY tac = tac ORELSE all_tac;
 
-fun REPEAT tac = Tactic
-     (fn state => tapply((tac THEN REPEAT tac) ORELSE all_tac,
-                         state));
+fun REPEAT tac =
+     (fn state => ((tac THEN REPEAT tac) ORELSE all_tac) state);
 \end{ttbox}
 If $tac$ can return multiple outcomes then so can \hbox{\tt REPEAT $tac$}.
 Since {\tt REPEAT} uses \ttindex{ORELSE} and not {\tt APPEND} or {\tt

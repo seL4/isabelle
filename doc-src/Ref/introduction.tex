@@ -1,9 +1,11 @@
 %% $Id$
+
 \chapter{Basic Use of Isabelle}\index{sessions|(} 
-The Reference Manual is a comprehensive description of Isabelle, including
-all commands, functions and packages.  It really is intended for reference,
-perhaps for browsing, but not for reading through.  It is not a tutorial,
-but assumes familiarity with the basic concepts of Isabelle.
+The Reference Manual is a comprehensive description of Isabelle
+proper, including all \ML{} commands, functions and packages.  It
+really is intended for reference, perhaps for browsing, but not for
+reading through.  It is not a tutorial, but assumes familiarity with
+the basic logical concepts of Isabelle.
 
 When you are looking for a way of performing some task, scan the Table of
 Contents for a relevant heading.  Functions are organized by their purpose,
@@ -19,76 +21,98 @@ Isabelle, however; please experiment interactively.
 \section{Basic interaction with Isabelle}
 \index{starting up|bold}\nobreak
 %
-First, read the instructions on file {\tt README} in the top-level
-distribution directory.  Follow them to create the object-logics you need
-on a directory you have created to hold binary images.  Suppose the
-environment variable {\tt ISABELLEBIN} refers to this directory.  The
-instructions for starting up a logic (say {\tt HOL}) depend upon which
-Standard ML compiler you are using.
-\begin{itemize}
-\item With Standard ML of New Jersey, type \verb|$ISABELLEBIN/HOL|.
-\item With Poly/ML, type \verb|poly $ISABELLEBIN/HOL|, possibly prefixing the
-  command with the directory where {\tt poly} is kept.
-\end{itemize}
-Either way, you will find yourself at the \ML{} top level.  All Isabelle
-commands are bound to \ML{} identifiers.
+We assume that your local Isabelle administrator (this might be you!)
+has already installed the \Pure\ system and several object-logics
+properly --- otherwise see the {\tt INSTALL} file in the top-level
+directory of the distribution on how to build it.
 
-\index{saving your work|bold}
-Isabelle provides no means of storing theorems or proofs on files.
-Theorems are simply part of the \ML{} state and are named by \ML{}
-identifiers.  To save your work between sessions, you must save a copy of
-the \ML{} image.  The procedure for doing so is compiler-dependent:
-\begin{itemize}\index{Poly/{\ML} compiler}
-\item At the end of a session, Poly/\ML{} saves the state, provided you
-  have created a database for your own use.  You can create a database by
-  copying an existing one, or by calling the Poly/\ML{} function {\tt
-    make_database}; the latter course uses much less disc space.  A
-  Poly/\ML{} database {\em does not\/} save the contents of references,
-  such as the current state of a backward proof.
+\medskip Let $\langle isabellehome \rangle$ denote the location where
+the distribution has been installed. To run Isabelle from a the shell
+prompt within an ordinary text terminal session, simply type:
+\begin{ttbox}
+\({\langle}isabellehome{\rangle}\)/bin/isabelle
+\end{ttbox}
+This should start an interactive \ML{} session with the default
+object-logic already preloaded. All Isabelle commands are bound to
+\ML{} identifiers.
 
-\item With New Jersey \ML{} you must save the state explicitly before
-ending the session.  While a Poly/\ML{} database can be small, a New Jersey
-image occupies several megabytes.
-\end{itemize}
-See your \ML{} compiler's documentation for full instructions on saving the
-state.
+Subsequently we assume that {\tt \(\langle isabellehome \rangle\)/bin}
+has been added to your shell's search path, in order to avoid typing
+full path specifications of the executable files.
 
-Saving the state is not enough.  Record, on a file, the top-level commands
-that generate your theories and proofs.  Such a record allows you to replay
-the proofs whenever required, for instance after making minor changes to
-the axioms.  Ideally, your record will be intelligible to others as a
-formal description of your work.
+The object-logic image to load may be also specified explicitly as an
+argument to the {\tt isabelle} command, e.g.:
+\begin{ttbox}
+isabelle FOL
+\end{ttbox}
+This should put you into the world of polymorphic first-order logic
+(assuming that {\FOL} has been pre-built).
 
-Since Isabelle's user interface is the \ML{} top level, some kind of window
-support is essential.  One window displays the Isabelle session, while the
-other displays a file --- your proof record --- being edited.  The Emacs
-editor supports windows and can manage interactive sessions.
+\index{saving your work|bold} Isabelle provides no means of storing
+theorems or proofs on files.  Theorems are simply part of the \ML{}
+state and are named by \ML{} identifiers.  To save your work between
+sessions, you must dump the \ML{} system state to a file. This is done
+automatically when ending the session normally (e.g.\ by typing
+control-D), provided that the image has been opened \emph{writable} in
+the first place. The standard object-logics are usually read-only, so
+you probably have to create a private working copy first. For example,
+the following shell command puts you into a writable Isabelle session
+of name \texttt{Foo} that initially contains just \FOL:
+\begin{ttbox}
+isabelle FOL Foo
+\end{ttbox}
+Ending the \texttt{Foo} session with control-D will cause the complete
+\ML{} world to be saved somewhere in your home directory\footnote{The
+  default location is in \texttt{\~\relax/isabelle/heaps}, but this
+  depends on your local configuration.}. Make sure there is enough
+space available! Then one may later continue at exactly the same point
+by running
+\begin{ttbox}
+isabelle Foo  
+\end{ttbox}
+
+%FIXME not yet
+%More details about \texttt{isabelle} may be found in the \emph{System
+%  Manual}.
+
+\medskip Saving the state is not enough.  Record, on a file, the
+top-level commands that generate your theories and proofs.  Such a
+record allows you to replay the proofs whenever required, for instance
+after making minor changes to the axioms.  Ideally, your record will
+be somewhat intelligible to others as a formal description of your
+work.
+
+\medskip There are more comfortable user interfaces than the
+bare-bones \ML{} top-level run from a text terminal. The
+\texttt{Isabelle} executable (note the capital I) runs one such
+interface, depending on your local configuration.  Furthermore there
+are a number of external utilities available. These are started
+uniformly via the \texttt{isatool} wrapper.
+
+%FIXME not yet
+%Again, see the \emph{System Manual} for more information user
+%interfaces and utilities.
 
 
 \section{Ending a session}
 \begin{ttbox} 
-quit     : unit -> unit
-commit   : unit -> unit \hfill{\bf Poly/ML only}
-exportML : string -> bool \hfill{\bf New Jersey ML only}
+quit    : unit -> unit
+exit    : int -> unit
+commit  : unit -> unit
 \end{ttbox}
 \begin{ttdescription}
-\item[\ttindexbold{quit}();]  
-aborts the Isabelle session, without saving the state.
+\item[\ttindexbold{quit}();] ends the Isabelle session, without saving
+  the state.
 
-\item[\ttindexbold{commit}();] 
-  saves the current state in your Poly/\ML{} database without ending the
-  session.  The contents of references are lost, so never do this during an
-  interactive proof!\index{Poly/{\ML} compiler}
+\item[\ttindexbold{exit}();] same as {\tt quit}, passing a return code
+  to the operating system.
 
-\item[\ttindexbold{exportML} "{\it file}";]  saves an
-image of your session to the given {\it file}.
+\item[\ttindexbold{commit}();] saves the current state without ending
+  the session, provided that the logic image is opened read-write.
 \end{ttdescription}
 
-\begin{warn}
-Typing control-D also finishes the session, but its effect is
-compiler-dependent.  Poly/\ML{} will then save the state, if you have a
-private database.  New Jersey \ML{} will discard the state!
-\end{warn}
+Typing control-D also finishes the session in essentially the same way
+as the sequence {\tt commit(); quit();} would.
 
 
 \section{Reading ML files}
@@ -105,7 +129,7 @@ Section~\ref{LoadingTheories} describes commands for loading theory files.
   changes the current directory to {\it dir}.  This is the default directory
   for reading files and for writing temporary files.
 
-\item[\ttindexbold{pwd} ();] returns the path of the current directory.
+\item[\ttindexbold{pwd}();] returns the path of the current directory.
 
 \item[\ttindexbold{use} "$file$";]  
 reads the given {\it file} as input to the \ML{} session.  Reading a file
@@ -114,6 +138,16 @@ of Isabelle commands is the usual way of replaying a proof.
 \item[\ttindexbold{time_use} "$file$";]  
 performs {\tt use~"$file$"} and prints the total execution time.
 \end{ttdescription}
+
+
+\section{Setting flags}
+\begin{ttbox}
+set     : bool ref -> bool
+reset   : bool ref -> bool
+toggle  : bool ref -> bool
+\end{ttbox}\index{*set}\index{*reset}\index{*toggle}
+These are some shorthands for manipulating boolean references. The new
+value is returned.
 
 
 \section{Printing of terms and theorems}\label{sec:printing-control}
@@ -236,35 +270,36 @@ exception THEORY of string * theory list
   theory used in the last interactive proof.
 \end{warn}
 
-\section{Shell scripts}\label{sec:shell-scripts}
-\index{shell scripts|bold} The following files are distributed with
-Isabelle, and work under Unix$^{\rm TM}$.  They can be executed as commands
-to the Unix shell.  Some of them depend upon shell environment variables.
-\begin{ttdescription}
-\item[make-all $switches$] \index{*make-all shell script}
-  compiles the Isabelle system, when executed on the source directory.
-  Environment variables specify which \ML{} compiler to use.  These
-  variables, and the {\it switches}, are documented on the file itself.
-
-\item[teeinput $program$] \index{*teeinput shell script}
-  executes the {\it program}, while piping the standard input to a log file
-  designated by the \verb|$LISTEN| environment variable.  Normally the
-  program is Isabelle, and the log file receives a copy of all the Isabelle
-  commands.
-
-\item[xlisten $program$] \index{*xlisten shell script}
-  is a trivial `user interface' for the X Window System.  It creates two
-  windows using {\tt xterm}.  One executes an interactive session via
-  \hbox{\tt teeinput $program$}, while the other displays the log file.  To
-  make a proof record, simply paste lines from the log file into an editor
-  window.
-
-\item[expandshort $files$]  \index{*expandshort shell script}
-  reads the {\it files\/} and replaces all occurrences of the shorthand
-  commands {\tt br}, {\tt be}, {\tt brs}, {\tt bes}, etc., with the
-  corresponding full commands.  Shorthand commands should appear one
-  per line.  The old versions of the files
-  are renamed to have the suffix~\verb'~~'.
-\end{ttdescription}
+%FIXME remove
+%\section{Shell scripts}\label{sec:shell-scripts}
+%\index{shell scripts|bold} The following files are distributed with
+%Isabelle, and work under Unix$^{\rm TM}$.  They can be executed as commands
+%to the Unix shell.  Some of them depend upon shell environment variables.
+%\begin{ttdescription}
+%\item[make-all $switches$] \index{*make-all shell script}
+%  compiles the Isabelle system, when executed on the source directory.
+%  Environment variables specify which \ML{} compiler to use.  These
+%  variables, and the {\it switches}, are documented on the file itself.
+%
+%\item[teeinput $program$] \index{*teeinput shell script}
+%  executes the {\it program}, while piping the standard input to a log file
+%  designated by the \verb|$LISTEN| environment variable.  Normally the
+%  program is Isabelle, and the log file receives a copy of all the Isabelle
+%  commands.
+%
+%\item[xlisten $program$] \index{*xlisten shell script}
+%  is a trivial `user interface' for the X Window System.  It creates two
+%  windows using {\tt xterm}.  One executes an interactive session via
+%  \hbox{\tt teeinput $program$}, while the other displays the log file.  To
+%  make a proof record, simply paste lines from the log file into an editor
+%  window.
+%
+%\item[expandshort $files$]  \index{*expandshort shell script}
+%  reads the {\it files\/} and replaces all occurrences of the shorthand
+%  commands {\tt br}, {\tt be}, {\tt brs}, {\tt bes}, etc., with the
+%  corresponding full commands.  Shorthand commands should appear one
+%  per line.  The old versions of the files
+%  are renamed to have the suffix~\verb'~~'.
+%\end{ttdescription}
 
 \index{sessions|)}
