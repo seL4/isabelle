@@ -16,6 +16,9 @@ sig
   val touch_thy: string -> Toplevel.transition -> Toplevel.transition
   val remove_thy: string -> Toplevel.transition -> Toplevel.transition
   val kill_thy: string -> Toplevel.transition -> Toplevel.transition
+  val pr: int option -> Toplevel.transition -> Toplevel.transition
+  val disable_pr: Toplevel.transition -> Toplevel.transition
+  val enable_pr: Toplevel.transition -> Toplevel.transition
   val cannot_undo: string -> Toplevel.transition -> Toplevel.transition
   val clear_undos_theory: int -> Toplevel.transition -> Toplevel.transition
   val redo: Toplevel.transition -> Toplevel.transition
@@ -75,6 +78,15 @@ val touch_all_thys = Toplevel.imperative ThyInfo.touch_all_thys;
 fun touch_thy name = Toplevel.imperative (fn () => ThyInfo.touch_thy name);
 fun remove_thy name = Toplevel.imperative (fn () => ThyInfo.remove_thy name);
 fun kill_thy name = Toplevel.imperative (fn () => IsarThy.kill_theory name);
+
+
+(* print state *)
+
+fun pr limit = Toplevel.imperative (fn () =>
+  ((case limit of Some n => goals_limit := n | None => ()); Toplevel.quiet := false));
+
+val disable_pr = Toplevel.imperative (fn () => Toplevel.quiet := true);
+val enable_pr = Toplevel.imperative (fn () => Toplevel.quiet := false);
 
 
 (* history commands *)
