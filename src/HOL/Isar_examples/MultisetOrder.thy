@@ -11,9 +11,6 @@ HOL/Induct/Multiset).  Pen-and-paper proof by Wilfried Buchholz.
 
 theory MultisetOrder = Multiset:;
 
-(* FIXME *)
-theorems [intro!!] = disjI1 disjI2;
-
 
 lemma less_add: "(N, M0 + {#a#}) : mult1 r ==>
     (EX M. (M, M0) : mult1 r & N = M + {#a#}) |
