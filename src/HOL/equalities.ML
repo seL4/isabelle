@@ -27,6 +27,15 @@ by (Blast_tac 1);
 qed "not_psubset_empty";
 AddIffs [not_psubset_empty];
 
+goal thy "{x. P x | Q x} = {x. P x} Un {x. Q x}";
+by (Blast_tac 1);
+qed "Collect_disj_eq";
+
+goal thy "{x. P x & Q x} = {x. P x} Int {x. Q x}";
+by (Blast_tac 1);
+qed "Collect_conj_eq";
+
+
 section "insert";
 
 (*NOT SUITABLE FOR REWRITING since {a} == insert a {}*)
@@ -664,9 +673,13 @@ goal thy "(A Int B) - C = A Int (B - C)";
 by (Blast_tac 1);
 qed "Int_Diff";
 
-goal thy "(A-B) Int C = (A Int C) - (B Int C)";
+goal thy "C Int (A-B) = (C Int A) - (C Int B)";
 by (Blast_tac 1);
 qed "Diff_Int_distrib";
+
+goal thy "(A-B) Int C = (A Int C) - (B Int C)";
+by (Blast_tac 1);
+qed "Diff_Int_distrib2";
 
 
 section "Miscellany";
