@@ -437,7 +437,7 @@
   \item {\tt prems_of}, \bold{39}
   \item {\tt prems_of_ss}, 105
   \item pretty printing, 70, 72--73, 89
-  \item {\tt Pretty.setdepth}, \bold{3}
+  \item {\tt Pretty.setdepth}, \bold{4}
   \item {\tt Pretty.setmargin}, \bold{4}
   \item {\tt PRIMITIVE}, \bold{25}
   \item {\tt primrec}, 100
@@ -570,7 +570,7 @@
   \item search, 28
     \subitem tacticals, 30--32
   \item {\tt SELECT_GOAL}, 20, \bold{33}
-  \item {\tt Sequence.seq} ML type, 25
+  \item {\tt Seq.seq} ML type, 25
   \item sequences (lazy lists), \bold{26}
   \item sequent calculus, 119
   \item sessions, 1--5
