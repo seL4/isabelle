@@ -3,7 +3,7 @@
     Author:     Markus Wenzel, TU Muenchen
     License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
-Interface to thm database (see also Pure/pure_thy.ML).
+Interface to thm database.
 *)
 
 signature BASIC_THM_DATABASE =
@@ -20,8 +20,6 @@ sig
   val ml_store_thms: string * thm list -> unit
   val is_ml_identifier: string -> bool
   val ml_reserved: string list
-  val thms_containing: theory -> string list -> (string * thm) list
-  val print_thms_containing: theory -> term list -> unit
 end;
 
 structure ThmDatabase: THM_DATABASE =
@@ -29,7 +27,7 @@ struct
 
 (** store theorems **)
 
-(* store in theory and generate HTML *)
+(* store in theory and perform presentation *)
 
 fun store_thm (name, thm) =
   let val thm' = hd (PureThy.smart_store_thms (name, [thm]))
@@ -65,38 +63,14 @@ val use_text_verbose = use_text Context.ml_output true;
 fun ml_store_thm (name, thm) =
   let val thm' = store_thm (name, thm) in
     if warn_ml name then ()
-    else (qed_thms := [thm']; use_text_verbose ("val " ^ name ^ " = hd (! ThmDatabase.qed_thms);"))
+    else (qed_thms := [thm'];
+      use_text_verbose ("val " ^ name ^ " = hd (! ThmDatabase.qed_thms);"))
   end;
 
 fun ml_store_thms (name, thms) =
   let val thms' = store_thms (name, thms) in
     if warn_ml name then ()
     else (qed_thms := thms'; use_text_verbose ("val " ^ name ^ " = ! ThmDatabase.qed_thms;"))
-  end;
-
-
-
-(** retrieve theorems **)
-
-fun thms_containing thy consts = PureThy.thms_containing thy consts
-  handle THEORY (msg, _) => error msg | THM (msg, _, _) => error msg;
-
-fun print_thms_containing thy ts =
-  let
-    val prt_const =
-      Pretty.quote o Pretty.str o Sign.cond_extern (Theory.sign_of thy) Sign.constK;
-    fun prt_thm (a, th) = Pretty.block [Pretty.str (a ^ ":"),
-      Pretty.brk 1, Display.pretty_thm_no_quote (#1 (Drule.freeze_thaw th))];
-
-    val cs = foldr Term.add_term_consts (ts, []);
-    val header =
-      if Library.null cs then []
-      else [Pretty.block (Pretty.breaks (Pretty.str "theorems containing constants:" ::
-          map prt_const cs)), Pretty.str ""];
-  in
-    if Library.null cs andalso not (Library.null ts) then
-      warning "thms_containing: no constants in specification"
-    else (header @ map prt_thm (thms_containing thy cs)) |> Pretty.chunks |> Pretty.writeln
   end;
 
 
