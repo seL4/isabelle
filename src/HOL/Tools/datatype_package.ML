@@ -450,7 +450,7 @@ fun add_datatype_def flat_names new_type_names descr sorts types_syntax constr_s
       Theory.add_path (space_implode "_" new_type_names) |>
       PureThy.add_tthmss [(("simps", map Attribute.tthm_of simps), [])] |>
       put_datatypes (foldr Symtab.update (dt_infos, dt_info)) |>
-      parent_path flat_names;
+      Theory.parent_path;
 
     val _ = store_clasimp thy11 ((claset_of thy11, simpset_of thy11)
       addsimps2 flat case_thms addsimps2 size_thms addsimps2 rec_thms
