@@ -12,6 +12,7 @@ sig
   val add: string -> T -> T
   val content: T -> string
   val write: Path.T -> T -> unit
+  val write_nonempty: Path.T -> T -> unit
 end;
 
 structure Buffer: BUFFER =
@@ -20,8 +21,13 @@ struct
 datatype T = Buffer of string list;
 
 val empty = Buffer [];
+
 fun add x (Buffer xs) = Buffer (x :: xs);
 fun content (Buffer xs) = implode (rev xs);
+
 fun write path buffer = File.write path (content buffer);
+
+fun write_nonempty _ (Buffer []) = ()
+  | write_nonempty path buffer = write path buffer;
 
 end;
