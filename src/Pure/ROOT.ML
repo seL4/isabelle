@@ -12,6 +12,8 @@ val version = "Isabelle repository";
 print_depth 1;
 ml_prompts "> " "# ";
 
+(*fake hiding of private structures*)
+structure Hidden = struct end;
 
 (*basic tools*)
 use "library.ML";
