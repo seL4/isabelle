@@ -25,7 +25,7 @@ FILES =	POLY.ML NJ.ML ROOT.ML library.ML term.ML symtab.ML type.ML sign.ML\
 	drule.ML tctical.ML tactic.ML goals.ML install_pp.ML
 
 SYNTAX_FILES =  Syntax/ROOT.ML	Syntax/ast.ML		Syntax/xgram.ML\
-	Syntax/extension.ML	Syntax/lexicon.ML	Syntax/parse_tree.ML\
+	Syntax/extension.ML	Syntax/lexicon.ML\
 	Syntax/parser.ML	Syntax/type_ext.ML	Syntax/sextension.ML\
 	Syntax/pretty.ML	Syntax/printer.ML	Syntax/syntax.ML\
 	Syntax/earley0A.ML
