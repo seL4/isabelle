@@ -6,7 +6,7 @@
 Equivalence relations in Higher-Order Set Theory 
 *)
 
-Equiv = Relation + Finite + 
+Equiv = Relation + Finite_Set +
 constdefs
   equiv    :: "['a set, ('a*'a) set] => bool"
     "equiv A r == refl A r & sym(r) & trans(r)"

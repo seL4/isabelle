@@ -10,12 +10,7 @@ subset of the lexicographic product, and therefore does not need to be defined
 separately.
 *)
 
-Wellfounded_Relations = Finite + 
-
-(* logically belongs in Finite.thy, but the theorems are proved in Finite.ML *)
-instance unit :: finite                  (finite_unit)
-instance "*" :: (finite,finite) finite   (finite_Prod)
-
+Wellfounded_Relations = Finite_Set + 
 
 constdefs
  less_than :: "(nat*nat)set"
