@@ -13,7 +13,8 @@ These postfix operators have MAXIMUM PRIORITY, forcing their operands
 to be atomic.
 *)
 
-Transitive_Closure = Lfp + Relation + 
+theory Transitive_Closure = Lfp + Relation
+files ("Transitive_Closure_lemmas.ML"):
 
 constdefs
   rtrancl :: "('a * 'a) set => ('a * 'a) set"    ("(_^*)" [1000] 999)
@@ -31,5 +32,7 @@ syntax (xsymbols)
   rtrancl :: "('a * 'a) set => ('a * 'a) set"    ("(_\\<^sup>*)" [1000] 999)
   trancl :: "('a * 'a) set => ('a * 'a) set"    ("(_\\<^sup>+)" [1000] 999)
   "_reflcl" :: "('a * 'a) set => ('a * 'a) set"    ("(_\\<^sup>=)" [1000] 999)
+
+use "Transitive_Closure_lemmas.ML"
 
 end
