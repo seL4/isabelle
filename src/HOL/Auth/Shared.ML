@@ -178,12 +178,24 @@ Addsimps [UN_parts_sees_Says, sees_own, sees_Server, sees_Friend, sees_Spy];
 Delsimps [sees_Cons];   (**** NOTE REMOVAL -- laws above are cleaner ****)
 
 
-goal thy "!!K. newK evs = invKey K ==> newK evs = K";
-by (rtac (invKey_eq RS iffD1) 1);
-by (Simp_tac 1);
-val newK_invKey = result();
+(** Power of the Spy **)
 
-AddSDs [newK_invKey];
+(*The Spy can see more than anybody else, except for their initial state*)
+goal thy "sees lost A evs <= initState lost A Un sees lost Spy evs";
+by (list.induct_tac "evs" 1);
+by (event.induct_tac "a" 2);
+by (ALLGOALS (fast_tac (!claset addDs [sees_Says_subset_insert RS subsetD] 
+                                addss (!simpset))));
+qed "sees_agent_subset_sees_Spy";
+
+(*The Spy can see more than anybody else who's lost their key!*)
+goal thy "A: lost --> A ~= Server --> sees lost A evs <= sees lost Spy evs";
+by (list.induct_tac "evs" 1);
+by (event.induct_tac "a" 2);
+by (agent.induct_tac "A" 1);
+by (auto_tac (!claset addDs [sees_Says_subset_insert RS subsetD], (!simpset)));
+qed_spec_mp "sees_lost_agent_subset_sees_Spy";
+
 
 (** Rewrites to push in Key and Crypt messages, so that other messages can
     be pulled out using the analz_insert rules **)
@@ -235,7 +247,14 @@ val parts_insert_sees =
                  |> standard;
 
 
-(** Specialized rewriting for  **)
+(*** Specialized rewriting for analz_insert_Key_newK ***)
+
+goal thy "!!K. newK evs = invKey K ==> newK evs = K";
+by (rtac (invKey_eq RS iffD1) 1);
+by (Simp_tac 1);
+val newK_invKey = result();
+
+AddSDs [newK_invKey];
 
 Delsimps [image_insert];
 Addsimps [image_insert RS sym];
