@@ -77,6 +77,7 @@ sig
   val triv_forall_equality: thm
   val swap_prems_rl     : thm
   val equal_intr_rule   : thm
+  val equal_elim_rule1  : thm
   val inst              : string -> string -> thm -> thm
   val instantiate'      : ctyp option list -> cterm option list -> thm -> thm
   val incr_indexes_wrt  : int list -> ctyp list -> cterm list -> thm list -> thm -> thm
@@ -667,6 +668,13 @@ val equal_intr_rule =
       (implies_intr PQ (implies_intr QP (equal_intr (assume PQ) (assume QP))))
   end;
 
+(* [| PROP ?phi == PROP ?psi; PROP ?phi |] ==> PROP ?psi *)
+val equal_elim_rule1 =
+  let val eq = read_prop "PROP phi == PROP psi"
+      and P = read_prop "PROP phi"
+  in store_standard_thm_open "equal_elim_rule1"
+    (Thm.equal_elim (assume eq) (assume P) |> implies_intr_list [eq, P])
+  end;
 
 (* "[| PROP ?phi; PROP ?phi; PROP ?psi |] ==> PROP ?psi" *)
 
