@@ -169,6 +169,7 @@ the_context  : unit -> theory
 theory       : string -> theory
 use_thy      : string -> unit
 time_use_thy : string -> unit
+update_thy   : string -> unit
 \end{ttbox}
 
 \begin{ttdescription}
@@ -193,6 +194,11 @@ time_use_thy : string -> unit
 \item[\ttindexbold{time_use_thy} "$name$";] same as \texttt{use_thy}, but
   reports the time taken to process the actual theory parts and {\ML} files
   separately.
+
+\item[\ttindexbold{update_thy} "$name$";] is similar to \texttt{use_thy}, but
+  ensures that theory $name$ is fully up-to-date with respect to the file
+  system --- apart from $name$ itself any of its ancestors may be reloaded as
+  well.
   
 \end{ttdescription}
 

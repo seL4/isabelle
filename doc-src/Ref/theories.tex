@@ -246,7 +246,7 @@ See \S\ref{sec:intro-theories} for its most basic commands, such as
 
 \begin{ttbox}
 use_thy_only    : string -> unit
-update_thy      : string -> unit
+update_thy_only : string -> unit
 touch_thy       : string -> unit
 remove_thy      : string -> unit
 delete_tmpfiles : bool ref \hfill{\bf initially true}
@@ -258,11 +258,10 @@ delete_tmpfiles : bool ref \hfill{\bf initially true}
   $name$\texttt{.ML}.  This might be useful in replaying proof scripts by hand
   from the very beginning, starting with the fresh theory.
   
-\item[\ttindexbold{update_thy} "$name$";] is similar to \texttt{use_thy}, but
-  ensures that theory $name$ is fully up-to-date with respect to the file
-  system --- apart from $name$ itself any of its ancestors may be reloaded as
-  well.
-  
+\item[\ttindexbold{update_thy_only} "$name$";] is similar to
+  \texttt{update_thy}, but processes the actual theory file
+  $name$\texttt{.thy} only, ignoring $name$\texttt{.ML}.
+
 \item[\ttindexbold{touch_thy} "$name$";] marks theory node $name$ of the
   internal graph as outdated.  While the theory remains usable, subsequent
   operations such as \texttt{use_thy} may cause a reload.
@@ -308,10 +307,10 @@ reset_path: unit -> unit
 \end{ttdescription}
 
 In operations referring indirectly to some file, the argument may be prefixed
-by a directory that will be used as temporary load path, e.g.\ 
+by a directory that will be temporarily appended to the load path, e.g.\ 
 \texttt{use_thy~"$dir/name$"}.  Note that, depending on which parts of the
 ancestry of $name$ are already loaded, the dynamic change of paths might be
-hard to predict.  Use this feature with care only.
+hard to predict.  Use this feature with great care only.
 
 
 \section{Locales}
