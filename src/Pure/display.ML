@@ -181,7 +181,8 @@ fun pretty_full_theory thy =
     fun prt_cls c = Sign.pretty_sort sg [c];
     fun prt_sort S = Sign.pretty_sort sg S;
     fun prt_arity t (c, Ss) = Sign.pretty_arity sg (t, Ss, [c]);
-    fun prt_typ_no_tvars ty = Pretty.quote (Sign.pretty_typ sg (#1 (Type.freeze_thaw_type ty)));
+    fun prt_typ ty = Pretty.quote (Sign.pretty_typ sg ty);
+    val prt_typ_no_tvars = prt_typ o #1 o Type.freeze_thaw_type;
     fun prt_term t = Pretty.quote (Sign.pretty_term sg t);
 
     fun pretty_classrel (c, []) = prt_cls c
@@ -192,61 +193,62 @@ fun pretty_full_theory thy =
     fun pretty_default S = Pretty.block
       [Pretty.str "default sort:", Pretty.brk 1, prt_sort S];
 
-    fun pretty_ty (t, n) = Pretty.block
-      [Pretty.str t, Pretty.brk 1, Pretty.str (string_of_int n)];
-
-    fun pretty_witness None = Pretty.str "universal non-emptiness witness: --"
+    fun pretty_witness None = Pretty.str "universal non-emptiness witness: -"
       | pretty_witness (Some (T, S)) = Pretty.block
           [Pretty.str "universal non-emptiness witness:", Pretty.brk 1,
             prt_typ_no_tvars T, Pretty.str " ::", Pretty.brk 1, prt_sort S];
 
-    fun pretty_nonterminals ts = Pretty.block
-      (Pretty.breaks (Pretty.str "syntactic types:" :: map Pretty.str ts));
+    val tfrees = map (fn v => TFree (v, []));
+    fun pretty_type syn ((_, t), (Type.LogicalType n, _)) =
+          if syn then None
+          else Some (prt_typ (Type (t, tfrees (Term.invent_names [] "'a" n))))
+      | pretty_type syn ((_, t), (Type.Abbreviation (vs, U, syn'), _)) =
+          if syn <> syn' then None
+          else Some (Pretty.block
+            [prt_typ (Type (t, tfrees vs)), Pretty.str " =", Pretty.brk 1, prt_typ U])
+      | pretty_type syn ((_, t), (Type.Nonterminal, _)) =
+          if not syn then None
+          else Some (prt_typ (Type (t, [])));
 
-    fun pretty_abbr (t, (vs, rhs, _)) = Pretty.block
-      [prt_typ_no_tvars (Type (t, map (fn v => TVar ((v, 0), [])) vs)),
-        Pretty.str " =", Pretty.brk 1, prt_typ_no_tvars rhs];
-
-    fun pretty_arities (t, ars) = map (prt_arity t) ars;
-
-    fun pretty_final (c:string, tys:typ list) = Pretty.block
-      ([Pretty.str c, Pretty.str " ::", Pretty.brk 1] @
-         (if null tys then [Pretty.str "<all instances>"]
-	  else Pretty.commas (map prt_typ_no_tvars tys)));
+    val pretty_arities = flat o map (fn (t, ars) => map (prt_arity t) ars);
 
     fun pretty_const (c, (ty, _)) = Pretty.block
       [Pretty.str c, Pretty.str " ::", Pretty.brk 1, prt_typ_no_tvars ty];
 
+    fun pretty_final (c, []) = Pretty.str c
+      | pretty_final (c, tys) = Pretty.block
+          (Pretty.str c :: Pretty.str " ::" :: Pretty.brk 1 ::
+             Pretty.commas (map prt_typ_no_tvars tys));
+
     fun prt_axm (a, t) = Pretty.block [Pretty.str (a ^ ":"), Pretty.brk 1, prt_term t];
 
 
+    val {sign = _, const_deps = _, final_consts, axioms, oracles,
+      parents = _, ancestors = _} = Theory.rep_theory thy;
     val {self = _, tsig, consts, path, spaces, data} = Sign.rep_sg sg;
-    val {axioms, oracles, ...} = Theory.rep_theory thy;
-    val spaces' = Library.sort_wrt fst spaces;
     val {classes, default, types, arities, log_types = _, witness} = Type.rep_tsig tsig;
-    val tdecls = Symtab.dest types |>
-      map (fn (t, (decl, _)) => (Sign.cond_extern sg Sign.typeK t, decl));
-    val tycons = mapfilter (fn (t, Type.LogicalType n) => Some (t, n) | _ => None) tdecls;
-    val abbrs = mapfilter (fn (t, Type.Abbreviation u) => Some (t, u) | _ => None) tdecls;
-    val nonterminals = mapfilter (fn (t, Type.Nonterminal) => Some t | _ => None) tdecls;
-    val finals = Symtab.dest (#final_consts (Theory.rep_theory thy));
+
+    val spcs = Library.sort_wrt #1 spaces;
+    val tdecls =
+      map (apfst (fn t => (Sign.cond_extern sg Sign.typeK t, t))) (Symtab.dest types)
+      |> Library.sort_wrt (#1 o #1);
     val cnsts = Sign.cond_extern_table sg Sign.constK consts;
+    val finals = Sign.cond_extern_table sg Sign.constK final_consts;
     val axms = Sign.cond_extern_table sg Theory.axiomK axioms;
     val oras = Sign.cond_extern_table sg Theory.oracleK oracles;
   in
     [Pretty.strs ("stamps:" :: Sign.stamp_names_of sg),
       Pretty.strs ("data:" :: Sign.data_kinds data),
       Pretty.strs ["name prefix:", NameSpace.pack (if_none path ["-"])],
-      Pretty.big_list "name spaces:" (map pretty_name_space spaces'),
+      Pretty.big_list "name spaces:" (map pretty_name_space spcs),
       Pretty.big_list "classes:" (map pretty_classrel (Graph.dest classes)),
       pretty_default default,
       pretty_witness witness,
-      Pretty.big_list "logical type constructors:" (map pretty_ty tycons),
-      Pretty.big_list "type abbreviations:" (map pretty_abbr abbrs),
-      pretty_nonterminals nonterminals,
-      Pretty.big_list "type arities:" (flat (map pretty_arities (Symtab.dest arities))),
+      Pretty.big_list "syntactic types:" (mapfilter (pretty_type true) tdecls),
+      Pretty.big_list "logical types:" (mapfilter (pretty_type false) tdecls),
+      Pretty.big_list "type arities:" (pretty_arities (Symtab.dest arities)),
       Pretty.big_list "consts:" (map pretty_const cnsts),
-      Pretty.big_list "finals:" (map pretty_final finals),
+      Pretty.big_list "finals consts:" (map pretty_final finals),
       Pretty.big_list "axioms:" (map prt_axm axms),
       Pretty.strs ("oracles:" :: (map #1 oras))]
   end;
