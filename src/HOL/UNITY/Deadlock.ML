@@ -73,8 +73,7 @@ qed "INT_le_equals_Int";
 
 Goal "(INT i:{i. i <= Suc n}. A i) = \
 \         A 0 Int (INT i:{i. i <= n}. -A i Un A(Suc i))";
-by (simp_tac (simpset() addsimps [le_eq_less_Suc RS sym, 
-				  INT_le_equals_Int]) 1);
+by (simp_tac (simpset() addsimps [less_Suc_eq_le, INT_le_equals_Int]) 1);
 qed "INT_le_Suc_equals_Int";
 
 

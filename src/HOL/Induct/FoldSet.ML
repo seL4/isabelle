@@ -66,7 +66,7 @@ by (Blast_tac 1);
 by (Clarify_tac 1);
 (*force simplification of "card A < card (insert ...)"*)
 by (etac rev_mp 1);
-by (asm_simp_tac (simpset() addsimps [le_eq_less_Suc RS sym]) 1);
+by (asm_simp_tac (simpset() addsimps [less_Suc_eq_le]) 1);
 by (rtac impI 1);
 (** LEVEL 10 **)
 by (rename_tac "Aa xa ya Ab xb yb" 1);

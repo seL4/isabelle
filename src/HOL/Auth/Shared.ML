@@ -139,8 +139,8 @@ by (cut_inst_tac [("evs","evs'")] lemma 1);
 by (Clarify_tac 1);
 by (res_inst_tac [("x","N")] exI 1);
 by (res_inst_tac [("x","Suc (N+Na)")] exI 1);
-by (asm_simp_tac (simpset() addsimps [less_not_refl3, le_add2, le_add1, 
-				     le_eq_less_Suc RS sym]) 1);
+by (asm_simp_tac (simpset() addsimps [less_not_refl3, le_add1, le_add2,
+				      less_Suc_eq_le]) 1);
 qed "Nonce_supply2";
 
 Goal "EX N N' N''. Nonce N ~: used evs & Nonce N' ~: used evs' & \
@@ -152,8 +152,8 @@ by (Clarify_tac 1);
 by (res_inst_tac [("x","N")] exI 1);
 by (res_inst_tac [("x","Suc (N+Na)")] exI 1);
 by (res_inst_tac [("x","Suc (Suc (N+Na+Nb))")] exI 1);
-by (asm_simp_tac (simpset() addsimps [less_not_refl3, le_add2, le_add1, 
-				     le_eq_less_Suc RS sym]) 1);
+by (asm_simp_tac (simpset() addsimps [less_not_refl3, le_add1, le_add2,
+				      less_Suc_eq_le]) 1);
 qed "Nonce_supply3";
 
 Goal "Nonce (@ N. Nonce N ~: used evs) ~: used evs";
