@@ -62,7 +62,7 @@ sig
   val ambiguity_level: int ref
 end;
 
-structure Syntax : SYNTAX =
+structure Syntax: SYNTAX =
 struct
 
 
