@@ -299,7 +299,7 @@ fun add_datatype_axm flat_names new_type_names descr sorts types_syntax constr_s
 
     val case_names = map (fn s => (s ^ "_case")) new_type_names;
 
-    val thy2 = thy |>
+    val thy2' = thy |>
 
       (** new types **)
 
@@ -323,7 +323,12 @@ fun add_datatype_axm flat_names new_type_names descr sorts types_syntax constr_s
       Theory.add_consts_i (map (fn ((name, T), Ts) =>
         (name, Ts @ [T] ---> freeT, NoSyn))
           (case_names ~~ newTs ~~ case_fn_Ts)) |>
-      Theory.add_trrules_i (DatatypeProp.make_case_trrules new_type_names descr) |>
+      Theory.add_trrules_i (DatatypeProp.make_case_trrules new_type_names descr);
+
+    val reccomb_names' = map (Sign.intern_const (sign_of thy2')) reccomb_names;
+    val case_names' = map (Sign.intern_const (sign_of thy2')) case_names;
+
+    val thy2 = thy2' |>
 
       (** t_ord functions **)
 
@@ -383,8 +388,8 @@ fun add_datatype_axm flat_names new_type_names descr sorts types_syntax constr_s
     val (thy10, case_congs) = add_and_get_axioms "case_cong" new_type_names
       (DatatypeProp.make_case_congs new_type_names descr sorts thy9) thy9;
     
-    val dt_infos = map (make_dt_info descr' induct reccomb_names rec_thms)
-      ((0 upto length (hd descr) - 1) ~~ (hd descr) ~~ case_names ~~ case_thms ~~
+    val dt_infos = map (make_dt_info descr' induct reccomb_names' rec_thms)
+      ((0 upto length (hd descr) - 1) ~~ (hd descr) ~~ case_names' ~~ case_thms ~~
         exhaustion ~~ distinct ~~ inject ~~ nchotomys ~~ case_congs);
 
     val simps = flat (distinct @ inject @ case_thms) @ size_thms @ rec_thms;
