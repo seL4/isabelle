@@ -5,6 +5,12 @@
     Description : Filters and Ultrafilter
 *) 
 
+(*ML bindings for Library/Zorn theorems*)
+val chain_def = thm "chain_def";
+val chainD = thm "chainD";
+val chainD2 = thm "chainD2";
+val Zorn_Lemma2 = thm "Zorn_Lemma2";
+
 (*------------------------------------------------------------------
       Properties of Filters and Freefilters - 
       rules for intro, destruction etc.
