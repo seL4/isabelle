@@ -185,14 +185,17 @@ fun dest_cimplies (Cterm{sign, T, maxidx, t=Const("==>", _) $ A $ B}) =
 
 
 
-(** read cterms **)   (*exception ERROR*)     (* FIXME check *)
+(** read cterms **)   (*exception ERROR*)
 
 (*read term, infer types, certify term*)
 fun read_def_cterm (sign, types, sorts) (a, T) =
   let
-    val t = Syntax.read (#syn (Sign.rep_sg sign)) T a;
-    val (t', tye) = Sign.infer_types sign types sorts (t, T);
-    val ct = cterm_of sign t' handle TERM (msg, _) => error msg;
+    val T' = Sign.certify_typ sign T
+      handle TYPE (msg, _, _) => error msg;
+    val t = Syntax.read (#syn (Sign.rep_sg sign)) T' a;
+    val (t', tye) = Sign.infer_types sign types sorts (t, T');
+    val ct = cterm_of sign t'
+      handle TERM (msg, _) => error msg;
   in (ct, tye) end;
 
 fun read_cterm sign = #1 o read_def_cterm (sign, K None, K None);
@@ -216,7 +219,7 @@ val stamps_of_thm = #stamps o Sign.rep_sg o sign_of_thm;
 (*merge signatures of two theorems; raise exception if incompatible*)
 fun merge_thm_sgs (th1, th2) =
   Sign.merge (pairself sign_of_thm (th1, th2))
-    handle TERM _ => raise THM ("incompatible signatures", 0, [th1, th2]);
+    handle TERM (msg, _) => raise THM (msg, 0, [th1, th2]);
 
 
 (*maps object-rule to tpairs*)
