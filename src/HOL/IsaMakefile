@@ -75,8 +75,42 @@ Integ:	$(OUT)/HOL $(INTEG_FILES)
 	@$(ISATOOL) usedir $(OUT)/HOL Integ
 
 
-## I/O Automata (meta theory only)
+## TLA -- Temporal Logic of Actions
 
+TLA_FILES = TLA/Action.ML TLA/Action.thy TLA/IntLemmas.ML \
+	TLA/Intensional.ML TLA/Intensional.thy TLA/ROOT.ML TLA/Stfun.ML \
+	TLA/Stfun.thy TLA/TLA.ML TLA/TLA.thy TLA/cladata.ML TLA/hypsubst.ML
+
+TLA_INC_FILES = TLA/Inc/Inc.thy TLA/Inc/Inc.ML TLA/Inc/Pcount.thy
+
+TLA_BUFFER_FILES = TLA/Buffer/Buffer.thy TLA/Buffer/Buffer.ML \
+	TLA/Buffer/DBuffer.thy TLA/Buffer/DBuffer.ML
+
+TLA_MEMORY_FILES = TLA/Memory/MIParameters.thy TLA/Memory/MIlive.ML \
+	TLA/Memory/MIsafe.ML TLA/Memory/MemClerk.ML TLA/Memory/MemClerk.thy \
+	TLA/Memory/MemClerkParameters.ML TLA/Memory/MemClerkParameters.thy \
+	TLA/Memory/Memory.ML TLA/Memory/Memory.thy \
+	TLA/Memory/MemoryImplementation.ML TLA/Memory/MemoryImplementation.thy \
+	TLA/Memory/MemoryParameters.ML TLA/Memory/MemoryParameters.thy \
+	TLA/Memory/ProcedureInterface.ML TLA/Memory/ProcedureInterface.thy \
+	TLA/Memory/RPC.ML TLA/Memory/RPC.thy TLA/Memory/RPCMemoryParams.thy \
+	TLA/Memory/RPCParameters.ML TLA/Memory/RPCParameters.thy
+
+
+TLA: $(OUT)/HOL $(TLA_FILES)
+	@cd TLA; $(ISATOOL) usedir -b $(OUT)/HOL TLA
+
+TLA_Inc: $(OUT)/TLA $(TLA_INC_FILES)
+	@cd TLA; $(ISATOOL) usedir $(OUT)/TLA Inc
+
+TLA_Buffer: $(OUT)/TLA $(TLA_BUFFER_FILES)
+	@cd TLA; $(ISATOOL) usedir $(OUT)/TLA Buffer
+
+TLA_Memory: $(OUT)/TLA $(TLA_MEMORY_FILES)
+	@cd TLA; $(ISATOOL) usedir $(OUT)/TLA Memory
+
+
+## I/O Automata (meta theory only)
 
 IOA_FILES = IOA/ROOT.ML IOA/Asig.thy IOA/Asig.ML IOA/IOA.thy \
   IOA/IOA.ML IOA/Solve.thy IOA/Solve.ML
@@ -213,8 +247,8 @@ ex:	$(OUT)/HOL $(EX_FILES)
 ## Full test
 
 test:	$(OUT)/HOL \
-		Subst Induct IMP Hoare Lex Integ Auth Modelcheck Lambda  \
-		W0 MiniML IOA AxClasses Quot ex
+	  Subst Induct IMP Hoare Lex Integ Auth Modelcheck Lambda  \
+	  W0 MiniML TLA TLA_Inc TLA_Buffer TLA_Memory IOA AxClasses Quot ex
 	echo 'Test examples ran successfully' > test
 
 
