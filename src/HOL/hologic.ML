@@ -321,7 +321,9 @@ fun mk_bin n =
 
 val intT = Type ("IntDef.int", []);
 
-fun mk_int i = number_of_const intT $ mk_bin i;
+fun mk_int 0 = Const ("0", intT)
+  | mk_int 1 = Const ("1", intT)
+  | mk_int i = number_of_const intT $ mk_bin i;
 
 
 (* real *)
