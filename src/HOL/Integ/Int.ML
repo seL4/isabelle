@@ -107,7 +107,7 @@ qed "zless_add_int_Suc_eq";
 Goal "(w + int (Suc m) <= z) = (w + int m < z)";
 by (simp_tac (simpset() addsimps [zle_def, zless_add_int_Suc_eq]) 1);
 by (auto_tac (claset() addIs [zle_anti_sym] addEs [zless_asym],
-	      simpset() addsimps [zless_imp_zle, symmetric zle_def]));
+	      simpset() addsimps [order_less_imp_le, symmetric zle_def]));
 qed "add_int_Suc_zle_eq";
 
 
@@ -151,7 +151,7 @@ by (Simp_tac 1);
 qed "zadd_zle_mono";
 
 Goal "[| w'<w; z'<=z |] ==> w' + z' < w + (z::int)";
-by (etac (zadd_zless_mono1 RS zless_zle_trans) 1);
+by (etac (zadd_zless_mono1 RS order_less_le_trans) 1);
 by (Simp_tac 1);
 qed "zadd_zless_mono";
 
@@ -199,7 +199,7 @@ by (simp_tac (simpset() addsimps [zless_def]) 1);
 qed "negative_zless_0"; 
 
 Goal "- (int (Suc n)) < int m";
-by (rtac (negative_zless_0 RS zless_zle_trans) 1);
+by (rtac (negative_zless_0 RS order_less_le_trans) 1);
 by (Simp_tac 1); 
 qed "negative_zless"; 
 AddIffs [negative_zless]; 
@@ -444,7 +444,7 @@ by (auto_tac (claset(),
 				  inst "y1" "m*k" (linorder_not_le RS sym),
                                   inst "y1" "m" (linorder_not_le RS sym)]));
 by (ALLGOALS (etac notE));
-by (auto_tac (claset(), simpset() addsimps [zless_imp_zle, zmult_zle_mono1,
+by (auto_tac (claset(), simpset() addsimps [order_less_imp_le, zmult_zle_mono1,
                                             zmult_zle_mono1_neg]));  
 qed "zmult_zless_cancel2";
 

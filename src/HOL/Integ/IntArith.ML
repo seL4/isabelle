@@ -133,7 +133,7 @@ by Auto_tac;
 qed "zmult_eq_self_iff";
 
 Goal "[| #1 < m; #1 < n |] ==> #1 < m*(n::int)";
-by (res_inst_tac [("z2.0","#1*n")] zless_trans 1);
+by (res_inst_tac [("y","#1*n")] order_less_trans 1);
 by (rtac zmult_zless_mono1 2);
 by (ALLGOALS Asm_simp_tac);
 qed "zless_1_zmult";
