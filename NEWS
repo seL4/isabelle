@@ -7,8 +7,6 @@ New in this Isabelle version
 
 *** Overview of INCOMPATIBILITIES (see below for more details) ***
 
-* HOL: "case_tac" is now called "cases_tac" (see below)
-
 * HOL: the constant for f``x is now "image" rather than "op ``".
 
 
@@ -56,8 +54,7 @@ extended records as well; admit "r" as field name;
 Arithmetic, by Thomas M Rasmussen;
 
 * There is a new tactic "cases_tac" for case distinctions; it subsumes the
-old "case_tac" (no longer available) and "exhaust_tac" (which should no
-longer be used).
+old "case_tac" and "exhaust_tac" (which should no longer be used).
 
 *** General ***
 
