@@ -171,7 +171,6 @@ INCOMPATIBILITY: while [] and infix # syntax is still there, of
 course, ML tools referring to List.list.op # etc. have to be adapted;
 
 
-
 *** LK ***
 
 * the notation <<...>> is now available as a notation for sequences of
