@@ -635,6 +635,6 @@ automatic step fails to prove the desired proposition.
 
 When converting a proof from tactic-style into Isar you can proceed
 in a top-down manner: parts of the proof can be left in script form
-while to outer structure is already expressed in Isar. *}
+while the outer structure is already expressed in Isar. *}
 
 (*<*)end(*>*)
