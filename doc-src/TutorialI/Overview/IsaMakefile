@@ -1,0 +1,25 @@
+## targets
+
+default: LNCS
+
+## global settings
+
+SRC = $(ISABELLE_HOME)/src
+OUT = $(ISABELLE_OUTPUT)
+LOG = $(OUT)/log
+USEDIR = $(ISATOOL) usedir -i true -d ps -D document -v true
+
+
+## LNCS
+
+LNCS: $(LOG)/HOL-LNCS.gz
+
+$(LOG)/HOL-LNCS.gz: LNCS/ROOT.ML LNCS/document/root.tex LNCS/*.thy
+	@$(USEDIR) HOL LNCS
+
+
+## clean
+
+clean:
+	@rm -f $(LOG)/HOL-LNCS.gz
+
