@@ -211,7 +211,7 @@ fun pretty_full_theory thy =
   in
     [Pretty.strs ("stamps:" :: Sign.stamp_names_of sg),
       Pretty.strs ("data:" :: Sign.data_kinds data),
-      Pretty.strs ["name prefix:", NameSpace.pack path],
+      Pretty.strs ["name prefix:", NameSpace.pack (if_none path ["-"])],
       Pretty.big_list "name spaces:" (map pretty_name_space spaces'),
       pretty_classes classes,
       Pretty.big_list "class relation:" (map pretty_classrel (Symtab.dest classrel)),

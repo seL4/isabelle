@@ -25,7 +25,7 @@ sig
     tsig: Type.type_sig,
     const_tab: typ Symtab.table,
     syn: Syntax.syntax,
-    path: string list,
+    path: string list option,
     spaces: (string * NameSpace.T) list,
     data: data}
   val name_of: sg -> string
@@ -178,7 +178,7 @@ datatype sg =
     tsig: Type.type_sig,                        (*order-sorted signature of types*)
     const_tab: typ Symtab.table,                (*type schemes of constants*)
     syn: Syntax.syntax,                         (*syntax for parsing and printing*)
-    path: string list,                          (*current name space entry prefix*)
+    path: string list option,                   (*current name space entry prefix*)
     spaces: (string * NameSpace.T) list,        (*name spaces for consts, types etc.*)
     data: data}                                 (*anytype data*)
 and data =
@@ -441,11 +441,12 @@ fun add_names x = change_space NameSpace.extend x;
 fun hide_names x = change_space NameSpace.hide x;
 
 (*make full names*)
-fun full path name =
-  if name = "" then error "Attempt to declare empty name \"\""
-  else if NameSpace.is_qualified name then
-    error ("Attempt to declare qualified name " ^ quote name)
-  else NameSpace.pack (path @ [name]);
+fun full _ "" = error "Attempt to declare empty name \"\""
+  | full None name = name
+  | full (Some path) name =
+      if NameSpace.is_qualified name then
+        error ("Attempt to declare qualified name " ^ quote name)
+      else NameSpace.pack (path @ [name]);
 
 (*base name*)
 val base_name = NameSpace.base;
@@ -507,8 +508,10 @@ in
   val intern_tycons = intrn_tycons o spaces_of;
 
   val full_name = full o #path o rep_sg;
-  fun full_name_path sg elems name =
-    full (#path (rep_sg sg) @ NameSpace.unpack elems) name;
+
+  fun full_name_path sg elems =
+    full (Some (if_none (#path (rep_sg sg)) [] @ NameSpace.unpack elems));
+
 end;
 
 
@@ -970,9 +973,11 @@ fun ext_syn extfun (syn, tsig, ctab, names, data) args =
 fun ext_path (syn, tsig, ctab, (path, spaces), data) elems =
   let
     val path' =
-      if elems = ".." andalso not (null path) then fst (split_last path)
-      else if elems = "/" then []
-      else path @ NameSpace.unpack elems;
+      if elems = "//" then None
+      else if elems = "/" then Some []
+      else if elems = ".." andalso is_some path andalso path <> Some [] then
+        Some (fst (split_last (the path)))
+      else Some (if_none path [] @ NameSpace.unpack elems);
   in
     (syn, tsig, ctab, (path', spaces), data)
   end;
@@ -1107,7 +1112,7 @@ fun nontriv_merge (sg1, sg2) =
           raise TERM ("Incompatible types for constant(s) " ^ commas_quote cs, []);
       val syn = Syntax.merge_syntaxes syn1 syn2;
 
-      val path = [];
+      val path = Some [];
       val kinds = distinct (map fst (spaces1 @ spaces2));
       val spaces =
         kinds ~~
@@ -1126,11 +1131,11 @@ fun nontriv_merge (sg1, sg2) =
 (** partial Pure signature **)
 
 val dummy_sg = make_sign (ref "", SgRef None, Type.tsig0,
-  Symtab.empty, Syntax.pure_syn, [], [], empty_data, []);
+  Symtab.empty, Syntax.pure_syn, Some [], [], empty_data, []);
 
 val pre_pure =
   create_sign (SgRef (Some (ref dummy_sg))) [] "#"
-    (Syntax.pure_syn, Type.tsig0, Symtab.empty, ([], []), empty_data);
+    (Syntax.pure_syn, Type.tsig0, Symtab.empty, (Some [], []), empty_data);
 
 
 end;

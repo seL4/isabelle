@@ -78,6 +78,7 @@ sig
   val add_path: string -> theory -> theory
   val parent_path: theory -> theory
   val root_path: theory -> theory
+  val absolute_path: theory -> theory
   val hide_space: string * xstring list -> theory -> theory
   val hide_space_i: string * string list -> theory -> theory
   val hide_classes: string list -> theory -> theory
@@ -217,6 +218,7 @@ val add_trrules_i    = ext_sign Sign.add_trrules_i;
 val add_path         = ext_sign Sign.add_path;
 val parent_path      = add_path "..";
 val root_path        = add_path "/";
+val absolute_path    = add_path "//";
 val add_space        = ext_sign Sign.add_space;
 val hide_space       = ext_sign Sign.hide_space;
 val hide_space_i     = ext_sign Sign.hide_space_i;
