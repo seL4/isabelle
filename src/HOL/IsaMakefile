@@ -94,8 +94,8 @@ $(OUT)/HOL: $(OUT)/Pure $(SRC)/Provers/Arith/abel_cancel.ML \
   Tools/datatype_package.ML Tools/datatype_prop.ML \
   Tools/datatype_rep_proofs.ML Tools/induct_attrib.ML Tools/induct_method.ML \
   Tools/inductive_package.ML Tools/meson.ML Tools/numeral_syntax.ML \
-  Tools/primrec_package.ML Tools/recdef_package.ML \
-  Tools/record_package.ML Tools/svc_funcs.ML Tools/typedef_package.ML \
+  Tools/primrec_package.ML Tools/recdef_package.ML Tools/record_package.ML \
+  Tools/string_syntax.ML Tools/svc_funcs.ML Tools/typedef_package.ML \
   Transitive_Closure.ML Transitive_Closure.thy Wellfounded_Recursion.ML \
   Wellfounded_Recursion.thy Wellfounded_Relations.ML \
   Wellfounded_Relations.thy arith_data.ML blastdata.ML cladata.ML \
