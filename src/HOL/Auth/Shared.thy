@@ -6,8 +6,6 @@
 Theory of Shared Keys (common to all symmetric-key protocols)
 
 Server keys; initial states of agents; new nonces and keys; function "sees" 
-
-IS THE Notes constructor needed??
 *)
 
 Shared = Message + List + 
@@ -33,7 +31,6 @@ primrec initState agent
 
 datatype  (*Messages, and components of agent stores*)
   event = Says agent agent msg
-        | Notes agent msg
 
 consts  
   sees1 :: [agent, event] => msg set
@@ -43,7 +40,6 @@ primrec sees1 event
              that is sent to it; it must note such things if/when received*)
   sees1_Says  "sees1 A (Says A' B X)  = (if A:{A',Enemy} then {X} else {})"
           (*part of A's internal state*)
-  sees1_Notes "sees1 A (Notes A' X)   = (if A=A' then {X} else {})"
 
 consts  
   sees :: [agent, event list] => msg set

@@ -145,11 +145,6 @@ by (simp_tac (!simpset setloop split_tac [expand_if]) 1);
 by (Fast_tac 1);
 qed "sees_Says_subset_insert";
 
-goal thy "sees A (Notes A' X # evs) <= insert X (sees A evs)";
-by (simp_tac (!simpset setloop split_tac [expand_if]) 1);
-by (Fast_tac 1);
-qed "sees_Notes_subset_insert";
-
 goal thy "sees A evs <= sees A (Says A' B X # evs)";
 by (simp_tac (!simpset setloop split_tac [expand_if]) 1);
 by (Fast_tac 1);
@@ -180,7 +175,6 @@ qed "initState_subset";
 
 goal thy "X : sees C evs --> \
 \          (EX A B. Says A B X : set_of_list evs) | \
-\          (EX A. Notes A X : set_of_list evs) | \
 \          (EX A. X = Key (shrK A))";
 by (list.induct_tac "evs" 1);
 by (ALLGOALS Asm_simp_tac);
@@ -244,4 +238,11 @@ fun enemy_analz_tac i =
 	   IF_UNSOLVED (deepen_tac (!claset addIs [impOfSubs analz_mono]) 0 1)
 	   ]) i;
 
+
+(** Simplifying   parts (insert X (sees A evs))
+                = parts {X} Un parts (sees A evs) -- since general case loops*)
+
+val parts_insert_sees = 
+    parts_insert |> read_instantiate_sg (sign_of thy) [("H", "sees A evs")]
+                 |> standard;
 
