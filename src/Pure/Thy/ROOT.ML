@@ -27,7 +27,7 @@ functor ThySynFun() = struct end;
 fun init_thy_reader () =
   use_string
    ["structure ThmDB = \
-    \ThmdbFUN(val ignore = [\"Trueprop\",\"All\",\"==>\",\"==\"]);",
+    \ThmdbFUN(val ignore = [\"Trueprop\",\"all\",\"==>\",\"==\"]);",
     "structure Readthy = ReadthyFUN(structure ThySyn = ThySyn \
                                    \and ThmDB = ThmDB);",
     "open Readthy ThmDB;"];
