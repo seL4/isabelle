@@ -12,23 +12,23 @@ infix 0 ||;
 
 signature BASIC_SCAN =
 sig
-  (* error msg handler *)
+  (*error msg handler*)
   val !! : ('a * string option -> string) -> ('a -> 'b) -> 'a -> 'b
-  (* apply function *)
+  (*apply function*)
   val >> : ('a -> 'b * 'c) * ('b -> 'd) -> 'a -> 'd * 'c
-  (* alternative *)
+  (*alternative*)
   val || : ('a -> 'b) * ('a -> 'b) -> 'a -> 'b
-  (* sequential pairing *)
+  (*sequential pairing*)
   val -- : ('a -> 'b * 'c) * ('c -> 'd * 'e) -> 'a -> ('b * 'd) * 'e
-  (* dependent pairing *)
+  (*dependent pairing*)
   val :-- : ('a -> 'b * 'c) * ('b -> 'c -> 'd * 'e) -> 'a -> ('b * 'd) * 'e
-  (* forget fst *)
+  (*forget fst*)
   val |-- : ('a -> 'b * 'c) * ('c -> 'd * 'e) -> 'a -> 'd * 'e
-  (* forget snd *)                                
+  (*forget snd*)
   val --| : ('a -> 'b * 'c) * ('c -> 'd * 'e) -> 'a -> 'b * 'e
-  (* concatenation *)
+  (*concatenation*)
   val ^^ : ('a -> string * 'b) * ('b -> string * 'c) -> 'a -> string * 'c
-  (* one element literal *)
+  (*one element literal*)
   val $$ : ''a -> ''a list -> ''a * ''a list
 end;
 
@@ -49,7 +49,7 @@ sig
   val ahead: ('a -> 'b * 'c) -> 'a -> 'b * 'a
   val unless: ('a -> 'b * 'a) -> ('a -> 'c * 'd) -> 'a -> 'c * 'd
   val first: ('a -> 'b) list -> 'a -> 'b
-  val state: 'a * 'b -> 'a * ('a * 'b) 
+  val state: 'a * 'b -> 'a * ('a * 'b)
   val depend: ('a -> 'b -> ('c * 'd) * 'e) -> 'a * 'b -> 'd * ('c * 'e)
   val lift: ('a -> 'b * 'c) -> 'd * 'a -> 'b * ('d * 'c)
   val pass: 'a -> ('a * 'b -> 'c * ('d * 'e)) -> 'b -> 'c * 'e
@@ -92,52 +92,45 @@ exception ABORT of string;              (*dead end*)
 
 (* scanner combinators *)
 
-(* dependent pairing *)
-
+(*dependent pairing*)
 fun (sc1 :-- sc2) toks =
   let
     val (x, toks2) = sc1 toks
     val (y, toks3) = sc2 x toks2
   in ((x, y), toks3) end;
 
-(* sequential pairing *)
-
+(*sequential pairing*)
 fun (sc1 -- sc2) toks =
   let
     val (x, toks2) = sc1 toks
     val (y, toks3) = sc2 toks2
   in ((x, y), toks3) end;
 
-(* application *)
-
+(*application*)
 fun (sc >> f) toks =
   let val (x, toks2) = sc toks
   in (f x, toks2) end;
 
-(* forget snd *)
-
+(*forget snd*)
 fun (sc1 --| sc2) toks =
   let
     val (x, toks2) = sc1 toks
     val (_, toks3) = sc2 toks2
   in (x, toks3) end;
 
-(* forget fst *)
-
+(*forget fst*)
 fun (sc1 |-- sc2) toks =
   let val (_, toks2) = sc1 toks
   in sc2 toks2 end;
 
-(* concatenation *)
-
+(*concatenation*)
 fun (sc1 ^^ sc2) toks =
   let
     val (x, toks2) = sc1 toks
     val (y, toks3) = sc2 toks2
   in (x ^ y, toks3) end;
 
-(* alternative *)
-
+(*alternative*)
 fun (scan1 || scan2) xs = scan1 xs handle FAIL _ => scan2 xs;
 
 
