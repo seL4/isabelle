@@ -5,7 +5,7 @@
 
 header {* \isaheader{Example Welltypings}\label{sec:BVExample} *}
 
-theory BVExample = JVMListExample + BVSpecTypeSafe:
+theory BVExample = JVMListExample + BVSpecTypeSafe + JVM:
 
 text {*
   This theory shows type correctness of the example program in section 
@@ -371,5 +371,84 @@ lemma "E,\<Phi> \<turnstile>JVM start_state E test_name makelist_name \<surd>"
    apply simp
   apply simp
   done
+
+
+section "Example for code generation: inferring method types"
+
+constdefs
+  test_kil :: "jvm_prog \<Rightarrow> cname \<Rightarrow> ty List.list \<Rightarrow> ty \<Rightarrow> nat \<Rightarrow> nat \<Rightarrow> 
+             exception_table \<Rightarrow> instr List.list \<Rightarrow> JVMType.state List.list"
+  "test_kil G C pTs rT mxs mxl et instr ==
+   (let first  = Some ([],(OK (Class C))#((map OK pTs))@(replicate mxl Err));
+        start  = OK first#(replicate (size instr - 1) (OK None))
+    in  kiljvm G mxs (1+size pTs+mxl) rT et instr start)"
+
+lemma [code]:
+  "unstables r step ss = (UN p:{..size ss(}. if \<not>stable r step ss p then {p} else {})"
+  apply (unfold unstables_def)
+  apply (rule equalityI)
+  apply (rule subsetI)
+  apply (erule CollectE)
+  apply (erule conjE)
+  apply (rule UN_I)
+  apply simp
+  apply simp
+  apply (rule subsetI)
+  apply (erule UN_E)
+  apply (case_tac "\<not> stable r step ss p")
+  apply simp+
+  done
+
+lemmas [code] = lessThan_0 lessThan_Suc
+
+constdefs
+  some_elem :: "'a set \<Rightarrow> 'a"
+  "some_elem == (%S. SOME x. x : S)"
+
+lemma [code]:
+"iter f step ss w =
+ while (%(ss,w). w \<noteq> {})
+       (%(ss,w). let p = some_elem w
+                 in propa f (step p (ss!p)) ss (w-{p}))
+       (ss,w)"
+  by (unfold iter_def some_elem_def, rule refl)
+
+types_code
+  set ("_ list")
+
+consts_code
+  "{}"     ("[]")
+  "insert" ("(_ ins _)")
+  "op :"   ("(_ mem _)")
+  "op Un"  ("(_ union _)")
+  "image"  ("map")
+  "UNION"  ("(fn A => fn f => flat (map f A))")
+  "Bex"    ("(fn A => fn f => exists f A)")
+  "Ball"   ("(fn A => fn f => forall f A)")
+  "some_elem" ("hd")
+  "op -" :: "'a set \<Rightarrow> 'a set \<Rightarrow> 'a set"  ("(_ \\ _)")
+
+lemma JVM_sup_unfold [code]:
+ "JVMType.sup S m n = lift2 (Opt.sup
+       (Product.sup (Listn.sup (JType.sup S))
+         (\<lambda>x y. OK (map2 (lift2 (JType.sup S)) x y))))" 
+  apply (unfold JVMType.sup_def JVMType.sl_def Opt.esl_def Err.sl_def
+         stk_esl_def reg_sl_def Product.esl_def  
+         Listn.sl_def upto_esl_def JType.esl_def Err.esl_def) 
+  by simp
+
+lemmas [code] =
+  meta_eq_to_obj_eq [OF JType.sup_def [unfolded exec_lub_def]]
+  meta_eq_to_obj_eq [OF JVM_le_unfold]
+
+lemmas [code ind] = rtrancl_refl converse_rtrancl_into_rtrancl
+
+generate_code
+  test1 = "test_kil E list_name [Class list_name] (PrimT Void) 3 0
+    [(Suc 0, 2, 8, Xcpt NullPointer)] append_ins"
+  test2 = "test_kil E test_name [] (PrimT Void) 3 2 [] make_list_ins"
+
+ML test1
+ML test2
 
 end
