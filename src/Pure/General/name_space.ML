@@ -82,7 +82,7 @@ fun extend (NameSpace tab, names) =
   NameSpace (foldl add (tab, flat (map (fn name => map (rpair name) (accesses name)) names)));
 
 fun merge (NameSpace tab1, NameSpace tab2) =    (*2nd overrides 1st*)
-  NameSpace (foldl add (tab1, Symtab.dest tab2));
+  NameSpace (Symtab.foldl add (tab1, tab2));
 
 
 (* intern / extern names *)
