@@ -607,12 +607,8 @@ struct
 							((case last_elem (binder_types T) of
 							  Type (s', _) =>
 								(case DatatypePackage.datatype_info thy s' of
-								  Some info =>
-									(* TODO: I'm not quite sure if comparing the names is sufficient, or if *)
-									(*       we should also check the type                                  *)
-									s mem (#rec_names info)
-								| None =>  (* not an inductive datatype *)
-									false)
+								  Some info => s mem (#rec_names info)
+								| None      => false)  (* not an inductive datatype *)
 							| _ =>  (* a (free or schematic) type variable *)
 								false)
 							handle LIST "last_elem" => false)  (* not even a function type *)
@@ -1348,11 +1344,10 @@ struct
 			Some (TT, model, args)
 		| Const ("False", _) =>  (* redundant, since 'False' is also an IDT constructor *)
 			Some (FF, model, args)
-		| Const ("All", _) $ t1 =>  (* if 'All' occurs without an argument (i.e.   *)
-		                            (* as argument to a higher-order function or   *)
-		                            (* predicate), it is handled by the            *)
-		                            (* 'stlc_interpreter' (i.e. by unfolding its   *)
-		                            (* definition)                                 *)
+		| Const ("All", _) $ t1 =>
+		(* if "All" occurs without an argument (i.e. as argument to a higher-order *)
+		(* function or  predicate), it is handled by the 'stlc_interpreter' (i.e.  *)
+		(* by unfolding its definition)                                            *)
 			let
 				val (i, m, a) = interpret thy model args t1
 			in
@@ -1367,11 +1362,10 @@ struct
 				| _ =>
 					raise REFUTE ("HOLogic_interpreter", "\"All\" is followed by a non-function")
 			end
-		| Const ("Ex", _) $ t1 =>  (* if 'Ex' occurs without an argument (i.e. as  *)
-		                           (* argument to a higher-order function or       *)
-		                           (* predicate), it is handled by the             *)
-		                           (* 'stlc_interpreter' (i.e. by unfolding its    *)
-		                           (* definition)                                  *)
+		| Const ("Ex", _) $ t1 =>
+		(* if "Ex" occurs without an argument (i.e. as argument to a higher-order  *)
+		(* function or  predicate), it is handled by the 'stlc_interpreter' (i.e.  *)
+		(* by unfolding its definition)                                            *)
 			let
 				val (i, m, a) = interpret thy model args t1
 			in
