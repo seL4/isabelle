@@ -54,7 +54,7 @@ use     "co-inductive.ML";
 use_thy "perm";
 use_thy "trancl";
 use_thy "wf";
-use_thy "ordinal";
+use_thy "ord";
 use_thy "nat";
 use_thy "epsilon";
 use_thy "arith";
