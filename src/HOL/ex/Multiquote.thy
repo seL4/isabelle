@@ -9,8 +9,8 @@ generalized version of de-Bruijn representation.
 theory Multiquote = Main:;
 
 syntax
-  "_quote" :: "'b \\<Rightarrow> ('a \\<Rightarrow> 'b)"	     ("{._.}" [0] 1000)
-  "_antiquote" :: "('a \\<Rightarrow> 'b) \\<Rightarrow> 'b"        ("`_" [1000] 999);
+  "_quote" :: "'b => ('a => 'b)"	     ("{._.}" [0] 1000)
+  "_antiquote" :: "('a => 'b) => 'b"         ("`_" [1000] 999);
 
 parse_translation {*
   let
