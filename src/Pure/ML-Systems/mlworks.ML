@@ -25,9 +25,6 @@ MLWorks.Internal.Runtime.Event.stack_overflow_handler
 
 (* Poly/ML emulation *)
 
-(*just for versions of MLWorks that don't provide the Option structure*)
-structure Option = General;
-
 (*To exit the system with an exit code -- an alternative to ^D *)
 fun exit 0 = (OS.Process.exit OS.Process.success): unit
   | exit _ = OS.Process.exit OS.Process.failure;
