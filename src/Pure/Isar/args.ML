@@ -168,7 +168,7 @@ fun goal_spec def = Scan.lift (Scan.optional goal def);
 
 (* args *)
 
-val exclude = explode "(){}[],";
+val exclude = explode "()[],";
 
 fun atom_arg blk = Scan.one (fn Arg (k, (x, _)) =>
   k <> Keyword orelse not (x mem exclude) orelse blk andalso x = ",");
