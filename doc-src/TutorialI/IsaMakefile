@@ -115,9 +115,9 @@ $(LOG)/HOL-Advanced.gz: $(OUT)/HOL Advanced/simp.thy Advanced/ROOT.ML Advanced/W
 HOL-Rules: HOL $(LOG)/HOL-Rules.gz
 
 $(LOG)/HOL-Rules.gz: $(OUT)/HOL Rules/Basic.thy \
-	Rules/Blast.thy Rules/Force.thy Rules/Primes.thy  \
+	Rules/Blast.thy Rules/Force.thy Rules/Primes.thy Rules/Forward.thy  \
 	Rules/ROOT.ML 
-	@$(ISATOOL) usedir -d dvi -D document $(OUT)/HOL Rules
+	@$(USEDIR) Rules
 	@rm -f tutorial.dvi
 
 ## HOL-Sets
@@ -126,7 +126,7 @@ HOL-Sets: HOL $(LOG)/HOL-Sets.gz
 
 $(LOG)/HOL-Sets.gz: $(OUT)/HOL Sets/Examples.thy Sets/Functions.thy \
 	Sets/Recur.thy Sets/Relations.thy Sets/ROOT.ML
-	@$(ISATOOL) usedir -d dvi -D document $(OUT)/HOL Sets
+	@$(USEDIR) Sets
 	@rm -f tutorial.dvi
 
 ## HOL-CTL
