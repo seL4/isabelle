@@ -200,16 +200,16 @@ fun is_hidden (Latex.Basic tk, _) =
       T.is_kind T.Command tk andalso T.val_of tk mem !hidden_commands
   | is_hidden _ = false;
 
-fun present_tokens lex (flag, toks) state' state =
+fun present_tokens lex (flag, toks) state state' =
   Buffer.add (case flag of None => "" | Some b => Latex.flag_markup b) o
-   ((if !hide_commands andalso exists (is_hidden o fst) toks then[]
+   ((if !hide_commands andalso exists (is_hidden o fst) toks then []
      else mapfilter (fn (tk, i) =>
        if i > ! interest_level then None
-       else if !hide_commands andalso is_proof state' then
-         if not (is_proof state) andalso is_newline tk then Some tk
+       else if !hide_commands andalso is_proof state then
+         if not (is_proof state') andalso is_newline tk then Some tk
          else None
        else Some tk) toks)
-    |> map (apsnd (eval_antiquote lex state))
+    |> map (apsnd (eval_antiquote lex state'))
     |> Latex.output_tokens
     |> Buffer.add);
 
