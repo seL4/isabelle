@@ -1230,9 +1230,10 @@ fun eq_assumption i state =
 fun rotate_rule k i state =
   let val Thm{sign_ref,der,maxidx,hyps,prop,shyps} = state;
       val (tpairs, Bs, Bi, C) = dest_state(state,i)
-      val params = Logic.strip_params Bi
-      and asms   = Logic.strip_assums_hyp Bi
-      and concl  = Logic.strip_assums_concl Bi
+      val params = Term.strip_all_vars Bi
+      and rest   = Term.strip_all_body Bi
+      val asms   = Logic.strip_imp_prems rest
+      and concl  = Logic.strip_imp_concl rest
       val n      = length asms
       fun rot m  = if 0=m orelse m=n then Bi
 		   else if 0<m andalso m<n 
