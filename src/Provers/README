@@ -6,6 +6,7 @@ certain form are derivable.  Some of these are documented in the
 Reference Manual.
 
   blast.ML              generic tableau prover with proof reconstruction
+  clasimp.ML		combination of classical reasoner and simplifier
   classical.ML          theorem prover for classical logics
   genelim.ML            bits and pieces for deriving elimination rules
   hypsubst.ML           tactic to substitute in the hypotheses
