@@ -92,7 +92,7 @@ proof intro_classes;
 qed;
 
 
-subsection {* Concrete instantiation \label{sec:inst-arity} *};
+subsection {* Concrete instantiation *};
 
 defs
   times_bool_def:   "x [*] y == x ~= (y::bool)"
