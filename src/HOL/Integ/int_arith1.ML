@@ -225,7 +225,7 @@ structure CancelNumeralsCommon =
 
 structure EqCancelNumerals = CancelNumeralsFun
  (open CancelNumeralsCommon
-  val prove_conv = Bin_Simprocs.prove_conv "inteq_cancel_numerals"
+  val prove_conv = Bin_Simprocs.prove_conv
   val mk_bal   = HOLogic.mk_eq
   val dest_bal = HOLogic.dest_bin "op =" HOLogic.intT
   val bal_add1 = eq_add_iff1 RS trans
@@ -234,7 +234,7 @@ structure EqCancelNumerals = CancelNumeralsFun
 
 structure LessCancelNumerals = CancelNumeralsFun
  (open CancelNumeralsCommon
-  val prove_conv = Bin_Simprocs.prove_conv "intless_cancel_numerals"
+  val prove_conv = Bin_Simprocs.prove_conv
   val mk_bal   = HOLogic.mk_binrel "op <"
   val dest_bal = HOLogic.dest_bin "op <" HOLogic.intT
   val bal_add1 = less_add_iff1 RS trans
@@ -243,7 +243,7 @@ structure LessCancelNumerals = CancelNumeralsFun
 
 structure LeCancelNumerals = CancelNumeralsFun
  (open CancelNumeralsCommon
-  val prove_conv = Bin_Simprocs.prove_conv "intle_cancel_numerals"
+  val prove_conv = Bin_Simprocs.prove_conv
   val mk_bal   = HOLogic.mk_binrel "op <="
   val dest_bal = HOLogic.dest_bin "op <=" HOLogic.intT
   val bal_add1 = le_add_iff1 RS trans
@@ -277,7 +277,7 @@ structure CombineNumeralsData =
   val mk_coeff          = mk_coeff
   val dest_coeff        = dest_coeff 1
   val left_distrib      = left_zadd_zmult_distrib RS trans
-  val prove_conv        = Bin_Simprocs.prove_conv_nohyps "int_combine_numerals"
+  val prove_conv        = Bin_Simprocs.prove_conv_nohyps
   val trans_tac          = trans_tac
   val norm_tac =
      ALLGOALS (simp_tac (HOL_ss addsimps numeral_syms@add_0s@mult_1s@

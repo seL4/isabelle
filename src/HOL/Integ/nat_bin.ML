@@ -229,7 +229,7 @@ structure NatAbstractNumeralsData =
   val is_numeral	= Bin_Simprocs.is_numeral
   val numeral_0_eq_0    = numeral_0_eq_0
   val numeral_1_eq_1    = numeral_1_eq_Suc_0
-  val prove_conv   = Bin_Simprocs.prove_conv_nohyps "nat_abstract_numerals"
+  val prove_conv        = Bin_Simprocs.prove_conv_nohyps_novars
   fun norm_tac simps	= ALLGOALS (simp_tac (HOL_ss addsimps simps))
   val simplify_meta_eq  = Bin_Simprocs.simplify_meta_eq 
   end

@@ -208,7 +208,7 @@ structure CancelNumeralFactorCommon =
 
 structure DivCancelNumeralFactor = CancelNumeralFactorFun
  (open CancelNumeralFactorCommon
-  val prove_conv = prove_conv "realdiv_cancel_numeral_factor"
+  val prove_conv = Bin_Simprocs.prove_conv
   val mk_bal   = HOLogic.mk_binop "HOL.divide"
   val dest_bal = HOLogic.dest_bin "HOL.divide" HOLogic.realT
   val cancel = real_mult_div_cancel1 RS trans
@@ -217,7 +217,7 @@ structure DivCancelNumeralFactor = CancelNumeralFactorFun
 
 structure EqCancelNumeralFactor = CancelNumeralFactorFun
  (open CancelNumeralFactorCommon
-  val prove_conv = prove_conv "realeq_cancel_numeral_factor"
+  val prove_conv = Bin_Simprocs.prove_conv
   val mk_bal   = HOLogic.mk_eq
   val dest_bal = HOLogic.dest_bin "op =" HOLogic.realT
   val cancel = real_mult_eq_cancel1 RS trans
@@ -226,7 +226,7 @@ structure EqCancelNumeralFactor = CancelNumeralFactorFun
 
 structure LessCancelNumeralFactor = CancelNumeralFactorFun
  (open CancelNumeralFactorCommon
-  val prove_conv = prove_conv "realless_cancel_numeral_factor"
+  val prove_conv = Bin_Simprocs.prove_conv
   val mk_bal   = HOLogic.mk_binrel "op <"
   val dest_bal = HOLogic.dest_bin "op <" HOLogic.realT
   val cancel = real_mult_less_cancel1 RS trans
@@ -235,7 +235,7 @@ structure LessCancelNumeralFactor = CancelNumeralFactorFun
 
 structure LeCancelNumeralFactor = CancelNumeralFactorFun
  (open CancelNumeralFactorCommon
-  val prove_conv = prove_conv "realle_cancel_numeral_factor"
+  val prove_conv = Bin_Simprocs.prove_conv
   val mk_bal   = HOLogic.mk_binrel "op <="
   val dest_bal = HOLogic.dest_bin "op <=" HOLogic.realT
   val cancel = real_mult_le_cancel1 RS trans
@@ -326,7 +326,7 @@ structure CancelFactorCommon =
 
 structure EqCancelFactor = ExtractCommonTermFun
  (open CancelFactorCommon
-  val prove_conv = prove_conv "real_eq_cancel_factor"
+  val prove_conv = Bin_Simprocs.prove_conv
   val mk_bal   = HOLogic.mk_eq
   val dest_bal = HOLogic.dest_bin "op =" HOLogic.realT
   val simplify_meta_eq  = cancel_simplify_meta_eq real_mult_eq_cancel1
@@ -335,7 +335,7 @@ structure EqCancelFactor = ExtractCommonTermFun
 
 structure DivideCancelFactor = ExtractCommonTermFun
  (open CancelFactorCommon
-  val prove_conv = prove_conv "real_divide_cancel_factor"
+  val prove_conv = Bin_Simprocs.prove_conv
   val mk_bal   = HOLogic.mk_binop "HOL.divide"
   val dest_bal = HOLogic.dest_bin "HOL.divide" HOLogic.realT
   val simplify_meta_eq  = cancel_simplify_meta_eq real_mult_div_cancel_disj

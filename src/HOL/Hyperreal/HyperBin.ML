@@ -383,7 +383,7 @@ structure CancelNumeralsCommon =
 
 structure EqCancelNumerals = CancelNumeralsFun
  (open CancelNumeralsCommon
-  val prove_conv = Real_Numeral_Simprocs.prove_conv "hyprealeq_cancel_numerals"
+  val prove_conv = Bin_Simprocs.prove_conv
   val mk_bal   = HOLogic.mk_eq
   val dest_bal = HOLogic.dest_bin "op =" hyprealT
   val bal_add1 = hypreal_eq_add_iff1 RS trans
@@ -392,7 +392,7 @@ structure EqCancelNumerals = CancelNumeralsFun
 
 structure LessCancelNumerals = CancelNumeralsFun
  (open CancelNumeralsCommon
-  val prove_conv = Real_Numeral_Simprocs.prove_conv "hyprealless_cancel_numerals"
+  val prove_conv = Bin_Simprocs.prove_conv
   val mk_bal   = HOLogic.mk_binrel "op <"
   val dest_bal = HOLogic.dest_bin "op <" hyprealT
   val bal_add1 = hypreal_less_add_iff1 RS trans
@@ -401,7 +401,7 @@ structure LessCancelNumerals = CancelNumeralsFun
 
 structure LeCancelNumerals = CancelNumeralsFun
  (open CancelNumeralsCommon
-  val prove_conv = Real_Numeral_Simprocs.prove_conv "hyprealle_cancel_numerals"
+  val prove_conv = Bin_Simprocs.prove_conv
   val mk_bal   = HOLogic.mk_binrel "op <="
   val dest_bal = HOLogic.dest_bin "op <=" hyprealT
   val bal_add1 = hypreal_le_add_iff1 RS trans
@@ -435,8 +435,7 @@ structure CombineNumeralsData =
   val mk_coeff          = mk_coeff
   val dest_coeff        = dest_coeff 1
   val left_distrib      = left_hypreal_add_mult_distrib RS trans
-  val prove_conv        = Real_Numeral_Simprocs.prove_conv_nohyps
-                                                "hypreal_combine_numerals"
+  val prove_conv        = Bin_Simprocs.prove_conv_nohyps
   val trans_tac         = Real_Numeral_Simprocs.trans_tac
   val norm_tac =
      ALLGOALS (simp_tac (HOL_ss addsimps add_0s@mult_1s@diff_simps@
@@ -483,8 +482,7 @@ structure HyperrealAbstractNumeralsData =
   val is_numeral      = Bin_Simprocs.is_numeral
   val numeral_0_eq_0  = hypreal_numeral_0_eq_0
   val numeral_1_eq_1  = hypreal_numeral_1_eq_1
-  val prove_conv      = Real_Numeral_Simprocs.prove_conv_nohyps
-                          "hypreal_abstract_numerals"
+  val prove_conv      = Bin_Simprocs.prove_conv_nohyps_novars
   fun norm_tac simps  = ALLGOALS (simp_tac (HOL_ss addsimps simps))
   val simplify_meta_eq = Bin_Simprocs.simplify_meta_eq
   end
