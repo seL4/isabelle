@@ -9,10 +9,12 @@ See Ch. Paulin-Mohring, Inductive Definitions in the System Coq.
 Research Report 92-49, LIP, ENS Lyon.  Dec 1992.
 *)
 
-theory Acc = WF + Inductive:
+header {* The acessible part of a relation *};
+
+theory Acc = WF + Inductive:;
 
 consts
-  acc  :: "('a * 'a)set => 'a set"              (*Accessible part*)
+  acc  :: "('a * 'a)set => 'a set"  -- {* accessible part *};
 
 inductive "acc r"
   intrs
