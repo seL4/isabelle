@@ -417,6 +417,7 @@ by (asm_simp_tac
 	   setloop rtac (InlI RSN (2,RepFun_eqI))) 1);
 qed "lt_oadd1";
 
+(*Thus also we obtain the rule  i++j = k ==> i le k *)
 goal OrderType.thy "!!i j. [| Ord(i);  Ord(j) |] ==> i le i++j";
 by (resolve_tac [all_lt_imp_le] 1);
 by (REPEAT (ares_tac [Ord_oadd, lt_oadd1] 1));
@@ -453,7 +454,21 @@ by (asm_simp_tac
 		     ordertype_sum_Memrel]) 1);
 qed "oadd_lt_mono2";
 
-goal OrderType.thy "!!i j. [| i++j = i++k; Ord(i); Ord(j); Ord(k) |] ==> j=k";
+goal OrderType.thy
+    "!!i j k. [| i++j < i++k;  Ord(i);  Ord(j); Ord(k) |] ==> j<k";
+by (rtac Ord_linear_lt 1);
+by (REPEAT_SOME assume_tac);
+by (ALLGOALS
+    (fast_tac (ZF_cs addDs [oadd_lt_mono2] addEs [lt_irrefl, lt_asym])));
+qed "oadd_lt_cancel2";
+
+goal OrderType.thy
+    "!!i j k. [| Ord(i); Ord(j); Ord(k) |] ==> i++j < i++k <-> j<k";
+by (fast_tac (ZF_cs addSIs [oadd_lt_mono2] addSEs [oadd_lt_cancel2]) 1);
+qed "oadd_lt_iff2";
+
+goal OrderType.thy
+    "!!i j k. [| i++j = i++k;  Ord(i);  Ord(j); Ord(k) |] ==> j=k";
 by (rtac Ord_linear_lt 1);
 by (REPEAT_SOME assume_tac);
 by (ALLGOALS
@@ -567,6 +582,12 @@ goal OrderType.thy "!!i j. [| i' le i;  j' le j |] ==> i'++j' le i++j";
 by (asm_simp_tac (ZF_ss addsimps [oadd_succ RS sym, le_Ord2, oadd_lt_mono]) 1);
 qed "oadd_le_mono";
 
+goal OrderType.thy
+    "!!i j k. [| Ord(i); Ord(j); Ord(k) |] ==> i++j le i++k <-> j le k";
+by (asm_simp_tac (ZF_ss addsimps [oadd_lt_iff2, oadd_succ RS sym, 
+				  Ord_succ]) 1);
+qed "oadd_le_iff2";
+
 
 (** Ordinal subtraction; the difference is ordertype(j-i, Memrel(j)). 
     Probably simpler to define the difference recursively!
@@ -597,10 +618,9 @@ by (asm_simp_tac (ZF_ss addsimps [Ord_mem_iff_lt, lt_Ord, not_lt_iff_le]) 1);
 by (fast_tac (ZF_cs addEs [lt_trans2, lt_trans]) 1);
 qed "ordertype_sum_Diff";
 
-goalw OrderType.thy [oadd_def]
+goalw OrderType.thy [oadd_def, odiff_def]
     "!!i j. i le j ==> 	\
-\           i ++ ordertype(j-i, Memrel(j)) = \
-\           ordertype(i+(j-i), radd(i,Memrel(j),j-i,Memrel(j)))";
+\           i ++ (j--i) = ordertype(i+(j-i), radd(i,Memrel(j),j-i,Memrel(j)))";
 by (safe_tac (ZF_cs addSDs [le_subset_iff RS iffD1]));
 by (resolve_tac [sum_ord_iso_cong RS ordertype_eq] 1);
 by (eresolve_tac [id_ord_iso_Memrel] 1);
@@ -609,13 +629,35 @@ by (REPEAT (ares_tac [well_ord_radd, well_ord_Memrel RS well_ord_subset,
 		      Diff_subset] 1));
 qed "oadd_ordertype_Diff";
 
-goal OrderType.thy
-    "!!i j. i le j ==> i ++ ordertype(j-i, Memrel(j)) = j";
+goal OrderType.thy "!!i j. i le j ==> i ++ (j--i) = j";
 by (asm_simp_tac (ZF_ss addsimps [oadd_ordertype_Diff, ordertype_sum_Diff, 
 				  ordertype_Memrel, lt_Ord2 RS Ord_succD]) 1);
-qed "oadd_inverse";
+qed "oadd_odiff_inverse";
 
-(*By oadd_inject, the difference between i and j is unique.*)
+goalw OrderType.thy [odiff_def] 
+    "!!i j. [| Ord(i);  Ord(j) |] ==> Ord(i--j)";
+by (REPEAT (ares_tac [Ord_ordertype, well_ord_Memrel RS well_ord_subset, 
+		      Diff_subset] 1));
+qed "Ord_odiff";
+
+(*By oadd_inject, the difference between i and j is unique.  Note that we get
+  i++j = k  ==>  j = k--i.  *)
+goal OrderType.thy
+    "!!i j. [| Ord(i); Ord(j) |] ==> (i++j) -- i = j";
+br oadd_inject 1;
+by (REPEAT (ares_tac [Ord_ordertype, Ord_oadd, Ord_odiff] 2));
+by (asm_simp_tac (ZF_ss addsimps [oadd_odiff_inverse, oadd_le_self]) 1);
+qed "odiff_oadd_inverse";
+
+val [i_lt_j, k_le_i] = goal OrderType.thy
+    "[| i<j;  k le i |] ==> i--k < j--k";
+by (rtac (k_le_i RS lt_Ord RSN (2,oadd_lt_cancel2)) 1);
+by (simp_tac
+    (ZF_ss addsimps [i_lt_j, k_le_i, [k_le_i, leI] MRS le_trans,
+		     oadd_odiff_inverse]) 1);
+by (REPEAT (resolve_tac (Ord_odiff :: 
+			 ([i_lt_j, k_le_i] RL [lt_Ord, lt_Ord2])) 1));
+qed "odiff_lt_mono2";
 
 
 (**** Ordinal Multiplication ****)
@@ -841,11 +883,6 @@ by (resolve_tac [lt_trans1] 1);
 by (REPEAT (eresolve_tac [asm_rl, omult_le_mono1, omult_lt_mono2, ltE,
 			  Ord_succD] 1));
 qed "omult_lt_mono";
-
-goal OrderType.thy
-      "!!i j. [| i' le i;  j' le j |] ==> i'++j' le i++j";
-by (asm_simp_tac (ZF_ss addsimps [oadd_succ RS sym, le_Ord2, oadd_lt_mono]) 1);
-qed "oadd_le_mono";
 
 goal OrderType.thy "!!i j. [| Ord(i);  0<j |] ==> i le j**i";
 by (forward_tac [lt_Ord2] 1);
