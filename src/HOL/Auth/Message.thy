@@ -135,6 +135,11 @@ inductive_cases Crypt_synth [elim!]: "Crypt K X \<in> synth H"
 
 use "Message_lemmas.ML"
 
+lemma Fake_parts_insert_in_Un:
+     "[|Z \<in> parts (insert X H);  X: synth (analz H)|] 
+      ==> Z \<in>  synth (analz H) \<union> parts H";
+by (blast dest: Fake_parts_insert  [THEN subsetD, dest])
+
 method_setup spy_analz = {*
     Method.no_args (Method.METHOD (fn facts => spy_analz_tac 1)) *}
     "for proving the Fake case when analz is involved"
