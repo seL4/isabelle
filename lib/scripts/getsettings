@@ -1,7 +1,7 @@
 #
 # $Id$
 #
-# getsettings - bash source script to augment current env
+# getsettings - bash source script to augment current env.
 #
 
 #value set by caller
