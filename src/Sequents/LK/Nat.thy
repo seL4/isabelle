@@ -16,7 +16,7 @@ consts  "0" :: nat      ("0")
 
 rules   
   induct  "[| $H |- $E, P(0), $F;
-              !!x. $H |- $E, P(x) --> P(Suc(x)), $F |] ==> $H |- $E, P(n), $F"
+              !!x. $H, P(x) |- $E, P(Suc(x)), $F |] ==> $H |- $E, P(n), $F"
 
   Suc_inject  "|- Suc(m)=Suc(n) --> m=n"
   Suc_neq_0   "|- Suc(m) ~= 0"

@@ -6,11 +6,6 @@
 Instantiation of the generic simplifier for LK
 
 Borrows from the DC simplifier of Soren Heilmann.
-
-MAJOR LIMITATION: left-side sequent formulae are not added to the simpset.
-  However, congruence rules for --> and & are available.
-  The rule backwards_impR can be used to convert assumptions into right-side
-  implications.
 *)
 
 (*** Rewrite rules ***)
@@ -19,7 +14,7 @@ fun prove_fun s =
  (writeln s;  
   prove_goal LK.thy s
    (fn prems => [ (cut_facts_tac prems 1), 
-                  (fast_tac LK_pack 1) ]));
+                  (fast_tac (pack() add_safes [subst]) 1) ]));
 
 val conj_simps = map prove_fun
  ["|- P & True <-> P",      "|- True & P <-> P",
@@ -46,6 +41,39 @@ val iff_simps = map prove_fun
  ["|- (True <-> P) <-> P",         "|- (P <-> True) <-> P",
   "|- (P <-> P) <-> True",
   "|- (False <-> P) <-> ~P",       "|- (P <-> False) <-> ~P"];
+
+
+val quant_simps = map prove_fun
+ ["|- (ALL x. P) <-> P",   
+  "|- (ALL x. x=t --> P(x)) <-> P(t)",
+  "|- (ALL x. t=x --> P(x)) <-> P(t)",
+  "|- (EX x. P) <-> P",
+  "|- (EX x. x=t & P(x)) <-> P(t)", 
+  "|- (EX x. t=x & P(x)) <-> P(t)"];
+
+(*** Miniscoping: pushing quantifiers in
+     We do NOT distribute of ALL over &, or dually that of EX over |
+     Baaz and Leitsch, On Skolemization and Proof Complexity (1994) 
+     show that this step can increase proof length!
+***)
+
+(*existential miniscoping*)
+val ex_simps = map prove_fun 
+                   ["|- (EX x. P(x) & Q) <-> (EX x. P(x)) & Q",
+		    "|- (EX x. P & Q(x)) <-> P & (EX x. Q(x))",
+		    "|- (EX x. P(x) | Q) <-> (EX x. P(x)) | Q",
+		    "|- (EX x. P | Q(x)) <-> P | (EX x. Q(x))",
+		    "|- (EX x. P(x) --> Q) <-> (ALL x. P(x)) --> Q",
+		    "|- (EX x. P --> Q(x)) <-> P --> (EX x. Q(x))"];
+
+(*universal miniscoping*)
+val all_simps = map prove_fun
+                    ["|- (ALL x. P(x) & Q) <-> (ALL x. P(x)) & Q",
+		     "|- (ALL x. P & Q(x)) <-> P & (ALL x. Q(x))",
+		     "|- (ALL x. P(x) --> Q) <-> (EX x. P(x)) --> Q",
+		     "|- (ALL x. P --> Q(x)) <-> P --> (ALL x. Q(x))",
+		     "|- (ALL x. P(x) | Q) <-> (ALL x. P(x)) | Q",
+		     "|- (ALL x. P | Q(x)) <-> P | (ALL x. Q(x))"];
 
 (*These are NOT supplied by default!*)
 val distrib_simps  = map prove_fun
@@ -99,7 +127,18 @@ fun mk_meta_eq th = case concl_of th of
 			 string_of_thm th));
 
 
-(*** Named rewrite rules proved for PL ***)
+(*Replace premises x=y, X<->Y by X==Y*)
+val mk_meta_prems = 
+    rule_by_tactic 
+      (REPEAT_FIRST (resolve_tac [meta_eq_to_obj_eq, def_imp_iff]));
+
+fun mk_meta_cong rl =
+  standard(mk_meta_eq (mk_meta_prems rl))
+  handle THM _ =>
+  error("Premises and conclusion of congruence rules must use =-equality or <->");
+
+
+(*** Named rewrite rules ***)
 
 fun prove nm thm  = qed_goal nm LK.thy thm
     (fn prems => [ (cut_facts_tac prems 1), 
@@ -131,8 +170,6 @@ prove "de_Morgan_conj" "|- (~(P & Q)) <-> (~P | ~Q)";
 
 prove "not_iff" "|- ~(P <-> Q) <-> (P <-> ~Q)";
 
-prove "iff_refl" "|- (P <-> P)";
-
 
 val [p1,p2] = Goal 
     "[| |- P <-> P';  |- P' ==> |- Q <-> Q' |] ==> |- (P-->Q) <-> (P'-->Q')";
@@ -156,6 +193,31 @@ by (REPEAT (rtac cut 1
 	    Safe_tac 1));
 qed "conj_cong";
 
+Goal "|- (x=y) <-> (y=x)";
+by (fast_tac (pack() add_safes [subst]) 1);
+qed "eq_sym_conv";
+
+
+(** if-then-else rules **)
+
+Goalw [If_def] "|- (if True then x else y) = x";
+by (Fast_tac 1);
+qed "if_True";
+
+Goalw [If_def] "|- (if False then x else y) = y";
+by (Fast_tac 1);
+qed "if_False";
+
+Goalw [If_def] "|- P ==> |- (if P then x else y) = x";
+by (etac (thinR RS cut) 1);
+by (Fast_tac 1);
+qed "if_P";
+
+Goalw [If_def] "|- ~P ==> |- (if P then x else y) = y";
+by (etac (thinR RS cut) 1);
+by (Fast_tac 1);
+qed "if_not_P";
+
 
 open Simplifier;
 
@@ -163,15 +225,13 @@ open Simplifier;
 
 (*Add congruence rules for = or <-> (instead of ==) *)
 infix 4 addcongs delcongs;
-fun ss addcongs congs =
-        ss addeqcongs (map standard (congs RL [eq_reflection,iff_reflection]));
-fun ss delcongs congs =
-        ss deleqcongs (map standard (congs RL [eq_reflection,iff_reflection]));
+fun ss addcongs congs = ss addeqcongs (map mk_meta_cong congs);
+fun ss delcongs congs = ss deleqcongs (map mk_meta_cong congs);
 
 fun Addcongs congs = (simpset_ref() := simpset() addcongs congs);
 fun Delcongs congs = (simpset_ref() := simpset() delcongs congs);
 
-val triv_rls = [FalseL, TrueR, basic, refl, iff_refl];
+val triv_rls = [FalseL, TrueR, basic, refl, iff_refl, reflexive_thm];
 
 fun unsafe_solver prems = FIRST'[resolve_tac (triv_rls@prems),
 				 assume_tac];
@@ -186,24 +246,47 @@ val LK_basic_ss = empty_ss setsubgoaler asm_simp_tac
 			   setmksimps   (map mk_meta_eq o atomize o gen_all);
 
 val LK_simps =
-   [refl RS P_iff_T] @ conj_simps @ disj_simps @ not_simps @ 
-    imp_simps @ iff_simps @
+   [triv_forall_equality, (* prunes params *)
+    refl RS P_iff_T] @ 
+    conj_simps @ disj_simps @ not_simps @ 
+    imp_simps @ iff_simps @quant_simps @ all_simps @ ex_simps @
     [de_Morgan_conj, de_Morgan_disj, imp_disj1, imp_disj2] @
     map prove_fun
      ["|- P | ~P",             "|- ~P | P",
       "|- ~ ~ P <-> P",        "|- (~P --> P) <-> P",
       "|- (~P <-> ~Q) <-> (P<->Q)"];
 
-val LK_ss = LK_basic_ss addsimps LK_simps addcongs [imp_cong];
+val LK_ss = LK_basic_ss addsimps LK_simps addeqcongs [left_cong]
+					  addcongs [imp_cong];
 
 simpset_ref() := LK_ss;
 
 
-(* Subst rule *)
+(* To create substition rules *)
 
-qed_goal "subst" LK.thy "|- a=b ==> $H, A(a), $G |- $E, A(b), $F"
+qed_goal "eq_imp_subst" LK.thy "|- a=b ==> $H, A(a), $G |- $E, A(b), $F"
   (fn prems =>
    [cut_facts_tac prems 1,
     asm_simp_tac LK_basic_ss 1]);
 
+Goal "|- P(if Q then x else y) <-> ((Q --> P(x)) & (~Q --> P(y)))";
+by (res_inst_tac [ ("P","Q") ] cut 1);
+by (simp_tac (simpset() addsimps [if_P]) 2);
+by (res_inst_tac [ ("P","~Q") ] cut 1);
+by (simp_tac (simpset() addsimps [if_not_P]) 2);
+by (Fast_tac 1);
+qed "split_if";
 
+Goal "|- (if P then x else x) = x";
+by (lemma_tac split_if 1);
+by (Fast_tac 1);
+qed "if_cancel";
+
+Goal "|- (if x=y then y else x) = x";
+by (lemma_tac split_if 1);
+by (Safe_tac 1);
+by (rtac symL 1);
+by (rtac basic 1);
+qed "if_eq_cancel";
+
+(*Putting in automatic case splits seems to require a lot of work.*)
