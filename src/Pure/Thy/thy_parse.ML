@@ -341,13 +341,14 @@ val trans_decls = repeat1 trans_line >> mk_big_list;
 
 (* ML translations *)
 
-val trfun_defs =
+val local_defs =
   " val parse_ast_translation = [];\n\
   \ val parse_translation = [];\n\
   \ val print_translation = [];\n\
   \ val typed_print_translation = [];\n\
   \ val print_ast_translation = [];\n\
-  \ val token_translation = [];";
+  \ val token_translation = [];\n\
+  \ val thy_data = []";
 
 val trfun_args =
   "(parse_ast_translation, parse_translation, \
@@ -490,7 +491,7 @@ fun mk_structure tname ((thy_name, old_thys), (extxt, postxt, mltxt)) =
     \\n\
     \local\n\
     \ val thy_name = \"" ^ tname ^ "\";\n"
-    ^ trfun_defs ^ "\n\
+    ^ local_defs ^ "\n\
     \in\n\
     \\n"
     ^ mltxt ^ "\n\
@@ -501,8 +502,9 @@ fun mk_structure tname ((thy_name, old_thys), (extxt, postxt, mltxt)) =
     "\n\
     \|> Theory.add_trfuns\n"
     ^ trfun_args ^ "\n\
-    \|> Theory.add_trfunsT typed_print_translation \n\
-    \|> Theory.add_tokentrfuns token_translation \n\
+    \|> Theory.add_trfunsT typed_print_translation\n\
+    \|> Theory.add_tokentrfuns token_translation\n\
+    \|> Theory.init_data thy_data\n\
     \\n"
     ^ extxt ^ "\n\
     \\n\
