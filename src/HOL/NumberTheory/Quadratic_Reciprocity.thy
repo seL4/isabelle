@@ -124,8 +124,7 @@ proof -
     by auto
   moreover have "0 \<le> setsum (%x. ((x * a) div p)) A"
     proof (intro setsum_nonneg)
-      from finite_A show "finite A".
-      next show "\<forall>x \<in> A. 0 \<le> x * a div p"
+      show "\<forall>x \<in> A. 0 \<le> x * a div p"
       proof
         fix x
         assume "x \<in> A"

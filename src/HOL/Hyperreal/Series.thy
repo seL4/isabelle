@@ -52,8 +52,10 @@ lemma sumr_split_add: "\<lbrakk> m \<le> n; n \<le> p \<rbrakk> \<Longrightarrow
 by (simp add:setsum_Un_disjoint[symmetric] ivl_disj_int ivl_disj_un)
 
 lemma sumr_split_add_minus:
-     "n < p ==> sumr 0 p f + - sumr 0 n f = sumr n p (f::nat=>real)"
-using sumr_split_add [of 0 n p f,symmetric]
+fixes f :: "nat \<Rightarrow> 'a::ab_group_add"
+shows "\<lbrakk> m \<le> n; n \<le> p \<rbrakk> \<Longrightarrow>
+  setsum f {m..<p} - setsum f {m..<n} = setsum f {n..<p}"
+using sumr_split_add [of m n p f,symmetric]
 apply (simp add: add_ac)
 done
 
@@ -216,10 +218,9 @@ next one was called series_zero2
 
 lemma series_zero: 
      "(\<forall>m. n \<le> m --> f(m) = 0) ==> f sums (sumr 0 n f)"
-apply (simp add: sums_def LIMSEQ_def, safe)
+apply (simp add: sums_def LIMSEQ_def diff_minus[symmetric], safe)
 apply (rule_tac x = n in exI)
-apply (safe, frule le_imp_less_or_eq, safe)
-apply (drule_tac f = f in sumr_split_add_minus, simp_all)
+apply (clarsimp simp:sumr_split_add_minus)
 apply (drule sumr_interval_const2, auto)
 done
 
@@ -344,7 +345,7 @@ by (simp add: summable_def sums_def convergent_def)
 lemma summable_Cauchy:
      "summable f =  
       (\<forall>e > 0. \<exists>N. \<forall>m \<ge> N. \<forall>n. abs(sumr m n f) < e)"
-apply (auto simp add: summable_convergent_sumr_iff Cauchy_convergent_iff [symmetric] Cauchy_def)
+apply (auto simp add: summable_convergent_sumr_iff Cauchy_convergent_iff [symmetric] Cauchy_def diff_minus[symmetric])
 apply (drule_tac [!] spec, auto) 
 apply (rule_tac x = M in exI)
 apply (rule_tac [2] x = N in exI, auto)
@@ -352,8 +353,10 @@ apply (cut_tac [!] m = m and n = n in less_linear, auto)
 apply (frule le_less_trans [THEN less_imp_le], assumption)
 apply (drule_tac x = n in spec, simp)
 apply (drule_tac x = m in spec)
-apply (auto intro: abs_minus_add_cancel [THEN subst]
-            simp add: sumr_split_add_minus abs_minus_add_cancel)
+apply(simp add: sumr_split_add_minus)
+apply(subst abs_minus_commute)
+apply(simp add: sumr_split_add_minus)
+apply (simp add: sumr_split_add_minus)
 done
 
 text{*Comparison test*}
