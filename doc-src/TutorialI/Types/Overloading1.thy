@@ -50,7 +50,7 @@ text{*\noindent
 More interesting \isacommand{instance} proofs will arise below
 in the context of proper axiomatic type classes.
 
-Althoug terms like @{prop"False <<= P"} are now legal, we still need to say
+Although terms like @{prop"False <<= P"} are now legal, we still need to say
 what the relation symbols actually mean at type @{typ bool}:
 *}
 

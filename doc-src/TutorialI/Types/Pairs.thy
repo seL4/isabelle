@@ -6,7 +6,7 @@ text{*\label{sec:products}
 Pairs were already introduced in \S\ref{sec:pairs}, but only with a minimal
 repertoire of operations: pairing and the two projections @{term fst} and
 @{term snd}. In any non-trivial application of pairs you will find that this
-quickly leads to unreadable formulae involvings nests of projections. This
+quickly leads to unreadable formulae involving nests of projections. This
 section is concerned with introducing some syntactic sugar to overcome this
 problem: pattern matching with tuples.
 *}

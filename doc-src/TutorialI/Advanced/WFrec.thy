@@ -1,7 +1,7 @@
 (*<*)theory WFrec = Main:(*>*)
 
 text{*\noindent
-So far, all recursive definitions where shown to terminate via measure
+So far, all recursive definitions were shown to terminate via measure
 functions. Sometimes this can be quite inconvenient or even
 impossible. Fortunately, \isacommand{recdef} supports much more
 general definitions. For example, termination of Ackermann's function
