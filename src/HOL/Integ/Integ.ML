@@ -318,6 +318,16 @@ by (rtac zadd_0 1);
 qed "zadd_0_right";
 
 
+(** Lemmas **)
+
+qed_goal "zadd_assoc_cong" Integ.thy
+    "!!z. (z::int) + v = z' + v' ==> z + (v + w) = z' + (v' + w)"
+ (fn _ => [(asm_simp_tac (!simpset addsimps [zadd_assoc RS sym]) 1)]);
+
+qed_goal "zadd_assoc_swap" Integ.thy "(z::int) + (v + w) = v + (z + w)"
+ (fn _ => [(REPEAT (ares_tac [zadd_commute RS zadd_assoc_cong] 1))]);
+
+
 (*Need properties of subtraction?  Or use $- just as an abbreviation!*)
 
 (**** zmult: multiplication on Integ ****)
@@ -745,3 +755,139 @@ goal Integ.thy "!!w z::int. z<=$#0 ==> w+z <= w";
 by (dres_inst_tac [("z", "w")] zadd_zle_mono1 1);
 by (asm_full_simp_tac (!simpset addsimps [zadd_commute]) 1);
 qed "zadd_zle_self";
+
+
+(**** Comparisons: lemmas and proofs by Norbert Völker ****)
+
+(** One auxiliary theorem...**)
+
+goal HOL.thy "(x = False) = (~ x)";
+  by (fast_tac HOL_cs 1);
+qed "eq_False_conv";
+
+(** Additional theorems for Integ.thy **) 
+
+Addsimps [zless_eq_less, zle_eq_le,
+	  znegative_zminus_znat, not_znegative_znat]; 
+
+goal Integ.thy "!! x. (x::int) = y ==> x <= y"; 
+  by (etac subst 1); by (rtac zle_refl 1); 
+val zequalD1 = result(); 
+
+goal Integ.thy "($~ x < $~ y) = (y < x)";
+  by (rewrite_goals_tac [zless_def,zdiff_def]); 
+  by (simp_tac (!simpset addsimps zadd_ac ) 1); 
+val zminus_zless_zminus = result(); 
+
+goal Integ.thy "($~ x <= $~ y) = (y <= x)";
+  by (simp_tac (HOL_ss addsimps[zle_def, zminus_zless_zminus]) 1); 
+val zminus_zle_zminus = result(); 
+
+goal Integ.thy "(x < $~ y) = (y < $~ x)";
+  by (rewrite_goals_tac [zless_def,zdiff_def]); 
+  by (simp_tac (!simpset addsimps zadd_ac ) 1); 
+val zless_zminus = result(); 
+
+goal Integ.thy "($~ x < y) = ($~ y < x)";
+  by (rewrite_goals_tac [zless_def,zdiff_def]); 
+  by (simp_tac (!simpset addsimps zadd_ac ) 1); 
+val zminus_zless = result(); 
+
+goal Integ.thy "(x <= $~ y) = (y <=  $~ x)";
+  by (simp_tac (HOL_ss addsimps[zle_def, zminus_zless]) 1); 
+val zle_zminus = result(); 
+
+goal Integ.thy "($~ x <= y) = ($~ y <=  x)";
+  by (simp_tac (HOL_ss addsimps[zle_def, zless_zminus]) 1); 
+val zminus_zle = result(); 
+
+goal Integ.thy " $#0 < $# Suc n"; 
+  by (rtac (zero_less_Suc RS (zless_eq_less RS iffD2)) 1); 
+val zero_zless_Suc_pos = result(); 
+
+goal Integ.thy "($# n= $# m) = (n = m)"; 
+  by (fast_tac (HOL_cs addSEs[inj_znat RS injD]) 1); 
+val znat_znat_eq = result(); 
+AddIffs[znat_znat_eq]; 
+
+goal Integ.thy "$~ $# Suc n < $#0";
+  by (stac (zminus_0 RS sym) 1); 
+  by (rtac (zminus_zless_zminus RS iffD2) 1); 
+  by (rtac (zero_less_Suc RS (zless_eq_less RS iffD2)) 1); 
+val negative_zless_0 = result(); 
+Addsimps [zero_zless_Suc_pos, negative_zless_0]; 
+
+goal Integ.thy "$~ $#  n <= $#0";
+  by (rtac zless_or_eq_imp_zle 1); 
+  by (nat_ind_tac "n" 1); 
+  by (ALLGOALS Asm_simp_tac); 
+val negative_zle_0 = result(); 
+Addsimps[negative_zle_0]; 
+
+goal Integ.thy "~($#0 <= $~ $# Suc n)";
+  by (stac zle_zminus 1);
+  by (Simp_tac 1);
+val not_zle_0_negative = result(); 
+Addsimps[not_zle_0_negative]; 
+
+goal Integ.thy "($# n <= $~ $# m) = (n = 0 & m = 0)"; 
+  by (safe_tac HOL_cs); 
+  by (Simp_tac 3); 
+  by (dtac (zle_zminus RS iffD1) 2); 
+  by (ALLGOALS(dtac (negative_zle_0 RSN(2,zle_trans)))); 
+  by (ALLGOALS Asm_full_simp_tac); 
+val znat_zle_znegative = result(); 
+
+goal Integ.thy "~($# n < $~ $# Suc m)";
+  by (rtac notI 1); by (forward_tac [zless_imp_zle] 1); 
+  by (dtac (znat_zle_znegative RS iffD1) 1); 
+  by (safe_tac HOL_cs); 
+  by (dtac (zless_zminus RS iffD1) 1); 
+  by (Asm_full_simp_tac 1);
+val not_znat_zless_negative = result(); 
+
+goal Integ.thy "($~ $# n = $# m) = (n = 0 & m = 0)"; 
+  by (rtac iffI 1);
+  by (rtac  (znat_zle_znegative RS iffD1) 1); 
+  by (dtac sym 1); 
+  by (ALLGOALS Asm_simp_tac); 
+val negative_eq_positive = result(); 
+
+Addsimps [zminus_zless_zminus, zminus_zle_zminus, 
+	  negative_eq_positive, not_znat_zless_negative]; 
+
+goalw Integ.thy [zdiff_def,zless_def] "!! x. znegative x = (x < $# 0)";
+  by (Auto_tac()); 
+val znegative_less_0 = result(); 
+
+goalw Integ.thy [zdiff_def,zless_def] "!! x. (~znegative x) = ($# 0 <= x)";
+  by (stac znegative_less_0 1); 
+  by (safe_tac (HOL_cs addSDs[zleD,not_zleE,zleI]) ); 
+val not_znegative_ge_0 = result(); 
+
+goal Integ.thy "!! x. znegative x ==> ? n. x = $~ $# Suc n"; 
+  by (dtac (znegative_less_0 RS iffD1 RS zless_eq_zadd_Suc) 1); 
+  by (etac exE 1); 
+  by (rtac exI 1);
+  by (dres_inst_tac [("f","(% z. z + $~ $# Suc n )")] arg_cong 1); 
+  by (auto_tac(!claset, !simpset addsimps [zadd_assoc])); 
+val znegativeD = result(); 
+
+goal Integ.thy "!! x. ~znegative x ==> ? n. x = $# n"; 
+  by (dtac (not_znegative_ge_0 RS iffD1) 1); 
+  by (dtac zle_imp_zless_or_eq 1); 
+  by (etac disjE 1); 
+  by (dtac zless_eq_zadd_Suc 1); 
+  by (Auto_tac()); 
+val not_znegativeD = result(); 
+
+(* a case theorem distinguishing positive and negative int *)  
+
+val prems = goal Integ.thy 
+    "[|!! n. P ($# n); !! n. P ($~ $# Suc n) |] ==> P z"; 
+  by (cut_inst_tac [("P","znegative z")] excluded_middle 1); 
+  by (fast_tac (HOL_cs addSDs[znegativeD,not_znegativeD] addSIs prems) 1); 
+val int_cases = result(); 
+
+fun int_case_tac x = res_inst_tac [("z",x)] int_cases; 
+

@@ -1,6 +1,6 @@
 (*  Title:      Integ.thy
     ID:         $Id$
-    Authors:    Lawrence C Paulson, Cambridge University Computer Laboratory
+    Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1996  University of Cambridge
 
 The integers as equivalence classes over nat*nat.
@@ -34,18 +34,6 @@ constdefs
   zmagnitude  :: int => int
   "zmagnitude(Z) == Abs_Integ(UN p:Rep_Integ(Z).
                               split (%x y. intrel^^{((y-x) + (x-y),0)}) p)"
-
-  zdiv        :: [int,int]=>int                              (infixl 70)
-  "Z1 zdiv Z2 ==   
-      Abs_Integ(UN p1:Rep_Integ(Z1). UN p2:Rep_Integ(Z2). split (%x1 y1.   
-          split (%x2 y2. intrel^^{((x1-y1)div(x2-y2)+(y1-x1)div(y2-x2),   
-          (x1-y1)div(y2-x2)+(y1-x1)div(x2-y2))}) p2) p1)"
-
-  zmod        :: [int,int]=>int                              (infixl 70)
-  "Z1 zmod Z2 ==   
-      Abs_Integ(UN p1:Rep_Integ(Z1).UN p2:Rep_Integ(Z2).split (%x1 y1.   
-          split (%x2 y2. intrel^^{((x1-y1)mod((x2-y2)+(y2-x2)),   
-          (x1-y1)mod((x2-y2)+(x2-y2)))}) p2) p1)"
 
   zpred       :: int=>int
   "zpred(Z) == Z - $# Suc(0)"
