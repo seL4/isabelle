@@ -288,7 +288,6 @@ fun rule_format_att x = syntax
 (* misc rules *)
 
 fun standard x = no_args (Drule.rule_attribute (K Drule.standard)) x;
-fun norm_hhf x = no_args (Drule.rule_attribute (K Tactic.norm_hhf_rule)) x;
 fun elim_format x = no_args (Drule.rule_attribute (K Tactic.make_elim)) x;
 fun no_vars x = no_args (Drule.rule_attribute (K (#1 o Drule.freeze_thaw))) x;
 
@@ -342,7 +341,6 @@ val pure_attributes =
   ("unfolded", (unfolded_global, unfolded_local), "unfolded definitions"),
   ("folded", (folded_global, folded_local), "folded definitions"),
   ("standard", (standard, standard), "result put into standard form"),
-  ("norm_hhf", (norm_hhf, norm_hhf), "result put into HHF normal form"),
   ("elim_format", (elim_format, elim_format), "destruct rule turned into elimination rule format"),
   ("no_vars", (no_vars, no_vars), "frozen schematic vars"),
   ("consumes", (consumes, consumes), "number of consumed facts"),
