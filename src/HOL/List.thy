@@ -5,7 +5,8 @@
 *)
 
 header {* The datatype of finite lists *}
-theory List1 = PreList:
+
+theory List = PreList:
 
 datatype 'a list = Nil ("[]") | Cons 'a "'a list" (infixr "#" 65)
 
@@ -210,7 +211,7 @@ by(induct_tac "xs", auto)
 
 lemmas not_Cons_self2[simp] = not_Cons_self[THEN not_sym]
 
-lemma neq_Nil_conv: "(xs ~= []) = (? y ys. xs = y#ys)";
+lemma neq_Nil_conv: "(xs ~= []) = (? y ys. xs = y#ys)"
 by(induct_tac "xs", auto)
 
 (* Induction over the length of a list: *)
@@ -229,7 +230,7 @@ inductive_cases listsE[elim!]: "x#l : lists A"
 declare lists.intros[intro!]
 
 lemma lists_IntI[rule_format]:
- "l: lists A ==> l: lists B --> l: lists (A Int B)";
+ "l: lists A ==> l: lists B --> l: lists (A Int B)"
 apply(erule lists.induct)
 apply blast+
 done
@@ -357,6 +358,12 @@ Currently only tries to rearrange @ to see if
 ***)
 ML_setup{*
 local
+
+val append_assoc = thm "append_assoc";
+val append_Nil = thm "append_Nil";
+val append_Cons = thm "append_Cons";
+val append1_eq_conv = thm "append1_eq_conv";
+val append_same_eq = thm "append_same_eq";
 
 val list_eq_pattern =
   Thm.read_cterm (Theory.sign_of (the_context ())) ("(xs::'a list) = ys",HOLogic.boolT)
@@ -1344,4 +1351,4 @@ lemmas [simp] = take_Cons'[of "number_of v",standard]
                 drop_Cons'[of "number_of v",standard]
                 nth_Cons'[of "number_of v",standard]
 
-end;
+end

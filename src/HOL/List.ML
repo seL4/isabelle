@@ -191,7 +191,6 @@ val rev_append = thm "rev_append";
 val rev_concat = thm "rev_concat";
 val rev_drop = thm "rev_drop";
 val rev_exhaust = thm "rev_exhaust";
-val rev_exhaust_aux = thm "rev_exhaust_aux";
 val rev_induct = thm "rev_induct";
 val rev_is_Nil_conv = thm "rev_is_Nil_conv";
 val rev_is_rev_conv = thm "rev_is_rev_conv";
