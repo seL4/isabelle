@@ -180,6 +180,7 @@ end;
 signature THM =
 sig
   include BASIC_THM
+  val major_prem_of	: thm -> term
   val no_prems		: thm -> bool
   val no_attributes	: 'a -> 'a * 'b attribute list
   val apply_attributes	: ('a * thm) * 'a attribute list -> ('a * thm)
@@ -476,6 +477,11 @@ fun prems_of (Thm {prop, ...}) =
 (*counts premises in a rule*)
 fun nprems_of (Thm {prop, ...}) =
   Logic.count_prems (Logic.skip_flexpairs prop, 0);
+
+fun major_prem_of thm =
+  (case prems_of thm of
+    prem :: _ => prem
+  | [] => raise THM ("major_prem_of: rule with no premises", 0, [thm]));
 
 fun no_prems thm = nprems_of thm = 0;
 
