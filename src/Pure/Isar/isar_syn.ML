@@ -37,45 +37,44 @@ val contextP =
 (** markup commands **)
 
 val headerP = OuterSyntax.markup_command IsarOutput.Markup "header" "theory header" K.diag
-  (P.text >> IsarThy.add_header);
+  (P.position P.text >> IsarCmd.add_header);
 
 val chapterP = OuterSyntax.markup_command IsarOutput.Markup "chapter" "chapter heading"
-  K.thy_heading (P.text >> (Toplevel.theory o IsarThy.add_chapter));
+  K.thy_heading (P.position P.text >> IsarCmd.add_chapter);
 
 val sectionP = OuterSyntax.markup_command IsarOutput.Markup "section" "section heading"
-  K.thy_heading (P.text >> (Toplevel.theory o IsarThy.add_section));
+  K.thy_heading (P.position P.text >> IsarCmd.add_section);
 
 val subsectionP = OuterSyntax.markup_command IsarOutput.Markup "subsection" "subsection heading"
-  K.thy_heading (P.text >> (Toplevel.theory o IsarThy.add_subsection));
+  K.thy_heading (P.position P.text >> IsarCmd.add_subsection);
 
 val subsubsectionP =
   OuterSyntax.markup_command IsarOutput.Markup "subsubsection" "subsubsection heading"
-  K.thy_heading (P.text >> (Toplevel.theory o IsarThy.add_subsubsection));
+  K.thy_heading (P.position P.text >> IsarCmd.add_subsubsection);
 
 val textP = OuterSyntax.markup_command IsarOutput.MarkupEnv "text" "formal comment (theory)"
-  K.thy_decl (P.text >> (Toplevel.theory o IsarThy.add_text));
+  K.thy_decl (P.position P.text >> IsarCmd.add_text);
 
 val text_rawP = OuterSyntax.markup_command IsarOutput.Verbatim "text_raw"
   "raw document preparation text" K.thy_decl
-  (P.text >> (Toplevel.theory o IsarThy.add_text_raw));
-
+  (P.position P.text >> IsarCmd.add_text_raw);
 
 val sectP = OuterSyntax.markup_command IsarOutput.Markup "sect" "formal comment (proof)"
-  K.prf_heading (P.text >> (Toplevel.print oo (Toplevel.proof o IsarThy.add_sect)));
+  K.prf_heading (P.position P.text >> IsarCmd.add_sect);
 
 val subsectP = OuterSyntax.markup_command IsarOutput.Markup "subsect" "formal comment (proof)"
-  K.prf_heading (P.text >> (Toplevel.print oo (Toplevel.proof o IsarThy.add_subsect)));
+  K.prf_heading (P.position P.text >> IsarCmd.add_subsect);
 
 val subsubsectP = OuterSyntax.markup_command IsarOutput.Markup "subsubsect"
   "formal comment (proof)" K.prf_heading
-  (P.text >> (Toplevel.print oo (Toplevel.proof o IsarThy.add_subsubsect)));
+  (P.position P.text >> IsarCmd.add_subsubsect);
 
 val txtP = OuterSyntax.markup_command IsarOutput.MarkupEnv "txt" "formal comment (proof)"
-  K.prf_decl (P.text >> (Toplevel.print oo (Toplevel.proof o IsarThy.add_txt)));
+  K.prf_decl (P.position P.text >> IsarCmd.add_txt);
 
 val txt_rawP = OuterSyntax.markup_command IsarOutput.Verbatim "txt_raw"
   "raw document preparation text (proof)" K.prf_decl
-  (P.text >> (Toplevel.print oo (Toplevel.proof o IsarThy.add_txt_raw)));
+  (P.position P.text >> IsarCmd.add_txt_raw);
 
 
 
@@ -182,10 +181,9 @@ val constdefsP =
 
 (* theorems *)
 
-val in_locale = Scan.option ((P.$$$ "(" -- P.$$$ "in") |-- P.!!! (P.xname --| P.$$$ ")"));
 val name_facts = P.and_list1 (P.opt_thm_name "=" -- P.xthms1);
 
-fun theorems kind = in_locale -- name_facts
+fun theorems kind = P.locale_target -- name_facts
   >> uncurry (#1 ooo IsarThy.smart_theorems kind);
 
 val theoremsP =
@@ -198,7 +196,7 @@ val lemmasP =
 
 val declareP =
   OuterSyntax.command "declare" "declare theorems (improper)" K.thy_script
-    (in_locale -- P.xthms1 >> (Toplevel.theory o uncurry IsarThy.declare_theorems));
+    (P.locale_target -- P.xthms1 >> (Toplevel.theory o uncurry IsarThy.declare_theorems));
 
 
 (* name space entry path *)
@@ -296,17 +294,16 @@ val localeP =
 
 (* statements *)
 
-val in_locale_elems = in_locale --
-  Scan.optional (P.$$$ "(" |-- Scan.repeat1 P.locale_element --| P.!!! (P.$$$ ")")) [];
-
 val statement = P.and_list1 (P.opt_thm_name ":" -- Scan.repeat1 P.propp);
-val statement' = P.$$$ "(" |-- statement --| P.!!! (P.$$$ ")") || statement;
+val long_statement =
+  Scan.repeat P.locale_element -- (P.$$$ "shows" |-- statement) || statement >> pair [];
 
 fun gen_theorem k =
   OuterSyntax.command k ("state " ^ k) K.thy_goal
-    (Scan.optional (P.thm_name ":" --| Scan.ahead (P.$$$ "(")) ("", [])
-      -- in_locale_elems -- statement' >> (fn ((x, y), z) =>
-      (Toplevel.print o Toplevel.theory_to_proof (IsarThy.smart_multi_theorem k x y z))));
+    (Scan.optional (P.thm_name ":" --|
+      Scan.ahead (P.$$$ "(" || P.locale_keyword || P.$$$ "shows")) ("", [])
+      -- P.locale_target -- long_statement >> (fn ((x, y), (z, w)) =>
+      (Toplevel.print o Toplevel.theory_to_proof (IsarThy.smart_multi_theorem k x (y, z) w))));
 
 val theoremP = gen_theorem Drule.theoremK;
 val lemmaP = gen_theorem Drule.lemmaK;
@@ -721,9 +718,10 @@ val keywords =
  ["!", "!!", "%", "%%", "(", ")", "+", ",", "--", ":", "::", ";", "<",
   "<=", "=", "==", "=>", "?", "[", "]", "and", "assumes", "binder",
   "concl", "defines", "files", "fixes", "in", "infix", "infixl",
-  "infixr", "is", "notes", "output", "overloaded", "structure",
-  "uses", "where", "|", "\\<equiv>", "\\<leftharpoondown>",
-  "\\<rightharpoonup>", "\\<rightleftharpoons>", "\\<subseteq>"];
+  "infixr", "is", "notes", "output", "overloaded", "shows",
+  "structure", "uses", "where", "|", "\\<equiv>",
+  "\\<leftharpoondown>", "\\<rightharpoonup>",
+  "\\<rightleftharpoons>", "\\<subseteq>"];
 
 val parsers = [
   (*theory structure*)
