@@ -30,7 +30,7 @@ struct
   val ss		= HOL_ss
   val eq_reflection	= eq_reflection
 
-  val thy		= RealDef.thy
+  val sg_ref		= Sign.self_ref (Theory.sign_of (the_context ()))
   val T			= HOLogic.realT
   val zero		= Const ("0", T)
   val restrict_to_left  = restrict_to_left
