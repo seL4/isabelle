@@ -238,16 +238,19 @@ fun prove_goalw_cterm_general check rths chorn tacsf =
 	       error ("The exception above was raised for\n" ^ 
 		      string_of_cterm chorn));
 
-(*Two variants: one checking the result, one not*)
-val prove_goalw_cterm         = prove_goalw_cterm_general true
-and prove_goalw_cterm_nocheck = prove_goalw_cterm_general false;
+(*Two variants: one checking the result, one not.  
+  Neither prints runtime messages: they are for internal packages.*)
+fun prove_goalw_cterm rths chorn = 
+	setmp proof_timing false (prove_goalw_cterm_general true rths chorn)
+and prove_goalw_cterm_nocheck rths chorn = 
+	setmp proof_timing false (prove_goalw_cterm_general false rths chorn);
 
 
 (*Version taking the goal as a string*)
 fun prove_goalw thy rths agoal tacsf =
   let val sign = sign_of thy
       val chorn = read_cterm sign (agoal,propT)
-  in  prove_goalw_cterm rths chorn tacsf end
+  in  prove_goalw_cterm_general true rths chorn tacsf end
   handle ERROR => error (*from read_cterm?*)
 		("The error(s) above occurred for " ^ quote agoal);
 
