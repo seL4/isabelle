@@ -7,7 +7,7 @@ following structures are supposed to be exported:
   Pretty        (generic pretty printing module)
   Scanner       (generic scanner toolbox)
 
-  Syntax        (interface to the syntax module)
+  Syntax        (internal interface to the syntax module)
   BasicSyntax   (part of Syntax made pervasive)
 
 There is no Makefile to compile these files separately; they are compiled as
