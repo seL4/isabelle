@@ -314,9 +314,28 @@ in fun cont_tacRs i =
   simp_tac (simpset() addsimps [flift1_def, flift2_def]) i THEN
   REPEAT (cont_tac i)
 end;
+*}
 
-simpset_ref() := simpset() addSolver
-  (mk_solver "cont_tac" (K (DEPTH_SOLVE_1 o cont_tac)));
+text {*
+  New continuity simproc by Brian Huffman.
+  Given the term @{term "cont f"}, the procedure tries to
+  construct the theorem @{prop "cont f == True"}. If this
+  theorem cannot be completely solved by the introduction
+  rules, then the procedure returns a conditional rewrite
+  rule with the unsolved subgoals as premises.
+*}
+
+ML_setup {*
+local fun solve_cont sg _ t = let
+  val tr = instantiate' [] [SOME (cterm_of sg t)] Eq_TrueI
+  val tac = REPEAT_ALL_NEW cont_tac 1
+  in Option.map fst (Seq.pull (tac tr))
+  end;
+
+in val cont_proc = Simplifier.simproc (Theory.sign_of (the_context ()))
+         "continuity" ["cont f"] solve_cont;
+end;
+Addsimprocs [cont_proc];
 *}
 
 
