@@ -58,7 +58,7 @@ qed "sum_0_eqpoll";
 
 goalw CardinalArith.thy [cadd_def] "!!K. Card(K) ==> 0 |+| K = K";
 by (asm_simp_tac (simpset() addsimps [sum_0_eqpoll RS cardinal_cong, 
-                                  Card_cardinal_eq]) 1);
+				      Card_cardinal_eq]) 1);
 qed "cadd_0";
 
 (** Addition by another cardinal **)
@@ -108,7 +108,7 @@ by (res_inst_tac [("c", "%z. if(z=Inl(A),A+B,z)"),
     lam_bijective 1);
 by (ALLGOALS
     (asm_simp_tac (simpset() addsimps [succI2, mem_imp_not_eq]
-                           setloop eresolve_tac [sumE,succE])));
+                             setloop eresolve_tac [sumE,succE])));
 qed "sum_succ_eqpoll";
 
 (*Pulling the  succ(...)  outside the |...| requires m, n: nat  *)
@@ -127,7 +127,7 @@ by (cut_facts_tac [nnat] 1);
 by (nat_ind_tac "m" [mnat] 1);
 by (asm_simp_tac (simpset() addsimps [nat_into_Card RS cadd_0]) 1);
 by (asm_simp_tac (simpset() addsimps [nat_into_Ord, cadd_succ_lemma,
-                                     nat_into_Card RS Card_cardinal_eq]) 1);
+				      nat_into_Card RS Card_cardinal_eq]) 1);
 qed "nat_cadd_eq_add";
 
 
@@ -182,8 +182,8 @@ by (rtac cardinal_cong 1);
 by (rtac ([well_ord_cardinal_eqpoll, eqpoll_refl] MRS prod_eqpoll_cong RS
           eqpoll_trans) 1);
 by (rtac (sum_prod_distrib_eqpoll RS eqpoll_trans) 2);
-by (rtac ([well_ord_cardinal_eqpoll, well_ord_cardinal_eqpoll] MRS sum_eqpoll_cong RS
-          eqpoll_sym) 2);
+by (rtac ([well_ord_cardinal_eqpoll, well_ord_cardinal_eqpoll] MRS 
+	  sum_eqpoll_cong RS eqpoll_sym) 2);
 by (REPEAT (ares_tac [well_ord_rmult, well_ord_radd] 1));
 qed "well_ord_cadd_cmult_distrib";
 
@@ -197,7 +197,7 @@ qed "prod_0_eqpoll";
 
 goalw CardinalArith.thy [cmult_def] "0 |*| i = 0";
 by (asm_simp_tac (simpset() addsimps [prod_0_eqpoll RS cardinal_cong, 
-                                  Card_0 RS Card_cardinal_eq]) 1);
+				      Card_0 RS Card_cardinal_eq]) 1);
 qed "cmult_0";
 
 (** 1 is the identity for multiplication **)
@@ -209,7 +209,7 @@ qed "prod_singleton_eqpoll";
 
 goalw CardinalArith.thy [cmult_def, succ_def] "!!K. Card(K) ==> 1 |*| K = K";
 by (asm_simp_tac (simpset() addsimps [prod_singleton_eqpoll RS cardinal_cong, 
-                                  Card_cardinal_eq]) 1);
+				      Card_cardinal_eq]) 1);
 qed "cmult_1";
 
 (*** Some inequalities for multiplication ***)
@@ -225,7 +225,8 @@ by (rtac le_trans 1);
 by (rtac well_ord_lepoll_imp_Card_le 2);
 by (rtac prod_square_lepoll 3);
 by (REPEAT (ares_tac [well_ord_rmult, well_ord_Memrel, Card_is_Ord] 2));
-by (asm_simp_tac (simpset() addsimps [le_refl, Card_is_Ord, Card_cardinal_eq]) 1);
+by (asm_simp_tac (simpset() 
+		  addsimps [le_refl, Card_is_Ord, Card_cardinal_eq]) 1);
 qed "cmult_square_le";
 
 (** Multiplication by a non-zero cardinal **)
@@ -291,14 +292,14 @@ by (cut_facts_tac [nnat] 1);
 by (nat_ind_tac "m" [mnat] 1);
 by (asm_simp_tac (simpset() addsimps [cmult_0]) 1);
 by (asm_simp_tac (simpset() addsimps [nat_into_Ord, cmult_succ_lemma,
-                                     nat_cadd_eq_add]) 1);
+				      nat_cadd_eq_add]) 1);
 qed "nat_cmult_eq_mult";
 
 goal CardinalArith.thy "!!m n. Card(n) ==> 2 |*| n = n |+| n";
 by (asm_simp_tac 
     (simpset() addsimps [Ord_0, Ord_succ, cmult_0, cmult_succ_lemma, 
-			Card_is_Ord,
-			read_instantiate [("j","0")] cadd_commute, cadd_0]) 1);
+			 Card_is_Ord, cadd_0,
+			 read_instantiate [("j","0")] cadd_commute]) 1);
 qed "cmult_2";
 
 
@@ -321,11 +322,11 @@ by (fast_tac (claset() addSIs [if_type, nat_succI, apply_type]
                       addIs  [inj_is_fun, inj_converse_fun]) 1);
 by (asm_simp_tac 
     (simpset() addsimps [inj_is_fun RS apply_rangeI,
-                     inj_converse_fun RS apply_rangeI,
-                     inj_converse_fun RS apply_funtype,
-                     left_inverse, right_inverse, nat_0I, nat_succI, 
-                     nat_case_0, nat_case_succ]
-           setloop split_tac [expand_if]) 1);
+			 inj_converse_fun RS apply_rangeI,
+			 inj_converse_fun RS apply_funtype,
+			 left_inverse, right_inverse, nat_0I, nat_succI, 
+			 nat_case_0, nat_case_succ]
+               setloop split_tac [expand_if]) 1);
 qed "nat_cons_lepoll";
 
 goal CardinalArith.thy "!!i. nat lepoll A ==> cons(u,A) eqpoll A";
@@ -349,7 +350,7 @@ qed "InfCard_is_Card";
 goalw CardinalArith.thy [InfCard_def]
     "!!K L. [| InfCard(K);  Card(L) |] ==> InfCard(K Un L)";
 by (asm_simp_tac (simpset() addsimps [Card_Un, Un_upper1_le RSN (2,le_trans), 
-                                  Card_is_Ord]) 1);
+				      Card_is_Ord]) 1);
 qed "InfCard_Un";
 
 (*Kunen's Lemma 10.11*)
@@ -383,7 +384,7 @@ qed "ordermap_eqpoll_pred";
 goalw CardinalArith.thy [inj_def]
  "!!K. Ord(K) ==> (lam <x,y>:K*K. <x Un y, x, y>) : inj(K*K, K*K*K)";
 by (fast_tac (claset() addss (simpset())
-                    addIs [lam_type, Un_least_lt RS ltD, ltI]) 1);
+                       addIs [lam_type, Un_least_lt RS ltD, ltI]) 1);
 qed "csquare_lam_inj";
 
 goalw CardinalArith.thy [csquare_rel_def]
@@ -399,9 +400,9 @@ goalw CardinalArith.thy [csquare_rel_def]
 \      <<x,y>, <z,z>> : csquare_rel(K) --> x le z & y le z";
 by (REPEAT (etac ltE 1));
 by (asm_simp_tac (simpset() addsimps [rvimage_iff, rmult_iff, Memrel_iff,
-                                  Un_absorb, Un_least_mem_iff, ltD]) 1);
+				      Un_absorb, Un_least_mem_iff, ltD]) 1);
 by (safe_tac (claset() addSEs [mem_irrefl] 
-                    addSIs [Un_upper1_le, Un_upper2_le]));
+                       addSIs [Un_upper1_le, Un_upper2_le]));
 by (ALLGOALS (asm_simp_tac (simpset() addsimps [lt_def, succI2, Ord_succ])));
 qed_spec_mp "csquareD";
 
@@ -420,7 +421,7 @@ by (subgoals_tac ["x<K", "y<K"] 1);
 by (REPEAT (eresolve_tac [asm_rl, lt_trans] 2));
 by (REPEAT (etac ltE 1));
 by (asm_simp_tac (simpset() addsimps [rvimage_iff, rmult_iff, Memrel_iff,
-                                     Un_absorb, Un_least_mem_iff, ltD]) 1);
+				      Un_absorb, Un_least_mem_iff, ltD]) 1);
 qed "csquare_ltI";
 
 (*Part of the traditional proof.  UNUSED since it's harder to prove & apply *)
@@ -431,11 +432,11 @@ by (subgoals_tac ["x<K", "y<K"] 1);
 by (REPEAT (eresolve_tac [asm_rl, lt_trans1] 2));
 by (REPEAT (etac ltE 1));
 by (asm_simp_tac (simpset() addsimps [rvimage_iff, rmult_iff, Memrel_iff,
-                                  Un_absorb, Un_least_mem_iff, ltD]) 1);
+				      Un_absorb, Un_least_mem_iff, ltD]) 1);
 by (REPEAT_FIRST (etac succE));
 by (ALLGOALS
     (asm_simp_tac (simpset() addsimps [subset_Un_iff RS iff_sym, 
-                                   subset_Un_iff2 RS iff_sym, OrdmemD])));
+				       subset_Un_iff2 RS iff_sym, OrdmemD])));
 qed "csquare_or_eqI";
 
 (** The cardinality of initial segments **)
@@ -451,7 +452,7 @@ by (rtac (csquare_ltI RS ordermap_mono RS ltI) 1);
 by (etac well_ord_is_wf 4);
 by (ALLGOALS 
     (blast_tac (claset() addSIs [Un_upper1_le, Un_upper2_le, Ord_ordermap] 
-                     addSEs [ltE])));
+                         addSEs [ltE])));
 qed "ordermap_z_lt";
 
 (*Kunen: "each <x,y>: K*K has no more than z*z predecessors..." (page 29) *)
@@ -498,13 +499,13 @@ by (res_inst_tac [("j", "nat")] lt_trans2 1);
 by (asm_full_simp_tac (simpset() addsimps [InfCard_def]) 2);
 by (asm_full_simp_tac
     (simpset() addsimps [lt_def, nat_cmult_eq_mult, nat_succI, mult_type,
-                     nat_into_Card RS Card_cardinal_eq, Ord_nat]) 1);
+			 nat_into_Card RS Card_cardinal_eq, Ord_nat]) 1);
 (*case nat le (xb Un y) *)
 by (asm_full_simp_tac
     (simpset() addsimps [le_imp_subset RS nat_succ_eqpoll RS cardinal_cong,
-                     le_succ_iff, InfCard_def, Card_cardinal, Un_least_lt, 
-                     Ord_Un, ltI, nat_le_cardinal,
-                     Ord_cardinal_le RS lt_trans1 RS ltD]) 1);
+			 le_succ_iff, InfCard_def, Card_cardinal, Un_least_lt, 
+			 Ord_Un, ltI, nat_le_cardinal,
+			 Ord_cardinal_le RS lt_trans1 RS ltD]) 1);
 qed "ordertype_csquare_le";
 
 (*Main result: Kunen's Theorem 10.12*)
@@ -520,9 +521,9 @@ by (assume_tac 2);
 by (assume_tac 2);
 by (asm_simp_tac 
     (simpset() addsimps [cmult_def, Ord_cardinal_le,
-                     well_ord_csquare RS ordermap_bij RS 
-                          bij_imp_eqpoll RS cardinal_cong,
-                     well_ord_csquare RS Ord_ordertype]) 1);
+			 well_ord_csquare RS ordermap_bij RS 
+			 bij_imp_eqpoll RS cardinal_cong,
+			 well_ord_csquare RS Ord_ordertype]) 1);
 qed "InfCard_csquare_eq";
 
 (*Corollary for arbitrary well-ordered sets (all sets, assuming AC)*)
@@ -532,7 +533,8 @@ by (resolve_tac [prod_eqpoll_cong RS eqpoll_trans] 1);
 by (REPEAT (etac (well_ord_cardinal_eqpoll RS eqpoll_sym) 1));
 by (rtac well_ord_cardinal_eqE 1);
 by (REPEAT (ares_tac [Ord_cardinal, well_ord_rmult, well_ord_Memrel] 1));
-by (asm_simp_tac (simpset() addsimps [symmetric cmult_def, InfCard_csquare_eq]) 1);
+by (asm_simp_tac (simpset() 
+		  addsimps [symmetric cmult_def, InfCard_csquare_eq]) 1);
 qed "well_ord_InfCard_square_eq";
 
 (** Toward's Kunen's Corollary 10.13 (1) **)
@@ -556,7 +558,7 @@ by (resolve_tac [Un_commute RS ssubst] 1);
 by (ALLGOALS
     (asm_simp_tac 
      (simpset() addsimps [InfCard_is_Limit RS Limit_has_0, InfCard_le_cmult_eq,
-                      subset_Un_iff2 RS iffD1, le_imp_subset])));
+			  subset_Un_iff2 RS iffD1, le_imp_subset])));
 qed "InfCard_cmult_eq";
 
 (*This proof appear to be the simplest!*)
@@ -587,7 +589,7 @@ by (resolve_tac [Un_commute RS ssubst] 1);
 by (ALLGOALS
     (asm_simp_tac 
      (simpset() addsimps [InfCard_le_cadd_eq,
-                      subset_Un_iff2 RS iffD1, le_imp_subset])));
+			  subset_Un_iff2 RS iffD1, le_imp_subset])));
 qed "InfCard_cadd_eq";
 
 (*The other part, Corollary 10.13 (2), refers to the cardinality of the set
@@ -643,7 +645,7 @@ by (etac (bij_is_inj RS well_ord_rvimage) 1);
 by (rtac (Ord_jump_cardinal RS well_ord_Memrel) 1);
 by (asm_simp_tac
     (simpset() addsimps [well_ord_Memrel RSN (2, bij_ordertype_vimage), 
-                     ordertype_Memrel, Ord_jump_cardinal]) 1);
+			 ordertype_Memrel, Ord_jump_cardinal]) 1);
 qed "Card_jump_cardinal_lemma";
 
 (*The hard part of Theorem 10.16: jump_cardinal(K) is itself a cardinal*)
@@ -701,7 +703,7 @@ qed "Card_lt_csucc_iff";
 goalw CardinalArith.thy [InfCard_def]
     "!!K. InfCard(K) ==> InfCard(csucc(K))";
 by (asm_simp_tac (simpset() addsimps [Card_csucc, Card_is_Ord, 
-                                  lt_csucc RS leI RSN (2,le_trans)]) 1);
+				      lt_csucc RS leI RSN (2,le_trans)]) 1);
 qed "InfCard_csucc";
 
 
@@ -742,9 +744,9 @@ qed "Finite_Fin_iff";
 goal CardinalArith.thy
     "!!A. [| Finite(A); Finite(B) |] ==> Finite(A Un B)";
 by (blast_tac (claset() addSIs [Fin_into_Finite, Fin_UnI] 
-                       addSDs [Finite_into_Fin]
-                       addIs [Un_upper1 RS Fin_mono RS subsetD,
-			      Un_upper2 RS Fin_mono RS subsetD]) 1);
+                        addSDs [Finite_into_Fin]
+                        addIs  [Un_upper1 RS Fin_mono RS subsetD,
+	 		        Un_upper2 RS Fin_mono RS subsetD]) 1);
 qed "Finite_Un";
 
 
@@ -767,8 +769,8 @@ by (rtac Least_equality 1);
 by (fold_tac [cardinal_def]);
 by (simp_tac (simpset() addsimps [succ_def]) 1);
 by (blast_tac (claset() addIs [cons_eqpoll_cong, well_ord_cardinal_eqpoll] 
-                    addSEs [mem_irrefl]
-                    addSDs [Finite_imp_well_ord]) 1);
+                        addSEs [mem_irrefl]
+                        addSDs [Finite_imp_well_ord]) 1);
 by (blast_tac (claset() addIs [Ord_succ, Card_cardinal, Card_is_Ord]) 1);
 by (rtac notI 1);
 by (resolve_tac [Finite_into_Fin RS Fin_imp_not_cons_lepoll RS mp RS notE] 1);
@@ -792,27 +794,24 @@ qed "Finite_imp_succ_cardinal_Diff";
 goal CardinalArith.thy "!!a A. [| Finite(A);  a:A |] ==> |A-{a}| < |A|";
 by (rtac succ_leE 1);
 by (asm_simp_tac (simpset() addsimps [Finite_imp_succ_cardinal_Diff, 
-                                  Ord_cardinal RS le_refl]) 1);
+				      Ord_cardinal RS le_refl]) 1);
 qed "Finite_imp_cardinal_Diff";
 
 
-(** Thanks to Krzysztof Grabczewski **)
+(** Theorems by Krzysztof Grabczewski, proofs by lcp **)
 
 val nat_implies_well_ord =
   (transfer CardinalArith.thy nat_into_Ord) RS well_ord_Memrel;
 
 goal CardinalArith.thy "!!m n. [| m:nat; n:nat |] ==> m + n eqpoll m #+ n";
 by (rtac eqpoll_trans 1);
-by (eresolve_tac [nat_implies_well_ord RS (
-                  nat_implies_well_ord RSN (2,
-                  well_ord_radd RS well_ord_cardinal_eqpoll)) RS eqpoll_sym] 1 
-    THEN (assume_tac 1));
-by (eresolve_tac [nat_cadd_eq_add RS subst] 1 THEN (assume_tac 1));
-by (asm_full_simp_tac (simpset() addsimps [cadd_def, eqpoll_refl]) 1);
+by (resolve_tac [well_ord_radd RS well_ord_cardinal_eqpoll RS eqpoll_sym] 1);
+by (REPEAT (eresolve_tac [nat_implies_well_ord] 1));
+by (asm_simp_tac (simpset() 
+		  addsimps [nat_cadd_eq_add RS sym, cadd_def, eqpoll_refl]) 1);
 qed "nat_sum_eqpoll_sum";
 
 goal Nat.thy "!!m. [| m le n; n:nat |] ==> m:nat";
-by (blast_tac (claset() addSDs [nat_succI RS (Ord_nat RSN (2, OrdmemD))]
-        addSEs [ltE]) 1);
+by (blast_tac (claset() addSIs [nat_succI] addSDs [lt_nat_in_nat]) 1);
 qed "le_in_nat";
 
