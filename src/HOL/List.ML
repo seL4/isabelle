@@ -183,6 +183,7 @@ qed "rev_flat";
 val list_ss = list_ss addsimps
   [not_Cons_self, append_assoc, append_Nil2, append_is_Nil, same_append_eq,
    mem_append, mem_filter,
+   rev_append, rev_rev_ident,
    map_ident, map_append, map_compose,
    flat_append, length_append, list_all_True, list_all_conj, nth_0, nth_Suc];
 
