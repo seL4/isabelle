@@ -196,12 +196,13 @@ val empty_cs =
      haz_netpair   = (Net.empty,Net.empty),
      dup_netpair   = (Net.empty,Net.empty)};
 
-fun print_cs (CS{safeIs,safeEs,hazIs,hazEs,...}) =
- (writeln"Introduction rules";  	prths hazIs;
-  writeln"Safe introduction rules";  	prths safeIs;
-  writeln"Elimination rules";  		prths hazEs;
-  writeln"Safe elimination rules";  	prths safeEs;
-  ());
+fun print_cs (CS {safeIs, safeEs, hazIs, hazEs, ...}) =
+  let val pretty_thms = map Display.pretty_thm in
+    Pretty.writeln (Pretty.big_list "introduction rules:" (pretty_thms hazIs));
+    Pretty.writeln (Pretty.big_list "safe introduction rules:" (pretty_thms safeIs));
+    Pretty.writeln (Pretty.big_list "elimination rules:" (pretty_thms hazEs));
+    Pretty.writeln (Pretty.big_list "safe elimination rules:" (pretty_thms safeEs))
+  end;
 
 fun rep_claset (CS args) = args;
 
