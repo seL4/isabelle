@@ -46,10 +46,9 @@ sig
     string option * context * context * (term * (term list * term list)) list list
   val print_locales: theory -> unit
   val print_locale: theory -> expr -> context attribute element list -> unit
-  val add_locale: bstring option option -> bstring
-    -> expr -> context attribute element list -> theory -> theory
-  val add_locale_i: bstring option option -> bstring
-    -> expr -> context attribute element_i list -> theory -> theory
+  val add_locale: bool -> bstring -> expr -> context attribute element list -> theory -> theory
+  val add_locale_i: bool -> bstring -> expr -> context attribute element_i list
+    -> theory -> theory
   val smart_have_thmss: string -> (string * 'a) Library.option ->
     ((bstring * theory attribute list) * (thm list * theory attribute list) list) list ->
     theory -> theory * (bstring * thm list) list
@@ -66,7 +65,6 @@ end;
 
 structure Locale: LOCALE =
 struct
-
 
 (** locale elements and expressions **)
 
@@ -204,7 +202,7 @@ fun rename_elem ren (Fixes fixes) = Fixes (fixes |> map (fn (x, T, mx) =>
 fun rename_facts prfx elem =
   let
     fun qualify (arg as ((name, atts), x)) =
-      if prfx = "" orelse name = "" orelse NameSpace.is_qualified name then arg
+      if prfx = "" orelse name = "" then arg
       else ((NameSpace.pack [prfx, name], atts), x);
   in
     (case elem of
@@ -545,9 +543,14 @@ fun bind_def ctxt (name, ps) ((xs, env, ths), eq) =
   end;
 
 fun eval_text _ _ _ (text, Fixes _) = text
-  | eval_text _ _ do_text ((spec, (xs, env, defs)), Assumes asms) =
-      let val ts = map (norm_term env) (flat (map (map #1 o #2) asms))
-      in (if do_text then spec @ ts else spec, (foldl Term.add_frees (xs, ts), env, defs)) end
+  | eval_text _ _ is_ext ((((exts, exts'), (ints, ints')), (xs, env, defs)), Assumes asms) =
+      let
+        val ts = flat (map (map #1 o #2) asms);
+        val ts' = map (norm_term env) ts;
+        val spec' =
+          if is_ext then ((exts @ ts, exts' @ ts'), (ints, ints'))
+          else ((exts, exts'), (ints @ ts, ints' @ ts'));
+      in (spec', (foldl Term.add_frees (xs, ts'), env, defs)) end
   | eval_text ctxt id _ ((spec, binds), Defines defs) =
       (spec, foldl (bind_def ctxt id) (binds, map (#1 o #2) defs))
   | eval_text _ _ _ (text, Notes _) = text;
@@ -625,8 +628,8 @@ fun prep_elemss prep_fixes prepp do_close context fixed_params raw_elemss raw_co
       (map (ProofContext.default_type ctxt) xs);
     val parms = param_types (xs ~~ typing);
 
-    val (text, elemss) =
-      finish_elemss ctxt parms do_close (([], ([], [], [])), raw_elemss ~~ proppss);
+    val (text, elemss) = finish_elemss ctxt parms do_close
+      (((([], []), ([], [])), ([], [], [])), raw_elemss ~~ proppss);
   in ((parms, elemss, concl), text) end;
 
 in
@@ -681,10 +684,6 @@ fun prep_context_statement prep_expr prep_elemss prep_facts
     val ((parms, all_elemss, concl), (spec, (_, _, defs))) = prep_elemss do_close
       context fixed_params (raw_import_elemss @ raw_elemss) raw_concl;
 
-    val xs = foldl Term.add_frees ([], spec);
-    val xs' = parms |> mapfilter (fn (x, _) =>
-      (case assoc_string (xs, x) of None => None | Some T => Some (x, T)));
-
     val n = length raw_import_elemss;
     val (import_ctxt, (import_elemss, import_facts)) =
       activate_facts prep_facts (context, take (n, all_elemss));
@@ -692,7 +691,7 @@ fun prep_context_statement prep_expr prep_elemss prep_facts
       activate_facts prep_facts (import_ctxt, drop (n, all_elemss));
   in
     ((((import_ctxt, (import_elemss, import_facts)),
-      (ctxt, (elemss, facts))), (xs', spec, defs)), concl)
+      (ctxt, (elemss, facts))), (parms, spec, defs)), concl)
   end;
 
 val gen_context = prep_context_statement intern_expr read_elemss get_facts;
@@ -733,7 +732,6 @@ end;
 
 fun print_locale thy import body =
   let
-    val sg = Theory.sign_of thy;
     val thy_ctxt = ProofContext.init thy;
     val (((_, (import_elemss, _)), (ctxt, (elemss, _))), _) = read_context import body thy_ctxt;
     val all_elems = flat (map #2 (import_elemss @ elemss));
@@ -834,7 +832,7 @@ end;
 local
 
 val introN = "intro";
-val axiomsN = "axioms";
+val axiomsN = "_axioms";
 
 fun atomize_spec sign ts =
   let
@@ -846,84 +844,95 @@ fun atomize_spec sign ts =
     else (body, bodyT, ObjectLogic.atomize_rule sign (Thm.cterm_of sign t))
   end;
 
-fun print_translation name xs thy =
-  let
-    val n = length xs;
-    fun aprop_tr' c = (c, fn args =>
-      if length args = n then Syntax.const "_aprop" $ Term.list_comb (Syntax.free c, args)
-      else raise Match);
-  in thy |> Theory.add_trfuns ([], [], map aprop_tr' (NameSpace.accesses' name), []) end;
+fun aprop_tr' n c = (c, fn args =>
+  if length args = n then Syntax.const "_aprop" $ Term.list_comb (Syntax.free c, args)
+  else raise Match);
 
-in
-
-fun define_pred bname loc (xs, ts, defs) elemss thy =
+fun def_pred bname parms defs ts ts' thy =
   let
     val sign = Theory.sign_of thy;
     val name = Sign.full_name sign bname;
 
+    val (body, bodyT, body_eq) = atomize_spec sign ts';
+    val env = Term.add_term_free_names (body, []);
+    val xs = filter (fn (x, _) => x mem_string env) parms;
+    val Ts = map #2 xs;
+    val extraTs = (Term.term_tfrees body \\ foldr Term.add_typ_tfrees (Ts, []))
+      |> Library.sort_wrt #1 |> map TFree;
+    val predT = extraTs ---> Ts ---> bodyT;
 
-    (* predicate definition and syntax *)
-
-    val (body, bodyT, body_eq) = atomize_spec sign ts;
-    val predT = map #2 xs ---> bodyT;
-    val head = Term.list_comb (Const (name, predT), map Free xs);
+    val args = map Logic.mk_type extraTs @ map Free xs;
+    val head = Term.list_comb (Const (name, predT), args);
     val statement = ObjectLogic.assert_propT sign head;
 
     val (defs_thy, [pred_def]) =
       thy
-      |> (if bodyT = propT then print_translation name xs else I)
+      |> (if bodyT <> propT then I else
+        Theory.add_trfuns ([], [], map (aprop_tr' (length args)) (NameSpace.accesses' name), []))
       |> Theory.add_consts_i [(bname, predT, Syntax.NoSyn)]
       |> PureThy.add_defs_i false [((Thm.def_name bname, Logic.mk_equals (head, body)), [])];
+
     val defs_sign = Theory.sign_of defs_thy;
     val cert = Thm.cterm_of defs_sign;
 
-
-    (* introduction rule *)
-
-    val intro = Tactic.prove_standard defs_sign (map #1 xs) ts statement (fn _ =>
+    val intro = Tactic.prove_standard defs_sign [] [] statement (fn _ =>
       Tactic.rewrite_goals_tac [pred_def] THEN
       Tactic.compose_tac (false, body_eq RS Drule.equal_elim_rule1, 1) 1 THEN
-      Tactic.compose_tac (false, Drule.conj_intr_list (map (Thm.assume o cert) ts), 0) 1);
-
-
-    (* derived axioms *)
+      Tactic.compose_tac (false, Drule.conj_intr_list (map (Thm.assume o cert) ts'), 0) 1);
 
     val conjuncts =
       Thm.assume (cert statement)
       |> Tactic.rewrite_rule [pred_def]
       |> Thm.equal_elim (Thm.symmetric body_eq)
       |> Drule.conj_elim_precise (length ts);
-
-    val assumes = elemss |> map (fn (("", _), es) =>
-        flat (es |> map (fn Assumes asms => flat (map (map #1 o #2) asms) | _ => []))
-      | _ => []) |> flat;
-
-    val axioms = (assumes ~~ conjuncts) |> map (fn (t, ax) =>
+    val axioms = (ts ~~ conjuncts) |> map (fn (t, ax) =>
       Tactic.prove defs_sign [] [] t (fn _ =>
         Tactic.rewrite_goals_tac defs THEN
         Tactic.compose_tac (false, ax, 0) 1));
+  in (defs_thy, (statement, intro, axioms)) end;
 
-    val implies_intr_assumes = Drule.implies_intr_list (map cert assumes);
-    fun implies_elim_axioms th = Drule.implies_elim_list (implies_intr_assumes th) axioms;
+fun change_elem _ (axms, Assumes asms) =
+      apsnd Notes ((axms, asms) |> foldl_map (fn (axs, (a, spec)) =>
+        let val n = length spec
+        in (Library.drop (n, axs), (a, [(Library.take (n, axs), [])])) end))
+  | change_elem f (axms, Notes facts) = (axms, Notes (map (apsnd (map (apfst (map f)))) facts))
+  | change_elem _ e = e;
 
-    fun change_elem (axms, Assumes asms) =
-          apsnd Notes ((axms, asms) |> foldl_map (fn (axs, (a, spec)) =>
-            let val n = length spec
-            in (Library.drop (n, axs), (a, [(Library.take (n, axs), [])])) end))
-      | change_elem (axms, Notes facts) =
-          (axms, Notes (facts |> map (apsnd (map (apfst (map implies_elim_axioms))))))
-      | change_elem e = e;
+fun change_elemss axioms elemss = (axioms, elemss) |> foldl_map
+  (fn (axms, (id as ("", _), es)) =>
+    foldl_map (change_elem (Drule.satisfy_hyps axioms)) (axms, es) |> apsnd (pair id)
+  | x => x) |> #2;
 
-    val elemss' = ((axioms, elemss) |> foldl_map
-      (fn (axms, (id as ("", _), es)) => foldl_map change_elem (axms, es) |> apsnd (pair id)
-        | x => x) |> #2) @
-      [(("", []), [Assumes [((NameSpace.pack [loc, axiomsN], []), [(statement, ([], []))])]])];
-  in
-    defs_thy
-    |> have_thmss_qualified "" bname
-      [((introN, [ContextRules.intro_query_global None]), [([intro], [])])]
-    |> #1 |> rpair elemss'
-  end;
+in
+
+fun define_preds bname (parms, ((exts, exts'), (ints, ints')), defs) elemss thy =
+  let
+    val (thy', (elemss', more_ts)) =
+      if Library.null exts then (thy, (elemss, []))
+      else
+        let
+          val aname = bname ^ axiomsN;
+          val (def_thy, (statement, intro, axioms)) =
+            thy |> def_pred aname parms defs exts exts';
+          val elemss' = change_elemss axioms elemss @
+            [(("", []), [Assumes [((aname, []), [(statement, ([], []))])]])];
+        in
+          def_thy |> have_thmss_qualified "" aname
+            [((introN, [ContextRules.intro_query_global None]), [([intro], [])])]
+          |> #1 |> rpair (elemss', [statement])
+        end;
+    val (thy'', view) =
+      if Library.null more_ts andalso Library.null ints then (thy', None)
+      else
+        let
+          val (def_thy, (statement, intro, axioms)) =
+            thy' |> def_pred bname parms defs (ints @ more_ts) (ints' @ more_ts);
+        in
+          def_thy |> have_thmss_qualified "" bname
+            [((introN, [ContextRules.intro_query_global None]), [([intro], [])])]
+          |> #1 |> rpair (Some (statement, axioms))
+        end;
+  in (thy'', (elemss', view)) end;
 
 end;
 
@@ -932,7 +941,7 @@ end;
 
 local
 
-fun gen_add_locale prep_ctxt prep_expr pname bname raw_import raw_body thy =
+fun gen_add_locale prep_ctxt prep_expr do_pred bname raw_import raw_body thy =
   let
     val sign = Theory.sign_of thy;
     val name = Sign.full_name sign bname;
@@ -944,12 +953,9 @@ fun gen_add_locale prep_ctxt prep_expr pname bname raw_import raw_body thy =
       prep_ctxt raw_import raw_body thy_ctxt;
     val elemss = import_elemss @ body_elemss;
 
-    val (pred_thy, elemss') =
-      if pname = Some None orelse Library.null (#1 text) then (thy, elemss)
-      else if pname = None then thy |> define_pred (bname ^ "_axioms") bname text elemss
-      else thy |> define_pred (the (the pname)) bname text elemss;
-    val elems' = elemss' |> filter (equal "" o #1 o #1) |> map #2 |> flat;
-
+    val (pred_thy, (elemss', view)) =  (* FIXME use view *)
+      if do_pred then thy |> define_preds bname text elemss
+      else (thy, (elemss, None));
     val pred_ctxt = ProofContext.init pred_thy;
     val (ctxt, (_, facts)) = activate_facts (K I) (pred_ctxt, elemss')
     val export = ProofContext.export_standard ctxt pred_ctxt;
@@ -959,7 +965,7 @@ fun gen_add_locale prep_ctxt prep_expr pname bname raw_import raw_body thy =
       ((a, []), [(map export ths, [])]))) |> #1
     |> declare_locale name
     |> put_locale name (make_locale (prep_expr sign raw_import)
-        (map (fn e => (e, stamp ())) elems')
+        (map (fn e => (e, stamp ())) (flat (map #2 (filter (equal "" o #1 o #1) elemss'))))
         (params_of elemss', map #1 (params_of body_elemss)))
   end;
 
