@@ -114,11 +114,16 @@ bind_thm ("Suc_n_not_n", n_not_Suc_n RS not_sym);
 
 (*** Basic properties of "less than" ***)
 
-Goalw [wf_def, pred_nat_def] "wf(pred_nat)";
+Goalw [wf_def, pred_nat_def] "wf pred_nat";
 by (Clarify_tac 1);
 by (nat_ind_tac "x" 1);
 by (ALLGOALS Blast_tac);
 qed "wf_pred_nat";
+
+Goalw [less_def] "wf {(x,y::nat). x<y}"; 
+by (rtac (wf_pred_nat RS wf_trancl RS wf_subset) 1);
+by (Blast_tac 1); 
+qed "wf_less";
 
 (*Used in TFL/post.sml*)
 Goalw [less_def] "(m,n) : pred_nat^+ = (m<n)";
