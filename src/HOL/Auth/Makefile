@@ -4,7 +4,7 @@
 #
 BIN = $(ISABELLEBIN)
 COMP = $(ISABELLECOMP)
-NAMES = Message Shared
+NAMES = Message Shared NS_Shared OtwayRees OtwayRees_AN Yahalom
 
 FILES = DB-ROOT.ML $(NAMES:%=%.thy) $(NAMES:%=%.ML)
 

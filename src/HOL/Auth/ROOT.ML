@@ -14,5 +14,6 @@ proof_timing := true;
 use_thy "Shared";
 use_thy "NS_Shared";
 use_thy "OtwayRees";
+use_thy "OtwayRees_AN";
 use_thy "Yahalom";
 
