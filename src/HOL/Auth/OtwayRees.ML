@@ -19,7 +19,7 @@ HOL_quantifiers := false;
 Pretty.setdepth 15;
 
 
-(*Weak liveness: there are traces that reach the end*)
+(*A "possibility property": there are traces that reach the end*)
 goal thy 
  "!!A B. [| A ~= B; A ~= Server; B ~= Server |]   \
 \        ==> EX K. EX NA. EX evs: otway lost.          \
@@ -364,9 +364,9 @@ val nonce_not_seen_now = le_refl RSN (2, new_nonces_not_seen) RSN (2,rev_notE);
   OR2 encrypts Nonce NB.  It prevents the attack that can occur in the
   over-simplified version of this protocol: see OtwayRees_Bad.*)
 goal thy 
- "!!evs. [| A ~: lost;  evs : otway lost |]                            \
+ "!!evs. [| A ~: lost;  evs : otway lost |]                      \
 \        ==> Crypt (shrK A) {|NA, Agent A, Agent B|}             \
-\             : parts (sees lost Spy evs) -->                       \
+\             : parts (sees lost Spy evs) -->                    \
 \            Crypt (shrK A) {|NA', NA, Agent A', Agent A|}       \
 \             ~: parts (sees lost Spy evs)";
 by (parts_induct_tac 1);
@@ -434,7 +434,7 @@ goal thy
 by (fast_tac (!claset addSIs [NA_Crypt_imp_Server_msg]
                       addEs  partsEs
                       addDs  [Says_imp_sees_Spy RS parts.Inj]) 1);
-qed "A_trust_OR4";
+qed "A_trusts_OR4";
 
 
 (** Crucial secrecy property: Spy does not see the keys sent in msg OR3
@@ -590,10 +590,10 @@ goal thy
 by (fast_tac (!claset addSIs [NB_Crypt_imp_Server_msg]
                       addEs  partsEs
                       addDs  [Says_imp_sees_Spy RS parts.Inj]) 1);
-qed "B_trust_OR3";
+qed "B_trusts_OR3";
 
 
-B_trust_OR3 RS Spy_not_see_encrypted_key;
+B_trusts_OR3 RS Spy_not_see_encrypted_key;
 
 
 goal thy 
@@ -624,6 +624,6 @@ goal thy
 \        ==> EX NB X. Says B Server {|NA, Agent A, Agent B, X,     \
 \                              Crypt (shrK B)  {|NA, NB, Agent A, Agent B|} |}\
 \            : set_of_list evs";
-by (fast_tac (!claset addSDs  [A_trust_OR4]
+by (fast_tac (!claset addSDs  [A_trusts_OR4]
                       addSEs [OR3_imp_OR2]) 1);
 qed "A_auths_B";
