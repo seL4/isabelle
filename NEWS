@@ -21,10 +21,13 @@ X-Symbol;
 *** Isar ***
 
 * improved proof by cases and induction:
-  - moved induct/cases attributes to Pure;
+  - divinate induct rule instantiation (excessive ?P bindings no longer required);
+  - proper enumeration of all possibilities of set/type rules (as a consequence
+    facts may be also passed through *type* rules without further ado);
   - added 'print_induct_rules' (covered by help item in Proof General > 3.3);
+  - moved induct/cases attributes to Pure;
   - generic setup instantiated for FOL and HOL;
-  - removed obsolete "(simplified)" and "(stripped)" options;
+  - removed obsolete "(simplified)" and "(stripped)" options of methods;
 
 * Pure: renamed "antecedent" case to "rule_context";
 
