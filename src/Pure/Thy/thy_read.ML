@@ -98,12 +98,12 @@ fun file_exists file =
 (*Get thy_info for a loaded theory *)
 fun get_thyinfo tname = Symtab.lookup (!loaded_thys, tname);
 
-(*Check if a theory was already loaded *)
+(*Check if a theory was completly loaded *)
 fun already_loaded thy =
   let val t = get_thyinfo thy
   in if is_none t then false
-     else let val ThyInfo {theory, ...} = the t
-          in if is_none theory then false else true end
+     else let val ThyInfo {thy_time, ml_time, ...} = the t
+          in is_some thy_time andalso is_some ml_time end
   end;
 
 (*Check if a theory file has changed since its last use.
@@ -201,13 +201,20 @@ fun set_info thy_time ml_time tname =
         the (Symtab.lookup (!loaded_thys, tname));
   in loaded_thys := Symtab.update ((tname,
        ThyInfo {path = path, children = children,
-                thy_time = Some thy_time, ml_time = Some ml_time,
+                thy_time = thy_time, ml_time = ml_time,
                 theory = theory, thms = thms}), !loaded_thys)
   end;
 
 (*Mark theory as changed since last read if it has been completly read *)
 fun mark_outdated tname =
-  if already_loaded tname then set_info "" "" tname else ();
+  let val t = get_thyinfo tname;
+  in if is_none t then ()
+     else let val ThyInfo {thy_time, ml_time, ...} = the t
+          in set_info (if is_none thy_time then None else Some "")
+                      (if is_none ml_time then None else Some "")
+                      tname
+          end
+  end;
 
 (*Read .thy and .ML files that haven't been read yet or have changed since
   they were last read;
@@ -235,15 +242,15 @@ fun use_thy name =
 
          (*Mark all direct descendants of a theory as changed *)
          fun mark_children thy =
-           let val ThyInfo {children, ...} = the (get_thyinfo thy)
-               val loaded = filter already_loaded children
+           let val ThyInfo {children, ...} = the (get_thyinfo thy);
+               val present = filter (is_some o get_thyinfo) children;
+               val loaded = filter already_loaded present;
            in if loaded <> [] then
-                  (writeln ("The following children of theory " ^ (quote thy)
-                            ^ " are now out-of-date: "
-                            ^ (quote (space_implode "\",\"" loaded)));
-                   seq mark_outdated loaded
-                  )
-              else ()
+                writeln ("The following children of theory " ^ (quote thy)
+                         ^ " are now out-of-date: "
+                         ^ (quote (space_implode "\",\"" loaded)))
+              else ();
+              seq mark_outdated present
            end;
 
         (*Remove all theorems associated with a theory*)
@@ -267,7 +274,7 @@ fun use_thy name =
                read_thy tname thy_file;
                use (out_name tname)
               );
-         set_info (file_info thy_file) "" tname;
+         set_info (Some (file_info thy_file)) None tname;
                                        (*mark thy_file as successfully loaded*)
 
          if ml_file = "" then ()
@@ -278,7 +285,7 @@ fun use_thy name =
                     (*Store theory again because it could have been redefined*)
 
          (*Now set the correct info*)
-         set_info (file_info thy_file) (file_info ml_file) tname;
+         set_info (Some (file_info thy_file)) (Some (file_info ml_file)) tname;
          set_path ();
 
          (*Mark theories that have to be reloaded*)
@@ -400,7 +407,7 @@ fun mk_base bases child mk_draft =
           (*Load a base theory if not already done
             and no cycle would be created *)
           fun load base =
-              let val thy_present = already_loaded base
+              let val thy_loaded = already_loaded base
                                            (*test this before child is added *)
               in
                 if child = base then
@@ -409,7 +416,7 @@ fun mk_base bases child mk_draft =
                 else
                   (find_cycle base;
                    add_child base;
-                   if thy_present then ()
+                   if thy_loaded then ()
                    else (writeln ("Autoloading theory " ^ (quote base)
                                   ^ " (used by " ^ (quote child) ^ ")");
                          use_thy base)
