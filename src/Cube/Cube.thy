@@ -1,4 +1,4 @@
-(*  Title:      Cube/cube.thy
+(*  Title:      Cube/Cube.thy
     ID:         $Id$
     Author:     Tobias Nipkow
     Copyright   1993  University of Cambridge
@@ -22,7 +22,6 @@ consts
   star          :: "term"                               ("*")
   box           :: "term"                               ("[]")
   "^"           :: "[term, term] => term"               (infixl 20)
-  "->"          :: "[term, term] => term"               (infixr 10)
   Has_type      :: "[term, term] => typing"             ("(_:/ _)" [0, 0] 5)
 
 syntax
@@ -31,6 +30,7 @@ syntax
   ""            :: "var => context"                     ("_ ")
   Lam           :: "[idt, term, term] => term"          ("(3Lam _:_./ _)" [0, 0, 0] 10)
   Pi            :: "[idt, term, term] => term"          ("(3Pi _:_./ _)" [0, 0] 10)
+  "->"          :: "[term, term] => term"               (infixr 10)
 
 translations
   (prop) "x:X"  == (prop) "|- x:X"
