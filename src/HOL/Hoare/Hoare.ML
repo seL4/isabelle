@@ -1,4 +1,4 @@
-(*  Title:      hoare_vcg.thy
+(*  Title:      HOL/Hoare/Hoare.ML
     ID:         $Id$
     Author:     Leonor Prensa Nieto & Tobias Nipkow
     Copyright   1998 TUM

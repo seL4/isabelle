@@ -1,4 +1,4 @@
-(*  Title:      HOL/Hoare/Examples.thy
+(*  Title:      HOL/Hoare/Examples.ML
     ID:         $Id$
     Author:     Norbert Galm & Tobias Nipkow
     Copyright   1998 TUM
