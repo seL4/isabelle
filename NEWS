@@ -59,9 +59,14 @@ will be instantiated for other types and logics as well.
 tactical theorem proving; together with the ProofGeneral/isar user
 interface it offers an interactive environment for developing human
 readable proof documents (Isar == Intelligible semi-automated
-reasoning); actual document preparation based on (PDF)LaTeX is
-available as well; see isatool doc isar-ref, HOL/Isar_examples and
-http://isabelle.in.tum.de/Isar/ for more information.
+reasoning); for further information see isatool doc isar-ref,
+src/HOL/Isar_examples and http://isabelle.in.tum.de/Isar/;
+
+* improved presentation of theories: better HTML markup (including
+colors), graph views in several sizes; isatool usedir now provides a
+proper interface for user theories (via -P option); actual document
+preparation based on (PDF)LaTeX is available as well (for new-style
+theories only); see isatool doc system for more information;
 
 * native support for Proof General, both for classic Isabelle and
 Isabelle/Isar (the latter is slightly better supported and more
@@ -71,10 +76,6 @@ robust);
 using the graph browser tool;
 
 * Isabelle manuals now also available as PDF;
-
-* improved browser info generation: better HTML markup (including
-colors), graph views in several sizes; isatool usedir now provides a
-proper interface for user theories (via -P option);
 
 * theory loader rewritten from scratch (may not be fully
 bug-compatible); old loadpath variable has been replaced by show_path,
@@ -87,6 +88,10 @@ option -p DIR installs standalone binaries;
 
 * added ML_PLATFORM setting (useful for cross-platform installations);
 more robust handling of platform specific ML images for SML/NJ;
+
+* the settings environment is now statically scoped, i.e. it is never
+read again in sub-processes invoked from isabelle, isatool, or
+Isabelle;
 
 * path element specification '~~' refers to '$ISABELLE_HOME';
 
