@@ -4,7 +4,7 @@
 
 ## targets
 
-default: HOL-ToyList HOL-Ifexpr HOL-CodeGen HOL-Trie HOL-Datatype HOL-Recdef HOL-Advanced HOL-CTL HOL-Inductive HOL-Misc styles
+default: HOL-ToyList HOL-Ifexpr HOL-CodeGen HOL-Trie HOL-Datatype HOL-Recdef HOL-Advanced HOL-Rules HOL-Sets HOL-CTL HOL-Inductive HOL-Misc styles
 images:
 test:
 all: default
@@ -102,6 +102,25 @@ $(LOG)/HOL-Advanced.gz: $(OUT)/HOL Advanced/simp.thy Advanced/ROOT.ML Advanced/W
 	@$(ISATOOL) usedir -i true -d dvi -D document $(OUT)/HOL Advanced
 	@rm -f tutorial.dvi
 
+## HOL-Rules
+
+HOL-Rules: HOL $(LOG)/HOL-Rules.gz
+
+$(LOG)/HOL-Rules.gz: $(OUT)/HOL Rules/Basic.thy \
+	Rules/Blast.thy Rules/Force.thy Rules/Primes.thy  \
+	Rules/ROOT.ML 
+	@$(ISATOOL) usedir -i true -d dvi -D document $(OUT)/HOL Rules
+	@rm -f tutorial.dvi
+
+## HOL-Sets
+
+HOL-Sets: HOL $(LOG)/HOL-Sets.gz
+
+$(LOG)/HOL-Sets.gz: $(OUT)/HOL Sets/Examples.thy Sets/Functions.thy \
+	Sets/Recur.thy Sets/Relations.thy Sets/ROOT.ML
+	@$(ISATOOL) usedir -i true -d dvi -D document $(OUT)/HOL Sets
+	@rm -f tutorial.dvi
+
 ## HOL-CTL
 
 HOL-CTL: HOL $(LOG)/HOL-CTL.gz
@@ -115,7 +134,7 @@ $(LOG)/HOL-CTL.gz: $(OUT)/HOL CTL/Base.thy CTL/PDL.thy CTL/CTL.thy CTL/CTLind.th
 HOL-Inductive: HOL $(LOG)/HOL-Inductive.gz
 
 $(LOG)/HOL-Inductive.gz: $(OUT)/HOL Inductive/ROOT.ML \
-  Inductive/Star.thy Inductive/AB.thy
+  Inductive/Even.thy Inductive/Star.thy Inductive/AB.thy Inductive/Acc.thy
 	@$(ISATOOL) usedir -i true -d dvi -D document $(OUT)/HOL Inductive
 	@rm -f tutorial.dvi
 
@@ -135,4 +154,4 @@ $(LOG)/HOL-Misc.gz: $(OUT)/HOL Misc/ROOT.ML Misc/Tree.thy Misc/Tree2.thy \
 ## clean
 
 clean:
-	@rm -f tutorial.dvi $(LOG)/HOL-Ifexpr.gz $(LOG)/HOL-CodeGen.gz $(LOG)/HOL-Misc.gz $(LOG)/HOL-ToyList.gz $(LOG)/HOL-ToyList2.gz $(LOG)/HOL-Trie.gz $(LOG)/HOL-Datatype.gz $(LOG)/HOL-Recdef.gz $(LOG)/HOL-Advanced.gz $(LOG)/HOL-CTL.gz $(LOG)/HOL-Inductive.gz
+	@rm -f tutorial.dvi $(LOG)/HOL-Ifexpr.gz $(LOG)/HOL-CodeGen.gz $(LOG)/HOL-Misc.gz $(LOG)/HOL-ToyList.gz $(LOG)/HOL-ToyList2.gz $(LOG)/HOL-Trie.gz $(LOG)/HOL-Datatype.gz $(LOG)/HOL-Recdef.gz $(LOG)/HOL-Advanced.gz $(LOG)/HOL-Rules.gz $(LOG)/HOL-Sets.gz $(LOG)/HOL-CTL.gz $(LOG)/HOL-Inductive.gz
