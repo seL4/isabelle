@@ -11,7 +11,9 @@ images: HOL TLA
 test: HOL-Subst HOL-Induct HOL-IMP HOL-Hoare HOL-Lex HOL-Real \
   HOL-Auth HOL-UNITY HOL-Modelcheck HOL-Lambda HOL-W0 HOL-MiniML HOL-IOA \
   HOL-AxClasses HOL-AxClasses-Group HOL-AxClasses-Lattice \
-  HOL-AxClasses-Tutorial HOL-Quot HOL-ex TLA-Inc TLA-Buffer TLA-Memory
+  HOL-AxClasses-Tutorial HOL-Quot HOL-ex HOL-Isar_examples TLA-Inc \
+  TLA-Buffer TLA-Memory
+
 all: images test
 
 
@@ -312,6 +314,16 @@ $(LOG)/HOL-ex.gz: $(OUT)/HOL ex/BT.ML ex/BT.thy ex/Fib.ML ex/Fib.thy \
 	@$(ISATOOL) usedir $(OUT)/HOL ex
 
 
+## HOL-Isar_examples
+
+HOL-Isar_examples: HOL $(LOG)/HOL-Isar_examples.gz
+
+$(LOG)/HOL-Isar_examples.gz: $(OUT)/HOL Isar_examples/BasicLogic.thy \
+  Isar_examples/Cantor.thy Isar_examples/ExprCompiler.thy \
+  Isar_examples/Peirce.thy Isar_examples/ROOT.ML
+	@$(ISATOOL) usedir $(OUT)/HOL Isar_examples
+
+
 ## TLA
 
 TLA: HOL $(OUT)/TLA
@@ -367,5 +379,6 @@ clean:
 	  $(LOG)/HOL-MiniML.gz $(LOG)/HOL-IOA.gz $(LOG)/HOL-AxClasses.gz \
 	  $(LOG)/HOL-AxClasses-Group.gz $(LOG)/HOL-AxClasses-Lattice.gz \
 	  $(LOG)/HOL-AxClasses-Tutorial.gz $(LOG)/HOL-Quot.gz \
-	  $(LOG)/HOL-ex.gz $(OUT)/TLA $(LOG)/TLA.gz $(LOG)/TLA-Inc.gz \
-	  $(LOG)/TLA-Buffer.gz $(LOG)/TLA-Memory.gz
+	  $(LOG)/HOL-ex.gz $(LOG)/HOL-Isar_examples.gz $(OUT)/TLA \
+	  $(LOG)/TLA.gz $(LOG)/TLA-Inc.gz $(LOG)/TLA-Buffer.gz \
+	  $(LOG)/TLA-Memory.gz
