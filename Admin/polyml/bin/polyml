@@ -1,12 +1,14 @@
-#!/bin/sh -x
+#!/bin/sh
 #
-# Poly/ML wrapper script
+# platform independent Poly/ML wrapper script
 
 
 ## self references
 
+PRG="`basename "$0"`"
+
 if [ -h "$0" ]; then
-  THIS="`cd "\`dirname "$0"\`"; cd "\`dirname "\\\`find "$PRG" -ls | cut -d ">" -f 2\\\`"\`"; pwd`"
+  THIS="`cd "\`dirname "$0"\`"; cd "\`dirname "\\\`ls -l "$PRG" | sed -e 's/^.* -> //'\\\`"\`"; pwd`"
 else
   THIS="`cd "\`dirname "$0"\`"; pwd`"
 fi
