@@ -143,7 +143,7 @@ fun single_thm _ [thm] = thm
 
 fun select_thm (s, None) xs = xs
   | select_thm (s, Some is) xs = map
-      (fn i => if i < 1 then raise LIST "" else nth_elem (i-1, xs) handle LIST _ =>
+      (fn i => (if i < 1 then raise LIST "" else nth_elem (i-1, xs)) handle LIST _ =>
          error ("Bad subscript " ^ string_of_int i ^ " for " ^ quote s)) is;
 
 
