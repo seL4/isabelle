@@ -44,8 +44,10 @@ sig
   val prop: token list -> string * token list
   val attribs: token list -> Args.src list * token list
   val opt_attribs: token list -> Args.src list * token list
-  val thm_name: token list -> (bstring * Args.src list) * token list
-  val opt_thm_name: token list -> (bstring * Args.src list) * token list
+  val thm_name: string -> token list -> (bstring * Args.src list) * token list
+  val opt_thm_name: string -> token list -> (bstring * Args.src list) * token list
+  val xthm: token list -> (xstring * Args.src list) * token list
+  val xthms1: token list -> (xstring * Args.src list) list * token list
   val method: token list -> Method.text * token list
   val triple1: ('a * 'b) * 'c -> 'a * 'b * 'c
   val triple2: 'a * ('b * 'c) -> 'a * 'b * 'c
@@ -226,8 +228,11 @@ val attrib = position (xname -- !!! (args false)) >> Args.src;
 val attribs = $$$ "[" |-- !!! (list attrib --| $$$ "]");
 val opt_attribs = Scan.optional attribs [];
 
-val thm_name = name -- opt_attribs --| $$$ ":";
-val opt_thm_name = Scan.optional thm_name ("", []);
+fun thm_name s = name -- opt_attribs --| $$$ s;
+fun opt_thm_name s = Scan.optional (thm_name s) ("", []);
+
+val xthm = xname -- opt_attribs;
+val xthms1 = Scan.repeat1 xthm;
 
 
 (* proof methods *)
