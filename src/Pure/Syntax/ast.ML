@@ -201,7 +201,6 @@ fun match ast pat =
 fun normalize trace stat get_rules pre_ast =
   let
     val passes = ref 0;
-    val lookups = ref 0;
     val failed_matches = ref 0;
     val changes = ref 0;
 
@@ -209,20 +208,24 @@ fun normalize trace stat get_rules pre_ast =
       | subst env (Variable x) = the (Symtab.lookup (env, x))
       | subst env (Appl asts) = Appl (map (subst env) asts);
 
-    fun try_rules ast ((lhs, rhs) :: pats) =
+    fun try_rules ((lhs, rhs) :: pats) ast =
           (case match ast lhs of
             Some (env, args) =>
               (inc changes; Some (mk_appl (subst env rhs) args))
-          | None => (inc failed_matches; try_rules ast pats))
-      | try_rules _ [] = None;
+          | None => (inc failed_matches; try_rules pats ast))
+      | try_rules [] _ = None;
+    val try_headless_rules = try_rules (get_rules "");
 
-    fun try ast a = (inc lookups; try_rules ast (get_rules a));
+    fun try ast a =
+      (case try_rules (get_rules a) ast of
+        None => try_headless_rules ast
+      | some => some);
 
     fun rewrite (ast as Constant a) = try ast a
       | rewrite (ast as Variable a) = try ast a
       | rewrite (ast as Appl (Constant a :: _)) = try ast a
       | rewrite (ast as Appl (Variable a :: _)) = try ast a
-      | rewrite ast = try ast "";
+      | rewrite ast = try_headless_rules ast;
 
     fun rewrote old_ast new_ast =
       if trace then
@@ -262,7 +265,6 @@ fun normalize trace stat get_rules pre_ast =
     if trace orelse stat then
       writeln ("post: " ^ str_of_ast post_ast ^ "\nnormalize: " ^
         string_of_int (! passes) ^ " passes, " ^
-        string_of_int (! lookups) ^ " lookups, " ^
         string_of_int (! changes) ^ " changes, " ^
         string_of_int (! failed_matches) ^ " matches failed")
     else ();
