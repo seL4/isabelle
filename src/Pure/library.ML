@@ -91,6 +91,7 @@ sig
   val drop: int * 'a list -> 'a list
   val dropwhile: ('a -> bool) -> 'a list -> 'a list
   val nth_elem: int * 'a list -> 'a
+  val map_nth_elem: int -> ('a -> 'a) -> 'a list -> 'a list
   val last_elem: 'a list -> 'a
   val split_last: 'a list -> 'a list * 'a
   val nth_update: 'a -> int * 'a list -> 'a list
@@ -507,6 +508,10 @@ fun nth_elem NL =
   (case drop NL of
     [] => raise LIST "nth_elem"
   | x :: _ => x);
+
+fun map_nth_elem 0 f (x :: xs) = f x :: xs
+  | map_nth_elem n f (x :: xs) = x :: map_nth_elem (n - 1) f xs
+  | map_nth_elem _ _ [] = raise LIST "map_nth_elem";
 
 (*last element of a list*)
 fun last_elem [] = raise LIST "last_elem"
