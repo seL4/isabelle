@@ -21,7 +21,8 @@ USEDIR = $(ISATOOL) usedir -v true -i true -d pdf -D generated
 
 Sugar: $(LOG)/HOL-Sugar.gz
 
-$(LOG)/HOL-Sugar.gz: Sugar/ROOT.ML Sugar/document/root.tex Sugar/document/root.bib Sugar/*.thy
+$(LOG)/HOL-Sugar.gz: Sugar/ROOT.ML Sugar/document/root.tex Sugar/document/root.bib \
+  ../../HOL/Library/LaTeXsugar.thy ../../HOL/Library/OptinalSugar.thy
 	@$(USEDIR) HOL Sugar
 
 
