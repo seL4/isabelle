@@ -78,7 +78,7 @@ $(LOG)/ZF-Coind.gz: $(OUT)/ZF Coind/Dynamic.thy \
 ZF-Constructible: ZF $(LOG)/ZF-Constructible.gz
 
 $(LOG)/ZF-Constructible.gz: $(OUT)/ZF  Constructible/ROOT.ML \
-  Constructible/Datatype_absolute.thy\
+  Constructible/Datatype_absolute.thy Constructible/DPow_absolute.thy\
   Constructible/Formula.thy Constructible/Internalize.thy \
   Constructible/Relative.thy \
   Constructible/L_axioms.thy    Constructible/Wellorderings.thy \

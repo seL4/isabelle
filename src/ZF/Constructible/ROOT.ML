@@ -8,4 +8,4 @@ Inner Models and Absoluteness
 Build using	isatool usedir  -d pdf ZF Constructible
 *)
 
-use_thy "Satisfies_absolute";
+use_thy "DPow_absolute";

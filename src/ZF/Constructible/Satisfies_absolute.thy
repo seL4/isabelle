@@ -10,226 +10,6 @@ theory Satisfies_absolute = Datatype_absolute + Rec_Separation:
 
 
 
-subsubsection{*The Formula @{term is_list_N}, Internalized*}
-
-(* "is_list_N(M,A,n,Z) == 
-      \<exists>zero[M]. \<exists>sn[M]. \<exists>msn[M]. 
-       empty(M,zero) & 
-       successor(M,n,sn) & membership(M,sn,msn) &
-       is_wfrec(M, iterates_MH(M, is_list_functor(M,A),zero), msn, n, Z)" *)
-  
-constdefs list_N_fm :: "[i,i,i]=>i"
-  "list_N_fm(A,n,Z) == 
-     Exists(Exists(Exists(
-       And(empty_fm(2),
-         And(succ_fm(n#+3,1),
-          And(Memrel_fm(1,0),
-              is_wfrec_fm(iterates_MH_fm(list_functor_fm(A#+9#+3,1,0),
-                                         7,2,1,0), 
-                           0, n#+3, Z#+3)))))))"
-
-lemma list_N_fm_type [TC]:
- "[| x \<in> nat; y \<in> nat; z \<in> nat |] ==> list_N_fm(x,y,z) \<in> formula"
-by (simp add: list_N_fm_def)
-
-lemma sats_list_N_fm [simp]:
-   "[| x \<in> nat; y < length(env); z < length(env); env \<in> list(A)|]
-    ==> sats(A, list_N_fm(x,y,z), env) <->
-        is_list_N(**A, nth(x,env), nth(y,env), nth(z,env))"
-apply (frule_tac x=z in lt_length_in_nat, assumption)  
-apply (frule_tac x=y in lt_length_in_nat, assumption)  
-apply (simp add: list_N_fm_def is_list_N_def sats_is_wfrec_fm 
-                 sats_iterates_MH_fm) 
-done
-
-lemma list_N_iff_sats:
-      "[| nth(i,env) = x; nth(j,env) = y; nth(k,env) = z;
-          i \<in> nat; j < length(env); k < length(env); env \<in> list(A)|]
-       ==> is_list_N(**A, x, y, z) <-> sats(A, list_N_fm(i,j,k), env)"
-by (simp add: sats_list_N_fm)
-
-theorem list_N_reflection:
-     "REFLECTS[\<lambda>x. is_list_N(L, f(x), g(x), h(x)),  
-               \<lambda>i x. is_list_N(**Lset(i), f(x), g(x), h(x))]"
-apply (simp only: is_list_N_def setclass_simps)
-apply (intro FOL_reflections function_reflections is_wfrec_reflection 
-             iterates_MH_reflection list_functor_reflection) 
-done
-
-
-
-subsubsection{*The Predicate ``Is A List''*}
-
-(* mem_list(M,A,l) == 
-      \<exists>n[M]. \<exists>listn[M]. 
-       finite_ordinal(M,n) & is_list_N(M,A,n,listn) & l \<in> listn *)
-constdefs mem_list_fm :: "[i,i]=>i"
-    "mem_list_fm(x,y) ==
-       Exists(Exists(
-         And(finite_ordinal_fm(1),
-           And(list_N_fm(x#+2,1,0), Member(y#+2,0)))))"
-
-lemma mem_list_type [TC]:
-     "[| x \<in> nat; y \<in> nat |] ==> mem_list_fm(x,y) \<in> formula"
-by (simp add: mem_list_fm_def)
-
-lemma sats_mem_list_fm [simp]:
-   "[| x \<in> nat; y \<in> nat; env \<in> list(A)|]
-    ==> sats(A, mem_list_fm(x,y), env) <-> mem_list(**A, nth(x,env), nth(y,env))"
-by (simp add: mem_list_fm_def mem_list_def)
-
-lemma mem_list_iff_sats:
-      "[| nth(i,env) = x; nth(j,env) = y;
-          i \<in> nat; j \<in> nat; env \<in> list(A)|]
-       ==> mem_list(**A, x, y) <-> sats(A, mem_list_fm(i,j), env)"
-by simp
-
-theorem mem_list_reflection:
-     "REFLECTS[\<lambda>x. mem_list(L,f(x),g(x)),
-               \<lambda>i x. mem_list(**Lset(i),f(x),g(x))]"
-apply (simp only: mem_list_def setclass_simps)
-apply (intro FOL_reflections finite_ordinal_reflection list_N_reflection)
-done
-
-
-subsubsection{*The Predicate ``Is @{term "list(A)"}''*}
-
-(* is_list(M,A,Z) == \<forall>l[M]. l \<in> Z <-> mem_list(M,A,l) *)
-constdefs is_list_fm :: "[i,i]=>i"
-    "is_list_fm(A,Z) ==
-       Forall(Iff(Member(0,succ(Z)), mem_list_fm(succ(A),0)))"
-
-lemma is_list_type [TC]:
-     "[| x \<in> nat; y \<in> nat |] ==> is_list_fm(x,y) \<in> formula"
-by (simp add: is_list_fm_def)
-
-lemma sats_is_list_fm [simp]:
-   "[| x \<in> nat; y \<in> nat; env \<in> list(A)|]
-    ==> sats(A, is_list_fm(x,y), env) <-> is_list(**A, nth(x,env), nth(y,env))"
-by (simp add: is_list_fm_def is_list_def)
-
-lemma is_list_iff_sats:
-      "[| nth(i,env) = x; nth(j,env) = y;
-          i \<in> nat; j \<in> nat; env \<in> list(A)|]
-       ==> is_list(**A, x, y) <-> sats(A, is_list_fm(i,j), env)"
-by simp
-
-theorem is_list_reflection:
-     "REFLECTS[\<lambda>x. is_list(L,f(x),g(x)),
-               \<lambda>i x. is_list(**Lset(i),f(x),g(x))]"
-apply (simp only: is_list_def setclass_simps)
-apply (intro FOL_reflections mem_list_reflection)
-done
-
-
-subsubsection{*The Formula @{term is_formula_N}, Internalized*}
-
-(* "is_formula_N(M,n,Z) == 
-      \<exists>zero[M]. \<exists>sn[M]. \<exists>msn[M]. 
-          2       1       0
-       empty(M,zero) & 
-       successor(M,n,sn) & membership(M,sn,msn) &
-       is_wfrec(M, iterates_MH(M, is_formula_functor(M),zero), msn, n, Z)" *) 
-constdefs formula_N_fm :: "[i,i]=>i"
-  "formula_N_fm(n,Z) == 
-     Exists(Exists(Exists(
-       And(empty_fm(2),
-         And(succ_fm(n#+3,1),
-          And(Memrel_fm(1,0),
-              is_wfrec_fm(iterates_MH_fm(formula_functor_fm(1,0),7,2,1,0), 
-                           0, n#+3, Z#+3)))))))"
-
-lemma formula_N_fm_type [TC]:
- "[| x \<in> nat; y \<in> nat |] ==> formula_N_fm(x,y) \<in> formula"
-by (simp add: formula_N_fm_def)
-
-lemma sats_formula_N_fm [simp]:
-   "[| x < length(env); y < length(env); env \<in> list(A)|]
-    ==> sats(A, formula_N_fm(x,y), env) <->
-        is_formula_N(**A, nth(x,env), nth(y,env))"
-apply (frule_tac x=y in lt_length_in_nat, assumption)  
-apply (frule lt_length_in_nat, assumption)  
-apply (simp add: formula_N_fm_def is_formula_N_def sats_is_wfrec_fm sats_iterates_MH_fm) 
-done
-
-lemma formula_N_iff_sats:
-      "[| nth(i,env) = x; nth(j,env) = y; 
-          i < length(env); j < length(env); env \<in> list(A)|]
-       ==> is_formula_N(**A, x, y) <-> sats(A, formula_N_fm(i,j), env)"
-by (simp add: sats_formula_N_fm)
-
-theorem formula_N_reflection:
-     "REFLECTS[\<lambda>x. is_formula_N(L, f(x), g(x)),  
-               \<lambda>i x. is_formula_N(**Lset(i), f(x), g(x))]"
-apply (simp only: is_formula_N_def setclass_simps)
-apply (intro FOL_reflections function_reflections is_wfrec_reflection 
-             iterates_MH_reflection formula_functor_reflection) 
-done
-
-
-
-subsubsection{*The Predicate ``Is A Formula''*}
-
-(*  mem_formula(M,p) == 
-      \<exists>n[M]. \<exists>formn[M]. 
-       finite_ordinal(M,n) & is_formula_N(M,n,formn) & p \<in> formn *)
-constdefs mem_formula_fm :: "i=>i"
-    "mem_formula_fm(x) ==
-       Exists(Exists(
-         And(finite_ordinal_fm(1),
-           And(formula_N_fm(1,0), Member(x#+2,0)))))"
-
-lemma mem_formula_type [TC]:
-     "x \<in> nat ==> mem_formula_fm(x) \<in> formula"
-by (simp add: mem_formula_fm_def)
-
-lemma sats_mem_formula_fm [simp]:
-   "[| x \<in> nat; env \<in> list(A)|]
-    ==> sats(A, mem_formula_fm(x), env) <-> mem_formula(**A, nth(x,env))"
-by (simp add: mem_formula_fm_def mem_formula_def)
-
-lemma mem_formula_iff_sats:
-      "[| nth(i,env) = x; i \<in> nat; env \<in> list(A)|]
-       ==> mem_formula(**A, x) <-> sats(A, mem_formula_fm(i), env)"
-by simp
-
-theorem mem_formula_reflection:
-     "REFLECTS[\<lambda>x. mem_formula(L,f(x)),
-               \<lambda>i x. mem_formula(**Lset(i),f(x))]"
-apply (simp only: mem_formula_def setclass_simps)
-apply (intro FOL_reflections finite_ordinal_reflection formula_N_reflection)
-done
-
-
-
-subsubsection{*The Predicate ``Is @{term "formula"}''*}
-
-(* is_formula(M,Z) == \<forall>p[M]. p \<in> Z <-> mem_formula(M,p) *)
-constdefs is_formula_fm :: "i=>i"
-    "is_formula_fm(Z) == Forall(Iff(Member(0,succ(Z)), mem_formula_fm(0)))"
-
-lemma is_formula_type [TC]:
-     "x \<in> nat ==> is_formula_fm(x) \<in> formula"
-by (simp add: is_formula_fm_def)
-
-lemma sats_is_formula_fm [simp]:
-   "[| x \<in> nat; env \<in> list(A)|]
-    ==> sats(A, is_formula_fm(x), env) <-> is_formula(**A, nth(x,env))"
-by (simp add: is_formula_fm_def is_formula_def)
-
-lemma is_formula_iff_sats:
-      "[| nth(i,env) = x; i \<in> nat; env \<in> list(A)|]
-       ==> is_formula(**A, x) <-> sats(A, is_formula_fm(i), env)"
-by simp
-
-theorem is_formula_reflection:
-     "REFLECTS[\<lambda>x. is_formula(L,f(x)),
-               \<lambda>i x. is_formula(**Lset(i),f(x))]"
-apply (simp only: is_formula_def setclass_simps)
-apply (intro FOL_reflections mem_formula_reflection)
-done
-
-
 subsubsection{*The Formula @{term is_depth}, Internalized*}
 
 (*    "is_depth(M,p,n) == 
@@ -404,10 +184,10 @@ constdefs
                 \<lambda>u. d(u, h ` succ(depth(u)) ` u))"
 
   is_formula_rec :: "[i=>o, [i,i,i]=>o, i, i] => o"
-    --{* predicate to relative the functional @{term formula_rec}*}
+    --{* predicate to relativize the functional @{term formula_rec}*}
    "is_formula_rec(M,MH,p,z)  ==
-    \<exists>i[M]. \<exists>f[M]. i = succ(depth(p)) & fun_apply(M,f,p,z) &
-                  is_transrec(M,MH,i,f)"
+      \<exists>dp[M]. \<exists>i[M]. \<exists>f[M]. finite_ordinal(M,dp) & is_depth(M,p,dp) & 
+             successor(M,dp,i) & fun_apply(M,f,p,z) & is_transrec(M,MH,i,f)"
 
 text{*Unfold @{term formula_rec} to @{term formula_rec_case}*}
 lemma (in M_triv_axioms) formula_rec_eq2:
@@ -503,7 +283,7 @@ theorem (in M_formula_rec) formula_rec_abs:
   "[| p \<in> formula; M(z)|] 
    ==> is_formula_rec(M,MH,p,z) <-> z = formula_rec(a,b,c,d,p)" 
 by (simp add: is_formula_rec_def formula_rec_eq2 transM [OF _ formula_closed]
-              transrec_abs [OF fr_replace MH_rel2] 
+              transrec_abs [OF fr_replace MH_rel2] depth_type
               fr_transrec_closed formula_rec_lam_closed eq_commute)
 
 
@@ -598,15 +378,7 @@ constdefs
                z)"
 
   is_satisfies :: "[i=>o,i,i,i]=>o"
-   "is_satisfies(M,A) == 
-      is_formula_rec (M, \<lambda>u f z.
-        \<forall>fml[M].
-           is_formula(M,fml) \<longrightarrow>
-           is_lambda
-            (M, fml,
-             is_formula_case
-              (M, satisfies_is_a(M,A), satisfies_is_b(M,A),
-               satisfies_is_c(M,A,f), satisfies_is_d(M,A,f)), z))"
+   "is_satisfies(M,A) == is_formula_rec (M, satisfies_MH(M,A))"
 
 
 text{*This lemma relates the fragments defined above to the original primitive
@@ -837,7 +609,7 @@ lemma (in M_satisfies) satisfies_abs:
   "[|M(A); M(z); p \<in> formula|] 
    ==> is_satisfies(M,A,p,z) <-> z = satisfies(A,p)"
 by (simp only: M_formula_rec.formula_rec_abs [OF M_formula_rec_M]  
-               satisfies_eq is_satisfies_def)
+               satisfies_eq is_satisfies_def satisfies_MH_def)
 
 
 subsection{*Internalizations Needed to Instantiate @{text "M_satisfies"}*}
