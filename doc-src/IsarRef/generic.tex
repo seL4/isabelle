@@ -300,6 +300,7 @@ over results of symbolic evaluation of recursive definitions, for example.
 
 \indexisaratt{standard}
 \indexisaratt{elimify}
+\indexisaratt{no-vars}
 
 \indexisaratt{RS}\indexisaratt{COMP}
 \indexisaratt{where}
@@ -316,6 +317,7 @@ over results of symbolic evaluation of recursive definitions, for example.
   fold & : & \isaratt \\[0.5ex]
   standard & : & \isaratt \\
   elimify & : & \isaratt \\
+  no_vars & : & \isaratt \\
   export^* & : & \isaratt \\
 \end{matharray}
 
@@ -355,6 +357,9 @@ over results of symbolic evaluation of recursive definitions, for example.
   
 \item [$elimify$] turns an destruction rule into an elimination, just as the
   ML function \texttt{make\_elim} (see \cite{isabelle-ref}).
+  
+\item [$no_vars$] replaces schematic variables by free ones; this is mainly
+  for tuning output of pretty printed theorems.
   
 \item [$export$] lifts a local result out of the current proof context,
   generalizing all fixed variables and discharging all assumptions.  Note that
