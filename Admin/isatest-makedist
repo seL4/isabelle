@@ -11,7 +11,10 @@
 
 
 ## global settings
-MAILTO="kleing@in.tum.de test@jflex.de"
+MAILTO="kleing@in.tum.de nipkow@in.tum.de wenzelm@in.tum.de berghofe@in.tum.de schirmer@in.tum.de lp15@cam.ac.uk"
+
+TMP=/tmp/isatest-makedist.$$
+MAIL=~/bin/pmail
 
 LOGPREFIX=~/log
 MASTERLOG=$LOGPREFIX/isatest.log
@@ -69,17 +72,15 @@ then
     ELAPSED=$("$HOME/bin/showtime" "$SECONDS")
     echo "$(date) $HOSTNAME $PRG: dist build FAILED, elapsed time $ELAPSED." >> $MASTERLOG
 
-    for R in $MAILTO; do 
-        mail -t $R <<EOM
-Subject: isabelle dist build failed
+    echo "Could not build isabelle distribution. Log file available at" > $TMP
+    echo "$HOSTNAME:$DISTLOG" >> $TMP
 
-Could not build isabelle distribution. Log file available at
-
-$HOSTNAME:$DISTLOG
-EOM
+    for R in $MAILTO; do
+	$MAIL "isabelle dist build failed" $R $TMP
     done
 
-    # more action here
+    rm $TMP
+
     exit 1
 fi
 
@@ -97,7 +98,6 @@ echo "$(date) $HOSTNAME $PRG: dist build successful, elapsed time $ELAPSED." >> 
 
 # run tests in parallel on multiprocessor sun 
 $SSH $SUN "$MAKEALL $DISTPREFIX ~/settings/sun-poly ~/settings/sun-sml"
-# $SSH $SUN "$MAKEALL $DISTPREFIX ~/settings/sun-sml"
 
 # run tests sequentially on x86
 $SSH $AT "$MAKEALL $DISTPREFIX ~/settings/at-poly ~/settings/at-sml"

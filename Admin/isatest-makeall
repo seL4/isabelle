@@ -8,7 +8,7 @@
 #              Send email if it fails.
 
 ## global settings
-MAILTO="kleing@in.tum.de test@jflex.de"
+MAILTO="kleing@in.tum.de nipkow@in.tum.de wenzelm@in.tum.de berghofe@in.tum.de schirmer@in.tum.de lp15@cam.ac.uk"
 
 LOGPREFIX=~/log
 
@@ -79,7 +79,7 @@ for SETTINGS in $@; do
     else
         echo ------------------- test FAILED --- `date` --- $HOSTNAME >> $TESTLOG 2>&1
 	FAIL="$FAIL$SHORT "
-	LOGS="${LOGS}$HOSTNAME:$TESTLOG\n"
+	LOGS="${LOGS}$HOSTNAME:$TESTLOG "
     fi
 
 done
@@ -90,7 +90,7 @@ if [ "$FAIL" != "" ]; then
 	echo "$(date) $HOSTNAME $PRG: targets ${FAIL}FAILED, elapsed time $ELAPSED." >> $MASTERLOG
 	
 	echo "Test for platform(s) ${FAIL}failed. Log file(s) available at" > $TMP
-	echo "$LOGS" >> $TMP
+	for L in $LOGS; do echo "$L" >> $TMP; done
 
         for R in $MAILTO; do
 	    $MAIL "isabelle test failed" $R $TMP
