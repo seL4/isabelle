@@ -289,13 +289,7 @@ fun cabs (Cterm {t=Free(a,ty), sign_ref=sign_ref1, T=T1, maxidx=maxidx1})
 (*read terms, infer types, certify terms*)
 fun read_def_cterms (sign, types, sorts) used freeze sTs =
   let
-    val syn = #syn (Sign.rep_sg sign)
-    fun read(s,T) =
-      let val T' = Sign.certify_typ sign T
-                   handle TYPE (msg, _, _) => error msg
-      in (Syntax.read syn T' s, T') end
-    val tsTs = map read sTs
-    val (ts',tye) = Sign.infer_types_simult sign types sorts used freeze tsTs;
+    val (ts', tye) = Sign.read_def_terms (sign, types, sorts) used freeze sTs;
     val cts = map (cterm_of sign) ts'
       handle TYPE (msg, _, _) => error msg
            | TERM (msg, _) => error msg;
