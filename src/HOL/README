@@ -1,4 +1,4 @@
-	   CHOL: Higher-Order Logic with curried functions
+	   HOL: Higher-Order Logic with curried functions
 
 This directory contains the Standard ML sources of the Isabelle system for
 Higher-Order Logic with curried functions.  Important files include
@@ -9,7 +9,7 @@ Isabelle and type:    use "ROOT.ML";
 Makefile -- compiles the files under Poly/ML or SML of New Jersey
 
 ex -- subdirectory containing examples.  To execute them, enter an ML image
-containing CHOL and type:    use "ex/ROOT.ML";
+containing HOL and type:    use "ex/ROOT.ML";
 
 Subst -- subdirectory defining a theory of substitution and unification.
 
