@@ -16,7 +16,6 @@ init_thy_reader();
 print_depth 1;  
 use_thy "FOL";
 
-use "../Provers/simplifier.ML";
 use "../Provers/splitter.ML";
 use "../Provers/ind.ML";
 use "../Provers/hypsubst.ML";
