@@ -15,4 +15,28 @@ declare map_cong [recdef_cong]
 lemmas rev_induct [case_names Nil snoc] = rev_induct
   and rev_cases [case_names Nil snoc] = rev_exhaust
 
+(** configuration of code generator **)
+
+types_code
+  "bool"  ("bool")
+  "*"     ("prod")
+  "list"  ("list")
+
+consts_code
+  "op ="    ("(_ =/ _)")
+
+  "True"    ("true")
+  "False"   ("false")
+  "Not"     ("not")
+  "op |"    ("(_ orelse/ _)")
+  "op &"    ("(_ andalso/ _)")
+  "If"      ("(if _/ then _/ else _)")
+
+  "Pair"    ("(_,/ _)")
+  "fst"     ("fst")
+  "snd"     ("snd")
+
+  "Nil"     ("[]")
+  "Cons"    ("(_ ::/ _)")
+  
 end

@@ -15,7 +15,9 @@ files
   ("../TFL/thry.ML")
   ("../TFL/tfl.ML")
   ("../TFL/post.ML")
-  ("Tools/recdef_package.ML"):
+  ("Tools/recdef_package.ML")
+  ("Tools/basic_codegen.ML")
+  ("Tools/inductive_codegen.ML"):
 
 lemma tfl_eq_True: "(x = True) --> x"
   by blast
@@ -50,7 +52,11 @@ use "../TFL/thry.ML"
 use "../TFL/tfl.ML"
 use "../TFL/post.ML"
 use "Tools/recdef_package.ML"
+use "Tools/basic_codegen.ML"
+use "Tools/inductive_codegen.ML"
 setup RecdefPackage.setup
+setup BasicCodegen.setup
+setup InductiveCodegen.setup
 
 lemmas [recdef_simp] =
   inv_image_def
