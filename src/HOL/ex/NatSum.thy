@@ -1,20 +1,21 @@
 (*  Title:      HOL/ex/NatSum.ML
     ID:         $Id$
     Author:     Tobias Nipkow
-    Copyright   1994 TU Muenchen
-
-Summing natural numbers, squares, cubes, etc.
-
-Originally demonstrated permutative rewriting, but add_ac is no longer
-needed thanks to new simprocs.
-
-Thanks to Sloane's On-Line Encyclopedia of Integer Sequences,
-http://www.research.att.com/~njas/sequences/
 *)
 
 header {* Summing natural numbers *}
 
 theory NatSum = Main:
+
+text {*
+  Summing natural numbers, squares, cubes, etc.
+
+  Originally demonstrated permutative rewriting, but @{thm [source]
+  add_ac} is no longer needed thanks to new simprocs.
+
+  Thanks to Sloane's On-Line Encyclopedia of Integer Sequences,
+  \url{http://www.research.att.com/~njas/sequences/}.
+*}
 
 declare lessThan_Suc [simp] atMost_Suc [simp]
 declare add_mult_distrib [simp] add_mult_distrib2 [simp]
@@ -25,7 +26,7 @@ text {*
   squared.
 *}
 
-lemma sum_of_odds: "setsum (\<lambda>i. Suc (i + i)) (lessThan n) = n * n"
+lemma sum_of_odds: "(\<Sum>i \<in> {..n(}. Suc (i + i)) = n * n"
   apply (induct n)
    apply auto
   done
@@ -36,11 +37,10 @@ text {*
 *}
 
 lemma sum_of_odd_squares:
-  "3 * setsum (\<lambda>i. Suc (i + i) * Suc (i + i)) (lessThan n) =
-    n * (4 * n * n - Numeral1)"
+  "3 * (\<Sum>i \<in> {..n(}. Suc (i + i) * Suc (i + i)) =
+    n * (4 * n * n - 1)"
   apply (induct n)
-  txt {* This removes the @{term "-Numeral1"} from the inductive step *}
-   apply (case_tac [2] n)
+   apply (case_tac [2] n)  -- {* eliminates the subtraction *}
     apply auto
   done
 
@@ -50,11 +50,10 @@ text {*
 *}
 
 lemma sum_of_odd_cubes:
-  "setsum (\<lambda>i. Suc (i + i) * Suc (i + i) * Suc (i + i)) (lessThan n) =
-    n * n * (2 * n * n - Numeral1)"
-  apply (induct "n")
-  txt {* This removes the @{term "-Numeral1"} from the inductive step *}
-   apply (case_tac [2] "n")
+  "(\<Sum>i \<in> {..n(}. Suc (i + i) * Suc (i + i) * Suc (i + i)) =
+    n * n * (2 * n * n - 1)"
+  apply (induct n)
+   apply (case_tac [2] n)  -- {* eliminates the subtraction *}
     apply auto
   done
 
@@ -63,19 +62,19 @@ text {*
   @{text "n (n + 1) / 2"}.*}
 
 lemma sum_of_naturals:
-    "2 * setsum id (atMost n) = n * Suc n"
+    "2 * (\<Sum>i \<in> {..n}. i) = n * Suc n"
   apply (induct n)
    apply auto
   done
 
 lemma sum_of_squares:
-    "6 * setsum (\<lambda>i. i * i) (atMost n) = n * Suc n * Suc (2 * n)"
+    "6 * (\<Sum>i \<in> {..n}. i * i) = n * Suc n * Suc (2 * n)"
   apply (induct n)
    apply auto
   done
 
 lemma sum_of_cubes:
-    "4 * setsum (\<lambda>i. i * i * i) (atMost n) = n * n * Suc n * Suc n"
+    "4 * (\<Sum>i \<in> {..n}. i * i * i) = n * n * Suc n * Suc n"
   apply (induct n)
    apply auto
   done
@@ -86,12 +85,11 @@ text {*
 *}
 
 lemma sum_of_fourth_powers:
-  "30 * setsum (\<lambda>i. i * i * i * i) (atMost n) =
-    n * Suc n * Suc (2 * n) * (3 * n * n + 3 * n - Numeral1)"
+  "30 * (\<Sum>i \<in> {..n}. i * i * i * i) =
+    n * Suc n * Suc (2 * n) * (3 * n * n + 3 * n - 1)"
   apply (induct n)
    apply auto
-  txt {* Eliminates the subtraction *}
-  apply (case_tac n)
+  apply (case_tac n)  -- {* eliminates the subtraction *}
    apply simp_all
   done
 
@@ -107,28 +105,30 @@ declare
   zdiff_zmult_distrib2 [simp]
 
 lemma int_sum_of_fourth_powers:
-  "30 * int (setsum (\<lambda>i. i * i * i * i) (lessThan m)) =
-    int m * (int m - Numeral1) * (int (2 * m) - Numeral1) *
-    (int (3 * m * m) - int (3 * m) - Numeral1)"
+  "30 * int (\<Sum>i \<in> {..m(}. i * i * i * i) =
+    int m * (int m - 1) * (int (2 * m) - 1) *
+    (int (3 * m * m) - int (3 * m) - 1)"
   apply (induct m)
    apply simp_all
   done
 
 
 text {*
-  \medskip Sums of geometric series: 2, 3 and the general case *}
+  \medskip Sums of geometric series: @{term 2}, @{term 3} and the
+  general case.
+*}
 
-lemma sum_of_2_powers: "setsum (\<lambda>i. 2^i) (lessThan n) = 2^n - (1::nat)"
+lemma sum_of_2_powers: "(\<Sum>i \<in> {..n(}. 2^i) = 2^n - (1::nat)"
   apply (induct n)
-   apply (auto split: nat_diff_split) 
+   apply (auto split: nat_diff_split)
   done
 
-lemma sum_of_3_powers: "2 * setsum (\<lambda>i. 3^i) (lessThan n) = 3^n - (1::nat)"
+lemma sum_of_3_powers: "2 * (\<Sum>i \<in> {..n(}. 3^i) = 3^n - (1::nat)"
   apply (induct n)
    apply auto
   done
 
-lemma sum_of_powers: "0 < k ==> (k - 1) * setsum (\<lambda>i. k^i) (lessThan n) = k^n - (1::nat)"
+lemma sum_of_powers: "0 < k ==> (k - 1) * (\<Sum>i \<in> {..n(}. k^i) = k^n - (1::nat)"
   apply (induct n)
    apply auto
   done

@@ -36,7 +36,7 @@ intrs
   InsertI "[| (A,n) : cardR; a ~: A |] ==> (insert a A, Suc n) : cardR"
 
 constdefs
-  card :: 'a set => nat
+ card :: 'a set => nat
  "card A == THE n. (A,n) : cardR"
 
 (*
@@ -55,11 +55,19 @@ inductive "foldSet f e"
 	      ==> (insert x A, f x y) : foldSet f e"
 
 constdefs
-   fold :: "[['b,'a] => 'a, 'a, 'b set] => 'a"
+  fold :: "[['b,'a] => 'a, 'a, 'b set] => 'a"
   "fold f e A == THE x. (A,x) : foldSet f e"
 
-   setsum :: "('a => 'b) => 'a set => ('b::{plus, zero})"
+  setsum :: "('a => 'b) => 'a set => 'b::plus_ac0"
   "setsum f A == if finite A then fold (op+ o f) 0 A else 0"
+
+syntax
+  "_setsum" :: "idt => 'a set => 'b => 'b::plus_ac0"    ("\\<Sum>_:_. _" [0, 51, 10] 10)
+syntax (symbols)
+  "_setsum" :: "idt => 'a set => 'b => 'b::plus_ac0"    ("\\<Sum>_\\<in>_. _" [0, 51, 10] 10)
+translations
+  "\\<Sum>i:A. b" == "setsum (%i. b) A"  (* Beware of argument permutation! *)
+
 
 locale LC =
   fixes

@@ -524,10 +524,8 @@ val rename_Alloc_Safety =
 
 (*safety (1), step 3*)
 Goal
-  "System : Always {s. setsum (%i. (tokens o sub i o allocGiv) s) \
-\                             (lessThan Nclients)                 \
-\           <= NbT + setsum (%i. (tokens o sub i o allocRel) s)   \
-\                           (lessThan Nclients)}";
+  "System : Always {s. (\\<Sum>i: lessThan Nclients. (tokens o sub i o allocGiv) s) \
+\           <= NbT + (\\<Sum>i: lessThan Nclients. (tokens o sub i o allocRel) s)}";
 by (simp_tac (simpset() addsimps [o_apply]) 1);
 by (rtac (rename_Alloc_Safety RS component_guaranteesD) 1);
 by (auto_tac (claset(), 

@@ -716,14 +716,14 @@ qed "setsum_empty";
 Addsimps [setsum_empty];
 
 Goalw [setsum_def]
- "!!f::'a=>'b::plus_ac0. [| finite F; a ~: F |] ==> \
-\      setsum f (insert a F) = f(a) + setsum f F";
+ "!!f. [| finite F; a ~: F |] ==> \
+\      setsum f (insert a F) = f a + setsum f F";
 by (asm_simp_tac (simpset() addsimps [export fold_insert,
 				      thm "plus_ac0_left_commute"]) 1);
 qed "setsum_insert";
 Addsimps [setsum_insert];
 
-Goal "setsum (%i. 0) A = (0::'a::plus_ac0)";
+Goal "setsum (%i. 0) A = 0";
 by (case_tac "finite A" 1);
  by (asm_simp_tac (simpset() addsimps [setsum_def]) 2); 
 by (etac finite_induct 1);
@@ -751,7 +751,7 @@ by Auto_tac;
 qed "card_eq_setsum";
 
 (*The reversed orientation looks more natural, but LOOPS as a simprule!*)
-Goal "!!g::'a=>'b::plus_ac0. [| finite A; finite B |] \
+Goal "!!g. [| finite A; finite B |] \
 \     ==> setsum g (A Un B) + setsum g (A Int B) = setsum g A + setsum g B";
 by (etac finite_induct 1);
 by (Simp_tac 1);
@@ -760,7 +760,7 @@ by (asm_full_simp_tac (simpset() addsimps (thms "plus_ac0") @
 qed "setsum_Un_Int";
 
 Goal "[| finite A; finite B; A Int B = {} |] \
-\     ==> setsum g (A Un B) = (setsum g A + setsum g B::'a::plus_ac0)";  
+\     ==> setsum g (A Un B) = setsum g A + setsum g B";
 by (stac (setsum_Un_Int RS sym) 1);
 by Auto_tac;
 qed "setsum_Un_disjoint";
@@ -779,7 +779,7 @@ by (subgoal_tac "A x Int UNION F A = {}" 1);
 by (asm_simp_tac (simpset() addsimps [setsum_Un_disjoint]) 1);
 qed_spec_mp "setsum_UN_disjoint";
 
-Goal "setsum (%x. f x + g x) A = (setsum f A + setsum g A::'a::plus_ac0)";
+Goal "setsum (%x. f x + g x) A = (setsum f A + setsum g A)";
 by (case_tac "finite A" 1);
  by (asm_full_simp_tac (simpset() addsimps [setsum_def]) 2); 
 by (etac finite_induct 1);
@@ -808,7 +808,7 @@ qed_spec_mp "setsum_diff1";
 
 val prems = Goal
     "[| A = B; !!x. x:B ==> f x = g x|] \
-\    ==> setsum f A = (setsum g B::'a::plus_ac0)";
+\    ==> setsum f A = setsum g B";
 by (case_tac "finite B" 1);
  by (asm_simp_tac (simpset() addsimps [setsum_def]@prems) 2); 
 by (simp_tac (simpset() addsimps prems) 1);

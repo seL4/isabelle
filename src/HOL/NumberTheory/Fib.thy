@@ -118,7 +118,7 @@ lemma fib_gcd: "fib (gcd (m, n)) = gcd (fib m, fib n)"  -- {* Law 6.111 *}
   done
 
 lemma fib_mult_eq_setsum:
-    "fib (Suc n) * fib n = setsum (\<lambda>k. fib k * fib k) (atMost n)"
+    "fib (Suc n) * fib n = (\<Sum>k \<in> {..n}. fib k * fib k)"
   apply (induct n rule: fib.induct)
     apply (auto simp add: atMost_Suc fib.Suc_Suc)
   apply (simp add: add_mult_distrib add_mult_distrib2)

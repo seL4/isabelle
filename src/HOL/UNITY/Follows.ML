@@ -233,7 +233,7 @@ qed "Follows_union";
 
 Goal "!!f ::['c,'b] => ('a::order) multiset. \
 \       [| ALL i: I. F : f' i Fols f i;  finite I |] \
-\       ==> F : (%s. setsum (%i. f' i s) I) Fols (%s. setsum (%i. f i s) I)";
+\       ==> F : (%s. \\<Sum>i:I. f' i s) Fols (%s. \\<Sum>i:I. f i s)";
 by (etac rev_mp 1); 
 by (etac finite_induct 1);
 by (asm_simp_tac (simpset() addsimps [Follows_union]) 2);

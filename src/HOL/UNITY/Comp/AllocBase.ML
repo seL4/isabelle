@@ -48,14 +48,14 @@ qed "mono_bag_of";
 
 Addcongs [setsum_cong];
 
-Goal "setsum (%i. {#if i<k then f i else g i#}) (A Int lessThan k) = \
-\     setsum (%i. {#f i#}) (A Int lessThan k)";
+Goal "(\\<Sum>i: A Int lessThan k. {#if i<k then f i else g i#}) = \
+\     (\\<Sum>i: A Int lessThan k. {#f i#})";
 by (rtac setsum_cong 1);
 by Auto_tac;  
 qed "bag_of_sublist_lemma";
 
 Goal "bag_of (sublist l A) = \
-\     setsum (%i. {# l!i #}) (A Int lessThan (length l))";
+\     (\\<Sum>i: A Int lessThan (length l). {# l!i #})";
 by (rev_induct_tac "l" 1);
 by (Simp_tac 1);
 by (asm_simp_tac
@@ -81,7 +81,7 @@ qed "bag_of_sublist_Un_disjoint";
 
 Goal "[| finite I; ALL i:I. ALL j:I. i~=j --> A i Int A j = {} |] \
 \     ==> bag_of (sublist l (UNION I A)) =  \
-\         setsum (%i. bag_of (sublist l (A i))) I";  
+\         (\\<Sum>i:I. bag_of (sublist l (A i)))";  
 by (asm_simp_tac (simpset() delsimps UN_simps addsimps (UN_simps RL [sym])
 			    addsimps [bag_of_sublist]) 1);
 by (stac setsum_UN_disjoint 1);

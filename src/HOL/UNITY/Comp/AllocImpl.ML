@@ -44,9 +44,8 @@ qed "Merge_Bounded";
 
 Goal "[| G: preserves merge.iOut; G: preserves merge.Out; M : Allowed G |] \
 \ ==> M Join G : Always \
-\         {s. setsum (%i. bag_of (sublist (merge.Out s) \
-\                                 {k. k < length (iOut s) & iOut s ! k = i})) \
-\                    (lessThan Nclients)   =  \
+\         {s. (\\<Sum>i: lessThan Nclients. bag_of (sublist (merge.Out s) \
+\                                 {k. k < length (iOut s) & iOut s ! k = i})) = \
 \             (bag_of o merge.Out) s}";
 by (rtac ([[Merge_Always_Out_eq_iOut, Merge_Bounded] MRS Always_Int_I,
 	   UNIV_AlwaysI] MRS (Always_Compl_Un_eq RS iffD1)) 1);
@@ -65,8 +64,7 @@ qed "Merge_Bag_Follows_lemma";
 Goal "M : (INT i: lessThan Nclients. Increasing (sub i o merge.In)) \
 \         guarantees  \
 \            (bag_of o merge.Out) Fols \
-\            (%s. setsum (%i. (bag_of o sub i o merge.In) s) \
-\                        (lessThan Nclients))";
+\            (%s. \\<Sum>i: lessThan Nclients. (bag_of o sub i o merge.In) s)";
 by (rtac (Merge_Bag_Follows_lemma RS Always_Follows1 RS guaranteesI) 1);
 by Auto_tac;  
 by (rtac Follows_setsum 1);
@@ -103,9 +101,8 @@ qed "Distr_Increasing_Out";
 Goal "[| G : preserves distr.Out; \
 \        D Join G : Always {s. ALL elt: set (distr.iIn s). elt < Nclients} |] \
 \ ==> D Join G : Always \
-\         {s. setsum (%i. bag_of (sublist (distr.In s) \
-\                                 {k. k < length (iIn s) & iIn s ! k = i})) \
-\                    (lessThan Nclients)   = \
+\         {s. (\\<Sum>i: lessThan Nclients. bag_of (sublist (distr.In s) \
+\                                 {k. k < length (iIn s) & iIn s ! k = i})) = \
 \             bag_of (sublist (distr.In s) (lessThan (length (iIn s))))}";
 by (etac ([asm_rl, UNIV_AlwaysI] MRS (Always_Compl_Un_eq RS iffD1)) 1);
 by Auto_tac; 
@@ -133,7 +130,7 @@ Goal
 \     Always {s. ALL elt : set (distr.iIn s). elt < Nclients} \
 \     guarantees  \
 \      (INT i : lessThan Nclients. \
-\       (%s. setsum (%i. (bag_of o sub i o distr.Out) s) (lessThan Nclients)) \
+\       (%s. \\<Sum>i: lessThan Nclients. (bag_of o sub i o distr.Out) s) \
 \       Fols \
 \       (%s. bag_of (sublist (distr.In s) (lessThan (length(distr.iIn s))))))";
 by (rtac guaranteesI 1);
@@ -152,8 +149,8 @@ qed "Distr_Bag_Follows";
 Close_locale "Distrib";
 
 
-Goal "!!f::nat=>nat. (INT i:(lessThan n). {s. f i <= g i s})  \
-\     <= {s. setsum f (lessThan n) <= setsum (%i. g i s) (lessThan n)}";
+Goal "!!f::nat=>nat. (INT i: lessThan n. {s. f i <= g i s})  \
+\     <= {s. (\\<Sum>i: lessThan n. f i) <= (\\<Sum>i: lessThan n. g i s)}";
 by (induct_tac "n" 1);
 by (auto_tac (claset(), simpset() addsimps [lessThan_Suc]));
 qed "alloc_refinement_lemma";
@@ -177,8 +174,8 @@ Goal
 \ Int   \
 \ (INT hf. (INT i : lessThan Nclients.  \
 \        {s. hf i <= (sub i o allocGiv)s & hf i pfixGe (sub i o allocAsk)s}) \
-\ LeadsTo {s. setsum (%i. tokens (hf i)) (lessThan Nclients) <=         \
-\   setsum (%i. (tokens o sub i o allocRel)s) (lessThan Nclients) })";
+\ LeadsTo {s. (\\<Sum>i: lessThan Nclients. tokens (hf i)) <=         \
+\   (\\<Sum>i: lessThan Nclients. (tokens o sub i o allocRel)s)})";
 by (auto_tac (claset(), simpset() addsimps [ball_conj_distrib]));  
 by (rename_tac "F hf" 1);
 by (rtac ([Finite_stable_completion, alloc_refinement_lemma]
