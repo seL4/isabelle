@@ -296,7 +296,7 @@ fun deps_thy name ml path =
     val pos = Path.position path;
     val (name', parents, files) = ThyHeader.scan (src, pos);
     val ml_path = ThyLoad.ml_path name;
-    val ml_file = if ml andalso is_some (ThyLoad.check_file ml_path) then [ml_path] else [];
+    val ml_file = if ml andalso is_some (ThyLoad.check_file None ml_path) then [ml_path] else [];
   in
     if name <> name' then
       error ("Filename " ^ quote (Path.pack path) ^
@@ -315,7 +315,7 @@ fun try_ml_file name time =
     val tr = Toplevel.imperative (fn () => ThyInfo.load_file time path);
     val tr_name = if time then "time_use" else "use";
   in
-    if is_none (ThyLoad.check_file path) then ()
+    if is_none (ThyLoad.check_file None path) then ()
     else Toplevel.excursion [Toplevel.empty |> Toplevel.name tr_name |> tr]
   end;
 

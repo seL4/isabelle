@@ -393,7 +393,7 @@ fun which_context () =
 fun try_update_thy_only file =
   ThyLoad.cond_add_path (Path.dir (Path.unpack file)) (fn () =>
     let val name = thy_name file in
-      if is_some (ThyLoad.check_file (ThyLoad.thy_path name)) 
+      if is_some (ThyLoad.check_file None (ThyLoad.thy_path name)) 
       then update_thy_only name
       else warning ("Unkown theory context of ML file." ^ which_context ())
     end) ();
