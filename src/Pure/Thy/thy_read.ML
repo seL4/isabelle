@@ -21,7 +21,7 @@ sig
   val exit_use_dir   : string -> unit
   val update         : unit -> unit
   val unlink_thy     : string -> unit
-  val mk_base        : basetype list -> string -> bool -> theory
+  val mk_base        : basetype list -> string -> theory
 end;
 
 
@@ -404,7 +404,7 @@ fun update () =
 
 (*Merge theories to build a base for a new theory.
   Base members are only loaded if they are missing.*)
-fun mk_base bases child mk_draft =
+fun mk_base bases child =
   let (*Show the cycle that would be created by add_child*)
       fun show_cycle base =
         let fun find_it result curr =
@@ -456,8 +456,8 @@ fun mk_base bases child mk_draft =
               (find_cycle base;
                add_child base;
                if thy_loaded then ()
-               else (writeln ("Autoloading theory " ^ (quote base)
-                              ^ " (used by " ^ (quote child) ^ ")");
+               else (writeln ("Autoloading theory " ^ quote base
+                              ^ " (required by " ^ quote child ^ ")");
                      use_thy1 true base)
               )
           end;
@@ -474,8 +474,9 @@ fun mk_base bases child mk_draft =
       val dummy = unlink_thy child;
       val mergelist = load_base bases;
 
-      val base_thy = (writeln ("Loading theory " ^ (quote child));
-                      Theory.merge_thy_list mk_draft (map theory_of mergelist));
+      val base_thy =
+       (writeln ("Loading theory " ^ quote child);
+        Theory.merge_list (map theory_of mergelist));
 
       val datas =
         let fun get_data t =

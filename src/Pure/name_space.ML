@@ -25,7 +25,7 @@ sig
   val prune: T -> string -> string
 end;
 
-structure NameSpace(*: NAME_SPACE FIXME *) =
+structure NameSpace: NAME_SPACE =
 struct
 
 
@@ -61,7 +61,7 @@ fun tab_of (NameSpace (_, tab)) = tab;
 
 fun make entries =
   let
-    fun accesses [] = []		(* FIXME !? *)
+    fun accesses [] = []
       | accesses entry =
           let
             val p = pack entry;
