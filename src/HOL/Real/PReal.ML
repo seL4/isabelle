@@ -1103,27 +1103,21 @@ by (res_inst_tac [("x","x")] exI 1);
 by (auto_tac (claset() addSDs [bspec],simpset()));
 qed "preal_sup_not_mem_Ex1";
 
-Goal "EX Y. (ALL X: P. X < Y)  \                                    
-\         ==> {w. EX X: P. w: Rep_preal(X)} < UNIV";       (**)
+Goal "EX Y. (ALL X: P. X < Y) ==> {w. EX X: P. w: Rep_preal(X)} < UNIV"; (**)
 by (dtac preal_sup_not_mem_Ex 1);
 by (auto_tac (claset() addSIs [psubsetI],simpset()));
-by (eres_inst_tac [("c","q")] equalityCE 1);
-by Auto_tac;
 qed "preal_sup_set_not_prat_set";
 
-Goal "EX Y. (ALL X: P. X <= Y)  \
-\         ==> {w. EX X: P. w: Rep_preal(X)} < UNIV";
+Goal "EX Y. (ALL X: P. X <= Y) ==> {w. EX X: P. w: Rep_preal(X)} < UNIV";
 by (dtac preal_sup_not_mem_Ex1 1);
 by (auto_tac (claset() addSIs [psubsetI],simpset()));
-by (eres_inst_tac [("c","q")] equalityCE 1);
-by Auto_tac;
 qed "preal_sup_set_not_prat_set1";
 
 (** Part 3 of Dedekind sections def **)
 Goal "[|EX (X::preal). X: P; EX Y. (ALL X:P. X < Y) |] \              
 \         ==> ALL y: {w. EX X: P. w: Rep_preal X}. \
 \             ALL z. z < y --> z: {w. EX X: P. w: Rep_preal X}";         (**)
-by (auto_tac(claset() addEs [Rep_preal RS prealE_lemma3b],simpset()));
+by (auto_tac(claset() addEs [Rep_preal RS prealE_lemma3b], simpset()));
 qed "preal_sup_set_lemma3";
 
 Goal "[|EX (X::preal). X: P; EX Y. (ALL X:P. X <= Y) |] \
