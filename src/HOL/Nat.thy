@@ -76,4 +76,7 @@ defs
   (*least number operator*)
   Least_def     "Least(P) == @k. P(k) & (ALL j. j<k --> ~P(j))"
 
+(* start 8bit 1 *)
+(* end 8bit 1 *)
+
 end

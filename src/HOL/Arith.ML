@@ -157,7 +157,7 @@ Addsimps [diff_self_eq_0];
 val [prem] = goal Arith.thy "[| ~ m<n |] ==> n+(m-n) = (m::nat)";
 by (rtac (prem RS rev_mp) 1);
 by (res_inst_tac [("m","m"),("n","n")] diff_induct 1);
-by (ALLGOALS Asm_simp_tac);
+by (ALLGOALS (Asm_simp_tac));
 qed "add_diff_inverse";
 
 
@@ -166,7 +166,7 @@ qed "add_diff_inverse";
 goal Arith.thy "m - n < Suc(m)";
 by (res_inst_tac [("m","m"),("n","n")] diff_induct 1);
 by (etac less_SucE 3);
-by (ALLGOALS Asm_simp_tac);
+by (ALLGOALS (asm_simp_tac (!simpset addsimps [less_Suc_eq])));
 qed "diff_less_Suc";
 
 goal Arith.thy "!!m::nat. m - n <= m";
@@ -236,7 +236,7 @@ goal Arith.thy "!!m. 0<n ==> (m div n)*n + m mod n = m";
 by (res_inst_tac [("n","m")] less_induct 1);
 by (rename_tac "k" 1);    (*Variable name used in line below*)
 by (case_tac "k<n" 1);
-by (ALLGOALS (asm_simp_tac(!simpset addsimps (add_ac @
+by (ALLGOALS (asm_simp_tac(!simpset addsimps ([add_assoc] @
                        [mod_less, mod_geq, div_less, div_geq,
                         add_diff_inverse, diff_less]))));
 qed "mod_div_equality";
@@ -247,7 +247,8 @@ qed "mod_div_equality";
 val [prem] = goal Arith.thy "m < Suc(n) ==> m-n = 0";
 by (rtac (prem RS rev_mp) 1);
 by (res_inst_tac [("m","m"),("n","n")] diff_induct 1);
-by (ALLGOALS Asm_simp_tac);
+by (asm_simp_tac (!simpset addsimps [less_Suc_eq]) 1);
+by (ALLGOALS (Asm_simp_tac));
 qed "less_imp_diff_is_0";
 
 val prems = goal Arith.thy "m-n = 0  -->  n-m = 0  -->  m=n";
@@ -258,13 +259,13 @@ qed_spec_mp "diffs0_imp_equal";
 val [prem] = goal Arith.thy "m<n ==> 0<n-m";
 by (rtac (prem RS rev_mp) 1);
 by (res_inst_tac [("m","m"),("n","n")] diff_induct 1);
-by (ALLGOALS Asm_simp_tac);
+by (ALLGOALS (Asm_simp_tac));
 qed "less_imp_diff_positive";
 
 val [prem] = goal Arith.thy "n < Suc(m) ==> Suc(m)-n = Suc(m-n)";
 by (rtac (prem RS rev_mp) 1);
 by (res_inst_tac [("m","m"),("n","n")] diff_induct 1);
-by (ALLGOALS Asm_simp_tac);
+by (ALLGOALS (Asm_simp_tac));
 qed "Suc_diff_n";
 
 goal Arith.thy "Suc(m)-n = (if m<n then 0 else Suc(m-n))";
@@ -346,7 +347,8 @@ Addsimps [mod2_add_self];
 
 goal Arith.thy "!!m. m<n --> (? k. n=Suc(m+k))";
 by (nat_ind_tac "n" 1);
-by (ALLGOALS(Simp_tac));
+by (Simp_tac 1);
+by (simp_tac (!simpset addsimps [less_Suc_eq]) 1);
 by (REPEAT_FIRST (ares_tac [conjI, impI]));
 by (res_inst_tac [("x","0")] exI 2);
 by (Simp_tac 2);

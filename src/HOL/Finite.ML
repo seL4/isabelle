@@ -73,7 +73,8 @@ val major::_ = goal Finite.thy
 by (rtac (major RS Fin_induct) 1);
 by (Simp_tac 1);
 by (asm_simp_tac
-    (!simpset addsimps [image_eqI RS Fin.insertI, image_insert]) 1);
+    (!simpset addsimps [image_eqI RS Fin.insertI, image_insert]
+	      delsimps [insert_Fin]) 1);
 qed "Fin_imageI";
 
 val major::prems = goal Finite.thy 
@@ -181,7 +182,7 @@ by (etac exE 1);
 by (hyp_subst_tac 1);
 by (res_inst_tac [("x","Suc n")] exI 1);
 by (res_inst_tac [("x","%i. if i<n then f i else x")] exI 1);
-by (asm_simp_tac (!simpset addsimps [Collect_conv_insert]
+by (asm_simp_tac (!simpset addsimps [Collect_conv_insert, less_Suc_eq]
                           addcongs [rev_conj_cong]) 1);
 qed "finite_has_card";
 
@@ -198,14 +199,14 @@ by (case_tac "? a. a:A" 1);
  by (Simp_tac 2);
  by (fast_tac eq_cs 2);
 by (etac exE 1);
-by (Simp_tac 1);
+by (simp_tac (!simpset addsimps [less_Suc_eq]) 1);
 by (rtac exI 1);
 by (rtac conjI 1);
  br disjI2 1;
  br refl 1;
 by (etac equalityE 1);
 by (asm_full_simp_tac
-     (!simpset addsimps [subset_insert,Collect_conv_insert]) 1);
+     (!simpset addsimps [subset_insert,Collect_conv_insert, less_Suc_eq]) 1);
 by (SELECT_GOAL(safe_tac eq_cs)1);
   by (Asm_full_simp_tac 1);
   by (res_inst_tac [("x","%i. if f i = f m then a else f i")] exI 1);
@@ -259,7 +260,8 @@ by (rtac Least_equality 1);
  by (res_inst_tac
    [("x","%i. if i<(LEAST n. ? f. A={f i |i. i < n}) then f i else x")] exI 1);
  by (simp_tac
-    (!simpset addsimps [Collect_conv_insert] addcongs [rev_conj_cong]) 1);
+    (!simpset addsimps [Collect_conv_insert, less_Suc_eq] 
+	      addcongs [rev_conj_cong]) 1);
  be subst 1;
  br refl 1;
 by (rtac notI 1);
@@ -270,7 +272,7 @@ by (etac exE 1);
 by (etac conjE 1);
 by (dres_inst_tac [("P","%x. ? g. A = {g i |i. i < x}")] Least_le 1);
 by (dtac le_less_trans 1 THEN atac 1);
-by (Asm_full_simp_tac 1);
+by (asm_full_simp_tac (!simpset addsimps [less_Suc_eq]) 1);
 by (etac disjE 1);
 by (etac less_asym 1 THEN atac 1);
 by (hyp_subst_tac 1);

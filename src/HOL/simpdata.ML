@@ -181,6 +181,9 @@ prove "conj_disj_distribR" "((P|Q)&R) = (P&R | Q&R)";
 prove "de_Morgan_disj" "(~(P | Q)) = (~P & ~Q)";
 prove "de_Morgan_conj" "(~(P & Q)) = (~P | ~Q)";
 
+prove "not_all" "(~ (! x.P(x))) = (? x.~P(x))";
+prove "not_ex"  "(~ (? x.P(x))) = (! x.~P(x))";
+
 prove "ex_disj_distrib" "(? x. P(x) | Q(x)) = ((? x. P(x)) | (? x. Q(x)))";
 prove "all_conj_distrib" "(!x. P(x) & Q(x)) = ((! x. P(x)) & (! x. Q(x)))";
 

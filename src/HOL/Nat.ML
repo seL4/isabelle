@@ -291,6 +291,14 @@ by (ALLGOALS Asm_full_simp_tac);
 qed "gr_implies_not0";
 Addsimps [gr_implies_not0];
 
+qed_goal "zero_less_eq" Nat.thy "0 < n = (n ~= 0)" (fn _ => [
+	rtac iffI 1,
+	etac gr_implies_not0 1,
+	rtac natE 1,
+	contr_tac 1,
+	etac ssubst 1,
+	rtac zero_less_Suc 1]);
+
 (** Inductive (?) properties **)
 
 val [prem] = goal Nat.thy "Suc(m) < n ==> m<n";
@@ -341,7 +349,8 @@ Addsimps [not_Suc_n_less_n];
 
 goal Nat.thy "!!i. i<j ==> j<k --> Suc i < k";
 by (nat_ind_tac "k" 1);
-by (ALLGOALS (asm_simp_tac (!simpset addsimps [less_Suc_eq])));
+by (ALLGOALS (asm_simp_tac (!simpset)));
+by (asm_simp_tac (!simpset addsimps [less_Suc_eq]) 1);
 by (fast_tac (HOL_cs addDs [Suc_lessD]) 1);
 qed_spec_mp "less_trans_Suc";
 
@@ -353,6 +362,17 @@ by (rtac (refl RS disjI1 RS disjI2) 1);
 by (rtac (zero_less_Suc RS disjI1) 1);
 by (fast_tac (HOL_cs addIs [lessI, Suc_mono, less_SucI] addEs [lessE]) 1);
 qed "less_linear";
+
+qed_goal "nat_less_cases" Nat.thy 
+   "[| (m::nat)<n ==> P n m; m=n ==> P n m; n<m ==> P n m |] ==> P n m"
+( fn prems =>
+        [
+        (res_inst_tac [("m1","n"),("n1","m")] (less_linear RS disjE) 1),
+        (etac disjE 2),
+        (etac (hd (tl (tl prems))) 1),
+        (etac (sym RS hd (tl prems)) 1),
+        (etac (hd prems) 1)
+        ]);
 
 (*Can be used with less_Suc_eq to get n=m | n<m *)
 goal Nat.thy "(~ m < n) = (n < Suc(m))";
@@ -384,7 +404,7 @@ by (ALLGOALS Asm_simp_tac);
 qed "le_0";
 
 Addsimps [less_not_refl,
-          less_Suc_eq, le0, le_0,
+          (*less_Suc_eq,*) le0, le_0,
           Suc_Suc_eq, Suc_n_not_le_n,
           n_not_Suc_n, Suc_n_not_n,
           nat_case_0, nat_case_Suc, nat_rec_0, nat_rec_Suc];
@@ -417,12 +437,12 @@ by (fast_tac HOL_cs 1);
 qed "not_leE";
 
 goalw Nat.thy [le_def] "!!m. m < n ==> Suc(m) <= n";
-by (Simp_tac 1);
+by (simp_tac (!simpset addsimps [less_Suc_eq]) 1);
 by (fast_tac (HOL_cs addEs [less_irrefl,less_asym]) 1);
 qed "lessD";
 
 goalw Nat.thy [le_def] "!!m. Suc(m) <= n ==> m <= n";
-by (Asm_full_simp_tac 1);
+by (asm_full_simp_tac (!simpset addsimps [less_Suc_eq]) 1);
 by (fast_tac HOL_cs 1);
 qed "Suc_leD";
 
@@ -519,3 +539,28 @@ by (rtac notI 1);
 by (etac (rewrite_rule [le_def] Least_le RS notE) 1);
 by (rtac prem 1);
 qed "not_less_Least";
+
+qed_goalw "Least_Suc" Nat.thy [Least_def]
+ "[| ? n. P (Suc n); ~ P 0 |] ==> (LEAST n. P n) = Suc (LEAST m. P (Suc m))"
+ (fn prems => [
+	cut_facts_tac prems 1,
+	rtac select_equality 1,
+	fold_goals_tac [Least_def],
+	safe_tac (HOL_cs addSEs [LeastI]),
+	res_inst_tac [("n","j")] natE 1,
+	fast_tac HOL_cs 1,
+	fast_tac (HOL_cs addDs [Suc_less_SucD] addDs [not_less_Least]) 1,	
+	res_inst_tac [("n","k")] natE 1,
+	fast_tac HOL_cs 1,
+	hyp_subst_tac 1,
+	rewtac Least_def,
+	rtac (select_equality RS arg_cong RS sym) 1,
+	safe_tac HOL_cs,
+	dtac Suc_mono 1,
+	fast_tac HOL_cs 1,
+	cut_facts_tac [less_linear] 1,
+	safe_tac HOL_cs,
+	atac 2,
+	fast_tac HOL_cs 2,
+	dtac Suc_mono 1,
+	fast_tac HOL_cs 1]);

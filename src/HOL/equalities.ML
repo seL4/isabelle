@@ -69,7 +69,7 @@ by (res_inst_tac [("x","A-{a}")] exI 1);
 by (fast_tac eq_cs 1);
 qed "mk_disjoint_insert";
 
-section "''";
+section "``";
 
 goal Set.thy "f``{} = {}";
 by (fast_tac eq_cs 1);
@@ -80,6 +80,19 @@ goal Set.thy "f``insert a B = insert (f a) (f``B)";
 by (fast_tac eq_cs 1);
 qed "image_insert";
 Addsimps[image_insert];
+
+qed_goal "ball_image" Set.thy "(!y:F``S. P y) = (!x:S. P (F x))"
+ (fn _ => [fast_tac set_cs 1]);
+
+section "range";
+
+qed_goal "ball_range" Set.thy "(!y:range f. P y) = (!x. P (f x))"
+ (fn _ => [fast_tac set_cs 1]);
+
+qed_goalw "image_range" Set.thy [image_def, range_def]
+ "f``range g = range (%x. f (g x))" (fn _ => [
+	rtac Collect_cong 1,
+	fast_tac set_cs 1]);
 
 section "Int";
 

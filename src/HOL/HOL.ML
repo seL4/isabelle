@@ -11,6 +11,7 @@ open HOL;
 
 
 (** Equality **)
+section "=";
 
 qed_goal "sym" HOL.thy "s=t ==> t=s"
  (fn prems => [cut_facts_tac prems 1, etac subst 1, rtac refl 1]);
@@ -34,7 +35,9 @@ qed_goal "box_equals" HOL.thy
     (rtac sym 1),
     (REPEAT (resolve_tac prems 1)) ]);
 
+
 (** Congruence rules for meta-application **)
+section "Congruence";
 
 (*similar to AP_THM in Gordon's HOL*)
 qed_goal "fun_cong" HOL.thy "(f::'a=>'b) = g ==> f(x)=g(x)"
@@ -49,7 +52,9 @@ qed_goal "cong" HOL.thy
  (fn [prem1,prem2] =>
    [rtac (prem1 RS subst) 1, rtac (prem2 RS subst) 1, rtac refl 1]);
 
+
 (** Equality of booleans -- iff **)
+section "iff";
 
 qed_goal "iffI" HOL.thy
    "[| P ==> Q;  Q ==> P |] ==> P=Q"
@@ -65,7 +70,9 @@ qed_goal "iffE" HOL.thy
     "[| P=Q; [| P --> Q; Q --> P |] ==> R |] ==> R"
  (fn [p1,p2] => [REPEAT(ares_tac([p1 RS iffD2, p1 RS iffD1, p2, impI])1)]);
 
+
 (** True **)
+section "True";
 
 qed_goalw "TrueI" HOL.thy [True_def] "True"
   (fn _ => [rtac refl 1]);
@@ -76,7 +83,9 @@ qed_goal "eqTrueI " HOL.thy "P ==> P=True"
 qed_goal "eqTrueE" HOL.thy "P=True ==> P" 
  (fn prems => [REPEAT(resolve_tac (prems@[TrueI,iffD2]) 1)]);
 
+
 (** Universal quantifier **)
+section "!";
 
 qed_goalw "allI" HOL.thy [All_def] "(!!x::'a. P(x)) ==> !x. P(x)"
  (fn prems => [resolve_tac (prems RL [eqTrueI RS ext]) 1]);
@@ -96,6 +105,7 @@ qed_goal "all_dupE" HOL.thy
 
 (** False ** Depends upon spec; it is impossible to do propositional logic
              before quantifiers! **)
+section "False";
 
 qed_goalw "FalseE" HOL.thy [False_def] "False ==> P"
  (fn [major] => [rtac (major RS spec) 1]);
@@ -105,6 +115,7 @@ qed_goal "False_neq_True" HOL.thy "False=True ==> P"
 
 
 (** Negation **)
+section "~";
 
 qed_goalw "notI" HOL.thy [not_def] "(P ==> False) ==> ~P"
  (fn prems=> [rtac impI 1, eresolve_tac prems 1]);
@@ -112,7 +123,9 @@ qed_goalw "notI" HOL.thy [not_def] "(P ==> False) ==> ~P"
 qed_goalw "notE" HOL.thy [not_def] "[| ~P;  P |] ==> R"
  (fn prems => [rtac (prems MRS mp RS FalseE) 1]);
 
+
 (** Implication **)
+section "-->";
 
 qed_goal "impE" HOL.thy "[| P-->Q;  P;  Q ==> R |] ==> R"
  (fn prems=> [ (REPEAT (resolve_tac (prems@[mp]) 1)) ]);
@@ -135,6 +148,7 @@ bind_thm("not_sym", sym COMP rev_contrapos);
 
 
 (** Existential quantifier **)
+section "?";
 
 qed_goalw "exI" HOL.thy [Ex_def] "P(x) ==> ? x::'a.P(x)"
  (fn prems => [rtac selectI 1, resolve_tac prems 1]);
@@ -145,6 +159,7 @@ qed_goalw "exE" HOL.thy [Ex_def]
 
 
 (** Conjunction **)
+section "&";
 
 qed_goalw "conjI" HOL.thy [and_def] "[| P; Q |] ==> P&Q"
  (fn prems =>
@@ -163,7 +178,9 @@ qed_goal "conjE" HOL.thy "[| P&Q;  [| P; Q |] ==> R |] ==> R"
          [cut_facts_tac prems 1, resolve_tac prems 1,
           etac conjunct1 1, etac conjunct2 1]);
 
+
 (** Disjunction *)
+section "|";
 
 qed_goalw "disjI1" HOL.thy [or_def] "P ==> P|Q"
  (fn [prem] => [REPEAT(ares_tac [allI,impI, prem RSN (2,mp)] 1)]);
@@ -176,7 +193,9 @@ qed_goalw "disjE" HOL.thy [or_def] "[| P | Q; P ==> R; Q ==> R |] ==> R"
         [rtac (mp RS mp) 1, rtac spec 1, rtac a1 1,
          rtac (a2 RS impI) 1, assume_tac 1, rtac (a3 RS impI) 1, assume_tac 1]);
 
+
 (** CCONTR -- classical logic **)
+section "classical logic";
 
 qed_goalw "classical" HOL.thy [not_def]  "(~P ==> P) ==> P"
  (fn [prem] =>
@@ -191,11 +210,23 @@ qed_goal "notnotD" HOL.thy "~~P ==> P"
  (fn [major]=>
   [ (rtac classical 1), (eresolve_tac [major RS notE] 1) ]);
 
+qed_goal "contrapos2" HOL.thy "[| Q; ~ P ==> ~ Q |] ==> P" (fn [p1,p2] => [
+	rtac classical 1,
+	dtac p2 1,
+	etac notE 1,
+	rtac p1 1]);
+
+qed_goal "swap2" HOL.thy "[| P;  Q ==> ~ P |] ==> ~ Q" (fn [p1,p2] => [
+	rtac notI 1,
+	dtac p2 1,
+	etac notE 1,
+	rtac p1 1]);
 
 (** Unique existence **)
+section "?!";
 
 qed_goalw "ex1I" HOL.thy [Ex1_def]
-    "[| P(a);  !!x. P(x) ==> x=a |] ==> ?! x. P(x)"
+	    "[| P(a);  !!x. P(x) ==> x=a |] ==> ?! x. P(x)"
  (fn prems =>
   [REPEAT (ares_tac (prems@[exI,conjI,allI,impI]) 1)]);
 
@@ -206,6 +237,7 @@ qed_goalw "ex1E" HOL.thy [Ex1_def]
 
 
 (** Select: Hilbert's Epsilon-operator **)
+section "@";
 
 (*Easier to apply than selectI: conclusion has only one occurrence of P*)
 qed_goal "selectI2" HOL.thy
@@ -219,8 +251,15 @@ qed_goal "select_equality" HOL.thy
  (fn prems => [ rtac selectI2 1, 
                 REPEAT (ares_tac prems 1) ]);
 
+qed_goal "select_eq_Ex" HOL.thy "P (@ x. P x) =  (? x. P x)" (fn prems => [
+        rtac iffI 1,
+        etac exI 1,
+        etac exE 1,
+        etac selectI 1]);
+
 
 (** Classical intro rules for disjunction and existential quantifiers *)
+section "classical intro rules";
 
 qed_goal "disjCI" HOL.thy "(~Q ==> P) ==> P|Q"
  (fn prems=>
@@ -263,6 +302,7 @@ qed_goal "case_split_thm" HOL.thy "[| P ==> Q; ~P ==> Q |] ==> Q"
 
 fun case_tac a = res_inst_tac [("P",a)] case_split_thm;
 
+
 (** Standard abbreviations **)
 
 fun stac th = rtac(th RS ssubst);
@@ -303,9 +343,13 @@ fun qed_spec_mp name =
 
 end;
 
+
+
 (*** Load simpdata.ML to be able to initialize HOL's simpset ***)
 
+
 (** Applying HypsubstFun to generate hyp_subst_tac **)
+section "Classical Reasoner";
 
 structure Hypsubst_Data =
   struct
@@ -342,6 +386,9 @@ val prop_cs = empty_cs addSIs [refl,TrueI,conjI,disjCI,impI,notI,iffI]
 (*Quantifier rules*)
 val HOL_cs = prop_cs addSIs [allI] addIs [exI,ex1I]
                      addSEs [exE,ex1E] addEs [allE];
+
+
+section "Simplifier";
 
 use     "simpdata.ML";
 simpset := HOL_ss;
