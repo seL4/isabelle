@@ -8,45 +8,12 @@ for the actual meta-level rewriting engine.
 
 signature BASIC_SIMPLIFIER =
 sig
-  type simproc = MetaSimplifier.simproc
-  val mk_simproc: string -> cterm list
-    -> (Sign.sg -> thm list -> term -> thm option) -> simproc
-  type solver = MetaSimplifier.solver
-  val mk_solver: string -> (thm list -> int -> tactic) -> solver
-  type simpset = MetaSimplifier.simpset
-  val empty_ss: simpset
-  val rep_ss: simpset ->
-   {mss: MetaSimplifier.meta_simpset,
-    mk_cong: thm -> thm,
-    subgoal_tac: simpset -> int -> tactic,
-    loop_tacs: (string * (int -> tactic)) list,
-    unsafe_solvers: solver list,
-    solvers: solver list};
-  val print_ss: simpset -> unit
+  include BASIC_META_SIMPLIFIER
+  val simproc_i: Sign.sg -> string -> term list
+    -> (Sign.sg -> simpset -> term -> thm option) -> simproc
+  val simproc: Sign.sg -> string -> string list
+    -> (Sign.sg -> simpset -> term -> thm option) -> simproc
   val print_simpset: theory -> unit
-  val setsubgoaler: simpset *  (simpset -> int -> tactic) -> simpset
-  val setloop:      simpset *             (int -> tactic) -> simpset
-  val addloop:      simpset *  (string * (int -> tactic)) -> simpset
-  val delloop:      simpset *   string                    -> simpset
-  val setSSolver:   simpset * solver -> simpset
-  val addSSolver:   simpset * solver -> simpset
-  val setSolver:    simpset * solver -> simpset
-  val addSolver:    simpset * solver -> simpset
-  val setmksimps:   simpset * (thm -> thm list) -> simpset
-  val setmkeqTrue:  simpset * (thm -> thm option) -> simpset
-  val setmkcong:    simpset * (thm -> thm) -> simpset
-  val setmksym:     simpset * (thm -> thm option) -> simpset
-  val settermless:  simpset * (term * term -> bool) -> simpset
-  val addsimps:     simpset * thm list -> simpset
-  val delsimps:     simpset * thm list -> simpset
-  val addeqcongs:   simpset * thm list -> simpset
-  val deleqcongs:   simpset * thm list -> simpset
-  val addcongs:     simpset * thm list -> simpset
-  val delcongs:     simpset * thm list -> simpset
-  val addsimprocs:  simpset * simproc list -> simpset
-  val delsimprocs:  simpset * simproc list -> simpset
-  val merge_ss:     simpset * simpset -> simpset
-  val prems_of_ss:  simpset -> thm list
   val simpset_ref_of_sg: Sign.sg -> simpset ref
   val simpset_ref_of: theory -> simpset ref
   val simpset_of_sg: Sign.sg -> simpset
@@ -61,7 +28,6 @@ sig
   val Delsimprocs: simproc list -> unit
   val Addcongs: thm list -> unit
   val Delcongs: thm list -> unit
-  val generic_simp_tac: bool -> bool * bool * bool -> simpset -> int -> tactic
   val safe_asm_full_simp_tac: simpset -> int -> tactic
   val               simp_tac: simpset -> int -> tactic
   val           asm_simp_tac: simpset -> int -> tactic
@@ -83,10 +49,6 @@ end;
 signature SIMPLIFIER =
 sig
   include BASIC_SIMPLIFIER
-  val simproc: Sign.sg -> string -> string list
-    -> (Sign.sg -> thm list -> term -> thm option) -> simproc
-  val simproc_i: Sign.sg -> string -> term list
-    -> (Sign.sg -> thm list -> term -> thm option) -> simproc
   val          rewrite: simpset -> cterm -> thm
   val      asm_rewrite: simpset -> cterm -> thm
   val     full_rewrite: simpset -> cterm -> thm
@@ -116,8 +78,8 @@ end;
 structure Simplifier: SIMPLIFIER =
 struct
 
-(* Compatibility *)
 open MetaSimplifier;
+
 
 (** global and local simpset data **)
 
