@@ -732,6 +732,9 @@ end;
 
 (* propositions and bindings *)
 
+(* CB: an internal locale (Int) element was either imported or included,
+   an external (Ext) element appears directly in the locale. *)
+
 datatype ('a, 'b) int_ext = Int of 'a | Ext of 'b;
 
 (* CB: flatten (ids, expr) normalises expr (which is either a locale
@@ -1318,6 +1321,7 @@ end;
 
 
 (* predicate text *)
+(* CB: generate locale predicates (and delta predicates) *)
 
 local
 
@@ -1336,6 +1340,15 @@ fun atomize_spec sign ts =
 fun aprop_tr' n c = (c, fn args =>
   if length args = n then Syntax.const "_aprop" $ Term.list_comb (Syntax.free c, args)
   else raise Match);
+
+(* CB: define one predicate including its intro rule and axioms
+   - bname: predicate name
+   - parms: locale parameters
+   - defs: thms representing substitutions from defines elements
+   - ts: terms representing locale assumptions (not normalised wrt. defs)
+   - norm_ts: terms representing locale assumptions (normalised wrt. defs)
+   - thy: the theory
+*)
 
 fun def_pred bname parms defs ts norm_ts thy =
   let
@@ -1379,6 +1392,11 @@ fun def_pred bname parms defs ts norm_ts thy =
         Tactic.compose_tac (false, ax, 0) 1));
   in (defs_thy, (statement, intro, axioms)) end;
 
+(* CB: modify the locale elements:
+   - assume elements become notes elements,
+   - notes elements are lifted
+*)
+
 fun change_elem _ (axms, Assumes asms) =
       apsnd Notes ((axms, asms) |> foldl_map (fn (axs, (a, spec)) =>
         let val (ps,qs) = splitAt(length spec, axs)
@@ -1392,6 +1410,8 @@ fun change_elemss axioms elemss = (axioms, elemss) |> foldl_map
   | x => x) |> #2;
 
 in
+
+(* CB: main predicate definition function *)
 
 fun define_preds bname (parms, ((exts, exts'), (ints, ints')), defs) elemss thy =
   let

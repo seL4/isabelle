@@ -14,7 +14,7 @@ Simplification procedures for abelian groups (e.g. integers, reals)
 
 signature ABEL_CANCEL =
 sig
-  val ss                : simpset       (*basic simpset of object-logtic*)
+  val ss                : simpset       (*basic simpset of object-logic*)
   val eq_reflection     : thm           (*object-equality to meta-equality*)
 
   val sg_ref            : Sign.sg_ref   (*signature of the theory of the group*)
