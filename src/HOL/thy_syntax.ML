@@ -193,9 +193,9 @@ fun mk_primrec_decl (alt_name, eqns) =
   let
     val names = map (fn (s, _) => if s = "" then "_" else s) eqns
   in
-    ";\nval (thy, " ^ mk_list names ^
-    ") = PrimrecPackage.add_primrec " ^ alt_name ^ " " ^
-      mk_list (map mk_pair (map (apfst quote) eqns)) ^ " " ^ " thy;\n\
+    ";\nval (thy, " ^ mk_list names ^ ") = PrimrecPackage.add_primrec " ^ alt_name ^ " " ^
+    mk_list (map (fn (x, y) => mk_pair (mk_pair (quote x, y), "[]")) eqns) ^
+    " " ^ " thy;\n\
     \val thy = thy\n"
   end;
 
