@@ -100,7 +100,7 @@ Subst:  $(BIN)/HOL  $(SUBST_FILES)
 	echo 'exit_use"Subst/ROOT.ML";quit();' | $(LOGIC)
 
 ##Confluence of Lambda-calculus
-LAMBDA_NAMES = Lambda ParRed Confluence
+LAMBDA_NAMES = Lambda ParRed Commutation Eta
 
 LAMBDA_FILES = Lambda/ROOT.ML \
               $(LAMBDA_NAMES:%=Lambda/%.thy) $(LAMBDA_NAMES:%=Lambda/%.ML)
