@@ -151,7 +151,7 @@ fun mk_eq_True r =
 
 (*Congruence rules for = (instead of ==)*)
 fun mk_meta_cong rl =
-  standard(mk_meta_eq(replicate (nprems_of rl) meta_eq_to_obj_eq MRS rl))
+  zero_var_indexes(mk_meta_eq(replicate (nprems_of rl) meta_eq_to_obj_eq MRS rl))
   handle THM _ =>
   error("Premises and conclusion of congruence rules must be =-equalities");
 

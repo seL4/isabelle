@@ -159,7 +159,7 @@ fun dest_mem (Const ("op :", _) $ x $ A) = (x, A)
 fun mk_UNIV T = Const ("UNIV", mk_setT T);
 
 
-(* binary oprations and relations *)
+(* binary operations and relations *)
 
 fun mk_binop c (t, u) =
   let val T = fastype_of t in
@@ -280,7 +280,7 @@ val realT = Type("RealDef.real",[]);
 
 val binT = Type ("Numeral.bin", []);
 
-val pls_const =  Const ("Numeral.bin.Pls", binT)
+val pls_const = Const ("Numeral.bin.Pls", binT)
 and min_const = Const ("Numeral.bin.Min", binT)
 and bit_const = Const ("Numeral.bin.Bit", [binT, boolT] ---> binT);
 
