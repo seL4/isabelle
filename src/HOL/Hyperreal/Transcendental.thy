@@ -158,9 +158,6 @@ apply (cut_tac x = x and y = 0 in linorder_less_linear)
 apply (simp add: zero_less_mult_iff)
 done
 
-lemma real_mult_self_eq_zero_iff [simp]: "(r * r = 0) = (r = (0::real))"
-by auto
-
 lemma real_sqrt_gt_zero: "0 < x ==> 0 < sqrt(x)"
 apply (simp add: sqrt_def root_def)
 apply (drule realpow_pos_nth2 [where n=1], safe)
@@ -2222,10 +2219,10 @@ apply (drule_tac y = x in real_sqrt_sum_squares_gt_zero3)
 apply (auto simp add: real_add_commute)
 done
 
-lemma real_sqrt_sum_squares_eq_cancel [simp]: "sqrt(x\<twosuperior> + y\<twosuperior>) = x ==> y = 0"
+lemma real_sqrt_sum_squares_eq_cancel: "sqrt(x\<twosuperior> + y\<twosuperior>) = x ==> y = 0"
 by (drule_tac f = "%x. x\<twosuperior>" in arg_cong, auto)
 
-lemma real_sqrt_sum_squares_eq_cancel2 [simp]: "sqrt(x\<twosuperior> + y\<twosuperior>) = y ==> x = 0"
+lemma real_sqrt_sum_squares_eq_cancel2: "sqrt(x\<twosuperior> + y\<twosuperior>) = y ==> x = 0"
 apply (rule_tac x = y in real_sqrt_sum_squares_eq_cancel)
 apply (simp add: real_add_commute)
 done
@@ -2610,7 +2607,6 @@ val real_pow_sqrt_eq_sqrt_pow = thm "real_pow_sqrt_eq_sqrt_pow";
 val real_pow_sqrt_eq_sqrt_abs_pow2 = thm "real_pow_sqrt_eq_sqrt_abs_pow2";
 val real_sqrt_pow_abs = thm "real_sqrt_pow_abs";
 val not_real_square_gt_zero = thm "not_real_square_gt_zero";
-val real_mult_self_eq_zero_iff = thm "real_mult_self_eq_zero_iff";
 val real_sqrt_gt_zero = thm "real_sqrt_gt_zero";
 val real_sqrt_ge_zero = thm "real_sqrt_ge_zero";
 val sqrt_eqI = thm "sqrt_eqI";
@@ -2853,8 +2849,6 @@ val real_sqrt_sum_squares_gt_zero1 = thm "real_sqrt_sum_squares_gt_zero1";
 val real_sqrt_sum_squares_gt_zero2 = thm "real_sqrt_sum_squares_gt_zero2";
 val real_sqrt_sum_squares_gt_zero3 = thm "real_sqrt_sum_squares_gt_zero3";
 val real_sqrt_sum_squares_gt_zero3a = thm "real_sqrt_sum_squares_gt_zero3a";
-val real_sqrt_sum_squares_eq_cancel = thm "real_sqrt_sum_squares_eq_cancel";
-val real_sqrt_sum_squares_eq_cancel2 = thm "real_sqrt_sum_squares_eq_cancel2";
 val cos_x_y_ge_minus_one = thm "cos_x_y_ge_minus_one";
 val cos_x_y_ge_minus_one1a = thm "cos_x_y_ge_minus_one1a";
 val cos_x_y_le_one = thm "cos_x_y_le_one";
