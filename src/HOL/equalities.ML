@@ -374,10 +374,14 @@ qed "Un_Diff_Int";
 
 section "Set complement";
 
-Goal "A Int (-A) = {}";
+Goal "A Int -A = {}";
 by (Blast_tac 1);
 qed "Compl_disjoint";
-Addsimps[Compl_disjoint];
+
+Goal "-A Int A = {}";
+by (Blast_tac 1);
+qed "Compl_disjoint2";
+Addsimps[Compl_disjoint, Compl_disjoint2];
 
 Goal "A Un (-A) = UNIV";
 by (Blast_tac 1);
@@ -414,6 +418,16 @@ qed "subset_Compl_self_eq";
 Goal "((A Int B) Un C = A Int (B Un C)) = (C<=A)";
 by (blast_tac (claset() addSEs [equalityCE]) 1);
 qed "Un_Int_assoc_eq";
+
+Goal "-UNIV = {}";
+by (Blast_tac 1);
+qed "Compl_UNIV_eq";
+
+Goal "-{} = UNIV";
+by (Blast_tac 1);
+qed "Compl_empty_eq";
+
+Addsimps [Compl_UNIV_eq, Compl_empty_eq];
 
 
 section "Union";
