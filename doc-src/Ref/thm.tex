@@ -1,18 +1,19 @@
 %% $Id$
 \chapter{Theorems and Forward Proof}
 \index{theorems|(}
+
 Theorems, which represent the axioms, theorems and rules of object-logics,
-have type {\tt thm}\indexbold{*thm}.  This chapter begins by describing
-operations that print theorems and that join them in forward proof.  Most
-theorem operations are intended for advanced applications, such as
-programming new proof procedures.  Many of these operations refer to
-signatures, certified terms and certified types, which have the \ML{} types
-{\tt Sign.sg}, {\tt Sign.cterm} and {\tt Sign.ctyp} and are discussed in
+have type \mltydx{thm}.  This chapter begins by describing operations that
+print theorems and that join them in forward proof.  Most theorem
+operations are intended for advanced applications, such as programming new
+proof procedures.  Many of these operations refer to signatures, certified
+terms and certified types, which have the \ML{} types {\tt Sign.sg}, {\tt
+  Sign.cterm} and {\tt Sign.ctyp} and are discussed in
 Chapter~\ref{theories}.  Beginning users should ignore such complexities
 --- and skip all but the first section of this chapter.
 
 The theorem operations do not print error messages.  Instead, they raise
-exception~\ttindex{THM}\@.  Use \ttindex{print_exn} to display
+exception~\xdx{THM}\@.  Use \ttindex{print_exn} to display
 exceptions nicely:
 \begin{ttbox} 
 allI RS mp  handle e => print_exn e;
@@ -27,17 +28,23 @@ allI RS mp  handle e => print_exn e;
 
 \section{Basic operations on theorems}
 \subsection{Pretty-printing a theorem}
-\index{theorems!printing|bold}\index{printing!theorems|bold}
-\subsubsection{Top-level commands}
+\index{theorems!printing of}
 \begin{ttbox} 
-prth: thm -> thm
-prths: thm list -> thm list
-prthq: thm Sequence.seq -> thm Sequence.seq
+prth          : thm -> thm
+prths         : thm list -> thm list
+prthq         : thm Sequence.seq -> thm Sequence.seq
+print_thm     : thm -> unit
+print_goals   : int -> thm -> unit
+string_of_thm : thm -> string
 \end{ttbox}
-These are for interactive use.  They are identity functions that display,
-then return, their argument.  The \ML{} identifier {\tt it} will refer to
-the value just displayed.
-\begin{description}
+The first three commands are for interactive use.  They are identity
+functions that display, then return, their argument.  The \ML{} identifier
+{\tt it} will refer to the value just displayed.
+
+The others are for use in programs.  Functions with result type {\tt unit}
+are convenient for imperative programming.
+
+\begin{ttdescription}
 \item[\ttindexbold{prth} {\it thm}]  
 prints {\it thm\/} at the terminal.
 
@@ -47,17 +54,7 @@ prints {\it thms}, a list of theorems.
 \item[\ttindexbold{prthq} {\it thmq}]  
 prints {\it thmq}, a sequence of theorems.  It is useful for inspecting
 the output of a tactic.
-\end{description}
 
-\subsubsection{Operations for programming}
-\begin{ttbox} 
-print_thm     : thm -> unit
-print_goals   : int -> thm -> unit
-string_of_thm : thm -> string
-\end{ttbox}
-Functions with result type {\tt unit} are convenient for imperative
-programming.
-\begin{description}
 \item[\ttindexbold{print_thm} {\it thm}]  
 prints {\it thm\/} at the terminal.
 
@@ -68,26 +65,27 @@ to display proof states.
 
 \item[\ttindexbold{string_of_thm} {\it thm}]  
 converts {\it thm\/} to a string.
-\end{description}
+\end{ttdescription}
 
 
-\subsection{Forwards proof: joining rules by resolution}
-\index{theorems!joining by resolution|bold}
-\index{meta-rules!resolution|bold}
+\subsection{Forward proof: joining rules by resolution}
+\index{theorems!joining by resolution}
+\index{resolution}\index{forward proof}
 \begin{ttbox} 
 RSN : thm * (int * thm) -> thm                 \hfill{\bf infix}
 RS  : thm * thm -> thm                         \hfill{\bf infix}
 MRS : thm list * thm -> thm                    \hfill{\bf infix}
 RLN : thm list * (int * thm list) -> thm list  \hfill{\bf infix}
 RL  : thm list * thm list -> thm list          \hfill{\bf infix}
-MRL: thm list list * thm list -> thm list      \hfill{\bf infix}
+MRL : thm list list * thm list -> thm list     \hfill{\bf infix}
 \end{ttbox}
-Putting rules together is a simple way of deriving new rules.  These
+Joining rules together is a simple way of deriving new rules.  These
 functions are especially useful with destruction rules.
-\begin{description}
+\begin{ttdescription}
 \item[\tt$thm@1$ RSN $(i,thm@2)$] \indexbold{*RSN} 
-resolves the conclusion of $thm@1$ with the $i$th premise of~$thm@2$.  It
-raises exception \ttindex{THM} unless there is precisely one resolvent.
+  resolves the conclusion of $thm@1$ with the $i$th premise of~$thm@2$.
+  Unless there is precisely one resolvent it raises exception
+  \xdx{THM}; in that case, use {\tt RLN}.
 
 \item[\tt$thm@1$ RS $thm@2$] \indexbold{*RS} 
 abbreviates \hbox{\tt$thm@1$ RSN $(1,thm@2)$}.  Thus, it resolves the
@@ -101,9 +99,9 @@ conclusion of $thm@1$ with the first premise of~$thm@2$.
   for expressing proof trees.
 
 \item[\tt$thms@1$ RLN $(i,thms@2)$] \indexbold{*RLN} 
-for every $thm@1$ in $thms@1$ and $thm@2$ in $thms@2$, it resolves the
-conclusion of $thm@1$ with the $i$th premise of~$thm@2$, accumulating the
-results.  It is useful for combining lists of theorems.
+  joins lists of theorems.  For every $thm@1$ in $thms@1$ and $thm@2$ in
+  $thms@2$, it resolves the conclusion of $thm@1$ with the $i$th premise
+  of~$thm@2$, accumulating the results. 
 
 \item[\tt$thms@1$ RL $thms@2$] \indexbold{*RL} 
 abbreviates \hbox{\tt$thms@1$ RLN $(1,thms@2)$}. 
@@ -111,16 +109,16 @@ abbreviates \hbox{\tt$thms@1$ RLN $(1,thms@2)$}.
 \item[\tt {$[thms@1,\ldots,thms@n]$} MRL $thms$] \indexbold{*MRL} 
 is analogous to {\tt MRS}, but combines theorem lists rather than theorems.
 It too is useful for expressing proof trees.
-\end{description}
+\end{ttdescription}
 
 
 \subsection{Expanding definitions in theorems}
-\index{theorems!meta-level rewriting in|bold}\index{rewriting!meta-level}
+\index{meta-rewriting!in theorems}
 \begin{ttbox} 
 rewrite_rule       : thm list -> thm -> thm
 rewrite_goals_rule : thm list -> thm -> thm
 \end{ttbox}
-\begin{description}
+\begin{ttdescription}
 \item[\ttindexbold{rewrite_rule} {\it defs} {\it thm}]  
 unfolds the {\it defs} throughout the theorem~{\it thm}.
 
@@ -128,10 +126,11 @@ unfolds the {\it defs} throughout the theorem~{\it thm}.
 unfolds the {\it defs} in the premises of~{\it thm}, but leaves the
 conclusion unchanged.  This rule underlies \ttindex{rewrite_goals_tac}, but 
 serves little purpose in forward proof.
-\end{description}
+\end{ttdescription}
 
 
-\subsection{Instantiating a theorem} \index{theorems!instantiating|bold}
+\subsection{Instantiating a theorem}
+\index{instantiation}
 \begin{ttbox}
 read_instantiate    :            (string*string)list -> thm -> thm
 read_instantiate_sg : Sign.sg -> (string*string)list -> thm -> thm
@@ -140,40 +139,42 @@ cterm_instantiate   :    (Sign.cterm*Sign.cterm)list -> thm -> thm
 These meta-rules instantiate type and term unknowns in a theorem.  They are
 occasionally useful.  They can prevent difficulties with higher-order
 unification, and define specialized versions of rules.
-\begin{description}
+\begin{ttdescription}
 \item[\ttindexbold{read_instantiate} {\it insts} {\it thm}] 
 processes the instantiations {\it insts} and instantiates the rule~{\it
 thm}.  The processing of instantiations is described
-in~\S\ref{res_inst_tac}, under {\tt res_inst_tac}.  
+in \S\ref{res_inst_tac}, under {\tt res_inst_tac}.  
 
 Use {\tt res_inst_tac}, not {\tt read_instantiate}, to instantiate a rule
 and refine a particular subgoal.  The tactic allows instantiation by the
 subgoal's parameters, and reads the instantiations using the signature
-associated with the proof state.  The remaining two instantiation functions
-are highly specialized; most users should ignore them.
+associated with the proof state.
 
-\item[\ttindexbold{read_instantiate_sg} {\it sg} {\it insts} {\it thm}] 
-resembles \hbox{\tt read_instantiate {\it insts} {\it thm}}, but reads the
-instantiates under signature~{\it sg}.  This is necessary when you want to
-instantiate a rule from a general theory, such as first-order logic, using
-the notation of some specialized theory.  Use the function {\tt
-sign_of} to get the signature of a theory.
+Use {\tt read_instantiate_sg} below if {\it insts\/} appears to be treated
+incorrectly.
+
+\item[\ttindexbold{read_instantiate_sg} {\it sg} {\it insts} {\it thm}]
+  resembles \hbox{\tt read_instantiate {\it insts} {\it thm}}, but reads
+  the instantiations under signature~{\it sg}.  This is necessary to
+  instantiate a rule from a general theory, such as first-order logic,
+  using the notation of some specialized theory.  Use the function {\tt
+    sign_of} to get a theory's signature.
 
 \item[\ttindexbold{cterm_instantiate} {\it ctpairs} {\it thm}] 
 is similar to {\tt read_instantiate}, but the instantiations are provided
 as pairs of certified terms, not as strings to be read.
-\end{description}
+\end{ttdescription}
 
 
 \subsection{Miscellaneous forward rules}
-\index{theorems!standardizing|bold}
+\index{theorems!standardizing}
 \begin{ttbox} 
 standard         : thm -> thm
 zero_var_indexes : thm -> thm
 make_elim        : thm -> thm
 rule_by_tactic   : tactic -> thm -> thm
 \end{ttbox}
-\begin{description}
+\begin{ttdescription}
 \item[\ttindexbold{standard} $thm$]  
 puts $thm$ into the standard form of object-rules.  It discharges all
 meta-hypotheses, replaces free variables by schematic variables, and
@@ -196,11 +197,11 @@ is the basis for destruct-resolution: {\tt dresolve_tac}, etc.
   with contradictory assumptions (because of the instantiation).  The
   tactic proves those subgoals and does whatever else it can, and returns
   whatever is left.
-\end{description}
+\end{ttdescription}
 
 
 \subsection{Taking a theorem apart}
-\index{theorems!taking apart|bold}
+\index{theorems!taking apart}
 \index{flex-flex constraints}
 \begin{ttbox} 
 concl_of      : thm -> term
@@ -212,7 +213,7 @@ dest_state    : thm*int -> (term*term)list*term list*term*term
 rep_thm       : thm -> \{prop:term, hyps:term list, 
                         maxidx:int, sign:Sign.sg\}
 \end{ttbox}
-\begin{description}
+\begin{ttdescription}
 \item[\ttindexbold{concl_of} $thm$] 
 returns the conclusion of $thm$ as a term.
 
@@ -237,11 +238,11 @@ list of the subgoals~1 to~$i-1$, subgoal~$i$, and the rest of the theorem
 \item[\ttindexbold{rep_thm} $thm$] 
 decomposes $thm$ as a record containing the statement of~$thm$, its list of
 meta-hypotheses, the maximum subscript of its unknowns, and its signature.
-\end{description}
+\end{ttdescription}
 
 
 \subsection{Tracing flags for unification}
-\index{tracing!of unification}\index{unification!tracing}
+\index{tracing!of unification}
 \begin{ttbox} 
 Unify.trace_simp   : bool ref \hfill{\bf initially false}
 Unify.trace_types  : bool ref \hfill{\bf initially false}
@@ -251,26 +252,26 @@ Unify.search_bound : int ref \hfill{\bf initially 20}
 Tracing the search may be useful when higher-order unification behaves
 unexpectedly.  Letting {\tt res_inst_tac} circumvent the problem is easier,
 though.
-\begin{description}
-\item[{\tt Unify.trace_simp} \tt:= true;] 
+\begin{ttdescription}
+\item[Unify.trace_simp := true;] 
 causes tracing of the simplification phase.
 
-\item[{\tt Unify.trace_types} \tt:= true;] 
+\item[Unify.trace_types := true;] 
 generates warnings of incompleteness, when unification is not considering
 all possible instantiations of type unknowns.
 
-\item[{\tt Unify.trace_bound} \tt:= $n$] 
+\item[Unify.trace_bound := $n$;] 
 causes unification to print tracing information once it reaches depth~$n$.
 Use $n=0$ for full tracing.  At the default value of~10, tracing
 information is almost never printed.
 
-\item[{\tt Unify.search_bound} \tt:= $n$] 
+\item[Unify.search_bound := $n$;] 
 causes unification to limit its search to depth~$n$.  Because of this
 bound, higher-order unification cannot return an infinite sequence, though
 it can return a very long one.  The search rarely approaches the default
 value of~20.  If the search is cut off, unification prints {\tt
 ***Unification bound exceeded}.
-\end{description}
+\end{ttdescription}
 
 
 \section{Primitive meta-level inference rules}
@@ -278,9 +279,10 @@ value of~20.  If the search is cut off, unification prints {\tt
 These implement the meta-logic in {\sc lcf} style, as functions from theorems
 to theorems.  They are, rarely, useful for deriving results in the pure
 theory.  Mainly, they are included for completeness, and most users should
-not bother with them.  The meta-rules raise exception \ttindex{THM} to signal
+not bother with them.  The meta-rules raise exception \xdx{THM} to signal
 malformed premises, incompatible signatures and similar errors.
 
+\index{meta-assumptions}
 The meta-logic uses natural deduction.  Each theorem may depend on
 meta-hypotheses, or assumptions.  Certain rules, such as $({\Imp}I)$,
 discharge assumptions; in most other rules, the conclusion depends on all
@@ -296,11 +298,13 @@ rule takes several premises and certified terms, it merges the signatures
 to make a signature for the conclusion.  This fails if the signatures are
 incompatible. 
 
+\index{meta-implication}
 The {\em implication\/} rules are $({\Imp}I)$
 and $({\Imp}E)$:
 \[ \infer[({\Imp}I)]{\phi\Imp \psi}{\infer*{\psi}{[\phi]}}  \qquad
    \infer[({\Imp}E)]{\psi}{\phi\Imp \psi & \phi}  \]
 
+\index{meta-equality}
 Equality of truth values means logical equivalence:
 \[ \infer[({\equiv}I)]{\phi\equiv\psi}{\infer*{\psi}{[\phi]} &
                                        \infer*{\phi}{[\psi]}}  
@@ -312,6 +316,7 @@ The {\em equality\/} rules are reflexivity, symmetry, and transitivity:
    \infer[(sym)]{b\equiv a}{a\equiv b}  \qquad
    \infer[(trans)]{a\equiv c}{a\equiv b & b\equiv c}   \]
 
+\index{lambda calc@$\lambda$-calculus}
 The $\lambda$-conversions are $\alpha$-conversion, $\beta$-conversion, and
 extensionality:\footnote{$\alpha$-conversion holds if $y$ is not free
 in~$a$; $(ext)$ holds if $x$ is not free in the assumptions, $f$, or~$g$.}
@@ -325,27 +330,27 @@ assumptions.}
 \[  \infer[(abs)]{(\lambda x.a) \equiv (\lambda x.b)}{a\equiv b}   \qquad
     \infer[(comb)]{f(a)\equiv g(b)}{f\equiv g & a\equiv b}   \]
 
+\index{meta-quantifiers}
 The {\em universal quantification\/} rules are $(\Forall I)$ and $(\Forall
 E)$:\footnote{$(\Forall I)$ holds if $x$ is not free in the assumptions.}
 \[ \infer[(\Forall I)]{\Forall x.\phi}{\phi}        \qquad
    \infer[(\Forall E)]{\phi[b/x]}{\Forall x.\phi}   \]
 
 
-\subsection{Propositional rules}
-\index{meta-rules!assumption|bold}
-\subsubsection{Assumption}
+\subsection{Assumption rule}
+\index{meta-assumptions}
 \begin{ttbox} 
 assume: Sign.cterm -> thm
 \end{ttbox}
-\begin{description}
+\begin{ttdescription}
 \item[\ttindexbold{assume} $ct$] 
 makes the theorem \(\phi \quad[\phi]\), where $\phi$ is the value of~$ct$.
 The rule checks that $ct$ has type $prop$ and contains no unknowns, which
 are not allowed in hypotheses.
-\end{description}
+\end{ttdescription}
 
-\subsubsection{Implication}
-\index{meta-rules!implication|bold}
+\subsection{Implication rules}
+\index{meta-implication}
 \begin{ttbox} 
 implies_intr      : Sign.cterm -> thm -> thm
 implies_intr_list : Sign.cterm list -> thm -> thm
@@ -353,7 +358,7 @@ implies_intr_hyps : thm -> thm
 implies_elim      : thm -> thm -> thm
 implies_elim_list : thm -> thm list -> thm
 \end{ttbox}
-\begin{description}
+\begin{ttdescription}
 \item[\ttindexbold{implies_intr} $ct$ $thm$] 
 is $({\Imp}I)$, where $ct$ is the assumption to discharge, say~$\phi$.  It
 maps the premise $\psi\quad[\phi]$ to the conclusion $\phi\Imp\psi$.  The
@@ -375,14 +380,15 @@ applies $({\Imp}E)$ to $thm@1$ and~$thm@2$.  It maps the premises $\phi\Imp
 applies $({\Imp}E)$ repeatedly to $thm$, using each element of~$thms$ in
 turn.  It maps the premises $\List{\phi@1,\ldots,\phi@n}\Imp\psi$ and
 $\phi@1$,\ldots,$\phi@n$ to the conclusion~$\psi$.
-\end{description}
+\end{ttdescription}
 
-\subsubsection{Logical equivalence (equality)}
-\index{meta-rules!logical equivalence|bold}
+\subsection{Logical equivalence rules}
+\index{meta-equality}
 \begin{ttbox} 
-equal_intr : thm -> thm -> thm equal_elim : thm -> thm -> thm
+equal_intr : thm -> thm -> thm 
+equal_elim : thm -> thm -> thm
 \end{ttbox}
-\begin{description}
+\begin{ttdescription}
 \item[\ttindexbold{equal_intr} $thm@1$ $thm@2$] 
 applies $({\equiv}I)$ to $thm@1$ and~$thm@2$.  It maps the premises
 $\psi\quad[\phi]$ and $\phi\quad[\psi]$ to the conclusion~$\phi\equiv\psi$.
@@ -390,17 +396,17 @@ $\psi\quad[\phi]$ and $\phi\quad[\psi]$ to the conclusion~$\phi\equiv\psi$.
 \item[\ttindexbold{equal_elim} $thm@1$ $thm@2$] 
 applies $({\equiv}E)$ to $thm@1$ and~$thm@2$.  It maps the premises
 $\phi\equiv\psi$ and $\phi$ to the conclusion~$\psi$.
-\end{description}
+\end{ttdescription}
 
 
 \subsection{Equality rules}
-\index{meta-rules!equality|bold}
+\index{meta-equality}
 \begin{ttbox} 
 reflexive  : Sign.cterm -> thm
 symmetric  : thm -> thm
 transitive : thm -> thm -> thm
 \end{ttbox}
-\begin{description}
+\begin{ttdescription}
 \item[\ttindexbold{reflexive} $ct$] 
 makes the theorem \(ct\equiv ct\). 
 
@@ -409,21 +415,20 @@ maps the premise $a\equiv b$ to the conclusion $b\equiv a$.
 
 \item[\ttindexbold{transitive} $thm@1$ $thm@2$] 
 maps the premises $a\equiv b$ and $b\equiv c$ to the conclusion~${a\equiv c}$.
-\end{description}
+\end{ttdescription}
 
 
 \subsection{The $\lambda$-conversion rules}
-\index{meta-rules!$\lambda$-conversion|bold}
+\index{lambda calc@$\lambda$-calculus}
 \begin{ttbox} 
 beta_conversion : Sign.cterm -> thm
 extensional     : thm -> thm
 abstract_rule   : string -> Sign.cterm -> thm -> thm
 combination     : thm -> thm -> thm
 \end{ttbox} 
-There is no rule for $\alpha$-conversion because Isabelle's internal
-representation ignores bound variable names, except when communicating with
-the user.
-\begin{description}
+There is no rule for $\alpha$-conversion because Isabelle regards
+$\alpha$-convertible theorems as equal.
+\begin{ttdescription}
 \item[\ttindexbold{beta_conversion} $ct$] 
 makes the theorem $((\lambda x.a)(b)) \equiv a[b/x]$, where $ct$ is the
 term $(\lambda x.a)(b)$.
@@ -444,19 +449,18 @@ conclusion, the bound variable is named~$v$.
 \item[\ttindexbold{combination} $thm@1$ $thm@2$] 
 maps the premises $f\equiv g$ and $a\equiv b$ to the conclusion~$f(a)\equiv
 g(b)$.
-\end{description}
+\end{ttdescription}
 
 
-\subsection{Universal quantifier rules}
-\index{meta-rules!quantifier|bold}
-\subsubsection{Forall introduction}
+\subsection{Forall introduction rules}
+\index{meta-quantifiers}
 \begin{ttbox} 
 forall_intr       : Sign.cterm      -> thm -> thm
 forall_intr_list  : Sign.cterm list -> thm -> thm
 forall_intr_frees :                    thm -> thm
 \end{ttbox}
 
-\begin{description}
+\begin{ttdescription}
 \item[\ttindexbold{forall_intr} $x$ $thm$] 
 applies $({\Forall}I)$, abstracting over all occurrences (if any!) of~$x$.
 The rule maps the premise $\phi$ to the conclusion $\Forall x.\phi$.
@@ -469,10 +473,10 @@ applies $({\Forall}I)$ repeatedly, on every element of the list~$xs$.
 \item[\ttindexbold{forall_intr_frees} $thm$] 
 applies $({\Forall}I)$ repeatedly, generalizing over all the free variables
 of the premise.
-\end{description}
+\end{ttdescription}
 
 
-\subsubsection{Forall elimination}
+\subsection{Forall elimination rules}
 \begin{ttbox} 
 forall_elim       : Sign.cterm      -> thm -> thm
 forall_elim_list  : Sign.cterm list -> thm -> thm
@@ -480,7 +484,7 @@ forall_elim_var   :             int -> thm -> thm
 forall_elim_vars  :             int -> thm -> thm
 \end{ttbox}
 
-\begin{description}
+\begin{ttdescription}
 \item[\ttindexbold{forall_elim} $ct$ $thm$] 
 applies $({\Forall}E)$, mapping the premise $\Forall x.\phi$ to the conclusion
 $\phi[ct/x]$.  The rule checks that $ct$ and $x$ have the same type.
@@ -495,37 +499,37 @@ variable by an unknown having subscript~$k$.
 
 \item[\ttindexbold{forall_elim_vars} $ks$ $thm$] 
 applies {\tt forall_elim_var} repeatedly, for every element of the list~$ks$.
-\end{description}
+\end{ttdescription}
 
-\subsubsection{Instantiation of unknowns}
-\index{meta-rules!instantiation|bold}
+\subsection{Instantiation of unknowns}
+\index{instantiation}
 \begin{ttbox} 
 instantiate: (indexname*Sign.ctyp)list * 
              (Sign.cterm*Sign.cterm)list  -> thm -> thm
 \end{ttbox}
-\begin{description}
-\item[\ttindexbold{instantiate} $tyinsts$ $insts$ $thm$] 
-performs simultaneous substitution of types for type unknowns (the
+\begin{ttdescription}
+\item[\ttindexbold{instantiate} ($tyinsts$, $insts$) $thm$] 
+simultaneously substitutes types for type unknowns (the
 $tyinsts$) and terms for term unknowns (the $insts$).  Instantiations are
 given as $(v,t)$ pairs, where $v$ is an unknown and $t$ is a term (of the
 same type as $v$) or a type (of the same sort as~$v$).  All the unknowns
 must be distinct.  The rule normalizes its conclusion.
-\end{description}
+\end{ttdescription}
 
 
-\subsection{Freezing/thawing type variables}
-\index{meta-rules!for type variables|bold}
+\subsection{Freezing/thawing type unknowns}
+\index{type unknowns!freezing/thawing of}
 \begin{ttbox} 
 freezeT: thm -> thm
 varifyT: thm -> thm
 \end{ttbox}
-\begin{description}
+\begin{ttdescription}
 \item[\ttindexbold{freezeT} $thm$] 
 converts all the type unknowns in $thm$ to free type variables.
 
 \item[\ttindexbold{varifyT} $thm$] 
 converts all the free type variables in $thm$ to type unknowns.
-\end{description}
+\end{ttdescription}
 
 
 \section{Derived rules for goal-directed proof}
@@ -533,37 +537,37 @@ Most of these rules have the sole purpose of implementing particular
 tactics.  There are few occasions for applying them directly to a theorem.
 
 \subsection{Proof by assumption}
-\index{meta-rules!assumption|bold}
+\index{meta-assumptions}
 \begin{ttbox} 
 assumption    : int -> thm -> thm Sequence.seq
 eq_assumption : int -> thm -> thm
 \end{ttbox}
-\begin{description}
+\begin{ttdescription}
 \item[\ttindexbold{assumption} {\it i} $thm$] 
 attempts to solve premise~$i$ of~$thm$ by assumption.
 
 \item[\ttindexbold{eq_assumption}] 
 is like {\tt assumption} but does not use unification.
-\end{description}
+\end{ttdescription}
 
 
 \subsection{Resolution}
-\index{meta-rules!resolution|bold}
+\index{resolution}
 \begin{ttbox} 
 biresolution : bool -> (bool*thm)list -> int -> thm
                -> thm Sequence.seq
 \end{ttbox}
-\begin{description}
+\begin{ttdescription}
 \item[\ttindexbold{biresolution} $match$ $rules$ $i$ $state$] 
-performs bi-resolution on subgoal~$i$ of~$state$, using the list of $\it
+performs bi-resolution on subgoal~$i$ of $state$, using the list of $\it
 (flag,rule)$ pairs.  For each pair, it applies resolution if the flag
 is~{\tt false} and elim-resolution if the flag is~{\tt true}.  If $match$
 is~{\tt true}, the $state$ is not instantiated.
-\end{description}
+\end{ttdescription}
 
 
 \subsection{Composition: resolution without lifting}
-\index{meta-rules!for composition|bold}
+\index{resolution!without lifting}
 \begin{ttbox}
 compose   : thm * int * thm -> thm list
 COMP      : thm * thm -> thm
@@ -573,7 +577,7 @@ bicompose : bool -> bool * thm * int -> int -> thm
 In forward proof, a typical use of composition is to regard an assertion of
 the form $\phi\Imp\psi$ as atomic.  Schematic variables are not renamed, so
 beware of clashes!
-\begin{description}
+\begin{ttdescription}
 \item[\ttindexbold{compose} ($thm@1$, $i$, $thm@2$)] 
 uses $thm@1$, regarded as an atomic formula, to solve premise~$i$
 of~$thm@2$.  Let $thm@1$ and $thm@2$ be $\psi$ and $\List{\phi@1; \ldots;
@@ -584,7 +588,7 @@ result list contains the theorem
 
 \item[\tt $thm@1$ COMP $thm@2$] 
 calls \hbox{\tt compose ($thm@1$, 1, $thm@2$)} and returns the result, if
-unique; otherwise, it raises exception~\ttindex{THM}\@.  It is
+unique; otherwise, it raises exception~\xdx{THM}\@.  It is
 analogous to {\tt RS}\@.  
 
 For example, suppose that $thm@1$ is $a=b\Imp b=a$, a symmetry rule, and
@@ -595,11 +599,11 @@ derived rule $\neg(b=a)\Imp\neg(a=b)$.
 \item[\ttindexbold{bicompose} $match$ ($flag$, $rule$, $m$) $i$ $state$]
 refines subgoal~$i$ of $state$ using $rule$, without lifting.  The $rule$
 is taken to have the form $\List{\psi@1; \ldots; \psi@m} \Imp \psi$, where
-$\psi$ need {\bf not} be atomic; thus $m$ determines the number of new
+$\psi$ need not be atomic; thus $m$ determines the number of new
 subgoals.  If $flag$ is {\tt true} then it performs elim-resolution --- it
 solves the first premise of~$rule$ by assumption and deletes that
 assumption.  If $match$ is~{\tt true}, the $state$ is not instantiated.
-\end{description}
+\end{ttdescription}
 
 
 \subsection{Other meta-rules}
@@ -610,7 +614,7 @@ rename_params_rule : string list * int -> thm -> thm
 rewrite_cterm      : thm list -> Sign.cterm -> thm
 flexflex_rule      : thm -> thm Sequence.seq
 \end{ttbox}
-\begin{description}
+\begin{ttdescription}
 \item[\ttindexbold{trivial} $ct$] 
 makes the theorem \(\phi\Imp\phi\), where $\phi$ is the value of~$ct$.
 This is the initial state for a goal-directed proof of~$\phi$.  The rule
@@ -631,11 +635,10 @@ ensure that all the parameters are distinct.
 transforms $ct$ to $ct'$ by repeatedly applying $defs$ as rewrite rules; it
 returns the conclusion~$ct\equiv ct'$.  This underlies the meta-rewriting
 tactics and rules.
-\index{terms!meta-level rewriting in|bold}\index{rewriting!meta-level}
+\index{meta-rewriting!in terms}
 
 \item[\ttindexbold{flexflex_rule} $thm$]  \index{flex-flex constraints}
-\index{meta-rules!for flex-flex constraints|bold}
 removes all flex-flex pairs from $thm$ using the trivial unifier.
-\end{description}
+\end{ttdescription}
 \index{theorems|)}
 \index{meta-rules|)}
