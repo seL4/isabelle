@@ -120,9 +120,13 @@ goal ZF.thy "!!A B. A<=B ==> A Un (B-A) = B";
 by (fast_tac eq_cs 1);
 val Diff_partition = result();
 
-goal ZF.thy "!!A B. [| A<=B; B<= C |] ==> (B - (C-A)) = A";
+goal ZF.thy "!!A B. [| A<=B; B<=C |] ==> B-(C-A) = A";
 by (fast_tac eq_cs 1);
 val double_complement = result();
+
+goal ZF.thy "(A Un B) - (B-A) = A";
+by (fast_tac eq_cs 1);
+val double_complement_Un = result();
 
 goal ZF.thy
  "(A Int B) Un (B Int C) Un (C Int A) = (A Un B) Int (B Un C) Int (C Un A)";
