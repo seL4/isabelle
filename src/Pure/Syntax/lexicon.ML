@@ -29,6 +29,7 @@ sig
   val skolem: string -> string
   val dest_skolem: string -> string
   val read_nat: string -> int option
+  val read_xnum: string -> int
   val read_idents: string -> string list
 end;
 
@@ -340,6 +341,18 @@ val dest_skolem = unsuffix "__";
 
 fun read_nat str =
   apsome (#1 o Term.read_int) (Scan.read Symbol.stopper scan_digits1 (Symbol.explode str));
+
+
+(* read_xnum *)
+
+fun read_xnum str =
+  let
+    val (sign, digs) =
+      (case Symbol.explode str of
+        "#" :: "-" :: cs => (~1, cs)
+      | "#" :: cs => (1, cs)
+      | _ => error ("Malformed number token: " ^ quote str));
+  in sign * #1 (Term.read_int digs) end;
 
 
 (* read_ident(s) *)
