@@ -389,6 +389,7 @@ fun check_goal false state = state
         val check =
           (fn () => Seq.pull (SkipProof.local_skip_proof (K (), fn thm => rule := Some thm) state))
           |> Library.setmp quick_and_dirty true
+          |> Library.setmp proofs 0
           |> Library.transform_error;
         val result = (check (), None) handle Interrupt => raise Interrupt | e => (None, Some e);
       in (case result of (Some _, None) => () | (_, exn) => warn exn); state end;
