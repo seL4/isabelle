@@ -1,7 +1,8 @@
 (*  Title:      Pure/library.ML
     ID:         $Id$
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
-    Copyright   1992  University of Cambridge
+    Author:	Markus Wenzel, TU Munich
+    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
 Basic library: functions, options, pairs, booleans, lists, integers,
 strings, lists as sets, association lists, generic tables, balanced

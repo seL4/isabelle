@@ -1,6 +1,7 @@
 (*  Title:      Pure/General/name_space.ML
     ID:         $Id$
     Author:     Markus Wenzel, TU Muenchen
+    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
 Hierarchically structured name spaces.
 

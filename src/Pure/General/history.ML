@@ -1,6 +1,7 @@
 (*  Title:      Pure/General/history.ML
     ID:         $Id$
     Author:     Markus Wenzel, TU Muenchen
+    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
 Histories of values, with undo and redo, and optional limit.
 *)

@@ -1,6 +1,7 @@
 (*  Title:      Pure/General/position.ML
     ID:         $Id$
     Author:     Markus Wenzel, TU Muenchen
+    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
 Input positions.
 *)

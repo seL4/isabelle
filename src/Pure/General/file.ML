@@ -1,6 +1,7 @@
 (*  Title:      Pure/General/file.ML
     ID:         $Id$
     Author:     Markus Wenzel, TU Muenchen
+    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
 File system operations.
 *)

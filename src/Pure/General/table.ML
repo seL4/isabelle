@@ -1,9 +1,11 @@
 (*  Title:      Pure/General/table.ML
     ID:         $Id$
     Author:     Markus Wenzel, TU Muenchen
+    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
-Generic tables and tables indexed by strings.  No delete operation.
-Implemented as balanced 2-3 trees.
+Generic tables and tables indexed by strings.  Efficient purely
+functional implementation using balanced 2-3 trees.  No delete
+operation (may store options instead).
 *)
 
 signature KEY =

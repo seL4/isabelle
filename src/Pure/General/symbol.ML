@@ -1,8 +1,9 @@
 (*  Title:      Pure/General/symbol.ML
     ID:         $Id$
     Author:     Markus Wenzel, TU Muenchen
+    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
-Generalized characters.
+Generalized characters, independent of encoding.
 *)
 
 signature SYMBOL =

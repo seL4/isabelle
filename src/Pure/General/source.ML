@@ -1,8 +1,9 @@
 (*  Title:      Pure/General/source.ML
     ID:         $Id$
     Author:     Markus Wenzel, TU Muenchen
+    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
-Coalgebraic data sources.
+Coalgebraic data sources -- efficient purely functional input streams.
 *)
 
 signature SOURCE =

@@ -1,6 +1,7 @@
 (*  Title:	Pure/General/scan.ML
     ID:		$Id$
     Author:	Markus Wenzel and Tobias Nipkow, TU Muenchen
+    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
 Generic scanners (for potentially infinite input).
 *)
