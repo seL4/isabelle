@@ -1,3 +1,7 @@
+(*  Title:      HOL/HOL.ML
+    ID:         $Id$
+*)
+
 structure HOL =
 struct
   val thy = the_context ();
@@ -27,6 +31,6 @@ struct
   val arbitrary_def = arbitrary_def;
 end;
 
-AddXIs [disjI1, disjI2];
+AddXIs [disjI1, disjI2, ext];
 
 open HOL;
