@@ -540,7 +540,7 @@ fun clean_term banned (env,t) =
     let val (Var(v,T), ts) = strip_comb t
 	val (Ts,U) = strip_type env T
 	and js = length ts - 1  downto 0
-	val args = sort arg_less
+	val args = sort (make_ord arg_less)
 		(foldr (change_arg banned) (flexargs (js,ts,Ts), []))
 	val ts' = map (#t) args
     in

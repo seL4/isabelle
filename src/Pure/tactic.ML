@@ -395,7 +395,7 @@ fun untaglist [] = []
       else    x :: untaglist rest;
 
 (*return list elements in original order*)
-fun orderlist kbrls = untaglist (sort (fn(x,y)=> #1 x < #1 y) kbrls); 
+fun orderlist kbrls = untaglist (sort (int_ord o pairself fst) kbrls); 
 
 (*insert one tagged brl into the pair of nets*)
 fun insert_tagged_brl (kbrl as (k,(eres,th)), (inet,enet)) =
@@ -533,7 +533,7 @@ val lhs_of_thm = #1 o Logic.dest_equals o #prop o rep_thm;
   Returns longest lhs first to avoid folding its subexpressions.*)
 fun sort_lhs_depths defs =
   let val keylist = make_keylist (term_depth o lhs_of_thm) defs
-      val keys = distinct (sort op> (map #2 keylist))
+      val keys = distinct (sort (rev_order o int_ord) (map #2 keylist))
   in  map (keyfilter keylist) keys  end;
 
 fun fold_tac defs = EVERY 
