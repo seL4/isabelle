@@ -82,7 +82,7 @@ ISABELLE_INSTALLFONTS="xset fp+ $ISABELLE_HOME/lib/fonts; xset fp rehash"
 
 # XTerm.
 ISABELLE_INTERFACE=xterm
-ISABELLE_INTERFACE_OPTIONS=""
+ISABELLE_INTERFACE_OPTIONS="-p -mxterm"
 
 # GNU Emacs running Isamode.
 #ISABELLE_INTERFACE=emacs
