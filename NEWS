@@ -1,6 +1,10 @@
-
 Isabelle NEWS -- history user-relevant changes
 ==============================================
+
+* HOL: made split_all_tac safe. EXISTING PROOFS MAY FAIL OR LOOP, so in this
+  (rare) case use   delSWrapper "split_all_tac" addSbefore 
+                    ("unsafe_split_all_tac", unsafe_split_all_tac)
+
 
 New in Isabelle99-2 (February 2001)
 -----------------------------------
