@@ -42,19 +42,20 @@ val record_decl =
 
 fun inductive_decl coind =
   let
+    val no_atts = map (mk_pair o rpair "[]");
     fun mk_intr_name (s, _) =   (*the "op" cancels any infix status*)
       if Syntax.is_identifier s then "op " ^ s else "_";
     fun mk_params (((recs, ipairs), monos), con_defs) =
       let val big_rec_name = space_implode "_" (map (scan_to_id o strip_quotes) recs)
           and srec_tms = mk_list recs
-          and sintrs   = mk_big_list (map snd ipairs)
+          and sintrs   = mk_big_list (no_atts (map (mk_pair o apfst quote) ipairs))
       in
         ";\n\n\
         \local\n\
         \val (thy, {defs, mono, unfold, intrs, elims, mk_cases, induct, ...}) =\n\
         \  InductivePackage.add_inductive true " ^
         (if coind then "true " else "false ") ^ srec_tms ^ " " ^
-         sintrs ^ " " ^ mk_list monos ^ " " ^ mk_list con_defs ^ " thy;\n\
+         sintrs ^ " " ^ mk_list (no_atts monos) ^ " " ^ mk_list (no_atts con_defs) ^ " thy;\n\
         \in\n\
         \structure " ^ big_rec_name ^ " =\n\
         \struct\n\
