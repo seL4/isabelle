@@ -92,7 +92,7 @@ Addsimps [adjust_eq];
 
 (*Proving posDivAlg's termination condition*)
 val [tc] = posDivAlg.tcs;
-goalw_cterm [] (cterm_of (sign_of thy) (HOLogic.mk_Trueprop tc));
+goalw_cterm [] (cterm_of (sign_of (the_context ())) (HOLogic.mk_Trueprop tc));
 by Auto_tac;
 val lemma = result();
 
