@@ -70,7 +70,7 @@ goal thy
 by(simp_tac (!simpset setloop(split_tac[expand_if])) 1);
 br iffI 1;
  br weak_coinduct 1;
-  by(Best_tac 1);
+  by(etac CollectI 1);
  by(safe_tac (!claset));
   by(rotate_tac ~1 1);
   by(Asm_full_simp_tac 1);
