@@ -212,6 +212,9 @@ lemma r_comp_rtrancl_eq: "r O r^* = r^* O r"
   by (blast elim: rtranclE converse_rtranclE
     intro: rtrancl_into_rtrancl converse_rtrancl_into_rtrancl)
 
+lemma rtrancl_unfold: "r^* = Id Un (r O r^*)"
+  by (auto intro: rtrancl_into_rtrancl elim: rtranclE)
+
 
 subsection {* Transitive closure *}
 
@@ -268,6 +271,9 @@ proof -
 qed
 
 inductive_cases tranclE: "(a, b) : r^+"
+
+lemma trancl_unfold: "r^+ = r Un (r O r^+)"
+  by (auto intro: trancl_into_trancl elim: tranclE)
 
 lemma trans_trancl: "trans(r^+)"
   -- {* Transitivity of @{term "r^+"} *}
@@ -446,6 +452,10 @@ declare trancl_into_rtrancl [elim]
 
 declare rtranclE [cases set: rtrancl]
 declare tranclE [cases set: trancl]
+
+
+
+
 
 subsection {* Setup of transitivity reasoner *}
 
