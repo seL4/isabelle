@@ -32,8 +32,12 @@ val mov_metric3 = read_instantiate_sg (sign_of thy)
 val mov_metric4 = read_instantiate_sg (sign_of thy) 
                    [("P", "(?x <= metric ?n ?s)")] rev_mp;
 
+val mov_metric5 = read_instantiate_sg (sign_of thy) 
+                   [("P", "?x ~= metric ?n ?s")] rev_mp;
+
 (*The order in which they are applied seems to be critical...*)
-val mov_metrics = [mov_metric2, mov_metric3, mov_metric1, mov_metric4];
+val mov_metrics = [mov_metric2, mov_metric3, mov_metric1, mov_metric4,
+		   mov_metric5];
 
 val metric_simps = [metric_def, vimage_def];
 
@@ -302,12 +306,15 @@ by (ensures_tac "request_act" 1);
 by Auto_tac;
 qed "E_thm11";
 
+val metric_tac = REPEAT (FIRSTGOAL (eresolve_tac mov_metrics))
+                 THEN auto_tac (claset(), simpset() addsimps metric_simps);
+
 (*lem_lift_3_5*)
 Goal
   "Lift : (moving Int Req n Int {s. metric n s = N} Int {s. floor s : req s}) \
 \ LeadsTo (stopped Int Req n Int {s. metric n s = N} Int {s. floor s : req s})";
 by (ensures_tac "request_act" 1);
-by (auto_tac (claset(), simpset() addsimps metric_simps));
+by metric_tac;
 qed "E_thm13";
 
 (*lem_lift_3_6*)
@@ -316,15 +323,14 @@ Goal "#0 < N ==> \
 \       (stopped Int Req n Int {s. metric n s = N} Int {s. floor s : req s}) \
 \       LeadsTo (opened Int Req n Int {s. metric n s = N})";
 by (ensures_tac "open_act" 1);
-by (REPEAT_FIRST (eresolve_tac mov_metrics));
-by (auto_tac (claset(), simpset() addsimps metric_simps));
+by metric_tac;
 qed "E_thm14";
 
 (*lem_lift_3_7*)
 Goal "Lift : (opened Int Req n Int {s. metric n s = N})  \
 \            LeadsTo (closed Int Req n Int {s. metric n s = N})";
 by (ensures_tac "close_act" 1);
-by (auto_tac (claset(), simpset() addsimps metric_simps));
+by metric_tac;
 qed "E_thm15";
 
 
@@ -339,11 +345,10 @@ by (blast_tac (claset() addSIs [E_thm13, E_thm14, E_thm15, lift_5]
 qed "lift_3_Req";
 
 
-
 (*Now we observe that our integer metric is really a natural number*)
 Goal "Lift : Always {s. #0 <= metric n s}";
 by (rtac (bounded RS Always_weaken) 1);
-by (auto_tac (claset(), simpset() addsimps metric_simps));
+by metric_tac;
 qed "Always_nonneg";
 
 val R_thm11 = [Always_nonneg, E_thm11] MRS Always_LeadsTo_weaken;

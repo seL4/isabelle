@@ -64,13 +64,13 @@ val sels = [Sender.sbit_def, Sender.sq_def, Sender.ssending_def,
             Receiver.rbit_def, Receiver.rq_def, Receiver.rsending_def];
 
 
-
 (* Proof of correctness *)
 Goalw [Spec.ioa_def, is_weak_ref_map_def]
   "is_weak_ref_map hom (Automata.restrict impl_ioa (externals spec_sig))  \
 \                  spec_ioa";
-by (simp_tac (simpset() delsplits [split_if] addsimps 
-    [Correctness.hom_def, cancel_restrict, externals_lemma]) 1);
+by (simp_tac (simpset() delcongs [if_weak_cong] delsplits [split_if] 
+ 	                addsimps [Correctness.hom_def, cancel_restrict, 
+				  externals_lemma]) 1);
 by (rtac conjI 1);
  by (simp_tac ss' 1);
  by (asm_simp_tac (simpset() addsimps sels) 1);
@@ -78,25 +78,16 @@ by (REPEAT(rtac allI 1));
 by (rtac imp_conj_lemma 1);   (* from lemmas.ML *)
 
 by (induct_tac "a"  1);
-by (asm_simp_tac (ss' addsplits [split_if]) 1);
+by (ALLGOALS (asm_simp_tac ss'));
 by (forward_tac [inv4] 1);
-by (fast_tac (claset() addss (simpset() addsimps [neq_Nil_conv])) 1);
-by (simp_tac ss' 1);
-by (simp_tac ss' 1);
-by (simp_tac ss' 1);
-by (simp_tac ss' 1);
-by (simp_tac ss' 1);
-by (simp_tac ss' 1);
-by (simp_tac ss' 1);
+by (Force_tac 1);
 
-by (asm_simp_tac ss' 1);
 by (forward_tac [inv4] 1);
 by (forward_tac [inv2] 1);
 by (etac disjE 1);
 by (Asm_simp_tac 1);
-by (fast_tac (claset() addss (simpset() addsimps [neq_Nil_conv])) 1);
+by (Force_tac 1);
 
-by (asm_simp_tac ss' 1);
 by (forward_tac [inv2] 1);
 by (etac disjE 1);
 
@@ -104,14 +95,14 @@ by (forward_tac [inv3] 1);
 by (case_tac "sq(sen(s))=[]" 1);
 
 by (asm_full_simp_tac ss' 1);
-by (fast_tac (claset() addSDs [add_leD1 RS leD]) 1);
+by (blast_tac (claset() addSDs [add_leD1 RS leD]) 1);
 
 by (case_tac "m = hd(sq(sen(s)))" 1);
 
-by (fast_tac (claset() addss (simpset() addsimps [neq_Nil_conv])) 1);
+by (Force_tac 1);
 
 by (Asm_full_simp_tac 1);
-by (fast_tac (claset() addSDs [add_leD1 RS leD]) 1);
+by (blast_tac (claset() addSDs [add_leD1 RS leD]) 1);
 
 by (Asm_full_simp_tac 1);
 qed"ntp_correct";

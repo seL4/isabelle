@@ -53,8 +53,8 @@ qed "fib_gr_0";
 
 (*Concrete Mathematics, page 278: Cassini's identity*)
 Goal "fib (Suc (Suc n)) * fib n = \
-\              (if n mod 2 = 0 then (fib(Suc n) * fib(Suc n)) - 1 \
-\                              else Suc (fib(Suc n) * fib(Suc n)))";
+\     (if n mod 2 = 0 then (fib(Suc n) * fib(Suc n)) - 1 \
+\                     else Suc (fib(Suc n) * fib(Suc n)))";
 by (res_inst_tac [("u","n")] fib.induct 1);
 by (res_inst_tac [("P", "%z. ?ff(x) * z = ?kk(x)")] (fib_Suc_Suc RS ssubst) 3);
 by (stac (read_instantiate [("x", "Suc(Suc ?n)")] fib_Suc_Suc) 3);
@@ -63,11 +63,10 @@ by (stac fib_Suc3 3);
 by (ALLGOALS  (*using [fib_Suc_Suc] here results in a longer proof!*)
     (asm_simp_tac (simpset() addsimps [add_mult_distrib, add_mult_distrib2, 
 				       mod_less, mod_Suc])));
-by (ALLGOALS
-    (asm_full_simp_tac
-     (simpset() addsimps add_ac @ mult_ac @
-			 [fib_Suc_Suc, add_mult_distrib, add_mult_distrib2, 
-			  mod_less, mod_Suc])));
+by (asm_full_simp_tac
+     (simpset() addsimps [fib_Suc_Suc, add_mult_distrib, add_mult_distrib2, 
+			  mod_less, mod_Suc]) 2);
+by (ALLGOALS (asm_simp_tac (simpset() addsimps add_ac @ [fib_Suc_Suc])));
 qed "fib_Cassini";
 
 

@@ -73,13 +73,13 @@ by (res_inst_tac [("x",
 \                (fst ex),                                                \
 \    %i. fst (snd ex i))")]  bexI 1);
 (* fst(s) is in projected execution *)
- by (Simp_tac 1);
- by (fast_tac (claset() delSWrapper"split_all_tac")1);
+ by (Force_tac 1);
 (* projected execution is indeed an execution *)
 by (asm_full_simp_tac
-      (simpset() addsimps [executions_def,is_execution_fragment_def,
-                          par_def,starts_of_def,trans_of_def,filter_oseq_def]
-                addsplits [option.split]) 1);
+      (simpset() delcongs [if_weak_cong]
+		 addsimps [executions_def,is_execution_fragment_def,
+			   par_def,starts_of_def,trans_of_def,filter_oseq_def]
+                 addsplits [option.split]) 1);
 qed"comp1_reachable";
 
 
@@ -93,23 +93,25 @@ by (res_inst_tac [("x",
 \                (fst ex),                                                \
 \    %i. snd (snd ex i))")]  bexI 1);
 (* fst(s) is in projected execution *)
- by (Simp_tac 1);
- by (fast_tac (claset() delSWrapper"split_all_tac")1);
+ by (Force_tac 1);
 (* projected execution is indeed an execution *)
 by (asm_full_simp_tac
-      (simpset() addsimps [executions_def,is_execution_fragment_def,
-                          par_def,starts_of_def,trans_of_def,filter_oseq_def]
-                addsplits [option.split]) 1);
+      (simpset() delcongs [if_weak_cong]
+		 addsimps [executions_def,is_execution_fragment_def,
+			   par_def,starts_of_def,trans_of_def,filter_oseq_def]
+                 addsplits [option.split]) 1);
 qed"comp2_reachable";
 
-Delsplits [split_if];
+Delsplits [split_if]; Delcongs [if_weak_cong];
 
-(* Composition of possibility-mappings *)
-Goalw [is_weak_pmap_def] "[| is_weak_pmap f C1 A1 & \
-\               externals(asig_of(A1))=externals(asig_of(C1)) &\
-\               is_weak_pmap g C2 A2 &  \
-\               externals(asig_of(A2))=externals(asig_of(C2)) & \
-\               compat_ioas C1 C2 & compat_ioas A1 A2  |]     \
+(* THIS THEOREM IS NEVER USED (lcp)
+   Composition of possibility-mappings *)
+Goalw [is_weak_pmap_def]
+     "[| is_weak_pmap f C1 A1; \
+\        externals(asig_of(A1))=externals(asig_of(C1));\
+\        is_weak_pmap g C2 A2;  \
+\        externals(asig_of(A2))=externals(asig_of(C2)); \
+\        compat_ioas C1 C2; compat_ioas A1 A2  |]     \
 \  ==> is_weak_pmap (%p.(f(fst(p)),g(snd(p)))) (C1||C2) (A1||A2)";
  by (rtac conjI 1);
 (* start_states *)
@@ -117,7 +119,6 @@ Goalw [is_weak_pmap_def] "[| is_weak_pmap f C1 A1 & \
 (* transitions *)
 by (REPEAT (rtac allI 1));
 by (rtac imp_conj_lemma 1);
-by (REPEAT(etac conjE 1));
 by (simp_tac (simpset() addsimps [externals_of_par_extra]) 1);
 by (simp_tac (simpset() addsimps [par_def]) 1);
 by (asm_full_simp_tac (simpset() addsimps [trans_of_def]) 1);
@@ -144,8 +145,8 @@ by (Fast_tac 2);
 by (simp_tac (simpset() addsimps [conj_disj_distribR] addcongs [conj_cong]
                  addsplits [split_if]) 1);
 by (REPEAT((resolve_tac [conjI,impI] 1 ORELSE etac conjE 1) THEN
-        asm_full_simp_tac(simpset() addsimps[comp1_reachable,
-                                      comp2_reachable])1));
+	   asm_full_simp_tac(simpset() addsimps[comp1_reachable,
+						comp2_reachable])1));
 qed"fxg_is_weak_pmap_of_product_IOA";
 
 
@@ -210,3 +211,4 @@ by Auto_tac;
 qed"rename_through_pmap";
 
 Addsplits [split_if];
+Addcongs  [if_weak_cong];
