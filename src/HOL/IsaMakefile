@@ -200,7 +200,7 @@ Quot:	$(OUT)/HOL $(QUOT_FILES)
 
 ## Miscellaneous examples
 
-EX_NAMES = String BT InSort Qsort Puzzle Primes NatSum MT
+EX_NAMES = Fib Primes NatSum String BT InSort Qsort Puzzle MT
 
 EX_FILES = ex/ROOT.ML ex/cla.ML ex/meson.ML ex/mesontest.ML ex/rel.ML \
 	   ex/set.ML $(EX_NAMES:%=ex/%.thy) $(EX_NAMES:%=ex/%.ML)
