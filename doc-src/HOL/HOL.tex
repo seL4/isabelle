@@ -1216,10 +1216,10 @@ variable binding construct which is internally described by a
 $\lambda$-abstraction.  Some important examples are
 \begin{description}
 \item[Let:] \texttt{let {\it pattern} = $t$ in $u$}
-\item[Quantifiers:] \texttt{!~{\it pattern}:$A$.~$P$}
-\item[Choice:] {\underscoreon \tt @~{\it pattern}~.~$P$}
+\item[Quantifiers:] \texttt{ALL~{\it pattern}:$A$.~$P$}
+\item[Choice:] {\underscoreon \tt SOME~{\it pattern}.~$P$}
 \item[Set operations:] \texttt{UN~{\it pattern}:$A$.~$B$}
-\item[Sets:] \texttt{{\ttlbrace}~{\it pattern}~.~$P$~{\ttrbrace}}
+\item[Sets:] \texttt{{\ttlbrace}{\it pattern}.~$P${\ttrbrace}}
 \end{description}
 
 There is a simple tactic which supports reasoning about patterns:
@@ -1855,12 +1855,12 @@ is a root record with fields $\vec c@l \ty \vec\sigma@l$.
 \end{matharray}
 
 There is some special syntax for updates: $r \, \record{x \asn a}$ abbreviates
-term $x_update \, a \, r$.  Repeated updates are also supported: $r \,
+term $x_update \, a \, r$.  Repeated updates are supported as well: $r \,
 \record{x \asn a} \, \record{y \asn b} \, \record{z \asn c}$ may be written as
 $r \, \record{x \asn a\fs y \asn b\fs z \asn c}$.  Note that because of
 postfix notation the order of fields shown here is reverse than in the actual
-term.  This might lead to confusion in conjunction with proof tools like
-ordered rewriting.
+term.  This might lead to confusion in conjunction with special proof tools
+such as ordered rewriting.
 
 Since repeated updates are just function applications, fields may be freely
 permuted in $\record{x \asn a\fs y \asn b\fs z \asn c}$, as far as the logic
@@ -1907,9 +1907,9 @@ $\vec d@k \ty \vec\rho@k$, selectors will get the following types:
 Update and make operations are analogous.
 
 
-\subsection{Proof tools}\label{sec:HOL:record-thms}
+\subsection{Record proof tools}\label{sec:HOL:record-thms}
 
-The record package provides the following proof rules for any record type $t$.
+The record package declares the following proof rules for any record type $t$.
 \begin{enumerate}
   
 \item Standard conversions (selectors or updates applied to record constructor
@@ -1924,6 +1924,10 @@ The record package provides the following proof rules for any record type $t$.
   \conj y=y'$ are made part of the standard simpset and claset (via
   \texttt{addIffs}).
   
+\item The introduction rule for record equality analogous to $x~r = x~r' \Imp
+  y~r = y~r' \Imp \dots \Imp r = r'$ is added to the simpset and to the claset
+  (as an ``extra introduction'').
+  
 \item A tactic for record field splitting (\ttindex{record_split_tac}) may be
   made part of the claset (via \texttt{addSWrapper}).  This tactic is based on
   rules analogous to $(\All x PROP~P~x) \equiv (\All{a~b} PROP~P(a, b))$ for
@@ -1931,19 +1935,17 @@ The record package provides the following proof rules for any record type $t$.
 \end{enumerate}
 
 The first two kinds of rules are stored within the theory as $t\dtt simps$ and
-$t\dtt iffs$, respectively.  In some situations it might be appropriate to
-expand the definitions of updates: $t\dtt update_defs$.  Note that these names
-are \emph{not} bound at the {\ML} level.
+$t\dtt iffs$, respectively; record equality introduction is available as
+$t\dtt equality$.  In some situations it might be appropriate to expand the
+definitions of updates: $t\dtt update_defs$.  Note that these names are
+\emph{not} bound at the {\ML} level.
 
 \medskip
 
-The example theory \texttt{HOL/ex/Records} demonstrates typical proofs
-concerning records.  The basic idea is to make \ttindex{record_split_tac}
-expand quantified record variables and then simplify by the conversion rules.
-By using a combination of the simplifier and classical prover together with
-the default simpset and claset, record problems should be solved with a single
-stroke of \texttt{Auto_tac} or \texttt{Force_tac}.  Most of the time, plain
-\texttt{Simp_tac} should be sufficient, though.
+Most of the time, plain Simplification should be sufficient to solve goals
+involving records.  Combinations of the Simplifier and Classical Reasoner
+(\texttt{Auto_tac} or \texttt{Force_tac}) are very useful, too.  The example
+theory \texttt{HOL/ex/Records} demonstrates typical proofs concerning records.
 
 
 \section{Datatype definitions}
@@ -2189,6 +2191,10 @@ P(t@j_\mathtt{case}~f@1~\dots~f@{k@j}~e) &\!\!\!=&
 where $t@j$\texttt{_case} is the internal name of the \texttt{case}-construct.
 This theorem can be added to a simpset via \ttindex{addsplits}
 (see~{\S}\ref{subsec:HOL:case:splitting}).
+
+Case splitting on assumption works as well, by using the rule
+$t@j.$\texttt{split_asm} in the same manner.  Both rules are available under
+$t@j.$\texttt{splits} (this name is \emph{not} bound in ML, though).
 
 \begin{warn}\index{simplification!of \texttt{case}}%
   By default only the selector expression ($e$ above) in a
@@ -2865,9 +2871,11 @@ the recursive sets, in the case of mutual recursion).
 the recursive sets.  The rules are also available individually, using the
 names given them in the theory file. 
 
-\item[\tt elims] is the list of elimination rule.
-
-\item[\tt elim] is the head of the list \texttt{elims}.
+\item[\tt elims] is the list of elimination rule.  This is for compatibility
+  with ML scripts; within the theory the name is \texttt{cases}.
+  
+\item[\tt elim] is the head of the list \texttt{elims}.  This is for
+  compatibility only.
   
 \item[\tt mk_cases] is a function to create simplified instances of {\tt
 elim} using freeness reasoning on underlying datatypes.
@@ -3215,5 +3223,5 @@ Otherwise the default claset may not contain the rules for set theory.
 
 %%% Local Variables: 
 %%% mode: latex
-%%% TeX-master: "logics"
+%%% TeX-master: "logics-HOL"
 %%% End: 
