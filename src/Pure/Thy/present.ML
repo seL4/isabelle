@@ -8,6 +8,7 @@ Theory presentation: HTML, graph files, (PDF)LaTeX documents.
 
 signature BASIC_PRESENT =
 sig
+  val no_document: ('a -> 'b) -> 'a -> 'b
   val section: string -> unit
 end;
 
@@ -155,8 +156,10 @@ fun map_browser_info f {theories, tex_index, html_index, graph} =
 (* state *)
 
 val browser_info = ref empty_browser_info;
-
 fun change_browser_info f = browser_info := map_browser_info f (! browser_info);
+
+val suppress_tex_source = ref false;
+fun no_document f x = Library.setmp suppress_tex_source true f x;
 
 fun init_theory_info name info =
   change_browser_info (fn (theories, tex_index, html_index, graph) =>
@@ -182,8 +185,10 @@ fun add_graph_entry e =
   change_browser_info (fn (theories, tex_index, html_index, graph) =>
     (theories, tex_index, html_index, ins_graph_entry e graph));
 
-fun add_tex_source name txt = change_theory_info name (fn (tex_source, html_source, html) =>
-  (Buffer.add txt tex_source, html_source, html));
+fun add_tex_source name txt =
+  if ! suppress_tex_source then ()
+  else change_theory_info name (fn (tex_source, html_source, html) =>
+    (Buffer.add txt tex_source, html_source, html));
 
 fun add_html_source name txt = change_theory_info name (fn (tex_source, html_source, html) =>
   (tex_source, Buffer.add txt html_source, html));
