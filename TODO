@@ -1,5 +1,12 @@
 For Isabelle2005:
 
-- update course material slides to new theory format
+- update course material slides to new theory format (Tobias)
 
-- remove this file
+- modular generation of ML code with structures (Stefan)
+
+- finding rewrite rules based on PG subterm selection (Tobias)
+
+- a global "disprove" menu item both as an action and (if it can be done)
+  as a setting (Stefan & Tjark)
+
+- remove this file (Tobias)
