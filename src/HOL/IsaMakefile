@@ -86,8 +86,8 @@ IOA_FILES = IOA/NTP/ROOT.ML IOA/ABP/ROOT.ML IOA/NTP/Spec.thy \
  $(IOA_MT_NAMES:%=IOA/meta_theory/%.thy) $(IOA_MT_NAMES:%=IOA/meta_theory/%.ML)
 
 IOA:	$(OUT)/HOL $(IOA_FILES)
-	@$(ISATOOL) usedir $(OUT)/HOL IOA/NTP
-	@$(ISATOOL) usedir $(OUT)/HOL IOA/ABP
+	@$(ISATOOL) usedir -s IOA-NTP $(OUT)/HOL IOA/NTP
+	@$(ISATOOL) usedir -s IOA-ABP $(OUT)/HOL IOA/ABP
 
 
 ## Authentication & Security Protocols
@@ -178,9 +178,9 @@ AXCLASSES_FILES = AxClasses/ROOT.ML \
 
 AxClasses: $(OUT)/HOL $(AXCLASSES_FILES)
 	@$(ISATOOL) usedir $(OUT)/HOL AxClasses
-	@$(ISATOOL) usedir $(OUT)/HOL AxClasses/Group
-	@$(ISATOOL) usedir $(OUT)/HOL AxClasses/Lattice
-	@$(ISATOOL) usedir $(OUT)/HOL AxClasses/Tutorial
+	@$(ISATOOL) usedir -s AxClasses-Group $(OUT)/HOL AxClasses/Group
+	@$(ISATOOL) usedir -s AxClasses-Lattice $(OUT)/HOL AxClasses/Lattice
+	@$(ISATOOL) usedir -s AxClasses-Tutorial $(OUT)/HOL AxClasses/Tutorial
 
 
 ## Miscellaneous examples
