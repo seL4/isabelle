@@ -9,13 +9,13 @@ signature RECDEF_PACKAGE =
 sig
   val quiet_mode: bool ref
   val print_recdefs: theory -> unit
-  val get_recdef: theory -> string -> {rules: thm list, induct: thm, tcs: term list} option
+  val get_recdef: theory -> string -> {simps: thm list, induct: thm, tcs: term list} option
   val add_recdef: xstring -> string -> string list -> simpset option
     -> (xstring * Args.src list) list -> theory
-    -> theory * {rules: thm list, induct: thm, tcs: term list}
+    -> theory * {simps: thm list, induct: thm, tcs: term list}
   val add_recdef_i: xstring -> term -> term list -> simpset option
     -> (thm * theory attribute list) list
-    -> theory -> theory * {rules: thm list, induct: thm, tcs: term list}
+    -> theory -> theory * {simps: thm list, induct: thm, tcs: term list}
   val defer_recdef: xstring -> string list -> (xstring * Args.src list) list
     -> theory -> theory * {induct_rules: thm}
   val defer_recdef_i: xstring -> term list -> (thm * theory attribute list) list
@@ -35,7 +35,7 @@ val message = Tfl.message;
 
 (* data kind 'HOL/recdef' *)
 
-type recdef_info = {rules: thm list, induct: thm, tcs: term list};
+type recdef_info = {simps: thm list, induct: thm, tcs: term list};
 
 structure RecdefArgs =
 struct
@@ -72,6 +72,13 @@ fun put_recdef name info thy =
 
 fun requires_recdef thy = Theory.requires thy "Recdef" "recursive functions";
 
+
+fun prepare_simps no_tcs ixsimps =
+  let val partnd = partition_eq (fn ((_,i),(_,j)) => i=j) ixsimps;
+      val attr = if no_tcs then [Simplifier.simp_add_global] else []
+  in map (fn (rl,i)::rls => ((string_of_int i, rl::map fst rls), attr)) partnd
+  end;
+
 fun gen_add_recdef tfl_fn prep_ss app_thms raw_name R eqs raw_ss raw_congs thy =
   let
     val name = Sign.intern_const (Theory.sign_of thy) raw_name;
@@ -83,13 +90,14 @@ fun gen_add_recdef tfl_fn prep_ss app_thms raw_name R eqs raw_ss raw_congs thy =
     val ss = (case raw_ss of None => Simplifier.simpset_of thy | Some x => prep_ss x);
     val (thy, congs) = thy |> app_thms raw_congs;
     val (thy, {rules, induct, tcs}) = tfl_fn thy name R (ss, congs) eqs;
+    val named_simps = prepare_simps (null tcs) rules
     val case_numbers = map Library.string_of_int (1 upto Thm.nprems_of induct);
-    val (thy, ([rules], [induct])) =
+    val (thy, (simpss, [induct])) =
       thy
       |> Theory.add_path bname
-      |> PureThy.add_thmss [(("rules", rules), [])]
+      |> PureThy.add_thmss named_simps
       |>>> PureThy.add_thms [(("induct", induct), [RuleCases.case_names case_numbers])];
-    val result = {rules = rules, induct = induct, tcs = tcs};
+    val result = {simps = flat simpss, induct = induct, tcs = tcs};
     val thy =
       thy
       |> put_recdef name result
