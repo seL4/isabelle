@@ -57,15 +57,6 @@ val disj_exD1 = prove_fun "(? x. P(x)) | Q ==> ? x. P(x) | Q";
 val disj_exD2 = prove_fun "P | (? x. Q(x)) ==> ? x. P | Q(x)";
 
 
-(**** Skolemization -- pulling "?" over "!" ****)
-
-(*"Axiom" of Choice, proved using the description operator*)
-val [major] = goal HOL.thy
-    "! x. ? y. Q x y ==> ? f. ! x. Q x (f x)";
-by (cut_facts_tac [major] 1);
-by (fast_tac (claset() addEs [selectI]) 1);
-qed "choice";
-
 
 (***** Generating clauses for the Meson Proof Procedure *****)
 
