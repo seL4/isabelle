@@ -122,7 +122,7 @@ fun calculate final opt_rules print state =
   let
     fun err_if b msg = if b then raise Proof.STATE (msg, state) else ();
     val fact = Proof.the_fact state;
-    val rules = Seq.of_list (case opt_rules of None => get_local_rules state | Some thms => thms);
+    val rules = Seq.of_list (if_none opt_rules [] @ get_local_rules state);
     val (initial, calculations) =
       (case get_calculation state of
         None => (true, Seq.single fact)
