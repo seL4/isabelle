@@ -84,38 +84,42 @@ end;
 signature DRULE =
 sig
   include BASIC_DRULE
-  val rule_attribute    : ('a -> thm -> thm) -> 'a attribute
-  val tag_rule          : tag -> thm -> thm
-  val untag_rule        : string -> thm -> thm
-  val tag               : tag -> 'a attribute
-  val untag             : string -> 'a attribute
-  val get_kind          : thm -> string
-  val kind              : string -> 'a attribute
-  val theoremK          : string
-  val lemmaK            : string
-  val corollaryK        : string
-  val internalK         : string
-  val kind_internal     : 'a attribute
-  val has_internal      : tag list -> bool
-  val impose_hyps       : cterm list -> thm -> thm
-  val close_derivation  : thm -> thm
-  val compose_single    : thm * int * thm -> thm
-  val add_rules         : thm list -> thm list -> thm list
-  val del_rules         : thm list -> thm list -> thm list
-  val merge_rules       : thm list * thm list -> thm list
-  val norm_hhf_eq       : thm
-  val triv_goal         : thm
-  val rev_triv_goal     : thm
+  val rule_attribute: ('a -> thm -> thm) -> 'a attribute
+  val tag_rule: tag -> thm -> thm
+  val untag_rule: string -> thm -> thm
+  val tag: tag -> 'a attribute
+  val untag: string -> 'a attribute
+  val get_kind: thm -> string
+  val kind: string -> 'a attribute
+  val theoremK: string
+  val lemmaK: string
+  val corollaryK: string
+  val internalK: string
+  val kind_internal: 'a attribute
+  val has_internal: tag list -> bool
+  val impose_hyps: cterm list -> thm -> thm
+  val close_derivation: thm -> thm
+  val compose_single: thm * int * thm -> thm
+  val add_rules: thm list -> thm list -> thm list
+  val del_rules: thm list -> thm list -> thm list
+  val merge_rules: thm list * thm list -> thm list
+  val norm_hhf_eq: thm
+  val triv_goal: thm
+  val rev_triv_goal: thm
   val implies_intr_goals: cterm list -> thm -> thm
-  val freeze_all        : thm -> thm
-  val mk_triv_goal      : cterm -> thm
-  val tvars_of_terms    : term list -> (indexname * sort) list
-  val vars_of_terms     : term list -> (indexname * typ) list
-  val tvars_of          : thm -> (indexname * sort) list
-  val vars_of           : thm -> (indexname * typ) list
-  val unvarifyT         : thm -> thm
-  val unvarify          : thm -> thm
-  val tvars_intr_list   : string list -> thm -> thm
+  val freeze_all: thm -> thm
+  val mk_triv_goal: cterm -> thm
+  val tvars_of_terms: term list -> (indexname * sort) list
+  val vars_of_terms: term list -> (indexname * typ) list
+  val tvars_of: thm -> (indexname * sort) list
+  val vars_of: thm -> (indexname * typ) list
+  val unvarifyT: thm -> thm
+  val unvarify: thm -> thm
+  val tvars_intr_list: string list -> thm -> thm
+  val conj_intr: thm -> thm -> thm
+  val conj_intr_list: thm list -> thm
+  val conj_elim: thm -> thm * thm
+  val conj_elim_list: thm -> thm list
 end;
 
 structure Drule: DRULE =
@@ -875,8 +879,47 @@ val freeze_all = freeze_all_Vars o freeze_all_TVars;
 (*make an initial proof state, "PROP A ==> (PROP A)" *)
 fun mk_triv_goal ct = instantiate' [] [Some ct] triv_goal;
 
+
+
+(** meta-level conjunction **)
+
+local
+  val A = read_prop "PROP A";
+  val B = read_prop "PROP B";
+  val C = read_prop "PROP C";
+  val ABC = read_prop "PROP A ==> PROP B ==> PROP C";
+
+  val proj1 =
+    forall_intr_list [A, B] (implies_intr_list [A, B] (Thm.assume A))
+    |> forall_elim_vars 0;
+
+  val proj2 =
+    forall_intr_list [A, B] (implies_intr_list [A, B] (Thm.assume B))
+    |> forall_elim_vars 0;
+
+  val conj_intr_rule =
+    forall_intr_list [A, B] (implies_intr_list [A, B]
+      (Thm.forall_intr C (Thm.implies_intr ABC
+        (implies_elim_list (Thm.assume ABC) [Thm.assume A, Thm.assume B]))))
+    |> forall_elim_vars 0;
+
+  val incr = incr_indexes_wrt [] [] [];
+in
+
+fun conj_intr tha thb = thb COMP (tha COMP incr [tha, thb] conj_intr_rule);
+val conj_intr_list = foldr1 (uncurry conj_intr);
+
+fun conj_elim th =
+  let val th' = forall_elim_var (#maxidx (Thm.rep_thm th) + 1) th
+  in (incr [th'] proj1 COMP th', incr [th'] proj2 COMP th') end;
+
+fun conj_elim_list th =
+  let val (th1, th2) = conj_elim th
+  in conj_elim_list th1 @ conj_elim_list th2 end handle THM _ => [th];
+
 end;
 
+end;
 
 structure BasicDrule: BASIC_DRULE = Drule;
 open BasicDrule;
