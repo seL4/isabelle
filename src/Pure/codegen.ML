@@ -21,6 +21,7 @@ sig
 
   val add_codegen: string -> term codegen -> theory -> theory
   val add_tycodegen: string -> typ codegen -> theory -> theory
+  val add_attribute: string -> theory attribute -> theory -> theory
   val print_codegens: theory -> unit
   val generate_code: theory -> (string * string) list -> string
   val generate_code_i: theory -> (string * term) list -> string
@@ -90,18 +91,24 @@ struct
     {codegens : (string * term codegen) list,
      tycodegens : (string * typ codegen) list,
      consts : ((string * typ) * term mixfix list) list,
-     types : (string * typ mixfix list) list};
+     types : (string * typ mixfix list) list,
+     attrs: (string * theory attribute) list};
 
-  val empty = {codegens = [], tycodegens = [], consts = [], types = []};
+  val empty =
+    {codegens = [], tycodegens = [], consts = [], types = [], attrs = []};
   val copy = I;
   val prep_ext = I;
 
-  fun merge ({codegens = codegens1, tycodegens = tycodegens1, consts = consts1, types = types1},
-             {codegens = codegens2, tycodegens = tycodegens2, consts = consts2, types = types2}) =
+  fun merge
+    ({codegens = codegens1, tycodegens = tycodegens1,
+      consts = consts1, types = types1, attrs = attrs1},
+     {codegens = codegens2, tycodegens = tycodegens2,
+      consts = consts2, types = types2, attrs = attrs2}) =
     {codegens = rev (merge_alists (rev codegens1) (rev codegens2)),
      tycodegens = rev (merge_alists (rev tycodegens1) (rev tycodegens2)),
-     consts   = merge_alists consts1 consts2,
-     types    = merge_alists types1 types2};
+     consts = merge_alists consts1 consts2,
+     types = merge_alists types1 types2,
+     attrs = merge_alists attrs1 attrs2};
 
   fun print sg ({codegens, tycodegens, ...} : T) =
     Pretty.writeln (Pretty.chunks
@@ -116,20 +123,40 @@ val print_codegens = CodegenData.print;
 (**** add new code generators to theory ****)
 
 fun add_codegen name f thy =
-  let val {codegens, tycodegens, consts, types} = CodegenData.get thy
+  let val {codegens, tycodegens, consts, types, attrs} = CodegenData.get thy
   in (case assoc (codegens, name) of
       None => CodegenData.put {codegens = (name, f) :: codegens,
-        tycodegens = tycodegens, consts = consts, types = types} thy
+        tycodegens = tycodegens, consts = consts, types = types,
+        attrs = attrs} thy
     | Some _ => error ("Code generator " ^ name ^ " already declared"))
   end;
 
 fun add_tycodegen name f thy =
-  let val {codegens, tycodegens, consts, types} = CodegenData.get thy
+  let val {codegens, tycodegens, consts, types, attrs} = CodegenData.get thy
   in (case assoc (tycodegens, name) of
       None => CodegenData.put {tycodegens = (name, f) :: tycodegens,
-        codegens = codegens, consts = consts, types = types} thy
+        codegens = codegens, consts = consts, types = types,
+        attrs = attrs} thy
     | Some _ => error ("Code generator " ^ name ^ " already declared"))
   end;
+
+
+(**** code attribute ****)
+
+fun add_attribute name att thy =
+  let val {codegens, tycodegens, consts, types, attrs} = CodegenData.get thy
+  in (case assoc (attrs, name) of
+      None => CodegenData.put {tycodegens = tycodegens,
+        codegens = codegens, consts = consts, types = types,
+        attrs = (name, att) :: attrs} thy
+    | Some _ => error ("Code attribute " ^ name ^ " already declared"))
+  end;
+
+val code_attr =
+  Attrib.syntax (Scan.depend (fn thy => Scan.optional Args.name "" >>
+    (fn name => (thy, case assoc (#attrs (CodegenData.get thy), name) of
+          None => error ("Unknown code attribute: " ^ quote name)
+        | Some att => att)))); 
 
 
 (**** associate constants with target language code ****)
@@ -137,7 +164,7 @@ fun add_tycodegen name f thy =
 fun gen_assoc_consts prep_type xs thy = foldl (fn (thy, (s, tyopt, syn)) =>
   let
     val sg = sign_of thy;
-    val {codegens, tycodegens, consts, types} = CodegenData.get thy;
+    val {codegens, tycodegens, consts, types, attrs} = CodegenData.get thy;
     val cname = Sign.intern_const sg s;
   in
     (case Sign.const_type sg cname of
@@ -152,7 +179,8 @@ fun gen_assoc_consts prep_type xs thy = foldl (fn (thy, (s, tyopt, syn)) =>
          in (case assoc (consts, (cname, T')) of
              None => CodegenData.put {codegens = codegens,
                tycodegens = tycodegens,
-               consts = ((cname, T'), syn) :: consts, types = types} thy
+               consts = ((cname, T'), syn) :: consts,
+               types = types, attrs = attrs} thy
            | Some _ => error ("Constant " ^ cname ^ " already associated with code"))
          end
      | _ => error ("Not a constant: " ^ s))
@@ -165,13 +193,13 @@ val assoc_consts = gen_assoc_consts (fn sg => typ_of o read_ctyp sg);
 
 fun assoc_types xs thy = foldl (fn (thy, (s, syn)) =>
   let
-    val {codegens, tycodegens, consts, types} = CodegenData.get thy;
+    val {codegens, tycodegens, consts, types, attrs} = CodegenData.get thy;
     val tc = Sign.intern_tycon (sign_of thy) s
   in
     (case assoc (types, tc) of
        None => CodegenData.put {codegens = codegens,
          tycodegens = tycodegens, consts = consts,
-         types = (tc, syn) :: types} thy
+         types = (tc, syn) :: types, attrs = attrs} thy
      | Some _ => error ("Type " ^ tc ^ " already associated with code"))
   end) (thy, xs);
 
@@ -212,7 +240,8 @@ fun gen_mk_id kind rename sg s =
     val (xs as x::_) = explode (rename (space_implode "_"
       (NameSpace.unpack (Sign.cond_extern sg kind s))));
     fun check_str [] = ""
-      | check_str (x::xs) =
+      | check_str (" " :: xs) = "_" ^ check_str xs
+      | check_str (x :: xs) =
           (if Symbol.is_letter x orelse Symbol.is_digit x orelse x="_" then x
            else "_" ^ string_of_int (ord x)) ^ check_str xs
   in
@@ -462,7 +491,10 @@ val setup =
   [CodegenData.init,
    add_codegen "default" default_codegen,
    add_tycodegen "default" default_tycodegen,
-   assoc_types [("fun", parse_mixfix (K dummyT) "(_ ->/ _)")]];
+   assoc_types [("fun", parse_mixfix (K dummyT) "(_ ->/ _)")],
+   Attrib.add_attributes [("code",
+     (code_attr, K Attrib.undef_local_attribute),
+     "declare theorems for code generation")]];
 
 end;
 
