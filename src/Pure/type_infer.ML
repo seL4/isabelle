@@ -257,7 +257,7 @@ fun unify classrel arities =
     (* adjust sorts of parameters *)
 
     fun not_in_sort x S' S =
-      "Type variable " ^ x ^ "::" ^ Sorts.str_of_sort S' ^ " not in sort " ^
+      "Variable " ^ x ^ "::" ^ Sorts.str_of_sort S' ^ " not of sort " ^
         Sorts.str_of_sort S ^ ".";
 
     fun meet _ [] = ()
