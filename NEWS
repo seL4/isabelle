@@ -89,6 +89,9 @@ and Arith);
 
 *** General ***
 
+* print modes "brackets" and "no_brackets" control output of nested =>
+(types) and ==> (props); the default behaviour is "brackets";
+
 * system: support Poly/ML 4.0 (current beta versions);
 
 * Pure: the Simplifier has been implemented properly as a derived rule
