@@ -94,6 +94,11 @@ by (dres_inst_tac [("P","%x. P (Suc x)")] Least_le 1);
 by (blast_tac (claset() addIs [order_antisym]) 1); 
 qed "Least_Suc";
 
+Goal "[|P n; Q m; ~P 0; !k. P (Suc k) = Q k|] ==> Least P = Suc (Least Q)";
+by (eatac (Least_Suc RS ssubst) 1 1);
+by (Asm_simp_tac 1);
+qed "Least_Suc2";
+
 
 (** min and max **)
 
