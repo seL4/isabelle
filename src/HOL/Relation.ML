@@ -309,7 +309,7 @@ qed "Range_Union";
 
 (*** Image of a set under a relation ***)
 
-overload_1st_set "Relation.op ^^";
+overload_1st_set "Relation.Image";
 
 Goalw [Image_def] "b : r^^A = (? x:A. (x,b):r)";
 by (Blast_tac 1);
@@ -389,6 +389,9 @@ Goal "(r ^^ (INTER A B)) <= (INT x:A.(r ^^ (B x)))";
 by (Blast_tac 1);
 qed "Image_INT_subset";
 
+Goal "(r^^A <= B) = (A <= - ((r^-1) ^^ (-B)))";
+by (Blast_tac 1);
+qed "Image_subset_eq";
 
 section "Univalent";
 
