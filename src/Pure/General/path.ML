@@ -25,6 +25,7 @@ sig
   val unpack: string -> T
   val base: T -> T
   val ext: string -> T -> T
+  val drop_ext: T -> T
   val dir: T -> T
   val expand: T -> T
   val position: T -> Position.T
@@ -127,23 +128,22 @@ fun unpack str = Path (norm
 
 (* base element *)
 
-fun err_no_base path =
-  error ("No base path element in " ^ quote (pack path));
-
-fun base (path as Path xs) =
+fun split_path f (path as Path xs) =
   (case try split_last xs of
-    Some (_, x as Basic _) => Path [x]
-  | _ => err_no_base path);
+    Some (prfx, Basic s) => f (prfx, s)
+  | _ => error ("Cannot split path into dir/base: " ^ quote (pack path)));
 
-fun ext e (path as Path xs) =
-  (case try split_last xs of
-    Some (prfx, Basic s) => if e = "" then path else Path (prfx @ [Basic (s ^ "." ^ e)])
-  | _ => err_no_base path);
+val base = split_path (fn (_, s) => Path [Basic s]);
 
-fun dir (path as Path xs) =
-  (case try split_last xs of
-    Some (prfx, _) => Path prfx
-  | _ => error ("Cannot split path " ^ quote (pack path)));
+fun ext "" path = path
+  | ext e path = split_path (fn (prfx, s) => append (Path prfx) (basic (s ^ "." ^ e))) path;
+
+val drop_ext = split_path (fn (prfx, s) => append (Path prfx)
+  (case take_suffix (not_equal ".") (explode s) of
+    ([], _) => Path [Basic s]
+  | (cs, _) => Path [Basic (implode (take (length cs - 1, cs)))]));
+
+val dir = split_path (fn (prfx, _) => Path prfx);
 
 
 (* evaluate variables *)
