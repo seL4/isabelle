@@ -8,6 +8,8 @@ New in this Isabelle version
 
 * HOL: Removed the obsolete syntax "Compl A"; use -A for set complement
 
+* HOL: the predicate "inj" is now defined by translation to "inj_on"
+
 * ZF: The con_defs part of an inductive definition may no longer refer to 
   constants declared in the same theory;
 
