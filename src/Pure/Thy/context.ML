@@ -8,7 +8,7 @@ Global contexts: session and theory.
 signature BASIC_CONTEXT =
 sig
   val context: theory -> unit
-  val Thy: unit -> theory
+  val the_context: unit -> theory
   val Thm: xstring -> thm
   val Thms: xstring -> thm list
   val Goal: string -> thm list
@@ -24,7 +24,6 @@ sig
   val welcome: unit -> string
   val get_context: unit -> theory option
   val set_context: theory option -> unit
-  val the_context: unit -> theory
   val reset_context: unit -> unit
   val >> : (theory -> theory) -> unit
 end;
@@ -61,8 +60,6 @@ fun the_context () =
   (case get_context () of
     Some thy => thy
   | _ => error "Unknown theory context");
-
-val Thy = the_context;
 
 fun context thy = set_context (Some thy);
 fun reset_context () = set_context None;
