@@ -31,13 +31,6 @@ sig
   val mk_binop: string -> term * term -> term
   val mk_binrel: string -> term * term -> term
   val dest_bin: string -> typ -> term -> term * term
-  val natT: typ
-  val zero: term
-  val is_zero: term -> bool
-  val mk_Suc: term -> term
-  val dest_Suc: term -> term
-  val mk_nat: int -> term
-  val dest_nat: term -> int
   val unitT: typ
   val unit: term
   val is_unit: term -> bool
@@ -50,6 +43,13 @@ sig
   val prodT_factors: typ -> typ list
   val split_const: typ * typ * typ -> term
   val mk_tuple: typ -> term list -> term
+  val natT: typ
+  val zero: term
+  val is_zero: term -> bool
+  val mk_Suc: term -> term
+  val dest_Suc: term -> term
+  val mk_nat: int -> term
+  val dest_nat: term -> int
 end;
 
 
@@ -125,31 +125,6 @@ fun dest_bin c T (tm as Const (c', Type ("fun", [T', _])) $ t $ u) =
   | dest_bin c _ tm = raise TERM ("dest_bin " ^ c, [tm]);
 
 
-(* nat *)
-
-val natT = Type ("nat", []);
-
-
-val zero = Const ("0", natT);
-
-fun is_zero (Const ("0", _)) = true
-  | is_zero _ = false;
-
-
-fun mk_Suc t = Const ("Suc", natT --> natT) $ t;
-
-fun dest_Suc (Const ("Suc", _) $ t) = t
-  | dest_Suc t = raise TERM ("dest_Suc", [t]);
-
-
-fun mk_nat 0 = zero
-  | mk_nat n = mk_Suc (mk_nat (n - 1));
-
-fun dest_nat (Const ("0", _)) = 0
-  | dest_nat (Const ("Suc", _) $ t) = dest_nat t + 1
-  | dest_nat t = raise TERM ("dest_nat", [t]);
-
-
 (* unit *)
 
 val unitT = Type ("unit", []);
@@ -197,5 +172,29 @@ fun mk_tuple (Type ("*", [T1, T2])) tms =
         mk_prod (mk_tuple T1 tms, 
                  mk_tuple T2 (drop (length (prodT_factors T1), tms)))
   | mk_tuple T (t::_) = t;
+
+
+
+(* nat *)
+
+val natT = Type ("nat", []);
+
+val zero = Const ("0", natT);
+
+fun is_zero (Const ("0", _)) = true
+  | is_zero _ = false;
+
+fun mk_Suc t = Const ("Suc", natT --> natT) $ t;
+
+fun dest_Suc (Const ("Suc", _) $ t) = t
+  | dest_Suc t = raise TERM ("dest_Suc", [t]);
+
+fun mk_nat 0 = zero
+  | mk_nat n = mk_Suc (mk_nat (n - 1));
+
+fun dest_nat (Const ("0", _)) = 0
+  | dest_nat (Const ("Suc", _) $ t) = dest_nat t + 1
+  | dest_nat t = raise TERM ("dest_nat", [t]);
+
 
 end;

@@ -1,3 +1,4 @@
+
 Isabelle NEWS -- history of user-visible changes
 ================================================
 
@@ -6,11 +7,13 @@ New in this Isabelle version
 
 *** Overview of INCOMPATIBILITIES (see below for more details) ***
 
-* HOL/inductive requires Inductive.thy as an ancestor;
-* `inj_onto' is now called `inj_on' (which makes more sense)
+* several changes of proof tools (see next section);
+
+* HOL/inductive requires Inductive.thy as an ancestor; `inj_onto' is
+now called `inj_on' (which makes more sense);
 
 * HOL/Relation: renamed the relational operator r^-1 to 'converse'
-  from 'inverse' (for compatibility with ZF and some literature)
+from 'inverse' (for compatibility with ZF and some literature);
 
 
 *** Proof tools ***
@@ -77,7 +80,7 @@ recommended to convert to these new commands using isatool fixgoal (as
 usual, backup your sources first!);
 
 * new toplevel commands 'thm' and 'thms' for retrieving theorems from
-the current theory context;
+the current theory context, and 'theory' to lookup stored theories;
 
 * new theory section 'nonterminals' for purely syntactic types;
 
@@ -106,10 +109,14 @@ with add/delsplits);
 * HOL/Prod introduces simplification procedure unit_eq_proc rewriting
 (?x::unit) = (); this is made part of the default simpset, which COULD
 MAKE EXISTING PROOFS FAIL under rare circumstances (consider
-'Delsimprocs [unit_eq_proc];' as last resort);
+'Delsimprocs [unit_eq_proc];' as last resort); also note that
+unit_abs_eta_conv is added in order to counter the effect of
+unit_eq_proc on (%u::unit. f u), replacing it by f rather than by
+%u.f();
 
-* HOL/record package: now includes concrete syntax for record terms
-(still lacks important theorems, like surjective pairing and split);
+* HOL/record package: now includes concrete syntax for record types,
+terms, updates; still lacks important theorems, like surjective
+pairing and split;
 
 * HOL/inductive package reorganized and improved: now supports mutual
 definitions such as
@@ -178,6 +185,9 @@ instead of "inverse";
 
 *** Internal programming interfaces ***
 
+* removed global_names compatibility flag -- all theory declarations
+are qualified by default;
+
 * improved the theory data mechanism to support encapsulation (data
 kind name replaced by private Object.kind, acting as authorization
 key); new type-safe user interface via functor TheoryDataFun;
@@ -191,7 +201,8 @@ cterm -> thm;
 * Pure: several new basic modules made available for general use, see
 also src/Pure/README;
 
-* new tactical CHANGED_GOAL for checking that a tactic modifies a subgoal
+* new tactical CHANGED_GOAL for checking that a tactic modifies a
+subgoal;
 
 
 
