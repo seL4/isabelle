@@ -592,15 +592,10 @@ by (etac dvd_diff 1);
 by (rtac dvd_refl 1);
 qed "dvd_reduce";
 
-Goalw [dvd_def] "!!n::nat. [| f dvd m; f dvd n; 0<n |] ==> f dvd m mod n";
-by (Clarify_tac 1);
-by (Full_simp_tac 1);
-by (res_inst_tac 
-    [("x", "(((k div ka)*ka + k mod ka) - ((f*k) div (f*ka)) * ka)")] 
-    exI 1);
-by (asm_simp_tac
-    (simpset() addsimps [diff_mult_distrib2, mod_mult_distrib2 RS sym, 
-			 add_mult_distrib2]) 1);
+Goalw [dvd_def] "!!n::nat. [| f dvd m; f dvd n |] ==> f dvd m mod n";
+by (div_undefined_case_tac "n=0" 1);
+by Auto_tac; 
+by (blast_tac (claset() addIs [mod_mult_distrib2 RS sym]) 1);  
 qed "dvd_mod";
 
 Goal "[| (k::nat) dvd m mod n;  k dvd n |] ==> k dvd m";
@@ -608,19 +603,6 @@ by (subgoal_tac "k dvd (m div n)*n + m mod n" 1);
 by (asm_simp_tac (simpset() addsimps [dvd_add, dvd_mult]) 2);
 by (asm_full_simp_tac (simpset() addsimps [mod_div_equality]) 1);
 qed "dvd_mod_imp_dvd";
-
-Goalw [dvd_def] "!!n::nat. [| f dvd m; f dvd n |] ==> f dvd m mod n";
-by (div_undefined_case_tac "n=0" 1);
-by (Clarify_tac 1);
-by (Full_simp_tac 1);
-by (rename_tac "j" 1);
-by (res_inst_tac 
-    [("x", "(((k div j)*j + k mod j) - ((f*k) div (f*j)) * j)")] 
-    exI 1);
-by (asm_simp_tac
-    (simpset() addsimps [diff_mult_distrib2, mod_mult_distrib2 RS sym, 
-			 add_mult_distrib2]) 1);
-qed "dvd_mod";
 
 Goal "k dvd n ==> ((k::nat) dvd m mod n) = (k dvd m)";
 by (blast_tac (claset() addIs [dvd_mod_imp_dvd, dvd_mod]) 1); 

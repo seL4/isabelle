@@ -2049,12 +2049,6 @@ by (auto_tac (claset() addSDs [order_le_less_trans],
               simpset() addsimps [not_real_leE]));
 val lemma = result();
 
-Goal "{n. u < abs (real n)} : FreeUltrafilterNat";
-by (cut_inst_tac [("u","u")] rabs_real_of_nat_le_real_FreeUltrafilterNat 1);
-by (auto_tac (claset() addDs [FreeUltrafilterNat_Compl_mem],
-              simpset() addsimps [lemma]));
-qed "FreeUltrafilterNat_omega";
-
 (*-----------------------------------------------
        Omega is a member of HInfinite
  -----------------------------------------------*)
@@ -2062,7 +2056,6 @@ qed "FreeUltrafilterNat_omega";
 Goal "hyprel``{%n::nat. real (Suc n)} : hypreal";
 by Auto_tac;
 qed "hypreal_omega";
-
 
 Goal "{n. u < real n} : FreeUltrafilterNat";
 by (cut_inst_tac [("u","u")] rabs_real_of_nat_le_real_FreeUltrafilterNat 1);

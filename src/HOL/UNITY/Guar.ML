@@ -253,18 +253,6 @@ qed "guarantees_JN_INT";
 
 Goalw [guar_def]
     "[| ALL i:I. F i : X i guarantees Y i;  OK I F |] \
-\    ==> (JOIN I F) : (INTER I X) guarantees (INTER I Y)";
-by Auto_tac;
-by (ball_tac 1);
-by (rename_tac "i" 1);
-by (dres_inst_tac [("x", "JOIN (I-{i}) F Join G")] spec 1);
-by (auto_tac
-    (claset() addIs [OK_imp_ok],
-     simpset() addsimps [Join_assoc RS sym, JN_Join_diff, JN_absorb]));
-qed "guarantees_JN_INT";
-
-Goalw [guar_def]
-    "[| ALL i:I. F i : X i guarantees Y i;  OK I F |] \
 \    ==> (JOIN I F) : (UNION I X) guarantees (UNION I Y)";
 by Auto_tac;
 by (ball_tac 1);
