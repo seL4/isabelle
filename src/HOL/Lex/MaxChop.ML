@@ -54,7 +54,7 @@ by (rtac ballI 1);
 by (etac exE 1);
 by (etac allE 1);
 by Auto_tac;
-qed_spec_mp "chop_nonempty";
+qed "chop_nonempty";
 
 val [prem] = goalw thy [is_maxchopper_def]
  "is_maxsplitter P splitf ==> is_maxchopper P (chop splitf)";
@@ -63,7 +63,7 @@ by (rtac iffI 1);
  by (rtac conjI 1);
   by (etac (prem RS chop_concat) 1);
  by (rtac conjI 1);
-  by (etac (prem RS chop_nonempty) 1);
+  by (etac (prem RS (chop_nonempty RS spec RS spec RS mp)) 1);
  by (etac rev_mp 1);
  by (stac (prem RS is_maxsplitter_reducing RS chop_rule) 1);
  by (simp_tac (simpset() addsimps [Let_def,rewrite_rule[is_maxsplitter_def]prem]
