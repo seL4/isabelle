@@ -16,6 +16,9 @@ started with "isatool mkdir Test && isatool make";
 isatool usedir -g true will produce session_graph.eps/.pdf for use
 with \includegraphics of LaTeX;
 
+* proper spacing of consecutive markup elements, especially text
+blocks after section headings;
+
 * support bold style (for single symbols only), input syntax is like
 this: "\<^bold>\<alpha>" or "\<^bold>A";
 
