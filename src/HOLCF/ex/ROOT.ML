@@ -11,9 +11,7 @@ HOLCF_build_completed;    (*Cause examples to fail if HOLCF did*)
 writeln"Root file for HOLCF examples";
 proof_timing := true;
 
-time_use_thy "Classlib";
 time_use_thy "Dnat";
-time_use_thy "Dlist";
 time_use_thy "Stream";
 time_use_thy "Dagstuhl";
 time_use_thy "Focus_ex";

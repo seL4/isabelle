@@ -89,6 +89,7 @@ IOA_ABP: $(OUT)/IOA $(IOA_ABP_FILES)
 IOA_NTP: $(OUT)/IOA $(IOA_NTP_FILES)
 	@cd IOA; $(ISATOOL) usedir $(OUT)/IOA NTP
 
+
 ## IMP
 
 IMP_THYS = IMP/Denotational.thy
@@ -97,20 +98,23 @@ IMP_FILES = IMP/ROOT.ML $(IMP_THYS) $(IMP_THYS:.thy=.ML)
 IMP:	$(OUT)/HOLCF $(IMP_FILES)
 	@$(ISATOOL) usedir $(OUT)/HOLCF IMP
 
+
 ## Miscellaneous examples
 
-EX_THYS = ex/Dnat.thy ex/Dlist.thy ex/Stream.thy \
+EX_THYS = ex/Dnat.thy ex/Stream.thy \
 	  ex/Dagstuhl.thy ex/Focus_ex.thy ex/Fix2.thy \
 	  ex/Hoare.thy ex/Loop.thy
 
 EX_FILES = ex/ROOT.ML ex/loeckx.ML $(EX_THYS) $(EX_THYS:.thy=.ML)
 
-EX:	ex/ROOT.ML $(EX_FILES)
+ex:	ex/ROOT.ML $(EX_FILES)
 	@$(ISATOOL) usedir $(OUT)/HOLCF ex
+
 
 ## Full test
 
-test:	$(OUT)/HOLCF IOA IOA_ABP IOA_NTP IMP EX
+test:	$(OUT)/HOLCF IOA IOA_ABP IOA_NTP IMP ex
 	echo 'Test examples ran successfully' > test
+
 
 .PRECIOUS: $(OUT)/HOL $(OUT)/HOLCF
