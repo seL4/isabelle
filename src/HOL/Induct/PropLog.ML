@@ -43,7 +43,7 @@ goal PropLog.thy "!!H. insert p H |- q  ==>  H |- p->q";
 by (etac thms.induct 1);
 by (ALLGOALS 
     (fast_tac (claset() addIs [thms_I, thms.H, thms.K, thms.S, thms.DN, 
-                             thms.S RS thms.MP RS thms.MP, weaken_right])));
+			       thms.S RS thms.MP RS thms.MP, weaken_right])));
 qed "deduction";
 
 
@@ -105,15 +105,15 @@ by (rtac (expand_if RS iffD2) 1);
 by (PropLog.pl.induct_tac "p" 1);
 by (ALLGOALS (simp_tac (simpset() addsimps [thms_I, thms.H])));
 by (fast_tac (claset() addIs [weaken_left_Un1, weaken_left_Un2, 
-                           weaken_right, imp_false]
-                    addSEs [false_imp]) 1);
+			      weaken_right, imp_false]
+                       addSEs [false_imp]) 1);
 qed "hyps_thms_if";
 
 (*Key lemma for completeness; yields a set of assumptions satisfying p*)
 val [sat] = goalw PropLog.thy [sat_def] "{} |= p ==> hyps p tt |- p";
 by (rtac (sat RS spec RS mp RS if_P RS subst) 1 THEN
     rtac hyps_thms_if 2);
-by (Fast_tac 1);
+by (Simp_tac 1);
 qed "sat_thms_p";
 
 (*For proving certain theorems in our new propositional logic*)
