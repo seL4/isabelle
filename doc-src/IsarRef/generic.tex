@@ -138,7 +138,7 @@
 
 Calculational proof is forward reasoning with implicit application of
 transitivity rules (such those of $=$, $\le$, $<$).  Isabelle/Isar maintains
-an auxiliary register $calculation$\indexisarreg{calculation} for accumulating
+an auxiliary register $calculation$\indexisarthm{calculation} for accumulating
 results obtained by transitivity obtained together with the current facts.
 Command $\ALSO$ updates $calculation$ from the most recent result, while
 $\FINALLY$ exhibits the final result by forward chaining towards the next goal
@@ -243,7 +243,7 @@ axiomatic type classes, including instantiation proofs.
 
 \subsection{Simplification methods}\label{sec:simp}
 
-\indexisarmeth{simp}\indexisarmeth{asm_simp}
+\indexisarmeth{simp}\indexisarmeth{asm-simp}
 \begin{matharray}{rcl}
   simp & : & \isarmeth \\
   asm_simp & : & \isarmeth \\
@@ -294,7 +294,8 @@ axiomatic type classes, including instantiation proofs.
 
 \subsection{Forward simplification}
 
-\indexisaratt{simplify}\indexisaratt{asm_simplify}\indexisaratt{full_simplify}\indexisaratt{asm_full_simplify}
+\indexisaratt{simplify}\indexisaratt{asm-simplify}
+\indexisaratt{full-simplify}\indexisaratt{asm-full-simplify}
 \begin{matharray}{rcl}
   simplify & : & \isaratt \\
   asm_simplify & : & \isaratt \\
@@ -348,7 +349,7 @@ used only very rarely.  See the ML functions of the same name in
 \subsection{Automatic methods}\label{sec:classical-auto}
 
 \indexisarmeth{blast}
-\indexisarmeth{fast}\indexisarmeth{best}\indexisarmeth{slow}\indexisarmeth{slow_best}
+\indexisarmeth{fast}\indexisarmeth{best}\indexisarmeth{slow}\indexisarmeth{slow-best}
 \begin{matharray}{rcl}
  blast & : & \isarmeth \\
  fast & : & \isarmeth \\
@@ -410,11 +411,13 @@ rules.  There semantics is analogous to the attributes given in
 
 \subsection{Modifying the context}\label{sec:classical-mod}
 
-\indexisaratt{intro}\indexisaratt{elim}\indexisaratt{dest}\indexisaratt{delrule}
+\indexisaratt{intro}\indexisaratt{elim}\indexisaratt{dest}
+\indexisaratt{iff}\indexisaratt{delrule}
 \begin{matharray}{rcl}
   intro & : & \isaratt \\
   elim & : & \isaratt \\
   dest & : & \isaratt \\
+  iff & : & \isaratt \\
   delrule & : & \isaratt \\
 \end{matharray}
 
@@ -429,6 +432,9 @@ rules.  There semantics is analogous to the attributes given in
   single ``!'' classifies as \emph{unsafe}, and ``!!'' as \emph{extra} (i.e.\ 
   not applied in the search-oriented automatic methods).
   
+\item [$iff$] declares equations both as rewrite rules for the simplifier and
+  classical reasoning rules.
+
 \item [$delrule$] deletes introduction or elimination rules from the context.
   Note that destruction rules would have to be turned into elimination rules
   first, e.g.\ by using the $elimify$ attribute.
