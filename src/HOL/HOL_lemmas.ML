@@ -412,7 +412,6 @@ qed_goal "case_split_thm" (the_context ()) "[| P ==> Q; ~P ==> Q |] ==> Q"
                   etac p2 1, etac p1 1]);
 
 fun case_tac a = res_inst_tac [("P",a)] case_split_thm;
-bind_thm ("case", case_split_thm);
 
 
 (** Standard abbreviations **)
