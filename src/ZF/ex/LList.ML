@@ -8,6 +8,7 @@ Codatatype definition of Lazy Lists
 
 structure LList = CoDatatype_Fun
  (val thy        = QUniv.thy
+  val thy_name   = "LList"
   val rec_specs  = [("llist", "quniv(A)",
                       [(["LNil"],   "i",NoSyn), 
                        (["LCons"],  "[i,i]=>i",NoSyn)])]

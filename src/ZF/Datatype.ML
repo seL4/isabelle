@@ -17,6 +17,7 @@ open Const Constructor;
 
 structure Inductive = Inductive_Fun
         (val thy = con_thy;
+         val thy_name = thy_name;
 	 val rec_doms = (map #1 rec_specs) ~~ (map #2 rec_specs);
 	 val sintrs = sintrs;
 	 val monos = monos;
@@ -38,6 +39,7 @@ open Const Constructor;
 
 structure CoInductive = CoInductive_Fun
         (val thy = con_thy;
+         val thy_name = thy_name;
 	 val rec_doms = (map #1 rec_specs) ~~ (map #2 rec_specs);
 	 val sintrs = sintrs;
 	 val monos = monos;

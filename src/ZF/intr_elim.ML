@@ -65,6 +65,7 @@ signature SU =			(** Description of a disjoint sum **)
 signature INDUCTIVE =		(** Description of a (co)inductive defn **)
   sig
   val thy        : theory		(*parent theory*)
+  val thy_name   : string               (*name of generated theory*)
   val rec_doms   : (string*string) list	(*recursion ops and their domains*)
   val sintrs     : string list		(*desired introduction rules*)
   val monos      : thm list		(*monotonicity of each M operator*)
@@ -76,6 +77,7 @@ signature INDUCTIVE =		(** Description of a (co)inductive defn **)
 signature INTR_ELIM =
   sig
   val thy        : theory		(*new theory*)
+  val thy_name   : string               (*name of generated theory*)
   val defs	 : thm list		(*definitions made in thy*)
   val bnd_mono   : thm			(*monotonicity for the lfp definition*)
   val unfold     : thm			(*fixed-point equation*)
@@ -210,7 +212,7 @@ val axpairs = map (mk_defpair sign)
 val thy = 
   Ind.thy
   |> add_axioms_i axpairs
-  |> add_thyname (big_rec_name ^ "_Inductive");
+  |> add_thyname thy_name;
 
 val defs = map (get_axiom thy o #1) axpairs;
 

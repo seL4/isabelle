@@ -11,6 +11,7 @@ HOL system proofs may be found in
 
 structure ParContract = Inductive_Fun
  (val thy = Contract.thy;
+  val thy_name = "ParContract";
   val rec_doms = [("parcontract","comb*comb")];
   val sintrs = 
       ["[| p:comb |] ==> p =1=> p",

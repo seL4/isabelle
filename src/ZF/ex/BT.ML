@@ -8,6 +8,7 @@ Datatype definition of binary trees
 
 structure BT = Datatype_Fun
  (val thy = Univ.thy;
+  val thy_name = "BT";
   val rec_specs = 
       [("bt", "univ(A)",
 	  [(["Lf"],"i",NoSyn), 

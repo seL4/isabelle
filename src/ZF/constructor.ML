@@ -22,6 +22,7 @@ Features:
 signature CONSTRUCTOR =
   sig
   val thy        : theory		(*parent theory*)
+  val thy_name   : string               (*name of generated theory*)
   val rec_specs  : (string * string * (string list * string * mixfix)list) list
                       (*recursion ops, types, domains, constructors*)
   val rec_styp	 : string		(*common type of all recursion ops*)

@@ -8,6 +8,7 @@ Trees & forests, a mutually recursive type definition.
 
 structure TF = Datatype_Fun
  (val thy        = Univ.thy
+  val thy_name   = "TF"
   val rec_specs  = [("tree", "univ(A)",
                        [(["Tcons"],  "[i,i]=>i",NoSyn)]),
                     ("forest", "univ(A)",

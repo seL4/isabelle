@@ -9,6 +9,7 @@ It has four contructors, of arities 0-3, and two parameters A and B.
 
 structure Data = Datatype_Fun
  (val thy        = Univ.thy
+  val thy_name = "Data"
   val rec_specs  = [("data", "univ(A Un B)",
                        [(["Con0"],   "i",NoSyn),
                         (["Con1"],   "i=>i",NoSyn),

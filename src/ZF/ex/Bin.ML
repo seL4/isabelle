@@ -9,6 +9,7 @@ Datatype of binary integers
 (*Example of a datatype with an infix constructor*)
 structure Bin = Datatype_Fun
  (val thy = Univ.thy;
+  val thy_name = "Bin";
   val rec_specs = 
       [("bin", "univ(0)",
 	  [(["Plus", "Minus"],	"i", NoSyn),

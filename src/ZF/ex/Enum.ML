@@ -17,6 +17,7 @@ val consts = mk_ids "con1" 60;
 
 structure Enum = Datatype_Fun
  (val thy = Univ.thy;
+  val thy_name = "Enum";
   val rec_specs = 
       [("enum", "univ(0)",
 	  [(consts, "i", NoSyn)])];

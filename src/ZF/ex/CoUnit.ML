@@ -14,6 +14,7 @@ Need to find sufficient conditions for codatatypes to work correctly!
 *)
 structure CoUnit = CoDatatype_Fun
  (val thy = QUniv.thy;
+  val thy_name = "CoUnit";
   val rec_specs = 
       [("counit", "quniv(0)",
 	  [(["Con"],	"i=>i", NoSyn)])];
@@ -50,6 +51,7 @@ val counit_eq_univ = result();
 
 structure CoUnit2 = CoDatatype_Fun
  (val thy = QUniv.thy;
+  val thy_name = "CoUnit2";
   val rec_specs = 
       [("counit2", "quniv(0)",
 	  [(["Con2"],	"[i,i]=>i", NoSyn)])];

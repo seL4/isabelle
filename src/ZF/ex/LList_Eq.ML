@@ -12,6 +12,7 @@ Equality for llist(A) as a greatest fixed point
 
 structure LList_Eq = CoInductive_Fun
  (val thy = LList.thy |> add_consts [("lleq","i=>i",NoSyn)]
+  val thy_name = "LList_Eq"
   val rec_doms   = [("lleq", "llist(A) * llist(A)")]
   val sintrs     = 
         ["<LNil, LNil> : lleq(A)",

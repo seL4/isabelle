@@ -8,6 +8,7 @@ Inductive definition of an operator to "map" a relation over a list
 
 structure Rmap = Inductive_Fun
  (val thy = List.thy |> add_consts [("rmap","i=>i",NoSyn)];
+  val thy_name = "Rmap";
   val rec_doms = [("rmap", "list(domain(r))*list(range(r))")];
   val sintrs = 
       ["<Nil,Nil> : rmap(r)",

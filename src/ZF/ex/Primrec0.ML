@@ -65,6 +65,7 @@ val PREC_succ = result();
 
 structure Primrec = Inductive_Fun
  (val thy        = Primrec0.thy
+  val thy_name   = "Primrec"
   val rec_doms   = [("primrec", "list(nat)->nat")]
   val sintrs     = 
       ["SC : primrec",

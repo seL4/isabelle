@@ -10,6 +10,7 @@ of the propositional tautologies.
 (*Example of a datatype with mixfix syntax for some constructors*)
 structure Prop = Datatype_Fun
  (val thy = Univ.thy;
+  val thy_name = "Prop";
   val rec_specs = 
       [("prop", "univ(0)",
 	  [(["Fls"],	"i",NoSyn),

@@ -78,6 +78,7 @@ val prop_ss = prop_rec_ss
 
 structure PropThms = Inductive_Fun
  (val thy = PropLog.thy;
+  val thy_name = "PropThms";
   val rec_doms = [("thms","prop")];
   val sintrs = 
       ["[| p:H;  p:prop |] ==> H |- p",

@@ -10,6 +10,7 @@ open Contract0;
 
 structure Contract = Inductive_Fun
  (val thy = Contract0.thy;
+  val thy_name = "Contract";
   val rec_doms = [("contract","comb*comb")];
   val sintrs = 
       ["[| p:comb;  q:comb |] ==> K#p#q -1-> p",

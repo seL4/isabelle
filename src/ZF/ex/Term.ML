@@ -9,6 +9,7 @@ Illustrates the list functor (essentially the same type as in Trees & Forests)
 
 structure Term = Datatype_Fun
  (val thy = List.thy;
+  val thy_name = "Term";
   val rec_specs = 
       [("term", "univ(A)",
 	  [(["Apply"], "[i,i]=>i", NoSyn)])];

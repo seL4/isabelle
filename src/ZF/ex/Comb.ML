@@ -14,6 +14,7 @@ Report 265, University of Cambridge Computer Laboratory, 1992.
 (*Example of a datatype with mixfix syntax for some constructors*)
 structure Comb = Datatype_Fun
  (val thy = Univ.thy;
+  val thy_name = "Comb";
   val rec_specs = 
       [("comb", "univ(0)",
 	  [(["K","S"],	"i", NoSyn),
