@@ -97,6 +97,17 @@ lemma lem0: "[| (0::nat) < k; m <= n |] ==> m < n + k"
   apply simp
   done
 
+lemma lift_map [simp]:
+    "\<And>t. lift (t \<degree>\<degree> ts) i = lift t i \<degree>\<degree> map (\<lambda>t. lift t i) ts"
+  by (induct ts) simp_all
+
+lemma subst_map [simp]:
+    "\<And>t. subst (t \<degree>\<degree> ts) u i = subst t u i \<degree>\<degree> map (\<lambda>t. subst t u i) ts"
+  by (induct ts) simp_all
+
+lemma app_last: "(t \<degree>\<degree> ts) \<degree> u = t \<degree>\<degree> (ts @ [u])"
+  by simp
+
 
 text {* \medskip A customized induction schema for @{text "\<degree>\<degree>"}. *}
 
