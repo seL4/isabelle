@@ -28,6 +28,8 @@ local
 val output_chr = fn
   " " => "\\ " |
   "\n" => "\\isanewline\n" |
+  "!" => "{\\isacharbang}" |
+  "\"" => "{\\isachardoublequote}" |
   "#" => "{\\isacharhash}" |
   "$" => "{\\isachardollar}" |
   "%" => "{\\isacharpercent}" |
@@ -36,20 +38,29 @@ val output_chr = fn
   "(" => "{\\isacharparenleft}" |
   ")" => "{\\isacharparenright}" |
   "*" => "{\\isacharasterisk}" |
+  "+" => "{\\isacharplus}" |
+  "," => "{\\isacharcomma}" |
   "-" => "{\\isacharminus}" |
+  "." => "{\\isachardot}" |
+  "/" => "{\\isacharslash}" |
+  ":" => "{\\isacharcolon}" |
+  ";" => "{\\isacharsemicolon}" |
   "<" => "{\\isacharless}" |
+  "=" => "{\\isacharequal}" |
   ">" => "{\\isachargreater}" |
+  "?" => "{\\isacharquery}" |
+  "@" => "{\\isacharat}" |
   "[" => "{\\isacharbrackleft}" |
-  "\"" => "{\\isachardoublequote}" |
   "\\" => "{\\isacharbackslash}" |
   "]" => "{\\isacharbrackright}" |
   "^" => "{\\isacharcircum}" |
   "_" => "{\\isacharunderscore}" |
+  "`" => "{\\isacharbackquote}" |
   "{" => "{\\isacharbraceleft}" |
   "|" => "{\\isacharbar}" |
   "}" => "{\\isacharbraceright}" |
   "~" => "{\\isachartilde}" |
-  c => c;
+  c => if Symbol.is_digit c then enclose "\\isadigit{" "}" c else c;
 
 fun output_sym s =
   if size s = 1 then output_chr s
@@ -88,9 +99,7 @@ fun output_tok (Basic tok, _) =
       let val s = T.val_of tok in
         if invisible_token tok then ""
         else if T.is_kind T.Command tok then
-          if s = "{" then "{\\isabeginblock}"
-          else if s = "}" then "{\\isaendblock}"
-          else "\\isacommand{" ^ output_syms s ^ "}"
+          "\\isacommand{" ^ output_syms s ^ "}"
         else if T.is_kind T.Keyword tok andalso Syntax.is_identifier s then
           "\\isakeyword{" ^ output_syms s ^ "}"
         else if T.is_kind T.String tok then output_syms (quote s)
