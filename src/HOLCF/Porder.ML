@@ -50,7 +50,7 @@ qed "chain_tord";
 bind_thm("lub",lub_def RS meta_eq_to_obj_eq);
 
 Goal "EX x. M <<| x ==> M <<| lub(M)";
-by (asm_full_simp_tac (simpset() addsimps [lub, Ex_def]) 1);
+by (asm_full_simp_tac (simpset() addsimps [lub, some_eq_ex]) 1);
 bind_thm ("lubI", exI RS result());
 
 Goal "M <<| l ==> lub(M) = l";
