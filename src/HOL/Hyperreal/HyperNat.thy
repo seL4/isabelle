@@ -504,7 +504,7 @@ lemma hypnat_of_nat_minus:
 by (simp add: hypnat_of_nat_def split: nat_diff_split hypnat_diff_split)
 
 
-subsection{*Existence of an Infinite Hypernatural Number*}
+subsection{*Existence of an infinite hypernatural number*}
 
 lemma hypnat_omega: "hypnatrel``{%n::nat. n} \<in> hypnat"
 by auto
@@ -517,7 +517,7 @@ follows because member @{term FreeUltrafilterNat} is not finite.
 See @{text HyperDef.thy} for similar argument.*}
 
 
-subsection{*Properties of the set @{term Nats} of Embedded Natural Numbers*}
+subsection{*Properties of the set of embedded natural numbers*}
 
 lemma of_nat_eq_add [rule_format]:
      "\<forall>d::hypnat. of_nat m = of_nat n + d --> d \<in> range of_nat"
@@ -591,8 +591,9 @@ lemma HNatInfinite_not_Nats_iff: "(x \<in> HNatInfinite) = (x \<notin> Nats)"
 by (simp add: HNatInfinite_def)
 
 
-subsection{*Alternative Characterization of the Set of Infinite Hypernaturals:
-@{term "HNatInfinite = {N. \<forall>n \<in> Nats. n < N}"}*}
+subsection{*Alternative characterization of the set of infinite hypernaturals*}
+
+text{* @{term "HNatInfinite = {N. \<forall>n \<in> Nats. n < N}"}*}
 
 (*??delete? similar reasoning in hypnat_omega_gt_SHNat above*)
 lemma HNatInfinite_FreeUltrafilterNat_lemma:
