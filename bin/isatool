@@ -7,13 +7,26 @@
 
 ## settings
 
+PRG=$(basename $0)
+
 ISABELLE_HOME=$(dirname $(dirname $0))
-. $ISABELLE_HOME/lib/scripts/getsettings || exit 2
+case "$ISABELLE_HOME" in
+  /*)
+    if [ -f $ISABELLE_HOME/lib/scripts/getsettings ]; then
+      . $ISABELLE_HOME/lib/scripts/getsettings || exit 2
+    else
+      echo "ERROR: $PRG probably not called from its original place!"
+      exit 1
+    fi
+    ;;
+  *)
+    echo "ERROR: $PRG not called with absolute path specification!"
+    exit 1
+    ;;
+esac
 
 
 ## diagnostics
-
-PRG=$(basename $0)
 
 function usage()
 {
