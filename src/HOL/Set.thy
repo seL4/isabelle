@@ -100,6 +100,8 @@ syntax (symbols)
   Inter         :: (('a set) set) => 'a set           ("\\<Inter> _" [90] 90)
   "@Ball"       :: [pttrn, 'a set, bool] => bool      ("(3\\<forall> _\\<in>_./ _)" [0, 0, 10] 10)
   "@Bex"        :: [pttrn, 'a set, bool] => bool      ("(3\\<exists> _\\<in>_./ _)" [0, 0, 10] 10)
+
+syntax (symbols output)
   "*Ball"       :: [pttrn, 'a set, bool] => bool      ("(3\\<forall> _\\<in>_./ _)" [0, 0, 10] 10)
   "*Bex"        :: [pttrn, 'a set, bool] => bool      ("(3\\<exists> _\\<in>_./ _)" [0, 0, 10] 10)
 

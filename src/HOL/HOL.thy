@@ -123,10 +123,13 @@ syntax (symbols)
   "! "          :: [idts, bool] => bool             ("(3\\<forall>_./ _)" [0, 10] 10)
   "? "          :: [idts, bool] => bool             ("(3\\<exists>_./ _)" [0, 10] 10)
   "?! "         :: [idts, bool] => bool             ("(3\\<exists>!_./ _)" [0, 10] 10)
+  "@case1"      :: ['a, 'b] => case_syn             ("(2_ \\<mapsto>/ _)" 10)
+
+syntax (symbols output)
   "*All"        :: [idts, bool] => bool             ("(3\\<forall>_./ _)" [0, 10] 10)
   "*Ex"         :: [idts, bool] => bool             ("(3\\<exists>_./ _)" [0, 10] 10)
   "*Ex1"        :: [idts, bool] => bool             ("(3\\<exists>!_./ _)" [0, 10] 10)
-  "@case1"      :: ['a, 'b] => case_syn             ("(2_ \\<mapsto>/ _)" 10)
+
 
 
 
