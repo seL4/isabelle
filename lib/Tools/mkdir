@@ -123,7 +123,7 @@ else
     echo "SRC = \$(ISABELLE_HOME)/src"
     echo "OUT = \$(ISABELLE_OUTPUT)"
     echo "LOG = \$(OUT)/log"
-    echo "USEDIR = \$(ISATOOL) usedir -i true -d dvi"
+    echo "USEDIR = \$(ISATOOL) usedir -i true -d dvi  ## -D document"
     echo
     echo
     echo "## $NAME"
