@@ -8,7 +8,8 @@ text{*
 \begin{tabular}{lll}
 Constant & Type & Syntax \\
 \hline
-@{term 0} & @{text "'a::zero"} \\
+@{text 0} & @{text "'a::zero"} \\
+@{text 1} & @{text "'a::one"} \\
 @{text"+"} & @{text "('a::plus) \<Rightarrow> 'a \<Rightarrow> 'a"} & (infixl 65) \\
 @{text"-"} & @{text "('a::minus) \<Rightarrow> 'a \<Rightarrow> 'a"} &  (infixl 65) \\
 @{text"-"} & @{text "('a::minus) \<Rightarrow> 'a"} \\

@@ -146,9 +146,9 @@ subsubsection{*The {\tt\slshape while} Combinator*}
 
 text{*If the recursive function happens to be tail recursive, its
 definition becomes a triviality if based on the predefined \cdx{while}
-combinator.  The latter lives in the Library theory
-\thydx{While_Combinator}, which is not part of @{text Main} but needs to
-be included explicitly among the ancestor theories.
+combinator.  The latter lives in the Library theory \thydx{While_Combinator}.
+% which is not part of {text Main} but needs to
+% be included explicitly among the ancestor theories.
 
 Constant @{term while} is of type @{text"('a \<Rightarrow> bool) \<Rightarrow> ('a \<Rightarrow> 'a) \<Rightarrow> 'a"}
 and satisfies the recursion equation @{thm[display]while_unfold[no_vars]}

@@ -61,6 +61,16 @@ induction followed by all-out simplification via \isa{auto}.
 \item a basic repertoire of proof commands.
 \end{itemize}
 
+\begin{warn}
+It is tempting to think that all lemmas should have the \isa{simp} attribute
+just because this was the case in the example above. However, in that example
+all lemmas were equations, and the right-hand side was simpler than the
+left-hand side --- an ideal situation for simplification purposes. Unless
+this is clearly the case, novices should refrain from awarding a lemma the
+\isa{simp} attribute, which has a global effect. Instead, lemmas can be
+applied locally where they are needed, which is discussed in the following
+chapter.
+\end{warn}
 
 \section{Some Helpful Commands}
 \label{sec:commands-and-hints}
@@ -513,7 +523,6 @@ more advanced termination proofs are discussed in {\S}\ref{sec:beyond-measure}.
 \input{Recdef/document/examples.tex}
 
 \subsection{Proving Termination}
-
 \input{Recdef/document/termination.tex}
 
 \subsection{Simplification and Recursive Functions}

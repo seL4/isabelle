@@ -42,6 +42,13 @@ status of a theorem may indicate an unwise use of defaults.
   to include simplification rules that can lead to nontermination, either on
   their own or in combination with other simplification rules.
 \end{warn}
+\begin{warn}
+  It is inadvisable to toggle the simplification attribute of a
+  theorem from a parent theory $A$ in a child theory $B$ for good.
+  The reason is that if some theory $C$ is based both on $B$ and (via a
+  differnt path) on $A$, it is not defined what the simplification attribute
+  of that theorem will be in $C$: it could be either.
+\end{warn}
 *} 
 
 subsection{*The {\tt\slshape simp}  Method*}

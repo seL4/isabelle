@@ -35,7 +35,7 @@ warnings to that effect.
 However, there is nothing to prevent the user from forming terms such as
 @{text"inverse []"} and proving theorems such as @{text"inverse []
 = inverse []"} when inverse is not defined on lists.  Proving theorems about
-undefined constants does not endanger soundness, but it is pointless.
+unspecified constants does not endanger soundness, but it is pointless.
 To prevent such terms from even being formed requires the use of type classes.
 *}
 (*<*)end(*>*)

@@ -150,19 +150,15 @@ simplification will replace occurrences of \isa{rev\ {\isacharparenleft}rev\ xs{
 \isa{xs}.
 \end{itemize}
 The name and the simplification attribute are optional.
-Isabelle's response is to print the initial proof state
-\begin{isabelle}
-proof(prove):~step~0\isanewline
-\isanewline
-goal~(theorem~rev\_rev):\isanewline
-rev~(rev~xs)~=~xs\isanewline
-~1.~rev~(rev~xs)~=~xs
+Isabelle's response is to print the initial proof state consisting
+of some header information (like how many subgoals there are) followed by
+\begin{isabelle}%
+rev\ {\isacharparenleft}rev\ xs{\isacharparenright}\ {\isacharequal}\ xs\isanewline
+\ {\isadigit{1}}{\isachardot}\ rev\ {\isacharparenleft}rev\ xs{\isacharparenright}\ {\isacharequal}\ xs%
 \end{isabelle}
-The first three lines tell us that we are 0 steps into the proof of
-theorem \isa{rev{\isacharunderscore}rev}; for compactness reasons we rarely show these
-initial lines in this tutorial. The remaining lines display the current
-\rmindex{proof state}.
-Until we have finished a proof, the proof state always looks like this:
+For compactness reasons we omit the header in this tutorial.
+Until we have finished a proof, the \rmindex{proof state} proper
+always looks like this:
 \begin{isabelle}
 $G$\isanewline
 ~1.~$G\sb{1}$\isanewline
@@ -173,7 +169,7 @@ where $G$
 is the overall goal that we are trying to prove, and the numbered lines
 contain the subgoals $G\sb{1}$, \dots, $G\sb{n}$ that we need to prove to
 establish $G$.\index{subgoals}
-At \isa{step\ {\isadigit{0}}} there is only one subgoal, which is
+Initially there is only one subgoal, which is
 identical with the overall goal.  Normally $G$ is constant and only serves as
 a reminder. Hence we rarely show it in this tutorial.
 

@@ -178,9 +178,9 @@ recursive functions.  Here is a simple example of recursion induction:%
 \begin{isamarkuptext}%
 If the recursive function happens to be tail recursive, its
 definition becomes a triviality if based on the predefined \cdx{while}
-combinator.  The latter lives in the Library theory
-\thydx{While_Combinator}, which is not part of \isa{Main} but needs to
-be included explicitly among the ancestor theories.
+combinator.  The latter lives in the Library theory \thydx{While_Combinator}.
+% which is not part of {text Main} but needs to
+% be included explicitly among the ancestor theories.
 
 Constant \isa{while} is of type \isa{{\isacharparenleft}{\isacharprime}a\ {\isasymRightarrow}\ bool{\isacharparenright}\ {\isasymRightarrow}\ {\isacharparenleft}{\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a{\isacharparenright}\ {\isasymRightarrow}\ {\isacharprime}a}
 and satisfies the recursion equation \begin{isabelle}%

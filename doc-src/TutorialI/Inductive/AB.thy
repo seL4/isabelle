@@ -132,7 +132,7 @@ so trivial induction step. Since it is essentially just arithmetic, we do not
 discuss it.
 *}
 
-apply(induct w)
+apply(induct_tac w)
  apply(simp)
 by(force simp add: zabs_def take_Cons split: nat.split if_splits)
 

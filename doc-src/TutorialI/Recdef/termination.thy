@@ -20,13 +20,10 @@ consts f :: "nat\<times>nat \<Rightarrow> nat"
 recdef (*<*)(permissive)(*>*)f "measure(\<lambda>(x,y). x-y)"
   "f(x,y) = (if x \<le> y then x else f(x,y+1))"
 
-text{*\noindent
-Isabelle prints a
-\REMARK{error or warning?  change this part?  rename g to f?}
-message showing you what it was unable to prove. You will then
-have to prove it as a separate lemma before you attempt the definition
-of your function once more. In our case the required lemma is the obvious one:
-*}
+text{*\noindent This definition fails, and Isabelle prints an error message
+showing you what it was unable to prove. You will then have to prove it as a
+separate lemma before you attempt the definition of your function once
+more. In our case the required lemma is the obvious one: *}
 
 lemma termi_lem: "\<not> x \<le> y \<Longrightarrow> x - Suc y < x - y"
 
@@ -41,22 +38,21 @@ done
 text{*\noindent
 Because \isacommand{recdef}'s termination prover involves simplification,
 we include in our second attempt a hint: the \attrdx{recdef_simp} attribute 
-says to use @{thm[source]termi_lem} as
-a simplification rule.  
+says to use @{thm[source]termi_lem} as a simplification rule.  
 *}
 
-consts g :: "nat\<times>nat \<Rightarrow> nat"
-recdef g "measure(\<lambda>(x,y). x-y)"
-  "g(x,y) = (if x \<le> y then x else g(x,y+1))"
+(*<*)global consts f :: "nat\<times>nat \<Rightarrow> nat" (*>*)
+recdef f "measure(\<lambda>(x,y). x-y)"
+  "f(x,y) = (if x \<le> y then x else f(x,y+1))"
 (hints recdef_simp: termi_lem)
-
+(*<*)local(*>*)
 text{*\noindent
-This time everything works fine. Now @{thm[source]g.simps} contains precisely
-the stated recursion equation for @{term g}, which has been stored as a
+This time everything works fine. Now @{thm[source]f.simps} contains precisely
+the stated recursion equation for @{term f}, which has been stored as a
 simplification rule.  Thus we can automatically prove results such as this one:
 *}
 
-theorem "g(1,0) = g(1,1)"
+theorem "f(1,0) = f(1,1)"
 apply(simp)
 done
 
@@ -67,23 +63,7 @@ If the termination proof requires a new lemma that is of general use, you can
 turn it permanently into a simplification rule, in which case the above
 \isacommand{hint} is not necessary. But our @{thm[source]termi_lem} is not
 sufficiently general to warrant this distinction.
-
-The attentive reader may wonder why we chose to call our function @{term g}
-rather than @{term f} the second time around. The reason is that, despite
-the failed termination proof, the definition of @{term f} did not
-fail, and thus we could not define it a second time. However, all theorems
-about @{term f}, for example @{thm[source]f.simps}, carry as a precondition
-the unproved termination condition. Moreover, the theorems
-@{thm[source]f.simps} are not stored as simplification rules. 
-However, this mechanism
-allows a delayed proof of termination: instead of proving
-@{thm[source]termi_lem} up front, we could prove 
-it later on and then use it to remove the preconditions from the theorems
-about @{term f}. In most cases this is more cumbersome than proving things
-up front.
-\REMARK{FIXME, with one exception: nested recursion.}
 *}
-
 (*<*)
 end
 (*>*)

@@ -34,7 +34,7 @@ and induction, for example%
 \newcommand{\mystar}{*%
 }
 \index{arithmetic operations!for \protect\isa{nat}}%
-The usual arithmetic operations \ttindexboldpos{+}{$HOL2arithfun},
+The arithmetic operations \ttindexboldpos{+}{$HOL2arithfun},
 \ttindexboldpos{-}{$HOL2arithfun}, \ttindexboldpos{\mystar}{$HOL2arithfun},
 \sdx{div}, \sdx{mod}, \cdx{min} and
 \cdx{max} are predefined, as are the relations
@@ -47,8 +47,8 @@ The usual arithmetic operations \ttindexboldpos{+}{$HOL2arithfun},
   \ttindexboldpos{+}{$HOL2arithfun}, \ttindexboldpos{-}{$HOL2arithfun},
   \ttindexboldpos{\mystar}{$HOL2arithfun}, \cdx{min},
   \cdx{max}, \indexboldpos{\isasymle}{$HOL2arithrel} and
-  \ttindexboldpos{<}{$HOL2arithrel} are overloaded, i.e.\ they are available
-  not just for natural numbers but at other types as well.
+  \ttindexboldpos{<}{$HOL2arithrel} are overloaded: they are available
+  not just for natural numbers but for other types as well.
   For example, given the goal \isa{x\ {\isacharplus}\ {\isadigit{0}}\ {\isacharequal}\ x}, there is nothing to indicate
   that you are talking about natural numbers. Hence Isabelle can only infer
   that \isa{x} is of some arbitrary type where \isa{{\isadigit{0}}} and \isa{{\isacharplus}} are
@@ -65,7 +65,7 @@ The usual arithmetic operations \ttindexboldpos{+}{$HOL2arithfun},
   overloaded operations.
 \end{warn}
 \begin{warn}
-  Constant \isa{{\isadigit{1}}{\isacharcolon}{\isacharcolon}nat} is defined to be \isa{Suc\ {\isadigit{0}}}. This definition
+  Constant \isa{{\isadigit{1}}{\isacharcolon}{\isacharcolon}nat} is defined to equal \isa{Suc\ {\isadigit{0}}}. This definition
   (see \S\ref{sec:ConstDefinitions}) is unfolded automatically by some
   tactics (like \isa{auto}, \isa{simp} and \isa{arith}) but not by
   others (especially the single step tactics in Chapter~\ref{chap:rules}).

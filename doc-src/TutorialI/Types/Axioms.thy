@@ -242,6 +242,10 @@ unless the type variable is instantiated with a type that has been shown to
 belong to that class. Thus you may be able to prove @{prop False}
 from your axioms, but Isabelle will remind you that this
 theorem has the hidden hypothesis that the class is non-empty.
+
+Even if each individual class is consistent, intersections of (unrelated)
+classes readily become inconsistent in practice. Now we know this need not
+worry us.
 *}
 
 (*
