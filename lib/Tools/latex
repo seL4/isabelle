@@ -69,7 +69,7 @@ else
   FILEBASE=$DIR/$(basename "$FILE" .tex)
 fi
 
-function check_root () { [ -f "$FILEBASE.tex" ] || fail "Bad file '$FILE'" }
+function check_root () { [ -f "$FILEBASE.tex" ] || fail "Bad file '$FILE'"; }
 
 
 # operations

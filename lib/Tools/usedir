@@ -133,9 +133,12 @@ PARENT=$(basename "$LOGIC")
 
 [ -z "$BUILD" ] && cd "$NAME"
 
-DOC=""
-[ "$DOCUMENT" != false -a -d document ] && DOC="$DOCUMENT"
-[ -n "$DUMP" ] && $ISATOOL latex -o sty "$DUMP/root.tex" >/dev/null
+if [ "$DOCUMENT" != false -a -d document ]; then
+  DOC="$DOCUMENT"
+  [ -n "$DUMP" -a -d "$DUMP" ] && $ISATOOL latex -o sty "$DUMP/root.tex" >/dev/null
+else
+  DOC=""
+fi
 
 
 SECONDS=0
