@@ -615,6 +615,10 @@ fun merge_thy_list mk_draft thys =
 fun merge_theories (thy1, thy2) = merge_thy_list false [thy1, thy2];
 
 
+(* check that term does not contain same var with different typing/sorting *)
+fun nodup_Vars(thm as Thm{prop,...}) s =
+  Sign.nodup_Vars prop handle TYPE(msg,_,_) => raise THM(s^": "^msg,0,[thm]);
+
 
 (*** Meta rules ***)
 
@@ -703,10 +707,11 @@ fun forall_elim ct (th as Thm{sign,maxidx,hyps,prop,...}) : thm =
           Const("all",Type("fun",[Type("fun",[qary,_]),_])) $ A =>
             if T<>qary then
                 raise THM("forall_elim: type mismatch", 0, [th])
-            else fix_shyps [th] []
-                 (Thm{sign= Sign.merge(sign,signt),
-                     maxidx= max[maxidx, maxt],
-                     shyps= [], hyps= hyps,  prop= betapply(A,t)})
+            else let val thm = fix_shyps [th] []
+                      (Thm{sign= Sign.merge(sign,signt),
+                           maxidx= max[maxidx, maxt],
+                           shyps= [], hyps= hyps,  prop= betapply(A,t)})
+                 in nodup_Vars thm "forall_elim"; thm end
         | _ => raise THM("forall_elim: not quantified", 0, [th])
   end
   handle TERM _ =>
@@ -827,12 +832,13 @@ fun abstract_rule a cx (th as Thm{sign,maxidx,hyps,prop,...}) =
 fun combination th1 th2 =
   let val Thm{maxidx=max1, shyps=shyps1, hyps=hyps1, prop=prop1,...} = th1
       and Thm{maxidx=max2, shyps=shyps2, hyps=hyps2, prop=prop2,...} = th2
-  in  case (prop1,prop2)  of
+  in case (prop1,prop2)  of
        (Const("==",_) $ f $ g, Const("==",_) $ t $ u) =>
-              (*no fix_shyps*)
-              Thm{sign= merge_thm_sgs(th1,th2), shyps= shyps1 union shyps2,
-                  hyps= hyps1 union hyps2,
-                  maxidx= max[max1,max2], prop= Logic.mk_equals(f$t, g$u)}
+          let val thm = (*no fix_shyps*)
+             Thm{sign= merge_thm_sgs(th1,th2), shyps= shyps1 union shyps2,
+                 hyps= hyps1 union hyps2,
+                 maxidx= max[max1,max2], prop= Logic.mk_equals(f$t, g$u)}
+          in nodup_Vars thm "combination"; thm end
      | _ =>  raise THM("combination: premises", 0, [th1,th2])
   end;
 
@@ -949,16 +955,8 @@ fun instantiate (vcTs,ctpairs)  (th as Thm{sign,maxidx,hyps,prop,...}) =
       then raise THM("instantiate: variables not distinct", 0, [th])
       else if not(null(findrep(map #1 vTs)))
       then raise THM("instantiate: type variables not distinct", 0, [th])
-      else (*Check types of Vars for agreement*)
-      case findrep (map (#1 o dest_Var) (term_vars newprop)) of
-          ix::_ => raise THM("instantiate: conflicting types for variable " ^
-                             Syntax.string_of_vname ix ^ "\n", 0, [newth])
-        | [] =>
-             case findrep (map #1 (term_tvars newprop)) of
-             ix::_ => raise THM
-                    ("instantiate: conflicting sorts for type variable " ^
-                     Syntax.string_of_vname ix ^ "\n", 0, [newth])
-        | [] => newth
+      else nodup_Vars newth "instantiate";
+      newth
   end
   handle TERM _ =>
            raise THM("instantiate: incompatible signatures",0,[th])
