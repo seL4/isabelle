@@ -250,9 +250,8 @@ qed "JN_ensures";
 
 Goalw [ensures_def]
      "F Join G : A ensures B =     \
-\     (F : (A-B) co (A Un B) & \
-\      G : (A-B) co (A Un B) & \
-\      (F : A ensures B | G : A ensures B))";
+\     (F : (A-B) co (A Un B) & G : (A-B) co (A Un B) & \
+\      (F : transient (A-B) | G : transient (A-B)))";
 by (auto_tac (claset(),
 	      simpset() addsimps [Join_constrains, Join_transient]));
 qed "Join_ensures";

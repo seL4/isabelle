@@ -6,7 +6,7 @@
 lift_prog, etc: replication of components
 *)
 
-Lift_prog = Guar + Extend +
+Lift_prog = Project +
 
 constdefs
 

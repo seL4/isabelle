@@ -197,6 +197,17 @@ by (Blast_tac 1);
 qed "constrains_cancel";
 
 
+(*** unless ***)
+
+Goalw [unless_def] "F : (A-B) co (A Un B) ==> F : A unless B";
+by (assume_tac 1);
+qed "unlessI";
+
+Goalw [unless_def] "F : A unless B ==> F : (A-B) co (A Un B)";
+by (assume_tac 1);
+qed "unlessD";
+
+
 (*** stable ***)
 
 Goalw [stable_def] "F : A co A ==> F : stable A";

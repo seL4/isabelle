@@ -10,7 +10,7 @@ CONSIDER CHANGING "sum" to work on type "int", not "nat"
   --but need invariants that values are non-negative
 *)
 
-Alloc = Follows + Extend + PPROD +
+Alloc = Follows + Project + PPROD +
 
 (*Duplicated from HOL/ex/NatSum.thy.
   Maybe type should be  [nat=>int, nat] => int**)
