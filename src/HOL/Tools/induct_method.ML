@@ -240,7 +240,7 @@ fun cases_tac (ctxt, ((simplified, open_parms), args)) facts =
     val cert = Thm.cterm_of sg;
 
     fun inst_rule insts thm =
-      (align_right "Rule has fewer premises than arguments given" (Thm.prems_of thm) insts
+      (align_left "Rule has fewer premises than arguments given" (Thm.prems_of thm) insts
         |> (flat o map (prep_inst align_left cert))
         |> Drule.cterm_instantiate) thm;
 
