@@ -67,42 +67,43 @@ sig
   val with_facts_i: (thm * Proof.context attribute list) list * Comment.text
     -> ProofHistory.T -> ProofHistory.T
   val chain: Comment.text -> ProofHistory.T -> ProofHistory.T
+  val export_chain: Comment.text -> ProofHistory.T -> ProofHistory.T
   val fix: (string * string option) list * Comment.text -> ProofHistory.T -> ProofHistory.T
   val fix_i: (string * typ) list * Comment.text -> ProofHistory.T -> ProofHistory.T
   val match_bind: ((string list * string) * Comment.text) list -> ProofHistory.T -> ProofHistory.T
   val match_bind_i: ((term list * term) * Comment.text) list -> ProofHistory.T -> ProofHistory.T
-  val theorem: (bstring * Args.src list * (string * string list)) * Comment.text
-    -> bool -> theory -> ProofHistory.T
-  val theorem_i: (bstring * theory attribute list * (term * term list)) * Comment.text
-    -> bool -> theory -> ProofHistory.T
-  val lemma: (bstring * Args.src list * (string * string list)) * Comment.text
-    -> bool -> theory -> ProofHistory.T
-  val lemma_i: (bstring * theory attribute list * (term * term list)) * Comment.text
-    -> bool -> theory -> ProofHistory.T
-  val assume: (string * Args.src list * (string * string list) list) * Comment.text
-    -> ProofHistory.T -> ProofHistory.T
-  val assume_i: (string * Proof.context attribute list * (term * term list) list) * Comment.text
-    -> ProofHistory.T -> ProofHistory.T
-  val presume: (string * Args.src list * (string * string list) list) * Comment.text
-    -> ProofHistory.T -> ProofHistory.T
-  val presume_i: (string * Proof.context attribute list * (term * term list) list) * Comment.text
-    -> ProofHistory.T -> ProofHistory.T
-  val show: (string * Args.src list * (string * string list)) * Comment.text
-    -> ProofHistory.T -> ProofHistory.T
-  val show_i: (string * Proof.context attribute list * (term * term list)) * Comment.text
-    -> ProofHistory.T -> ProofHistory.T
-  val have: (string * Args.src list * (string * string list)) * Comment.text
-    -> ProofHistory.T -> ProofHistory.T
-  val have_i: (string * Proof.context attribute list * (term * term list)) * Comment.text
-    -> ProofHistory.T -> ProofHistory.T
-  val thus: (string * Args.src list * (string * string list)) * Comment.text
-    -> ProofHistory.T -> ProofHistory.T
-  val thus_i: (string * Proof.context attribute list * (term * term list)) * Comment.text
-    -> ProofHistory.T -> ProofHistory.T
-  val hence: (string * Args.src list * (string * string list)) * Comment.text
-    -> ProofHistory.T -> ProofHistory.T
-  val hence_i: (string * Proof.context attribute list * (term * term list)) * Comment.text
-    -> ProofHistory.T -> ProofHistory.T
+  val theorem: (bstring * Args.src list * (string * (string list * string list)))
+    * Comment.text -> bool -> theory -> ProofHistory.T
+  val theorem_i: (bstring * theory attribute list * (term * (term list * term list)))
+    * Comment.text -> bool -> theory -> ProofHistory.T
+  val lemma: (bstring * Args.src list * (string * (string list * string list)))
+    * Comment.text -> bool -> theory -> ProofHistory.T
+  val lemma_i: (bstring * theory attribute list * (term * (term list * term list)))
+    * Comment.text -> bool -> theory -> ProofHistory.T
+  val assume: (string * Args.src list * (string * (string list * string list)) list)
+    * Comment.text -> ProofHistory.T -> ProofHistory.T
+  val assume_i: (string * Proof.context attribute list * (term * (term list * term list)) list)
+    * Comment.text -> ProofHistory.T -> ProofHistory.T
+  val presume: (string * Args.src list * (string * (string list * string list)) list)
+    * Comment.text -> ProofHistory.T -> ProofHistory.T
+  val presume_i: (string * Proof.context attribute list * (term * (term list * term list)) list)
+    * Comment.text -> ProofHistory.T -> ProofHistory.T
+  val show: (string * Args.src list * (string * (string list * string list)))
+    * Comment.text -> ProofHistory.T -> ProofHistory.T
+  val show_i: (string * Proof.context attribute list * (term * (term list * term list)))
+    * Comment.text -> ProofHistory.T -> ProofHistory.T
+  val have: (string * Args.src list * (string * (string list * string list)))
+    * Comment.text -> ProofHistory.T -> ProofHistory.T
+  val have_i: (string * Proof.context attribute list * (term * (term list * term list)))
+    * Comment.text -> ProofHistory.T -> ProofHistory.T
+  val thus: (string * Args.src list * (string * (string list * string list)))
+    * Comment.text -> ProofHistory.T -> ProofHistory.T
+  val thus_i: (string * Proof.context attribute list * (term * (term list * term list)))
+    * Comment.text -> ProofHistory.T -> ProofHistory.T
+  val hence: (string * Args.src list * (string * (string list * string list)))
+    * Comment.text -> ProofHistory.T -> ProofHistory.T
+  val hence_i: (string * Proof.context attribute list * (term * (term list * term list)))
+    * Comment.text -> ProofHistory.T -> ProofHistory.T
   val begin_block: ProofHistory.T -> ProofHistory.T
   val next_block: ProofHistory.T -> ProofHistory.T
   val end_block: ProofHistory.T -> ProofHistory.T
@@ -118,7 +119,8 @@ sig
     -> (Method.text * Comment.interest) option
     -> Toplevel.transition -> Toplevel.transition
   val qed: (Method.text * Comment.interest) option -> Toplevel.transition -> Toplevel.transition
-  val terminal_proof: Method.text * Comment.interest -> Toplevel.transition -> Toplevel.transition
+  val terminal_proof: (Method.text * Comment.interest) * (Method.text * Comment.interest) option
+    -> Toplevel.transition -> Toplevel.transition
   val immediate_proof: Toplevel.transition -> Toplevel.transition
   val default_proof: Toplevel.transition -> Toplevel.transition
   val skip_proof: Toplevel.transition -> Toplevel.transition
@@ -252,6 +254,7 @@ val with_facts = gen_from_facts (local_have_thmss add_thmss) o Comment.ignore;
 val with_facts_i = gen_from_facts (have_thmss_i add_thmss) o Comment.ignore;
 
 fun chain comment_ignore = ProofHistory.apply Proof.chain;
+fun export_chain comment_ignore = ProofHistory.applys Proof.export_chain;
 
 
 (* context *)
@@ -280,10 +283,10 @@ val theorem   = global_statement Proof.theorem o Comment.ignore;
 val theorem_i = global_statement_i Proof.theorem_i o Comment.ignore;
 val lemma     = global_statement Proof.lemma o Comment.ignore;
 val lemma_i   = global_statement_i Proof.lemma_i o Comment.ignore;
-val assume    = local_statement (Proof.assume assume_tac) I o Comment.ignore;
-val assume_i  = local_statement_i (Proof.assume_i assume_tac) I o Comment.ignore;
-val presume   = local_statement (Proof.assume (K all_tac)) I o Comment.ignore;
-val presume_i = local_statement_i (Proof.assume_i (K all_tac)) I o Comment.ignore;
+val assume    = local_statement Proof.assume I o Comment.ignore;
+val assume_i  = local_statement_i Proof.assume_i I o Comment.ignore;
+val presume   = local_statement Proof.presume I o Comment.ignore;
+val presume_i = local_statement_i Proof.presume_i I o Comment.ignore;
 val show      = local_statement Proof.show I o Comment.ignore;
 val show_i    = local_statement_i Proof.show_i I o Comment.ignore;
 val have      = local_statement Proof.have I o Comment.ignore;
@@ -298,7 +301,7 @@ val hence_i   = local_statement_i Proof.have_i Proof.chain o Comment.ignore;
 
 val begin_block = ProofHistory.apply Proof.begin_block;
 val next_block = ProofHistory.apply Proof.next_block;
-val end_block = ProofHistory.apply Proof.end_block;
+val end_block = ProofHistory.applys Proof.end_block;
 
 
 (* backward steps *)
@@ -313,7 +316,7 @@ val proof =
 (* print result *)
 
 fun pretty_result {kind, name, thm} =
-  Pretty.block [Pretty.str (kind ^ " " ^ name ^ ":"), Pretty.fbrk, Display.pretty_thm thm];
+  Pretty.block [Pretty.str (kind ^ " " ^ name ^ ":"), Pretty.fbrk, Display.pretty_thm_no_hyps thm];
 
 val print_result = Pretty.writeln o pretty_result;
 fun cond_print_result int res = if int then print_result res else ();
@@ -326,8 +329,10 @@ fun proof'' f = Toplevel.proof' (f o cond_print_result);
 val local_qed =
   proof'' o (ProofHistory.applys oo Method.local_qed) o apsome Comment.ignore_interest;
 
+fun ignore_interests (x, y) = (Comment.ignore_interest x, apsome Comment.ignore_interest y);
+
 val local_terminal_proof =
-  proof'' o (ProofHistory.applys oo Method.local_terminal_proof) o Comment.ignore_interest;
+  proof'' o (ProofHistory.applys oo Method.local_terminal_proof) o ignore_interests;
 
 val local_immediate_proof = proof'' (ProofHistory.applys o Method.local_immediate_proof);
 val local_default_proof = proof'' (ProofHistory.applys o Method.local_default_proof);
@@ -355,7 +360,7 @@ val global_qed_with = global_result oo gen_global_qed_with Attrib.global_attribu
 val global_qed_with_i = global_result oo gen_global_qed_with (K I);
 val global_qed = global_qed_with (None, None);
 
-val global_terminal_proof = global_result o Method.global_terminal_proof o Comment.ignore_interest;
+val global_terminal_proof = global_result o Method.global_terminal_proof o ignore_interests;
 val global_immediate_proof = global_result Method.global_immediate_proof;
 val global_default_proof = global_result Method.global_default_proof;
 val global_skip_proof = global_result SkipProof.global_skip_proof;
@@ -364,7 +369,7 @@ val global_skip_proof = global_result SkipProof.global_skip_proof;
 (* common endings *)
 
 fun qed meth = local_qed meth o global_qed meth;
-fun terminal_proof meth = local_terminal_proof meth o global_terminal_proof meth;
+fun terminal_proof meths = local_terminal_proof meths o global_terminal_proof meths;
 val immediate_proof = local_immediate_proof o global_immediate_proof;
 val default_proof = local_default_proof o global_default_proof;
 val skip_proof = local_skip_proof o global_skip_proof;
@@ -375,7 +380,7 @@ val skip_proof = local_skip_proof o global_skip_proof;
 local
 
 fun cond_print_calc int thm =
-  if int then Pretty.writeln (Pretty.big_list "calculation:" [Display.pretty_thm thm])
+  if int then Pretty.writeln (Pretty.big_list "calculation:" [Display.pretty_thm_no_hyps thm])
   else ();
 
 fun proof''' f = Toplevel.proof' (f o cond_print_calc);
