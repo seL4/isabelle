@@ -14,11 +14,6 @@ Goalw  [intrel_def] "((x1,y1),(x2,y2)): intrel = (x1+y2 = x2+y1)";
 by (Blast_tac 1);
 qed "intrel_iff";
 
-Goalw  [intrel_def] "(x,x): intrel";
-by (pair_tac "x" 1);
-by (Blast_tac 1);
-qed "intrel_refl";
-
 Goalw [intrel_def, equiv_def, refl_def, sym_def, trans_def]
     "equiv UNIV intrel";
 by Auto_tac;
