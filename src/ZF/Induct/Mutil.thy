@@ -37,7 +37,7 @@ constdefs
   "evnodd(A,b) == {z \<in> A. \<exists>i j. z = <i,j> \<and> (i #+ j) mod 2 = b}"
 
 
-subsubsection {* Basic properties of evnodd *}
+subsection {* Basic properties of evnodd *}
 
 lemma evnodd_iff: "<i,j>: evnodd(A,b) <-> <i,j>: A & (i#+j) mod 2 = b"
   by (unfold evnodd_def) blast
@@ -63,12 +63,13 @@ lemma evnodd_0 [simp]: "evnodd(0, b) = 0"
   by (simp add: evnodd_def)
 
 
-subsubsection {* Dominoes *}
+subsection {* Dominoes *}
 
 lemma domino_Finite: "d \<in> domino ==> Finite(d)"
   by (blast intro!: Finite_cons Finite_0 elim: domino.cases)
 
-lemma domino_singleton: "[| d \<in> domino; b<2 |] ==> \<exists>i' j'. evnodd(d,b) = {<i',j'>}"
+lemma domino_singleton:
+    "[| d \<in> domino; b<2 |] ==> \<exists>i' j'. evnodd(d,b) = {<i',j'>}"
   apply (erule domino.cases)
    apply (rule_tac [2] k1 = "i#+j" in mod2_cases [THEN disjE])
      apply (rule_tac k1 = "i#+j" in mod2_cases [THEN disjE])
@@ -78,7 +79,7 @@ lemma domino_singleton: "[| d \<in> domino; b<2 |] ==> \<exists>i' j'. evnodd(d,
   done
 
 
-subsubsection {* Tilings *}
+subsection {* Tilings *}
 
 text {* The union of two disjoint tilings is a tiling *}
 
@@ -114,7 +115,8 @@ lemma tiling_domino_0_1: "t \<in> tiling(domino) ==> |evnodd(t,0)| = |evnodd(t,1
   apply (blast dest!: evnodd_subset [THEN subsetD] elim: equalityE)
   done
 
-lemma dominoes_tile_row: "[| i \<in> nat;  n \<in> nat |] ==> {i} * (n #+ n) \<in> tiling(domino)"
+lemma dominoes_tile_row:
+    "[| i \<in> nat;  n \<in> nat |] ==> {i} * (n #+ n) \<in> tiling(domino)"
   apply (induct_tac n)
    apply (simp add: tiling.intros)
   apply (simp add: Un_assoc [symmetric] Sigma_succ2)
@@ -122,13 +124,15 @@ lemma dominoes_tile_row: "[| i \<in> nat;  n \<in> nat |] ==> {i} * (n #+ n) \<i
     prefer 2 apply assumption
    apply (rename_tac n')
    apply (subgoal_tac (*seems the easiest way of turning one to the other*)
-     "{i}*{succ (n'#+n') } Un {i}*{n'#+n'} = {<i,n'#+n'>, <i,succ (n'#+n') >}")
+     "{i}*{succ (n'#+n') } Un {i}*{n'#+n'} =
+       {<i,n'#+n'>, <i,succ (n'#+n') >}")
     prefer 2 apply blast
   apply (simp add: domino.horiz)
   apply (blast elim: mem_irrefl mem_asym)
   done
 
-lemma dominoes_tile_matrix: "[| m \<in> nat;  n \<in> nat |] ==> m * (n #+ n) \<in> tiling(domino)"
+lemma dominoes_tile_matrix:
+    "[| m \<in> nat;  n \<in> nat |] ==> m * (n #+ n) \<in> tiling(domino)"
   apply (induct_tac m)
    apply (simp add: tiling.intros)
   apply (simp add: Sigma_succ1)
@@ -148,7 +152,8 @@ theorem mutil_not_tiling: "[| m \<in> nat;  n \<in> nat;
   apply (subgoal_tac "t \<in> tiling (domino)")
    prefer 2 (*Requires a small simpset that won't move the succ applications*)
    apply (simp only: nat_succI add_type dominoes_tile_matrix)
-  apply (simp add: evnodd_Diff mod2_add_self mod2_succ_succ tiling_domino_0_1 [symmetric])
+  apply (simp add: evnodd_Diff mod2_add_self mod2_succ_succ
+    tiling_domino_0_1 [symmetric])
   apply (rule lt_trans)
    apply (rule Finite_imp_cardinal_Diff,
      simp add: tiling_domino_Finite Finite_evnodd Finite_Diff,
