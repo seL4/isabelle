@@ -33,7 +33,7 @@ defs
   real_minus_def
     "- R ==  Abs_real(UN (x,y):Rep_real(R). realrel^^{(y,x)})"
 
-  real_diff_def "x - y == x + -(y::real)"
+  real_diff_def "x - y == x + (- y :: real)"
 
 constdefs
 
@@ -49,7 +49,7 @@ constdefs
   "real_of_posnat n == real_of_preal(preal_of_prat(prat_of_pnat(pnat_of_nat n)))"
 
   real_of_nat :: nat => real          
-  "real_of_nat n    == real_of_posnat n + -1r"
+  "real_of_nat n    == real_of_posnat n + (-1r)"
 
 defs
 

@@ -146,7 +146,7 @@ Addsimps [mult_nat_number_of];
 Goal "(#0::int) <= z ==> nat z div nat z' = nat (z div z')";
 by (case_tac "#0 <= z'" 1);
 by (auto_tac (claset(), 
-	      simpset() addsimps [div_nonneg_neg, DIVISION_BY_ZERO_DIV]));
+	      simpset() addsimps [div_nonneg_neg_le0, DIVISION_BY_ZERO_DIV]));
 by (zdiv_undefined_case_tac "z' = #0" 1);
  by (simp_tac (simpset() addsimps [numeral_0_eq_0, DIVISION_BY_ZERO_DIV]) 1);
 by (auto_tac (claset() addSEs [nonneg_eq_int], simpset()));

@@ -761,7 +761,7 @@ by Auto_tac;
 val lemma1 = result();
 
 Goal "[| b < (#0::int);  c ~= #0 |] ==> (c*a) div (c*b) = a div b";
-by (subgoal_tac "(c * -a) div (c * -b) = -a div -b" 1);
+by (subgoal_tac "(c * (-a)) div (c * (-b)) = (-a) div (-b)" 1);
 by (rtac lemma1 2);
 by (auto_tac (claset(), simpset() addsimps [zmult_zminus_right]));
 val lemma2 = result();
@@ -789,7 +789,7 @@ by Auto_tac;
 val lemma1 = result();
 
 Goal "[| b < (#0::int);  c ~= #0 |] ==> (c*a) mod (c*b) = c * (a mod b)";
-by (subgoal_tac "(c * -a) mod (c * -b) = c * (-a mod -b)" 1);
+by (subgoal_tac "(c * (-a)) mod (c * (-b)) = c * ((-a) mod (-b))" 1);
 by (rtac lemma1 2);
 by (auto_tac (claset(), 
 	      simpset() addsimps [zmult_zminus_right, zmod_zminus_zminus]));
@@ -838,12 +838,11 @@ qed "pos_zdiv_times_2";
 
 
 Goal "a <= (#0::int) ==> (#1 + #2*b) div (#2*a) = (b+#1) div a";
-by (subgoal_tac "(#1 + #2*(-b-#1)) div (#2 * -a) = (-b-#1) div (-a)" 1);
+by (subgoal_tac "(#1 + #2*(-b-#1)) div (#2 * (-a)) = (-b-#1) div (-a)" 1);
 by (rtac pos_zdiv_times_2 2);
 by (auto_tac (claset(),
 	      simpset() addsimps [zmult_zminus_right]));
-by Auto_tac;
-by (subgoal_tac "(#-1 + - (#2 * b)) = - (#1 + (#2 * b))" 1);
+by (subgoal_tac "(#-1 - (#2 * b)) = - (#1 + (#2 * b))" 1);
 by (Simp_tac 2);
 by (asm_full_simp_tac (HOL_ss
 		       addsimps [zdiv_zminus_zminus, zdiff_def,
@@ -899,11 +898,11 @@ qed "pos_zmod_times_2";
 
 Goal "a <= (#0::int) ==> (#1 + #2*b) mod (#2*a) = #2 * ((b+#1) mod a) - #1";
 by (subgoal_tac 
-    "(#1 + #2*(-b-#1)) mod (#2*-a) = #1 + #2*((-b-#1) mod (-a))" 1);
+    "(#1 + #2*(-b-#1)) mod (#2*(-a)) = #1 + #2*((-b-#1) mod (-a))" 1);
 by (rtac pos_zmod_times_2 2);
 by (auto_tac (claset(),
 	      simpset() addsimps [zmult_zminus_right]));
-by (subgoal_tac "(#-1 + - (#2 * b)) = - (#1 + (#2 * b))" 1);
+by (subgoal_tac "(#-1 - (#2 * b)) = - (#1 + (#2 * b))" 1);
 by (Simp_tac 2);
 by (asm_full_simp_tac (HOL_ss
 		       addsimps [zmod_zminus_zminus, zdiff_def,
@@ -938,19 +937,19 @@ by (Force_tac 1);
 by (rtac order_trans 1);
 by (res_inst_tac [("a'","#-1")]  zdiv_mono1 1);
 by (auto_tac (claset(), simpset() addsimps [zdiv_minus1]));
-qed "div_neg_pos";
+qed "div_neg_pos_less0";
 
 Goal "[| (#0::int) <= a;  b < #0 |] ==> a div b <= #0";
 by (dtac zdiv_mono1_neg 1);
 by Auto_tac;
-qed "div_nonneg_neg";
+qed "div_nonneg_neg_le0";
 
 Goal "(#0::int) < b ==> (#0 <= a div b) = (#0 <= a)";
 by Auto_tac;
 by (dtac zdiv_mono1 2);
 by (auto_tac (claset(), simpset() addsimps [linorder_neq_iff]));
 by (full_simp_tac (simpset() addsimps [linorder_not_less RS sym]) 1);
-by (blast_tac (claset() addIs [div_neg_pos]) 1);
+by (blast_tac (claset() addIs [div_neg_pos_less0]) 1);
 qed "pos_imp_zdiv_nonneg_iff";
 
 Goal "b < (#0::int) ==> (#0 <= a div b) = (a <= (#0::int))";

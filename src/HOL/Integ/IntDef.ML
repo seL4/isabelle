@@ -180,7 +180,7 @@ by (asm_simp_tac
     (simpset() addsimps [zadd_ize UN_equiv_class2]) 1);
 qed "zadd";
 
-Goal "- (z + w) = - z + - (w::int)";
+Goal "- (z + w) = (- z) + (- w::int)";
 by (res_inst_tac [("z","z")] eq_Abs_Integ 1);
 by (res_inst_tac [("z","w")] eq_Abs_Integ 1);
 by (asm_simp_tac (simpset() addsimps [zminus,zadd]) 1);
@@ -612,7 +612,7 @@ val zcompare_rls =
 
 Goal "!!w::int. (z + w' = z + w) = (w' = w)";
 by Safe_tac;
-by (dres_inst_tac [("f", "%x. x + -z")] arg_cong 1);
+by (dres_inst_tac [("f", "%x. x + (-z)")] arg_cong 1);
 by (asm_full_simp_tac (simpset() addsimps zadd_ac) 1);
 qed "zadd_left_cancel";
 

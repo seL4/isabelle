@@ -4,9 +4,6 @@
     Description : Filters and Ultrafilter
 *) 
 
-open Filter;
-
-
 (*------------------------------------------------------------------
       Properties of Filters and Freefilters - 
       rules for intro, destruction etc.
@@ -290,7 +287,7 @@ qed "Ultrafilter_iff";
              A few properties of freefilters
  -------------------------------------------------------------------*)
 
-Goal "F1 Int F2 = ((F1 Int Y) Int F2) Un ((F2 Int - Y) Int F1)";
+Goal "F1 Int F2 = ((F1 Int Y) Int F2) Un ((F2 Int (- Y)) Int F1)";
 by (Auto_tac);
 qed "lemma_Compl_cancel_eq";
 
@@ -303,7 +300,7 @@ by (etac (Int_lower2 RS finite_subset) 1);
 qed "finite_IntI2";
 
 Goal "[| finite (F1 Int Y); \
-\                 finite (F2 Int - Y) \
+\                 finite (F2 Int (- Y)) \
 \              |] ==> finite (F1 Int F2)";
 by (res_inst_tac [("Y1","Y")] (lemma_Compl_cancel_eq RS ssubst) 1);
 by (rtac finite_UnI 1);
@@ -403,7 +400,7 @@ qed "FreeUltrafilter_contains_cofinite_set";
    We prove: 1. Existence of maximal filter i.e. ultrafilter
              2. Freeness property i.e ultrafilter is free
              Use a locale to prove various lemmas and then 
-             export main result- The Ultrafilter Theorem
+             export main result: The Ultrafilter Theorem
  -------------------------------------------------------------------*)
 Open_locale "UFT"; 
 
@@ -516,8 +513,9 @@ by (res_inst_tac [("Q","c={}")] (excluded_middle RS disjE) 1);
 by (res_inst_tac [("x","Union c")] bexI 1 THEN Blast_tac 1);
 by (rtac Un_chain_mem_cofinite_Filter_set 1 THEN REPEAT(assume_tac 1));
 by (res_inst_tac [("x","frechet (UNIV)")] bexI 1 THEN Blast_tac 1);
-by (auto_tac (claset(),simpset() addsimps 
-        [thm "superfrechet_def", thm "frechet_def"]));
+by (auto_tac (claset(),
+	      simpset() addsimps 
+	      [thm "superfrechet_def", thm "frechet_def"]));
 qed "max_cofinite_Filter_Ex";
 
 Goal "EX U: superfrechet UNIV. (\

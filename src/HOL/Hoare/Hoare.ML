@@ -38,7 +38,7 @@ by (Blast_tac 1);
 val lemma = result() RS spec RS spec RS mp RS mp;
 
 Goalw [Valid_def]
- "[| p <= i; Valid (i Int b) c i; (i Int -b) <= q |] \
+ "[| p <= i; Valid (i Int b) c i;  i Int (-b) <= q |] \
 \ ==> Valid p (WHILE b INV {i} DO c OD) q";
 by (Asm_simp_tac 1);
 by (Clarify_tac 1);

@@ -39,7 +39,7 @@ defs
        Abs_Integ(UN p1:Rep_Integ(z). UN p2:Rep_Integ(w).   
            split (%x1 y1. split (%x2 y2. intrel^^{(x1+x2, y1+y2)}) p2) p1)"
 
-  zdiff_def "z - w == z + -(w::int)"
+  zdiff_def "z - (w::int) == z + (-w)"
 
   zless_def "z<w == neg(z - w)"
 

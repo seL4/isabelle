@@ -285,11 +285,11 @@ Goalw [if_def] "(if False then x else y) = y";
 by (Blast_tac 1);
 qed "if_False";
 
-Goalw [if_def] "!!P. P ==> (if P then x else y) = x";
+Goalw [if_def] "P ==> (if P then x else y) = x";
 by (Blast_tac 1);
 qed "if_P";
 
-Goalw [if_def] "!!P. ~P ==> (if P then x else y) = y";
+Goalw [if_def] "~P ==> (if P then x else y) = y";
 by (Blast_tac 1);
 qed "if_not_P";
 
@@ -319,8 +319,7 @@ by (Blast_tac 1);
 qed "if_eq_cancel";
 
 (*This form is useful for expanding IFs on the RIGHT of the ==> symbol*)
-Goal
-    "(if P then Q else R) = ((P-->Q) & (~P-->R))";
+Goal "(if P then Q else R) = ((P-->Q) & (~P-->R))";
 by (rtac split_if 1);
 qed "if_bool_eq_conj";
 
@@ -398,8 +397,6 @@ val op delsplits     = Splitter.delsplits;
 val Addsplits        = Splitter.Addsplits;
 val Delsplits        = Splitter.Delsplits;
 
-(** 'if' congruence rules: neither included by default! *)
-
 (*In general it seems wrong to add distributive laws by default: they
   might cause exponential blow-up.  But imp_disjL has been in for a while
   and cannot be removed without affecting existing proofs.  Moreover, 
@@ -464,7 +461,8 @@ val prems = Goalw [if_def]
 by (asm_simp_tac (HOL_ss addsimps prems) 1);
 qed "if_cong";
 
-(*Prevents simplification of x and y: much faster*)
+(*Prevents simplification of x and y: faster and allows the execution
+  of functional programs. NOW THE DEFAULT.*)
 Goal "b=c ==> (if b then x else y) = (if c then x else y)";
 by (etac arg_cong 1);
 qed "if_weak_cong";

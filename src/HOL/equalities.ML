@@ -338,25 +338,25 @@ qed "Un_Diff_Int";
 
 section "Set complement";
 
-Goal "A Int -A = {}";
+Goal "A Int (-A) = {}";
 by (Blast_tac 1);
 qed "Compl_disjoint";
 Addsimps[Compl_disjoint];
 
-Goal "A Un -A = UNIV";
+Goal "A Un (-A) = UNIV";
 by (Blast_tac 1);
 qed "Compl_partition";
 
-Goal "- -A = (A:: 'a set)";
+Goal "- (-A) = (A:: 'a set)";
 by (Blast_tac 1);
 qed "double_complement";
 Addsimps[double_complement];
 
-Goal "-(A Un B) = -A Int -B";
+Goal "-(A Un B) = (-A) Int (-B)";
 by (Blast_tac 1);
 qed "Compl_Un";
 
-Goal "-(A Int B) = -A Un -B";
+Goal "-(A Int B) = (-A) Un (-B)";
 by (Blast_tac 1);
 qed "Compl_Int";
 
@@ -615,7 +615,7 @@ qed "bex_UN";
 
 section "-";
 
-Goal "A-B = A Int -B";
+Goal "A-B = A Int (-B)";
 by (Blast_tac 1);
 qed "Diff_eq";
 
@@ -719,7 +719,7 @@ Goal "(A-B) Int C = (A Int C) - (B Int C)";
 by (Blast_tac 1);
 qed "Diff_Int_distrib2";
 
-Goal "A - - B = A Int B";
+Goal "A - (- B) = A Int B";
 by Auto_tac;
 qed "Diff_Compl";
 Addsimps [Diff_Compl];
