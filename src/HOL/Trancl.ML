@@ -53,7 +53,7 @@ val major::prems = Goal
 \     !!x. P(x,x); \
 \     !!x y z.[| P(x,y); (x,y): r^*; (y,z): r |]  ==>  P(x,z) |] \
 \  ==>  P(a,b)";
-by (rtac ([rtrancl_def, rtrancl_fun_mono, major] MRS def_induct) 1);
+by (rtac ([rtrancl_def, rtrancl_fun_mono, major] MRS def_lfp_induct) 1);
 by (blast_tac (claset() addIs prems) 1);
 qed "rtrancl_full_induct";
 

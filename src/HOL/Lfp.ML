@@ -47,13 +47,13 @@ by (EVERY1 [rtac Int_greatest, rtac subset_trans,
             rtac (Int_lower1 RS (mono RS monoD)),
             rtac (mono RS lfp_lemma2),
             rtac (CollectI RS subsetI), rtac indhyp, atac]);
-qed "induct";
+qed "lfp_induct";
 
-bind_thm ("induct2",
-  split_rule (read_instantiate [("a","(a,b)")] induct));
+bind_thm ("lfp_induct2",
+  split_rule (read_instantiate [("a","(a,b)")] lfp_induct));
 
 
-(** Definition forms of lfp_Tarski and induct, to control unfolding **)
+(** Definition forms of lfp_unfold and lfp_induct, to control unfolding **)
 
 Goal "[| h==lfp(f);  mono(f) |] ==> h = f(h)";
 by (auto_tac (claset() addSIs [lfp_unfold], simpset()));  
@@ -63,9 +63,9 @@ val rew::prems = Goal
     "[| A == lfp(f);  mono(f);   a:A;                   \
 \       !!x. [| x: f(A Int {x. P(x)}) |] ==> P(x)        \
 \    |] ==> P(a)";
-by (EVERY1 [rtac induct,        (*backtracking to force correct induction*)
+by (EVERY1 [rtac lfp_induct,        (*backtracking to force correct induction*)
             REPEAT1 o (ares_tac (map (rewrite_rule [rew]) prems))]);
-qed "def_induct";
+qed "def_lfp_induct";
 
 (*Monotonicity of lfp!*)
 val [prem] = Goal "[| !!Z. f(Z)<=g(Z) |] ==> lfp(f) <= lfp(g)";

@@ -575,7 +575,7 @@ fun prove_indrule cs cTs sumT rec_const params intr_ts mono
     val induct = prove_goalw_cterm [] (cterm_of sign
       (Logic.list_implies (ind_prems, ind_concl))) (fn prems =>
         [rtac (impI RS allI) 1,
-         DETERM (etac (mono RS (fp_def RS def_induct)) 1),
+         DETERM (etac (mono RS (fp_def RS def_lfp_induct)) 1),
          rewrite_goals_tac (map mk_meta_eq (vimage_Int::Int_Collect::vimage_simps)),
          fold_goals_tac rec_sets_defs,
          (*This CollectE and disjE separates out the introduction rules*)

@@ -33,7 +33,7 @@ qed "two_RepI";
 val major::prems = Goal
     "[| i: pnat;  P(1);   \
 \       !!j. [| j: pnat; P(j) |] ==> P(Suc(j)) |]  ==> P(i)";
-by (rtac ([pnat_def, pnat_fun_mono, major] MRS def_induct) 1);
+by (rtac ([pnat_def, pnat_fun_mono, major] MRS def_lfp_induct) 1);
 by (blast_tac (claset() addIs prems) 1);
 qed "PNat_induct";
 

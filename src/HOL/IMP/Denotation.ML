@@ -46,7 +46,7 @@ by (ALLGOALS (TRY o Fast_tac));
 
 (* while *)
 by (strip_tac 1);
-by (etac (Gamma_mono RSN (2,induct)) 1);
+by (etac (Gamma_mono RSN (2,lfp_induct)) 1);
 by (rewtac Gamma_def);  
 by (Fast_tac 1);
 

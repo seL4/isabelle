@@ -27,7 +27,7 @@ qed "Suc_RepI";
 val major::prems = Goal
     "[| i: Nat;  P(Zero_Rep);   \
 \       !!j. [| j: Nat; P(j) |] ==> P(Suc_Rep(j)) |]  ==> P(i)";
-by (rtac ([Nat_def, Nat_fun_mono, major] MRS def_induct) 1);
+by (rtac ([Nat_def, Nat_fun_mono, major] MRS def_lfp_induct) 1);
 by (blast_tac (claset() addIs prems) 1);
 qed "Nat_induct";
 
