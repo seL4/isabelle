@@ -254,11 +254,6 @@ apply (simp (no_asm_simp) add: real_mult_assoc [symmetric])
 apply (auto simp add: realpow_num_eq_if)
 done
 
-(*???generalize the type!*)
-lemma zero_le_x_squared [simp]: "(0::real) \<le> x^2"
-by (simp add: power2_eq_square)
-
-
 
 ML
 {*
@@ -315,7 +310,6 @@ val realpow_square_minus_le = thm "realpow_square_minus_le";
 val realpow_num_eq_if = thm "realpow_num_eq_if";
 val real_num_zero_less_two_pow = thm "real_num_zero_less_two_pow";
 val lemma_realpow_num_two_mono = thm "lemma_realpow_num_two_mono";
-val zero_le_x_squared = thm "zero_le_x_squared";
 *}
 
 
