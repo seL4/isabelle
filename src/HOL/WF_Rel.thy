@@ -11,6 +11,10 @@ separately.
 *)
 
 WF_Rel = Finite +
+
+(* actually belongs to Finite.thy *)
+instance "*" :: (finite,finite) finite   (finite_Prod) 
+
 consts
   less_than :: "(nat*nat)set"
   inv_image :: "('b * 'b)set => ('a => 'b) => ('a * 'a)set"

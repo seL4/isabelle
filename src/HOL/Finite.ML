@@ -170,6 +170,19 @@ by (blast_tac (claset() addSIs [finite_UnionI]) 1);
 bind_thm("finite_SigmaI", ballI RSN (2,result()));
 Addsimps [finite_SigmaI];
 
+Goal "[| finite (UNIV::'a set); finite (UNIV::'b set)|] ==> finite (UNIV::('a * 'b) set)"; 
+by (subgoal_tac "(UNIV::('a * 'b) set) = Sigma UNIV (%x. UNIV)" 1);
+by  (etac ssubst 1);
+by  (etac finite_SigmaI 1);
+by  Auto_tac;
+qed "finite_Prod_UNIV";
+
+Goal "finite (UNIV :: ('a::finite * 'b::finite) set)";
+br (finite_Prod_UNIV) 1;
+br finite 1;
+br finite 1;
+qed "finite_Prod";
+
 (** The powerset of a finite set **)
 
 Goal "finite(Pow A) ==> finite A";
