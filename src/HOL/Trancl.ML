@@ -170,19 +170,8 @@ by (resolve_tac prems 1);
 by (blast_tac (claset() addIs prems addSDs[rtrancl_converseD])1);
 qed "converse_rtrancl_induct";
 
-val prems = Goal
- "[| ((a,b),(c,d)) : r^*; P c d; \
-\    !!x y z u.[| ((x,y),(z,u)) : r;  ((z,u),(c,d)) : r^*;  P z u |] ==> P x y\
-\ |] ==> P a b";
-by (res_inst_tac[("R","P")]splitD 1);
-by (res_inst_tac[("P","split P")]converse_rtrancl_induct 1);
-by (resolve_tac prems 1);
-by (Simp_tac 1);
-by (resolve_tac prems 1);
-by (split_all_tac 1);
-by (Asm_full_simp_tac 1);
-by (REPEAT(ares_tac prems 1));
-qed "converse_rtrancl_induct2";
+bind_thm ("converse_rtrancl_induct2", split_rule
+  (read_instantiate [("a","(ax,ay)"),("b","(bx,by)")]converse_rtrancl_induct));
 
 val major::prems = Goal
  "[| (x,z):r^*; \
@@ -194,10 +183,13 @@ by (rtac (major RS converse_rtrancl_induct) 2);
 by (blast_tac (claset() addIs prems) 2);
 by (blast_tac (claset() addIs prems) 2);
 by (REPEAT (eresolve_tac ([asm_rl,exE,disjE,conjE]@prems) 1));
-qed "rtranclE2";
+qed "converse_rtranclE";
+
+bind_thm ("converse_rtranclE2", split_rule
+  (read_instantiate [("x","(xa,xb)"), ("z","(za,zb)")] converse_rtranclE));
 
 Goal "r O r^* = r^* O r";
-by (blast_tac (claset() addEs [rtranclE, rtranclE2] 
+by (blast_tac (claset() addEs [rtranclE, converse_rtranclE] 
 	               addIs [rtrancl_into_rtrancl, rtrancl_into_rtrancl2]) 1);
 qed "r_comp_rtrancl_eq";
 
