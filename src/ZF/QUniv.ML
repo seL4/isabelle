@@ -8,6 +8,21 @@ For quniv.thy.  A small universe for lazy recursive types
 
 open QUniv;
 
+(** Properties involving Transset and Sum **)
+
+val [prem1,prem2] = goalw QUniv.thy [sum_def]
+    "[| Transset(C); A+B <= C |] ==> A <= C & B <= C";
+by (rtac (prem2 RS (Un_subset_iff RS iffD1) RS conjE) 1);
+by (REPEAT (etac (prem1 RS Transset_includes_range) 1
+     ORELSE resolve_tac [conjI, singletonI] 1));
+qed "Transset_includes_summands";
+
+val [prem] = goalw QUniv.thy [sum_def]
+    "Transset(C) ==> (A+B) Int C <= (A Int C) + (B Int C)";
+by (rtac (Int_Un_distrib RS ssubst) 1);
+by (fast_tac (ZF_cs addSDs [prem RS Transset_Pair_D]) 1);
+qed "Transset_sum_Int_subset";
+
 (** Introduction and elimination rules avoid tiresome folding/unfolding **)
 
 goalw QUniv.thy [quniv_def]
