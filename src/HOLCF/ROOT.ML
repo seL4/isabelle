@@ -28,12 +28,12 @@ use "ax_ops/thy_syntax.ML";
 
 (* install sections: domain, generated *)
 
-use "domain/library";
-use "domain/syntax";
-use "domain/axioms";
-use "domain/theorems";
-use "domain/extender";
-use "domain/interface";
+use "domain/library.ML";
+use "domain/syntax.ML";
+use "domain/axioms.ML";
+use "domain/theorems.ML";
+use "domain/extender.ML";
+use "domain/interface.ML";
 
 init_thy_reader();
 init_pps ();
