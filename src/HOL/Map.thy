@@ -347,6 +347,24 @@ by(simp add:map_upds_def)
 lemma map_upds_Cons[simp]: "m(a#as [|->] b#bs) = (m(a|->b))(as[|->]bs)"
 by(simp add:map_upds_def)
 
+lemma map_upds_append1[simp]: "\<And>ys m. size xs < size ys \<Longrightarrow>
+  m(xs@[x] [\<mapsto>] ys) = m(xs [\<mapsto>] ys)(x \<mapsto> ys!size xs)"
+apply(induct xs)
+ apply(clarsimp simp add:neq_Nil_conv)
+apply(case_tac ys)
+ apply simp
+apply simp
+done
+
+lemma map_upds_list_update2_drop[simp]:
+ "\<And>m ys i. \<lbrakk>size xs \<le> i; i < size ys\<rbrakk>
+     \<Longrightarrow> m(xs[\<mapsto>]ys[i:=y]) = m(xs[\<mapsto>]ys)"
+apply(induct xs)
+ apply simp
+apply(case_tac ys)
+ apply simp
+apply(simp split:nat.split)
+done
 
 lemma map_upd_upds_conv_if: "!!x y ys f.
  (f(x|->y))(xs [|->] ys) =
@@ -478,8 +496,14 @@ subsection {* @{text "map_le"} *}
 lemma map_le_empty [simp]: "empty \<subseteq>\<^sub>m g"
 by(simp add:map_le_def)
 
+lemma [simp]: "f(x := None) \<subseteq>\<^sub>m f"
+by(force simp add:map_le_def)
+
 lemma map_le_upd[simp]: "f \<subseteq>\<^sub>m g ==> f(a := b) \<subseteq>\<^sub>m g(a := b)"
 by(fastsimp simp add:map_le_def)
+
+lemma [simp]: "m1 \<subseteq>\<^sub>m m2 \<Longrightarrow> m1(x := None) \<subseteq>\<^sub>m m2(x \<mapsto> y)"
+by(force simp add:map_le_def)
 
 lemma map_le_upds[simp]:
  "!!f g bs. f \<subseteq>\<^sub>m g ==> f(as [|->] bs) \<subseteq>\<^sub>m g(as [|->] bs)"
@@ -495,11 +519,8 @@ lemma map_le_implies_dom_le: "(f \<subseteq>\<^sub>m g) \<Longrightarrow> (dom f
 lemma map_le_refl [simp]: "f \<subseteq>\<^sub>m f"
   by (simp add: map_le_def)
 
-lemma map_le_trans: "\<lbrakk> f \<subseteq>\<^sub>m g; g \<subseteq>\<^sub>m h \<rbrakk> \<Longrightarrow> f \<subseteq>\<^sub>m h"
-  apply (clarsimp simp add: map_le_def)
-  apply (drule_tac x="a" in bspec, fastsimp)+
-  apply assumption
-done
+lemma map_le_trans[trans]: "\<lbrakk> m1 \<subseteq>\<^sub>m m2; m2 \<subseteq>\<^sub>m m3\<rbrakk> \<Longrightarrow> m1 \<subseteq>\<^sub>m m3"
+by(force simp add:map_le_def)
 
 lemma map_le_antisym: "\<lbrakk> f \<subseteq>\<^sub>m g; g \<subseteq>\<^sub>m f \<rbrakk> \<Longrightarrow> f = g"
   apply (unfold map_le_def)

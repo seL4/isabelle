@@ -737,9 +737,22 @@ lemma list_update_overwrite [simp]:
 "!!i. i < size xs ==> xs[i:=x, i:=y] = xs[i:=y]"
 by (induct xs) (auto split: nat.split)
 
+lemma list_update_id[simp]: "!!i. i < length xs \<Longrightarrow> xs[i := xs!i] = xs"
+apply(induct xs)
+ apply simp
+apply(simp split:nat.splits)
+done
+
 lemma list_update_same_conv:
 "!!i. i < length xs ==> (xs[i := x] = xs) = (xs!i = x)"
 by (induct xs) (auto split: nat.split)
+
+lemma list_update_append1:
+ "!!i. i < size xs \<Longrightarrow> (xs @ ys)[i:=x] = xs[i:=x] @ ys"
+apply(induct xs)
+ apply simp
+apply(simp split:nat.split)
+done
 
 lemma update_zip:
 "!!i xy xs. length xs = length ys ==>
@@ -795,6 +808,18 @@ lemma drop_Suc_Cons [simp]: "drop (Suc n) (x # xs) = drop n xs"
 by simp
 
 declare take_Cons [simp del] and drop_Cons [simp del]
+
+lemma drop_Suc: "drop (Suc n) xs = drop n (tl xs)"
+by(cases xs, simp_all)
+
+lemma drop_tl: "!!n. drop n (tl xs) = tl(drop n xs)"
+by(induct xs, simp_all add:drop_Cons drop_Suc split:nat.split)
+
+lemma nth_via_drop: "!!n. drop n xs = y#ys \<Longrightarrow> xs!n = y"
+apply(induct xs)
+ apply simp
+apply(simp add:drop_Cons nth_Cons split:nat.splits)
+done
 
 lemma take_Suc_conv_app_nth:
  "!!i. i < length xs \<Longrightarrow> take (Suc i) xs = take i xs @ [xs!i]"
@@ -904,6 +929,12 @@ by(induct xs)(auto simp:take_Cons split:nat.split)
 
 lemma set_drop_subset: "\<And>n. set(drop n xs) \<subseteq> set xs"
 by(induct xs)(auto simp:drop_Cons split:nat.split)
+
+lemma in_set_takeD: "x : set(take n xs) \<Longrightarrow> x : set xs"
+using set_take_subset by fast
+
+lemma in_set_dropD: "x : set(drop n xs) \<Longrightarrow> x : set xs"
+using set_drop_subset by fast
 
 lemma append_eq_conv_conj:
 "!!zs. (xs @ ys = zs) = (xs = take (length xs) zs \<and> ys = drop (length xs) zs)"

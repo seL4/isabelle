@@ -194,9 +194,17 @@ lemma option_map_None [simp]: "option_map f None = None"
 lemma option_map_Some [simp]: "option_map f (Some x) = Some (f x)"
   by (simp add: option_map_def)
 
+lemma option_map_is_None[iff]:
+ "(option_map f opt = None) = (opt = None)"
+by (simp add: option_map_def split add: option.split)
+
 lemma option_map_eq_Some [iff]:
     "(option_map f xo = Some y) = (EX z. xo = Some z & f z = y)"
-  by (simp add: option_map_def split add: option.split)
+by (simp add: option_map_def split add: option.split)
+
+lemma option_map_comp:
+ "option_map f (option_map g opt) = option_map (f o g) opt"
+by (simp add: option_map_def split add: option.split)
 
 lemma option_map_o_sum_case [simp]:
     "option_map f o sum_case g h = sum_case (option_map f o g) (option_map f o h)"
