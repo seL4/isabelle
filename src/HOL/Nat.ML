@@ -57,6 +57,11 @@ by (rtac iffI 1);
 qed "not_gr0";
 AddIffs [not_gr0];
 
+Goal "(Suc n <= m') --> (? m. m' = Suc m)";
+by (induct_tac "m'" 1);
+by  Auto_tac;
+qed_spec_mp "Suc_le_D";
+
 (*Useful in certain inductive arguments*)
 Goal "(m < Suc n) = (m=0 | (EX j. m = Suc j & j < n))";
 by (exhaust_tac "m" 1);
