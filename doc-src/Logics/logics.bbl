@@ -43,7 +43,7 @@ Martin~D. Coen.
 \newblock Computer Laboratory Technical Report 272.
 
 \bibitem{constable86}
-R.~L. {Constable et al.}
+R.~L. Constable et~al.
 \newblock {\em Implementing Mathematics with the Nuprl Proof Development
   System}.
 \newblock Prentice-Hall, 1986.
@@ -189,6 +189,7 @@ Lawrence~C. Paulson.
 \newblock Set theory for verification: {II}. {Induction} and recursion.
 \newblock Technical Report 312, Computer Laboratory, University of Cambridge,
   1993.
+\newblock To appear in Journal of Automated Reasoning.
 
 \bibitem{paulson-final}
 Lawrence~C. Paulson.
