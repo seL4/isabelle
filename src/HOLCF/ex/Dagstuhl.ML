@@ -1,7 +1,4 @@
-(*
-    ID:         $Id$
-*)
-
+(* $Id$ *)
 
 open Dagstuhl;
 

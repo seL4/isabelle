@@ -1,6 +1,5 @@
-(*
-    ID:         $ $
-*)
+(* $Id$ *)
+
 
 Dagstuhl  =  Stream2 +
 

@@ -1,3 +1,4 @@
+(* $Id$ *)
 (* Elegant proof for continuity of fixed-point operator *)
 (* Loeckx & Sieber S.88                                 *)
 
