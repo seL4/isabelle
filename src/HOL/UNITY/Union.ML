@@ -9,6 +9,8 @@ From Misra's Chapter 5: Asynchronous Compositions of Programs
 *)
 
 
+(** SKIP **)
+
 Goal "Init SKIP = UNIV";
 by (simp_tac (simpset() addsimps [SKIP_def]) 1);
 qed "Init_SKIP";
@@ -18,6 +20,15 @@ by (simp_tac (simpset() addsimps [SKIP_def]) 1);
 qed "Acts_SKIP";
 
 Addsimps [Init_SKIP, Acts_SKIP];
+
+Goal "reachable SKIP = UNIV";
+by (force_tac (claset() addIs reachable.intrs, simpset()) 1);
+qed "reachable_SKIP";
+
+Addsimps [reachable_SKIP];
+
+
+(** Join and JN **)
 
 Goal "Init (F Join G) = Init F Int Init G";
 by (simp_tac (simpset() addsimps [Join_def]) 1);
@@ -37,11 +48,15 @@ qed "Acts_JN";
 
 Addsimps [Init_Join, Init_JN];
 
+Goalw [JOIN_def, SKIP_def] "(JN i:{}. F i) = SKIP";
+by Auto_tac;
+qed "JN_empty";
+
 Goal "(JN x:insert a A. B x) = (B a) Join (JN x:A. B x)";
 by (rtac program_equalityI 1);
 by (ALLGOALS (simp_tac (simpset() addsimps [JOIN_def, Join_def])));
 qed "JN_insert";
-Addsimps[JN_insert];
+Addsimps[JN_empty, JN_insert];
 
 
 (** Algebraic laws **)
@@ -72,11 +87,6 @@ by Auto_tac;
 qed "Join_absorb";
 
 Addsimps [Join_absorb];
-
-Goal "(JN G:{}. G) = SKIP";
-by (simp_tac (simpset() addsimps [JOIN_def, SKIP_def]) 1);
-qed "JN_empty";
-Addsimps [JN_empty];
 
 
 
