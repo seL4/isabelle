@@ -89,7 +89,8 @@ qed "surj_iff_full_range";
 
 val [compl] = goal Lfp.thy
     "Compl(f``X) = g``Compl(X) ==> surj(%z. if z:X then f(z) else g(z))";
-by (sstac [surj_iff_full_range, range_if_then_else, compl RS sym] 1);
+by (EVERY1[stac surj_iff_full_range, stac range_if_then_else,
+           stac (compl RS sym)]);
 by (rtac (X_Un_Compl RS allI) 1);
 qed "surj_if_then_else";
 
