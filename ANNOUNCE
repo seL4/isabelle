@@ -4,24 +4,59 @@ To: isabelle-users@cl.cam.ac.uk
 
 Isabelle2002 is now available.
 
-In this release many important aspects of Isabelle have been reworked
-to improve robustness and usability (this occasionally causes
-incompatibility with earlier versions).
+In this release many important aspects of Isabelle have been reworked,
+to improve robustness and usability.  This occasionally causes
+incompatibility with earlier versions.
 
-The most prominent highlights of Isabelle2002 are as follows; see the
-NEWS of the distribution for more details.
+The most prominent highlights of Isabelle2002 are as follows (see the
+NEWS of the distribution for more details).
 
   * The Isabelle/HOL tutorial has been published as LNCS 2283;
-    Isabelle2002 is the official version to go along with that book.
+    Isabelle2002 is the official version to go along with that book
+    (by Tobias Nipkow, Larry Paulson, Markus Wenzel).
 
-  * Explicit proof terms for Isabelle/Pure (Stefan Berghofer);
-    all object-logics, proof tools etc. will automatically benefit.
+  * Pure: explicit proof terms for all internal inferences:
+    object-logics, proof tools etc. will benefit automatically
+    (by Stefan Berghofer).
 
-  * Interation of locales
+  * Pure/Isar: proper integration of the locale package for modular
+    theory development; additional support for rename/merge
+    operations, and type-inference for structured specifications
+    (by Markus Wenzel).
 
-  * Specific support for Poly/ML 4.1.1 and PolyML/4.1.2
-    (manage larger heaps, slightly faster).
+  * Pure/Isar: streamlined induction proof patterns
+    (by Markus Wenzel).
 
+  * Pure/HOL: infrastructure for generating functional and relational
+    code, using the ML run-time environment (by Stefan Berghofer).
+
+  * HOL/library: sane numerals on all number types; several
+    improvements of tuple and record types; new definite description
+    operator; keep Hilbert's choice out of basic theories.
+
+  * HOL/Bali: large application concerning formal treatment of Java.
+    (by David von Oheimb and Norbert Schirmer).
+
+  * HOL/Hoare_Parallel: large application concerning verification of
+    parallel imperative programs (Owicki-Gries method etc.)
+    (by Leonor Prensa Nieto).
+
+  * HOL/GroupTheory: group theory examples including Sylow's theorem
+    (by Florian Kammüller).
+
+  * HOL/IMP: new proofs in Isar format
+    (by Gerwin Klein).
+
+  * ZF/UNITY: typeless version of Chandy and Misra's formalism
+    (by Sidi O Ehmety).
+
+  * System: improvements and simplifications of document preparation
+    (by Markus Wenzel).
+
+  * System: support for Poly/ML 4.1.1 and PolyML/4.1.2, admitting
+    larger heap size of applications.
+
+  * System: support for MacOS X (for Poly/ML and SML/NJ).
 
 
 You may get Isabelle2002 from any of the following mirror sites:
