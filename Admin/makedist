@@ -16,6 +16,7 @@ DISTBASE=~/tmp/isadist
 ## diagnostics
 
 PRG=$(basename $0)
+THIS=$(cd $(dirname "$0"); echo $PWD)
 
 function usage()
 {
@@ -119,6 +120,11 @@ do
   cd ..
 done
 
+# make web pages
+
+export DISTNAME
+(cd $DISTBASE/$DISTNAME/Admin/page; make clean; make dist; cd dist; cp * $DISTBASE)
+
 
 # prepare dist dir for release
 
@@ -127,7 +133,6 @@ cd $DISTBASE/$DISTNAME
 MOVE=$(find Doc \( -type f -a \( -name \*.dvi -o -name \*.eps -o -name \*.ps -o -name \*.pdf \) -a -print \) | grep -v 'gfx/.*pdf')
 mv -f $MOVE Distribution/doc
 rm Distribution/doc/Isa-logics.eps
-cp Admin/index.html $DISTBASE
 rm -rf Admin Doc Tools
 
 mkdir src contrib
@@ -177,25 +182,13 @@ $TAR cf $DISTNAME.tar $DISTNAME
 mv pdf/$DISTNAME/doc/*.pdf $DISTNAME/doc
 rmdir pdf/$DISTNAME/doc pdf/$DISTNAME pdf
 
-UNPACKED_SIZE=$[ $(cat $DISTNAME.tar ${DISTNAME}_pdf.tar | wc -c) / 1024 ]
-
 gzip $DISTNAME.tar
 gzip ${DISTNAME}_pdf.tar
 
-PACKED_SIZE=$[ $(wc -c <$DISTNAME.tar.gz) / 1024 ]
-PACKED_SIZE_PDF=$[ $(wc -c <${DISTNAME}_pdf.tar.gz) / 1024 ]
 
+# prepare web pages
 
-# prepare dist index.html
-
-perl -pi -e \
- "s/{ISABELLE}/$DISTNAME/g; \
-  s/{PACKED_SIZE}/$PACKED_SIZE/g; \
-  s/{PACKED_SIZE_PDF}/$PACKED_SIZE_PDF/g; \
-  s/{UNPACKED_SIZE}/$UNPACKED_SIZE/g; \
-  s/{AUTHOR}/$LOGNAME/g; \
-  s/{DATE}/$DATE/g;" \
-    index.html
+$THIS/filesizes -norpm
 
 
 # final note
