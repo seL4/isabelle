@@ -295,7 +295,7 @@ val prems = Goalw [less_def]
     "[| !!n. [| ALL m::nat. m<n --> P(m) |] ==> P(n) |]  ==>  P(n)";
 by (wf_ind_tac "n" [wf_pred_nat RS wf_trancl] 1);
 by (eresolve_tac prems 1);
-qed "less_induct";
+qed "nat_less_induct";
 
 (*** Properties of <= ***)
 
@@ -484,7 +484,7 @@ qed "Least_equality";
 
 Goal "P(k::nat) ==> P(LEAST x. P(x))";
 by (etac rev_mp 1);
-by (res_inst_tac [("n","k")] less_induct 1);
+by (res_inst_tac [("n","k")] nat_less_induct 1);
 by (rtac impI 1);
 by (rtac classical 1);
 by (res_inst_tac [("s","n")] (Least_equality RS ssubst) 1);
@@ -496,7 +496,7 @@ qed "LeastI";
 (*Proof is almost identical to the one above!*)
 Goal "P(k::nat) ==> (LEAST x. P(x)) <= k";
 by (etac rev_mp 1);
-by (res_inst_tac [("n","k")] less_induct 1);
+by (res_inst_tac [("n","k")] nat_less_induct 1);
 by (rtac impI 1);
 by (rtac classical 1);
 by (res_inst_tac [("s","n")] (Least_equality RS ssubst) 1);

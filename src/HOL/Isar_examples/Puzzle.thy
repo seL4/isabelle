@@ -26,7 +26,7 @@ proof -;
   {;
     fix k;
     have "ALL x. k = f x --> ?C x" (is "?Q k");
-    proof (rule less_induct);
+    proof (rule nat_less_induct);
       fix k; assume hyp: "ALL m<k. ?Q m";
       show "?Q k";
       proof;

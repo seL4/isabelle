@@ -93,7 +93,7 @@ by (fast_tac (claset() addSDs [rel_pow_imp_rtrancl]) 1);
 (* WHILE, induction on the length of the computation *)
 by (eres_inst_tac [("P","?X -n-> ?Y")] rev_mp 1);
 by (res_inst_tac [("x","s")] spec 1);
-by (induct_thm_tac less_induct "n" 1);
+by (induct_thm_tac nat_less_induct "n" 1);
 by (strip_tac 1);
 by (etac rel_pow_E2 1);
  by (Asm_full_simp_tac 1);
@@ -214,7 +214,7 @@ by (fast_tac (claset() addSIs [rel_pow_0_I,rel_pow_Suc_I2]
 qed_spec_mp "comp_decomp_lemma";
 
 Goal "!c s t. (c,s) -n-> (SKIP,t) --> <c,s> -c-> t";
-by (induct_thm_tac less_induct "n" 1);
+by (induct_thm_tac nat_less_induct "n" 1);
 by (Clarify_tac 1);
 by (etac rel_pow_E2 1);
  by (asm_full_simp_tac (simpset() addsimps evalc.intrs) 1);

@@ -198,7 +198,7 @@ by (asm_simp_tac (simpset() addsimps [primel_append]) 1);
 qed "split_primel";
 
 Goal "1<n --> (EX l. primel l & prod l = n)"; 
-by (induct_thm_tac less_induct "n" 1);
+by (induct_thm_tac nat_less_induct "n" 1);
 by (rtac impI 1);
 by (case_tac "n:prime" 1);
 by (rtac exI 1);
@@ -270,7 +270,7 @@ qed "uniq_ex_lemma";
 
 Goal "ALL xs ys. (primel xs & primel ys & prod xs = prod ys & prod xs = n \
 \     --> xs <~~> ys)";
-by (induct_thm_tac less_induct "n" 1);
+by (induct_thm_tac nat_less_induct "n" 1);
 by Safe_tac;
 by (case_tac "xs" 1);
 by (force_tac (claset() addIs [primel_one_empty], simpset()) 1);

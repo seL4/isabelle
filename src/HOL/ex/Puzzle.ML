@@ -11,7 +11,7 @@ Proof due to Herbert Ehler
 AddSIs [Puzzle.f_ax];
 
 Goal "! n. k=f(n) --> n <= f(n)";
-by (induct_thm_tac less_induct "k" 1);
+by (induct_thm_tac nat_less_induct "k" 1);
 by (rtac allI 1);
 by (rename_tac "i" 1);
 by (case_tac "i" 1);

@@ -104,7 +104,7 @@ Addsimps [mod_mult_self1, mod_mult_self2];
 Goal "(m mod n) * (k::nat) = (m*k) mod (n*k)";
 by (div_undefined_case_tac "n=0" 1);
 by (div_undefined_case_tac "k=0" 1);
-by (res_inst_tac [("n","m")] less_induct 1);
+by (induct_thm_tac nat_less_induct "m" 1);
 by (stac mod_if 1);
 by (Asm_simp_tac 1);
 by (asm_simp_tac (simpset() addsimps [mod_geq, 
@@ -158,7 +158,7 @@ qed "div_if";
 (*Main Result about quotient and remainder.*)
 Goal "(m div n)*n + m mod n = (m::nat)";
 by (div_undefined_case_tac "n=0" 1);
-by (res_inst_tac [("n","m")] less_induct 1);
+by (induct_thm_tac nat_less_induct "m" 1);
 by (stac mod_if 1);
 by (ALLGOALS (asm_simp_tac 
 	      (simpset() addsimps [add_assoc, div_geq,
@@ -220,7 +220,7 @@ Addsimps [div_0, mod_0];
 (* Monotonicity of div in first argument *)
 Goal "ALL m::nat. m <= n --> (m div k) <= (n div k)";
 by (div_undefined_case_tac "k=0" 1);
-by (res_inst_tac [("n","n")] less_induct 1);
+by (induct_thm_tac nat_less_induct "n" 1);
 by (Clarify_tac 1);
 by (case_tac "n<k" 1);
 (* 1  case n<k *)
@@ -237,7 +237,7 @@ qed_spec_mp "div_le_mono";
 Goal "!!m::nat. [| 0<m; m<=n |] ==> (k div n) <= (k div m)";
 by (subgoal_tac "0<n" 1);
  by (Asm_simp_tac 2);
-by (res_inst_tac [("n","k")] less_induct 1);
+by (induct_thm_tac nat_less_induct "k" 1);
 by (rename_tac "k" 1);
 by (case_tac "k<n" 1);
  by (Asm_simp_tac 1);
@@ -262,7 +262,7 @@ Addsimps [div_le_dividend];
 
 (* Similar for "less than" *)
 Goal "!!n::nat. 1<n ==> (0 < m) --> (m div n < m)";
-by (res_inst_tac [("n","m")] less_induct 1);
+by (induct_thm_tac nat_less_induct "m" 1);
 by (rename_tac "m" 1);
 by (case_tac "m<n" 1);
  by (Asm_full_simp_tac 1);
@@ -284,7 +284,7 @@ Addsimps [div_less_dividend];
 (*** Further facts about mod (mainly for the mutilated chess board ***)
 
 Goal "0<n ==> Suc(m) mod n = (if Suc(m mod n) = n then 0 else Suc(m mod n))";
-by (res_inst_tac [("n","m")] less_induct 1);
+by (induct_thm_tac nat_less_induct "m" 1);
 by (case_tac "Suc(na)<n" 1);
 (* case Suc(na) < n *)
 by (forward_tac [lessI RS less_trans] 1 
@@ -297,7 +297,7 @@ by (auto_tac (claset(),
 qed "mod_Suc";
 
 Goal "0<n ==> m mod n < (n::nat)";
-by (res_inst_tac [("n","m")] less_induct 1);
+by (induct_thm_tac nat_less_induct "m" 1);
 by (case_tac "na<n" 1);
 (*case n le na*)
 by (asm_full_simp_tac (simpset() addsimps [mod_geq, diff_less]) 2);
@@ -321,7 +321,7 @@ Addsimps [div_mult_self_is_m, div_mult_self1_is_m];
 (*Cancellation law for division*)
 Goal "0<k ==> (k*m) div (k*n) = m div (n::nat)";
 by (div_undefined_case_tac "n=0" 1);
-by (res_inst_tac [("n","m")] less_induct 1);
+by (induct_thm_tac nat_less_induct "m" 1);
 by (case_tac "na<n" 1);
 by (asm_simp_tac (simpset() addsimps [zero_less_mult_iff, mult_less_mono2]) 1);
 by (subgoal_tac "~ k*na < k*n" 1);

@@ -97,7 +97,7 @@ by (Asm_simp_tac 1);
 qed "gcd_fib_diff";
 
 Goal "0<m ==> gcd (fib m, fib (n mod m)) = gcd (fib m, fib n)";
-by (induct_thm_tac less_induct "n" 1);
+by (induct_thm_tac nat_less_induct "n" 1);
 by (stac mod_if 1);
 by (Asm_simp_tac 1);
 by (asm_simp_tac (simpset() addsimps [gcd_fib_diff, mod_geq, 

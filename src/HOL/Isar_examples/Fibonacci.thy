@@ -126,7 +126,7 @@ qed;
 
 lemma gcd_fib_mod:
   "0 < m ==> gcd (fib m, fib (n mod m)) = gcd (fib m, fib n)";
-proof (induct n rule: less_induct);
+proof (induct n rule: nat_less_induct);
   fix n;
   assume m: "0 < m"
   and hyp: "ALL ma. ma < n

@@ -95,7 +95,7 @@ by (blast_tac (claset() addIs [Suc_mono]) 1);
 qed "Least_Suc";
 
 val prems = Goal "[| P 0; P 1; !!k. P k ==> P (Suc (Suc k)) |] ==> P n";
-by (rtac less_induct 1);
+by (rtac nat_less_induct 1);
 by (case_tac "n" 1);
 by (case_tac "nat" 2);
 by (ALLGOALS (blast_tac (claset() addIs prems@[less_trans])));

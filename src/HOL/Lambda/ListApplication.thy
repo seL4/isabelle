@@ -110,7 +110,7 @@ lemma lem [rulify]:
 proof -
   case antecedent
   show ?thesis
-   apply (induct_tac n rule: less_induct)
+   apply (induct_tac n rule: nat_less_induct)
    apply (rule allI)
    apply (cut_tac t = t in ex_head_tail)
    apply clarify
