@@ -413,6 +413,11 @@ by (Blast_tac 1);
 qed "UN_empty2";
 Addsimps[UN_empty2];
 
+goal thy "(UN x:A. {x}) = A";
+by (Blast_tac 1);
+qed "UN_singleton";
+Addsimps [UN_singleton];
+
 goal thy "!!k. k:I ==> A k Un (UN i:I. A i) = (UN i:I. A i)";
 by (Blast_tac 1);
 qed "UN_absorb";
@@ -609,6 +614,16 @@ goal thy "!!A. [| A<=B; B<= C |] ==> (B - (C - A)) = (A :: 'a set)";
 by (Blast_tac 1);
 qed "double_diff";
 
+goal thy "A Un (B-A) = A Un B";
+by (Blast_tac 1);
+qed "Un_Diff_cancel";
+
+goal thy "(B-A) Un A = B Un A";
+by (Blast_tac 1);
+qed "Un_Diff_cancel2";
+
+Addsimps [Un_Diff_cancel, Un_Diff_cancel2];
+
 goal thy "A - (B Un C) = (A-B) Int (A-C)";
 by (Blast_tac 1);
 qed "Diff_Un";
@@ -624,6 +639,10 @@ qed "Un_Diff";
 goal thy "(A Int B) - C = (A - C) Int (B - C)";
 by (Blast_tac 1);
 qed "Int_Diff";
+
+goal thy "(A-B) Int C = (A Int C) - (B Int C)";
+by (Blast_tac 1);
+qed "Diff_Int_distrib";
 
 
 section "Miscellany";
