@@ -18,13 +18,8 @@ sig
   val finish: unit -> unit
   val init_theory: string -> unit
   val verbatim_source: string -> (unit -> Symbol.symbol list) -> unit
-  type token
-  val basic_token: OuterLex.token -> token
-  val markup_token: string * string -> token
-  val markup_env_token: string * string -> token
-  val verbatim_token: string -> token
   val old_symbol_source: string -> (unit -> Symbol.symbol list) -> unit
-  val token_source: string -> (unit -> token list) -> unit
+  val theory_output: string -> string -> unit
   val begin_theory: string -> string list -> (Path.T * bool) list -> theory -> theory
   val result: string -> string -> thm -> unit
   val results: string -> string -> thm list -> unit
@@ -366,7 +361,7 @@ fun finish () = with_session ()
     put_graph graph (Path.append html_prefix (graph_path "session"));
     put_graph all_graph all_graph_path;
     create_index html_prefix;
-    update_index (Path.append html_prefix Path.parent) name;
+    if length path > 1 then update_index (Path.append html_prefix Path.parent) name else ();
     browser_info := empty_browser_info;
     session_info := None
   end);
@@ -379,18 +374,11 @@ fun init_theory name = with_session () (fn _ => init_theory_info name empty_theo
 fun verbatim_source name mk_text =
   with_session () (fn _ => add_html_source name (HTML.verbatim_source (mk_text ())));
 
-
-type token = Latex.token;
-val basic_token = Latex.Basic;
-val markup_token = Latex.Markup;
-val markup_env_token = Latex.MarkupEnv;
-val verbatim_token = Latex.Verbatim;
-
 fun old_symbol_source name mk_text =
   with_session () (fn _ => add_tex_source name (Latex.old_symbol_source name (mk_text ())));
 
-fun token_source name mk_toks =
-  with_session () (fn _ => add_tex_source name (Latex.token_source (mk_toks ())));
+fun theory_output name s =
+  with_session () (fn _ => add_tex_source name (Latex.isabelle_file s));
 
 
 fun parent_link remote_path curr_session name =
