@@ -32,8 +32,9 @@ rules
    "is_true(p,t) == prop_rec(p, 0,  %v. if(v:t, 1, 0), \
 \                               %p q tp tq. if(tp=1,tq,1))         =  1"
 
-  (*For every valuation, if all elements of H are true then so is p*)
-  sat_def     "H |= p == ALL t. (ALL q:H. is_true(q,t)) --> is_true(p,t)"
+  (*Logical consequence: for every valuation, if all elements of H are true
+     then so is p*)
+  logcon_def  "H |= p == ALL t. (ALL q:H. is_true(q,t)) --> is_true(p,t)"
 
   (** A finite set of hypotheses from t and the Vars in p **)
   hyps_def

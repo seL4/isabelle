@@ -158,7 +158,7 @@ val thms_FlsE = result();
 val thms_notE = standard (thms_MP RS thms_FlsE);
 
 (*Soundness of the rules wrt truth-table semantics*)
-goalw PropThms.thy [sat_def] "!!H. H |- p ==> H |= p";
+goalw PropThms.thy [logcon_def] "!!H. H |- p ==> H |= p";
 by (etac PropThms.induct 1);
 by (fast_tac (ZF_cs addSDs [is_true_Imp RS iffD1 RS mp]) 5);
 by (ALLGOALS (asm_simp_tac prop_ss));
@@ -198,12 +198,12 @@ by (ALLGOALS (fast_tac (ZF_cs addIs [weaken_left_Un1, weaken_left_Un2,
 val hyps_thms_if = result();
 
 (*Key lemma for completeness; yields a set of assumptions satisfying p*)
-val [premp,sat] = goalw PropThms.thy [sat_def]
+val [premp,sat] = goalw PropThms.thy [logcon_def]
     "[| p: prop;  0 |= p |] ==> hyps(p,t) |- p";
 by (rtac (sat RS spec RS mp RS if_P RS subst) 1 THEN
     rtac (premp RS hyps_thms_if) 2);
 by (fast_tac ZF_cs 1);
-val sat_thms_p = result();
+val logcon_thms_p = result();
 
 (*For proving certain theorems in our new propositional logic*)
 val thms_cs = 
@@ -278,7 +278,7 @@ val Diff_weaken_left = subset_refl RSN (2, Diff_mono) RS weaken_left;
 val [premp,sat] = goal PropThms.thy
     "[| p: prop;  0 |= p |] ==> ALL t. hyps(p,t) - hyps(p,t0) |- p";
 by (rtac (premp RS hyps_finite RS Fin_induct) 1);
-by (simp_tac (prop_ss addsimps [premp, sat, sat_thms_p, Diff_0]) 1);
+by (simp_tac (prop_ss addsimps [premp, sat, logcon_thms_p, Diff_0]) 1);
 by (safe_tac ZF_cs);
 (*Case hyps(p,t)-cons(#v,Y) |- p *)
 by (rtac thms_excluded_middle_rule 1);
@@ -305,16 +305,16 @@ by (rtac (sat RS (premp RS completeness_0_lemma RS spec)) 1);
 val completeness_0 = result();
 
 (*A semantic analogue of the Deduction Theorem*)
-goalw PropThms.thy [sat_def] "!!H p q. [| cons(p,H) |= q |] ==> H |= p=>q";
+goalw PropThms.thy [logcon_def] "!!H p q. [| cons(p,H) |= q |] ==> H |= p=>q";
 by (simp_tac prop_ss 1);
 by (fast_tac ZF_cs 1);
-val sat_Imp = result();
+val logcon_Imp = result();
 
 goal PropThms.thy "!!H. H: Fin(prop) ==> ALL p:prop. H |= p --> H |- p";
 by (etac Fin_induct 1);
 by (safe_tac (ZF_cs addSIs [completeness_0]));
 by (rtac (weaken_left_cons RS thms_MP) 1);
-by (fast_tac (ZF_cs addSIs [sat_Imp,ImpI]) 1);
+by (fast_tac (ZF_cs addSIs [logcon_Imp,ImpI]) 1);
 by (fast_tac thms_cs 1);
 val completeness_lemma = result();
 
