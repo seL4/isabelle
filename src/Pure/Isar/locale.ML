@@ -36,6 +36,8 @@ sig
   val the_locale: theory -> string -> locale
   val attribute: ('att -> context attribute) -> ('typ, 'term, 'thm, 'att) elem_expr
     -> ('typ, 'term, 'thm, context attribute) elem_expr
+  val locale_facts: theory -> xstring -> thm list
+  val locale_facts_i: theory -> string -> thm list
   val read_context_statement: xstring option -> context attribute element list ->
     (string * (string list * string list)) list list -> context ->
     string option * context * context * (term * (term list * term list)) list list
@@ -58,7 +60,9 @@ sig
     theory * (string * thm list) list
   val setup: (theory -> theory) list
 end;
-
+(* FIXME
+fun u() = use "locale";
+*)
 structure Locale: LOCALE =
 struct
 
@@ -391,27 +395,33 @@ end;
 
 local
 
-fun activate_elem (Fixes fixes) = ProofContext.add_fixes fixes
-  | activate_elem (Assumes asms) =
-      #1 o ProofContext.assume_i ProofContext.export_assume asms o
-      ProofContext.fix_frees (flat (map (map #1 o #2) asms))
-  | activate_elem (Defines defs) = (fn ctxt => #1 (ProofContext.assume_i ProofContext.export_def
-      (map (fn ((name, atts), (t, ps)) =>
-        let val (c, t') = ProofContext.cert_def ctxt t
-        in ((if name = "" then Thm.def_name c else name, atts), [(t', (ps, []))]) end) defs) ctxt))
-  | activate_elem (Notes facts) = #1 o ProofContext.have_thmss_i facts;
+fun activate_elem (ctxt, Fixes fixes) = (ctxt |> ProofContext.add_fixes fixes, [])
+  | activate_elem (ctxt, Assumes asms) =
+      ctxt |> ProofContext.fix_frees (flat (map (map #1 o #2) asms))
+      |> ProofContext.assume_i ProofContext.export_assume asms      
+  | activate_elem (ctxt, Defines defs) =
+      ctxt |> ProofContext.assume_i ProofContext.export_def
+        (map (fn ((name, atts), (t, ps)) =>
+          let val (c, t') = ProofContext.cert_def ctxt t
+          in ((if name = "" then Thm.def_name c else name, atts), [(t', (ps, []))]) end) defs)
+  | activate_elem (ctxt, Notes facts) = ctxt |> ProofContext.have_thmss_i facts;
 
-fun activate_elems ((name, ps), elems) = ProofContext.qualified (fn ctxt =>
-  foldl (fn (c, e) => activate_elem e c) (ctxt, elems) handle ProofContext.CONTEXT (msg, ctxt) =>
+fun activate_elems ((name, ps), elems) = ProofContext.qualified_result (fn ctxt =>
+  foldl_map activate_elem (ctxt, elems) handle ProofContext.CONTEXT (msg, ctxt) =>
     err_in_locale ctxt msg [(name, map fst ps)]);
 
-in
-
-fun activate_facts prep_facts (ctxt, ((name, ps), raw_elems)) =
+fun activate_elemss prep_facts = foldl_map (fn (ctxt, ((name, ps), raw_elems)) =>
   let
     val elems = map (prep_facts ctxt) raw_elems;
     val res = ((name, ps), elems);
-  in (ctxt |> activate_elems res, res) end;
+    val (ctxt', facts) = apsnd flat (activate_elems res ctxt);
+  in (ctxt', (res, facts)) end);
+
+in
+
+fun activate_facts prep_facts ctxt_elemss =
+  let val (ctxt', (elemss', factss)) = apsnd split_list (activate_elemss prep_facts ctxt_elemss)
+  in (ctxt', (elemss', flat factss)) end;
 
 end;
 
@@ -662,13 +672,21 @@ fun prep_context_statement prep_expr prep_elemss prep_facts
       prep_elemss close context fixed_params (raw_import_elemss @ raw_elemss) raw_concl;
 
     val n = length raw_import_elemss;
-    val (import_ctxt, import_elemss) = foldl_map activate (context, take (n, all_elemss));
-    val (ctxt, elemss) = foldl_map activate (import_ctxt, drop (n, all_elemss));
+    val (import_ctxt, (import_elemss, import_facts)) = activate (context, take (n, all_elemss));
+    val (ctxt, (elemss, facts)) = activate (import_ctxt, drop (n, all_elemss));
     val text = predicate_text (import_ctxt, import_elemss) (ctxt, elemss);
-  in ((((import_ctxt, import_elemss), (ctxt, elemss)), text), concl) end;
+  in
+    ((((import_ctxt, (import_elemss, import_facts)),
+      (ctxt, (elemss, facts))), text), concl)
+  end;
 
 val gen_context = prep_context_statement intern_expr read_elemss get_facts;
 val gen_context_i = prep_context_statement (K I) cert_elemss get_facts_i;
+
+fun gen_facts prep_locale thy name =
+  let val ((((_, (_, facts)), _), _), _) = thy |> ProofContext.init
+    |> gen_context_i false [] (Locale (prep_locale (Theory.sign_of thy) name)) [] [];
+  in flat (map #2 facts) end;
 
 fun gen_statement prep_locale prep_ctxt raw_locale elems concl ctxt =
   let
@@ -685,6 +703,8 @@ in
 
 fun read_context x y z = #1 (gen_context true [] x y [] z);
 fun cert_context x y z = #1 (gen_context_i true [] x y [] z);
+val locale_facts = gen_facts intern;
+val locale_facts_i = gen_facts (K I);
 val read_context_statement = gen_statement intern gen_context;
 val cert_context_statement = gen_statement (K I) gen_context_i;
 
@@ -698,7 +718,7 @@ fun print_locale thy import body =
   let
     val sg = Theory.sign_of thy;
     val thy_ctxt = ProofContext.init thy;
-    val (((_, import_elemss), (ctxt, elemss)), ((_, (pred_xs, pred_ts)), _)) =
+    val (((_, (import_elemss, _)), (ctxt, (elemss, _))), ((_, (pred_xs, pred_ts)), _)) =
       read_context import body thy_ctxt;
     val all_elems = flat (map #2 (import_elemss @ elemss));
 
@@ -747,7 +767,7 @@ fun print_locale thy import body =
 
 local
 
-fun gen_add_locale prep_context prep_expr bname raw_import raw_body thy =
+fun gen_add_locale prep_ctxt prep_expr bname raw_import raw_body thy =
   let
     val sign = Theory.sign_of thy;
     val name = Sign.full_name sign bname;
@@ -755,9 +775,8 @@ fun gen_add_locale prep_context prep_expr bname raw_import raw_body thy =
       error ("Duplicate definition of locale " ^ quote name));
 
     val thy_ctxt = ProofContext.init thy;
-    val (((import_ctxt, import_elemss), (body_ctxt, body_elemss)),
-        ((all_parms, all_text), (body_parms, body_text))) =
-      prep_context raw_import raw_body thy_ctxt;
+    val (((import_ctxt, (import_elemss, _)), (body_ctxt, (body_elemss, _))),
+      ((all_parms, all_text), (body_parms, body_text))) = prep_ctxt raw_import raw_body thy_ctxt;
     val import = prep_expr sign raw_import;
     val elems = flat (map snd body_elemss);
   in
