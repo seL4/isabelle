@@ -110,8 +110,9 @@ ZF-ex: ZF $(LOG)/ZF-ex.gz
 
 $(LOG)/ZF-ex.gz: $(OUT)/ZF ex/Acc.ML ex/Acc.thy ex/BT.ML ex/BT.thy \
   ex/BinEx.ML ex/Brouwer.ML ex/Brouwer.thy ex/CoUnit.ML \
-  ex/CoUnit.thy ex/Comb.ML ex/Comb.thy ex/Data.ML ex/Data.thy ex/Enum.ML \
-  ex/Enum.thy ex/LList.ML ex/LList.thy \
+  ex/CoUnit.thy ex/Comb.ML ex/Comb.thy ex/Commutation.ML ex/Commutation.thy \
+  ex/Data.ML ex/Data.thy ex/Enum.ML ex/Enum.thy \
+  ex/LList.ML ex/LList.thy \
   ex/Limit.ML ex/Limit.thy ex/ListN.ML ex/ListN.thy ex/Mutil.ML \
   ex/Mutil.thy ex/Ntree.ML ex/Ntree.thy ex/Primes.ML ex/Primes.thy \
   ex/NatSum.ML ex/NatSum.thy  ex/Primrec_defs.ML ex/Primrec_defs.thy \

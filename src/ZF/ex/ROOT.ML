@@ -26,6 +26,7 @@ time_use_thy "Enum";            (*Enormous enumeration type*)
 time_use_thy "Rmap";            (*mapping a relation over a list*)
 time_use_thy "Mutil";           (*mutilated chess board*)
 time_use_thy "PropLog";         (*completeness of propositional logic*)
+time_use_thy "Commutation";     (*abstract Church-Rosser theory*)
 (*two Coq examples by Christine Paulin-Mohring*)
 time_use_thy "ListN";
 time_use_thy "Acc";
