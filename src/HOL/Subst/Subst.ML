@@ -153,7 +153,7 @@ goalw Subst.thy [srange_def]
 by (Blast_tac 1);
 qed "srange_iff";
 
-goalw Set.thy [empty_def] "(A = {}) = (ALL a.~ a:A)";
+goalw thy [empty_def] "(A = {}) = (ALL a.~ a:A)";
 by (Blast_tac 1);
 qed "empty_iff_all_not";
 
