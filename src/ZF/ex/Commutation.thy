@@ -94,8 +94,8 @@ apply simp
 done
 
 lemma confluent_Un: 
- "[| confluent(r); confluent(s); commute(r^*, s^*);  
-     r \<subseteq> Sigma(A,B); s \<subseteq> Sigma(C,D) |] ==> confluent(r Un s)"
+ "[| confluent(r); confluent(s); commute(r^*, s^*); 
+     relation(r); relation(s) |] ==> confluent(r Un s)"
 apply (unfold confluent_def)
 apply (rule rtrancl_Un_rtrancl [THEN subst])
 apply auto

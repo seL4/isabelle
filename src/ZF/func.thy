@@ -8,6 +8,9 @@ Functions in Zermelo-Fraenkel Set Theory
 
 theory func = equalities:
 
+lemma subset_Sigma_imp_relation: "r <= Sigma(A,B) ==> relation(r)"
+by (simp add: relation_def, blast)
+
 lemma relation_converse_converse [simp]:
      "relation(r) ==> converse(converse(r)) = r"
 by (simp add: relation_def, blast) 
@@ -293,12 +296,6 @@ by (unfold restrict_def, simp)
 lemma restrict_iff: "z \<in> restrict(r,A) \<longleftrightarrow> z \<in> r & (\<exists>x\<in>A. \<exists>y. z = \<langle>x, y\<rangle>)"
 by (simp add: restrict_def) 
 
-lemma domain_restrict_lam [simp]: "domain(restrict(Lambda(A,f),C)) = A Int C"
-apply (unfold restrict_def lam_def)
-apply (rule equalityI)
-apply (auto simp add: domain_iff)
-done
-
 lemma restrict_restrict [simp]:
      "restrict(restrict(r,A),B) = restrict(r, A Int B)"
 by (unfold restrict_def, blast)
@@ -308,8 +305,20 @@ apply (unfold restrict_def)
 apply (auto simp add: domain_def)
 done
 
-lemma restrict_idem [simp]: "f <= Sigma(A,B) ==> restrict(f,A) = f"
+lemma restrict_idem: "f <= Sigma(A,B) ==> restrict(f,A) = f"
 by (simp add: restrict_def, blast)
+
+
+(*converse probably holds too*)
+lemma domain_restrict_idem:
+     "[| domain(r) <= A; relation(r) |] ==> restrict(r,A) = r"
+by (simp add: restrict_def relation_def, blast)
+
+lemma domain_restrict_lam [simp]: "domain(restrict(Lambda(A,f),C)) = A Int C"
+apply (unfold restrict_def lam_def)
+apply (rule equalityI)
+apply (auto simp add: domain_iff)
+done
 
 lemma restrict_if [simp]: "restrict(f,A) ` a = (if a : A then f`a else 0)"
 by (simp add: restrict apply_0)
@@ -321,7 +330,7 @@ by (unfold restrict_def lam_def, auto)
 lemma fun_cons_restrict_eq:
      "f : cons(a, b) -> B ==> f = cons(<a, f ` a>, restrict(f, b))"
 apply (rule equalityI)
-prefer 2 apply (blast intro: apply_Pair restrict_subset [THEN subsetD])
+ prefer 2 apply (blast intro: apply_Pair restrict_subset [THEN subsetD])
 apply (auto dest!: Pi_memberD simp add: restrict_def lam_def)
 done
 

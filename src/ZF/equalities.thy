@@ -126,8 +126,7 @@ lemma fieldE [elim!]:
      "[| a : field(r);   
          !!x. <a,x>: r ==> P;   
          !!x. <x,a>: r ==> P        |] ==> P"
-apply (unfold field_def, blast)
-done
+by (unfold field_def, blast)
 
 lemma field_subset: "field(A*B) <= A Un B"
 by blast
@@ -147,6 +146,9 @@ by blast
 
 lemma field_times_field: "r <= Sigma(A,B) ==> r <= field(r)*field(r)"
 by blast
+
+lemma relation_field_times_field: "relation(r) ==> r <= field(r)*field(r)"
+by (simp add: relation_def, blast) 
 
 
 (*** Image of a set under a function/relation ***)

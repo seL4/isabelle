@@ -54,6 +54,9 @@ apply (unfold wf_def wf_on_def, clarify) (*needed for blast's efficiency*)
 apply blast
 done
 
+lemma wf_on_imp_wf: "[|wf[A](r); r <= A*A|] ==> wf(r)";
+by (simp add: wf_on_def subset_Int_iff)
+
 lemma wf_on_field_imp_wf: "wf[field(r)](r) ==> wf(r)"
 by (unfold wf_def wf_on_def, fast)
 
@@ -273,14 +276,17 @@ lemma is_recfun_functional:
      "[| wf(r); trans(r); is_recfun(r,a,H,f); is_recfun(r,a,H,g) |]  ==>  f=g"
 by (blast intro: fun_extension is_recfun_type is_recfun_equal)
 
+lemma the_recfun_eq:
+    "[| is_recfun(r,a,H,f);  wf(r);  trans(r) |] ==> the_recfun(r,a,H) = f"
+apply (unfold the_recfun_def)
+apply (blast intro: is_recfun_functional)
+done
+
 (*If some f satisfies is_recfun(r,a,H,-) then so does the_recfun(r,a,H) *)
 lemma is_the_recfun:
     "[| is_recfun(r,a,H,f);  wf(r);  trans(r) |]
      ==> is_recfun(r, a, H, the_recfun(r,a,H))"
-apply (unfold the_recfun_def)
-apply (rule ex1I [THEN theI], assumption)
-apply (blast intro: is_recfun_functional)
-done
+by (simp add: the_recfun_eq)
 
 lemma unfold_the_recfun:
      "[| wf(r);  trans(r) |] ==> is_recfun(r, a, H, the_recfun(r,a,H))"

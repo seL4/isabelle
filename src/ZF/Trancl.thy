@@ -84,12 +84,15 @@ by (unfold trans_on_def, blast)
 lemma trans_imp_trans_on: "trans(r) ==> trans[A](r)"
 by (unfold trans_def trans_on_def, blast)
 
+lemma trans_on_imp_trans: "[|trans[A](r); r <= A*A|] ==> trans(r)";
+by (simp add: trans_on_def trans_def, blast)
+
+
 subsection{*Transitive closure of a relation*}
 
 lemma rtrancl_bnd_mono:
      "bnd_mono(field(r)*field(r), %s. id(field(r)) Un (r O s))"
-apply (rule bnd_monoI, blast+)
-done
+by (rule bnd_monoI, blast+)
 
 lemma rtrancl_mono: "r<=s ==> r^* <= s^*"
 apply (unfold rtrancl_def)
@@ -106,6 +109,11 @@ lemmas rtrancl_unfold =
 
 (*  r^* <= field(r) * field(r)  *)
 lemmas rtrancl_type = rtrancl_def [THEN def_lfp_subset, standard]
+
+lemma relation_rtrancl: "relation(r^*)"
+apply (simp add: relation_def) 
+apply (blast dest: rtrancl_type [THEN subsetD]) 
+done
 
 (*Reflexivity of rtrancl*)
 lemma rtrancl_refl: "[| a: field(r) |] ==> <a,a> : r^*"
@@ -125,8 +133,8 @@ lemma r_into_rtrancl: "<a,b> : r ==> <a,b> : r^*"
 by (rule rtrancl_refl [THEN rtrancl_into_rtrancl], blast+)
 
 (*The premise ensures that r consists entirely of pairs*)
-lemma r_subset_rtrancl: "r <= Sigma(A,B) ==> r <= r^*"
-by (blast intro: r_into_rtrancl)
+lemma r_subset_rtrancl: "relation(r) ==> r <= r^*"
+by (simp add: relation_def, blast intro: r_into_rtrancl)
 
 lemma rtrancl_field: "field(r^*) = field(r)"
 by (blast intro: r_into_rtrancl dest!: rtrancl_type [THEN subsetD])
@@ -139,8 +147,7 @@ lemma rtrancl_full_induct:
       !!x. x: field(r) ==> P(<x,x>);  
       !!x y z.[| P(<x,y>); <x,y>: r^*; <y,z>: r |]  ==>  P(<x,z>) |]  
    ==>  P(<a,b>)"
-apply (erule def_induct [OF rtrancl_def rtrancl_bnd_mono], blast) 
-done
+by (erule def_induct [OF rtrancl_def rtrancl_bnd_mono], blast) 
 
 (*nice induction rule.
   Tried adding the typing hypotheses y,z:field(r), but these
@@ -207,8 +214,9 @@ apply (blast intro!: rtrancl_refl)
 done
 
 (*The premise ensures that r consists entirely of pairs*)
-lemma r_subset_trancl: "r <= Sigma(A,B) ==> r <= r^+"
-by (blast intro: r_into_trancl)
+lemma r_subset_trancl: "relation(r) ==> r <= r^+"
+by (simp add: relation_def, blast intro: r_into_trancl)
+
 
 (*intro rule by definition: from r^* and r  *)
 lemma rtrancl_into_trancl1: "[| <a,b> : r^*;  <b,c> : r |]   ==>  <a,c> : r^+"
@@ -257,11 +265,24 @@ apply (unfold trancl_def)
 apply (blast elim: rtrancl_type [THEN subsetD, THEN SigmaE2])
 done
 
+lemma relation_trancl: "relation(r^+)"
+apply (simp add: relation_def) 
+apply (blast dest: trancl_type [THEN subsetD]) 
+done
+
 lemma trancl_subset_times: "r \<subseteq> A * A ==> r^+ \<subseteq> A * A"
 by (insert trancl_type [of r], blast)
 
 lemma trancl_mono: "r<=s ==> r^+ <= s^+"
 by (unfold trancl_def, intro comp_mono rtrancl_mono)
+
+lemma trancl_eq_r: "[|relation(r); trans(r)|] ==> r^+ = r"
+apply (rule equalityI)
+ prefer 2 apply (erule r_subset_trancl, clarify) 
+apply (frule trancl_type [THEN subsetD], clarify) 
+apply (erule trancl_induct, assumption)
+apply (blast dest: transD) 
+done
 
 
 (** Suggested by Sidi Ould Ehmety **)
@@ -285,7 +306,7 @@ apply blast
 done
 
 lemma rtrancl_Un_rtrancl:
-     "[| r<= Sigma(A,B); s<=Sigma(C,D) |] ==> (r^* Un s^*)^* = (r Un s)^*"
+     "[| relation(r); relation(s) |] ==> (r^* Un s^*)^* = (r Un s)^*"
 apply (rule rtrancl_subset)
 apply (blast dest: r_subset_rtrancl)
 apply (blast intro: rtrancl_mono [THEN subsetD])
@@ -392,7 +413,6 @@ val trancl_type = thm "trancl_type";
 val trancl_mono = thm "trancl_mono";
 val rtrancl_idemp = thm "rtrancl_idemp";
 val rtrancl_subset = thm "rtrancl_subset";
-val rtrancl_Un_rtrancl = thm "rtrancl_Un_rtrancl";
 val rtrancl_converseD = thm "rtrancl_converseD";
 val rtrancl_converseI = thm "rtrancl_converseI";
 val rtrancl_converse = thm "rtrancl_converse";
