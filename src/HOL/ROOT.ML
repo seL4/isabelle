@@ -38,6 +38,7 @@ use_thy "Inductive";
 use_thy "RelPow";
 use_thy "Finite";
 use_thy "Sexp";
+use_thy "Option";
 use_thy "List";
 
 init_pps ();

@@ -23,7 +23,7 @@ BIN = $(ISABELLEBIN)
 COMP = $(ISABELLECOMP)
 NAMES = HOL Ord Set Fun subset equalities Prod Relation Trancl Sum WF \
         mono Lfp Gfp Nat intr_elim indrule Inductive Finite Arith \
-        Sexp Univ List RelPow
+        Sexp Univ List RelPow Option
 
 FILES = ROOT.ML add_ind_def.ML datatype.ML hologic.ML\
 	ind_syntax.ML cladata.ML simpdata.ML\
@@ -111,7 +111,7 @@ Integ:  $(BIN)/HOL  $(INTEG_FILES)
 IOA_NTP_NAMES = Abschannel Action Correctness Impl Lemmas Multiset Packet\
                 Receiver Sender
 IOA_ABP_NAMES = Action Correctness Lemmas
-IOA_MT_NAMES = Asig IOA Option Solve
+IOA_MT_NAMES = Asig IOA Solve
 
 IOA_FILES = IOA/NTP/ROOT.ML IOA/ABP/ROOT.ML IOA/NTP/Spec.thy\
  $(IOA_NTP_NAMES:%=IOA/NTP/%.thy) $(IOA_NTP_NAMES:%=IOA/NTP/%.ML)\
