@@ -7,7 +7,7 @@ Simple LaTeX presentation primitives (based on outer lexical syntax).
 
 signature LATEX =
 sig
-  val token_source: OuterLex.token list -> string
+  val token_source: (OuterLex.token * string option) list -> string
   val theory_entry: string -> string
 end;
 
@@ -16,8 +16,6 @@ struct
 
 
 (* symbol output *)
-
-local
 
 val output_chr = fn
   " " => "~" |
@@ -31,54 +29,35 @@ val output_chr = fn
   "}" => "{\\textbraceright}" |
   "~" => "{\\textasciitilde}" |
   "^" => "{\\textasciicircum}" |
-(*  "\"" => "{\\textquotedblleft}" |    (* FIXME !? *)*)
-  "\\" => "{\\textbackslash}" |
-(*  "|" => "{\\textbar}" |
-  "<" => "{\\textless}" |
-  ">" => "{\\textgreater}" |  *)
+  "\"" => "{\"}" |
+(*  "\\" => "{\\textbackslash}" |  FIXME *)
+  "\\" => "\\verb,\\," |
+  "|" => "{|}" |
+  "<" => "{<}" |
+  ">" => "{>}" |
   c => c;
 
-in
 
 (* FIXME replace \<forall> etc. *)
-val output_symbol = implode o map output_chr o explode;
-val output_symbols = map output_symbol;
-
-end;
+val output_sym = implode o map output_chr o explode;
+val output_symbols = map output_sym;
 
 
 (* token output *)
 
-local
-
 structure T = OuterLex;
 
-fun strip_blanks s =
-  implode (#1 (Library.take_suffix Symbol.is_blank
-    (#2 (Library.take_prefix Symbol.is_blank (explode s)))));
+fun output_tok (tok, Some s) = "\\isamarkup" ^ T.val_of tok ^ "{" ^ s ^ "}"
+  | output_tok (tok, None) =
+      let val s = T.val_of tok in
+        if T.is_kind T.Command tok then "\\isacommand{" ^ output_sym s ^ "}"
+        else if T.is_kind T.Keyword tok then "\\isakeyword{" ^ output_sym s ^ "}"
+        else if T.is_kind T.String tok then output_sym (quote s)
+        else if T.is_kind T.Verbatim tok then output_sym (enclose "{*" "*}" s)
+        else output_sym s
+      end;
 
-fun output_tok tok =
-  let
-    val out = output_symbol;
-    val s = T.val_of tok;
-  in
-    if T.is_kind T.Command tok then "\\isacommand{" ^ out s ^ "}"
-    else if T.is_kind T.Keyword tok then "\\isakeyword{" ^ out s ^ "}"
-    else if T.is_kind T.String tok then out (quote s)
-    else if T.is_kind T.Verbatim tok then "\\isatext{" ^ strip_blanks s ^ "}"
-    else out s
-  end;
-
-(*adhoc tuning of tokens*)
-fun invisible_token tok =
-  T.is_kind T.Command tok andalso T.val_of tok mem_string ["text", "txt"] orelse
-  T.keyword_with (equal ";") tok orelse T.is_kind T.Comment tok;
-
-in
-
-val output_tokens = map output_tok o filter_out invisible_token;
-
-end;
+val output_tokens = map output_tok;
 
 
 (* theory presentation *)

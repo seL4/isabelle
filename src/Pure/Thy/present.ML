@@ -17,7 +17,7 @@ sig
   val finish: unit -> unit
   val init_theory: string -> unit
   val verbatim_source: string -> (unit -> string list) -> unit
-  val token_source: string -> (unit -> OuterLex.token list) -> unit
+  val token_source: string -> (unit -> (OuterLex.token * string option) list) -> unit
   val begin_theory: string -> string list -> (Path.T * bool) list -> theory -> theory
   val result: string -> string -> thm -> unit
   val results: string -> string -> thm list -> unit
