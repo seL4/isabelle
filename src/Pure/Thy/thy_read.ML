@@ -1062,7 +1062,7 @@ val qed_thm = ref flexpair_def(*dummy*);
 
 fun bind_thm (name, thm) =
  (qed_thm := standard thm;
-  store_thm (name, standard thm);
+  store_thm (name, !qed_thm);
   use_string ["val " ^ name ^ " = !qed_thm;"]);
 
 fun qed name =
