@@ -128,8 +128,8 @@ translations
 
   "<x, y, z>"   == "<x, <y, z>>"
   "<x, y>"      == "Pair(x, y)"
-  "%<x,y,zs>.b"   => "split(%x <y,zs>.b)"
-  "%<x,y>.b"      => "split(%x y.b)"
+  "%<x,y,zs>.b"   == "split(%x <y,zs>.b)"
+  "%<x,y>.b"      == "split(%x y.b)"
 (* The <= direction fails if split has more than one argument because
    ast-matching fails.  Otherwise it would work fine *)
 
@@ -234,7 +234,7 @@ end
 ML
 
 (* Pattern-matching and 'Dependent' type operators *)
-
+(*
 local open Syntax
 
 fun pttrn s = const"@pttrn" $ s;
@@ -255,10 +255,11 @@ fun split_tr'(t::args) =
   in list_comb(const"_lambda" $ pttrn pats $ ft, args) end;
 
 in
-
+*)
 val print_translation = 
-  [("split", split_tr'),
+  [(*("split", split_tr'),*)
    ("Pi",    dependent_tr' ("@PROD", "op ->")),
    ("Sigma", dependent_tr' ("@SUM", "op *"))];
-
+(*
 end;
+*)
