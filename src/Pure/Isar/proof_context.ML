@@ -60,6 +60,7 @@ sig
     -> (thm list * context attribute list) list -> context -> context * (string * thm list)
   val assumptions: context -> (cterm * ((int -> tactic) * (int -> tactic))) list
   val fixed_names: context -> string list
+  val most_general_varify_tfrees: thm -> thm
   val assume: ((int -> tactic) * (int -> tactic))
     -> (string * context attribute list * (string * (string list * string list)) list) list
     -> context -> context * ((string * thm list) list * thm list)
@@ -705,6 +706,14 @@ fun fixed_names (Context {asms = (_, (fixes, _)), ...}) = map #2 fixes;
 
 (* assume *)
 
+fun most_general_varify_tfrees thm =
+  let
+    val {hyps, prop, ...} = Thm.rep_thm thm;
+    val frees = foldr Term.add_term_frees (prop :: hyps, []);
+    val leave_tfrees = foldr Term.add_term_tfree_names (frees, []);
+  in thm |> Thm.varifyT' leave_tfrees end;
+
+
 local
 
 fun gen_assm prepp tac (ctxt, (name, attrs, raw_prop_pats)) =
@@ -713,7 +722,8 @@ fun gen_assm prepp tac (ctxt, (name, attrs, raw_prop_pats)) =
 
     val cprops = map (Thm.cterm_of (sign_of ctxt')) props;
     val cprops_tac = map (rpair tac) cprops;
-    val asms = map (Drule.forall_elim_vars 0 o Drule.assume_goal) cprops;
+    val asms =
+      map (most_general_varify_tfrees o Drule.forall_elim_vars 0 o Drule.assume_goal) cprops;
 
     val ths = map (fn th => ([th], [])) asms;
     val (ctxt'', (_, thms)) =

@@ -380,18 +380,11 @@ fun varify_frees fixes thm =
     |> Drule.forall_elim_vars 0
   end;
 
-fun most_general_varify_tfrees thm =
-  let
-    val {hyps, prop, ...} = Thm.rep_thm thm;
-    val frees = foldr Term.add_term_frees (prop :: hyps, []);
-    val leave_tfrees = foldr Term.add_term_tfree_names (frees, []);
-  in thm |> Thm.varifyT' leave_tfrees end;
-
 fun export fixes casms thm =
   thm
   |> Drule.implies_intr_list casms
   |> varify_frees fixes
-  |> most_general_varify_tfrees;
+  |> ProofContext.most_general_varify_tfrees;
 
 fun diff_context inner None = (ProofContext.fixed_names inner, ProofContext.assumptions inner)
   | diff_context inner (Some outer) =
@@ -476,7 +469,7 @@ fun prep_result state t raw_thm =
       err ("Additional hypotheses:\n" ^ cat_lines (map (Sign.string_of_term sign) bad_hyps))
     else if not (t aconv prop) then
       err ("Proved a different theorem: " ^ Sign.string_of_term sign prop)
-    else Drule.forall_elim_vars (maxidx + 1) thm
+    else thm |> Drule.forall_elim_vars (maxidx + 1) |> ProofContext.most_general_varify_tfrees
   end;
 
 
