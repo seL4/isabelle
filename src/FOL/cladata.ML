@@ -35,11 +35,9 @@ qed_goal "alt_ex1E" IFOL.thy
     (IntPr.fast_tac 1)]);
 
 
-(*Propositional rules 
-  -- iffCE might seem better, but in the examples in ex/cla
-     run about 7% slower than with iffE*)
+(*Propositional rules*)
 val prop_cs = empty_cs addSIs [refl,TrueI,conjI,disjCI,impI,notI,iffI] 
-                       addSEs [conjE,disjE,impCE,FalseE,iffE];
+                       addSEs [conjE,disjE,impCE,FalseE,iffCE];
 
 (*Quantifier rules*)
 val FOL_cs = prop_cs addSIs [allI,ex_ex1I] addIs [exI] 

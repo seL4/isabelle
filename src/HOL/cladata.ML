@@ -43,7 +43,7 @@ open Classical;
 
 (*Propositional rules*)
 val prop_cs = empty_cs addSIs [refl,TrueI,conjI,disjCI,impI,notI,iffI]
-                       addSEs [conjE,disjE,impCE,FalseE,iffE];
+                       addSEs [conjE,disjE,impCE,FalseE,iffCE];
 
 (*Quantifier rules*)
 val HOL_cs = prop_cs addSIs [allI,ex_ex1I] addIs [exI] 
