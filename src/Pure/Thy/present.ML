@@ -327,7 +327,7 @@ fun init false _ _ _ _ _ = (browser_info := empty_browser_info; session_info := 
 (* finish session *)
 
 fun isatool_document doc_format doc_prefix =
-  let val cmd = "$ISATOOL document -o '" ^ doc_format ^ "' '" ^ File.sysify_path doc_prefix ^ "'"
+  let val cmd = "$ISATOOL document -c -o '" ^ doc_format ^ "' '" ^ File.sysify_path doc_prefix ^ "'"
   in writeln cmd; if system cmd <> 0 then error "Failed to build document" else () end;
 
 fun write_tex src name path = Buffer.write (Path.append path (tex_path name)) src;
