@@ -80,7 +80,7 @@ qed_goal "bin_add_BIT_BIT" Bin.thy
  (fn _ => [(Simp_tac 1)]);
 
 
-(*** bin_add: binary multiplication ***)
+(*** bin_mult: binary multiplication ***)
 
 qed_goal "bin_mult_1" Bin.thy
     "bin_mult (v BIT True) w = bin_add (NCons (bin_mult v w) False) w"
@@ -124,9 +124,9 @@ by (asm_simp_tac (simpset()
 qed "integ_of_minus";
 
  
-val bin_add_simps = [bin_add_BIT_BIT,
-                     integ_of_succ, integ_of_pred];
+val bin_add_simps = [bin_add_BIT_BIT, integ_of_succ, integ_of_pred];
 
+(*This proof is complicated by the mutual recursion*)
 Goal "! w. integ_of(bin_add v w) = integ_of v + integ_of w";
 by (induct_tac "v" 1);
 by (simp_tac (simpset() addsimps bin_add_simps) 1);
