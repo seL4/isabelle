@@ -171,6 +171,12 @@ lemmas [sym] = sym iff_sym not_sym iff_not_sym
   and [Pure.elim?] = iffD1 iffD2 impE
 
 
+lemma eq_commute: "a=b <-> b=a"
+apply (rule iffI) 
+apply (erule sym)+
+done
+
+
 subsection {* Atomizing meta-level rules *}
 
 lemma atomize_all [atomize]: "(!!x. P(x)) == Trueprop (ALL x. P(x))"
