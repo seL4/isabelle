@@ -157,7 +157,7 @@ if [ -n "$UNOFFICIAL" ]; then
   } >UNOFFICIAL
 fi
 
-perl -pi -e "s/{ISABELLE}/$DISTNAME/g;" lib/html/index1.html lib/html/index2.html
+perl -pi -e "s/{ISABELLE}/$DISTNAME/g;" lib/html/index.html
 perl -pi -e "s/Isabelle repository/$DISTVERSION/" src/Pure/ROOT.ML
 perl -pi -e "s/the internal repository version of Isabelle/$DISTVERSION/" README.html
 lynx -dump README.html >README
