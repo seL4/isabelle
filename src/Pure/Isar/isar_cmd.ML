@@ -26,7 +26,6 @@ sig
   val print_binds: Toplevel.transition -> Toplevel.transition
   val print_lthms: Toplevel.transition -> Toplevel.transition
   val print_thms: xstring * Args.src list -> Toplevel.transition -> Toplevel.transition
-  val print_thm: xstring * Args.src list -> Toplevel.transition -> Toplevel.transition
   val print_prop: string -> Toplevel.transition -> Toplevel.transition
   val print_term: string -> Toplevel.transition -> Toplevel.transition
   val print_type: string -> Toplevel.transition -> Toplevel.transition
@@ -38,7 +37,7 @@ struct
 
 (* variations on exit *)
 
-val break = Toplevel.imperative (fn () => raise Toplevel.BREAK);
+val break = Toplevel.keep (fn state => raise Toplevel.BREAK state);
 
 val exit = Toplevel.keep (fn state =>
   (Context.set_context (try Toplevel.theory_of state);
@@ -103,21 +102,13 @@ fun local_attribs st ths srcs =
   #2 (Attribute.applys ((Proof.context_of st, ths),
     map (Attrib.local_attribute (Proof.theory_of st)) srcs));
 
-fun gen_print_thms global_get local_get (name, srcs) = Toplevel.keep (fn state =>
+fun print_thms (name, srcs) = Toplevel.keep (fn state =>
   let
-    val prt_tthm = Attribute.pretty_tthm;
-    fun prt_tthms [th] = prt_tthm th
-      | prt_tthms ths = Pretty.block (Pretty.fbreaks (map prt_tthm ths));
-
     val ths = map (apfst (Thm.transfer (Toplevel.theory_of state)))
-      (Toplevel.node_cases global_get (local_get o Proof.context_of)
+      (Toplevel.node_cases PureThy.get_tthms (ProofContext.get_tthms o Proof.context_of)
         state name);
     val ths' = Toplevel.node_cases global_attribs local_attribs state ths srcs;
-  in Pretty.writeln (prt_tthms ths') end);
-
-val print_thms = gen_print_thms PureThy.get_tthms ProofContext.get_tthms;
-val print_thm =
-  gen_print_thms (Library.single oo PureThy.get_tthm) (Library.single oo ProofContext.get_tthm);
+  in Attribute.print_tthms ths' end);
 
 
 (* print types, terms and props *)
