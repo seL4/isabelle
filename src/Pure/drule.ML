@@ -35,6 +35,7 @@ signature DRULE =
   val forall_elim_vars	: int -> thm -> thm
   val implies_elim_list	: thm -> thm list -> thm
   val implies_intr_list	: cterm list -> thm -> thm
+  val dest_cimplies     : cterm -> cterm * cterm
   val MRL		: thm list list * thm list -> thm list
   val MRS		: thm list * thm -> thm
   val read_instantiate	: (string*string)list -> thm -> thm
@@ -191,6 +192,17 @@ val add_defs = ext_defns read_axm;
 (**** More derived rules and operations on theorems ****)
 
 (** some cterm->cterm operations: much faster than calling cterm_of! **)
+
+(*dest_implies for cterms. Note T=prop below*)
+fun dest_cimplies ct =
+  (let val (ct1, ct2) = dest_comb ct
+       val {t, ...} = rep_cterm ct1;
+   in case head_of t of
+          Const("==>", _) => (snd (dest_comb ct1), ct2)
+        | _ => raise TERM ("dest_cimplies", [term_of ct])
+   end
+  ) handle CTERM "dest_comb" => raise TERM ("dest_cimplies", [term_of ct]);
+
 
 (*Discard flexflex pairs; return a cterm*)
 fun cskip_flexpairs ct =
@@ -511,7 +523,7 @@ val refl_cimplies = reflexive (cterm_of Sign.proto_pure implies);
 (*Do not rewrite flex-flex pairs*)
 fun goals_conv pred cv =
   let fun gconv i ct =
-        let val (A,B) = Thm.dest_cimplies ct
+        let val (A,B) = dest_cimplies ct
             val (thA,j) = case term_of A of
                   Const("=?=",_)$_$_ => (reflexive A, i)
                 | _ => (if pred i then cv A else reflexive A, i+1)

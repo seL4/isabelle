@@ -26,9 +26,9 @@ signature THM =
   val read_cterm        : Sign.sg -> string * typ -> cterm
   val read_cterms       : Sign.sg -> string list * typ list -> cterm list
   val cterm_fun         : (term -> term) -> (cterm -> cterm)
-  val dest_cimplies     : cterm -> cterm * cterm
   val dest_comb         : cterm -> cterm * cterm
   val dest_abs          : cterm -> cterm * cterm
+  val adjust_maxidx     : cterm -> cterm
   val capply            : cterm -> cterm -> cterm
   val cabs              : cterm -> cterm -> cterm
   val read_def_cterm    :
@@ -195,12 +195,6 @@ fun cterm_of sign tm =
 fun cterm_fun f (Cterm {sign, t, ...}) = cterm_of sign (f t);
 
 
-(*dest_implies for cterms. Note T=prop below*)
-fun dest_cimplies (Cterm{sign, T, maxidx, t=Const("==>", _) $ A $ B}) =
-       (Cterm{sign=sign, T=T, maxidx=maxidx, t=A},
-        Cterm{sign=sign, T=T, maxidx=maxidx, t=B})
-  | dest_cimplies ct = raise TERM ("dest_cimplies", [term_of ct]);
-
 exception CTERM of string;
 
 (*Destruct application in cterms*)
@@ -222,6 +216,9 @@ fun dest_abs (Cterm {sign, T as Type("fun",[_,S]), maxidx, t=Abs(x,ty,M)}) =
           Cterm {sign = sign, T = S, maxidx = maxidx, t = N})
       end
   | dest_abs _ = raise CTERM "dest_abs";
+
+fun adjust_maxidx (Cterm {sign, T, t, ...}) =
+  Cterm {sign = sign, T = T, maxidx = maxidx_of_term t, t = t}
 
 (*Form cterm out of a function and an argument*)
 fun capply (Cterm {t=f, sign=sign1, T=Type("fun",[dty,rty]), maxidx=maxidx1})
