@@ -56,10 +56,10 @@ val stamp: unit -> stamp = ref;
 
 datatype 'a option = None | Some of 'a;
 
-exception OPTION of string;
+exception OPTION;
 
 fun the (Some x) = x
-  | the None = raise OPTION "the";
+  | the None = raise OPTION;
 
 fun if_none None y = y
   | if_none (Some x) _ = x;
@@ -77,6 +77,12 @@ fun merge_opts _ (None, None) = None
   | merge_opts _ (some as Some _, None) = some
   | merge_opts _ (None, some as Some _) = some
   | merge_opts merge (Some x, Some y) = Some (merge (x, y));
+
+(*handle partial functions*)
+fun try f x = Some (f x) handle _ => None;
+fun can f x = is_some (try f x);
+
+
 
 (** pairs **)
 
