@@ -363,10 +363,9 @@ goal FOL.thy "(ALL x. f(x) & (ALL y. g(y) & h(x,y) --> j(x,y))	\
 \                     --> (ALL y. g(y) & h(x,y) --> k(y))) &	\
 \     ~ (EX y. l(y) & k(y)) &					\
 \     (EX x. f(x) & (ALL y. h(x,y) --> l(y))			\
-\                  & (ALL y. g(y) & h(x,y) --> j(x,y)))		\
+\                 & (ALL y. g(y) & h(x,y) --> j(x,y)))		\
 \     --> (EX x. f(x) & ~ (EX y. g(y) & h(x,y)))";
 by (best_tac FOL_cs 1); 
-(*41.5 secs*)
 result();
 
 
@@ -380,7 +379,7 @@ result();
 writeln"Problem 49  NOT PROVED AUTOMATICALLY";
 (*Hard because it involves substitution for Vars;
   the type constraint ensures that x,y,z have the same type as a,b,u. *)
-goal FOL.thy "(EX x y::'a. ALL z. z=x | z=y) & P(a) & P(b) & (~a=b) \
+goal FOL.thy "(EX x y::'a. ALL z. z=x | z=y) & P(a) & P(b) & a~=b \
 \		--> (ALL u::'a.P(u))";
 by (safe_tac FOL_cs);
 by (res_inst_tac [("x","a")] allE 1);

@@ -15,7 +15,7 @@ To generate similar output to manual, execute these commands:
 
 open Nat;
 
-goal Nat.thy "~ (Suc(k) = k)";
+goal Nat.thy "Suc(k) ~= k";
 by (res_inst_tac [("n","k")] induct 1);
 by (resolve_tac [notI] 1);
 by (eresolve_tac [Suc_neq_0] 1);
