@@ -24,8 +24,9 @@ HOL:
 	@cd $(SRC)/HOL; $(ISATOOL) make HOL
 
 $(LOG)/HOL-Group.gz: $(OUT)/HOL Group/ROOT.ML Group/document/root.tex \
-  Group/Group.thy Group/Product.thy Group/Semigroup.thy Group/Semigroups.thy
+  Group/Group.thy Group/Product.thy Group/Semigroups.thy
 	@$(USEDIR) $(OUT)/HOL Group
+	@rm -f generated/pdfsetup.sty generated/session.tex
 
 
 ## Nat
@@ -38,6 +39,7 @@ FOL:
 $(LOG)/FOL-Nat.gz: $(OUT)/FOL Nat/ROOT.ML Nat/document/root.tex \
   Nat/NatClass.ML Nat/NatClass.thy
 	@$(USEDIR) $(OUT)/FOL Nat
+	@rm -f generated/pdfsetup.sty generated/session.tex
 
 
 ## clean

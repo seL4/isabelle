@@ -15,8 +15,7 @@ NAME = axclass
 
 FILES = axclass.tex body.tex ../iman.sty ../extra.sty ../isar.sty \
   ../pdfsetup.sty generated/Group.tex generated/NatClass.tex \
-  generated/Product.tex generated/Semigroup.tex generated/Semigroups.tex \
-  generated/session.tex
+  generated/Product.tex generated/Semigroups.tex
 
 dvi: $(NAME).dvi
 

@@ -46,84 +46,13 @@ object-logic that directly uses the meta type system, such as Isabelle/HOL
 formulated within HOL, except the one of \secref{sec:ex-natclass} which is in
 FOL.
 
-\section{Semigroups}
-
-An axiomatic type class is simply a class of types that all meet certain
-\emph{axioms}. Thus, type classes may be also understood as type predicates
---- i.e.\ abstractions over a single type argument $\alpha$.  Class axioms
-typically contain polymorphic constants that depend on this type $\alpha$.
-These \emph{characteristic constants} behave like operations associated with
-the ``carrier'' type $\alpha$.
-
-We illustrate these basic concepts by the following theory of semigroups.
-
-\bigskip
-\input{generated/Semigroup}
-\bigskip
-
-\noindent
-Above we have first declared a polymorphic constant $\TIMES :: \alpha \To
-\alpha \To \alpha$ and then defined the class $semigroup$ of all types $\tau$
-such that $\TIMES :: \tau \To \tau \To \tau$ is indeed an associative
-operator.  The $assoc$ axiom contains exactly one type variable, which is
-invisible in the above presentation, though.  Also note that free term
-variables (like $x$, $y$, $z$) are allowed for user convenience ---
-conceptually all of these are bound by outermost universal quantifiers.
-
-\medskip
-
-In general, type classes may be used to describe \emph{structures} with
-exactly one carrier $\alpha$ and a fixed \emph{signature}.  Different
-signatures require different classes. In the following theory, class
-$plus_semigroup$ represents semigroups of the form $(\tau, \PLUS^\tau)$ while
-$times_semigroup$ represents semigroups $(\tau, \TIMES^\tau)$.
-
-\bigskip
 \input{generated/Semigroups}
-\bigskip
-
-\noindent Even if classes $plus_semigroup$ and $times_semigroup$ both represent
-semigroups in a sense, they are not the same!
-
 
 \input{generated/Group}
 
 \input{generated/Product}
 
-
-\section{Defining natural numbers in FOL}\label{sec:ex-natclass}
-
-Axiomatic type classes abstract over exactly one type argument. Thus, any
-\emph{axiomatic} theory extension where each axiom refers to at most one type
-variable, may be trivially turned into a \emph{definitional} one.
-
-We illustrate this with the natural numbers in Isabelle/FOL.
-
-\bigskip
 \input{generated/NatClass}
-\bigskip
-
-This is an abstract version of the plain $Nat$ theory in
-FOL.\footnote{See \url{http://isabelle.in.tum.de/library/FOL/ex/Nat.html}}
-
-Basically, we have just replaced all occurrences of type $nat$ by $\alpha$ and
-used the natural number axioms to define class $nat$.  There is only a minor
-snag, that the original recursion operator $rec$ had to be made monomorphic,
-in a sense.  Thus class $nat$ contains exactly those types $\tau$ that are
-isomorphic to ``the'' natural numbers (with signature $0$, $Suc$, $rec$).
-
-\medskip
-
-What we have done here can be also viewed as \emph{type specification}.  Of
-course, it still remains open if there is some type at all that meets the
-class axioms.  Now a very nice property of axiomatic type classes is, that
-abstract reasoning is always possible --- independent of satisfiability.  The
-meta-logic won't break, even if some classes (or general sorts) turns out to
-be empty (``inconsistent'') later.
-
-Theorems of the abstract natural numbers may be derived in the same way as for
-the concrete version.  The original proof scripts may be used with some
-trivial changes only (mostly adding some type constraints).
 
 
 %% FIXME move some parts to ref or isar-ref manual (!?);
@@ -151,7 +80,7 @@ trivial changes only (mostly adding some type constraints).
 % \emphnd{matharray}
 
 % Where $c, c@1, \ldots, c@n$ are classes (category $id$ or
-% $string$) and $axm@1, \ldots, axm@m$ (with $m \ge
+% $string$) and $axm@1, \ldots, axm@m$ (with $m \geq
 % 0$) are formulas (category $string$).
 
 % Class $c$ has to be new, and sort $\{c@1, \ldots, c@n\}$ a subsort of

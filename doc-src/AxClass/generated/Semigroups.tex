@@ -1,20 +1,48 @@
 \begin{isabelle}%
-\isacommand{theory}~Semigroups~=~Main:\isanewline
-\isanewline
-\isacommand{constdefs}\isanewline
-~~is\_assoc~::~{"}('a~{\isasymRightarrow}~'a~{\isasymRightarrow}~'a)~{\isasymRightarrow}~bool{"}\isanewline
-~~{"}is\_assoc~f~{\isasymequiv}~{\isasymforall}x~y~z.~f~(f~x~y)~z~=~f~x~(f~y~z){"}\isanewline
-\isanewline
+%
+\isamarkupheader{Semigroups}
+\isacommand{theory}~Semigroups~=~Main:%
+\begin{isamarkuptext}%
+\medskip\noindent An axiomatic type class is simply a class of types
+ that all meet certain \emph{axioms}. Thus, type classes may be also
+ understood as type predicates --- i.e.\ abstractions over a single
+ type argument $\alpha$.  Class axioms typically contain polymorphic
+ constants that depend on this type $\alpha$.  These
+ \emph{characteristic constants} behave like operations associated
+ with the ``carrier'' type $\alpha$.
+
+ We illustrate these basic concepts by the following formulation of
+ semigroups.%
+\end{isamarkuptext}%
 \isacommand{consts}\isanewline
-~~plus~::~{"}'a~{\isasymRightarrow}~'a~{\isasymRightarrow}~'a{"}~~~~(\isakeyword{infixl}~{"}{\isasymOplus}{"}~65)\isanewline
+~~times~::~{"}'a~{\isasymRightarrow}~'a~{\isasymRightarrow}~'a{"}~~~~(\isakeyword{infixl}~{"}{\isasymOtimes}{"}~70)\isanewline
+\isacommand{axclass}\isanewline
+~~semigroup~<~{"}term{"}\isanewline
+~~assoc:~{"}(x~{\isasymOtimes}~y)~{\isasymOtimes}~z~=~x~{\isasymOtimes}~(y~{\isasymOtimes}~z){"}%
+\begin{isamarkuptext}%
+\noindent Above we have first declared a polymorphic constant $\TIMES
+ :: \alpha \To \alpha \To \alpha$ and then defined the class
+ $semigroup$ of all types $\tau$ such that $\TIMES :: \tau \To \tau
+ \To \tau$ is indeed an associative operator.  The $assoc$ axiom
+ contains exactly one type variable, which is invisible in the above
+ presentation, though.  Also note that free term variables (like $x$,
+ $y$, $z$) are allowed for user convenience --- conceptually all of
+ these are bound by outermost universal quantifiers.
+
+ \medskip In general, type classes may be used to describe
+ \emph{structures} with exactly one carrier $\alpha$ and a fixed
+ \emph{signature}.  Different signatures require different classes.
+ Subsequently, class $plus_semigroup$ represents semigroups of the
+ form $(\tau, \PLUS^\tau)$, while $semigroup$ above would correspond
+ to semigroups $(\tau, \TIMES^\tau)$.%
+\end{isamarkuptext}%
+\isacommand{consts}\isanewline
+~~plus~::~{"}'a~{\isasymRightarrow}~'a~{\isasymRightarrow}~'a{"}~~~~(\isakeyword{infixl}~{"}{\isasymOplus}{"}~70)\isanewline
 \isacommand{axclass}\isanewline
 ~~plus\_semigroup~<~{"}term{"}\isanewline
-~~assoc:~{"}is\_assoc~(op~{\isasymOplus}){"}\isanewline
-\isanewline
-\isacommand{consts}\isanewline
-~~times~::~{"}'a~{\isasymRightarrow}~'a~{\isasymRightarrow}~'a{"}~~~~(\isakeyword{infixl}~{"}{\isasymOtimes}{"}~65)\isanewline
-\isacommand{axclass}\isanewline
-~~times\_semigroup~<~{"}term{"}\isanewline
-~~assoc:~{"}is\_assoc~(op~{\isasymOtimes}){"}\isanewline
-\isanewline
+~~assoc:~{"}(x~{\isasymOplus}~y)~{\isasymOplus}~z~=~x~{\isasymOplus}~(y~{\isasymOplus}~z){"}%
+\begin{isamarkuptext}%
+\noindent Even if classes $plus_semigroup$ and $times_semigroup$ both
+ represent semigroups in a sense, they are certainly not the same!%
+\end{isamarkuptext}%
 \isacommand{end}\end{isabelle}%
