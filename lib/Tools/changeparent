@@ -1,7 +1,9 @@
 #!/bin/bash
 #
-# DESCRIPTION: change parent of Poly/ML database
+# $Id$
 #
+# DESCRIPTION: change parent of Poly/ML database
+
 
 PRG=$(basename $0)
 
@@ -32,7 +34,7 @@ PARENT="$2"
 case "$ML_SYSTEM" in
   polyml-*)
     [ ! -w "$DB" ] && fail "Database not writable: $DB"
-    $POLYML_HOME/changeParent "$DB" "$PARENT"
+    $ML_HOME/changeParent "$DB" "$PARENT"
     ;;
   *)
     fail "You're not set up for Poly/ML!"
