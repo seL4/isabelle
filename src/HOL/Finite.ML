@@ -127,7 +127,7 @@ by (Simp_tac 1);
 val lemma = result();
 
 (*Lemma for proving finite_imageD*)
-Goal "finite B ==> !A. f``A = B --> inj_on f A --> finite A";
+Goal "finite B ==> ALL A. f``A = B --> inj_on f A --> finite A";
 by (etac finite_induct 1);
  by (ALLGOALS Asm_simp_tac);
 by (Clarify_tac 1);
@@ -150,17 +150,26 @@ qed "finite_imageD";
 
 (** The finite UNION of finite sets **)
 
-Goal "finite A ==> (!a:A. finite(B a)) --> finite(UN a:A. B a)";
+Goal "finite A ==> (ALL a:A. finite(B a)) --> finite(UN a:A. B a)";
 by (etac finite_induct 1);
 by (ALLGOALS Asm_simp_tac);
-bind_thm("finite_UnionI", ballI RSN (2, result() RS mp));
-Addsimps [finite_UnionI];
+bind_thm("finite_UN_I", ballI RSN (2, result() RS mp));
+
+(*strengthen RHS to 
+    ((ALL x:A. finite (B x)) & finite {x. x:A & B x ~= {}})  ?  
+  we'd need to prove
+    finite C ==> ALL A B. (UNION A B) <= C --> finite {x. x:A & B x ~= {}}
+  by induction*)
+Goal "finite A ==> finite (UNION A B) = (ALL x:A. finite (B x))";
+by (blast_tac (claset() addIs [finite_UN_I, finite_subset]) 1);
+qed "finite_UN";
+Addsimps [finite_UN];
 
 (** Sigma of finite sets **)
 
 Goalw [Sigma_def]
- "[| finite A; !a:A. finite(B a) |] ==> finite(SIGMA a:A. B a)";
-by (blast_tac (claset() addSIs [finite_UnionI]) 1);
+ "[| finite A; ALL a:A. finite(B a) |] ==> finite(SIGMA a:A. B a)";
+by (blast_tac (claset() addSIs [finite_UN_I]) 1);
 bind_thm("finite_SigmaI", ballI RSN (2,result()));
 Addsimps [finite_SigmaI];
 
@@ -227,7 +236,7 @@ qed "finite_atMost";
 AddIffs [finite_lessThan, finite_atMost];
 
 (* A bounded set of natural numbers is finite *)
-Goal "(!i:N. i<(n::nat)) ==> finite N";
+Goal "(ALL i:N. i<(n::nat)) ==> finite N";
 by (rtac finite_subset 1);
  by (rtac finite_lessThan 2);
 by Auto_tac;
@@ -242,13 +251,13 @@ val cardR_insertE = cardR.mk_cases "(insert a A,n) : cardR";
 AddSEs [cardR_emptyE];
 AddSIs cardR.intrs;
 
-Goal "[| (A,n) : cardR |] ==> a : A --> (? m. n = Suc m)";
+Goal "[| (A,n) : cardR |] ==> a : A --> (EX m. n = Suc m)";
 by (etac cardR.induct 1);
  by (Blast_tac 1);
 by (Blast_tac 1);
 qed "cardR_SucD";
 
-Goal "(A,m): cardR ==> (!n a. m = Suc n --> a:A --> (A-{a},n) : cardR)";
+Goal "(A,m): cardR ==> (ALL n a. m = Suc n --> a:A --> (A-{a},n) : cardR)";
 by (etac cardR.induct 1);
  by Auto_tac;
 by (asm_simp_tac (simpset() addsimps [insert_Diff_if]) 1);
@@ -262,7 +271,7 @@ by (dtac lemma 1);
 by (Asm_full_simp_tac 1);
 val lemma = result();
 
-Goal "(A,m): cardR ==> (!n. (A,n) : cardR --> n=m)";
+Goal "(A,m): cardR ==> (ALL n. (A,n) : cardR --> n=m)";
 by (etac cardR.induct 1);
  by (safe_tac (claset() addSEs [cardR_insertE]));
 by (rename_tac "B b m" 1);
@@ -270,7 +279,7 @@ by (case_tac "a = b" 1);
  by (subgoal_tac "A = B" 1);
   by (blast_tac (claset() addEs [equalityE]) 2);
  by (Blast_tac 1);
-by (subgoal_tac "? C. A = insert b C & B = insert a C" 1);
+by (subgoal_tac "EX C. A = insert b C & B = insert a C" 1);
  by (res_inst_tac [("x","A Int B")] exI 2);
  by (blast_tac (claset() addEs [equalityE]) 2);
 by (forw_inst_tac [("A","B")] cardR_SucD 1);
@@ -462,8 +471,8 @@ qed "card_Pow";
 (*Relates to equivalence classes.   Based on a theorem of F. Kammueller's.
   The "finite C" premise is redundant*)
 Goal "finite C ==> finite (Union C) --> \
-\          (! c : C. k dvd card c) -->  \
-\          (! c1: C. ! c2: C. c1 ~= c2 --> c1 Int c2 = {}) \
+\          (ALL c : C. k dvd card c) -->  \
+\          (ALL c1: C. ALL c2: C. c1 ~= c2 --> c1 Int c2 = {}) \
 \          --> k dvd card(Union C)";
 by (etac finite_induct 1);
 by (ALLGOALS Asm_simp_tac);
@@ -472,8 +481,8 @@ by (stac card_Un_disjoint 1);
 by (ALLGOALS
     (asm_full_simp_tac (simpset()
 			 addsimps [dvd_add, disjoint_eq_subset_Compl])));
-by (thin_tac "!c:F. ?PP(c)" 1);
-by (thin_tac "!c:F. ?PP(c) & ?QQ(c)" 1);
+by (thin_tac "ALL c:F. ?PP(c)" 1);
+by (thin_tac "ALL c:F. ?PP(c) & ?QQ(c)" 1);
 by (Clarify_tac 1);
 by (ball_tac 1);
 by (Blast_tac 1);
@@ -655,7 +664,7 @@ qed "fold_Un_disjoint";
 
 Goal
  "[| finite A; finite B |] ==> A Int B = {} --> \
-\ fold (f o g) e (A Un B) = f (fold (f o g) e A) (fold (f o g) e B)";
+\      fold (f o g) e (A Un B) = f (fold (f o g) e A) (fold (f o g) e B)";
 by (etac finite_induct 1);
 by (simp_tac (simpset() addsimps f_idents) 1);
 by (asm_full_simp_tac (simpset() addsimps f_ac @ f_idents @
@@ -722,10 +731,16 @@ by Auto_tac;
 qed "setsum_Un_disjoint";
 
 Goal "finite I \
-\     ==> (ALL i:I. finite (A i)) --> (ALL i:I. ALL j:I. A i Int A j = {}) \
-\         --> setsum f (UNION I A) = setsum (%i. setsum f (A i)) I"; 
+\     ==> (ALL i:I. finite (A i)) --> \
+\         (ALL i:I. ALL j:I. i~=j --> A i Int A j = {}) --> \
+\         setsum f (UNION I A) = setsum (%i. setsum f (A i)) I"; 
 by (etac finite_induct 1);
-by (Simp_tac 1);
+ by (Simp_tac 1);
+by (Clarify_tac 1); 
+by (subgoal_tac "ALL i:F. x ~= i" 1);
+ by (Blast_tac 2); 
+by (subgoal_tac "A x Int UNION F A = {}" 1);
+ by (Blast_tac 2); 
 by (asm_simp_tac (simpset() addsimps [setsum_Un_disjoint]) 1);
 qed_spec_mp "setsum_UN_disjoint";
 
