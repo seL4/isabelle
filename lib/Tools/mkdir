@@ -15,6 +15,7 @@ function usage()
   echo "Usage: $PRG [LOGIC] NAME"
   echo
   echo "  Options are:"
+  echo "    -I FILE      alternative IsaMakefile output"
   echo "    -b           setup build mode (session outputs heap image)"
   echo "    -d           setup document"
   echo "    -p           include parent logic target"
@@ -36,13 +37,17 @@ function fail()
 
 # options
 
+ISAMAKEFILE="IsaMakefile"
 BUILD=""
 DOCUMENT=""
 PARENT=""
 
-while getopts "bdp" OPT
+while getopts "I:bdp" OPT
 do
   case "$OPT" in
+    I)
+      ISAMAKEFILE="$OPTARG"
+      ;;
     b)
       BUILD=true
       ;;
@@ -94,8 +99,8 @@ else
   USEDIR="\$(USEDIR)"
 fi
 
-if [ -f IsaMakefile ]; then
-  echo "keeping $PWD/IsaMakefile" >&2
+if [ "$ISAMAKEFILE" != - -a -f "$ISAMAKEFILE" ]; then
+  echo "keeping $PWD/$ISAMAKEFILE" >&2
 else
   { echo
     echo "## targets"
@@ -138,7 +143,13 @@ else
     echo "clean:"
     echo -e "\t@rm -f $TARGET"
     echo
-  } >IsaMakefile
+  } | {
+    if [ -z "$ISAMAKEFILE" -o "$ISAMAKEFILE" = - ]; then
+      cat
+    else
+      cat > "$ISAMAKEFILE"
+    fi
+  }
 fi
 
 
