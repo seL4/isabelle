@@ -614,14 +614,14 @@ fun from_facts facts state =
 
 val rule_contextN = "rule_context";
 
-fun setup_goal opt_block prepp autofix kind after_qed names raw_propss state =
+fun setup_goal opt_block prepp autofix kind after_qed names raw_propp state =
   let
     val (state', (propss, gen_binds)) =
       state
       |> assert_forward_or_chain
       |> enter_forward
       |> opt_block
-      |> map_context_result (fn ctxt => prepp (ctxt, raw_propss));
+      |> map_context_result (fn ctxt => prepp (ctxt, raw_propp));
 
     val props = flat propss;
     val cprop = Thm.cterm_of (sign_of state') (foldr1 Logic.mk_conjunction props);
@@ -649,25 +649,24 @@ fun setup_goal opt_block prepp autofix kind after_qed names raw_propss state =
   end;
 
 (*global goals*)
-fun global_goal prepp prep_locale activate kind a raw_locale elems args thy =
+fun global_goal prep kind a raw_locale elems args thy =
   let
     val st = thy |> init_state |> open_block;
-    val (locale_ctxt, elems_ctxt) = context_of st |> activate
-      ((case raw_locale of None => Locale.empty | Some (name, _) => Locale.Locale name), elems);
-    val locale = apsome (apfst (prep_locale (Theory.sign_of thy))) raw_locale;
+    val (opt_name, locale_ctxt, elems_ctxt, propp) =
+      prep (apsome fst raw_locale) elems (map snd args) (context_of st);
+    val locale = (case raw_locale of None => None | Some (_, atts) => Some (the opt_name, atts));
   in
     st
     |> map_context (K locale_ctxt)
     |> open_block
     |> map_context (K elems_ctxt)
-    |> setup_goal I prepp ProofContext.fix_frees (Theorem (kind, a, locale, map (snd o fst) args))
-      Seq.single (map (fst o fst) args) (map snd args)
+    |> setup_goal I ProofContext.bind_propp_schematic_i
+      ProofContext.fix_frees (Theorem (kind, a, locale, map (snd o fst) args))
+      Seq.single (map (fst o fst) args) propp
   end;
 
-val multi_theorem =
-  global_goal ProofContext.bind_propp_schematic Locale.intern Locale.activate_context;
-val multi_theorem_i =
-  global_goal ProofContext.bind_propp_schematic_i (K I) Locale.activate_context_i;
+val multi_theorem = global_goal Locale.read_context_statement;
+val multi_theorem_i = global_goal Locale.cert_context_statement;
 
 fun theorem k locale elems name atts p =
   multi_theorem k (name, atts) locale elems [(("", []), [p])];
