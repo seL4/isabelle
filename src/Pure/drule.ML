@@ -429,7 +429,7 @@ val proto_sign = Theory.sign_of ProtoPure.thy;
 
 fun read_prop s = read_cterm proto_sign (s, propT);
 
-fun store_thm name thm = PureThy.smart_store_thm (name, standard thm);
+fun store_thm name thm = hd (PureThy.smart_store_thms (name, [standard thm]));
 
 val reflexive_thm =
   let val cx = cterm_of proto_sign (Var(("x",0),TVar(("'a",0),logicS)))
