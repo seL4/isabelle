@@ -393,16 +393,16 @@ x}, then it sums absolutely for @{term z} with @{term "\<bar>z\<bar> < \<bar>x\<
 
 lemma powser_insidea:
      "[| summable (%n. f(n) * (x ^ n)); \<bar>z\<bar> < \<bar>x\<bar> |]  
-      ==> summable (%n. abs(f(n)) * (z ^ n))"
+      ==> summable (%n. \<bar>f(n)\<bar> * (z ^ n))"
 apply (drule summable_LIMSEQ_zero)
 apply (drule convergentI)
 apply (simp add: Cauchy_convergent_iff [symmetric])
 apply (drule Cauchy_Bseq)
 apply (simp add: Bseq_def, safe)
-apply (rule_tac g = "%n. K * abs (z ^ n) * inverse (abs (x ^ n))" in summable_comparison_test)
+apply (rule_tac g = "%n. K * \<bar>z ^ n\<bar> * inverse (\<bar>x ^ n\<bar>)" in summable_comparison_test)
 apply (rule_tac x = 0 in exI, safe)
-apply (subgoal_tac "0 < abs (x ^ n) ")
-apply (rule_tac c="abs (x ^ n)" in mult_right_le_imp_le) 
+apply (subgoal_tac "0 < \<bar>x ^ n\<bar> ")
+apply (rule_tac c="\<bar>x ^ n\<bar>" in mult_right_le_imp_le) 
 apply (auto simp add: mult_assoc power_abs)
  prefer 2
  apply (drule_tac x = 0 in spec, force)
@@ -412,7 +412,7 @@ apply (rule_tac a2 = "z ^ n"
 apply (auto intro!: mult_right_mono simp add: mult_assoc [symmetric] power_abs summable_def power_0_left)
 apply (rule_tac x = "K * inverse (1 - (\<bar>z\<bar> * inverse (\<bar>x\<bar>))) " in exI)
 apply (auto intro!: sums_mult simp add: mult_assoc)
-apply (subgoal_tac "abs (z ^ n) * inverse (\<bar>x\<bar> ^ n) = (\<bar>z\<bar> * inverse (\<bar>x\<bar>)) ^ n")
+apply (subgoal_tac "\<bar>z ^ n\<bar> * inverse (\<bar>x\<bar> ^ n) = (\<bar>z\<bar> * inverse (\<bar>x\<bar>)) ^ n")
 apply (auto simp add: power_abs [symmetric])
 apply (subgoal_tac "x \<noteq> 0")
 apply (subgoal_tac [3] "x \<noteq> 0")
@@ -502,7 +502,7 @@ apply (auto simp add: sumr_mult lemma_realpow_diff_sumr2 mult_ac simp
                  del: sumr_Suc realpow_Suc)
 done
 
-lemma lemma_termdiff3: "[| h \<noteq> 0; \<bar>z\<bar> \<le> K; abs (z + h) \<le> K |]  
+lemma lemma_termdiff3: "[| h \<noteq> 0; \<bar>z\<bar> \<le> K; \<bar>z + h\<bar> \<le> K |]  
       ==> abs (((z + h) ^ n - z ^ n) * inverse h - real n * z ^ (n - Suc 0))  
           \<le> real n * real (n - Suc 0) * K ^ (n - 2) * \<bar>h\<bar>"
 apply (subst lemma_termdiff2, assumption)
@@ -532,7 +532,7 @@ done
 
 lemma lemma_termdiff4: 
   "[| 0 < k;  
-      (\<forall>h. 0 < \<bar>h\<bar> & \<bar>h\<bar> < k --> abs(f h) \<le> K * \<bar>h\<bar>) |]  
+      (\<forall>h. 0 < \<bar>h\<bar> & \<bar>h\<bar> < k --> \<bar>f h\<bar> \<le> K * \<bar>h\<bar>) |]  
    ==> f -- 0 --> 0"
 apply (unfold LIM_def, auto)
 apply (subgoal_tac "0 \<le> K")
@@ -562,7 +562,7 @@ lemma lemma_termdiff5: "[| 0 < k;
                     (\<forall>n. abs(g(h) (n::nat)) \<le> (f(n) * \<bar>h\<bar>)) |]  
          ==> (%h. suminf(g h)) -- 0 --> 0"
 apply (drule summable_sums)
-apply (subgoal_tac "\<forall>h. 0 < \<bar>h\<bar> & \<bar>h\<bar> < k --> abs (suminf (g h)) \<le> suminf f * \<bar>h\<bar>")
+apply (subgoal_tac "\<forall>h. 0 < \<bar>h\<bar> & \<bar>h\<bar> < k --> \<bar>suminf (g h)\<bar> \<le> suminf f * \<bar>h\<bar>")
 apply (auto intro!: lemma_termdiff4 simp add: sums_summable [THEN suminf_mult, symmetric])
 apply (subgoal_tac "summable (%n. f n * \<bar>h\<bar>) ")
  prefer 2
@@ -573,7 +573,7 @@ apply (subgoal_tac "summable (%n. f n * \<bar>h\<bar>) ")
 apply (subgoal_tac "summable (%n. abs (g (h::real) (n::nat))) ")
  apply (rule_tac [2] g = "%n. f n * \<bar>h\<bar>" in summable_comparison_test)
   apply (rule_tac [2] x = 0 in exI, auto)
-apply (rule_tac j = "suminf (%n. abs (g h n))" in real_le_trans)
+apply (rule_tac j = "suminf (%n. \<bar>g h n\<bar>)" in real_le_trans)
 apply (auto intro: summable_rabs summable_le simp add: sums_summable [THEN suminf_mult])
 done
 
@@ -591,7 +591,7 @@ lemma termdiffs_aux:
 apply (drule dense, safe)
 apply (frule real_less_sum_gt_zero)
 apply (drule_tac
-         f = "%n. abs (c n) * real n * real (n - Suc 0) * (r ^ (n - 2))" 
+         f = "%n. \<bar>c n\<bar> * real n * real (n - Suc 0) * (r ^ (n - 2))" 
      and g = "%h n. c (n) * ((( ((x + h) ^ n) - (x ^ n)) * inverse h) 
                              - (real n * (x ^ (n - Suc 0))))" 
        in lemma_termdiff5)
@@ -609,7 +609,7 @@ apply (drule diffs_equiv)
 apply (drule sums_summable)
 apply (simp_all add: diffs_def) 
 apply (simp add: diffs_def mult_ac)
-apply (subgoal_tac " (%n. real n * (real (Suc n) * (abs (c (Suc n)) * (r ^ (n - Suc 0))))) = (%n. diffs (%m. real (m - Suc 0) * abs (c m) * inverse r) n * (r ^ n))")
+apply (subgoal_tac " (%n. real n * (real (Suc n) * (\<bar>c (Suc n)\<bar> * (r ^ (n - Suc 0))))) = (%n. diffs (%m. real (m - Suc 0) * \<bar>c m\<bar> * inverse r) n * (r ^ n))")
 apply auto
   prefer 2
   apply (rule ext)
@@ -899,7 +899,7 @@ by (simp add: order_less_le)
 lemma inv_exp_gt_zero [simp]: "0 < inverse(exp x)"
 by (auto intro: positive_imp_inverse_positive)
 
-lemma abs_exp_cancel [simp]: "abs(exp x) = exp x"
+lemma abs_exp_cancel [simp]: "\<bar>exp x\<bar> = exp x"
 by (auto simp add: abs_eqI2)
 
 lemma exp_real_of_nat_mult: "exp(real n * x) = exp(x) ^ n"
@@ -1179,7 +1179,7 @@ done
 lemma real_gt_one_ge_zero_add_less: "[| 1 < x; 0 \<le> y |] ==> 1 < x + (y::real)"
 by arith
 
-lemma abs_sin_le_one [simp]: "abs(sin x) \<le> 1"
+lemma abs_sin_le_one [simp]: "\<bar>sin x\<bar> \<le> 1"
 apply (auto simp add: linorder_not_less [symmetric])
 apply (drule_tac n = "Suc 0" in power_gt1)
 apply (auto simp del: realpow_Suc)
@@ -1197,7 +1197,7 @@ apply (insert abs_sin_le_one [of x])
 apply (simp add: abs_le_interval_iff del: abs_sin_le_one) 
 done
 
-lemma abs_cos_le_one [simp]: "abs(cos x) \<le> 1"
+lemma abs_cos_le_one [simp]: "\<bar>cos x\<bar> \<le> 1"
 apply (auto simp add: linorder_not_less [symmetric])
 apply (drule_tac n = "Suc 0" in power_gt1)
 apply (auto simp del: realpow_Suc)
@@ -2065,7 +2065,7 @@ by (rule DERIV_sin [THEN DERIV_isCont])
 lemma isCont_exp [simp]: "isCont exp x"
 by (rule DERIV_exp [THEN DERIV_isCont])
 
-lemma sin_zero_abs_cos_one: "sin x = 0 ==> abs(cos x) = 1"
+lemma sin_zero_abs_cos_one: "sin x = 0 ==> \<bar>cos x\<bar> = 1"
 by (auto simp add: sin_zero_iff even_mult_two_ex)
 
 lemma exp_eq_one_iff [simp]: "(exp x = 1) = (x = 0)"
@@ -2550,7 +2550,7 @@ lemma isCont_inv_fun_inv:
          \<forall>z. \<bar>z - x\<bar> \<le> d --> g(f(z)) = z;  
          \<forall>z. \<bar>z - x\<bar> \<le> d --> isCont f z |]  
        ==> \<exists>e. 0 < e &  
-             (\<forall>y. 0 < abs(y - f(x)) & abs(y - f(x)) < e --> f(g(y)) = y)"
+             (\<forall>y. 0 < \<bar>y - f(x)\<bar> & \<bar>y - f(x)\<bar> < e --> f(g(y)) = y)"
 apply (drule isCont_inj_range)
 prefer 2 apply (assumption, assumption, auto)
 apply (rule_tac x = e in exI, auto)

@@ -575,12 +575,12 @@ done
 (* ------------------------------------------------------------------------- *)
 
 lemma sin_bound_lemma:
-    "[|x = y; abs u \<le> (v::real) |] ==> abs ((x + u) - y) \<le> v"
+    "[|x = y; abs u \<le> (v::real) |] ==> \<bar>(x + u) - y\<bar> \<le> v"
 by auto
 
 lemma Maclaurin_sin_bound:
   "abs(sin x - sumr 0 n (%m. (if even m then 0 else ((- 1) ^ ((m - (Suc 0)) div 2)) / real (fact m)) *
-  x ^ m))  \<le> inverse(real (fact n)) * abs(x) ^ n"
+  x ^ m))  \<le> inverse(real (fact n)) * \<bar>x\<bar> ^ n"
 proof -
   have "!! x (y::real). x \<le> 1 \<Longrightarrow> 0 \<le> y \<Longrightarrow> x * y \<le> 1 * y"
     by (rule_tac mult_right_mono,simp_all)
