@@ -8,6 +8,7 @@ Proof states and methods.
 
 signature BASIC_PROOF =
 sig
+  val RANGE: (int -> tactic) list -> int -> tactic
   val FINDGOAL: (int -> thm -> 'a Seq.seq) -> thm -> 'a Seq.seq
   val HEADGOAL: (int -> thm -> 'a Seq.seq) -> thm -> 'a Seq.seq
 end;
@@ -26,11 +27,14 @@ sig
   val warn_extra_tfrees: state -> state -> state
   val reset_thms: string -> state -> state
   val the_facts: state -> thm list
+  val the_fact: state -> thm
   val get_goal: state -> term * (thm list * thm)
   val goal_facts: (state -> thm list) -> state -> state
   val use_facts: state -> state
   val reset_facts: state -> state
+  val is_chain: state -> bool
   val assert_forward: state -> state
+  val assert_forward_or_chain: state -> state
   val assert_backward: state -> state
   val assert_no_chain: state -> state
   val enter_forward: state -> state
@@ -57,10 +61,12 @@ sig
     (thm list * context attribute list) list) list -> state -> state
   val fix: (string list * string option) list -> state -> state
   val fix_i: (string list * typ option) list -> state -> state
-  val assm: (int -> tactic) * (int -> tactic)
+  val hard_asm_tac: int -> tactic
+  val soft_asm_tac: int -> tactic
+  val assm: ProofContext.exporter
     -> (string * context attribute list * (string * (string list * string list)) list) list
     -> state -> state
-  val assm_i: (int -> tactic) * (int -> tactic)
+  val assm_i: ProofContext.exporter
     -> (string * context attribute list * (term * (term list * term list)) list) list
     -> state -> state
   val assume: (string * context attribute list * (string * (string list * string list)) list) list
@@ -206,6 +212,11 @@ val get_case = ProofContext.get_case o context_of;
 
 fun the_facts (State (Node {facts = Some facts, ...}, _)) = facts
   | the_facts state = raise STATE ("No current facts available", state);
+
+fun the_fact state =
+  (case the_facts state of
+    [thm] => thm
+  | _ => raise STATE ("Single fact expected", state));
 
 fun assert_facts state = (the_facts state; state);
 fun get_facts (State (Node {facts, ...}, _)) = facts;
@@ -380,7 +391,7 @@ val refine_end = gen_refine false;
 end;
 
 
-(* export results *)
+(* tacticals *)
 
 fun RANGE [] _ = all_tac
   | RANGE (tac :: tacs) i = RANGE tacs (i + 1) THEN tac i;
@@ -391,19 +402,23 @@ fun FINDGOAL tac st =
 
 fun HEADGOAL tac = tac 1;
 
+
+(* export results *)
+
 fun export_goal print_rule raw_rule inner state =
   let
     val (outer, (_, ((result, (facts, thm)), f))) = find_goal 0 state;
-    val (exp, tacs) = ProofContext.export_wrt inner (Some outer);
-    val rule = exp raw_rule;
-    val _ = print_rule rule;
-    val thmq = FINDGOAL (Tactic.rtac rule THEN' RANGE (map #1 tacs)) thm;
-  in Seq.map (fn th => map_goal I (K ((result, (facts, th)), f)) state) thmq end;
-
+    val (exp_tac, tacs) = ProofContext.export_wrt true inner (Some outer);
+    fun exp_rule rule =
+      let
+        val _ = print_rule rule;
+        val thmq = FINDGOAL (Tactic.rtac rule THEN' RANGE tacs) thm;
+      in Seq.map (fn th => map_goal I (K ((result, (facts, th)), f)) state) thmq end;
+  in raw_rule |> exp_tac |> (Seq.flat o Seq.map exp_rule) end;
 
 fun export_thm inner thm =
-  let val (exp, tacs) = ProofContext.export_wrt inner None in
-    (case Seq.chop (2, RANGE (map #2 tacs) 1 (exp thm)) of
+  let val (exp_tac, tacs) = ProofContext.export_wrt false inner None in
+    (case Seq.chop (2, (exp_tac THEN RANGE tacs 1) thm) of
       ([thm'], _) => thm'
     | ([], _) => raise THM ("export: failed", 0, [thm])
     | _ => raise THM ("export: more than one result", 0, [thm]))
@@ -414,9 +429,9 @@ fun transfer_facts inner_state state =
     None => Seq.single (reset_facts state)
   | Some thms =>
       let
-        val (exp, tacs) =
-          ProofContext.export_wrt (context_of inner_state) (Some (context_of state));
-        val thmqs = map (RANGE (map #2 tacs) 1 o exp) thms;
+        val (exp_tac, tacs) =
+          ProofContext.export_wrt false (context_of inner_state) (Some (context_of state));
+        val thmqs = map (exp_tac THEN RANGE tacs 1) thms;
       in Seq.map (fn ths => put_facts (Some ths) state) (Seq.commute thmqs) end);
 
 
@@ -436,7 +451,7 @@ fun prep_result state t raw_thm =
     val {hyps, prop, sign, ...} = Thm.rep_thm thm;
     val tsig = Sign.tsig_of sign;
 
-    val casms = map #1 (assumptions state);
+    val casms = flat (map #1 (assumptions state));
     val bad_hyps = Library.gen_rems Term.aconv (hyps, map (Thm.term_of o Drule.mk_cgoal) casms);
   in
     if not (null bad_hyps) then
@@ -497,26 +512,30 @@ val fix_i = gen_fix ProofContext.fix_i;
 
 local
 
-fun gen_assume f tac args state =
+fun gen_assume f exp args state =
   state
   |> assert_forward
-  |> map_context_result (f tac args)
+  |> map_context_result (f exp args)
   |> (fn (st, (factss, prems)) =>
     these_factss (st, factss)
     |> put_thms ("prems", prems));
 
-val hard_asm_tac = Tactic.etac Drule.triv_goal;
-val soft_asm_tac = Tactic.rtac Drule.triv_goal
-  THEN' Tactic.rtac asm_rl;     (* FIXME hack to norm goal *)
+fun simple_exporter tac1 tac2 =
+  (Seq.single oo Drule.implies_intr_list,
+    fn is_goal => fn n => replicate n (if is_goal then tac1 else tac2));
 
 in
 
+val hard_asm_tac = Tactic.etac Drule.triv_goal;
+val soft_asm_tac = Tactic.rtac Drule.triv_goal;
+  (* THEN' Tactic.rtac asm_rl   FIXME hack to norm goal *)
+
 val assm = gen_assume ProofContext.assume;
 val assm_i = gen_assume ProofContext.assume_i;
-val assume = assm (hard_asm_tac, soft_asm_tac);
-val assume_i = assm_i (hard_asm_tac, soft_asm_tac);
-val presume = assm (soft_asm_tac, soft_asm_tac);
-val presume_i = assm_i (soft_asm_tac, soft_asm_tac);
+val assume = assm (simple_exporter hard_asm_tac soft_asm_tac);
+val assume_i = assm_i (simple_exporter hard_asm_tac soft_asm_tac);
+val presume = assm (simple_exporter soft_asm_tac soft_asm_tac);
+val presume_i = assm_i (simple_exporter soft_asm_tac soft_asm_tac);
 
 end;
 
@@ -638,6 +657,8 @@ fun finish_local (print_result, print_rule) state =
     val outer_ctxt = context_of outer_state;
 
     val result = prep_result state t raw_thm;
+    val resultq = #1 (ProofContext.export_wrt false goal_ctxt (Some outer_ctxt)) result;
+
     val (atts, opt_solve) =
       (case kind of
         Goal atts => (atts, export_goal print_rule result goal_ctxt)
@@ -647,9 +668,9 @@ fun finish_local (print_result, print_rule) state =
     print_result {kind = kind_name kind, name = name, thm = result};
     outer_state
     |> auto_bind_facts name [ProofContext.generalize goal_ctxt outer_ctxt t]
-    |> have_thmss [((name, atts), [Thm.no_attributes
-        [#1 (ProofContext.export_wrt goal_ctxt (Some outer_ctxt)) result]])]
-    |> opt_solve
+    |> (fn st => Seq.map (fn res =>
+      have_thmss [((name, atts), [Thm.no_attributes [res]])] st) resultq)
+    |> (Seq.flat o Seq.map opt_solve)
     |> (Seq.flat o Seq.map after_qed)
   end;
 
