@@ -203,7 +203,7 @@ some~$x$ satisfying~$P$, if such exists.  Since all terms in \HOL\
 denote something, a description is always meaningful, but we do not
 know its value unless $P$ defines it uniquely.  We may write
 descriptions as \cdx{Eps}($\lambda x. P[x]$) or use the syntax
-\hbox{\tt \at $x$. $P[x]$}.
+\hbox{\tt \at $x$.\ $P[x]$}.
 
 Existential quantification is defined by
 \[ \exists x. P~x \;\equiv\; P(\varepsilon x. P~x). \]
@@ -222,7 +222,7 @@ notation for quantifiers, \sdx{ALL} and \sdx{EX}, is also
 available.  Both notations are accepted for input.  The {\ML} reference
 \ttindexbold{HOL_quantifiers} governs the output notation.  If set to {\tt
 true}, then~{\tt!}\ and~{\tt?}\ are displayed; this is the default.  If set
-to \texttt{false}, then~{\tt ALL} and~{\tt EX} are displayed.
+to \texttt{false}, then~\texttt{ALL} and~\texttt{EX} are displayed.
 
 If $\tau$ is a type of class \cldx{ord}, $P$ a formula and $x$ a
 variable of type $\tau$, then the term \cdx{LEAST}~$x. P[x]$ is defined
@@ -253,7 +253,7 @@ definition, \tdx{Let_def}.
 as a uniform means of expressing \texttt{case} constructs.  Therefore \texttt{case}
 and \sdx{of} are reserved words.  Initially, this is mere syntax and has no
 logical meaning.  By declaring translations, you can cause instances of the
-{\tt case} construct to denote applications of particular case operators.
+\texttt{case} construct to denote applications of particular case operators.
 This is what happens automatically for each \texttt{datatype} definition
 (see~\S\ref{sec:HOL:datatype}).
 
@@ -590,13 +590,13 @@ operator~{\tt``}\@.  Note that $a$\verb|~:|$b$ is translated to
 $\neg(a\in b)$.  
 
 The $\{a@1,\ldots\}$ notation abbreviates finite sets constructed in
-the obvious manner using~{\tt insert} and~$\{\}$:
+the obvious manner using~\texttt{insert} and~$\{\}$:
 \begin{eqnarray*}
   \{a, b, c\} & \equiv &
   \texttt{insert} \, a \, ({\tt insert} \, b \, ({\tt insert} \, c \, \{\}))
 \end{eqnarray*}
 
-The set \hbox{\tt{\ttlbrace}$x$. $P[x]${\ttrbrace}} consists of all $x$ (of suitable type)
+The set \hbox{\tt{\ttlbrace}$x$.\ $P[x]${\ttrbrace}} consists of all $x$ (of suitable type)
 that satisfy~$P[x]$, where $P[x]$ is a formula that may contain free
 occurrences of~$x$.  This syntax expands to \cdx{Collect}$(\lambda
 x. P[x])$.  It defines sets by absolute comprehension, which is impossible
@@ -612,19 +612,19 @@ accordingly.  Instead of \texttt{Ball $A$ $P$} and \texttt{Bex $A$ $P$} we may
 write\index{*"! symbol}\index{*"? symbol}
 \index{*ALL symbol}\index{*EX symbol} 
 %
-\hbox{\tt !~$x$:$A$. $P[x]$} and \hbox{\tt ?~$x$:$A$. $P[x]$}.  Isabelle's
+\hbox{\tt !~$x$:$A$.\ $P[x]$} and \hbox{\tt ?~$x$:$A$.\ $P[x]$}.  Isabelle's
 usual quantifier symbols, \sdx{ALL} and \sdx{EX}, are also accepted
 for input.  As with the primitive quantifiers, the {\ML} reference
 \ttindex{HOL_quantifiers} specifies which notation to use for output.
 
 Unions and intersections over sets, namely $\bigcup@{x\in A}B[x]$ and
 $\bigcap@{x\in A}B[x]$, are written 
-\sdx{UN}~\hbox{\tt$x$:$A$. $B[x]$} and
-\sdx{INT}~\hbox{\tt$x$:$A$. $B[x]$}.  
+\sdx{UN}~\hbox{\tt$x$:$A$.\ $B[x]$} and
+\sdx{INT}~\hbox{\tt$x$:$A$.\ $B[x]$}.  
 
 Unions and intersections over types, namely $\bigcup@x B[x]$ and $\bigcap@x
-B[x]$, are written \sdx{UN}~\hbox{\tt$x$. $B[x]$} and
-\sdx{INT}~\hbox{\tt$x$. $B[x]$}.  They are equivalent to the previous
+B[x]$, are written \sdx{UN}~\hbox{\tt$x$.\ $B[x]$} and
+\sdx{INT}~\hbox{\tt$x$.\ $B[x]$}.  They are equivalent to the previous
 union and intersection operators when $A$ is the universal set.
 
 The operators $\bigcup A$ and $\bigcap A$ act upon sets of sets.  They are
@@ -905,9 +905,8 @@ simplifier and the classical reasoner.
 
 \subsection{Simplification and substitution}
 
-Simplification tactics tactics such as {\tt
-  Asm_simp_tac} and \texttt{Full_simp_tac} use the default simpset
-({\tt simpset()}), which works for most purposes.  A quite minimal
+Simplification tactics tactics such as \texttt{Asm_simp_tac} and \texttt{Full_simp_tac} use the default simpset
+(\texttt{simpset()}), which works for most purposes.  A quite minimal
 simplification set for higher-order logic is~\ttindexbold{HOL_ss};
 even more frugal is \ttindexbold{HOL_basic_ss}.  Equality~($=$), which
 also expresses logical equivalence, may be used for rewriting.  See
@@ -946,7 +945,7 @@ additional (first) subgoal.
 \label{subsec:HOL:case:splitting}
 
 \HOL{} also provides convenient means for case splitting during
-rewriting. Goals containing a subterm of the form {\tt if}~$b$~{\tt
+rewriting. Goals containing a subterm of the form \texttt{if}~$b$~{\tt
 then\dots else\dots} often require a case distinction on $b$. This is
 expressed by the theorem \tdx{split_if}:
 $$
@@ -1006,7 +1005,7 @@ well as classical elimination rules for~$\imp$ and~$\bimp$, and the swap
 rule; recall Fig.\ts\ref{hol-lemmas2} above.
 
 The classical reasoner is installed.  Tactics such as \texttt{Blast_tac} and {\tt
-Best_tac} refer to the default claset ({\tt claset()}), which works for most
+Best_tac} refer to the default claset (\texttt{claset()}), which works for most
 purposes.  Named clasets include \ttindexbold{prop_cs}, which includes the
 propositional rules, and \ttindexbold{HOL_cs}, which also includes quantifier
 rules.  See the file \texttt{HOL/cladata.ML} for lists of the classical rules,
@@ -1076,12 +1075,12 @@ $(t@1,\dots,t@n)$ & $(t@1,(\dots,(t@{n-1},t@n)\dots)$ \\
 In addition, it is possible to use tuples
 as patterns in abstractions:
 \begin{center}
-{\tt\%($x$,$y$). $t$} \quad stands for\quad \texttt{split(\%$x$\thinspace$y$. $t$)} 
+{\tt\%($x$,$y$). $t$} \quad stands for\quad \texttt{split(\%$x$\thinspace$y$.\ $t$)} 
 \end{center}
 Nested patterns are also supported.  They are translated stepwise:
 {\tt\%($x$,$y$,$z$). $t$} $\leadsto$ {\tt\%($x$,($y$,$z$)). $t$} $\leadsto$
 {\tt split(\%$x$.\%($y$,$z$). $t$)} $\leadsto$ \texttt{split(\%$x$. split(\%$y$
-  $z$. $t$))}.  The reverse translation is performed upon printing.
+  $z$.\ $t$))}.  The reverse translation is performed upon printing.
 \begin{warn}
   The translation between patterns and \texttt{split} is performed automatically
   by the parser and printer.  Thus the internal and external form of a term
@@ -1273,8 +1272,8 @@ theorem \tdx{less_induct}:
 Reasoning about arithmetic inequalities can be tedious.  A minimal amount of
 automation is provided by the tactic \ttindex{trans_tac} of type \texttt{int ->
 tactic} that deals with simple inequalities.  Note that it only knows about
-{\tt 0}, \texttt{Suc}, {\tt<} and {\tt<=}.  The following goals are all solved by
-{\tt trans_tac 1}:
+\texttt{0}, \texttt{Suc}, {\tt<} and {\tt<=}.  The following goals are all solved by
+\texttt{trans_tac 1}:
 \begin{ttbox}
 {\out  1. \dots ==> m <= Suc(Suc m)}
 {\out  1. [| \dots i <= j \dots Suc j <= k \dots |] ==> i < k}
@@ -1425,7 +1424,7 @@ P(\mathtt{case}~e~\mathtt{of}~\texttt{[] =>}~a ~\texttt{|}~
 which can be fed to \ttindex{addsplits} just like
 \texttt{split_if} (see~\S\ref{subsec:HOL:case:splitting}).
 
-{\tt List} provides a basic library of list processing functions defined by
+\texttt{List} provides a basic library of list processing functions defined by
 primitive recursion (see~\S\ref{sec:HOL:primrec}).  The recursion equations
 are shown in Fig.\ts\ref{fig:HOL:list-simps}.
 
@@ -1784,7 +1783,7 @@ stroke of \texttt{Auto_tac} or \texttt{Force_tac}.
 \label{sec:HOL:datatype}
 \index{*datatype|(}
 
-Inductive datatypes, similar to those of \ML, frequently appear in actual
+Inductive datatypes, similar to those of \ML, frequently appear in 
 applications of Isabelle/HOL.  In principle, such types could be defined by
 hand via \texttt{typedef} (see \S\ref{sec:typedef}), but this would be far too
 tedious.  The \ttindex{datatype} definition package of \HOL\ automates such
@@ -1832,12 +1831,12 @@ of the form
 (\ldots,\ldots ~ (\alpha@1,\ldots,\alpha@h)t@{j'} ~ \ldots,\ldots)t'
 \]
 this is called a {\em nested} (or \emph{indirect}) occurrence. A very simple
-example of a datatype is the type {\tt list}, which can be defined by
+example of a datatype is the type \texttt{list}, which can be defined by
 \begin{ttbox}
 datatype 'a list = Nil
                  | Cons 'a ('a list)
 \end{ttbox}
-Arithmetic expressions {\tt aexp} and boolean expressions {\tt bexp} can be modelled
+Arithmetic expressions \texttt{aexp} and boolean expressions \texttt{bexp} can be modelled
 by the mutually recursive datatype definition
 \begin{ttbox}
 datatype 'a aexp = If_then_else ('a bexp) ('a aexp) ('a aexp)
@@ -1849,7 +1848,7 @@ and      'a bexp = Less ('a aexp) ('a aexp)
                  | And ('a bexp) ('a bexp)
                  | Or ('a bexp) ('a bexp)
 \end{ttbox}
-The datatype {\tt term}, which is defined by
+The datatype \texttt{term}, which is defined by
 \begin{ttbox}
 datatype ('a, 'b) term = Var 'a
                        | App 'b ((('a, 'b) term) list)
@@ -1869,7 +1868,7 @@ at least one of the newly defined datatypes $(\alpha@1,\ldots,\alpha@h)t@j$
 must have a constructor $C^j@i$ without recursive arguments, a \emph{base
   case}, to ensure that the new types are non-empty. If there are nested
 occurrences, a datatype can even be non-empty without having a base case
-itself. Since {\tt list} is a non-empty datatype, {\tt datatype t = C (t
+itself. Since \texttt{list} is a non-empty datatype, \texttt{datatype t = C (t
   list)} is non-empty as well.
 
 The datatype constructors are automatically defined as functions of their
@@ -1935,7 +1934,7 @@ Rec^j@i & := &
 \]
 i.e.\ the properties $P@j$ can be assumed for all recursive arguments.
 
-For datatypes with nested recursion, such as the {\tt term} example from
+For datatypes with nested recursion, such as the \texttt{term} example from
 above, things are a bit more complicated.  Conceptually, Isabelle/HOL unfolds
 a definition like
 \begin{ttbox}
@@ -1949,11 +1948,11 @@ datatype ('a, 'b) term      = Var
 and      ('a, 'b) term_list = Nil'
                             | Cons' (('a,'b) term) (('a,'b) term_list)
 \end{ttbox}
-Note however, that the type {\tt ('a,'b) term_list} and the constructors {\tt
-  Nil'} and {\tt Cons'} are not really introduced.  One can directly work with
-the original (isomorphic) type {\tt (('a, 'b) term) list} and its existing
-constructors {\tt Nil} and {\tt Cons}. Thus, the structural induction rule for
-{\tt term} gets the form
+Note however, that the type \texttt{('a,'b) term_list} and the constructors {\tt
+  Nil'} and \texttt{Cons'} are not really introduced.  One can directly work with
+the original (isomorphic) type \texttt{(('a, 'b) term) list} and its existing
+constructors \texttt{Nil} and \texttt{Cons}. Thus, the structural induction rule for
+\texttt{term} gets the form
 \[
 \infer{P@1~x@1 \wedge P@2~x@2}
   {\begin{array}{l}
@@ -1963,11 +1962,11 @@ constructors {\tt Nil} and {\tt Cons}. Thus, the structural induction rule for
      \Forall x@1~x@2. \List{P@1~x@1; P@2~x@2} \Imp P@2~(\mathtt{Cons}~x@1~x@2)
    \end{array}}
 \]
-Note that there are two predicates $P@1$ and $P@2$, one for the type {\tt ('a,'b) term}
-and one for the type {\tt (('a, 'b) term) list}.
+Note that there are two predicates $P@1$ and $P@2$, one for the type \texttt{('a,'b) term}
+and one for the type \texttt{(('a, 'b) term) list}.
 
 \medskip In principle, inductive types are already fully determined by
-freeness and structural induction.  For convenience in actual applications,
+freeness and structural induction.  For convenience in applications,
 the following derived constructions are automatically provided for any
 datatype.
 
@@ -2065,8 +2064,8 @@ automatically.  Only induction or exhaustion are usually invoked by hand.
   {\tt["}$x@1${\tt",}$\ldots${\tt,"}$x@n${\tt"]} $i$] applies simultaneous
   structural induction on the variables $x@1,\ldots,x@n$ to subgoal $i$.  This
   is the canonical way to prove properties of mutually recursive datatypes
-  such as {\tt aexp} and {\tt bexp}, or datatypes with nested recursion such as
-  {\tt term}.
+  such as \texttt{aexp} and \texttt{bexp}, or datatypes with nested recursion such as
+  \texttt{term}.
 \end{ttdescription}
 In some cases, induction is overkill and a case distinction over all
 constructors of the datatype suffices.
@@ -2101,22 +2100,22 @@ val recs : thm list
 val size : thm list
 val simps : thm list
 \end{ttbox}
-{\tt distinct}, \texttt{inject}, \texttt{induct}, {\tt size}
-and {\tt split} contain the theorems
+\texttt{distinct}, \texttt{inject}, \texttt{induct}, \texttt{size}
+and \texttt{split} contain the theorems
 described above.  For user convenience, \texttt{distinct} contains
 inequalities in both directions.  The reduction rules of the {\tt
   case}-construct are in \texttt{cases}.  All theorems from {\tt
   distinct}, \texttt{inject} and \texttt{cases} are combined in \texttt{simps}.
-In case of mutually recursive datatypes, {\tt recs}, {\tt size}, {\tt induct}
-and {\tt simps} are contained in a separate structure named $t@1_\ldots_t@n$.
+In case of mutually recursive datatypes, \texttt{recs}, \texttt{size}, \texttt{induct}
+and \texttt{simps} are contained in a separate structure named $t@1_\ldots_t@n$.
 
 
 \subsection{Representing existing types as datatypes}
 
-For foundational reasons, some basic types such as {\tt nat}, {\tt *}, {\tt
-  +}, {\tt bool} and {\tt unit} are not defined in a {\tt datatype} section,
+For foundational reasons, some basic types such as \texttt{nat}, \texttt{*}, {\tt
+  +}, \texttt{bool} and \texttt{unit} are not defined in a \texttt{datatype} section,
 but by more primitive means using \texttt{typedef}. To be able to use the
-tactics {\tt induct_tac} and {\tt exhaust_tac} and to define functions by
+tactics \texttt{induct_tac} and \texttt{exhaust_tac} and to define functions by
 primitive recursion on these types, such types may be represented as actual
 datatypes.  This is done by specifying an induction rule, as well as theorems
 stating the distinctness and injectivity of constructors in a {\tt
@@ -2338,8 +2337,8 @@ by (ALLGOALS Asm\_simp\_tac);
 \end{ttbox}
 
 \subsubsection{Example: Evaluation of expressions}
-Using mutual primitive recursion, we can define evaluation functions {\tt eval_aexp}
-and {\tt eval_bexp} for the datatypes of arithmetic and boolean expressions mentioned in
+Using mutual primitive recursion, we can define evaluation functions \texttt{eval_aexp}
+and \texttt{eval_bexp} for the datatypes of arithmetic and boolean expressions mentioned in
 \S\ref{subsec:datatype:basics}:
 \begin{ttbox}
 consts
@@ -2359,13 +2358,13 @@ primrec
   "eval_bexp env (Or b1 b2) = (eval_bexp env b1 & eval_bexp env b2)"
 \end{ttbox}
 Since the value of an expression depends on the value of its variables,
-the functions {\tt eval_aexp} and {\tt eval_bexp} take an additional
-parameter, an {\em environment} of type {\tt 'a => nat}, which maps
+the functions \texttt{eval_aexp} and \texttt{eval_bexp} take an additional
+parameter, an {\em environment} of type \texttt{'a => nat}, which maps
 variables to their values.
 
-Similarly, we may define substitution functions {\tt subst_aexp}
-and {\tt subst_bexp} for expressions: The mapping {\tt f} of type
-{\tt 'a => 'a aexp} given as a parameter is lifted canonically
+Similarly, we may define substitution functions \texttt{subst_aexp}
+and \texttt{subst_bexp} for expressions: The mapping \texttt{f} of type
+\texttt{'a => 'a aexp} given as a parameter is lifted canonically
 on the types {'a aexp} and {'a bexp}:
 \begin{ttbox}
 consts
@@ -2400,10 +2399,10 @@ by (ALLGOALS Asm_full_simp_tac);
 
 \subsubsection{Example: A substitution function for terms}
 Functions on datatypes with nested recursion, such as the type
-{\tt term} mentioned in \S\ref{subsec:datatype:basics}, are
+\texttt{term} mentioned in \S\ref{subsec:datatype:basics}, are
 also defined by mutual primitive recursion. A substitution
-function {\tt subst_term} on type {\tt term}, similar to the functions
-{\tt subst_aexp} and {\tt subst_bexp} described above, can
+function \texttt{subst_term} on type \texttt{term}, similar to the functions
+\texttt{subst_aexp} and \texttt{subst_bexp} described above, can
 be defined as follows:
 \begin{ttbox}
 consts
@@ -2420,7 +2419,7 @@ primrec
      subst_term f t # subst_term_list f ts"
 \end{ttbox}
 The recursion scheme follows the structure of the unfolded definition of type
-{\tt term} shown in \S\ref{subsec:datatype:basics}. To prove properties of
+\texttt{term} shown in \S\ref{subsec:datatype:basics}. To prove properties of
 this substitution function, mutual induction is needed:
 \begin{ttbox}
 Goal
@@ -2653,7 +2652,7 @@ names given them in the theory file.
 
 \item[\tt elims] is the list of elimination rule.
 
-\item[\tt elim] is the head of the list {\tt elims}.
+\item[\tt elim] is the head of the list \texttt{elims}.
   
 \item[\tt mk_cases] is a function to create simplified instances of {\tt
 elim}, using freeness reasoning on some underlying datatype.
@@ -2695,7 +2694,7 @@ inductive    {\it inductive sets}
   con_defs   {\it constructor definitions}
 \end{ttbox}
 A coinductive definition is identical, except that it starts with the keyword
-{\tt coinductive}.  
+\texttt{coinductive}.  
 
 The \texttt{monos} and \texttt{con_defs} sections are optional.  If present,
 each is specified by a list of identifiers.
@@ -2719,7 +2718,7 @@ each is specified by a list of identifiers.
 
 \subsection{Example of an inductive definition}
 Two declarations, included in a theory file, define the finite powerset
-operator.  First we declare the constant~{\tt Fin}.  Then we declare it
+operator.  First we declare the constant~\texttt{Fin}.  Then we declare it
 inductively, with two introduction rules:
 \begin{ttbox}
 consts Fin :: 'a set => 'a set set
@@ -2728,13 +2727,13 @@ inductive "Fin A"
     emptyI  "{\ttlbrace}{\ttrbrace} : Fin A"
     insertI "[| a: A;  b: Fin A |] ==> insert a b : Fin A"
 \end{ttbox}
-The resulting theory structure contains a substructure, called~{\tt Fin}.
+The resulting theory structure contains a substructure, called~\texttt{Fin}.
 It contains the \texttt{Fin}$~A$ introduction rules as the list \texttt{Fin.intrs},
 and also individually as \texttt{Fin.emptyI} and \texttt{Fin.consI}.  The induction
 rule is \texttt{Fin.induct}.
 
 For another example, here is a theory file defining the accessible
-part of a relation.  The main thing to note is the use of~{\tt Pow} in
+part of a relation.  The main thing to note is the use of~\texttt{Pow} in
 the sole introduction rule, and the corresponding mention of the rule
 \verb|Pow_mono| in the \texttt{monos} list.  The paper
 \cite{paulson-CADE} discusses a \ZF\ version of this example in more
@@ -2753,7 +2752,7 @@ end
 The Isabelle distribution contains many other inductive definitions.  Simple
 examples are collected on subdirectory \texttt{HOL/Induct}.  The theory
 \texttt{HOL/Induct/LList} contains coinductive definitions.  Larger examples
-may be found on other subdirectories of \texttt{HOL}, such as {\tt IMP},
+may be found on other subdirectories of \texttt{HOL}, such as \texttt{IMP},
 \texttt{Lambda} and \texttt{Auth}.
 
 \index{*coinductive|)} \index{*inductive|)}
@@ -2802,7 +2801,7 @@ definitions and datatypes.
   set of theorems defined inductively.  A similar proof in \ZF{} is
   described elsewhere~\cite{paulson-set-II}.
 
-\item Theory \texttt{Term} defines the datatype {\tt term}.
+\item Theory \texttt{Term} defines the datatype \texttt{term}.
 
 \item Theory \texttt{ABexp} defines arithmetic and boolean expressions
  as mutually recursive datatypes.
@@ -2951,7 +2950,7 @@ by (assume_tac 1);
 {\out No subgoals!}
 \end{ttbox}
 How much creativity is required?  As it happens, Isabelle can prove this
-theorem automatically.  The default classical set {\tt claset()} contains rules
+theorem automatically.  The default classical set \texttt{claset()} contains rules
 for most of the constructs of \HOL's set theory.  We must augment it with
 \tdx{equalityCE} to break up set equalities, and then apply best-first
 search.  Depth-first search would diverge, but best-first search
