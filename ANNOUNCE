@@ -1,46 +1,43 @@
-Subject: Announcing Isabelle2003
+Subject: Announcing Isabelle2004
 To: isabelle-users@cl.cam.ac.uk
 
-Isabelle2003 is now available.
+Isabelle2004 is now available.
 
 This release provides many improvements and a few substantial advances over
-Isabelle2002.  The most prominent highlights of Isabelle2003 are as follows
+Isabelle2003.  The most prominent highlights of Isabelle2004 are as follows
 (see the NEWS of the distribution for more details):
 
- * New framework for extracting programs from constructive proofs in HOL.
-   (Berghofer)
 
- * Improved simplifier. The premises of a goal are completely
-   interreduced, ie simplified wrt each other. (Berghofer)
+* New theory Ring_and_Field with over 250 basic numerical laws, 
+  all proved in axiomatic type classes for semirings, rings and fields.
 
- * Presburger arithmetic. Method arith can deal with quantified formulae over
-   nat and int, and with mod, div and dvd wrt a numeral.  (Chaieb and Nipkow)
+* Type "rat" of the rational numbers available in HOL-Complex.
 
- * New command to find all rules whose conclusion matches the current goal.
+* New locale "ring" for non-commutative rings in HOL-Algebra.
 
- * New command to trace why unification failed.
+* New theory of matrices with an application to linear programming in
+  HOL-Matrix.
 
- * Locales (named proof contexts).  The new implementation is fully
-   integrated with Isar's notion of proof context, and locale specifications
-   produce predicate definitions that allow to work with locales in more
-   flexible ways. (Wenzel)
+* Improved locales (named proof contexts), instantiation of locales.
 
- * HOL/Algebra: proofs in classical algebra.  Intended as a base for all
-   algebraic developments in HOL.  Currently covers group and ring theory.
-   (Ballarin, Kammüller, Paulson)
+* Improved handling of linear and partial orders in simplifier.
+ 
+* New "specification" command for definition by specification.
 
- * HOL/Complex defines the type "complex" of the complex numbers, with numeric
-   constants and some complex analysis, including nonstandard analysis.  The
-   image HOL-Complex should be used for developments involving the real
-   numbers too.  Gauge integration and hyperreal logarithms have recently
-   been added. (Fleuriot)
+* New Isar command "finalconsts" prevents constants being given a definition
+  later.
 
- * HOL/NumberTheory: added Gauss's law of quadratic reciprocity. (Avigad,
-   Gray and Kramer)
+* Command "arith" now generates counterexamples for reals as well.
 
- * ZF/Constructible: Gödel's proof of the relative consistency of the axiom
-   of choice is mechanized using Isabelle/ZF, following Kunen's well-known
-   textbook "Set Theory". (Paulson)
+* New "quickcheck" command to search for counterexamples of executable goals.
+  (see HOL/ex/Quickcheck_Examples.thy)
+
+* New "refute" command to search for finite countermodels of goals.
+  (see HOL/ex/Refute_Examples.thy)
+
+* Presentation and x-symbol enhancements, greek letters and sub/superscripts
+  allowed in identifiers.
+
 
 You may get Isabelle2003 from the following mirror sites:
 
