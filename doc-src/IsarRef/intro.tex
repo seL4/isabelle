@@ -21,7 +21,7 @@ Note that any Isabelle/Isar command may be retracted by \texttt{undo}.  The
 \texttt{help} command prints a list of available language elements.
 
 
-\subsection{The Proof~General interface}
+\subsection{Proof~General}
 
 Plain TTY-based interaction as above used to be quite feasible with
 traditional tactic based theorem proving, but developing Isar documents really
@@ -35,7 +35,8 @@ the actual proof state.  Thus Proof~General provides the canonical working
 environment for Isabelle/Isar, both for getting acquainted (e.g.\ by replaying
 existing Isar documents) and for production work.
 
-\medskip
+
+\subsubsection{Proof~General as default Isabelle interface}
 
 The easiest way to use Proof~General is to make it the default Isabelle user
 interface (see also \cite{isabelle-sys}).  Just put something like this into
@@ -75,7 +76,8 @@ through the text.  Consult the Proof~General documentation \cite{proofgeneral}
 for further basic command sequences, such as ``\texttt{C-c C-return}'' or
 ``\texttt{C-c u}''.
 
-\medskip
+
+\subsubsection{The X-Symbol package}
 
 Proof~General also supports the Emacs X-Symbol package \cite{x-symbol}, which
 provides a nice way to get proper mathematical symbols displayed on screen.
@@ -83,12 +85,26 @@ Just pass option \texttt{-x true} to the Isabelle interface script, or check
 the appropriate menu setting by hand.  In any case, the X-Symbol package must
 have been properly installed already.
 
-Note that using actual mathematical symbols in the text easily makes the ASCII
-sources hard to read.  For example, $\forall$ will appear as \verb,\\<forall>,
-according the default set of Isabelle symbols.  On the other hand, the
-Isabelle document preparation system \cite{isabelle-sys} will be happy to
-print non-ASCII symbols properly.  It is even possible to invent additional
-notation beyond the display capabilities of XEmacs and X-Symbol.
+Contrary to what you may expect from the documentation of X-Symbol, the
+package is very easy to install for individual users and configures itself
+automatically.  Simply download the ``binary'' package file, and do something
+like this to install it in your home directory:
+\begin{ttbox}
+mkdir -p ~/.xemacs
+cd ~/.xemacs
+tar xzf .../x-symbol-pkg.tar.gz
+\end{ttbox}
+
+\medskip
+
+Using proper mathematical symbols in Isabelle theories can be very convenient
+for readability of large formulas.  On the other hand, the plain ASCII sources
+easily become somewhat unintelligible.  For example, $\forall$ will appear as
+\verb,\\<forall>, according the default set of Isabelle symbols.
+Nevertheless, the Isabelle document preparation system (see
+\S\ref{sec:document-prep}) will be happy to print non-ASCII symbols properly.
+It is even possible to invent additional notation beyond the display
+capabilities of XEmacs and X-Symbol.
 
 
 \section{Isabelle/Isar theories}
@@ -136,7 +152,7 @@ Proof~General sessions, one for replaying the old script and the other for the
 emerging Isabelle/Isar document.
 
 
-\subsection{Document preparation}
+\subsection{Document preparation}\label{sec:document-prep}
 
 Isabelle/Isar provides a simple document preparation system based on current
 (PDF) {\LaTeX} technology, with full support of hyper-links (both local
