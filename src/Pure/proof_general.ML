@@ -620,7 +620,7 @@ fun send_pgip_config () =
 	val proverinfo = 
 	    XML.element "proverinfo"
               [("name",Session.name()), ("version", version),
-	       ("url", isabelle_www)]
+	       ("url", isabelle_www), ("filenameextns", ".thy;")]
 	    [XML.element "welcomemsg" [] [XML.text (Session.welcome())],
 	     XML.element "helpdoc" 
          (* NB: would be nice to generate/display docs from isatool
@@ -628,7 +628,7 @@ fun send_pgip_config () =
           front end should be responsible for launching viewer, etc. *)
 		      [("name", "Isabelle/HOL Tutorial"),
 		       ("descr", "A Gentle Introduction to Isabelle/HOL"), 
-		       ("url",  "http://isabelle.in.tum.de/dist/Isabelle2003/doc/tutorial.pdf")]
+		       ("url",  "http://isabelle.in.tum.de/dist/Isabelle2004/doc/tutorial.pdf")]
 	      []]
     in
 	if exists then
@@ -735,6 +735,11 @@ local
     fun markup_text str elt = [XML.element elt [] [XML.text str]]
     fun markup_text_attrs str elt attrs = [XML.element elt attrs [XML.text str]]
     fun empty elt = [XML.element elt [] []]
+
+    fun whitespace "" = ""
+      | whitespace str = XML.element "whitespace" []
+				(map (fn c=> "&#"^Int.toString (Char.ord c)^ ";") 
+				     (String.explode str))
 
     (* an extra token is needed to terminate the command *)
     val sync = OuterSyntax.scan "\\<^sync>";
@@ -918,7 +923,7 @@ fun markup_comment_whs [] = []
 	val (prewhs,rest) = take_prefix (OuterLex.is_kind OuterLex.Space) toks
     in 
 	if (prewhs <> []) then
-	    XML.text (implode (map OuterLex.unparse prewhs))
+	    whitespace (implode (map OuterLex.unparse prewhs)) 
 	    :: (markup_comment_whs rest)
 	else 
 	    (markup_text (OuterLex.unparse t) "comment") @
