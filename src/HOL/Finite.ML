@@ -543,14 +543,14 @@ by (rtac impI 1);
 by (rename_tac "Aa xa ya Ab xb yb" 1);
  by (case_tac "xa=xb" 1);
  by (subgoal_tac "Aa = Ab" 1);
- by (blast_tac (claset() addEs [equalityE]) 2);
+ by (blast_tac (claset() addSEs [equalityE]) 2);
  by (Blast_tac 1);
 (*case xa ~= xb*)
 by (subgoal_tac "Aa-{xb} = Ab-{xa} & xb : Aa & xa : Ab" 1);
- by (blast_tac (claset() addEs [equalityE]) 2);
+ by (blast_tac (claset() addSEs [equalityE]) 2);
 by (Clarify_tac 1);
 by (subgoal_tac "Aa = insert xb Ab - {xa}" 1);
- by (blast_tac (claset() addEs [equalityE]) 2);
+ by (Blast_tac 2);
 (** LEVEL 20 **)
 by (subgoal_tac "card Aa <= card Ab" 1);
  by (rtac (Suc_le_mono RS subst) 2);
@@ -560,11 +560,12 @@ by (res_inst_tac [("A1", "Aa-{xb}"), ("f1","f")]
 by (blast_tac (claset() addIs [foldSet_imp_finite, finite_Diff]) 1);
 by (ftac Diff1_foldSet 1 THEN assume_tac 1);
 by (subgoal_tac "ya = f xb x" 1);
- by (Blast_tac 2);
+ by (blast_tac (claset() delrules [equalityCE]) 2);
 by (subgoal_tac "(Ab - {xa}, x) : foldSet f e" 1);
  by (Asm_full_simp_tac 2);
 by (subgoal_tac "yb = f xa x" 1);
- by (blast_tac (claset() addDs [Diff1_foldSet]) 2);
+ by (blast_tac (claset() delrules [equalityCE]
+			addDs [Diff1_foldSet]) 2);
 by (asm_simp_tac (simpset() addsimps [f_lcomm]) 1);
 val lemma = result();
 
