@@ -1,0 +1,50 @@
+#########################################################################
+#									#
+# 			Makefile for Isabelle (Pure)			#
+#									#
+#########################################################################
+
+#The pure part is common to all systems.  
+#Object-logics (like FOL) are loaded on top of it.
+
+#To make the system, cd to this directory and type  
+#	make -f Makefile 
+
+#Environment variable ML_DBASE specifies the initial Poly/ML database, from
+#  the Poly/ML distribution directory.
+#WARNING: Poly/ML parent databases should not be moved!
+
+#Environment variable ISABELLECOMP specifies the compiler.
+#Environment variable ISABELLEBIN specifies the destination directory.
+#For Poly/ML, ISABELLEBIN must begin with a /
+
+BIN = $(ISABELLEBIN)
+COMP = $(ISABELLECOMP)
+FILES =	POLY.ML NJ.ML ROOT.ML library.ML term.ML symtab.ML type.ML sign.ML\
+	sequence.ML envir.ML pattern.ML unify.ML logic.ML thm.ML net.ML\
+	drule.ML tctical.ML tactic.ML goals.ML
+
+SYNTAX_FILES =  Syntax/ROOT.ML	Syntax/ast.ML		Syntax/xgram.ML\
+	Syntax/extension.ML	Syntax/lexicon.ML	Syntax/parse_tree.ML\
+	Syntax/earley0A.ML	Syntax/type_ext.ML	Syntax/sextension.ML\
+	Syntax/pretty.ML	Syntax/printer.ML	Syntax/syntax.ML
+
+THY_FILES = Thy/ROOT.ML Thy/scan.ML Thy/parse.ML Thy/syntax.ML Thy/read.ML
+
+#Uses cp rather than make_database because Poly/ML allows only 3 levels
+$(BIN)/Pure:   $(FILES)  $(SYNTAX_FILES)  $(THY_FILES)  $(ML_DBASE)
+	case "$(COMP)" in \
+	poly*)	echo database=$${ML_DBASE:?'No Poly/ML database specified'};\
+		cp $(ML_DBASE) $(BIN)/Pure; chmod u+w $(BIN)/Pure;\
+		echo 'PolyML.use"POLY";use"ROOT";' | $(COMP) $(BIN)/Pure;;\
+	sml*)	if [ ! '(' -d $${ISABELLEBIN:?} -a -w $${ISABELLEBIN:?} ')' ];\
+           	then echo Bad value for ISABELLEBIN : \
+                	$(BIN) is not a writable directory; \
+                	exit 1; \
+           	fi;\
+		echo 'use"NJ.ML"; use"ROOT.ML"; xML"$(BIN)/Pure" banner;'\
+			  | $(COMP);;\
+	*)	echo Bad value for ISABELLECOMP;;\
+	esac
+
+.PRECIOUS:  $(BIN)/Pure  

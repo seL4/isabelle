@@ -1,0 +1,18 @@
+#! /bin/sh
+#
+# Usage:
+#    expandshort FILE1 ... FILEn
+#
+#  leaves previous versions as XXX~~
+#
+for f in $*
+do
+echo Expanding shorthands in $f. \ Backup file is $f~~
+mv $f $f~~; sed -e '
+s/PFOL/FOLP/g
+s/PIFOL/IFOLP/g
+s/pfol/folp/g
+s/pifol/ifolp/g
+' $f~~ > $f
+done
+echo Finished.

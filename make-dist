@@ -1,0 +1,21 @@
+#!/bin/sh
+#make-dist <DIR> 
+#make a distribution directory of Isabelle sources. Example:    
+#    rm -r /usr/groups/theory/isabelle/91
+#    make-dist /usr/groups/theory/isabelle/91
+
+#BEFORE MAKING A NEW DISTRIBUTION VERSION, CHECK...
+#   * that make-all works perfectly
+#   * that README files are up-to-date
+#   * that the version number has been updated
+
+#This version copies EVERYTHING!!!!!!!!!!!!!!!!
+
+set -e		#terminate if error
+
+#Pure Isabelle
+mkdir ${1?'No destination directory specified'}
+cp -ipr . $1
+
+#TO WRITE POLY/ML AND ISABELLE TAPES, USE SHELL SCRIPT write-dist
+#TO PACK FOR EMAIL, USE SHELL SCRIPTS make-emaildist, send-emaildist

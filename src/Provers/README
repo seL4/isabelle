@@ -1,0 +1,12 @@
+			Provers
+
+This directory contains ML sources of generic theorem proving tools.
+Typically, they can be applied to various logics, provided rules of a
+certain form are derivable.  Unfortunately, little documentation is
+available.
+
+classical.ML -- theorem prover for classical logics
+genelim.ML   -- bits and pieces for deriving elimination rules
+ind.ML       -- a simple induction package
+simp.ML      -- a powerful simplifier
+typedsimp.ML -- a rather basic simplifier for explicitly typed logics

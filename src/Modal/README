@@ -1,0 +1,22 @@
+		Modal: First-Order Modal Sequent Calculus
+
+This directory contains the Standard ML sources of the Isabelle system for
+Modal Logic.  Important files include
+
+ROOT.ML -- loads all source files.  Enter an ML image containing LK 
+           and type: use "ROOT.ML";
+
+ex -- subdirectory containing examples.  Files, Tthms.ML, S4thms.ML and
+S43thms.ML contain the theorems of Modal Logics, so arranged since
+T<S4<S43.  To execute them, enter an ML image containing Modal and type
+	use "ex/ROOT.ML";
+
+Thanks to Rajeev Gore' for supplying the inference system for S43.
+
+Useful references on Modal Logics:
+
+	Melvin C Fitting,
+	Proof Methods for Modal and Intuitionistic Logics (Reidel, 1983)
+
+	Lincoln A. Wallen,
+	Automated Deduction in Nonclassical Logics (MIT Press, 1990)

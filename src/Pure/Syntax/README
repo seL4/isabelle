@@ -1,0 +1,8 @@
+                              Pure/Syntax
+
+This directory contains the source files for Isabelle's syntax module. Which
+includes a lexer, parser, pretty printer and macro system.
+
+There is no Makefile to compile these files separately; they are compiled as
+part of Pure Isabelle.
+

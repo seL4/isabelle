@@ -1,0 +1,113 @@
+		     ISABELLE-92 DISTRIBUTION DIRECTORY
+
+------------------------------------------------------------------------------
+ISABELLE-92 IS INCOMPATIBLE WITH EARLIER VERSIONS.  PLEASE CONSULT THE
+DOCUMENTATION.
+------------------------------------------------------------------------------
+
+This directory contains the complete Isabelle system.  To build and test the
+entire system, including all object-logics, use the shell script make-all.
+Pure Isabelle and each of the object-logics can be built separately using the
+Makefiles in the respective directories; read them for more information.
+
+				THE MAKEFILES
+
+The Makefiles can use two different Standard ML compilers: Poly/ML version
+1.88MSX or later (from Abstract Hardware Ltd) and Standard ML of New Jersey
+(Version 75 or later).  Poly/ML is a commercial product and costs money,
+but it is reliable and its database system is convenient for interactive
+work.  SML of New Jersey requires lots of memory and disc space, but it is
+free and its code sometimes runs faster.  Both compilers are perfectly
+satisfactory for running Isabelle.
+
+The Makefiles and make-all use enviroment variables that you should set
+according to your site configuration.
+
+ISABELLEBIN is the directory to hold Poly/ML databases or New Jersey ML
+images.  When using Poly/ML, ISABELLEBIN must be an absolute pathname (one
+starting with "/").
+
+ML_DBASE is an absolute pathname to the initial Poly/ML database (not
+required for New Jersey ML).
+
+ISABELLECOMP is the ML compiler, typically "poly -noDisplay" or "sml".  If
+ISABELLECOMP begins with the letters "poly" then the Makefiles assume that
+it is Poly/ML; if it begins with the letters "sml" then they assume
+Standard ML of New Jersey.
+
+
+			 STRUCTURE OF THIS DIRECTORY
+
+The directory Pure containes pure Isabelle, which has no object-logic.
+
+Other important files include...
+    COPYRIGHT   	Copyright notice and Disclaimer of Warranty
+    make-rulenames	shell script used during Make
+    make-all		shell script for building entire system
+    expandshort		shell script to expand "shortcuts" in files
+    prove_goal.el       Emacs command to change proof format
+    xlisten		shell script for running Isabelle under X
+    teeinput		shell script to run Isabelle, logging inputs to a file
+    theory-template.ML	template file for defining new theories
+    Pure		directory of source files for Pure Isabelle
+    Provers		directory of generic theorem provers
+
+xlisten sets up a window running Isabelle, with a separate small "listener"
+window, which keeps a log of all input lines.  This log is a useful record
+of a session.  If you are not running X windows, teeinput can still be used at
+least to record (if not to display) the log.
+
+The following subdirectories contain object-logics:
+    FOL 	Natural deduction logic (intuitionistic and classical)
+    ZF		Zermelo-Fraenkel Set theory
+    CTT		Constructive Type Theory
+    HOL		Classical Higher-Order Logic
+    LK		Classical sequent calculus
+    Modal	The modal logics T, S4, S43
+    LCF         Logic for Computable Functions (domain theory)
+    Cube	Barendregt's Lambda Cube
+
+Object-logics include examples files in subdirectory ex or file ex.ML.
+These files can be loaded in batch mode.  The commands can also be
+executed interactively, using the windows on your workstation.  This is a
+good way to get started.
+
+Each object-logic is built on top of Pure Isabelle, and possibly on top of
+another object logic (like FOL or LK).  A database or binary called Pure is
+first created, then the object-logic is loaded on top.  Poly/ML extends
+Pure using its "make_database" operation.  Standard ML of New Jersey starts
+with the Pure core image and loads the object-logic's ROOT.ML.
+
+		HOW TO GET A STANDARD ML COMPILER
+
+To obtain Poly/ML, contact Mike Crawley <mjc@ahl.co.uk> at Abstract
+Hardware Ltd, The Howell Building, Brunel University, Uxbridge UB8 3PH,
+England.
+
+To obtain Standard ML of New Jersey, contact David MacQueen
+<dbm@com.att.research> at AT&T Bell Laboratories, 600 Mountain Avenue,
+Murray Hill, NJ 07974, USA.  This compiler is available by FTP.  Connect to
+research.att.com; login as anonymous with your userid as password; set
+binary mode; transfer files from the directory dist/ml.
+
+------------------------------------------------------------------------------
+
+Please report any problems you encounter.  While we will try to be helpful,
+we can accept no responsibility for the deficiences of Isabelle amd their
+consequences.
+
+Lawrence C Paulson		E-mail: lcp@cl.cam.ac.uk
+Computer Laboratory 		Phone: +44-223-334600
+University of Cambridge 	Fax:   +44-223-334748 
+Pembroke Street 
+Cambridge CB2 3QG 
+England
+
+Tobias Nipkow			E-mail: nipkow@informatik.tu-muenchen.de
+Institut fuer Informatik	Phone: +49-89-2105-2690
+T. U. Muenchen			Fax:   +49-89-2105-8183
+Postfach 20 24 20
+D-8000 Muenchen 2
+Germany
+
+Last updated 25 August 1992

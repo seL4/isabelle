@@ -1,0 +1,282 @@
+(*  Title: 	ZF/upair
+    ID:         $Id$
+    Author: 	Lawrence C Paulson, Cambridge University Computer Laboratory
+    Copyright   1991  University of Cambridge
+
+UNORDERED pairs in Zermelo-Fraenkel Set Theory 
+
+Observe the order of dependence:
+    Upair is defined in terms of Replace
+    Un is defined in terms of Upair and Union (similarly for Int)
+    cons is defined in terms of Upair and Un
+    Ordered pairs and descriptions are defined using cons ("set notation")
+*)
+
+(*** Lemmas about power sets  ***)
+
+val Pow_bottom = empty_subsetI RS PowI;		(* 0 : Pow(B) *)
+val Pow_top = subset_refl RS PowI;		(* A : Pow(A) *)
+val Pow_neq_0 = Pow_top RSN (2,equals0D);	(* Pow(a)=0 ==> P *) 
+
+
+(*** Unordered pairs - Upair ***)
+
+val pairing = prove_goalw ZF.thy [Upair_def]
+    "c : Upair(a,b) <-> (c=a | c=b)"
+ (fn _ => [ (fast_tac (lemmas_cs addEs [Pow_neq_0, sym RS Pow_neq_0]) 1) ]);
+
+val UpairI1 = prove_goal ZF.thy "a : Upair(a,b)"
+ (fn _ => [ (rtac (refl RS disjI1 RS (pairing RS iffD2)) 1) ]);
+
+val UpairI2 = prove_goal ZF.thy "b : Upair(a,b)"
+ (fn _ => [ (rtac (refl RS disjI2 RS (pairing RS iffD2)) 1) ]);
+
+val UpairE = prove_goal ZF.thy
+    "[| a : Upair(b,c);  a=b ==> P;  a=c ==> P |] ==> P"
+ (fn major::prems=>
+  [ (rtac (major RS (pairing RS iffD1 RS disjE)) 1),
+    (REPEAT (eresolve_tac prems 1)) ]);
+
+(*** Rules for binary union -- Un -- defined via Upair ***)
+
+val UnI1 = prove_goalw ZF.thy [Un_def] "c : A ==> c : A Un B"
+ (fn [prem]=> [ (rtac (prem RS (UpairI1 RS UnionI)) 1) ]);
+
+val UnI2 = prove_goalw ZF.thy [Un_def] "c : B ==> c : A Un B"
+ (fn [prem]=> [ (rtac (prem RS (UpairI2 RS UnionI)) 1) ]);
+
+val UnE = prove_goalw ZF.thy [Un_def] 
+    "[| c : A Un B;  c:A ==> P;  c:B ==> P |] ==> P"
+ (fn major::prems=>
+  [ (rtac (major RS UnionE) 1),
+    (etac UpairE 1),
+    (REPEAT (EVERY1 [resolve_tac prems, etac subst, assume_tac])) ]);
+
+val Un_iff = prove_goal ZF.thy "c : A Un B <-> (c:A | c:B)"
+ (fn _ => [ (fast_tac (lemmas_cs addIs [UnI1,UnI2] addSEs [UnE]) 1) ]);
+
+(*Classical introduction rule: no commitment to A vs B*)
+val UnCI = prove_goal ZF.thy "(~c : B ==> c : A) ==> c : A Un B"
+ (fn [prem]=>
+  [ (rtac (disjCI RS (Un_iff RS iffD2)) 1),
+    (etac prem 1) ]);
+
+
+(*** Rules for small intersection -- Int -- defined via Upair ***)
+
+val IntI = prove_goalw ZF.thy [Int_def]
+    "[| c : A;  c : B |] ==> c : A Int B"
+ (fn prems=>
+  [ (REPEAT (resolve_tac (prems @ [UpairI1,InterI]) 1
+     ORELSE eresolve_tac [UpairE, ssubst] 1)) ]);
+
+val IntD1 = prove_goalw ZF.thy [Int_def] "c : A Int B ==> c : A"
+ (fn [major]=>
+  [ (rtac (UpairI1 RS (major RS InterD)) 1) ]);
+
+val IntD2 = prove_goalw ZF.thy [Int_def] "c : A Int B ==> c : B"
+ (fn [major]=>
+  [ (rtac (UpairI2 RS (major RS InterD)) 1) ]);
+
+val IntE = prove_goal ZF.thy
+    "[| c : A Int B;  [| c:A; c:B |] ==> P |] ==> P"
+ (fn prems=>
+  [ (resolve_tac prems 1),
+    (REPEAT (resolve_tac (prems RL [IntD1,IntD2]) 1)) ]);
+
+val Int_iff = prove_goal ZF.thy "c : A Int B <-> (c:A & c:B)"
+ (fn _ => [ (fast_tac (lemmas_cs addSIs [IntI] addSEs [IntE]) 1) ]);
+
+
+(*** Rules for set difference -- defined via Upair ***)
+
+val DiffI = prove_goalw ZF.thy [Diff_def]
+    "[| c : A;  ~ c : B |] ==> c : A - B"
+ (fn prems=> [ (REPEAT (resolve_tac (prems @ [CollectI]) 1)) ]);
+
+val DiffD1 = prove_goalw ZF.thy [Diff_def]
+    "c : A - B ==> c : A"
+ (fn [major]=> [ (rtac (major RS CollectD1) 1) ]);
+
+val DiffD2 = prove_goalw ZF.thy [Diff_def]
+    "[| c : A - B;  c : B |] ==> P"
+ (fn [major,minor]=> [ (rtac (minor RS (major RS CollectD2 RS notE)) 1) ]);
+
+val DiffE = prove_goal ZF.thy
+    "[| c : A - B;  [| c:A; ~ c:B |] ==> P |] ==> P"
+ (fn prems=>
+  [ (resolve_tac prems 1),
+    (REPEAT (ares_tac (prems RL [DiffD1, DiffD2 RS notI]) 1)) ]);
+
+val Diff_iff = prove_goal ZF.thy "c : A-B <-> (c:A & ~ c:B)"
+ (fn _ => [ (fast_tac (lemmas_cs addSIs [DiffI] addSEs [DiffE]) 1) ]);
+
+(*** Rules for cons -- defined via Un and Upair ***)
+
+val consI1 = prove_goalw ZF.thy [cons_def] "a : cons(a,B)"
+ (fn _ => [ (rtac (UpairI1 RS UnI1) 1) ]);
+
+val consI2 = prove_goalw ZF.thy [cons_def] "a : B ==> a : cons(b,B)"
+ (fn [prem]=> [ (rtac (prem RS UnI2) 1) ]);
+
+val consE = prove_goalw ZF.thy [cons_def]
+    "[| a : cons(b,A);  a=b ==> P;  a:A ==> P |] ==> P"
+ (fn major::prems=>
+  [ (rtac (major RS UnE) 1),
+    (REPEAT (eresolve_tac (prems @ [UpairE]) 1)) ]);
+
+val cons_iff = prove_goal ZF.thy "a : cons(b,A) <-> (a=b | a:A)"
+ (fn _ => [ (fast_tac (lemmas_cs addIs [consI1,consI2] addSEs [consE]) 1) ]);
+
+(*Classical introduction rule*)
+val consCI = prove_goal ZF.thy "(~ a:B ==> a=b) ==> a: cons(b,B)"
+ (fn [prem]=>
+  [ (rtac (disjCI RS (cons_iff RS iffD2)) 1),
+    (etac prem 1) ]);
+
+(*** Singletons - using cons ***)
+
+val singletonI = prove_goal ZF.thy "a : {a}"
+ (fn _=> [ (rtac consI1 1) ]);
+
+val singletonE = prove_goal ZF.thy "[| a: {b};  a=b ==> P |] ==> P"
+ (fn major::prems=>
+  [ (rtac (major RS consE) 1),
+    (REPEAT (eresolve_tac (prems @ [emptyE]) 1)) ]);
+
+
+(*** Rules for Descriptions ***)
+
+val the_equality = prove_goalw ZF.thy [the_def]
+    "[| P(a);  !!x. P(x) ==> x=a |] ==> (THE x. P(x)) = a"
+ (fn prems=>
+  [ (fast_tac (lemmas_cs addIs ([equalityI,singletonI]@prems) 
+	                 addEs (prems RL [subst])) 1) ]);
+
+(* Only use this if you already know EX!x. P(x) *)
+val the_equality2 = prove_goal ZF.thy
+    "[| EX! x. P(x);  P(a) |] ==> (THE x. P(x)) = a"
+ (fn major::prems=>
+  [ (rtac the_equality 1),
+    (rtac (major RS ex1_equalsE) 2),
+    (REPEAT (ares_tac prems 1)) ]);
+
+val theI = prove_goal ZF.thy "EX! x. P(x) ==> P(THE x. P(x))"
+ (fn [major]=>
+  [ (rtac (major RS ex1E) 1),
+    (resolve_tac [major RS the_equality2 RS ssubst] 1),
+    (REPEAT (assume_tac 1)) ]);
+
+val the_cong = prove_goalw ZF.thy [the_def]
+    "[| !!y. P(y) <-> Q(y) |] ==> (THE x. P(x)) = (THE x. Q(x))"
+ (fn prems=> [ (prove_cong_tac (prems@[Replace_cong]) 1) ]);
+
+
+(*** if -- a conditional expression for formulae ***)
+
+goalw ZF.thy [if_def] "if(True,a,b) = a";
+by (fast_tac (lemmas_cs addIs [the_equality]) 1);
+val if_true = result();
+
+goalw ZF.thy [if_def] "if(False,a,b) = b";
+by (fast_tac (lemmas_cs addIs [the_equality]) 1);
+val if_false = result();
+
+val prems = goalw ZF.thy [if_def]
+    "[| P<->Q;  a=c;  b=d |] ==> if(P,a,b) = if(Q,c,d)";
+by (REPEAT (resolve_tac (prems@[refl,the_cong]@FOL_congs) 1));
+val if_cong = result();
+
+(*Not needed for rewriting, since P would rewrite to True anyway*)
+val prems = goalw ZF.thy [if_def] "P ==> if(P,a,b) = a";
+by (cut_facts_tac prems 1);
+by (fast_tac (lemmas_cs addSIs [the_equality]) 1);
+val if_P = result();
+
+(*Not needed for rewriting, since P would rewrite to False anyway*)
+val prems = goalw ZF.thy [if_def] "~P ==> if(P,a,b) = b";
+by (cut_facts_tac prems 1);
+by (fast_tac (lemmas_cs addSIs [the_equality]) 1);
+val if_not_P = result();
+
+val if_ss =
+    FOL_ss addcongs (if_cong :: mk_typed_congs ZF.thy [("P", "i=>o")]
+			      @ basic_ZF_congs)
+	   addrews  [if_true,if_false];
+
+val expand_if = prove_goal ZF.thy
+    "P(if(Q,x,y)) <-> ((Q --> P(x)) & (~Q --> P(y)))"
+ (fn _=> [ (res_inst_tac [("Q","Q")] (excluded_middle RS disjE) 1),
+	   (ASM_SIMP_TAC if_ss 1),
+	   (ASM_SIMP_TAC if_ss 1) ]);
+
+val prems = goal ZF.thy
+    "[| P ==> a: A;  ~P ==> b: A |] ==> if(P,a,b): A";
+by (res_inst_tac [("Q","P")] (excluded_middle RS disjE) 1);
+by (ALLGOALS (ASM_SIMP_TAC (if_ss addrews prems)));
+val if_type = result();
+
+
+(*** Foundation lemmas ***)
+
+val mem_anti_sym = prove_goal ZF.thy "[| a:b;  b:a |] ==> P"
+ (fn prems=>
+  [ (rtac disjE 1),
+    (res_inst_tac [("A","{a,b}")] foundation 1),
+    (etac equals0D 1),
+    (rtac consI1 1),
+    (fast_tac (lemmas_cs addIs (prems@[consI1,consI2]) 
+		         addSEs [consE,equalityE]) 1) ]);
+
+val mem_anti_refl = prove_goal ZF.thy "a:a ==> P"
+ (fn [major]=> [ (rtac (major RS (major RS mem_anti_sym)) 1) ]);
+
+val mem_not_refl = prove_goal ZF.thy "~ a:a"
+ (K [ (rtac notI 1), (etac mem_anti_refl 1) ]);
+
+(*** Rules for succ ***)
+
+val succI1 = prove_goalw ZF.thy [succ_def] "i : succ(i)"
+ (fn _=> [ (rtac consI1 1) ]);
+
+val succI2 = prove_goalw ZF.thy [succ_def]
+    "i : j ==> i : succ(j)"
+ (fn [prem]=> [ (rtac (prem RS consI2) 1) ]);
+
+(*Classical introduction rule*)
+val succCI = prove_goalw ZF.thy [succ_def]
+   "(~ i:j ==> i=j) ==> i: succ(j)"
+ (fn prems=> [ (rtac consCI 1), (eresolve_tac prems 1) ]);
+
+val succE = prove_goalw ZF.thy [succ_def]
+    "[| i : succ(j);  i=j ==> P;  i:j ==> P |] ==> P"
+ (fn major::prems=>
+  [ (rtac (major RS consE) 1),
+    (REPEAT (eresolve_tac prems 1)) ]);
+
+val succ_neq_0 = prove_goal ZF.thy "succ(n)=0 ==> P"
+ (fn [major]=>
+  [ (rtac (major RS equalityD1 RS subsetD RS emptyE) 1),
+    (rtac succI1 1) ]);
+
+(*Useful for rewriting*)
+val succ_not_0 = prove_goal ZF.thy "~ succ(n)=0"
+ (fn _=> [ (rtac notI 1), (etac succ_neq_0 1) ]);
+
+(* succ(c) <= B ==> c : B *)
+val succ_subsetD = succI1 RSN (2,subsetD);
+
+val succ_inject = prove_goal ZF.thy "succ(m) = succ(n) ==> m=n"
+ (fn [major]=>
+  [ (rtac (major RS equalityE) 1),
+    (REPEAT (eresolve_tac [asm_rl, sym, succE, make_elim succ_subsetD,
+			   mem_anti_sym] 1)) ]);
+
+val succ_inject_iff = prove_goal ZF.thy "succ(m) = succ(n) <-> m=n"
+ (fn _=> [ (fast_tac (FOL_cs addSEs [succ_inject]) 1) ]);
+
+(*UpairI1/2 should become UpairCI;  mem_anti_refl as a hazE? *)
+val upair_cs = lemmas_cs
+  addSIs [singletonI, DiffI, IntI, UnCI, consCI, succCI, UpairI1,UpairI2]
+  addSEs [singletonE, DiffE, IntE, UnE, consE, succE, UpairE];
+

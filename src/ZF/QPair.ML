@@ -1,0 +1,299 @@
+(*  Title: 	ZF/qpair.ML
+    ID:         $Id$
+    Author: 	Lawrence C Paulson, Cambridge University Computer Laboratory
+    Copyright   1993  University of Cambridge
+
+For qpair.thy.  
+
+Quine-inspired ordered pairs and disjoint sums, for non-well-founded data
+structures in ZF.  Does not precisely follow Quine's construction.  Thanks
+to Thomas Forster for suggesting this approach!
+
+W. V. Quine, On Ordered Pairs and Relations, in Selected Logic Papers,
+1966.
+
+Many proofs are borrowed from pair.ML and sum.ML
+
+Do we EVER have rank(a) < rank(<a;b>) ?  Perhaps if the latter rank
+    is not a limit ordinal? 
+*)
+
+
+open QPair;
+
+(**** Quine ordered pairing ****)
+
+(** Lemmas for showing that <a;b> uniquely determines a and b **)
+
+val QPair_iff = prove_goalw QPair.thy [QPair_def]
+    "<a;b> = <c;d> <-> a=c & b=d"
+ (fn _=> [rtac sum_equal_iff 1]);
+
+val QPair_inject = standard (QPair_iff RS iffD1 RS conjE);
+
+val QPair_inject1 = prove_goal QPair.thy "<a;b> = <c;d> ==> a=c"
+ (fn [major]=>
+  [ (rtac (major RS QPair_inject) 1), (assume_tac 1) ]);
+
+val QPair_inject2 = prove_goal QPair.thy "<a;b> = <c;d> ==> b=d"
+ (fn [major]=>
+  [ (rtac (major RS QPair_inject) 1), (assume_tac 1) ]);
+
+
+(*** QSigma: Disjoint union of a family of sets
+     Generalizes Cartesian product ***)
+
+val QSigmaI = prove_goalw QPair.thy [QSigma_def]
+    "[| a:A;  b:B(a) |] ==> <a;b> : QSigma(A,B)"
+ (fn prems=> [ (REPEAT (resolve_tac (prems@[singletonI,UN_I]) 1)) ]);
+
+(*The general elimination rule*)
+val QSigmaE = prove_goalw QPair.thy [QSigma_def]
+    "[| c: QSigma(A,B);  \
+\       !!x y.[| x:A;  y:B(x);  c=<x;y> |] ==> P \
+\    |] ==> P"
+ (fn major::prems=>
+  [ (cut_facts_tac [major] 1),
+    (REPEAT (eresolve_tac [UN_E, singletonE] 1 ORELSE ares_tac prems 1)) ]);
+
+(** Elimination rules for <a;b>:A*B -- introducing no eigenvariables **)
+
+val QSigmaE2 = 
+  rule_by_tactic (REPEAT_FIRST (etac QPair_inject ORELSE' bound_hyp_subst_tac)
+		  THEN prune_params_tac)
+      (read_instantiate [("c","<a;b>")] QSigmaE);  
+
+val QSigmaD1 = prove_goal QPair.thy "<a;b> : QSigma(A,B) ==> a : A"
+ (fn [major]=>
+  [ (rtac (major RS QSigmaE2) 1), (assume_tac 1) ]);
+
+val QSigmaD2 = prove_goal QPair.thy "<a;b> : QSigma(A,B) ==> b : B(a)"
+ (fn [major]=>
+  [ (rtac (major RS QSigmaE2) 1), (assume_tac 1) ]);
+
+val QSigma_cong = prove_goalw QPair.thy [QSigma_def]
+    "[| A=A';  !!x. x:A' ==> B(x)=B'(x) |] ==> \
+\    QSigma(A,B) = QSigma(A',B')"
+ (fn prems=> [ (prove_cong_tac (prems@[RepFun_cong]) 1) ]);
+
+val QSigma_empty1 = prove_goal QPair.thy "QSigma(0,B) = 0"
+ (fn _ => [ (fast_tac (ZF_cs addIs [equalityI] addSEs [QSigmaE]) 1) ]);
+
+val QSigma_empty2 = prove_goal QPair.thy "A <*> 0 = 0"
+ (fn _ => [ (fast_tac (ZF_cs addIs [equalityI] addSEs [QSigmaE]) 1) ]);
+
+
+(*** Eliminator - qsplit ***)
+
+val qsplit = prove_goalw QPair.thy [qsplit_def]
+    "qsplit(%x y.c(x,y), <a;b>) = c(a,b)"
+ (fn _ => [ (fast_tac (ZF_cs addIs [the_equality] addEs [QPair_inject]) 1) ]);
+
+val qsplit_type = prove_goal QPair.thy
+    "[|  p:QSigma(A,B);   \
+\        !!x y.[| x:A; y:B(x) |] ==> c(x,y):C(<x;y>) \
+\    |] ==> qsplit(%x y.c(x,y), p) : C(p)"
+ (fn major::prems=>
+  [ (rtac (major RS QSigmaE) 1),
+    (etac ssubst 1),
+    (REPEAT (ares_tac (prems @ [qsplit RS ssubst]) 1)) ]);
+
+(*This congruence rule uses NO typing information...*)
+val qsplit_cong = prove_goalw QPair.thy [qsplit_def] 
+    "[| p=p';  !!x y.c(x,y) = c'(x,y) |] ==> \
+\    qsplit(%x y.c(x,y), p) = qsplit(%x y.c'(x,y), p')"
+ (fn prems=> [ (prove_cong_tac (prems@[the_cong]) 1) ]);
+
+
+val qpair_cs = ZF_cs addSIs [QSigmaI] addSEs [QSigmaE2, QSigmaE, QPair_inject];
+
+(*** qconverse ***)
+
+val qconverseI = prove_goalw QPair.thy [qconverse_def]
+    "!!a b r. <a;b>:r ==> <b;a>:qconverse(r)"
+ (fn _ => [ (fast_tac qpair_cs 1) ]);
+
+val qconverseD = prove_goalw QPair.thy [qconverse_def]
+    "!!a b r. <a;b> : qconverse(r) ==> <b;a> : r"
+ (fn _ => [ (fast_tac qpair_cs 1) ]);
+
+val qconverseE = prove_goalw QPair.thy [qconverse_def]
+    "[| yx : qconverse(r);  \
+\       !!x y. [| yx=<y;x>;  <x;y>:r |] ==> P \
+\    |] ==> P"
+ (fn [major,minor]=>
+  [ (rtac (major RS ReplaceE) 1),
+    (REPEAT (eresolve_tac [exE, conjE, minor] 1)),
+    (hyp_subst_tac 1),
+    (assume_tac 1) ]);
+
+val qconverse_cs = qpair_cs addSIs [qconverseI] 
+			    addSEs [qconverseD,qconverseE];
+
+val qconverse_of_qconverse = prove_goal QPair.thy
+    "!!A B r. r<=QSigma(A,B) ==> qconverse(qconverse(r)) = r"
+ (fn _ => [ (fast_tac (qconverse_cs addSIs [equalityI]) 1) ]);
+
+val qconverse_type = prove_goal QPair.thy
+    "!!A B r. r <= A <*> B ==> qconverse(r) <= B <*> A"
+ (fn _ => [ (fast_tac qconverse_cs 1) ]);
+
+val qconverse_of_prod = prove_goal QPair.thy "qconverse(A <*> B) = B <*> A"
+ (fn _ => [ (fast_tac (qconverse_cs addSIs [equalityI]) 1) ]);
+
+val qconverse_empty = prove_goal QPair.thy "qconverse(0) = 0"
+ (fn _ => [ (fast_tac (qconverse_cs addSIs [equalityI]) 1) ]);
+
+
+(*** qsplit for predicates: result type o ***)
+
+goalw QPair.thy [qfsplit_def] "!!R a b. R(a,b) ==> qfsplit(R, <a;b>)";
+by (REPEAT (ares_tac [refl,exI,conjI] 1));
+val qfsplitI = result();
+
+val major::prems = goalw QPair.thy [qfsplit_def]
+    "[| qfsplit(R,z);  !!x y. [| z = <x;y>;  R(x,y) |] ==> P |] ==> P";
+by (cut_facts_tac [major] 1);
+by (REPEAT (eresolve_tac (prems@[asm_rl,exE,conjE]) 1));
+val qfsplitE = result();
+
+goal QPair.thy "!!R a b. qfsplit(R,<a;b>) ==> R(a,b)";
+by (REPEAT (eresolve_tac [asm_rl,qfsplitE,QPair_inject,ssubst] 1));
+val qfsplitD = result();
+
+
+(**** The Quine-inspired notion of disjoint sum ****)
+
+val qsum_defs = [qsum_def,QInl_def,QInr_def,qcase_def];
+
+(** Introduction rules for the injections **)
+
+goalw QPair.thy qsum_defs "!!a A B. a : A ==> QInl(a) : A <+> B";
+by (REPEAT (ares_tac [UnI1,QSigmaI,singletonI] 1));
+val QInlI = result();
+
+goalw QPair.thy qsum_defs "!!b A B. b : B ==> QInr(b) : A <+> B";
+by (REPEAT (ares_tac [UnI2,QSigmaI,singletonI] 1));
+val QInrI = result();
+
+(** Elimination rules **)
+
+val major::prems = goalw QPair.thy qsum_defs
+    "[| u: A <+> B;  \
+\       !!x. [| x:A;  u=QInl(x) |] ==> P; \
+\       !!y. [| y:B;  u=QInr(y) |] ==> P \
+\    |] ==> P";
+by (rtac (major RS UnE) 1);
+by (REPEAT (rtac refl 1
+     ORELSE eresolve_tac (prems@[QSigmaE,singletonE,ssubst]) 1));
+val qsumE = result();
+
+(** QInjection and freeness rules **)
+
+val [major] = goalw QPair.thy qsum_defs "QInl(a)=QInl(b) ==> a=b";
+by (EVERY1 [rtac (major RS QPair_inject), assume_tac]);
+val QInl_inject = result();
+
+val [major] = goalw QPair.thy qsum_defs "QInr(a)=QInr(b) ==> a=b";
+by (EVERY1 [rtac (major RS QPair_inject), assume_tac]);
+val QInr_inject = result();
+
+val [major] = goalw QPair.thy qsum_defs "QInl(a)=QInr(b) ==> P";
+by (rtac (major RS QPair_inject) 1);
+by (etac (sym RS one_neq_0) 1);
+val QInl_neq_QInr = result();
+
+val QInr_neq_QInl = sym RS QInl_neq_QInr;
+
+(** Injection and freeness equivalences, for rewriting **)
+
+goal QPair.thy "QInl(a)=QInl(b) <-> a=b";
+by (rtac iffI 1);
+by (REPEAT (eresolve_tac [QInl_inject,subst_context] 1));
+val QInl_iff = result();
+
+goal QPair.thy "QInr(a)=QInr(b) <-> a=b";
+by (rtac iffI 1);
+by (REPEAT (eresolve_tac [QInr_inject,subst_context] 1));
+val QInr_iff = result();
+
+goal QPair.thy "QInl(a)=QInr(b) <-> False";
+by (rtac iffI 1);
+by (REPEAT (eresolve_tac [QInl_neq_QInr,FalseE] 1));
+val QInl_QInr_iff = result();
+
+goal QPair.thy "QInr(b)=QInl(a) <-> False";
+by (rtac iffI 1);
+by (REPEAT (eresolve_tac [QInr_neq_QInl,FalseE] 1));
+val QInr_QInl_iff = result();
+
+val qsum_cs = 
+    ZF_cs addIs [QInlI,QInrI] addSEs [qsumE,QInl_neq_QInr,QInr_neq_QInl]
+          addSDs [QInl_inject,QInr_inject];
+
+(** <+> is itself injective... who cares?? **)
+
+goal QPair.thy
+    "u: A <+> B <-> (EX x. x:A & u=QInl(x)) | (EX y. y:B & u=QInr(y))";
+by (fast_tac qsum_cs 1);
+val qsum_iff = result();
+
+goal QPair.thy "A <+> B <= C <+> D <-> A<=C & B<=D";
+by (fast_tac qsum_cs 1);
+val qsum_subset_iff = result();
+
+goal QPair.thy "A <+> B = C <+> D <-> A=C & B=D";
+by (SIMP_TAC (ZF_ss addrews [extension,qsum_subset_iff]) 1);
+by (fast_tac ZF_cs 1);
+val qsum_equal_iff = result();
+
+(*** Eliminator -- qcase ***)
+
+goalw QPair.thy qsum_defs "qcase(c, d, QInl(a)) = c(a)";
+by (rtac (qsplit RS trans) 1);
+by (rtac cond_0 1);
+val qcase_QInl = result();
+
+goalw QPair.thy qsum_defs "qcase(c, d, QInr(b)) = d(b)";
+by (rtac (qsplit RS trans) 1);
+by (rtac cond_1 1);
+val qcase_QInr = result();
+
+val prems = goalw QPair.thy [qcase_def]
+    "[| u=u'; !!x. c(x)=c'(x);  !!y. d(y)=d'(y) |] ==>    \
+\    qcase(c,d,u)=qcase(c',d',u')";
+by (REPEAT (resolve_tac ([refl,qsplit_cong,cond_cong] @ prems) 1));
+val qcase_cong = result();
+
+val major::prems = goal QPair.thy
+    "[| u: A <+> B; \
+\       !!x. x: A ==> c(x): C(QInl(x));   \
+\       !!y. y: B ==> d(y): C(QInr(y)) \
+\    |] ==> qcase(c,d,u) : C(u)";
+by (rtac (major RS qsumE) 1);
+by (ALLGOALS (etac ssubst));
+by (ALLGOALS (ASM_SIMP_TAC (ZF_ss addrews
+			    (prems@[qcase_QInl,qcase_QInr]))));
+val qcase_type = result();
+
+(** Rules for the Part primitive **)
+
+goal QPair.thy "Part(A <+> B,QInl) = {QInl(x). x: A}";
+by (fast_tac (qsum_cs addIs [PartI,equalityI] addSEs [PartE]) 1);
+val Part_QInl = result();
+
+goal QPair.thy "Part(A <+> B,QInr) = {QInr(y). y: B}";
+by (fast_tac (qsum_cs addIs [PartI,equalityI] addSEs [PartE]) 1);
+val Part_QInr = result();
+
+goal QPair.thy "Part(A <+> B, %x.QInr(h(x))) = {QInr(y). y: Part(B,h)}";
+by (fast_tac (qsum_cs addIs [PartI,equalityI] addSEs [PartE]) 1);
+val Part_QInr2 = result();
+
+goal QPair.thy "!!A B C. C <= A <+> B ==> Part(C,QInl) Un Part(C,QInr) = C";
+by (rtac equalityI 1);
+by (rtac Un_least 1);
+by (rtac Part_subset 1);
+by (rtac Part_subset 1);
+by (fast_tac (ZF_cs addIs [PartI] addSEs [qsumE]) 1);
+val Part_qsum_equality = result();

@@ -1,0 +1,36 @@
+#!/bin/sh
+#   Title: 	make-rulenames
+#   Author: 	Larry Paulson, Cambridge University Computer Laboratory
+#   Copyright   1990  University of Cambridge
+#
+#shell script for adding signature and val declarations to a rules file
+#  usage:  make-rulenames <directory>
+#
+#Input is the file ruleshell.ML, which defines a theory.
+#Output is .rules.ML
+#
+#
+#Rule lines begin with a line containing the word "extend_theory"
+#       and end   with a line containing the word "get_axiom"
+#
+#Each rule name xyz must appear on a line that begins
+#           <spaces> ("xyz"
+# ENSURE THAT THE FIRST RULE LINE DOES NOT CONTAIN A "[" CHARACTER!
+#The file RULESIG gets lines like	val Eq_comp: thm
+#    These are inserted after the line containing the string INSERT-RULESIG
+#
+#The file RULENAMES gets lines like	val Eq_comp = ax"Eq_comp";
+#    These are inserted after the line containing the string INSERT-RULENAMES
+#The input file should define the function "ax" above this point.
+#
+set -eu		#terminate if error or unset variable
+if [ ! '(' -d $1 -a -f $1/ruleshell.ML ')' ]; \
+           then echo $1 is not a suitable directory; exit 1; \
+           fi
+sed -n -e '/extend_theory/,/get_axiom/ s/^ *("\([^"]*\)".*$/  val \1: thm/p' $1/ruleshell.ML > RULESIG
+sed -n -e '/extend_theory/,/get_axiom/ s/^ *("\([^"]*\)".*$/val \1 = ax"\1";/p' $1/ruleshell.ML > RULENAMES
+sed -e '/INSERT-RULESIG/ r RULESIG
+/INSERT-RULENAMES/ r RULENAMES' $1/ruleshell.ML > $1/.rules.ML
+#WARNING: there must be no spaces after the filename in the "r" command!!
+rm RULESIG RULENAMES
+

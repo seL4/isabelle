@@ -1,0 +1,40 @@
+**** Isabelle-92f : a faster version of Isabelle-92 ****
+
+Isabelle now runs faster through a combination of improvements: pattern
+unification, discrimination nets and removal of assumptions during
+simplification.  Classical reasoning (e.g. fast_tac) runs up to 30% faster
+when large numbers of rules are involved.  Rewriting (e.g. SIMP_TAC) runs
+up to 3 times faster for large subgoals.  
+
+The new version will not benefit everybody; unless you require greater
+speed, it may be best to stay with the existing version.  The new changes
+have not been documented properly, and there are a few incompatibilities.
+
+THE SPEEDUPS
+
+Pattern unification is completely invisible to users.  It efficiently
+handles a common case of higher-order unification.
+
+Discrimination nets replace the old stringtrees.  They provide fast lookup
+in a large set of rules for matching or unification.  New "net" tactics
+replace the "compat_..." tactics based on stringtrees.  Tactics
+biresolve_from_nets_tac, bimatch_from_nets_tac, resolve_from_net_tac and
+match_from_net_tac take a net, rather than a list of rules, and perform
+resolution or matching.  Tactics net_biresolve_tac, net_bimatch_tac
+net_resolve_tac and net_match_tac take a list of rules, build a net
+(internally) and perform resolution or matching.
+
+The tactical METAHYPS, which allows a subgoal's hypotheses to be taken as a
+list of theorems, has been extended to handle unknowns (although not type
+unknowns).  The simplification tactics now use METAHYPS to economise on
+storage consumption, and to avoid problems involving "parameters" bound in
+a subgoal.  The modified simplifier now requires the auto_tac to take an
+extra argument: a list of theorems, which represents the assumptions of the
+current subgoal.
+
+OTHER CHANGES
+
+Apart from minor improvements in Pure Isabelle, the main other changes are
+extensions to object-logics.  HOL now contains a treatment of co-induction
+and co-recursion, while ZF contains a formalization of equivalence classes,
+the integers and binary arithmetic.  None of this material is documented.

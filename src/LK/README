@@ -1,0 +1,20 @@
+		LK: Classical First-Order Sequent Calculus
+
+This directory contains the Standard ML sources of the Isabelle system for
+First-Order Logic as a classical sequent calculus.  (For a Natural Deduction
+version, see FOL.)  Important files include
+
+ROOT.ML -- loads all source files.  Enter an ML image containing Pure
+Isabelle and type:    use "ROOT.ML";
+
+Makefile -- compiles the files under Poly/ML or SML of New Jersey
+
+ex -- subdirectory containing examples.  To execute them, enter an ML image
+containing LK and type:    use "ex/ROOT.ML";
+
+
+Useful references on sequent calculi:
+
+	Jean Gallier, Logic for Computer Science (Harper&Row, 1986)
+
+	G. Takeuti, Proof Theory (North Holland, 1987)
