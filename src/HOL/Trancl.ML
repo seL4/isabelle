@@ -23,11 +23,14 @@ by (stac rtrancl_unfold 1);
 by (Fast_tac 1);
 qed "rtrancl_refl";
 
+Addsimps [rtrancl_refl];
+AddSIs   [rtrancl_refl];
+
+
 (*Closure under composition with r*)
-val prems = goal Trancl.thy
-    "[| (a,b) : r^*;  (b,c) : r |] ==> (a,c) : r^*";
+goal Trancl.thy "!!r. [| (a,b) : r^*;  (b,c) : r |] ==> (a,c) : r^*";
 by (stac rtrancl_unfold 1);
-by (fast_tac (!claset addIs prems) 1);
+by (Fast_tac 1);
 qed "rtrancl_into_rtrancl";
 
 (*rtrancl of r contains r*)
@@ -139,14 +142,14 @@ goal Trancl.thy "!!r. (x,y) : (converse r)^* ==> (x,y) : converse(r^*)";
 by (rtac converseI 1);
 by (etac rtrancl_induct 1);
 by (rtac rtrancl_refl 1);
-by (fast_tac (!claset addIs [r_into_rtrancl,rtrancl_trans]) 1);
+by (deepen_tac (!claset addIs [r_into_rtrancl,rtrancl_trans]) 0 1);
 qed "rtrancl_converseD";
 
 goal Trancl.thy "!!r. (x,y) : converse(r^*) ==> (x,y) : (converse r)^*";
 by (dtac converseD 1);
 by (etac rtrancl_induct 1);
 by (rtac rtrancl_refl 1);
-by (fast_tac (!claset addIs [r_into_rtrancl,rtrancl_trans]) 1);
+by (deepen_tac (!claset addIs [r_into_rtrancl,rtrancl_trans]) 0 1);
 qed "rtrancl_converseI";
 
 goal Trancl.thy "(converse r)^* = converse(r^*)";
@@ -161,7 +164,7 @@ val major::prems = goal Trancl.thy
 \       !!y z.[| (y,z) : r;  (z,b) : r^*;  P(z) |] ==> P(y) |]  \
 \     ==> P(a)";
 br ((major RS converseI RS rtrancl_converseI) RS rtrancl_induct) 1;
- brs prems 1;
+brs prems 1;
 by(fast_tac (!claset addIs prems addSEs[converseD]addSDs[rtrancl_converseD])1);
 qed "converse_rtrancl_induct";
 
@@ -276,4 +279,3 @@ qed "trancl_subset_Sigma";
 (* Don't add r_into_rtrancl: it messes up the proofs in Lambda *)
 val trancl_cs = rel_cs addIs [rtrancl_refl];
 
-AddIs [rtrancl_refl];
