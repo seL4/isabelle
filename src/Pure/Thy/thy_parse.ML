@@ -1,8 +1,9 @@
 (*  Title:      Pure/Thy/thy_parse.ML
     ID:         $Id$
     Author:     Markus Wenzel, TU Muenchen
+    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
-The parser for theory files.
+The parser for *old-style* theory files.
 *)
 
 infix 5 -- --$$ $$-- ^^;

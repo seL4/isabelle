@@ -1,8 +1,9 @@
 (*  Title:      Pure/Thy/thy_syn.ML
     ID:         $Id$
     Author:     Markus Wenzel, TU Muenchen
+    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
-Provide syntax for old-style theory files.
+Provide syntax for *old-style* theory files.
 *)
 
 signature BASIC_THY_SYN =

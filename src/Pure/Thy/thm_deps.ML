@@ -1,6 +1,7 @@
 (*  Title:      Pure/Thy/thm_deps.ML
     ID:         $Id$
     Author:     Stefan Berghofer, TU Muenchen
+    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
 Visualize dependencies of theorems.
 *)
