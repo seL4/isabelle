@@ -55,7 +55,7 @@ val case_name = "f";		(*name for case variables*)
 (** Extract basic information from arguments **)
 
 val sign = sign_of thy;
-val rdty = Sign.typ_of o Sign.read_ctyp sign;
+val rdty = typ_of o read_ctyp sign;
 
 val rec_names = map #1 rec_specs;
 

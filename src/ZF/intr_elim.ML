@@ -104,11 +104,11 @@ open Logic Ind;
 val sign = sign_of Ind.thy;
 
 fun rd T a = 
-    Sign.read_cterm sign (a,T)
+    read_cterm sign (a,T)
     handle ERROR => error ("The error above occurred for " ^ a);
 
 val rec_names = map #1 rec_doms
-and domts     = map (Sign.term_of o rd iT o #2) rec_doms;
+and domts     = map (term_of o rd iT o #2) rec_doms;
 
 val dummy = assert_all Syntax.is_identifier rec_names
    (fn a => "Name of recursive set not an identifier: " ^ a);
@@ -116,7 +116,7 @@ val dummy = assert_all Syntax.is_identifier rec_names
 val dummy = assert_all (is_some o lookup_const sign) rec_names
    (fn a => "Name of recursive set not declared as constant: " ^ a);
 
-val intr_tms = map (Sign.term_of o rd propT) sintrs;
+val intr_tms = map (term_of o rd propT) sintrs;
 
 local (*Checking the introduction rules*)
   val intr_sets = map (#2 o rule_concl) intr_tms;

@@ -93,15 +93,15 @@ fun dest_tprop (Const("Trueprop",_) $ P) = P;
 
 (*Prove a goal stated as a term, with exception handling*)
 fun prove_term sign defs (P,tacsf) = 
-    let val ct = Sign.cterm_of sign P
+    let val ct = cterm_of sign P
     in  prove_goalw_cterm defs ct tacsf
 	handle e => (writeln ("Exception in proof of\n" ^
-			       Sign.string_of_cterm ct); 
+			       string_of_cterm ct); 
 		     raise e)
     end;
 
 (*Read an assumption in the given theory*)
-fun assume_read thy a = assume (Sign.read_cterm (sign_of thy) (a,propT));
+fun assume_read thy a = assume (read_cterm (sign_of thy) (a,propT));
 
 (*Make distinct individual variables a1, a2, a3, ..., an. *)
 fun mk_frees a [] = []

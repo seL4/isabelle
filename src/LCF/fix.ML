@@ -64,7 +64,7 @@ val ss = LCF_ss addsimps [ffix,gfix];
    when submitted as an argument to SIMP_THM *)
 (*
 local
-val thm = trivial(Sign.read_cterm(sign_of LCF.thy)
+val thm = trivial(read_cterm(sign_of LCF.thy)
         ("<FIX(f),FIX(g)> = FIX(%p.<f(FST(p)),g(SND(p))>)",propT));
 val tac = EVERY1[rtac lfp_is_FIX, simp_tac ss,
 	  strip_tac, simp_tac (LCF_ss addsimps [PROD_less]),

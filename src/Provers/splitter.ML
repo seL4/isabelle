@@ -62,11 +62,11 @@ fun inst_lift cmap state lift i =
       val Ts = map #2 (Logic.strip_params goali)
       val _ $ t $ _ = Logic.strip_assums_concl goali;
       val cntxt = mk_context cmap (rev Ts) (#maxidx(rep_thm lift)) t
-      val cu = Sign.cterm_of sg cntxt
-      val uT = #T(Sign.rep_cterm cu)
-      val cP' = Sign.cterm_of sg (Var(P,uT))
+      val cu = cterm_of sg cntxt
+      val uT = #T(rep_cterm cu)
+      val cP' = cterm_of sg (Var(P,uT))
       val ixnTs = Type.typ_match tsig ([],(PT,uT));
-      val ixncTs = map (fn (x,y) => (x,Sign.ctyp_of sg y)) ixnTs;
+      val ixncTs = map (fn (x,y) => (x,ctyp_of sg y)) ixnTs;
   in instantiate (ixncTs, [(cP',cu)]) lift end;
 
 fun splittable al i thm =

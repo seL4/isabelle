@@ -79,7 +79,7 @@ fun lift_instpair (state, i, t, rule) =
       val params = Logic.strip_params Bi
       val var = liftvar (maxidx+1) (map #2 params)
       and u   = Unify.rlist_abs(rev params, t)
-      and cterm = Sign.cterm_of sign
+      and cterm = cterm_of sign
   in cterm_instantiate [(cterm var, cterm u)] (lift_rule (state,i) rule)
   end;
 

@@ -436,7 +436,7 @@ fun simp_lhs(thm,ss,anet,ats,cs) =
       are represented by rules, generalized over their parameters*)
 fun add_asms(ss,thm,a,anet,ats,cs) =
     let val As = strip_varify(nth_subgoal i thm, a, []);
-	val thms = map (trivial o Sign.cterm_of(#sign(rep_thm(thm))))As;
+	val thms = map (trivial o cterm_of(#sign(rep_thm(thm))))As;
 	val new_rws = flat(map mk_rew_rules thms);
 	val rwrls = map mk_trans (flat(map mk_rew_rules thms));
 	val anet' = foldr lhs_insert_thm (rwrls,anet)
@@ -558,12 +558,12 @@ fun mk_cong sg (f,aTs,rT) (refl,eq) =
 let val tsig = #tsig(Sign.rep_sg sg);
     val k = length aTs;
     fun ri((subst,va as Var(_,Ta),vb as Var(_,Tb),P),i,si,T,yik) =
-	let val ca = Sign.cterm_of sg va
-	    and cx = Sign.cterm_of sg (eta_Var(("X"^si,0),T))
-	    val cb = Sign.cterm_of sg vb
-	    and cy = Sign.cterm_of sg (eta_Var(("Y"^si,0),T))
-	    val cP = Sign.cterm_of sg P
-	    and cp = Sign.cterm_of sg (Pinst(f,rT,eq,k,i,T,yik,aTs))
+	let val ca = cterm_of sg va
+	    and cx = cterm_of sg (eta_Var(("X"^si,0),T))
+	    val cb = cterm_of sg vb
+	    and cy = cterm_of sg (eta_Var(("Y"^si,0),T))
+	    val cP = cterm_of sg P
+	    and cp = cterm_of sg (Pinst(f,rT,eq,k,i,T,yik,aTs))
 	in cterm_instantiate [(ca,cx),(cb,cy),(cP,cp)] subst end;
     fun mk(c,T::Ts,i,yik) =
 	let val si = radixstring(26,"a",i)
