@@ -79,7 +79,7 @@ DATE=$(date "+%d-%b-%Y")
 
 if [ "$VERSION" = "-" ]; then
   DISTNAME=Isabelle_$DATE
-  EXPORT="checkout"
+  EXPORT="checkout -P"
   UNOFFICIAL=true
 else
   DISTNAME="$VERSION"
@@ -100,7 +100,7 @@ echo
 cd $DISTBASE
 
 export CVSROOT
-cvs -f -q $EXPORT -P -d $DISTNAME isabelle
+cvs -f -q $EXPORT -d $DISTNAME isabelle
 
 
 # make docs
