@@ -923,7 +923,9 @@ local
 in
 
 fun conj_intr tha thb = thb COMP (tha COMP incr [tha, thb] conj_intr_rule);
-val conj_intr_list = foldr1 (uncurry conj_intr);
+
+fun conj_intr_list [] = asm_rl
+  | conj_intr_list ths = foldr1 (uncurry conj_intr) ths;
 
 fun conj_elim th =
   let val th' = forall_elim_var (#maxidx (Thm.rep_thm th) + 1) th
@@ -933,7 +935,8 @@ fun conj_elim_list th =
   let val (th1, th2) = conj_elim th
   in conj_elim_list th1 @ conj_elim_list th2 end handle THM _ => [th];
 
-fun conj_elim_precise 1 th = [th]
+fun conj_elim_precise 0 _ = []
+  | conj_elim_precise 1 th = [th]
   | conj_elim_precise n th =
       let val (th1, th2) = conj_elim th
       in th1 :: conj_elim_precise (n - 1) th2 end;
