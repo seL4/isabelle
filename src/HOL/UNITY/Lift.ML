@@ -247,7 +247,7 @@ by (REPEAT_FIRST distinct_tac);
 (** LEVEL 6 **)
 by (ALLGOALS (asm_simp_tac (simpset() addsimps 
 			    [zle_def] @ metric_simps @ zcompare_rls)));
-by (ALLGOALS (asm_simp_tac (simpset() addsimps int_0::zadd_ac)));
+by (ALLGOALS (asm_simp_tac (simpset() addsimps zadd_ac)));
 qed "E_thm12b";
 
 (*lift_4*)
@@ -288,7 +288,7 @@ by (ensures_tac "req_down" 1);
 by Auto_tac;
 by (REPEAT_FIRST (eresolve_tac mov_metrics));
 by (ALLGOALS
-    (asm_simp_tac (simpset() addsimps [int_0, zle_def] @ 
+    (asm_simp_tac (simpset() addsimps [zle_def] @ 
 		                      metric_simps @ zcompare_rls)));
 (** LEVEL 5 **)
 by (dres_inst_tac [("z1","Max")] (zle_iff_zadd RS iffD1) 1);
