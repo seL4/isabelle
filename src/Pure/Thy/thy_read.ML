@@ -365,11 +365,17 @@ fun mk_charthead file tname title repeats gif_path index_path package =
 fun thyfile2html tpath tname =
   let
     val gif_path = relative_path tpath (!gif_path);
+
+    (*Determine name of current logic; if index_path is no subdirectory of
+      base_path then we take the last directory of index_path*)
     val package =
       if (!index_path) = "" then
         error "index_path is empty. Please use 'init_html()' instead of \
               \'make_html := true'"
-      else relative_path (!base_path) (!index_path);
+      else if (!index_path) subdir_of (!base_path) then
+        relative_path (!base_path) (!index_path)
+      else
+        last_elem (space_explode "/" (!index_path));
     val rel_index_path = relative_path tpath (!index_path);
 
     (*Make list of all theories and all theories that own a .thy file*)
@@ -1050,7 +1056,11 @@ fun init_html () =
       fun init_pure_html () =
         let val pure_out = open_out ".Pure_sub.html";
             val cpure_out = open_out ".CPure_sub.html";
-            val package = relative_path (!base_path) cwd;
+            val package =
+              if cwd subdir_of (!base_path) then
+                relative_path (!base_path) cwd
+              else
+                last_elem (space_explode "/" cwd);
         in mk_charthead pure_out "Pure" "Children" false rel_gif_path ""
                         package;
            mk_charthead cpure_out "CPure" "Children" false rel_gif_path ""
@@ -1070,10 +1080,10 @@ fun init_html () =
      base_path := pwd();
      cd cwd;
 
-     if (explode (!base_path)) prefix (explode cwd) then ()
-     else error "The current working directory seems to be no \
-                \subdirectory of\nIsabelle's main directory. \
-                \Please ensure that base_path's value is correct.";
+     if cwd subdir_of (!base_path) then ()
+     else writeln "Warning: The current working directory seems to be no \
+                  \subdirectory of\nIsabelle's main directory. \
+                  \Please ensure that base_path's value is correct.\n";
 
      writeln ("Setting path for index.html to " ^ quote cwd ^
               "\nGIF path has been set to " ^ quote (!gif_path));
@@ -1108,15 +1118,24 @@ fun finish_html () = if not (!make_html) then () else
         end;
 
       val out = open_out (tack_on (!index_path) "index.html");
-      val subdir = relative_path (!base_path) (!index_path);
+
+      (*Find out in which subdirectory of Isabelle's main directory the
+        index.html is placed; if index_path is no subdirectory of base_path
+        then take the last directory of index_path*)
+      val inside_isabelle = (!index_path) subdir_of (!base_path);
+      val subdir =
+        if inside_isabelle then relative_path (!base_path) (!index_path)
+        else last_elem (space_explode "/" (!index_path));
       val subdirs = space_explode "/" subdir;
 
-      (*Look for index.html in superdirectories*)
+      (*Look for index.html in superdirectories; stop when Isabelle's
+        main directory is reached*)
       fun find_super_index [] n = ("", n)
         | find_super_index (p::ps) n =
           let val index_path = "/" ^ space_implode "/" (rev ps);
           in if file_exists (index_path ^ "/index.html") then (index_path, n)
-             else find_super_index ps (n+1)
+             else if length subdirs - n >= 0 then find_super_index ps (n+1)
+             else ("", n)
           end;
       val (super_index, level_diff) =
         find_super_index (rev (space_explode "/" (!index_path))) 1;
@@ -1138,9 +1157,13 @@ fun finish_html () = if not (!make_html) then () else
              "</A></H3>\n");
            close_out out
         end;
+
+     (*If index_path is no subdirectory of base_path then the title should
+       not contain the string "Isabelle/"*)
+     val title = (if inside_isabelle then "Isabelle/" else "") ^ subdir;
   in output (out,
-       "<HTML><HEAD><TITLE>Isabelle/" ^ subdir ^ "</TITLE></HEAD>\n\
-       \<BODY><H2>Isabelle/" ^ subdir ^ "</H2>\n\
+       "<HTML><HEAD><TITLE>" ^ title ^ "</TITLE></HEAD>\n\
+       \<BODY><H2>" ^ title ^ "</H2>\n\
        \The name of every theory is linked to its theory file<BR>\n\
        \<IMG SRC = \"" ^ tack_on gif_path "red_arrow.gif\
        \\" ALT = \\/></A> stands for subtheories (child theories)<BR>\n\
@@ -1149,7 +1172,9 @@ fun finish_html () = if not (!make_html) then () else
        (if super_index = "" then "" else
         ("<P>\n<A HREF = \"" ^ relative_path (!index_path) super_index ^ 
          "/index.html\">Back</A> to the index of " ^
-         (if level = 0 then "Isabelle logics"
+         (if not inside_isabelle then
+            hd (tl (rev (space_explode "/" (!index_path))))
+          else if level = 0 then "Isabelle logics"
           else space_implode "/" (take (level, subdirs))))) ^
        "\n" ^
        (if file_exists (tack_on (!index_path) "README.html") then
@@ -1159,7 +1184,8 @@ fun finish_html () = if not (!make_html) then () else
         else "") ^
        "<HR>" ^ implode (map main_entry theories) ^ "<!-->");
      close_out out;
-     if super_index = "" orelse level = 0 then () else link_directory ()
+     if super_index = "" orelse (inside_isabelle andalso level = 0) then ()
+        else link_directory ()
   end;
 
 
