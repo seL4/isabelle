@@ -51,6 +51,7 @@ sig
   val print_methods: Toplevel.transition -> Toplevel.transition
   val print_antiquotations: Toplevel.transition -> Toplevel.transition
   val print_thms_containing: xstring list -> Toplevel.transition -> Toplevel.transition
+  val thm_deps: (string * Args.src list) list -> Toplevel.transition -> Toplevel.transition
   val print_binds: Toplevel.transition -> Toplevel.transition
   val print_lthms: Toplevel.transition -> Toplevel.transition
   val print_cases: Toplevel.transition -> Toplevel.transition
@@ -178,6 +179,9 @@ val print_antiquotations = Toplevel.imperative IsarOutput.print_antiquotations;
 fun print_thms_containing cs = Toplevel.keep (fn state =>
   ThmDatabase.print_thms_containing (Toplevel.theory_of state) cs);
 
+fun thm_deps args = Toplevel.keep (fn state =>
+  ThmDeps.thm_deps (IsarThy.get_thmss args (Toplevel.enter_forward_proof state)));
+
 
 (* print proof context contents *)
 
@@ -215,7 +219,7 @@ fun string_of_type state ms s =
   in with_modes ms (fn () => Pretty.string_of (Pretty.quote (Sign.pretty_typ sign T))) end;
 
 fun print_item string_of (x, y) = Toplevel.keep (fn state =>
-  writeln (string_of (Toplevel.node_case Proof.init_state Proof.enter_forward state) x y));
+  writeln (string_of (Toplevel.enter_forward_proof state) x y));
 
 val print_thms = print_item string_of_thms;
 val print_prop = print_item string_of_prop;

@@ -538,6 +538,10 @@ val thms_containingP =
   OuterSyntax.improper_command "thms_containing" "print theorems containing all given constants"
     K.diag (Scan.repeat P.xname >> (Toplevel.no_timing oo IsarCmd.print_thms_containing));
 
+val thm_depsP =
+  OuterSyntax.improper_command "thm_deps" "visualize theorem dependencies"
+    K.diag (P.xthms1 >> (Toplevel.no_timing oo IsarCmd.thm_deps));
+
 val print_bindsP =
   OuterSyntax.improper_command "print_binds" "print term bindings of proof context" K.diag
     (Scan.succeed (Toplevel.no_timing o IsarCmd.print_binds));
@@ -683,8 +687,8 @@ val parsers = [
   pretty_setmarginP, print_commandsP, print_contextP, print_theoryP,
   print_syntaxP, print_theoremsP, print_attributesP,
   print_trans_rulesP, print_methodsP, print_antiquotationsP,
-  thms_containingP, print_bindsP, print_lthmsP, print_casesP,
-  print_thmsP, print_propP, print_termP, print_typeP,
+  thms_containingP, thm_depsP, print_bindsP, print_lthmsP,
+  print_casesP, print_thmsP, print_propP, print_termP, print_typeP,
   (*system commands*)
   cdP, pwdP, use_thyP, use_thy_onlyP, update_thyP, update_thy_onlyP,
   touch_thyP, touch_all_thysP, touch_child_thysP, remove_thyP,
