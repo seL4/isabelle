@@ -62,7 +62,7 @@ primrec
 "mc(Neg f)   = -mc f"
 "mc(And f g) = mc f \<inter> mc g"
 "mc(AX f)    = {s. \<forall>t. (s,t) \<in> M  \<longrightarrow> t \<in> mc f}"
-"mc(EF f)    = lfp(\<lambda>T. mc f \<union> M^-1 ^^ T)"(*>*)
+"mc(EF f)    = lfp(\<lambda>T. mc f \<union> M^-1 ``` T)"(*>*)
 "mc(AF f)    = lfp(af(mc f))";
 
 text{*\noindent
@@ -75,12 +75,12 @@ apply(simp add: mono_def af_def);
 apply blast;
 done
 (*<*)
-lemma mono_ef: "mono(\<lambda>T. A \<union> M^-1 ^^ T)";
+lemma mono_ef: "mono(\<lambda>T. A \<union> M^-1 ``` T)";
 apply(rule monoI);
 by(blast);
 
 lemma EF_lemma:
-  "lfp(\<lambda>T. A \<union> M^-1 ^^ T) = {s. \<exists>t. (s,t) \<in> M^* \<and> t \<in> A}";
+  "lfp(\<lambda>T. A \<union> M^-1 ``` T) = {s. \<exists>t. (s,t) \<in> M^* \<and> t \<in> A}";
 apply(rule equalityI);
  apply(rule subsetI);
  apply(simp);
@@ -366,7 +366,7 @@ the semantics of @{term EU} is straightforward:
 Note that @{term EU} is not definable in terms of the other operators!
 
 Model checking @{term EU} is again a least fixed point construction:
-@{text[display]"mc(EU f g) = lfp(\<lambda>T. mc g \<union> mc f \<inter> (M^-1 ^^ T))"}
+@{text[display]"mc(EU f g) = lfp(\<lambda>T. mc g \<union> mc f \<inter> (M^-1 ``` T))"}
 
 \begin{exercise}
 Extend the datatype of formulae by the above until operator
@@ -382,7 +382,7 @@ For more CTL exercises see, for example, \cite{Huth-Ryan-book}.
 (*<*)
 constdefs
  eufix :: "state set \<Rightarrow> state set \<Rightarrow> state set \<Rightarrow> state set"
-"eufix A B T \<equiv> B \<union> A \<inter> (M^-1 ^^ T)"
+"eufix A B T \<equiv> B \<union> A \<inter> (M^-1 ``` T)"
 
 lemma "lfp(eufix A B) \<subseteq> eusem A B"
 apply(rule lfp_lowerbound)

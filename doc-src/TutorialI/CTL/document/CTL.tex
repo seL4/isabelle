@@ -300,7 +300,7 @@ Note that \isa{EU} is not definable in terms of the other operators!
 
 Model checking \isa{EU} is again a least fixed point construction:
 \begin{isabelle}%
-\ \ \ \ \ mc{\isacharparenleft}EU\ f\ g{\isacharparenright}\ {\isacharequal}\ lfp{\isacharparenleft}{\isasymlambda}T{\isachardot}\ mc\ g\ {\isasymunion}\ mc\ f\ {\isasyminter}\ {\isacharparenleft}M{\isacharcircum}{\isacharminus}{\isadigit{1}}\ {\isacharcircum}{\isacharcircum}\ T{\isacharparenright}{\isacharparenright}%
+\ \ \ \ \ mc{\isacharparenleft}EU\ f\ g{\isacharparenright}\ {\isacharequal}\ lfp{\isacharparenleft}{\isasymlambda}T{\isachardot}\ mc\ g\ {\isasymunion}\ mc\ f\ {\isasyminter}\ {\isacharparenleft}M{\isacharcircum}{\isacharminus}{\isadigit{1}}\ {\isacharbackquote}{\isacharbackquote}{\isacharbackquote}\ T{\isacharparenright}{\isacharparenright}%
 \end{isabelle}
 
 \begin{exercise}
