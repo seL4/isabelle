@@ -2703,17 +2703,15 @@ where
   $f$ is defined by pattern-matching on components of its argument whose type
   is a \texttt{datatype}.  
 
-  Unlike with \texttt{primrec}, the reduction rules are not added to the
-  default simpset, and individual rules may not be labelled with identifiers.
-  However, the identifier $f$\texttt{.rules} is visible at the \ML\ level
-  as a list of theorems.
+  The \ML\ identifier $f$\texttt{.simps} contains the reduction rules as
+  a list of theorems.
 \end{itemize}
 
 With the definition of \texttt{gcd} shown above, Isabelle/HOL is unable to
 prove one termination condition.  It remains as a precondition of the
-recursion theorems.
+recursion theorems:
 \begin{ttbox}
-gcd.rules;
+gcd.simps;
 {\out ["! m n. n ~= 0 --> m mod n < n}
 {\out   ==> gcd (?m, ?n) = (if ?n = 0 then ?m else gcd (?n, ?m mod ?n))"] }
 {\out : thm list}
@@ -2721,17 +2719,17 @@ gcd.rules;
 The theory \texttt{HOL/ex/Primes} illustrates how to prove termination
 conditions afterwards.  The function \texttt{Tfl.tgoalw} is like the standard
 function \texttt{goalw}, which sets up a goal to prove, but its argument
-should be the identifier $f$\texttt{.rules} and its effect is to set up a
+should be the identifier $f$\texttt{.simps} and its effect is to set up a
 proof of the termination conditions:
 \begin{ttbox}
-Tfl.tgoalw thy [] gcd.rules;
+Tfl.tgoalw thy [] gcd.simps;
 {\out Level 0}
 {\out ! m n. n ~= 0 --> m mod n < n}
 {\out  1. ! m n. n ~= 0 --> m mod n < n}
 \end{ttbox}
 This subgoal has a one-step proof using \texttt{simp_tac}.  Once the theorem
 is proved, it can be used to eliminate the termination conditions from
-elements of \texttt{gcd.rules}.  Theory \texttt{HOL/Subst/Unify} is a much
+elements of \texttt{gcd.simps}.  Theory \texttt{HOL/Subst/Unify} is a much
 more complicated example of this process, where the termination conditions can
 only be proved by complicated reasoning involving the recursive function
 itself.
@@ -2743,6 +2741,16 @@ recdef gcd "measure ((\%(m,n). n) ::nat*nat=>nat)"
   simpset "simpset() addsimps [mod_less_divisor, zero_less_eq]"
     "gcd (m, n) = (if n=0 then m else gcd(n, m mod n))"
 \end{ttbox}
+
+If all termination conditions were proved automatically, $f$\texttt{.simps}
+is added to the simpset automatically, just as in \texttt{primrec}. 
+The simplification rules corresponding to clause $i$ (where counting starts
+at 0) are called $f$\texttt{.}$i$ and can be accessed as \texttt{thms
+  "$f$.$i$"},
+which returns a list of theorems. Thus you can, for example, remove specific
+clauses from the simpset. Note that a single clause may give rise to a set of
+simplification rules in order to capture the fact that if clauses overlap,
+their order disambiguates them.
 
 A \texttt{recdef} definition also returns an induction rule specialised for
 the recursive function.  For the \texttt{gcd} function above, the induction
