@@ -340,8 +340,8 @@ fun mkthm sg asms just =
         | mk(NotLeDD(j)) = trace_thm "NLeD" (hd([mk j RS LA_Logic.not_leD] RL lessD))
         | mk(NotLessD(j)) = trace_thm "NL" (mk j RS LA_Logic.not_lessD)
         | mk(Added(j1,j2)) = simp (trace_thm "+" (addthms (mk j1) (mk j2)))
-        | mk(Multiplied(n,j)) = (trace_msg "*"; multn(n,mk j))
-        | mk(Multiplied2(n,j)) = simp (trace_msg "*2"; multn2(n,mk j))
+        | mk(Multiplied(n,j)) = (trace_msg("*"^string_of_int n); trace_thm "*" (multn(n,mk j)))
+        | mk(Multiplied2(n,j)) = simp (trace_msg("**"^string_of_int n); trace_thm "**" (multn2(n,mk j)))
 
   in trace_msg "mkthm";
      simplify simpset (mk just) handle FalseE thm => thm end
