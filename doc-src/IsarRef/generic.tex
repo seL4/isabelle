@@ -528,7 +528,7 @@ val thms  : string -> thm list
   opt: '(' (noasm | noasmsimp | noasmuse) ')'
   ;
   simpmod: ('add' | 'del' | 'only' | 'cong' (() | 'add' | 'del') |
-    'split' (() | 'add' | 'del') | 'other') ':' thmrefs
+    'split' (() | 'add' | 'del')) ':' thmrefs
   ;
 \end{rail}
 
@@ -545,10 +545,6 @@ val thms  : string -> thm list
   Splitter (see also \cite{isabelle-ref}), the default is to add.  This works
   only if the Simplifier method has been properly setup to include the
   Splitter (all major object logics such HOL, HOLCF, FOL, ZF do this already).
-  
-  \medskip The \railtterm{other} modifier ignores its arguments.
-  Nevertheless, additional kinds of rules may be declared by including
-  appropriate attributes in the specification.
 \item [$simp_all$] is similar to $simp$, but acts on all goals.
 \end{descr}
 
@@ -659,7 +655,7 @@ while the Simplifier is the canonical tool for automated normalization (see
 \end{descr}
 
 
-\section{The Classical Reasoner}
+\section{The Classical Reasoner}\label{sec:classical}
 
 \subsection{Basic methods}\label{sec:classical-basic}
 
@@ -746,7 +742,7 @@ This is slightly less hazardous than for the Simplifier (see
 \S\ref{sec:simp}).
 
 
-\subsection{Combined automated methods}
+\subsection{Combined automated methods}\label{sec:clasimp}
 
 \indexisarmeth{auto}\indexisarmeth{force}\indexisarmeth{clarsimp}
 \indexisarmeth{fastsimp}\indexisarmeth{slowsimp}\indexisarmeth{bestsimp}
@@ -766,7 +762,7 @@ This is slightly less hazardous than for the Simplifier (see
   ;
 
   clasimpmod: ('simp' (() | 'add' | 'del' | 'only') |
-    'cong' (() | 'add' | 'del') | ('split' (() | 'add' | 'del')) | 'other' |
+    ('cong' | 'split' | 'iff') (() | 'add' | 'del') |
     (('intro' | 'elim' | 'dest') ('!' | () | '?') | 'del')) ':' thmrefs
 \end{rail}
 
