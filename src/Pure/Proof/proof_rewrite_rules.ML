@@ -11,7 +11,7 @@ sig
   val rew : bool -> typ list -> Proofterm.proof -> Proofterm.proof option
   val rprocs : bool -> (string * (typ list -> Proofterm.proof -> Proofterm.proof option)) list
   val rewrite_terms : (term -> term) -> Proofterm.proof -> Proofterm.proof
-  val elim_defs : Sign.sg -> thm list -> Proofterm.proof -> Proofterm.proof
+  val elim_defs : Sign.sg -> bool -> thm list -> Proofterm.proof -> Proofterm.proof
   val setup : (theory -> theory) list
 end;
 
@@ -211,15 +211,6 @@ fun rewrite_terms r =
 
 (**** eliminate definitions in proof ****)
 
-fun abs_def thm =
-  let
-    val (_, cvs) = Drule.strip_comb (fst (dest_equals (cprop_of thm)));
-    val thm' = foldr (fn (ct, thm) =>
-      Thm.abstract_rule (fst (fst (dest_Var (term_of ct)))) ct thm) (cvs, thm);
-  in
-    MetaSimplifier.fconv_rule Thm.eta_conversion thm'
-  end;
-
 fun vars_of t = rev (foldl_aterms
   (fn (vs, v as Var _) => v ins vs | (vs, _) => vs) ([], t));
 
@@ -246,18 +237,23 @@ fun insert_refl defs Ts (prf1 %% prf2) =
       | (_, []) => prf
       | (prf', ts) => proof_combt' (insert_refl defs Ts prf', ts));
 
-fun elim_defs sign defs prf =
+fun elim_defs sign r defs prf =
   let
     val tsig = Sign.tsig_of sign;
-    val defs' = map (Logic.dest_equals o prop_of o abs_def) defs;
+    val defs' = map (Logic.dest_equals o prop_of o Drule.abs_def) defs
     val defnames = map Thm.name_of_thm defs;
-    val cnames = map (fst o dest_Const o fst) defs';
-    val thmnames = map fst (filter_out (fn (s, ps) =>
-      null (foldr add_term_consts (map fst ps, []) inter cnames))
-        (Symtab.dest (thms_of_proof Symtab.empty prf))) \\ defnames
+    val f = if not r then I else
+      let
+        val cnames = map (fst o dest_Const o fst) defs';
+        val thms = flat (map (fn (s, ps) =>
+            if s mem defnames then []
+            else map (pair s o Some o fst) (filter_out (fn (p, _) =>
+              null (add_term_consts (p, []) inter cnames)) ps))
+          (Symtab.dest (thms_of_proof Symtab.empty prf)))
+      in Reconstruct.expand_proof sign thms end
   in
-    rewrite_terms (Pattern.rewrite_term tsig defs' []) (insert_refl defnames []
-      (Reconstruct.expand_proof sign thmnames prf))
+    rewrite_terms (Pattern.rewrite_term tsig defs' [])
+      (insert_refl defnames [] (f prf))
   end;
 
 end;
