@@ -16,8 +16,10 @@ sig
   val add_path : bool -> string -> theory -> theory
   val parent_path : bool -> theory -> theory
 
-  val store_thmss : string -> string list -> thm list list -> theory -> theory
-  val store_thms : string -> string list -> thm list -> theory -> theory
+  val store_thmss : string -> string list -> thm list list -> theory -> theory * thm list list
+  val store_thms_atts : string -> string list -> theory attribute list list -> thm list
+    -> theory -> theory * thm list
+  val store_thms : string -> string list -> thm list -> theory -> theory * thm list
 
   val split_conj_thm : thm -> thm list
   val mk_conj : term list -> term
@@ -74,21 +76,25 @@ fun foldl1 f (x::xs) = foldl f (x, xs);
 fun add_path flat_names s = if flat_names then I else Theory.add_path s;
 fun parent_path flat_names = if flat_names then I else Theory.parent_path;
 
+
 (* store theorems in theory *)
 
 fun store_thmss label tnames thmss thy =
-  foldr (fn ((tname, thms), thy') => thy' |>
+  (thy, tnames ~~ thmss) |>
+  foldl_map (fn (thy', (tname, thms)) => thy' |>
     Theory.add_path tname |>
-    PureThy.add_thmss [((label, thms), [])] |>
-    Theory.parent_path)
-      (tnames ~~ thmss, thy);
+    (apsnd hd o PureThy.add_thmss [((label, thms), [])]) |>>
+    Theory.parent_path);
 
-fun store_thms label tnames thms thy =
-  foldr (fn ((tname, thm), thy') => thy' |>
+fun store_thms_atts label tnames attss thms thy =
+  (thy, tnames ~~ attss ~~ thms) |>
+  foldl_map (fn (thy', ((tname, atts), thm)) => thy' |>
     Theory.add_path tname |>
-    PureThy.add_thms [((label, thm), [])] |>
-    Theory.parent_path)
-      (tnames ~~ thms, thy);
+    (apsnd hd o PureThy.add_thms [((label, thm), atts)]) |>>
+    Theory.parent_path);
+
+fun store_thms label tnames = store_thms_atts label tnames (replicate (length tnames) []);
+
 
 (* split theorem thm_1 & ... & thm_n into n theorems *)
 
