@@ -16,7 +16,6 @@ translations (type) "a ~=> b " <= (type) "a => b option"
 consts
 chg_map	:: "('b => 'b) => 'a => ('a ~=> 'b) => ('a ~=> 'b)"
 map_add :: "('a ~=> 'b) => ('a ~=> 'b) => ('a ~=> 'b)" (infixl "++" 100)
-map_image::"('b => 'c)  => ('a ~=> 'b) => ('a ~=> 'c)" (infixr "`>" 90)
 restrict_map :: "('a ~=> 'b) => 'a set => ('a ~=> 'b)" ("_|'__" [90, 91] 90)
 dom	:: "('a ~=> 'b) => 'a set"
 ran	:: "('a ~=> 'b) => 'b set"
@@ -28,6 +27,11 @@ map_upd_s::"('a ~=> 'b) => 'a set => 'b =>
 map_subst::"('a ~=> 'b) => 'b => 'b => 
 	    ('a ~=> 'b)"			 ("_/'(_~>_/')"    [900,0,0]900)
 map_le  :: "('a ~=> 'b) => ('a ~=> 'b) => bool" (infix "\<subseteq>\<^sub>m" 50)
+
+syntax
+  fun_map_comp :: "('b => 'c)  => ('a ~=> 'b) => ('a ~=> 'c)" (infixl "o'_m" 55)
+translations
+  "f o_m m" == "option_map f o m"
 
 nonterminals
   maplets maplet
@@ -42,10 +46,13 @@ syntax
   "_Map"     :: "maplets => 'a ~=> 'b"            ("(1[_])")
 
 syntax (xsymbols)
+  "~=>"     :: "[type, type] => type"    (infixr "\<rightharpoonup>" 0)
+
+  fun_map_comp :: "('b => 'c)  => ('a ~=> 'b) => ('a ~=> 'c)" (infixl "\<circ>\<^sub>m" 55)
+
   "_maplet"  :: "['a, 'a] => maplet"             ("_ /\<mapsto>/ _")
   "_maplets" :: "['a, 'a] => maplet"             ("_ /[\<mapsto>]/ _")
 
-  "~=>"     :: "[type, type] => type"    (infixr "\<rightharpoonup>" 0)
   restrict_map :: "('a ~=> 'b) => 'a set => ('a ~=> 'b)" ("_\<lfloor>_" [90, 91] 90)
   map_upd_s  :: "('a ~=> 'b) => 'a set => 'b => ('a ~=> 'b)"
 				    		 ("_/'(_/{\<mapsto>}/_')" [900,0,0]900)
@@ -71,7 +78,6 @@ defs
 chg_map_def:  "chg_map f a m == case m a of None => m | Some b => m(a|->f b)"
 
 map_add_def:   "m1++m2 == %x. case m2 x of None => m1 x | Some y => Some y"
-map_image_def: "f`>m == option_map f o m"
 restrict_map_def: "m|_A == %x. if x : A then m x else None"
 
 map_upds_def: "m(xs [|->] ys) == m ++ map_of (rev(zip xs ys))"
@@ -271,15 +277,6 @@ apply (induct_tac "l", auto)
 apply (erule finite_range_updI)
 done
 declare fun_upd_apply [simp]
-
-subsection {* @{term map_image} *}
-
-lemma map_image_empty [simp]: "f`>empty = empty" 
-by (auto simp: map_image_def empty_def)
-
-lemma map_image_upd [simp]: "f`>m(a|->b) = (f`>m)(a|->f b)" 
-apply (auto simp: map_image_def fun_upd_def)
-by (rule ext, auto)
 
 subsection {* @{term restrict_map} *}
 
