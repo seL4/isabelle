@@ -269,3 +269,81 @@ qed_goal "chain_mono2" thy
         (etac (chain_mono RS mp) 1),
         (atac 1)
         ]);
+
+(**************************************)
+(* some properties for chfin and flat *)
+(**************************************)
+
+(* ------------------------------------------------------------------------ *)
+(* flat types are chain_finite                                              *)
+(* ------------------------------------------------------------------------ *)
+
+qed_goalw "flat_imp_chain_finite" thy [max_in_chain_def]
+        "!Y::nat=>'a::flat.is_chain Y-->(? n.max_in_chain n Y)"
+ (fn _ =>
+        [
+        (strip_tac 1),
+        (case_tac "!i.Y(i)=UU" 1),
+        (res_inst_tac [("x","0")] exI 1),
+	(Asm_simp_tac 1),
+ 	(Asm_full_simp_tac 1),
+ 	(etac exE 1),
+        (res_inst_tac [("x","i")] exI 1),
+        (strip_tac 1),
+        (dres_inst_tac [("x","i"),("y","j")] chain_mono 1),
+        (etac (le_imp_less_or_eq RS disjE) 1),
+	(safe_tac HOL_cs),
+	(dtac (ax_flat RS spec RS spec RS mp) 1),
+	(fast_tac HOL_cs 1)
+        ]);
+
+(* flat subclass of chfin --> adm_flat not needed *)
+
+qed_goal "flat_eq" thy "(a::'a::flat) ~= UU ==> a << b = (a = b)" 
+(fn prems=>
+	[
+        cut_facts_tac prems 1,
+        safe_tac (HOL_cs addSIs [refl_less]),
+	dtac (ax_flat RS spec RS spec RS mp) 1,
+	fast_tac (HOL_cs addSIs [refl_less,ax_flat RS spec RS spec RS mp]) 1
+	]);
+
+qed_goal "chfin2finch" thy 
+    "is_chain (Y::nat=>'a::chfin) ==> finite_chain Y"
+	(fn prems => 
+	[
+	cut_facts_tac prems 1,
+	fast_tac (HOL_cs addss 
+		 (!simpset addsimps [chfin,finite_chain_def])) 1
+	]);
+
+(* ------------------------------------------------------------------------ *)
+(* lemmata for improved admissibility introdution rule                      *)
+(* ------------------------------------------------------------------------ *)
+
+qed_goal "infinite_chain_adm_lemma" Porder.thy 
+"[|is_chain Y; !i. P (Y i); \
+\  (!!Y. [| is_chain Y; !i. P (Y i); ~ finite_chain Y |] ==> P (lub (range Y)))\
+\ |] ==> P (lub (range Y))"
+ (fn prems => [
+        cut_facts_tac prems 1,
+        case_tac "finite_chain Y" 1,
+         eresolve_tac prems 2, atac 2, atac 2,
+        rewtac finite_chain_def,
+        safe_tac HOL_cs,
+        etac (lub_finch1 RS thelubI RS ssubst) 1, atac 1, etac spec 1]);
+
+qed_goal "increasing_chain_adm_lemma" Porder.thy 
+"[|is_chain Y; !i. P (Y i); \
+\  (!!Y. [| is_chain Y; !i. P (Y i); !i. ? j. i < j & Y i ~= Y j & Y i << Y j|]\
+\ ==> P (lub (range Y))) |] ==> P (lub (range Y))"
+ (fn prems => [
+        cut_facts_tac prems 1,
+        etac infinite_chain_adm_lemma 1, atac 1, etac thin_rl 1,
+        rewtac finite_chain_def,
+        safe_tac HOL_cs,
+        etac swap 1,
+        rewtac max_in_chain_def,
+        resolve_tac prems 1, atac 1, atac 1,
+        fast_tac (HOL_cs addDs [le_imp_less_or_eq] 
+                         addEs [chain_mono RS mp]) 1]);

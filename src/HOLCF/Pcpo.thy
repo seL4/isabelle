@@ -28,4 +28,14 @@ syntax (symbols)
 defs
   UU_def        "UU == @x.!y.x<<y"       
 
+(* further useful classes for HOLCF domains *)
+
+axclass chfin<cpo
+
+chfin 	"!Y.is_chain Y-->(? n.max_in_chain n Y)"
+
+axclass flat<pcpo
+
+ax_flat	 	"! x y.x << y --> (x = UU) | (x=y)"
+
 end 

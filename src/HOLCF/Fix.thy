@@ -30,15 +30,5 @@ adm_def       "adm P == !Y. is_chain(Y) -->
 admw_def      "admw P == !F. (!n.P (iterate n F UU)) -->
                             P (lub(range (%i. iterate i F UU)))" 
 
-(* further useful class for HOLCF *)
-
-axclass chfin<pcpo
-
-chfin 	"!Y.is_chain Y-->(? n.max_in_chain n Y)"
-
-axclass flat<pcpo
-
-ax_flat	 	"! x y.x << y --> (x = UU) | (x=y)"
-
 end
 

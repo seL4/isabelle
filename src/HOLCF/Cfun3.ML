@@ -371,3 +371,152 @@ Addsimps [minimal,refl_less,beta_cfun,strict_fapp1,strictify1, strictify2];
 
 (* HINT: cont_tac is now installed in simplifier in Lift3.ML ! *)
 (*simpset := !simpset addsolver (K (DEPTH_SOLVE_1 o cont_tac));*)
+
+(* ------------------------------------------------------------------------ *)
+(* some lemmata for functions with flat/chain_finite domain/range types	    *)
+(* ------------------------------------------------------------------------ *)
+
+qed_goal "chfin_fappR" thy 
+    "is_chain (Y::nat => 'a::cpo->'b::chfin)==> !s. ? n. lub(range(Y))`s = Y n`s" 
+(fn prems => 
+	[
+	cut_facts_tac prems 1,
+	rtac allI 1,
+	rtac (contlub_cfun_fun RS ssubst) 1,
+	 atac 1,
+	fast_tac (HOL_cs addSIs [thelubI,chfin,lub_finch2,chfin2finch,ch2ch_fappL])1
+	]);
+
+(* ------------------------------------------------------------------------ *)
+(* continuous isomorphisms are strict                                       *)
+(* a prove for embedding projection pairs is similar                        *)
+(* ------------------------------------------------------------------------ *)
+
+qed_goal "iso_strict"  thy  
+"!!f g.[|!y.f`(g`y)=(y::'b) ; !x.g`(f`x)=(x::'a) |] \
+\ ==> f`UU=UU & g`UU=UU"
+ (fn prems =>
+        [
+        (rtac conjI 1),
+        (rtac UU_I 1),
+        (res_inst_tac [("s","f`(g`(UU::'b))"),("t","UU::'b")] subst 1),
+        (etac spec 1),
+        (rtac (minimal RS monofun_cfun_arg) 1),
+        (rtac UU_I 1),
+        (res_inst_tac [("s","g`(f`(UU::'a))"),("t","UU::'a")] subst 1),
+        (etac spec 1),
+        (rtac (minimal RS monofun_cfun_arg) 1)
+        ]);
+
+
+qed_goal "isorep_defined" thy 
+        "[|!x.rep`(abs`x)=x;!y.abs`(rep`y)=y; z~=UU|] ==> rep`z ~= UU"
+ (fn prems =>
+        [
+        (cut_facts_tac prems 1),
+        (etac swap 1),
+        (dtac notnotD 1),
+        (dres_inst_tac [("f","abs")] cfun_arg_cong 1),
+        (etac box_equals 1),
+        (fast_tac HOL_cs 1),
+        (etac (iso_strict RS conjunct1) 1),
+        (atac 1)
+        ]);
+
+qed_goal "isoabs_defined" thy 
+        "[|!x.rep`(abs`x) = x;!y.abs`(rep`y)=y ; z~=UU|] ==> abs`z ~= UU"
+ (fn prems =>
+        [
+        (cut_facts_tac prems 1),
+        (etac swap 1),
+        (dtac notnotD 1),
+        (dres_inst_tac [("f","rep")] cfun_arg_cong 1),
+        (etac box_equals 1),
+        (fast_tac HOL_cs 1),
+        (etac (iso_strict RS conjunct2) 1),
+        (atac 1)
+        ]);
+
+(* ------------------------------------------------------------------------ *)
+(* propagation of flatness and chainfiniteness by continuous isomorphisms   *)
+(* ------------------------------------------------------------------------ *)
+
+qed_goal "chfin2chfin" thy "!!f g.[|! Y::nat=>'a. is_chain Y --> (? n. max_in_chain n Y); \
+\ !y.f`(g`y)=(y::'b) ; !x.g`(f`x)=(x::'a::chfin) |] \
+\ ==> ! Y::nat=>'b. is_chain Y --> (? n. max_in_chain n Y)"
+ (fn prems =>
+        [
+        (rewtac max_in_chain_def),
+        (strip_tac 1),
+        (rtac exE 1),
+        (res_inst_tac [("P","is_chain(%i.g`(Y i))")] mp 1),
+        (etac spec 1),
+        (etac ch2ch_fappR 1),
+        (rtac exI 1),
+        (strip_tac 1),
+        (res_inst_tac [("s","f`(g`(Y x))"),("t","Y(x)")] subst 1),
+        (etac spec 1),
+        (res_inst_tac [("s","f`(g`(Y j))"),("t","Y(j)")] subst 1),
+        (etac spec 1),
+        (rtac cfun_arg_cong 1),
+        (rtac mp 1),
+        (etac spec 1),
+        (atac 1)
+        ]);
+
+
+qed_goal "flat2flat" thy "!!f g.[|!x y::'a.x<<y --> x=UU | x=y; \
+\ !y.f`(g`y)=(y::'b); !x.g`(f`x)=(x::'a)|] ==> !x y::'b.x<<y --> x=UU | x=y"
+ (fn prems =>
+        [
+        (strip_tac 1),
+        (rtac disjE 1),
+        (res_inst_tac [("P","g`x<<g`y")] mp 1),
+        (etac monofun_cfun_arg 2),
+        (dtac spec 1),
+        (etac spec 1),
+        (rtac disjI1 1),
+        (rtac trans 1),
+        (res_inst_tac [("s","f`(g`x)"),("t","x")] subst 1),
+        (etac spec 1),
+        (etac cfun_arg_cong 1),
+        (rtac (iso_strict RS conjunct1) 1),
+        (atac 1),
+        (atac 1),
+        (rtac disjI2 1),
+        (res_inst_tac [("s","f`(g`x)"),("t","x")] subst 1),
+        (etac spec 1),
+        (res_inst_tac [("s","f`(g`y)"),("t","y")] subst 1),
+        (etac spec 1),
+        (etac cfun_arg_cong 1)
+        ]);
+
+(* ------------------------------------------------------------------------- *)
+(* a result about functions with flat codomain                               *)
+(* ------------------------------------------------------------------------- *)
+
+qed_goal "flat_codom" thy 
+"f`(x::'a)=(c::'b::flat) ==> f`(UU::'a)=(UU::'b) | (!z.f`(z::'a)=c)"
+ (fn prems =>
+        [
+        (cut_facts_tac prems 1),
+        (case_tac "f`(x::'a)=(UU::'b)" 1),
+        (rtac disjI1 1),
+        (rtac UU_I 1),
+        (res_inst_tac [("s","f`(x)"),("t","UU::'b")] subst 1),
+        (atac 1),
+        (rtac (minimal RS monofun_cfun_arg) 1),
+        (case_tac "f`(UU::'a)=(UU::'b)" 1),
+        (etac disjI1 1),
+        (rtac disjI2 1),
+        (rtac allI 1),
+        (hyp_subst_tac 1),
+        (res_inst_tac [("a","f`(UU::'a)")] (refl RS box_equals) 1),
+        (res_inst_tac [("fo5","f")] ((minimal RS monofun_cfun_arg) RS 
+		(ax_flat RS spec RS spec RS mp) RS disjE) 1),
+	(contr_tac 1),(atac 1),
+        (res_inst_tac [("fo5","f")] ((minimal RS monofun_cfun_arg) RS 
+		(ax_flat RS spec RS spec RS mp) RS disjE) 1),
+	(contr_tac 1),(atac 1)
+]);
+
