@@ -74,7 +74,7 @@ signature THM =
     | Rename_params_rule of string list * int;
 
   datatype deriv = Infer  of rule * deriv list
-		 | Oracle of string * exn ;
+		 | Oracle of theory * Sign.sg * exn;
 
   (*meta theorems*)
   type thm
@@ -150,6 +150,8 @@ signature THM =
   val trace_simp        : bool ref
   val rewrite_cterm     : bool * bool -> meta_simpset ->
                           (meta_simpset -> thm -> thm option) -> cterm -> thm
+
+  val invoke_oracle	: theory * Sign.sg * exn -> thm
 end;
 
 structure Thm : THM =
@@ -320,7 +322,7 @@ datatype rule =
 
 
 datatype deriv = Infer	of rule * deriv list
-	       | Oracle	of string * exn (*???*);
+	       | Oracle	of theory * Sign.sg * exn;
 
 
 val full_deriv = ref false;
@@ -515,7 +517,7 @@ fun get_axiom theory name =
   let
     fun get_ax [] = raise Match
       | get_ax (thy :: thys) =
-	  let val {sign, new_axioms, parents} = rep_theory thy
+	  let val {sign, new_axioms, parents, ...} = rep_theory thy
           in case Symtab.lookup (new_axioms, name) of
 		Some t => fix_shyps [] []
 		           (Thm {sign = sign, 
@@ -1731,6 +1733,25 @@ fun rewrite_cterm mode mss prover ct =
 	  hyps = hyps, 
           prop = prop}
   end
+
+
+fun invoke_oracle (thy, sign, exn) =
+    case #oraopt(rep_theory thy) of
+	None => raise THM ("No oracle in supplied theory", 0, [])
+      | Some oracle => 
+	    let val sign' = Sign.merge(sign_of thy, sign)
+		val (prop, T, maxidx) = 
+		    Sign.certify_term sign' (oracle (sign', exn))
+            in if T<>propT then
+                  raise THM("Oracle's result must have type prop", 0, [])
+	       else fix_shyps [] []
+		     (Thm {sign = sign', 
+			   der = Oracle(thy,sign,exn),
+			   maxidx = maxidx,
+			   shyps = [], 
+			   hyps = [], 
+			   prop = prop})
+            end;
 
 end;
 
