@@ -12,6 +12,7 @@ pending proofs.
 signature GOALS =
   sig
   type proof
+  val reset_goals       : unit -> unit
   val atomic_goal	: theory -> string -> thm list
   val atomic_goalw	: theory -> thm list -> string -> thm list
   val Goal		: string -> thm list
@@ -100,9 +101,8 @@ val curr_prems = ref([] : thm list);
 fun premises() = !curr_prems;
 
 (*Current result maker -- set by "goal", used by "result".  *)
-val curr_mkresult = 
-    ref((fn _=> error"No goal has been supplied in subgoal module") 
-       : bool*thm->thm);
+fun init_mkresult _ = error "No goal has been supplied in subgoal module";
+val curr_mkresult = ref (init_mkresult: bool*thm->thm);
 
 val dummy = trivial(read_cterm (Theory.sign_of ProtoPure.thy)
     ("PROP No_goal_has_been_supplied",propT));
@@ -113,6 +113,11 @@ val undo_list = ref([[(dummy, Seq.empty)]] : gstack list);
 
 (* Stack of proof attempts *)
 val proofstack = ref([]: proof list);
+
+(*reset all refs*)
+fun reset_goals () =
+  (curr_prems := []; curr_mkresult := init_mkresult;
+    undo_list := [[(dummy, Seq.empty)]]; proofstack := []);
 
 
 (*** Setting up goal-directed proof ***)
