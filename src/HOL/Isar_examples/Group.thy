@@ -89,25 +89,25 @@ proof -;
   have "x * one = x * (inv x * x)";
     by (simp only: group_left_inverse);
 
-  note calculation = facts
+  note calculation = this
     -- {* first calculational step: init calculation register *};
 
   have "... = x * inv x * x";
     by (simp only: group_assoc);
 
-  note calculation = trans [OF calculation facts]
+  note calculation = trans [OF calculation this]
     -- {* general calculational step: compose with transitivity rule *};
 
   have "... = one * x";
     by (simp only: group_right_inverse);
 
-  note calculation = trans [OF calculation facts]
+  note calculation = trans [OF calculation this]
     -- {* general calculational step: compose with transitivity rule *};
 
   have "... = x";
     by (simp only: group_left_unit);
 
-  note calculation = trans [OF calculation facts]
+  note calculation = trans [OF calculation this]
     -- {* final calculational step: compose with transitivity rule ... *};
   from calculation
     -- {* ... and pick up final result *};
