@@ -61,8 +61,8 @@ syntax
 syntax (symbols)
   "_lessAll" :: [idt, 'a, bool] => bool   ("(3\\<forall>_<_./ _)"  [0, 0, 10] 10)
   "_lessEx"  :: [idt, 'a, bool] => bool   ("(3\\<exists>_<_./ _)"  [0, 0, 10] 10)
-  "_leAll"   :: [idt, 'a, bool] => bool   ("(3\\<forall>_<=_./ _)" [0, 0, 10] 10)
-  "_leEx"    :: [idt, 'a, bool] => bool   ("(3\\<exists>_<=_./ _)" [0, 0, 10] 10)
+  "_leAll"   :: [idt, 'a, bool] => bool   ("(3\\<forall>_\\<le>_./ _)" [0, 0, 10] 10)
+  "_leEx"    :: [idt, 'a, bool] => bool   ("(3\\<exists>_\\<le>_./ _)" [0, 0, 10] 10)
 
 syntax (HOL)
   "_lessAll" :: [idt, 'a, bool] => bool   ("(3! _<_./ _)"  [0, 0, 10] 10)
