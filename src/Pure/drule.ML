@@ -292,17 +292,21 @@ end;
 val show_hyps = ref true;
 
 fun pretty_thm th =
-let val {sign, hyps, prop,...} = rep_thm th
-    val hsymbs = if null hyps then []
-                 else if !show_hyps then
-                      [Pretty.brk 2,
-                       Pretty.lst("[","]") (map (Sign.pretty_term sign) hyps)]
-                 else Pretty.str" [" :: map (fn _ => Pretty.str".") hyps @
-                      [Pretty.str"]"];
-in Pretty.blk(0, Sign.pretty_term sign prop :: hsymbs) end;
+  let
+    val {sign, shyps, hyps, prop, ...} = rep_thm th;
+    val hlen = length shyps + length hyps;
+    val hsymbs =
+      if hlen = 0 then []
+      else if ! show_hyps then
+        [Pretty.brk 2, Pretty.list "[" "]"
+          (map (Sign.pretty_term sign) hyps @ map Sign.pretty_sort shyps)]
+      else
+        [Pretty.brk 2, Pretty.str ("[" ^ implode (replicate hlen ".") ^ "]")];
+  in
+    Pretty.block (Sign.pretty_term sign prop :: hsymbs)
+  end;
 
 val string_of_thm = Pretty.string_of o pretty_thm;
-
 val pprint_thm = Pretty.pprint o Pretty.quote o pretty_thm;
 
 
@@ -532,10 +536,14 @@ fun zero_var_indexes th =
 (*Standard form of object-rule: no hypotheses, Frees, or outer quantifiers;
     all generality expressed by Vars having index 0.*)
 fun standard th =
-    let val {maxidx,...} = rep_thm th
-    in  varifyT (zero_var_indexes (forall_elim_vars(maxidx+1)
-                         (forall_intr_frees(implies_intr_hyps th))))
-    end;
+  let val {maxidx,...} = rep_thm th
+  in  
+    th |> implies_intr_hyps
+    |> strip_shyps |> implies_intr_shyps
+    |> forall_intr_frees |> forall_elim_vars (maxidx + 1)
+    |> zero_var_indexes |> varifyT
+  end;
+
 
 (*Assume a new formula, read following the same conventions as axioms.
   Generalizes over Free variables,
@@ -631,9 +639,10 @@ end;
 (*equality of theorems uses equality of signatures and
   the a-convertible test for terms*)
 fun eq_thm (th1,th2) =
-    let val {sign=sg1, hyps=hyps1, prop=prop1, ...} = rep_thm th1
-        and {sign=sg2, hyps=hyps2, prop=prop2, ...} = rep_thm th2
+    let val {sign=sg1, shyps=shyps1, hyps=hyps1, prop=prop1, ...} = rep_thm th1
+        and {sign=sg2, shyps=shyps2, hyps=hyps2, prop=prop2, ...} = rep_thm th2
     in  Sign.eq_sg (sg1,sg2) andalso
+        eq_set (shyps1, shyps2) andalso
         aconvs(hyps1,hyps2) andalso
         prop1 aconv prop2
     end;
