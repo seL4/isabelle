@@ -131,6 +131,19 @@ IOA:    $(BIN)/HOL  $(IOA_FILES)
 	     echo 'exit_use_dir"IOA/ABP";quit();' | $(LOGIC); \
         fi
 
+
+##Authentication & Security Protocols
+Auth_NAMES = Message Shared NS_Shared OtwayRees
+
+AUTH_FILES = Auth/ROOT.ML $(AUTH_NAMES:%=Auth/%.thy) $(AUTH_NAMES:%=Auth/%.ML)
+
+Auth:   $(BIN)/HOL  $(AUTH_FILES)
+	if [ "$${MAKE_HTML-undefined}" != "undefined" ]; \
+        then echo 'make_html := true; exit_use_dir"Auth";quit();' | $(LOGIC);\
+        else echo 'exit_use_dir"Auth";quit();' | $(LOGIC); \
+        fi
+
+
 ##Properties of substitutions
 SUBST_NAMES = AList Setplus Subst Unifier UTerm UTLemmas
 
@@ -195,7 +208,7 @@ ex:     $(BIN)/HOL  $(EX_FILES)
         fi
 
 #Full test.
-test:   $(BIN)/HOL IMP Hoare Lex Integ Subst Lambda MiniML IOA ex
+test:   $(BIN)/HOL IMP Hoare Lex Integ Auth Subst Lambda MiniML IOA ex
 	echo 'Test examples ran successfully' > test
 
 .PRECIOUS:  $(BIN)/Pure $(BIN)/HOL 
