@@ -93,6 +93,8 @@ Goal "Lift : Always moving_up";
 by (rtac AlwaysI 1);
 by (Force_tac 1);
 by (constrains_tac 1);
+by (auto_tac (claset(),
+	      simpset() addsimps [add1_zle_eq]));
 by (blast_tac (claset() addDs [zle_imp_zless_or_eq]) 1);
 qed "moving_up";
 
