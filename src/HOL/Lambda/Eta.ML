@@ -151,8 +151,8 @@ by (rtac (impI RS allI RS allI) 1);
 by (etac beta.induct 1);
 by (slow_tac (!claset addIs [r_into_rtrancl,rtrancl_eta_subst,eta_subst]
                       addss !simpset) 1);
-by (Blast.depth_tac (!claset addIs [r_into_rtrancl,rtrancl_eta_AppL]) 6 1);
-by (Blast.depth_tac (!claset addIs [r_into_rtrancl,rtrancl_eta_AppR]) 6 1);
+by (blast_tac (!claset addIs [r_into_rtrancl,rtrancl_eta_AppL]) 1);
+by (blast_tac (!claset addIs [r_into_rtrancl,rtrancl_eta_AppR]) 1);
 (*23 seconds?*)
 DelIffs dB.distinct;
 Addsimps dB.distinct;
