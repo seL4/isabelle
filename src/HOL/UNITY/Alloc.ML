@@ -4,6 +4,8 @@
     Copyright   1998  University of Cambridge
 
 Specification of Chandy and Charpentier's Allocator
+
+STOP USING o (COMPOSITION), since function application is naturally associative
 *)
 
 
@@ -25,6 +27,14 @@ by Auto_tac;
 by (arith_tac 1);
 qed_spec_mp "sum_mono";
 
+Goal "ALL xs. xs <= ys --> tokens xs <= tokens ys";
+by (induct_tac "ys" 1);
+by (auto_tac (claset(), simpset() addsimps [prefix_Cons]));
+qed_spec_mp "tokens_mono_prefix";
+
+Goalw [mono_def] "mono tokens";
+by (blast_tac (claset() addIs [tokens_mono_prefix]) 1);
+qed "mono_tokens";
 
 (*Generalized version allowing different clients*)
 Goal "[| Alloc : alloc_spec;  \
@@ -145,7 +155,7 @@ val Network_Spec =
 (*CANNOT use bind_thm: it puts the theorem into standard form, in effect
   exporting it from the locale*)
 val Network_Ask = Network_Spec RS IntD1 RS IntD1;
-val Network_Giv = Network_Spec RS IntD1 RS IntD2;
+val Network_Giv = Network_Spec RS IntD1 RS IntD2 RS INT_D;
 val Network_Rel = Network_Spec RS IntD2 RS INT_D;
 
 
@@ -154,7 +164,7 @@ val Alloc_Spec =
     rewrite_rule [alloc_spec_def, alloc_increasing_def,
 		  alloc_safety_def, alloc_progress_def] Alloc;
 
-Goal "i < Nclients ==> Alloc : UNIV guarantees Increasing (sub i o allocAsk)";
+Goal "i < Nclients ==> Alloc : UNIV guarantees Increasing (sub i o allocGiv)";
 by (cut_facts_tac [Alloc_Spec] 1);
 by (asm_full_simp_tac (simpset() addsimps [guarantees_INT_right]) 1);
 qed "Alloc_Increasing";
@@ -185,6 +195,15 @@ val extend_Client_guar_Increasing =
   good_map_sysOfClient RS export extend_guar_Increasing
   |> simplify (simpset() addsimps [inv_sysOfClient_eq]);
 
+fun alloc_export th = good_map_sysOfAlloc RS export th;
+
+(*NEED AUTOMATIC PROPAGATION of Alloc_Increasing*)
+Goal "i < Nclients \
+\ ==> extend sysOfAlloc Alloc : UNIV guarantees Increasing (sub i o allocGiv)";
+by (dtac (Alloc_Increasing RS alloc_export extend_guar_Increasing) 1);
+by (auto_tac (claset(), simpset() addsimps [o_def]));
+qed "extend_Alloc_Increasing_allocGiv";
+
 
 (** Proof of property (1) **)
 
@@ -207,15 +226,8 @@ qed "System_Increasing_rel";
 Goal "i < Nclients ==> System : Increasing (sub i o allocRel)";
 by (rtac Follows_Increasing1 1);
 by (blast_tac (claset() addIs [Network_Rel RS component_guaranteesD,
-			       System_Increasing_rel, Network]) 1);
+			       System_Increasing_rel]) 1);
 qed "System_Increasing_allocRel";
-
-
-fun alloc_export th = good_map_sysOfAlloc RS export th;
-
-val extend_Alloc_guar_Increasing =
-  alloc_export extend_guar_Increasing
-  |> simplify (simpset());
 
 (*step 2*)
 Goal "System : Always {s. sum (%i. (tokens o sub i o allocGiv) s) Nclients \
@@ -239,16 +251,45 @@ by (asm_full_simp_tac
 qed "System_sum_bounded";
 
 (*step 3*)
-Goal "System : Always {s. sum (%i. (tokens o giv o sub i o client) s) Nclients \
-\                  <= NbT + sum (%i. (tokens o rel o sub i o client) s) Nclients}";
-by (rtac (System_sum_bounded RS Always_weaken) 1);
+Goal "System : Always (INT i: lessThan Nclients. \
+\                         {s. (tokens o giv o sub i o client) s \
+\                          <= (tokens o sub i o allocGiv) s})";
+by (auto_tac (claset(), 
+	      simpset() delsimps [o_apply]
+			addsimps [Always_INT_distrib]));
+by (rtac Follows_Bounded 1);
+by (simp_tac (HOL_ss addsimps [o_assoc RS sym]) 1);
+by (rtac (mono_tokens RS mono_Follows_o RS subsetD) 1);
+by (simp_tac (HOL_ss addsimps [o_assoc]) 1);
+by (blast_tac (claset() addIs [Network_Giv RS component_guaranteesD,
+	  extend_Alloc_Increasing_allocGiv RS component_guaranteesD]) 1);
+qed "System_Always_giv_le_allocGiv";
+
+
+Goal "System : Always (INT i: lessThan Nclients. \
+\                         {s. (tokens o sub i o allocRel) s \
+\                          <= (tokens o rel o sub i o client) s})";
+by (auto_tac (claset(), 
+	      simpset() delsimps [o_apply]
+			addsimps [Always_INT_distrib]));
+by (rtac Follows_Bounded 1);
+by (simp_tac (HOL_ss addsimps [o_assoc RS sym]) 1);
+by (rtac (mono_tokens RS mono_Follows_o RS subsetD) 1);
+by (simp_tac (HOL_ss addsimps [o_assoc]) 1);
+by (blast_tac (claset() addIs [Network_Rel RS component_guaranteesD,
+			       System_Increasing_rel]) 1);
+qed "System_Always_allocRel_le_rel";
+
+
+Goal "System : Always {s. sum (%i. (tokens o giv o sub i o client)s) Nclients \
+\              <= NbT + sum (%i. (tokens o rel o sub i o client)s) Nclients}";
+by (rtac (Always_Int_rule [System_sum_bounded, System_Always_giv_le_allocGiv, 
+			   System_Always_allocRel_le_rel] RS Always_weaken) 1);
 by Auto_tac;
-br order_trans 1;
-br sum_mono 1;
-bd order_trans 2;
-br add_le_mono 2;
-br order_refl 2;
-br sum_mono 2;
-ba 3;
+by (rtac (sum_mono RS order_trans) 1);
+by (dtac order_trans 2);
+by (rtac ([order_refl, sum_mono] MRS add_le_mono) 2);
+by (assume_tac 3);
 by Auto_tac;
+qed "System_safety";
 

@@ -97,7 +97,7 @@ constdefs
     "alloc_increasing ==
 	 UNIV
          guarantees
-	 (INT i : lessThan Nclients. Increasing (sub i o allocAsk))"
+	 (INT i : lessThan Nclients. Increasing (sub i o allocGiv))"
 
   (*spec (7)*)
   alloc_safety :: allocState program set
