@@ -351,6 +351,22 @@ fun mk_axiom_decls axms = (mk_axms axms, map fst axms);
 val axiom_decls = repeat1 (ident -- !! string) >> mk_axiom_decls;
 
 
+(* combined consts and axioms *)
+
+fun mk_constaxiom_decls x =
+  let
+    val (axms_defs, axms_names) =
+      mk_axiom_decls (map (fn ((id, _), def) => (id ^ "_def", def)) x);
+  in ((mk_big_list o map mk_triple2 o map (apfst quote o fst)) x ^
+       "\n\n|> add_defs\n" ^ axms_defs, axms_names)
+  end;
+
+val constaxiom_decls =
+  repeat1 (ident --$$ "::" -- !!
+           ((string || const_type false >> quote) -- opt_mixfix) -- !!
+           string) >> mk_constaxiom_decls;
+
+
 (* axclass *)
 
 fun mk_axclass_decl ((c, cs), axms) =
@@ -516,6 +532,7 @@ val pure_sections =
   section "MLtext" "" verbatim,
   axm_section "rules" "|> add_axioms" axiom_decls,
   axm_section "defs" "|> add_defs" axiom_decls,
+  axm_section "constdefs" "|> add_consts" constaxiom_decls,
   axm_section "axclass" "|> AxClass.add_axclass" axclass_decl,
   section "instance" "" instance_decl];
 
