@@ -1,0 +1,110 @@
+(*  Title:      Pure/MLWorks.ML
+    ID:         $Id$
+    Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
+    Copyright   1996  University of Cambridge
+
+Compatibility file for MLWorks (??)
+
+NB: There is still no easy way of building Isabelle under MLWorks.  This file
+    is just a start towards compatibility.  One problem is the peculiar
+    behaviour of "use" in MLWorks.  Strange errors occur when loading theories,
+    and ROOT.ML files on subdirectories are loaded incorrectly.
+*)
+
+(*** Poly/ML emulation ***)
+
+(**
+require "system.__os";
+require "basis.__timer";
+require "system.__time";
+require "unix.__os_file_sys";
+require "basis.__list";
+require "basis.__char";
+require "basis.__string";
+require "basis.__text_io";
+**)
+
+
+(*To exit the system with an exit code -- an alternative to ^D *)
+fun exit 0 = OS.Process.exit OS.Process.success
+  | exit _ = OS.Process.exit OS.Process.failure;
+fun quit () = exit 0;
+
+(*To limit the printing depth [divided by 2 for comparibility with Poly/ML]*)
+fun print_depth n = ();
+
+(*Interface for toplevel pretty printers, see also Pure/install_pp.ML*)
+
+fun make_pp path pprint = ();
+fun install_pp _ = ();
+
+
+(*** New Jersey ML parameters ***)
+
+(*** Character/string functions which are compatible with 0.93 and Poly/ML ***)
+
+fun ord s = Char.ord (String.sub(s,0));
+val chr = str o Char.chr;
+val explode = (map str) o String.explode;
+val implode = String.concat;
+
+
+(*** Timing functions ***)
+
+(*A conditional timing function: applies f to () and, if the flag is true,
+  prints its runtime. *)
+fun cond_timeit flag f =
+  if flag then
+    let open Time  (*...for Time.toString, Time.+ and Time.- *)
+	val CPUtimer = Timer.startCPUTimer();
+        val {gc=gct1,sys=syst1,usr=usrt1} = Timer.checkCPUTimer(CPUtimer);
+        val result = f();
+        val {gc=gct2,sys=syst2,usr=usrt2} = Timer.checkCPUTimer(CPUtimer)
+    in  print("User " ^ toString (usrt2-usrt1) ^
+              "  GC " ^ toString (gct2-gct1) ^
+              "  All "^ toString (syst2-syst1 + usrt2-usrt1 + gct2-gct1) ^
+              " secs\n")
+	  handle Time => ();
+        result
+    end
+  else f();
+
+
+(*** File handling ***)
+
+(*Get time of last modification; if file doesn't exist return an empty string*)
+fun file_info "" = ""
+  | file_info name = Time.toString (OS.FileSys.modTime name) handle _ =>"";
+
+
+(*** ML command execution ***)
+
+val tmpName = OS.FileSys.tmpName();
+
+(*Can one redirect 'use' directly to an instream?*)
+fun use_string slist =
+  let val tmpFile = TextIO.openOut tmpName
+  in app (fn s => TextIO.output (tmpFile, s)) slist;
+     TextIO.closeOut tmpFile;
+     use tmpName
+  end;
+
+
+(*** System command execution ***)
+
+(*Execute an Unix command which doesn't take any input from stdin and
+  sends its output to stdout.
+  This could be done more easily by Unix.execute, but that function
+  doesn't use the PATH.*)
+fun execute command =
+  let val is = (OS.Process.system (command ^ " > " ^ tmpName);
+                TextIO.openIn tmpName);
+      val result = TextIO.inputAll is;
+  in TextIO.closeIn is;
+     OS.FileSys.remove tmpName;
+     result
+  end;
+
+
+(*Don't know what the boolean is for*)
+fun xML filename = Shell.saveImage (filename, false);
