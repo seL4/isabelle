@@ -143,9 +143,9 @@ fun dest_prod t =
       handle TERM _ => [t];
 
 (*DON'T do the obvious simplifications; that would create special cases*)
-fun mk_coeff (k, ts) = mk_times (mk_numeral k, ts);
+fun mk_coeff (k,t) = mk_times (mk_numeral k, t);
 
-(*Express t as a product of (possibly) a numeral with other sorted terms*)
+(*Express t as a product of (possibly) a numeral with other factors, sorted*)
 fun dest_coeff t =
     let val ts = sort Term.term_ord (dest_prod t)
         val (n, _, ts') = find_first_numeral [] ts
@@ -259,7 +259,8 @@ structure CombineNumeralsData =
   val mk_coeff          = mk_coeff
   val dest_coeff        = dest_coeff
   val left_distrib      = left_add_mult_distrib RS trans
-  val prove_conv        = prove_conv "nat_combine_numerals"
+  val prove_conv = 
+       Int_Numeral_Simprocs.prove_conv_nohyps "nat_combine_numerals"
   val trans_tac          = trans_tac
   val norm_tac = ALLGOALS
                    (simp_tac (HOL_ss addsimps add_0s@mult_1s@

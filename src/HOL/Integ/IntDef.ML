@@ -232,8 +232,6 @@ by (REPEAT (ares_tac [zadd_commute RS zadd_assoc_cong] 1));
 qed "zadd_assoc_swap";
 
 
-(*Need properties of subtraction?  Or use $- just as an abbreviation!*)
-
 (**** zmult: multiplication on Integ ****)
 
 (*Congruence property for multiplication*)
@@ -302,7 +300,7 @@ by (asm_simp_tac
                         add_ac @ mult_ac) 1);
 qed "zadd_zmult_distrib";
 
-val zmult_commute'= read_instantiate [("z","w")] zmult_commute;
+val zmult_commute'= inst "z" "w" zmult_commute;
 
 Goal "w * (- z) = - (w * (z::int))";
 by (simp_tac (simpset() addsimps [zmult_commute', zmult_zminus]) 1);

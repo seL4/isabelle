@@ -178,7 +178,7 @@ val diff_simps = [zdiff_def, zminus_zadd_distrib, zminus_zminus];
 fun trans_tac None      = all_tac
   | trans_tac (Some th) = ALLGOALS (rtac (th RS trans));
 
-fun prove_conv name tacs sg (t, u) =
+fun prove_conv name tacs sg (hyps: thm list) (t,u) =
   if t aconv u then None
   else
   let val ct = cterm_of sg (HOLogic.mk_Trueprop (HOLogic.mk_eq (t, u)))
@@ -188,6 +188,9 @@ fun prove_conv name tacs sg (t, u) =
 	  ("The error(s) above occurred while trying to prove " ^
 	   string_of_cterm ct ^ "\nInternal failure of simproc " ^ name))
   end;
+
+(*version without the hyps argument*)
+fun prove_conv_nohyps name tacs sg = prove_conv name tacs sg [];
 
 fun simplify_meta_eq rules =
     mk_meta_eq o
@@ -268,7 +271,7 @@ structure CombineNumeralsData =
   val mk_coeff		= mk_coeff
   val dest_coeff	= dest_coeff 1
   val left_distrib	= left_zadd_zmult_distrib RS trans
-  val prove_conv	= prove_conv "int_combine_numerals"
+  val prove_conv        = prove_conv_nohyps "int_combine_numerals"
   val trans_tac          = trans_tac
   val norm_tac = ALLGOALS
                    (simp_tac (HOL_ss addsimps add_0s@mult_1s@diff_simps@
