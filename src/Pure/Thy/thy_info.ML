@@ -96,6 +96,9 @@ type deps =
 fun make_deps present outdated master files =
   {present = present, outdated = outdated, master = master, files = files}: deps;
 
+fun init_deps master files = Some (make_deps false true master (map (rpair None) files));
+
+
 type thy = deps option * theory option;
 
 local
@@ -253,7 +256,7 @@ fun load_thy ml time initiators dir name parents =
 
 (* require_thy *)
 
-fun init_deps master files = Some (make_deps false true master (map (rpair None) files));
+local
 
 fun load_deps dir name =
   let val (master, (parents, files)) = ThyLoad.deps_thy dir name
@@ -288,7 +291,7 @@ fun require_thy ml time strict keep_strict initiators prfx (visited, str) =
       let
         val dir = Path.append prfx (Path.dir path);
         val req_parent =
-          require_thy ml time (strict andalso keep_strict) keep_strict (name :: initiators) dir;
+          require_thy true time (strict andalso keep_strict) keep_strict (name :: initiators) dir;
 
         val (current, (new_deps, parents)) = current_deps strict dir name handle ERROR =>
           error (loader_msg "the error(s) above occurred while examining theory" [name] ^
@@ -310,12 +313,16 @@ fun gen_use_thy req s =
   let val (_, (_, name)) = req [] Path.current ([], s)
   in Context.context (get_theory name) end;
 
+in
+
 val weak_use_thy    = gen_use_thy (require_thy true false false false);
 val use_thy         = gen_use_thy (require_thy true false true false);
 val time_use_thy    = gen_use_thy (require_thy true true true false);
 val use_thy_only    = gen_use_thy (require_thy false false true false);
 val update_thy      = gen_use_thy (require_thy true false true true);
 val update_thy_only = gen_use_thy (require_thy false false true true);
+
+end;
 
 
 (* remove_thy *)
