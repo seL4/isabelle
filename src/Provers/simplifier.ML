@@ -2,8 +2,8 @@
     ID:         $Id$
     Author:     Tobias Nipkow and Markus Wenzel, TU Muenchen
 
-Generic simplifier, suitable for most logics.  See Pure/thm.ML for the
-actual meta-level rewriting engine.
+Generic simplifier, suitable for most logics.  See Pure/meta_simplifier.ML
+for the actual meta-level rewriting engine.
 *)
 
 infix 4
@@ -164,11 +164,11 @@ fun make_ss mss mk_cong subgoal_tac loop_tacs unsafe_solvers solvers =
     loop_tacs = loop_tacs, unsafe_solvers = unsafe_solvers, solvers = solvers};
 
 val empty_ss =
-  let val mss = Thm.set_mk_sym (Thm.empty_mss, Some o symmetric_fun)
+  let val mss = MetaSimplifier.set_mk_sym (MetaSimplifier.empty_mss, Some o symmetric_fun)
   in make_ss mss I (K (K no_tac)) [] [] [] end;
 
 fun rep_ss (Simpset args) = args;
-fun prems_of_ss (Simpset {mss, ...}) = Thm.prems_of_mss mss;
+fun prems_of_ss (Simpset {mss, ...}) = MetaSimplifier.prems_of_mss mss;
 
 
 (* print simpsets *)
@@ -176,7 +176,7 @@ fun prems_of_ss (Simpset {mss, ...}) = Thm.prems_of_mss mss;
 fun print_ss ss =
   let
     val Simpset {mss, ...} = ss;
-    val {simps, procs, congs} = Thm.dest_mss mss;
+    val {simps, procs, congs} = MetaSimplifier.dest_mss mss;
 
     val pretty_thms = map Display.pretty_thm;
     fun pretty_proc (name, lhss) =
@@ -230,11 +230,11 @@ fun (Simpset {mss, mk_cong, subgoal_tac, loop_tacs, unsafe_solvers, solvers})
 
 fun (Simpset {mss, mk_cong, subgoal_tac, loop_tacs, unsafe_solvers, solvers})
     setmksimps mk_simps =
-  make_ss (Thm.set_mk_rews (mss, mk_simps)) mk_cong subgoal_tac loop_tacs unsafe_solvers solvers;
+  make_ss (MetaSimplifier.set_mk_rews (mss, mk_simps)) mk_cong subgoal_tac loop_tacs unsafe_solvers solvers;
 
 fun (Simpset {mss, mk_cong, subgoal_tac, loop_tacs, unsafe_solvers, solvers})
     setmkeqTrue mk_eq_True =
-  make_ss (Thm.set_mk_eq_True (mss, mk_eq_True)) mk_cong subgoal_tac loop_tacs
+  make_ss (MetaSimplifier.set_mk_eq_True (mss, mk_eq_True)) mk_cong subgoal_tac loop_tacs
     unsafe_solvers solvers;
 
 fun (Simpset {mss, mk_cong = _, subgoal_tac, loop_tacs, unsafe_solvers, solvers})
@@ -243,28 +243,28 @@ fun (Simpset {mss, mk_cong = _, subgoal_tac, loop_tacs, unsafe_solvers, solvers}
 
 fun (Simpset {mss, mk_cong, subgoal_tac, loop_tacs, unsafe_solvers, solvers})
     setmksym mksym =
-  make_ss (Thm.set_mk_sym (mss, mksym)) mk_cong subgoal_tac loop_tacs unsafe_solvers solvers;
+  make_ss (MetaSimplifier.set_mk_sym (mss, mksym)) mk_cong subgoal_tac loop_tacs unsafe_solvers solvers;
 
 fun (Simpset {mss, mk_cong, subgoal_tac, loop_tacs,  unsafe_solvers, solvers})
     settermless termless =
-  make_ss (Thm.set_termless (mss, termless)) mk_cong subgoal_tac loop_tacs
+  make_ss (MetaSimplifier.set_termless (mss, termless)) mk_cong subgoal_tac loop_tacs
     unsafe_solvers solvers;
 
 fun (Simpset {mss, mk_cong, subgoal_tac, loop_tacs, unsafe_solvers, solvers})
     addsimps rews =
-  make_ss (Thm.add_simps (mss, rews)) mk_cong subgoal_tac loop_tacs unsafe_solvers solvers;
+  make_ss (MetaSimplifier.add_simps (mss, rews)) mk_cong subgoal_tac loop_tacs unsafe_solvers solvers;
 
 fun (Simpset {mss, mk_cong, subgoal_tac, loop_tacs, unsafe_solvers, solvers})
     delsimps rews =
-  make_ss (Thm.del_simps (mss, rews)) mk_cong subgoal_tac loop_tacs unsafe_solvers solvers;
+  make_ss (MetaSimplifier.del_simps (mss, rews)) mk_cong subgoal_tac loop_tacs unsafe_solvers solvers;
 
 fun (Simpset {mss, mk_cong, subgoal_tac, loop_tacs, unsafe_solvers, solvers})
     addeqcongs newcongs =
-  make_ss (Thm.add_congs (mss, newcongs)) mk_cong subgoal_tac loop_tacs unsafe_solvers solvers;
+  make_ss (MetaSimplifier.add_congs (mss, newcongs)) mk_cong subgoal_tac loop_tacs unsafe_solvers solvers;
 
 fun (Simpset {mss, subgoal_tac, mk_cong, loop_tacs, unsafe_solvers, solvers})
     deleqcongs oldcongs =
-  make_ss (Thm.del_congs (mss, oldcongs)) mk_cong subgoal_tac loop_tacs unsafe_solvers solvers;
+  make_ss (MetaSimplifier.del_congs (mss, oldcongs)) mk_cong subgoal_tac loop_tacs unsafe_solvers solvers;
 
 fun (ss as Simpset {mk_cong, ...}) addcongs newcongs =
   ss addeqcongs map mk_cong newcongs;
@@ -274,16 +274,16 @@ fun (ss as Simpset {mk_cong, ...}) delcongs oldcongs =
 
 fun (Simpset {mss, mk_cong, subgoal_tac, loop_tacs, unsafe_solvers, solvers})
     addsimprocs simprocs =
-  make_ss (Thm.add_simprocs (mss, map rep_simproc simprocs)) mk_cong subgoal_tac loop_tacs
+  make_ss (MetaSimplifier.add_simprocs (mss, map rep_simproc simprocs)) mk_cong subgoal_tac loop_tacs
     unsafe_solvers solvers;
 
 fun (Simpset {mss, mk_cong, subgoal_tac, loop_tacs, unsafe_solvers, solvers})
     delsimprocs simprocs =
-  make_ss (Thm.del_simprocs (mss, map rep_simproc simprocs)) mk_cong subgoal_tac
+  make_ss (MetaSimplifier.del_simprocs (mss, map rep_simproc simprocs)) mk_cong subgoal_tac
     loop_tacs unsafe_solvers solvers;
 
 fun clear_ss (Simpset {mss, mk_cong, subgoal_tac, loop_tacs = _, unsafe_solvers, solvers}) =
-  make_ss (Thm.clear_mss mss) mk_cong subgoal_tac [] unsafe_solvers solvers;
+  make_ss (MetaSimplifier.clear_mss mss) mk_cong subgoal_tac [] unsafe_solvers solvers;
 
 
 (* merge simpsets *)
@@ -295,7 +295,7 @@ fun merge_ss
              unsafe_solvers = unsafe_solvers1, solvers = solvers1},
     Simpset {mss = mss2, mk_cong = _, loop_tacs = loop_tacs2, subgoal_tac = _,
              unsafe_solvers = unsafe_solvers2, solvers = solvers2}) =
-  make_ss (Thm.merge_mss (mss1, mss2)) mk_cong subgoal_tac
+  make_ss (MetaSimplifier.merge_mss (mss1, mss2)) mk_cong subgoal_tac
     (merge_alists loop_tacs1 loop_tacs2)
     (merge_solvers unsafe_solvers1 unsafe_solvers2)
     (merge_solvers solvers1 solvers2);
@@ -441,8 +441,8 @@ fun simp rew mode
     fun prover m th = apsome fst (Seq.pull (tacf m th));
   in rew mode prover mss thm end;
 
-val simp_thm = simp Drule.rewrite_thm;
-val simp_cterm = simp Drule.rewrite_cterm;
+val simp_thm = simp MetaSimplifier.rewrite_thm;
+val simp_cterm = simp MetaSimplifier.rewrite_cterm;
 
 val          simplify = simp_thm (false, false, false);
 val      asm_simplify = simp_thm (false, true, false);
@@ -462,6 +462,8 @@ val asm_full_rewrite = simp_cterm (true, true, false);
 
 val simpN = "simp";
 val congN = "cong";
+val addN = "add";
+val delN = "del";
 val onlyN = "only";
 val no_asmN = "no_asm";
 val no_asm_useN = "no_asm_use";
