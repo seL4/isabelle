@@ -4,11 +4,16 @@
     Copyright   2003 TUM
 
 A first attempt at a nice syntactic embedding of separation logic.
+Already builds on the theory for list abstractions.
+
+If we suppress the H parameter for "List", we have to hardwired this
+into parser and pretty printer, which is not very modular.
+Alternative: some syntax like <P> which stands for P H. No more
+compact, but avoids the funny H.
+
 *)
 
-theory Separation = HoareAbort:
-
-types heap = "(nat \<Rightarrow> nat option)"
+theory Separation = HoareAbort + SepLogHeap:
 
 text{* The semantic definition of a few connectives: *}
 
@@ -54,6 +59,9 @@ ML{*
 (* free_tr takes care of free vars in the scope of sep. logic connectives:
    they are implicitly applied to the heap *)
 fun free_tr(t as Free _) = t $ Syntax.free "H"
+(*
+  | free_tr((list as Free("List",_))$ p $ ps) = list $ Syntax.free "H" $ p $ ps
+*)
   | free_tr t = t
 
 fun emp_tr [] = Syntax.const "is_empty" $ Syntax.free "H"
@@ -107,6 +115,9 @@ ML{*
 local
 fun strip (Abs(_,_,(t as Const("_free",_) $ Free _) $ Bound 0)) = t
   | strip (Abs(_,_,(t as Free _) $ Bound 0)) = t
+(*
+  | strip (Abs(_,_,((list as Const("List",_))$ Bound 0 $ p $ ps))) = list$p$ps
+*)
   | strip (Abs(_,_,(t as Const("_var",_) $ Var _) $ Bound 0)) = t
   | strip (Abs(_,_,P)) = P
   | strip (Const("is_empty",_)) = Syntax.const "@emp"
@@ -157,6 +168,55 @@ lemma "VARS H x y z w
  {Q ** P}"
 apply vcg
 apply(simp add: star_comm)
+done
+
+
+lemma "VARS H
+ {p\<noteq>0 \<and> [p \<mapsto> x] ** List H q qs}
+ H := H(p \<mapsto> q)
+ {List H p (p#qs)}"
+apply vcg
+apply(simp add: star_def ortho_def singl_def)
+apply clarify
+apply(subgoal_tac "p \<notin> set qs")
+ prefer 2
+ apply(blast dest:list_in_heap)
+apply simp
+done
+
+lemma "VARS H p q r
+  {List H p Ps ** List H q Qs}
+  WHILE p \<noteq> 0
+  INV {\<exists>ps qs. (List H p ps ** List H q qs) \<and> rev ps @ qs = rev Ps @ Qs}
+  DO r := p; p := the(H p); H := H(r \<mapsto> q); q := r OD
+  {List H q (rev Ps @ Qs)}"
+apply vcg
+apply(simp_all add: star_def ortho_def singl_def)
+
+apply fastsimp
+
+apply (clarsimp simp add:List_non_null)
+apply(rename_tac ps')
+apply(rule_tac x = ps' in exI)
+apply(rule_tac x = "p#qs" in exI)
+apply simp
+apply(rule_tac x = "h1(p:=None)" in exI)
+apply(rule_tac x = "h2(p\<mapsto>q)" in exI)
+apply simp
+apply(rule conjI)
+ apply(rule ext)
+ apply(simp add:map_add_def split:option.split)
+apply(rule conjI)
+ apply blast
+apply(simp add:map_add_def split:option.split)
+apply(rule conjI)
+apply(subgoal_tac "p \<notin> set qs")
+ prefer 2
+ apply(blast dest:list_in_heap)
+apply(simp)
+apply fast
+
+apply(fastsimp)
 done
 
 end

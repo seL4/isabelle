@@ -258,10 +258,51 @@ apply (fastsimp intro!:Path_snoc intro:Path_upd[THEN iffD2] notin_List_update[TH
 apply(clarsimp simp add:List_app)
 done
 
+text{* And now with ghost variables: *}
 
-text{* More of the proof can be automated, but the runtime goes up
-drastically. In general it is usually more efficient to give the
-witness directly than to have it found by proof.
+lemma "VARS elem next p q r s ps qs rs a
+ {List next p Ps \<and> List next q Qs \<and> set Ps \<inter> set Qs = {} \<and>
+  (p \<noteq> Null \<or> q \<noteq> Null) \<and> ps = Ps \<and> qs = Qs}
+ IF cor (q = Null) (cand (p \<noteq> Null) (p^.elem \<le> q^.elem))
+ THEN r := p; p := p^.next; ps := tl ps
+ ELSE r := q; q := q^.next; qs := tl qs FI;
+ s := r; rs := []; a := addr s;
+ WHILE p \<noteq> Null \<or> q \<noteq> Null
+ INV {Path next r rs s \<and> List next p ps \<and> List next q qs \<and>
+      distinct(a # ps @ qs @ rs) \<and> s = Ref a \<and>
+      merge(Ps,Qs,\<lambda>x y. elem x \<le> elem y) =
+      rs @ a # merge(ps,qs,\<lambda>x y. elem x \<le> elem y) \<and>
+      (next a = p \<or> next a = q)}
+ DO IF cor (q = Null) (cand (p \<noteq> Null) (p^.elem \<le> q^.elem))
+    THEN s^.next := p; p := p^.next; ps := tl ps
+    ELSE s^.next := q; q := q^.next; qs := tl qs FI;
+    rs := rs @ [a]; s := s^.next; a := addr s
+ OD
+ {List next r (merge(Ps,Qs,\<lambda>x y. elem x \<le> elem y))}"
+apply vcg_simp
+apply (simp_all add: cand_def cor_def)
+
+apply (fastsimp)
+
+apply clarsimp
+apply(rule conjI)
+apply(clarsimp)
+apply(rule conjI)
+apply(clarsimp simp:neq_commute)
+apply(clarsimp simp:neq_commute)
+apply(clarsimp simp:neq_commute)
+
+apply(clarsimp simp add:List_app)
+done
+
+text{* The proof is a LOT simpler because it does not need
+instantiations anymore, but it is still not quite automatic, probably
+because of this wrong orientation business. *}
+
+text{* More of the previous proof without ghost variables can be
+automated, but the runtime goes up drastically. In general it is
+usually more efficient to give the witness directly than to have it
+found by proof.
 
 Now we try a functional version of the abstraction relation @{term
 Path}. Since the result is not that convincing, we do not prove any of
@@ -331,47 +372,6 @@ apply(clarsimp)
 done
 
 text"The proof is automatic, but requires a numbet of special lemmas."
-
-text{* And now with ghost variables: *}
-
-lemma "VARS elem next p q r s ps qs rs a
- {List next p Ps \<and> List next q Qs \<and> set Ps \<inter> set Qs = {} \<and>
-  (p \<noteq> Null \<or> q \<noteq> Null) \<and> ps = Ps \<and> qs = Qs}
- IF cor (q = Null) (cand (p \<noteq> Null) (p^.elem \<le> q^.elem))
- THEN r := p; p := p^.next; ps := tl ps
- ELSE r := q; q := q^.next; qs := tl qs FI;
- s := r; rs := []; a := addr s;
- WHILE p \<noteq> Null \<or> q \<noteq> Null
- INV {Path next r rs s \<and> List next p ps \<and> List next q qs \<and>
-      distinct(a # ps @ qs @ rs) \<and> s = Ref a \<and>
-      merge(Ps,Qs,\<lambda>x y. elem x \<le> elem y) =
-      rs @ a # merge(ps,qs,\<lambda>x y. elem x \<le> elem y) \<and>
-      (next a = p \<or> next a = q)}
- DO IF cor (q = Null) (cand (p \<noteq> Null) (p^.elem \<le> q^.elem))
-    THEN s^.next := p; p := p^.next; ps := tl ps
-    ELSE s^.next := q; q := q^.next; qs := tl qs FI;
-    rs := rs @ [a]; s := s^.next; a := addr s
- OD
- {List next r (merge(Ps,Qs,\<lambda>x y. elem x \<le> elem y))}"
-apply vcg_simp
-apply (simp_all add: cand_def cor_def)
-
-apply (fastsimp)
-
-apply clarsimp
-apply(rule conjI)
-apply(clarsimp)
-apply(rule conjI)
-apply(clarsimp simp:eq_sym_conv)
-apply(clarsimp simp:eq_sym_conv)
-apply(clarsimp simp:eq_sym_conv)
-
-apply(clarsimp simp add:List_app)
-done
-
-text{* The proof is a LOT simpler because it does not need
-instantiations anymore, but it is still not quite automatic, probably
-because of this wrong orientation business. *}
 
 subsection "Storage allocation"
 
