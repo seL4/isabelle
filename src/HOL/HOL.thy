@@ -276,42 +276,45 @@ setup Splitter.setup setup Clasimp.setup
 subsubsection {* Generic cases and induction *}
 
 constdefs
-  inductive_forall :: "('a => bool) => bool"
-  "inductive_forall P == \<forall>x. P x"
-  inductive_implies :: "bool => bool => bool"
-  "inductive_implies A B == A --> B"
-  inductive_equal :: "'a => 'a => bool"
-  "inductive_equal x y == x = y"
-  inductive_conj :: "bool => bool => bool"
-  "inductive_conj A B == A & B"
+  induct_forall :: "('a => bool) => bool"
+  "induct_forall P == \<forall>x. P x"
+  induct_implies :: "bool => bool => bool"
+  "induct_implies A B == A --> B"
+  induct_equal :: "'a => 'a => bool"
+  "induct_equal x y == x = y"
+  induct_conj :: "bool => bool => bool"
+  "induct_conj A B == A & B"
 
-lemma inductive_forall_eq: "(!!x. P x) == Trueprop (inductive_forall (\<lambda>x. P x))"
-  by (simp only: atomize_all inductive_forall_def)
+lemma induct_forall_eq: "(!!x. P x) == Trueprop (induct_forall (\<lambda>x. P x))"
+  by (simp only: atomize_all induct_forall_def)
 
-lemma inductive_implies_eq: "(A ==> B) == Trueprop (inductive_implies A B)"
-  by (simp only: atomize_imp inductive_implies_def)
+lemma induct_implies_eq: "(A ==> B) == Trueprop (induct_implies A B)"
+  by (simp only: atomize_imp induct_implies_def)
 
-lemma inductive_equal_eq: "(x == y) == Trueprop (inductive_equal x y)"
-  by (simp only: atomize_eq inductive_equal_def)
+lemma induct_equal_eq: "(x == y) == Trueprop (induct_equal x y)"
+  by (simp only: atomize_eq induct_equal_def)
 
-lemma inductive_forall_conj: "inductive_forall (\<lambda>x. inductive_conj (A x) (B x)) =
-    inductive_conj (inductive_forall A) (inductive_forall B)"
-  by (unfold inductive_forall_def inductive_conj_def) blast
+lemma induct_forall_conj: "induct_forall (\<lambda>x. induct_conj (A x) (B x)) =
+    induct_conj (induct_forall A) (induct_forall B)"
+  by (unfold induct_forall_def induct_conj_def) blast
 
-lemma inductive_implies_conj: "inductive_implies C (inductive_conj A B) =
-    inductive_conj (inductive_implies C A) (inductive_implies C B)"
-  by (unfold inductive_implies_def inductive_conj_def) blast
+lemma induct_implies_conj: "induct_implies C (induct_conj A B) =
+    induct_conj (induct_implies C A) (induct_implies C B)"
+  by (unfold induct_implies_def induct_conj_def) blast
 
-lemma inductive_conj_curry: "(inductive_conj A B ==> C) == (A ==> B ==> C)"
-  by (simp only: atomize_imp atomize_eq inductive_conj_def) (rule equal_intr_rule, blast+)
+lemma induct_conj_curry: "(induct_conj A B ==> C) == (A ==> B ==> C)"
+  by (simp only: atomize_imp atomize_eq induct_conj_def) (rule equal_intr_rule, blast+)
 
-lemmas inductive_atomize = inductive_forall_eq inductive_implies_eq inductive_equal_eq
-lemmas inductive_rulify1 = inductive_atomize [symmetric, standard]
-lemmas inductive_rulify2 =
-  inductive_forall_def inductive_implies_def inductive_equal_def inductive_conj_def
-lemmas inductive_conj = inductive_forall_conj inductive_implies_conj inductive_conj_curry
+lemma induct_impliesI: "(A ==> B) ==> induct_implies A B"
+  by (simp add: induct_implies_def)
 
-hide const inductive_forall inductive_implies inductive_equal inductive_conj
+lemmas induct_atomize = induct_forall_eq induct_implies_eq induct_equal_eq
+lemmas induct_rulify1 = induct_atomize [symmetric, standard]
+lemmas induct_rulify2 =
+  induct_forall_def induct_implies_def induct_equal_def induct_conj_def
+lemmas induct_conj = induct_forall_conj induct_implies_conj induct_conj_curry
+
+hide const induct_forall induct_implies induct_equal induct_conj
 
 
 text {* Method setup. *}
@@ -321,10 +324,11 @@ ML {*
   (struct
     val dest_concls = HOLogic.dest_concls;
     val cases_default = thm "case_split";
+    val local_impI = thm "induct_impliesI";
     val conjI = thm "conjI";
-    val atomize = thms "inductive_atomize";
-    val rulify1 = thms "inductive_rulify1";
-    val rulify2 = thms "inductive_rulify2";
+    val atomize = thms "induct_atomize";
+    val rulify1 = thms "induct_rulify1";
+    val rulify2 = thms "induct_rulify2";
   end);
 *}
 
