@@ -163,14 +163,14 @@ From the definition, the \isa{monoid} and \isa{group} classes
  \end{figure}%
 \end{isamarkuptext}%
 \isacommand{instance}\ monoid\ {\isacharless}\ semigroup\isanewline
-\isacommand{proof}\ intro{\isacharunderscore}classes\isanewline
+\isacommand{proof}\isanewline
 \ \ \isacommand{fix}\ x\ y\ z\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}{\isacharprime}a{\isasymColon}monoid{\isachardoublequote}\isanewline
 \ \ \isacommand{show}\ {\isachardoublequote}x\ {\isasymodot}\ y\ {\isasymodot}\ z\ {\isacharequal}\ x\ {\isasymodot}\ {\isacharparenleft}y\ {\isasymodot}\ z{\isacharparenright}{\isachardoublequote}\isanewline
 \ \ \ \ \isacommand{by}\ {\isacharparenleft}rule\ monoid{\isachardot}assoc{\isacharparenright}\isanewline
 \isacommand{qed}\isanewline
 \isanewline
 \isacommand{instance}\ group\ {\isacharless}\ monoid\isanewline
-\isacommand{proof}\ intro{\isacharunderscore}classes\isanewline
+\isacommand{proof}\isanewline
 \ \ \isacommand{fix}\ x\ y\ z\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}{\isacharprime}a{\isasymColon}group{\isachardoublequote}\isanewline
 \ \ \isacommand{show}\ {\isachardoublequote}x\ {\isasymodot}\ y\ {\isasymodot}\ z\ {\isacharequal}\ x\ {\isasymodot}\ {\isacharparenleft}y\ {\isasymodot}\ z{\isacharparenright}{\isachardoublequote}\isanewline
 \ \ \ \ \isacommand{by}\ {\isacharparenleft}rule\ semigroup{\isachardot}assoc{\isacharparenright}\isanewline
@@ -183,12 +183,12 @@ From the definition, the \isa{monoid} and \isa{group} classes
 \medskip The $\INSTANCE$ command sets up an appropriate goal that
  represents the class inclusion (or type arity, see
  \secref{sec:inst-arity}) to be proven (see also
- \cite{isabelle-isar-ref}).  The \isa{intro{\isacharunderscore}classes} proof method
- does back-chaining of class membership statements wrt.\ the hierarchy
- of any classes defined in the current theory; the effect is to reduce
- to the initial statement to a number of goals that directly
- correspond to any class axioms encountered on the path upwards
- through the class hierarchy.%
+ \cite{isabelle-isar-ref}).  The initial proof step causes
+ back-chaining of class membership statements wrt.\ the hierarchy of
+ any classes defined in the current theory; the effect is to reduce to
+ the initial statement to a number of goals that directly correspond
+ to any class axioms encountered on the path upwards through the class
+ hierarchy.%
 \end{isamarkuptext}%
 %
 \isamarkupsubsection{Concrete instantiation \label{sec:inst-arity}}

@@ -40,8 +40,7 @@ Here class \isa{product} is defined as subclass of \isa{term}
  Constants \isa{{\isasymodot}} on some type \isa{{\isasymtau}} are rejected by the
  type-checker, unless the arity \isa{{\isasymtau}\ {\isasymColon}\ product} is part of the
  type signature.  In our example, this arity may be always added when
- required by means of an $\INSTANCE$ with the trivial proof
- $\BY{intro_classes}$.
+ required by means of an $\INSTANCE$ with the default proof $\DDOT$.
 
  \medskip Thus, we may observe the following discipline of using
  syntactic classes.  Overloaded polymorphic constants have their type
@@ -52,8 +51,7 @@ Here class \isa{product} is defined as subclass of \isa{term}
  This is done for class \isa{product} and type \isa{bool} as
  follows.%
 \end{isamarkuptext}%
-\isacommand{instance}\ bool\ {\isacharcolon}{\isacharcolon}\ product\isanewline
-\ \ \isacommand{by}\ intro{\isacharunderscore}classes\isanewline
+\isacommand{instance}\ bool\ {\isacharcolon}{\isacharcolon}\ product\ \isacommand{{\isachardot}{\isachardot}}\isanewline
 \isacommand{defs}\ {\isacharparenleft}\isakeyword{overloaded}{\isacharparenright}\isanewline
 \ \ product{\isacharunderscore}bool{\isacharunderscore}def{\isacharcolon}\ {\isachardoublequote}x\ {\isasymodot}\ y\ {\isasymequiv}\ x\ {\isasymand}\ y{\isachardoublequote}%
 \begin{isamarkuptext}%
