@@ -37,7 +37,7 @@ This command quickly proves most simple formulas of the predicate calculus or
 set theory.  To attempt to prove \emph{all} subgoals using a combination of
 rewriting and classical reasoning, try
 \begin{ttbox}
-by (Auto_tac());
+by Auto_tac;
 \end{ttbox}
 To do all obvious logical steps, even if they do not prove the
 subgoal, type one of the following:
@@ -467,7 +467,7 @@ claset; therefore it is most easily called as \texttt{Auto_tac}, which uses
 the default claset and simpset (see \S\ref{sec:current-claset} below).  For
 interactive use, the shorthand \texttt{auto();} abbreviates 
 \begin{ttbox}
-by (Auto_tac());
+by Auto_tac;
 \end{ttbox}
 
 \subsection{Other classical tactics}
@@ -566,7 +566,7 @@ warnings.  Just like simpsets, clasets can be associated with theories.  The
 tactics
 \begin{ttbox}
 Blast_tac        : int -> tactic
-Auto_tac         : unit -> tactic
+Auto_tac         :        tactic
 Fast_tac         : int -> tactic
 Best_tac         : int -> tactic
 Deepen_tac       : int -> int -> tactic
