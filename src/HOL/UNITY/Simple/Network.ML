@@ -14,11 +14,11 @@ Goalw [stable_def]
 \      !! m. F : stable {s. s(Aproc,Rcvd) <= s(Bproc,Sent)};  \
 \      !! m proc. F : stable {s. m <= s(proc,Sent)};  \
 \      !! n proc. F : stable {s. n <= s(proc,Rcvd)};  \
-\      !! m proc. F : {s. s(proc,Idle) = 1 & s(proc,Rcvd) = m} co \
-\                                 {s. s(proc,Rcvd) = m --> s(proc,Idle) = 1}; \
-\      !! n proc. F : {s. s(proc,Idle) = 1 & s(proc,Sent) = n} co \
+\      !! m proc. F : {s. s(proc,Idle) = 1' & s(proc,Rcvd) = m} co \
+\                                 {s. s(proc,Rcvd) = m --> s(proc,Idle) = 1'}; \
+\      !! n proc. F : {s. s(proc,Idle) = 1' & s(proc,Sent) = n} co \
 \                                 {s. s(proc,Sent) = n} \
-\   |] ==> F : stable {s. s(Aproc,Idle) = 1 & s(Bproc,Idle) = 1 & \
+\   |] ==> F : stable {s. s(Aproc,Idle) = 1' & s(Bproc,Idle) = 1' & \
 \                         s(Aproc,Sent) = s(Bproc,Rcvd) & \
 \                         s(Bproc,Sent) = s(Aproc,Rcvd) & \
 \                         s(Aproc,Rcvd) = m & s(Bproc,Rcvd) = n}";

@@ -753,14 +753,11 @@ Goal "(extend h F ok extend h G) = (F ok G)";
 by (auto_tac (claset(), simpset() addsimps [ok_def]));  
 qed "ok_extend_iff";
 
-Unify.search_bound := 40;
-Unify.trace_bound  := 40;
-
-Goal "OK I (%i. extend h (F i)) = (OK I F)";
-by (auto_tac (claset(), simpset() addsimps [OK_def]));  
+Goalw [OK_def] "OK I (%i. extend h (F i)) = (OK I F)";
+by Safe_tac;
 by (dres_inst_tac [("x","i")] bspec 1); 
-by (dres_inst_tac [("x","j")] bspec 2); 
-by Auto_tac;  
+by (dres_inst_tac [("x","j")] bspec 2);  
+by (REPEAT (Force_tac 1));
 qed "OK_extend_iff";
 
 Goal "F : X guarantees Y ==> \
