@@ -158,7 +158,7 @@ sig
   val kill_theory: string -> unit
   val theory: string * string list * (string * bool) list
     -> Toplevel.transition -> Toplevel.transition
-  val init_context: (string -> unit) -> string -> Toplevel.transition -> Toplevel.transition
+  val init_context: ('a -> unit) -> 'a -> Toplevel.transition -> Toplevel.transition
   val context: string -> Toplevel.transition -> Toplevel.transition
 end;
 
@@ -537,8 +537,12 @@ fun theory spec = Toplevel.init_theory (bg_theory spec) en_theory (kill_theory o
 
 (* context switch *)
 
-fun init_context (f: string -> unit) name =
-  Toplevel.init_theory (fn _ => (the (#2 (Context.pass None f name)))) (K ()) (K ());
+fun fetch_context f x =
+  (case Context.pass None f x of
+    ((), None) => raise Toplevel.UNDEF
+  | ((), Some thy) => thy);
+
+fun init_context f x = Toplevel.init_theory (fn _ => fetch_context f x) (K ()) (K ());
 
 val context = init_context (ThyInfo.quiet_update_thy true);
 

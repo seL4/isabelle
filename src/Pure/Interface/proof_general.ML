@@ -201,7 +201,7 @@ val context_thy_onlyP =
 
 val try_context_thy_onlyP =
   OuterSyntax.improper_command "ProofGeneral.try_context_thy_only" "(internal)" K.control
-    (P.name >> IsarThy.init_context try_update_thy_only);
+    (P.name >> (Toplevel.imperative (K ()) oo IsarThy.init_context try_update_thy_only));
 
 val restartP =
   OuterSyntax.improper_command "ProofGeneral.restart" "(internal)" K.control
