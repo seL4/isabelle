@@ -1,17 +1,86 @@
 
 \chapter{Fonts and character encodings}
 
-\section{ --- \texttt{isatool installfonts}}
+With the advent of print modes in Isabelle (see also The
+\emph{Isabelle Reference Manual}, variant forms of output have become
+very easy. As the canonical application of this feature, {\Pure} and
+major object-logics (\FOL, \ZF, \HOL, \HOLCF) support optional output
+(and input) of nice mathematical symbols out of the box.
 
+Symbolic output is enabled by activating the \ttindex{symbols} print
+mode. User interfaces (e.g.\ \texttt{isa-xterm}, see
+\S\ref{sec:isa-xterm}) usually do this by default.
+
+\medskip Of course, this requires special screen fonts (see
+\S\ref{sec:tool-installfonts}). Furthermore, various {\ML} systems
+cause some problems with non-\textsc{ascii} characters in literal
+strings. These are avoided by the \texttt{symbolinput} filter (see
+\S\ref{sec:tool-symbolinput}).
+
+Both of these are invoked transparently in normal operation. So one
+does not actually have to read the explanations below, unless
+something fails to work.
+
+
+\section{Telling X11 about Isabelle fonts --- \texttt{isatool installfonts}}
+\label{sec:tool-installfonts}
+
+The \tooldx{installfonts} utility ensures that your currently running
+X11 display server (as determined by the \texttt{DISPLAY} environment
+variable) knows about the Isabelle fonts. Its usage is:
 \begin{ttbox}
 Usage: isatool installfonts
 
   Install the isabelle fonts into your X11 server.
-  (May be savely called repeatedly.)
+  (May be safely called repeatedly.)
+\end{ttbox}
+Note that this need not be called manually under normal circumstances
+--- user interfaces depending on the Isabelle fonts will invoke
+\texttt{installfonts} transparently.
+
+\medskip As simple as this might appear to be, it is not! X11 fonts
+are a surprisingly complicated matter. Depending on your network
+structure, fonts might have to be installed differently. This has to
+be specified via the \settdx{ISABELLE_INSTALLFONTS}.
+
+\medskip In the simplest situation, X11 is used only locally, i.e.\ 
+the client program (Isabelle) and the display server are run on the
+same machine. Then most X11 display servers should be happy to being
+just told about the directory where the fonts reside within the
+Isabelle distribution:
+\begin{ttbox}
+ISABELLE_INSTALLFONTS="xset fp+ $ISABELLE_HOME/lib/fonts; xset fp rehash"
+\end{ttbox}
+The same also works for remote X11 sessions in a somewhat homogeneous
+network, where the X11 display machine mounts the Isabelle
+distribution under the same name as the client side.
+
+\medskip Above method fails, if the display machine does have the font
+files at the same location as the client. In case your server is a
+full workstation with its own file system, you could in principle just
+copy the fonts there and do an appropriate \texttt{xset~fp+} manually
+before running the Isabelle interface. This is awkward, of course, but
+is even \emph{impossible} for proper X terminals that do not have
+their own file system.
+
+A much better solution to this problem is to use an \emph{X11 font
+  server}, offering the Isabelle font to the Net. In principle it is
+relatively easy to setup one your own --- the program is called
+\texttt{xfs} (or just \texttt{fs)}, see the \texttt{man} pages of your
+system.
+
+Your are very lucky, though, if you have a sensible connection to the
+Internet. We already offer a world-wide X11 font service for the
+Isabelle fonts. To have \texttt{installfonts} make use of this, just
+set \texttt{ISABELLE_INSTALLFONTS} is follows:
+\begin{ttbox}
+ISABELLE_INSTALLFONTS="xset fp+ tcp/isafonts.informatik.tu-muenchen.de:7200"
 \end{ttbox}
 
 
-\section{ --- \texttt{isatool symbolinput}}
+
+\section{Filtering non-ASCII characters --- \texttt{isatool symbolinput}}
+\label{sec:tool-symbolinput}
 
 
 %FIXME not yet

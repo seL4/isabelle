@@ -1,42 +1,62 @@
 \begin{theindex}
 
-  \item browser, \bold{13}
+  \item {\tt doc} tool, 7
+  \item {\tt DVI_VIEWER} setting, 4
 
   \indexspace
 
-  \item {\tt finish_html}, \bold{10}
+  \item {\tt expandshort} tool, 7
 
   \indexspace
 
-  \item {\tt getenv} tool, 5
+  \item {\tt findlogics} tool, 8
+  \item {\tt finish_html}, \bold{13}
 
   \indexspace
 
-  \item HTML, \bold{9}
+  \item {\tt getenv} tool, 8
 
   \indexspace
 
-  \item {\tt init_html}, \bold{10}
+  \item HTML, \bold{12}
+
+  \indexspace
+
+  \item {\tt init_html}, \bold{13}
   \item {\tt INSTALL}, 1
-  \item {\tt ISABELLE}, 3
+  \item {\tt installfonts} tool, 10
+  \item {\tt ISABELLE} setting, 3
   \item {\tt Isabelle}, 1
-  \item {\tt isabelle}, 1, 3
-  \item {\tt ISABELLE_HOME}, 2
-  \item {\tt ISABELLE_OUTPUT}, 3
-  \item {\tt ISABELLE_PATH}, 3
-  \item {\tt ISATOOL}, 3
+  \item {\tt isabelle}, 1, 4
+  \item {\tt ISABELLE_DOCS} setting, 4
+  \item {\tt ISABELLE_HOME} setting, 2, 3
+  \item {\tt ISABELLE_HOME_USER} setting, 3
+  \item {\tt ISABELLE_INSTALL_FONTS} setting, 4
+  \item {\tt ISABELLE_INSTALLFONTS} setting, 10
+  \item {\tt ISABELLE_INTERFACE} setting, 4
+  \item {\tt ISABELLE_LOGIC} setting, 4
+  \item {\tt ISABELLE_OUTPUT} setting, 3, 4
+  \item {\tt ISABELLE_PATH} setting, 3
+  \item {\tt ISABELLE_TOOLS} setting, 4
+  \item {\tt ISABELLE_USEDIR_OPTIONS} setting, 4
+  \item {\tt ISATOOL} setting, 3
   \item {\tt isatool}, 1
 
   \indexspace
 
-  \item {\tt make_html}, \bold{10}
+  \item {\tt make} tool, 9
+  \item {\tt make_html}, \bold{13}
+  \item {\tt ML_HOME} setting, 3
+  \item {\tt ML_OPTIONS} setting, 3
+  \item {\tt ML_SYSTEM} setting, 3
 
   \indexspace
 
   \item settings, \bold{1}
+  \item {\tt symbols}, 10
 
   \indexspace
 
-  \item {\tt use_dir}, 11
+  \item {\tt use_dir}, 13, 14
 
 \end{theindex}

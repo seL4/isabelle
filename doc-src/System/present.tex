@@ -6,10 +6,10 @@
 
 Isabelle is able to make HTML documents that show a theory's
 definition, the theorems proved in its ML file and the relationship
-with its ancestors and descendants. HTML stands for Hypertext Markup
-Language and is used in the World Wide Web to represent text
-containing images and links to other documents. Web browsers like
-{\tt xmosaic} or {\tt netscape} are used to view these documents.
+with its ancestors and descendants. HTML is the hypertext markup
+language used on the World Wide Web to represent text containing
+images and links to other documents.  These documents may be viewed
+using Web browsers like Netscape or Lynx.
 
 Besides the three HTML files that are made for every theory
 (definition and theorems, ancestors, descendants), Isabelle stores
@@ -17,62 +17,39 @@ links to all theories in an index file. These indexes are themself
 linked with other indexes to represent the hierarchic structure of
 Isabelle's logics.
 
-To make HTML files for logics that are part of the Isabelle
-distribution, simply set the shell environment variable {\tt
-MAKE_HTML} before compiling a logic. This works for single logics as
-well as for the shell script {\tt make-all} (see
-\ref{sec:shell-scripts}). To make HTML files for {\tt FOL} using a
-{\tt csh} style shell, the following commands can be used:
-
+\medskip To make HTML files for logics that are part of the Isabelle
+distribution, simply append ``\texttt{-h true}'' to the
+\texttt{ISABELLE_USEDIR_OPTIONS} setting before making a logic.  For
+example, to generate HTML files for {\FOL}, first add something like
+this to your \texttt{\~\relax/isabelle/etc/settings} file:
 \begin{ttbox}
-cd FOL
-setenv MAKE_HTML
-make
+ISABELLE_USEDIR_OPTIONS="-h true"
 \end{ttbox}
+Then \texttt{cd} into the \texttt{src/FOL} directory of the Isabelle
+distribution and do an \texttt{isatool make} (or even \texttt{isatool
+  make test}).
 
-The databases made this way do not differ from the ones made with an
-unset {\tt MAKE_HTML}; in particular no HTML files are written if the
-database is used to manually load a theory.
-
-As you will see below, the HTML generation is controlled by a boolean
-reference variable. If you want to make databases which define this
-variable's value as {\tt true} and where therefore HTML files are
-written each time {\tt use_thy} is invoked, you have to set {\tt
-MAKE_HTML} to ``{\tt true}'':
-
-\begin{ttbox}
-cd FOL
-setenv MAKE_HTML true
-make
-\end{ttbox}
-
-All theories loaded from within the {\tt FOL} database and all
-databases derived from it will now cause HTML files to be written.
-This behaviour can be changed by assigning a value of {\tt false} to
-the boolean reference variable {\tt make_html}. Be careful when making
-such databases publicly available since it means that your users will
-generate HTML files though they might not intend to do so.
-
-As some of Isabelle's logics are based on others (e.g. {\tt ZF} on
-{\tt FOL}) and because the HTML files list a theory's ancestors, you
-should not make HTML files for a logic if the HTML files for the base
-logic do not exist. Otherwise some of the hypertext links might point
-to non-existing documents.
+\medskip As some of Isabelle's logics are based on others (e.g. {\tt
+  ZF} on {\tt FOL}) and because the HTML files list a theory's
+ancestors, you should not make HTML files for a logic if the HTML
+files for the base logic do not exist. Otherwise some of the hypertext
+links might point to non-existing documents.
 
 The entry point to all logics is the {\tt index.html} file located in
-Isabelle's main directory. You can also access a HTML version of the
-distribution package at
+Isabelle's main directory.
 
+A complete HTML version of all distributed Isabelle object-logics and
+examples may be accessed on the WWW at:
 \begin{ttbox}
 http://www4.informatik.tu-muenchen.de/~nipkow/isabelle/
 \end{ttbox}
+Note that this is not necessarily consistent with your local sources!
 
 
-\section*{Manual HTML generation}
+\section*{*HTML generation internals}
 
-To manually control the generation of HTML files the following
-commands and reference variables are used:
-
+The generation of HTML files is controlled by the following {\ML}
+commands and reference variables:
 \begin{ttbox}
 init_html   : unit -> unit
 make_html   : bool ref
@@ -98,10 +75,10 @@ file with information about the theories read since the last use of
 {\tt init_html} and makes the {\tt index.html} file. If {\tt
 make_html} is {\tt false} nothing is done.
 
-The indexes made by this function also contain a link to the {\tt
-README} file if there exists one in the directory where the index is
-stored. If there's a {\tt README.html} file it is used instead of
-{\tt README}.
+The indexes made by this function also contain a link to the
+\texttt{README.html} or \texttt{README} file if there exists one in
+the directory where the index is stored. If there's a {\tt
+  README.html} file it is used instead of {\tt README}.
 
 \end{ttdescription}
 
@@ -109,24 +86,24 @@ The above functions could be used in the following way:
 
 \begin{ttbox}
 init_html();
-{\out Setting path for index.html to "/home/clasohm/isabelle/HOL"}
+{\out Setting path for index.html to "/home/me/Isabelle-dist/src/HOL"}
 use_thy "List";
 \dots
 finish_html();
 \end{ttbox}
 
 Please note that HTML files are made only for those theories that are
-read while {\tt make_html} is {\tt true}. These files may contain
-links to theories that were read with a {\tt false} {\tt make_html}
-and therefore point to non-existing files.
+read while \texttt{make_html} is \texttt{true}. These files may
+contain links to theories that were read with a \texttt{make_html} set
+to \texttt{false} and therefore point to non-existing files.
 
 
 \section*{Extending or adding a logic}
 
-If you add a new subdirectory to Isabelle's logics (or add a completly
-new logic), you would have to call {\tt init_html} at the start of every
-directory's {\tt ROOT.ML} file and {\tt finish_html} at the end of
-it. This is automatically done if you use
+If you add a new subdirectory to Isabelle's logics (or add a
+completely new logic), you would have to call {\tt init_html} at the
+start of every directory's {\tt ROOT.ML} file and {\tt finish_html} at
+the end of it. This is automatically done if you use
 
 \begin{ttbox}\index{*use_dir}
 use_dir : string -> unit
@@ -137,31 +114,15 @@ directory, calls {\tt init_html} if {\tt make_html} is {\tt true},
 executes {\tt ROOT.ML}, and calls {\tt finish_html}. The {\tt
 index.html} file written in this directory will be automatically
 linked to the first index found in the (recursively searched)
-superdirectories.
+super directories.
 
-Instead of adding something like
+The \texttt{usedir} utility (see also \S\ref{sec:tool-usedir}) will
+automatically take care of this.
 
-\begin{ttbox}
-use"ex/ROOT.ML";
-\end{ttbox}
-
-to the logic's makefile you have to use this:
-
-\begin{ttbox}
-use_dir"ex";
-\end{ttbox}
-
-Since {\tt use_dir} calls {\tt init_html} only if {\tt make_html} is
-{\tt true} the generation of HTML files depends on the value this
-reference variable has. It can either be inherited from the used \ML{}
-database or set in the makefile before {\tt use_dir} is invoked,
-e.g. to set it's value according to the environment variable {\tt
-MAKE_HTML}.
-
-The generated HTML files contain all theorems that were proved in the
-theory's \ML{} file with {\tt qed}, {\tt qed_goal} and {\tt qed_goalw},
-or stored with {\tt bind_thm} and {\tt store_thm}. Additionally there
-is a hypertext link to the whole \ML{} file.
+\medskip The generated HTML files contain all theorems that were
+proved in the theory's \ML{} file with {\tt qed}, {\tt qed_goal} and
+{\tt qed_goalw}, or stored with {\tt bind_thm} and {\tt store_thm}.
+Additionally, there is a hypertext link to the whole \ML{} file.
 
 You can add section headings to the list of theorems by using
 
@@ -171,11 +132,10 @@ section: string -> unit
 
 in a theory's ML file, which converts a plain string to a HTML
 heading and inserts it before the next theorem proved or stored with
-one of the above functions. If {\tt make_html} is {\tt false} nothing
-is done.
+one of the above functions.
 
 
-\section*{Using someone else's database}
+\section*{*Using someone else's database}
 
 To make them independent from their storage place, the HTML files only
 contain relative paths which are derived from absolute ones like the
@@ -195,8 +155,8 @@ files will still be usable but may contain incomplete titles and lack
 some hypertext links.
 
 It's also a good idea to set {\tt gif_path} which points to the
-directory containing two GIF images used in the HTML
-documents. Normally this is the {\tt Tools} subdirectory of Isabelle's
+directory containing two GIF images used in the HTML documents.
+Normally this is the \texttt{src/Tools} subdirectory of Isabelle's
 main directory. While its value in general is still valid, your HTML
 files would depend on files not owned by you. This prevents you from
 changing the location of the HTML files (as they contain relative
@@ -207,8 +167,8 @@ Here's what you should do before invoking {\tt init_html} using
 someone else's \ML{} database:
 
 \begin{ttbox}
-base_path := "/home/smith/isabelle";
-gif_path := "/home/smith/isabelle/Tools";
+base_path := "/home/someone/Isabelle-dist/src";
+gif_path := "/home/someone/Isabelle-dist/src/Tools";
 init_html();
 \dots
 \end{ttbox}

@@ -3,6 +3,64 @@
 
 \chapter{Miscellaneous tools}
 
+Subsequently we describe various Isabelle related utilities --- in
+alphabetical order.
+
+
+\section{Viewing documentation --- \texttt{isatool doc}} \label{sec:tool-doc}
+
+The \tooldx{doc} utility displays online documentation:
+\begin{ttbox}
+Usage: isatool doc [DOC]
+
+  View Isabelle documentation DOC, or show list of available documents.
+\end{ttbox}
+If called without arguments, it lists all available documents. Each
+line starts with an identifier, followed by some comment. Any of these
+identifiers may be specified as the first argument in order to have
+the corresponding document displayed.
+
+\medskip The \texttt{ISABELLE_DOCS} setting specifies the list of
+directories (separated by colons) to be scanned for documentations.
+The program for viewing \texttt{dvi} files is set in
+\texttt{DVI_VIEWER}.
+
+
+\section{Tuning proof scripts --- \texttt{isatool expandshort}}
+
+The \tooldx{expandshort} utility tunes {\ML} proof scripts to enhance
+readability a bit:
+\begin{ttbox}
+Usage: expandshort [FILES ...]
+
+  Expand shorthand goal commands in FILES.  Also contracts uses of
+  resolve_tac, dresolve_tac, eresolve_tac, rewrite_goals_tac on
+  1-element lists; furthermore expands tabs, since they are now
+  forbidden in ML string constants.
+
+  Renames old versions of FILES by appending "~~".
+\end{ttbox}
+In the files supplied as arguments, all occurrences of the shorthand
+commands \texttt{br}, \texttt{be} etc.\ are replaced with the
+corresponding full commands.  Shorthand commands should appear one per
+line.  The old versions of the files are renamed to have the
+suffix~\verb'~~'.
+
+\section{Get logic images --- \texttt{isatool findlogics}}
+
+The \tooldx{findlogics} utility traverses all directories specified in
+\texttt{ISABELLE_PATH}, looking for Isabelle logic images. Its usage
+is:
+\begin{ttbox}
+Usage: isatool findlogics
+
+  Collect heap file names from ISABELLE_PATH.
+\end{ttbox}
+The base names of all files found on the path are printed --- sorted
+and with duplicates removed. Also note that \texttt{ISABELLE_PATH}
+implicitely depends upon \texttt{ML_SYSTEM}. Thus switching to another
+{\ML} compiler may change the set of logic images available.
+
 
 \section{Inspecting the settings environment -- \texttt{isatool getenv}}
 \label{sec:tool-getenv}
@@ -23,26 +81,26 @@ Usage: isatool getenv [OPTIONS] [VARNAMES ...]
 With the \texttt{-a} option, one may inspect the full process
 environment that Isabelle related programs are run in. This usually
 contains much more variables than are actually Isabelle settings.
-
-Unless the \texttt{-b} option is given, the output is a list of lines
-of the form $varname\mathtt{=}value$.
+Normally output is a list of lines of the form
+\mbox{$varname$\texttt{=}$value$}. The \texttt{-b} option causes only
+the values to be printed.
 
 
 \subsection*{Examples}
 
 Get the {\ML} system identifier and the location where the compiler
-binaries are supposed to be installed as follows:
+binaries are supposed to reside as follows:
 \begin{ttbox}
 isatool getenv ML_SYSTEM ML_HOME
-{\out ML_HOME=/usr/local/sml109.27/bin}
 {\out ML_SYSTEM=smlnj-1.09}
+{\out ML_HOME=/usr/local/sml109.27/bin}
 \end{ttbox}
 
-This one peeks at the search path that \texttt{isabelle} uses to
+The next one peeks at the search path that \texttt{isabelle} uses to
 locate logic images:
 \begin{ttbox}
 isatool getenv -b ISABELLE_PATH
-{\out /home/mmw/isabelle/heaps/smlnj-1.09:/proj/isabelle/heaps/smlnj-1.09}
+{\out /home/me/isabelle/heaps/smlnj-1.09:/proj/isabelle/heaps/smlnj-1.09}
 \end{ttbox}
 We used the \texttt{-b} option to suppress the \texttt{ISABELLE_PATH=}
 prefix.  The value above is what became of the following assignment in
@@ -50,36 +108,41 @@ the default settings file:
 \begin{ttbox}
 ISABELLE_PATH=\$ISABELLE_HOME_USER/heaps:\$ISABELLE_HOME/heaps
 \end{ttbox}
-Note how \texttt{\$ML_SYSTEM} got appended automatically to each path
-component. This is a special feature of \texttt{ISABELLE_PATH} (and
-also of \texttt{ISABELLE_OUTPUT}).
+Note how the \texttt{ML_SYSTEM} value got appended automatically to
+each path component. This is a special feature of
+\texttt{ISABELLE_PATH} (and also of \texttt{ISABELLE_OUTPUT}).
 
-\section{Get logic images --- \texttt{isatool findlogics}}
-
-\begin{ttbox}
-Usage: isatool findlogics
-
-  Collect heap file names from ISABELLE_PATH.
-\end{ttbox}
 
 \section{Isabelle's version of make --- \texttt{isatool make}}
 
+The Isabelle \tooldx{make} utility is a very simple wrapper for
+ordinary Unix \texttt{make}:
 \begin{ttbox}
 Usage: isatool make [ARGS ...]
 
   Compiles logic in current directory using IsaMakefile.
   ARGS are directly passed to the system make program.
 \end{ttbox}
+Note that the Isabelle settings environment is also active. Thus one
+may refer to its values within the \texttt{IsaMakefile}, e.g.\ 
+\texttt{\$(ISABELLE_OUTPUT)}. Furthermore, programs started from the
+make file also inherit this environment.
+
+\medskip You may want to have a look at the \texttt{IsaMakefile}s of
+the distributed object-logics as examples for your own developements.
 
 
-\section{ --- \texttt{isatool usedir}}
+\section{Running complete logics --- \texttt{isatool usedir}} \label{sec:tool-usedir}
 
+FIXME
+
+%FIXME
+%    -g BOOL      generate theory graph data (default false)
 \begin{ttbox}
 Usage: isatool usedir LOGIC NAME
 
   Options are:
     -b           build mode (output heap image, use dir ".")
-    -g BOOL      generate theory graph data (default false)
     -h BOOL      generate theory HTML data (default false)
     -s NAME      override session NAME
 
@@ -87,25 +150,4 @@ Usage: isatool usedir LOGIC NAME
   information (HTML etc.) according to settings.
 \end{ttbox}
 
-
-\section{ --- \texttt{isatool doc}}
-
-\begin{ttbox}
-Usage: isatool doc [DOC]
-
-  View Isabelle documentation DOC, or show list of available documents.
-\end{ttbox}
-
-
-\section{ --- \texttt{isatool expandshort}}
-
-\begin{ttbox}
-Usage: expandshort [FILES ...]
-
-  Expand shorthand goal commands in FILES.  Also contracts uses of
-  resolve_tac, dresolve_tac, eresolve_tac, rewrite_goals_tac on
-  1-element lists; furthermore expands tabs, since they are now
-  forbidden in ML string constants.
-
-  Renames old versions of FILES by appending "~~".
-\end{ttbox}
+FIXME
