@@ -1,9 +1,6 @@
 (*  Title:   HOL/Ring_and_Field.thy
     ID:      $Id$
-    Author:  Gertrud Bauer and Markus Wenzel, TU Muenchen
-             Lawrence C Paulson, University of Cambridge
-             Revised and splitted into Ring_and_Field.thy and Group.thy 
-             by Steven Obua, TU Muenchen, in May 2004
+    Author:  Gertrud Bauer, Steven Obua, Lawrence C Paulson and Markus Wenzel
     License: GPL (GNU GENERAL PUBLIC LICENSE)
 *)
 
@@ -19,7 +16,7 @@ text {*
   \end{itemize}
   Most of the used notions can also be looked up in 
   \begin{itemize}
-  \item \emph{www.mathworld.com} by Eric Weisstein et. al.
+  \item \url{http://www.mathworld.com} by Eric Weisstein et. al.
   \item \emph{Algebra I} by van der Waerden, Springer.
   \end{itemize}
 *}
@@ -416,18 +413,6 @@ by (simp add: linorder_not_less)
 
 subsection{*More Monotonicity*}
 
-lemma mult_left_mono_neg:
-     "[|b \<le> a; c \<le> 0|] ==> c * a \<le> c * (b::'a::pordered_ring)"
-apply (drule mult_left_mono [of _ _ "-c"]) 
-apply (simp_all add: minus_mult_left [symmetric]) 
-done
-
-lemma mult_right_mono_neg:
-     "[|b \<le> a; c \<le> 0|] ==> a * c \<le> b * (c::'a::pordered_ring)"
-apply (drule mult_right_mono [of _ _ "-c"]) 
-apply (simp_all add: minus_mult_right [symmetric]) 
-done  
-
 text{*Strict monotonicity in both arguments*}
 lemma mult_strict_mono:
      "[|a<b; c<d; 0<b; 0\<le>c|] ==> a * c < b * (d::'a::ordered_semiring_strict)"
@@ -543,7 +528,7 @@ lemmas ring_eq_simps =
   add_diff_eq diff_add_eq diff_diff_eq diff_diff_eq2
   diff_eq_eq eq_diff_eq
     
-thm ring_eq_simps
+
 subsection {* Fields *}
 
 lemma right_inverse [simp]:

@@ -1543,12 +1543,6 @@ lemmas [simp] = take_Cons'[of "number_of v",standard]
                 nth_Cons'[of _ _ "number_of v",standard]
 
 
-lemma distinct_card: "distinct xs \<Longrightarrow> card (set xs) = size xs"
-  by (induct xs) auto
-
-lemma card_length: "card (set xs) \<le> length xs"
-  by (induct xs) (auto simp add: card_insert_if)
-
 lemma "card (set xs) = size xs \<Longrightarrow> distinct xs"
 proof (induct xs)
   case Nil thus ?case by simp

@@ -1,9 +1,6 @@
-(*  Title:   HOL/Group.thy
+(*  Title:   HOL/OrderedGroup.thy
     ID:      $Id$
-    Author:  Gertrud Bauer and Markus Wenzel, TU Muenchen
-             Lawrence C Paulson, University of Cambridge
-             Revised and decoupled from Ring_and_Field.thy 
-             by Steven Obua, TU Muenchen, in May 2004
+    Author:  Gertrud Bauer, Steven Obua, Lawrence C Paulson, and Markus Wenzel
     License: GPL (GNU GENERAL PUBLIC LICENSE)
 *)
 
@@ -20,7 +17,7 @@ text {*
   \end{itemize}
   Most of the used notions can also be looked up in 
   \begin{itemize}
-  \item \emph{www.mathworld.com} by Eric Weisstein et. al.
+  \item \url{http://www.mathworld.com} by Eric Weisstein et. al.
   \item \emph{Algebra I} by van der Waerden, Springer.
   \end{itemize}
 *}
@@ -589,7 +586,6 @@ proof -
     hence "0 <= a" by (blast intro: order_trans meet_join_le)
   }
   note p = this
-  thm p
   assume hyp:"join a (-a) = 0"
   hence hyp2:"join (-a) (-(-a)) = 0" by (simp add: join_comm)
   from p[OF hyp] p[OF hyp2] show "a = 0" by simp
