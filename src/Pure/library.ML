@@ -439,6 +439,12 @@ fun [] subset ys = true
 fun gen_subset eq (xs, ys) = forall (fn x => gen_mem eq (x, ys)) xs;
 
 
+(*eq_set*)
+
+fun eq_set (xs, ys) =
+  xs = ys orelse (xs subset ys andalso ys subset xs);
+
+
 (*removing an element from a list WITHOUT duplicates*)
 infix \;
 fun (y :: ys) \ x = if x = y then ys else y :: (ys \ x)
