@@ -54,7 +54,8 @@ from A/r to A//r;
 
 * Isar/Provers: intro/elim/dest attributes: changed
 intro/intro!/intro!!  flags to intro!/intro/intro? (in most cases, one
-should have to change intro!! to intro? only);
+should have to change intro!! to intro? only); replaced "delrule" by
+"rule del";
 
 * Isar: changed syntax of local blocks from {{ }} to { };
 
@@ -193,7 +194,7 @@ INCOMPATIBILITY); emulation of mk_cases feature for proof scripts:
 
 * Provers: intro/elim/dest attributes: changed intro/intro!/intro!!
 flags to intro!/intro/intro? (in most cases, one should have to change
-intro!! to intro? only);
+intro!! to intro? only); replaced "delrule" by "rule del";
 
 * names of theorems etc. may be natural numbers as well;
 
