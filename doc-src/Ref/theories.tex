@@ -290,6 +290,7 @@ show_path: unit -> string list
 add_path: string -> unit
 del_path: string -> unit
 reset_path: unit -> unit
+with_path: string -> ('a -> 'b) -> 'a -> 'b
 \end{ttbox}
 
 \begin{ttdescription}
@@ -304,13 +305,15 @@ reset_path: unit -> unit
   
 \item[\ttindexbold{reset_path}();] resets the load path to ``\texttt{.}''
   (current directory) only.
+  
+\item[\ttindexbold{with_path} "$dir$" $f$ $x$;] temporarily adds component
+  $dir$ to the beginning of the load path before executing $(f~x)$.
+
 \end{ttdescription}
 
-In operations referring indirectly to some file, the argument may be prefixed
-by a directory that will be temporarily appended to the load path, e.g.\ 
-\texttt{use_thy~"$dir/name$"}.  Note that, depending on which parts of the
-ancestry of $name$ are already loaded, the dynamic change of paths might be
-hard to predict.  Use this feature with great care only.
+Furthermore, in operations referring indirectly to some file (e.g.\ 
+\texttt{use_dir}) the argument may be prefixed by a directory that will be
+temporarily appended to the load path, too.
 
 
 \section{Locales}
