@@ -341,10 +341,12 @@ let fun split([],tvs,vs) = (tvs,vs)
                       Some T => typ_subst_TVars tye T
                     | None => absent ixn;
             val (ct,tye2) = read_def_cterm (sign,types,sorts) (st,T);
-            val cv = cterm_of sign (Var(ixn,typ_subst_TVars tye2 T))
-        in ((cv,ct)::cts,tye2 @ tye) end
+        in ((ixn,T,ct)::cts,tye2 @ tye) end
     val (cterms,tye') = foldl add_cterm (([],tye), vs);
-in (map (fn (ixn,T) => (ixn,ctyp_of sign T)) tye', cterms) end;
+in (map (fn (ixn,T) => (ixn,ctyp_of sign T)) tye',
+    map (fn (ixn,T,ct)=> (cterm_of sign (Var(ixn,typ_subst_TVars tye' T)), ct))
+        cterms)
+end;
 
 end;
 
