@@ -61,6 +61,7 @@ signature ZF_LEMMAS =
   val separation	: thm
   val setup_induction	: thm
   val set_mp_tac	: int -> tactic
+  val subset0_cs	: claset
   val subsetCE		: thm
   val subsetD		: thm
   val subsetI		: thm
@@ -466,12 +467,16 @@ val equals0D = prove_goal ZF.thy "[| A=0;  a:A |] ==> P"
  (fn [major,minor]=>
   [ (rtac (minor RS (major RS equalityD1 RS subsetD RS emptyE)) 1) ]);
 
-val lemmas_cs = FOL_cs
-  addSIs [ballI, InterI, CollectI, PowI, subsetI]
+(*A claset that leaves <= formulae unchanged!*)
+val subset0_cs = FOL_cs
+  addSIs [ballI, InterI, CollectI, PowI, empty_subsetI]
   addIs [bexI, UnionI, ReplaceI, RepFunI]
   addSEs [bexE, make_elim PowD, UnionE, ReplaceE2, RepFunE,
 	  CollectE, emptyE]
-  addEs [rev_ballE, InterD, make_elim InterD, subsetD, subsetCE];
+  addEs [rev_ballE, InterD, make_elim InterD, subsetD];
+
+(*Standard claset*)
+val lemmas_cs = subset0_cs addSIs [subsetI] addEs [subsetCE];
 
 (*Lemma for the inductive definition in Zorn.thy*)
 val Union_in_Pow = prove_goal ZF.thy
