@@ -164,6 +164,9 @@ functions (useful for Hoare logic etc. with implicit dependencies);
 * Simplifier now offers conversions (asm_)(full_)rewrite: simpset ->
 cterm -> thm;
 
+* Pure: several new basic modules made available for general use, see
+also src/Pure/README;
+
 
 
 New in Isabelle98 (January 1998)
