@@ -187,7 +187,7 @@ fun copy_node true (Theory thy) = Theory (Theory.copy thy)
 
 fun interruptible f x =
   let val y = ref (None: node History.T option);
-  in exhibit_interrupt (fn () => y := Some (f x)) (); the (! y) end;
+  in raise_interrupt (fn () => y := Some (f x)) (); the (! y) end;
 
 val rollback = ERROR_MESSAGE "Stale signature encountered after succesful execution!";
 
@@ -254,7 +254,7 @@ fun apply_tr _ Reset _ = toplevel
   | apply_tr _ Kill (State None) = raise UNDEF
   | apply_tr _ Kill (State (Some (node, (_, kill)))) =
       (kill (History.current node); State None)
-  | apply_tr int (Keep f) state = (exhibit_interrupt (f int) state; state)
+  | apply_tr int (Keep f) state = (raise_interrupt (f int) state; state)
   | apply_tr _ (History _) (State None) = raise UNDEF
   | apply_tr _ (History f) (State (Some (node, term))) = State (Some (f node, term))
   | apply_tr int (MapCurrent f) state = node_trans int false f state
@@ -499,7 +499,7 @@ fun raw_loop src =
   | Some (Some (tr, src')) => if >> tr then raw_loop src' else ());
 
 
-fun loop src = mask_interrupt raw_loop src;
+fun loop src = ignore_interrupt raw_loop src;
 
 
 end;
