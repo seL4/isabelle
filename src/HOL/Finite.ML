@@ -174,6 +174,22 @@ by (ALLGOALS
 qed "finite_Pow_iff";
 AddIffs [finite_Pow_iff];
 
+goal Finite.thy "finite(converse r) = finite r";
+by(subgoal_tac "converse r = (%(x,y).(y,x))``r" 1);
+ by(Asm_simp_tac 1);
+ br iffI 1;
+  be (rewrite_rule [inj_onto_def] finite_imageD) 1;
+  by(simp_tac (!simpset setloop (split_tac[expand_split])) 1);
+ be finite_imageI 1;
+by(simp_tac (!simpset addsimps [converse_def,image_def]) 1);
+by(Auto_tac());
+ br bexI 1;
+ ba 2;
+ by(Simp_tac 1);
+by(split_all_tac 1);
+by(Asm_full_simp_tac 1);
+qed "finite_converse";
+AddIffs [finite_converse];
 
 section "Finite cardinality -- 'card'";
 
