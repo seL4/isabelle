@@ -828,10 +828,15 @@ end;
 
 (** cases **)
 
+fun check_case ctxt name (xs, ts) =
+  if null (foldr Term.add_typ_tvars (map snd xs, [])) andalso
+    null (foldr Term.add_term_vars (ts, [])) then ()
+  else raise CONTEXT ("Illegal schematic variable(s) in case " ^ quote name, ctxt);
+
 fun get_case (ctxt as Context {cases, ...}) name =
   (case Symtab.lookup (cases, name) of
     None => raise CONTEXT ("Unknown case: " ^ quote name, ctxt)
-  | Some c => c);
+  | Some c => (check_case ctxt name c; c));
 
 
 fun add_case (tab, ("", _)) = tab
