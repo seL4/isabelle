@@ -3,8 +3,8 @@
 \bibitem{abramsky90}
 Abramsky, S.,
 \newblock The lazy lambda calculus,
-\newblock In {\em Resesarch Topics in Functional Programming}, D.~A. Turner,
-  Ed. Addison-Wesley, 1977, pp.~65--116
+\newblock In {\em Research Topics in Functional Programming}, D.~A. Turner, Ed.
+  Addison-Wesley, 1977, pp.~65--116
 
 \bibitem{aczel77}
 Aczel, P.,
@@ -37,8 +37,14 @@ Davey, B.~A., Priestley, H.~A.,
 Dybjer, P.,
 \newblock Inductive sets and families in {Martin-L\"of's} type theory and their
   set-theoretic semantics,
-\newblock In {\em Logical Frameworks}, G.~Huet, G.~Plotkin, Eds. Cambridge
-  Univ. Press, 1991, pp.~280--306
+\newblock In {\em Logical Frameworks}, G.~Huet G.~Plotkin, Eds. Cambridge Univ.
+  Press, 1991, pp.~280--306
+
+\bibitem{types94}
+Dybjer, P., Nordstr{\"om}, B., Smith, J., Eds.,
+\newblock {\em Types for Proofs and Programs: International Workshop {TYPES
+  '94}},
+\newblock LNCS 996. Springer, published 1995
 
 \bibitem{IMPS}
 Farmer, W.~M., Guttman, J.~D., Thayer, F.~J.,
@@ -50,6 +56,18 @@ Frost, J.,
 \newblock A case study of co-induction in {Isabelle},
 \newblock Tech. Rep. 359, Comp. Lab., Univ. Cambridge, Feb. 1995
 
+\bibitem{gimenez-codifying}
+Gim{\'e}nez, E.,
+\newblock Codifying guarded definitions with recursive schemes,
+\newblock In Dybjer et~al. \cite{types94}, pp.~39--59
+
+\bibitem{gunter-trees}
+Gunter, E.~L.,
+\newblock A broader class of trees for recursive type definitions for {HOL},
+\newblock In {\em Higher Order Logic Theorem Proving and Its Applications: HUG
+  '93\/} (Published 1994), J.~Joyce C.~Seger, Eds., LNCS 780, Springer,
+  pp.~141--154
+
 \bibitem{hennessy90}
 Hennessy, M.,
 \newblock {\em The Semantics of Programming Languages: An Elementary
@@ -60,14 +78,13 @@ Hennessy, M.,
 Huet, G.,
 \newblock Induction principles formalized in the {Calculus of Constructions},
 \newblock In {\em Programming of Future Generation Computers\/} (1988),
-  K.~Fuchi, M.~Nivat, Eds., Elsevier, pp.~205--216
+  K.~Fuchi M.~Nivat, Eds., Elsevier, pp.~205--216
 
 \bibitem{melham89}
 Melham, T.~F.,
 \newblock Automating recursive type definitions in higher order logic,
 \newblock In {\em Current Trends in Hardware Verification and Automated Theorem
-  Proving}, G.~Birtwistle, P.~A. Subrahmanyam, Eds. Springer, 1989,
-  pp.~341--386
+  Proving}, G.~Birtwistle P.~A. Subrahmanyam, Eds. Springer, 1989, pp.~341--386
 
 \bibitem{milner-ind}
 Milner, R.,
@@ -92,9 +109,16 @@ Monahan, B.~Q.,
 \bibitem{nipkow-CR}
 Nipkow, T.,
 \newblock More {Church-Rosser} proofs (in {Isabelle/HOL}),
-\newblock In {\em Automated Deduction --- {CADE}-13\/} (1996), M.~McRobbie,
+\newblock In {\em Automated Deduction --- {CADE}-13\/} (1996), M.~McRobbie
   J.~Slaney, Eds., LNAI, Springer, p.~?,
 \newblock in press
+
+\bibitem{pvs-language}
+Owre, S., Shankar, N., Rushby, J.~M.,
+\newblock {\em The {PVS} specification language},
+\newblock Computer Science Laboratory, SRI International, Menlo Park, CA, Apr.
+  1993,
+\newblock Beta release
 
 \bibitem{paulin92}
 Paulin-Mohring, C.,
@@ -131,9 +155,7 @@ Paulson, L.~C.,
 \bibitem{paulson-final}
 Paulson, L.~C.,
 \newblock A concrete final coalgebra theorem for {ZF} set theory,
-\newblock In {\em Types for Proofs and Programs: International Workshop {TYPES
-  '94}\/} (published 1995), P.~Dybjer, B.~Nordstr{\"om},, J.~Smith, Eds., LNCS
-  996, Springer, pp.~120--139
+\newblock In Dybjer et~al. \cite{types94}, pp.~120--139
 
 \bibitem{paulson-gr}
 Paulson, L.~C., Gr\c{a}bczewski, K.,
@@ -157,7 +179,7 @@ Rasmussen, O.,
 Saaltink, M., Kromodimoeljo, S., Pase, B., Craigen, D., Meisels, I.,
 \newblock An {EVES} data abstraction example,
 \newblock In {\em FME '93: Industrial-Strength Formal Methods\/} (1993),
-  J.~C.~P. Woodcock, P.~G. Larsen, Eds., LNCS 670, Springer, pp.~578--596
+  J.~C.~P. Woodcock P.~G. Larsen, Eds., LNCS 670, Springer, pp.~578--596
 
 \bibitem{slind-tfl}
 Slind, K.,
@@ -170,7 +192,7 @@ Slind, K.,
 Szasz, N.,
 \newblock A machine checked proof that {Ackermann's} function is not primitive
   recursive,
-\newblock In {\em Logical Environments}, G.~Huet, G.~Plotkin, Eds. Cambridge
+\newblock In {\em Logical Environments}, G.~Huet G.~Plotkin, Eds. Cambridge
   Univ. Press, 1993, pp.~317--338
 
 \bibitem{voelker95}

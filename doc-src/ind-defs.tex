@@ -1,6 +1,6 @@
 \documentstyle[a4,alltt,iman,extra,proof209,12pt]{article}
 \newif\ifshort
-\shortfalse
+\shortfalse%%%%%\shorttrue
 
 \title{A Fixedpoint Approach to\\ 
   (Co)Inductive and (Co)Datatype Definitions%
@@ -20,6 +20,7 @@
 \newcommand\emph[1]{{\em#1\/}}
 \newcommand\defn[1]{{\bf#1}}
 \newcommand\textsc[1]{{\sc#1}}
+\newcommand\texttt[1]{{\tt#1}}
 
 \newcommand\pow{{\cal P}}
 %%%\let\pow=\wp
@@ -99,10 +100,9 @@
   Instead of using a syntactic test such as ``strictly positive,'' the
   approach lets definitions involve any operators that have been proved
   monotone.  It is conceptually simple, which has allowed the easy
-  implementation of mutual recursion and other conveniences.  It also
+  implementation of mutual recursion and iterated definitions.  It also
   handles coinductive definitions: simply replace the least fixedpoint by a
-  greatest fixedpoint.  This represents the first automated support for
-  coinductive definitions.
+  greatest fixedpoint.  
 
   The method has been implemented in two of Isabelle's logics, \textsc{zf} set
   theory and higher-order logic.  It should be applicable to any logic in
@@ -114,7 +114,8 @@
 
   The Isabelle package has been applied in several large case studies,
   including two proofs of the Church-Rosser theorem and a coinductive proof of
-  semantic consistency.
+  semantic consistency.  The package can be trusted because it proves theorems
+  from definitions, instead of asserting desired properties as axioms.
 \end{abstract}
 %
 \bigskip
@@ -162,8 +163,7 @@ to prove it.
 This paper describes a package based on a fixedpoint approach.  Least
 fixedpoints yield inductive definitions; greatest fixedpoints yield
 coinductive definitions.  Most of the discussion below applies equally to
-inductive and coinductive definitions, and most of the code is shared.  To my
-knowledge, this is the only package supporting coinductive definitions.
+inductive and coinductive definitions, and most of the code is shared.  
 
 The package supports mutual recursion and infinitely-branching datatypes and
 codatatypes.  It allows use of any operators that have been proved monotone,
@@ -224,9 +224,9 @@ This fixedpoint theory is simple.  The Knaster-Tarski theorem is easy to
 prove.  Showing monotonicity of~$h$ is trivial, in typical cases.  We must
 also exhibit a bounding set~$D$ for~$h$.  Frequently this is trivial, as when
 a set of theorems is (co)inductively defined over some previously existing set
-of formul{\ae}.  Isabelle/\textsc{zf} provides suitable bounding sets for infinitely
-branching (co)datatype definitions; see~\S\ref{univ-sec}.  Bounding sets are
-also called \defn{domains}.
+of formul{\ae}.  Isabelle/\textsc{zf} provides suitable bounding sets for
+infinitely-branching (co)datatype definitions; see~\S\ref{univ-sec}.  Bounding
+sets are also called \defn{domains}.
 
 The powerset operator is monotone, but by Cantor's theorem there is no
 set~$A$ such that $A=\pow(A)$.  We cannot put $A=\lfp(D,\pow)$ because
@@ -426,12 +426,12 @@ but includes an induction hypothesis:
 \[ \infer{P(x)}{x\in\Fin(A) & P(\emptyset)
         & \infer*{P(\{a\}\un b)}{[a\in A & b\in\Fin(A) & P(b)]_{a,b}} }
 \] 
-Stronger induction rules often suggest themselves.  We can derive a rule
-for $\Fin(A)$ whose third premise discharges the extra assumption $a\not\in
-b$.  The Isabelle/\textsc{zf} theory defines the \defn{rank} of a
-set~\cite[\S3.4]{paulson-set-II}, which supports well-founded induction and
-recursion over datatypes.  The package proves a rule for mutual induction, and
-modifies the default rule if~$R$ is a relation.
+Stronger induction rules often suggest themselves.  We can derive a rule for
+$\Fin(A)$ whose third premise discharges the extra assumption $a\not\in b$.
+The package provides rules for mutual induction and inductive relations.  The
+Isabelle/\textsc{zf} theory also supports well-founded induction and recursion
+over datatypes, by reasoning about the \defn{rank} of a
+set~\cite[\S3.4]{paulson-set-II}.
 
 
 \subsection{Modified induction rules}
@@ -534,7 +534,7 @@ rules:
 \[ \emptyset\sbs A              \qquad
    \infer{\{a\}\un B\sbs C}{a\in C & B\sbs C}
 \]
-A further introduction rule and an elimination rule express the two
+A further introduction rule and an elimination rule express both
 directions of the equivalence $A\in\pow(B)\bimp A\sbs B$.  Type-checking
 involves mostly introduction rules.  
 
@@ -559,10 +559,10 @@ are not acceptable to the inductive definition package:
 $\listn$ occurs with three different parameter lists in the definition.
 
 The Isabelle version of this example suggests a general treatment of
-varying parameters.  Here, we use the existing datatype definition of
-$\lst(A)$, with constructors $\Nil$ and~$\Cons$.  Then incorporate the
-parameter~$n$ into the inductive set itself, defining $\listn(A)$ as a
-relation.  It consists of pairs $\pair{n,l}$ such that $n\in\nat$
+varying parameters.  It uses the existing datatype definition of
+$\lst(A)$, with constructors $\Nil$ and~$\Cons$, and incorporates the
+parameter~$n$ into the inductive set itself.  It defines $\listn(A)$ as a
+relation consisting of pairs $\pair{n,l}$ such that $n\in\nat$
 and~$l\in\lst(A)$ and $l$ has length~$n$.  In fact, $\listn(A)$ is the
 converse of the length function on~$\lst(A)$.  The Isabelle/\textsc{zf} introduction
 rules are
@@ -604,14 +604,13 @@ This latter result --- here $r``X$ denotes the image of $X$ under $r$
 --- asserts that the inductive definition agrees with the obvious notion of
 $n$-element list.  
 
-Unlike in Coq, the definition does not declare a new datatype.  A ``list of
-$n$ elements'' really is a list and is subject to list operators such
-as append (concatenation).  For example, a trivial induction on
-$\pair{m,l}\in\listn(A)$ yields
-\[ \infer{\pair{m\mathbin{+} m,\, l@l'}\in\listn(A)}
+A ``list of $n$ elements'' really is a list, namely an element of ~$\lst(A)$.
+It is subject to list operators such as append (concatenation).  For example,
+a trivial induction on $\pair{m,l}\in\listn(A)$ yields
+\[ \infer{\pair{m\mathbin{+} m',\, l@l'}\in\listn(A)}
          {\pair{m,l}\in\listn(A) & \pair{m',l'}\in\listn(A)} 
 \]
-where $+$ here denotes addition on the natural numbers and @ denotes append.
+where $+$ denotes addition on the natural numbers and @ denotes append.
 
 \subsection{Rule inversion: the function {\tt mk\_cases}}
 The elimination rule, {\tt listn.elim}, is cumbersome:
@@ -738,7 +737,7 @@ introduction rule of the form
 Paulin-Mohring treats this example in Coq~\cite{paulin92}, but it causes
 difficulties for other systems.  Its premise is not acceptable to the
 inductive definition package of the Cambridge \textsc{hol}
-system~\cite{camilleri92}.  It is also unacceptable to Isabelle package
+system~\cite{camilleri92}.  It is also unacceptable to the Isabelle package
 (recall \S\ref{intro-sec}), but fortunately can be transformed into the
 acceptable form $t\in M(R)$.
 
@@ -869,12 +868,13 @@ The induction rule for $\primrec$ has one case for each introduction rule.
 Due to the use of $\lst$ as a monotone operator, the composition case has
 an unusual induction hypothesis:
  \[ \infer*{P(\COMP(g,\fs))}
-          {[g\in\primrec & \fs\in\lst(\{z\in\primrec.P(z)\})]_{\fs,g}} \]
-The hypothesis states that $\fs$ is a list of primitive recursive functions
-satisfying the induction formula.  Proving the $\COMP$ case typically requires
-structural induction on lists, yielding two subcases: either $\fs=\Nil$ or
-else $\fs=\Cons(f,\fs')$, where $f\in\primrec$, $P(f)$, and $\fs'$ is
-another list of primitive recursive functions satisfying~$P$.
+          {[g\in\primrec & \fs\in\lst(\{z\in\primrec.P(z)\})]_{\fs,g}} 
+\]
+The hypothesis states that $\fs$ is a list of primitive recursive functions,
+each satisfying the induction formula.  Proving the $\COMP$ case typically
+requires structural induction on lists, yielding two subcases: either
+$\fs=\Nil$ or else $\fs=\Cons(f,\fs')$, where $f\in\primrec$, $P(f)$, and
+$\fs'$ is another list of primitive recursive functions satisfying~$P$.
 
 Figure~\ref{primrec-fig} presents the theory file.  Theory {\tt Primrec}
 defines the constants $\SC$, $\CONST$, etc.  These are not constructors of
@@ -934,7 +934,8 @@ and~$\QInr(b)$ and variant disjoint sum $A\oplus B$.  Finally it defines the
 set $\quniv(A)$, which contains~$A$ and furthermore contains $\pair{a;b}$,
 $\QInl(a)$ and $\QInr(b)$ for $a$, $b\in\quniv(A)$.  In a typical codatatype
 definition with set parameters $A_1$, \ldots, $A_k$, a suitable domain is
-$\quniv(A_1\un\cdots\un A_k)$.
+$\quniv(A_1\un\cdots\un A_k)$.  Details are published
+elsewhere~\cite{paulson-final}.
 
 \subsection{The case analysis operator}
 The (co)datatype package automatically defines a case analysis operator,
@@ -971,8 +972,8 @@ $\qsplit$ and~$\qcase$.
 \medskip
 
 To see how constructors and the case analysis operator are defined, let us
-examine some examples.  These include lists and trees/forests, which I have
-discussed extensively in another paper~\cite{paulson-set-II}.
+examine some examples.  Further details are available
+elsewhere~\cite{paulson-set-II}.
 
 
 \subsection{Example: lists and lazy lists}\label{lists-sec}
@@ -990,24 +991,27 @@ codatatype "llist(A)" = LNil | LCons ("a: A", "l: llist(A)")
 
 Each form of list has two constructors, one for the empty list and one for
 adding an element to a list.  Each takes a parameter, defining the set of
-lists over a given set~$A$.  Each requires {\tt Datatype} as a parent theory;
-this makes available the definitions of $\univ$ and $\quniv$.  Each is
-automatically given the appropriate domain: $\univ(A)$ for $\lst(A)$ and
-$\quniv(A)$ for $\llist(A)$.  The default can be overridden.
+lists over a given set~$A$.  Each is automatically given the appropriate
+domain: $\univ(A)$ for $\lst(A)$ and $\quniv(A)$ for $\llist(A)$.  The default
+can be overridden.
 
+\ifshort
+Now $\lst(A)$ is a datatype and enjoys the usual induction rule.
+\else
 Since $\lst(A)$ is a datatype, it enjoys a structural induction rule, {\tt
   list.induct}:
 \[ \infer{P(x)}{x\in\lst(A) & P(\Nil)
         & \infer*{P(\Cons(a,l))}{[a\in A & l\in\lst(A) & P(l)]_{a,l}} }
 \] 
 Induction and freeness yield the law $l\not=\Cons(a,l)$.  To strengthen this,
-Isabelle/\textsc{zf} defines the rank of a set and proves that the standard pairs and
-injections have greater rank than their components.  An immediate consequence,
-which justifies structural recursion on lists \cite[\S4.3]{paulson-set-II},
-is
+Isabelle/\textsc{zf} defines the rank of a set and proves that the standard
+pairs and injections have greater rank than their components.  An immediate
+consequence, which justifies structural recursion on lists
+\cite[\S4.3]{paulson-set-II}, is
 \[ \rank(l) < \rank(\Cons(a,l)). \]
-
-Since $\llist(A)$ is a codatatype, it has no induction rule.  Instead it has
+\par
+\fi
+But $\llist(A)$ is a codatatype and has no induction rule.  Instead it has
 the coinduction rule shown in \S\ref{coind-sec}.  Since variant pairs and
 injections are monotonic and need not have greater rank than their
 components, fixedpoint operators can create cyclic constructions.  For
@@ -1015,13 +1019,17 @@ example, the definition
 \[ \lconst(a) \equiv \lfp(\univ(a), \lambda l. \LCons(a,l)) \]
 yields $\lconst(a) = \LCons(a,\lconst(a))$.
 
+\ifshort
+\typeout{****SHORT VERSION}
+\typeout{****Omitting discussion of constructors!}
+\else
 \medskip
 It may be instructive to examine the definitions of the constructors and
 case operator for $\lst(A)$.  The definitions for $\llist(A)$ are similar.
 The list constructors are defined as follows:
 \begin{eqnarray*}
-  \Nil       & = & \Inl(\emptyset) \\
-  \Cons(a,l) & = & \Inr(\pair{a,l})
+  \Nil       & \equiv & \Inl(\emptyset) \\
+  \Cons(a,l) & \equiv & \Inr(\pair{a,l})
 \end{eqnarray*}
 The operator $\lstcase$ performs case analysis on these two alternatives:
 \[ \lstcase(c,h) \equiv \case(\lambda u.c, \split(h)) \]
@@ -1036,8 +1044,12 @@ Let us verify the two equations:
      & = & \split(h, \pair{x,y}) \\
      & = & h(x,y)
 \end{eqnarray*} 
+\fi
 
 
+\ifshort
+\typeout{****Omitting mutual recursion example!}
+\else
 \subsection{Example: mutual recursion}
 In mutually recursive trees and forests~\cite[\S4.5]{paulson-set-II}, trees
 have the one constructor $\Tcons$, while forests have the two constructors
@@ -1091,19 +1103,22 @@ Both forest constructors have the form $\Inr(\cdots)$,
 while the tree constructor has the form $\Inl(\cdots)$.  This pattern would
 hold regardless of how many tree or forest constructors there were.
 \begin{eqnarray*}
-  \Tcons(a,l)  & = & \Inl(\pair{a,l}) \\
-  \Fnil        & = & \Inr(\Inl(\emptyset)) \\
-  \Fcons(a,l)  & = & \Inr(\Inr(\pair{a,l}))
+  \Tcons(a,l)  & \equiv & \Inl(\pair{a,l}) \\
+  \Fnil        & \equiv & \Inr(\Inl(\emptyset)) \\
+  \Fcons(a,l)  & \equiv & \Inr(\Inr(\pair{a,l}))
 \end{eqnarray*} 
 There is only one case operator; it works on the union of the trees and
 forests:
 \[ {\tt tree\_forest\_case}(f,c,g) \equiv 
-    \case(\split(f),\, \case(\lambda u.c, \split(g))) \]
+    \case(\split(f),\, \case(\lambda u.c, \split(g))) 
+\]
+\fi
 
 
-\subsection{A four-constructor datatype}
-Finally let us consider a fairly general datatype.  It has four
-constructors $\Con_0$, \ldots, $\Con_3$, with the corresponding arities.
+\subsection{Example: a four-constructor datatype}
+A bigger datatype will illustrate some efficiency 
+refinements.  It has four constructors $\Con_0$, \ldots, $\Con_3$, with the
+corresponding arities.
 \begin{ttbox}
 consts    data :: [i,i] => i
 datatype  "data(A,B)" = Con0
@@ -1116,14 +1131,14 @@ automatically supplies $\univ(A\un B)$ as its domain.  The structural
 induction rule has four minor premises, one per constructor, and only the last
 has an induction hypothesis.  (Details are left to the reader.)
 
-The constructor definitions are
+The constructors are defined by the equations
 \begin{eqnarray*}
-  \Con_0         & = & \Inl(\Inl(\emptyset)) \\
-  \Con_1(a)      & = & \Inl(\Inr(a)) \\
-  \Con_2(a,b)    & = & \Inr(\Inl(\pair{a,b})) \\
-  \Con_3(a,b,c)  & = & \Inr(\Inr(\pair{a,b,c})).
+  \Con_0         & \equiv & \Inl(\Inl(\emptyset)) \\
+  \Con_1(a)      & \equiv & \Inl(\Inr(a)) \\
+  \Con_2(a,b)    & \equiv & \Inr(\Inl(\pair{a,b})) \\
+  \Con_3(a,b,c)  & \equiv & \Inr(\Inr(\pair{a,b,c})).
 \end{eqnarray*} 
-The case operator is
+The case analysis operator is
 \[ {\tt data\_case}(f_0,f_1,f_2,f_3) \equiv 
     \case(\begin{array}[t]{@{}l}
           \case(\lambda u.f_0,\; f_1),\, \\
@@ -1133,13 +1148,12 @@ The case operator is
 This may look cryptic, but the case equations are trivial to verify.
 
 In the constructor definitions, the injections are balanced.  A more naive
-approach is to define $\Con_3(a,b,c)$ as
-$\Inr(\Inr(\Inr(\pair{a,b,c})))$; instead, each constructor has two
-injections.  The difference here is small.  But the \textsc{zf} examples include a
-60-element enumeration type, where each constructor has 5 or~6 injections.
-The naive approach would require 1 to~59 injections; the definitions would be
-quadratic in size.  It is like the difference between the binary and unary
-numeral systems. 
+approach is to define $\Con_3(a,b,c)$ as $\Inr(\Inr(\Inr(\pair{a,b,c})))$;
+instead, each constructor has two injections.  The difference here is small.
+But the \textsc{zf} examples include a 60-element enumeration type, where each
+constructor has 5 or~6 injections.  The naive approach would require 1 to~59
+injections; the definitions would be quadratic in size.  It is like the
+advantage of binary notation over unary.
 
 The result structure contains the case operator and constructor definitions as
 the theorem list \verb|con_defs|. It contains the case equations, such as 
@@ -1190,16 +1204,18 @@ The use of least fixedpoints to express inductive definitions seems
 obvious.  Why, then, has this technique so seldom been implemented?
 
 Most automated logics can only express inductive definitions by asserting
-new axioms.  Little would be left of Boyer and Moore's logic~\cite{bm79} if
-their shell principle were removed.  With \textsc{alf} the situation is more
+axioms.  Little would be left of Boyer and Moore's logic~\cite{bm79} if their
+shell principle were removed.  With \textsc{alf} the situation is more
 complex; earlier versions of Martin-L\"of's type theory could (using
-wellordering types) express datatype definitions, but the version
-underlying \textsc{alf} requires new rules for each definition~\cite{dybjer91}.
-With Coq the situation is subtler still; its underlying Calculus of
-Constructions can express inductive definitions~\cite{huet88}, but cannot
-quite handle datatype definitions~\cite{paulin92}.  It seems that
-researchers tried hard to circumvent these problems before finally
-extending the Calculus with rule schemes for strictly positive operators.
+wellordering types) express datatype definitions, but the version underlying
+\textsc{alf} requires new rules for each definition~\cite{dybjer91}.  With Coq
+the situation is subtler still; its underlying Calculus of Constructions can
+express inductive definitions~\cite{huet88}, but cannot quite handle datatype
+definitions~\cite{paulin92}.  It seems that researchers tried hard to
+circumvent these problems before finally extending the Calculus with rule
+schemes for strictly positive operators.  Recently Gim{\'e}nez has extended
+the Calculus of Constructions with inductive and coinductive
+types~\cite{gimenez-codifying}, with mechanized support in Coq.
 
 Higher-order logic can express inductive definitions through quantification
 over unary predicates.  The following formula expresses that~$i$ belongs to the
@@ -1215,10 +1231,19 @@ datatype package expresses the user's datatypes in terms of labelled trees.
 It has been highly successful, but a fixedpoint approach might have yielded
 greater power with less effort.
 
+Elsa Gunter~\cite{gunter-trees} reports an ongoing project to generalize the
+Cambridge \textsc{hol} system with mutual recursion and infinitely-branching
+trees.  She retains many features of Melham's approach.
+
 Melham's inductive definition package~\cite{camilleri92} also uses
 quantification over predicates.  But instead of formalizing the notion of
 monotone function, it requires definitions to consist of finitary rules, a
 syntactic form that excludes many monotone inductive definitions.
+
+\textsc{pvs}~\cite{pvs-language} is another proof assistant based on
+higher-order logic.  It supports both inductive definitions and datatypes,
+apparently by asserting axioms.  Datatypes may not be iterated in general, but
+may use recursion over the built-in $\lst$ type.
 
 The earliest use of least fixedpoints is probably Robin Milner's.  Brian
 Monahan extended this package considerably~\cite{monahan84}, as did I in
@@ -1251,7 +1276,7 @@ a set (rather than a proper class).  This problem is inherent to set theory,
 whether or not the Knaster-Tarski theorem is employed.  We must exhibit a
 bounding set (called a domain above).  For inductive definitions, this is
 often trivial.  For datatype definitions, I have had to formalize much set
-theory.  To justify infinitely branching datatype definitions, I have had to
+theory.  To justify infinitely-branching datatype definitions, I have had to
 develop a theory of cardinal arithmetic~\cite{paulson-gr}, such as the theorem
 that if $\kappa$ is an infinite cardinal and $|X(\alpha)| \le \kappa$ for all
 $\alpha<\kappa$ then $|\union\sb{\alpha<\kappa} X(\alpha)| \le \kappa$.  
@@ -1302,7 +1327,7 @@ cause complications.
 \end{footnotesize}
 %%%%%\doendnotes
 
-\ifshort\typeout{****Omitting appendices from short version!}
+\ifshort\typeout{****Omitting appendices}
 \else
 \newpage
 \appendix
@@ -1311,6 +1336,9 @@ A theory file may contain any number of inductive and coinductive
 definitions.  They may be intermixed with other declarations; in
 particular, the (co)inductive sets \defn{must} be declared separately as
 constants, and may have mixfix syntax or be subject to syntax translations.
+
+The syntax is rather complicated.  Please consult the examples above and the
+theory files on the \textsc{zf} source directory.  
 
 Each (co)inductive definition adds definitions to the theory and also proves
 some theorems.  Each definition creates an \textsc{ml} structure, which is a
@@ -1439,10 +1467,15 @@ may contain any number of side-conditions.
   occur in~$t$, will be substituted through the rule \verb|mutual_induct|.
 \end{itemize}
 
+Isabelle/\textsc{hol} uses a simplified syntax for inductive definitions,
+thanks to type-checking.  There are no \texttt{domains}, \texttt{type\_intrs}
+or \texttt{type\_elims} parts.
+
 
 \section{Datatype and codatatype definitions: users guide}
 This section explains how to include (co)datatype declarations in a theory
-file.  
+file.  Please include {\tt Datatype} as a parent theory; this makes available
+the definitions of $\univ$ and $\quniv$.
 
 
 \subsection{The result structure}
@@ -1496,10 +1529,8 @@ datatype <={\it domain}
   type_intrs {\it introduction rules for type-checking}
   type_elims {\it elimination rules for type-checking}
 \end{ttbox}
-A codatatype definition is identical save that it starts with the keyword
-{\tt codatatype}.  The syntax is rather complicated; please consult the
-examples above (\S\ref{lists-sec}) and the theory files on the \textsc{zf} source
-directory.
+A codatatype definition is identical save that it starts with the keyword {\tt
+  codatatype}.
 
 The {\tt monos}, {\tt type\_intrs} and {\tt type\_elims} sections are
 optional.  They are treated like their counterparts in a (co)inductive
@@ -1537,6 +1568,10 @@ the constructor infix, for example.
 Mutually recursive {\it datatype declarations\/} are separated by the
 keyword~{\tt and}.
 \end{description}
+
+Isabelle/\textsc{hol}'s datatype definition package is (as of this writing)
+entirely different from Isabelle/\textsc{zf}'s.  The syntax is different, and
+instead of making an inductive definition it asserts axioms.
 
 \paragraph*{Note.}
 In the definitions of the constructors, the right-hand sides may overlap.
