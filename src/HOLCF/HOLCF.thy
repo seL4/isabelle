@@ -8,5 +8,9 @@ Top theory for HOLCF system
 
 *)
 
-HOLCF = Tr2
+HOLCF = Lift3 +
+
+default pcpo
+
+end
 
