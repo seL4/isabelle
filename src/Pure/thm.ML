@@ -590,7 +590,7 @@ fun implies_elim thAB thA : thm =
                 if imp=implies andalso  A aconv propA
                 then
                   Thm{sign_ref= merge_thm_sgs(thAB,thA),
-                      der = Pt.infer_derivs (curry Pt.%) der derA,
+                      der = Pt.infer_derivs (curry Pt.%%) der derA,
                       maxidx = Int.max(maxA,maxidx),
                       shyps = union_sort (shypsA, shyps),
                       hyps = union_term(hypsA,hyps),  (*dups suppressed*)
@@ -635,7 +635,7 @@ fun forall_elim ct (th as Thm{sign_ref,der,maxidx,hyps,prop,...}) : thm =
               raise THM("forall_elim: type mismatch", 0, [th])
           else let val thm = fix_shyps [th] []
                     (Thm{sign_ref= Sign.merge_refs(sign_ref,sign_reft),
-                         der = Pt.infer_derivs' (Pt.%% o rpair (Some t)) der,
+                         der = Pt.infer_derivs' (Pt.% o rpair (Some t)) der,
                          maxidx = Int.max(maxidx, maxt),
                          shyps = [],
                          hyps = hyps,  

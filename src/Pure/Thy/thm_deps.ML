@@ -31,9 +31,9 @@ fun dest_thm_axm (PThm (nt, prf, _, _)) = (nt, prf)
 
 fun make_deps_graph (p, AbsP (_, _, prf)) = make_deps_graph (p, prf)
   | make_deps_graph (p, Abst (_, _, prf)) = make_deps_graph (p, prf)
-  | make_deps_graph (p, prf1 % prf2) =
+  | make_deps_graph (p, prf1 %% prf2) =
       make_deps_graph (make_deps_graph (p, prf1), prf2)
-  | make_deps_graph (p, prf %% _) = make_deps_graph (p, prf)
+  | make_deps_graph (p, prf % _) = make_deps_graph (p, prf)
   | make_deps_graph (p, MinProof prfs) = foldl make_deps_graph (p, prfs)
   | make_deps_graph (p as (gra, parents), prf) =
       let val ((name, tags), prf') = dest_thm_axm prf

@@ -12,7 +12,7 @@ sig
   val thm_of_proof : theory -> Proofterm.proof -> thm
 end;
 
-structure ProofChecker =
+structure ProofChecker : PROOF_CHECKER =
 struct
 
 open Proofterm;
@@ -72,7 +72,7 @@ fun thm_of_proof thy prf =
             Thm.forall_intr (Thm.cterm_of sg (Free (x, T))) thm
           end
 
-      | thm_of vs Hs (prf %% Some t) =
+      | thm_of vs Hs (prf % Some t) =
           let
             val thm = thm_of vs Hs prf
             val ct = Thm.cterm_of sg (Term.subst_bounds (map Free vs, t))
@@ -86,7 +86,7 @@ fun thm_of_proof thy prf =
             Thm.implies_intr ct thm
           end
 
-      | thm_of vs Hs (prf % prf') =
+      | thm_of vs Hs (prf %% prf') =
           let 
             val thm = beta_eta_convert (thm_of vs Hs prf);
             val thm' = beta_eta_convert (thm_of vs Hs prf')
