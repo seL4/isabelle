@@ -485,15 +485,20 @@ fun produce stateset i indata prev_token =
     [] => let (*compute a list of allowed starting tokens 
                 for a list of nonterminals*)
               fun get_starts [] = []
-                | get_starts (rhss_ref :: refs) =
+                | get_starts ((rhss_ref, minPrec:int) :: refs) =
                     let fun get [] = []
-                          | get ((Some tok, _) :: rhss) =
-                              tok :: (get rhss)
+                          | get ((Some tok, prods) :: rhss) =
+                              if exists (fn (Term _ :: _, _, prec) => 
+                                              prec >= minPrec
+                                          | (_, _, _) => false) prods
+                              then tok :: (get rhss)
+                              else get rhss
                           | get ((None, _) :: rhss) =
                               get rhss;
                     in (get (!rhss_ref)) union (get_starts refs) end;
 
-              val NTs = map (fn (_, _, _, Nonterm (a, _) :: _, _, _) => a)
+              val NTs = map (fn (_, _, _, Nonterm (a, prec) :: _, _, _) => 
+                              (a, prec))
                             (filter (fn (_, _, _, Nonterm _ :: _, _, _) => true
                                      | _ => false) (Array.sub (stateset, i-1)));
               val allowed = distinct (get_starts NTs @
