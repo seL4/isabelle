@@ -6,6 +6,8 @@
 Monoids and Groups as predicates over record schemes.
 *)
 
+header {* Monoids and Groups *}
+
 theory MonoidGroup = Main:
 
 record 'a monoid_sig =

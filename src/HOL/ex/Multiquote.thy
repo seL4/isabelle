@@ -7,6 +7,8 @@ Multiple nested quotations and anti-quotations -- basically a
 generalized version of de-Bruijn representation.
 *)
 
+header {* Multiple nested quotations and anti-quotations *}
+
 theory Multiquote = Main:
 
 syntax

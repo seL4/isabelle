@@ -6,6 +6,8 @@
 Simple quote / antiquote example.
 *)
 
+header {* Antiquotations *}
+
 theory Antiquote = Main:
 
 syntax
@@ -25,12 +27,12 @@ term "EXPR (a + b + c)"
 term "EXPR (a + b + c + VAR x + VAR y + 1)"
 term "EXPR (VAR (f w) + VAR x)"
 
-term "Expr (%env. env x)"				(*improper*)
-term "Expr (%env. f env)"
-term "Expr (%env. f env + env x)"			(*improper*)
-term "Expr (%env. f env y z)"
-term "Expr (%env. f env + g y env)"
-term "Expr (%env. f env + g env y + h a env z)"
+term "Expr (\<lambda>env. env x)"				(*improper*)
+term "Expr (\<lambda>env. f env)"
+term "Expr (\<lambda>env. f env + env x)"			(*improper*)
+term "Expr (\<lambda>env. f env y z)"
+term "Expr (\<lambda>env. f env + g y env)"
+term "Expr (\<lambda>env. f env + g env y + h a env z)"
 
 end
 

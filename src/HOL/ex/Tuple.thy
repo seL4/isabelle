@@ -9,10 +9,12 @@ Unquestionably, this should be used as the standard representation of
 tuples in HOL, but it breaks many existing theories!
 *)
 
+header {* Properly nested products *}
+
 theory Tuple = HOL:
 
 
-(** abstract syntax **)
+subsection {* Abstract syntax *}
 
 typedecl unit
 typedecl ('a, 'b) prod
@@ -25,9 +27,9 @@ consts
   "()" :: unit  ("'(')")
 
 
-(** concrete syntax **)
+subsection {* Concrete syntax *}
 
-(* tuple types *)
+subsubsection {* Tuple types *}
 
 nonterminals
   tuple_type_args
@@ -50,7 +52,7 @@ translations
     (type) "('a, ('b, 'cs) _tuple_type) prod"
 
 
-(* tuples *)
+subsubsection {* Tuples *}
 
 nonterminals
   tuple_args
@@ -63,11 +65,10 @@ translations
   "_tuple x (_tuple_args y zs)" == "Pair x (_tuple y zs)"
 
 
-(* tuple patterns *)
+subsubsection {* Tuple patterns *}
 
-(*extends pre-defined type "pttrn" syntax used in abstractions*)
-nonterminals
-  tuple_pat_args
+nonterminals tuple_pat_args
+  -- {* extends pre-defined type "pttrn" syntax used in abstractions *}
 syntax
   "_tuple_pat_arg"  :: "pttrn => tuple_pat_args"                     ("_")
   "_tuple_pat_args" :: "pttrn => tuple_pat_args => tuple_pat_args"   ("_,/ _")

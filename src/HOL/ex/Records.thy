@@ -24,17 +24,17 @@ thm "point.iffs"
 thm "point.update_defs"
 
 text {*
- The set of theorems "point.simps" is added automatically to the
- standard simpset, "point.iffs" is added to the claset and simpset.
+ The set of theorems @{thm [source] point.simps} is added
+ automatically to the standard simpset, @{thm [source] point.iffs} is
+ added to the Classical Reasoner and Simplifier context.
 *}
 
 text {*
   Record declarations define new type abbreviations:
-
-    point = "(| x :: nat, y :: nat |)"
-    'a point_scheme = "(| x :: nat, y :: nat, ... :: 'a |)"
-
-  Extensions `...' must be in type class `more'!
+  @{text [display]
+"    point = (| x :: nat, y :: nat |)
+    'a point_scheme = (| x :: nat, y :: nat, ... :: 'a |)"}
+  Extensions `...' must be in type class @{text more}.
 *}
 
 consts foo1 :: point
@@ -61,7 +61,7 @@ constdefs
 
 subsubsection {* Some lemmas about records *}
 
-text {* Basic simplifications *}
+text {* Basic simplifications. *}
 
 lemma "point.make n p = (| x = n, y = p |)"
   by simp
@@ -73,7 +73,7 @@ lemma "(| x = m, y = n, ... = p |) (| x:= 0 |) = (| x = 0, y = n, ... = p |)"
   by simp
 
 
-text {* Equality of records *}
+text {* \medskip Equality of records. *}
 
 lemma "n = n' ==> p = p' ==> (| x = n, y = p |) = (| x = n', y = p' |)"
   -- "introduction of concrete record equality"
@@ -96,7 +96,7 @@ proof -
 qed
 
 
-text {* Surjective pairing *}
+text {* \medskip Surjective pairing *}
 
 lemma "r = (| x = x r, y = y r |)"
   by simp
@@ -105,7 +105,10 @@ lemma "r = (| x = x r, y = y r, ... = more r |)"
   by simp
 
 
-text {* Splitting quantifiers: the !!r is NECESSARY here *}
+text {*
+ \medskip Splitting quantifiers: the @{text "!!r"} is \emph{necessary}
+ here!
+*}
 
 lemma "!!r. r (| x := n |) (| y := m |) = r (| y := m |) (| x := n |)"
 proof record_split
@@ -124,15 +127,16 @@ proof record_split
 qed
 
 
-
-text {* Concrete records are type instances of record schemes *}
+text {*
+ \medskip Concrete records are type instances of record schemes.
+*}
 
 constdefs
   foo5 :: nat
   "foo5 == getX (| x = 1, y = 0 |)"
 
 
-text {* Manipulating the `...' (more) part *}
+text {* \medskip Manipulating the `...' (more) part. *}
 
 constdefs
   incX :: "('a::more) point_scheme => 'a point_scheme"
@@ -144,8 +148,7 @@ proof (unfold getX_def setX_def incX_def)
     by record_split simp
 qed
 
-
-text {* alternative definition *}
+text {* An alternative definition. *}
 
 constdefs
   incX' :: "('a::more) point_scheme => 'a point_scheme"
@@ -162,9 +165,9 @@ record cpoint = point +
 
 text {*
   The record declaration defines new type constructors:
-
-    cpoint = (| x :: nat, y :: nat, colour :: colour |)
-    'a cpoint_scheme = (| x :: nat, y :: nat, colour :: colour, ... :: 'a |)
+  @{text [display]
+"    cpoint = (| x :: nat, y :: nat, colour :: colour |)
+    'a cpoint_scheme = (| x :: nat, y :: nat, colour :: colour, ... :: 'a |)"}
 *}
 
 consts foo6 :: cpoint
@@ -173,7 +176,9 @@ consts foo8 :: "('a::more) cpoint_scheme"
 consts foo9 :: "(| x :: nat, y :: nat, colour :: colour, ... :: 'a |)"
 
 
-text {* Functions on point schemes work for cpoints as well *}
+text {*
+ Functions on @{text point} schemes work for @{text cpoints} as well.
+*}
 
 constdefs
   foo10 :: nat
@@ -182,7 +187,10 @@ constdefs
 
 subsubsection {* Non-coercive structural subtyping *}
 
-text {* foo11 has type cpoint, not type point --- Great! *}
+text {*
+ Term @{term foo11} has type @{typ cpoint}, not type @{typ point} ---
+ Great!
+*}
 
 constdefs
   foo11 :: cpoint
@@ -191,16 +199,18 @@ constdefs
 
 subsection {* Other features *}
 
-text {* field names contribute to record identity *}
+text {* Field names contribute to record identity. *}
 
 record point' =
   x' :: nat
   y' :: nat
 
-text {* May not apply @{term getX} to @{term "(| x' = 2, y' = 0 |)"} *}
+text {*
+ \noindent May not apply @{term getX} to 
+ @{term [source] "(| x' = 2, y' = 0 |)"}.
+*}
 
-
-text {* Polymorphic records *}
+text {* \medskip Polymorphic records. *}
 
 record 'a point'' = point +
   content :: 'a
