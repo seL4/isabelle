@@ -222,7 +222,7 @@ fun certify_typ (Sg {tsig, ...}) ty = cert_typ tsig ty;
 
 (* check for duplicate TVars with distinct sorts *)
 fun nodup_TVars(tvars,T) = (case T of
-      Type(_,Ts) => foldl nodup_TVars (tvars,Ts)
+      Type(_,Ts) => nodup_TVars_list (tvars,Ts)
     | TFree _ => tvars
     | TVar(v as (a,S)) =>
         (case assoc_string_int(tvars,a) of
@@ -230,7 +230,11 @@ fun nodup_TVars(tvars,T) = (case T of
                        else raise_type
                             ("Type variable "^Syntax.string_of_vname a^
                              " has two distinct sorts") [TVar(a,S'),T] []
-         | None => v::tvars));
+         | None => v::tvars))
+and (*equivalent to foldl nodup_TVars_list, but 3X faster under Poly/ML*)
+    nodup_TVars_list (tvars,[]) = tvars
+  | nodup_TVars_list (tvars,T::Ts) = nodup_TVars_list(nodup_TVars(tvars,T), 
+						      Ts);
 
 (* check for duplicate Vars with distinct types *)
 fun nodup_Vars tm =
