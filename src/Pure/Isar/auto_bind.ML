@@ -4,8 +4,8 @@
 
 Automatic term bindings -- logic specific patterns.
 
-The implementation below works fine with the more common
-object-logics, such as HOL, ZF.
+Note: the current implementation is not quite 'generic', but works
+fine with the more common object-logics (HOL, FOL, ZF etc.).
 *)
 
 signature AUTO_BIND =
@@ -13,6 +13,8 @@ sig
   val goal: term -> (indexname * term option) list
   val facts: string -> term list -> (indexname * term option) list
   val atomic_thesis: term -> (string * term) * term
+  val add_judgment: bstring * string * mixfix -> theory -> theory
+  val add_judgment_i: bstring * typ * mixfix -> theory -> theory
 end;
 
 structure AutoBind: AUTO_BIND =
@@ -21,6 +23,8 @@ struct
 val thesisN = "thesis";
 val thisN = "this";
 
+
+(** bindings **)
 
 (* goal *)
 
@@ -55,6 +59,14 @@ fun mk_free t = Free (thesisN, Term.fastype_of t);
 
 fun atomic_thesis ((c as Const ("Trueprop", _)) $ t) = ((thesisN, t), c $ mk_free t)
   | atomic_thesis t = ((thesisN, t), mk_free t);
-      
+
+
+(** judgment **)
+
+fun gen_add_judgment add args = PureThy.local_path o add [args] o PureThy.global_path;
+
+val add_judgment = gen_add_judgment Theory.add_consts;
+val add_judgment_i = gen_add_judgment Theory.add_consts_i;
+
 
 end;

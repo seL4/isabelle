@@ -125,6 +125,10 @@ val aritiesP =
 
 (* consts and syntax *)
 
+val judgmentP =
+  OuterSyntax.command "judgment" "declare object-logic judgment" K.thy_decl
+    (P.const -- P.marg_comment >> (Toplevel.theory o IsarThy.add_judgment));
+
 val constsP =
   OuterSyntax.command "consts" "declare constants" K.thy_decl
     (Scan.repeat1 (P.const -- P.marg_comment) >> (Toplevel.theory o IsarThy.add_consts));
@@ -620,8 +624,8 @@ val parsers = [
   text_rawP, sectP, subsectP, subsubsectP, txtP, txt_rawP,
   (*theory sections*)
   classesP, classrelP, defaultsortP, typedeclP, typeabbrP, nontermP,
-  aritiesP, constsP, syntaxP, translationsP, axiomsP, defsP,
-  constdefsP, theoremsP, lemmasP, globalP, localP, useP, mlP,
+  aritiesP, judgmentP, constsP, syntaxP, translationsP, axiomsP,
+  defsP, constdefsP, theoremsP, lemmasP, globalP, localP, useP, mlP,
   ml_commandP, ml_setupP, setupP, parse_ast_translationP,
   parse_translationP, print_translationP, typed_print_translationP,
   print_ast_translationP, token_translationP, oracleP,

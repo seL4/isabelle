@@ -41,6 +41,8 @@ sig
     -> theory -> theory
   val add_trrules: ((xstring * string) Syntax.trrule * Comment.text) list -> theory -> theory
   val add_trrules_i: (Syntax.ast Syntax.trrule * Comment.text) list -> theory -> theory
+  val add_judgment: (bstring * string * mixfix) * Comment.text -> theory -> theory
+  val add_judgment_i: (bstring * typ * mixfix) * Comment.text -> theory -> theory
   val add_axioms: (((bstring * string) * Args.src list) * Comment.text) list -> theory -> theory
   val add_axioms_i: (((bstring * term) * theory attribute list) * Comment.text) list
     -> theory -> theory
@@ -207,7 +209,8 @@ fun add_modesyntax mode = Theory.add_modesyntax mode o map Comment.ignore;
 fun add_modesyntax_i mode = Theory.add_modesyntax_i mode o map Comment.ignore;
 val add_trrules = Theory.add_trrules o map Comment.ignore;
 val add_trrules_i = Theory.add_trrules_i o map Comment.ignore;
-
+val add_judgment = AutoBind.add_judgment o Comment.ignore;
+val add_judgment_i = AutoBind.add_judgment_i o Comment.ignore;
 
 
 (* axioms and defs *)
