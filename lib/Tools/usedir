@@ -85,11 +85,13 @@ if [ -n "$BUILD" ]; then
     -e "make_html := $HTML;" \
     -e "set_session\"$SESSION\";" \
     -e "exit_use_dir\".\";" \
+    -e "reset make_html;" \
     -q $LOGIC $NAME
 else
   exec $ISABELLE \
     -e "make_html := $HTML;" \
     -e "set_session\"$SESSION\";" \
     -e "exit_use_dir\"$NAME\"; quit();" \
+    -e "reset make_html;" \
     -r -q $LOGIC
 fi
