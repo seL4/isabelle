@@ -9,6 +9,8 @@ Postprocessing of TFL definitions
 signature TFL = 
   sig
    structure Prim : TFL_sig
+   val quiet_mode : bool ref
+   val message : string -> unit
 
    val tgoalw : theory -> thm list -> thm list -> thm list
    val tgoal: theory -> thm list -> thm list
@@ -42,6 +44,12 @@ structure Tfl: TFL =
 struct
  structure Prim = Prim
  structure S = USyntax
+
+
+ (* messages *)
+
+ val quiet_mode = ref false;
+ fun message s = if ! quiet_mode then () else writeln s;
 
  val trace = Prim.trace
 
@@ -141,17 +149,17 @@ struct
    val gen_all = S.gen_all
  in
  fun proof_stage ss theory {f, R, rules, full_pats_TCs, TCs} =
-   let val dummy = writeln "Proving induction theorem..  "
+   let val dummy = message "Proving induction theorem ..."
        val ind = Prim.mk_induction theory 
                     {fconst=f, R=R, SV=[], pat_TCs_list=full_pats_TCs}
-       val dummy = writeln "Proved induction theorem.\nPostprocessing..  "
+       val dummy = (message "Proved induction theorem."; message "Postprocessing ...");
        val {rules, induction, nested_tcs} = 
 	   std_postprocessor ss theory {rules=rules, induction=ind, TCs=TCs}
    in
    case nested_tcs
-   of [] => (writeln "Postprocessing done.";
+   of [] => (message "Postprocessing done.";
 	     {induction=induction, rules=rules,tcs=[]})
-   | L  => let val dummy = writeln "Simplifying nested TCs..  "
+   | L  => let val dummy = message "Simplifying nested TCs ..."
 	       val (solved,simplified,stubborn) =
 		U.itlist (fn th => fn (So,Si,St) =>
 		      if (id_thm th) then (So, Si, th::St) else
@@ -161,7 +169,7 @@ struct
 	       val rewr = full_simplify (ss addsimps (solved @ simplified'));
 	       val induction' = rewr induction
 	       and rules'     = rewr rules
-	       val dummy = writeln "Postprocessing done."
+	       val dummy = message "Postprocessing done."
 	   in
 	   {induction = induction',
 		rules = rules',
@@ -238,10 +246,10 @@ struct
       val {rules,R,theory,full_pats_TCs,SV,...} = 
 	      Prim.lazyR_def thy fid congs eqs
       val f = func_of_cond_eqn (concl(R.CONJUNCT1 rules handle _ => rules))
-      val dummy = writeln "Definition made.\nProving induction theorem..  "
+      val dummy = (message "Definition made."; message "Proving induction theorem ...");
       val induction = Prim.mk_induction theory 
                          {fconst=f, R=R, SV=SV, pat_TCs_list=full_pats_TCs}
-      val dummy = writeln "Induction theorem proved."
+      val dummy = message "Induction theorem proved."
   in (theory, 
       (*return the conjoined induction rule and recursion equations, 
 	with assumptions remaining to discharge*)
@@ -249,7 +257,7 @@ struct
   end
 
  fun function thy fid congs seqs = 
-   let val _ =  writeln ("Deferred recursive function " ^ fid)
+   let val _ =  message ("Deferred recursive function " ^ fid)
        fun read thy = readtm (Theory.sign_of thy) (TVar(("DUMMY",0),[])) 
    in  function_i thy fid congs (map (read thy) seqs)  end
    handle Utils.ERR {mesg,...} => error mesg;
