@@ -132,7 +132,7 @@ qed "sum_ord_iso_cong";
      ord_iso(A+B, radd(A,r,B,s), A Un B, r Un s) *)
 Goal "A Int B = 0 ==>     \
 \           (lam z:A+B. case(%x. x, %y. y, z)) : bij(A+B, A Un B)";
-by (res_inst_tac [("d", "%z. if(z:A, Inl(z), Inr(z))")] 
+by (res_inst_tac [("d", "%z. if z:A then Inl(z) else Inr(z)")] 
     lam_bijective 1);
 by (blast_tac (claset() addSIs [if_type]) 2);
 by (DEPTH_SOLVE_1 (eresolve_tac [case_type, UnI1, UnI2] 1));

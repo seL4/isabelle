@@ -56,12 +56,13 @@ defs
 
 primrec (** A finite set of hypotheses from t and the Vars in p **)
   "hyps(Fls, t)    = 0"
-  "hyps(Var(v), t) = if(v:t, {#v}, {#v=>Fls})"
+  "hyps(Var(v), t) = (if v:t then {#v} else {#v=>Fls})"
   "hyps(p=>q, t)   = hyps(p,t) Un hyps(q,t)"
  
 primrec (** Semantics of propositional logic **)
   "is_true_fun(Fls, t)    = 0"
-  "is_true_fun(Var(v), t) = if(v:t, 1, 0)"
-  "is_true_fun(p=>q, t)   = if(is_true_fun(p,t)=1, is_true_fun(q,t), 1)"
+  "is_true_fun(Var(v), t) = (if v:t then 1 else 0)"
+  "is_true_fun(p=>q, t)   = (if is_true_fun(p,t)=1 then is_true_fun(q,t)
+			     else 1)"
 
 end

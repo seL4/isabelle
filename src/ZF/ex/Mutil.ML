@@ -32,7 +32,7 @@ qed "evnodd_Diff";
 
 Goalw [evnodd_def]
     "evnodd(cons(<i,j>,C), b) = \
-\    if((i#+j) mod 2 = b, cons(<i,j>, evnodd(C,b)), evnodd(C,b))";
+\    (if (i#+j) mod 2 = b then cons(<i,j>, evnodd(C,b)) else evnodd(C,b))";
 by (asm_simp_tac (simpset() addsimps [evnodd_def, Collect_cons]) 1);
 qed "evnodd_cons";
 

@@ -5,8 +5,6 @@
 Properties of the recursive definition used in the proof of WO2 ==> AC16
 *)
 
-open recfunAC16;
-
 (* ********************************************************************** *)
 (* Basic properties of recfunAC16                                         *)
 (* ********************************************************************** *)
@@ -15,11 +13,13 @@ Goalw [recfunAC16_def] "recfunAC16(f,fa,0,a) = 0";
 by (rtac transrec2_0 1);
 qed "recfunAC16_0";
 
-Goalw [recfunAC16_def] "recfunAC16(f,fa,succ(i),a) =  \
-\       if (EX y:recfunAC16(f,fa,i,a). fa ` i <= y, recfunAC16(f,fa,i,a), \
-\       recfunAC16(f,fa,i,a) Un {f ` (LEAST j. fa ` i <= f ` j &  \
-\       (ALL b<a. (fa`b <= f`j  \
-\       --> (ALL t:recfunAC16(f,fa,i,a). ~ fa`b <= t))))})";
+Goalw [recfunAC16_def]
+     "recfunAC16(f,fa,succ(i),a) =  \
+\     (if (EX y:recfunAC16(f,fa,i,a). fa ` i <= y) then recfunAC16(f,fa,i,a) \
+\      else recfunAC16(f,fa,i,a) Un \
+\           {f ` (LEAST j. fa ` i <= f ` j &  \
+\            (ALL b<a. (fa`b <= f`j  \
+\             --> (ALL t:recfunAC16(f,fa,i,a). ~ fa`b <= t))))})";
 by (rtac transrec2_succ 1);
 qed "recfunAC16_succ";
 

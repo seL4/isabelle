@@ -602,7 +602,8 @@ Goal "Collect(A - B, P) = Collect(A,P) - Collect(B,P)";
 by (Blast_tac 1);
 qed "Collect_Diff";
 
-Goal "{x:cons(a,B). P(x)} = if(P(a), cons(a, {x:B. P(x)}), {x:B. P(x)})";
+Goal "{x:cons(a,B). P(x)} = \
+\     (if P(a) then cons(a, {x:B. P(x)}) else {x:B. P(x)})";
 by (simp_tac (simpset() addsplits [split_if]) 1);
 by (Blast_tac 1);
 qed "Collect_cons";

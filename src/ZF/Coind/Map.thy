@@ -21,7 +21,8 @@ consts
   map_app :: [i,i]=>i
 defs
   map_emp_def "map_emp == 0"
-  map_owr_def "map_owr(m,a,b) == SUM x:{a} Un domain(m).if(x=a,b,m``{x})"
+  map_owr_def "map_owr(m,a,b) ==
+	         SUM x:{a} Un domain(m). if x=a then b else m``{x}"
   map_app_def "map_app(m,a) == m``{a}"
   
 end

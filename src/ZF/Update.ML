@@ -8,7 +8,7 @@ Function updates: like theory Map, but for ordinary functions
 
 open Update;
 
-Goal "f(x:=y) ` z = if(z=x, y, f`z)";
+Goal "f(x:=y) ` z = (if z=x then y else f`z)";
 by (simp_tac (simpset() addsimps [update_def]) 1);
 by (case_tac "z : domain(f)" 1);
 by (Asm_simp_tac 1);

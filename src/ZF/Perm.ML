@@ -463,8 +463,8 @@ qed "invertible_imp_bijective";
 
 (*Theorem by KG, proof by LCP*)
 Goal "[| f: inj(A,B);  g: inj(C,D);  B Int D = 0 |] \
-\     ==> (lam a: A Un C. if(a:A, f`a, g`a)) : inj(A Un C, B Un D)";
-by (res_inst_tac [("d","%z. if(z:B, converse(f)`z, converse(g)`z)")]
+\     ==> (lam a: A Un C. if a:A then f`a else g`a) : inj(A Un C, B Un D)";
+by (res_inst_tac [("d","%z. if z:B then converse(f)`z else converse(g)`z")]
         lam_injective 1);
 by (ALLGOALS 
     (asm_simp_tac (simpset() addsimps [inj_is_fun RS apply_type, left_inverse] 

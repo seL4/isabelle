@@ -40,8 +40,16 @@ consts
   (* Descriptions *)
 
   The         :: (i => o) => i      (binder "THE " 10)
-  if          :: [o, i, i] => i
+  If          :: [o, i, i] => i     ("(if (_)/ then (_)/ else (_))" [10] 10)
 
+syntax
+  old_if      :: [o, i, i] => i   ("if '(_,_,_')")
+
+translations
+  "if(P,a,b)" => "If(P,a,b)"
+
+
+consts
   (* Finite Sets *)
 
   Upair, cons :: [i, i] => i

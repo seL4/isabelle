@@ -33,7 +33,7 @@ primrec (*domain of the type environment*)
 
 primrec (*lookup up identifiers in the type environment*)
   "te_app (te_emp,x) = 0"
-  "te_app (te_owr(te,y,t),x) = if(x=y, t, te_app(te,x))"
+  "te_app (te_owr(te,y,t),x) = (if x=y then t else te_app(te,x))"
 
 end
 

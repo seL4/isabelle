@@ -33,7 +33,7 @@ result();
 (* Lemmas                                                       *)
 (* ############################################################ *)
 
-Goal "Sigma(A,B)``{a} = if (a:A, B(a), 0)";
+Goal "Sigma(A,B)``{a} = (if a:A then B(a) else 0)";
 by Auto_tac;
 qed "qbeta_if";
 
@@ -194,7 +194,7 @@ qed "map_domain_owr";
 (** Application **)
 
 Goalw [map_app_def,map_owr_def] 
-  "map_app(map_owr(f,a,b),c) = if (c=a, b, map_app(f,c))";
+  "map_app(map_owr(f,a,b),c) = (if c=a then b else map_app(f,c))";
 by (asm_simp_tac (simpset() addsimps [qbeta_if]) 1);
 by (Fast_tac 1);
 qed "map_app_owr";

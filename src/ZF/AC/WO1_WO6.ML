@@ -1,4 +1,4 @@
-(*  Title:      ZF/AC/WO1-WO6.ML
+(*  Title:      ZF/AC/WO1_WO6.ML
     ID:         $Id$
     Author:     Krzysztof Grabczewski
 

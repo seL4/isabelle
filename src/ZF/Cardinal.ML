@@ -157,7 +157,7 @@ Goalw [inj_def, surj_def]
   "[| f : inj(A, succ(m)); f ~: surj(A, succ(m)) |] ==> EX f. f:inj(A,m)";
 by (safe_tac (claset_of ZF.thy));
 by (swap_res_tac [exI] 1);
-by (res_inst_tac [("a", "lam z:A. if(f`z=m, y, f`z)")] CollectI 1);
+by (res_inst_tac [("a", "lam z:A. if f`z=m then y else f`z")] CollectI 1);
 by (best_tac (claset() addSIs [if_type RS lam_type]
                        addEs [apply_funtype RS succE]) 1);
 (*Proving it's injective*)
@@ -429,7 +429,7 @@ qed "lepoll_cardinal_le";
 Goalw [lepoll_def, inj_def]
  "[| cons(u,A) lepoll cons(v,B);  u~:A;  v~:B |] ==> A lepoll B";
 by Safe_tac;
-by (res_inst_tac [("x", "lam x:A. if(f`x=v, f`u, f`x)")] exI 1);
+by (res_inst_tac [("x", "lam x:A. if f`x=v then f`u else f`x")] exI 1);
 by (rtac CollectI 1);
 (*Proving it's in the function space A->B*)
 by (rtac (if_type RS lam_type) 1);
@@ -561,8 +561,8 @@ qed "nat_le_cardinal";
 Goalw [lepoll_def]
     "[| A lepoll B;  b ~: B |] ==> cons(a,A) lepoll cons(b,B)";
 by Safe_tac;
-by (res_inst_tac [("x", "lam y: cons(a,A).if(y=a, b, f`y)")] exI 1);
-by (res_inst_tac [("d","%z. if(z:B, converse(f)`z, a)")] 
+by (res_inst_tac [("x", "lam y: cons(a,A). if y=a then b else f`y")] exI 1);
+by (res_inst_tac [("d","%z. if z:B then converse(f)`z else a")] 
     lam_injective 1);
 by (asm_simp_tac (simpset() addsimps [inj_is_fun RS apply_type, cons_iff]
                         setloop etac consE') 1);
@@ -614,8 +614,8 @@ qed "prod_eqpoll_cong";
 Goalw [eqpoll_def]
     "[| f: inj(A,B);  A Int B = 0 |] ==> A Un (B - range(f)) eqpoll B";
 by (rtac exI 1);
-by (res_inst_tac [("c", "%x. if(x:A, f`x, x)"),
-                  ("d", "%y. if(y: range(f), converse(f)`y, y)")] 
+by (res_inst_tac [("c", "%x. if x:A then f`x else x"),
+                  ("d", "%y. if y: range(f) then converse(f)`y else y")] 
     lam_bijective 1);
 by (blast_tac (claset() addSIs [if_type, inj_is_fun RS apply_type]) 1);
 by (asm_simp_tac 
@@ -662,11 +662,11 @@ by (blast_tac (claset() addEs [equalityE]) 1);
 qed "lepoll_1_is_sing";
 
 Goalw [lepoll_def] "A Un B lepoll A+B";
-by (res_inst_tac [("x","lam x: A Un B. if (x:A,Inl(x),Inr(x))")] exI 1);
+by (res_inst_tac [("x",
+		   "lam x: A Un B. if x:A then Inl(x) else Inr(x)")] exI 1);
 by (res_inst_tac [("d","%z. snd(z)")] lam_injective 1);
-by (split_tac [split_if] 1);
-by (blast_tac (claset() addSIs [InlI, InrI]) 1);
-by (asm_full_simp_tac (simpset() addsimps [Inl_def, Inr_def]) 1);
+by (asm_full_simp_tac (simpset() addsimps [Inl_def, Inr_def]) 2);
+by Auto_tac;
 qed "Un_lepoll_sum";
 
 Goal "[| well_ord(X,R); well_ord(Y,S) |] ==> EX T. well_ord(X Un Y, T)";
@@ -676,7 +676,7 @@ qed "well_ord_Un";
 
 (*Krzysztof Grabczewski*)
 Goalw [eqpoll_def] "A Int B = 0 ==> A Un B eqpoll A + B";
-by (res_inst_tac [("x","lam a:A Un B. if(a:A,Inl(a),Inr(a))")] exI 1);
+by (res_inst_tac [("x","lam a:A Un B. if a:A then Inl(a) else Inr(a)")] exI 1);
 by (res_inst_tac [("d","%z. case(%x. x, %x. x, z)")] lam_bijective 1);
 by Auto_tac;
 qed "disj_Un_eqpoll_sum";

@@ -396,10 +396,11 @@ by (asm_full_simp_tac
                          div_termination RS ltD, add_diff_inverse]) 1);
 qed "mod_div_equality";
 
-(*** Further facts about mod (mainly for mutilated checkerboard ***)
 
-Goal "[| 0<n;  m:nat;  n:nat |] ==> \
-\           succ(m) mod n = if(succ(m mod n) = n, 0, succ(m mod n))";
+(*** Further facts about mod (mainly for mutilated chess board) ***)
+
+Goal "[| 0<n;  m:nat;  n:nat |] \
+\     ==> succ(m) mod n = (if succ(m mod n) = n then 0 else succ(m mod n))";
 by (etac complete_induct 1);
 by (excluded_middle_tac "succ(x)<n" 1);
 (* case succ(x) < n *)
@@ -427,7 +428,7 @@ by (asm_full_simp_tac
 qed "mod_less_divisor";
 
 
-Goal "[| k: nat; b<2 |] ==> k mod 2 = b | k mod 2 = if(b=1,0,1)";
+Goal "[| k: nat; b<2 |] ==> k mod 2 = b | k mod 2 = (if b=1 then 0 else 1)";
 by (subgoal_tac "k mod 2: 2" 1);
 by (asm_simp_tac (simpset() addsimps [mod_less_divisor RS ltD]) 2);
 by (dtac ltD 1);

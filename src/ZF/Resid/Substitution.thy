@@ -17,7 +17,7 @@ constdefs
   lift_rec      :: [i,i]=> i
     "lift_rec(r,k) == lift_aux(r)`k"
 
-  subst_rec     :: [i,i,i]=> i
+  subst_rec     :: [i,i,i]=> i	(**NOTE THE ARGUMENT ORDER BELOW**)
     "subst_rec(u,r,k) == subst_aux(r)`u`k"
 
 translations
@@ -29,7 +29,7 @@ translations
     in the recursive calls ***)
 
 primrec
-  "lift_aux(Var(i)) = (lam k:nat. if(i<k, Var(i), Var(succ(i))))"
+  "lift_aux(Var(i)) = (lam k:nat. if i<k then Var(i) else Var(succ(i)))"
 
   "lift_aux(Fun(t)) = (lam k:nat. Fun(lift_aux(t) ` succ(k)))"
 
@@ -38,17 +38,9 @@ primrec
 
   
 primrec
-(* subst_aux(u,Var(i),k)     = if k<i then Var(i-1)
-                               else if k=i then u
-                                    else Var(i)
-   subst_aux(u,Fun(t),k)     = Fun(subst_aux(lift(u),t,succ(k)))
-   subst_aux(u,App(b,f,a),k) = App(b,subst_aux(u,f,p),subst_aux(u,a,p))
-
-*)
-
   "subst_aux(Var(i)) =
-     (lam r:redexes. lam k:nat. if(k<i, Var(i #- 1),   
-				   if(k=i, r, Var(i))))"
+     (lam r:redexes. lam k:nat. if k<i then Var(i #- 1) 
+				else if k=i then r else Var(i))"
   "subst_aux(Fun(t)) =
      (lam r:redexes. lam k:nat. Fun(subst_rec(lift(r), t, succ(k))))"
 

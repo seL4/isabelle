@@ -92,7 +92,8 @@ by (assume_tac 1);
 by (rtac Un_commute 1);
 qed "ve_dom_owr";
 
-Goal "ve:ValEnv ==> ve_app(ve_owr(ve,y,v),x) = if(x=y, v, ve_app(ve,x))"; 
+Goal "ve:ValEnv \
+\     ==> ve_app(ve_owr(ve,y,v),x) = (if x=y then v else ve_app(ve,x))"; 
 by (etac ValEnvE 1);
 by (asm_simp_tac (simpset() addsimps [map_app_owr]) 1);
 qed "ve_app_owr";

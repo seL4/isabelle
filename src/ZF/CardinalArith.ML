@@ -102,8 +102,8 @@ qed "cadd_le_mono";
 
 Goalw [eqpoll_def] "succ(A)+B eqpoll succ(A+B)";
 by (rtac exI 1);
-by (res_inst_tac [("c", "%z. if(z=Inl(A),A+B,z)"), 
-                  ("d", "%z. if(z=A+B,Inl(A),z)")] 
+by (res_inst_tac [("c", "%z. if z=Inl(A) then A+B else z"), 
+                  ("d", "%z. if z=A+B then Inl(A) else z")] 
     lam_bijective 1);
 by (ALLGOALS
     (asm_simp_tac (simpset() addsimps [succI2, mem_imp_not_eq]
@@ -268,7 +268,7 @@ qed "cmult_le_mono";
 
 Goalw [eqpoll_def] "succ(A)*B eqpoll B + A*B";
 by (rtac exI 1);
-by (res_inst_tac [("c", "%<x,y>. if(x=A, Inl(y), Inr(<x,y>))"), 
+by (res_inst_tac [("c", "%<x,y>. if x=A then Inl(y) else Inr(<x,y>)"), 
                   ("d", "case(%y. <A,y>, %z. z)")] 
     lam_bijective 1);
 by Safe_tac;
@@ -315,17 +315,18 @@ qed "lepoll_imp_sum_lepoll_prod";
 (*** Infinite Cardinals are Limit Ordinals ***)
 
 (*This proof is modelled upon one assuming nat<=A, with injection
-  lam z:cons(u,A). if(z=u, 0, if(z : nat, succ(z), z))  and inverse
-  %y. if(y:nat, nat_case(u,%z.z,y), y).  If f: inj(nat,A) then
-  range(f) behaves like the natural numbers.*)
-Goalw [lepoll_def]
-    "nat lepoll A ==> cons(u,A) lepoll A";
+  lam z:cons(u,A). if z=u then 0 else if z : nat then succ(z) else z 
+  and inverse %y. if y:nat then nat_case(u, %z. z, y) else y.  \
+  If f: inj(nat,A) then range(f) behaves like the natural numbers.*)
+Goalw [lepoll_def] "nat lepoll A ==> cons(u,A) lepoll A";
 by (etac exE 1);
 by (res_inst_tac [("x",
-    "lam z:cons(u,A). if(z=u, f`0,      \
-\                        if(z: range(f), f`succ(converse(f)`z), z))")] exI 1);
-by (res_inst_tac [("d", "%y. if(y: range(f),    \
-\                               nat_case(u, %z. f`z, converse(f)`y), y)")] 
+    "lam z:cons(u,A). if z=u then f`0      \
+\                     else if z: range(f) then f`succ(converse(f)`z)  \
+\                     else z")] exI 1);
+by (res_inst_tac [("d", "%y. if y: range(f)     \
+\                            then nat_case(u, %z. f`z, converse(f)`y) \
+\                            else y")] 
     lam_injective 1);
 by (fast_tac (claset() addSIs [if_type, apply_type]
                        addIs  [inj_is_fun, inj_converse_fun]) 1);

@@ -162,9 +162,8 @@ by (REPEAT (eresolve_tac [asm_rl, ltE] 1));
 qed "lt_subset_trans";
 
 (*Work backwards along the injection from W into K, given that W~=0.*)
-goal Perm.thy 
-    "!!A. [| f: inj(A,B);  a:A |] ==>           \
-\         (UN x:A. C(x)) <= (UN y:B. C(if(y: range(f), converse(f)`y, a)))";
+Goal "[| f: inj(A,B);  a:A |] ==>           \
+\     (UN x:A. C(x)) <= (UN y:B. C(if y: range(f) then converse(f)`y else a))";
 by (rtac UN_least 1);
 by (res_inst_tac [("x1", "f`x")] (UN_upper RSN (2,subset_trans)) 1);
 by (eresolve_tac [inj_is_fun RS apply_type] 2 THEN assume_tac 2);

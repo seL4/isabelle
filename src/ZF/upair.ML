@@ -234,34 +234,35 @@ qed "theI2";
 
 (*** if -- a conditional expression for formulae ***)
 
-Goalw [if_def] "if(True,a,b) = a";
+Goalw [if_def] "(if True then a else b) = a";
 by (Blast_tac 1);
 qed "if_true";
 
-Goalw [if_def] "if(False,a,b) = b";
+Goalw [if_def] "(if False then a else b) = b";
 by (Blast_tac 1);
 qed "if_false";
 
 (*Never use with case splitting, or if P is known to be true or false*)
 val prems = Goalw [if_def]
-    "[| P<->Q;  Q ==> a=c;  ~Q ==> b=d |] ==> if(P,a,b) = if(Q,c,d)";
+    "[| P<->Q;  Q ==> a=c;  ~Q ==> b=d |] \
+\    ==> (if P then a else b) = (if Q then c else d)";
 by (simp_tac (simpset() addsimps prems addcongs [conj_cong]) 1);
 qed "if_cong";
 
 (*Not needed for rewriting, since P would rewrite to True anyway*)
-Goalw [if_def] "P ==> if(P,a,b) = a";
+Goalw [if_def] "P ==> (if P then a else b) = a";
 by (Blast_tac 1);
 qed "if_P";
 
 (*Not needed for rewriting, since P would rewrite to False anyway*)
-Goalw [if_def] "~P ==> if(P,a,b) = b";
+Goalw [if_def] "~P ==> (if P then a else b) = b";
 by (Blast_tac 1);
 qed "if_not_P";
 
 Addsimps [if_true, if_false];
 
 qed_goal "split_if" thy
-    "P(if(Q,x,y)) <-> ((Q --> P(x)) & (~Q --> P(y)))"
+    "P(if Q then x else y) <-> ((Q --> P(x)) & (~Q --> P(y)))"
  (fn _=> [ (case_tac "Q" 1),
            (Asm_simp_tac 1),
            (Asm_simp_tac 1) ]);
@@ -280,11 +281,11 @@ val split_ifs = [split_if_eq1, split_if_eq2,
 		 split_if_mem1, split_if_mem2];
 
 (*Logically equivalent to split_if_mem2*)
-qed_goal "if_iff" thy "a: if(P,x,y) <-> P & a:x | ~P & a:y"
+qed_goal "if_iff" thy "a: (if P then x else y) <-> P & a:x | ~P & a:y"
  (fn _=> [ (simp_tac (simpset() addsplits [split_if]) 1) ]);
 
 qed_goal "if_type" thy
-    "[| P ==> a: A;  ~P ==> b: A |] ==> if(P,a,b): A"
+    "[| P ==> a: A;  ~P ==> b: A |] ==> (if P then a else b): A"
  (fn prems=> [ (simp_tac 
                 (simpset() addsimps prems addsplits [split_if]) 1) ]);
 

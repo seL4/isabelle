@@ -126,7 +126,7 @@ by (REPEAT (ares_tac prop.intrs 1));
 qed "Imp_Fls";
 
 (*Typical example of strengthening the induction formula*)
-Goal "p: prop ==> hyps(p,t) |- if(is_true(p,t), p, p=>Fls)";
+Goal "p: prop ==> hyps(p,t) |- (if is_true(p,t) then p else p=>Fls)";
 by (Simp_tac 1);
 by (etac prop.induct 1);
 by (ALLGOALS (asm_simp_tac (simpset() addsimps [thms_I, thms.H])));

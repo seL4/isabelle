@@ -544,8 +544,7 @@ by (etac lemma8 1 THEN (assume_tac 1));
 by (resolve_tac [bij_is_fun RS apply_type] 1 THEN (assume_tac 1));
 by (eresolve_tac [Least_le RS lt_trans2 RS ltD] 1 
         THEN REPEAT (ares_tac [lt_Ord, succ_leI] 1));
-(*SLOW!  5 secs?*)
-by (eresolve_tac [lt_Ord RSN (2, LeastI)] 1 THEN (assume_tac 1));
+by (rtac (lt_Ord RSN (2, LeastI)) 1 THEN REPEAT (assume_tac 1));
 qed "main_induct";
 
 (* ********************************************************************** *)
@@ -581,7 +580,8 @@ by (REPEAT (eresolve_tac [conjE, ex1E] 1));
 by (rtac ex1I 1);
 by (fast_tac (claset() addSIs [OUN_I]) 1);
 by (REPEAT (eresolve_tac [conjE, OUN_E] 1));
-by (eresolve_tac [lt_Ord RSN (2, lt_Ord RS Ord_linear_le)] 1 THEN (assume_tac 1));
+by (eresolve_tac [lt_Ord RSN (2, lt_Ord RS Ord_linear_le)] 1 
+    THEN assume_tac 1);
 by (dresolve_tac [prem4 RS subsetD] 2 THEN (assume_tac 2));
 (** LEVEL 20 **)
 by (fast_tac FOL_cs 2);
