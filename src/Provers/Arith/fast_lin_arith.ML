@@ -153,36 +153,40 @@ fun el 0 (h::_) = h
 (* Finding a (counter) example from the trace of a failed elimination        *)
 (* ------------------------------------------------------------------------- *)
 (* Examples are represented as rational numbers,                             *)
-(* although at the moment all examples are rounded to integers -             *)
-(* thus it does not yet work for type real.                                  *)
 (* Dont blame John Harrison for this code - it is entirely mine. TN          *)
 
 exception NoEx;
-exception NotYetImpl;
 
-fun elim_eqns(ineqs,Lineq(i,Le,cs,_)) = (i,cs)::ineqs
-  | elim_eqns(ineqs,Lineq(i,Eq,cs,_)) = (i,cs)::(~i,map ~ cs)::ineqs
-  | elim_eqns(ineqs,Lineq(i,Lt,cs,_)) = raise NotYetImpl;
+(* Coding: (i,true,cs) means i <= cs and (i,false,cs) means i < cs.
+   In general, true means the bound is included, false means it is excluded.
+   Need to know if it is a lower or upper bound for unambiguous interpretation!
+*)
+
+fun elim_eqns(ineqs,Lineq(i,Le,cs,_)) = (i,true,cs)::ineqs
+  | elim_eqns(ineqs,Lineq(i,Eq,cs,_)) = (i,true,cs)::(~i,true,map ~ cs)::ineqs
+  | elim_eqns(ineqs,Lineq(i,Lt,cs,_)) = (i,false,cs)::ineqs;
 
 val rat0 = rat_of_int 0;
 
 (* PRE: ex[v] must be 0! *)
-fun eval (ex:rat list) v (a:int,cs:int list) =
+fun eval (ex:rat list) v (a:int,le,cs:int list) =
   let val rs = map rat_of_int cs
       val rsum = foldl ratadd (rat0,map ratmul (rs ~~ ex))
-  in ratmul(ratadd(rat_of_int a,ratneg rsum), ratinv(el v rs)) end;
-
-(*
-fun ratge0(Rat(a,p,q)) = (p = 0 orelse a)
+  in (ratmul(ratadd(rat_of_int a,ratneg rsum), ratinv(el v rs)), le) end;
+(* If el v rs < 0, le should be negated.
+   Instead this swap is taken into account in ratrelmin2.
 *)
+
 fun ratge0 r = fst(rep_rat r) >= 0;
-fun ratle(r,s) = ratge0(ratadd(s,ratneg r))
+fun ratle(r,s) = ratge0(ratadd(s,ratneg r));
 
-fun ratmin2(r,s) = if ratle(r,s) then r else s;
-fun ratmax2(r,s) = if ratle(r,s) then s else r;
+fun ratrelmin2(x as (r,ler),y as (s,les)) =
+  if r=s then (r, (not ler) andalso (not les)) else if ratle(r,s) then x else y;
+fun ratrelmax2(x as (r,ler),y as (s,les)) =
+  if r=s then (r,ler andalso les) else if ratle(r,s) then y else x;
 
-val ratmin = foldr1 ratmin2;
-val ratmax = foldr1 ratmax2;
+val ratrelmin = foldr1 ratrelmin2;
+val ratrelmax = foldr1 ratrelmax2;
 
 fun ratroundup r = let val (p,q) = rep_rat r
                    in if q=1 then r else rat_of_int((p div q) + 1) end
@@ -190,9 +194,23 @@ fun ratroundup r = let val (p,q) = rep_rat r
 fun ratrounddown r = let val (p,q) = rep_rat r
                      in if q=1 then r else rat_of_int((p div q) - 1) end
 
-fun choose2 d (lb,ub) =
-  if ratle(lb,rat0) andalso ratle(rat0,ub) then rat0 else
-  if not d then (if ratge0 lb then lb else ub) else
+fun ratexact up (r,exact) =
+  if exact then r else
+  let val (p,q) = rep_rat r
+      val nth = ratinv(rat_of_int q)
+  in ratadd(r,if up then nth else ratneg nth) end;
+
+fun ratmiddle(r,s) = ratmul(ratadd(r,s),ratinv(rat_of_int 2));
+
+fun choose2 d ((lb,exactl),(ub,exactu)) =
+  if ratle(lb,rat0) andalso (lb <> rat0 orelse exactl) andalso
+     ratle(rat0,ub) andalso (ub <> rat0 orelse exactu)
+  then rat0 else
+  if not d
+  then (if ratge0 lb
+        then if exactl then lb else ratmiddle(lb,ub)
+        else if exactu then ub else ratmiddle(lb,ub))
+  else (* discrete domain, both bounds must be exact *)
   if ratge0 lb then let val lb' = ratroundup lb
                     in if ratle(lb',ub) then lb' else raise NoEx end
                else let val ub' = ratrounddown ub
@@ -201,40 +219,45 @@ fun choose2 d (lb,ub) =
 fun findex1 discr (ex,(v,lineqs)) =
   let val nz = filter (fn (Lineq(_,_,cs,_)) => el v cs <> 0) lineqs;
       val ineqs = foldl elim_eqns ([],nz)
-      val (ge,le) = partition (fn (_,cs) => el v cs > 0) ineqs
-      val lb = ratmax(map (eval ex v) ge)
-      val ub = ratmin(map (eval ex v) le)
+      val (ge,le) = partition (fn (_,_,cs) => el v cs > 0) ineqs
+      val lb = ratrelmax(map (eval ex v) ge)
+      val ub = ratrelmin(map (eval ex v) le)
   in nth_update (choose2 (nth_elem(v,discr)) (lb,ub)) (v,ex) end;
 
 fun findex discr = foldl (findex1 discr);
 
 fun elim1 v x =
-  map (fn (a,bs) => (ratadd(a,ratneg(ratmul(el v bs,x))),
-                     nth_update rat0 (v,bs)));
+  map (fn (a,le,bs) => (ratadd(a,ratneg(ratmul(el v bs,x))), le,
+                        nth_update rat0 (v,bs)));
 
-fun single_var v cs = (filter_out (equal rat0) cs = [el v cs]);
+fun single_var v (_,_,cs) = (filter_out (equal rat0) cs = [el v cs]);
 
 (* The base case:
    all variables occur only with positive or only with negative coefficients *)
 fun pick_vars discr (ineqs,ex) =
-  let val nz = filter_out (forall (equal rat0) o snd) ineqs
-  in if null nz then ex
-     else let val v = find_index (not o equal rat0) (snd(hd nz))
-              val d = nth_elem(v,discr)
-              val sv = filter (single_var v o snd) nz
-              val minmax = if ratge0(el v (snd(hd nz)))
-                           then if d then ratroundup o ratmax else ratmax
-                           else if d then ratrounddown o ratmin else ratmin
-              val bnds = map (fn (a,bs) => ratmul(a,ratinv(el v bs))) sv
-              val x = minmax(rat0::bnds)
-              val ineqs' = elim1 v x nz
-              val ex' = nth_update x (v,ex)
-          in pick_vars discr (ineqs',ex') end
+  let val nz = filter_out (fn (_,_,cs) => forall (equal rat0) cs) ineqs
+  in case nz of [] => ex
+     | (_,_,cs) :: _ =>
+       let val v = find_index (not o equal rat0) cs
+           val d = nth_elem(v,discr)
+           val pos = ratge0(el v cs)
+           val sv = filter (single_var v) nz
+           val minmax =
+             if pos then if d then ratroundup o fst o ratrelmax
+                         else ratexact true o ratrelmax
+                    else if d then ratrounddown o fst o ratrelmin
+                         else ratexact false o ratrelmin
+           val bnds = map (fn (a,le,bs) => (ratmul(a,ratinv(el v bs)),le)) sv
+           val x = minmax((rat0,if pos then true else false)::bnds)
+           val ineqs' = elim1 v x nz
+           val ex' = nth_update x (v,ex)
+       in pick_vars discr (ineqs',ex') end
   end;
 
 fun findex0 discr n lineqs =
   let val ineqs = foldl elim_eqns ([],lineqs)
-      val rineqs = map (fn (a,cs) => (rat_of_int a, map rat_of_int cs)) ineqs
+      val rineqs = map (fn (a,le,cs) => (rat_of_int a, le, map rat_of_int cs))
+                       ineqs
   in pick_vars discr (rineqs,replicate n rat0) end;
 
 (* ------------------------------------------------------------------------- *)
