@@ -111,11 +111,17 @@ by (Simp_tac 1);
 qed "split";
 Addsimps [split];
 
-Goal "split Pair p = p";
-by (pair_tac "p" 1);
+(*Subsumes the old split_Pair when f is the identity function*)
+Goal "split (%x y. f(x,y)) = f";
+by (rtac ext 1);
+by (pair_tac "x" 1);
 by (Simp_tac 1);
-qed "split_Pair";
-(*unused: val surjective_pairing2 = split_Pair RS sym;*)
+qed "split_Pair_apply";
+
+(*Can't be added to simpset: loops!*)
+Goal "(SOME x. P x) = (SOME (a,b). P(a,b))";
+by (simp_tac (simpset() addsimps [split_Pair_apply]) 1);
+qed "split_paired_Eps";
 
 Goal "!!s t. (s=t) = (fst(s)=fst(t) & snd(s)=snd(t))";
 by (split_all_tac 1);
