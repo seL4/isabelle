@@ -230,13 +230,13 @@ fun is_introR thm = true;
 
 
 
-(*Transfer a theorem in to theory Hilbert_Choice.thy if it is not already
+(*Transfer a theorem in to theory Reconstruction.thy if it is not already
   inside that theory -- because it's needed for Skolemization *)
 
-val hc_thy = ThyInfo.get_theory"Hilbert_Choice";
+val recon_thy = ThyInfo.get_theory"Reconstruction";
 
-fun transfer_to_Hilbert_Choice thm =
-    transfer hc_thy thm handle THM _ => thm;
+fun transfer_to_Reconstruction thm =
+    transfer recon_thy thm handle THM _ => thm;
 
 (* remove "True" clause *)
 fun rm_redundant_cls [] = []
@@ -249,7 +249,7 @@ fun rm_redundant_cls [] = []
 
 (* transform an Isabelle thm into CNF *)
 fun cnf_axiom thm =
-    let val thm' = transfer_to_Hilbert_Choice thm
+    let val thm' = transfer_to_Reconstruction thm
 	val thm'' = if (is_elimR thm') then (cnf_elim thm')
 		    else (if (is_introR thm') then cnf_intro thm' else cnf_rule thm')
     in
