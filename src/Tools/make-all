@@ -52,6 +52,11 @@ echo force=$FORCE '    ' clean=$CLEAN '    '
 echo Compiler=${ISABELLECOMP?'No compiler specified'} 
 echo Running on `hostname`
 echo Log files will be called make$$.log.gz
+case $TEST in
+  test) echo; echo '		**** Full test: WILL TAKE MANY HOURS ****'
+        echo '		**** Consider the -notest switch ****'
+esac
+
 
 case $FORCE.$EXEC in
   on.on) (cd $ISABELLEBIN;
