@@ -69,6 +69,7 @@ sig
   val hd: 'a list -> 'a
   val tl: 'a list -> 'a list
   val cons: 'a -> 'a list -> 'a list
+  val single: 'a -> 'a list
   val append: 'a list -> 'a list -> 'a list
   val foldl: ('a * 'b -> 'a) -> 'a * 'b list -> 'a
   val foldr: ('a * 'b -> 'b) -> 'a list * 'b -> 'b
@@ -124,6 +125,8 @@ sig
   val cat_lines: string list -> string
   val space_explode: string -> string -> string list
   val split_lines: string -> string list
+  val suffix: string -> string -> string
+  val unsuffix: string -> string -> string
 
   (*lists as sets*)
   val mem: ''a * ''a list -> bool
@@ -383,6 +386,7 @@ fun tl [] = raise LIST "tl"
   | tl (_ :: xs) = xs;
 
 fun cons x xs = x :: xs;
+fun single x = [x];
 
 fun append xs ys = xs @ ys;
 
@@ -661,6 +665,20 @@ fun space_explode _ "" = []
       in expl (explode str) end;
 
 val split_lines = space_explode "\n";
+
+(*append suffix*)
+fun suffix sfx s = s ^ sfx;
+
+(*remove suffix*)
+fun unsuffix sfx s =
+  let
+    val cs = explode s;
+    val prfx_len = size s - size sfx;
+  in
+    if prfx_len >= 0 andalso implode (drop (prfx_len, cs)) = sfx then
+      implode (take (prfx_len, cs))
+    else raise LIST "unsuffix"
+  end;
 
 
 
