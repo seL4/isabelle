@@ -36,7 +36,7 @@ constdefs
 "finite_psubset == {(A,B). A < B & finite B}"
 
 (* For rec_defs where the first n parameters stay unchanged in the recursive
-   call. See While for an application.
+   call. See Library/While_Combinator.thy for an application.
 *)
  same_fst :: "('a => bool) => ('a => ('b * 'b)set) => (('a*'b)*('a*'b))set"
 "same_fst P R == {((x',y'),(x,y)) . x'=x & P x & (y',y) : R x}"
