@@ -51,14 +51,14 @@ sig
   val show_i: string -> context attribute list -> term * term list -> state -> state
   val have: string -> context attribute list -> string * string list -> state -> state
   val have_i: string -> context attribute list -> term * term list -> state -> state
-  val begin_block: state -> state
-  val next_block: state -> state
-  val end_block: state -> state
   val at_bottom: state -> bool
   val local_qed: (state -> state Seq.seq) -> ({kind: string, name: string, thm: thm} -> unit)
     -> state -> state Seq.seq
-  val global_qed: (state -> state Seq.seq) -> bstring option
-    -> theory attribute list option -> state -> (theory * {kind: string, name: string, thm: thm}) Seq.seq
+  val global_qed: (state -> state Seq.seq) -> bstring option -> theory attribute list option
+    -> state -> (theory * {kind: string, name: string, thm: thm}) Seq.seq
+  val begin_block: state -> state
+  val end_block: state -> state
+  val next_block: state -> state
 end;
 
 signature PROOF_PRIVATE =
@@ -254,7 +254,9 @@ fun new_block state =
   |> open_block
   |> put_goal None;
 
-fun close_block (State (_, node :: nodes)) = State (node, nodes)
+fun close_block (state as State (_, node :: nodes)) =
+      State (node, nodes)
+      |> map_context (ProofContext.transfer_used_names (context_of state))
   | close_block state = raise STATE ("Unbalanced block parentheses", state);
 
 
@@ -542,28 +544,6 @@ val have_i = local_goal ProofContext.bind_propp_i Aux;
 
 
 
-(** blocks **)
-
-(* begin_block *)
-
-fun begin_block state =
-  state
-  |> assert_forward
-  |> new_block
-  |> reset_facts
-  |> open_block;
-
-
-(* next_block *)
-
-fun next_block state =
-  state
-  |> assert_forward
-  |> close_block
-  |> new_block;
-
-
-
 (** conclusions **)
 
 (* current goal *)
@@ -594,17 +574,6 @@ fun finish_proof bot state =
   |> close_block
   |> assert_bottom bot
   |> assert_current_goal true;
-
-
-(* end_block *)
-
-fun end_block state =
-  state
-  |> assert_forward
-  |> close_block
-  |> assert_current_goal false
-  |> close_block
-  |> fetch_facts state;
 
 
 (* local_qed *)
@@ -657,6 +626,38 @@ fun global_qed finalize alt_name alt_atts state =
   |> finish_proof true
   |> finalize
   |> Seq.map (finish_global alt_name alt_atts);
+
+
+
+(** blocks **)
+
+(* begin_block *)
+
+fun begin_block state =
+  state
+  |> assert_forward
+  |> new_block
+  |> open_block;
+
+
+(* end_block *)
+
+fun end_block state =
+  state
+  |> assert_forward
+  |> close_block
+  |> assert_current_goal false
+  |> close_block
+  |> fetch_facts state;          (* FIXME proper check / export (!?) *)
+
+
+(* next_block *)
+
+fun next_block state =
+  state
+  |> assert_forward
+  |> close_block
+  |> new_block;
 
 
 end;
