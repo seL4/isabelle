@@ -83,9 +83,7 @@ proof (induct (open) ?P t rule: term_induct')
   show "?P (Var a)" by (simp add: o_def)
 next
   case App
-  have "?this --> ?P (App b ts)"
-    by (induct ts) simp_all
-  thus "..." ..
+  show "?P (App b ts)" by (insert App, induct ts) simp_all
 qed
 
 end
