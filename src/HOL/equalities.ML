@@ -115,7 +115,7 @@ AddIffs [image_is_empty];
 goalw thy [image_def]
 "(%x. if P x then f x else g x) `` S                    \
 \ = (f `` (S Int {x. P x})) Un (g `` (S Int {x. ~(P x)}))";
-by (split_tac [expand_if] 1);
+by (Simp_tac 1);
 by (Blast_tac 1);
 qed "if_image_distrib";
 Addsimps[if_image_distrib];
@@ -275,13 +275,13 @@ Addsimps[Un_insert_right];
 
 goal thy "(insert a B) Int C = (if a:C then insert a (B Int C) \
 \                                      else        B Int C)";
-by (simp_tac (simpset() addsplits [expand_if]) 1);
+by (Simp_tac 1);
 by (Blast_tac 1);
 qed "Int_insert_left";
 
 goal thy "A Int (insert a B) = (if a:A then insert a (A Int B) \
 \                                      else        A Int B)";
-by (simp_tac (simpset() addsplits [expand_if]) 1);
+by (Simp_tac 1);
 by (Blast_tac 1);
 qed "Int_insert_right";
 
@@ -612,7 +612,7 @@ by (Blast_tac 1);
 qed "Diff_insert2";
 
 goal thy "insert x A - B = (if x:B then A-B else insert x (A-B))";
-by (simp_tac (simpset() addsplits [expand_if]) 1);
+by (Simp_tac 1);
 by (Blast_tac 1);
 qed "insert_Diff_if";
 

@@ -317,12 +317,12 @@ qed "append_Nil4";
 
 goal SList.thy "x mem (xs@ys) = (x mem xs | x mem ys)";
 by (list_ind_tac "xs" 1);
-by (ALLGOALS(asm_simp_tac (simpset() addsplits [expand_if])));
+by (ALLGOALS Asm_simp_tac);
 qed "mem_append2";
 
 goal SList.thy "x mem [x:xs. P(x)] = (x mem xs & P(x))";
 by (list_ind_tac "xs" 1);
-by (ALLGOALS(asm_simp_tac (simpset() addsplits [expand_if])));
+by (ALLGOALS Asm_simp_tac);
 qed "mem_filter2";
 
 

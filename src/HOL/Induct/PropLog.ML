@@ -141,9 +141,7 @@ qed "thms_excluded_middle_rule";
   we also have hyps(p,t)-{#v} <= hyps(p, t-{v}) *)
 goal PropLog.thy "hyps p (t-{v}) <= insert (#v->false) ((hyps p t)-{#v})";
 by (PropLog.pl.induct_tac "p" 1);
-by (Simp_tac 1);
-by (simp_tac (simpset() addsplits [expand_if]) 1);
-by (Simp_tac 1);
+by (ALLGOALS Simp_tac);
 by (Fast_tac 1);
 qed "hyps_Diff";
 
@@ -151,9 +149,7 @@ qed "hyps_Diff";
   we also have hyps(p,t)-{#v->false} <= hyps(p, insert(v,t)) *)
 goal PropLog.thy "hyps p (insert v t) <= insert (#v) (hyps p t-{#v->false})";
 by (PropLog.pl.induct_tac "p" 1);
-by (Simp_tac 1);
-by (simp_tac (simpset() addsplits [expand_if]) 1);
-by (Simp_tac 1);
+by (ALLGOALS Simp_tac);
 by (Fast_tac 1);
 qed "hyps_insert";
 
@@ -174,7 +170,7 @@ qed "hyps_finite";
 
 goal PropLog.thy "hyps p t <= (UN v. {#v, #v->false})";
 by (PropLog.pl.induct_tac "p" 1);
-by (ALLGOALS (simp_tac (simpset() addsplits [expand_if])));
+by (ALLGOALS Simp_tac);
 by (Blast_tac 1);
 qed "hyps_subset";
 

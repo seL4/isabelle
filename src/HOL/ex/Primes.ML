@@ -36,7 +36,7 @@ qed "gcd_0";
 
 goal thy "!!m. 0<n ==> gcd(m,n) = gcd (n, m mod n)";
 by (rtac (gcd_eq RS trans) 1);
-by (asm_simp_tac (simpset() addsplits [expand_if]) 1);
+by (Asm_simp_tac 1);
 by (Blast_tac 1);
 qed "gcd_less_0";
 Addsimps [gcd_0, gcd_less_0];

@@ -153,7 +153,7 @@ qed "acyclic_inverse";
   H_cong to expose the equality*)
 goalw WF.thy [cut_def]
     "(cut f r x = cut g r x) = (!y. (y,x):r --> f(y)=g(y))";
-by (simp_tac (HOL_ss addsimps [expand_fun_eq] addsplits [expand_if]) 1);
+by (simp_tac (HOL_ss addsimps [expand_fun_eq]) 1);
 qed "cuts_eq";
 
 goalw WF.thy [cut_def] "!!x. (x,a):r ==> (cut f r a)(x) = f(x)";
@@ -193,8 +193,7 @@ val gundef = recgb RS is_recfun_undef
 and fisg   = recgb RS (recfa RS (transr RS (wfr RS is_recfun_equal)));
 by (cut_facts_tac prems 1);
 by (rtac ext 1);
-by (asm_simp_tac (wf_super_ss addsimps [gundef,fisg]
-                              addsplits [expand_if]) 1);
+by (asm_simp_tac (wf_super_ss addsimps [gundef,fisg]) 1);
 qed "is_recfun_cut";
 
 (*** Main Existence Lemma -- Basic Properties of the_recfun ***)

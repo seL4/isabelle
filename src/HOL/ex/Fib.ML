@@ -58,8 +58,7 @@ by (asm_simp_tac (simpset() addsimps [add_mult_distrib, add_mult_distrib2]) 3);
 by (stac (read_instantiate [("x", "Suc ?n")] fib_Suc_Suc) 3);
 by (ALLGOALS  (*using fib.rules here results in a longer proof!*)
     (asm_simp_tac (simpset() addsimps [add_mult_distrib, add_mult_distrib2, 
-				       mod_less, mod_Suc]
-                             addsplits [expand_if])));
+				       mod_less, mod_Suc])));
 by (ALLGOALS
     (asm_full_simp_tac
      (simpset() addsimps (fib.rules @ add_ac @ mult_ac @

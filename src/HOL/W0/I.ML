@@ -144,7 +144,7 @@ Addsimps [split_paired_Ex];
 goal I.thy "!a m s. \
 \  new_tv m a & new_tv m s --> I e a m s = Fail --> W e ($s a) m = Fail";
 by (expr.induct_tac "e" 1);
-  by (simp_tac (simpset() addsimps [app_subst_list] addsplits [expand_if]) 1);
+  by (simp_tac (simpset() addsimps [app_subst_list]) 1);
  by (Simp_tac 1);
  by (strip_tac 1);
  by (subgoal_tac "TVar m # $ s a = $s(TVar m # a)" 1);

@@ -41,7 +41,7 @@ by (ALLGOALS Blast_tac);
 qed "agreement";
 
 goal Subst.thy   "~ v: vars_of(t) --> t <| (v,u)#s = t <| s";
-by (simp_tac (simpset() addsimps [agreement] addsplits [expand_if]) 1);
+by (simp_tac (simpset() addsimps [agreement]) 1);
 qed_spec_mp"repl_invariance";
 
 val asms = goal Subst.thy 
@@ -111,7 +111,7 @@ goal Subst.thy "(t <| r <> s) = (t <| r <| s)";
 by (induct_tac "t" 1);
 by (ALLGOALS Asm_simp_tac);
 by (alist_ind_tac "r" 1);
-by (ALLGOALS (asm_simp_tac (simpset() addsplits [expand_if])));
+by (ALLGOALS Asm_simp_tac);
 qed "subst_comp";
 
 Addsimps [subst_comp];
@@ -130,7 +130,7 @@ goal Subst.thy "(w, Var(w) <| s) # s =$= s";
 by (simp_tac (simpset() addsimps [subst_eq_iff]) 1);
 by (rtac allI 1);
 by (induct_tac "t" 1);
-by (ALLGOALS (asm_full_simp_tac (simpset() addsplits [expand_if])));
+by (ALLGOALS Asm_full_simp_tac);
 qed "Cons_trivial";
 
 
@@ -143,7 +143,7 @@ qed "comp_subst_subst";
 
 goal Subst.thy  "(v : sdom(s)) = (Var(v) <| s ~= Var(v))";
 by (alist_ind_tac "s" 1);
-by (ALLGOALS (asm_simp_tac (simpset() addsplits [expand_if])));
+by (ALLGOALS Asm_simp_tac);
 by (Blast_tac 1);
 qed "sdom_iff";
 
@@ -203,7 +203,7 @@ qed "subst_not_empty";
 
 goal Subst.thy "(M <| [(x, Var x)]) = M";
 by (induct_tac "M" 1);
-by (ALLGOALS (asm_simp_tac (simpset() addsplits [expand_if])));
+by (ALLGOALS Asm_simp_tac);
 qed "id_subst_lemma";
 
 Addsimps [id_subst_lemma];

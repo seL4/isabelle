@@ -664,7 +664,7 @@ val mem_simps = [insert_iff, empty_iff, Un_iff, Int_iff, Compl_iff, Diff_iff,
 
 (*Not for Addsimps -- it can cause goals to blow up!*)
 goal Set.thy "(a : (if Q then x else y)) = ((Q --> a:x) & (~Q --> a : y))";
-by (simp_tac (simpset() addsplits [expand_if]) 1);
+by (Simp_tac 1);
 qed "mem_if";
 
 val mksimps_pairs = ("Ball",[bspec]) :: mksimps_pairs;

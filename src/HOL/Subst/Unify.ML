@@ -153,8 +153,7 @@ by (rtac allI 1);
 (* Apply induction *)
 by (res_inst_tac [("u","M1"),("v","M2")] unifyInduct0 1);
 by (ALLGOALS 
-    (asm_simp_tac (simpset() addsimps (var_elimR::unifyRules0)
-			    addsplits [expand_if])));
+    (asm_simp_tac (simpset() addsimps (var_elimR::unifyRules0))));
 (*Const-Const case*)
 by (simp_tac
     (simpset() addsimps [unifyRel_def, lex_prod_def, measure_def,
@@ -207,7 +206,7 @@ bind_thm ("unifyInduct",
 
 goal Unify.thy "!theta. unify(M,N) = Some theta --> MGUnifier theta M N";
 by (res_inst_tac [("u","M"),("v","N")] unifyInduct 1);
-by (ALLGOALS (asm_simp_tac (simpset() addsplits [expand_if])));
+by (ALLGOALS Asm_simp_tac);
 (*Const-Const case*)
 by (simp_tac (simpset() addsimps [MGUnifier_def,Unifier_def]) 1);
 (*Const-Var case*)
@@ -245,8 +244,7 @@ goal Unify.thy "!theta. unify(M,N) = Some theta --> Idem theta";
 by (res_inst_tac [("u","M"),("v","N")] unifyInduct 1);
 by (ALLGOALS 
     (asm_simp_tac 
-       (simpset() addsimps [Var_Idem] 
-	         addsplits [expand_if,split_option_case])));
+       (simpset() addsimps [Var_Idem] addsplits [split_option_case])));
 (*Comb-Comb case*)
 by Safe_tac;
 by (REPEAT (dtac spec 1 THEN mp_tac 1));

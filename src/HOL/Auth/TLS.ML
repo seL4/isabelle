@@ -145,7 +145,7 @@ fun parts_induct_tac i =
     REPEAT (FIRSTGOAL analz_mono_contra_tac)
     THEN 
     fast_tac (claset() addss (simpset())) i THEN
-    ALLGOALS (asm_simp_tac (simpset() addsplits [expand_if]));
+    ALLGOALS Asm_simp_tac;
 
 
 (** Theorems of the form X ~: parts (spies evs) imply that NOBODY
@@ -193,14 +193,12 @@ fun analz_induct_tac i =
     ClientKeyExch_tac  (i+6)  THEN	(*ClientKeyExch*)
     ALLGOALS (asm_simp_tac 
               (simpset() addcongs [if_weak_cong]
-                         addsimps (expand_ifs@pushes)
-                         addsplits [expand_if]))  THEN
+                         addsimps (expand_ifs@pushes)))  THEN
     (*Remove instances of pubK B:  the Spy already knows all public keys.
       Combining the two simplifier calls makes them run extremely slowly.*)
     ALLGOALS (asm_simp_tac 
               (simpset() addcongs [if_weak_cong]
-			 addsimps [insert_absorb]
-                         addsplits [expand_if]));
+			 addsimps [insert_absorb]));
 
 
 (*** Properties of items found in Notes ***)

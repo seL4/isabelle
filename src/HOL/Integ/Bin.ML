@@ -100,8 +100,6 @@ qed_goal "bin_mult_Bcons0" Bin.thy
 
 (**** The carry/borrow functions, bin_succ and bin_pred ****)
 
-val if_ss = simpset() addsplits [expand_if];
-
 
 (**** integ_of_bin ****)
 
@@ -109,26 +107,26 @@ val if_ss = simpset() addsplits [expand_if];
 qed_goal "integ_of_bin_norm_Bcons" Bin.thy
     "integ_of_bin(norm_Bcons w b) = integ_of_bin(Bcons w b)"
  (fn _ =>[(bin.induct_tac "w" 1),
-          (ALLGOALS(simp_tac if_ss)) ]);
+          (ALLGOALS Simp_tac) ]);
 
 qed_goal "integ_of_bin_succ" Bin.thy
     "integ_of_bin(bin_succ w) = $#1 + integ_of_bin w"
  (fn _ =>[(rtac bin.induct 1),
           (ALLGOALS(asm_simp_tac 
-                    (if_ss addsimps (integ_of_bin_norm_Bcons::zadd_ac)))) ]);
+                    (simpset() addsimps (integ_of_bin_norm_Bcons::zadd_ac)))) ]);
 
 qed_goal "integ_of_bin_pred" Bin.thy
     "integ_of_bin(bin_pred w) = $~ ($#1) + integ_of_bin w"
  (fn _ =>[(rtac bin.induct 1),
           (ALLGOALS(asm_simp_tac
-                  (if_ss addsimps (integ_of_bin_norm_Bcons::zadd_ac)))) ]);
+                  (simpset() addsimps (integ_of_bin_norm_Bcons::zadd_ac)))) ]);
 
 qed_goal "integ_of_bin_minus" Bin.thy
     "integ_of_bin(bin_minus w) = $~ (integ_of_bin w)"
  (fn _ =>[(rtac bin.induct 1),
           (Simp_tac 1),
           (Simp_tac 1),
-          (asm_simp_tac (if_ss
+          (asm_simp_tac (simpset()
                          delsimps [pred_Plus,pred_Minus,pred_Bcons]
                          addsimps [integ_of_bin_succ,integ_of_bin_pred,
                                    zadd_assoc]) 1)]);
@@ -143,16 +141,16 @@ val bin_simps = [iob_Plus,iob_Minus,iob_Bcons];
 goal Bin.thy
     "! w. integ_of_bin(bin_add v w) = integ_of_bin v + integ_of_bin w";
 by (bin.induct_tac "v" 1);
-by (simp_tac (if_ss addsimps bin_add_simps) 1);
-by (simp_tac (if_ss addsimps bin_add_simps) 1);
+by (simp_tac (simpset() addsimps bin_add_simps) 1);
+by (simp_tac (simpset() addsimps bin_add_simps) 1);
 by (rtac allI 1);
 by (bin.induct_tac "w" 1);
-by (asm_simp_tac (if_ss addsimps (bin_add_simps)) 1);
-by (asm_simp_tac (if_ss addsimps (bin_add_simps @ zadd_ac)) 1);
+by (asm_simp_tac (simpset() addsimps (bin_add_simps)) 1);
+by (asm_simp_tac (simpset() addsimps (bin_add_simps @ zadd_ac)) 1);
 by (cut_inst_tac [("P","bool")] True_or_False 1);
 by (etac disjE 1);
-by (asm_simp_tac (if_ss addsimps (bin_add_simps @ zadd_ac)) 1);
-by (asm_simp_tac (if_ss addsimps (bin_add_simps @ zadd_ac)) 1);
+by (asm_simp_tac (simpset() addsimps (bin_add_simps @ zadd_ac)) 1);
+by (asm_simp_tac (simpset() addsimps (bin_add_simps @ zadd_ac)) 1);
 val integ_of_bin_add_lemma = result();
 
 goal Bin.thy "integ_of_bin(bin_add v w) = integ_of_bin v + integ_of_bin w";
@@ -165,12 +163,12 @@ val bin_mult_simps = [integ_of_bin_minus, integ_of_bin_add,
 
 goal Bin.thy "integ_of_bin(bin_mult v w) = integ_of_bin v * integ_of_bin w";
 by (bin.induct_tac "v" 1);
-by (simp_tac (if_ss addsimps bin_mult_simps) 1);
-by (simp_tac (if_ss addsimps bin_mult_simps) 1);
+by (simp_tac (simpset() addsimps bin_mult_simps) 1);
+by (simp_tac (simpset() addsimps bin_mult_simps) 1);
 by (cut_inst_tac [("P","bool")] True_or_False 1);
 by (etac disjE 1);
-by (asm_simp_tac (if_ss addsimps (bin_mult_simps @ [zadd_zmult_distrib])) 2);
-by (asm_simp_tac (if_ss addsimps (bin_mult_simps @ [zadd_zmult_distrib] @ 
+by (asm_simp_tac (simpset() addsimps (bin_mult_simps @ [zadd_zmult_distrib])) 2);
+by (asm_simp_tac (simpset() addsimps (bin_mult_simps @ [zadd_zmult_distrib] @ 
                                   zadd_ac)) 1);
 qed "integ_of_bin_mult";
 

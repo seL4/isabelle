@@ -896,7 +896,7 @@ fun spy_analz_tac i =
        (REPEAT o CHANGED)
            (res_inst_tac [("x1","X")] (insert_commute RS ssubst) 1),
        (*...allowing further simplifications*)
-       simp_tac (simpset() addsplits [expand_if]) 1,
+       Simp_tac 1,
        REPEAT (FIRSTGOAL (resolve_tac [allI,impI,notI,conjI,iffI])),
        DEPTH_SOLVE 
          (Fake_insert_simp_tac 1

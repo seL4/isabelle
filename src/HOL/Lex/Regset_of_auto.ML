@@ -23,15 +23,14 @@ qed "list_length_induct";
 
 goal thy "(butlast xs = []) = (case xs of [] => True | y#ys => ys=[])";
 by (exhaust_tac "xs" 1);
-by (ALLGOALS (asm_simp_tac (simpset() addsplits [expand_if])));
+by (ALLGOALS Asm_simp_tac);
 qed "butlast_empty";
 AddIffs [butlast_empty];
 
 goal thy "x:set(butlast xs) --> xs:set xss --> x:set(butlast(concat xss))";
 by (induct_tac "xss" 1);
  by (Simp_tac 1);
-by (asm_simp_tac (simpset() addsimps [butlast_append] delsimps ball_simps
-                           addsplits [expand_if]) 1);
+by (asm_simp_tac (simpset() addsimps [butlast_append] delsimps ball_simps) 1);
 by (rtac conjI 1);
  by (Clarify_tac 1);
  by (rtac conjI 1);
@@ -91,7 +90,7 @@ by (REPEAT(etac exE 1));
 by (res_inst_tac[("x","a#pref")]exI 1);
 by (res_inst_tac[("x","mids")]exI 1);
 by (res_inst_tac[("x","suf")]exI 1);
-by (asm_simp_tac (simpset() addsplits [expand_if]) 1);
+by (Asm_simp_tac 1);
 qed_spec_mp "decompose";
 
 goal thy "!i. length(trace A i xs) = length xs";
@@ -137,7 +136,7 @@ goal thy "!i. set(trace A i xs) = \
 \ (if xs=[] then {} else insert(deltas A xs i)(set(butlast(trace A i xs))))";
 by (induct_tac "xs" 1);
  by (Simp_tac 1);
-by (asm_simp_tac (simpset() addsimps [insert_commute] addsplits [expand_if]) 1);
+by (asm_simp_tac (simpset() addsimps [insert_commute]) 1);
 qed "set_trace_conv";
 
 goal thy
@@ -157,8 +156,7 @@ goal thy
  "!i j xs. xs : regset_of A i j k = \
 \          ((!n:set(butlast(trace A i xs)). n < k) & deltas A xs i = j)";
 by (induct_tac "k" 1);
- by (simp_tac (simpset() addcongs [conj_cong]
-                        addsplits [expand_if,split_list_case]) 1);
+ by (simp_tac (simpset() addcongs [conj_cong] addsplits [split_list_case]) 1);
 by (strip_tac 1);
 by (asm_simp_tac (simpset() addsimps [conc_def]) 1);
 by (rtac iffI 1);
@@ -168,12 +166,10 @@ by (rtac iffI 1);
  by (Asm_full_simp_tac 1);
  by (subgoal_tac
       "(!n:set(butlast(trace A k xsb)). n < Suc k) & deltas A xsb k = k" 1);
-  by (asm_simp_tac (simpset() addsplits [expand_if]
-       addsimps [set_trace_conv,butlast_append,ball_Un]) 1);
+  by (asm_simp_tac (simpset() addsimps [set_trace_conv,butlast_append,ball_Un]) 1);
  by (etac star.induct 1);
   by (Simp_tac 1);
- by (asm_full_simp_tac (simpset() addsplits [expand_if]
-       addsimps [set_trace_conv,butlast_append,ball_Un]) 1);
+ by (asm_full_simp_tac (simpset() addsimps [set_trace_conv,butlast_append,ball_Un]) 1);
 by (case_tac "k : set(butlast(trace A i xs))" 1);
  by (rtac disjI1 2);
  by (blast_tac (claset() addIs [lemma]) 2);

@@ -66,8 +66,8 @@ by Safe_tac;
 by (rename_tac "S1 S2" 1);
 by (res_inst_tac [("x","%x. if x:bound_tv type_scheme1 then (S1 x) else (S2 x)")] exI 1);
 by Safe_tac;
-by (asm_simp_tac (simpset() addsplits [expand_if]) 1);
-by (asm_simp_tac (simpset() addsplits [expand_if]) 1);
+by (Asm_simp_tac 1);
+by (Asm_simp_tac 1);
 by (strip_tac 1);
 by (dres_inst_tac [("x","x")] bspec 1);
 by (assume_tac 1);
@@ -82,8 +82,8 @@ qed_spec_mp "bound_scheme_inst_type";
 goal thy "!!sch. new_tv n sch --> subst_to_scheme (%k. if n <= k then BVar (k - n) else FVar k) \
 \                                                 (bound_typ_inst (%k. TVar (k + n)) sch) = sch";
 by (type_scheme.induct_tac "sch" 1);
-by (simp_tac (simpset() addsimps [leD] addsplits [expand_if]) 1);
-by (simp_tac (simpset() addsimps [le_add2,diff_add_inverse2] addsplits [expand_if]) 1);
+by (simp_tac (simpset() addsimps [leD]) 1);
+by (simp_tac (simpset() addsimps [le_add2,diff_add_inverse2]) 1);
 by (Asm_simp_tac 1);
 qed_spec_mp "subst_to_scheme_inverse";
 
@@ -96,9 +96,9 @@ goal thy "new_tv n sch --> \
 \        (subst_to_scheme (%k. if n <= k then BVar (k - n) else FVar k) (bound_typ_inst S sch) = \
 \                         bound_scheme_inst ((subst_to_scheme (%k. if n <= k then BVar (k - n) else FVar k)) o S) sch)";
 by (type_scheme.induct_tac "sch" 1);
-by (simp_tac (simpset() addsplits [expand_if] addsimps [leD]) 1);
+by (simp_tac (simpset() addsimps [leD]) 1);
 by (Asm_simp_tac 1);
-by (asm_full_simp_tac (simpset() addsplits [expand_if] addsimps [leD]) 1);
+by (asm_full_simp_tac (simpset() addsimps [leD]) 1);
 val aux2 = result () RS mp;
 
 

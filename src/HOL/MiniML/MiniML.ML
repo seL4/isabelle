@@ -82,7 +82,7 @@ qed "S'_A_eq_S'_alpha_A";
 goalw thy [free_tv_subst,dom_def]
           "!!A. dom (%n. if n : free_tv A Un free_tv t then S n else TVar n) <= \
 \               free_tv A Un free_tv t";
-by (simp_tac (simpset() addsplits [expand_if]) 1);
+by (Simp_tac 1);
 by (Fast_tac 1);
 qed "dom_S'";
 
@@ -110,7 +110,7 @@ goal thy "!!t1::typ. \
 \         (free_tv ($ (%x. TVar (if x : free_tv A then x else n + x)) t1) - free_tv A) <= \
 \         {x. ? y. x = n + y}";
 by (typ.induct_tac "t1" 1);
-by (simp_tac (simpset() addsplits [expand_if]) 1);
+by (Simp_tac 1);
 by (Fast_tac 1);
 by (Simp_tac 1);
 by (Fast_tac 1);

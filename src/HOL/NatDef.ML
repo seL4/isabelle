@@ -599,12 +599,12 @@ qed "nat_le_linear";
 (** max
 
 goalw thy [max_def] "!!z::nat. (z <= max x y) = (z <= x | z <= y)";
-by (simp_tac (simpset() addsimps [not_le_iff_less] addsplits [expand_if]) 1);
+by (simp_tac (simpset() addsimps [not_le_iff_less]) 1);
 by (blast_tac (claset() addIs [less_imp_le, le_trans]) 1);
 qed "le_max_iff_disj";
 
 goalw thy [max_def] "!!z::nat. (max x y <= z) = (x <= z & y <= z)";
-by (simp_tac (simpset() addsimps [not_le_iff_less] addsplits [expand_if]) 1);
+by (simp_tac (simpset() addsimps [not_le_iff_less]) 1);
 by (blast_tac (claset() addIs [less_imp_le, le_trans]) 1);
 qed "max_le_iff_conj";
 
@@ -612,12 +612,12 @@ qed "max_le_iff_conj";
 (** min **)
 
 goalw thy [min_def] "!!z::nat. (z <= min x y) = (z <= x & z <= y)";
-by (simp_tac (simpset() addsimps [not_le_iff_less] addsplits [expand_if]) 1);
+by (simp_tac (simpset() addsimps [not_le_iff_less]) 1);
 by (blast_tac (claset() addIs [less_imp_le, le_trans]) 1);
 qed "le_min_iff_conj";
 
 goalw thy [min_def] "!!z::nat. (min x y <= z) = (x <= z | y <= z)";
-by (simp_tac (simpset() addsimps [not_le_iff_less] addsplits [expand_if]) 1);
+by (simp_tac (simpset() addsimps [not_le_iff_less] addsplits) 1);
 by (blast_tac (claset() addIs [less_imp_le, le_trans]) 1);
 qed "min_le_iff_disj";
  **)

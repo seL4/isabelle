@@ -15,7 +15,6 @@ by (trans_tac 1);
 qed "min_0R";
 
 goalw thy [min_def] "min (Suc m) (Suc n) = Suc(min m n)";
-by (split_tac [expand_if] 1);
 by (Simp_tac 1);
 qed "min_Suc_Suc";
 

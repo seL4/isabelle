@@ -433,12 +433,11 @@ by (ALLGOALS Asm_simp_tac);
 qed "less_imp_diff_positive";
 
 goal Arith.thy "Suc(m)-n = (if m<n then 0 else Suc(m-n))";
-by (simp_tac (simpset() addsimps [less_imp_diff_is_0, not_less_eq, Suc_diff_n]
-                       addsplits [expand_if]) 1);
+by (simp_tac (simpset() addsimps [less_imp_diff_is_0, not_less_eq, Suc_diff_n]) 1);
 qed "if_Suc_diff_n";
 
 goal Arith.thy "Suc(m)-n <= Suc(m-n)";
-by (simp_tac (simpset() addsimps [if_Suc_diff_n] addsplits [expand_if]) 1);
+by (simp_tac (simpset() addsimps [if_Suc_diff_n]) 1);
 qed "diff_Suc_le_Suc_diff";
 
 goal Arith.thy "P(k) --> (!n. P(Suc(n))--> P(n)) --> P(k-i)";

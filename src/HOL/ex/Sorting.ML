@@ -8,20 +8,20 @@ Some general lemmas
 
 goal Sorting.thy "!x. mset (xs@ys) x = mset xs x + mset ys x";
 by (list.induct_tac "xs" 1);
-by (ALLGOALS(asm_simp_tac (simpset() addsplits [expand_if])));
+by (ALLGOALS Asm_simp_tac);
 qed "mset_append";
 
 goal Sorting.thy "!x. mset [x:xs. ~p(x)] x + mset [x:xs. p(x)] x = \
 \                     mset xs x";
 by (list.induct_tac "xs" 1);
-by (ALLGOALS(asm_simp_tac (simpset() addsplits [expand_if])));
+by (ALLGOALS Asm_simp_tac);
 qed "mset_compl_add";
 
 Addsimps [mset_append, mset_compl_add];
 
 goal Sorting.thy "set xs = {x. mset xs x ~= 0}";
 by (list.induct_tac "xs" 1);
-by (ALLGOALS(asm_simp_tac (simpset() addsplits [expand_if])));
+by (ALLGOALS Asm_simp_tac);
 by (Fast_tac 1);
 qed "set_via_mset";
 

@@ -92,7 +92,7 @@ qed "evnodd_empty";
 goalw thy [evnodd_def]
     "evnodd (insert (i,j) C) b = \
 \      (if (i+j) mod 2 = b then insert (i,j) (evnodd C b) else evnodd C b)";
-by (simp_tac (simpset() addsplits [expand_if]) 1);
+by (Simp_tac 1);
 by (Blast_tac 1);
 qed "evnodd_insert";
 
@@ -107,8 +107,7 @@ by (res_inst_tac [("k1", "i+j")] (mod2_cases RS disjE) 2);
 by (res_inst_tac [("k1", "i+j")] (mod2_cases RS disjE) 1);
 by (REPEAT_FIRST assume_tac);
 (*Four similar cases: case (i+j) mod 2 = b, 2#-b, ...*)
-by (REPEAT (asm_full_simp_tac (simpset() addsimps [less_Suc_eq, mod_Suc] 
-                          addsplits [expand_if]) 1
+by (REPEAT (asm_full_simp_tac (simpset() addsimps [less_Suc_eq, mod_Suc]) 1
            THEN Blast_tac 1));
 qed "domino_singleton";
 

@@ -98,7 +98,7 @@ qed "find_LCons_seek";
 Addsimps [find_LCons_seek];
 
 goal thy "find p (LCons x l) = (if p x then LCons x l else find p l)";
-by (asm_simp_tac (simpset() addsplits [expand_if]) 1);
+by (Asm_simp_tac 1);
 qed "find_LCons";
 
 
@@ -148,8 +148,7 @@ qed "lfilter_LCons_seek";
 
 goal thy "lfilter p (LCons x l) = \
 \         (if p x then LCons x (lfilter p l) else lfilter p l)";
-by (asm_simp_tac (simpset() addsimps [lfilter_LCons_found, lfilter_LCons_seek]
-                            addsplits [expand_if]) 1);
+by (asm_simp_tac (simpset() addsimps [lfilter_LCons_found, lfilter_LCons_seek]) 1);
 qed "lfilter_LCons";
 
 AddSIs [llistD_Fun_LNil_I, llistD_Fun_LCons_I];
@@ -193,7 +192,7 @@ qed "lfilter_K_True";
 
 goal thy "lfilter p (lfilter p l) = lfilter p l";
 by (res_inst_tac [("l","l")] llist_fun_equalityI 1);
-by (ALLGOALS (simp_tac (simpset() addsplits [expand_if])));
+by (ALLGOALS Simp_tac);
 by Safe_tac;
 (*Cases: p x is true or false*)
 by (rtac (lfilter_cases RS disjE) 1);
@@ -250,7 +249,7 @@ goal thy "!!p. (l,l'') : findRel(%x. p x & q x) \
 \              ==> l'' = LCons y l' --> \
 \                  (lfilter q l, LCons y (lfilter q l')) : findRel p";
 by (etac findRel.induct 1);
-by (ALLGOALS (asm_simp_tac (simpset() addsplits [expand_if])));
+by (ALLGOALS Asm_simp_tac);
 by (ALLGOALS (blast_tac (claset() addIs findRel.intrs)));
 qed_spec_mp "findRel_conj_lfilter";
 
@@ -291,7 +290,7 @@ val lemma = result();
 
 goal thy "lfilter p (lfilter q l) = lfilter (%x. p x & q x) l";
 by (res_inst_tac [("l","l")] llist_fun_equalityI 1);
-by (ALLGOALS (simp_tac (simpset() addsplits [expand_if])));
+by (ALLGOALS Simp_tac);
 by (blast_tac (claset() addIs [lemma, impOfSubs llistD_Fun_mono]) 1);
 qed "lfilter_conj";
 
@@ -329,7 +328,7 @@ val lmap_LCons_findRel = refl RSN (2, refl RSN (2, lmap_LCons_findRel_lemma));
 
 goal thy "lfilter p (lmap f l) = lmap f (lfilter (p o f) l)";
 by (res_inst_tac [("l","l")] llist_fun_equalityI 1);
-by (ALLGOALS (simp_tac (simpset() addsplits [expand_if])));
+by (ALLGOALS Simp_tac);
 by Safe_tac;
 by (case_tac "lmap f l : Domain (findRel p)" 1);
 by (subgoal_tac "l ~: Domain (findRel(%x. p (f x)))" 2);

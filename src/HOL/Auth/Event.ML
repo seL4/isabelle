@@ -46,22 +46,20 @@ by (simp_tac (simpset() addsimps [subset_insertI]) 1);
 qed "spies_subset_spies_Says";
 
 goal thy "spies evs <= spies (Notes A X # evs)";
-by (simp_tac (simpset() addsplits [expand_if]) 1);
+by (Simp_tac 1);
 by (Fast_tac 1);
 qed "spies_subset_spies_Notes";
 
 (*Spy sees all traffic*)
 goal thy "Says A B X : set evs --> X : spies evs";
 by (induct_tac "evs" 1);
-by (ALLGOALS (asm_simp_tac
-	      (simpset() addsplits [expand_event_case, expand_if])));
+by (ALLGOALS (asm_simp_tac (simpset() addsplits [expand_event_case])));
 qed_spec_mp "Says_imp_spies";
 
 (*Spy sees Notes of bad agents*)
 goal thy "Notes A X : set evs --> A: bad --> X : spies evs";
 by (induct_tac "evs" 1);
-by (ALLGOALS (asm_simp_tac
-	      (simpset() addsplits [expand_event_case, expand_if])));
+by (ALLGOALS (asm_simp_tac (simpset() addsplits [expand_event_case])));
 qed_spec_mp "Notes_imp_spies";
 
 (*Use with addSEs to derive contradictions from old Says events containing
@@ -80,7 +78,7 @@ goal thy "parts (spies evs) <= used evs";
 by (induct_tac "evs" 1);
 by (ALLGOALS (asm_simp_tac
 	      (simpset() addsimps [parts_insert_spies]
-	                addsplits [expand_event_case, expand_if])));
+	                addsplits [expand_event_case])));
 by (ALLGOALS Blast_tac);
 qed "parts_spies_subset_used";
 
@@ -91,7 +89,7 @@ goal thy "parts (initState B) <= used evs";
 by (induct_tac "evs" 1);
 by (ALLGOALS (asm_simp_tac
 	      (simpset() addsimps [parts_insert_spies]
-	                addsplits [expand_event_case, expand_if])));
+	                addsplits [expand_event_case])));
 by (ALLGOALS Blast_tac);
 bind_thm ("initState_into_used", impOfSubs (result()));
 

@@ -13,7 +13,7 @@ Addsimps qsort.rules;
 
 goal thy "(x mem qsort (ord,l)) = (x mem l)";
 by (res_inst_tac [("u","ord"),("v","l")] qsort.induct 1);
-by (ALLGOALS (asm_simp_tac (simpset() addsplits [expand_if])));
+by (ALLGOALS Asm_simp_tac);
 by (Blast_tac 1);
 qed "qsort_mem_stable";
 

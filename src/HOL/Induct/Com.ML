@@ -54,7 +54,7 @@ qed "assign_different";
 
 goalw thy [assign_def] "s[s x/x] = s";
 by (rtac ext 1);
-by (simp_tac (simpset() addsplits [expand_if]) 1);
+by (Simp_tac 1);
 qed "assign_triv";
 
 Addsimps [assign_same, assign_different, assign_triv];
