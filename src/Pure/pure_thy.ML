@@ -257,8 +257,7 @@ val add_store_defs_i = add_store Theory.add_defs_i;
 
 val proto_pure =
   Theory.pre_pure
-  |> Attribute.setup
-  |> theorems_setup
+  |> Theory.setup [Attribute.setup, theorems_setup]
   |> Theory.add_types
    (("fun", 2, NoSyn) ::
     ("prop", 0, NoSyn) ::
@@ -281,9 +280,12 @@ val proto_pure =
     ("=?=", "['a::{}, 'a] => prop", InfixrName ("=?=", 2)),
     ("==>", "[prop, prop] => prop", Mixfix ("(_/ ==> _)", [2, 1], 1)),
     ("all", "('a => prop) => prop", Binder ("!!", 0, 0)),
+    ("Goal", "prop => prop", Mixfix ("GOAL _", [999], 1000)),
     ("TYPE", "'a itself", NoSyn)]
   |> Theory.add_path "ProtoPure"
-  |> add_store_defs [("flexpair_def", "(t =?= u) == (t == u::'a::{})")]
+  |> add_store_defs
+   [("flexpair_def", "(t =?= u) == (t == u::'a::{})"),
+    ("Goal_def", "GOAL (PROP A) == PROP A")]
   |> Theory.add_name "ProtoPure";
 
 val pure =
@@ -313,6 +315,7 @@ structure ProtoPure =
 struct
   val thy = PureThy.proto_pure;
   val flexpair_def = get_axiom thy "flexpair_def";
+  val Goal_def = get_axiom thy "Goal_def";
 end;
 
 structure Pure = struct val thy = PureThy.pure end;
