@@ -56,7 +56,7 @@
 \newcommand{\DEFS}{\isarkeyword{defs}}
 \newcommand{\TEXT}{\isarkeyword{text}}
 \newcommand{\TXT}{\isarkeyword{txt}}
-\newcommand{\NOTE}[2]{\NOTENAME~#1=#2}
+\newcommand{\NOTE}[2]{\NOTENAME\ifthenelse{\equal{}{#1}}{}{~#1=}#2}
 \newcommand{\FROM}[1]{\FROMNAME~#1}
 \newcommand{\WITH}[1]{\WITHNAME~#1}
 \newcommand{\FIX}[1]{\FIXNAME~#1}
@@ -75,6 +75,7 @@
 \newcommand{\PPROOF}[1]{\PPROOFNAME\I@optmeth{#1}}
 \newcommand{\QED}[1]{\QEDNAME\I@optmeth{#1}}
 \newcommand{\BY}[1]{\BYNAME\I@optmeth{#1}}
+\newcommand{\BYY}[2]{\BYNAME\I@optmeth{#1}\I@optmeth{#2}}
 \newcommand{\DOT}{\isarkeyword{.}}
 \newcommand{\DDOT}{\isarkeyword{.\,.}}
 \newcommand{\DDDOT}{\dots}
