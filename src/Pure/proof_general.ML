@@ -19,6 +19,7 @@ sig
   val kill_goal: unit -> unit
   val repeat_undo: int -> unit
   val isa_restart: unit -> unit
+  val full_proofs: bool -> unit
   val init: bool -> unit
   val write_keywords: string -> unit
 end;
@@ -252,6 +253,10 @@ fun isa_restart () = restart false;
 fun isar_restart () = (sync_thy_loader (); restart true; raise Toplevel.RESTART);
 
 end;
+
+
+fun full_proofs true = proofs := 2
+  | full_proofs false = proofs := 1;
 
 
 (* outer syntax *)
