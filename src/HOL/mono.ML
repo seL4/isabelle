@@ -45,6 +45,10 @@ val [prem] = goal Set.thy
 by (fast_tac (!claset addIs [prem RS subsetD]) 1);
 qed "INT1_mono";
 
+goal Set.thy "!!C D. C<=D ==> insert a C <= insert a D";
+by (Fast_tac 1);
+qed "insert_mono";
+
 goal Set.thy "!!A B. [| A<=C;  B<=D |] ==> A Un B <= C Un D";
 by (Fast_tac 1);
 qed "Un_mono";
