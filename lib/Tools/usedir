@@ -70,26 +70,31 @@ shift $(($OPTIND - 1))
 LOGIC="$1"; shift
 NAME="$1"; shift
 
+[ -z "$SESSION" ] && SESSION=$(basename $NAME)
 
-# prepare directories for html and graph output
-
-if [ $INFO = "true" -a ! -d $ISABELLE_BROWSER_INFO ]; then
-  mkdir -p $ISABELLE_BROWSER_INFO/gif
-  cp $ISABELLE_HOME/lib/images/*arrow.gif $ISABELLE_BROWSER_INFO/gif
-  cp $ISABELLE_HOME/lib/logo/isabelle.gif $ISABELLE_BROWSER_INFO/gif/isabelle.gif
-  cp $ISABELLE_HOME/lib/html/index1.html $ISABELLE_BROWSER_INFO/index.html
-  mkdir -p $ISABELLE_BROWSER_INFO/graph
-  cp $ISABELLE_HOME/lib/html/index2.html $ISABELLE_BROWSER_INFO/graph/index.html
-  mkdir $ISABELLE_BROWSER_INFO/graph/GraphBrowser
-  mkdir $ISABELLE_BROWSER_INFO/graph/awtUtilities
-  cp $ISABELLE_HOME/lib/browser/G*/*.class $ISABELLE_BROWSER_INFO/graph/G*
-  cp $ISABELLE_HOME/lib/browser/a*/*.class $ISABELLE_BROWSER_INFO/graph/a*
-fi
 
 
 ## main
 
-[ -z "$SESSION" ] && SESSION=$(basename $NAME)
+# prepare browser info directories
+
+if [ "$INFO" = "true" -a ! -d $ISABELLE_BROWSER_INFO ]; then
+
+  mkdir -p $ISABELLE_BROWSER_INFO/gif
+  cp $ISABELLE_HOME/lib/images/blue_arrow.gif $ISABELLE_BROWSER_INFO/gif
+  cp $ISABELLE_HOME/lib/images/red_arrow.gif $ISABELLE_BROWSER_INFO/gif
+  cp $ISABELLE_HOME/lib/logo/isabelle.gif $ISABELLE_BROWSER_INFO/gif/isabelle.gif
+  cp $ISABELLE_HOME/lib/html/index1.html $ISABELLE_BROWSER_INFO/index.html
+
+  mkdir -p $ISABELLE_BROWSER_INFO/graph
+  cp $ISABELLE_HOME/lib/html/index2.html $ISABELLE_BROWSER_INFO/graph/index.html
+  mkdir $ISABELLE_BROWSER_INFO/graph/GraphBrowser
+  mkdir $ISABELLE_BROWSER_INFO/graph/awtUtilities
+  cp $ISABELLE_HOME/lib/browser/GraphBrowser/*.class $ISABELLE_BROWSER_INFO/graph/GraphBrowser
+  cp $ISABELLE_HOME/lib/browser/awtUtilities/*.class $ISABELLE_BROWSER_INFO/graph/awtUtilities
+
+fi
+
 
 if [ -n "$BUILD" ]; then
   exec $ISABELLE \
