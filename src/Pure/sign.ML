@@ -25,6 +25,9 @@ sig
     val eq_sg: sg * sg -> bool
     val is_draft: sg -> bool
     val const_type: sg -> string -> typ option
+    val classes: sg -> class list
+    val subsort: sg -> sort * sort -> bool      (* FIXME move? *)
+    val norm_sort: sg -> sort -> sort           (* FIXME move? *)
     val print_sg: sg -> unit
     val pprint_sg: sg -> pprint_args -> unit
     val pretty_term: sg -> term -> Pretty.T
@@ -92,7 +95,10 @@ datatype sg =
     stamps: string ref list};       (*unique theory indentifier*)
 
 fun rep_sg (Sg args) = args;
+val tsig_of = #tsig o rep_sg;
 
+
+(* stamps *)
 
 fun is_draft (Sg {stamps = ref "#" :: _, ...}) = true
   | is_draft _ = false;
@@ -102,8 +108,18 @@ fun subsig (Sg {stamps = s1, ...}, Sg {stamps = s2, ...}) = s1 subset s2;
 fun eq_sg (Sg {stamps = s1, ...}, Sg {stamps = s2, ...}) = eq_set (s1, s2);
 
 
+(* consts *)
+
 fun const_type (Sg {const_tab, ...}) c =
   Symtab.lookup (const_tab, c);
+
+
+(* classes *)
+
+val classes = #classes o Type.rep_tsig o tsig_of;
+
+val subsort = Type.subsort o tsig_of;
+val norm_sort = Type.norm_sort o tsig_of;
 
 
 
@@ -403,28 +419,14 @@ fun ext_trrules (syn, tsig, ctab) xrules =
 
 (* build signature *)
 
-(* FIXME debug *)
-fun assert_stamps_ok stamps =
-  let val names = map ! stamps;
-  in
-    if not (null (duplicates stamps)) then
-      error "DEBUG dup stamps"
-    else if not (null (duplicates names)) then
-      error "DEBUG dup stamp names"
-    else if not (null names) andalso exists (equal "#") (tl names) then
-      error "DEBUG misplaced draft stamp name"
-    else stamps
-  end;
-
 fun ext_stamps stamps name =
   let
     val stmps = (case stamps of ref "#" :: ss => ss | ss => ss);
   in
     if exists (equal name o !) stmps then
       error ("Theory already contains a " ^ quote name ^ " component")
-    else assert_stamps_ok (ref name :: stmps)
+    else ref name :: stmps
   end;
-
 
 fun make_sign (syn, tsig, ctab) stamps name =
   Sg {tsig = tsig, const_tab = ctab, syn = syn,
@@ -521,6 +523,13 @@ fun merge (sg1, sg2) =
         stamps = stamps2} = sg2;
 
 
+      val stamps = merge_rev_lists stamps1 stamps2;
+      val _ =
+        (case duplicates (stamp_names stamps) of
+          [] => ()
+        | dups => raise_term ("Attempt to merge different versions of theories "
+            ^ commas_quote dups) []);
+
       val tsig = merge_tsigs (tsig1, tsig2);
 
       val const_tab = Symtab.merge (op =) (const_tab1, const_tab2)
@@ -528,13 +537,7 @@ fun merge (sg1, sg2) =
           raise_term ("Incompatible types for constant(s) " ^ commas_quote cs) [];
 
       val syn = Syntax.merge_syntaxes syn1 syn2;
-
-      val stamps = merge_rev_lists stamps1 stamps2;
-      val dups = duplicates (stamp_names stamps);
     in
-      if null dups then assert_stamps_ok stamps    (* FIXME debug *)
-      else raise_term ("Attempt to merge different versions of theories " ^
-        commas_quote dups) [];
       Sg {tsig = tsig, const_tab = const_tab, syn = syn, stamps = stamps}
     end;
 
