@@ -10,9 +10,13 @@ PRG=$(basename $0)
 function usage()
 {
   echo
-  echo "Usage: $PRG NAME"
+  echo "Usage: $PRG [OPTIONS] NAME"
   echo
-  echo "  Create instance NAME of the Isabelle logo (as EPS to stdout)."
+  echo "  Create instance NAME of the Isabelle logo (as EPS)."
+  echo
+  echo "  Options are:"
+  echo "    -o OUTFILE   set output file (default determined from NAME)"
+  echo "    -q           quiet mode"
   echo
   exit 1
 }
@@ -24,14 +28,50 @@ function fail()
 }
 
 
-## args
+## process command line
+
+# options
+
+OUTFILE=""
+QUIET=""
+
+while getopts "o:q" OPT
+do
+  case "$OPT" in
+    o)
+      OUTFILE="$OPTARG"
+      ;;
+    q)
+      QUIET=true
+      ;;
+    \?)
+      usage
+      ;;
+  esac
+done
+
+shift $(($OPTIND - 1))
+
+
+# args
 
 NAME=""
 [ $# -ge 1 ] && { NAME="$1"; shift; }
 
-[ $# -ne 0 -o "$NAME" = "-?" -o -z "$NAME" ] && usage
+[ $# -ne 0 -o -z "$NAME" ] && usage
 
 
 ## main
 
-perl -p -e "s/<any>/$NAME/" $ISABELLE_HOME/lib/logo/isabelle_any.eps
+if [ -z "$OUTFILE" ]; then
+  OUTFILE=$(echo "$NAME" | tr A-Z a-z)
+  [ -n "$OUTFILE" ] && OUTFILE="_$OUTFILE"
+  OUTFILE="isabelle${OUTFILE}.eps"
+fi
+
+if [ "$OUTFILE" = "-" ]; then
+  perl -p -e "s/<any>/$NAME/" $ISABELLE_HOME/lib/logo/isabelle_any.eps
+else
+  [ -z "$QUIET" ] && echo "$OUTFILE" >&2
+  perl -p -e "s/<any>/$NAME/" $ISABELLE_HOME/lib/logo/isabelle_any.eps > $OUTFILE
+fi
