@@ -135,7 +135,7 @@ assumes
   Y_ss "Y <= P"
 defines
   intY1_def "intY1 == interval r (lub Y cl) (Top cl)"
-  v_def "v == glb {x. ((lam x: intY1. f x) x, x): induced intY1 r & x: intY1}
+  v_def "v == glb {x. ((%x: intY1. f x) x, x): induced intY1 r & x: intY1}
 	          (| pset=intY1, order=induced intY1 r|)"
 
 end

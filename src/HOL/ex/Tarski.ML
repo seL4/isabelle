@@ -384,7 +384,7 @@ Goal "x \\<in> P ==> f x = x";
 by (afs [thm "P_def", fix_def] 1);
 qed "fixfE2";
 
-Goal "[| A <= B; x \\<in> fix (lam y: A. f y) A |] ==> x \\<in> fix f B";
+Goal "[| A <= B; x \\<in> fix (%y: A. f y) A |] ==> x \\<in> fix f B";
 by (forward_tac [export fixfE2] 1);
 by (dtac ((export fixfE1) RS subsetD) 1);
 by (asm_full_simp_tac (simpset() addsimps [fix_def, subsetD]) 1); 
@@ -774,12 +774,12 @@ by (rtac (CLF_E1 RS funcset_mem) 1);
 by (afs [thm "intY1_def",interval_def, intY1_elem] 1);
 qed "intY1_f_closed";
 
-Goal "(lam x: intY1. f x) \\<in> intY1 funcset intY1";
+Goal "(%x: intY1. f x) \\<in> intY1 funcset intY1";
 by (rtac restrictI 1);
 by (etac intY1_f_closed 1); 
 qed "intY1_func";
 
-Goal "monotone (lam x: intY1. f x) intY1 (induced intY1 r)";
+Goal "monotone (%x: intY1. f x) intY1 (induced intY1 r)";
 by (auto_tac (claset(), 
             simpset() addsimps [monotone_def, induced_def, intY1_f_closed])); 
 by (blast_tac (claset() addIs [intY1_elem, CLF_E2 RS monotoneE]) 1); 
@@ -817,7 +817,7 @@ by (afs [induced_def] 1);
 qed "z_in_interval";
 
 Goal "[| z \\<in> P; \\<forall>y\\<in>Y. (y, z) \\<in> induced P r |]\
-\     ==> ((lam x: intY1. f x) z, z) \\<in> induced intY1 r";
+\     ==> ((%x: intY1. f x) z, z) \\<in> induced intY1 r";
 by (afs [induced_def, intY1_f_closed, z_in_interval] 1);
 by (afs [fixfE2, fixfE1 RS subsetD, CompleteLatticeE11 RS reflE] 1);
 qed "f'z_in_int_rel";

@@ -42,7 +42,7 @@ defs
 
 constdefs
   group_of :: "'a ringtype => 'a grouptype"
-   "group_of == lam R: Ring. (| carrier = (R.<cr>), bin_op = (R.<f>),
+   "group_of == %R: Ring. (| carrier = (R.<cr>), bin_op = (R.<f>),
 			        inverse = (R.<inv>), unit = (R.<e>) |)"
 
 locale ring = group +

@@ -60,8 +60,8 @@ consts
 
 defs
   subgroup_def  "subgroup == SIGMA G: Group. {H. H <= carrier G & 
-        ((| carrier = H, bin_op = lam x: H. lam y: H. (bin_op G) x y, 
-            inverse = lam x: H. (inverse G) x, unit = unit G |) : Group)}"
+        ((| carrier = H, bin_op = %x: H. %y: H. (bin_op G) x y, 
+            inverse = %x: H. (inverse G) x, unit = unit G |) : Group)}"
 
 syntax
   "@SG"  :: "['a set, 'a grouptype] => bool" ("_ <<= _" [51,50]50)

@@ -12,10 +12,10 @@ constdefs
   FactGroup :: "(['a grouptype, 'a set] => ('a set) grouptype)"
 
    "FactGroup ==
-     lam G: Group. lam H: {H. H <| G}.
+     %G: Group. %H: {H. H <| G}.
       (| carrier = set_r_cos G H,
-	 bin_op = (lam X: set_r_cos G H. lam Y: set_r_cos G H. set_prod G X Y),
-	 inverse = (lam X: set_r_cos G H. set_inv G X), 
+	 bin_op = (%X: set_r_cos G H. %Y: set_r_cos G H. set_prod G X Y),
+	 inverse = (%X: set_r_cos G H. set_inv G X), 
 	 unit = H |)"
 
 syntax

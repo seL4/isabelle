@@ -22,11 +22,11 @@ by (afs [ProdGroup_def] 1);
 qed "P_carrier";
 
 Goal "(P.<f>) = \
-\     (lam (x, x'): (P.<cr>). lam (y, y'): (P.<cr>). ( x ## y, x' ##' y'))";
+\     (%(x, x'): (P.<cr>). %(y, y'): (P.<cr>). ( x ## y, x' ##' y'))";
 by (afs [ProdGroup_def, binop_def, binop'_def] 1);
 qed "P_bin_op";
 
-Goal "(P.<inv>) = (lam (x, y): (P.<cr>). (i x, i' y))";
+Goal "(P.<inv>) = (%(x, y): (P.<cr>). (i x, i' y))";
 by (afs [ProdGroup_def, inv_def, inv'_def] 1);
 qed "P_inverse";
 
@@ -35,9 +35,9 @@ by (afs [ProdGroup_def, e_def, e'_def] 1);
 qed "P_unit";
 
 Goal "P = (| carrier = P.<cr>, \
-\       bin_op = (lam (x, x'): (P.<cr>). lam (y, y'): (P.<cr>).\
+\       bin_op = (%(x, x'): (P.<cr>). %(y, y'): (P.<cr>).\
 \                  (x ## y, x' ##' y')), \
-\       inverse = (lam (x, y): (P.<cr>). (i x, i' y)), \
+\       inverse = (%(x, y): (P.<cr>). (i x, i' y)), \
 \       unit = P.<e> |)";
 by (afs [ProdGroup_def, P_carrier, P_bin_op, P_inverse, P_unit] 1);
 by (afs [binop_def, binop'_def, inv_def, inv'_def] 1);

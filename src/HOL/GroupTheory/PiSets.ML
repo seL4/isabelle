@@ -34,7 +34,7 @@ by (Blast_tac 1);
 qed "inj_PiBij";
 
 
-Goal "x \\<in> Graph A B \\<Longrightarrow> (lam a:A. SOME y. (a, y) \\<in> x) \\<in> Pi A B";
+Goal "x \\<in> Graph A B \\<Longrightarrow> (%a:A. SOME y. (a, y) \\<in> x) \\<in> Pi A B";
 by (rtac restrictI 1);
 by (res_inst_tac [("P", "%xa. (a, xa)\\<in>x")] ex1E 1);
  by (force_tac (claset(), simpset() addsimps [Graph_def]) 1);
@@ -51,7 +51,7 @@ by (force_tac (claset(), simpset() addsimps [PiBij_in_Graph]) 1);
 by (rtac subsetI 1);
 by (rtac image_eqI 1); 
 by (etac in_Graph_imp_in_Pi 2); 
-(* x = PiBij A B (lam a:A. @ y. (a, y)\\<in>x) *)
+(* x = PiBij A B (%a:A. @ y. (a, y)\\<in>x) *)
 by (asm_simp_tac (simpset() addsimps [in_Graph_imp_in_Pi, PiBij_def]) 1);
 by (auto_tac (claset(), simpset() addsimps [some1_equality, Graph_def])); 
 by (fast_tac (claset() addIs [someI2]) 1);

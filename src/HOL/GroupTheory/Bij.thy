@@ -16,9 +16,9 @@ constdefs
 constdefs 
 BijGroup ::  "'a set => (('a => 'a) grouptype)"
 "BijGroup S == (| carrier = Bij S, 
-                  bin_op  = lam g: Bij S. lam f: Bij S. compose S g f,
-                  inverse = lam f: Bij S. lam x: S. (Inv S f) x, 
-                  unit    = lam x: S. x |)"
+                  bin_op  = %g: Bij S. %f: Bij S. compose S g f,
+                  inverse = %f: Bij S. %x: S. (Inv S f) x, 
+                  unit    = %x: S. x |)"
 
 locale bij = 
   fixes 
@@ -31,7 +31,7 @@ locale bij =
     B_def    "B == Bij S"
     o'_def   "g o' f == compose S g f"
     inv'_def   "inv' f == Inv S f"
-    e'_def   "e'  == (lam x: S. x)"
+    e'_def   "e'  == (%x: S. x)"
 
 locale bijgroup = bij +
   fixes 

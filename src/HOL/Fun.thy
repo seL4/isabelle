@@ -75,9 +75,11 @@ constdefs
 syntax
   "@Pi"  :: "[pttrn, 'a set, 'b set] => ('a => 'b) set"  ("(3PI _:_./ _)" 10)
   funcset :: "['a set, 'b set] => ('a => 'b) set"      (infixr 60)
-  "@lam" :: "[pttrn, 'a set, 'a => 'b] => ('a => 'b)"  ("(3lam _:_./ _)" 10)
+  "@lam" :: "[pttrn, 'a set, 'a => 'b] => ('a => 'b)"  ("(3%_:_./ _)" [0, 0, 3] 3)
+syntax (xsymbols)
+  "@lam" :: "[pttrn, 'a set, 'a => 'b] => ('a => 'b)"  ("(3\\<lambda>_\<in>_./ _)" [0, 0, 3] 3)
 
-  (*Giving funcset the arrow syntax (namely ->) clashes with other theories*)
+  (*Giving funcset an arrow syntax (-> or =>) clashes with many existing theories*)
 
 syntax (xsymbols)
   "@Pi" :: "[pttrn, 'a set, 'b set] => ('a => 'b) set"  ("(3\\<Pi> _\\<in>_./ _)"   10)
@@ -85,11 +87,11 @@ syntax (xsymbols)
 translations
   "PI x:A. B" => "Pi A (%x. B)"
   "A funcset B"    => "Pi A (_K B)"
-  "lam x:A. f"  == "restrict (%x. f) A"
+  "%x:A. f"  == "restrict (%x. f) A"
 
 constdefs
   compose :: "['a set, 'b => 'c, 'a => 'b] => ('a => 'c)"
-    "compose A g f == lam x : A. g(f x)"
+  "compose A g f == %x:A. g (f x)"
 
 end
 

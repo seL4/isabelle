@@ -11,7 +11,7 @@ RingConstr = Homomorphism +
 constdefs
   ring_of :: "['a grouptype, 'a semigrouptype] => 'a ringtype"
   "ring_of ==
-     lam G: AbelianGroup. lam S: {M. M \\<in> Semigroup & (M.<cr>) = (G.<cr>)}.
+     %G: AbelianGroup. %S: {M. M \\<in> Semigroup & (M.<cr>) = (G.<cr>)}.
                    (| carrier = (G.<cr>), bin_op = (G.<f>), 
                       inverse = (G.<inv>), unit = (G.<e>), Rmult = (S.<f>) |)"
 
@@ -27,8 +27,8 @@ constdefs
 	     ((R.<m>) ((R.<f>) y z) x = (R.<f>) ((R.<m>) y x) ((R.<m>) z x)))}"
 
   ring_from :: "['a grouptype, 'a semigrouptype] => 'a ringtype"
-  "ring_from == lam G: AbelianGroup. 
-     lam S: {M. M \\<in> Semigroup & (M.<cr>) = (G.<cr>) &
+  "ring_from == %G: AbelianGroup. 
+     %S: {M. M \\<in> Semigroup & (M.<cr>) = (G.<cr>) &
                 distr_l (G.<cr>) (M.<f>) (G.<f>) &
 	        distr_r (G.<cr>) (M.<f>) (G.<f>)}.
             (| carrier = (G.<cr>), bin_op = (G.<f>), 

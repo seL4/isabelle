@@ -18,11 +18,11 @@ Goal "carrier F = {* H *}";
 by (afs [FactGroup_def] 1);
 qed "F_carrier";
 
-Goal "bin_op F = (lam X: {* H *}. lam Y: {* H *}. X <#> Y) ";
+Goal "bin_op F = (%X: {* H *}. %Y: {* H *}. X <#> Y) ";
 by (afs [FactGroup_def, setprod_def] 1);
 qed "F_bin_op";
 
-Goal "inverse F = (lam X: {* H *}. I(X))";
+Goal "inverse F = (%X: {* H *}. I(X))";
 by (afs [FactGroup_def, setinv_def] 1);
 qed "F_inverse";
 
@@ -31,8 +31,8 @@ by (afs [FactGroup_def] 1);
 qed "F_unit";
 
 Goal "F = (| carrier = {* H *}, \
-\            bin_op  = (lam X: {* H *}. lam Y: {* H *}. X <#> Y), \
-\            inverse = (lam X: {* H *}. I(X)),  unit = H |)";
+\            bin_op  = (%X: {* H *}. %Y: {* H *}. X <#> Y), \
+\            inverse = (%X: {* H *}. I(X)),  unit = H |)";
 by (afs [FactGroup_def, F_carrier, F_bin_op, F_inverse, F_unit] 1);
 by (auto_tac (claset() addSIs [restrict_ext], 
               simpset() addsimps [set_prod_def, setprod_def, setinv_def])); 

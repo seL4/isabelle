@@ -155,8 +155,8 @@ qed "subgroupI";
 val SubgroupI = export subgroupI;
 
 Goal "H <<= G  ==> \
-\      (|carrier = H, bin_op = lam x:H. lam y:H. x ## y, \
-\       inverse = lam x:H. i(x), unit = e|)\\<in>Group";
+\      (|carrier = H, bin_op = %x:H. %y:H. x ## y, \
+\       inverse = %x:H. i(x), unit = e|)\\<in>Group";
 by (afs [subgroup_def, binop_def, inv_def, e_def] 1);
 qed "subgroupE2";
 val SubgroupE2 = export subgroupE2;

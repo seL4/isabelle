@@ -127,7 +127,7 @@ qed "RingAutoI";
 Goal "RingAuto `` {R} ~= {}";
 by (stac RingAuto_apply 1);
 by Auto_tac; 
-by (res_inst_tac [("x","lam y: (R.<cr>). y")] exI 1);
+by (res_inst_tac [("x","%y: (R.<cr>). y")] exI 1);
 by (auto_tac (claset(), simpset() addsimps [inj_on_def])); 
 by (asm_full_simp_tac (simpset() addsimps [RingHom_def, restrictI, 
      R_binop_def, symmetric (rmult_def), rplus_closed, rmult_closed]) 1);
@@ -234,7 +234,7 @@ val RingAuto_are_Group = (export RingAuto_SG_BijGroup) RS (export Bij_are_Group 
 "[| ?R2 \\<in> Ring; group_of ?R2 \\<in> Group |]
    ==> (| carrier = RingAuto `` {?R2},
           bin_op =
-            lam x:RingAuto `` {?R2}.
+            %x:RingAuto `` {?R2}.
                restrict ((BijGroup (?R2 .<cr>) .<f>) x) (RingAuto `` {?R2}),
           inverse = restrict (BijGroup (?R2 .<cr>) .<inv>) (RingAuto `` {?R2}),
           unit = BijGroup (?R2 .<cr>) .<e> |) \\<in> Group" *)
@@ -249,9 +249,9 @@ by (etac (export R_Abel) 1);
 qed "R_Group";
 
 Goal "R \\<in> Ring ==> (| carrier = RingAuto `` {R},\
-\          bin_op =  lam x:RingAuto `` {R}. lam y: RingAuto `` {R}.\
+\          bin_op =  %x:RingAuto `` {R}. %y: RingAuto `` {R}.\
 \                             (BijGroup (R.<cr>) .<f>) x y ,\
-\          inverse = lam x: RingAuto `` {R}. (BijGroup (R.<cr>) .<inv>) x,\
+\          inverse = %x: RingAuto `` {R}. (BijGroup (R.<cr>) .<inv>) x,\
 \          unit = BijGroup (R.<cr>) .<e> |) \\<in> Group";
 by (rtac (R_Group RSN (2, RingAuto_are_Group)) 1);
 by (assume_tac 1);
@@ -261,7 +261,7 @@ qed "RingAuto_are_Groupf";
 (* "?R \\<in> Ring
    ==> (| carrier = RingAuto `` {?R},
           bin_op =
-            lam x:RingAuto `` {?R}.
+            %x:RingAuto `` {?R}.
                restrict ((BijGroup (?R .<cr>) .<f>) x) (RingAuto `` {?R}),
           inverse = restrict (BijGroup (?R .<cr>) .<inv>) (RingAuto `` {?R}),
           unit = BijGroup (?R .<cr>) .<e> |) \\<in> Group" *)

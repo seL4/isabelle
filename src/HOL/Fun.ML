@@ -445,25 +445,25 @@ by (auto_tac (claset(), simpset() addsimps [inj_on_def, compose_eq]));
 qed "inj_on_compose";
 
 
-(*** restrict / lam ***)
+(*** restrict / bounded abstraction ***)
 
-Goal "f`A <= B ==> (lam x: A. f x) : A funcset B";
+Goal "f`A <= B ==> (%x:A. f x) : A funcset B";
 by (auto_tac (claset(),
 	      simpset() addsimps [restrict_def, Pi_def]));
 qed "restrict_in_funcset";
 
 val prems = Goalw [restrict_def, Pi_def]
-     "(!!x. x: A ==> f x: B x) ==> (lam x: A. f x) : Pi A B";
+     "(!!x. x: A ==> f x: B x) ==> (%x:A. f x) : Pi A B";
 by (asm_simp_tac (simpset() addsimps prems) 1);
 qed "restrictI";
 
-Goal "(lam y: A. f y) x = (if x : A then f x else arbitrary)";
+Goal "(%y:A. f y) x = (if x : A then f x else arbitrary)";
 by (asm_simp_tac (simpset() addsimps [restrict_def]) 1);
 qed "restrict_apply";
 Addsimps [restrict_apply];
 
 val prems = Goal
-    "(!!x. x: A ==> f x = g x) ==> (lam x: A. f x) = (lam x: A. g x)";
+    "(!!x. x: A ==> f x = g x) ==> (%x:A. f x) = (%x:A. g x)";
 by (rtac ext 1);
 by (auto_tac (claset(),
 	      simpset() addsimps prems@[restrict_def, Pi_def]));
@@ -474,12 +474,12 @@ by Auto_tac;
 qed "inj_on_restrict_eq";
 
 
-Goal "f : A funcset B ==> compose A (lam y:B. y) f = f";
+Goal "f : A funcset B ==> compose A (%y:B. y) f = f";
 by (rtac ext 1); 
 by (auto_tac (claset(), simpset() addsimps [compose_def, Pi_def])); 
 qed "Id_compose";
 
-Goal "g : A funcset B ==> compose A g (lam x:A. x) = g";
+Goal "g : A funcset B ==> compose A g (%x:A. x) = g";
 by (rtac ext 1); 
 by (auto_tac (claset(), simpset() addsimps [compose_def, Pi_def])); 
 qed "compose_Id";

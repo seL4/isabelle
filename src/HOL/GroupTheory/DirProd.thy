@@ -12,12 +12,12 @@ consts
   ProdGroup :: "(['a grouptype, 'b grouptype] => ('a * 'b) grouptype)"
 
 defs 
-  ProdGroup_def "ProdGroup == lam G: Group. lam G': Group.
+  ProdGroup_def "ProdGroup == %G: Group. %G': Group.
     (| carrier = ((G.<cr>) \\<times> (G'.<cr>)),
-       bin_op = (lam (x, x'): ((G.<cr>) \\<times> (G'.<cr>)). 
-                 lam (y, y'): ((G.<cr>) \\<times> (G'.<cr>)).
+       bin_op = (%(x, x'): ((G.<cr>) \\<times> (G'.<cr>)). 
+                 %(y, y'): ((G.<cr>) \\<times> (G'.<cr>)).
                   ((G.<f>) x y,(G'.<f>) x' y')),
-       inverse = (lam (x, y): ((G.<cr>) \\<times> (G'.<cr>)). ((G.<inv>) x, (G'.<inv>) y)),
+       inverse = (%(x, y): ((G.<cr>) \\<times> (G'.<cr>)). ((G.<inv>) x, (G'.<inv>) y)),
        unit = ((G.<e>),(G'.<e>)) |)"
 
 syntax

@@ -86,7 +86,7 @@ qed "M1_subset_G";
 
 Goal "\\<exists>f \\<in> H\\<rightarrow>M1. inj_on f H";
 by (rtac (exists_x_in_M1 RS exE) 1);
-by (res_inst_tac [("x", "lam z: H. x ## z")] bexI 1);
+by (res_inst_tac [("x", "%z: H. x ## z")] bexI 1);
 by (rtac restrictI 2);
 by (asm_full_simp_tac (simpset() addsimps [H_def]) 2); 
 by (Clarify_tac 2);
@@ -230,7 +230,7 @@ qed "M_elem_map";
 val M_elem_map_carrier = M_elem_map RS someI_ex RS conjunct1;
 val M_elem_map_eq = M_elem_map RS someI_ex RS conjunct2;
 
-Goal "(lam x:M. H #> (SOME g. g \\<in> carrier G & M1 #> g = x)) \\<in> M \\<rightarrow> {* H *}";
+Goal "(%x:M. H #> (SOME g. g \\<in> carrier G & M1 #> g = x)) \\<in> M \\<rightarrow> {* H *}";
 by (rtac (setrcosI RS restrictI) 1);
 by (rtac (H_is_SG RS subgroup_imp_subset) 1);
 by (etac M_elem_map_carrier 1);
@@ -265,7 +265,7 @@ qed "H_elem_map";
 val H_elem_map_carrier = H_elem_map RS someI_ex RS conjunct1;
 val H_elem_map_eq = H_elem_map RS someI_ex RS conjunct2;
 
-Goal "(lam C:{*H*}. M1 #> (@g. g \\<in> (G .<cr>) \\<and> H #> g = C)) \\<in> {* H *} \\<rightarrow> M";
+Goal "(%C:{*H*}. M1 #> (@g. g \\<in> (G .<cr>) \\<and> H #> g = C)) \\<in> {* H *} \\<rightarrow> M";
 by (simp_tac (simpset() addsimps [setrcos_eq]) 1);
 by (deepen_tac (claset() addIs [someI2] 
             addSIs [restrictI, RelM_equiv, M_in_quot,

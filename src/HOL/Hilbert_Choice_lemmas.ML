@@ -212,7 +212,7 @@ qed "bij_vimage_eq_inv_image";
 
 section "Inverse of a PI-function (restricted domain)";
 
-Goalw [Inv_def] "f ` A = B ==> (lam x: B. (Inv A f) x) : B funcset A";
+Goalw [Inv_def] "f ` A = B ==> (%x:B. (Inv A f) x) : B funcset A";
 by (fast_tac (claset() addIs [restrict_in_funcset, someI2]) 1);
 qed "Inv_funcset";
 
@@ -237,7 +237,7 @@ by (blast_tac (claset() addIs [inj_onI] addDs [Inv_injective, injD]) 1);
 qed "inj_on_Inv";
 
 Goal "[| inj_on f A;  f ` A = B |] \
-\     ==> compose A (lam y:B. (Inv A f) y) f = (lam x: A. x)";
+\     ==> compose A (%y:B. (Inv A f) y) f = (%x:A. x)";
 by (asm_simp_tac (simpset() addsimps [compose_def]) 1);
 by (rtac restrict_ext 1); 
 by Auto_tac; 

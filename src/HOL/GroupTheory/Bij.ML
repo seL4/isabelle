@@ -46,11 +46,11 @@ Addsimps [BijE1,BijE2,BijE3];
 
 
 (* restrict (Inv S f) S  *)
-Goal "f \\<in> B ==> (lam x: S. (inv' f) x) \\<in> B";
+Goal "f \\<in> B ==> (%x:S. (inv' f) x) \\<in> B";
 by (rtac BijI 1);
-(* 1. (lam x: S. (inv' f) x): S \\<rightarrow> S *)
+(* 1. (%x:S. (inv' f) x): S \\<rightarrow> S *)
 by (afs [Inv_funcset] 1);
-(* 2. (lam x: S. (inv' f) x) ` S = S *)
+(* 2. (%x:S. (inv' f) x) ` S = S *)
 by (asm_full_simp_tac (simpset() addsimps [inv_def]) 1); 
 by (rtac equalityI 1);
 (* 2. <= *)
@@ -73,7 +73,7 @@ by (rtac BijI 1);
 by (auto_tac (claset(), simpset() addsimps [funcsetI, inj_on_def])); 
 qed "restrict_id_Bij";
 
-Goal "f \\<in> B ==> (lam g: B. lam x: S. (inv' g) x) f = (lam x: S. (inv' f) x)";
+Goal "f \\<in> B ==> (%g:B. %x:S. (inv' g) x) f = (%x:S. (inv' f) x)";
 by (Asm_full_simp_tac 1); 
 qed "eval_restrict_Inv";
 
@@ -95,7 +95,7 @@ Open_locale "bijgroup";
 
 val BG_def = thm "BG_def";
 
-Goal "[| x\\<in>B; y\\<in>B |] ==> (lam g: B. lam f: B. g o' f) x y = x o' y";
+Goal "[| x\\<in>B; y\\<in>B |] ==> (%g:B. %f:B. g o' f) x y = x o' y";
 by (Asm_full_simp_tac 1); 
 qed "eval_restrict_comp2";
 
@@ -106,11 +106,11 @@ Goal "carrier BG == B";
 by (afs [BijGroup_def] 1);
 qed "BG_carrier";
 
-Goal "bin_op BG == lam g: B. lam f: B. g o' f";
+Goal "bin_op BG == %g:B. %f:B. g o' f";
 by (afs [BijGroup_def] 1);
 qed "BG_bin_op";
                
-Goal "inverse BG == lam f: B. lam x: S. (inv' f) x";
+Goal "inverse BG == %f:B. %x:S. (inv' f) x";
 by (afs [BijGroup_def] 1);
 qed "BG_inverse"; 
 
@@ -126,7 +126,7 @@ qed "BG_defI";
 Delsimps [B_def, BG_def, o'_def, inv'_def, e'_def];
 
 
-Goal "(lam g: B. lam f: B. g o' f) \\<in> B \\<rightarrow> B \\<rightarrow> B";
+Goal "(%g:B. %f:B. g o' f) \\<in> B \\<rightarrow> B \\<rightarrow> B";
 by (simp_tac (simpset() addsimps [funcsetI, compose_Bij]) 1); 
 qed "restrict_compose_Bij";
 
