@@ -7,7 +7,7 @@ Type "int" is a linear order
 *)
 
 theory Int = IntDef
-files ("int.ML"):
+files ("Int_lemmas.ML"):
 
 instance int :: order
 proof qed (assumption | rule zle_refl zle_trans zle_anti_sym int_less_le)+
@@ -25,6 +25,6 @@ constdefs
 defs (overloaded)
 zabs_def:  "abs(i::int) == if i < 0 then -i else i"
 
-use "int.ML"
+use "Int_lemmas.ML"
 
 end

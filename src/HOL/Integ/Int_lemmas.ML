@@ -1,4 +1,4 @@
-(*  Title:      HOL/Integ/Int.ML
+(*  Title:      HOL/Integ/Int_lemmas.ML
     ID:         $Id$
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1998  University of Cambridge

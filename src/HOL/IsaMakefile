@@ -86,7 +86,7 @@ $(OUT)/HOL: $(OUT)/Pure $(SRC)/Provers/quantifier1.ML \
   Fun.thy Gfp.ML Gfp.thy \
   Hilbert_Choice.thy Hilbert_Choice_lemmas.ML HOL.ML \
   HOL.thy HOL_lemmas.ML Inductive.thy Integ/Bin.ML Integ/Bin.thy \
-  Integ/Equiv.ML Integ/Equiv.thy Integ/int.ML Integ/Int.thy \
+  Integ/Equiv.ML Integ/Equiv.thy Integ/Int_lemmas.ML Integ/Int.thy \
   Integ/IntArith.ML Integ/IntArith.thy Integ/IntDef.ML Integ/IntDef.thy \
   Integ/IntDiv.thy Integ/IntPower.ML Integ/IntPower.thy \
   Integ/nat_bin.ML Integ/NatBin.thy Integ/NatSimprocs.ML \
