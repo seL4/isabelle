@@ -13,24 +13,24 @@ val eq_cs = set_cs addSIs [equalityI];
 section "{}";
 
 goal Set.thy "{x.False} = {}";
-by(fast_tac eq_cs 1);
+by (fast_tac eq_cs 1);
 qed "Collect_False_empty";
 Addsimps [Collect_False_empty];
 
 goal Set.thy "(A <= {}) = (A = {})";
-by(fast_tac eq_cs 1);
+by (fast_tac eq_cs 1);
 qed "subset_empty";
 Addsimps [subset_empty];
 
 section ":";
 
 goal Set.thy "x ~: {}";
-by(fast_tac set_cs 1);
+by (fast_tac set_cs 1);
 qed "in_empty";
 Addsimps[in_empty];
 
 goal Set.thy "x : insert y A = (x=y | x:A)";
-by(fast_tac set_cs 1);
+by (fast_tac set_cs 1);
 qed "in_insert";
 Addsimps[in_insert];
 
@@ -38,7 +38,7 @@ section "insert";
 
 (*NOT SUITABLE FOR REWRITING since {a} == insert a {}*)
 goal Set.thy "insert a A = {a} Un A";
-by(fast_tac eq_cs 1);
+by (fast_tac eq_cs 1);
 qed "insert_is_Un";
 
 goal Set.thy "insert a A ~= {}";
@@ -54,7 +54,7 @@ by (fast_tac eq_cs 1);
 qed "insert_absorb";
 
 goal Set.thy "insert x (insert x A) = insert x A";
-by(fast_tac eq_cs 1);
+by (fast_tac eq_cs 1);
 qed "insert_absorb2";
 Addsimps [insert_absorb2];
 
@@ -65,8 +65,8 @@ Addsimps[insert_subset];
 
 (* use new B rather than (A-{a}) to avoid infinite unfolding *)
 goal Set.thy "!!a. a:A ==> ? B. A = insert a B & a ~: B";
-by(res_inst_tac [("x","A-{a}")] exI 1);
-by(fast_tac eq_cs 1);
+by (res_inst_tac [("x","A-{a}")] exI 1);
+by (fast_tac eq_cs 1);
 qed "mk_disjoint_insert";
 
 section "''";
@@ -145,27 +145,27 @@ by (fast_tac eq_cs 1);
 qed "Un_assoc";
 
 goal Set.thy "{} Un B = B";
-by(fast_tac eq_cs 1);
+by (fast_tac eq_cs 1);
 qed "Un_empty_left";
 Addsimps[Un_empty_left];
 
 goal Set.thy "A Un {} = A";
-by(fast_tac eq_cs 1);
+by (fast_tac eq_cs 1);
 qed "Un_empty_right";
 Addsimps[Un_empty_right];
 
 goal Set.thy "UNIV Un B = UNIV";
-by(fast_tac eq_cs 1);
+by (fast_tac eq_cs 1);
 qed "Un_UNIV_left";
 Addsimps[Un_UNIV_left];
 
 goal Set.thy "A Un UNIV = UNIV";
-by(fast_tac eq_cs 1);
+by (fast_tac eq_cs 1);
 qed "Un_UNIV_right";
 Addsimps[Un_UNIV_right];
 
 goal Set.thy "insert a B Un C = insert a (B Un C)";
-by(fast_tac eq_cs 1);
+by (fast_tac eq_cs 1);
 qed "Un_insert_left";
 
 goal Set.thy "(A Int B) Un C  =  (A Un C) Int (B Un C)";
@@ -437,7 +437,7 @@ qed "Diff_UNIV";
 Addsimps[Diff_UNIV];
 
 goal Set.thy "!!x. x~:A ==> A - insert x B = A-B";
-by(fast_tac eq_cs 1);
+by (fast_tac eq_cs 1);
 qed "Diff_insert0";
 Addsimps [Diff_insert0];
 
@@ -452,12 +452,12 @@ by (fast_tac eq_cs 1);
 qed "Diff_insert2";
 
 goal Set.thy "insert x A - B = (if x:B then A-B else insert x (A-B))";
-by(simp_tac (!simpset setloop split_tac[expand_if]) 1);
-by(fast_tac eq_cs 1);
+by (simp_tac (!simpset setloop split_tac[expand_if]) 1);
+by (fast_tac eq_cs 1);
 qed "insert_Diff_if";
 
 goal Set.thy "!!x. x:B ==> insert x A - B = A-B";
-by(fast_tac eq_cs 1);
+by (fast_tac eq_cs 1);
 qed "insert_Diff1";
 Addsimps [insert_Diff1];
 
