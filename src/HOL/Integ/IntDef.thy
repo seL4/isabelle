@@ -12,14 +12,14 @@ constdefs
   "intrel == {p. ? x1 y1 x2 y2. p=((x1::nat,y1),(x2,y2)) & x1+y2 = x2+y1}"
 
 typedef (Integ)
-  int = "{x::(nat*nat).True}/intrel"            (Equiv.quotient_def)
+  int = "UNIV/intrel"            (Equiv.quotient_def)
 
 instance
   int :: {ord, plus, times, minus}
 
 defs
   zminus_def
-    "- Z == Abs_Integ(UN p:Rep_Integ(Z). split (%x y. intrel^^{(y,x)}) p)"
+    "- Z == Abs_Integ(UN (x,y):Rep_Integ(Z). intrel^^{(y,x)})"
 
 constdefs
 
@@ -36,8 +36,8 @@ constdefs
 defs
   zadd_def
    "z + w == 
-       Abs_Integ(UN p1:Rep_Integ(z). UN p2:Rep_Integ(w).   
-           split (%x1 y1. split (%x2 y2. intrel^^{(x1+x2, y1+y2)}) p2) p1)"
+       Abs_Integ(UN (x1,y1):Rep_Integ(z). UN (x2,y2):Rep_Integ(w).   
+		 intrel^^{(x1+x2, y1+y2)})"
 
   zdiff_def "z - (w::int) == z + (-w)"
 
@@ -47,7 +47,7 @@ defs
 
   zmult_def
    "z * w == 
-       Abs_Integ(UN p1:Rep_Integ(z). UN p2:Rep_Integ(w). split (%x1 y1.   
-           split (%x2 y2. intrel^^{(x1*x2 + y1*y2, x1*y2 + y1*x2)}) p2) p1)"
+       Abs_Integ(UN (x1,y1):Rep_Integ(z). UN (x2,y2):Rep_Integ(w).   
+		 intrel^^{(x1*x2 + y1*y2, x1*y2 + y1*x2)})"
 
 end

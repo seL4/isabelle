@@ -53,15 +53,12 @@ by (stac surjective_pairing 1 THEN rtac (refl RS intrelI) 1);
 qed "intrel_refl";
 
 Goalw [equiv_def, refl_def, sym_def, trans_def]
-    "equiv {x::(nat*nat).True} intrel";
+    "equiv UNIV intrel";
 by (fast_tac (claset() addSIs [intrel_refl] 
-                        addSEs [sym, integ_trans_lemma]) 1);
+                       addSEs [sym, integ_trans_lemma]) 1);
 qed "equiv_intrel";
 
-val equiv_intrel_iff =
-    [TrueI, TrueI] MRS 
-    ([CollectI, CollectI] MRS 
-    (equiv_intrel RS eq_equiv_class_iff));
+val equiv_intrel_iff = [equiv_intrel, UNIV_I, UNIV_I] MRS eq_equiv_class_iff;
 
 Goalw  [Integ_def,intrel_def,quotient_def] "intrel^^{(x,y)}:Integ";
 by (Fast_tac 1);
@@ -98,24 +95,18 @@ qed "inj_int";
 
 (**** zminus: unary negation on Integ ****)
 
-Goalw [congruent_def]
-  "congruent intrel (%p. split (%x y. intrel^^{(y,x)}) p)";
-by Safe_tac;
+Goalw [congruent_def] "congruent intrel (%(x,y). intrel^^{(y,x)})";
+by (Clarify_tac 1);
 by (asm_simp_tac (simpset() addsimps add_ac) 1);
 qed "zminus_congruent";
 
-
-(*Resolve th against the corresponding facts for zminus*)
-val zminus_ize = RSLIST [equiv_intrel, zminus_congruent];
-
 Goalw [zminus_def]
       "- Abs_Integ(intrel^^{(x,y)}) = Abs_Integ(intrel ^^ {(y,x)})";
-by (res_inst_tac [("f","Abs_Integ")] arg_cong 1);
 by (simp_tac (simpset() addsimps 
-   [intrel_in_integ RS Abs_Integ_inverse,zminus_ize UN_equiv_class]) 1);
+	      [equiv_intrel RS UN_equiv_class, zminus_congruent]) 1);
 qed "zminus";
 
-(*by lcp*)
+(*Every integer can be written in the form Abs_Integ(...) *)
 val [prem] = Goal "(!!x y. z = Abs_Integ(intrel^^{(x,y)}) ==> P) ==> P";
 by (res_inst_tac [("x1","z")] 
     (rewrite_rule [Integ_def] Rep_Integ RS quotientE) 1);
@@ -160,24 +151,13 @@ Addsimps [neg_zminus_int, not_neg_int];
 
 (**** zadd: addition on Integ ****)
 
-(** Congruence property for addition **)
-
-Goalw [congruent2_def]
-    "congruent2 intrel (%p1 p2.                  \
-\         split (%x1 y1. split (%x2 y2. intrel^^{(x1+x2, y1+y2)}) p2) p1)";
-(*Proof via congruent2_commuteI seems longer*)
-by Safe_tac;
-by (Asm_simp_tac 1);
-qed "zadd_congruent2";
-
-(*Resolve th against the corresponding facts for zadd*)
-val zadd_ize = RSLIST [equiv_intrel, zadd_congruent2];
-
 Goalw [zadd_def]
   "Abs_Integ(intrel^^{(x1,y1)}) + Abs_Integ(intrel^^{(x2,y2)}) = \
 \  Abs_Integ(intrel^^{(x1+x2, y1+y2)})";
-by (asm_simp_tac
-    (simpset() addsimps [zadd_ize UN_equiv_class2]) 1);
+by (asm_simp_tac (simpset() addsimps [UN_UN_split_split_eq]) 1);
+by (stac (equiv_intrel RS UN_equiv_class2) 1);
+(*Congruence property for addition*)
+by (auto_tac (claset(), simpset() addsimps [congruent2_def]));
 qed "zadd";
 
 Goal "- (z + w) = (- z) + (- w::int)";
@@ -285,24 +265,22 @@ qed "zadd_assoc_swap";
 
 (**** zmult: multiplication on Integ ****)
 
-(** Congruence property for multiplication **)
-
 Goal "((k::nat) + l) + (m + n) = (k + m) + (n + l)";
 by (simp_tac (simpset() addsimps add_ac) 1);
 qed "zmult_congruent_lemma";
 
-Goal "congruent2 intrel (%p1 p2.                 \
-\               split (%x1 y1. split (%x2 y2.   \
+(*Congruence property for multiplication*)
+Goal "congruent2 intrel \
+\       (%p1 p2. (%(x1,y1). (%(x2,y2).   \
 \                   intrel^^{(x1*x2 + y1*y2, x1*y2 + y1*x2)}) p2) p1)";
 by (rtac (equiv_intrel RS congruent2_commuteI) 1);
 by (pair_tac "w" 2);
 by (rename_tac "z1 z2" 2);
-by Safe_tac;
-by (rewtac split_def);
+by (ALLGOALS Clarify_tac);
 by (simp_tac (simpset() addsimps add_ac@mult_ac) 1);
 by (asm_simp_tac (simpset() delsimps [equiv_intrel_iff]
-                           addsimps add_ac@mult_ac) 1);
-by (rtac (intrelI RS(equiv_intrel RS equiv_class_eq)) 1);
+                            addsimps add_ac@mult_ac) 1);
+by (rtac ([equiv_intrel, intrelI] MRS equiv_class_eq) 1);
 by (rtac (zmult_congruent_lemma RS trans) 1);
 by (rtac (zmult_congruent_lemma RS trans RS sym) 1);
 by (rtac (zmult_congruent_lemma RS trans RS sym) 1);
@@ -311,13 +289,12 @@ by (asm_simp_tac (simpset() addsimps [add_mult_distrib RS sym]) 1);
 by (asm_simp_tac (simpset() addsimps add_ac@mult_ac) 1);
 qed "zmult_congruent2";
 
-(*Resolve th against the corresponding facts for zmult*)
-val zmult_ize = RSLIST [equiv_intrel, zmult_congruent2];
-
 Goalw [zmult_def]
    "Abs_Integ((intrel^^{(x1,y1)})) * Abs_Integ((intrel^^{(x2,y2)})) =   \
 \   Abs_Integ(intrel ^^ {(x1*x2 + y1*y2, x1*y2 + y1*x2)})";
-by (simp_tac (simpset() addsimps [zmult_ize UN_equiv_class2]) 1);
+by (asm_simp_tac
+    (simpset() addsimps [UN_UN_split_split_eq, zmult_congruent2,
+			 equiv_intrel RS UN_equiv_class2]) 1);
 qed "zmult";
 
 Goal "(- z) * w = - (z * (w::int))";

@@ -8,10 +8,6 @@ Equivalence relations in HOL Set Theory
 
 val RSLIST = curry (op MRS);
 
-open Equiv;
-
-Delrules [equalityI];
-
 (*** Suppes, Theorem 70: r is an equiv relation iff r^-1 O r = r ***)
 
 (** first half: equiv A r ==> r^-1 O r = r **)
@@ -110,23 +106,24 @@ qed "quotientE";
 
 Goalw [equiv_def,refl_def,quotient_def]
     "equiv A r ==> Union(A/r) = A";
-by (blast_tac (claset() addSIs [equalityI]) 1);
+by (Blast_tac 1);
 qed "Union_quotient";
 
 Goalw [quotient_def]
     "[| equiv A r;  X: A/r;  Y: A/r |] ==> X=Y | (X Int Y = {})";
-by (safe_tac (claset() addSIs [equiv_class_eq]));
+by (Clarify_tac 1);
+by (rtac equiv_class_eq 1);
 by (assume_tac 1);
 by (rewrite_goals_tac [equiv_def,trans_def,sym_def]);
-by (blast_tac (claset() addSIs [equalityI]) 1);
+by (Blast_tac 1);
 qed "quotient_disj";
 
 
 (**** Defining unary operations upon equivalence classes ****)
 
 (* theorem needed to prove UN_equiv_class *)
-goal Set.thy "!!A. [| a:A; ! y:A. b(y)=c |] ==> (UN y:A. b(y))=c";
-by (fast_tac (claset() addSEs [equalityE] addSIs [equalityI]) 1);
+Goal "[| a:A;  ! y:A. b(y)=c |] ==> (UN y:A. b(y))=c";
+by Auto_tac;
 qed "UN_constant_eq";
 
 
@@ -139,7 +136,7 @@ Goal "[| equiv A r;  congruent r b;  a: A |] \
 \     ==> (UN x:r^^{a}. b(x)) = b(a)";
 by (rtac (equiv_class_self RS UN_constant_eq) 1 THEN REPEAT (assume_tac 1));
 by (rewrite_goals_tac [equiv_def,congruent_def,sym_def]);
-by (Blast_tac 1);
+by (blast_tac (claset() delrules [equalityI]) 1);
 qed "UN_equiv_class";
 
 (*type checking of  UN x:r``{a}. b(x) *)
@@ -186,7 +183,7 @@ by (rtac (equiv_type RS subsetD RS SigmaE2) 1 THEN REPEAT (assume_tac 1));
 by (asm_simp_tac (simpset() addsimps [UN_equiv_class,
                                      congruent2_implies_congruent]) 1);
 by (rewrite_goals_tac [congruent2_def,equiv_def,refl_def]);
-by (Blast_tac 1);
+by (blast_tac (claset() delrules [equalityI]) 1);
 qed "congruent2_implies_congruent_UN";
 
 Goal "[| equiv A r;  congruent2 r b;  a1: A;  a2: A |]  \
@@ -209,6 +206,12 @@ by (REPEAT (ares_tac (prems@[UN_equiv_class_type,
                              congruent2_implies_congruent, quotientI]) 1));
 qed "UN_equiv_class_type2";
 
+(*Allows a natural expression of binary operators, without explicit calls
+  to "split"*)
+Goal "(UN (x1,x2):X. UN (y1,y2):Y. A x1 x2 y1 y2) = \
+\     (UN x:X. UN y:Y. split(%x1 x2. split(%y1 y2. A x1 x2 y1 y2) y) x)";
+by Auto_tac;
+qed "UN_UN_split_split_eq";
 
 (*Suggested by John Harrison -- the two subproofs may be MUCH simpler
   than the direct proof*)
@@ -253,12 +256,11 @@ by (assume_tac 2);
 by (Blast_tac 1);
 qed "finite_equiv_class";
 
-Goal "[| finite A;  equiv A r;  ! X : A/r. k dvd card(X) |] \
-\              ==> k dvd card(A)";
+Goal "[| finite A;  equiv A r;  ! X : A/r. k dvd card(X) |] ==> k dvd card(A)";
 by (rtac (Union_quotient RS subst) 1);
 by (assume_tac 1);
 by (rtac dvd_partition 1);
-by (blast_tac (claset() delrules [equalityI] addEs [quotient_disj RS disjE]) 4);
+by (blast_tac (claset() addEs [quotient_disj RS disjE]) 4);
 by (ALLGOALS 
     (asm_simp_tac (simpset() addsimps [Union_quotient, equiv_type, 
 				      finite_quotient])));
