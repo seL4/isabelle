@@ -329,7 +329,7 @@ fun print_state nr (state as State (Node {context, facts, mode, goal = _}, nodes
       else [];
 
     val prts =
-     [Pretty.str ("proof(" ^ mode_name mode ^ "): step " ^ string_of_int nr ^
+     [Pretty.str ("proof (" ^ mode_name mode ^ "): step " ^ string_of_int nr ^
         (if ! verbose then ", depth " ^ string_of_int (length nodes div 2)
         else "")), Pretty.str ""] @
      (if null ctxt_prts then [] else ctxt_prts @ [Pretty.str ""]) @
