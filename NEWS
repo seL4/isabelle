@@ -33,14 +33,24 @@ X-Symbol;
 *** Isar ***
 
 * improved proof by cases and induction:
+
   - 'case' command admits impromptu naming of parameters (such as
-    "case (Suc n)");
+"case (Suc n)");
+
   - 'induct' method divinates rule instantiation from the inductive
-    claim; no longer requires excessive ?P bindings for proper
-    instantiation of cases;
+claim; no longer requires excessive ?P bindings for proper
+instantiation of cases;
+
   - 'induct' method properly enumerates all possibilities of set/type
-    rules; as a consequence facts may be also passed through *type*
-    rules without further ado;
+rules; as a consequence facts may be also passed through *type* rules
+without further ado;
+
+  - 'induct' method now derives symbolic cases from the *rulified*
+rule (before it used to rulify cases stemming from the internal
+atomized version); this means that the context of a non-atomic
+statement becomes is included in the hypothesis, avoiding the slightly
+cumbersome show "PROP ?case" form;
+
   - removed obsolete "(simplified)" and "(stripped)" options of methods;
   - added 'print_induct_rules' (covered by help item in Proof General > 3.3);
   - moved induct/cases attributes to Pure, methods to Provers;
