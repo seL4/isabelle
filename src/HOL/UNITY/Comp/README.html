@@ -1,0 +1,39 @@
+<!-- $Id$ -->
+<HTML><HEAD><TITLE>HOL/UNITY/README</TITLE></HEAD><BODY>
+
+<H2>UNITY: Examples Involving Program Composition</H2>
+
+<P>
+The directory presents verification examples involving program composition.
+They are mostly taken from the works of Chandy, Charpentier and Chandy.
+
+<UL>
+<LI>examples of <em>universal properties</em>:
+the counter (<A HREF="Counter.thy"><CODE>Counter.thy</CODE></A>)
+and priority system (<A HREF="Priority.thy"><CODE>Priority.thy</CODE></A>)
+
+<LI>the allocation system (<A HREF="Alloc.thy"><CODE>Alloc.thy</CODE></A>)
+
+<LI>client implementation (<A HREF="Client.thy"><CODE>Client.thy</CODE></A>)
+
+<LI>allocator implementation (<A HREF="AllocImpl.thy"><CODE>AllocImpl.thy</CODE></A>)
+
+<LI>the handshake protocol
+(<A HREF="Handshake.thy"><CODE>Handshake.thy</CODE></A>)
+
+<LI>the timer array (demonstrates arrays of processes)
+(<A HREF="TimerArray.thy"><CODE>TimerArray.thy</CODE></A>)
+</UL>
+
+<P> Safety proofs (invariants) are often proved automatically.  Progress
+proofs involving ENSURES can sometimes be proved automatically.  The
+level of automation appears to be about the same as in HOL-UNITY by Flemming
+Andersen et al.
+
+<HR>
+<P>Last modified on $Date$
+
+<ADDRESS>
+<A NAME="lcp@cl.cam.ac.uk" HREF="mailto:lcp@cl.cam.ac.uk">lcp@cl.cam.ac.uk</A>
+</ADDRESS>
+</BODY></HTML>
