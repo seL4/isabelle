@@ -60,14 +60,6 @@ fun Fuf_empty_tac i = fuf_empty_tac (clasimpset ()) i;
 
 
 (*---------------------------------------------------------------
-  All in one -- not really needed.
- ---------------------------------------------------------------*)
-
-fun fuf_auto_tac css i = SOLVE (fuf_empty_tac css i) ORELSE TRY (fuf_tac css i);
-fun Fuf_auto_tac i = fuf_auto_tac (clasimpset ()) i;
-
-
-(*---------------------------------------------------------------
    In fact could make this the only tactic: just need to
    use contraposition and then look for empty set.
  ---------------------------------------------------------------*)
