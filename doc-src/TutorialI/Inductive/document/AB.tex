@@ -110,7 +110,7 @@ right increases or decreases the difference by 1, we must have passed through
 1 on our way from 0 to 2. Formally, we appeal to the following discrete
 intermediate value theorem \isa{nat{\isadigit{0}}{\isacharunderscore}intermed{\isacharunderscore}int{\isacharunderscore}val}
 \begin{isabelle}%
-\ \ \ \ \ {\isasymlbrakk}{\isasymforall}i{\isachardot}\ i\ {\isacharless}\ n\ {\isasymlongrightarrow}\ {\isasymbar}f\ {\isacharparenleft}i\ {\isacharplus}\ {\isadigit{1}}{\isacharparenright}\ {\isacharminus}\ f\ i{\isasymbar}\ {\isasymle}\ Numeral{\isadigit{1}}{\isacharsemicolon}\ f\ {\isadigit{0}}\ {\isasymle}\ k{\isacharsemicolon}\ k\ {\isasymle}\ f\ n{\isasymrbrakk}\isanewline
+\ \ \ \ \ {\isasymlbrakk}{\isasymforall}i{\isachardot}\ i\ {\isacharless}\ n\ {\isasymlongrightarrow}\ {\isasymbar}f\ {\isacharparenleft}i\ {\isacharplus}\ {\isadigit{1}}{\isacharparenright}\ {\isacharminus}\ f\ i{\isasymbar}\ {\isasymle}\ {\isadigit{1}}{\isacharsemicolon}\ f\ {\isadigit{0}}\ {\isasymle}\ k{\isacharsemicolon}\ k\ {\isasymle}\ f\ n{\isasymrbrakk}\isanewline
 \isaindent{\ \ \ \ \ }{\isasymLongrightarrow}\ {\isasymexists}i{\isachardot}\ i\ {\isasymle}\ n\ {\isasymand}\ f\ i\ {\isacharequal}\ k%
 \end{isabelle}
 where \isa{f} is of type \isa{nat\ {\isasymRightarrow}\ int}, \isa{int} are the integers,
@@ -128,7 +128,7 @@ roles of \isa{a}'s and \isa{b}'s interchanged.%
 \isamarkuptrue%
 \isacommand{lemma}\ step{\isadigit{1}}{\isacharcolon}\ {\isachardoublequote}{\isasymforall}i\ {\isacharless}\ size\ w{\isachardot}\isanewline
 \ \ {\isasymbar}{\isacharparenleft}int{\isacharparenleft}size{\isacharbrackleft}x{\isasymin}take\ {\isacharparenleft}i{\isacharplus}{\isadigit{1}}{\isacharparenright}\ w{\isachardot}\ P\ x{\isacharbrackright}{\isacharparenright}{\isacharminus}int{\isacharparenleft}size{\isacharbrackleft}x{\isasymin}take\ {\isacharparenleft}i{\isacharplus}{\isadigit{1}}{\isacharparenright}\ w{\isachardot}\ {\isasymnot}P\ x{\isacharbrackright}{\isacharparenright}{\isacharparenright}\isanewline
-\ \ \ {\isacharminus}\ {\isacharparenleft}int{\isacharparenleft}size{\isacharbrackleft}x{\isasymin}take\ i\ w{\isachardot}\ P\ x{\isacharbrackright}{\isacharparenright}{\isacharminus}int{\isacharparenleft}size{\isacharbrackleft}x{\isasymin}take\ i\ w{\isachardot}\ {\isasymnot}P\ x{\isacharbrackright}{\isacharparenright}{\isacharparenright}{\isasymbar}\ {\isasymle}\ Numeral{\isadigit{1}}{\isachardoublequote}\isamarkupfalse%
+\ \ \ {\isacharminus}\ {\isacharparenleft}int{\isacharparenleft}size{\isacharbrackleft}x{\isasymin}take\ i\ w{\isachardot}\ P\ x{\isacharbrackright}{\isacharparenright}{\isacharminus}int{\isacharparenleft}size{\isacharbrackleft}x{\isasymin}take\ i\ w{\isachardot}\ {\isasymnot}P\ x{\isacharbrackright}{\isacharparenright}{\isacharparenright}{\isasymbar}\ {\isasymle}\ {\isadigit{1}}{\isachardoublequote}\isamarkupfalse%
 %
 \begin{isamarkuptxt}%
 \noindent
@@ -165,7 +165,7 @@ instantiated appropriately and with its first premise disposed of by lemma
 \isa{step{\isadigit{1}}}:%
 \end{isamarkuptxt}%
 \isamarkuptrue%
-\isacommand{apply}{\isacharparenleft}insert\ nat{\isadigit{0}}{\isacharunderscore}intermed{\isacharunderscore}int{\isacharunderscore}val{\isacharbrackleft}OF\ step{\isadigit{1}}{\isacharcomma}\ of\ {\isachardoublequote}P{\isachardoublequote}\ {\isachardoublequote}w{\isachardoublequote}\ {\isachardoublequote}Numeral{\isadigit{1}}{\isachardoublequote}{\isacharbrackright}{\isacharparenright}\isanewline
+\isacommand{apply}{\isacharparenleft}insert\ nat{\isadigit{0}}{\isacharunderscore}intermed{\isacharunderscore}int{\isacharunderscore}val{\isacharbrackleft}OF\ step{\isadigit{1}}{\isacharcomma}\ of\ {\isachardoublequote}P{\isachardoublequote}\ {\isachardoublequote}w{\isachardoublequote}\ {\isachardoublequote}{\isadigit{1}}{\isachardoublequote}{\isacharbrackright}{\isacharparenright}\isanewline
 \isamarkupfalse%
 \isacommand{by}\ force\isamarkupfalse%
 %

@@ -208,22 +208,22 @@ Division, remainder of negatives
 
 
 \begin{isabelle}%
-Numeral{\isadigit{0}}\ {\isacharless}\ b\ {\isasymLongrightarrow}\ Numeral{\isadigit{0}}\ {\isasymle}\ a\ mod\ b%
+{\isadigit{0}}\ {\isacharless}\ b\ {\isasymLongrightarrow}\ {\isadigit{0}}\ {\isasymle}\ a\ mod\ b%
 \end{isabelle}
 \rulename{pos_mod_sign}
 
 \begin{isabelle}%
-Numeral{\isadigit{0}}\ {\isacharless}\ b\ {\isasymLongrightarrow}\ a\ mod\ b\ {\isacharless}\ b%
+{\isadigit{0}}\ {\isacharless}\ b\ {\isasymLongrightarrow}\ a\ mod\ b\ {\isacharless}\ b%
 \end{isabelle}
 \rulename{pos_mod_bound}
 
 \begin{isabelle}%
-b\ {\isacharless}\ Numeral{\isadigit{0}}\ {\isasymLongrightarrow}\ a\ mod\ b\ {\isasymle}\ Numeral{\isadigit{0}}%
+b\ {\isacharless}\ {\isadigit{0}}\ {\isasymLongrightarrow}\ a\ mod\ b\ {\isasymle}\ {\isadigit{0}}%
 \end{isabelle}
 \rulename{neg_mod_sign}
 
 \begin{isabelle}%
-b\ {\isacharless}\ Numeral{\isadigit{0}}\ {\isasymLongrightarrow}\ b\ {\isacharless}\ a\ mod\ b%
+b\ {\isacharless}\ {\isadigit{0}}\ {\isasymLongrightarrow}\ b\ {\isacharless}\ a\ mod\ b%
 \end{isabelle}
 \rulename{neg_mod_bound}
 
@@ -248,12 +248,12 @@ a\ {\isacharasterisk}\ b\ mod\ c\ {\isacharequal}\ a\ {\isacharasterisk}\ {\isac
 \rulename{zmod_zmult1_eq}
 
 \begin{isabelle}%
-Numeral{\isadigit{0}}\ {\isacharless}\ c\ {\isasymLongrightarrow}\ a\ div\ {\isacharparenleft}b\ {\isacharasterisk}\ c{\isacharparenright}\ {\isacharequal}\ a\ div\ b\ div\ c%
+{\isadigit{0}}\ {\isacharless}\ c\ {\isasymLongrightarrow}\ a\ div\ {\isacharparenleft}b\ {\isacharasterisk}\ c{\isacharparenright}\ {\isacharequal}\ a\ div\ b\ div\ c%
 \end{isabelle}
 \rulename{zdiv_zmult2_eq}
 
 \begin{isabelle}%
-Numeral{\isadigit{0}}\ {\isacharless}\ c\ {\isasymLongrightarrow}\ a\ mod\ {\isacharparenleft}b\ {\isacharasterisk}\ c{\isacharparenright}\ {\isacharequal}\ b\ {\isacharasterisk}\ {\isacharparenleft}a\ div\ b\ mod\ c{\isacharparenright}\ {\isacharplus}\ a\ mod\ b%
+{\isadigit{0}}\ {\isacharless}\ c\ {\isasymLongrightarrow}\ a\ mod\ {\isacharparenleft}b\ {\isacharasterisk}\ c{\isacharparenright}\ {\isacharequal}\ b\ {\isacharasterisk}\ {\isacharparenleft}a\ div\ b\ mod\ c{\isacharparenright}\ {\isacharplus}\ a\ mod\ b%
 \end{isabelle}
 \rulename{zmod_zmult2_eq}
 

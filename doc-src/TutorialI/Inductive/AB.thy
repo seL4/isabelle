@@ -117,7 +117,7 @@ roles of @{term a}'s and @{term b}'s interchanged.
 
 lemma step1: "\<forall>i < size w.
   \<bar>(int(size[x\<in>take (i+1) w. P x])-int(size[x\<in>take (i+1) w. \<not>P x]))
-   - (int(size[x\<in>take i w. P x])-int(size[x\<in>take i w. \<not>P x]))\<bar> \<le> Numeral1"
+   - (int(size[x\<in>take i w. P x])-int(size[x\<in>take i w. \<not>P x]))\<bar> \<le> 1"
 
 txt{*\noindent
 The lemma is a bit hard to read because of the coercion function
@@ -150,7 +150,7 @@ instantiated appropriately and with its first premise disposed of by lemma
 @{thm[source]step1}:
 *}
 
-apply(insert nat0_intermed_int_val[OF step1, of "P" "w" "Numeral1"])
+apply(insert nat0_intermed_int_val[OF step1, of "P" "w" "1"])
 by force
 
 text{*\noindent
