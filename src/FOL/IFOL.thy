@@ -64,7 +64,7 @@ syntax (symbols)
   "op ~="       :: ['a, 'a] => o                (infixl "\\<noteq>" 50)
 
 
-path IFOL
+local
 
 rules
 
