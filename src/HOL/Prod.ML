@@ -165,7 +165,7 @@ local
 			then Some f else None
   |   split_pat k (Const ("split", _) $ Abs (_, _, t)) = split_pat (k+1) t
   |   split_pat k _ = None;
-  fun proc _ _	(s as
+  fun proc sg _	(s as
 	(Const ("split", _) $ Abs (_, _, 
 	(Const ("split", _) $ Abs (_, _, t))))) = (case split_pat 2 t of
 	  Some f => (let val fvar = Free ("f", fastype_of f);
@@ -173,7 +173,7 @@ local
 			 and atom     (Abs (x, T, t)) = Abs (x, T,atom_fun t)
 			   | atom     (t $ u)         = atom_fun t $ atom_fun u
 			   | atom     x               = x;
-			 val ct   = cterm_of (sign_of thy) (HOLogic.mk_Trueprop
+			 val ct   = cterm_of sg (HOLogic.mk_Trueprop
 				   (HOLogic.mk_eq (atom_fun s,fvar)));
 			 val ss   = HOL_basic_ss addsimps [cond_split_eta];
          in Some (meta_eq (prove_goalw_cterm [] ct (K [simp_tac ss 1]))) end)
