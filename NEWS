@@ -20,6 +20,8 @@ New in Isabelle??? (FIXME)
   delWrapper, delSWrapper: claset *  string -> claset
   getWrapper is renamed to appWrappers, getSWrapper to appSWrappers;
 
+* Inductive definitions now handle disjunctive premises correctly (HOL and ZF)
+
 
 *** HOL ***
 
@@ -36,6 +38,12 @@ New in Isabelle??? (FIXME)
 
 * HOL/Relation: renamed the relational operatotr r^-1 "converse" instead of
   "inverse"
+
+* HOL/equalities: added many new laws involving unions, intersectinos,
+  difference, etc.
+
+* recdef can now declare non-recursive functions, with {} supplied as the 
+  well-founded relation
 
 * Simplifier:
 
@@ -60,7 +68,6 @@ New in Isabelle??? (FIXME)
 * new theory Vimage (inverse image of a function, syntax f-``B);
 
 * many new identities for unions, intersections, etc.;
-
 
 
 New in Isabelle98 (January 1998)
