@@ -7,7 +7,7 @@ Theory Main includes everything.
 Note that theory PreList already includes most HOL theories.
 *)
 
-theory Main = Map + String:
+theory Main = Map + String + Hilbert_Choice:
 
 (*belongs to theory List*)
 declare lists_mono [mono]

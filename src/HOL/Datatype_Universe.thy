@@ -9,13 +9,13 @@ Defines "Cartesian Product" and "Disjoint Sum" as set operations.
 Could <*> be generalized to a general summation (Sigma)?
 *)
 
-Datatype_Universe = NatArith + Sum_Type + Hilbert_Choice +
+Datatype_Universe = NatArith + Sum_Type + 
 
 
 (** lists, trees will be sets of nodes **)
 
 typedef (Node)
-  ('a, 'b) node = "{p. EX f x k. p = (f::nat=>'b+nat, x::'a+nat) & f k = Inr 0}"
+  ('a,'b) node = "{p. EX f x k. p = (f::nat=>'b+nat, x::'a+nat) & f k = Inr 0}"
 
 types
   'a item = ('a, unit) node set
