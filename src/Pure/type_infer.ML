@@ -9,6 +9,7 @@ signature TYPE_INFER =
 sig
   val anyT: sort -> typ
   val logicT: typ
+  val polymorphicT: typ -> typ
   val infer_types: (term -> Pretty.T) -> (typ -> Pretty.T)
     -> (string -> typ option) -> Sorts.classrel -> Sorts.arities
     -> string list -> bool -> (indexname -> bool) -> term list -> typ list
@@ -99,6 +100,9 @@ fun foldl_pretyps f (x, PConst (_, T)) = f (x, T)
 fun anyT S = TFree ("'_dummy_", S);
 val logicT = anyT logicS;
 
+(*indicate polymorphic Vars*)
+fun polymorphicT T = Type ("_polymorphic_", [T]);
+
 fun pretyp_of is_param (params, typ) =
   let
     fun add_parms (ps, TVar (xi as (x, _), S)) =
@@ -132,7 +136,8 @@ fun preterm_of const_type is_param ((vparams, params), tm) =
         (xi, mk_param []) :: ps
       else ps;
 
-    fun add_vparms (ps, Var (xi, _)) = add_vparm (ps, xi)
+    fun add_vparms (ps, Var (xi, Type ("_polymorphic_", _))) = ps
+      | add_vparms (ps, Var (xi, _)) = add_vparm (ps, xi)
       | add_vparms (ps, Free (x, _)) = add_vparm (ps, (x, ~1))
       | add_vparms (ps, Abs (_, _, t)) = add_vparms (ps, t)
       | add_vparms (ps, t $ u) = add_vparms (add_vparms (ps, t), u)
@@ -154,8 +159,10 @@ fun preterm_of const_type is_param ((vparams, params), tm) =
           (case const_type c of
             Some U => constrain (ps, PConst (c, snd (pretyp_of (K true) ([], U)))) T
           | None => raise TYPE ("No such constant: " ^ quote c, [], []))
-      | pre_of (ps, Free (x, T)) = constrain (ps, PFree (x, var_param (x, ~1))) T
+      | pre_of (ps, Var (xi, Type ("_polymorphic_", [T]))) =
+          (ps, PVar (xi, snd (pretyp_of (K true) ([], T))))
       | pre_of (ps, Var (xi, T)) = constrain (ps, PVar (xi, var_param xi)) T
+      | pre_of (ps, Free (x, T)) = constrain (ps, PFree (x, var_param (x, ~1))) T
       | pre_of (ps, Const ("_type_constraint_", T) $ t) = constrain (pre_of (ps, t)) T
       | pre_of (ps, Bound i) = (ps, PBound i)
       | pre_of (ps, Abs (x, T, t)) =
@@ -169,11 +176,8 @@ fun preterm_of const_type is_param ((vparams, params), tm) =
             val (ps'', u') = pre_of (ps', u);
           in (ps'', PAppl (t', u')) end;
 
-
     val (params', tm') = pre_of (params, tm);
-  in
-    ((vparams', params'), tm')
-  end;
+  in ((vparams', params'), tm') end;
 
 fun preterms_of const_type is_param = foldl_map (preterm_of const_type is_param);
 
