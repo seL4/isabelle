@@ -1176,9 +1176,10 @@ by (Asm_simp_tac 1);
 qed "upt_conv_Nil";
 Addsimps [upt_conv_Nil];
 
+(*Only needed if upt_Suc is deleted from the simpset*)
 Goal "i<=j ==> [i..(Suc j)(] = [i..j(]@[j]";
 by (Asm_simp_tac 1);
-qed "upt_Suc";
+qed "upt_Suc_append";
 
 Goal "i<j ==> [i..j(] = i#[Suc i..j(]";
 by (rtac trans 1);
