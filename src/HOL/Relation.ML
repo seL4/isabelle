@@ -111,6 +111,10 @@ Goal "(R O S) O T = R O (S O T)";
 by (Blast_tac 1);
 qed "O_assoc";
 
+Goalw [trans_def] "trans r ==> r O r <= r";
+by (Blast_tac 1);
+qed "trans_O_subset";
+
 Goal "[| r'<=r; s'<=s |] ==> (r' O s') <= (r O s)";
 by (Blast_tac 1);
 qed "comp_mono";
