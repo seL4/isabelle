@@ -49,6 +49,9 @@ constdefs
   inj_on :: ['a => 'b, 'a set] => bool
     "inj_on f A == ! x:A. ! y:A. f(x)=f(y) --> x=y"
 
+syntax (symbols)
+  "op o"        :: "['b => 'c, 'a => 'b, 'a] => 'c"      (infixl "\\<circ>" 55)
+
 syntax
   inj   :: ('a => 'b) => bool                   (*injective*)
 
