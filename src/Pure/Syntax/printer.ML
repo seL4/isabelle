@@ -54,7 +54,7 @@ fun apply_first [] x = raise Match
 fun apply_trans name a fs args =
   (apply_first fs args handle
     Match => raise Match
-  | exn => (writeln ("Error in " ^ name ^ " for " ^ quote a); raise exn));
+  | exn => (priority ("Error in " ^ name ^ " for " ^ quote a); raise exn));
 
 fun apply_typed x y fs = map (fn f => f x y) fs;
 
@@ -308,7 +308,7 @@ fun pretty tabs trf tokentrf type_mode curried ast0 p0 =
     and prefixT (_, a, [], _) = [Pretty.str a]
       | prefixT (c, _, args, p) =
           if c = Ast.Constant "_appl" orelse c = Ast.Constant "_applC" then
-            error "Syntax insufficient for printing prefix applications!"
+            [Pretty.str "*** INSUFFICIENT SYNTAX FOR PREFIX APPLICATION ***"]
           else astT (appT (c, args), p)
 
     and splitT 0 ([x], ys) = (x, ys)
