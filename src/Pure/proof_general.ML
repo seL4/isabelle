@@ -89,8 +89,10 @@ fun pgml_sym s =
   (case Symbol.decode s of
     (* NB: an alternative here would be to output the default print mode alternative
        in the element content, but unfortunately print modes are not that fine grained. *)
-    Symbol.Sym s => XML.element "sym" [("name", s)] [XML.text s]
-  | _ => XML.text s)
+    Symbol.Char s => XML.text s
+  | Symbol.Sym s => XML.element "sym" [("name", s)] [XML.text s]
+  | Symbol.Ctrl s => XML.element "ctrl" [("name", s)] []  (* FIXME: no such PGML! *)
+  | Symbol.Raw s => s);
 
 fun pgml_output str =
   let val syms = Symbol.explode str
