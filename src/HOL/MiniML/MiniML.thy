@@ -21,7 +21,7 @@ syntax
 translations 
         "a |- e :: t" == "(a,e,t):has_type"
 
-inductive "has_type"
+inductive has_type
 intrs
         VarI "[| n < length a |] ==> a |- Var n :: nth n a"
         AbsI "[| t1#a |- e :: t2 |] ==> a |- Abs e :: t1 -> t2"
