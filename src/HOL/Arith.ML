@@ -29,13 +29,13 @@ Addsimps [diff_0_eq_0, diff_Suc_Suc];
    However, none of the generalizations are currently in the simpset,
    and I dread to think what happens if I put them in *)
 goal Arith.thy "!!n. 0 < n ==> Suc(n-1) = n";
-by(asm_simp_tac (simpset() addsplits [expand_nat_case]) 1);
+by (asm_simp_tac (simpset() addsplits [expand_nat_case]) 1);
 qed "Suc_pred";
 Addsimps [Suc_pred];
 
 (* Generalize? *)
 goal Arith.thy "!!n. 0<n ==> n-1 < n";
-by(asm_simp_tac (simpset() addsplits [expand_nat_case]) 1);
+by (asm_simp_tac (simpset() addsplits [expand_nat_case]) 1);
 qed "pred_less";
 Addsimps [pred_less];
 
@@ -105,7 +105,7 @@ qed "add_is_0";
 AddIffs [add_is_0];
 
 goal Arith.thy "(0<m+n) = (0<m | 0<n)";
-by(simp_tac (simpset() delsimps [neq0_conv] addsimps [neq0_conv RS sym]) 1);
+by (simp_tac (simpset() delsimps [neq0_conv] addsimps [neq0_conv RS sym]) 1);
 qed "add_gr_0";
 AddIffs [add_gr_0];
 
@@ -377,7 +377,7 @@ qed "diff_diff_left";
    could be got rid of if diff_diff_left were in the simpset...
 *)
 goal Arith.thy "(Suc m - n)-1 = m - n";
-by(simp_tac (simpset() addsimps [diff_diff_left]) 1);
+by (simp_tac (simpset() addsimps [diff_diff_left]) 1);
 qed "pred_Suc_diff";
 Addsimps [pred_Suc_diff];
 
@@ -554,13 +554,13 @@ qed "mult_less_cancel1";
 Addsimps [mult_less_cancel1, mult_less_cancel2];
 
 goal Arith.thy "(Suc k * m < Suc k * n) = (m < n)";
-br mult_less_cancel1 1;
+by (rtac mult_less_cancel1 1);
 by (Simp_tac 1);
 qed "Suc_mult_less_cancel1";
 
 goalw Arith.thy [le_def] "(Suc k * m <= Suc k * n) = (m <= n)";
 by (simp_tac (simpset_of HOL.thy) 1);
-br Suc_mult_less_cancel1 1;
+by (rtac Suc_mult_less_cancel1 1);
 qed "Suc_mult_le_cancel1";
 
 goal Arith.thy "!!k. 0<k ==> (m*k = n*k) = (m=n)";
@@ -578,7 +578,7 @@ qed "mult_cancel1";
 Addsimps [mult_cancel1, mult_cancel2];
 
 goal Arith.thy "(Suc k * m = Suc k * n) = (m = n)";
-br mult_cancel1 1;
+by (rtac mult_cancel1 1);
 by (Simp_tac 1);
 qed "Suc_mult_cancel1";
 

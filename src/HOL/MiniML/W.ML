@@ -24,10 +24,10 @@ by (simp_tac (simpset() addsplits [split_option_bind]) 1);
 by (fast_tac (HOL_cs addDs [Suc_leD]) 1);
 (* case App e1 e2 *)
 by (simp_tac (simpset() addsplits [split_option_bind]) 1);
-by(blast_tac (claset() addIs [le_SucI,le_trans]) 1);
+by (blast_tac (claset() addIs [le_SucI,le_trans]) 1);
 (* case LET e1 e2 *)
 by (simp_tac (simpset() addsplits [split_option_bind]) 1);
-by(blast_tac (claset() addIs [le_trans]) 1);
+by (blast_tac (claset() addIs [le_trans]) 1);
 qed_spec_mp "W_var_ge";
 
 Addsimps [W_var_ge];
@@ -139,9 +139,9 @@ by (fast_tac (HOL_cs addDs [W_var_geD] addIs
 (* 41: case LET e1 e2 *)
 by (simp_tac (simpset() addsplits [split_option_bind]) 1);
 by (strip_tac 1);
-by(EVERY1[etac allE,etac allE,etac allE,etac allE,etac allE,mp_tac,mp_tac]);
+by (EVERY1[etac allE,etac allE,etac allE,etac allE,etac allE,mp_tac,mp_tac]);
 by (etac conjE 1);
-by(EVERY[etac allE 1,etac allE 1,etac allE 1,etac allE 1,etac allE 1,
+by (EVERY[etac allE 1,etac allE 1,etac allE 1,etac allE 1,etac allE 1,
          etac impE 1, mp_tac 2]);
 by (SELECT_GOAL(rewtac new_tv_def)1);
 by (Asm_simp_tac 1);

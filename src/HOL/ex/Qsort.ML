@@ -15,7 +15,7 @@ A short proof of Konrad's wf_minimal in WF1.ML:
 val [p1] = goalw WF.thy [wf_def]
 "wf(R) ==> (!Q. (? x. Q x) --> (? min. Q min & (!b. (b,min):R --> (~ Q b))))";
 by (rtac allI 1);
-by(cut_inst_tac[("x","%u.~Q u")](p1 RS spec) 1);
+by (cut_inst_tac[("x","%u.~Q u")](p1 RS spec) 1);
 by (fast_tac HOL_cs 1);
 val wf_minimal = result();
 
@@ -30,7 +30,7 @@ by (ALLGOALS(asm_simp_tac (simpset() addsplits [expand_if])));
 qed "qsort_permutes";
 
 goal Qsort.thy "set(qsort le xs) = set xs";
-by(simp_tac (simpset() addsimps [set_via_mset,qsort_permutes]) 1);
+by (simp_tac (simpset() addsimps [set_via_mset,qsort_permutes]) 1);
 qed "set_qsort";
 Addsimps [set_qsort];
 

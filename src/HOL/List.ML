@@ -39,7 +39,7 @@ by (ALLGOALS Blast_tac);
 qed_spec_mp "lists_IntI";
 
 goal thy "lists (A Int B) = lists A Int lists B";
-br (mono_Int RS equalityI) 1;
+by (rtac (mono_Int RS equalityI) 1);
 by (simp_tac (simpset() addsimps [mono_def, lists_mono]) 1);
 by (blast_tac (claset() addSIs [lists_IntI]) 1);
 qed "lists_Int_eq";
@@ -85,8 +85,8 @@ qed "length_rev";
 Addsimps [length_rev];
 
 goal List.thy "!!xs. xs ~= [] ==> length(tl xs) = pred(length xs)";
-by(exhaust_tac "xs" 1);
-by(ALLGOALS Asm_full_simp_tac);
+by (exhaust_tac "xs" 1);
+by (ALLGOALS Asm_full_simp_tac);
 qed "length_tl";
 Addsimps [length_tl];
 
@@ -151,17 +151,17 @@ AddIffs [append_self_conv,self_append_conv];
 
 goal thy "!ys. length xs = length ys | length us = length vs \
 \              --> (xs@us = ys@vs) = (xs=ys & us=vs)";
-by(induct_tac "xs" 1);
- by(rtac allI 1);
- by(exhaust_tac "ys" 1);
-  by(Asm_simp_tac 1);
- by(fast_tac (claset() addIs [less_add_Suc2] addss simpset()
+by (induct_tac "xs" 1);
+ by (rtac allI 1);
+ by (exhaust_tac "ys" 1);
+  by (Asm_simp_tac 1);
+ by (fast_tac (claset() addIs [less_add_Suc2] addss simpset()
                       addEs [less_not_refl2 RSN (2,rev_notE)]) 1);
-by(rtac allI 1);
-by(exhaust_tac "ys" 1);
- by(fast_tac (claset() addIs [less_add_Suc2] addss simpset()
+by (rtac allI 1);
+by (exhaust_tac "ys" 1);
+ by (fast_tac (claset() addIs [less_add_Suc2] addss simpset()
                       addEs [(less_not_refl2 RS not_sym) RSN (2,rev_notE)]) 1);
-by(Asm_simp_tac 1);
+by (Asm_simp_tac 1);
 qed_spec_mp "append_eq_append_conv";
 Addsimps [append_eq_append_conv];
 
@@ -246,22 +246,22 @@ qed "rev_map";
 (* a congruence rule for map: *)
 goal thy
  "(xs=ys) --> (!x. x : set ys --> f x = g x) --> map f xs = map g ys";
-by(rtac impI 1);
-by(hyp_subst_tac 1);
-by(induct_tac "ys" 1);
-by(ALLGOALS Asm_simp_tac);
+by (rtac impI 1);
+by (hyp_subst_tac 1);
+by (induct_tac "ys" 1);
+by (ALLGOALS Asm_simp_tac);
 val lemma = result();
 bind_thm("map_cong",impI RSN (2,allI RSN (2,lemma RS mp RS mp)));
 
 goal List.thy "(map f xs = []) = (xs = [])";
-by(induct_tac "xs" 1);
-by(ALLGOALS Asm_simp_tac);
+by (induct_tac "xs" 1);
+by (ALLGOALS Asm_simp_tac);
 qed "map_is_Nil_conv";
 AddIffs [map_is_Nil_conv];
 
 goal List.thy "([] = map f xs) = (xs = [])";
-by(induct_tac "xs" 1);
-by(ALLGOALS Asm_simp_tac);
+by (induct_tac "xs" 1);
+by (ALLGOALS Asm_simp_tac);
 qed "Nil_is_map_conv";
 AddIffs [Nil_is_map_conv];
 
@@ -283,14 +283,14 @@ qed "rev_rev_ident";
 Addsimps[rev_rev_ident];
 
 goal thy "(rev xs = []) = (xs = [])";
-by(induct_tac "xs" 1);
-by(ALLGOALS Asm_simp_tac);
+by (induct_tac "xs" 1);
+by (ALLGOALS Asm_simp_tac);
 qed "rev_is_Nil_conv";
 AddIffs [rev_is_Nil_conv];
 
 goal thy "([] = rev xs) = (xs = [])";
-by(induct_tac "xs" 1);
-by(ALLGOALS Asm_simp_tac);
+by (induct_tac "xs" 1);
+by (ALLGOALS Asm_simp_tac);
 qed "Nil_is_rev_conv";
 AddIffs [Nil_is_rev_conv];
 
@@ -401,14 +401,14 @@ qed"concat_append";
 Addsimps [concat_append];
 
 goal thy "(concat xss = []) = (!xs:set xss. xs=[])";
-by(induct_tac "xss" 1);
-by(ALLGOALS Asm_simp_tac);
+by (induct_tac "xss" 1);
+by (ALLGOALS Asm_simp_tac);
 qed "concat_eq_Nil_conv";
 AddIffs [concat_eq_Nil_conv];
 
 goal thy "([] = concat xss) = (!xs:set xss. xs=[])";
-by(induct_tac "xss" 1);
-by(ALLGOALS Asm_simp_tac);
+by (induct_tac "xss" 1);
+by (ALLGOALS Asm_simp_tac);
 qed "Nil_eq_concat_conv";
 AddIffs [Nil_eq_concat_conv];
 
@@ -488,39 +488,39 @@ Addsimps [nth_mem];
 (** last & butlast **)
 
 goal thy "last(xs@[x]) = x";
-by(induct_tac "xs" 1);
-by(ALLGOALS (asm_simp_tac (simpset() addsplits [expand_if])));
+by (induct_tac "xs" 1);
+by (ALLGOALS (asm_simp_tac (simpset() addsplits [expand_if])));
 qed "last_snoc";
 Addsimps [last_snoc];
 
 goal thy "butlast(xs@[x]) = xs";
-by(induct_tac "xs" 1);
-by(ALLGOALS (asm_simp_tac (simpset() addsplits [expand_if])));
+by (induct_tac "xs" 1);
+by (ALLGOALS (asm_simp_tac (simpset() addsplits [expand_if])));
 qed "butlast_snoc";
 Addsimps [butlast_snoc];
 
 goal thy
   "!ys. butlast (xs@ys) = (if ys=[] then butlast xs else xs@butlast ys)";
-by(induct_tac "xs" 1);
-by(ALLGOALS(asm_simp_tac (simpset() addsplits [expand_if])));
+by (induct_tac "xs" 1);
+by (ALLGOALS(asm_simp_tac (simpset() addsplits [expand_if])));
 qed_spec_mp "butlast_append";
 
 goal thy "x:set(butlast xs) --> x:set xs";
-by(induct_tac "xs" 1);
-by(ALLGOALS (asm_simp_tac (simpset() addsplits [expand_if])));
+by (induct_tac "xs" 1);
+by (ALLGOALS (asm_simp_tac (simpset() addsplits [expand_if])));
 qed_spec_mp "in_set_butlastD";
 
 goal thy "!!xs. x:set(butlast xs) ==> x:set(butlast(xs@ys))";
-by(asm_simp_tac (simpset() addsimps [butlast_append]
+by (asm_simp_tac (simpset() addsimps [butlast_append]
                           addsplits [expand_if]) 1);
-by(blast_tac (claset() addDs [in_set_butlastD]) 1);
+by (blast_tac (claset() addDs [in_set_butlastD]) 1);
 qed "in_set_butlast_appendI1";
 
 goal thy "!!xs. x:set(butlast ys) ==> x:set(butlast(xs@ys))";
-by(asm_simp_tac (simpset() addsimps [butlast_append]
+by (asm_simp_tac (simpset() addsimps [butlast_append]
                           addsplits [expand_if]) 1);
-by(Clarify_tac 1);
-by(Full_simp_tac 1);
+by (Clarify_tac 1);
+by (Full_simp_tac 1);
 qed "in_set_butlast_appendI2";
 
 (** take  & drop **)
@@ -720,11 +720,11 @@ qed_goal "zip_Cons_Cons" thy "zip (x#xs) (y#ys) = (x,y)#zip xs ys"
 section "replicate";
 
 goal thy "set(replicate (Suc n) x) = {x}";
-by(induct_tac "n" 1);
-by(ALLGOALS Asm_full_simp_tac);
+by (induct_tac "n" 1);
+by (ALLGOALS Asm_full_simp_tac);
 val lemma = result();
 
 goal thy "!!n. n ~= 0 ==> set(replicate n x) = {x}";
-by(fast_tac (claset() addSDs [not0_implies_Suc] addSIs [lemma]) 1);
+by (fast_tac (claset() addSDs [not0_implies_Suc] addSIs [lemma]) 1);
 qed "set_replicate";
 Addsimps [set_replicate];

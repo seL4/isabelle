@@ -598,7 +598,7 @@ by (Blast_tac 1);
 qed "subset_iff_psubset_eq";
 
 goal thy "(!x. x ~: A) = (A={})";
-by(Blast_tac 1);
+by (Blast_tac 1);
 qed "all_not_in_conv";
 AddIffs [all_not_in_conv];
 

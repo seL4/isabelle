@@ -452,7 +452,7 @@ AddSDs [singleton_inject];
 AddSEs [singletonE];
 
 goal Set.thy "{x. x=a} = {a}";
-by(Blast_tac 1);
+by (Blast_tac 1);
 qed "singleton_conv";
 Addsimps [singleton_conv];
 

@@ -92,7 +92,7 @@ qed"weak_ref_map2ref_map";
 
 
 val prems = goal HOL.thy "(P ==> Q-->R) ==> P&Q --> R";
-  by(fast_tac (claset() addDs prems) 1);
+  by (fast_tac (claset() addDs prems) 1);
 val lemma = result();
 
 
@@ -108,7 +108,7 @@ by (rtac lemma 1);
 by (simp_tac (simpset() addsimps [rename_def,rename_set_def]) 1);
 by (asm_full_simp_tac (simpset() addsimps [externals_def,asig_inputs_def,
 asig_outputs_def,asig_of_def,trans_of_def]) 1);
-by (safe_tac (claset()));
+by Safe_tac;
 by (stac expand_if 1);
  by (rtac conjI 1);
  by (rtac impI 1);

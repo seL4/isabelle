@@ -115,17 +115,17 @@ goal thy
 "!!t.[|t~=UU|]==> ((t andalso s)=FF)=(t=FF | s=FF)";
 by (rtac iffI 1);
 by (res_inst_tac [("p","t")] trE 1);
-auto();
+by (Auto_tac());
 by (res_inst_tac [("p","t")] trE 1);
-auto();
+by (Auto_tac());
 qed"andalso_or";
 
 goal thy "!!t.[|t~=UU|]==> ((t andalso s)~=FF)=(t~=FF & s~=FF)";
 by (rtac iffI 1);
 by (res_inst_tac [("p","t")] trE 1);
-auto();
+by (Auto_tac());
 by (res_inst_tac [("p","t")] trE 1);
-auto();
+by (Auto_tac());
 qed"andalso_and";
 
 goal thy "(Def x ~=FF)= x";

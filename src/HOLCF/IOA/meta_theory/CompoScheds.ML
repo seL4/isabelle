@@ -517,7 +517,7 @@ goalw thy [Scheds_def,par_scheds_def]
 "Scheds (A||B) = par_scheds (Scheds A) (Scheds B)";
 
 by (asm_full_simp_tac (simpset() addsimps [asig_of_par]) 1);
-br set_ext 1;
+by (rtac set_ext 1);
 by (asm_full_simp_tac (simpset() addsimps [compositionality_sch,actions_of_par]) 1);
 qed"compositionality_sch_modules";
 

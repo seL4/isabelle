@@ -382,7 +382,7 @@ qed_goal "chfin_fappR" thy
 	[
 	cut_facts_tac prems 1,
 	rtac allI 1,
-	rtac (contlub_cfun_fun RS ssubst) 1,
+	stac contlub_cfun_fun 1,
 	 atac 1,
 	fast_tac (HOL_cs addSIs [thelubI,chfin,lub_finch2,chfin2finch,ch2ch_fappL])1
 	]);

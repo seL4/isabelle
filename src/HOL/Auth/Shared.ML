@@ -75,7 +75,7 @@ qed "shrK_in_initState";
 AddIffs [shrK_in_initState];
 
 goal thy "Key (shrK A) : used evs";
-br initState_into_used 1;
+by (rtac initState_into_used 1);
 by (Blast_tac 1);
 qed "shrK_in_used";
 AddIffs [shrK_in_used];

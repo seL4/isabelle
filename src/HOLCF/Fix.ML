@@ -889,7 +889,7 @@ qed_goal "adm_imp"  thy
 
 goal Fix.thy "!! P. [| adm (%x. P x --> Q x); adm (%x. Q x --> P x) |] \
 \           ==> adm (%x. P x = Q x)";
-by(subgoal_tac "(%x. P x = Q x) = (%x. (P x --> Q x) & (Q x --> P x))" 1);
+by (subgoal_tac "(%x. P x = Q x) = (%x. (P x --> Q x) & (Q x --> P x))" 1);
 by (Asm_simp_tac 1);
 by (rtac ext 1);
 by (fast_tac HOL_cs 1);

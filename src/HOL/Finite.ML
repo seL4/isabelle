@@ -65,7 +65,7 @@ by (ALLGOALS Asm_simp_tac);
 val lemma = result();
 
 goal Finite.thy "!!A. [| A<=B;  finite B |] ==> finite A";
-bd lemma 1;
+by (dtac lemma 1);
 by (Blast_tac 1);
 qed "finite_subset";
 

@@ -26,8 +26,8 @@ qed "HTTgenXH";
 goal Hered.thy
   "t : HTT <-> t=true | t=false | (EX a b. t=<a,b> & a : HTT & b : HTT) | \
 \                                  (EX f. t=lam x. f(x) & (ALL x. f(x) : HTT))";
-br (rewrite_rule [HTTgen_def] 
-                 (HTTgen_mono RS (HTT_def RS def_gfp_Tarski) RS XHlemma1)) 1;
+by (rtac (rewrite_rule [HTTgen_def] 
+                 (HTTgen_mono RS (HTT_def RS def_gfp_Tarski) RS XHlemma1)) 1);
 by (fast_tac set_cs 1);
 qed "HTTXH";
 

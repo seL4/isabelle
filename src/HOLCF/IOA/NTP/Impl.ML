@@ -33,7 +33,7 @@ goal Impl.thy
 \  fst(snd(x)) = rec(x)       & \
 \  fst(snd(snd(x))) = srch(x) & \
 \  snd(snd(snd(x))) = rsch(x)";
-by(simp_tac (simpset() addsimps
+by (simp_tac (simpset() addsimps
              [sen_def,rec_def,srch_def,rsch_def]) 1);
 Addsimps [result()];
 
@@ -41,8 +41,8 @@ goal Impl.thy "a:actions(sender_asig)   \
 \            | a:actions(receiver_asig) \
 \            | a:actions(srch_asig)     \
 \            | a:actions(rsch_asig)";
-  by(Action.action.induct_tac "a" 1);
-  by(ALLGOALS (Simp_tac));
+  by (Action.action.induct_tac "a" 1);
+  by (ALLGOALS (Simp_tac));
 Addsimps [result()];
 
 Delsimps [split_paired_All];
@@ -73,18 +73,18 @@ val tac_ren = asm_simp_tac ((rename_ss addcongs [conj_cong])
 
 goalw Impl.thy impl_ioas "invariant impl_ioa inv1";
 by (rtac invariantI 1);
-by(asm_full_simp_tac (simpset()
+by (asm_full_simp_tac (simpset()
    addsimps [inv1_def, hdr_sum_def, Sender.srcvd_def,
              Sender.ssent_def, Receiver.rsent_def,Receiver.rrcvd_def]) 1);
 
-by(simp_tac (simpset() delsimps [trans_of_par4]
+by (simp_tac (simpset() delsimps [trans_of_par4]
                 addsimps [fork_lemma,inv1_def]) 1);
 
 (* Split proof in two *)
 by (rtac conjI 1); 
 
 (* First half *)
-by(asm_full_simp_tac (simpset() addsimps [Impl.inv1_def]) 1);
+by (asm_full_simp_tac (simpset() addsimps [Impl.inv1_def]) 1);
 by (rtac Action.action.induct 1);
 
 by (EVERY1[tac, tac, tac, tac]);
@@ -97,13 +97,13 @@ by (tac 1);
 by (tac_ren 1);
 
 (* 4 + 1 *)
-by(EVERY1[tac, tac, tac, tac]);
+by (EVERY1[tac, tac, tac, tac]);
 
 
 (* Now the other half *)
-by(asm_full_simp_tac (simpset() addsimps [Impl.inv1_def]) 1);
+by (asm_full_simp_tac (simpset() addsimps [Impl.inv1_def]) 1);
 by (rtac Action.action.induct 1);
-by(EVERY1[tac, tac]);
+by (EVERY1[tac, tac]);
 
 (* detour 1 *)
 by (tac 1);
@@ -171,7 +171,7 @@ val tac2 = asm_full_simp_tac (ss addsimps [inv2_def]);
   (* 10 - 7 *)
   by (EVERY1[tac2,tac2,tac2,tac2]);
   (* 6 *)
-  by(forward_tac [rewrite_rule [Impl.inv1_def]
+  by (forward_tac [rewrite_rule [Impl.inv1_def]
                                (inv1 RS invariantE) RS conjunct1] 1);
   (* 6 - 5 *)
   by (EVERY1[tac2,tac2]);
@@ -191,7 +191,7 @@ val tac2 = asm_full_simp_tac (ss addsimps [inv2_def]);
 
   (* 2 *)
   by (tac2 1);
-  by(forward_tac [rewrite_rule [Impl.inv1_def]
+  by (forward_tac [rewrite_rule [Impl.inv1_def]
                                (inv1 RS invariantE) RS conjunct1] 1);
   by (rtac impI 1);
   by (rtac impI 1);
@@ -201,7 +201,7 @@ val tac2 = asm_full_simp_tac (ss addsimps [inv2_def]);
 
   (* 1 *)
   by (tac2 1);
-  by(forward_tac [rewrite_rule [Impl.inv1_def]
+  by (forward_tac [rewrite_rule [Impl.inv1_def]
                                (inv1 RS invariantE) RS conjunct2] 1);
   by (rtac impI 1);
   by (rtac impI 1);
@@ -310,7 +310,7 @@ val tac4 =  asm_full_simp_tac (ss addsimps [inv4_def]
  (* 2 b *)
  
   by (strip_tac  1 THEN REPEAT (etac conjE 1));
-  by(forward_tac [rewrite_rule [Impl.inv2_def]
+  by (forward_tac [rewrite_rule [Impl.inv2_def]
                                (inv2 RS invariantE)] 1);
   by (tac4 1);
   by (Asm_full_simp_tac 1);
@@ -319,9 +319,9 @@ val tac4 =  asm_full_simp_tac (ss addsimps [inv4_def]
   by (tac4 1);
   by (strip_tac  1 THEN REPEAT (etac conjE 1));
   by (rtac ccontr 1);
-  by(forward_tac [rewrite_rule [Impl.inv2_def]
+  by (forward_tac [rewrite_rule [Impl.inv2_def]
                                (inv2 RS invariantE)] 1);
-  by(forward_tac [rewrite_rule [Impl.inv3_def]
+  by (forward_tac [rewrite_rule [Impl.inv3_def]
                                (inv3 RS invariantE)] 1);
   by (Asm_full_simp_tac 1);
   by (eres_inst_tac [("x","m")] allE 1);

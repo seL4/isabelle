@@ -109,7 +109,7 @@ qed "inverse_inverse";
 Addsimps [inverse_inverse];
 
 goal Relation.thy "(r O s)^-1 = s^-1 O r^-1";
-by(Blast_tac 1);
+by (Blast_tac 1);
 qed "inverse_comp";
 
 (** Domain **)

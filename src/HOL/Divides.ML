@@ -110,7 +110,7 @@ qed "mod_div_equality";
 
 (* a simple rearrangement of mod_div_equality: *)
 goal thy "!!k. 0<k ==> k*(m div k) = m - (m mod k)";
-by(dres_inst_tac [("m","m")] mod_div_equality 1);
+by (dres_inst_tac [("m","m")] mod_div_equality 1);
 by (EVERY1[etac subst, simp_tac (simpset() addsimps mult_ac),
            K(IF_UNSOLVED no_tac)]);
 qed "mult_div_cancel";

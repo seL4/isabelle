@@ -108,7 +108,7 @@ qed"stutter2_nil";
 goal thy "(stutter2 sig`(at>>xs)) s = \
 \              ((if (fst at)~:actions sig then Def (s=snd at) else TT) \
 \                andalso (stutter2 sig`xs) (snd at))"; 
-br trans 1;
+by (rtac trans 1);
 by (stac stutter2_unfold 1);
 by (asm_full_simp_tac (simpset() addsimps [Cons_def,flift1_def,If_and_if]) 1);
 by (Simp_tac 1);
@@ -268,7 +268,7 @@ goalw thy [Execs_def,par_execs_def]
 "Execs (A||B) = par_execs (Execs A) (Execs B)";
 
 by (asm_full_simp_tac (simpset() addsimps [asig_of_par]) 1);
-br set_ext 1;
+by (rtac set_ext 1);
 by (asm_full_simp_tac (simpset() addsimps [compositionality_ex,actions_of_par]) 1);
 qed"compositionality_ex_modules";
 

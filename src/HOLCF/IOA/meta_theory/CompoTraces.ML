@@ -1239,7 +1239,7 @@ goalw thy [Traces_def,par_traces_def]
 \==> Traces (A||B) = par_traces (Traces A) (Traces B)";
 
 by (asm_full_simp_tac (simpset() addsimps [asig_of_par]) 1);
-br set_ext 1;
+by (rtac set_ext 1);
 by (asm_full_simp_tac (simpset() addsimps [compositionality_tr,externals_of_par]) 1);
 qed"compositionality_tr_modules";
 

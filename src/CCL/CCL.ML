@@ -166,8 +166,8 @@ goal CCL.thy
 \                (EX a a' b b'. t=<a,b> &  t'=<a',b'>  & a [= a' & b [= b') | \
 \                (EX f f'. t=lam x. f(x) &  t'=lam x. f'(x) & (ALL x. f(x) [= f'(x)))";
 by (simp_tac (ccl_ss addsimps [PO_iff] delsimps ex_simps) 1);
-br (rewrite_rule [POgen_def,SIM_def] 
-                 (POgen_mono RS (PO_def RS def_gfp_Tarski) RS XHlemma1)) 1;
+by (rtac (rewrite_rule [POgen_def,SIM_def] 
+                 (POgen_mono RS (PO_def RS def_gfp_Tarski) RS XHlemma1)) 1);
 by (rtac (iff_refl RS XHlemma2) 1);
 qed "poXH";
 
@@ -292,8 +292,8 @@ by (subgoal_tac
 \             (EX f f'. t=lam x. f(x) &  t'=lam x. f'(x) & (ALL x. <f(x),f'(x)> : EQ))" 1);
 by (etac rev_mp 1);
 by (simp_tac (CCL_ss addsimps [EQ_iff RS iff_sym]) 1);
-br (rewrite_rule [EQgen_def,SIM_def]
-                 (EQgen_mono RS (EQ_def RS def_gfp_Tarski) RS XHlemma1)) 1;
+by (rtac (rewrite_rule [EQgen_def,SIM_def]
+                 (EQgen_mono RS (EQ_def RS def_gfp_Tarski) RS XHlemma1)) 1);
 by (rtac (iff_refl RS XHlemma2) 1);
 qed "eqXH";
 

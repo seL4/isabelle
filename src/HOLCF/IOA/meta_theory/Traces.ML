@@ -197,7 +197,7 @@ goalw thy [traces_def,has_trace_def]
   "!! A.[| x:traces A |] ==> \
 \   Forall (%a. a:act A) x";
  by (safe_tac set_cs );
-br ForallQFilterP 1;
+by (rtac ForallQFilterP 1);
 by (fast_tac (!claset addSIs [ext_is_act]) 1);
 qed"traces_in_sig";
 *)

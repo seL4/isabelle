@@ -5,10 +5,6 @@
 
 This is the ROOT file for a network transmission protocol (NTP subdirectory),
 performed in the I/O automata formalization by Olaf Mueller. 
-
-For details see the README.html file.
-
-Should be executed in the subdirectory HOLCF/IOA/examples/NTP.
 *)
 
 goals_limit := 1;

@@ -35,13 +35,13 @@ Addsimps [isSym_sessionK, rewrite_rule [isSymKey_def] isSym_sessionK];
 (*** clientK and serverK make symmetric keys; no clashes with pubK or priK ***)
 
 goal thy "pubK A ~= sessionK arg";
-br notI 1;
+by (rtac notI 1);
 by (dres_inst_tac [("f","isSymKey")] arg_cong 1);
 by (Full_simp_tac 1);
 qed "pubK_neq_sessionK";
 
 goal thy "priK A ~= sessionK arg";
-br notI 1;
+by (rtac notI 1);
 by (dres_inst_tac [("f","isSymKey")] arg_cong 1);
 by (Full_simp_tac 1);
 qed "priK_neq_sessionK";
@@ -274,7 +274,7 @@ goal thy
 \             : parts (spies evs);                          \
 \           evs : tls;  A ~: bad |]                         \
 \        ==> Notes A {|Agent B, Nonce PMS|} : set evs";
-be rev_mp 1;
+by (etac rev_mp 1);
 by (parts_induct_tac 1);
 by (Fake_parts_insert_tac 1);
 val lemma = result();

@@ -7,7 +7,7 @@
 
 (* Logic *)
 val prems = goal HOL.thy "(P ==> Q-->R) ==> P&Q --> R";
-  by(fast_tac (claset() addDs prems) 1);
+  by (fast_tac (claset() addDs prems) 1);
 qed "imp_conj_lemma";
 
 goal HOL.thy "(A --> B & C) = ((A --> B) & (A --> C))";
@@ -35,8 +35,8 @@ val set_lemmas =
 (* Arithmetic *)
 
 goal Arith.thy "!!x. 0<x ==> (x-1 = y) = (x = Suc(y))";
-by(asm_simp_tac (simpset() addsimps [diff_Suc] addsplits [expand_nat_case]) 1);
-by(Blast_tac 1);
+by (asm_simp_tac (simpset() addsimps [diff_Suc] addsplits [expand_nat_case]) 1);
+by (Blast_tac 1);
 qed "pred_suc";
 
 

@@ -103,13 +103,13 @@ end;
    but are still very useful. They also demonstrate mk_group1_tac.
 *)
 goal Group.thy "x-x = (zero::'a::add_group)";
-by(mk_group1_tac 1);
-by(group1_tac 1);
+by (mk_group1_tac 1);
+by (group1_tac 1);
 qed "minus_self_zero";
 
 goal Group.thy "x-zero = (x::'a::add_group)";
-by(mk_group1_tac 1);
-by(group1_tac 1);
+by (mk_group1_tac 1);
+by (group1_tac 1);
 qed "minus_zero";
 
 (*** Abelian Groups ***)
@@ -144,33 +144,33 @@ val agroup1_tac =
       (x-y = z) = (x = z+y) and (x = y-z) = (x+z = y)
 *)
 goal Group.thy "x + (y - z) = (x + y) - (z::'a::add_group)";
-by(mk_group1_tac 1);
-by(group1_tac 1);
+by (mk_group1_tac 1);
+by (group1_tac 1);
 qed "plus_minusR";
 
 goal Group.thy "(x - y) + z = (x + z) - (y::'a::add_agroup)";
-by(mk_group1_tac 1);
-by(agroup1_tac 1);
+by (mk_group1_tac 1);
+by (agroup1_tac 1);
 qed "plus_minusL";
 
 goal Group.thy "(x - y) - z = x - (y + (z::'a::add_agroup))";
-by(mk_group1_tac 1);
-by(agroup1_tac 1);
+by (mk_group1_tac 1);
+by (agroup1_tac 1);
 qed "minus_minusL";
 
 goal Group.thy "x - (y - z) = (x + z) - (y::'a::add_agroup)";
-by(mk_group1_tac 1);
-by(agroup1_tac 1);
+by (mk_group1_tac 1);
+by (agroup1_tac 1);
 qed "minus_minusR";
 
 goal Group.thy "!!x::'a::add_group. (x-y = z) = (x = z+y)";
-by(stac minus_inv 1);
-by(fast_tac (claset() addss (HOL_basic_ss addsimps group1_simps)) 1);
+by (stac minus_inv 1);
+by (fast_tac (claset() addss (HOL_basic_ss addsimps group1_simps)) 1);
 qed "minusL_iff";
 
 goal Group.thy "!!x::'a::add_group. (x = y-z) = (x+z = y)";
-by(stac minus_inv 1);
-by(fast_tac (claset() addss (HOL_basic_ss addsimps group1_simps)) 1);
+by (stac minus_inv 1);
+by (fast_tac (claset() addss (HOL_basic_ss addsimps group1_simps)) 1);
 qed "minusR_iff";
 
 val agroup2_simps =

@@ -91,7 +91,7 @@ congrence rules, where is can lead to premises of the form
 which cannot be solved by reflexivity.
    
 val [prem] = goal Prod.thy "(!!x. PROP P x) ==> (!!a b. PROP P(a,b))";
-br prem 1;
+by (rtac prem 1);
 val lemma1 = result();
 
 local
@@ -106,13 +106,13 @@ end;
 
 
 val [prem] = goal Prod.thy "(!!a b. PROP P(a,b)) ==> PROP P x";
-bw adhoc;
-br prem 1;
+by (rewtac adhoc);
+by (rtac prem 1);
 val lemma = result();
 
 val [prem] = goal Prod.thy "(!!a b. PROP P(a,b)) ==> (!!x. PROP P x)";
-br lemma 1;
-br prem 1;
+by (rtac lemma 1);
+by (rtac prem 1);
 val lemma2 = result();
 
 bind_thm("split_paired_all", equal_intr lemma1 lemma2);

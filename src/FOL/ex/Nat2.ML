@@ -134,7 +134,7 @@ by (IND_TAC nat_ind (K all_tac) "i" 1);
 by (Simp_tac 1);
 by (resolve_tac [impI RS allI] 1);
 by (ALL_IND_TAC nat_exh Simp_tac 1);
-by (resolve_tac [impI] 1);
+by (rtac impI 1);
 by (ALL_IND_TAC nat_exh Simp_tac 1);
 by (Fast_tac 1);
 qed "le_trans";

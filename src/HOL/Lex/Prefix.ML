@@ -35,7 +35,7 @@ by (Fast_tac 1);
 qed "prefix_Cons";
 
 goalw Prefix.thy [prefix_def] "(x#xs <= y#ys) = (x=y & xs<=ys)";
-by(Simp_tac 1);
+by (Simp_tac 1);
 by (Fast_tac 1);
 qed"Cons_prefix_Cons";
 Addsimps [Cons_prefix_Cons];

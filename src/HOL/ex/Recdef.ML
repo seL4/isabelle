@@ -38,9 +38,9 @@ qed "g_zero";
 (* proving the termination condition: *)
 val [tc] = mapf.tcs;
 goalw_cterm [] (cterm_of (sign_of thy) (HOLogic.mk_Trueprop tc));
-br allI 1;
-by(case_tac "n=0" 1);
-by(ALLGOALS Asm_simp_tac);
+by (rtac allI 1);
+by (case_tac "n=0" 1);
+by (ALLGOALS Asm_simp_tac);
 val lemma = result();
 
 (* removing the termination condition from the generated thms: *)

@@ -40,12 +40,12 @@ val H_strict = prove_goal ex_thy "H(UU)=UU"
 val ex_ss = ex_ss addsimps [H_strict];
 
 goal ex_thy "ALL x. H(FIX(K,x)) = FIX(K,x)";
-by(induct_tac "K" 1);
-by(simp_tac ex_ss 1);
-by(simp_tac (ex_ss setloop (split_tac [COND_cases_iff])) 1);
-by(strip_tac 1);
-by(stac H_unfold 1);
-by(asm_simp_tac ex_ss 1);
+by (induct_tac "K" 1);
+by (simp_tac ex_ss 1);
+by (simp_tac (ex_ss setloop (split_tac [COND_cases_iff])) 1);
+by (strip_tac 1);
+by (stac H_unfold 1);
+by (asm_simp_tac ex_ss 1);
 val H_idemp_lemma = topthm();
 
 val H_idemp = rewrite_rule [mk_meta_eq (H RS sym)] H_idemp_lemma;
@@ -76,10 +76,10 @@ val H = ax"H";
 val ex_ss = LCF_ss addsimps [F_strict,K];
 
 goal ex_thy "ALL x. F(H(x::'a,y::'b)) = H(x,F(y))";
-by(stac H 1);
-by(induct_tac "K::('a=>'b=>'b)=>('a=>'b=>'b)" 1);
-by(simp_tac ex_ss 1);
-by(asm_simp_tac (ex_ss setloop (split_tac [COND_cases_iff])) 1);
+by (stac H 1);
+by (induct_tac "K::('a=>'b=>'b)=>('a=>'b=>'b)" 1);
+by (simp_tac ex_ss 1);
+by (asm_simp_tac (ex_ss setloop (split_tac [COND_cases_iff])) 1);
 result();
 
 
@@ -103,20 +103,20 @@ val p_s = ax"p_s";
 val ex_ss = LCF_ss addsimps [p_strict,p_s];
 
 goal ex_thy "p(FIX(s),y) = FIX(s)";
-by(induct_tac "s" 1);
-by(simp_tac ex_ss 1);
-by(simp_tac ex_ss 1);
+by (induct_tac "s" 1);
+by (simp_tac ex_ss 1);
+by (simp_tac ex_ss 1);
 result();
 
 
 (*** Prefixpoints ***)
 
 val asms = goal thy "[| f(p) << p; !!q. f(q) << q ==> p << q |] ==> FIX(f)=p";
-by(rewtac eq_def);
+by (rewtac eq_def);
 by (rtac conjI 1);
-by(induct_tac "f" 1);
+by (induct_tac "f" 1);
 by (rtac minimal 1);
-by(strip_tac 1);
+by (strip_tac 1);
 by (rtac less_trans 1);
 by (resolve_tac asms 2);
 by (etac less_ap_term 1);

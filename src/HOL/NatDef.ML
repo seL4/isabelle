@@ -293,12 +293,12 @@ by (ALLGOALS Asm_full_simp_tac);
 qed "gr_implies_not0";
 
 goal thy "(n ~= 0) = (0 < n)";
-br iffI 1;
- by(etac gr_implies_not0 2);
-by(rtac natE 1);
- by(contr_tac 1);
-by(etac ssubst 1);
-by(rtac zero_less_Suc 1);
+by (rtac iffI 1);
+ by (etac gr_implies_not0 2);
+by (rtac natE 1);
+ by (contr_tac 1);
+by (etac ssubst 1);
+by (rtac zero_less_Suc 1);
 qed "neq0_conv";
 Addsimps [neq0_conv];
 AddSDs [neq0_conv RS iffD1];
@@ -306,9 +306,9 @@ AddSDs [neq0_conv RS iffD1];
 bind_thm("gr0I", notI RS (neq0_conv RS iffD1));
 
 goal thy "(~(0 < n)) = (n=0)";
-br iffI 1;
- be swap 1;
- by(ALLGOALS Asm_full_simp_tac);
+by (rtac iffI 1);
+ by (etac swap 1);
+ by (ALLGOALS Asm_full_simp_tac);
 qed "not_gr0";
 Addsimps [not_gr0];
 

@@ -22,14 +22,14 @@ bind_thm ("iterator_def2", fix_prover2 Dnat.thy iterator_def
 qed_goal "iterator1" Dnat.thy "iterator`UU`f`x = UU"
  (fn prems =>
 	[
-	(rtac (iterator_def2 RS ssubst) 1),
+	(stac iterator_def2 1),
 	(simp_tac (HOLCF_ss addsimps dnat.rews) 1)
 	]);
 
 qed_goal "iterator2" Dnat.thy "iterator`dzero`f`x = x"
  (fn prems =>
 	[
-	(rtac (iterator_def2 RS ssubst) 1),
+	(stac iterator_def2 1),
 	(simp_tac (HOLCF_ss addsimps dnat.rews) 1)
 	]);
 
@@ -39,7 +39,7 @@ qed_goal "iterator3" Dnat.thy
 	[
 	(cut_facts_tac prems 1),
 	(rtac trans 1),
-	(rtac (iterator_def2 RS ssubst) 1),
+	(stac iterator_def2 1),
 	(asm_simp_tac (HOLCF_ss addsimps dnat.rews) 1),
 	(rtac refl 1)
 	]);
