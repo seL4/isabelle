@@ -158,32 +158,15 @@ qed "zminus_0";
 
 (**** znegative: the test for negative integers ****)
 
-goal Arith.thy "!!m x n::nat. n+m=x ==> m<=x";
-by (dtac (disjI2 RS less_or_eq_imp_le) 1);
-by (asm_full_simp_tac (simpset() addsimps add_ac) 1);
-by (dtac add_leD1 1);
-by (assume_tac 1);
-qed "not_znegative_znat_lemma";
-
 
 goalw Integ.thy [znegative_def, znat_def]
     "~ znegative($# n)";
 by (Simp_tac 1);
 by Safe_tac;
-by (rtac ccontr 1);
-by (etac notE 1);
-by (Asm_full_simp_tac 1);
-by (dtac not_znegative_znat_lemma 1);
-by (fast_tac (claset() addDs [leD]) 1);
 qed "not_znegative_znat";
 
 goalw Integ.thy [znegative_def, znat_def] "znegative($~ $# Suc(n))";
 by (simp_tac (simpset() addsimps [zminus]) 1);
-by (REPEAT (ares_tac [exI, conjI] 1));
-by (rtac (intrelI RS ImageI) 2);
-by (rtac singletonI 3);
-by (Simp_tac 2);
-by (rtac less_add_Suc1 1);
 qed "znegative_zminus_znat";
 
 
@@ -572,24 +555,15 @@ by (res_inst_tac [("z","w")] eq_Abs_Integ 1);
 by Safe_tac;
 by (asm_full_simp_tac (simpset() addsimps [zadd, zminus]) 1);
 by (safe_tac (claset() addSDs [less_eq_Suc_add]));
-by (rename_tac "k" 1);
 by (res_inst_tac [("x","k")] exI 1);
-(*To cancel x2, rename it to be first!*)
-by (rename_tac "a b c" 1);
-by (Asm_full_simp_tac 1);
-by (asm_full_simp_tac (simpset() delsimps [add_Suc_right]
-                                addsimps ([add_Suc_right RS sym] @ add_ac)) 1);
+by (asm_full_simp_tac (simpset() addsimps add_ac) 1);
 qed "zless_eq_zadd_Suc";
 
 goalw Integ.thy [zless_def, znegative_def, zdiff_def, znat_def] 
     "z < z + $#(Suc(n))";
 by (res_inst_tac [("z","z")] eq_Abs_Integ 1);
-by Safe_tac;
+by (Clarify_tac 1);
 by (simp_tac (simpset() addsimps [zadd, zminus]) 1);
-by (REPEAT_SOME (ares_tac [refl, exI, singletonI, ImageI, conjI, intrelI]));
-by (rtac le_less_trans 1);
-by (rtac lessI 2);
-by (asm_simp_tac (simpset() addsimps ([le_add1,add_left_cancel_le]@add_ac)) 1);
 qed "zless_zadd_Suc";
 
 goal Integ.thy "!!z1 z2 z3. [| z1<z2; z2<z3 |] ==> z1 < (z3::int)";
