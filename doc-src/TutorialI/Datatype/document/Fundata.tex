@@ -33,7 +33,7 @@ instead of \isa{{\isasymlambda}i{\isachardot}\ map{\isacharunderscore}bt\ f\ {\i
 Isabelle because the termination proof is not as obvious since
 \isa{map{\isacharunderscore}bt} is only partially applied.
 
-The following lemma has a canonical proof:%
+The following lemma has a simple proof by induction:%
 \end{isamarkuptext}%
 \isacommand{lemma}\ {\isachardoublequote}map{\isacharunderscore}bt\ {\isacharparenleft}g\ o\ f{\isacharparenright}\ T\ {\isacharequal}\ map{\isacharunderscore}bt\ g\ {\isacharparenleft}map{\isacharunderscore}bt\ f\ T{\isacharparenright}{\isachardoublequote}\isanewline
 \isacommand{apply}{\isacharparenleft}induct{\isacharunderscore}tac\ T{\isacharcomma}\ simp{\isacharunderscore}all{\isacharparenright}\isanewline

@@ -27,8 +27,9 @@ and      'a bexp = Less "'a aexp" "'a aexp"
 
 text{*\noindent
 Type @{text"aexp"} is similar to @{text"expr"} in \S\ref{sec:ExprCompiler},
-except that we have fixed the values to be of type @{typ"nat"} and that we
-have fixed the two binary operations @{text Sum} and @{term"Diff"}. Boolean
+except that we have added an @{text IF} constructor,
+fixed the values to be of type @{typ"nat"} and declared the two binary
+operations @{text Sum} and @{term"Diff"}.  Boolean
 expressions can be arithmetic comparisons, conjunctions and negations.
 The semantics is fixed via two evaluation functions
 *}

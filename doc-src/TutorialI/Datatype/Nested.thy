@@ -120,7 +120,9 @@ about @{term map}.  Unfortunately inductive proofs about type
 could derive a new induction principle as well (see
 \S\ref{sec:derive-ind}), but simpler is to stop using \isacommand{primrec}
 and to define functions with \isacommand{recdef} instead.
-The details are explained in \S\ref{sec:nested-recdef} below.
+Simple uses of \isacommand{recdef} are described in \S\ref{sec:recdef} below,
+and later (\S\ref{sec:nested-recdef}) we shall see how \isacommand{recdef} can 
+handle nested recursion.
 
 Of course, you may also combine mutual and nested recursion of datatypes. For example,
 constructor @{text Sum} in \S\ref{sec:datatype-mut-rec} could take a list of

@@ -32,7 +32,7 @@ instead of @{term"%i. map_bt f (F i)"}, but the former is not accepted by
 Isabelle because the termination proof is not as obvious since
 @{term"map_bt"} is only partially applied.
 
-The following lemma has a canonical proof:  *}
+The following lemma has a simple proof by induction:  *}
 
 lemma "map_bt (g o f) T = map_bt g (map_bt f T)";
 apply(induct_tac T, simp_all)

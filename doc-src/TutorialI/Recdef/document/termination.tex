@@ -3,10 +3,10 @@
 \def\isabellecontext{termination}%
 %
 \begin{isamarkuptext}%
-When a function is defined via \isacommand{recdef}, Isabelle tries to prove
-its termination with the help of the user-supplied measure.  All of the above
-examples are simple enough that Isabelle can prove automatically that the
-measure of the argument goes down in each recursive call. As a result,
+When a function~$f$ is defined via \isacommand{recdef}, Isabelle tries to prove
+its termination with the help of the user-supplied measure.  Each of the examples
+above is simple enough that Isabelle can automatically prove that the
+argument's measure decreases in each recursive call. As a result,
 $f$\isa{{\isachardot}simps} will contain the defining equations (or variants derived
 from them) as theorems. For example, look (via \isacommand{thm}) at
 \isa{sep{\isachardot}simps} and \isa{sep{\isadigit{1}}{\isachardot}simps} to see that they define

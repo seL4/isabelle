@@ -1,54 +1,4 @@
-\chapter{Functional Programming in HOL}
-
-Although on the surface this chapter is mainly concerned with how to write
-functional programs in HOL and how to verify them, most of the constructs and
-proof procedures introduced are general purpose and recur in any specification
-or verification task. In fact, we really should speak of functional
-\emph{modelling} rather than \emph{programming}: our primary aim is not
-to write programs but to design abstract models of systems.  HOL is
-a specification language that goes well beyond what can be expressed as a
-program. However, for the time being we concentrate on the computable.
-
-The dedicated functional programmer should be warned: HOL offers only
-\emph{total functional programming} --- all functions in HOL must be total,
-i.e.\ they must terminate for all inputs; lazy data structures are not
-directly available.
-
-\section{An Introductory Theory}
-\label{sec:intro-theory}
-
-Functional programming needs datatypes and functions. Both of them can be
-defined in a theory with a syntax reminiscent of languages like ML or
-Haskell. As an example consider the theory in figure~\ref{fig:ToyList}.
-We will now examine it line by line.
-
-\begin{figure}[htbp]
-\begin{ttbox}\makeatother
-\input{ToyList2/ToyList1}\end{ttbox}
-\caption{A theory of lists}
-\label{fig:ToyList}
-\end{figure}
-
-{\makeatother\input{ToyList/document/ToyList.tex}}
-
-The complete proof script is shown in Fig.\ts\ref{fig:ToyList-proofs}. The
-concatenation of Figs.\ts\ref{fig:ToyList} and~\ref{fig:ToyList-proofs}
-constitutes the complete theory \texttt{ToyList} and should reside in file
-\texttt{ToyList.thy}. It is good practice to present all declarations and
-definitions at the beginning of a theory to facilitate browsing.
-
-\begin{figure}[htbp]
-\begin{ttbox}\makeatother
-\input{ToyList2/ToyList2}\end{ttbox}
-\caption{Proofs about lists}
-\label{fig:ToyList-proofs}
-\end{figure}
-
-\subsubsection*{Review}
-
-This is the end of our toy proof. It should have familiarized you with
-\begin{itemize}
-\item the standard theorem proving procedure:
+\chapter{Functional Programming in HOL}Although on the surface this chapter is mainly concerned with how to writefunctional programs in HOL and how to verify them, most of the constructs andproof procedures introduced are general purpose and recur in any specificationor verification task. In fact, we really should speak of functional\emph{modelling} rather than \emph{programming}: our primary aim is notto write programs but to design abstract models of systems.  HOL isa specification language that goes well beyond what can be expressed as aprogram. However, for the time being we concentrate on the computable.The dedicated functional programmer should be warned: HOL offers only\emph{total functional programming} --- all functions in HOL must be total,i.e.\ they must terminate for all inputs; lazy data structures are notdirectly available.\section{An Introductory Theory}\label{sec:intro-theory}Functional programming needs datatypes and functions. Both of them can bedefined in a theory with a syntax reminiscent of languages like ML orHaskell. As an example consider the theory in figure~\ref{fig:ToyList}.We will now examine it line by line.\begin{figure}[htbp]\begin{ttbox}\makeatother\input{ToyList2/ToyList1}\end{ttbox}\caption{A theory of lists}\label{fig:ToyList}\end{figure}{\makeatother\input{ToyList/document/ToyList.tex}}The complete proof script is shown in Fig.\ts\ref{fig:ToyList-proofs}. Theconcatenation of Figs.\ts\ref{fig:ToyList} and~\ref{fig:ToyList-proofs}constitutes the complete theory \texttt{ToyList} and should reside in file\texttt{ToyList.thy}. It is good practice to present all declarations anddefinitions at the beginning of a theory to facilitate browsing.\begin{figure}[htbp]\begin{ttbox}\makeatother\input{ToyList2/ToyList2}\end{ttbox}\caption{Proofs about lists}\label{fig:ToyList-proofs}\end{figure}\subsubsection*{Review}This is the end of our toy proof. It should have familiarized you with\begin{itemize}\item the standard theorem proving procedure:
 state a goal (lemma or theorem); proceed with proof until a separate lemma is
 required; prove that lemma; come back to the original goal.
 \item a specific procedure that works well for functional programs:
@@ -374,58 +324,7 @@ This section presents advanced forms of \isacommand{datatype}s.
 {\makeatother\input{Datatype/document/Nested.tex}}
 
 
-\subsection{The Limits of Nested Recursion}
-
-How far can we push nested recursion? By the unfolding argument above, we can
-reduce nested to mutual recursion provided the nested recursion only involves
-previously defined datatypes. This does not include functions:
-\begin{isabelle}
-\isacommand{datatype} t = C "t \isasymRightarrow\ bool"
-\end{isabelle}
-This declaration is a real can of worms.
-In HOL it must be ruled out because it requires a type
-\isa{t} such that \isa{t} and its power set \isa{t \isasymFun\ bool} have the
-same cardinality --- an impossibility. For the same reason it is not possible
-to allow recursion involving the type \isa{set}, which is isomorphic to
-\isa{t \isasymFun\ bool}.
-
-Fortunately, a limited form of recursion
-involving function spaces is permitted: the recursive type may occur on the
-right of a function arrow, but never on the left. Hence the above can of worms
-is ruled out but the following example of a potentially infinitely branching tree is
-accepted:
-\smallskip
-
-\input{Datatype/document/Fundata.tex}
-\bigskip
-
-If you need nested recursion on the left of a function arrow, there are
-alternatives to pure HOL: LCF~\cite{paulson87} is a logic where types like
-\begin{isabelle}
-\isacommand{datatype} lam = C "lam \isasymrightarrow\ lam"
-\end{isabelle}
-do indeed make sense.  Note the different arrow,
-\isa{\isasymrightarrow} instead of \isa{\isasymRightarrow},
-expressing the type of \emph{continuous} functions. 
-There is even a version of LCF on top of HOL,
-called HOLCF~\cite{MuellerNvOS99}.
-
-\index{*primrec|)}
-\index{*datatype|)}
-
-\subsection{Case Study: Tries}
-\label{sec:Trie}
-
-Tries are a classic search tree data structure~\cite{Knuth3-75} for fast
-indexing with strings. Figure~\ref{fig:trie} gives a graphical example of a
-trie containing the words ``all'', ``an'', ``ape'', ``can'', ``car'' and
-``cat''.  When searching a string in a trie, the letters of the string are
-examined sequentially. Each letter determines which subtrie to search next.
-In this case study we model tries as a datatype, define a lookup and an
-update function, and prove that they behave as expected.
-
-\begin{figure}[htbp]
-\begin{center}
+\subsection{The Limits of Nested Recursion}How far can we push nested recursion? By the unfolding argument above, we canreduce nested to mutual recursion provided the nested recursion only involvespreviously defined datatypes. This does not include functions:\begin{isabelle}\isacommand{datatype} t = C "t \isasymRightarrow\ bool"\end{isabelle}This declaration is a real can of worms.In HOL it must be ruled out because it requires a type\isa{t} such that \isa{t} and its power set \isa{t \isasymFun\ bool} have thesame cardinality --- an impossibility. For the same reason it is not possibleto allow recursion involving the type \isa{set}, which is isomorphic to\isa{t \isasymFun\ bool}.Fortunately, a limited form of recursioninvolving function spaces is permitted: the recursive type may occur on theright of a function arrow, but never on the left. Hence the above can of wormsis ruled out but the following example of a potentially infinitely branching tree isaccepted:\smallskip\input{Datatype/document/Fundata.tex}\bigskipIf you need nested recursion on the left of a function arrow, there arealternatives to pure HOL\@.  In the Logic for Computable Functions (LCF), types like\begin{isabelle}\isacommand{datatype} lam = C "lam \isasymrightarrow\ lam"\end{isabelle}do indeed make sense~\cite{paulson87}.  Note the different arrow,\isa{\isasymrightarrow} instead of \isa{\isasymRightarrow},expressing the type of \emph{continuous} functions. There is even a version of LCF on top of HOL,called HOLCF~\cite{MuellerNvOS99}.\index{*primrec|)}\index{*datatype|)}\subsection{Case Study: Tries}\label{sec:Trie}Tries are a classic search tree data structure~\cite{Knuth3-75} for fastindexing with strings. Figure~\ref{fig:trie} gives a graphical example of atrie containing the words ``all'', ``an'', ``ape'', ``can'', ``car'' and``cat''.  When searching a string in a trie, the letters of the string areexamined sequentially. Each letter determines which subtrie to search next.In this case study we model tries as a datatype, define a lookup and anupdate function, and prove that they behave as expected.\begin{figure}[htbp]\begin{center}
 \unitlength1mm
 \begin{picture}(60,30)
 \put( 5, 0){\makebox(0,0)[b]{l}}
@@ -442,58 +341,7 @@ update function, and prove that they behave as expected.
 %
 \put( 5,10){\makebox(0,0)[b]{l}}
 \put(15,10){\makebox(0,0)[b]{n}}
-\put(25,10){\makebox(0,0)[b]{p}}
-\put(45,10){\makebox(0,0)[b]{a}}
-%
-\put(14,19){\line(-3,-2){9}}
-\put(15,19){\line(0,-1){5}}
-\put(16,19){\line(3,-2){9}}
-\put(45,19){\line(0,-1){5}}
-%
-\put(15,20){\makebox(0,0)[b]{a}}
-\put(45,20){\makebox(0,0)[b]{c}}
-%
-\put(30,30){\line(-3,-2){13}}
-\put(30,30){\line(3,-2){13}}
-\end{picture}
-\end{center}
-\caption{A sample trie}
-\label{fig:trie}
-\end{figure}
-
-Proper tries associate some value with each string. Since the
-information is stored only in the final node associated with the string, many
-nodes do not carry any value. This distinction is modeled with the help
-of the predefined datatype \isa{option} (see {\S}\ref{sec:option}).
-\input{Trie/document/Trie.tex}
-
-\section{Total Recursive Functions}
-\label{sec:recdef}
-\index{*recdef|(}
-
-Although many total functions have a natural primitive recursive definition,
-this is not always the case. Arbitrary total recursive functions can be
-defined by means of \isacommand{recdef}: you can use full pattern-matching,
-recursion need not involve datatypes, and termination is proved by showing
-that the arguments of all recursive calls are smaller in a suitable (user
-supplied) sense. In this section we restrict ourselves to measure functions;
-more advanced termination proofs are discussed in {\S}\ref{sec:beyond-measure}.
-
-\subsection{Defining Recursive Functions}
-\label{sec:recdef-examples}
-\input{Recdef/document/examples.tex}
-
-\subsection{Proving Termination}
-
-\input{Recdef/document/termination.tex}
-
-\subsection{Simplification with Recdef}
-\label{sec:recdef-simplification}
-
-\input{Recdef/document/simplification.tex}
-
-\subsection{Induction}
-\index{induction!recursion|(}
+\put(25,10){\makebox(0,0)[b]{p}}\put(45,10){\makebox(0,0)[b]{a}}%\put(14,19){\line(-3,-2){9}}\put(15,19){\line(0,-1){5}}\put(16,19){\line(3,-2){9}}\put(45,19){\line(0,-1){5}}%\put(15,20){\makebox(0,0)[b]{a}}\put(45,20){\makebox(0,0)[b]{c}}%\put(30,30){\line(-3,-2){13}}\put(30,30){\line(3,-2){13}}\end{picture}\end{center}\caption{A sample trie}\label{fig:trie}\end{figure}Proper tries associate some value with each string. Since theinformation is stored only in the final node associated with the string, manynodes do not carry any value. This distinction is modeled with the helpof the predefined datatype \isa{option} (see {\S}\ref{sec:option}).\input{Trie/document/Trie.tex}\section{Total Recursive Functions}\label{sec:recdef}\index{*recdef|(}Although many total functions have a natural primitive recursive definition,this is not always the case. Arbitrary total recursive functions can bedefined by means of \isacommand{recdef}: you can use full pattern-matching,recursion need not involve datatypes, and termination is proved by showingthat the arguments of all recursive calls are smaller in a suitable (usersupplied) sense. In this section we restrict ourselves to measure functions;more advanced termination proofs are discussed in {\S}\ref{sec:beyond-measure}.\subsection{Defining Recursive Functions}\label{sec:recdef-examples}\input{Recdef/document/examples.tex}\subsection{Proving Termination}\input{Recdef/document/termination.tex}\subsection{Simplification with Recdef}\label{sec:recdef-simplification}\input{Recdef/document/simplification.tex}\subsection{Induction}\index{induction!recursion|(}
 \index{recursion induction|(}
 
 \input{Recdef/document/Induction.tex}

@@ -23,14 +23,16 @@ The simplification attribute of theorems can be turned on and off as follows:
 \isacommand{declare} \textit{theorem-name}@{text"[simp]"}\\
 \isacommand{declare} \textit{theorem-name}@{text"[simp del]"}
 \end{quote}
-As a rule of thumb, equations that really simplify (like @{prop"rev(rev xs) =
- xs"} and @{prop"xs @ [] = xs"}) should be made simplification
-rules.  Those of a more specific nature (e.g.\ distributivity laws, which
-alter the structure of terms considerably) should only be used selectively,
-i.e.\ they should not be default simplification rules.  Conversely, it may
-also happen that a simplification rule needs to be disabled in certain
-proofs.  Frequent changes in the simplification status of a theorem may
-indicate a badly designed theory.
+Only equations that really simplify, like \isa{rev\
+{\isacharparenleft}rev\ xs{\isacharparenright}\ {\isacharequal}\ xs} and
+\isa{xs\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackright}\
+{\isacharequal}\ xs}, should be declared as default simplification rules. 
+More specific ones should only be used selectively and should
+not be made default.  Distributivity laws, for example, alter
+the structure of terms and can produce an exponential blow-up instead of
+simplification.  A default simplification rule may
+need to be disabled in certain proofs.  Frequent changes in the simplification
+status of a theorem may indicate an unwise use of defaults.
 \begin{warn}
   Simplification may run forever, for example if both $f(x) = g(x)$ and
   $g(x) = f(x)$ are simplification rules. It is the user's responsibility not
@@ -47,7 +49,8 @@ The general format of the simplification method is
 @{text simp} \textit{list of modifiers}
 \end{quote}
 where the list of \emph{modifiers} fine tunes the behaviour and may
-be empty. Most if not all of the proofs seen so far could have been performed
+be empty. Specific modifiers are discussed below.  Most if not all of the
+proofs seen so far could have been performed
 with @{text simp} instead of \isa{auto}, except that @{text simp} attacks
 only the first subgoal and may thus need to be repeated --- use
 \isaindex{simp_all} to simplify all subgoals.
@@ -69,6 +72,11 @@ In case you want to use only a specific list of theorems and ignore all
 others:
 \begin{quote}
 @{text"only:"} \textit{list of theorem names}
+\end{quote}
+In this example, we invoke the simplifier, adding two distributive
+laws:
+\begin{quote}
+\isacommand{apply}@{text"(simp add: mod_mult_distrib add_mult_distrib)"}
 \end{quote}
 *}
 
@@ -120,7 +128,7 @@ There are three modifiers that influence the treatment of assumptions:
 Both @{text"(no_asm_simp)"} and @{text"(no_asm_use)"} run forever on
 the problematic subgoal above.
 Note that only one of the modifiers is allowed, and it must precede all
-other arguments.
+other modifiers.
 
 \begin{warn}
 Assumptions are simplified in a left-to-right fashion. If an
@@ -258,11 +266,12 @@ case-splitting on @{text"if"}s is almost always the right proof strategy, the
 simplifier performs it automatically. Try \isacommand{apply}@{text"(simp)"}
 on the initial goal above.
 
-This splitting idea generalizes from @{text"if"} to \isaindex{case}:
+This splitting idea generalizes from @{text"if"} to \isaindex{case}.
+Let us simplify a case analysis over lists:
 *}(*<*)by simp(*>*)
 lemma "(case xs of [] \<Rightarrow> zs | y#ys \<Rightarrow> y#(ys@zs)) = xs@zs";
 apply(split list.split);
-
+ 
 txt{*
 @{subgoals[display,indent=0]}
 In contrast to @{text"if"}-expressions, the simplifier does not split
@@ -396,7 +405,13 @@ Rewriting:
 [a] = [] == False
 \end{ttbox}
 
-In more complicated cases, the trace can be quite lenghty, especially since
+The trace lists each rule being applied, both in its general form and the 
+instance being used.  For conditional rules, the trace lists the rule
+it is trying to rewrite and gives the result of attempting to prove
+each of the rule's conditions.  Many other hints about the simplifier's
+actions will appear.
+
+In more complicated cases, the trace can be quite lengthy, especially since
 invocations of the simplifier are often nested (e.g.\ when solving conditions
 of rewrite rules). Thus it is advisable to reset it:
 *}

@@ -23,7 +23,8 @@ We define two selector functions:%
 \isacommand{primrec}\ {\isachardoublequote}alist{\isacharparenleft}Trie\ ov\ al{\isacharparenright}\ {\isacharequal}\ al{\isachardoublequote}%
 \begin{isamarkuptext}%
 \noindent
-Association lists come with a generic lookup function:%
+Association lists come with a generic lookup function.  Its result
+involves type \isa{option} because a lookup can fail:%
 \end{isamarkuptext}%
 \isacommand{consts}\ \ \ assoc\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}{\isacharparenleft}{\isacharprime}key\ {\isacharasterisk}\ {\isacharprime}val{\isacharparenright}list\ {\isasymRightarrow}\ {\isacharprime}key\ {\isasymRightarrow}\ {\isacharprime}val\ option{\isachardoublequote}\isanewline
 \isacommand{primrec}\ {\isachardoublequote}assoc\ {\isacharbrackleft}{\isacharbrackright}\ x\ {\isacharequal}\ None{\isachardoublequote}\isanewline

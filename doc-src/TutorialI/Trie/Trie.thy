@@ -24,7 +24,8 @@ primrec "value(Trie ov al) = ov";
 primrec "alist(Trie ov al) = al";
 
 text{*\noindent
-Association lists come with a generic lookup function:
+Association lists come with a generic lookup function.  Its result
+involves type @{text option} because a lookup can fail:
 *};
 
 consts   assoc :: "('key * 'val)list \<Rightarrow> 'key \<Rightarrow> 'val option";

@@ -25,13 +25,16 @@ The simplification attribute of theorems can be turned on and off as follows:
 \isacommand{declare} \textit{theorem-name}\isa{{\isacharbrackleft}simp{\isacharbrackright}}\\
 \isacommand{declare} \textit{theorem-name}\isa{{\isacharbrackleft}simp\ del{\isacharbrackright}}
 \end{quote}
-As a rule of thumb, equations that really simplify (like \isa{rev\ {\isacharparenleft}rev\ xs{\isacharparenright}\ {\isacharequal}\ xs} and \isa{xs\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackright}\ {\isacharequal}\ xs}) should be made simplification
-rules.  Those of a more specific nature (e.g.\ distributivity laws, which
-alter the structure of terms considerably) should only be used selectively,
-i.e.\ they should not be default simplification rules.  Conversely, it may
-also happen that a simplification rule needs to be disabled in certain
-proofs.  Frequent changes in the simplification status of a theorem may
-indicate a badly designed theory.
+Only equations that really simplify, like \isa{rev\
+{\isacharparenleft}rev\ xs{\isacharparenright}\ {\isacharequal}\ xs} and
+\isa{xs\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackright}\
+{\isacharequal}\ xs}, should be declared as default simplification rules. 
+More specific ones should only be used selectively and should
+not be made default.  Distributivity laws, for example, alter
+the structure of terms and can produce an exponential blow-up instead of
+simplification.  A default simplification rule may
+need to be disabled in certain proofs.  Frequent changes in the simplification
+status of a theorem may indicate an unwise use of defaults.
 \begin{warn}
   Simplification may run forever, for example if both $f(x) = g(x)$ and
   $g(x) = f(x)$ are simplification rules. It is the user's responsibility not
@@ -50,7 +53,8 @@ The general format of the simplification method is
 \isa{simp} \textit{list of modifiers}
 \end{quote}
 where the list of \emph{modifiers} fine tunes the behaviour and may
-be empty. Most if not all of the proofs seen so far could have been performed
+be empty. Specific modifiers are discussed below.  Most if not all of the
+proofs seen so far could have been performed
 with \isa{simp} instead of \isa{auto}, except that \isa{simp} attacks
 only the first subgoal and may thus need to be repeated --- use
 \isaindex{simp_all} to simplify all subgoals.
@@ -73,6 +77,11 @@ In case you want to use only a specific list of theorems and ignore all
 others:
 \begin{quote}
 \isa{only{\isacharcolon}} \textit{list of theorem names}
+\end{quote}
+In this example, we invoke the simplifier, adding two distributive
+laws:
+\begin{quote}
+\isacommand{apply}\isa{{\isacharparenleft}simp\ add{\isacharcolon}\ mod{\isacharunderscore}mult{\isacharunderscore}distrib\ add{\isacharunderscore}mult{\isacharunderscore}distrib{\isacharparenright}}
 \end{quote}%
 \end{isamarkuptext}%
 %
@@ -123,7 +132,7 @@ There are three modifiers that influence the treatment of assumptions:
 Both \isa{{\isacharparenleft}no{\isacharunderscore}asm{\isacharunderscore}simp{\isacharparenright}} and \isa{{\isacharparenleft}no{\isacharunderscore}asm{\isacharunderscore}use{\isacharparenright}} run forever on
 the problematic subgoal above.
 Note that only one of the modifiers is allowed, and it must precede all
-other arguments.
+other modifiers.
 
 \begin{warn}
 Assumptions are simplified in a left-to-right fashion. If an
@@ -259,7 +268,8 @@ case-splitting on \isa{if}s is almost always the right proof strategy, the
 simplifier performs it automatically. Try \isacommand{apply}\isa{{\isacharparenleft}simp{\isacharparenright}}
 on the initial goal above.
 
-This splitting idea generalizes from \isa{if} to \isaindex{case}:%
+This splitting idea generalizes from \isa{if} to \isaindex{case}.
+Let us simplify a case analysis over lists:%
 \end{isamarkuptxt}%
 \isacommand{lemma}\ {\isachardoublequote}{\isacharparenleft}case\ xs\ of\ {\isacharbrackleft}{\isacharbrackright}\ {\isasymRightarrow}\ zs\ {\isacharbar}\ y{\isacharhash}ys\ {\isasymRightarrow}\ y{\isacharhash}{\isacharparenleft}ys{\isacharat}zs{\isacharparenright}{\isacharparenright}\ {\isacharequal}\ xs{\isacharat}zs{\isachardoublequote}\isanewline
 \isacommand{apply}{\isacharparenleft}split\ list{\isachardot}split{\isacharparenright}%
@@ -386,7 +396,13 @@ Rewriting:
 [a] = [] == False
 \end{ttbox}
 
-In more complicated cases, the trace can be quite lenghty, especially since
+The trace lists each rule being applied, both in its general form and the 
+instance being used.  For conditional rules, the trace lists the rule
+it is trying to rewrite and gives the result of attempting to prove
+each of the rule's conditions.  Many other hints about the simplifier's
+actions will appear.
+
+In more complicated cases, the trace can be quite lengthy, especially since
 invocations of the simplifier are often nested (e.g.\ when solving conditions
 of rewrite rules). Thus it is advisable to reset it:%
 \end{isamarkuptext}%
