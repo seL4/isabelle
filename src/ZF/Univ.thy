@@ -70,7 +70,7 @@ apply (subst Vfrom)
 apply (subst Vfrom)
 apply (rule subset_refl [THEN Un_mono])
 apply (rule UN_least)
-txt{*expand rank(x1) = (\<Union>y\<in>x1. succ(rank(y))) in assumptions*}
+txt{*expand @{text "rank(x1) = (\<Union>y\<in>x1. succ(rank(y)))"} in assumptions*}
 apply (erule rank [THEN equalityD1, THEN subsetD, THEN UN_E])
 apply (rule subset_trans)
 apply (erule_tac [2] UN_upper)
