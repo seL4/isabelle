@@ -18,19 +18,23 @@ href="http://www.polyml.org">Poly/ML</a> as included below).  A
 <em>comfortable</em> Isabelle working environment demands further user
 interface support, as provided by <a
 href="http://www.proofgeneral.org">Proof General</a> (please <a
-href="http://www.proofgeneral.org/register">register</a>) together
-with the (optional) <a
-href="http://x-symbol.sourceforge.net">X-Symbol</a> package.  Both of
-these should be used with a recent version of <a
-href="http://www.xemacs.org">XEmacs-21</a> (preferably with MULE).
+href="http://www.proofgeneral.org/register">register</a>). The Proof General 
+distribution now includes the <a
+href="http://x-symbol.sourceforge.net">X-Symbol</a> package.  It
+should be used with a recent version of <a
+href="http://www.xemacs.org">XEmacs-21</a>. 
 
 <p>
 
 
 <h2>Packages</h2>
 
-We provide a complete set of packages for Isabelle, Proof General and
-X-Symbol.  While XEmacs-21 is not included here, most operating system
+We provide a complete set of packages for Isabelle, Proof General, and
+PolyML.  The Proof General package contains a development snapshot
+that works well with <!-- _GP_ distname -->. We will update it to the
+newest stable version as soon as it is released.
+
+While XEmacs-21 is not included here, most operating system
 distributions already provide a suitable package, although not
 installed by default.  Some of the packages below are platform
 dependent; we include binaries for Linux/x86, Solaris/Sparc, and
@@ -50,7 +54,6 @@ Darwin/PPC (MacOS X).
 
 <!-- _GP_ downloadhead("Proof General") -->
 <!-- _GP_ download(1, "Proof General", "contrib/ProofGeneral.tar.gz", "../..") -->
-<!-- _GP_ download(1, "X-Symbol package", "contrib/x-symbol.tar.gz", "../..") -->
 
 <!-- _GP_ downloadhead("Poly/ML compiler and runtime system") -->
 <!-- _GP_ download(1, "Poly/ML base system", "contrib/polyml_base.tar.gz", "../..") -->
@@ -95,8 +98,6 @@ changed to anything appropriate).
 &nbsp;&nbsp; tar -C /usr/local -xzf
 <!-- _GP_ href("contrib/ProofGeneral.tar.gz", "ProofGeneral.tar.gz") --> <br>
 &nbsp;&nbsp; tar -C /usr/local -xzf
-<!-- _GP_ href("contrib/x-symbol.tar.gz", "x-symbol.tar.gz") --> <br>
-&nbsp;&nbsp; tar -C /usr/local -xzf
 <!-- _GP_ href("contrib/polyml_base.tar.gz", "polyml_base.tar.gz") --> <br>
 &nbsp;&nbsp; tar -C /usr/local -xzf
 <!-- _GP_ href("contrib/polyml_x86-linux.tar.gz", "polyml_x86-linux.tar.gz") --> <br>
@@ -109,6 +110,7 @@ changed to anything appropriate).
 Users may now invoke Isabelle without further ado, e.g. run the main
 executable <tt>/usr/local/Isabelle/bin/Isabelle</tt> to launch the
 Proof General interface for Isabelle/Isar.  Note that there is a
-separate option to enable X-Symbol.
+separate option in the Proof General <em>Customize</em> menu to enable
+X-Symbol.
 
 <p>
