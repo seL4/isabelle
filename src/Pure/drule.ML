@@ -362,10 +362,14 @@ fun satisfy_hyps ths th =
 
 (*Reset Var indexes to zero, renaming to preserve distinctness*)
 fun zero_var_indexes th =
-    let val {prop,sign,...} = rep_thm th;
-        val vars = term_vars prop
+    let val {prop,sign,tpairs,...} = rep_thm th;
+        val (tpair_l, tpair_r) = Library.split_list tpairs;
+        val vars = foldr add_term_vars 
+                         (tpair_r, foldr add_term_vars (tpair_l, (term_vars prop)));
         val bs = foldl add_new_id ([], map (fn Var((a,_),_)=>a) vars)
-        val inrs = add_term_tvars(prop,[]);
+        val inrs = 
+            foldr add_term_tvars 
+                  (tpair_r, foldr add_term_tvars (tpair_l, (term_tvars prop)));
         val nms' = rev(foldl add_new_id ([], map (#1 o #1) inrs));
         val tye = ListPair.map (fn ((v,rs),a) => (v, TVar((a,0),rs)))
                      (inrs, nms')
