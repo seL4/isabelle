@@ -141,7 +141,7 @@ val eq_thy = Sign.eq_sg o pairself sign_of;
 
 (*check for some theory*)
 fun requires thy name what =
-  if exists (equal name) (Sign.stamp_names_of (sign_of thy)) then ()
+  if Sign.exists_stamp name (sign_of thy) then ()
   else error ("Require theory " ^ quote name ^ " as an ancestor for " ^ what);
 
 fun assert_super thy1 thy2 =

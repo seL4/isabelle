@@ -716,7 +716,7 @@ fun gen_rep_datatype apply_theorems alt_names raw_distinct raw_inject raw_induct
     val (thy8, weak_case_congs) = DatatypeAbsProofs.prove_weak_case_congs new_type_names
       [descr] sorts thy7;
     val (thy9, size_thms) =
-      if exists (equal "NatArith") (Sign.stamp_names_of (Theory.sign_of thy8)) then
+      if Sign.exists_stamp "NatArith" (Theory.sign_of thy8) then
         DatatypeAbsProofs.prove_size_thms false new_type_names
           [descr] sorts reccomb_names rec_thms thy8
       else (thy8, []);
