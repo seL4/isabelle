@@ -521,10 +521,6 @@ Goal "(INT x:A. B(x)) = Inter({Y. ? x:A. Y=B(x)})";
 by (Blast_tac 1);
 qed "INT_eq";
 
-Goalw [o_def] "UNION A (g o f) = UNION (f``A) g";
-by (Blast_tac 1);
-qed "UNION_o";
-
 
 (*Distributive laws...*)
 
