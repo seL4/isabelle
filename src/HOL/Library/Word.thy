@@ -9,15 +9,13 @@ theory Word = Main files "word_setup.ML":
 
 subsection {* Auxilary Lemmas *}
 
-text {* Amazing that these are necessary, but I can't find equivalent
-ones in the other HOL theories. *}
-
 lemma max_le [intro!]: "[| x \<le> z; y \<le> z |] ==> max x y \<le> z"
   by (simp add: max_def)
 
 lemma max_mono:
+  fixes x :: "'a::linorder"
   assumes mf: "mono f"
-  shows       "max (f (x::'a::linorder)) (f y) \<le> f (max x y)"
+  shows       "max (f x) (f y) \<le> f (max x y)"
 proof -
   from mf and le_maxI1 [of x y]
   have fx: "f x \<le> f (max x y)"
@@ -30,209 +28,8 @@ proof -
     by auto
 qed
 
-lemma le_imp_power_le:
-  assumes b0: "0 < (b::nat)"
-  and     xy: "x \<le> y"
-  shows       "b ^ x \<le> b ^ y"
-proof (rule ccontr)
-  assume "~ b ^ x \<le> b ^ y"
-  hence bybx: "b ^ y < b ^ x"
-    by simp
-  have "y < x"
-  proof (rule nat_power_less_imp_less [OF _ bybx])
-    from b0
-    show "0 < b"
-      .
-  qed
-  with xy
-  show False
-    by simp
-qed
-
-lemma less_imp_power_less:
-  assumes b1: "1 < (b::nat)"
-  and     xy: "x < y"
-  shows       "b ^ x < b ^ y"
-proof (rule ccontr)
-  assume "~ b ^ x < b ^ y"
-  hence bybx: "b ^ y \<le> b ^ x"
-    by simp
-  have "y \<le> x"
-  proof (rule power_le_imp_le_exp [OF _ bybx])
-    from b1
-    show "1 < b"
-      .
-  qed
-  with xy
-  show False
-    by simp
-qed
-
-lemma [simp]: "1 < (b::nat) ==> (b ^ x \<le> b ^ y) = (x \<le> y)"
-  apply rule
-  apply (erule power_le_imp_le_exp)
-  apply assumption
-  apply (subgoal_tac "0 < b")
-  apply (erule le_imp_power_le)
-  apply assumption
-  apply simp
-  done
-
-lemma [simp]: "1 < (b::nat) ==> (b ^ x < b ^ y) = (x < y)"
-  apply rule
-  apply (subgoal_tac "0 < b")
-  apply (erule nat_power_less_imp_less)
-  apply assumption
-  apply simp
-  apply (erule less_imp_power_less)
-  apply assumption
-  done
-
-lemma power_le_imp_zle:
-  assumes b1:   "1 < (b::int)"
-  and     bxby: "b ^ x \<le> b ^ y"
-  shows         "x \<le> y"
-proof -
-  from b1
-  have nb1: "1 < nat b"
-    by arith
-  from b1
-  have nb0: "0 \<le> b"
-    by simp
-  from bxby
-  have "nat (b ^ x) \<le> nat (b ^ y)"
-    by arith
-  hence "nat b ^ x \<le> nat b ^ y"
-    by (simp add: nat_power_eq [OF nb0])
-  with power_le_imp_le_exp and nb1
-  show "x \<le> y"
-    by auto
-qed
-
-lemma zero_le_zpower [intro]:
-  assumes b0: "0 \<le> (b::int)"
-  shows       "0 \<le> b ^ n"
-proof (induct n,simp)
-  fix n
-  assume ind: "0 \<le> b ^ n"
-  have "b * 0 \<le> b * b ^ n"
-  proof (subst mult_le_cancel_left,auto intro!: ind)
-    assume "b < 0"
-    with b0
-    show "b ^ n \<le> 0"
-      by simp
-  qed
-  thus "0 \<le> b ^ Suc n"
-    by simp
-qed
-
-lemma zero_less_zpower [intro]:
-  assumes b0: "0 < (b::int)"
-  shows       "0 < b ^ n"
-proof -
-  from b0
-  have b0': "0 \<le> b"
-    by simp
-  from b0
-  have "0 < nat b"
-    by simp
-  hence "0 < nat b ^ n"
-    by (rule zero_less_power)
-  hence xx: "nat 0 < nat (b ^ n)"
-    by (subst nat_power_eq [OF b0'],simp)
-  show "0 < b ^ n"
-    apply (subst nat_less_eq_zless [symmetric])
-    apply simp
-    apply (rule xx)
-    done
-qed
-
-lemma power_less_imp_zless:
-  assumes b0:   "0 < (b::int)"
-  and     bxby: "b ^ x < b ^ y"
-  shows         "x < y"
-proof -
-  from b0
-  have nb0: "0 < nat b"
-    by arith
-  from b0
-  have b0': "0 \<le> b"
-    by simp
-  have "nat (b ^ x) < nat (b ^ y)"
-  proof (subst nat_less_eq_zless)
-    show "0 \<le> b ^ x"
-      by (rule zero_le_zpower [OF b0'])
-  next
-    show "b ^ x < b ^ y"
-      by (rule bxby)
-  qed
-  hence "nat b ^ x < nat b ^ y"
-    by (simp add: nat_power_eq [OF b0'])
-  with nat_power_less_imp_less [OF nb0]
-  show "x < y"
-    .
-qed
-
-lemma le_imp_power_zle:
-  assumes b0: "0 < (b::int)"
-  and     xy: "x \<le> y"
-  shows       "b ^ x \<le> b ^ y"
-proof (rule ccontr)
-  assume "~ b ^ x \<le> b ^ y"
-  hence bybx: "b ^ y < b ^ x"
-    by simp
-  have "y < x"
-  proof (rule power_less_imp_zless [OF _ bybx])
-    from b0
-    show "0 < b"
-      .
-  qed
-  with xy
-  show False
-    by simp
-qed
-
-lemma less_imp_power_zless:
-  assumes b1: "1 < (b::int)"
-  and     xy: "x < y"
-  shows       "b ^ x < b ^ y"
-proof (rule ccontr)
-  assume "~ b ^ x < b ^ y"
-  hence bybx: "b ^ y \<le> b ^ x"
-    by simp
-  have "y \<le> x"
-  proof (rule power_le_imp_zle [OF _ bybx])
-    from b1
-    show "1 < b"
-      .
-  qed
-  with xy
-  show False
-    by simp
-qed
-
-lemma [simp]: "1 < (b::int) ==> (b ^ x \<le> b ^ y) = (x \<le> y)"
-  apply rule
-  apply (erule power_le_imp_zle)
-  apply assumption
-  apply (subgoal_tac "0 < b")
-  apply (erule le_imp_power_zle)
-  apply assumption
-  apply simp
-  done
-
-lemma [simp]: "1 < (b::int) ==> (b ^ x < b ^ y) = (x < y)"
-  apply rule
-  apply (subgoal_tac "0 < b")
-  apply (erule power_less_imp_zless)
-  apply assumption
-  apply simp
-  apply (erule less_imp_power_zless)
-  apply assumption
-  done
-
-lemma suc_zero_le: "[| 0 < x ; 0 < y |] ==> Suc 0 < x + y"
-  by simp
+declare zero_le_power [intro]
+    and zero_less_power [intro]
 
 lemma int_nat_two_exp: "2 ^ k = int (2 ^ k)"
   by (induct k,simp_all)
@@ -1405,7 +1202,7 @@ next
     apply simp
     apply (rule order_trans [of _ 0])
     apply simp
-    apply (rule zero_le_zpower,simp)
+    apply (rule zero_le_power,simp)
     apply simp
     apply simp
     apply (simp del: bv_to_nat1 bv_to_nat_helper)
@@ -1707,10 +1504,7 @@ proof (rule ccontr)
     by arith
   hence a: "k - 1 \<le> length (int_to_bv i) - 2"
     by arith
-  have "(2::int) ^ (k - 1) \<le> 2 ^ (length (int_to_bv i) - 2)"
-    apply (rule le_imp_power_zle,simp)
-    apply (rule a)
-    done
+  hence "(2::int) ^ (k - 1) \<le> 2 ^ (length (int_to_bv i) - 2)" by simp
   also have "... \<le> i"
   proof -
     have "2 ^ (length (norm_signed (int_to_bv i)) - 2) \<le> bv_to_int (int_to_bv i)"
@@ -1793,7 +1587,7 @@ lemma length_int_to_bv_lower_limit_gt0:
   shows       "k < length (int_to_bv i)"
 proof (rule ccontr)
   have "0 < (2::int) ^ (k - 1)"
-    by (rule zero_less_zpower,simp)
+    by (rule zero_less_power,simp)
   also have "... \<le> i"
     by (rule wk)
   finally have i0: "0 < i"
@@ -1816,10 +1610,8 @@ proof (rule ccontr)
       by (rule bv_to_int_upper_range)
     finally show ?thesis .
   qed
-  also have "(2::int) ^ (length (int_to_bv i) - 1) \<le> 2 ^ (k - 1)"
-    apply (rule le_imp_power_zle,simp)
-    apply (rule a)
-    done
+  also have "(2::int) ^ (length (int_to_bv i) - 1) \<le> 2 ^ (k - 1)" using a
+         by simp
   finally have "i < 2 ^ (k - 1)" .
   with wk
   show False
@@ -1851,10 +1643,8 @@ proof (rule ccontr)
   qed
   also have "... \<le> -(2 ^ (k - 1))"
   proof -
-    have "(2::int) ^ (k - 1) \<le> 2 ^ (length (int_to_bv i) - 2)"
-      apply (rule le_imp_power_zle,simp)
-      apply (rule a)
-      done
+    have "(2::int) ^ (k - 1) \<le> 2 ^ (length (int_to_bv i) - 2)" using a
+      by simp
     thus ?thesis
       by simp
   qed
@@ -1874,7 +1664,7 @@ proof (rule ccontr)
   also have "... < -1"
   proof -
     have "0 < (2::int) ^ (k - 1)"
-      by (rule zero_less_zpower,simp)
+      by (rule zero_less_power,simp)
     hence "-((2::int) ^ (k - 1)) < 0"
       by simp
     thus ?thesis by simp
@@ -1890,10 +1680,7 @@ proof (rule ccontr)
   with lii0
   have a: "length (int_to_bv i) - 1 \<le> k - 1"
     by arith
-  have "(2::int) ^ (length (int_to_bv i) - 1) \<le> 2 ^ (k - 1)"
-    apply (rule le_imp_power_zle,simp)
-    apply (rule a)
-    done
+  hence "(2::int) ^ (length (int_to_bv i) - 1) \<le> 2 ^ (k - 1)" by simp
   hence "-((2::int) ^ (k - 1)) \<le> - (2 ^ (length (int_to_bv i) - 1))"
     by simp
   also have "... \<le> i"
@@ -2003,8 +1790,7 @@ proof -
     proof -
       have "bv_to_int w < 2 ^ (length w - 1)"
 	by (rule bv_to_int_upper_range)
-      also have "... \<le> 2 ^ length w"
-	by (rule le_imp_power_zle,simp_all)
+      also have "... \<le> 2 ^ length w" by simp
       finally show "bv_to_int w \<le> 2 ^ length w"
 	by simp
     qed
@@ -2301,7 +2087,7 @@ proof -
 	  apply (rule mult_strict_mono)
 	  apply (rule bv_to_int_upper_range)
 	  apply (rule bv_to_int_upper_range)
-	  apply (rule zero_less_zpower)
+	  apply (rule zero_less_power)
 	  apply simp
 	  using bi2
 	  apply simp
@@ -2329,7 +2115,7 @@ proof -
 	  apply simp
 	  using bv_to_int_lower_range [of w2]
 	  apply simp
-	  apply (rule zero_le_zpower,simp)
+	  apply (rule zero_le_power,simp)
 	  using bi2
 	  apply simp
 	  done
@@ -2380,7 +2166,7 @@ proof -
 	    apply simp
 	    using bv_to_int_upper_range [of w1]
 	    apply simp
-	    apply (rule zero_le_zpower,simp)
+	    apply (rule zero_le_power,simp)
 	    using bi1
 	    apply simp
 	    done
@@ -2397,7 +2183,7 @@ proof -
 	    apply simp
 	    using bv_to_int_upper_range [of w2]
 	    apply simp
-	    apply (rule zero_le_zpower,simp)
+	    apply (rule zero_le_power,simp)
 	    using bi2
 	    apply simp
 	    done
@@ -2418,7 +2204,7 @@ lemma bv_msb_one: "bv_msb w = \<one> ==> 0 < bv_to_nat w"
   apply (subgoal_tac "0 + 0 < 2 ^ length list + bv_to_nat list")
   apply simp
   apply (rule add_less_le_mono)
-  apply (rule zero_less_zpower)
+  apply (rule zero_less_power)
   apply simp_all
   done
 
@@ -2455,7 +2241,7 @@ proof -
 	  apply (simp add: bv_to_int_utos)
 	  apply (rule bv_to_nat_upper_range)
 	  apply (rule bv_to_int_upper_range)
-	  apply (rule zero_less_zpower,simp)
+	  apply (rule zero_less_power,simp)
 	  using biw2
 	  apply simp
 	  done
@@ -2521,7 +2307,7 @@ proof -
 	    apply (simp add: bv_to_int_utos)
 	    using bv_to_nat_upper_range [of w1]
 	    apply simp
-	    apply (rule zero_le_zpower,simp)
+	    apply (rule zero_le_power,simp)
 	    using bi1
 	    apply simp
 	    done
