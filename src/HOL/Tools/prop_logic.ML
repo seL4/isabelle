@@ -38,7 +38,7 @@ structure PropLogic : PROP_LOGIC =
 struct
 
 (* ------------------------------------------------------------------------- *)
-(* prop_formula: formulas of propositional logic, built from boolean         *)
+(* prop_formula: formulas of propositional logic, built from Boolean         *)
 (*               variables (referred to by index) and True/False using       *)
 (*               not/or/and                                                  *)
 (* ------------------------------------------------------------------------- *)
@@ -81,7 +81,7 @@ struct
 	  | SAnd (fm1, fm2) = And (fm1, fm2);
 
 (* ------------------------------------------------------------------------- *)
-(* indices: collects all indices of boolean variables that occur in a        *)
+(* indices: collects all indices of Boolean variables that occur in a        *)
 (*      propositional formula 'fm'; no duplicates                            *)
 (* ------------------------------------------------------------------------- *)
 
@@ -260,7 +260,7 @@ struct
 	fun dot_product (xs,ys) = exists (map SAnd (xs~~ys));
 
 (* ------------------------------------------------------------------------- *)
-(* eval: given an assignment 'a' of boolean values to variable indices, the  *)
+(* eval: given an assignment 'a' of Boolean values to variable indices, the  *)
 (*      truth value of a propositional formula 'fm' is computed              *)
 (* ------------------------------------------------------------------------- *)
 

@@ -230,8 +230,8 @@ end;  (* SatSolver *)
 (* ------------------------------------------------------------------------- *)
 
 (* ------------------------------------------------------------------------- *)
-(* Internal SAT solver, available as 'SatSolver.solve "enumerate"' -- simply *)
-(* enumerates assignments until a satisfying assignment is found             *)
+(* Internal SAT solver, available as 'SatSolver.invoke_solver "enumerate"'   *)
+(* -- simply enumerates assignments until a satisfying assignment is found   *)
 (* ------------------------------------------------------------------------- *)
 
 let
@@ -272,9 +272,9 @@ in
 end;
 
 (* ------------------------------------------------------------------------- *)
-(* Internal SAT solver, available as 'SatSolver.solve "dpll"' -- a simple    *)
-(* implementation of the DPLL algorithm (cf. L. Zhang, S. Malik: "The Quest  *)
-(* for Efficient Boolean Satisfiability Solvers", July 2002, Fig. 1).        *)
+(* Internal SAT solver, available as 'SatSolver.invoke_solver "dpll"' -- a   *)
+(* simple implementation of the DPLL algorithm (cf. L. Zhang, S. Malik: "The *)
+(* Quest for Efficient Boolean Satisfiability Solvers", July 2002, Fig. 1).  *)
 (* ------------------------------------------------------------------------- *)
 
 let
@@ -359,8 +359,8 @@ in
 end;
 
 (* ------------------------------------------------------------------------- *)
-(* Internal SAT solver, available as 'SatSolver.solve "auto"': uses the      *)
-(* first installed solver (other than "auto" itself)                         *)
+(* Internal SAT solver, available as 'SatSolver.invoke_solver "auto"': uses  *)
+(* the first installed solver (other than "auto" itself)                     *)
 (* ------------------------------------------------------------------------- *)
 
 let
