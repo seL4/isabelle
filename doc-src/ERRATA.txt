@@ -82,8 +82,9 @@ page 248: Pow has the rules
 	PowD     A: Pow(B) ==> A<=B
 
 page 259: HOL theory files may now include datatype declarations, primitive
-recursive function definitions, and (co)inductive definitions.  (Three
-sections added.)
+recursive function definitions, and (co)inductive definitions.  (These new
+sections are available separately as the file ml/HOL-extensions.dvi.gz,
+host ftp.cl.cam.ac.uk.)
 
 page 259: now there is another examples directory, IMP (a semantics
 equivalence proof for an imperative language)
