@@ -95,7 +95,9 @@ val triv_rls = [TrueI,refl,iff_refl,notFalseI];
 val IFOL_ss = 
   empty_ss 
   setmksimps (map mk_meta_eq o atomize o gen_all)
-  setsolver  (fn prems => resolve_tac (triv_rls@prems) ORELSE' assume_tac)
+  setsolver  (fn prems => resolve_tac (triv_rls@prems) 
+	                  ORELSE' assume_tac
+	                  ORELSE' etac FalseE)
   setsubgoaler asm_simp_tac
   addsimps IFOL_rews
   addcongs [imp_cong];
