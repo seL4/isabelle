@@ -100,6 +100,7 @@ sig
   val eq_set_sort: sort list * sort list -> bool
   val ins_sort: sort * class list list -> class list list
   val union_sort: sort list * sort list -> sort list
+  val rems_sort: sort list * sort list -> sort list
   val aconv: term * term -> bool
   val aconvs: term list * term list -> bool
   val mem_term: term * term list -> bool
@@ -554,6 +555,8 @@ fun subset_sort ([], ys) = true
 
 fun eq_set_sort (xs, ys) =
     xs = ys orelse (subset_sort (xs, ys) andalso subset_sort (ys, xs));
+
+val rems_sort = gen_rems eq_sort;
 
 (*are two term lists alpha-convertible in corresponding elements?*)
 fun aconvs ([],[]) = true
