@@ -28,7 +28,7 @@ sig
   val proof_of: state -> Proof.state
   type transition
   exception TERMINATE
-  exception BREAK
+  exception BREAK of state
   val empty: transition
   val name: string -> transition -> transition
   val position: Position.T -> transition -> transition
@@ -116,7 +116,7 @@ val proof_of = node_cases (fn _ => raise UNDEF) I;
 (** toplevel transitions **)
 
 exception TERMINATE;
-exception BREAK;
+exception BREAK of state;
 exception FAIL of exn * string;
 
 
@@ -231,20 +231,24 @@ fun raised name = "exception " ^ name ^ " raised";
 fun raised_msg name msg = raised name ^ ": " ^ msg;
 
 fun exn_message TERMINATE = "Exit."
-  | exn_message BREAK = "Break."
-  | exn_message Interrupt = "Interrupt (exec)"
+  | exn_message (BREAK _) = "Break."
+  | exn_message Interrupt = "Interrupt (exec)."
   | exn_message (ERROR_MESSAGE msg) = msg
   | exn_message (THEORY (msg, _)) = msg
   | exn_message (ProofContext.CONTEXT (msg, _)) = msg
   | exn_message (Proof.STATE (msg, _)) = msg
   | exn_message (ProofHistory.FAIL msg) = msg
+  | exn_message (Attrib.ATTRIB_FAIL info) = fail_message "attribute" info
+  | exn_message (Method.METHOD_FAIL info) = fail_message "method" info
   | exn_message (Syntax.AST (msg, _)) = raised_msg "AST" msg
   | exn_message (TYPE (msg, _, _)) = raised_msg "TYPE" msg
   | exn_message (TERM (msg, _)) = raised_msg "TERM" msg
   | exn_message (THM (msg, _, _)) = raised_msg "THM" msg
   | exn_message Library.OPTION = raised "Library.OPTION"
   | exn_message (Library.LIST msg) = raised_msg "Library.LIST" msg
-  | exn_message exn = General.exnMessage exn;
+  | exn_message exn = General.exnMessage exn
+and fail_message kind ((name, pos), exn) =
+  "Error in " ^ kind ^ " " ^ name ^ Position.str_of pos ^ ":\n" ^ exn_message exn;
 
 fun print_exn None = ()
   | print_exn (Some (exn, s)) = error_msg (cat_lines [exn_message exn, s]);
@@ -298,6 +302,7 @@ fun apply int tr state =
     | FAIL exn_info => Some (state, Some exn_info)
     | PureThy.ROLLBACK (copy_thy, opt_exn) =>
         Some (rollback tr copy_thy state, apsome (fn exn => (exn, at_command tr)) opt_exn)
+    | exn as BREAK break_state => Some (break_state, Some (exn, at_command tr))
     | exn => Some (state, Some (exn, at_command tr));
 
 
@@ -346,7 +351,7 @@ fun get_interruptible src =
 
 fun raw_loop src =
   (case get_interruptible src of
-    None => (writeln "\nInterrupt (read)"; raw_loop src)
+    None => (writeln "\nInterrupt (read)."; raw_loop src)
   | Some None => ()
   | Some (Some (tr, src')) => if >> tr then raw_loop src' else ());
 
