@@ -211,21 +211,21 @@ in
 	  val args1 = if arity=0 then ""
 		      else parens (Args ("y", ") (", y_nr, y_nr+arity-1));
 	  val args2 = if arity=0 then ""
-		      else "% " ^ Args ("y", " ", y_nr, y_nr+arity-1) 
+		      else "(% " ^ Args ("y", " ", y_nr, y_nr+arity-1) 
 			^ ". ";
 	  val (rest1,rest2) = 
 	    if null cs then ("","")
 	    else let val (h1, h2) = calc_xrules (c_nr+1) (y_nr+arity) cs
 	    in (" | " ^ h1, " " ^ h2) end;
 	in (name ^ args1 ^ " => " ^ body ^ rest1,
-            "(" ^ args2 ^ body ^ rest2 ^ ")")
+            args2 ^ body ^ (if args2 = "" then "" else ")") ^ rest2)
         end
         | calc_xrules _ _ [] = raise Impossible;
       
       val xrules =
 	let val (first_part, scnd_part) = calc_xrules 1 1 cons_list
 	in  [("logic", "case x of " ^ first_part) <->
-	     ("logic", tname ^ "_case (" ^ scnd_part ^ ") x" )]
+	     ("logic", tname ^ "_case " ^ scnd_part ^ " x" )]
 	end;
 
      (*type declarations for constructors*)
@@ -271,7 +271,7 @@ in
       fun case_rule n (id, name, _, vns, _) =
 	let val args =  opt_parens(space_implode ") (" vns)
 	in (t_case ^ "_" ^ id,
-	    t_case ^ "(" ^ Args("f", ") (", 1, num_of_cons)
+	    t_case ^ " (" ^ Args("f", ") (", 1, num_of_cons)
 	    ^ ") (" ^ name ^ args ^ ") = f"^string_of_int(n) ^ args)
 	end
 
@@ -313,14 +313,15 @@ in
       fun rek_vars ts vns = map snd (filter (is_dtRek o fst) (ts ~~ vns))
 
       fun rec_rule n (id,name,ts,vns,_) = 
-	let val args = space_implode ") (" vns
-	  val fargs = Args("f",") (",1,num_of_cons)
-	  fun rarg vn = ") (" ^ t_rec ^ parens(fargs ^ ") (" ^ vn)
-	  val rargs = implode (map rarg (rek_vars ts vns))
+	let val args = opt_parens(space_implode ") (" vns)
+	  val fargs = opt_parens(Args("f", ") (", 1, num_of_cons))
+	  fun rarg vn = t_rec ^ fargs ^ " (" ^ vn ^ ")"
+	  val rargs = opt_parens(space_implode ") ("
+                                 (map rarg (rek_vars ts vns)))
 	in
-	  ( t_rec ^ "_" ^ id
-	   , t_rec ^ parens(fargs ^  ") (" ^ name ^ (opt_parens args)) ^ " = f"
-	   ^ string_of_int(n) ^ opt_parens (args ^ rargs)) 
+	  (t_rec ^ "_" ^ id,
+	   t_rec ^ fargs ^ " (" ^ name ^ args ^ ") = f"
+	   ^ string_of_int(n) ^ args ^ rargs)
 	end
 
       fun rec_rules n (c::cs) = rec_rule n c :: rec_rules (n+1) cs 
