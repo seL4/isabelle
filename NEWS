@@ -11,9 +11,9 @@ New in this Isabelle version
 *** Proof tools ***
 
 * Provers/Arith/fast_lin_arith.ML contains a functor for creating a decision
-procedure for linear arithmetic. Currently it is used only for type `nat' in
-HOL (see below) but can, should and will be instantiated for other types and
-logics as well.
+procedure for linear arithmetic. Currently it is used for types `nat' and
+`int' in HOL (see below) but can, should and will be instantiated for other
+types and logics as well.
 
 *** General ***
 
@@ -24,15 +24,23 @@ logics as well.
 
 *** HOL ***
 
-* There are now two decision procedures for linear arithmetic over nat:
-1. nat_arith_tac copes with arbitrary propositional formulae (quantified
-formulae are treated as atomic) involving `=', `<', `<=', 0, Suc, `+' and `-'
-(other operators are treated as atomic). It has to be invoked by hand and is
-a little bit slow.
-2. fast_nat_arith_tac is a cut-down version of nat_arith_tac: it does not do
-much propositional reasoning (hence the premises and the conclusion should be
-as atomic as possible) and does not know about `-' either. It is fast and is
+* There are now decision procedures for linear arithmetic over nat and int:
+1. nat_arith_tac copes with arbitrary formulae involving `=', `<', `<=', 0,
+Suc, `+' and `-'; other subterms are treated as atomic; subformulae not
+involving type `nat' are ignored; quantified subformulae are ignored unless
+they are positive universal or negative existential. The tactic has to be
+invoked by hand and can be a little bit slow. In particular, the running time
+is exponential in the number of occurrences of `-'.
+2. fast_nat_arith_tac is a cut-down version of nat_arith_tac: it only takes
+(negated) (in)equalities among the premises and the conclusion into account
+(i.e. no compound formulae) and does not know about `-'. It is fast and is
 used automatically by the simplifier.
+3. int_arith_tac behaves like nat_arith_tac but applies to inequalities over
+`int';  it also knows about unary `-'; binary `-' does not cause a blow-up.
+4. fast_int_arith_tac is related to int_arith_tac like fast_nat_arith_tac is
+related to nat_arith_tac.
+NB: At the moment, these decision procedures do not cope with mixed nat/int
+formulae such as `m < n ==> int(m) < int(n)'.
 
 *** Internal programming interfaces ***
 
