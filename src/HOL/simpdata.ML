@@ -111,8 +111,11 @@ val HOL_ss = empty_ss
       addsimps ([if_True, if_False, o_apply, conj_assoc] @ simp_thms)
       addcongs [imp_cong];
 
-fun split_tac splits =
-  mk_case_split_tac (meta_eq_to_obj_eq RS iffD2) (map mk_meta_eq splits);
+local val mktac = mk_case_split_tac (meta_eq_to_obj_eq RS iffD2)
+in
+fun split_tac splits = mktac (map mk_meta_eq splits)
+end;
+
 
 (* eliminiation of existential quantifiers in assumptions *)
 
