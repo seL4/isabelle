@@ -11,7 +11,9 @@ Completeness (for propositional logic) is proved in
 
 Roy Dyckhoff.
 Contraction-Free Sequent Calculi for Intuitionistic Logic.
-J. Symbolic Logic (in press)
+J. Symbolic Logic  57(3), 1992, pages 795-807.
+
+The approach was developed independently by Roy Dyckhoff and L C Paulson.
 *)
 
 signature INT_PROVER = 
