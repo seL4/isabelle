@@ -525,7 +525,7 @@ for details.
 \idx{Collect_mem_eq}    \{x.x:A\} = A
 \subcaption{Isomorphisms between predicates and sets}
 
-\idx{empty_def}         \{\}         == \{x.x= False\}
+\idx{empty_def}         \{\}          == \{x.x= False\}
 \idx{insert_def}        insert(a,B) == \{x.x=a\} Un B
 \idx{Ball_def}          Ball(A,P)   == ! x. x:A --> P(x)
 \idx{Bex_def}           Bex(A,P)    == ? x. x:A & P(x)
@@ -599,7 +599,7 @@ for details.
 
 \idx{insertI1} a : insert(a,B)
 \idx{insertI2} a : B ==> a : insert(b,B)
-\idx{insertE}  [| a : insert(b,A);  a=b ==> P;  a:A ==> P |] ==> 
+\idx{insertE}  [| a : insert(b,A);  a=b ==> P;  a:A ==> P |] ==> P
 
 \idx{ComplI}   [| c:A ==> False |] ==> c : Compl(A)
 \idx{ComplD}   [| c : Compl(A) |] ==> ~ c:A
@@ -1144,7 +1144,7 @@ methods.
 \section{The examples directories}
 Directory {\tt Subst} contains Martin Coen's mechanization of a theory of
 substitutions and unifiers.  It is based on Paulson's previous
-mechanization in {\LCF}~\cite{paulson85} of theory Manna and Waldinger's
+mechanization in {\LCF}~\cite{paulson85} of Manna and Waldinger's
 theory~\cite{mw81}. 
 
 Directory {\tt ex} contains other examples and experimental proofs in
@@ -1268,8 +1268,8 @@ prems RL [and_def RS subst];
 By applying $(\forall E)$ and $({\imp}E)$ to the resolvents, we dispose of
 the vacuous one and put the other into a convenient form:\footnote
 {In higher-order logic, {\tt spec RS mp} fails because the resolution yields
-two results, namely $\List{\forall x.x; P}\Imp Q$ and $\List{\forall
-  x.P(x)\imp Q(x); P(x)}\Imp Q(x)$.  In first-order logic, the resolution
+two results, namely ${\List{\forall x.x; P}\Imp Q}$ and ${\List{\forall
+  x.P(x)\imp Q(x); P(x)}\Imp Q(x)}$.  In first-order logic, the resolution
 yields only the latter result.}
 \index{*RL}
 \begin{ttbox}

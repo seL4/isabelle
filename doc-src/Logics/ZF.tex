@@ -753,11 +753,10 @@ pair.  This property is expressed as two destruction rules,
 \ttindexbold{Pair_inject1} and \ttindexbold{Pair_inject2}, and equivalently
 as the elimination rule \ttindexbold{Pair_inject}.
 
-Note the rule \ttindexbold{Pair_neq_0}, which asserts
-$\pair{a,b}\neq\emptyset$.  This is no arbitrary property of
-$\{\{a\},\{a,b\}\}$, but one that we can reasonably expect to hold for any
-encoding of ordered pairs.  It turns out to be useful for constructing
-Lisp-style S-expressions in set theory.
+The rule \ttindexbold{Pair_neq_0} asserts $\pair{a,b}\neq\emptyset$.  This
+is a property of $\{\{a\},\{a,b\}\}$, and need not hold for other 
+encoding of ordered pairs.  The non-standard ordered pairs mentioned below
+satisfy $\pair{\emptyset;\emptyset}=\emptyset$.
 
 The natural deduction rules \ttindexbold{SigmaI} and \ttindexbold{SigmaE}
 assert that \ttindex{Sigma}$(A,B)$ consists of all pairs of the form
@@ -1193,14 +1192,13 @@ disjoint.
 \idx{Fin_0I}          0 : Fin(A)
 \idx{Fin_consI}       [| a: A;  b: Fin(A) |] ==> cons(a,b) : Fin(A)
 
-\idx{Fin_mono}        A<=B ==> Fin(A) <= Fin(B)
-
 \idx{Fin_induct}
     [| b: Fin(A);
        P(0);
        !!x y. [| x: A;  y: Fin(A);  x~:y;  P(y) |] ==> P(cons(x,y))
     |] ==> P(b)
 
+\idx{Fin_mono}        A<=B ==> Fin(A) <= Fin(B)
 \idx{Fin_UnI}         [| b: Fin(A);  c: Fin(A) |] ==> b Un c : Fin(A)
 \idx{Fin_UnionI}      C : Fin(Fin(A)) ==> Union(C) : Fin(A)
 \idx{Fin_subset}      [| c<=b;  b: Fin(A) |] ==> c: Fin(A)
@@ -1254,6 +1252,10 @@ highlights can be covered here.  Figure~\ref{ZF-further-constants} lists
 some of the further constants and infixes that are declared in the various
 theory extensions.
 
+Figure~\ref{zf-equalities} presents commutative, associative, distributive,
+and idempotency laws of union and intersection, along with other equations.
+See file \ttindexbold{ZF/equalities.ML}.
+
 Figure~\ref{zf-sum} defines $\{0,1\}$ as a set of booleans, with a
 conditional operator.  It also defines the disjoint union of two sets, with
 injections and a case analysis operator.  See files
@@ -1265,15 +1267,12 @@ defines the eliminator \ttindexbold{qsplit}, the converse operator
 \ttindexbold{qconverse}, and the summation operator \ttindexbold{QSigma}.
 These are completely analogous to the corresponding versions for standard
 ordered pairs.  The theory goes on to define a non-standard notion of
-disjoint sum using non-standard pairs.  See file \ttindexbold{qpair.thy}.
+disjoint sum using non-standard pairs.  This will support co-inductive
+definitions, for example of infinite lists.  See file \ttindexbold{qpair.thy}.
 
 Monotonicity properties of most of the set-forming operations are proved.
 These are useful for applying the Knaster-Tarski Fixedpoint Theorem.
 See file \ttindexbold{ZF/mono.ML}.
-
-Figure~\ref{zf-equalities} presents commutative, associative, distributive,
-and idempotency laws of union and intersection, along with other equations.
-See file \ttindexbold{ZF/equalities.ML}.
 
 Figure~\ref{zf-fixedpt} presents the Knaster-Tarski Fixedpoint Theorem, proved
 for the lattice of subsets of a set.  The theory defines least and greatest
@@ -1302,7 +1301,7 @@ defines set theory's cumulative hierarchy, traditionally written $V@\alpha$
 where $\alpha$ is any ordinal.
 
 The file \ttindexbold{ZF/quniv.ML} defines a ``universe'' ${\tt quniv}(A)$,
-for constructing co-datatypes such as streams.  It is similar to ${\tt
+for constructing co-datatypes such as streams.  It is analogous to ${\tt
   univ}(A)$ but is closed under the non-standard product and sum.
 
 Figure~\ref{zf-fin} presents the finite set operator; ${\tt Fin}(A)$ is the
@@ -1392,39 +1391,68 @@ an overview; see the files themselves for more details.
   ``Composition of homomorphisms'' challenge~\cite{boyer86}.
 
 \item[\ttindexbold{ZF/ex/ramsey.ML}]
-proves the finite exponent 2 version of Ramsey's Theorem.
+proves the finite exponent 2 version of Ramsey's Theorem, following Basin
+and Kaufmann's presentation~\cite{basin91}.
+
+\item[\ttindexbold{ZF/ex/equiv.ML}]
+develops a ZF theory of equivalence classes, not using the Axiom of Choice.
+
+\item[\ttindexbold{ZF/ex/integ.ML}]
+develops a theory of the integers as equivalence classes of pairs of
+natural numbers.
+
+\item[\ttindexbold{ZF/ex/bin.ML}]
+defines a datatype for two's complement binary integers.  File
+\ttindexbold{ZF/ex/binfn.ML} then develops rewrite rules for binary
+arithmetic.  For instance, $1359\times {-}2468 = {-}3354012$ takes under
+14 seconds.
 
 \item[\ttindexbold{ZF/ex/bt.ML}]
 defines the recursive data structure ${\tt bt}(A)$, labelled binary trees.
 
-\item[\ttindexbold{ZF/ex/sexp.ML}]
-defines the set of Lisp $S$-expressions over~$A$, ${\tt sexp}(A)$.  These
-are unlabelled binary trees whose leaves contain elements of $(A)$.
-
-\item[\ttindexbold{ZF/ex/term.ML}]
-defines a recursive data structure for terms and term lists.
+\item[\ttindexbold{ZF/ex/term.ML}] 
+  and \ttindexbold{ZF/ex/termfn.ML} define a recursive data structure for
+  terms and term lists.  These are simply finite branching trees.
 
 \item[\ttindexbold{ZF/ex/tf.ML}]
-defines primitives for solving mutually recursive equations over sets.
-It constructs sets of trees and forests as an example, including induction
-and recursion rules that handle the mutual recursion.
+  and \ttindexbold{ZF/ex/tf_fn.ML} define primitives for solving mutually
+  recursive equations over sets.  It constructs sets of trees and forests
+  as an example, including induction and recursion rules that handle the
+  mutual recursion.
 
-\item[\ttindexbold{ZF/ex/finite.ML}]
-inductively defines a finite powerset operator.
+\item[\ttindexbold{ZF/ex/prop.ML}]
+  and \ttindexbold{ZF/ex/proplog.ML} proves soundness and completeness of
+  propositional logic.  This illustrates datatype definitions, inductive
+  definitions, structural induction and rule induction.
 
-\item[\ttindexbold{ZF/ex/proplog.ML}]
-proves soundness and completeness of propositional logic.  This illustrates
-the main forms of induction.
+\item[\ttindexbold{ZF/ex/listn.ML}]
+presents the inductive definition of the lists of $n$ elements~\cite{paulin92}.
+
+\item[\ttindexbold{ZF/ex/acc.ML}]
+presents the inductive definition of the accessible part of a
+relation~\cite{paulin92}. 
+
+\item[\ttindexbold{ZF/ex/comb.ML}]
+  presents the datatype definition of combinators.  File
+  \ttindexbold{ZF/ex/contract0.ML} defines contraction, while file
+  \ttindexbold{ZF/ex/parcontract.ML} defines parallel contraction and
+  proves the Church-Rosser Theorem.  This case study follows Camilleri and
+  Melham~\cite{camilleri92}. 
+
+\item[\ttindexbold{ZF/ex/llist.ML}]
+  and \ttindexbold{ZF/ex/llist_eq.ML} develop lazy lists in ZF and a notion
+  of co-induction for proving equations between them.
 \end{description}
 
 
 \section{A proof about powersets}
-To demonstrate high-level reasoning about subsets, let us prove the equation
-${Pow(A)\cap Pow(B)}= Pow(A\cap B)$.  Compared with first-order logic, set
-theory involves a maze of rules, and theorems have many different proofs.
-Attempting other proofs of the theorem might be instructive.  This proof
-exploits the lattice properties of intersection.  It also uses the
-monotonicity of the powerset operation, from {\tt ZF/mono.ML}:
+To demonstrate high-level reasoning about subsets, let us prove the
+equation ${{\tt Pow}(A)\cap {\tt Pow}(B)}= {\tt Pow}(A\cap B)$.  Compared
+with first-order logic, set theory involves a maze of rules, and theorems
+have many different proofs.  Attempting other proofs of the theorem might
+be instructive.  This proof exploits the lattice properties of
+intersection.  It also uses the monotonicity of the powerset operation,
+from {\tt ZF/mono.ML}:
 \begin{ttbox}
 \idx{Pow_mono}      A<=B ==> Pow(A) <= Pow(B)
 \end{ttbox}
@@ -1536,6 +1564,8 @@ val [prem] = goal ZF.thy "C<=D ==> Union(C) <= Union(D)";
 {\out Level 0}
 {\out Union(C) <= Union(D)}
 {\out  1. Union(C) <= Union(D)}
+{\out val prem = "C <= D  [C <= D]" : thm}
+\ttbreak
 by (resolve_tac [subsetI] 1);
 {\out Level 1}
 {\out Union(C) <= Union(D)}
@@ -1613,6 +1643,11 @@ val prems = goal ZF.thy
 {\out Level 0}
 {\out (f Un g) ` a = f ` a}
 {\out  1. (f Un g) ` a = f ` a}
+\ttbreak
+{\out val prems = ["a : A  [a : A]",}
+{\out              "f : A -> B  [f : A -> B]",}
+{\out              "g : C -> D  [g : C -> D]",}
+{\out              "A Int C = 0  [A Int C = 0]"] : thm list}
 \end{ttbox}
 Using \ttindex{apply_equality}, we reduce the equality to reasoning about
 ordered pairs.

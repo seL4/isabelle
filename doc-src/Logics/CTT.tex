@@ -775,6 +775,7 @@ val prems = goal CTT.thy
 {\out Level 0}
 {\out ?a : (SUM x:A. B(x)) + (SUM x:A. C(x))}
 {\out  1. ?a : (SUM x:A. B(x)) + (SUM x:A. C(x))}
+\ttbreak
 {\out val prems = ["A type  [A type]",}
 {\out              "?x : A ==> B(?x) type  [!!x. x : A ==> B(x) type]",}
 {\out              "?x : A ==> C(?x) type  [!!x. x : A ==> C(x) type]",}
@@ -808,6 +809,7 @@ by (eresolve_tac [PlusE] 1);
 {\out  1. !!x y xa.}
 {\out        [| x : A; xa : B(x) |] ==>}
 {\out        ?c2(x,y,xa) : (SUM x:A. B(x)) + (SUM x:A. C(x))}
+\ttbreak
 {\out  2. !!x y ya.}
 {\out        [| x : A; ya : C(x) |] ==>}
 {\out        ?d2(x,y,ya) : (SUM x:A. B(x)) + (SUM x:A. C(x))}
@@ -824,6 +826,7 @@ by (resolve_tac [PlusI_inl] 1);
 {\out : (SUM x:A. B(x)) + (SUM x:A. C(x))}
 {\out  1. !!x y xa. [| x : A; xa : B(x) |] ==> ?a3(x,y,xa) : SUM x:A. B(x)}
 {\out  2. !!x y xa. [| x : A; xa : B(x) |] ==> SUM x:A. C(x) type}
+\ttbreak
 {\out  3. !!x y ya.}
 {\out        [| x : A; ya : C(x) |] ==>}
 {\out        ?d2(x,y,ya) : (SUM x:A. B(x)) + (SUM x:A. C(x))}
@@ -906,6 +909,7 @@ val prems = goal CTT.thy
 {\out ?a : (PROD z:SUM x:A. B(x). C(z)) --> (PROD x:A. PROD y:B(x). C(<x,y>))}
 {\out  1. ?a : (PROD z:SUM x:A. B(x). C(z)) -->}
 {\out          (PROD x:A. PROD y:B(x). C(<x,y>))}
+\ttbreak
 {\out val prems = ["A type  [A type]",}
 {\out              "?x : A ==> B(?x) type  [!!x. x : A ==> B(x) type]",}
 {\out              "?z : SUM x:A. B(x) ==> C(?z) type}
@@ -995,9 +999,11 @@ by (intr_tac prems);
 {\out lam x. <lam xa. ?b7(x,xa),lam xa. ?b8(x,xa)>}
 {\out : (PROD x:A. SUM y:B(x). C(x,y)) -->}
 {\out   (SUM f:PROD x:A. B(x). PROD x:A. C(x,f ` x))}
+\ttbreak
 {\out  1. !!uu x.}
 {\out        [| uu : PROD x:A. SUM y:B(x). C(x,y); x : A |] ==>}
 {\out        ?b7(uu,x) : B(x)}
+\ttbreak
 {\out  2. !!uu x.}
 {\out        [| uu : PROD x:A. SUM y:B(x). C(x,y); x : A |] ==>}
 {\out        ?b8(uu,x) : C(x,(lam x. ?b7(uu,x)) ` x)}
@@ -1013,6 +1019,7 @@ by (eresolve_tac [ProdE RS SumE_fst] 1);
 {\out lam x. <lam xa. fst(x ` xa),lam xa. ?b8(x,xa)>}
 {\out : (PROD x:A. SUM y:B(x). C(x,y)) -->}
 {\out   (SUM f:PROD x:A. B(x). PROD x:A. C(x,f ` x))}
+\ttbreak
 {\out  1. !!uu x. x : A ==> x : A}
 {\out  2. !!uu x.}
 {\out        [| uu : PROD x:A. SUM y:B(x). C(x,y); x : A |] ==>}
@@ -1040,9 +1047,11 @@ by (resolve_tac [replace_type] 1);
 {\out lam x. <lam xa. fst(x ` xa),lam xa. ?b8(x,xa)>}
 {\out : (PROD x:A. SUM y:B(x). C(x,y)) -->}
 {\out   (SUM f:PROD x:A. B(x). PROD x:A. C(x,f ` x))}
+\ttbreak
 {\out  1. !!uu x.}
 {\out        [| uu : PROD x:A. SUM y:B(x). C(x,y); x : A |] ==>}
 {\out        C(x,(lam x. fst(uu ` x)) ` x) = ?A13(uu,x)}
+\ttbreak
 {\out  2. !!uu x.}
 {\out        [| uu : PROD x:A. SUM y:B(x). C(x,y); x : A |] ==>}
 {\out        ?b8(uu,x) : ?A13(uu,x)}
@@ -1055,13 +1064,16 @@ by (resolve_tac [subst_eqtyparg] 1);
 {\out lam x. <lam xa. fst(x ` xa),lam xa. ?b8(x,xa)>}
 {\out : (PROD x:A. SUM y:B(x). C(x,y)) -->}
 {\out   (SUM f:PROD x:A. B(x). PROD x:A. C(x,f ` x))}
+\ttbreak
 {\out  1. !!uu x.}
 {\out        [| uu : PROD x:A. SUM y:B(x). C(x,y); x : A |] ==>}
 {\out        (lam x. fst(uu ` x)) ` x = ?c14(uu,x) : ?A14(uu,x)}
+\ttbreak
 {\out  2. !!uu x z.}
 {\out        [| uu : PROD x:A. SUM y:B(x). C(x,y); x : A;}
 {\out           z : ?A14(uu,x) |] ==>}
 {\out        C(x,z) type}
+\ttbreak
 {\out  3. !!uu x.}
 {\out        [| uu : PROD x:A. SUM y:B(x). C(x,y); x : A |] ==>}
 {\out        ?b8(uu,x) : C(x,?c14(uu,x))}
@@ -1074,16 +1086,20 @@ by (resolve_tac [ProdC] 1);
 {\out lam x. <lam xa. fst(x ` xa),lam xa. ?b8(x,xa)>}
 {\out : (PROD x:A. SUM y:B(x). C(x,y)) -->}
 {\out   (SUM f:PROD x:A. B(x). PROD x:A. C(x,f ` x))}
+\ttbreak
 {\out  1. !!uu x.}
 {\out        [| uu : PROD x:A. SUM y:B(x). C(x,y); x : A |] ==> x : ?A15(uu,x)}
+\ttbreak
 {\out  2. !!uu x xa.}
 {\out        [| uu : PROD x:A. SUM y:B(x). C(x,y); x : A;}
 {\out           xa : ?A15(uu,x) |] ==>}
 {\out        fst(uu ` xa) : ?B15(uu,x,xa)}
+\ttbreak
 {\out  3. !!uu x z.}
 {\out        [| uu : PROD x:A. SUM y:B(x). C(x,y); x : A;}
 {\out           z : ?B15(uu,x,x) |] ==>}
 {\out        C(x,z) type}
+\ttbreak
 {\out  4. !!uu x.}
 {\out        [| uu : PROD x:A. SUM y:B(x). C(x,y); x : A |] ==>}
 {\out        ?b8(uu,x) : C(x,fst(uu ` x))}
