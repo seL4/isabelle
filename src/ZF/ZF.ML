@@ -1,4 +1,4 @@
-(*  Title: 	ZF/zf.ML
+(*  Title: 	ZF/ZF.ML
     ID:         $Id$
     Author: 	Lawrence C Paulson and Martin D Coen, CU Computer Laboratory
     Copyright   1994  University of Cambridge
@@ -8,6 +8,12 @@ Basic introduction and elimination rules for Zermelo-Fraenkel Set Theory
 
 open ZF;
 
+
+(*Useful examples:  singletonI RS subst_elem,  subst_elem RSN (2,IntI) *)
+goal ZF.thy "!!a b A. [| b:A;  a=b |] ==> a:A";
+by (etac ssubst 1);
+by (assume_tac 1);
+val subst_elem = result();
 
 (*** Bounded universal quantifier ***)
 
@@ -396,6 +402,16 @@ qed_goal "equals0D" ZF.thy "[| A=0;  a:A |] ==> P"
  (fn [major,minor]=>
   [ (rtac (minor RS (major RS equalityD1 RS subsetD RS emptyE)) 1) ]);
 
+qed_goal "not_emptyI" ZF.thy "!!A a. a:A ==> A ~= 0"
+ (fn _ => [REPEAT (ares_tac [notI, equals0D] 1)]);
+
+qed_goal "not_emptyE" ZF.thy "[| A ~= 0;  !!x. x:A ==> R |] ==> R";
+ (fn [major,minor]=>
+  [ rtac ([major, equals0I] MRS swap) 1,
+    swap_res_tac [minor] 1,
+    assume_tac 1 ]);
+
+(*Can replace most uses by eq_cs (which is ZF_cs addSIs [equalityI])*)
 (*A claset that leaves <= formulae unchanged!*)
 val subset0_cs = FOL_cs
   addSIs [ballI, InterI, CollectI, PowI, empty_subsetI]
