@@ -1,5 +1,5 @@
 %% $Id$
-\chapter{The Classical Reasoner}
+\chapter{The Classical Reasoner}\label{chap:classical}
 \index{classical reasoner|(}
 \newcommand\ainfer[2]{\begin{array}{r@{\,}l}#2\\ \hline#1\end{array}}
 
@@ -109,8 +109,9 @@ $$ \ainfer{\neg P,\Gamma &\turn \Delta}{\Gamma &\turn \Delta,P}
    \eqno({\neg}L) $$
 What about reasoning on the right?  Introduction rules can only affect the
 formula in the conclusion, namely~$Q@1$.  The other right-side formulae are
-represented as negated assumptions, $\neg Q@2$, \ldots,~$\neg Q@n$.  In
-order to operate on one of these, it must first be exchanged with~$Q@1$.
+represented as negated assumptions, $\neg Q@2$, \ldots,~$\neg Q@n$.  
+\index{assumptions!negated}
+In order to operate on one of these, it must first be exchanged with~$Q@1$.
 Elim-resolution with the {\bf swap} rule has this effect:
 $$ \List{\neg P; \; \neg R\Imp P} \Imp R   \eqno(swap)$$
 To ensure that swaps occur only when necessary, each introduction rule is
@@ -176,8 +177,8 @@ expensive to prove any but the simplest theorems.
 
 
 \section{Classical rule sets}
-\index{classical sets|bold}
-Each automatic tactic takes a {\bf classical rule set} --- a collection of
+\index{classical sets}
+Each automatic tactic takes a {\bf classical set} --- a collection of
 rules, classified as introduction or elimination and as {\bf safe} or {\bf
 unsafe}.  In general, safe rules can be attempted blindly, while unsafe
 rules must be used with care.  A safe rule must never reduce a provable
@@ -203,7 +204,7 @@ must be used, rather than \ttindex{resolve_tac}.  Even proof by assumption
 is unsafe if it instantiates unknowns shared with other subgoals --- thus
 \ttindex{eq_assume_tac} must be used, rather than \ttindex{assume_tac}.
 
-Classical rule sets belong to the abstract type \ttindexbold{claset}, which
+Classical rule sets belong to the abstract type \mltydx{claset}, which
 supports the following operations (provided the classical reasoner is
 installed!):
 \begin{ttbox} 
@@ -252,14 +253,13 @@ tried first (see \S\ref{biresolve_tac}).
 For a given classical set, the proof strategy is simple.  Perform as many
 safe inferences as possible; or else, apply certain safe rules, allowing
 instantiation of unknowns; or else, apply an unsafe rule.  The tactics may
-also apply \ttindex{hyp_subst_tac}, if they have been set up to do so (see
+also apply {\tt hyp_subst_tac}, if they have been set up to do so (see
 below).  They may perform a form of Modus Ponens: if there are assumptions
 $P\imp Q$ and~$P$, then replace $P\imp Q$ by~$Q$.
 
 
 \section{The classical tactics}
-\index{classical prover!tactics|bold}
-\index{tactics!for classical proof|bold}
+\index{classical reasoner!tactics}
 If installed, the classical module provides several tactics (and other
 operations) for simulating the classical sequent calculus.
 
@@ -275,8 +275,8 @@ The automatic proof procedures call these tactics.  By calling them
 yourself, you can execute these procedures one step at a time.
 \begin{ttdescription}
 \item[\ttindexbold{safe_step_tac} $cs$ $i$] performs a safe step on
-subgoal~$i$.  This may include proof by assumption or Modus Ponens, taking
-care not to instantiate unknowns, or \ttindex{hyp_subst_tac}.
+subgoal~$i$.  This may include proof by assumption or Modus Ponens (taking
+care not to instantiate unknowns), or {\tt hyp_subst_tac}.
 
 \item[\ttindexbold{safe_tac} $cs$] repeatedly performs safe steps on all 
 subgoals.  It is deterministic, with at most one outcome.  If the automatic
@@ -319,8 +319,8 @@ function is supplied when the classical reasoner is set up.
 
 
 \subsection{Other useful tactics}
-\index{tactics!for contradiction|bold}
-\index{tactics!for Modus Ponens|bold}
+\index{tactics!for contradiction}
+\index{tactics!for Modus Ponens}
 \begin{ttbox} 
 contr_tac    :             int -> tactic
 mp_tac       :             int -> tactic
@@ -329,10 +329,11 @@ swap_res_tac : thm list -> int -> tactic
 \end{ttbox}
 These can be used in the body of a specialized search.
 \begin{ttdescription}
-\item[\ttindexbold{contr_tac} {\it i}] solves subgoal~$i$ by detecting a
-contradiction among two assumptions of the form $P$ and~$\neg P$, or fail.
-It may instantiate unknowns.  The tactic can produce multiple outcomes,
-enumerating all possible contradictions.
+\item[\ttindexbold{contr_tac} {\it i}]\index{assumptions!contradictory}
+  solves subgoal~$i$ by detecting a contradiction among two assumptions of
+  the form $P$ and~$\neg P$, or fail.  It may instantiate unknowns.  The
+  tactic can produce multiple outcomes, enumerating all possible
+  contradictions.
 
 \item[\ttindexbold{mp_tac} {\it i}] 
 is like {\tt contr_tac}, but also attempts to perform Modus Ponens in
@@ -346,7 +347,7 @@ is safe.
 
 \item[\ttindexbold{swap_res_tac} {\it thms} {\it i}] refines subgoal~$i$ of
 the proof state using {\it thms}, which should be a list of introduction
-rules.  First, it attempts to solve the goal using \ttindex{assume_tac} or
+rules.  First, it attempts to solve the goal using {\tt assume_tac} or
 {\tt contr_tac}.  It then attempts to apply each rule in turn, attempting
 resolution and also elim-resolution with the swapped form.
 \end{ttdescription}
@@ -369,12 +370,12 @@ elim-resolution).
 
 
 \section{Setting up the classical reasoner}
-\index{classical reasoner!setting up|bold}
+\index{classical reasoner!setting up}
 Isabelle's classical object-logics, including {\tt FOL} and {\tt HOL}, have
 the classical reasoner already set up.  When defining a new classical logic,
 you should set up the reasoner yourself.  It consists of the \ML{} functor
 \ttindex{ClassicalFun}, which takes the argument
-signature\indexbold{*CLASSICAL_DATA}
+signature {\tt CLASSICAL_DATA}:
 \begin{ttbox} 
 signature CLASSICAL_DATA =
   sig
@@ -387,13 +388,13 @@ signature CLASSICAL_DATA =
 \end{ttbox}
 Thus, the functor requires the following items:
 \begin{ttdescription}
-\item[\ttindexbold{mp}] should be the Modus Ponens rule
+\item[\tdxbold{mp}] should be the Modus Ponens rule
 $\List{\Var{P}\imp\Var{Q};\; \Var{P}} \Imp \Var{Q}$.
 
-\item[\ttindexbold{not_elim}] should be the contradiction rule
+\item[\tdxbold{not_elim}] should be the contradiction rule
 $\List{\neg\Var{P};\; \Var{P}} \Imp \Var{R}$.
 
-\item[\ttindexbold{swap}] should be the swap rule
+\item[\tdxbold{swap}] should be the swap rule
 $\List{\neg \Var{P}; \; \neg \Var{R}\Imp \Var{P}} \Imp \Var{R}$.
 
 \item[\ttindexbold{sizef}] is the heuristic function used for best-first
@@ -403,7 +404,7 @@ proof state.  Another size function might ignore certain subgoals (say,
 those concerned with type checking).  A heuristic function might simply
 count the subgoals.
 
-\item[\ttindexbold{hyp_subst_tac}] is a list of tactics for substitution in
+\item[\ttindexbold{hyp_subst_tacs}] is a list of tactics for substitution in
 the hypotheses, typically created by \ttindex{HypsubstFun} (see
 Chapter~\ref{substitution}).  This list can, of course, be empty.  The
 tactics are assumed to be safe!
@@ -411,6 +412,6 @@ tactics are assumed to be safe!
 The functor is not at all sensitive to the formalization of the
 object-logic.  It does not even examine the rules, but merely applies them
 according to its fixed strategy.  The functor resides in {\tt
-Provers/classical.ML} on the Isabelle distribution directory.
+Provers/classical.ML} in the Isabelle distribution directory.
 
-\index{classical prover|)}
+\index{classical reasoner|)}
