@@ -58,7 +58,8 @@ by default; the following existing theories have been moved here:
 HOL/Induct/Multiset, HOL/Induct/Acc (as Accessible_Part), HOL/While
 (as While_Combinator), HOL/Lex/Prefix (as List_Prefix);
 
-* added overloaded operations "inverse" and "divide" (infix "/");
+* HOL basics: added overloaded operations "inverse" and "divide"
+(infix "/"), syntax for generic "abs" operation;
 
 * HOL/typedef: simplified package, provide more useful rules (see also
 HOL/subset.thy);
