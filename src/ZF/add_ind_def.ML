@@ -45,7 +45,7 @@ signature PR =			(** Description of a Cartesian product **)
   val split_eq	: thm			(*equality rule for split*)
   val fsplitI	: thm			(*intro rule for fsplit*)
   val fsplitD	: thm			(*destruct rule for fsplit*)
-  val fsplitE	: thm			(*elim rule for fsplit*)
+  val fsplitE	: thm			(*elim rule; apparently never used*)
   end;
 
 signature SU =			(** Description of a disjoint sum **)
