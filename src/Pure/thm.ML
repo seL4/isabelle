@@ -289,6 +289,12 @@ fun add_term_sorts (Const (_, T), Ss) = add_typ_sorts (T, Ss)
 fun add_terms_sorts ([], Ss) = Ss
   | add_terms_sorts (t :: ts, Ss) = add_terms_sorts (ts, add_term_sorts (t, Ss));
 
+fun env_codT (Envir.Envir {iTs, ...}) = map snd iTs;
+
+fun add_env_sorts (env, Ss) =
+  add_terms_sorts (map snd (Envir.alist_of env),
+    add_typs_sorts (env_codT env, Ss));
+
 fun add_thm_sorts (Thm {hyps, prop, ...}, Ss) =
   add_terms_sorts (hyps, add_term_sorts (prop, Ss));
 
@@ -314,8 +320,6 @@ fun fix_shyps thms Ts thm =
     Thm {sign = sign, maxidx = maxidx,
       shyps = shyps, hyps = hyps, prop = prop}
   end;
-
-fun env_codT (Envir.Envir {iTs, ...}) = map snd iTs;
 
 
 (* strip_shyps *)       (* FIXME improve? (e.g. only minimal extra sorts) *)
@@ -1103,8 +1107,8 @@ local open Sequence; exception Bicompose
 in
 fun bicompose_aux match (state, (stpairs, Bs, Bi, C), lifted)
                         (eres_flg, orule, nsubgoal) =
- let val Thm{maxidx=smax, hyps=shyps, ...} = state
-     and Thm{maxidx=rmax, hyps=rhyps, prop=rprop,...} = orule
+ let val Thm{maxidx=smax, shyps=sshyps, hyps=shyps, ...} = state
+     and Thm{maxidx=rmax, shyps=rshyps, hyps=rhyps, prop=rprop,...} = orule
              (*How many hyps to skip over during normalization*)
      and nlift = Logic.count_prems(strip_all_body Bi,
                                    if eres_flg then ~1 else 0)
@@ -1126,10 +1130,11 @@ fun bicompose_aux match (state, (stpairs, Bs, Bi, C), lifted)
                 else (*normalize the new rule fully*)
                   (ntps, map normt (Bs @ As), normt C)
              end
-           val th = (* FIXME improve *)
-             fix_shyps [state, orule] (env_codT env)
-               (Thm{sign=sign, shyps=[], hyps=rhyps union shyps,
-                 maxidx=maxidx, prop= Logic.rule_of normp})
+           val th = (*tuned fix_shyps*)
+             Thm{sign=sign,
+               shyps=add_env_sorts (env, rshyps union sshyps),
+               hyps=rhyps union shyps,
+               maxidx=maxidx, prop= Logic.rule_of normp}
         in  cons(th, thq)  end  handle Bicompose => thq
      val (rtpairs,rhorn) = Logic.strip_flexpairs(rprop);
      val (rAs,B) = Logic.strip_prems(nsubgoal, [], rhorn)
@@ -1251,7 +1256,7 @@ fun loops sign prems (lhs,rhs) =
 
 fun mk_rrule raw_thm =
   let
-      val thm = strip_shyps raw_thm;            (* FIXME tmp *)
+      val thm = strip_shyps raw_thm;
       val Thm{sign,prop,maxidx,...} = thm;
       val prems = Logic.strip_imp_prems prop
       val concl = Logic.strip_imp_concl prop
@@ -1262,9 +1267,7 @@ fun mk_rrule raw_thm =
       val perm = var_perm(elhs,erhs) andalso not(elhs aconv erhs)
                                      andalso not(is_Var(elhs))
   in
-     if not (null (extra_shyps thm)) then     (* FIXME tmp *)
-       raise SIMPLIFIER ("Rewrite rule may not contain extra sort hypotheses", thm)
-     else if not perm andalso loops sign prems (elhs,erhs) then
+     if not perm andalso loops sign prems (elhs,erhs) then
        (prtm "Warning: ignoring looping rewrite rule" sign prop; None)
      else Some{thm=thm,lhs=lhs,perm=perm}
   end;
@@ -1380,7 +1383,7 @@ and lextermord(t::ts,u::us) =
 
 fun termless tu = (termord tu = LESS);
 
-fun check_conv(thm as Thm{hyps,prop,sign,maxidx,...}, prop0) =
+fun check_conv(thm as Thm{shyps,hyps,prop,sign,maxidx,...}, prop0) =
   let fun err() = (trace_thm "Proved wrong thm (Check subgoaler?)" thm;
                    trace_term "Should have proved" sign prop0;
                    None)
@@ -1389,7 +1392,7 @@ fun check_conv(thm as Thm{hyps,prop,sign,maxidx,...}, prop0) =
        Const("==",_) $ lhs $ rhs =>
          if (lhs = lhs0) orelse
             (lhs aconv Envir.norm_term (Envir.empty 0) lhs0)
-         then (trace_thm "SUCCEEDED" thm; Some(hyps,maxidx,rhs))
+         then (trace_thm "SUCCEEDED" thm; Some(shyps,hyps,maxidx,rhs))
          else err()
      | _ => err()
   end;
@@ -1402,11 +1405,14 @@ fun ren_inst(insts,prop,pat,obj) =
         | renAbs(t) = t
   in subst_vars insts (if null(ren) then prop else renAbs(prop)) end;
 
+fun add_insts_sorts ((iTs, is), Ss) =
+  add_typs_sorts (map snd iTs, add_terms_sorts (map snd is, Ss));
+
 
 (*Conversion to apply the meta simpset to a term*)
-fun rewritec (prover,signt) (mss as Mss{net,...}) (hypst,maxidxt,t) =
+fun rewritec (prover,signt) (mss as Mss{net,...}) (shypst,hypst,maxidxt,t) =
   let val etat = Pattern.eta_contract t;
-      fun rew {thm as Thm{sign,hyps,maxidx,prop,...}, lhs, perm} =
+      fun rew {thm as Thm{sign,shyps,hyps,maxidx,prop,...}, lhs, perm} =
         let val unit = if Sign.subsig(sign,signt) then ()
                   else (trace_thm"Warning: rewrite rule from different theory"
                           thm;
@@ -1418,14 +1424,14 @@ fun rewritec (prover,signt) (mss as Mss{net,...}) (hypst,maxidxt,t) =
             val insts = Pattern.match (#tsig(Sign.rep_sg signt)) (rlhs,etat)
             val prop' = ren_inst(insts,rprop,rlhs,t);
             val hyps' = hyps union hypst;
+            val shyps' = add_insts_sorts (insts, shyps union shypst);
             val maxidx' = maxidx_of_term prop'
-            val thm' = fix_shyps [thm] []       (* FIXME ??? *)
-                         (Thm{sign=signt, shyps=[], hyps=hyps',
-                           prop=prop', maxidx=maxidx'})
+            val thm' = Thm{sign=signt, shyps=shyps', hyps=hyps',
+                           prop=prop', maxidx=maxidx'}
             val (lhs',rhs') = Logic.dest_equals(Logic.strip_imp_concl prop')
         in if perm andalso not(termless(rhs',lhs')) then None else
            if Logic.count_prems(prop',0) = 0
-           then (trace_thm "Rewriting:" thm'; Some(hyps',maxidx',rhs'))
+           then (trace_thm "Rewriting:" thm'; Some(shyps',hyps',maxidx',rhs'))
            else (trace_thm "Trying to rewrite:" thm';
                  case prover mss thm' of
                    None       => (trace_thm "FAILED" thm'; None)
@@ -1438,13 +1444,13 @@ fun rewritec (prover,signt) (mss as Mss{net,...}) (hypst,maxidxt,t) =
             in case opt of None => rews rrules | some => some end;
 
   in case etat of
-       Abs(_,_,body) $ u => Some(hypst, maxidxt, subst_bounds([u], body))
+       Abs(_,_,body) $ u => Some(shypst, hypst, maxidxt, subst_bounds([u], body))
      | _                 => rews(Net.match_term net etat)
   end;
 
 (*Conversion to apply a congruence rule to a term*)
-fun congc (prover,signt) {thm=cong,lhs=lhs} (hypst,maxidxt,t) =
-  let val Thm{sign,hyps,maxidx,prop,...} = cong
+fun congc (prover,signt) {thm=cong,lhs=lhs} (shypst,hypst,maxidxt,t) =
+  let val Thm{sign,shyps,hyps,maxidx,prop,...} = cong
       val unit = if Sign.subsig(sign,signt) then ()
                  else error("Congruence rule from different theory")
       val tsig = #tsig(Sign.rep_sg signt)
@@ -1455,9 +1461,9 @@ fun congc (prover,signt) {thm=cong,lhs=lhs} (hypst,maxidxt,t) =
       val insts = Pattern.match tsig (rlhs,t) handle Pattern.MATCH =>
                   error("Congruence rule did not match")
       val prop' = ren_inst(insts,rprop,rlhs,t);
-      val thm' = fix_shyps [cong] []      (* FIXME ??? *)
-                   (Thm{sign=signt, shyps=[], hyps=hyps union hypst,
-                     prop=prop', maxidx=maxidx_of_term prop'})
+      val shyps' = add_insts_sorts (insts, shyps union shypst);
+      val thm' = Thm{sign=signt, shyps=shyps', hyps=hyps union hypst,
+                     prop=prop', maxidx=maxidx_of_term prop'};
       val unit = trace_thm "Applying congruence rule" thm';
       fun err() = error("Failed congruence proof!")
 
@@ -1486,39 +1492,39 @@ fun bottomc ((simprem,useprem),prover,sign) =
                                | None => trec)
 
       and subc (mss as Mss{net,congs,bounds,prems,mk_rews})
-               (trec as (hyps,maxidx,t)) =
+               (trec as (shyps,hyps,maxidx,t)) =
         (case t of
             Abs(a,T,t) =>
               let val b = variant bounds a
                   val v = Free("." ^ b,T)
                   val mss' = Mss{net=net, congs=congs, bounds=b::bounds,
                                  prems=prems,mk_rews=mk_rews}
-              in case botc true mss' (hyps,maxidx,subst_bounds([v],t)) of
-                   Some(hyps',maxidx',t') =>
-                     Some(hyps', maxidx', Abs(a, T, abstract_over(v,t')))
+              in case botc true mss' (shyps,hyps,maxidx,subst_bounds([v],t)) of
+                   Some(shyps',hyps',maxidx',t') =>
+                     Some(shyps', hyps', maxidx', Abs(a, T, abstract_over(v,t')))
                  | None => None
               end
           | t$u => (case t of
-              Const("==>",_)$s  => Some(impc(hyps,maxidx,s,u,mss))
+              Const("==>",_)$s  => Some(impc(shyps,hyps,maxidx,s,u,mss))
             | Abs(_,_,body) =>
-                let val trec = (hyps,maxidx,subst_bounds([u], body))
+                let val trec = (shyps,hyps,maxidx,subst_bounds([u], body))
                 in case subc mss trec of
                      None => Some(trec)
                    | trec => trec
                 end
             | _  =>
                 let fun appc() =
-                          (case botc true mss (hyps,maxidx,t) of
-                             Some(hyps1,maxidx1,t1) =>
-                               (case botc true mss (hyps1,maxidx,u) of
-                                  Some(hyps2,maxidx2,u1) =>
-                                    Some(hyps2,max[maxidx1,maxidx2],t1$u1)
+                          (case botc true mss (shyps,hyps,maxidx,t) of
+                             Some(shyps1,hyps1,maxidx1,t1) =>
+                               (case botc true mss (shyps1,hyps1,maxidx,u) of
+                                  Some(shyps2,hyps2,maxidx2,u1) =>
+                                    Some(shyps2,hyps2,max[maxidx1,maxidx2],t1$u1)
                                 | None =>
-                                    Some(hyps1,max[maxidx1,maxidx],t1$u))
+                                    Some(shyps1,hyps1,max[maxidx1,maxidx],t1$u))
                            | None =>
-                               (case botc true mss (hyps,maxidx,u) of
-                                  Some(hyps1,maxidx1,u1) =>
-                                    Some(hyps1,max[maxidx,maxidx1],t$u1)
+                               (case botc true mss (shyps,hyps,maxidx,u) of
+                                  Some(shyps1,hyps1,maxidx1,u1) =>
+                                    Some(shyps1,hyps1,max[maxidx,maxidx1],t$u1)
                                 | None => None))
                     val (h,ts) = strip_comb t
                 in case h of
@@ -1530,18 +1536,20 @@ fun bottomc ((simprem,useprem),prover,sign) =
                 end)
           | _ => None)
 
-      and impc(hyps,maxidx,s,u,mss as Mss{mk_rews,...}) =
-        let val (hyps1,_,s1) = if simprem then try_botc mss (hyps,maxidx,s)
-                               else (hyps,0,s);
+      and impc(shyps,hyps,maxidx,s,u,mss as Mss{mk_rews,...}) =
+        let val (shyps1,hyps1,_,s1) =
+              if simprem then try_botc mss (shyps,hyps,maxidx,s)
+              else (shyps,hyps,0,s);
             val maxidx1 = maxidx_of_term s1
             val mss1 =
               if not useprem orelse maxidx1 <> ~1 then mss
-              else let val thm = fix_shyps [] []        (* FIXME ??? *)
-                     (Thm{sign=sign,shyps=[],hyps=[s1],prop=s1,maxidx= ~1})
+              else let val thm =
+                     Thm{sign=sign,shyps=add_term_sorts(s1,[]),
+                         hyps=[s1],prop=s1,maxidx= ~1}
                    in add_simps(add_prems(mss,[thm]), mk_rews thm) end
-            val (hyps2,maxidx2,u1) = try_botc mss1 (hyps1,maxidx,u)
+            val (shyps2,hyps2,maxidx2,u1) = try_botc mss1 (shyps1,hyps1,maxidx,u)
             val hyps3 = if s1 mem hyps1 then hyps2 else hyps2\s1
-        in (hyps3, max[maxidx1,maxidx2], Logic.mk_implies(s1,u1)) end
+        in (shyps2, hyps3, max[maxidx1,maxidx2], Logic.mk_implies(s1,u1)) end
 
   in try_botc end;
 
@@ -1552,15 +1560,15 @@ fun bottomc ((simprem,useprem),prover,sign) =
    mss: contains equality theorems of the form [|p1,...|] ==> t==u
    prover: how to solve premises in conditional rewrites and congruences
 *)
-(* FIXME: better handling of shyps *)
 (*** FIXME: check that #bounds(mss) does not "occur" in ct alread ***)
 fun rewrite_cterm mode mss prover ct =
   let val {sign, t, T, maxidx} = rep_cterm ct;
-      val (hyps,maxidxu,u) = bottomc (mode,prover,sign) mss ([],maxidx,t);
+      val (shyps,hyps,maxidxu,u) =
+        bottomc (mode,prover,sign) mss (add_term_sorts(t,[]),[],maxidx,t);
       val prop = Logic.mk_equals(t,u)
-  in  fix_shyps [] []
-       (Thm{sign= sign, shyps=[], hyps= hyps, maxidx= max[maxidx,maxidxu],
-         prop= prop})
+  in
+      Thm{sign= sign, shyps= shyps, hyps= hyps, maxidx= max[maxidx,maxidxu],
+          prop= prop}
   end
 
 end;
