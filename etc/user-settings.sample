@@ -9,7 +9,7 @@
 ### Compilation options
 ###
 
-#ISABELLE_USEDIR_OPTIONS="-h true -g true"
+#ISABELLE_USEDIR_OPTIONS="-i true"
 
 
 ###
