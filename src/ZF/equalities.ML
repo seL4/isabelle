@@ -485,3 +485,12 @@ goal ZF.thy "!!x A. x:A ==> (INT x:A. Pow(B(x))) = Pow(INT x:A. B(x))";
 by (fast_tac eq_cs 1);
 qed "INT_Pow_subset";
 
+(** RepFun **)
+
+goal ZF.thy "{f(x).x:A}=0 <-> A=0";
+by (fast_tac (eq_cs addSEs [equalityE]) 1);
+qed "RepFun_eq_0_iff";
+
+goal ZF.thy "{f(x).x:0} = 0";
+by (fast_tac eq_cs 1);
+qed "RepFun_0";
