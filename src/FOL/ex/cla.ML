@@ -139,6 +139,13 @@ goal FOL.thy "(ALL x.P(x)) | Q  <->  (ALL x. P(x) | Q)";
 by (fast_tac FOL_cs 1);
 result(); 
 
+(*Discussed in Avron, Gentzen-Type Systems, Resolution and Tableaux,
+  JAR 10 (265-281), 1993.  Proof is trivial!*)
+goal FOL.thy
+    "~ ((EX x.~P(x)) & ((EX x.P(x)) | (EX x.P(x) & Q(x))) & ~ (EX x.P(x)))";
+by (fast_tac FOL_cs 1);
+result();
+
 writeln"Problems requiring quantifier duplication";
 
 (*Needs multiple instantiation of ALL.*)
@@ -202,7 +209,6 @@ goal FOL.thy "~(EX x. S(x)&Q(x)) & (ALL x. P(x) --> Q(x)|R(x)) &  \
 \    ~(EX x.P(x)) --> (EX x.Q(x)) & (ALL x. Q(x)|R(x) --> S(x))  \
 \   --> (EX x. P(x)&R(x))";
 by (fast_tac FOL_cs 1); 
-(*slow*)
 result();
 
 writeln"Problem 25";
@@ -220,7 +226,6 @@ goal FOL.thy "((EX x. p(x)) <-> (EX x. q(x))) &	\
 \     (ALL x. ALL y. p(x) & q(y) --> (r(x) <-> s(y)))	\
 \ --> ((ALL x. p(x)-->r(x)) <-> (ALL x. q(x)-->s(x)))";
 by (fast_tac FOL_cs 1);
-(*slow*)
 result();
 
 writeln"Problem 27";
@@ -230,7 +235,6 @@ goal FOL.thy "(EX x. P(x) & ~Q(x)) &   \
 \             ((EX x. R(x) & ~ Q(x)) --> (ALL x. L(x) --> ~ R(x)))  \
 \         --> (ALL x. M(x) --> ~L(x))";
 by (fast_tac FOL_cs 1); 
-(*slow*)
 result();
 
 writeln"Problem 28.  AMENDED";
@@ -239,7 +243,6 @@ goal FOL.thy "(ALL x. P(x) --> (ALL x. Q(x))) &   \
 \       ((EX x.S(x)) --> (ALL x. L(x) --> M(x)))  \
 \   --> (ALL x. P(x) & L(x) --> M(x))";
 by (fast_tac FOL_cs 1);  
-(*slow*)
 result();
 
 writeln"Problem 29.  Essentially the same as Principia Mathematica *11.71";
