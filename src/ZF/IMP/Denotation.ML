@@ -4,8 +4,6 @@
     Copyright   1994 TUM
 *)
 
-open Denotation;
-
 (** Rewrite Rules for A,B,C **)
 Addsimps [A_nat_def,A_loc_def,A_op1_def,A_op2_def];
 Addsimps [B_true_def,B_false_def,B_op_def,B_not_def,B_and_def,B_or_def];
@@ -13,55 +11,48 @@ Addsimps [C_skip_def,C_assign_def,C_comp_def,C_if_def,C_while_def];
 
 (** Type_intr for A **)
 
-val A_type = prove_goal Denotation.thy
-        "!!a.[|a:aexp; sigma:loc->nat|] ==> A(a,sigma):nat"
-   (fn _ => [(etac aexp.induct 1),
-             (ALLGOALS Asm_simp_tac),
-             (ALLGOALS (fast_tac (claset() addSIs [apply_type])))]);
+Goal "[|a:aexp; sigma:loc->nat|] ==> A(a,sigma):nat";
+by (etac aexp.induct 1);
+by (ALLGOALS Asm_simp_tac);
+by (ALLGOALS (fast_tac (claset() addSIs [apply_type])));
+qed "A_type";
 
 (** Type_intr for B **)
 
-val B_type = prove_goal Denotation.thy
-        "!!b. [|b:bexp; sigma:loc->nat|] ==> B(b,sigma):bool"
-   (fn _ => [(etac bexp.induct 1),
-             (ALLGOALS Asm_simp_tac),
-             (ALLGOALS (fast_tac (claset() 
-                          addSIs [apply_type,A_type]@bool_typechecks)))]);
+Goal "[|b:bexp; sigma:loc->nat|] ==> B(b,sigma):bool";
+by (etac bexp.induct 1);
+by (ALLGOALS Asm_simp_tac);
+by (ALLGOALS (fast_tac (claset() addSIs [apply_type,A_type]@bool_typechecks)));
+qed "B_type";
 
 (** C_subset **)
 
-val C_subset = prove_goal Denotation.thy 
-        "!!c. c:com ==> C(c) <= (loc->nat)*(loc->nat)"
-   (fn _ => [(etac com.induct 1),
-             (ALLGOALS Asm_simp_tac),
-             (ALLGOALS (fast_tac (claset() addDs [lfp_subset RS subsetD])))]);
+Goal "c:com ==> C(c) <= (loc->nat)*(loc->nat)";
+by (etac com.induct 1);
+by (ALLGOALS Asm_simp_tac);
+by (ALLGOALS (fast_tac (claset() addDs [lfp_subset RS subsetD])));
+qed "C_subset";
 
 (** Type_elims for C **)
 
-val C_type = prove_goal Denotation.thy
-        "[| <x,y>:C(c); c:com;                                  \
-\            !!c. [| x:loc->nat; y:loc->nat |]  ==> R |]        \
-\         ==> R"
-     (fn prems => [(cut_facts_tac prems 1),
-                   (fast_tac (claset() addSIs prems 
-                                    addDs  [(C_subset RS subsetD)]) 1)]);
+Goal "[| <x,y>:C(c); c:com |] ==> x:loc->nat & y:loc->nat";
+by (blast_tac (claset() addDs [C_subset RS subsetD]) 1);
+qed "C_type_D";
 
-val C_type_fst = prove_goal Denotation.thy
-        "[| x:C(c); c:com;                                      \
-\            !!c. [| fst(x):loc->nat |]  ==> R |]       \
-\         ==> R"
-     (fn prems => [(cut_facts_tac prems 1),
-                   (resolve_tac prems 1),
-                   (dtac (C_subset RS subsetD) 1),
-                   (atac 1),
-                   (etac SigmaE 1),
-                   (Asm_simp_tac 1)]);
+Goal "[| x:C(c); c:com |] ==> fst(x):loc->nat";
+by (dtac (C_subset RS subsetD) 1);
+by (atac 1);
+by (etac SigmaE 1);
+by (Asm_simp_tac 1);
+qed "C_type_fst";
 
+AddDs [C_type_D, C_type_fst];
 
 (** bnd_mono (nat->nat*nat->nat,Gamma(b,c) **)
 
-val Gamma_bnd_mono = prove_goalw Denotation.thy [bnd_mono_def,Gamma_def]
-        "!!c. c:com ==> bnd_mono ((loc->nat)*(loc->nat),Gamma(b,c))"
-     (fn prems => [(best_tac (claset() addEs [C_type]) 1)]);
+Goalw [bnd_mono_def,Gamma_def]
+     "c:com ==> bnd_mono ((loc->nat)*(loc->nat),Gamma(b,c))";
+by (Blast_tac 1);
+qed "Gamma_bnd_mono";
 
 (** End ***)
