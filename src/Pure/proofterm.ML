@@ -1002,6 +1002,7 @@ struct
 
   val empty = (ref ([], [])): T;
   fun copy (ref rews) = (ref rews): T;            (*create new reference!*)
+  val finish = I;
   val prep_ext = copy;
   fun merge (ref (rules1, procs1), ref (rules2, procs2)) = ref
     (merge_lists rules1 rules2,

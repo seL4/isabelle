@@ -212,6 +212,7 @@ struct
 
   val empty = Symtab.empty;
   val copy = I;
+  val finish = I;
   val prep_ext = I;
   fun merge tabs = Symtab.merge (Object.eq_kind o pairself fst) tabs
     handle Symtab.DUPS kinds => err_inconsistent kinds;

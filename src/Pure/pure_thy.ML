@@ -83,6 +83,7 @@ struct
 
   val empty = mk_empty ();
   fun copy (ref x) = ref x;
+  val finish = I;
   val prep_ext = mk_empty;
   val merge = mk_empty;
 
@@ -386,6 +387,7 @@ struct
 
   val empty = {name = "", version = 0};
   val copy = I;
+  val finish = I;
   val prep_ext  = I;
   fun merge _ = empty;
   fun print _ _ = ();
@@ -417,7 +419,10 @@ fun begin_theory name thys =
   |> put_name name
   |> local_path;
 
-fun end_theory thy = Theory.add_name (get_name thy) thy;
+fun end_theory thy =
+  thy
+  |> Theory.finish
+  |> Theory.add_name (get_name thy);
 
 fun checkpoint thy =
   if is_draft thy then
@@ -473,7 +478,6 @@ val proto_pure =
     ("itself", [logicS], logicS)]
   |> Theory.add_nonterminals Syntax.pure_nonterms
   |> Theory.add_syntax Syntax.pure_syntax
-  |> Theory.add_modesyntax (Symbol.symbolsN, true) Syntax.pure_sym_syntax
   |> Theory.add_modesyntax (Symbol.xsymbolsN, true) Syntax.pure_xsym_syntax
   |> Theory.add_trfuns Syntax.pure_trfuns
   |> Theory.add_trfunsT Syntax.pure_trfunsT

@@ -40,6 +40,7 @@ struct
 
   val empty = (None, ([], [Drule.norm_hhf_eq]));
   val copy = I;
+  val finish = I;
   val prep_ext = I;
 
   fun merge_judgment (Some x, Some y) =

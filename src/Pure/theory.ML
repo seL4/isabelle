@@ -86,6 +86,7 @@ sig
   val hide_consts: string list -> theory -> theory
   val add_name: string -> theory -> theory
   val copy: theory -> theory
+  val finish: theory -> theory
   val prep_ext: theory -> theory
   val prep_ext_merge: theory list -> theory
   val requires: theory -> string -> string -> unit
@@ -97,7 +98,8 @@ signature PRIVATE_THEORY =
 sig
   include THEORY
   val init_data: Object.kind -> (Object.T * (Object.T -> Object.T) * (Object.T -> Object.T) *
-    (Object.T * Object.T -> Object.T) * (Sign.sg -> Object.T -> unit)) -> theory -> theory
+    (Object.T -> Object.T) * (Object.T * Object.T -> Object.T) *
+    (Sign.sg -> Object.T -> unit)) -> theory -> theory
   val print_data: Object.kind -> theory -> unit
   val get_data: Object.kind -> (Object.T -> 'a) -> theory -> 'a
   val put_data: Object.kind -> ('a -> Object.T) -> 'a -> theory -> theory
@@ -227,6 +229,7 @@ val hide_types       = curry hide_space_i Sign.typeK;
 val hide_consts      = curry hide_space_i Sign.constK;
 val add_name         = ext_sign Sign.add_name;
 val copy             = ext_sign (K Sign.copy) ();
+val finish           = ext_sign (K Sign.finish) ();
 val prep_ext         = ext_sign (K Sign.prep_ext) ();
 
 

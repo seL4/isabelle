@@ -40,6 +40,7 @@ struct
 
   val empty = NetRules.elim;
   val copy = I;
+  val finish = I;
   val prep_ext = I;
   val merge = NetRules.merge;
   val print = print_rules Display.pretty_thm_sg;

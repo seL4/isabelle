@@ -78,6 +78,7 @@ struct
 
   val empty = {name = "Pure", session = [], is_local = false};
   val copy = I;
+  val finish = I;
   fun prep_ext _ = {name = "", session = [], is_local = false};
   fun merge _ = empty;
   fun print _ _ = ();

@@ -11,6 +11,7 @@ sig
   type T
   val empty: T
   val copy: T -> T
+  val finish: T -> T
   val prep_ext: T -> T
   val merge: T * T -> T
   val print: Sign.sg -> T -> unit
@@ -40,6 +41,7 @@ val init =
   Theory.init_data kind
     (Data Args.empty,
       fn (Data x) => Data (Args.copy x),
+      fn (Data x) => Data (Args.finish x),
       fn (Data x) => Data (Args.prep_ext x),
       fn (Data x1, Data x2) => Data (Args.merge (x1, x2)),
       fn sg => fn (Data x) => Args.print sg x);
