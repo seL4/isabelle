@@ -60,7 +60,18 @@ in
 (*Get a string containing the time of last modification, attributes, owner
   and size of file (but not the path) *)
 fun file_info "" = ""
-  | file_info name = string_of_int (System.filedate name);
+  | file_info name =
+    let fun radixpand num : int list =
+          let fun radix (n, tail) =
+            if n < 10 then n :: tail
+            else radix (n div 10, (n mod 10) :: tail)
+          in radix (num, []) end;
+
+        fun radixstring num =
+          let val offset = ord "0";
+              fun chrof n = chr (offset + n);
+          in implode (map chrof (radixpand num)) end;
+     in radixstring (System.filedate name) end;
 
 (*Delete a file *)
 fun delete_file name =
