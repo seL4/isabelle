@@ -1,6 +1,7 @@
 (*  Title:      Provers/clasimp.ML
     ID:         $Id$
     Author:     David von Oheimb, TU Muenchen
+    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
 Combination of classical reasoner and simplifier (depends on
 simplifier.ML, splitter.ML classical.ML, blast.ML).
@@ -128,13 +129,13 @@ fun addIff dest elim intro simp ((cs, ss), th) =
      simp (ss, [th]))
   end;
 
-fun delIff ((cs, ss), th) =
+fun delIff delcs delss ((cs, ss), th) =
   let val zero_rotate = zero_var_indexes o rotate_prems (nprems_of th) in
-    (Classical.delrules (cs, [zero_rotate (th RS Data.iffD2),
+    (delcs (cs, [zero_rotate (th RS Data.iffD2),
         Data.cla_make_elim (zero_rotate (th RS Data.iffD1))])
-      handle THM _ => (Classical.delrules (cs, [zero_rotate (th RS Data.notE)])
-        handle THM _ => Classical.delrules (cs, [th])),
-     Simplifier.delsimps (ss, [th]))
+      handle THM _ => (delcs (cs, [zero_rotate (th RS Data.notE)])
+        handle THM _ => delcs (cs, [th])),
+     delss (ss, [th]))
   end;
 
 fun store_clasimp (cs, ss) =
@@ -144,13 +145,24 @@ in
 
 val op addIffs =
   foldl (addIff Classical.addSDs Classical.addSEs Classical.addSIs Simplifier.addsimps);
-val addIffs' =
-  foldl (addIff Classical.addXDs Classical.addXEs Classical.addXIs
-    ((fn (ss, _) => ss): Simplifier.simpset * thm list -> Simplifier.simpset));
-val op delIffs = foldl delIff;
+val op delIffs = foldl (delIff Classical.delrules Simplifier.delsimps);
 
 fun AddIffs thms = store_clasimp (clasimpset () addIffs thms);
 fun DelIffs thms = store_clasimp (clasimpset () delIffs thms);
+
+fun addIffs_global (thy, ths) =
+  foldl (addIff ContextRules.addXDs_global ContextRules.addXEs_global
+    ContextRules.addXIs_global #1) ((thy, ()), ths) |> #1;
+
+fun addIffs_local (ctxt, ths) =
+  foldl (addIff ContextRules.addXDs_local ContextRules.addXEs_local
+    ContextRules.addXIs_local #1) ((ctxt, ()), ths) |> #1;
+
+fun delIffs_global (thy, ths) =
+  foldl (delIff ContextRules.delrules_global #1) ((thy, ()), ths) |> #1;
+
+fun delIffs_local (ctxt, ths) =
+  foldl (delIff ContextRules.delrules_local #1) ((ctxt, ()), ths) |> #1;
 
 end;
 
@@ -164,8 +176,10 @@ fun CLASIMPSET' tacf i state =
   Classical.CLASET (fn cs => Simplifier.SIMPSET (fn ss => tacf (cs, ss) i)) state;
 
 
-fun clarsimp_tac (cs, ss) = safe_asm_full_simp_tac ss THEN_ALL_NEW
-                            Classical.clarify_tac (cs addSss ss);
+fun clarsimp_tac (cs, ss) =
+  safe_asm_full_simp_tac ss THEN_ALL_NEW
+  Classical.clarify_tac (cs addSss ss);
+
 fun Clarsimp_tac i = clarsimp_tac (clasimpset ()) i;
 
 
@@ -204,9 +218,7 @@ fun mk_auto_tac (cs, ss) m n =
     end;
 
 fun auto_tac css = mk_auto_tac css 4 2;
-
 fun Auto_tac st = auto_tac (clasimpset ()) st;
-
 fun auto () = by Auto_tac;
 
 
@@ -256,12 +268,14 @@ fun get_local_clasimpset ctxt =
 
 (* attributes *)
 
+fun change_rules f (x, th) = (f (x, [th]), th);
+
 val iff_add_global = change_global_css (op addIffs);
-val iff_add_global' = change_global_css (op addIffs');
-val iff_del_global = change_global_css (op delIffs);
+val iff_add_global' = change_rules addIffs_global;
+val iff_del_global = change_global_css (op delIffs) o change_rules delIffs_global;
 val iff_add_local = change_local_css (op addIffs);
-val iff_add_local' = change_local_css (op addIffs');
-val iff_del_local = change_local_css (op delIffs);
+val iff_add_local' = change_rules addIffs_local;
+val iff_del_local = change_local_css (op delIffs) o change_rules delIffs_local;
 
 fun iff_att add add' del = Attrib.syntax (Scan.lift
  (Args.del >> K del ||
