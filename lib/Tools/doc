@@ -39,7 +39,7 @@ DOCS=$(echo $ISABELLE_DOCS | tr : " ")
 if [ -z "$DOC" ]; then
   for DIR in $DOCS
   do
-    [ -f $DIR/Contents ] && cat $DIR/Contents
+    [ -f $DIR/Contents ] && grep -v "^>>" $DIR/Contents
   done
 else
   for DIR in $DOCS
