@@ -6,7 +6,7 @@
 
 Goal
  "v -> v' ==> !rs. v = (Var n)$$rs --> (? ss. rs => ss & v' = (Var n)$$ss)";
-be beta.induct 1;
+by (etac beta.induct 1);
 by (Asm_full_simp_tac 1);
 by (rtac allI 1);
 by (res_inst_tac [("xs","rs")] rev_exhaust 1);
@@ -28,7 +28,7 @@ Goal "u -> u' ==> !r rs. u = r$$rs --> \
 \     ( (? r'. r -> r' & u' = r'$$rs) | \
 \       (? rs'. rs => rs' & u' = r$$rs') | \
 \       (? s t ts. r = Abs s & rs = t#ts & u' = s[t/0]$$ts))";
-be beta.induct 1;
+by (etac beta.induct 1);
    by (clarify_tac (claset() delrules [disjCI]) 1);
    by (exhaust_tac "r" 1);
      by (Asm_full_simp_tac 1);

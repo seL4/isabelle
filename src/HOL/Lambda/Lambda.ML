@@ -139,13 +139,13 @@ qed "substn_subst_0";
 (* Not used in CR-proof but in SN-proof *)
 
 Goal "r -> s ==> !t i. r[t/i] -> s[t/i]";
-be beta.induct 1;
+by (etac beta.induct 1);
 by (ALLGOALS (asm_simp_tac (simpset() addsimps [subst_subst RS sym])));
 qed_spec_mp "subst_preserves_beta";
 Addsimps [subst_preserves_beta];
 
 Goal "r -> s ==> !i. lift r i -> lift s i";
-be beta.induct 1;
+by (etac beta.induct 1);
 by (Auto_tac);
 qed_spec_mp "lift_preserves_beta";
 Addsimps [lift_preserves_beta];

@@ -83,7 +83,7 @@ qed_spec_mp "Cons_acc_step1I";
 AddSIs [Cons_acc_step1I];
 
 Goal "xs : lists(acc r) ==> xs : acc(step1 r)";
-be lists.induct 1;
+by (etac lists.induct 1);
  by (rtac accI 1);
  by (asm_full_simp_tac (simpset() addsimps [step1_def]) 1);
 by (rtac accI 1);
