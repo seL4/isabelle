@@ -1,1 +1,0 @@
-by(induct_tac "xs" 1);

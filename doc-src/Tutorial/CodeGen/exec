@@ -1,7 +1,0 @@
-consts exec :: ('a => 'v) => 'v list => (('a,'v) instr) list => 'v list
-primrec
-"exec s vs [] = vs"
-"exec s vs (i#is) = (case i of
-    Const v  => exec s (v#vs) is
-  | Load a   => exec s ((s a)#vs) is
-  | Apply f  => exec s ( (f (hd vs) (hd(tl vs)))#(tl(tl vs)) ) is)"

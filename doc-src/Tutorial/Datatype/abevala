@@ -1,7 +1,0 @@
-primrec
-  "evala env (IF b a1 a2) =
-     (if evalb env b then evala env a1 else evala env a2)"
-  "evala env (Sum a1 a2) = evala env a1 + evala env a2"
-  "evala env (Diff a1 a2) = evala env a1 - evala env a2"
-  "evala env (Var v) = env v"
-  "evala env (Num n) = n"

@@ -1,2 +1,0 @@
-qed "app_assoc";
-Addsimps [app_assoc];

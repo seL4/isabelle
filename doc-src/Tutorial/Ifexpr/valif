@@ -1,6 +1,0 @@
-consts valif :: ifex => (nat => bool) => bool
-primrec
-"valif (CIF b)    env = b"
-"valif (VIF x)    env = env x"
-"valif (IF b t e) env = (if valif b env then valif t env
-                                        else valif e env)"

@@ -1,2 +1,0 @@
-  "substs s [] = []"
-  "substs s (t # ts) = subst s t # substs s ts"

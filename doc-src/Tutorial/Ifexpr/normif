@@ -1,5 +1,0 @@
-consts normif :: ifex => ifex => ifex => ifex
-primrec
-"normif (CIF b)    t e = IF (CIF b) t e"
-"normif (VIF x)    t e = IF (VIF x) t e"
-"normif (IF b t e) u f = normif b (normif t u f) (normif e u f)"

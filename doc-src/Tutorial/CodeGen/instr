@@ -1,3 +1,0 @@
-datatype ('a,'v) instr = Const 'v
-                       | Load 'a
-                       | Apply ('v binop)

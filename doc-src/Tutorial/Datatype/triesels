@@ -1,4 +1,0 @@
-consts value :: ('a,'v)trie => 'v option
-       alist :: "('a,'v)trie => ('a * ('a,'v)trie)list"
-primrec "value(Trie ov al) = ov"
-primrec "alist(Trie ov al) = al"

@@ -1,1 +1,0 @@
-consts gcd :: "nat*nat => nat"

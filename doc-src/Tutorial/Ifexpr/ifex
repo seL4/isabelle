@@ -1,1 +1,0 @@
-datatype ifex = CIF bool | VIF nat | IF ifex ifex ifex

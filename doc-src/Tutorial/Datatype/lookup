@@ -1,5 +1,0 @@
-consts   lookup :: ('a,'v)trie => 'a list => 'v option
-primrec "lookup t [] = value t"
-        "lookup t (a#as) = (case assoc (alist t) a of
-                              None => None
-                            | Some at => lookup at as)"

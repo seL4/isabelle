@@ -1,4 +1,0 @@
-types 'v binop = 'v => 'v => 'v
-datatype ('a,'v) expr = Cex 'v
-                      | Vex 'a
-                      | Bex ('v binop)  (('a,'v) expr) (('a,'v) expr)

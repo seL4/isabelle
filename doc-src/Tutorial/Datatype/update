@@ -1,7 +1,0 @@
-consts update :: ('a,'v)trie => 'a list => 'v => ('a,'v)trie
-
-primrec
-  "update t []     v = Trie (Some v) (alist t)"
-  "update t (a#as) v = (let tt = (case assoc (alist t) a of
-                                    None => Trie None [] | Some at => at)
-                        in Trie (value t) ((a,update tt as v)#alist t))"

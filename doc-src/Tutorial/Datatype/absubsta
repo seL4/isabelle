@@ -1,7 +1,0 @@
-primrec
-  "substa s (IF b a1 a2) =
-     IF (substb s b) (substa s a1) (substa s a2)"
-  "substa s (Sum a1 a2) = Sum (substa s a1) (substa s a2)"
-  "substa s (Diff a1 a2) = Diff (substa s a1) (substa s a2)"
-  "substa s (Var v) = s v"
-  "substa s (Num n) = Num n"

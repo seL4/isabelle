@@ -1,9 +1,0 @@
-datatype
-    'a aexp = IF ('a bexp) ('a aexp) ('a aexp)
-            | Sum ('a aexp) ('a aexp)
-            | Diff ('a aexp) ('a aexp)
-            | Var 'a
-            | Num nat
-and 'a bexp = Less ('a aexp) ('a aexp)
-            | And ('a bexp) ('a bexp)
-            | Neg ('a bexp)

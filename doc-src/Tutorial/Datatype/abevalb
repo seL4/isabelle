@@ -1,3 +1,0 @@
-  "evalb env (Less a1 a2) = (evala env a1 < evala env a2)"
-  "evalb env (And b1 b2) = (evalb env b1 & evalb env b2)"
-  "evalb env (Neg b) = (~ evalb env b)"

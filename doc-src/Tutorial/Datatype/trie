@@ -1,1 +1,0 @@
-datatype ('a,'v)trie = Trie ('v option) "('a * ('a,'v)trie)list"

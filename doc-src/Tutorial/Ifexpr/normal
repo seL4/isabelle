@@ -1,6 +1,0 @@
-consts normal :: ifex => bool
-primrec
-"normal(CIF b) = True"
-"normal(VIF x) = True"
-"normal(IF b t e) = (normal t & normal e &
-      (case b of CIF b => True | VIF x => True | IF x y z => False))"

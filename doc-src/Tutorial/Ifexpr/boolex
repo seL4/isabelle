@@ -1,2 +1,0 @@
-datatype boolex = Const bool | Var nat
-                | Neg boolex | And boolex boolex

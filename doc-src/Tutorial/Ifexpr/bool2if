@@ -1,6 +1,0 @@
-consts bool2if :: boolex => ifex
-primrec
-"bool2if (Const b) = CIF b"
-"bool2if (Var x)   = VIF x"
-"bool2if (Neg b)   = IF (bool2if b) (CIF False) (CIF True)"
-"bool2if (And b c) = IF (bool2if b) (bool2if c) (CIF False)"

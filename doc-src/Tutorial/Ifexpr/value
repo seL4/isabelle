@@ -1,6 +1,0 @@
-consts value :: boolex => (nat => bool) => bool
-primrec
-"value (Const b) env = b"
-"value (Var x)   env = env x"
-"value (Neg b)   env = (~ value b env)"
-"value (And b c) env = (value b env & value c env)"

@@ -1,5 +1,0 @@
-consts value :: ('a => 'v) => ('a,'v)expr => 'v
-primrec
-"value env (Cex v) = v"
-"value env (Vex a) = env a"
-"value env (Bex f e1 e2) = f (value env e1) (value env e2)"

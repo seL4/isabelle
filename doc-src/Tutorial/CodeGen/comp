@@ -1,5 +1,0 @@
-consts comp :: ('a,'v) expr => (('a,'v) instr) list
-primrec
-"comp (Cex v)       = [Const v]"
-"comp (Vex a)       = [Load a]"
-"comp (Bex f e1 e2) = (comp e2) @ (comp e1) @ [Apply f]"

@@ -1,1 +1,0 @@
-Goal "normal(norm b)";

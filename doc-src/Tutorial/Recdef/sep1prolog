@@ -1,2 +1,0 @@
-Sep1 = Main +
-consts sep :: "'a * 'a list => 'a list"
