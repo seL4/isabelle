@@ -71,6 +71,7 @@ local
      | "\\<yen>" => (1.0, "&yen;")
      | "\\<bar>" => (1.0, "&brvbar;")
      | "\\<section>" => (1.0, "&sect;")
+     | "\\<dieresis>" => (1.0, "&uml;")
      | "\\<copyright>" => (1.0, "&copy;")
      | "\\<ordfeminine>" => (1.0, "&ordf;")
      | "\\<guillemotleft>" => (1.0, "&laquo;")
@@ -82,9 +83,11 @@ local
      | "\\<plusminus>" => (1.0, "&plusmn;")
      | "\\<twosuperior>" => (1.0, "&sup2;")
      | "\\<threesuperior>" => (1.0, "&sup3;")
+     | "\\<acute>" => (1.0, "&acute;")
      | "\\<mu>" => (1.0, "&micro;")
      | "\\<paragraph>" => (1.0, "&para;")
      | "\\<cdot>" => (1.0, "&middot;")
+     | "\\<cedilla>" => (1.0, "&cedil;")
      | "\\<onesuperior>" => (1.0, "&sup1;")
      | "\\<ordmasculine>" => (1.0, "&ordm;")
      | "\\<guillemotright>" => (1.0, "&raquo;")
@@ -93,6 +96,7 @@ local
      | "\\<threequarters>" => (1.0, "&frac34;")
      | "\\<questiondown>" => (1.0, "&iquest;")
      | "\\<times>" => (1.0, "&times;")
+     | "\\<emptyset>" => (1.0, "&Oslash;")
      | "\\<div>" => (1.0, "&divide;")
      | s => (real (size s), implode (map escape (explode s)));
 
