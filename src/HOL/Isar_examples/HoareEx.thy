@@ -188,6 +188,8 @@ text {*
  state space.
 *}
 
+declare setsum_op_ivl_Suc[simp] atLeast0LessThan[symmetric,simp]
+
 theorem
   "|- .{True}.
       \<acute>S := 0; \<acute>I := 1;
