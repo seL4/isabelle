@@ -65,7 +65,7 @@ fun apply_typed x y fs = map (fn f => f x y) fs;
 
 fun simple_ast_of (Const (c, _)) = Ast.Constant c
   | simple_ast_of (Free (x, _)) = Ast.Variable x
-  | simple_ast_of (Var (xi, _)) = Ast.Variable (Lexicon.string_of_vname xi)
+  | simple_ast_of (Var (xi, _)) = Ast.Variable (Term.string_of_vname xi)
   | simple_ast_of (t as _ $ _) =
       let val (f, args) = strip_comb t in
         Ast.mk_appl (simple_ast_of f) (map simple_ast_of args)

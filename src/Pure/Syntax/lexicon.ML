@@ -114,18 +114,8 @@ val scan_tvar = $$ "?" ^^ $$ "'" ^^ scan_id_nat;
 
 (** string_of_vname **)
 
-fun string_of_vname (x, i) =
-  let
-    val si = string_of_int i;
-    val dot = if_none (try (Symbol.is_digit o last_elem o Symbol.explode) x) true;
-  in
-    if dot then "?" ^ x ^ "." ^ si
-    else if i = 0 then "?" ^ x
-    else "?" ^ x ^ si
-  end;
-
-fun string_of_vname' (x, ~1) = x
-  | string_of_vname' xi = string_of_vname xi;
+val string_of_vname = Term.string_of_vname;
+val string_of_vname' = Term.string_of_vname';
 
 
 
@@ -270,10 +260,10 @@ val scan_cmt =
   Scan.lift ($$ "*" --| Scan.ahead (Scan.one (not_equal ")"))) ||
   Scan.lift (Scan.one (not_equal "*" andf Symbol.not_eof));
 
-fun scan_comment xs =
-  ($$ "(" -- $$ "*" -- !! (lex_err "missing end of comment" "(*")
+val scan_comment =
+  $$ "(" -- $$ "*" -- !! (lex_err "missing end of comment" "(*")
     (Scan.pass 0 (Scan.repeat scan_cmt) -- $$ "*" -- $$ ")")
-   >> K None) xs;
+  >> K ();
 
 
 
@@ -297,7 +287,7 @@ fun tokenize lex xids chs =
     val scan_lit = Scan.literal lex >> (pair Token o implode);
 
     val scan_token =
-      scan_comment ||
+      scan_comment >> K None ||
       Scan.max (op <= o pairself snd) scan_lit scan_val >> (fn (tk, s) => Some (tk s)) ||
       scan_str >> (Some o StrSy o implode_xstr) ||
       Scan.one Symbol.is_blank >> K None;
