@@ -688,12 +688,30 @@ by (asm_simp_tac (simpset() addsimps [export fold_insert,
 qed "setsum_insert";
 Addsimps [setsum_insert];
 
+Goal "finite A ==> setsum (%i. 0) A = 0";
+by (etac finite_induct 1);
+by Auto_tac;
+qed "setsum_0";
+
+Goal "finite F ==> (setsum f F = 0) = (! a:F. f a = (0::nat))";
+by (etac finite_induct 1);
+by Auto_tac;
+qed "setsum_eq_0_iff";
+Addsimps [setsum_eq_0_iff];
+
+Goal "[| setsum f F = Suc n; finite F |] ==> EX a:F. 0 < f a";
+by (etac rev_mp 1);
+by (etac finite_induct 1);
+by Auto_tac;
+qed "setsum_SucD";
+
 (*Could allow many "card" proofs to be simplified*)
 Goal "finite A ==> card A = setsum (%x. 1) A";
 by (etac finite_induct 1);
 by Auto_tac;
 qed "card_eq_setsum";
 
+(*The reversed orientation looks more natural, but LOOPS as a simprule!*)
 Goal "[| finite A; finite B |] \
 \     ==> setsum g (A Un B) + setsum g (A Int B) = setsum g A + setsum g B";
 by (etac finite_induct 1);
