@@ -43,7 +43,7 @@ elif [ -n "$INFILE" -a ! "$INFILE" -ef "$OUTFILE" ]; then
   cp "$INFILE" "$OUTFILE" || fail_out
 fi
 
-[ -n "$OUTFILE" ] && { chmod +w "$OUTFILE" || fail_out }
+[ -n "$OUTFILE" -a -f "$OUTFILE" ] && { chmod +w "$OUTFILE" || fail_out }
 
 MLTEXT="$EXIT $COMMIT $MLTEXT"
 MLEXIT="commit();"
@@ -51,7 +51,7 @@ MLEXIT="commit();"
 
 ## run it!
 
-START_SML="$ML_HOME/bin/sml $ML_OPTIONS $DB"
+START_SML="$ML_HOME/sml $ML_OPTIONS $DB"
 
 if [ -n "$TERMINATE" ]; then
   { echo "$MLTEXT"; echo "$MLEXIT" } | $START_SML
