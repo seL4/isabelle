@@ -14,22 +14,24 @@
 signature SEQUENCE = 
   sig
   type 'a seq
-  val append : 'a seq * 'a seq -> 'a seq
-  val chop: int * 'a seq -> 'a list * 'a seq
-  val cons: 'a * 'a seq -> 'a seq
-  val filters: ('a -> bool) -> 'a seq -> 'a seq
-  val flats: 'a seq seq -> 'a seq
-  val interleave : 'a seq * 'a seq -> 'a seq
-  val its_right: ('a * 'b seq -> 'b seq) -> 'a seq * 'b seq -> 'b seq
-  val list_of_s: 'a seq -> 'a list
-  val mapp: ('a -> 'b) -> 'a seq -> 'b seq -> 'b seq
-  val maps: ('a -> 'b) -> 'a seq -> 'b seq
-  val null: 'a seq
-  val prints: (int -> 'a -> unit) -> int -> 'a seq -> unit
-  val pull: 'a seq -> ('a * 'a seq) option
-  val s_of_list: 'a list -> 'a seq
-  val seqof: (unit -> ('a * 'a seq) option) -> 'a seq
-  val single: 'a -> 'a seq
+  val append	: 'a seq * 'a seq -> 'a seq
+  val chop	: int * 'a seq -> 'a list * 'a seq
+  val cons	: 'a * 'a seq -> 'a seq
+  val filters	: ('a -> bool) -> 'a seq -> 'a seq
+  val flats	: 'a seq seq -> 'a seq
+  val hd	: 'a seq -> 'a
+  val interleave: 'a seq * 'a seq -> 'a seq
+  val its_right	: ('a * 'b seq -> 'b seq) -> 'a seq * 'b seq -> 'b seq
+  val list_of_s	: 'a seq -> 'a list
+  val mapp	: ('a -> 'b) -> 'a seq -> 'b seq -> 'b seq
+  val maps	: ('a -> 'b) -> 'a seq -> 'b seq
+  val null	: 'a seq
+  val prints	: (int -> 'a -> unit) -> int -> 'a seq -> unit
+  val pull	: 'a seq -> ('a * 'a seq) option
+  val s_of_list	: 'a list -> 'a seq
+  val seqof	: (unit -> ('a * 'a seq) option) -> 'a seq
+  val single	: 'a -> 'a seq
+  val tl	: 'a seq -> 'a seq
   end;
 
 
@@ -40,6 +42,10 @@ datatype 'a seq = Seq of unit -> ('a * 'a seq)option;
 
 (*Return next sequence element as None or Some(x,str) *)
 fun pull(Seq f) = f();
+
+(*Head and tail.  Beware of calling the sequence function twice!!*)
+fun hd s = #1 (the (pull s))
+and tl s = #2 (the (pull s));
 
 (*the abstraction for making a sequence*)
 val seqof = Seq;
