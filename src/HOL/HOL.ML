@@ -321,6 +321,15 @@ qed_goal "impCE" HOL.thy "[| P-->Q; ~P ==> R; Q ==> R |] ==> R"
   [ rtac (excluded_middle RS disjE) 1,
     REPEAT (DEPTH_SOLVE_1 (ares_tac (prems @ [major RS mp]) 1))]);
 
+(*This version of --> elimination works on Q before P.  It works best for
+  those cases in which P holds "almost everywhere".  Can't install as
+  default: would break old proofs.*)
+qed_goal "impCE'" thy 
+    "[| P-->Q;  Q ==> R;  ~P ==> R |] ==> R"
+ (fn major::prems=>
+  [ (resolve_tac [excluded_middle RS disjE] 1),
+    (DEPTH_SOLVE (ares_tac (prems@[major RS mp]) 1)) ]);
+
 (*Classical <-> elimination. *)
 qed_goal "iffCE" HOL.thy
     "[| P=Q;  [| P; Q |] ==> R;  [| ~P; ~Q |] ==> R |] ==> R"
