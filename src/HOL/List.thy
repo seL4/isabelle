@@ -1132,6 +1132,10 @@ lemma list_all2_all_nthI [intro?]:
   "length a = length b \<Longrightarrow> (\<And>n. n < length a \<Longrightarrow> P (a!n) (b!n)) \<Longrightarrow> list_all2 P a b"
   by (simp add: list_all2_conv_all_nth)
 
+lemma list_all2I:
+  "\<forall>x \<in> set (zip a b). split P x \<Longrightarrow> length a = length b \<Longrightarrow> list_all2 P a b"
+  by (simp add: list_all2_def)
+
 lemma list_all2_nthD:
   "\<lbrakk> list_all2 P xs ys; p < size xs \<rbrakk> \<Longrightarrow> P (xs!p) (ys!p)"
   by (simp add: list_all2_conv_all_nth)
