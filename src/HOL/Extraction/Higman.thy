@@ -27,10 +27,10 @@ intros
 consts
   L :: "letter list \<Rightarrow> letter list list set"
 
-inductive "L y"
+inductive "L v"
 intros
-  L0 [CPure.intro]: "(w, y) \<in> emb \<Longrightarrow> w # ws \<in> L y"
-  L1 [CPure.intro]: "ws \<in> L y \<Longrightarrow> w # ws \<in> L y"
+  L0 [CPure.intro]: "(w, v) \<in> emb \<Longrightarrow> w # ws \<in> L v"
+  L1 [CPure.intro]: "ws \<in> L v \<Longrightarrow> w # ws \<in> L v"
 
 consts
   good :: "letter list list set"
@@ -70,23 +70,20 @@ theorem prop1: "([] # ws) \<in> bar" by rules
 theorem lemma1: "ws \<in> L as \<Longrightarrow> ws \<in> L (a # as)"
   by (erule L.induct, rules+)
 
-theorem lemma2' [rule_format]: "(vs, ws) \<in> R a \<Longrightarrow> vs \<in> L as \<longrightarrow> ws \<in> L (a # as)"
-  apply (erule R.induct)
-  apply (rule impI)
+lemma lemma2': "(vs, ws) \<in> R a \<Longrightarrow> vs \<in> L as \<Longrightarrow> ws \<in> L (a # as)"
+  apply (induct set: R)
   apply (erule L.elims)
   apply simp+
-  apply (rule impI)
   apply (erule L.elims)
   apply simp_all
   apply (rule L0)
   apply (erule emb2)
   apply (erule L1)
   done
- 
-theorem lemma2 [rule_format]: "(vs, ws) \<in> R a \<Longrightarrow> vs \<in> good \<longrightarrow> ws \<in> good"
-  apply (erule R.induct)
+
+lemma lemma2: "(vs, ws) \<in> R a \<Longrightarrow> vs \<in> good \<Longrightarrow> ws \<in> good"
+  apply (induct set: R)
   apply rules
-  apply (rule impI)
   apply (erule good.elims)
   apply simp_all
   apply (rule good0)
@@ -95,31 +92,26 @@ theorem lemma2 [rule_format]: "(vs, ws) \<in> R a \<Longrightarrow> vs \<in> goo
   apply (erule good1)
   done
 
-theorem lemma3' [rule_format]:
-    "(vs, ws) \<in> T a \<Longrightarrow> vs \<in> L as \<longrightarrow> ws \<in> L (a # as)"
-  apply (erule T.induct)
-  apply (rule impI)
+lemma lemma3': "(vs, ws) \<in> T a \<Longrightarrow> vs \<in> L as \<Longrightarrow> ws \<in> L (a # as)"
+  apply (induct set: T)
   apply (erule L.elims)
   apply simp_all
   apply (rule L0)
   apply (erule emb2)
   apply (rule L1)
   apply (erule lemma1)
-  apply (rule impI)
   apply (erule L.elims)
   apply simp_all
   apply rules+
   done
 
-theorem lemma3 [rule_format]: "(ws, zs) \<in> T a \<Longrightarrow> ws \<in> good \<longrightarrow> zs \<in> good"
-  apply (erule T.induct)
-  apply (rule impI)
+lemma lemma3: "(ws, zs) \<in> T a \<Longrightarrow> ws \<in> good \<Longrightarrow> zs \<in> good"
+  apply (induct set: T)
   apply (erule good.elims)
   apply simp_all
   apply (rule good0)
   apply (erule lemma1)
   apply (erule good1)
-  apply (rule impI)
   apply (erule good.elims)
   apply simp_all
   apply (rule good0)
@@ -127,10 +119,9 @@ theorem lemma3 [rule_format]: "(ws, zs) \<in> T a \<Longrightarrow> ws \<in> goo
   apply rules+
   done
 
-theorem lemma4 [rule_format]: "(ws, zs) \<in> R a \<Longrightarrow> ws \<noteq> [] \<longrightarrow> (ws, zs) \<in> T a"
-  apply (erule R.induct)
+lemma lemma4: "(ws, zs) \<in> R a \<Longrightarrow> ws \<noteq> [] \<Longrightarrow> (ws, zs) \<in> T a"
+  apply (induct set: R)
   apply rules
-  apply (rule impI)
   apply (case_tac vs)
   apply (erule R.elims)
   apply simp
@@ -143,7 +134,6 @@ theorem lemma4 [rule_format]: "(ws, zs) \<in> R a \<Longrightarrow> ws \<noteq> 
   apply (rule R0)
   apply simp
   apply (rule T1)
-  apply (erule mp)
   apply simp
   done
 
@@ -196,12 +186,12 @@ next
 	from letter_eq_dec show ?thesis
 	proof
 	  assume ca: "c = a"
-	  from ab have "(a # cs) # zs \<in> bar" by (rules intro: I ys Ta Tb)+
+	  from ab have "(a # cs) # zs \<in> bar" by (rules intro: I ys Ta Tb)
 	  thus ?thesis by (simp add: Cons ca)
 	next
 	  assume "c \<noteq> a"
 	  with ab have cb: "c = b" by (rule letter_neq)
-	  from ab have "(b # cs) # zs \<in> bar" by (rules intro: I' Ta Tb)+
+	  from ab have "(b # cs) # zs \<in> bar" by (rules intro: I' Ta Tb)
 	  thus ?thesis by (simp add: Cons cb)
 	qed
       qed
