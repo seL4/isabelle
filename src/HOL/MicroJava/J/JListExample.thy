@@ -66,7 +66,6 @@ types_code
 
 consts_code
   "new_Addr" ("new'_addr {* %x. case x of None => True | Some y => False *}/ {* None *}")
-  "cast_ok" ("true????")
 
   "wf" ("true?")
 
