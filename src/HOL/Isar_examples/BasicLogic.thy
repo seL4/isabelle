@@ -70,10 +70,10 @@ qed;
 
 lemma "A & B --> B & A";
 proof;
-  assume AB: "A & B";
-  from AB; have A: A; ..;
-  from AB; have B: B; ..;
-  from B A; show "B & A"; ..;
+  assume ab: "A & B";
+  from ab; have a: A; ..;
+  from ab; have b: B; ..;
+  from b a; show "B & A"; ..;
 qed;
 
 

@@ -9,35 +9,35 @@ text {* Peirce's law: examples of classical proof. *};
 
 theorem "((A --> B) --> A) --> A";
 proof;
-  assume ABA: "(A --> B) --> A";
+  assume aba: "(A --> B) --> A";
   show A;
   proof (rule classical);
-    assume notA: "~ A";
+    assume not_a: "~ A";
 
-    have AB: "A --> B";
+    have ab: "A --> B";
     proof;
-      assume A: A;
-      from notA A; show B; ..;
+      assume a: A;
+      from not_a a; show B; ..;
     qed;
 
-    from ABA AB; show A; ..;
+    from aba ab; show A; ..;
   qed;
 qed;
 
 
 theorem "((A --> B) --> A) --> A";
 proof;
-  assume ABA: "(A --> B) --> A";
+  assume aba: "(A --> B) --> A";
   show A;
   proof (rule classical);
-    presume AB: "A --> B";
-    from ABA AB; show A; ..;
+    presume ab: "A --> B";
+    from aba ab; show A; ..;
   next;
-    assume notA: "~ A";
+    assume not_a: "~ A";
     show "A --> B";
     proof;
-      assume A: A;
-      from notA A; show B; ..;
+      assume a: A;
+      from not_a a; show B; ..;
     qed;
   qed;
 qed;
