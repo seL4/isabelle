@@ -31,6 +31,10 @@ HOL, but was unused); should better use HOL's datatype package anyway;
 
 * HOL/Real: "rabs" replaced by overloaded "abs" function;
 
+* HOL/ML: even fewer consts are declared as global (see theories Ord,
+Lfp, Gfp, WF); this only affects ML packages that refer to const names
+internally;
+
 * ML: PureThy.add_thms/add_axioms/add_defs return theorems as well;
 
 * LaTeX: several improvements of isabelle.sty;
@@ -87,7 +91,8 @@ method anyway;
 
 * Provers: intro/elim/dest attributes: changed ! / !! flags to ? / ??;
 
-* 'pr' command: optional goals_limit argument;
+* 'pr' command: optional goals_limit argument; no longer prints theory
+contexts, but only proof states;
 
 * diagnostic commands 'pr', 'thm', 'prop', 'term', 'typ' admit
 additional print modes to be specified; e.g. "pr(latex)" will print
@@ -153,6 +158,9 @@ each equation;
 
 * theory Sexp now in HOL/Induct examples (used to be part of main HOL,
 but was unused);
+
+* fewer consts declared as global (e.g. have to refer to "Lfp.lfp"
+instead of "lfp" internally; affects ML packages only);
 
 
 *** General ***
