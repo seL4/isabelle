@@ -132,6 +132,12 @@ fun bind_ast_tr (*"_BIND"*) [Ast.Variable x] =
   | bind_ast_tr (*"_BIND"*) asts = raise Ast.AST ("bind_ast_tr", asts);
 
 
+(* dddot *)
+
+fun dddot_tr (*"_DDDOT"*) [] = Lexicon.var SynExt.dddot_indexname
+  | dddot_tr (*"_DDDOT"*) ts = raise TERM ("dddot_tr", ts);
+
+
 (* quote / antiquote *)
 
 fun quote_antiquote_tr quoteN antiquoteN name =
@@ -331,7 +337,7 @@ val pure_trfuns =
    ("_lambda", lambda_ast_tr), ("_idtyp", idtyp_ast_tr),
    ("_bigimpl", bigimpl_ast_tr), ("_BIND", bind_ast_tr)],
   [("_abs", abs_tr), ("_aprop", aprop_tr), ("_ofclass", ofclass_tr),
-   ("_TYPE", type_tr), ("_K", k_tr)],
+   ("_TYPE", type_tr), ("_DDDOT", dddot_tr), ("_K", k_tr)],
   []: (string * (term list -> term)) list,
   [("_abs", abs_ast_tr'), ("_idts", idtyp_ast_tr' "_idts"),
    ("_pttrns", idtyp_ast_tr' "_pttrns"), ("==>", impl_ast_tr')]);
