@@ -1699,17 +1699,16 @@ done
 
 text{*First, some lemmas about @{term foldSet}.*}
 
-
 lemma (in ACf) foldSet_insert_swap:
 assumes fold: "(A,y) \<in> foldSet f id b"
-shows "\<lbrakk> z \<notin> A; b \<notin> A; z \<noteq> b \<rbrakk> \<Longrightarrow> (insert b A, z \<cdot> y) \<in> foldSet f id z"
+shows "b \<notin> A \<Longrightarrow> (insert b A, z \<cdot> y) \<in> foldSet f id z"
 using fold
 proof (induct rule: foldSet.induct)
   case emptyI thus ?case by (force simp add: fold_insert_aux commute)
 next
   case (insertI A x y)
     have "(insert x (insert b A), x \<cdot> (z \<cdot> y)) \<in> foldSet f (\<lambda>u. u) z"
-      using insertI by force
+      using insertI by force  --{*how does @{term id} get unfolded?*}
     thus ?case by (simp add: insert_commute AC)
 qed
 
@@ -1721,23 +1720,20 @@ proof (induct rule: foldSet.induct)
   case emptyI thus ?case by simp
 next
   case (insertI A x y)
-  show ?case
-  proof -
-    have a: "a \<in> insert x A" and b: "b \<notin> insert x A" .
-    from a have "a = x \<or> a \<in> A" by simp
-    thus "(insert b (insert x A - {a}), id x \<cdot> y) \<in> foldSet f id a"
-    proof
-      assume "a = x"
-      with insertI b show ?thesis by simp (blast intro: foldSet_insert_swap)
-    next
-      assume ainA: "a \<in> A"
-      hence "(insert x (insert b (A - {a})), x \<cdot> y) \<in> foldSet f id a"
-	using insertI b by (force simp:id_def)
-      moreover
-      have "insert x (insert b (A - {a})) = insert b (insert x A - {a})"
-	using ainA insertI by blast
-      ultimately show ?thesis by simp
-    qed
+  have "a = x \<or> a \<in> A" using insertI by simp
+  thus ?case
+  proof
+    assume "a = x"
+    with insertI show ?thesis
+      by (simp add: id_def [symmetric], blast intro: foldSet_insert_swap) 
+  next
+    assume ainA: "a \<in> A"
+    hence "(insert x (insert b (A - {a})), x \<cdot> y) \<in> foldSet f id a"
+      using insertI by (force simp: id_def)
+    moreover
+    have "insert x (insert b (A - {a})) = insert b (insert x A - {a})"
+      using ainA insertI by blast
+    ultimately show ?thesis by (simp add: id_def)
   qed
 qed
 
@@ -1756,24 +1752,47 @@ apply (subgoal_tac "insert aa (Aa - {a}) = A")
 apply (auto dest: foldSet_permute_diff [where a=a]) 
 done
 
-lemma (in ACf) fold1_insert:
-  "finite A ==> x \<notin> A ==> A \<noteq> {} \<Longrightarrow> fold1 f (insert x A) = f x (fold1 f A)"
-apply (induct A rule: finite_induct, force)
-apply (simp only: insert_commute, simp) 
-apply (erule conjE) 
-apply (simp add: fold1_eq_fold) 
-apply (subst fold1_eq_fold, auto) 
+lemma nonempty_iff: "(A \<noteq> {}) = (\<exists>x B. A = insert x B & x \<notin> B)"
+apply safe
+apply simp 
+apply (drule_tac x=x in spec)
+apply (drule_tac x="A-{x}" in spec, auto) 
 done
 
+lemma (in ACf) fold1_insert:
+  assumes nonempty: "A \<noteq> {}" and A: "finite A" "x \<notin> A"
+  shows "fold1 f (insert x A) = f x (fold1 f A)"
+proof -
+  from nonempty obtain a A' where "A = insert a A' & a ~: A'" 
+    by (auto simp add: nonempty_iff)
+  with A show ?thesis
+    by (simp add: insert_commute [of x] fold1_eq_fold eq_commute) 
+qed
+
 lemma (in ACIf) fold1_insert_idem [simp]:
-  "finite A ==> A \<noteq> {} \<Longrightarrow> fold1 f (insert x A) = f x (fold1 f A)"
-apply (induct A rule: finite_induct, force)
-apply (case_tac "xa=x") 
- prefer 2 apply (simp add: insert_commute fold1_eq_fold fold_insert_idem) 
-apply (case_tac "F={}") 
-apply (simp add: idem) 
-apply (simp add: fold1_insert assoc [symmetric] idem) 
-done
+  assumes nonempty: "A \<noteq> {}" and A: "finite A" 
+  shows "fold1 f (insert x A) = f x (fold1 f A)"
+proof -
+  from nonempty obtain a A' where A': "A = insert a A' & a ~: A'" 
+    by (auto simp add: nonempty_iff)
+  show ?thesis
+  proof cases
+    assume "a = x"
+    thus ?thesis 
+    proof cases
+      assume "A' = {}"
+      with prems show ?thesis by (simp add: idem) 
+    next
+      assume "A' \<noteq> {}"
+      with prems show ?thesis
+	by (simp add: fold1_insert assoc [symmetric] idem) 
+    qed
+  next
+    assume "a \<noteq> x"
+    with prems show ?thesis
+      by (simp add: insert_commute fold1_eq_fold fold_insert_idem)
+  qed
+qed
 
 
 text{* Now the recursion rules for definitions: *}
