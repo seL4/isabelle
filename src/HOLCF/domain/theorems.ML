@@ -28,9 +28,9 @@ fun pg'  thy defs t tacsf=pg'' thy defs t (fn []   => tacsf
                                 | prems=> (cut_facts_tac prems 1)::tacsf);
 
 fun REPEAT_DETERM_UNTIL p tac = 
-let fun drep st = if p st then Sequence.single st
-                          else (case Sequence.pull(tac st) of
-                                  None        => Sequence.null
+let fun drep st = if p st then Seq.single st
+                          else (case Seq.pull(tac st) of
+                                  None        => Seq.empty
                                 | Some(st',_) => drep st')
 in drep end;
 val UNTIL_SOLVED = REPEAT_DETERM_UNTIL (has_fewer_prems 1);

@@ -201,7 +201,7 @@ fun swap_res_tac rls =
 (*Duplication of hazardous rules, for complete provers*)
 fun dup_intr th = zero_var_indexes (th RS classical);
 
-fun dup_elim th = th RSN (2, revcut_rl) |> assumption 2 |> Sequence.hd |> 
+fun dup_elim th = th RSN (2, revcut_rl) |> assumption 2 |> Seq.hd |> 
                   rule_by_tactic (TRYALL (etac revcut_rl));
 
 

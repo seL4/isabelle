@@ -346,7 +346,7 @@ fun Asm_full_simp_tac i st = asm_full_simp_tac (simpset ()) i st;
 fun simp mode (Simpset {mss, subgoal_tac, loop_tac, finish_tac, unsafe_finish_tac}) thm =
   let
     val tacf = solve_all_tac (subgoal_tac, loop_tac, finish_tac, unsafe_finish_tac);
-    fun prover m th = apsome fst (Sequence.pull (tacf m th));
+    fun prover m th = apsome fst (Seq.pull (tacf m th));
   in
     Drule.rewrite_thm mode prover mss thm
   end;

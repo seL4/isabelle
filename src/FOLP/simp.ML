@@ -135,7 +135,7 @@ let fun mk[] = error"Check transitivity"
 in mk trans_thms end;
 
 (*Applies tactic and returns the first resulting state, FAILS if none!*)
-fun one_result(tac,thm) = case Sequence.pull(tac thm) of
+fun one_result(tac,thm) = case Seq.pull(tac thm) of
         Some(thm',_) => thm'
       | None => raise THM("Simplifier: could not continue", 0, [thm]);
 
@@ -211,7 +211,7 @@ let val thm' = mk_trans2 thm;
 	  | Free _ => resolve_tac congs 1 ORELSE refl1_tac
 	  | _ => refl1_tac)
     val add_norm_tac = DEPTH_FIRST (has_fewer_prems nops) norm_step_tac
-    val Some(thm'',_) = Sequence.pull(add_norm_tac thm')
+    val Some(thm'',_) = Seq.pull(add_norm_tac thm')
 in thm'' end;
 
 fun add_norm_tags congs =
@@ -422,7 +422,7 @@ fun execute(ss,if_fl,auto_tac,cong_tac,net,i,thm) = let
 fun simp_lhs(thm,ss,anet,ats,cs) =
     if var_lhs(thm,i) then (ss,thm,anet,ats,cs) else
     if lhs_is_NORM(thm,i) then (ss, res1(thm,trans_norms,i), anet,ats,cs)
-    else case Sequence.pull(cong_tac i thm) of
+    else case Seq.pull(cong_tac i thm) of
             Some(thm',_) =>
                     let val ps = prems_of thm and ps' = prems_of thm';
                         val n = length(ps')-length(ps);
@@ -446,7 +446,7 @@ fun add_asms(ss,thm,a,anet,ats,cs) =
         (ss,thm,anet',anet::ats,cs) 
     end;
 
-fun rew(seq,thm,ss,anet,ats,cs, more) = case Sequence.pull seq of
+fun rew(seq,thm,ss,anet,ats,cs, more) = case Seq.pull seq of
       Some(thm',seq') =>
             let val n = (nprems_of thm') - (nprems_of thm)
             in pr_rew(i,n,thm,thm',more);
@@ -460,7 +460,7 @@ fun rew(seq,thm,ss,anet,ats,cs, more) = case Sequence.pull seq of
             else (ss,thm,anet,ats,cs);
 
 fun try_true(thm,ss,anet,ats,cs) =
-    case Sequence.pull(auto_tac i thm) of
+    case Seq.pull(auto_tac i thm) of
       Some(thm',_) => (ss,thm',anet,ats,cs)
     | None => let val (ss0,thm0,anet0,ats0,seq,more)::cs0 = cs
               in if !tracing
@@ -471,7 +471,7 @@ fun try_true(thm,ss,anet,ats,cs) =
               end;
 
 fun if_exp(thm,ss,anet,ats,cs) =
-        case Sequence.pull (IF1_TAC (cong_tac i) i thm) of
+        case Seq.pull (IF1_TAC (cong_tac i) i thm) of
                 Some(thm',_) => (SIMP_LHS::IF::ss,thm',anet,ats,cs)
               | None => (ss,thm,anet,ats,cs);
 
@@ -498,8 +498,8 @@ fun EXEC_TAC(ss,fl) (SS{auto_tac,cong_net,simp_net,...}) =
 let val cong_tac = net_tac cong_net
 in fn i => 
     (fn thm =>
-     if i <= 0 orelse nprems_of thm < i then Sequence.null
-     else Sequence.single(execute(ss,fl,auto_tac,cong_tac,simp_net,i,thm)))
+     if i <= 0 orelse nprems_of thm < i then Seq.empty
+     else Seq.single(execute(ss,fl,auto_tac,cong_tac,simp_net,i,thm)))
     THEN TRY(auto_tac i)
 end;
 

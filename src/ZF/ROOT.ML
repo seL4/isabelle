@@ -15,11 +15,11 @@ eta_contract:=false;
 
 (*For Pure/tactic??  A crude way of adding structure to rules*)
 fun CHECK_SOLVED tac st =
-    case Sequence.pull (tac st) of
+    case Seq.pull (tac st) of
         None => error"DO_GOAL: tactic list failed"
       | Some(x,_) => 
                 if has_fewer_prems 1 x then
-                    Sequence.cons(x, Sequence.null)
+                    Seq.cons(x, Seq.empty)
                 else (writeln"DO_GOAL: unsolved goals!!";
                       writeln"Final proof state was ...";
                       print_goals (!goals_limit) x;

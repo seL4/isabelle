@@ -162,7 +162,7 @@ val prop_of = #prop o rep_thm;
 
 (*Permits forward proof from rules that discharge assumptions*)
 fun forward_res nf st =
-  case Sequence.pull (ALLGOALS (METAHYPS (fn [prem] => rtac (nf prem) 1)) st)
+  case Seq.pull (ALLGOALS (METAHYPS (fn [prem] => rtac (nf prem) 1)) st)
   of Some(th,_) => th
    | None => raise THM("forward_res", 0, [st]);
 
@@ -247,7 +247,7 @@ fun cnf_aux seen (th,ths) =
         (METAHYPS (resop (cnf_nil seen)) 1) THEN
         (fn st' => st' |>
                 METAHYPS (resop (cnf_nil (literals (concl_of st') @ seen))) 1)
-    in  Sequence.list_of_s (tac (th RS disj_forward)) @ ths  end
+    in  Seq.list_of (tac (th RS disj_forward)) @ ths  end
 and cnf_nil seen th = cnf_aux seen (th,[]);
 
 (*Top-level call to cnf -- it's safe to reset name_ref*)
@@ -270,7 +270,7 @@ qed "disj_forward2";
 
 (*Forward proof, passing extra assumptions as theorems to the tactic*)
 fun forward_res2 nf hyps st =
-  case Sequence.pull
+  case Seq.pull
         (REPEAT 
          (METAHYPS (fn major::minors => rtac (nf (minors@hyps) major) 1) 1) 
          st)
@@ -373,7 +373,7 @@ fun has_reps [] = false
                   handle INSERT => true; 
 
 (*Like TRYALL eq_assume_tac, but avoids expensive THEN calls*)
-fun TRYALL_eq_assume_tac 0 st = Sequence.single st
+fun TRYALL_eq_assume_tac 0 st = Seq.single st
   | TRYALL_eq_assume_tac i st = TRYALL_eq_assume_tac (i-1) (eq_assumption i st)
                                 handle THM _ => TRYALL_eq_assume_tac (i-1) st;
 
@@ -381,7 +381,7 @@ fun TRYALL_eq_assume_tac 0 st = Sequence.single st
   -- if *ANY* subgoal has repeated literals*)
 fun check_tac st = 
   if exists (fn prem => has_reps (rhyps(prem,[]))) (prems_of st)
-  then  Sequence.null  else  Sequence.single st;
+  then  Seq.empty  else  Seq.single st;
 
 
 (* net_resolve_tac actually made it slower... *)

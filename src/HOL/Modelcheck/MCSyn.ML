@@ -8,7 +8,7 @@ fun mc_tac i state =
 let val sign = #sign (rep_thm state)
 in 
 case drop(i-1,prems_of state) of
-   [] => Sequence.null |
+   [] => Seq.empty |
    subgoal::_ => 
 	let val concl = Logic.strip_imp_concl subgoal;
 	    val OraAss = invoke_oracle MCSyn.thy "mc" (sign,MCOracleExn concl);

@@ -459,7 +459,7 @@ fun convertRule vars t =
 
 
 (*Like dup_elim, but puts the duplicated major premise FIRST*)
-fun rev_dup_elim th = th RSN (2, revcut_rl) |> assumption 2 |> Sequence.hd;
+fun rev_dup_elim th = th RSN (2, revcut_rl) |> assumption 2 |> Seq.hd;
 
 
 (*Count new hyps so that they can be rotated*)
@@ -467,10 +467,10 @@ fun nNewHyps []                         = 0
   | nNewHyps (Const "*Goal*" $ _ :: Ps) = nNewHyps Ps
   | nNewHyps (P::Ps)                    = 1 + nNewHyps Ps;
 
-fun rot_subgoals_tac [] i st      = Sequence.single st
+fun rot_subgoals_tac [] i st      = Seq.single st
   | rot_subgoals_tac (k::ks) i st =
-      rot_subgoals_tac ks (i+1) (Sequence.hd (rotate_tac (~k) i st))
-      handle OPTION => Sequence.null;
+      rot_subgoals_tac ks (i+1) (Seq.hd (rotate_tac (~k) i st))
+      handle OPTION => Seq.empty;
 
 fun TRACE rl tac st i = if !trace then (prth rl; tac st i) else tac st i;
 
@@ -1166,17 +1166,17 @@ fun depth_tac cs lim i st =
          val hyps  = strip_imp_prems skoprem
          and concl = strip_imp_concl skoprem
          fun cont (tacs,_,choices) = 
-	     (case Sequence.pull(EVERY' (rev tacs) i st) of
+	     (case Seq.pull(EVERY' (rev tacs) i st) of
 		  None => (writeln ("PROOF FAILED for depth " ^
 				    Int.toString lim);
 			   backtrack choices)
-		| cell => Sequence.seqof(fn()=> cell))
+		| cell => Seq.make(fn()=> cell))
      in prove (sign, cs, [initBranch (mkGoal concl :: hyps, lim)], cont)
      end
-     handle PROVE     => Sequence.null);
+     handle PROVE     => Seq.empty);
 
 fun blast_tac cs i st = (DEEPEN (1,20) (depth_tac cs) 0) i st
-     handle TRANS s => (warning ("Blast_tac: " ^ s); Sequence.null);
+     handle TRANS s => (warning ("Blast_tac: " ^ s); Seq.empty);
 
 fun Blast_tac i = blast_tac (Data.claset()) i;
 
