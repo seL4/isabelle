@@ -189,13 +189,13 @@ fun containing [] thy = thms_of thy
 
         val ref {const_idx = (_, ctab), ...} = get_theorems thy;
         val ithmss = map (fn c => Symtab.lookup_multi (ctab, c)) consts;
-      in
-        map (attach_name o snd) (ints ithmss)
-      end;
+      in map (attach_name o snd) (ints ithmss) end;
 
 (*search globally*)
 fun thms_containing thy consts =
-  flat (map (containing (consts \\ ignore)) (thy :: Theory.ancestors_of thy));
+  (case filter (is_none o Sign.const_type (Theory.sign_of thy)) consts of
+    [] => flat (map (containing (consts \\ ignore)) (thy :: Theory.ancestors_of thy))
+  | cs => raise THEORY ("thms_containing: undeclared consts " ^ commas_quote cs, [thy]));
 
 
 
