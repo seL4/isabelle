@@ -16,7 +16,6 @@ sig
   val options: (string * (string * (string * (unit -> string) * (string -> unit)))) list ref
   val process_pgip: string -> unit
   val thms_containing: string list -> unit
-  val print_intros: unit -> unit
   val help: unit -> unit
   val show_context: unit -> theory
   val kill_goal: unit -> unit
@@ -357,14 +356,6 @@ fun process_pgip s = (case XML.tree_of_string s of
 
 fun thms_containing ss =
   ProofContext.print_thms_containing (ProofContext.init (the_context ())) None ss;
-
-fun print_intros() =
-  let val proof_state = Toplevel.proof_of (Toplevel.get_state ())
-      val (ctxt,(_,st)) = Proof.get_goal proof_state
-      val prt_fact = ProofContext.pretty_fact ctxt
-      val thy = ProofContext.theory_of ctxt
-      val facts = map (apsnd single) (Goals.find_intros_goal thy st 1)
-  in map prt_fact (rev facts) |> Pretty.chunks |> Pretty.writeln end
 
 val welcome = priority o Session.welcome;
 val help = welcome;

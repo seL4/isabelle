@@ -60,6 +60,7 @@ sig
   val print_binds: Toplevel.transition -> Toplevel.transition
   val print_lthms: Toplevel.transition -> Toplevel.transition
   val print_cases: Toplevel.transition -> Toplevel.transition
+  val print_intros: Toplevel.transition -> Toplevel.transition
   val print_thms: string list * (string * Args.src list) list
     -> Toplevel.transition -> Toplevel.transition
   val print_prfs: bool -> string list * (string * Args.src list) list option
@@ -246,6 +247,14 @@ val print_lthms = Toplevel.unknown_proof o Toplevel.keep (fn state =>
 val print_cases = Toplevel.unknown_proof o Toplevel.keep (fn state =>
   ProofContext.setmp_verbose
     ProofContext.print_cases (Proof.context_of (Toplevel.proof_of state)));
+
+val print_intros = Toplevel.unknown_proof o Toplevel.keep (fn state =>
+  let
+    val (ctxt, (_, st)) = Proof.get_goal (Toplevel.proof_of state)
+    val prt_fact = ProofContext.pretty_fact ctxt
+    val thy = ProofContext.theory_of ctxt
+    val facts = map (apsnd single) (PureThy.find_intros_goal thy st 1)
+  in map prt_fact (rev facts) |> Pretty.chunks |> Pretty.writeln end);
 
 
 (* print theorems / types / terms / props *)
