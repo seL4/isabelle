@@ -189,7 +189,7 @@ by (cut_facts_tac prems 1);
 by (nat_ind_tac "m" 1);
 by (Simp_tac 1);
 by (etac mod_less 1);
-by (dres_inst_tac [("n","n"),("m","m1*n")] mod_eq_add 1);
+by (dres_inst_tac [("m","m*n")] mod_eq_add 1);
 by (asm_full_simp_tac ((simpset_of "Arith") addsimps [add_commute]) 1);
 qed "mod_prod_nn_is_0";
 

@@ -49,6 +49,27 @@ fun extract_info thy =
               in (map #case_cong info, flat (map #case_rewrites info)) end;
   in {case_congs = congs, case_rewrites = rewrites} end;
 
+(* generic induction tactic for datatypes *)
+fun induct_tac var i =
+  let fun find_tname Bi =
+        let val frees = map (fn Free x => x) (term_frees Bi)
+            val params = Logic.strip_params Bi;
+        in case assoc (frees@params, var) of
+             None => error("No such variable in subgoal: " ^ quote var)
+           | Some(Type(tn,_)) => tn
+           | _ => error("Cannot induct on type of " ^ quote var)
+        end;
+      fun get_ind_tac sign tn =
+        (case get_thydata (thyname_of_sign sign) "datatypes" of
+           None => error ("No such datatype: " ^ quote tn)
+         | Some (DT_DATA ds) =>
+             (case assoc (ds, tn) of
+                Some {induct_tac, ...} => induct_tac
+              | None => error ("Not a datatype: " ^ quote tn)));
+      fun induct state =
+        let val (_, _, Bi, _) = dest_state (state, i) 
+        in get_ind_tac (#sign(rep_thm state)) (find_tname Bi) var i end
+  in STATE induct end;
 
 (*Must be redefined in order to refer to the new instance of bind_thm
   created by init_thy_reader.*)
@@ -62,4 +83,3 @@ fun qed_goal_spec_mp name thy s p =
 
 fun qed_goalw_spec_mp name thy defs s p = 
 	bind_thm (name, normalize_thm [RSspec,RSmp] (prove_goalw thy defs s p));
-

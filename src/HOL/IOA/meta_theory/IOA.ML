@@ -81,8 +81,8 @@ val [p1,p2] = goalw IOA.thy [invariant_def]
   by (res_inst_tac [("Q","reachable A (snd ex n)")] conjunct1 1);
   by (nat_ind_tac "n" 1);
   by (fast_tac (!claset addIs [p1,reachable_0]) 1);
-  by (eres_inst_tac[("x","n1")]allE 1);
-  by (eres_inst_tac[("P","%x.!a.?Q x a"), ("opt","fst ex n1")] optionE 1);
+  by (eres_inst_tac[("x","n")]allE 1);
+  by (eres_inst_tac[("P","%x.!a.?Q x a"), ("opt","fst ex n")] optionE 1);
   by (Asm_simp_tac 1);
   by (safe_tac (!claset));
   by (etac (p2 RS mp) 1);

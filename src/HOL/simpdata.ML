@@ -347,8 +347,12 @@ in add_thydata "HOL"
      ("simpset", ThyMethods {merge = merge, put = put, get = get})
 end;
 
-type dtype_info = {case_const:term, case_rewrites:thm list,
-                   constructors:term list, nchotomy:thm, case_cong:thm};
+type dtype_info = {case_const:term,
+                   case_rewrites:thm list,
+                   constructors:term list,
+                   induct_tac: string -> int -> tactic,
+                   nchotomy:thm,
+                   case_cong:thm};
 
 exception DT_DATA of (string * dtype_info) list;
 val datatypes = ref [] : (string * dtype_info) list ref;

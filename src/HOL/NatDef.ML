@@ -33,7 +33,7 @@ qed "Nat_induct";
 
 val prems = goalw thy [Zero_def,Suc_def]
     "[| P(0);   \
-\       !!k. P(k) ==> P(Suc(k)) |]  ==> P(n)";
+\       !!n. P(n) ==> P(Suc(n)) |]  ==> P(n)";
 by (rtac (Rep_Nat_inverse RS subst) 1);   (*types force good instantiation*)
 by (rtac (Rep_Nat RS Nat_induct) 1);
 by (REPEAT (ares_tac prems 1
@@ -42,8 +42,16 @@ qed "nat_induct";
 
 (*Perform induction on n. *)
 fun nat_ind_tac a i = 
-    EVERY [res_inst_tac [("n",a)] nat_induct i,
-           rename_last_tac a ["1"] (i+1)];
+    EVERY[res_inst_tac [("n",a)] nat_induct i,
+          COND (Datatype.occs_in_prems a (i+1)) all_tac
+               (rename_last_tac a [""] (i+1))];
+
+(*Install 'automatic' induction tactic, pretending nat is a datatype *)
+(*except for induct_tac, everything is dummy*)
+datatypes := [("nat",{case_const = Bound 0, case_rewrites = [],
+  constructors = [], induct_tac = nat_ind_tac,
+  nchotomy = flexpair_def, case_cong = flexpair_def})];
+
 
 (*A special form of induction for reasoning about m<n and m-n*)
 val prems = goal thy

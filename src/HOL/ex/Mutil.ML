@@ -53,8 +53,8 @@ by (ALLGOALS (asm_simp_tac (!simpset addsimps [Un_assoc RS sym, Sigma_Suc2])));
 by (resolve_tac tiling.intrs 1);
 by (assume_tac 2);
 by (subgoal_tac    (*seems the easiest way of turning one to the other*)
-    "({i} Times {Suc(n1+n1)}) Un ({i} Times {n1+n1}) = \
-\    {(i, n1+n1), (i, Suc(n1+n1))}" 1);
+    "({i} Times {Suc(n+n)}) Un ({i} Times {n+n}) = \
+\    {(i, n+n), (i, Suc(n+n))}" 1);
 by (Blast_tac 2);
 by (asm_simp_tac (!simpset addsimps [domino.horiz]) 1);
 by (blast_tac (!claset addEs  [less_irrefl, less_asym]

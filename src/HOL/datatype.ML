@@ -410,8 +410,17 @@ in
            |> add_trrules xrules
            |> add_axioms rules, add_primrec)
     end
-end
-end
+
+(*Check if the (induction) variable occurs among the premises, which
+  usually signals a mistake *)
+fun occs_in_prems a i state =
+  let val (_, _, Bi, _) = dest_state(state,i)
+      val prems = Logic.strip_assums_hyp Bi
+  in a  mem  map (#1 o dest_Free) (foldr add_term_frees (prems,[])) end;
+
+end;
+
+end;
 
 (*
 Informal description of functions used in datatype.ML for the Isabelle/HOL
@@ -492,8 +501,7 @@ implementation of prim. rec. function definitions. (N. Voelker, Feb. 1995)
 (* The following has been written by Konrad Slind. *)
 
 
-type dtype_info = {case_const:term, case_rewrites:thm list,
-                   constructors:term list, nchotomy:thm, case_cong:thm};
+(* type dtype_info is defined in simpdata.ML *)
 
 signature Dtype_sig =
 sig
@@ -832,10 +840,15 @@ fun build_record (thy,(ty,cl),itac) =
      fun const s = Const(s, the(Sign.const_type sign s))
      val case_rewrites = map (fn c => get_fact thy (ty^"_case_"^c)) cl
      val {nchotomy,case_cong} = case_thms sign case_rewrites itac
+     fun induct_tac a i = itac a i THEN
+           COND (Datatype.occs_in_prems a i)
+             (warning "Induction variable occurs also among premises!";
+              all_tac) all_tac
  in
   (ty, {constructors = map(fn s => const s handle _ => const("op "^s)) cl,
         case_const = const (ty^"_case"),
         case_rewrites = map mk_rw case_rewrites,
+        induct_tac = induct_tac,
         nchotomy = nchotomy,
         case_cong = case_cong})
  end
