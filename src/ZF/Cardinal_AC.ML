@@ -77,7 +77,7 @@ by (fast_tac (ZF_cs addSEs [apply_Pair]) 1);
 by (resolve_tac [exI] 1);
 by (rtac f_imp_injective 1);
 by (resolve_tac [Pi_type] 1 THEN assume_tac 1);
-by (fast_tac (ZF_cs addDs [apply_type] addEs [memberPiE]) 1);
+by (fast_tac (ZF_cs addDs [apply_type] addDs [Pi_memberD]) 1);
 by (fast_tac (ZF_cs addDs [apply_type] addEs [apply_equality]) 1);
 val surj_implies_inj = result();
 
