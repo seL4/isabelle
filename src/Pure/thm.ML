@@ -627,7 +627,9 @@ fun assume ct : thm =
   end;
 
 (*Implication introduction
-  A |- B
+    [A]
+     :
+     B
   -------
   A ==> B
 *)
@@ -860,9 +862,9 @@ fun abstract_rule a cx (th as Thm{sign,der,maxidx,hyps,prop,...}) =
   end;
 
 (*The combination rule
-  f==g    t==u
-  ------------
-   f(t)==g(u)
+  f == g  t == u
+  --------------
+   f(t) == g(u)
 *)
 fun combination th1 th2 =
   let val Thm{der=der1, maxidx=max1, shyps=shyps1, hyps=hyps1, 
@@ -896,9 +898,9 @@ fun combination th1 th2 =
 
 
 (* Equality introduction
-  A==>B    B==>A
-  --------------
-       A==B
+  A ==> B  B ==> A
+  ----------------
+       A == B
 *)
 fun equal_intr th1 th2 =
   let val Thm{der=der1,maxidx=max1, shyps=shyps1, hyps=hyps1, 
@@ -923,7 +925,7 @@ fun equal_intr th1 th2 =
 
 
 (*The equal propositions rule
-  A==B    A
+  A == B  A
   ---------
       B
 *)
@@ -1423,7 +1425,7 @@ fun biresolution match brules i state =
 exception SIMPLIFIER of string * thm;
 
 fun prtm a sign t = (writeln a; writeln (Sign.string_of_term sign t));
-fun prtm_warning a sign t = warning (a ^ "\n" ^ (Sign.string_of_term sign t));
+fun prtm_warning a sign t = (warning a; warning (Sign.string_of_term sign t));
 
 val trace_simp = ref false;
 
