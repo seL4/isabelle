@@ -112,7 +112,8 @@ fun mk_rules ps =
     axs ^ "\n\n" ^ vals
   end;
 
-fun mk_struct (id, s) = "structure " ^ id ^ " =\nstruct\n" ^ s ^ "\nend\n";
+fun mk_struct (id, s) = "structure " ^ id ^ " =\nstruct\n" ^ s ^ "\nend;\n"
+                        ^ "store_theory " ^ quote id ^ " " ^ id ^ ".thy;\n";
 
 
 fun mk_sext mfix trans =
@@ -148,22 +149,20 @@ fun mk_structure ((name, base), Some (ext, tinfix, mfix, trans, ml)) =
       let
         val noext = ("[]", "[]", "[]", "[]", "[]", "[]");
         val basethy =
-          if tinfix = "[]" then base
-          else mk_ext_thy (base, name ^ "(type infix)", noext, mk_simple_sext tinfix);
+          if tinfix = "[]" then base ^ (quote name)
+          else mk_ext_thy (base ^ (quote name), name ^ "(type infix)", noext, mk_simple_sext tinfix);
         val sext =
           if mfix = "[]" andalso trans = "[]" andalso ml = "" then "None"
           else mk_sext mfix trans;
-        val thy = "\nval thy = " ^ mk_ext_thy (basethy, name, ext, sext);
+        val thy = "val thy = " ^ mk_ext_thy (basethy, name, ext, sext);
       in
         mk_struct (name, preamble ^ ml ^ postamble ^ thy ^ "\nend")
       end
-  | mk_structure ((name, base), None) = mk_struct (name, "\nval thy = " ^ base);
+  | mk_structure ((name, base), None) =
+      mk_struct (name, "\nval thy = " ^ base ^ (quote name));
 
-
-fun merge (t :: ts) =
-      foldl (fn (base, thy) => "(merge_theories (" ^ base ^ ", " ^ thy ^ ".thy))")
-        (t ^ ".thy", ts)
-  | merge [] = raise Match;
+fun merge thys =
+  "base_on " ^ (bracket (quote (space_implode "\",\"" thys))) ^ " ";
 
 
 

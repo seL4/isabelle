@@ -26,6 +26,11 @@ structure Keyword =
 structure Lex     = LexicalFUN (Keyword);
 structure Parse   = ParseFUN (Lex);
 structure ThySyn  = ThySynFUN (Parse);
-structure Readthy = ReadthyFUN (ThySyn);
 
+(*This structure is only defined to be compatible with older versions of
+  READTHY. Don't use it in newly created theory/ROOT.ML files! Instead
+  define a new structure. Otherwise Poly/ML won't save a reference variable
+  defined inside the functor. *)
+structure Readthy = ReadthyFUN (structure ThySyn = ThySyn);
 open Readthy;
+
