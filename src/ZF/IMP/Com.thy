@@ -70,7 +70,8 @@ inductive
     ori   "[| <b0,sigma> -b-> w0; <b1,sigma> -b-> w1 |] \
 \	    ==> <b0 ori b1,sigma> -b-> (w0 or w1)"
 
-  type_intrs "bexp.intrs @ [apply_funtype, and_type, or_type, bool_1I, bool_0I, not_type]"
+  type_intrs "bexp.intrs @   \
+\	      [apply_funtype, and_type, or_type, bool_1I, bool_0I, not_type]"
   type_elims "[make_elim(evala.dom_subset RS subsetD)]"
 
 
@@ -123,6 +124,7 @@ inductive
 
   con_defs   "[assign_def]"
   type_intrs "bexp.intrs @ com.intrs @ [if_type,lam_type,apply_type]"
-  type_elims "[make_elim(evala.dom_subset RS subsetD), make_elim(evalb.dom_subset RS subsetD) ]"
+  type_elims "[make_elim(evala.dom_subset RS subsetD),   \
+\	      make_elim(evalb.dom_subset RS subsetD) ]"
 
 end
