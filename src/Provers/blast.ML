@@ -469,7 +469,7 @@ local
     | nNewHyps (Const "*Goal*" $ _ :: Ps) = nNewHyps Ps
     | nNewHyps (P::Ps)                    = 1 + nNewHyps Ps;
 
-  fun rot_tac [] i st      = Seq.single (Seq.hd (flexflex_rule st))
+  fun rot_tac [] i st      = Seq.single st
     | rot_tac (0::ks) i st = rot_tac ks (i+1) st
     | rot_tac (k::ks) i st = rot_tac ks (i+1) (rotate_rule (~k) i st);
 in
@@ -562,11 +562,12 @@ end;
 
 
 (*Pending formulae carry md (may duplicate) flags*)
-type branch = ((term*bool) list *	(*safe formulae on this level*)
-               (term*bool) list) list * (*haz formulae  on this level*)
-	      term list *               (*literals: irreducible formulae*)
-	      term option ref list *    (*variables occurring in branch*)
-	      int;                      (*resource limit*)
+type branch = 
+    {pairs: ((term*bool) list *	(*safe formulae on this level*)
+               (term*bool) list) list,  (*haz formulae  on this level*)
+     lits:   term list,                 (*literals: irreducible formulae*)
+     vars:   term option ref list,      (*variables occurring in branch*)
+     lim:    int};                      (*resource limit*)
 
 val fullTrace = ref[] : branch list list ref;
 
@@ -575,8 +576,11 @@ fun norm2 (G,md) = (norm G, md);
 
 fun normLev (Gs,Hs) = (map norm2 Gs, map norm2 Hs);
 
-fun normBr (br, lits, vars, lim) =
-     (map normLev br, map norm lits, vars, lim);
+fun normBr {pairs, lits, vars, lim} =
+     {pairs = map normLev pairs, 
+      lits  = map norm lits, 
+      vars  = vars, 
+      lim   = lim};
 
 
 val dummyTVar = Term.TVar(("a",0), []);
@@ -629,7 +633,7 @@ fun tracing sign brs =
   let fun printPairs (((G,_)::_,_)::_)  = prs(traceTerm sign G)
 	| printPairs (([],(H,_)::_)::_) = prs(traceTerm sign H ^ "\t (Unsafe)")
 	| printPairs _                 = ()
-      fun printBrs (brs0 as (pairs, lits, _, lim) :: brs) =
+      fun printBrs (brs0 as {pairs, lits, lim, ...} :: brs) =
 	    (fullTrace := brs0 :: !fullTrace;
 	     seq (fn _ => prs "+") brs;
 	     prs (" [" ^ Int.toString lim ^ "] ");
@@ -735,7 +739,7 @@ fun orientGoal (t,u) = case (t,u) of
 (*Substitute through the branch if an equality goal (else raise DEST_EQ).
   Moves affected literals back into the branch, but it is not clear where
   they should go: this could make proofs fail.*)
-fun equalSubst sign (G, pairs, lits, vars, lim) = 
+fun equalSubst sign (G, {pairs, lits, vars, lim}) = 
   let val (t,u) = orientGoal(dest_eq G)
       val subst = subst_atomic (t,u)
       fun subst2(G,md) = (subst G, md)
@@ -761,9 +765,10 @@ fun equalSubst sign (G, pairs, lits, vars, lim) =
   in  if !trace then writeln ("Substituting " ^ traceTerm sign u ^
 			      " for " ^ traceTerm sign t ^ " in branch" )
       else ();
-      ((changed',[])::pairs',	(*affected formulas, and others*)
-       lits',			(*unaffected literals*)
-       vars, lim)
+      {pairs = (changed',[])::pairs',	(*affected formulas, and others*)
+       lits  = lits',			(*unaffected literals*)
+       vars  = vars, 
+       lim   = lim}
   end;
 
 
@@ -856,8 +861,8 @@ fun prune (1, nxtVars, choices) = choices  (*DON'T prune at very end: allow
 				   choices)
   in  traceIt (pruneAux (choices, !ntrail, !trail, choices))  end;
 
-fun nextVars ((br, lits, vars, lim) :: _) = map Var vars
-  | nextVars []                           = [];
+fun nextVars ({pairs, lits, vars, lim} :: _) = map Var vars
+  | nextVars []                              = [];
 
 fun backtrack (choices as (ntrl, nbrs, exn)::_) = 
       (if !trace then (writeln ("Backtracking; now there are " ^ 
@@ -932,7 +937,8 @@ fun prove (sign, start, cs, brs, cont) =
 	        (printStats (!trace orelse !stats, start, tacs); 
 		 cont (tacs, trs, choices))   (*all branches closed!*)
        | prv (tacs, trs, choices, 
-	      brs0 as (((G,md)::br, haz)::pairs, lits, vars, lim) :: brs) =
+	      brs0 as {pairs = ((G,md)::br, haz)::pairs, 
+		       lits, vars, lim} :: brs) =
    	     (*apply a safe rule only (possibly allowing instantiation);
                defer any haz formulae*)
 	  let exception PRV (*backtrack to precisely this recursion!*)
@@ -945,12 +951,16 @@ fun prove (sign, start, cs, brs, cont) =
 	      fun newBr (vars',lim') prems =
 		  map (fn prem => 
 		       if (exists isGoal prem) 
-		       then (((joinMd md prem, []) :: 
-			      negOfGoals ((br, haz)::pairs)),
-			     map negOfGoal lits, 
-			     vars', lim') 
-		       else (((joinMd md prem, []) :: (br, haz) :: pairs),
-			     lits, vars', lim'))
+		       then {pairs = ((joinMd md prem, []) :: 
+				      negOfGoals ((br, haz)::pairs)),
+			     lits  = map negOfGoal lits, 
+			     vars  = vars', 
+			     lim   = lim'}
+		       else {pairs = ((joinMd md prem, []) :: 
+				      (br, haz) :: pairs),
+			     lits = lits, 
+			     vars = vars', 
+			     lim  = lim'})
 		  prems @
 		  brs		  
 	      (*Seek a matching rule.  If unifiable then add new premises
@@ -966,7 +976,7 @@ fun prove (sign, start, cs, brs, cont) =
 			 val vars  = vars_in_vars vars
 			 val vars' = foldr add_terms_vars (prems, vars)
 			 val choices' = (ntrl, nbrs, PRV) :: choices
-			 val tacs' = (DETERM o tac(updated,false,true)) 
+			 val tacs' = (tac(updated,false,true)) 
                                      :: tacs  (*no duplication; rotate*)
 		     in
 			 traceNew prems;  traceVars sign ntrl;
@@ -1021,32 +1031,44 @@ fun prove (sign, start, cs, brs, cont) =
 	     else
 	     prv (Data.hyp_subst_tac trace :: tacs, 
 		  brs0::trs,  choices,
-		  equalSubst sign (G, (br,haz)::pairs, lits, vars, lim) :: brs)
+		  equalSubst sign
+		    (G, {pairs = (br,haz)::pairs, 
+			 lits  = lits, vars  = vars, lim   = lim}) 
+		    :: brs)
 	     handle DEST_EQ =>   closeF lits
 	      handle CLOSEF =>   closeFl ((br,haz)::pairs)
 	        handle CLOSEF => deeper rules
 		  handle NEWBRANCHES => 
 		   (case netMkRules G vars hazList of
 		       [] => (*there are no plausible haz rules*)
-			   (traceMsg "moving goal to literals";
-			    prv (tacs, brs0::trs, choices,
-				 ((br,haz)::pairs, addLit(G,lits), vars, lim)
-				 ::brs))
+			     (traceMsg "moving formula to literals";
+			      prv (tacs, brs0::trs, choices,
+				   {pairs = (br,haz)::pairs, 
+				    lits  = addLit(G,lits), 
+				    vars  = vars, 
+				    lim   = lim}  :: brs))
 		    | _ => (*G admits some haz rules: try later*)
-			   (traceMsg "moving goal to haz list";
+			   (traceMsg "moving formula to haz list";
 			    prv (if isGoal G then negOfGoal_tac :: tacs
-				 else tacs, 
-				     brs0::trs,  choices,
-				     ((br, haz@[(negOfGoal G, md)])::pairs,
-				      lits, vars, lim)  ::  brs)))
+				             else tacs, 
+				 brs0::trs,  
+				 choices,
+				 {pairs = (br, haz@[(negOfGoal G, md)])::pairs,
+				  lits  = lits,
+				  vars  = vars, 
+				  lim   = lim}  :: brs)))
 	  end
        | prv (tacs, trs, choices, 
-	      (([],haz)::(Gs,haz')::pairs, lits, vars, lim) :: brs) =
+	      {pairs = ([],haz)::(Gs,haz')::pairs, lits, vars, lim} :: brs) =
 	     (*no more "safe" formulae: transfer haz down a level*)
 	   prv (tacs, trs, choices, 
-		((Gs,haz@haz')::pairs, lits, vars, lim) :: brs)
+		{pairs = (Gs,haz@haz')::pairs, 
+		 lits  = lits, 
+		 vars  = vars, 
+		 lim    = lim} :: brs)
        | prv (tacs, trs, choices, 
-	      brs0 as ([([], (H,md)::Hs)], lits, vars, lim) :: brs) =
+	      brs0 as {pairs = [([], (H,md)::Hs)],
+		       lits, vars, lim} :: brs) =
    	     (*no safe steps possible at any level: apply a haz rule*)
 	  let exception PRV (*backtrack to precisely this recursion!*)
 	      val H = norm H
@@ -1059,14 +1081,15 @@ fun prove (sign, start, cs, brs, cont) =
 		      and lits' = if (exists isGoal prem) 
 			          then map negOfGoal lits
 				  else lits
-                  in  (if exists (match P) prem
-		       then (*Recursive in this premise.
-			      Don't make new "stack frame".
-			      New haz premises will end up at the BACK of the
-				  queue, preventing exclusion of others*)
-			    [(Gs',Hs')] 
-		       else [(Gs',[]), ([],Hs')], 
-		       lits', vars, lim')
+                  in  {pairs = if exists (match P) prem then [(Gs',Hs')] 
+			       (*Recursive in this premise.  Don't make new
+				 "stack frame".  New haz premises will end up
+				 at the BACK of the queue, preventing
+				 exclusion of others*)
+			    else [(Gs',[]), ([],Hs')], 
+		       lits = lits', 
+		       vars = vars, 
+		       lim  = lim'}
 		  end
 	      fun newBr x prems = map (newPrem x) prems  @  brs
 	      (*Seek a matching rule.  If unifiable then add new premises
@@ -1080,7 +1103,8 @@ fun prove (sign, start, cs, brs, cont) =
 			 val vars' = foldr add_terms_vars (prems, vars)
 			    (*duplicate H if md and the subgoal has new vars*)
 			 val dup = md andalso vars' <> vars
-			     (*any instances of P in the subgoals?*)
+			     (*any instances of P in the subgoals?
+			       NB: this boolean affects tracing only!*)
 			 and recur = exists (exists (match P)) prems
 			 val lim' = (*Decrement "lim" extra if updates occur*)
 			     if updated then lim - (1+log(length rules))
@@ -1103,10 +1127,11 @@ fun prove (sign, start, cs, brs, cont) =
 			     orelse vars=vars'   (*no new Vars?*)
 			 val tac' = if mayUndo then tac(updated, dup, true)
 				    else   DETERM o tac(updated, dup, true) 
-			       (*if recur then doesn't call rotate_tac: 
-				 new formulae should be last; WRONG
-                                 if the new formulae are Goals, since
-				 they remain in the first position*)
+		       (*if recur then perhaps shouldn't call rotate_tac: new
+                         formulae should be last, but that's WRONG if the new
+                         formulae are Goals, since they remain in the first
+                         position*)
+
 		     in
 		       if lim'<0 andalso not (null prems)
 		       then (*it's faster to kill ALL the alternatives*)
@@ -1137,7 +1162,10 @@ fun prove (sign, start, cs, brs, cont) =
 	     handle NEWBRANCHES => 
 		 (*cannot close branch: move H to literals*)
 		 prv (tacs,  brs0::trs,  choices,
-		      ([([], Hs)], H::lits, vars, lim)::brs)
+		      {pairs = [([], Hs)], 
+		       lits  = H::lits, 
+		       vars  = vars, 
+		       lim   = lim}  :: brs)
 	  end
        | prv (tacs, trs, choices, _ :: brs) = backtrack choices
  in init_gensym();
@@ -1147,8 +1175,10 @@ fun prove (sign, start, cs, brs, cont) =
 
 (*Construct an initial branch.*)
 fun initBranch (ts,lim) = 
-    ([(map (fn t => (t,true)) ts, [])],
-     [], add_terms_vars (ts,[]), lim);
+    {pairs = [(map (fn t => (t,true)) ts, [])],
+     lits  = [], 
+     vars  = add_terms_vars (ts,[]), 
+     lim   = lim};
 
 
 (*** Conversion & Skolemization of the Isabelle proof state ***)
@@ -1237,6 +1267,8 @@ fun timing_depth_tac start cs lim i st =
 	  case Seq.pull(EVERY' (rev tacs) i st) of
 	      None => (writeln ("PROOF FAILED for depth " ^
 				Int.toString lim);
+		       if !trace then writeln "************************\n"
+		       else ();
 		       backtrack choices)
 	    | cell => (if (!trace orelse !stats)
 		       then writeln (endTiming start ^ " for reconstruction")
@@ -1251,7 +1283,8 @@ fun timing_depth_tac start cs lim i st =
 fun depth_tac cs lim i st = timing_depth_tac (startTiming()) cs lim i st;
 
 fun blast_tac cs i st = 
-    (DEEPEN (1,20) (timing_depth_tac (startTiming()) cs) 0) i st
+    ((DEEPEN (1,20) (timing_depth_tac (startTiming()) cs) 0) i 
+     THEN flexflex_tac) st
     handle TRANS s => (warning ("Blast_tac: " ^ s); Seq.empty);
 
 fun Blast_tac i = blast_tac (Data.claset()) i;
