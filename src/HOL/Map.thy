@@ -325,9 +325,9 @@ apply (subgoal_tac "~ (aa = a) ")
 apply auto
 done
 
-section{* @{text"\<subseteq>\<^sub>m"} *}
+section {* map\_le *}
 
-lemma [simp]: "empty \<subseteq>\<^sub>m g"
+lemma map_le_empty [simp]: "empty \<subseteq>\<^sub>m g"
 by(simp add:map_le_def)
 
 lemma map_le_upd[simp]: "f \<subseteq>\<^sub>m g ==> f(a := b) \<subseteq>\<^sub>m g(a := b)"
