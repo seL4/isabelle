@@ -336,14 +336,26 @@ and (q,j) = poly(rhs,rat_of_int 1,([],rat_of_int 0))
 fun negate(Some(x,i,rel,y,j,d)) = Some(x,i,"~"^rel,y,j,d)
   | negate None = None;
 
-fun decomp1 (discrete,inj_consts) (T,xxx) =
+fun of_lin_arith_sort sg U =
+  Type.of_sort (Sign.tsig_of sg) (U,["Ring_and_Field.ordered_idom"])
+
+(* FIXME: "discrete" should only contain discrete types *)
+fun allows_lin_arith sg discrete (U as Type(D,[])) =
+      if of_lin_arith_sort sg U
+      then (true, case assoc(discrete,D) of None => false
+                  | Some d => d)
+      else (* special cases *)
+           (case assoc(discrete,D) of None => (false,false)
+            | Some d => (true,d))
+  | allows_lin_arith sg discrete U = (of_lin_arith_sort sg U, false);
+
+fun decomp1 (sg,discrete,inj_consts) (T,xxx) =
   (case T of
-     Type("fun",[Type(D,[]),_]) =>
-       (case assoc(discrete,D) of
-          None => None
-        | Some d => (case decomp2 inj_consts xxx of
-                       None => None
-                     | Some(p,i,rel,q,j) => Some(p,i,rel,q,j,d)))
+     Type("fun",[U,_]) =>
+       (case allows_lin_arith sg discrete U of
+          (true,d) => (case decomp2 inj_consts xxx of None => None
+                       | Some(p,i,rel,q,j) => Some(p,i,rel,q,j,d))
+        | (false,_) => None)
    | _ => None);
 
 fun decomp2 data (_$(Const(rel,T)$lhs$rhs)) = decomp1 data (T,(rel,lhs,rhs))
@@ -353,7 +365,7 @@ fun decomp2 data (_$(Const(rel,T)$lhs$rhs)) = decomp1 data (T,(rel,lhs,rhs))
 
 fun decomp sg =
   let val {discrete, inj_consts, ...} = ArithTheoryData.get_sg sg
-  in decomp2 (discrete,inj_consts) end
+  in decomp2 (sg,discrete,inj_consts) end
 
 fun number_of(n,T) = HOLogic.number_of_const T $ (HOLogic.mk_bin n)
 
@@ -386,18 +398,31 @@ val add_rules =
 val add_mono_thms_ordered_semiring = map (fn s => prove_goal (the_context ()) s
  (fn prems => [cut_facts_tac prems 1,
                blast_tac (claset() addIs [add_mono]) 1]))
-["(i <= j) & (k <= l) ==> i + k <= j + (l::'a::ordered_semidom)",
- "(i  = j) & (k <= l) ==> i + k <= j + (l::'a::ordered_semidom)",
- "(i <= j) & (k  = l) ==> i + k <= j + (l::'a::ordered_semidom)",
- "(i  = j) & (k  = l) ==> i + k  = j + (l::'a::ordered_semidom)"
+["(i <= j) & (k <= l) ==> i + k <= j + (l::'a::pordered_ab_semigroup_add)",
+ "(i  = j) & (k <= l) ==> i + k <= j + (l::'a::pordered_ab_semigroup_add)",
+ "(i <= j) & (k  = l) ==> i + k <= j + (l::'a::pordered_ab_semigroup_add)",
+ "(i  = j) & (k  = l) ==> i + k  = j + (l::'a::pordered_ab_semigroup_add)"
 ];
+
+val mono_ss = simpset() addsimps
+                [add_mono,add_strict_mono,add_less_le_mono,add_le_less_mono];
+
+val add_mono_thms_ordered_field =
+  map (fn s => prove_goal (the_context ()) s
+                 (fn prems => [cut_facts_tac prems 1, asm_simp_tac mono_ss 1]))
+    ["(i<j) & (k=l)   ==> i+k < j+(l::'a::pordered_cancel_ab_semigroup_add)",
+     "(i=j) & (k<l)   ==> i+k < j+(l::'a::pordered_cancel_ab_semigroup_add)",
+     "(i<j) & (k<=l)  ==> i+k < j+(l::'a::pordered_cancel_ab_semigroup_add)",
+     "(i<=j) & (k<l)  ==> i+k < j+(l::'a::pordered_cancel_ab_semigroup_add)",
+     "(i<j) & (k<l)   ==> i+k < j+(l::'a::pordered_cancel_ab_semigroup_add)"];
 
 in
 
 val init_lin_arith_data =
  Fast_Arith.setup @
  [Fast_Arith.map_data (fn {add_mono_thms, mult_mono_thms, inj_thms, lessD, simpset = _} =>
-   {add_mono_thms = add_mono_thms @ add_mono_thms_ordered_semiring,
+   {add_mono_thms = add_mono_thms @
+    add_mono_thms_ordered_semiring @ add_mono_thms_ordered_field,
     mult_mono_thms = mult_mono_thms,
     inj_thms = inj_thms,
     lessD = lessD @ [Suc_leI],

@@ -23,18 +23,6 @@ local
 
 val simprocs = field_cancel_numeral_factors
 
-val mono_ss = simpset() addsimps
-                [add_mono,add_strict_mono,add_less_le_mono,add_le_less_mono];
-
-val add_mono_thms_ordered_field =
-  map (fn s => prove_goal (the_context ()) s
-                 (fn prems => [cut_facts_tac prems 1, asm_simp_tac mono_ss 1]))
-    ["(i < j) & (k = l)   ==> i + k < j + (l::'a::ordered_field)",
-     "(i = j) & (k < l)   ==> i + k < j + (l::'a::ordered_field)",
-     "(i < j) & (k <= l)  ==> i + k < j + (l::'a::ordered_field)",
-     "(i <= j) & (k < l)  ==> i + k < j + (l::'a::ordered_field)",
-     "(i < j) & (k < l)   ==> i + k < j + (l::'a::ordered_field)"];
-
 fun cvar(th,_ $ (_ $ _ $ var)) = cterm_of (#sign(rep_thm th)) var;
 
 val rat_mult_mono_thms =
@@ -68,7 +56,7 @@ val ratT = Type("Rational.rat", []);
 
 val rat_arith_setup =
  [Fast_Arith.map_data (fn {add_mono_thms, mult_mono_thms, inj_thms, lessD, simpset} =>
-   {add_mono_thms = add_mono_thms @ add_mono_thms_ordered_field,
+   {add_mono_thms = add_mono_thms,
     mult_mono_thms = mult_mono_thms @ rat_mult_mono_thms,
     inj_thms = int_inj_thms @ inj_thms,
     lessD = lessD,  (*Can't change LA_Data_Ref.lessD: the rats are dense!*)
