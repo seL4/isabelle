@@ -62,6 +62,8 @@ statements as well;
 number of facts to be consumed (0 for "type" and 1 for "set" rules);
 any remaining facts are inserted into the goal verbatim;
 
+* HOL: added 'recdef_tc' command;
+
 
 *** HOL ***
 
