@@ -18,25 +18,25 @@
 
 BIN = $(ISABELLEBIN)
 COMP = $(ISABELLECOMP)
-FILES = ROOT.ML zf.thy zf.ML upair.ML subset.ML pair.ML domrange.ML \
-	func.ML simpdata.ML bool.thy bool.ML \
-	sum.thy sum.ML qpair.thy qpair.ML mono.ML fixedpt.thy fixedpt.ML \
+FILES = ROOT.ML ZF.thy ZF.ML upair.ML subset.ML pair.ML domrange.ML \
+	func.ML simpdata.ML Bool.thy Bool.ML \
+	Sum.thy Sum.ML Qpair.thy Qpair.ML mono.ML Fixedpt.thy Fixedpt.ML \
 	ind_syntax.ML intr_elim.ML indrule.ML inductive.ML coinductive.ML \
-	equalities.ML perm.thy perm.ML trancl.thy trancl.ML \
-	wf.thy wf.ML ord.thy ord.ML nat.thy nat.ML \
-	epsilon.thy epsilon.ML arith.thy arith.ML univ.thy univ.ML \
-	quniv.thy quniv.ML constructor.ML datatype.ML  \
-	fin.ML list.ML listfn.thy listfn.ML
+	equalities.ML Perm.thy Perm.ML Trancl.thy Trancl.ML \
+	WF.thy WF.ML Ord.thy Ord.ML Nat.thy Nat.ML \
+	Epsilon.thy Epsilon.ML Arith.thy Arith.ML Univ.thy Univ.ML \
+	Quniv.thy Quniv.ML constructor.ML datatype.ML  \
+	fin.ML list.ML ListFn.thy ListFn.ML
 
-EX_FILES = ex/ROOT.ML ex/acc.ML ex/bin.ML ex/binfn.ML ex/binfn.thy\
-	   ex/bt.ML ex/bt_fn.ML ex/bt_fn.thy ex/comb.ML\
-	   ex/contract0.ML ex/contract0.thy ex/counit.ML ex/data.ML\
-	   ex/enum.ML ex/equiv.ML ex/equiv.thy ex/integ.ML ex/integ.thy\
-	   ex/listn.ML ex/llist.ML ex/llist_eq.ML ex/llistfn.ML ex/llistfn.thy\
-	   ex/misc.ML ex/parcontract.ML ex/primrec0.ML ex/primrec0.thy\
-	   ex/prop.ML ex/proplog.ML ex/proplog.thy ex/ramsey.ML ex/ramsey.thy\
-	   ex/rmap.ML ex/term.ML ex/termfn.ML ex/termfn.thy ex/tf.ML\
-	   ex/tf_fn.ML ex/tf_fn.thy ex/twos_compl.ML
+EX_FILES = ex/ROOT.ML ex/acc.ML ex/bin.ML ex/BinFn.ML ex/BinFn.thy\
+	   ex/BT.ML ex/BT_Fn.ML ex/BT_Fn.thy ex/comb.ML\
+	   ex/Contract0.ML ex/Contract0.thy ex/counit.ML ex/data.ML\
+	   ex/enum.ML ex/Equiv.ML ex/Equiv.thy ex/Integ.ML ex/Integ.thy\
+	   ex/listn.ML ex/llist.ML ex/llist_eq.ML ex/LListFn.ML ex/LListFn.thy\
+	   ex/misc.ML ex/parcontract.ML ex/Primrec0.ML ex/Primrec0.thy\
+	   ex/prop.ML ex/PropLog.ML ex/PropLog.thy ex/Ramsey.ML ex/Ramsey.thy\
+	   ex/rmap.ML ex/term.ML ex/TermFn.ML ex/TermFn.thy ex/tf.ML\
+	   ex/TF_Fn.ML ex/TF_Fn.thy ex/twos_compl.ML
 
 #Uses cp rather than make_database because Poly/ML allows only 3 levels
 $(BIN)/ZF:   $(BIN)/FOL  $(FILES) 
