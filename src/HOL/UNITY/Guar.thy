@@ -26,10 +26,10 @@ instance program :: (type) order
                      program_less_le)+)
 
 
-constdefs
+text{*Existential and Universal properties.  I formalize the two-program
+      case, proving equivalence with Chandy and Sanders's n-ary definitions*}
 
-  (*Existential and Universal properties.  I formalize the two-program
-    case, proving equivalence with Chandy and Sanders's n-ary definitions*)
+constdefs
 
   ex_prop  :: "'a program set => bool"
    "ex_prop X == \<forall>F G. F ok G -->F \<in> X | G \<in> X --> (F\<squnion>G) \<in> X"
@@ -43,6 +43,11 @@ constdefs
   strict_uv_prop  :: "'a program set => bool"
    "strict_uv_prop X == 
       SKIP \<in> X & (\<forall>F G. F ok G --> (F \<in> X & G \<in> X) = (F\<squnion>G \<in> X))"
+
+
+text{*Guarantees properties*}
+
+constdefs
 
   guar :: "['a program set, 'a program set] => 'a program set"
           (infixl "guarantees" 55)  (*higher than membership, lower than Co*)
@@ -64,7 +69,7 @@ constdefs
   refines :: "['a program, 'a program, 'a program set] => bool"
 			("(3_ refines _ wrt _)" [10,10,10] 10)
   "G refines F wrt X ==
-     \<forall>H. (F ok H  & G ok H & F\<squnion>H \<in> welldef \<inter> X) --> 
+     \<forall>H. (F ok H & G ok H & F\<squnion>H \<in> welldef \<inter> X) --> 
          (G\<squnion>H \<in> welldef \<inter> X)"
 
   iso_refines :: "['a program, 'a program, 'a program set] => bool"
@@ -79,7 +84,8 @@ lemma OK_insert_iff:
 by (auto intro: ok_sym simp add: OK_iff_ok)
 
 
-(*** existential properties ***)
+subsection{*Existential Properties*}
+
 lemma ex1 [rule_format]: 
  "[| ex_prop X; finite GG |] ==>  
      GG \<inter> X \<noteq> {}--> OK GG (%G. G) --> (\<Squnion>G \<in> GG. G) \<in> X"
@@ -109,14 +115,14 @@ by (blast intro: ex1 ex2)
 lemma ex_prop_equiv: 
      "ex_prop X = (\<forall>G. G \<in> X = (\<forall>H. (G component_of H) --> H \<in> X))"
 apply auto
-apply (unfold ex_prop_def component_of_def, safe, blast) 
-apply blast 
+apply (unfold ex_prop_def component_of_def, safe, blast, blast) 
 apply (subst Join_commute) 
 apply (drule ok_sym, blast) 
 done
 
 
-(*** universal properties ***)
+subsection{*Universal Properties*}
+
 lemma uv1 [rule_format]: 
      "[| uv_prop X; finite GG |] 
       ==> GG \<subseteq> X & OK GG (%G. G) --> (\<Squnion>G \<in> GG. G) \<in> X"
@@ -143,23 +149,20 @@ lemma uv_prop_finite:
       (\<forall>GG. finite GG & GG \<subseteq> X & OK GG (%G. G) --> (\<Squnion>G \<in> GG. G): X)"
 by (blast intro: uv1 uv2)
 
-(*** guarantees ***)
+subsection{*Guarantees*}
 
 lemma guaranteesI:
-     "(!!G. [| F ok G; F\<squnion>G \<in> X |] ==> F\<squnion>G \<in> Y)  
-      ==> F \<in> X guarantees Y"
+     "(!!G. [| F ok G; F\<squnion>G \<in> X |] ==> F\<squnion>G \<in> Y) ==> F \<in> X guarantees Y"
 by (simp add: guar_def component_def)
 
 lemma guaranteesD: 
-     "[| F \<in> X guarantees Y;  F ok G;  F\<squnion>G \<in> X |]  
-      ==> F\<squnion>G \<in> Y"
+     "[| F \<in> X guarantees Y;  F ok G;  F\<squnion>G \<in> X |] ==> F\<squnion>G \<in> Y"
 by (unfold guar_def component_def, blast)
 
 (*This version of guaranteesD matches more easily in the conclusion
   The major premise can no longer be  F \<subseteq> H since we need to reason about G*)
 lemma component_guaranteesD: 
-     "[| F \<in> X guarantees Y;  F\<squnion>G = H;  H \<in> X;  F ok G |]  
-      ==> H \<in> Y"
+     "[| F \<in> X guarantees Y;  F\<squnion>G = H;  H \<in> X;  F ok G |] ==> H \<in> Y"
 by (unfold guar_def, blast)
 
 lemma guarantees_weaken: 
@@ -185,10 +188,7 @@ apply (auto simp add: component_of_def)
 done
 
 lemma guarantees_imp: "(Y = UNIV guarantees Y) ==> ex_prop(Y)"
-apply (simp (no_asm_use) add: guar_def ex_prop_equiv)
-apply safe
-apply (auto simp add: component_of_def dest: sym)
-done
+by (auto simp add: guar_def ex_prop_equiv component_of_def dest: sym)
 
 lemma ex_prop_equiv2: "(ex_prop Y) = (Y = UNIV guarantees Y)"
 apply (rule iffI)
@@ -197,7 +197,7 @@ apply (auto simp add: guarantees_imp)
 done
 
 
-(** Distributive laws.  Re-orient to perform miniscoping **)
+subsection{*Distributive Laws.  Re-Orient to Perform Miniscoping*}
 
 lemma guarantees_UN_left: 
      "(\<Union>i \<in> I. X i) guarantees Y = (\<Inter>i \<in> I. X i guarantees Y)"
@@ -237,7 +237,6 @@ by (unfold guar_def, blast)
 lemma combining1: 
     "[| F \<in> V guarantees X;  F \<in> (X \<inter> Y) guarantees Z |] 
      ==> F \<in> (V \<inter> Y) guarantees Z"
-
 by (unfold guar_def, blast)
 
 lemma combining2: 
@@ -259,30 +258,26 @@ lemma ex_guarantees:
 by (unfold guar_def, blast)
 
 
-(*** Additional guarantees laws, by lcp ***)
+subsection{*Guarantees: Additional Laws (by lcp)*}
 
 lemma guarantees_Join_Int: 
     "[| F \<in> U guarantees V;  G \<in> X guarantees Y; F ok G |]  
      ==> F\<squnion>G \<in> (U \<inter> X) guarantees (V \<inter> Y)"
-apply (unfold guar_def)
-apply (simp (no_asm))
-apply safe
-apply (simp add: Join_assoc)
+apply (simp add: guar_def, safe)
+ apply (simp add: Join_assoc)
 apply (subgoal_tac "F\<squnion>G\<squnion>Ga = G\<squnion>(F\<squnion>Ga) ")
-apply (simp add: ok_commute)
-apply (simp (no_asm_simp) add: Join_ac)
+ apply (simp add: ok_commute)
+apply (simp add: Join_ac)
 done
 
 lemma guarantees_Join_Un: 
     "[| F \<in> U guarantees V;  G \<in> X guarantees Y; F ok G |]   
      ==> F\<squnion>G \<in> (U \<union> X) guarantees (V \<union> Y)"
-apply (unfold guar_def)
-apply (simp (no_asm))
-apply safe
-apply (simp add: Join_assoc)
+apply (simp add: guar_def, safe)
+ apply (simp add: Join_assoc)
 apply (subgoal_tac "F\<squnion>G\<squnion>Ga = G\<squnion>(F\<squnion>Ga) ")
-apply (simp add: ok_commute)
-apply (simp (no_asm_simp) add: Join_ac)
+ apply (simp add: ok_commute)
+apply (simp add: Join_ac)
 done
 
 lemma guarantees_JN_INT: 
@@ -308,17 +303,13 @@ apply (auto intro: OK_imp_ok
 done
 
 
-(*** guarantees laws for breaking down the program, by lcp ***)
+subsection{*Guarantees Laws for Breaking Down the Program (by lcp)*}
 
 lemma guarantees_Join_I1: 
      "[| F \<in> X guarantees Y;  F ok G |] ==> F\<squnion>G \<in> X guarantees Y"
-apply (unfold guar_def)
-apply (simp (no_asm))
-apply safe
-apply (simp add: Join_assoc)
-done
+by (simp add: guar_def Join_assoc)
 
-lemma guarantees_Join_I2:
+lemma guarantees_Join_I2:         
      "[| G \<in> X guarantees Y;  F ok G |] ==> F\<squnion>G \<in> X guarantees Y"
 apply (simp add: Join_commute [of _ G] ok_commute [of _ G])
 apply (blast intro: guarantees_Join_I1)
@@ -329,7 +320,8 @@ lemma guarantees_JN_I:
       ==> (\<Squnion>i \<in> I. (F i)) \<in> X guarantees Y"
 apply (unfold guar_def, clarify)
 apply (drule_tac x = "JOIN (I-{i}) F\<squnion>G" in spec)
-apply (auto intro: OK_imp_ok simp add: JN_Join_diff JN_Join_diff Join_assoc [symmetric])
+apply (auto intro: OK_imp_ok 
+            simp add: JN_Join_diff JN_Join_diff Join_assoc [symmetric])
 done
 
 
@@ -346,12 +338,11 @@ by (unfold welldef_def, auto)
 lemma refines_refl: "F refines F wrt X"
 by (unfold refines_def, blast)
 
-
-(* Goalw [refines_def]
+(*We'd like transitivity, but how do we get it?*)
+lemma refines_trans:
      "[| H refines G wrt X;  G refines F wrt X |] ==> H refines F wrt X"
-by Auto_tac
-qed "refines_trans"; *)
-
+apply (simp add: refines_def) 
+oops
 
 
 lemma strict_ex_refine_lemma: 
@@ -406,21 +397,14 @@ lemma guarantees_equiv:
     "(F \<in> X guarantees Y) = (\<forall>H. H \<in> X \<longrightarrow> (F component_of H \<longrightarrow> H \<in> Y))"
 by (unfold guar_def component_of_def, auto)
 
-lemma wg_weakest: "!!X. F:(X guarantees Y) ==> X \<subseteq> (wg F Y)"
+lemma wg_weakest: "!!X. F\<in> (X guarantees Y) ==> X \<subseteq> (wg F Y)"
 by (unfold wg_def, auto)
 
-lemma wg_guarantees: "F:((wg F Y) guarantees Y)"
+lemma wg_guarantees: "F\<in> ((wg F Y) guarantees Y)"
 by (unfold wg_def guar_def, blast)
 
-lemma wg_equiv: 
-  "(H \<in> wg F X) = (F component_of H --> H \<in> X)"
-apply (unfold wg_def)
-apply (simp (no_asm) add: guarantees_equiv)
-apply (rule iffI)
-apply (rule_tac [2] x = "{H}" in exI)
-apply (blast+)
-done
-
+lemma wg_equiv: "(H \<in> wg F X) = (F component_of H --> H \<in> X)"
+by (simp add: guarantees_equiv wg_def, blast)
 
 lemma component_of_wg: "F component_of H ==> (H \<in> wg F X) = (H \<in> X)"
 by (simp add: wg_equiv)
@@ -447,93 +431,62 @@ lemma wx_subset: "(wx X)<=X"
 by (unfold wx_def, auto)
 
 lemma wx_ex_prop: "ex_prop (wx X)"
-apply (unfold wx_def)
-apply (simp (no_asm) add: ex_prop_equiv)
-apply safe
-apply blast
-apply auto
+apply (simp add: wx_def ex_prop_equiv, safe, blast)
+apply force 
 done
 
 lemma wx_weakest: "\<forall>Z. Z<= X --> ex_prop Z --> Z \<subseteq> wx X"
-by (unfold wx_def, auto)
+by (auto simp add: wx_def)
 
 (* Proposition 6 *)
 lemma wx'_ex_prop: "ex_prop({F. \<forall>G. F ok G --> F\<squnion>G \<in> X})"
 apply (unfold ex_prop_def, safe)
-apply (drule_tac x = "G\<squnion>Ga" in spec)
-apply (force simp add: ok_Join_iff1 Join_assoc)
+ apply (drule_tac x = "G\<squnion>Ga" in spec)
+ apply (force simp add: ok_Join_iff1 Join_assoc)
 apply (drule_tac x = "F\<squnion>Ga" in spec)
-apply (simp (no_asm_use) add: ok_Join_iff1)
-apply safe
-apply (simp (no_asm_simp) add: ok_commute)
-apply (subgoal_tac "F\<squnion>G = G\<squnion>F")
-apply (simp (no_asm_simp) add: Join_assoc)
-apply (simp (no_asm) add: Join_commute)
+apply (simp add: ok_Join_iff1 ok_commute  Join_ac) 
 done
 
-(* Equivalence with the other definition of wx *)
+text{* Equivalence with the other definition of wx *}
 
-lemma wx_equiv: 
- "wx X = {F. \<forall>G. F ok G --> (F\<squnion>G):X}"
-
+lemma wx_equiv: "wx X = {F. \<forall>G. F ok G --> (F\<squnion>G) \<in> X}"
 apply (unfold wx_def, safe)
-apply (simp (no_asm_use) add: ex_prop_def)
-apply (drule_tac x = x in spec)
-apply (drule_tac x = G in spec)
-apply (frule_tac c = "x\<squnion>G" in subsetD, safe)
+ apply (simp add: ex_prop_def, blast) 
 apply (simp (no_asm))
 apply (rule_tac x = "{F. \<forall>G. F ok G --> F\<squnion>G \<in> X}" in exI, safe)
 apply (rule_tac [2] wx'_ex_prop)
-apply (rotate_tac 1)
-apply (drule_tac x = SKIP in spec, auto)
+apply (drule_tac x = SKIP in spec)+
+apply auto 
 done
 
 
-(* Propositions 7 to 11 are about this second definition of wx. And
-   they are the same as the ones proved for the first definition of wx by equivalence *)
+text{* Propositions 7 to 11 are about this second definition of wx. 
+   They are the same as the ones proved for the first definition of wx,
+ by equivalence *}
    
 (* Proposition 12 *)
 (* Main result of the paper *)
-lemma guarantees_wx_eq: 
-   "(X guarantees Y) = wx(-X \<union> Y)"
-apply (unfold guar_def)
-apply (simp (no_asm) add: wx_equiv)
-done
+lemma guarantees_wx_eq: "(X guarantees Y) = wx(-X \<union> Y)"
+by (simp add: guar_def wx_equiv)
 
-(* {* Corollary, but this result has already been proved elsewhere *}
- "ex_prop(X guarantees Y)"
-  by (simp_tac (simpset() addsimps [guar_wx_iff, wx_ex_prop]) 1);
-  qed "guarantees_ex_prop";
-*)
 
 (* Rules given in section 7 of Chandy and Sander's
     Reasoning About Program composition paper *)
-
 lemma stable_guarantees_Always:
-     "Init F \<subseteq> A ==> F:(stable A) guarantees (Always A)"
+     "Init F \<subseteq> A ==> F \<in> (stable A) guarantees (Always A)"
 apply (rule guaranteesI)
-apply (simp (no_asm) add: Join_commute)
+apply (simp add: Join_commute)
 apply (rule stable_Join_Always1)
-apply (simp_all add: invariant_def Join_stable)
+ apply (simp_all add: invariant_def Join_stable)
 done
-
-(* To be moved to WFair.ML *)
-lemma leadsTo_Basis': "[| F \<in> A co A \<union> B; F \<in> transient A |] ==> F \<in> A leadsTo B"
-apply (drule_tac B = "A-B" in constrains_weaken_L)
-apply (drule_tac [2] B = "A-B" in transient_strengthen)
-apply (rule_tac [3] ensuresI [THEN leadsTo_Basis])
-apply (blast+)
-done
-
-
 
 lemma constrains_guarantees_leadsTo:
      "F \<in> transient A ==> F \<in> (A co A \<union> B) guarantees (A leadsTo (B-A))"
 apply (rule guaranteesI)
 apply (rule leadsTo_Basis')
-apply (drule constrains_weaken_R)
-prefer 2 apply assumption
-apply blast
+ apply (drule constrains_weaken_R)
+  prefer 2 apply assumption
+ apply blast
 apply (blast intro: Join_transient_I1)
 done
 

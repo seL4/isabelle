@@ -174,6 +174,14 @@ apply (unfold leadsTo_def)
 apply (blast intro: leads.Trans)
 done
 
+lemma leadsTo_Basis':
+     "[| F \<in> A co A \<union> B; F \<in> transient A |] ==> F \<in> A leadsTo B"
+apply (drule_tac B = "A-B" in constrains_weaken_L)
+apply (drule_tac [2] B = "A-B" in transient_strengthen)
+apply (rule_tac [3] ensuresI [THEN leadsTo_Basis])
+apply (blast+)
+done
+
 lemma transient_imp_leadsTo: "F \<in> transient A ==> F \<in> A leadsTo (-A)"
 by (simp (no_asm_simp) add: leadsTo_Basis ensuresI Compl_partition)
 
