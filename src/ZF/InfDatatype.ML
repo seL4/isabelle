@@ -113,13 +113,13 @@ by (subgoal_tac "f`w : Vfrom(A, LEAST i. f`w : Vfrom(A,i))" 1);
 by (fast_tac (ZF_cs addEs [LeastI, ltE]) 2);
 by (eresolve_tac [[subset_refl, UN_upper] MRS Vfrom_mono RS subsetD] 1);
 by (assume_tac 1);
-val fun_Vcsucc_lemma = result();
+qed "fun_Vcsucc_lemma";
 
 goal InfDatatype.thy
     "!!K. [| W <= Vfrom(A,csucc(K));  |W| le K;  InfCard(K)	\
 \         |] ==> EX j. W <= Vfrom(A,j) & j < csucc(K)";
 by (asm_full_simp_tac (ZF_ss addsimps [subset_iff_id, fun_Vcsucc_lemma]) 1);
-val subset_Vcsucc = result();
+qed "subset_Vcsucc";
 
 (*Version for arbitrary index sets*)
 goal InfDatatype.thy
@@ -134,14 +134,14 @@ by (eresolve_tac [subset_trans RS PowI] 2);
 by (fast_tac (ZF_cs addIs [Pair_in_Vfrom, Vfrom_UnI1, Vfrom_UnI2]) 2);
 by (REPEAT (ares_tac [ltD, InfCard_csucc, InfCard_is_Limit, 
 		      Limit_has_succ, Un_least_lt] 1));
-val fun_Vcsucc = result();
+qed "fun_Vcsucc";
 
 goal InfDatatype.thy
     "!!K. [| f: W -> Vfrom(A, csucc(K));  |W| le K;  InfCard(K);	\
 \            W <= Vfrom(A,csucc(K)) 					\
 \         |] ==> f: Vfrom(A,csucc(K))";
 by (REPEAT (ares_tac [fun_Vcsucc RS subsetD] 1));
-val fun_in_Vcsucc = result();
+qed "fun_in_Vcsucc";
 
 (*Remove <= from the rule above*)
 val fun_in_Vcsucc' = subsetI RSN (4, fun_in_Vcsucc);
@@ -154,13 +154,13 @@ by (forward_tac [InfCard_is_Card RS Card_is_Ord] 1);
 by (REPEAT (ares_tac [fun_Vcsucc, Ord_cardinal_le,
 		      i_subset_Vfrom,
 		      lt_csucc RS leI RS le_imp_subset RS subset_trans] 1));
-val Card_fun_Vcsucc = result();
+qed "Card_fun_Vcsucc";
 
 goal InfDatatype.thy
     "!!K. [| f: K -> Vfrom(A, csucc(K));  InfCard(K) \
 \         |] ==> f: Vfrom(A,csucc(K))";
 by (REPEAT (ares_tac [Card_fun_Vcsucc RS subsetD] 1));
-val Card_fun_in_Vcsucc = result();
+qed "Card_fun_in_Vcsucc";
 
 val Pair_in_Vcsucc = Limit_csucc RSN (3, Pair_in_VLimit) |> standard;
 val Inl_in_Vcsucc  = Limit_csucc RSN (2, Inl_in_VLimit) |> standard;

@@ -38,7 +38,7 @@ val major::prems = goal Term.thy
 by (rtac (major RS term.induct) 1);
 by (resolve_tac prems 1);
 by (REPEAT (eresolve_tac [asm_rl, map_list_Collect, list_CollectD] 1));
-val term_induct_eqn = result();
+qed "term_induct_eqn";
 
 (**  Lemmas to justify using "term" in other recursive type definitions **)
 
@@ -86,7 +86,7 @@ by (rtac (term_rec_def RS def_Vrec RS trans) 1);
 by (rewrite_goals_tac term.con_defs);
 val term_rec_ss = ZF_ss addsimps [Ord_rank, rank_pair2, prem RS map_lemma];
 by (simp_tac term_rec_ss 1);
-val term_rec = result();
+qed "term_rec";
 
 (*Slightly odd typing condition on r in the second premise!*)
 val major::prems = goal Term.thy
@@ -110,7 +110,7 @@ val [rew,tslist] = goal Term.thy
 \    j(Apply(a,ts)) = d(a, ts, map(%Z.j(Z), ts))";
 by (rewtac rew);
 by (rtac (tslist RS term_rec) 1);
-val def_term_rec = result();
+qed "def_term_rec";
 
 val prems = goal Term.thy
     "[| t: term(A);					     \
@@ -119,7 +119,7 @@ val prems = goal Term.thy
 \    |] ==> term_rec(t,d) : C";
 by (REPEAT (ares_tac (term_rec_type::prems) 1));
 by (etac (subset_refl RS UN_least RS list_mono RS subsetD) 1);
-val term_rec_simple_type = result();
+qed "term_rec_simple_type";
 
 
 (** term_map **)
@@ -129,13 +129,13 @@ val term_map = standard (term_map_def RS def_term_rec);
 val prems = goalw Term.thy [term_map_def]
     "[| t: term(A);  !!x. x: A ==> f(x): B |] ==> term_map(f,t) : term(B)";
 by (REPEAT (ares_tac ([term_rec_simple_type, term.Apply_I] @ prems) 1));
-val term_map_type = result();
+qed "term_map_type";
 
 val [major] = goal Term.thy
     "t: term(A) ==> term_map(f,t) : term({f(u). u:A})";
 by (rtac (major RS term_map_type) 1);
 by (etac RepFunI 1);
-val term_map_type2 = result();
+qed "term_map_type2";
 
 
 (** term_size **)

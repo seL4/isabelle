@@ -53,7 +53,7 @@ val is_true_Var = result();
 goalw PropLog.thy [is_true_def]
     "is_true(p=>q,t) <-> (is_true(p,t)-->is_true(q,t))";
 by (simp_tac (prop_rec_ss setloop (split_tac [expand_if])) 1);
-val is_true_Imp = result();
+qed "is_true_Imp";
 
 (** The function hyps **)
 
@@ -90,7 +90,7 @@ val ImpE = prop.mk_cases prop.con_defs "p=>q : prop";
 goal PropLog.thy "!!p q H. [| H |- p=>q;  H |- p |] ==> H |- q";
 by (rtac thms.MP 1);
 by (REPEAT (eresolve_tac [asm_rl, thms_in_pl, thms_in_pl RS ImpE] 1));
-val thms_MP = result();
+qed "thms_MP";
 
 (*Rule is called I for Identity Combinator, not for Introduction*)
 goal PropLog.thy "!!p H. p:prop ==> H |- p=>p";
@@ -98,7 +98,7 @@ by (rtac (thms.S RS thms_MP RS thms_MP) 1);
 by (rtac thms.K 5);
 by (rtac thms.K 4);
 by (REPEAT (ares_tac prop.intrs 1));
-val thms_I = result();
+qed "thms_I";
 
 (** Weakening, left and right **)
 
@@ -114,7 +114,7 @@ val weaken_left_Un2  = Un_upper2 RS weaken_left;
 goal PropLog.thy "!!H p q. [| H |- q;  p:prop |] ==> H |- p=>q";
 by (rtac (thms.K RS thms_MP) 1);
 by (REPEAT (ares_tac [thms_in_pl] 1));
-val weaken_right = result();
+qed "weaken_right";
 
 (*The deduction theorem*)
 goal PropLog.thy "!!p q H. [| cons(p,H) |- q;  p:prop |] ==>  H |- p=>q";
@@ -124,7 +124,7 @@ by (fast_tac (ZF_cs addIs [thms.K RS weaken_right]) 1);
 by (fast_tac (ZF_cs addIs [thms.S RS weaken_right]) 1);
 by (fast_tac (ZF_cs addIs [thms.DN RS weaken_right]) 1);
 by (fast_tac (ZF_cs addIs [thms.S RS thms_MP RS thms_MP]) 1);
-val deduction = result();
+qed "deduction";
 
 
 (*The cut rule*)
@@ -157,7 +157,7 @@ by (rtac (premf RS thms_in_pl RS ImpE) 1);
 by (rtac deduction 1);
 by (rtac (premf RS weaken_left_cons RS thms_notE) 1);
 by (REPEAT (ares_tac [premq, consI1, thms.H] 1));
-val Fls_Imp = result();
+qed "Fls_Imp";
 
 val [premp,premq] = goal PropLog.thy
     "[| H |- p;  H |- q=>Fls |] ==> H |- (p=>q)=>Fls";
@@ -208,7 +208,7 @@ val prems = goal PropLog.thy
     "[| cons(p,H) |- q;  cons(p=>Fls,H) |- q;  p: prop |] ==> H |- q";
 by (rtac (thms_excluded_middle RS thms_MP RS thms_MP) 1);
 by (REPEAT (resolve_tac (prems@prop.intrs@[deduction,thms_in_pl]) 1));
-val thms_excluded_middle_rule = result();
+qed "thms_excluded_middle_rule";
 
 (*** Completeness -- lemmas for reducing the set of assumptions ***)
 
@@ -240,11 +240,11 @@ val hyps_cons = result();
 
 goal ZF.thy "B-C <= cons(a, B-cons(a,C))";
 by (fast_tac ZF_cs 1);
-val cons_Diff_same = result();
+qed "cons_Diff_same";
 
 goal ZF.thy "cons(a, B-{c}) - D <= cons(a, B-cons(c,D))";
 by (fast_tac ZF_cs 1);
-val cons_Diff_subset2 = result();
+qed "cons_Diff_subset2";
 
 (*The set hyps(p,t) is finite, and elements have the form #v or #v=>Fls;
  could probably prove the stronger hyps(p,t) : Fin(hyps(p,0) Un hyps(p,nat))*)

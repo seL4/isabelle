@@ -15,12 +15,12 @@ open Zorn;
 
 goal ZF.thy "!!A B C. (ALL x:C. x<=A | B<=x) ==> Union(C)<=A | B<=Union(C)";
 by (fast_tac ZF_cs 1);
-val Union_lemma0 = result();
+qed "Union_lemma0";
 
 goal ZF.thy
     "!!A B C. [| c:C; ALL x:C. A<=x | x<=B |] ==> A<=Inter(C) | Inter(C)<=B";
 by (fast_tac ZF_cs 1);
-val Inter_lemma0 = result();
+qed "Inter_lemma0";
 
 
 (*** Section 2.  The Transfinite Construction ***)
@@ -28,13 +28,13 @@ val Inter_lemma0 = result();
 goalw Zorn.thy [increasing_def]
     "!!f A. f: increasing(A) ==> f: Pow(A)->Pow(A)";
 by (eresolve_tac [CollectD1] 1);
-val increasingD1 = result();
+qed "increasingD1";
 
 goalw Zorn.thy [increasing_def]
     "!!f A. [| f: increasing(A); x<=A |] ==> x <= f`x";
 by (eresolve_tac [CollectD2 RS spec RS mp] 1);
 by (assume_tac 1);
-val increasingD2 = result();
+qed "increasingD2";
 
 (*Introduction rules*)
 val [TFin_nextI, Pow_TFin_UnionI] = TFin.intrs;
@@ -52,7 +52,7 @@ val major::prems = goal Zorn.thy
 \  |] ==> P(n)";
 by (rtac (major RS TFin.induct) 1);
 by (ALLGOALS (fast_tac (ZF_cs addIs prems)));
-val TFin_induct = result();
+qed "TFin_induct";
 
 (*Perform induction on n, then prove the major premise using prems. *)
 fun TFin_ind_tac a prems i = 
@@ -75,7 +75,7 @@ by (cut_facts_tac prems 1);
 br (major RS TFin_induct) 1;
 by (etac Union_lemma0 2);		(*or just fast_tac ZF_cs*)
 by (fast_tac (subset_cs addIs [increasing_trans]) 1);
-val TFin_linear_lemma1 = result();
+qed "TFin_linear_lemma1";
 
 (*Lemma 2 of section 3.2.  Interesting in its own right!
   Requires next: increasing(S) in the second induction step. *)
@@ -103,7 +103,7 @@ by (res_inst_tac [("n1","n"), ("m1","x")]
 by (fast_tac subset_cs 1);
 br (ninc RS increasingD2 RS subset_trans RS disjI1) 1;
 by (REPEAT (ares_tac [TFin_is_subset] 1));
-val TFin_linear_lemma2 = result();
+qed "TFin_linear_lemma2";
 
 (*a more convenient form for Lemma 2*)
 goal Zorn.thy
@@ -111,7 +111,7 @@ goal Zorn.thy
 \           |] ==> n=m | next`n<=m";
 br (TFin_linear_lemma2 RS bspec RS mp) 1;
 by (REPEAT (assume_tac 1));
-val TFin_subsetD = result();
+qed "TFin_subsetD";
 
 (*Consequences from section 3.3 -- Property 3.2, the ordering is total*)
 goal Zorn.thy
@@ -121,7 +121,7 @@ br (TFin_linear_lemma2 RSN (3,TFin_linear_lemma1) RS disjE) 1;
 by (REPEAT (assume_tac 1) THEN etac disjI2 1);
 by (fast_tac (subset_cs addIs [increasingD2 RS subset_trans, 
 			       TFin_is_subset]) 1);
-val TFin_subset_linear = result();
+qed "TFin_subset_linear";
 
 
 (*Lemma 3 of section 3.3*)
@@ -133,7 +133,7 @@ bd TFin_subsetD 1;
 by (REPEAT (assume_tac 1));
 by (fast_tac (ZF_cs addEs [ssubst]) 1);
 by (fast_tac (subset_cs addIs [TFin_is_subset]) 1);
-val equal_next_upper = result();
+qed "equal_next_upper";
 
 (*Property 3.3 of section 3.3*)
 goal Zorn.thy
@@ -147,7 +147,7 @@ be ssubst 1;
 by (rtac (increasingD2 RS equalityI) 1 THEN assume_tac 1);
 by (ALLGOALS
     (fast_tac (subset_cs addIs [TFin_UnionI, TFin_nextI, TFin_is_subset])));
-val equal_next_Union = result();
+qed "equal_next_Union";
 
 
 (*** Section 4.  Hausdorff's Theorem: every set contains a maximal chain ***)
@@ -157,15 +157,15 @@ val equal_next_Union = result();
 
 goalw Zorn.thy [chain_def] "chain(A) <= Pow(A)";
 by (resolve_tac [Collect_subset] 1);
-val chain_subset_Pow = result();
+qed "chain_subset_Pow";
 
 goalw Zorn.thy [super_def] "super(A,c) <= chain(A)";
 by (resolve_tac [Collect_subset] 1);
-val super_subset_chain = result();
+qed "super_subset_chain";
 
 goalw Zorn.thy [maxchain_def] "maxchain(A) <= chain(A)";
 by (resolve_tac [Collect_subset] 1);
-val maxchain_subset_chain = result();
+qed "maxchain_subset_chain";
 
 goal Zorn.thy
     "!!S. [| ch : (PROD X:Pow(chain(S)) - {0}. X);	\
@@ -174,7 +174,7 @@ goal Zorn.thy
 by (eresolve_tac [apply_type] 1);
 by (rewrite_goals_tac [super_def, maxchain_def]);
 by (fast_tac ZF_cs 1);
-val choice_super = result();
+qed "choice_super";
 
 goal Zorn.thy
     "!!S. [| ch : (PROD X:Pow(chain(S)) - {0}. X);	\
@@ -185,7 +185,7 @@ by (dresolve_tac [choice_super] 1);
 by (assume_tac 1);
 by (assume_tac 1);
 by (asm_full_simp_tac (ZF_ss addsimps [super_def]) 1);
-val choice_not_equals = result();
+qed "choice_not_equals";
 
 (*This justifies Definition 4.4*)
 goal Zorn.thy
@@ -213,7 +213,7 @@ by (dresolve_tac [choice_super] 1);
 by (REPEAT (assume_tac 1));
 bw super_def;
 by (fast_tac ZF_cs 1);
-val Hausdorff_next_exists = result();
+qed "Hausdorff_next_exists";
 
 (*Lemma 4*)
 goal Zorn.thy
@@ -236,7 +236,7 @@ by (res_inst_tac  [("m1","B"), ("n1","Ba")] (TFin_subset_linear RS disjE) 1);
 (*fast_tac is just too slow here!*)
 by (DEPTH_SOLVE (eresolve_tac [asm_rl, subsetD] 1
        ORELSE ball_tac 1 THEN etac (CollectD2 RS bspec RS bspec) 1));
-val TFin_chain_lemma4 = result();
+qed "TFin_chain_lemma4";
 
 goal Zorn.thy "EX c. c : maxchain(S)";
 by (rtac (AC_Pi_Pow RS exE) 1);
@@ -258,7 +258,7 @@ by (asm_full_simp_tac
            setloop split_tac [expand_if]) 1);
 by (eresolve_tac [choice_not_equals RS notE] 1);
 by (REPEAT (assume_tac 1));
-val Hausdorff = result();
+qed "Hausdorff";
 
 
 (*** Section 5.  Zorn's Lemma: if all chains in S have upper bounds in S 
@@ -268,7 +268,7 @@ val Hausdorff = result();
 goalw Zorn.thy [chain_def]
     "!!c. [| c: chain(A);  z: A;  ALL x:c. x<=z |] ==> cons(z,c) : chain(A)";
 by (fast_tac ZF_cs 1);
-val chain_extend = result();
+qed "chain_extend";
 
 goal Zorn.thy
     "!!S. ALL c: chain(S). Union(c) : S ==> EX y:S. ALL z:S. y<=z --> y=z";
@@ -286,7 +286,7 @@ bw super_def;
 by (safe_tac eq_cs);
 by (fast_tac (ZF_cs addEs [chain_extend]) 1);
 by (best_tac (ZF_cs addEs [equalityE]) 1);
-val Zorn = result();
+qed "Zorn";
 
 
 (*** Section 6.  Zermelo's Theorem: every set can be well-ordered ***)
@@ -304,7 +304,7 @@ by (REPEAT_SOME (eresolve_tac [asm_rl,subsetD]));
 by (subgoal_tac "x = Inter(Z)" 1);
 by (fast_tac ZF_cs 1);
 by (fast_tac eq_cs 1);
-val TFin_well_lemma5 = result();
+qed "TFin_well_lemma5";
 
 (*Well-ordering of TFin(S,next)*)
 goal Zorn.thy "!!Z. [| Z <= TFin(S,next);  z:Z |] ==> Inter(Z) : Z";
@@ -315,7 +315,7 @@ be equal_singleton 1;
 br (Union_upper RS equalityI) 1;
 br (subset_refl RS TFin_UnionI RS TFin_well_lemma5 RS bspec) 2;
 by (REPEAT_SOME (eresolve_tac [asm_rl,subsetD]));
-val well_ord_TFin_lemma = result();
+qed "well_ord_TFin_lemma";
 
 (*This theorem just packages the previous result*)
 goal Zorn.thy
@@ -337,7 +337,7 @@ by (resolve_tac [wf_onI] 1);
 by (forward_tac [well_ord_TFin_lemma] 1 THEN assume_tac 1);
 by (dres_inst_tac [("x","Inter(Z)")] bspec 1 THEN assume_tac 1);
 by (fast_tac eq_cs 1);
-val well_ord_TFin = result();
+qed "well_ord_TFin";
 
 (** Defining the "next" operation for Zermelo's Theorem **)
 
@@ -346,7 +346,7 @@ goal AC.thy
 \         |] ==> ch ` (S-X) : S-X";
 by (eresolve_tac [apply_type] 1);
 by (fast_tac (eq_cs addEs [equalityE]) 1);
-val choice_Diff = result();
+qed "choice_Diff";
 
 (*This justifies Definition 6.1*)
 goal Zorn.thy
@@ -369,7 +369,7 @@ by (asm_simp_tac (ZF_ss addsimps [Pow_iff, subset_consI, subset_refl]
 by (asm_simp_tac (ZF_ss addsimps [Pow_iff, cons_subset_iff, subset_refl]
                         setloop split_tac [expand_if]) 1);
 by (fast_tac (ZF_cs addSIs [choice_Diff RS DiffD1]) 1);
-val Zermelo_next_exists = result();
+qed "Zermelo_next_exists";
 
 
 (*The construction of the injection*)
@@ -405,7 +405,7 @@ by (asm_full_simp_tac
 		     Pow_iff, cons_subset_iff, subset_refl]
            setloop split_tac [expand_if]) 1);
 by (REPEAT (eresolve_tac [asm_rl, consE, sym, notE] 1));
-val choice_imp_injection = result();
+qed "choice_imp_injection";
 
 (*The wellordering theorem*)
 goal Zorn.thy "EX r. well_ord(S,r)";
@@ -417,4 +417,4 @@ by (resolve_tac [well_ord_rvimage] 1);
 by (eresolve_tac [well_ord_TFin] 2);
 by (resolve_tac [choice_imp_injection RS inj_weaken_type] 1);
 by (REPEAT (ares_tac [Diff_subset] 1));
-val AC_well_ord = result();
+qed "AC_well_ord";

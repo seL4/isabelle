@@ -15,23 +15,23 @@ open Rel;
 val prems = goalw Rel.thy [irrefl_def]
     "[| !!x. x:A ==> <x,x> ~: r |] ==> irrefl(A,r)";
 by (REPEAT (ares_tac (prems @ [ballI]) 1));
-val irreflI = result();
+qed "irreflI";
 
 val prems = goalw Rel.thy [irrefl_def]
     "[| irrefl(A,r);  x:A |] ==>  <x,x> ~: r";
 by (rtac (prems MRS bspec) 1);
-val irreflE = result();
+qed "irreflE";
 
 (* symmetry *)
 
 val prems = goalw Rel.thy [sym_def]
      "[| !!x y.<x,y>: r ==> <y,x>: r |] ==> sym(r)";
 by (REPEAT (ares_tac (prems @ [allI,impI]) 1));
-val symI = result();
+qed "symI";
 
 goalw Rel.thy [sym_def] "!!r. [| sym(r); <x,y>: r |]  ==>  <y,x>: r";
 by (fast_tac ZF_cs 1);
-val symE = result();
+qed "symE";
 
 (* antisymmetry *)
 
@@ -39,22 +39,22 @@ val prems = goalw Rel.thy [antisym_def]
      "[| !!x y.[| <x,y>: r;  <y,x>: r |] ==> x=y |] ==> \
 \     antisym(r)";
 by (REPEAT (ares_tac (prems @ [allI,impI]) 1));
-val antisymI = result();
+qed "antisymI";
 
 val prems = goalw Rel.thy [antisym_def]
      "!!r. [| antisym(r); <x,y>: r;  <y,x>: r |]  ==>  x=y";
 by (fast_tac ZF_cs 1);
-val antisymE = result();
+qed "antisymE";
 
 (* transitivity *)
 
 goalw Rel.thy [trans_def]
     "!!r. [| trans(r);  <a,b>:r;  <b,c>:r |] ==> <a,c>:r";
 by (fast_tac ZF_cs 1);
-val transD = result();
+qed "transD";
 
 goalw Rel.thy [trans_on_def]
     "!!r. [| trans[A](r);  <a,b>:r;  <b,c>:r;  a:A;  b:A;  c:A |] ==> <a,c>:r";
 by (fast_tac ZF_cs 1);
-val trans_onD = result();
+qed "trans_onD";
 

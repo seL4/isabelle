@@ -41,7 +41,7 @@ let open tree_forest;
 by (fast_tac (sum_cs addSIs (equalityI :: (map rew intrs RL [PartD1]))
                      addEs [rew elim]) 1)
 end;
-val tree_forest_unfold = result();
+qed "tree_forest_unfold";
 
 val tree_forest_unfold' = rewrite_rule [tree_def, forest_def] 
                           tree_forest_unfold;
@@ -67,20 +67,20 @@ goal TF.thy "TF_rec(Tcons(a,f), b, c, d) = b(a, f, TF_rec(f,b,c,d))";
 by (rtac (TF_rec_def RS def_Vrec RS trans) 1);
 by (rewrite_goals_tac tree_forest.con_defs);
 by (simp_tac rank_ss 1);
-val TF_rec_Tcons = result();
+qed "TF_rec_Tcons";
 
 goal TF.thy "TF_rec(Fnil, b, c, d) = c";
 by (rtac (TF_rec_def RS def_Vrec RS trans) 1);
 by (rewrite_goals_tac tree_forest.con_defs);
 by (simp_tac rank_ss 1);
-val TF_rec_Fnil = result();
+qed "TF_rec_Fnil";
 
 goal TF.thy "TF_rec(Fcons(t,f), b, c, d) = \
 \      d(t, f, TF_rec(t, b, c, d), TF_rec(f, b, c, d))";
 by (rtac (TF_rec_def RS def_Vrec RS trans) 1);
 by (rewrite_goals_tac tree_forest.con_defs);
 by (simp_tac rank_ss 1);
-val TF_rec_Fcons = result();
+qed "TF_rec_Fcons";
 
 (*list_ss includes list operations as well as arith_ss*)
 val TF_rec_ss = list_ss addsimps
@@ -98,7 +98,7 @@ val major::prems = goal TF.thy
 \    |] ==> TF_rec(z,b,c,d) : C(z)";
 by (rtac (major RS tree_forest.induct) 1);
 by (ALLGOALS (asm_simp_tac (TF_rec_ss addsimps prems)));
-val TF_rec_type = result();
+qed "TF_rec_type";
 
 (*Mutually recursive version*)
 val prems = goal TF.thy

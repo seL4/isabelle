@@ -18,7 +18,7 @@ goalw Finite.thy Fin.defs "!!A B. A<=B ==> Fin(A) <= Fin(B)";
 by (rtac lfp_mono 1);
 by (REPEAT (rtac Fin.bnd_mono 1));
 by (REPEAT (ares_tac (Pow_mono::basic_monos) 1));
-val Fin_mono = result();
+qed "Fin_mono";
 
 (* A : Fin(B) ==> A <= B *)
 val FinD = Fin.dom_subset RS subsetD RS PowD;
@@ -35,7 +35,7 @@ by (rtac (major RS Fin.induct) 1);
 by (excluded_middle_tac "a:b" 2);
 by (etac (cons_absorb RS ssubst) 3 THEN assume_tac 3);	    (*backtracking!*)
 by (REPEAT (ares_tac prems 1));
-val Fin_induct = result();
+qed "Fin_induct";
 
 (** Simplification for Fin **)
 val Fin_ss = arith_ss addsimps Fin.intrs;
@@ -45,13 +45,13 @@ val major::prems = goal Finite.thy
     "[| b: Fin(A);  c: Fin(A) |] ==> b Un c : Fin(A)";
 by (rtac (major RS Fin_induct) 1);
 by (ALLGOALS (asm_simp_tac (Fin_ss addsimps (prems@[Un_0, Un_cons]))));
-val Fin_UnI = result();
+qed "Fin_UnI";
 
 (*The union of a set of finite sets is finite.*)
 val [major] = goal Finite.thy "C : Fin(Fin(A)) ==> Union(C) : Fin(A)";
 by (rtac (major RS Fin_induct) 1);
 by (ALLGOALS (asm_simp_tac (Fin_ss addsimps [Union_0, Union_cons, Fin_UnI])));
-val Fin_UnionI = result();
+qed "Fin_UnionI";
 
 (*Every subset of a finite set is finite.*)
 goal Finite.thy "!!b A. b: Fin(A) ==> ALL z. z<=b --> z: Fin(A)";
@@ -61,11 +61,11 @@ by (asm_simp_tac (ZF_ss addsimps subset_cons_iff::distrib_rews) 1);
 by (safe_tac ZF_cs);
 by (eres_inst_tac [("b","z")] (cons_Diff RS subst) 1);
 by (asm_simp_tac Fin_ss 1);
-val Fin_subset_lemma = result();
+qed "Fin_subset_lemma";
 
 goal Finite.thy "!!c b A. [| c<=b;  b: Fin(A) |] ==> c: Fin(A)";
 by (REPEAT (ares_tac [Fin_subset_lemma RS spec RS mp] 1));
-val Fin_subset = result();
+qed "Fin_subset";
 
 val major::prems = goal Finite.thy 
     "[| c: Fin(A);  b: Fin(A);  				\
@@ -76,7 +76,7 @@ by (rtac (major RS Fin_induct) 1);
 by (rtac (Diff_cons RS ssubst) 2);
 by (ALLGOALS (asm_simp_tac (Fin_ss addsimps (prems@[Diff_0, cons_subset_iff, 
 				Diff_subset RS Fin_subset]))));
-val Fin_0_induct_lemma = result();
+qed "Fin_0_induct_lemma";
 
 val prems = goal Finite.thy 
     "[| b: Fin(A);  						\
@@ -86,7 +86,7 @@ val prems = goal Finite.thy
 by (rtac (Diff_cancel RS subst) 1);
 by (rtac (Fin_0_induct_lemma RS mp) 1);
 by (REPEAT (ares_tac (subset_refl::prems) 1));
-val Fin_0_induct = result();
+qed "Fin_0_induct";
 
 (*Functions from a finite ordinal*)
 val prems = goal Finite.thy "n: nat ==> n->A <= Fin(nat*A)";
@@ -94,7 +94,7 @@ by (nat_ind_tac "n" prems 1);
 by (simp_tac (ZF_ss addsimps [Pi_empty1, Fin.emptyI, subset_iff, cons_iff]) 1);
 by (asm_simp_tac (ZF_ss addsimps [succ_def, mem_not_refl RS cons_fun_eq]) 1);
 by (fast_tac (ZF_cs addSIs [Fin.consI]) 1);
-val nat_fun_subset_Fin = result();
+qed "nat_fun_subset_Fin";
 
 
 (*** Finite function space ***)
@@ -104,23 +104,23 @@ goalw Finite.thy FiniteFun.defs
 by (rtac lfp_mono 1);
 by (REPEAT (rtac FiniteFun.bnd_mono 1));
 by (REPEAT (ares_tac (Fin_mono::Sigma_mono::basic_monos) 1));
-val FiniteFun_mono = result();
+qed "FiniteFun_mono";
 
 goal Finite.thy "!!A B. A<=B ==> A -||> A  <=  B -||> B";
 by (REPEAT (ares_tac [FiniteFun_mono] 1));
-val FiniteFun_mono1 = result();
+qed "FiniteFun_mono1";
 
 goal Finite.thy "!!h. h: A -||>B ==> h: domain(h) -> B";
 by (etac FiniteFun.induct 1);
 by (simp_tac (ZF_ss addsimps [empty_fun, domain_0]) 1);
 by (asm_simp_tac (ZF_ss addsimps [fun_extend3, domain_cons]) 1);
-val FiniteFun_is_fun = result();
+qed "FiniteFun_is_fun";
 
 goal Finite.thy "!!h. h: A -||>B ==> domain(h) : Fin(A)";
 by (etac FiniteFun.induct 1);
 by (simp_tac (Fin_ss addsimps [domain_0]) 1);
 by (asm_simp_tac (Fin_ss addsimps [domain_cons]) 1);
-val FiniteFun_domain_Fin = result();
+qed "FiniteFun_domain_Fin";
 
 val FiniteFun_apply_type = FiniteFun_is_fun RS apply_type |> standard;
 
@@ -133,9 +133,9 @@ by (safe_tac ZF_cs);
 by (eres_inst_tac [("b","z")] (cons_Diff RS subst) 1);
 by (dtac (spec RS mp) 1 THEN assume_tac 1);
 by (fast_tac (ZF_cs addSIs FiniteFun.intrs) 1);
-val FiniteFun_subset_lemma = result();
+qed "FiniteFun_subset_lemma";
 
 goal Finite.thy "!!c b A. [| c<=b;  b: A-||>B |] ==> c: A-||>B";
 by (REPEAT (ares_tac [FiniteFun_subset_lemma RS spec RS mp] 1));
-val FiniteFun_subset = result();
+qed "FiniteFun_subset";
 

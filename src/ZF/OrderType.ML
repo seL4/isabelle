@@ -14,7 +14,7 @@ goalw OrderType.thy [ordermap_def,ordertype_def]
 by (rtac lam_type 1);
 by (rtac (lamI RS imageI) 1);
 by (REPEAT (assume_tac 1));
-val ordermap_type = result();
+qed "ordermap_type";
 
 (** Unfolding of ordermap **)
 
@@ -27,7 +27,7 @@ by (etac (wfrec_on RS trans) 1);
 by (assume_tac 1);
 by (asm_simp_tac (ZF_ss addsimps [subset_iff, image_lam,
                                   vimage_singleton_iff]) 1);
-val ordermap_eq_image = result();
+qed "ordermap_eq_image";
 
 (*Useful for rewriting PROVIDED pred is not unfolded until later!*)
 goal OrderType.thy 
@@ -35,7 +35,7 @@ goal OrderType.thy
 \         ordermap(A,r) ` x = {ordermap(A,r)`y . y : pred(A,x,r)}";
 by (asm_simp_tac (ZF_ss addsimps [ordermap_eq_image, pred_subset, 
 				  ordermap_type RS image_fun]) 1);
-val ordermap_pred_unfold = result();
+qed "ordermap_pred_unfold";
 
 (*pred-unfolded version.  NOT suitable for rewriting -- loops!*)
 val ordermap_unfold = rewrite_rule [pred_def] ordermap_pred_unfold;
@@ -58,7 +58,7 @@ by (fast_tac ZF_cs 2);
 by (safe_tac ZF_cs);
 by (ordermap_elim_tac 1);
 by (fast_tac (ZF_cs addSEs [trans_onD]) 1);
-val Ord_ordermap = result();
+qed "Ord_ordermap";
 
 goalw OrderType.thy [ordertype_def]
     "!!r. well_ord(A,r) ==> Ord(ordertype(A,r))";
@@ -69,7 +69,7 @@ by (rewrite_goals_tac [Transset_def,well_ord_def]);
 by (safe_tac ZF_cs);
 by (ordermap_elim_tac 1);
 by (fast_tac ZF_cs 1);
-val Ord_ordertype = result();
+qed "Ord_ordertype";
 
 (** ordermap preserves the orderings in both directions **)
 
@@ -79,7 +79,7 @@ goal OrderType.thy
 by (eres_inst_tac [("x1", "x")] (ordermap_unfold RS ssubst) 1);
 by (assume_tac 1);
 by (fast_tac ZF_cs 1);
-val ordermap_mono = result();
+qed "ordermap_mono";
 
 (*linearity of r is crucial here*)
 goalw OrderType.thy [well_ord_def, tot_ord_def]
@@ -92,7 +92,7 @@ by (dtac ordermap_mono 1);
 by (REPEAT_SOME assume_tac);
 by (etac mem_asym 1);
 by (assume_tac 1);
-val converse_ordermap_mono = result();
+qed "converse_ordermap_mono";
 
 val ordermap_surj = 
     (ordermap_type RS surj_image) |>
@@ -109,7 +109,7 @@ by (linear_case_tac 1);
 by (ALLGOALS (dtac ordermap_mono));
 by (REPEAT_SOME assume_tac);
 by (ALLGOALS (asm_full_simp_tac (ZF_ss addsimps [mem_not_refl])));
-val ordermap_bij = result();
+qed "ordermap_bij";
 
 goalw OrderType.thy [ord_iso_def]
  "!!r. well_ord(A,r) ==> \
@@ -121,7 +121,7 @@ by (fast_tac (ZF_cs addSEs [MemrelE, converse_ordermap_mono]) 2);
 by (rewtac well_ord_def);
 by (fast_tac (ZF_cs addSIs [MemrelI, ordermap_mono,
 			    ordermap_type RS apply_type]) 1);
-val ordertype_ord_iso = result();
+qed "ordertype_ord_iso";
 
 
 (** Unfolding of ordertype **)
@@ -129,7 +129,7 @@ val ordertype_ord_iso = result();
 goalw OrderType.thy [ordertype_def]
     "ordertype(A,r) = {ordermap(A,r)`y . y : A}";
 by (rtac ([ordermap_type, subset_refl] MRS image_fun) 1);
-val ordertype_unfold = result();
+qed "ordertype_unfold";
 
 
 (** Ordertype of Memrel **)
@@ -141,7 +141,7 @@ by (rtac (wf_Memrel RS wf_imp_wf_on) 1);
 by (asm_simp_tac (ZF_ss addsimps [linear_def, Memrel_iff]) 1);
 by (REPEAT (resolve_tac [ballI, Ord_linear] 1));;
 by (REPEAT (eresolve_tac [asm_rl, Ord_in_Ord] 1));;
-val well_ord_Memrel = result();
+qed "well_ord_Memrel";
 
 goal OrderType.thy "!!i. [| Ord(i);  j:i |] ==> ordermap(i,Memrel(i)) ` j = j";
 by (eresolve_tac [Ord_induct] 1);
@@ -152,11 +152,11 @@ by (asm_simp_tac (ZF_ss addsimps [pred_def, Memrel_iff]) 1);
 by (dresolve_tac [OrdmemD] 1);
 by (assume_tac 1);
 by (fast_tac eq_cs 1);
-val ordermap_Memrel = result();
+qed "ordermap_Memrel";
 
 goal OrderType.thy "!!i. Ord(i) ==> ordertype(i,Memrel(i)) = i";
 by (asm_simp_tac (ZF_ss addsimps [ordertype_unfold, ordermap_Memrel]) 1);
-val ordertype_Memrel = result();
+qed "ordertype_Memrel";
 
 (** Ordertype of rvimage **)
 
@@ -174,7 +174,7 @@ by (safe_tac eq_cs);
 by (fast_tac bij_apply_cs 1);
 by (res_inst_tac [("a", "converse(f)`xb")] RepFun_eqI 1);
 by (ALLGOALS (asm_simp_tac bij_inverse_ss));
-val bij_ordermap_vimage = result();
+qed "bij_ordermap_vimage";
 
 goal OrderType.thy
     "!!f. [| f: bij(A,B);  well_ord(B,r) |] ==>	\
@@ -184,7 +184,7 @@ by (safe_tac eq_cs);
 by (fast_tac bij_apply_cs 1);
 by (res_inst_tac [("a", "converse(f)`xa")] RepFun_eqI 1);
 by (ALLGOALS (asm_simp_tac bij_inverse_ss));
-val bij_ordertype_vimage = result();
+qed "bij_ordertype_vimage";
 
 
 goal OrderType.thy
@@ -201,7 +201,7 @@ by (asm_full_simp_tac (ZF_ss addsimps [pred_def]) 1);
 br (refl RSN (2,RepFun_cong)) 1;
 bd well_ord_is_trans_on 1;
 by (fast_tac (eq_cs addSEs [trans_onD]) 1);
-val ordermap_pred_eq_ordermap = result();
+qed "ordermap_pred_eq_ordermap";
 
 
 goal OrderType.thy
@@ -215,5 +215,5 @@ by (asm_simp_tac (ZF_ss addsimps
 		  [well_ord_is_wf RS ordermap_pred_unfold]) 1);
 by (asm_simp_tac (ZF_ss addsimps [ordertype_unfold,
 				  ordermap_pred_eq_ordermap]) 1);
-val ordertype_subset = result();
+qed "ordertype_subset";
 

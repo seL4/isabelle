@@ -44,7 +44,7 @@ val Indept_superset = result();
 
 goalw Ramsey.thy [Atleast_def, inj_def, Pi_def, function_def] "Atleast(0,A)";
 by (fast_tac ZF_cs 1);
-val Atleast0 = result();
+qed "Atleast0";
 
 val [major] = goalw Ramsey.thy [Atleast_def]
     "Atleast(succ(m),A) ==> EX x:A. Atleast(m, A-{x})";
@@ -54,7 +54,7 @@ by (etac (inj_is_fun RS apply_type) 2);
 by (rtac succI1 2);
 by (rtac exI 1);
 by (etac inj_succ_restrict 1);
-val Atleast_succD = result();
+qed "Atleast_succD";
 
 val major::prems = goalw Ramsey.thy [Atleast_def]
     "[| Atleast(n,A);  A<=B |] ==> Atleast(n,B)";
@@ -62,7 +62,7 @@ by (rtac (major RS exE) 1);
 by (rtac exI 1);
 by (etac inj_weaken_type 1);
 by (resolve_tac prems 1);
-val Atleast_superset = result();
+qed "Atleast_superset";
 
 val prems = goalw Ramsey.thy [Atleast_def,succ_def]
     "[| Atleast(m,B);  b~: B |] ==> Atleast(succ(m), cons(b,B))";
@@ -72,7 +72,7 @@ by (rtac exI 1);
 by (etac inj_extend 1);
 by (rtac mem_not_refl 1);
 by (assume_tac 1);
-val Atleast_succI = result();
+qed "Atleast_succI";
 
 val prems = goal Ramsey.thy
     "[| Atleast(m, B-{x});  x: B |] ==> Atleast(succ(m), B)";
@@ -80,7 +80,7 @@ by (cut_facts_tac prems 1);
 by (etac (Atleast_succI RS Atleast_superset) 1);
 by (fast_tac ZF_cs 1);
 by (fast_tac ZF_cs 1);
-val Atleast_Diff_succI = result();
+qed "Atleast_Diff_succI";
 
 (*** Main Cardinality Lemma ***)
 

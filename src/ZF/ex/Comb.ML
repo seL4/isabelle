@@ -33,7 +33,7 @@ val contract_combD2 = contract.dom_subset RS subsetD RS SigmaD2;
 
 goal Comb.thy "field(contract) = comb";
 by (fast_tac (ZF_cs addIs [equalityI,contract.K] addSEs [contract_combE2]) 1);
-val field_contract_eq = result();
+qed "field_contract_eq";
 
 val reduction_refl = standard
     (field_contract_eq RS equalityD2 RS subsetD RS rtrancl_refl);
@@ -54,7 +54,7 @@ val reduce_I = result();
 
 goalw Comb.thy [I_def] "I: comb";
 by (REPEAT (ares_tac comb.intrs 1));
-val comb_I = result();
+qed "comb_I";
 
 (** Non-contraction results **)
 
@@ -218,7 +218,7 @@ by (ALLGOALS
     (fast_tac 
      (contract_cs addIs [Ap_reduce1, Ap_reduce2]
                   addSEs [parcontract_combD1,parcontract_combD2])));
-val parcontract_imp_reduce = result();
+qed "parcontract_imp_reduce";
 
 goal Comb.thy "!!p q. p===>q ==> p--->q";
 by (forward_tac [trancl_type RS subsetD RS SigmaD1] 1);

@@ -12,7 +12,7 @@ by (resolve_tac prems 1);                                   (* type prem. *)
 by (rewrite_goals_tac A_rewrite_rules);			    (* rewr. Den.   *)
 by (TRYALL (fast_tac (ZF_cs addSIs (evala.intrs@prems)
                             addSEs aexp_elim_cases)));
-val aexp_iff = result();
+qed "aexp_iff";
 
 
 val aexp1 = prove_goal Equiv.thy
@@ -41,7 +41,7 @@ by (resolve_tac prems 1);				(* type prem. *)
 by (rewrite_goals_tac B_rewrite_rules);			(* rewr. Den.   *)
 by (TRYALL (fast_tac (ZF_cs addSIs (evalb.intrs@prems@[aexp2])
                             addSDs [aexp1] addSEs bexp_elim_cases)));
-val bexp_iff = result();
+qed "bexp_iff";
 
 val bexp1 = prove_goal Equiv.thy
         "[| <b,sigma> -b-> w; b: bexp; sigma: loc -> nat |]\

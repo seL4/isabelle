@@ -13,35 +13,35 @@ open QUniv;
 goalw QUniv.thy [quniv_def]
     "!!X A. X <= univ(eclose(A)) ==> X : quniv(A)";
 by (etac PowI 1);
-val qunivI = result();
+qed "qunivI";
 
 goalw QUniv.thy [quniv_def]
     "!!X A. X : quniv(A) ==> X <= univ(eclose(A))";
 by (etac PowD 1);
-val qunivD = result();
+qed "qunivD";
 
 goalw QUniv.thy [quniv_def] "!!A B. A<=B ==> quniv(A) <= quniv(B)";
 by (etac (eclose_mono RS univ_mono RS Pow_mono) 1);
-val quniv_mono = result();
+qed "quniv_mono";
 
 (*** Closure properties ***)
 
 goalw QUniv.thy [quniv_def] "univ(eclose(A)) <= quniv(A)";
 by (rtac (Transset_iff_Pow RS iffD1) 1);
 by (rtac (Transset_eclose RS Transset_univ) 1);
-val univ_eclose_subset_quniv = result();
+qed "univ_eclose_subset_quniv";
 
 (*Key property for proving A_subset_quniv; requires eclose in def of quniv*)
 goal QUniv.thy "univ(A) <= quniv(A)";
 by (rtac (arg_subset_eclose RS univ_mono RS subset_trans) 1);
 by (rtac univ_eclose_subset_quniv 1);
-val univ_subset_quniv = result();
+qed "univ_subset_quniv";
 
 val univ_into_quniv = standard (univ_subset_quniv RS subsetD);
 
 goalw QUniv.thy [quniv_def] "Pow(univ(A)) <= quniv(A)";
 by (rtac (arg_subset_eclose RS univ_mono RS Pow_mono) 1);
-val Pow_univ_subset_quniv = result();
+qed "Pow_univ_subset_quniv";
 
 val univ_subset_into_quniv = standard
 	(PowI RS (Pow_univ_subset_quniv RS subsetD));
@@ -61,13 +61,13 @@ val A_into_quniv = A_subset_quniv RS subsetD;
 goalw QUniv.thy [QPair_def]
     "!!A a. [| a <= univ(A);  b <= univ(A) |] ==> <a;b> <= univ(A)";
 by (REPEAT (ares_tac [sum_subset_univ] 1));
-val QPair_subset_univ = result();
+qed "QPair_subset_univ";
 
 (** Quine disjoint sum **)
 
 goalw QUniv.thy [QInl_def] "!!A a. a <= univ(A) ==> QInl(a) <= univ(A)";
 by (etac (empty_subsetI RS QPair_subset_univ) 1);
-val QInl_subset_univ = result();
+qed "QInl_subset_univ";
 
 val naturals_subset_nat =
     rewrite_rule [Transset_def] (Ord_nat RS Ord_is_Transset)
@@ -78,7 +78,7 @@ val naturals_subset_univ =
 
 goalw QUniv.thy [QInr_def] "!!A a. a <= univ(A) ==> QInr(a) <= univ(A)";
 by (etac (nat_1I RS naturals_subset_univ RS QPair_subset_univ) 1);
-val QInr_subset_univ = result();
+qed "QInr_subset_univ";
 
 (*** Closure for Quine-inspired products and sums ***)
 
@@ -87,12 +87,12 @@ goalw QUniv.thy [quniv_def,QPair_def]
     "!!A a. [| a: quniv(A);  b: quniv(A) |] ==> <a;b> : quniv(A)";
 by (REPEAT (dtac PowD 1));
 by (REPEAT (ares_tac [PowI, sum_subset_univ] 1));
-val QPair_in_quniv = result();
+qed "QPair_in_quniv";
 
 goal QUniv.thy "quniv(A) <*> quniv(A) <= quniv(A)";
 by (REPEAT (ares_tac [subsetI, QPair_in_quniv] 1
      ORELSE eresolve_tac [QSigmaE, ssubst] 1));
-val QSigma_quniv = result();
+qed "QSigma_quniv";
 
 val QSigma_subset_quniv = standard
     (QSigma_mono RS (QSigma_quniv RSN (2,subset_trans)));
@@ -103,30 +103,30 @@ goalw QUniv.thy [quniv_def,QPair_def]
 by (etac ([Transset_eclose RS Transset_univ, PowD] MRS 
 	  Transset_includes_summands RS conjE) 1);
 by (REPEAT (ares_tac [conjI,PowI] 1));
-val quniv_QPair_D = result();
+qed "quniv_QPair_D";
 
 val quniv_QPair_E = standard (quniv_QPair_D RS conjE);
 
 goal QUniv.thy "<a;b> : quniv(A) <-> a: quniv(A) & b: quniv(A)";
 by (REPEAT (ares_tac [iffI, QPair_in_quniv, quniv_QPair_D] 1
      ORELSE etac conjE 1));
-val quniv_QPair_iff = result();
+qed "quniv_QPair_iff";
 
 
 (** Quine disjoint sum **)
 
 goalw QUniv.thy [QInl_def] "!!A a. a: quniv(A) ==> QInl(a) : quniv(A)";
 by (REPEAT (ares_tac [zero_in_quniv,QPair_in_quniv] 1));
-val QInl_in_quniv = result();
+qed "QInl_in_quniv";
 
 goalw QUniv.thy [QInr_def] "!!A b. b: quniv(A) ==> QInr(b) : quniv(A)";
 by (REPEAT (ares_tac [one_in_quniv, QPair_in_quniv] 1));
-val QInr_in_quniv = result();
+qed "QInr_in_quniv";
 
 goal QUniv.thy "quniv(C) <+> quniv(C) <= quniv(C)";
 by (REPEAT (ares_tac [subsetI, QInl_in_quniv, QInr_in_quniv] 1
      ORELSE eresolve_tac [qsumE, ssubst] 1));
-val qsum_quniv = result();
+qed "qsum_quniv";
 
 val qsum_subset_quniv = standard
     (qsum_mono RS (qsum_quniv RSN (2,subset_trans)));
@@ -156,7 +156,7 @@ goal Univ.thy
 by (dtac (Transset_Vfrom_succ RS equalityD1 RS subsetD RS PowD) 1);
 by (assume_tac 1);
 by (fast_tac ZF_cs 1);
-val doubleton_in_Vfrom_D = result();
+qed "doubleton_in_Vfrom_D";
 
 (*This weaker version says a, b exist at the same level*)
 val Vfrom_doubleton_D = standard (Transset_Vfrom RS Transset_doubleton_D);
@@ -173,13 +173,13 @@ goalw Univ.thy [Pair_def]
     "!!X. [| <a,b> : Vfrom(X,succ(i));  Transset(X) |] ==> \
 \         a: Vfrom(X,i)  &  b: Vfrom(X,i)";
 by (fast_tac (ZF_cs addSDs [doubleton_in_Vfrom_D, Vfrom_doubleton_D]) 1);
-val Pair_in_Vfrom_D = result();
+qed "Pair_in_Vfrom_D";
 
 goal Univ.thy
  "!!X. Transset(X) ==> 		\
 \      (a*b) Int Vfrom(X, succ(i)) <= (a Int Vfrom(X,i)) * (b Int Vfrom(X,i))";
 by (fast_tac (ZF_cs addSDs [Pair_in_Vfrom_D]) 1);
-val product_Int_Vfrom_subset = result();
+qed "product_Int_Vfrom_subset";
 
 (*** Intersecting <a;b> with Vfrom... ***)
 
@@ -190,7 +190,7 @@ by (rtac (Int_Un_distrib RS ssubst) 1);
 by (rtac Un_mono 1);
 by (REPEAT (ares_tac [product_Int_Vfrom_subset RS subset_trans,
 		      [Int_lower1, subset_refl] MRS Sigma_mono] 1));
-val QPair_Int_Vfrom_succ_subset = result();
+qed "QPair_Int_Vfrom_succ_subset";
 
 (**** "Take-lemma" rules for proving a=b by coinduction and c: quniv(A) ****)
 
@@ -200,7 +200,7 @@ goalw QUniv.thy [QPair_def]
  "!!X. Transset(X) ==> 		\
 \      <a;b> Int Vfrom(X,i)  <=  <a Int Vfrom(X,i);  b Int Vfrom(X,i)>";
 by (etac (Transset_Vfrom RS Transset_sum_Int_subset) 1);
-val QPair_Int_Vfrom_subset = result();
+qed "QPair_Int_Vfrom_subset";
 
 (*[| a Int Vset(i) <= c; b Int Vset(i) <= d |] ==> <a;b> Int Vset(i) <= <c;d>*)
 val QPair_Int_Vset_subset_trans = standard
@@ -219,4 +219,4 @@ by (rtac (succI1 RS UN_upper) 1);
 (*Limit(i) case*)
 by (asm_simp_tac (ZF_ss addsimps [Limit_Vfrom_eq, Int_UN_distrib, subset_refl,
 				  UN_mono, QPair_Int_Vset_subset_trans]) 1);
-val QPair_Int_Vset_subset_UN = result();
+qed "QPair_Int_Vset_subset_UN";

@@ -184,7 +184,7 @@ by (etac llist.elim 1);
 by (asm_simp_tac flip_ss 1);
 by (asm_simp_tac flip_ss 1);
 by (fast_tac (ZF_cs addSIs [not_type]) 1);
-val flip_type = result();
+qed "flip_type";
 
 val [prem] = goal LList.thy
     "l : llist(bool) ==> flip(flip(l)) = l";

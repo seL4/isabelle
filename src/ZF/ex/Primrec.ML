@@ -32,12 +32,12 @@ val pr_ss = arith_ss
 goalw Primrec.thy [SC_def]
     "!!x l. [| x:nat;  l: list(nat) |] ==> SC ` (Cons(x,l)) = succ(x)";
 by (asm_simp_tac pr_ss 1);
-val SC = result();
+qed "SC";
 
 goalw Primrec.thy [CONST_def]
     "!!l. [| l: list(nat) |] ==> CONST(k) ` l = k";
 by (asm_simp_tac pr_ss 1);
-val CONST = result();
+qed "CONST";
 
 goalw Primrec.thy [PROJ_def]
     "!!l. [| x: nat;  l: list(nat) |] ==> PROJ(0) ` (Cons(x,l)) = x";
@@ -87,7 +87,7 @@ fun tc_tac rls =
 
 goal Primrec.thy "!!i j. [| i:nat;  j:nat |] ==>  ack(i,j): nat";
 by (tc_tac []);
-val ack_type = result();
+qed "ack_type";
 
 (** Ackermann's function cases **)
 
@@ -140,7 +140,7 @@ by (etac succ_lt_induct 1);
 by (assume_tac 1);
 by (rtac lt_trans 2);
 by (REPEAT (ares_tac ([ack_lt_ack_succ2, ack_type] @ pr_typechecks) 1));
-val ack_lt_mono2 = result();
+qed "ack_lt_mono2";
 
 (*PROPERTY A 5', monotonicity for le *)
 goal Primrec.thy
@@ -157,14 +157,14 @@ by (ALLGOALS (asm_simp_tac ack_ss));
 by (rtac ack_le_mono2 1);
 by (rtac (lt_ack2 RS succ_leI RS le_trans) 1);
 by (REPEAT (ares_tac (ack_typechecks) 1));
-val ack2_le_ack1 = result();
+qed "ack2_le_ack1";
 
 (*PROPERTY A 7-, the single-step lemma*)
 goal Primrec.thy "!!i j. [| i:nat; j:nat |] ==> ack(i,j) < ack(succ(i),j)";
 by (rtac (ack_lt_mono2 RS lt_trans2) 1);
 by (rtac ack2_le_ack1 4);
 by (REPEAT (ares_tac ([nat_le_refl, ack_type] @ pr_typechecks) 1));
-val ack_lt_ack_succ1 = result();
+qed "ack_lt_ack_succ1";
 
 (*PROPERTY A 7, monotonicity for < *)
 goal Primrec.thy "!!i j k. [| i<j; j:nat; k:nat |] ==> ack(i,k) < ack(j,k)";
@@ -173,20 +173,20 @@ by (etac succ_lt_induct 1);
 by (assume_tac 1);
 by (rtac lt_trans 2);
 by (REPEAT (ares_tac ([ack_lt_ack_succ1, ack_type] @ pr_typechecks) 1));
-val ack_lt_mono1 = result();
+qed "ack_lt_mono1";
 
 (*PROPERTY A 7', monotonicity for le *)
 goal Primrec.thy
     "!!i j k. [| i le j; j:nat; k:nat |] ==> ack(i,k) le ack(j,k)";
 by (res_inst_tac [("f", "%j.ack(j,k)")] Ord_lt_mono_imp_le_mono 1);
 by (REPEAT (ares_tac [ack_lt_mono1, ack_type RS nat_into_Ord] 1));
-val ack_le_mono1 = result();
+qed "ack_le_mono1";
 
 (*PROPERTY A 8*)
 goal Primrec.thy "!!j. j:nat ==> ack(1,j) = succ(succ(j))";
 by (etac nat_induct 1);
 by (ALLGOALS (asm_simp_tac ack_ss));
-val ack_1 = result();
+qed "ack_1";
 
 (*PROPERTY A 9*)
 goal Primrec.thy "!!j. j:nat ==> ack(succ(1),j) = succ(succ(succ(j#+j)))";
@@ -203,7 +203,7 @@ by (asm_simp_tac ack_ss 1);
 by (rtac (add_le_self RS ack_le_mono1 RS lt_trans1) 1);
 by (rtac (add_le_self2 RS ack_lt_mono1 RS ack_lt_mono2) 5);
 by (tc_tac []);
-val ack_nest_bound = result();
+qed "ack_nest_bound";
 
 (*PROPERTY A 11*)
 goal Primrec.thy
@@ -216,7 +216,7 @@ by (asm_simp_tac ack_ss 5);
 by (rtac (add_le_mono RS leI RS leI) 1);
 by (REPEAT (ares_tac ([add_le_self, add_le_self2, ack_le_mono1] @
                       ack_typechecks) 1));
-val ack_add_bound = result();
+qed "ack_add_bound";
 
 (*PROPERTY A 12.  Article uses existential quantifier but the ALF proof
   used k#+4.  Quantified version must be nested EX k'. ALL i,j... *)
@@ -247,7 +247,7 @@ by (etac nat_induct 1);
 by (asm_simp_tac (ack_ss addsimps [nat_0_le]) 1);
 by (etac ([succ_leI, ack_lt_ack_succ1] MRS lt_trans1) 1);
 by (tc_tac []);
-val lt_ack1 = result();
+qed "lt_ack1";
 
 goalw Primrec.thy [CONST_def]
     "!!l. [| l: list(nat);  k: nat |] ==> CONST(k) ` l < ack(k, list_add(l))";

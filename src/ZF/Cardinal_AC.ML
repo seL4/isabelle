@@ -15,7 +15,7 @@ open Cardinal_AC;
 goal Cardinal_AC.thy "|A| eqpoll A";
 by (resolve_tac [AC_well_ord RS exE] 1);
 by (eresolve_tac [well_ord_cardinal_eqpoll] 1);
-val cardinal_eqpoll = result();
+qed "cardinal_eqpoll";
 
 val cardinal_idem = cardinal_eqpoll RS cardinal_cong;
 
@@ -24,13 +24,13 @@ by (resolve_tac [AC_well_ord RS exE] 1);
 by (resolve_tac [AC_well_ord RS exE] 1);
 by (resolve_tac [well_ord_cardinal_eqE] 1);
 by (REPEAT_SOME assume_tac);
-val cardinal_eqE = result();
+qed "cardinal_eqE";
 
 goal Cardinal_AC.thy "!!A B. A lepoll B ==> |A| le |B|";
 by (resolve_tac [AC_well_ord RS exE] 1);
 by (eresolve_tac [well_ord_lepoll_imp_le] 1);
 by (assume_tac 1);
-val lepoll_imp_le = result();
+qed "lepoll_imp_le";
 
 goal Cardinal_AC.thy "(i |+| j) |+| k = i |+| (j |+| k)";
 by (resolve_tac [AC_well_ord RS exE] 1);
@@ -38,7 +38,7 @@ by (resolve_tac [AC_well_ord RS exE] 1);
 by (resolve_tac [AC_well_ord RS exE] 1);
 by (resolve_tac [well_ord_cadd_assoc] 1);
 by (REPEAT_SOME assume_tac);
-val cadd_assoc = result();
+qed "cadd_assoc";
 
 goal Cardinal_AC.thy "(i |*| j) |*| k = i |*| (j |*| k)";
 by (resolve_tac [AC_well_ord RS exE] 1);
@@ -46,13 +46,13 @@ by (resolve_tac [AC_well_ord RS exE] 1);
 by (resolve_tac [AC_well_ord RS exE] 1);
 by (resolve_tac [well_ord_cmult_assoc] 1);
 by (REPEAT_SOME assume_tac);
-val cmult_assoc = result();
+qed "cmult_assoc";
 
 goal Cardinal_AC.thy "!!A. InfCard(|A|) ==> A*A eqpoll A";
 by (resolve_tac [AC_well_ord RS exE] 1);
 by (eresolve_tac [well_ord_InfCard_square_eq] 1);
 by (assume_tac 1);
-val InfCard_square_eq = result();
+qed "InfCard_square_eq";
 
 
 (*** Other applications of AC ***)
@@ -62,13 +62,13 @@ by (resolve_tac [cardinal_eqpoll RS eqpoll_sym RS eqpoll_imp_lepoll RS
 		 lepoll_trans] 1);
 by (eresolve_tac [le_imp_subset RS subset_imp_lepoll RS lepoll_trans] 1);
 by (resolve_tac [cardinal_eqpoll RS eqpoll_imp_lepoll] 1);
-val le_imp_lepoll = result();
+qed "le_imp_lepoll";
 
 goal Cardinal_AC.thy "!!A K. Card(K) ==> |A| le K <-> A lepoll K";
 by (eresolve_tac [Card_cardinal_eq RS subst] 1 THEN
     rtac iffI 1 THEN
     DEPTH_SOLVE (eresolve_tac [le_imp_lepoll,lepoll_imp_le] 1));
-val le_Card_iff = result();
+qed "le_Card_iff";
 
 goalw Cardinal_AC.thy [surj_def] "!!f. f: surj(X,Y) ==> EX g. g: inj(Y,X)";
 by (etac CollectE 1);
@@ -79,7 +79,7 @@ by (rtac f_imp_injective 1);
 by (resolve_tac [Pi_type] 1 THEN assume_tac 1);
 by (fast_tac (ZF_cs addDs [apply_type] addDs [Pi_memberD]) 1);
 by (fast_tac (ZF_cs addDs [apply_type] addEs [apply_equality]) 1);
-val surj_implies_inj = result();
+qed "surj_implies_inj";
 
 (*Kunen's Lemma 10.20*)
 goal Cardinal_AC.thy "!!f. f: surj(X,Y) ==> |Y| le |X|";
@@ -87,7 +87,7 @@ by (resolve_tac [lepoll_imp_le] 1);
 by (eresolve_tac [surj_implies_inj RS exE] 1);
 by (rewtac lepoll_def);
 by (eresolve_tac [exI] 1);
-val surj_implies_cardinal_le = result();
+qed "surj_implies_cardinal_le";
 
 (*Kunen's Lemma 10.21*)
 goal Cardinal_AC.thy
@@ -115,7 +115,7 @@ by (fast_tac (ZF_cs addEs [inj_is_fun RS apply_type]
 by (dresolve_tac [apply_type] 1);
 by (eresolve_tac [conjunct2] 1);
 by (asm_simp_tac (ZF_ss addsimps [left_inverse]) 1);
-val cardinal_UN_le = result();
+qed "cardinal_UN_le";
 
 (*The same again, using csucc*)
 goal Cardinal_AC.thy
@@ -124,7 +124,7 @@ goal Cardinal_AC.thy
 by (asm_full_simp_tac 
     (ZF_ss addsimps [Card_lt_csucc_iff, cardinal_UN_le, 
 		     InfCard_is_Card, Card_cardinal]) 1);
-val cardinal_UN_lt_csucc = result();
+qed "cardinal_UN_lt_csucc";
 
 (*The same again, for a union of ordinals*)
 goal Cardinal_AC.thy
@@ -135,14 +135,14 @@ by (assume_tac 1);
 by (fast_tac (ZF_cs addIs [Ord_cardinal_le RS lt_trans1] addEs [ltE]) 1);
 by (fast_tac (ZF_cs addSIs [Ord_UN] addEs [ltE]) 1);
 by (eresolve_tac [InfCard_is_Card RS Card_is_Ord RS Card_csucc] 1);
-val cardinal_UN_Ord_lt_csucc = result();
+qed "cardinal_UN_Ord_lt_csucc";
 
 
 (*Saves checking Ord(j) below*)
 goal Ordinal.thy "!!i j. [| i <= j;  j<k;  Ord(i) |] ==> i<k";
 by (resolve_tac [subset_imp_le RS lt_trans1] 1);
 by (REPEAT (eresolve_tac [asm_rl, ltE] 1));
-val lt_subset_trans = result();
+qed "lt_subset_trans";
 
 (*The same yet again, but the index set need not be a cardinal.  
   Surprisingly complicated proof!*)
@@ -168,5 +168,5 @@ by (asm_simp_tac
 by (fast_tac (ZF_cs addSIs [Ord_UN] addEs [ltE]) 2);
 by (asm_simp_tac (ZF_ss addsimps [inj_converse_fun RS apply_type]
 		        setloop split_tac [expand_if]) 1);
-val le_UN_Ord_lt_csucc = result();
+qed "le_UN_Ord_lt_csucc";
 

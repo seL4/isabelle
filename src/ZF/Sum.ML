@@ -13,12 +13,12 @@ open Sum;
 goalw Sum.thy [Part_def]
     "a : Part(A,h) <-> a:A & (EX y. a=h(y))";
 by (rtac separation 1);
-val Part_iff = result();
+qed "Part_iff";
 
 goalw Sum.thy [Part_def]
     "!!a b A h. [| a : A;  a=h(b) |] ==> a : Part(A,h)";
 by (REPEAT (ares_tac [exI,CollectI] 1));
-val Part_eqI = result();
+qed "Part_eqI";
 
 val PartI = refl RSN (2,Part_eqI);
 
@@ -28,11 +28,11 @@ val major::prems = goalw Sum.thy [Part_def]
 by (rtac (major RS CollectE) 1);
 by (etac exE 1);
 by (REPEAT (ares_tac prems 1));
-val PartE = result();
+qed "PartE";
 
 goalw Sum.thy [Part_def] "Part(A,h) <= A";
 by (rtac Collect_subset 1);
-val Part_subset = result();
+qed "Part_subset";
 
 
 (*** Rules for Disjoint Sums ***)
@@ -41,17 +41,17 @@ val sum_defs = [sum_def,Inl_def,Inr_def,case_def];
 
 goalw Sum.thy (bool_def::sum_defs) "Sigma(bool,C) = C(0) + C(1)";
 by (fast_tac eq_cs 1);
-val Sigma_bool = result();
+qed "Sigma_bool";
 
 (** Introduction rules for the injections **)
 
 goalw Sum.thy sum_defs "!!a A B. a : A ==> Inl(a) : A+B";
 by (REPEAT (ares_tac [UnI1,SigmaI,singletonI] 1));
-val InlI = result();
+qed "InlI";
 
 goalw Sum.thy sum_defs "!!b A B. b : B ==> Inr(b) : A+B";
 by (REPEAT (ares_tac [UnI2,SigmaI,singletonI] 1));
-val InrI = result();
+qed "InrI";
 
 (** Elimination rules **)
 
@@ -63,25 +63,25 @@ val major::prems = goalw Sum.thy sum_defs
 by (rtac (major RS UnE) 1);
 by (REPEAT (rtac refl 1
      ORELSE eresolve_tac (prems@[SigmaE,singletonE,ssubst]) 1));
-val sumE = result();
+qed "sumE";
 
 (** Injection and freeness equivalences, for rewriting **)
 
 goalw Sum.thy sum_defs "Inl(a)=Inl(b) <-> a=b";
 by (simp_tac ZF_ss 1);
-val Inl_iff = result();
+qed "Inl_iff";
 
 goalw Sum.thy sum_defs "Inr(a)=Inr(b) <-> a=b";
 by (simp_tac ZF_ss 1);
-val Inr_iff = result();
+qed "Inr_iff";
 
 goalw Sum.thy sum_defs "Inl(a)=Inr(b) <-> False";
 by (simp_tac (ZF_ss addsimps [one_not_0 RS not_sym]) 1);
-val Inl_Inr_iff = result();
+qed "Inl_Inr_iff";
 
 goalw Sum.thy sum_defs "Inr(b)=Inl(a) <-> False";
 by (simp_tac (ZF_ss addsimps [one_not_0]) 1);
-val Inr_Inl_iff = result();
+qed "Inr_Inl_iff";
 
 (*Injection and freeness rules*)
 
@@ -99,24 +99,24 @@ val sum_ss = ZF_ss addsimps [InlI, InrI, Inl_iff, Inr_iff,
 
 goal Sum.thy "!!A B. Inl(a): A+B ==> a: A";
 by (fast_tac sum_cs 1);
-val InlD = result();
+qed "InlD";
 
 goal Sum.thy "!!A B. Inr(b): A+B ==> b: B";
 by (fast_tac sum_cs 1);
-val InrD = result();
+qed "InrD";
 
 goal Sum.thy "u: A+B <-> (EX x. x:A & u=Inl(x)) | (EX y. y:B & u=Inr(y))";
 by (fast_tac sum_cs 1);
-val sum_iff = result();
+qed "sum_iff";
 
 goal Sum.thy "A+B <= C+D <-> A<=C & B<=D";
 by (fast_tac sum_cs 1);
-val sum_subset_iff = result();
+qed "sum_subset_iff";
 
 goal Sum.thy "A+B = C+D <-> A=C & B=D";
 by (simp_tac (ZF_ss addsimps [extension,sum_subset_iff]) 1);
 by (fast_tac ZF_cs 1);
-val sum_equal_iff = result();
+qed "sum_equal_iff";
 
 
 (*** Eliminator -- case ***)
@@ -124,12 +124,12 @@ val sum_equal_iff = result();
 goalw Sum.thy sum_defs "case(c, d, Inl(a)) = c(a)";
 by (rtac (split RS trans) 1);
 by (rtac cond_0 1);
-val case_Inl = result();
+qed "case_Inl";
 
 goalw Sum.thy sum_defs "case(c, d, Inr(b)) = d(b)";
 by (rtac (split RS trans) 1);
 by (rtac cond_1 1);
-val case_Inr = result();
+qed "case_Inr";
 
 val major::prems = goal Sum.thy
     "[| u: A+B; \
@@ -140,7 +140,7 @@ by (rtac (major RS sumE) 1);
 by (ALLGOALS (etac ssubst));
 by (ALLGOALS (asm_simp_tac (ZF_ss addsimps
 			    (prems@[case_Inl,case_Inr]))));
-val case_type = result();
+qed "case_type";
 
 goal Sum.thy
   "!!u. u: A+B ==>   \
@@ -152,40 +152,39 @@ by (asm_simp_tac (ZF_ss addsimps [case_Inl]) 1);
 by (fast_tac sum_cs 1);
 by (asm_simp_tac (ZF_ss addsimps [case_Inr]) 1);
 by (fast_tac sum_cs 1);
-val expand_case = result();
-
+qed "expand_case";
 
 goal Sum.thy "!!A B h. A<=B ==> Part(A,h)<=Part(B,h)";
 by (fast_tac sum_cs 1);
-val Part_mono = result();
+qed "Part_mono";
 
 goal Sum.thy "Part(Collect(A,P), h) = Collect(Part(A,h), P)";
 by (fast_tac (sum_cs addSIs [equalityI]) 1);
-val Part_Collect = result();
+qed "Part_Collect";
 
 val Part_CollectE =
     Part_Collect RS equalityD1 RS subsetD RS CollectE |> standard;
 
 goal Sum.thy "Part(A+B,Inl) = {Inl(x). x: A}";
 by (fast_tac (sum_cs addIs [equalityI]) 1);
-val Part_Inl = result();
+qed "Part_Inl";
 
 goal Sum.thy "Part(A+B,Inr) = {Inr(y). y: B}";
 by (fast_tac (sum_cs addIs [equalityI]) 1);
-val Part_Inr = result();
+qed "Part_Inr";
 
 goalw Sum.thy [Part_def] "!!a. a : Part(A,h) ==> a : A";
 by (etac CollectD1 1);
-val PartD1 = result();
+qed "PartD1";
 
 goal Sum.thy "Part(A,%x.x) = A";
 by (fast_tac (sum_cs addIs [equalityI]) 1);
-val Part_id = result();
+qed "Part_id";
 
 goal Sum.thy "Part(A+B, %x.Inr(h(x))) = {Inr(y). y: Part(B,h)}";
 by (fast_tac (sum_cs addIs [equalityI]) 1);
-val Part_Inr2 = result();
+qed "Part_Inr2";
 
 goal Sum.thy "!!A B C. C <= A+B ==> Part(C,Inl) Un Part(C,Inr) = C";
 by (fast_tac (sum_cs addIs [equalityI]) 1);
-val Part_sum_equality = result();
+qed "Part_sum_equality";

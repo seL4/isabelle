@@ -46,13 +46,13 @@ val rank_Br2 = result();
 goal BT.thy "bt_rec(Lf,c,h) = c";
 by (rtac (bt_rec_def RS def_Vrec RS trans) 1);
 by (simp_tac (ZF_ss addsimps bt.case_eqns) 1);
-val bt_rec_Lf = result();
+qed "bt_rec_Lf";
 
 goal BT.thy
     "bt_rec(Br(a,l,r), c, h) = h(a, l, r, bt_rec(l,c,h), bt_rec(r,c,h))";
 by (rtac (bt_rec_def RS def_Vrec RS trans) 1);
 by (simp_tac (rank_ss addsimps (bt.case_eqns @ [rank_Br1, rank_Br2])) 1);
-val bt_rec_Br = result();
+qed "bt_rec_Br";
 
 (*Type checking -- proved by induction, as usual*)
 val prems = goal BT.thy
@@ -64,7 +64,7 @@ val prems = goal BT.thy
 by (bt_ind_tac "t" prems 1);
 by (ALLGOALS (asm_simp_tac (ZF_ss addsimps
 			    (prems@[bt_rec_Lf,bt_rec_Br]))));
-val bt_rec_type = result();
+qed "bt_rec_type";
 
 (** Versions for use with definitions **)
 
@@ -98,7 +98,7 @@ val [n_leaves_Lf,n_leaves_Br] = bt_recs n_leaves_def;
 val prems = goalw BT.thy [n_leaves_def] 
     "xs: bt(A) ==> n_leaves(xs) : nat";
 by (REPEAT (ares_tac (prems @ [bt_rec_type, nat_0I, nat_succI, add_type]) 1));
-val n_leaves_type = result();
+qed "n_leaves_type";
 
 (** bt_reflect **)
 

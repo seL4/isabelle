@@ -23,7 +23,7 @@ val bij_inverse_ss =
 goalw Order.thy [part_ord_def, irrefl_def, trans_on_def, asym_def]
     "!!r. part_ord(A,r) ==> asym(r Int A*A)";
 by (fast_tac ZF_cs 1);
-val part_ord_Imp_asym = result();
+qed "part_ord_Imp_asym";
 
 (** Subset properties for the various forms of relation **)
 
@@ -32,22 +32,22 @@ val part_ord_Imp_asym = result();
 goalw Order.thy [part_ord_def, irrefl_def, trans_on_def]
     "!!A B r. [| part_ord(A,r);  B<=A |] ==> part_ord(B,r)";
 by (fast_tac ZF_cs 1);
-val part_ord_subset = result();
+qed "part_ord_subset";
 
 goalw Order.thy [linear_def]
     "!!A B r. [| linear(A,r);  B<=A |] ==> linear(B,r)";
 by (fast_tac ZF_cs 1);
-val linear_subset = result();
+qed "linear_subset";
 
 goalw Order.thy [tot_ord_def]
     "!!A B r. [| tot_ord(A,r);  B<=A |] ==> tot_ord(B,r)";
 by (fast_tac (ZF_cs addSEs [part_ord_subset, linear_subset]) 1);
-val tot_ord_subset = result();
+qed "tot_ord_subset";
 
 goalw Order.thy [well_ord_def]
     "!!A B r. [| well_ord(A,r);  B<=A |] ==> well_ord(B,r)";
 by (fast_tac (ZF_cs addSEs [tot_ord_subset, wf_on_subset_A]) 1);
-val well_ord_subset = result();
+qed "well_ord_subset";
 
 
 (** Order-isomorphisms **)
@@ -55,13 +55,13 @@ val well_ord_subset = result();
 goalw Order.thy [ord_iso_def] 
     "!!f. f: ord_iso(A,r,B,s) ==> f: bij(A,B)";
 by (etac CollectD1 1);
-val ord_iso_is_bij = result();
+qed "ord_iso_is_bij";
 
 goalw Order.thy [ord_iso_def] 
     "!!f. [| f: ord_iso(A,r,B,s);  <x,y>: r;  x:A;  y:A |] ==> \
 \         <f`x, f`y> : s";
 by (fast_tac ZF_cs 1);
-val ord_iso_apply = result();
+qed "ord_iso_apply";
 
 goalw Order.thy [ord_iso_def] 
     "!!f. [| f: ord_iso(A,r,B,s);  <x,y>: s;  x:B;  y:B |] ==> \
@@ -71,7 +71,7 @@ by (etac (bspec RS bspec RS iffD2) 1);
 by (REPEAT (eresolve_tac [asm_rl, 
 			  bij_converse_bij RS bij_is_fun RS apply_type] 1));
 by (asm_simp_tac (ZF_ss addsimps [right_inverse_bij]) 1);
-val ord_iso_converse = result();
+qed "ord_iso_converse";
 
 val major::premx::premy::prems = goalw Order.thy [linear_def]
     "[| linear(A,r);  x:A;  y:A;  \
@@ -80,7 +80,7 @@ by (cut_facts_tac [major,premx,premy] 1);
 by (REPEAT_FIRST (eresolve_tac [ballE,disjE]));
 by (EVERY1 (map etac prems));
 by (ALLGOALS contr_tac);
-val linearE = result();
+qed "linearE";
 
 (*Does the case analysis, deleting linear(A,r) and proving trivial subgoals*)
 val linear_case_tac =
@@ -113,7 +113,7 @@ by (asm_full_simp_tac (ZF_ss addsimps [left_inverse_bij]) 1);
 by (dtac bspec 1 THEN mp_tac 2 THEN fast_tac bij_apply_cs 1);
 by (dres_inst_tac [("t", "op `(f)")] subst_context 1);
 by (asm_full_simp_tac (ZF_ss addsimps [right_inverse_bij]) 1);
-val not_well_ord_iso_pred_lemma = result();
+qed "not_well_ord_iso_pred_lemma";
 
 
 (*Kunen's Lemma 6.1: there's no order-isomorphism to an initial segment
@@ -130,7 +130,7 @@ by (EVERY1 [dtac (ord_iso_is_bij RS bij_is_fun RS apply_type),
 (*Now we know f`x : pred(A,x,r) *)
 by (asm_full_simp_tac (ZF_ss addsimps [well_ord_def, pred_def]) 1);
 by (fast_tac (ZF_cs addSEs [wf_on_not_refl RS notE]) 1);
-val not_well_ord_iso_pred = result();
+qed "not_well_ord_iso_pred";
 
 
 (*Inductive argument for proving Kunen's Lemma 6.2*)
@@ -157,7 +157,7 @@ by (dtac bspec 1 THEN mp_tac 2 THEN fast_tac bij_apply_cs 1);
 by (dres_inst_tac [("t", "op `(converse(g))")] subst_context 1);
 by (dres_inst_tac [("t", "op `(f)")] subst_context 1);
 by (asm_full_simp_tac bij_inverse_ss 1);
-val well_ord_iso_unique_lemma = result();
+qed "well_ord_iso_unique_lemma";
 
 
 (*Kunen's Lemma 6.2: Order-isomorphisms between well-orderings are unique*)
@@ -169,7 +169,7 @@ by (etac (ord_iso_is_bij RS bij_is_fun) 1);
 by (etac (ord_iso_is_bij RS bij_is_fun) 1);
 by (rtac well_ord_iso_unique_lemma 1);
 by (REPEAT_SOME assume_tac);
-val well_ord_iso_unique = result();
+qed "well_ord_iso_unique";
 
 
 goalw Order.thy [irrefl_def, part_ord_def, tot_ord_def, 
@@ -182,17 +182,17 @@ by (linear_case_tac 1);
 by (fast_tac (ZF_cs addSEs [wf_on_asym]) 1);
 (*case x<xb*)
 by (fast_tac (ZF_cs addSEs [wf_on_chain3]) 1);
-val well_ordI = result();
+qed "well_ordI";
 
 goalw Order.thy [well_ord_def]
     "!!r. well_ord(A,r) ==> wf[A](r)";
 by (safe_tac ZF_cs);
-val well_ord_is_wf = result();
+qed "well_ord_is_wf";
 
 goalw Order.thy [well_ord_def, tot_ord_def, part_ord_def]
     "!!r. well_ord(A,r) ==> trans[A](r)";
 by (safe_tac ZF_cs);
-val well_ord_is_trans_on = result();
+qed "well_ord_is_trans_on";
 
 (*** Derived rules for pred(A,x,r) ***)
 
@@ -200,21 +200,21 @@ val [major,minor] = goalw Order.thy [pred_def]
     "[| y: pred(A,x,r);  [| y:A; <y,x>:r |] ==> P |] ==> P";
 by (rtac (major RS CollectE) 1);
 by (REPEAT (ares_tac [minor] 1));
-val predE = result();
+qed "predE";
 
 goalw Order.thy [pred_def] "pred(A,x,r) <= r -`` {x}";
 by (fast_tac ZF_cs 1);
-val pred_subset_under = result();
+qed "pred_subset_under";
 
 goalw Order.thy [pred_def] "pred(A,x,r) <= A";
 by (fast_tac ZF_cs 1);
-val pred_subset = result();
+qed "pred_subset";
 
 goalw Order.thy [pred_def] "y : pred(A,x,r) <-> <y,x>:r & y:A";
 by (fast_tac ZF_cs 1);
-val pred_iff = result();
+qed "pred_iff";
 
 goalw Order.thy [pred_def]
     "pred(pred(A,x,r), y, r) = pred(A,x,r) Int pred(A,y,r)";
 by (fast_tac eq_cs 1);
-val pred_pred_eq = result();
+qed "pred_pred_eq";
