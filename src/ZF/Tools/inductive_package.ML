@@ -262,7 +262,7 @@ fun add_inductive_i verbose (rec_tms, dom_sum, intr_tms,
   val intrs = ListPair.map prove_intr
 		(map (cterm_of sign1) intr_tms,
 		 map intro_tacsf (mk_disj_rls(length intr_tms)))
-	       handle SIMPLIFIER (msg,thm) => (print_thm thm; error msg);
+	       handle MetaSimplifier.SIMPLIFIER (msg,thm) => (print_thm thm; error msg);
 
   (********)
   val dummy = writeln "  Proving the elimination rule...";
