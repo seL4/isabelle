@@ -30,9 +30,11 @@ lemma [simp]: "length (half_adder a b) = 2"
 
 constdefs
   full_adder :: "[bit,bit,bit] => bit list"
-  "full_adder a b c == let x = a bitxor b in [a bitand b bitor c bitand x,x bitxor c]"
+  "full_adder a b c == 
+      let x = a bitxor b in [a bitand b bitor c bitand x,x bitxor c]"
 
-lemma full_adder_correct: "bv_to_nat (full_adder a b c) = bitval a + bitval b + bitval c"
+lemma full_adder_correct:
+     "bv_to_nat (full_adder a b c) = bitval a + bitval b + bitval c"
   apply (simp add: full_adder_def Let_def)
   apply (cases a, auto)
   apply (case_tac[!] b, auto)
@@ -60,9 +62,9 @@ lemma cci_length [simp]: "length (carry_chain_inc as c) = length as + 1"
 
 lemma cci_correct: "bv_to_nat (carry_chain_inc as c) = bv_to_nat as + bitval c"
   apply (induct as)
-  apply (cases c,simp_all add: Let_def)
-  apply (subst bv_to_nat_dist_append,simp)
-  apply (simp add: half_adder_correct bv_to_nat_helper' [OF cci_nonnull] ring_distrib bv_to_nat_helper)
+  apply (cases c,simp_all add: Let_def bv_to_nat_dist_append) 
+  apply (simp add: half_adder_correct bv_to_nat_helper' [OF cci_nonnull]
+                   ring_distrib bv_to_nat_helper)
   done
 
 consts
@@ -70,17 +72,21 @@ consts
 
 primrec
   "carry_chain_adder []     bs c = [c]"
-  "carry_chain_adder (a#as) bs c = (let chain = carry_chain_adder as (tl bs) c
-                                    in  full_adder a (hd bs) (hd chain) @ tl chain)"
+  "carry_chain_adder (a#as) bs c =
+     (let chain = carry_chain_adder as (tl bs) c
+      in  full_adder a (hd bs) (hd chain) @ tl chain)"
 
 lemma cca_nonnull: "carry_chain_adder as bs c \<noteq> []"
   by (cases as,auto simp add: full_adder_def Let_def)
 
-lemma cca_length [rule_format]: "\<forall>bs. length as = length bs --> length (carry_chain_adder as bs c) = length as + 1"
+lemma cca_length [rule_format]:
+     "\<forall>bs. length as = length bs --> 
+           length (carry_chain_adder as bs c) = Suc (length bs)"
+      (is "?P as")
 proof (induct as,auto simp add: Let_def)
   fix as :: "bit list"
   fix xs :: "bit list"
-  assume ind: "\<forall>bs. length as = length bs --> length (carry_chain_adder as bs c) = Suc (length bs)"
+  assume ind: "?P as"
   assume len: "Suc (length as) = length xs"
   thus "Suc (length (carry_chain_adder as (tl xs) c) - Suc 0) = length xs"
   proof (cases xs,simp_all)
@@ -93,12 +99,16 @@ proof (induct as,auto simp add: Let_def)
   qed
 qed
 
-lemma cca_correct [rule_format]: "\<forall>bs. length as = length bs --> bv_to_nat (carry_chain_adder as bs c) = bv_to_nat as + bv_to_nat bs + bitval c"
+lemma cca_correct [rule_format]:
+     "\<forall>bs. length as = length bs --> 
+           bv_to_nat (carry_chain_adder as bs c) = 
+           bv_to_nat as + bv_to_nat bs + bitval c"
+      (is "?P as")
 proof (induct as,auto simp add: Let_def)
   fix a :: bit
   fix as :: "bit list"
   fix xs :: "bit list"
-  assume ind: "\<forall>bs. length as = length bs --> bv_to_nat (carry_chain_adder as bs c) = bv_to_nat as + bv_to_nat bs + bitval c"
+  assume ind: "?P as"
   assume len: "Suc (length as) = length xs"
   thus "bv_to_nat (full_adder a (hd xs) (hd (carry_chain_adder as (tl xs) c)) @ tl (carry_chain_adder as (tl xs) c)) = bv_to_nat (a # as) + bv_to_nat xs + bitval c"
   proof (cases xs,simp_all)
