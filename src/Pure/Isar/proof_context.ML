@@ -1112,7 +1112,7 @@ fun fix_frees ts ctxt =
   let
     val frees = foldl Drule.add_frees ([], ts);
     fun new (x, T) = if is_fixed ctxt x then None else Some ([x], Some T);
-  in fix_direct (mapfilter new frees) ctxt end;
+  in fix_direct (rev (mapfilter new frees)) ctxt end;
 
 
 (*Note: improper use may result in variable capture / dynamic scoping!*)
