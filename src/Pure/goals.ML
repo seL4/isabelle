@@ -212,7 +212,8 @@ fun prepare_proof atomic rths chorn =
             val ath = implies_intr_list cAs state
             val th = ath RS Drule.rev_triv_goal
             val {hyps,prop,sign=sign',...} = rep_thm th
-        in  if not check then th
+            val final_th = if (null(hyps)) then standard th else varify th
+        in  if not check then final_th
 	    else if not (Sign.eq_sg(sign,sign')) then !result_error_fn state
 		("Signature of proof state has changed!" ^
 		 sign_error (sign,sign'))
@@ -227,8 +228,7 @@ fun prepare_proof atomic rths chorn =
 		      hyps)))
 	    else if Pattern.matches (#tsig(Sign.rep_sg sign)) 
 			            (term_of chorn, prop)
-		 then  (if (null(hyps)) then standard th 
-                       else varify th)
+		 then final_th
 	    else  !result_error_fn state "proved a different theorem"
         end
   in
