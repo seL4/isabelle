@@ -16,12 +16,12 @@ Cont = Fun3 +
 *)
 
 
-default pcpo
+default po
 
 consts  
-        monofun :: "('a::po => 'b::po) => bool" (* monotonicity    *)
-        contlub :: "('a => 'b) => bool"         (* first cont. def *)
-        cont    :: "('a => 'b) => bool"         (* secnd cont. def *)
+        monofun :: "('a => 'b) => bool" (* monotonicity    *)
+        contlub :: "('a::cpo => 'b::cpo) => bool"         (* first cont. def *)
+        cont    :: "('a::cpo => 'b::cpo) => bool"         (* secnd cont. def *)
 
 defs 
 

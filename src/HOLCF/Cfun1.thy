@@ -9,6 +9,8 @@ Definition of the type ->  of continuous functions
 
 Cfun1 = Cont +
 
+default cpo
+
 typedef (CFun)  ('a, 'b) "->" (infixr 0) = "{f. cont f}" (CfunI)
 
 consts  

@@ -11,7 +11,8 @@ Fun3 = Fun2 +
 
 (* default class is still term *)
 
-instance fun  :: (term,pcpo)pcpo         (least_fun,cpo_fun)
+instance fun  :: (term,cpo)cpo         (cpo_fun)
+instance fun  :: (term,pcpo)pcpo       (least_fun)
 
 end
 

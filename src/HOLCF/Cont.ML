@@ -229,8 +229,8 @@ qed_goal "ch2ch_MF2LR" thy
 
 
 qed_goal "ch2ch_lubMF2R" thy 
-"[|monofun(MF2::('a::po=>'b::po=>'c::pcpo));\
-\  !f.monofun(MF2(f)::('b::po=>'c::pcpo));\
+"[|monofun(MF2::('a::po=>'b::po=>'c::cpo));\
+\  !f.monofun(MF2(f)::('b::po=>'c::cpo));\
 \       is_chain(F);is_chain(Y)|] ==> \
 \       is_chain(%j. lub(range(%i. MF2 (F j) (Y i))))"
 (fn prems =>
@@ -249,8 +249,8 @@ qed_goal "ch2ch_lubMF2R" thy
 
 
 qed_goal "ch2ch_lubMF2L" thy 
-"[|monofun(MF2::('a::po=>'b::po=>'c::pcpo));\
-\  !f.monofun(MF2(f)::('b::po=>'c::pcpo));\
+"[|monofun(MF2::('a::po=>'b::po=>'c::cpo));\
+\  !f.monofun(MF2(f)::('b::po=>'c::cpo));\
 \       is_chain(F);is_chain(Y)|] ==> \
 \       is_chain(%i. lub(range(%j. MF2 (F j) (Y i))))"
 (fn prems =>
@@ -269,8 +269,8 @@ qed_goal "ch2ch_lubMF2L" thy
 
 
 qed_goal "lub_MF2_mono" thy 
-"[|monofun(MF2::('a::po=>'b::po=>'c::pcpo));\
-\  !f.monofun(MF2(f)::('b::po=>'c::pcpo));\
+"[|monofun(MF2::('a::po=>'b::po=>'c::cpo));\
+\  !f.monofun(MF2(f)::('b::po=>'c::cpo));\
 \       is_chain(F)|] ==> \
 \       monofun(% x.lub(range(% j.MF2 (F j) (x))))"
 (fn prems =>
@@ -289,8 +289,8 @@ qed_goal "lub_MF2_mono" thy
         ]);
 
 qed_goal "ex_lubMF2" thy 
-"[|monofun(MF2::('a::po=>'b::po=>'c::pcpo));\
-\  !f.monofun(MF2(f)::('b::po=>'c::pcpo));\
+"[|monofun(MF2::('a::po=>'b::po=>'c::cpo));\
+\  !f.monofun(MF2(f)::('b::po=>'c::cpo));\
 \       is_chain(F); is_chain(Y)|] ==> \
 \               lub(range(%j. lub(range(%i. MF2(F j) (Y i))))) =\
 \               lub(range(%i. lub(range(%j. MF2(F j) (Y i)))))"
@@ -328,8 +328,8 @@ qed_goal "ex_lubMF2" thy
 
 
 qed_goal "diag_lubMF2_1" thy 
-"[|monofun(MF2::('a::po=>'b::po=>'c::pcpo));\
-\  !f.monofun(MF2(f)::('b::po=>'c::pcpo));\
+"[|monofun(MF2::('a::po=>'b::po=>'c::cpo));\
+\  !f.monofun(MF2(f)::('b::po=>'c::cpo));\
 \  is_chain(FY);is_chain(TY)|] ==>\
 \ lub(range(%i. lub(range(%j. MF2(FY(j))(TY(i)))))) =\
 \ lub(range(%i. MF2(FY(i))(TY(i))))"
@@ -372,8 +372,8 @@ qed_goal "diag_lubMF2_1" thy
         ]);
 
 qed_goal "diag_lubMF2_2" thy 
-"[|monofun(MF2::('a::po=>'b::po=>'c::pcpo));\
-\  !f.monofun(MF2(f)::('b::po=>'c::pcpo));\
+"[|monofun(MF2::('a::po=>'b::po=>'c::cpo));\
+\  !f.monofun(MF2(f)::('b::po=>'c::cpo));\
 \  is_chain(FY);is_chain(TY)|] ==>\
 \ lub(range(%j. lub(range(%i. MF2(FY(j))(TY(i)))))) =\
 \ lub(range(%i. MF2(FY(i))(TY(i))))"
@@ -386,8 +386,6 @@ qed_goal "diag_lubMF2_2" thy
         (etac diag_lubMF2_1 1),
         (REPEAT (atac 1))
         ]);
-
-
 
 
 (* ------------------------------------------------------------------------ *)
@@ -520,14 +518,13 @@ qed_goal "cont2cont_CF1L_rev" thy
         (atac 1)
         ]);
 
-
 (* ------------------------------------------------------------------------ *)
 (* What D.A.Schmidt calls continuity of abstraction                         *)
 (* never used here                                                          *)
 (* ------------------------------------------------------------------------ *)
 
 qed_goal "contlub_abstraction" thy
-"[|is_chain(Y::nat=>'a);!y.cont(%x.(c::'a=>'b=>'c) x y)|] ==>\
+"[|is_chain(Y::nat=>'a);!y.cont(%x.(c::'a::cpo=>'b::cpo=>'c::cpo) x y)|] ==>\
 \ (%y.lub(range(%i.c (Y i) y))) = (lub(range(%i.%y.c (Y i) y)))"
  (fn prems =>
         [
@@ -541,7 +538,6 @@ qed_goal "contlub_abstraction" thy
         (etac spec 1),
         (atac 1)
         ]);
-
 
 qed_goal "mono2mono_app" thy 
 "[|monofun(ft);!x.monofun(ft(x));monofun(tt)|] ==>\

@@ -9,7 +9,10 @@ Class instance of  -> for class pcpo
 
 Cfun3 = Cfun2 +
 
-instance "->" :: (pcpo,pcpo)pcpo              (least_cfun,cpo_cfun)
+instance "->" :: (cpo,cpo)cpo              (cpo_cfun)
+instance "->" :: (cpo,pcpo)pcpo            (least_cfun)
+
+default pcpo
 
 consts  
         Istrictify   :: "('a->'b)=>'a=>'b"

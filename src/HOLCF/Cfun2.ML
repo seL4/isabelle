@@ -41,7 +41,7 @@ qed_goal "minimal_cfun" thy "fabs(% x.UU) << f"
 
 bind_thm ("UU_cfun_def",minimal_cfun RS minimal2UU RS sym);
 
-qed_goal "least_cfun" thy "? x::'a->'b.!y.x<<y"
+qed_goal "least_cfun" thy "? x::'a->'b::pcpo.!y.x<<y"
 (fn prems =>
         [
         (res_inst_tac [("x","fabs(% x.UU)")] exI 1),
@@ -237,7 +237,7 @@ is_chain(?CCF1) ==>  lub (range ?CCF1) = (LAM x. lub (range (%i. ?CCF1 i`x)))
 *)
 
 qed_goal "cpo_cfun" thy 
-  "is_chain(CCF::nat=>('a::pcpo->'b::pcpo)) ==> ? x. range(CCF) <<| x"
+  "is_chain(CCF::nat=>('a->'b)) ==> ? x. range(CCF) <<| x"
 (fn prems =>
         [
         (cut_facts_tac prems 1),
