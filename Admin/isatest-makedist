@@ -99,10 +99,8 @@ echo "$(date) $HOSTNAME $PRG: dist build successful, elapsed time $ELAPSED." >> 
 
 ## spawn test runs
 
-# run tests in parallel on multiprocessor sun 
+$SSH sunbroy1 "$MAKEALL $DISTPREFIX ~/settings/sun1-poly ~/settings/sun1-sml"
 $SSH $SUN "$MAKEALL $DISTPREFIX ~/settings/sun-poly ~/settings/sun-sml"
-
-# run tests sequentially on x86
 $SSH $AT "$MAKEALL $DISTPREFIX ~/settings/at-poly ~/settings/at-sml"
 
 ## end
