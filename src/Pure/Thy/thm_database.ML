@@ -7,6 +7,7 @@ User level interface to thm database (see also Pure/pure_thy.ML).
 
 signature THM_DATABASE =
 sig
+  val ml_store_thm: string * thm -> unit
   val store_thm: string * thm -> thm
   val qed_thm: thm option ref
   val bind_thm: string * thm -> unit

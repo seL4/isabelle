@@ -393,13 +393,13 @@ fun RSmp th =
   | _ => raise THM("RSmp",0,[th]));
 
 fun normalize_thm funs =
-let fun trans [] th = th
-      | trans (f::fs) th = (trans funs (f th)) handle THM _ => trans fs th
-in trans funs end;
+  let fun trans [] th = th
+	| trans (f::fs) th = (trans funs (f th)) handle THM _ => trans fs th
+  in zero_var_indexes o trans funs end;
 
 fun qed_spec_mp name =
   let val thm = normalize_thm [RSspec,RSmp] (result())
-  in bind_thm(name, thm) end;
+  in ml_store_thm(name, thm) end;
 
 fun qed_goal_spec_mp name thy s p = 
 	bind_thm (name, normalize_thm [RSspec,RSmp] (prove_goal thy s p));
