@@ -20,13 +20,13 @@ syntax
 
 translations
   "cs0 -1-> cs1"	== "(cs0,cs1) : evalc1"
-  "cs0 -1-> (c1,s1)"	<= "cs0 -1-> (_args c1 s1)"
+  "cs0 -1-> (c1,s1)"	== "(cs0,c1,s1) : evalc1"
 
   "cs0 -n-> cs1" 	== "(cs0,cs1) : evalc1^n"
-  "cs0 -n-> (c1,s1)" 	<= "cs0 -n-> (_args c1 s1)"
+  "cs0 -n-> (c1,s1)" 	== "(cs0,c1,s1) : evalc1^n"
 
   "cs0 -*-> cs1" 	== "(cs0,cs1) : evalc1^*"
-  "cs0 -*-> (c1,s1)" 	<= "cs0 -*-> (_args c1 s1)"
+  "cs0 -*-> (c1,s1)" 	== "(cs0,c1,s1) : evalc1^*"
 
 
 inductive evalc1
