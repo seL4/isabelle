@@ -106,7 +106,7 @@ $(LOG)/HOL-Advanced.gz: $(OUT)/HOL Advanced/simp.thy Advanced/ROOT.ML
 
 HOL-CTL: HOL $(LOG)/HOL-CTL.gz
 
-$(LOG)/HOL-CTL.gz: $(OUT)/HOL CTL/PDL.thy CTL/CTL.thy CTL/ROOT.ML
+$(LOG)/HOL-CTL.gz: $(OUT)/HOL CTL/Base.thy CTL/PDL.thy CTL/CTL.thy CTL/ROOT.ML
 	@$(ISATOOL) usedir -i true -d dvi -D document $(OUT)/HOL CTL
 	@rm -f tutorial.dvi
 

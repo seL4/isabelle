@@ -1,7 +1,6 @@
-theory PDL = Main:;
+(*<*)theory PDL = Base:(*>*)
 
-typedecl atom;
-types state = "atom set";
+subsection{*Propositional dynmic logic---PDL*}
 
 datatype ctl_form = Atom atom
                   | NOT ctl_form
