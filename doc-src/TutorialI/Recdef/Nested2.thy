@@ -70,19 +70,29 @@ Its second premise expresses (indirectly) that the second argument of
 rules for other higher-order functions on lists would look very similar but
 have not been proved yet because they were never needed. If you get into a
 situation where you need to supply \isacommand{recdef} with new congruence
-rules, you can either append the line
-\begin{ttbox}
-congs <congruence rules>
-\end{ttbox}
-to the specific occurrence of \isacommand{recdef} or declare them globally:
-\begin{ttbox}
-lemmas [????????] = <congruence rules>
-\end{ttbox}
+rules, you can either append a hint locally
+to the specific occurrence of \isacommand{recdef}
+*}
+(*<*)
+consts dummy :: "nat => nat"
+recdef dummy "{}"
+"dummy n = n"
+(*>*)
+(hints cong: map_cong)
 
-Note that \isacommand{recdef} feeds on exactly the same \emph{kind} of
-congruence rules as the simplifier (\S\ref{sec:simp-cong}) but that
-declaring a congruence rule for the simplifier does not make it
-available to \isacommand{recdef}, and vice versa. This is intentional.
+text{*\noindent
+or declare them globally
+by giving them the @{text recdef_cong} attribute as in
+*}
+
+declare map_cong[recdef_cong];
+
+text{*
+Note that the global @{text cong} and @{text recdef_cong} attributes are
+intentionally kept apart because they control different activities, namely
+simplification and making recursive definitions. The local @{text cong} in
+the hints section of \isacommand{recdef} is merely short for @{text
+recdef_cong}.
 %The simplifier's congruence rules cannot be used by recdef.
 %For example the weak congruence rules for if and case would prevent
 %recdef from generating sensible termination conditions.
