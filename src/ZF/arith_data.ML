@@ -75,8 +75,8 @@ fun prove_conv name tacs sg hyps (t,u) =
       val goal = Logic.list_implies (map (#prop o Thm.rep_thm) hyps',
         FOLogic.mk_Trueprop (mk_eq_iff (t, u)));
   in Some (hyps' MRS Tactic.prove sg [] [] goal (K (EVERY tacs)))
-      handle ERROR => 
-	(warning ("Cancellation failed: no typing information? (" ^ name ^ ")"); None)
+      handle ERROR_MESSAGE msg => 
+	(warning (msg ^ "\nCancellation failed: no typing information? (" ^ name ^ ")"); None)
   end;
 
 fun prep_simproc (name, pats, proc) = Simplifier.mk_simproc name pats proc;
