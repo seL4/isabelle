@@ -1,0 +1,37 @@
+#!/bin/bash
+#
+# $Id$
+#
+# DESCRIPTION: create an instance of the Isabelle logo
+
+
+PRG=$(basename $0)
+
+function usage()
+{
+  echo
+  echo "Usage: $PRG NAME"
+  echo
+  echo "  Create instance NAME of the Isabelle logo (as EPS to stdout)."
+  echo
+  exit 1
+}
+
+function fail()
+{
+  echo "$1" >&2
+  exit 2
+}
+
+
+## args
+
+NAME=""
+[ $# -ge 1 ] && { NAME="$1"; shift; }
+
+[ $# -ne 0 -o "$NAME" = "-?" -o -z "$NAME" ] && usage
+
+
+## main
+
+perl -p -e "s/<any>/$NAME/" $ISABELLE_HOME/lib/logo/isabelle_any.eps
