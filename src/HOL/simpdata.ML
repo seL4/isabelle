@@ -298,7 +298,8 @@ val HOL_ss = empty_ss
       setsolver (fn prems => resolve_tac (TrueI::refl::prems) ORELSE' atac
                              ORELSE' etac FalseE)
       setsubgoaler asm_simp_tac
-      addsimps ([if_True, if_False, o_apply, imp_disjL, conj_assoc, disj_assoc,
+      addsimps ([if_True, if_False, if_cancel,
+		 o_apply, imp_disjL, conj_assoc, disj_assoc,
                  de_Morgan_conj, de_Morgan_disj, not_all, not_ex, cases_simp]
         @ ex_simps @ all_simps @ simp_thms)
       addcongs [imp_cong];
