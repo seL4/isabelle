@@ -1,4 +1,3 @@
-
 Isabelle NEWS -- history user-relevant changes
 ==============================================
 
@@ -16,8 +15,12 @@ default is 40);
 
 *** HOL ***
 
+* attribute [symmetric] now works for relations as well. It turns
+  (x,y) : R^-1 into (y,x) : R, and vice versa.
+
 * arith(_tac) does now know about div k and mod k where k is a numeral of
-  type nat. It can solve simple goals like "0 < n ==> n div 2 < (n::nat)"
+  type nat or int. It can solve simple goals like
+  "0 < n ==> n div 2 < (n::nat)"
   but fails if divisibility plays a role like in
   "n div 2 + (n+1) div 2 = (n::nat)".
 * simp's arithmetic capabilities have been enhanced a bit:
