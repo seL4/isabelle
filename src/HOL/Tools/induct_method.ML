@@ -221,7 +221,7 @@ fun rulify_cases cert =
     fun ruly_case {fixes, assumes, binds} =
       {fixes = fixes, assumes = map ruly assumes,
         binds = map (apsnd (apsome (AutoBind.drop_judgment o ruly))) binds};
-  in map (apsnd ruly_case) ooo RuleCases.make end;
+  in map (apsnd ruly_case) ooo RuleCases.make_raw end;
 
 val weak_strip_tac = REPEAT o Tactic.match_tac [impI, allI, ballI];
 
