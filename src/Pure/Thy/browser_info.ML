@@ -25,6 +25,7 @@ end;
 structure BrowserInfo: BROWSER_INFO =
 struct
 
+
 (** paths **)
 
 val output_path = Path.variable "ISABELLE_BROWSER_INFO";
@@ -39,6 +40,7 @@ val index_path = Path.basic "index.html";
 val session_path = Path.basic ".session";
 val session_entries_path = Path.unpack ".session/entries";
 val pre_index_path = Path.unpack ".session/pre-index";
+
 
 
 (** additional theory data **)
@@ -56,9 +58,12 @@ struct
 end;
 
 structure BrowserInfoData = TheoryDataFun(BrowserInfoArgs);
-val setup = [BrowserInfoData.init];
-fun get_info thy = if PureThy.get_name thy = "ProtoPure" then BrowserInfoArgs.empty
-  else BrowserInfoData.get thy;  (** FIXME!? **)
+
+fun get_info thy =
+  if Theory.eq_thy (thy, ProtoPure.thy) then BrowserInfoArgs.empty
+  else BrowserInfoData.get thy;
+
+
 
 (** graphs **)
 
@@ -101,6 +106,7 @@ fun make_graph remote_path unfold curr_sess = map (fn name =>
 
 fun add_graph_entry' (entry as {ID, ...}) (gr : graph_node list) =
   filter_out (fn entry' => #ID entry' = ID) gr @ [entry];
+
 
 
 (** global browser info state **)
@@ -153,11 +159,11 @@ fun change_theory_info name f = change_browser_info (fn (theories, index, graph,
 fun add_index txt = change_browser_info (fn (theories, index, graph, all_graph) =>
   (theories, Buffer.add txt index, graph, all_graph));
 
-(** add entry to graph for current session **)
+(*add entry to graph for current session*)
 fun add_graph_entry e = change_browser_info (fn (theories, index, graph, all_graph) =>
   (theories, index, add_graph_entry' e graph, all_graph));
 
-(** add entry to graph for all sessions **)
+(*add entry to graph for all sessions*)
 fun add_all_graph_entry e = change_browser_info (fn (theories, index, graph, all_graph) =>
   (theories, index, graph, add_graph_entry' e all_graph));
 
@@ -166,6 +172,7 @@ fun add_source name txt = change_theory_info name (fn (source, html) =>
 
 fun add_html name txt = change_theory_info name (fn (source, html) =>
   (source, Buffer.add txt html));
+
 
 
 (** global session state **)
@@ -188,6 +195,7 @@ val session_info = ref (None: session_info option);
 
 fun with_session x f = (case ! session_info of None => x | Some info => f info);
 fun with_context f = f (PureThy.get_name (Context.the_context ()));
+
 
 
 (** HTML output **)
@@ -348,5 +356,10 @@ fun theorem name thm = with_session () (fn _ => with_context add_html (HTML.theo
 fun section s = with_session () (fn _ => with_context add_html (HTML.section s));
 
 
-end;
 
+(** theory setup **)
+
+val setup = [BrowserInfoData.init];
+
+
+end;
