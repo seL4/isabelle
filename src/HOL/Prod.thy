@@ -50,8 +50,6 @@ translations
 
   "%(x,y,zs).b"   == "split(%x (y,zs).b)"
   "%(x,y).b"      == "split(%x y.b)"
-(* The <= direction fails if split has more than one argument because
-   ast-matching fails. Otherwise it would work fine *)
 
 defs
   Pair_def      "Pair a b == Abs_Prod(Pair_Rep a b)"
@@ -60,8 +58,6 @@ defs
   split_def     "split c p == c (fst p) (snd p)"
   prod_fun_def  "prod_fun f g == split(%x y.(f(x), g(y)))"
   Sigma_def     "Sigma A B == UN x:A. UN y:B(x). {(x, y)}"
-
-
 
 (** Unit **)
 
@@ -78,31 +74,3 @@ defs
 (* end 8bit 1 *)
 
 end
-(*
-ML
-
-local open Syntax
-
-fun pttrn(_ $ s $ t) = const"@pttrn" $ s $ t;
-fun pttrns s t = const"@pttrns" $ s $ t;
-
-fun split2(Abs(x,T,t)) =
-      let val (pats,u) = split1 t
-      in (pttrns (Free(x,T)) pats, subst_bounds([free x],u)) end
-  | split2(Const("split",_) $ r) =
-      let val (pats,s) = split2(r)
-          val (pats2,t) = split1(s)
-      in (pttrns (pttrn pats) pats2, t) end
-and split1(Abs(x,T,t)) =  (Free(x,T), subst_bounds([free x],t))
-  | split1(Const("split",_)$t) = split2(t);
-
-fun split_tr'(t::args) =
-  let val (pats,ft) = split2(t)
-  in list_comb(const"_lambda" $ pttrn pats $ ft, args) end;
-
-in
-
-val print_translation = [("split", split_tr')];
-
-end;
-*)

@@ -35,7 +35,7 @@ qed "pair_in_id_conv";
 
 val prems = goalw Relation.thy [comp_def]
     "[| (a,b):s; (b,c):r |] ==> (a,c) : r O s";
-by (fast_tac (set_cs addIs prems) 1);
+by (fast_tac (prod_cs addIs prems) 1);
 qed "compI";
 
 (*proof requires higher-level assumptions or a delaying of hyp_subst_tac*)
@@ -44,7 +44,7 @@ val prems = goalw Relation.thy [comp_def]
 \       !!x y z. [| xz = (x,z);  (x,y):s;  (y,z):r |] ==> P \
 \    |] ==> P";
 by (cut_facts_tac prems 1);
-by (REPEAT (eresolve_tac [CollectE, exE, conjE] 1 ORELSE ares_tac prems 1));
+by (REPEAT (eresolve_tac [CollectE, splitE, exE, conjE] 1 ORELSE ares_tac prems 1));
 qed "compE";
 
 val prems = goal Relation.thy
@@ -84,7 +84,6 @@ qed "transD";
 
 goalw Relation.thy [converse_def] "!!a b r. (a,b):r ==> (b,a):converse(r)";
 by (Simp_tac 1);
-by (fast_tac set_cs 1);
 qed "converseI";
 
 goalw Relation.thy [converse_def] "!!a b r. (a,b) : converse(r) ==> (b,a) : r";
@@ -97,8 +96,7 @@ qed_goalw "converseE" Relation.thy [converse_def]
 \    |] ==> P"
  (fn [major,minor]=>
   [ (rtac (major RS CollectE) 1),
-    (REPEAT (eresolve_tac [bexE,exE, conjE, minor] 1)),
-    (hyp_subst_tac 1),
+    (REPEAT (eresolve_tac [splitE, bexE,exE, conjE, minor] 1)),
     (assume_tac 1) ]);
 
 val converse_cs = comp_cs addSIs [converseI] 

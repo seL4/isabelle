@@ -122,6 +122,11 @@ qed "expand_split";
 (*These rules are for use with fast_tac.
   Could instead call simp_tac/asm_full_simp_tac using split as rewrite.*)
 
+goal Prod.thy "!!p. [| !!a b. p=(a,b) ==> c a b |] ==> split c p";
+by(split_all_tac 1);
+by (Asm_simp_tac 1);
+qed "splitI2";
+
 goal Prod.thy "!!a b c. c a b ==> split c (a,b)";
 by (Asm_simp_tac 1);
 qed "splitI";
@@ -138,6 +143,11 @@ qed "splitD";
 goal Prod.thy "!!a b c. z: c a b ==> z: split c (a,b)";
 by (Asm_simp_tac 1);
 qed "mem_splitI";
+
+goal Prod.thy "!!p. [| !!a b. p=(a,b) ==> z: c a b |] ==> z: split c p";
+by(split_all_tac 1);
+by (Asm_simp_tac 1);
+qed "mem_splitI2";
 
 val prems = goalw Prod.thy [split_def]
     "[| z: split c p;  !!x y. [| p = (x,y);  z: c x y |] ==> Q |] ==> Q";
@@ -258,8 +268,8 @@ by (stac (rewrite_rule [Unit_def] Rep_Unit RS CollectD RS sym) 1);
 by (rtac (Rep_Unit_inverse RS sym) 1);
 qed "unit_eq";
 
-val prod_cs = set_cs addSIs [SigmaI, mem_splitI] 
+val prod_cs = set_cs addSIs [SigmaI, splitI, splitI2, mem_splitI, mem_splitI2] 
                      addIs  [fst_imageI, snd_imageI, prod_fun_imageI]
-                     addSEs [SigmaE2, SigmaE, mem_splitE, 
+                     addSEs [SigmaE2, SigmaE, splitE, mem_splitE, 
 			     fst_imageE, snd_imageE, prod_fun_imageE,
 			     Pair_inject];
