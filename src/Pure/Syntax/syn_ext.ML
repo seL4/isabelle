@@ -246,6 +246,7 @@ fun mfix_to_xprod convert logtypes (Mfix (sy, typ, const, pris, pri)) =
     val (symbs, lhs) = add_args raw_symbs typ pris;
     val copy_prod = lhs mem ["prop", "logic"]
           andalso const <> ""
+          andalso not (null symbs)
           andalso not (exists is_delim symbs);
     val lhs' = if convert andalso not copy_prod then
                  (if lhs mem logtypes then logic
