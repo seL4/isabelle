@@ -1,0 +1,46 @@
+
+%% $Id$
+
+\documentclass[12pt]{report}
+\usepackage{a4,epsf}
+
+\makeatletter
+\input{../iman.sty}
+\input{../extra.sty}
+\makeatother
+
+\title{The Isabelle System Manual}
+
+\author{{\em Lawrence C. Paulson}\\
+        Computer Laboratory \\ University of Cambridge \\
+        \texttt{lcp@cl.cam.ac.uk}\\[3ex] 
+        With Contributions by Tobias Nipkow and Markus Wenzel%
+\thanks{  Chapter~\protect\ref{html} was written by Carsten Clasohm.
+  Chapter~\protect\ref{browse} was written by Stefan Berghofer.}}
+
+\makeindex
+
+\setcounter{secnumdepth}{1} \setcounter{tocdepth}{2}
+
+\pagestyle{headings}
+\sloppy
+\binperiod     %%%treat . like a binary operator
+
+\begin{document}
+\underscoreoff
+
+\maketitle 
+\pagenumbering{roman} \tableofcontents \clearfirst
+
+%\include{introduction}
+
+\include{html}
+\include{browse}
+
+%\begingroup
+%  \bibliographystyle{plain} \small\raggedright\frenchspacing
+%  \bibliography{string,atp,funprog,general,logicprog,isabelle,theory,crossref}
+%\endgroup
+
+\input{system.ind}
+\end{document}
