@@ -36,7 +36,7 @@ struct
 
 fun store_thm (name, thm) =
   let val thm' = PureThy.smart_store_thm (name, thm)
-  in Present.thm name thm'; thm' end;
+  in Present.theorem name thm'; thm' end;
 
 
 (* store on ML toplevel *)
