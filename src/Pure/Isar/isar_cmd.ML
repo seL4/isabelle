@@ -57,6 +57,8 @@ sig
   val print_cases: Toplevel.transition -> Toplevel.transition
   val print_thms: (string list * (string * Args.src list) list) * Comment.text
     -> Toplevel.transition -> Toplevel.transition
+  val print_prfs: bool -> (string list * (string * Args.src list) list) * Comment.text
+    -> Toplevel.transition -> Toplevel.transition
   val print_prop: (string list * string) * Comment.text
     -> Toplevel.transition -> Toplevel.transition
   val print_term: (string list * string) * Comment.text
@@ -223,6 +225,10 @@ val print_cases = Toplevel.unknown_proof o Toplevel.keep (fn state =>
 fun string_of_thms state ms args = with_modes ms (fn () =>
   Pretty.string_of (Proof.pretty_thms (IsarThy.get_thmss args state)));
 
+fun string_of_prfs full state ms args = with_modes ms (fn () =>
+  Pretty.string_of (Pretty.chunks
+    (map (ProofSyntax.pretty_proof_of full) (IsarThy.get_thmss args state))));
+
 fun string_of_prop state ms s =
   let
     val sign = Proof.sign_of state;
@@ -250,6 +256,7 @@ fun print_item string_of (x, y) = Toplevel.keep (fn state =>
   writeln (string_of (Toplevel.enter_forward_proof state) x y));
 
 val print_thms = print_item string_of_thms o Comment.ignore;
+fun print_prfs full = print_item (string_of_prfs full) o Comment.ignore;
 val print_prop = print_item string_of_prop o Comment.ignore;
 val print_term = print_item string_of_term o Comment.ignore;
 val print_type = print_item string_of_type o Comment.ignore;

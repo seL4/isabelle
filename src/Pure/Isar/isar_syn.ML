@@ -563,6 +563,14 @@ val print_thmsP =
   OuterSyntax.improper_command "thm" "print theorems" K.diag
     (opt_modes -- P.xthms1 -- P.marg_comment >> (Toplevel.no_timing oo IsarCmd.print_thms));
 
+val print_prfsP =
+  OuterSyntax.improper_command "prf" "print proof terms of theorems" K.diag
+    (opt_modes -- P.xthms1 -- P.marg_comment >> (Toplevel.no_timing oo IsarCmd.print_prfs false));
+
+val print_full_prfsP =
+  OuterSyntax.improper_command "full_prf" "print full proof terms of theorems" K.diag
+    (opt_modes -- P.xthms1 -- P.marg_comment >> (Toplevel.no_timing oo IsarCmd.print_prfs true));
+
 val print_propP =
   OuterSyntax.improper_command "prop" "read and print proposition" K.diag
     (opt_modes -- P.term -- P.marg_comment >> (Toplevel.no_timing oo IsarCmd.print_prop));
@@ -698,7 +706,8 @@ val parsers = [
   print_syntaxP, print_theoremsP, print_attributesP,
   print_trans_rulesP, print_methodsP, print_antiquotationsP,
   thms_containingP, thm_depsP, print_bindsP, print_lthmsP,
-  print_casesP, print_thmsP, print_propP, print_termP, print_typeP,
+  print_casesP, print_thmsP, print_prfsP, print_full_prfsP,
+  print_propP, print_termP, print_typeP,
   (*system commands*)
   cdP, pwdP, use_thyP, use_thy_onlyP, update_thyP, update_thy_onlyP,
   touch_thyP, touch_all_thysP, touch_child_thysP, remove_thyP,

@@ -296,6 +296,9 @@ fun pretty_term ctxt t =
 fun pretty_thm ctxt thms =
   Pretty.chunks (map (pretty_term ctxt o #prop o Thm.rep_thm) thms);
 
+fun pretty_prf full ctxt thms =
+  Pretty.chunks (map (ProofSyntax.pretty_proof_of full) thms);
+
 fun output_with pretty src ctxt x =
   let
     val prt = pretty ctxt x;      (*always pretty!*)
@@ -311,6 +314,8 @@ in
 val _ = add_commands
  [("text", args (Scan.lift Args.name) (output_with (K pretty_text))),
   ("thm", args Attrib.local_thmss (output_with pretty_thm)),
+  ("prf", args Attrib.local_thmss (output_with (pretty_prf false))),
+  ("full_prf", args Attrib.local_thmss (output_with (pretty_prf true))),
   ("prop", args Args.local_prop (output_with pretty_term)),
   ("term", args Args.local_term (output_with pretty_term)),
   ("typ", args Args.local_typ_no_norm (output_with pretty_typ)),
