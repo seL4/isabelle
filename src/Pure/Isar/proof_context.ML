@@ -861,7 +861,7 @@ fun export_presume _ = export_assume false;
 
 (* defs *)
 
-fun cert_def ctxt eq =    (* FIXME proper treatment of extra type variables *)
+fun cert_def ctxt eq =
   let
     fun err msg = raise CONTEXT (msg ^
       "\nThe error(s) above occurred in local definition: " ^ string_of_term ctxt eq, ctxt);
@@ -873,14 +873,15 @@ fun cert_def ctxt eq =    (* FIXME proper treatment of extra type variables *)
       | fixed_free _ = false;
   in
     Term.dest_Free head handle TERM _ =>
-      err "Head of lhs must be a variable (free or fixed)";
+      err "Head of lhs must be a free or fixed variable";
     conditional (not (forall (fixed_free orf is_Bound) args andalso null (duplicates args)))
       (fn () => err "Arguments of lhs must be distinct variables (free or fixed)");
     conditional (head mem Term.term_frees rhs)
       (fn () => err "Element to be defined occurs on rhs");
     conditional (not (null (filter_out fixed_free (term_frees rhs) \\ args)))
-      (fn () => err "Extra free variables on rhs");
+      (fn () => err "Extra free variables on rhs");    (* FIXME show extras *)
     Term.list_all_free (mapfilter (try Term.dest_Free) args, eq)
+    (* FIXME check for extra type variables on rhs *)
   end;
 
 fun head_of_def cprop =
