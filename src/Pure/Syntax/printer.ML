@@ -25,9 +25,11 @@ sig
   val extend_prtabs: prtabs -> string -> SynExt.xprod list -> prtabs
   val merge_prtabs: prtabs -> prtabs -> prtabs
   val pretty_term_ast: bool -> prtabs
-    -> (string -> (Ast.ast list -> Ast.ast) option) -> Ast.ast -> Pretty.T
+    -> (string -> (Ast.ast list -> Ast.ast) option)
+    -> (string -> (string -> string * int) option) -> Ast.ast -> Pretty.T
   val pretty_typ_ast: bool -> prtabs
-    -> (string -> (Ast.ast list -> Ast.ast) option) -> Ast.ast -> Pretty.T
+    -> (string -> (Ast.ast list -> Ast.ast) option)
+    -> (string -> (string -> string * int) option) -> Ast.ast -> Pretty.T
 end;
 
 structure Printer: PRINTER =
@@ -46,7 +48,9 @@ val print_mode = ref ([]:string list);
 
 
 
-(** convert term or typ to ast **)
+(** misc utils **)
+
+(* apply print (ast) translation function *)
 
 fun apply_trans name a f args =
   (f args handle
@@ -54,10 +58,56 @@ fun apply_trans name a f args =
   | exn => (writeln ("Error in " ^ name ^ " for " ^ quote a); raise exn));
 
 
-fun ast_of_term trf show_types show_sorts tm =
-  let
-    val no_freeTs = ! show_no_free_types;
+(* simple_ast_of *)
 
+fun simple_ast_of (Const (c, _)) = Constant c
+  | simple_ast_of (Free (x, _)) = Variable x
+  | simple_ast_of (Var (xi, _)) = Variable (string_of_vname xi)
+  | simple_ast_of (t as _ $ _) =
+      let val (f, args) = strip_comb t in
+        mk_appl (simple_ast_of f) (map simple_ast_of args)
+      end
+  | simple_ast_of (Bound _) = sys_error "simple_ast_of: Bound"
+  | simple_ast_of (Abs _) = sys_error "simple_ast_of: Abs";
+
+
+
+(** typ_to_ast **)
+
+fun ast_of_termT trf tm =
+  let
+    fun ast_of (t as Const ("_class", _) $ Free _) = simple_ast_of t
+      | ast_of (t as Const ("_tfree", _) $ Free _) = simple_ast_of t
+      | ast_of (t as Const ("_tvar", _) $ Var _) = simple_ast_of t
+      | ast_of (Const (a, _)) = trans a []
+      | ast_of (t as _ $ _) =
+          (case strip_comb t of
+            (Const (a, _), args) => trans a args
+          | (f, args) => Appl (map ast_of (f :: args)))
+      | ast_of t = raise_term "ast_of_termT: bad term encoding of type" [t]
+    and trans a args =
+      (case trf a of
+        Some f => ast_of (apply_trans "print translation" a (uncurry f) (dummyT, args))
+      | None => raise Match)
+          handle Match => mk_appl (Constant a) (map ast_of args);
+  in
+    ast_of tm
+  end;
+
+fun typ_to_ast trf T = ast_of_termT trf (term_of_typ (! show_sorts) T);
+
+
+
+(** term_to_ast **)
+
+fun mark_freevars (t $ u) = mark_freevars t $ mark_freevars u
+  | mark_freevars (Abs (x, T, t)) = Abs (x, T, mark_freevars t)
+  | mark_freevars (t as Free _) = const "_free" $ t
+  | mark_freevars (t as Var _) = const "_var" $ t
+  | mark_freevars a = a;
+
+fun ast_of_term trf no_freeTs show_types show_sorts tm =
+  let
     fun prune_typs (t_seen as (Const _, _)) = t_seen
       | prune_typs (t as Free (x, ty), seen) =
           if ty = dummyT then (t, seen)
@@ -79,16 +129,17 @@ fun ast_of_term trf show_types show_sorts tm =
             (t1' $ t2', seen'')
           end;
 
-
-    fun ast_of (Const (a, T)) = trans a T []
-      | ast_of (Free (x, ty)) = constrain x (free x) ty
-      | ast_of (Var (xi, ty)) = constrain (string_of_vname xi) (var xi) ty
-      | ast_of (Bound i) = Variable ("B." ^ string_of_int i)
-      | ast_of (t as Abs _) = ast_of (abs_tr' t)
-      | ast_of (t as _ $ _) =
-          (case strip_comb t of
-            (Const (a, T), args) => trans a T args
-          | (f, args) => Appl (map ast_of (f :: args)))
+    fun ast_of tm =
+      (case strip_comb tm of
+        (t as Abs _, ts) => mk_appl (ast_of (abs_tr' t)) (map ast_of ts)
+      | ((c as Const ("_free", _)), Free (x, T) :: ts) =>
+          mk_appl (constrain (c $ free x) T) (map ast_of ts)
+      | ((c as Const ("_bound", _)), Free (x, T) :: ts) =>
+          mk_appl (constrain (c $ free x) T) (map ast_of ts)
+      | ((c as Const ("_var", _)), Var (xi, T) :: ts) =>
+          mk_appl (constrain (c $ var xi) T) (map ast_of ts)
+      | (Const (c, T), ts) => trans c T ts
+      | (t, ts) => mk_appl (simple_ast_of t) (map ast_of ts))
 
     and trans a T args =
       (case trf a of
@@ -96,27 +147,22 @@ fun ast_of_term trf show_types show_sorts tm =
       | None => raise Match)
           handle Match => mk_appl (Constant a) (map ast_of args)
 
-    and constrain x t ty =
-      if show_types andalso ty <> dummyT then
-        ast_of (const constrainC $ t $ term_of_typ show_sorts ty)
-      else Variable x;
+    and constrain t T =
+      if show_types andalso T <> dummyT then
+        Appl [Constant constrainC, simple_ast_of t,
+          ast_of_termT trf (term_of_typ show_sorts T)]
+      else simple_ast_of t
   in
-    if show_types then
-      ast_of (#1 (prune_typs (prop_tr' show_sorts tm, [])))
-    else ast_of (prop_tr' show_sorts tm)
+    tm
+    |> prop_tr' show_sorts
+    |> (if show_types then #1 o prune_typs o rpair [] else I)
+    |> mark_freevars
+    |> ast_of
   end;
 
-
-(* term_to_ast *)
-
 fun term_to_ast trf tm =
-  ast_of_term trf (! show_types orelse ! show_sorts) (! show_sorts) tm;
-
-
-(* typ_to_ast *)
-
-fun typ_to_ast trf ty =
-  ast_of_term trf false false (term_of_typ (! show_sorts) ty);
+  ast_of_term trf (! show_no_free_types) (! show_types orelse ! show_sorts)
+    (! show_sorts) tm;
 
 
 
@@ -221,9 +267,15 @@ fun is_chain [Block (_, pr)] = is_chain pr
   | is_chain [Arg _] = true
   | is_chain _  = false;
 
-fun pretty tabs trf type_mode curried ast0 p0 =
+fun pretty tabs trf tokentrf type_mode curried ast0 p0 =
   let
     val trans = apply_trans "print ast translation";
+
+    fun token_trans c [Variable x] =
+          (case tokentrf c of
+            None => None
+          | Some f => Some (f x))
+      | token_trans _ _ = None;
 
     (*default applications: prefix / postfix*)
     val appT =
@@ -240,7 +292,7 @@ fun pretty tabs trf type_mode curried ast0 p0 =
             val (Ts, args') = synT (symbs, args);
           in
             if type_mode then (astT (t, p) @ Ts, args')
-            else (pretty tabs trf true curried t p @ Ts, args')
+            else (pretty tabs trf tokentrf true curried t p @ Ts, args')
           end
       | synT (String s :: symbs, args) =
           let val (Ts, args') = synT (symbs, args);
@@ -276,7 +328,7 @@ fun pretty tabs trf type_mode curried ast0 p0 =
       let
         val nargs = length args;
 
-        (*find matching table entry, or print as prefix/postfix*)
+        (*find matching table entry, or print as prefix / postfix*)
         fun prnt [] = prefixT tup
           | prnt ((pr, n, p') :: prnps) =
               if nargs = n then parT (pr, args, p, p')
@@ -284,10 +336,12 @@ fun pretty tabs trf type_mode curried ast0 p0 =
                 astT (appT (splitT n ([c], args)), p)
               else prnt prnps;
       in
-        (*try translation function first*)
-        (case trf a of
-          None => prnt (get_fmts tabs a)
-        | Some f => (astT (trans a f args, p) handle Match => prnt (get_fmts tabs a)))
+        (case token_trans a args of     (*try token translation function*)
+          Some (s, len) => [Pretty.strlen s len]
+        | None =>
+            (case trf a of              (*try print translation function*)
+              Some f => (astT (trans a f args, p) handle Match => prnt (get_fmts tabs a))
+            | None => prnt (get_fmts tabs a)))
       end
 
     and astT (c as Constant a, p) = combT (c, a, [], p)
@@ -303,14 +357,15 @@ fun pretty tabs trf type_mode curried ast0 p0 =
 
 (* pretty_term_ast *)
 
-fun pretty_term_ast curried prtabs trf ast =
-  Pretty.blk (0, pretty (tabs_of prtabs (! print_mode)) trf false curried ast 0);
+fun pretty_term_ast curried prtabs trf tokentrf ast =
+  Pretty.blk (0, pretty (tabs_of prtabs (! print_mode))
+    trf tokentrf false curried ast 0);
 
 
 (* pretty_typ_ast *)
 
-fun pretty_typ_ast _ prtabs trf ast =
-  Pretty.blk (0, pretty (tabs_of prtabs (! print_mode)) trf true false ast 0);
-
+fun pretty_typ_ast _ prtabs trf tokentrf ast =
+  Pretty.blk (0, pretty (tabs_of prtabs (! print_mode))
+    trf tokentrf true false ast 0);
 
 end;
