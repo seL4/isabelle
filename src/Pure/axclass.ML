@@ -42,6 +42,10 @@ val map_term_tfrees = map_term_types o map_typ_frees;
 
 fun aT S = TFree ("'a", S);
 
+fun dest_varT (TFree (x, S)) = ((x, ~1), S)
+  | dest_varT (TVar xi_S) = xi_S
+  | dest_varT T = raise_type "dest_varT" [T] [];
+
 
 (* get axioms and theorems *)
 
@@ -67,9 +71,9 @@ fun dest_classrel tm =
   let
     fun err () = raise_term "dest_classrel" [tm];
 
-    val (ty, c2) = Logic.dest_inclass (Logic.freeze_vars tm)
-	           handle TERM _ => err ();
-    val c1 = (case ty of TFree (_, [c]) => c | _ => err ());
+    val (ty, c2) = Logic.dest_inclass tm handle TERM _ => err ();
+    val c1 = (case dest_varT ty of (_, [c]) => c | _ => err ())
+      handle TYPE _ => err ();
   in
     (c1, c2)
   end;
@@ -89,15 +93,14 @@ fun dest_arity tm =
   let
     fun err () = raise_term "dest_arity" [tm];
 
-    val (ty, c) = Logic.dest_inclass (Logic.freeze_vars tm) 
-	          handle TERM _ => err ();
-    val (t, tfrees) =
+    val (ty, c) = Logic.dest_inclass tm handle TERM _ => err ();
+    val (t, tvars) =
       (case ty of
-        Type (t, tys) => (t, map (fn TFree x => x | _ => err ()) tys)
+        Type (t, tys) => (t, map dest_varT tys handle TYPE _ => err ())
       | _ => err ());
     val ss =
-      if null (gen_duplicates eq_fst tfrees)
-      then map snd tfrees else err ();
+      if null (gen_duplicates eq_fst tvars)
+      then map snd tvars else err ();
   in
     (t, ss, c)
   end;
