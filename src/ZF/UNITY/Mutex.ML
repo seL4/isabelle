@@ -99,7 +99,7 @@ by Auto_tac;
 (*Resulting state \\<in> n=1, p=false, m=4, u=false.  
   Execution of V1 (the command of process v guarded by n=1) sets p:=true,
   violating the invariant!*)
-(*Check that subgoals remain \\<in> proof failed.*)
+(*Check that subgoals remain: proof failed.*)
 getgoal 1;
 
 
