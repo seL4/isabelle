@@ -333,12 +333,21 @@ Thus, it is the sequent calculus analogue of \ttindex{filt_resolve_tac}.
 \end{ttdescription}
 
 
-
 \section{Packaging sequent rules}
-Section~\ref{sec:safe} described the distinction between safe and unsafe
-rules.  An unsafe rule may reduce a provable goal to an unprovable set of
-subgoals, and should only be used as a last resort.  Typical examples are
-the weakened quantifier rules {\tt allL_thin} and {\tt exR_thin}.
+
+The sequent calculi come with simple proof procedures.  These are incomplete
+but are reasonably powerful for interactive use.  They expect rules to be
+classified as {\bf safe} or {\bf unsafe}.  A rule is safe if applying it to a
+provable goal always yields provable subgoals.  If a rule is safe then it can
+be applied automatically to a goal without destroying our chances of finding a
+proof.  For instance, all the standard rules of the classical sequent calculus
+{\sc lk} are safe.  An unsafe rule may render the goal unprovable; typical
+examples are the weakened quantifier rules {\tt allL_thin} and {\tt exR_thin}.
+
+Proof procedures use safe rules whenever possible, using an unsafe rule as a
+last resort.  Those safe rules are preferred that generate the fewest
+subgoals.  Safe rules are (by definition) deterministic, while the unsafe
+rules require a search strategy, such as backtracking.
 
 A {\bf pack} is a pair whose first component is a list of safe rules and
 whose second is a list of unsafe rules.  Packs can be extended in an
@@ -387,6 +396,7 @@ adds some unsafe~$rules$ to the pack~$pack$.
 
 
 \section{Proof procedures}
+
 The \LK{} proof procedure is similar to the classical reasoner
 described in 
 \iflabelundefined{chap:classical}{the {\em Reference Manual\/}}%
@@ -475,7 +485,7 @@ particularly useful for quantifier duplication (using \ttindex{LK_dup_pack}).
 The theorem $\turn\ex{y}\all{x}P(y)\imp P(x)$ is a standard example of the
 classical treatment of the existential quantifier.  Classical reasoning
 is easy using~{\LK}, as you can see by comparing this proof with the one
-given in~\S\ref{fol-cla-example}.  From a logical point of view, the
+given in the FOL manual~\cite{isabelle-ZF}.  From a logical point of view, the
 proofs are essentially the same; the key step here is to use \tdx{exR}
 rather than the weaker~\tdx{exR_thin}.
 \begin{ttbox}

@@ -178,10 +178,10 @@ Nordstr\"om et al.~\cite{nordstrom90}.  The empty type is called $F$ and
 the one-element type is $T$; other finite types are built as $T+T+T$, etc.
 
 \index{*SUM symbol}\index{*PROD symbol}
-Quantification is expressed using general sums $\sum@{x\in A}B[x]$ and
+Quantification is expressed by sums $\sum@{x\in A}B[x]$ and
 products $\prod@{x\in A}B[x]$.  Instead of {\tt Sum($A$,$B$)} and {\tt
-  Prod($A$,$B$)} we may write \hbox{\tt SUM $x$:$A$. $B[x]$} and \hbox{\tt
-  PROD $x$:$A$. $B[x]$}.  For example, we may write
+  Prod($A$,$B$)} we may write \hbox{\tt SUM $x$:$A$.\ $B[x]$} and \hbox{\tt
+  PROD $x$:$A$.\ $B[x]$}.  For example, we may write
 \begin{ttbox}
 SUM y:B. PROD x:A. C(x,y)   {\rm for}   Sum(B, \%y. Prod(A, \%x. C(x,y)))
 \end{ttbox}

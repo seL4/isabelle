@@ -905,10 +905,10 @@ simplifier and the classical reasoner.
 
 \subsection{Simplification and substitution}
 
-The simplifier is available in \HOL.  Tactics such as {\tt
+Simplification tactics tactics such as {\tt
   Asm_simp_tac} and \texttt{Full_simp_tac} use the default simpset
 ({\tt simpset()}), which works for most purposes.  A quite minimal
-simplification set for higher-order logic is~\ttindexbold{HOL_ss},
+simplification set for higher-order logic is~\ttindexbold{HOL_ss};
 even more frugal is \ttindexbold{HOL_basic_ss}.  Equality~($=$), which
 also expresses logical equivalence, may be used for rewriting.  See
 the file \texttt{HOL/simpdata.ML} for a complete listing of the basic
@@ -2010,6 +2010,7 @@ This theorem can be added to a simpset via \ttindex{addsplits}
 Theory \texttt{Arith} declares a generic function \texttt{size} of type
 $\alpha\To nat$.  Each datatype defines a particular instance of \texttt{size}
 by overloading according to the following scheme:
+%%% FIXME: This formula is too big and is completely unreadable
 \[
 size(C^j@i~x@1~\dots~x@{m^j@i}) = \!
 \left\{

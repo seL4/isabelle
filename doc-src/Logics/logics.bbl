@@ -1,35 +1,10 @@
 \begin{thebibliography}{10}
 
-\bibitem{abrial93}
-J.~R. Abrial and G.~Laffitte.
-\newblock Towards the mechanization of the proofs of some classical theorems of
-  set theory.
-\newblock preprint, February 1993.
-
 \bibitem{andrews86}
 Peter~B. Andrews.
 \newblock {\em An Introduction to Mathematical Logic and Type Theory: To Truth
   Through Proof}.
 \newblock Academic Press, 1986.
-
-\bibitem{basin91}
-David Basin and Matt Kaufmann.
-\newblock The {Boyer-Moore} prover and {Nuprl}: An experimental comparison.
-\newblock In {G\'erard} Huet and Gordon Plotkin, editors, {\em Logical
-  Frameworks}, pages 89--119. Cambridge University Press, 1991.
-
-\bibitem{boyer86}
-Robert Boyer, Ewing Lusk, William McCune, Ross Overbeek, Mark Stickel, and
-  Lawrence Wos.
-\newblock Set theory in first-order logic: Clauses for {G\"{o}del's} axioms.
-\newblock {\em Journal of Automated Reasoning}, 2(3):287--327, 1986.
-
-\bibitem{camilleri92}
-J.~Camilleri and T.~F. Melham.
-\newblock Reasoning with inductively defined relations in the {HOL} theorem
-  prover.
-\newblock Technical Report 265, Computer Laboratory, University of Cambridge,
-  August 1992.
 
 \bibitem{church40}
 Alonzo Church.
@@ -47,26 +22,6 @@ R.~L. Constable et~al.
 \newblock {\em Implementing Mathematics with the Nuprl Proof Development
   System}.
 \newblock Prentice-Hall, 1986.
-
-\bibitem{davey&priestley}
-B.~A. Davey and H.~A. Priestley.
-\newblock {\em Introduction to Lattices and Order}.
-\newblock Cambridge University Press, 1990.
-
-\bibitem{devlin79}
-Keith~J. Devlin.
-\newblock {\em Fundamentals of Contemporary Set Theory}.
-\newblock Springer, 1979.
-
-\bibitem{dummett}
-Michael Dummett.
-\newblock {\em Elements of Intuitionism}.
-\newblock Oxford University Press, 1977.
-
-\bibitem{dyckhoff}
-Roy Dyckhoff.
-\newblock Contraction-free sequent calculi for intuitionistic logic.
-\newblock {\em Journal of Symbolic Logic}, 57(3):795--807, 1992.
 
 \bibitem{felty91a}
 Amy Felty.
@@ -93,21 +48,11 @@ M.~J.~C. Gordon and T.~F. Melham.
   Order Logic}.
 \newblock Cambridge University Press, 1993.
 
-\bibitem{halmos60}
-Paul~R. Halmos.
-\newblock {\em Naive Set Theory}.
-\newblock Van Nostrand, 1960.
-
 \bibitem{huet78}
 G.~P. Huet and B.~Lang.
 \newblock Proving and applying program transformations expressed with
   second-order patterns.
 \newblock {\em Acta Informatica}, 11:31--55, 1978.
-
-\bibitem{kunen80}
-Kenneth Kunen.
-\newblock {\em Set Theory: An Introduction to Independence Proofs}.
-\newblock North-Holland, 1980.
 
 \bibitem{alf}
 Lena Magnusson and Bengt {Nordstr\"{o}m}.
@@ -140,8 +85,8 @@ Robin Milner and Mads Tofte.
 Wolfgang Naraschewski and Markus Wenzel.
 \newblock Object-oriented verification based on record subtyping in
   higher-order logic.
-\newblock In J.~Grundy and M.~Newey, editors, {\em Theorem Proving in Higher
-  Order Logics: {TPHOLs} '98}, LNCS 1479, pages 349--366, 1998.
+\newblock In Jim Grundy and Malcolm Newey, editors, {\em Theorem Proving in
+  Higher Order Logics: {TPHOLs} '98}, LNCS 1479, pages 349--366, 1998.
 
 \bibitem{nazareth-nipkow}
 Dieter Nazareth and Tobias Nipkow.
@@ -162,21 +107,10 @@ Tobias Nipkow.
   Technology and Theoretical Computer Science}, volume 1180 of {\em LNCS},
   pages 180--192. Springer, 1996.
 
-\bibitem{noel}
-Philippe No{\"e}l.
-\newblock Experimenting with {Isabelle} in {ZF} set theory.
-\newblock {\em Journal of Automated Reasoning}, 10(1):15--58, 1993.
-
 \bibitem{nordstrom90}
 Bengt {Nordstr\"om}, Kent Petersson, and Jan Smith.
 \newblock {\em Programming in {Martin-L\"of}'s Type Theory. An Introduction}.
 \newblock Oxford University Press, 1990.
-
-\bibitem{paulin92}
-Christine Paulin-Mohring.
-\newblock Inductive definitions in the system {Coq}: Rules and properties.
-\newblock Research Report 92-49, LIP, Ecole Normale Sup\'erieure de Lyon,
-  December 1992.
 
 \bibitem{paulson85}
 Lawrence~C. Paulson.
@@ -188,23 +122,11 @@ Lawrence~C. Paulson.
 \newblock {\em Logic and Computation: Interactive proof with Cambridge LCF}.
 \newblock Cambridge University Press, 1987.
 
-\bibitem{paulson-set-I}
-Lawrence~C. Paulson.
-\newblock Set theory for verification: {I}. {From} foundations to functions.
-\newblock {\em Journal of Automated Reasoning}, 11(3):353--389, 1993.
-
 \bibitem{paulson-CADE}
 Lawrence~C. Paulson.
 \newblock A fixedpoint approach to implementing (co)inductive definitions.
 \newblock In Alan Bundy, editor, {\em Automated Deduction --- {CADE}-12
   International Conference}, LNAI 814, pages 148--161. Springer, 1994.
-
-\bibitem{paulson-final}
-Lawrence~C. Paulson.
-\newblock A concrete final coalgebra theorem for {ZF} set theory.
-\newblock In Peter Dybjer, Bengt Nordstr{\"om}, and Jan Smith, editors, {\em
-  Types for Proofs and Programs: International Workshop {TYPES '94}}, LNCS 996,
-  pages 120--139. Springer, 1995.
 
 \bibitem{paulson-set-II}
 Lawrence~C. Paulson.
@@ -229,6 +151,11 @@ Lawrence~C. Paulson.
 \newblock In {\em 10th Computer Security Foundations Workshop}, pages 70--83.
   IEEE Computer Society Press, 1997.
 
+\bibitem{isabelle-ZF}
+Lawrence~C. Paulson.
+\newblock {Isabelle}'s logics: {FOL} and {ZF}.
+\newblock Technical report, Computer Laboratory, University of Cambridge, 1999.
+
 \bibitem{paulson-COLOG}
 Lawrence~C. Paulson.
 \newblock A formulation of the simple theory of types (for {Isabelle}).
@@ -247,20 +174,10 @@ David~A. Plaisted.
 \newblock A sequent-style model elimination strategy and a positive refinement.
 \newblock {\em Journal of Automated Reasoning}, 6(4):389--402, 1990.
 
-\bibitem{quaife92}
-Art Quaife.
-\newblock Automated deduction in {von Neumann-Bernays-G\"{o}del} set theory.
-\newblock {\em Journal of Automated Reasoning}, 8(1):91--147, 1992.
-
 \bibitem{slind-tfl}
 Konrad Slind.
 \newblock Function definition in higher-order logic.
 \newblock In von Wright et~al. \cite{tphols96}.
-
-\bibitem{suppes72}
-Patrick Suppes.
-\newblock {\em Axiomatic Set Theory}.
-\newblock Dover, 1972.
 
 \bibitem{takeuti87}
 G.~Takeuti.
@@ -276,12 +193,6 @@ Simon Thompson.
 J.~von Wright, J.~Grundy, and J.~Harrison, editors.
 \newblock {\em Theorem Proving in Higher Order Logics: {TPHOLs} '96}, LNCS
   1125, 1996.
-
-\bibitem{principia}
-A.~N. Whitehead and B.~Russell.
-\newblock {\em Principia Mathematica}.
-\newblock Cambridge University Press, 1962.
-\newblock Paperback edition to *56, abridged from the 2nd edition (1927).
 
 \bibitem{winskel93}
 Glynn Winskel.
