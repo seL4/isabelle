@@ -390,10 +390,9 @@ done
 text{*Alternative definition for hrabs with rabs function
    applied entrywise to equivalence class representative.
    This is easily proved using starfun and ns extension thm*}
-lemma hypreal_hrabs: "abs (Abs_hypreal (hyprel `` {X})) =
-                  Abs_hypreal(hyprel `` {%n. abs (X n)})"
-apply (simp (no_asm) add: starfun_rabs_hrabs [symmetric] starfun)
-done
+lemma hypreal_hrabs:
+     "abs (Abs_hypreal (hyprel``{X})) = Abs_hypreal(hyprel `` {%n. abs (X n)})"
+by (simp add: starfun_rabs_hrabs [symmetric] starfun)
 
 text{*nonstandard extension of set through nonstandard extension
    of rabs function i.e hrabs. A more general result should be
@@ -404,7 +403,10 @@ lemma STAR_rabs_add_minus:
      {x. abs(x + -hypreal_of_real y) < hypreal_of_real r}"
 apply (simp add: starset_def, safe)
 apply (rule_tac [!] z = x in eq_Abs_hypreal)
-apply (auto intro!: exI dest!: bspec simp add: hypreal_minus hypreal_of_real_def hypreal_add hypreal_hrabs hypreal_less, ultra)
+apply (auto intro!: exI dest!: bspec
+             simp add: hypreal_minus hypreal_of_real_def hypreal_add 
+                       hypreal_hrabs hypreal_less)
+apply ultra
 done
 
 lemma STAR_starfun_rabs_add_minus:
@@ -412,12 +414,15 @@ lemma STAR_starfun_rabs_add_minus:
        {x. abs(( *f* f) x + -hypreal_of_real y) < hypreal_of_real r}"
 apply (simp add: starset_def, safe)
 apply (rule_tac [!] z = x in eq_Abs_hypreal)
-apply (auto intro!: exI dest!: bspec simp add: hypreal_minus hypreal_of_real_def hypreal_add hypreal_hrabs hypreal_less starfun, ultra)
+apply (auto intro!: exI dest!: bspec
+             simp add: hypreal_minus hypreal_of_real_def hypreal_add
+                       hypreal_hrabs hypreal_less starfun)
+apply ultra
 done
 
 text{*Another characterization of Infinitesimal and one of @= relation.
-   In this theory since hypreal_hrabs proved here. (To Check:) Maybe
-   move both if possible?*}
+   In this theory since @{text hypreal_hrabs} proved here. Maybe
+   move both theorems??*}
 lemma Infinitesimal_FreeUltrafilterNat_iff2:
      "(x \<in> Infinitesimal) =
       (\<exists>X \<in> Rep_hypreal(x).
