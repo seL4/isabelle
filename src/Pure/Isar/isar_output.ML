@@ -25,6 +25,8 @@ sig
   val quotes: bool ref
   val indent: int ref
   val source: bool ref
+  val output_with: (Proof.context -> 'a -> Pretty.T) -> Args.src ->
+    Proof.context -> 'a -> string
 end;
 
 structure IsarOutput: ISAR_OUTPUT =
@@ -269,8 +271,6 @@ val _ = add_options
 
 (* commands *)
 
-local
-
 fun cond_quote prt =
   if ! quotes then Pretty.quote prt else prt;
 
@@ -312,8 +312,6 @@ fun output_goals main_goal src state = args (Scan.succeed ()) (output_with (fn _
   Pretty.chunks (Proof.pretty_goals main_goal (Toplevel.proof_of state
       handle Toplevel.UNDEF => error "No proof state")))) src state;
 
-in
-
 val _ = add_commands
  [("text", args (Scan.lift Args.name) (output_with (K pretty_text))),
   ("thm", args Attrib.local_thmss (output_with pretty_thm)),
@@ -324,7 +322,5 @@ val _ = add_commands
   ("typ", args Args.local_typ_no_norm (output_with pretty_typ)),
   ("goals", output_goals true),
   ("subgoals", output_goals false)];
-
-end;
 
 end;
