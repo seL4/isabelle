@@ -102,19 +102,16 @@ calls to {\tt prove_goal}, and abbreviates \hbox{\tt by (EVERY {\it
 tactics})}.
 \end{description}
 
-\noindent{\bf Error indications:}
+\noindent{\it Error indications:}\nobreak
 \begin{itemize}
-\item 
-{\tt "by:\ tactic failed"} means that the tactic returned an empty
-sequence when applied to the current proof state. 
-\item 
-{\tt "Warning:\ same as previous level"} means that the new proof state
-is identical to the previous state.
-\item
-{\tt "Warning:\ signature of proof state has changed"} means that a rule
-was applied from outside the theory of the initial proof state.  This
-guards against mistakes such as expressing the goal in intuitionistic logic
-and proving it using classical logic.
+\item {\footnotesize\tt "by:\ tactic failed"} means that the tactic
+  returned an empty sequence when applied to the current proof state.
+\item {\footnotesize\tt "Warning:\ same as previous level"} means that the
+  new proof state is identical to the previous state.
+\item{\footnotesize\tt "Warning:\ signature of proof state has changed"}
+  means that some rule was applied whose theory is outside the theory of
+  the initial proof state.  This could signify a mistake such as expressing
+  the goal in intuitionistic logic and proving it using classical logic.
 \end{itemize}
 
 \subsection{Extracting the proved theorem}
@@ -145,7 +142,6 @@ goal, or when \ttindex{assume_ax} has been used.
 
 
 \subsection{Undoing and backtracking}
-\index{undoing a proof command|bold}
 \index{backtracking command|see{\tt back}}
 \begin{ttbox} 
 chop    : unit -> unit
@@ -165,7 +161,8 @@ truncates the state list to level~{\it n}.
 \item[\ttindexbold{back}();]
 searches the state list for a non-empty branch point, starting from the top
 level.  The first one found becomes the current proof state --- the most
-recent alternative branch is taken.
+recent alternative branch is taken.  This is a form of interactive
+backtracking.
 
 \item[\ttindexbold{undo}();] 
 cancels the most recent change to the proof state by the commands \ttindex{by},
@@ -173,18 +170,18 @@ cancels the most recent change to the proof state by the commands \ttindex{by},
 cancel {\tt goal} or {\tt undo} itself.  It can be repeated to
 cancel a series of commands.
 \end{description}
-\noindent{\bf Error indications for {\tt back}:}
+
+\goodbreak
+\noindent{\it Error indications for {\tt back}:}\par\nobreak
 \begin{itemize}
-\item
-{\tt"Warning:\ same as previous choice at this level"} means that {\tt
-back} found a non-empty branch point, but that it contained the same proof
-state as the current one.  
-\item
-{\tt "Warning:\ signature of proof state has changed"} means the signature
-of the alternative proof state differs from that of the current state.
-\item 
-{\tt "back:\ no alternatives"} means {\tt back} could find no alternative
-proof state.
+\item{\footnotesize\tt"Warning:\ same as previous choice at this level"}
+  means {\tt back} found a non-empty branch point, but that it contained
+  the same proof state as the current one.
+\item{\footnotesize\tt "Warning:\ signature of proof state has changed"}
+  means the signature of the alternative proof state differs from that of
+  the current state.
+\item {\footnotesize\tt "back:\ no alternatives"} means {\tt back} could
+  find no alternative proof state.
 \end{itemize}
 
 \subsection{Printing the proof state}
@@ -349,7 +346,7 @@ previous level}.)
 \subsection{Executing batch proofs}
 \index{proofs!batch|bold}
 \index{batch execution|bold}
-\begin{ttbox} 
+\begin{ttbox}
 prove_goal  :  theory->          string->(thm list->tactic list)->thm
 prove_goalw :  theory->thm list->string->(thm list->tactic list)->thm
 prove_goalw_cterm: thm list->Sign.cterm->(thm list->tactic list)->thm
@@ -391,16 +388,18 @@ executes a proof of the {\it formula\/} in the given {\it theory}, using
 the given tactic function.
 
 \item[\ttindexbold{prove_goalw} {\it theory} {\it defs} {\it formula} 
-      {\it tacsf}; ]
+      {\it tacsf}; ]\index{rewriting!meta-level}
 is like {\tt prove_goal} but also applies the list of {\it defs\/} as
 meta-rewrite rules to the first subgoal and the premises.
-\index{rewriting!meta-level}
 
 \item[\ttindexbold{prove_goalw_cterm} {\it theory} {\it defs} {\it ct}
       {\it tacsf}; ] 
 is a version of {\tt prove_goalw} for special applications.  The main
 goal is supplied as a cterm, not as a string.  Typically, the cterm is
-created from a term~$t$ by \hbox{\tt Sign.cterm_of (sign_of thy) $t$}.
+created from a term~$t$ as follows:
+\begin{ttbox}
+Sign.cterm_of (sign_of thy) \(t\)
+\end{ttbox}
 \index{*Sign.cterm_of}\index{*sign_of}
 \end{description}
 

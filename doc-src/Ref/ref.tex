@@ -1,4 +1,4 @@
-\documentstyle[a4,12pt,proof,iman,alltt]{report}
+\documentstyle[a4,12pt,proof,iman,extra]{report}
 %% $Id$
 %%% \includeonly{thm}
 %%% to index ids: \[\\tt \([a-zA-Z0-9][a-zA-Z0-9_'.]*\)    [\\ttindexbold{\1}
@@ -12,7 +12,7 @@
  Carsten Clasohm also contributed to Chapter~6.
  Sara Kalvala and Markus Wenzel suggested changes and corrections.
  The research has been funded by the SERC (grants GR/G53279, GR/H40570)
-  and by ESPRIT project 6453: Types).} 
+  and by ESPRIT project 6453: Types.} 
 \\  
         Computer Laboratory \\ University of Cambridge \\[2ex]
         {\small{\em Electronic mail\/}: {\tt lcp@cl.cam.ac.uk}} \\[3cm]
@@ -33,6 +33,10 @@
 \index{definitions|see{rewriting, meta-level}}
 \index{rewriting!object-level|see{simplification}}
 \index{rules!meta-level|see{meta-rules}}
+
+\maketitle 
+\pagenumbering{roman} \tableofcontents \clearfirst
+
 \include{introduction}
 \include{goals}
 \include{tactic}
@@ -46,7 +50,10 @@
 %%seealso's must be last so that they appear last in the index entries
 \index{rewriting!meta-level|seealso{tactics, theorems}}
 
-\bibliographystyle{plain} \small\raggedright\frenchspacing
-\bibliography{atp,funprog,general,logicprog,theory}
-\input{ref.ind}
+\begingroup
+  \bibliographystyle{plain} \small\raggedright\frenchspacing
+  \bibliography{atp,funprog,general,logicprog,theory}
+\endgroup
+\include{Ref/theory-syntax}
+\addcontentsline{toc}{chapter}{Index}\input{ref.ind}
 \end{document}

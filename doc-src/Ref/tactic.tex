@@ -236,19 +236,25 @@ abbreviates \hbox{\tt rewrite_goals_tac [{\it def}]}, unfolding a definition.
 \index{tactics!for inserting facts|bold}
 \begin{ttbox} 
 cut_facts_tac : thm list -> int -> tactic
-subgoal_tac   :   string -> int -> tactic
+cut_inst_tac  : (string*string)list -> thm -> int -> tactic
+subgoal_tac   : string -> int -> tactic
 \end{ttbox}
 These tactics add assumptions --- which must be proved, sooner or later ---
 to a given subgoal.
 \begin{description}
 \item[\ttindexbold{cut_facts_tac} {\it thms} {\it i}] 
   adds the {\it thms} as new assumptions to subgoal~$i$.  Once they have
-  been inserted as assumptions, they become subject to {\tt eresolve_tac}
-  and {\tt rewrite_goals_tac}.  Only rules with no premises are inserted:
-  Isabelle cannot use assumptions that contain $\Imp$ or~$\Forall$.  Sometimes
-  the theorems are premises of a rule being derived, returned by~{\tt
-    goal}; instead of calling this tactic, you could state the goal with an
-  outermost meta-quantifier.
+  been inserted as assumptions, they become subject to tactics such as {\tt
+    eresolve_tac} and {\tt rewrite_goals_tac}.  Only rules with no premises
+  are inserted: Isabelle cannot use assumptions that contain $\Imp$
+  or~$\Forall$.  Sometimes the theorems are premises of a rule being
+  derived, returned by~{\tt goal}; instead of calling this tactic, you
+  could state the goal with an outermost meta-quantifier.
+
+\item[\ttindexbold{cut_inst_tac} {\it insts} {\it thm} {\it i}]
+  instantiates the {\it thm} with the instantiations {\it insts}, as
+  described in \S\ref{res_inst_tac}.  It adds the resulting theorem as a
+  new assumption to subgoal~$i$. 
 
 \item[\ttindexbold{subgoal_tac} {\it formula} {\it i}] 
 adds the {\it formula} as a assumption to subgoal~$i$, and inserts the same
@@ -575,14 +581,16 @@ a value:
 \begin{ttbox}
 datatype 'a option = None  |  Some of 'a;
 \end{ttbox}
+For clarity, the module name {\tt Sequence} is omitted from the signature
+specifications below; for instance, {\tt null} appears instead of {\tt
+  Sequence.null}.
 
 \subsubsection{Basic operations on sequences}
 \begin{ttbox} 
-Sequence.null   : 'a Sequence.seq
-Sequence.seqof  : (unit -> ('a * 'a Sequence.seq) option)
-                     -> 'a Sequence.seq
-Sequence.single : 'a -> 'a Sequence.seq
-Sequence.pull   : 'a Sequence.seq -> ('a * 'a Sequence.seq) option
+null   : 'a seq
+seqof  : (unit -> ('a * 'a seq) option) -> 'a seq
+single : 'a -> 'a seq
+pull   : 'a seq -> ('a * 'a seq) option
 \end{ttbox}
 \begin{description}
 \item[{\tt Sequence.null}] 
@@ -604,9 +612,9 @@ $s$} again will {\bf recompute} the value of~$x$; it is not stored!
 
 \subsubsection{Converting between sequences and lists}
 \begin{ttbox} 
-Sequence.chop: int * 'a Sequence.seq -> 'a list * 'a Sequence.seq
-Sequence.list_of_s : 'a Sequence.seq -> 'a list
-Sequence.s_of_list : 'a list -> 'a Sequence.seq
+chop      : int * 'a seq -> 'a list * 'a seq
+list_of_s : 'a seq -> 'a list
+s_of_list : 'a list -> 'a seq
 \end{ttbox}
 \begin{description}
 \item[{\tt Sequence.chop} ($n$, $s$)] 
@@ -624,12 +632,11 @@ creates a sequence containing the elements of~$l$.
 
 \subsubsection{Combining sequences}
 \begin{ttbox} 
-Sequence.append: 'a Sequence.seq * 'a Sequence.seq -> 'a Sequence.seq
-Sequence.interleave : 'a Sequence.seq * 'a Sequence.seq
-                                                   -> 'a Sequence.seq
-Sequence.flats   : 'a Sequence.seq Sequence.seq -> 'a Sequence.seq
-Sequence.maps    : ('a -> 'b) -> 'a Sequence.seq -> 'b Sequence.seq
-Sequence.filters : ('a -> bool) -> 'a Sequence.seq -> 'a Sequence.seq
+append     : 'a seq * 'a seq -> 'a seq
+interleave : 'a seq * 'a seq -> 'a seq
+flats      : 'a seq seq -> 'a seq
+maps       : ('a -> 'b) -> 'a seq -> 'b seq
+filters    : ('a -> bool) -> 'a seq -> 'a seq
 \end{ttbox} 
 \begin{description}
 \item[{\tt Sequence.append} ($s@1$, $s@2$)] 

@@ -97,8 +97,8 @@ is like \hbox{\tt REPEAT {\it tac}} but it always applies {\it tac\/} at
 least once, failing if this is impossible.
 
 \item[\ttindexbold{trace_REPEAT} \tt:= true;] 
-enables an interactive tracing mode for {\tt REPEAT_DETERM} and {\tt
-REPEAT}.  To view the tracing options, type {\tt h} at the prompt.
+enables an interactive tracing mode for the tacticals {\tt REPEAT_DETERM}
+and {\tt REPEAT}.  To view the tracing options, type {\tt h} at the prompt.
 \end{description}
 
 
@@ -242,8 +242,8 @@ contains the result of applying $tac@0$ to the proof state.  This tactical
 permits separate tactics for starting the search and continuing the search.
 
 \item[\ttindexbold{trace_BEST_FIRST} \tt:= true;] 
-enables an interactive tracing mode for {\tt BEST_FIRST}.  To view the
-tracing options, type {\tt h} at the prompt.
+enables an interactive tracing mode for the tactical {\tt BEST_FIRST}.  To
+view the tracing options, type {\tt h} at the prompt.
 \end{description}
 
 
@@ -345,11 +345,11 @@ If the resulting proof state is $\List{\phi@1; \ldots; \phi@n} \Imp \phi$,
 possibly containing $\theta'@1,\ldots,\theta'@k$ as assumptions, then it is
 lifted back into the original context, yielding $n$ subgoals.
 
-Meta-level assumptions may not contain unknowns.  Unknowns in
-$\theta@1,\ldots,\theta@k$ become free variables in $\theta'@1$, \ldots,
-$\theta'@k$, and are restored afterwards; the {\tt METAHYPS} call cannot
-instantiate them.  Unknowns in $\theta$ may be instantiated.  New unknowns
-in $\phi@1$, \ldots; $\phi@n$ are lifted over the parameters.
+Meta-level assumptions may not contain unknowns.  Unknowns in the
+hypotheses $\theta@1,\ldots,\theta@k$ become free variables in $\theta'@1$,
+\ldots, $\theta'@k$, and are restored afterwards; the {\tt METAHYPS} call
+cannot instantiate them.  Unknowns in $\theta$ may be instantiated.  New
+unknowns in $\phi@1$, \ldots; $\phi@n$ are lifted over the parameters.
 
 Here is a typical application.  Calling {\tt hyp_res_tac}~$i$ resolves
 subgoal~$i$ with one of its own assumptions, which may itself have the form
@@ -396,16 +396,16 @@ is equivalent to
 \hbox{\tt TRY($tacf(n)$) THEN \ldots{} THEN TRY($tacf(1)$)}.  
 
 It attempts to apply {\it tacf} to all the subgoals.  For instance,
-\hbox{\tt TRYALL assume_tac} attempts to solve all the subgoals by
+the tactic \hbox{\tt TRYALL assume_tac} attempts to solve all the subgoals by
 assumption.
 
 \item[\ttindexbold{SOMEGOAL} {\it tacf}] 
 is equivalent to
 \hbox{\tt$tacf(n)$ ORELSE \ldots{} ORELSE $tacf(1)$}.  
 
-It applies {\it tacf} to one subgoal, counting {\bf downwards}.  
-\hbox{\tt SOMEGOAL assume_tac} solves one subgoal by assumption, failing if
-this is impossible.
+It applies {\it tacf} to one subgoal, counting {\bf downwards}.  For instance,
+the tactic \hbox{\tt SOMEGOAL assume_tac} solves one subgoal by assumption,
+failing if this is impossible.
 
 \item[\ttindexbold{FIRSTGOAL} {\it tacf}] 
 is equivalent to

@@ -141,7 +141,7 @@ and implication symbols, or the types of formula and terms.  Coding the
 function {\tt dest_eq} requires knowledge of Isabelle's representation of
 terms.  For {\tt FOL} it is defined by
 \begin{ttbox} 
-fun dest_eq (Const("Trueprop",_) $ (Const("op =",_)$t$u)) = (t,u);
+fun dest_eq (Const("Trueprop",_) $ (Const("op =",_)$t$u)) = (t,u)
 \end{ttbox}
 Here {\tt Trueprop} is the coercion from type~$o$ to type~$prop$, while
 \hbox{\tt op =} is the internal name of the infix operator~{\tt=}.

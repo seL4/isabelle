@@ -1,6 +1,6 @@
 %% $Id$
-\chapter{The classical theorem prover}
-\index{classical prover|(}
+\chapter{The Classical Reasoner}
+\index{classical reasoner|(}
 \newcommand\ainfer[2]{\begin{array}{r@{}l}#2\\ \hline#1\end{array}}
 Although Isabelle is generic, many users will be working in some extension
 of classical first-order logic (FOL).  Isabelle's set theory is built upon
@@ -8,7 +8,7 @@ FOL, while higher-order logic contains FOL as a fragment.  Theorem-proving
 in FOL is of course undecidable, but many researchers have developed
 strategies to assist in this task.
 
-Isabelle's classical module is an \ML{} functor that accepts certain
+Isabelle's classical reasoner is an \ML{} functor that accepts certain
 information about a logic and delivers a suite of automatic tactics.  Each
 tactic takes a collection of rules and executes a simple, non-clausal proof
 procedure.  They are slow and simplistic compared with resolution theorem
@@ -26,7 +26,7 @@ proof assistants provide this much automation.  Isabelle does not record
 proofs, but the tactics can be traced, and their components can be called
 directly.  In this manner, any proof can be viewed interactively.
 
-The logics FOL, HOL and ZF have the classical prover already installed.  We
+The logics FOL, HOL and ZF have the classical reasoner already installed.  We
 shall first consider how to use it, then see how to instantiate it for new
 logics. 
 
@@ -160,7 +160,7 @@ To replicate existential quantifiers, replace $(\exists I)$ by
 All introduction rules mentioned above are also useful in swapped form.
 
 Replication makes the search space infinite; we must apply the rules with
-care.  The classical package distinguishes between safe and unsafe
+care.  The classical reasoner distinguishes between safe and unsafe
 rules, applying the latter only when there is no alternative.  Depth-first
 search may well go down a blind alley; best-first search is better behaved
 in an infinite search space.  However, quantifier replication is too
@@ -197,7 +197,7 @@ is unsafe if it instantiates unknowns shared with other subgoals --- thus
 \ttindex{eq_assume_tac} must be used, rather than \ttindex{assume_tac}.
 
 Classical rule sets belong to the abstract type \ttindexbold{claset}, which
-supports the following operations (provided the classical prover is
+supports the following operations (provided the classical reasoner is
 installed!):
 \begin{ttbox} 
 empty_cs : claset
@@ -237,9 +237,9 @@ adds some unsafe destruction~$rules$ to the classical set~$cs$.
 Introduction rules are those that can be applied using ordinary resolution.
 The classical set automatically generates their swapped forms, which will
 be applied using elim-resolution.  Elimination rules are applied using
-elim-resolution.  In a classical set, rules are sorted the number of new
-subgoals they will yield, so that rules that generate the fewest subgoals
-will be tried first (see \S\ref{biresolve_tac}).
+elim-resolution.  In a classical set, rules are sorted by the number of new
+subgoals they will yield; rules that generate the fewest subgoals will be
+tried first (see \S\ref{biresolve_tac}).
 
 For a given classical set, the proof strategy is simple.  Perform as many
 safe inferences as possible; or else, apply certain safe rules, allowing
@@ -306,7 +306,7 @@ depth-first search, to solve subgoal~$i$.
 \item[\ttindexbold{best_tac} $cs$ $i$] applies {\tt step_tac} using
 best-first search, to solve subgoal~$i$.  A heuristic function ---
 typically, the total size of the proof state --- guides the search.  This
-function is supplied when the classical module is set up.
+function is supplied when the classical reasoner is set up.
 \end{description}
 
 
@@ -360,11 +360,11 @@ elim-resolution).
 \end{description}
 
 
-\section{Setting up the classical prover}
-\index{classical prover!setting up|bold}
+\section{Setting up the classical reasoner}
+\index{classical reasoner!setting up|bold}
 Isabelle's classical object-logics, including {\tt FOL} and {\tt HOL}, have
-the classical prover already set up.  When defining a new classical logic,
-you should set up the prover yourself.  It consists of the \ML{} functor
+the classical reasoner already set up.  When defining a new classical logic,
+you should set up the reasoner yourself.  It consists of the \ML{} functor
 \ttindex{ClassicalFun}, which takes the argument
 signature\indexbold{*CLASSICAL_DATA}
 \begin{ttbox} 

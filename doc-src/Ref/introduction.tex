@@ -1,27 +1,22 @@
 %% $Id$
-\maketitle 
-\pagenumbering{roman} \tableofcontents \clearfirst
+\chapter{Basic Use of Isabelle}\index{sessions|(} 
+The Reference Manual is a comprehensive description of Isabelle, including
+all commands, functions and packages.  It really is intended for reference,
+perhaps for browsing, but not for reading through.  It is not a tutorial,
+but assumes familiarity with the basic concepts of Isabelle.
 
-\chapter{Introduction} 
-\index{sessions|(}
-This manual is a comprehensive description of Isabelle, including all
-commands, functions and packages.  Please do not read it: it is intended
-for reference.  It is not a tutorial!  The manual assumes
-familiarity with the basic concepts explained in {\em Introduction to
-Isabelle}.
-
-Functions are organized by their purpose, by their operands (subgoals,
-tactics, theorems), and by their usefulness.  In each section, basic
-functions appear first, then advanced functions, and finally esoteric
-functions.  When you are looking for a way of performing some task, scan
-the Table of Contents for a relevant heading.
+When you are looking for a way of performing some task, scan the Table of
+Contents for a relevant heading.  Functions are organized by their purpose,
+by their operands (subgoals, tactics, theorems), and by their usefulness.
+In each section, basic functions appear first, then advanced functions, and
+finally esoteric functions.
 
 The Index provides an alphabetical listing.  Page numbers of definitions
 are printed in {\bf bold}, passing references in Roman type.  Use the Index
 when you are looking for the definition of a particular Isabelle function.
 
-This manual contains few examples.  Many files of examples are distributed
-with Isabelle, however; please experiment interactively.
+A few examples are presented.  Many examples files are distributed with
+Isabelle, however; please experiment interactively.
 
 
 \section{Basic interaction with Isabelle}
@@ -30,7 +25,7 @@ Isabelle provides no means of storing theorems or proofs on files.
 Theorems are simply part of the \ML{} state and are named by \ML{}
 identifiers.  To save your work between sessions, you must save a copy of
 the \ML{} image.  The procedure for doing so is compiler-dependent:
-\begin{itemize}
+\begin{itemize}\index{Poly/\ML}
 \item At the end of a session, Poly/\ML{} saves the state, provided you have
 created a database for your own use.  You can create a database by copying
 an existing one, or by calling the Poly/\ML{} function {\tt make_database};
@@ -72,7 +67,8 @@ aborts the Isabelle session, without saving the state.
 
 \item[\ttindexbold{commit}();]  saves the current state in your
 Poly/\ML{} database without finishing the session.  Values of reference
-variables are lost, so never do this during an interactive proof!
+variables are lost, so never do this during an interactive
+proof!\index{Poly/\ML} 
 
 \item[\ttindexbold{exportML} \tt"{\it file}";]  saves an
 image of your session to the given {\it file}.
@@ -86,7 +82,7 @@ private database.  New Jersey \ML{} will discard the state!
 
 
 \section{Reading files of proofs and theories}
-\index{files, reading|bold}
+\index{files!reading|bold}
 \begin{ttbox} 
 cd              : string -> unit
 use             : string -> unit
@@ -121,9 +117,10 @@ performs {\tt use_thy "$tname$"} and prints the total execution time.
 reads all theories that have changed since the last time they have been read.
 See Chapter~\ref{theories} for details.
 
-\item[\ttindexbold{loadpath}] contains a list of paths that is used by 
-{\tt use_thy} and {\tt update} to find {\it tname}{\tt.ML} and {\it tname}
-{\tt.thy}.  See Chapter~\ref{theories} for details.
+\item[\ttindexbold{loadpath}] 
+  contains a list of paths that is used by {\tt use_thy} and {\tt update}
+  to find {\it tname}{\tt.ML} and {\it tname}{\tt.thy}.  See
+  Chapter~\ref{theories} for details.
 \end{description}
 
 
@@ -252,10 +249,9 @@ Unix$^{\rm TM}$.  They can be executed as commands to the Unix shell.  Some
 of them depend upon shell environment variables.
 \begin{description}
 \item[\ttindexbold{make-all} $switches$] 
-compiles the Isabelle system, when executed on the source directory.
-Environment variables specify which \ML{} compiler (and {\tt Makefile}s) to
-use.  These variables, and the {\it switches}, are documented on the file
-itself.
+  compiles the Isabelle system, when executed on the source directory.
+  Environment variables specify which \ML{} compiler to use.  These
+  variables, and the {\it switches}, are documented on the file itself.
 
 \item[\ttindexbold{teeinput} $program$] 
 executes the {\it program}, while piping the standard input to a log file
@@ -272,8 +268,8 @@ commands.
 
 \item[\ttindexbold{expandshort} $files$] 
   reads the {\it files\/} and replaces all occurrences of the shorthand
-  commands {\tt br}, {\tt be}, {\tt brs}, {\tt bes}, etc., with commands
-  like \hbox{\tt by (resolve_tac \ldots)}.  The commands should appear one
+  commands {\tt br}, {\tt be}, {\tt brs}, {\tt bes}, etc., with the
+  corresponding full commands.  Shorthand commands should appear one
   per line.  The old versions of the files
   are renamed to have the suffix~\verb'~~'.
 \end{description}

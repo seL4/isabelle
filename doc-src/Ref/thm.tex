@@ -132,7 +132,7 @@ serves little purpose in forward proof.
 
 
 \subsection{Instantiating a theorem} \index{theorems!instantiating|bold}
-\begin{ttbox} 
+\begin{ttbox}
 read_instantiate    :            (string*string)list -> thm -> thm
 read_instantiate_sg : Sign.sg -> (string*string)list -> thm -> thm
 cterm_instantiate   :    (Sign.cterm*Sign.cterm)list -> thm -> thm
@@ -208,7 +208,7 @@ prems_of      : thm -> term list
 nprems_of     : thm -> int
 tpairs_of     : thm -> (term*term)list
 stamps_of_thy : thm -> string ref list
-dest_state    : thm*int -> (term*term)list * term list * term * term
+dest_state    : thm*int -> (term*term)list*term list*term*term
 rep_thm       : thm -> \{prop:term, hyps:term list, 
                         maxidx:int, sign:Sign.sg\}
 \end{ttbox}
@@ -220,7 +220,8 @@ returns the conclusion of $thm$ as a term.
 returns the premises of $thm$ as a list of terms.
 
 \item[\ttindexbold{nprems_of} $thm$] 
-returns the number of premises in $thm$: {\tt length(prems_of~$thm$)}.
+returns the number of premises in $thm$, and is equivalent to {\tt
+  length(prems_of~$thm$)}.
 
 \item[\ttindexbold{tpairs_of} $thm$] 
 returns the flex-flex constraints of $thm$.
@@ -240,7 +241,7 @@ meta-hypotheses, the maximum subscript of its unknowns, and its signature.
 
 
 \subsection{Tracing flags for unification}
-\index{tracing!of unification}
+\index{tracing!of unification}\index{unification!tracing}
 \begin{ttbox} 
 Unify.trace_simp   : bool ref \hfill{\bf initially false}
 Unify.trace_types  : bool ref \hfill{\bf initially false}
@@ -251,19 +252,19 @@ Tracing the search may be useful when higher-order unification behaves
 unexpectedly.  Letting {\tt res_inst_tac} circumvent the problem is easier,
 though.
 \begin{description}
-\item[\ttindexbold{Unify.trace_simp} \tt:= true;] 
+\item[{\tt Unify.trace_simp} \tt:= true;] 
 causes tracing of the simplification phase.
 
-\item[\ttindexbold{Unify.trace_types} \tt:= true;] 
+\item[{\tt Unify.trace_types} \tt:= true;] 
 generates warnings of incompleteness, when unification is not considering
 all possible instantiations of type unknowns.
 
-\item[\ttindexbold{Unify.trace_bound} \tt:= $n$] 
+\item[{\tt Unify.trace_bound} \tt:= $n$] 
 causes unification to print tracing information once it reaches depth~$n$.
 Use $n=0$ for full tracing.  At the default value of~10, tracing
 information is almost never printed.
 
-\item[\ttindexbold{Unify.search_bound} \tt:= $n$] 
+\item[{\tt Unify.search_bound} \tt:= $n$] 
 causes unification to limit its search to depth~$n$.  Because of this
 bound, higher-order unification cannot return an infinite sequence, though
 it can return a very long one.  The search rarely approaches the default
@@ -302,7 +303,7 @@ and $({\Imp}E)$:
 
 Equality of truth values means logical equivalence:
 \[ \infer[({\equiv}I)]{\phi\equiv\psi}{\infer*{\psi}{[\phi]} &
- 			               \infer*{\phi}{[\psi]}}  
+                                       \infer*{\phi}{[\psi]}}  
    \qquad
    \infer[({\equiv}E)]{\psi}{\phi\equiv \psi & \phi}   \]
 
@@ -327,7 +328,7 @@ assumptions.}
 The {\em universal quantification\/} rules are $(\Forall I)$ and $(\Forall
 E)$:\footnote{$(\Forall I)$ holds if $x$ is not free in the assumptions.}
 \[ \infer[(\Forall I)]{\Forall x.\phi}{\phi}        \qquad
-   \infer[(\Forall I)]{\phi[b/x]}{\Forall x.\phi}   \]
+   \infer[(\Forall E)]{\phi[b/x]}{\Forall x.\phi}   \]
 
 
 \subsection{Propositional rules}
@@ -499,8 +500,8 @@ applies {\tt forall_elim_var} repeatedly, for every element of the list~$ks$.
 \subsubsection{Instantiation of unknowns}
 \index{meta-rules!instantiation|bold}
 \begin{ttbox} 
-instantiate: (indexname*Sign.ctyp)list * (Sign.cterm*Sign.cterm)list
-                   -> thm -> thm
+instantiate: (indexname*Sign.ctyp)list * 
+             (Sign.cterm*Sign.cterm)list  -> thm -> thm
 \end{ttbox}
 \begin{description}
 \item[\ttindexbold{instantiate} $tyinsts$ $insts$ $thm$] 

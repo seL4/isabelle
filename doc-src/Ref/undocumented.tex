@@ -22,58 +22,9 @@ op ---> : typ list * typ -> typ
 Given types \([ \tau_1, \ldots, \tau_n]\) and \(\tau\), it
 forms the type \(\tau_1\to \cdots \to (\tau_n\to\tau)\).
 
-\index{loose_bnos}
-\beginprog
-loose_bnos: term -> int list
-\endprog
-Calling \verb|loose_bnos t| returns the list of all 'loose' bound variable
-references.  In particular, {\tt Bound~0} is loose unless it is enclosed in
-an abstraction.  Similarly {\tt Bound~1} is loose unless it is enclosed in
-at least two abstractions; if enclosed in just one, the list will contain
-the number 0.  A well-formed term does not contain any loose variables.
-
 Calling {\prog{}type_of \${t}}\index{type_of} computes the type of the
 term~$t$.  Raises exception {\tt TYPE} unless applications are well-typed.
 
-\index{aconv}
-\beginprog
-op aconv: term*term -> bool
-\endprog
-Calling $t\Term{ aconv }u$ tests whether terms~$t$ and~$u$ are
-\(\alpha\)-convertible: identical up to renaming of bound variables.
-\begin{itemize}
-  \item
-    Two constants, {\tt Free}s, or {\tt Var}s are \(\alpha\)-convertible
-    just when their names and types are equal.
-    (Variables having the same name but different types are thus distinct.
-    This confusing situation should be avoided!)
-  \item
-    Two bound variables are \(\alpha\)-convertible
-    just when they have the same number.
-  \item
-    Two abstractions are \(\alpha\)-convertible
-    just when their bodies are, and their bound variables have the same type.
-  \item
-    Two applications are \(\alpha\)-convertible
-    just when the corresponding subterms are.
-\end{itemize}
-
-
-\index{incr_boundvars}
-\beginprog
-incr_boundvars: int -> term -> term
-\endprog
-This increments a term's `loose' bound variables by a given offset,
-required when moving a subterm into a context
-where it is enclosed by a different number of lambdas.
-
-\index{abstract_over}
-\beginprog
-abstract_over: term*term -> term
-\endprog
-For abstracting a term over a subterm \(v\):
-replaces every occurrence of \(v\) by a {\tt Bound} variable
-with the correct index.
 
 Calling \verb|subst_bounds|$([u_{n-1},\ldots,u_0],\,t)$\index{subst_bounds}
 substitutes the $u_i$ for loose bound variables in $t$.  This achieves
