@@ -67,9 +67,7 @@ val scan_url =
   Scan.this_string "file://" |-- scan_host1 -- scan_path >> RemoteFile ||
   Scan.this_string "http://" |-- scan_host1 -- scan_path >> Http ||
   Scan.this_string "ftp://" |-- scan_host1 -- scan_path >> Ftp ||
-  Scan.this_string "file://" |-- scan_host1 -- scan_path >> Ftp (* or other proto *) ||
-  (* NB: this next one is not in RFC 1738, but produced by some Haskell libraries *)
-  Scan.this_string "file:" |-- scan_path >> File 
+  Scan.this_string "file://" |-- scan_host1 -- scan_path >> Ftp (* or other proto *)
 
 in
 
