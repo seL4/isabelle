@@ -179,7 +179,7 @@ fun loop () = (Context.reset_context (); Toplevel.loop isar);
 fun main () =
  (Toplevel.set_state Toplevel.toplevel;
   ml_prompts "ML> " "ML# ";
-  writeln ("\n\n" ^ Context.welcome ());
+  writeln (Context.welcome ());
   loop ());
 
 
