@@ -28,7 +28,7 @@ FILES = ROOT.ML $(THYS) $(ONLYTHYS) $(THYS:.thy=.ML) \
         domain/theorems.ML domain/extender.ML domain/interface.ML
 
 $(OUT)/HOLCF: $(OUT)/HOL $(FILES)
-	@$(ISATOOL) usedir -b -c $(OUT)/HOL HOLCF
+	@$(ISATOOL) usedir -b $(OUT)/HOL HOLCF
 	@chmod -w $@
 
 $(OUT)/HOL:

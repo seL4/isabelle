@@ -8,7 +8,7 @@ OUT = $(ISABELLE_OUTPUT_DIR)
 FILES =	ROOT.ML LCF.thy LCF.ML simpdata.ML pair.ML fix.ML
 
 $(OUT)/LCF: $(OUT)/FOL $(FILES)
-	@$(ISATOOL) usedir -b -c $(OUT)/FOL LCF
+	@$(ISATOOL) usedir -b $(OUT)/FOL LCF
 	@chmod -w $@
 
 $(OUT)/FOL:

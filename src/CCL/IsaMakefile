@@ -18,7 +18,7 @@ EX_FILES = ex/ROOT.ML ex/Flag.ML ex/Flag.thy ex/List.ML ex/List.thy \
 
 
 $(OUT)/CCL: $(OUT)/FOL $(SET_FILES) $(CCL_FILES)
-	@$(ISATOOL) usedir -b -c $(OUT)/FOL CCL
+	@$(ISATOOL) usedir -b $(OUT)/FOL CCL
 	@chmod -w $@
 
 $(OUT)/FOL:
