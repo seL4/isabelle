@@ -14,7 +14,7 @@ datatype ('a)abs_action =   S('a) | R('a)
 
 consts
  
-ch_asig  :: 'a abs_action signature
+ch_asig  :: "'a abs_action signature"
 ch_trans :: ('a abs_action, 'a list)transition set
 ch_ioa   :: ('a abs_action, 'a list)ioa
 
@@ -22,7 +22,7 @@ rsch_actions  :: 'm action => bool abs_action option
 srch_actions  :: "'m action =>(bool * 'm) abs_action option"
 
 srch_asig, 
-rsch_asig  :: 'm action signature
+rsch_asig  :: "'m action signature"
  
 srch_trans :: ('m action, 'm packet list)transition set
 rsch_trans :: ('m action, bool list)transition set

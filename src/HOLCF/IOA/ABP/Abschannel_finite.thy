@@ -10,14 +10,14 @@ Abschannel_finite = Abschannel+ IOA + Action + Lemmas + List +
  
 consts
  
-ch_fin_asig  :: 'a abs_action signature
+ch_fin_asig  :: "'a abs_action signature"
 
 ch_fin_trans :: ('a abs_action, 'a list)transition set
 
 ch_fin_ioa   :: ('a abs_action, 'a list)ioa
 
 srch_fin_asig, 
-rsch_fin_asig  :: 'm action signature
+rsch_fin_asig  :: "'m action signature"
 
 srch_fin_trans :: ('m action, 'm packet list)transition set
 rsch_fin_trans :: ('m action, bool list)transition set

@@ -12,7 +12,7 @@ datatype ('a)abs_action =   S('a) | R('a)
 
 consts
  
-ch_asig  :: 'a abs_action signature
+ch_asig  :: "'a abs_action signature"
 
 ch_trans :: ('a abs_action, 'a multiset)transition set
 
@@ -22,7 +22,7 @@ rsch_actions  :: 'm action => bool abs_action option
 srch_actions  :: "'m action =>(bool * 'm) abs_action option"
 
 srch_asig, 
-rsch_asig  :: 'm action signature
+rsch_asig  :: "'m action signature"
 
 srch_wfair, srch_sfair, rsch_sfair,
 rsch_wfair ::('m action)set set

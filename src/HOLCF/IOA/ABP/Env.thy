@@ -15,7 +15,7 @@ types
 
 consts
 
-env_asig   :: 'm action signature
+env_asig   :: "'m action signature"
 env_trans  :: ('m action, 'm env_state)transition set
 env_ioa    :: ('m action, 'm env_state)ioa
 next       :: 'm env_state => bool
