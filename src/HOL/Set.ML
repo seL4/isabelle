@@ -40,23 +40,23 @@ AddSEs [CollectE];
 section "Bounded quantifiers";
 
 val prems = Goalw [Ball_def]
-    "[| !!x. x:A ==> P(x) |] ==> ! x:A. P(x)";
+    "[| !!x. x:A ==> P(x) |] ==> ALL x:A. P(x)";
 by (REPEAT (ares_tac (prems @ [allI,impI]) 1));
 qed "ballI";
 
 bind_thms ("strip", [impI, allI, ballI]);
 
-Goalw [Ball_def] "[| ! x:A. P(x);  x:A |] ==> P(x)";
+Goalw [Ball_def] "[| ALL x:A. P(x);  x:A |] ==> P(x)";
 by (Blast_tac 1);
 qed "bspec";
 
 val major::prems = Goalw [Ball_def]
-    "[| ! x:A. P(x);  P(x) ==> Q;  x~:A ==> Q |] ==> Q";
+    "[| ALL x:A. P(x);  P(x) ==> Q;  x~:A ==> Q |] ==> Q";
 by (rtac (major RS spec RS impCE) 1);
 by (REPEAT (eresolve_tac prems 1));
 qed "ballE";
 
-(*Takes assumptions ! x:A.P(x) and a:A; creates assumption P(a)*)
+(*Takes assumptions ALL x:A.P(x) and a:A; creates assumption P(a)*)
 fun ball_tac i = etac ballE i THEN contr_tac (i+1);
 
 AddSIs [ballI];
@@ -67,23 +67,23 @@ claset_ref() := claset() addWrapper ("bspec", fn tac2 =>
 			 (dtac bspec THEN' atac) APPEND' tac2);
 
 (*Normally the best argument order: P(x) constrains the choice of x:A*)
-Goalw [Bex_def] "[| P(x);  x:A |] ==> ? x:A. P(x)";
+Goalw [Bex_def] "[| P(x);  x:A |] ==> EX x:A. P(x)";
 by (Blast_tac 1);
 qed "bexI";
 
 (*The best argument order when there is only one x:A*)
-Goalw [Bex_def] "[| x:A;  P(x) |] ==> ? x:A. P(x)";
+Goalw [Bex_def] "[| x:A;  P(x) |] ==> EX x:A. P(x)";
 by (Blast_tac 1);
 qed "rev_bexI";
 
 val prems = Goal 
-   "[| ! x:A. ~P(x) ==> P(a);  a:A |] ==> ? x:A. P(x)";
+   "[| ALL x:A. ~P(x) ==> P(a);  a:A |] ==> EX x:A. P(x)";
 by (rtac classical 1);
 by (REPEAT (ares_tac (prems@[bexI,ballI,notI,notE]) 1))  ;
 qed "bexCI";
 
 val major::prems = Goalw [Bex_def]
-    "[| ? x:A. P(x);  !!x. [| x:A; P(x) |] ==> Q  |] ==> Q";
+    "[| EX x:A. P(x);  !!x. [| x:A; P(x) |] ==> Q  |] ==> Q";
 by (rtac (major RS exE) 1);
 by (REPEAT (eresolve_tac (prems @ [asm_rl,conjE]) 1));
 qed "bexE";
@@ -92,12 +92,12 @@ AddIs  [bexI];
 AddSEs [bexE];
 
 (*Trival rewrite rule*)
-Goal "(! x:A. P) = ((? x. x:A) --> P)";
+Goal "(ALL x:A. P) = ((EX x. x:A) --> P)";
 by (simp_tac (simpset() addsimps [Ball_def]) 1);
 qed "ball_triv";
 
 (*Dual form for existentials*)
-Goal "(? x:A. P) = ((? x. x:A) & P)";
+Goal "(EX x:A. P) = ((EX x. x:A) & P)";
 by (simp_tac (simpset() addsimps [Bex_def]) 1);
 qed "bex_triv";
 
@@ -107,13 +107,13 @@ Addsimps [ball_triv, bex_triv];
 
 val prems = Goalw [Ball_def]
     "[| A=B;  !!x. x:B ==> P(x) = Q(x) |] ==> \
-\    (! x:A. P(x)) = (! x:B. Q(x))";
+\    (ALL x:A. P(x)) = (ALL x:B. Q(x))";
 by (asm_simp_tac (simpset() addsimps prems) 1);
 qed "ball_cong";
 
 val prems = Goalw [Bex_def]
     "[| A=B;  !!x. x:B ==> P(x) = Q(x) |] ==> \
-\    (? x:A. P(x)) = (? x:B. Q(x))";
+\    (EX x:A. P(x)) = (EX x:B. Q(x))";
 by (asm_simp_tac (simpset() addcongs [conj_cong] addsimps prems) 1);
 qed "bex_cong";
 
@@ -212,6 +212,11 @@ by (resolve_tac prems 1);
 by (REPEAT (resolve_tac (prems RL [equalityD1,equalityD2]) 1));
 qed "equalityE";
 
+(*This could be tried.  Most things build fine with it.  However, some proofs
+  become very slow or even fail.
+  AddEs [equalityE];
+*)
+
 val major::prems = Goal
     "[| A = B;  [| c:A; c:B |] ==> P;  [| c~:A; c~:B |] ==> P |]  ==>  P";
 by (rtac (major RS equalityE) 1);
@@ -290,6 +295,7 @@ Goal "A={} ==> a ~: A";
 by (Blast_tac 1) ;
 qed "equals0D";
 
+(* [| A = {};  a : A |] ==> R *)
 AddDs [equals0D, sym RS equals0D];
 
 Goalw [Ball_def] "Ball {} P = True";
@@ -473,7 +479,7 @@ qed "insertCI";
 AddSIs [insertCI]; 
 AddSEs [insertE];
 
-Goal "A <= insert x B ==> A <= B & x ~: A | (? B'. A = insert x B' & B' <= B)";
+Goal "A <= insert x B ==> A <= B & x ~: A | (EX B'. A = insert x B' & B' <= B)";
 by (case_tac "x:A" 1);
 by  (Fast_tac 2);
 by (rtac disjI2 1);
@@ -732,7 +738,16 @@ val split_ifs = [if_bool_eq_conj, split_if_eq1, split_if_eq2,
 val mem_simps = [insert_iff, empty_iff, Un_iff, Int_iff, Compl_iff, Diff_iff, 
                  mem_Collect_eq, UN_iff, Union_iff, INT_iff, Inter_iff];
 
-val mksimps_pairs = ("Ball",[bspec]) :: mksimps_pairs;
+(*Would like to add these, but the existing code only searches for the 
+  outer-level constant, which in this case is just "op :"; we instead need
+  to use term-nets to associate patterns with rules.  Also, if a rule fails to
+  apply, then the formula should be kept.
+  [("uminus", Compl_iff RS iffD1), ("op -", [Diff_iff RS iffD1]), 
+   ("op Int", [IntD1,IntD2]),
+   ("Collect", [CollectD]), ("Inter", [InterD]), ("INTER", [INT_D])]
+ *)
+val mksimps_pairs =
+  [("Ball",[bspec])] @ mksimps_pairs;
 
 simpset_ref() := simpset() setmksimps (mksimps mksimps_pairs);
 

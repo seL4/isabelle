@@ -150,7 +150,7 @@ qed "add_eq_self_zero";
 (**** Additional theorems about "less than" ****)
 
 (*Deleted less_natE; instead use less_eq_Suc_add RS exE*)
-Goal "m<n --> (? k. n=Suc(m+k))";
+Goal "m<n --> (EX k. n=Suc(m+k))";
 by (induct_tac "n" 1);
 by (ALLGOALS (simp_tac (simpset() addsimps [order_le_less])));
 by (blast_tac (claset() addSEs [less_SucE] 
@@ -171,7 +171,7 @@ qed "le_add1";
 bind_thm ("less_add_Suc1", (lessI RS (le_add1 RS le_less_trans)));
 bind_thm ("less_add_Suc2", (lessI RS (le_add2 RS le_less_trans)));
 
-Goal "(m<n) = (? k. n=Suc(m+k))";
+Goal "(m<n) = (EX k. n=Suc(m+k))";
 by (blast_tac (claset() addSIs [less_add_Suc1, less_eq_Suc_add]) 1);
 qed "less_iff_Suc_add";
 
@@ -449,12 +449,12 @@ by (ALLGOALS Asm_simp_tac);
 qed "zero_less_diff";
 Addsimps [zero_less_diff];
 
-Goal "i < j  ==> ? k::nat. 0<k & i+k = j";
+Goal "i < j  ==> EX k::nat. 0<k & i+k = j";
 by (res_inst_tac [("x","j - i")] exI 1);
 by (asm_simp_tac (simpset() addsimps [add_diff_inverse, less_not_sym]) 1);
 qed "less_imp_add_positive";
 
-Goal "P(k) --> (!n. P(Suc(n))--> P(n)) --> P(k-i)";
+Goal "P(k) --> (ALL n. P(Suc(n))--> P(n)) --> P(k-i)";
 by (res_inst_tac [("m","k"),("n","i")] diff_induct 1);
 by (ALLGOALS (Clarify_tac THEN' Simp_tac THEN' TRY o Blast_tac));
 qed "zero_induct_lemma";
@@ -1001,8 +1001,6 @@ Goal "P(a - b::nat) = (ALL d. (a<b --> P 0) & (a = b + d --> P d))";
 by (case_tac "a < b" 1);
 by (auto_tac (claset(), simpset() addsimps [diff_is_0_eq RS iffD2]));
 qed "nat_diff_split";
-
-val nat_diff_split = nat_diff_split;
 
 (* FIXME: K true should be replaced by a sensible test to speed things up
    in case there are lots of irrelevant terms involved;
