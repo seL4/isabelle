@@ -2,12 +2,14 @@
     ID:         $Id$
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1992  University of Cambridge
+
+Simple classical reasoner for the sequent calculus, based on "theorem packs"
 *)
 
 
-(**** Theorem Packs ****)
 
-(* based largely on LK *)
+(*Higher precedence than := facilitates use of references*)
+infix 4 add_safes add_unsafes;
 
 datatype pack = Pack of thm list * thm list;
 
@@ -19,17 +21,37 @@ fun less (rl1,rl2) = (nprems_of rl1) < (nprems_of rl2);
 
 val empty_pack = Pack([],[]);
 
-infix 4 add_safes add_unsafes;
+fun warn_duplicates [] = []
+  | warn_duplicates dups =
+      (warning (String.concat ("Ignoring duplicate theorems:\n"::
+			       map (suffix "\n" o string_of_thm) dups));
+       dups);
 
 fun (Pack(safes,unsafes)) add_safes ths   = 
-    Pack(sort (make_ord less) (ths@safes), unsafes);
+    let val dups = warn_duplicates (gen_inter eq_thm (ths,safes))
+	val ths' = gen_rems eq_thm (ths,dups)
+    in
+        Pack(sort (make_ord less) (ths'@safes), unsafes)
+    end;
 
 fun (Pack(safes,unsafes)) add_unsafes ths = 
-    Pack(safes, sort (make_ord less) (ths@unsafes));
+    let val dups = warn_duplicates (gen_inter eq_thm (ths,unsafes))
+	val ths' = gen_rems eq_thm (ths,dups)
+    in
+	Pack(safes, sort (make_ord less) (ths'@unsafes))
+    end;
 
+fun merge_pack (Pack(safes,unsafes), Pack(safes',unsafes')) =
+        Pack(sort (make_ord less) (safes@safes'), 
+	     sort (make_ord less) (unsafes@unsafes'));
+
+
+fun print_pack (Pack(safes,unsafes)) =
+    (writeln "Safe rules:";  print_thms safes;
+     writeln "Unsafe rules:"; print_thms unsafes);
 
 (*Returns the list of all formulas in the sequent*)
-fun forms_of_seq (Const("Sequents.SeqO'",_) $ P $ u) = P :: forms_of_seq u
+fun forms_of_seq (Const("SeqO'",_) $ P $ u) = P :: forms_of_seq u
   | forms_of_seq (H $ u) = forms_of_seq u
   | forms_of_seq _ = [];
 
@@ -112,11 +134,13 @@ fun repeat_goal_tac (Pack(safes,unsafes)) =
 
 
 (*Tries safe rules only*)
-fun safe_goal_tac (Pack(safes,unsafes)) = reresolve_tac safes;
+fun safe_tac (Pack(safes,unsafes)) = reresolve_tac safes;
+
+val safe_goal_tac = safe_tac;   (*backwards compatibility*)
 
 (*Tries a safe rule or else a unsafe rule.  Single-step for tracing. *)
 fun step_tac (thm_pack as Pack(safes,unsafes)) =
-    safe_goal_tac thm_pack  ORELSE'
+    safe_tac thm_pack  ORELSE'
     filseq_resolve_tac unsafes 9999;
 
 
@@ -138,87 +162,38 @@ fun best_tac thm_pack  =
 
 
 
-signature MODAL_PROVER_RULE =
-sig
-    val rewrite_rls      : thm list
-    val safe_rls         : thm list
-    val unsafe_rls       : thm list
-    val bound_rls        : thm list
-    val aside_rls        : thm list
-end;
+structure ProverArgs =
+  struct
+  val name = "Sequents/prover";
+  type T = pack ref;
+  val empty = ref empty_pack
+  fun copy (ref pack) = ref pack;
+  val prep_ext = copy;
+  fun merge (ref pack1, ref pack2) = ref (merge_pack (pack1, pack2));
+  fun print _ (ref pack) = print_pack pack;
+  end;
 
-signature MODAL_PROVER = 
-sig
-    val rule_tac   : thm list -> int ->tactic
-    val step_tac   : int -> tactic
-    val solven_tac : int -> int -> tactic
-    val solve_tac  : int -> tactic
-end;
+structure ProverData = TheoryDataFun(ProverArgs);
 
-functor Modal_ProverFun (Modal_Rule: MODAL_PROVER_RULE) : MODAL_PROVER = 
-struct
-local open Modal_Rule
-in 
+val prover_setup = [ProverData.init];
 
-(*Returns the list of all formulas in the sequent*)
-fun forms_of_seq (Const("Sequents.SeqO",_) $ P $ u) = P :: forms_of_seq u
-  | forms_of_seq (H $ u) = forms_of_seq u
-  | forms_of_seq _ = [];
+val print_thm_pack = ProverData.print;
+val thm_pack_ref_of_sg = ProverData.get_sg;
+val thm_pack_ref_of = ProverData.get;
 
-(*Tests whether two sequences (left or right sides) could be resolved.
-  seqp is a premise (subgoal), seqc is a conclusion of an object-rule.
-  Assumes each formula in seqc is surrounded by sequence variables
-  -- checks that each concl formula looks like some subgoal formula.*)
-fun could_res (seqp,seqc) =
-      forall (fn Qc => exists (fn Qp => could_unify (Qp,Qc)) 
-                              (forms_of_seq seqp))
-             (forms_of_seq seqc);
+(* access global thm_pack *)
 
-(*Tests whether two sequents G|-H could be resolved, comparing each side.*)
-fun could_resolve_seq (prem,conc) =
-  case (prem,conc) of
-      (_ $ Abs(_,_,leftp) $ Abs(_,_,rightp),
-       _ $ Abs(_,_,leftc) $ Abs(_,_,rightc)) =>
-          could_res (leftp,leftc)  andalso  could_res (rightp,rightc)
-    | _ => false;
+val thm_pack_of_sg = ! o thm_pack_ref_of_sg;
+val thm_pack_of = thm_pack_of_sg o sign_of;
 
-(*Like filt_resolve_tac, using could_resolve_seq
-  Much faster than resolve_tac when there are many rules.
-  Resolve subgoal i using the rules, unless more than maxr are compatible. *)
-fun filseq_resolve_tac rules maxr = SUBGOAL(fn (prem,i) =>
-  let val rls = filter_thms could_resolve_seq (maxr+1, prem, rules)
-  in  if length rls > maxr  then  no_tac  else resolve_tac rls i
-  end);
+val thm_pack = thm_pack_of o Context.the_context;
+val thm_pack_ref = thm_pack_ref_of_sg o sign_of o Context.the_context;
 
-fun fresolve_tac rls n = filseq_resolve_tac rls 999 n;
 
-(* NB No back tracking possible with aside rules *)
+(* change global thm_pack *)
 
-fun aside_tac n = DETERM(REPEAT (filt_resolve_tac aside_rls 999 n));
-fun rule_tac rls n = fresolve_tac rls n THEN aside_tac n;
+fun change_thm_pack f x = thm_pack_ref () := (f (thm_pack (), x));
 
-val fres_safe_tac = fresolve_tac safe_rls;
-val fres_unsafe_tac = fresolve_tac unsafe_rls THEN' aside_tac;
-val fres_bound_tac = fresolve_tac bound_rls;
+val Add_safes = change_thm_pack (op add_safes);
+val Add_unsafes = change_thm_pack (op add_unsafes);
 
-fun UPTOGOAL n tf = let fun tac i = if i<n then all_tac
-                                    else tf(i) THEN tac(i-1)
-                    in fn st => tac (nprems_of st) st end;
-
-(* Depth first search bounded by d *)
-fun solven_tac d n state = state |>
-       (if d<0 then no_tac
-        else if (nprems_of state = 0) then all_tac 
-        else (DETERM(fres_safe_tac n) THEN UPTOGOAL n (solven_tac d)) ORELSE
-                 ((fres_unsafe_tac n  THEN UPTOGOAL n (solven_tac d)) APPEND
-                   (fres_bound_tac n  THEN UPTOGOAL n (solven_tac (d-1)))));
-
-fun solve_tac d = rewrite_goals_tac rewrite_rls THEN solven_tac d 1;
-
-fun step_tac n = 
-    COND (has_fewer_prems 1) all_tac 
-         (DETERM(fres_safe_tac n) ORELSE 
-	  (fres_unsafe_tac n APPEND fres_bound_tac n));
-
-end;
-end;
