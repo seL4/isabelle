@@ -68,6 +68,10 @@ consts
   *             :: "['a::times, 'a] => 'a"          (infixl 70)
   (*See Nat.thy for "^"*)
 
+axclass plus_ac0 < plus, zero
+    commute: "x + y = y + x"
+    assoc:   "(x + y) + z = x + (y + z)"
+    zero:    "0 + x = x"
 
 
 (** Additional concrete syntax **)
