@@ -22,6 +22,7 @@ clashes with existing developments.
 <dl>
 
 <dt><strong>Files</strong>
+
 <dd>Avoid unnecessary scattering of theories over several files.  Use
 new-style theories only, as old ones tend to clutter the file space
 with separate <tt>.thy</tt> and <tt>.ML</tt> files.
@@ -29,19 +30,21 @@ with separate <tt>.thy</tt> and <tt>.ML</tt> files.
 <dt><strong>Examples</strong>
 
 <dd>Theories should be as ``generic'' as is sensible.  Unused (or
-rather unusable?) standalone theories should be avoided; common
-applications should actually refer to the present theory.  Small
-example uses may be included as well, but should be put in a separate
+rather unusable?) theories should be avoided; common applications
+should actually refer to the present theory.  Small example uses may
+be included in the library as well, but should be put in a separate
 theory, such as <tt>Foobar</tt> accompanied by
 <tt>Foobar_Examples</tt>.
 
 <dt><strong>Theory names</strong>
+
 <dd>The theory loader name space is <em>flat</em>, so use sufficiently
 long and descriptive names to reduce the danger of clashes with the
 user's own theories.  The convention for theory names is as follows:
 <tt>Foobar_Doobar</tt> (this looks best in LaTeX output).
 
 <dt><strong>Names of logical items</strong>
+
 <dd>There are separate hierarchically structured name spaces for
 types, constants, theorems etc.  Nevertheless, some care should be
 taken, as the name spaces are always ``open''.  Use adequate names;
@@ -56,16 +59,18 @@ output.  Do not use ``exotic'' symbols for syntax (such as
 <tt>\&lt;oplus&gt;</tt>), but leave these for user applications.
 
 <dt><strong>Global context declarations</strong>
+
 <dd>Only items introduced in the present theory should be declared
-globally (e.g. as Simplifier rules).  Note that adding / deleting
-rules stemming from parent theories may result in strange behavior
-later, depending on the user's arrangement of import lists.
+globally (e.g. as Simplifier rules).  Note that adding and deleting
+rules from parent theories may result in strange behavior later,
+depending on the user's arrangement of import lists.
 
 <dt><strong>Mathematical symbols</strong>
-<dd>Non-ASCII symbols should be used with some care. In particular,
-avoid unreadable arrows: <tt>==&gt;</tt> should be preferred over
-<tt>\&lt;Longrightarrow&gt;</tt>. Use <tt>isatool unsymbolize</tt> to
-clean up the sources.
+
+<dd>Non-ASCII symbols should be used as appropriate, with some
+care. In particular, avoid unreadable arrows: <tt>==&gt;</tt> should
+be preferred over <tt>\&lt;Longrightarrow&gt;</tt>. Use <tt>isatool
+unsymbolize</tt> to clean up the sources.
 
 <p>
 
@@ -73,14 +78,14 @@ The following ASCII symbols of HOL should be generally avoided:
 <tt>@</tt>, <tt>!</tt>, <tt>?</tt>, <tt>?!</tt>, <tt>%</tt>, better
 use <tt>SOME</tt>, <tt>ALL</tt> (or <tt>\&lt;forall&gt;</tt>),
 <tt>EX</tt> (or <tt>\&lt;exists&gt;</tt>), <tt>EX!</tt> (or
-<tt>\&lt;exists;&gt!</tt>), <tt>\&lt;lambda&gt;</tt>, respectively.
+<tt>\&lt;exists&gt;!</tt>), <tt>\&lt;lambda&gt;</tt>, respectively.
 Note that bracket notation <tt>[|&nbsp;|]</tt> looks bad in LaTeX
 output.
 
 <p>
 
 Some additional mathematical symbols are quite suitable for both
-readable sources and output document:
+readable sources and the output document:
 <tt>\&lt;Inter&gt;</tt>,
 <tt>\&lt;Union&gt;</tt>,
 <tt>\&lt;and&gt;</tt>,
