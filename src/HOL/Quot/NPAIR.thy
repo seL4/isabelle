@@ -6,7 +6,7 @@
 Example: define a PER on pairs of natural numbers (with embedding)
 
 *)
-NPAIR = PER + Datatype + (* representation for rational numbers *)
+NPAIR = PER + Main + (* representation for rational numbers *)
 
 datatype NP = abs_NP "(nat * nat)"
 
