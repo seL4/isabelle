@@ -17,23 +17,23 @@ by (drule mp, (assumption|arith))+
 
 text{*exercise: what's going on here?*}
 lemma "\<lbrakk>P\<and>Q\<longrightarrow>R; P\<longrightarrow>Q; P\<rbrakk> \<Longrightarrow> R"
-by (drule mp, intro?, assumption+)+
+by (drule mp, (intro conjI)?, assumption+)+
 
 text{*defer and prefer*}
 
 lemma "hard \<and> (P \<or> ~P) \<and> (Q\<longrightarrow>Q)"
-apply intro   --{* @{subgoals[display,indent=0,margin=65]} *}
+apply (intro conjI)   --{* @{subgoals[display,indent=0,margin=65]} *}
 defer 1   --{* @{subgoals[display,indent=0,margin=65]} *}
 apply blast+   --{* @{subgoals[display,indent=0,margin=65]} *}
 oops
 
 lemma "ok1 \<and> ok2 \<and> doubtful"
-apply intro   --{* @{subgoals[display,indent=0,margin=65]} *}
+apply (intro conjI)   --{* @{subgoals[display,indent=0,margin=65]} *}
 prefer 3   --{* @{subgoals[display,indent=0,margin=65]} *}
 oops
 
 lemma "bigsubgoal1 \<and> bigsubgoal2 \<and> bigsubgoal3 \<and> bigsubgoal4 \<and> bigsubgoal5 \<and> bigsubgoal6"
-apply intro   --{* @{subgoals[display,indent=0,margin=65]} *}
+apply (intro conjI)   --{* @{subgoals[display,indent=0,margin=65]} *}
 txt{* @{subgoals[display,indent=0,margin=65]} 
 A total of 6 subgoals...
 *}
@@ -44,7 +44,7 @@ oops
 (*needed??*)
 
 lemma "(P\<or>Q) \<and> (R\<or>S) \<Longrightarrow> PP"
-apply elim
+apply (elim conjE disjE)
 oops
 
 lemma "((P\<or>Q) \<and> R) \<and> (Q \<and> (P\<or>S)) \<Longrightarrow> PP"

@@ -117,7 +117,7 @@ theorem arg_cong, useful in forward steps
 *}
 
 lemma "2 \<le> u \<Longrightarrow> u*m \<noteq> Suc(u*n)"
-apply intro
+apply (intro notI)
 txt{*
 before using arg_cong
 @{subgoals[display,indent=0,margin=65]}

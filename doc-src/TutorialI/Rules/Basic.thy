@@ -150,7 +150,7 @@ negation
 lemma "\<lbrakk>\<not>(P\<longrightarrow>Q); \<not>(R\<longrightarrow>Q)\<rbrakk> \<Longrightarrow> R"
 apply (erule_tac Q="R\<longrightarrow>Q" in contrapos_np)
 	--{* @{subgoals[display,indent=0,margin=65]} *}
-apply intro
+apply (intro impI)
 	--{* @{subgoals[display,indent=0,margin=65]} *}
 by (erule notE)
 
@@ -160,7 +160,7 @@ text {*
 *};
 
 lemma "(P \<or> Q) \<and> R \<Longrightarrow> P \<or> Q \<and> R"
-apply intro
+apply (intro conjI disjCI)
 	--{* @{subgoals[display,indent=0,margin=65]} *}
 
 apply (elim conjE disjE)
@@ -211,7 +211,7 @@ by (drule mp)
 
 text{*rename_tac*}
 lemma "x < y \<Longrightarrow> \<forall>x y. P x (f y)"
-apply intro
+apply (intro allI)
 	--{* @{subgoals[display,indent=0,margin=65]} *}
 apply (rename_tac v w)
 	--{* @{subgoals[display,indent=0,margin=65]} *}
@@ -361,21 +361,22 @@ text{*end of Epsilon section*}
 
 
 lemma "(\<exists>x. P x) \<or> (\<exists>x. Q x) \<Longrightarrow> \<exists>x. P x \<or> Q x"
-apply elim
- apply intro
+apply (elim exE disjE)
+ apply (intro exI disjCI)
  apply assumption
 apply (intro exI disjI2) (*or else we get disjCI*)
 apply assumption
 done
 
 lemma "(P\<longrightarrow>Q) \<or> (Q\<longrightarrow>P)"
-apply intro
-apply elim
+apply (intro disjCI impI)
+apply (elim notE)
+apply (intro impI)
 apply assumption
 done
 
 lemma "(P\<or>Q)\<and>(P\<or>R) \<Longrightarrow> P \<or> (Q\<and>R)"
-apply intro
+apply (intro disjCI conjI)
 apply (elim conjE disjE)
 apply blast
 apply blast
