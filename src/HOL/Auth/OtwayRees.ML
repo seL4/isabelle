@@ -43,7 +43,6 @@ by (REPEAT_FIRST
                               :: otway.intrs))));
 qed "otway_mono";
 
-
 (*The Spy can see more than anybody else, except for their initial state*)
 goal thy 
  "!!evs. evs : otway lost ==> \
@@ -301,37 +300,6 @@ by (Auto_tac());
 result();
 
 
-(** Specialized rewriting for this proof **)
-
-Delsimps [image_insert];
-Addsimps [image_insert RS sym];
-
-Delsimps [image_Un];
-Addsimps [image_Un RS sym];
-
-goal thy "insert (Key (newK x)) (sees lost A evs) = \
-\         Key `` (newK``{x}) Un (sees lost A evs)";
-by (Fast_tac 1);
-val insert_Key_singleton = result();
-
-goal thy "insert (Key (f x)) (Key``(f``E) Un C) = \
-\         Key `` (f `` (insert x E)) Un C";
-by (Fast_tac 1);
-val insert_Key_image = result();
-
-
-(*This lets us avoid analyzing the new message -- unless we have to!*)
-(*NEEDED??*)
-goal thy "synth (analz (sees lost Spy evs)) <=   \
-\         synth (analz (sees lost Spy (Says A B X # evs)))";
-by (Simp_tac 1);
-by (rtac (subset_insertI RS analz_mono RS synth_mono) 1);
-qed "synth_analz_thin";
-
-AddIs [impOfSubs synth_analz_thin];
-
-
-
 (** Session keys are not used to encrypt other session keys **)
 
 (*Describes the form of Key K when the following message is sent.  The use of
@@ -358,7 +326,8 @@ val lemma = result() RS mp;
 goal thy 
  "!!evs. [| Says B' A {|N, Crypt {|N, Key K|} (shrK A)|} : set_of_list evs;  \
 \           evs : otway lost |]                      \
-\        ==> (EX evt: otway lost. K = newK evt) | Key K : analz (sees lost Spy evs)";
+\        ==> (EX evt: otway lost. K = newK evt)          \
+\          | Key K : analz (sees lost Spy evs)";
 by (excluded_middle_tac "A : lost" 1);
 by (fast_tac (!claset addSDs [Says_imp_sees_Spy RS analz.Inj]
                       addss (!simpset)) 2);
@@ -367,15 +336,6 @@ by (fast_tac (!claset addEs  partsEs
                       addSDs [Says_imp_sees_Spy RS parts.Inj]) 1);
 by (Fast_tac 1);
 qed "Reveal_message_form";
-
-
-(*Lemma for the trivial direction of the if-and-only-if*)
-goal thy  
- "!!evs. (Key K : analz (Key``nE Un sEe)) --> \
-\         (K : nE | Key K : analz sEe)  ==>     \
-\        (Key K : analz (Key``nE Un sEe)) = (K : nE | Key K : analz sEe)";
-by (fast_tac (!claset addSEs [impOfSubs analz_mono]) 1);
-val lemma = result();
 
 
 (*The equality makes the induction hypothesis easier to apply*)
@@ -387,7 +347,7 @@ by (etac otway.induct 1);
 by (dtac OR2_analz_sees_Spy 4);
 by (dtac OR4_analz_sees_Spy 6);
 by (dtac Reveal_message_form 7);
-by (REPEAT_FIRST (ares_tac [allI, lemma]));
+by (REPEAT_FIRST (ares_tac [allI, analz_image_newK_lemma]));
 by (REPEAT ((eresolve_tac [bexE, disjE] ORELSE' hyp_subst_tac) 7));
 by (ALLGOALS (*Takes 28 secs*)
     (asm_simp_tac 

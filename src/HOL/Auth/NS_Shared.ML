@@ -297,34 +297,7 @@ by (ALLGOALS (fast_tac (!claset addss (!simpset))));
 result();
 
 
-(** Specialized rewriting for this proof **)
-
-Delsimps [image_insert];
-Addsimps [image_insert RS sym];
-
-Delsimps [image_Un];
-Addsimps [image_Un RS sym];
-
-goal thy "insert (Key (newK x)) (sees lost A evs) = \
-\         Key `` (newK``{x}) Un (sees lost A evs)";
-by (Fast_tac 1);
-val insert_Key_singleton = result();
-
-goal thy "insert (Key (f x)) (Key``(f``E) Un C) = \
-\         Key `` (f `` (insert x E)) Un C";
-by (Fast_tac 1);
-val insert_Key_image = result();
-
-
 (** Session keys are not used to encrypt other session keys **)
-
-(*Lemma for the trivial direction of the if-and-only-if*)
-goal thy  
- "!!evs. (Key K : analz (Key``nE Un sEe)) --> \
-\         (K : nE | Key K : analz sEe)  ==>     \
-\        (Key K : analz (Key``nE Un sEe)) = (K : nE | Key K : analz sEe)";
-by (fast_tac (!claset addSEs [impOfSubs analz_mono]) 1);
-val lemma = result();
 
 (*The equality makes the induction hypothesis easier to apply*)
 goal thy  
@@ -334,7 +307,7 @@ goal thy
 by (etac ns_shared.induct 1);
 by (forward_tac [Says_S_message_form] 5 THEN assume_tac 5);     
 by (REPEAT ((eresolve_tac [bexE, conjE, disjE] ORELSE' hyp_subst_tac) 5));
-by (REPEAT_FIRST (resolve_tac [allI, lemma]));
+by (REPEAT_FIRST (resolve_tac [allI, analz_image_newK_lemma]));
 by (ALLGOALS 
     (asm_simp_tac 
      (!simpset addsimps ([insert_Key_singleton, insert_Key_image, pushKey_newK]

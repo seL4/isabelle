@@ -10,38 +10,6 @@ Server keys; initial states of agents; new nonces and keys; function "sees"
 
 
 
-(****************DELETE****************)
-
-local
-    fun string_of (a,0) = a
-      | string_of (a,i) = a ^ "_" ^ string_of_int i;
-in
-  fun freeze_thaw th =
-    let val fth = freezeT th
-        val {prop,sign,...} = rep_thm fth
-        fun mk_inst (Var(v,T)) = 
-            (cterm_of sign (Var(v,T)),
-             cterm_of sign (Free(string_of v, T)))
-        val insts = map mk_inst (term_vars prop)
-        fun thaw th' = 
-            th' |> forall_intr_list (map #2 insts)
-                |> forall_elim_list (map #1 insts)
-    in  (instantiate ([],insts) fth, thaw)  end;
-end;
-fun defer_tac i state = 
-    let val (state',thaw) = freeze_thaw state
-        val hyps = Drule.strip_imp_prems (adjust_maxidx (cprop_of state'))
-        val hyp::hyps' = drop(i-1,hyps)
-    in  implies_intr hyp (implies_elim_list state' (map assume hyps)) 
-        |> implies_intr_list (take(i-1,hyps) @ hyps')
-        |> thaw
-        |> Sequence.single
-    end
-    handle Bind => Sequence.null;
-
-
-
-
 (*GOALS.ML??*)
 fun prlim n = (goals_limit:=n; pr());
 
@@ -132,12 +100,12 @@ by (Auto_tac ());
 qed_spec_mp "sees_own_shrK";
 
 (*Spy sees shared keys of lost agents!*)
-goal thy "!!i. A: lost ==> Key (shrK A) : sees lost Spy evs";
+goal thy "!!A. A: lost ==> Key (shrK A) : sees lost Spy evs";
 by (list.induct_tac "evs" 1);
 by (Auto_tac());
-qed "Spy_sees_bad";
+qed "Spy_sees_lost";
 
-AddSIs [sees_own_shrK, Spy_sees_bad];
+AddSIs [sees_own_shrK, Spy_sees_lost];
 
 
 (** Specialized rewrite rules for (sees lost A (Says...#evs)) **)
@@ -259,8 +227,37 @@ fun spy_analz_tac i =
 
 
 (** Simplifying   parts (insert X (sees lost A evs))
-                = parts {X} Un parts (sees lost A evs) -- since general case loops*)
+      = parts {X} Un parts (sees lost A evs) -- since general case loops*)
 
 val parts_insert_sees = 
-    parts_insert |> read_instantiate_sg (sign_of thy) [("H", "sees lost A evs")]
+    parts_insert |> read_instantiate_sg (sign_of thy)
+                                        [("H", "sees lost A evs")]
                  |> standard;
+
+
+(** Specialized rewriting for  **)
+
+Delsimps [image_insert];
+Addsimps [image_insert RS sym];
+
+Delsimps [image_Un];
+Addsimps [image_Un RS sym];
+
+goal thy "insert (Key (newK x)) H = Key `` (newK``{x}) Un H";
+by (Fast_tac 1);
+qed "insert_Key_singleton";
+
+goal thy "insert (Key (f x)) (Key``(f``E) Un C) = \
+\         Key `` (f `` (insert x E)) Un C";
+by (Fast_tac 1);
+qed "insert_Key_image";
+
+
+(*Lemma for the trivial direction of the if-and-only-if*)
+goal thy  
+ "!!evs. (Key K : analz (Key``nE Un H)) --> (K : nE | Key K : analz H)  ==> \
+\        (Key K : analz (Key``nE Un H)) = (K : nE | Key K : analz H)";
+by (fast_tac (!claset addSEs [impOfSubs analz_mono]) 1);
+qed "analz_image_newK_lemma";
+
+
