@@ -535,7 +535,7 @@ fun mk_cases_meth (ctxt, raw_props) =
     val thy = ProofContext.theory_of ctxt;
     val ss = Simplifier.get_local_simpset ctxt;
     val cprops = map (Thm.cterm_of (Theory.sign_of thy) o ProofContext.read_prop ctxt) raw_props;
-  in Method.erule (map (smart_mk_cases thy ss) cprops) end;
+  in Method.erule 0 (map (smart_mk_cases thy ss) cprops) end;
 
 val mk_cases_args = Method.syntax (Scan.lift (Scan.repeat1 Args.name));
 
