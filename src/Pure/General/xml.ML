@@ -77,29 +77,29 @@ fun err s (xs, _) =
 
 val scan_whspc = Scan.any Symbol.is_blank;
 
-fun scan_string s = Scan.list (Symbol.explode s) >> K s;
+fun scan_lit s = Scan.this (Symbol.explode s) >> K s;
 
 val scan_special = $$ "&" ^^ Symbol.scan_id ^^ $$ ";" >> decode;
 
 val parse_chars = Scan.repeat1 (Scan.unless (scan_whspc -- $$ "<")
   (scan_special || Scan.one Symbol.not_eof)) >> implode;
 
-val parse_cdata = scan_string "<![CDATA[" |--
-  (Scan.repeat (Scan.unless (scan_string "]]>") (Scan.one Symbol.not_eof)) >>
-    implode) --| scan_string "]]>";
+val parse_cdata = scan_lit "<![CDATA[" |--
+  (Scan.repeat (Scan.unless (scan_lit "]]>") (Scan.one Symbol.not_eof)) >>
+    implode) --| scan_lit "]]>";
 
 val parse_att =
   Symbol.scan_id --| scan_whspc --| $$ "=" --| scan_whspc --| $$ "\"" --
   (Scan.repeat (Scan.unless ($$ "\"")
     (scan_special || Scan.one Symbol.not_eof)) >> implode) --| $$ "\"";
 
-val parse_comment = scan_string "<!--" --
-  Scan.repeat (Scan.unless (scan_string "-->") (Scan.one Symbol.not_eof)) --
-  scan_string "-->";
+val parse_comment = scan_lit "<!--" --
+  Scan.repeat (Scan.unless (scan_lit "-->") (Scan.one Symbol.not_eof)) --
+  scan_lit "-->";
 
-val parse_pi = scan_string "<?" |--
-  Scan.repeat (Scan.unless (scan_string "?>") (Scan.one Symbol.not_eof)) --|
-  scan_string "?>";
+val parse_pi = scan_lit "<?" |--
+  Scan.repeat (Scan.unless (scan_lit "?>") (Scan.one Symbol.not_eof)) --|
+  scan_lit "?>";
 
 fun parse_content xs =
   ((Scan.optional (scan_whspc |-- parse_chars >> (single o Text)) [] --
@@ -115,14 +115,14 @@ and parse_elem xs =
   ($$ "<" |-- Symbol.scan_id --
     Scan.repeat (scan_whspc |-- parse_att) --| scan_whspc :-- (fn (s, _) =>
       !! (err "Expected > or />")
-        (scan_string "/>" >> K []
+        (scan_lit "/>" >> K []
          || $$ ">" |-- parse_content --|
             !! (err ("Expected </" ^ s ^ ">"))
-              (scan_string ("</" ^ s) --| scan_whspc --| $$ ">"))) >>
+              (scan_lit ("</" ^ s) --| scan_whspc --| $$ ">"))) >>
     (fn ((s, atts), ts) => Elem (s, atts, ts))) xs;
 
 val parse_document =
-  Scan.option (scan_string "<!DOCTYPE" -- scan_whspc |--
+  Scan.option (scan_lit "<!DOCTYPE" -- scan_whspc |--
     (Scan.repeat (Scan.unless ($$ ">")
       (Scan.one Symbol.not_eof)) >> implode) --| $$ ">" --| scan_whspc) --
   parse_elem;
