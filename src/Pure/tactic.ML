@@ -9,8 +9,6 @@ Tactics.
 signature BASIC_TACTIC =
 sig
   val ares_tac          : thm list -> int -> tactic
-  val asm_rewrite_goal_tac: bool*bool*bool ->
-    (MetaSimplifier.meta_simpset -> tactic) -> MetaSimplifier.meta_simpset -> int -> tactic
   val assume_tac        : int -> tactic
   val atac      : int ->tactic
   val bimatch_from_nets_tac:
@@ -74,8 +72,6 @@ sig
   val net_resolve_tac   : thm list -> int -> tactic
   val norm_hhf_rule     : thm -> thm
   val norm_hhf_tac      : int -> tactic
-  val PRIMITIVE         : (thm -> thm) -> tactic
-  val PRIMSEQ           : (thm -> thm Seq.seq) -> tactic
   val prune_params_tac  : tactic
   val rename_params_tac : string list -> int -> tactic
   val rename_tac        : string -> int -> tactic
@@ -136,12 +132,6 @@ fun rule_by_tactic tac rl =
   end;
 
 (*** Basic tactics ***)
-
-(*Makes a tactic whose effect on a state is given by thmfun: thm->thm seq.*)
-fun PRIMSEQ thmfun st =  thmfun st handle THM _ => Seq.empty;
-
-(*Makes a tactic whose effect on a state is given by thmfun: thm->thm.*)
-fun PRIMITIVE thmfun = PRIMSEQ (Seq.single o thmfun);
 
 (*** The following fail if the goal number is out of range:
      thus (REPEAT (resolve_tac rules i)) stops once subgoal i disappears. *)
@@ -499,24 +489,16 @@ fun lessb (brl1,brl2) = subgoals_of_brl brl1 < subgoals_of_brl brl2;
 
 (*** Meta-Rewriting Tactics ***)
 
-fun result1 tacf mss thm =
-  apsome fst (Seq.pull (tacf mss thm));
-
 val simple_prover =
-  result1 (fn mss => ALLGOALS (resolve_tac (MetaSimplifier.prems_of_mss mss)));
+  SINGLE o (fn mss => ALLGOALS (resolve_tac (MetaSimplifier.prems_of_mss mss)));
 
 val rewrite = MetaSimplifier.rewrite_aux simple_prover;
 val simplify = MetaSimplifier.simplify_aux simple_prover;
 val rewrite_rule = simplify true;
 val rewrite_goals_rule = MetaSimplifier.rewrite_goals_rule_aux simple_prover;
 
-(*Rewrite subgoal i only.  SELECT_GOAL avoids inefficiencies in goals_conv.*)
-fun asm_rewrite_goal_tac mode prover_tac mss =
-  SELECT_GOAL
-    (PRIMITIVE (MetaSimplifier.rewrite_goal_rule mode (result1 prover_tac) mss 1));
-
 fun rewrite_goal_tac rews =
-  asm_rewrite_goal_tac (true, false, false) (K no_tac) (MetaSimplifier.mss_of rews);
+  MetaSimplifier.asm_rewrite_goal_tac (true, false, false) (K no_tac) (MetaSimplifier.mss_of rews);
 
 (*Rewrite throughout proof state. *)
 fun rewrite_tac defs = PRIMITIVE(rewrite_rule defs);

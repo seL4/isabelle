@@ -39,6 +39,8 @@ sig
   val ORELSE'           : ('a -> tactic) * ('a -> tactic) -> 'a -> tactic
   val pause_tac         : tactic
   val print_tac         : string -> tactic
+  val PRIMITIVE         : (thm -> thm) -> tactic
+  val PRIMSEQ           : (thm -> thm Seq.seq) -> tactic
   val RANGE             : (int -> tactic) list -> int -> tactic
   val REPEAT            : tactic -> tactic
   val REPEAT1           : tactic -> tactic
@@ -51,6 +53,7 @@ sig
   val REPEAT_DETERM_SOME: (int -> tactic) -> tactic
   val DETERM_UNTIL      : (thm -> bool) -> tactic -> tactic
   val SELECT_GOAL       : tactic -> int -> tactic
+  val SINGLE            : tactic -> thm -> thm option
   val SOMEGOAL          : (int -> tactic) -> tactic
   val strip_context     : term -> (string * typ) list * term list * term
   val SUBGOAL           : ((term*int) -> tactic) -> int -> tactic
@@ -491,6 +494,15 @@ end;
 
 fun METAHYPS tacf = SUBGOAL (metahyps_aux_tac tacf);
 
+(*Makes a tactic whose effect on a state is given by thmfun: thm->thm seq.*)
+fun PRIMSEQ thmfun st =  thmfun st handle THM _ => Seq.empty;
+
+(*Makes a tactic whose effect on a state is given by thmfun: thm->thm.*)
+fun PRIMITIVE thmfun = PRIMSEQ (Seq.single o thmfun);
+
+(* Inverse (more or less) of PRIMITIVE *)
+fun SINGLE tacf = apsome fst o Seq.pull o tacf
+		  
 end;
 
 open Tactical;

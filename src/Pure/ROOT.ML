@@ -45,9 +45,9 @@ use "display.ML";
 use "fact_index.ML";
 use "pure_thy.ML";
 use "drule.ML";
-use "meta_simplifier.ML";
 use "tctical.ML";
 use "search.ML";
+use "meta_simplifier.ML";
 use "tactic.ML";
 
 (*proof term operations*)

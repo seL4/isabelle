@@ -5,6 +5,11 @@
 Meta-level Simplification.
 *)
 
+infix 4
+  setsubgoaler setloop addloop delloop setSSolver addSSolver setSolver
+  addSolver addsimps delsimps addeqcongs deleqcongs addcongs delcongs
+  setmksimps setmkeqTrue setmkcong setmksym settermless addsimprocs delsimprocs;
+
 signature BASIC_META_SIMPLIFIER =
 sig
   val trace_simp: bool ref
@@ -12,12 +17,63 @@ sig
   val simp_depth_limit: int ref
 end;
 
+signature AUX_SIMPLIFIER =
+sig
+  type meta_simpset
+  type simproc
+  val mk_simproc: string -> cterm list
+    -> (Sign.sg -> thm list -> term -> thm option) -> simproc
+  type solver
+  val mk_solver: string -> (thm list -> int -> tactic) -> solver
+  type simpset
+  val empty_ss: simpset
+  val rep_ss: simpset ->
+   {mss: meta_simpset,
+    mk_cong: thm -> thm,
+    subgoal_tac: simpset -> int -> tactic,
+    loop_tacs: (string * (int -> tactic)) list,
+    unsafe_solvers: solver list,
+    solvers: solver list};
+  val print_ss: simpset -> unit
+  val setsubgoaler: simpset *  (simpset -> int -> tactic) -> simpset
+  val setloop:      simpset *             (int -> tactic) -> simpset
+  val addloop:      simpset *  (string * (int -> tactic)) -> simpset
+  val delloop:      simpset *   string                    -> simpset
+  val setSSolver:   simpset * solver -> simpset
+  val addSSolver:   simpset * solver -> simpset
+  val setSolver:    simpset * solver -> simpset
+  val addSolver:    simpset * solver -> simpset
+  val setmksimps:   simpset * (thm -> thm list) -> simpset
+  val setmkeqTrue:  simpset * (thm -> thm option) -> simpset
+  val setmkcong:    simpset * (thm -> thm) -> simpset
+  val setmksym:     simpset * (thm -> thm option) -> simpset
+  val settermless:  simpset * (term * term -> bool) -> simpset
+  val addsimps:     simpset * thm list -> simpset
+  val delsimps:     simpset * thm list -> simpset
+  val addeqcongs:   simpset * thm list -> simpset
+  val deleqcongs:   simpset * thm list -> simpset
+  val addcongs:     simpset * thm list -> simpset
+  val delcongs:     simpset * thm list -> simpset
+  val addsimprocs:  simpset * simproc list -> simpset
+  val delsimprocs:  simpset * simproc list -> simpset
+  val merge_ss:     simpset * simpset -> simpset
+  val prems_of_ss:  simpset -> thm list
+  val generic_simp_tac: bool -> bool * bool * bool -> simpset -> int -> tactic
+  val simproc: Sign.sg -> string -> string list
+    -> (Sign.sg -> thm list -> term -> thm option) -> simproc
+  val simproc_i: Sign.sg -> string -> term list
+    -> (Sign.sg -> thm list -> term -> thm option) -> simproc
+  val clear_ss  : simpset -> simpset
+  val simp_thm  : bool * bool * bool -> simpset -> thm -> thm
+  val simp_cterm: bool * bool * bool -> simpset -> cterm -> thm
+end;
+
 signature META_SIMPLIFIER =
 sig
   include BASIC_META_SIMPLIFIER
+  include AUX_SIMPLIFIER
   exception SIMPLIFIER of string * thm
   exception SIMPROC_FAIL of string * exn
-  type meta_simpset
   val dest_mss          : meta_simpset ->
     {simps: thm list, congs: thm list, procs: (string * cterm list) list}
   val empty_mss         : meta_simpset
@@ -55,6 +111,9 @@ sig
                           -> (meta_simpset -> thm -> thm option)
                           -> meta_simpset -> int -> thm -> thm
   val rewrite_term: Sign.sg -> thm list -> (term -> term option) list -> term -> term
+  val asm_rewrite_goal_tac: bool*bool*bool ->
+    (meta_simpset -> tactic) -> meta_simpset -> int -> tactic
+
 end;
 
 structure MetaSimplifier : META_SIMPLIFIER =
@@ -122,7 +181,7 @@ Remarks:
        in which case there is nothing better to do.
 *)
 type cong = {thm: thm, lhs: cterm};
-type simproc =
+type meta_simproc =
  {name: string, proc: Sign.sg -> thm list -> term -> thm option, lhs: cterm, id: stamp};
 
 fun eq_rrule ({thm = thm1, ...}: rrule, {thm = thm2, ...}: rrule) =
@@ -134,7 +193,7 @@ fun eq_cong ({thm = thm1, ...}: cong, {thm = thm2, ...}: cong) =
 fun eq_prem (thm1, thm2) =
   #prop (rep_thm thm1) aconv #prop (rep_thm thm2);
 
-fun eq_simproc ({id = s1, ...}:simproc, {id = s2, ...}:simproc) = (s1 = s2);
+fun eq_simproc ({id = s1, ...}:meta_simproc, {id = s2, ...}:meta_simproc) = (s1 = s2);
 
 fun mk_simproc (name, proc, lhs, id) =
   {name = name, proc = proc, lhs = lhs, id = id};
@@ -164,7 +223,7 @@ datatype meta_simpset =
   Mss of {
     rules: rrule Net.net,
     congs: (string * cong) list * string list,
-    procs: simproc Net.net,
+    procs: meta_simproc Net.net,
     bounds: string list,
     prems: thm list,
     mk_rews: {mk: thm -> thm list,
@@ -528,6 +587,193 @@ fun set_termless
 
 
 
+(** simplification procedures **)
+
+(* datatype simproc *)
+
+datatype simproc =
+  Simproc of string * cterm list * (Sign.sg -> thm list -> term -> thm option) * stamp;
+
+fun mk_simproc name lhss proc =
+  Simproc (name, map (Thm.cterm_fun Logic.varify) lhss, proc, stamp ());
+
+fun simproc sg name ss =
+  mk_simproc name (map (fn s => Thm.read_cterm sg (s, TypeInfer.logicT)) ss);
+fun simproc_i sg name = mk_simproc name o map (Thm.cterm_of sg);
+
+fun rep_simproc (Simproc args) = args;
+
+
+
+(** solvers **)
+
+datatype solver = Solver of string * (thm list -> int -> tactic) * stamp;
+
+fun mk_solver name solver = Solver (name, solver, stamp());
+fun eq_solver (Solver (_, _, s1), Solver(_, _, s2)) = s1 = s2;
+
+val merge_solvers = gen_merge_lists eq_solver;
+
+fun app_sols [] _ _ = no_tac
+  | app_sols (Solver(_,solver,_)::sols) thms i =
+       solver thms i ORELSE app_sols sols thms i;
+
+
+
+(** simplification sets **)
+
+(* type simpset *)
+
+datatype simpset =
+  Simpset of {
+    mss: meta_simpset,
+    mk_cong: thm -> thm,
+    subgoal_tac: simpset -> int -> tactic,
+    loop_tacs: (string * (int -> tactic)) list,
+    unsafe_solvers: solver list,
+    solvers: solver list};
+
+fun make_ss mss mk_cong subgoal_tac loop_tacs unsafe_solvers solvers =
+  Simpset {mss = mss, mk_cong = mk_cong, subgoal_tac = subgoal_tac,
+    loop_tacs = loop_tacs, unsafe_solvers = unsafe_solvers, solvers = solvers};
+
+val empty_ss =
+  let val mss = set_mk_sym (empty_mss, Some o symmetric_fun)
+  in make_ss mss I (K (K no_tac)) [] [] [] end;
+
+fun rep_ss (Simpset args) = args;
+fun prems_of_ss (Simpset {mss, ...}) = prems_of_mss mss;
+
+
+(* print simpsets *)
+
+fun print_ss ss =
+  let
+    val Simpset {mss, ...} = ss;
+    val {simps, procs, congs} = dest_mss mss;
+
+    val pretty_thms = map Display.pretty_thm;
+    fun pretty_proc (name, lhss) =
+      Pretty.big_list (name ^ ":") (map Display.pretty_cterm lhss);
+  in
+    [Pretty.big_list "simplification rules:" (pretty_thms simps),
+      Pretty.big_list "simplification procedures:" (map pretty_proc procs),
+      Pretty.big_list "congruences:" (pretty_thms congs)]
+    |> Pretty.chunks |> Pretty.writeln
+  end;
+
+
+(* extend simpsets *)
+
+fun (Simpset {mss, mk_cong, subgoal_tac = _, loop_tacs, unsafe_solvers, solvers})
+    setsubgoaler subgoal_tac =
+  make_ss mss mk_cong subgoal_tac loop_tacs unsafe_solvers solvers;
+
+fun (Simpset {mss, mk_cong, subgoal_tac, loop_tacs = _, unsafe_solvers, solvers})
+    setloop tac =
+  make_ss mss mk_cong subgoal_tac [("", tac)] unsafe_solvers solvers;
+
+fun (Simpset {mss, mk_cong, subgoal_tac, loop_tacs, unsafe_solvers, solvers})
+    addloop tac = make_ss mss mk_cong subgoal_tac
+      (case assoc_string (loop_tacs, (#1 tac)) of None => () | Some x =>
+        warning ("overwriting looper " ^ quote (#1 tac)); overwrite (loop_tacs, tac))
+      unsafe_solvers solvers;
+
+fun (ss as Simpset {mss, mk_cong, subgoal_tac, loop_tacs, unsafe_solvers, solvers})
+ delloop name =
+  let val (del, rest) = partition (fn (n, _) => n = name) loop_tacs in
+    if null del then (warning ("No such looper in simpset: " ^ name); ss)
+    else make_ss mss mk_cong subgoal_tac rest unsafe_solvers solvers
+  end;
+
+fun (Simpset {mss, mk_cong, subgoal_tac, loop_tacs, unsafe_solvers, ...})
+    setSSolver solver =
+  make_ss mss mk_cong subgoal_tac loop_tacs unsafe_solvers [solver];
+
+fun (Simpset {mss, mk_cong, subgoal_tac, loop_tacs, unsafe_solvers, solvers})
+    addSSolver sol =
+  make_ss mss mk_cong subgoal_tac loop_tacs unsafe_solvers (merge_solvers solvers [sol]);
+
+fun (Simpset {mss, mk_cong, subgoal_tac, loop_tacs, unsafe_solvers = _, solvers})
+    setSolver unsafe_solver =
+  make_ss mss mk_cong subgoal_tac loop_tacs [unsafe_solver] solvers;
+
+fun (Simpset {mss, mk_cong, subgoal_tac, loop_tacs, unsafe_solvers, solvers})
+    addSolver sol =
+  make_ss mss mk_cong subgoal_tac loop_tacs (merge_solvers unsafe_solvers [sol]) solvers;
+
+fun (Simpset {mss, mk_cong, subgoal_tac, loop_tacs, unsafe_solvers, solvers})
+    setmksimps mk_simps =
+  make_ss (set_mk_rews (mss, mk_simps)) mk_cong subgoal_tac loop_tacs unsafe_solvers solvers;
+
+fun (Simpset {mss, mk_cong, subgoal_tac, loop_tacs, unsafe_solvers, solvers})
+    setmkeqTrue mk_eq_True =
+  make_ss (set_mk_eq_True (mss, mk_eq_True)) mk_cong subgoal_tac loop_tacs
+    unsafe_solvers solvers;
+
+fun (Simpset {mss, mk_cong = _, subgoal_tac, loop_tacs, unsafe_solvers, solvers})
+    setmkcong mk_cong =
+  make_ss mss mk_cong subgoal_tac loop_tacs unsafe_solvers solvers;
+
+fun (Simpset {mss, mk_cong, subgoal_tac, loop_tacs, unsafe_solvers, solvers})
+    setmksym mksym =
+  make_ss (set_mk_sym (mss, mksym)) mk_cong subgoal_tac loop_tacs unsafe_solvers solvers;
+
+fun (Simpset {mss, mk_cong, subgoal_tac, loop_tacs,  unsafe_solvers, solvers})
+    settermless termless =
+  make_ss (set_termless (mss, termless)) mk_cong subgoal_tac loop_tacs
+    unsafe_solvers solvers;
+
+fun (Simpset {mss, mk_cong, subgoal_tac, loop_tacs, unsafe_solvers, solvers})
+    addsimps rews =
+  make_ss (add_simps (mss, rews)) mk_cong subgoal_tac loop_tacs unsafe_solvers solvers;
+
+fun (Simpset {mss, mk_cong, subgoal_tac, loop_tacs, unsafe_solvers, solvers})
+    delsimps rews =
+  make_ss (del_simps (mss, rews)) mk_cong subgoal_tac loop_tacs unsafe_solvers solvers;
+
+fun (Simpset {mss, mk_cong, subgoal_tac, loop_tacs, unsafe_solvers, solvers})
+    addeqcongs newcongs =
+  make_ss (add_congs (mss, newcongs)) mk_cong subgoal_tac loop_tacs unsafe_solvers solvers;
+
+fun (Simpset {mss, subgoal_tac, mk_cong, loop_tacs, unsafe_solvers, solvers})
+    deleqcongs oldcongs =
+  make_ss (del_congs (mss, oldcongs)) mk_cong subgoal_tac loop_tacs unsafe_solvers solvers;
+
+fun (ss as Simpset {mk_cong, ...}) addcongs newcongs =
+  ss addeqcongs map mk_cong newcongs;
+
+fun (ss as Simpset {mk_cong, ...}) delcongs oldcongs =
+  ss deleqcongs map mk_cong oldcongs;
+
+fun (Simpset {mss, mk_cong, subgoal_tac, loop_tacs, unsafe_solvers, solvers})
+    addsimprocs simprocs =
+  make_ss (add_simprocs (mss, map rep_simproc simprocs)) mk_cong subgoal_tac loop_tacs
+    unsafe_solvers solvers;
+
+fun (Simpset {mss, mk_cong, subgoal_tac, loop_tacs, unsafe_solvers, solvers})
+    delsimprocs simprocs =
+  make_ss (del_simprocs (mss, map rep_simproc simprocs)) mk_cong subgoal_tac
+    loop_tacs unsafe_solvers solvers;
+
+fun clear_ss (Simpset {mss, mk_cong, subgoal_tac, loop_tacs = _, unsafe_solvers, solvers}) =
+  make_ss (clear_mss mss) mk_cong subgoal_tac [] unsafe_solvers solvers;
+
+
+(* merge simpsets *)
+
+(*ignores subgoal_tac of 2nd simpset!*)
+
+fun merge_ss
+   (Simpset {mss = mss1, mk_cong, loop_tacs = loop_tacs1, subgoal_tac,
+             unsafe_solvers = unsafe_solvers1, solvers = solvers1},
+    Simpset {mss = mss2, mk_cong = _, loop_tacs = loop_tacs2, subgoal_tac = _,
+             unsafe_solvers = unsafe_solvers2, solvers = solvers2}) =
+  make_ss (merge_mss (mss1, mss2)) mk_cong subgoal_tac
+    (merge_alists loop_tacs1 loop_tacs2)
+    (merge_solvers unsafe_solvers1 unsafe_solvers2)
+    (merge_solvers solvers1 solvers2);
+
 (** rewriting **)
 
 (*
@@ -666,7 +912,7 @@ fun rewritec (prover, signt, maxt)
                                      else sort rrs (re1,rr::re2)
     in sort rrs ([],[]) end
 
-    fun proc_rews ([]:simproc list) = None
+    fun proc_rews ([]:meta_simproc list) = None
       | proc_rews ({name, proc, lhs, ...} :: ps) =
           if Pattern.matches tsigt (term_of lhs, term_of t) then
             (debug_term false ("Trying procedure " ^ quote name ^ " on:") signt eta_t;
@@ -964,6 +1210,47 @@ fun rewrite_goal_rule mode prover mss i thm =
 (*simple term rewriting -- without proofs*)
 fun rewrite_term sg rules procs =
   Pattern.rewrite_term (Sign.tsig_of sg) (map decomp_simp' rules) procs;
+
+(*Rewrite subgoal i only.  SELECT_GOAL avoids inefficiencies in goals_conv.*)
+fun asm_rewrite_goal_tac mode prover_tac mss =
+  SELECT_GOAL
+    (PRIMITIVE (rewrite_goal_rule mode (SINGLE o prover_tac) mss 1));
+
+(** simplification tactics **)
+
+fun solve_all_tac (mk_cong, subgoal_tac, loop_tacs, unsafe_solvers) mss =
+  let
+    val ss =
+      make_ss mss mk_cong subgoal_tac loop_tacs unsafe_solvers unsafe_solvers;
+    val solve1_tac = (subgoal_tac ss THEN_ALL_NEW (K no_tac)) 1
+  in DEPTH_SOLVE solve1_tac end;
+
+fun loop_tac loop_tacs = FIRST'(map snd loop_tacs);
+
+(*note: may instantiate unknowns that appear also in other subgoals*)
+fun generic_simp_tac safe mode =
+  fn (Simpset {mss, mk_cong, subgoal_tac, loop_tacs, unsafe_solvers, solvers, ...}) =>
+    let
+      val solvs = app_sols (if safe then solvers else unsafe_solvers);
+      fun simp_loop_tac i =
+        asm_rewrite_goal_tac mode
+          (solve_all_tac (mk_cong, subgoal_tac, loop_tacs, unsafe_solvers))
+          mss i
+        THEN (solvs (prems_of_mss mss) i ORELSE
+              TRY ((loop_tac loop_tacs THEN_ALL_NEW simp_loop_tac) i))
+    in simp_loop_tac end;
+
+(** simplification rules and conversions **)
+
+fun simp rew mode
+     (Simpset {mss, mk_cong, subgoal_tac, loop_tacs, unsafe_solvers, ...}) thm =
+  let
+    val tacf = solve_all_tac (mk_cong, subgoal_tac, loop_tacs, unsafe_solvers);
+    fun prover m th = apsome fst (Seq.pull (tacf m th));
+  in rew mode prover mss thm end;
+
+val simp_thm = simp rewrite_thm;
+val simp_cterm = simp rewrite_cterm;
 
 end;
 
