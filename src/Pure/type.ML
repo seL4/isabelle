@@ -12,6 +12,7 @@ sig
   val varifyT: typ -> typ
   val unvarifyT: typ -> typ
   val varify: term * string list -> term
+  val freeze_thaw_type : typ -> typ * (typ -> typ)
   val freeze_thaw : term -> term * (term -> term)
 
   (*type signatures*)
@@ -123,15 +124,15 @@ fun freeze_one alist (ix,sort) =
 fun thaw_one alist (a,sort) = TVar (the (assoc (alist,a)), sort)
       handle OPTION => TFree(a,sort);
 
-(*this sort of code could replace unvarifyT (?) -- currently unused*)
+in
+
+(*this sort of code could replace unvarifyT*)
 fun freeze_thaw_type T =
   let
     val used = add_typ_tfree_names (T, [])
     and tvars = map #1 (add_typ_tvars (T, []));
     val (alist, _) = foldr new_name (tvars, ([], used));
   in (map_type_tvar (freeze_one alist) T, map_type_tfree (thaw_one (map swap alist))) end;
-
-in
 
 fun freeze_thaw t =
   let
