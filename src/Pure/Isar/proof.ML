@@ -28,6 +28,7 @@ sig
   val reset_facts: state -> state
   val assert_backward: state -> state
   val enter_forward: state -> state
+  val verbose: bool ref
   val print_state: state -> unit
   type method
   val method: (thm list -> thm ->
@@ -59,7 +60,7 @@ sig
   val at_bottom: state -> bool
   val local_qed: (state -> state Seq.seq) -> state -> state Seq.seq
   val global_qed: (state -> state Seq.seq) -> bstring option
-    -> theory attribute list option -> state -> theory * (string * string * thm)
+    -> theory attribute list option -> state -> theory * {kind: string, name: string, thm: thm}
 end;
 
 signature PROOF_PRIVATE =
@@ -265,6 +266,8 @@ fun close_block (State (_, node :: nodes)) = State (node, nodes)
 
 (** print_state **)
 
+val verbose = ProofContext.verbose;
+
 fun print_state (state as State ({context, facts, mode, goal = _}, nodes)) =
   let
     val ref (_, _, begin_goal) = Goals.current_goals_markers;
@@ -282,12 +285,15 @@ fun print_state (state as State ({context, facts, mode, goal = _}, nodes)) =
   in
     writeln ("Nesting level: " ^ string_of_int (length nodes div 2));
     writeln "";
-    writeln (mode_name mode ^ " mode");
+    writeln (enclose "`" "'" (mode_name mode) ^ " mode");
     writeln "";
-    ProofContext.print_context context;
-    writeln "";
-    print_facts facts;
-    print_goal (find_goal 0 state)
+    if ! verbose orelse mode = Forward then
+      (ProofContext.print_context context;
+        writeln "";
+        print_facts facts;
+        print_goal (find_goal 0 state))
+    else if mode = ForwardChain then print_facts facts
+    else print_goal (find_goal 0 state)
   end;
 
 
@@ -639,7 +645,7 @@ fun finish_global alt_name alt_atts state =
       | _ => raise STATE ("No global goal!", state));
 
     val (thy', result') = PureThy.store_thm ((name, result), atts) (theory_of state);
-  in (thy', (kind_name kind, name, result')) end;
+  in (thy', {kind = kind_name kind, name = name, thm = result'}) end;
 
 fun global_qed finalize alt_name alt_atts state =
   state
