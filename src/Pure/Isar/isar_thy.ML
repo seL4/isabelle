@@ -12,6 +12,11 @@ TODO:
 
 signature ISAR_THY =
 sig
+  val add_text: string -> theory -> theory
+  val add_chapter: string -> theory -> theory
+  val add_section: string -> theory -> theory
+  val add_subsection: string -> theory -> theory
+  val add_subsubsection: string -> theory -> theory
   val add_axioms: ((bstring * string) * Args.src list) list -> theory -> theory
   val add_defs: ((bstring * string) * Args.src list) list -> theory -> theory
   val have_theorems: (bstring * Args.src list) * (xstring * Args.src list) list
@@ -62,6 +67,15 @@ struct
 
 
 (** derived theory and proof operations **)
+
+(* formal comments *)	(* FIXME dummy *)
+
+fun add_text (txt:string) (thy:theory) = thy;
+val add_chapter = add_text;
+val add_section = add_text;
+val add_subsection = add_text;
+val add_subsubsection = add_text;
+
 
 (* axioms and defs *)
 
