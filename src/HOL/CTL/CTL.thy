@@ -292,8 +292,8 @@ proof -
   proof  
     have "\<AX> p \<subseteq> p \<rightarrow> \<AX> p" ..
     also have "p \<inter> \<AG> (p \<rightarrow> \<AX> p) = \<AG> p" by (rule AG_induct)
-    also note Int_mono AG_mono  
-    ultimately show "?lhs \<subseteq> \<AG> p" by auto
+    also note Int_mono AG_mono
+    ultimately show "?lhs \<subseteq> \<AG> p" by fast
   next  
     have "\<AG> p \<subseteq> p" by (rule AG_fp_1)
     moreover 

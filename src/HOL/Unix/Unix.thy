@@ -696,7 +696,7 @@ proof (induct xs)
           xs_y: "r =(xs @ [y])\<Rightarrow> root''"
         by (auto simp add: can_exec_def transitions_nil_eq transitions_cons_eq)
       from xs_y hyp obtain root' r' where xs: "r =xs\<Rightarrow> root'" and y: "root' \<midarrow>y\<rightarrow> r'"
-        by (auto simp add: can_exec_def)
+        by (unfold can_exec_def) blast
       from x xs have "root =(x # xs)\<Rightarrow> root'"
         by (rule transitions.cons)
       with y show ?thesis by blast
