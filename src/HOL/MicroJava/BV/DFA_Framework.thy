@@ -11,6 +11,8 @@ header "Dataflow Analysis Framework"
 theory DFA_Framework = Listn:
 
 constdefs
+ bounded :: "(nat => nat list) => nat => bool"
+"bounded succs n == !p<n. !q:set(succs p). q<n"
 
  stable :: "'s ord =>
            (nat => 's => 's)

@@ -25,9 +25,6 @@ err_step :: "(nat => 's => bool) => (nat => 's => 's) =>
              (nat => 's err => 's err)"
 "err_step app step p == lift (%t. if app p t then OK (step p t) else Err)"
 
-bounded :: "(nat => nat list) => nat => bool"
-"bounded succs n == !p<n. !q:set(succs p). q<n"
-
 non_empty :: "(nat => nat list) => bool"
 "non_empty succs == !p. succs p ~= []"
 

@@ -11,9 +11,6 @@ header "Kildall's Algorithm"
 theory Kildall = DFA_Framework:
 
 constdefs
- bounded :: "(nat => nat list) => nat => bool"
-"bounded succs n == !p<n. !q:set(succs p). q<n"
-
  pres_type :: "(nat => 's => 's) => nat => 's set => bool"
 "pres_type step n A == !s:A. !p<n. step p s : A"
 

@@ -31,8 +31,8 @@ constdefs
 
   make_Cert :: "[jvm_prog, prog_type] => prog_certificate"
   "make_Cert G Phi ==  \<lambda> C sig.
-     let (C,x,y,mdecls)  = SOME (Cl,x,y,mdecls). (Cl,x,y,mdecls) \<in> set G \<and> Cl = C;
-         (sig,rT,maxl,b) = SOME (sg,rT,maxl,b). (sg,rT,maxl,b) \<in> set mdecls \<and> sg = sig
+     let (C,x,y,mdecls)     = SOME (Cl,x,y,mdecls). (Cl,x,y,mdecls) \<in> set G \<and> Cl = C;
+         (sig,rT,mxs,mxl,b) = SOME (sg,rT,mxs,mxl,b). (sg,rT,mxs,mxl,b) \<in> set mdecls \<and> sg = sig
      in make_cert b (Phi C sig)"
   
 
@@ -83,19 +83,19 @@ lemma fitsD2:
                            
 
 lemma wtl_inst_mono:
-  "[| wtl_inst i G rT s1 cert mpc pc = OK s1'; fits ins cert phi; 
+  "[| wtl_inst i G rT s1 cert mxs mpc pc = OK s1'; fits ins cert phi; 
       pc < length ins;  G \<turnstile> s2 <=' s1; i = ins!pc |] ==>
-  \<exists> s2'. wtl_inst (ins!pc) G rT s2 cert mpc pc = OK s2' \<and> (G \<turnstile> s2' <=' s1')"
+  \<exists> s2'. wtl_inst (ins!pc) G rT s2 cert mxs mpc pc = OK s2' \<and> (G \<turnstile> s2' <=' s1')"
 proof -
   assume pc:   "pc < length ins" "i = ins!pc"
-  assume wtl:  "wtl_inst i G rT s1 cert mpc pc = OK s1'"
+  assume wtl:  "wtl_inst i G rT s1 cert mxs mpc pc = OK s1'"
   assume fits: "fits ins cert phi"
   assume G:    "G \<turnstile> s2 <=' s1"
   
   let "?step s" = "step i G s"
 
   from wtl G
-  have app: "app i G rT s2" by (auto simp add: wtl_inst_OK app_mono)
+  have app: "app i G mxs rT s2" by (auto simp add: wtl_inst_OK app_mono)
   
   from wtl G
   have step: "G \<turnstile> ?step s2 <=' ?step s1" 
@@ -111,13 +111,13 @@ proof -
     have "G\<turnstile> ?step s2 <=' cert!pc'" .
   } note cert = this
     
-  have "\<exists>s2'. wtl_inst i G rT s2 cert mpc pc = OK s2' \<and> G \<turnstile> s2' <=' s1'"
+  have "\<exists>s2'. wtl_inst i G rT s2 cert mxs mpc pc = OK s2' \<and> G \<turnstile> s2' <=' s1'"
   proof (cases "pc+1 \<in> set (succs i pc)")
     case True
     with wtl
     have s1': "s1' = ?step s1" by (simp add: wtl_inst_OK)
 
-    have "wtl_inst i G rT s2 cert mpc pc = OK (?step s2) \<and> G \<turnstile> ?step s2 <=' s1'" 
+    have "wtl_inst i G rT s2 cert mxs mpc pc = OK (?step s2) \<and> G \<turnstile> ?step s2 <=' s1'" 
       (is "?wtl \<and> ?G")
     proof
       from True s1'
@@ -134,7 +134,7 @@ proof -
     have "s1' = cert ! Suc pc" by (simp add: wtl_inst_OK)
 
     with False app wtl
-    have "wtl_inst i G rT s2 cert mpc pc = OK s1' \<and> G \<turnstile> s1' <=' s1'"
+    have "wtl_inst i G rT s2 cert mxs mpc pc = OK s1' \<and> G \<turnstile> s1' <=' s1'"
       by (clarsimp intro!: cert simp add: wtl_inst_OK)
 
     thus ?thesis by blast
@@ -145,11 +145,11 @@ qed
 
 
 lemma wtl_cert_mono:
-  "[| wtl_cert i G rT s1 cert mpc pc = OK s1'; fits ins cert phi; 
+  "[| wtl_cert i G rT s1 cert mxs mpc pc = OK s1'; fits ins cert phi; 
       pc < length ins; G \<turnstile> s2 <=' s1; i = ins!pc |] ==>
-  \<exists> s2'. wtl_cert (ins!pc) G rT s2 cert mpc pc = OK s2' \<and> (G \<turnstile> s2' <=' s1')"
+  \<exists> s2'. wtl_cert (ins!pc) G rT s2 cert mxs mpc pc = OK s2' \<and> (G \<turnstile> s2' <=' s1')"
 proof -
-  assume wtl:  "wtl_cert i G rT s1 cert mpc pc = OK s1'" and
+  assume wtl:  "wtl_cert i G rT s1 cert mxs mpc pc = OK s1'" and
          fits: "fits ins cert phi" "pc < length ins"
                "G \<turnstile> s2 <=' s1" "i = ins!pc"
 
@@ -167,11 +167,11 @@ proof -
       by - (rule sup_state_opt_trans, auto simp add: wtl_cert_def split: if_splits)
 
     from Some wtl
-    have "wtl_inst i G rT (Some a) cert mpc pc = OK s1'" 
+    have "wtl_inst i G rT (Some a) cert mxs mpc pc = OK s1'" 
       by (simp add: wtl_cert_def split: if_splits)
 
     with G fits
-    have "\<exists> s2'. wtl_inst (ins!pc) G rT (Some a) cert mpc pc = OK s2' \<and> 
+    have "\<exists> s2'. wtl_inst (ins!pc) G rT (Some a) cert mxs mpc pc = OK s2' \<and> 
                  (G \<turnstile> s2' <=' s1')"
       by - (rule wtl_inst_mono, (simp add: wtl_cert_def)+)
     
@@ -182,16 +182,16 @@ qed
 
  
 lemma wt_instr_imp_wtl_inst:
-  "[| wt_instr (ins!pc) G rT phi max_pc pc; fits ins cert phi;
+  "[| wt_instr (ins!pc) G rT phi mxs max_pc pc; fits ins cert phi;
       pc < length ins; length ins = max_pc |] ==> 
-  wtl_inst (ins!pc) G rT (phi!pc) cert max_pc pc \<noteq> Err"
+  wtl_inst (ins!pc) G rT (phi!pc) cert mxs max_pc pc \<noteq> Err"
  proof -
-  assume wt:   "wt_instr (ins!pc) G rT phi max_pc pc" 
+  assume wt:   "wt_instr (ins!pc) G rT phi mxs max_pc pc" 
   assume fits: "fits ins cert phi"
   assume pc:   "pc < length ins" "length ins = max_pc"
 
   from wt 
-  have app: "app (ins!pc) G rT (phi!pc)" by (simp add: wt_instr_def)
+  have app: "app (ins!pc) G mxs rT (phi!pc)" by (simp add: wt_instr_def)
 
   from wt pc
   have pc': "!!pc'. pc' \<in> set (succs (ins!pc) pc) ==> pc' < length ins"
@@ -210,13 +210,13 @@ lemma wt_instr_imp_wtl_inst:
 qed
 
 lemma wt_less_wtl:
-  "[| wt_instr (ins!pc) G rT phi max_pc pc; 
-      wtl_inst (ins!pc) G rT (phi!pc) cert max_pc pc = OK s;
+  "[| wt_instr (ins!pc) G rT phi mxs max_pc pc; 
+      wtl_inst (ins!pc) G rT (phi!pc) cert mxs max_pc pc = OK s;
       fits ins cert phi; Suc pc < length ins; length ins = max_pc |] ==> 
   G \<turnstile> s <=' phi ! Suc pc"
 proof -
-  assume wt:   "wt_instr (ins!pc) G rT phi max_pc pc" 
-  assume wtl:  "wtl_inst (ins!pc) G rT (phi!pc) cert max_pc pc = OK s"
+  assume wt:   "wt_instr (ins!pc) G rT phi mxs max_pc pc" 
+  assume wtl:  "wtl_inst (ins!pc) G rT (phi!pc) cert mxs max_pc pc = OK s"
   assume fits: "fits ins cert phi"
   assume pc:   "Suc pc < length ins" "length ins = max_pc"
 
@@ -245,16 +245,16 @@ qed
   
 
 lemma wt_instr_imp_wtl_cert:
-  "[| wt_instr (ins!pc) G rT phi max_pc pc; fits ins cert phi;
+  "[| wt_instr (ins!pc) G rT phi mxs max_pc pc; fits ins cert phi;
       pc < length ins; length ins = max_pc |] ==> 
-  wtl_cert (ins!pc) G rT (phi!pc) cert max_pc pc \<noteq> Err"
+  wtl_cert (ins!pc) G rT (phi!pc) cert mxs max_pc pc \<noteq> Err"
 proof -
-  assume "wt_instr (ins!pc) G rT phi max_pc pc" and 
+  assume "wt_instr (ins!pc) G rT phi mxs max_pc pc" and 
    fits: "fits ins cert phi" and
      pc: "pc < length ins" and
          "length ins = max_pc"
   
-  hence wtl: "wtl_inst (ins!pc) G rT (phi!pc) cert max_pc pc \<noteq> Err"
+  hence wtl: "wtl_inst (ins!pc) G rT (phi!pc) cert mxs max_pc pc \<noteq> Err"
     by (rule wt_instr_imp_wtl_inst)
 
   hence "cert!pc = None ==> ?thesis"
@@ -277,20 +277,20 @@ qed
   
 
 lemma wt_less_wtl_cert:
-  "[| wt_instr (ins!pc) G rT phi max_pc pc; 
-      wtl_cert (ins!pc) G rT (phi!pc) cert max_pc pc = OK s;
+  "[| wt_instr (ins!pc) G rT phi mxs max_pc pc; 
+      wtl_cert (ins!pc) G rT (phi!pc) cert mxs max_pc pc = OK s;
       fits ins cert phi; Suc pc < length ins; length ins = max_pc |] ==> 
   G \<turnstile> s <=' phi ! Suc pc"
 proof -
-  assume wtl: "wtl_cert (ins!pc) G rT (phi!pc) cert max_pc pc = OK s"
+  assume wtl: "wtl_cert (ins!pc) G rT (phi!pc) cert mxs max_pc pc = OK s"
 
-  assume wti: "wt_instr (ins!pc) G rT phi max_pc pc"
+  assume wti: "wt_instr (ins!pc) G rT phi mxs max_pc pc"
               "fits ins cert phi" 
               "Suc pc < length ins" "length ins = max_pc"
   
   { assume "cert!pc = None"
     with wtl
-    have "wtl_inst (ins!pc) G rT (phi!pc) cert max_pc pc = OK s"
+    have "wtl_inst (ins!pc) G rT (phi!pc) cert mxs max_pc pc = OK s"
       by (simp add: wtl_cert_def)
     with wti
     have ?thesis
@@ -303,7 +303,7 @@ proof -
     have "cert!pc = phi!pc"
       by - (rule fitsD2, simp+)
     with c wtl
-    have "wtl_inst (ins!pc) G rT (phi!pc) cert max_pc pc = OK s"
+    have "wtl_inst (ins!pc) G rT (phi!pc) cert mxs max_pc pc = OK s"
       by (simp add: wtl_cert_def)
     with wti
     have ?thesis
@@ -322,12 +322,12 @@ text {*
 
 theorem wt_imp_wtl_inst_list:
 "\<forall> pc. (\<forall>pc'. pc' < length all_ins --> 
-        wt_instr (all_ins ! pc') G rT phi (length all_ins) pc') -->
+        wt_instr (all_ins ! pc') G rT phi mxs (length all_ins) pc') -->
        fits all_ins cert phi --> 
        (\<exists>l. pc = length l \<and> all_ins = l@ins) -->  
        pc < length all_ins -->      
        (\<forall> s. (G \<turnstile> s <=' (phi!pc)) --> 
-             wtl_inst_list ins G rT cert (length all_ins) pc s \<noteq> Err)" 
+             wtl_inst_list ins G rT cert mxs (length all_ins) pc s \<noteq> Err)" 
 (is "\<forall>pc. ?wt --> ?fits --> ?l pc ins --> ?len pc --> ?wtl pc ins"  
  is "\<forall>pc. ?C pc ins" is "?P ins") 
 proof (induct "?P" "ins")
@@ -341,7 +341,7 @@ next
   proof (intro allI impI, elim exE conjE)
     fix pc s l
     assume wt  : "\<forall>pc'. pc' < length all_ins --> 
-                        wt_instr (all_ins ! pc') G rT phi (length all_ins) pc'"
+                        wt_instr (all_ins ! pc') G rT phi mxs (length all_ins) pc'"
     assume fits: "fits all_ins cert phi"
     assume l   : "pc < length all_ins"
     assume G   : "G \<turnstile> s <=' phi ! pc"
@@ -350,10 +350,10 @@ next
       by (simp add: nth_append)
 
     from l wt
-    have wti: "wt_instr (all_ins!pc) G rT phi (length all_ins) pc" by blast
+    have wti: "wt_instr (all_ins!pc) G rT phi mxs (length all_ins) pc" by blast
 
     with fits l 
-    have c: "wtl_cert (all_ins!pc) G rT (phi!pc) cert (length all_ins) pc \<noteq> Err"
+    have c: "wtl_cert (all_ins!pc) G rT (phi!pc) cert mxs (length all_ins) pc \<noteq> Err"
       by - (drule wt_instr_imp_wtl_cert, auto)
     
     from Cons
@@ -361,7 +361,7 @@ next
     with wt fits pc
     have IH: "?len (Suc pc) --> ?wtl (Suc pc) ins'" by auto
 
-    show "wtl_inst_list (i#ins') G rT cert (length all_ins) pc s \<noteq> Err" 
+    show "wtl_inst_list (i#ins') G rT cert mxs (length all_ins) pc s \<noteq> Err" 
     proof (cases "?len (Suc pc)")
       case False
       with pc
@@ -375,13 +375,13 @@ next
 
       from c wti fits l True
       obtain s'' where
-        "wtl_cert (all_ins!pc) G rT (phi!pc) cert (length all_ins) pc = OK s''"
+        "wtl_cert (all_ins!pc) G rT (phi!pc) cert mxs (length all_ins) pc = OK s''"
         "G \<turnstile> s'' <=' phi ! Suc pc"
         by clarsimp (drule wt_less_wtl_cert, auto)
       moreover
       from calculation fits G l
       obtain s' where
-        c': "wtl_cert (all_ins!pc) G rT s cert (length all_ins) pc = OK s'" and
+        c': "wtl_cert (all_ins!pc) G rT s cert mxs (length all_ins) pc = OK s'" and
         "G \<turnstile> s' <=' s''"
         by - (drule wtl_cert_mono, auto)
       ultimately
@@ -389,7 +389,7 @@ next
         by - (rule sup_state_opt_trans)
 
       with wtl
-      have "wtl_inst_list ins' G rT cert (length all_ins) (Suc pc) s' \<noteq> Err"
+      have "wtl_inst_list ins' G rT cert mxs (length all_ins) (Suc pc) s' \<noteq> Err"
         by auto
 
       with i c'
@@ -400,17 +400,17 @@ qed
   
 
 lemma fits_imp_wtl_method_complete:
-  "[| wt_method G C pTs rT mxl ins phi; fits ins cert phi |] ==> 
-  wtl_method G C pTs rT mxl ins cert"
+  "[| wt_method G C pTs rT mxs mxl ins phi; fits ins cert phi |] 
+  ==> wtl_method G C pTs rT mxs mxl ins cert"
 by (simp add: wt_method_def wtl_method_def)
    (rule wt_imp_wtl_inst_list [rule_format, elim_format], auto simp add: wt_start_def) 
 
 
 lemma wtl_method_complete:
-  "wt_method G C pTs rT mxl ins phi ==> 
-  wtl_method G C pTs rT mxl ins (make_cert ins phi)"
+  "wt_method G C pTs rT mxs mxl ins phi 
+  ==> wtl_method G C pTs rT mxs mxl ins (make_cert ins phi)"
 proof -
-  assume "wt_method G C pTs rT mxl ins phi" 
+  assume "wt_method G C pTs rT mxs mxl ins phi" 
   moreover
   have "fits ins (make_cert ins phi) phi"
     by (rule fits_make_cert)
@@ -425,16 +425,16 @@ theorem wtl_complete:
 proof (unfold wt_jvm_prog_def)
 
   assume wfprog: 
-    "wf_prog (\<lambda>G C (sig,rT,maxl,b). wt_method G C (snd sig) rT maxl b (Phi C sig)) G"
+    "wf_prog (\<lambda>G C (sig,rT,mxs,mxl,b). wt_method G C (snd sig) rT mxs mxl b (Phi C sig)) G"
 
   thus ?thesis 
   proof (simp add: wtl_jvm_prog_def wf_prog_def wf_cdecl_def wf_mdecl_def, auto)
-    fix a aa ab b ac ba ad ae bb 
+    fix a aa ab b ac ba ad ae af bb 
     assume 1 : "\<forall>(C,sc,fs,ms)\<in>set G.
              Ball (set fs) (wf_fdecl G) \<and>
              unique fs \<and>
              (\<forall>(sig,rT,mb)\<in>set ms. wf_mhead G sig rT \<and> 
-               (\<lambda>(maxl,b). wt_method G C (snd sig) rT maxl b (Phi C sig)) mb) \<and>
+               (\<lambda>(mxs,mxl,b). wt_method G C (snd sig) rT mxs mxl b (Phi C sig)) mb) \<and>
              unique ms \<and>
              (case sc of None => C = Object
               | Some D =>
@@ -443,24 +443,24 @@ proof (unfold wt_jvm_prog_def)
                   (\<forall>(sig,rT,b)\<in>set ms. 
                    \<forall>D' rT' b'. method (G, D) sig = Some (D', rT', b') --> G\<turnstile>rT\<preceq>rT'))"
              "(a, aa, ab, b) \<in> set G"
-  
-    assume uG : "unique G" 
-    assume b  : "((ac, ba), ad, ae, bb) \<in> set b"
 
+    assume uG : "unique G" 
+    assume b  : "((ac, ba), ad, ae, af, bb) \<in> set b"
+   
     from 1
-    show "wtl_method G a ba ad ae bb (make_Cert G Phi a (ac, ba))"
+    show "wtl_method G a ba ad ae af bb (make_Cert G Phi a (ac, ba))"
     proof (rule bspec [elim_format], clarsimp)
       assume ub : "unique b"
       assume m: "\<forall>(sig,rT,mb)\<in>set b. wf_mhead G sig rT \<and> 
-                  (\<lambda>(maxl,b). wt_method G a (snd sig) rT maxl b (Phi a sig)) mb" 
+                  (\<lambda>(mxs,mxl,b). wt_method G a (snd sig) rT mxs mxl b (Phi a sig)) mb" 
       from m b
       show ?thesis
       proof (rule bspec [elim_format], clarsimp)
-        assume "wt_method G a ba ad ae bb (Phi a (ac, ba))"         
+        assume "wt_method G a ba ad ae af bb (Phi a (ac, ba))"         
         with wfprog uG ub b 1
         show ?thesis
           by - (rule wtl_method_complete [elim_format], assumption+, 
-                simp add: make_Cert_def unique_epsilon)
+                simp add: make_Cert_def unique_epsilon unique_epsilon')
       qed 
     qed
   qed

@@ -97,6 +97,59 @@ lemma order_widen:
   apply (auto dest: acyclic_impl_antisym_rtrancl antisymD)  
   done
 
+lemma wf_converse_subcls1_impl_acc_subtype:
+  "wf ((subcls1 G)^-1) ==> acc (subtype G)"
+apply (unfold acc_def lesssub_def)
+apply (drule_tac p = "(subcls1 G)^-1 - Id" in wf_subset)
+ apply blast
+apply (drule wf_trancl)
+apply (simp add: wf_eq_minimal)
+apply clarify
+apply (unfold lesub_def subtype_def)
+apply (rename_tac M T) 
+apply (case_tac "EX C. Class C : M")
+ prefer 2
+ apply (case_tac T)
+  apply (fastsimp simp add: PrimT_PrimT2)
+ apply simp
+ apply (subgoal_tac "ref_ty = NullT")
+  apply simp
+  apply (rule_tac x = NT in bexI)
+   apply (rule allI)
+   apply (rule impI, erule conjE)
+   apply (drule widen_RefT)
+   apply clarsimp
+   apply (case_tac t)
+    apply simp
+   apply simp
+  apply simp
+ apply (case_tac ref_ty)
+  apply simp
+ apply simp
+apply (erule_tac x = "{C. Class C : M}" in allE)
+apply auto
+apply (rename_tac D)
+apply (rule_tac x = "Class D" in bexI)
+ prefer 2
+ apply assumption
+apply clarify 
+apply (frule widen_RefT)
+apply (erule exE)
+apply (case_tac t)
+ apply simp
+apply simp
+apply (insert rtrancl_r_diff_Id [symmetric, standard, of "(subcls1 G)"])
+apply simp
+apply (erule rtranclE)
+ apply blast
+apply (drule rtrancl_converseI)
+apply (subgoal_tac "((subcls1 G)-Id)^-1 = ((subcls1 G)^-1 - Id)")
+ prefer 2
+ apply blast
+apply simp 
+apply (blast intro: rtrancl_into_trancl2)
+done 
+
 lemma closed_err_types:
   "[| wf_prog wf_mb G; univalent (subcls1 G); acyclic (subcls1 G) |] 
   ==> closed (err (types G)) (lift2 (sup G))"
@@ -234,7 +287,8 @@ lemma univalent_subcls1:
 
 ML_setup {* bind_thm ("acyclic_subcls1", acyclic_subcls1) *}
 
-theorem "wf_prog wf_mb G ==> err_semilat (esl G)"
+theorem err_semilat_JType_esl:
+  "wf_prog wf_mb G ==> err_semilat (esl G)"
   by (frule acyclic_subcls1, frule univalent_subcls1, rule err_semilat_JType_esl_lemma)
 
 end

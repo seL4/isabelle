@@ -45,37 +45,38 @@ constdefs
 
 text "Conditions under which step is applicable:"
 consts
-app' :: "instr \<times> jvm_prog \<times> ty \<times> state_type => bool"
+app' :: "instr \<times> jvm_prog \<times> nat \<times> ty \<times> state_type => bool"
 
 recdef app' "{}"
-"app' (Load idx, G, rT, s)                  = (idx < length (snd s) \<and> 
-                                              (snd s) ! idx \<noteq> Err)"
-"app' (Store idx, G, rT, (ts#ST, LT))       = (idx < length LT)"
-"app' (Bipush i, G, rT, s)                  = True"
-"app' (Aconst_null, G, rT, s)               = True"
-"app' (Getfield F C, G, rT, (oT#ST, LT))    = (is_class G C \<and> 
+"app' (Load idx, G, maxs, rT, s)                  = (idx < length (snd s) \<and> 
+                                                    (snd s) ! idx \<noteq> Err \<and> 
+                                                    maxs < length (fst s))"
+"app' (Store idx, G, maxs, rT, (ts#ST, LT))       = (idx < length LT)"
+"app' (Bipush i, G, maxs, rT, s)                  = (maxs < length (fst s))"
+"app' (Aconst_null, G, maxs, rT, s)               = (maxs < length (fst s))"
+"app' (Getfield F C, G, maxs, rT, (oT#ST, LT))    = (is_class G C \<and> 
                                               field (G,C) F \<noteq> None \<and>
                                               fst (the (field (G,C) F)) = C \<and>
                                               G \<turnstile> oT \<preceq> (Class C))"
-"app' (Putfield F C, G, rT, (vT#oT#ST, LT)) = (is_class G C \<and> 
+"app' (Putfield F C, G, maxs, rT, (vT#oT#ST, LT)) = (is_class G C \<and> 
                                               field (G,C) F \<noteq> None \<and>
                                               fst (the (field (G,C) F)) = C \<and>
                                               G \<turnstile> oT \<preceq> (Class C) \<and>
                                               G \<turnstile> vT \<preceq> (snd (the (field (G,C) F))))" 
-"app' (New C, G, rT, s)                     = (is_class G C)"
-"app' (Checkcast C, G, rT, (RefT rt#ST,LT)) = (is_class G C)"
-"app' (Pop, G, rT, (ts#ST,LT))              = True"
-"app' (Dup, G, rT, (ts#ST,LT))              = True"
-"app' (Dup_x1, G, rT, (ts1#ts2#ST,LT))      = True"
-"app' (Dup_x2, G, rT, (ts1#ts2#ts3#ST,LT))  = True"
-"app' (Swap, G, rT, (ts1#ts2#ST,LT))        = True"
-"app' (IAdd, G, rT, (PrimT Integer#PrimT Integer#ST,LT)) 
-                                            = True"
-"app' (Ifcmpeq b, G, rT, (ts#ts'#ST,LT))    = ((\<exists>p. ts = PrimT p \<and> ts' = PrimT p) \<or> 
+"app' (New C, G, maxs, rT, s)                     = (is_class G C \<and> maxs < length (fst s))"
+"app' (Checkcast C, G, maxs, rT, (RefT rt#ST,LT)) = (is_class G C)"
+"app' (Pop, G, maxs, rT, (ts#ST,LT))              = True"
+"app' (Dup, G, maxs, rT, (ts#ST,LT))              = (maxs < Suc (length ST))"
+"app' (Dup_x1, G, maxs, rT, (ts1#ts2#ST,LT))      = (maxs < Suc (Suc (length ST)))"
+"app' (Dup_x2, G, maxs, rT, (ts1#ts2#ts3#ST,LT))  = (maxs < Suc (Suc (Suc (length ST))))"
+"app' (Swap, G, maxs, rT, (ts1#ts2#ST,LT))        = True"
+"app' (IAdd, G, maxs, rT, (PrimT Integer#PrimT Integer#ST,LT)) 
+                                                 = True"
+"app' (Ifcmpeq b, G, maxs, rT, (ts#ts'#ST,LT))    = ((\<exists>p. ts = PrimT p \<and> ts' = PrimT p) \<or> 
                                               (\<exists>r r'. ts = RefT r \<and> ts' = RefT r'))"
-"app' (Goto b, G, rT, s)                    = True"
-"app' (Return, G, rT, (T#ST,LT))            = (G \<turnstile> T \<preceq> rT)"
-"app' (Invoke C mn fpTs, G, rT, s)          = 
+"app' (Goto b, G, maxs, rT, s)                    = True"
+"app' (Return, G, maxs, rT, (T#ST,LT))            = (G \<turnstile> T \<preceq> rT)"
+"app' (Invoke C mn fpTs, G, maxs, rT, s)          = 
    (length fpTs < length (fst s) \<and> 
    (let apTs = rev (take (length fpTs) (fst s));
         X    = hd (drop (length fpTs) (fst s)) 
@@ -83,12 +84,12 @@ recdef app' "{}"
         G \<turnstile> X \<preceq> Class C \<and> method (G,C) (mn,fpTs) \<noteq> None \<and> 
         (\<forall>(aT,fT)\<in>set(zip apTs fpTs). G \<turnstile> aT \<preceq> fT)))"
 
-"app' (i,G,rT,s)                            = False"
+"app' (i,G,maxs,rT,s)                             = False"
 
 
 constdefs
-  app :: "instr => jvm_prog => ty => state_type option => bool"
-  "app i G rT s == case s of None => True | Some t => app' (i,G,rT,t)"
+  app :: "instr => jvm_prog => nat => ty => state_type option => bool"
+  "app i G maxs rT s == case s of None => True | Some t => app' (i,G,maxs,rT,t)"
 
 text {* program counter of successor instructions: *}
 
@@ -144,74 +145,74 @@ text {*
 simp rules for @{term app}
 *}
 lemma appNone[simp]:
-"app i G rT None = True"
+"app i G maxs rT None = True"
   by (simp add: app_def)
 
 
 lemma appLoad[simp]:
-"(app (Load idx) G rT (Some s)) = (idx < length (snd s) \<and> (snd s) ! idx \<noteq> Err)"
+"(app (Load idx) G maxs rT (Some s)) = (idx < length (snd s) \<and> (snd s) ! idx \<noteq> Err \<and> maxs < length (fst s))"
   by (simp add: app_def)
 
 lemma appStore[simp]:
-"(app (Store idx) G rT (Some s)) = (\<exists> ts ST LT. s = (ts#ST,LT) \<and> idx < length LT)"
+"(app (Store idx) G maxs rT (Some s)) = (\<exists> ts ST LT. s = (ts#ST,LT) \<and> idx < length LT)"
   by (cases s, cases "2 < length (fst s)", auto dest: 1 2 simp add: app_def)
 
 lemma appBipush[simp]:
-"(app (Bipush i) G rT (Some s)) = True"
+"(app (Bipush i) G maxs rT (Some s)) = (maxs < length (fst s))"
   by (simp add: app_def)
 
 lemma appAconst[simp]:
-"(app Aconst_null G rT (Some s)) = True"
+"(app Aconst_null G maxs rT (Some s)) = (maxs < length (fst s))"
   by (simp add: app_def)
 
 lemma appGetField[simp]:
-"(app (Getfield F C) G rT (Some s)) = 
+"(app (Getfield F C) G maxs rT (Some s)) = 
  (\<exists> oT vT ST LT. s = (oT#ST, LT) \<and> is_class G C \<and>  
   field (G,C) F = Some (C,vT) \<and> G \<turnstile> oT \<preceq> (Class C))"
   by (cases s, cases "2 < length (fst s)", auto dest!: 1 2 simp add: app_def)
 
 lemma appPutField[simp]:
-"(app (Putfield F C) G rT (Some s)) = 
+"(app (Putfield F C) G maxs rT (Some s)) = 
  (\<exists> vT vT' oT ST LT. s = (vT#oT#ST, LT) \<and> is_class G C \<and> 
   field (G,C) F = Some (C, vT') \<and> G \<turnstile> oT \<preceq> (Class C) \<and> G \<turnstile> vT \<preceq> vT')"
   by (cases s, cases "2 < length (fst s)", auto dest!: 1 2 simp add: app_def)
 
 lemma appNew[simp]:
-"(app (New C) G rT (Some s)) = is_class G C"
+"(app (New C) G maxs rT (Some s)) = (is_class G C \<and> maxs < length (fst s))"
   by (simp add: app_def)
 
 lemma appCheckcast[simp]:
-"(app (Checkcast C) G rT (Some s)) = (\<exists>rT ST LT. s = (RefT rT#ST,LT) \<and> is_class G C)"
+"(app (Checkcast C) G maxs rT (Some s)) = (\<exists>rT ST LT. s = (RefT rT#ST,LT) \<and> is_class G C)"
   by (cases s, cases "fst s", simp add: app_def)
      (cases "hd (fst s)", auto simp add: app_def)
 
 lemma appPop[simp]:
-"(app Pop G rT (Some s)) = (\<exists>ts ST LT. s = (ts#ST,LT))" 
+"(app Pop G maxs rT (Some s)) = (\<exists>ts ST LT. s = (ts#ST,LT))" 
   by (cases s, cases "2 < length (fst s)", auto dest: 1 2 simp add: app_def)
 
 
 lemma appDup[simp]:
-"(app Dup G rT (Some s)) = (\<exists>ts ST LT. s = (ts#ST,LT))" 
+"(app Dup G maxs rT (Some s)) = (\<exists>ts ST LT. s = (ts#ST,LT) \<and> maxs < Suc (length ST))" 
   by (cases s, cases "2 < length (fst s)", auto dest: 1 2 simp add: app_def)
 
 
 lemma appDup_x1[simp]:
-"(app Dup_x1 G rT (Some s)) = (\<exists>ts1 ts2 ST LT. s = (ts1#ts2#ST,LT))" 
+"(app Dup_x1 G maxs rT (Some s)) = (\<exists>ts1 ts2 ST LT. s = (ts1#ts2#ST,LT) \<and> maxs < Suc (Suc (length ST)))" 
   by (cases s, cases "2 < length (fst s)", auto dest: 1 2 simp add: app_def)
 
 
 lemma appDup_x2[simp]:
-"(app Dup_x2 G rT (Some s)) = (\<exists>ts1 ts2 ts3 ST LT. s = (ts1#ts2#ts3#ST,LT))"
+"(app Dup_x2 G maxs rT (Some s)) = (\<exists>ts1 ts2 ts3 ST LT. s = (ts1#ts2#ts3#ST,LT) \<and> maxs < Suc (Suc (Suc (length ST))))"
   by (cases s, cases "2 < length (fst s)", auto dest: 1 2 simp add: app_def)
 
 
 lemma appSwap[simp]:
-"app Swap G rT (Some s) = (\<exists>ts1 ts2 ST LT. s = (ts1#ts2#ST,LT))" 
+"app Swap G maxs rT (Some s) = (\<exists>ts1 ts2 ST LT. s = (ts1#ts2#ST,LT))" 
   by (cases s, cases "2 < length (fst s)", auto dest: 1 2 simp add: app_def)
 
 
 lemma appIAdd[simp]:
-"app IAdd G rT (Some s) = (\<exists> ST LT. s = (PrimT Integer#PrimT Integer#ST,LT))"  
+"app IAdd G maxs rT (Some s) = (\<exists> ST LT. s = (PrimT Integer#PrimT Integer#ST,LT))"  
   (is "?app s = ?P s")
 proof (cases (open) s)
   case Pair
@@ -242,21 +243,21 @@ qed
 
 
 lemma appIfcmpeq[simp]:
-"app (Ifcmpeq b) G rT (Some s) = (\<exists>ts1 ts2 ST LT. s = (ts1#ts2#ST,LT) \<and> 
+"app (Ifcmpeq b) G maxs rT (Some s) = (\<exists>ts1 ts2 ST LT. s = (ts1#ts2#ST,LT) \<and> 
  ((\<exists> p. ts1 = PrimT p \<and> ts2 = PrimT p) \<or> (\<exists>r r'. ts1 = RefT r \<and> ts2 = RefT r')))" 
   by (cases s, cases "2 < length (fst s)", auto dest: 1 2 simp add: app_def)
 
 
 lemma appReturn[simp]:
-"app Return G rT (Some s) = (\<exists>T ST LT. s = (T#ST,LT) \<and> (G \<turnstile> T \<preceq> rT))" 
+"app Return G maxs rT (Some s) = (\<exists>T ST LT. s = (T#ST,LT) \<and> (G \<turnstile> T \<preceq> rT))" 
   by (cases s, cases "2 < length (fst s)", auto dest: 1 2 simp add: app_def)
 
 lemma appGoto[simp]:
-"app (Goto branch) G rT (Some s) = True"
+"app (Goto branch) G maxs rT (Some s) = True"
   by (simp add: app_def)
 
 lemma appInvoke[simp]:
-"app (Invoke C mn fpTs) G rT (Some s) = (\<exists>apTs X ST LT mD' rT' b'.
+"app (Invoke C mn fpTs) G maxs rT (Some s) = (\<exists>apTs X ST LT mD' rT' b'.
   s = ((rev apTs) @ (X # ST), LT) \<and> length apTs = length fpTs \<and> 
   G \<turnstile> X \<preceq> Class C \<and> (\<forall>(aT,fT)\<in>set(zip apTs fpTs). G \<turnstile> aT \<preceq> fT) \<and> 
   method (G,C) (mn,fpTs) = Some (mD', rT', b'))" (is "?app s = ?P s")

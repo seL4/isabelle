@@ -38,16 +38,16 @@ primrec
 
 "correct_frames G hp phi rT0 sig0 (f#frs) =
 	(let (stk,loc,C,sig,pc) = f in
-  (\<exists>ST LT rT maxl ins.
+  (\<exists>ST LT rT maxs maxl ins.
     phi C sig ! pc = Some (ST,LT) \<and> 
-    method (G,C) sig = Some(C,rT,(maxl,ins)) \<and>
+    method (G,C) sig = Some(C,rT,(maxs,maxl,ins)) \<and>
 	(\<exists>C' mn pTs k. pc = k+1 \<and> ins!k = (Invoke C' mn pTs) \<and>
          (mn,pTs) = sig0 \<and> 
          (\<exists>apTs D ST' LT'.
          (phi C sig)!k = Some ((rev apTs) @ (Class D) # ST', LT') \<and>
          length apTs = length pTs \<and>
-         (\<exists>D' rT' maxl' ins'.
-           method (G,D) sig0 = Some(D',rT',(maxl',ins')) \<and>
+         (\<exists>D' rT' maxs' maxl' ins'.
+           method (G,D) sig0 = Some(D',rT',(maxs',maxl',ins')) \<and>
            G \<turnstile> rT0 \<preceq> rT') \<and>
 	 correct_frame G hp (tl ST, LT) maxl ins f \<and> 
 	 correct_frames G hp phi rT sig frs))))"
@@ -63,8 +63,8 @@ constdefs
              | (f#fs) => G\<turnstile>h hp\<surd> \<and>
 			(let (stk,loc,C,sig,pc) = f
 		         in
-                         \<exists>rT maxl ins s.
-                         method (G,C) sig = Some(C,rT,(maxl,ins)) \<and>
+                         \<exists>rT maxs maxl ins s.
+                         method (G,C) sig = Some(C,rT,(maxs,maxl,ins)) \<and>
                          phi C sig ! pc = Some s \<and>
 			 correct_frame G hp s maxl ins f \<and> 
 		         correct_frames G hp phi rT sig fs))

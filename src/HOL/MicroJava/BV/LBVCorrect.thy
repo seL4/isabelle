@@ -11,48 +11,48 @@ theory LBVCorrect = BVSpec + LBVSpec:
 lemmas [simp del] = split_paired_Ex split_paired_All
 
 constdefs
-fits :: "[method_type,instr list,jvm_prog,ty,state_type option,certificate] => bool"
-"fits phi is G rT s0 cert == 
+fits :: "[method_type,instr list,jvm_prog,ty,state_type option,nat,certificate] => bool"
+"fits phi is G rT s0 maxs cert == 
   (\<forall>pc s1. pc < length is -->
-    (wtl_inst_list (take pc is) G rT cert (length is) 0 s0 = OK s1 -->
+    (wtl_inst_list (take pc is) G rT cert maxs (length is) 0 s0 = OK s1 -->
     (case cert!pc of None   => phi!pc = s1
                    | Some t => phi!pc = Some t)))"
 
 constdefs
-make_phi :: "[instr list,jvm_prog,ty,state_type option,certificate] => method_type"
-"make_phi is G rT s0 cert == 
+make_phi :: "[instr list,jvm_prog,ty,state_type option,nat,certificate] => method_type"
+"make_phi is G rT s0 maxs cert == 
    map (\<lambda>pc. case cert!pc of 
-               None   => ok_val (wtl_inst_list (take pc is) G rT cert (length is) 0 s0) 
+               None   => ok_val (wtl_inst_list (take pc is) G rT cert maxs (length is) 0 s0) 
              | Some t => Some t) [0..length is(]"
 
 
 lemma fitsD_None:
-  "[|fits phi is G rT s0 cert; pc < length is;
-    wtl_inst_list (take pc is) G rT cert (length is) 0 s0 = OK s1; 
+  "[|fits phi is G rT s0 mxs cert; pc < length is;
+    wtl_inst_list (take pc is) G rT cert mxs (length is) 0 s0 = OK s1; 
     cert ! pc = None|] ==> phi!pc = s1"
   by (auto simp add: fits_def)
 
 lemma fitsD_Some:
-  "[|fits phi is G rT s0 cert; pc < length is;
-    wtl_inst_list (take pc is) G rT cert (length is) 0 s0 = OK s1; 
+  "[|fits phi is G rT s0 mxs cert; pc < length is;
+    wtl_inst_list (take pc is) G rT cert mxs (length is) 0 s0 = OK s1; 
     cert ! pc = Some t|] ==> phi!pc = Some t"
   by (auto simp add: fits_def)
 
 lemma make_phi_Some:
   "[| pc < length is; cert!pc = Some t |] ==> 
-  make_phi is G rT s0 cert ! pc = Some t"
+  make_phi is G rT s0 mxs cert ! pc = Some t"
   by (simp add: make_phi_def)
 
 lemma make_phi_None:
   "[| pc < length is; cert!pc = None |] ==> 
-  make_phi is G rT s0 cert ! pc = 
-  ok_val (wtl_inst_list (take pc is) G rT cert (length is) 0 s0)"
+  make_phi is G rT s0 mxs cert ! pc = 
+  ok_val (wtl_inst_list (take pc is) G rT cert mxs (length is) 0 s0)"
   by (simp add: make_phi_def)
 
 lemma exists_phi:
-  "\<exists>phi. fits phi is G rT s0 cert"  
+  "\<exists>phi. fits phi is G rT s0 mxs cert"  
 proof - 
-  have "fits (make_phi is G rT s0 cert) is G rT s0 cert"
+  have "fits (make_phi is G rT s0 mxs cert) is G rT s0 mxs cert"
     by (auto simp add: fits_def make_phi_Some make_phi_None 
              split: option.splits) 
 
@@ -61,17 +61,17 @@ proof -
 qed
   
 lemma fits_lemma1:
-  "[| wtl_inst_list is G rT cert (length is) 0 s = OK s'; fits phi is G rT s cert |]
+  "[| wtl_inst_list is G rT cert mxs (length is) 0 s = OK s'; fits phi is G rT s mxs cert |]
   ==> \<forall>pc t. pc < length is --> cert!pc = Some t --> phi!pc = Some t"
 proof (intro strip)
   fix pc t 
-  assume "wtl_inst_list is G rT cert (length is) 0 s = OK s'"
+  assume "wtl_inst_list is G rT cert mxs (length is) 0 s = OK s'"
   then 
   obtain s'' where
-    "wtl_inst_list (take pc is) G rT cert (length is) 0 s = OK s''"
+    "wtl_inst_list (take pc is) G rT cert mxs (length is) 0 s = OK s''"
     by (blast dest: wtl_take)
   moreover
-  assume "fits phi is G rT s cert" 
+  assume "fits phi is G rT s mxs cert" 
          "pc < length is" 
          "cert ! pc = Some t"
   ultimately
@@ -80,26 +80,26 @@ qed
 
 
 lemma wtl_suc_pc:
- "[| wtl_inst_list is G rT cert (length is) 0 s \<noteq> Err;
-     wtl_inst_list (take pc is) G rT cert (length is) 0 s = OK s';
-     wtl_cert (is!pc) G rT s' cert (length is) pc = OK s'';
-     fits phi is G rT s cert; Suc pc < length is |] ==>
+ "[| wtl_inst_list is G rT cert mxs (length is) 0 s \<noteq> Err;
+     wtl_inst_list (take pc is) G rT cert mxs (length is) 0 s = OK s';
+     wtl_cert (is!pc) G rT s' cert mxs (length is) pc = OK s'';
+     fits phi is G rT s mxs cert; Suc pc < length is |] ==>
   G \<turnstile> s'' <=' phi ! Suc pc"
 proof -
   
-  assume all:  "wtl_inst_list is G rT cert (length is) 0 s \<noteq> Err"
-  assume fits: "fits phi is G rT s cert"
+  assume all:  "wtl_inst_list is G rT cert mxs (length is) 0 s \<noteq> Err"
+  assume fits: "fits phi is G rT s mxs cert"
 
-  assume wtl:  "wtl_inst_list (take pc is) G rT cert (length is) 0 s = OK s'" and
-         wtc:  "wtl_cert (is!pc) G rT s' cert (length is) pc = OK s''" and
+  assume wtl:  "wtl_inst_list (take pc is) G rT cert mxs (length is) 0 s = OK s'" and
+         wtc:  "wtl_cert (is!pc) G rT s' cert mxs (length is) pc = OK s''" and
          pc:   "Suc pc < length is"
 
-  hence wts: "wtl_inst_list (take (Suc pc) is) G rT cert (length is) 0 s = OK s''"
+  hence wts: "wtl_inst_list (take (Suc pc) is) G rT cert mxs (length is) 0 s = OK s''"
     by (rule wtl_Suc)
 
   from all
   have app: 
-  "wtl_inst_list (take (Suc pc) is@drop (Suc pc) is) G rT cert (length is) 0 s \<noteq> Err"
+  "wtl_inst_list (take (Suc pc) is@drop (Suc pc) is) G rT cert mxs (length is) 0 s \<noteq> Err"
     by simp
 
   from pc 
@@ -111,7 +111,7 @@ proof -
     by (auto simp add: neq_Nil_conv simp del: length_drop)
   with app wts pc
   obtain x where 
-    "wtl_cert l G rT s'' cert (length is) (Suc pc) = OK x"
+    "wtl_cert l G rT s'' cert mxs (length is) (Suc pc) = OK x"
     by (auto simp add: wtl_append min_def simp del: append_take_drop_id)
 
   hence c1: "!!t. cert!Suc pc = Some t ==> G \<turnstile> s'' <=' cert!Suc pc"
@@ -132,20 +132,20 @@ qed
 
 
 lemma wtl_fits_wt:
-  "[| wtl_inst_list is G rT cert (length is) 0 s \<noteq> Err; 
-      fits phi is G rT s cert; pc < length is |] ==>
-   wt_instr (is!pc) G rT phi (length is) pc"
+  "[| wtl_inst_list is G rT cert mxs (length is) 0 s \<noteq> Err; 
+      fits phi is G rT s mxs cert; pc < length is |] ==>
+   wt_instr (is!pc) G rT phi mxs (length is) pc"
 proof -
 
-  assume fits: "fits phi is G rT s cert"
+  assume fits: "fits phi is G rT s mxs cert"
 
   assume pc:  "pc < length is" and
-         wtl: "wtl_inst_list is G rT cert (length is) 0 s \<noteq> Err"
+         wtl: "wtl_inst_list is G rT cert mxs (length is) 0 s \<noteq> Err"
         
   then
   obtain s' s'' where
-    w: "wtl_inst_list (take pc is) G rT cert (length is) 0 s = OK s'" and
-    c: "wtl_cert (is!pc) G rT s' cert (length is) pc = OK s''"
+    w: "wtl_inst_list (take pc is) G rT cert mxs (length is) 0 s = OK s'" and
+    c: "wtl_cert (is!pc) G rT s' cert mxs (length is) pc = OK s''"
     by - (drule wtl_all, auto)
 
   from fits wtl pc
@@ -158,7 +158,7 @@ proof -
     by - (drule fitsD_None)
   
   from pc c cert_None cert_Some
-  have wti: "wtl_inst (is ! pc) G rT (phi!pc) cert (length is) pc = OK s''"
+  have wti: "wtl_inst (is ! pc) G rT (phi!pc) cert mxs (length is) pc = OK s''"
     by (auto simp add: wtl_cert_def split: if_splits option.splits)
 
   { fix pc'
@@ -219,16 +219,16 @@ qed
 
     
 lemma fits_first:
-  "[| 0 < length is; wtl_inst_list is G rT cert (length is) 0 s \<noteq> Err; 
-      fits phi is G rT s cert |] ==> 
+  "[| 0 < length is; wtl_inst_list is G rT cert mxs (length is) 0 s \<noteq> Err; 
+      fits phi is G rT s mxs cert |] ==> 
   G \<turnstile> s <=' phi ! 0"
 proof -
-  assume wtl:  "wtl_inst_list is G rT cert (length is) 0 s \<noteq> Err"
-  assume fits: "fits phi is G rT s cert"
+  assume wtl:  "wtl_inst_list is G rT cert mxs (length is) 0 s \<noteq> Err"
+  assume fits: "fits phi is G rT s mxs cert"
   assume pc:   "0 < length is"
 
   from wtl
-  have wt0: "wtl_inst_list (take 0 is) G rT cert (length is) 0 s = OK s"
+  have wt0: "wtl_inst_list (take 0 is) G rT cert mxs (length is) 0 s = OK s"
     by simp
   
   with fits pc
@@ -244,7 +244,7 @@ proof -
     by (simp add: neq_Nil_conv) (elim, rule that)
   with wtl
   obtain s' where
-    "wtl_cert x G rT s cert (length is) 0 = OK s'"
+    "wtl_cert x G rT s cert mxs (length is) 0 = OK s'"
     by simp (elim, rule that, simp)
   hence 
     "!!t. cert!0 = Some t ==> G \<turnstile> s <=' cert!0"
@@ -257,18 +257,18 @@ qed
 
   
 lemma wtl_method_correct:
-"wtl_method G C pTs rT mxl ins cert ==> \<exists> phi. wt_method G C pTs rT mxl ins phi"
+"wtl_method G C pTs rT mxs mxl ins cert ==> \<exists> phi. wt_method G C pTs rT mxs mxl ins phi"
 proof (unfold wtl_method_def, simp only: Let_def, elim conjE)
   let "?s0" = "Some ([], OK (Class C) # map OK pTs @ replicate mxl Err)"
   assume pc:  "0 < length ins"
-  assume wtl: "wtl_inst_list ins G rT cert (length ins) 0 ?s0 \<noteq> Err"
+  assume wtl: "wtl_inst_list ins G rT cert mxs (length ins) 0 ?s0 \<noteq> Err"
 
-  obtain phi where fits: "fits phi ins G rT ?s0 cert"    
+  obtain phi where fits: "fits phi ins G rT ?s0 mxs cert"    
     by (rule exists_phi [elim_format]) blast
 
   with wtl
   have allpc:
-    "\<forall>pc. pc < length ins --> wt_instr (ins ! pc) G rT phi (length ins) pc"
+    "\<forall>pc. pc < length ins --> wt_instr (ins ! pc) G rT phi mxs (length ins) pc"
     by (blast intro: wtl_fits_wt)
 
   from pc wtl fits
@@ -290,40 +290,40 @@ proof (clarsimp simp add: wt_jvm_prog_def wf_prog_def, intro conjI)
   from wtl_prog 
   show uniqueG: "unique G" by (simp add: wtl_jvm_prog_def wf_prog_def)
 
-  show "\<exists>Phi. Ball (set G) (wf_cdecl (\<lambda>G C (sig,rT,maxl,b). 
-              wt_method G C (snd sig) rT maxl b (Phi C sig)) G)"
+  show "\<exists>Phi. Ball (set G) (wf_cdecl (\<lambda>G C (sig,rT,maxs,maxl,b). 
+              wt_method G C (snd sig) rT maxs maxl b (Phi C sig)) G)"
     (is "\<exists>Phi. ?Q Phi")
   proof (intro exI)
     let "?Phi" = "\<lambda> C sig. 
       let (C,x,y,mdecls) = SOME (Cl,x,y,mdecls). (Cl,x,y,mdecls) \<in> set G \<and> Cl = C;
-          (sig,rT,maxl,b) = SOME (sg,rT,maxl,b). (sg,rT,maxl,b) \<in> set mdecls \<and> sg = sig
-      in SOME phi. wt_method G C (snd sig) rT maxl b phi"
+          (sig,rT,maxs,maxl,b) = SOME (sg,rT,maxs,maxl,b). (sg,rT,maxs,maxl,b) \<in> set mdecls \<and> sg = sig
+      in SOME phi. wt_method G C (snd sig) rT maxs maxl b phi"
     from wtl_prog
     show "?Q ?Phi"
     proof (unfold wf_cdecl_def, intro)
       fix x a b aa ba ab bb m
       assume 1: "x \<in> set G" "x = (a, b)" "b = (aa, ba)" "ba = (ab, bb)" "m \<in> set bb"
       with wtl_prog
-      show "wf_mdecl (\<lambda>G C (sig,rT,maxl,b). 
-            wt_method G C (snd sig) rT maxl b (?Phi C sig)) G a m"
+      show "wf_mdecl (\<lambda>G C (sig,rT,maxs,maxl,b). 
+            wt_method G C (snd sig) rT maxs maxl b (?Phi C sig)) G a m"
       proof (simp add: wf_mdecl_def wtl_jvm_prog_def wf_prog_def wf_cdecl_def, 
              elim conjE)
         apply_end (drule bspec, assumption, simp, elim conjE)
         assume "\<forall>(sig,rT,mb)\<in>set bb. wf_mhead G sig rT \<and> 
-                 (\<lambda>(maxl,b). wtl_method G a (snd sig) rT maxl b (cert a sig)) mb"
+                 (\<lambda>(maxs,maxl,b). wtl_method G a (snd sig) rT maxs maxl b (cert a sig)) mb"
                "unique bb"
         with 1 uniqueG
         show "(\<lambda>(sig,rT,mb).
           wf_mhead G sig rT \<and>
-          (\<lambda>(maxl,b).
-              wt_method G a (snd sig) rT maxl b 
+          (\<lambda>(maxs,maxl,b).
+              wt_method G a (snd sig) rT maxs maxl b 
                ((\<lambda>(C,x,y,mdecls).
-                    (\<lambda>(sig,rT,maxl,b). Eps (wt_method G C (snd sig) rT maxl b))
-                     (SOME (sg,rT,maxl,b). (sg, rT, maxl, b) \<in> set mdecls \<and> sg = sig))
+                    (\<lambda>(sig,rT,maxs,maxl,b). Eps (wt_method G C (snd sig) rT maxs maxl b))
+                     (SOME (sg,rT,maxs,maxl,b). (sg, rT, maxs, maxl, b) \<in> set mdecls \<and> sg = sig))
                  (SOME (Cl,x,y,mdecls). (Cl, x, y, mdecls) \<in> set G \<and> Cl = a))) mb) m"
-          by - (drule bspec, assumption, 
+          by -  (drule bspec, assumption,
                 clarsimp dest!: wtl_method_correct,
-                clarsimp intro!: someI simp add: unique_epsilon) 
+                clarsimp intro!: someI simp add: unique_epsilon unique_epsilon') 
       qed
     qed (auto simp add: wtl_jvm_prog_def wf_prog_def wf_cdecl_def)
   qed

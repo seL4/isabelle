@@ -17,9 +17,9 @@ lemmas defs1 = sup_state_def correct_state_def correct_frame_def
 lemmas [simp del] = split_paired_All
 
 lemma wt_jvm_prog_impl_wt_instr_cor:
-  "[| wt_jvm_prog G phi; method (G,C) sig = Some (C,rT,maxl,ins); 
+  "[| wt_jvm_prog G phi; method (G,C) sig = Some (C,rT,maxs,maxl,ins); 
       G,phi \<turnstile>JVM (None, hp, (stk,loc,C,sig,pc)#frs)\<surd> |] 
-  ==> wt_instr (ins!pc) G rT (phi C sig) (length ins) pc"
+  ==> wt_instr (ins!pc) G rT (phi C sig) maxs (length ins) pc"
 apply (unfold correct_state_def Let_def correct_frame_def)
 apply simp
 apply (blast intro: wt_jvm_prog_impl_wt_instr)
@@ -27,9 +27,9 @@ done
 
 lemma Load_correct:
 "[| wf_prog wt G;
-    method (G,C) sig = Some (C,rT,maxl,ins); 
+    method (G,C) sig = Some (C,rT,maxs,maxl,ins); 
     ins!pc = Load idx; 
-    wt_instr (ins!pc) G rT (phi C sig) (length ins) pc; 
+    wt_instr (ins!pc) G rT (phi C sig) maxs (length ins) pc; 
     Some state' = exec (G, None, hp, (stk,loc,C,sig,pc)#frs); 
     G,phi \<turnstile>JVM (None, hp, (stk,loc,C,sig,pc)#frs)\<surd> |] 
 ==> G,phi \<turnstile>JVM state'\<surd>"
@@ -43,9 +43,9 @@ done
 
 lemma Store_correct:
 "[| wf_prog wt G;
-  method (G,C) sig = Some (C,rT,maxl,ins);
+  method (G,C) sig = Some (C,rT,maxs,maxl,ins);
   ins!pc = Store idx;
-  wt_instr (ins!pc) G rT (phi C sig) (length ins) pc;
+  wt_instr (ins!pc) G rT (phi C sig) maxs (length ins) pc;
   Some state' = exec (G, None, hp, (stk,loc,C,sig,pc)#frs);
   G,phi \<turnstile>JVM (None, hp, (stk,loc,C,sig,pc)#frs)\<surd> |]
 ==> G,phi \<turnstile>JVM state'\<surd>"
@@ -64,9 +64,9 @@ by (simp add: conf_def)
 
 lemma Bipush_correct:
 "[| wf_prog wt G;
-    method (G,C) sig = Some (C,rT,maxl,ins); 
+    method (G,C) sig = Some (C,rT,maxs,maxl,ins); 
     ins!pc = Bipush i; 
-    wt_instr (ins!pc) G rT (phi C sig) (length ins) pc; 
+    wt_instr (ins!pc) G rT (phi C sig) maxs (length ins) pc; 
     Some state' = exec (G, None, hp, (stk,loc,C,sig,pc)#frs);
     G,phi \<turnstile>JVM (None, hp, (stk,loc,C,sig,pc)#frs)\<surd> |]
 ==> G,phi \<turnstile>JVM state'\<surd>"
@@ -92,9 +92,9 @@ qed
 
 lemma Aconst_null_correct:
 "[| wf_prog wt G;
-    method (G,C) sig = Some (C,rT,maxl,ins); 
+    method (G,C) sig = Some (C,rT,maxs,maxl,ins); 
     ins!pc =  Aconst_null; 
-    wt_instr (ins!pc) G rT (phi C sig) (length ins) pc; 
+    wt_instr (ins!pc) G rT (phi C sig) maxs (length ins) pc; 
     Some state' = exec (G, None, hp, (stk,loc,C,sig,pc)#frs); 
     G,phi \<turnstile>JVM (None, hp, (stk,loc,C,sig,pc)#frs)\<surd> |] 
 ==> G,phi \<turnstile>JVM state'\<surd>"
@@ -122,9 +122,9 @@ done
 
 lemma Checkcast_correct:
 "[| wf_prog wt G;
-    method (G,C) sig = Some (C,rT,maxl,ins); 
+    method (G,C) sig = Some (C,rT,maxs,maxl,ins); 
     ins!pc = Checkcast D; 
-    wt_instr (ins!pc) G rT (phi C sig) (length ins) pc; 
+    wt_instr (ins!pc) G rT (phi C sig) maxs (length ins) pc; 
     Some state' = exec (G, None, hp, (stk,loc,C,sig,pc)#frs) ; 
     G,phi \<turnstile>JVM (None, hp, (stk,loc,C,sig,pc)#frs)\<surd> |] 
 ==> G,phi \<turnstile>JVM state'\<surd>"
@@ -136,9 +136,9 @@ done
 
 lemma Getfield_correct:
 "[| wf_prog wt G;
-  method (G,C) sig = Some (C,rT,maxl,ins); 
+  method (G,C) sig = Some (C,rT,maxs,maxl,ins); 
   ins!pc = Getfield F D; 
-  wt_instr (ins!pc) G rT (phi C sig) (length ins) pc; 
+  wt_instr (ins!pc) G rT (phi C sig) maxs (length ins) pc; 
   Some state' = exec (G, None, hp, (stk,loc,C,sig,pc)#frs) ; 
   G,phi \<turnstile>JVM (None, hp, (stk,loc,C,sig,pc)#frs)\<surd> |] 
 ==> G,phi \<turnstile>JVM state'\<surd>"
@@ -158,9 +158,9 @@ done
 
 lemma Putfield_correct:
 "[| wf_prog wt G;
-  method (G,C) sig = Some (C,rT,maxl,ins); 
+  method (G,C) sig = Some (C,rT,maxs,maxl,ins); 
   ins!pc = Putfield F D; 
-  wt_instr (ins!pc) G rT (phi C sig) (length ins) pc; 
+  wt_instr (ins!pc) G rT (phi C sig) maxs (length ins) pc; 
   Some state' = exec (G, None, hp, (stk,loc,C,sig,pc)#frs) ; 
   G,phi \<turnstile>JVM (None, hp, (stk,loc,C,sig,pc)#frs)\<surd> |] 
 ==> G,phi \<turnstile>JVM state'\<surd>"
@@ -188,9 +188,9 @@ lemma collapse_paired_All:
 
 lemma New_correct:
 "[| wf_prog wt G;
-  method (G,C) sig = Some (C,rT,maxl,ins); 
+  method (G,C) sig = Some (C,rT,maxs,maxl,ins); 
   ins!pc = New cl_idx; 
-  wt_instr (ins!pc) G rT (phi C sig) (length ins) pc; 
+  wt_instr (ins!pc) G rT (phi C sig) maxs (length ins) pc; 
   Some state' = exec (G, None, hp, (stk,loc,C,sig,pc)#frs) ; 
   G,phi \<turnstile>JVM (None, hp, (stk,loc,C,sig,pc)#frs)\<surd> |] 
 ==> G,phi \<turnstile>JVM state'\<surd>"
@@ -216,17 +216,17 @@ lemmas [simp del] = split_paired_Ex
 
 lemma Invoke_correct:
 "[| wt_jvm_prog G phi; 
-  method (G,C) sig = Some (C,rT,maxl,ins); 
+  method (G,C) sig = Some (C,rT,maxs,maxl,ins); 
   ins ! pc = Invoke C' mn pTs; 
-  wt_instr (ins!pc) G rT (phi C sig) (length ins) pc; 
+  wt_instr (ins!pc) G rT (phi C sig) maxs (length ins) pc; 
   Some state' = exec (G, None, hp, (stk,loc,C,sig,pc)#frs) ; 
   G,phi \<turnstile>JVM (None, hp, (stk,loc,C,sig,pc)#frs)\<surd> |] 
 ==> G,phi \<turnstile>JVM state'\<surd>" 
 proof -
   assume wtprog: "wt_jvm_prog G phi"
-  assume method: "method (G,C) sig = Some (C,rT,maxl,ins)"
+  assume method: "method (G,C) sig = Some (C,rT,maxs,maxl,ins)"
   assume ins:    "ins ! pc = Invoke C' mn pTs"
-  assume wti:    "wt_instr (ins!pc) G rT (phi C sig) (length ins) pc"
+  assume wti:    "wt_instr (ins!pc) G rT (phi C sig) maxs (length ins) pc"
   assume state': "Some state' = exec (G, None, hp, (stk,loc,C,sig,pc)#frs)"
   assume approx: "G,phi \<turnstile>JVM (None, hp, (stk,loc,C,sig,pc)#frs)\<surd>"
   
@@ -278,7 +278,7 @@ proof -
     a_stk': "approx_stk G hp stk' ST" and
     stk':   "stk = opTs @ oX # stk'" and
     l_o:    "length opTs = length apTs" 
-            "length stk' = length ST" 
+            "length stk' = length ST"  
     by - (drule approx_stk_append_lemma, simp, elim, simp)
 
   from oX 
@@ -328,8 +328,8 @@ proof -
       by simp
 
     with mC' wfprog
-    obtain D0 rT0 maxl0 ins0 where
-      mX: "method (G, X') (mn, pTs) = Some (D0, rT0, maxl0, ins0)" "G\<turnstile>rT0\<preceq>rT"
+    obtain D0 rT0 maxs0 maxl0 ins0 where
+      mX: "method (G, X') (mn, pTs) = Some (D0, rT0, maxs0, maxl0, ins0)" "G\<turnstile>rT0\<preceq>rT"
       by (auto dest: subtype_widen_methd intro: that)
 
     from X' D
@@ -337,8 +337,8 @@ proof -
       by simp
 
     with wfprog mX
-    obtain D'' rT' mxl' ins' where
-      mD: "method (G, D) (mn, pTs) = Some (D'', rT', mxl', ins')" 
+    obtain D'' rT' mxs' mxl' ins' where
+      mD: "method (G, D) (mn, pTs) = Some (D'', rT', mxs', mxl', ins')" 
           "G \<turnstile> rT' \<preceq> rT0"
       by (auto dest: subtype_widen_methd intro: that)
 
@@ -348,7 +348,7 @@ proof -
     
     from mD wfprog
     obtain mD'': 
-      "method (G, D'') (mn, pTs) = Some (D'', rT', mxl', ins')"
+      "method (G, D'') (mn, pTs) = Some (D'', rT', mxs', mxl', ins')"
       "is_class G D''" 
       by (auto dest: method_in_md)
       
@@ -452,9 +452,9 @@ lemmas [simp del] = map_append
 
 lemma Return_correct:
 "[| wt_jvm_prog G phi;  
-  method (G,C) sig = Some (C,rT,maxl,ins); 
+  method (G,C) sig = Some (C,rT,maxs,maxl,ins); 
   ins ! pc = Return; 
-  wt_instr (ins!pc) G rT (phi C sig) (length ins) pc; 
+  wt_instr (ins!pc) G rT (phi C sig) maxs (length ins) pc; 
   Some state' = exec (G, None, hp, (stk,loc,C,sig,pc)#frs) ; 
   G,phi \<turnstile>JVM (None, hp, (stk,loc,C,sig,pc)#frs)\<surd> |] 
 ==> G,phi \<turnstile>JVM state'\<surd>"
@@ -473,9 +473,9 @@ lemmas [simp] = map_append
 
 lemma Goto_correct:
 "[| wf_prog wt G; 
-  method (G,C) sig = Some (C,rT,maxl,ins); 
+  method (G,C) sig = Some (C,rT,maxs,maxl,ins); 
   ins ! pc = Goto branch; 
-  wt_instr (ins!pc) G rT (phi C sig) (length ins) pc; 
+  wt_instr (ins!pc) G rT (phi C sig) maxs (length ins) pc; 
   Some state' = exec (G, None, hp, (stk,loc,C,sig,pc)#frs) ; 
   G,phi \<turnstile>JVM (None, hp, (stk,loc,C,sig,pc)#frs)\<surd> |] 
 ==> G,phi \<turnstile>JVM state'\<surd>"
@@ -487,9 +487,9 @@ done
 
 lemma Ifcmpeq_correct:
 "[| wf_prog wt G; 
-  method (G,C) sig = Some (C,rT,maxl,ins); 
+  method (G,C) sig = Some (C,rT,maxs,maxl,ins); 
   ins ! pc = Ifcmpeq branch; 
-  wt_instr (ins!pc) G rT (phi C sig) (length ins) pc; 
+  wt_instr (ins!pc) G rT (phi C sig) maxs (length ins) pc; 
   Some state' = exec (G, None, hp, (stk,loc,C,sig,pc)#frs) ; 
   G,phi \<turnstile>JVM (None, hp, (stk,loc,C,sig,pc)#frs)\<surd> |] 
 ==> G,phi \<turnstile>JVM state'\<surd>"
@@ -500,9 +500,9 @@ done
 
 lemma Pop_correct:
 "[| wf_prog wt G; 
-  method (G,C) sig = Some (C,rT,maxl,ins); 
+  method (G,C) sig = Some (C,rT,maxs,maxl,ins); 
   ins ! pc = Pop;
-  wt_instr (ins!pc) G rT (phi C sig) (length ins) pc; 
+  wt_instr (ins!pc) G rT (phi C sig) maxs (length ins) pc; 
   Some state' = exec (G, None, hp, (stk,loc,C,sig,pc)#frs) ; 
   G,phi \<turnstile>JVM (None, hp, (stk,loc,C,sig,pc)#frs)\<surd> |] 
 ==> G,phi \<turnstile>JVM state'\<surd>"
@@ -513,9 +513,9 @@ done
 
 lemma Dup_correct:
 "[| wf_prog wt G; 
-  method (G,C) sig = Some (C,rT,maxl,ins); 
+  method (G,C) sig = Some (C,rT,maxs,maxl,ins); 
   ins ! pc = Dup;
-  wt_instr (ins!pc) G rT (phi C sig) (length ins) pc; 
+  wt_instr (ins!pc) G rT (phi C sig) maxs (length ins) pc; 
   Some state' = exec (G, None, hp, (stk,loc,C,sig,pc)#frs) ; 
   G,phi \<turnstile>JVM (None, hp, (stk,loc,C,sig,pc)#frs)\<surd> |] 
 ==> G,phi \<turnstile>JVM state'\<surd>"
@@ -528,9 +528,9 @@ done
 
 lemma Dup_x1_correct:
 "[| wf_prog wt G; 
-  method (G,C) sig = Some (C,rT,maxl,ins); 
+  method (G,C) sig = Some (C,rT,maxs,maxl,ins); 
   ins ! pc = Dup_x1;
-  wt_instr (ins!pc) G rT (phi C sig) (length ins) pc; 
+  wt_instr (ins!pc) G rT (phi C sig) maxs (length ins) pc; 
   Some state' = exec (G, None, hp, (stk,loc,C,sig,pc)#frs) ; 
   G,phi \<turnstile>JVM (None, hp, (stk,loc,C,sig,pc)#frs)\<surd> |] 
 ==> G,phi \<turnstile>JVM state'\<surd>"
@@ -543,9 +543,9 @@ done
 
 lemma Dup_x2_correct:
 "[| wf_prog wt G; 
-  method (G,C) sig = Some (C,rT,maxl,ins); 
+  method (G,C) sig = Some (C,rT,maxs,maxl,ins); 
   ins ! pc = Dup_x2;
-  wt_instr (ins!pc) G rT (phi C sig) (length ins) pc; 
+  wt_instr (ins!pc) G rT (phi C sig) maxs (length ins) pc; 
   Some state' = exec (G, None, hp, (stk,loc,C,sig,pc)#frs) ; 
   G,phi \<turnstile>JVM (None, hp, (stk,loc,C,sig,pc)#frs)\<surd> |] 
 ==> G,phi \<turnstile>JVM state'\<surd>"
@@ -558,9 +558,9 @@ done
 
 lemma Swap_correct:
 "[| wf_prog wt G; 
-  method (G,C) sig = Some (C,rT,maxl,ins); 
+  method (G,C) sig = Some (C,rT,maxs,maxl,ins); 
   ins ! pc = Swap;
-  wt_instr (ins!pc) G rT (phi C sig) (length ins) pc; 
+  wt_instr (ins!pc) G rT (phi C sig) maxs (length ins) pc; 
   Some state' = exec (G, None, hp, (stk,loc,C,sig,pc)#frs) ; 
   G,phi \<turnstile>JVM (None, hp, (stk,loc,C,sig,pc)#frs)\<surd> |] 
 ==> G,phi \<turnstile>JVM state'\<surd>"
@@ -573,9 +573,9 @@ done
 
 lemma IAdd_correct:
 "[| wf_prog wt G; 
-  method (G,C) sig = Some (C,rT,maxl,ins); 
+  method (G,C) sig = Some (C,rT,maxs,maxl,ins); 
   ins ! pc = IAdd; 
-  wt_instr (ins!pc) G rT (phi C sig) (length ins) pc; 
+  wt_instr (ins!pc) G rT (phi C sig) maxs (length ins) pc; 
   Some state' = exec (G, None, hp, (stk,loc,C,sig,pc)#frs) ; 
   G,phi \<turnstile>JVM (None, hp, (stk,loc,C,sig,pc)#frs)\<surd> |] 
 ==> G,phi \<turnstile>JVM state'\<surd>"
@@ -590,7 +590,7 @@ done
 
 lemma instr_correct:
 "[| wt_jvm_prog G phi; 
-  method (G,C) sig = Some (C,rT,maxl,ins); 
+  method (G,C) sig = Some (C,rT,maxs,maxl,ins); 
   Some state' = exec (G, None, hp, (stk,loc,C,sig,pc)#frs); 
   G,phi \<turnstile>JVM (None, hp, (stk,loc,C,sig,pc)#frs)\<surd> |] 
 ==> G,phi \<turnstile>JVM state'\<surd>"

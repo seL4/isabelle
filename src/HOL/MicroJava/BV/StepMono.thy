@@ -118,14 +118,18 @@ qed
 
 
 lemma app_mono: 
-"[|G \<turnstile> s <=' s'; app i G rT s'|] ==> app i G rT s";
+"[|G \<turnstile> s <=' s'; app i G m rT s'|] ==> app i G m rT s";
 proof -
 
   { fix s1 s2
     assume G:   "G \<turnstile> s2 <=s s1"
-    assume app: "app i G rT (Some s1)"
+    assume app: "app i G m rT (Some s1)"
 
-    have "app i G rT (Some s2)"
+    from G
+    have l: "length (fst s2) = length (fst s1)"
+      by simp
+
+    have "app i G m rT (Some s2)"
     proof (cases (open) i)
       case Load
     
@@ -145,13 +149,15 @@ proof -
               auto simp add: map_eq_Cons sup_loc_Cons2 sup_loc_length sup_state_def)
     next
       case Bipush
-      thus ?thesis by simp 
+      with G app
+      show ?thesis by simp 
     next
       case Aconst_null
-      thus ?thesis by simp
+      with G app
+      show ?thesis by simp
     next
       case New
-      with app
+      with G app
       show ?thesis by simp
     next
       case Getfield
@@ -204,17 +210,20 @@ proof -
       case Dup
       with app G
       show ?thesis
-        by - (cases s2, clarsimp simp add: sup_state_Cons2)
+        by - (cases s2, clarsimp simp add: sup_state_Cons2,
+              auto dest: sup_state_length)
     next
       case Dup_x1
       with app G
       show ?thesis
-        by - (cases s2, clarsimp simp add: sup_state_Cons2)
+        by - (cases s2, clarsimp simp add: sup_state_Cons2, 
+              auto dest: sup_state_length)
     next
       case Dup_x2
       with app G
       show ?thesis
-        by - (cases s2, clarsimp simp add: sup_state_Cons2)
+        by - (cases s2, clarsimp simp add: sup_state_Cons2,
+              auto dest: sup_state_length)
     next
       case Swap
       with app G
@@ -287,12 +296,12 @@ proof -
         by (simp add: all_widen_is_sup_loc)
 
       from Invoke s2 l' w' C' m
-      show ?thesis 
-        by simp blast
+      show ?thesis
+        by (simp del: split_paired_Ex) blast
     qed
   } note mono_Some = this
 
-  assume "G \<turnstile> s <=' s'" "app i G rT s'"
+  assume "G \<turnstile> s <=' s'" "app i G m rT s'"
   
   thus ?thesis 
     by - (cases s, cases s', auto simp add: mono_Some)
@@ -302,18 +311,18 @@ lemmas [simp del] = split_paired_Ex
 lemmas [simp] = step_def
 
 lemma step_mono_Some:
-"[| app i G rT (Some s2); G \<turnstile> s1 <=s s2 |] ==>
+"[| app i G m rT (Some s2); G \<turnstile> s1 <=s s2 |] ==>
   G \<turnstile> the (step i G (Some s1)) <=s the (step i G (Some s2))"
 proof (cases s1, cases s2) 
   fix a1 b1 a2 b2
   assume s: "s1 = (a1,b1)" "s2 = (a2,b2)"
-  assume app2: "app i G rT (Some s2)"
+  assume app2: "app i G m rT (Some s2)"
   assume G: "G \<turnstile> s1 <=s s2"
 
   hence "G \<turnstile> Some s1 <=' Some s2" 
     by simp
   from this app2
-  have app1: "app i G rT (Some s1)" by (rule app_mono)
+  have app1: "app i G m rT (Some s1)" by (rule app_mono)
   
   have "step i G (Some s1) \<noteq> None \<and> step i G (Some s2) \<noteq> None"
     by simp
@@ -464,7 +473,7 @@ proof (cases s1, cases s2)
 qed
 
 lemma step_mono:
-  "[| app i G rT s2; G \<turnstile> s1 <=' s2 |] ==>
+  "[| app i G m rT s2; G \<turnstile> s1 <=' s2 |] ==>
   G \<turnstile> step i G s1 <=' step i G s2"
   by (cases s1, cases s2, auto dest: step_mono_Some)
 
