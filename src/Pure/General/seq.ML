@@ -1,7 +1,7 @@
 (*  Title:      Pure/General/seq.ML
     ID:         $Id$
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
-    Author:   	Markus Wenzel, TU Munich
+    Author:     Markus Wenzel, TU Munich
     License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
 Unbounded sequences implemented by closures.  RECOMPUTES if sequence
@@ -43,6 +43,7 @@ sig
   val REPEAT: ('a -> 'a seq) -> 'a -> 'a seq
   val REPEAT1: ('a -> 'a seq) -> 'a -> 'a seq
   val INTERVAL: (int -> 'a -> 'a seq) -> int -> int -> 'a -> 'a seq
+  val DETERM: ('a -> 'b seq) -> 'a -> 'b seq
 end;
 
 structure Seq: SEQ =
@@ -188,11 +189,10 @@ fun commute [] = single []
 
 
 
-(** sequence functions **)      (*some code duplicated from Pure/tctical.ML*)
+(** sequence functions **)      (*some code copied from Pure/tctical.ML*)
 
 fun succeed x = single x;
 fun fail _ = empty;
-
 
 fun op THEN (f, g) x = flat (map g (f x));
 
@@ -204,10 +204,8 @@ fun op ORELSE (f, g) x =
 fun op APPEND (f, g) x =
   append (f x, make (fn () => pull (g x)));
 
-
 fun EVERY fs = foldr THEN (fs, succeed);
 fun FIRST fs = foldr ORELSE (fs, fail);
-
 
 fun TRY f = ORELSE (f, succeed);
 
@@ -226,10 +224,13 @@ fun REPEAT f =
 
 fun REPEAT1 f = THEN (f, REPEAT f);
 
-
 fun INTERVAL f i j x =
   if i > j then single x
   else op THEN (f j, INTERVAL f i (j - 1)) x;
 
+fun DETERM f x =
+  (case pull (f x) of
+    None => empty
+  | Some (x', _) => cons (x', empty));
 
 end;

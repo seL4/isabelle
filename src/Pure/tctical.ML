@@ -133,11 +133,7 @@ fun no_tac st  = Seq.empty;
 
 
 (*Make a tactic deterministic by chopping the tail of the proof sequence*)
-fun DETERM tac st =  
-      case Seq.pull (tac st) of
-              None => Seq.empty
-            | Some(x,_) => Seq.cons(x, Seq.empty);
-
+fun DETERM tac = Seq.DETERM tac;
 
 (*Conditional tactical: testfun controls which tactic to use next.
   Beware: due to eager evaluation, both thentac and elsetac are evaluated.*)
