@@ -77,6 +77,9 @@ sig
   val have_thmss:
     ((string * context attribute list) * (thm list * context attribute list) list) list ->
       context -> context * (string * thm list) list
+  val export_assume: exporter
+  val export_presume: exporter
+  val export_def: exporter
   val assume: exporter
     -> ((string * context attribute list) * (string * (string list * string list)) list) list
     -> context -> context * ((string * thm list) list * thm list)
@@ -831,6 +834,28 @@ fun have_thmss args ctxt = foldl_map have_thss (ctxt, args);
 
 
 (** assumptions **)
+
+(* basic exporters *)
+
+fun export_assume true = Seq.single oo Drule.implies_intr_goals
+  | export_assume false = Seq.single oo Drule.implies_intr_list;
+
+fun export_presume _ = export_assume false;
+
+
+fun dest_lhs cprop =
+  let val x = #1 (Logic.dest_equals (Thm.term_of cprop))
+  in Term.dest_Free x; Thm.cterm_of (Thm.sign_of_cterm cprop) x end
+  handle TERM _ => raise TERM ("Malformed definitional assumption encountered:\n" ^
+      quote (Display.string_of_cterm cprop), []);
+
+fun export_def _ cprops thm =
+  thm
+  |> Drule.implies_intr_list cprops
+  |> Drule.forall_intr_list (map dest_lhs cprops)
+  |> Drule.forall_elim_vars 0
+  |> RANGE (replicate (length cprops) (Tactic.rtac Drule.reflexive_thm)) 1;
+
 
 (* assume *)
 
