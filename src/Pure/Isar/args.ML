@@ -20,6 +20,7 @@ sig
   val !!! : (T list -> 'a) -> T list -> 'a
   val $$$ : string -> T list -> string * T list
   val name: T list -> string * T list
+  val name_dummy: T list -> string option * T list
   val nat: T list -> int * T list
   val var: T list -> indexname * T list
   val enum: string -> ('a * T list -> 'b * ('a * T list)) -> 'a * T list -> 'b list * ('a * T list)
@@ -103,6 +104,7 @@ fun $$$$ x = Scan.one (fn Arg (k, (y, _)) => (k = Ident orelse k = Keyword) anda
 fun $$$ x = $$$$ x >> val_of;
 
 val name = Scan.one (fn Arg (k, (x, _)) => k = Ident orelse k = String) >> val_of;
+val name_dummy = $$$ "_" >> K None || name >> Some;
 
 val keyword_symid =
   Scan.one (fn Arg (k, (x, _)) => k = Keyword andalso OuterLex.is_sid x) >> val_of;

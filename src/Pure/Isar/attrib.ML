@@ -255,7 +255,7 @@ fun read_instantiate' context_of (args, concl_args) x thm =
   in read_instantiate context_of insts x thm end;
 
 val concl = Args.$$$ "concl" -- Args.$$$ ":";
-val inst_arg = Scan.unless concl (Args.$$$ "_" >> K None || Args.name >> Some);
+val inst_arg = Scan.unless concl Args.name_dummy;
 val inst_args = Scan.repeat inst_arg;
 fun insts' x = Scan.lift (inst_args -- Scan.optional (concl |-- Args.!!! inst_args) []) x;
 
