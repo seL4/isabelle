@@ -1,0 +1,8 @@
+#! /bin/sh
+#Make entire system using Standard ML of New Jersey
+#Pathnames will have to be modified for your site
+ISABELLEBIN=/homes/`whoami`/bin
+ISABELLECOMP=sml
+ISABELLEMAKE=Makefile.NJ
+export ISABELLEBIN ISABELLECOMP ISABELLEMAKE
+nohup make-all $*

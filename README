@@ -20,8 +20,9 @@ work.  SML of New Jersey requires lots of store and disc space, but it is
 free and its code sometimes runs faster.  Both compilers are perfectly
 satisfactory for running Isabelle.
 
-The Makefiles and make-all use enviroment variables that you should set
-according to your site configuration.
+The Makefiles and make-all use environment variables that you should set
+according to your site configuration.  See file make-all-nj for an example
+using the Bourne shell, sh.
 
 ISABELLEBIN is the directory to hold Poly/ML databases or New Jersey ML
 images.  When using Poly/ML, ISABELLEBIN must be an absolute pathname (one
@@ -48,6 +49,8 @@ The directory Pure containes pure Isabelle, which has no object-logic.
 Other important files include...
   COPYRIGHT   		Copyright notice and Disclaimer of Warranty
   make-all		shell script for building entire system
+  make-all-poly		sample make-all invocation for Poly/ML
+  make-all-nj		sample make-all invocation for SML of NJ
   change_simp		shell script to help convert sources to new simplifier
   expandshort		shell script to expand "shortcuts" in files
   prove_goal.el       	Emacs command to change proof format
@@ -65,11 +68,12 @@ The following subdirectories contain object-logics:
   FOL 	  Natural deduction First-Order Logic (intuitionistic and classical)
   FOLP 	  First-Order Logic with Proof terms
   ZF	  Zermelo-Fraenkel set theory
-  CTT	  Constructive Type Theory
   HOL	  Classical Higher-Order Logic
+  LCF     Logic for Computable Functions (domain theory) built upon FOL
+  HOLCF   A version of LCF built upon HOL
+  CTT	  Constructive Type Theory
   LK	  Classical first-order sequent calculus
   Modal	  The modal logics T, S4, S43
-  LCF     Logic for Computable Functions (domain theory)
   CCL	  Martin Coen's Classical Computational Logic
   Cube	  Barendregt's Lambda Cube
 
@@ -121,4 +125,4 @@ T. U. Muenchen			Fax:   +49-89-2105-8183
 D-80290 Muenchen
 Germany
 
-Last updated 13 December 1993
+Last updated 13 May 1994
