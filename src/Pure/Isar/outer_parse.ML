@@ -42,13 +42,10 @@ sig
   val const: token list -> (bstring * string * Syntax.mixfix) * token list
   val term: token list -> string * token list
   val prop: token list -> string * token list
-  val args: token list -> Args.T list * token list
-  val args1: token list -> Args.T list * token list
   val attribs: token list -> Args.src list * token list
   val opt_attribs: token list -> Args.src list * token list
   val thm_name: token list -> (bstring * Args.src list) * token list
   val opt_thm_name: token list -> (bstring * Args.src list) * token list
-  val thm_xname: token list -> (xstring * Args.src list) * token list
   val method: token list -> Method.text * token list
   val triple1: ('a * 'b) * 'c -> 'a * 'b * 'c
   val triple2: 'a * ('b * 'c) -> 'a * 'b * 'c
@@ -72,7 +69,7 @@ fun fail_with s = Scan.fail_with
 fun group s scan = scan || fail_with s;
 
 
-(* cut alternatives *)
+(* cut *)
 
 fun !!! scan =
   let
@@ -120,7 +117,7 @@ fun $$$ x =
     (Scan.one (OuterLex.is_kind OuterLex.Keyword andf (equal x o OuterLex.val_of))
       >> OuterLex.val_of);
 
-val nat = number >> (fst o Term.read_int o explode);
+val nat = number >> (fst o Term.read_int o Symbol.explode);
 
 val not_eof = Scan.one OuterLex.not_eof;
 
@@ -136,8 +133,8 @@ fun list scan = enum "," scan;
 
 (* names *)
 
-val name = group "name declaration" (short_ident || string);
-val xname = group "name reference" (short_ident || long_ident || string);
+val name = group "name declaration" (short_ident || sym_ident || string);
+val xname = group "name reference" (short_ident || long_ident || sym_ident || string);
 val text = group "text" (short_ident || long_ident || string || verbatim);
 
 
@@ -201,21 +198,23 @@ val prop = group "proposition" trm;
 
 (* arguments *)
 
-val keyword_symid = Scan.one (OuterLex.keyword_pred OuterLex.is_symid) >> OuterLex.val_of;
+val keyword_symid = Scan.one (OuterLex.keyword_pred OuterLex.is_sid) >> OuterLex.val_of;
 
-val atom_arg =
+fun atom_arg blk =
   group "argument"
-    ((short_ident || long_ident || sym_ident || number) >> Args.ident ||
-      keyword_symid >> Args.keyword ||
-      string >> Args.string);
+    (position (short_ident || long_ident || sym_ident || term_var || text_var ||
+        type_ident || type_var || number) >> Args.ident ||
+      position keyword_symid >> Args.keyword ||
+      position string >> Args.string ||
+      position (if blk then $$$ "," else Scan.fail) >> Args.keyword);
 
-fun paren_args l r scan = $$$ l -- !!! (scan -- $$$ r)
+fun paren_args l r scan = position ($$$ l) -- !!! (scan true -- position ($$$ r))
   >> (fn (x, (ys, z)) => Args.keyword x :: ys @ [Args.keyword z]);
 
-fun args x = Scan.optional args1 [] x
-and args1 x =
+fun args blk x = Scan.optional (args1 blk) [] x
+and args1 blk x =
   ((Scan.repeat1
-    (Scan.repeat1 atom_arg ||
+    (Scan.repeat1 (atom_arg blk) ||
       paren_args "(" ")" args ||
       paren_args "{" "}" args ||
       paren_args "[" "]" args)) >> flat) x;
@@ -223,23 +222,21 @@ and args1 x =
 
 (* theorem names *)
 
-val attrib = position (xname -- !!! args);
-
+val attrib = position (xname -- !!! (args false)) >> Args.src;
 val attribs = $$$ "[" |-- !!! (list attrib --| $$$ "]");
 val opt_attribs = Scan.optional attribs [];
 
 val thm_name = name -- opt_attribs --| $$$ ":";
 val opt_thm_name = Scan.optional thm_name ("", []);
-val thm_xname = xname -- opt_attribs --| $$$ ":";
 
 
 (* proof methods *)
 
 fun meth4 x =
- (position (xname >> rpair []) >> Method.Source ||
+ (position (xname >> rpair []) >> (Method.Source o Args.src) ||
   $$$ "(" |-- meth0 --| $$$ ")") x
 and meth3 x =
- (position (xname -- args1) >> Method.Source ||
+ (position (xname -- args1 false) >> (Method.Source o Args.src) ||
   meth4) x
 and meth2 x =
  (meth4 --| $$$ "?" >> Method.Try ||
