@@ -29,8 +29,8 @@ type \isa{bool\ list}, namely the list with the elements \isa{True} and
 \isa{False}. Because this notation quickly becomes unwieldy, the
 datatype declaration is annotated with an alternative syntax: instead of
 \isa{Nil} and \isa{Cons x xs} we can write
-\isa{{\isacharbrackleft}{\isacharbrackright}}\index{$HOL2list@\texttt{[]}|bold} and
-\isa{x\ {\isacharhash}\ xs}\index{$HOL2list@\texttt{\#}|bold}. In fact, this
+\isa{{\isacharbrackleft}{\isacharbrackright}}\index{$HOL2list@\isa{[]}|bold} and
+\isa{x\ {\isacharhash}\ xs}\index{$HOL2list@\isa{\#}|bold}. In fact, this
 alternative syntax is the familiar one.  Thus the list \isa{Cons True
 (Cons False Nil)} becomes \isa{True\ {\isacharhash}\ False\ {\isacharhash}\ {\isacharbrackleft}{\isacharbrackright}}. The annotation
 \isacommand{infixr}\index{infixr@\isacommand{infixr} (annotation)} 
@@ -61,7 +61,7 @@ Isabelle insists on explicit declarations of all functions
 restriction, the order of items in a theory file is unconstrained. Function
 \isa{app} is annotated with concrete syntax too. Instead of the
 prefix syntax \isa{app\ xs\ ys} the infix
-\isa{xs\ {\isacharat}\ ys}\index{$HOL2list@\texttt{\at}|bold} becomes the preferred
+\isa{xs\ {\isacharat}\ ys}\index{$HOL2list@\isa{\at}|bold} becomes the preferred
 form. Both functions are defined recursively:%
 \end{isamarkuptext}%
 \isamarkuptrue%

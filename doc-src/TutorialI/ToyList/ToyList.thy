@@ -24,8 +24,8 @@ type @{typ"bool list"}, namely the list with the elements @{term"True"} and
 @{term"False"}. Because this notation quickly becomes unwieldy, the
 datatype declaration is annotated with an alternative syntax: instead of
 @{term[source]Nil} and \isa{Cons x xs} we can write
-@{term"[]"}\index{$HOL2list@\texttt{[]}|bold} and
-@{term"x # xs"}\index{$HOL2list@\texttt{\#}|bold}. In fact, this
+@{term"[]"}\index{$HOL2list@\isa{[]}|bold} and
+@{term"x # xs"}\index{$HOL2list@\isa{\#}|bold}. In fact, this
 alternative syntax is the familiar one.  Thus the list \isa{Cons True
 (Cons False Nil)} becomes @{term"True # False # []"}. The annotation
 \isacommand{infixr}\index{infixr@\isacommand{infixr} (annotation)} 
@@ -56,7 +56,7 @@ Isabelle insists on explicit declarations of all functions
 restriction, the order of items in a theory file is unconstrained. Function
 @{text"app"} is annotated with concrete syntax too. Instead of the
 prefix syntax @{text"app xs ys"} the infix
-@{term"xs @ ys"}\index{$HOL2list@\texttt{\at}|bold} becomes the preferred
+@{term"xs @ ys"}\index{$HOL2list@\isa{\at}|bold} becomes the preferred
 form. Both functions are defined recursively:
 *}
 

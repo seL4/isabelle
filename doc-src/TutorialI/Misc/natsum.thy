@@ -23,20 +23,20 @@ done
 text{*\newcommand{\mystar}{*%
 }
 \index{arithmetic operations!for \protect\isa{nat}}%
-The arithmetic operations \ttindexboldpos{+}{$HOL2arithfun},
-\ttindexboldpos{-}{$HOL2arithfun}, \ttindexboldpos{\mystar}{$HOL2arithfun},
+The arithmetic operations \isadxboldpos{+}{$HOL2arithfun},
+\isadxboldpos{-}{$HOL2arithfun}, \isadxboldpos{\mystar}{$HOL2arithfun},
 \sdx{div}, \sdx{mod}, \cdx{min} and
 \cdx{max} are predefined, as are the relations
-\indexboldpos{\isasymle}{$HOL2arithrel} and
-\ttindexboldpos{<}{$HOL2arithrel}. As usual, @{prop"m-n = (0::nat)"} if
+\isadxboldpos{\isasymle}{$HOL2arithrel} and
+\isadxboldpos{<}{$HOL2arithrel}. As usual, @{prop"m-n = (0::nat)"} if
 @{prop"m<n"}. There is even a least number operation
 \sdx{LEAST}\@.  For example, @{prop"(LEAST n. 0 < n) = Suc 0"}.
 \begin{warn}\index{overloading}
   The constants \cdx{0} and \cdx{1} and the operations
-  \ttindexboldpos{+}{$HOL2arithfun}, \ttindexboldpos{-}{$HOL2arithfun},
-  \ttindexboldpos{\mystar}{$HOL2arithfun}, \cdx{min},
-  \cdx{max}, \indexboldpos{\isasymle}{$HOL2arithrel} and
-  \ttindexboldpos{<}{$HOL2arithrel} are overloaded: they are available
+  \isadxboldpos{+}{$HOL2arithfun}, \isadxboldpos{-}{$HOL2arithfun},
+  \isadxboldpos{\mystar}{$HOL2arithfun}, \cdx{min},
+  \cdx{max}, \isadxboldpos{\isasymle}{$HOL2arithrel} and
+  \isadxboldpos{<}{$HOL2arithrel} are overloaded: they are available
   not just for natural numbers but for other types as well.
   For example, given the goal @{text"x + 0 = x"}, there is nothing to indicate
   that you are talking about natural numbers. Hence Isabelle can only infer
@@ -54,6 +54,12 @@ The arithmetic operations \ttindexboldpos{+}{$HOL2arithfun},
   For details on overloading see \S\ref{sec:overloading}.
   Table~\ref{tab:overloading} in the appendix shows the most important
   overloaded operations.
+\end{warn}
+\begin{warn}
+  The symbols \isadxboldpos{>}{$HOL2arithrel} and
+  \isadxboldpos{\isasymge}{$HOL2arithrel} are merely syntax: @{text"x > y"}
+  stands for @{prop"y < x"} and similary for @{text"\<ge>"} and
+  @{text"\<le>"}.
 \end{warn}
 \begin{warn}
   Constant @{text"1::nat"} is defined to equal @{term"Suc 0"}. This definition

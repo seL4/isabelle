@@ -634,7 +634,7 @@ Schematic variables in goals represent unknown terms.  Given a goal such
 as $\exists x.\,P$, they let us proceed with a proof.  They can be 
 filled in later, sometimes in stages and often automatically. 
 
-If unification fails when you think it should succeed, try setting the flag \index{flags}\isa{trace_unify_fail}\index{* trace_unify_fail (flag)},
+If unification fails when you think it should succeed, try setting the flag \index{flags}\isa{trace_unify_fail}\index{*trace_unify_fail (flag)},
 which makes Isabelle show the cause of unification failures.  For example, suppose we are trying to prove this subgoal by assumption:
 \begin{isabelle}
 \ 1.\ P\ (a,\ f\ (b,\ g\ (e,\ a),\ b),\ a)\ \isasymLongrightarrow \ P\ (a,\ f\ (b,\ g\ (c,\ a),\ b),\ a)

@@ -28,6 +28,7 @@
 %%%% for indexing constants, symbols, theorems, ...
 \newcommand\cdx[1]{\isa{#1}\index{#1@\protect\isa{#1} (constant)}}
 \newcommand\sdx[1]{\isa{#1}\index{#1@\protect\isa{#1} (symbol)}}
+\newcommand\sdxpos[2]{\isa{#1}\index{#2@\protect\isa{#1} (symbol)}}
 
 \newcommand\tdx[1]{\isa{#1}\index{#1@\protect\isa{#1} (theorem)}}
 \newcommand\tdxbold[1]{\isa{#1}\index{#1@\protect\isa{#1} (theorem)|bold}}
@@ -50,6 +51,9 @@
 \newcommand\rmindex[1]{{#1}\index{#1}\@}
 \newcommand\ttindex[1]{\texttt{#1}\index{#1@\texttt{#1}}\@}
 \newcommand\ttindexbold[1]{\texttt{#1}\index{#1@\texttt{#1}|bold}\@}
+
+\newcommand{\isadxpos}[2]{\isa{#1}\index{#2@\protect\isa{#1}}\@}
+\newcommand{\isadxboldpos}[2]{\isa{#1}\index{#2@\protect\isa{#1}|bold}\@}
 
 %Commented-out the original versions to see what the index looks like without them.
 %   In any event, they need to use \isa or \protect\isa rather than \texttt.
