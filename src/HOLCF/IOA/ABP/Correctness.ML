@@ -167,6 +167,7 @@ val reduce_tl =result();
           C h a n n e l   A b s t r a c t i o n
  *******************************************************************)
 
+Delsplits [expand_if];
 goal Correctness.thy 
       "is_weak_ref_map reduce ch_ioa ch_fin_ioa";
 by (simp_tac (simpset() addsimps [is_weak_ref_map_def]) 1);
@@ -253,6 +254,7 @@ by (Action.action.induct_tac "a" 1);
 (* 7 cases *)
 by (ALLGOALS (simp_tac ((simpset() addsimps [externals_def]) setloop (split_tac [expand_if]))));
 qed"env_unchanged";
+Addsplits [expand_if];
 
 goal Correctness.thy "compatible srch_ioa rsch_ioa"; 
 by (simp_tac (simpset() addsimps [compatible_def,Int_def,empty_def]) 1);

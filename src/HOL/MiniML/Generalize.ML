@@ -60,7 +60,6 @@ by (Simp_tac 1);
 by (case_tac "nat : free_tv A" 1);
 by (Asm_simp_tac 1);
 by (Asm_simp_tac 1);
-by (Asm_full_simp_tac 1);
 qed_spec_mp "new_tv_compatible_gen";
 
 goalw thy [gen_ML_def] "!!A. gen A t = gen_ML A t";
@@ -71,19 +70,18 @@ qed "gen_eq_gen_ML";
 
 goal thy "!!S. (free_tv S) Int ((free_tv t) - (free_tv A)) = {} \
 \          --> gen ($ S A) ($ S t) = $ S (gen A t)";
-by (typ.induct_tac "t" 1);
-by (strip_tac 1);
-by (case_tac "nat:(free_tv A)" 1);
+by (induct_tac "t" 1);
+ by (strip_tac 1);
+ by (case_tac "nat:(free_tv A)" 1);
+  by (Asm_simp_tac 1);
+ by (Asm_full_simp_tac 1);
+ by (subgoal_tac "nat ~: free_tv S" 1);
+  by (Fast_tac 2);
+ by (asm_full_simp_tac (simpset() addsimps [free_tv_subst,dom_def]) 1);
+ by (cut_facts_tac [free_tv_app_subst_scheme_list] 1);
+ by (Fast_tac 1);
 by (Asm_simp_tac 1);
-by (Asm_full_simp_tac 1);
-by (subgoal_tac "nat ~: free_tv S" 1);
-by (Fast_tac 2);
-by (asm_full_simp_tac (simpset() addsimps [free_tv_subst,dom_def,de_Morgan_disj]) 1);
-by (split_tac [expand_if] 1);
-by (cut_facts_tac [free_tv_app_subst_scheme_list] 1);
-by (Fast_tac 1);
-by (Asm_simp_tac 1);
-by (Best_tac 1);
+by (Blast_tac 1);
 qed_spec_mp "gen_subst_commutes";
 
 goal Generalize.thy "free_tv(t::typ) <= free_tv(A) --> bound_typ_inst S (gen A t) = t";

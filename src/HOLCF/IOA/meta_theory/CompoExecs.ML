@@ -217,17 +217,13 @@ goal thy
 
 by (pair_induct_tac "xs" [Forall_def,sforall_def,
          is_exec_frag_def, stutter_def] 1);
-(* main case *)
-by (rtac allI 1); 
-ren "ss a t s" 1;
-by (asm_full_simp_tac (simpset() addsimps trans_of_defs1 @ [actions_asig_comp,asig_of_par]
-               setloop (split_tac [expand_if])) 1);
+by (asm_full_simp_tac (simpset() addsimps trans_of_defs1 @ [actions_asig_comp,asig_of_par]) 1);
 by (safe_tac set_cs);
 (* problem with asm_full_simp_tac: (fst s) = (fst t) is too high in assumption order ! *)
 by (rotate_tac ~4 1);
-by (asm_full_simp_tac (simpset() setloop (split_tac [expand_if])) 1);
+by (Asm_full_simp_tac 1);
 by (rotate_tac ~4 1);
-by (asm_full_simp_tac (simpset() setloop (split_tac [expand_if])) 1);
+by (Asm_full_simp_tac 1);
 qed"lemma_1_2";
 
 

@@ -101,9 +101,9 @@ by (asm_full_simp_tac
                 addsplits [expand_if,split_option_case]) 1);
 qed"comp2_reachable";
 
+Delsplits [expand_if];
 
 (* Composition of possibility-mappings *)
-
 goalw Solve.thy [is_weak_pmap_def] "!!f g.[| is_weak_pmap f C1 A1 & \
 \               externals(asig_of(A1))=externals(asig_of(C1)) &\
 \               is_weak_pmap g C2 A2 &  \
@@ -207,3 +207,5 @@ by (etac conjE 1);
 by (cut_inst_tac [("C","C"),("g","g"),("s","s")] reachable_rename_ioa 1);
 by Auto_tac;
 qed"rename_through_pmap";
+
+Addsplits [expand_if];

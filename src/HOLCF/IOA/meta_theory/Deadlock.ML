@@ -50,7 +50,7 @@ qed"scheds_input_enabled";
     Needs compositionality on schedule level, input-enabledness, compatibility
                     and distributivity of is_exec_frag over @@
 **********************************************************************************)
-
+Delsplits [expand_if];
 goal thy "!! sch. [| a : local A; Finite sch; sch : schedules (A||B); \
 \            Filter (%x. x:act A)`(sch @@ a>>nil) : schedules A; compatible A B; input_enabled B |] \
 \          ==> (sch @@ a>>nil) : schedules (A||B)";
@@ -59,10 +59,8 @@ by (asm_full_simp_tac (simpset() addsimps [compositionality_sch,locals_def]) 1);
 by (rtac conjI 1);
 (* a : act (A||B) *)
 by (asm_full_simp_tac (simpset() addsimps [actions_of_par]) 2);
-by (rtac disjI1 2);
-by (etac disjE 2);
-by (etac int_is_act 2);
-by (etac out_is_act 2);
+by(blast_tac (claset() addDs [int_is_act,out_is_act]) 2);
+
 (* Filter B (sch@@[a]) : schedules B *)
 
 by (case_tac "a:int A" 1);
@@ -76,7 +74,7 @@ by (Asm_full_simp_tac 1);
 (* case a:act B *)
 by (Asm_full_simp_tac 1);
 by (subgoal_tac "a:out A" 1);
-by (Fast_tac 2);
+by (Blast_tac 2);
 by (dtac outAactB_is_inpB 1);
 by (assume_tac 1);
 by (assume_tac 1);
@@ -85,6 +83,7 @@ by (Asm_full_simp_tac 1);
 by (REPEAT (atac 1));
 qed"IOA_deadlock_free";
 
+Addsplits [expand_if];
 
 
 

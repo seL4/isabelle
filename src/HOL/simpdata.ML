@@ -334,12 +334,22 @@ end;
 val split_asm_tac = mk_case_split_asm_tac split_tac 
 			(disjE,conjE,exE,contrapos,contrapos2,notnotD);
 
-infix 4 addsplits;
+infix 4 addsplits delsplits;
+
 fun ss addsplits splits =
   let fun addsplit(ss,split) =
         let val name = "split " ^ const_of_split_thm split
         in ss addloop (name,split_tac [split]) end
   in foldl addsplit (ss,splits) end;
+
+fun ss delsplits splits =
+  let fun delsplit(ss,split) =
+        let val name = "split " ^ const_of_split_thm split
+        in ss delloop name end
+  in foldl delsplit (ss,splits) end;
+
+fun Addsplits splits = (simpset_ref() := simpset() addsplits splits);
+fun Delsplits splits = (simpset_ref() := simpset() delsplits splits);
 
 qed_goal "if_cancel" HOL.thy "(if c then x else x) = x"
   (K [split_tac [expand_if] 1, blast_tac HOL_cs 1]);
@@ -385,7 +395,8 @@ val HOL_basic_ss = empty_ss setsubgoaler asm_simp_tac
 			    setSSolver   safe_solver
 			    setSolver  unsafe_solver
 			    setmksimps (mksimps mksimps_pairs)
-			    setmkeqTrue mk_meta_eq_True;
+			    setmkeqTrue mk_meta_eq_True
+                            addsplits [expand_if];
 
 val HOL_ss = 
     HOL_basic_ss addsimps 

@@ -138,7 +138,7 @@ qed_spec_mp"tsuffix_TL";
 
 val tsuffix_TL2 = conjI RS tsuffix_TL;
 
-
+Delsplits[expand_if];
 goalw thy [Next_def,satisfies_def,NOT_def,IMPLIES_def,AND_def,Box_def] 
    "s~=UU & s~=nil --> (s |= [] F .--> (F .& (Next ([] F))))";
 auto();
@@ -152,6 +152,7 @@ bd tsuffix_TL2 1;
 by (REPEAT (atac 1));
 auto();
 qed"LTL1";
+Addsplits[expand_if];
 
 
 goalw thy [Next_def,satisfies_def,NOT_def,IMPLIES_def] 

@@ -129,7 +129,7 @@ qed"mk_traceConc";
 (* ------------------------------------------------------
                  Lemma 1 :Traces coincide  
    ------------------------------------------------------- *)
-
+Delsplits[expand_if];
 goalw thy [corresp_ex_def]
   "!!f.[|is_ref_map f C A; ext C = ext A|] ==>  \     
 \        !s. reachable C s & is_exec_frag C (s,xs) --> \
@@ -146,7 +146,7 @@ by (Asm_full_simp_tac 1);
 by (asm_full_simp_tac (simpset() addsimps [move_subprop4] 
                           setloop split_tac [expand_if] ) 1);
 qed"lemma_1";
-
+Addsplits[expand_if];
 
 (* ------------------------------------------------------------------ *)
 (*                   The following lemmata contribute to              *)

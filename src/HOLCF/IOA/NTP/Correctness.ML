@@ -66,11 +66,11 @@ val sels = [Sender.sbit_def, Sender.sq_def, Sender.ssending_def,
 (* Proof of correctness *)
 goalw Correctness.thy [Spec.ioa_def, is_weak_ref_map_def]
   "is_weak_ref_map hom (restrict impl_ioa (externals spec_sig)) spec_ioa";
-by (simp_tac (simpset() addsimps 
+by (simp_tac (simpset() delsplits [expand_if] addsimps 
     [Correctness.hom_def, cancel_restrict, externals_lemma]) 1);
 by (rtac conjI 1);
-by (simp_tac ss' 1);
-by (asm_simp_tac (simpset() addsimps sels) 1);
+ by (simp_tac ss' 1);
+ by (asm_simp_tac (simpset() addsimps sels) 1);
 by (REPEAT(rtac allI 1));
 by (rtac imp_conj_lemma 1);   (* from lemmas.ML *)
 

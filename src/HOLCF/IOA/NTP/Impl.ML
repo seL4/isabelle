@@ -84,7 +84,8 @@ by (simp_tac (simpset() delsimps [trans_of_par4]
 by (rtac conjI 1); 
 
 (* First half *)
-by (asm_full_simp_tac (simpset() addsimps [Impl.inv1_def]) 1);
+by (asm_full_simp_tac (simpset() addsimps [Impl.inv1_def]
+                                 delsplits [expand_if]) 1);
 by (rtac Action.action.induct 1);
 
 by (EVERY1[tac, tac, tac, tac]);
@@ -101,7 +102,8 @@ by (EVERY1[tac, tac, tac, tac]);
 
 
 (* Now the other half *)
-by (asm_full_simp_tac (simpset() addsimps [Impl.inv1_def]) 1);
+by (asm_full_simp_tac (simpset() addsimps [Impl.inv1_def]
+                                 delsplits [expand_if]) 1);
 by (rtac Action.action.induct 1);
 by (EVERY1[tac, tac]);
 
@@ -161,7 +163,7 @@ qed "inv1";
                            @ sender_projections @ impl_ioas)))
       1);
 
-  by (asm_simp_tac (simpset() addsimps impl_ioas) 1);
+  by (asm_simp_tac (simpset() addsimps impl_ioas delsplits [expand_if]) 1);
   by (Action.action.induct_tac "a" 1);
 
   (* 10 cases. First 4 are simple, since state doesn't change *)
@@ -222,7 +224,7 @@ goal Impl.thy "invariant impl_ioa inv3";
                     (Impl.inv3_def :: (receiver_projections 
                                        @ sender_projections @ impl_ioas))) 1);
 
-  by (asm_simp_tac (simpset() addsimps impl_ioas) 1);
+  by (asm_simp_tac (simpset() addsimps impl_ioas delsplits [expand_if]) 1);
   by (Action.action.induct_tac "a" 1);
 
 val tac3 = asm_full_simp_tac (ss addsimps [inv3_def] 
@@ -297,7 +299,7 @@ goal Impl.thy "invariant impl_ioa inv4";
                     (Impl.inv4_def :: (receiver_projections 
                                        @ sender_projections @ impl_ioas))) 1);
 
-  by (asm_simp_tac (simpset() addsimps impl_ioas) 1);
+  by (asm_simp_tac (simpset() addsimps impl_ioas delsplits [expand_if]) 1);
   by (Action.action.induct_tac "a" 1);
 
 val tac4 =  asm_full_simp_tac (ss addsimps [inv4_def]

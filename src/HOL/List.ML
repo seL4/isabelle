@@ -479,9 +479,6 @@ by (nat_ind_tac "n" 1);
  by (rtac allI 1);
  by (exhaust_tac "xs" 1);
   by (ALLGOALS Asm_simp_tac);
-by (rtac allI 1);
-by (exhaust_tac "xs" 1);
- by (ALLGOALS Asm_simp_tac);
 qed_spec_mp "nth_append";
 
 goal thy "!n. n < length xs --> (map f xs)!n = f(xs!n)";

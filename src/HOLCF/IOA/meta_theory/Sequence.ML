@@ -463,7 +463,6 @@ qed"Map2Finite";
 
 goal thy "!! s. Finite s ==> Finite (Filter P`s)";
 by (Seq_Finite_induct_tac 1);
-by (asm_simp_tac (simpset() setloop split_tac [expand_if]) 1);
 qed"FiniteFilter";
 
 
@@ -545,12 +544,10 @@ section "Last";
 
 goal thy "!! s. Finite s ==> s~=nil --> Last`s~=UU";
 by (Seq_Finite_induct_tac  1);
-by (asm_simp_tac (simpset() setloop split_tac [expand_if]) 1);
 qed"Finite_Last1";
 
 goal thy "!! s. Finite s ==> Last`s=UU --> s=nil";
 by (Seq_Finite_induct_tac  1);
-by (asm_simp_tac (simpset() setloop split_tac [expand_if]) 1);
 by (fast_tac HOL_cs 1);
 qed"Finite_Last2";
 
@@ -563,7 +560,6 @@ section "Filter, Conc";
 
 goal thy "Filter P`(Filter Q`s) = Filter (%x. P x & Q x)`s";
 by (Seq_induct_tac "s" [Filter_def] 1);
-by (asm_full_simp_tac (simpset() setloop split_tac [expand_if] ) 1);
 qed"FilterPQ";
 
 goal thy "Filter P`(x @@ y) = (Filter P`x @@ Filter P`y)";
@@ -584,7 +580,6 @@ qed"MapConc";
 
 goal thy "Filter P`(Map f`x) = Map f`(Filter (P o f)`x)";
 by (Seq_induct_tac "x" [] 1);
-by (asm_full_simp_tac (simpset() setloop split_tac [expand_if] ) 1);
 qed"MapFilter";
 
 goal thy "nil = (Map f`s) --> s= nil";
@@ -629,7 +624,6 @@ bind_thm ("ForallTL",ForallTL1 RS mp);
 
 goal thy "Forall P s  --> Forall P (Dropwhile Q`s)";
 by (Seq_induct_tac "s" [Forall_def,sforall_def] 1);
-by (asm_full_simp_tac (simpset() setloop (split_tac [expand_if])) 1);
 qed"ForallDropwhile1";
 
 bind_thm ("ForallDropwhile",ForallDropwhile1 RS mp);
@@ -644,7 +638,7 @@ by (Seq_case_simp_tac "sa" 1);
 by (Asm_full_simp_tac 1);
 by Auto_tac;
 qed"Forall_prefix";
- 
+
 bind_thm ("Forall_prefixclosed",Forall_prefix RS spec RS mp RS mp);
 
 
@@ -716,12 +710,10 @@ bind_thm ("FilternPnilForallP",FilternPnilForallP1 RS mp);
 
 goal thy "!! ys. Finite ys ==> Filter P`ys ~= UU";
 by (Seq_Finite_induct_tac 1);
-by (asm_full_simp_tac (simpset() setloop split_tac [expand_if] ) 1);
 qed"FilterUU_nFinite_lemma1";
 
 goal thy "~ Forall (%x. ~P x) ys --> Filter P`ys ~= UU";
 by (Seq_induct_tac "ys" [Forall_def,sforall_def] 1);
-by (asm_full_simp_tac (simpset() setloop split_tac [expand_if] ) 1);
 qed"FilterUU_nFinite_lemma2";
 
 goal thy   "!! P. Filter P`ys = UU ==> \
@@ -787,7 +779,6 @@ Addsimps [ForallPTakewhileP,ForallPTakewhileQ,
 
 goal thy "Takewhile P`(Takewhile P`s) = Takewhile P`s";
 by (Seq_induct_tac "s" [Forall_def,sforall_def] 1);
-by (asm_full_simp_tac (simpset() setloop (split_tac [expand_if])) 1);
 qed"Takewhile_idempotent";
 
 goal thy "Forall P s --> Takewhile (%x. Q x | (~P x))`s = Takewhile Q`s";
@@ -830,10 +821,8 @@ by (Seq_induct_tac "y" [] 1);
 by (rtac adm_all 1);
 by (Asm_full_simp_tac 1); 
 by (case_tac "P a" 1);
-by (Asm_full_simp_tac 1); 
-by (rtac impI 1);
-by (hyp_subst_tac 1);
-by (Asm_full_simp_tac 1); 
+ by (Asm_full_simp_tac 1); 
+ by (Blast_tac 1);
 (* ~ P a *)
 by (Asm_full_simp_tac 1); 
 qed"divide_Seq_lemma";
@@ -851,9 +840,6 @@ goal thy "~Forall P y --> (? x. HD`(Filter (%a. ~P a)`y) = Def x)";
 (* Pay attention: is only admissible with chain-finite package to be added to 
         adm test *)
 by (Seq_induct_tac "y" [Forall_def,sforall_def] 1);
-by (case_tac "P a" 1);
-by (Asm_full_simp_tac 1); 
-by (Asm_full_simp_tac 1); 
 qed"nForall_HDFilter";
 
 
@@ -1152,21 +1138,18 @@ goal thy "Forall (%x.~(P x & Q x)) s \
 \             Filter (%x. P x & Q x)`s";
 
 by (Seq_induct_tac "s" [Forall_def,sforall_def] 1);
-by (asm_full_simp_tac (simpset() setloop split_tac [expand_if] ) 1);
 qed"Filter_lemma1";
 
 goal thy "!! s. Finite s ==>  \
 \         (Forall (%x. (~P x) | (~ Q x)) s  \
 \         --> Filter P`(Filter Q`s) = nil)";
 by (Seq_Finite_induct_tac 1);
-by (asm_full_simp_tac (simpset() setloop split_tac [expand_if] ) 1);
 qed"Filter_lemma2";
 
 goal thy "!! s. Finite s ==>  \
 \         Forall (%x. (~P x) | (~ Q x)) s  \
 \         --> Filter (%x. P x & Q x)`s = nil";
 by (Seq_Finite_induct_tac 1);
-by (asm_full_simp_tac (simpset() setloop split_tac [expand_if] ) 1);
 qed"Filter_lemma3";
 
 

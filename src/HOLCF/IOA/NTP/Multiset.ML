@@ -39,12 +39,10 @@ goalw Multiset.thy [Multiset.count_def]
 qed "count_delm_simp";
 
 goal Multiset.thy "!!M. (!x. P(x) --> Q(x)) ==> (countm M P <= countm M Q)";
-  by (res_inst_tac [("M","M")] Multiset.induction 1);
-  by (simp_tac (simpset() addsimps [Multiset.countm_empty_def]) 1);
-  by (simp_tac (simpset() addsimps[Multiset.countm_nonempty_def]) 1);
-  by (etac add_le_mono 1);
-  by (asm_full_simp_tac (simpset() addsimps [le_eq_less_or_eq]
-                                  setloop (split_tac [expand_if])) 1);
+by (res_inst_tac [("M","M")] Multiset.induction 1);
+ by (simp_tac (simpset() addsimps [Multiset.countm_empty_def]) 1);
+by (simp_tac (simpset() addsimps[Multiset.countm_nonempty_def]) 1);
+auto();
 qed "countm_props";
 
 goal Multiset.thy "!!P. ~P(obj) ==> countm M P = countm (delm M obj) P";
@@ -66,7 +64,7 @@ goal Multiset.thy "!!P. P(x) ==> 0<count M x --> 0<countm M P";
                        [Multiset.count_def,Multiset.delm_nonempty_def,
                         Multiset.countm_nonempty_def]
                     setloop (split_tac [expand_if])) 1);
-val pos_count_imp_pos_countm = store_thm("pos_count_imp_pos_countm", standard(result() RS mp));
+qed_spec_mp "pos_count_imp_pos_countm";
 
 goal Multiset.thy
    "!!P. P(x) ==> 0<count M x --> countm (delm M x) P = pred (countm M P)";
