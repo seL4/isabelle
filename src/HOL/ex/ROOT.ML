@@ -42,5 +42,8 @@ time_use_thy "MonoidGroup";
 time_use_thy "PiSets";
 time_use_thy "LocaleGroup";
 
+(*Expressions with quote / antiquote*)
+time_use_thy "Antiquote";
+
 
 writeln "END: Root file for HOL examples";
