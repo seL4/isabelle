@@ -285,12 +285,11 @@ val locale_val =
   Scan.repeat1 P.locale_element >> pair Locale.empty);
 
 val locale_pred =
-  P.$$$ "(" |-- P.!!! ((P.$$$ "open" >> K None || P.name >> Some) --| P.$$$ ")");
+  Scan.optional (P.$$$ "(" |-- P.!!! ((P.$$$ "open" >> K false) --| P.$$$ ")")) true;
 
 val localeP =
   OuterSyntax.command "locale" "define named proof context" K.thy_decl
-    (Scan.option locale_pred -- P.name --
-      (P.$$$ "=" |-- P.!!! locale_val || Scan.succeed (Locale.empty, []))
+    (locale_pred -- P.name -- Scan.optional (P.$$$ "=" |-- P.!!! locale_val) (Locale.empty, [])
       >> (Toplevel.theory o IsarThy.add_locale o (fn ((x, y), (z, w)) => (x, y, z, w))));
 
 
