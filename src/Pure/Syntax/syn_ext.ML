@@ -311,7 +311,7 @@ fun mk_syn_ext convert logtypes mfixes consts trfuns tokentrfuns rules =
     SynExt {
       logtypes = logtypes',
       xprods = xprods,
-      consts = filter Lexicon.is_xid (consts union mfix_consts),
+      consts = consts union mfix_consts,
       prmodes = distinct (map (fn (m, _, _) => m) tokentrfuns),
       parse_ast_translation = parse_ast_translation,
       parse_rules = parse_rules,
