@@ -337,7 +337,7 @@ fun finish () = with_session ()
   in
     seq finish_node (Symtab.dest theories);
     Buffer.write (Path.append html_prefix pre_index_path) html_index;
-    doc_prefixes |> apsome (write_texes tex_index doc_indexN);
+    doc_prefixes |> apsome (write_texes (Buffer.add Latex.tex_trailer tex_index) doc_indexN);
     doc_prefixes |> apsome (isatool_document doc_format o #1);
     write_graph graph (Path.append html_prefix (graph_path "session"));
     create_index html_prefix;
