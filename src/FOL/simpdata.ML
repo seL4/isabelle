@@ -309,6 +309,10 @@ simpset_ref() := FOL_ss;
 
 
 
+
+
+
+
 (*** Integration of simplifier with classical reasoner ***)
 
 (* rot_eq_tac rotates the first equality premise of subgoal i to the front,
@@ -324,64 +328,8 @@ val rot_eq_tac =
 		if n>0 then rotate_tac n i else no_tac end)
 end;
 
-
-fun safe_asm_more_full_simp_tac ss = TRY o rot_eq_tac THEN' 
-				     safe_asm_full_simp_tac ss;
-(*an unsatisfactory fix for the incomplete asm_full_simp_tac!
-  better: asm_really_full_simp_tac, a yet to be implemented version of
-			asm_full_simp_tac that applies all equalities in the
-			premises to all the premises *)
-
-(*Add a simpset to a classical set!*)
-infix 4 addSss addss;
-fun cs addSss ss = cs addSaltern ("safe_asm_more_full_simp_tac",
-				  CHANGED o (safe_asm_more_full_simp_tac ss));
-fun cs addss  ss = cs addbefore  ("asm_full_simp_tac", asm_full_simp_tac ss);
-
-fun Addss ss = (claset_ref() := claset() addss ss);
-
-(*Designed to be idempotent, except if best_tac instantiates variables
-  in some of the subgoals*)
-
-type clasimpset = (claset * simpset);
+use "$ISABELLE_HOME/src/Provers/clasimp.ML";
+open Clasimp;
 
 val FOL_css = (FOL_cs, FOL_ss);
 
-fun pair_upd1 f ((a,b),x) = (f(a,x), b);
-fun pair_upd2 f ((a,b),x) = (a, f(b,x));
-
-infix 4 addSIs2 addSEs2 addSDs2 addIs2 addEs2 addDs2
-	addsimps2 delsimps2 addcongs2 delcongs2;
-fun op addSIs2   arg = pair_upd1 (op addSIs) arg;
-fun op addSEs2   arg = pair_upd1 (op addSEs) arg;
-fun op addSDs2   arg = pair_upd1 (op addSDs) arg;
-fun op addIs2    arg = pair_upd1 (op addIs ) arg;
-fun op addEs2    arg = pair_upd1 (op addEs ) arg;
-fun op addDs2    arg = pair_upd1 (op addDs ) arg;
-fun op addsimps2 arg = pair_upd2 (op addsimps) arg;
-fun op delsimps2 arg = pair_upd2 (op delsimps) arg;
-fun op addcongs2 arg = pair_upd2 (op addcongs) arg;
-fun op delcongs2 arg = pair_upd2 (op delcongs) arg;
-
-
-fun mk_auto_tac (cs, ss) m n =
-    let val cs' = cs addss ss 
-	val bdt = Blast.depth_tac cs m;
-	fun blast_depth_tac i thm = bdt i thm handle Blast.TRANS s => 
-		(warning ("Blast_tac: " ^ s); Seq.empty);
-        val maintac = 
-          blast_depth_tac	   (*fast but can't use addss*)
-          ORELSE'
-          depth_tac cs' n;         (*slower but general*)
-    in  EVERY [ALLGOALS (asm_full_simp_tac ss),
-	       TRY (safe_tac cs'),
-	       REPEAT (FIRSTGOAL maintac),
-               TRY (safe_tac (cs addSss ss)),
-	       prune_params_tac] 
-    end;
-
-fun auto_tac (cs,ss) = mk_auto_tac (cs,ss) 4 2;
-
-fun Auto_tac st = auto_tac (claset(), simpset()) st;
-
-fun auto () = by Auto_tac;
