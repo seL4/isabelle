@@ -453,23 +453,23 @@ val simp_modifiers' =
 
 val simp_args = Method.only_sectioned_args simp_modifiers';
 
-fun simp_meth tac ctxt = Method.METHOD (fn facts =>
-  FIRSTGOAL (REPEAT_DETERM o etac Drule.thin_rl THEN'
-    metacuts_tac facts THEN'
-    tac (get_local_simpset ctxt)));
+fun simp_meth proper tac ctxt = Method.METHOD (fn facts =>
+  FIRSTGOAL
+    ((if proper then REPEAT_DETERM o etac Drule.thin_rl THEN' metacuts_tac facts else K all_tac)
+      THEN' tac (get_local_simpset ctxt)));
 
-val simp_method = simp_args o simp_meth;
+val simp_method = simp_args oo simp_meth;
 
 
 (* setup_methods *)
 
 val setup_methods = Method.add_methods
- [(simpN,               simp_method asm_full_simp_tac, "simplification"),
-  ("simp_tac",          simp_method simp_tac, "simp_tac"),
-  ("asm_simp_tac",      simp_method asm_simp_tac, "asm_simp_tac"),
-  ("full_simp_tac",     simp_method full_simp_tac, "full_simp_tac"),
-  ("asm_full_simp_tac", simp_method asm_full_simp_tac, "asm_full_simp_tac"),
-  ("asm_lr_simp_tac",   simp_method asm_lr_simp_tac, "asm_lr_simp_tac")];
+ [(simpN,               simp_method true asm_full_simp_tac, "simplification"),
+  ("simp_tac",          simp_method false simp_tac, "simp_tac"),
+  ("asm_simp_tac",      simp_method false asm_simp_tac, "asm_simp_tac"),
+  ("full_simp_tac",     simp_method false full_simp_tac, "full_simp_tac"),
+  ("asm_full_simp_tac", simp_method false asm_full_simp_tac, "asm_full_simp_tac"),
+  ("asm_lr_simp_tac",   simp_method false asm_lr_simp_tac, "asm_lr_simp_tac")];
 
 
 
