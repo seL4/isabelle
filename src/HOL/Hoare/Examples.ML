@@ -75,7 +75,7 @@ qed"factorial";
 
 (** Square root **)
 
-(* the easy way: *
+(* the easy way: *)
 
 Goal "|- VARS x r. \
 \ {u = 1 & w = 1 & r = 0} \
