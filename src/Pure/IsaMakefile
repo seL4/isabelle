@@ -27,7 +27,7 @@ $(OUT)/Pure: General/ROOT.ML General/file.ML General/graph.ML \
   General/history.ML General/name_space.ML General/object.ML \
   General/path.ML General/position.ML General/pretty.ML \
   General/scan.ML General/seq.ML General/source.ML General/symbol.ML \
-  General/table.ML General/use.ML Isar/ROOT.ML Isar/args.ML \
+  General/table.ML Isar/ROOT.ML Isar/args.ML \
   Isar/attrib.ML Isar/isar.ML Isar/isar_cmd.ML Isar/isar_syn.ML \
   Isar/isar_thy.ML Isar/method.ML Isar/outer_lex.ML \
   Isar/outer_parse.ML Isar/outer_syntax.ML Isar/proof.ML \
