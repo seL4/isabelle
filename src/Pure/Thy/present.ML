@@ -253,7 +253,7 @@ fun could_copy inpath outpath =
 fun copy_files path1 path2 =
   (File.mkdir path2;
    File.system_command
-     ("cp " ^ File.sysify_path path1 ^ " " ^ File.sysify_path path2));
+     ("cp " ^ File.quote_sysify_path path1 ^ " " ^ File.quote_sysify_path path2));
 
 
 fun init false _ _ _ _ _ = (browser_info := empty_browser_info; session_info := None)
@@ -311,7 +311,8 @@ fun init false _ _ _ _ _ = (browser_info := empty_browser_info; session_info := 
 
 fun isatool_document doc_format doc_prefix =
   let
-    val cmd = "$ISATOOL document -c -o '" ^ doc_format ^ "' '" ^ File.sysify_path doc_prefix ^ "'";
+    val cmd =
+      "\"$ISATOOL\" document -c -o '" ^ doc_format ^ "' " ^ File.quote_sysify_path doc_prefix;
   in
     writeln cmd;
     if system cmd <> 0 orelse not (File.exists (Path.ext doc_format doc_prefix)) then
