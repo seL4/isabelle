@@ -11,28 +11,28 @@ by (Simp_tac 1);
 qed "empty_def2";
 Addsimps [empty_def2];
 
-Goalw [update_def] "(m[a|->b])x = (if x=a then Some b else m x)";
+Goalw [map_upd_def] "(m[a|->b])x = (if x=a then Some b else m x)";
 by (Simp_tac 1);
-qed "update_def2";
-Addsimps [update_def2];
+qed "map_upd_def2";
+Addsimps [map_upd_def2];
 
-qed_goal "update_same" thy "(t[k|->x]) k = Some x" 
+qed_goal "map_upd_same" thy "(t[k|->x]) k = Some x" 
 	(K [Simp_tac 1]);
-qed_goal "update_other" thy "!!X. l~=k ==> (t[k|->x]) l = t l"
+qed_goal "map_upd_other" thy "!!X. l~=k ==> (t[k|->x]) l = t l"
 	(K [Asm_simp_tac 1]);
-qed_goal "update_triv" thy "!!X. t k = Some x ==> t[k|->x] = t"
+qed_goal "map_upd_triv" thy "!!X. t k = Some x ==> t[k|->x] = t"
 	(K [rtac ext 1, Asm_simp_tac 1]);
-(*Addsimps [update_same, update_other, update_triv];*)
+(*Addsimps [map_upd_same, map_upd_other, map_upd_triv];*)
 
 section "option_map";
 
 qed_goal "option_map_o_empty" thy 
          "option_map f o empty = empty" (K [rtac ext 1, Simp_tac 1]);
 
-qed_goal "option_map_o_update" thy 
+qed_goal "option_map_o_map_upd" thy 
 	 "option_map f o m[a|->b] = (option_map f o m)[a|->f b]" 
 	(K [rtac ext 1, Simp_tac 1]);
-Addsimps[option_map_o_empty, option_map_o_update];
+Addsimps[option_map_o_empty, option_map_o_map_upd];
 
 section "++";
 
@@ -87,8 +87,8 @@ Addsimps [dom_empty];
 Goalw [dom_def] "dom(m[a|->b]) = insert a (dom m)";
 by (Simp_tac 1);
 by (Blast_tac 1);
-qed "dom_update";
-Addsimps [dom_update];
+qed "dom_map_upd";
+Addsimps [dom_map_upd];
 
 qed_goalw "finite_dom_map_of" Map.thy [dom_def] "finite (dom (map_of l))" (K[
 	induct_tac "l" 1,
@@ -112,5 +112,5 @@ Goalw [ran_def] "m a = None ==> ran(m[a|->b]) = insert b (ran m)";
 by Auto_tac;
 by (subgoal_tac "~(aa = a)" 1);
 by Auto_tac;
-qed "ran_update";
-Addsimps [ran_update];
+qed "ran_map_upd";
+Addsimps [ran_map_upd];

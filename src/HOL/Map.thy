@@ -12,7 +12,7 @@ types ('a,'b) "~=>" = 'a => 'b option (infixr 0)
 
 consts
 empty   :: "'a ~=> 'b"
-update  :: "('a ~=> 'b) => 'a => 'b => ('a ~=> 'b)"
+map_upd :: "('a ~=> 'b) => 'a => 'b => ('a ~=> 'b)"
            ("_/[_/|->/_]" [900,0,0] 900)
 override:: "('a ~=> 'b) => ('a ~=> 'b) => ('a ~=> 'b)" (infixl "++" 100)
 dom     :: "('a ~=> 'b) => 'a set"
@@ -22,7 +22,7 @@ map_of  :: "('a * 'b)list => 'a ~=> 'b"
 syntax (symbols)
   "~=>"     :: [type, type] => type
                (infixr "\\<leadsto>" 0)
-  update    :: "('a ~=> 'b) => 'a => 'b => ('a ~=> 'b)"
+  map_upd    :: "('a ~=> 'b) => 'a => 'b => ('a ~=> 'b)"
                ("_/[_/\\<mapsto>/_]" [900,0,0] 900)
   override  :: "('a ~=> 'b) => ('a ~=> 'b) => ('a ~=> 'b)"
                (infixl "\\<oplus>" 100)
@@ -30,7 +30,7 @@ syntax (symbols)
 defs
 empty_def "empty == %x. None"
 
-update_def "m[a|->b] == %x. if x=a then Some b else m x"
+map_upd_def "m[a|->b] == %x. if x=a then Some b else m x"
 
 override_def "m1++m2 == %x. case m2 x of None => m1 x | Some y => Some y"
 

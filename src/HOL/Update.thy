@@ -9,7 +9,7 @@ Function updates: like theory Map, but for ordinary functions
 Update = Fun +
 
 consts
-  update  :: "('a => 'b) => 'a => 'b => ('a => 'b)"
+  fun_upd  :: "('a => 'b) => 'a => 'b => ('a => 'b)"
 
 nonterminals
   updbinds  updbind
@@ -25,9 +25,9 @@ syntax
 
 translations
   "_Update f (_updbinds b bs)"  == "_Update (_Update f b) bs"
-  "f(x:=y)"                     == "update f x y"
+  "f(x:=y)"                     == "fun_upd f x y"
 
 defs
-  update_def "f(a:=b) == %x. if x=a then b else f x"
+  fun_upd_def "f(a:=b) == %x. if x=a then b else f x"
 
 end

@@ -8,20 +8,20 @@ Function updates: like theory Map, but for ordinary functions
 
 open Update;
 
-Goalw [update_def] "(f(x:=y) = f) = (f x = y)";
+Goalw [fun_upd_def] "(f(x:=y) = f) = (f x = y)";
 by Safe_tac;
 by (etac subst 1);
 by (rtac ext 2);
 by Auto_tac;
-qed "update_idem_iff";
+qed "fun_upd_idem_iff";
 
 (* f x = y ==> f(x:=y) = f *)
-bind_thm("update_idem", update_idem_iff RS iffD2);
+bind_thm("fun_upd_idem", fun_upd_idem_iff RS iffD2);
 
 (* f(x := f x) = f *)
-AddIffs [refl RS update_idem];
+AddIffs [refl RS fun_upd_idem];
 
 Goal "(f(x:=y))z = (if z=x then y else f z)";
-by (simp_tac (simpset() addsimps [update_def]) 1);
-qed "update_apply";
-Addsimps [update_apply];
+by (simp_tac (simpset() addsimps [fun_upd_def]) 1);
+qed "fun_upd_apply";
+Addsimps [fun_upd_apply];
