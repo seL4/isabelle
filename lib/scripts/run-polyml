@@ -4,7 +4,7 @@
 #
 # Poly/ML startup script.
 #
-# Global vars: INFILE OUTFILE MLTEXT TERMINATE,
+# Global vars: INFILE OUTFILE MLTEXT TERMINATE NOWRITE,
 # and from settings
 
 
@@ -75,5 +75,6 @@ fi
 
 NEW_DB_INFO=$(ls -l "$DB")
 [ -n "$OUTFILE" -a "$DB_INFO" != "$NEW_DB_INFO" ] && $DISCGARB "$OUTFILE"
+[ -n "$OUTFILE" -a -n "$NOWRITE" ] && chmod -w "$OUTFILE"
 
 exit $RC
