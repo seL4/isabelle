@@ -75,6 +75,7 @@ sig
   val pprint_typ: sg -> typ -> pprint_args -> unit
   val certify_typ: sg -> typ -> typ
   val certify_term: sg -> term -> term * typ * int
+  val read_raw_typ: sg * (indexname -> sort option) -> string -> typ
   val read_typ: sg * (indexname -> sort option) -> string -> typ
   val infer_types: sg -> (indexname -> typ option) ->
     (indexname -> sort option) -> string list -> bool
@@ -476,15 +477,17 @@ fun print_sg sg =
 fun err_in_type s =
   error ("The error(s) above occurred in type " ^ quote s);
 
-fun read_raw_typ syn tsig spaces def_sort str =
+fun rd_raw_typ syn tsig spaces def_sort str =
   intrn_tycons spaces
     (Syntax.read_typ syn (Type.get_sort tsig def_sort (intrn_sort spaces)) str
       handle ERROR => err_in_type str);
-  
+
+fun read_raw_typ (sg as Sg (_, {tsig, syn, spaces, ...}), def_sort) str =
+  (check_stale sg; rd_raw_typ syn tsig spaces def_sort str);
+
 (*read and certify typ wrt a signature*)
-fun read_typ (sg as Sg (_, {tsig, syn, spaces, ...}), def_sort) str =
-  (check_stale sg;
-    Type.cert_typ tsig (read_raw_typ syn tsig spaces def_sort str)
+fun read_typ (sg, def_sort) str =
+  (Type.cert_typ (tsig_of sg) (read_raw_typ (sg, def_sort) str)
       handle TYPE (msg, _, _) => (error_msg msg; err_in_type str));
 
 
@@ -659,7 +662,7 @@ fun ext_types (syn, tsig, ctab, (path, spaces), data) types =
 (* add type abbreviations *)
 
 fun read_abbr syn tsig spaces (t, vs, rhs_src) =
-  (t, vs, read_raw_typ syn tsig spaces (K None) rhs_src)
+  (t, vs, rd_raw_typ syn tsig spaces (K None) rhs_src)
     handle ERROR => error ("in type abbreviation " ^ t);
 
 fun ext_abbrs rd_abbr (syn, tsig, ctab, (path, spaces), data) abbrs =
@@ -707,7 +710,7 @@ fun err_dup_consts cs =
 
 
 fun read_const syn tsig (path, spaces) (c, ty_src, mx) =
-  (c, read_raw_typ syn tsig spaces (K None) ty_src, mx)
+  (c, rd_raw_typ syn tsig spaces (K None) ty_src, mx)
     handle ERROR => err_in_const (const_name path c mx);
 
 fun ext_cnsts rd_const syn_only prmode (syn, tsig, ctab, (path, spaces), data) raw_consts =
