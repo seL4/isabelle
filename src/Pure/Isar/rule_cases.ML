@@ -17,7 +17,8 @@ sig
   val add: thm -> thm * (string list * int)
   type T
   val empty: T
-  val make: bool -> term option -> Sign.sg * term -> string list -> (string * T) list
+  val hhf_nth_subgoal: Sign.sg -> int * term -> term
+  val make: int option -> term option -> Sign.sg * term -> string list -> (string * T) list
   val rename_params: string list list -> thm -> thm
   val params: string list list -> 'a attribute
 end;
@@ -96,24 +97,38 @@ val premsN = "prems";
 
 val empty = {fixes = [], assumes = [], binds = []};
 
-fun prep_case is_open split sg prop name i =
+fun nth_subgoal(i,prop) =
+  hd (#1 (Logic.strip_prems (i, [], Logic.skip_flexpairs prop)));
+
+fun hhf_nth_subgoal sg = Drule.norm_hhf sg o nth_subgoal
+  
+(* open_params = None
+   ==> all parameters are "open", ie their default names are used.
+   open_params = Some k
+   ==> only the last k parameters, the ones coming from the original
+   goal, not from the induction rule, are "open"
+*)
+fun prep_case open_params split sg prop name i =
   let
-    val Bi = Drule.norm_hhf sg (hd (#1 (Logic.strip_prems (i, [], Logic.skip_flexpairs prop))));
-    val xs = map (if is_open then I else apfst Syntax.internal) (Logic.strip_params Bi);
+    val Bi = hhf_nth_subgoal sg (i,prop);
+    val all_xs = Logic.strip_params Bi
+    val n = length all_xs - (if_none open_params 0)
+    val ind_xs = take(n,all_xs) and goal_xs = drop(n,all_xs)
+    val rename = if is_none open_params then I else apfst Syntax.internal
+    val xs = map rename ind_xs @ goal_xs
     val asms = map (curry Term.list_abs xs) (Logic.strip_assums_hyp Bi);
     val named_asms =
       (case split of None => [("", asms)]
       | Some t =>
-          let val h = length (Logic.strip_assums_hyp
-            (hd (#1 (Logic.strip_prems (i, [], Logic.skip_flexpairs t)))))
+          let val h = length (Logic.strip_assums_hyp(nth_subgoal(i,t)))
           in [(hypsN, Library.take (h, asms)), (premsN, Library.drop (h, asms))] end);
     val concl = Term.list_abs (xs, Logic.strip_assums_concl Bi);
     val bind = ((case_conclN, 0), Some (ObjectLogic.drop_judgment sg concl));
   in (name, {fixes = xs, assumes = named_asms, binds = [bind]}) end;
 
-fun make is_open split (sg, prop) names =
+fun make open_params split (sg, prop) names =
   let val nprems = Logic.count_prems (Logic.skip_flexpairs prop, 0) in
-    foldr (fn (name, (cases, i)) => (prep_case is_open split sg prop name i :: cases, i - 1))
+    foldr (fn (name, (cases, i)) => (prep_case open_params split sg prop name i :: cases, i - 1))
       (Library.drop (length names - nprems, names), ([], length names)) |> #1
   end;
 

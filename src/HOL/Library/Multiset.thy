@@ -691,7 +691,7 @@ theorem mult_less_not_refl: "\<not> M < (M::'a::order multiset)"
 
 lemma mult_less_irrefl [elim!]: "M < (M::'a::order multiset) ==> R"
   apply (insert mult_less_not_refl)
-  apply blast
+  apply fast
   done
 
 

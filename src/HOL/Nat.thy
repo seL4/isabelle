@@ -448,7 +448,6 @@ lemma le_trans: "[| i <= j; j <= k |] ==> i <= (k::nat)"
   by (blast dest!: le_imp_less_or_eq intro: less_or_eq_imp_le less_trans)
 
 lemma le_anti_sym: "[| m <= n; n <= m |] ==> m = (n::nat)"
-  -- {* @{text order_less_irrefl} could make this proof fail *}
   by (blast dest!: le_imp_less_or_eq elim!: less_irrefl elim: less_asym)
 
 lemma Suc_le_mono [iff]: "(Suc n <= Suc m) = (n <= m)"

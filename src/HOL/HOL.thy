@@ -857,8 +857,6 @@ lemma min_less_iff_disj: "!!z::'a::linorder. (min x y < z) = (x < z | y < z)"
   apply (blast intro: order_less_trans)
   done
 
-declare order_less_irrefl [iff]
-
 lemma max_assoc: "!!x::'a::linorder. max (max x y) z = max x (max y z)"
 apply(simp add:max_def)
 apply(rule conjI)
@@ -896,9 +894,6 @@ done
 
 lemmas min_ac = min_assoc min_commute
                 mk_left_commute[of min,OF min_assoc min_commute]
-
-declare order_less_irrefl [iff del]
-declare order_less_irrefl [simp]
 
 lemma split_min:
     "P (min (i::'a::linorder) j) = ((i <= j --> P(i)) & (~ i <= j --> P(j)))"

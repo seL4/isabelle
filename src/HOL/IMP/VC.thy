@@ -110,28 +110,44 @@ prefer 2 apply assumption
 apply (fast elim: awp_mono)
 done
 
-lemma vc_complete: "|- {P}c{Q} ==>  
-   (? ac. astrip ac = c & (!s. vc ac Q s) & (!s. P s --> awp ac Q s))"
-apply (erule hoare.induct)
-     apply (rule_tac x = "Askip" in exI)
-     apply (simp (no_asm))
-    apply (rule_tac x = "Aass x a" in exI)
-    apply (simp (no_asm))
-   apply clarify
-   apply (rule_tac x = "Asemi ac aca" in exI)
-   apply (simp (no_asm_simp))
-   apply (fast elim!: awp_mono vc_mono)
-  apply clarify
-  apply (rule_tac x = "Aif b ac aca" in exI)
-  apply (simp (no_asm_simp))
- apply clarify
- apply (rule_tac x = "Awhile b P ac" in exI)
- apply (simp (no_asm_simp))
-apply safe
-apply (rule_tac x = "ac" in exI)
-apply (simp (no_asm_simp))
-apply (fast elim!: awp_mono vc_mono)
-done
+lemma vc_complete: assumes der: "|- {P}c{Q}"
+  shows "(? ac. astrip ac = c & (!s. vc ac Q s) & (!s. P s --> awp ac Q s))"
+  (is "? ac. ?Eq P c Q ac")
+using der
+proof induct
+  case skip
+  show ?case (is "? ac. ?C ac")
+  proof show "?C Askip" by simp qed
+next
+  case (ass P a x)
+  show ?case (is "? ac. ?C ac")
+  proof show "?C(Aass x a)" by simp qed
+next
+  case (semi P Q R c1 c2)
+  from semi.hyps obtain ac1 where ih1: "?Eq P c1 Q ac1" by fast
+  from semi.hyps obtain ac2 where ih2: "?Eq Q c2 R ac2" by fast
+  show ?case (is "? ac. ?C ac")
+  proof
+    show "?C(Asemi ac1 ac2)"
+      using ih1 ih2 by simp (fast elim!: awp_mono vc_mono)
+  qed
+next
+  case (If P Q b c1 c2)
+  from If.hyps obtain ac1 where ih1: "?Eq (%s. P s & b s) c1 Q ac1" by fast
+  from If.hyps obtain ac2 where ih2: "?Eq (%s. P s & ~b s) c2 Q ac2" by fast
+  show ?case (is "? ac. ?C ac")
+  proof
+    show "?C(Aif b ac1 ac2)"
+      using ih1 ih2 by simp
+  qed
+next
+  case (While P b c)
+  from While.hyps obtain ac where ih: "?Eq (%s. P s & b s) c P ac" by fast
+  show ?case (is "? ac. ?C ac")
+  proof show "?C(Awhile b P ac)" using ih by simp qed
+next
+  case conseq thus ?case by(fast elim!: awp_mono vc_mono)
+qed
 
 lemma vcawp_vc_awp: "!Q. vcawp c Q = (vc c Q, awp c Q)"
 apply (induct_tac "c")

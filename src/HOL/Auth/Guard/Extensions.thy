@@ -424,7 +424,7 @@ by (induct evs, auto split: event.split simp: knows.simps)
 subsubsection{*monotonicity of knows*}
 
 lemma knows_sub_Cons: "knows A evs <= knows A (ev#evs)"
-by (cases A, (induct evs, (induct ev, auto simp: knows.simps)+))
+by(cases A, induct evs, auto simp: knows.simps split:event.split)
 
 lemma knows_ConsI: "X:knows A evs ==> X:knows A (ev#evs)"
 by (auto dest: knows_sub_Cons [THEN subsetD])

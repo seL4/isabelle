@@ -4,7 +4,11 @@
     Description : Explicit construction of hypernaturals using 
                   ultrafilters
 *) 
-       
+
+(* blast confuses different versions of < *)
+DelIffs [order_less_irrefl];
+Addsimps [order_less_irrefl];
+
 (*------------------------------------------------------------------------
                        Properties of hypnatrel
  ------------------------------------------------------------------------*)

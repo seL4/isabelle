@@ -36,8 +36,7 @@ Goalw [lessThan_def, atLeast_def]
     "!!k:: 'a::linorder. -lessThan k = atLeast k";
 by Auto_tac;
 by (blast_tac (claset() addIs [linorder_not_less RS iffD1]) 1);
-by (blast_tac (claset() addIs [order_le_less_trans RS 
-	                       (order_less_irrefl RS notE)]) 1);
+by (blast_tac (claset() addDs [order_le_less_trans]) 1);
 qed "Compl_lessThan";
 
 Goal "!!k:: 'a::order. {k} - lessThan k = {k}";
@@ -69,8 +68,7 @@ Goalw [greaterThan_def, atMost_def, le_def]
     "!!k:: 'a::linorder. -greaterThan k = atMost k";
 by Auto_tac;
 by (blast_tac (claset() addIs [linorder_not_less RS iffD1]) 1);
-by (blast_tac (claset() addIs [order_le_less_trans RS 
-	                       (order_less_irrefl RS notE)]) 1);
+by (blast_tac (claset() addDs [order_le_less_trans]) 1);
 qed "Compl_greaterThan";
 
 Goal "!!k:: 'a::linorder. -atMost k = greaterThan k";
@@ -105,8 +103,7 @@ Goalw [lessThan_def, atLeast_def, le_def]
     "!!k:: 'a::linorder. -atLeast k = lessThan k";
 by Auto_tac;
 by (blast_tac (claset() addIs [linorder_not_less RS iffD1]) 1);
-by (blast_tac (claset() addIs [order_le_less_trans RS 
-	                       (order_less_irrefl RS notE)]) 1);
+by (blast_tac (claset() addDs [order_le_less_trans]) 1);
 qed "Compl_atLeast";
 
 Addsimps [Compl_lessThan, Compl_atLeast];
