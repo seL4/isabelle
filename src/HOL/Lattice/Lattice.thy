@@ -150,7 +150,7 @@ qed
 subsection {* Algebraic properties \label{sec:lattice-algebra} *}
 
 text {*
-  The @{text \<sqinter>} and @{text \<squnion>} operations have to following
+  The @{text \<sqinter>} and @{text \<squnion>} operations have the following
   characteristic algebraic properties: associative (A), commutative
   (C), and absorptive (AB).
 *}
@@ -332,7 +332,7 @@ subsection {* Example instances *}
 subsubsection {* Linear orders *}
 
 text {*
-  Linear orders with @{term minimum} and @{term minimum} operations
+  Linear orders with @{term minimum} and @{term maximum} operations
   are a (degenerate) example of lattice structures.
 *}
 
