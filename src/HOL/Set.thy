@@ -138,7 +138,6 @@ translations
   "op \<subseteq>" => "op <= :: _ set => _ set => bool"
   "op \<subset>" => "op <  :: _ set => _ set => bool"
 
-
 typed_print_translation {*
   let
     fun le_tr' _ (Type ("fun", (Type ("set", _) :: _))) ts =
@@ -150,6 +149,73 @@ typed_print_translation {*
       | less_tr' _ _ _ = raise Match;
   in [("op <=", le_tr'), ("op <", less_tr')] end
 *}
+
+
+subsubsection "Bounded quantifiers"
+
+syntax
+  "_setlessAll" :: "[idt, 'a, bool] => bool"  ("(3ALL _<_./ _)"  [0, 0, 10] 10)
+  "_setlessEx"  :: "[idt, 'a, bool] => bool"  ("(3EX _<_./ _)"  [0, 0, 10] 10)
+  "_setleAll"   :: "[idt, 'a, bool] => bool"  ("(3ALL _<=_./ _)" [0, 0, 10] 10)
+  "_setleEx"    :: "[idt, 'a, bool] => bool"  ("(3EX _<=_./ _)" [0, 0, 10] 10)
+
+syntax (xsymbols)
+  "_setlessAll" :: "[idt, 'a, bool] => bool"   ("(3\<forall>_\<subset>_./ _)"  [0, 0, 10] 10)
+  "_setlessEx"  :: "[idt, 'a, bool] => bool"   ("(3\<exists>_\<subset>_./ _)"  [0, 0, 10] 10)
+  "_setleAll"   :: "[idt, 'a, bool] => bool"   ("(3\<forall>_\<subseteq>_./ _)" [0, 0, 10] 10)
+  "_setleEx"    :: "[idt, 'a, bool] => bool"   ("(3\<exists>_\<subseteq>_./ _)" [0, 0, 10] 10)
+
+syntax (HOL)
+  "_setlessAll" :: "[idt, 'a, bool] => bool"   ("(3! _<_./ _)"  [0, 0, 10] 10)
+  "_setlessEx"  :: "[idt, 'a, bool] => bool"   ("(3? _<_./ _)"  [0, 0, 10] 10)
+  "_setleAll"   :: "[idt, 'a, bool] => bool"   ("(3! _<=_./ _)" [0, 0, 10] 10)
+  "_setleEx"    :: "[idt, 'a, bool] => bool"   ("(3? _<=_./ _)" [0, 0, 10] 10)
+
+syntax (HTML output)
+  "_setlessAll" :: "[idt, 'a, bool] => bool"   ("(3\<forall>_\<subset>_./ _)"  [0, 0, 10] 10)
+  "_setlessEx"  :: "[idt, 'a, bool] => bool"   ("(3\<exists>_\<subset>_./ _)"  [0, 0, 10] 10)
+  "_setleAll"   :: "[idt, 'a, bool] => bool"   ("(3\<forall>_\<subseteq>_./ _)" [0, 0, 10] 10)
+  "_setleEx"    :: "[idt, 'a, bool] => bool"   ("(3\<exists>_\<subseteq>_./ _)" [0, 0, 10] 10)
+
+translations
+ "\<forall>A\<subset>B. P"   =>  "ALL A. A \<subset> B --> P"
+ "\<exists>A\<subset>B. P"    =>  "EX A. A \<subset> B & P"
+ "\<forall>A\<subseteq>B. P"  =>  "ALL A. A \<subseteq> B --> P"
+ "\<exists>A\<subseteq>B. P"   =>  "EX A. A \<subseteq> B & P"
+
+print_translation {*
+let
+  fun
+    all_tr' [Const ("_bound",_) $ Free (v,Type(T,_)), 
+             Const("op -->",_) $ (Const ("op <",_) $ (Const ("_bound",_) $ Free (v',_)) $ n ) $ P] = 
+  (if v=v' andalso T="set"
+   then Syntax.const "_setlessAll" $ Syntax.mark_bound v' $ n $ P
+   else raise Match)
+
+  | all_tr' [Const ("_bound",_) $ Free (v,Type(T,_)), 
+             Const("op -->",_) $ (Const ("op <=",_) $ (Const ("_bound",_) $ Free (v',_)) $ n ) $ P] = 
+  (if v=v' andalso T="set"
+   then Syntax.const "_setleAll" $ Syntax.mark_bound v' $ n $ P
+   else raise Match);
+
+  fun
+    ex_tr' [Const ("_bound",_) $ Free (v,Type(T,_)), 
+            Const("op &",_) $ (Const ("op <",_) $ (Const ("_bound",_) $ Free (v',_)) $ n ) $ P] = 
+  (if v=v' andalso T="set"
+   then Syntax.const "_setlessEx" $ Syntax.mark_bound v' $ n $ P
+   else raise Match)
+
+  | ex_tr' [Const ("_bound",_) $ Free (v,Type(T,_)), 
+            Const("op &",_) $ (Const ("op <=",_) $ (Const ("_bound",_) $ Free (v',_)) $ n ) $ P] = 
+  (if v=v' andalso T="set"
+   then Syntax.const "_setleEx" $ Syntax.mark_bound v' $ n $ P
+   else raise Match)
+in
+[("ALL ", all_tr'), ("EX ", ex_tr')]
+end
+*}
+
+
 
 text {*
   \medskip Translate between @{text "{e | x1...xn. P}"} and @{text
