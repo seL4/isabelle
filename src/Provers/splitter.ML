@@ -206,15 +206,15 @@ fun split_posns cmap sg Ts t =
             fun iter((i, a), t) = (i+1, (posns Ts (i::pos) apsns t) @ a);
             val a = case h of
               Const(c, cT) =>
-                (case assoc(cmap, c) of
-                   Some(gcT, thm, T, n) =>
-                     if Type.typ_instance(Sign.tsig_of sg, cT, gcT)
-                     then
-                       let val t2 = list_comb (h, take (n, ts))
-                       in mk_split_pack (thm, T, T', n, ts, apsns, pos, type_of1 (Ts, t2), t2)
-                       end
-                     else []
-                 | None => [])
+                let fun find [] = []
+                      | find ((gcT, thm, T, n)::tups) =
+                          if Type.typ_instance(Sign.tsig_of sg, cT, gcT)
+                          then
+                            let val t2 = list_comb (h, take (n, ts))
+                            in mk_split_pack(thm,T,T',n,ts,apsns,pos,type_of1(Ts,t2),t2)
+                            end
+                          else find tups
+                in find (assocs cmap c) end
             | _ => []
           in snd(foldl iter ((0, a), ts)) end
   in posns Ts [] [] t end;
@@ -301,13 +301,17 @@ fun inst_split Ts t tt thm TB state i =
 fun split_tac [] i = no_tac
   | split_tac splits i =
   let val splits = map Data.mk_eq splits;
-      fun const(thm) =
+      fun add_thm(cmap,thm) =
             (case concl_of thm of _$(t as _$lhs)$_ =>
                (case strip_comb lhs of (Const(a,aT),args) =>
-                  (a,(aT,thm,fastype_of t,length args))
+                  let val info = (aT,thm,fastype_of t,length args)
+                  in case assoc(cmap,a) of
+                       Some infos => overwrite(cmap,(a,info::infos))
+                     | None => (a,[info])::cmap
+                  end
                 | _ => split_format_err())
              | _ => split_format_err())
-      val cmap = map const splits;
+      val cmap = foldl add_thm ([],splits);
       fun lift_tac Ts t p st = rtac (inst_lift Ts t p st i) i st
       fun lift_split_tac state =
             let val (Ts, t, splits) = select cmap state i
