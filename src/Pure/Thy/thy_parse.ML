@@ -430,12 +430,12 @@ val header = ident --$$ "=" -- enum1 "+" base >> mk_header;
 
 (* extension *)
 
-fun mk_extension (txts, mltxt) =
+fun mk_extension ((has_begin, txts), mltxt) =
   let
     val cat_sects = space_implode "\n\n" o filter_out (equal "");
     val (extxts, postxts) = split_list txts;
   in
-    (cat_sects extxts, cat_sects postxts, mltxt)
+    (has_begin, cat_sects extxts, cat_sects postxts, mltxt)
   end;
 
 fun sect tab ((Keyword, s, n) :: toks) =
@@ -445,19 +445,20 @@ fun sect tab ((Keyword, s, n) :: toks) =
   | sect _ ((_, s, n) :: _) = syn_err "section" s n
   | sect _ [] = eof_err ();
 
-fun extension sectab = "+" $$-- !! (repeat (sect sectab) --$$ "end") --
-  optional ("ML" $$-- verbatim) "" >> mk_extension;
+fun extension sectab = "+" $$-- !!
+  (optional ($$ "begin" >> K true) false -- (repeat (sect sectab) --$$ "end") --
+    optional ("ML" $$-- verbatim) "") >> mk_extension;
 
 
 (* theory definition *)
 
-fun mk_structure tname (((thy_name, old_thys), has_begin), opt_txts) =
+fun mk_structure tname ((thy_name, old_thys), opt_ext) =
   if thy_name <> tname then
     error ("Filename \"" ^ tname ^ ".thy\" and theory name "
       ^ quote thy_name ^ " are different")
   else
-    (case opt_txts of
-      Some (extxt, postxt, mltxt) =>
+    (case opt_ext of
+      Some (has_begin, extxt, postxt, mltxt) =>
         "val thy = " ^ old_thys ^ " true;\n\n\
         \structure " ^ thy_name ^ " =\n\
         \struct\n\
@@ -470,7 +471,7 @@ fun mk_structure tname (((thy_name, old_thys), has_begin), opt_txts) =
         \\n\
         \val thy = thy\n\
         \\n" ^
-        (if has_begin then "Theory.add_path " ^ quote tname else "") ^
+        (if has_begin then "|> Theory.add_path " ^ quote tname ^ "\n" else "") ^
         "\n\
         \|> Theory.add_trfuns\n"
         ^ trfun_args ^ "\n\
@@ -509,8 +510,7 @@ fun mk_structure tname (((thy_name, old_thys), has_begin), opt_txts) =
 
 
 fun theory_defn sectab tname =
-  header -- optional ($$ "begin" >> K true) false --
-    optional (extension sectab >> Some) None -- eof
+  header -- optional (extension sectab >> Some) None -- eof
   >> (mk_structure tname o #1);
 
 fun parse_thy (lex, sectab) tname str =
