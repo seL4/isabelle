@@ -176,6 +176,10 @@ by (Blast_tac 1);
 qed "Int_UNIV_right";
 Addsimps[Int_UNIV_right];
 
+goal thy "A Int B = Inter{A,B}";
+by (Blast_tac 1);
+qed "Int_eq_Inter";
+
 goal thy "A Int (B Un C)  =  (A Int B) Un (A Int C)";
 by (Blast_tac 1);
 qed "Int_Un_distrib";
@@ -238,6 +242,10 @@ goal thy "A Un UNIV = UNIV";
 by (Blast_tac 1);
 qed "Un_UNIV_right";
 Addsimps[Un_UNIV_right];
+
+goal thy "A Un B = Union{A,B}";
+by (Blast_tac 1);
+qed "Un_eq_Union";
 
 goal thy "(insert a B) Un C = insert a (B Un C)";
 by (Blast_tac 1);
@@ -405,10 +413,18 @@ by (Blast_tac 1);
 qed "UN_empty2";
 Addsimps[UN_empty2];
 
+goal thy "!!k. k:I ==> A k Un (UN i:I. A i) = (UN i:I. A i)";
+by (Blast_tac 1);
+qed "UN_absorb";
+
 goal thy "(INT x:{}. B x) = UNIV";
 by (Blast_tac 1);
 qed "INT_empty";
 Addsimps[INT_empty];
+
+goal thy "!!k. k:I ==> A k Int (INT i:I. A i) = (INT i:I. A i)";
+by (Blast_tac 1);
+qed "INT_absorb";
 
 goal thy "(UN x:insert a A. B x) = B a Un UNION A B";
 by (Blast_tac 1);
