@@ -16,11 +16,14 @@ open Primes;
 (** Greatest Common Divisor                    **)
 (************************************************)
 
-(* Euclid's Algorithm *)
+(*** Euclid's Algorithm ***)
 
+
+(** Prove the termination condition and remove it from the recursion equations
+    and induction rule **)
 
 Tfl.tgoalw thy [] gcd.rules;
-by (simp_tac (!simpset addsimps [mod_less_divisor,zero_less_eq]) 1);
+by (simp_tac (!simpset addsimps [mod_less_divisor, zero_less_eq]) 1);
 val tc = result();
 
 val gcd_eq = tc RS hd gcd.rules;

@@ -4,6 +4,11 @@
     Copyright   1996  University of Cambridge
 
 The Greatest Common Divisor and Euclid's algorithm
+
+The "simpset" clause in the recdef declaration is omitted on purpose:
+	in order to demonstrate the treatment of definitions that have
+	unproved termination conditions.  Restoring the clause lets
+	Isabelle prove those conditions.
 *)
 
 Primes = Divides + WF_Rel +
@@ -13,7 +18,8 @@ consts
   coprime :: [nat,nat]=>bool
   prime   :: nat set
   
-recdef gcd "measure ((%(x,y).y) ::nat*nat=>nat)"
+recdef gcd "measure ((%(m,n).n) ::nat*nat=>nat)"
+(*  simpset "!simpset addsimps [mod_less_divisor, zero_less_eq]" *)
     "gcd (m, n) = (if n=0 then m else gcd(n, m mod n))"
 
 defs
