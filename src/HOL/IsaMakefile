@@ -189,6 +189,7 @@ $(LOG)/HOL-UNITY.gz: $(OUT)/HOL UNITY/ROOT.ML\
   UNITY/Guar.ML UNITY/Guar.thy\
   UNITY/Deadlock.ML UNITY/Deadlock.thy UNITY/FP.ML UNITY/FP.thy\
   UNITY/Union.ML UNITY/Union.thy UNITY/Handshake.ML UNITY/Handshake.thy\
+  UNITY/TimerArray.ML UNITY/TimerArray.thy\
   UNITY/Extend.ML UNITY/Extend.thy\
   UNITY/Follows.ML UNITY/Follows.thy\
   UNITY/GenPrefix.thy UNITY/GenPrefix.ML \

@@ -27,6 +27,7 @@ time_use_thy "Comp";
 time_use_thy "Client";
 time_use_thy "Extend";
 time_use_thy "PPROD";
+time_use_thy "TimerArray";
 time_use_thy "Follows";
 
 add_path "../Auth";	(*to find Public.thy*)
