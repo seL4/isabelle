@@ -55,7 +55,7 @@ exception FAIL of string * string;
 fun fail name msg = raise FAIL (name, msg);
 
 fun warn_failed (name, msg) =
-  warning ("Invocation of " ^ quote name ^ " attribute failed: " ^ msg);
+  warning ("Failed invocation of " ^ quote name ^ " attribute: " ^ msg);
 
 fun apply (x, []) = x
   | apply (x, f :: fs) = apply (f x handle FAIL info => (warn_failed info; x), fs);
@@ -140,7 +140,7 @@ fun attrs which thy (raw_name, args) =
     val name = NameSpace.intern space raw_name;
   in
     (case Symtab.lookup (attrs, name) of
-      None => error ("Unknown attribute: " ^ quote name)
+      None => raise FAIL (name, "unknown attribute")
     | Some p => which p args)
   end;
 
