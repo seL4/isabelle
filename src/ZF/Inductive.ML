@@ -29,12 +29,12 @@ structure Standard_Prod =
   val sigma	= Const("Sigma", [iT, iT-->iT]--->iT)
   val pair	= Const("Pair", [iT,iT]--->iT)
   val split_const	= Const("split", [[iT,iT]--->iT, iT]--->iT)
-  val fsplit_const	= Const("fsplit", [[iT,iT]--->oT, iT]--->oT)
+  val fsplit_const	= Const("split", [[iT,iT]--->oT, iT]--->oT)
   val pair_iff	= Pair_iff
   val split_eq	= split
-  val fsplitI	= fsplitI
-  val fsplitD	= fsplitD
-  val fsplitE	= fsplitE
+  val fsplitI	= splitI
+  val fsplitD	= splitD
+  val fsplitE	= splitE
   end;
 
 structure Standard_Sum =
@@ -88,12 +88,12 @@ structure Quine_Prod =
   val sigma	= Const("QSigma", [iT, iT-->iT]--->iT)
   val pair	= Const("QPair", [iT,iT]--->iT)
   val split_const	= Const("qsplit", [[iT,iT]--->iT, iT]--->iT)
-  val fsplit_const	= Const("qfsplit", [[iT,iT]--->oT, iT]--->oT)
+  val fsplit_const	= Const("qsplit", [[iT,iT]--->oT, iT]--->oT)
   val pair_iff	= QPair_iff
   val split_eq	= qsplit
-  val fsplitI	= qfsplitI
-  val fsplitD	= qfsplitD
-  val fsplitE	= qfsplitE
+  val fsplitI	= qsplitI
+  val fsplitD	= qsplitD
+  val fsplitE	= qsplitE
   end;
 
 structure Quine_Sum =
