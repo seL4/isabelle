@@ -71,6 +71,16 @@ New in this Isabelle release
   the old record representation. The type generated for a record is
   called <record_name>_ext_type.
 
+* HOL: symbolic syntax of Hilbert Choice Operator is now as follows:
+
+  syntax (epsilon)
+    "_Eps" :: "[pttrn, bool] => 'a"    ("(3\<some>_./ _)" [0, 10] 10)
+
+  The symbol \<some> is displayed as the alternative epsilon of LaTeX
+  and x-symbol; use option '-m epsilon' to get it actually printed.
+  Moreover, the mathematically important symbolic identifier
+  \<epsilon> becomes available as variable, constant etc.
+
 * Simplifier: "record_upd_simproc" for simplification of multiple
   record updates enabled by default.  INCOMPATIBILITY: old proofs
   break occasionally, since simplification is more powerful by
