@@ -1,6 +1,5 @@
 use_thy "Tree";
 use_thy "Tree2";
-use_thy "cases";
 use_thy "case_exprs";
 use_thy "fakenat";
 use_thy "natsum";

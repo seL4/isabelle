@@ -97,7 +97,7 @@ $(LOG)/HOL-Recdef.gz: $(OUT)/HOL Recdef/examples.thy Recdef/termination.thy \
 
 HOL-Misc: HOL $(LOG)/HOL-Misc.gz
 
-$(LOG)/HOL-Misc.gz: $(OUT)/HOL Misc/ROOT.ML Misc/Tree.thy Misc/Tree2.thy Misc/cases.thy \
+$(LOG)/HOL-Misc.gz: $(OUT)/HOL Misc/ROOT.ML Misc/Tree.thy Misc/Tree2.thy \
   Misc/fakenat.thy Misc/natsum.thy Misc/pairs.thy Misc/types.thy \
   Misc/prime_def.thy Misc/case_exprs.thy \
   Misc/arith1.thy Misc/arith2.thy Misc/arith3.thy Misc/arith4.thy \
