@@ -1195,6 +1195,9 @@ apply (induct "n")
 apply (auto simp add: zero_le_mult_iff)
 done
 
+theorem zpower_int: "(int m)^n = int (m^n)"
+  by (induct n) (simp_all add: zmult_int)
+
 lemma zdiv_int: "int (a div b) = (int a) div (int b)"
 apply (subst split_div, auto)
 apply (subst split_zdiv, auto)
@@ -1317,6 +1320,7 @@ val zpower_zadd_distrib = thm "zpower_zadd_distrib";
 val zpower_zpower = thm "zpower_zpower";
 val zero_less_zpower_abs_iff = thm "zero_less_zpower_abs_iff";
 val zero_le_zpower_abs = thm "zero_le_zpower_abs";
+val zpower_int = thm "zpower_int";
 *}
 
 end
