@@ -384,7 +384,7 @@ AddIffs [Nil_is_rev_conv];
 
 val prems = Goal "[| P []; !!x xs. P xs ==> P(xs@[x]) |] ==> P xs";
 by (stac (rev_rev_ident RS sym) 1);
-br(read_instantiate [("P","%xs. ?P(rev xs)")]list.induct)1;
+by (res_inst_tac [("list", "rev xs")] list.induct 1);
 by (ALLGOALS Simp_tac);
 by (resolve_tac prems 1);
 by (eresolve_tac prems 1);
@@ -571,7 +571,7 @@ qed "rev_concat";
 section "nth";
 
 Goal "(x#xs)!n = (case n of 0 => x | Suc m => xs!m)";
-by(simp_tac (simpset() addsplits [nat.split]) 1);
+by (simp_tac (simpset() addsplits [nat.split]) 1);
 qed "nth_Cons";
 
 Goal "!xs. (xs@ys)!n = (if n < length xs then xs!n else ys!(n - length xs))";
@@ -630,9 +630,9 @@ qed_spec_mp "length_list_update";
 Addsimps [length_list_update];
 
 Goal "!i j. i < length xs  --> (xs[i:=x])!j = (if i=j then x else xs!j)";
-by(induct_tac "xs" 1);
- by(Simp_tac 1);
-by(auto_tac (claset(), simpset() addsimps [nth_Cons] addsplits [nat.split]));
+by (induct_tac "xs" 1);
+ by (Simp_tac 1);
+by (auto_tac (claset(), simpset() addsimps [nth_Cons] addsplits [nat.split]));
 qed_spec_mp "nth_list_update";
 
 
@@ -874,13 +874,13 @@ AddIffs [sum_eq_0_conv];
 
 (* Does not terminate! *)
 Goal "[i..j(] = (if i<j then i#[Suc i..j(] else [])";
-by(induct_tac "j" 1);
+by (induct_tac "j" 1);
 by Auto_tac;
 qed "upt_rec";
 
 Goal "j<=i ==> [i..j(] = []";
-by(stac upt_rec 1);
-by(Asm_simp_tac 1);
+by (stac upt_rec 1);
+by (Asm_simp_tac 1);
 qed "upt_conv_Nil";
 Addsimps [upt_conv_Nil];
 
@@ -889,27 +889,27 @@ by (Asm_simp_tac 1);
 qed "upt_Suc";
 
 Goal "i<j ==> [i..j(] = i#[Suc i..j(]";
-br trans 1;
-by(stac upt_rec 1);
-br refl 2;
+by (rtac trans 1);
+by (stac upt_rec 1);
+by (rtac refl 2);
 by (Asm_simp_tac 1);
 qed "upt_conv_Cons";
 
 Goal "length [i..j(] = j-i";
-by(induct_tac "j" 1);
+by (induct_tac "j" 1);
  by (Simp_tac 1);
-by(asm_simp_tac (simpset() addsimps [Suc_diff_le]) 1);
+by (asm_simp_tac (simpset() addsimps [Suc_diff_le]) 1);
 qed "length_upt";
 Addsimps [length_upt];
 
 Goal "i+k < j --> [i..j(] ! k = i+k";
-by(induct_tac "j" 1);
- by(Simp_tac 1);
-by(asm_simp_tac (simpset() addsimps [nth_append,less_diff_conv]@add_ac) 1);
-by(Clarify_tac 1);
-by(subgoal_tac "n=i+k" 1);
- by(Asm_simp_tac 2);
-by(Asm_simp_tac 1);
+by (induct_tac "j" 1);
+ by (Simp_tac 1);
+by (asm_simp_tac (simpset() addsimps [nth_append,less_diff_conv]@add_ac) 1);
+by (Clarify_tac 1);
+by (subgoal_tac "n=i+k" 1);
+ by (Asm_simp_tac 2);
+by (Asm_simp_tac 1);
 qed_spec_mp "nth_upt";
 Addsimps [nth_upt];
 

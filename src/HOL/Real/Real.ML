@@ -243,8 +243,8 @@ by (Full_simp_tac 1);
 qed "real_less_add_left_cancel";
 
 Goal "[| 0r < x; 0r < y |] ==> 0r < x + y";
-be real_less_trans 1;
-bd real_add_less_mono2 1;
+by (etac real_less_trans 1);
+by (dtac real_add_less_mono2 1);
 by (Full_simp_tac 1);
 qed "real_add_order";
 
@@ -255,9 +255,9 @@ by (auto_tac (claset() addIs [real_add_order, real_less_imp_le],
 qed "real_le_add_order";
 
 Goal "[| R1 < S1; R2 < S2 |] ==> R1 + R2 < S1 + (S2::real)";
-bd real_add_less_mono1 1;
-be real_less_trans 1;
-be real_add_less_mono2 1;
+by (dtac real_add_less_mono1 1);
+by (etac real_less_trans 1);
+by (etac real_add_less_mono2 1);
 qed "real_add_less_mono";
 
 Goal "!!(q1::real). q1 <= q2  ==> x + q1 <= x + q2";
@@ -265,8 +265,8 @@ by (Simp_tac 1);
 qed "real_add_left_le_mono1";
 
 Goal "[|i<=j;  k<=l |] ==> i + k <= j + (l::real)";
-bd real_add_le_mono1 1;
-be real_le_trans 1;
+by (dtac real_add_le_mono1 1);
+by (etac real_le_trans 1);
 by (Simp_tac 1);
 qed "real_add_le_mono";
 

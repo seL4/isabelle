@@ -112,7 +112,7 @@ bind_thm ("finite_Diff", Diff_subset RS finite_subset);
 Addsimps [finite_Diff];
 
 Goal "finite(A - insert a B) = finite(A-B)";
-by(stac Diff_insert 1);
+by (stac Diff_insert 1);
 by (case_tac "a : A-B" 1);
 by (rtac (finite_insert RS sym RS trans) 1);
 by (stac insert_Diff 1);
@@ -331,38 +331,38 @@ val cardR_insertE = cardR.mk_cases "(insert a A,n) : cardR";
 AddSIs cardR.intrs;
 
 Goal "[| (A,n) : cardR |] ==> a : A --> (? m. n = Suc m)";
-be cardR.induct 1;
- by(Blast_tac 1);
-by(Blast_tac 1);
+by (etac cardR.induct 1);
+ by (Blast_tac 1);
+by (Blast_tac 1);
 qed "cardR_SucD";
 
 Goal "(A,m): cardR ==> (!n a. m = Suc n --> a:A --> (A-{a},n) : cardR)";
-be cardR.induct 1;
- by(Auto_tac);
-by(asm_simp_tac (simpset() addsimps [insert_Diff_if]) 1);
-by(Auto_tac);
-by(forward_tac [cardR_SucD] 1);
-by(Blast_tac 1);
+by (etac cardR.induct 1);
+ by (Auto_tac);
+by (asm_simp_tac (simpset() addsimps [insert_Diff_if]) 1);
+by (Auto_tac);
+by (forward_tac [cardR_SucD] 1);
+by (Blast_tac 1);
 val lemma = result();
 
 Goal "[| (insert a A, Suc m) : cardR; a ~: A |] ==> (A,m) : cardR";
-bd lemma 1;
-by(Asm_full_simp_tac 1);
+by (dtac lemma 1);
+by (Asm_full_simp_tac 1);
 val lemma = result();
 
 Goal "(A,m): cardR ==> (!n. (A,n) : cardR --> n=m)";
-be cardR.induct 1;
- by(safe_tac (claset() addSEs [cardR_insertE]));
-by(rename_tac "B b m" 1);
-by(case_tac "a = b" 1);
- by(subgoal_tac "A = B" 1);
-  by(blast_tac (claset() addEs [equalityE]) 2);
- by(Blast_tac 1);
-by(subgoal_tac "? C. A = insert b C & B = insert a C" 1);
- by(res_inst_tac [("x","A Int B")] exI 2);
- by(blast_tac (claset() addEs [equalityE]) 2);
-by(forw_inst_tac [("A","B")] cardR_SucD 1);
-by(blast_tac (claset() addDs [lemma]) 1);
+by (etac cardR.induct 1);
+ by (safe_tac (claset() addSEs [cardR_insertE]));
+by (rename_tac "B b m" 1);
+by (case_tac "a = b" 1);
+ by (subgoal_tac "A = B" 1);
+  by (blast_tac (claset() addEs [equalityE]) 2);
+ by (Blast_tac 1);
+by (subgoal_tac "? C. A = insert b C & B = insert a C" 1);
+ by (res_inst_tac [("x","A Int B")] exI 2);
+ by (blast_tac (claset() addEs [equalityE]) 2);
+by (forw_inst_tac [("A","B")] cardR_SucD 1);
+by (blast_tac (claset() addDs [lemma]) 1);
 qed_spec_mp "cardR_determ";
 
 Goal "(A,n) : cardR ==> finite(A)";
@@ -730,26 +730,26 @@ Delsimps [foldSet_imp_finite];
 (*** setsum ***)
 
 Goalw [setsum_def] "setsum f {} = 0";
-by(Simp_tac 1);
+by (Simp_tac 1);
 qed "setsum_empty";
 Addsimps [setsum_empty];
 
 Goalw [setsum_def]
  "[| finite F; a ~: F |] ==> setsum f (insert a F) = f(a) + setsum f F";
-by(asm_simp_tac (simpset() addsimps [export fold_insert]) 1);
+by (asm_simp_tac (simpset() addsimps [export fold_insert]) 1);
 qed "setsum_insert";
 Addsimps [setsum_insert];
 
 Goalw [setsum_def]
  "[| finite A; finite B; A Int B = {} |] ==> \
 \ setsum f (A Un B) = setsum f A + setsum f B";
-by(asm_simp_tac (simpset() addsimps [export fold_Un_disjoint2]) 1);
+by (asm_simp_tac (simpset() addsimps [export fold_Un_disjoint2]) 1);
 qed_spec_mp "setsum_disj_Un";
 
 Goal "[| finite F |] ==> \
 \     setsum f (F-{a}) = (if a:F then setsum f F - f a else setsum f F)";
-be finite_induct 1;
-by(auto_tac (claset(), simpset() addsimps [insert_Diff_if]));
-by(dres_inst_tac [("a","a")] mk_disjoint_insert 1);
-by(Auto_tac);
+by (etac finite_induct 1);
+by (auto_tac (claset(), simpset() addsimps [insert_Diff_if]));
+by (dres_inst_tac [("a","a")] mk_disjoint_insert 1);
+by (Auto_tac);
 qed_spec_mp "setsum_diff1";

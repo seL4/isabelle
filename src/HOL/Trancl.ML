@@ -312,7 +312,7 @@ val major::prems = Goal
 \     ==> P(a)";
 by (rtac ((major RS converseI RS trancl_converseI) RS trancl_induct) 1);
  by (resolve_tac prems 1);
- be converseD 1;
+ by (etac converseD 1);
 by (blast_tac (claset() addIs prems addSDs [trancl_converseD])1);
 qed "converse_trancl_induct";
 

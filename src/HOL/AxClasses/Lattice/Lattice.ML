@@ -2,7 +2,7 @@
 context HOL.thy;
 
 Goalw [Ex_def] "EX x. P x ==> P (@x. P x)";
-  ba 1;
+  by (assume_tac 1);
 qed "selectI1";
 
 context thy;

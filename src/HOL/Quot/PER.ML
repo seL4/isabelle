@@ -12,7 +12,7 @@ qed "inst_fun_per";
 
 (* Witness that quot is not empty *)
 Goal "?z:{s.? r.!y. y:s=y===r}";
-br CollectI 1;
+by (rtac CollectI 1);
 by (res_inst_tac [("x","x")] exI 1);
 by (rtac allI 1);
 by (rtac mem_Collect_eq 1);

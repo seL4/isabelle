@@ -66,8 +66,8 @@ Goalw [le_dual_def] "x [= (x::'a::quasi_order dual)";
 qed "le_dual_refl";
 
 Goalw [le_dual_def] "x [= y & y [= z --> x [= (z::'a::quasi_order dual)";
-  br impI 1;
-  br (le_trans RS mp) 1;
+  by (rtac impI 1);
+  by (rtac (le_trans RS mp) 1);
   by (Blast_tac 1);
 qed "le_dual_trans";
 

@@ -14,7 +14,7 @@ Goal "|- VARS m s. \
 \  INV {s=m*b} \  
 \  DO s := s+b; m := m+1 OD \
 \  {s = a*b}";
-by(hoare_tac (Asm_full_simp_tac) 1);
+by (hoare_tac (Asm_full_simp_tac) 1);
 qed "multiply_by_add";
 
 (*** Euclid's algorithm for GCD ***)
@@ -49,7 +49,7 @@ Goal "|- VARS a b c. \
 \     c := c*a; b := b-1 \
 \ OD \
 \ {c = A^B}";
-by(hoare_tac (Asm_full_simp_tac) 1);
+by (hoare_tac (Asm_full_simp_tac) 1);
 by (exhaust_tac "b" 1);
 by (hyp_subst_tac 1);
 by (asm_full_simp_tac (simpset() addsimps [mod_less]) 1);
@@ -116,7 +116,7 @@ Goal
 \ {(i < length A --> A!i = 0) & \
 \  (i = length A --> (!j. j < length A --> A!j ~= 0))}";
 by (hoare_tac Asm_full_simp_tac 1);
-by(blast_tac (claset() addSEs [less_SucE]) 1);
+by (blast_tac (claset() addSEs [less_SucE]) 1);
 qed "zero_search";
 
 (* 
@@ -146,30 +146,30 @@ Goal
 \  OD \
 \ {leq A u & (!k. u<k & k<l --> A!k = pivot) & geq A l}";
 (* expand and delete abbreviations first *)
-by(asm_simp_tac HOL_basic_ss 1);
-by(REPEAT(etac thin_rl 1));
+by (asm_simp_tac HOL_basic_ss 1);
+by (REPEAT(etac thin_rl 1));
 by (hoare_tac Asm_full_simp_tac 1);
-    by(asm_full_simp_tac (simpset() addsimps [neq_Nil_conv]) 1);
-    by(Clarify_tac 1);
-    by(asm_full_simp_tac (simpset() addsimps [nth_list_update]) 1);
-   by(blast_tac (claset() addSEs [less_SucE] addIs [Suc_leI]) 1);
-  br conjI 1;
-   by(Clarify_tac 1);
-   bd (pred_less_imp_le RS le_imp_less_Suc) 1;
-   by(blast_tac (claset() addSEs [less_SucE]) 1);
-  br less_imp_diff_less 1;
-  by(Blast_tac 1);
- by(Clarify_tac 1);
- by(asm_simp_tac (simpset() addsimps [nth_list_update]) 1);
- by(Clarify_tac 1);
- by(Simp_tac 1);
-by(Clarify_tac 1);
-by(Asm_simp_tac 1);
-br conjI 1;
- by(Clarify_tac 1);
- br order_antisym 1;
-  by(Asm_simp_tac 1);
- by(Asm_simp_tac 1);
-by(Clarify_tac 1);
-by(Asm_simp_tac 1);
+    by (asm_full_simp_tac (simpset() addsimps [neq_Nil_conv]) 1);
+    by (Clarify_tac 1);
+    by (asm_full_simp_tac (simpset() addsimps [nth_list_update]) 1);
+   by (blast_tac (claset() addSEs [less_SucE] addIs [Suc_leI]) 1);
+  by (rtac conjI 1);
+   by (Clarify_tac 1);
+   by (dtac (pred_less_imp_le RS le_imp_less_Suc) 1);
+   by (blast_tac (claset() addSEs [less_SucE]) 1);
+  by (rtac less_imp_diff_less 1);
+  by (Blast_tac 1);
+ by (Clarify_tac 1);
+ by (asm_simp_tac (simpset() addsimps [nth_list_update]) 1);
+ by (Clarify_tac 1);
+ by (Simp_tac 1);
+by (Clarify_tac 1);
+by (Asm_simp_tac 1);
+by (rtac conjI 1);
+ by (Clarify_tac 1);
+ by (rtac order_antisym 1);
+  by (Asm_simp_tac 1);
+ by (Asm_simp_tac 1);
+by (Clarify_tac 1);
+by (Asm_simp_tac 1);
 qed "Partition";

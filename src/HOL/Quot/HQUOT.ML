@@ -124,33 +124,33 @@ qed "per_class_all";
 
 (* theorems for any_in *)
 Goalw [any_in_def,peclass_def] "any_in<[(s::'a::er)]>===s";
-br selectI2 1;
-br refl 1;
+by (rtac selectI2 1);
+by (rtac refl 1);
 by (fold_goals_tac [peclass_def]);
-be er_class_eqE 1;
+by (etac er_class_eqE 1);
 qed "er_any_in_class";
 
 Goalw [any_in_def,peclass_def] "s:D==>any_in<[s]>===s";
-br selectI2 1;
-br refl 1;
+by (rtac selectI2 1);
+by (rtac refl 1);
 by (fold_goals_tac [peclass_def]);
-br per_sym 1;
-be per_class_eqE 1;
-be sym 1;
+by (rtac per_sym 1);
+by (etac per_class_eqE 1);
+by (etac sym 1);
 qed "per_any_in_class";
 
 Goal "<[any_in (s::'a::er quot)]> = s";
-br per_class_all 1;
-br allI 1;
-br (er_any_in_class RS per_class_eqI) 1;
+by (rtac per_class_all 1);
+by (rtac allI 1);
+by (rtac (er_any_in_class RS per_class_eqI) 1);
 qed "er_class_any_in";
 
 (* equivalent theorem for per would need !x.x:D *)
 Goal "!x::'a::per. x:D==><[any_in (q::'a::per quot)]> = q";
-br per_class_all 1;
-br allI 1;
-br (per_any_in_class RS per_class_eqI) 1;
-be spec 1;
+by (rtac per_class_all 1);
+by (rtac allI 1);
+by (rtac (per_any_in_class RS per_class_eqI) 1);
+by (etac spec 1);
 qed "per_class_any_in";
 
 (* is like theorem for class er *)

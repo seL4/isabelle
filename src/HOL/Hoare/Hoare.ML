@@ -9,43 +9,43 @@ Derivation of the proof rules and, most importantly, the VCG tactic.
 (*** The proof rules ***)
 
 Goalw [Valid_def] "p <= q ==> Valid p SKIP q";
-by(Auto_tac);
+by (Auto_tac);
 qed "SkipRule";
 
 Goalw [Valid_def] "p <= {s. (f s):q} ==> Valid p (Basic f) q";
-by(Auto_tac);
+by (Auto_tac);
 qed "BasicRule";
 
 Goalw [Valid_def] "[| Valid P c1 Q; Valid Q c2 R |] ==> Valid P (c1;c2) R";
-by(Asm_simp_tac 1);
-by(Blast_tac 1);
+by (Asm_simp_tac 1);
+by (Blast_tac 1);
 qed "SeqRule";
 
 Goalw [Valid_def]
  "[| p <= {s. (s:b --> s:w) & (s~:b --> s:w')}; \
 \    Valid w c1 q; Valid w' c2 q |] \
 \ ==> Valid p (IF b THEN c1 ELSE c2 FI) q";
-by(Asm_simp_tac 1);
-by(Blast_tac 1);
+by (Asm_simp_tac 1);
+by (Blast_tac 1);
 qed "CondRule";
 
 Goal "! s s'. Sem c s s' --> s : I Int b --> s' : I ==> \
 \     ! s s'. s : I --> iter n b (Sem c) s s' --> s' : I & s' ~: b";
-by(induct_tac "n" 1);
- by(Asm_simp_tac 1);
-by(Simp_tac 1);
-by(Blast_tac 1);
+by (induct_tac "n" 1);
+ by (Asm_simp_tac 1);
+by (Simp_tac 1);
+by (Blast_tac 1);
 val lemma = result() RS spec RS spec RS mp RS mp;
 
 Goalw [Valid_def]
  "[| p <= i; Valid (i Int b) c i; (i Int -b) <= q |] \
 \ ==> Valid p (WHILE b INV {i} DO c OD) q";
-by(Asm_simp_tac 1);
-by(Clarify_tac 1);
-bd lemma 1;
-ba 2;
-by(Blast_tac 1);
-by(Blast_tac 1);
+by (Asm_simp_tac 1);
+by (Clarify_tac 1);
+by (dtac lemma 1);
+by (assume_tac 2);
+by (Blast_tac 1);
+by (Blast_tac 1);
 qed "WhileRule";
 
 (*** The tactics ***)
