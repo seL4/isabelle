@@ -131,21 +131,21 @@ qed "eqTrueE";
 (** Universal quantifier **)
 section "!";
 
-val prems = Goalw [All_def] "(!!x::'a. P(x)) ==> ! x. P(x)";
+val prems = Goalw [All_def] "(!!x::'a. P(x)) ==> ALL x. P(x)";
 by (resolve_tac (prems RL [eqTrueI RS ext]) 1);
 qed "allI";
 
-Goalw [All_def] "! x::'a. P(x) ==> P(x)";
+Goalw [All_def] "ALL x::'a. P(x) ==> P(x)";
 by (rtac eqTrueE 1);
 by (etac fun_cong 1);
 qed "spec";
 
-val major::prems= goal (the_context ()) "[| ! x. P(x);  P(x) ==> R |] ==> R";
+val major::prems= goal (the_context ()) "[| ALL x. P(x);  P(x) ==> R |] ==> R";
 by (REPEAT (resolve_tac (prems @ [major RS spec]) 1)) ;
 qed "allE";
 
 val prems = goal (the_context ()) 
-    "[| ! x. P(x);  [| P(x); ! x. P(x) |] ==> R |] ==> R";
+    "[| ALL x. P(x);  [| P(x); ALL x. P(x) |] ==> R |] ==> R";
 by (REPEAT (resolve_tac (prems @ (prems RL [spec])) 1)) ;
 qed "all_dupE";
 
@@ -187,12 +187,8 @@ by (etac (mp RS FalseE) 1);
 by (assume_tac 1);
 qed "notE";
 
-bind_thm ("classical2", notE RS notI);
-
-Goal "[| P; ~P |] ==> R";
-by (etac notE 1);
-by (assume_tac 1);
-qed "rev_notE";
+(* Alternative ~ introduction rule: [| P ==> ~ Pa; P ==> Pa |] ==> ~ P *)
+bind_thm ("notI2", notE RS notI);
 
 
 (** Implication **)
@@ -217,19 +213,19 @@ by (rtac (minor RS contrapos) 1);
 by (etac major 1) ;
 qed "rev_contrapos";
 
-(* ~(?t = ?s) ==> ~(?s = ?t) *)
+(* t ~= s ==> s ~= t *)
 bind_thm("not_sym", sym COMP rev_contrapos);
 
 
 (** Existential quantifier **)
-section "?";
+section "EX ";
 
-Goalw [Ex_def] "P x ==> ? x::'a. P x";
+Goalw [Ex_def] "P x ==> EX x::'a. P x";
 by (etac selectI 1) ;
 qed "exI";
 
 val [major,minor] = 
-Goalw [Ex_def] "[| ? x::'a. P(x); !!x. P(x) ==> Q |] ==> Q";
+Goalw [Ex_def] "[| EX x::'a. P(x); !!x. P(x) ==> Q |] ==> Q";
 by (rtac (major RS minor) 1);
 qed "exE";
 
@@ -301,6 +297,13 @@ qed "classical";
 
 bind_thm ("ccontr", FalseE RS classical);
 
+(*notE with premises exchanged; it discharges ~R so that it can be used to
+  make elimination rules*)
+val [premp,premnot] = Goal "[| P; ~R ==> ~P |] ==> R";
+by (rtac ccontr 1);
+by (etac ([premnot,premp] MRS notE) 1);
+qed "rev_notE";
+
 (*Double negation law*)
 Goal "~~P ==> P";
 by (rtac classical 1);
@@ -323,26 +326,26 @@ by (rtac p1 1);
 qed "swap2";
 
 (** Unique existence **)
-section "?!";
+section "EX!";
 
-val prems = Goalw [Ex1_def] "[| P(a);  !!x. P(x) ==> x=a |] ==> ?! x. P(x)";
+val prems = Goalw [Ex1_def] "[| P(a);  !!x. P(x) ==> x=a |] ==> EX! x. P(x)";
 by (REPEAT (ares_tac (prems@[exI,conjI,allI,impI]) 1));
 qed "ex1I";
 
 (*Sometimes easier to use: the premises have no shared variables.  Safe!*)
 val [ex_prem,eq] = Goal
-    "[| ? x. P(x);  !!x y. [| P(x); P(y) |] ==> x=y |] ==> ?! x. P(x)";
+    "[| EX x. P(x);  !!x y. [| P(x); P(y) |] ==> x=y |] ==> EX! x. P(x)";
 by (rtac (ex_prem RS exE) 1);
 by (REPEAT (ares_tac [ex1I,eq] 1)) ;
 qed "ex_ex1I";
 
 val major::prems = Goalw [Ex1_def]
-    "[| ?! x. P(x);  !!x. [| P(x);  ! y. P(y) --> y=x |] ==> R |] ==> R";
+    "[| EX! x. P(x);  !!x. [| P(x);  ALL y. P(y) --> y=x |] ==> R |] ==> R";
 by (rtac (major RS exE) 1);
 by (REPEAT (etac conjE 1 ORELSE ares_tac prems 1));
 qed "ex1E";
 
-Goal "?! x. P x ==> ? x. P x";
+Goal "EX! x. P x ==> EX x. P x";
 by (etac ex1E 1);
 by (rtac exI 1);
 by (assume_tac 1);
@@ -361,7 +364,7 @@ by (resolve_tac prems 1) ;
 qed "selectI2";
 
 (*Easier to apply than selectI2 if witness ?a comes from an EX-formula*)
-val [major,minor] = Goal "[| ? a. P a;  !!x. P x ==> Q x |] ==> Q (Eps P)";
+val [major,minor] = Goal "[| EX a. P a;  !!x. P x ==> Q x |] ==> Q (Eps P)";
 by (rtac (major RS exE) 1);
 by (etac selectI2 1 THEN etac minor 1);
 qed "selectI2EX";
@@ -372,7 +375,7 @@ by (rtac selectI2 1);
 by (REPEAT (ares_tac prems 1)) ;
 qed "select_equality";
 
-Goalw [Ex1_def] "[| ?!x. P x; P a |] ==> (@x. P x) = a";
+Goalw [Ex1_def] "[| EX!x. P x; P a |] ==> (@x. P x) = a";
 by (rtac select_equality 1);
 by (atac 1);
 by (etac exE 1);
@@ -387,7 +390,7 @@ by (etac mp 1);
 by (atac 1);
 qed "select1_equality";
 
-Goal "P (@ x. P x) =  (? x. P x)";
+Goal "P (@ x. P x) =  (EX x. P x)";
 by (rtac iffI 1);
 by (etac exI 1);
 by (etac exE 1);
@@ -446,7 +449,7 @@ by (REPEAT (DEPTH_SOLVE_1
 	    (eresolve_tac ([asm_rl,impCE,notE]@prems) 1)));
 qed "iffCE";
 
-val prems = Goal "(! x. ~P(x) ==> P(a)) ==> ? x. P(x)";
+val prems = Goal "(ALL x. ~P(x) ==> P(a)) ==> EX x. P(x)";
 by (rtac ccontr 1);
 by (REPEAT (ares_tac (prems@[exI,allI,notI,notE]) 1))  ;
 qed "exCI";
@@ -500,7 +503,7 @@ end;
 
 fun strip_tac i = REPEAT(resolve_tac [impI,allI] i); 
 
-(** strip ! and --> from proved goal while preserving !-bound var names **)
+(** strip ALL and --> from proved goal while preserving ALL-bound var names **)
 
 (** THIS CODE IS A MESS!!! **)
 
