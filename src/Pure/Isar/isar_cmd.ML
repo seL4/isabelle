@@ -9,6 +9,7 @@ signature ISAR_CMD =
 sig
   val break: Toplevel.transition -> Toplevel.transition
   val exit: Toplevel.transition -> Toplevel.transition
+  val restart: Toplevel.transition -> Toplevel.transition
   val quit: Toplevel.transition -> Toplevel.transition
   val use: string -> Toplevel.transition -> Toplevel.transition
   val use_mltext_theory: string -> Toplevel.transition -> Toplevel.transition
@@ -44,6 +45,7 @@ val exit = Toplevel.keep (fn state =>
     writeln "Leaving the Isar loop.  Invoke 'main_loop();' to restart.";
     raise Toplevel.TERMINATE));
 
+val restart = Toplevel.imperative (fn () => raise Toplevel.RESTART);
 val quit = Toplevel.imperative quit;
 
 

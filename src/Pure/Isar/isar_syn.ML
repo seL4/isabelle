@@ -490,6 +490,10 @@ val exitP =
   OuterSyntax.parser true "exit" "exit Isar loop"
     (Scan.succeed IsarCmd.exit);
 
+val restartP =
+  OuterSyntax.parser true "restart" "restart Isar loop"
+    (Scan.succeed IsarCmd.restart);
+
 val breakP =
   OuterSyntax.parser true "break" "discontinue excursion (keep current state)"
     (Scan.succeed IsarCmd.break);
@@ -528,7 +532,7 @@ val parsers = [
   print_methodsP, print_theoremsP, print_bindsP, print_lthmsP,
   print_thmsP, print_propP, print_termP, print_typeP,
   (*system commands*)
-  cdP, pwdP, use_thyP, loadP, prP, commitP, quitP, exitP, breakP];
+  cdP, pwdP, use_thyP, loadP, prP, commitP, quitP, exitP, restartP, breakP];
 
 
 end;
