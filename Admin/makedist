@@ -133,6 +133,12 @@ mv index.html src
 mv Distribution/* .
 rmdir Distribution
 
+# build theory browser
+
+cd lib/browser
+make
+cd ../..
+
 if [ -n "$UNOFFICIAL" ]; then
   {
     echo
