@@ -526,9 +526,11 @@ fun norm_hhf th =
   (if Logic.is_norm_hhf (#prop (Thm.rep_thm th)) then th else rewrite_rule [Drule.norm_hhf_eq] th)
   |> Drule.gen_all;
 
-val norm_hhf_tac = SUBGOAL (fn (t, i) =>
-  if Logic.is_norm_hhf t then all_tac
-  else rewrite_goal_tac [Drule.norm_hhf_eq] i);
+val norm_hhf_tac =
+  rtac Drule.asm_rl  (*cheap approximation -- thanks to builtin Logic.flatten_params*)
+  THEN' SUBGOAL (fn (t, i) =>
+    if Logic.is_norm_hhf (Pattern.beta_eta_contract t) then all_tac
+    else rewrite_goal_tac [Drule.norm_hhf_eq] i);
 
 
 (*** for folding definitions, handling critical pairs ***)
