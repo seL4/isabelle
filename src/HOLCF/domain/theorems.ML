@@ -187,18 +187,22 @@ val exhaust= pg[](mk_trp(exh (foldr' mk_disj) Id mk_ex (foldr' mk_conj) (K %)))[
 end;
 
 local 
-  val when_app  = foldl (op `) (%%(dname^"_when"), map % (when_funs cons));
-  val when_appl = pg [ax_when_def] (mk_trp(when_app`%x_name===when_body cons 
-		(fn (_,n)=> %(nth_elem(n-1,when_funs cons)))`(dc_rep`%x_name)))[
+  fun bind_fun t = foldr mk_All ((if length cons = 1 then ["f"] 
+		  else mapn (fn n => K("f"^(string_of_int n))) 1 cons),t);
+  fun bound_fun i _ = Bound (length cons - i);
+  val when_app  = foldl (op `) (%%(dname^"_when"), mapn bound_fun 1 cons);
+  val when_appl = pg [ax_when_def] (bind_fun(mk_trp(when_app`%x_name ===
+	     when_body cons (fn (m,n)=> bound_fun (n-m) 0)`(dc_rep`%x_name))))[
 				simp_tac HOLCF_ss 1];
 in
-val when_strict = pg [] (mk_trp(strict when_app)) [
+val when_strict = pg [] (bind_fun(mk_trp(strict when_app))) [
 			simp_tac(HOLCF_ss addsimps [when_appl,rep_strict]) 1];
-val when_apps = let fun one_when n (con,args) = pg axs_con_def (lift_defined % 
-   (nonlazy args, mk_trp(when_app`(con_app con args) ===
-	 mk_cfapp(%(nth_elem(n,when_funs cons)),map %# args))))[
+val when_apps = let fun one_when n (con,args) = pg axs_con_def 
+		(bind_fun (lift_defined % (nonlazy args, 
+		mk_trp(when_app`(con_app con args) ===
+                       mk_cfapp(bound_fun n 0,map %# args)))))[
 		asm_simp_tac (HOLCF_ss addsimps [when_appl,ax_abs_iso]) 1];
-	in mapn one_when 0 cons end;
+	in mapn one_when 1 cons end;
 end;
 val when_rews = when_strict::when_apps;
 
