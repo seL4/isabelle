@@ -496,25 +496,6 @@ by (Simp_tac 1);
 qed "zle_int";
 Addsimps [zle_int];
 
-Goalw [zle_def] "~(w<z) ==> z<=(w::int)";
-by (assume_tac 1);
-qed "zleI";
-
-Goalw [zle_def] "z<=w ==> ~(w<(z::int))";
-by (assume_tac 1);
-qed "zleD";
-
-(*  [| z <= w;  ~ P ==> w < z |] ==> P  *)
-bind_thm ("zleE", zleD RS swap);
-
-Goalw [zle_def] "(~w<=z) = (z<(w::int))";
-by (Simp_tac 1);
-qed "not_zle_iff_zless";
-
-Goalw [zle_def] "~ z <= w ==> w<(z::int)";
-by (Fast_tac 1);
-qed "not_zleE";
-
 Goalw [zle_def] "z <= w ==> z < w | z=(w::int)";
 by (cut_facts_tac [zless_linear] 1);
 by (blast_tac (claset() addEs [zless_asym]) 1);
