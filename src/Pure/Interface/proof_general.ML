@@ -176,6 +176,7 @@ fun trace_action action name =
 
 in
   fun setup_thy_loader () = ThyInfo.add_hook trace_action;
+  fun sync_thy_loader () = seq (trace_action ThyInfo.Update) (ThyInfo.names ());
 end;
 
 
@@ -236,7 +237,7 @@ fun repeat_undo 0 = ()
   | repeat_undo n = (no_print_goals undo (); repeat_undo (n - 1));
 
 
-(* re-init process (an approximation) *)
+(* restart top-level loop (keeps most state information) *)
 
 local
 
@@ -245,13 +246,10 @@ fun restart isar =
   tell_clear_response ();
   welcome ());
 
-fun restart_loader () = ThyInfo.touch_all_thys ();
-
 in
 
-fun isa_start () = restart false;
-fun isa_restart () = (restart_loader (); restart false);
-fun isar_restart () = (restart_loader (); restart true; raise Toplevel.RESTART);
+fun isa_restart () = restart false;
+fun isar_restart () = (sync_thy_loader (); restart true; raise Toplevel.RESTART);
 
 end;
 
@@ -304,18 +302,23 @@ end;
 
 (* init *)
 
+val initialized = ref false;
+
 fun init isar =
- (if isar then setmp warning_fn (K ()) init_outer_syntax () else ();
-  setup_xsymbols_output ();
-  setup_messages ();
-  setup_state ();
-  setup_thy_loader ();
-  print_mode := proof_generalN :: ! print_mode;
+ (conditional (not (! initialized)) (fn () =>
+   (if isar then setmp warning_fn (K ()) init_outer_syntax () else ();
+    setup_xsymbols_output ();
+    setup_messages ();
+    setup_state ();
+    setup_thy_loader ();
+    set initialized; ()));
+  sync_thy_loader ();
+  print_mode := proof_generalN :: (! print_mode \ proof_generalN);
   set quick_and_dirty;
   ThmDeps.enable ();
   if isar then ml_prompts "ML> " "ML# "
   else ml_prompts ("> " ^ oct_char "372") ("- " ^ oct_char "373");
-  if isar then (welcome (); Isar.sync_main ()) else isa_start ());
+  if isar then (welcome (); Isar.sync_main ()) else isa_restart ());
 
 
 
