@@ -21,7 +21,7 @@
   \item arities
     \subitem declaring, 4, \bold{49}
   \item {\tt asm_simp_tac}, 60
-  \item {\tt assume_tac}, 29, 31, 37, 47
+  \item {\tt assume_tac}, 30, 32, 37, 47
   \item assumptions
     \subitem deleting, 20
     \subitem discharge of, 7
@@ -33,27 +33,28 @@
 
   \indexspace
 
-  \item {\tt ba}, 30
+  \item {\tt ba}, 31
   \item {\tt back}, 59, 62
   \item backtracking
     \subitem Prolog style, 62
-  \item {\tt bd}, 30
-  \item {\tt be}, 30
-  \item {\tt br}, 30
+  \item {\tt bd}, 31
+  \item {\tt be}, 31
+  \item {\tt br}, 31
   \item {\tt by}, 30
 
   \indexspace
 
-  \item {\tt choplev}, 36, 37, 64
+  \item {\tt choplev}, 37, 64
   \item classes, 3
     \subitem built-in, \bold{25}
   \item classical reasoner, 39
-  \item {\tt conjunct1} theorem, 27
-  \item constants, 1
+  \item {\tt conjunct1} theorem, 28
+  \item constants, 3
     \subitem clashes with variables, 9
     \subitem declaring, \bold{48}
     \subitem overloaded, 53
     \subitem polymorphic, 3
+  \item {\tt CPure} theory, 47
 
   \indexspace
 
@@ -63,7 +64,7 @@
   \item destruct-resolution, 22, 30
   \item {\tt disjE} theorem, 31
   \item {\tt dres_inst_tac}, 57
-  \item {\tt dresolve_tac}, 30, 32, 38
+  \item {\tt dresolve_tac}, 30, 32, 33, 38
 
   \indexspace
 
@@ -72,7 +73,7 @@
   \item equality
     \subitem polymorphic, 3
   \item {\tt eres_inst_tac}, 57
-  \item {\tt eresolve_tac}, 30, 32, 38, 47
+  \item {\tt eresolve_tac}, 30, 32, 33, 39, 47
   \item examples
     \subitem of deriving rules, 41
     \subitem of induction, 57, 58
@@ -80,7 +81,7 @@
     \subitem of tacticals, 37
     \subitem of theories, 48, 50--55, 61
     \subitem propositional, 17, 31, 32
-    \subitem with quantifiers, 18, 33, 35, 37
+    \subitem with quantifiers, 18, 34, 35, 38
   \item {\tt exE} theorem, 38
 
   \indexspace
@@ -89,7 +90,7 @@
   \item {\tt fast_tac}, 39
   \item first-order logic, 1
   \item flex-flex constraints, 6, 25, \bold{28}
-  \item {\tt flexflex_rule}, 28
+  \item {\tt flexflex_rule}, 29
   \item forward proof, 21, 24--30
   \item {\tt fun} type, 1, 4
   \item function applications, 1, 8
@@ -120,7 +121,7 @@
   \item $\lambda$-abstractions, 1, 8, 25
   \item $\lambda$-calculus, 1
   \item LCF, i
-  \item LCF system, 15, 26
+  \item LCF system, 15, 27
   \item level of a proof, 31
   \item lifting, \bold{14}
   \item {\tt logic} class, 3, 6, 25
@@ -138,25 +139,25 @@
   \item mixfix declarations, 52, 53, 56
   \item ML, i
   \item {\tt ML} section, 47
-  \item {\tt mp} theorem, 27
+  \item {\tt mp} theorem, 27, 28
 
   \indexspace
 
   \item {\tt Nat} theory, 55
-  \item {\tt nat} type, 1, 3
+  \item {\tt nat} type, 3
   \item {\tt not_def} theorem, 44
-  \item {\tt notE} theorem, \bold{45}, 58
-  \item {\tt notI} theorem, \bold{44}, 58
+  \item {\tt notE} theorem, \bold{45}, 57
+  \item {\tt notI} theorem, \bold{44}, 57
 
   \indexspace
 
-  \item {\tt o} type, 1, 4
-  \item {\tt ORELSE}, 37
+  \item {\tt o} type, 3, 4
+  \item {\tt ORELSE}, 38
   \item overloading, \bold{4}, 53
 
   \indexspace
 
-  \item parameters, \bold{8}, 33
+  \item parameters, \bold{8}, 34
     \subitem lifting over, 15
   \item {\tt Prolog} theory, 61
   \item Prolog interpreter, \bold{60}
@@ -166,26 +167,27 @@
   \item {\tt PROP} symbol, 26
   \item {\tt prop} type, 6, 25, 26
   \item {\tt prth}, 27
-  \item {\tt prthq}, 27, 28
+  \item {\tt prthq}, 27, 29
   \item {\tt prths}, 27
   \item {\tt Pure} theory, 47
 
   \indexspace
 
-  \item quantifiers, 5, 8, 33
+  \item {\tt qed}, 31, 42, 46
+  \item quantifiers, 5, 8, 34
 
   \indexspace
 
   \item {\tt read_instantiate}, 29
   \item {\tt refl} theorem, 29
-  \item {\tt REPEAT}, 33, 37, 62, 64
-  \item {\tt res_inst_tac}, 57, 60
+  \item {\tt REPEAT}, 33, 38, 62, 64
+  \item {\tt res_inst_tac}, 57, 59
   \item reserved words, 24
   \item resolution, 10, \bold{12}
     \subitem in backward proof, 15
     \subitem with instantiation, 57
   \item {\tt resolve_tac}, 30, 31, 46, 58
-  \item {\tt result}, 30, 42, 46
+  \item {\tt result}, 31
   \item {\tt rewrite_goals_tac}, 44
   \item {\tt rewrite_rule}, 45, 46
   \item {\tt RL}, 29
@@ -222,17 +224,17 @@
 
   \item tacticals, \bold{19}, 37
   \item tactics, \bold{19}
-    \subitem assumption, 29
+    \subitem assumption, 30
     \subitem resolution, 30
   \item {\tt term} class, 3
   \item terms
     \subitem syntax of, 1, \bold{25}
   \item theorems
-    \subitem basic operations on, \bold{26}
+    \subitem basic operations on, \bold{27}
     \subitem printing of, 27
   \item theories, \bold{9}
-    \subitem defining, 47--57
-  \item {\tt thm} ML type, 26
+    \subitem defining, 47--56
+  \item {\tt thm} ML type, 27
   \item {\tt topthm}, 42
   \item {\tt Trueprop} constant, 6, 7, 25
   \item type constraints, 25
@@ -253,9 +255,9 @@
   \item unification
     \subitem higher-order, \bold{11}, 58
     \subitem incompleteness of, 11
-  \item unknowns, 10, 24, 33
-    \subitem function, \bold{11}, 28, 33
-  \item {\tt use_thy}, \bold{47}
+  \item unknowns, 10, 24, 34
+    \subitem function, \bold{11}, 28, 34
+  \item {\tt use_thy}, \bold{47, 48}
 
   \indexspace
 
