@@ -44,7 +44,7 @@ open CooperDec;
 (*-----------------------------------------------------------------*)
 
 val presburger_ss = simpset_of (theory "Presburger")
-  addsimps [zdiff_def] delsimps [symmetric zdiff_def];
+  addsimps [zdiff_def] delsimps [thm"zdiff_def_symmetric"];
 val cboolT = ctyp_of (sign_of HOL.thy) HOLogic.boolT;
 
 (*Theorems that will be used later for the proofgeneration*)
@@ -52,7 +52,7 @@ val cboolT = ctyp_of (sign_of HOL.thy) HOLogic.boolT;
 val zdvd_iff_zmod_eq_0 = thm "zdvd_iff_zmod_eq_0";
 val unity_coeff_ex = thm "unity_coeff_ex";
 
-(* Thorems for proving the adjustment of the coeffitients*)
+(* Theorems for proving the adjustment of the coefficients*)
 
 val ac_lt_eq =  thm "ac_lt_eq";
 val ac_eq_eq = thm "ac_eq_eq";
@@ -68,7 +68,7 @@ val qe_eqI = thm "qe_eqI";
 val qe_exI = thm "qe_exI";
 val qe_ALLI = thm "qe_ALLI";
 
-(*Modulo D property for Pminusinf an Plusinf *)
+(*Modulo D property for Pminusinf and Plusinf *)
 val fm_modd_minf = thm "fm_modd_minf";
 val not_dvd_modd_minf = thm "not_dvd_modd_minf";
 val dvd_modd_minf = thm "dvd_modd_minf";
@@ -77,7 +77,7 @@ val fm_modd_pinf = thm "fm_modd_pinf";
 val not_dvd_modd_pinf = thm "not_dvd_modd_pinf";
 val dvd_modd_pinf = thm "dvd_modd_pinf";
 
-(* the minusinfinity proprty*)
+(* the minusinfinity property*)
 
 val fm_eq_minf = thm "fm_eq_minf";
 val neq_eq_minf = thm "neq_eq_minf";
@@ -87,7 +87,7 @@ val len_eq_minf = thm "len_eq_minf";
 val not_dvd_eq_minf = thm "not_dvd_eq_minf";
 val dvd_eq_minf = thm "dvd_eq_minf";
 
-(* the Plusinfinity proprty*)
+(* the Plusinfinity property*)
 
 val fm_eq_pinf = thm "fm_eq_pinf";
 val neq_eq_pinf = thm "neq_eq_pinf";
