@@ -36,7 +36,7 @@ $(OUT)/Pure: General/ROOT.ML General/buffer.ML General/file.ML		\
   Isar/outer_syntax.ML Isar/proof.ML Isar/proof_context.ML		\
   Isar/proof_data.ML Isar/proof_history.ML Isar/rule_cases.ML		\
   Isar/session.ML Isar/skip_proof.ML Isar/thy_header.ML Isar/toplevel.ML \
-  ML-Systems/mlworks.ML ML-Systems/polyml.ML ML-Systems/smlnj-0.93.ML	\
+  ML-Systems/mlworks.ML ML-Systems/polyml.ML ML-Systems/polyml-4.0.ML ML-Systems/smlnj-0.93.ML	\
   ML-Systems/smlnj.ML ROOT.ML Syntax/ROOT.ML Syntax/ast.ML		\
   Syntax/lexicon.ML Syntax/mixfix.ML Syntax/parser.ML			\
   Syntax/printer.ML Syntax/syn_ext.ML Syntax/syn_trans.ML		\
