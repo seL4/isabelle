@@ -24,25 +24,39 @@ $path=$opt_p;
 $infile  = $ARGV[0];
 $outfile = $ARGV[1];
 
-$fileHeader = "<ul>\n";
+$listHeader = "<ul>\n";
 $lineHeader = "  <li>";
 $lineEnd    = "</li>\n";
-$fileFooter = "</ul>\n";
+$listFooter = "</ul>\n";
+
+$topicStart = "<h2>";
+$topicEnd   = "</h2>\n";
 
 open(IN, "<$infile") || die "cannot read input file <$infile>";
 open(OUT, ">$outfile") || die "cannot write output file <$outfile>";
 
-print OUT $fileHeader;
-
+$first = 1;
 while (<IN>) {
-  if (/[ \t]*([^ \t]+)[ \t]+(.+)\n/) {
+  if (/^([^ \t].*)\n/) {
+    if ($first == 1) {
+      $first = 0;
+    }
+    else {
+      print OUT $listFooter;
+    }
+    print OUT $topicStart;
+    print OUT $1;
+    print OUT $topicEnd;
+    print OUT $listHeader;
+  }
+  elsif (/^[ \t]+([^ \t]+)[ \t]+(.+)\n/) {
     print OUT $lineHeader;
     print OUT "<a href=\"$path$1.pdf\">$2</a>";
     print OUT $lineEnd;
   }
 }
 
-print OUT $fileFooter;
+print OUT $listFooter;
 
 close(OUT);
 close(IN);
