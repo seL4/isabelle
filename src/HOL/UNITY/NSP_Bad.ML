@@ -59,7 +59,7 @@ by (auto_tac (claset() addSDs [spies_Says_analz_contraD], simpset()));
 
 fun ns_constrains_tac i = 
    SELECT_GOAL
-      (EVERY [REPEAT (eresolve_tac [Always_ConstrainsI] 1),
+      (EVERY [REPEAT (etac Always_ConstrainsI 1),
 	      REPEAT (resolve_tac [StableI, stableI,
 				   constrains_imp_Constrains] 1),
 	      rtac constrainsI 1,
@@ -90,7 +90,7 @@ qed "Spy_see_priK";
 Addsimps [impOfAlways Spy_see_priK];
 
 Goal "Nprg : Always {s. (Key (priK A) : analz (spies s)) = (A : bad)}";
-br (Always_reachable RS Always_weaken) 1;
+by (rtac (Always_reachable RS Always_weaken) 1);
 by Auto_tac;
 qed "Spy_analz_priK";
 Addsimps [impOfAlways Spy_analz_priK];
