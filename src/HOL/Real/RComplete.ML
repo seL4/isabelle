@@ -239,9 +239,9 @@ by (forw_inst_tac [("y","rinv x")]
     (rename_numerals real_mult_less_mono1) 1);
 by (auto_tac (claset(),simpset() addsimps [real_not_refl2 RS not_sym]));
 by (dres_inst_tac [("n1","n"),("y","#1")] 
-     (real_of_posnat_less_zero RS real_mult_less_mono2)  1);
+     (real_of_posnat_gt_zero RS real_mult_less_mono2)  1);
 by (auto_tac (claset(),
-	      simpset() addsimps [rename_numerals real_of_posnat_less_zero,
+	      simpset() addsimps [rename_numerals real_of_posnat_gt_zero,
 				  real_not_refl2 RS not_sym,
 				  real_mult_assoc RS sym]));
 qed "reals_Archimedean2";
