@@ -97,6 +97,11 @@ Addsimps[image_insert];
 qed_goal "ball_image" Set.thy "(!y:F``S. P y) = (!x:S. P (F x))"
  (fn _ => [Fast_tac 1]);
 
+goal Set.thy "!!x. x:A ==> insert (f x) (f``A) = f``A";
+by (Fast_tac 1);
+qed "insert_image";
+Addsimps [insert_image];
+
 goalw Set.thy [image_def]
 "(%x. if P x then f x else g x) `` S                    \
 \ = (f `` ({x.x:S & P x})) Un (g `` ({x.x:S & ~(P x)}))";
@@ -111,10 +116,9 @@ section "range";
 qed_goal "ball_range" Set.thy "(!y:range f. P y) = (!x. P (f x))"
  (fn _ => [Fast_tac 1]);
 
-qed_goalw "image_range" Set.thy [image_def, range_def]
- "f``range g = range (%x. f (g x))" (fn _ => [
-        rtac Collect_cong 1,
-        Fast_tac 1]);
+qed_goalw "image_range" Set.thy [image_def]
+ "f``range g = range (%x. f (g x))" 
+ (fn _ => [rtac Collect_cong 1, Fast_tac 1]);
 
 section "Int";
 
