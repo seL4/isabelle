@@ -37,7 +37,7 @@ DOC_CONTENTS_DIST = docu-contents.dist
 # ---
 # --- begin rules
 
-all: clean main dist install
+all: clean main dist install weblint
 	@echo "###"
 	@echo "### Finished.  See main/ and dist/ for the resulting pages."
 	@echo "###"
@@ -54,6 +54,10 @@ dist:
 
 install: dist
 	@cp -R dist/. ..
+
+weblint:
+	@weblint -x netscape $(MAIN_TARGET)
+	@weblint -x netscape $(DIST_TARGET)
 
 clean: 
 	@rm -rf $(MAIN_TARGET)
