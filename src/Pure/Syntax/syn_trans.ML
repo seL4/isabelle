@@ -280,7 +280,7 @@ val pure_trfuns =
    ("_bigimpl", bigimpl_ast_tr)],
   [("_abs", abs_tr), ("_aprop", aprop_tr), ("_ofclass", ofclass_tr),
    ("_K", k_tr)],
-  [],
+  []: (string * (term list -> term)) list,
   [("_abs", abs_ast_tr'), ("_idts", idtyp_ast_tr' "_idts"),
    ("_pttrns", idtyp_ast_tr' "_pttrns"), ("==>", impl_ast_tr')]);
 
