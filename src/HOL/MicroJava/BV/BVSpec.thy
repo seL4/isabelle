@@ -129,7 +129,7 @@ primrec
 	 (\\<exists>ts ts' ST'. ST = ts' # ts # ST' \\<and> 	 
 		       G \\<turnstile> (ts # ts' # ST' , LT) <=s phi ! (pc+1)))"
 
-"wt_OS ADD G phi max_pc pc =
+"wt_OS IAdd G phi max_pc pc =
 	(let (ST,LT) = phi ! pc
 	 in
 	 pc+1 < max_pc \\<and>
