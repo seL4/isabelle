@@ -271,21 +271,7 @@ qed "const_PLam_Increasing";
 (*** guarantees properties ***)
 
 Goalw [PLam_def]
-    "[| i : I;  lift_prog i (F i): X guarantees Y |]  \
+    "[| lift_prog i (F i): X guarantees Y;  i : I |]  \
 \    ==> (PLam I F) : X guarantees Y";
 by (asm_simp_tac (simpset() addsimps [guarantees_JN_I]) 1);
 qed "guarantees_PLam_I";
-
-Goalw [PLam_def]
-    "[| ALL i:I. F i : X guarantees Y |] \
-\    ==> (PLam I F) : (INT i: I. lift_prog i `` X) \
-\                 guarantees (INT i: I. lift_prog i `` Y)";
-by (blast_tac (claset() addIs [guarantees_JN_INT, lift_prog_guarantees]) 1);
-bind_thm ("guarantees_PLam_INT", ballI RS result());
-
-Goalw [PLam_def]
-    "[| ALL i:I. F i : X guarantees Y |] \
-\    ==> (PLam I F) : (UN i: I. lift_prog i `` X) \
-\                 guarantees (UN i: I. lift_prog i `` Y)";
-by (blast_tac (claset() addIs [guarantees_JN_UN, lift_prog_guarantees]) 1);
-bind_thm ("guarantees_PLam_UN", ballI RS result());

@@ -95,6 +95,13 @@ by (rtac inj_on_inverseI 1);
 by (rtac extend_set_inverse 1);
 qed "inj_extend_set";
 
+Goalw [extend_set_def] "extend_set h UNIV = UNIV";
+by Auto_tac;
+by (res_inst_tac [("y1", "x")] (surj_h RS surjD RS exE) 1);
+by Auto_tac;
+qed "extend_set_UNIV_eq";
+Addsimps [standard extend_set_UNIV_eq];
+
 (*** project_set: basic properties ***)
 
 (*project_set is simply image!*)
@@ -164,7 +171,7 @@ qed "extend_act_D";
 
 (*Premise is still undesirably strong, since Domain act can include
   non-reachable states, but it seems necessary for this result.*)
-Goalw [extend_act_def,project_set_def, project_act_def]
+Goalw [extend_act_def, project_set_def, project_act_def]
  "Domain act <= project_set h C ==> project_act C h (extend_act h act) = act";
 by (Force_tac 1);
 qed "extend_act_inverse";
@@ -206,8 +213,7 @@ by (auto_tac (claset() addSIs [exI] addIs [h_f_g_eq RS ssubst],
 qed "project_act_I";
 
 Goalw [project_set_def, project_act_def]
-    "UNIV <= project_set h C \
-\     ==> project_act C h Id = Id";
+    "UNIV <= project_set h C ==> project_act C h Id = Id";
 by (Force_tac 1);
 qed "project_act_Id";
 
@@ -289,6 +295,21 @@ by (simp_tac (simpset() addsimps [image_UN]) 2);
 by (simp_tac (simpset() addsimps [extend_set_INT_distrib]) 1);
 qed "extend_JN";
 Addsimps [extend_JN];
+
+
+(** These monotonicity results look natural but are UNUSED **)
+
+Goal "F <= G ==> extend h F <= extend h G";
+by (full_simp_tac (simpset() addsimps [component_eq_subset]) 1);
+by Auto_tac;
+qed "extend_mono";
+
+Goal "F <= G ==> project C h F <= project C h G";
+by (full_simp_tac
+    (simpset() addsimps [component_eq_subset, project_set_def]) 1);
+by Auto_tac;
+qed "project_mono";
+
 
 (*** Safety: co, stable ***)
 

@@ -219,6 +219,9 @@ by (simp_tac (simpset() addsimps [Join_component_iff]) 1);
 by (Blast_tac 1);
 qed "guarantees_Join_I";
 
+bind_thm ("guarantees_Join_I1", disjI1 RS guarantees_Join_I);
+bind_thm ("guarantees_Join_I2", disjI2 RS guarantees_Join_I);
+
 Goalw [guar_def]
      "[| i : I;  F i: X guarantees Y |] ==> (JN i:I. (F i)) : X guarantees Y";
 by (simp_tac (simpset() addsimps [JN_component_iff]) 1);

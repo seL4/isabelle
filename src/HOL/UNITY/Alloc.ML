@@ -6,17 +6,9 @@
 Specification of Chandy and Charpentier's Allocator
 
 STOP USING o (COMPOSITION), since function application is naturally associative
+
+guarantees_PLam_I looks wrong: refers to lift_prog
 *)
-
-
-Goal "~ f #2 ==> ~ (!t::nat. (#0 <= t & t <= #10) --> f t)";
-
-(*Useful examples:  singletonI RS subst_elem,  subst_elem RSN (2,IntI) *)
-Goal "[| b:A;  a=b |] ==> a:A";
-by (etac ssubst 1);
-by (assume_tac 1);
-qed "subst_elem";
-
 
 
 Goal "(ALL i: lessThan n. f i <= g i) --> sum f n <= sum g n";
@@ -65,6 +57,7 @@ AddIffs [inj_sysOfAlloc, surj_sysOfAlloc];
 Goalw [good_map_def] "good_map sysOfAlloc";
 by Auto_tac;
 qed "good_map_sysOfAlloc";
+Addsimps [good_map_sysOfAlloc];
 
 (*MUST BE AUTOMATED: even the statement of such results*)
 Goal "!!s. inv sysOfAlloc s = \
@@ -76,7 +69,6 @@ by (rtac (inj_sysOfAlloc RS inv_f_eq) 1);
 by (auto_tac (claset() addSWrapper record_split_wrapper, 
 	      simpset() addsimps [sysOfAlloc_def]));
 qed "inv_sysOfAlloc_eq";
-
 Addsimps [inv_sysOfAlloc_eq];
 
 (**SHOULD NOT BE NECESSARY: The various injections into the system
@@ -99,6 +91,7 @@ AddIffs [inj_sysOfClient, surj_sysOfClient];
 Goalw [good_map_def] "good_map sysOfClient";
 by Auto_tac;
 qed "good_map_sysOfClient";
+Addsimps [good_map_sysOfClient];
 
 (*MUST BE AUTOMATED: even the statement of such results*)
 Goal "!!s. inv sysOfClient s = \
@@ -110,6 +103,7 @@ by (rtac (inj_sysOfClient RS inv_f_eq) 1);
 by (auto_tac (claset() addSWrapper record_split_wrapper, 
 	      simpset() addsimps [sysOfAlloc_def, sysOfClient_def]));
 qed "inv_sysOfClient_eq";
+Addsimps [inv_sysOfClient_eq];
 
 
 Open_locale "System";
@@ -154,7 +148,7 @@ val Network_Spec =
 
 (*CANNOT use bind_thm: it puts the theorem into standard form, in effect
   exporting it from the locale*)
-val Network_Ask = Network_Spec RS IntD1 RS IntD1;
+val Network_Ask = Network_Spec RS IntD1 RS IntD1 RS INT_D;
 val Network_Giv = Network_Spec RS IntD1 RS IntD2 RS INT_D;
 val Network_Rel = Network_Spec RS IntD2 RS INT_D;
 
@@ -189,13 +183,15 @@ qed "Alloc_component_System";
 AddIffs [Network_component_System, Alloc_component_System];
 
 
+fun alloc_export th = good_map_sysOfAlloc RS export th;
+
+fun client_export th = good_map_sysOfClient RS export th;
+
 (* F : UNIV guarantees Increasing func
    ==> extend sysOfClient F : UNIV guarantees Increasing (func o client) *)
 val extend_Client_guar_Increasing =
-  good_map_sysOfClient RS export extend_guar_Increasing
+  client_export extend_guar_Increasing
   |> simplify (simpset() addsimps [inv_sysOfClient_eq]);
-
-fun alloc_export th = good_map_sysOfAlloc RS export th;
 
 (*NEED AUTOMATIC PROPAGATION of Alloc_Increasing*)
 Goal "i < Nclients \
@@ -205,31 +201,27 @@ by (auto_tac (claset(), simpset() addsimps [o_def]));
 qed "extend_Alloc_Increasing_allocGiv";
 
 
-(** Proof of property (1) **)
+(*** Proof of the safety property (1) ***)
 
-(*step 1*)
+(*safety (1), step 1*)
 Goalw [System_def]
      "i < Nclients ==> System : Increasing (rel o sub i o client)";
-by (rtac ([guaranteesI RS disjI2 RS guarantees_Join_I, UNIV_I] 
-	  MRS guaranteesD) 1);
-by (asm_simp_tac 
-    (simpset() addsimps [guarantees_PLam_I, 
-			 extend_Client_guar_Increasing RS guaranteesD,
-			 lift_prog_guar_Increasing]) 1);
+by (rtac (extend_Client_guar_Increasing RS guarantees_Join_I2 
+	  RS guaranteesD) 1);
+by (rtac (lift_prog_guar_Increasing RS guarantees_PLam_I) 1);
+(*gets Client_Increasing_rel from simpset*)
+by Auto_tac;
 qed "System_Increasing_rel";
 
-(*Note: the first step above performs simple quantifier reasoning.  It could
-  be replaced by a proof mentioning no guarantees primitives*)
 
-
-(*step 2*)
+(*safety (1), step 2*)
 Goal "i < Nclients ==> System : Increasing (sub i o allocRel)";
 by (rtac Follows_Increasing1 1);
 by (blast_tac (claset() addIs [Network_Rel RS component_guaranteesD,
 			       System_Increasing_rel]) 1);
 qed "System_Increasing_allocRel";
 
-(*step 2*)
+(*safety (1), step 3*)
 Goal "System : Always {s. sum (%i. (tokens o sub i o allocGiv) s) Nclients \
 \                  <= NbT + sum (%i. (tokens o sub i o allocRel) s) Nclients}";
 by (res_inst_tac 
@@ -250,7 +242,7 @@ by (asm_full_simp_tac
      (simpset() addsimps [alloc_export Collect_eq_extend_set RS sym]) 1);
 qed "System_sum_bounded";
 
-(*step 3*)
+(*safety (1), step 4*)
 Goal "System : Always (INT i: lessThan Nclients. \
 \                         {s. (tokens o giv o sub i o client) s \
 \                          <= (tokens o sub i o allocGiv) s})";
@@ -266,6 +258,7 @@ by (blast_tac (claset() addIs [Network_Giv RS component_guaranteesD,
 qed "System_Always_giv_le_allocGiv";
 
 
+(*safety (1), step 5*)
 Goal "System : Always (INT i: lessThan Nclients. \
 \                         {s. (tokens o sub i o allocRel) s \
 \                          <= (tokens o rel o sub i o client) s})";
@@ -281,6 +274,7 @@ by (blast_tac (claset() addIs [Network_Rel RS component_guaranteesD,
 qed "System_Always_allocRel_le_rel";
 
 
+(*safety (1), step 6*)
 Goal "System : Always {s. sum (%i. (tokens o giv o sub i o client)s) Nclients \
 \              <= NbT + sum (%i. (tokens o rel o sub i o client)s) Nclients}";
 by (rtac (Always_Int_rule [System_sum_bounded, System_Always_giv_le_allocGiv, 
@@ -293,3 +287,40 @@ by (assume_tac 3);
 by Auto_tac;
 qed "System_safety";
 
+
+
+(*** Proof of the progress property (2) ***)
+
+(*we begin with proofs identical to System_Increasing_rel and
+  System_Increasing_allocRel: tactics needed!*)
+
+(*progress (2), step 1*)
+Goalw [System_def]
+     "i < Nclients ==> System : Increasing (ask o sub i o client)";
+by (rtac (extend_Client_guar_Increasing RS guarantees_Join_I2 
+	  RS guaranteesD) 1);
+by (rtac (lift_prog_guar_Increasing RS guarantees_PLam_I) 1);
+by Auto_tac;
+qed "System_Increasing_ask";
+
+(*progress (2), step 2*)
+Goal "i < Nclients ==> System : Increasing (sub i o allocAsk)";
+by (rtac Follows_Increasing1 1);
+by (blast_tac (claset() addIs [Network_Ask RS component_guaranteesD,
+			       System_Increasing_ask]) 1);
+qed "System_Increasing_allocAsk";
+
+(*progress (2), step 3*)
+(*All this trouble just to lift "Client_Bounded" through two extemd ops*)
+Goalw [System_def]
+     "i < Nclients \
+\   ==> System : Always \
+\                 {s. ALL elt : set ((ask o sub i o client) s). elt <= NbT}";
+by (rtac (lift_prog_guar_Always RS 
+	  guarantees_PLam_I RS client_export extend_guar_Always RS
+	  guarantees_Join_I2 RS guaranteesD RS Always_weaken) 1);
+by (stac Always_UNIV_eq 1 THEN rtac Client_Bounded 1);
+by (auto_tac(claset(),
+	 simpset() addsimps [Collect_eq_lift_set RS sym,
+			     client_export Collect_eq_extend_set RS sym]));
+qed "System_Bounded";

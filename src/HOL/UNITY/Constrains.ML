@@ -282,6 +282,11 @@ by (auto_tac (claset() addDs [invariant_includes_reachable],
 				  Always_eq_invariant_reachable]));
 qed "Always_eq_includes_reachable";
 
+Goal "Always UNIV = UNIV";
+by (auto_tac (claset(),
+	      simpset() addsimps [Always_eq_includes_reachable]));
+qed "Always_UNIV_eq";
+Addsimps [Always_UNIV_eq];
 
 Goal "Always A = (UN I: Pow A. invariant I)";
 by (simp_tac (simpset() addsimps [Always_eq_includes_reachable]) 1);

@@ -329,6 +329,11 @@ by (Clarify_tac 1);
 by (force_tac (claset() addSEs [allE, ballE], simpset()) 1);
 qed "localTo_imp_o_localTo";
 
+Goalw [localTo_def, stable_def, constrains_def]
+     "(%s. x) localTo F = UNIV";
+by (Blast_tac 1);
+qed "triv_localTo_eq_UNIV";
+
 Goal "(F Join G : v localTo H) = (F : v localTo H  &  G : v localTo H)";
 by (asm_full_simp_tac 
     (simpset() addsimps [localTo_def, Diff_Join_distrib,
