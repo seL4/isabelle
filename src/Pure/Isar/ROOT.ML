@@ -13,6 +13,7 @@ use "proof_history.ML";
 use "args.ML";
 use "attrib.ML";
 use "method.ML";
+use "calculation.ML";
 
 (*outer syntax*)
 use "comment.ML";
