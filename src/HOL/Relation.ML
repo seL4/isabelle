@@ -178,6 +178,12 @@ qed_goal "Image_empty" Relation.thy
 
 Addsimps [Image_empty];
 
+goal thy "id ^^ A = A";
+by (Blast_tac 1);
+qed "Image_id";
+
+Addsimps [Image_id];
+
 qed_goal "Image_Int_subset" Relation.thy
     "R ^^ (A Int B) <= R ^^ A Int R ^^ B"
  (fn _ => [ Blast_tac 1 ]);
