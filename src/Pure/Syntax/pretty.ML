@@ -32,6 +32,13 @@ sig
   val str: string -> T
   val lst: string * string -> T list -> T
   val quote: T -> T
+  val commas: T list -> T list
+  val breaks: T list -> T list
+  val fbreaks: T list -> T list
+  val block: T list -> T
+  val parents: string -> string -> T list -> T
+  val list: string -> string -> T list -> T
+  val str_list: string -> string -> string list -> T
   val string_of: T -> string
   val str_of: T -> string
   val pprint: T -> pprint_args -> unit
@@ -39,7 +46,7 @@ sig
   val setmargin: int -> unit
 end;
 
-functor PrettyFun () : PRETTY =
+functor PrettyFun(): PRETTY =
 struct
 
 (*Printing items: compound phrases, strings, and breaks*)
@@ -107,11 +114,11 @@ fun format ([], _, _) text = text
          let val blockin' = (pos + indent) mod !emergencypos
              val btext = format(bes, blockin', breakdist(es,after)) text
              (*If this block was broken then force the next break.*)
-	     val es2 = if nl < #nl(btext) then forcenext es else es
+             val es2 = if nl < #nl(btext) then forcenext es else es
          in  format (es2,blockin,after) btext  end
      | String s => format (es,blockin,after) (string s text)
      | Break(force,wd) => (*no break if text to next break fits on this line
-			    or if breaking would add only breakgain to space *)
+                            or if breaking would add only breakgain to space *)
            format (es,blockin,after)
                (if not force andalso
                    pos+wd <= max[!margin - breakdist(es,after),
@@ -143,8 +150,30 @@ fun lst(lp,rp) es =
         | list([]) = []
   in blk(size lp, list es) end;
 
-(*Put quotation marks around the given expression*)
-fun quote prt = blk (1, [str "\"", prt, str "\""]);
+
+(* utils *)
+
+fun quote prt =
+  blk (1, [str "\"", prt, str "\""]);
+
+fun commas prts =
+  flat (separate [str ",", brk 1] (map (fn x => [x]) prts));
+
+fun breaks prts = separate (brk 1) prts;
+
+fun fbreaks prts = separate fbrk prts;
+
+fun block prts = blk (2, prts);
+
+fun parents lpar rpar prts =
+  block (str lpar :: (prts @ [str rpar]));
+
+fun list lpar rpar prts =
+  parents lpar rpar (commas prts);
+
+fun str_list lpar rpar strs =
+  list lpar rpar (map str strs);
+
 
 
 (*** Pretty printing with depth limitation ***)
