@@ -3,12 +3,6 @@
     Author:     Stefan Berghofer and Markus Wenzel, TU Muenchen
 
 Theory browsing information (HTML and graph files).
-
-TODO:
-  - href parent theories (this vs. ancestor session!?);
-  - ### Browser info: cannot access session index in "/usr/wiss/wenzelm/isabelle/browser_info";
-  - usedir: exclude arrow gifs;
-  - symlink ".parent", ".top" (URLs!?);
 *)
 
 signature BASIC_BROWSER_INFO =
