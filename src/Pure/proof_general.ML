@@ -1174,6 +1174,7 @@ fun process_pgip_element pgipxml = (case pgipxml of
      (* improperproofcmd: improper commands which *do not* belong in script *)
      | "dostep"         => isarscript data
      | "undostep"       => isarcmd "undos_proof 1"
+     | "redostep"       => isarcmd "redo"
      | "abortgoal"      => isarcmd "ProofGeneral.kill_proof"  
      | "forget"         => error "Not implemented" 
      | "restoregoal"    => error "Not implemented"  (* could just treat as forget? *)
@@ -1198,6 +1199,7 @@ fun process_pgip_element pgipxml = (case pgipxml of
      (* improperfilecmd: theory-level commands not in script *)
      | "doitem"         => isarscript data
      | "undoitem"       => isarcmd "ProofGeneral.undo"
+     | "redoitem"       => isarcmd "ProofGeneral.redo"
      | "aborttheory"    => isarcmd ("init_toplevel")
      | "retracttheory"  => isarcmd ("kill_thy " ^ (quote (thyname_attr attrs)))
      | "loadfile"       => use_thy_or_ml_file (fileurl_of attrs)
@@ -1289,6 +1291,10 @@ val undoP = (* undo without output *)
   OuterSyntax.improper_command "ProofGeneral.undo" "(internal)" K.control
     (Scan.succeed (Toplevel.no_timing o IsarCmd.undo));
 
+val redoP = (* redo without output *)
+  OuterSyntax.improper_command "ProofGeneral.redo" "(internal)" K.control
+    (Scan.succeed (Toplevel.no_timing o IsarCmd.redo));
+
 val context_thy_onlyP =
   OuterSyntax.improper_command "ProofGeneral.context_thy_only" "(internal)" K.control
     (P.name >> (Toplevel.no_timing oo IsarThy.init_context update_thy_only));
@@ -1324,7 +1330,7 @@ val process_pgipP =
       (fn txt => Toplevel.imperative (fn () => process_pgip txt))));
 
 fun init_outer_syntax () = OuterSyntax.add_parsers
- [undoP, restartP, kill_proofP, context_thy_onlyP, try_context_thy_onlyP,
+ [undoP, redoP, restartP, kill_proofP, context_thy_onlyP, try_context_thy_onlyP,
   inform_file_processedP, inform_file_retractedP, process_pgipP];
 
 end;
