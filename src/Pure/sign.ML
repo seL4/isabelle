@@ -30,6 +30,7 @@ sig
     data: data}
   val name_of: sg -> string
   val stamp_names_of: sg -> string list
+  val exists_stamp: string -> sg -> bool
   val tsig_of: sg -> Type.type_sig
   val deref: sg_ref -> sg
   val self_ref: sg -> sg_ref
@@ -143,6 +144,8 @@ sig
   val merge: sg * sg -> sg
   val prep_ext: sg -> sg
   val copy: sg -> sg
+  val PureN: string
+  val CPureN: string
   val nontriv_merge: sg * sg -> sg
   val pre_pure: sg
   val const_of_class: class -> string
@@ -202,6 +205,7 @@ fun rep_sg (Sg (_, args)) = args;
 
 (*show stamps*)
 fun stamp_names_of (Sg ({stamps, ...}, _)) = rev (map ! stamps);
+fun exists_stamp name (Sg ({stamps, ...}, _)) = exists (equal name o !) stamps;
 fun pretty_sg sg = Pretty.str_list "{" "}" (stamp_names_of sg);
 val str_of_sg = Pretty.str_of o pretty_sg;
 val pprint_sg = Pretty.pprint o pretty_sg;
@@ -1073,11 +1077,17 @@ val merge = deref o merge_refs o pairself self_ref;
 
 (* proper merge *)              (*exception TERM/ERROR*)
 
+val PureN = "Pure";
+val CPureN = "CPure";
+
 fun nontriv_merge (sg1, sg2) =
   if subsig (sg2, sg1) then sg1
   else if subsig (sg1, sg2) then sg2
   else if is_draft sg1 orelse is_draft sg2 then
     raise TERM ("Attempt to merge draft signatures", [])
+  else if exists_stamp PureN sg1 andalso exists_stamp CPureN sg2 orelse
+      exists_stamp CPureN sg1 andalso exists_stamp PureN sg2 then
+    raise TERM ("Cannot merge Pure and CPure signatures", [])
   else
     (*neither is union already; must form union*)
     let
