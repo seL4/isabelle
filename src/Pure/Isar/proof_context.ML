@@ -382,7 +382,7 @@ fun norm_term (ctxt as Context {binds, ...}) =
 
 (* dummy patterns *)
 
-fun is_dummy (Const ("dummy", _)) = true
+fun is_dummy (Const (c, _)) = c = PureThy.dummy_patternN
   | is_dummy _ = false;
 
 fun reject_dummies ctxt tm =
@@ -390,8 +390,8 @@ fun reject_dummies ctxt tm =
   else raise CONTEXT ("Illegal dummy pattern(s) in term", ctxt);
 
 
-fun prep_dummy (i, Const ("dummy", T)) = (i + 1, Var (("_dummy_", i), T))
-  | prep_dummy i_t = i_t;
+fun prep_dummy (i, t) =
+  if is_dummy t then (i + 1, Var (("_dummy_", i), Term.fastype_of t)) else (i, t);
 
 fun prepare_dummies tm = #2 (Term.foldl_map_aterms prep_dummy (1, tm));
 
