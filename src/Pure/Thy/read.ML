@@ -130,15 +130,18 @@ fun find_file "" name =
 
 (*Get absolute pathnames for a new or already loaded theory *)
 fun get_filenames path name =
-  let fun new_filename () =
+  let fun make_absolute file =
+        if file = "" then "" else 
+            if hd (explode file) = "/" then file else tack_on (pwd ()) file;
+
+      fun new_filename () =
         let val thyl = to_lower name;
             val found = find_file path (thyl ^ ".thy")
                         handle FILE_NOT_FOUND => "";
-            val thy_file = if found = "" then "" else tack_on (pwd ()) found;
+            val thy_file = make_absolute found;
             val (thy_path, _) = split_filename thy_file;
             val found = find_file path (thyl ^ ".ML");
-            val ml_file = if thy_file = ""
-                          then if found = "" then "" else tack_on (pwd ()) found
+            val ml_file = if thy_file = "" then make_absolute found
                           else if file_exists (tack_on thy_path (thyl ^ ".ML"))
                           then tack_on thy_path (thyl ^ ".ML")
                           else ""
@@ -149,7 +152,7 @@ fun get_filenames path name =
         end;
 
       val thy = get_thyinfo name
-  in if is_some thy then
+  in if is_some thy andalso path = "" then
        let val thyl = to_lower name;
            val ThyInfo {path = abs_path, ...} = the thy;
            val (thy_file, ml_file) = if abs_path = "" then new_filename ()
@@ -232,11 +235,12 @@ fun use_thy name =
          (*Mark all direct descendants of a theory as changed *)
          fun mark_children thy =
            let val ThyInfo {children, ...} = the (get_thyinfo thy)
-           in if children <> [] then
+               val loaded = filter already_loaded children
+           in if loaded <> [] then
                   (writeln ("The following children of theory " ^ (quote thy)
                             ^ " are now out-of-date: "
-                            ^ (quote (space_implode "\",\"" children)));
-                   seq mark_outdated children
+                            ^ (quote (space_implode "\",\"" loaded)));
+                   seq mark_outdated loaded
                   )
               else ()
            end
@@ -244,13 +248,14 @@ fun use_thy name =
     in if thy_uptodate andalso ml_uptodate then ()
        else
        (
-         writeln ("Loading theory " ^ (quote name));
          if thy_uptodate orelse thy_file = "" then ()
          else (read_thy thyl thy_file;
                use (out_name thyl)
               );
-         
-         if ml_file = "" then () else use ml_file;
+
+         if ml_file = "" then () 
+         else (writeln ("Reading ML-file \"" ^ thyl ^ ".ML\"");
+               use ml_file);
 
          let val outstream = open_out ".tmp.ML"
          in
@@ -425,7 +430,8 @@ fun base_on bases child =
                            load_base bases);
           val (t :: ts) = if mergelist = [] then ["Pure"] else mergelist
                                                (*we have to return something *)
-     in foldl Thm.merge_theories (get_theory t, map get_theory ts) end;
+     in writeln ("Loading theory " ^ (quote child));
+        foldl Thm.merge_theories (get_theory t, map get_theory ts) end;
 
 (*Change theory object for an existent item of loaded_thys 
   or create a new item *)
