@@ -264,7 +264,7 @@ fun infer_types sg types sorts print_msg (ts, T) =
           "\nInvolving these terms:\n" ^ cat_lines (map show_term ts);
 
     fun exn_type_msg (msg, Ts, ts) =
-	msg ^ "\nType checking error: " ^ msg ^ "\n" ^
+	"\nType checking error: " ^ msg ^ "\n" ^
 	cat_lines (map show_typ Ts) ^ term_err ts ^ "\n";
 
     val T' = certify_typ sg T
