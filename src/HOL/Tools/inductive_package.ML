@@ -182,7 +182,7 @@ fun unify_consts sign cs intr_ts =
     val add_term_consts_2 =
       foldl_aterms (fn (cs, Const c) => c ins cs | (cs, _) => cs);
     fun varify (t, (i, ts)) =
-      let val t' = map_term_types (incr_tvar (i + 1)) (Type.varify (t, []))
+      let val t' = map_term_types (incr_tvar (i + 1)) (#1 (Type.varify (t, [])))
       in (maxidx_of_term t', t'::ts) end;
     val (i, cs') = foldr varify (cs, (~1, []));
     val (i', intr_ts') = foldr varify (intr_ts, (i, []));
