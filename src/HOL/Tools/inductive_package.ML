@@ -266,7 +266,7 @@ fun check_rule sg cs ((name, rule), att) =
   end;
 
 val rulify =
-  standard o full_simplify [Drule.norm_hhf_eq] o
+  standard o Tactic.norm_hhf o
   full_simplify inductive_rulify2 o full_simplify inductive_rulify1 o
   full_simplify inductive_conj;
 
