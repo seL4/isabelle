@@ -4,43 +4,69 @@
 # IsaMakefile for HOLCF
 #
 
-#### Base system
+## targets
 
+default: HOLCF
+images: HOLCF IOA
+test: HOLCF-IMP HOLCF-ex IOA-ABP IOA-NTP
+all: images test
+
+
+## global settings
+
+SRC = $(ISABELLE_HOME)/src
 OUT = $(ISABELLE_OUTPUT)
 LOG = $(OUT)/log
 
-THYS = Porder.thy Porder0.thy Pcpo.thy \
-       Fun1.thy Fun2.thy Fun3.thy \
-       Cfun1.thy Cfun2.thy Cfun3.thy Cont.thy \
-       Cprod1.thy Cprod2.thy Cprod3.thy \
-       Sprod0.thy Sprod1.thy Sprod2.thy Sprod3.thy \
-       Ssum0.thy Ssum1.thy Ssum2.thy Ssum3.thy \
-       Up1.thy Up2.thy Up3.thy Fix.thy \
-       One.thy Tr.thy\
-       Discrete0.thy Discrete1.thy Discrete.thy\
-       Lift1.thy Lift2.thy Lift3.thy Lift.thy HOLCF.thy
 
-ONLYTHYS = 
+## HOLCF
 
-FILES = ROOT.ML $(THYS) $(ONLYTHYS) $(THYS:.thy=.ML) adm.ML \
-	holcf_logic.ML cont_consts.ML \
-        domain/library.ML  domain/syntax.ML   domain/axioms.ML \
-        domain/theorems.ML domain/extender.ML domain/interface.ML
+HOLCF: HOL $(OUT)/HOLCF
 
-$(OUT)/HOLCF: $(OUT)/HOL $(FILES)
+HOL:
+	@cd $(SRC)/HOL; $(ISATOOL) make HOL
+
+$(OUT)/HOLCF: $(OUT)/HOL Cfun1.ML Cfun1.thy Cfun2.ML Cfun2.thy \
+  Cfun3.ML Cfun3.thy Cont.ML Cont.thy Cprod1.ML Cprod1.thy Cprod2.ML \
+  Cprod2.thy Cprod3.ML Cprod3.thy Discrete.ML Discrete.thy Discrete0.ML \
+  Discrete0.thy Discrete1.ML Discrete1.thy Fix.ML Fix.thy Fun1.ML \
+  Fun1.thy Fun2.ML Fun2.thy Fun3.ML Fun3.thy HOLCF.ML HOLCF.thy Lift.ML \
+  Lift.thy Lift1.ML Lift1.thy Lift2.ML Lift2.thy Lift3.ML Lift3.thy \
+  One.ML One.thy Pcpo.ML Pcpo.thy Porder.ML Porder.thy Porder0.ML \
+  Porder0.thy ROOT.ML Sprod0.ML Sprod0.thy Sprod1.ML Sprod1.thy \
+  Sprod2.ML Sprod2.thy Sprod3.ML Sprod3.thy Ssum0.ML Ssum0.thy Ssum1.ML \
+  Ssum1.thy Ssum2.ML Ssum2.thy Ssum3.ML Ssum3.thy Tr.ML Tr.thy Up1.ML \
+  Up1.thy Up2.ML Up2.thy Up3.ML Up3.thy adm.ML cont_consts.ML \
+  domain/axioms.ML domain/extender.ML domain/interface.ML \
+  domain/library.ML domain/syntax.ML domain/theorems.ML holcf_logic.ML
 	@$(ISATOOL) usedir -b $(OUT)/HOL HOLCF
 
-$(OUT)/HOL:
-	@cd ../HOL; $(ISATOOL) make
+
+## HOLCF-IMP
+
+HOLCF-IMP: HOLCF $(LOG)/HOLCF-IMP.gz
+
+$(LOG)/HOLCF-IMP.gz: $(OUT)/HOLCF IMP/Denotational.ML \
+  IMP/Denotational.thy IMP/ROOT.ML
+	@$(ISATOOL) usedir $(OUT)/HOLCF IMP
 
 
+## HOLCF-ex
 
-#### Tests and examples
+HOLCF-ex: HOLCF $(LOG)/HOLCF-ex.gz
 
-## IOA meta theory and examples
+$(LOG)/HOLCF-ex.gz: $(OUT)/HOLCF ex/Dagstuhl.ML ex/Dagstuhl.thy \
+  ex/Dnat.ML ex/Dnat.thy ex/Fix2.ML ex/Fix2.thy ex/Focus_ex.ML \
+  ex/Focus_ex.thy ex/Hoare.ML ex/Hoare.thy ex/Loop.ML ex/Loop.thy \
+  ex/ROOT.ML ex/Stream.ML ex/Stream.thy ex/loeckx.ML
+	@$(ISATOOL) usedir $(OUT)/HOLCF ex
 
 
-IOA_FILES = IOA/ROOT.ML IOA/meta_theory/Traces.thy \
+## IOA
+
+IOA: HOLCF $(OUT)/IOA
+
+$(OUT)/IOA: $(OUT)/HOLCF IOA/ROOT.ML IOA/meta_theory/Traces.thy \
   IOA/meta_theory/Asig.ML IOA/meta_theory/Asig.thy \
   IOA/meta_theory/CompoScheds.thy IOA/meta_theory/CompoExecs.ML \
   IOA/meta_theory/CompoTraces.thy IOA/meta_theory/CompoScheds.ML \
@@ -54,72 +80,41 @@ IOA_FILES = IOA/ROOT.ML IOA/meta_theory/Traces.thy \
   IOA/meta_theory/CompoExecs.thy IOA/meta_theory/RefMappings.thy \
   IOA/meta_theory/RefCorrectness.ML IOA/meta_theory/Compositionality.ML \
   IOA/meta_theory/Compositionality.thy
-
-
-IOA_ABP_FILES = IOA/ABP/Abschannel.thy \
-  IOA/ABP/Abschannel_finite.thy IOA/ABP/Action.ML \
-  IOA/ABP/Action.thy IOA/ABP/Check.ML \
-  IOA/ABP/Correctness.ML IOA/ABP/Correctness.thy \
-  IOA/ABP/Env.thy IOA/ABP/Impl.thy \
-  IOA/ABP/Impl_finite.thy IOA/ABP/Lemmas.ML \
-  IOA/ABP/Lemmas.thy IOA/ABP/Packet.thy \
-  IOA/ABP/ROOT.ML IOA/ABP/Receiver.thy \
-  IOA/ABP/Sender.thy IOA/ABP/Spec.thy 
-
-
-IOA_NTP_FILES = IOA/NTP/Abschannel.ML \
-  IOA/NTP/Abschannel.thy IOA/NTP/Action.ML  \
-  IOA/NTP/Action.thy IOA/NTP/Correctness.ML \
-  IOA/NTP/Correctness.thy IOA/NTP/Impl.ML \
-  IOA/NTP/Impl.thy IOA/NTP/Lemmas.ML \
-  IOA/NTP/Lemmas.thy IOA/NTP/Multiset.ML \
-  IOA/NTP/Multiset.thy IOA/NTP/Packet.ML \
-  IOA/NTP/Packet.thy IOA/NTP/ROOT.ML \
-  IOA/NTP/Receiver.ML IOA/NTP/Receiver.thy \
-  IOA/NTP/Sender.ML IOA/NTP/Sender.thy \
-  IOA/NTP/Spec.thy 
-
- 
-$(OUT)/IOA: $(OUT)/HOLCF $(IOA_FILES)
 	@cd IOA; $(ISATOOL) usedir -b $(OUT)/HOLCF IOA
 
-$(LOG)/IOA-ABP.gz: $(OUT)/IOA $(IOA_ABP_FILES)
+
+## IOA-ABP
+
+IOA-ABP: IOA $(LOG)/IOA-ABP.gz
+
+$(LOG)/IOA-ABP.gz: $(OUT)/IOA IOA/ABP/Abschannel.thy \
+  IOA/ABP/Abschannel_finite.thy IOA/ABP/Action.ML IOA/ABP/Action.thy \
+  IOA/ABP/Check.ML IOA/ABP/Correctness.ML IOA/ABP/Correctness.thy \
+  IOA/ABP/Env.thy IOA/ABP/Impl.thy IOA/ABP/Impl_finite.thy \
+  IOA/ABP/Lemmas.ML IOA/ABP/Lemmas.thy IOA/ABP/Packet.thy \
+  IOA/ABP/ROOT.ML IOA/ABP/Receiver.thy IOA/ABP/Sender.thy \
+  IOA/ABP/Spec.thy
 	@cd IOA; $(ISATOOL) usedir $(OUT)/IOA ABP
 
-$(LOG)/IOA-NTP.gz: $(OUT)/IOA $(IOA_NTP_FILES)
+
+## IOA-NTP
+
+IOA-NTP: IOA $(LOG)/IOA-NTP.gz
+
+$(LOG)/IOA-NTP.gz: $(OUT)/IOA IOA/NTP/Abschannel.ML \
+  IOA/NTP/Abschannel.thy IOA/NTP/Action.ML IOA/NTP/Action.thy \
+  IOA/NTP/Correctness.ML IOA/NTP/Correctness.thy IOA/NTP/Impl.ML \
+  IOA/NTP/Impl.thy IOA/NTP/Lemmas.ML IOA/NTP/Lemmas.thy \
+  IOA/NTP/Multiset.ML IOA/NTP/Multiset.thy IOA/NTP/Packet.ML \
+  IOA/NTP/Packet.thy IOA/NTP/ROOT.ML IOA/NTP/Receiver.ML \
+  IOA/NTP/Receiver.thy IOA/NTP/Sender.ML IOA/NTP/Sender.thy \
+  IOA/NTP/Spec.thy
 	@cd IOA; $(ISATOOL) usedir $(OUT)/IOA NTP
 
 
-## IMP
-
-IMP_THYS = IMP/Denotational.thy
-IMP_FILES = IMP/ROOT.ML $(IMP_THYS) $(IMP_THYS:.thy=.ML)
-
-$(LOG)/HOLCF-IMP.gz: $(OUT)/HOLCF $(IMP_FILES)
-	@$(ISATOOL) usedir $(OUT)/HOLCF IMP
-
-
-## Miscellaneous examples
-
-EX_THYS = ex/Dnat.thy ex/Stream.thy \
-	  ex/Dagstuhl.thy ex/Focus_ex.thy ex/Fix2.thy \
-	  ex/Hoare.thy ex/Loop.thy
-
-EX_FILES = ex/ROOT.ML ex/loeckx.ML $(EX_THYS) $(EX_THYS:.thy=.ML)
-
-$(LOG)/HOLCF-ex.gz: ex/ROOT.ML $(EX_FILES)
-	@$(ISATOOL) usedir $(OUT)/HOLCF ex
-
-
-## Full test
-
-ALL_TARGETS = $(OUT)/HOLCF $(OUT)/IOA $(LOG)/IOA-ABP.gz $(LOG)/IOA-NTP.gz \
-  $(LOG)/HOLCF-IMP.gz $(LOG)/HOLCF-ex.gz
-
-test: $(ALL_TARGETS)
+## clean
 
 clean:
-	@rm -f $(ALL_TARGETS)
-
-
-.PRECIOUS: $(OUT)/HOL $(OUT)/HOLCF
+	@rm -f $(OUT)/HOLCF $(LOG)/HOLCF.gz $(LOG)/HOLCF-IMP.gz \
+	  $(LOG)/HOLCF-ex.gz $(OUT)/IOA $(LOG)/IOA.gz $(LOG)/IOA-ABP.gz \
+	  $(LOG)/IOA-NTP.gz

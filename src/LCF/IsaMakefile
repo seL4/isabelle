@@ -4,24 +4,41 @@
 # IsaMakefile for LCF
 #
 
+## targets
+
+default: LCF
+images: LCF
+test: LCF-ex
+all: images test
+
+
+## global settings
+
+SRC = $(ISABELLE_HOME)/src
 OUT = $(ISABELLE_OUTPUT)
 LOG = $(OUT)/log
 
-FILES =	ROOT.ML LCF.thy LCF.ML simpdata.ML pair.ML fix.ML
 
-$(OUT)/LCF: $(OUT)/FOL $(FILES)
+## LCF
+
+LCF: FOL $(OUT)/LCF
+
+FOL:
+	@cd $(SRC)/FOL; $(ISATOOL) make FOL
+
+$(OUT)/LCF: $(OUT)/FOL LCF.ML LCF.thy ROOT.ML fix.ML pair.ML simpdata.ML
 	@$(ISATOOL) usedir -b $(OUT)/FOL LCF
 
-$(OUT)/FOL:
-	@cd ../FOL; $(ISATOOL) make
 
-$(LOG)/LCF-ex.gz: ex/ROOT.ML ex/ex.ML $(OUT)/LCF
+## LCF-ex
+
+LCF-ex: LCF $(LOG)/LCF-ex.gz
+
+$(LOG)/LCF-ex.gz: $(OUT)/LCF ex/ROOT.ML ex/ex.ML
 	@$(ISATOOL) usedir $(OUT)/LCF ex
 
-test: $(OUT)/LCF $(LOG)/LCF-ex.gz
+
+## clean
 
 clean:
-	@rm -f $(OUT)/LCF $(LOG)/LCF-ex.gz
-
-
-.PRECIOUS: $(OUT)/FOL $(OUT)/LCF
+	@rm -f $(OUT)/LCF $(LOG)/LCF.gz $(LOG)/LCF-ex.gz

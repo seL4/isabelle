@@ -4,29 +4,44 @@
 # IsaMakefile for FOLP
 #
 
+## targets
+
+default: FOLP
+images: FOLP
+test: FOLP-ex
+all: images test
+
+
+## global settings
+
+SRC = $(ISABELLE_HOME)/src
 OUT = $(ISABELLE_OUTPUT)
 LOG = $(OUT)/log
 
-FILES =	ROOT.ML IFOLP.thy IFOLP.ML FOLP.thy FOLP.ML intprover.ML simpdata.ML \
-	hypsubst.ML classical.ML simp.ML
 
-EX_FILES = ex/ROOT.ML ex/cla.ML ex/foundn.ML ex/If.ML ex/If.thy ex/int.ML \
-	   ex/intro.ML ex/Nat.ML ex/Nat.thy ex/Prolog.ML ex/Prolog.thy \
-	   ex/prop.ML ex/quant.ML
+## FOLP
 
-$(OUT)/FOLP: $(OUT)/Pure $(FILES)
+FOLP: Pure $(OUT)/FOLP
+
+Pure:
+	@cd $(SRC)/Pure; $(ISATOOL) make Pure
+
+$(OUT)/FOLP: $(OUT)/Pure FOLP.ML FOLP.thy IFOLP.ML IFOLP.thy ROOT.ML \
+  classical.ML hypsubst.ML intprover.ML simp.ML simpdata.ML
 	@$(ISATOOL) usedir -b $(OUT)/Pure FOLP
 
-$(OUT)/Pure:
-	@cd ../Pure; $(ISATOOL) make
 
-$(LOG)/FOLP-ex.gz: ex/ROOT.ML $(OUT)/FOLP $(EX_FILES)
+## FOLP-ex
+
+FOLP-ex: FOLP $(LOG)/FOLP-ex.gz
+
+$(LOG)/FOLP-ex.gz: $(OUT)/FOLP ex/ROOT.ML ex/cla.ML ex/foundn.ML \
+  ex/If.ML ex/If.thy ex/int.ML ex/intro.ML ex/Nat.ML ex/Nat.thy \
+  ex/Prolog.ML ex/Prolog.thy ex/prop.ML ex/quant.ML
 	@$(ISATOOL) usedir $(OUT)/FOLP ex
 
-test: $(OUT)/FOLP $(LOG)/FOLP-ex.gz
+
+## clean
 
 clean:
-	@rm -f $(OUT)/FOLP $(LOG)/FOLP-ex.gz
-
-
-.PRECIOUS: $(OUT)/Pure $(OUT)/FOLP
+	@rm -f $(OUT)/FOLP $(LOG)/FOLP.gz $(LOG)/FOLP-ex.gz

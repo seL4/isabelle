@@ -4,27 +4,43 @@
 # IsaMakefile for CTT
 #
 
+## targets
+
+default: CTT
+images: CTT
+test: CTT-ex
+all: images test
+
+
+## global settings
+
+SRC = $(ISABELLE_HOME)/src
 OUT = $(ISABELLE_OUTPUT)
 LOG = $(OUT)/log
 
-FILES =	ROOT.ML CTT.thy CTT.ML Bool.thy Bool.ML \
-	Arith.thy Arith.ML rew.ML ../Provers/typedsimp.ML
 
-EX_FILES = ex/ROOT.ML ex/elim.ML ex/equal.ML ex/synth.ML ex/typechk.ML
+## CTT
 
-$(OUT)/CTT: $(OUT)/Pure $(FILES)
+CTT: Pure $(OUT)/CTT
+
+Pure:
+	@cd $(SRC)/Pure; $(ISATOOL) make Pure
+
+$(OUT)/CTT: $(OUT)/Pure $(SRC)/Provers/typedsimp.ML Arith.ML Arith.thy \
+  Bool.ML Bool.thy CTT.ML CTT.thy ROOT.ML rew.ML
 	@$(ISATOOL) usedir -b $(OUT)/Pure CTT
 
-$(OUT)/Pure:
-	@cd ../Pure; $(ISATOOL) make
 
-$(LOG)/CTT-ex.gz: ex/ROOT.ML $(OUT)/CTT $(EX_FILES)
+## CTT-ex
+
+CTT-ex: CTT $(LOG)/CTT-ex.gz
+
+$(LOG)/CTT-ex.gz: $(OUT)/CTT ex/ROOT.ML ex/elim.ML ex/equal.ML \
+  ex/synth.ML ex/typechk.ML
 	@$(ISATOOL) usedir $(OUT)/CTT ex
 
-test: $(OUT)/CTT $(LOG)/CTT-ex.gz
+
+## clean
 
 clean:
-	@rm -f $(OUT)/CTT $(LOG)/CTT-ex.gz
-
-
-.PRECIOUS: $(OUT)/Pure $(OUT)/CTT
+	@rm -f $(OUT)/CTT $(LOG)/CTT.gz $(LOG)/CTT-ex.gz

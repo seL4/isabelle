@@ -4,33 +4,46 @@
 # IsaMakefile for CCL
 #
 
+## targets
+
+default: CCL
+images: CCL
+test: CCL-ex
+all: images test
+
+
+## global settings
+
+SRC = $(ISABELLE_HOME)/src
 OUT = $(ISABELLE_OUTPUT)
 LOG = $(OUT)/log
 
-SET_FILES = ROOT.ML Set.thy Set.ML subset.ML equalities.ML mono.ML \
-	    Gfp.thy Gfp.ML Lfp.thy Lfp.ML
 
-CCL_FILES = CCL.thy CCL.ML Term.thy Term.ML Type.thy Type.ML \
-	    coinduction.ML Hered.thy Hered.ML Trancl.thy Trancl.ML \
-	    Wfd.thy Wfd.ML genrec.ML typecheck.ML eval.ML Fix.thy Fix.ML
+## CCL
 
-EX_FILES = ex/ROOT.ML ex/Flag.ML ex/Flag.thy ex/List.ML ex/List.thy \
-	   ex/Nat.ML ex/Nat.thy ex/Stream.ML ex/Stream.thy
+CCL: FOL $(OUT)/CCL
 
+FOL:
+	@cd $(SRC)/FOL; $(ISATOOL) make FOL
 
-$(OUT)/CCL: $(OUT)/FOL $(SET_FILES) $(CCL_FILES)
+$(OUT)/CCL: $(OUT)/FOL CCL.ML CCL.thy Fix.ML Fix.thy Gfp.ML Gfp.thy \
+  Hered.ML Hered.thy Lfp.ML Lfp.thy ROOT.ML Set.ML Set.thy Term.ML \
+  Term.thy Trancl.ML Trancl.thy Type.ML Type.thy Wfd.ML Wfd.thy \
+  coinduction.ML equalities.ML eval.ML genrec.ML mono.ML subset.ML \
+  typecheck.ML
 	@$(ISATOOL) usedir -b $(OUT)/FOL CCL
 
-$(OUT)/FOL:
-	@cd ../FOL; $(ISATOOL) make
 
-$(LOG)/CCL-ex.gz: ex/ROOT.ML $(OUT)/CCL $(EX_FILES)
+## CCL-ex
+
+CCL-ex: CCL $(LOG)/CCL-ex.gz
+
+$(LOG)/CCL-ex.gz: $(OUT)/CCL ex/Flag.ML ex/Flag.thy ex/List.ML \
+  ex/List.thy ex/Nat.ML ex/Nat.thy ex/ROOT.ML ex/Stream.ML ex/Stream.thy
 	@$(ISATOOL) usedir $(OUT)/CCL ex
 
-test: $(OUT)/CCL $(LOG)/CCL-ex.gz
+
+## clean
 
 clean:
-	@rm -f $(OUT)/CCL $(LOG)/CCL-ex.gz
-
-
-.PRECIOUS: $(OUT)/FOL $(OUT)/CCL
+	@rm -f $(OUT)/CCL $(LOG)/CCL.gz $(LOG)/CCL-ex.gz

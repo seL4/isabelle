@@ -4,33 +4,48 @@
 # IsaMakefile for FOL
 #
 
+## targets
+
+default: FOL
+images: FOL
+test: FOL-ex
+all: images test
+
+
+## global settings
+
+SRC = $(ISABELLE_HOME)/src
 OUT = $(ISABELLE_OUTPUT)
 LOG = $(OUT)/log
 
-PROVERS = hypsubst.ML classical.ML blast.ML \
-	simplifier.ML splitter.ML ind.ML 
 
-FILES =	ROOT.ML IFOL.thy IFOL.ML FOL.thy FOL.ML intprover.ML simpdata.ML \
-	fologic.ML cladata.ML $(PROVERS:%=$(ISABELLE_HOME)/src/Provers/%)
+## FOL
 
-EX_NAMES = If List Nat Nat2 Prolog IffOracle
-EX_FILES = ex/ROOT.ML ex/cla.ML ex/foundn.ML ex/int.ML ex/intro.ML \
-	   ex/prop.ML ex/quant.ML $(EX_NAMES:%=ex/%.thy) $(EX_NAMES:%=ex/%.ML)
+FOL: Pure $(OUT)/FOL
 
+Pure:
+	@cd $(SRC)/Pure; $(ISATOOL) make Pure
 
-$(OUT)/FOL: $(OUT)/Pure $(FILES)
+$(OUT)/FOL: $(OUT)/Pure $(SRC)/Provers/blast.ML \
+  $(SRC)/Provers/classical.ML $(SRC)/Provers/hypsubst.ML \
+  $(SRC)/Provers/ind.ML $(SRC)/Provers/simplifier.ML \
+  $(SRC)/Provers/splitter.ML FOL.ML FOL.thy IFOL.ML IFOL.thy ROOT.ML \
+  cladata.ML fologic.ML intprover.ML simpdata.ML
 	@$(ISATOOL) usedir -b $(OUT)/Pure FOL
 
-$(OUT)/Pure:
-	@cd ../Pure; $(ISATOOL) make
 
-$(LOG)/FOL-ex.gz: ex/ROOT.ML $(OUT)/FOL $(EX_FILES)
+## FOL-ex
+
+FOL-ex: FOL $(LOG)/FOL-ex.gz
+
+$(LOG)/FOL-ex.gz: $(OUT)/FOL ex/If.ML ex/If.thy ex/IffOracle.ML \
+  ex/IffOracle.thy ex/List.ML ex/List.thy ex/Nat.ML ex/Nat.thy \
+  ex/Nat2.ML ex/Nat2.thy ex/Prolog.ML ex/Prolog.thy ex/ROOT.ML ex/cla.ML \
+  ex/foundn.ML ex/int.ML ex/intro.ML ex/prop.ML ex/quant.ML
 	@$(ISATOOL) usedir $(OUT)/FOL ex
 
-test: $(OUT)/FOL $(LOG)/FOL-ex.gz
+
+## clean
 
 clean:
-	@rm -f $(OUT)/FOL $(LOG)/FOL-ex.gz
-
-
-.PRECIOUS: $(OUT)/Pure $(OUT)/FOL
+	@rm -f $(OUT)/FOL $(LOG)/FOL.gz $(LOG)/FOL-ex.gz

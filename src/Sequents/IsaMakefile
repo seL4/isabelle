@@ -4,32 +4,46 @@
 # IsaMakefile for Sequents
 #
 
+## targets
+
+default: Sequents
+images: Sequents
+test: Sequents-ex
+all: images test
+
+
+## global settings
+
+SRC = $(ISABELLE_HOME)/src
 OUT = $(ISABELLE_OUTPUT)
 LOG = $(OUT)/log
 
-NAMES = ILL LK S4 S43 T
-FILES = ROOT.ML Sequents.thy prover.ML $(NAMES:%=%.thy) $(NAMES:%=%.ML)
 
-ILL_NAMES = ILL_predlog washing
-EX_FILES = ex/ROOT.ML \
-    ex/LK/ROOT.ML ex/LK/hardquant.ML ex/LK/prop.ML ex/LK/quant.ML \
-    ex/Modal/ROOT.ML ex/Modal/S43thms.ML ex/Modal/S4thms.ML ex/Modal/Tthms.ML \
-    ex/ILL/ILL_kleene_lemmas.ML \
-    $(ILL_NAMES:%=ex/ILL/%.thy) $(ILL_NAMES:%=ex/ILL/%.ML)
+## Sequents
 
-$(OUT)/Sequents: $(OUT)/Pure $(FILES)
+Sequents: Pure $(OUT)/Sequents
+
+Pure:
+	@cd $(SRC)/Pure; $(ISATOOL) make Pure
+
+$(OUT)/Sequents: $(OUT)/Pure ILL.ML ILL.thy LK.ML LK.thy ROOT.ML S4.ML \
+  S4.thy S43.ML S43.thy Sequents.thy T.ML T.thy prover.ML
 	@$(ISATOOL) usedir -b $(OUT)/Pure Sequents
 
-$(OUT)/Pure:
-	@cd ../Pure; $(ISATOOL) make
 
-$(LOG)/Sequents-ex.gz: $(OUT)/Sequents $(EX_FILES)
+## Sequents-ex
+
+Sequents-ex: Sequents $(LOG)/Sequents-ex.gz
+
+$(LOG)/Sequents-ex.gz: $(OUT)/Sequents ex/ILL/ILL_kleene_lemmas.ML \
+  ex/ILL/ILL_predlog.ML ex/ILL/ILL_predlog.thy ex/ILL/washing.ML \
+  ex/ILL/washing.thy ex/LK/ROOT.ML ex/LK/hardquant.ML ex/LK/prop.ML \
+  ex/LK/quant.ML ex/Modal/ROOT.ML ex/Modal/S43thms.ML ex/Modal/S4thms.ML \
+  ex/Modal/Tthms.ML ex/ROOT.ML
 	@$(ISATOOL) usedir $(OUT)/Sequents ex
 
-test: $(OUT)/Sequents $(LOG)/Sequents-ex.gz
+
+## clean
 
 clean:
-	@rm -f $(OUT)/Sequents $(LOG)/Sequents-ex.gz
-
-
-.PRECIOUS: $(OUT)/Pure $(OUT)/Sequents
+	@rm -f $(OUT)/Sequents $(LOG)/Sequents.gz $(LOG)/Sequents-ex.gz

@@ -1,38 +1,51 @@
 #
-#  $Id$
+# $Id$
 #
-# IsaMakefile for Pure Isabelle
-#
-# The Pure part is common to all systems. Object-logics (like FOL)
-# are loaded on top of it.
+# IsaMakefile for Pure
 #
 
+## targets
+
+default: Pure
+images: Pure
+test:
+all: images test
+
+
+## global settings
+
+SRC = $(ISABELLE_HOME)/src
 OUT = $(ISABELLE_OUTPUT)
+LOG = $(OUT)/log
 
-FILES = ML-Systems/mlworks.ML ML-Systems/polyml.ML ML-Systems/smlnj-0.93.ML \
-	ML-Systems/smlnj.ML ROOT.ML Syntax/ROOT.ML Syntax/ast.ML \
-	Syntax/lexicon.ML Syntax/mixfix.ML Syntax/parser.ML Syntax/pretty.ML \
-	Syntax/printer.ML Syntax/symbol_font.ML Syntax/syn_ext.ML \
-	Syntax/syn_trans.ML Syntax/syntax.ML Syntax/token_trans.ML \
-	Syntax/type_ext.ML Thy/ROOT.ML Thy/browser_info.ML Thy/context.ML Thy/file.ML \
-	Thy/path.ML Thy/thm_database.ML Thy/thy_info.ML Thy/thy_parse.ML \
-	Thy/thy_read.ML Thy/thy_scan.ML Thy/thy_syn.ML Thy/use.ML \
-	axclass.ML basis.ML deriv.ML display.ML drule.ML envir.ML \
-	goals.ML install_pp.ML library.ML logic.ML name_space.ML net.ML \
-	pattern.ML pure_thy.ML search.ML section_utils.ML seq.ML sign.ML \
-	sorts.ML table.ML tactic.ML tctical.ML term.ML theory.ML thm.ML \
-	type.ML type_infer.ML unify.ML
 
-$(OUT)/Pure: $(FILES)
+## Pure
+
+Pure: $(OUT)/Pure
+
+$(OUT)/Pure: ML-Systems/mlworks.ML ML-Systems/polyml.ML \
+  ML-Systems/smlnj-0.93.ML ML-Systems/smlnj.ML ROOT.ML Syntax/ROOT.ML \
+  Syntax/ast.ML Syntax/lexicon.ML Syntax/mixfix.ML Syntax/parser.ML \
+  Syntax/pretty.ML Syntax/printer.ML Syntax/symbol_font.ML \
+  Syntax/syn_ext.ML Syntax/syn_trans.ML Syntax/syntax.ML \
+  Syntax/token_trans.ML Syntax/type_ext.ML Thy/ROOT.ML \
+  Thy/browser_info.ML Thy/context.ML Thy/file.ML Thy/path.ML \
+  Thy/thm_database.ML Thy/thy_info.ML Thy/thy_parse.ML Thy/thy_read.ML \
+  Thy/thy_scan.ML Thy/thy_syn.ML Thy/use.ML axclass.ML basis.ML deriv.ML \
+  display.ML drule.ML envir.ML goals.ML install_pp.ML library.ML \
+  logic.ML name_space.ML net.ML pattern.ML pure_thy.ML search.ML \
+  section_utils.ML seq.ML sign.ML sorts.ML table.ML tactic.ML tctical.ML \
+  term.ML theory.ML thm.ML type.ML type_infer.ML unify.ML
 	@./mk
 
-RAW: $(FILES)
+
+## RAW
+
+RAW:
 	@./mk -r
 
-test: $(OUT)/Pure
+
+## clean
 
 clean:
-	@rm -f $(OUT)/Pure $(OUT)/RAW
-
-
-.PRECIOUS: $(OUT)/Pure $(OUT)/RAW
+	@rm -f $(OUT)/Pure $(LOG)/Pure.gz $(OUT)/RAW $(LOG)/RAW.gz

@@ -4,24 +4,41 @@
 # IsaMakefile for Cube
 #
 
+## targets
+
+default: Cube
+images: Cube
+test: Cube-ex
+all: images test
+
+
+## global settings
+
+SRC = $(ISABELLE_HOME)/src
 OUT = $(ISABELLE_OUTPUT)
 LOG = $(OUT)/log
 
-FILES =	ROOT.ML Cube.thy Cube.ML
 
-$(OUT)/Cube: $(OUT)/Pure $(FILES)
+## Cube
+
+Cube: Pure $(OUT)/Cube
+
+Pure:
+	@cd $(SRC)/Pure; $(ISATOOL) make Pure
+
+$(OUT)/Cube: $(OUT)/Pure Cube.ML Cube.thy ROOT.ML
 	@$(ISATOOL) usedir -b $(OUT)/Pure Cube
 
-$(OUT)/Pure:
-	@cd ../Pure; $(ISATOOL) make
 
-$(LOG)/Cube-ex.gz: ex/ROOT.ML ex/ex.ML $(OUT)/Cube
+## Cube-ex
+
+Cube-ex: Cube $(LOG)/Cube-ex.gz
+
+$(LOG)/Cube-ex.gz: $(OUT)/Cube ex/ex.ML ex/ROOT.ML
 	@$(ISATOOL) usedir $(OUT)/Cube ex
 
-test: $(OUT)/Cube $(LOG)/Cube-ex.gz
+
+## clean
 
 clean:
-	@rm -f $(OUT)/Cube $(LOG)/Cube-ex.gz
-
-
-.PRECIOUS: $(OUT)/Pure $(OUT)/Cube
+	@rm -f $(OUT)/Cube $(LOG)/Cube.gz $(LOG)/Cube-ex.gz

@@ -4,100 +4,118 @@
 # IsaMakefile for ZF
 #
 
-#### Base system
+## targets
 
+default: ZF
+images: ZF
+test: ZF-IMP ZF-Coind ZF-AC ZF-Resid ZF-ex
+all: images test
+
+
+## global settings
+
+SRC = $(ISABELLE_HOME)/src
 OUT = $(ISABELLE_OUTPUT)
 LOG = $(OUT)/log
 
-NAMES = ZF upair subset pair domrange \
-	func AC equalities Bool \
-	Sum QPair mono Fixedpt ind_syntax cartprod add_ind_def \
-	constructor intr_elim indrule Inductive Perm Rel EquivClass Trancl \
-	WF Order Ordinal Epsilon Arith Univ \
-	QUniv Datatype OrderArith OrderType \
-	Cardinal CardinalArith Cardinal_AC InfDatatype \
-	Zorn Nat Finite List
 
-FILES = ROOT.ML thy_syntax.ML ../Pure/section_utils.ML simpdata.ML typechk.ML \
-	$(NAMES:%=%.thy) $(NAMES:%=%.ML)
+## ZF
 
-$(OUT)/ZF: $(OUT)/FOL $(FILES)
+ZF: FOL $(OUT)/ZF
+
+FOL:
+	@cd $(SRC)/FOL; $(ISATOOL) make FOL
+
+$(OUT)/ZF: $(OUT)/FOL $(SRC)/Pure/section_utils.ML AC.ML AC.thy \
+  Arith.ML Arith.thy Bool.ML Bool.thy Cardinal.ML Cardinal.thy \
+  CardinalArith.ML CardinalArith.thy Cardinal_AC.ML Cardinal_AC.thy \
+  Datatype.ML Datatype.thy Epsilon.ML Epsilon.thy EquivClass.ML \
+  EquivClass.thy Finite.ML Finite.thy Fixedpt.ML Fixedpt.thy \
+  Inductive.ML Inductive.thy InfDatatype.ML InfDatatype.thy List.ML \
+  List.thy Nat.ML Nat.thy Order.ML Order.thy OrderArith.ML \
+  OrderArith.thy OrderType.ML OrderType.thy Ordinal.ML Ordinal.thy \
+  Perm.ML Perm.thy QPair.ML QPair.thy QUniv.ML QUniv.thy ROOT.ML Rel.ML \
+  Rel.thy Sum.ML Sum.thy Trancl.ML Trancl.thy Univ.ML Univ.thy WF.ML \
+  WF.thy ZF.ML ZF.thy Zorn.ML Zorn.thy add_ind_def.ML add_ind_def.thy \
+  cartprod.ML cartprod.thy constructor.ML constructor.thy domrange.ML \
+  domrange.thy equalities.ML equalities.thy func.ML func.thy \
+  ind_syntax.ML ind_syntax.thy indrule.ML indrule.thy intr_elim.ML \
+  intr_elim.thy mono.ML mono.thy pair.ML pair.thy simpdata.ML subset.ML \
+  subset.thy thy_syntax.ML typechk.ML upair.ML upair.thy
 	@$(ISATOOL) usedir -b $(OUT)/FOL ZF
 
-$(OUT)/FOL:
-	@cd ../FOL; $(ISATOOL) make
 
+## ZF-IMP
 
+ZF-IMP: ZF $(LOG)/ZF-IMP.gz
 
-#### Tests and examples
-
-## IMP-semantics example
-
-IMP_NAMES = Com Denotation Equiv
-IMP_FILES = IMP/ROOT.ML $(IMP_NAMES:%=IMP/%.thy) $(IMP_NAMES:%=IMP/%.ML)
-
-$(LOG)/ZF-IMP.gz: $(OUT)/ZF $(IMP_FILES)
+$(LOG)/ZF-IMP.gz: $(OUT)/ZF IMP/Com.ML IMP/Com.thy IMP/Denotation.ML \
+  IMP/Denotation.thy IMP/Equiv.ML IMP/Equiv.thy IMP/ROOT.ML
 	@$(ISATOOL) usedir $(OUT)/ZF IMP
 
 
-## Coinduction example
+## ZF-Coind
 
-COIND_NAMES = ECR MT Map Static Types Values
+ZF-Coind: ZF $(LOG)/ZF-Coind.gz
 
-COIND_FILES = Coind/ROOT.ML Coind/Language.thy Coind/BCR.thy Coind/Dynamic.thy \
-	      $(COIND_NAMES:%=Coind/%.thy) $(COIND_NAMES:%=Coind/%.ML)
-
-$(LOG)/ZF-Coind.gz: $(OUT)/ZF $(COIND_FILES)
+$(LOG)/ZF-Coind.gz: $(OUT)/ZF Coind/BCR.thy Coind/Dynamic.thy \
+  Coind/ECR.ML Coind/ECR.thy Coind/Language.thy Coind/MT.ML Coind/MT.thy \
+  Coind/Map.ML Coind/Map.thy Coind/ROOT.ML Coind/Static.ML \
+  Coind/Static.thy Coind/Types.ML Coind/Types.thy Coind/Values.ML \
+  Coind/Values.thy
 	@$(ISATOOL) usedir $(OUT)/ZF Coind
 
 
-## AC examples
+## ZF-AC
 
-AC_NAMES = AC_Equiv Cardinal_aux \
-	   AC15_WO6 AC16_WO4 AC16_lemmas AC17_AC1 AC18_AC19 AC1_WO2 \
-	   DC DC_lemmas HH Hartog WO1_AC \
-	   WO2_AC16 WO6_WO1 WO_AC recfunAC16 rel_is_fun
+ZF-AC: ZF $(LOG)/ZF-AC.gz
 
-AC_FILES = AC/ROOT.ML AC/AC0_AC1.ML AC/AC10_AC15.ML AC/AC1_AC17.ML \
-	   AC/AC2_AC6.ML AC/AC7_AC9.ML \
-	   AC/WO1_WO6.ML AC/WO1_WO7.ML AC/WO1_WO8.ML \
-	   $(AC_NAMES:%=AC/%.thy) $(AC_NAMES:%=AC/%.ML)
-
-$(LOG)/ZF-AC.gz: $(OUT)/ZF $(AC_FILES)
+$(LOG)/ZF-AC.gz: $(OUT)/ZF AC/AC0_AC1.ML AC/AC10_AC15.ML \
+  AC/AC15_WO6.ML AC/AC15_WO6.thy AC/AC16_WO4.ML AC/AC16_WO4.thy \
+  AC/AC16_lemmas.ML AC/AC16_lemmas.thy AC/AC17_AC1.ML AC/AC17_AC1.thy \
+  AC/AC18_AC19.ML AC/AC18_AC19.thy AC/AC1_AC17.ML AC/AC1_WO2.ML \
+  AC/AC1_WO2.thy AC/AC2_AC6.ML AC/AC7_AC9.ML AC/AC_Equiv.ML \
+  AC/AC_Equiv.thy AC/Cardinal_aux.ML AC/Cardinal_aux.thy AC/DC.ML \
+  AC/DC.thy AC/DC_lemmas.ML AC/DC_lemmas.thy AC/HH.ML AC/HH.thy \
+  AC/Hartog.ML AC/Hartog.thy AC/ROOT.ML AC/WO1_AC.ML AC/WO1_AC.thy \
+  AC/WO1_WO6.ML AC/WO1_WO7.ML AC/WO1_WO8.ML AC/WO2_AC16.ML \
+  AC/WO2_AC16.thy AC/WO6_WO1.ML AC/WO6_WO1.thy AC/WO_AC.ML AC/WO_AC.thy \
+  AC/recfunAC16.ML AC/recfunAC16.thy AC/rel_is_fun.ML AC/rel_is_fun.thy
 	@$(ISATOOL) usedir $(OUT)/ZF AC
 
 
-## Residuals example
+## ZF-Resid
 
-RESID_NAMES = Confluence Redex SubUnion Conversion Reduction Substitution \
-	      Cube Residuals Terms
+ZF-Resid: ZF $(LOG)/ZF-Resid.gz
 
-RESID_FILES = Resid/ROOT.ML $(RESID_NAMES:%=Resid/%.thy) $(RESID_NAMES:%=Resid/%.ML)
-
-$(LOG)/ZF-Resid.gz: $(OUT)/ZF $(RESID_FILES)
+$(LOG)/ZF-Resid.gz: $(OUT)/ZF Resid/Confluence.ML Resid/Confluence.thy \
+  Resid/Conversion.ML Resid/Conversion.thy Resid/Cube.ML Resid/Cube.thy \
+  Resid/ROOT.ML Resid/Redex.ML Resid/Redex.thy Resid/Reduction.ML \
+  Resid/Reduction.thy Resid/Residuals.ML Resid/Residuals.thy \
+  Resid/SubUnion.ML Resid/SubUnion.thy Resid/Substitution.ML \
+  Resid/Substitution.thy Resid/Terms.ML Resid/Terms.thy
 	@$(ISATOOL) usedir $(OUT)/ZF Resid
 
 
-## Miscellaneous examples
+## ZF-ex
 
-EX_NAMES = Primes Ramsey Limit Integ twos_compl Bin BT Term TF Ntree Brouwer \
-	   Data Enum Rmap Mutil PropLog ListN Acc Comb Primrec LList CoUnit
+ZF-ex: ZF $(LOG)/ZF-ex.gz
 
-EX_FILES = ex/ROOT.ML ex/misc.ML $(EX_NAMES:%=ex/%.thy) $(EX_NAMES:%=ex/%.ML)
-
-$(LOG)/ZF-ex.gz: $(OUT)/ZF $(EX_FILES)
+$(LOG)/ZF-ex.gz: $(OUT)/ZF ex/Acc.ML ex/Acc.thy ex/BT.ML ex/BT.thy \
+  ex/Bin.ML ex/Bin.thy ex/Brouwer.ML ex/Brouwer.thy ex/CoUnit.ML \
+  ex/CoUnit.thy ex/Comb.ML ex/Comb.thy ex/Data.ML ex/Data.thy ex/Enum.ML \
+  ex/Enum.thy ex/Integ.ML ex/Integ.thy ex/LList.ML ex/LList.thy \
+  ex/Limit.ML ex/Limit.thy ex/ListN.ML ex/ListN.thy ex/Mutil.ML \
+  ex/Mutil.thy ex/Ntree.ML ex/Ntree.thy ex/Primes.ML ex/Primes.thy \
+  ex/Primrec.ML ex/Primrec.thy ex/PropLog.ML ex/PropLog.thy ex/ROOT.ML \
+  ex/Ramsey.ML ex/Ramsey.thy ex/Rmap.ML ex/Rmap.thy ex/TF.ML ex/TF.thy \
+  ex/Term.ML ex/Term.thy ex/misc.ML ex/twos_compl.ML ex/twos_compl.thy
 	@$(ISATOOL) usedir $(OUT)/ZF ex
 
 
-## Full test
-
-ALL_TARGETS = $(OUT)/ZF $(LOG)/ZF-IMP.gz $(LOG)/ZF-Coind.gz \
-  $(LOG)/ZF-AC.gz $(LOG)/ZF-Resid.gz $(LOG)/ZF-ex.gz
-
-test: $(ALL_TARGETS)
+## clean
 
 clean:
-	@rm -f $(ALL_TARGETS)
-
-
-.PRECIOUS: $(OUT)/FOL $(OUT)/ZF
+	@rm -f $(OUT)/ZF $(LOG)/ZF.gz $(LOG)/ZF-IMP.gz \
+	  $(LOG)/ZF-Coind.gz $(LOG)/ZF-AC.gz $(LOG)/ZF-Resid.gz \
+	  $(LOG)/ZF-ex.gz

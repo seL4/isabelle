@@ -4,267 +4,320 @@
 # IsaMakefile for HOL
 #
 
-#### Base system
+## targets
 
+default: HOL
+images: HOL TLA
+test: HOL-Subst HOL-Induct HOL-IMP HOL-Hoare HOL-Lex HOL-Integ \
+  HOL-Auth HOL-Modelcheck HOL-Lambda HOL-W0 HOL-MiniML HOL-IOA \
+  HOL-AxClasses HOL-AxClasses-Group HOL-AxClasses-Lattice \
+  HOL-AxClasses-Tutorial HOL-Quot HOL-ex TLA-Inc TLA-Buffer TLA-Memory
+all: images test
+
+
+## global settings
+
+SRC = $(ISABELLE_HOME)/src
 OUT = $(ISABELLE_OUTPUT)
 LOG = $(OUT)/log
 
-NAMES = HOL Ord Set Fun subset equalities Prod Relation Trancl Sum WF WF_Rel \
-	mono Lfp Gfp NatDef Nat intr_elim indrule Inductive Finite Arith \
-	Divides Power Sexp Univ List RelPow Option Map
 
-PROVERS = hypsubst.ML classical.ML blast.ML \
-	simplifier.ML splitter.ML Arith/nat_transitive.ML Arith/cancel_sums.ML
+## HOL
 
-TFL   = dcterm.sml post.sml rules.new.sml rules.sig \
-	sys.sml tfl.sig tfl.sml thms.sig thms.sml thry.sig thry.sml   \
-	usyntax.sig usyntax.sml utils.sig utils.sml
+HOL: Pure $(OUT)/HOL
 
-FILES = ROOT.ML add_ind_def.ML datatype.ML hologic.ML \
-	ind_syntax.ML cladata.ML record.ML simpdata.ML arith_data.ML \
-	typedef.ML thy_syntax.ML thy_data.ML $(ISABELLE_HOME)/src/Pure/section_utils.ML \
-	$(NAMES:%=%.thy) $(NAMES:%=%.ML) $(TFL:%=../TFL/%) \
-	$(PROVERS:%=$(ISABELLE_HOME)/src/Provers/%)
+Pure:
+	@cd $(SRC)/Pure; $(ISATOOL) make Pure
 
-$(OUT)/HOL: $(OUT)/Pure $(FILES)
+$(OUT)/HOL: $(OUT)/Pure $(SRC)/Provers/Arith/cancel_sums.ML \
+  $(SRC)/Provers/Arith/nat_transitive.ML $(SRC)/Provers/blast.ML \
+  $(SRC)/Provers/classical.ML $(SRC)/Provers/hypsubst.ML \
+  $(SRC)/Provers/simplifier.ML $(SRC)/Provers/splitter.ML \
+  $(SRC)/Pure/section_utils.ML $(SRC)/TFL/dcterm.sml $(SRC)/TFL/post.sml \
+  $(SRC)/TFL/rules.new.sml $(SRC)/TFL/rules.sig $(SRC)/TFL/sys.sml \
+  $(SRC)/TFL/tfl.sig $(SRC)/TFL/tfl.sml $(SRC)/TFL/thms.sig \
+  $(SRC)/TFL/thms.sml $(SRC)/TFL/thry.sig $(SRC)/TFL/thry.sml \
+  $(SRC)/TFL/usyntax.sig $(SRC)/TFL/usyntax.sml $(SRC)/TFL/utils.sig \
+  $(SRC)/TFL/utils.sml Arith.ML Arith.thy Divides.ML Divides.thy \
+  Finite.ML Finite.thy Fun.ML Fun.thy Gfp.ML Gfp.thy HOL.ML HOL.thy \
+  Inductive.ML Inductive.thy Lfp.ML Lfp.thy List.ML List.thy Map.ML \
+  Map.thy Nat.ML Nat.thy NatDef.ML NatDef.thy Option.ML Option.thy \
+  Ord.ML Ord.thy Power.ML Power.thy Prod.ML Prod.thy ROOT.ML RelPow.ML \
+  RelPow.thy Relation.ML Relation.thy Set.ML Set.thy Sexp.ML Sexp.thy \
+  Sum.ML Sum.thy Trancl.ML Trancl.thy Univ.ML Univ.thy WF.ML WF.thy \
+  WF_Rel.ML WF_Rel.thy add_ind_def.ML arith_data.ML cladata.ML \
+  datatype.ML equalities.ML equalities.thy hologic.ML ind_syntax.ML \
+  indrule.ML indrule.thy intr_elim.ML intr_elim.thy mono.ML mono.thy \
+  record.ML simpdata.ML subset.ML subset.thy thy_data.ML thy_syntax.ML \
+  typedef.ML
 	@$(ISATOOL) usedir -b $(OUT)/Pure HOL
 
-$(OUT)/Pure:
-	@cd ../Pure; $(ISATOOL) make
 
+## HOL-Subst
 
-#### Tests and examples
+HOL-Subst: HOL $(LOG)/HOL-Subst.gz
 
-## Inductive definitions: simple examples
-
-INDUCT_FILES = Perm Comb Mutil SList LList LFilter Acc PropLog Term Simult Com Exp
-
-INDUCT_FILES = Induct/ROOT.ML \
-	    $(INDUCT_NAMES:%=Induct/%.thy) $(INDUCT_NAMES:%=Induct/%.ML)
-
-$(LOG)/HOL-Induct.gz: $(OUT)/HOL $(INDUCT_FILES)
-	@$(ISATOOL) usedir $(OUT)/HOL Induct
-
-
-## IMP-semantics example
-
-IMP_NAMES = Expr Com Natural Transition Denotation Hoare VC
-IMP_FILES = IMP/ROOT.ML $(IMP_NAMES:%=IMP/%.thy) $(IMP_NAMES:%=IMP/%.ML)
-
-$(LOG)/HOL-IMP.gz: $(OUT)/HOL $(IMP_FILES)
-	@$(ISATOOL) usedir $(OUT)/HOL IMP
-
-
-## Hoare logic
-
-Hoare_NAMES = Hoare Arith2 Examples
-Hoare_FILES = Hoare/ROOT.ML $(Hoare_NAMES:%=Hoare/%.thy) \
-	      $(Hoare_NAMES:%=Hoare/%.ML)
-
-$(LOG)/HOL-Hoare.gz: $(OUT)/HOL $(Hoare_FILES)
-	@$(ISATOOL) usedir $(OUT)/HOL Hoare
-
-
-## The integers in HOL
-
-INTEG_NAMES = Equiv Integ Group Ring Lagrange IntRingDefs IntRing
-
-INTEG_FILES = Integ/ROOT.ML \
-	      $(INTEG_NAMES:%=Integ/%.thy) $(INTEG_NAMES:%=Integ/%.ML)
-
-$(LOG)/HOL-Integ.gz: $(OUT)/HOL $(INTEG_FILES)
-	@$(ISATOOL) usedir $(OUT)/HOL Integ
-
-
-## TLA -- Temporal Logic of Actions
-
-TLA_FILES = TLA/Action.ML TLA/Action.thy TLA/IntLemmas.ML \
-	TLA/Intensional.ML TLA/Intensional.thy TLA/ROOT.ML TLA/Stfun.ML \
-	TLA/Stfun.thy TLA/TLA.ML TLA/TLA.thy TLA/cladata.ML TLA/hypsubst.ML
-
-TLA_INC_FILES = TLA/Inc/Inc.thy TLA/Inc/Inc.ML TLA/Inc/Pcount.thy
-
-TLA_BUFFER_FILES = TLA/Buffer/Buffer.thy TLA/Buffer/Buffer.ML \
-	TLA/Buffer/DBuffer.thy TLA/Buffer/DBuffer.ML
-
-TLA_MEMORY_FILES = TLA/Memory/MIParameters.thy TLA/Memory/MIlive.ML \
-	TLA/Memory/MIsafe.ML TLA/Memory/MemClerk.ML TLA/Memory/MemClerk.thy \
-	TLA/Memory/MemClerkParameters.ML TLA/Memory/MemClerkParameters.thy \
-	TLA/Memory/Memory.ML TLA/Memory/Memory.thy \
-	TLA/Memory/MemoryImplementation.ML TLA/Memory/MemoryImplementation.thy \
-	TLA/Memory/MemoryParameters.ML TLA/Memory/MemoryParameters.thy \
-	TLA/Memory/ProcedureInterface.ML TLA/Memory/ProcedureInterface.thy \
-	TLA/Memory/RPC.ML TLA/Memory/RPC.thy TLA/Memory/RPCMemoryParams.thy \
-	TLA/Memory/RPCParameters.ML TLA/Memory/RPCParameters.thy
-
-
-$(OUT)/TLA: $(OUT)/HOL $(TLA_FILES)
-	@cd TLA; $(ISATOOL) usedir -b $(OUT)/HOL TLA
-
-$(LOG)/TLA-Inc.gz: $(OUT)/TLA $(TLA_INC_FILES)
-	@cd TLA; $(ISATOOL) usedir $(OUT)/TLA Inc
-
-$(LOG)/TLA-Buffer.gz: $(OUT)/TLA $(TLA_BUFFER_FILES)
-	@cd TLA; $(ISATOOL) usedir $(OUT)/TLA Buffer
-
-$(LOG)/TLA-Memory.gz: $(OUT)/TLA $(TLA_MEMORY_FILES)
-	@cd TLA; $(ISATOOL) usedir $(OUT)/TLA Memory
-
-
-## I/O Automata (meta theory only)
-
-IOA_FILES = IOA/ROOT.ML IOA/Asig.thy IOA/Asig.ML IOA/IOA.thy \
-  IOA/IOA.ML IOA/Solve.thy IOA/Solve.ML
-
-$(LOG)/HOL-IOA.gz: $(OUT)/HOL $(IOA_FILES)
-	@$(ISATOOL) usedir $(OUT)/HOL IOA
-
-
-## Authentication & Security Protocols
-
-AUTH_NAMES = Message Event Shared NS_Shared \
-	     OtwayRees OtwayRees_AN OtwayRees_Bad \
-	     Recur WooLam Yahalom Yahalom2 \
-	     Public NS_Public_Bad NS_Public TLS
-
-AUTH_FILES = Auth/ROOT.ML $(AUTH_NAMES:%=Auth/%.thy) $(AUTH_NAMES:%=Auth/%.ML)
-
-$(LOG)/HOL-Auth.gz: $(OUT)/HOL $(AUTH_FILES)
-	@$(ISATOOL) usedir $(OUT)/HOL Auth
-
-
-## Modelchecker invocation
-
-MC_FILES = Modelcheck/CTL.thy Modelcheck/Example.ML \
-  Modelcheck/Example.thy Modelcheck/MCSyn.ML Modelcheck/MCSyn.thy \
-  Modelcheck/MuCalculus.ML Modelcheck/MuCalculus.thy Modelcheck/ROOT.ML
-
-$(LOG)/HOL-Modelcheck.gz: $(OUT)/HOL $(MC_FILES)
-	@$(ISATOOL) usedir $(OUT)/HOL Modelcheck
-
-
-## Properties of substitutions
-
-SUBST_NAMES = AList Subst Unifier UTerm Unify
-
-SUBST_FILES = Subst/ROOT.ML \
-	      $(SUBST_NAMES:%=Subst/%.thy) $(SUBST_NAMES:%=Subst/%.ML)
-
-$(LOG)/HOL-Subst.gz: $(OUT)/HOL $(SUBST_FILES)
+$(LOG)/HOL-Subst.gz: $(OUT)/HOL Subst/AList.ML Subst/AList.thy \
+  Subst/ROOT.ML Subst/Subst.ML Subst/Subst.thy Subst/UTerm.ML \
+  Subst/UTerm.thy Subst/Unifier.ML Subst/Unifier.thy Subst/Unify.ML \
+  Subst/Unify.thy
 	@$(ISATOOL) usedir $(OUT)/HOL Subst
 
 
-## Confluence of Lambda-calculus
+## HOL-Induct
 
-LAMBDA_NAMES = Lambda ParRed Commutation Eta
+HOL-Induct: HOL $(LOG)/HOL-Induct.gz
 
-LAMBDA_FILES = Lambda/ROOT.ML \
-	      $(LAMBDA_NAMES:%=Lambda/%.thy) $(LAMBDA_NAMES:%=Lambda/%.ML)
-
-$(LOG)/HOL-Lambda.gz: $(OUT)/HOL $(LAMBDA_FILES)
-	@$(ISATOOL) usedir $(OUT)/HOL Lambda
-
-
-## Type inference without let
-
-W0_NAMES = I Maybe MiniML Type W
-
-W0_FILES = W0/ROOT.ML \
-	      $(W0_NAMES:%=W0/%.thy) $(W0_NAMES:%=W0/%.ML)
-
-$(LOG)/HOL-W0.gz: $(OUT)/HOL $(W0_FILES)
-	@$(ISATOOL) usedir $(OUT)/HOL W0
+$(LOG)/HOL-Induct.gz: $(OUT)/HOL Induct/Acc.ML Induct/Acc.thy \
+  Induct/Com.ML Induct/Com.thy Induct/Comb.ML Induct/Comb.thy \
+  Induct/Exp.ML Induct/Exp.thy Induct/LFilter.ML Induct/LFilter.thy \
+  Induct/LList.ML Induct/LList.thy Induct/Mutil.ML Induct/Mutil.thy \
+  Induct/Perm.ML Induct/Perm.thy Induct/PropLog.ML Induct/PropLog.thy \
+  Induct/ROOT.ML Induct/SList.ML Induct/SList.thy Induct/Simult.ML \
+  Induct/Simult.thy Induct/Term.ML Induct/Term.thy
+	@$(ISATOOL) usedir $(OUT)/HOL Induct
 
 
-## Type inference with let
+## HOL-IMP
 
-MINIML_NAMES = Generalize Instance Maybe MiniML Type W
+HOL-IMP: HOL $(LOG)/HOL-IMP.gz
 
-MINIML_FILES = MiniML/ROOT.ML \
-	      $(MINIML_NAMES:%=MiniML/%.thy) $(MINIML_NAMES:%=MiniML/%.ML)
+$(LOG)/HOL-IMP.gz: $(OUT)/HOL IMP/Com.ML IMP/Com.thy IMP/Denotation.ML \
+  IMP/Denotation.thy IMP/Expr.ML IMP/Expr.thy IMP/Hoare.ML IMP/Hoare.thy \
+  IMP/Natural.ML IMP/Natural.thy IMP/ROOT.ML IMP/Transition.ML \
+  IMP/Transition.thy IMP/VC.ML IMP/VC.thy
+	@$(ISATOOL) usedir $(OUT)/HOL IMP
 
-$(LOG)/HOL-MiniML.gz: $(OUT)/HOL $(MINIML_FILES)
-	@$(ISATOOL) usedir $(OUT)/HOL MiniML
+
+## HOL-Hoare
+
+HOL-Hoare: HOL $(LOG)/HOL-Hoare.gz
+
+$(LOG)/HOL-Hoare.gz: $(OUT)/HOL Hoare/Arith2.ML Hoare/Arith2.thy \
+  Hoare/Examples.ML Hoare/Examples.thy Hoare/Hoare.ML Hoare/Hoare.thy \
+  Hoare/ROOT.ML
+	@$(ISATOOL) usedir $(OUT)/HOL Hoare
 
 
-## Lexical analysis
+## HOL-Lex
 
-LEX_FILES = Auto AutoChopper Chopper Prefix
+HOL-Lex: HOL $(LOG)/HOL-Lex.gz
 
-LEX_FILES = Lex/ROOT.ML \
-	    $(LEX_NAMES:%=Lex/%.thy) $(LEX_NAMES:%=Lex/%.ML)
-
-$(LOG)/HOL-Lex.gz: $(OUT)/HOL $(LEX_FILES)
+$(LOG)/HOL-Lex.gz: $(OUT)/HOL Lex/Auto.thy Lex/Auto.ML \
+  Lex/AutoChopper.thy Lex/AutoChopper.ML Lex/AutoChopper1.thy \
+  Lex/Chopper.thy Lex/Prefix.thy Lex/Prefix.ML Lex/ROOT.ML \
+  Lex/Regset_of_auto.ML Lex/Regset_of_auto.thy
 	@$(ISATOOL) usedir $(OUT)/HOL Lex
 
 
-## Axiomatic type classes examples
+## HOL-Integ
 
-AXC_GROUP_FILES = Group.ML Group.thy GroupDefs.ML GroupDefs.thy \
-	GroupInsts.thy Monoid.thy MonoidGroupInsts.thy ROOT.ML Sigs.thy
+HOL-Integ: HOL $(LOG)/HOL-Integ.gz
 
-AXC_LATTICE_FILES = CLattice.ML CLattice.thy LatInsts.ML LatInsts.thy \
-	LatMorph.ML LatMorph.thy LatPreInsts.ML LatPreInsts.thy \
-	Lattice.ML Lattice.thy OrdDefs.ML OrdDefs.thy OrdInsts.thy \
-	Order.ML Order.thy ROOT.ML tools.ML
+$(LOG)/HOL-Integ.gz: $(OUT)/HOL Integ/Bin.ML Integ/Bin.thy \
+  Integ/Equiv.ML Integ/Equiv.thy Integ/Group.ML Integ/Group.thy \
+  Integ/IntRing.ML Integ/IntRing.thy Integ/IntRingDefs.ML \
+  Integ/IntRingDefs.thy Integ/Integ.ML Integ/Integ.thy Integ/Lagrange.ML \
+  Integ/Lagrange.thy Integ/ROOT.ML Integ/Ring.ML Integ/Ring.thy
+	@$(ISATOOL) usedir $(OUT)/HOL Integ
 
-AXC_TUTORIAL_FILES = BoolGroupInsts.thy Group.ML Group.thy Monoid.thy \
-	MonoidGroupInsts.thy ProdGroupInsts.thy Product.thy \
-	ProductInsts.thy ROOT.ML Semigroup.thy Semigroups.thy Sigs.thy \
-	Xor.ML Xor.thy
 
-$(LOG)/HOL-AxClasses.gz: AxClasses/ROOT.ML $(OUT)/HOL
+## HOL-Auth
+
+HOL-Auth: HOL $(LOG)/HOL-Auth.gz
+
+$(LOG)/HOL-Auth.gz: $(OUT)/HOL Auth/Event.ML Auth/Event.thy \
+  Auth/Message.ML Auth/Message.thy Auth/NS_Public.ML Auth/NS_Public.thy \
+  Auth/NS_Public_Bad.ML Auth/NS_Public_Bad.thy Auth/NS_Shared.ML \
+  Auth/NS_Shared.thy Auth/OtwayRees.ML Auth/OtwayRees.thy \
+  Auth/OtwayRees_AN.ML Auth/OtwayRees_AN.thy Auth/OtwayRees_Bad.ML \
+  Auth/OtwayRees_Bad.thy Auth/Public.ML Auth/Public.thy Auth/ROOT.ML \
+  Auth/Recur.ML Auth/Recur.thy Auth/Shared.ML Auth/Shared.thy \
+  Auth/TLS.ML Auth/TLS.thy Auth/WooLam.ML Auth/WooLam.thy \
+  Auth/Yahalom.ML Auth/Yahalom.thy Auth/Yahalom2.ML Auth/Yahalom2.thy
+	@$(ISATOOL) usedir $(OUT)/HOL Auth
+
+
+## HOL-Modelcheck
+
+HOL-Modelcheck: HOL $(LOG)/HOL-Modelcheck.gz
+
+$(LOG)/HOL-Modelcheck.gz: $(OUT)/HOL Modelcheck/CTL.thy \
+  Modelcheck/Example.ML Modelcheck/Example.thy Modelcheck/MCSyn.ML \
+  Modelcheck/MCSyn.thy Modelcheck/MuCalculus.ML	\
+  Modelcheck/MuCalculus.thy Modelcheck/ROOT.ML
+	@$(ISATOOL) usedir $(OUT)/HOL Modelcheck
+
+
+## HOL-Lambda
+
+HOL-Lambda: HOL $(LOG)/HOL-Lambda.gz
+
+$(LOG)/HOL-Lambda.gz: $(OUT)/HOL Lambda/Commutation.ML \
+  Lambda/Commutation.thy Lambda/Eta.ML Lambda/Eta.thy Lambda/Lambda.ML \
+  Lambda/Lambda.thy Lambda/ParRed.ML Lambda/ParRed.thy Lambda/ROOT.ML
+	@$(ISATOOL) usedir $(OUT)/HOL Lambda
+
+
+## HOL-W0
+
+HOL-W0: HOL $(LOG)/HOL-W0.gz
+
+$(LOG)/HOL-W0.gz: $(OUT)/HOL W0/I.ML W0/I.thy W0/Maybe.ML W0/Maybe.thy \
+  W0/MiniML.ML W0/MiniML.thy W0/ROOT.ML W0/Type.ML W0/Type.thy W0/W.ML \
+  W0/W.thy
+	@$(ISATOOL) usedir $(OUT)/HOL W0
+
+
+## HOL-MiniML
+
+HOL-MiniML: HOL $(LOG)/HOL-MiniML.gz
+
+$(LOG)/HOL-MiniML.gz: $(OUT)/HOL MiniML/Generalize.ML \
+  MiniML/Generalize.thy MiniML/Instance.ML MiniML/Instance.thy \
+  MiniML/Maybe.ML MiniML/Maybe.thy MiniML/MiniML.ML MiniML/MiniML.thy \
+  MiniML/ROOT.ML MiniML/Type.ML MiniML/Type.thy MiniML/W.ML MiniML/W.thy
+	@$(ISATOOL) usedir $(OUT)/HOL MiniML
+
+
+## HOL-IOA
+
+HOL-IOA: HOL $(LOG)/HOL-IOA.gz
+
+$(LOG)/HOL-IOA.gz: $(OUT)/HOL IOA/Asig.ML IOA/Asig.thy IOA/IOA.ML \
+  IOA/IOA.thy IOA/ROOT.ML IOA/Solve.ML IOA/Solve.thy
+	@$(ISATOOL) usedir $(OUT)/HOL IOA
+
+
+## HOL-AxClasses
+
+HOL-AxClasses: HOL $(LOG)/HOL-AxClasses.gz
+
+$(LOG)/HOL-AxClasses.gz: $(OUT)/HOL AxClasses/ROOT.ML
 	@$(ISATOOL) usedir $(OUT)/HOL AxClasses
 
-$(LOG)/HOL-AxClasses-Group.gz: $(LOG)/HOL-AxClasses.gz \
-  $(AXC_GROUP_FILES:%=AxClasses/Group/%)
+
+## HOL-AxClasses-Group
+
+HOL-AxClasses-Group: HOL-AxClasses $(LOG)/HOL-AxClasses-Group.gz
+
+$(LOG)/HOL-AxClasses-Group.gz: $(OUT)/HOL AxClasses/Group/Group.ML \
+  AxClasses/Group/Group.thy AxClasses/Group/GroupDefs.ML \
+  AxClasses/Group/GroupDefs.thy AxClasses/Group/GroupInsts.thy \
+  AxClasses/Group/Monoid.thy AxClasses/Group/MonoidGroupInsts.thy \
+  AxClasses/Group/ROOT.ML AxClasses/Group/Sigs.thy
 	@$(ISATOOL) usedir -s AxClasses-Group $(OUT)/HOL AxClasses/Group
 
-$(LOG)/HOL-AxClasses-Lattice.gz: $(LOG)/HOL-AxClasses.gz \
-  $(AXC_LATTICE_FILES:%=AxClasses/Lattice/%)
+
+## HOL-AxClasses-Lattice
+
+HOL-AxClasses-Lattice: HOL-AxClasses $(LOG)/HOL-AxClasses-Lattice.gz
+
+$(LOG)/HOL-AxClasses-Lattice.gz: $(OUT)/HOL AxClasses/Lattice/CLattice.ML \
+  AxClasses/Lattice/CLattice.thy AxClasses/Lattice/LatInsts.ML \
+  AxClasses/Lattice/LatInsts.thy AxClasses/Lattice/LatMorph.ML \
+  AxClasses/Lattice/LatMorph.thy AxClasses/Lattice/LatPreInsts.ML \
+  AxClasses/Lattice/LatPreInsts.thy AxClasses/Lattice/Lattice.ML \
+  AxClasses/Lattice/Lattice.thy AxClasses/Lattice/OrdDefs.ML \
+  AxClasses/Lattice/OrdDefs.thy AxClasses/Lattice/OrdInsts.thy \
+  AxClasses/Lattice/Order.ML AxClasses/Lattice/Order.thy \
+  AxClasses/Lattice/ROOT.ML AxClasses/Lattice/tools.ML
 	@$(ISATOOL) usedir -s AxClasses-Lattice $(OUT)/HOL AxClasses/Lattice
 
-$(LOG)/HOL-AxClasses-Tutorial.gz: $(LOG)/HOL-AxClasses.gz \
-  $(AXC_TUTORIAL_FILES:%=AxClasses/Tutorial/%)
+
+## HOL-AxClasses-Tutorial
+
+HOL-AxClasses-Tutorial: HOL-AxClasses $(LOG)/HOL-AxClasses-Tutorial.gz
+
+$(LOG)/HOL-AxClasses-Tutorial.gz: $(OUT)/HOL \
+  AxClasses/Tutorial/BoolGroupInsts.thy AxClasses/Tutorial/Group.ML \
+  AxClasses/Tutorial/Group.thy AxClasses/Tutorial/Monoid.thy \
+  AxClasses/Tutorial/MonoidGroupInsts.thy \
+  AxClasses/Tutorial/ProdGroupInsts.thy AxClasses/Tutorial/Product.thy \
+  AxClasses/Tutorial/ProductInsts.thy AxClasses/Tutorial/ROOT.ML \
+  AxClasses/Tutorial/Semigroup.thy AxClasses/Tutorial/Semigroups.thy \
+  AxClasses/Tutorial/Sigs.thy AxClasses/Tutorial/Xor.ML \
+  AxClasses/Tutorial/Xor.thy
 	@$(ISATOOL) usedir -s AxClasses-Tutorial $(OUT)/HOL AxClasses/Tutorial
 
 
-## Higher-order quotients and example fractionals
+## HOL-Quot
 
-QUOT_FILES = Quot/ROOT.ML Quot/PER0.thy Quot/PER0.ML Quot/PER.thy Quot/PER.ML \
-	Quot/HQUOT.thy Quot/HQUOT.ML Quot/NPAIR.thy Quot/NPAIR.ML \
-	Quot/FRACT.thy Quot/FRACT.ML
+HOL-Quot: HOL $(LOG)/HOL-Quot.gz
 
-$(LOG)/HOL-Quot.gz: $(OUT)/HOL $(QUOT_FILES)
+$(LOG)/HOL-Quot.gz: $(OUT)/HOL Quot/FRACT.ML Quot/FRACT.thy \
+  Quot/HQUOT.ML Quot/HQUOT.thy Quot/NPAIR.ML Quot/NPAIR.thy Quot/PER.ML \
+  Quot/PER.thy Quot/PER0.ML Quot/PER0.thy Quot/ROOT.ML
 	@$(ISATOOL) usedir $(OUT)/HOL Quot
 
 
-## Miscellaneous examples
+## HOL-ex
 
-EX_NAMES = Recdef Fib Primes Primrec NatSum String BT InSort Qsort Puzzle MT
+HOL-ex: HOL $(LOG)/HOL-ex.gz
 
-EX_FILES = ex/ROOT.ML ex/cla.ML ex/meson.ML ex/mesontest.ML ex/rel.ML \
-	   ex/set.ML $(EX_NAMES:%=ex/%.thy) $(EX_NAMES:%=ex/%.ML)
-
-$(LOG)/HOL-ex.gz: $(OUT)/HOL $(EX_FILES)
+$(LOG)/HOL-ex.gz: $(OUT)/HOL ex/BT.ML ex/BT.thy ex/Fib.ML ex/Fib.thy \
+  ex/InSort.ML ex/InSort.thy ex/MT.ML ex/MT.thy ex/NatSum.ML \
+  ex/NatSum.thy ex/Primes.ML ex/Primes.thy ex/Primrec.ML ex/Primrec.thy \
+  ex/Puzzle.ML ex/Puzzle.thy ex/Qsort.ML ex/Qsort.thy ex/ROOT.ML \
+  ex/Recdef.ML ex/Recdef.thy ex/String.ML ex/String.thy ex/cla.ML \
+  ex/meson.ML ex/mesontest.ML ex/rel.ML ex/set.ML
 	@$(ISATOOL) usedir $(OUT)/HOL ex
 
 
-## Full test
+## TLA
 
-ALL_TARGETS = $(OUT)/HOL $(LOG)/HOL-Subst.gz $(LOG)/HOL-Induct.gz \
-  $(LOG)/HOL-IMP.gz $(LOG)/HOL-Hoare.gz $(LOG)/HOL-Lex.gz \
-  $(LOG)/HOL-Integ.gz $(LOG)/HOL-Auth.gz $(LOG)/HOL-Modelcheck.gz \
-  $(LOG)/HOL-Lambda.gz $(LOG)/HOL-W0.gz $(LOG)/HOL-MiniML.gz \
-  $(OUT)/TLA $(LOG)/TLA-Inc.gz $(LOG)/TLA-Buffer.gz \
-  $(LOG)/TLA-Memory.gz $(LOG)/HOL-IOA.gz $(LOG)/HOL-AxClasses.gz \
-  $(LOG)/HOL-AxClasses-Group.gz $(LOG)/HOL-AxClasses-Lattice.gz \
-  $(LOG)/HOL-AxClasses-Tutorial.gz $(LOG)/HOL-Quot.gz $(LOG)/HOL-ex.gz
+TLA: HOL $(OUT)/TLA
 
-test: $(ALL_TARGETS)
+$(OUT)/TLA: $(OUT)/HOL TLA/Action.ML TLA/Action.thy TLA/IntLemmas.ML \
+  TLA/Intensional.ML TLA/Intensional.thy TLA/ROOT.ML TLA/Stfun.ML \
+  TLA/Stfun.thy TLA/TLA.ML TLA/TLA.thy TLA/cladata.ML TLA/hypsubst.ML
+	@cd TLA; $(ISATOOL) usedir -b $(OUT)/HOL TLA
+
+
+## TLA-Inc
+
+TLA-Inc: TLA $(LOG)/TLA-Inc.gz
+
+$(LOG)/TLA-Inc.gz: $(OUT)/TLA TLA/Inc/Inc.thy TLA/Inc/Inc.ML \
+  TLA/Inc/Pcount.thy
+	@cd TLA; $(ISATOOL) usedir $(OUT)/TLA Inc
+
+
+## TLA-Buffer
+
+TLA-Buffer: TLA $(LOG)/TLA-Buffer.gz
+
+$(LOG)/TLA-Buffer.gz: $(OUT)/TLA TLA/Buffer/Buffer.thy \
+  TLA/Buffer/Buffer.ML TLA/Buffer/DBuffer.thy TLA/Buffer/DBuffer.ML
+	@cd TLA; $(ISATOOL) usedir $(OUT)/TLA Buffer
+
+
+## TLA-Memory
+
+TLA-Memory: TLA $(LOG)/TLA-Memory.gz
+
+$(LOG)/TLA-Memory.gz: $(OUT)/TLA TLA/Memory/MIParameters.thy \
+  TLA/Memory/MIlive.ML TLA/Memory/MIsafe.ML TLA/Memory/MemClerk.ML \
+  TLA/Memory/MemClerk.thy TLA/Memory/MemClerkParameters.ML \
+  TLA/Memory/MemClerkParameters.thy TLA/Memory/Memory.ML \
+  TLA/Memory/Memory.thy TLA/Memory/MemoryImplementation.ML \
+  TLA/Memory/MemoryImplementation.thy TLA/Memory/MemoryParameters.ML \
+  TLA/Memory/MemoryParameters.thy TLA/Memory/ProcedureInterface.ML \
+  TLA/Memory/ProcedureInterface.thy TLA/Memory/RPC.ML TLA/Memory/RPC.thy \
+  TLA/Memory/RPCMemoryParams.thy TLA/Memory/RPCParameters.ML \
+  TLA/Memory/RPCParameters.thy
+	@cd TLA; $(ISATOOL) usedir $(OUT)/TLA Memory
+
+
+## clean
 
 clean:
-	@rm -f $(ALL_TARGETS)
-
-
-.PRECIOUS: $(OUT)/Pure $(OUT)/HOL
+	@rm -f $(OUT)/HOL $(LOG)/HOL.gz $(LOG)/HOL-Subst.gz \
+	  $(LOG)/HOL-Induct.gz $(LOG)/HOL-IMP.gz $(LOG)/HOL-Hoare.gz \
+	  $(LOG)/HOL-Lex.gz $(LOG)/HOL-Integ.gz $(LOG)/HOL-Auth.gz \
+	  $(LOG)/HOL-Modelcheck.gz $(LOG)/HOL-Lambda.gz $(LOG)/HOL-W0.gz \
+	  $(LOG)/HOL-MiniML.gz $(LOG)/HOL-IOA.gz $(LOG)/HOL-AxClasses.gz \
+	  $(LOG)/HOL-AxClasses-Group.gz $(LOG)/HOL-AxClasses-Lattice.gz \
+	  $(LOG)/HOL-AxClasses-Tutorial.gz $(LOG)/HOL-Quot.gz \
+	  $(LOG)/HOL-ex.gz $(OUT)/TLA $(LOG)/TLA.gz $(LOG)/TLA-Inc.gz \
+	  $(LOG)/TLA-Buffer.gz $(LOG)/TLA-Memory.gz
