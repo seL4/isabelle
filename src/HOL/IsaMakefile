@@ -93,7 +93,8 @@ $(OUT)/HOL: $(OUT)/Pure $(SRC)/Provers/quantifier1.ML \
   Integ/Presburger.thy Integ/presburger.ML Integ/qelim.ML \
   Lfp.ML Lfp.thy List.ML List.thy Main.ML Main.thy Map.thy Nat.ML \
   Nat.thy NatArith.ML NatArith.thy Numeral.thy \
-  Power.thy PreList.thy Product_Type.ML Product_Type.thy ROOT.ML \
+  Power.thy PreList.thy Product_Type.ML Product_Type.thy \
+  Refute.thy ROOT.ML \
   Recdef.thy Record.thy Relation.ML Relation.thy Relation_Power.ML \
   Relation_Power.thy Ring_and_Field.thy\
   Set.ML Set.thy SetInterval.ML SetInterval.thy \
@@ -103,7 +104,9 @@ $(OUT)/HOL: $(OUT)/Pure $(SRC)/Provers/quantifier1.ML \
   Tools/inductive_codegen.ML Tools/inductive_package.ML Tools/inductive_realizer.ML \
   Tools/meson.ML Tools/numeral_syntax.ML \
   Tools/primrec_package.ML Tools/recdef_package.ML Tools/recfun_codegen.ML \
-  Tools/record_package.ML Tools/rewrite_hol_proof.ML \
+  Tools/record_package.ML \
+  Tools/refute.ML Tools/refute_isar.ML \
+  Tools/rewrite_hol_proof.ML \
   Tools/specification_package.ML \
   Tools/split_rule.ML Tools/typedef_package.ML \
   Transitive_Closure.thy Transitive_Closure.ML Typedef.thy \
@@ -588,6 +591,7 @@ $(LOG)/HOL-ex.gz: $(OUT)/HOL ex/AVL.ML ex/AVL.thy ex/Antiquote.thy \
   ex/MT.ML ex/MT.thy ex/MonoidGroup.thy ex/Multiquote.thy \
   ex/NatSum.thy ex/PER.thy ex/PresburgerEx.thy ex/Primrec.thy ex/Puzzle.thy \
   ex/Qsort.thy ex/ROOT.ML ex/Recdefs.thy ex/Records.thy \
+  ex/Refute_Examples.thy \
   ex/Ring.ML ex/Ring.thy ex/StringEx.thy ex/SVC_Oracle.ML ex/SVC_Oracle.thy \
   ex/Tarski.thy ex/Tuple.thy ex/Classical.thy \
   ex/mesontest2.ML ex/mesontest2.thy ex/set.thy ex/svc_funcs.ML \

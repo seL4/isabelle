@@ -1,12 +1,12 @@
 (*  Title:      HOL/Main.thy
     ID:         $Id$
-    Author:     Stefan Berghofer, Tobias Nipkow and Markus Wenzel, TU Muenchen
+    Author:     Stefan Berghofer, Tobias Nipkow, Tjark Weber, Markus Wenzel (TU Muenchen)
     License:    GPL (GNU GENERAL PUBLIC LICENSE)
 *)
 
 header {* Main HOL *}
 
-theory Main = Map + Hilbert_Choice + Extraction:
+theory Main = Map + Hilbert_Choice + Extraction + Refute:
 
 text {*
   Theory @{text Main} includes everything.  Note that theory @{text
@@ -90,5 +90,27 @@ setup eq_codegen_setup
 lemma [code]: "((n::nat) < 0) = False" by simp
 lemma [code]: "(0 < Suc n) = True" by simp
 lemmas [code] = Suc_less_eq imp_conv_disj
+
+subsection {* Configuration of the 'refute' command *}
+
+text {*
+  The following are reasonable default parameters (for use with
+  ZChaff 2003.12.04).  For an explanation of these parameters,
+  see 'HOL/Refute.thy'.
+
+  \emph{Note}: If you want to use a different SAT solver (or
+  install ZChaff to a different location), you will need to
+  override at least the values for 'command' and (probably)
+  'success' in your own theory file.
+*}
+
+refute_params [minsize=1,
+               maxsize=8,
+               maxvars=200,
+               satfile="refute.cnf",
+               satformat="defcnf",
+               resultfile="refute.out",
+               success="Verify Solution successful. Instance satisfiable",
+               command="$HOME/bin/zchaff refute.cnf 60 > refute.out"]
 
 end
