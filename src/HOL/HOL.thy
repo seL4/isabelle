@@ -211,6 +211,8 @@ defs
 
 use "HOL_lemmas.ML"
 
+declare trans [trans]  (*overridden in theory Calculation*)
+
 lemma atomize_all: "(!!x. P x) == Trueprop (ALL x. P x)"
 proof (rule equal_intr_rule)
   assume "!!x. P x"
