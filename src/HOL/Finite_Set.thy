@@ -548,8 +548,7 @@ next
   case (Suc m)
   have nSuc: "n = Suc m" . 
   have mlessn: "m<n" by (simp add: nSuc)
-  have "a \<in> h ` {i. i < n}" using aA by blast
-  then obtain k where hkeq: "h k = a" and klessn: "k<n" by blast
+  from aA obtain k where hkeq: "h k = a" and klessn: "k<n" by (blast elim!: equalityE)
   let ?hm = "swap k m h"
   have inj_hm: "inj_on ?hm {i. i < n}" using klessn mlessn 
     by (simp add: inj_on_swap_iff inj_on)
