@@ -75,10 +75,7 @@ fun applys ((x, []), _) = (x, [])
 
 (* display tagged theorems *)
 
-fun pretty_tag (name, []) = Pretty.str name
-  | pretty_tag (name, args) = Pretty.block
-      [Pretty.str name, Pretty.list "(" ")" (map Pretty.str args)];
-
+fun pretty_tag (name, args) = Pretty.strs (name :: args);
 val pretty_tags = Pretty.list "[" "]" o map pretty_tag;
 
 fun pretty_tthm (thm, []) = Pretty.quote (Display.pretty_thm thm)
@@ -88,7 +85,7 @@ fun pretty_tthm (thm, []) = Pretty.quote (Display.pretty_thm thm)
 
 (* basic attributes *)
 
-fun tag tg (x, (thm, tags)) = (x, (thm, tg ins tags));
+fun tag tg (x, (thm, tags)) = (x, (thm, if tg mem tags then tags else tags @ [tg]));
 fun untag tg (x, (thm, tags)) = (x, (thm, tags \ tg));
 
 val lemma = ("lemma", []);
