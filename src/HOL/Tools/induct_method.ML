@@ -214,7 +214,7 @@ fun cases_tac (ctxt, (simplified, args)) facts =
 
     val rules =
       (case (args, facts) of
-        ((None, None), []) => [RuleCases.none case_split_thm]		(* FIXME add cases!? *)
+        ((None, None), []) => [(case_split_thm, ["True", "False"])]
       | ((Some t, None), []) =>
           let val name = type_name t in
             (case lookup_casesT ctxt name of
@@ -257,7 +257,7 @@ infix 1 THEN_ALL_NEW_CASES;
 
 fun (tac1 THEN_ALL_NEW_CASES tac2) i st =
   st |> Seq.THEN (tac1 i, (fn (st', cases) =>
-    Seq.map (rpair cases) (ALLGOALS_RANGE tac2 i (i + nprems_of st' - nprems_of st) st')));
+    Seq.map (rpair cases) (Seq.INTERVAL tac2 i (i + nprems_of st' - nprems_of st) st')));
 
 
 fun induct_rule ctxt t =
@@ -311,7 +311,7 @@ fun induct_tac (ctxt, (stripped, args)) facts =
 
     val rules =
       (case (args, facts) of
-        (([], None), []) => [RuleCases.none nat_induct]		(* FIXME add cases!? *)
+        (([], None), []) => []
       | ((insts, None), []) =>
           let val thms = map (induct_rule ctxt o last_elem) insts
           in [(inst_rule insts (join_rules thms), RuleCases.get (#2 (hd thms)))] end
