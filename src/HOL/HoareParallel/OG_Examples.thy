@@ -484,17 +484,19 @@ done
 
 subsubsection {* Increment a Variable in Parallel *}
 
-text {* First some lemmas about summation properties. Summation is
-defined in PreList. *}
+declare setsum_op_ivl_Suc [simp]
 
+text {* First some lemmas about summation properties. *}
+(*
 lemma Example2_lemma1: "!!b. j<n \<Longrightarrow> (\<Sum>i::nat<n. b i) = (0::nat) \<Longrightarrow> b j = 0 "
 apply(induct n)
  apply simp_all
 apply(force simp add: less_Suc_eq)
 done
-
+*)
 lemma Example2_lemma2_aux: "!!b. j<n \<Longrightarrow> 
- (\<Sum>i<n. (b i::nat)) = (\<Sum>i<j. b i) + b j + (\<Sum>i<n-(Suc j) . b (Suc j + i))"
+ (\<Sum>i=0..<n. (b i::nat)) =
+ (\<Sum>i=0..<j. b i) + b j + (\<Sum>i=0..<n-(Suc j) . b (Suc j + i))"
 apply(induct n)
  apply simp_all
 apply(simp add:less_Suc_eq)
@@ -505,18 +507,18 @@ apply arith
 done
 
 lemma Example2_lemma2_aux2: 
-  "!!b. j\<le> s \<Longrightarrow> (\<Sum>i::nat<j. (b (s:=t)) i) = (\<Sum>i<j. b i)"
+  "!!b. j\<le> s \<Longrightarrow> (\<Sum>i::nat=0..<j. (b (s:=t)) i) = (\<Sum>i=0..<j. b i)"
 apply(induct j)
  apply (simp_all cong:setsum_cong)
 done
 
 lemma Example2_lemma2: 
- "!!b. \<lbrakk>j<n; b j=0\<rbrakk> \<Longrightarrow> Suc (\<Sum>i::nat< n. b i)=(\<Sum>i< n. (b (j := Suc 0)) i)"
+ "!!b. \<lbrakk>j<n; b j=0\<rbrakk> \<Longrightarrow> Suc (\<Sum>i::nat=0..<n. b i)=(\<Sum>i=0..<n. (b (j := Suc 0)) i)"
 apply(frule_tac b="(b (j:=(Suc 0)))" in Example2_lemma2_aux)
-apply(erule_tac  t="setsum (b(j := (Suc 0))) {..<n}" in ssubst)
+apply(erule_tac  t="setsum (b(j := (Suc 0))) {0..<n}" in ssubst)
 apply(frule_tac b=b in Example2_lemma2_aux)
-apply(erule_tac  t="setsum b {..<n}" in ssubst)
-apply(subgoal_tac "Suc (setsum b {..<j} + b j + (\<Sum>i<n - Suc j. b (Suc j + i)))=(setsum b {..<j} + Suc (b j) + (\<Sum>i<n - Suc j. b (Suc j + i)))")
+apply(erule_tac  t="setsum b {0..<n}" in ssubst)
+apply(subgoal_tac "Suc (setsum b {0..<j} + b j + (\<Sum>i=0..<n - Suc j. b (Suc j + i)))=(setsum b {0..<j} + Suc (b j) + (\<Sum>i=0..<n - Suc j. b (Suc j + i)))")
 apply(rotate_tac -1)
 apply(erule ssubst)
 apply(subgoal_tac "j\<le>j")
@@ -526,7 +528,7 @@ apply(erule ssubst)
 apply simp_all
 done
 
-lemma Example2_lemma3: "!!b. \<forall>i< n. b i = (Suc 0) \<Longrightarrow> (\<Sum>i<n. b i)= n"
+lemma Example2_lemma3: "!!b. \<forall>i< n. b i = (Suc 0) \<Longrightarrow> (\<Sum>i=0..<n. b i)= n"
 apply (induct n)
 apply auto
 done
@@ -536,12 +538,12 @@ record Example2 =
  x :: nat
 
 lemma Example_2: "0<n \<Longrightarrow> 
- \<parallel>- .{\<acute>x=0 \<and> (\<Sum>i< n. \<acute>c i)=0}.  
+ \<parallel>- .{\<acute>x=0 \<and> (\<Sum>i=0..<n. \<acute>c i)=0}.  
  COBEGIN 
    SCHEME [0\<le>i<n] 
-  .{\<acute>x=(\<Sum>i< n. \<acute>c i) \<and> \<acute>c i=0}. 
+  .{\<acute>x=(\<Sum>i=0..<n. \<acute>c i) \<and> \<acute>c i=0}. 
    \<langle> \<acute>x:=\<acute>x+(Suc 0),, \<acute>c:=\<acute>c (i:=(Suc 0)) \<rangle>
-  .{\<acute>x=(\<Sum>i< n. \<acute>c i) \<and> \<acute>c i=(Suc 0)}.
+  .{\<acute>x=(\<Sum>i=0..<n. \<acute>c i) \<and> \<acute>c i=(Suc 0)}.
  COEND 
  .{\<acute>x=n}."
 apply oghoare

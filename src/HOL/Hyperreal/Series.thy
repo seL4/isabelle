@@ -11,10 +11,9 @@ header{*Finite Summation and Infinite Series*}
 theory Series
 imports SEQ Lim
 begin
-thm atLeastLessThan_empty
-(* FIXME why not globally? *)
-declare atLeastLessThan_empty[simp];
+
 declare atLeastLessThan_iff[iff]
+declare setsum_op_ivl_Suc[simp]
 
 constdefs
    sums  :: "(nat => real) => real => bool"     (infixr "sums" 80)
@@ -31,9 +30,6 @@ syntax
 translations
   "\<Sum>i. b" == "suminf (%i. b)"
 
-lemma setsum_Suc[simp]:
-  "setsum f {m..<Suc n} = (if n < m then 0 else setsum f {m..<n} + f(n))"
-by (simp add: atLeastLessThanSuc add_commute)
 
 lemma sumr_diff_mult_const:
  "setsum f {0..<n} - (real n*r) = setsum (%i. f i - r) {0..<n::nat}"

@@ -154,14 +154,11 @@ done
 
 subsubsection {* Parameterized *}
 
-lemma Example2_lemma1: "j<n \<Longrightarrow> (\<Sum>i::nat<n. b i) = (0::nat) \<Longrightarrow> b j = 0 "
-apply(induct n)
- apply simp_all
-apply(force simp add: less_Suc_eq)
-done
+declare setsum_op_ivl_Suc [simp]
 
-lemma Example2_lemma2_aux: 
- "j<n \<Longrightarrow> (\<Sum>i<n. (b i::nat)) = (\<Sum>i<j. b i) + b j + (\<Sum>i<n-(Suc j) . b (Suc j + i))"
+lemma Example2_lemma2_aux: "j<n \<Longrightarrow> 
+ (\<Sum>i=0..<n. (b i::nat)) =
+ (\<Sum>i=0..<j. b i) + b j + (\<Sum>i=0..<n-(Suc j) . b (Suc j + i))"
 apply(induct n)
  apply simp_all
 apply(simp add:less_Suc_eq)
@@ -169,20 +166,21 @@ apply(simp add:less_Suc_eq)
 apply(subgoal_tac "n - j = Suc(n- Suc j)")
   apply simp
 apply arith
-done 
+done
 
-lemma Example2_lemma2_aux2: "j\<le> s \<Longrightarrow> (\<Sum>i::nat<j. (b (s:=t)) i) = (\<Sum>i<j. b i)"
+lemma Example2_lemma2_aux2: 
+  "j\<le> s \<Longrightarrow> (\<Sum>i::nat=0..<j. (b (s:=t)) i) = (\<Sum>i=0..<j. b i)"
 apply(induct j)
  apply (simp_all cong:setsum_cong)
 done
 
 lemma Example2_lemma2: 
- "!!b. \<lbrakk>j<n; b j=0\<rbrakk> \<Longrightarrow> Suc (\<Sum>i::nat< n. b i)=(\<Sum>i< n. (b (j := Suc 0)) i)"
+ "\<lbrakk>j<n; b j=0\<rbrakk> \<Longrightarrow> Suc (\<Sum>i::nat=0..<n. b i)=(\<Sum>i=0..<n. (b (j := Suc 0)) i)"
 apply(frule_tac b="(b (j:=(Suc 0)))" in Example2_lemma2_aux)
-apply(erule_tac  t="setsum (b(j := (Suc 0))) {..<n}" in ssubst)
+apply(erule_tac  t="setsum (b(j := (Suc 0))) {0..<n}" in ssubst)
 apply(frule_tac b=b in Example2_lemma2_aux)
-apply(erule_tac  t="setsum b {..<n}" in ssubst)
-apply(subgoal_tac "Suc (setsum b {..<j} + b j + (\<Sum>i<n - Suc j. b (Suc j + i)))=(setsum b {..<j} + Suc (b j) + (\<Sum>i<n - Suc j. b (Suc j + i)))")
+apply(erule_tac  t="setsum b {0..<n}" in ssubst)
+apply(subgoal_tac "Suc (setsum b {0..<j} + b j + (\<Sum>i=0..<n - Suc j. b (Suc j + i)))=(setsum b {0..<j} + Suc (b j) + (\<Sum>i=0..<n - Suc j. b (Suc j + i)))")
 apply(rotate_tac -1)
 apply(erule ssubst)
 apply(subgoal_tac "j\<le>j")
@@ -192,13 +190,9 @@ apply(erule ssubst)
 apply simp_all
 done
 
-lemma Example2_lemma2_Suc0: "\<lbrakk>j<n; b j=0\<rbrakk> \<Longrightarrow> Suc (\<Sum>i::nat< n. b i)=(\<Sum>i< n. (b (j:=Suc 0)) i)"
+lemma Example2_lemma2_Suc0: "\<lbrakk>j<n; b j=0\<rbrakk> \<Longrightarrow>
+ Suc (\<Sum>i::nat=0..< n. b i)=(\<Sum>i=0..< n. (b (j:=Suc 0)) i)"
 by(simp add:Example2_lemma2)
-
-lemma Example2_lemma3: "\<forall>i< n. b i = 1 \<Longrightarrow> (\<Sum>i::nat<n. b i)= n"
-apply (induct n)
-apply auto
-done
 
 record Example2_parameterized =   
   C :: "nat \<Rightarrow> nat"
@@ -207,21 +201,21 @@ record Example2_parameterized =
 lemma Example2_parameterized: "0<n \<Longrightarrow> 
   \<turnstile> COBEGIN SCHEME  [0\<le>i<n]
      (\<langle> \<acute>y:=\<acute>y+1;; \<acute>C:=\<acute>C (i:=1) \<rangle>, 
-     \<lbrace>\<acute>y=(\<Sum>i<n. \<acute>C i) \<and> \<acute>C i=0\<rbrace>, 
+     \<lbrace>\<acute>y=(\<Sum>i=0..<n. \<acute>C i) \<and> \<acute>C i=0\<rbrace>, 
      \<lbrace>\<ordmasculine>C i = \<ordfeminine>C i \<and> 
-      (\<ordmasculine>y=(\<Sum>i<n. \<ordmasculine>C i) \<longrightarrow> \<ordfeminine>y =(\<Sum>i<n. \<ordfeminine>C i))\<rbrace>,  
+      (\<ordmasculine>y=(\<Sum>i=0..<n. \<ordmasculine>C i) \<longrightarrow> \<ordfeminine>y =(\<Sum>i=0..<n. \<ordfeminine>C i))\<rbrace>,  
      \<lbrace>(\<forall>j<n. i\<noteq>j \<longrightarrow> \<ordmasculine>C j = \<ordfeminine>C j) \<and> 
-       (\<ordmasculine>y=(\<Sum>i<n. \<ordmasculine>C i) \<longrightarrow> \<ordfeminine>y =(\<Sum>i<n. \<ordfeminine>C i))\<rbrace>,
-     \<lbrace>\<acute>y=(\<Sum>i<n. \<acute>C i) \<and> \<acute>C i=1\<rbrace>) 
+       (\<ordmasculine>y=(\<Sum>i=0..<n. \<ordmasculine>C i) \<longrightarrow> \<ordfeminine>y =(\<Sum>i=0..<n. \<ordfeminine>C i))\<rbrace>,
+     \<lbrace>\<acute>y=(\<Sum>i=0..<n. \<acute>C i) \<and> \<acute>C i=1\<rbrace>) 
     COEND
- SAT [\<lbrace>\<acute>y=0 \<and> (\<Sum>i<n. \<acute>C i)=0 \<rbrace>, \<lbrace>\<ordmasculine>C=\<ordfeminine>C \<and> \<ordmasculine>y=\<ordfeminine>y\<rbrace>, \<lbrace>True\<rbrace>, \<lbrace>\<acute>y=n\<rbrace>]"
+ SAT [\<lbrace>\<acute>y=0 \<and> (\<Sum>i=0..<n. \<acute>C i)=0 \<rbrace>, \<lbrace>\<ordmasculine>C=\<ordfeminine>C \<and> \<ordmasculine>y=\<ordfeminine>y\<rbrace>, \<lbrace>True\<rbrace>, \<lbrace>\<acute>y=n\<rbrace>]"
 apply(rule Parallel)
 apply force
 apply force
-apply(force elim:Example2_lemma1)
+apply(force)
 apply clarify
 apply simp
-apply(force intro:Example2_lemma3)
+apply(simp cong:setsum_ivl_cong)
 apply clarify
 apply simp
 apply(rule Await)

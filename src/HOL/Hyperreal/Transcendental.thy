@@ -360,7 +360,7 @@ subsection{*Properties of Power Series*}
 lemma lemma_realpow_diff_sumr:
      "(\<Sum>p=0..<Suc n. (x ^ p) * y ^ ((Suc n) - p)) =  
       y * (\<Sum>p=0..<Suc n. (x ^ p) * (y ^ (n - p))::real)"
-apply (auto simp add: setsum_mult simp del: setsum_Suc)
+apply (auto simp add: setsum_mult simp del: setsum_op_ivl_Suc)
 apply (rule setsum_cong[OF refl])
 apply (subst lemma_realpow_diff)
 apply (auto simp add: mult_ac)
@@ -370,21 +370,21 @@ lemma lemma_realpow_diff_sumr2:
      "x ^ (Suc n) - y ^ (Suc n) =  
       (x - y) * (\<Sum>p=0..<Suc n. (x ^ p) * (y ^(n - p))::real)"
 apply (induct "n", simp)
-apply (auto simp del: setsum_Suc)
-apply (subst setsum_Suc)
+apply (auto simp del: setsum_op_ivl_Suc)
+apply (subst setsum_op_ivl_Suc)
 apply (drule sym)
-apply (auto simp add: lemma_realpow_diff_sumr right_distrib diff_minus mult_ac simp del: setsum_Suc)
+apply (auto simp add: lemma_realpow_diff_sumr right_distrib diff_minus mult_ac simp del: setsum_op_ivl_Suc)
 done
 
 lemma lemma_realpow_rev_sumr:
      "(\<Sum>p=0..<Suc n. (x ^ p) * (y ^ (n - p))) =  
       (\<Sum>p=0..<Suc n. (x ^ (n - p)) * (y ^ p)::real)"
 apply (case_tac "x = y")
-apply (auto simp add: mult_commute power_add [symmetric] simp del: setsum_Suc)
+apply (auto simp add: mult_commute power_add [symmetric] simp del: setsum_op_ivl_Suc)
 apply (rule_tac c1 = "x - y" in real_mult_left_cancel [THEN iffD1])
 apply (rule_tac [2] minus_minus [THEN subst], simp)
 apply (subst minus_mult_left)
-apply (simp add: lemma_realpow_diff_sumr2 [symmetric] del: setsum_Suc)
+apply (simp add: lemma_realpow_diff_sumr2 [symmetric] del: setsum_op_ivl_Suc)
 done
 
 text{*Power series has a `circle` of convergence, i.e. if it sums for @{term
@@ -490,14 +490,14 @@ apply (simp add: mult_assoc [symmetric])
 apply (case_tac "n")
 apply (auto simp add: lemma_realpow_diff_sumr2 
                       right_diff_distrib [symmetric] mult_assoc
-            simp del: realpow_Suc setsum_Suc)
-apply (auto simp add: lemma_realpow_rev_sumr simp del: setsum_Suc)
+            simp del: realpow_Suc setsum_op_ivl_Suc)
+apply (auto simp add: lemma_realpow_rev_sumr simp del: setsum_op_ivl_Suc)
 apply (auto simp add: real_of_nat_Suc sumr_diff_mult_const left_distrib 
                 sumdiff lemma_termdiff1 setsum_mult)
 apply (auto intro!: setsum_cong[OF refl] simp add: diff_minus real_add_assoc)
 apply (simp add: diff_minus [symmetric] less_iff_Suc_add)
 apply (auto simp add: setsum_mult lemma_realpow_diff_sumr2 mult_ac simp
-                 del: setsum_Suc realpow_Suc)
+                 del: setsum_op_ivl_Suc realpow_Suc)
 done
 
 lemma lemma_termdiff3:
@@ -517,13 +517,13 @@ apply (drule less_add_one)
 apply clarify 
 apply (subgoal_tac "K ^ p * K ^ d * real (Suc (Suc (p + d))) =
                     K ^ p * (real (Suc (Suc (p + d))) * K ^ d)") 
-apply (simp (no_asm_simp) add: power_add del: setsum_Suc)
-apply (auto intro!: mult_mono simp del: setsum_Suc)
-apply (auto intro!: power_mono simp add: power_abs simp del: setsum_Suc)
+apply (simp (no_asm_simp) add: power_add del: setsum_op_ivl_Suc)
+apply (auto intro!: mult_mono simp del: setsum_op_ivl_Suc)
+apply (auto intro!: power_mono simp add: power_abs simp del: setsum_op_ivl_Suc)
 apply (rule_tac j = "real (Suc d) * (K ^ d)" in real_le_trans)
 apply (subgoal_tac [2] "0 \<le> K")
 apply (drule_tac [2] n = d in zero_le_power)
-apply (auto simp del: setsum_Suc)
+apply (auto simp del: setsum_op_ivl_Suc)
 apply (rule setsum_abs [THEN real_le_trans])
 apply (rule real_setsum_nat_ivl_bounded, auto dest!: less_add_one intro!: mult_mono simp add: power_add)
 apply (auto intro!: power_mono zero_le_power simp add: power_abs, arith+)
@@ -1412,7 +1412,7 @@ apply (rule_tac y =
  "\<Sum>n=0..< Suc(Suc(Suc 0)). - ((- 1) ^ n / (real(fact (2*n))) * 2 ^ (2*n))"
        in order_less_trans)
 apply (simp (no_asm) add: fact_num_eq_if realpow_num_eq_if del: fact_Suc realpow_Suc)
-apply (simp (no_asm) add: mult_assoc del: setsum_Suc)
+apply (simp (no_asm) add: mult_assoc del: setsum_op_ivl_Suc)
 apply (rule sumr_pos_lt_pair)
 apply (erule sums_summable, safe)
 apply (simp (no_asm) add: divide_inverse real_0_less_add_iff mult_assoc [symmetric] 
