@@ -72,8 +72,7 @@ fun make entries =
           in
             map (rpair p o pack) (sfxs @ pfxs)
           end;
-    val mapping = filter_out (op =)
-      (gen_distinct eq_fst (flat (map accesses entries)));
+    val mapping = filter_out (op =) (distinct_fst_string (flat (map accesses entries)));
   in
     NameSpace (entries, Symtab.make mapping)
   end;

@@ -440,7 +440,7 @@ type syntax =
 fun make_syntax keywords sects =
   let
     val dups = duplicates (map fst sects);
-    val sects' = gen_distinct eq_fst sects;
+    val sects' = distinct_fst_string sects;
   in
     if null dups then ()
     else warning ("Duplicate declaration of theory file sections:\n" ^ commas_quote dups);
