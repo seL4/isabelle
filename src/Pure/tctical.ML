@@ -19,6 +19,7 @@ signature TACTICAL =
   val APPEND            : tactic * tactic -> tactic
   val APPEND'           : ('a -> tactic) * ('a -> tactic) -> 'a -> tactic
   val CHANGED           : tactic -> tactic
+  val CHANGED_GOAL	: (int -> tactic) -> int -> tactic
   val COND              : (thm -> bool) -> tactic -> tactic -> tactic   
   val DETERM            : tactic -> tactic
   val EVERY             : tactic list -> tactic   
@@ -57,7 +58,7 @@ signature TACTICAL =
   val THEN_ALL_NEW	: (int -> tactic) * (int -> tactic) -> int -> tactic
   val THEN_ELSE         : tactic * (tactic*tactic) -> tactic
   val traced_tac        : (thm -> (thm * thm Seq.seq) option) -> tactic
-  val tracify           : bool ref -> tactic -> thm -> thm Seq.seq
+  val tracify           : bool ref -> tactic -> tactic
   val trace_REPEAT      : bool ref
   val TRY               : tactic -> tactic
   val TRYALL            : (int -> tactic) -> tactic   
@@ -322,6 +323,18 @@ fun TRYALL tac = ALLGOALS (TRY o tac);
 (*Make a tactic for subgoal i, if there is one.  *)
 fun SUBGOAL goalfun i st = goalfun (List.nth(prems_of st, i-1),  i) st
                              handle Subscript => Seq.empty;
+
+(*Returns all states that have changed in subgoal i, counted from the LAST
+  subgoal.  For stac, for example.*)
+fun CHANGED_GOAL tac i st = 
+    let val j = nprems_of st - i
+        val t = List.nth(prems_of st, i-1)
+        fun diff st' = 
+	    not (nprems_of st' > j   (*subgoal is still there*)
+		 andalso
+		 t aconv List.nth(prems_of st', nprems_of st' - j - 1))
+    in  Seq.filter diff (tac i st)  end
+    handle Subscript => Seq.empty  (*no subgoal i*);
 
 fun ALLGOALS_RANGE tac (i:int) j st =
   if i > j then all_tac st
