@@ -254,6 +254,7 @@ val cancel_numerals =
 
 structure CombineNumeralsData =
   struct
+  val add		= op + : int*int -> int 
   val mk_sum            = long_mk_sum    (*to work for e.g. #2*x + #3*x *)
   val dest_sum          = dest_Sucs_sum
   val mk_coeff          = mk_coeff

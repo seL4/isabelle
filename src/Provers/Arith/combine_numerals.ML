@@ -19,6 +19,7 @@ It works by (a) massaging the sum to bring the selected terms to the front:
 signature COMBINE_NUMERALS_DATA =
 sig
   (*abstract syntax*)
+  val add: int * int -> int          (*addition (or multiplication) *)
   val mk_sum: term list -> term
   val dest_sum: term -> term list
   val mk_coeff: int * term -> term
@@ -83,7 +84,7 @@ fun proc sg _ t =
 	 (Data.prove_conv 
 	    [Data.trans_tac reshape, rtac Data.left_distrib 1,
 	     Data.numeral_simp_tac] sg
-	    (t', Data.mk_sum (Data.mk_coeff(m+n,u) :: terms)))
+	    (t', Data.mk_sum (Data.mk_coeff(Data.add(m,n), u) :: terms)))
   end
   handle TERM _ => None
        | TYPE _ => None;   (*Typically (if thy doesn't include Numeral)
