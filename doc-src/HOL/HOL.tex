@@ -1038,95 +1038,96 @@ and \iflabelundefined{chap:classical}{the {\em Reference Manual\/}}%
 {Chap.\ts\ref{chap:classical}} for more discussion of classical proof methods.
 
 
-\section{Calling the decision procedure SVC}\label{sec:HOL:SVC}
+%FIXME outdated, both from the Isabelle and SVC perspective
+% \section{Calling the decision procedure SVC}\label{sec:HOL:SVC}
 
-\index{SVC decision procedure|(}
+% \index{SVC decision procedure|(}
 
-The Stanford Validity Checker (SVC) is a tool that can check the validity of
-certain types of formulae.  If it is installed on your machine, then
-Isabelle/HOL can be configured to call it through the tactic
-\ttindex{svc_tac}.  It is ideal for large tautologies and complex problems in
-linear arithmetic.  Subexpressions that SVC cannot handle are automatically
-replaced by variables, so you can call the tactic on any subgoal.  See the
-file \texttt{HOL/ex/svc_test.ML} for examples.
-\begin{ttbox} 
-svc_tac   : int -> tactic
-Svc.trace : bool ref      \hfill{\bf initially false}
-\end{ttbox}
+% The Stanford Validity Checker (SVC) is a tool that can check the validity of
+% certain types of formulae.  If it is installed on your machine, then
+% Isabelle/HOL can be configured to call it through the tactic
+% \ttindex{svc_tac}.  It is ideal for large tautologies and complex problems in
+% linear arithmetic.  Subexpressions that SVC cannot handle are automatically
+% replaced by variables, so you can call the tactic on any subgoal.  See the
+% file \texttt{HOL/ex/svc_test.ML} for examples.
+% \begin{ttbox} 
+% svc_tac   : int -> tactic
+% Svc.trace : bool ref      \hfill{\bf initially false}
+% \end{ttbox}
 
-\begin{ttdescription}
-\item[\ttindexbold{svc_tac} $i$] attempts to prove subgoal~$i$ by translating
-  it into a formula recognized by~SVC\@.  If it succeeds then the subgoal is
-  removed.  It fails if SVC is unable to prove the subgoal.  It crashes with
-  an error message if SVC appears not to be installed.  Numeric variables may
-  have types \texttt{nat}, \texttt{int} or \texttt{real}.
+% \begin{ttdescription}
+% \item[\ttindexbold{svc_tac} $i$] attempts to prove subgoal~$i$ by translating
+%   it into a formula recognized by~SVC\@.  If it succeeds then the subgoal is
+%   removed.  It fails if SVC is unable to prove the subgoal.  It crashes with
+%   an error message if SVC appears not to be installed.  Numeric variables may
+%   have types \texttt{nat}, \texttt{int} or \texttt{real}.
 
-\item[\ttindexbold{Svc.trace}] is a flag that, if set, causes \texttt{svc_tac}
-  to trace its operations: abstraction of the subgoal, translation to SVC
-  syntax, SVC's response.
-\end{ttdescription}
+% \item[\ttindexbold{Svc.trace}] is a flag that, if set, causes \texttt{svc_tac}
+%   to trace its operations: abstraction of the subgoal, translation to SVC
+%   syntax, SVC's response.
+% \end{ttdescription}
 
-Here is an example, with tracing turned on:
-\begin{ttbox}
-set Svc.trace;
-{\out val it : bool = true}
-Goal "(#3::nat)*a <= #2 + #4*b + #6*c  & #11 <= #2*a + b + #2*c & \ttback
-\ttback     a + #3*b <= #5 + #2*c  --> #2 + #3*b <= #2*a + #6*c";
+% Here is an example, with tracing turned on:
+% \begin{ttbox}
+% set Svc.trace;
+% {\out val it : bool = true}
+% Goal "(#3::nat)*a <= #2 + #4*b + #6*c  & #11 <= #2*a + b + #2*c & \ttback
+% \ttback     a + #3*b <= #5 + #2*c  --> #2 + #3*b <= #2*a + #6*c";
 
-by (svc_tac 1);
-{\out Subgoal abstracted to}
-{\out #3 * a <= #2 + #4 * b + #6 * c &}
-{\out #11 <= #2 * a + b + #2 * c & a + #3 * b <= #5 + #2 * c -->}
-{\out #2 + #3 * b <= #2 * a + #6 * c}
-{\out Calling SVC:}
-{\out (=> (<= 0  (F_c) )  (=> (<= 0  (F_b) )  (=> (<= 0  (F_a) )}
-{\out   (=> (AND (<= {* 3  (F_a) }  {+ {+ 2  {* 4  (F_b) } }  }
-{\out {* 6  (F_c) } } )  (AND (<= 11  {+ {+ {* 2  (F_a) }  (F_b) }}
-{\out   {* 2  (F_c) } } )  (<= {+ (F_a)  {* 3  (F_b) } }  {+ 5  }
-{\out {* 2  (F_c) } } ) ) )  (< {+ 2  {* 3  (F_b) } }  {+ 1  {+ }
-{\out {* 2  (F_a) }  {* 6  (F_c) } } } ) ) ) ) ) }
-{\out SVC Returns:}
-{\out VALID}
-{\out Level 1}
-{\out #3 * a <= #2 + #4 * b + #6 * c &}
-{\out #11 <= #2 * a + b + #2 * c & a + #3 * b <= #5 + #2 * c -->}
-{\out #2 + #3 * b <= #2 * a + #6 * c}
-{\out No subgoals!}
-\end{ttbox}
+% by (svc_tac 1);
+% {\out Subgoal abstracted to}
+% {\out #3 * a <= #2 + #4 * b + #6 * c &}
+% {\out #11 <= #2 * a + b + #2 * c & a + #3 * b <= #5 + #2 * c -->}
+% {\out #2 + #3 * b <= #2 * a + #6 * c}
+% {\out Calling SVC:}
+% {\out (=> (<= 0  (F_c) )  (=> (<= 0  (F_b) )  (=> (<= 0  (F_a) )}
+% {\out   (=> (AND (<= {* 3  (F_a) }  {+ {+ 2  {* 4  (F_b) } }  }
+% {\out {* 6  (F_c) } } )  (AND (<= 11  {+ {+ {* 2  (F_a) }  (F_b) }}
+% {\out   {* 2  (F_c) } } )  (<= {+ (F_a)  {* 3  (F_b) } }  {+ 5  }
+% {\out {* 2  (F_c) } } ) ) )  (< {+ 2  {* 3  (F_b) } }  {+ 1  {+ }
+% {\out {* 2  (F_a) }  {* 6  (F_c) } } } ) ) ) ) ) }
+% {\out SVC Returns:}
+% {\out VALID}
+% {\out Level 1}
+% {\out #3 * a <= #2 + #4 * b + #6 * c &}
+% {\out #11 <= #2 * a + b + #2 * c & a + #3 * b <= #5 + #2 * c -->}
+% {\out #2 + #3 * b <= #2 * a + #6 * c}
+% {\out No subgoals!}
+% \end{ttbox}
 
 
-\begin{warn}
-Calling \ttindex{svc_tac} entails an above-average risk of
-unsoundness.  Isabelle does not check SVC's result independently.  Moreover,
-the tactic translates the submitted formula using code that lies outside
-Isabelle's inference core.  Theorems that depend upon results proved using SVC
-(and other oracles) are displayed with the annotation \texttt{[!]} attached.
-You can also use \texttt{\#der (rep_thm $th$)} to examine the proof object of
-theorem~$th$, as described in the \emph{Reference Manual}.  
-\end{warn}
+% \begin{warn}
+% Calling \ttindex{svc_tac} entails an above-average risk of
+% unsoundness.  Isabelle does not check SVC's result independently.  Moreover,
+% the tactic translates the submitted formula using code that lies outside
+% Isabelle's inference core.  Theorems that depend upon results proved using SVC
+% (and other oracles) are displayed with the annotation \texttt{[!]} attached.
+% You can also use \texttt{\#der (rep_thm $th$)} to examine the proof object of
+% theorem~$th$, as described in the \emph{Reference Manual}.  
+% \end{warn}
 
-To start, first download SVC from the Internet at URL
-\begin{ttbox}
-http://agamemnon.stanford.edu/~levitt/vc/index.html
-\end{ttbox}
-and install it using the instructions supplied.  SVC requires two environment
-variables:
-\begin{ttdescription}
-\item[\ttindexbold{SVC_HOME}] is an absolute pathname to the SVC
-    distribution directory. 
+% To start, first download SVC from the Internet at URL
+% \begin{ttbox}
+% http://agamemnon.stanford.edu/~levitt/vc/index.html
+% \end{ttbox}
+% and install it using the instructions supplied.  SVC requires two environment
+% variables:
+% \begin{ttdescription}
+% \item[\ttindexbold{SVC_HOME}] is an absolute pathname to the SVC
+%     distribution directory. 
     
-  \item[\ttindexbold{SVC_MACHINE}] identifies the type of computer and
-    operating system.  
-\end{ttdescription}
-You can set these environment variables either using the Unix shell or through
-an Isabelle \texttt{settings} file.  Isabelle assumes SVC to be installed if
-\texttt{SVC_HOME} is defined.
+%   \item[\ttindexbold{SVC_MACHINE}] identifies the type of computer and
+%     operating system.  
+% \end{ttdescription}
+% You can set these environment variables either using the Unix shell or through
+% an Isabelle \texttt{settings} file.  Isabelle assumes SVC to be installed if
+% \texttt{SVC_HOME} is defined.
 
-\paragraph*{Acknowledgement.}  This interface uses code supplied by S{\o}ren
-Heilmann.
+% \paragraph*{Acknowledgement.}  This interface uses code supplied by S{\o}ren
+% Heilmann.
 
 
-\index{SVC decision procedure|)}
+% \index{SVC decision procedure|)}
 
 
 
@@ -1405,20 +1406,20 @@ they inherit the relational operators and all the usual properties of linear
 orderings.  For full details, please survey the theories in subdirectories
 \texttt{Integ} and \texttt{Real}.
 
-All three numeric types admit numerals of the form \texttt{\#$sd\ldots d$},
+All three numeric types admit numerals of the form \texttt{$sd\ldots d$},
 where $s$ is an optional minus sign and $d\ldots d$ is a string of digits.
 Numerals are represented internally by a datatype for binary notation, which
 allows numerical calculations to be performed by rewriting.  For example, the
-integer division of \texttt{\#54342339} by \texttt{\#3452} takes about five
+integer division of \texttt{54342339} by \texttt{3452} takes about five
 seconds.  By default, the simplifier cancels like terms on the opposite sites
 of relational operators (reducing \texttt{z+x<x+y} to \texttt{z<y}, for
-instance.  The simplifier also collects like terms, replacing
-\texttt{x+y+x*\#3} by \texttt{\#4*x+y}.
+instance.  The simplifier also collects like terms, replacing \texttt{x+y+x*3}
+by \texttt{4*x+y}.
 
-Sometimes numerals are not wanted, because for example \texttt{n+\#3} does not
+Sometimes numerals are not wanted, because for example \texttt{n+3} does not
 match a pattern of the form \texttt{Suc $k$}.  You can re-arrange the form of
-an arithmetic expression by proving (via \texttt{subgoal_tac}) a lemma such
-as \texttt{n+\#3 = Suc (Suc (Suc n))}.  As an alternative, you can disable the
+an arithmetic expression by proving (via \texttt{subgoal_tac}) a lemma such as
+\texttt{n+3 = Suc (Suc (Suc n))}.  As an alternative, you can disable the
 fancier simplifications by using a basic simpset such as \texttt{HOL_ss}
 rather than the default one, \texttt{simpset()}.
 
@@ -1699,253 +1700,6 @@ arities \(ty\) :: (term,\thinspace\(\dots\),{\thinspace}term){\thinspace}term
 in your theory file to tell Isabelle that $ty$ is in class \texttt{term}, the
 class of all HOL types.
 \end{warn}
-
-
-\section{Records}
-
-At a first approximation, records are just a minor generalisation of tuples,
-where components may be addressed by labels instead of just position (think of
-{\ML}, for example).  The version of records offered by Isabelle/HOL is
-slightly more advanced, though, supporting \emph{extensible record schemes}.
-This admits operations that are polymorphic with respect to record extension,
-yielding ``object-oriented'' effects like (single) inheritance.  See also
-\cite{NaraschewskiW-TPHOLs98} for more details on object-oriented
-verification and record subtyping in HOL.
-
-
-\subsection{Basics}
-
-Isabelle/HOL supports fixed and schematic records both at the level of terms
-and types.  The concrete syntax is as follows:
-
-\begin{center}
-\begin{tabular}{l|l|l}
-  & record terms & record types \\ \hline
-  fixed & $\record{x = a\fs y = b}$ & $\record{x \ty A\fs y \ty B}$ \\
-  schematic & $\record{x = a\fs y = b\fs \more = m}$ &
-    $\record{x \ty A\fs y \ty B\fs \more \ty M}$ \\
-\end{tabular}
-\end{center}
-
-\noindent The \textsc{ascii} representation of $\record{x = a}$ is \texttt{(| x = a |)}.
-
-A fixed record $\record{x = a\fs y = b}$ has field $x$ of value $a$ and field
-$y$ of value $b$.  The corresponding type is $\record{x \ty A\fs y \ty B}$,
-assuming that $a \ty A$ and $b \ty B$.
-
-A record scheme like $\record{x = a\fs y = b\fs \more = m}$ contains fields
-$x$ and $y$ as before, but also possibly further fields as indicated by the
-``$\more$'' notation (which is actually part of the syntax).  The improper
-field ``$\more$'' of a record scheme is called the \emph{more part}.
-Logically it is just a free variable, which is occasionally referred to as
-\emph{row variable} in the literature.  The more part of a record scheme may
-be instantiated by zero or more further components.  For example, above scheme
-might get instantiated to $\record{x = a\fs y = b\fs z = c\fs \more = m'}$,
-where $m'$ refers to a different more part.  Fixed records are special
-instances of record schemes, where ``$\more$'' is properly terminated by the
-$() :: unit$ element.  Actually, $\record{x = a\fs y = b}$ is just an
-abbreviation for $\record{x = a\fs y = b\fs \more = ()}$.
-
-\medskip
-
-There are two key features that make extensible records in a simply typed
-language like HOL feasible:
-\begin{enumerate}
-\item the more part is internalised, as a free term or type variable,
-\item field names are externalised, they cannot be accessed within the logic
-  as first-class values.
-\end{enumerate}
-
-\medskip
-
-In Isabelle/HOL record types have to be defined explicitly, fixing their field
-names and types, and their (optional) parent record (see
-{\S}\ref{sec:HOL:record-def}).  Afterwards, records may be formed using above
-syntax, while obeying the canonical order of fields as given by their
-declaration.  The record package also provides several operations like
-selectors and updates (see {\S}\ref{sec:HOL:record-ops}), together with
-characteristic properties (see {\S}\ref{sec:HOL:record-thms}).
-
-There is an example theory demonstrating most basic aspects of extensible
-records (see theory \texttt{HOL/ex/Records} in the Isabelle sources).
-
-
-\subsection{Defining records}\label{sec:HOL:record-def}
-
-The theory syntax for record type definitions is shown in
-Fig.~\ref{fig:HOL:record}.  For the definition of `typevarlist' and `type' see
-\iflabelundefined{chap:classical}
-{the appendix of the {\em Reference Manual\/}}%
-{Appendix~\ref{app:TheorySyntax}}.
-
-\begin{figure}[htbp]
-\begin{rail}
-record  : 'record' typevarlist name '=' parent (field +);
-
-parent  : ( () | type '+');
-field   : name '::' type;
-\end{rail}
-\caption{Syntax of record type definitions}
-\label{fig:HOL:record}
-\end{figure}
-
-A general \ttindex{record} specification is of the following form:
-\[
-\mathtt{record}~(\alpha@1, \dots, \alpha@n) \, t ~=~
-  (\tau@1, \dots, \tau@m) \, s ~+~ c@1 :: \sigma@1 ~ \dots ~ c@l :: \sigma@l
-\]
-where $\vec\alpha@n$ are distinct type variables, and $\vec\tau@m$,
-$\vec\sigma@l$ are types containing at most variables from $\vec\alpha@n$.
-Type constructor $t$ has to be new, while $s$ has to specify an existing
-record type.  Furthermore, the $\vec c@l$ have to be distinct field names.
-There has to be at least one field.
-
-In principle, field names may never be shared with other records.  This is no
-actual restriction in practice, since $\vec c@l$ are internally declared
-within a separate name space qualified by the name $t$ of the record.
-
-\medskip
-
-Above definition introduces a new record type $(\vec\alpha@n) \, t$ by
-extending an existing one $(\vec\tau@m) \, s$ by new fields $\vec c@l \ty
-\vec\sigma@l$.  The parent record specification is optional, by omitting it
-$t$ becomes a \emph{root record}.  The hierarchy of all records declared
-within a theory forms a forest structure, i.e.\ a set of trees, where any of
-these is rooted by some root record.
-
-For convenience, $(\vec\alpha@n) \, t$ is made a type abbreviation for the
-fixed record type $\record{\vec c@l \ty \vec\sigma@l}$, and $(\vec\alpha@n,
-\zeta) \, t_scheme$ is made an abbreviation for $\record{\vec c@l \ty
-  \vec\sigma@l\fs \more \ty \zeta}$.
-
-\medskip
-
-The following simple example defines a root record type $point$ with fields $x
-\ty nat$ and $y \ty nat$, and record type $cpoint$ by extending $point$ with
-an additional $colour$ component.
-
-\begin{ttbox}
-  record point =
-    x :: nat
-    y :: nat
-
-  record cpoint = point +
-    colour :: string
-\end{ttbox}
-
-
-\subsection{Record operations}\label{sec:HOL:record-ops}
-
-Any record definition of the form presented above produces certain standard
-operations.  Selectors and updates are provided for any field, including the
-improper one ``$more$''.  There are also cumulative record constructor
-functions.
-
-To simplify the presentation below, we first assume that $(\vec\alpha@n) \, t$
-is a root record with fields $\vec c@l \ty \vec\sigma@l$.
-
-\medskip
-
-\textbf{Selectors} and \textbf{updates} are available for any field (including
-``$more$'') as follows:
-\begin{matharray}{lll}
-  c@i & \ty & \record{\vec c@l \ty \vec \sigma@l, \more \ty \zeta} \To \sigma@i \\
-  c@i_update & \ty & \sigma@i \To \record{\vec c@l \ty \vec \sigma@l, \more \ty \zeta} \To
-    \record{\vec c@l \ty \vec \sigma@l, \more \ty \zeta}
-\end{matharray}
-
-There is some special syntax for updates: $r \, \record{x \asn a}$ abbreviates
-term $x_update \, a \, r$.  Repeated updates are supported as well: $r \,
-\record{x \asn a} \, \record{y \asn b} \, \record{z \asn c}$ may be written as
-$r \, \record{x \asn a\fs y \asn b\fs z \asn c}$.  Note that because of
-postfix notation the order of fields shown here is reverse than in the actual
-term.  This might lead to confusion in conjunction with special proof tools
-such as ordered rewriting.
-
-Since repeated updates are just function applications, fields may be freely
-permuted in $\record{x \asn a\fs y \asn b\fs z \asn c}$, as far as the logic
-is concerned.  Thus commutativity of updates can be proven within the logic
-for any two fields, but not as a general theorem: fields are not first-class
-values.
-
-\medskip
-
-\textbf{Make} operations provide cumulative record constructor functions:
-\begin{matharray}{lll}
-  make & \ty & \vec\sigma@l \To \record{\vec c@l \ty \vec \sigma@l} \\
-  make_scheme & \ty & \vec\sigma@l \To
-    \zeta \To \record{\vec c@l \ty \vec \sigma@l, \more \ty \zeta} \\
-\end{matharray}
-\noindent
-These functions are curried.  The corresponding definitions in terms of actual
-record terms are part of the standard simpset.  Thus $point\dtt make\,a\,b$
-rewrites to $\record{x = a\fs y = b}$.
-
-\medskip
-
-Any of above selector, update and make operations are declared within a local
-name space prefixed by the name $t$ of the record.  In case that different
-records share base names of fields, one has to qualify names explicitly (e.g.\ 
-$t\dtt c@i_update$).  This is recommended especially for operations like
-$make$ or $update_more$ that always have the same base name.  Just use $t\dtt
-make$ etc.\ to avoid confusion.
-
-\bigskip
-
-We reconsider the case of non-root records, which are derived of some parent
-record.  In general, the latter may depend on another parent as well,
-resulting in a list of \emph{ancestor records}.  Appending the lists of fields
-of all ancestors results in a certain field prefix.  The record package
-automatically takes care of this by lifting operations over this context of
-ancestor fields.  Assuming that $(\vec\alpha@n) \, t$ has ancestor fields
-$\vec d@k \ty \vec\rho@k$, selectors will get the following types:
-\begin{matharray}{lll}
-  c@i & \ty & \record{\vec d@k \ty \vec\rho@k, \vec c@l \ty \vec \sigma@l, \more \ty \zeta}
-    \To \sigma@i
-\end{matharray}
-\noindent
-Update and make operations are analogous.
-
-
-\subsection{Record proof tools}\label{sec:HOL:record-thms}
-
-The record package declares the following proof rules for any record type $t$.
-\begin{enumerate}
-  
-\item Standard conversions (selectors or updates applied to record constructor
-  terms, make function definitions) are part of the standard simpset (via
-  \texttt{addsimps}).
-  
-\item Selectors applied to updated records are automatically reduced by
-  simplification procedure \ttindex{record_simproc}, which is part of the
-  default simpset.
-  
-\item Inject equations of a form analogous to $((x, y) = (x', y')) \equiv x=x'
-  \conj y=y'$ are made part of the standard simpset and claset (via
-  \texttt{addIffs}).
-  
-\item The introduction rule for record equality analogous to $x~r = x~r' \Imp
-  y~r = y~r' \Imp \dots \Imp r = r'$ is added to the simpset and to the claset
-  (as an ``extra introduction'').
-  
-\item A tactic for record field splitting (\ttindex{record_split_tac}) may be
-  made part of the claset (via \texttt{addSWrapper}).  This tactic is based on
-  rules analogous to $(\All x PROP~P~x) \equiv (\All{a~b} PROP~P(a, b))$ for
-  any field.
-\end{enumerate}
-
-The first two kinds of rules are stored within the theory as $t\dtt simps$ and
-$t\dtt iffs$, respectively; record equality introduction is available as
-$t\dtt equality$.  In some situations it might be appropriate to expand the
-definitions of updates: $t\dtt update_defs$.  Note that these names are
-\emph{not} bound at the {\ML} level.
-
-\medskip
-
-Most of the time, plain Simplification should be sufficient to solve goals
-involving records.  Combinations of the Simplifier and Classical Reasoner
-(\texttt{Auto_tac} or \texttt{Force_tac}) are very useful, too.  The example
-theory \texttt{HOL/ex/Records} demonstrates typical proofs concerning records.
 
 
 \section{Datatype definitions}
