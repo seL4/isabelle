@@ -486,13 +486,18 @@ make
 
 When using ML databases made this way to load additional theories or
 derive other databases from them, you have to be aware that HTML
-generation remains activated.
+generation remains activated. Also be especially careful when making
+such databases publicly available since it means that your users might
+get into trouble that they don't expect, like IO exceptions caused by
+insufficient write access.
 
 The reason is that the boolean reference variable {\tt make_html} (see
 below) is set. Therefore HTML files are generated unless you assign a
-value of {\tt false} to {\tt make_html}. The only place where the
-environment variable {\tt MAKE_HTML} is used is in the makefile where
-it determines the initial value of {\tt make_html} for a newly made
+value of {\tt false} to {\tt make_html}.
+
+This is not influenced by the environment variable {\tt MAKE_HTML},
+because the only place where it is used is in the makefile where it
+determines the initial value of {\tt make_html} for a newly made
 database.
 
 As some of Isabelle's logics are based on others (e.g. {\tt ZF} on
