@@ -94,3 +94,4 @@ val cd = File.cd o Path.unpack;
 print_depth 8;
 ml_prompts "ML> " "ML# ";
 
+proofs := 0;
