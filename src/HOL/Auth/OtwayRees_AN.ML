@@ -295,11 +295,8 @@ by (Fast_tac 1);
 qed_spec_mp "NA_Crypt_imp_Server_msg";
 
 
-(*Corollary: if A receives B's OR4 message and the nonce NA agrees
-  then the key really did come from the Server!  CANNOT prove this of the
-  bad form of this protocol, even though we can prove
-  Spy_not_see_encrypted_key.  (We can implicitly infer freshness of
-  the Server's message from its nonce NA.)*)
+(*Corollary: if A receives B's OR4 message then it originated with the Server.
+  Freshness may be inferred from nonce NA.*)
 goal thy 
  "!!evs. [| Says B' A (Crypt (shrK A) {|NA, Agent A, Agent B, Key K|})  \
 \            : set_of_list evs;                                         \
@@ -386,8 +383,8 @@ by (Fast_tac 1);
 qed_spec_mp "NB_Crypt_imp_Server_msg";
 
 
-(*Guarantee for B: if it gets a message with matching NB then the Server
-  has sent the correct message.*)
+(*Guarantee for B: if it gets a well-formed certificate then the Server
+  has sent the correct message in round 3.*)
 goal thy 
  "!!evs. [| B ~: lost;  evs : otway lost;                                   \
 \           Says S B {|X, Crypt (shrK B) {|NB, Agent A, Agent B, Key K|}|}  \

@@ -625,8 +625,7 @@ by (etac yahalom.induct 1);
 by analz_Fake_tac;
 by (ALLGOALS  (*22 seconds*)
     (asm_simp_tac 
-     (!simpset addsimps ([not_parts_not_analz,
-                          analz_image_newK,
+     (!simpset addsimps ([not_parts_not_analz, analz_image_newK,
                           insert_Key_singleton, insert_Key_image]
                          @ pushes)
                setloop split_tac [expand_if])));
@@ -644,13 +643,13 @@ by (fast_tac (!claset delrules [bexI]
                       addDs [unique_session_keys]
                       addss (!simpset)) 2);
 (*YM4*)
-(** LEVEL 11 **)
+(** LEVEL 10 **)
 by (rtac (impI RS allI) 1);
 by (dtac (impOfSubs Fake_analz_insert) 1 THEN etac synth.Inj 1);
 by (eres_inst_tac [("P","Nonce NB : ?HH")] rev_mp 1);
 by (asm_simp_tac (!simpset addsimps [analz_image_newK]
                            setloop split_tac [expand_if]) 1);
-(** LEVEL 15 **)
+(** LEVEL 14 **)
 by (grind_tac 1);
 by (REPEAT (dtac not_analz_insert 1));
 by (lost_tac "A" 1);
