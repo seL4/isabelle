@@ -1,17 +1,15 @@
-(*  Title:      FOCUS/Classlib.thy
-    ID:         $ $
+(*  Title:      HOLCF/ex/Classlib.thy
+    ID:         $Id$
     Author:     Franz Regensburger
     Copyright   1995 Technical University Munich
 
-Introduce various type classes
+Introduce various type classes.
 
 !!! Has to be adapted to axclasses !!!
 --------------------------------------
 
-the trivial instance for ++ -- ** // is circ
-the trivial instance for .= and .<=  is bullet
 
-the class hierarchy is as follows
+The class hierarchy is as follows:
 
         pcpo 
          |        
@@ -38,55 +36,50 @@ Classlib = HOLCF +
 (* -------------------------------------------------------------------- *)
 (* class cplus with characteristic constant  ++                         *)
  
-classes cplus < pcpo	
+axclass cplus < pcpo	
 
-arities lift :: (term)cplus
+instance lift :: (term)cplus
 
 ops curried 
 	"++"	:: "'a::cplus -> 'a -> 'a"		(cinfixl 65)
 
 
-(* class cplus has no characteristic axioms                             *)
-(* -------------------------------------------------------------------- *)
 
 (* -------------------------------------------------------------------- *)
 (* class cminus with characteristic constant --                         *)
  
-classes cminus < pcpo	
+axclass cminus < pcpo
 
-arities lift :: (term)cminus
+instance lift :: (term)cminus
 
 ops curried 
 	"--"	:: "'a::cminus -> 'a -> 'a"		(cinfixl 65)
 
-(* class cminus has no characteristic axioms                            *)
-(* -------------------------------------------------------------------- *)
+
 
 (* -------------------------------------------------------------------- *)
 (* class ctimes with characteristic constant **                         *)
  
-classes ctimes < pcpo	
+axclass ctimes < pcpo
 
-arities lift :: (term)ctimes
+instance lift :: (term)ctimes
 
 ops curried 
 	"**"	:: "'a::ctimes -> 'a -> 'a"		(cinfixl 70)
 
-(* class ctimes has no characteristic axioms                            *)
-(* -------------------------------------------------------------------- *)
+
 
 (* -------------------------------------------------------------------- *)
 (* class cdiv with characteristic constant //                           *)
  
-classes cdiv < pcpo	
+axclass cdiv < pcpo
 
-arities lift :: (term)cdiv
+instance lift :: (term)cdiv
 
 ops curried 
 	"//"	:: "'a::cdiv -> 'a -> 'a"		(cinfixl 70)
 
-(* class cdiv has no characteristic axioms                              *)
-(* -------------------------------------------------------------------- *)
+
 
 (* -------------------------------------------------------------------- *)
 (* class per with characteristic constant .=                            *)
