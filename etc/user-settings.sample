@@ -8,7 +8,7 @@
 ### Compilation options
 ###
 
-#ISABELLE_HTML=false
+#ISABELLE_USEDIR_OPTIONS="-h true -g true"
 
 
 ###
@@ -19,8 +19,6 @@
 #ISABELLE_PATH=other-places-where-heaps-may-reside:$ISABELLE_PATH
 
 #DEFAULT_LOGIC=ZF
-#DEFAULT_LOGIC=HOL
-#DEFAULT_LOGIC=HOLCF
 
 
 ###
