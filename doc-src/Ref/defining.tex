@@ -384,25 +384,6 @@ describes the concrete syntax, the translation to abstract syntax, and the
 pretty printing.  Special case annotations provide a simple means of
 specifying infix operators and binders.
 
-
-%% FIXME remove
-%\subsection{Grammar productions}\label{sec:grammar}\index{productions}
-%
-%Let us examine the treatment of the production
-%\[ A^{(p)}= w@0\, A@1^{(p@1)}\, w@1\, A@2^{(p@2)}\, \ldots\,
-%                  A@n^{(p@n)}\, w@n. \]
-%Here $A@i^{(p@i)}$ is a nonterminal with priority~$p@i$ for $i=1$,
-%\ldots,~$n$, while $w@0$, \ldots,~$w@n$ are strings of terminals.
-%In the corresponding mixfix annotation, the priorities are given separately
-%as $[p@1,\ldots,p@n]$ and~$p$.  The nonterminal symbols are derived from
-%types~$\tau$, $\tau@1$, \ldots,~$\tau@n$ respectively, and the production's
-%effect on nonterminals is expressed as the function type
-%\[ [\tau@1, \ldots, \tau@n]\To \tau. \]
-%Finally, the template
-%\[ w@0  \;_\; w@1 \;_\; \ldots \;_\; w@n \]
-%describes the strings of terminals.
-
-
 \subsection{The general mixfix form}
 Here is a detailed account of mixfix declarations.  Suppose the following
 line occurs within a {\tt consts} or {\tt syntax} section of a {\tt .thy}
@@ -627,7 +608,7 @@ introduces a constant~$c$ of type~$\sigma$, which must have the form
 $(\tau@1 \To \tau@2) \To \tau@3$.  Its concrete syntax is $\Q~x.P$, where
 $x$ is a bound variable of type~$\tau@1$, the body~$P$ has type $\tau@2$
 and the whole term has type~$\tau@3$. The optional integer $pb$
-specifies the body's priority which defaults to 0.  Special characters
+specifies the body's priority, by default~$p$.  Special characters
 in $\Q$ must be escaped using a single quote.
 
 The declaration is expanded internally to something like
