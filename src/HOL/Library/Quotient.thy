@@ -70,8 +70,8 @@ lemma quot_cases [case_names rep, cases type: quot]:
 subsection {* Equality on quotients *}
 
 text {*
- Equality of canonical quotient elements corresponds to the original
- relation as follows.
+ Equality of canonical quotient elements coincides with the original
+ relation.
 *}
 
 theorem equivalence_class_eq [iff?]: "(\<lfloor>a\<rfloor> = \<lfloor>b\<rfloor>) = (a \<sim> b)"

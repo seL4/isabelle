@@ -26,9 +26,9 @@
 \newcommand{\isabelletitle}{}\newcommand{\title}[1]{\gdef\isabelletitle{#1}}
 \newcommand{\isabelleauthor}{}\newcommand{\author}[1]{\gdef\isabelleauthor{#1}}
 \renewcommand{\isamarkupheader}[1]%
-{\newpage\title{***~Theory ``\isabellecontext'': unknown title}\author{}#1%
+{\title{***~Theory ``\isabellecontext'': unknown title}\author{}#1%
+\ifthenelse{\equal{}{\isabelletitle}}{}{\newpage\section{\isabelletitle}}%
 \markright{THEORY~``\isabellecontext''}
-\ifthenelse{\equal{}{\isabelletitle}}{}{\section{\isabelletitle}}%
 \ifthenelse{\equal{}{\isabelleauthor}}{}%
 {{\flushright\footnotesize\sl (By \isabelleauthor)\par\bigskip}}}
 
