@@ -45,6 +45,7 @@ sig
   val force_tac	  : clasimpset  -> int -> tactic
   val Force_tac	  : int -> tactic
   val force	  : int -> unit
+  val fast_simp_tac : clasimpset  -> int -> tactic
   val change_global_css: (clasimpset * thm list -> clasimpset) -> theory attribute
   val change_local_css: (clasimpset * thm list -> clasimpset) -> Proof.context attribute
   val get_local_clasimpset: Proof.context -> clasimpset
@@ -154,6 +155,11 @@ fun Force_tac i = force_tac (Classical.claset(), Simplifier.simpset()) i;
 fun force i = by (Force_tac i);
 
 
+(* fast_simp_tac *)
+
+fun fast_simp_tac (cs, ss) = let val cs' = cs addss ss in Classical.fast_tac cs' end;
+
+
 (* attributes *)
 
 fun change_global_css f (thy, th) =
@@ -195,9 +201,10 @@ val clasimp_method' = Method.bang_sectioned_args clasimp_modifiers o clasimp_met
 
 val setup =
  [Method.add_methods
-   [("force", clasimp_method' force_tac, "force"),
+   [("fastsimp", clasimp_method' fast_simp_tac, "combined fast and simp"),
+    ("force", clasimp_method' force_tac, "force"),
     ("auto", clasimp_method (CHANGED o auto_tac), "auto"),
-    ("clarsimp", clasimp_method' clarsimp_tac, "clarify simplified goal")]];
+    ("clarsimp", clasimp_method' (CHANGED oo clarsimp_tac), "clarify simplified goal")]];
 
 
 end;
