@@ -96,6 +96,8 @@ end;
 
 (** interrupts **)
 
+exception Interrupt;
+
 local
 
 datatype 'a result =
