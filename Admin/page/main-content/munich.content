@@ -41,13 +41,13 @@ The main Isabelle related projects at TU Munich are currently:
 
 <ul>
 
-<li> <b><a href="Bali/">Isabelle/Bali</a></b> Java and JVM
+<li> <b><a href="Bali/index.html">Isabelle/Bali</a></b> Java and JVM
 formalization --- type system, semantics, compilers
 
-<li> <b><a href="Isar/">Isabelle/Isar</a></b> Intelligible
+<li> <b><a href="Isar/index.html">Isabelle/Isar</a></b> Intelligible
 semi-automated reasoning --- readable formal proof documents
 
-<li><b><a href="IOA/">Isabelle/IOA</a></b> Verification of
+<li><b><a href="IOA/index.html">Isabelle/IOA</a></b> Verification of
 distributed, reactive systems using I/O Automata
 
 <li> <b>Isabelle/HOOL</b> Object-oriented verification of
@@ -58,20 +58,18 @@ object-oriented programs
 <p>
 
 <b>Important local information:</b> Students are welcome to
-participate, see <a href="stud/">Isabelle Projekte für Studenten</a>
-(in German) for more information.
+participate, see <a href="stud/index.html">Isabelle Projekte für
+Studenten</a> (in German) for more information.
 
 
 <h2>Isabelle resources</h2>
 
 <ul>
 
-<li> Isabelle <a href="dist/">distribution area</a>
+<li> Isabelle <a href="dist/index.html">distribution area</a>
 
 <li> Isabelle online theory library: <a
-href="library-Isabelle99/">Isabelle99</a>, <a
-href="library-Isabelle98-1/">Isabelle98-1</a>
-
+href="library-Isabelle99/index.html">Isabelle99</a>, <a
+href="library-Isabelle98-1/index.html">Isabelle98-1</a>
 
 </ul>
-

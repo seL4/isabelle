@@ -5,6 +5,6 @@ Isabelle Documentation
 
 <!-- _GP_ distname --> documentation is included here as browsable PDF
 for convenience.  These documents are also part of the standard
-Isabelle <a href="dist/">distribution</a>.
+Isabelle <a href="dist/index.html">distribution</a>.
 
 <!-- _GP_ include("$pwd/docu-contents.main") -->
