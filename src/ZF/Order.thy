@@ -35,12 +35,15 @@ defs
 
   ord_iso_map_def
      "ord_iso_map(A,r,B,s) == 
-       UN x:A. UN y:B. UN f: ord_iso(pred(A,x,r), r, pred(B,y,s), s).   
-            {<x,y>}"
+       UN x:A. UN y:B. UN f: ord_iso(pred(A,x,r), r, pred(B,y,s), s). {<x,y>}"
 
 constdefs
 
   first :: [i, i, i] => o
     "first(u, X, R) == u:X & (ALL v:X. v~=u --> <u,v> : R)"
+
+syntax (xsymbols)
+    ord_iso :: [i,i,i,i]=>i       ("('(_,_') \\<cong> '(_,_'))" 50)
+
 
 end

@@ -18,10 +18,6 @@ val AC_aux_defs = [pairwise_disjoint_def, sets_of_size_between_def];
 (*             lemmas concerning FOL and pure ZF theory                   *)
 (* ********************************************************************** *)
 
-Goal "(A->X)=0 ==> X=0";
-by (fast_tac (claset() addSIs [equals0I] addIs [lam_type]) 1);
-qed "fun_space_emptyD";
-
 (* used only in WO1_DC.ML *)
 (*Note simpler proof*)
 Goal "[| ALL x:A. f`x=g`x; f:Df->Cf; g:Dg->Cg; A<=Df; A<=Dg |] ==> f``A=g``A";
@@ -84,14 +80,8 @@ by (TRYALL (eresolve_tac [RepFunI, RepFunE]));
 by (REPEAT (asm_full_simp_tac (simpset() addsimps [the_element]) 1));
 qed "lam_sing_bij";
 
-val [major,minor] = goal thy 
-        "[| f : Pi(A,B); (!!x. x:A ==> B(x)<=C(x)) |] ==> f : Pi(A,C)";
-by (fast_tac (claset() addSIs [major RS Pi_type, minor RS subsetD,
-                major RS apply_type]) 1);
-qed "Pi_weaken_type";
-
-val [major, minor] = goalw thy [inj_def]
-        "[| f:inj(A, B); (!!a. a:A ==> f`a : C) |] ==> f:inj(A,C)";
+val [major, minor] = Goalw [inj_def]
+        "[| f:inj(A, B);  !!a. a:A ==> f`a : C |] ==> f:inj(A,C)";
 by (fast_tac (claset() addSEs [minor]
         addSIs [major RS CollectD1 RS Pi_type, major RS CollectD2]) 1);
 qed "inj_strengthen_type";

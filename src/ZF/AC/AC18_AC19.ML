@@ -5,19 +5,15 @@
 The proof of AC1 ==> AC18 ==> AC19 ==> AC1
 *)
 
-open AC18_AC19;
-
 (* ********************************************************************** *)
 (* AC1 ==> AC18                                                           *)
 (* ********************************************************************** *)
 
-Goal "[| f: (PROD b:{P(a). a:A}. b); ALL a:A. P(a)<=Q(a) |]  \
-\               ==> (lam a:A. f`P(a)):(PROD a:A. Q(a))";
+Goal "[| f: (PROD b:{P(a). a:A}. b);  ALL a:A. P(a)<=Q(a) |]  \
+\     ==> (lam a:A. f`P(a)) : (PROD a:A. Q(a))";
 by (rtac lam_type 1);
 by (dtac apply_type 1);
-by (rtac RepFunI 1 THEN (assume_tac 1));
-by (dtac bspec 1 THEN (assume_tac 1));
-by (etac subsetD 1 THEN (assume_tac 1));
+by Auto_tac;  
 qed "PROD_subsets";
 
 Goal "[| ALL A. 0 ~: A --> (EX f. f : (PROD X:A. X)); A ~= 0 |] ==>  \
@@ -104,9 +100,9 @@ by (fast_tac (claset() addSEs [not_emptyE]) 1);
 val lemma3 = result();
 
 Goalw AC_defs "AC19 ==> AC1";
-by (REPEAT (resolve_tac [allI,impI] 1));
-by (excluded_middle_tac "A=0" 1);
-by (fast_tac (claset() addSIs [exI, empty_fun]) 2);
+by (Clarify_tac 1);
+by (case_tac "A=0" 1);
+by (Force_tac 1);
 by (eres_inst_tac [("x","{u_(a). a:A}")] allE 1);
 by (etac impE 1);
 by (etac RepRep_conj 1 THEN (assume_tac 1));

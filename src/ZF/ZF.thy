@@ -157,6 +157,7 @@ syntax (symbols)
   "@UNION"    :: [pttrn, i, i] => i        ("(3\\<Union> _\\<in>_./ _)" 10)
   "@PROD"     :: [pttrn, i, i] => i        ("(3\\<Pi> _\\<in>_./ _)" 10)
   "@SUM"      :: [pttrn, i, i] => i        ("(3\\<Sigma> _\\<in>_./ _)" 10)
+  "@lam"      :: [pttrn, i, i] => i        ("(3\\<lambda> _:_./ _)" 10)
   "@Ball"     :: [pttrn, i, o] => o        ("(3\\<forall> _\\<in>_./ _)" 10)
   "@Bex"      :: [pttrn, i, o] => o        ("(3\\<exists> _\\<in>_./ _)" 10)
 (*

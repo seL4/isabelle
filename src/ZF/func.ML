@@ -47,27 +47,6 @@ Goalw [Pi_def] "[| f: A->B;  B<=D |] ==> f: A->D";
 by (Best_tac 1);
 qed "fun_weaken_type";
 
-(*Empty function spaces*)
-Goalw [Pi_def, function_def] "Pi(0,A) = {0}";
-by (Blast_tac 1);
-qed "Pi_empty1";
-
-Goalw [Pi_def] "a:A ==> A->0 = 0";
-by (Blast_tac 1);
-qed "Pi_empty2";
-
-(*The empty function*)
-Goalw [Pi_def, function_def] "0: Pi(0,B)";
-by (Blast_tac 1);
-qed "empty_fun";
-
-(*The singleton function*)
-Goalw [Pi_def, function_def] "{<a,b>} : {a} -> {b}";
-by (Blast_tac 1);
-qed "singleton_fun";
-
-Addsimps [Pi_empty1, singleton_fun];
-
 (*** Function Application ***)
 
 Goalw [Pi_def, function_def] "[| <a,b>: f;  <a,c>: f;  f: Pi(A,B) |] ==> b=c";
@@ -129,6 +108,12 @@ Goal "(f : Pi(A, %x. {y:B(x). P(x,y)})) \
 \     <->  f : Pi(A,B) & (ALL x: A. P(x, f`x))";
 by (blast_tac (claset() addIs [Pi_type] addDs [apply_type]) 1);
 qed "Pi_Collect_iff";
+
+val [major,minor] = Goal 
+        "[| f : Pi(A,B);  !!x. x:A ==> B(x)<=C(x) |] ==> f : Pi(A,C)";
+by (fast_tac (claset() addSIs [major RS Pi_type, minor RS subsetD,
+                major RS apply_type]) 1);
+qed "Pi_weaken_type";
 
 
 (** Elimination of membership in a function **)
@@ -203,6 +188,34 @@ by (stac beta 1);
 by (assume_tac 1);
 by (etac (major RS theI) 1);
 qed "lam_theI";
+
+Goal "[| (lam x:A. f(x)) = (lam x:A. g(x));  a:A |] ==> f(a)=g(a)";
+by (fast_tac (claset() addSIs [lamI] addEs [equalityE, lamE]) 1);
+qed "lam_eqE";
+
+
+(*Empty function spaces*)
+Goalw [Pi_def, function_def] "Pi(0,A) = {0}";
+by (Blast_tac 1);
+qed "Pi_empty1";
+Addsimps [Pi_empty1];
+
+(*The singleton function*)
+Goalw [Pi_def, function_def] "{<a,b>} : {a} -> {b}";
+by (Blast_tac 1);
+qed "singleton_fun";
+Addsimps [singleton_fun];
+
+Goalw [Pi_def, function_def] "(A->0) = (if A=0 then {0} else 0)";
+by (Force_tac 1);
+qed "Pi_empty2";
+Addsimps [Pi_empty2];
+
+Goal "(A->X)=0 \\<longleftrightarrow> X=0 & (A \\<noteq> 0)";
+by Auto_tac;  
+by (fast_tac (claset() addSIs [equals0I] addIs [lam_type]) 1);
+qed "fun_space_empty_iff";
+AddIffs [fun_space_empty_iff];
 
 
 (** Extensionality **)

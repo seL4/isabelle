@@ -469,12 +469,11 @@ by (REPEAT (rtac mem_not_refl 1));
 qed "succ_lepoll_succD";
 
 Goal "m:nat ==> ALL n: nat. m lepoll n --> m le n";
-by (nat_ind_tac "m" [] 1);
+by (nat_ind_tac "m" [] 1);  (*induct_tac isn't available yet*)
 by (blast_tac (claset() addSIs [nat_0_le]) 1);
 by (rtac ballI 1);
 by (eres_inst_tac [("n","n")] natE 1);
-by (asm_simp_tac (simpset() addsimps [lepoll_def, inj_def, 
-				      succI1 RS Pi_empty2]) 1);
+by (asm_simp_tac (simpset() addsimps [lepoll_def, inj_def]) 1);
 by (blast_tac (claset() addSIs [succ_leI] addSDs [succ_lepoll_succD]) 1);
 qed_spec_mp "nat_lepoll_imp_le";
 

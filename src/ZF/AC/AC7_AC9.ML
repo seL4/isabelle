@@ -9,35 +9,13 @@ instances of AC.
 (* ********************************************************************** *)
 (* Lemmas used in the proofs AC7 ==> AC6 and AC9 ==> AC1                  *)
 (*  - Sigma_fun_space_not0                                                *)
-(*  - all_eqpoll_imp_pair_eqpoll                                          *)
 (*  - Sigma_fun_space_eqpoll                                              *)
 (* ********************************************************************** *)
 
-Goal "[| 0~:A; B:A |] ==> (nat->Union(A))*B ~= 0";
+Goal "[| 0~:A; B:A |] ==> (nat->Union(A)) * B ~= 0";
 by (blast_tac (claset() addSDs [Sigma_empty_iff RS iffD1, 
-				Union_empty_iff RS iffD1]
-                        addDs [fun_space_emptyD]) 1);
+				Union_empty_iff RS iffD1]) 1);
 qed "Sigma_fun_space_not0";
-
-Goal "(ALL B:A. B eqpoll C) ==> (ALL B1:A. ALL B2:A. B1 eqpoll B2)";
-by (REPEAT (rtac ballI 1));
-by (resolve_tac [bspec RS (bspec RSN (2, eqpoll_sym RSN (2, eqpoll_trans)))] 1
-        THEN REPEAT (assume_tac 1));
-qed "all_eqpoll_imp_pair_eqpoll";
-
-Goal "[| ALL a:A. if(a=b, P(a), Q(a)) = if(a=b, R(a), S(a)); b:A |]  \
-\     ==> P(b)=R(b)";
-by Auto_tac;
-qed "if_eqE1";
-
-Goal "ALL a:A. if(a=b, P(a), Q(a)) = if(a=b, R(a), S(a))  \
-\       ==> ALL a:A. a~=b --> Q(a)=S(a)";
-by Auto_tac;
-qed "if_eqE2";
-
-Goal "[| (lam x:A. f(x))=(lam x:A. g(x)); a:A |] ==> f(a)=g(a)";
-by (fast_tac (claset() addSIs [lamI] addEs [equalityE, lamE]) 1);
-qed "lam_eqE";
 
 Goalw [inj_def]
         "C:A ==> (lam g:(nat->Union(A))*C.  \
@@ -101,13 +79,13 @@ val lemma2 = result();
 Goalw AC_defs "AC7 ==> AC6";
 by (rtac allI 1);
 by (rtac impI 1);
-by (excluded_middle_tac "A=0" 1);
-by (fast_tac (claset() addSIs [not_emptyI, empty_fun]) 2);
+by (case_tac "A=0" 1);
+by (Asm_simp_tac 1);
 by (rtac lemma1 1);
 by (etac allE 1);
 by (etac impE 1 THEN (assume_tac 2));
-by (fast_tac (claset() addSIs [lemma2, all_eqpoll_imp_pair_eqpoll,
-			       Sigma_fun_space_eqpoll]) 1);
+by (blast_tac (claset() addSIs [lemma2] 
+                addIs [eqpoll_sym, eqpoll_trans, Sigma_fun_space_eqpoll]) 1); 
 qed "AC7_AC6";
 
 
@@ -171,17 +149,16 @@ val snd_lepoll_SigmaI = prod_lepoll_self RS
         ((prod_commute_eqpoll RS eqpoll_imp_lepoll) RSN (2,lepoll_trans));
 
 
-Goal "[| 0~:A; A~=0 |]  \
-\       ==> ALL B1: ({((nat->Union(A))*B)*nat. B:A}  \
-\               Un {cons(0,((nat->Union(A))*B)*nat). B:A}).  \
-\       ALL B2: ({((nat->Union(A))*B)*nat. B:A}  \
-\               Un {cons(0,((nat->Union(A))*B)*nat). B:A}).  \
-\       B1 eqpoll B2";
-by (fast_tac (claset() addSIs [all_eqpoll_imp_pair_eqpoll, ballI,
-                        nat_cons_eqpoll RS eqpoll_trans]
-                addEs [Sigma_fun_space_not0 RS not_emptyE]
-                addIs [snd_lepoll_SigmaI, eqpoll_refl RSN 
-                        (2, prod_eqpoll_cong), Sigma_fun_space_eqpoll]) 1);
+Goal "[| 0~:A;  A~=0;  \
+\        C = {((nat->Union(A))*B)*nat. B:A}  Un \
+\            {cons(0,((nat->Union(A))*B)*nat). B:A}; \
+\        B1: C;  B2: C |]  \
+\     ==> B1 eqpoll B2";
+by (blast_tac (claset() addSIs [nat_cons_eqpoll RS eqpoll_trans]
+                addDs [Sigma_fun_space_not0]
+                addIs [eqpoll_trans, eqpoll_sym, snd_lepoll_SigmaI, 
+                       eqpoll_refl RSN (2, prod_eqpoll_cong), 
+                       Sigma_fun_space_eqpoll]) 1);
 val lemma1 = result();
 
 Goal "ALL B1:{(F*B)*N. B:A} Un {cons(0,(F*B)*N). B:A}.  \
@@ -200,9 +177,7 @@ Goalw AC_defs "AC9 ==> AC1";
 by (rtac allI 1);
 by (rtac impI 1);
 by (etac allE 1);
-by (excluded_middle_tac "A=0" 1);
-by (etac impE 1);
-by (rtac lemma1 1 THEN (REPEAT (assume_tac 1)));
-by (fast_tac (claset() addSEs [lemma2]) 1);
-by (fast_tac (claset() addSIs [empty_fun]) 1);
+by (case_tac "A=0" 1);
+by (blast_tac (claset() addDs [lemma1,lemma2]) 2); 
+by Auto_tac;  
 qed "AC9_AC1";

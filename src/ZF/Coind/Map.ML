@@ -4,8 +4,6 @@
     Copyright   1995  University of Cambridge
 *)
 
-open Map;
-
 (** Some sample proofs of inclusions for the final coalgebra "U" (by lcp) **)
 
 Goalw [TMap_def] "{0,1} <= {1} Un TMap(I, {0,1})";
@@ -20,7 +18,7 @@ Goalw [TMap_def] "{0,1} Un TMap(I,2) <= {1} Un TMap(I, {0,1} Un TMap(I,2))";
 by (Blast_tac 1);
 result();
 
-(*TOO SLOW
+(*
 Goalw [TMap_def]
      "{0,1} Un TMap(I,TMap(I,2)) Un TMap(I,2) <= \
 \     {1} Un TMap(I, {0,1} Un TMap(I,TMap(I,2)) Un TMap(I,2))";
@@ -81,7 +79,7 @@ qed "mapQU";
 (* ############################################################ *)
 
 Goalw [PMap_def,TMap_def] "B<=C ==> PMap(A,B)<=PMap(A,C)";
-by (Fast_tac 1);
+by (Blast_tac 1);
 qed "map_mono";
 
 (* Rename to pmap_mono *)

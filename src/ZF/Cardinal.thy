@@ -31,4 +31,9 @@ defs
 
   Card_def      "Card(i) == (i = |i|)"
 
+syntax (xsymbols)
+  "op eqpoll"      :: [i,i] => o     (infixl "\\<approx>" 50)
+  "op lepoll"      :: [i,i] => o     (infixl "\\<lesssim>" 50)
+  "op lesspoll"    :: [i,i] => o     (infixl "\\<prec>" 50)
+
 end

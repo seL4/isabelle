@@ -49,11 +49,12 @@ by (etac bexE 1);
 by (res_inst_tac [("a","<0, {<0, x>}>")] not_emptyI 1);
 by (rtac CollectI 1);
 by (rtac SigmaI 1);
-by (fast_tac (claset() addSIs [nat_0I RS UN_I, empty_fun]) 1);
+by (rtac (nat_0I RS UN_I) 1);
+by (asm_simp_tac (simpset() addsimps [nat_0I RS UN_I]) 1);
 by (rtac (nat_1I RS UN_I) 1);
-by (asm_full_simp_tac (simpset() addsimps [singleton_0]) 2);
+by (asm_simp_tac (simpset() addsimps [singleton_0]) 2);
 by (force_tac (claset() addSIs [singleton_fun RS Pi_type],
-	      simpset() addsimps [singleton_0 RS sym]) 1);
+	       simpset() addsimps [singleton_0 RS sym]) 1);
 qed "lemma1_2";
 
 Goalw [RR_def, XX_def] "range(RR) <= domain(RR)";
