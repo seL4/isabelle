@@ -1,0 +1,3 @@
+
+theory IntArith = Bin:
+end
