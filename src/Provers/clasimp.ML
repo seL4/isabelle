@@ -38,15 +38,17 @@ sig
   val delsimps2	: clasimpset * thm list -> clasimpset
   val addSss	: claset * simpset -> claset
   val addss	: claset * simpset -> claset
-  val CLASIMPSET: (clasimpset -> tactic) -> tactic
-  val CLASIMPSET': (clasimpset -> 'a -> tactic) -> 'a -> tactic
-  val mk_auto_tac:clasimpset -> int -> int -> tactic
-  val auto_tac	: clasimpset -> tactic
-  val Auto_tac	: tactic
-  val auto	: unit -> unit
-  val force_tac	: clasimpset  -> int -> tactic
-  val Force_tac	: int -> tactic
-  val force	: int -> unit
+  val CLASIMPSET  :(clasimpset -> tactic) -> tactic
+  val CLASIMPSET' :(clasimpset -> 'a -> tactic) -> 'a -> tactic
+  val clarsimp_tac: clasimpset -> int -> tactic
+  val Clarsimp_tac:               int -> tactic
+  val mk_auto_tac : clasimpset -> int -> int -> tactic
+  val auto_tac	  : clasimpset -> tactic
+  val Auto_tac	  : tactic
+  val auto	  : unit -> unit
+  val force_tac	  : clasimpset  -> int -> tactic
+  val Force_tac	  : int -> tactic
+  val force	  : int -> unit
 end;
 
 functor ClasimpFun(Data: CLASIMP_DATA): CLASIMP =
@@ -82,8 +84,8 @@ fun op delcongs2 arg = pair_upd2 Data.delcongs arg;
 (*Caution: only one simpset added can be added by each of addSss and addss*)
 fun cs addSss ss = cs addSaltern ("safe_asm_full_simp_tac",
 			CHANGED o Simplifier.safe_asm_full_simp_tac ss);
-fun cs addss  ss = cs addbefore  ("asm_full_simp_tac", Simplifier.asm_full_simp_tac ss);
-
+fun cs addss  ss = cs addbefore  ("asm_full_simp_tac", 
+				  Simplifier.asm_full_simp_tac ss);
 
 (* tacticals *)
 
@@ -92,6 +94,11 @@ fun CLASIMPSET tacf state =
 
 fun CLASIMPSET' tacf i state =
   Classical.CLASET (fn cs => Simplifier.SIMPSET (fn ss => tacf (cs, ss) i)) state;
+
+
+fun clarsimp_tac (cs, ss) = Simplifier.safe_asm_full_simp_tac ss THEN_MAYBE'
+			    Classical.clarify_tac (cs addSss ss);
+fun Clarsimp_tac i = clarsimp_tac (Classical.claset(), Simplifier.simpset()) i;
 
 
 (* auto_tac *)
