@@ -130,7 +130,7 @@ sig
   val class_of_const: string -> class
 end;
 
-signature SIGN_PRIVATE =
+signature PRIVATE_SIGN =
 sig
   include SIGN
   val init_data: Object.kind * (Object.T * (Object.T -> Object.T) *
@@ -140,7 +140,7 @@ sig
   val print_data: Object.kind -> sg -> unit
 end;
 
-structure Sign: SIGN_PRIVATE =
+structure Sign: PRIVATE_SIGN =
 struct
 
 
