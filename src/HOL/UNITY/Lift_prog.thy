@@ -114,6 +114,34 @@ by (simp add: sub_def)
 lemma all_total_lift: "all_total F ==> all_total (lift i F)"
 by (simp add: lift_def rename_def Extend.all_total_extend)
 
+lemma insert_map_upd_same: "(insert_map i t f)(i := s) = insert_map i s f"
+by (rule ext, auto)
+
+lemma insert_map_upd:
+     "(insert_map j t f)(i := s) =  
+      (if i=j then insert_map i s f  
+       else if i<j then insert_map j t (f(i:=s))  
+       else insert_map j t (f(i - Suc 0 := s)))"
+apply (rule ext) 
+apply (simp split add: nat_diff_split) 
+ txt{*This simplification is VERY slow*}
+done
+
+lemma insert_map_eq_diff:
+     "[| insert_map i s f = insert_map j t g;  i\<noteq>j |]  
+      ==> \<exists>g'. insert_map i s' f = insert_map j t g'"
+apply (subst insert_map_upd_same [symmetric])
+apply (erule ssubst)
+apply (simp only: insert_map_upd if_False split: split_if, blast)
+done
+
+lemma lift_map_eq_diff: 
+     "[| lift_map i (s,(f,uu)) = lift_map j (t,(g,vv));  i\<noteq>j |]  
+      ==> \<exists>g'. lift_map i (s',(f,uu)) = lift_map j (t,(g',vv))"
+apply (unfold lift_map_def, auto)
+apply (blast dest: insert_map_eq_diff)
+done
+
 
 subsection{*The Operator @{term lift_set}*}
 

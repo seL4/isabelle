@@ -471,7 +471,7 @@ apply safe
 apply (erule LeadsETo_subset_LeadsTo [THEN subsetD])
 (*right-to-left case*)
 apply (unfold LeadsETo_def LeadsTo_def)
-apply (fast elim: lel_lemma [THEN leadsETo_weaken])
+apply (blast intro: lel_lemma [THEN leadsETo_weaken])
 done
 
 
@@ -479,17 +479,17 @@ done
 
 lemma (in Extend) givenBy_o_eq_extend_set:
      "givenBy (v o f) = extend_set h ` (givenBy v)"
-by (simp add: givenBy_eq_Collect, best)
+apply (simp add: givenBy_eq_Collect)
+apply (rule equalityI, best)
+apply blast 
+done
 
 lemma (in Extend) givenBy_eq_extend_set: "givenBy f = range (extend_set h)"
-apply (simp (no_asm) add: givenBy_eq_Collect)
-apply best
-done
+by (simp add: givenBy_eq_Collect, best)
 
 lemma (in Extend) extend_set_givenBy_I:
      "D : givenBy v ==> extend_set h D : givenBy (v o f)"
-apply (simp (no_asm_use) add: givenBy_eq_all)
-apply blast
+apply (simp (no_asm_use) add: givenBy_eq_all, blast)
 done
 
 lemma (in Extend) leadsETo_imp_extend_leadsETo:
