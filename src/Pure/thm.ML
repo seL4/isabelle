@@ -86,6 +86,7 @@ signature THM =
   val crep_thm          : thm -> {sign: Sign.sg, der: deriv, maxidx: int,
                                   shyps: sort list, hyps: cterm list, 
                                   prop: cterm}
+  val eq_thm		: thm * thm -> bool
   val sign_of_thm       : thm -> Sign.sg
   val transfer		: theory -> thm -> thm
   val tpairs_of         : thm -> (term * term) list
@@ -108,7 +109,6 @@ signature THM =
   val implies_elim      : thm -> thm -> thm
   val forall_intr       : cterm -> thm -> thm
   val forall_elim       : cterm -> thm -> thm
-  val flexpair_def      : thm
   val reflexive         : cterm -> thm
   val symmetric         : thm -> thm
   val transitive        : thm -> thm -> thm
@@ -408,6 +408,18 @@ fun crep_thm (Thm {sign_ref, der, maxidx, shyps, hyps, prop}) =
 (*errors involving theorems*)
 exception THM of string * int * thm list;
 
+(*equality of theorems uses equality of signatures and the
+  a-convertible test for terms*)
+fun eq_thm (th1, th2) =
+  let
+    val {sign = sg1, shyps = shyps1, hyps = hyps1, prop = prop1, ...} = rep_thm th1;
+    val {sign = sg2, shyps = shyps2, hyps = hyps2, prop = prop2, ...} = rep_thm th2;
+  in
+    Sign.eq_sg (sg1, sg2) andalso
+    eq_set_sort (shyps1, shyps2) andalso
+    aconvs (hyps1, hyps2) andalso
+    prop1 aconv prop2
+  end;
 
 fun sign_of_thm (Thm {sign_ref, ...}) = Sign.deref sign_ref;
 
@@ -565,11 +577,11 @@ fun implies_intr_shyps thm =
 (*look up the named axiom in the theory*)
 fun get_axiom theory raw_name =
   let
-    val name = Sign.intern (sign_of theory) Theory.thmK raw_name;
+    val name = Sign.intern (sign_of theory) Theory.axiomK raw_name;
     fun get_ax [] = raise Match
       | get_ax (thy :: thys) =
-          let val {sign, new_axioms, parents, ...} = rep_theory thy
-          in case Symtab.lookup (new_axioms, name) of
+          let val {sign, axioms, parents, ...} = rep_theory thy
+          in case Symtab.lookup (axioms, name) of
                 Some t => fix_shyps [] []
                            (Thm {sign_ref = Sign.self_ref sign,
                                  der = infer_derivs (Axiom(theory,name), []),
@@ -581,14 +593,14 @@ fun get_axiom theory raw_name =
           end;
   in
     get_ax [theory] handle Match
-      => raise THEORY ("get_axiom: no axiom " ^ quote name, [theory])
+      => raise THEORY ("No axiom " ^ quote name, [theory])
   end;
 
 
 (*return additional axioms of this theory node*)
 fun axioms_of thy =
   map (fn (s, _) => (s, get_axiom thy s))
-    (Symtab.dest (#new_axioms (rep_theory thy)));
+    (Symtab.dest (#axioms (rep_theory thy)));
 
 (*Attach a label to a theorem to make proof objects more readable*)
 fun name_thm (name, th as Thm {sign_ref, der, maxidx, shyps, hyps, prop}) = 
@@ -746,16 +758,6 @@ fun forall_elim ct (th as Thm{sign_ref,der,maxidx,hyps,prop,...}) : thm =
 
 
 (* Equality *)
-
-(* Definition of the relation =?= *)
-val flexpair_def = fix_shyps [] []
-  (Thm{sign_ref= Sign.self_ref Sign.proto_pure, 
-       der = Join(Axiom(Theory.proto_pure, "flexpair_def"), []),
-       shyps = [], 
-       hyps = [], 
-       maxidx = 0,
-       prop = term_of (read_cterm Sign.proto_pure
-                       ("(?t =?= ?u) == (?t == ?u::?'a::{})", propT))});
 
 (*The reflexivity rule: maps  t   to the theorem   t==t   *)
 fun reflexive ct =
