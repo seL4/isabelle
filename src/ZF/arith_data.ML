@@ -146,7 +146,8 @@ structure CancelNumeralsCommon =
   val dest_coeff        = dest_coeff
   val find_first_coeff  = find_first_coeff []
   val norm_tac_ss1 = ZF_ss addsimps add_0s@add_succs@mult_1s@add_ac
-  val norm_tac_ss2 = ZF_ss addsimps add_ac@mult_ac@tc_rules@natifys
+  val norm_tac_ss2 = ZF_ss addsimps add_0s@mult_1s@
+                                    add_ac@mult_ac@tc_rules@natifys
   val norm_tac = ALLGOALS (asm_simp_tac norm_tac_ss1)
                  THEN ALLGOALS (asm_simp_tac norm_tac_ss2)
   val numeral_simp_tac_ss = ZF_ss addsimps add_0s@tc_rules@natifys
@@ -254,6 +255,7 @@ test "x : nat ==> x #+ y = x";
 test "x : nat --> x #+ y = x";
 test "x : nat ==> x #+ y < x";
 test "x : nat ==> x < y#+x";
+test "x : nat ==> x le succ(x)";
 
 (*fails: no typing information isn't visible*)
 test "x #+ y = x";
