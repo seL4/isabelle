@@ -139,7 +139,7 @@ in
   fun add_datatype (typevars, tname, cons_list') thy = 
     let
       val dummy = if length cons_list' < dtK then ()
-                  else require_thy thy "Nat" "datatype";
+                  else require_thy thy "Nat" "datatype definitions";
       
       fun typid(dtRek(_,id)) = id
         | typid(dtVar s) = implode (tl (explode s))
