@@ -9,9 +9,9 @@ header {* Product Operator for Commutative Monoids *}
 
 theory FiniteProduct = Group:
 
-text {* Instantiation of @{text LC} from theory @{text Finite_Set} is not
-  possible, because here we have explicit typing rules like @{text "x
-  : carrier G"}.  We introduce an explicit argument for the domain
+text {* Instantiation of locale @{text LC} of theory @{text Finite_Set} is not
+  possible, because here we have explicit typing rules like 
+  @{text "x \<in> carrier G"}.  We introduce an explicit argument for the domain
   @{text D}. *}
 
 consts
@@ -19,41 +19,41 @@ consts
 
 inductive "foldSetD D f e"
   intros
-    emptyI [intro]: "e : D ==> ({}, e) : foldSetD D f e"
-    insertI [intro]: "[| x ~: A; f x y : D; (A, y) : foldSetD D f e |] ==>
-                      (insert x A, f x y) : foldSetD D f e"
+    emptyI [intro]: "e \<in> D ==> ({}, e) \<in> foldSetD D f e"
+    insertI [intro]: "[| x ~: A; f x y \<in> D; (A, y) \<in> foldSetD D f e |] ==>
+                      (insert x A, f x y) \<in> foldSetD D f e"
 
-inductive_cases empty_foldSetDE [elim!]: "({}, x) : foldSetD D f e"
+inductive_cases empty_foldSetDE [elim!]: "({}, x) \<in> foldSetD D f e"
 
 constdefs
   foldD :: "['a set, 'b => 'a => 'a, 'a, 'b set] => 'a"
-  "foldD D f e A == THE x. (A, x) : foldSetD D f e"
+  "foldD D f e A == THE x. (A, x) \<in> foldSetD D f e"
 
 lemma foldSetD_closed:
-  "[| (A, z) : foldSetD D f e ; e : D; !!x y. [| x : A; y : D |] ==> f x y : D 
-      |] ==> z : D";
+  "[| (A, z) \<in> foldSetD D f e ; e \<in> D; !!x y. [| x \<in> A; y \<in> D |] ==> f x y \<in> D 
+      |] ==> z \<in> D";
   by (erule foldSetD.elims) auto
 
 lemma Diff1_foldSetD:
-  "[| (A - {x}, y) : foldSetD D f e; x : A; f x y : D |] ==>
-   (A, f x y) : foldSetD D f e"
+  "[| (A - {x}, y) \<in> foldSetD D f e; x \<in> A; f x y \<in> D |] ==>
+   (A, f x y) \<in> foldSetD D f e"
   apply (erule insert_Diff [THEN subst], rule foldSetD.intros)
     apply auto
   done
 
-lemma foldSetD_imp_finite [simp]: "(A, x) : foldSetD D f e ==> finite A"
+lemma foldSetD_imp_finite [simp]: "(A, x) \<in> foldSetD D f e ==> finite A"
   by (induct set: foldSetD) auto
 
 lemma finite_imp_foldSetD:
-  "[| finite A; e : D; !!x y. [| x : A; y : D |] ==> f x y : D |] ==>
-   EX x. (A, x) : foldSetD D f e"
+  "[| finite A; e \<in> D; !!x y. [| x \<in> A; y \<in> D |] ==> f x y \<in> D |] ==>
+   EX x. (A, x) \<in> foldSetD D f e"
 proof (induct set: Finites)
   case empty then show ?case by auto
 next
   case (insert F x)
-  then obtain y where y: "(F, y) : foldSetD D f e" by auto
-  with insert have "y : D" by (auto dest: foldSetD_closed)
-  with y and insert have "(insert x F, f x y) : foldSetD D f e"
+  then obtain y where y: "(F, y) \<in> foldSetD D f e" by auto
+  with insert have "y \<in> D" by (auto dest: foldSetD_closed)
+  with y and insert have "(insert x F, f x y) \<in> foldSetD D f e"
     by (intro foldSetD.intros) auto
   then show ?case ..
 qed
@@ -65,42 +65,42 @@ locale LCD =
   and D :: "'a set"
   and f :: "'b => 'a => 'a"    (infixl "\<cdot>" 70)
   assumes left_commute:
-    "[| x : B; y : B; z : D |] ==> x \<cdot> (y \<cdot> z) = y \<cdot> (x \<cdot> z)"
-  and f_closed [simp, intro!]: "!!x y. [| x : B; y : D |] ==> f x y : D"
+    "[| x \<in> B; y \<in> B; z \<in> D |] ==> x \<cdot> (y \<cdot> z) = y \<cdot> (x \<cdot> z)"
+  and f_closed [simp, intro!]: "!!x y. [| x \<in> B; y \<in> D |] ==> f x y \<in> D"
 
 lemma (in LCD) foldSetD_closed [dest]:
-  "(A, z) : foldSetD D f e ==> z : D";
+  "(A, z) \<in> foldSetD D f e ==> z \<in> D";
   by (erule foldSetD.elims) auto
 
 lemma (in LCD) Diff1_foldSetD:
-  "[| (A - {x}, y) : foldSetD D f e; x : A; A <= B |] ==>
-  (A, f x y) : foldSetD D f e"
-  apply (subgoal_tac "x : B")
+  "[| (A - {x}, y) \<in> foldSetD D f e; x \<in> A; A \<subseteq> B |] ==>
+  (A, f x y) \<in> foldSetD D f e"
+  apply (subgoal_tac "x \<in> B")
    prefer 2 apply fast
   apply (erule insert_Diff [THEN subst], rule foldSetD.intros)
     apply auto
   done
 
 lemma (in LCD) foldSetD_imp_finite [simp]:
-  "(A, x) : foldSetD D f e ==> finite A"
+  "(A, x) \<in> foldSetD D f e ==> finite A"
   by (induct set: foldSetD) auto
 
 lemma (in LCD) finite_imp_foldSetD:
-  "[| finite A; A <= B; e : D |] ==> EX x. (A, x) : foldSetD D f e"
+  "[| finite A; A \<subseteq> B; e \<in> D |] ==> EX x. (A, x) \<in> foldSetD D f e"
 proof (induct set: Finites)
   case empty then show ?case by auto
 next
   case (insert F x)
-  then obtain y where y: "(F, y) : foldSetD D f e" by auto
-  with insert have "y : D" by auto
-  with y and insert have "(insert x F, f x y) : foldSetD D f e"
+  then obtain y where y: "(F, y) \<in> foldSetD D f e" by auto
+  with insert have "y \<in> D" by auto
+  with y and insert have "(insert x F, f x y) \<in> foldSetD D f e"
     by (intro foldSetD.intros) auto
   then show ?case ..
 qed
 
 lemma (in LCD) foldSetD_determ_aux:
-  "e : D ==> ALL A x. A <= B & card A < n --> (A, x) : foldSetD D f e -->
-    (ALL y. (A, y) : foldSetD D f e --> y = x)"
+  "e \<in> D ==> \<forall>A x. A \<subseteq> B & card A < n --> (A, x) \<in> foldSetD D f e -->
+    (\<forall>y. (A, y) \<in> foldSetD D f e --> y = x)"
   apply (induct n)
    apply (auto simp add: less_Suc_eq) (* slow *)
   apply (erule foldSetD.cases)
@@ -117,12 +117,12 @@ lemma (in LCD) foldSetD_determ_aux:
     prefer 2 apply (blast elim!: equalityE)
    apply blast
   txt {* case @{prop "xa \<notin> xb"}. *}
-  apply (subgoal_tac "Aa - {xb} = Ab - {xa} & xb : Aa & xa : Ab")
+  apply (subgoal_tac "Aa - {xb} = Ab - {xa} & xb \<in> Aa & xa \<in> Ab")
    prefer 2 apply (blast elim!: equalityE)
   apply clarify
   apply (subgoal_tac "Aa = insert xb Ab - {xa}")
    prefer 2 apply blast
-  apply (subgoal_tac "card Aa <= card Ab")
+  apply (subgoal_tac "card Aa \<le> card Ab")
    prefer 2
    apply (rule Suc_le_mono [THEN subst])
    apply (simp add: card_Suc_Diff1)
@@ -134,10 +134,10 @@ lemma (in LCD) foldSetD_determ_aux:
    apply best
   apply (subgoal_tac "ya = f xb x")
    prefer 2
-   apply (subgoal_tac "Aa <= B")
+   apply (subgoal_tac "Aa \<subseteq> B")
     prefer 2 apply best (* slow *)
    apply (blast del: equalityCE)
-  apply (subgoal_tac "(Ab - {xa}, x) : foldSetD D f e")
+  apply (subgoal_tac "(Ab - {xa}, x) \<in> foldSetD D f e")
    prefer 2 apply simp
   apply (subgoal_tac "yb = f xa x")
    prefer 2 
@@ -150,22 +150,22 @@ lemma (in LCD) foldSetD_determ_aux:
   done
 
 lemma (in LCD) foldSetD_determ:
-  "[| (A, x) : foldSetD D f e; (A, y) : foldSetD D f e; e : D; A <= B |]
+  "[| (A, x) \<in> foldSetD D f e; (A, y) \<in> foldSetD D f e; e \<in> D; A \<subseteq> B |]
   ==> y = x"
   by (blast intro: foldSetD_determ_aux [rule_format])
 
 lemma (in LCD) foldD_equality:
-  "[| (A, y) : foldSetD D f e; e : D; A <= B |] ==> foldD D f e A = y"
+  "[| (A, y) \<in> foldSetD D f e; e \<in> D; A \<subseteq> B |] ==> foldD D f e A = y"
   by (unfold foldD_def) (blast intro: foldSetD_determ)
 
 lemma foldD_empty [simp]:
-  "e : D ==> foldD D f e {} = e"
+  "e \<in> D ==> foldD D f e {} = e"
   by (unfold foldD_def) blast
 
 lemma (in LCD) foldD_insert_aux:
-  "[| x ~: A; x : B; e : D; A <= B |] ==>
-    ((insert x A, v) : foldSetD D f e) =
-    (EX y. (A, y) : foldSetD D f e & v = f x y)"
+  "[| x ~: A; x \<in> B; e \<in> D; A \<subseteq> B |] ==>
+    ((insert x A, v) \<in> foldSetD D f e) =
+    (EX y. (A, y) \<in> foldSetD D f e & v = f x y)"
   apply auto
   apply (rule_tac A1 = A in finite_imp_foldSetD [THEN exE])
      apply (fastsimp dest: foldSetD_imp_finite)
@@ -175,7 +175,7 @@ lemma (in LCD) foldD_insert_aux:
   done
 
 lemma (in LCD) foldD_insert:
-    "[| finite A; x ~: A; x : B; e : D; A <= B |] ==>
+    "[| finite A; x ~: A; x \<in> B; e \<in> D; A \<subseteq> B |] ==>
      foldD D f e (insert x A) = f x (foldD D f e A)"
   apply (unfold foldD_def)
   apply (simp add: foldD_insert_aux)
@@ -185,7 +185,7 @@ lemma (in LCD) foldD_insert:
   done
 
 lemma (in LCD) foldD_closed [simp]:
-  "[| finite A; e : D; A <= B |] ==> foldD D f e A : D"
+  "[| finite A; e \<in> D; A \<subseteq> B |] ==> foldD D f e A \<in> D"
 proof (induct set: Finites)
   case empty then show ?case by (simp add: foldD_empty)
 next
@@ -193,7 +193,7 @@ next
 qed
 
 lemma (in LCD) foldD_commute:
-  "[| finite A; x : B; e : D; A <= B |] ==>
+  "[| finite A; x \<in> B; e \<in> D; A \<subseteq> B |] ==>
    f x (foldD D f e A) = foldD D f (f x e) A"
   apply (induct set: Finites)
    apply simp
@@ -201,11 +201,11 @@ lemma (in LCD) foldD_commute:
   done
 
 lemma Int_mono2:
-  "[| A <= C; B <= C |] ==> A Int B <= C"
+  "[| A \<subseteq> C; B \<subseteq> C |] ==> A Int B \<subseteq> C"
   by blast
 
 lemma (in LCD) foldD_nest_Un_Int:
-  "[| finite A; finite C; e : D; A <= B; C <= B |] ==>
+  "[| finite A; finite C; e \<in> D; A \<subseteq> B; C \<subseteq> B |] ==>
    foldD D f (foldD D f e C) A = foldD D f (foldD D f e (A Int C)) (A Un C)"
   apply (induct set: Finites)
    apply simp
@@ -214,7 +214,7 @@ lemma (in LCD) foldD_nest_Un_Int:
   done
 
 lemma (in LCD) foldD_nest_Un_disjoint:
-  "[| finite A; finite B; A Int B = {}; e : D; A <= B; C <= B |]
+  "[| finite A; finite B; A Int B = {}; e \<in> D; A \<subseteq> B; C \<subseteq> B |]
     ==> foldD D f e (A Un B) = foldD D f (foldD D f e B) A"
   by (simp add: foldD_nest_Un_Int)
 
@@ -237,16 +237,16 @@ locale ACeD =
   fixes D :: "'a set"
     and f :: "'a => 'a => 'a"    (infixl "\<cdot>" 70)
     and e :: 'a
-  assumes ident [simp]: "x : D ==> x \<cdot> e = x"
-    and commute: "[| x : D; y : D |] ==> x \<cdot> y = y \<cdot> x"
-    and assoc: "[| x : D; y : D; z : D |] ==> (x \<cdot> y) \<cdot> z = x \<cdot> (y \<cdot> z)"
-    and e_closed [simp]: "e : D"
-    and f_closed [simp]: "[| x : D; y : D |] ==> x \<cdot> y : D"
+  assumes ident [simp]: "x \<in> D ==> x \<cdot> e = x"
+    and commute: "[| x \<in> D; y \<in> D |] ==> x \<cdot> y = y \<cdot> x"
+    and assoc: "[| x \<in> D; y \<in> D; z \<in> D |] ==> (x \<cdot> y) \<cdot> z = x \<cdot> (y \<cdot> z)"
+    and e_closed [simp]: "e \<in> D"
+    and f_closed [simp]: "[| x \<in> D; y \<in> D |] ==> x \<cdot> y \<in> D"
 
 lemma (in ACeD) left_commute:
-  "[| x : D; y : D; z : D |] ==> x \<cdot> (y \<cdot> z) = y \<cdot> (x \<cdot> z)"
+  "[| x \<in> D; y \<in> D; z \<in> D |] ==> x \<cdot> (y \<cdot> z) = y \<cdot> (x \<cdot> z)"
 proof -
-  assume D: "x : D" "y : D" "z : D"
+  assume D: "x \<in> D" "y \<in> D" "z \<in> D"
   then have "x \<cdot> (y \<cdot> z) = (y \<cdot> z) \<cdot> x" by (simp add: commute)
   also from D have "... = y \<cdot> (z \<cdot> x)" by (simp add: assoc)
   also from D have "z \<cdot> x = x \<cdot> z" by (simp add: commute)
@@ -255,15 +255,15 @@ qed
 
 lemmas (in ACeD) AC = assoc commute left_commute
 
-lemma (in ACeD) left_ident [simp]: "x : D ==> e \<cdot> x = x"
+lemma (in ACeD) left_ident [simp]: "x \<in> D ==> e \<cdot> x = x"
 proof -
-  assume D: "x : D"
+  assume D: "x \<in> D"
   have "x \<cdot> e = x" by (rule ident)
   with D show ?thesis by (simp add: commute)
 qed
 
 lemma (in ACeD) foldD_Un_Int:
-  "[| finite A; finite B; A <= D; B <= D |] ==>
+  "[| finite A; finite B; A \<subseteq> D; B \<subseteq> D |] ==>
     foldD D f e A \<cdot> foldD D f e B =
     foldD D f e (A Un B) \<cdot> foldD D f e (A Int B)"
   apply (induct set: Finites)
@@ -275,7 +275,7 @@ lemma (in ACeD) foldD_Un_Int:
   done
 
 lemma (in ACeD) foldD_Un_disjoint:
-  "[| finite A; finite B; A Int B = {}; A <= D; B <= D |] ==>
+  "[| finite A; finite B; A Int B = {}; A \<subseteq> D; B \<subseteq> D |] ==>
     foldD D f e (A Un B) = foldD D f e A \<cdot> foldD D f e B"
   by (simp add: foldD_Un_Int
     left_commute LCD.foldD_closed [OF LCD.intro [of D]] Un_subset_iff)
@@ -396,11 +396,11 @@ proof (induct set: Finites)
   case empty show ?case by simp
 next
   case (insert A a) then
-  have fA: "f : A -> carrier G" by fast
-  from insert have fa: "f a : carrier G" by fast
-  from insert have gA: "g : A -> carrier G" by fast
-  from insert have ga: "g a : carrier G" by fast
-  from insert have fgA: "(%x. f x \<otimes> g x) : A -> carrier G"
+  have fA: "f \<in> A -> carrier G" by fast
+  from insert have fa: "f a \<in> carrier G" by fast
+  from insert have gA: "g \<in> A -> carrier G" by fast
+  from insert have ga: "g a \<in> carrier G" by fast
+  from insert have fgA: "(%x. f x \<otimes> g x) \<in> A -> carrier G"
     by (simp add: Pi_def)
   show ?case  (* check if all simps are really necessary *)
     by (simp add: insert fA fa gA ga fgA m_ac Int_insert_left insert_absorb
@@ -408,16 +408,16 @@ next
 qed
 
 lemma (in comm_monoid) finprod_cong':
-  "[| A = B; g : B -> carrier G;
-      !!i. i : B ==> f i = g i |] ==> finprod G f A = finprod G g B"
+  "[| A = B; g \<in> B -> carrier G;
+      !!i. i \<in> B ==> f i = g i |] ==> finprod G f A = finprod G g B"
 proof -
-  assume prems: "A = B" "g : B -> carrier G"
-    "!!i. i : B ==> f i = g i"
+  assume prems: "A = B" "g \<in> B -> carrier G"
+    "!!i. i \<in> B ==> f i = g i"
   show ?thesis
   proof (cases "finite B")
     case True
-    then have "!!A. [| A = B; g : B -> carrier G;
-      !!i. i : B ==> f i = g i |] ==> finprod G f A = finprod G g B"
+    then have "!!A. [| A = B; g \<in> B -> carrier G;
+      !!i. i \<in> B ==> f i = g i |] ==> finprod G f A = finprod G g B"
     proof induct
       case empty thus ?case by simp
     next
@@ -431,7 +431,7 @@ proof -
       next
 	assume "x ~: B" "!!i. i \<in> insert x B \<Longrightarrow> f i = g i"
 	  "g \<in> insert x B \<rightarrow> carrier G"
-	thus "f : B -> carrier G" by fastsimp
+	thus "f \<in> B -> carrier G" by fastsimp
       next
 	assume "x ~: B" "!!i. i \<in> insert x B \<Longrightarrow> f i = g i"
 	  "g \<in> insert x B \<rightarrow> carrier G"
@@ -449,13 +449,13 @@ proof -
 qed
 
 lemma (in comm_monoid) finprod_cong:
-  "[| A = B; f : B -> carrier G = True;
-      !!i. i : B ==> f i = g i |] ==> finprod G f A = finprod G g B"
+  "[| A = B; f \<in> B -> carrier G = True;
+      !!i. i \<in> B ==> f i = g i |] ==> finprod G f A = finprod G g B"
   (* This order of prems is slightly faster (3%) than the last two swapped. *)
   by (rule finprod_cong') force+
 
 text {*Usually, if this rule causes a failed congruence proof error,
-  the reason is that the premise @{text "g : B -> carrier G"} cannot be shown.
+  the reason is that the premise @{text "g \<in> B -> carrier G"} cannot be shown.
   Adding @{thm [source] Pi_def} to the simpset is often useful.
   For this reason, @{thm [source] comm_monoid.finprod_cong}
   is not added to the simpset by default.
@@ -465,16 +465,16 @@ declare funcsetI [rule del]
   funcset_mem [rule del]
 
 lemma (in comm_monoid) finprod_0 [simp]:
-  "f : {0::nat} -> carrier G ==> finprod G f {..0} = f 0"
+  "f \<in> {0::nat} -> carrier G ==> finprod G f {..0} = f 0"
 by (simp add: Pi_def)
 
 lemma (in comm_monoid) finprod_Suc [simp]:
-  "f : {..Suc n} -> carrier G ==>
+  "f \<in> {..Suc n} -> carrier G ==>
    finprod G f {..Suc n} = (f (Suc n) \<otimes> finprod G f {..n})"
 by (simp add: Pi_def atMost_Suc)
 
 lemma (in comm_monoid) finprod_Suc2:
-  "f : {..Suc n} -> carrier G ==>
+  "f \<in> {..Suc n} -> carrier G ==>
    finprod G f {..Suc n} = (finprod G (%i. f (Suc i)) {..n} \<otimes> f 0)"
 proof (induct n)
   case 0 thus ?case by (simp add: Pi_def)
@@ -483,7 +483,7 @@ next
 qed
 
 lemma (in comm_monoid) finprod_mult [simp]:
-  "[| f : {..n} -> carrier G; g : {..n} -> carrier G |] ==>
+  "[| f \<in> {..n} -> carrier G; g \<in> {..n} -> carrier G |] ==>
      finprod G (%i. f i \<otimes> g i) {..n::nat} =
      finprod G f {..n} \<otimes> finprod G g {..n}"
   by (induct n) (simp_all add: m_ac Pi_def)
