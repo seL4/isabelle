@@ -150,6 +150,11 @@ elif [ -d "$ISABELLE_HOME/../ProofGeneral" ]; then
 fi
 PROOFGENERAL_OPTIONS=""
 
+# X-Symbol mode -- look in canonical place
+if [ -d "$ISABELLE_HOME/contrib/x-symbol" ]; then
+  XSYMBOL_HOME="$ISABELLE_HOME/contrib/x-symbol"
+fi
+
 
 ###
 ### External reasoning tools
