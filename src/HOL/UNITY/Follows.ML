@@ -47,13 +47,13 @@ qed "Follows_trans";
 (*
 try:
 by (asm_full_simp_tac (simpset() addsimps [Always_eq_includes_reachable]) 1);
-auto();
+by Auto_tac;
 by (blast_tac (claset() addIs [order_trans, LeadsETo_Trans]) 1);
-br LeadsETo_Trans 1;
+by (rtac LeadsETo_Trans 1);
 by (Blast_tac 2);
-bd spec 1;
-be LeadsETo_weaken 1;
-auto();
+by (dtac spec 1);
+by (etac LeadsETo_weaken 1);
+by Auto_tac;
 by (thin_tac "All ?P" 1);
 by (full_simp_tac (simpset() addsimps [givenBy_eq_Collect]) 1);
 by Safe_tac;
