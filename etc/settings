@@ -50,12 +50,15 @@ ISABELLE_HOME_USER=~/isabelle
 # Where to look for isabelle tools (multiple dirs separated by ':').
 ISABELLE_TOOLS=$ISABELLE_HOME/lib/Tools
 
+# Location for temporary files (should be on a local file system).
+ISABELLE_TMP_PREFIX=/tmp/isabelle
+
 
 # Heap file locations. ML system identifier appended automatically!
 
 ISABELLE_PATH=$ISABELLE_HOME_USER/heaps:$ISABELLE_HOME/heaps
 
-#A hack! 'build' tells us store heaps within the distribution.
+#A hack! Isabelle build tells us to store heaps within the distribution.
 if [ "$THIS_IS_ISABELLE_BUILD" = true ]; then
   ISABELLE_OUTPUT=$ISABELLE_HOME/heaps
   ISABELLE_BROWSER_INFO=$ISABELLE_HOME/browser_info
