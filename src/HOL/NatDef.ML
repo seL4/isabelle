@@ -377,21 +377,21 @@ qed "less_induct";
 
 qed_goal "nat_induct2" thy 
 "[| P 0; P 1; !!k. P k ==> P (Suc (Suc k)) |] ==> P n" (fn prems => [
-	cut_facts_tac prems 1,
-	rtac less_induct 1,
-	res_inst_tac [("n","n")] natE 1,
-	 hyp_subst_tac 1,
-	 atac 1,
-	hyp_subst_tac 1,
-	res_inst_tac [("n","x")] natE 1,
-	 hyp_subst_tac 1,
-	 atac 1,
-	hyp_subst_tac 1,
-	resolve_tac prems 1,
-	dtac spec 1,
-	etac mp 1,
-	rtac (lessI RS less_trans) 1,
-	rtac (lessI RS Suc_mono) 1]);
+        cut_facts_tac prems 1,
+        rtac less_induct 1,
+        res_inst_tac [("n","n")] natE 1,
+         hyp_subst_tac 1,
+         atac 1,
+        hyp_subst_tac 1,
+        res_inst_tac [("n","x")] natE 1,
+         hyp_subst_tac 1,
+         atac 1,
+        hyp_subst_tac 1,
+        resolve_tac prems 1,
+        dtac spec 1,
+        etac mp 1,
+        rtac (lessI RS less_trans) 1,
+        rtac (lessI RS Suc_mono) 1]);
 
 (*** Properties of <= ***)
 
@@ -521,15 +521,15 @@ qed "less_le_trans";
 
 goal thy "!!i. [| i <= j; j <= k |] ==> i <= (k::nat)";
 by (EVERY1[dtac le_imp_less_or_eq, 
-	   dtac le_imp_less_or_eq,
-	   rtac less_or_eq_imp_le, 
-	   blast_tac (!claset addIs [less_trans])]);
+           dtac le_imp_less_or_eq,
+           rtac less_or_eq_imp_le, 
+           blast_tac (!claset addIs [less_trans])]);
 qed "le_trans";
 
 goal thy "!!m. [| m <= n; n <= m |] ==> m = (n::nat)";
 by (EVERY1[dtac le_imp_less_or_eq, 
-	   dtac le_imp_less_or_eq,
-	   blast_tac (!claset addEs [less_irrefl,less_asym])]);
+           dtac le_imp_less_or_eq,
+           blast_tac (!claset addEs [less_irrefl,less_asym])]);
 qed "le_anti_sym";
 
 goal thy "(Suc(n) <= Suc(m)) = (n <= m)";
@@ -540,11 +540,11 @@ AddIffs [Suc_le_mono];
 
 (* Axiom 'order_le_less' of class 'order': *)
 goal thy "(m::nat) < n = (m <= n & m ~= n)";
-br iffI 1;
- br conjI 1;
-  be less_imp_le 1;
- be (less_not_refl2 RS not_sym) 1;
-by(blast_tac (!claset addSDs [le_imp_less_or_eq]) 1);
+by (rtac iffI 1);
+ by (rtac conjI 1);
+  by (etac less_imp_le 1);
+ by (etac (less_not_refl2 RS not_sym) 1);
+by (blast_tac (!claset addSDs [le_imp_less_or_eq]) 1);
 qed "nat_less_le";
 
 (** LEAST -- the least number operator **)

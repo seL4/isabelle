@@ -194,7 +194,7 @@ of Lemma 1.
 goal Transition.thy 
   "!!c s. ((c,s) -1-> (c',s')) ==> (!t. <c',s'> -c-> t --> <c,s> -c-> t)";
 by (etac evalc1.induct 1);
-auto();
+by (Auto_tac());
 qed_spec_mp "FB_lemma3";
 
 val [major] = goal Transition.thy

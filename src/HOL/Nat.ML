@@ -5,18 +5,18 @@
 *)
 
 goal thy "min 0 n = 0";
-br min_leastL 1;
-by(trans_tac 1);
+by (rtac min_leastL 1);
+by (trans_tac 1);
 qed "min_0L";
 
 goal thy "min n 0 = 0";
-br min_leastR 1;
-by(trans_tac 1);
+by (rtac min_leastR 1);
+by (trans_tac 1);
 qed "min_0R";
 
 goalw thy [min_def] "min (Suc m) (Suc n) = Suc(min m n)";
-by(split_tac [expand_if] 1);
-by(Simp_tac 1);
+by (split_tac [expand_if] 1);
+by (Simp_tac 1);
 qed "min_Suc_Suc";
 
 Addsimps [min_0L,min_0R,min_Suc_Suc];

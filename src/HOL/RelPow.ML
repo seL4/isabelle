@@ -74,9 +74,9 @@ by (cut_facts_tac [p1] 1);
 by (asm_full_simp_tac (!simpset addsimps [p2]) 1);
 by (cut_facts_tac [p1] 1);
 by (Asm_full_simp_tac 1);
-be compEpair 1;
+by (etac compEpair 1);
 by (dtac (conjI RS rel_pow_Suc_D2') 1);
-ba 1;
+by (assume_tac 1);
 by (etac exE 1);
 by (etac p3 1);
 by (etac conjunct1 1);
@@ -93,7 +93,7 @@ goal RelPow.thy "!y. (x,y):R^n --> (x,y):R^*";
 by (nat_ind_tac "n" 1);
 by (blast_tac (!claset addIs [rtrancl_refl] addEs [rel_pow_0_E]) 1);
 by (blast_tac (!claset addEs [rel_pow_Suc_E]
-	               addIs [rtrancl_into_rtrancl]) 1);
+                       addIs [rtrancl_into_rtrancl]) 1);
 val lemma = result() RS spec RS mp;
 
 goal RelPow.thy "!!p. p:R^n ==> p:R^*";
