@@ -95,8 +95,9 @@ for the canonical representation of natural numbers may no longer work.
 ML {*
 val Suc_if_eq = thm "Suc_if_eq";
 
-fun remove_suc thms =
+fun remove_suc thy thms =
   let
+    val Suc_if_eq' = Thm.transfer thy Suc_if_eq;
     val ctzero = cterm_of (sign_of Main.thy) HOLogic.zero;
     val vname = variant (map fst
       (foldl add_term_varnames ([], map prop_of thms))) "x";
@@ -126,11 +127,11 @@ fun remove_suc thms =
         val th'' = Thm.instantiate s th';
         val th''' =
           Thm.implies_elim (Thm.implies_elim
-           (Drule.fconv_rule Drule.beta_eta_conversion
+           (Drule.fconv_rule (Thm.beta_conversion true)
              (Drule.instantiate'
                [Some (ctyp_of_term ct)] [Some (Thm.cabs cv ct),
                  Some (rhs_of th''), Some (Thm.cabs cv' (rhs_of th)), Some cv']
-               Suc_if_eq)) th'') (Thm.forall_intr cv' th)
+               Suc_if_eq')) th'') (Thm.forall_intr cv' th)
       in
         mapfilter (fn thm =>
           if thm = th then Some th'''
@@ -141,8 +142,8 @@ fun remove_suc thms =
     case Library.find_first (not o null o snd) eqs2' of
       None => (case Library.find_first (not o null o snd) eqs2 of
         None => thms
-      | Some x => remove_suc (mk_thms false x))
-    | Some x => remove_suc (mk_thms true x)
+      | Some x => remove_suc thy (mk_thms false x))
+    | Some x => remove_suc thy (mk_thms true x)
   end;
 
 fun eqn_suc_preproc thy ths =
@@ -150,13 +151,14 @@ fun eqn_suc_preproc thy ths =
   in
     if forall (can dest) ths andalso
       exists (fn th => "Suc" mem term_consts (dest th)) ths
-    then remove_suc ths else ths
+    then remove_suc thy ths else ths
   end;
 
 val Suc_clause = thm "Suc_clause";
 
-fun remove_suc_clause thms =
+fun remove_suc_clause thy thms =
   let
+    val Suc_clause' = Thm.transfer thy Suc_clause;
     val vname = variant (map fst
       (foldl add_term_varnames ([], map prop_of thms))) "x";
     fun find_var (t as Const ("Suc", _) $ (v as Var _)) = Some (t, v)
@@ -172,15 +174,15 @@ fun remove_suc_clause thms =
         let
           val cert = cterm_of (sign_of_thm th);
           val th'' = ObjectLogic.rulify (Thm.implies_elim
-            (Drule.fconv_rule Drule.beta_eta_conversion
+            (Drule.fconv_rule (Thm.beta_conversion true)
               (Drule.instantiate' []
                 [Some (cert (lambda v (Abs ("x", HOLogic.natT,
                    abstract_over (Sucv,
                      HOLogic.dest_Trueprop (prop_of th')))))),
-                 Some (cert v)] Suc_clause))
+                 Some (cert v)] Suc_clause'))
             (Thm.forall_intr (cert v) th'))
         in
-          remove_suc_clause (map (fn th''' =>
+          remove_suc_clause thy (map (fn th''' =>
             if th''' = th then th'' else th''') thms)
         end
   end;
@@ -191,7 +193,7 @@ fun clause_suc_preproc thy ths =
     if forall (can (dest o concl_of)) ths andalso
       exists (fn th => "Suc" mem foldr add_term_consts
         (mapfilter (try dest) (concl_of th :: prems_of th), [])) ths
-    then remove_suc_clause ths else ths
+    then remove_suc_clause thy ths else ths
   end;
 
 val suc_preproc_setup =
