@@ -18,14 +18,20 @@ type xterm = term;
 signature SIGN =
 sig
   type sg
+  type sg_ref
   val rep_sg: sg ->
-   {tsig: Type.type_sig,
+   {id: string ref,			(* FIXME hide!? *)
+    self: sg_ref,
+    tsig: Type.type_sig,
     const_tab: typ Symtab.table,
     syn: Syntax.syntax,
     path: string list,
     spaces: (string * NameSpace.T) list,
     data: Data.T,
-    stamps: string ref list}
+    stamps: string ref list}		(* FIXME hide!? *)
+  val tsig_of: sg -> Type.type_sig
+  val deref: sg_ref -> sg
+  val self_ref: sg -> sg_ref
   val subsig: sg * sg -> bool
   val eq_sg: sg * sg -> bool
   val same_sg: sg * sg -> bool
@@ -108,9 +114,9 @@ sig
   val get_data: sg -> string -> exn
   val put_data: string * exn -> sg -> sg
   val print_data: sg -> string -> unit
-  val prep_ext: sg -> sg
+  val merge_refs: sg_ref * sg_ref -> sg_ref
+  val make_draft: sg -> sg
   val merge: sg * sg -> sg
-  val nontriv_merge: sg * sg -> sg
   val proto_pure: sg
   val pure: sg
   val cpure: sg
@@ -121,22 +127,55 @@ end;
 structure Sign : SIGN =
 struct
 
+
 (** datatype sg **)
 
 datatype sg =
   Sg of {
+    id: string ref,				(*id*)
+    self: sg_ref,				(*mutable self reference*)
     tsig: Type.type_sig,                        (*order-sorted signature of types*)
     const_tab: typ Symtab.table,                (*type schemes of constants*)
     syn: Syntax.syntax,                         (*syntax for parsing and printing*)
     path: string list,                     	(*current name space entry prefix*)
     spaces: (string * NameSpace.T) list,   	(*name spaces for consts, types etc.*)
     data: Data.T,				(*additional data*)
-    stamps: string ref list};                   (*unique theory indentifier*)
+    stamps: string ref list}                    (*unique theory indentifier*)
       (*the "ref" in stamps ensures that no two signatures are identical
         -- it is impossible to forge a signature*)
+and sg_ref =
+  SgRef of sg ref option;
 
+(*make signature*)
+fun make_sign (id, self, tsig, const_tab, syn, path, spaces, data, stamps) =
+  Sg {id = id, self = self, tsig = tsig, const_tab = const_tab, syn = syn,
+    path = path, spaces = spaces, data = data, stamps = stamps};
+
+(*dest signature*)
 fun rep_sg (Sg args) = args;
 val tsig_of = #tsig o rep_sg;
+val self_ref = #self o rep_sg;
+
+fun get_data (Sg {data, ...}) = Data.get data;
+fun print_data (Sg {data, ...}) = Data.print data;
+
+
+(*show stamps*)
+fun stamp_names stamps = rev (map ! stamps);
+
+fun pretty_sg (Sg {stamps, ...}) = Pretty.str_list "{" "}" (stamp_names stamps);
+val pprint_sg = Pretty.pprint o pretty_sg;
+
+
+(* signature id *)
+
+fun deref (SgRef (Some (ref sg))) = sg
+  | deref (SgRef None) = sys_error "Sign.deref";
+
+fun check_stale (sg as Sg {id, self = SgRef (Some (ref (Sg {id = id', ...}))), ...}) =
+      if id = id' then sg
+      else raise TERM ("Stale signature: " ^ Pretty.str_of (pretty_sg sg), [])
+  | check_stale _ = sys_error "Sign.check_stale";
 
 
 (* inclusion and equality *)
@@ -157,26 +196,60 @@ local
         if x = y then fast_sub (xs, ys)
         else fast_sub (x :: xs, ys);
 in
-  fun subsig (Sg {stamps = s1, ...}, Sg {stamps = s2, ...}) =
-    s1 = s2 orelse subset_stamp (s1, s2);
+  fun eq_sg (sg1 as Sg {id = id1, ...}, sg2 as Sg {id = id2, ...}) =
+    (check_stale sg1; check_stale sg2; id1 = id2);
 
-  fun fast_subsig (Sg {stamps = s1, ...}, Sg {stamps = s2, ...}) =
-    s1 = s2 orelse fast_sub (s1, s2);
+  fun subsig (sg1 as Sg {stamps = s1, ...}, sg2 as Sg {stamps = s2, ...}) =
+    eq_sg (sg1, sg2) orelse subset_stamp (s1, s2);
 
-  fun eq_sg (Sg {stamps = s1, ...}, Sg {stamps = s2, ...}) =
-    s1 = s2 orelse (subset_stamp (s1, s2) andalso subset_stamp (s2, s1));
+  fun fast_subsig (sg1 as Sg {stamps = s1, ...}, sg2 as Sg {stamps = s2, ...}) =
+    eq_sg (sg1, sg2) orelse fast_sub (s1, s2);
 end;
 
 
 (*test if same theory names are contained in signatures' stamps,
   i.e. if signatures belong to same theory but not necessarily to the
   same version of it*)
-fun same_sg (Sg {stamps = s1, ...}, Sg {stamps = s2, ...}) =
-  eq_set_string (pairself (map (op !)) (s1, s2));
+fun same_sg (sg1 as Sg {stamps = s1, ...}, sg2 as Sg {stamps = s2, ...}) =
+  eq_sg (sg1, sg2) orelse eq_set_string (pairself (map (op !)) (s1, s2));
 
 (*test for drafts*)
 fun is_draft (Sg {stamps = ref "#" :: _, ...}) = true
   | is_draft _ = false;
+
+
+(* build signature *)
+
+fun ext_stamps stamps (id as ref name) =
+  let val stmps = (case stamps of ref "#" :: ss => ss | ss => ss) in
+    if exists (equal name o !) stmps then
+      error ("Theory already contains a " ^ quote name ^ " component")
+    else id :: stmps
+  end;
+
+fun create_sign self stamps name (syn, tsig, ctab, (path, spaces), data) =
+  let
+    val id = ref name;
+    val sign =
+      make_sign (id, self, tsig, ctab, syn, path, spaces, data, ext_stamps stamps id);
+  in
+    (case self of
+      SgRef (Some r) => r := sign
+    | _ => sys_error "Sign.create_sign");
+    sign
+  end;
+
+fun extend_sign extfun name decls
+    (sg as Sg {id = _, self, tsig, const_tab, syn, path, spaces, data, stamps}) =
+  let
+    val _ = check_stale sg;
+    val (self', data') =
+      if is_draft sg then (self, data)
+      else (SgRef (Some (ref sg)), Data.prep_ext data);
+  in
+    create_sign self' stamps name
+      (extfun (syn, tsig, const_tab, (path, spaces), data') decls)
+  end;
 
 
 (* consts *)
@@ -320,6 +393,7 @@ in
   val intern_tycons = intrn_tycons o spaces_of;
 
   fun full_name (Sg {path, ...}) = full path;
+
 end;
 
 
@@ -368,8 +442,6 @@ fun pprint_typ sg = Pretty.pprint o Pretty.quote o (pretty_typ sg);
 
 (** print signature **)
 
-fun stamp_names stamps = rev (map ! stamps);
-
 fun print_sg sg =
   let
     fun prt_cls c = pretty_sort sg [c];
@@ -405,7 +477,7 @@ fun print_sg sg =
     fun pretty_const (c, ty) = Pretty.block
       [prt_const c, Pretty.str " ::", Pretty.brk 1, prt_typ ty];
 
-    val Sg {tsig, const_tab, syn = _, path, spaces, data, stamps} = sg;
+    val Sg {id = _, self = _, tsig, const_tab, syn = _, path, spaces, data, stamps} = sg;
     val spaces' = sort (fn ((k1, _), (k2, _)) => k1 < k2) spaces;
     val {classes, classrel, default, tycons, abbrs, arities} =
       Type.rep_tsig tsig;
@@ -422,12 +494,6 @@ fun print_sg sg =
     Pretty.writeln (Pretty.big_list "type arities:" (flat (map pretty_arities arities)));
     Pretty.writeln (Pretty.big_list "consts:" (map pretty_const (Symtab.dest const_tab)))
   end;
-
-
-fun pretty_sg (Sg {stamps, ...}) =
-  Pretty.str_list "{" "}" (stamp_names stamps);
-
-val pprint_sg = Pretty.pprint o pretty_sg;
 
 
 
@@ -598,18 +664,18 @@ fun no_read _ _ _ decl = decl;
 
 (* add default sort *)
 
-fun ext_defsort int (syn, tsig, ctab, (path, spaces)) S =
+fun ext_defsort int (syn, tsig, ctab, (path, spaces), data) S =
   (syn, Type.ext_tsig_defsort tsig (if int then intrn_sort spaces S else S),
-    ctab, (path, spaces));
+    ctab, (path, spaces), data);
 
 
 (* add type constructors *)
 
-fun ext_types (syn, tsig, ctab, (path, spaces)) types =
+fun ext_types (syn, tsig, ctab, (path, spaces), data) types =
   let val decls = decls_of path Syntax.type_name types in
     (Syntax.extend_type_gram syn types,
       Type.ext_tsig_types tsig decls, ctab,
-      (path, add_names spaces typeK (map fst decls)))
+      (path, add_names spaces typeK (map fst decls)), data)
   end;
 
 
@@ -619,7 +685,7 @@ fun read_abbr syn tsig spaces (t, vs, rhs_src) =
   (t, vs, read_raw_typ syn tsig spaces (K None) rhs_src)
     handle ERROR => error ("in type abbreviation " ^ t);
 
-fun ext_abbrs rd_abbr (syn, tsig, ctab, (path, spaces)) abbrs =
+fun ext_abbrs rd_abbr (syn, tsig, ctab, (path, spaces), data) abbrs =
   let
     fun mfix_of (t, vs, _, mx) = (t, length vs, mx);
     val syn' = Syntax.extend_type_gram syn (map mfix_of abbrs);
@@ -630,7 +696,7 @@ fun ext_abbrs rd_abbr (syn, tsig, ctab, (path, spaces)) abbrs =
     val spaces' = add_names spaces typeK (map #1 abbrs');
     val decls = map (rd_abbr syn' tsig spaces') abbrs';
   in
-    (syn', Type.ext_tsig_abbrs tsig decls, ctab, (path, spaces'))
+    (syn', Type.ext_tsig_abbrs tsig decls, ctab, (path, spaces'), data)
   end;
 
 fun ext_tyabbrs abbrs = ext_abbrs read_abbr abbrs;
@@ -639,7 +705,7 @@ fun ext_tyabbrs_i abbrs = ext_abbrs no_read abbrs;
 
 (* add type arities *)
 
-fun ext_arities int (syn, tsig, ctab, (path, spaces)) arities =
+fun ext_arities int (syn, tsig, ctab, (path, spaces), data) arities =
   let
     fun intrn_arity (c, Ss, S) =
       (intrn spaces typeK c, map (intrn_sort spaces) Ss, intrn_sort spaces S);
@@ -647,7 +713,7 @@ fun ext_arities int (syn, tsig, ctab, (path, spaces)) arities =
     val tsig' = Type.ext_tsig_arities tsig (intrn arities);
     val log_types = Type.logical_types tsig';
   in
-    (Syntax.extend_log_types syn log_types, tsig', ctab, (path, spaces))
+    (Syntax.extend_log_types syn log_types, tsig', ctab, (path, spaces), data)
   end;
 
 
@@ -667,7 +733,7 @@ fun read_const syn tsig (path, spaces) (c, ty_src, mx) =
   (c, read_raw_typ syn tsig spaces (K None) ty_src, mx)
     handle ERROR => err_in_const (const_name path c mx);
 
-fun ext_cnsts rd_const syn_only prmode (syn, tsig, ctab, (path, spaces)) raw_consts =
+fun ext_cnsts rd_const syn_only prmode (syn, tsig, ctab, (path, spaces), data) raw_consts =
   let
     fun prep_const (c, ty, mx) =
       (c, compress_type (Type.varifyT (Type.cert_typ tsig (Type.no_tvars ty))), mx)
@@ -682,7 +748,7 @@ fun ext_cnsts rd_const syn_only prmode (syn, tsig, ctab, (path, spaces)) raw_con
     (Syntax.extend_const_gram syn prmode consts, tsig,
       Symtab.extend_new (ctab, decls)
         handle Symtab.DUPS cs => err_dup_consts cs,
-      (path, add_names spaces constK (map fst decls)))
+      (path, add_names spaces constK (map fst decls)), data)
   end;
 
 val ext_consts_i = ext_cnsts no_read false ("", true);
@@ -706,7 +772,7 @@ fun class_of_const c_class =
   end;
 
 
-fun ext_classes int (syn, tsig, ctab, (path, spaces)) classes =
+fun ext_classes int (syn, tsig, ctab, (path, spaces), data) classes =
   let
     val names = map fst classes;
     val consts =
@@ -720,62 +786,51 @@ fun ext_classes int (syn, tsig, ctab, (path, spaces)) classes =
   in
     ext_consts_i
       (Syntax.extend_consts syn names,
-        Type.ext_tsig_classes tsig classes', ctab, (path, spaces'))
+        Type.ext_tsig_classes tsig classes', ctab, (path, spaces'), data)
     consts
   end;
 
 
 (* add to classrel *)
 
-fun ext_classrel int (syn, tsig, ctab, (path, spaces)) pairs =
+fun ext_classrel int (syn, tsig, ctab, (path, spaces), data) pairs =
   let val intrn = if int then map (pairself (intrn_class spaces)) else I in
-    (syn, Type.ext_tsig_classrel tsig (intrn pairs), ctab, (path, spaces))
+    (syn, Type.ext_tsig_classrel tsig (intrn pairs), ctab, (path, spaces), data)
   end;
 
 
 (* add to syntax *)
 
-fun ext_syn extfun (syn, tsig, ctab, names) args =
-  (extfun syn args, tsig, ctab, names);
+fun ext_syn extfun (syn, tsig, ctab, names, data) args =
+  (extfun syn args, tsig, ctab, names, data);
 
 
 (* add to path *)
 
-fun ext_path (syn, tsig, ctab, (path, spaces)) elem =
+fun ext_path (syn, tsig, ctab, (path, spaces), data) elem =
   let
     val path' =
       if elem = ".." andalso not (null path) then fst (split_last path)
       else if elem = "/" then []
       else path @ NameSpace.unpack elem;
   in
-    (syn, tsig, ctab, (path', spaces))
+    (syn, tsig, ctab, (path', spaces), data)
   end;      
 
 
 (* add to name space *)
 
-fun ext_space (syn, tsig, ctab, (path, spaces)) (kind, names) =
-  (syn, tsig, ctab, (path, add_names spaces kind names));
+fun ext_space (syn, tsig, ctab, (path, spaces), data) (kind, names) =
+  (syn, tsig, ctab, (path, add_names spaces kind names), data);
 
 
-(* build signature *)
+(* signature data *)
 
-fun ext_stamps stamps name =
-  let
-    val stmps = (case stamps of ref "#" :: ss => ss | ss => ss);
-  in
-    if exists (equal name o !) stmps then
-      error ("Theory already contains a " ^ quote name ^ " component")
-    else ref name :: stmps
-  end;
+fun ext_init_data (syn, tsig, ctab, names, data) (kind, e, ext, mrg, prt) =
+  (syn, tsig, ctab, names, Data.init data kind e ext mrg prt);
 
-fun make_sign (syn, tsig, ctab, (path, spaces)) data stamps name =
-  Sg {tsig = tsig, const_tab = ctab, syn = syn, path = path, spaces = spaces,
-    data = data, stamps = ext_stamps stamps name};
-
-fun extend_sign extfun name decls
-    (Sg {tsig, const_tab, syn, path, spaces, data, stamps}) =
-  make_sign (extfun (syn, tsig, const_tab, (path, spaces)) decls) data stamps name;
+fun ext_put_data (syn, tsig, ctab, names, data) (kind, e) =
+  (syn, tsig, ctab, names, Data.put data kind e);
 
 
 (* the external interfaces *)
@@ -804,49 +859,48 @@ val add_trrules      = extend_sign (ext_syn Syntax.extend_trrules) "#";
 val add_trrules_i    = extend_sign (ext_syn Syntax.extend_trrules_i) "#";
 val add_path         = extend_sign ext_path "#";
 val add_space        = extend_sign ext_space "#";
+val init_data        = extend_sign ext_init_data "#";
+val put_data         = extend_sign ext_put_data "#";
 fun add_name name sg = extend_sign K name () sg;
 
 val make_draft = add_name "#";
 
 
-(* additional signature data *)
-
-fun map_data f (Sg {tsig, const_tab, syn, path, spaces, data, stamps}) =
-  make_sign (syn, tsig, const_tab, (path, spaces)) (f data) stamps "#";
-
-fun init_data (kind, e, ext, mrg, prt) =
-  map_data (fn d => Data.init d kind e ext mrg prt);
-
-fun get_data (Sg {data, ...}) = Data.get data;
-fun put_data (kind, e) = map_data (fn d => Data.put d kind e);
-fun print_data (Sg {data, ...}) kind = Data.print data kind;
-
-(*prepare extension*)
-fun prep_ext sg =
-  map_data Data.prep_ext sg |> add_path "/";
-
-
 
 (** merge signatures **)    (*exception TERM*)
 
-fun merge_aux triv_only (sg1, sg2) =
-  if fast_subsig (sg2, sg1) then sg1
-  else if fast_subsig (sg1, sg2) then sg2
-  else if subsig (sg2, sg1) then sg1
+(* merge of sg_refs -- trivial only *)
+
+fun merge_refs (sgr1 as SgRef (Some (ref sg1)),
+        sgr2 as SgRef (Some (ref sg2))) =
+      if fast_subsig (sg2, sg1) then sgr1
+      else if fast_subsig (sg1, sg2) then sgr2
+      else if subsig (sg2, sg1) then sgr1
+      else if subsig (sg1, sg2) then sgr2
+      else raise TERM ("Attempt to do non-trivial merge of signatures", [])
+  | merge_refs _ = sys_error "Sign.merge_refs";
+
+
+
+(* proper merge *)
+
+fun merge_aux (sg1, sg2) =
+  if subsig (sg2, sg1) then sg1
   else if subsig (sg1, sg2) then sg2
   else if is_draft sg1 orelse is_draft sg2 then
-    raise TERM ("Illegal merge of draft signatures", [])
-  else if triv_only then
-    raise TERM ("Illegal non-trivial merge of signatures", [])
+    raise TERM ("Attempt to merge draft signatures", [])
   else
     (*neither is union already; must form union*)
     let
-      val Sg {tsig = tsig1, const_tab = const_tab1, syn = syn1,
+      val Sg {id = _, self = _, tsig = tsig1, const_tab = const_tab1, syn = syn1,
         path = _, spaces = spaces1, data = data1, stamps = stamps1} = sg1;
-      val Sg {tsig = tsig2, const_tab = const_tab2, syn = syn2,
+      val Sg {id = _, self = _, tsig = tsig2, const_tab = const_tab2, syn = syn2,
         path = _, spaces = spaces2, data = data2, stamps = stamps2} = sg2;
 
 
+      val id = ref "";
+      val self_ref = ref sg1;			(*dummy value*)
+      val self = SgRef (Some self_ref);
       val stamps = merge_rev_lists stamps1 stamps2;
       val _ =
         (case duplicates (stamp_names stamps) of
@@ -855,13 +909,12 @@ fun merge_aux triv_only (sg1, sg2) =
             ^ commas_quote dups, []));
 
       val tsig = Type.merge_tsigs (tsig1, tsig2);
-
       val const_tab = Symtab.merge (op =) (const_tab1, const_tab2)
         handle Symtab.DUPS cs =>
           raise TERM ("Incompatible types for constant(s) " ^ commas_quote cs, []);
-
       val syn = Syntax.merge_syntaxes syn1 syn2;
 
+      val path = [];
       val kinds = distinct (map fst (spaces1 @ spaces2));
       val spaces =
         kinds ~~
@@ -869,25 +922,27 @@ fun merge_aux triv_only (sg1, sg2) =
             (map (space_of spaces1) kinds, map (space_of spaces2) kinds);
 
       val data = Data.merge (data1, data2);
+
+      val sign = make_sign (id, self, tsig, const_tab, syn, path, spaces, data, stamps);
     in
-      Sg {tsig = tsig, const_tab = const_tab, syn = syn,
-        path = [], spaces = spaces, data = data, stamps = stamps}
+      self_ref := sign; sign
     end;
 
-fun gen_merge triv sgs =
-  (case handle_error (merge_aux triv) sgs of
+fun merge sg1_sg2 =
+  (case handle_error merge_aux sg1_sg2 of
     OK sg => sg
   | Error msg => raise TERM (msg, []));
-
-val merge = gen_merge true;
-val nontriv_merge = gen_merge false;
 
 
 
 (** the Pure signature **)
 
+val dummy_sg = make_sign (ref "", SgRef None, Type.tsig0,
+  Symtab.null, Syntax.pure_syn, [], [], Data.empty, []);
+
 val proto_pure =
-  make_sign (Syntax.pure_syn, Type.tsig0, Symtab.null, ([], [])) Data.empty [] "#"
+  create_sign (SgRef (Some (ref dummy_sg))) [] "#"
+    (Syntax.pure_syn, Type.tsig0, Symtab.null, ([], []), Data.empty)
   |> add_types
    (("fun", 2, NoSyn) ::
     ("prop", 0, NoSyn) ::

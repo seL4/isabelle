@@ -79,7 +79,7 @@ sig
     (string -> exn -> unit) -> theory -> theory
   val get_data		: theory -> string -> exn
   val put_data		: string * exn -> theory -> theory
-  val merge_list	: theory list -> theory
+  val prep_ext_merge    : theory list -> theory
 end;
 
 
@@ -389,26 +389,26 @@ val put_data = ext_sg Sign.put_data;
 (** merge theories **)
 
 (*merge list of theories from left to right, preparing extend*)
-fun merge_list thys =
+fun prep_ext_merge thys =
   let
     fun is_union thy = forall (fn t => subthy (t, thy)) thys;
     val is_draft = Sign.is_draft o sign_of;
 
     fun add_sign (sg, Theory {sign, ...}) =
-      Sign.nontriv_merge (sg, sign) handle TERM (msg, _) => error msg;
+      Sign.merge (sg, sign) handle TERM (msg, _) => error msg;
 
     fun oracles_of (Theory {oracles, ...}) = Symtab.dest oracles;
     fun eq_ora ((_, (_, s1: stamp)), (_, (_, s2))) = s1 = s2;
   in
     if exists is_draft thys then
-      raise THEORY ("Illegal merge of draft theories", thys)
+      raise THEORY ("Attempt to merge draft theories", thys)
     else
       (case find_first is_union thys of
         Some (Theory {sign, oracles, new_axioms = _, parents = _}) =>
-          make_thy (Sign.prep_ext sign) Symtab.null oracles thys
+          make_thy (Sign.make_draft sign) Symtab.null oracles thys
       | None =>
           make_thy
-            (Sign.prep_ext (foldl add_sign (Sign.proto_pure, thys)))
+            (Sign.make_draft (foldl add_sign (Sign.proto_pure, thys)))
             Symtab.null
             (Symtab.make (gen_distinct eq_ora (flat (map oracles_of thys)))
               handle Symtab.DUPS names => err_dup_oras names)
@@ -417,7 +417,7 @@ fun merge_list thys =
 
 
 fun merge_theories name (thy1, thy2) =
-  merge_list [thy1, thy2]
+  prep_ext_merge [thy1, thy2]
   |> add_name name;
 
 
