@@ -95,11 +95,7 @@ and split1(Abs(x,T,t)) =  (Free(x,T), subst_bounds([free x],t))
 
 fun split_tr'(t::args) =
   let val (pats,ft) = split2(t)
-  in case args of
-       [] => const"_abs" $ pttrn pats $ ft
-     | arg::rest =>
-         list_comb(const"_Let"$(const"_bind"$(pttrn pats)$arg)$ft, rest)
-  end
+  in list_comb(const"_lambda" $ pttrn pats $ ft, args) end;
 
 in
 
