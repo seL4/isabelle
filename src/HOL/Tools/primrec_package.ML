@@ -1,7 +1,6 @@
 (*  Title:      HOL/Tools/primrec_package.ML
     ID:         $Id$
-    Author:     Stefan Berghofer and Norbert Voelker
-    Copyright   1998  TU Muenchen
+    Author:     Stefan Berghofer, TU Muenchen and Norbert Voelker, FernUni Hagen
 
 Package for defining functions on datatypes by primitive recursion.
 *)

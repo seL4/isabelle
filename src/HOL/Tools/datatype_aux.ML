@@ -1,9 +1,9 @@
 (*  Title:      HOL/Tools/datatype_aux.ML
     ID:         $Id$
-    Author:     Stefan Berghofer
-    Copyright   1998  TU Muenchen
+    Author:     Stefan Berghofer, TU Muenchen
+    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
-Auxiliary functions for defining datatypes
+Auxiliary functions for defining datatypes.
 *)
 
 signature DATATYPE_AUX =

@@ -1,9 +1,9 @@
 (*  Title:      Pure/HOL/inductive_codegen.ML
     ID:         $Id$
-    Author:     Stefan Berghofer
-    Copyright   2000  TU Muenchen
+    Author:     Stefan Berghofer, TU Muenchen
+    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
-Code generator for inductive predicates
+Code generator for inductive predicates.
 *)
 
 signature INDUCTIVE_CODEGEN =

@@ -1,9 +1,9 @@
 (*  Title:      Pure/HOL/basic_codegen.ML
     ID:         $Id$
-    Author:     Stefan Berghofer
-    Copyright   2000  TU Muenchen
+    Author:     Stefan Berghofer, TU Muenchen
+    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
-Code generator for inductive datatypes and recursive functions
+Code generator for inductive datatypes and recursive functions.
 *)
 
 signature BASIC_CODEGEN =

@@ -1,7 +1,7 @@
 (*  Title:      Pure/Proof/reconstruct.ML
     ID:         $Id$
-    Author:     Stefan Berghofer
-    Copyright   2000  TU Muenchen
+    Author:     Stefan Berghofer, TU Muenchen
+    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
 Reconstruction of partial proof terms.
 *)

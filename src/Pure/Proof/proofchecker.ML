@@ -1,7 +1,7 @@
 (*  Title:      Pure/Proof/proofchecker.ML
     ID:         $Id$
-    Author:     Stefan Berghofer
-    Copyright   2000  TU Muenchen
+    Author:     Stefan Berghofer, TU Muenchen
+    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
 Simple proof checker based only on the core inference rules
 of Isabelle/Pure.

@@ -1,7 +1,7 @@
 (*  Title:      Pure/Proof/proof_syntax.ML
     ID:         $Id$
-    Author:     Stefan Berghofer
-    Copyright   2000  TU Muenchen
+    Author:     Stefan Berghofer, TU Muenchen
+    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
 Function for parsing and printing proof terms.
 *)

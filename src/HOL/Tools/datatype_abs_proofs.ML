@@ -1,7 +1,7 @@
 (*  Title:      HOL/Tools/datatype_abs_proofs.ML
     ID:         $Id$
-    Author:     Stefan Berghofer
-    Copyright   1998  TU Muenchen
+    Author:     Stefan Berghofer, TU Muenchen
+    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
 Proofs and defintions independent of concrete representation
 of datatypes  (i.e. requiring only abstract properties such as

@@ -1,6 +1,7 @@
 (*  Title:      Pure/axclass.ML
     ID:         $Id$
     Author:     Markus Wenzel, TU Muenchen
+    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
 Axiomatic type class package.
 *)
