@@ -33,25 +33,25 @@ signature THEORY =
 sig
   include BASIC_THEORY
   (*theory extendsion primitives*)
-  val add_classes	: (class * class list) list -> theory -> theory
-  val add_classes_i	: (class * class list) list -> theory -> theory
-  val add_classrel	: (class * class) list -> theory -> theory
+  val add_classes	: (xclass * xclass list) list -> theory -> theory
+  val add_classes_i	: (xclass * class list) list -> theory -> theory
+  val add_classrel	: (xclass * xclass) list -> theory -> theory
   val add_classrel_i	: (class * class) list -> theory -> theory
-  val add_defsort	: sort -> theory -> theory
+  val add_defsort	: xsort -> theory -> theory
   val add_defsort_i	: sort -> theory -> theory
-  val add_types		: (string * int * mixfix) list -> theory -> theory
-  val add_tyabbrs	: (string * string list * string * mixfix) list
+  val add_types		: (xstring * int * mixfix) list -> theory -> theory
+  val add_tyabbrs	: (xstring * string list * string * mixfix) list
     -> theory -> theory
-  val add_tyabbrs_i	: (string * string list * typ * mixfix) list
+  val add_tyabbrs_i	: (xstring * string list * typ * mixfix) list
     -> theory -> theory
-  val add_arities	: (string * sort list * sort) list -> theory -> theory
+  val add_arities	: (xstring * xsort list * xsort) list -> theory -> theory
   val add_arities_i	: (string * sort list * sort) list -> theory -> theory
-  val add_consts	: (string * string * mixfix) list -> theory -> theory
-  val add_consts_i	: (string * typ * mixfix) list -> theory -> theory
-  val add_syntax	: (string * string * mixfix) list -> theory -> theory
-  val add_syntax_i	: (string * typ * mixfix) list -> theory -> theory
-  val add_modesyntax	: string * bool -> (string * string * mixfix) list -> theory -> theory
-  val add_modesyntax_i	: string * bool -> (string * typ * mixfix) list -> theory -> theory
+  val add_consts	: (xstring * string * mixfix) list -> theory -> theory
+  val add_consts_i	: (xstring * typ * mixfix) list -> theory -> theory
+  val add_syntax	: (xstring * string * mixfix) list -> theory -> theory
+  val add_syntax_i	: (xstring * typ * mixfix) list -> theory -> theory
+  val add_modesyntax	: string * bool -> (xstring * string * mixfix) list -> theory -> theory
+  val add_modesyntax_i	: string * bool -> (xstring * typ * mixfix) list -> theory -> theory
   val add_trfuns	:
     (string * (Syntax.ast list -> Syntax.ast)) list *
     (string * (term list -> term)) list *
@@ -63,12 +63,12 @@ sig
     (string * string * (string -> string * int)) list -> theory -> theory
   val add_trrules     : (string * string)Syntax.trrule list -> theory -> theory
   val add_trrules_i	: Syntax.ast Syntax.trrule list -> theory -> theory
-  val add_axioms	: (string * string) list -> theory -> theory
-  val add_axioms_i	: (string * term) list -> theory -> theory
-  val add_defs		: (string * string) list -> theory -> theory
-  val add_defs_i	: (string * term) list -> theory -> theory
+  val add_axioms	: (xstring * string) list -> theory -> theory
+  val add_axioms_i	: (xstring * term) list -> theory -> theory
+  val add_defs		: (xstring * string) list -> theory -> theory
+  val add_defs_i	: (xstring * term) list -> theory -> theory
   val add_path		: string -> theory -> theory
-  val add_space		: string * string list -> theory -> theory
+  val add_space		: string * xstring list -> theory -> theory
   val add_name		: string -> theory -> theory
 
   val set_oracle	: (Sign.sg * exn -> term) -> theory -> theory
