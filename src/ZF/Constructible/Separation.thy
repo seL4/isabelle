@@ -623,5 +623,7 @@ declare Inter_closed [intro, simp]
 declare Int_closed [intro, simp]
 declare is_funspace_abs [simp]
 declare finite_funspace_closed [intro, simp]
+declare membership_abs [simp] 
+declare Memrel_closed  [intro,simp]
 
 end

@@ -596,6 +596,14 @@ apply (simp add: trans_wfrec_closed transrec_replacement_def is_transrec_def
        transrec_def eclose_sing_Ord_eq wf_Memrel trans_Memrel relation_Memrel)
 done
 
+text{*Helps to prove instances of @{term transrec_replacement}*}
+lemma (in M_eclose) transrec_replacementI: 
+   "[|M(a);
+    strong_replacement (M, 
+                  \<lambda>x z. \<exists>y[M]. pair(M, x, y, z) \<and> is_wfrec(M,MH,Memrel(eclose({a})),x,y))|]
+    ==> transrec_replacement(M,MH,a)"
+by (simp add: transrec_replacement_def wfrec_replacement_def) 
+
 
 subsection{*Absoluteness for the List Operator @{term length}*}
 constdefs

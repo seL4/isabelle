@@ -1235,10 +1235,12 @@ apply (intro FOL_reflections function_reflections is_wfrec_reflection
 done
 
 theorem bool_of_o_reflection:
-     "REFLECTS[\<lambda>x. is_bool_of_o(L, P(x), f(x)),  
-               \<lambda>i x. is_bool_of_o(**Lset(i), P(x), f(x))]"
-apply (simp only: is_bool_of_o_def setclass_simps)
+     "REFLECTS [P(L), \<lambda>i. P(**Lset(i))] ==>
+      REFLECTS[\<lambda>x. is_bool_of_o(L, P(L,x), f(x)),  
+               \<lambda>i x. is_bool_of_o(**Lset(i), P(**Lset(i),x), f(x))]"
+apply (simp (no_asm) only: is_bool_of_o_def setclass_simps)
 apply (intro FOL_reflections function_reflections) 
+apply assumption+
 done
 
 
@@ -1407,5 +1409,6 @@ theorem M_eclose_L: "PROP M_eclose(L)"
 
 lemmas eclose_closed [intro, simp] = M_eclose.eclose_closed [OF M_eclose_L]
   and eclose_abs [intro, simp] = M_eclose.eclose_abs [OF M_eclose_L]
+  and transrec_replacementI = M_eclose.transrec_replacementI [OF M_eclose_L]
 
 end

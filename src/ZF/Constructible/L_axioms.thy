@@ -284,10 +284,27 @@ apply (unfold rall_def)
 apply (intro Imp_reflection All_reflection, assumption)
 done
 
+text{*This version handles an alternative form of the bounded quantifier
+      in the second argument of @{text REFLECTS}.*}
+theorem Rex_reflection':
+     "REFLECTS[ \<lambda>x. P(fst(x),snd(x)), \<lambda>a x. Q(a,fst(x),snd(x))]
+      ==> REFLECTS[\<lambda>x. \<exists>z[L]. P(x,z), \<lambda>a x. \<exists>z[**Lset(a)]. Q(a,x,z)]"
+apply (unfold setclass_def rex_def)
+apply (erule Rex_reflection [unfolded rex_def Bex_def]) 
+done
+
+text{*As above.*}
+theorem Rall_reflection':
+     "REFLECTS[\<lambda>x. P(fst(x),snd(x)), \<lambda>a x. Q(a,fst(x),snd(x))]
+      ==> REFLECTS[\<lambda>x. \<forall>z[L]. P(x,z), \<lambda>a x. \<forall>z[**Lset(a)]. Q(a,x,z)]"
+apply (unfold setclass_def rall_def)
+apply (erule Rall_reflection [unfolded rall_def Ball_def]) 
+done
+
 lemmas FOL_reflections =
         Triv_reflection Not_reflection And_reflection Or_reflection
         Imp_reflection Iff_reflection Ex_reflection All_reflection
-        Rex_reflection Rall_reflection
+        Rex_reflection Rall_reflection Rex_reflection' Rall_reflection'
 
 lemma ReflectsD:
      "[|REFLECTS[P,Q]; Ord(i)|]
