@@ -13,6 +13,7 @@ local
     Attrib.setup @
     Method.setup @
     Calculation.setup @
+    SkipProof.setup @
     AxClass.setup @
     BrowserInfo.setup @
     Isamode.setup @

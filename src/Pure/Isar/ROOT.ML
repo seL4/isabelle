@@ -5,7 +5,7 @@
 Isar -- Intelligible Semi-Automated Reasoning for Isabelle.
 *)
 
-(*proof engine*)
+(*basic proof engine*)
 use "auto_bind.ML";
 use "proof_context.ML";
 use "proof.ML";
@@ -14,7 +14,10 @@ use "proof_history.ML";
 use "args.ML";
 use "attrib.ML";
 use "method.ML";
+
+(*derived proof elements*)
 use "calculation.ML";
+use "skip_proof.ML";
 
 (*outer syntax*)
 use "comment.ML";

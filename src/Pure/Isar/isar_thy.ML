@@ -121,6 +121,7 @@ sig
   val terminal_proof: Method.text * Comment.interest -> Toplevel.transition -> Toplevel.transition
   val immediate_proof: Toplevel.transition -> Toplevel.transition
   val default_proof: Toplevel.transition -> Toplevel.transition
+  val skip_proof: Toplevel.transition -> Toplevel.transition
   val also: ((string * Args.src list) list * Comment.interest) option * Comment.text
     -> Toplevel.transition -> Toplevel.transition
   val also_i: (thm list * Comment.interest) option * Comment.text
@@ -331,6 +332,7 @@ val local_terminal_proof =
 
 val local_immediate_proof = proof'' (ProofHistory.applys_close o Method.local_immediate_proof);
 val local_default_proof = proof'' (ProofHistory.applys_close o Method.local_default_proof);
+val local_skip_proof = proof'' (ProofHistory.applys_close o SkipProof.local_skip_proof);
 
 
 (* global endings *)
@@ -357,6 +359,7 @@ val global_qed = global_qed_with (None, None);
 val global_terminal_proof = global_result o Method.global_terminal_proof o Comment.ignore_interest;
 val global_immediate_proof = global_result Method.global_immediate_proof;
 val global_default_proof = global_result Method.global_default_proof;
+val global_skip_proof = global_result SkipProof.global_skip_proof;
 
 
 (* common endings *)
@@ -365,6 +368,7 @@ fun qed meth = local_qed meth o global_qed meth;
 fun terminal_proof meth = local_terminal_proof meth o global_terminal_proof meth;
 val immediate_proof = local_immediate_proof o global_immediate_proof;
 val default_proof = local_default_proof o global_default_proof;
+val skip_proof = local_skip_proof o global_skip_proof;
 
 
 (* calculational proof commands *)
