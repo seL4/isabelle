@@ -7,10 +7,9 @@ HOL theory data: simpset, claset, records, datatypes.
 
 (*for records*)
 type record_info =
- {args:     string list,
+ {args:     (string * sort) list,
   parent:   (typ list * string) option,
-  fields:   (string * typ) list,
-  sign_ref: Sign.sg_ref};
+  fields:   (string * typ) list}
 
 (*for datatypes*)
 type datatype_info =
@@ -26,8 +25,8 @@ type datatype_info =
 
 signature THY_DATA =
 sig
-  val get_records: theory -> record_info Symtab.table;
-  val put_records: record_info Symtab.table -> theory -> theory;
+  val get_records: theory -> record_info Symtab.table
+  val put_records: record_info Symtab.table -> theory -> theory
   val get_datatypes_sg: Sign.sg -> datatype_info Symtab.table
   val get_datatypes: theory -> datatype_info Symtab.table
   val put_datatypes: datatype_info Symtab.table -> theory -> theory
@@ -96,22 +95,20 @@ local
 
   fun print sg (Records tab) =
     let
-      fun pretty_args args = Pretty.lst ("(", ")") (map Pretty.str args);
+      fun pretty_parent None = []
+        | pretty_parent (Some (ts, name)) = 
+            [Pretty.block ((Sign.pretty_typ sg (Type (name, ts))) :: [Pretty.str (" +")])];
 
-      fun pretty_parent sign None = []
-        | pretty_parent sign (Some (ts, name)) = 
-            (Pretty.lst ("(", ")") (map (Sign.pretty_typ sign) ts)) :: [Pretty.str (name ^ " +")];
+      fun pretty_field (c, T) = Pretty.block
+        [Pretty.str (c ^ " :: "), Pretty.brk 1, Pretty.quote (Sign.pretty_typ sg T)];
 
-      fun pretty_field sign (c, T) = Pretty.block
-        [Pretty.str (c ^ " :: "), Pretty.brk 1, Pretty.quote (Sign.pretty_typ sign T)];
-
-      fun pretty_record (name, {args, parent, fields, sign_ref}) =
-        let val sign = Sign.deref sign_ref in
-          Pretty.block 
-            (Pretty.fbreaks
-              ((Pretty.block ((pretty_args args) :: [Pretty.str (" " ^ name ^ " =")])) ::
-              pretty_parent sign parent @ map (pretty_field sign) fields))
-        end
+      fun pretty_record (name, {args, parent, fields}) =
+        Pretty.block 
+          (Pretty.fbreaks
+            ((Pretty.block 
+                ((Sign.pretty_typ sg (Type (name, map TFree args))) :: 
+                   [Pretty.str " = "])) 
+              :: pretty_parent parent @ map pretty_field fields))
     in
       seq (Pretty.writeln o pretty_record) (Symtab.dest tab)
     end;
