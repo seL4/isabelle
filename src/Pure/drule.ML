@@ -541,9 +541,9 @@ fun standard th =
   let val {maxidx,...} = rep_thm th
   in
     th |> implies_intr_hyps
-    |> strip_shyps |> implies_intr_shyps
-    |> forall_intr_frees |> forall_elim_vars (maxidx + 1)
-    |> zero_var_indexes |> varifyT
+       |> Thm.strip_shyps |> implies_intr_shyps
+       |> forall_intr_frees |> forall_elim_vars (maxidx + 1)
+       |> zero_var_indexes |> Thm.varifyT |> Thm.compress
   end;
 
 
@@ -729,13 +729,17 @@ fun fconv_rule cv th = equal_elim (cv (cprop_of th)) th;
 fun rew_conv mode prover mss = rewrite_cterm mode mss prover;
 
 (*Rewrite a theorem*)
-fun rewrite_rule thms =
-  fconv_rule (rew_conv (true,false) (K(K None)) (Thm.mss_of thms));
+fun rewrite_rule []   th = th
+  | rewrite_rule thms th =
+	fconv_rule (rew_conv (true,false) (K(K None)) (Thm.mss_of thms)) th;
 
 (*Rewrite the subgoals of a proof state (represented by a theorem) *)
-fun rewrite_goals_rule thms =
-  fconv_rule (goals_conv (K true) (rew_conv (true,false) (K(K None))
-             (Thm.mss_of thms)));
+fun rewrite_goals_rule []   th = th
+  | rewrite_goals_rule thms th =
+	fconv_rule (goals_conv (K true) 
+		    (rew_conv (true,false) (K(K None))
+		     (Thm.mss_of thms))) 
+	           th;
 
 (*Rewrite the subgoal of a proof state (represented by a theorem) *)
 fun rewrite_goal_rule mode prover mss i thm =
