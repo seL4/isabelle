@@ -98,14 +98,12 @@ fun lookup space name =
   if_none (Symtab.lookup (tab_of space, name)) name;
 
 fun prune space name =
-  if not (qualified name) then name
-  else
-    let
-      fun try [] = "??" ^ separator ^ name      (*hidden name*)
-        | try (nm :: nms) =
-            if lookup space nm = name then nm
-            else try nms;
-    in try (map pack (suffixes1 (unpack name))) end;
+  let
+    fun try [] = "??" ^ separator ^ name      (*hidden name*)
+      | try (nm :: nms) =
+          if lookup space nm = name then nm
+          else try nms;
+  in try (map pack (suffixes1 (unpack name))) end;
 
 
 end;
