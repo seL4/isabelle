@@ -385,7 +385,6 @@ fun begin_theory present upd name parents paths =
   let
     val assert_thy = if upd then quiet_update_thy true else weak_use_thy;
     val _ = check_unfinished error name;
-    val _ = priority (loader_msg "looking up" [name]);
     val _ = (map Path.basic parents; seq assert_thy parents);
     val theory = PureThy.begin_theory name (map get_theory parents);
     val deps =
