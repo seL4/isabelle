@@ -93,7 +93,7 @@ val parts_Fake_tac =
 (** Theorems of the form X ~: parts (sees lost Spy evs) imply that NOBODY
     sends messages containing X! **)
 
-(*Spy never sees lost another agent's shared key! (unless it is leaked at start)*)
+(*Spy never sees another agent's shared key! (unless it is leaked at start)*)
 goal thy 
  "!!evs. [| evs : otway;  A ~: lost |]    \
 \        ==> Key (shrK A) ~: parts (sees lost Spy evs)";
@@ -177,12 +177,12 @@ goal thy "!!evs. evs : otway ==> \
 \                      Nonce (newN evs') ~: (UN C. parts (sees lost C evs))";
 by (etac otway.induct 1);
 (*auto_tac does not work here, as it performs safe_tac first*)
-by (ALLGOALS (asm_simp_tac (!simpset addsimps [de_Morgan_disj]
-                                     addcongs [conj_cong])));
-by (REPEAT_FIRST (fast_tac (!claset (*60 seconds???*)
-                              addSEs [MPair_parts]
-                              addDs  [Says_imp_sees_Spy RS parts.Inj,
-                                      impOfSubs analz_subset_parts,
+by (ALLGOALS (asm_simp_tac (!simpset addsimps [parts_insert2]
+                                     addcongs [disj_cong])));
+by (REPEAT_FIRST (fast_tac (!claset 
+                              addSEs partsEs
+                              addSDs  [Says_imp_sees_Spy RS parts.Inj]
+                              addDs  [impOfSubs analz_subset_parts,
                                       impOfSubs parts_insert_subset_Un,
                                       Suc_leD]
                               addss (!simpset))));
@@ -220,19 +220,13 @@ by (ALLGOALS Asm_simp_tac);
 (*OR1 and OR3*)
 by (EVERY (map (fast_tac (!claset addDs [Suc_leD] addss (!simpset))) [4,2]));
 (*Fake, OR2, OR4: these messages send unknown (X) components*)
-by (EVERY 
-    (map
-     (best_tac
+by (REPEAT
+    (best_tac
       (!claset addDs [impOfSubs (analz_subset_parts RS keysFor_mono),
                       impOfSubs (parts_insert_subset_Un RS keysFor_mono),
                       Suc_leD]
                addEs [new_keys_not_seen RS not_parts_not_analz RSN(2,rev_notE)]
-               addss (!simpset)))
-     [3,2,1]));
-(*Reveal: dummy message*)
-by (best_tac (!claset addEs  [new_keys_not_seen RSN(2,rev_notE)]
-                      addIs  [less_SucI, impOfSubs keysFor_mono]
-                      addss (!simpset addsimps [le_def])) 1);
+               addss (!simpset)) 1));
 val lemma = result();
 
 goal thy 
@@ -262,26 +256,6 @@ Addsimps [new_keys_not_used, new_keys_not_analzd];
 ****)
 
 
-(*NOT useful in this form, but it says that session keys are not used
-  to encrypt messages containing other keys, in the actual protocol.
-  We require that agents should behave like this subsequently also.*)
-goal thy 
- "!!evs. evs : otway ==> \
-\        (Crypt X (newK evt)) : parts (sees lost Spy evs) & \
-\        Key K : parts {X} --> Key K : parts (sees lost Spy evs)";
-by (etac otway.induct 1);
-by parts_Fake_tac;
-by (ALLGOALS (asm_simp_tac (!simpset addsimps pushes)));
-(*Deals with Faked messages*)
-by (best_tac (!claset addSEs partsEs
-                      addDs [impOfSubs analz_subset_parts,
-                             impOfSubs parts_insert_subset_Un]
-                      addss (!simpset)) 2);
-(*Base case and Reveal*)
-by (Auto_tac());
-result();
-
-
 (** Session keys are not used to encrypt other session keys **)
 
 (*Describes the form of Key K when the following message is sent.  The use of
@@ -308,9 +282,9 @@ goal thy
  "!!evs. [| Says B' A {|N, Crypt {|N, Key K|} (shrK A)|} : set_of_list evs;  \
 \           evs : otway |]                      \
 \        ==> (EX evt:otway. K = newK evt) | Key K : analz (sees lost Spy evs)";
-by (excluded_middle_tac "A : lost" 1);
+by (case_tac "A : lost" 1);
 by (fast_tac (!claset addSDs [Says_imp_sees_Spy RS analz.Inj]
-                      addss (!simpset)) 2);
+                      addss (!simpset)) 1);
 by (forward_tac [lemma] 1);
 by (fast_tac (!claset addEs  partsEs
                       addSDs [Says_imp_sees_Spy RS parts.Inj]) 1);
@@ -443,9 +417,8 @@ by (Step_tac 1);
 (*Remaining cases: OR3 and OR4*)
 by (ex_strip_tac 2);
 by (Fast_tac 2);
-by (excluded_middle_tac "K = Key(newK evsa)" 1);
-by (Asm_simp_tac 1);
-by (REPEAT (ares_tac [refl,exI,impI,conjI] 1));
+by (expand_case_tac "K = ?y" 1);
+by (REPEAT (ares_tac [refl,exI,impI,conjI] 2));
 (*...we assume X is a very new message, and handle this case by contradiction*)
 by (fast_tac (!claset addEs [Says_imp_old_keys RS less_irrefl]
                       delrules [conjI]    (*prevent split-up into 4 subgoals*)
