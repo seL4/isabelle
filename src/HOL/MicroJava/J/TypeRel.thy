@@ -193,11 +193,11 @@ done
 (*####theorem widen_trans: "\<lbrakk>G\<turnstile>S\<preceq>U; G\<turnstile>U\<preceq>T\<rbrakk> \<Longrightarrow> G\<turnstile>S\<preceq>T"
 proof -
   assume "G\<turnstile>S\<preceq>U"
-  thus "\<And>T. G\<turnstile>U\<preceq>T \<Longrightarrow> G\<turnstile>S\<preceq>T" (*(is "PROP ?P S U")*)
-  proof (induct (*cases*) (open) (*?P S U*) rule: widen.induct [consumes 1])
+  thus "\<And>T. G\<turnstile>U\<preceq>T \<Longrightarrow> G\<turnstile>S\<preceq>T" ( *(is "PROP ?P S U")* )
+  proof (induct ( *cases* ) (open) ( *?P S U* ) rule: widen.induct [consumes 1])
     case refl
     fix T' assume "G\<turnstile>T\<preceq>T'" thus "G\<turnstile>T\<preceq>T'".
-      (* fix T' show "PROP ?P T T".*)
+      ( * fix T' show "PROP ?P T T".* )
   next
     case subcls
     fix T assume "G\<turnstile>Class D\<preceq>T"
@@ -215,24 +215,19 @@ qed
 theorem widen_trans: "\<lbrakk>G\<turnstile>S\<preceq>U; G\<turnstile>U\<preceq>T\<rbrakk> \<Longrightarrow> G\<turnstile>S\<preceq>T"
 proof -
   assume "G\<turnstile>S\<preceq>U"
-  thus "\<And>T. G\<turnstile>U\<preceq>T \<Longrightarrow> G\<turnstile>S\<preceq>T" (*(is "PROP ?P S U")*)
-  proof (induct (*cases*) (open) (*?P S U*)) (* rule: widen.induct *)
-    case refl
-    fix T' assume "G\<turnstile>T\<preceq>T'" thus "G\<turnstile>T\<preceq>T'".
-      (* fix T' show "PROP ?P T T".*)
+  thus "\<And>T. G\<turnstile>U\<preceq>T \<Longrightarrow> G\<turnstile>S\<preceq>T"
+  proof induct
+    case (refl T T')
+    thus "G\<turnstile>T\<preceq>T'" .
   next
-    case subcls
-    fix T assume "G\<turnstile>Class D\<preceq>T"
+    case (subcls C D T)
     then obtain E where "T = Class E" by (blast dest: widen_Class)
-    from prems show "G\<turnstile>Class C\<preceq>T" proof (auto elim: rtrancl_trans) qed
+    with subcls show "G\<turnstile>Class C\<preceq>T" by (auto elim: rtrancl_trans)
   next
-    case null
-    fix RT assume "G\<turnstile>RefT R\<preceq>RT"
+    case (null R RT)
     then obtain rt where "RT = RefT rt" by (blast dest: widen_RefT)
     thus "G\<turnstile>NT\<preceq>RT" by auto
   qed
 qed
-
-
 
 end

@@ -151,27 +151,25 @@ theorem prefix_cases:
 
 theorem parallel_decomp:
   "xs \<parallel> ys ==> \<exists>as b bs c cs. b \<noteq> c \<and> xs = as @ b # bs \<and> ys = as @ c # cs"
-  (is "PROP ?P xs" concl is "?E xs")
 proof (induct xs rule: rev_induct)
-  assume "[] \<parallel> ys" hence False by auto
-  thus "?E []" ..
+  case Nil
+  hence False by auto
+  thus ?case ..
 next
-  fix x xs
-  assume hyp: "PROP ?P xs"
-  assume asm: "xs @ [x] \<parallel> ys"
-  show "?E (xs @ [x])"
+  case (snoc x xs)
+  show ?case
   proof (rule prefix_cases)
     assume le: "xs \<le> ys"
     then obtain ys' where ys: "ys = xs @ ys'" ..
     show ?thesis
     proof (cases ys')
       assume "ys' = []" with ys have "xs = ys" by simp
-      with asm have "[x] \<parallel> []" by auto
+      with snoc have "[x] \<parallel> []" by auto
       hence False by blast
       thus ?thesis ..
     next
       fix c cs assume ys': "ys' = c # cs"
-      with asm ys have "xs @ [x] \<parallel> xs @ c # cs" by (simp only:)
+      with snoc ys have "xs @ [x] \<parallel> xs @ c # cs" by (simp only:)
       hence "x \<noteq> c" by auto
       moreover have "xs @ [x] = xs @ x # []" by simp
       moreover from ys ys' have "ys = xs @ c # cs" by (simp only:)
@@ -179,11 +177,11 @@ next
     qed
   next
     assume "ys < xs" hence "ys \<le> xs @ [x]" by (simp add: strict_prefix_def)
-    with asm have False by blast
+    with snoc have False by blast
     thus ?thesis ..
   next
     assume "xs \<parallel> ys"
-    with hyp obtain as b bs c cs where neq: "(b::'a) \<noteq> c"
+    with snoc obtain as b bs c cs where neq: "(b::'a) \<noteq> c"
       and xs: "xs = as @ b # bs" and ys: "ys = as @ c # cs"
       by blast
     from xs have "xs @ [x] = as @ b # (bs @ [x])" by simp

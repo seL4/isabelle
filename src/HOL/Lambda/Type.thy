@@ -95,11 +95,11 @@ lemma "e \<turnstile> Abs (Abs (Abs (Var 2 \<^sub>\<degree> Var 0 \<^sub>\<degre
 
 subsection {* n-ary function types *}
 
-lemma list_app_typeD [rule_format]:
-    "\<forall>t T. e \<turnstile> t \<^sub>\<degree>\<^sub>\<degree> ts : T \<longrightarrow> (\<exists>Ts. e \<turnstile> t : Ts \<Rrightarrow> T \<and> e \<tturnstile> ts : Ts)"
-  apply (induct_tac ts)
+lemma list_app_typeD:
+    "\<And>t T. e \<turnstile> t \<^sub>\<degree>\<^sub>\<degree> ts : T \<Longrightarrow> \<exists>Ts. e \<turnstile> t : Ts \<Rrightarrow> T \<and> e \<tturnstile> ts : Ts"
+  apply (induct ts)
    apply simp
-  apply (intro strip)
+  apply atomize
   apply simp
   apply (erule_tac x = "t \<^sub>\<degree> a" in allE)
   apply (erule_tac x = T in allE)
@@ -115,12 +115,11 @@ lemma list_app_typeE:
   "e \<turnstile> t \<^sub>\<degree>\<^sub>\<degree> ts : T \<Longrightarrow> (\<And>Ts. e \<turnstile> t : Ts \<Rrightarrow> T \<Longrightarrow> e \<tturnstile> ts : Ts \<Longrightarrow> C) \<Longrightarrow> C"
   by (insert list_app_typeD) fast
 
-lemma list_app_typeI [rule_format]:
-    "\<forall>t T Ts. e \<turnstile> t : Ts \<Rrightarrow> T \<longrightarrow> e \<tturnstile> ts : Ts \<longrightarrow> e \<turnstile> t \<^sub>\<degree>\<^sub>\<degree> ts : T"
-  apply (induct_tac ts)
-   apply (intro strip)
+lemma list_app_typeI:
+    "\<And>t T Ts. e \<turnstile> t : Ts \<Rrightarrow> T \<Longrightarrow> e \<tturnstile> ts : Ts \<Longrightarrow> e \<turnstile> t \<^sub>\<degree>\<^sub>\<degree> ts : T"
+  apply (induct ts)
    apply simp
-  apply (intro strip)
+  apply atomize
   apply (case_tac Ts)
    apply simp
   apply simp
@@ -134,15 +133,13 @@ lemma list_app_typeI [rule_format]:
   apply blast
   done
 
-lemma lists_typings [rule_format]:
-    "\<forall>Ts. e \<tturnstile> ts : Ts \<longrightarrow> ts \<in> lists {t. \<exists>T. e \<turnstile> t : T}"
-  apply (induct_tac ts)
-   apply (intro strip)
+lemma lists_typings:
+    "\<And>Ts. e \<tturnstile> ts : Ts \<Longrightarrow> ts \<in> lists {t. \<exists>T. e \<turnstile> t : T}"
+  apply (induct ts)
    apply (case_tac Ts)
      apply simp
      apply (rule lists.Nil)
     apply simp
-  apply (intro strip)
   apply (case_tac Ts)
    apply simp
   apply simp
@@ -192,11 +189,10 @@ proof -
     by induct auto
 qed
 
-lemma lift_typings [rule_format]:
-  "\<forall>Ts. e \<tturnstile> ts : Ts \<longrightarrow> e\<langle>i:U\<rangle> \<tturnstile> (map (\<lambda>t. lift t i) ts) : Ts"
-  apply (induct_tac ts)
+lemma lift_typings:
+  "\<And>Ts. e \<tturnstile> ts : Ts \<Longrightarrow> e\<langle>i:U\<rangle> \<tturnstile> (map (\<lambda>t. lift t i) ts) : Ts"
+  apply (induct ts)
    apply simp
-  apply (intro strip)
   apply (case_tac Ts)
    apply auto
   done

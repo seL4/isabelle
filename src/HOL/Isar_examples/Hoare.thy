@@ -166,24 +166,18 @@ proof
   fix s s' assume s: "s : P"
   assume "Sem (While b X c) s s'"
   then obtain n where iter: "iter n b (Sem c) s s'" by auto
-
   have "!!s. iter n b (Sem c) s s' ==> s : P ==> s' : P Int -b"
-    (is "PROP ?P n")
   proof (induct n)
-    fix s assume s: "s : P"
-    {
-      assume "iter 0 b (Sem c) s s'"
-      with s show "?thesis s" by auto
-    next
-      fix n assume hyp: "PROP ?P n"
-      assume "iter (Suc n) b (Sem c) s s'"
-      then obtain s'' where b: "s : b" and sem: "Sem c s s''"
-        and iter: "iter n b (Sem c) s'' s'"
-        by auto
-      from s b have "s : P Int b" by simp
-      with body sem have "s'' : P" ..
-      with iter show "?thesis s" by (rule hyp)
-    }
+    case (0 s)
+    thus ?case by auto
+  next
+    case (Suc n s)
+    then obtain s'' where b: "s : b" and sem: "Sem c s s''"
+      and iter: "iter n b (Sem c) s'' s'"
+      by auto
+    from Suc and b have "s : P Int b" by simp
+    with body sem have "s'' : P" ..
+    with iter show ?case by (rule Suc)
   qed
   from this iter s show "s' : P Int -b" .
 qed

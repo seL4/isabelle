@@ -46,8 +46,8 @@ lemma has_type_subst_closed: "a |- e :: t ==> $s a |- e :: $s t"
 proof -
   assume "a |- e :: t"
   thus ?thesis (is "?P a e t")
-  proof (induct (open) a e t)
-    case Var
+  proof induct
+    case (Var a n)
     hence "n < length (map ($ s) a)" by simp
     hence "map ($ s) a |- Var n :: map ($ s) a ! n"
       by (rule has_type.Var)
@@ -57,7 +57,7 @@ proof -
       by (simp only: app_subst_list)
     finally show "?P a (Var n) (a ! n)" .
   next
-    case Abs
+    case (Abs a e t1 t2)
     hence "$ s t1 # map ($ s) a |- e :: $ s t2"
       by (simp add: app_subst_list)
     hence "map ($ s) a |- Abs e :: $ s t1 -> $ s t2"
@@ -66,7 +66,7 @@ proof -
       by (simp add: app_subst_list)
   next
     case App
-    thus "?P a (App e1 e2) t1" by (simp add: has_type.App)
+    thus ?case by (simp add: has_type.App)
   qed
 qed
 

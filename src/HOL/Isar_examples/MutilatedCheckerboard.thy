@@ -37,19 +37,20 @@ proof -
   assume "t : ?T"
   thus "t Int u = {} ==> t Un u : ?T" (is "PROP ?P t")
   proof (induct t)
-    from u show "{} Un u : ?T" by simp
+    case empty
+    with u show "{} Un u : ?T" by simp
   next
-    fix a t
-    assume "a : A" and hyp: "PROP ?P t"
-      and at: "a <= - t" and atu: "(a Un t) Int u = {}"
+    case (Un a t)
     show "(a Un t) Un u : ?T"
     proof -
       have "a Un (t Un u) : ?T"
       proof (rule tiling.Un)
         show "a : A" .
-        from atu have "t Int u = {}" by blast
-        thus "t Un u: ?T" by (rule hyp)
-        from at atu show "a <= - (t Un u)" by blast
+	have atu: "(a Un t) Int u = {}" .
+	hence "t Int u = {}" by blast
+        thus "t Un u: ?T" by (rule Un)
+	have "a <= - t" .
+	with atu show "a <= - (t Un u)" by blast
       qed
       also have "a Un (t Un u) = (a Un t) Un u"
         by (simp only: Un_assoc)
@@ -129,13 +130,13 @@ inductive domino
 
 lemma dominoes_tile_row:
   "{i} <*> below (2 * n) : tiling domino"
-  (is "?P n" is "?B n : ?T")
+  (is "?B n : ?T")
 proof (induct n)
-  show "?P 0" by (simp add: below_0 tiling.empty)
-
-  fix n assume hyp: "?P n"
+  case 0
+  show ?case by (simp add: below_0 tiling.empty)
+next
+  case (Suc n)
   let ?a = "{i} <*> {2 * n + 1} Un {i} <*> {2 * n}"
-
   have "?B (Suc n) = ?a Un ?B n"
     by (auto simp add: Sigma_Suc Un_assoc)
   also have "... : ?T"
@@ -144,29 +145,29 @@ proof (induct n)
       by (rule domino.horiz)
     also have "{(i, 2 * n), (i, 2 * n + 1)} = ?a" by blast
     finally show "... : domino" .
-    from hyp show "?B n : ?T" .
+    show "?B n : ?T" by (rule Suc)
     show "?a <= - ?B n" by blast
   qed
-  finally show "?P (Suc n)" .
+  finally show ?case .
 qed
 
 lemma dominoes_tile_matrix:
   "below m <*> below (2 * n) : tiling domino"
-  (is "?P m" is "?B m : ?T")
+  (is "?B m : ?T")
 proof (induct m)
-  show "?P 0" by (simp add: below_0 tiling.empty)
-
-  fix m assume hyp: "?P m"
+  case 0
+  show ?case by (simp add: below_0 tiling.empty)
+next
+  case (Suc m)
   let ?t = "{m} <*> below (2 * n)"
-
   have "?B (Suc m) = ?t Un ?B m" by (simp add: Sigma_Suc)
   also have "... : ?T"
   proof (rule tiling_Un)
     show "?t : ?T" by (rule dominoes_tile_row)
-    from hyp show "?B m : ?T" .
+    show "?B m : ?T" by (rule Suc)
     show "?t Int ?B m = {}" by blast
   qed
-  finally show "?P (Suc m)" .
+  finally show ?case .
 qed
 
 lemma domino_singleton:
@@ -213,19 +214,18 @@ qed
 
 lemma tiling_domino_01:
   "t : tiling domino ==> card (evnodd t 0) = card (evnodd t 1)"
-  (is "t : ?T ==> ?P t")
+  (is "t : ?T ==> _")
 proof -
   assume "t : ?T"
-  thus "?P t"
+  thus ?thesis
   proof induct
-    show "?P {}" by (simp add: evnodd_def)
-
-    fix a t
+    case empty
+    show ?case by (simp add: evnodd_def)
+  next
+    case (Un a t)
     let ?e = evnodd
-    assume "a : domino" and "t : ?T"
-      and hyp: "card (?e t 0) = card (?e t 1)"
-      and at: "a <= - t"
-
+    have hyp: "card (?e t 0) = card (?e t 1)" .
+    have at: "a <= - t" .
     have card_suc:
       "!!b. b < 2 ==> card (?e (a Un t) b) = Suc (card (?e t b))"
     proof -
@@ -250,7 +250,7 @@ proof -
     also from hyp have "card (?e t 0) = card (?e t 1)" .
     also from card_suc have "Suc ... = card (?e (a Un t) 1)"
       by simp
-    finally show "?P (a Un t)" .
+    finally show ?case .
   qed
 qed
 
