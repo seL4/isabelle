@@ -74,7 +74,7 @@ qed "hdvd";
 
 Goal "(hypnat_of_nat n <= 0) = (n = 0)";
 by (stac (hypnat_of_nat_zero RS sym) 1);
-by (auto_tac (claset(),simpset() addsimps [hypnat_of_nat_le_iff RS sym]));
+by Auto_tac;
 qed "hypnat_of_nat_le_zero_iff";
 Addsimps [hypnat_of_nat_le_zero_iff];
 
@@ -107,8 +107,8 @@ by (dres_inst_tac [("x","whn")] spec 1);
 by Auto_tac;
 by (rtac exI 1 THEN Auto_tac);
 by (dres_inst_tac [("x","hypnat_of_nat n")] spec 1);
-by (auto_tac (claset(),simpset() addsimps [symmetric hypnat_le_def,
-    hypnat_of_nat_zero_iff]));
+by (auto_tac (claset(),
+     simpset() addsimps [linorder_not_less, hypnat_of_nat_zero_iff]));
 qed "hypnat_dvd_all_hypnat_of_nat";
 
 

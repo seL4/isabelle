@@ -5,7 +5,7 @@
 
 header{*Infinite Numbers, Infinitesimals, Infinitely Close Relation*}
 
-theory NSA = HRealAbs + RComplete:
+theory NSA = HyperArith + RComplete:
 
 constdefs
 

@@ -213,7 +213,7 @@ qed "starfunNat_sumr";
 
 Goal "sumhr (0, M, f) @= sumhr (0, N, f) \
 \     ==> abs (sumhr (M, N, f)) @= 0";
-by (cut_inst_tac [("x","M"),("y","N")] hypnat_linear 1);
+by (cut_inst_tac [("x","M"),("y","N")] linorder_less_linear 1);
 by (auto_tac (claset(), simpset() addsimps [approx_refl]));
 by (dtac (approx_sym RS (approx_minus_iff RS iffD1)) 1);
 by (auto_tac (claset() addDs [approx_hrabs],
@@ -265,7 +265,7 @@ by (auto_tac (claset(),
                  summable_convergent_sumr_iff, convergent_NSconvergent_iff,
                  NSCauchy_NSconvergent_iff RS sym, NSCauchy_def,
                  starfunNat_sumr]));
-by (cut_inst_tac [("x","M"),("y","N")] hypnat_linear 1);
+by (cut_inst_tac [("x","M"),("y","N")] linorder_less_linear 1);
 by (auto_tac (claset(), simpset() addsimps [approx_refl]));
 by (rtac ((approx_minus_iff RS iffD2) RS approx_sym) 1);
 by (rtac (approx_minus_iff RS iffD2) 2);

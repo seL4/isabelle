@@ -1,4 +1,4 @@
-(*  Title:      HOL/HyperBin.thy
+(*  Title:      HOL/HyperArith.thy
     ID:         $Id$
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1999  University of Cambridge
@@ -6,7 +6,7 @@
 
 header{*Binary arithmetic and Simplification for the Hyperreals*}
 
-theory HyperArith = HyperOrd
+theory HyperArith = HyperDef
 files ("hypreal_arith.ML"):
 
 subsection{*Binary Arithmetic for the Hyperreals*}
@@ -156,10 +156,7 @@ lemma hypreal_minus1_divide [simp]: "-1/(x::hypreal) = - (1/x)"
 by (simp add: hypreal_divide_def hypreal_minus_inverse)
 
 
-
-
-(** number_of related to hypreal_of_real.
-Could similar theorems be useful for other injections? **)
+subsection{*The Function @{term hypreal_of_real}*}
 
 lemma number_of_less_hypreal_of_real_iff [simp]:
      "(number_of w < hypreal_of_real z) = (number_of w < z)"
@@ -191,8 +188,114 @@ apply (subst hypreal_of_real_le_iff [symmetric])
 apply (simp (no_asm))
 done
 
+subsection{*Absolute Value Function for the Hyperreals*}
+
+lemma hrabs_number_of [simp]:
+     "abs (number_of v :: hypreal) =
+        (if neg (number_of v) then number_of (bin_minus v)
+         else number_of v)"
+by (simp add: hrabs_def)
+
+
+declare abs_mult [simp]
+
+lemma hrabs_add_less: "[| abs x < r; abs y < s |] ==> abs(x+y) < r + (s::hypreal)"
+apply (unfold hrabs_def)
+apply (simp split add: split_if_asm)
+done
+
+lemma hrabs_less_gt_zero: "abs x < r ==> (0::hypreal) < r"
+by (blast intro!: order_le_less_trans abs_ge_zero)
+
+lemma hrabs_disj: "abs x = (x::hypreal) | abs x = -x"
+by (simp add: hrabs_def)
+
+(* Needed in Geom.ML *)
+lemma hrabs_add_lemma_disj: "(y::hypreal) + - x + (y + - z) = abs (x + - z) ==> y = z | x = y"
+by (simp add: hrabs_def split add: split_if_asm)
+
+
+(*----------------------------------------------------------
+    Relating hrabs to abs through embedding of IR into IR*
+ ----------------------------------------------------------*)
+lemma hypreal_of_real_hrabs:
+    "abs (hypreal_of_real r) = hypreal_of_real (abs r)"
+apply (unfold hypreal_of_real_def)
+apply (auto simp add: hypreal_hrabs)
+done
+
+
+subsection{*Embedding the Naturals into the Hyperreals*}
+
+constdefs
+
+  hypreal_of_nat :: "nat => hypreal"
+  "hypreal_of_nat (n::nat) == hypreal_of_real (real n)"
+
+
+lemma hypreal_of_nat_add [simp]:
+     "hypreal_of_nat (m + n) = hypreal_of_nat m + hypreal_of_nat n"
+by (simp add: hypreal_of_nat_def)
+
+lemma hypreal_of_nat_mult: "hypreal_of_nat (m * n) = hypreal_of_nat m * hypreal_of_nat n"
+by (simp add: hypreal_of_nat_def)
+declare hypreal_of_nat_mult [simp]
+
+lemma hypreal_of_nat_less_iff:
+      "(n < m) = (hypreal_of_nat n < hypreal_of_nat m)"
+apply (simp add: hypreal_of_nat_def)
+done
+declare hypreal_of_nat_less_iff [symmetric, simp]
+
+(*------------------------------------------------------------*)
+(* naturals embedded in hyperreals                            *)
+(* is a hyperreal c.f. NS extension                           *)
+(*------------------------------------------------------------*)
+
+lemma hypreal_of_nat_iff:
+     "hypreal_of_nat  m = Abs_hypreal(hyprel``{%n. real m})"
+by (simp add: hypreal_of_nat_def hypreal_of_real_def real_of_nat_def)
+
+lemma inj_hypreal_of_nat: "inj hypreal_of_nat"
+by (simp add: inj_on_def hypreal_of_nat_def)
+
+lemma hypreal_of_nat_Suc:
+     "hypreal_of_nat (Suc n) = hypreal_of_nat n + (1::hypreal)"
+by (simp add: hypreal_of_nat_def real_of_nat_Suc)
+
+(*"neg" is used in rewrite rules for binary comparisons*)
+lemma hypreal_of_nat_number_of [simp]:
+     "hypreal_of_nat (number_of v :: nat) =
+         (if neg (number_of v) then 0
+          else (number_of v :: hypreal))"
+by (simp add: hypreal_of_nat_def)
+
+lemma hypreal_of_nat_zero [simp]: "hypreal_of_nat 0 = 0"
+by (simp del: numeral_0_eq_0 add: numeral_0_eq_0 [symmetric])
+
+lemma hypreal_of_nat_one [simp]: "hypreal_of_nat 1 = 1"
+by (simp add: hypreal_of_nat_Suc)
+
+lemma hypreal_of_nat: "hypreal_of_nat m = Abs_hypreal(hyprel `` {%n. real m})"
+apply (induct_tac "m")
+apply (auto simp add: hypreal_zero_def hypreal_of_nat_Suc hypreal_zero_num hypreal_one_num hypreal_add real_of_nat_Suc)
+done
+
+lemma hypreal_of_nat_le_iff:
+      "(hypreal_of_nat n \<le> hypreal_of_nat m) = (n \<le> m)"
+apply (auto simp add: linorder_not_less [symmetric])
+done
+declare hypreal_of_nat_le_iff [simp]
+
+lemma hypreal_of_nat_ge_zero: "0 \<le> hypreal_of_nat n"
+apply (simp (no_asm) add: hypreal_of_nat_zero [symmetric] 
+         del: hypreal_of_nat_zero)
+done
+declare hypreal_of_nat_ge_zero [simp]
+
+
 (*
-FIXME: we should have this, as for type int, but many proofs would break.
+FIXME: we should declare this, as for type int, but many proofs would break.
 It replaces x+-y by x-y.
 Addsimps [symmetric hypreal_diff_def]
 *)
@@ -201,6 +304,27 @@ ML
 {*
 val hypreal_add_minus_eq_minus = thm "hypreal_add_minus_eq_minus";
 val hypreal_le_add_order = thm"hypreal_le_add_order";
+
+val hypreal_of_nat_def = thm"hypreal_of_nat_def";
+
+val hrabs_number_of = thm "hrabs_number_of";
+val hrabs_add_less = thm "hrabs_add_less";
+val hrabs_less_gt_zero = thm "hrabs_less_gt_zero";
+val hrabs_disj = thm "hrabs_disj";
+val hrabs_add_lemma_disj = thm "hrabs_add_lemma_disj";
+val hypreal_of_real_hrabs = thm "hypreal_of_real_hrabs";
+val hypreal_of_nat_add = thm "hypreal_of_nat_add";
+val hypreal_of_nat_mult = thm "hypreal_of_nat_mult";
+val hypreal_of_nat_less_iff = thm "hypreal_of_nat_less_iff";
+val hypreal_of_nat_iff = thm "hypreal_of_nat_iff";
+val inj_hypreal_of_nat = thm "inj_hypreal_of_nat";
+val hypreal_of_nat_Suc = thm "hypreal_of_nat_Suc";
+val hypreal_of_nat_number_of = thm "hypreal_of_nat_number_of";
+val hypreal_of_nat_zero = thm "hypreal_of_nat_zero";
+val hypreal_of_nat_one = thm "hypreal_of_nat_one";
+val hypreal_of_nat_le_iff = thm"hypreal_of_nat_le_iff";
+val hypreal_of_nat_ge_zero = thm"hypreal_of_nat_ge_zero";
+val hypreal_of_nat = thm"hypreal_of_nat";
 *}
 
 end

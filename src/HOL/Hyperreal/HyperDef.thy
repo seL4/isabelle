@@ -323,22 +323,21 @@ apply (simp add: UN_equiv_class2 [OF equiv_hyprel hypreal_add_congruent2])
 done
 
 lemma hypreal_add_commute: "(z::hypreal) + w = w + z"
-apply (rule_tac z = z in eq_Abs_hypreal)
-apply (rule_tac z = w in eq_Abs_hypreal)
+apply (rule eq_Abs_hypreal [of z])
+apply (rule eq_Abs_hypreal [of w])
 apply (simp add: add_ac hypreal_add)
 done
 
 lemma hypreal_add_assoc: "((z1::hypreal) + z2) + z3 = z1 + (z2 + z3)"
-apply (rule_tac z = z1 in eq_Abs_hypreal)
-apply (rule_tac z = z2 in eq_Abs_hypreal)
-apply (rule_tac z = z3 in eq_Abs_hypreal)
+apply (rule eq_Abs_hypreal [of z1])
+apply (rule eq_Abs_hypreal [of z2])
+apply (rule eq_Abs_hypreal [of z3])
 apply (simp add: hypreal_add real_add_assoc)
 done
 
 lemma hypreal_add_zero_left: "(0::hypreal) + z = z"
-apply (unfold hypreal_zero_def)
-apply (rule_tac z = z in eq_Abs_hypreal)
-apply (simp add: hypreal_add)
+apply (rule eq_Abs_hypreal [of z])
+apply (simp add: hypreal_zero_def hypreal_add)
 done
 
 instance hypreal :: plus_ac0
@@ -395,15 +394,15 @@ apply (simp add: UN_equiv_class2 [OF equiv_hyprel hypreal_mult_congruent2])
 done
 
 lemma hypreal_mult_commute: "(z::hypreal) * w = w * z"
-apply (rule_tac z = z in eq_Abs_hypreal)
-apply (rule_tac z = w in eq_Abs_hypreal)
+apply (rule eq_Abs_hypreal [of z])
+apply (rule eq_Abs_hypreal [of w])
 apply (simp add: hypreal_mult mult_ac)
 done
 
 lemma hypreal_mult_assoc: "((z1::hypreal) * z2) * z3 = z1 * (z2 * z3)"
-apply (rule_tac z = z1 in eq_Abs_hypreal)
-apply (rule_tac z = z2 in eq_Abs_hypreal)
-apply (rule_tac z = z3 in eq_Abs_hypreal)
+apply (rule eq_Abs_hypreal [of z1])
+apply (rule eq_Abs_hypreal [of z2])
+apply (rule eq_Abs_hypreal [of z3])
 apply (simp add: hypreal_mult mult_assoc)
 done
 
@@ -415,9 +414,9 @@ done
 
 lemma hypreal_add_mult_distrib:
      "((z1::hypreal) + z2) * w = (z1 * w) + (z2 * w)"
-apply (rule_tac z = z1 in eq_Abs_hypreal)
-apply (rule_tac z = z2 in eq_Abs_hypreal)
-apply (rule_tac z = w in eq_Abs_hypreal)
+apply (rule eq_Abs_hypreal [of z1])
+apply (rule eq_Abs_hypreal [of z2])
+apply (rule eq_Abs_hypreal [of w])
 apply (simp add: hypreal_mult hypreal_add left_distrib)
 done
 
@@ -448,7 +447,7 @@ done
 lemma hypreal_mult_inverse: 
      "x \<noteq> 0 ==> x*inverse(x) = (1::hypreal)"
 apply (unfold hypreal_one_def hypreal_zero_def)
-apply (rule_tac z = x in eq_Abs_hypreal)
+apply (rule eq_Abs_hypreal [of x])
 apply (simp add: hypreal_inverse hypreal_mult)
 apply (drule FreeUltrafilterNat_Compl_mem)
 apply (blast intro!: right_inverse FreeUltrafilterNat_subset)
@@ -616,9 +615,6 @@ lemma hypreal_mult_right_cancel: "(c::hypreal) \<noteq> 0 ==> (a*c=b*c) = (a=b)"
 apply auto
 done
 
-lemma hypreal_inverse_not_zero: "x \<noteq> 0 ==> inverse (x::hypreal) \<noteq> 0"
-  by (rule Ring_and_Field.nonzero_imp_inverse_nonzero)
-
 lemma hypreal_mult_not_0: "[| x \<noteq> 0; y \<noteq> 0 |] ==> x * y \<noteq> (0::hypreal)"
 by simp
 
@@ -646,7 +642,8 @@ lemma hypreal_inverse_add:
 by (simp add: Ring_and_Field.inverse_add mult_assoc)
 
 
-subsection{*@{term hypreal_of_real} Preserves Field and Order Properties*}
+subsection{*The Embedding @{term hypreal_of_real} Preserves Field and 
+      Order Properties*}
 
 lemma hypreal_of_real_add [simp]: 
      "hypreal_of_real (w + z) = hypreal_of_real w + hypreal_of_real z"
@@ -890,13 +887,10 @@ val hypreal_mult_minus_1_right = thm "hypreal_mult_minus_1_right";
 val hypreal_zero_not_eq_one = thm "hypreal_zero_not_eq_one";
 val hypreal_inverse_congruent = thm "hypreal_inverse_congruent";
 val hypreal_inverse = thm "hypreal_inverse";
-val HYPREAL_INVERSE_ZERO = thm "HYPREAL_INVERSE_ZERO";
-val HYPREAL_DIVISION_BY_ZERO = thm "HYPREAL_DIVISION_BY_ZERO";
 val hypreal_mult_inverse = thm "hypreal_mult_inverse";
 val hypreal_mult_inverse_left = thm "hypreal_mult_inverse_left";
 val hypreal_mult_left_cancel = thm "hypreal_mult_left_cancel";
 val hypreal_mult_right_cancel = thm "hypreal_mult_right_cancel";
-val hypreal_inverse_not_zero = thm "hypreal_inverse_not_zero";
 val hypreal_mult_not_0 = thm "hypreal_mult_not_0";
 val hypreal_minus_inverse = thm "hypreal_minus_inverse";
 val hypreal_inverse_distrib = thm "hypreal_inverse_distrib";

@@ -209,7 +209,7 @@ Goalw [starfunNat2_def]
 \      Abs_hypnat(hypnatrel `` {%n. f (X n)})";
 by (res_inst_tac [("f","Abs_hypnat")] arg_cong 1);
 by (simp_tac (simpset() addsimps 
-   [hypnatrel_in_hypnat RS Abs_hypnat_inverse,
+   [hypnatrel_in_hypnat RS thm"Abs_hypnat_inverse",
     [equiv_hypnatrel, starfunNat_congruent] MRS UN_equiv_class]) 1);
 qed "starfunNat2";
 
@@ -406,7 +406,7 @@ Goal "N : HNatInfinite \
 by (res_inst_tac [("f1","inverse")]  (starfun_stafunNat_o2 RS subst) 1);
 by (subgoal_tac "hypreal_of_hypnat N ~= 0" 1);
 by (auto_tac (claset(), 
-       simpset() addsimps [starfunNat_real_of_nat, starfun_inverse_inverse]));
+       simpset() addsimps [HNatInfinite_not_eq_zero, starfunNat_real_of_nat, starfun_inverse_inverse]));
 qed "starfunNat_inverse_real_of_nat_eq";
 
 (*----------------------------------------------------------
@@ -488,6 +488,6 @@ Goal "N : HNatInfinite \
 \     ==> ( *fNat* (%x. inverse (real x))) N : Infinitesimal";
 by (res_inst_tac [("f1","inverse")]  (starfun_stafunNat_o2 RS subst) 1);
 by (subgoal_tac "hypreal_of_hypnat N ~= 0" 1);
-by (auto_tac (claset(),simpset() addsimps [starfunNat_real_of_nat]));
+by (auto_tac (claset(), simpset() addsimps [HNatInfinite_not_eq_zero, starfunNat_real_of_nat]));
 qed "starfunNat_inverse_real_of_nat_Infinitesimal";
 Addsimps [starfunNat_inverse_real_of_nat_Infinitesimal];

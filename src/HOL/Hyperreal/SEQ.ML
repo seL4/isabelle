@@ -4,6 +4,13 @@
     Description : Theory of sequence and series of real numbers
 *) 
 
+fun CLAIM_SIMP str thms =
+               prove_goal (the_context()) str
+               (fn prems => [cut_facts_tac prems 1,
+                   auto_tac (claset(),simpset() addsimps thms)]);
+
+fun CLAIM str = CLAIM_SIMP str [];
+
 (*---------------------------------------------------------------------------
    Example of an hypersequence (i.e. an extended standard sequence) 
    whose term with an hypernatural suffix is an infinitesimal i.e. 

@@ -42,8 +42,8 @@ Goalw [hypreal_divide_def]
      "(Abs_hypreal(hyprel `` {X}))/(Abs_hypreal(hyprel `` {Y})) = \
 \     (Abs_hypreal(hyprel `` {%n. (X n)/(Y n)}))";
 by (case_tac "Abs_hypreal (hyprel `` {Y}) = 0" 1);
-by (auto_tac (claset(),simpset() addsimps [HYPREAL_DIVISION_BY_ZERO,
-    hypreal_zero_num,hypreal_inverse,hypreal_mult]));
+by (auto_tac (claset(),
+  simpset() addsimps [hypreal_zero_num,hypreal_inverse,hypreal_mult]));
 by (ALLGOALS(ultra_tac (claset(),simpset() addsimps [real_divide_def])));
 qed "hypreal_divide";
 

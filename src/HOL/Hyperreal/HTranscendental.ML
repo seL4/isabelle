@@ -609,7 +609,7 @@ qed "STAR_sin_Infinitesimal_divide";
 Goal "n : HNatInfinite \
 \     ==> ( *f* sin) (inverse (hypreal_of_hypnat n))/(inverse (hypreal_of_hypnat n)) @= 1";
 by (rtac STAR_sin_Infinitesimal_divide 1);
-by Auto_tac;
+by (auto_tac (claset(),simpset() addsimps [HNatInfinite_not_eq_zero]));
 val lemma_sin_pi = result();
 
 Goal "n : HNatInfinite \
@@ -626,7 +626,7 @@ qed "Infinitesimal_pi_divide_HNatInfinite";
 
 Goal "N : HNatInfinite \
 \     ==> hypreal_of_real pi/(hypreal_of_hypnat N) ~= 0";
-by Auto_tac;
+by (auto_tac (claset(),simpset() addsimps [HNatInfinite_not_eq_zero]));
 qed "pi_divide_HNatInfinite_not_zero";
 Addsimps [pi_divide_HNatInfinite_not_zero];
 
@@ -675,8 +675,8 @@ AddIffs [hypnat_le_zero_cancel];
 
 Goal "N : HNatInfinite ==> 0 < hypreal_of_hypnat N";
 by (rtac ccontr 1);
-by (auto_tac (claset(),simpset() addsimps [hypreal_of_hypnat_zero RS sym,
-    symmetric hypnat_le_def]));
+by (auto_tac (claset(),
+   simpset() addsimps [hypreal_of_hypnat_zero RS sym, linorder_not_less]));
 qed "HNatInfinite_hypreal_of_hypnat_gt_zero";
 
 bind_thm ("HNatInfinite_hypreal_of_hypnat_not_eq_zero",

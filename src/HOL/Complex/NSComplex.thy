@@ -6,33 +6,6 @@
 
 theory NSComplex = NSInduct:
 
-(* ???MOVE to one of the hyperreal theories: HRealAbs??? *)
-lemma hypreal_of_nat: "hypreal_of_nat m = Abs_hypreal(hyprel `` {%n. real m})"
-apply (induct_tac "m")
-apply (auto simp add: hypreal_zero_def hypreal_of_nat_Suc hypreal_zero_num hypreal_one_num hypreal_add real_of_nat_Suc)
-done
-
-lemma hypreal_of_nat_le_iff:
-      "(hypreal_of_nat n \<le> hypreal_of_nat m) = (n \<le> m)"
-apply (auto simp add: linorder_not_less [symmetric])
-done
-declare hypreal_of_nat_le_iff [simp]
-
-lemma hypreal_of_nat_ge_zero: "0 \<le> hypreal_of_nat n"
-apply (simp (no_asm) add: hypreal_of_nat_zero [symmetric] 
-         del: hypreal_of_nat_zero)
-done
-declare hypreal_of_nat_ge_zero [simp]
-
-declare hypreal_of_nat_ge_zero [THEN hrabs_eqI1, simp]
-
-lemma hypreal_of_hypnat_ge_zero: "0 \<le> hypreal_of_hypnat n"
-apply (rule_tac z = "n" in eq_Abs_hypnat)
-apply (simp (no_asm_simp) add: hypreal_of_hypnat hypreal_zero_num hypreal_le)
-done
-declare hypreal_of_hypnat_ge_zero [simp]
-declare hypreal_of_hypnat_ge_zero [THEN hrabs_eqI1, simp]
-
 constdefs
     hcomplexrel :: "((nat=>complex)*(nat=>complex)) set"
     "hcomplexrel == {p. \<exists>X Y. p = ((X::nat=>complex),Y) &
@@ -819,13 +792,13 @@ declare hcomplex_hcmod_eq_zero_cancel [simp]
 
 lemma hcmod_hcomplex_of_hypreal_of_nat:
      "hcmod (hcomplex_of_hypreal(hypreal_of_nat n)) = hypreal_of_nat n"
-apply auto
+apply (simp add: abs_if linorder_not_less) 
 done
 declare hcmod_hcomplex_of_hypreal_of_nat [simp]
 
 lemma hcmod_hcomplex_of_hypreal_of_hypnat:
      "hcmod (hcomplex_of_hypreal(hypreal_of_hypnat n)) = hypreal_of_hypnat n"
-apply auto
+apply (simp add: abs_if linorder_not_less) 
 done
 declare hcmod_hcomplex_of_hypreal_of_hypnat [simp]
 
@@ -846,8 +819,8 @@ apply (auto simp add: hcmod hypreal_zero_num hypreal_le)
 done
 declare hcmod_ge_zero [simp]
 
-lemma hrabs_hcmod_cancel: "abs(hcmod x) = hcmod x"
-apply (auto intro: hrabs_eqI1)
+lemma hrabs_hcmod_cancel: "abs(hcmod x) = hcmod x" 
+apply (simp add: abs_if linorder_not_less) 
 done
 declare hrabs_hcmod_cancel [simp]
 
@@ -1817,9 +1790,7 @@ val hcomplex_hcnj_zero = thm"hcomplex_hcnj_zero";
 val hcomplex_hcnj_zero_iff = thm"hcomplex_hcnj_zero_iff";
 val hcomplex_mult_hcnj = thm"hcomplex_mult_hcnj";
 val hcomplex_hcmod_eq_zero_cancel = thm"hcomplex_hcmod_eq_zero_cancel";
-val hypreal_of_nat_le_iff = thm"hypreal_of_nat_le_iff";
-val hypreal_of_nat_ge_zero = thm"hypreal_of_nat_ge_zero";
-val hypreal_of_hypnat_ge_zero = thm"hypreal_of_hypnat_ge_zero";
+
 val hcmod_hcomplex_of_hypreal_of_nat = thm"hcmod_hcomplex_of_hypreal_of_nat";
 val hcmod_hcomplex_of_hypreal_of_hypnat = thm"hcmod_hcomplex_of_hypreal_of_hypnat";
 val hcmod_minus = thm"hcmod_minus";
@@ -1909,7 +1880,6 @@ val hrcis_zero_mod = thm"hrcis_zero_mod";
 val hrcis_zero_arg = thm"hrcis_zero_arg";
 val hcomplex_i_mult_minus = thm"hcomplex_i_mult_minus";
 val hcomplex_i_mult_minus2 = thm"hcomplex_i_mult_minus2";
-val hypreal_of_nat = thm"hypreal_of_nat";
 val hcis_hypreal_of_nat_Suc_mult = thm"hcis_hypreal_of_nat_Suc_mult";
 val NSDeMoivre = thm"NSDeMoivre";
 val hcis_hypreal_of_hypnat_Suc_mult = thm"hcis_hypreal_of_hypnat_Suc_mult";

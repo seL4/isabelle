@@ -67,23 +67,6 @@ by (res_inst_tac [("z","h")] eq_Abs_hypnat 1);
 by (Auto_tac);
 val lemma_hyp = result();
 
-Goal "(EX (v::nat=>nat). ALL (x::nat). P (g v) (f x)) = \
-\     (EX (v::nat=>nat). ALL x. EX f': Rep_hypnat(f x). P (g v) (Abs_hypnat(hypnatrel `` {f'})))"; 
-by (Auto_tac);
-by (ALLGOALS(res_inst_tac [("x","v")] exI));
-by (Step_tac 1);
-by (ALLGOALS(res_inst_tac [("z","f x")] eq_Abs_hypnat));
-by (Auto_tac);
-by (rtac bexI 1);
-by (dres_inst_tac [("x","x")] spec 3);
-by (dtac sym 1);
-by (Auto_tac);
-by (subgoal_tac 
-    "Abs_hypnat (hypnatrel `` {X}) = Abs_hypnat (hypnatrel `` {Y})" 1);
-by (Asm_simp_tac 1);
-by (Auto_tac);
-val lemma_hyp2 = result();
-
 Goalw [hSuc_def] "hSuc m ~= 0";
 by Auto_tac;
 qed "hSuc_not_zero";
@@ -98,12 +81,6 @@ by (auto_tac (claset(),simpset() addsimps [hypnat_add]));
 qed "hSuc_hSuc_eq";
 
 AddIffs [hSuc_not_zero,zero_not_hSuc,hSuc_hSuc_eq];
-
-Goalw [hypnat_le_def] "m <= (n::hypnat) | n <= m";
-by (auto_tac (claset() addDs [hypnat_less_trans],simpset()));
-qed "hypnat_le_linear";
-
-val hypnat_less_le = hypnat_less_imp_le;
 
 Goal "c : (S :: nat set) ==> (LEAST n. n : S) : S";
 by (etac LeastI 1);
@@ -132,7 +109,8 @@ by (subgoal_tac "1 <= n" 1);
 by (dres_inst_tac [("x","n - 1")] bspec 1);
 by (Step_tac 1);
 by (dres_inst_tac [("x","n - 1")] spec 1);
-by (dres_inst_tac [("x","1"),("q1.0","n")] hypnat_add_le_mono1 2);
-by (auto_tac (claset(),simpset() addsimps [hypnat_le_def]));
+by (dres_inst_tac [("c","1"),("a","n")] add_right_mono 2); 
+by (auto_tac ((claset(),simpset() addsimps [linorder_not_less RS sym])
+        delIffs [hypnat_neq0_conv]));
 qed "internal_induct";
 
