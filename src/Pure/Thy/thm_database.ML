@@ -48,8 +48,8 @@ fun list_consts t =
   in distinct (consts t) end;
 
 (*store a theorem in database*)
-fun store_thm_db (named_thm as (name, t)) =
-  let val {prop, hyps, ...} = rep_thm t;
+fun store_thm_db (named_thm as (name, thm)) =
+  let val {prop, hyps, ...} = rep_thm thm;
 
       val consts = distinct (flat (map list_consts (prop :: hyps)));
 
@@ -57,18 +57,33 @@ fun store_thm_db (named_thm as (name, t)) =
 
       val tagged_thm = (num + 1, named_thm);
 
-      fun update_db [] result = result
-        | update_db (c :: cs) result =
-            let val old_thms = Symtab.lookup_multi (result, c);
-            in update_db cs (Symtab.update ((c, tagged_thm :: old_thms),
-                                            result))
+      fun update_db _ [] result = result
+        | update_db warned (c :: cs) result =
+            let
+              val old_thms = Symtab.lookup_multi (result, c);
+
+              val warned' =
+                case find_first (fn (_, (n, _)) => n = name) old_thms of
+                    Some (_, (_, t)) =>
+                      if eq_thm (t, thm) then
+                        (if not warned then
+                           writeln ("Warning: Theorem database already \
+                                    \contains copy of theorem " ^ quote name)
+                         else ();
+                         true)
+                     else error ("Duplicate theorem name " ^ quote name
+                                 ^ " used in theorem database")
+                 | None => warned;
+            in update_db warned' cs
+                 (if warned' then result
+                  else (Symtab.update ((c, tagged_thm :: old_thms), result)))
             end;
   in if consts = [] then writeln ("Warning: Theorem " ^ name ^
                                   " cannot be stored in ThmDB\n\t because it \
                                   \contains no or only ignored constants.")
                     else ();
-     thm_db := (num+1, update_db consts db);
-     t
+     thm_db := (num+1, update_db false consts db);
+     thm
   end;
 
 (*intersection of two descending theorem lists*)
