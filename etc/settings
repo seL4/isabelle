@@ -45,7 +45,7 @@ ISABELLE_SYMBOLS=true
 
 ## ML compilers and options
 
-#ML_SYSTEM=polyml-2.07
+#ML_SYSTEM=polyml-2.x
 #ML_HOME=/usr/local/ldist/DIR/polyml/polyml/solaris2
 #ML_OPTIONS="-h 30000"
 
@@ -55,6 +55,8 @@ ML_OPTIONS="-h 30000"
 LM_LICENSE_FILE=$ML_HOME/license.dat
 
 #ML_SYSTEM=smlnj-0.93
+#ML_HOME=/usr/local/ldist/DIR/sml-0.93/src
+#ML_OPTIONS=""
 
 #ML_SYSTEM=smlnj-1.07
 #ML_HOME=/usr/local/sml107
