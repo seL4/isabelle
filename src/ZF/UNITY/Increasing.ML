@@ -65,7 +65,7 @@ by (rtac (subset_increasing_comp RS subsetD) 1);
 by Auto_tac;
 qed "imp_increasing_comp";
 
-Goalw [increasing_def, Le_def, Lt_def]
+Goalw [increasing_def, Lt_def]
    "increasing[nat](Le, f) <= increasing[nat](Lt, f)";
 by Auto_tac;
 qed "strict_increasing";
@@ -142,7 +142,7 @@ by (rtac (subset_Increasing_comp RS subsetD) 1);
 by Auto_tac;
 qed "imp_Increasing_comp";
   
-Goalw [Increasing_def, Le_def, Lt_def]
+Goalw [Increasing_def, Lt_def]
 "Increasing[nat](Le, f) <= Increasing[nat](Lt, f)";
 by Auto_tac;
 qed "strict_Increasing";

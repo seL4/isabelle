@@ -484,31 +484,4 @@ by (resolve_tac [Follows_munion] 1);
 by Auto_tac;
 qed "Follows_msetsum_UN";
 
-Goalw [refl_def, Le_def] "refl(nat, Le)";
-by Auto_tac;
-qed "refl_Le";
-Addsimps [refl_Le];
 
-Goalw [trans_on_def, Le_def] "trans[nat](Le)";
-by Auto_tac;
-by (blast_tac (claset() addIs [le_trans]) 1);
-qed "trans_on_Le";
-Addsimps [trans_on_Le];
-
-Goalw [trans_def, Le_def] "trans(Le)";
-by Auto_tac;
-by (blast_tac (claset() addIs [le_trans]) 1);
-qed "trans_Le";
-Addsimps [trans_Le];
-
-Goalw [antisym_def, Le_def] "antisym(Le)";
-by Auto_tac;
-by (dtac le_imp_not_lt 1);
-by (auto_tac (claset(), simpset() addsimps [le_iff]));
-qed "antisym_Le";
-Addsimps [antisym_Le];
-
-Goalw [part_order_def] "part_order(nat, Le)";
-by Auto_tac;
-qed "part_order_Le";
-Addsimps [part_order_Le];

@@ -111,7 +111,7 @@ by (resolve_tac [equalityI] 1);
 by (blast_tac (claset() addDs [ltD]) 1); 
 by (Clarify_tac 1); 
 by (subgoal_tac "length(x ` iOut) : nat" 1);
-by Typecheck_tac; 
+by (Asm_full_simp_tac 2);
 by (subgoal_tac "xa : nat" 1); 
 by (ALLGOALS (asm_full_simp_tac (simpset() addsimps [Ord_mem_iff_lt]))); 
 by (blast_tac (claset() addIs [lt_trans]) 2);

@@ -535,36 +535,48 @@ qed_spec_mp "common_prefix_linear";
 
 (** pfixLe **)
 
-Goalw [refl_def, Le_def] "refl(nat,Le)";
+Goalw [refl_def] "refl(nat,Le)";
 by Auto_tac;
 qed "refl_Le";
-AddIffs [refl_Le];
+Addsimps [refl_Le];
 
-Goalw [antisym_def, Le_def] "antisym(Le)";
+Goalw [antisym_def] "antisym(Le)";
 by (auto_tac (claset() addIs [le_anti_sym], simpset()));
 qed "antisym_Le";
-AddIffs [antisym_Le];
+Addsimps [antisym_Le];
 
-Goalw [trans_def, Le_def] "trans(Le)";
-by (auto_tac (claset() addIs [le_trans], simpset()));
+Goalw [trans_on_def] "trans[nat](Le)";
+by Auto_tac;
+by (blast_tac (claset() addIs [le_trans]) 1);
+qed "trans_on_Le";
+Addsimps [trans_on_Le];
+
+Goalw [trans_def] "trans(Le)";
+by Auto_tac;
+by (blast_tac (claset() addIs [le_trans]) 1);
 qed "trans_Le";
-AddIffs [trans_Le];
+Addsimps [trans_Le];
+
+Goalw [part_order_def] "part_order(nat,Le)";
+by Auto_tac;
+qed "part_order_Le";
+Addsimps [part_order_Le];
 
 Goal "x:list(nat) ==> x pfixLe x";
-by (blast_tac (claset() addIs [refl_gen_prefix RS reflD]) 1);
+by (blast_tac (claset() addIs [refl_gen_prefix RS reflD, refl_Le]) 1);
 qed "pfixLe_refl";
 Addsimps[pfixLe_refl];
 
 Goal "[| x pfixLe y; y pfixLe z |] ==> x pfixLe z";
-by (blast_tac (claset() addIs [trans_gen_prefix RS transD]) 1);
+by (blast_tac (claset() addIs [trans_gen_prefix RS transD, trans_Le]) 1);
 qed "pfixLe_trans";
 
 Goal "[| x pfixLe y; y pfixLe x |] ==> x = y";
-by (blast_tac (claset() addIs [antisym_gen_prefix RS antisymE]) 1);
+by (blast_tac (claset() addIs [antisym_gen_prefix RS antisymE, antisym_Le]) 1);
 qed "pfixLe_antisym";
 
 
-Goalw [prefix_def, Le_def] 
+Goalw [prefix_def] 
 "<xs,ys>:prefix(nat)==> xs pfixLe ys";
 by (rtac (gen_prefix_mono RS subsetD) 1);
 by Auto_tac;
@@ -621,7 +633,8 @@ qed "prefix_imp_take";
 Goalw [prefix_def]
 "xs:list(A) ==> ALL n:nat. <take(n, xs), xs>:prefix(A)";
 by (etac list.induct 1);
-by Auto_tac;
+by (Asm_full_simp_tac 1);
+by (Clarify_tac 1); 
 by (etac natE 1);
 by Auto_tac;
 qed_spec_mp "take_prefix";

@@ -494,6 +494,14 @@ lemma less_iff_succ_add:
      "[| m: nat; n: nat |] ==> (m<n) <-> (EX k: nat. n = succ(m#+k))"
 by (auto intro: less_imp_succ_add)
 
+lemma add_lt_elim2:
+     "\<lbrakk>a #+ d = b #+ c; a < b; b \<in> nat; c \<in> nat; d \<in> nat\<rbrakk> \<Longrightarrow> c < d"
+by (drule less_imp_succ_add, auto) 
+
+lemma add_le_elim2:
+     "\<lbrakk>a #+ d = b #+ c; a le b; b \<in> nat; c \<in> nat; d \<in> nat\<rbrakk> \<Longrightarrow> c le d"
+by (drule less_imp_succ_add, auto) 
+
 
 subsubsection{*More Lemmas About Difference*}
 
@@ -509,7 +517,7 @@ lemma nat_lt_imp_diff_eq_0:
      "[| a:nat; b:nat; a<b |] ==> a #- b = 0"
 by (simp add: diff_is_0_iff le_iff) 
 
-lemma nat_diff_split:
+lemma raw_nat_diff_split:
      "[| a:nat; b:nat |] ==>  
       (P(a #- b)) <-> ((a < b -->P(0)) & (ALL d:nat. a = b #+ d --> P(d)))"
 apply (case_tac "a < b")
@@ -517,6 +525,13 @@ apply (case_tac "a < b")
 apply (rule iffI, force, simp) 
 apply (drule_tac x="a#-b" in bspec)
 apply (simp_all add: Ordinal.not_lt_iff_le add_diff_inverse) 
+done
+
+lemma nat_diff_split:
+   "(P(a #- b)) <-> 
+    (natify(a) < natify(b) -->P(0)) & (ALL d:nat. natify(a) = b #+ d --> P(d))"
+apply (cut_tac P=P and a="natify(a)" and b="natify(b)" in raw_nat_diff_split)
+apply simp_all
 done
 
 
@@ -589,6 +604,9 @@ val less_iff_succ_add = thm "less_iff_succ_add";
 val diff_is_0_iff = thm "diff_is_0_iff";
 val nat_lt_imp_diff_eq_0 = thm "nat_lt_imp_diff_eq_0";
 val nat_diff_split = thm "nat_diff_split";
+
+val add_lt_elim2 = thm "add_lt_elim2";
+val add_le_elim2 = thm "add_le_elim2";
 *}
 
 end

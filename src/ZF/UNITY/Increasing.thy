@@ -12,9 +12,6 @@ relation r over the domain A.
 Increasing = Constrains + Monotonicity +
 constdefs
 
-  part_order :: [i, i] => o
-  "part_order(A, r) == refl(A,r) & trans[A](r) & antisym(r)"
-
   increasing :: [i, i, i=>i] => i ("increasing[_]'(_, _')")
   "increasing[A](r, f) ==
     {F:program. (ALL k:A. F: stable({s:state. <k, f(s)>:r})) &

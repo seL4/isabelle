@@ -13,6 +13,10 @@ Based on Lex/Prefix
 
 GenPrefix = Main + 
 
+constdefs (*really belongs in ZF/Trancl*)
+  part_order :: [i, i] => o
+  "part_order(A, r) == refl(A,r) & trans[A](r) & antisym(r)"
+
 consts
   gen_prefix :: "[i, i] => i"
   
