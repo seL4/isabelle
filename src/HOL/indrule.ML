@@ -90,7 +90,7 @@ val quant_induct =
       (fn prems =>
        [rtac (impI RS allI) 1,
         DETERM (etac Intr_elim.raw_induct 1),
-        asm_full_simp_tac (!simpset addsimps [Part_Collect]) 1,
+        asm_full_simp_tac (HOL_ss addsimps [Part_Collect]) 1,
         REPEAT (FIRSTGOAL (eresolve_tac [IntE, CollectE, exE, conjE, disjE] 
                            ORELSE' hyp_subst_tac)),
         ind_tac (rev prems) (length prems)])
