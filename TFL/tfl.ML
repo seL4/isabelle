@@ -446,6 +446,9 @@ fun post_definition meta_tflCongs (theory, (def, pats)) =
      val corollaries = map (fn pat => R.SPEC (tych pat) corollary')
                            given_pats
      val (case_rewrites,context_congs) = extraction_thms theory
+     (*case_ss causes minimal simplification: bodies of case expressions are
+       not simplified. Otherwise large examples (Red-Black trees) are too 
+       slow.*)
      val case_ss = HOL_basic_ss addcongs
        DatatypePackage.weak_case_congs_of theory addsimps case_rewrites
      val corollaries' = map (Simplifier.simplify case_ss) corollaries
