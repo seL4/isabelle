@@ -62,9 +62,6 @@ val field_radd = standard (radd_type RS field_rel_subset);
 
 (** Linearity **)
 
-val sum_ss = ZF_ss addsimps [Pair_iff, InlI, InrI, Inl_iff, Inr_iff, 
-			     Inl_Inr_iff, Inr_Inl_iff];
-
 val radd_ss = sum_ss addsimps [radd_Inl_iff, radd_Inr_iff, 
 			       radd_Inl_Inr_iff, radd_Inr_Inl_iff];
 
