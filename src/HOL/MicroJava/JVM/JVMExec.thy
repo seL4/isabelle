@@ -45,7 +45,7 @@ text {*
 constdefs  
   start_state :: "jvm_prog \<Rightarrow> cname \<Rightarrow> mname \<Rightarrow> jvm_state"
   "start_state G C m \<equiv>
-  let (C',rT,mxs,mxl,ins,et) = the (method (G,C) (m,[])) in
+  let (C',rT,mxs,mxl,i,et) = the (method (G,C) (m,[])) in
     (None, start_heap G, [([], Null # replicate mxl arbitrary, C, (m,[]), 0)])"
 
 end
