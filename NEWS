@@ -32,7 +32,7 @@ X-Symbol;
 
 *** Isar ***
 
-* improved proof by cases and induction:
+* Pure/Provers: improved proof by cases and induction;
   - 'case' command admits impromptu naming of parameters (such as
     "case (Suc n)");
   - 'induct' method divinates rule instantiation from the inductive
@@ -105,6 +105,9 @@ proof *scripts*;
 now consider the syntactic context of assumptions, giving a better
 chance to get type-inference of the arguments right (this is
 especially important for locales);
+
+* Pure: "sorry" no longer requires quick_and_dirty in interactive
+mode;
 
 * Provers: 'simplified' attribute may refer to explicit rules instead
 of full simplifier context; 'iff' attribute handles conditional rules;
@@ -238,7 +241,13 @@ of "xnum"); potential INCOMPATIBILITY, since -0, -1 etc. are now
 separate tokens, so expressions involving minus need to be spaced
 properly;
 
-* Pure/syntax: support non-oriented infixes;
+* Pure/syntax: support non-oriented infixes, using keyword "infix"
+rather than "infixl" or "infixr";
+
+* Pure/syntax: concrete syntax for dummy type variables admits genuine
+sort constraint specifications in type inference; e.g. "x::_::foo"
+ensures that the type of "x" is of sort "foo" (but not necessarily a
+type variable);
 
 * Pure/syntax: print modes "type_brackets" and "no_type_brackets"
 control output of nested => (types); the default behavior is
