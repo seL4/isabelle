@@ -4,19 +4,23 @@
 *)
 
 header {*
-  \title{Rings and Fields}
+  \title{Ring and field structures}
   \author{Gertrud Bauer}
 *}
 
 theory Ring_and_Field = Main: 
 
+text {*
+ The class @{text ring} models commutative ring structures with $1$.
+*}
 
-axclass ring < plus, minus, times, number
+axclass ring < zero, plus, minus, times, number
   add_assoc: "(a + b) + c = a + (b + c)"
   add_commute: "a + b = b + a"
-  left_zero: "#0 + a = a"
-  left_neg: "(- a) + a = #0"
-  minus_uminus: "a - b = a + (- b)"
+  left_zero: "0 + a = a"
+  left_minus: "(- a) + a = 0"
+  diff_minus: "a - b = a + (- b)"
+  zero_number: "0 = #0"
 
   mult_assoc: "(a * b) * c = a * (b * c)"
   mult_commute: "a * b = b * a"
@@ -26,7 +30,7 @@ axclass ring < plus, minus, times, number
 
 
 axclass field < ring, inverse
-  left_inverse: "a \<noteq> #0 \<Longrightarrow> inverse a * a = #1"
-  divides_inverse: "a / b = a * inverse b"
+  left_inverse: "a \<noteq> 0 ==> inverse a * a = #1"
+  divides_inverse: "b \<noteq> 0 ==> a / b = a * inverse b"
 
 end
