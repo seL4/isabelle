@@ -22,7 +22,7 @@ constdefs
   next_name :: vname
   "next_name == VName next_nam"
 
-  list_class :: "(nat * nat * bytecode) class"
+  list_class :: "jvm_method class"
   "list_class ==
     (Object,
      [(val_name, PrimT Integer), (next_name, RefT (ClassT list_name))],
@@ -41,9 +41,9 @@ constdefs
         Load 1,
         Putfield next_name list_name,
         LitPush Unit,
-        Return]))])"
+        Return],[]))])"
 
-  test_class :: "(nat * nat * bytecode) class"
+  test_class :: "jvm_method class"
   "test_class ==
     (Object, [],
      [((makelist_name, []), PrimT Integer,
@@ -70,7 +70,7 @@ constdefs
         Load 2,
         Invoke list_name append_name [RefT (ClassT list_name)],
         LitPush Unit,
-        Return]))])"
+        Return],[]))])"
 
   example_prg :: jvm_prog
   "example_prg == [ObjectC, (list_name, list_class), (test_name, test_class)]"
