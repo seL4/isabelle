@@ -5,9 +5,9 @@
 # mk - build Pure Isabelle.
 #
 # Notes:
-#   (1) edit etc/settings approprately
-#   (2) cd here and run ./mk
-#
+#   (1) make sure the Isabelle bin dir is in PATH (try 'which isabelle')
+#   (2) make sure etc/settings are appropriate
+#   (3) then cd here and run ./mk
 
 
 ## diagnostics
