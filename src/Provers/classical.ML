@@ -75,7 +75,6 @@ sig
   val addSE2            : claset * (string * thm) -> claset
   val appSWrappers      : claset -> wrapper
   val appWrappers       : claset -> wrapper
-  val trace_rules       : bool ref
 
   val claset_ref_of_sg: Sign.sg -> claset ref
   val claset_ref_of: theory -> claset ref
@@ -1070,11 +1069,10 @@ val setup_attrs = Attrib.add_attributes
 (* get nets (appropriate order for semi-automatic methods) *)
 
 local
-  val imp_elim_netpair = insert (0, 0) ([], [imp_elim]) empty_netpair;
   val not_elim_netpair = insert (0, 0) ([], [Data.not_elim]) empty_netpair;
 in
   fun get_nets (CS {safe0_netpair, safep_netpair, haz_netpair, dup_netpair, xtra_netpair, ...}) =
-    [imp_elim_netpair, safe0_netpair, safep_netpair, not_elim_netpair, haz_netpair, dup_netpair, xtra_netpair];
+    [safe0_netpair, safep_netpair, not_elim_netpair, haz_netpair, dup_netpair, xtra_netpair];
 end;
 
 
@@ -1084,21 +1082,9 @@ fun METHOD_CLASET' tac ctxt =
   Method.METHOD (HEADGOAL o tac ctxt (get_local_claset ctxt));
 
 
-val trace_rules = ref false;
-
 local
 
-fun trace rules i =
-  if not (! trace_rules) then ()
-  else Pretty.writeln (Pretty.big_list ("trying standard rule(s) on goal #" ^ string_of_int i ^ ":")
-    (map Display.pretty_thm rules));
-
-
 fun order_rules xs = map snd (Tactic.orderlist (map (apfst recover_order) xs));
-
-fun find_rules concl nets =
-  let fun rules_of (inet, _) = order_rules (Net.unify_term inet concl)
-  in flat (map rules_of nets) end;
 
 fun find_erules [] _ = []
   | find_erules (fact :: _) nets =
@@ -1106,6 +1092,10 @@ fun find_erules [] _ = []
         fun may_unify net = Net.unify_term net o Logic.strip_assums_concl o #prop o Thm.rep_thm;
         fun erules_of (_, enet) = order_rules (may_unify enet fact);
       in flat (map erules_of nets) end;
+
+fun find_rules concl nets =
+  let fun rules_of (inet, _) = order_rules (Net.unify_term inet concl)
+  in flat (map rules_of nets) end;
 
 fun some_rule_tac cs facts =
   let
@@ -1117,11 +1107,11 @@ fun some_rule_tac cs facts =
         val irules = find_rules (Logic.strip_assums_concl goal) nets;
         val rules = erules @ irules;
         val ruleq = Method.multi_resolves facts rules;
-      in trace rules i; fn st => Seq.flat (Seq.map (fn rule => Tactic.rtac rule i st) ruleq) end);
+      in Method.trace rules; fn st => Seq.flat (Seq.map (fn rule => Tactic.rtac rule i st) ruleq) end);
   in tac end;
 
 fun rule_tac [] ctxt cs facts =
-    some_rule_tac cs facts ORELSE' Method.some_rule_tac [] ctxt facts
+    Method.some_rule_tac [] ctxt facts APPEND' some_rule_tac cs facts
   | rule_tac rules _ _ facts = Method.rule_tac rules facts;
 
 fun default_tac rules ctxt cs facts =
