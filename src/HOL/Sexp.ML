@@ -35,7 +35,7 @@ val [prem] = goalw Sexp.thy [In1_def] "M: sexp ==> In1(M) : sexp";
 by (rtac (prem RS (sexp.NumbI RS sexp.SconsI)) 1);
 qed "sexp_In1I";
 
-AddIs (sexp.intrs@[SigmaI, uprodI]);
+AddIs sexp.intrs;
 
 Goal "range(Leaf) <= sexp";
 by (Blast_tac 1);
