@@ -62,9 +62,14 @@ qed_goalw "ball_cong" ZF.thy [Ball_def]
 
 (*** Bounded existential quantifier ***)
 
-qed_goalw "bexI" ZF.thy [Bex_def]
-    "!!P. [| P(x);  x: A |] ==> EX x:A. P(x)"
- (fn _=> [ Blast_tac 1 ]);
+Goalw [Bex_def] "[| P(x);  x: A |] ==> EX x:A. P(x)";
+by (Blast_tac 1);
+qed "bexI";
+
+(*The best argument order when there is only one x:A*)
+Goalw [Bex_def] "[| x:A;  P(x) |] ==> EX x:A. P(x)";
+by (Blast_tac 1);
+qed "rev_bexI";
 
 (*Not of the general form for such rules; ~EX has become ALL~ *)
 qed_goal "bexCI" ZF.thy 
