@@ -9,6 +9,10 @@ New in this Isabelle version
 * HOL/inductive requires Inductive.thy as an ancestor;
 * `inj_onto' is now called `inj_on' (which makes more sense)
 
+* HOL/Relation: renamed the relational operator r^-1 to 'converse'
+  from 'inverse' (for compatibility with ZF and some literature)
+
+
 *** Proof tools ***
 
 * Simplifier: Asm_full_simp_tac is now more aggressive.
@@ -157,10 +161,19 @@ instead of "inverse";
 
 *** ZF ***
 
+* theory Main includes everything;
+
+* ZF/Update: new theory of function updates
+    with default rewrite rule  f(x:=y) ` z = if(z=x, y, f`z)
+  may also be iterated as in f(a:=b,c:=d,...);
+
 * in  let x=t in u(x), neither t nor u(x) has to be an FOL term.
 
 * calling (stac rew i) now fails if "rew" has no effect on the goal
   [previously, this check worked only if the rewrite rule was unconditional]
+
+* case_tac provided for compatibility with HOL
+    (like the old excluded_middle_tac, but with subgoals swapped)
 
 
 *** Internal programming interfaces ***
