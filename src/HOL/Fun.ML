@@ -392,6 +392,25 @@ Goalw [inj_on_def]
 by (Blast_tac 1);
 qed "image_INT";
 
+(*Compare with image_INT: no use of inj_on, and if f is surjective then
+  it doesn't matter whether A is empty*)
+Goalw [bij_def] "bij f ==> f `` (INTER A B) = (INT x:A. f `` B x)";
+by (force_tac (claset() addSIs [surj_f_inv_f RS sym RS image_eqI], 
+	       simpset()) 1);
+qed "bij_image_INT";
+
+Goal "bij f ==> f `` Collect P = {y. P (inv f y)}";
+by Auto_tac;
+by (force_tac (claset(), simpset() addsimps [bij_is_inj]) 1);
+by (blast_tac (claset() addIs [bij_is_surj RS surj_f_inv_f RS sym]) 1);
+qed "bij_image_Collect_eq";
+
+Goal "bij f ==> f -`` A = inv f `` A";
+by Auto_tac;
+by (asm_simp_tac (simpset() addsimps [bij_is_surj RS surj_f_inv_f]) 2);
+by (blast_tac (claset() addIs [bij_is_inj RS inv_f_f RS sym]) 1);
+qed "bij_vimage_eq_inv_image";
+
 val set_cs = claset() delrules [equalityI];
 
 
