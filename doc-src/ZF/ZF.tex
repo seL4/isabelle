@@ -909,14 +909,14 @@ rules.
 
 \begin{figure}
 \begin{ttbox}
-\tdx{lamI}         a:A ==> <a,b(a)> : (lam x:A. b(x))
-\tdx{lamE}         [| p: (lam x:A. b(x));  !!x.[| x:A; p=<x,b(x)> |] ==> P 
-             |] ==>  P
+\tdx{lamI}      a:A ==> <a,b(a)> : (lam x:A. b(x))
+\tdx{lamE}      [| p: (lam x:A. b(x));  !!x.[| x:A; p=<x,b(x)> |] ==> P 
+          |] ==>  P
 
-\tdx{lam_type}     [| !!x. x:A ==> b(x): B(x) |] ==> (lam x:A. b(x)) : Pi(A,B)
+\tdx{lam_type}  [| !!x. x:A ==> b(x): B(x) |] ==> (lam x:A. b(x)) : Pi(A,B)
 
-\tdx{beta}         a : A ==> (lam x:A. b(x)) ` a = b(a)
-\tdx{eta}          f : Pi(A,B) ==> (lam x:A. f`x) = f
+\tdx{beta}      a : A ==> (lam x:A. b(x)) ` a = b(a)
+\tdx{eta}       f : Pi(A,B) ==> (lam x:A. f`x) = f
 \end{ttbox}
 \caption{$\lambda$-abstraction} \label{zf-lam}
 \end{figure}
@@ -1263,7 +1263,8 @@ equipollence and cardinality.
 \tdx{nat_def}  nat == lfp(lam r: Pow(Inf). {\ttlbrace}0{\ttrbrace} Un {\ttlbrace}succ(x). x:r{\ttrbrace}
 
 \tdx{mod_def}  m mod n == transrec(m, \%j f. if j:n then j else f`(j#-n))
-\tdx{div_def}  m div n == transrec(m, \%j f. if j:n then 0 else succ(f`(j#-n)))
+\tdx{div_def}  m div n == transrec(m, \%j f. if j:n then 0 
+                                       else succ(f`(j#-n)))
 
 \tdx{nat_case_def}  nat_case(a,b,k) == 
               THE y. k=0 & y=a | (EX x. k=succ(x) & y=b(x))
@@ -1285,7 +1286,8 @@ equipollence and cardinality.
 \tdx{mult_0}        0 #* n = 0
 \tdx{mult_succ}     succ(m) #* n = n #+ (m #* n)
 \tdx{mult_commute}  [| m:nat; n:nat |] ==> m #* n = n #* m
-\tdx{add_mult_dist} [| m:nat; k:nat |] ==> (m #+ n) #* k = (m #* k){\thinspace}#+{\thinspace}(n #* k)
+\tdx{add_mult_dist} [| m:nat; k:nat |] ==> 
+              (m #+ n) #* k = (m #* k) #+ (n #* k)
 \tdx{mult_assoc}
     [| m:nat;  n:nat;  k:nat |] ==> (m #* n) #* k = m #* (n #* k)
 \tdx{mod_quo_equality}
@@ -1452,7 +1454,7 @@ Isabelle/{\ZF} provides simple tactics to help automate those proofs that are
 essentially type-checking.  Such proofs are built by applying rules such as
 these:
 \begin{ttbox}
-[| ?P ==> ?a : ?A; ~ ?P ==> ?b : ?A |] ==> (if ?P then ?a else ?b) : ?A
+[| ?P ==> ?a: ?A; ~?P ==> ?b: ?A |] ==> (if ?P then ?a else ?b): ?A
 
 [| ?m : nat; ?n : nat |] ==> ?m #+ ?n : nat
 
@@ -1625,7 +1627,8 @@ single predicate~\texttt{P}, which is presumed to be defined for both trees
 and forests:
 \begin{ttbox}
 [| x : tree_forest(A);
-   !!a f. [| a : A; f : forest(A); P(f) |] ==> P(Tcons(a, f)); P(Fnil);
+   !!a f. [| a : A; f : forest(A); P(f) |] ==> P(Tcons(a, f)); 
+   P(Fnil);
    !!f t. [| t : tree(A); P(t); f : forest(A); P(f) |]
           ==> P(Fcons(t, f)) 
 |] ==> P(x)
@@ -1647,7 +1650,7 @@ above, things are a bit more complicated.  The rule \texttt{term.induct}
 refers to the monotonic operator, \texttt{list}:
 \begin{ttbox}
 [| x : term(A);
-   !!a l. [| a : A; l : list(Collect(term(A), P)) |] ==> P(Apply(a, l)) 
+   !!a l. [| a: A; l: list(Collect(term(A), P)) |] ==> P(Apply(a, l)) 
 |] ==> P(x)
 \end{ttbox}
 The file \texttt{ex/Term.ML} derives two higher-level induction rules, one of
@@ -1797,7 +1800,8 @@ by (induct_tac "l" 1);
 {\out l : bt(A) ==> ALL x r. Br(x, l, r) ~= l}
 {\out  1. ALL x r. Br(x, Lf, r) ~= Lf}
 {\out  2. !!a t1 t2.}
-{\out        [| a : A; t1 : bt(A); ALL x r. Br(x, t1, r) ~= t1; t2 : bt(A);}
+{\out        [| a : A; t1 : bt(A);}
+{\out           ALL x r. Br(x, t1, r) ~= t1; t2 : bt(A);}
 {\out           ALL x r. Br(x, t2, r) ~= t2 |]}
 {\out        ==> ALL x r. Br(x, Br(a, t1, t2), r) ~= Br(a, t1, t2)}
 \end{ttbox}
@@ -1820,7 +1824,8 @@ When there are only a few constructors, we might prefer to prove the freenness
 theorems for each constructor.  This is trivial, using the function given us
 for that purpose:
 \begin{ttbox}
-val Br_iff = bt.mk_free "Br(a,l,r)=Br(a',l',r') <-> a=a' & l=l' & r=r'";
+val Br_iff = 
+    bt.mk_free "Br(a,l,r)=Br(a',l',r') <-> a=a' & l=l' & r=r'";
 {\out val Br_iff =}
 {\out   "Br(?a, ?l, ?r) = Br(?a', ?l', ?r') <->}
 {\out                     ?a = ?a' & ?l = ?l' & ?r = ?r'" : thm}
@@ -1834,7 +1839,8 @@ information from the premise $\texttt{Br}(a,l,r)\in\texttt{bt}(A)$:
 val BrE = bt.mk_cases "Br(a,l,r) : bt(A)";
 {\out val BrE =}
 {\out   "[| Br(?a, ?l, ?r) : bt(?A);}
-{\out       [| ?a : ?A; ?l : bt(?A); ?r : bt(?A) |] ==> ?Q |] ==> ?Q" : thm}
+{\out       [| ?a : ?A; ?l : bt(?A); ?r : bt(?A) |] ==> ?Q |]}
+{\out    ==> ?Q" : thm}
 \end{ttbox}
 
 
@@ -2021,7 +2027,7 @@ inductive
   type_elims {\it elimination rules for type-checking}
 \end{ttbox}
 A coinductive definition is identical, but starts with the keyword
-{\tt coinductive}.  
+{\tt co\-inductive}.  
 
 The {\tt monos}, {\tt con\_defs}, {\tt type\_intrs} and {\tt type\_elims}
 sections are optional.  If present, each is specified either as a list of
@@ -2031,7 +2037,7 @@ into the {\tt _thy.ML} file; if it is ill-formed, it will trigger \textsc{ml}
 error messages.  You can then inspect the file on the temporary directory.
 
 \begin{description}
-\item[\it domain declarations] consist of one or more items of the form
+\item[\it domain declarations] are items of the form
   {\it string\/}~{\tt <=}~{\it string}, associating each recursive set with
   its domain.  (The domain is some existing set that is large enough to
   hold the new set being defined.)

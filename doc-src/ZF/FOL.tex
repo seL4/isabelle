@@ -578,12 +578,12 @@ by (eresolve_tac [allE] 1);
 {\out  1. !!x. [| P(?a); ~ (ALL xa. P(?y3(x)) --> P(xa)) |] ==> P(x)}
 \end{ttbox}
 In classical logic, a negated assumption is equivalent to a conclusion.  To
-get this effect, we create a swapped version of~$(\forall I)$ and apply it
-using \ttindex{eresolve_tac}; we could equivalently have applied~$(\forall
+get this effect, we create a swapped version of $(\forall I)$ and apply it
+using \ttindex{eresolve_tac}; we could equivalently have applied $(\forall
 I)$ using \ttindex{swap_res_tac}.
 \begin{ttbox}
 allI RSN (2,swap);
-{\out val it = "[| ~ (ALL x. ?P1(x)); !!x. ~ ?Q ==> ?P1(x) |] ==> ?Q" : thm}
+{\out val it = "[| ~(ALL x. ?P1(x)); !!x. ~ ?Q ==> ?P1(x) |] ==> ?Q" : thm}
 by (eresolve_tac [it] 1);
 {\out Level 5}
 {\out EX y. ALL x. P(y) --> P(x)}
