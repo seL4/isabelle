@@ -85,7 +85,6 @@ fun use_text (print, err) verbose txt =
 (** interrupts **)      (*Note: may get into race conditions*)
 
 fun mask_interrupt f x = f x;
-fun unmask_interrupt f x = f x;
 fun exhibit_interrupt f x = f x;
 
 

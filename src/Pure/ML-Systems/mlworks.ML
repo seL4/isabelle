@@ -98,7 +98,6 @@ exception Interrupt;
 MLWorks.Internal.Runtime.Event.interrupt_handler (fn () => raise Interrupt);
 
 fun mask_interrupt f x = f x;           
-fun unmask_interrupt f x = f x;
 fun exhibit_interrupt f x = f x;
 
 

@@ -99,7 +99,6 @@ fun use_text _ _ txt =
 exception Interrupt;
 
 fun mask_interrupt f x = f x;           
-fun unmask_interrupt f x = f x;
 fun exhibit_interrupt f x = f x;
 
 
