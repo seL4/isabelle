@@ -152,8 +152,11 @@ val trans_pat =
 
 fun trans_arrow toks =
   (P.$$$ "=>" >> K Syntax.ParseRule ||
+    P.$$$ "\\<rightharpoonup>" >> K Syntax.ParseRule ||
     P.$$$ "<=" >> K Syntax.PrintRule ||
-    P.$$$ "==" >> K Syntax.ParsePrintRule) toks;
+    P.$$$ "\\<leftharpoondown>" >> K Syntax.PrintRule ||
+    P.$$$ "==" >> K Syntax.ParsePrintRule ||
+    P.$$$ "\\<rightleftharpoons>" >> K Syntax.ParsePrintRule) toks;
 
 val trans_line =
   trans_pat -- P.!!! (trans_arrow -- trans_pat)
@@ -667,7 +670,8 @@ val welcomeP =
 val keywords =
  ["!", "!!", "%", "%%", "(", ")", "+", ",", "--", ":", "::", ";", "<",
   "<=", "=", "==", "=>", "?", "[", "]", "and", "binder", "concl",
-  "files", "in", "infixl", "infixr", "is", "output", "overloaded", "|"];
+  "files", "in", "infixl", "infixr", "is", "output", "overloaded", "|",
+  "\\<rightharpoonup>", "\\<leftharpoondown>", "\\<rightleftharpoons>"];
 
 val parsers = [
   (*theory structure*)
