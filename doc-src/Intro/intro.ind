@@ -165,7 +165,8 @@
   \item proofs
     \subitem commands for, 30
   \item {\tt PROP} symbol, 26
-  \item {\tt prop} type, 6, 25, 26
+  \item {\textit {prop}} type, 25, 26
+  \item {\tt prop} type, 6
   \item {\tt prth}, 27
   \item {\tt prthq}, 27, 29
   \item {\tt prths}, 27
