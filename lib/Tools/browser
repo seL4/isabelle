@@ -10,7 +10,7 @@ PRG=$(basename $0)
 function usage()
 {
   echo
-  echo "Usage: $PRG [GRAPHFILE]"
+  echo "Usage: $PRG [OPTIONS] [GRAPHFILE]"
   echo
   echo "  Options are:"
   echo "    -d           delete file after use"

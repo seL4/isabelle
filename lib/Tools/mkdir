@@ -12,7 +12,7 @@ PRG=$(basename $0)
 function usage()
 {
   echo
-  echo "Usage: $PRG [LOGIC] NAME"
+  echo "Usage: $PRG [OPTIONS] [LOGIC] NAME"
   echo
   echo "  Options are:"
   echo "    -I FILE      alternative IsaMakefile output"

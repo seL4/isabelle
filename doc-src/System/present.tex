@@ -124,7 +124,10 @@ stand-alone application and as an applet.
 The stand-alone version of the graph browser is wrapped up as an
 Isabelle tool called \tooldx{browser}:
 \begin{ttbox}
-Usage: browser [GRAPHFILE]
+Usage: browser [OPTIONS] [GRAPHFILE]
+
+  Options are:
+    -d           delete file after use
 \end{ttbox}
 When no filename is specified, the browser automatically changes to the
 directory \texttt{ISABELLE_BROWSER_INFO}.
@@ -360,7 +363,7 @@ The \tooldx{mkdir} utility prepares Isabelle session source directories,
 including a sensible default setup of \texttt{IsaMakefile}, \texttt{ROOT.ML}
 and an optional \texttt{document} directory.  Its usage is:
 \begin{ttbox}
-Usage: mkdir [LOGIC] NAME
+Usage: mkdir [OPTIONS] [LOGIC] NAME
 
   Options are:
     -I FILE      alternative IsaMakefile output
@@ -428,7 +431,7 @@ changing the options passed to \texttt{usedir}.
 The \tooldx{usedir} utility builds object-logic images, or runs example
 sessions based on existing logics. Its usage is:
 \begin{ttbox}
-Usage: usedir LOGIC NAME
+Usage: usedir [OPTIONS] LOGIC NAME
 
   Options are:
     -D PATH      dump generated document sources into PATH
