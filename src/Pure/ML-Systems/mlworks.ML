@@ -18,9 +18,13 @@ val implode = String.concat;
 
 (* MLWorks parameters *)
 
-MLWorks.Internal.Runtime.Event.stack_overflow_handler
-  (fn () => MLWorks.Internal.Runtime.Memory.max_stack_blocks :=
-    ! MLWorks.Internal.Runtime.Memory.max_stack_blocks + 20);
+val _ =
+ (MLWorks.Internal.Runtime.Event.stack_overflow_handler
+    (fn () => MLWorks.Internal.Runtime.Memory.max_stack_blocks :=
+      ! MLWorks.Internal.Runtime.Memory.max_stack_blocks + 20);
+  MLWorks.Internal.Runtime.Memory.gc_message_level := 10;
+  (*Is this of any use at all?*)
+  Shell.Options.set (Shell.Options.ValuePrinter.showExnDetails, true));
 
 
 (* Poly/ML emulation *)
@@ -30,8 +34,8 @@ fun exit 0 = (OS.Process.exit OS.Process.success): unit
   | exit _ = OS.Process.exit OS.Process.failure;
 fun quit () = exit 0;
 
-(*n.a.*)
-fun print_depth n = ();
+(*limit the printing depth*)
+fun print_depth n = Shell.Options.set (Shell.Options.ValuePrinter.maximumDepth, n);
 
 (*interface for toplevel pretty printers, see also Pure/install_pp.ML*)
 (*n.a.*)
