@@ -6,11 +6,6 @@ New in this Isabelle release
 
 *** General ***
 
-* Pure: Simplification procedures can now take the current simpset as
-  an additional argument; This is useful for calling the simplifier
-  recursively.  See the functions MetaSimplifier.full_{mk_simproc,
-  simproc,simproc_i}.
-
 * Pure: considerably improved version of 'constdefs' command.  Now
   performs automatic type-inference of declared constants; additional
   support for local structure declarations (cf. locales and HOL
@@ -42,13 +37,12 @@ New in this Isabelle release
   'nonterminals' rather than 'types'.  INCOMPATIBILITY for new
   object-logic specifications.
 
-* Pure/Tactic: print_tac now outputs the goal through the trace 
-  channel.
+* Pure: print_tac now outputs the goal through the trace channel.
 
-* Pure/Namespace: reference Namespace.unique_names included.
-  If true the (shortest) namespace-prefix is printed to disambiguate 
-  conflicts (as yet). If false the first entry wins (as during 
-  parsing). Default value is true.
+* Pure: reference Namespace.unique_names included.  If true the
+  (shortest) namespace-prefix is printed to disambiguate conflicts (as
+  yet). If false the first entry wins (as during parsing). Default
+  value is true.
 
 * Pure/Syntax: inner syntax includes (*(*nested*) comments*).
 
@@ -74,6 +68,14 @@ New in this Isabelle release
   verbatim.  We use isatool display and isatool print as front ends;
   these are subject to the DVI_VIEWER and PRINT_COMMAND settings,
   respectively.
+
+* ML: simplification procedures may now take the current simpset into
+  account (cf. Simplifier.simproc(_i) / mk_simproc interface), which
+  is very useful for calling the Simplifier recursively.  Minor
+  INCOMPATIBILITY: the 'prems' argument of simprocs is gone -- use
+  prems_of_ss on the simpset instead.  Moreover, the low-level
+  mk_simproc no longer applies Logic.varify internally, to allow for
+  use in a context of fixed variables.
 
 * ML: output via the Isabelle channels of writeln/warning/error
   etc. is now passed through Output.output, with a hook for arbitrary
@@ -104,10 +106,15 @@ New in this Isabelle release
   the old record representation. The type generated for a record is
   called <record_name>_ext_type.
 
-* HOL/record: Reference record_quick_and_dirty_sensitive
-  can be enabled to skip the proofs triggered by a record definition
-  or a simproc (if quick_and_dirty is enabled). Definitions of large records can
-  take quite long.
+* HOL/record: Reference record_quick_and_dirty_sensitive can be
+  enabled to skip the proofs triggered by a record definition or a
+  simproc (if quick_and_dirty is enabled). Definitions of large
+  records can take quite long.
+
+* HOL/record: "record_upd_simproc" for simplification of multiple
+  record updates enabled by default.  Moreover, trivial updates are
+  also removed: r(|x := x r|) = r.  INCOMPATIBILITY: old proofs break
+  occasionally, since simplification is more powerful by default.
 
 * HOL: symbolic syntax of Hilbert Choice Operator is now as follows:
 
@@ -118,12 +125,6 @@ New in this Isabelle release
   and x-symbol; use option '-m epsilon' to get it actually printed.
   Moreover, the mathematically important symbolic identifier
   \<epsilon> becomes available as variable, constant etc.
-
-* Simplifier: "record_upd_simproc" for simplification of multiple
-  record updates enabled by default. Moreover trivial updates are
-  also removed: r(|x := x r|) = r. 
-  INCOMPATIBILITY: old proofs break occasionally, since simplification 
-  is more powerful by default.
 
 
 *** HOLCF ***
