@@ -134,7 +134,7 @@ apply (auto simp add: hypreal_less_def hypreal_add)
 apply (auto intro!: exI simp add: hypreal_less_def hypreal_add, ultra)
 done
 
-lemma hypreal_add_order_le: "[| 0 < x; 0 <= y |] ==> (0::hypreal) < x + y"
+lemma hypreal_add_order_le: "[| 0 < x; 0 \<le> y |] ==> (0::hypreal) < x + y"
 by (auto dest: sym order_le_imp_less_or_eq intro: hypreal_add_order)
 
 lemma hypreal_mult_order: "[| 0 < x; 0 < y |] ==> (0::hypreal) < x * y"
@@ -163,7 +163,7 @@ apply (rule_tac x = "%n. 1" in exI)
 apply (auto simp add: real_zero_less_one FreeUltrafilterNat_Nat_set)
 done
 
-lemma hypreal_le_add_order: "[| 0 <= x; 0 <= y |] ==> (0::hypreal) <= x + y"
+lemma hypreal_le_add_order: "[| 0 \<le> x; 0 \<le> y |] ==> (0::hypreal) \<le> x + y"
 apply (drule order_le_imp_less_or_eq)+
 apply (auto intro: hypreal_add_order order_less_imp_le)
 done
@@ -181,11 +181,11 @@ done
 declare hypreal_add_right_cancel_less [simp] 
         hypreal_add_left_cancel_less [simp]
 
-lemma hypreal_add_right_cancel_le: "(v+z <= w+z) = (v <= (w::hypreal))"
+lemma hypreal_add_right_cancel_le: "(v+z \<le> w+z) = (v \<le> (w::hypreal))"
 apply (simp (no_asm))
 done
 
-lemma hypreal_add_left_cancel_le: "(z+v <= z+w) = (v <= (w::hypreal))"
+lemma hypreal_add_left_cancel_le: "(z+v \<le> z+w) = (v \<le> (w::hypreal))"
 apply (simp (no_asm))
 done
 
@@ -201,23 +201,23 @@ apply (auto simp add: hypreal_minus_add_distrib [symmetric]
               hypreal_add_ac simp del: hypreal_minus_add_distrib)
 done
 
-lemma hypreal_add_left_le_mono1: "(q1::hypreal) <= q2  ==> x + q1 <= x + q2"
+lemma hypreal_add_left_le_mono1: "(q1::hypreal) \<le> q2  ==> x + q1 \<le> x + q2"
 apply (drule order_le_imp_less_or_eq)
 apply (auto intro: order_less_imp_le hypreal_add_less_mono1 simp add: hypreal_add_commute)
 done
 
-lemma hypreal_add_le_mono1: "(q1::hypreal) <= q2  ==> q1 + x <= q2 + x"
+lemma hypreal_add_le_mono1: "(q1::hypreal) \<le> q2  ==> q1 + x \<le> q2 + x"
 by (auto dest: hypreal_add_left_le_mono1 simp add: hypreal_add_commute)
 
-lemma hypreal_add_le_mono: "[|(i::hypreal)<=j;  k<=l |] ==> i + k <= j + l"
+lemma hypreal_add_le_mono: "[|(i::hypreal)\<le>j;  k\<le>l |] ==> i + k \<le> j + l"
 apply (erule hypreal_add_le_mono1 [THEN order_trans])
 apply (simp (no_asm))
 done
 
-lemma hypreal_add_less_le_mono: "[|(i::hypreal)<j;  k<=l |] ==> i + k < j + l"
+lemma hypreal_add_less_le_mono: "[|(i::hypreal)<j;  k\<le>l |] ==> i + k < j + l"
 by (auto dest!: order_le_imp_less_or_eq intro: hypreal_add_less_mono1 hypreal_add_less_mono)
 
-lemma hypreal_add_le_less_mono: "[|(i::hypreal)<=j;  k<l |] ==> i + k < j + l"
+lemma hypreal_add_le_less_mono: "[|(i::hypreal)\<le>j;  k<l |] ==> i + k < j + l"
 by (auto dest!: order_le_imp_less_or_eq intro: hypreal_add_less_mono2 hypreal_add_less_mono)
 
 lemma hypreal_less_add_right_cancel: "(A::hypreal) + C < B + C ==> A < B"
@@ -228,26 +228,26 @@ lemma hypreal_less_add_left_cancel: "(C::hypreal) + A < C + B ==> A < B"
 apply (simp (no_asm_use))
 done
 
-lemma hypreal_add_zero_less_le_mono: "[|r < x; (0::hypreal) <= y|] ==> r < x + y"
+lemma hypreal_add_zero_less_le_mono: "[|r < x; (0::hypreal) \<le> y|] ==> r < x + y"
 by (auto dest: hypreal_add_less_le_mono)
 
-lemma hypreal_le_add_right_cancel: "!!(A::hypreal). A + C <= B + C ==> A <= B"
+lemma hypreal_le_add_right_cancel: "!!(A::hypreal). A + C \<le> B + C ==> A \<le> B"
 apply (drule_tac x = "-C" in hypreal_add_le_mono1)
 apply (simp add: hypreal_add_assoc)
 done
 
-lemma hypreal_le_add_left_cancel: "!!(A::hypreal). C + A <= C + B ==> A <= B"
+lemma hypreal_le_add_left_cancel: "!!(A::hypreal). C + A \<le> C + B ==> A \<le> B"
 apply (drule_tac x = "-C" in hypreal_add_left_le_mono1)
 apply (simp add: hypreal_add_assoc [symmetric])
 done
 
-lemma hypreal_le_square: "(0::hypreal) <= x*x"
+lemma hypreal_le_square: "(0::hypreal) \<le> x*x"
 apply (rule_tac x = 0 and y = x in hypreal_linear_less2)
 apply (auto intro: hypreal_mult_order hypreal_mult_less_zero1 order_less_imp_le)
 done
 declare hypreal_le_square [simp]
 
-lemma hypreal_less_minus_square: "- (x*x) <= (0::hypreal)"
+lemma hypreal_less_minus_square: "- (x*x) \<le> (0::hypreal)"
 apply (unfold hypreal_le_def)
 apply (auto dest!: hypreal_le_square [THEN order_le_less_trans] 
             simp add: hypreal_minus_zero_less_iff)
@@ -270,69 +270,41 @@ lemma hypreal_mult_less_mono2: "[| (0::hypreal)<z; x<y |] ==> z*x<z*y"
 apply (simp (no_asm_simp) add: hypreal_mult_commute hypreal_mult_less_mono1)
 done
 
-lemma hypreal_mult_le_less_mono1: "[| (0::hypreal)<=z; x<y |] ==> x*z<=y*z"
-apply (rule hypreal_less_or_eq_imp_le)
-apply (drule order_le_imp_less_or_eq)
-apply (auto intro: hypreal_mult_less_mono1)
-done
+subsection{*The Hyperreals Form an Ordered Field*}
 
-lemma hypreal_mult_le_less_mono2: "[| (0::hypreal)<=z; x<y |] ==> z*x<=z*y"
-apply (simp (no_asm_simp) add: hypreal_mult_commute hypreal_mult_le_less_mono1)
-done
+instance hypreal :: inverse ..
 
-lemma hypreal_mult_less_mono: "[| u<v;  x<y;  (0::hypreal) < v;  0 < x |] ==> u*x < v* y"
-apply (erule hypreal_mult_less_mono1 [THEN order_less_trans], assumption)
-apply (erule hypreal_mult_less_mono2, assumption)
-done
+instance hypreal :: ordered_field
+proof
+  fix x y z :: hypreal
+  show "(x + y) + z = x + (y + z)" by (rule hypreal_add_assoc)
+  show "x + y = y + x" by (rule hypreal_add_commute)
+  show "0 + x = x" by simp
+  show "- x + x = 0" by simp
+  show "x - y = x + (-y)" by (simp add: hypreal_diff_def)
+  show "(x * y) * z = x * (y * z)" by (rule hypreal_mult_assoc)
+  show "x * y = y * x" by (rule hypreal_mult_commute)
+  show "1 * x = x" by simp
+  show "(x + y) * z = x * z + y * z" by (simp add: hypreal_add_mult_distrib)
+  show "0 \<noteq> (1::hypreal)" by (rule hypreal_zero_not_eq_one)
+  show "x \<le> y ==> z + x \<le> z + y" by (rule hypreal_add_left_le_mono1)
+  show "x < y ==> 0 < z ==> z * x < z * y" by (simp add: hypreal_mult_less_mono2)
+  show "\<bar>x\<bar> = (if x < 0 then -x else x)"
+    by (auto dest: order_le_less_trans simp add: hrabs_def linorder_not_le)
+  show "x \<noteq> 0 ==> inverse x * x = 1" by simp
+  show "y \<noteq> 0 ==> x / y = x * inverse y" by (simp add: hypreal_divide_def)
+qed
 
-(*UNUSED at present but possibly more useful than hypreal_mult_less_mono*)
-lemma hypreal_mult_less_mono': "[| x < y;  r1 < r2;  (0::hypreal) <= r1;  0 <= x|] ==> r1 * x < r2 * y"
-apply (subgoal_tac "0<r2")
-prefer 2 apply (blast intro: order_le_less_trans)
-apply (case_tac "x=0")
-apply (auto dest!: order_le_imp_less_or_eq intro: hypreal_mult_less_mono hypreal_mult_order)
-done
+text{*The precondition could be weakened to @{term "0\<le>x"}*}
+lemma hypreal_mult_less_mono:
+     "[| u<v;  x<y;  (0::hypreal) < v;  0 < x |] ==> u*x < v* y"
+ by (simp add: Ring_and_Field.mult_strict_mono order_less_imp_le)
 
 lemma hypreal_inverse_gt_0: "0 < x ==> 0 < inverse (x::hypreal)"
-apply (rule ccontr) 
-apply (drule hypreal_leI) 
-apply (frule hypreal_minus_zero_less_iff2 [THEN iffD2])
-apply (frule hypreal_not_refl2 [THEN not_sym])
-apply (drule hypreal_not_refl2 [THEN not_sym, THEN hypreal_inverse_not_zero])
-apply (drule order_le_imp_less_or_eq, safe) 
-apply (drule hypreal_mult_less_zero1, assumption)
-apply (auto intro: hypreal_zero_less_one [THEN hypreal_less_asym]
-            simp add: hypreal_minus_zero_less_iff)
-done
+  by (rule Ring_and_Field.positive_imp_inverse_positive)
 
 lemma hypreal_inverse_less_0: "x < 0 ==> inverse (x::hypreal) < 0"
-apply (frule hypreal_not_refl2)
-apply (drule hypreal_minus_zero_less_iff [THEN iffD2])
-apply (rule hypreal_minus_zero_less_iff [THEN iffD1])
-apply (subst hypreal_minus_inverse [symmetric])
-apply (auto intro: hypreal_inverse_gt_0)
-done
-
-lemma hypreal_self_le_add_pos: "(x::hypreal)*x <= x*x + y*y"
-apply (rule_tac z = x in eq_Abs_hypreal)
-apply (rule_tac z = y in eq_Abs_hypreal)
-apply (auto simp add: hypreal_mult hypreal_add hypreal_le)
-done
-declare hypreal_self_le_add_pos [simp]
-
-(*lcp: new lemma unfortunately needed...*)
-lemma minus_square_le_square: "-(x*x) <= (y*y::real)"
-apply (rule order_trans)
-apply (rule_tac [2] real_le_square, auto)
-done
-
-lemma hypreal_self_le_add_pos2: "(x::hypreal)*x <= x*x + y*y + z*z"
-apply (rule_tac z = x in eq_Abs_hypreal)
-apply (rule_tac z = y in eq_Abs_hypreal)
-apply (rule_tac z = z in eq_Abs_hypreal)
-apply (auto simp add: hypreal_mult hypreal_add hypreal_le minus_square_le_square)
-done
-declare hypreal_self_le_add_pos2 [simp]
+  by (rule Ring_and_Field.negative_imp_inverse_negative)
 
 
 (*----------------------------------------------------------------------------
@@ -394,75 +366,43 @@ lemma hypreal_epsilon_inverse_omega: "epsilon = inverse(omega)"
 by (simp add: hypreal_inverse omega_def epsilon_def)
 
 
+subsection{*Routine Properties*}
+
 (* this proof is so much simpler than one for reals!! *)
-lemma hypreal_inverse_less_swap: "[| 0 < r; r < x |] ==> inverse x < inverse (r::hypreal)"
-apply (rule_tac z = x in eq_Abs_hypreal)
-apply (rule_tac z = r in eq_Abs_hypreal)
-apply (auto simp add: hypreal_inverse hypreal_less hypreal_zero_def, ultra)
-done
+lemma hypreal_inverse_less_swap:
+     "[| 0 < r; r < x |] ==> inverse x < inverse (r::hypreal)"
+  by (rule Ring_and_Field.less_imp_inverse_less)
 
-lemma hypreal_inverse_less_iff: "[| 0 < r; 0 < x|] ==> (r < x) = (inverse x < inverse (r::hypreal))"
-apply (auto intro: hypreal_inverse_less_swap)
-apply (rule_tac t = r in hypreal_inverse_inverse [THEN subst])
-apply (rule_tac t = x in hypreal_inverse_inverse [THEN subst])
-apply (rule hypreal_inverse_less_swap)
-apply (auto simp add: hypreal_inverse_gt_0)
-done
+lemma hypreal_inverse_less_iff:
+     "[| 0 < r; 0 < x|] ==> (inverse x < inverse (r::hypreal)) = (r < x)"
+by (rule Ring_and_Field.inverse_less_iff_less)
 
-lemma hypreal_mult_inverse_less_mono1: "[| 0 < z; x < y |] ==> x * inverse z < y * inverse (z::hypreal)"
-by (blast intro!: hypreal_mult_less_mono1 hypreal_inverse_gt_0)
+lemma hypreal_inverse_le_iff:
+     "[| 0 < r; 0 < x|] ==> (inverse x \<le> inverse r) = (r \<le> (x::hypreal))"
+by (rule Ring_and_Field.inverse_le_iff_le)
 
-lemma hypreal_mult_inverse_less_mono2: "[| 0 < z; x < y |] ==> inverse z * x < inverse (z::hypreal) * y"
-by (blast intro!: hypreal_mult_less_mono2 hypreal_inverse_gt_0)
 
-lemma hypreal_less_mult_right_cancel: "[| (0::hypreal) < z; x*z < y*z |] ==> x < y"
-apply (frule_tac x = "x*z" in hypreal_mult_inverse_less_mono1)
-apply (drule_tac [2] hypreal_not_refl2 [THEN not_sym])
-apply (auto dest!: hypreal_mult_inverse simp add: hypreal_mult_ac)
-done
+subsection{*Convenient Biconditionals for Products of Signs*}
 
-lemma hypreal_less_mult_left_cancel: "[| (0::hypreal) < z; z*x < z*y |] ==> x < y"
-by (auto intro: hypreal_less_mult_right_cancel simp add: hypreal_mult_commute)
+lemma hypreal_0_less_mult_iff:
+     "((0::hypreal) < x*y) = (0 < x & 0 < y | x < 0 & y < 0)"
+  by (rule Ring_and_Field.zero_less_mult_iff) 
 
-lemma hypreal_mult_less_gt_zero: "[| 0 < r; (0::hypreal) < ra; r < x; ra < y |] ==> r*ra < x*y"
-apply (frule_tac y = r in order_less_trans)
-apply (drule_tac [2] z = ra and x = r in hypreal_mult_less_mono1)
-apply (drule_tac [3] z = x and x = ra in hypreal_mult_less_mono2)
-apply (auto intro: order_less_trans)
-done
-
-lemma hypreal_mult_le_ge_zero: "[| 0 < r; (0::hypreal) < ra; r <= x; ra <= y |] ==> r*ra <= x*y"
-apply (drule order_le_imp_less_or_eq)+
-apply (rule hypreal_less_or_eq_imp_le)
-apply (auto intro: hypreal_mult_less_mono1 hypreal_mult_less_mono2 hypreal_mult_less_gt_zero)
-done
-
-(*----------------------------------------------------------------------------
-     Some convenient biconditionals for products of signs 
- ----------------------------------------------------------------------------*)
-
-lemma hypreal_0_less_mult_iff: "((0::hypreal) < x*y) = (0 < x & 0 < y | x < 0 & y < 0)"
- apply (auto simp add: order_le_less linorder_not_less hypreal_mult_order hypreal_mult_less_zero1)
-apply (rule_tac [!] ccontr)
-apply (auto simp add: order_le_less linorder_not_less)
-apply (erule_tac [!] rev_mp)
-apply (drule_tac [!] hypreal_mult_less_zero) 
-apply (auto dest: order_less_not_sym simp add: hypreal_mult_commute)
-done
-
-lemma hypreal_0_le_mult_iff: "((0::hypreal) <= x*y) = (0 <= x & 0 <= y | x <= 0 & y <= 0)"
-by (auto dest: hypreal_mult_zero_disj simp add: order_le_less linorder_not_less hypreal_0_less_mult_iff)
+lemma hypreal_0_le_mult_iff: "((0::hypreal) \<le> x*y) = (0 \<le> x & 0 \<le> y | x \<le> 0 & y \<le> 0)"
+  by (rule Ring_and_Field.zero_le_mult_iff) 
 
 lemma hypreal_mult_less_0_iff: "(x*y < (0::hypreal)) = (0 < x & y < 0 | x < 0 & 0 < y)"
-apply (auto simp add: hypreal_0_le_mult_iff linorder_not_le [symmetric])
-apply (auto dest: order_less_not_sym simp add: linorder_not_le)
-done
+  by (rule Ring_and_Field.mult_less_0_iff) 
 
-lemma hypreal_mult_le_0_iff: "(x*y <= (0::hypreal)) = (0 <= x & y <= 0 | x <= 0 & 0 <= y)"
-by (auto dest: order_less_not_sym simp add: hypreal_0_less_mult_iff linorder_not_less [symmetric])
+lemma hypreal_mult_le_0_iff: "(x*y \<le> (0::hypreal)) = (0 \<le> x & y \<le> 0 | x \<le> 0 & 0 \<le> y)"
+  by (rule Ring_and_Field.mult_le_0_iff) 
 
-lemma hypreal_mult_less_zero2: "[| (0::hypreal) < x; y < 0 |] ==> y*x < 0"
-by (auto simp add: hypreal_mult_commute hypreal_mult_less_zero)
+
+lemma hypreal_mult_self_sum_ge_zero: "(0::hypreal) \<le> x*x + y*y"
+proof -
+  have "0 + 0 \<le> x*x + y*y" by (blast intro: add_mono zero_le_square)
+  thus ?thesis by simp
+qed
 
 (*TO BE DELETED*)
 ML
@@ -513,15 +453,9 @@ val hypreal_less_minus_square = thm"hypreal_less_minus_square";
 val hypreal_mult_0_less = thm"hypreal_mult_0_less";
 val hypreal_mult_less_mono1 = thm"hypreal_mult_less_mono1";
 val hypreal_mult_less_mono2 = thm"hypreal_mult_less_mono2";
-val hypreal_mult_le_less_mono1 = thm"hypreal_mult_le_less_mono1";
-val hypreal_mult_le_less_mono2 = thm"hypreal_mult_le_less_mono2";
 val hypreal_mult_less_mono = thm"hypreal_mult_less_mono";
-val hypreal_mult_less_mono' = thm"hypreal_mult_less_mono'";
 val hypreal_inverse_gt_0 = thm"hypreal_inverse_gt_0";
 val hypreal_inverse_less_0 = thm"hypreal_inverse_less_0";
-val hypreal_self_le_add_pos = thm"hypreal_self_le_add_pos";
-val minus_square_le_square = thm"minus_square_le_square";
-val hypreal_self_le_add_pos2 = thm"hypreal_self_le_add_pos2";
 val Rep_hypreal_omega = thm"Rep_hypreal_omega";
 val lemma_omega_empty_singleton_disj = thm"lemma_omega_empty_singleton_disj";
 val lemma_finite_omega_set = thm"lemma_finite_omega_set";
@@ -536,17 +470,12 @@ val hypreal_epsilon_not_zero = thm"hypreal_epsilon_not_zero";
 val hypreal_epsilon_inverse_omega = thm"hypreal_epsilon_inverse_omega";
 val hypreal_inverse_less_swap = thm"hypreal_inverse_less_swap";
 val hypreal_inverse_less_iff = thm"hypreal_inverse_less_iff";
-val hypreal_mult_inverse_less_mono1 = thm"hypreal_mult_inverse_less_mono1";
-val hypreal_mult_inverse_less_mono2 = thm"hypreal_mult_inverse_less_mono2";
-val hypreal_less_mult_right_cancel = thm"hypreal_less_mult_right_cancel";
-val hypreal_less_mult_left_cancel = thm"hypreal_less_mult_left_cancel";
-val hypreal_mult_less_gt_zero = thm"hypreal_mult_less_gt_zero";
-val hypreal_mult_le_ge_zero = thm"hypreal_mult_le_ge_zero";
+val hypreal_inverse_le_iff = thm"hypreal_inverse_le_iff";
 val hypreal_0_less_mult_iff = thm"hypreal_0_less_mult_iff";
 val hypreal_0_le_mult_iff = thm"hypreal_0_le_mult_iff";
 val hypreal_mult_less_0_iff = thm"hypreal_mult_less_0_iff";
 val hypreal_mult_le_0_iff = thm"hypreal_mult_le_0_iff";
-val hypreal_mult_less_zero2 = thm"hypreal_mult_less_zero2";
+val hypreal_mult_self_sum_ge_zero = thm "hypreal_mult_self_sum_ge_zero";
 *}
 
 end

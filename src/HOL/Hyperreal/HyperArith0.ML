@@ -15,8 +15,6 @@ Addsimps [hypreal_diff_minus_eq];
 
 Goal "((x * y = 0) = (x = 0 | y = (0::hypreal)))";
 by Auto_tac;
-by (cut_inst_tac [("x","x"),("y","y")] hypreal_mult_zero_disj 1);
-by Auto_tac;
 qed "hypreal_mult_is_0";
 AddIffs [hypreal_mult_is_0];
 
@@ -494,20 +492,6 @@ by (auto_tac (claset(),
               simpset() addsimps [HYPREAL_DIVIDE_ZERO, hypreal_divide_eq_eq,
                                   hypreal_eq_divide_eq, hypreal_mult_eq_cancel1]));
 qed "hypreal_divide_eq_cancel1";
-
-Goal "[| 0 < r; 0 < x|] ==> (inverse x < inverse (r::hypreal)) = (r < x)";
-by (auto_tac (claset() addIs [hypreal_inverse_less_swap], simpset()));
-by (res_inst_tac [("t","r")] (hypreal_inverse_inverse RS subst) 1);
-by (res_inst_tac [("t","x")] (hypreal_inverse_inverse RS subst) 1);
-by (auto_tac (claset() addIs [hypreal_inverse_less_swap],
-              simpset() delsimps [hypreal_inverse_inverse]
-                        addsimps [hypreal_inverse_gt_0]));
-qed "hypreal_inverse_less_iff";
-
-Goal "[| 0 < r; 0 < x|] ==> (inverse x <= inverse r) = (r <= (x::hypreal))";
-by (asm_simp_tac (simpset() addsimps [linorder_not_less RS sym,
-                                      hypreal_inverse_less_iff]) 1);
-qed "hypreal_inverse_le_iff";
 
 (** Division by 1, -1 **)
 

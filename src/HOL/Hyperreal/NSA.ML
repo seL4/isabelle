@@ -1560,16 +1560,15 @@ qed "Infinitesimal_add_not_zero";
 Goal "x*x + y*y : Infinitesimal ==> x*x : Infinitesimal";
 by (rtac Infinitesimal_interval2 1);
 by (rtac hypreal_le_square 3);
-by (rtac hypreal_self_le_add_pos 3);
+by (assume_tac 1);
 by Auto_tac;
 qed "Infinitesimal_square_cancel";
 Addsimps [Infinitesimal_square_cancel];
 
 Goal "x*x + y*y : HFinite ==> x*x : HFinite";
 by (rtac HFinite_bounded 1);
-by (rtac hypreal_self_le_add_pos 2);
-by (rtac (hypreal_le_square) 2);
 by (assume_tac 1);
+by Auto_tac;
 qed "HFinite_square_cancel";
 Addsimps [HFinite_square_cancel];
 
@@ -1588,15 +1587,23 @@ qed "HFinite_square_cancel2";
 Addsimps [HFinite_square_cancel2];
 
 Goal "x*x + y*y + z*z : Infinitesimal ==> x*x : Infinitesimal";
-by (blast_tac (claset() addIs [hypreal_self_le_add_pos2,
-    Infinitesimal_interval2, hypreal_le_square]) 1);
+by (rtac Infinitesimal_interval2 1);
+by (assume_tac 1);
+by (rtac hypreal_le_square 2);
+by (Asm_full_simp_tac 1);
+by (cut_inst_tac [("a","y")] (thm"zero_le_square") 1);
+by (cut_inst_tac [("a","z")] (thm"zero_le_square") 1);
+by (asm_simp_tac (simpset() addsimps []) 1); 
 qed "Infinitesimal_sum_square_cancel";
 Addsimps [Infinitesimal_sum_square_cancel];
 
 Goal "x*x + y*y + z*z : HFinite ==> x*x : HFinite";
-by (blast_tac (claset() addIs [hypreal_self_le_add_pos2, HFinite_bounded,
-                               hypreal_le_square,
-                               HFinite_number_of]) 1);
+by (rtac HFinite_bounded 1);
+by (assume_tac 1);
+by (rtac hypreal_le_square 2);
+by (cut_inst_tac [("a","y")] (thm"zero_le_square") 1);
+by (cut_inst_tac [("a","z")] (thm"zero_le_square") 1);
+by (asm_simp_tac (simpset() addsimps []) 1); 
 qed "HFinite_sum_square_cancel";
 Addsimps [HFinite_sum_square_cancel];
 
