@@ -9,9 +9,9 @@ text {*
  constants @{text "c \<Colon> \<sigma>"}, the type variables occurring in @{text \<sigma>}
  may be constrained by type classes (or even general sorts) in an
  arbitrary way.  Note that by default, in Isabelle/HOL the declaration
- @{text "\<odot> \<Colon> 'a \<Rightarrow> 'a \<Rightarrow> 'a"} is actually an abbreviation for
- @{text "\<odot> \<Colon> 'a\<Colon>term \<Rightarrow> 'a \<Rightarrow> 'a"} Since class @{text "term"} is the
- universal class of HOL, this is not really a constraint at all.
+ @{text "\<odot> \<Colon> 'a \<Rightarrow> 'a \<Rightarrow> 'a"} is actually an abbreviation for @{text "\<odot>
+ \<Colon> 'a\<Colon>term \<Rightarrow> 'a \<Rightarrow> 'a"} Since class @{text "term"} is the universal
+ class of HOL, this is not really a constraint at all.
 
  The @{text product} class below provides a less degenerate example of
  syntactic type classes.
@@ -28,14 +28,13 @@ text {*
  of @{text product} and @{text term}, as is reflected by the trivial
  introduction rule generated for this definition.
 
- \medskip So what is the difference of declaring
- @{text "\<odot> \<Colon> 'a\<Colon>product \<Rightarrow> 'a \<Rightarrow> 'a"} vs.\ declaring
- @{text "\<odot> \<Colon> 'a\<Colon>term \<Rightarrow> 'a \<Rightarrow> 'a"} anyway?  In this particular case
- where @{text "product \<equiv> term"}, it should be obvious that both
- declarations are the same from the logic's point of view.  It even
- makes the most sense to remove sort constraints from constant
- declarations, as far as the purely logical meaning is concerned
- \cite{Wenzel:1997:TPHOL}.
+ \medskip So what is the difference of declaring @{text "\<odot> \<Colon>
+ 'a\<Colon>product \<Rightarrow> 'a \<Rightarrow> 'a"} vs.\ declaring @{text "\<odot> \<Colon> 'a\<Colon>term \<Rightarrow> 'a \<Rightarrow> 'a"}
+ anyway?  In this particular case where @{text "product \<equiv> term"}, it
+ should be obvious that both declarations are the same from the
+ logic's point of view.  It even makes the most sense to remove sort
+ constraints from constant declarations, as far as the purely logical
+ meaning is concerned \cite{Wenzel:1997:TPHOL}.
 
  On the other hand there are syntactic differences, of course.
  Constants @{text \<odot>} on some type @{text \<tau>} are rejected by the

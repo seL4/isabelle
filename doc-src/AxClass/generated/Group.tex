@@ -24,7 +24,7 @@ First we declare some polymorphic constants required later for the
 \end{isamarkuptext}%
 \isacommand{consts}\isanewline
 \ \ times\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}{\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a{\isachardoublequote}\ \ \ \ {\isacharparenleft}\isakeyword{infixl}\ {\isachardoublequote}{\isasymodot}{\isachardoublequote}\ {\isadigit{7}}{\isadigit{0}}{\isacharparenright}\isanewline
-\ \ inverse\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}{\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a{\isachardoublequote}\ \ \ \ {\isacharparenleft}{\isachardoublequote}{\isacharparenleft}{\isacharunderscore}{\isasyminv}{\isacharparenright}{\isachardoublequote}\ {\isacharbrackleft}{\isadigit{1}}{\isadigit{0}}{\isadigit{0}}{\isadigit{0}}{\isacharbrackright}\ {\isadigit{9}}{\isadigit{9}}{\isadigit{9}}{\isacharparenright}\isanewline
+\ \ invers\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}{\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a{\isachardoublequote}\ \ \ \ {\isacharparenleft}{\isachardoublequote}{\isacharparenleft}{\isacharunderscore}{\isasyminv}{\isacharparenright}{\isachardoublequote}\ {\isacharbrackleft}{\isadigit{1}}{\isadigit{0}}{\isadigit{0}}{\isadigit{0}}{\isacharbrackright}\ {\isadigit{9}}{\isadigit{9}}{\isadigit{9}}{\isacharparenright}\isanewline
 \ \ one\ {\isacharcolon}{\isacharcolon}\ {\isacharprime}a\ \ \ \ {\isacharparenleft}{\isachardoublequote}{\isasymunit}{\isachardoublequote}{\isacharparenright}%
 \begin{isamarkuptext}%
 \noindent Next we define class \isa{monoid} of monoids with
@@ -62,8 +62,7 @@ First we declare some polymorphic constants required later for the
 \noindent Class \isa{group} inherits associativity of \isa{{\isasymodot}}
  from \isa{semigroup} and adds two further group axioms. Similarly,
  \isa{agroup} is defined as the subset of \isa{group} such that
- for all of its elements \isa{{\isasymtau}}, the operation \isa{{\isasymodot}\ {\isasymColon}\ {\isasymtau}\ {\isasymRightarrow}\ {\isasymtau}\ {\isasymRightarrow}\ {\isasymtau}}
- is even commutative.%
+ for all of its elements \isa{{\isasymtau}}, the operation \isa{{\isasymodot}\ {\isasymColon}\ {\isasymtau}\ {\isasymRightarrow}\ {\isasymtau}\ {\isasymRightarrow}\ {\isasymtau}} is even commutative.%
 \end{isamarkuptext}%
 %
 \isamarkupsubsection{Abstract reasoning%
@@ -203,10 +202,9 @@ So far we have covered the case of the form $\INSTANCE$~\isa{c\isactrlsub {\isad
  $c@1$ is more special than \isa{c\isactrlsub {\isadigit{1}}} and thus an instance
  of \isa{c\isactrlsub {\isadigit{2}}}.  Even more interesting for practical
  applications are \emph{concrete instantiations} of axiomatic type
- classes.  That is, certain simple schemes
- \isa{{\isacharparenleft}{\isasymalpha}\isactrlsub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ {\isasymalpha}\isactrlsub n{\isacharparenright}\ t\ {\isasymColon}\ c} of class membership may be
- established at the logical level and then transferred to Isabelle's
- type signature level.
+ classes.  That is, certain simple schemes \isa{{\isacharparenleft}{\isasymalpha}\isactrlsub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ {\isasymalpha}\isactrlsub n{\isacharparenright}\ t\ {\isasymColon}\ c} of class membership may be established at the
+ logical level and then transferred to Isabelle's type signature
+ level.
 
  \medskip As a typical example, we show that type \isa{bool} with
  exclusive-or as \isa{{\isasymodot}} operation, identity as \isa{{\isasyminv}}, and
@@ -273,8 +271,7 @@ As already mentioned above, overloading in the simply-typed HOL
 \ \ times{\isacharunderscore}prod{\isacharunderscore}def{\isacharcolon}\ {\isachardoublequote}p\ {\isasymodot}\ q\ {\isasymequiv}\ {\isacharparenleft}fst\ p\ {\isasymodot}\ fst\ q{\isacharcomma}\ snd\ p\ {\isasymodot}\ snd\ q{\isacharparenright}{\isachardoublequote}%
 \begin{isamarkuptext}%
 It is very easy to see that associativity of \isa{{\isasymodot}} on \isa{{\isacharprime}a}
- and \isa{{\isasymodot}} on \isa{{\isacharprime}b} transfers to \isa{{\isasymodot}} on \isa{{\isacharprime}a\ {\isasymtimes}\ {\isacharprime}b}.
- Hence the binary type constructor \isa{{\isasymodot}} maps semigroups to
+ and \isa{{\isasymodot}} on \isa{{\isacharprime}b} transfers to \isa{{\isasymodot}} on \isa{{\isacharprime}a\ {\isasymtimes}\ {\isacharprime}b}.  Hence the binary type constructor \isa{{\isasymodot}} maps semigroups to
  semigroups.  This may be established formally as follows.%
 \end{isamarkuptext}%
 \isacommand{instance}\ {\isacharasterisk}\ {\isacharcolon}{\isacharcolon}\ {\isacharparenleft}semigroup{\isacharcomma}\ semigroup{\isacharparenright}\ semigroup\isanewline

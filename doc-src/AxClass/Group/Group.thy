@@ -22,7 +22,7 @@ text {*
 
 consts
   times :: "'a \<Rightarrow> 'a \<Rightarrow> 'a"    (infixl "\<odot>" 70)
-  inverse :: "'a \<Rightarrow> 'a"    ("(_\<inv>)" [1000] 999)
+  invers :: "'a \<Rightarrow> 'a"    ("(_\<inv>)" [1000] 999)
   one :: 'a    ("\<unit>")
 
 text {*
@@ -66,8 +66,8 @@ text {*
  \noindent Class @{text group} inherits associativity of @{text \<odot>}
  from @{text semigroup} and adds two further group axioms. Similarly,
  @{text agroup} is defined as the subset of @{text group} such that
- for all of its elements @{text \<tau>}, the operation @{text "\<odot> \<Colon> \<tau> \<Rightarrow> \<tau> \<Rightarrow> \<tau>"}
- is even commutative.
+ for all of its elements @{text \<tau>}, the operation @{text "\<odot> \<Colon> \<tau> \<Rightarrow> \<tau> \<Rightarrow>
+ \<tau>"} is even commutative.
 *}
 
 
@@ -220,10 +220,10 @@ text {*
  $c@1$ is more special than @{text "c\<^sub>1"} and thus an instance
  of @{text "c\<^sub>2"}.  Even more interesting for practical
  applications are \emph{concrete instantiations} of axiomatic type
- classes.  That is, certain simple schemes
- @{text "(\<alpha>\<^sub>1, \<dots>, \<alpha>\<^sub>n) t \<Colon> c"} of class membership may be
- established at the logical level and then transferred to Isabelle's
- type signature level.
+ classes.  That is, certain simple schemes @{text "(\<alpha>\<^sub>1, \<dots>,
+ \<alpha>\<^sub>n) t \<Colon> c"} of class membership may be established at the
+ logical level and then transferred to Isabelle's type signature
+ level.
 
  \medskip As a typical example, we show that type @{typ bool} with
  exclusive-or as @{text \<odot>} operation, identity as @{text \<inv>}, and
@@ -296,8 +296,8 @@ defs (overloaded)
 
 text {*
  It is very easy to see that associativity of @{text \<odot>} on @{typ 'a}
- and @{text \<odot>} on @{typ 'b} transfers to @{text \<odot>} on @{typ "'a \<times> 'b"}.
- Hence the binary type constructor @{text \<odot>} maps semigroups to
+ and @{text \<odot>} on @{typ 'b} transfers to @{text \<odot>} on @{typ "'a \<times>
+ 'b"}.  Hence the binary type constructor @{text \<odot>} maps semigroups to
  semigroups.  This may be established formally as follows.
 *}
 

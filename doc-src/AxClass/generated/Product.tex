@@ -11,9 +11,8 @@
  constants \isa{c\ {\isasymColon}\ {\isasymsigma}}, the type variables occurring in \isa{{\isasymsigma}}
  may be constrained by type classes (or even general sorts) in an
  arbitrary way.  Note that by default, in Isabelle/HOL the declaration
- \isa{{\isasymodot}\ {\isasymColon}\ {\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a} is actually an abbreviation for
- \isa{{\isasymodot}\ {\isasymColon}\ {\isacharprime}a{\isasymColon}term\ {\isasymRightarrow}\ {\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a} Since class \isa{term} is the
- universal class of HOL, this is not really a constraint at all.
+ \isa{{\isasymodot}\ {\isasymColon}\ {\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a} is actually an abbreviation for \isa{{\isasymodot}\ {\isasymColon}\ {\isacharprime}a{\isasymColon}term\ {\isasymRightarrow}\ {\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a} Since class \isa{term} is the universal
+ class of HOL, this is not really a constraint at all.
 
  The \isa{product} class below provides a less degenerate example of
  syntactic type classes.%
@@ -28,14 +27,12 @@ Here class \isa{product} is defined as subclass of \isa{term}
  of \isa{product} and \isa{term}, as is reflected by the trivial
  introduction rule generated for this definition.
 
- \medskip So what is the difference of declaring
- \isa{{\isasymodot}\ {\isasymColon}\ {\isacharprime}a{\isasymColon}product\ {\isasymRightarrow}\ {\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a} vs.\ declaring
- \isa{{\isasymodot}\ {\isasymColon}\ {\isacharprime}a{\isasymColon}term\ {\isasymRightarrow}\ {\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a} anyway?  In this particular case
- where \isa{product\ {\isasymequiv}\ term}, it should be obvious that both
- declarations are the same from the logic's point of view.  It even
- makes the most sense to remove sort constraints from constant
- declarations, as far as the purely logical meaning is concerned
- \cite{Wenzel:1997:TPHOL}.
+ \medskip So what is the difference of declaring \isa{{\isasymodot}\ {\isasymColon}\ {\isacharprime}a{\isasymColon}product\ {\isasymRightarrow}\ {\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a} vs.\ declaring \isa{{\isasymodot}\ {\isasymColon}\ {\isacharprime}a{\isasymColon}term\ {\isasymRightarrow}\ {\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a}
+ anyway?  In this particular case where \isa{product\ {\isasymequiv}\ term}, it
+ should be obvious that both declarations are the same from the
+ logic's point of view.  It even makes the most sense to remove sort
+ constraints from constant declarations, as far as the purely logical
+ meaning is concerned \cite{Wenzel:1997:TPHOL}.
 
  On the other hand there are syntactic differences, of course.
  Constants \isa{{\isasymodot}} on some type \isa{{\isasymtau}} are rejected by the
