@@ -178,12 +178,11 @@ text {*
   type declaration given above merely serves for syntactic purposes,
   and is not checked for consistency with the real constant.
 
-  \medskip We may now write either @{text "A [+] B"} or @{text "A \<oplus>
-  B"} in input, while output uses the nicer syntax of $xsymbols$,
-  provided that print mode is active.  Such an arrangement is
-  particularly useful for interactive development, where users may
-  type plain ASCII text, but gain improved visual feedback from the
-  system.
+  \medskip We may now write @{text "A [+] B"} or @{text "A \<oplus> B"} in
+  input, while output uses the nicer syntax of $xsymbols$, provided
+  that print mode is active.  Such an arrangement is particularly
+  useful for interactive development, where users may type plain ASCII
+  text, but gain improved visual feedback from the system.
 
   \begin{warn}
   Alternative syntax declarations are apt to result in varying
@@ -360,7 +359,7 @@ text {*
   document (\verb,\documentclass, etc.), and to include the generated
   files $T@i$\texttt{.tex} for each theory.  The generated
   \texttt{session.tex} will contain {\LaTeX} commands to include all
-  theory output files in topologically sorted order, so
+  generated files in topologically sorted order, so
   \verb,\input{session}, in \texttt{root.tex} does the job in most
   situations.
 
@@ -412,9 +411,9 @@ text {*
   Further packages may be required in particular applications, e.g.\
   for unusual Isabelle symbols.
 
-  \medskip Additional files for the {\LaTeX} stage should be included
-  in the \texttt{MySession/document} directory, e.g.\ further {\TeX}
-  sources or graphics.  In particular, adding \texttt{root.bib} here
+  \medskip Additional files for the {\LaTeX} stage may be included in
+  the directory \texttt{MySession/document}, too, such as {\TeX}
+  sources or graphics).  In particular, adding \texttt{root.bib} here
   (with that specific name) causes an automatic run of \texttt{bibtex}
   to process a bibliographic database; see also \texttt{isatool
   document} covered in \cite{isabelle-sys}.

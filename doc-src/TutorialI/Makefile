@@ -48,4 +48,4 @@ $(NAME).pdf: $(FILES) isabelle_hol.pdf Types/typedef.pdf
 	$(SEDINDEX) $(NAME)
 	$(FIXBOOKMARKS) $(NAME).out
 	$(PDFLATEX) $(NAME)
-	$(FIXBOOKMARKS) main.out
+	$(FIXBOOKMARKS) $(NAME).out
