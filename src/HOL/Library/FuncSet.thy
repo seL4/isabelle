@@ -50,26 +50,24 @@ lemma funcsetI: "(!!x. x \<in> A ==> f x \<in> B) ==> f \<in> A -> B"
 by (simp add: Pi_def)
 
 lemma Pi_mem: "[|f: Pi A B; x \<in> A|] ==> f x \<in> B x"
-apply (simp add: Pi_def)
-done
+by (simp add: Pi_def)
 
 lemma funcset_mem: "[|f \<in> A -> B; x \<in> A|] ==> f x \<in> B"
 by (simp add: Pi_def)
 
 lemma Pi_eq_empty: "((PI x: A. B x) = {}) = (\<exists>x\<in>A. B(x) = {})"
-apply (simp add: Pi_def)
-apply auto
+apply (simp add: Pi_def, auto)
 txt{*Converse direction requires Axiom of Choice to exhibit a function
 picking an element from each non-empty @{term "B x"}*}
-apply (drule_tac x = "%u. SOME y. y \<in> B u" in spec) 
-apply (auto );
-apply (cut_tac P= "%y. y \<in> B x" in some_eq_ex)
-apply (auto ); 
+apply (drule_tac x = "%u. SOME y. y \<in> B u" in spec, auto)
+apply (cut_tac P= "%y. y \<in> B x" in some_eq_ex, auto) 
 done
 
-lemma Pi_empty: "Pi {} B = UNIV"
-apply (simp add: Pi_def) 
-done
+lemma Pi_empty [simp]: "Pi {} B = UNIV"
+by (simp add: Pi_def)
+
+lemma Pi_UNIV [simp]: "A -> UNIV = UNIV"
+by (simp add: Pi_def)
 
 text{*Covariance of Pi-sets in their second argument*}
 lemma Pi_mono: "(!!x. x \<in> A ==> B x <= C x) ==> Pi A B <= Pi A C"
@@ -92,12 +90,10 @@ lemma compose_assoc:
 by (simp add: expand_fun_eq Pi_def compose_def restrict_def) 
 
 lemma compose_eq: "x \<in> A ==> compose A g f x = g(f(x))"
-apply (simp add: compose_def restrict_def)
-done
+by (simp add: compose_def restrict_def)
 
 lemma surj_compose: "[| f ` A = B; g ` B = C |] ==> compose A g f ` A = C"
-apply (auto simp add: image_def compose_eq)
-done
+by (auto simp add: image_def compose_eq)
 
 lemma inj_on_compose:
      "[| f ` A = B; inj_on f A; inj_on g B |] ==> inj_on (compose A g f) A"
@@ -122,8 +118,7 @@ lemma restrict_ext:
 by (simp add: expand_fun_eq Pi_def Pi_def restrict_def)
 
 lemma inj_on_restrict_eq: "inj_on (restrict f A) A = inj_on f A"
-apply (simp add: inj_on_def restrict_def)
-done
+by (simp add: inj_on_def restrict_def)
 
 
 lemma Id_compose:
@@ -138,8 +133,7 @@ by (auto simp add: expand_fun_eq compose_def extensional_def Pi_def)
 subsection{*Extensionality*}
 
 lemma extensional_arb: "[|f \<in> extensional A; x\<notin> A|] ==> f x = arbitrary"
-apply (simp add: extensional_def)
-done
+by (simp add: extensional_def)
 
 lemma restrict_extensional [simp]: "restrict f A \<in> extensional A"
 by (simp add: restrict_def extensional_def)
@@ -161,8 +155,7 @@ lemma compose_Inv_id:
      "[| inj_on f A;  f ` A = B |]  
       ==> compose A (\<lambda>y\<in>B. Inv A f y) f = (\<lambda>x\<in>A. x)"
 apply (simp add: compose_def)
-apply (rule restrict_ext)
-apply auto
+apply (rule restrict_ext, auto)
 apply (erule subst)
 apply (simp add: Inv_f_f)
 done
