@@ -12,7 +12,7 @@ theory Step = Convert :
 
 text "Effect of instruction on the state type"
 consts 
-step :: "instr \\<times> jvm_prog \\<times> state_type \\<Rightarrow> state_type option"
+step :: "instr \<times> jvm_prog \<times> state_type \<Rightarrow> state_type option"
 
 recdef step "{}"
 "step (Load idx,  G, (ST, LT))          = Some (the (LT ! idx) # ST, LT)"
@@ -41,22 +41,22 @@ recdef step "{}"
 
 text "Conditions under which step is applicable"
 consts
-app :: "instr \\<times> jvm_prog \\<times> ty \\<times> state_type \\<Rightarrow> bool"
+app :: "instr \<times> jvm_prog \<times> ty \<times> state_type \<Rightarrow> bool"
 
 recdef app "{}"
-"app (Load idx, G, rT, s)                  = (idx < length (snd s) \\<and> (snd s) ! idx \\<noteq> None)"
+"app (Load idx, G, rT, s)                  = (idx < length (snd s) \<and> (snd s) ! idx \<noteq> None)"
 "app (Store idx, G, rT, (ts#ST, LT))       = (idx < length LT)"
 "app (Bipush i, G, rT, s)                  = True"
 "app (Aconst_null, G, rT, s)               = True"
-"app (Getfield F C, G, rT, (oT#ST, LT))    = (is_class G C \\<and> 
-                                              field (G,C) F \\<noteq> None \\<and>
-                                              fst (the (field (G,C) F)) = C \\<and>
-                                              G \\<turnstile> oT \\<preceq> (Class C))"
-"app (Putfield F C, G, rT, (vT#oT#ST, LT)) = (is_class G C \\<and> 
-                                              field (G,C) F \\<noteq> None \\<and>
-                                              fst (the (field (G,C) F)) = C \\<and>
-                                              G \\<turnstile> oT \\<preceq> (Class C) \\<and>
-                                              G \\<turnstile> vT \\<preceq> (snd (the (field (G,C) F))))" 
+"app (Getfield F C, G, rT, (oT#ST, LT))    = (is_class G C \<and> 
+                                              field (G,C) F \<noteq> None \<and>
+                                              fst (the (field (G,C) F)) = C \<and>
+                                              G \<turnstile> oT \<preceq> (Class C))"
+"app (Putfield F C, G, rT, (vT#oT#ST, LT)) = (is_class G C \<and> 
+                                              field (G,C) F \<noteq> None \<and>
+                                              fst (the (field (G,C) F)) = C \<and>
+                                              G \<turnstile> oT \<preceq> (Class C) \<and>
+                                              G \<turnstile> vT \<preceq> (snd (the (field (G,C) F))))" 
 "app (New C, G, rT, s)                     = (is_class G C)"
 "app (Checkcast C, G, rT, (RefT rt#ST,LT)) = (is_class G C)"
 "app (Pop, G, rT, (ts#ST,LT))              = True"
@@ -66,19 +66,19 @@ recdef app "{}"
 "app (Swap, G, rT, (ts1#ts2#ST,LT))        = True"
 "app (IAdd, G, rT, (PrimT Integer#PrimT Integer#ST,LT)) 
                                            = True"
-"app (Ifcmpeq b, G, rT, (ts1#ts2#ST,LT))   = ((\\<exists> p. ts1 = PrimT p \\<and> ts1 = PrimT p) \\<or> 
-                                              (\\<exists>r r'. ts1 = RefT r \\<and> ts2 = RefT r'))"
+"app (Ifcmpeq b, G, rT, (ts1#ts2#ST,LT))   = ((\<exists> p. ts1 = PrimT p \<and> ts1 = PrimT p) \<or> 
+                                              (\<exists>r r'. ts1 = RefT r \<and> ts2 = RefT r'))"
 "app (Goto b, G, rT, s)                    = True"
-"app (Return, G, rT, (T#ST,LT))            = (G \\<turnstile> T \\<preceq> rT)"
+"app (Return, G, rT, (T#ST,LT))            = (G \<turnstile> T \<preceq> rT)"
 app_invoke:
-"app (Invoke C mn fpTs, G, rT, s)          = (length fpTs < length (fst s) \\<and> 
+"app (Invoke C mn fpTs, G, rT, s)          = (length fpTs < length (fst s) \<and> 
                                               (let 
                                                 apTs = rev (take (length fpTs) (fst s));
                                                 X    = hd (drop (length fpTs) (fst s)) 
                                               in
-                                                G \\<turnstile> X \\<preceq> Class C \\<and> 
-                                                (\\<forall>(aT,fT)\\<in>set(zip apTs fpTs). G \\<turnstile> aT \\<preceq> fT) \\<and>
-                                                method (G,C) (mn,fpTs) \\<noteq> None
+                                                G \<turnstile> X \<preceq> Class C \<and> 
+                                                (\<forall>(aT,fT)\<in>set(zip apTs fpTs). G \<turnstile> aT \<preceq> fT) \<and>
+                                                method (G,C) (mn,fpTs) \<noteq> None
                                              ))"
 
 "app (i,G,rT,s)                            = False"
@@ -87,7 +87,7 @@ app_invoke:
 text {* \isa{p_count} of successor instructions *}
 
 consts
-succs :: "instr \\<Rightarrow> p_count \\<Rightarrow> p_count set"
+succs :: "instr \<Rightarrow> p_count \<Rightarrow> p_count set"
 
 primrec 
 "succs (Load idx) pc         = {pc+1}"
@@ -110,25 +110,25 @@ primrec
 "succs (Invoke C mn fpTs) pc = {pc+1}"
 
 
-lemma 1: "2 < length a \\<Longrightarrow> (\\<exists>l l' l'' ls. a = l#l'#l''#ls)"
+lemma 1: "2 < length a \<Longrightarrow> (\<exists>l l' l'' ls. a = l#l'#l''#ls)"
 proof (cases a)
   fix x xs assume "a = x#xs" "2 < length a"
   thus ?thesis by - (cases xs, simp, cases "tl xs", auto)
 qed auto
 
-lemma 2: "\\<not>(2 < length a) \\<Longrightarrow> a = [] \\<or> (\\<exists> l. a = [l]) \\<or> (\\<exists> l l'. a = [l,l'])"
+lemma 2: "\<not>(2 < length a) \<Longrightarrow> a = [] \<or> (\<exists> l. a = [l]) \<or> (\<exists> l l'. a = [l,l'])"
 proof -;
-  assume "\\<not>(2 < length a)"
+  assume "\<not>(2 < length a)"
   hence "length a < (Suc 2)" by simp
-  hence * : "length a = 0 \\<or> length a = 1 \\<or> length a = 2" by (auto simp add: less_Suc_eq)
+  hence * : "length a = 0 \<or> length a = 1 \<or> length a = 2" by (auto simp add: less_Suc_eq)
 
   { 
     fix x 
     assume "length x = 1"
-    hence "\\<exists> l. x = [l]"  by - (cases x, auto)
+    hence "\<exists> l. x = [l]"  by - (cases x, auto)
   } note 0 = this
 
-  have "length a = 2 \\<Longrightarrow> \\<exists>l l'. a = [l,l']" by (cases a, auto dest: 0)
+  have "length a = 2 \<Longrightarrow> \<exists>l l'. a = [l,l']" by (cases a, auto dest: 0)
   with * show ?thesis by (auto dest: 0)
 qed
 
@@ -139,56 +139,56 @@ simp rules for \isa{app} without patterns, better suited for proofs
 *}
 
 lemma appStore[simp]:
-"app (Store idx, G, rT, s) = (\\<exists> ts ST LT. s = (ts#ST,LT) \\<and> idx < length LT)"
+"app (Store idx, G, rT, s) = (\<exists> ts ST LT. s = (ts#ST,LT) \<and> idx < length LT)"
 by (cases s, cases "2 < length (fst s)", auto dest: 1 2)
 
 
 lemma appGetField[simp]:
-"app (Getfield F C, G, rT, s) = (\\<exists> oT ST LT. s = (oT#ST, LT) \\<and> is_class G C \\<and> 
-                                 fst (the (field (G,C) F)) = C \\<and>
-                                 field (G,C) F \\<noteq> None \\<and> G \\<turnstile> oT \\<preceq> (Class C))"
+"app (Getfield F C, G, rT, s) = (\<exists> oT ST LT. s = (oT#ST, LT) \<and> is_class G C \<and> 
+                                 fst (the (field (G,C) F)) = C \<and>
+                                 field (G,C) F \<noteq> None \<and> G \<turnstile> oT \<preceq> (Class C))"
 by (cases s, cases "2 < length (fst s)", auto dest: 1 2)
 
 
 lemma appPutField[simp]:
-"app (Putfield F C, G, rT, s) = (\\<exists> vT oT ST LT. s = (vT#oT#ST, LT) \\<and> is_class G C \\<and> 
-                                 field (G,C) F \\<noteq> None \\<and> fst (the (field (G,C) F)) = C \\<and>
-                                 G \\<turnstile> oT \\<preceq> (Class C) \\<and>
-                                 G \\<turnstile> vT \\<preceq> (snd (the (field (G,C) F))))" 
+"app (Putfield F C, G, rT, s) = (\<exists> vT oT ST LT. s = (vT#oT#ST, LT) \<and> is_class G C \<and> 
+                                 field (G,C) F \<noteq> None \<and> fst (the (field (G,C) F)) = C \<and>
+                                 G \<turnstile> oT \<preceq> (Class C) \<and>
+                                 G \<turnstile> vT \<preceq> (snd (the (field (G,C) F))))" 
 by (cases s, cases "2 < length (fst s)", auto dest: 1 2)
 
 
 lemma appCheckcast[simp]:
-"app (Checkcast C, G, rT, s) = (\\<exists>rT ST LT. s = (RefT rT#ST,LT) \\<and> is_class G C)"
+"app (Checkcast C, G, rT, s) = (\<exists>rT ST LT. s = (RefT rT#ST,LT) \<and> is_class G C)"
 by (cases s, cases "fst s", simp, cases "hd (fst s)", auto)
 
 lemma appPop[simp]:
-"app (Pop, G, rT, s) = (\\<exists>ts ST LT. s = (ts#ST,LT))" 
+"app (Pop, G, rT, s) = (\<exists>ts ST LT. s = (ts#ST,LT))" 
 by (cases s, cases "2 < length (fst s)", auto dest: 1 2)
 
 
 lemma appDup[simp]:
-"app (Dup, G, rT, s) = (\\<exists>ts ST LT. s = (ts#ST,LT))" 
+"app (Dup, G, rT, s) = (\<exists>ts ST LT. s = (ts#ST,LT))" 
 by (cases s, cases "2 < length (fst s)", auto dest: 1 2)
 
 
 lemma appDup_x1[simp]:
-"app (Dup_x1, G, rT, s) = (\\<exists>ts1 ts2 ST LT. s = (ts1#ts2#ST,LT))" 
+"app (Dup_x1, G, rT, s) = (\<exists>ts1 ts2 ST LT. s = (ts1#ts2#ST,LT))" 
 by (cases s, cases "2 < length (fst s)", auto dest: 1 2)
 
 
 lemma appDup_x2[simp]:
-"app (Dup_x2, G, rT, s) = (\\<exists>ts1 ts2 ts3 ST LT. s = (ts1#ts2#ts3#ST,LT))"
+"app (Dup_x2, G, rT, s) = (\<exists>ts1 ts2 ts3 ST LT. s = (ts1#ts2#ts3#ST,LT))"
 by (cases s, cases "2 < length (fst s)", auto dest: 1 2)
 
 
 lemma appSwap[simp]:
-"app (Swap, G, rT, s) = (\\<exists>ts1 ts2 ST LT. s = (ts1#ts2#ST,LT))" 
+"app (Swap, G, rT, s) = (\<exists>ts1 ts2 ST LT. s = (ts1#ts2#ST,LT))" 
 by (cases s, cases "2 < length (fst s)", auto dest: 1 2)
 
 
 lemma appIAdd[simp]:
-"app (IAdd, G, rT, s) = (\\<exists> ST LT. s = (PrimT Integer#PrimT Integer#ST,LT))"  (is "?app s = ?P s")
+"app (IAdd, G, rT, s) = (\<exists> ST LT. s = (PrimT Integer#PrimT Integer#ST,LT))"  (is "?app s = ?P s")
 proof (cases s)
   case Pair
   have "?app (a,b) = ?P (a,b)"
@@ -218,44 +218,49 @@ qed
 
 
 lemma appIfcmpeq[simp]:
-"app (Ifcmpeq b, G, rT, s) = (\\<exists>ts1 ts2 ST LT. s = (ts1#ts2#ST,LT) \\<and> 
-                              ((\\<exists> p. ts1 = PrimT p \\<and> ts1 = PrimT p) \\<or>  
-                               (\\<exists>r r'. ts1 = RefT r \\<and> ts2 = RefT r')))" 
+"app (Ifcmpeq b, G, rT, s) = (\<exists>ts1 ts2 ST LT. s = (ts1#ts2#ST,LT) \<and> 
+                              ((\<exists> p. ts1 = PrimT p \<and> ts1 = PrimT p) \<or>  
+                               (\<exists>r r'. ts1 = RefT r \<and> ts2 = RefT r')))" 
 by (cases s, cases "2 < length (fst s)", auto dest: 1 2)
 
 
 lemma appReturn[simp]:
-"app (Return, G, rT, s) = (\\<exists>T ST LT. s = (T#ST,LT) \\<and> (G \\<turnstile> T \\<preceq> rT))" 
+"app (Return, G, rT, s) = (\<exists>T ST LT. s = (T#ST,LT) \<and> (G \<turnstile> T \<preceq> rT))" 
 by (cases s, cases "2 < length (fst s)", auto dest: 1 2)
 
 
 lemma appInvoke[simp]:
-"app (Invoke C mn fpTs, G, rT, s) = (\\<exists>apTs X ST LT.
-                                       s = ((rev apTs) @ (X # ST), LT) \\<and> 
-                                       length apTs = length fpTs \\<and> 
-                                       G \\<turnstile> X \\<preceq> Class C \\<and>  
-                                       (\\<forall>(aT,fT)\\<in>set(zip apTs fpTs). G \\<turnstile> aT \\<preceq> fT) \\<and> 
-                                       method (G,C) (mn,fpTs) \\<noteq> None)" (is "?app s = ?P s")
+"app (Invoke C mn fpTs, G, rT, s) = (\<exists>apTs X ST LT.
+                                       s = ((rev apTs) @ (X # ST), LT) \<and> 
+                                       length apTs = length fpTs \<and> 
+                                       G \<turnstile> X \<preceq> Class C \<and>  
+                                       (\<forall>(aT,fT)\<in>set(zip apTs fpTs). G \<turnstile> aT \<preceq> fT) \<and> 
+                                       method (G,C) (mn,fpTs) \<noteq> None)" (is "?app s = ?P s")
 proof (cases s)
   case Pair
-  have "?app (a,b) \\<Longrightarrow> ?P (a,b)"
+  have "?app (a,b) \<Longrightarrow> ?P (a,b)"
   proof -
     assume app: "?app (a,b)"
-    hence "a = (rev (rev (take (length fpTs) a))) @ (drop (length fpTs) a) \\<and> length fpTs < length a" 
-      (is "?a \\<and> ?l") by auto    
-    hence "?a \\<and> 0 < length (drop (length fpTs) a)" (is "?a \\<and> ?l") by auto
-    hence "?a \\<and> ?l \\<and> length (rev (take (length fpTs) a)) = length fpTs" by (auto simp add: min_def)
-    hence "\\<exists>apTs ST. a = rev apTs @ ST \\<and> length apTs = length fpTs \\<and> 0 < length ST" by blast
-    hence "\\<exists>apTs ST. a = rev apTs @ ST \\<and> length apTs = length fpTs \\<and> ST \\<noteq> []" by blast        
-    hence "\\<exists>apTs ST. a = rev apTs @ ST \\<and> length apTs = length fpTs \\<and> (\\<exists>X ST'. ST = X#ST')" by (simp add: neq_Nil_conv)
-    hence "\\<exists>apTs X ST. a = rev apTs @ X # ST \\<and> length apTs = length fpTs" by blast
+    hence "a = (rev (rev (take (length fpTs) a))) @ (drop (length fpTs) a) \<and> length fpTs < length a" 
+      (is "?a \<and> ?l") by auto    
+    hence "?a \<and> 0 < length (drop (length fpTs) a)" (is "?a \<and> ?l") by auto
+    hence "?a \<and> ?l \<and> length (rev (take (length fpTs) a)) = length fpTs" by (auto simp add: min_def)
+    hence "\<exists>apTs ST. a = rev apTs @ ST \<and> length apTs = length fpTs \<and> 0 < length ST" by blast
+    hence "\<exists>apTs ST. a = rev apTs @ ST \<and> length apTs = length fpTs \<and> ST \<noteq> []" by blast        
+    hence "\<exists>apTs ST. a = rev apTs @ ST \<and> length apTs = length fpTs \<and> (\<exists>X ST'. ST = X#ST')" by (simp add: neq_Nil_conv)
+    hence "\<exists>apTs X ST. a = rev apTs @ X # ST \<and> length apTs = length fpTs" by blast
     with app
     show ?thesis by auto blast
   qed
-  with Pair have "?app s \\<Longrightarrow> ?P s" by simp
+  with Pair have "?app s \<Longrightarrow> ?P s" by simp
   thus ?thesis by auto
 qed 
 
 lemmas [simp del] = app_invoke
+
+
+lemma app_step_some:
+  "\<lbrakk>app (i,G,rT,s); succs i pc \<noteq> {}\<rbrakk> \<Longrightarrow> step (i,G,s) \<noteq> None";
+  by (cases s, cases i, auto)
 
 end

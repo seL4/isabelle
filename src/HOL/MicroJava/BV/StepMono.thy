@@ -1,4 +1,4 @@
-(*  Title:      HOL/MicroJava/BV/Step.thy
+(*  Title:      HOL/MicroJava/BV/StepMono.thy
     ID:         $Id$
     Author:     Gerwin Klein
     Copyright   2000 Technische Universitaet Muenchen
@@ -11,39 +11,31 @@ theory StepMono = Step :
 
 lemmas [trans] = sup_state_trans sup_loc_trans widen_trans
 
-ML_setup {* bind_thm ("widen_RefT", widen_RefT) *}
-ML_setup {* bind_thm ("widen_RefT2", widen_RefT2) *}
-
-
-lemma app_step_some:
-"\\<lbrakk>app (i,G,rT,s); succs i pc \\<noteq> {} \\<rbrakk> \\<Longrightarrow> step (i,G,s) \\<noteq> None";
-by (cases s, cases i, auto)
-
 
 lemma sup_state_length:
-"G \\<turnstile> s2 <=s s1 \\<Longrightarrow> length (fst s2) = length (fst s1) \\<and> length (snd s2) = length (snd s1)"
+"G \<turnstile> s2 <=s s1 \<Longrightarrow> length (fst s2) = length (fst s1) \<and> length (snd s2) = length (snd s1)"
   by (cases s1, cases s2, simp add: sup_state_length_fst sup_state_length_snd)
   
 
-lemma PrimT_PrimT: "(G \\<turnstile> xb \\<preceq> PrimT p) = (xb = PrimT p)"
+lemma PrimT_PrimT: "(G \<turnstile> xb \<preceq> PrimT p) = (xb = PrimT p)"
 proof
-  show "xb = PrimT p \\<Longrightarrow> G \\<turnstile> xb \\<preceq> PrimT p" by blast
+  show "xb = PrimT p \<Longrightarrow> G \<turnstile> xb \<preceq> PrimT p" by blast
 
-  show "G\\<turnstile> xb \\<preceq> PrimT p \\<Longrightarrow> xb = PrimT p"
+  show "G\<turnstile> xb \<preceq> PrimT p \<Longrightarrow> xb = PrimT p"
   proof (cases xb)
     fix prim
-    assume "xb = PrimT prim" "G\\<turnstile>xb\\<preceq>PrimT p"
+    assume "xb = PrimT prim" "G\<turnstile>xb\<preceq>PrimT p"
     thus ?thesis by simp
   next
     fix ref
-    assume "G\\<turnstile>xb\\<preceq>PrimT p" "xb = RefT ref"
+    assume "G\<turnstile>xb\<preceq>PrimT p" "xb = RefT ref"
     thus ?thesis by simp (rule widen_RefT [elimify], auto)
   qed
 qed
 
 
 lemma sup_loc_some [rulify]:
-"\\<forall> y n. (G \\<turnstile> b <=l y) \\<longrightarrow> n < length y \\<longrightarrow> y!n = Some t \\<longrightarrow> (\\<exists>t. b!n = Some t \\<and> (G \\<turnstile> (b!n) <=o (y!n)))" (is "?P b")
+"\<forall> y n. (G \<turnstile> b <=l y) \<longrightarrow> n < length y \<longrightarrow> y!n = Some t \<longrightarrow> (\<exists>t. b!n = Some t \<and> (G \<turnstile> (b!n) <=o (y!n)))" (is "?P b")
 proof (induct "?P" b)
   show "?P []" by simp
 
@@ -52,10 +44,10 @@ proof (induct "?P" b)
   proof (clarsimp simp add: list_all2_Cons1 sup_loc_def)
     fix z zs n
     assume * : 
-      "G \\<turnstile> a <=o z" "list_all2 (sup_ty_opt G) list zs" 
+      "G \<turnstile> a <=o z" "list_all2 (sup_ty_opt G) list zs" 
       "n < Suc (length zs)" "(z # zs) ! n = Some t"
 
-    show "(\\<exists>t. (a # list) ! n = Some t) \\<and> G \\<turnstile>(a # list) ! n <=o Some t" 
+    show "(\<exists>t. (a # list) ! n = Some t) \<and> G \<turnstile>(a # list) ! n <=o Some t" 
     proof (cases n) 
       case 0
       with * show ?thesis by (simp add: sup_ty_opt_some)
@@ -69,8 +61,8 @@ qed
    
 
 lemma all_widen_is_sup_loc:
-"\\<forall>b. length a = length b \\<longrightarrow> (\\<forall>x\\<in>set (zip a b). x \\<in> widen G) = (G \\<turnstile> (map Some a) <=l (map Some b))" 
- (is "\\<forall>b. length a = length b \\<longrightarrow> ?Q a b" is "?P a")
+"\<forall>b. length a = length b \<longrightarrow> (\<forall>x\<in>set (zip a b). x \<in> widen G) = (G \<turnstile> (map Some a) <=l (map Some b))" 
+ (is "\<forall>b. length a = length b \<longrightarrow> ?Q a b" is "?P a")
 proof (induct "a")
   show "?P []" by simp
 
@@ -87,7 +79,7 @@ qed
  
 
 lemma append_length_n [rulify]: 
-"\\<forall>n. n \\<le> length x \\<longrightarrow> (\\<exists>a b. x = a@b \\<and> length a = n)" (is "?P x")
+"\<forall>n. n \<le> length x \<longrightarrow> (\<exists>a b. x = a@b \<and> length a = n)" (is "?P x")
 proof (induct "?P" "x")
   show "?P []" by simp
 
@@ -96,22 +88,22 @@ proof (induct "?P" "x")
   show "?P (l#ls)"
   proof (intro allI impI)
     fix n
-    assume l: "n \\<le> length (l # ls)"
+    assume l: "n \<le> length (l # ls)"
 
-    show "\\<exists>a b. l # ls = a @ b \\<and> length a = n" 
+    show "\<exists>a b. l # ls = a @ b \<and> length a = n" 
     proof (cases n)
       assume "n=0" thus ?thesis by simp
     next
       fix "n'" assume s: "n = Suc n'"
       with l 
-      have  "n' \\<le> length ls" by simp 
-      hence "\\<exists>a b. ls = a @ b \\<and> length a = n'" by (rule Cons [rulify])
+      have  "n' \<le> length ls" by simp 
+      hence "\<exists>a b. ls = a @ b \<and> length a = n'" by (rule Cons [rulify])
       thus ?thesis
       proof elim
         fix a b 
         assume "ls = a @ b" "length a = n'"
         with s
-        have "l # ls = (l#a) @ b \\<and> length (l#a) = n" by simp
+        have "l # ls = (l#a) @ b \<and> length (l#a) = n" by simp
         thus ?thesis by blast
       qed
     qed
@@ -121,23 +113,23 @@ qed
 
 
 lemma rev_append_cons:
-"\\<lbrakk>n < length x\\<rbrakk> \\<Longrightarrow> \\<exists>a b c. x = (rev a) @ b # c \\<and> length a = n"
+"\<lbrakk>n < length x\<rbrakk> \<Longrightarrow> \<exists>a b c. x = (rev a) @ b # c \<and> length a = n"
 proof -
   assume n: "n < length x"
-  hence "n \\<le> length x" by simp
-  hence "\\<exists>a b. x = a @ b \\<and> length a = n" by (rule append_length_n)
+  hence "n \<le> length x" by simp
+  hence "\<exists>a b. x = a @ b \<and> length a = n" by (rule append_length_n)
   thus ?thesis
   proof elim
     fix r d assume x: "x = r@d" "length r = n"
     with n
-    have "\\<exists>b c. d = b#c" by (simp add: neq_Nil_conv)
+    have "\<exists>b c. d = b#c" by (simp add: neq_Nil_conv)
     
     thus ?thesis 
     proof elim
       fix b c 
       assume "d = b#c"
       with x
-      have "x = (rev (rev r)) @ b # c \\<and> length (rev r) = n" by simp
+      have "x = (rev (rev r)) @ b # c \<and> length (rev r) = n" by simp
       thus ?thesis by blast
     qed
   qed
@@ -145,9 +137,9 @@ qed
 
 
 lemma app_mono: 
-"\\<lbrakk>G \\<turnstile> s2 <=s s1; app (i, G, rT, s1)\\<rbrakk> \\<Longrightarrow> app (i, G, rT, s2)";
+"\<lbrakk>G \<turnstile> s2 <=s s1; app (i, G, rT, s1)\<rbrakk> \<Longrightarrow> app (i, G, rT, s2)";
 proof -
-  assume G:   "G \\<turnstile> s2 <=s s1"
+  assume G:   "G \<turnstile> s2 <=s s1"
   assume app: "app (i, G, rT, s1)"
   
   show ?thesis
@@ -158,7 +150,7 @@ proof -
     have l: "length (snd s1) = length (snd s2)" by (simp add: sup_state_length)
 
     from G Load app
-    have "G \\<turnstile> snd s2 <=l snd s1" by (auto simp add: sup_state_def)
+    have "G \<turnstile> snd s2 <=l snd s1" by (auto simp add: sup_state_def)
     
     with G Load app l
     show ?thesis by clarsimp (drule sup_loc_some, simp+)
@@ -191,22 +183,22 @@ proof -
       where s1: "s1 = (vT # oT # ST, LT)" and
                 "field (G, cname) vname = Some (cname, b)" 
                 "is_class G cname" and
-            oT: "G\\<turnstile> oT\\<preceq> (Class cname)" and
-            vT: "G\\<turnstile> vT\\<preceq> b"
+            oT: "G\<turnstile> oT\<preceq> (Class cname)" and
+            vT: "G\<turnstile> vT\<preceq> b"
       by simp (elim exE conjE, simp, rule that)
     moreover
     from s1 G
     obtain vT' oT' ST' LT'
       where s2:  "s2 = (vT' # oT' # ST', LT')" and
-            oT': "G\\<turnstile> oT' \\<preceq> oT" and
-            vT': "G\\<turnstile> vT' \\<preceq> vT"
+            oT': "G\<turnstile> oT' \<preceq> oT" and
+            vT': "G\<turnstile> vT' \<preceq> vT"
       by - (cases s2, simp add: sup_state_Cons2, elim exE conjE, simp, rule that)
     moreover
     from vT' vT
-    have "G \\<turnstile> vT' \\<preceq> b" by (rule widen_trans)
+    have "G \<turnstile> vT' \<preceq> b" by (rule widen_trans)
     moreover
     from oT' oT
-    have "G\\<turnstile> oT' \\<preceq> (Class cname)" by (rule widen_trans)
+    have "G\<turnstile> oT' \<preceq> (Class cname)" by (rule widen_trans)
     ultimately
     show ?thesis
       by (auto simp add: Putfield)
@@ -214,12 +206,12 @@ proof -
     case Checkcast
     with app G
     show ?thesis 
-      by - (cases s2, auto intro: widen_RefT2 simp add: sup_state_Cons2)
+      by - (cases s2, auto intro!: widen_RefT2 simp add: sup_state_Cons2)
   next
     case Return
     with app G
     show ?thesis
-      by - (cases s2, clarsimp simp add: sup_state_Cons2, rule widen_trans)
+      by - (cases s2, auto simp add: sup_state_Cons2, rule widen_trans)
   next
     case Pop
     with app G
@@ -266,9 +258,9 @@ proof -
     obtain apTs X ST LT where
       s1: "s1 = (rev apTs @ X # ST, LT)" and
       l:  "length apTs = length list" and
-      C:  "G \\<turnstile> X \\<preceq> Class cname" and
-      w:  "\\<forall>x \\<in> set (zip apTs list). x \\<in> widen G" and
-      m:  "method (G, cname) (mname, list) \\<noteq> None"
+      C:  "G \<turnstile> X \<preceq> Class cname" and
+      w:  "\<forall>x \<in> set (zip apTs list). x \<in> widen G" and
+      m:  "method (G, cname) (mname, list) \<noteq> None"
       by (simp del: not_None_eq, elim exE conjE) (rule that)
 
     obtain apTs' X' ST' LT' where
@@ -278,7 +270,7 @@ proof -
       from l s1 G 
       have "length list < length (fst s2)" 
         by (simp add: sup_state_length)
-      hence "\\<exists>a b c. (fst s2) = rev a @ b # c \\<and> length a = length list"
+      hence "\<exists>a b c. (fst s2) = rev a @ b # c \<and> length a = length list"
         by (rule rev_append_cons [rulify])
       thus ?thesis
         by -  (cases s2, elim exE conjE, simp, rule that) 
@@ -289,26 +281,26 @@ proof -
     
     from this s1 s2 G 
     obtain
-      G': "G \\<turnstile> (apTs',LT') <=s (apTs,LT)" and
-      X : "G \\<turnstile>  X' \\<preceq> X" and "G \\<turnstile> (ST',LT') <=s (ST,LT)"
+      G': "G \<turnstile> (apTs',LT') <=s (apTs,LT)" and
+      X : "G \<turnstile>  X' \<preceq> X" and "G \<turnstile> (ST',LT') <=s (ST,LT)"
       by (simp add: sup_state_rev_fst sup_state_append_fst sup_state_Cons1);
         
     with C
-    have C': "G \\<turnstile> X' \\<preceq> Class cname"
+    have C': "G \<turnstile> X' \<preceq> Class cname"
       by - (rule widen_trans, auto)
     
     from G'
-    have "G \\<turnstile> map Some apTs' <=l map Some apTs"
+    have "G \<turnstile> map Some apTs' <=l map Some apTs"
       by (simp add: sup_state_def)
     also
     from l w
-    have "G \\<turnstile> map Some apTs <=l map Some list" 
+    have "G \<turnstile> map Some apTs <=l map Some list" 
       by (simp add: all_widen_is_sup_loc)
     finally
-    have "G \\<turnstile> map Some apTs' <=l map Some list" .
+    have "G \<turnstile> map Some apTs' <=l map Some list" .
 
     with l'
-    have w': "\\<forall>x \\<in> set (zip apTs' list). x \\<in> widen G"
+    have w': "\<forall>x \<in> set (zip apTs' list). x \<in> widen G"
       by (simp add: all_widen_is_sup_loc)
 
     from Invoke s2 l' w' C' m
@@ -319,14 +311,14 @@ qed
     
 
 lemma step_mono:
-"\\<lbrakk>succs i pc \\<noteq> {}; app (i,G,rT,s2); G \\<turnstile> s1 <=s s2\\<rbrakk> \\<Longrightarrow> 
-  G \\<turnstile> the (step (i,G,s1)) <=s the (step (i,G,s2))"
+"\<lbrakk>succs i pc \<noteq> {}; app (i,G,rT,s2); G \<turnstile> s1 <=s s2\<rbrakk> \<Longrightarrow> 
+  G \<turnstile> the (step (i,G,s1)) <=s the (step (i,G,s2))"
 proof (cases s1, cases s2) 
   fix a1 b1 a2 b2
   assume s: "s1 = (a1,b1)" "s2 = (a2,b2)"
-  assume succs: "succs i pc \\<noteq> {}"
+  assume succs: "succs i pc \<noteq> {}"
   assume app2: "app (i,G,rT,s2)"
-  assume G: "G \\<turnstile> s1 <=s s2"
+  assume G: "G \<turnstile> s1 <=s s2"
 
   from G app2
   have app1: "app (i,G,rT,s1)" by (rule app_mono)
@@ -334,9 +326,9 @@ proof (cases s1, cases s2)
   from app1 app2 succs
   obtain a1' b1' a2' b2'
     where step: "step (i,G,s1) = Some (a1',b1')" "step (i,G,s2) = Some (a2',b2')";
-    by (auto dest: app_step_some);
+    by (auto dest!: app_step_some);
 
-  have "G \\<turnstile> (a1',b1') <=s (a2',b2')"
+  have "G \<turnstile> (a1',b1') <=s (a2',b2')"
   proof (cases i)
     case Load
 
@@ -349,10 +341,10 @@ proof (cases s1, cases s2)
        y': "nat < length b2" "b2 ! nat = Some y'" by clarsimp
 
     from G s 
-    have "G \\<turnstile> b1 <=l b2" by (simp add: sup_state_def)
+    have "G \<turnstile> b1 <=l b2" by (simp add: sup_state_def)
 
     with y y'
-    have "G \\<turnstile> y \\<preceq> y'" 
+    have "G \<turnstile> y \<preceq> y'" 
       by - (drule sup_loc_some, simp+)
     
     with Load G y y' s step app1 app2 
@@ -411,17 +403,17 @@ proof (cases s1, cases s2)
     have lr: "length a = length a'" by simp
       
     from lr G s s1 s2 
-    have "G \\<turnstile> (ST, b1) <=s (ST', b2)"
+    have "G \<turnstile> (ST, b1) <=s (ST', b2)"
       by (simp add: sup_state_append_fst sup_state_Cons1)
     
     moreover
     
     from Invoke G s step app1 app2
-    have "b1 = b1' \\<and> b2 = b2'" by simp
+    have "b1 = b1' \<and> b2 = b2'" by simp
 
     ultimately 
 
-    have "G \\<turnstile> (ST, b1') <=s (ST', b2')" by simp
+    have "G \<turnstile> (ST, b1') <=s (ST', b2')" by simp
 
     with Invoke G s step app1 app2 s1 s2 l l'
     show ?thesis 
