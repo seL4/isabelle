@@ -197,7 +197,7 @@ val rank_of_Ord = result();
 
 goal Epsilon.thy "!!a b. a:b ==> rank(a) < rank(b)";
 by (res_inst_tac [("a1","b")] (rank RS ssubst) 1);
-be (UN_I RS ltI) 1;
+by (etac (UN_I RS ltI) 1);
 by (rtac succI1 1);
 by (REPEAT (ares_tac [Ord_UN, Ord_succ, Ord_rank] 1));
 val rank_lt = result();
@@ -236,7 +236,7 @@ by (rtac (rank RS trans) 1);
 by (rtac ([UN_least, succI1 RS UN_upper] MRS equalityI) 1);
 by (etac succE 1);
 by (fast_tac ZF_cs 1);
-be (rank_lt RS leI RS succ_leI RS le_imp_subset) 1;
+by (etac (rank_lt RS leI RS succ_leI RS le_imp_subset) 1);
 val rank_succ = result();
 
 goal Epsilon.thy "rank(Union(A)) = (UN x:A. rank(x))";

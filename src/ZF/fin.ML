@@ -74,7 +74,7 @@ val Fin_UnionI = result();
 
 (*Every subset of a finite set is finite.*)
 goal Fin.thy "!!b A. b: Fin(A) ==> ALL z. z<=b --> z: Fin(A)";
-be Fin_induct 1;
+by (etac Fin_induct 1);
 by (simp_tac (Fin_ss addsimps [subset_empty_iff]) 1);
 by (safe_tac (ZF_cs addSDs [subset_cons_iff RS iffD1]));
 by (eres_inst_tac [("b","z")] (cons_Diff RS subst) 2);

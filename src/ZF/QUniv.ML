@@ -99,8 +99,8 @@ val QSigma_subset_quniv = standard
 (*The opposite inclusion*)
 goalw QUniv.thy [quniv_def,QPair_def]
     "!!A a b. <a;b> : quniv(A) ==> a: quniv(A) & b: quniv(A)";
-be ([Transset_eclose RS Transset_univ, PowD] MRS 
-    Transset_includes_summands RS conjE) 1;
+by (etac ([Transset_eclose RS Transset_univ, PowD] MRS 
+	  Transset_includes_summands RS conjE) 1);
 by (REPEAT (ares_tac [conjI,PowI] 1));
 val quniv_QPair_D = result();
 

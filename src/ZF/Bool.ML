@@ -29,7 +29,7 @@ val one_neq_0 = one_not_0 RS notE;
 
 val major::prems = goalw Bool.thy bool_defs
     "[| c: bool;  c=1 ==> P;  c=0 ==> P |] ==> P";
-br (major RS consE) 1;
+by (rtac (major RS consE) 1);
 by (REPEAT (eresolve_tac (singletonE::prems) 1));
 val boolE = result();
 
@@ -119,7 +119,7 @@ by (bool0_tac 1);
 val and_absorb = result();
 
 goal Bool.thy "!!a b. [| a: bool; b:bool |] ==> a and b = b and a";
-be boolE 1;
+by (etac boolE 1);
 by (bool0_tac 1);
 by (bool0_tac 1);
 val and_commute = result();
@@ -142,7 +142,7 @@ by (bool0_tac 1);
 val or_absorb = result();
 
 goal Bool.thy "!!a b. [| a: bool; b:bool |] ==> a or b = b or a";
-be boolE 1;
+by (etac boolE 1);
 by (bool0_tac 1);
 by (bool0_tac 1);
 val or_commute = result();

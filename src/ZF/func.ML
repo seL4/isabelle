@@ -260,7 +260,7 @@ val domain_restrict = result();
 val [prem] = goalw ZF.thy [restrict_def]
     "A<=C ==> restrict(lam x:C. b(x), A) = (lam x:A. b(x))";
 by (rtac (refl RS lam_cong) 1);
-be (prem RS subsetD RS beta) 1;	(*easier than calling simp_tac*)
+by (etac (prem RS subsetD RS beta) 1);	(*easier than calling simp_tac*)
 val restrict_lam_eq = result();
 
 
