@@ -73,23 +73,29 @@ fun gen_obtain prep_vars prep_propp prep_att (raw_vars, raw_asms) state =
     val (vars_ctxt, vars) =
       foldl_map prep_vars (Proof.context_of state, map Comment.ignore raw_vars);
     val xs = flat (map fst vars);
+    val xs_thesis = xs @ [AutoBind.thesisN];
+
+    val bind_skolem = ProofContext.bind_skolem vars_ctxt xs_thesis;
+    fun bind_propp (prop, (pats1, pats2)) =
+      (bind_skolem prop, (map bind_skolem pats1, map bind_skolem pats2));
 
     (*obtain asms*)
     fun prep_asm (ctxt, (name, src, raw_propps)) =
       let
         val atts = map (prep_att (ProofContext.theory_of ctxt)) src;
         val (ctxt', propps) = foldl_map prep_propp (ctxt, raw_propps);
-      in (ctxt', (name, atts, propps)) end;
+      in (ctxt', ((name, atts, map bind_propp propps), map #1 propps)) end;
 
-    val (asms_ctxt, asms) = foldl_map prep_asm (vars_ctxt, map Comment.ignore raw_asms);
-    val asm_props = flat (map (map fst o #3) asms);
+    val (asms_ctxt, asms_result) = foldl_map prep_asm (vars_ctxt, map Comment.ignore raw_asms);
+    val (asms, asm_propss) = Library.split_list asms_result;
+    val asm_props = flat asm_propss;
     val _ = ProofContext.warn_extra_tfrees vars_ctxt asms_ctxt;
 
     (*thesis*)
-    val (prop, (goal_facts, goal)) = Proof.get_goal state;
+    val (prop, (goal_facts, _)) = Proof.get_goal state;
 
     val parms = Logic.strip_params prop;
-    val parm_names = Term.variantlist (map #1 parms, Term.add_term_names (prop, xs));
+    val parm_names = Term.variantlist (map #1 parms, Term.add_term_names (prop, xs_thesis));
     val parm_types = map #2 parms;
     val parm_vars = map Library.single parm_names ~~ map Some parm_types;
 
@@ -98,14 +104,15 @@ fun gen_obtain prep_vars prep_propp prep_att (raw_vars, raw_asms) state =
 
     val hyps = map (fn t => Term.subst_bounds (rev_frees, t)) (Logic.strip_assums_hyp prop);
     val concl = Term.subst_bounds (rev_frees, Logic.strip_assums_concl prop);
-    val ((thesis_name, thesis_term), atomic_thesis) = AutoBind.atomic_thesis concl;
+    val (thesis_term, atomic_thesis) = AutoBind.atomic_thesis concl;
+    val bound_thesis = bind_skolem atomic_thesis;
 
     (*that_prop*)
     fun find_free x t =
       (case ProofContext.find_free t x of Some (Free a) => Some a | _ => None);
     fun occs_var x = Library.get_first (find_free x) asm_props;
     val that_prop =
-      Term.list_all_free (mapfilter occs_var xs, Logic.list_implies (asm_props, atomic_thesis));
+      Term.list_all_free (mapfilter occs_var xs, Logic.list_implies (asm_props, bound_thesis));
 
     fun after_qed st =
       st
@@ -119,10 +126,10 @@ fun gen_obtain prep_vars prep_propp prep_att (raw_vars, raw_asms) state =
     |> Seq.map (fn st => st
       |> Proof.fix_i parm_vars
       |> Proof.assume_i [(hypsN, [], map (rpair ([], [])) hyps)]
-      |> LocalDefs.def_i "" [] ((thesis_name, None), (thesis_term, []))
+      |> LocalDefs.def_i "" [] ((AutoBind.thesisN, None), (thesis_term, []))
       |> Proof.presume_i [(thatN, Data.that_atts, [(that_prop, ([], []))])]
       |> Proof.from_facts goal_facts
-      |> Proof.show_i after_qed "" [] (atomic_thesis, ([], [])))
+      |> Proof.show_i after_qed "" [] (bound_thesis, ([], [])))
   end;
 
 
