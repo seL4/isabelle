@@ -98,7 +98,7 @@ $(OUT)/HOL: $(OUT)/Pure $(SRC)/Provers/quantifier1.ML \
   Relation_Power.thy Set.ML Set.thy SetInterval.ML SetInterval.thy \
   Sum_Type.ML Sum_Type.thy Tools/datatype_abs_proofs.ML Tools/datatype_aux.ML \
   Tools/datatype_codegen.ML Tools/datatype_package.ML Tools/datatype_prop.ML \
-  Tools/datatype_rep_proofs.ML \
+  Tools/datatype_realizer.ML Tools/datatype_rep_proofs.ML \
   Tools/inductive_package.ML Tools/inductive_codegen.ML Tools/meson.ML Tools/numeral_syntax.ML \
   Tools/primrec_package.ML Tools/recdef_package.ML Tools/recfun_codegen.ML \
   Tools/record_package.ML Tools/rewrite_hol_proof.ML \
