@@ -72,6 +72,7 @@ sig
   val prove_goalw_cterm_nocheck	: thm list->cterm->(thm list->tactic list)->thm
   val quick_and_dirty_prove_goalw_cterm: theory -> thm list -> cterm
     -> (thm list -> tactic list) -> thm
+  val simple_prove_goal_cterm : cterm->(thm list->tactic list)->thm
   val push_proof	: unit -> unit
   val read		: string -> term
   val ren		: string -> int -> unit
@@ -971,6 +972,21 @@ val atomic_goal = agoal true;
 (*implicit context versions*)
 fun Goal s = atomic_goal (Context.the_context ()) s;
 fun Goalw thms s = atomic_goalw (Context.the_context ()) thms s;
+
+(*simple version with minimal amount of checking and postprocessing*)
+fun simple_prove_goal_cterm G f =
+  let
+    val As = Drule.strip_imp_prems G;
+    val B = Drule.strip_imp_concl G;
+    val asms = map (norm_hhf_rule o assume) As;
+    fun check None = error "prove_goal: tactic failed"
+      | check (Some (thm, _)) = (case nprems_of thm of
+            0 => thm
+          | i => !result_error_fn thm (string_of_int i ^ " unsolved goals!"))
+  in
+    standard (implies_intr_list As
+      (check (Seq.pull (EVERY (f asms) (trivial B)))))
+  end;
 
 
 (*Proof step "by" the given tactic -- apply tactic to the proof state*)
