@@ -33,38 +33,32 @@ X-Symbol;
 *** Isar ***
 
 * improved proof by cases and induction:
+  - 'case' command admits impromptu naming of parameters (such as
+    "case (Suc n)");
+  - 'induct' method divinates rule instantiation from the inductive
+    claim; no longer requires excessive ?P bindings for proper
+    instantiation of cases;
+  - 'induct' method properly enumerates all possibilities of set/type
+    rules; as a consequence facts may be also passed through *type*
+    rules without further ado;
+  - 'induct' method now derives symbolic cases from the *rulified*
+    rule (before it used to rulify cases stemming from the internal
+    atomized version); this means that the context of a non-atomic
+    statement becomes is included in the hypothesis, avoiding the
+    slightly cumbersome show "PROP ?case" form;
+  - 'induct' may now use elim-style induction rules without chaining
+    facts, using ``missing'' premises from the goal state; this allows
+    rules stemming from inductive sets to be applied in unstructured
+    scripts, while still benefitting from proper handling of non-atomic
+    statements; NB: major inductive premises need to be put first, all
+    the rest of the goal is passed through the induction;
+  - 'induct' proper support for mutual induction involving non-atomic
+    rule statements (uses the new concept of simultaneous goals, see
+    below);
   - removed obsolete "(simplified)" and "(stripped)" options of methods;
   - added 'print_induct_rules' (covered by help item in Proof General > 3.3);
   - moved induct/cases attributes to Pure, methods to Provers;
   - generic method setup instantiated for FOL and HOL;
-
-  - 'case' command admits impromptu naming of parameters (such as
-"case (Suc n)");
-
-  - 'induct' method divinates rule instantiation from the inductive
-claim; no longer requires excessive ?P bindings for proper
-instantiation of cases;
-
-  - 'induct' method properly enumerates all possibilities of set/type
-rules; as a consequence facts may be also passed through *type* rules
-without further ado;
-
-  - 'induct' method now derives symbolic cases from the *rulified*
-rule (before it used to rulify cases stemming from the internal
-atomized version); this means that the context of a non-atomic
-statement becomes is included in the hypothesis, avoiding the slightly
-cumbersome show "PROP ?case" form;
-
-  - 'induct' may now use elim-style induction rules without chaining
-facts, using ``missing'' premises from the goal state; this allows
-rules stemming from inductive sets to be applied in unstructured
-scripts, while still benefitting from proper handling of non-atomic
-statements; NB: major inductive premises need to be put first, all the
-rest of the goal is passed through the induction;
-
-- 'induct' proper support for mutual induction involving non-atomic
-rule statements (uses the new concept of simultaneous goals, see
-below);
 
 * Pure: support multiple simultaneous goal statements, for example
 "have a: A and b: B" (same for 'theorem' etc.); being a pure
@@ -82,7 +76,8 @@ multi-step methods like 'auto', 'simp_all', 'blast+' etc.;
 * Pure: proper integration with ``locales''; unlike the original
 version by Florian Kammüller, Isar locales package high-level proof
 contexts rather than raw logical ones (e.g. we admit to include
-attributes everywhere);
+attributes everywhere); operations on locales include merge and
+rename; e.g. see HOL/ex/Locales.thy;
 
 * Pure: theory goals now support ad-hoc contexts, which are discharged
 in the result, as in ``lemma (assumes A and B) K: A .''; syntax
@@ -122,6 +117,14 @@ of full simplifier context; 'iff' attribute handles conditional rules;
 * HOL: 'inductive' no longer features separate (collective) attributes
 for 'intros' (was found too confusing);
 
+* HOLCF: domain package adapted to new-style theories, e.g. see
+HOLCF/ex/Dnat.thy;
+
+* ZF: proper integration of logic-specific tools and packages,
+including theory commands '(co)inductive', '(co)datatype',
+'rep_datatype', 'inductive_cases', as well as methods 'ind_cases',
+'induct_tac', 'case_tac', and 'typecheck' (with attribute 'TC');
+
 
 
 *** HOL ***
@@ -152,16 +155,17 @@ hints on converting existing sources:
 
   - remove all special provisions on numerals in proofs;
 
-* HOL/record:
-  - removed old "make" and "make_scheme" operations -- INCOMPATIBILITY;
+* HOL/record package improvements:
+  - new derived operations "fields" to build a partial record section,
+    "extend" to promote a fixed record to a record scheme, and
+    "truncate" for the reverse; cf. theorems "xxx.defs", which are *not*
+    declared as simp by default;
+  - removed "make_scheme" operations (use "make" with "extend") --
+    INCOMPATIBILITY;
   - removed "more" class (simply use "term") -- INCOMPATIBILITY;
   - provides cases/induct rules for use with corresponding Isar
     methods (for concrete records, record schemes, concrete more
-    parts, schematic more parts -- in that order);
-  - new derived operations "make" (for adding fields of current
-    record), "extend" to promote fixed record to record scheme, and
-    "truncate" for the reverse; cf. theorems "derived_defs", which are
-    *not* declared as simp by default;
+    parts, and schematic more parts -- in that order);
   - internal definitions directly based on a light-weight abstract
     theory of product types over typedef rather than datatype;
 
@@ -202,61 +206,62 @@ renamed "Product_Type.unit";
 
 *** HOLCF ***
 
-* proper rep_datatype lift (see theory Lift); use plain induct_tac
-instead of former lift.induct_tac; always use UU instead of Undef;
-
-* 'domain' package adapted to new-style theories, e.g. see
-HOLCF/ex/Dnat.thy;
+* proper rep_datatype lift (see theory Lift) instead of ML hacks --
+potential INCOMPATIBILITY; now use plain induct_tac instead of former
+lift.induct_tac, always use UU instead of Undef;
 
 
 *** ZF ***
 
-* ZF: new-style theory commands '(co)inductive', '(co)datatype',
-'rep_datatype', 'inductive_cases'; also methods 'ind_cases',
-'induct_tac', 'case_tac', and 'typecheck' (with attribute 'TC');
-
-* ZF: the integer library now covers quotients and remainders, with
-many laws relating division to addition, multiplication, etc.;
+* ZF/UNITY: Chandy and Misra's UNITY is now available in ZF, giving a
+typeless version of the formalism;
 
 * ZF/Induct: new directory for examples of inductive definitions,
 including theory Multiset for multiset orderings;
 
-* ZF/UNITY: Chandy and Misra's UNITY is now available in ZF, giving a
-typeless version of the formalism;
+* ZF: the integer library now covers quotients and remainders, with
+many laws relating division to addition, multiplication, etc.;
 
 
 *** General ***
 
-* kernel: meta-level proof terms (by Stefan Berghofer), see also ref
-manual;
+* Pure/kernel: meta-level proof terms (by Stefan Berghofer); reference
+variable proof controls level of detail: 0 = no proofs (only oracle
+dependencies), 1 = lemma dependencies, 2 = compact proof terms; see
+also ref manual for further ML interfaces;
 
-* Pure/axclass: removed obsolete ML interface goal_subclass/goal_arity;
+* Pure/axclass: removed obsolete ML interface
+goal_subclass/goal_arity;
 
-* classical: renamed addaltern to addafter, addSaltern to addSafter;
+* Pure/syntax: new token syntax "num" for plain numerals (without "#"
+of "xnum"); potential INCOMPATIBILITY, since -0, -1 etc. are now
+separate tokens, so expressions involving minus need to be spaced
+properly;
 
-* clasimp: ``iff'' declarations now handle conditional rules as well;
+* Pure/syntax: support non-oriented infixes;
 
-* syntax: new token syntax "num" for plain numerals (without "#" of
-"xnum"); potential INCOMPATIBILITY, since -0, -1 etc. are now separate
-tokens, so expressions involving minus need to be spaced properly;
+* Pure/syntax: print modes "type_brackets" and "no_type_brackets"
+control output of nested => (types); the default behavior is
+"type_brackets";
 
-* syntax: support non-oriented infixes;
-
-* syntax: print modes "type_brackets" and "no_type_brackets" control
-output of nested => (types); the default behavior is "type_brackets";
-
-* syntax: builtin parse translation for "_constify" turns valued
+* Pure/syntax: builtin parse translation for "_constify" turns valued
 tokens into AST constants;
 
-* syntax: prefer later print_translation functions; potential
-INCOMPATIBILITY: need to reverse declarations of multiple translation
-functions for same constant;
+* Pure/syntax: prefer later declarations of translations and print
+translation functions; potential INCOMPATIBILITY: need to reverse
+multiple declarations for same syntax element constant;
+
+* Provers/classical: renamed addaltern to addafter, addSaltern to
+addSafter;
+
+* Provers/clasimp: ``iff'' declarations now handle conditional rules
+as well;
 
 * system: refrain from any attempt at filtering input streams; no
 longer support ``8bit'' encoding of old isabelle font, instead proper
 iso-latin characters may now be used;
 
-* system: support Poly/ML 4.1.1 (now able to manage large heaps);
+* system: support Poly/ML 4.1.1 (able to manage larger heaps);
 
 * system: Proof General keywords specification is now part of the
 Isabelle distribution (see etc/isar-keywords.el);
