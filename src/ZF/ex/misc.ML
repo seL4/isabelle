@@ -4,7 +4,7 @@
     Copyright   1993  University of Cambridge
 
 Miscellaneous examples for Zermelo-Fraenkel Set Theory 
-Cantor's Theorem; Schroeder-Bernstein Theorem; Composition of homomorphisms...
+Composition of homomorphisms, Pastre's examples, ...
 *)
 
 writeln"ZF/ex/misc";
