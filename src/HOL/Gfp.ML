@@ -42,6 +42,11 @@ by (rtac (gfp_upperbound RS subsetD) 1);
 by Auto_tac;
 qed "weak_coinduct";
 
+Goal "!!X. [| a : X; g`X <= f (g`X) |] ==> g a : gfp f";
+by (etac (gfp_upperbound RS subsetD) 1);
+by (etac imageI 1);
+qed "weak_coinduct_image";
+
 Goal "[| X <= f(X Un gfp(f));  mono(f) |] ==>  \
 \    X Un gfp(f) <= f(X Un gfp(f))";
 by (blast_tac (claset() addDs [gfp_lemma2, mono_Un]) 1); 
