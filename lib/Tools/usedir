@@ -15,9 +15,10 @@ function usage()
   echo "Usage: $PRG LOGIC NAME"
   echo
   echo "  Options are:"
-  echo "    -b           build mode (output heap image, use dir \".\")"
+  echo "    -b           build mode (output heap image, using current dir)"
   echo "    -i BOOL      generate theory browsing information,"
   echo "                 i.e. HTML / graph data (default false)"
+  echo "    -r           reset session path"
   echo "    -s NAME      override session NAME"
   echo
   echo "  Build object-logic or run examples. Also creates browsing"
@@ -33,12 +34,13 @@ function usage()
 
 BUILD=""
 INFO=false
+RESET=false
 SESSION=""
 
 function getoptions()
 {
   OPTIND=1
-  while getopts "bi:s:" OPT
+  while getopts "bi:rs:" OPT
   do
     case "$OPT" in
       b)
@@ -46,6 +48,9 @@ function getoptions()
         ;;
       i)
         INFO="$OPTARG"
+        ;;
+      r)
+        RESET=true
         ;;
       s)
         SESSION="$OPTARG"
@@ -112,16 +117,18 @@ if [ -n "$BUILD" ]; then
   LOG="$LOGDIR/$ITEM"
 
   $ISABELLE \
-    -e "make_html := $INFO; make_graph := $INFO; output_dir := \"$ISABELLE_BROWSER_INFO\"; home_path := \"$HOME\"; Context.add_session\"$SESSION\"; exit_use_dir\".\"; make_html := false; make_graph := false;" \
+    -e "Session.use_dir $RESET $INFO \"$SESSION\";" \
     -q -w $LOGIC $NAME > $LOG 2>&1
 else
   ITEM=$(basename $LOGIC)-"$SESSION"
   echo -n "Running $ITEM ... "
   LOG="$LOGDIR/$ITEM"
 
+  cd "$NAME"
   $ISABELLE \
-    -e "make_html := $INFO; make_graph := $INFO; output_dir := \"$ISABELLE_BROWSER_INFO\"; home_path := \"$HOME\"; Context.add_session\"$SESSION\"; exit_use_dir\"$NAME\"; make_html := false; make_graph := false; quit();" \
+    -e "Session.use_dir $RESET $INFO \"$SESSION\"; quit();" \
     -r -q $LOGIC > $LOG 2>&1
+  cd ..
 fi
 
 RC=$?
