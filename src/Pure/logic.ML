@@ -26,6 +26,8 @@ sig
   val list_flexpairs	: (term*term)list * term -> term
   val list_implies	: term list * term -> term
   val list_rename_params: string list * term -> term
+  val mk_cond_defpair	: term list -> term * term -> string * term
+  val mk_defpair	: term * term -> string * term
   val mk_equals		: term * term -> term
   val mk_flexpair	: term * term -> term
   val mk_implies	: term * term -> term
@@ -72,6 +74,7 @@ fun mk_implies(A,B) = implies $ A $ B;
 fun dest_implies (Const("==>",_) $ A $ B)  =  (A,B)
   | dest_implies A = raise TERM("dest_implies", [A]);
 
+
 (** nested implications **)
 
 (* [A1,...,An], B  goes to  A1==>...An==>B  *)
@@ -97,6 +100,7 @@ fun strip_prems (0, As, B) = (As, B)
 (*Count premises -- quicker than (length ostrip_prems) *)
 fun count_prems (Const("==>", _) $ A $ B, n) = count_prems (B,n+1)
   | count_prems (_,n) = n;
+
 
 (** flex-flex constraints **)
 
@@ -136,12 +140,25 @@ fun strip_horn A =
   let val (tpairs,horn) = strip_flexpairs A 
   in  (tpairs, strip_imp_prems horn, strip_imp_concl horn)   end;
 
+
+(** definitions **)
+
+fun mk_cond_defpair As (lhs, rhs) =
+  (case Term.head_of lhs of
+    Const (name, _) =>
+      (Sign.base_name name ^ "_def", list_implies (As, mk_equals (lhs, rhs)))
+  | _ => raise TERM ("Malformed definition: head of lhs not a constant", [lhs, rhs]));
+
+fun mk_defpair lhs_rhs = mk_cond_defpair [] lhs_rhs;
+
+
 (** types as terms **)
 
 fun mk_type ty = Const ("TYPE", itselfT ty);
 
 fun dest_type (Const ("TYPE", Type ("itself", [ty]))) = ty
   | dest_type t = raise TERM ("dest_type", [t]);
+
 
 (** class constraints **)
 
