@@ -27,9 +27,9 @@ proving, which facilitates porting of legacy proof scripts.
 \indexisarcmd{header}\indexisarcmd{theory}\indexisarcmd{end}\indexisarcmd{context}
 \begin{matharray}{rcl}
   \isarcmd{header} & : & \isarkeep{toplevel} \\
-  \isarcmd{theory} & : & \isartrans{\cdot}{theory} \\
-  \isarcmd{context}^* & : & \isartrans{\cdot}{theory} \\
-  \isarcmd{end} & : & \isartrans{theory}{\cdot} \\
+  \isarcmd{theory} & : & \isartrans{toplevel}{theory} \\
+  \isarcmd{context}^* & : & \isartrans{toplevel}{theory} \\
+  \isarcmd{end} & : & \isartrans{theory}{toplevel} \\
 \end{matharray}
 
 Isabelle/Isar ``new-style'' theories are either defined via theory files or
@@ -839,7 +839,7 @@ as well.  These typically achieve a stronger forward style of reasoning.
 \indexisarcmd{pr}\indexisarcmd{thm}\indexisarcmd{term}\indexisarcmd{prop}\indexisarcmd{typ}
 \indexisarcmd{print-facts}\indexisarcmd{print-binds}
 \begin{matharray}{rcl}
-  \isarcmd{pr} & : & \isarkeep{\cdot} \\
+  \isarcmd{pr} & : & \isarkeep{theory~|~proof} \\
   \isarcmd{thm} & : & \isarkeep{theory~|~proof} \\
   \isarcmd{term} & : & \isarkeep{theory~|~proof} \\
   \isarcmd{prop} & : & \isarkeep{theory~|~proof} \\
@@ -908,7 +908,7 @@ represented in {\LaTeX} source, according to the Isabelle style
 Note that $\isarkeyword{pr}~(latex)$ is sufficient to achieve the same output,
 if the current Isabelle session has the other modes already activated, say due
 to some particular user interface configuration such as Proof~General
-\cite{proofgeneral} with X-Symbol mode \cite{FIXME}.
+\cite{proofgeneral,Aspinall:TACAS:2000} with X-Symbol mode \cite{x-symbol}.
 
 
 \subsection{History commands}\label{sec:history}
@@ -931,9 +931,10 @@ undoable.
 
 \begin{warn}
   History commands may not be used with user interfaces such as Proof~General
-  \cite{proofgeneral}, which takes care of stepping forth and back itself.
-  Interfering with manual $\isarkeyword{undo}$, $\isarkeyword{redo}$, or even
-  $\isarkeyword{kill}$ commands would quickly result in utter confusion.
+  \cite{proofgeneral,Aspinall:TACAS:2000}, which takes care of stepping forth
+  and back itself.  Interfering with manual $\isarkeyword{undo}$,
+  $\isarkeyword{redo}$, or even $\isarkeyword{kill}$ commands would quickly
+  result in utter confusion.
 \end{warn}
 
 \begin{descr}
@@ -1011,10 +1012,14 @@ The following elements emulate unstructured tactic scripts to some extent.
 While these are anathema for writing proper Isar proof documents, they might
 come in handy for interactive exploration and debugging.
 
-\indexisarcmd{apply}\indexisarcmd{apply-end}\indexisarcmd{back}\indexisarmeth{tactic}
+\indexisarcmd{apply}\indexisarcmd{apply-end}
+\indexisarcmd{defer}\indexisarcmd{prefer}\indexisarcmd{back}
+\indexisarmeth{tactic}
 \begin{matharray}{rcl}
   \isarcmd{apply} & : & \isartrans{proof(prove)}{proof(prove)} \\
   \isarcmd{apply_end} & : & \isartrans{proof(state)}{proof(state)} \\
+  \isarcmd{defer} & : & \isartrans{proof}{proof} \\
+  \isarcmd{prefer} & : & \isartrans{proof}{proof} \\
   \isarcmd{back} & : & \isartrans{proof}{proof} \\
   tactic & : & \isarmeth \\
 \end{matharray}
@@ -1026,6 +1031,10 @@ come in handy for interactive exploration and debugging.
   'apply' method
   ;
   applyend method
+  ;
+  'defer' nat?
+  ;
+  'prefer' nat
   ;
   'tactic' text
   ;
@@ -1048,6 +1057,9 @@ come in handy for interactive exploration and debugging.
   No facts are passed to $m$.  Furthermore, the static context is that of the
   enclosing goal (as for actual $\QEDNAME$).  Thus the proof method may not
   refer to any assumptions introduced in the current body, for example.
+\item [$\isarkeyword{defer}~n$ and $\isarkeyword{prefer}~n$] shuffle the list
+  of pending goals: $defer$ puts off goal $n$ to the end of the list ($n = 1$
+  by default), while $prefer$ brings goal $n$ to the top.
 \item [$\isarkeyword{back}$] does back-tracking over the result sequence of
   the latest proof command.\footnote{Unlike the ML function \texttt{back}
     \cite{isabelle-ref}, the Isar command does not search upwards for further
