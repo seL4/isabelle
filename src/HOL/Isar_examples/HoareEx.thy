@@ -180,18 +180,6 @@ text {*
  the problem.
 *}
 
-consts
-  sum :: "(nat => nat) => nat => nat"
-primrec
-  "sum f 0 = 0"
-  "sum f (Suc n) = f n + sum f n"
-
-syntax
-  "_sum" :: "idt => nat => nat => nat"
-    ("SUM _<_. _" [0, 0, 10] 10)
-translations
-  "SUM j<k. b" == "sum (\<lambda>j. b) k"
-
 text {*
  The following proof is quite explicit in the individual steps taken,
  with the \name{hoare} method only applied locally to take care of
@@ -211,8 +199,8 @@ theorem
       .{\<acute>S = (SUM j<n. j)}."
   (is "|- _ (_; ?while) _")
 proof -
-  let ?sum = "\<lambda>k. SUM j<k. j"
-  let ?inv = "\<lambda>s i. s = ?sum i"
+  let ?sum = "\<lambda>k::nat. SUM j<k. j"
+  let ?inv = "\<lambda>s i::nat. s = ?sum i"
 
   have "|- .{True}. \<acute>S := 0; \<acute>I := 1 .{?inv \<acute>S \<acute>I}."
   proof -
@@ -252,8 +240,8 @@ theorem
       OD
       .{\<acute>S = (SUM j<n. j)}."
 proof -
-  let ?sum = "\<lambda>k. SUM j<k. j"
-  let ?inv = "\<lambda>s i. s = ?sum i"
+  let ?sum = "\<lambda>k::nat. SUM j<k. j"
+  let ?inv = "\<lambda>s i::nat. s = ?sum i"
 
   show ?thesis
   proof hoare
