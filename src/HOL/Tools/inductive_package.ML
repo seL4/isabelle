@@ -455,7 +455,7 @@ fun project_rules [name] rule = [(name, rule)]
             RS mp |> Thm.permute_prems 0 ~1 |> Drule.standard;
       in names ~~ map proj (1 upto n) end;
 
-fun add_cases_induct no_elim no_ind names elims induct =
+fun add_cases_induct no_elim no_induct names elims induct =
   let
     fun cases_spec (name, elim) thy =
       thy
@@ -466,7 +466,7 @@ fun add_cases_induct no_elim no_ind names elims induct =
 
     fun induct_spec (name, th) = #1 o PureThy.add_thms
       [(("", RuleCases.save induct th), [InductAttrib.induct_set_global name])];
-    val induct_specs = if no_ind then [] else map induct_spec (project_rules names induct);
+    val induct_specs = if no_induct then [] else map induct_spec (project_rules names induct);
   in Library.apply (cases_specs @ induct_specs) end;
 
 
@@ -586,8 +586,7 @@ end;
 
 (* inductive_cases(_i) *)
 
-fun gen_inductive_cases prep_att prep_const prep_prop
-    (((name, raw_atts), raw_props), comment) thy =
+fun gen_inductive_cases prep_att prep_prop (((name, raw_atts), raw_props), comment) thy =
   let
     val ss = Simplifier.simpset_of thy;
     val sign = Theory.sign_of thy;
@@ -599,10 +598,8 @@ fun gen_inductive_cases prep_att prep_const prep_prop
     IsarThy.have_theorems_i Drule.lemmaK [(((name, atts), map Thm.no_attributes thms), comment)]
   end;
 
-val inductive_cases =
-  gen_inductive_cases Attrib.global_attribute Sign.intern_const ProofContext.read_prop;
-
-val inductive_cases_i = gen_inductive_cases (K I) (K I) ProofContext.cert_prop;
+val inductive_cases = gen_inductive_cases Attrib.global_attribute ProofContext.read_prop;
+val inductive_cases_i = gen_inductive_cases (K I) ProofContext.cert_prop;
 
 
 (* mk_cases_meth *)
@@ -843,7 +840,8 @@ fun add_inductive_i verbose declare_consts alt_name coind no_elim no_ind cs
         con_defs thy params paramTs cTs cnames induct_cases;
     val thy2 = thy1
       |> put_inductives full_cnames ({names = full_cnames, coind = coind}, result)
-      |> add_cases_induct no_elim (no_ind orelse coind) full_cnames elims induct;
+      |> add_cases_induct no_elim (no_ind orelse coind orelse length cs > 1)
+          full_cnames elims induct;
   in (thy2, result) end;
 
 fun add_inductive verbose coind c_strings intro_srcs raw_monos raw_con_defs thy =
