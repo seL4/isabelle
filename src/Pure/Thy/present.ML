@@ -14,6 +14,8 @@ end;
 signature PRESENT =
 sig
   include BASIC_PRESENT
+  val write_graph: {name: string, ID: string, dir: string, unfold: bool,
+   path: string, parents: string list} list -> Path.T -> unit
   val init: bool -> string -> string list -> string -> Path.T option -> Url.T option * bool -> unit
   val finish: unit -> unit
   val init_theory: string -> unit
@@ -68,7 +70,7 @@ struct
 
   val empty = {name = "Pure", session = [], is_local = false};
   val copy = I;
-  fun prep_ext _ = empty;
+  fun prep_ext _ = {name = "", session = [], is_local = false};
   fun merge _ = empty;
   fun print _ _ = ();
 end;
