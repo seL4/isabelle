@@ -46,13 +46,6 @@ val IT_cases = map (IT.mk_cases
     ["Var n $$ ss : IT", "Abs t : IT", "Abs r $ s $$ ts : IT"];
 AddSEs IT_cases;
 
-(* FIXME
-"Arith.trans_less_add1",   "?i < ?j ==> ?i < ?j + ?m"
-"Arith.less_imp_add_less", "?m < ?n ==> ?m < ?n + ?k"
-"Arith.trans_le_add1", "?i <= ?j ==> ?i <= ?j + ?m"
-"Arith.le_imp_add_le", "?m <= ?n ==> ?m <= ?n + ?k"
-*)
-
 Goal "t : termi beta ==> \
 \     !r rs. t = r$$rs --> r : termi beta & rs : termi(step1 beta)";
 be acc_induct 1;
