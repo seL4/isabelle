@@ -500,11 +500,88 @@ qed "zdiff_self";
 
 Addsimps [zdiff0, zdiff0_right, zdiff_self];
 
-Goal "[| znegative(k); k: int |] ==> k $< #0";
+Goal "k: int ==> znegative(k) <-> k $< #0";
 by (asm_simp_tac (simpset() addsimps [zless_def]) 1);
-qed "znegative_imp_zless_0";
+qed "znegative_iff_zless_0";
 
 Goal "[| #0 $< k; k: int |] ==> znegative($-k)";
 by (asm_full_simp_tac (simpset() addsimps [zless_def]) 1);
 qed "zero_zless_imp_znegative_zminus";
+
+Goal "#0 $<= $# n";
+by (simp_tac (simpset() addsimps [not_zless_iff_zle RS iff_sym, 
+                                  znegative_iff_zless_0 RS iff_sym]) 1); 
+qed "zero_zle_int_of";
+AddIffs [zero_zle_int_of];
+
+Goal "nat_of(#0) = 0";
+by (simp_tac (ZF_ss addsimps [natify_0, int_of_0 RS sym, nat_of_int_of]) 1);
+qed "nat_of_0";
+Addsimps [nat_of_0];
+
+Goal "[| z $<= $#0; z: int |] ==> nat_of(z) = 0"; 
+by (auto_tac (claset(), 
+	      simpset() addsimps [znegative_iff_zless_0 RS iff_sym, 
+				  zle_def, zneg_nat_of])); 
+val lemma = result();
+
+Goal "z $<= $#0 ==> nat_of(z) = 0"; 
+by (subgoal_tac "nat_of(intify(z)) = 0" 1);
+by (rtac lemma 2);
+by Auto_tac;  
+qed "nat_le_int0";
+
+Goal "$# n = #0 \\<Longrightarrow> natify(n) = 0";
+by (rtac not_znegative_imp_zero 1);
+by Auto_tac;  
+qed "int_of_eq_0_imp_natify_eq_0";
+
+Goalw [nat_of_def, raw_nat_of_def] "nat_of($- $# n) = 0";
+by (auto_tac((claset() addSDs [not_znegative_imp_zero, natify_int_of_eq], 
+              simpset())     delIffs [int_of_eq]));
+by (rtac the_equality 1);
+by Auto_tac;  
+by (blast_tac (claset() addIs [int_of_eq_0_imp_natify_eq_0, sym]) 1); 
+qed "nat_of_zminus_int_of";
+
+Goal "#0 $<= z \\<Longrightarrow> $# nat_of(z) = intify(z)";
+by (rtac not_zneg_nat_of_intify 1);
+by (asm_simp_tac (simpset() addsimps [znegative_iff_zless_0, 
+                                      not_zless_iff_zle]) 1); 
+qed "int_of_nat_of";
+
+Addsimps [int_of_nat_of, nat_of_zminus_int_of];
+
+Goal "$# nat_of(z) = (if #0 $<= z then intify(z) else #0)";
+by (simp_tac (simpset() addsimps [int_of_nat_of,
+                              znegative_iff_zless_0, not_zle_iff_zless]) 1);
+qed "int_of_nat_of_if";
+
+Goal "[| m: nat; z: int |] ==> (m < nat_of(z)) <-> ($#m $< z)";
+by (case_tac "znegative(z)" 1);
+by (etac (not_zneg_nat_of RS subst) 2);
+by (auto_tac (claset() addDs [zless_trans]
+		       addSDs [zero_zle_int_of RS zle_zless_trans], 
+	      simpset() addsimps [znegative_iff_zless_0])); 
+qed "zless_nat_iff_int_zless";
+
+
+(** nat_of and zless **)
+
+(*An alternative condition is  $#0 <= w  *)
+Goal "$#0 $< z ==> (nat_of(w) < nat_of(z)) <-> (w $< z)";
+by (rtac iff_trans 1);
+by (rtac (zless_int_of RS iff_sym) 1);
+by (auto_tac (claset(), 
+       simpset() addsimps [int_of_nat_of_if] delsimps [zless_int_of]));  
+by (auto_tac (claset() addEs [zless_asym],
+              simpset() addsimps [not_zle_iff_zless]));  
+by (blast_tac (claset() addIs [zless_zle_trans]) 1); 
+val lemma = result();
+
+Goal "(nat_of(w) < nat_of(z)) <-> ($#0 $< z & w $< z)";
+by (case_tac "$#0 $< z" 1);
+by (auto_tac (claset(), 
+	      simpset() addsimps [lemma, nat_le_int0, not_zless_iff_zle])); 
+qed "zless_nat_conj";
 

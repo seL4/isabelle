@@ -372,6 +372,18 @@ qed "tot_ord_rvimage";
 
 (** Well-foundedness **)
 
+(*Not sure if wf_on_rvimage could be proved from this!*)
+Goal "wf(r) ==> wf(rvimage(A,f,r))"; 
+by (full_simp_tac (simpset() addsimps [rvimage_def, wf_eq_minimal]) 1);
+by (Clarify_tac 1);
+by (subgoal_tac "EX w. w : {w: {f`x. x:Q}. EX x. x: Q & (f`x = w)}" 1);
+by (blast_tac (claset() delrules [allE]) 2);
+by (etac allE 1);
+by (mp_tac 1);
+by (Blast_tac 1);
+qed "wf_rvimage";
+AddSIs [wf_rvimage];
+
 Goal "[| f: A->B;  wf[B](r) |] ==> wf[A](rvimage(A,f,r))";
 by (rtac wf_onI2 1);
 by (subgoal_tac "ALL z:A. f`z=f`y --> z: Ba" 1);
@@ -399,3 +411,24 @@ Goalw [ord_iso_def, rvimage_def]
     "f: ord_iso(A,r, B,s) ==> rvimage(A,f,s) = r Int A*A";
 by (Blast_tac 1);
 qed "ord_iso_rvimage_eq";
+
+
+(** The "measure" relation is useful with wfrec **)
+
+Goal "measure(A,f) = rvimage(A,Lambda(A,f),Memrel(Collect(RepFun(A,f),Ord)))";
+by (simp_tac (simpset() addsimps [measure_def, rvimage_def, Memrel_iff]) 1);
+by (rtac equalityI 1);		 
+by Auto_tac;  
+by (auto_tac (claset() addIs [Ord_in_Ord], simpset() addsimps [lt_def]));  
+qed "measure_eq_rvimage_Memrel";
+
+Goal "wf(measure(A,f))";
+by (simp_tac (simpset() addsimps [measure_eq_rvimage_Memrel, wf_Memrel, 
+                                  wf_rvimage]) 1);
+qed "wf_measure";
+AddIffs [wf_measure];
+
+Goal "<x,y> : measure(A,f) <-> x:A & y:A & f(x)<f(y)";
+by (simp_tac (simpset() addsimps [measure_def]) 1);
+qed "measure_iff";
+AddIffs [measure_iff];

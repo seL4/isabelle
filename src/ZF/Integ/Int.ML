@@ -278,6 +278,32 @@ by (auto_tac(claset(),
              simpset() addsimps [nat_into_Ord RS Ord_0_lt_iff RS iff_sym]));
 qed "not_znegative_imp_zero";
 
+(**** nat_of: coercion of an integer to a natural number ****)
+
+Goalw [nat_of_def] "nat_of(intify(z)) = nat_of(z)";
+by Auto_tac;  
+qed "nat_of_intify";
+Addsimps [nat_of_intify];
+
+Goalw [nat_of_def, raw_nat_of_def] "nat_of($# n) = natify(n)";
+by (auto_tac (claset(), simpset() addsimps [int_of_eq]));  
+qed "nat_of_int_of";
+Addsimps [nat_of_int_of];
+
+Goalw [raw_nat_of_def] "raw_nat_of(z) : nat";
+by Auto_tac;
+by (case_tac "EX! m. m: nat & z = int_of(m)" 1);
+by (asm_simp_tac (simpset() addsimps [the_0]) 2); 
+by (rtac theI2 1);
+by Auto_tac;  
+qed "raw_nat_of_type";
+
+Goalw [nat_of_def] "nat_of(z) : nat";
+by (simp_tac (simpset() addsimps [raw_nat_of_type]) 1); 
+qed "nat_of_type";
+AddIffs [nat_of_type];
+AddTCs [nat_of_type];
+
 (**** zmagnitude: magnitide of an integer, as a natural number ****)
 
 Goalw [zmagnitude_def] "zmagnitude($# n) = natify(n)";
@@ -343,6 +369,25 @@ by (case_tac "znegative(z)" 1);
 by (blast_tac (claset() addDs [not_zneg_mag, sym]) 2);
 by (blast_tac (claset() addDs [zneg_int_of]) 1);
 qed "int_cases"; 
+
+Goal "[| ~ znegative(z); z: int |] ==> $# (raw_nat_of(z)) = z";  
+by (dtac not_zneg_int_of 1);
+by (auto_tac (claset(), simpset() addsimps [raw_nat_of_type]));
+by (auto_tac (claset(), simpset() addsimps [raw_nat_of_def]));
+qed "not_zneg_raw_nat_of"; 
+
+Goal "~ znegative(intify(z)) ==> $# (nat_of(z)) = intify(z)";  
+by (asm_simp_tac (simpset() addsimps [nat_of_def, not_zneg_raw_nat_of]) 1);
+qed "not_zneg_nat_of_intify"; 
+
+Goal "[| ~ znegative(z); z: int |] ==> $# (nat_of(z)) = z";  
+by (asm_simp_tac (simpset() addsimps [not_zneg_nat_of_intify]) 1);
+qed "not_zneg_nat_of"; 
+
+Goalw [nat_of_def, raw_nat_of_def] "znegative(intify(z)) ==> nat_of(z) = 0"; 
+by Auto_tac;  
+qed "zneg_nat_of"; 
+Addsimps [zneg_nat_of];
 
 
 (**** zadd: addition on int ****)
@@ -738,10 +783,16 @@ by (cut_inst_tac [("w","w"),("n","n")] zless_succ_zadd 1);
 by Auto_tac;  
 qed "zless_iff_succ_zadd";
 
+Goal "[| m: nat; n: nat |] ==> ($#m $< $#n) <-> (m<n)";
+by (asm_simp_tac (simpset() addsimps [less_iff_succ_add, zless_iff_succ_zadd, 
+	 		  	      int_of_add RS sym]) 1);
+by (blast_tac (claset() addIs [sym]) 1); 
+qed "zless_int_of";
+Addsimps [zless_int_of];
+
 Goalw [zless_def, znegative_def, zdiff_def, int_def] 
     "[| x $< y; y $< z; x: int; y : int; z: int |] ==> x $< z"; 
-by (auto_tac (claset(), 
-              simpset() addsimps [zadd, zminus, int_of_def, image_iff]));
+by (auto_tac (claset(), simpset() addsimps [zadd, zminus, image_iff]));
 by (rename_tac "x1 x2 y1 y2" 1);
 by (res_inst_tac [("x","x1#+x2")] exI 1);  
 by (res_inst_tac [("x","y1#+y2")] exI 1);  

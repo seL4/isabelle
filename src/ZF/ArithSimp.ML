@@ -458,5 +458,6 @@ by (blast_tac (claset() addSEs [leE]
                         addSIs [add_0_right RS sym, add_succ_right RS sym]) 1);
 qed_spec_mp "less_imp_succ_add";
 
-
-
+Goal "[| m: nat; n: nat |] ==> (m<n) <-> (EX k: nat. n = succ(m#+k))";
+by (auto_tac (claset() addIs [less_imp_succ_add], simpset()));
+qed "less_iff_succ_add";

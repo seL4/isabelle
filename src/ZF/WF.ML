@@ -331,3 +331,22 @@ by (etac (wfrec RS trans) 1);
 by (asm_simp_tac (simpset() addsimps [vimage_Int_square, cons_subset_iff]) 1);
 qed "wfrec_on";
 
+(*----------------------------------------------------------------------------
+ * Minimal-element characterization of well-foundedness
+ *---------------------------------------------------------------------------*)
+
+Goalw [wf_def] "wf(r) ==> x:Q --> (EX z:Q. ALL y. <y,z>:r --> y~:Q)";
+by (dtac spec 1);
+by (Blast_tac 1);
+val lemma1 = result();
+
+Goalw [wf_def]
+     "(ALL Q x. x:Q --> (EX z:Q. ALL y. <y,z>:r --> y~:Q)) ==> wf(r)";
+by (Clarify_tac 1);
+by (Blast_tac 1);
+val lemma2 = result();
+
+Goal "wf(r) <-> (ALL Q x. x:Q --> (EX z:Q. ALL y. <y,z>:r --> y~:Q))";
+by (blast_tac (claset() addSIs [lemma1, lemma2]) 1);
+qed "wf_eq_minimal";
+

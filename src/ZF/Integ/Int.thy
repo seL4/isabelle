@@ -34,6 +34,14 @@ constdefs
   iszero      ::      i=>o
     "iszero(z) == z = $# 0"
     
+  raw_nat_of  :: i => i
+  "raw_nat_of(z) == if znegative(z) then 0
+                    else (THE m. m: nat & z = int_of(m))"
+
+  nat_of  :: i => i
+  "nat_of(z) == raw_nat_of (intify(z))"
+
+  (*could be replaced by an absolute value function from int to int?*)
   zmagnitude  ::      i=>i
     "zmagnitude(z) ==
      THE m. m : nat & ((~ znegative(z) & z = $# m) |

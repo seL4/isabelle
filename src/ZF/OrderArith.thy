@@ -3,10 +3,10 @@
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1994  University of Cambridge
 
-Towards ordinal arithmetic 
+Towards ordinal arithmetic.  Also useful with wfrec.
 *)
 
-OrderArith = Order + Sum + 
+OrderArith = Order + Sum + Ordinal +
 consts
   radd, rmult      :: [i,i,i,i]=>i
   rvimage          :: [i,i,i]=>i
@@ -27,5 +27,10 @@ defs
 
   (*inverse image of a relation*)
   rvimage_def "rvimage(A,f,r) == {z: A*A. EX x y. z = <x,y> & <f`x,f`y>: r}"
+
+constdefs
+   measure :: "[i, i\\<Rightarrow>i] \\<Rightarrow> i"
+   "measure(A,f) == {<x,y>: A*A. f(x) < f(y)}"
+
 
 end
