@@ -41,7 +41,7 @@ signature CLASSICAL =
   val addSEs: claset * thm list -> claset
   val addSIs: claset * thm list -> claset
   val print_cs: claset -> unit
-  val rep_claset: claset -> 
+  val rep_cs: claset -> 
       {safeIs: thm list, safeEs: thm list, hazIs: thm list, hazEs: thm list, 
        safe0_brls:(bool*thm)list, safep_brls: (bool*thm)list,
        haz_brls: (bool*thm)list}
@@ -102,7 +102,7 @@ datatype claset =
         safep_brls: (bool*thm)list,
         haz_brls: (bool*thm)list};
   
-fun rep_claset (CS x) = x;
+fun rep_cs (CS x) = x;
 
 (*For use with biresolve_tac.  Combines intrs with swap to catch negated
   assumptions.  Also pairs elims with true. *)

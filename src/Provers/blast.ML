@@ -61,7 +61,7 @@ signature BLAST_DATA =
   val dup_intr		: thm -> thm
   val hyp_subst_tac     : bool ref -> int -> tactic
   val claset		: unit -> claset
-  val rep_claset	: (* dependent on classical.ML *)
+  val rep_cs	: (* dependent on classical.ML *)
       claset -> {safeIs: thm list, safeEs: thm list, 
 		 hazIs: thm list, hazEs: thm list,
 		 swrappers: (string * wrapper) list, 
@@ -918,7 +918,7 @@ fun printStats (b, start, tacs) =
  "start" is CPU time at start, for printing search time
 *)
 fun prove (sign, start, cs, brs, cont) =
- let val {safe0_netpair, safep_netpair, haz_netpair, ...} = Data.rep_claset cs
+ let val {safe0_netpair, safep_netpair, haz_netpair, ...} = Data.rep_cs cs
      val safeList = [safe0_netpair, safep_netpair]
      and hazList  = [haz_netpair]
      fun prv (tacs, trs, choices, []) = 

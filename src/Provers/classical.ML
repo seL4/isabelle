@@ -49,7 +49,7 @@ sig
   val empty_cs: claset
   val print_cs: claset -> unit
   val print_claset: theory -> unit
-  val rep_claset: (* BLAST_DATA in blast.ML dependent on this *)
+  val rep_cs: (* BLAST_DATA in blast.ML dependent on this *)
     claset -> {safeIs: thm list, safeEs: thm list,
 		 hazIs: thm list, hazEs: thm list,
 		 swrappers: (string * wrapper) list, 
@@ -260,7 +260,7 @@ fun print_cs (CS {safeIs, safeEs, hazIs, hazEs, ...}) =
     Pretty.writeln (Pretty.big_list "unsafe elimination rules:" (pretty_thms hazEs))
   end;
 
-fun rep_claset (CS args) = args;
+fun rep_cs (CS args) = args;
 
 local 
   fun calc_wrap l tac = foldr (fn ((name,tacf),w) => tacf w) (l, tac);
