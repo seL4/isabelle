@@ -627,10 +627,10 @@ subsection {* Basic rewrite rules for the arithmetic operators *}
 
 text {* Difference *}
 
-lemma diff_0_eq_0 [simp]: "0 - n = (0::nat)"
+lemma diff_0_eq_0 [simp, code]: "0 - n = (0::nat)"
   by (induct_tac n) simp_all
 
-lemma diff_Suc_Suc [simp]: "Suc(m) - Suc(n) = m - n"
+lemma diff_Suc_Suc [simp, code]: "Suc(m) - Suc(n) = m - n"
   by (induct_tac n) simp_all
 
 
@@ -642,7 +642,7 @@ text {*
 lemma Suc_pred [simp]: "0 < n ==> Suc (n - Suc 0) = n"
   by (simp split add: nat.split)
 
-declare diff_Suc [simp del]
+declare diff_Suc [simp del, code del]
 
 
 subsection {* Addition *}
@@ -652,6 +652,8 @@ lemma add_0_right [simp]: "m + 0 = (m::nat)"
 
 lemma add_Suc_right [simp]: "m + Suc n = Suc (m + n)"
   by (induct m) simp_all
+
+lemma [code]: "Suc m + n = m + Suc n" by simp
 
 
 text {* Associative law for addition *}
