@@ -81,9 +81,8 @@ fun cycle_msg name names = loader_msg ("cyclic dependency of " ^ show_path (name
 
 (* derived graph operations *)
 
-fun add_deps name parents G =
-  foldl (fn (H, parent) => Graph.add_edge_acyclic (parent, name) H) (G, parents)
-    handle Graph.CYCLES namess => error (cat_lines (map (cycle_msg name) namess));
+fun add_deps name parents G = Graph.add_deps_acyclic (name, parents) G
+  handle Graph.CYCLES namess => error (cat_lines (map (cycle_msg name) namess));
 
 fun upd_deps name entry G =
   foldl (fn (H, parent) => Graph.del_edge (parent, name) H) (G, Graph.imm_preds G name)
@@ -126,7 +125,7 @@ fun get_names () = Graph.keys (get_thys ());
 (* access thy *)
 
 fun lookup_thy name =
-  Some (thy_graph Graph.get_node name) handle Graph.UNDEFINED _ => None;
+  Some (thy_graph Graph.get_node name) handle Graph.UNDEF _ => None;
 
 val known_thy = is_some o lookup_thy;
 fun check_known_thy name = known_thy name orelse (warning ("Unknown theory " ^ quote name); false);
@@ -157,7 +156,7 @@ fun loaded_files name =
       (mapfilter (apsome #1 o #2) files));
 
 fun get_preds name =
-  (thy_graph Graph.imm_preds name) handle Graph.UNDEFINED _ =>
+  (thy_graph Graph.imm_preds name) handle Graph.UNDEF _ =>
     error (loader_msg "nothing known about theory" [name]);
 
 
@@ -417,7 +416,7 @@ fun register_theory theory =
 
     fun register G =
       (Graph.new_node (name, (None, Some theory)) G
-        handle Graph.DUPLICATE _ => err "duplicate theory entry" [])
+        handle Graph.DUP _ => err "duplicate theory entry" [])
       |> add_deps name parent_names;
   in
     if not (null nonfinished) then err "non-finished parent theories" nonfinished
