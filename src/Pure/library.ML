@@ -142,7 +142,7 @@ fun set flag = (flag := true; true);
 fun reset flag = (flag := false; false);
 fun toggle flag = (flag := not (! flag); ! flag);
 
-fun set_ap flag value f x =
+fun setmp flag value f x =
   let
     val orig_value = ! flag;
     fun return y = (flag := orig_value; y);
