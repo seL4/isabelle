@@ -115,7 +115,7 @@ by (fast_tac (HOL_cs addDs [sym RS W_var_geD,new_tv_subst_le,new_tv_list_le]
     addss !simpset) 1);
 by (dres_inst_tac [("e","expr1")] (sym RS W_var_geD) 1);
 by ((dtac new_tv_subst_tel 1) THEN (atac 1));
-by ((dres_inst_tac [("a","$ s a")] new_tv_list_le 1) THEN (atac 1));
+by ((dres_inst_tac [("ts","$ s a")] new_tv_list_le 1) THEN (atac 1));
 by ((dtac new_tv_subst_tel 1) THEN (atac 1));
 by (fast_tac (HOL_cs addDs [new_tv_W] addss 
     (!simpset addsimps [subst_comp_tel])) 1);

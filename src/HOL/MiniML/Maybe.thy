@@ -15,4 +15,7 @@ consts bind :: ['a maybe, 'a => 'b maybe] => 'b maybe (infixl 60)
 defs
   bind_def "m bind f == case m of Ok r => f r | Fail => Fail"
 
+syntax "@bind" :: [pttrns,'a maybe,'b] => 'c ("(_ := _;//_)" 0)
+translations "P := E; F" == "E bind (%P.F)"
+
 end

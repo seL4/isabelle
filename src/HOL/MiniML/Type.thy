@@ -14,14 +14,14 @@ classes
 
 (* type expressions *)
 datatype
-	type_expr = TVar nat | Fun type_expr type_expr
+	typ = TVar nat | "->" typ typ (infixr 70)
 
 (* type variable substitution *)
 types
-	subst = nat => type_expr
+	subst = nat => typ
 
 arities
-	type_expr::type_struct
+	typ::type_struct
 	list::(type_struct)type_struct
 	fun::(term,type_struct)type_struct
 
@@ -39,7 +39,7 @@ consts
 
 rules
 	app_subst_TVar  "$ s (TVar n) = s n" 
-	app_subst_Fun	"$ s (Fun t1 t2) = Fun ($ s t1) ($ s t2)" 
+	app_subst_Fun	"$ s (t1 -> t2) = ($ s t1) -> ($ s t2)" 
 defs
         app_subst_list	"$ s == map ($ s)"
   
@@ -49,7 +49,7 @@ consts
 
 rules
 	free_tv_TVar	"free_tv (TVar m) = {m}"
-	free_tv_Fun	"free_tv (Fun t1 t2) = (free_tv t1) Un (free_tv t2)"
+	free_tv_Fun	"free_tv (t1 -> t2) = (free_tv t1) Un (free_tv t2)"
 	free_tv_Nil	"free_tv [] = {}"
 	free_tv_Cons	"free_tv (x#l) = (free_tv x) Un (free_tv l)"
 
@@ -78,12 +78,12 @@ defs
 
 (* unification algorithm mgu *)
 consts
-	mgu :: [type_expr,type_expr] => subst maybe
+	mgu :: [typ,typ] => subst maybe
 rules
-	mgu_eq 	 "mgu t1 t2 = Ok u ==> $ u t1 = $ u t2"
-	mgu_mg 	 "[| (mgu t1 t2) = Ok u; $ s t1 = $ s t2 |] ==>
-		  ? r. s = ($ r) o u"
-	mgu_Ok	 "$ s t1 = $ s t2 ==> ? u. mgu t1 t2 = Ok u"
+	mgu_eq 	 "mgu t1 t2 = Ok u ==> $u t1 = $u t2"
+	mgu_mg 	 "[| (mgu t1 t2) = Ok u; $s t1 = $s t2 |] ==>
+		  ? r. s = $r o u"
+	mgu_Ok	 "$s t1 = $s t2 ==> ? u. mgu t1 t2 = Ok u"
 	mgu_free "mgu t1 t2 = Ok u ==> free_tv u <= free_tv t1 Un free_tv t2"
 
 end

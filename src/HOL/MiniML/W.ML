@@ -37,7 +37,7 @@ by( rename_tac "sa ta na sb tb nb sc" 1);
 by (res_inst_tac [("t2.0","$ sc tb")] has_type.AppI 1);
 by (res_inst_tac [("s1","sc")] (app_subst_TVar RS subst) 1);
 by (rtac (app_subst_Fun RS subst) 1);
-by (res_inst_tac [("t","$ sc (Fun tb (TVar nb))"),("s","$ sc ($ sb ta)")] subst 1);
+by (res_inst_tac [("t","$ sc (tb -> (TVar nb))"),("s","$ sc ($ sb ta)")] subst 1);
 by (Asm_full_simp_tac 1);
 by (simp_tac (HOL_ss addsimps [subst_comp_tel RS sym]) 1);
 by ( (rtac has_type_cl_sub 1) THEN (rtac has_type_cl_sub 1));
@@ -255,7 +255,7 @@ by (strip_tac 1);
 by (eresolve_tac has_type_casesE 1);
 by (eres_inst_tac [("x","s'")] allE 1);
 by (eres_inst_tac [("x","a")] allE 1);
-by (eres_inst_tac [("x","Fun t2 t'")] allE 1);
+by (eres_inst_tac [("x","t2 -> t'")] allE 1);
 by (eres_inst_tac [("x","n")] allE 1);
 by (safe_tac HOL_cs);
 by (eres_inst_tac [("x","r")] allE 1);
@@ -275,10 +275,10 @@ by (subgoal_tac
   "$ (%x.if x=ma then t' else (if x:(free_tv t - free_tv sa) then r x \
 \        else ra x)) ($ sa t) = \
 \  $ (%x.if x=ma then t' else (if x:(free_tv t - free_tv sa) then r x \
-\        else ra x)) (Fun ta (TVar ma))" 1);
+\        else ra x)) (ta -> (TVar ma))" 1);
 by (res_inst_tac [("t","$ (%x. if x = ma then t' else \
 \   (if x:(free_tv t - free_tv sa) then r x else ra x)) ($ sa t)"),
-    ("s","Fun ($ ra ta) t'")] ssubst 2);
+    ("s","($ ra ta) -> t'")] ssubst 2);
 by (asm_simp_tac (!simpset addsimps [subst_comp_te]) 2);
 br eq_free_eq_subst_te 2;  
 by (strip_tac 2);
@@ -290,7 +290,7 @@ by (case_tac "na:free_tv sa" 2);
 by (asm_simp_tac (!simpset addsimps [not_free_impl_id]
     setloop (split_tac [expand_if])) 3);
 (* na : free_tv sa *)
-by (dres_inst_tac [("l1","$ s a")] (subst_comp_tel RSN (2,trans)) 2);
+by (dres_inst_tac [("ts1","$ s a")] (subst_comp_tel RSN (2,trans)) 2);
 bd eq_subst_tel_eq_free 2;
 by (fast_tac (HOL_cs addIs [free_tv_W,free_tv_le_new_tv] addDs [new_tv_W]) 2);
 by (Asm_simp_tac 2); 
@@ -324,7 +324,7 @@ by (case_tac "na: free_tv t - free_tv sa" 2);
 by( asm_full_simp_tac (!simpset setloop (split_tac [expand_if])) 3);
 (* case na : free_tv t - free_tv sa *)
 by( asm_full_simp_tac (!simpset setloop (split_tac [expand_if])) 2);
-by (dres_inst_tac [("l1","$ s a")] (subst_comp_tel RSN (2,trans)) 2);
+by (dres_inst_tac [("ts1","$ s a")] (subst_comp_tel RSN (2,trans)) 2);
 bd eq_subst_tel_eq_free 2;
 by (fast_tac (HOL_cs addIs [free_tv_W,free_tv_le_new_tv] addDs [new_tv_W]) 2);
 by (asm_full_simp_tac (!simpset addsimps [free_tv_subst,dom_def,not_disj]) 2);
@@ -343,7 +343,7 @@ br conjI 1;
 by (dres_inst_tac [("x","ma")] fun_cong 2);
 by( asm_full_simp_tac (!simpset addsimps [eq_sym_conv]) 2);
 by (simp_tac (!simpset addsimps [subst_comp_tel RS sym]) 1);
-by (res_inst_tac [("l2","($ sa ($ s a))")] ((subst_comp_tel RS sym) RSN 
+by (res_inst_tac [("ts2","($ sa ($ s a))")] ((subst_comp_tel RS sym) RSN 
     (2,trans)) 1);
 by( asm_full_simp_tac (!simpset addsimps [o_def,eq_sym_conv]) 1);
 br eq_free_eq_subst_tel 1;
