@@ -15,9 +15,9 @@ In general, Isabelle may not be able to prove all termination condition
 (there is one for each recursive call) automatically. For example,
 termination of the following artificial function%
 \end{isamarkuptext}%
-\isacommand{consts}~f~::~{"}nat*nat~{\isasymRightarrow}~nat{"}\isanewline
-\isacommand{recdef}~f~{"}measure({\isasymlambda}(x,y).~x-y){"}\isanewline
-~~{"}f(x,y)~=~(if~x~{\isasymle}~y~then~x~else~f(x,y+1)){"}%
+\isacommand{consts}\ f\ ::\ {"}nat*nat\ {\isasymRightarrow}\ nat{"}\isanewline
+\isacommand{recdef}\ f\ {"}measure({\isasymlambda}(x,y).\ x-y){"}\isanewline
+\ \ {"}f(x,y)\ =\ (if\ x\ {\isasymle}\ y\ then\ x\ else\ f(x,y+1)){"}%
 \begin{isamarkuptext}%
 \noindent
 is not proved automatically (although maybe it should be). Isabelle prints a
@@ -25,7 +25,7 @@ kind of error message showing you what it was unable to prove. You will then
 have to prove it as a separate lemma before you attempt the definition
 of your function once more. In our case the required lemma is the obvious one:%
 \end{isamarkuptext}%
-\isacommand{lemma}~termi\_lem[simp]:~{"}{\isasymnot}~x~{\isasymle}~y~{\isasymLongrightarrow}~x~-~Suc~y~<~x~-~y{"}%
+\isacommand{lemma}\ termi\_lem[simp]:\ {"}{\isasymnot}\ x\ {\isasymle}\ y\ {\isasymLongrightarrow}\ x\ -\ Suc\ y\ <\ x\ -\ y{"}%
 \begin{isamarkuptxt}%
 \noindent
 It was not proved automatically because of the special nature of \isa{-}
@@ -38,16 +38,16 @@ Because \isacommand{recdef}'s termination prover involves simplification,
 we have turned our lemma into a simplification rule. Therefore our second
 attempt to define our function will automatically take it into account:%
 \end{isamarkuptext}%
-\isacommand{consts}~g~::~{"}nat*nat~{\isasymRightarrow}~nat{"}\isanewline
-\isacommand{recdef}~g~{"}measure({\isasymlambda}(x,y).~x-y){"}\isanewline
-~~{"}g(x,y)~=~(if~x~{\isasymle}~y~then~x~else~g(x,y+1)){"}%
+\isacommand{consts}\ g\ ::\ {"}nat*nat\ {\isasymRightarrow}\ nat{"}\isanewline
+\isacommand{recdef}\ g\ {"}measure({\isasymlambda}(x,y).\ x-y){"}\isanewline
+\ \ {"}g(x,y)\ =\ (if\ x\ {\isasymle}\ y\ then\ x\ else\ g(x,y+1)){"}%
 \begin{isamarkuptext}%
 \noindent
 This time everything works fine. Now \isa{g.simps} contains precisely the
 stated recursion equation for \isa{g} and they are simplification
 rules. Thus we can automatically prove%
 \end{isamarkuptext}%
-\isacommand{theorem}~wow:~{"}g(1,0)~=~g(1,1){"}\isanewline
+\isacommand{theorem}\ wow:\ {"}g(1,0)\ =\ g(1,1){"}\isanewline
 \isacommand{by}(simp)%
 \begin{isamarkuptext}%
 \noindent
@@ -57,7 +57,7 @@ Because lemma \isa{termi_lem} above was only turned into a
 simplification rule for the sake of the termination proof, we may want to
 disable it again:%
 \end{isamarkuptext}%
-\isacommand{lemmas}~[simp~del]~=~termi\_lem%
+\isacommand{lemmas}\ [simp\ del]\ =\ termi\_lem%
 \begin{isamarkuptext}%
 The attentive reader may wonder why we chose to call our function \isa{g}
 rather than \isa{f} the second time around. The reason is that, despite
@@ -76,11 +76,11 @@ Although all the above examples employ measure functions, \isacommand{recdef}
 allows arbitrary wellfounded relations. For example, termination of
 Ackermann's function requires the lexicographic product \isa{<*lex*>}:%
 \end{isamarkuptext}%
-\isacommand{consts}~ack~::~{"}nat*nat~{\isasymRightarrow}~nat{"}\isanewline
-\isacommand{recdef}~ack~{"}measure(\%m.~m)~<*lex*>~measure(\%n.~n){"}\isanewline
-~~{"}ack(0,n)~~~~~~~~~=~Suc~n{"}\isanewline
-~~{"}ack(Suc~m,0)~~~~~=~ack(m,~1){"}\isanewline
-~~{"}ack(Suc~m,Suc~n)~=~ack(m,ack(Suc~m,n)){"}%
+\isacommand{consts}\ ack\ ::\ {"}nat*nat\ {\isasymRightarrow}\ nat{"}\isanewline
+\isacommand{recdef}\ ack\ {"}measure(\%m.\ m)\ <*lex*>\ measure(\%n.\ n){"}\isanewline
+\ \ {"}ack(0,n)\ \ \ \ \ \ \ \ \ =\ Suc\ n{"}\isanewline
+\ \ {"}ack(Suc\ m,0)\ \ \ \ \ =\ ack(m,\ 1){"}\isanewline
+\ \ {"}ack(Suc\ m,Suc\ n)\ =\ ack(m,ack(Suc\ m,n)){"}%
 \begin{isamarkuptext}%
 \noindent
 For details see the manual~\cite{isabelle-HOL} and the examples in the

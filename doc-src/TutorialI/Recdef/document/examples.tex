@@ -3,30 +3,30 @@
 \begin{isamarkuptext}%
 Here is a simple example, the Fibonacci function:%
 \end{isamarkuptext}%
-\isacommand{consts}~fib~::~{"}nat~{\isasymRightarrow}~nat{"}\isanewline
-\isacommand{recdef}~fib~{"}measure({\isasymlambda}n.~n){"}\isanewline
-~~{"}fib~0~=~0{"}\isanewline
-~~{"}fib~1~=~1{"}\isanewline
-~~{"}fib~(Suc(Suc~x))~=~fib~x~+~fib~(Suc~x){"}%
+\isacommand{consts}\ fib\ ::\ {"}nat\ {\isasymRightarrow}\ nat{"}\isanewline
+\isacommand{recdef}\ fib\ {"}measure({\isasymlambda}n.\ n){"}\isanewline
+\ \ {"}fib\ 0\ =\ 0{"}\isanewline
+\ \ {"}fib\ 1\ =\ 1{"}\isanewline
+\ \ {"}fib\ (Suc(Suc\ x))\ =\ fib\ x\ +\ fib\ (Suc\ x){"}%
 \begin{isamarkuptext}%
 \noindent
 The definition of \isa{fib} is accompanied by a \bfindex{measure function}
-\isa{\isasymlambda{}n.$\;$n} which maps the argument of \isa{fib} to a
+\isa{{\isasymlambda}n.\ n} which maps the argument of \isa{fib} to a
 natural number. The requirement is that in each equation the measure of the
 argument on the left-hand side is strictly greater than the measure of the
 argument of each recursive call. In the case of \isa{fib} this is
 obviously true because the measure function is the identity and
-\isa{Suc(Suc~x)} is strictly greater than both \isa{x} and
-\isa{Suc~x}.
+\isa{Suc\ (Suc\ x)} is strictly greater than both \isa{x} and
+\isa{Suc\ x}.
 
 Slightly more interesting is the insertion of a fixed element
 between any two elements of a list:%
 \end{isamarkuptext}%
-\isacommand{consts}~sep~::~{"}'a~*~'a~list~{\isasymRightarrow}~'a~list{"}\isanewline
-\isacommand{recdef}~sep~{"}measure~({\isasymlambda}(a,xs).~length~xs){"}\isanewline
-~~{"}sep(a,~[])~~~~~=~[]{"}\isanewline
-~~{"}sep(a,~[x])~~~~=~[x]{"}\isanewline
-~~{"}sep(a,~x\#y\#zs)~=~x~\#~a~\#~sep(a,y\#zs){"}%
+\isacommand{consts}\ sep\ ::\ {"}'a\ *\ 'a\ list\ {\isasymRightarrow}\ 'a\ list{"}\isanewline
+\isacommand{recdef}\ sep\ {"}measure\ ({\isasymlambda}(a,xs).\ length\ xs){"}\isanewline
+\ \ {"}sep(a,\ [])\ \ \ \ \ =\ []{"}\isanewline
+\ \ {"}sep(a,\ [x])\ \ \ \ =\ [x]{"}\isanewline
+\ \ {"}sep(a,\ x\#y\#zs)\ =\ x\ \#\ a\ \#\ sep(a,y\#zs){"}%
 \begin{isamarkuptext}%
 \noindent
 This time the measure is the length of the list, which decreases with the
@@ -34,18 +34,18 @@ recursive call; the first component of the argument tuple is irrelevant.
 
 Pattern matching need not be exhaustive:%
 \end{isamarkuptext}%
-\isacommand{consts}~last~::~{"}'a~list~{\isasymRightarrow}~'a{"}\isanewline
-\isacommand{recdef}~last~{"}measure~({\isasymlambda}xs.~length~xs){"}\isanewline
-~~{"}last~[x]~~~~~~=~x{"}\isanewline
-~~{"}last~(x\#y\#zs)~=~last~(y\#zs){"}%
+\isacommand{consts}\ last\ ::\ {"}'a\ list\ {\isasymRightarrow}\ 'a{"}\isanewline
+\isacommand{recdef}\ last\ {"}measure\ ({\isasymlambda}xs.\ length\ xs){"}\isanewline
+\ \ {"}last\ [x]\ \ \ \ \ \ =\ x{"}\isanewline
+\ \ {"}last\ (x\#y\#zs)\ =\ last\ (y\#zs){"}%
 \begin{isamarkuptext}%
 Overlapping patterns are disambiguated by taking the order of equations into
 account, just as in functional programming:%
 \end{isamarkuptext}%
-\isacommand{consts}~sep1~::~{"}'a~*~'a~list~{\isasymRightarrow}~'a~list{"}\isanewline
-\isacommand{recdef}~sep1~{"}measure~({\isasymlambda}(a,xs).~length~xs){"}\isanewline
-~~{"}sep1(a,~x\#y\#zs)~=~x~\#~a~\#~sep1(a,y\#zs){"}\isanewline
-~~{"}sep1(a,~xs)~~~~~=~xs{"}%
+\isacommand{consts}\ sep1\ ::\ {"}'a\ *\ 'a\ list\ {\isasymRightarrow}\ 'a\ list{"}\isanewline
+\isacommand{recdef}\ sep1\ {"}measure\ ({\isasymlambda}(a,xs).\ length\ xs){"}\isanewline
+\ \ {"}sep1(a,\ x\#y\#zs)\ =\ x\ \#\ a\ \#\ sep1(a,y\#zs){"}\isanewline
+\ \ {"}sep1(a,\ xs)\ \ \ \ \ =\ xs{"}%
 \begin{isamarkuptext}%
 \noindent
 This defines exactly the same function as \isa{sep} above, i.e.\
@@ -60,18 +60,18 @@ This defines exactly the same function as \isa{sep} above, i.e.\
   arguments as in the following definition:
 \end{warn}%
 \end{isamarkuptext}%
-\isacommand{consts}~sep2~::~{"}'a~list~{\isasymRightarrow}~'a~{\isasymRightarrow}~'a~list{"}\isanewline
-\isacommand{recdef}~sep2~{"}measure~length{"}\isanewline
-~~{"}sep2~(x\#y\#zs)~=~({\isasymlambda}a.~x~\#~a~\#~sep2~zs~a){"}\isanewline
-~~{"}sep2~xs~~~~~~~=~({\isasymlambda}a.~xs){"}%
+\isacommand{consts}\ sep2\ ::\ {"}'a\ list\ {\isasymRightarrow}\ 'a\ {\isasymRightarrow}\ 'a\ list{"}\isanewline
+\isacommand{recdef}\ sep2\ {"}measure\ length{"}\isanewline
+\ \ {"}sep2\ (x\#y\#zs)\ =\ ({\isasymlambda}a.\ x\ \#\ a\ \#\ sep2\ zs\ a){"}\isanewline
+\ \ {"}sep2\ xs\ \ \ \ \ \ \ =\ ({\isasymlambda}a.\ xs){"}%
 \begin{isamarkuptext}%
 Because of its pattern-matching syntax, \isacommand{recdef} is also useful
 for the definition of non-recursive functions:%
 \end{isamarkuptext}%
-\isacommand{consts}~swap12~::~{"}'a~list~{\isasymRightarrow}~'a~list{"}\isanewline
-\isacommand{recdef}~swap12~{"}{\isabraceleft}{\isabraceright}{"}\isanewline
-~~{"}swap12~(x\#y\#zs)~=~y\#x\#zs{"}\isanewline
-~~{"}swap12~zs~~~~~~~=~zs{"}%
+\isacommand{consts}\ swap12\ ::\ {"}'a\ list\ {\isasymRightarrow}\ 'a\ list{"}\isanewline
+\isacommand{recdef}\ swap12\ {"}{\isabraceleft}{\isabraceright}{"}\isanewline
+\ \ {"}swap12\ (x\#y\#zs)\ =\ y\#x\#zs{"}\isanewline
+\ \ {"}swap12\ zs\ \ \ \ \ \ \ =\ zs{"}%
 \begin{isamarkuptext}%
 \noindent
 For non-recursive functions the termination measure degenerates to the empty

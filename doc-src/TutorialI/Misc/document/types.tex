@@ -1,7 +1,7 @@
 \begin{isabelle}%
-\isacommand{types}~number~~~~~~~=~nat\isanewline
-~~~~~~gate~~~~~~~~~=~{"}bool~{\isasymRightarrow}~bool~{\isasymRightarrow}~bool{"}\isanewline
-~~~~~~('a,'b)alist~=~{"}('a~*~'b)list{"}%
+\isacommand{types}\ number\ \ \ \ \ \ \ =\ nat\isanewline
+\ \ \ \ \ \ gate\ \ \ \ \ \ \ \ \ =\ {"}bool\ {\isasymRightarrow}\ bool\ {\isasymRightarrow}\ bool{"}\isanewline
+\ \ \ \ \ \ ('a,'b)alist\ =\ {"}('a\ *\ 'b)list{"}%
 \begin{isamarkuptext}%
 \noindent\indexbold{*types}%
 Internally all synonyms are fully expanded.  As a consequence Isabelle's
@@ -9,8 +9,8 @@ output never contains synonyms.  Their main purpose is to improve the
 readability of theories.  Synonyms can be used just like any other
 type:%
 \end{isamarkuptext}%
-\isacommand{consts}~nand~::~gate\isanewline
-~~~~~~~exor~::~gate%
+\isacommand{consts}\ nand\ ::\ gate\isanewline
+\ \ \ \ \ \ \ exor\ ::\ gate%
 \begin{isamarkuptext}%
 \subsection{Constant definitions}
 \label{sec:ConstDefinitions}
@@ -19,20 +19,20 @@ type:%
 The above constants \isa{nand} and \isa{exor} are non-recursive and can
 therefore be defined directly by%
 \end{isamarkuptext}%
-\isacommand{defs}~nand\_def:~{"}nand~A~B~{\isasymequiv}~{\isasymnot}(A~{\isasymand}~B){"}\isanewline
-~~~~~exor\_def:~{"}exor~A~B~{\isasymequiv}~A~{\isasymand}~{\isasymnot}B~{\isasymor}~{\isasymnot}A~{\isasymand}~B{"}%
+\isacommand{defs}\ nand\_def:\ {"}nand\ A\ B\ {\isasymequiv}\ {\isasymnot}(A\ {\isasymand}\ B){"}\isanewline
+\ \ \ \ \ exor\_def:\ {"}exor\ A\ B\ {\isasymequiv}\ A\ {\isasymand}\ {\isasymnot}B\ {\isasymor}\ {\isasymnot}A\ {\isasymand}\ B{"}%
 \begin{isamarkuptext}%
 \noindent%
 where \isacommand{defs}\indexbold{*defs} is a keyword and \isa{nand_def} and
 \isa{exor_def} are user-supplied names.
 The symbol \indexboldpos{\isasymequiv}{$IsaEq} is a special form of equality
-that should only be used in constant definitions.
+that must be used in constant definitions.
 Declarations and definitions can also be merged%
 \end{isamarkuptext}%
-\isacommand{constdefs}~nor~::~gate\isanewline
-~~~~~~~~~{"}nor~A~B~{\isasymequiv}~{\isasymnot}(A~{\isasymor}~B){"}\isanewline
-~~~~~~~~~~exor2~::~gate\isanewline
-~~~~~~~~~{"}exor2~A~B~{\isasymequiv}~(A~{\isasymor}~B)~{\isasymand}~({\isasymnot}A~{\isasymor}~{\isasymnot}B){"}%
+\isacommand{constdefs}\ nor\ ::\ gate\isanewline
+\ \ \ \ \ \ \ \ \ {"}nor\ A\ B\ {\isasymequiv}\ {\isasymnot}(A\ {\isasymor}\ B){"}\isanewline
+\ \ \ \ \ \ \ \ \ \ exor2\ ::\ gate\isanewline
+\ \ \ \ \ \ \ \ \ {"}exor2\ A\ B\ {\isasymequiv}\ (A\ {\isasymor}\ B)\ {\isasymand}\ ({\isasymnot}A\ {\isasymor}\ {\isasymnot}B){"}%
 \begin{isamarkuptext}%
 \noindent\indexbold{*constdefs}%
 in which case the default name of each definition is \isa{$f$_def}, where

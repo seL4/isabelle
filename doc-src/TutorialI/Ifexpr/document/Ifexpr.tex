@@ -7,29 +7,29 @@ We want to represent boolean expressions built up from variables and
 constants by negation and conjunction. The following datatype serves exactly
 that purpose:%
 \end{isamarkuptext}%
-\isacommand{datatype}~boolex~=~Const~bool~|~Var~nat~|~Neg~boolex\isanewline
-~~~~~~~~~~~~~~~~|~And~boolex~boolex%
+\isacommand{datatype}\ boolex\ =\ Const\ bool\ |\ Var\ nat\ |\ Neg\ boolex\isanewline
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ |\ And\ boolex\ boolex%
 \begin{isamarkuptext}%
 \noindent
-The two constants are represented by \isa{Const~True} and
-\isa{Const~False}. Variables are represented by terms of the form
-\isa{Var~$n$}, where $n$ is a natural number (type \isa{nat}).
+The two constants are represented by \isa{Const\ True} and
+\isa{Const\ False}. Variables are represented by terms of the form
+\isa{Var\ n}, where \isa{n} is a natural number (type \isa{nat}).
 For example, the formula $P@0 \land \neg P@1$ is represented by the term
-\isa{And~(Var~0)~(Neg(Var~1))}.
+\isa{And\ (Var\ 0)\ (Neg\ (Var\ 1))}.
 
 \subsubsection{What is the value of a boolean expression?}
 
 The value of a boolean expression depends on the value of its variables.
 Hence the function \isa{value} takes an additional parameter, an {\em
-  environment} of type \isa{nat \isasymFun\ bool}, which maps variables to
+  environment} of type \isa{nat\ {\isasymRightarrow}\ bool}, which maps variables to
 their values:%
 \end{isamarkuptext}%
-\isacommand{consts}~value~::~{"}boolex~{\isasymRightarrow}~(nat~{\isasymRightarrow}~bool)~{\isasymRightarrow}~bool{"}\isanewline
+\isacommand{consts}\ value\ ::\ {"}boolex\ {\isasymRightarrow}\ (nat\ {\isasymRightarrow}\ bool)\ {\isasymRightarrow}\ bool{"}\isanewline
 \isacommand{primrec}\isanewline
-{"}value~(Const~b)~env~=~b{"}\isanewline
-{"}value~(Var~x)~~~env~=~env~x{"}\isanewline
-{"}value~(Neg~b)~~~env~=~({\isasymnot}~value~b~env){"}\isanewline
-{"}value~(And~b~c)~env~=~(value~b~env~{\isasymand}~value~c~env){"}%
+{"}value\ (Const\ b)\ env\ =\ b{"}\isanewline
+{"}value\ (Var\ x)\ \ \ env\ =\ env\ x{"}\isanewline
+{"}value\ (Neg\ b)\ \ \ env\ =\ ({\isasymnot}\ value\ b\ env){"}\isanewline
+{"}value\ (And\ b\ c)\ env\ =\ (value\ b\ env\ {\isasymand}\ value\ c\ env){"}%
 \begin{isamarkuptext}%
 \noindent
 \subsubsection{If-expressions}
@@ -39,17 +39,17 @@ canonical) representation are so-called \emph{If-expressions} built up
 from constants (\isa{CIF}), variables (\isa{VIF}) and conditionals
 (\isa{IF}):%
 \end{isamarkuptext}%
-\isacommand{datatype}~ifex~=~CIF~bool~|~VIF~nat~|~IF~ifex~ifex~ifex%
+\isacommand{datatype}\ ifex\ =\ CIF\ bool\ |\ VIF\ nat\ |\ IF\ ifex\ ifex\ ifex%
 \begin{isamarkuptext}%
 \noindent
 The evaluation if If-expressions proceeds as for \isa{boolex}:%
 \end{isamarkuptext}%
-\isacommand{consts}~valif~::~{"}ifex~{\isasymRightarrow}~(nat~{\isasymRightarrow}~bool)~{\isasymRightarrow}~bool{"}\isanewline
+\isacommand{consts}\ valif\ ::\ {"}ifex\ {\isasymRightarrow}\ (nat\ {\isasymRightarrow}\ bool)\ {\isasymRightarrow}\ bool{"}\isanewline
 \isacommand{primrec}\isanewline
-{"}valif~(CIF~b)~~~~env~=~b{"}\isanewline
-{"}valif~(VIF~x)~~~~env~=~env~x{"}\isanewline
-{"}valif~(IF~b~t~e)~env~=~(if~valif~b~env~then~valif~t~env\isanewline
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~else~valif~e~env){"}%
+{"}valif\ (CIF\ b)\ \ \ \ env\ =\ b{"}\isanewline
+{"}valif\ (VIF\ x)\ \ \ \ env\ =\ env\ x{"}\isanewline
+{"}valif\ (IF\ b\ t\ e)\ env\ =\ (if\ valif\ b\ env\ then\ valif\ t\ env\isanewline
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ else\ valif\ e\ env){"}%
 \begin{isamarkuptext}%
 \subsubsection{Transformation into and of If-expressions}
 
@@ -57,23 +57,23 @@ The type \isa{boolex} is close to the customary representation of logical
 formulae, whereas \isa{ifex} is designed for efficiency. It is easy to
 translate from \isa{boolex} into \isa{ifex}:%
 \end{isamarkuptext}%
-\isacommand{consts}~bool2if~::~{"}boolex~{\isasymRightarrow}~ifex{"}\isanewline
+\isacommand{consts}\ bool2if\ ::\ {"}boolex\ {\isasymRightarrow}\ ifex{"}\isanewline
 \isacommand{primrec}\isanewline
-{"}bool2if~(Const~b)~=~CIF~b{"}\isanewline
-{"}bool2if~(Var~x)~~~=~VIF~x{"}\isanewline
-{"}bool2if~(Neg~b)~~~=~IF~(bool2if~b)~(CIF~False)~(CIF~True){"}\isanewline
-{"}bool2if~(And~b~c)~=~IF~(bool2if~b)~(bool2if~c)~(CIF~False){"}%
+{"}bool2if\ (Const\ b)\ =\ CIF\ b{"}\isanewline
+{"}bool2if\ (Var\ x)\ \ \ =\ VIF\ x{"}\isanewline
+{"}bool2if\ (Neg\ b)\ \ \ =\ IF\ (bool2if\ b)\ (CIF\ False)\ (CIF\ True){"}\isanewline
+{"}bool2if\ (And\ b\ c)\ =\ IF\ (bool2if\ b)\ (bool2if\ c)\ (CIF\ False){"}%
 \begin{isamarkuptext}%
 \noindent
 At last, we have something we can verify: that \isa{bool2if} preserves the
 value of its argument:%
 \end{isamarkuptext}%
-\isacommand{lemma}~{"}valif~(bool2if~b)~env~=~value~b~env{"}%
+\isacommand{lemma}\ {"}valif\ (bool2if\ b)\ env\ =\ value\ b\ env{"}%
 \begin{isamarkuptxt}%
 \noindent
 The proof is canonical:%
 \end{isamarkuptxt}%
-\isacommand{apply}(induct\_tac~b)\isanewline
+\isacommand{apply}(induct\_tac\ b)\isanewline
 \isacommand{by}(auto)%
 \begin{isamarkuptext}%
 \noindent
@@ -83,35 +83,35 @@ not show them below.
 More interesting is the transformation of If-expressions into a normal form
 where the first argument of \isa{IF} cannot be another \isa{IF} but
 must be a constant or variable. Such a normal form can be computed by
-repeatedly replacing a subterm of the form \isa{IF~(IF~b~x~y)~z~u} by
-\isa{IF b (IF x z u) (IF y z u)}, which has the same value. The following
+repeatedly replacing a subterm of the form \isa{IF\ (IF\ b\ x\ y)\ z\ u} by
+\isa{IF\ b\ (IF\ x\ z\ u)\ (IF\ y\ z\ u)}, which has the same value. The following
 primitive recursive functions perform this task:%
 \end{isamarkuptext}%
-\isacommand{consts}~normif~::~{"}ifex~{\isasymRightarrow}~ifex~{\isasymRightarrow}~ifex~{\isasymRightarrow}~ifex{"}\isanewline
+\isacommand{consts}\ normif\ ::\ {"}ifex\ {\isasymRightarrow}\ ifex\ {\isasymRightarrow}\ ifex\ {\isasymRightarrow}\ ifex{"}\isanewline
 \isacommand{primrec}\isanewline
-{"}normif~(CIF~b)~~~~t~e~=~IF~(CIF~b)~t~e{"}\isanewline
-{"}normif~(VIF~x)~~~~t~e~=~IF~(VIF~x)~t~e{"}\isanewline
-{"}normif~(IF~b~t~e)~u~f~=~normif~b~(normif~t~u~f)~(normif~e~u~f){"}\isanewline
+{"}normif\ (CIF\ b)\ \ \ \ t\ e\ =\ IF\ (CIF\ b)\ t\ e{"}\isanewline
+{"}normif\ (VIF\ x)\ \ \ \ t\ e\ =\ IF\ (VIF\ x)\ t\ e{"}\isanewline
+{"}normif\ (IF\ b\ t\ e)\ u\ f\ =\ normif\ b\ (normif\ t\ u\ f)\ (normif\ e\ u\ f){"}\isanewline
 \isanewline
-\isacommand{consts}~norm~::~{"}ifex~{\isasymRightarrow}~ifex{"}\isanewline
+\isacommand{consts}\ norm\ ::\ {"}ifex\ {\isasymRightarrow}\ ifex{"}\isanewline
 \isacommand{primrec}\isanewline
-{"}norm~(CIF~b)~~~~=~CIF~b{"}\isanewline
-{"}norm~(VIF~x)~~~~=~VIF~x{"}\isanewline
-{"}norm~(IF~b~t~e)~=~normif~b~(norm~t)~(norm~e){"}%
+{"}norm\ (CIF\ b)\ \ \ \ =\ CIF\ b{"}\isanewline
+{"}norm\ (VIF\ x)\ \ \ \ =\ VIF\ x{"}\isanewline
+{"}norm\ (IF\ b\ t\ e)\ =\ normif\ b\ (norm\ t)\ (norm\ e){"}%
 \begin{isamarkuptext}%
 \noindent
 Their interplay is a bit tricky, and we leave it to the reader to develop an
 intuitive understanding. Fortunately, Isabelle can help us to verify that the
 transformation preserves the value of the expression:%
 \end{isamarkuptext}%
-\isacommand{theorem}~{"}valif~(norm~b)~env~=~valif~b~env{"}%
+\isacommand{theorem}\ {"}valif\ (norm\ b)\ env\ =\ valif\ b\ env{"}%
 \begin{isamarkuptext}%
 \noindent
 The proof is canonical, provided we first show the following simplification
 lemma (which also helps to understand what \isa{normif} does):%
 \end{isamarkuptext}%
-\isacommand{lemma}~[simp]:\isanewline
-~~{"}{\isasymforall}t~e.~valif~(normif~b~t~e)~env~=~valif~(IF~b~t~e)~env{"}%
+\isacommand{lemma}\ [simp]:\isanewline
+\ \ {"}{\isasymforall}t\ e.\ valif\ (normif\ b\ t\ e)\ env\ =\ valif\ (IF\ b\ t\ e)\ env{"}%
 \begin{isamarkuptext}%
 \noindent
 Note that the lemma does not have a name, but is implicitly used in the proof
@@ -120,18 +120,18 @@ of the theorem shown above because of the \isa{[simp]} attribute.
 But how can we be sure that \isa{norm} really produces a normal form in
 the above sense? We define a function that tests If-expressions for normality%
 \end{isamarkuptext}%
-\isacommand{consts}~normal~::~{"}ifex~{\isasymRightarrow}~bool{"}\isanewline
+\isacommand{consts}\ normal\ ::\ {"}ifex\ {\isasymRightarrow}\ bool{"}\isanewline
 \isacommand{primrec}\isanewline
-{"}normal(CIF~b)~=~True{"}\isanewline
-{"}normal(VIF~x)~=~True{"}\isanewline
-{"}normal(IF~b~t~e)~=~(normal~t~{\isasymand}~normal~e~{\isasymand}\isanewline
-~~~~~(case~b~of~CIF~b~{\isasymRightarrow}~True~|~VIF~x~{\isasymRightarrow}~True~|~IF~x~y~z~{\isasymRightarrow}~False)){"}%
+{"}normal(CIF\ b)\ =\ True{"}\isanewline
+{"}normal(VIF\ x)\ =\ True{"}\isanewline
+{"}normal(IF\ b\ t\ e)\ =\ (normal\ t\ {\isasymand}\ normal\ e\ {\isasymand}\isanewline
+\ \ \ \ \ (case\ b\ of\ CIF\ b\ {\isasymRightarrow}\ True\ |\ VIF\ x\ {\isasymRightarrow}\ True\ |\ IF\ x\ y\ z\ {\isasymRightarrow}\ False)){"}%
 \begin{isamarkuptext}%
 \noindent
 and prove \isa{normal(norm b)}. Of course, this requires a lemma about
 normality of \isa{normif}:%
 \end{isamarkuptext}%
-\isacommand{lemma}[simp]:~{"}{\isasymforall}t~e.~normal(normif~b~t~e)~=~(normal~t~{\isasymand}~normal~e){"}\end{isabelle}%
+\isacommand{lemma}[simp]:\ {"}{\isasymforall}t\ e.\ normal(normif\ b\ t\ e)\ =\ (normal\ t\ {\isasymand}\ normal\ e){"}\end{isabelle}%
 %%% Local Variables:
 %%% mode: latex
 %%% TeX-master: "root"

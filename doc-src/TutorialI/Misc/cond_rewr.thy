@@ -13,8 +13,7 @@ by(case_tac xs, simp, simp);
 text{*\noindent
 Note the use of ``\ttindexboldpos{,}{$Isar}'' to string together a
 sequence of methods. Assuming that the simplification rule
-*}(*<*)term(*>*) "(rev xs = []) = (xs = [])";
-text{*\noindent
+@{term"(rev xs = []) = (xs = [])"}
 is present as well,
 *}
 

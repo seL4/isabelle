@@ -16,8 +16,8 @@ Note that we need to quote \isa{term} on the left to avoid confusion with
 the command \isacommand{term}.
 Parameter \isa{'a} is the type of variables and \isa{'b} the type of
 function symbols.
-A mathematical term like $f(x,g(y))$ becomes \isa{App f [Var x, App g
-  [Var y]]}, where \isa{f}, \isa{g}, \isa{x}, \isa{y} are
+A mathematical term like $f(x,g(y))$ becomes @{term"App f [Var x, App g
+  [Var y]]"}, where \isa{f}, \isa{g}, \isa{x}, \isa{y} are
 suitable values, e.g.\ numbers or strings.
 
 What complicates the definition of \isa{term} is the nested occurrence of
@@ -64,7 +64,7 @@ by(induct_tac t and ts, auto);
 
 text{*\noindent
 Note that \isa{Var} is the identity substitution because by definition it
-leaves variables unchanged: \isa{subst Var (Var $x$) = Var $x$}. Note also
+leaves variables unchanged: @{term"subst Var (Var x) = Var x"}. Note also
 that the type annotations are necessary because otherwise there is nothing in
 the goal to enforce that both halves of the goal talk about the same type
 parameters \isa{('a,'b)}. As a result, induction would fail
@@ -86,9 +86,5 @@ constructor \isa{Sum} in \S\ref{sec:datatype-mut-rec} could take a list of
 expressions as its argument: \isa{Sum "'a aexp list"}.
 *}
 (*<*)
-
-lemma "subst s (App f ts) = App f (map (subst s) ts)";
-by(induct_tac ts, auto);
-
 end
 (*>*)

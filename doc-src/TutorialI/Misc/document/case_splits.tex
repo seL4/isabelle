@@ -4,7 +4,7 @@
 Goals containing \isaindex{if}-expressions are usually proved by case
 distinction on the condition of the \isa{if}. For example the goal%
 \end{isamarkuptext}%
-\isacommand{lemma}~{"}{\isasymforall}xs.~if~xs~=~[]~then~rev~xs~=~[]~else~rev~xs~{\isasymnoteq}~[]{"}%
+\isacommand{lemma}\ {"}{\isasymforall}xs.\ if\ xs\ =\ []\ then\ rev\ xs\ =\ []\ else\ rev\ xs\ {\isasymnoteq}\ []{"}%
 \begin{isamarkuptxt}%
 \noindent
 can be split into
@@ -13,7 +13,7 @@ can be split into
 \end{isabellepar}%
 by a degenerate form of simplification%
 \end{isamarkuptxt}%
-\isacommand{apply}(simp~only:~split:~split\_if)%
+\isacommand{apply}(simp\ only:\ split:\ split\_if)%
 \begin{isamarkuptext}%
 \noindent
 where no simplification rules are included (\isa{only:} is followed by the
@@ -25,7 +25,7 @@ on the initial goal above.
 
 This splitting idea generalizes from \isa{if} to \isaindex{case}:%
 \end{isamarkuptext}%
-\isacommand{lemma}~{"}(case~xs~of~[]~{\isasymRightarrow}~zs~|~y\#ys~{\isasymRightarrow}~y\#(ys@zs))~=~xs@zs{"}%
+\isacommand{lemma}\ {"}(case\ xs\ of\ []\ {\isasymRightarrow}\ zs\ |\ y\#ys\ {\isasymRightarrow}\ y\#(ys@zs))\ =\ xs@zs{"}%
 \begin{isamarkuptxt}%
 \noindent
 becomes
@@ -35,7 +35,7 @@ becomes
 \end{isabellepar}%
 by typing%
 \end{isamarkuptxt}%
-\isacommand{apply}(simp~only:~split:~list.split)%
+\isacommand{apply}(simp\ only:\ split:\ list.split)%
 \begin{isamarkuptext}%
 \noindent
 In contrast to \isa{if}-expressions, the simplifier does not split
@@ -43,7 +43,7 @@ In contrast to \isa{if}-expressions, the simplifier does not split
 in case of recursive datatypes. Again, if the \isa{only:} modifier is
 dropped, the above goal is solved,%
 \end{isamarkuptext}%
-\isacommand{by}(simp~split:~list.split)%
+\isacommand{by}(simp\ split:\ list.split)%
 \begin{isamarkuptext}%
 \noindent%
 which \isacommand{apply}\isa{(simp)} alone will not do.
@@ -52,18 +52,18 @@ In general, every datatype $t$ comes with a theorem
 \isa{$t$.split} which can be declared to be a \bfindex{split rule} either
 locally as above, or by giving it the \isa{split} attribute globally:%
 \end{isamarkuptext}%
-\isacommand{theorems}~[split]~=~list.split%
+\isacommand{lemmas}\ [split]\ =\ list.split%
 \begin{isamarkuptext}%
 \noindent
 The \isa{split} attribute can be removed with the \isa{del} modifier,
 either locally%
 \end{isamarkuptext}%
-\isacommand{apply}(simp~split~del:~split\_if)%
+\isacommand{apply}(simp\ split\ del:\ split\_if)%
 \begin{isamarkuptext}%
 \noindent
 or globally:%
 \end{isamarkuptext}%
-\isacommand{theorems}~[split~del]~=~list.split\isanewline
+\isacommand{lemmas}\ [split\ del]\ =\ list.split\isanewline
 \end{isabelle}%
 %%% Local Variables:
 %%% mode: latex

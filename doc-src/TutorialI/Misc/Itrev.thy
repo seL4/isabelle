@@ -50,7 +50,7 @@ lemma "itrev xs ys = rev xs @ ys";
 
 txt{*\noindent
 If \isa{ys} is replaced by \isa{[]}, the right-hand side simplifies to
-\isa{rev xs}, just as required.
+@{term"rev xs"}, just as required.
 
 In this particular instance it was easy to guess the right generalization,
 but in more complex situations a good deal of creativity is needed. This is
@@ -67,7 +67,7 @@ not there:
 The induction hypothesis is still too weak, but this time it takes no
 intuition to generalize: the problem is that \isa{ys} is fixed throughout
 the subgoal, but the induction hypothesis needs to be applied with
-\isa{a \# ys} instead of \isa{ys}. Hence we prove the theorem
+@{term"a # ys"} instead of \isa{ys}. Hence we prove the theorem
 for all \isa{ys} instead of a fixed one:
 *};
 (*<*)oops;(*>*)

@@ -10,9 +10,9 @@ lemma "\\<lbrakk> xs @ zs = ys @ xs; [] @ xs = [] @ [] \\<rbrakk> \\<Longrightar
 by simp;
 
 text{*\noindent
-The second assumption simplifies to \isa{xs = []}, which in turn
-simplifies the first assumption to \isa{zs = ys}, thus reducing the
-conclusion to \isa{ys = ys} and hence to \isa{True}.
+The second assumption simplifies to @{term"xs = []"}, which in turn
+simplifies the first assumption to @{term"zs = ys"}, thus reducing the
+conclusion to @{term"ys = ys"} and hence to \isa{True}.
 
 In some cases this may be too much of a good thing and may lead to
 nontermination:
@@ -22,7 +22,7 @@ lemma "\\<forall>x. f x = g (f (g x)) \\<Longrightarrow> f [] = f [] @ []";
 
 txt{*\noindent
 cannot be solved by an unmodified application of \isa{simp} because the
-simplification rule \isa{f x = g(f(g x))} extracted from the assumption
+simplification rule @{term"f x = g (f (g x))"} extracted from the assumption
 does not terminate. Isabelle notices certain simple forms of
 nontermination but not this one. The problem can be circumvented by
 explicitly telling the simplifier to ignore the assumptions:

@@ -15,19 +15,19 @@ datatype 'a list = Nil                          ("[]")
 text{*\noindent
 The datatype\index{*datatype} \isaindexbold{list} introduces two
 constructors \isaindexbold{Nil} and \isaindexbold{Cons}, the
-empty list and the operator that adds an element to the front of a list. For
-example, the term \isa{Cons True (Cons   False Nil)} is a value of type
-\isa{bool~list}, namely the list with the elements \isa{True} and
+empty~list and the operator that adds an element to the front of a list. For
+example, the term \isa{Cons True (Cons False Nil)} is a value of type
+@{typ"bool list"}, namely the list with the elements \isa{True} and
 \isa{False}. Because this notation becomes unwieldy very quickly, the
 datatype declaration is annotated with an alternative syntax: instead of
-\isa{Nil} and \isa{Cons~$x$~$xs$} we can write
+\isa{Nil} and \isa{Cons x xs} we can write
 \isa{[]}\index{$HOL2list@\texttt{[]}|bold} and
-\isa{$x$~\#~$xs$}\index{$HOL2list@\texttt{\#}|bold}. In fact, this
+@{term"x # xs"}\index{$HOL2list@\texttt{\#}|bold}. In fact, this
 alternative syntax is the standard syntax. Thus the list \isa{Cons True
-(Cons False Nil)} becomes \isa{True \# False \# []}. The annotation
+(Cons False Nil)} becomes @{term"True # False # []"}. The annotation
 \isacommand{infixr}\indexbold{*infixr} means that \isa{\#} associates to
-the right, i.e.\ the term \isa{$x$ \# $y$ \# $z$} is read as \isa{$x$
-\# ($y$ \# $z$)} and not as \isa{($x$ \# $y$) \# $z$}.
+the right, i.e.\ the term @{term"x # y # z"} is read as \isa{x
+\# (y \# z)} and not as \isa{(x \# y) \# z}.
 
 \begin{warn}
   Syntax annotations are a powerful but completely optional feature. You
@@ -48,8 +48,8 @@ In contrast to ML, Isabelle insists on explicit declarations of all functions
 (keyword \isacommand{consts}).  (Apart from the declaration-before-use
 restriction, the order of items in a theory file is unconstrained.) Function
 \isa{app} is annotated with concrete syntax too. Instead of the prefix
-syntax \isa{app~$xs$~$ys$} the infix
-\isa{$xs$~\at~$ys$}\index{$HOL2list@\texttt{\at}|bold} becomes the preferred
+syntax \isa{app xs ys} the infix
+@{term"xs @ ys"}\index{$HOL2list@\texttt{\at}|bold} becomes the preferred
 form. Both functions are defined recursively:
 *}
 
@@ -190,8 +190,8 @@ this subgoal. Their deeper significance is explained in \S\ref{sec:PCproofs}.
 The {\it assumptions} are the local assumptions for this subgoal and {\it
   conclusion} is the actual proposition to be proved. Typical proof steps
 that add new assumptions are induction or case distinction. In our example
-the only assumption is the induction hypothesis \isa{rev (rev list) =
-  list}, where \isa{list} is a variable name chosen by Isabelle. If there
+the only assumption is the induction hypothesis @{term"rev (rev list) =
+  list"}, where \isa{list} is a variable name chosen by Isabelle. If there
 are multiple assumptions, they are enclosed in the bracket pair
 \indexboldpos{\isasymlbrakk}{$Isabrl} and
 \indexboldpos{\isasymrbrakk}{$Isabrr} and separated by semicolons.

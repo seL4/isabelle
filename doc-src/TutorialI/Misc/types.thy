@@ -30,7 +30,7 @@ text{*\noindent%
 where \isacommand{defs}\indexbold{*defs} is a keyword and \isa{nand_def} and
 \isa{exor_def} are user-supplied names.
 The symbol \indexboldpos{\isasymequiv}{$IsaEq} is a special form of equality
-that should only be used in constant definitions.
+that must be used in constant definitions.
 Declarations and definitions can also be merged
 *}
 

@@ -14,13 +14,13 @@ recdef fib "measure(\\<lambda>n. n)"
 
 text{*\noindent
 The definition of \isa{fib} is accompanied by a \bfindex{measure function}
-\isa{\isasymlambda{}n.$\;$n} which maps the argument of \isa{fib} to a
+@{term"%n. n"} which maps the argument of \isa{fib} to a
 natural number. The requirement is that in each equation the measure of the
 argument on the left-hand side is strictly greater than the measure of the
 argument of each recursive call. In the case of \isa{fib} this is
 obviously true because the measure function is the identity and
-\isa{Suc(Suc~x)} is strictly greater than both \isa{x} and
-\isa{Suc~x}.
+@{term"Suc(Suc x)"} is strictly greater than both \isa{x} and
+@{term"Suc x"}.
 
 Slightly more interesting is the insertion of a fixed element
 between any two elements of a list:

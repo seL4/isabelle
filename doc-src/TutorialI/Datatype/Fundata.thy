@@ -9,11 +9,11 @@ type over which the tree branches. If \isa{'i} is instantiated to
 \isa{bool}, the result is a binary tree; if it is instantiated to
 \isa{nat}, we have an infinitely branching tree because each node
 has as many subtrees as there are natural numbers. How can we possibly
-write down such a tree? Using functional notation! For example, the *}
-
-term "Branch 0 (\\<lambda>i. Branch i (\\<lambda>n. Tip))";
-
-text{*\noindent of type \isa{(nat,nat)bigtree} is the tree whose
+write down such a tree? Using functional notation! For example, the term
+\begin{quote}
+@{term[display]"Branch 0 (%i. Branch i (%n. Tip))"}
+\end{quote}
+of type @{typ"(nat,nat)bigtree"} is the tree whose
 root is labeled with 0 and whose $i$th subtree is labeled with $i$ and
 has merely \isa{Tip}s as further subtrees.
 
@@ -28,8 +28,8 @@ primrec
 text{*\noindent This is a valid \isacommand{primrec} definition because the
 recursive calls of \isa{map_bt} involve only subtrees obtained from
 \isa{F}, i.e.\ the left-hand side. Thus termination is assured.  The
-seasoned functional programmer might have written \isa{map_bt~f~o~F} instead
-of \isa{\isasymlambda{}i.~map_bt~f~(F~i)}, but the former is not accepted by
+seasoned functional programmer might have written @{term"map_bt f o F"}
+instead of @{term"%i. map_bt f (F i)"}, but the former is not accepted by
 Isabelle because the termination proof is not as obvious since
 \isa{map_bt} is only partially applied.
 

@@ -113,7 +113,7 @@ apply(induct_tac \(x@1\) \texttt{and} \(\dots\) \texttt{and} \(x@n\));
 \end{ttbox}
 
 \begin{exercise}
-  Define a function \isa{norma} of type \isa{'a aexp \isasymFun\ 'a aexp} that
+  Define a function \isa{norma} of type @{typ"'a aexp => 'a aexp"} that
   replaces \isa{IF}s with complex boolean conditions by nested
   \isa{IF}s where each condition is a \isa{Less} --- \isa{And} and
   \isa{Neg} should be eliminated completely. Prove that \isa{norma}

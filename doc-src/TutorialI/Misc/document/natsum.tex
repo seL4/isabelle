@@ -2,22 +2,25 @@
 %
 \begin{isamarkuptext}%
 \noindent
-In particular, there are \isa{case}-expressions, for example%
-\end{isamarkuptext}%
-~{"}case~n~of~0~{\isasymRightarrow}~0~|~Suc~m~{\isasymRightarrow}~m{"}%
-\begin{isamarkuptext}%
-\noindent
+In particular, there are \isa{case}-expressions, for example
+\begin{quote}
+
+\begin{isabelle}%
+case\ n\ of\ 0\ {\isasymRightarrow}\ 0\ |\ Suc\ m\ {\isasymRightarrow}\ m
+\end{isabelle}%
+
+\end{quote}
 primitive recursion, for example%
 \end{isamarkuptext}%
-\isacommand{consts}~sum~::~{"}nat~{\isasymRightarrow}~nat{"}\isanewline
-\isacommand{primrec}~{"}sum~0~=~0{"}\isanewline
-~~~~~~~~{"}sum~(Suc~n)~=~Suc~n~+~sum~n{"}%
+\isacommand{consts}\ sum\ ::\ {"}nat\ {\isasymRightarrow}\ nat{"}\isanewline
+\isacommand{primrec}\ {"}sum\ 0\ =\ 0{"}\isanewline
+\ \ \ \ \ \ \ \ {"}sum\ (Suc\ n)\ =\ Suc\ n\ +\ sum\ n{"}%
 \begin{isamarkuptext}%
 \noindent
 and induction, for example%
 \end{isamarkuptext}%
-\isacommand{lemma}~{"}sum~n~+~sum~n~=~n*(Suc~n){"}\isanewline
-\isacommand{apply}(induct\_tac~n)\isanewline
+\isacommand{lemma}\ {"}sum\ n\ +\ sum\ n\ =\ n*(Suc\ n){"}\isanewline
+\isacommand{apply}(induct\_tac\ n)\isanewline
 \isacommand{by}(auto)\isanewline
 \end{isabelle}%
 %%% Local Variables:

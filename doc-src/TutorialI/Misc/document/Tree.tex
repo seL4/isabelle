@@ -4,19 +4,19 @@
 \noindent
 Define the datatype of binary trees%
 \end{isamarkuptext}%
-\isacommand{datatype}~'a~tree~=~Tip~|~Node~{"}'a~tree{"}~'a~{"}'a~tree{"}%
+\isacommand{datatype}\ 'a\ tree\ =\ Tip\ |\ Node\ {"}'a\ tree{"}\ 'a\ {"}'a\ tree{"}%
 \begin{isamarkuptext}%
 \noindent
 and a function \isa{mirror} that mirrors a binary tree
 by swapping subtrees (recursively). Prove%
 \end{isamarkuptext}%
-\isacommand{lemma}~mirror\_mirror:~{"}mirror(mirror~t)~=~t{"}%
+\isacommand{lemma}\ mirror\_mirror:\ {"}mirror(mirror\ t)\ =\ t{"}%
 \begin{isamarkuptext}%
 \noindent
 Define a function \isa{flatten} that flattens a tree into a list
 by traversing it in infix order. Prove%
 \end{isamarkuptext}%
-\isacommand{lemma}~{"}flatten(mirror~t)~=~rev(flatten~t){"}\end{isabelle}%
+\isacommand{lemma}\ {"}flatten(mirror\ t)\ =\ rev(flatten\ t){"}\end{isabelle}%
 %%% Local Variables:
 %%% mode: latex
 %%% TeX-master: "root"

@@ -63,7 +63,7 @@ In general, every datatype $t$ comes with a theorem
 locally as above, or by giving it the \isa{split} attribute globally:
 *}
 
-theorems [split] = list.split;
+lemmas [split] = list.split;
 
 text{*\noindent
 The \isa{split} attribute can be removed with the \isa{del} modifier,
@@ -79,7 +79,7 @@ oops;
 text{*\noindent
 or globally:
 *}
-theorems [split del] = list.split;
+lemmas [split del] = list.split;
 
 (*<*)
 end

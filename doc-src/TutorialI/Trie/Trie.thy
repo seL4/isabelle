@@ -81,8 +81,8 @@ expand all \isa{let}s and to split all \isa{case}-constructs over
 options:
 *};
 
-theorems [simp] = Let_def;
-theorems [split] = option.split;
+lemmas [simp] = Let_def;
+lemmas [split] = option.split;
 
 text{*\noindent
 The reason becomes clear when looking (probably after a failed proof
@@ -105,7 +105,6 @@ if \isa{update} has already been simplified, which can only happen if
 \isa{as} is instantiated.
 The start of the proof is completely conventional:
 *};
-
 apply(induct_tac as, auto);
 
 txt{*\noindent
@@ -119,15 +118,13 @@ Clearly, if we want to make headway we have to instantiate \isa{bs} as
 well now. It turns out that instead of induction, case distinction
 suffices:
 *};
-
-apply(case_tac[!] bs);
-by(auto);
+by(case_tac[!] bs, auto);
 
 text{*\noindent
-Both \isaindex{case_tac} and \isaindex{induct_tac}
-take an optional first argument that specifies the range of subgoals they are
-applied to, where \isa{!} means all subgoals, i.e.\ \isa{[1-3]} in our case. Individual
-subgoal numbers are also allowed.
+All methods ending in \isa{tac} take an optional first argument that
+specifies the range of subgoals they are applied to, where \isa{[!]} means all
+subgoals, i.e.\ \isa{[1-3]} in our case. Individual subgoal numbers,
+e.g. \isa{[2]} are also allowed.
 
 This proof may look surprisingly straightforward. However, note that this
 comes at a cost: the proof script is unreadable because the

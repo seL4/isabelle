@@ -18,11 +18,9 @@ recdef gcd "measure (\\<lambda>(m,n).n)"
 text{*\noindent
 According to the measure function, the second argument should decrease with
 each recursive call. The resulting termination condition
-*}
-
-(*<*)term(*>*) "n \\<noteq> 0 \\<Longrightarrow> m mod n < n";
-
-text{*\noindent
+\begin{quote}
+@{term[display]"n ~= 0 ==> m mod n < n"}
+\end{quote}
 is provded automatically because it is already present as a lemma in the
 arithmetic library. Thus the recursion equation becomes a simplification
 rule. Of course the equation is nonterminating if we are allowed to unfold
@@ -31,26 +29,21 @@ languages and our simplifier don't do that. Unfortunately the simplifier does
 something else which leads to the same problem: it splits \isa{if}s if the
 condition simplifies to neither \isa{True} nor \isa{False}. For
 example, simplification reduces
-*}
-
-(*<*)term(*>*) "gcd(m,n) = k";
-
-text{*\noindent
+\begin{quote}
+@{term[display]"gcd(m,n) = k"}
+\end{quote}
 in one step to
-*}
-
-(*<*)term(*>*) "(if n=0 then m else gcd(n, m mod n)) = k";
-
-text{*\noindent
+\begin{quote}
+@{term[display]"(if n=0 then m else gcd(n, m mod n)) = k"}
+\end{quote}
 where the condition cannot be reduced further, and splitting leads to
-*}
-
-(*<*)term(*>*) "(n=0 \\<longrightarrow> m=k) \\<and> (n\\<noteq>0 \\<longrightarrow> gcd(n, m mod n)=k)";
-
-text{*\noindent
-Since the recursive call \isa{gcd(n, m mod n)} is no longer protected by
-an \isa{if}, it is unfolded again, which leads to an infinite chain of simplification steps.
-Fortunately, this problem can be avoided in many different ways.
+\begin{quote}
+@{term[display]"(n=0 --> m=k) & (n ~= 0 --> gcd(n, m mod n)=k)"}
+\end{quote}
+Since the recursive call @{term"gcd(n, m mod n)"} is no longer protected by
+an \isa{if}, it is unfolded again, which leads to an infinite chain of
+simplification steps. Fortunately, this problem can be avoided in many
+different ways.
 
 The most radical solution is to disable the offending
 \isa{split_if} as shown in the section on case splits in

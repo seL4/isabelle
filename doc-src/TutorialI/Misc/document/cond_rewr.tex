@@ -4,19 +4,16 @@
 So far all examples of rewrite rules were equations. The simplifier also
 accepts \emph{conditional} equations, for example%
 \end{isamarkuptext}%
-\isacommand{lemma}~hd\_Cons\_tl[simp]:~{"}xs~{\isasymnoteq}~[]~~{\isasymLongrightarrow}~~hd~xs~\#~tl~xs~=~xs{"}\isanewline
-\isacommand{by}(case\_tac~xs,~simp,~simp)%
+\isacommand{lemma}\ hd\_Cons\_tl[simp]:\ {"}xs\ {\isasymnoteq}\ []\ \ {\isasymLongrightarrow}\ \ hd\ xs\ \#\ tl\ xs\ =\ xs{"}\isanewline
+\isacommand{by}(case\_tac\ xs,\ simp,\ simp)%
 \begin{isamarkuptext}%
 \noindent
 Note the use of ``\ttindexboldpos{,}{$Isar}'' to string together a
-sequence of methods. Assuming that the simplification rule%
-\end{isamarkuptext}%
-~{"}(rev~xs~=~[])~=~(xs~=~[]){"}%
-\begin{isamarkuptext}%
-\noindent
+sequence of methods. Assuming that the simplification rule
+\isa{(rev\ xs\ =\ [])\ =\ (xs\ =\ [])}
 is present as well,%
 \end{isamarkuptext}%
-\isacommand{lemma}~{"}xs~{\isasymnoteq}~[]~{\isasymLongrightarrow}~hd(rev~xs)~\#~tl(rev~xs)~=~rev~xs{"}%
+\isacommand{lemma}\ {"}xs\ {\isasymnoteq}\ []\ {\isasymLongrightarrow}\ hd(rev\ xs)\ \#\ tl(rev\ xs)\ =\ rev\ xs{"}%
 \begin{isamarkuptext}%
 \noindent
 is proved by plain simplification:

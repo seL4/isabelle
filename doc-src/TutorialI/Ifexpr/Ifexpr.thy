@@ -14,17 +14,17 @@ datatype boolex = Const bool | Var nat | Neg boolex
                 | And boolex boolex;
 
 text{*\noindent
-The two constants are represented by \isa{Const~True} and
-\isa{Const~False}. Variables are represented by terms of the form
-\isa{Var~$n$}, where $n$ is a natural number (type \isa{nat}).
+The two constants are represented by @{term"Const True"} and
+@{term"Const False"}. Variables are represented by terms of the form
+@{term"Var n"}, where @{term"n"} is a natural number (type \isa{nat}).
 For example, the formula $P@0 \land \neg P@1$ is represented by the term
-\isa{And~(Var~0)~(Neg(Var~1))}.
+@{term"And (Var 0) (Neg(Var 1))"}.
 
 \subsubsection{What is the value of a boolean expression?}
 
 The value of a boolean expression depends on the value of its variables.
 Hence the function \isa{value} takes an additional parameter, an {\em
-  environment} of type \isa{nat \isasymFun\ bool}, which maps variables to
+  environment} of type @{typ"nat => bool"}, which maps variables to
 their values:
 *}
 
@@ -93,8 +93,8 @@ not show them below.
 More interesting is the transformation of If-expressions into a normal form
 where the first argument of \isa{IF} cannot be another \isa{IF} but
 must be a constant or variable. Such a normal form can be computed by
-repeatedly replacing a subterm of the form \isa{IF~(IF~b~x~y)~z~u} by
-\isa{IF b (IF x z u) (IF y z u)}, which has the same value. The following
+repeatedly replacing a subterm of the form @{term"IF (IF b x y) z u"} by
+@{term"IF b (IF x z u) (IF y z u)"}, which has the same value. The following
 primitive recursive functions perform this task:
 *}
 

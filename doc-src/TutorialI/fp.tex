@@ -5,12 +5,12 @@ functional programs in HOL and how to verify them, most of the
 constructs and proof procedures introduced are general purpose and recur in
 any specification or verification task.
 
-The dedicated functional programmer should be warned: HOL offers only {\em
-  total functional programming} --- all functions in HOL must be total; lazy
-data structures are not directly available. On the positive side, functions
-in HOL need not be computable: HOL is a specification language that goes well
-beyond what can be expressed as a program. However, for the time being we
-concentrate on the computable.
+The dedicated functional programmer should be warned: HOL offers only
+\emph{total functional programming} --- all functions in HOL must be total;
+lazy data structures are not directly available. On the positive side,
+functions in HOL need not be computable: HOL is a specification language that
+goes well beyond what can be expressed as a program. However, for the time
+being we concentrate on the computable.
 
 \section{An introductory theory}
 \label{sec:intro-theory}
@@ -119,10 +119,7 @@ would have alerted us because of the unexpected variable \isa{re}.
   named theory with the line \isa{\isacommand{theory}~T~=~\dots~:}. Isabelle
   automatically loads all the required parent theories from their respective
   files (which may take a moment, unless the theories are already loaded and
-  the files have not been modified). The only time when you need to load a
-  theory by hand is when you simply want to check if it loads successfully
-  without wanting to make use of the theory itself. This you can do by typing
-  \isa{\isacommand{use\_thy}\indexbold{*use_thy}~"T"}.
+  the files have not been modified).
   
   If you suddenly discover that you need to modify a parent theory of your
   current theory you must first abandon your current theory\indexbold{abandon
@@ -131,6 +128,11 @@ would have alerted us because of the unexpected variable \isa{re}.
   been modified you go back to your original theory. When its first line
   \isacommand{theory}\texttt{~T~=}~\dots~\texttt{:} is processed, the
   modified parent is reloaded automatically.
+  
+  The only time when you need to load a theory by hand is when you simply
+  want to check if it loads successfully without wanting to make use of the
+  theory itself. This you can do by typing
+  \isa{\isacommand{use\_thy}\indexbold{*use_thy}~"T"}.
 \end{description}
 Further commands are found in the Isabelle/Isar Reference Manual.
 
@@ -372,23 +374,7 @@ on properties of multiplication.
 
 
 \subsection{Products}
-
-HOL also has pairs: \isa{($a@1$,$a@2$)} is of type \isa{$\tau@1$ *
-  $\tau@2$} provided each $a@i$ is of type $\tau@i$. The components of a pair
-are extracted by \isa{fst} and \isa{snd}: \isa{fst($x$,$y$) = $x$} and
-\isa{snd($x$,$y$) = $y$}. Tuples are simulated by pairs nested to the right:
-\isa{($a@1$,$a@2$,$a@3$)} stands for \isa{($a@1$,($a@2$,$a@3$))} and
-\isa{$\tau@1$ * $\tau@2$ * $\tau@3$} for \isa{$\tau@1$ * ($\tau@2$ *
-  $\tau@3$)}. Therefore we have \isa{fst(snd($a@1$,$a@2$,$a@3$)) = $a@2$}.
-
-It is possible to use (nested) tuples as patterns in abstractions, for
-example \isa{\isasymlambda(x,y,z).x+y+z} and
-\isa{\isasymlambda((x,y),z).x+y+z}.
-In addition to explicit $\lambda$-abstractions, tuple patterns can be used in
-most variable binding constructs. Typical examples are
-
-\input{Misc/document/pairs.tex}%
-Further important examples are quantifiers and sets (see~\S\ref{quant-pats}).
+\input{Misc/document/pairs.tex}
 
 %FIXME move stuff below into section on proofs about products?
 \begin{warn}
@@ -401,9 +387,12 @@ Further important examples are quantifiers and sets (see~\S\ref{quant-pats}).
   theorem proving with tuple patterns.
 \end{warn}
 
-Finally note that products, like natural numbers, are datatypes, which means
+Note that products, like natural numbers, are datatypes, which means
 in particular that \isa{induct_tac} and \isa{case_tac} are applicable to
 products (see \S\ref{proofs-about-products}).
+
+Instead of tuples with many components (where ``many'' is not much above 2),
+it is far preferable to use record types (see \S\ref{sec:records}).
 
 \section{Definitions}
 \label{sec:Definitions}
@@ -455,11 +444,11 @@ form of recursive function definition which goes well beyond what
 \label{sec:Simplification}
 \index{simplification|(}
 
-So far we have proved our theorems by \isa{auto}, which ``simplifies'' all
-subgoals. In fact, \isa{auto} can do much more than that, except that it
-did not need to so far. However, when you go beyond toy examples, you need to
-understand the ingredients of \isa{auto}.  This section covers the method
-that \isa{auto} always applies first, namely simplification.
+So far we have proved our theorems by \isa{auto}, which ``simplifies''
+\emph{all} subgoals. In fact, \isa{auto} can do much more than that, except
+that it did not need to so far. However, when you go beyond toy examples, you
+need to understand the ingredients of \isa{auto}.  This section covers the
+method that \isa{auto} always applies first, namely simplification.
 
 Simplification is one of the central theorem proving tools in Isabelle and
 many other systems. The tool itself is called the \bfindex{simplifier}. The
@@ -505,8 +494,8 @@ are explained in \S\ref{sec:SimpHow}.
 
 The simplification attribute of theorems can be turned on and off as follows:
 \begin{ttbox}
-theorems [simp] = \(list of theorem names\);
-theorems [simp del] = \(list of theorem names\);
+lemmas [simp] = \(list of theorem names\);
+lemmas [simp del] = \(list of theorem names\);
 \end{ttbox}
 As a rule of thumb, equations that really simplify (like \isa{rev(rev xs) =
   xs} and \mbox{\isa{xs \at\ [] = xs}}) should be made simplification
