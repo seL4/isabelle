@@ -8,7 +8,7 @@ Semilattices
 
 header "Semilattices"
 
-theory Semilat = Main:
+theory Semilat = While_Combinator:
 
 types 'a ord    = "'a => 'a => bool"
       'a binop  = "'a => 'a => 'a"
@@ -186,7 +186,7 @@ lemma is_lub_bigger2 [iff]:
   "is_lub (r^* ) x y x = ((y,x):r^* )"
 apply (unfold is_lub_def is_ub_def)
 apply blast 
-done 
+done
 
 lemma extend_lub:
   "[| single_valued r; is_lub (r^* ) x y u; (x',x) : r |] 
@@ -201,7 +201,7 @@ apply (rule conjI)
  apply (blast intro: rtrancl_into_rtrancl2 dest: single_valuedD)
 apply (blast intro: rtrancl_into_rtrancl rtrancl_into_rtrancl2 
              elim: converse_rtranclE dest: single_valuedD)
-done 
+done
 
 lemma single_valued_has_lubs [rule_format]:
   "[| single_valued r; (x,u) : r^* |] ==> (!y. (y,u) : r^* --> 
@@ -220,11 +220,69 @@ apply (unfold some_lub_def is_lub_def)
 apply (rule someI2)
  apply assumption
 apply (blast intro: antisymD dest!: acyclic_impl_antisym_rtrancl)
-done 
+done
 
 lemma is_lub_some_lub:
   "[| single_valued r; acyclic r; (x,u):r^*; (y,u):r^* |] 
   ==> is_lub (r^* ) x y (some_lub (r^* ) x y)";
   by (fastsimp dest: single_valued_has_lubs simp add: some_lub_conv)
+
+subsection{*An executable lub-finder*}
+
+constdefs
+ exec_lub :: "('a * 'a) set \<Rightarrow> ('a \<Rightarrow> 'a) \<Rightarrow> 'a binop"
+"exec_lub r f x y == while (\<lambda>z. (x,z) \<notin> r\<^sup>*) f y"
+
+
+lemma acyclic_single_valued_finite:
+ "\<lbrakk>acyclic r; single_valued r; (x,y) \<in> r\<^sup>*\<rbrakk>
+  \<Longrightarrow> finite (r \<inter> {a. (x, a) \<in> r\<^sup>*} \<times> {b. (b, y) \<in> r\<^sup>*})"
+apply(erule converse_rtrancl_induct)
+ apply(rule_tac B = "{}" in finite_subset)
+  apply(simp only:acyclic_def)
+  apply(blast intro:rtrancl_into_trancl2 rtrancl_trancl_trancl)
+ apply simp
+apply(rename_tac x x')
+apply(subgoal_tac "r \<inter> {a. (x,a) \<in> r\<^sup>*} \<times> {b. (b,y) \<in> r\<^sup>*} =
+                   insert (x,x') (r \<inter> {a. (x', a) \<in> r\<^sup>*} \<times> {b. (b, y) \<in> r\<^sup>*})")
+ apply simp
+apply(blast intro:rtrancl_into_rtrancl2
+            elim:converse_rtranclE dest:single_valuedD)
+done
+
+
+lemma "\<lbrakk> acyclic r; !x y. (x,y) \<in> r \<longrightarrow> f x = y; is_lub (r\<^sup>*) x y u \<rbrakk> \<Longrightarrow>
+       exec_lub r f x y = u";
+apply(unfold exec_lub_def)
+apply(rule_tac P = "\<lambda>z. (y,z) \<in> r\<^sup>* \<and> (z,u) \<in> r\<^sup>*" and
+               r = "(r \<inter> {(a,b). (y,a) \<in> r\<^sup>* \<and> (b,u) \<in> r\<^sup>*})^-1" in while_rule)
+    apply(blast dest: is_lubD is_ubD)
+   apply(erule conjE)
+   apply(erule_tac z = u in converse_rtranclE)
+    apply(blast dest: is_lubD is_ubD)
+   apply(blast dest:rtrancl_into_rtrancl)
+  apply(rename_tac s)
+  apply(subgoal_tac "is_ub (r\<^sup>*) x y s")
+   prefer 2; apply(simp add:is_ub_def)
+  apply(subgoal_tac "(u, s) \<in> r\<^sup>*")
+   prefer 2; apply(blast dest:is_lubD)
+  apply(erule converse_rtranclE)
+   apply blast
+  apply(simp only:acyclic_def)
+  apply(blast intro:rtrancl_into_trancl2 rtrancl_trancl_trancl)
+ apply(rule finite_acyclic_wf)
+  apply simp
+  apply(erule acyclic_single_valued_finite)
+   apply(blast intro:single_valuedI)
+  apply(simp add:is_lub_def is_ub_def)
+ apply simp
+ apply(erule acyclic_subset)
+ apply blast
+apply simp
+apply(erule conjE)
+apply(erule_tac z = u in converse_rtranclE)
+ apply(blast dest: is_lubD is_ubD)
+apply(blast dest:rtrancl_into_rtrancl)
+done
 
 end
