@@ -37,7 +37,7 @@ text {*
   nested copies of the primitive product type.  A \commdx{record}
   declaration introduces a new record type scheme by specifying its
   fields, which are packaged internally to hold up the perception of
-  the record as a distinguished entity.  Here is a very simply example:
+  the record as a distinguished entity.  Here is a simple example:
 *}
 
 record point =
@@ -58,7 +58,7 @@ text {*
   We see above the ASCII notation for record brackets.  You can also
   use the symbolic brackets @{text \<lparr>} and @{text \<rparr>}.  Record type
   expressions can be also written directly with individual fields.
-  The type name above is merely an abbreviations.
+  The type name above is merely an abbreviation.
 *}
 
 constdefs
@@ -152,7 +152,7 @@ lemma "point.more cpt1 = \<lparr>col = Green\<rparr>"
 
 text {*
   We see that the colour part attached to this @{typ point} is a
-  (rudimentary) record in its own right, namely @{text "\<lparr>col =
+  rudimentary record in its own right, namely @{text "\<lparr>col =
   Green\<rparr>"}.  In order to select or update @{text col}, this fragment
   needs to be put back into the context of the parent type scheme, say
   as @{text more} part of another @{typ point}.
@@ -345,7 +345,7 @@ text {*
 
   \end{itemize}
 
-  These functions merely provide handsome abbreviations for standard
+  These functions provide useful abbreviations for standard
   record expressions involving constructors and selectors.  The
   definitions, which are \emph{not} unfolded by default, are made
   available by the collective name of @{text defs} (@{text

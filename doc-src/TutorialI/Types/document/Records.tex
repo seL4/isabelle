@@ -41,7 +41,7 @@ Record types are not primitive in Isabelle and have a delicate
   nested copies of the primitive product type.  A \commdx{record}
   declaration introduces a new record type scheme by specifying its
   fields, which are packaged internally to hold up the perception of
-  the record as a distinguished entity.  Here is a very simply example:%
+  the record as a distinguished entity.  Here is a simple example:%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{record}\ point\ {\isacharequal}\isanewline
@@ -62,7 +62,7 @@ Records of type \isa{point} have two fields named \isa{Xcoord}
 We see above the ASCII notation for record brackets.  You can also
   use the symbolic brackets \isa{{\isasymlparr}} and \isa{{\isasymrparr}}.  Record type
   expressions can be also written directly with individual fields.
-  The type name above is merely an abbreviations.%
+  The type name above is merely an abbreviation.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{constdefs}\isanewline
@@ -156,7 +156,7 @@ This lemma applies to any record whose first two fields are \isa{Xcoord} and~\is
 %
 \begin{isamarkuptext}%
 We see that the colour part attached to this \isa{point} is a
-  (rudimentary) record in its own right, namely \isa{{\isasymlparr}col\ {\isacharequal}\ Green{\isasymrparr}}.  In order to select or update \isa{col}, this fragment
+  rudimentary record in its own right, namely \isa{{\isasymlparr}col\ {\isacharequal}\ Green{\isasymrparr}}.  In order to select or update \isa{col}, this fragment
   needs to be put back into the context of the parent type scheme, say
   as \isa{more} part of another \isa{point}.
 
@@ -369,7 +369,7 @@ Each record declaration introduces a number of derived operations to
 
   \end{itemize}
 
-  These functions merely provide handsome abbreviations for standard
+  These functions provide useful abbreviations for standard
   record expressions involving constructors and selectors.  The
   definitions, which are \emph{not} unfolded by default, are made
   available by the collective name of \isa{defs} (\isa{point{\isachardot}defs}, \isa{cpoint{\isachardot}defs}, etc.).
