@@ -1107,6 +1107,11 @@ Goal "[| 0<n; 0<m |] ==> m - n < m";
 by (arith_tac 1);
 qed "diff_less";
 
+Goal "j <= (k::nat) ==> (j+i)-k = i-(k-j)";
+by (asm_simp_tac (simpset() addsplits [nat_diff_split']) 1);
+qed "diff_add_assoc_diff";
+
+
 (*** Reducing subtraction to addition ***)
 
 Goal "n<=(l::nat) --> Suc l - n + m = Suc (l - n + m)";
@@ -1125,11 +1130,11 @@ Goal "Suc(m)-n <= Suc(m-n)";
 by (simp_tac (simpset() addsplits [nat_diff_split]) 1);
 qed "diff_Suc_le_Suc_diff";
 
-Goal "[| k<=n; n<=m |] ==> (m-k) - (n-k) = m-(n::nat)";
-by (asm_simp_tac (simpset() addsplits [nat_diff_split]) 1);
-qed "diff_right_cancel";
-
 (** Simplification of relational expressions involving subtraction **)
+
+Goal "[| k <= m;  k <= (n::nat) |] ==> ((m-k) - (n-k)) = (m-n)";
+by (asm_simp_tac (simpset() addsplits [nat_diff_split']) 1);
+qed "diff_diff_eq";
 
 Goal "[| k <= m;  k <= (n::nat) |] ==> (m-k = n-k) = (m=n)";
 by (auto_tac (claset(), simpset() addsplits [nat_diff_split']));
