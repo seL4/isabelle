@@ -619,6 +619,12 @@ by (full_simp_tac (simpset() addsimps [mult_assoc]) 1);
 by (Blast_tac 1);
 qed "dvd_mult_left";
 
+Goalw [dvd_def] "(i*j :: nat) dvd k ==> j dvd k";
+by (Clarify_tac 1);
+by (res_inst_tac [("x","i*k")] exI 1);
+by (simp_tac (simpset() addsimps mult_ac) 1);
+qed "dvd_mult_right";
+
 Goalw [dvd_def] "[| k dvd n; 0 < n |] ==> k <= (n::nat)";
 by (Clarify_tac 1);
 by (ALLGOALS (full_simp_tac (simpset() addsimps [zero_less_mult_iff])));
