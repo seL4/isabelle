@@ -17,8 +17,7 @@ HOL_quantifiers := false;
 Pretty.setdepth 20;
 
 
-(*Weak liveness: there are traces that reach the end*)
-
+(*A "possibility property": there are traces that reach the end*)
 goal thy 
  "!!A B. [| A ~= B; A ~= Server; B ~= Server |]   \
 \        ==> EX X NB K. EX evs: yahalom lost.          \
@@ -315,7 +314,7 @@ goal thy
 \             : set_of_list evs";
 by (etac rev_mp 1);
 by (parts_induct_tac 1);
-qed "A_trust_YM3";
+qed "A_trusts_YM3";
 
 
 (** Crucial secrecy property: Spy does not see the keys sent in msg YM3 **)
@@ -541,7 +540,7 @@ by (fast_tac (!claset addSDs [impOfSubs Fake_parts_insert]
 by (Step_tac 1);
 by (lost_tac "A" 1);
 by (fast_tac (!claset addDs [Says_imp_sees_Spy RS parts.Inj RS parts.Fst RS
-                             A_trust_YM3]) 1);
+                             A_trusts_YM3]) 1);
 val B_trusts_YM4_newK = result() RS mp RSN (2, rev_mp);
 
 
@@ -573,7 +572,7 @@ by (Fast_tac 1);
 by (Step_tac 1);
 by (lost_tac "A" 1);
 by (fast_tac (!claset addDs [Says_imp_sees_Spy RS parts.Inj RS parts.Fst RS
-                             A_trust_YM3]) 1);
+                             A_trusts_YM3]) 1);
 result() RS mp RSN (2, rev_mp);
 
 
@@ -659,7 +658,7 @@ by (asm_simp_tac (!simpset addsimps [analz_image_newK]
 by (grind_tac 1);
 by (REPEAT (dtac not_analz_insert 1));
 by (lost_tac "A" 1);
-by (dtac (Says_imp_sees_Spy RS parts.Inj RS parts.Fst RS A_trust_YM3) 1
+by (dtac (Says_imp_sees_Spy RS parts.Inj RS parts.Fst RS A_trusts_YM3) 1
     THEN REPEAT (assume_tac 1));
 by (fast_tac (!claset delrules [allE, conjI] addSIs [bexI, exI]) 1);
 by (fast_tac (!claset delrules [conjI]
@@ -721,7 +720,7 @@ by (simp_tac (!simpset setloop split_tac [expand_if]) 1);
 by (SELECT_GOAL (REPEAT_FIRST (Safe_step_tac ORELSE' spy_analz_tac)) 1);
 (** LEVEL 14 **)
 by (lost_tac "Aa" 1);
-by (dtac (Says_imp_sees_Spy RS parts.Inj RS parts.Fst RS A_trust_YM3) 1);
+by (dtac (Says_imp_sees_Spy RS parts.Inj RS parts.Fst RS A_trusts_YM3) 1);
 by (forward_tac [Says_Server_message_form] 3);
 by (forward_tac [Says_Server_imp_YM2] 4);
 by (REPEAT_FIRST ((eresolve_tac [asm_rl, bexE, exE, disjE])));
@@ -776,7 +775,7 @@ by (REPEAT_FIRST (eresolve_tac [asm_rl, exE]));
 by (forward_tac [Says_Server_imp_YM2] 1 THEN assume_tac 1);
 by (dtac unique_session_keys 1 THEN REPEAT (assume_tac 1));
 by (deepen_tac (!claset addDs [Says_unique_NB] addss (!simpset)) 0 1);
-qed "B_trust_YM4";
+qed "B_trusts_YM4";
 
 
 
