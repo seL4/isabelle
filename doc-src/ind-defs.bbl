@@ -156,8 +156,7 @@ Paulson, L.~C.,
 \bibitem{paulson-coind}
 Paulson, L.~C.,
 \newblock Mechanizing coinduction and corecursion in higher-order logic,
-\newblock {\em J. Logic and Comput. {\bf 7}}, 2 (Mar. 1997),
-\newblock In press
+\newblock {\em J. Logic and Comput. {\bf 7}}, 2 (Mar. 1997), 175--204
 
 \bibitem{paulson-final}
 Paulson, L.~C.,
@@ -190,8 +189,8 @@ Saaltink, M., Kromodimoeljo, S., Pase, B., Craigen, D., Meisels, I.,
 \bibitem{slind-tfl}
 Slind, K.,
 \newblock Function definition in higher-order logic,
-\newblock In {\em Theorem Proving in Higher Order Logics\/} (1996), J.~von
-  Wright, J.~Grundy, J.~Harrison, Eds., LNCS 1125
+\newblock In {\em Theorem Proving in Higher Order Logics: {TPHOLs} '96\/}
+  (1996), J.~von Wright, J.~Grundy, J.~Harrison, Eds., LNCS 1125
 
 \bibitem{szasz93}
 Szasz, N.,
