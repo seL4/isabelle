@@ -167,7 +167,7 @@ struct
 
   fun print sg tab =
     Pretty.writeln (Pretty.strs ("(co)inductives:" ::
-      map (Sign.cond_extern sg Sign.constK o fst) (Symtab.dest tab)));
+      map #1 (Sign.cond_extern_table sg Sign.constK tab)));
 end;
 
 structure InductiveData = TheoryDataFun(InductiveArgs);

@@ -43,7 +43,7 @@ structure DatatypesArgs =
 
   fun print sg tab =
     Pretty.writeln (Pretty.strs ("datatypes:" ::
-      map (Sign.cond_extern sg Sign.typeK o fst) (Symtab.dest tab)));
+      map #1 (Sign.cond_extern_table sg Sign.typeK tab)));
   end;
 
 structure DatatypesData = TheoryDataFun(DatatypesArgs);

@@ -359,9 +359,7 @@ struct
       fun pretty_record (name, {args, parent, fields, simps = _}) = Pretty.block (Pretty.fbreaks
         (Pretty.block [prt_typ (Type (name, map TFree args)), Pretty.str " = "] ::
           pretty_parent parent @ map pretty_field fields));
-    in
-      seq (Pretty.writeln o pretty_record) (Symtab.dest recs)
-    end;
+    in seq (Pretty.writeln o pretty_record) (Sign.cond_extern_table sg Sign.typeK recs) end;
 end;
 
 structure RecordsData = TheoryDataFun(RecordsArgs);
