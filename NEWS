@@ -12,8 +12,11 @@ function;
 
 * HOL: infix "dvd" now has priority 50 rather than 70
   (because it is a relation)
-  infix ^^ has been renamed ```
+  infix ^^ has been renamed ``
+  infix `` has been renamed `
   "univalent" has been renamed "single_valued"
+
+* HOLCF: infix ` has been renamed $
 
 * Isar: 'obtain' no longer declares "that" fact as simp/intro;
 
