@@ -974,7 +974,8 @@ end;
 structure Fast_Arith =
   Fast_Lin_Arith(structure LA_Logic=LA_Logic and LA_Data=LA_Data_Ref);
 
-val fast_arith_tac = Fast_Arith.lin_arith_tac;
+val fast_arith_tac = Fast_Arith.lin_arith_tac
+and trace_arith    = Fast_Arith.trace;
 
 let
 val nat_arith_simproc_pats =

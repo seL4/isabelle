@@ -17,7 +17,7 @@ Only take premises and conclusions into account that are already (negated)
 (in)equations. lin_arith_prover tries to prove or disprove the term.
 *)
 
-(* Debugging: (*? -> (*?*), !*) -> (*!*) *)
+(* Debugging: set Fast_Arith.trace *)
 
 (*** Data needed for setting up the linear arithmetic package ***)
 
@@ -73,6 +73,7 @@ ss_ref must reduce contradictory <= to False.
 
 signature FAST_LIN_ARITH =
 sig
+  val trace           : bool ref
   val lin_arith_prover: Sign.sg -> thm list -> term -> thm option
   val     lin_arith_tac:             int -> tactic
   val cut_lin_arith_tac: thm list -> int -> tactic
@@ -88,6 +89,8 @@ struct
    use (var,coeff) rep or vector rep  tp save space;
    treat non-negative atoms separately rather than adding 0 <= atom
 *)
+
+val trace = ref false;
 
 datatype lineq_type = Eq | Le | Lt;
 
@@ -194,16 +197,16 @@ fun extract_first p =
         | extract xs []      = (None,xs)
   in extract [] end;
 
-(*?
 fun print_ineqs ineqs =
- writeln(cat_lines(""::map (fn Lineq(c,t,l,_) =>
-   string_of_int c ^
-   (case t of Eq => " =  " | Lt=> " <  " | Le => " <= ") ^
-   commas(map string_of_int l)) ineqs));
-!*)
+  if !trace then
+     writeln(cat_lines(""::map (fn Lineq(c,t,l,_) =>
+       string_of_int c ^
+       (case t of Eq => " =  " | Lt=> " <  " | Le => " <= ") ^
+       commas(map string_of_int l)) ineqs))
+  else ();
 
 fun elim ineqs =
-  let (*?val dummy = print_ineqs ineqs;!*)
+  let val dummy = print_ineqs ineqs;
       val (triv,nontriv) = partition is_trivial ineqs in
   if not(null triv)
   then case find_first is_answer triv of
@@ -243,6 +246,12 @@ fun elim ineqs =
 (* Translate back a proof.                                                   *)
 (* ------------------------------------------------------------------------- *)
 
+fun trace_thm msg th = 
+    if !trace then (writeln msg; prth th) else th;
+
+fun trace_msg msg = 
+    if !trace then writeln msg else ();
+
 (* FIXME OPTIMIZE!!!!
    Addition/Multiplication need i*t representation rather than t+t+...
 
@@ -272,16 +281,18 @@ fun mkthm sg asms just =
         let val thm' = simplify (!LA_Data.ss_ref) thm
         in if LA_Logic.is_False thm' then raise FalseE thm' else thm' end
 
-      fun mk(Asm i) = ((*?writeln"Asm";prth!*)(nth_elem(i,asms)))
-        | mk(Nat(i)) = ((*?writeln"Nat";!*)LA_Logic.mk_nat_thm sg (nth_elem(i,atoms)))
-        | mk(LessD(j)) = ((*?writeln"L";prth!*)(hd([mk j] RL !LA_Data.lessD)))
-        | mk(NotLeD(j)) = ((*?writeln"NLe";prth!*)(mk j RS LA_Logic.not_leD))
-        | mk(NotLeDD(j)) = ((*?writeln"NLeD";prth!*)(hd([mk j RS LA_Logic.not_leD] RL !LA_Data.lessD)))
-        | mk(NotLessD(j)) = ((*?writeln"NL";prth!*)(mk j RS LA_Logic.not_lessD))
-        | mk(Added(j1,j2)) = ((*?writeln"+";prth!*)(simp((*?prth!*)(addthms (mk j1) (mk j2)))))
-        | mk(Multiplied(n,j)) = ((*?writeln"*";!*)multn(n,mk j))
+      fun mk(Asm i) = trace_thm "Asm" (nth_elem(i,asms))
+        | mk(Nat(i)) = (trace_msg "Nat";
+			LA_Logic.mk_nat_thm sg (nth_elem(i,atoms)))
+        | mk(LessD(j)) = trace_thm "L" (hd([mk j] RL !LA_Data.lessD))
+        | mk(NotLeD(j)) = trace_thm "NLe" (mk j RS LA_Logic.not_leD)
+        | mk(NotLeDD(j)) = trace_thm "NLeD" (hd([mk j RS LA_Logic.not_leD] RL 
+						!LA_Data.lessD))
+        | mk(NotLessD(j)) = trace_thm "NL" (mk j RS LA_Logic.not_lessD)
+        | mk(Added(j1,j2)) = simp (trace_thm "+" (addthms (mk j1) (mk j2)))
+        | mk(Multiplied(n,j)) = (trace_msg "*"; multn(n,mk j))
 
-  in (*?writeln"mkthm";!*)
+  in trace_msg "mkthm";
      simplify (!LA_Data.ss_ref) (mk just) handle FalseE thm => thm end
 end;
 
