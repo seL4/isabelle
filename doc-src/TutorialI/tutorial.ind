@@ -647,7 +647,6 @@
 
   \indexspace
 
-  \item Wenzel, Markus, vii
   \item \isa {wf_induct} (theorem), \bold{115}
   \item \isa {wf_inv_image} (theorem), \bold{115}
   \item \isa {wf_less_than} (theorem), \bold{114}
