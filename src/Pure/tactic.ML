@@ -49,6 +49,7 @@ signature TACTIC =
   val filt_resolve_tac	: thm list -> int -> int -> tactic
   val flexflex_tac	: tactic
   val fold_goals_tac	: thm list -> tactic
+  val fold_rule		: thm list -> thm -> thm
   val fold_tac		: thm list -> tactic
   val forward_tac	: thm list -> int -> tactic   
   val forw_inst_tac	: (string*string)list -> thm -> int -> tactic
@@ -509,11 +510,11 @@ fun sort_lhs_depths defs =
       val keys = distinct (sort (rev_order o int_ord) (map #2 keylist))
   in  map (keyfilter keylist) keys  end;
 
-fun fold_tac defs = EVERY 
-    (map rewrite_tac (sort_lhs_depths (map symmetric defs)));
+val rev_defs = sort_lhs_depths o map symmetric;
 
-fun fold_goals_tac defs = EVERY 
-    (map rewrite_goals_tac (sort_lhs_depths (map symmetric defs)));
+fun fold_rule defs thm = foldl (fn (th, ds) => rewrite_rule ds th) (thm, rev_defs defs);
+fun fold_tac defs = EVERY (map rewrite_tac (rev_defs defs));
+fun fold_goals_tac defs = EVERY (map rewrite_goals_tac (rev_defs defs));
 
 
 (*** Renaming of parameters in a subgoal
