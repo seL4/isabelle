@@ -490,7 +490,7 @@ fun lessb (brl1,brl2) = subgoals_of_brl brl1 < subgoals_of_brl brl2;
 (*** Meta-Rewriting Tactics ***)
 
 val simple_prover =
-  SINGLE o (fn mss => ALLGOALS (resolve_tac (MetaSimplifier.prems_of_mss mss)));
+  SINGLE o (fn ss => ALLGOALS (resolve_tac (MetaSimplifier.prems_of_ss ss)));
 
 val rewrite = MetaSimplifier.rewrite_aux simple_prover;
 val simplify = MetaSimplifier.simplify_aux simple_prover;
@@ -498,7 +498,8 @@ val rewrite_rule = simplify true;
 val rewrite_goals_rule = MetaSimplifier.rewrite_goals_rule_aux simple_prover;
 
 fun rewrite_goal_tac rews =
-  MetaSimplifier.asm_rewrite_goal_tac (true, false, false) (K no_tac) (MetaSimplifier.ss_of rews);
+  MetaSimplifier.asm_rewrite_goal_tac (true, false, false) (K no_tac)
+    (MetaSimplifier.empty_ss addsimps rews);
 
 (*Rewrite throughout proof state. *)
 fun rewrite_tac defs = PRIMITIVE(rewrite_rule defs);
