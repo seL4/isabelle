@@ -37,6 +37,7 @@ sig
   val FIRST: ('a -> 'b seq) list -> 'a -> 'b seq
   val TRY: ('a -> 'a seq) -> 'a -> 'a seq
   val REPEAT: ('a -> 'a seq) -> 'a -> 'a seq
+  val REPEAT1: ('a -> 'a seq) -> 'a -> 'a seq
 end;
 
 structure Seq: SEQ =
@@ -199,6 +200,8 @@ fun REPEAT f =
             None => repq qs
           | Some (x, q) => rep (q :: qs) x);
   in fn x => make (fn () => rep [] x) end;
+
+fun REPEAT1 f = THEN (f, REPEAT f);
 
 
 end;
