@@ -24,7 +24,7 @@ sig
   val prove_primrec_thms : bool -> string list -> (int * (string * DatatypeAux.dtyp list *
     (string * DatatypeAux.dtyp list) list)) list list -> (string * sort) list ->
       DatatypeAux.datatype_info Symtab.table -> thm list list -> thm list list ->
-        simpset -> thm -> theory -> theory * string list * thm list
+        simpset -> thm -> theory -> theory * (string list * thm list)
   val prove_case_thms : bool -> string list -> (int * (string * DatatypeAux.dtyp list *
     (string * DatatypeAux.dtyp list) list)) list list -> (string * sort) list ->
       string list -> thm list -> theory -> theory * (thm list list * string list)
@@ -62,13 +62,14 @@ fun prove_casedist_thms new_type_names descr sorts induct case_names_exhausts th
     val recTs = get_rec_types descr' sorts;
     val newTs = take (length (hd descr), recTs);
 
+    val {maxidx, ...} = rep_thm induct;
     val induct_Ps = map head_of (HOLogic.dest_conj (HOLogic.dest_Trueprop (concl_of induct)));
 
     fun prove_casedist_thm ((i, t), T) =
       let
         val dummyPs = map (fn (Var (_, Type (_, [T', T'']))) =>
           Abs ("z", T', Const ("True", T''))) induct_Ps;
-        val P = Abs ("z", T, HOLogic.imp $ HOLogic.mk_eq (Var (("a", 0), T), Bound 0) $
+        val P = Abs ("z", T, HOLogic.imp $ HOLogic.mk_eq (Var (("a", maxidx+1), T), Bound 0) $
           Var (("P", 0), HOLogic.boolT))
         val insts = take (i, dummyPs) @ (P::(drop (i + 1, dummyPs)));
         val cert = cterm_of (Theory.sign_of thy);
@@ -280,11 +281,11 @@ fun prove_primrec_thms flat_names new_type_names descr sorts
            (DatatypeProp.make_primrecs new_type_names descr sorts thy2)
 
   in
-    (thy2 |> Theory.add_path (space_implode "_" new_type_names) |>
-             (#1 o PureThy.add_thmss [(("recs", rec_thms), [])]) |>
-             Theory.parent_path,
-     reccomb_names, rec_thms)
+    thy2 |> Theory.add_path (space_implode "_" new_type_names) |>
+    PureThy.add_thmss [(("recs", rec_thms), [])] |>>
+    Theory.parent_path |> apsnd (pair reccomb_names o flat)
   end;
+
 
 (***************************** case combinators *******************************)
 
@@ -349,13 +350,15 @@ fun prove_case_thms flat_names new_type_names descr sorts reccomb_names primrec_
     val case_thms = map (map (fn t => prove_goalw_cterm (case_defs @
       (map mk_meta_eq primrec_thms)) (cterm_of (Theory.sign_of thy2) t)
         (fn _ => [rtac refl 1])))
-          (DatatypeProp.make_cases new_type_names descr sorts thy2);
+          (DatatypeProp.make_cases new_type_names descr sorts thy2)
 
-    val thy3 = thy2 |> Theory.add_trrules_i
+  in
+    thy2 |> Theory.add_trrules_i
       (DatatypeProp.make_case_trrules new_type_names descr) |>
-      parent_path flat_names;
-
-  in thy3 |> store_thmss "cases" new_type_names case_thms |> apsnd (rpair case_names) end;
+    parent_path flat_names |>
+    store_thmss "cases" new_type_names case_thms |>
+    apsnd (rpair case_names)
+  end;
 
 
 (******************************* case splitting *******************************)
@@ -453,11 +456,11 @@ fun prove_size_thms flat_names new_type_names descr sorts reccomb_names primrec_
         (DatatypeProp.make_size new_type_names descr sorts thy')
 
   in
-    (thy' |> Theory.add_path big_name |>
-             (#1 o PureThy.add_thmss [(("size", size_thms), [])]) |>
-             Theory.parent_path,
-     size_thms)
+    thy' |> Theory.add_path big_name |>
+    PureThy.add_thmss [(("size", size_thms), [])] |>>
+    Theory.parent_path |> apsnd flat
   end;
+
 
 (************************* additional theorems for TFL ************************)
 
