@@ -7,4 +7,6 @@ components, and the parser setup for old-style theory files.
   ThyLoad	(theory loader primitives, including load path)
   ThyInfo	(theory loader main)
   HTML		(HTML presentation primitives)
+  Latex		(simple LaTeX presentation primitives)
+  Present	(theory browser info presentation)
   ThmDatabase	(user-level access to the theorem database)
