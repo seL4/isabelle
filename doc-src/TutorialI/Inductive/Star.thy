@@ -3,6 +3,7 @@
 section{*The reflexive transitive closure*}
 
 text{*\label{sec:rtc}
+
 {\bf Say something about inductive relations as opposed to sets? Or has that
 been said already? If not, explain induction!}
 
@@ -24,9 +25,9 @@ text{*\noindent
 The function @{term rtc} is annotated with concrete syntax: instead of
 @{text"rtc r"} we can read and write {term"r*"}. The actual definition
 consists of two rules. Reflexivity is obvious and is immediately declared an
-equivalence rule.  Thus the automatic tools will apply it automatically. The
-second rule, @{thm[source]rtc_step}, says that we can always add one more
-@{term r}-step to the left. Although we could make @{thm[source]rtc_step} an
+equivalence.  Thus the automatic tools will apply it automatically. The second
+rule, @{thm[source]rtc_step}, says that we can always add one more @{term
+r}-step to the left. Although we could make @{thm[source]rtc_step} an
 introduction rule, this is dangerous: the recursion slows down and may
 even kill the automatic tactics.
 
