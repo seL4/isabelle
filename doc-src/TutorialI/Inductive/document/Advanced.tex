@@ -1,0 +1,56 @@
+%
+\begin{isabellebody}%
+\def\isabellecontext{Advanced}%
+\isanewline
+\isacommand{theory}\ Advanced\ {\isacharequal}\ Main{\isacharcolon}\isanewline
+\isanewline
+\isacommand{datatype}\ {\isacharprime}f\ {\isachardoublequote}term{\isachardoublequote}\ {\isacharequal}\ Apply\ {\isacharprime}f\ {\isachardoublequote}{\isacharprime}f\ term\ list{\isachardoublequote}\isanewline
+\isanewline
+\isacommand{consts}\ terms\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}{\isacharprime}f\ set\ {\isasymRightarrow}\ {\isacharprime}f\ term\ set{\isachardoublequote}\isanewline
+\isacommand{inductive}\ {\isachardoublequote}terms\ F{\isachardoublequote}\isanewline
+\isakeyword{intros}\isanewline
+step{\isacharbrackleft}intro{\isacharbrackright}{\isacharcolon}\ {\isachardoublequote}{\isasymlbrakk}{\isasymforall}t\ {\isasymin}\ set\ term{\isacharunderscore}list{\isachardot}\ t\ {\isasymin}\ terms\ F{\isacharsemicolon}\ \ f\ {\isasymin}\ F{\isasymrbrakk}\isanewline
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ {\isasymLongrightarrow}\ {\isacharparenleft}Apply\ f\ term{\isacharunderscore}list{\isacharparenright}\ {\isasymin}\ terms\ F{\isachardoublequote}\isanewline
+\isanewline
+\isanewline
+\isacommand{lemma}\ {\isachardoublequote}F{\isasymsubseteq}G\ {\isasymLongrightarrow}\ terms\ F\ {\isasymsubseteq}\ terms\ G{\isachardoublequote}\isanewline
+\isacommand{apply}\ clarify\isanewline
+\isacommand{apply}\ {\isacharparenleft}erule\ terms{\isachardot}induct{\isacharparenright}\isanewline
+\isacommand{apply}\ blast\isanewline
+\isacommand{done}\isanewline
+\isanewline
+\isacommand{consts}\ term{\isacharunderscore}type\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}{\isacharparenleft}{\isacharprime}f\ {\isasymRightarrow}\ {\isacharprime}t\ list\ {\isacharasterisk}\ {\isacharprime}t{\isacharparenright}\ {\isasymRightarrow}\ {\isacharparenleft}{\isacharprime}f\ term\ {\isacharasterisk}\ {\isacharprime}t{\isacharparenright}set{\isachardoublequote}\isanewline
+\isacommand{inductive}\ {\isachardoublequote}term{\isacharunderscore}type\ sig{\isachardoublequote}\isanewline
+\isakeyword{intros}\isanewline
+step{\isacharbrackleft}intro{\isacharbrackright}{\isacharcolon}\ {\isachardoublequote}{\isasymlbrakk}{\isasymforall}et\ {\isasymin}\ set\ term{\isacharunderscore}type{\isacharunderscore}list{\isachardot}\ et\ {\isasymin}\ term{\isacharunderscore}type\ sig{\isacharsemicolon}\ \isanewline
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ sig\ f\ {\isacharequal}\ {\isacharparenleft}map\ snd\ term{\isacharunderscore}type{\isacharunderscore}list{\isacharcomma}\ rtype{\isacharparenright}{\isasymrbrakk}\isanewline
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ {\isasymLongrightarrow}\ {\isacharparenleft}Apply\ f\ {\isacharparenleft}map\ fst\ term{\isacharunderscore}type{\isacharunderscore}list{\isacharparenright}{\isacharcomma}\ rtype{\isacharparenright}\ {\isasymin}\ term{\isacharunderscore}type\ sig{\isachardoublequote}\isanewline
+\isanewline
+\isacommand{consts}\ term{\isacharunderscore}type{\isacharprime}\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}{\isacharparenleft}{\isacharprime}f\ {\isasymRightarrow}\ {\isacharprime}t\ list\ {\isacharasterisk}\ {\isacharprime}t{\isacharparenright}\ {\isasymRightarrow}\ {\isacharparenleft}{\isacharprime}f\ term\ {\isacharasterisk}\ {\isacharprime}t{\isacharparenright}set{\isachardoublequote}\isanewline
+\isacommand{inductive}\ {\isachardoublequote}term{\isacharunderscore}type{\isacharprime}\ sig{\isachardoublequote}\isanewline
+\isakeyword{intros}\isanewline
+step{\isacharbrackleft}intro{\isacharbrackright}{\isacharcolon}\ {\isachardoublequote}{\isasymlbrakk}term{\isacharunderscore}type{\isacharunderscore}list\ {\isasymin}\ lists{\isacharparenleft}term{\isacharunderscore}type{\isacharprime}\ sig{\isacharparenright}{\isacharsemicolon}\ \isanewline
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ sig\ f\ {\isacharequal}\ {\isacharparenleft}map\ snd\ term{\isacharunderscore}type{\isacharunderscore}list{\isacharcomma}\ rtype{\isacharparenright}{\isasymrbrakk}\isanewline
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ {\isasymLongrightarrow}\ {\isacharparenleft}Apply\ f\ {\isacharparenleft}map\ fst\ term{\isacharunderscore}type{\isacharunderscore}list{\isacharparenright}{\isacharcomma}\ rtype{\isacharparenright}\ {\isasymin}\ term{\isacharunderscore}type{\isacharprime}\ sig{\isachardoublequote}\isanewline
+\isakeyword{monos}\ lists{\isacharunderscore}mono\isanewline
+\isanewline
+\isanewline
+\isacommand{lemma}\ {\isachardoublequote}term{\isacharunderscore}type\ sig\ {\isasymsubseteq}\ term{\isacharunderscore}type{\isacharprime}\ sig{\isachardoublequote}\isanewline
+\isacommand{apply}\ clarify\isanewline
+\isacommand{apply}\ {\isacharparenleft}erule\ term{\isacharunderscore}type{\isachardot}induct{\isacharparenright}\isanewline
+\isacommand{apply}\ auto\isanewline
+\isacommand{done}\isanewline
+\isanewline
+\isacommand{lemma}\ {\isachardoublequote}term{\isacharunderscore}type{\isacharprime}\ sig\ {\isasymsubseteq}\ term{\isacharunderscore}type\ sig{\isachardoublequote}\isanewline
+\isacommand{apply}\ clarify\isanewline
+\isacommand{apply}\ {\isacharparenleft}erule\ term{\isacharunderscore}type{\isacharprime}{\isachardot}induct{\isacharparenright}\isanewline
+\isacommand{apply}\ auto\isanewline
+\isacommand{done}\isanewline
+\isanewline
+\isacommand{end}\isanewline
+\isanewline
+\end{isabellebody}%
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: "root"
+%%% End:

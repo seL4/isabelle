@@ -1,0 +1,166 @@
+%
+\begin{isabellebody}%
+\def\isabellecontext{Even}%
+\isanewline
+\isacommand{theory}\ Even\ {\isacharequal}\ Main{\isacharcolon}%
+\begin{isamarkuptext}%
+We begin with a simple example: the set of even numbers.  Obviously this
+concept can be expressed already using the divides relation (dvd).  We shall
+prove below that the two formulations coincide.
+
+First, we declare the constant \isa{even} to be a set of natural numbers.
+Then, an inductive declaration gives it the desired properties.%
+\end{isamarkuptext}%
+\isacommand{consts}\ even\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}nat\ set{\isachardoublequote}\isanewline
+\isacommand{inductive}\ even\isanewline
+\isakeyword{intros}\isanewline
+zero{\isacharbrackleft}intro{\isacharbang}{\isacharbrackright}{\isacharcolon}\ {\isachardoublequote}{\isadigit{0}}\ {\isasymin}\ even{\isachardoublequote}\isanewline
+step{\isacharbrackleft}intro{\isacharbang}{\isacharbrackright}{\isacharcolon}\ {\isachardoublequote}n\ {\isasymin}\ even\ {\isasymLongrightarrow}\ {\isacharparenleft}Suc\ {\isacharparenleft}Suc\ n{\isacharparenright}{\isacharparenright}\ {\isasymin}\ even{\isachardoublequote}%
+\begin{isamarkuptext}%
+An inductive definition consists of introduction rules.  The first one
+above states that 0 is even; the second states that if $n$ is even, so is
+$n+2$.  Given this declaration, Isabelle generates a fixed point definition
+for \isa{even} and proves many theorems about it.  These theorems include the
+introduction rules specified in the declaration, an elimination rule for case
+analysis and an induction rule.  We can refer to these theorems by
+automatically-generated names:
+
+\begin{isabelle}%
+\ \ \ \ \ n\ {\isasymin}\ even\ {\isasymLongrightarrow}\ Suc\ {\isacharparenleft}Suc\ n{\isacharparenright}\ {\isasymin}\ even%
+\end{isabelle}
+\rulename{even.step}
+
+\begin{isabelle}%
+\ \ \ \ \ {\isasymlbrakk}xa\ {\isasymin}\ even{\isacharsemicolon}\ P\ {\isadigit{0}}{\isacharsemicolon}\ {\isasymAnd}n{\isachardot}\ {\isasymlbrakk}n\ {\isasymin}\ even{\isacharsemicolon}\ P\ n{\isasymrbrakk}\ {\isasymLongrightarrow}\ P\ {\isacharparenleft}Suc\ {\isacharparenleft}Suc\ n{\isacharparenright}{\isacharparenright}{\isasymrbrakk}\ {\isasymLongrightarrow}\ P\ xa%
+\end{isabelle}
+\rulename{even.induct}
+
+Attributes can be given to the introduction rules.  Here both rules are
+specified as \isa{intro!}, which will cause them to be applied aggressively.
+Obviously, regarding 0 as even is always safe.  The second rule is also safe
+because $n+2$ is even if and only if $n$ is even.  We prove this equivalence
+later.%
+\end{isamarkuptext}%
+%
+\begin{isamarkuptext}%
+Our first lemma states that numbers of the form $2\times k$ are even.
+Introduction rules are used to show that given values belong to the inductive
+set.  Often, as here, the proof involves some other sort of induction.%
+\end{isamarkuptext}%
+\isacommand{lemma}\ two{\isacharunderscore}times{\isacharunderscore}even{\isacharbrackleft}intro{\isacharbang}{\isacharbrackright}{\isacharcolon}\ {\isachardoublequote}{\isacharhash}{\isadigit{2}}{\isacharasterisk}k\ {\isasymin}\ even{\isachardoublequote}\isanewline
+\isacommand{apply}\ {\isacharparenleft}induct\ {\isachardoublequote}k{\isachardoublequote}{\isacharparenright}\isanewline
+\ \isacommand{apply}\ auto\isanewline
+\isacommand{done}%
+\begin{isamarkuptext}%
+The first step is induction on the natural number \isa{k}, which leaves
+two subgoals:
+
+pr(latex xsymbols symbols);
+proof\ {\isacharparenleft}prove{\isacharparenright}{\isacharcolon}\ step\ {\isadigit{1}}\isanewline
+\isanewline
+goal\ {\isacharparenleft}lemma\ two{\isacharunderscore}times{\isacharunderscore}even{\isacharparenright}{\isacharcolon}\isanewline
+{\isacharhash}{\isadigit{2}}\ {\isacharasterisk}\ k\ {\isasymin}\ even\isanewline
+\ {\isadigit{1}}{\isachardot}\ {\isacharhash}{\isadigit{2}}\ {\isacharasterisk}\ {\isadigit{0}}\ {\isasymin}\ even\isanewline
+\ {\isadigit{2}}{\isachardot}\ {\isasymAnd}n{\isachardot}\ {\isacharhash}{\isadigit{2}}\ {\isacharasterisk}\ n\ {\isasymin}\ even\ {\isasymLongrightarrow}\ {\isacharhash}{\isadigit{2}}\ {\isacharasterisk}\ Suc\ n\ {\isasymin}\ even
+
+Here \isa{auto} simplifies both subgoals so that they match the introduction
+rules, which then are applied automatically.%
+\end{isamarkuptext}%
+%
+\begin{isamarkuptext}%
+Our goal is to prove the equivalence between the traditional definition
+of even (using the divides relation) and our inductive definition.  Half of
+this equivalence is trivial using the lemma just proved, whose \isa{intro!}
+attribute ensures it will be applied automatically.%
+\end{isamarkuptext}%
+\isacommand{lemma}\ dvd{\isacharunderscore}imp{\isacharunderscore}even{\isacharcolon}\ {\isachardoublequote}{\isacharhash}{\isadigit{2}}\ dvd\ n\ {\isasymLongrightarrow}\ n\ {\isasymin}\ even{\isachardoublequote}\isanewline
+\isacommand{apply}\ {\isacharparenleft}auto\ simp\ add{\isacharcolon}\ dvd{\isacharunderscore}def{\isacharparenright}\isanewline
+\isacommand{done}%
+\begin{isamarkuptext}%
+our first rule induction!%
+\end{isamarkuptext}%
+\isacommand{lemma}\ even{\isacharunderscore}imp{\isacharunderscore}dvd{\isacharcolon}\ {\isachardoublequote}n\ {\isasymin}\ even\ {\isasymLongrightarrow}\ {\isacharhash}{\isadigit{2}}\ dvd\ n{\isachardoublequote}\isanewline
+\isacommand{apply}\ {\isacharparenleft}erule\ even{\isachardot}induct{\isacharparenright}\isanewline
+\ \isacommand{apply}\ simp\isanewline
+\isacommand{apply}\ {\isacharparenleft}simp\ add{\isacharcolon}\ dvd{\isacharunderscore}def{\isacharparenright}\isanewline
+\isacommand{apply}\ clarify\isanewline
+\isacommand{apply}\ {\isacharparenleft}rule{\isacharunderscore}tac\ x\ {\isacharequal}\ {\isachardoublequote}Suc\ k{\isachardoublequote}\ \isakeyword{in}\ exI{\isacharparenright}\isanewline
+\isacommand{apply}\ simp\isanewline
+\isacommand{done}%
+\begin{isamarkuptext}%
+proof\ {\isacharparenleft}prove{\isacharparenright}{\isacharcolon}\ step\ {\isadigit{1}}\isanewline
+\isanewline
+goal\ {\isacharparenleft}lemma\ even{\isacharunderscore}imp{\isacharunderscore}dvd{\isacharparenright}{\isacharcolon}\isanewline
+n\ {\isasymin}\ even\ {\isasymLongrightarrow}\ {\isacharhash}{\isadigit{2}}\ dvd\ n\isanewline
+\ {\isadigit{1}}{\isachardot}\ {\isacharhash}{\isadigit{2}}\ dvd\ {\isadigit{0}}\isanewline
+\ {\isadigit{2}}{\isachardot}\ {\isasymAnd}n{\isachardot}\ {\isasymlbrakk}n\ {\isasymin}\ even{\isacharsemicolon}\ {\isacharhash}{\isadigit{2}}\ dvd\ n{\isasymrbrakk}\ {\isasymLongrightarrow}\ {\isacharhash}{\isadigit{2}}\ dvd\ Suc\ {\isacharparenleft}Suc\ n{\isacharparenright}
+
+proof\ {\isacharparenleft}prove{\isacharparenright}{\isacharcolon}\ step\ {\isadigit{3}}\isanewline
+\isanewline
+goal\ {\isacharparenleft}lemma\ even{\isacharunderscore}imp{\isacharunderscore}dvd{\isacharparenright}{\isacharcolon}\isanewline
+n\ {\isasymin}\ even\ {\isasymLongrightarrow}\ {\isacharhash}{\isadigit{2}}\ dvd\ n\isanewline
+\ {\isadigit{1}}{\isachardot}\ {\isasymAnd}n{\isachardot}\ {\isasymlbrakk}n\ {\isasymin}\ even{\isacharsemicolon}\ {\isasymexists}k{\isachardot}\ n\ {\isacharequal}\ {\isacharhash}{\isadigit{2}}\ {\isacharasterisk}\ k{\isasymrbrakk}\ {\isasymLongrightarrow}\ {\isasymexists}k{\isachardot}\ Suc\ {\isacharparenleft}Suc\ n{\isacharparenright}\ {\isacharequal}\ {\isacharhash}{\isadigit{2}}\ {\isacharasterisk}\ k
+
+proof\ {\isacharparenleft}prove{\isacharparenright}{\isacharcolon}\ step\ {\isadigit{4}}\isanewline
+\isanewline
+goal\ {\isacharparenleft}lemma\ even{\isacharunderscore}imp{\isacharunderscore}dvd{\isacharparenright}{\isacharcolon}\isanewline
+n\ {\isasymin}\ even\ {\isasymLongrightarrow}\ {\isacharhash}{\isadigit{2}}\ dvd\ n\isanewline
+\ {\isadigit{1}}{\isachardot}\ {\isasymAnd}n\ k{\isachardot}\ {\isacharhash}{\isadigit{2}}\ {\isacharasterisk}\ k\ {\isasymin}\ even\ {\isasymLongrightarrow}\ {\isasymexists}ka{\isachardot}\ Suc\ {\isacharparenleft}Suc\ {\isacharparenleft}{\isacharhash}{\isadigit{2}}\ {\isacharasterisk}\ k{\isacharparenright}{\isacharparenright}\ {\isacharequal}\ {\isacharhash}{\isadigit{2}}\ {\isacharasterisk}\ ka%
+\end{isamarkuptext}%
+%
+\begin{isamarkuptext}%
+no iff-attribute because we don't always want to use it%
+\end{isamarkuptext}%
+\isacommand{theorem}\ even{\isacharunderscore}iff{\isacharunderscore}dvd{\isacharcolon}\ {\isachardoublequote}{\isacharparenleft}n\ {\isasymin}\ even{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}{\isacharhash}{\isadigit{2}}\ dvd\ n{\isacharparenright}{\isachardoublequote}\isanewline
+\isacommand{apply}\ {\isacharparenleft}blast\ intro{\isacharcolon}\ dvd{\isacharunderscore}imp{\isacharunderscore}even\ even{\isacharunderscore}imp{\isacharunderscore}dvd{\isacharparenright}\isanewline
+\isacommand{done}%
+\begin{isamarkuptext}%
+this result ISN'T inductive...%
+\end{isamarkuptext}%
+\isacommand{lemma}\ Suc{\isacharunderscore}Suc{\isacharunderscore}even{\isacharunderscore}imp{\isacharunderscore}even{\isacharcolon}\ {\isachardoublequote}Suc\ {\isacharparenleft}Suc\ n{\isacharparenright}\ {\isasymin}\ even\ {\isasymLongrightarrow}\ n\ {\isasymin}\ even{\isachardoublequote}\isanewline
+\isacommand{apply}\ {\isacharparenleft}erule\ even{\isachardot}induct{\isacharparenright}\isanewline
+\isacommand{oops}%
+\begin{isamarkuptext}%
+proof\ {\isacharparenleft}prove{\isacharparenright}{\isacharcolon}\ step\ {\isadigit{1}}\isanewline
+\isanewline
+goal\ {\isacharparenleft}lemma\ Suc{\isacharunderscore}Suc{\isacharunderscore}even{\isacharunderscore}imp{\isacharunderscore}even{\isacharparenright}{\isacharcolon}\isanewline
+Suc\ {\isacharparenleft}Suc\ n{\isacharparenright}\ {\isasymin}\ even\ {\isasymLongrightarrow}\ n\ {\isasymin}\ even\isanewline
+\ {\isadigit{1}}{\isachardot}\ n\ {\isasymin}\ even\isanewline
+\ {\isadigit{2}}{\isachardot}\ {\isasymAnd}na{\isachardot}\ {\isasymlbrakk}na\ {\isasymin}\ even{\isacharsemicolon}\ n\ {\isasymin}\ even{\isasymrbrakk}\ {\isasymLongrightarrow}\ n\ {\isasymin}\ even%
+\end{isamarkuptext}%
+%
+\begin{isamarkuptext}%
+...so we need an inductive lemma...%
+\end{isamarkuptext}%
+\isacommand{lemma}\ even{\isacharunderscore}imp{\isacharunderscore}even{\isacharunderscore}minus{\isacharunderscore}{\isadigit{2}}{\isacharcolon}\ {\isachardoublequote}n\ {\isasymin}\ even\ {\isasymLongrightarrow}\ n{\isacharminus}{\isacharhash}{\isadigit{2}}\ {\isasymin}\ even{\isachardoublequote}\isanewline
+\isacommand{apply}\ {\isacharparenleft}erule\ even{\isachardot}induct{\isacharparenright}\isanewline
+\isacommand{apply}\ auto\isanewline
+\isacommand{done}%
+\begin{isamarkuptext}%
+proof\ {\isacharparenleft}prove{\isacharparenright}{\isacharcolon}\ step\ {\isadigit{1}}\isanewline
+\isanewline
+goal\ {\isacharparenleft}lemma\ even{\isacharunderscore}imp{\isacharunderscore}even{\isacharunderscore}minus{\isacharunderscore}{\isadigit{2}}{\isacharparenright}{\isacharcolon}\isanewline
+n\ {\isasymin}\ even\ {\isasymLongrightarrow}\ n\ {\isacharminus}\ {\isacharhash}{\isadigit{2}}\ {\isasymin}\ even\isanewline
+\ {\isadigit{1}}{\isachardot}\ {\isadigit{0}}\ {\isacharminus}\ {\isacharhash}{\isadigit{2}}\ {\isasymin}\ even\isanewline
+\ {\isadigit{2}}{\isachardot}\ {\isasymAnd}n{\isachardot}\ {\isasymlbrakk}n\ {\isasymin}\ even{\isacharsemicolon}\ n\ {\isacharminus}\ {\isacharhash}{\isadigit{2}}\ {\isasymin}\ even{\isasymrbrakk}\ {\isasymLongrightarrow}\ Suc\ {\isacharparenleft}Suc\ n{\isacharparenright}\ {\isacharminus}\ {\isacharhash}{\isadigit{2}}\ {\isasymin}\ even%
+\end{isamarkuptext}%
+%
+\begin{isamarkuptext}%
+...and prove it in a separate step%
+\end{isamarkuptext}%
+\isacommand{lemma}\ Suc{\isacharunderscore}Suc{\isacharunderscore}even{\isacharunderscore}imp{\isacharunderscore}even{\isacharcolon}\ {\isachardoublequote}Suc\ {\isacharparenleft}Suc\ n{\isacharparenright}\ {\isasymin}\ even\ {\isasymLongrightarrow}\ n\ {\isasymin}\ even{\isachardoublequote}\isanewline
+\isacommand{apply}\ {\isacharparenleft}drule\ even{\isacharunderscore}imp{\isacharunderscore}even{\isacharunderscore}minus{\isacharunderscore}{\isadigit{2}}{\isacharparenright}\isanewline
+\isacommand{apply}\ simp\isanewline
+\isacommand{done}\isanewline
+\isanewline
+\isacommand{lemma}\ {\isacharbrackleft}iff{\isacharbrackright}{\isacharcolon}\ {\isachardoublequote}{\isacharparenleft}{\isacharparenleft}Suc\ {\isacharparenleft}Suc\ n{\isacharparenright}{\isacharparenright}\ {\isasymin}\ even{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}n\ {\isasymin}\ even{\isacharparenright}{\isachardoublequote}\isanewline
+\isacommand{apply}\ {\isacharparenleft}blast\ dest{\isacharcolon}\ Suc{\isacharunderscore}Suc{\isacharunderscore}even{\isacharunderscore}imp{\isacharunderscore}even{\isacharparenright}\isanewline
+\isacommand{done}\isanewline
+\isanewline
+\isacommand{end}\isanewline
+\isanewline
+\end{isabellebody}%
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: "root"
+%%% End:
