@@ -51,6 +51,7 @@ sig
     -> (indexname * typ) list
   val unify: type_sig -> (typ * typ) * (indexname * typ) list
     -> (indexname * typ) list
+  val raw_unify: typ * typ -> bool
   val varifyT: typ -> typ
   val varify: term * string list -> term
   exception TUNIFY
@@ -864,6 +865,13 @@ fun unify (tsig as TySg{subclass, coreg, ...}) =
              if a<>b then raise TUNIFY else foldr unif (Ts~~Us, tye)
         | (T, U) => if T=U then tye else raise TUNIFY
   in unif end;
+
+
+(* raw_unify (ignores sorts) *)
+
+fun raw_unify (ty1, ty2) =
+  (unify tsig0 ((rem_sorts ty1, rem_sorts ty2), []); true)
+    handle TUNIFY => false;
 
 
 (*Type inference for polymorphic term*)
