@@ -33,4 +33,4 @@ val user_sections = (*####*)filter_out (fn (s,_) => s mem (map fst (
 end;
 
 structure ThySyn = ThySynFun(ThySynData);
-init_thy_reader ();
+set_parser ThySyn.parse;
