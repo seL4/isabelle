@@ -49,7 +49,7 @@ default : 'default' sort
         ;
 
 sort :  id
-     | '\{' (id * ',') '\}'
+     | lbrace (id * ',') rbrace
      ;
 
 types : 'types' ( ( typeDecl ( () | '(' infix ')' ) ) + )

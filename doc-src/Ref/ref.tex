@@ -1,7 +1,9 @@
-\documentstyle[a4,12pt]{report}
+\documentclass[12pt]{report}
+\usepackage{a4}
+
 \makeatletter
 \input{../rail.sty}
-\input{../proof209.sty}
+\input{../proof.sty}
 \input{../iman.sty}
 \input{../extra.sty}
 \makeatother
@@ -37,6 +39,10 @@ Copyright \copyright{} \number\year{} by Lawrence C. Paulson}
 \pagestyle{headings}
 \sloppy
 \binperiod     %%%treat . like a binary operator
+
+\railalias{lbrace}{\{}
+\railalias{rbrace}{\}}
+\railterm{lbrace,rbrace}
 
 \begin{document}
 \index{definitions|see{rewriting, meta-level}}

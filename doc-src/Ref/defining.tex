@@ -469,8 +469,8 @@ As a special case of the general mixfix declaration, the form
 specifies no priorities.  The resulting production puts no priority
 constraints on any of its arguments and has maximal priority itself.
 Omitting priorities in this manner is prone to syntactic ambiguities unless
-the production's right-hand side is fully bracketed, as in \verb|"if _ then _
-else _ fi"|.
+the production's right-hand side is fully bracketed, as in
+\verb|"if _ then _ else _ fi"|.
 
 Omitting the mixfix annotation completely, as in {\tt $c$ ::\ "$\sigma$"},
 is sensible only if~$c$ is an identifier.  Otherwise you will be unable to
@@ -613,8 +613,8 @@ in $\Q$ must be escaped using a single quote.
 
 The declaration is expanded internally to something like
 \begin{ttbox}
-\(c\)    :: (\(\tau@1\) => \(\tau@2\)) => \(\tau@3\)
-"\(\Q\)"\hskip-3pt  :: [idts, \(\tau@2\)] => \(\tau@3\)   ("(3\(\Q\)_./ _)" [0, \(pb\)] \(p\))
+\(c\)\hskip3pt    :: (\(\tau@1\) => \(\tau@2\)) => \(\tau@3\)
+"\(\Q\)"  :: [idts, \(\tau@2\)] => \(\tau@3\)   ("(3\(\Q\)_./ _)" [0, \(pb\)] \(p\))
 \end{ttbox}
 Here \ndx{idts} is the nonterminal symbol for a list of identifiers with
 \index{type constraints}
