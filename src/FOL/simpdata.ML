@@ -50,6 +50,9 @@ val distrib_rews  = map int_prove_fun
   "(Q | R) & P <-> Q&P | R&P",
   "(P | Q --> R) <-> (P --> R) & (Q --> R)"];
 
+bind_thm("conj_commute", int_prove_fun "P&Q <-> Q&P");
+bind_thm("disj_commute", int_prove_fun "P|Q <-> Q|P");
+
 (** Conversion into rewrite rules **)
 
 fun gen_all th = forall_elim_vars (#maxidx(rep_thm th)+1) th;
