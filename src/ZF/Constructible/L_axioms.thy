@@ -1539,14 +1539,14 @@ lemmas fun_plus_reflections =
         typed_function_reflection composition_reflection
         injection_reflection surjection_reflection
         bijection_reflection restriction_reflection
-        order_isomorphism_reflection
+        order_isomorphism_reflection finite_ordinal_reflection 
         ordinal_reflection limit_ordinal_reflection omega_reflection
 
 lemmas fun_plus_iff_sats =
         typed_function_iff_sats composition_iff_sats
         injection_iff_sats surjection_iff_sats
         bijection_iff_sats restriction_iff_sats
-        order_isomorphism_iff_sats
+        order_isomorphism_iff_sats finite_ordinal_iff_sats
         ordinal_iff_sats limit_ordinal_iff_sats omega_iff_sats
 
 end

@@ -2,13 +2,11 @@
     ID:         $Id$
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   2002  University of Cambridge
-
-FIXME: define nth_fm and prove its "sats" theorem
 *)
 
 header {*Separation for Facts About Recursion*}
 
-theory Rec_Separation = Separation + Datatype_absolute:
+theory Rec_Separation = Separation + Internalize:
 
 text{*This theory proves all instances needed for locales @{text
 "M_trancl"}, @{text "M_wfrank"} and @{text "M_datatypes"}*}
@@ -305,13 +303,7 @@ lemma is_recfun_iff_sats:
   "[| nth(i,env) = x; nth(j,env) = y; nth(k,env) = z; 
       i \<in> nat; j \<in> nat; k \<in> nat; env \<in> list(A)|]
    ==> M_is_recfun(**A, MH, x, y, z) <-> sats(A, is_recfun_fm(p,i,j,k), env)"
-apply (rule iff_sym) 
-apply (rule iff_trans)
-apply (rule sats_is_recfun_fm [of A MH]) 
-apply (rule MH_iff_sats, simp_all) 
-done
-(*FIXME: surely proof can be improved?*)
-
+by (simp add: sats_is_recfun_fm [OF MH_iff_sats]) 
 
 text{*The additional variable in the premise, namely @{term f'}, is essential.
 It lets @{term MH} depend upon @{term x}, which seems often necessary.
@@ -754,28 +746,27 @@ apply (rule is_nat_case_cong)
 apply (simp_all add: setclass_def)
 done
 
-
 lemma iterates_MH_iff_sats:
-  "[| (!!a b c d. [| a \<in> A; b \<in> A; c \<in> A; d \<in> A|]
+  assumes is_F_iff_sats:
+      "!!a b c d. [| a \<in> A; b \<in> A; c \<in> A; d \<in> A|]
               ==> is_F(a,b) <->
-                  sats(A, p, Cons(b, Cons(a, Cons(c, Cons(d,env))))));
-      nth(i',env) = v; nth(i,env) = x; nth(j,env) = y; nth(k,env) = z; 
+                  sats(A, p, Cons(b, Cons(a, Cons(c, Cons(d,env)))))"
+  shows 
+  "[| nth(i',env) = v; nth(i,env) = x; nth(j,env) = y; nth(k,env) = z; 
       i' \<in> nat; i \<in> nat; j \<in> nat; k < length(env); env \<in> list(A)|]
    ==> iterates_MH(**A, is_F, v, x, y, z) <->
        sats(A, iterates_MH_fm(p,i',i,j,k), env)"
-apply (rule iff_sym) 
-apply (rule iff_trans)
-apply (rule sats_iterates_MH_fm [of A is_F], blast, simp_all) 
-done
-(*FIXME: surely proof can be improved?*)
+by (simp add: sats_iterates_MH_fm [OF is_F_iff_sats]) 
 
-
+text{*The second argument of @{term p} gives it direct access to @{term x},
+  which is essential for handling free variable references.  Without this
+  argument, we cannot prove reflection for @{term list_N}.*}
 theorem iterates_MH_reflection:
   assumes p_reflection:
-    "!!f g h. REFLECTS[\<lambda>x. p(L, f(x), g(x)),
-                     \<lambda>i x. p(**Lset(i), f(x), g(x))]"
- shows "REFLECTS[\<lambda>x. iterates_MH(L, p(L), e(x), f(x), g(x), h(x)),
-               \<lambda>i x. iterates_MH(**Lset(i), p(**Lset(i)), e(x), f(x), g(x), h(x))]"
+    "!!f g h. REFLECTS[\<lambda>x. p(L, h(x), f(x), g(x)),
+                     \<lambda>i x. p(**Lset(i), h(x), f(x), g(x))]"
+ shows "REFLECTS[\<lambda>x. iterates_MH(L, p(L,x), e(x), f(x), g(x), h(x)),
+               \<lambda>i x. iterates_MH(**Lset(i), p(**Lset(i),x), e(x), f(x), g(x), h(x))]"
 apply (simp (no_asm_use) only: iterates_MH_def)
 txt{*Must be careful: simplifying with @{text setclass_simps} above would
      change @{text "\<exists>gm[**Lset(i)]"} into @{text "\<exists>gm \<in> Lset(i)"}, when
@@ -1035,229 +1026,6 @@ text{*NB The proofs for type @{term formula} are virtually identical to those
 for @{term "list(A)"}.  It was a cut-and-paste job! *}
 
 
-subsection{*Internalized Forms of Data Structuring Operators*}
-
-subsubsection{*The Formula @{term is_Inl}, Internalized*}
-
-(*  is_Inl(M,a,z) == \<exists>zero[M]. empty(M,zero) & pair(M,zero,a,z) *)
-constdefs Inl_fm :: "[i,i]=>i"
-    "Inl_fm(a,z) == Exists(And(empty_fm(0), pair_fm(0,succ(a),succ(z))))"
-
-lemma Inl_type [TC]:
-     "[| x \<in> nat; z \<in> nat |] ==> Inl_fm(x,z) \<in> formula"
-by (simp add: Inl_fm_def)
-
-lemma sats_Inl_fm [simp]:
-   "[| x \<in> nat; z \<in> nat; env \<in> list(A)|]
-    ==> sats(A, Inl_fm(x,z), env) <-> is_Inl(**A, nth(x,env), nth(z,env))"
-by (simp add: Inl_fm_def is_Inl_def)
-
-lemma Inl_iff_sats:
-      "[| nth(i,env) = x; nth(k,env) = z;
-          i \<in> nat; k \<in> nat; env \<in> list(A)|]
-       ==> is_Inl(**A, x, z) <-> sats(A, Inl_fm(i,k), env)"
-by simp
-
-theorem Inl_reflection:
-     "REFLECTS[\<lambda>x. is_Inl(L,f(x),h(x)),
-               \<lambda>i x. is_Inl(**Lset(i),f(x),h(x))]"
-apply (simp only: is_Inl_def setclass_simps)
-apply (intro FOL_reflections function_reflections)
-done
-
-
-subsubsection{*The Formula @{term is_Inr}, Internalized*}
-
-(*  is_Inr(M,a,z) == \<exists>n1[M]. number1(M,n1) & pair(M,n1,a,z) *)
-constdefs Inr_fm :: "[i,i]=>i"
-    "Inr_fm(a,z) == Exists(And(number1_fm(0), pair_fm(0,succ(a),succ(z))))"
-
-lemma Inr_type [TC]:
-     "[| x \<in> nat; z \<in> nat |] ==> Inr_fm(x,z) \<in> formula"
-by (simp add: Inr_fm_def)
-
-lemma sats_Inr_fm [simp]:
-   "[| x \<in> nat; z \<in> nat; env \<in> list(A)|]
-    ==> sats(A, Inr_fm(x,z), env) <-> is_Inr(**A, nth(x,env), nth(z,env))"
-by (simp add: Inr_fm_def is_Inr_def)
-
-lemma Inr_iff_sats:
-      "[| nth(i,env) = x; nth(k,env) = z;
-          i \<in> nat; k \<in> nat; env \<in> list(A)|]
-       ==> is_Inr(**A, x, z) <-> sats(A, Inr_fm(i,k), env)"
-by simp
-
-theorem Inr_reflection:
-     "REFLECTS[\<lambda>x. is_Inr(L,f(x),h(x)),
-               \<lambda>i x. is_Inr(**Lset(i),f(x),h(x))]"
-apply (simp only: is_Inr_def setclass_simps)
-apply (intro FOL_reflections function_reflections)
-done
-
-
-subsubsection{*The Formula @{term is_Nil}, Internalized*}
-
-(* is_Nil(M,xs) == \<exists>zero[M]. empty(M,zero) & is_Inl(M,zero,xs) *)
-
-constdefs Nil_fm :: "i=>i"
-    "Nil_fm(x) == Exists(And(empty_fm(0), Inl_fm(0,succ(x))))"
-
-lemma Nil_type [TC]: "x \<in> nat ==> Nil_fm(x) \<in> formula"
-by (simp add: Nil_fm_def)
-
-lemma sats_Nil_fm [simp]:
-   "[| x \<in> nat; env \<in> list(A)|]
-    ==> sats(A, Nil_fm(x), env) <-> is_Nil(**A, nth(x,env))"
-by (simp add: Nil_fm_def is_Nil_def)
-
-lemma Nil_iff_sats:
-      "[| nth(i,env) = x; i \<in> nat; env \<in> list(A)|]
-       ==> is_Nil(**A, x) <-> sats(A, Nil_fm(i), env)"
-by simp
-
-theorem Nil_reflection:
-     "REFLECTS[\<lambda>x. is_Nil(L,f(x)),
-               \<lambda>i x. is_Nil(**Lset(i),f(x))]"
-apply (simp only: is_Nil_def setclass_simps)
-apply (intro FOL_reflections function_reflections Inl_reflection)
-done
-
-
-subsubsection{*The Formula @{term is_Cons}, Internalized*}
-
-
-(*  "is_Cons(M,a,l,Z) == \<exists>p[M]. pair(M,a,l,p) & is_Inr(M,p,Z)" *)
-constdefs Cons_fm :: "[i,i,i]=>i"
-    "Cons_fm(a,l,Z) ==
-       Exists(And(pair_fm(succ(a),succ(l),0), Inr_fm(0,succ(Z))))"
-
-lemma Cons_type [TC]:
-     "[| x \<in> nat; y \<in> nat; z \<in> nat |] ==> Cons_fm(x,y,z) \<in> formula"
-by (simp add: Cons_fm_def)
-
-lemma sats_Cons_fm [simp]:
-   "[| x \<in> nat; y \<in> nat; z \<in> nat; env \<in> list(A)|]
-    ==> sats(A, Cons_fm(x,y,z), env) <->
-       is_Cons(**A, nth(x,env), nth(y,env), nth(z,env))"
-by (simp add: Cons_fm_def is_Cons_def)
-
-lemma Cons_iff_sats:
-      "[| nth(i,env) = x; nth(j,env) = y; nth(k,env) = z;
-          i \<in> nat; j \<in> nat; k \<in> nat; env \<in> list(A)|]
-       ==>is_Cons(**A, x, y, z) <-> sats(A, Cons_fm(i,j,k), env)"
-by simp
-
-theorem Cons_reflection:
-     "REFLECTS[\<lambda>x. is_Cons(L,f(x),g(x),h(x)),
-               \<lambda>i x. is_Cons(**Lset(i),f(x),g(x),h(x))]"
-apply (simp only: is_Cons_def setclass_simps)
-apply (intro FOL_reflections pair_reflection Inr_reflection)
-done
-
-subsubsection{*The Formula @{term is_quasilist}, Internalized*}
-
-(* is_quasilist(M,xs) == is_Nil(M,z) | (\<exists>x[M]. \<exists>l[M]. is_Cons(M,x,l,z))" *)
-
-constdefs quasilist_fm :: "i=>i"
-    "quasilist_fm(x) ==
-       Or(Nil_fm(x), Exists(Exists(Cons_fm(1,0,succ(succ(x))))))"
-
-lemma quasilist_type [TC]: "x \<in> nat ==> quasilist_fm(x) \<in> formula"
-by (simp add: quasilist_fm_def)
-
-lemma sats_quasilist_fm [simp]:
-   "[| x \<in> nat; env \<in> list(A)|]
-    ==> sats(A, quasilist_fm(x), env) <-> is_quasilist(**A, nth(x,env))"
-by (simp add: quasilist_fm_def is_quasilist_def)
-
-lemma quasilist_iff_sats:
-      "[| nth(i,env) = x; i \<in> nat; env \<in> list(A)|]
-       ==> is_quasilist(**A, x) <-> sats(A, quasilist_fm(i), env)"
-by simp
-
-theorem quasilist_reflection:
-     "REFLECTS[\<lambda>x. is_quasilist(L,f(x)),
-               \<lambda>i x. is_quasilist(**Lset(i),f(x))]"
-apply (simp only: is_quasilist_def setclass_simps)
-apply (intro FOL_reflections Nil_reflection Cons_reflection)
-done
-
-
-subsection{*Absoluteness for the Function @{term nth}*}
-
-
-subsubsection{*The Formula @{term is_hd}, Internalized*}
-
-(*   "is_hd(M,xs,H) == 
-       (is_Nil(M,xs) --> empty(M,H)) &
-       (\<forall>x[M]. \<forall>l[M]. ~ is_Cons(M,x,l,xs) | H=x) &
-       (is_quasilist(M,xs) | empty(M,H))" *)
-constdefs hd_fm :: "[i,i]=>i"
-    "hd_fm(xs,H) == 
-       And(Implies(Nil_fm(xs), empty_fm(H)),
-           And(Forall(Forall(Or(Neg(Cons_fm(1,0,xs#+2)), Equal(H#+2,1)))),
-               Or(quasilist_fm(xs), empty_fm(H))))"
-
-lemma hd_type [TC]:
-     "[| x \<in> nat; y \<in> nat |] ==> hd_fm(x,y) \<in> formula"
-by (simp add: hd_fm_def) 
-
-lemma sats_hd_fm [simp]:
-   "[| x \<in> nat; y \<in> nat; env \<in> list(A)|]
-    ==> sats(A, hd_fm(x,y), env) <-> is_hd(**A, nth(x,env), nth(y,env))"
-by (simp add: hd_fm_def is_hd_def)
-
-lemma hd_iff_sats:
-      "[| nth(i,env) = x; nth(j,env) = y;
-          i \<in> nat; j \<in> nat; env \<in> list(A)|]
-       ==> is_hd(**A, x, y) <-> sats(A, hd_fm(i,j), env)"
-by simp
-
-theorem hd_reflection:
-     "REFLECTS[\<lambda>x. is_hd(L,f(x),g(x)), 
-               \<lambda>i x. is_hd(**Lset(i),f(x),g(x))]"
-apply (simp only: is_hd_def setclass_simps)
-apply (intro FOL_reflections Nil_reflection Cons_reflection
-             quasilist_reflection empty_reflection)  
-done
-
-
-subsubsection{*The Formula @{term is_tl}, Internalized*}
-
-(*     "is_tl(M,xs,T) ==
-       (is_Nil(M,xs) --> T=xs) &
-       (\<forall>x[M]. \<forall>l[M]. ~ is_Cons(M,x,l,xs) | T=l) &
-       (is_quasilist(M,xs) | empty(M,T))" *)
-constdefs tl_fm :: "[i,i]=>i"
-    "tl_fm(xs,T) ==
-       And(Implies(Nil_fm(xs), Equal(T,xs)),
-           And(Forall(Forall(Or(Neg(Cons_fm(1,0,xs#+2)), Equal(T#+2,0)))),
-               Or(quasilist_fm(xs), empty_fm(T))))"
-
-lemma tl_type [TC]:
-     "[| x \<in> nat; y \<in> nat |] ==> tl_fm(x,y) \<in> formula"
-by (simp add: tl_fm_def)
-
-lemma sats_tl_fm [simp]:
-   "[| x \<in> nat; y \<in> nat; env \<in> list(A)|]
-    ==> sats(A, tl_fm(x,y), env) <-> is_tl(**A, nth(x,env), nth(y,env))"
-by (simp add: tl_fm_def is_tl_def)
-
-lemma tl_iff_sats:
-      "[| nth(i,env) = x; nth(j,env) = y;
-          i \<in> nat; j \<in> nat; env \<in> list(A)|]
-       ==> is_tl(**A, x, y) <-> sats(A, tl_fm(i,j), env)"
-by simp
-
-theorem tl_reflection:
-     "REFLECTS[\<lambda>x. is_tl(L,f(x),g(x)),
-               \<lambda>i x. is_tl(**Lset(i),f(x),g(x))]"
-apply (simp only: is_tl_def setclass_simps)
-apply (intro FOL_reflections Nil_reflection Cons_reflection
-             quasilist_reflection empty_reflection)
-done
-
-
 subsubsection{*The Formula @{term is_nth}, Internalized*}
 
 (* "is_nth(M,n,l,Z) == 
@@ -1297,14 +1065,6 @@ theorem nth_reflection:
 apply (simp only: is_nth_def setclass_simps)
 apply (intro FOL_reflections function_reflections is_wfrec_reflection 
              iterates_MH_reflection hd_reflection tl_reflection) 
-done
-
-theorem bool_of_o_reflection:
-     "REFLECTS [P(L), \<lambda>i. P(**Lset(i))] ==>
-      REFLECTS[\<lambda>x. is_bool_of_o(L, P(L,x), f(x)),  
-               \<lambda>i x. is_bool_of_o(**Lset(i), P(**Lset(i),x), f(x))]"
-apply (simp (no_asm) only: is_bool_of_o_def setclass_simps)
-apply (intro FOL_reflections function_reflections, assumption+)
 done
 
 
