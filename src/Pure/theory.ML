@@ -328,6 +328,19 @@ fun clash_defns c_ty axms =
   distinct (mapfilter (clash_defn c_ty) axms);
 
 
+(* overloading checks for warnings *)
+
+fun overloaded_def(tsig,cT,T) =
+  let
+    val T = incr_tvar (maxidx_of_typ cT + 1) (Type.varifyT T);
+  in
+  if Type.typ_instance(tsig,cT,T) then None else (* overloading *)
+  if Type.typ_instance(tsig,Type.rem_sorts cT,Type.rem_sorts T)
+  then Some false (* useless additional sort constraints in def *)
+  else Some true  (* useful kind of overloading *)
+  end;
+
+
 (* dest_defn *)
 
 fun dest_defn tm =
@@ -374,24 +387,36 @@ fun dest_defn tm =
 
 fun err_in_defn sg name msg =
   (error_msg msg; error ("The error(s) above occurred in definition " ^
-    quote (Sign.full_name sg name)));
+                         quote (Sign.full_name sg name)));
 
-fun check_defn sign (axms, (name, tm)) =
+fun check_defn sg (axms, (name, tm)) =
   let
     fun show_const (c, ty) = quote (Pretty.string_of (Pretty.block
-      [Pretty.str (c ^ " ::"), Pretty.brk 1, Sign.pretty_typ sign ty]));
+      [Pretty.str (c ^ " ::"), Pretty.brk 1, Sign.pretty_typ sg ty]));
 
+    fun def_txt c_ty = "Definition of " ^ show_const c_ty;
     fun show_defn c (dfn, ty') = show_const (c, ty') ^ " in " ^ dfn;
     fun show_defns c = cat_lines o map (show_defn c);
 
-    val (c, ty) = dest_defn tm
-      handle TERM (msg, _) => err_in_defn sign name msg;
-    val defns = clash_defns (c, ty) axms;
+    val c_ty as (c,ty) = dest_defn tm
+      handle TERM (msg, _) => err_in_defn sg name msg;
+    val defns = clash_defns c_ty axms;
+    val cT = case Sign.const_type sg c of Some T => T | None =>
+              err_in_defn sg name ("Undeclared constant "^quote c);
   in
     if not (null defns) then
-      err_in_defn sign name ("Definition of " ^ show_const (c, ty) ^
-        "\nclashes with " ^ show_defns c defns)
-    else (name, tm) :: axms
+      err_in_defn sg name (def_txt c_ty ^"\nclashes with "^ show_defns c defns)
+    else case overloaded_def(Sign.tsig_of sg,cT,ty) of
+           None => (name, tm) :: axms
+         | Some true => (warning(def_txt c_ty
+             ^ "\nin definition " ^ quote(Sign.full_name sg name)
+       ^ "\nis strictly less general than the declared type of the constant.");
+                        (name, tm) :: axms)
+         | Some false =>
+           let val txt = Library.setmp show_sorts true def_txt c_ty
+           in err_in_defn sg name (txt ^
+"\nimposes additional class constraints on the declared type of the constant.")
+           end
   end;
 
 
@@ -399,10 +424,11 @@ fun check_defn sign (axms, (name, tm)) =
 
 fun ext_defns prep_axm raw_axms thy =
   let
-    val axms = map (prep_axm (sign_of thy)) raw_axms;
+    val sg = sign_of thy
+    val axms = map (prep_axm sg) raw_axms;
     val all_axms = all_axioms_of thy;
   in
-    foldl (check_defn (sign_of thy)) (all_axms, axms);
+    foldl (check_defn sg) (all_axms, axms);
     add_axioms_i axms thy
   end;
 
