@@ -8,7 +8,7 @@ The basic UNITY theory (revised version, based upon the "co" operator)
 From Misra, "A Logic for Concurrent Programming", 1994
 *)
 
-UNITY = LessThan + Prefix +
+UNITY = LessThan + ListOrder +
 
 
 typedef (Program)
@@ -37,7 +37,7 @@ constdefs
     "invariant A == {F. Init F <= A} Int stable A"
 
   (*Polymorphic in both states and the meaning of <= *)
-  increasing :: "['a => 'b::{ord}] => 'a program set"
+  increasing :: "['a => 'b::{order}] => 'a program set"
     "increasing f == INT z. stable {s. z <= f s}"
 
 
