@@ -362,19 +362,23 @@ Note that the syntax of antiquotations may \emph{not} include source comments
 
 \medskip
 
-The following options are available to tune the output.
+The following options are available to tune the output.  Note that some of
+these coincide with ML flags of the same names (see also \cite{isabelle-ref}).
 \begin{descr}
-\item[$show_types = bool$ and $show_sorts = bool$] refer to Isabelle's global
-  ML flags of the same names (see also \cite{isabelle-ref}).
+\item[$show_types = bool$ and $show_sorts = bool$] control printing of
+  explicit type and sort constraints
+\item[$long_names = bool$] forces names of types and constants etc.\ to be
+  printed in their fully qualified internal form.
+\item[$eta_contract = bool$] prints terms in $\eta$-contracted form.
 \item[$display = bool$] indicates if the text is to be output as multi-line
   ``display material'', rather than a small piece of text without line breaks
   (which is the default).
 \item[$quotes = bool$] indicates if the output should be enclosed in double
   quotes.
-\item[$mode = name$] adds $name$ to the print mode to be used for
-  presentation.  Note that the standard setup for {\LaTeX} output is already
-  present by default, including the modes ``$latex$'', ``$xsymbols$'',
-  ``$symbols$''.
+\item[$mode = name$] adds $name$ to the print mode to be used for presentation
+  (see also \cite{isabelle-ref}).  Note that the standard setup for {\LaTeX}
+  output is already present by default, including the modes ``$latex$'',
+  ``$xsymbols$'', ``$symbols$''.
 \item[$margin = nat$] changes the margin for pretty printing of display
   material.
 \end{descr}

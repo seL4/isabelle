@@ -1173,7 +1173,6 @@ the opening of the proof.
 \indexisarcmd{pr}\indexisarcmd{thm}\indexisarcmd{term}\indexisarcmd{prop}\indexisarcmd{typ}
 \indexisarcmd{print-facts}\indexisarcmd{print-binds}
 \begin{matharray}{rcl}
-  \isarcmd{help}^* & : & \isarkeep{\cdot} \\
   \isarcmd{pr}^* & : & \isarkeep{\cdot} \\
   \isarcmd{thm}^* & : & \isarkeep{theory~|~proof} \\
   \isarcmd{term}^* & : & \isarkeep{theory~|~proof} \\
@@ -1204,8 +1203,6 @@ theory or proof configuration is not changed.
 \end{rail}
 
 \begin{descr}
-\item [$\isarkeyword{help}$] prints a list of available language elements.
-  Note that methods and attributes depend on the current theory context.
 \item [$\isarkeyword{pr}~n$] prints the current proof state (if present),
   including the proof context, current facts and goals.  The optional argument
   $n$ affects the implicit limit of goals to be displayed, which is initially
