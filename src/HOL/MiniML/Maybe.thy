@@ -1,20 +1,18 @@
 (* Title:     HOL/MiniML/Maybe.thy
    ID:        $Id$
-   Author:    Dieter Nazareth and Tobias Nipkow
-   Copyright  1995 TU Muenchen
+   Author:    Wolfgang Naraschewski and Tobias Nipkow
+   Copyright  1996 TU Muenchen
 
 Universal error monad.
 *)
 
-Maybe = List +
-
-datatype 'a maybe =  Ok 'a | Fail
+Maybe = Option + List +
 
 constdefs
-  bind :: ['a maybe, 'a => 'b maybe] => 'b maybe (infixl 60)
-  "m bind f == case m of Ok r => f r | Fail => Fail"
+  option_bind :: ['a option, 'a => 'b option] => 'b option
+  "option_bind m f == case m of None => None | Some r => f r"
 
-syntax "@bind" :: [pttrns,'a maybe,'b] => 'c ("(_ := _;//_)" 0)
-translations "P := E; F" == "E bind (%P.F)"
+syntax "@option_bind" :: [pttrns,'a option,'b] => 'c ("(_ := _;//_)" 0)
+translations "P := E; F" == "option_bind E (%P.F)"
 
 end

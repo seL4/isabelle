@@ -1,32 +1,32 @@
 (* Title:     HOL/MiniML/MiniML.thy
    ID:        $Id$
-   Author:    Dieter Nazareth and Tobias Nipkow
-   Copyright  1995 TU Muenchen
+   Author:    Wolfgang Naraschewski and Tobias Nipkow
+   Copyright  1996 TU Muenchen
 
 Mini_ML with type inference rules.
 *)
 
-MiniML = Type + 
+MiniML = Generalize + 
 
 (* expressions *)
 datatype
-        expr = Var nat | Abs expr | App expr expr
+        expr = Var nat | Abs expr | App expr expr | LET expr expr
 
 (* type inference rules *)
 consts
-        has_type :: "(typ list * expr * typ)set"
+        has_type :: "(ctxt * expr * typ)set"
 syntax
-        "@has_type" :: [typ list, expr, typ] => bool
+        "@has_type" :: [ctxt, expr, typ] => bool
                        ("((_) |-/ (_) :: (_))" [60,0,60] 60)
 translations 
-        "a |- e :: t" == "(a,e,t):has_type"
+        "A |- e :: t" == "(A,e,t):has_type"
 
 inductive has_type
 intrs
-        VarI "[| n < length a |] ==> a |- Var n :: nth n a"
-        AbsI "[| t1#a |- e :: t2 |] ==> a |- Abs e :: t1 -> t2"
-        AppI "[| a |- e1 :: t2 -> t1; a |- e2 :: t2 |] 
-              ==> a |- App e1 e2 :: t1"
+        VarI "[| n < length A; t <| (nth n A) |] ==> A |- Var n :: t"
+        AbsI "[| (mk_scheme t1)#A |- e :: t2 |] ==> A |- Abs e :: t1 -> t2"
+        AppI "[| A |- e1 :: t2 -> t1; A |- e2 :: t2 |] 
+              ==> A |- App e1 e2 :: t1"
+        LETI "[| A |- e1 :: t1; (gen A t1)#A |- e2 :: t |] ==> A |- LET e1 e2 :: t"
 
 end
-
