@@ -327,12 +327,13 @@ fun SUBGOAL goalfun i st = goalfun (List.nth(prems_of st, i-1),  i) st
 (*Returns all states that have changed in subgoal i, counted from the LAST
   subgoal.  For stac, for example.*)
 fun CHANGED_GOAL tac i st = 
-    let val j = nprems_of st - i
+    let val j = nprems_of st
         val t = List.nth(prems_of st, i-1)
-        fun diff st' = 
-	    not (nprems_of st' > j   (*subgoal is still there*)
+        fun diff st' = (*true if subgoal still exists and is same as old one*)
+	    not (nprems_of st' >= j
 		 andalso
-		 t aconv List.nth(prems_of st', nprems_of st' - j - 1))
+		 Pattern.aeconv (t,
+				 List.nth(prems_of st', nprems_of st' - j)))
     in  Seq.filter diff (tac i st)  end
     handle Subscript => Seq.empty  (*no subgoal i*);
 
