@@ -130,7 +130,7 @@ instance : 'instance' ( name '<' name | name '::' arity) witness
 witness : (() | '(' ((string | longident) + ',') ')') (() | verbatim)
         ;
 
-oracle : 'oracle' name
+oracle : 'oracle' name '=' name
        ;
 
 ml : 'ML' text

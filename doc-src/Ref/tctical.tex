@@ -96,7 +96,7 @@ requires more space.
 is like \hbox{\tt REPEAT {\it tac}} but it always applies {\it tac\/} at
 least once, failing if this is impossible.
 
-\item[\ttindexbold{trace_REPEAT} := true;] 
+\item[set \ttindexbold{trace_REPEAT};] 
 enables an interactive tracing mode for the tacticals {\tt REPEAT_DETERM}
 and {\tt REPEAT}.  To view the tracing options, type {\tt h} at the prompt.
 \end{ttdescription}
@@ -202,7 +202,7 @@ uses {\tt DEPTH_FIRST} to search for states having no subgoals.
 uses {\tt DEPTH_FIRST} to search for states having fewer subgoals than the
 given state.  Thus, it insists upon solving at least one subgoal.
 
-\item[\ttindexbold{trace_DEPTH_FIRST} := true;] 
+\item[set \ttindexbold{trace_DEPTH_FIRST};] 
 enables interactive tracing for {\tt DEPTH_FIRST}.  To view the
 tracing options, type {\tt h} at the prompt.
 \end{ttdescription}
@@ -242,7 +242,7 @@ is like {\tt BEST_FIRST}, except that the priority queue initially
 contains the result of applying $tac@0$ to the proof state.  This tactical
 permits separate tactics for starting the search and continuing the search.
 
-\item[\ttindexbold{trace_BEST_FIRST} := true;] 
+\item[set \ttindexbold{trace_BEST_FIRST};] 
 enables an interactive tracing mode for the tactical {\tt BEST_FIRST}.  To
 view the tracing options, type {\tt h} at the prompt.
 \end{ttdescription}
@@ -289,11 +289,11 @@ reports whether $thm$ has fewer than~$n$ premises.  By currying,
 \hbox{\tt has_fewer_prems $n$} is a predicate on theorems; it may 
 be given to the searching tacticals.
 
-\item[\ttindexbold{eq_thm}($thm1$,$thm2$)] 
-reports whether $thm1$ and $thm2$ are equal.  Both theorems must have
-identical signatures.  Both theorems must have the same conclusions, and
-the same hypotheses, in the same order.  Names of bound variables are
-ignored.
+\item[\ttindexbold{eq_thm} ($thm_1$, $thm_2$)] reports whether $thm_1$
+  and $thm_2$ are equal.  Both theorems must have identical
+  signatures.  Both theorems must have the same conclusions, and the
+  same hypotheses, in the same order.  Names of bound variables are
+  ignored.
 
 \item[\ttindexbold{size_of_thm} $thm$] 
 computes the size of $thm$, namely the number of variables, constants and

@@ -6,9 +6,10 @@ the theorems represent states of a backward proof.  Tactics seldom
 need to be coded from scratch, as functions; instead they are
 expressed using basic tactics and tacticals.
 
-This chapter only presents the primitive tactics.  Substantial proofs require
-the power of simplification (Chapter~\ref{chap:simplification}) and classical
-reasoning (Chapter~\ref{chap:classical}).
+This chapter only presents the primitive tactics.  Substantial proofs
+require the power of automatic tools like simplification
+(Chapter~\ref{chap:simplification}) and classical tableau reasoning
+(Chapter~\ref{chap:classical}).
 
 \section{Resolution and assumption tactics}
 {\bf Resolution} is Isabelle's basic mechanism for refining a subgoal using
@@ -251,14 +252,14 @@ defer_tac : int -> tactic
 \end{ttdescription}
 
 
-\subsection{Definitions and meta-level rewriting}
+\subsection{Definitions and meta-level rewriting} \label{sec:rewrite_goals}
 \index{tactics!meta-rewriting|bold}\index{meta-rewriting|bold}
 \index{definitions}
 
 Definitions in Isabelle have the form $t\equiv u$, where $t$ is typically a
 constant or a constant applied to a list of variables, for example $\it
-sqr(n)\equiv n\times n$.  (Conditional definitions, $\phi\Imp t\equiv u$,
-are not supported.)  {\bf Unfolding} the definition ${t\equiv u}$ means using
+sqr(n)\equiv n\times n$.  Conditional definitions, $\phi\Imp t\equiv u$,
+are also supported.  {\bf Unfolding} the definition ${t\equiv u}$ means using
 it as a rewrite rule, replacing~$t$ by~$u$ throughout a theorem.  {\bf
 Folding} $t\equiv u$ means replacing~$u$ by~$t$.  Rewriting continues until
 no rewrites are applicable to any subterm.
@@ -291,6 +292,12 @@ leaving the main goal unchanged.
 folds the {\it defs} throughout the proof state.
 \end{ttdescription}
 
+\begin{warn}
+  These tactics only cope with definitions expressed as meta-level
+  equalities ($\equiv$).  More general equivalences are handled by the
+  simplifier, provided that it is set up appropriately for your logic
+  (see Chapter~\ref{chap:simplification}).
+\end{warn}
 
 \subsection{Theorems useful with tactics}
 \index{theorems!of pure theory}
@@ -356,7 +363,7 @@ where several of the new parameters should have related names.
 sets the prefix for uniform renaming to~{\it prefix}.  The default prefix
 is {\tt"k"}.
 
-\item[\ttindexbold{Logic.auto_rename} := true;] 
+\item[set \ttindexbold{Logic.auto_rename};] 
 makes Isabelle generate uniform names for parameters. 
 \end{ttdescription}
 
@@ -559,7 +566,7 @@ is no longer than {\it limit}.
 \end{ttdescription}
 
 
-\section{*Programming tools for proof strategies}
+\section{Programming tools for proof strategies}
 Do not consider using the primitives discussed in this section unless you
 really need to code tactics from scratch.
 
@@ -626,7 +633,7 @@ a value:
 datatype 'a option = None  |  Some of 'a;
 \end{ttbox}
 The {\tt Seq} structure is supposed to be accessed via fully qualified
-names and should not be \texttt{open}ed.
+names and should not be \texttt{open}.
 
 \subsection{Basic operations on sequences}
 \begin{ttbox} 

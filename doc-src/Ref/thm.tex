@@ -135,9 +135,10 @@ serves little purpose in forward proof.
 \subsection{Instantiating a theorem}
 \index{instantiation}
 \begin{ttbox}
-read_instantiate    :            (string * string) list -> thm -> thm
-read_instantiate_sg : Sign.sg -> (string * string) list -> thm -> thm
-cterm_instantiate   :              (cterm * cterm) list -> thm -> thm
+read_instantiate    :                (string * string) list -> thm -> thm
+read_instantiate_sg :     Sign.sg -> (string * string) list -> thm -> thm
+cterm_instantiate   :                  (cterm * cterm) list -> thm -> thm
+instantiate'        : ctyp option list -> cterm option list -> thm -> thm
 \end{ttbox}
 These meta-rules instantiate type and term unknowns in a theorem.  They are
 occasionally useful.  They can prevent difficulties with higher-order
@@ -166,6 +167,15 @@ incorrectly.
 \item[\ttindexbold{cterm_instantiate} {\it ctpairs} {\it thm}] 
 is similar to {\tt read_instantiate}, but the instantiations are provided
 as pairs of certified terms, not as strings to be read.
+
+\item[\ttindexbold{instantiate'} {\it ctyps} {\it cterms} {\it thm}]
+  instantiates {\it thm} according to the positional arguments {\it
+    ctyps} and {\it cterms}.  Counting from left to right, schematic
+  variables $?x$ are either replaced by $t$ for any argument
+  \texttt{Some\(\;t\)}, or left unchanged in case of \texttt{None} or
+  if the end of the argument list is encountered.  Types are
+  instantiated before terms.
+
 \end{ttdescription}
 
 
@@ -208,46 +218,62 @@ is the basis for destruct-resolution: {\tt dresolve_tac}, etc.
 \index{theorems!taking apart}
 \index{flex-flex constraints}
 \begin{ttbox} 
+cprop_of      : thm -> cterm
 concl_of      : thm -> term
 prems_of      : thm -> term list
+cprems_of     : thm -> cterm list
 nprems_of     : thm -> int
-tpairs_of     : thm -> (term*term)list
-stamps_of_thy : thm -> string ref list
+tpairs_of     : thm -> (term * term) list
+sign_of_thm   : thm -> Sign.sg
 theory_of_thm : thm -> theory
-dest_state    : thm*int -> (term*term)list*term list*term*term
-rep_thm       : thm -> {\ttlbrace}prop: term, hyps: term list, der: deriv, 
-                        maxidx: int, sign: Sign.sg, shyps: sort list\ttrbrace
+dest_state    : thm * int -> (term * term) list * term list * term * term
+rep_thm       : thm -> {\ttlbrace}sign_ref: Sign.sg_ref, der: deriv, maxidx: int,
+                        shyps: sort list, hyps: term list, prop: term\ttrbrace
+crep_thm      : thm -> {\ttlbrace}sign_ref: Sign.sg_ref, der: deriv, maxidx: int,
+                        shyps: sort list, hyps: cterm list, prop: cterm\ttrbrace
 \end{ttbox}
 \begin{ttdescription}
-\item[\ttindexbold{concl_of} $thm$] 
-returns the conclusion of $thm$ as a term.
-
-\item[\ttindexbold{prems_of} $thm$] 
-returns the premises of $thm$ as a list of terms.
+\item[\ttindexbold{cprop_of} $thm$] returns the statement of $thm$ as
+  a certified term.
+  
+\item[\ttindexbold{concl_of} $thm$] returns the conclusion of $thm$ as
+  a term.
+  
+\item[\ttindexbold{prems_of} $thm$] returns the premises of $thm$ as a
+  list of terms.
+  
+\item[\ttindexbold{cprems_of} $thm$] returns the premises of $thm$ as
+  a list of certified terms.
 
 \item[\ttindexbold{nprems_of} $thm$] 
 returns the number of premises in $thm$, and is equivalent to {\tt
-  length(prems_of~$thm$)}.
+  length~(prems_of~$thm$)}.
 
-\item[\ttindexbold{tpairs_of} $thm$] 
-returns the flex-flex constraints of $thm$.
-
-\item[\ttindexbold{stamps_of_thm} $thm$] 
-returns the \rmindex{stamps} of the signature associated with~$thm$.
-
-\item[\ttindexbold{theory_of_thm} $thm$]
-returns the theory associated with $thm$.
+\item[\ttindexbold{tpairs_of} $thm$] returns the flex-flex constraints
+  of $thm$.
+  
+\item[\ttindexbold{sign_of_thm} $thm$] returns the signature
+  associated with $thm$.
+  
+\item[\ttindexbold{theory_of_thm} $thm$] returns the theory associated
+  with $thm$.  Note that this does a lookup in Isabelle's global
+  database of loaded theories.
 
 \item[\ttindexbold{dest_state} $(thm,i)$] 
 decomposes $thm$ as a tuple containing a list of flex-flex constraints, a
 list of the subgoals~1 to~$i-1$, subgoal~$i$, and the rest of the theorem
 (this will be an implication if there are more than $i$ subgoals).
 
-\item[\ttindexbold{rep_thm} $thm$] decomposes $thm$ as a record containing the
-  statement of~$thm$ ({\tt prop}), its list of meta-assumptions ({\tt hyps}),
-  its derivation ({\tt der}), a bound on the maximum subscript of its
-  unknowns ({\tt maxidx}), and its signature ({\tt sign}).  The {\tt shyps}
-  field is discussed below.
+\item[\ttindexbold{rep_thm} $thm$] decomposes $thm$ as a record
+  containing the statement of~$thm$ ({\tt prop}), its list of
+  meta-assumptions ({\tt hyps}), its derivation ({\tt der}), a bound
+  on the maximum subscript of its unknowns ({\tt maxidx}), and a
+  reference to its signature ({\tt sign_ref}).  The {\tt shyps} field
+  is discussed below.
+  
+\item[\ttindexbold{crep_thm} $thm$] like \texttt{rep_thm}, but returns
+  the hypotheses and statement as certified terms.
+
 \end{ttdescription}
 
 
@@ -267,7 +293,7 @@ certain ranges of types.  This has little impact when sorts only serve for
 syntactic classification of types --- for example, FOL distinguishes between
 terms and other types.  But when type classes are introduced through axioms,
 this may result in some sorts becoming {\em empty\/}: where one cannot exhibit
-a type belonging to it because certain axioms are unsatisfiable.
+a type belonging to it because certain sets of axioms are unsatisfiable.
 
 If a theorem contains a type variable that is constrained by an empty
 sort, then that theorem has no instances.  It is basically an instance
@@ -301,10 +327,10 @@ Tracing the search may be useful when higher-order unification behaves
 unexpectedly.  Letting {\tt res_inst_tac} circumvent the problem is easier,
 though.
 \begin{ttdescription}
-\item[Unify.trace_simp := true;] 
+\item[set Unify.trace_simp;] 
 causes tracing of the simplification phase.
 
-\item[Unify.trace_types := true;] 
+\item[set Unify.trace_types;] 
 generates warnings of incompleteness, when unification is not considering
 all possible instantiations of type unknowns.
 
@@ -313,22 +339,23 @@ causes unification to print tracing information once it reaches depth~$n$.
 Use $n=0$ for full tracing.  At the default value of~10, tracing
 information is almost never printed.
 
-\item[Unify.search_bound := $n$;] 
-causes unification to limit its search to depth~$n$.  Because of this
-bound, higher-order unification cannot return an infinite sequence, though
-it can return a very long one.  The search rarely approaches the default
-value of~20.  If the search is cut off, unification prints {\tt
-***Unification bound exceeded}.
+\item[Unify.search_bound := $n$;] causes unification to limit its
+  search to depth~$n$.  Because of this bound, higher-order
+  unification cannot return an infinite sequence, though it can return
+  a very long one.  The search rarely approaches the default value
+  of~20.  If the search is cut off, unification prints a warning
+  \texttt{Unification bound exceeded}.
 \end{ttdescription}
 
 
-\section{Primitive meta-level inference rules}
+\section{*Primitive meta-level inference rules}
 \index{meta-rules|(}
-These implement the meta-logic in {\sc lcf} style, as functions from theorems
-to theorems.  They are, rarely, useful for deriving results in the pure
-theory.  Mainly, they are included for completeness, and most users should
-not bother with them.  The meta-rules raise exception \xdx{THM} to signal
-malformed premises, incompatible signatures and similar errors.
+These implement the meta-logic in the style of the {\sc lcf} system,
+as functions from theorems to theorems.  They are, rarely, useful for
+deriving results in the pure theory.  Mainly, they are included for
+completeness, and most users should not bother with them.  The
+meta-rules raise exception \xdx{THM} to signal malformed premises,
+incompatible signatures and similar errors.
 
 \index{meta-assumptions}
 The meta-logic uses natural deduction.  Each theorem may depend on
@@ -694,7 +721,7 @@ theorem.  The proof object contains all logical inferences in detail, while
 omitting bookkeeping steps that have no logical meaning to an outside
 observer.  Rewriting steps are recorded in similar detail as the output of
 simplifier tracing.  The proof object can be inspected by a separate
-proof-checker, or used to generate human-readable proof digests.
+proof-checker, for example.
 
 Full proof objects are large.  They multiply storage requirements by about
 seven; attempts to build large logics (such as {\sc zf} and {\sc hol}) may
@@ -727,10 +754,11 @@ Each theorem's derivation is stored as the {\tt der} field of its internal
 record: 
 \begin{ttbox} 
 #der (rep_thm conjI);
-{\out Join (Theorem "conjI", [Join (MinProof,[])]) : deriv}
+{\out Join (Theorem "HOL.conjI", [Join (MinProof,[])]) : deriv}
 \end{ttbox}
-This proof object identifies a labelled theorem, {\tt conjI}, whose underlying
-proof has not been recorded; all we have is {\tt MinProof}.
+This proof object identifies a labelled theorem, {\tt conjI} of theory
+\texttt{HOL}, whose underlying proof has not been recorded; all we
+have is {\tt MinProof}.
 
 Nontrivial proof objects are unreadably large and complex.  Isabelle provides
 several functions to help you inspect them informally.  These functions omit

@@ -231,7 +231,7 @@ delete_tmpfiles : bool ref \hfill{\bf initially true}
   define a theory.  This list is only used if the theory name in {\tt
     use_thy} does not specify the path explicitly.
 
-\item[\ttindexbold{delete_tmpfiles} := false;]
+\item[reset \ttindexbold{delete_tmpfiles};]
 suppresses the deletion of temporary files.
 \end{ttdescription}
 %
@@ -245,15 +245,15 @@ that have not been loaded previously; the recursive calls may continue
 to any depth.  One {\tt use_thy} call can read an entire logic
 provided all theories are linked appropriately.
 
-The result is an \ML\ structure~$T$ containing at least a component {\tt thy}
-for the new theory and components for each of the rules.  The structure also
-contains the definitions of the {\tt ML} section, if present.  The file
-{\tt.{\it T}.thy.ML} is then deleted if {\tt delete_tmpfiles} is set to {\tt
-true} and no errors occurred.
+The result is an \ML\ structure~$T$ containing at least a component
+{\tt thy} for the new theory and components for each of the rules.
+The structure also contains the definitions of the {\tt ML} section,
+if present.  The file {\tt.{\it T}.thy.ML} is then deleted if {\tt
+  delete_tmpfiles} is set and no errors occurred.
 
-Finally the file {\it T}{\tt.ML} is read, if it exists.  Since the
-structure $T$ is automatically open in this context, proof scripts may
-(or even should) refer to its components by unqualified names.
+Finally the file {\it T}{\tt.ML} is read, if it exists.  The structure
+$T$ is automatically open in this context.  Proof scripts typically
+refer to its components by unqualified names.
 
 Some applications construct theories directly by calling \ML\ functions.  In
 this situation there is no {\tt.thy} file, only an {\tt.ML} file.  The
@@ -357,31 +357,49 @@ see the sources of one of the major object-logics (e.g.\ \ZF).
 
 
 \section{Basic operations on theories}\label{BasicOperationsOnTheories}
-\subsection{Extracting an axiom or theorem from a theory}
+\subsection{Retrieving axioms and theorems}
 \index{theories!axioms of}\index{axioms!extracting}
 \index{theories!theorems of}\index{theorems!extracting}
 \begin{ttbox}
-get_axiom : theory -> string -> thm
-get_thm   : theory -> string -> thm
+get_axiom : theory -> xstring -> thm
+get_thm   : theory -> xstring -> thm
+get_thms  : theory -> xstring -> thm list
+axioms_of : theory -> (string * thm) list
+thms_of   : theory -> (string * thm) list
 assume_ax : theory -> string -> thm
 \end{ttbox}
 \begin{ttdescription}
-\item[\ttindexbold{get_axiom} $thy$ $name$]
-  returns an axiom with the given $name$ from $thy$, raising exception
-  \xdx{THEORY} if none exists.  Merging theories can cause several axioms
-  to have the same name; {\tt get_axiom} returns an arbitrary one.
-
-\item[\ttindexbold{get_thm} $thy$ $name$]
-  is analogous to {\tt get_axiom}, but looks for a stored theorem.  Like
-  {\tt get_axiom} it searches all parents of a theory if the theorem
-  is not associated with $thy$.
-
-\item[\ttindexbold{assume_ax} $thy$ $formula$]
-  reads the {\it formula} using the syntax of $thy$, following the same
-  conventions as axioms in a theory definition.  You can thus pretend that
-  {\it formula} is an axiom and use the resulting theorem like an axiom.
-  Actually {\tt assume_ax} returns an assumption;  \ttindex{result}
-  complains about additional assumptions, but \ttindex{uresult} does not.
+\item[\ttindexbold{get_axiom} $thy$ $name$] returns an axiom with the
+  given $name$ from $thy$ or any of its ancestors, raising exception
+  \xdx{THEORY} if none exists.  Merging theories can cause several
+  axioms to have the same name; {\tt get_axiom} returns an arbitrary
+  one.  Usually, axioms are also stored as theorems and may be
+  retrieved via \texttt{get_thm} as well.
+  
+\item[\ttindexbold{get_thm} $thy$ $name$] is analogous to {\tt
+    get_axiom}, but looks for a theorem stored in the theory's
+  database.  Like {\tt get_axiom} it searches all parents of a theory
+  if the theorem is not found directly in $thy$.
+  
+\item[\ttindexbold{get_thms} $thy$ $name$] is like \texttt{get_thm}
+  for retrieving theorem lists stored within the theory.  It returns a
+  singleton list if $name$ actually refers to a theorem rather than a
+  theorem list.
+  
+\item[\ttindexbold{axioms_of} $thy$] returns the axioms of this theory
+  node, not including the ones of its ancestors.
+  
+\item[\ttindexbold{thms_of} $thy$] returns all theorems stored within
+  the database of this theory node, not including the ones of its
+  ancestors.
+  
+\item[\ttindexbold{assume_ax} $thy$ $formula$] reads the {\it formula}
+  using the syntax of $thy$, following the same conventions as axioms
+  in a theory definition.  You can thus pretend that {\it formula} is
+  an axiom and use the resulting theorem like an axiom.  Actually {\tt
+    assume_ax} returns an assumption; \ttindex{qed} and
+  \ttindex{result} complain about additional assumptions, but
+  \ttindex{uresult} does not.
 
 For example, if {\it formula} is
 \hbox{\tt a=b ==> b=a} then the resulting theorem has the form
@@ -392,29 +410,34 @@ For example, if {\it formula} is
 \label{BuildingATheory}
 \index{theories!constructing|bold}
 \begin{ttbox}
+ProtoPure.thy  : theory
 Pure.thy       : theory
 CPure.thy      : theory
-merge_theories : theory * theory -> theory
+merge_theories : string -> theory * theory -> theory
 \end{ttbox}
 \begin{description}
-\item[\ttindexbold{Pure.thy}, \ttindexbold{CPure.thy}] contain the
-  syntax and signature of the meta-logic.  There are no axioms:
-  meta-level inferences are carried out by \ML\ functions.  The two
-  \Pure s just differ in their concrete syntax of function
-  application: $t(u@1, \ldots, u@n)$ vs.\ $t\,u@1,\ldots\,u@n$.
-
-\item[\ttindexbold{merge_theories} ($thy@1$, $thy@2$)] merges the two
-  theories $thy@1$ and $thy@2$.  The resulting theory contains all of the
-  syntax, signature and axioms of the constituent theories.  Merging theories
-  that contain different identification stamps of the same name fails with
+\item[\ttindexbold{ProtoPure.thy}, \ttindexbold{Pure.thy},
+  \ttindexbold{CPure.thy}] contain the syntax and signature of the
+  meta-logic.  There are basically no axioms: meta-level inferences
+  are carried out by \ML\ functions.  \texttt{Pure} and \texttt{CPure}
+  just differ in their concrete syntax of prefix function application:
+  $t(u@1, \ldots, u@n)$ in \texttt{Pure} vs.\ $t\,u@1,\ldots\,u@n$ in
+  \texttt{CPure}.  \texttt{ProtoPure} is their common parent,
+  containing no syntax for printing prefix applications at all!
+  
+\item[\ttindexbold{merge_theories} $name$ ($thy@1$, $thy@2$)] merges
+  the two theories $thy@1$ and $thy@2$, creating a new named theory
+  node.  The resulting theory contains all of the syntax, signature
+  and axioms of the constituent theories.  Merging theories that
+  contain different identification stamps of the same name fails with
   the following message
 \begin{ttbox}
 Attempt to merge different versions of theories: "\(T@1\)", \(\ldots\), "\(T@n\)"
 \end{ttbox}
-  This error may especially occur when a theory is redeclared --- say to
-  change an incorrect axiom --- and bindings to old versions persist.
-  Isabelle ensures that old and new theories of the same name are not
-  involved in a proof.
+This error may especially occur when a theory is redeclared --- say to
+change an inappropriate definition --- and bindings to old versions
+persist.  Isabelle ensures that old and new theories of the same name
+are not involved in a proof.
 
 %% FIXME
 %\item [\ttindexbold{extend_theory} $thy$ {\tt"}$T${\tt"} $\cdots$] extends
@@ -464,13 +487,13 @@ Attempt to merge different versions of theories: "\(T@1\)", \(\ldots\), "\(T@n\)
 \subsection{Inspecting a theory}\label{sec:inspct-thy}
 \index{theories!inspecting|bold}
 \begin{ttbox}
-print_syntax  : theory -> unit
-print_theory  : theory -> unit
-axioms_of     : theory -> (string * thm) list
-thms_of       : theory -> (string * thm) list
-parents_of    : theory -> theory list
-sign_of       : theory -> Sign.sg
-stamps_of_thy : theory -> string ref list
+print_syntax        : theory -> unit
+print_theory        : theory -> unit
+print_data          : theory -> string -> unit
+parents_of          : theory -> theory list
+ancestors_of        : theory -> theory list
+sign_of             : theory -> Sign.sg
+Sign.stamp_names_of : Sign.sg -> string list
 \end{ttbox}
 These provide means of viewing a theory's components.
 \begin{ttdescription}
@@ -480,23 +503,27 @@ These provide means of viewing a theory's components.
   
 \item[\ttindexbold{print_theory} $thy$] prints the logical parts of
   $thy$, excluding the syntax.
+  
+\item[\ttindexbold{print_data} $thy$ $kind$] prints generic data of
+  $thy$.  This invokes the print method associated with $kind$.  Refer
+  to the output of \texttt{print_theory} for a list of available data
+  kinds in $thy$.
+  
+\item[\ttindexbold{parents_of} $thy$] returns the direct ancestors
+  of~$thy$.
+  
+\item[\ttindexbold{ancestors_of} $thy$] returns all ancestors of~$thy$
+  (not including $thy$ itself).
+  
+\item[\ttindexbold{sign_of} $thy$] returns the signature associated
+  with~$thy$.  It is useful with functions like {\tt
+    read_instantiate_sg}, which take a signature as an argument.
+  
+\item[\ttindexbold{Sign.stamp_names_of} $sg$]\index{signatures}
+  returns the names of the identification \rmindex{stamps} of ax
+  signature.  These coincide with the names of its full ancestry
+  including that of $sg$ itself.
 
-\item[\ttindexbold{axioms_of} $thy$]
-returns the additional axioms of the most recent extend node of~$thy$.
-
-\item[\ttindexbold{thms_of} $thy$]
-returns all theorems that are associated with $thy$.
-
-\item[\ttindexbold{parents_of} $thy$]
-returns the direct ancestors of~$thy$.
-
-\item[\ttindexbold{sign_of} $thy$]
-returns the signature associated with~$thy$.  It is useful with functions
-like {\tt read_instantiate_sg}, which take a signature as an argument.
-
-\item[\ttindexbold{stamps_of_thy} $thy$]\index{signatures}
-returns the identification \rmindex{stamps} of the signature associated
-with~$thy$.
 \end{ttdescription}
 
 
@@ -515,16 +542,16 @@ datatype term = Const of string * typ
               | op $  of term * term;
 \end{ttbox}
 \begin{ttdescription}
-\item[\ttindexbold{Const}($a$, $T$)] \index{constants|bold}
+\item[\ttindexbold{Const} ($a$, $T$)] \index{constants|bold}
   is the {\bf constant} with name~$a$ and type~$T$.  Constants include
   connectives like $\land$ and $\forall$ as well as constants like~0
   and~$Suc$.  Other constants may be required to define a logic's concrete
   syntax.
 
-\item[\ttindexbold{Free}($a$, $T$)] \index{variables!free|bold}
+\item[\ttindexbold{Free} ($a$, $T$)] \index{variables!free|bold}
   is the {\bf free variable} with name~$a$ and type~$T$.
 
-\item[\ttindexbold{Var}($v$, $T$)] \index{unknowns|bold}
+\item[\ttindexbold{Var} ($v$, $T$)] \index{unknowns|bold}
   is the {\bf scheme variable} with indexname~$v$ and type~$T$.  An
   \mltydx{indexname} is a string paired with a non-negative index, or
   subscript; a term's scheme variables can be systematically renamed by
@@ -538,7 +565,7 @@ datatype term = Const of string * typ
   more information see de Bruijn \cite{debruijn72} or
   Paulson~\cite[page~336]{paulson91}.
 
-\item[\ttindexbold{Abs}($a$, $T$, $u$)]
+\item[\ttindexbold{Abs} ($a$, $T$, $u$)]
   \index{lambda abs@$\lambda$-abstractions|bold}
   is the $\lambda$-{\bf abstraction} with body~$u$, and whose bound
   variable has name~$a$ and type~$T$.  The name is used only for parsing
@@ -555,7 +582,7 @@ Const("Trueprop",_) $ (Const("op -->",_) $ A $ B)
 \end{ttbox}
 
 
-\section{Variable binding}
+\section{*Variable binding}
 \begin{ttbox}
 loose_bnos     : term -> int list
 incr_boundvars : int -> term -> term
@@ -691,7 +718,7 @@ infixr 5 -->;
 fun S --> T = Type ("fun", [S, T]);
 \end{ttbox}
 \begin{ttdescription}
-\item[\ttindexbold{Type}($a$, $Ts$)] \index{type constructors|bold}
+\item[\ttindexbold{Type} ($a$, $Ts$)] \index{type constructors|bold}
   applies the {\bf type constructor} named~$a$ to the type operands~$Ts$.
   Type constructors include~\tydx{fun}, the binary function space
   constructor, as well as nullary type constructors such as~\tydx{prop}.
@@ -699,10 +726,10 @@ fun S --> T = Type ("fun", [S, T]);
   patterns, \hbox{\tt$S$-->$T$} is a convenient shorthand for function
   types.
 
-\item[\ttindexbold{TFree}($a$, $s$)] \index{type variables|bold}
+\item[\ttindexbold{TFree} ($a$, $s$)] \index{type variables|bold}
   is the {\bf type variable} with name~$a$ and sort~$s$.
 
-\item[\ttindexbold{TVar}($v$, $s$)] \index{type unknowns|bold}
+\item[\ttindexbold{TVar} ($v$, $s$)] \index{type unknowns|bold}
   is the {\bf type unknown} with indexname~$v$ and sort~$s$.
   Type unknowns are essentially free type variables, but may be
   instantiated during unification.
@@ -743,7 +770,7 @@ decomposes $cT$ as a record containing the type itself and its signature.
 \end{ttdescription}
 
 
-\section{Oracles: calling external reasoners }
+\section{Oracles: calling trusted external reasoners}
 \label{sec:oracles}
 \index{oracles|(}
 
@@ -756,19 +783,21 @@ Isabelle's proof objects~(\S\ref{sec:proofObjects}) record how each theorem
 depends upon oracle calls.
 
 \begin{ttbox}
-     invoke_oracle : theory * Sign.sg * exn -> thm
-     set_oracle    : (Sign.sg * exn -> term) -> theory -> theory
+invoke_oracle     : theory -> xstring -> Sign.sg * object -> thm
+Theory.add_oracle : bstring * (Sign.sg * object -> term) -> theory -> theory
 \end{ttbox}
 \begin{ttdescription}
-\item[\ttindexbold{invoke_oracle} ($thy$, $sign$, $exn$)] invokes the oracle
-  of theory $thy$ passing the information contained in the exception value
-  $exn$ and creating a theorem having signature $sign$.  Errors arise if $thy$
-  does not have an oracle, if the oracle rejects its arguments or if its
-  result is ill-typed.
-
-\item[\ttindexbold{set_oracle} $fn$ $thy$] sets the oracle of theory $thy$ to
-  be $fn$.  It is seldom called explicitly, as there is syntax for oracles in
-  theory files.  Any theory node can have at most one oracle.
+\item[\ttindexbold{invoke_oracle} $thy$ $name$ ($sign$, $data$)]
+  invokes the oracle $name$ of theory $thy$ passing the information
+  contained in the exception value $data$ and creating a theorem
+  having signature $sign$.  Note that type \ttindex{object} is just an
+  abbreviation for \texttt{exn}.  Errors arise if $thy$ does not have
+  an oracle called $name$, if the oracle rejects its arguments or if
+  its result is ill-typed.
+  
+\item[\ttindexbold{Theory.add_oracle} $name$ $fun$ $thy$] extends
+  $thy$ by oracle $fun$ called $name$.  It is seldom called
+  explicitly, as there is concrete syntax for oracles in theory files.
 \end{ttdescription}
 
 A curious feature of {\ML} exceptions is that they are ordinary constructors.
@@ -780,7 +809,7 @@ take any information whatever.
 There must be some way of invoking the external reasoner from \ML, either
 because it is coded in {\ML} or via an operating system interface.  Isabelle
 expects the {\ML} function to take two arguments: a signature and an
-exception.
+exception object.
 \begin{itemize}
 \item The signature will typically be that of a desendant of the theory
   declaring the oracle.  The oracle will use it to distinguish constants from
@@ -793,49 +822,54 @@ exception.
   solve the specified problem.
 \end{itemize}
 
-A trivial example is provided on directory {\tt FOL/ex}.  This oracle
-generates tautologies of the form $P\bimp\cdots\bimp P$, with an even number
-of $P$s. 
+A trivial example is provided in theory {\tt FOL/ex/IffOracle}.  This
+oracle generates tautologies of the form $P\bimp\cdots\bimp P$, with
+an even number of $P$s.
 
-File {\tt declIffOracle.ML} begins by declaring a new exception constructor
-for the oracle the information it requires: here, just an integer.  It
-contains some code (suppressed below) for creating the tautologies, and
-finally declares the oracle function itself:
+The \texttt{ML} section of \texttt{IffOracle.thy} begins by declaring
+a few auxiliary functions (suppressed below) for creating the
+tautologies.  Then it declares a new exception constructor for the
+information required by the oracle: here, just an integer. It finally
+defines the oracle function itself.
 \begin{ttbox}
-exception IffOracleExn of int;
-\(\vdots\)
-fun mk_iff_oracle (sign, IffOracleExn n) = 
-    if n>0 andalso n mod 2 = 0 
-    then Trueprop $ mk_iff n
-    else raise IffOracleExn n;
+exception IffOracleExn of int;\medskip
+fun mk_iff_oracle (sign, IffOracleExn n) =
+  if n > 0 andalso n mod 2 = 0
+  then Trueprop $ mk_iff n
+  else raise IffOracleExn n;
 \end{ttbox}
-Observe the function two arguments, the signature {\tt sign} and the exception
-given as a pattern.  The function checks its argument for validity.  If $n$ is
-positive and even then it creates a tautology containing $n$ occurrences
-of~$P$.  Otherwise it signals error by raising its own exception.  Errors may
-be signalled by other means, such as returning the theorem {\tt True}.
-Please ensure that the oracle's result is correctly typed; Isabelle will
-reject ill-typed theorems by raising a cryptic exception at top level.
+Observe the function's two arguments, the signature {\tt sign} and the
+exception given as a pattern.  The function checks its argument for
+validity.  If $n$ is positive and even then it creates a tautology
+containing $n$ occurrences of~$P$.  Otherwise it signals error by
+raising its own exception (just by happy coincidence).  Errors may be
+signalled by other means, such as returning the theorem {\tt True}.
+Please ensure that the oracle's result is correctly typed; Isabelle
+will reject ill-typed theorems by raising a cryptic exception at top
+level.
 
-The theory file {\tt IffOracle.thy} packages up the function above as an
-oracle.  The first line indicates that the new theory depends upon the file
-{\tt declIffOracle.ML} (which declares the {\ML} code) as well as on \FOL.
-The second line informs Isabelle that this theory has an oracle given by the
-function {\tt mk_iff_oracle}.
+The \texttt{oracle} section of {\tt IffOracle.thy} installs above
+\texttt{ML} function as follows:
 \begin{ttbox}
-IffOracle = "declIffOracle" + FOL +
-oracle mk_iff_oracle
+IffOracle = FOL +\medskip
+oracle
+  iff = mk_iff_oracle\medskip
 end
 \end{ttbox}
-Because a theory can have at most one oracle, the theory itself serves to
-identify the oracle.
 
-Here are some examples of invoking the oracle.  An argument of 10 is allowed,
-but one of 5 is forbidden:
+Now in \texttt{IffOracle.ML} we first define a wrapper for invoking
+the oracle:
 \begin{ttbox}
-invoke_oracle (IffOracle.thy, sign_of IffOracle.thy, IffOracleExn 10);
+fun iff_oracle n =
+  invoke_oracle IffOracle.thy "iff" (sign_of IffOracle.thy, IffOracleExn n);
+\end{ttbox}
+
+Here are some example applications of the \texttt{iff} oracle.  An
+argument of 10 is allowed, but one of 5 is forbidden:
+\begin{ttbox}
+iff_oracle 10;
 {\out  "P <-> P <-> P <-> P <-> P <-> P <-> P <-> P <-> P <-> P" : thm}
-invoke_oracle (IffOracle.thy, sign_of IffOracle.thy, IffOracleExn 5); 
+iff_oracle 5;
 {\out Exception- IffOracleExn 5 raised}
 \end{ttbox}
 

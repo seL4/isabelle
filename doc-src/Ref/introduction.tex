@@ -29,20 +29,19 @@ directory of the distribution on how to build it.
 
 \medskip Let $\langle isabellehome \rangle$ denote the location where
 the distribution has been installed.  To run Isabelle from a the shell
-prompt within an ordinary text terminal session, simply type:
+prompt within an ordinary text terminal session, simply type
 \begin{ttbox}
 \({\langle}isabellehome{\rangle}\)/bin/isabelle
 \end{ttbox}
 This should start an interactive \ML{} session with the default
-object-logic already preloaded.  All Isabelle commands are bound to
-\ML{} identifiers.
+object-logic already preloaded.
 
 Subsequently we assume that {\tt \(\langle isabellehome \rangle\)/bin}
 has been added to your shell's search path, in order to avoid typing
 full path specifications of the executable files.
 
 The object-logic image to load may be also specified explicitly as an
-argument to the {\tt isabelle} command, e.g.:
+argument to the {\tt isabelle} command, e.g.
 \begin{ttbox}
 isabelle FOL
 \end{ttbox}
@@ -50,15 +49,15 @@ This should put you into the world of polymorphic first-order logic
 (assuming that {\FOL} has been pre-built).
 
 \index{saving your work|bold} Isabelle provides no means of storing
-theorems or proofs on files.  Theorems are simply part of the \ML{}
-state and are named by \ML{} identifiers.  To save your work between
-sessions, you must dump the \ML{} system state to a file.  This is done
-automatically when ending the session normally (e.g.\ by typing
-control-D), provided that the image has been opened \emph{writable} in
-the first place.  The standard object-logics are usually read-only, so
-you probably have to create a private working copy first.  For example,
-the following shell command puts you into a writable Isabelle session
-of name \texttt{Foo} that initially contains just \FOL:
+theorems or internal proof objects on files.  Theorems are simply part
+of the \ML{} state.  To save your work between sessions, you must dump
+the \ML{} system state to a file.  This is done automatically when
+ending the session normally (e.g.\ by typing control-D), provided that
+the image has been opened \emph{writable} in the first place.  The
+standard object-logic images are usually read-only, so you probably
+have to create a private working copy first.  For example, the
+following shell command puts you into a writable Isabelle session of
+name \texttt{Foo} that initially contains just \FOL:
 \begin{ttbox}
 isabelle FOL Foo
 \end{ttbox}
@@ -72,8 +71,8 @@ by running
 isabelle Foo  
 \end{ttbox}
 
-More details about \texttt{isabelle} may be found in the \emph{System
-  Manual}.
+More details about the \texttt{isabelle} command may be found in the
+\emph{System Manual}.
 
 \medskip Saving the state is not enough.  Record, on a file, the
 top-level commands that generate your theories and proofs.  Such a
@@ -87,10 +86,8 @@ bare-bones \ML{} top-level run from a text terminal.  The
 \texttt{Isabelle} executable (note the capital I) runs one such
 interface, depending on your local configuration.  Furthermore there
 are a number of external utilities available.  These are started
-uniformly via the \texttt{isatool} wrapper.
-
-Again, see the \emph{System Manual} for more information user
-interfaces and utilities.
+uniformly via the \texttt{isatool} wrapper.  See the \emph{System
+  Manual} for more information user interfaces and utilities.
 
 
 \section{Ending a session}
@@ -102,9 +99,9 @@ commit  : unit -> unit
 \begin{ttdescription}
 \item[\ttindexbold{quit}();] ends the Isabelle session, without saving
   the state.
-
-\item[\ttindexbold{exit}();] same as {\tt quit}, passing a return code
-  to the operating system.
+  
+\item[\ttindexbold{exit} \(i\);] similar to {\tt quit}, passing return
+  code \(i\) to the operating system.
 
 \item[\ttindexbold{commit}();] saves the current state without ending
   the session, provided that the logic image is opened read-write.
@@ -123,11 +120,11 @@ use             : string -> unit
 time_use        : string -> unit
 \end{ttbox}
 \begin{ttdescription}
-\item[\ttindexbold{cd} "{\it dir}";]
-  changes the current directory to {\it dir}.  This is the default directory
-  for reading files and for writing temporary files.
-
-\item[\ttindexbold{pwd}();] returns the path of the current directory.
+\item[\ttindexbold{cd} "{\it dir}";] changes the current directory to
+  {\it dir}.  This is the default directory for reading files.
+  
+\item[\ttindexbold{pwd}();] returns the full path of the current
+  directory.
 
 \item[\ttindexbold{use} "$file$";]  
 reads the given {\it file} as input to the \ML{} session.  Reading a file
@@ -139,8 +136,8 @@ performs {\tt use~"$file$"} and prints the total execution time.
 
 The $dir$ and $file$ specifications of the \texttt{cd} and
 \texttt{use} commands may contain path variables that are expanded
-accordingly --- e.g.\ \texttt{\$ISABELLE_HOME}, or \texttt{\~\relax}
-(abbreviating \texttt{\$HOME}).  Section~\ref{LoadingTheories}
+appropriately, e.g.\ \texttt{\$ISABELLE_HOME} or \texttt{\~\relax}
+(which abbreviates \texttt{\$HOME}).  Section~\ref{LoadingTheories}
 describes commands for loading theory files.
 
 
@@ -164,8 +161,9 @@ Pretty.setdepth  : int -> unit
 Pretty.setmargin : int -> unit
 print_depth      : int -> unit
 \end{ttbox}
-These set limits for terminal output.  See also {\tt goals_limit}, which
-limits the number of subgoals printed (page~\pageref{sec:goals-printing}).
+These set limits for terminal output.  See also {\tt goals_limit},
+which limits the number of subgoals printed
+(\S\ref{sec:goals-printing}).
 
 \begin{ttdescription}
 \item[\ttindexbold{Pretty.setdepth} \(d\);]  
@@ -176,7 +174,7 @@ limits the number of subgoals printed (page~\pageref{sec:goals-printing}).
 
 \item[\ttindexbold{Pretty.setmargin} \(m\);]  
   tells Isabelle's pretty printer to assume a right margin (page width)
-  of~$m$.  The initial margin is~80.
+  of~$m$.  The initial margin is~76.
 
 \item[\ttindexbold{print_depth} \(n\);]  
   limits the printing depth of complex \ML{} values, such as theorems and
@@ -185,7 +183,7 @@ limits the number of subgoals printed (page~\pageref{sec:goals-printing}).
 \end{ttdescription}
 
 
-\subsection{Printing of hypotheses, brackets, types and sorts}
+\subsection{Printing of hypotheses, brackets, types etc.}
 \index{meta-assumptions!printing of}
 \index{types!printing of}\index{sorts!printing of}
 \begin{ttbox} 
@@ -193,27 +191,38 @@ show_hyps     : bool ref \hfill{\bf initially true}
 show_brackets : bool ref \hfill{\bf initially false}
 show_types    : bool ref \hfill{\bf initially false}
 show_sorts    : bool ref \hfill{\bf initially false}
+show_consts   : bool ref \hfill{\bf initially false}
 \end{ttbox}
 These flags allow you to control how much information is displayed for
-terms and theorems.  The hypotheses are normally shown; superfluous
-parentheses are not.  Types and sorts are normally hidden.  Displaying
-types and sorts may explain why a polymorphic inference rule fails to
-resolve with some goal.
+types, terms and theorems.  The hypotheses of theorems \emph{are}
+normally shown.  Superfluous parentheses of types and terms are not.
+Types and sorts of variables are normally hidden.
+
+Note that displaying types and sorts may explain why a polymorphic
+inference rule fails to resolve with some goal, or why a rewrite rule
+does not apply as expected.
 
 \begin{ttdescription}
-\item[\ttindexbold{show_hyps} := false;]   
-makes Isabelle show each meta-level hypothesis as a dot.
+\item[reset \ttindexbold{show_hyps};] makes Isabelle show each
+  meta-level hypothesis as a dot.
+  
+\item[set \ttindexbold{show_brackets};] makes Isabelle show full
+  bracketing.  In particular, this reveals the grouping of infix
+  operators.
+  
+\item[set \ttindexbold{show_types};] makes Isabelle show types when
+  printing a term or theorem.
+  
+\item[set \ttindexbold{show_sorts};] makes Isabelle show both types
+  and the sorts of type variables, independently of the value of
+  \texttt{show_types}.
+  
+\item[set \ttindexbold{show_consts};] makes Isabelle show types of
+  constants, provided that showing of types is enabled at all.  This
+  is supported for printing of proof states only.  Note that the
+  output can be enormous as polymorphic constants often occur at
+  several different type instances.
 
-\item[\ttindexbold{show_brackets} := true;] 
-  makes Isabelle show full bracketing.  This reveals the
-  grouping of infix operators.
-
-\item[\ttindexbold{show_types} := true;]
-makes Isabelle show types when printing a term or theorem.
-
-\item[\ttindexbold{show_sorts} := true;]
-makes Isabelle show both types and the sorts of type variables.  It does not
-matter whether {\tt show_types} is also~{\tt true}. 
 \end{ttdescription}
 
 
@@ -230,13 +239,44 @@ $\lambda h.F(\lambda x.h(x))$.  By default, the user sees this expanded
 form.
 
 \begin{ttdescription}
-\item[\ttindexbold{eta_contract} := true;]
+\item[set \ttindexbold{eta_contract};]
 makes Isabelle perform $\eta$-contractions before printing, so that
 $\lambda h.F(\lambda x.h(x))$ appears simply as~$F$.  The
 distinction between a term and its $\eta$-expanded form occasionally
 matters.
 \end{ttdescription}
 \index{printing control|)}
+
+\section{Diagnostic messages}
+\index{error messages}
+\index{warnings}
+
+Isabelle conceptually provides three output channels for different
+kinds of messages: ordinary text, warnings, errors.  Depending on the
+user interface involved, these messages may appear in different text
+styles or colours, even within separate windows.
+
+The default setup of an \texttt{isabelle} terminal session is as
+follows: plain output of ordinary text, warnings prefixed by
+\texttt{\#\#\#}'s, errors prefixed by \texttt{***}'s.  For example, a
+typical warning would look like this:
+\begin{ttbox}
+\#\#\# Beware the Jabberwock, my son!
+\#\#\# The jaws that bite, the claws that catch!
+\#\#\# Beware the Jubjub Bird, and shun
+\#\#\# The frumious Bandersnatch!
+\end{ttbox}
+
+\texttt{ML} programs may output diagnostic messages using the
+following functions:
+\begin{ttbox}
+writeln : string -> unit
+warning : string -> unit
+error   : string -> 'a
+\end{ttbox}
+Note that \ttindex{error} fails by raising exception \ttindex{ERROR}
+after having output the text, while \ttindex{writeln} and
+\ttindex{warning} resume normal program execution.
 
 
 \section{Displaying exceptions as error messages}
@@ -247,7 +287,7 @@ print_exn: exn -> 'a
 Certain Isabelle primitives, such as the forward proof functions {\tt RS}
 and {\tt RSN}, are called both interactively and from programs.  They
 indicate errors not by printing messages, but by raising exceptions.  For
-interactive use, \ML's reporting of an uncaught exception is 
+interactive use, \ML's reporting of an uncaught exception may be
 uninformative.  The Poly/ML function {\tt exception_trace} can generate a
 backtrace.\index{Poly/{\ML} compiler}
 

@@ -129,10 +129,10 @@ bind_thm  : string * thm -> unit
 store_thm : string * thm -> thm
 \end{ttbox}
 \begin{ttdescription}
-\item[\ttindexbold{qed} $name$] is the usual way of ending a proof.
-  It combines {\tt result} and {\tt bind_thm}: it gets the theorem using {\tt
-  result()} and stores it in Isabelle's theorem database.  See below for
-  details. 
+\item[\ttindexbold{qed} $name$;] is the usual way of ending a proof.
+  It combines {\tt result} and {\tt bind_thm}: it gets the theorem
+  using {\tt result()} and stores it the theorem database associated
+  with its theory.  See below for details.
 
 \item[\ttindexbold{result}()]\index{assumptions!of main goal}
   returns the final theorem, after converting the free variables to
@@ -155,30 +155,32 @@ store_thm : string * thm -> thm
   definitions are unfolded in the main goal (by calling
   \ttindex{rewrite_tac}),\index{definitions!unfolding} or when
   \ttindex{assume_ax} has been used.
-
-\item[\ttindexbold{bind_thm}($name$, $thm$)]\index{theorems!storing}
+  
+\item[\ttindexbold{bind_thm} ($name$, $thm$);]\index{theorems!storing}
   stores {\tt standard($thm$)} (see \S\ref{MiscellaneousForwardRules})
-  in Isabelle's theorem database and in the {\ML} variable $name$.  The
-  theorem can be retrieved from the database using {\tt get_thm}
-  (see \S\ref{BasicOperationsOnTheories}).
-
-\item[\ttindexbold{store_thm}($name$, $thm$)]\index{theorems!storing} stores
-  $thm$ in Isabelle's theorem database and returns that theorem.
+  in the theorem database associated with its theory and in the {\ML}
+  variable $name$.  The theorem can be retrieved from the database
+  using {\tt get_thm} (see \S\ref{BasicOperationsOnTheories}).
+  
+\item[\ttindexbold{store_thm} ($name$, $thm$)]\index{theorems!storing}
+  stores $thm$ in the theorem database associated with its theory and
+  returns that theorem.
 \end{ttdescription}
 
 
 \subsection{Retrieving theorems}
 \index{theorems!retrieving}
 
-The following functions retrieve theorems (together with their names) from
-the theorem database.  Hence they can only find theorems that have explicitly
-been stored in the database using \ttindex{qed}, \ttindex{bind_thm} or
+The following functions retrieve theorems (together with their names)
+from the theorem database that is associated with the current proof
+state's theory.  They can only find theorems that have explicitly been
+stored in the database using \ttindex{qed}, \ttindex{bind_thm} or
 related functions.
 \begin{ttbox} 
-findI           :         int -> (string * thm) list
-findE           :  int -> int -> (string * thm) list
-findEs          :         int -> (string * thm) list
-thms_containing : string list -> (string * thm) list
+findI           :          int -> (string * thm) list
+findE           :   int -> int -> (string * thm) list
+findEs          :          int -> (string * thm) list
+thms_containing : xstring list -> (string * thm) list
 \end{ttbox}
 \begin{ttdescription}
 \item[\ttindexbold{findI} $i$]\index{assumptions!of main goal}
@@ -195,10 +197,10 @@ thms_containing : string list -> (string * thm) list
   to subgoal $i$ --- all those theorems whose first premise matches some
   premise of subgoal $i$.  Useful in connection with {\tt eresolve_tac} and
   {\tt dresolve_tac}.
-
-\item[\ttindexbold{thms_containing} $strings$] returns all theorems that
-  contain all of the constants in $strings$.  Note that a few basic constants
-  like \verb$==>$ are ignored.
+  
+\item[\ttindexbold{thms_containing} $consts$] returns all theorems
+  that contain all of a given set of constants.  Note that a few basic
+  constants like \verb$==>$ are ignored.
 \end{ttdescription}
 
 
@@ -282,7 +284,7 @@ proof_timing: bool ref \hfill{\bf initially false}
 \end{ttbox}
 
 \begin{ttdescription}
-\item[\ttindexbold{proof_timing} := true;] 
+\item[set \ttindexbold{proof_timing};] 
 makes the \ttindex{by} and \ttindex{prove_goal} commands display how much
 processor time was spent.  This information is compiler-dependent.
 \end{ttdescription}
@@ -375,11 +377,11 @@ bws : thm list -> unit
 ren : string -> int -> unit
 \end{ttbox}
 \begin{ttdescription}
-\item[\ttindexbold{bw} {\it def};] 
-performs \hbox{\tt by (rewrite_goals_tac [{\it def}]);}
-It unfolds definitions in the subgoals (but not the main goal), by
-meta-rewriting with the given definition.
-\index{meta-rewriting}
+\item[\ttindexbold{bw} {\it def};] performs \hbox{\tt by
+    (rewrite_goals_tac [{\it def}]);} It unfolds definitions in the
+  subgoals (but not the main goal), by meta-rewriting with the given
+  definition (see also \S\ref{sec:rewrite_goals}).
+  \index{meta-rewriting}
 
 \item[\ttindexbold{bws}] 
 is like {\tt bw} but takes a list of definitions.
@@ -433,10 +435,10 @@ proof is unaffected.
 executes a proof of the {\it formula\/} in the given {\it theory}, using
 the given tactic function.
 
-\item[\ttindexbold{qed_goal} $name$ $theory$ $formula$ $tacsf$;]
-acts like {\tt prove_goal} but also stores the resulting theorem in
-Isabelle's theorem database and in the {\ML} variable $name$ (see
-\S\ref{ExtractingAndStoringTheProvedTheorem}).
+\item[\ttindexbold{qed_goal} $name$ $theory$ $formula$ $tacsf$;] acts
+  like {\tt prove_goal} but also stores the resulting theorem in the
+  theorem database associated with its theory and in the {\ML}
+  variable $name$ (see \S\ref{ExtractingAndStoringTheProvedTheorem}).
 
 \item[\ttindexbold{prove_goalw} {\it theory} {\it defs} {\it formula} 
       {\it tacsf};]\index{meta-rewriting}
@@ -528,7 +530,7 @@ returns the current state, which is on top of the stack.
 \end{ttdescription}
 
 
-\section{Debugging and inspecting}
+\section{*Debugging and inspecting}
 \index{tactics!debugging}
 These functions can be useful when you are debugging a tactic.  They refer
 to the current proof state stored in the subgoal module.  A tactic
