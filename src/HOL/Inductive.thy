@@ -19,29 +19,23 @@ constdefs
   "forall P == \<forall>x. P x"
   implies :: "bool => bool => bool"
   "implies A B == A --> B"
+  equal :: "'a => 'a => bool"
+  "equal x y == x = y"
 
 lemma forall_eq: "(!!x. P x) == Trueprop (forall (\<lambda>x. P x))"
-proof
-  assume "!!x. P x"
-  thus "forall (\<lambda>x. P x)" by (unfold forall_def) blast
-next
-  fix x
-  assume "forall (\<lambda>x. P x)"
-  thus "P x" by (unfold forall_def) blast
-qed
+  by (simp only: atomize_all forall_def)
 
 lemma implies_eq: "(A ==> B) == Trueprop (implies A B)"
-proof
-  assume "A ==> B"
-  thus "implies A B" by (unfold implies_def) blast
-next
-  assume "implies A B" and A
-  thus B by (unfold implies_def) blast
-qed
+  by (simp only: atomize_imp implies_def)
 
-lemmas inductive_atomize = forall_eq implies_eq
-lemmas inductive_rulify = inductive_atomize [symmetric, standard]
-hide const forall implies
+lemma equal_eq: "(x == y) == Trueprop (equal x y)"
+  by (simp only: atomize_eq equal_def)
+
+hide const forall implies equal
+
+lemmas inductive_atomize = forall_eq implies_eq equal_eq
+lemmas inductive_rulify1 = inductive_atomize [symmetric, standard]
+lemmas inductive_rulify2 = forall_def implies_def equal_def
 
 use "Tools/induct_method.ML"
 setup InductMethod.setup
