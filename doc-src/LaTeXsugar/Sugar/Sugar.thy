@@ -269,7 +269,7 @@ text {*
 subsection "Proofs"
 
 text {*
-  Full proofs, even if written in beatiful Isar style, are likely to
+  Full proofs, even if written in beautiful Isar style, are likely to
   be too long and detailed to be included in conference papers, but
   some key lemmas might be of interest.
 
