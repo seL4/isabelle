@@ -262,9 +262,9 @@ val pure_attributes =
   ("untag", (gen_untag, gen_untag), "untag theorem"),
   ("COMP", (global_COMP, local_COMP), "compose rules (no lifting)"),
   ("RS", (global_RS, local_RS), "resolve with rule"),
-  ("APP", (global_APP, local_APP), "resolve rule with"),
+  ("OF", (global_APP, local_APP), "resolve with rule -- apply rule to rules"),
   ("where", (global_where, local_where), "named instantiation of theorem"),
-  ("with", (global_with, local_with), "positional instantiation of theorem"),
+  ("of", (global_with, local_with), "positional instantiation of theorem -- apply rule to terms"),
   ("standard", (standard, standard), "put theorem into standard form"),
   ("elimify", (elimify, elimify), "turn destruct rule into elimination rule"),
   ("transfer", (global_transfer, local_transfer), "transfer theorem to this theory")];
