@@ -33,7 +33,7 @@ Addsimps [Friend_image_eq, Key_image_eq, Nonce_Key_image_eq];
 
 (** Inverse of keys **)
 
-Goal "!!K K'. (invKey K = invKey K') = (K=K')";
+Goal "(invKey K = invKey K') = (K=K')";
 by Safe_tac;
 by (rtac box_equals 1);
 by (REPEAT (rtac invKey 2));
