@@ -803,9 +803,18 @@ fun spy_analz_tac i =
 						 impOfSubs analz_subset_parts]) 2 1))
        ]) i);
 
-(*Useful in many uniqueness proofs*)
+(** Useful in many uniqueness proofs **)
 fun ex_strip_tac i = REPEAT (swap_res_tac [exI, conjI] i) THEN 
                      assume_tac (i+1);
+
+(*Apply the EX-ALL quantifification to prove uniqueness theorems in 
+  their standard form*)
+fun prove_unique_tac lemma = 
+  EVERY' [dtac lemma,
+	  REPEAT o (mp_tac ORELSE' eresolve_tac [asm_rl,exE]),
+	  (*Duplicate the assumption*)
+	  forw_inst_tac [("psi", "ALL C.?P(C)")] asm_rl,
+	  fast_tac (!claset addSDs [spec])];
 
 
 (*Needed occasionally with spy_analz_tac, e.g. in analz_insert_Key_newK*)
