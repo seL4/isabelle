@@ -202,7 +202,7 @@ by (simp add: zle_def)
 
 subsection{*@{term zminus}: unary negation on @{term int}*}
 
-lemma zminus_congruent: "congruent(intrel, %<x,y>. intrel``{<y,x>})"
+lemma zminus_congruent: "(%<x,y>. intrel``{<y,x>}) respects intrel"
 by (auto simp add: congruent_def add_ac)
 
 lemma raw_zminus_type: "z : int ==> raw_zminus(z) : int"
@@ -276,7 +276,7 @@ subsection{*@{term nat_of}: Coercion of an Integer to a Natural Number*}
 lemma nat_of_intify [simp]: "nat_of(intify(z)) = nat_of(z)"
 by (simp add: nat_of_def)
 
-lemma nat_of_congruent: "congruent(intrel, \<lambda>x. (\<lambda>\<langle>x,y\<rangle>. x #- y)(x))"
+lemma nat_of_congruent: "(\<lambda>x. (\<lambda>\<langle>x,y\<rangle>. x #- y)(x)) respects intrel"
 by (auto simp add: congruent_def split add: nat_diff_split)
 
 lemma raw_nat_of: 
@@ -369,9 +369,9 @@ subsection{*@{term zadd}: addition on int*}
 
 text{*Congruence Property for Addition*}
 lemma zadd_congruent2: 
-    "congruent2(intrel, %z1 z2.                       
-          let <x1,y1>=z1; <x2,y2>=z2                  
-                            in intrel``{<x1#+x2, y1#+y2>})"
+    "(%z1 z2. let <x1,y1>=z1; <x2,y2>=z2                  
+                            in intrel``{<x1#+x2, y1#+y2>})
+     respects2 intrel"
 apply (simp add: congruent2_def)
 (*Proof via congruent2_commuteI seems longer*)
 apply safe
@@ -396,7 +396,8 @@ lemma raw_zadd:
   "[| x1\<in>nat; y1\<in>nat;  x2\<in>nat; y2\<in>nat |]               
    ==> raw_zadd (intrel``{<x1,y1>}, intrel``{<x2,y2>}) =   
        intrel `` {<x1#+x2, y1#+y2>}"
-apply (simp add: raw_zadd_def UN_equiv_class2 [OF equiv_intrel zadd_congruent2])
+apply (simp add: raw_zadd_def 
+             UN_equiv_class2 [OF equiv_intrel equiv_intrel zadd_congruent2])
 apply (simp add: Let_def)
 done
 
@@ -482,9 +483,9 @@ subsection{*@{term zmult}: Integer Multiplication*}
 
 text{*Congruence property for multiplication*}
 lemma zmult_congruent2:
-    "congruent2(intrel, %p1 p2.                  
-                split(%x1 y1. split(%x2 y2.      
-                    intrel``{<x1#*x2 #+ y1#*y2, x1#*y2 #+ y1#*x2>}, p2), p1))"
+    "(%p1 p2. split(%x1 y1. split(%x2 y2.      
+                    intrel``{<x1#*x2 #+ y1#*y2, x1#*y2 #+ y1#*x2>}, p2), p1))
+     respects2 intrel"
 apply (rule equiv_intrel [THEN congruent2_commuteI], auto)
 (*Proof that zmult is congruent in one argument*)
 apply (rename_tac x y)
@@ -508,7 +509,8 @@ lemma raw_zmult:
      "[| x1\<in>nat; y1\<in>nat;  x2\<in>nat; y2\<in>nat |]     
       ==> raw_zmult(intrel``{<x1,y1>}, intrel``{<x2,y2>}) =      
           intrel `` {<x1#*x2 #+ y1#*y2, x1#*y2 #+ y1#*x2>}"
-by (simp add: raw_zmult_def UN_equiv_class2 [OF equiv_intrel zmult_congruent2])
+by (simp add: raw_zmult_def 
+           UN_equiv_class2 [OF equiv_intrel equiv_intrel zmult_congruent2])
 
 lemma zmult: 
      "[| x1\<in>nat; y1\<in>nat;  x2\<in>nat; y2\<in>nat |]     

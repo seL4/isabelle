@@ -17,9 +17,18 @@ constdefs
   congruent  :: "[i,i=>i]=>o"
       "congruent(r,b) == ALL y z. <y,z>:r --> b(y)=b(z)"
 
-  congruent2 :: "[i,[i,i]=>i]=>o"
-      "congruent2(r,b) == ALL y1 z1 y2 z2.
-           <y1,z1>:r --> <y2,z2>:r --> b(y1,y2) = b(z1,z2)"
+  congruent2 :: "[i,i,[i,i]=>i]=>o"
+      "congruent2(r1,r2,b) == ALL y1 z1 y2 z2.
+           <y1,z1>:r1 --> <y2,z2>:r2 --> b(y1,y2) = b(z1,z2)"
+
+syntax
+  RESPECTS ::"[i=>i, i] => o"  (infixr "respects" 80)
+  RESPECTS2 ::"[i=>i, i] => o"  (infixr "respects2 " 80)
+    --{*Abbreviation for the common case where the relations are identical*}
+
+translations
+  "f respects r" == "congruent(r,f)"
+  "f respects2 r" => "congruent2(r,r,f)"
 
 subsection{*Suppes, Theorem 70:
     @{term r} is an equiv relation iff @{term "converse(r) O r = r"}*}
@@ -28,19 +37,16 @@ subsection{*Suppes, Theorem 70:
 
 lemma sym_trans_comp_subset:
     "[| sym(r); trans(r) |] ==> converse(r) O r <= r"
-apply (unfold trans_def sym_def, blast)
-done
+by (unfold trans_def sym_def, blast)
 
 lemma refl_comp_subset:
     "[| refl(A,r); r <= A*A |] ==> r <= converse(r) O r"
-apply (unfold refl_def, blast)
-done
+by (unfold refl_def, blast)
 
 lemma equiv_comp_eq:
     "equiv(A,r) ==> converse(r) O r = r"
 apply (unfold equiv_def)
-apply (blast del: subsetI
-             intro!: sym_trans_comp_subset refl_comp_subset)
+apply (blast del: subsetI intro!: sym_trans_comp_subset refl_comp_subset)
 done
 
 (*second half*)
@@ -124,7 +130,7 @@ subsection{*Defining Unary Operations upon Equivalence Classes*}
 
 (*Conversion rule*)
 lemma UN_equiv_class:
-    "[| equiv(A,r);  congruent(r,b);  a: A |] ==> (UN x:r``{a}. b(x)) = b(a)"
+    "[| equiv(A,r);  b respects r;  a: A |] ==> (UN x:r``{a}. b(x)) = b(a)"
 apply (subgoal_tac "\<forall>x \<in> r``{a}. b(x) = b(a)") 
  apply simp
  apply (blast intro: equiv_class_self)  
@@ -133,7 +139,7 @@ done
 
 (*type checking of  UN x:r``{a}. b(x) *)
 lemma UN_equiv_class_type:
-    "[| equiv(A,r);  congruent(r,b);  X: A//r;  !!x.  x : A ==> b(x) : B |]
+    "[| equiv(A,r);  b respects r;  X: A//r;  !!x.  x : A ==> b(x) : B |]
      ==> (UN x:X. b(x)) : B"
 apply (unfold quotient_def, safe)
 apply (simp (no_asm_simp) add: UN_equiv_class)
@@ -143,7 +149,7 @@ done
   major premise could be an inclusion; bcong could be !!y. y:A ==> b(y):B
 *)
 lemma UN_equiv_class_inject:
-    "[| equiv(A,r);   congruent(r,b);
+    "[| equiv(A,r);   b respects r;
         (UN x:X. b(x))=(UN y:Y. b(y));  X: A//r;  Y: A//r;
         !!x y. [| x:A; y:A; b(x)=b(y) |] ==> <x,y>:r |]
      ==> X=Y"
@@ -156,28 +162,28 @@ done
 subsection{*Defining Binary Operations upon Equivalence Classes*}
 
 lemma congruent2_implies_congruent:
-    "[| equiv(A,r);  congruent2(r,b);  a: A |] ==> congruent(r,b(a))"
+    "[| equiv(A,r1);  congruent2(r1,r2,b);  a: A |] ==> congruent(r2,b(a))"
 by (unfold congruent_def congruent2_def equiv_def refl_def, blast)
 
 lemma congruent2_implies_congruent_UN:
-    "[| equiv(A,r);  congruent2(r,b);  a: A |] ==>
-     congruent(r, %x1. UN x2:r``{a}. b(x1,x2))"
+    "[| equiv(A1,r1);  equiv(A2,r2);  congruent2(r1,r2,b);  a: A2 |] ==>
+     congruent(r1, %x1. \<Union>x2 \<in> r2``{a}. b(x1,x2))"
 apply (unfold congruent_def, safe)
 apply (frule equiv_type [THEN subsetD], assumption)
 apply clarify 
-apply (simp add: UN_equiv_class [of A r] congruent2_implies_congruent)
+apply (simp add: UN_equiv_class congruent2_implies_congruent)
 apply (unfold congruent2_def equiv_def refl_def, blast)
 done
 
 lemma UN_equiv_class2:
-    "[| equiv(A,r);  congruent2(r,b);  a1: A;  a2: A |]
-     ==> (UN x1:r``{a1}. UN x2:r``{a2}. b(x1,x2)) = b(a1,a2)"
-by (simp add: UN_equiv_class [of A r] congruent2_implies_congruent
+    "[| equiv(A1,r1);  equiv(A2,r2);  congruent2(r1,r2,b);  a1: A1;  a2: A2 |]
+     ==> (\<Union>x1 \<in> r1``{a1}. \<Union>x2 \<in> r2``{a2}. b(x1,x2)) = b(a1,a2)"
+by (simp add: UN_equiv_class congruent2_implies_congruent
               congruent2_implies_congruent_UN)
 
 (*type checking*)
 lemma UN_equiv_class_type2:
-    "[| equiv(A,r);  congruent2(r,b);
+    "[| equiv(A,r);  b respects2 r;
         X1: A//r;  X2: A//r;
         !!x1 x2.  [| x1: A; x2: A |] ==> b(x1,x2) : B
      |] ==> (UN x1:X1. UN x2:X2. b(x1,x2)) : B"
@@ -190,10 +196,10 @@ done
 (*Suggested by John Harrison -- the two subproofs may be MUCH simpler
   than the direct proof*)
 lemma congruent2I:
-    "[| equiv(A,r);
-        !! y z w. [| w: A;  <y,z> : r |] ==> b(y,w) = b(z,w);
-        !! y z w. [| w: A;  <y,z> : r |] ==> b(w,y) = b(w,z)
-     |] ==> congruent2(r,b)"
+    "[|  equiv(A1,r1);  equiv(A2,r2);  
+        !! y z w. [| w \<in> A2;  <y,z> \<in> r1 |] ==> b(y,w) = b(z,w);
+        !! y z w. [| w \<in> A1;  <y,z> \<in> r2 |] ==> b(w,y) = b(w,z)
+     |] ==> congruent2(r1,r2,b)"
 apply (unfold congruent2_def equiv_def refl_def, safe)
 apply (blast intro: trans) 
 done
@@ -202,9 +208,9 @@ lemma congruent2_commuteI:
  assumes equivA: "equiv(A,r)"
      and commute: "!! y z. [| y: A;  z: A |] ==> b(y,z) = b(z,y)"
      and congt:   "!! y z w. [| w: A;  <y,z>: r |] ==> b(w,y) = b(w,z)"
- shows "congruent2(r,b)"
+ shows "b respects2 r"
 apply (insert equivA [THEN equiv_type, THEN subsetD]) 
-apply (rule congruent2I [OF equivA])
+apply (rule congruent2I [OF equivA equivA])
 apply (rule commute [THEN trans])
 apply (rule_tac [3] commute [THEN trans, symmetric])
 apply (rule_tac [5] sym) 
