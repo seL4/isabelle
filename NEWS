@@ -50,6 +50,8 @@ show_types);
 
 * improved output of warnings (###) / errors (***);
 
+* subgoal_tac displays a warning if the new subgoal has type variables;
+
 * removed old README and Makefiles;
 
 * replaced print_goals_ref hook by print_current_goals_fn and result_error_fn;

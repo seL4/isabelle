@@ -351,7 +351,14 @@ fun cut_facts_tac ths i =
     EVERY (map (fn th => metacut_tac th i) (filter is_fact ths));
 
 (*Introduce the given proposition as a lemma and subgoal*)
-fun subgoal_tac sprop = res_inst_tac [("psi", sprop)] cut_rl;
+fun subgoal_tac sprop i st = 
+  let val st'    = Sequence.hd (res_inst_tac [("psi", sprop)] cut_rl i st)
+      val concl' = Logic.strip_assums_concl (List.nth(prems_of st', i))
+  in  
+      if null (term_tvars concl') then ()
+      else warning"Type variables in new subgoal: add a type constraint?";
+      Sequence.single st'
+  end;
 
 (*Introduce a list of lemmas and subgoals*)
 fun subgoals_tac sprops = EVERY' (map subgoal_tac sprops);
