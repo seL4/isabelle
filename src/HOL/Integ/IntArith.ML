@@ -32,7 +32,8 @@ by(Asm_full_simp_tac 1);
 by(case_tac "k = f(n+1)" 1);
  by(Force_tac 1);
 by(etac impE 1);
- by(asm_full_simp_tac (simpset() addsimps [zabs_def] addsplits [split_if_asm]) 1);
+ by(asm_full_simp_tac (simpset() addsimps [zabs_def] 
+                                 addsplits [split_if_asm]) 1);
  by(arith_tac 1);
 by(blast_tac (claset() addIs [le_SucI]) 1);
 val lemma = result();
@@ -103,15 +104,21 @@ by (auto_tac (claset() addDs [order_less_not_sym],
                                   linorder_not_less RS sym]));
 qed "zmult_le_0_iff";
 
-
 Goal "abs (x * y) = abs x * abs (y::int)";
-by (simp_tac (simpset () addsplits [zabs_split] addsimps [zmult_less_0_iff, zle_def]) 1);
+by (simp_tac (simpset () addsplits [zabs_split] 
+                         addsimps [zmult_less_0_iff, zle_def]) 1);
 qed "abs_mult";
 
 Goal "(abs x = #0) = (x = (#0::int))";
 by (simp_tac (simpset () addsplits [zabs_split]) 1);
 qed "abs_eq_0";
 AddIffs [abs_eq_0];
+
+Goal "(#0 < abs x) = (x ~= (#0::int))";
+by (simp_tac (simpset () addsplits [zabs_split]) 1);
+by (arith_tac 1);
+qed "zero_less_abs_iff";
+AddIffs [zero_less_abs_iff];
 
 Goal "#0 <= x * (x::int)";
 by (subgoal_tac "(- x) * x <= #0" 1);
