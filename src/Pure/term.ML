@@ -34,7 +34,7 @@ sig
     Var of indexname * typ |
     Bound of int |
     Abs of string * typ * term |
-    op $ of term * term
+    $ of term * term
   exception TYPE of string * typ list * term list
   exception TERM of string * term list
   val is_Const: term -> bool
