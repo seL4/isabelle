@@ -15,7 +15,7 @@ local
     Calculation.setup @
     SkipProof.setup @
     AxClass.setup @
-    BrowserInfo.setup @
+    Present.setup @
     Isamode.setup @
     ProofGeneral.setup;
 in
