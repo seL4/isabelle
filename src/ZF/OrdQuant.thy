@@ -203,28 +203,25 @@ by (simp add: oall_def atomize_all atomize_imp)
 
 lemma oallI [intro!]:
     "[| !!x. x<A ==> P(x) |] ==> ALL x<A. P(x)"
-by (simp add: oall_def); 
+by (simp add: oall_def) 
 
 lemma ospec: "[| ALL x<A. P(x);  x<A |] ==> P(x)"
-by (simp add: oall_def); 
+by (simp add: oall_def) 
 
 lemma oallE:
     "[| ALL x<A. P(x);  P(x) ==> Q;  ~x<A ==> Q |] ==> Q"
-apply (simp add: oall_def); 
-apply (blast intro: elim:); 
+apply (simp add: oall_def, blast) 
 done
 
 lemma rev_oallE [elim]:
     "[| ALL x<A. P(x);  ~x<A ==> Q;  P(x) ==> Q |] ==> Q"
-apply (simp add: oall_def);
-apply (blast intro: elim:);  
+apply (simp add: oall_def, blast)  
 done
 
 
 (*Trival rewrite rule;   (ALL x<a.P)<->P holds only if a is not 0!*)
 lemma oall_simp [simp]: "(ALL x<a. True) <-> True"
-apply (blast intro: elim:); 
-done
+by blast
 
 (*Congruence rule for rewriting*)
 lemma oall_cong [cong]:
@@ -236,21 +233,18 @@ by (simp add: oall_def)
 
 lemma oexI [intro]:
     "[| P(x);  x<A |] ==> EX x<A. P(x)"
-apply (simp add: oex_def); 
-apply (blast intro: elim:); 
+apply (simp add: oex_def, blast) 
 done
 
 (*Not of the general form for such rules; ~EX has become ALL~ *)
 lemma oexCI:
    "[| ALL x<A. ~P(x) ==> P(a);  a<A |] ==> EX x<A. P(x)"
-apply (simp add: oex_def); 
-apply (blast intro: elim:); 
+apply (simp add: oex_def, blast) 
 done
 
 lemma oexE [elim!]:
     "[| EX x<A. P(x);  !!x. [| x<A; P(x) |] ==> Q |] ==> Q"
-apply (simp add: oex_def); 
-apply (blast intro: elim:); 
+apply (simp add: oex_def, blast) 
 done
 
 lemma oex_cong [cong]:
@@ -262,20 +256,15 @@ done
 (*** Rules for Ordinal-Indexed Unions ***)
 
 lemma OUN_I [intro]: "[| a<i;  b: B(a) |] ==> b: (UN z<i. B(z))"
-apply (unfold OUnion_def lt_def)
-apply (blast)
-done
+by (unfold OUnion_def lt_def, blast)
 
 lemma OUN_E [elim!]:
     "[| b : (UN z<i. B(z));  !!a.[| b: B(a);  a<i |] ==> R |] ==> R"
-apply (unfold OUnion_def lt_def)
-apply (blast)
+apply (unfold OUnion_def lt_def, blast)
 done
 
 lemma OUN_iff: "b : (UN x<i. B(x)) <-> (EX x<i. b : B(x))"
-apply (unfold OUnion_def oex_def lt_def)
-apply (blast intro: elim:); 
-done
+by (unfold OUnion_def oex_def lt_def, blast)
 
 lemma OUN_cong [cong]:
     "[| i=j;  !!x. x<j ==> C(x)=D(x) |] ==> (UN x<i. C(x)) = (UN x<j. D(x))"
@@ -288,8 +277,7 @@ lemma lt_induct:
     "[| i<k;  !!x.[| x<k;  ALL y<x. P(y) |] ==> P(x) |]  ==>  P(i)"
 apply (simp add: lt_def oall_def)
 apply (erule conjE) 
-apply (erule Ord_induct, assumption)
-apply (blast intro: elim:); 
+apply (erule Ord_induct, assumption, blast) 
 done
 
 ML
