@@ -320,51 +320,11 @@ qed "gr_implies_gr0";
 Addsimps [gr_implies_gr0];
 
 
-(** Inductive (?) properties **)
-
-val [prem] = goal thy "Suc(m) < n ==> m<n";
-by (rtac (prem RS rev_mp) 1);
-by (nat_ind_tac "n" 1);
-by (ALLGOALS (fast_tac (claset() addSIs [lessI RS less_SucI]
-                                addEs  [less_trans, lessE])));
-qed "Suc_lessD";
-
-val [major,minor] = goal thy 
-    "[| Suc(i)<k;  !!j. [| i<j;  k=Suc(j) |] ==> P \
-\    |] ==> P";
-by (rtac (major RS lessE) 1);
-by (etac (lessI RS minor) 1);
-by (etac (Suc_lessD RS minor) 1);
-by (assume_tac 1);
-qed "Suc_lessE";
-
-goal thy "!!m n. Suc(m) < Suc(n) ==> m<n";
-by (blast_tac (claset() addEs [lessE, make_elim Suc_lessD]) 1);
-qed "Suc_less_SucD";
-
 goal thy "!!m n. m<n ==> Suc(m) < Suc(n)";
 by (etac rev_mp 1);
 by (nat_ind_tac "n" 1);
 by (ALLGOALS (fast_tac (claset() addEs  [less_trans, lessE])));
 qed "Suc_mono";
-
-
-goal thy "(Suc(m) < Suc(n)) = (m<n)";
-by (EVERY1 [rtac iffI, etac Suc_less_SucD, etac Suc_mono]);
-qed "Suc_less_eq";
-Addsimps [Suc_less_eq];
-
-goal thy "~(Suc(n) < n)";
-by (blast_tac (claset() addEs [Suc_lessD RS less_irrefl]) 1);
-qed "not_Suc_n_less_n";
-Addsimps [not_Suc_n_less_n];
-
-goal thy "!!i. i<j ==> j<k --> Suc i < k";
-by (nat_ind_tac "k" 1);
-by (ALLGOALS (asm_simp_tac (simpset())));
-by (asm_simp_tac (simpset() addsimps [less_Suc_eq]) 1);
-by (blast_tac (claset() addDs [Suc_lessD]) 1);
-qed_spec_mp "less_trans_Suc";
 
 (*"Less than" is a linear ordering*)
 goal thy "m<n | m=n | n<(m::nat)";
@@ -390,6 +350,52 @@ qed_goal "nat_less_cases" thy
         (etac (sym RS eqCase) 1),
         (etac major 1)
         ]);
+
+
+(** Inductive (?) properties **)
+
+goal thy "!!m. [| m<n; Suc m ~= n |] ==> Suc(m) < n";
+by (full_simp_tac (simpset() addsimps [nat_neq_iff]) 1);
+by (blast_tac (claset() addSEs [less_irrefl, less_SucE] addEs [less_asym]) 1);
+qed "Suc_lessI";
+
+val [prem] = goal thy "Suc(m) < n ==> m<n";
+by (rtac (prem RS rev_mp) 1);
+by (nat_ind_tac "n" 1);
+by (ALLGOALS (fast_tac (claset() addSIs [lessI RS less_SucI]
+                                 addEs  [less_trans, lessE])));
+qed "Suc_lessD";
+
+val [major,minor] = goal thy 
+    "[| Suc(i)<k;  !!j. [| i<j;  k=Suc(j) |] ==> P \
+\    |] ==> P";
+by (rtac (major RS lessE) 1);
+by (etac (lessI RS minor) 1);
+by (etac (Suc_lessD RS minor) 1);
+by (assume_tac 1);
+qed "Suc_lessE";
+
+goal thy "!!m n. Suc(m) < Suc(n) ==> m<n";
+by (blast_tac (claset() addEs [lessE, make_elim Suc_lessD]) 1);
+qed "Suc_less_SucD";
+
+
+goal thy "(Suc(m) < Suc(n)) = (m<n)";
+by (EVERY1 [rtac iffI, etac Suc_less_SucD, etac Suc_mono]);
+qed "Suc_less_eq";
+Addsimps [Suc_less_eq];
+
+goal thy "~(Suc(n) < n)";
+by (blast_tac (claset() addEs [Suc_lessD RS less_irrefl]) 1);
+qed "not_Suc_n_less_n";
+Addsimps [not_Suc_n_less_n];
+
+goal thy "!!i. i<j ==> j<k --> Suc i < k";
+by (nat_ind_tac "k" 1);
+by (ALLGOALS (asm_simp_tac (simpset())));
+by (asm_simp_tac (simpset() addsimps [less_Suc_eq]) 1);
+by (blast_tac (claset() addDs [Suc_lessD]) 1);
+qed_spec_mp "less_trans_Suc";
 
 (*Can be used with less_Suc_eq to get n=m | n<m *)
 goal thy "(~ m < n) = (n < Suc(m))";
