@@ -755,13 +755,6 @@ fun devar (T as TVar (v, _), tye) =
   | devar (T, tye) = T;
 
 
-(* add_env *)
-
-(*avoids chains 'a |-> 'b |-> 'c ...*)
-fun add_env (vT as (v, T), tab) = Vartab.update_new (vT, Vartab.map
-  (fn (U as (TVar (w, S))) => if eq_ix (v, w) then T else U | U => U) tab);
-
-
 (* unify *)
 
 fun unify (tsig as TySg {classrel, arities, ...}) (tyenv, maxidx) TU =
@@ -775,7 +768,8 @@ fun unify (tsig as TySg {classrel, arities, ...}) (tyenv, maxidx) TU =
     fun meet ((_, []), tye) = tye
       | meet ((TVar (xi, S'), S), tye) =
           if Sorts.sort_le classrel (S', S) then tye
-          else add_env ((xi, gen_tyvar (Sorts.inter_sort classrel (S', S))), tye)
+          else Vartab.update_new ((xi,
+            gen_tyvar (Sorts.inter_sort classrel (S', S))), tye)
       | meet ((TFree (_, S'), S), tye) =
           if Sorts.sort_le classrel (S', S) then tye
           else raise TUNIFY
@@ -789,18 +783,20 @@ fun unify (tsig as TySg {classrel, arities, ...}) (tyenv, maxidx) TU =
       (case (devar (ty1, tye), devar (ty2, tye)) of
         (T as TVar (v, S1), U as TVar (w, S2)) =>
           if eq_ix (v, w) then tye
-          else if Sorts.sort_le classrel (S1, S2) then add_env ((w, T), tye)
-          else if Sorts.sort_le classrel (S2, S1) then add_env ((v, U), tye)
+          else if Sorts.sort_le classrel (S1, S2) then
+            Vartab.update_new ((w, T), tye)
+          else if Sorts.sort_le classrel (S2, S1) then
+            Vartab.update_new ((v, U), tye)
           else
             let val S = gen_tyvar (Sorts.inter_sort classrel (S1, S2)) in
-              add_env ((v, S), add_env ((w, S), tye))
+              Vartab.update_new ((v, S), Vartab.update_new ((w, S), tye))
             end
       | (TVar (v, S), T) =>
           if occurs v tye T then raise TUNIFY
-          else meet ((T, S), add_env ((v, T), tye))
+          else meet ((T, S), Vartab.update_new ((v, T), tye))
       | (T, TVar (v, S)) =>
           if occurs v tye T then raise TUNIFY
-          else meet ((T, S), add_env ((v, T), tye))
+          else meet ((T, S), Vartab.update_new ((v, T), tye))
       | (Type (a, Ts), Type (b, Us)) =>
           if a <> b then raise TUNIFY
           else foldr unif (Ts ~~ Us, tye)
