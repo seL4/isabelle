@@ -7,6 +7,11 @@ New in this Isabelle version
 
 *** Overview of INCOMPATIBILITIES (see below for more details) ***
 
+* HOL: simplification of natural numbers is much changed.  To partly recover
+       the old behaviour (e.g. to prevent n+n rewriting to #2*n) type
+		Delsimprocs Nat_Numeral_Simprocs.cancel_numerals;
+		Delsimprocs [Nat_Numeral_Simprocs.combine_numerals];
+
 * HOL: the constant for f``x is now "image" rather than "op ``";
 
 * HOL: the cartesian product is now "<*>" instead of "Times"; the
@@ -110,8 +115,9 @@ Arithmetic, by Thomas M Rasmussen;
 basically a generalized version of de-Bruijn representation; very
 useful in avoiding lifting all operations;
 
-* greatly improved simplification involving numerals of type "nat", e.g. in
-   (i + #8 + j) = Suc k simplifies to  #7 + (i + j) = k;
+* greatly improved simplification involving numerals of type "nat", e.g.
+   (i + #8 + j) = Suc k simplifies to  #7 + (i + j) = k
+   i*j + k + j*#3*i     simplifies to  #4*(i*j) + k;
 
 * new version of "case_tac" subsumes both boolean case split and
 "exhaust_tac" on datatypes; INCOMPATIBILITY: exhaust_tac no longer
