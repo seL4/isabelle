@@ -30,6 +30,7 @@ sig
   val get_skolem: context -> string -> string
   val extern_skolem: context -> term -> term
   val read_termTs: context -> (string * typ) list -> term list * (indexname * typ) list
+  val read_termTs_env: (indexname -> typ option) * (indexname -> sort option) * string list -> context -> (string * typ) list -> term list * (indexname * typ) list
   val read_term: context -> string -> term
   val read_prop: context -> string -> term
   val read_prop_schematic: context -> string -> term
@@ -440,12 +441,15 @@ fun no_skolem internal ctxt x =
     raise CONTEXT ("Illegal reference to internal variable: " ^ quote x, ctxt)
   else x;
 
-fun intern_skolem ctxt =
+fun intern_skolem ctxt env =
+(* env contains names that are not to be internalised *)
   let
     fun intern (t as Free (x, T)) =
-          (case lookup_skolem ctxt (no_skolem false ctxt x) of
-            Some x' => Free (x', T)
-          | None => t)
+          (case env (x, ~1) of
+              Some _ => t
+            | None => (case lookup_skolem ctxt (no_skolem false ctxt x) of
+		  Some x' => Free (x', T)
+		| None => t))
       | intern (t $ u) = intern t $ intern u
       | intern (Abs (x, T, t)) = Abs (x, T, intern t)
       | intern a = a;
@@ -513,7 +517,7 @@ fun unifyT ctxt (T, U) =
   let val maxidx = Int.max (Term.maxidx_of_typ T, Term.maxidx_of_typ U)
   in #1 (Type.unify (Sign.tsig_of (sign_of ctxt)) (Vartab.empty, maxidx) (T, U)) end;
 
-fun norm_term (ctxt as Context {binds, ...}) schematic =
+fun norm_term (ctxt as Context {binds, ...}) schematic allow_vars =
   let
     (*raised when norm has no effect on a term, to do sharing instead of copying*)
     exception SAME;
@@ -523,11 +527,12 @@ fun norm_term (ctxt as Context {binds, ...}) schematic =
             Some (Some (u, U)) =>
               let
                 val env = unifyT ctxt (T, U) handle Type.TUNIFY =>
-                  raise TYPE ("norm_term: ill-typed variable assigment", [T, U], [t, u]);
+                  raise TYPE ("norm_term: ill-typed variable assignment", [T, U], [t, u]);
                 val u' = Term.subst_TVars_Vartab env u;
               in norm u' handle SAME => u' end
           | _ =>
             if schematic then raise SAME
+            else if allow_vars then t
             else raise CONTEXT ("Unbound schematic variable: " ^ Syntax.string_of_vname xi, ctxt))
       | norm (Abs (a, T, body)) =  Abs (a, T, norm body)
       | norm (Abs (_, _, body) $ t) = normh (subst_bound (t, body))
@@ -552,29 +557,59 @@ fun reject_dummies ctxt t = Term.no_dummy_patterns t
 
 local
 
-fun gen_read read app is_pat dummies schematic (ctxt as Context {defs = (_, _, used, _), ...}) s =
-  (transform_error (read (syn_of ctxt)
-      (sign_of ctxt) (def_type ctxt is_pat, def_sort ctxt, used)) s
-    handle TERM (msg, _) => raise CONTEXT (msg, ctxt)
-    | ERROR_MESSAGE msg => raise CONTEXT (msg, ctxt))
-  |> app (intern_skolem ctxt)
-  |> app (if is_pat then I else norm_term ctxt schematic)
-  |> app (if is_pat then prepare_dummies else if dummies then I else reject_dummies ctxt);
-
+fun gen_read read app env_opt allow_vars is_pat dummies schematic
+    (ctxt as Context {defs = (_, _, used, _), ...}) s =
+  let
+    (* Use environment of ctxt with the following modification:
+       bindings in env_opt take precedence (needed for rule_tac) *)
+    val types = def_type ctxt is_pat;
+    val types' = case env_opt of
+                     None => types
+                   | Some (env, _, _) =>
+                       (fn ixn => case env ixn of
+                                      None => types ixn
+                                    | some => some);
+    val sorts = def_sort ctxt;
+    val sorts' = case env_opt of
+                     None => sorts
+                   | Some (_, envT, _) =>
+                       (fn ixn => case envT ixn of
+                                      None => sorts ixn
+                                    | some => some);
+    val used' = case env_opt of
+                    None => used
+                  | Some (_, _, used'') => used @ used'';
+  in
+    (transform_error (read (syn_of ctxt)
+	(sign_of ctxt) (types', sorts', used')) s
+      handle TERM (msg, _) => raise CONTEXT (msg, ctxt)
+      | ERROR_MESSAGE msg => raise CONTEXT (msg, ctxt))
+    |> app (intern_skolem ctxt (case env_opt of None => K None | Some (env, _, _) => env))
+    |> app (if is_pat then I else norm_term ctxt schematic allow_vars)
+    |> app (if is_pat then prepare_dummies
+	 else if dummies then I else reject_dummies ctxt)
+  end
 in
 
-val read_termTs = gen_read (read_def_termTs false) (apfst o map) false false false;
-val read_termT_pats = #1 oo gen_read (read_def_termTs false) (apfst o map) true false false;
+val read_termTs =
+  gen_read (read_def_termTs false) (apfst o map) None false false false false;
+(* For rule_tac:
+   takes extra environment (types, sorts and used type vars) *)
+fun read_termTs_env env =
+  gen_read (read_def_termTs false) (apfst o map) (Some env) true false false false;
+val read_termT_pats =
+  #1 oo gen_read (read_def_termTs false) (apfst o map) None false true false false;
 
 fun read_term_pats T ctxt pats = read_termT_pats ctxt (map (rpair T) pats);
 val read_prop_pats = read_term_pats propT;
 
-val read_term = gen_read (read_term_sg true) I false false false;
-val read_term_dummies = gen_read (read_term_sg true) I false true false;
-val read_prop = gen_read (read_prop_sg true) I false false false;
-val read_prop_schematic = gen_read (read_prop_sg true) I false false true;
-val read_terms = gen_read (read_terms_sg true) map false false false;
-val read_props = gen_read (read_props_sg true) map false false;
+val read_term = gen_read (read_term_sg true) I None false false false false;
+val read_term_dummies = gen_read (read_term_sg true) I None false false true false;
+val read_prop = gen_read (read_prop_sg true) I None false false false false;
+val read_prop_schematic =
+  gen_read (read_prop_sg true) I None false false false true;
+val read_terms = gen_read (read_terms_sg true) map None false false false false;
+val read_props = gen_read (read_props_sg true) map None false false false;
 
 end;
 
@@ -584,7 +619,7 @@ end;
 local
 
 fun gen_cert cert is_pat schematic ctxt t = t
-  |> (if is_pat then I else norm_term ctxt schematic)
+  |> (if is_pat then I else norm_term ctxt schematic false)
   |> (fn t' => cert (sign_of ctxt) t' handle TERM (msg, _) => raise CONTEXT (msg, ctxt));
 
 in

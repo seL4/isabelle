@@ -189,7 +189,7 @@ fun prep_inst (concl, xs) =	(*exception LIST*)
 
 in
 
-fun gen_induct_tac (varss, opt_rule) i state =
+fun gen_induct_tac inst_tac (varss, opt_rule) i state =
   let
     val (_, _, Bi, _) = Thm.dest_state (state, i);
     val {sign, ...} = Thm.rep_thm state;
@@ -203,33 +203,39 @@ fun gen_induct_tac (varss, opt_rule) i state =
     val concls = HOLogic.dest_concls (Thm.concl_of rule);
     val insts = flat (map prep_inst (concls ~~ varss)) handle LIST _ =>
       error (rule_name ^ " has different numbers of variables");
-  in occs_in_prems (Tactic.res_inst_tac insts rule) (map #2 insts) i state end;
+  in occs_in_prems (inst_tac insts rule) (map #2 insts) i state end;
 
-fun induct_tac s = gen_induct_tac (map (Library.single o Some) (Syntax.read_idents s), None);
+fun induct_tac s =
+  gen_induct_tac Tactic.res_inst_tac
+    (map (Library.single o Some) (Syntax.read_idents s), None);
 
 fun induct_thm_tac th s =
-  gen_induct_tac ([map Some (Syntax.read_idents s)], Some th);
+  gen_induct_tac Tactic.res_inst_tac
+    ([map Some (Syntax.read_idents s)], Some th);
 
 end;
 
 
 (* generic case tactic for datatypes *)
 
-fun case_inst_tac t rule i state =
+fun case_inst_tac inst_tac t rule i state =
   let
     val _ $ Var (ixn, _) $ _ = HOLogic.dest_Trueprop
       (hd (Logic.strip_assums_hyp (hd (Thm.prems_of rule))));
     val exh_vname = implode (tl (explode (Syntax.string_of_vname ixn)));
-  in Tactic.res_inst_tac [(exh_vname, t)] rule i state end;
+  in inst_tac [(exh_vname, t)] rule i state end;
 
-fun gen_case_tac (t, Some rule) i state = case_inst_tac t rule i state
-  | gen_case_tac (t, None) i state =
+fun gen_case_tac inst_tac (t, Some rule) i state =
+      case_inst_tac inst_tac t rule i state
+  | gen_case_tac inst_tac (t, None) i state =
       let val tn = infer_tname state i t in
-        if tn = HOLogic.boolN then Tactic.res_inst_tac [("P", t)] case_split_thm i state
-        else case_inst_tac t (#exhaustion (datatype_info_sg_err (Thm.sign_of_thm state) tn)) i state
+        if tn = HOLogic.boolN then inst_tac [("P", t)] case_split_thm i state
+        else case_inst_tac inst_tac t
+               (#exhaustion (datatype_info_sg_err (Thm.sign_of_thm state) tn))
+               i state
       end;
 
-fun case_tac t = gen_case_tac (t, None);
+fun case_tac t = gen_case_tac Tactic.res_inst_tac (t, None);
 
 
 
@@ -242,13 +248,23 @@ val opt_rule = Scan.option (rule_spec |-- Attrib.local_thm);
 
 val varss = Args.and_list (Scan.repeat (Scan.unless rule_spec (Scan.lift Args.name_dummy)));
 
+fun mk_ixn (vars, s) = (fst (Term.dest_Var (Syntax.read_var ("?" ^ vars))), s)
+  handle _ => error (vars ^ " not a variable name");
+fun inst_tac ctxt sinsts =
+  Method.bires_inst_tac false ctxt (map mk_ixn sinsts);
+
+fun induct_meth ctxt (varss, opt_rule) =
+  gen_induct_tac (inst_tac ctxt) (varss, opt_rule);
+fun case_meth ctxt (varss, opt_rule) =
+  gen_case_tac (inst_tac ctxt) (varss, opt_rule);
+
 in
 
 val tactic_emulations =
- [("induct_tac", Method.goal_args' (varss -- opt_rule) gen_induct_tac,
-    "induct_tac emulation (dynamic instantiation!)"),
-  ("case_tac", Method.goal_args' (Scan.lift Args.name -- opt_rule) gen_case_tac,
-    "case_tac emulation (dynamic instantiation!)")];
+ [("induct_tac", Method.goal_args_ctxt' (varss -- opt_rule) induct_meth,
+    "induct_tac emulation (dynamic instantiation)"),
+  ("case_tac", Method.goal_args_ctxt' (Scan.lift Args.name -- opt_rule) case_meth,
+    "case_tac emulation (dynamic instantiation)")];
 
 end;
 

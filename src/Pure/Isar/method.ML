@@ -45,7 +45,7 @@ sig
   val frule: int -> thm list -> Proof.method
   val this: Proof.method
   val assumption: Proof.context -> Proof.method
-  val impose_hyps_tac: Proof.context -> tactic
+  val bires_inst_tac: bool -> Proof.context -> (indexname * string) list -> thm -> int -> tactic
   val set_tactic: (Proof.context -> thm list -> tactic) -> unit
   val tactic: string -> Proof.context -> Proof.method
   exception METHOD_FAIL of (string * Position.T) * exn
@@ -111,6 +111,10 @@ sig
     -> Args.src -> Proof.context -> Proof.method
   val goal_args': (Proof.context * Args.T list -> 'a * (Proof.context * Args.T list))
     -> ('a -> int -> tactic) -> Args.src -> Proof.context -> Proof.method
+  val goal_args_ctxt: (Args.T list -> 'a * Args.T list) -> (Proof.context -> 'a -> int -> tactic)
+    -> Args.src -> Proof.context -> Proof.method
+  val goal_args_ctxt': (Proof.context * Args.T list -> 'a * (Proof.context * Args.T list))
+    -> (Proof.context -> 'a -> int -> tactic) -> Args.src -> Proof.context -> Proof.method
   val setup: (theory -> theory) list
 end;
 
@@ -322,23 +326,149 @@ fun assumption ctxt = METHOD (HEADGOAL o assumption_tac ctxt);
 
 (* res_inst_tac etc. *)
 
-(*robustify instantiation by imposing (part of) the present static context*)
-val impose_hyps_tac =
-  PRIMITIVE o Drule.impose_hyps o flat o map #1 o ProofContext.assumptions_of;
+(* Reimplemented to support both static (Isar) and dynamic (proof state)
+   context.  By Clemens Ballarin. *)
 
-(*Note: insts refer to the implicit (!!) goal context; use at your own risk*)
-fun gen_res_inst _ tac _ (quant, ([], thms)) =
-      METHOD (fn facts => (quant (insert_tac facts THEN' tac thms)))
-  | gen_res_inst tac _ ctxt (quant, (insts, [thm])) =
-      METHOD (fn facts => (impose_hyps_tac ctxt THEN quant (insert_tac facts THEN' tac insts thm)))
-  | gen_res_inst _ _ _ _ = error "Cannot have instantiations with multiple rules";
+fun bires_inst_tac bires_flag ctxt insts thm =
+  let
+    val sign = ProofContext.sign_of ctxt;
+    (* Separate type and term insts *)
+    fun has_type_var ((x, _), _) = (case Symbol.explode x of
+          "'"::cs => true | cs => false);
+    val Tinsts = filter has_type_var insts;
+    val tinsts = filter_out has_type_var insts;
+    (* Tactic *)
+    fun tac i st =
+      let
+        (* Preprocess state: extract environment information:
+           - variables and their types
+           - type variables and their sorts
+           - parameters and their types *)
+        val (types, sorts) = types_sorts st;
+    (* Process type insts: Tinsts_env *)
+    fun absent xi = error
+	  ("No such variable in theorem: " ^ Syntax.string_of_vname xi);
+    val (rtypes, rsorts) = types_sorts thm;
+    fun readT (xi, s) =
+        let val S = case rsorts xi of Some S => S | None => absent xi;
+            val T = Sign.read_typ (sign, sorts) s;
+        in if Sign.typ_instance sign (T, TVar (xi, S)) then (xi, T)
+           else error
+             ("Instantiation of " ^ Syntax.string_of_vname xi ^ " fails")
+        end;
+    val Tinsts_env = map readT Tinsts;
+    (* Preprocess rule: extract vars and their types, apply Tinsts *)
+    fun get_typ xi =
+      (case rtypes xi of
+           Some T => typ_subst_TVars Tinsts_env T
+         | None => absent xi);
+    val (xis, ss) = Library.split_list tinsts;
+    val Ts = map get_typ xis;
+	val (_, _, Bi, _) = dest_state(st,i)
+	val params = Logic.strip_params Bi
+			     (* params of subgoal i as string typ pairs *)
+	val params = rev(Term.rename_wrt_term Bi params)
+						 (* as they are printed *)
+        fun types' (a, ~1) = (case assoc (params, a) of
+                None => types (a, ~1)
+              | some => some)
+          | types' xi = types xi;
+        val used = add_term_tvarnames
+                  (prop_of st $ prop_of thm,[])
+	val (ts, envT) =
+	  ProofContext.read_termTs_env (types', sorts, used) ctxt (ss ~~ Ts);
+	val cenvT = map (apsnd (Thm.ctyp_of sign)) (envT @ Tinsts_env);
+	val cenv =
+	  map
+	    (fn (xi, t) =>
+	      pairself (Thm.cterm_of sign) (Var (xi, fastype_of t), t))
+	    (gen_distinct
+	      (fn ((x1, t1), (x2, t2)) => x1 = x2 andalso t1 aconv t2)
+	      (xis ~~ ts));
+	(* Lift and instantiate rule *)
+	val {maxidx, ...} = rep_thm st;
+	val paramTs = map #2 params
+	and inc = maxidx+1
+	fun liftvar (Var ((a,j), T)) =
+	      Var((a, j+inc), paramTs ---> incr_tvar inc T)
+	  | liftvar t = raise TERM("Variable expected", [t]);
+	fun liftterm t = list_abs_free
+	      (params, Logic.incr_indexes(paramTs,inc) t)
+	fun liftpair (cv,ct) =
+	      (cterm_fun liftvar cv, cterm_fun liftterm ct)
+	fun lifttvar((a,i),ctyp) =
+	    let val {T,sign} = rep_ctyp ctyp
+	    in  ((a,i+inc), ctyp_of sign (incr_tvar inc T)) end
+	val rule = Drule.instantiate
+	      (map lifttvar cenvT, map liftpair cenv)
+	      (lift_rule (st, i) thm)
+      in
+	if i > nprems_of st then no_tac st
+	else st |>
+	  compose_tac (bires_flag, rule, nprems_of thm) i
+      end
+	   handle TERM (msg,_)   => (warning msg; no_tac st)
+		| THM  (msg,_,_) => (warning msg; no_tac st);
+  in
+    tac
+  end;
 
-val res_inst = gen_res_inst Tactic.res_inst_tac Tactic.resolve_tac;
-val eres_inst = gen_res_inst Tactic.eres_inst_tac Tactic.eresolve_tac;
-val dres_inst = gen_res_inst Tactic.dres_inst_tac Tactic.dresolve_tac;
-val forw_inst = gen_res_inst Tactic.forw_inst_tac Tactic.forward_tac;
-val cut_inst = gen_res_inst Tactic.cut_inst_tac Tactic.cut_rules_tac;
+fun gen_inst _ tac _ (quant, ([], thms)) =
+      METHOD (fn facts => quant (insert_tac facts THEN' tac thms))
+  | gen_inst inst_tac _ ctxt (quant, (insts, [thm])) =
+      METHOD (fn facts =>
+        quant (insert_tac facts THEN' inst_tac ctxt insts thm))
+  | gen_inst _ _ _ _ = error "Cannot have instantiations with multiple rules";
+      
+val res_inst_meth = gen_inst (bires_inst_tac false) Tactic.resolve_tac;
 
+val eres_inst_meth = gen_inst (bires_inst_tac true) Tactic.eresolve_tac;
+
+(* Preserve Var indexes of rl; increment revcut_rl instead.
+   Copied from tactic.ML *)
+fun make_elim_preserve rl =
+  let val {maxidx,...} = rep_thm rl
+      fun cvar xi = cterm_of (Theory.sign_of ProtoPure.thy) (Var(xi,propT));
+      val revcut_rl' =
+          instantiate ([],  [(cvar("V",0), cvar("V",maxidx+1)),
+                             (cvar("W",0), cvar("W",maxidx+1))]) revcut_rl
+      val arg = (false, rl, nprems_of rl)
+      val [th] = Seq.list_of (bicompose false arg 1 revcut_rl')
+  in  th  end
+  handle Bind => raise THM("make_elim_preserve", 1, [rl]);
+
+val cut_inst_meth =
+  gen_inst
+    (fn ctxt => fn insts => fn thm =>
+       bires_inst_tac false ctxt insts (make_elim_preserve thm))
+    Tactic.cut_rules_tac;
+
+val dres_inst_meth =
+  gen_inst
+    (fn ctxt => fn insts => fn rule =>
+       bires_inst_tac true ctxt insts (make_elim_preserve rule))
+    Tactic.dresolve_tac;
+
+val forw_inst_meth =
+  gen_inst
+    (fn ctxt => fn insts => fn rule =>
+       bires_inst_tac false ctxt insts (make_elim_preserve rule) THEN'
+       assume_tac)
+    Tactic.forward_tac;
+
+fun subgoal_tac ctxt sprop =
+  DETERM o bires_inst_tac false ctxt [(("psi", 0), sprop)] cut_rl THEN'
+  SUBGOAL (fn (prop, _) =>
+    let val concl' = Logic.strip_assums_concl prop in
+      if null (term_tvars concl') then ()
+      else warning "Type variables in new subgoal: add a type constraint?";
+      all_tac
+  end);
+
+fun subgoals_tac ctxt sprops = EVERY' (map (subgoal_tac ctxt) sprops);
+
+fun thin_tac ctxt s =
+  bires_inst_tac true ctxt [(("V", 0), s)] thin_rl;
 
 (* simple Prolog interpreter *)
 
@@ -536,13 +666,23 @@ val insts =
 
 fun inst_args f src ctxt = f ctxt (#2 (syntax (Args.goal_spec HEADGOAL -- insts) src ctxt));
 
+val insts_var =
+  Scan.optional
+    (Args.enum1 "and" (Scan.lift (Args.var -- (Args.$$$ "=" |-- Args.!!! Args.name))) --|
+      Scan.lift (Args.$$$ "in")) [] -- Attrib.local_thmss;
+
+fun inst_args_var f src ctxt = f ctxt (#2 (syntax (Args.goal_spec HEADGOAL -- insts_var) src ctxt));
 
 fun goal_args' args tac src ctxt = #2 (syntax (Args.goal_spec HEADGOAL -- args >>
-  (fn (quant, s) => SIMPLE_METHOD' quant (K (impose_hyps_tac ctxt) THEN' tac s))) src ctxt);
+  (fn (quant, s) => SIMPLE_METHOD' quant ( (*K (impose_hyps_tac ctxt) THEN' *) tac s))) src ctxt);
 
 fun goal_args args tac = goal_args' (Scan.lift args) tac;
 
+fun goal_args_ctxt' args tac src ctxt =
+  #2 (syntax (Args.goal_spec HEADGOAL -- args >>
+  (fn (quant, s) => SIMPLE_METHOD' quant (tac ctxt s))) src ctxt);
 
+fun goal_args_ctxt args tac = goal_args_ctxt' (Scan.lift args) tac;
 
 (** method text **)
 
@@ -629,8 +769,8 @@ val global_done_proof = global_term_proof false (done_text, None);
 
 (* misc tactic emulations *)
 
-val subgoal_meth = goal_args (Scan.repeat1 Args.name) Tactic.subgoals_tac;
-val thin_meth = goal_args Args.name Tactic.thin_tac;
+val subgoal_meth = goal_args_ctxt (Scan.repeat1 Args.name) subgoals_tac;
+val thin_meth = goal_args_ctxt Args.name thin_tac;
 val rename_meth = goal_args (Scan.repeat1 Args.name) Tactic.rename_params_tac;
 val rotate_meth = goal_args (Scan.optional Args.int 1) Tactic.rotate_tac;
 
@@ -655,14 +795,14 @@ val pure_methods =
   ("frule", nat_thms_args frule, "apply rule in forward manner (improper)"),
   ("this", no_args this, "apply current facts as rules"),
   ("assumption", ctxt_args assumption, "proof by assumption, preferring facts"),
-  ("rule_tac", inst_args res_inst, "apply rule (dynamic instantiation!)"),
-  ("erule_tac", inst_args eres_inst, "apply rule in elimination manner (dynamic instantiation!)"),
-  ("drule_tac", inst_args dres_inst, "apply rule in destruct manner (dynamic instantiation!)"),
-  ("frule_tac", inst_args forw_inst, "apply rule in forward manner (dynamic instantiation!)"),
-  ("cut_tac", inst_args cut_inst, "cut rule (dynamic instantiation!)"),
-  ("subgoal_tac", subgoal_meth, "insert subgoal (dynamic instantiation!)"),
-  ("thin_tac", thin_meth, "remove premise (dynamic instantiation!)"),
-  ("rename_tac", rename_meth, "rename parameters of goal (dynamic instantiation!)"),
+  ("rule_tac", inst_args_var res_inst_meth, "apply rule (dynamic instantiation)"),
+  ("erule_tac", inst_args_var eres_inst_meth, "apply rule in elimination manner (dynamic instantiation)"),
+  ("drule_tac", inst_args_var dres_inst_meth, "apply rule in destruct manner (dynamic instantiation)"),
+  ("frule_tac", inst_args_var forw_inst_meth, "apply rule in forward manner (dynamic instantiation)"),
+  ("cut_tac", inst_args_var cut_inst_meth, "cut rule (dynamic instantiation)"),
+  ("subgoal_tac", subgoal_meth, "insert subgoal (dynamic instantiation)"),
+  ("thin_tac", thin_meth, "remove premise (dynamic instantiation)"),
+  ("rename_tac", rename_meth, "rename parameters of goal (dynamic instantiation)"),
   ("rotate_tac", rotate_meth, "rotate assumptions of goal"),
   ("prolog", thms_args prolog, "simple prolog interpreter"),
   ("tactic", simple_args Args.name tactic, "ML tactic as proof method")];

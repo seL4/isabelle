@@ -83,7 +83,7 @@ by (fast intro: nvalid_SucD)
 lemma Loop_sound_lemma [rule_format (no_asm)]: 
 "\<forall>s t. s -c-n\<rightarrow> t \<longrightarrow> P s \<and> s<x> \<noteq> Null \<longrightarrow> P t \<Longrightarrow> 
   (s -c0-n0\<rightarrow> t \<longrightarrow> P s \<longrightarrow> c0 = While (x) c \<longrightarrow> n0 = n \<longrightarrow> P t \<and> t<x> = Null)"
-apply (rule_tac "P2.1"="%s e v n t. True" in exec_eval.induct [THEN conjunct1])
+apply (rule_tac ?P2.1="%s e v n t. True" in exec_eval.induct [THEN conjunct1])
 apply clarsimp+
 done
 

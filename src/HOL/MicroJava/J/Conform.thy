@@ -120,9 +120,9 @@ done
 lemma defval_conf [rule_format (no_asm)]: 
   "is_type G T --> G,h\<turnstile>default_val T::\<preceq>T"
 apply (unfold conf_def)
-apply (rule_tac "y" = "T" in ty.exhaust)
+apply (rule_tac y = "T" in ty.exhaust)
 apply  (erule ssubst)
-apply  (rule_tac "y" = "prim_ty" in prim_ty.exhaust)
+apply  (rule_tac y = "prim_ty" in prim_ty.exhaust)
 apply    (auto simp add: widen.null)
 done
 
@@ -178,7 +178,7 @@ done
 lemma non_np_objD' [rule_format (no_asm)]: 
   "a' \<noteq> Null ==> wf_prog wf_mb G ==> G,h\<turnstile>a'::\<preceq>RefT t --> 
   (\<exists>a C fs. a' = Addr a \<and>  h a = Some (C,fs) \<and>  G\<turnstile>Class C\<preceq>RefT t)"
-apply(rule_tac "y" = "t" in ref_ty.exhaust)
+apply(rule_tac y = "t" in ref_ty.exhaust)
  apply (fast dest: conf_NullTD)
 apply (fast dest: non_np_objD)
 done

@@ -73,7 +73,7 @@ apply (unfold new_Addr_def)
 apply(simp add: Pair_fst_snd_eq Eps_split)
 apply(rule someI)
 apply(rule disjI2)
-apply(rule_tac "r" = "snd (?a,Some (Addr (XcptRef OutOfMemory)))" in trans)
+apply(rule_tac r = "snd (?a,Some (Addr (XcptRef OutOfMemory)))" in trans)
 apply auto
 done
 

@@ -1739,14 +1739,14 @@ prefer 2
   apply (rule bc_mt_corresp_zero) apply (simp add: length_compTpExpr) 
   apply (simp (no_asm_simp))
 
-apply (drule_tac "bc1.0"="[]" and "bc2.0" = "compExpr jmb expr1" 
-  and "f1.0"=comb_nil and "f2.0" = "compTpExpr jmb G expr1" 
+apply (drule_tac ?bc1.0="[]" and ?bc2.0 = "compExpr jmb expr1" 
+  and ?f1.0=comb_nil and ?f2.0 = "compTpExpr jmb G expr1" 
   in bc_mt_corresp_comb_inside)
   apply (simp (no_asm_simp))+
   apply blast
   apply (simp (no_asm_simp) add: length_compTpExpr)+
 
-apply (drule_tac "bc2.0" = "compExpr jmb expr2" and "f2.0" = "compTpExpr jmb G expr2" 
+apply (drule_tac ?bc2.0 = "compExpr jmb expr2" and ?f2.0 = "compTpExpr jmb G expr2" 
   in bc_mt_corresp_comb_inside)
   apply (simp (no_asm_simp))+
   apply (simp only: compTpExpr_LT_ST)
@@ -1754,10 +1754,10 @@ apply (drule_tac "bc2.0" = "compExpr jmb expr2" and "f2.0" = "compTpExpr jmb G e
   apply (simp (no_asm_simp))
   apply (simp (no_asm_simp))
 
-apply (drule_tac "bc1.0" = "compExpr jmb expr1 @ compExpr jmb expr2" 
-    and inst = "Ifcmpeq 3" and "bc3.0" = "[LitPush (Bool False),Goto 2, LitPush (Bool True)]"
-  and "f1.0"="compTpExpr jmb G expr1 \<box> compTpExpr jmb G expr2"
-  and "f2.0"="popST 2" and "f3.0"="pushST [PrimT Boolean] \<box> popST 1 \<box> pushST [PrimT Boolean]"
+apply (drule_tac ?bc1.0 = "compExpr jmb expr1 @ compExpr jmb expr2" 
+    and inst = "Ifcmpeq 3" and ?bc3.0 = "[LitPush (Bool False),Goto 2, LitPush (Bool True)]"
+  and ?f1.0="compTpExpr jmb G expr1 \<box> compTpExpr jmb G expr2"
+  and ?f2.0="popST 2" and ?f3.0="pushST [PrimT Boolean] \<box> popST 1 \<box> pushST [PrimT Boolean]"
   in bc_mt_corresp_comb_wt_instr)
   apply (simp (no_asm_simp) add: length_compTpExpr)+
 
@@ -1772,12 +1772,12 @@ apply (drule_tac "bc1.0" = "compExpr jmb expr1 @ compExpr jmb expr2"
   apply (case_tac Ta) apply (simp (no_asm_simp)) apply (simp (no_asm_simp))
   apply (rule contracting_popST)		(* contracting (popST 2)  *)
 
-apply (drule_tac "bc1.0" = "compExpr jmb expr1 @ compExpr jmb expr2 @ [Ifcmpeq 3]"
-  and "bc2.0" = "[LitPush (Bool False)]" 
-  and "bc3.0" = "[Goto 2, LitPush (Bool True)]" 
-  and "f1.0" = "compTpExpr jmb G expr1 \<box> compTpExpr jmb G expr2 \<box> popST 2"
-  and "f2.0" = "pushST [PrimT Boolean]" 
-  and "f3.0" = "popST (Suc 0) \<box> pushST [PrimT Boolean]"
+apply (drule_tac ?bc1.0 = "compExpr jmb expr1 @ compExpr jmb expr2 @ [Ifcmpeq 3]"
+  and ?bc2.0 = "[LitPush (Bool False)]" 
+  and ?bc3.0 = "[Goto 2, LitPush (Bool True)]" 
+  and ?f1.0 = "compTpExpr jmb G expr1 \<box> compTpExpr jmb G expr2 \<box> popST 2"
+  and ?f2.0 = "pushST [PrimT Boolean]" 
+  and ?f3.0 = "popST (Suc 0) \<box> pushST [PrimT Boolean]"
   in bc_mt_corresp_comb_inside)
   apply (simp (no_asm_simp))+
   apply (simp add: compTpExpr_LT_ST_rewr popST_def)
@@ -1787,10 +1787,10 @@ apply (drule_tac "bc1.0" = "compExpr jmb expr1 @ compExpr jmb expr2 @ [Ifcmpeq 3
   apply (simp (no_asm_simp) add: start_sttp_resp_def)
 
 
-apply (drule_tac "bc1.0" = "compExpr jmb expr1 @ compExpr jmb expr2 @ [Ifcmpeq 3, LitPush (Bool False)]" 
-    and inst = "Goto 2" and "bc3.0" = "[LitPush (Bool True)]"
-  and "f1.0"="compTpExpr jmb G expr1 \<box> compTpExpr jmb G expr2 \<box> popST 2 \<box> pushST [PrimT Boolean]"
-  and "f2.0"="popST 1" and "f3.0"="pushST [PrimT Boolean]"
+apply (drule_tac ?bc1.0 = "compExpr jmb expr1 @ compExpr jmb expr2 @ [Ifcmpeq 3, LitPush (Bool False)]" 
+    and inst = "Goto 2" and ?bc3.0 = "[LitPush (Bool True)]"
+  and ?f1.0="compTpExpr jmb G expr1 \<box> compTpExpr jmb G expr2 \<box> popST 2 \<box> pushST [PrimT Boolean]"
+  and ?f2.0="popST 1" and ?f3.0="pushST [PrimT Boolean]"
   in bc_mt_corresp_comb_wt_instr)
   apply (simp (no_asm_simp) add: length_compTpExpr)+
 
@@ -1804,13 +1804,13 @@ apply (drule_tac "bc1.0" = "compExpr jmb expr1 @ compExpr jmb expr2 @ [Ifcmpeq 3
   apply (rule contracting_popST)		(* contracting (popST 1) *)
 
 apply (drule_tac 
-  "bc1.0" = "compExpr jmb expr1 @ compExpr jmb expr2 @ [Ifcmpeq 3, LitPush (Bool False), Goto 2]" 
-  and "bc2.0" = "[LitPush (Bool True)]"
-  and "bc3.0" = "[]"
-  and "f1.0" = "compTpExpr jmb G expr1 \<box> compTpExpr jmb G expr2 \<box> popST 2 \<box> 
+  ?bc1.0 = "compExpr jmb expr1 @ compExpr jmb expr2 @ [Ifcmpeq 3, LitPush (Bool False), Goto 2]" 
+  and ?bc2.0 = "[LitPush (Bool True)]"
+  and ?bc3.0 = "[]"
+  and ?f1.0 = "compTpExpr jmb G expr1 \<box> compTpExpr jmb G expr2 \<box> popST 2 \<box> 
                 pushST [PrimT Boolean] \<box> popST (Suc 0)"
-  and "f2.0" = "pushST [PrimT Boolean]"
-  and "f3.0" = "comb_nil" 
+  and ?f2.0 = "pushST [PrimT Boolean]"
+  and ?f3.0 = "comb_nil" 
   in bc_mt_corresp_comb_inside)
   apply (simp (no_asm_simp))+
   apply (simp add: compTpExpr_LT_ST_rewr popST_def) 
@@ -1859,8 +1859,8 @@ apply (frule wf_java_mdecl_length_pTs_pns)
 apply clarify
 apply (simp (no_asm_use))
 apply (rule bc_mt_corresp_comb) apply (rule HOL.refl, simp (no_asm_simp), blast)
-apply (rule_tac "bc1.0"="[Dup]" and "bc2.0"="[Store (index (pns, lvars, blk, res) vname)]" 
-       and "f1.0"="dupST" and "f2.0"="popST (Suc 0)"
+apply (rule_tac ?bc1.0="[Dup]" and ?bc2.0="[Store (index (pns, lvars, blk, res) vname)]" 
+       and ?f1.0="dupST" and ?f2.0="popST (Suc 0)"
        in bc_mt_corresp_comb) 
   apply (simp (no_asm_simp))+
   apply (rule bc_mt_corresp_Dup)
@@ -1898,7 +1898,7 @@ apply (rule bc_mt_corresp_comb) apply (rule HOL.refl) apply simp apply blast
   apply (simp only: compTpExpr_LT_ST)
 apply (rule bc_mt_corresp_comb, (rule HOL.refl)+) apply blast
   apply (simp only: compTpExpr_LT_ST)
-apply (rule_tac "bc1.0"="[Dup_x1]" and "bc2.0"="[Putfield vname cname]" in bc_mt_corresp_comb) 
+apply (rule_tac ?bc1.0="[Dup_x1]" and ?bc2.0="[Putfield vname cname]" in bc_mt_corresp_comb) 
   apply (simp (no_asm_simp))+
 apply (rule bc_mt_corresp_Dup_x1)
   apply (simp (no_asm_simp) add: dup_x1ST_def)
@@ -2010,24 +2010,24 @@ apply (rule bc_mt_corresp_zero)
   apply (simp (no_asm_simp) add: length_compTpStmt length_compTpExpr)
   apply (simp (no_asm_simp))
 
-apply (drule_tac "bc1.0"="[]" and "bc2.0" = "[LitPush (Bool False)]" 
-  and "bc3.0"="compExpr jmb expr @ Ifcmpeq (2 + int (length (compStmt jmb stmt1))) #
+apply (drule_tac ?bc1.0="[]" and ?bc2.0 = "[LitPush (Bool False)]" 
+  and ?bc3.0="compExpr jmb expr @ Ifcmpeq (2 + int (length (compStmt jmb stmt1))) #
             compStmt jmb stmt1 @ Goto (1 + int (length (compStmt jmb stmt2))) #
             compStmt jmb stmt2" 
-  and "f1.0"=comb_nil and "f2.0" = "pushST [PrimT Boolean]" 
-  and "f3.0"="compTpExpr jmb G expr \<box> popST 2 \<box> compTpStmt jmb G stmt1 \<box>
+  and ?f1.0=comb_nil and ?f2.0 = "pushST [PrimT Boolean]" 
+  and ?f3.0="compTpExpr jmb G expr \<box> popST 2 \<box> compTpStmt jmb G stmt1 \<box>
             nochangeST \<box> compTpStmt jmb G stmt2"
   in bc_mt_corresp_comb_inside)
   apply (simp (no_asm_simp))+
   apply (rule_tac T="(PrimT Boolean)" in bc_mt_corresp_LitPush)
   apply (simp (no_asm_simp) add: start_sttp_resp_def)+
 
-apply (drule_tac "bc1.0"="[LitPush (Bool False)]" and "bc2.0" = "compExpr jmb expr"
-  and "bc3.0"="Ifcmpeq (2 + int (length (compStmt jmb stmt1))) #
+apply (drule_tac ?bc1.0="[LitPush (Bool False)]" and ?bc2.0 = "compExpr jmb expr"
+  and ?bc3.0="Ifcmpeq (2 + int (length (compStmt jmb stmt1))) #
             compStmt jmb stmt1 @ Goto (1 + int (length (compStmt jmb stmt2))) #
             compStmt jmb stmt2" 
-  and "f1.0"="pushST [PrimT Boolean]" and "f2.0" = "compTpExpr jmb G expr"
-  and "f3.0"="popST 2 \<box> compTpStmt jmb G stmt1 \<box>
+  and ?f1.0="pushST [PrimT Boolean]" and ?f2.0 = "compTpExpr jmb G expr"
+  and ?f3.0="popST 2 \<box> compTpStmt jmb G stmt1 \<box>
             nochangeST \<box> compTpStmt jmb G stmt2"
   in bc_mt_corresp_comb_inside)
   apply (simp (no_asm_simp))+
@@ -2036,12 +2036,12 @@ apply (drule_tac "bc1.0"="[LitPush (Bool False)]" and "bc2.0" = "compExpr jmb ex
       apply (simp (no_asm_simp))+
 
 
-apply (drule_tac "bc1.0" = "[LitPush (Bool False)] @ compExpr jmb expr" 
+apply (drule_tac ?bc1.0 = "[LitPush (Bool False)] @ compExpr jmb expr" 
     and inst = "Ifcmpeq (2 + int (length (compStmt jmb stmt1)))" 
-  and "bc3.0" = "compStmt jmb stmt1 @ Goto (1 + int (length (compStmt jmb stmt2))) #
+  and ?bc3.0 = "compStmt jmb stmt1 @ Goto (1 + int (length (compStmt jmb stmt2))) #
             compStmt jmb stmt2"
-  and "f1.0"="pushST [PrimT Boolean] \<box> compTpExpr jmb G expr" and "f2.0" = "popST 2"
-  and "f3.0"="compTpStmt jmb G stmt1 \<box> nochangeST \<box> compTpStmt jmb G stmt2"
+  and ?f1.0="pushST [PrimT Boolean] \<box> compTpExpr jmb G expr" and ?f2.0 = "popST 2"
+  and ?f3.0="compTpStmt jmb G stmt1 \<box> nochangeST \<box> compTpStmt jmb G stmt2"
   in bc_mt_corresp_comb_wt_instr)
   apply (simp (no_asm_simp) add: length_compTpExpr)+
   apply (simp (no_asm_simp) add: start_sttp_resp_comb)
@@ -2079,13 +2079,13 @@ apply (drule_tac "bc1.0" = "[LitPush (Bool False)] @ compExpr jmb expr"
   apply (rule contracting_popST)
 
 apply (drule_tac 
-  "bc1.0"="[LitPush (Bool False)] @ compExpr jmb expr @ 
+  ?bc1.0="[LitPush (Bool False)] @ compExpr jmb expr @ 
            [Ifcmpeq (2 + int (length (compStmt jmb stmt1)))] " 
-  and "bc2.0" = "compStmt jmb stmt1"
-  and "bc3.0"="Goto (1 + int (length (compStmt jmb stmt2))) # compStmt jmb stmt2"
-  and "f1.0"="pushST [PrimT Boolean] \<box> compTpExpr jmb G expr \<box> popST 2" 
-  and "f2.0" = "compTpStmt jmb G stmt1"
-  and "f3.0"="nochangeST \<box> compTpStmt jmb G stmt2"
+  and ?bc2.0 = "compStmt jmb stmt1"
+  and ?bc3.0="Goto (1 + int (length (compStmt jmb stmt2))) # compStmt jmb stmt2"
+  and ?f1.0="pushST [PrimT Boolean] \<box> compTpExpr jmb G expr \<box> popST 2" 
+  and ?f2.0 = "compTpStmt jmb G stmt1"
+  and ?f3.0="nochangeST \<box> compTpStmt jmb G stmt2"
   in bc_mt_corresp_comb_inside)
   apply (simp (no_asm_simp))+
   apply (simp (no_asm_simp) add: pushST_def popST_def compTpExpr_LT_ST)
@@ -2094,13 +2094,13 @@ apply (drule_tac
   apply (simp (no_asm_simp) add: length_compTpExpr)+
 
 
-apply (drule_tac "bc1.0" = "[LitPush (Bool False)] @ compExpr jmb expr @ [Ifcmpeq (2 + int (length (compStmt jmb stmt1)))] @ compStmt jmb stmt1" 
+apply (drule_tac ?bc1.0 = "[LitPush (Bool False)] @ compExpr jmb expr @ [Ifcmpeq (2 + int (length (compStmt jmb stmt1)))] @ compStmt jmb stmt1" 
     and inst = "Goto (1 + int (length (compStmt jmb stmt2)))"
-  and "bc3.0" = "compStmt jmb stmt2"
-  and "f1.0"="pushST [PrimT Boolean] \<box> compTpExpr jmb G expr \<box> popST 2 \<box> 
+  and ?bc3.0 = "compStmt jmb stmt2"
+  and ?f1.0="pushST [PrimT Boolean] \<box> compTpExpr jmb G expr \<box> popST 2 \<box> 
               compTpStmt jmb G stmt1" 
-  and "f2.0" = "nochangeST"
-  and "f3.0"="compTpStmt jmb G stmt2"
+  and ?f2.0 = "nochangeST"
+  and ?f3.0="compTpStmt jmb G stmt2"
   in bc_mt_corresp_comb_wt_instr)
   apply (simp (no_asm_simp) add: length_compTpExpr length_compTpStmt)+
   apply (intro strip)
@@ -2120,15 +2120,15 @@ apply (drule_tac "bc1.0" = "[LitPush (Bool False)] @ compExpr jmb expr @ [Ifcmpe
 
 
 apply (drule_tac 
-  "bc1.0"= "[LitPush (Bool False)] @ compExpr jmb expr @ 
+  ?bc1.0= "[LitPush (Bool False)] @ compExpr jmb expr @ 
             [Ifcmpeq (2 + int (length (compStmt jmb stmt1)))] @ 
             compStmt jmb stmt1 @ [Goto (1 + int (length (compStmt jmb stmt2)))]"
-  and "bc2.0" = "compStmt jmb stmt2"
-  and "bc3.0"="[]"
-  and "f1.0"="pushST [PrimT Boolean] \<box> compTpExpr jmb G expr \<box> popST 2 \<box> 
+  and ?bc2.0 = "compStmt jmb stmt2"
+  and ?bc3.0="[]"
+  and ?f1.0="pushST [PrimT Boolean] \<box> compTpExpr jmb G expr \<box> popST 2 \<box> 
               compTpStmt jmb G stmt1 \<box> nochangeST"
-  and "f2.0" = "compTpStmt jmb G stmt2"
-  and "f3.0"="comb_nil"
+  and ?f2.0 = "compTpStmt jmb G stmt2"
+  and ?f3.0="comb_nil"
   in bc_mt_corresp_comb_inside)
   apply (simp (no_asm_simp))+
   apply (simp (no_asm_simp) add: pushST_def popST_def nochangeST_def compTpExpr_LT_ST)
@@ -2152,23 +2152,23 @@ apply (rule bc_mt_corresp_zero)
   apply (simp (no_asm_simp) add: length_compTpStmt length_compTpExpr)
   apply (simp (no_asm_simp))
 
-apply (drule_tac "bc1.0"="[]" and "bc2.0" = "[LitPush (Bool False)]" 
-  and "bc3.0"="compExpr jmb expr @ Ifcmpeq (2 + int (length (compStmt jmb stmt))) #
+apply (drule_tac ?bc1.0="[]" and ?bc2.0 = "[LitPush (Bool False)]" 
+  and ?bc3.0="compExpr jmb expr @ Ifcmpeq (2 + int (length (compStmt jmb stmt))) #
             compStmt jmb stmt @ 
             [Goto (-2 + (- int (length (compStmt jmb stmt)) - int (length (compExpr jmb expr))))]" 
-  and "f1.0"=comb_nil and "f2.0" = "pushST [PrimT Boolean]" 
-  and "f3.0"="compTpExpr jmb G expr \<box> popST 2 \<box> compTpStmt jmb G stmt \<box> nochangeST"
+  and ?f1.0=comb_nil and ?f2.0 = "pushST [PrimT Boolean]" 
+  and ?f3.0="compTpExpr jmb G expr \<box> popST 2 \<box> compTpStmt jmb G stmt \<box> nochangeST"
   in bc_mt_corresp_comb_inside)
   apply (simp (no_asm_simp))+
   apply (rule_tac T="(PrimT Boolean)" in bc_mt_corresp_LitPush)
   apply (simp (no_asm_simp) add: start_sttp_resp_def)+
 
-apply (drule_tac "bc1.0"="[LitPush (Bool False)]" and "bc2.0" = "compExpr jmb expr"
-  and "bc3.0"="Ifcmpeq (2 + int (length (compStmt jmb stmt))) #
+apply (drule_tac ?bc1.0="[LitPush (Bool False)]" and ?bc2.0 = "compExpr jmb expr"
+  and ?bc3.0="Ifcmpeq (2 + int (length (compStmt jmb stmt))) #
             compStmt jmb stmt @ 
             [Goto (-2 + (- int (length (compStmt jmb stmt)) - int (length (compExpr jmb expr))))]" 
-  and "f1.0"="pushST [PrimT Boolean]" and "f2.0" = "compTpExpr jmb G expr"
-  and "f3.0"="popST 2 \<box> compTpStmt jmb G stmt \<box> nochangeST"
+  and ?f1.0="pushST [PrimT Boolean]" and ?f2.0 = "compTpExpr jmb G expr"
+  and ?f3.0="popST 2 \<box> compTpStmt jmb G stmt \<box> nochangeST"
   in bc_mt_corresp_comb_inside)
   apply (simp (no_asm_simp))+
   apply (simp (no_asm_simp)  add: pushST_def)
@@ -2176,12 +2176,12 @@ apply (drule_tac "bc1.0"="[LitPush (Bool False)]" and "bc2.0" = "compExpr jmb ex
       apply (simp (no_asm_simp))+
 
 
-apply (drule_tac "bc1.0" = "[LitPush (Bool False)] @ compExpr jmb expr" 
+apply (drule_tac ?bc1.0 = "[LitPush (Bool False)] @ compExpr jmb expr" 
     and inst = "Ifcmpeq (2 + int (length (compStmt jmb stmt)))" 
-  and "bc3.0" = "compStmt jmb stmt @ 
+  and ?bc3.0 = "compStmt jmb stmt @ 
        [Goto (-2 + (- int (length (compStmt jmb stmt)) - int (length (compExpr jmb expr))))]"
-  and "f1.0"="pushST [PrimT Boolean] \<box> compTpExpr jmb G expr" and "f2.0" = "popST 2"
-  and "f3.0"="compTpStmt jmb G stmt \<box> nochangeST"
+  and ?f1.0="pushST [PrimT Boolean] \<box> compTpExpr jmb G expr" and ?f2.0 = "popST 2"
+  and ?f3.0="compTpStmt jmb G stmt \<box> nochangeST"
   in bc_mt_corresp_comb_wt_instr)
   apply (simp (no_asm_simp) add: length_compTpExpr)+
   apply (simp (no_asm_simp) add: start_sttp_resp_comb)
@@ -2219,13 +2219,13 @@ apply (drule_tac "bc1.0" = "[LitPush (Bool False)] @ compExpr jmb expr"
   apply (rule contracting_popST)
 
 apply (drule_tac 
-  "bc1.0"="[LitPush (Bool False)] @ compExpr jmb expr @ 
+  ?bc1.0="[LitPush (Bool False)] @ compExpr jmb expr @ 
            [Ifcmpeq (2 + int (length (compStmt jmb stmt)))] " 
-  and "bc2.0" = "compStmt jmb stmt"
-  and "bc3.0"="[Goto (-2 + (- int (length (compStmt jmb stmt)) - int (length (compExpr jmb expr))))]"
-  and "f1.0"="pushST [PrimT Boolean] \<box> compTpExpr jmb G expr \<box> popST 2" 
-  and "f2.0" = "compTpStmt jmb G stmt"
-  and "f3.0"="nochangeST"
+  and ?bc2.0 = "compStmt jmb stmt"
+  and ?bc3.0="[Goto (-2 + (- int (length (compStmt jmb stmt)) - int (length (compExpr jmb expr))))]"
+  and ?f1.0="pushST [PrimT Boolean] \<box> compTpExpr jmb G expr \<box> popST 2" 
+  and ?f2.0 = "compTpStmt jmb G stmt"
+  and ?f3.0="nochangeST"
   in bc_mt_corresp_comb_inside)
   apply (simp (no_asm_simp))+
   apply (simp (no_asm_simp) add: pushST_def popST_def compTpExpr_LT_ST)
@@ -2234,13 +2234,13 @@ apply (drule_tac
   apply (simp (no_asm_simp) add: length_compTpExpr)+
 
 
-apply (drule_tac "bc1.0" = "[LitPush (Bool False)] @ compExpr jmb expr @ [Ifcmpeq (2 + int (length (compStmt jmb stmt)))] @ compStmt jmb stmt" 
+apply (drule_tac ?bc1.0 = "[LitPush (Bool False)] @ compExpr jmb expr @ [Ifcmpeq (2 + int (length (compStmt jmb stmt)))] @ compStmt jmb stmt" 
     and inst = "Goto (-2 + (- int (length (compStmt jmb stmt)) - int (length (compExpr jmb expr))))"
-  and "bc3.0" = "[]"
-  and "f1.0"="pushST [PrimT Boolean] \<box> compTpExpr jmb G expr \<box> popST 2 \<box> 
+  and ?bc3.0 = "[]"
+  and ?f1.0="pushST [PrimT Boolean] \<box> compTpExpr jmb G expr \<box> popST 2 \<box> 
               compTpStmt jmb G stmt" 
-  and "f2.0" = "nochangeST"
-  and "f3.0"="comb_nil"
+  and ?f2.0 = "nochangeST"
+  and ?f3.0="comb_nil"
   in bc_mt_corresp_comb_wt_instr)
   apply (simp (no_asm_simp) add: length_compTpExpr length_compTpStmt)+ 
   apply (intro strip)
@@ -2277,7 +2277,7 @@ lemma wt_method_compTpInit_corresp: "\<lbrakk> jmb = (pns,lvars,blk,res);
   is_type G ty \<rbrakk>
   \<Longrightarrow> bc_mt_corresp bc f (ST, LT) (comp G) rT mxr (length bc)"
 apply (simp add: compInit_def compTpInit_def split_beta)
-apply (rule_tac "bc1.0"="[load_default_val ty]" and "bc2.0"="[Store (index jmb vn)]" 
+apply (rule_tac ?bc1.0="[load_default_val ty]" and ?bc2.0="[Store (index jmb vn)]" 
   in bc_mt_corresp_comb) 
   apply simp+
   apply (simp add: load_default_val_def)
@@ -2311,7 +2311,7 @@ apply (subgoal_tac "\<exists> vn ty. a = (vn, ty)")
 apply (drule_tac x="lvars_pre @ [a]" in spec)
 apply (drule_tac x="lvars0" in spec)
 apply (simp (no_asm_simp) add: compInitLvars_def)
-apply (rule_tac "bc1.0"="compInit jmb a" and "bc2.0"="compInitLvars jmb list"
+apply (rule_tac ?bc1.0="compInit jmb a" and ?bc2.0="compInitLvars jmb list"
   in bc_mt_corresp_comb)
 apply (simp (no_asm_simp) add: compInitLvars_def)+
 

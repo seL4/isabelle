@@ -132,7 +132,7 @@ lemma progression_transitive:
   {G, C, S} \<turnstile> {hp0, os0, lvars0} >- instrs_comb \<rightarrow> {hp2, os2, lvars2}"
 apply (simp only: progression_def)
 apply (intro strip)
-apply (rule_tac "s1.0" = "Norm (hp1, (os1, lvars1, C, S, 
+apply (rule_tac ?s1.0 = "Norm (hp1, (os1, lvars1, C, S, 
                           length pre + length instrs0) # frs)"  
        in exec_all_trans)
 apply (simp only: append_assoc)
@@ -191,7 +191,7 @@ lemma jump_fwd_progression_aux:
   \<Longrightarrow> {G, C, S} \<turnstile> {hp, os0, lvars} >- instrs_comb \<rightarrow> {hp2, os2, lvars2}"
 apply (simp only: progression_def jump_fwd_def)
 apply (intro strip)
-apply (rule_tac "s1.0" = "Norm(hp, (os1, lvars, C, S, length pre + length instrs0 + 1) # frs)" in exec_all_trans)
+apply (rule_tac ?s1.0 = "Norm(hp, (os1, lvars, C, S, length pre + length instrs0 + 1) # frs)" in exec_all_trans)
 apply (simp only: append_assoc)
 apply (subgoal_tac "pre @ (instr # instrs0 @ instrs1) @ post = pre @ instr # instrs0 @ (instrs1 @ post)")
 apply blast
@@ -305,8 +305,8 @@ apply (rule conjI)
 apply force
 apply (intro strip)
 apply (frule_tac
-  "P1.0" = "wf_mdecl wf_mb G Ca" and
-  "P2.0" = "%(S, (Da, rT, mb)). P Da S (rT, mb)" in map_of_map_prop)
+  ?P1.0 = "wf_mdecl wf_mb G Ca" and
+  ?P2.0 = "%(S, (Da, rT, mb)). P Da S (rT, mb)" in map_of_map_prop)
 apply (force simp: wf_cdecl_def)
 
 apply clarify
@@ -455,7 +455,7 @@ lemma progression_Eq : "{G, C, S} \<turnstile>
 apply (case_tac "v1 = v2")
 
 (* case v1 = v2 *)
-apply (rule_tac "instrs1.0" = "[LitPush (Bool True)]" in jump_fwd_progression)
+apply (rule_tac ?instrs1.0 = "[LitPush (Bool True)]" in jump_fwd_progression)
 apply (auto simp: nat_add_distrib)
 apply (rule progression_one_step) apply simp
 
@@ -464,7 +464,7 @@ apply (rule progression_one_step [THEN HOL.refl [THEN progression_transitive], s
 apply auto
 apply (rule progression_one_step [THEN HOL.refl [THEN progression_transitive], simplified]) 
 apply auto
-apply (rule_tac "instrs1.0" = "[]" in jump_fwd_progression)
+apply (rule_tac ?instrs1.0 = "[]" in jump_fwd_progression)
 apply (auto simp: nat_add_distrib intro: progression_refl)
 done
 
@@ -522,9 +522,9 @@ apply (intro strip)
 apply (case_tac lvals) apply simp
 apply (simp (no_asm_simp) )
 
-apply (rule_tac "lvars1.0" = "(prfx @ [default_val (snd a)]) @ lista" in progression_transitive, rule HOL.refl)
+apply (rule_tac ?lvars1.0 = "(prfx @ [default_val (snd a)]) @ lista" in progression_transitive, rule HOL.refl)
 apply (case_tac a) apply (simp (no_asm_simp) add: compInit_def)
-apply (rule_tac "instrs0.0" = "[load_default_val b]" in progression_transitive, simp)
+apply (rule_tac ?instrs0.0 = "[load_default_val b]" in progression_transitive, simp)
 apply (rule progression_one_step)
 apply (simp (no_asm_simp) add: load_default_val_def)
 apply (rule conjI, simp)+ apply (rule HOL.refl)
@@ -650,7 +650,7 @@ lemma eval_conf: "\<lbrakk>G \<turnstile> s -e\<succ>v-> s'; wf_java_prog G; s::
   E\<turnstile>e::T; gx s' = None; prg E = G \<rbrakk> 
   \<Longrightarrow> G,gh s'\<turnstile>v::\<preceq>T"
 apply (simp add: gh_def)
-apply (rule_tac x3="fst s" and "s3"="snd s"and "x'3"="fst s'"  
+apply (rule_tac x3="fst s" and s3="snd s"and x'3="fst s'"  
   in eval_type_sound [THEN conjunct2 [THEN conjunct1 [THEN mp]], simplified])
 apply assumption+
 apply (simp (no_asm_use) add: surjective_pairing [THEN sym])
@@ -769,7 +769,7 @@ apply simp
 apply (frule raise_if_NoneD)
 apply (frule wtpd_expr_cast)
 apply simp
-apply (rule_tac "instrs0.0" = "(compExpr (gmb G CL S) e)" in progression_transitive, simp)
+apply (rule_tac ?instrs0.0 = "(compExpr (gmb G CL S) e)" in progression_transitive, simp)
 apply blast
 apply (rule progression_one_step)
 apply (simp add: raise_system_xcpt_def  gh_def comp_cast_ok)
@@ -791,8 +791,8 @@ apply (frule_tac e=e1 in state_ok_eval) apply (simp (no_asm_simp)) apply simp ap
 
 
 apply (simp (no_asm_use) only: compExpr_compExprs.simps)
-apply (rule_tac "instrs0.0" = "compExpr (gmb G CL S) e1" in progression_transitive, simp) apply blast
-apply (rule_tac "instrs0.0" = "compExpr (gmb G CL S) e2" in progression_transitive, simp) apply blast
+apply (rule_tac ?instrs0.0 = "compExpr (gmb G CL S) e1" in progression_transitive, simp) apply blast
+apply (rule_tac ?instrs0.0 = "compExpr (gmb G CL S) e2" in progression_transitive, simp) apply blast
 apply (case_tac bop)
   (*subcase bop = Eq *)  apply simp apply (rule progression_Eq)
   (*subcase bop = Add *) apply simp apply (rule progression_one_step) apply simp
@@ -814,10 +814,10 @@ apply (intro allI impI)
 apply (frule wtpd_expr_lass, erule conjE, erule conjE)
 apply (simp add: compExpr_compExprs.simps)
 
-apply (rule_tac "instrs0.0" = "(compExpr (gmb G CL S) e)" in progression_transitive, rule HOL.refl)
+apply (rule_tac ?instrs0.0 = "(compExpr (gmb G CL S) e)" in progression_transitive, rule HOL.refl)
 apply blast
 
-apply (rule_tac "instrs0.0" = "[Dup]" in progression_transitive, simp)
+apply (rule_tac ?instrs0.0 = "[Dup]" in progression_transitive, simp)
 apply (rule progression_one_step)
 apply (simp add: gh_def)
 apply (rule conjI, simp)+ apply simp
@@ -837,7 +837,7 @@ apply (simp (no_asm_use) only: gx_conv, frule np_NoneD)
 apply (frule wtpd_expr_facc)
 
 apply (simp (no_asm_use) only: compExpr_compExprs.simps)
-apply (rule_tac "instrs0.0" = "(compExpr (gmb G CL S) e)" in progression_transitive, rule HOL.refl)
+apply (rule_tac ?instrs0.0 = "(compExpr (gmb G CL S) e)" in progression_transitive, rule HOL.refl)
 apply blast
 apply (rule progression_one_step)
 apply (simp add: gh_def)
@@ -860,11 +860,11 @@ apply (frule_tac e=e1 in state_ok_eval) apply (simp (no_asm_simp) only: env_of_j
 
 apply (simp only: compExpr_compExprs.simps)
 
-apply (rule_tac "instrs0.0" = "(compExpr (gmb G CL S) e1)" in progression_transitive, rule HOL.refl)
+apply (rule_tac ?instrs0.0 = "(compExpr (gmb G CL S) e1)" in progression_transitive, rule HOL.refl)
 apply fast (* blast does not seem to work - why? *)
-apply (rule_tac "instrs0.0" = "(compExpr (gmb G CL S) e2)" in progression_transitive, rule HOL.refl)
+apply (rule_tac ?instrs0.0 = "(compExpr (gmb G CL S) e2)" in progression_transitive, rule HOL.refl)
 apply fast
-apply (rule_tac "instrs0.0" = "[Dup_x1]" and "instrs1.0" = "[Putfield fn T]" in progression_transitive, simp)
+apply (rule_tac ?instrs0.0 = "[Dup_x1]" and ?instrs1.0 = "[Putfield fn T]" in progression_transitive, simp)
 
    (* Dup_x1 *)
    apply (rule progression_one_step)
@@ -899,7 +899,7 @@ apply (frule wtpd_exprs_cons)
 apply (frule_tac e=e in state_ok_eval) apply (simp (no_asm_simp) only: env_of_jmb_fst) apply simp apply (simp (no_asm_use) only: env_of_jmb_fst)
 
 apply simp
-apply (rule_tac "instrs0.0" = "(compExpr (gmb G CL S) e)" in progression_transitive, rule HOL.refl)
+apply (rule_tac ?instrs0.0 = "(compExpr (gmb G CL S) e)" in progression_transitive, rule HOL.refl)
 apply fast
 apply fast
 
@@ -916,7 +916,7 @@ apply (rule progression_refl)
 apply (intro allI impI)
 apply (frule wtpd_stmt_expr)
 apply simp
-apply (rule_tac "instrs0.0" = "(compExpr (gmb G CL S) e)" in progression_transitive, rule HOL.refl)
+apply (rule_tac ?instrs0.0 = "(compExpr (gmb G CL S) e)" in progression_transitive, rule HOL.refl)
 apply fast
 apply (rule progression_one_step)
 apply simp
@@ -930,7 +930,7 @@ apply (frule wtpd_stmt_comp)
 apply (frule_tac st=c1 in state_ok_exec) apply (simp (no_asm_simp) only: env_of_jmb_fst) apply simp apply (simp (no_asm_use) only: env_of_jmb_fst)
 
 apply simp
-apply (rule_tac "instrs0.0" = "(compStmt (gmb G CL S) c1)" in progression_transitive, rule HOL.refl)
+apply (rule_tac ?instrs0.0 = "(compStmt (gmb G CL S) c1)" in progression_transitive, rule HOL.refl)
 apply fast
 apply fast
 
@@ -950,29 +950,29 @@ apply (frule conf_bool) (* establish \<exists>b. v = Bool b *)
 apply (erule exE)
 
 apply simp
-apply (rule_tac "instrs0.0" = "[LitPush (Bool False)]" in progression_transitive, simp (no_asm_simp))
+apply (rule_tac ?instrs0.0 = "[LitPush (Bool False)]" in progression_transitive, simp (no_asm_simp))
 apply (rule progression_one_step,  simp)
 apply (rule conjI, rule HOL.refl)+ apply (rule HOL.refl)
 
-apply (rule_tac "instrs0.0" = "compExpr (gmb G CL S) e" in progression_transitive, rule HOL.refl)
+apply (rule_tac ?instrs0.0 = "compExpr (gmb G CL S) e" in progression_transitive, rule HOL.refl)
 apply fast
 
 apply (case_tac b)
  (* case b= True *)
 apply simp
-apply (rule_tac "instrs0.0" = "[Ifcmpeq (2 + int (length (compStmt (gmb G CL S) c1)))]" in progression_transitive, simp)
+apply (rule_tac ?instrs0.0 = "[Ifcmpeq (2 + int (length (compStmt (gmb G CL S) c1)))]" in progression_transitive, simp)
 apply (rule progression_one_step) apply simp
 apply (rule conjI, rule HOL.refl)+ apply (rule HOL.refl)
-apply (rule_tac "instrs0.0" = "(compStmt (gmb G CL S) c1)" in progression_transitive, simp)
+apply (rule_tac ?instrs0.0 = "(compStmt (gmb G CL S) c1)" in progression_transitive, simp)
 apply fast
-apply (rule_tac "instrs1.0" = "[]" in jump_fwd_progression)
+apply (rule_tac ?instrs1.0 = "[]" in jump_fwd_progression)
 apply (simp, rule conjI, (rule HOL.refl)+)
 apply simp apply (rule conjI, simp) apply (simp add: nat_add_distrib)
 apply (rule progression_refl)
 
  (* case b= False *)
 apply simp
-apply (rule_tac "instrs1.0" = "compStmt (gmb G CL S) c2" in jump_fwd_progression)
+apply (rule_tac ?instrs1.0 = "compStmt (gmb G CL S) c2" in jump_fwd_progression)
 apply (simp, rule conjI, (rule HOL.refl)+)
 apply (simp, rule conjI, rule HOL.refl, simp add: nat_add_distrib)
 apply fast
@@ -993,14 +993,14 @@ apply simp
  (* case b= False *)
 apply simp
 
-apply (rule_tac "instrs0.0" = "[LitPush (Bool False)]" in progression_transitive, simp (no_asm_simp))
+apply (rule_tac ?instrs0.0 = "[LitPush (Bool False)]" in progression_transitive, simp (no_asm_simp))
 apply (rule progression_one_step)
    apply simp 
    apply (rule conjI, rule HOL.refl)+ apply (rule HOL.refl)
 
-apply (rule_tac "instrs0.0" = "compExpr (gmb G CL S) e" in progression_transitive, rule HOL.refl)
+apply (rule_tac ?instrs0.0 = "compExpr (gmb G CL S) e" in progression_transitive, rule HOL.refl)
 apply fast
-apply (rule_tac "instrs1.0" = "[]" in jump_fwd_progression)
+apply (rule_tac ?instrs1.0 = "[]" in jump_fwd_progression)
 apply (simp, rule conjI, rule HOL.refl, rule HOL.refl)
 apply (simp, rule conjI, rule HOL.refl, simp add: nat_add_distrib)
 apply (rule progression_refl)
@@ -1028,19 +1028,19 @@ apply (rule jump_bwd_progression)
 apply simp
 apply (rule conjI, (rule HOL.refl)+)
 
-apply (rule_tac "instrs0.0" = "[LitPush (Bool False)]" in progression_transitive, simp (no_asm_simp))
+apply (rule_tac ?instrs0.0 = "[LitPush (Bool False)]" in progression_transitive, simp (no_asm_simp))
 apply (rule progression_one_step)
    apply simp 
    apply (rule conjI, simp)+ apply simp
 
-apply (rule_tac "instrs0.0" = "compExpr (gmb G CL S) e" in progression_transitive, rule HOL.refl)
+apply (rule_tac ?instrs0.0 = "compExpr (gmb G CL S) e" in progression_transitive, rule HOL.refl)
 apply fast
 
 apply (case_tac b)
  (* case b= True *)
 apply simp
 
-apply (rule_tac "instrs0.0" = "[Ifcmpeq (2 + int (length (compStmt (gmb G CL S) c)))]" in progression_transitive, simp)
+apply (rule_tac ?instrs0.0 = "[Ifcmpeq (2 + int (length (compStmt (gmb G CL S) c)))]" in progression_transitive, simp)
 apply (rule progression_one_step) apply simp
 apply (rule conjI, rule HOL.refl)+ apply (rule HOL.refl)
 apply fast
@@ -1116,11 +1116,11 @@ apply (frule evals_preserves_length [THEN sym])
 apply (simp (no_asm_use) only: compExpr_compExprs.simps)
 
   (* evaluate e *)
-apply (rule_tac "instrs0.0" = "(compExpr (gmb G CL S) e)" in progression_transitive, rule HOL.refl)
+apply (rule_tac ?instrs0.0 = "(compExpr (gmb G CL S) e)" in progression_transitive, rule HOL.refl)
 apply fast
 
   (* evaluate parameters *)
-apply (rule_tac "instrs0.0" = "compExprs (gmb G CL S) ps" in progression_transitive, rule HOL.refl)
+apply (rule_tac ?instrs0.0 = "compExprs (gmb G CL S) ps" in progression_transitive, rule HOL.refl)
 apply fast
 
   (* invokation *)
@@ -1136,14 +1136,14 @@ apply (rule conjI, simp)+ apply (rule HOL.refl)
 apply (simp (no_asm_simp) add: gis_def gmb_def compMethod_def)
 
        (* var. initialization *)
-apply (rule_tac "instrs0.0" = "(compInitLvars (pns, lvars, blk, res) lvars)" in progression_transitive, rule HOL.refl)
+apply (rule_tac ?instrs0.0 = "(compInitLvars (pns, lvars, blk, res) lvars)" in progression_transitive, rule HOL.refl)
 apply (rule_tac C=md in progression_lvar_init, assumption, assumption, assumption)
 apply (simp (no_asm_simp)) (* length pns = length pvs *)
 apply (simp (no_asm_simp)) (* length lvars = length (replicate (length lvars) arbitrary) *)
 
 
        (* body statement *)
-apply (rule_tac "instrs0.0" = "compStmt (pns, lvars, blk, res) blk" in progression_transitive, rule HOL.refl)
+apply (rule_tac ?instrs0.0 = "compStmt (pns, lvars, blk, res) blk" in progression_transitive, rule HOL.refl)
 apply (subgoal_tac "(pns, lvars, blk, res) = gmb G md (mn, pTs)")
 apply (simp (no_asm_simp))
 apply (simp only: gh_conv)

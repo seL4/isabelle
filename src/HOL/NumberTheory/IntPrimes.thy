@@ -400,7 +400,7 @@ lemma zcong_zmod_aux:
 lemma zcong_zmod: "[a = b] (mod m) = [a mod m = b mod m] (mod m)"
   apply (unfold zcong_def)
   apply (rule_tac t = "a - b" in ssubst)
-  apply (rule_tac "m" = m in zcong_zmod_aux)
+  apply (rule_tac m = m in zcong_zmod_aux)
   apply (rule trans)
    apply (rule_tac [2] k = m and m = "a div m - b div m" in zdvd_reduce)
   apply (simp add: zadd_commute)

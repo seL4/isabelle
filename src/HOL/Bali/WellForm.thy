@@ -1943,7 +1943,7 @@ lemma mheadsD [rule_format (no_asm)]:
  (\<exists>T m. t = ArrayT T \<and> G\<turnstile>Array T accessible_in (pid S) \<and>
         accmethd G S Object sig = Some m \<and> accmodi m \<noteq> Private \<and> 
         declrefT emh = ClassT Object \<and> mhead (mthd m) = mhd emh)"
-apply (rule_tac "ref_ty1"="t" in ref_ty_ty.induct [THEN conjunct1])
+apply (rule_tac ref_ty1="t" in ref_ty_ty.induct [THEN conjunct1])
 apply auto
 apply (auto simp add: cmheads_def accObjectmheads_def Objectmheads_def)
 apply (auto  dest!: accmethd_SomeD)
