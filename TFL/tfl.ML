@@ -446,7 +446,9 @@ fun post_definition meta_tflCongs (theory, (def, pats)) =
      val corollaries = map (fn pat => R.SPEC (tych pat) corollary')
                            given_pats
      val (case_rewrites,context_congs) = extraction_thms theory
-     val corollaries' = map(rewrite_rule case_rewrites) corollaries
+     val case_ss = HOL_basic_ss addcongs
+       DatatypePackage.weak_case_congs_of theory addsimps case_rewrites
+     val corollaries' = map (Simplifier.simplify case_ss) corollaries
      val extract = R.CONTEXT_REWRITE_RULE
                      (f, [R], cut_apply, meta_tflCongs@context_congs)
      val (rules, TCs) = ListPair.unzip (map extract corollaries')
