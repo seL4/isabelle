@@ -363,8 +363,10 @@ fun mk_prop_equals(t,u) = capply (capply prop_equals t) u;
 (*Like trivial but returns [ct==X] ct==>X instead of ct==>ct, if possible.
   It is paired with a function to undo the transformation.  If ct contains
   Vars then it returns ct==>ct.*)
+
 fun eq_trivial ct =
-  let val xfree = cterm_of (sign_of ProtoPure.thy) (Free (gensym"EQ_TRIVIAL_", propT))
+  let val xfree = cterm_of (sign_of ProtoPure.thy)
+                           (Free (gensym"EQ_TRIVIAL_", propT))
       val ct_eq_x = mk_prop_equals (ct, xfree)
       and refl_ct = reflexive ct
       fun restore th = 
@@ -373,36 +375,35 @@ fun eq_trivial ct =
             refl_ct
   in  (equal_elim
          (combination (combination refl_implies refl_ct) (assume ct_eq_x))
-         (trivial ct),
+         (Drule.mk_triv_goal ct),
        restore)
   end  (*Fails if there are Vars or TVars*)
-    handle THM _ => (trivial ct, I);
+    handle THM _ => (Drule.mk_triv_goal ct, I);
+
 
 (*Does the work of SELECT_GOAL. *)
-fun select tac st0 i =
+fun select tac st i =
   let val (eq_cprem, restore) = (*we hope maxidx goes to ~1*)
-	  eq_trivial (adjust_maxidx (List.nth(cprems_of st0, i-1)))
-      fun next st = bicompose false (false, restore st, nprems_of st) i st0
+	  eq_trivial (adjust_maxidx (List.nth(cprems_of st, i-1)))
+      fun next st' = 
+	  let val np' = nprems_of st'
+              (*rename the ?A in rev_triv_goal*)
+	      val {maxidx,...} = rep_thm st'
+              val ct = cterm_of (sign_of ProtoPure.thy)
+		                (Var(("A",maxidx+1), propT))
+	      val rev_triv_goal' = instantiate' [] [Some ct] rev_triv_goal
+              fun bic th = bicompose false (false, th, np')
+          in  bic (Seq.hd (bic (restore st') 1 rev_triv_goal')) i st  end 
   in  Seq.flat (Seq.map next (tac eq_cprem))
   end;
 
-(* (!!selct. PROP ?V) ==> PROP ?V ;  contains NO TYPE VARIABLES.*)
-val dummy_quant_rl = 
-  read_cterm (sign_of ProtoPure.thy) ("!!selct::prop. PROP V",propT) |>
-  assume |> forall_elim_var 0 |> standard;
-
-(* Prevent the subgoal's assumptions from becoming additional subgoals in the
-   new proof state by enclosing them by a universal quantification *)
-fun protect_subgoal st i =
-        Seq.hd (bicompose false (false,dummy_quant_rl,1) i st)
-        handle _ => error"SELECT_GOAL -- impossible error???";
-
 fun SELECT_GOAL tac i st = 
-  case (i, List.drop(prems_of st, i-1)) of
-      (_,[]) => Seq.empty
-    | (1,[_]) => tac st         (*If i=1 and only one subgoal do nothing!*)
-    | (_, (Const("==>",_)$_$_) :: _) => select tac (protect_subgoal st i) i
-    | (_, _::_) => select tac st i;
+  let val np = nprems_of st
+  in  if 1<=i andalso i<=np then 
+          (*If only one subgoal, then just apply tactic*)
+	  if np=1 then tac st else select tac st i
+      else Seq.empty
+  end;
 
 
 (*Strips assumptions in goal yielding  ( [x1,...,xm], [H1,...,Hn], B )
