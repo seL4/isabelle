@@ -77,6 +77,7 @@ signature TACTIC =
   val subgoal_tac: string -> int -> tactic
   val subgoals_tac: string list -> int -> tactic
   val subgoals_of_brl: bool * thm -> int
+  val thin_tac: string -> int -> tactic
   val trace_goalno_tac: (int -> tactic) -> int -> tactic
   end;
 
