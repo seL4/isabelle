@@ -47,6 +47,7 @@ sig
   val print_syntax: Toplevel.transition -> Toplevel.transition
   val print_theorems: Toplevel.transition -> Toplevel.transition
   val print_attributes: Toplevel.transition -> Toplevel.transition
+  val print_induct_rules: Toplevel.transition -> Toplevel.transition
   val print_trans_rules: Toplevel.transition -> Toplevel.transition
   val print_methods: Toplevel.transition -> Toplevel.transition
   val print_antiquotations: Toplevel.transition -> Toplevel.transition
@@ -187,6 +188,10 @@ val print_theorems = Toplevel.unknown_theory o
 
 val print_attributes = Toplevel.unknown_theory o
   Toplevel.keep (Attrib.print_attributes o Toplevel.theory_of);
+
+val print_induct_rules = Toplevel.unknown_context o
+  Toplevel.keep (Toplevel.node_case InductAttrib.print_global_rules
+    (InductAttrib.print_local_rules o Proof.context_of));
 
 val print_trans_rules = Toplevel.unknown_context o
   Toplevel.keep (Toplevel.node_case Calculation.print_global_rules
