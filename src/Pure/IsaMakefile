@@ -21,12 +21,12 @@ FILES = ML-Systems/polyml.ML ML-Systems/smlnj-0.93.ML ML-Systems/smlnj-1.09.ML \
 	search.ML section_utils.ML sequence.ML sign.ML sorts.ML symtab.ML tactic.ML \
 	tctical.ML term.ML theory.ML thm.ML type.ML type_infer.ML unify.ML
 
-Pure: $(FILES)
+$(OUT)/Pure: $(FILES)
 	@./mk
 
-RAW: $(FILES)
+$(OUT)/RAW: $(FILES)
 	@./mk -r
 
 test: Pure
 
-.PRECIOUS: $(OUT)/Pure
+.PRECIOUS: $(OUT)/Pure $(OUT)/RAW
