@@ -248,7 +248,7 @@ fun load_thy ml time initiators dir name parents =
   in
     if null missing_files then ()
     else warning (loader_msg "unresolved dependencies of theory" [name] ^
-      "\non file(s): " ^ commas_quote missing_files);
+      " on file(s): " ^ commas_quote missing_files);
     change_deps name (fn _ => Some (make_deps true false (Some master) files));
     perform Update name
   end;
