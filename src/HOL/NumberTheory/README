@@ -1,29 +1,22 @@
 IntPrimes	dvd relation, GCD, Euclid's extended algorithm, primes,
                 congruences (all on the Integers)
                 Comparable to 'Primes' theory but dvd is included here
-                as it is not present in 'IntDiv'. Also includes extended
+                as it is not present in 'IntDiv'.  Also includes extended
                 GCD and congruences not present in 'Primes'. 
-                Also a few extra theorems concerning 'mod'
-                Maybe it should be split/merged - at least given another
-                name?
 
 Chinese		The Chinese Remainder Theorem for an arbitrary finite
-                number of equations. (The one-equation case is included
-                in 'IntPrimes')
-		Uses functions for indicing. Maybe 'funprod' and 'funsum'
-                should be based on general 'fold' on indices?
+                number of equations.  (The one-equation case is included
+                in 'IntPrimes')  Uses functions for indexing. 
 
-IntPowerFact    Power function on Integers (exponent is still Nat),
-                Factorial on integers and recursively defined set
-                including all Integers from 2 up to a. Plus definition 
-		of product of finite set.
-                Should probably be split/merged with other theories?
+IntFact         Factorial on integers and recursively defined set
+                including all Integers from 2 up to a.  Plus definition 
+		of product of finite set. 
 
 BijectionRel    Inductive definitions of bijections between two different
-                sets and between the same set. Theorem for relating
+                sets and between the same set.  Theorem for relating
                 the two definitions
 
-EulerFermat     Fermat's Little Theorem extended to Euler's Totient function.
+EulerFermat     Fermat's Little Theorem extended to Euler's Totient function. 
                 More abstract approach than Boyer-Moore (which seems necessary
                 to achieve the extended version)
 
