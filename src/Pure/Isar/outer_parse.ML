@@ -241,7 +241,7 @@ val attrib = position (xname -- !!! (args false)) >> Args.src;
 val attribs = $$$ "[" |-- !!! (list attrib --| $$$ "]");
 val opt_attribs = Scan.optional attribs [];
 
-fun thm_name s = name -- (!!! (opt_attribs --| $$$ s));
+fun thm_name s = name -- opt_attribs --| $$$ s;
 fun opt_thm_name s = Scan.optional (thm_name s) ("", []);
 
 val spec_name = thm_name ":" -- prop >> (fn ((x, y), z) => ((x, z), y));
