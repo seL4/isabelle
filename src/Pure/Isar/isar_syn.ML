@@ -41,11 +41,12 @@ val update_contextP =
 
 
 
-(** theory sections **)
+(** formal comments **)
 
-(* formal comments *)
+val txtP = OuterSyntax.command "txt" "formal comment (proof)" K.prf_decl
+  (P.comment >> (Toplevel.proof o IsarThy.add_txt));
 
-val textP = OuterSyntax.command "text" "formal comments" K.thy_decl
+val textP = OuterSyntax.command "text" "formal comment (theory)" K.thy_decl
   (P.comment >> (Toplevel.theory o IsarThy.add_text));
 
 val titleP = OuterSyntax.command "title" "document title" K.thy_heading
@@ -64,6 +65,9 @@ val subsectionP = OuterSyntax.command "subsection" "subsection heading" K.thy_he
 val subsubsectionP = OuterSyntax.command "subsubsection" "subsubsection heading" K.thy_heading
   (P.comment >> (Toplevel.theory o IsarThy.add_subsubsection));
 
+
+
+(** theory sections **)
 
 (* classes and sorts *)
 
@@ -545,12 +549,12 @@ val parsers = [
   (*theory structure*)
   theoryP, end_excursionP, kill_excursionP, contextP, update_contextP,
   (*theory sections*)
-  textP, titleP, chapterP, sectionP, subsectionP, subsubsectionP,
-  classesP, classrelP, defaultsortP, typedeclP, typeabbrP, nontermP,
-  aritiesP, constsP, syntaxP, translationsP, axiomsP, defsP,
-  constdefsP, theoremsP, lemmasP, globalP, localP, pathP, useP, mlP,
-  setupP, parse_ast_translationP, parse_translationP,
-  print_translationP, typed_print_translationP,
+  txtP, textP, titleP, chapterP, sectionP, subsectionP,
+  subsubsectionP, classesP, classrelP, defaultsortP, typedeclP,
+  typeabbrP, nontermP, aritiesP, constsP, syntaxP, translationsP,
+  axiomsP, defsP, constdefsP, theoremsP, lemmasP, globalP, localP,
+  pathP, useP, mlP, setupP, parse_ast_translationP,
+  parse_translationP, print_translationP, typed_print_translationP,
   print_ast_translationP, token_translationP, oracleP,
   (*proof commands*)
   theoremP, lemmaP, showP, haveP, thusP, henceP, assumeP, presumeP,
