@@ -1,0 +1,1 @@
+declIffOracle = Pure
