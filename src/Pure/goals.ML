@@ -194,18 +194,19 @@ fun prove_goalw_cterm rths chorn tacsf =
 	  (case Sequence.pull (tapply(tac,st0)) of 
 	       Some(st,_) => st
 	     | _ => error ("prove_goal: tactic failed"))
-  in  mkresult (true, cond_timeit (!proof_timing) statef)  end;
+  in  mkresult (true, cond_timeit (!proof_timing) statef)  end
+  handle e => (print_sign_exn (#sign (rep_cterm chorn)) e;
+	       error ("The exception above was raised for\n" ^ 
+		      string_of_cterm chorn));
+
 
 (*Version taking the goal as a string*)
 fun prove_goalw thy rths agoal tacsf =
   let val sign = sign_of thy
       val chorn = read_cterm sign (agoal,propT)
-  in  prove_goalw_cterm rths chorn tacsf  
-      handle ERROR => error (*from type_assign, etc via prepare_proof*)
-		("The error above occurred for " ^ quote agoal)
-       | e => (print_sign_exn sign e;	(*other exceptions*)
-	       error ("The exception above was raised for " ^ quote agoal))
-  end;
+  in  prove_goalw_cterm rths chorn tacsf end
+  handle ERROR => error (*from read_cterm?*)
+		("The error above occurred for " ^ quote agoal);
 
 (*String version with no meta-rewrite-rules*)
 fun prove_goal thy = prove_goalw thy [];
