@@ -212,7 +212,8 @@ by (simp add: cpo_def)
 lemma cpo_refl [simp,intro!,TC]: "[|cpo(D); x \<in> set(D)|] ==> rel(D,x,x)"
 by (blast intro: po_refl cpo_po)
 
-lemma cpo_trans: "[|cpo(D); rel(D,x,y); rel(D,y,z); x \<in> set(D);
+lemma cpo_trans:
+     "[|cpo(D); rel(D,x,y); rel(D,y,z); x \<in> set(D);
         y \<in> set(D); z \<in> set(D)|] ==> rel(D,x,z)"
 by (blast intro: cpo_po po_trans)
 
@@ -346,8 +347,7 @@ by (simp add: chain_def)
 
 lemma islub_const:
    "[|x \<in> set(D); cpo(D)|] ==> islub(D,(\<lambda>n \<in> nat. x),x)"
-apply (simp add: islub_def isub_def, blast)
-done
+by (simp add: islub_def isub_def, blast)
 
 lemma lub_const: "[|x \<in> set(D); cpo(D)|] ==> lub(D,\<lambda>n \<in> nat. x) = x"
 by (blast intro: islub_unique cpo_lub chain_const islub_const)
@@ -376,8 +376,8 @@ by (simp add: lub_def islub_suffix)
 (*----------------------------------------------------------------------*)
 
 lemma dominateI:
-  "[| !!m. m \<in> nat ==> n(m):nat; !!m. m \<in> nat ==> rel(D,X`m,Y`n(m))|] ==>
-   dominate(D,X,Y)"
+  "[| !!m. m \<in> nat ==> n(m):nat; !!m. m \<in> nat ==> rel(D,X`m,Y`n(m))|] 
+   ==> dominate(D,X,Y)"
 by (simp add: dominate_def, blast)
 
 lemma dominate_isub:
@@ -480,8 +480,8 @@ lemma lemma2:
 by simp
 
 lemma isub_lemma:
-    "[|isub(D, \<lambda>n \<in> nat. M`n`n, y); matrix(D,M); cpo(D)|] ==>
-     isub(D, \<lambda>n \<in> nat. lub(D,\<lambda>m \<in> nat. M`n`m), y)"
+    "[|isub(D, \<lambda>n \<in> nat. M`n`n, y); matrix(D,M); cpo(D)|] 
+     ==> isub(D, \<lambda>n \<in> nat. lub(D,\<lambda>m \<in> nat. M`n`m), y)"
 apply (unfold isub_def, safe)
 apply (simp (no_asm_simp))
 apply (frule matrix_fun [THEN apply_type], assumption)
@@ -526,9 +526,9 @@ apply (simp_all add: matrix_chain_left nat_succI chain_fun)
 done
 
 lemma isub_eq:
-    "[|matrix(D,M); cpo(D)|] ==>
-     isub(D,(\<lambda>n \<in> nat. lub(D,\<lambda>m \<in> nat. M`n`m)),y) <->
-     isub(D,(\<lambda>n \<in> nat. M`n`n),y)"
+    "[|matrix(D,M); cpo(D)|] 
+     ==> isub(D,(\<lambda>n \<in> nat. lub(D,\<lambda>m \<in> nat. M`n`m)),y) <->
+         isub(D,(\<lambda>n \<in> nat. M`n`n),y)"
 apply (rule iffI)
 apply (rule dominate_isub)
 prefer 2 apply assumption
@@ -553,17 +553,17 @@ lemma lemma2:
 by (simp add: lub_def)
 
 lemma lub_matrix_diag:
-    "[|matrix(D,M); cpo(D)|] ==>
-     lub(D,(\<lambda>n \<in> nat. lub(D,\<lambda>m \<in> nat. M`n`m))) =
-     lub(D,(\<lambda>n \<in> nat. M`n`n))"
+    "[|matrix(D,M); cpo(D)|] 
+     ==> lub(D,(\<lambda>n \<in> nat. lub(D,\<lambda>m \<in> nat. M`n`m))) =
+         lub(D,(\<lambda>n \<in> nat. M`n`n))"
 apply (simp (no_asm) add: lemma1 lemma2)
 apply (simp add: islub_def isub_eq)
 done
 
 lemma lub_matrix_diag_sym:
-    "[|matrix(D,M); cpo(D)|] ==>
-     lub(D,(\<lambda>m \<in> nat. lub(D,\<lambda>n \<in> nat. M`n`m))) =
-     lub(D,(\<lambda>n \<in> nat. M`n`n))"
+    "[|matrix(D,M); cpo(D)|] 
+     ==> lub(D,(\<lambda>m \<in> nat. lub(D,\<lambda>n \<in> nat. M`n`m))) =
+         lub(D,(\<lambda>n \<in> nat. M`n`n))"
 by (drule matrix_sym_axis [THEN lub_matrix_diag], auto)
 
 (*----------------------------------------------------------------------*)
@@ -572,8 +572,8 @@ by (drule matrix_sym_axis [THEN lub_matrix_diag], auto)
 
 lemma monoI:
     "[|f \<in> set(D)->set(E);
-       !!x y. [|rel(D,x,y); x \<in> set(D); y \<in> set(D)|] ==> rel(E,f`x,f`y)|] ==>
-      f \<in> mono(D,E)"
+       !!x y. [|rel(D,x,y); x \<in> set(D); y \<in> set(D)|] ==> rel(E,f`x,f`y)|] 
+     ==> f \<in> mono(D,E)"
 by (simp add: mono_def)
 
 lemma mono_fun: "f \<in> mono(D,E) ==> f \<in> set(D)->set(E)"
@@ -589,8 +589,8 @@ by (simp add: mono_def)
 lemma contI:
     "[|f \<in> set(D)->set(E);
        !!x y. [|rel(D,x,y); x \<in> set(D); y \<in> set(D)|] ==> rel(E,f`x,f`y);
-       !!X. chain(D,X) ==> f`lub(D,X) = lub(E,\<lambda>n \<in> nat. f`(X`n))|] ==>
-      f \<in> cont(D,E)"
+       !!X. chain(D,X) ==> f`lub(D,X) = lub(E,\<lambda>n \<in> nat. f`(X`n))|] 
+     ==> f \<in> cont(D,E)"
 by (simp add: cont_def mono_def)
 
 lemma cont2mono: "f \<in> cont(D,E) ==> f \<in> mono(D,E)"
@@ -646,8 +646,8 @@ by (simp add: set_def cf_def)
 (* rel_cf originally an equality. Now stated as two rules. Seemed easiest. *)
 
 lemma rel_cfI:
-    "[|!!x. x \<in> set(D) ==> rel(E,f`x,g`x); f \<in> cont(D,E); g \<in> cont(D,E)|] ==>
-     rel(cf(D,E),f,g)"
+    "[|!!x. x \<in> set(D) ==> rel(E,f`x,g`x); f \<in> cont(D,E); g \<in> cont(D,E)|] 
+     ==> rel(cf(D,E),f,g)"
 by (simp add: rel_I cf_def)
 
 lemma rel_cf: "[|rel(cf(D,E),f,g); x \<in> set(D)|] ==> rel(E,f`x,g`x)"
@@ -660,49 +660,46 @@ by (simp add: rel_def cf_def)
 lemma chain_cf:
     "[| chain(cf(D,E),X); x \<in> set(D)|] ==> chain(E,\<lambda>n \<in> nat. X`n`x)"
 apply (rule chainI)
-apply (blast intro: lam_type apply_funtype cont_fun cf_cont chain_in)
-apply (simp)
+apply (blast intro: lam_type apply_funtype cont_fun cf_cont chain_in, simp)
 apply (blast intro: rel_cf chain_rel)
 done
 
 lemma matrix_lemma:
-    "[|chain(cf(D,E),X); chain(D,Xa); cpo(D); cpo(E) |] ==>
-     matrix(E,\<lambda>x \<in> nat. \<lambda>xa \<in> nat. X`x`(Xa`xa))"
+    "[|chain(cf(D,E),X); chain(D,Xa); cpo(D); cpo(E) |] 
+     ==> matrix(E,\<lambda>x \<in> nat. \<lambda>xa \<in> nat. X`x`(Xa`xa))"
 apply (rule matrix_chainI, auto)
 apply (rule chainI)
-apply (blast intro: lam_type apply_funtype cont_fun cf_cont chain_in)
-apply (simp)
+apply (blast intro: lam_type apply_funtype cont_fun cf_cont chain_in, simp)
 apply (blast intro: cont_mono nat_succI chain_rel cf_cont chain_in)
 apply (rule chainI)
-apply (blast intro: lam_type apply_funtype cont_fun cf_cont chain_in)
-apply (simp)
+apply (blast intro: lam_type apply_funtype cont_fun cf_cont chain_in, simp)
 apply (rule rel_cf)
 apply (simp_all add: chain_in chain_rel)
 apply (blast intro: lam_type apply_funtype cont_fun cf_cont chain_in)
 done
 
 lemma chain_cf_lub_cont:
-    "[|chain(cf(D,E),X); cpo(D); cpo(E) |] ==>
-     (\<lambda>x \<in> set(D). lub(E, \<lambda>n \<in> nat. X ` n ` x)) \<in> cont(D, E)"
+    "[|chain(cf(D,E),X); cpo(D); cpo(E) |] 
+     ==> (\<lambda>x \<in> set(D). lub(E, \<lambda>n \<in> nat. X ` n ` x)) \<in> cont(D, E)"
 apply (rule contI)
 apply (rule lam_type)
 apply (assumption | rule chain_cf [THEN cpo_lub, THEN islub_in])+
-apply (simp)
+apply simp
 apply (rule dominate_islub)
 apply (erule_tac [2] chain_cf [THEN cpo_lub], simp_all)+
-apply (rule dominateI, assumption)
-apply (simp)
+apply (rule dominateI, assumption, simp)
 apply (assumption | rule chain_in [THEN cf_cont, THEN cont_mono])+
 apply (assumption | rule chain_cf [THEN chain_fun])+
-apply (simp add: cpo_lub [THEN islub_in] chain_in [THEN cf_cont, THEN cont_lub])
+apply (simp add: cpo_lub [THEN islub_in] 
+                 chain_in [THEN cf_cont, THEN cont_lub])
 apply (frule matrix_lemma [THEN lub_matrix_diag], assumption+)
 apply (simp add: chain_in [THEN beta])
 apply (drule matrix_lemma [THEN lub_matrix_diag_sym], auto)
 done
 
 lemma islub_cf:
-    "[| chain(cf(D,E),X); cpo(D); cpo(E)|] ==>
-      islub(cf(D,E), X, \<lambda>x \<in> set(D). lub(E,\<lambda>n \<in> nat. X`n`x))"
+    "[| chain(cf(D,E),X); cpo(D); cpo(E)|] 
+     ==> islub(cf(D,E), X, \<lambda>x \<in> set(D). lub(E,\<lambda>n \<in> nat. X`n`x))"
 apply (rule islubI)
 apply (rule isubI)
 apply (rule chain_cf_lub_cont [THEN cont_cf], assumption+)
@@ -710,8 +707,7 @@ apply (rule rel_cfI)
 apply (force dest!: chain_cf [THEN cpo_lub, THEN islub_ub])
 apply (blast intro: cf_cont chain_in)
 apply (blast intro: cont_cf chain_cf_lub_cont)
-apply (rule rel_cfI)
-apply (simp)
+apply (rule rel_cfI, simp)
 apply (force intro: chain_cf [THEN cpo_lub, THEN islub_least]
                    cf_cont [THEN cont_fun, THEN apply_type] isubI
             elim: isubD2 [THEN rel_cf] isubD1)
@@ -731,12 +727,14 @@ apply (rule rel_cf, assumption)
 apply (assumption | rule cf_cont [THEN cont_fun, THEN apply_type] cf_cont)+
 apply (rule fun_extension)
 apply (assumption | rule cf_cont [THEN cont_fun])+
-apply (blast intro: cpo_antisym rel_cf cf_cont [THEN cont_fun, THEN apply_type])
+apply (blast intro: cpo_antisym rel_cf 
+                    cf_cont [THEN cont_fun, THEN apply_type])
 apply (fast intro: islub_cf)
 done
 
-lemma lub_cf: "[| chain(cf(D,E),X); cpo(D); cpo(E)|] ==>
-      lub(cf(D,E), X) = (\<lambda>x \<in> set(D). lub(E,\<lambda>n \<in> nat. X`n`x))"
+lemma lub_cf:
+     "[| chain(cf(D,E),X); cpo(D); cpo(E)|] 
+      ==> lub(cf(D,E), X) = (\<lambda>x \<in> set(D). lub(E,\<lambda>n \<in> nat. X`n`x))"
 by (blast intro: islub_unique cpo_lub islub_cf cpo_cf)
 
 
@@ -750,15 +748,15 @@ done
 
 lemma cf_least:
     "[|cpo(D); pcpo(E); y \<in> cont(D,E)|]==>rel(cf(D,E),(\<lambda>x \<in> set(D).bot(E)),y)"
-apply (rule rel_cfI)
-apply (simp)
+apply (rule rel_cfI, simp)
 apply typecheck
 done
 
 lemma pcpo_cf:
     "[|cpo(D); pcpo(E)|] ==> pcpo(cf(D,E))"
 apply (rule pcpoI)
-apply (assumption | rule cf_least bot_in const_cont [THEN cont_cf] cf_cont cpo_cf pcpo_cpo)+
+apply (assumption | 
+       rule cf_least bot_in const_cont [THEN cont_cf] cf_cont cpo_cf pcpo_cpo)+
 done
 
 lemma bot_cf:
@@ -795,8 +793,8 @@ done
 
 lemma comp_mono:
     "[| f \<in> cont(D',E); g \<in> cont(D,D'); f':cont(D',E); g':cont(D,D');
-        rel(cf(D',E),f,f'); rel(cf(D,D'),g,g'); cpo(D); cpo(E) |] ==>
-     rel(cf(D,E),f O g,f' O g')"
+        rel(cf(D',E),f,f'); rel(cf(D,D'),g,g'); cpo(D); cpo(E) |] 
+     ==> rel(cf(D,E),f O g,f' O g')"
 apply (rule rel_cfI) 
 apply (subst comp_cont_apply)
 apply (rule_tac [4] comp_cont_apply [THEN ssubst])
@@ -805,8 +803,8 @@ apply (assumption | rule rel_cf cont_mono cont_map comp_pres_cont)+
 done
 
 lemma chain_cf_comp:
-    "[| chain(cf(D',E),X); chain(cf(D,D'),Y); cpo(D); cpo(E)|] ==>
-     chain(cf(D,E),\<lambda>n \<in> nat. X`n O Y`n)"
+    "[| chain(cf(D',E),X); chain(cf(D,D'),Y); cpo(D); cpo(E)|] 
+     ==> chain(cf(D,E),\<lambda>n \<in> nat. X`n O Y`n)"
 apply (rule chainI)
 defer 1
 apply simp
@@ -821,16 +819,19 @@ apply (blast intro: lam_type comp_pres_cont cont_cf chain_in [THEN cf_cont]
 done
 
 lemma comp_lubs:
-    "[| chain(cf(D',E),X); chain(cf(D,D'),Y); cpo(D); cpo(D'); cpo(E)|] ==>
-     lub(cf(D',E),X) O lub(cf(D,D'),Y) = lub(cf(D,E),\<lambda>n \<in> nat. X`n O Y`n)"
+    "[| chain(cf(D',E),X); chain(cf(D,D'),Y); cpo(D); cpo(D'); cpo(E)|] 
+     ==> lub(cf(D',E),X) O lub(cf(D,D'),Y) = lub(cf(D,E),\<lambda>n \<in> nat. X`n O Y`n)"
 apply (rule fun_extension)
 apply (rule_tac [3] lub_cf [THEN ssubst])
-apply (assumption | rule comp_fun cf_cont [THEN cont_fun]  cpo_lub [THEN islub_in]  cpo_cf chain_cf_comp)+
+apply (assumption | 
+       rule comp_fun cf_cont [THEN cont_fun]  cpo_lub [THEN islub_in]  
+            cpo_cf chain_cf_comp)+
 apply (simp add: chain_in [THEN cf_cont, THEN comp_cont_apply,
-                         OF _ _ chain_in [THEN cf_cont]])
+                           OF _ _ chain_in [THEN cf_cont]])
 apply (subst comp_cont_apply)
 apply (assumption | rule cpo_lub [THEN islub_in, THEN cf_cont]  cpo_cf)+
-apply (simp add: lub_cf chain_cf chain_in [THEN cf_cont, THEN cont_lub] chain_cf [THEN cpo_lub, THEN islub_in])
+apply (simp add: lub_cf chain_cf chain_in [THEN cf_cont, THEN cont_lub] 
+                 chain_cf [THEN cpo_lub, THEN islub_in])
 apply (cut_tac M = "\<lambda>xa \<in> nat. \<lambda>xb \<in> nat. X`xa` (Y`xb`x)" in lub_matrix_diag)
 prefer 3 apply simp
 apply (rule matrix_chainI, simp_all)
@@ -868,7 +869,7 @@ by (simp add: projpair_def)
 
 (*----------------------------------------------------------------------*)
 (* NB! projpair_e_cont and projpair_p_cont cannot be used repeatedly    *)
-(*     at the same time since both match a goal of the form f \<in> cont(X,Y).*)
+(*   at the same time since both match a goal of the form f \<in> cont(X,Y).*)
 (*----------------------------------------------------------------------*)
 
 (*----------------------------------------------------------------------*)
@@ -923,8 +924,8 @@ done
 
 
 lemma projpair_unique:
-    "[|cpo(D); cpo(E); projpair(D,E,e,p); projpair(D,E,e',p')|] ==>
-     (e=e')<->(p=p')"
+    "[|cpo(D); cpo(E); projpair(D,E,e,p); projpair(D,E,e',p')|] 
+     ==> (e=e')<->(p=p')"
 by (blast intro: cpo_antisym lemma1 lemma2 cpo_cf cont_cf
           dest: projpair_ep_cont)
 
@@ -991,8 +992,8 @@ by (auto intro: Rp_unique projpair_id)
 (* Proof in Isa/ZF: 23 lines (compared to 56: 60% reduction). *)
 
 lemma comp_lemma:
-    "[|emb(D,D',e); emb(D',E,e'); cpo(D); cpo(D'); cpo(E)|] ==>
-     projpair(D,E,e' O e,(Rp(D,D',e)) O (Rp(D',E,e')))"
+    "[|emb(D,D',e); emb(D',E,e'); cpo(D); cpo(D'); cpo(E)|] 
+     ==> projpair(D,E,e' O e,(Rp(D,D',e)) O (Rp(D',E,e')))"
 apply (simp add: projpair_def, safe)
 apply (assumption | rule comp_pres_cont Rp_cont emb_cont)+
 apply (rule comp_assoc [THEN subst])
@@ -1045,8 +1046,8 @@ lemma rel_iprodE:
 by (simp add: iprod_def rel_def)
 
 lemma chain_iprod:
-    "[|chain(iprod(DD),X);  !!n. n \<in> nat ==> cpo(DD`n); n \<in> nat|] ==>
-     chain(DD`n,\<lambda>m \<in> nat. X`m`n)"
+    "[|chain(iprod(DD),X);  !!n. n \<in> nat ==> cpo(DD`n); n \<in> nat|] 
+     ==> chain(DD`n,\<lambda>m \<in> nat. X`m`n)"
 apply (unfold chain_def, safe)
 apply (rule lam_type)
 apply (rule apply_type)
@@ -1056,13 +1057,12 @@ apply (simp add: rel_iprodE)
 done
 
 lemma islub_iprod:
-    "[|chain(iprod(DD),X);  !!n. n \<in> nat ==> cpo(DD`n)|] ==>
-     islub(iprod(DD),X,\<lambda>n \<in> nat. lub(DD`n,\<lambda>m \<in> nat. X`m`n))"
+    "[|chain(iprod(DD),X);  !!n. n \<in> nat ==> cpo(DD`n)|] 
+     ==> islub(iprod(DD),X,\<lambda>n \<in> nat. lub(DD`n,\<lambda>m \<in> nat. X`m`n))"
 apply (simp add: islub_def isub_def, safe)
 apply (rule iprodI)
 apply (blast intro: lam_type chain_iprod [THEN cpo_lub, THEN islub_in])
-apply (rule rel_iprodI)
-apply (simp)
+apply (rule rel_iprodI, simp)
 (*looks like something should be inserted into the assumptions!*)
 apply (rule_tac P = "%t. rel (DD`na,t,lub (DD`na,\<lambda>x \<in> nat. X`x`na))"
             and b1 = "%n. X`n`na" in beta [THEN subst])
@@ -1074,7 +1074,8 @@ apply (rule rel_iprodI)
 apply (simp | rule islub_least chain_iprod [THEN cpo_lub])+
 apply (simp add: isub_def, safe)
 apply (erule iprodE [THEN apply_type])
-apply (simp add: rel_iprodE | rule lam_type chain_iprod [THEN cpo_lub, THEN islub_in] iprodE)+
+apply (simp_all add: rel_iprodE lam_type iprodE
+                     chain_iprod [THEN cpo_lub, THEN islub_in])
 done
 
 lemma cpo_iprod [TC]:
@@ -1182,7 +1183,7 @@ apply (blast intro: rel_mkcpo [THEN iffD1] chain_rel mkcpoD1 chain_in)
 done
 
 lemma subcpo_mkcpo:
-    "[|!!X. chain(mkcpo(D,P),X) ==> P(lub(D,X)); cpo(D)|]
+     "[|!!X. chain(mkcpo(D,P),X) ==> P(lub(D,X)); cpo(D)|]
       ==> subcpo(mkcpo(D,P),D)"
 apply (intro subcpoI subsetI rel_mkcpo)
 apply (erule mkcpoD1)+
@@ -1231,8 +1232,8 @@ done
 
 lemma rel_DinfI:
     "[|!!n. n \<in> nat ==> rel(DD`n,x`n,y`n);
-       x:(\<Pi>n \<in> nat. set(DD`n)); y:(\<Pi>n \<in> nat. set(DD`n))|] ==>
-     rel(Dinf(DD,ee),x,y)"
+       x:(\<Pi>n \<in> nat. set(DD`n)); y:(\<Pi>n \<in> nat. set(DD`n))|] 
+     ==> rel(Dinf(DD,ee),x,y)"
 apply (simp add: Dinf_def)
 apply (blast intro: rel_mkcpo [THEN iffD2] rel_iprodI iprodI)
 done
@@ -1255,9 +1256,10 @@ apply (simp add: Dinf_def [symmetric])
 apply (rule ballI)
 apply (subst lub_iprod)
 apply (assumption | rule chain_Dinf emb_chain_cpo)+
-apply (simp)
+apply simp
 apply (subst Rp_cont [THEN cont_lub])
-apply (assumption | rule emb_chain_cpo emb_chain_emb nat_succI chain_iprod chain_Dinf)+
+apply (assumption | 
+       rule emb_chain_cpo emb_chain_emb nat_succI chain_iprod chain_Dinf)+
 (* Useful simplification, ugly in HOL. *)
 apply (simp add: Dinf_eq chain_in)
 apply (auto intro: cpo_iprod emb_chain_cpo)
@@ -1291,7 +1293,7 @@ lemma e_less_eq:
 by (simp add: e_less_def diff_self_eq_0)
 
 lemma lemma_succ_sub: "succ(m#+n)#-m = succ(natify(n))"
-by (simp)
+by simp
 
 lemma e_less_add:
      "e_less(DD,ee,m,succ(m#+k)) = (ee`(m#+k))O(e_less(DD,ee,m,m#+k))"
@@ -1302,11 +1304,10 @@ lemma le_exists:
 apply (drule less_imp_succ_add, auto)
 done
 
-lemma e_less_le: "[| m le n;  n \<in> nat |] ==>
-      e_less(DD,ee,m,succ(n)) = ee`n O e_less(DD,ee,m,n)"
+lemma e_less_le: "[| m le n;  n \<in> nat |] 
+     ==> e_less(DD,ee,m,succ(n)) = ee`n O e_less(DD,ee,m,n)"
 apply (rule le_exists, assumption)
-apply (simp add: e_less_add)
-apply assumption
+apply (simp add: e_less_add, assumption)
 done
 
 (* All theorems assume variables m and n are natural numbers. *)
@@ -1316,8 +1317,8 @@ lemma e_less_succ:
 by (simp add: e_less_le e_less_eq)
 
 lemma e_less_succ_emb:
-    "[|!!n. n \<in> nat ==> emb(DD`n,DD`succ(n),ee`n); m \<in> nat|] ==>
-     e_less(DD,ee,m,succ(m)) = ee`m"
+    "[|!!n. n \<in> nat ==> emb(DD`n,DD`succ(n),ee`n); m \<in> nat|] 
+     ==> e_less(DD,ee,m,succ(m)) = ee`m"
 apply (simp add: e_less_succ)
 apply (blast intro: emb_cont cont_fun comp_id)
 done
@@ -1328,43 +1329,43 @@ done
 lemma emb_e_less_add:
      "[| emb_chain(DD,ee); m \<in> nat |]
       ==> emb(DD`m, DD`(m#+k), e_less(DD,ee,m,m#+k))"
-apply (subgoal_tac "emb (DD`m, DD` (m#+natify (k)), e_less (DD,ee,m,m#+natify (k))) ")
+apply (subgoal_tac "emb (DD`m, DD` (m#+natify (k)), 
+                         e_less (DD,ee,m,m#+natify (k))) ")
 apply (rule_tac [2] n = "natify (k) " in nat_induct)
 apply (simp_all add: e_less_eq)
 apply (assumption | rule emb_id emb_chain_cpo)+
 apply (simp add: e_less_add)
-apply (auto intro: emb_comp emb_chain_emb emb_chain_cpo add_type)
+apply (auto intro: emb_comp emb_chain_emb emb_chain_cpo)
 done
 
-lemma emb_e_less: "[| m le n;  emb_chain(DD,ee);  n \<in> nat |] ==>
-     emb(DD`m, DD`n, e_less(DD,ee,m,n))"
+lemma emb_e_less:
+     "[| m le n;  emb_chain(DD,ee);  n \<in> nat |] 
+      ==> emb(DD`m, DD`n, e_less(DD,ee,m,n))"
 apply (frule lt_nat_in_nat)
 apply (erule nat_succI)
 (* same proof as e_less_le *)
 apply (rule le_exists, assumption)
-apply (simp add: emb_e_less_add)
-apply assumption
+apply (simp add: emb_e_less_add, assumption)
 done
 
 lemma comp_mono_eq: "[|f=f'; g=g'|] ==> f O g = f' O g'"
-apply (simp)
-done
+by simp
 
 (* Note the object-level implication for induction on k. This
    must be removed later to allow the theorems to be used for simp.
    Therefore this theorem is only a lemma. *)
 
 lemma e_less_split_add_lemma [rule_format]:
-    "[| emb_chain(DD,ee); m \<in> nat; n \<in> nat; k \<in> nat|] ==>
-     n le k -->
-     e_less(DD,ee,m,m#+k) = e_less(DD,ee,m#+n,m#+k) O e_less(DD,ee,m,m#+n)"
+    "[| emb_chain(DD,ee); m \<in> nat; n \<in> nat; k \<in> nat|] 
+     ==> n le k -->
+         e_less(DD,ee,m,m#+k) = e_less(DD,ee,m#+n,m#+k) O e_less(DD,ee,m,m#+n)"
 apply (induct_tac k)
 apply (simp add: e_less_eq id_type [THEN id_comp])
 apply (simp add: le_succ_iff)
 apply (rule impI)
 apply (erule disjE)
 apply (erule impE, assumption)
-apply (simp add: add_succ_right e_less_add add_type nat_succI)
+apply (simp add: e_less_add)
 apply (subst e_less_le)
 apply (assumption | rule add_le_mono nat_le_refl add_type nat_succI)+
 apply (subst comp_assoc)
@@ -1377,8 +1378,8 @@ apply (assumption |
 done
 
 lemma e_less_split_add:
-     "[| n le k; emb_chain(DD,ee); m \<in> nat; n \<in> nat; k \<in> nat|] ==>
-      e_less(DD,ee,m,m#+k) = e_less(DD,ee,m#+n,m#+k) O e_less(DD,ee,m,m#+n)"
+    "[| n le k; emb_chain(DD,ee); m \<in> nat; n \<in> nat; k \<in> nat|] 
+     ==> e_less(DD,ee,m,m#+k) = e_less(DD,ee,m#+n,m#+k) O e_less(DD,ee,m,m#+n)"
 by (blast intro: e_less_split_add_lemma)
 
 lemma e_gr_eq:
@@ -1388,17 +1389,16 @@ apply (simp add: diff_self_eq_0)
 done
 
 lemma e_gr_add:
-    "[|n \<in> nat; k \<in> nat|] ==>
-          e_gr(DD,ee,succ(n#+k),n) =
-          e_gr(DD,ee,n#+k,n) O Rp(DD`(n#+k),DD`succ(n#+k),ee`(n#+k))"
+    "[|n \<in> nat; k \<in> nat|] 
+     ==> e_gr(DD,ee,succ(n#+k),n) =
+         e_gr(DD,ee,n#+k,n) O Rp(DD`(n#+k),DD`succ(n#+k),ee`(n#+k))"
 by (simp add: e_gr_def)
 
 lemma e_gr_le:
      "[|n le m; m \<in> nat; n \<in> nat|]
       ==> e_gr(DD,ee,succ(m),n) = e_gr(DD,ee,m,n) O Rp(DD`m,DD`succ(m),ee`m)"
 apply (erule le_exists)
-apply (simp add: e_gr_add)
-apply assumption+
+apply (simp add: e_gr_add, assumption+)
 done
 
 lemma e_gr_succ:
@@ -1406,15 +1406,15 @@ lemma e_gr_succ:
 by (simp add: e_gr_le e_gr_eq)
 
 (* Cpo asm's due to THE uniqueness. *)
-lemma e_gr_succ_emb: "[|emb_chain(DD,ee); m \<in> nat|] ==>
-     e_gr(DD,ee,succ(m),m) = Rp(DD`m,DD`succ(m),ee`m)"
+lemma e_gr_succ_emb: "[|emb_chain(DD,ee); m \<in> nat|] 
+     ==> e_gr(DD,ee,succ(m),m) = Rp(DD`m,DD`succ(m),ee`m)"
 apply (simp add: e_gr_succ)
 apply (blast intro: id_comp Rp_cont cont_fun emb_chain_cpo emb_chain_emb)
 done
 
 lemma e_gr_fun_add:
-    "[|emb_chain(DD,ee); n \<in> nat; k \<in> nat|] ==>
-     e_gr(DD,ee,n#+k,n): set(DD`(n#+k))->set(DD`n)"
+    "[|emb_chain(DD,ee); n \<in> nat; k \<in> nat|] 
+     ==> e_gr(DD,ee,n#+k,n): set(DD`(n#+k))->set(DD`n)"
 apply (induct_tac k)
 apply (simp add: e_gr_eq id_type)
 apply (simp add: e_gr_add)
@@ -1422,17 +1422,16 @@ apply (blast intro: comp_fun Rp_cont cont_fun emb_chain_emb emb_chain_cpo)
 done
 
 lemma e_gr_fun:
-    "[|n le m; emb_chain(DD,ee); m \<in> nat; n \<in> nat|] ==>
-     e_gr(DD,ee,m,n): set(DD`m)->set(DD`n)"
+    "[|n le m; emb_chain(DD,ee); m \<in> nat; n \<in> nat|] 
+     ==> e_gr(DD,ee,m,n): set(DD`m)->set(DD`n)"
 apply (rule le_exists, assumption)
-apply (simp add: e_gr_fun_add)
-apply assumption+
+apply (simp add: e_gr_fun_add, assumption+)
 done
 
 lemma e_gr_split_add_lemma:
-    "[| emb_chain(DD,ee); m \<in> nat; n \<in> nat; k \<in> nat|] ==>
-     m le k -->
-     e_gr(DD,ee,n#+k,n) = e_gr(DD,ee,n#+m,n) O e_gr(DD,ee,n#+k,n#+m)"
+    "[| emb_chain(DD,ee); m \<in> nat; n \<in> nat; k \<in> nat|] 
+     ==> m le k -->
+         e_gr(DD,ee,n#+k,n) = e_gr(DD,ee,n#+m,n) O e_gr(DD,ee,n#+k,n#+m)"
 apply (induct_tac k)
 apply (rule impI)
 apply (simp add: le0_iff e_gr_eq id_type [THEN comp_id])
@@ -1440,31 +1439,33 @@ apply (simp add: le_succ_iff)
 apply (rule impI)
 apply (erule disjE)
 apply (erule impE, assumption)
-apply (simp add: add_succ_right e_gr_add add_type nat_succI)
+apply (simp add: e_gr_add)
 apply (subst e_gr_le)
 apply (assumption | rule add_le_mono nat_le_refl add_type nat_succI)+
 apply (subst comp_assoc)
 apply (assumption | rule comp_mono_eq refl)+
 (* New direct subgoal *)
 apply (simp del: add_succ_right add: add_succ_right [symmetric]
-	    add: e_gr_eq add_type nat_succI)
+	    add: e_gr_eq)
 apply (subst comp_id) (* simp cannot unify/inst right, use brr below (?) . *)
 apply (assumption | rule e_gr_fun add_type refl add_le_self nat_succI)+
 done
 
-lemma e_gr_split_add: "[| m le k; emb_chain(DD,ee); m \<in> nat; n \<in> nat; k \<in> nat|] ==>
-      e_gr(DD,ee,n#+k,n) = e_gr(DD,ee,n#+m,n) O e_gr(DD,ee,n#+k,n#+m)"
+lemma e_gr_split_add:
+     "[| m le k; emb_chain(DD,ee); m \<in> nat; n \<in> nat; k \<in> nat|] 
+      ==> e_gr(DD,ee,n#+k,n) = e_gr(DD,ee,n#+m,n) O e_gr(DD,ee,n#+k,n#+m)"
 apply (blast intro: e_gr_split_add_lemma [THEN mp])
 done
 
-lemma e_less_cont: "[|m le n; emb_chain(DD,ee); m \<in> nat; n \<in> nat|] ==>
-      e_less(DD,ee,m,n):cont(DD`m,DD`n)"
+lemma e_less_cont:
+     "[|m le n; emb_chain(DD,ee); m \<in> nat; n \<in> nat|] 
+      ==> e_less(DD,ee,m,n):cont(DD`m,DD`n)"
 apply (blast intro: emb_cont emb_e_less)
 done
 
 lemma e_gr_cont:
-    "[|n le m; emb_chain(DD,ee); m \<in> nat; n \<in> nat|] ==>
-     e_gr(DD,ee,m,n):cont(DD`m,DD`n)"
+    "[|n le m; emb_chain(DD,ee); m \<in> nat; n \<in> nat|] 
+     ==> e_gr(DD,ee,m,n):cont(DD`m,DD`n)"
 apply (erule rev_mp)
 apply (induct_tac m)
 apply (simp add: le0_iff e_gr_eq nat_0I)
@@ -1480,8 +1481,8 @@ done
 (* Considerably shorter.... 57 against 26 *)
 
 lemma e_less_e_gr_split_add:
-    "[|n le k; emb_chain(DD,ee); m \<in> nat; n \<in> nat; k \<in> nat|] ==>
-     e_less(DD,ee,m,m#+n) = e_gr(DD,ee,m#+k,m#+n) O e_less(DD,ee,m,m#+k)"
+    "[|n le k; emb_chain(DD,ee); m \<in> nat; n \<in> nat; k \<in> nat|] 
+     ==> e_less(DD,ee,m,m#+n) = e_gr(DD,ee,m#+k,m#+n) O e_less(DD,ee,m,m#+k)"
 (* Use mp to prepare for induction. *)
 apply (erule rev_mp)
 apply (induct_tac k)
@@ -1490,7 +1491,7 @@ apply (simp add: le_succ_iff)
 apply (rule impI)
 apply (erule disjE)
 apply (erule impE, assumption)
-apply (simp add: add_succ_right e_gr_le e_less_le add_le_self nat_le_refl add_le_mono add_type)
+apply (simp add: e_gr_le e_less_le add_le_mono)
 apply (subst comp_assoc)
 apply (rule_tac s1 = "ee` (m#+x)" in comp_assoc [THEN subst])
 apply (subst embRp_eq)
@@ -1499,7 +1500,7 @@ apply (subst id_comp)
 apply (blast intro: e_less_cont [THEN cont_fun] add_le_self)
 apply (rule refl)
 apply (simp del: add_succ_right add: add_succ_right [symmetric]
-	    add: e_gr_eq add_type nat_succI)
+	    add: e_gr_eq)
 apply (blast intro: id_comp [symmetric] e_less_cont [THEN cont_fun]
                     add_le_self)
 done
@@ -1507,8 +1508,8 @@ done
 (* Again considerably shorter, and easy to obtain from the previous thm. *)
 
 lemma e_gr_e_less_split_add:
-    "[|m le k; emb_chain(DD,ee); m \<in> nat; n \<in> nat; k \<in> nat|] ==>
-     e_gr(DD,ee,n#+m,n) = e_gr(DD,ee,n#+k,n) O e_less(DD,ee,n#+m,n#+k)"
+    "[|m le k; emb_chain(DD,ee); m \<in> nat; n \<in> nat; k \<in> nat|] 
+     ==> e_gr(DD,ee,n#+m,n) = e_gr(DD,ee,n#+k,n) O e_less(DD,ee,n#+m,n#+k)"
 (* Use mp to prepare for induction. *)
 apply (erule rev_mp)
 apply (induct_tac k)
@@ -1526,7 +1527,7 @@ apply (subst id_comp)
 apply (blast intro!: e_less_cont [THEN cont_fun] add_le_mono nat_le_refl)
 apply (rule refl)
 apply (simp del: add_succ_right add: add_succ_right [symmetric]
-	    add: e_less_eq add_type nat_succI)
+	    add: e_less_eq)
 apply (blast intro: comp_id [symmetric] e_gr_cont [THEN cont_fun] add_le_self)
 done
 
@@ -1587,29 +1588,29 @@ done
 (* Theorems about splitting. *)
 
 lemma eps_split_add_left:
-    "[|n le k; emb_chain(DD,ee); m \<in> nat; n \<in> nat; k \<in> nat|] ==>
-     eps(DD,ee,m,m#+k) = eps(DD,ee,m#+n,m#+k) O eps(DD,ee,m,m#+n)"
+    "[|n le k; emb_chain(DD,ee); m \<in> nat; n \<in> nat; k \<in> nat|] 
+     ==> eps(DD,ee,m,m#+k) = eps(DD,ee,m#+n,m#+k) O eps(DD,ee,m,m#+n)"
 apply (simp add: eps_e_less add_le_self add_le_mono)
 apply (auto intro: e_less_split_add)
 done
 
 lemma eps_split_add_left_rev:
-    "[|n le k; emb_chain(DD,ee); m \<in> nat; n \<in> nat; k \<in> nat|] ==>
-     eps(DD,ee,m,m#+n) = eps(DD,ee,m#+k,m#+n) O eps(DD,ee,m,m#+k)"
+    "[|n le k; emb_chain(DD,ee); m \<in> nat; n \<in> nat; k \<in> nat|] 
+     ==> eps(DD,ee,m,m#+n) = eps(DD,ee,m#+k,m#+n) O eps(DD,ee,m,m#+k)"
 apply (simp add: eps_e_less_add eps_e_gr add_le_self add_le_mono)
 apply (auto intro: e_less_e_gr_split_add)
 done
 
 lemma eps_split_add_right:
-    "[|m le k; emb_chain(DD,ee); m \<in> nat; n \<in> nat; k \<in> nat|] ==>
-     eps(DD,ee,n#+k,n) = eps(DD,ee,n#+m,n) O eps(DD,ee,n#+k,n#+m)"
+    "[|m le k; emb_chain(DD,ee); m \<in> nat; n \<in> nat; k \<in> nat|] 
+     ==> eps(DD,ee,n#+k,n) = eps(DD,ee,n#+m,n) O eps(DD,ee,n#+k,n#+m)"
 apply (simp add: eps_e_gr add_le_self add_le_mono)
 apply (auto intro: e_gr_split_add)
 done
 
 lemma eps_split_add_right_rev:
-    "[|m le k; emb_chain(DD,ee); m \<in> nat; n \<in> nat; k \<in> nat|] ==>
-     eps(DD,ee,n#+m,n) = eps(DD,ee,n#+k,n) O eps(DD,ee,n#+m,n#+k)"
+    "[|m le k; emb_chain(DD,ee); m \<in> nat; n \<in> nat; k \<in> nat|] 
+     ==> eps(DD,ee,n#+m,n) = eps(DD,ee,n#+k,n) O eps(DD,ee,n#+m,n#+k)"
 apply (simp add: eps_e_gr_add eps_e_less add_le_self add_le_mono)
 apply (auto intro: e_gr_e_less_split_add)
 done
@@ -1626,29 +1627,29 @@ apply (rule le_trans [THEN le_exists], assumption+, auto)
 done
 
 lemma eps_split_left_le:
-    "[|m le k; k le n; emb_chain(DD,ee); m \<in> nat; n \<in> nat; k \<in> nat|] ==>
-     eps(DD,ee,m,n) = eps(DD,ee,k,n) O eps(DD,ee,m,k)"
+    "[|m le k; k le n; emb_chain(DD,ee); m \<in> nat; n \<in> nat; k \<in> nat|] 
+     ==> eps(DD,ee,m,n) = eps(DD,ee,k,n) O eps(DD,ee,m,k)"
 apply (rule le_exists_lemma, assumption+)
 apply (auto intro: eps_split_add_left)
 done
 
 lemma eps_split_left_le_rev:
-    "[|m le n; n le k; emb_chain(DD,ee); m \<in> nat; n \<in> nat; k \<in> nat|] ==>
-     eps(DD,ee,m,n) = eps(DD,ee,k,n) O eps(DD,ee,m,k)"
+    "[|m le n; n le k; emb_chain(DD,ee); m \<in> nat; n \<in> nat; k \<in> nat|] 
+     ==> eps(DD,ee,m,n) = eps(DD,ee,k,n) O eps(DD,ee,m,k)"
 apply (rule le_exists_lemma, assumption+)
 apply (auto intro: eps_split_add_left_rev)
 done
 
 lemma eps_split_right_le:
-    "[|n le k; k le m; emb_chain(DD,ee); m \<in> nat; n \<in> nat; k \<in> nat|] ==>
-     eps(DD,ee,m,n) = eps(DD,ee,k,n) O eps(DD,ee,m,k)"
+    "[|n le k; k le m; emb_chain(DD,ee); m \<in> nat; n \<in> nat; k \<in> nat|] 
+     ==> eps(DD,ee,m,n) = eps(DD,ee,k,n) O eps(DD,ee,m,k)"
 apply (rule le_exists_lemma, assumption+)
 apply (auto intro: eps_split_add_right)
 done
 
 lemma eps_split_right_le_rev:
-    "[|n le m; m le k; emb_chain(DD,ee); m \<in> nat; n \<in> nat; k \<in> nat|] ==>
-     eps(DD,ee,m,n) = eps(DD,ee,k,n) O eps(DD,ee,m,k)"
+    "[|n le m; m le k; emb_chain(DD,ee); m \<in> nat; n \<in> nat; k \<in> nat|] 
+     ==> eps(DD,ee,m,n) = eps(DD,ee,k,n) O eps(DD,ee,m,k)"
 apply (rule le_exists_lemma, assumption+)
 apply (auto intro: eps_split_add_right_rev)
 done
@@ -1656,8 +1657,8 @@ done
 (* The desired two theorems about `splitting'. *)
 
 lemma eps_split_left:
-    "[|m le k; emb_chain(DD,ee); m \<in> nat; n \<in> nat; k \<in> nat|] ==>
-     eps(DD,ee,m,n) = eps(DD,ee,k,n) O eps(DD,ee,m,k)"
+    "[|m le k; emb_chain(DD,ee); m \<in> nat; n \<in> nat; k \<in> nat|] 
+     ==> eps(DD,ee,m,n) = eps(DD,ee,k,n) O eps(DD,ee,m,k)"
 apply (rule nat_linear_le)
 apply (rule_tac [4] eps_split_right_le_rev)
 prefer 4 apply assumption
@@ -1668,8 +1669,8 @@ apply (simp_all add: eps_split_left_le_rev)
 done
 
 lemma eps_split_right:
-    "[|n le k; emb_chain(DD,ee); m \<in> nat; n \<in> nat; k \<in> nat|] ==>
-     eps(DD,ee,m,n) = eps(DD,ee,k,n) O eps(DD,ee,m,k)"
+    "[|n le k; emb_chain(DD,ee); m \<in> nat; n \<in> nat; k \<in> nat|] 
+     ==> eps(DD,ee,m,n) = eps(DD,ee,k,n) O eps(DD,ee,m,k)"
 apply (rule nat_linear_le)
 apply (rule_tac [3] eps_split_left_le_rev)
 prefer 3 apply assumption
@@ -1686,25 +1687,24 @@ done
 (* Considerably shorter. *)
 
 lemma rho_emb_fun:
-    "[|emb_chain(DD,ee); n \<in> nat|] ==>
-     rho_emb(DD,ee,n): set(DD`n) -> set(Dinf(DD,ee))"
+    "[|emb_chain(DD,ee); n \<in> nat|] 
+     ==> rho_emb(DD,ee,n): set(DD`n) -> set(Dinf(DD,ee))"
 apply (simp add: rho_emb_def)
-apply (assumption | rule lam_type DinfI eps_cont [THEN cont_fun, THEN apply_type])+
-apply (simp)
+apply (assumption |
+       rule lam_type DinfI eps_cont [THEN cont_fun, THEN apply_type])+
+apply simp
 apply (rule_tac i = "succ (na) " and j = n in nat_linear_le)
-apply blast
-apply assumption
-apply (subst eps_split_right_le)
-prefer 2 apply assumption
-apply simp (*????SIMPROC FAILURE???*)
-apply (rule lt_trans)
-apply (rule le_refl)
-apply (blast intro: nat_into_Ord, simp)
-  (*???END OF SIMPROC FAILURE*)
-apply (assumption | rule add_le_self nat_0I nat_succI)+
-apply (simp add: eps_succ_Rp)
-apply (subst comp_fun_apply)
-apply (assumption | rule eps_fun nat_succI Rp_cont [THEN cont_fun] emb_chain_emb emb_chain_cpo refl)+
+   apply blast
+  apply assumption
+ apply (subst eps_split_right_le)
+       prefer 2 apply assumption
+      apply simp
+     apply (assumption | rule add_le_self nat_0I nat_succI)+
+ apply (simp add: eps_succ_Rp)
+ apply (subst comp_fun_apply)
+    apply (assumption | 
+           rule eps_fun nat_succI Rp_cont [THEN cont_fun] 
+                emb_chain_emb emb_chain_cpo refl)+
 (* Now the second part of the proof. Slightly different than HOL. *)
 apply (simp add: eps_e_less nat_succI)
 apply (erule le_iff [THEN iffD1, THEN disjE])
@@ -1712,9 +1712,10 @@ apply (simp add: e_less_le)
 apply (subst comp_fun_apply)
 apply (assumption | rule e_less_cont cont_fun emb_chain_emb emb_cont)+
 apply (subst embRp_eq_thm)
-apply (assumption | rule emb_chain_emb e_less_cont [THEN cont_fun, THEN apply_type] emb_chain_cpo nat_succI)+
-apply (simp add: eps_e_less)
-apply (drule asm_rl)
+apply (assumption | 
+       rule emb_chain_emb e_less_cont [THEN cont_fun, THEN apply_type]
+            emb_chain_cpo nat_succI)+
+ apply (simp add: eps_e_less)
 apply (simp add: eps_succ_Rp e_less_eq id_conv nat_succI)
 done
 
@@ -1727,43 +1728,47 @@ lemma rho_emb_apply2:
 by (simp add: rho_emb_def)
 
 lemma rho_emb_id: "[| x \<in> set(DD`n); n \<in> nat|] ==> rho_emb(DD,ee,n)`x`n = x"
-apply (simp add: rho_emb_apply2 eps_id)
-done
+by (simp add: rho_emb_apply2 eps_id)
 
 (* Shorter proof, 23 against 62. *)
 
 lemma rho_emb_cont:
-    "[|emb_chain(DD,ee); n \<in> nat|] ==>
-     rho_emb(DD,ee,n): cont(DD`n,Dinf(DD,ee))"
+    "[|emb_chain(DD,ee); n \<in> nat|] 
+     ==> rho_emb(DD,ee,n): cont(DD`n,Dinf(DD,ee))"
 apply (rule contI)
 apply (assumption | rule rho_emb_fun)+
 apply (rule rel_DinfI)
 apply (simp add: rho_emb_def)
-apply (assumption | rule eps_cont [THEN cont_mono]  Dinf_prod apply_type rho_emb_fun)+
+apply (assumption | 
+       rule eps_cont [THEN cont_mono]  Dinf_prod apply_type rho_emb_fun)+
 (* Continuity, different order, slightly different proofs. *)
 apply (subst lub_Dinf)
 apply (rule chainI)
 apply (assumption | rule lam_type rho_emb_fun [THEN apply_type]  chain_in)+
-apply (simp)
+apply simp
 apply (rule rel_DinfI)
 apply (simp add: rho_emb_apply2 chain_in)
-apply (assumption | rule eps_cont [THEN cont_mono]  chain_rel Dinf_prod rho_emb_fun [THEN apply_type]  chain_in nat_succI)+
+apply (assumption | 
+       rule eps_cont [THEN cont_mono]  chain_rel Dinf_prod 
+            rho_emb_fun [THEN apply_type]  chain_in nat_succI)+
 (* Now, back to the result of applying lub_Dinf *)
 apply (simp add: rho_emb_apply2 chain_in)
 apply (subst rho_emb_apply1)
 apply (assumption | rule cpo_lub [THEN islub_in]  emb_chain_cpo)+
 apply (rule fun_extension)
-apply (assumption | rule lam_type eps_cont [THEN cont_fun, THEN apply_type]  cpo_lub [THEN islub_in]  emb_chain_cpo)+
+apply (assumption | 
+       rule lam_type eps_cont [THEN cont_fun, THEN apply_type]  
+            cpo_lub [THEN islub_in]  emb_chain_cpo)+
 apply (assumption | rule cont_chain eps_cont emb_chain_cpo)+
-apply (simp)
+apply simp
 apply (simp add: eps_cont [THEN cont_lub])
 done
 
 (* 32 vs 61, using safe_tac with imp in asm would be unfortunate (5steps) *)
 
 lemma lemma1:
-    "[|m le n; emb_chain(DD,ee); x \<in> set(Dinf(DD,ee)); m \<in> nat; n \<in> nat|] ==>
-     rel(DD`n,e_less(DD,ee,m,n)`(x`m),x`n)"
+    "[|m le n; emb_chain(DD,ee); x \<in> set(Dinf(DD,ee)); m \<in> nat; n \<in> nat|] 
+     ==> rel(DD`n,e_less(DD,ee,m,n)`(x`m),x`n)"
 apply (erule rev_mp) (* For induction proof *)
 apply (induct_tac n)
 apply (rule impI)
@@ -1778,12 +1783,19 @@ apply (rule cpo_trans)
 apply (rule_tac [2] e_less_le [THEN ssubst])
 apply (assumption | rule emb_chain_cpo nat_succI)+
 apply (subst comp_fun_apply)
-apply (assumption | rule emb_chain_emb [THEN emb_cont]  e_less_cont cont_fun apply_type Dinf_prod)+
+apply (assumption | 
+       rule emb_chain_emb [THEN emb_cont]  e_less_cont cont_fun apply_type 
+            Dinf_prod)+
 apply (rule_tac y = "x`xa" in emb_chain_emb [THEN emb_cont, THEN cont_mono])
 apply (assumption | rule e_less_cont [THEN cont_fun]  apply_type Dinf_prod)+
 apply (rule_tac x1 = x and n1 = xa in Dinf_eq [THEN subst])
 apply (rule_tac [3] comp_fun_apply [THEN subst])
-apply (rule_tac [6] P = "%z. rel (DD ` succ (xa), (ee ` xa O Rp (?DD46 (xa) ` xa,?DD46 (xa) ` succ (xa),?ee46 (xa) ` xa)) ` (x ` succ (xa)),z) " in id_conv [THEN subst])
+apply (rename_tac [6] y)
+apply (rule_tac [6] P = 
+         "%z. rel(DD`succ(y), 
+                  (ee`y O Rp(?DD(y)`y,?DD(y)`succ(y),?ee(y)`y)) ` (x`succ(y)),
+                  z)"
+       in id_conv [THEN subst])
 apply (rule_tac [7] rel_cf)
 (* Dinf and cont_fun doesn't go well together, both Pi(_,%x._). *)
 (* solves 11 of 12 subgoals *)
@@ -1799,8 +1811,8 @@ done
 (* 18 vs 40 *)
 
 lemma lemma2:
-    "[|n le m; emb_chain(DD,ee); x \<in> set(Dinf(DD,ee)); m \<in> nat; n \<in> nat|] ==>
-     rel(DD`n,e_gr(DD,ee,m,n)`(x`m),x`n)"
+    "[|n le m; emb_chain(DD,ee); x \<in> set(Dinf(DD,ee)); m \<in> nat; n \<in> nat|] 
+     ==> rel(DD`n,e_gr(DD,ee,m,n)`(x`m),x`n)"
 apply (erule rev_mp) (* For induction proof *)
 apply (induct_tac m)
 apply (rule impI)
@@ -1814,15 +1826,17 @@ apply (drule mp, assumption)
 apply (subst e_gr_le)
 apply (rule_tac [4] comp_fun_apply [THEN ssubst])
 apply (rule_tac [7] Dinf_eq [THEN ssubst])
-apply (assumption | rule emb_chain_emb emb_chain_cpo Rp_cont e_gr_cont cont_fun emb_cont apply_type Dinf_prod nat_succI)+
+apply (assumption | 
+       rule emb_chain_emb emb_chain_cpo Rp_cont e_gr_cont cont_fun emb_cont 
+            apply_type Dinf_prod nat_succI)+
 apply (simp add: e_gr_eq)
 apply (subst id_conv)
 apply (auto intro: apply_type Dinf_prod emb_chain_cpo)
 done
 
 lemma eps1:
-    "[|emb_chain(DD,ee); x \<in> set(Dinf(DD,ee)); m \<in> nat; n \<in> nat|] ==>
-     rel(DD`n,eps(DD,ee,m,n)`(x`m),x`n)"
+    "[|emb_chain(DD,ee); x \<in> set(Dinf(DD,ee)); m \<in> nat; n \<in> nat|] 
+     ==> rel(DD`n,eps(DD,ee,m,n)`(x`m),x`n)"
 apply (simp add: eps_def)
 apply (blast intro: lemma1 not_le_iff_lt [THEN iffD1, THEN leI, THEN lemma2]  
                     nat_into_Ord)
@@ -1833,11 +1847,11 @@ done
    Look for occurences of rel_cfI, rel_DinfI, etc to evaluate the problem. *)
 
 lemma lam_Dinf_cont:
-  "[| emb_chain(DD,ee); n \<in> nat |] ==>
-   (\<lambda>x \<in> set(Dinf(DD,ee)). x`n) \<in> cont(Dinf(DD,ee),DD`n)"
+  "[| emb_chain(DD,ee); n \<in> nat |] 
+     ==> (\<lambda>x \<in> set(Dinf(DD,ee)). x`n) \<in> cont(Dinf(DD,ee),DD`n)"
 apply (rule contI)
 apply (assumption | rule lam_type apply_type Dinf_prod)+
-apply (simp)
+apply simp
 apply (assumption | rule rel_Dinf)+
 apply (subst beta)
 apply (auto intro: cpo_Dinf islub_in cpo_lub)
@@ -1845,8 +1859,8 @@ apply (simp add: chain_in lub_Dinf)
 done
 
 lemma rho_projpair:
-    "[| emb_chain(DD,ee); n \<in> nat |] ==>
-     projpair(DD`n,Dinf(DD,ee),rho_emb(DD,ee,n),rho_proj(DD,ee,n))"
+    "[| emb_chain(DD,ee); n \<in> nat |] 
+     ==> projpair(DD`n,Dinf(DD,ee),rho_emb(DD,ee,n),rho_proj(DD,ee,n))"
 apply (simp add: rho_proj_def)
 apply (rule projpairI)
 apply (assumption | rule rho_emb_cont)+
@@ -1859,28 +1873,32 @@ apply (rule_tac [3] id_conv [THEN ssubst])
 apply (rule_tac [4] comp_fun_apply [THEN ssubst])
 apply (rule_tac [7] beta [THEN ssubst])
 apply (rule_tac [8] rho_emb_id [THEN ssubst])
-apply (assumption | rule comp_fun id_type lam_type rho_emb_fun Dinf_prod [THEN apply_type]  apply_type refl)+
+apply (assumption | 
+       rule comp_fun id_type lam_type rho_emb_fun Dinf_prod [THEN apply_type]
+            apply_type refl)+
 (*^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^*)
 apply (rule rel_cfI) (* ------------------>>>Yields type cond, not in HOL *)
 apply (subst id_conv)
 apply (rule_tac [2] comp_fun_apply [THEN ssubst])
 apply (rule_tac [5] beta [THEN ssubst])
 apply (rule_tac [6] rho_emb_apply1 [THEN ssubst])
-apply (rule_tac [7] rel_DinfI) (* ------------------>>>Yields type cond, not in HOL *)
+apply (rule_tac [7] rel_DinfI) 
 apply (rule_tac [7] beta [THEN ssubst])
 (* Dinf_prod bad with lam_type *)
 apply (assumption |
        rule eps1 lam_type rho_emb_fun eps_fun
             Dinf_prod [THEN apply_type] refl)+
-apply (assumption | rule apply_type eps_fun Dinf_prod comp_pres_cont rho_emb_cont lam_Dinf_cont id_cont cpo_Dinf emb_chain_cpo)+
+apply (assumption | 
+       rule apply_type eps_fun Dinf_prod comp_pres_cont rho_emb_cont 
+            lam_Dinf_cont id_cont cpo_Dinf emb_chain_cpo)+
 done
 
 lemma emb_rho_emb:
   "[| emb_chain(DD,ee); n \<in> nat |] ==> emb(DD`n,Dinf(DD,ee),rho_emb(DD,ee,n))"
 by (auto simp add: emb_def intro: exI rho_projpair)
 
-lemma commuteI: "[| emb_chain(DD,ee); n \<in> nat |] ==>
-   rho_proj(DD,ee,n) \<in> cont(Dinf(DD,ee),DD`n)"
+lemma commuteI: "[| emb_chain(DD,ee); n \<in> nat |] 
+     ==> rho_proj(DD,ee,n) \<in> cont(Dinf(DD,ee),DD`n)"
 by (auto intro: rho_projpair projpair_p_cont)
 
 (*----------------------------------------------------------------------*)
@@ -1889,8 +1907,8 @@ by (auto intro: rho_projpair projpair_p_cont)
 
 lemma commuteI:
   "[| !!n. n \<in> nat ==> emb(DD`n,E,r(n));
-      !!m n. [|m le n; m \<in> nat; n \<in> nat|] ==> r(n) O eps(DD,ee,m,n) = r(m) |] ==>
-   commute(DD,ee,E,r)"
+      !!m n. [|m le n; m \<in> nat; n \<in> nat|] ==> r(n) O eps(DD,ee,m,n) = r(m) |] 
+     ==> commute(DD,ee,E,r)"
 by (simp add: commute_def)
 
 lemma commute_emb [TC]:
@@ -1898,8 +1916,8 @@ lemma commute_emb [TC]:
 by (simp add: commute_def)
 
 lemma commute_eq:
-  "[| commute(DD,ee,E,r); m le n; m \<in> nat; n \<in> nat |] ==>
-   r(n) O eps(DD,ee,m,n) = r(m) "
+  "[| commute(DD,ee,E,r); m le n; m \<in> nat; n \<in> nat |] 
+     ==> r(n) O eps(DD,ee,m,n) = r(m) "
 by (simp add: commute_def)
 
 (* Shorter proof: 11 vs 46 lines. *)
@@ -1910,7 +1928,7 @@ apply (rule commuteI)
 apply (assumption | rule emb_rho_emb)+
 apply (rule fun_extension) (* Manual instantiation in HOL. *)
 apply (rule_tac [3] comp_fun_apply [THEN ssubst])
-apply (rule_tac [6] fun_extension) (* Next, clean up and instantiate unknowns *)
+apply (rule_tac [6] fun_extension) (*Next, clean up and instantiate unknowns *)
 apply (assumption | rule comp_fun rho_emb_fun eps_fun Dinf_prod apply_type)+
 apply (simp add: rho_emb_apply2 eps_fun [THEN apply_type])
 apply (rule comp_fun_apply [THEN subst])
@@ -1924,24 +1942,28 @@ by (simp add: le_succ_iff)
 (* Shorter proof: 21 vs 83 (106 - 23, due to OAssoc complication) *)
 
 lemma commute_chain:
-  "[| commute(DD,ee,E,r); emb_chain(DD,ee); cpo(E) |] ==>
-   chain(cf(E,E),\<lambda>n \<in> nat. r(n) O Rp(DD`n,E,r(n)))"
+    "[| commute(DD,ee,E,r); emb_chain(DD,ee); cpo(E) |] 
+     ==> chain(cf(E,E),\<lambda>n \<in> nat. r(n) O Rp(DD`n,E,r(n)))"
 apply (rule chainI)
-apply (blast intro: lam_type cont_cf comp_pres_cont commute_emb Rp_cont emb_cont emb_chain_cpo)
-apply (simp)
+apply (blast intro: lam_type cont_cf comp_pres_cont commute_emb Rp_cont 
+                    emb_cont emb_chain_cpo, 
+       simp)
 apply (rule_tac r1 = r and m1 = n in commute_eq [THEN subst])
 apply (assumption | rule le_succ nat_succI)+
 apply (subst Rp_comp)
 apply (assumption | rule emb_eps commute_emb emb_chain_cpo le_succ nat_succI)+
-apply (rule comp_assoc [THEN subst]) (* Remember that comp_assoc is simpler in Isa *)
+apply (rule comp_assoc [THEN subst]) (* comp_assoc is simpler in Isa *)
 apply (rule_tac r1 = "r (succ (n))" in comp_assoc [THEN ssubst])
 apply (rule comp_mono)
-apply (blast intro: comp_pres_cont eps_cont emb_eps commute_emb Rp_cont emb_cont emb_chain_cpo le_succ)+
-apply (rule_tac b = "r (succ (n))" in comp_id [THEN subst]) (* 1 subst too much *)
+apply (blast intro: comp_pres_cont eps_cont emb_eps commute_emb Rp_cont 
+                    emb_cont emb_chain_cpo le_succ)+
+apply (rule_tac b="r(succ(n))" in comp_id [THEN subst]) (* 1 subst too much *)
 apply (rule_tac [2] comp_mono)
-apply (blast intro: comp_pres_cont eps_cont emb_eps emb_id commute_emb Rp_cont emb_cont cont_fun emb_chain_cpo le_succ)+
+apply (blast intro: comp_pres_cont eps_cont emb_eps emb_id commute_emb 
+                    Rp_cont emb_cont cont_fun emb_chain_cpo le_succ)+
 apply (subst comp_id) (* Undoes "1 subst too much", typing next anyway *)
-apply (blast intro: cont_fun Rp_cont emb_cont commute_emb cont_cf cpo_cf emb_chain_cpo embRp_rel emb_eps le_succ)+
+apply (blast intro: cont_fun Rp_cont emb_cont commute_emb cont_cf cpo_cf 
+                    emb_chain_cpo embRp_rel emb_eps le_succ)+
 done
 
 lemma rho_emb_chain:
@@ -1950,16 +1972,16 @@ lemma rho_emb_chain:
          \<lambda>n \<in> nat. rho_emb(DD,ee,n) O Rp(DD`n,Dinf(DD,ee),rho_emb(DD,ee,n)))"
 by (auto intro: commute_chain rho_emb_commute cpo_Dinf)
 
-lemma rho_emb_chain_apply1: "[| emb_chain(DD,ee); x \<in> set(Dinf(DD,ee)) |] ==>
-      chain(Dinf(DD,ee),
-          \<lambda>n \<in> nat.
-           (rho_emb(DD,ee,n) O Rp(DD`n,Dinf(DD,ee),rho_emb(DD,ee,n)))`x)"
-apply (drule rho_emb_chain [THEN chain_cf], assumption, simp)
-done
+lemma rho_emb_chain_apply1:
+     "[| emb_chain(DD,ee); x \<in> set(Dinf(DD,ee)) |] 
+      ==> chain(Dinf(DD,ee),
+                \<lambda>n \<in> nat.
+                 (rho_emb(DD,ee,n) O Rp(DD`n,Dinf(DD,ee),rho_emb(DD,ee,n)))`x)"
+by (drule rho_emb_chain [THEN chain_cf], assumption, simp)
 
 lemma chain_iprod_emb_chain:
-     "[| chain(iprod(DD),X); emb_chain(DD,ee); n \<in> nat |] ==>
-      chain(DD`n,\<lambda>m \<in> nat. X `m `n)"
+     "[| chain(iprod(DD),X); emb_chain(DD,ee); n \<in> nat |] 
+      ==> chain(DD`n,\<lambda>m \<in> nat. X `m `n)"
 by (auto intro: chain_iprod emb_chain_cpo)
 
 lemma rho_emb_chain_apply2:
@@ -1980,11 +2002,12 @@ lemma rho_emb_lub:
        \<lambda>n \<in> nat. rho_emb(DD,ee,n) O Rp(DD`n,Dinf(DD,ee),rho_emb(DD,ee,n))) =
    id(set(Dinf(DD,ee)))"
 apply (rule cpo_antisym)
-apply (rule cpo_cf) (* Instantiate variable, continued below (would loop otherwise) *)
+apply (rule cpo_cf) (*Instantiate variable, continued below (loops otherwise)*)
 apply (assumption | rule cpo_Dinf)+
 apply (rule islub_least)
-apply (assumption | rule cpo_lub rho_emb_chain cpo_cf cpo_Dinf isubI cont_cf id_cont)+
-apply (simp)
+apply (assumption | 
+       rule cpo_lub rho_emb_chain cpo_cf cpo_Dinf isubI cont_cf id_cont)+
+apply simp
 apply (assumption | rule embRp_rel emb_rho_emb emb_chain_cpo cpo_Dinf)+
 apply (rule rel_cfI)
 apply (simp add: lub_cf rho_emb_chain cpo_Dinf)
@@ -1992,19 +2015,21 @@ apply (rule rel_DinfI) (* Additional assumptions *)
 apply (subst lub_Dinf)
 apply (assumption | rule rho_emb_chain_apply1)+
 defer 1
-apply (assumption | rule Dinf_prod cpo_lub [THEN islub_in]  id_cont
-                     cpo_Dinf cpo_cf cf_cont rho_emb_chain rho_emb_chain_apply1 id_cont [THEN cont_cf])+
-apply (simp)
+apply (assumption | 
+       rule Dinf_prod cpo_lub [THEN islub_in]  id_cont cpo_Dinf cpo_cf cf_cont
+            rho_emb_chain rho_emb_chain_apply1 id_cont [THEN cont_cf])+
+apply simp
 apply (rule dominate_islub)
 apply (rule_tac [3] cpo_lub)
 apply (rule_tac [6] x1 = "x`n" in chain_const [THEN chain_fun])
 defer 1
 apply (assumption |
-       rule rho_emb_chain_apply2 emb_chain_cpo islub_const apply_type Dinf_prod emb_chain_cpo chain_fun rho_emb_chain_apply2)+
-apply (rule dominateI, assumption)
-apply (simp)
+       rule rho_emb_chain_apply2 emb_chain_cpo islub_const apply_type 
+            Dinf_prod emb_chain_cpo chain_fun rho_emb_chain_apply2)+
+apply (rule dominateI, assumption, simp)
 apply (subst comp_fun_apply)
-apply (assumption | rule cont_fun Rp_cont emb_cont emb_rho_emb cpo_Dinf emb_chain_cpo)+
+apply (assumption | 
+       rule cont_fun Rp_cont emb_cont emb_rho_emb cpo_Dinf emb_chain_cpo)+
 apply (subst rho_projpair [THEN Rp_unique])
 prefer 5
 apply (simp add: rho_proj_def)
@@ -2013,49 +2038,56 @@ apply (auto intro: cpo_Dinf apply_type Dinf_prod emb_chain_cpo)
 done
 
 lemma theta_chain: (* almost same proof as commute_chain *)
-  "[| commute(DD,ee,E,r); commute(DD,ee,G,f);
-      emb_chain(DD,ee); cpo(E); cpo(G) |] ==>
-   chain(cf(E,G),\<lambda>n \<in> nat. f(n) O Rp(DD`n,E,r(n)))"
+    "[| commute(DD,ee,E,r); commute(DD,ee,G,f);
+        emb_chain(DD,ee); cpo(E); cpo(G) |] 
+     ==> chain(cf(E,G),\<lambda>n \<in> nat. f(n) O Rp(DD`n,E,r(n)))"
 apply (rule chainI)
-apply (blast intro: lam_type cont_cf comp_pres_cont commute_emb Rp_cont emb_cont emb_chain_cpo)
-apply (simp)
+apply (blast intro: lam_type cont_cf comp_pres_cont commute_emb Rp_cont 
+                    emb_cont emb_chain_cpo, 
+       simp)
 apply (rule_tac r1 = r and m1 = n in commute_eq [THEN subst])
 apply (rule_tac [5] r1 = f and m1 = n in commute_eq [THEN subst])
 apply (assumption | rule le_succ nat_succI)+
 apply (subst Rp_comp)
 apply (assumption | rule emb_eps commute_emb emb_chain_cpo le_succ nat_succI)+
-apply (rule comp_assoc [THEN subst]) (* Remember that comp_assoc is simpler in Isa *)
+apply (rule comp_assoc [THEN subst]) 
 apply (rule_tac r1 = "f (succ (n))" in comp_assoc [THEN ssubst])
 apply (rule comp_mono)
-apply (blast intro: comp_pres_cont eps_cont emb_eps commute_emb Rp_cont emb_cont emb_chain_cpo le_succ)+
-apply (rule_tac b = "f (succ (n))" in comp_id [THEN subst]) (* 1 subst too much *)
+apply (blast intro: comp_pres_cont eps_cont emb_eps commute_emb Rp_cont
+                     emb_cont emb_chain_cpo le_succ)+
+apply (rule_tac b="f(succ(n))" in comp_id [THEN subst]) (* 1 subst too much *)
 apply (rule_tac [2] comp_mono)
-apply (blast intro: comp_pres_cont eps_cont emb_eps emb_id commute_emb Rp_cont emb_cont cont_fun emb_chain_cpo le_succ)+
+apply (blast intro: comp_pres_cont eps_cont emb_eps emb_id commute_emb 
+                    Rp_cont emb_cont cont_fun emb_chain_cpo le_succ)+
 apply (subst comp_id) (* Undoes "1 subst too much", typing next anyway *)
-apply (blast intro: cont_fun Rp_cont emb_cont commute_emb cont_cf cpo_cf emb_chain_cpo embRp_rel emb_eps le_succ)+
+apply (blast intro: cont_fun Rp_cont emb_cont commute_emb cont_cf cpo_cf 
+                    emb_chain_cpo embRp_rel emb_eps le_succ)+
 done
 
 lemma theta_proj_chain: (* similar proof to theta_chain *)
   "[| commute(DD,ee,E,r); commute(DD,ee,G,f);
       emb_chain(DD,ee); cpo(E); cpo(G) |]
-   ==> chain(cf(G,E),\<lambda>n \<in> nat. r(n) O Rp(DD`n,G,f(n)))"
+     ==> chain(cf(G,E),\<lambda>n \<in> nat. r(n) O Rp(DD`n,G,f(n)))"
 apply (rule chainI)
-apply (blast intro: lam_type cont_cf comp_pres_cont commute_emb Rp_cont emb_cont emb_chain_cpo)
-apply (simp)
+apply (blast intro: lam_type cont_cf comp_pres_cont commute_emb Rp_cont 
+		    emb_cont emb_chain_cpo, simp)
 apply (rule_tac r1 = r and m1 = n in commute_eq [THEN subst])
 apply (rule_tac [5] r1 = f and m1 = n in commute_eq [THEN subst])
 apply (assumption | rule le_succ nat_succI)+
 apply (subst Rp_comp)
 apply (assumption | rule emb_eps commute_emb emb_chain_cpo le_succ nat_succI)+
-apply (rule comp_assoc [THEN subst]) (* Remember that comp_assoc is simpler in Isa *)
+apply (rule comp_assoc [THEN subst]) (* comp_assoc is simpler in Isa *)
 apply (rule_tac r1 = "r (succ (n))" in comp_assoc [THEN ssubst])
 apply (rule comp_mono)
-apply (blast intro: comp_pres_cont eps_cont emb_eps commute_emb Rp_cont emb_cont emb_chain_cpo le_succ)+
-apply (rule_tac b = "r (succ (n))" in comp_id [THEN subst]) (* 1 subst too much *)
+apply (blast intro: comp_pres_cont eps_cont emb_eps commute_emb Rp_cont 
+		    emb_cont emb_chain_cpo le_succ)+
+apply (rule_tac b="r(succ(n))" in comp_id [THEN subst]) (* 1 subst too much *)
 apply (rule_tac [2] comp_mono)
-apply (blast intro: comp_pres_cont eps_cont emb_eps emb_id commute_emb Rp_cont emb_cont cont_fun emb_chain_cpo le_succ)+
+apply (blast intro: comp_pres_cont eps_cont emb_eps emb_id commute_emb 
+		    Rp_cont emb_cont cont_fun emb_chain_cpo le_succ)+
 apply (subst comp_id) (* Undoes "1 subst too much", typing next anyway *)
-apply (blast intro: cont_fun Rp_cont emb_cont commute_emb cont_cf cpo_cf emb_chain_cpo embRp_rel emb_eps le_succ)+
+apply (blast intro: cont_fun Rp_cont emb_cont commute_emb cont_cf cpo_cf 
+                    emb_chain_cpo embRp_rel emb_eps le_succ)+
 done
 
 (* Simplification with comp_assoc is possible inside a \<lambda>-abstraction,
@@ -2067,9 +2099,9 @@ done
 
 lemma commute_O_lemma:
      "[| commute(DD,ee,E,r); commute(DD,ee,G,f);
-      emb_chain(DD,ee); cpo(E); cpo(G); x \<in> nat |] ==>
-   r(x) O Rp(DD ` x, G, f(x)) O f(x) O Rp(DD ` x, E, r(x)) =
-   r(x) O Rp(DD ` x, E, r(x))"
+         emb_chain(DD,ee); cpo(E); cpo(G); x \<in> nat |] 
+      ==> r(x) O Rp(DD ` x, G, f(x)) O f(x) O Rp(DD ` x, E, r(x)) =
+          r(x) O Rp(DD ` x, E, r(x))"
 apply (rule_tac s1 = "f (x) " in comp_assoc [THEN subst])
 apply (subst embRp_eq)
 apply (rule_tac [4] id_comp [THEN ssubst])
@@ -2082,20 +2114,21 @@ done
 lemma theta_projpair:
   "[| lub(cf(E,E), \<lambda>n \<in> nat. r(n) O Rp(DD`n,E,r(n))) = id(set(E));
       commute(DD,ee,E,r); commute(DD,ee,G,f);
-      emb_chain(DD,ee); cpo(E); cpo(G) |] ==>
-   projpair
-    (E,G,
-     lub(cf(E,G), \<lambda>n \<in> nat. f(n) O Rp(DD`n,E,r(n))),
-     lub(cf(G,E), \<lambda>n \<in> nat. r(n) O Rp(DD`n,G,f(n))))"
-
+      emb_chain(DD,ee); cpo(E); cpo(G) |]
+   ==> projpair
+	(E,G,
+	 lub(cf(E,G), \<lambda>n \<in> nat. f(n) O Rp(DD`n,E,r(n))),
+	 lub(cf(G,E), \<lambda>n \<in> nat. r(n) O Rp(DD`n,G,f(n))))"
 apply (simp add: projpair_def rho_proj_def, safe)
 apply (rule_tac [3] comp_lubs [THEN ssubst])
 (* The following one line is 15 lines in HOL, and includes existentials. *)
-apply (assumption | rule cf_cont islub_in cpo_lub cpo_cf theta_chain theta_proj_chain)+
+apply (assumption | 
+       rule cf_cont islub_in cpo_lub cpo_cf theta_chain theta_proj_chain)+
 apply (simp (no_asm) add: comp_assoc)
 apply (simp add: commute_O_lemma)
 apply (subst comp_lubs)
-apply (assumption | rule cf_cont islub_in cpo_lub cpo_cf theta_chain theta_proj_chain)+
+apply (assumption | 
+       rule cf_cont islub_in cpo_lub cpo_cf theta_chain theta_proj_chain)+
 apply (simp (no_asm) add: comp_assoc)
 apply (simp add: commute_O_lemma)
 apply (rule dominate_islub)
@@ -2104,23 +2137,22 @@ apply (rule cpo_lub)
 apply (assumption |
        rule commute_chain commute_emb islub_const cont_cf id_cont
     cpo_cf chain_fun chain_const)+
-apply (rule dominateI, assumption)
-apply (simp)
+apply (rule dominateI, assumption, simp)
 apply (blast intro: embRp_rel commute_emb emb_chain_cpo)
 done
 
 lemma emb_theta:
-  "[| lub(cf(E,E), \<lambda>n \<in> nat. r(n) O Rp(DD`n,E,r(n))) = id(set(E));
-      commute(DD,ee,E,r); commute(DD,ee,G,f);
-      emb_chain(DD,ee); cpo(E); cpo(G) |] ==>
-   emb(E,G,lub(cf(E,G), \<lambda>n \<in> nat. f(n) O Rp(DD`n,E,r(n))))"
+    "[| lub(cf(E,E), \<lambda>n \<in> nat. r(n) O Rp(DD`n,E,r(n))) = id(set(E));
+	commute(DD,ee,E,r); commute(DD,ee,G,f);
+	emb_chain(DD,ee); cpo(E); cpo(G) |] 
+     ==> emb(E,G,lub(cf(E,G), \<lambda>n \<in> nat. f(n) O Rp(DD`n,E,r(n))))"
 apply (simp add: emb_def)
 apply (blast intro: theta_projpair)
 done
 
 lemma mono_lemma:
-  "[| g \<in> cont(D,D'); cpo(D); cpo(D'); cpo(E) |] ==>
-   (\<lambda>f \<in> cont(D',E). f O g) \<in> mono(cf(D',E),cf(D,E))"
+    "[| g \<in> cont(D,D'); cpo(D); cpo(D'); cpo(E) |] 
+     ==> (\<lambda>f \<in> cont(D',E). f O g) \<in> mono(cf(D',E),cf(D,E))"
 apply (rule monoI)
 apply (simp add: set_def cf_def)
 apply (drule cf_cont)+
@@ -2138,25 +2170,32 @@ apply (rule fun_extension)
 apply (auto intro: lam_type)
 done
 
-lemma chain_lemma: "[| commute(DD,ee,E,r); commute(DD,ee,G,f);
-         emb_chain(DD,ee); cpo(E); cpo(G); n \<in> nat |] ==>
-      chain(cf(DD`n,G),\<lambda>x \<in> nat. (f(x) O Rp(DD ` x, E, r(x))) O r(n))"
+lemma chain_lemma:
+     "[| commute(DD,ee,E,r); commute(DD,ee,G,f);
+         emb_chain(DD,ee); cpo(E); cpo(G); n \<in> nat |] 
+      ==> chain(cf(DD`n,G),\<lambda>x \<in> nat. (f(x) O Rp(DD ` x, E, r(x))) O r(n))"
 apply (rule commute_lam_lemma [THEN subst])
-apply (blast intro: theta_chain emb_chain_cpo commute_emb [THEN emb_cont, THEN mono_lemma, THEN mono_chain])+
+apply (blast intro: theta_chain emb_chain_cpo 
+               commute_emb [THEN emb_cont, THEN mono_lemma, THEN mono_chain])+
 done
 
 lemma suffix_lemma:
-  "[| commute(DD,ee,E,r); commute(DD,ee,G,f);
-      emb_chain(DD,ee); cpo(E); cpo(G); cpo(DD`x); x \<in> nat |] ==>
-   suffix(\<lambda>n \<in> nat. (f(n) O Rp(DD`n,E,r(n))) O r(x),x) = (\<lambda>n \<in> nat. f(x))"
+    "[| commute(DD,ee,E,r); commute(DD,ee,G,f);
+        emb_chain(DD,ee); cpo(E); cpo(G); cpo(DD`x); x \<in> nat |] 
+     ==> suffix(\<lambda>n \<in> nat. (f(n) O Rp(DD`n,E,r(n))) O r(x),x) = 
+         (\<lambda>n \<in> nat. f(x))"
 apply (simp add: suffix_def)
 apply (rule lam_type [THEN fun_extension])
-apply (blast intro: lam_type comp_fun cont_fun Rp_cont emb_cont commute_emb add_type emb_chain_cpo)+
-apply (simp)
-apply (subgoal_tac "f (x #+ xa) O (Rp (DD ` (x #+ xa), E, r (x #+ xa)) O r (x #+ xa)) O eps (DD, ee, x, x #+ xa) = f (x) ")
+apply (blast intro: lam_type comp_fun cont_fun Rp_cont emb_cont 
+                    commute_emb emb_chain_cpo)+
+apply simp
+apply (rename_tac y)
+apply (subgoal_tac 
+       "f(x#+y) O (Rp(DD`(x#+y), E, r(x#+y)) O r (x#+y)) O eps(DD, ee, x, x#+y)
+        = f(x)")
 apply (simp add: comp_assoc commute_eq add_le_self)
 apply (simp add: embRp_eq eps_fun [THEN id_comp] commute_emb emb_chain_cpo)
-apply (blast intro: commute_eq add_type add_le_self)
+apply (blast intro: commute_eq add_le_self)
 done
 
 
@@ -2174,23 +2213,25 @@ lemma lub_universal_mediating:
   "[| lub(cf(E,E), \<lambda>n \<in> nat. r(n) O Rp(DD`n,E,r(n))) = id(set(E));
       commute(DD,ee,E,r); commute(DD,ee,G,f);
       emb_chain(DD,ee); cpo(E); cpo(G) |]
-   ==> mediating(E,G,r,f,lub(cf(E,G), \<lambda>n \<in> nat. f(n) O Rp(DD`n,E,r(n))))"
+     ==> mediating(E,G,r,f,lub(cf(E,G), \<lambda>n \<in> nat. f(n) O Rp(DD`n,E,r(n))))"
 apply (assumption | rule mediatingI emb_theta)+
 apply (rule_tac b = "r (n) " in lub_const [THEN subst])
 apply (rule_tac [3] comp_lubs [THEN ssubst])
-apply (blast intro: cont_cf emb_cont commute_emb cpo_cf theta_chain chain_const emb_chain_cpo)+
+apply (blast intro: cont_cf emb_cont commute_emb cpo_cf theta_chain 
+                    chain_const emb_chain_cpo)+
 apply (simp (no_asm))
 apply (rule_tac n1 = n in lub_suffix [THEN subst])
 apply (assumption | rule chain_lemma cpo_cf emb_chain_cpo)+
-apply (simp add: suffix_lemma lub_const cont_cf emb_cont commute_emb cpo_cf emb_chain_cpo)
+apply (simp add: suffix_lemma lub_const cont_cf emb_cont commute_emb cpo_cf 
+                 emb_chain_cpo)
 done
 
 lemma lub_universal_unique:
-  "[| mediating(E,G,r,f,t);
-      lub(cf(E,E), \<lambda>n \<in> nat. r(n) O Rp(DD`n,E,r(n))) = id(set(E));
-      commute(DD,ee,E,r); commute(DD,ee,G,f);
-      emb_chain(DD,ee); cpo(E); cpo(G) |] ==>
-   t = lub(cf(E,G), \<lambda>n \<in> nat. f(n) O Rp(DD`n,E,r(n)))"
+    "[| mediating(E,G,r,f,t);
+	lub(cf(E,E), \<lambda>n \<in> nat. r(n) O Rp(DD`n,E,r(n))) = id(set(E));
+	commute(DD,ee,E,r); commute(DD,ee,G,f);
+	emb_chain(DD,ee); cpo(E); cpo(G) |] 
+     ==> t = lub(cf(E,G), \<lambda>n \<in> nat. f(n) O Rp(DD`n,E,r(n)))"
 apply (rule_tac b = t in comp_id [THEN subst])
 apply (erule_tac [2] subst)
 apply (rule_tac [2] b = t in lub_const [THEN subst])
@@ -2206,7 +2247,7 @@ done
 (* Dinf_universal.                                                     *)
 (*---------------------------------------------------------------------*)
 
-lemma Dinf_universal:
+theorem Dinf_universal:
   "[| commute(DD,ee,G,f); emb_chain(DD,ee); cpo(G) |] ==>
    mediating
     (Dinf(DD,ee),G,rho_emb(DD,ee),f,
@@ -2216,9 +2257,9 @@ lemma Dinf_universal:
      t = lub(cf(Dinf(DD,ee),G),
          \<lambda>n \<in> nat. f(n) O Rp(DD`n,Dinf(DD,ee),rho_emb(DD,ee,n))))"
 apply safe
-apply (assumption | rule lub_universal_mediating rho_emb_commute rho_emb_lub cpo_Dinf)+
+apply (assumption | 
+       rule lub_universal_mediating rho_emb_commute rho_emb_lub cpo_Dinf)+
 apply (auto intro: lub_universal_unique rho_emb_commute rho_emb_lub cpo_Dinf)
 done
-
 
 end
