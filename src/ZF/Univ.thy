@@ -8,12 +8,10 @@ The cumulative hierarchy and a small universe for recursive types
 Standard notation for Vset(i) is V(i), but users might want V for a variable
 
 NOTE: univ(A) could be a translation; would simplify many proofs!
-  But Ind_Syntax.univ refers to the constant "univ"
+  But Ind_Syntax.univ refers to the constant "Univ.univ"
 *)
 
 Univ = Arith + Sum + Finite + mono +
-
-global
 
 consts
     Vfrom       :: [i,i]=>i
@@ -25,7 +23,6 @@ consts
 translations
     "Vset(x)"   ==      "Vfrom(0,x)"
 
-local
 
 defs
     Vfrom_def   "Vfrom(A,i) == transrec(i, %x f. A Un (UN y:x. Pow(f`y)))"

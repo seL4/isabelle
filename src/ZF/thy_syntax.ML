@@ -14,7 +14,7 @@ open ThyParse;
 
 (*ML identifiers for introduction rules.*)
 fun mk_intr_name suffix s =  
-    if Syntax.is_identifier s then
+    if ThmDatabase.is_ml_identifier s then
 	"op " ^ s ^ suffix  (*the "op" cancels any infix status*)
     else "_";               (*bad name, don't try to bind*)
 

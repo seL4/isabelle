@@ -141,7 +141,7 @@ fun add_inductive_i verbose (rec_tms, dom_sum, intr_tms,
   
   val dummy =
       if verbose then
-	  writeln ((if #1 (dest_Const Fp.oper) = "lfp" then "Inductive" 
+	  writeln ((if #1 (dest_Const Fp.oper) = "Fixedpt.lfp" then "Inductive" 
 		    else "Coinductive") ^ " definition " ^ big_rec_name)
       else ();
 
@@ -528,7 +528,7 @@ fun add_inductive_i verbose (rec_tms, dom_sum, intr_tms,
   val raw_induct = standard ([big_rec_def, bnd_mono] MRS Fp.induct)
 
   val (thy2, induct, mutual_induct) = 
-      if #1 (dest_Const Fp.oper) = "lfp" then induction_rules raw_induct thy1
+      if #1 (dest_Const Fp.oper) = "Fixedpt.lfp" then induction_rules raw_induct thy1
       else (thy1, raw_induct, TrueI)
   and defs = big_rec_def :: part_rec_defs
 

@@ -13,8 +13,6 @@ W. V. Quine, On Ordered Pairs and Relations, in Selected Logic Papers,
 
 QPair = Sum +
 
-global
-
 consts
   QPair     :: [i, i] => i                      ("<(_;/ _)>")
   qfst,qsnd :: i => i
@@ -34,7 +32,6 @@ translations
   "QSUM x:A. B"  => "QSigma(A, %x. B)"
   "A <*> B"      => "QSigma(A, _K(B))"
 
-local
 
 defs
   QPair_def       "<a;b> == a+b"

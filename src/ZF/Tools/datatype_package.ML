@@ -80,7 +80,7 @@ fun add_datatype_i (dom_sum, rec_tms, con_ty_lists,
   val intr_tms = Ind_Syntax.mk_all_intr_tms sign (rec_tms, con_ty_lists)
 
   val dummy =	
-	writeln ((if (#1 (dest_Const Fp.oper) = "lfp") then "Datatype" 
+	writeln ((if (#1 (dest_Const Fp.oper) = "Fixedpt.lfp") then "Datatype" 
 		  else "Codatatype")
 		 ^ " definition " ^ big_rec_name)
 
@@ -239,7 +239,7 @@ fun add_datatype_i (dom_sum, rec_tms, con_ty_lists,
   (* Build the new theory *)
 
   val need_recursor = 
-      (#1 (dest_Const Fp.oper) = "lfp" andalso recursor_typ <> case_typ);
+      (#1 (dest_Const Fp.oper) = "Fixedpt.lfp" andalso recursor_typ <> case_typ);
 
   fun add_recursor thy = 
       if need_recursor then
@@ -415,7 +415,7 @@ fun add_datatype (sdom, srec_tms, scon_ty_lists,
       val rec_tms = map (readtm sign Ind_Syntax.iT) srec_tms
       val dom_sum = 
           if sdom = "" then
-	      Ind_Syntax.data_domain (#1 (dest_Const Fp.oper) <> "lfp") rec_tms
+	      Ind_Syntax.data_domain (#1 (dest_Const Fp.oper) <> "Fixedpt.lfp") rec_tms
           else readtm sign Ind_Syntax.iT sdom
       and con_ty_lists	= Ind_Syntax.read_constructs sign scon_ty_lists
   in 

@@ -95,7 +95,7 @@ AddIs  [oexI, OUN_I];
 AddSEs [oexE, OUN_E];
 AddEs  [rev_oallE];
 
-val Ord_atomize = atomize (("oall", [ospec])::ZF_conn_pairs, 
+val Ord_atomize = atomize (("OrdQuant.oall", [ospec])::ZF_conn_pairs, 
                            ZF_mem_pairs);
 
 simpset_ref() := simpset() setmksimps (map mk_eq o Ord_atomize o gen_all)

@@ -17,8 +17,8 @@ and oT = FOLogic.oT;
 
 structure Lfp =
   struct
-  val oper      = Const("lfp",      [iT,iT-->iT]--->iT)
-  val bnd_mono  = Const("bnd_mono", [iT,iT-->iT]--->oT)
+  val oper      = Const("Fixedpt.lfp", [iT,iT-->iT]--->iT)
+  val bnd_mono  = Const("Fixedpt.bnd_mono", [iT,iT-->iT]--->oT)
   val bnd_monoI = bnd_monoI
   val subs      = def_lfp_subset
   val Tarski    = def_lfp_Tarski
@@ -64,8 +64,8 @@ structure Ind_Package =
 
 structure Gfp =
   struct
-  val oper      = Const("gfp",      [iT,iT-->iT]--->iT)
-  val bnd_mono  = Const("bnd_mono", [iT,iT-->iT]--->oT)
+  val oper      = Const("Fixedpt.gfp", [iT,iT-->iT]--->iT)
+  val bnd_mono  = Const("Fixedpt.bnd_mono", [iT,iT-->iT]--->oT)
   val bnd_monoI = bnd_monoI
   val subs      = def_gfp_subset
   val Tarski    = def_gfp_Tarski
@@ -74,9 +74,9 @@ structure Gfp =
 
 structure Quine_Prod =
   struct
-  val sigma     = Const("QSigma", [iT, iT-->iT]--->iT)
-  val pair      = Const("QPair", [iT,iT]--->iT)
-  val split_name = "qsplit"
+  val sigma     = Const("QPair.QSigma", [iT, iT-->iT]--->iT)
+  val pair      = Const("QPair.QPair", [iT,iT]--->iT)
+  val split_name = "QPair.qsplit"
   val pair_iff  = QPair_iff
   val split_eq  = qsplit
   val fsplitI   = qsplitI
@@ -88,10 +88,10 @@ structure Quine_CP = CartProd_Fun (Quine_Prod);
 
 structure Quine_Sum =
   struct
-  val sum       = Const("op <+>", [iT,iT]--->iT)
-  val inl       = Const("QInl", iT-->iT)
-  val inr       = Const("QInr", iT-->iT)
-  val elim      = Const("qcase", [iT-->iT, iT-->iT, iT]--->iT)
+  val sum       = Const("QPair.op <+>", [iT,iT]--->iT)
+  val inl       = Const("QPair.QInl", iT-->iT)
+  val inr       = Const("QPair.QInr", iT-->iT)
+  val elim      = Const("QPair.qcase", [iT-->iT, iT-->iT, iT]--->iT)
   val case_inl  = qcase_QInl
   val case_inr  = qcase_QInr
   val inl_iff   = QInl_iff

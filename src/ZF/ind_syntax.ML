@@ -35,7 +35,7 @@ val Part_const = Const("Part", [iT,iT-->iT]--->iT);
 
 val apply_const = Const("op `", [iT,iT]--->iT);
 
-val Vrecursor_const = Const("Vrecursor", [[iT,iT]--->iT, iT]--->iT);
+val Vrecursor_const = Const("Univ.Vrecursor", [[iT,iT]--->iT, iT]--->iT);
 
 val Collect_const = Const("Collect", [iT, iT-->FOLogic.oT] ---> iT);
 fun mk_Collect (a,D,t) = Collect_const $ D $ absfree(a, iT, t);
@@ -103,8 +103,8 @@ fun mk_all_intr_tms sg arg = List.concat (ListPair.map (mk_intr_tms sg) arg);
 
 val Un          = Const("op Un", [iT,iT]--->iT)
 and empty       = Const("0", iT)
-and univ        = Const("univ", iT-->iT)
-and quniv       = Const("quniv", iT-->iT);
+and univ        = Const("Univ.univ", iT-->iT)
+and quniv       = Const("QUniv.quniv", iT-->iT);
 
 (*Make a datatype's domain: form the union of its set parameters*)
 fun union_params rec_tm =
