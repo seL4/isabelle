@@ -32,7 +32,7 @@ sig
   val thms_containing: theory -> string list -> (string * thm) list
   val store_thm: (bstring * thm) * theory attribute list -> theory -> theory * thm
   val smart_store_thms: (bstring * thm list) -> thm list
-  val open_smart_store_thms: (bstring * thm list) -> thm list
+  val smart_store_thms_open: (bstring * thm list) -> thm list
   val forall_elim_var: int -> thm -> thm
   val forall_elim_vars: int -> thm -> thm
   val add_thms: ((bstring * thm) * theory attribute list) list -> theory -> theory * thm list
@@ -318,7 +318,7 @@ fun gen_smart_store_thms _ _ (name, []) =
       in snd (enter_thms (Sign.deref sg_ref) name_thm name_thm I () (name, thms)) end;
 
 val smart_store_thms = gen_smart_store_thms name_thm name_thms;
-val open_smart_store_thms = gen_smart_store_thms (K I) (K I);
+val smart_store_thms_open = gen_smart_store_thms (K I) (K I);
 
 
 (* forall_elim_vars (belongs to drule.ML) *)
@@ -493,8 +493,7 @@ val proto_pure =
     ("TYPE", "'a itself", NoSyn),
     (Term.dummy_patternN, "'a", Delimfix "'_")]
   |> Theory.add_modesyntax ("", false)
-    (("Goal", "prop => prop", Mixfix ("_", [0], 0))
-      :: Syntax.pure_appl_syntax)
+    (Syntax.pure_syntax_output @ Syntax.pure_appl_syntax)
   |> local_path
   |> (#1 oo (add_defs false o map Thm.no_attributes))
    [("flexpair_def", "(t =?= u) == (t == u::'a::{})")]
