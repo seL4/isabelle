@@ -1,12 +1,11 @@
-(*  Title:      HOL/Integ/Equiv.thy
-    ID:         $Id$
+(*  ID:         $Id$
     Authors:    Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1996  University of Cambridge
 *)
 
-header {* Equivalence relations in Higher-Order Set Theory *}
+header {* Equivalence Relations in Higher-Order Set Theory *}
 
-theory Equiv
+theory Equiv_Relations
 imports Relation Finite_Set
 begin
 
