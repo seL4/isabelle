@@ -1,2 +1,0 @@
-
-intr_elim = Nat

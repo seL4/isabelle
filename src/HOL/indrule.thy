@@ -1,2 +1,0 @@
-
-indrule = intr_elim
