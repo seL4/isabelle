@@ -54,6 +54,7 @@ sig
     -> context -> context * ((string * thm list) * thm list)
   val fix: (string * string option) list -> context -> context
   val fix_i: (string * typ) list -> context -> context
+  val transfer_used_names: context -> context -> context
   val setup: (theory -> theory) list
 end;
 
@@ -685,6 +686,12 @@ fun gen_fixs prep check xs ctxt = foldl (gen_fix prep check) (ctxt, xs);
 val fix = gen_fixs read_skolemT true;
 val fix_i = gen_fixs cert_typ false;
 
+
+(* transfer_used_names *)
+
+fun transfer_used_names (Context {asms = (_, (_, names)), defs = (_, _, _, used), ...}) =
+  map_context (fn (thy, data, (asms, (fixes, _)), binds, thms, (types, sorts, maxidx, _)) =>
+    (thy, data, (asms, (fixes, names)), binds, thms, (types, sorts, maxidx, used)));
 
 
 (** theory setup **)
