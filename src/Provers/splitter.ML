@@ -339,6 +339,7 @@ fun split_asm_tac []     = K no_tac
 	      |   first_prem_is_disj (Const("all",_)$Abs(_,_,t)) = 
 					first_prem_is_disj t
 	      |   first_prem_is_disj _ = false;
+      (* does not work properly if the split variable is bound by a quantfier *)
 	      fun flat_prems_tac i = SUBGOAL (fn (t,i) => 
 			   (if first_prem_is_disj t
 			    then EVERY[etac Data.disjE i,rotate_tac ~1 i,
