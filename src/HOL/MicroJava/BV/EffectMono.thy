@@ -130,7 +130,7 @@ proof -
     next
       case Store
       with G app show ?thesis
-        by (cases s2, auto simp add: map_eq_Cons sup_loc_Cons2 sup_state_conv)
+        by (cases s2, auto simp add: sup_loc_Cons2 sup_state_conv)
     next
       case LitPush
       with G app show ?thesis by (cases s2, auto simp add: sup_state_conv)

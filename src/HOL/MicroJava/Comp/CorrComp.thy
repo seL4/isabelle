@@ -300,7 +300,7 @@ apply (frule_tac C=Object in method_wf_mdecl)
 apply (subst method_rec) apply simp
 apply force
 apply assumption
-apply (simp only: override_def)
+apply (simp only: map_add_def)
 apply (split option.split)
 apply (rule conjI)
 apply force

@@ -101,17 +101,9 @@ by (simp add: the_map_upd)
 
 lemma map_map_upds [rule_format (no_asm), simp]: 
 "\<forall> f vs. (\<forall>y\<in>set ys. y \<notin> set xs) \<longrightarrow> map (the \<circ> f(ys[\<mapsto>]vs)) xs = map (the \<circ> f) xs"
-apply (induct ys)
-apply simp
-apply (intro strip)
-apply (simp only: map_upds.simps)
-apply (subgoal_tac "\<forall>y\<in>set list. y \<notin> set xs")
-apply (subgoal_tac "a\<notin> set xs")
-apply (subgoal_tac "map (the \<circ> f(a\<mapsto>hd vs)(list[\<mapsto>]tl vs)) xs = map (the \<circ> f(a\<mapsto>hd vs)) xs")
-apply (simp only:)
-apply (erule map_map_upd)
-apply blast
-apply simp+
+apply (induct xs)
+ apply simp
+apply fastsimp
 done
 
 lemma map_upds_distinct [rule_format (no_asm), simp]: 
@@ -121,11 +113,10 @@ apply simp
 apply (intro strip)
 apply (case_tac vs)
 apply simp
-apply (simp only: map_upds.simps distinct.simps hd.simps tl.simps)
+apply (simp only: map_upds_Cons distinct.simps hd.simps tl.simps map.simps)
 apply clarify
-apply (simp only: map.simps map_map_upd)
+apply (simp del: o_apply)
 apply simp
-apply (simp add: o_def)
 done
 
 
@@ -138,7 +129,8 @@ lemma map_upds_SomeD [rule_format (no_asm)]:
   "\<forall> m ys. (m(xs[\<mapsto>]ys)) k = Some y \<longrightarrow> k \<in> (set xs) \<or> (m k = Some y)"
 apply (induct xs)
 apply simp
-apply (case_tac "k = a")
+apply auto
+apply(case_tac ys)
 apply auto
 done
 

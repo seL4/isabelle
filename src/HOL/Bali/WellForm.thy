@@ -1514,7 +1514,7 @@ lemma current_methd:
         methd G (super c) sig = Some old\<rbrakk> 
     \<Longrightarrow> methd G C sig = Some (C,new)"
 by (auto simp add: methd_rec
-            intro: filter_tab_SomeI override_find_right table_of_map_SomeI)
+            intro: filter_tab_SomeI map_add_find_right table_of_map_SomeI)
 
 lemma wf_prog_staticD:
   assumes     wf: "wf_prog G" and
@@ -1667,8 +1667,7 @@ proof -
 	    by (auto simp add: inherits_def)
 	  with clsC ws no_new super neq_C_Obj
 	  have "methd G C sig = Some super_method"
-	    by (auto simp add: methd_rec override_def
-	                intro: filter_tab_SomeI)
+	    by (auto simp add: methd_rec map_add_def intro: filter_tab_SomeI)
           with None show ?thesis
 	    by simp
 	qed

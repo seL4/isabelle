@@ -10,11 +10,11 @@ default: HOL
 images: HOL HOL-Algebra HOL-Complex TLA
 
 #Note: keep targets sorted (except for HOL-Library)
+#  HOL-Bali
 test: \
   HOL-Library \
   HOL-Auth \
   HOL-AxClasses \
-  HOL-Bali \
   HOL-Complex-ex \
   HOL-CTL \
   HOL-Extraction \

@@ -387,12 +387,12 @@ theorem sup_state_append_fst:
 theorem sup_state_Cons1:
   "(G \<turnstile> (x#xt, a) <=s (yt, b)) = 
    (\<exists>y yt'. yt=y#yt' \<and> (G \<turnstile> x \<preceq> y) \<and> (G \<turnstile> (xt,a) <=s (yt',b)))"
-  by (auto simp add: sup_state_def stk_convert lesub_def Product.le_def map_eq_Cons)
+  by (auto simp add: sup_state_def stk_convert lesub_def Product.le_def)
 
 theorem sup_state_Cons2:
   "(G \<turnstile> (xt, a) <=s (y#yt, b)) = 
    (\<exists>x xt'. xt=x#xt' \<and> (G \<turnstile> x \<preceq> y) \<and> (G \<turnstile> (xt',a) <=s (yt,b)))"
-  by (auto simp add: sup_state_def stk_convert lesub_def Product.le_def map_eq_Cons sup_loc_Cons2)
+  by (auto simp add: sup_state_def stk_convert lesub_def Product.le_def sup_loc_Cons2)
 
 theorem sup_state_ignore_fst:  
   "G \<turnstile> (a, x) <=s (b, y) \<Longrightarrow> G \<turnstile> (c, x) <=s (c, y)"

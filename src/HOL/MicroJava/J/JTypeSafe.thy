@@ -398,4 +398,3 @@ declare fun_upd_apply [simp]
 
 end
 
-

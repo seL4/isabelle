@@ -254,7 +254,7 @@ apply (simp add: map_of_map) apply (erule exE)+ apply simp
 apply (rule inv_f_eq) apply (simp add: inj_on_def) apply simp
 
 apply (intro strip)
-apply (simp add: override_Some_iff map_of_map del: split_paired_Ex)
+apply (simp add: map_add_Some_iff map_of_map del: split_paired_Ex)
 apply (subgoal_tac "\<forall>x\<in>set ms. fst ((Fun.comp (\<lambda>(s, m). (s, Ca, m)) (compMethod G Ca)) x) = fst x")
 (*
 apply (subgoal_tac "\<forall>x\<in>set ms. fst (((\<lambda>(s, m). (s, Ca, m)) \<circ> compMethod G Ca) x) = fst x")
@@ -329,14 +329,14 @@ apply (simp (no_asm_simp) add: comp_method_result_def expand_fun_eq)
 apply (case_tac "(method (G, D) ++  map_of (map (\<lambda>(s, m). (s, C, m)) ms)) S")
 
   (* case None *)
-apply (simp (no_asm_simp) add: override_None)
+apply (simp (no_asm_simp) add: map_add_None)
 apply (simp add: map_of_map_compMethod comp_method_result_def) 
 
   (* case Some *)
-apply (simp add: override_Some_iff)
+apply (simp add: map_add_Some_iff)
 apply (erule disjE)
   apply (simp add: split_beta map_of_map_compMethod)
-  apply (simp add: override_def comp_method_result_def map_of_map_compMethod)
+  apply (simp add: map_add_def comp_method_result_def map_of_map_compMethod)
 
   (* show subgoals *)
 apply (simp add: comp_subcls1) 

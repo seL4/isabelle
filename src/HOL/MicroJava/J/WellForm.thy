@@ -324,7 +324,7 @@ apply( frule_tac C = C in method_rec)
 apply(  assumption)
 apply( rotate_tac -1)
 apply( simp)
-apply( drule override_SomeD)
+apply( drule map_add_SomeD)
 apply( erule disjE)
 apply(  erule_tac V = "?P --> ?Q" in thin_rl)
 apply (frule map_of_SomeD)
@@ -368,7 +368,7 @@ apply( drule subcls1D)
 apply( clarify)
 apply( subst method_rec)
 apply(  assumption)
-apply( unfold override_def)
+apply( unfold map_add_def)
 apply( simp (no_asm_simp) del: split_paired_Ex)
 apply( case_tac "\<exists>z. map_of(map (\<lambda>(s,m). (s, ?C, m)) ms) sig = Some z")
 apply(  erule exE)
@@ -412,7 +412,7 @@ apply (clarsimp)
  apply (subst method_rec)
    apply (assumption)
   apply (assumption)
- apply (simp add: override_def map_of_map split add: option.split)
+ apply (simp add: map_add_def map_of_map split add: option.split)
 done
 
 
@@ -453,7 +453,7 @@ apply simp
 
 apply clarify
 apply (subgoal_tac "((field (G, D)) ++ map_of (map (\<lambda>(s, f). (s, C, f)) fs)) vn = Some (Da, T)")
-apply (simp (no_asm_use) only:  override_Some_iff)
+apply (simp (no_asm_use) only: map_add_Some_iff)
 apply (erule disjE)
 apply (simp (no_asm_use) add: map_of_map) apply blast
 apply blast

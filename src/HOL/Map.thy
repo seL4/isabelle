@@ -14,7 +14,7 @@ types ('a,'b) "~=>" = "'a => 'b option" (infixr 0)
 
 consts
 chg_map	:: "('b => 'b) => 'a => ('a ~=> 'b) => ('a ~=> 'b)"
-override:: "('a ~=> 'b) => ('a ~=> 'b) => ('a ~=> 'b)" (infixl "++" 100)
+map_add:: "('a ~=> 'b) => ('a ~=> 'b) => ('a ~=> 'b)" (infixl "++" 100)
 dom	:: "('a ~=> 'b) => 'a set"
 ran	:: "('a ~=> 'b) => 'b set"
 map_of	:: "('a * 'b)list => 'a ~=> 'b"
@@ -43,19 +43,18 @@ translations
 defs
 chg_map_def:  "chg_map f a m == case m a of None => m | Some b => m(a|->f b)"
 
-override_def: "m1++m2 == %x. case m2 x of None => m1 x | Some y => Some y"
+map_add_def: "m1++m2 == %x. case m2 x of None => m1 x | Some y => Some y"
+
+map_upds_def: "m(xs [|->] ys) == m ++ map_of (rev(zip xs ys))"
 
 dom_def: "dom(m) == {a. m a ~= None}"
-ran_def: "ran(m) == {b. ? a. m a = Some b}"
+ran_def: "ran(m) == {b. EX a. m a = Some b}"
 
 map_le_def: "m1 \<subseteq>\<^sub>m m2  ==  ALL a : dom m1. m1 a = m2 a"
 
 primrec
   "map_of [] = empty"
   "map_of (p#ps) = (map_of ps)(fst p |-> snd p)"
-
-primrec "t([]  [|->]bs) = t"
-        "t(a#as[|->]bs) = t(a|->hd bs)(as[|->]tl bs)"
 
 
 subsection {* empty *}
@@ -115,27 +114,6 @@ apply (rule ext)
 apply (simp (no_asm) split add: sum.split)
 done
 
-
-subsection {* map\_upds *}
-
-lemma map_upd_upds_conv_if:
- "!!x y ys f. (f(x|->y))(xs [|->] ys) =
-              (if x : set xs then f(xs [|->] ys) else (f(xs [|->] ys))(x|->y))"
-apply(induct xs)
- apply simp
-apply(simp split:split_if add:fun_upd_twist eq_sym_conv)
-done
-
-lemma map_upds_twist [simp]:
- "a ~: set as ==> m(a|->b)(as[|->]bs) = m(as[|->]bs)(a|->b)"
-by (simp add: map_upd_upds_conv_if)
-
-lemma map_upds_apply_nontin[simp]:
- "!!ys. x ~: set xs ==> (f(xs[|->]ys)) x = f x"
-apply(induct xs)
- apply simp
-apply(simp add: fun_upd_apply map_upd_upds_conv_if split:split_if)
-done
 
 subsection {* chg\_map *}
 
@@ -207,45 +185,49 @@ done
 
 subsection {* ++ *}
 
-lemma override_empty[simp]: "m ++ empty = m"
-apply (unfold override_def)
+lemma map_add_empty[simp]: "m ++ empty = m"
+apply (unfold map_add_def)
 apply (simp (no_asm))
 done
 
-lemma empty_override[simp]: "empty ++ m = m"
-apply (unfold override_def)
+lemma empty_map_add[simp]: "empty ++ m = m"
+apply (unfold map_add_def)
 apply (rule ext)
 apply (simp split add: option.split)
 done
 
-lemma override_Some_iff [rule_format (no_asm)]: 
+lemma map_add_assoc[simp]: "m1 ++ (m2 ++ m3) = (m1 ++ m2) ++ m3"
+apply(rule ext)
+apply(simp add: map_add_def split:option.split)
+done
+
+lemma map_add_Some_iff: 
  "((m ++ n) k = Some x) = (n k = Some x | n k = None & m k = Some x)"
-apply (unfold override_def)
+apply (unfold map_add_def)
 apply (simp (no_asm) split add: option.split)
 done
 
-lemmas override_SomeD = override_Some_iff [THEN iffD1, standard]
-declare override_SomeD [dest!]
+lemmas map_add_SomeD = map_add_Some_iff [THEN iffD1, standard]
+declare map_add_SomeD [dest!]
 
-lemma override_find_right[simp]: "!!xx. n k = Some xx ==> (m ++ n) k = Some xx"
-apply (subst override_Some_iff)
+lemma map_add_find_right[simp]: "!!xx. n k = Some xx ==> (m ++ n) k = Some xx"
+apply (subst map_add_Some_iff)
 apply fast
 done
 
-lemma override_None [iff]: "((m ++ n) k = None) = (n k = None & m k = None)"
-apply (unfold override_def)
+lemma map_add_None [iff]: "((m ++ n) k = None) = (n k = None & m k = None)"
+apply (unfold map_add_def)
 apply (simp (no_asm) split add: option.split)
 done
 
-lemma override_upd[simp]: "f ++ g(x|->y) = (f ++ g)(x|->y)"
-apply (unfold override_def)
+lemma map_add_upd[simp]: "f ++ g(x|->y) = (f ++ g)(x|->y)"
+apply (unfold map_add_def)
 apply (rule ext)
 apply auto
 done
 
-lemma map_of_override[simp]: "map_of ys ++ map_of xs = map_of (xs@ys)"
-apply (unfold override_def)
-apply (rule sym)
+lemma map_of_append[simp]: "map_of (xs@ys) = map_of ys ++ map_of xs"
+apply (unfold map_add_def)
 apply (induct_tac "xs")
 apply (simp (no_asm))
 apply (rule ext)
@@ -253,13 +235,50 @@ apply (simp (no_asm_simp) split add: option.split)
 done
 
 declare fun_upd_apply [simp del]
-lemma finite_range_map_of_override: "finite (range f) ==> finite (range (f ++ map_of l))"
+lemma finite_range_map_of_map_add:
+ "finite (range f) ==> finite (range (f ++ map_of l))"
 apply (induct_tac "l")
 apply  auto
 apply (erule finite_range_updI)
 done
 declare fun_upd_apply [simp]
 
+
+subsection {* map\_upds *}
+
+lemma map_upds_Nil1[simp]: "m([] [|->] bs) = m"
+by(simp add:map_upds_def)
+
+lemma map_upds_Nil2[simp]: "m(as [|->] []) = m"
+by(simp add:map_upds_def)
+
+lemma map_upds_Cons[simp]: "m(a#as [|->] b#bs) = (m(a|->b))(as[|->]bs)"
+by(simp add:map_upds_def)
+
+
+lemma map_upd_upds_conv_if: "!!x y ys f.
+ (f(x|->y))(xs [|->] ys) =
+ (if x : set(take (length ys) xs) then f(xs [|->] ys)
+                                  else (f(xs [|->] ys))(x|->y))"
+apply(induct xs)
+ apply simp
+apply(case_tac ys)
+ apply(auto split:split_if simp:fun_upd_twist)
+done
+
+lemma map_upds_twist [simp]:
+ "a ~: set as ==> m(a|->b)(as[|->]bs) = m(as[|->]bs)(a|->b)"
+apply(insert set_take_subset)
+apply (fastsimp simp add: map_upd_upds_conv_if)
+done
+
+lemma map_upds_apply_nontin[simp]:
+ "!!ys. x ~: set xs ==> (f(xs[|->]ys)) x = f x"
+apply(induct xs)
+ apply simp
+apply(case_tac ys)
+ apply(auto simp: map_upd_upds_conv_if)
+done
 
 subsection {* dom *}
 
@@ -287,13 +306,6 @@ done
 lemma dom_fun_upd[simp]:
  "dom(f(x := y)) = (if y=None then dom f - {x} else insert x (dom f))"
 by (simp add:dom_def) blast
-(*
-lemma dom_map_upd[simp]: "dom(m(a|->b)) = insert a (dom m)"
-apply (unfold dom_def)
-apply (simp (no_asm))
-apply blast
-done
-*)
 
 lemma dom_map_of: "dom(map_of xys) = {x. \<exists>y. (x,y) : set xys}"
 apply(induct xys)
@@ -306,10 +318,15 @@ apply (induct_tac "l")
 apply (auto simp add: insert_Collect [symmetric])
 done
 
-lemma dom_map_upds[simp]: "!!m vs. dom(m(xs[|->]vs)) = set xs Un dom m"
-by(induct xs, simp_all)
+lemma dom_map_upds[simp]:
+ "!!m ys. dom(m(xs[|->]ys)) = set(take (length ys) xs) Un dom m"
+apply(induct xs)
+ apply simp
+apply(case_tac ys)
+ apply auto
+done
 
-lemma dom_override[simp]: "dom(m++n) = dom n Un dom m"
+lemma dom_map_add[simp]: "dom(m++n) = dom n Un dom m"
 apply (unfold dom_def)
 apply auto
 done
@@ -342,6 +359,10 @@ by(fastsimp simp add:map_le_def)
 
 lemma map_le_upds[simp]:
  "!!f g bs. f \<subseteq>\<^sub>m g ==> f(as [|->] bs) \<subseteq>\<^sub>m g(as [|->] bs)"
-by(induct as, auto)
+apply(induct as)
+ apply simp
+apply(case_tac bs)
+ apply auto
+done
 
 end

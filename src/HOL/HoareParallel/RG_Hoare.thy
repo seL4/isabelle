@@ -658,6 +658,7 @@ apply(subgoal_tac "length xs<length (x # xs)")
 apply simp
 done
 
+declare map_eq_Cons_conv [simp del] Cons_eq_map_conv [simp del]
 lemma Seq_sound1 [rule_format]: 
   "x\<in> cptn_mod \<Longrightarrow> \<forall>s P. x !0=(Some (Seq P Q), s) \<longrightarrow> 
   (\<forall>i<length x. fst(x!i)\<noteq>Some Q) \<longrightarrow> 
@@ -670,8 +671,7 @@ apply simp_all
     apply(rule_tac x="[(Some Pa, sa)]" in exI,simp add:CptnOne)
    apply(subgoal_tac "(\<forall>i < Suc (length xs). fst (((Some (Seq Pa Q), t) # xs) ! i) \<noteq> Some Q)")
     apply clarify
-    apply(case_tac xsa,simp,simp)
-    apply(rule_tac x="(Some Pa, sa) #(Some Pa, t) # list" in exI,simp)
+    apply(rule_tac x="(Some Pa, sa) #(Some Pa, t) # zs" in exI,simp)
     apply(rule conjI,erule CptnEnv)
     apply(simp (no_asm_use) add:lift_def)
    apply clarify
@@ -686,6 +686,7 @@ apply(subgoal_tac "length xs < length ((Some P, sa) # xs)")
  apply(simp add:lift_def)
 apply simp
 done
+declare map_eq_Cons_conv [simp del] Cons_eq_map_conv [simp del]
 
 lemma Seq_sound2 [rule_format]: 
   "x \<in> cptn \<Longrightarrow> \<forall>s P i. x!0=(Some (Seq P Q), s) \<longrightarrow> i<length x 

@@ -81,7 +81,7 @@ apply simp
 apply (rule allI)
 apply (drule_tac x="a # ys" in spec)
 apply (simp only: rev.simps append_assoc append_Cons append_Nil
-  map.simps map_of.simps map_upds.simps hd.simps tl.simps)
+  map.simps map_of.simps map_upds_Cons hd.simps tl.simps)
 done
 
 lemma map_of_as_map_upds: "map_of (rev xs) = empty ((map fst xs) [\<mapsto>] (map snd xs))"
@@ -90,7 +90,8 @@ by (rule map_of_append [of _ "[]", simplified])
 lemma map_of_rev: "unique xs \<Longrightarrow> map_of (rev xs) = map_of xs"
 apply (induct xs)
 apply simp
-apply (simp add: unique_def map_of_append map_of_as_map_upds [THEN sym])
+apply (simp add: unique_def map_of_append map_of_as_map_upds [THEN sym]
+                 Map.map_of_append[symmetric] del:Map.map_of_append)
 done
 
 lemma map_upds_rev [rule_format]: "\<forall> xs. (distinct ks \<longrightarrow> length ks = length xs 

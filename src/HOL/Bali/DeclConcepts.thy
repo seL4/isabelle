@@ -1650,7 +1650,7 @@ lemma methd_norec:
  "\<lbrakk>class G declC = Some c; ws_prog G;table_of (methods c) sig = Some m\<rbrakk> 
   \<Longrightarrow> methd G declC sig = Some (declC, m)"
 apply (simp only: methd_rec)
-apply (rule disjI1 [THEN override_Some_iff [THEN iffD2]])
+apply (rule disjI1 [THEN map_add_Some_iff [THEN iffD2]])
 apply (auto elim: table_of_map_SomeI)
 done
 
@@ -1764,7 +1764,7 @@ apply (intro strip)
 apply (erule_tac ws_subcls1_induct, assumption)
 apply (subst methd_rec)
 apply (assumption)
-apply (auto intro!: finite_range_map_of finite_range_filter_tab finite_range_map_of_override)
+apply (auto intro!: finite_range_map_of finite_range_filter_tab finite_range_map_of_map_add)
 done
 
 lemma finite_dom_methd:
@@ -1880,7 +1880,7 @@ proof -
 	 case True
 	 with subclseq_dynC_statC statM dynmethd_dynC_def
 	 have "?Dynmethd_def dynC sig = Some statM"
-	   by (auto intro: override_find_right filter_tab_SomeI)
+	   by (auto intro: map_add_find_right filter_tab_SomeI)
 	 with subclseq_dynC_statC True Some 
 	 show ?thesis
 	   by auto
@@ -2201,8 +2201,8 @@ lemma fields_norec:
  \<Longrightarrow> table_of (fields G fd) (fn,fd) = Some f"
 apply (subst fields_rec)
 apply assumption+
-apply (subst map_of_override [symmetric])
-apply (rule disjI1 [THEN override_Some_iff [THEN iffD2]])
+apply (subst map_of_append)
+apply (rule disjI1 [THEN map_add_Some_iff [THEN iffD2]])
 apply (auto elim: table_of_map2_SomeI)
 done
 
@@ -2222,9 +2222,9 @@ apply (erule make_imp)
 apply (rule ws_subcls1_induct, assumption, assumption)
 apply (subst fields_rec, assumption)
 apply clarify
-apply (simp only: map_of_override [symmetric] del: map_of_override)
+apply (simp only: map_of_append)
 apply (case_tac "table_of (map (split (\<lambda>fn. Pair (fn, Ca))) (cfields c)) efn") 
-apply   (force intro:rtrancl_into_rtrancl2 simp add: override_def)
+apply   (force intro:rtrancl_into_rtrancl2 simp add: map_add_def)
 
 apply   (frule_tac fd="Ca" in fields_norec)
 apply     assumption
@@ -2232,7 +2232,7 @@ apply     blast
 apply   (frule table_of_fieldsD)  
 apply   (frule_tac n="table_of (map (split (\<lambda>fn. Pair (fn, Ca))) (cfields c))"
               and  m="table_of (if Ca = Object then [] else fields G (super c))"
-         in override_find_right)
+         in map_add_find_right)
 apply   (case_tac "efn")
 apply   (simp)
 done

@@ -49,9 +49,9 @@ translations
   (type)"('a, 'b) table" <= (type)"'a \<leadsto> 'b"
 
 (* ### To map *)
-lemma override_find_left[simp]:
+lemma map_add_find_left[simp]:
 "n k = None \<Longrightarrow> (m ++ n) k = m k"
-by (simp add: override_def)
+by (simp add: map_add_def)
 
 section {* Conditional Override *}
 constdefs
@@ -278,8 +278,8 @@ done
 
 lemma table_append_Some_iff: "table_of (xs@ys) k = Some z = 
  (table_of xs k = Some z \<or> (table_of xs k = None \<and> table_of ys k = Some z))"
-apply (simp only: map_of_override [THEN sym])
-apply (rule override_Some_iff)
+apply (simp)
+apply (rule map_add_Some_iff)
 done
 
 lemma table_of_filter_unique_SomeD [rule_format (no_asm)]:

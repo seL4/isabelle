@@ -225,9 +225,9 @@ lemma lconf_ext_list [rule_format (no_asm)]: "
 apply (unfold lconf_def)
 apply (induct_tac "vns")
 apply  clarsimp
-apply clarsimp
+apply clarify
 apply (frule list_all2_lengthD)
-apply clarsimp
+apply (clarsimp)
 done
 
 
@@ -308,7 +308,7 @@ lemma wlconf_ext_list [rule_format (no_asm)]: "
 apply (unfold wlconf_def)
 apply (induct_tac "vns")
 apply  clarsimp
-apply clarsimp
+apply clarify
 apply (frule list_all2_lengthD)
 apply clarsimp
 done

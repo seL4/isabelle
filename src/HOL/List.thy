@@ -269,6 +269,14 @@ lemma length_Suc_conv:
 "(length xs = Suc n) = (\<exists>y ys. xs = y # ys \<and> length ys = n)"
 by (induct xs) auto
 
+lemma Suc_length_conv:
+"(Suc n = length xs) = (\<exists>y ys. xs = y # ys \<and> length ys = n)"
+apply (induct xs)
+ apply simp
+apply simp
+apply blast
+done
+
 
 subsection {* @{text "@"} -- append *}
 
@@ -441,13 +449,17 @@ by (cases xs) auto
 lemma Nil_is_map_conv [iff]: "([] = map f xs) = (xs = [])"
 by (cases xs) auto
 
-lemma map_eq_Cons:
-"(map f xs = y # ys) = (\<exists>x xs'. xs = x # xs' \<and> f x = y \<and> map f xs' = ys)"
+lemma map_eq_Cons_conv[iff]:
+ "(map f xs = y#ys) = (\<exists>z zs. xs = z#zs \<and> f z = y \<and> map f zs = ys)"
 by (cases xs) auto
 
+lemma Cons_eq_map_conv[iff]:
+ "(x#xs = map f ys) = (\<exists>z zs. ys = z#zs \<and> x = f z \<and> xs = map f zs)"
+by (cases ys) auto
+
 lemma map_injective:
-"!!xs. map f xs = map f ys ==> (\<forall>x y. f x = f y --> x = y) ==> xs = ys"
-by (induct ys) (auto simp add: map_eq_Cons)
+ "!!xs. map f xs = map f ys ==> (\<forall>x y. f x = f y --> x = y) ==> xs = ys"
+by (induct ys) auto
 
 lemma inj_mapI: "inj f ==> inj (map f)"
 by (rules dest: map_injective injD intro: inj_onI)
@@ -857,6 +869,12 @@ apply (induct n)
 apply (case_tac xs)
  apply auto
 done
+
+lemma set_take_subset: "\<And>n. set(take n xs) \<subseteq> set xs"
+by(induct xs)(auto simp:take_Cons split:nat.split)
+
+lemma set_drop_subset: "\<And>n. set(drop n xs) \<subseteq> set xs"
+by(induct xs)(auto simp:drop_Cons split:nat.split)
 
 lemma append_eq_conv_conj:
 "!!zs. (xs @ ys = zs) = (xs = take (length xs) zs \<and> ys = drop (length xs) zs)"
