@@ -143,10 +143,10 @@ fun declare_rulify (thy, th) = (add_rulify th thy, th);
 
 (* atomize *)
 
-fun rewrite_prems_tac rews i = PRIMITIVE (MetaSimplifier.fconv_rule
-  (MetaSimplifier.goals_conv (Library.equal i)
-    (MetaSimplifier.forall_conv
-      (MetaSimplifier.goals_conv (K true) (Tactic.rewrite true rews)))));
+fun rewrite_prems_tac rews i = PRIMITIVE (Drule.fconv_rule
+  (Drule.goals_conv (Library.equal i)
+    (Drule.forall_conv
+      (Drule.goals_conv (K true) (Tactic.rewrite true rews)))));
 
 fun atomize_term sg =
   drop_judgment sg o MetaSimplifier.rewrite_term sg (get_atomize sg) [];

@@ -28,7 +28,7 @@ fun lookup_thm thy =
   end;
 
 val beta_eta_convert =
-  MetaSimplifier.fconv_rule MetaSimplifier.beta_eta_conversion;
+  Drule.fconv_rule Drule.beta_eta_conversion;
 
 fun thm_of_proof thy prf =
   let

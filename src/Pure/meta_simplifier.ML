@@ -43,12 +43,8 @@ sig
   val get_mk_sym        : meta_simpset -> thm -> thm option
   val get_mk_eq_True    : meta_simpset -> thm -> thm option
   val set_termless      : meta_simpset * (term * term -> bool) -> meta_simpset
-  val beta_eta_conversion: cterm -> thm
   val rewrite_cterm: bool * bool * bool ->
     (meta_simpset -> thm -> thm option) -> meta_simpset -> cterm -> thm
-  val goals_conv        : (int -> bool) -> (cterm -> thm) -> cterm -> thm
-  val forall_conv       : (cterm -> thm) -> cterm -> thm
-  val fconv_rule        : (cterm -> thm) -> thm -> thm
   val rewrite_aux       : (meta_simpset -> thm -> thm option) -> bool -> thm list -> cterm -> thm
   val simplify_aux      : (meta_simpset -> thm -> thm option) -> bool -> thm list -> thm -> thm
   val rewrite_thm       : bool * bool * bool
@@ -544,14 +540,10 @@ val dest_eq = Drule.dest_equals o cprop_of;
 val lhs_of = fst o dest_eq;
 val rhs_of = snd o dest_eq;
 
-fun beta_eta_conversion t =
-  let val thm = beta_conversion true t;
-  in transitive thm (eta_conversion (rhs_of thm)) end;
-
 fun check_conv msg thm thm' =
   let
     val thm'' = transitive thm (transitive
-      (symmetric (beta_eta_conversion (lhs_of thm'))) thm')
+      (symmetric (Drule.beta_eta_conversion (lhs_of thm'))) thm')
   in (if msg then trace_thm "SUCCEEDED" thm' else (); Some thm'') end
   handle THM _ =>
     let val {sign, prop = _ $ _ $ prop0, ...} = rep_thm thm;
@@ -713,7 +705,7 @@ fun congc (prover,signt,maxt) {thm=cong,lhs=lhs} t =
       fun err (msg, thm) = (trace_thm msg thm; None)
   in case prover thm' of
        None => err ("Congruence proof failed.  Could not prove", thm')
-     | Some thm2 => (case check_conv true (beta_eta_conversion t) thm2 of
+     | Some thm2 => (case check_conv true (Drule.beta_eta_conversion t) thm2 of
           None => err ("Congruence proof failed.  Should not have proved", thm2)
         | Some thm2' =>
             if op aconv (pairself term_of (dest_equals (cprop_of thm2')))
@@ -730,8 +722,6 @@ fun transitive1 None None = None
 
 fun transitive2 thm = transitive1 (Some thm);
 fun transitive3 thm = transitive1 thm o Some;
-
-fun imp_cong' e = combination (combination refl_implies e);
 
 fun bottomc ((simprem,useprem,mutsimp), prover, sign, maxidx) =
   let
@@ -897,7 +887,7 @@ fun bottomc ((simprem,useprem,mutsimp), prover, sign, maxidx) =
               val (rrs', asm') = rules_of_prem mss prem'
             in mut_impc prems concl rrss asms (prem' :: prems')
               (rrs' :: rrss') (asm' :: asms') (Some (foldr (disch true)
-                (take (i, prems), imp_cong' eqn (reflexive (Drule.list_implies
+                (take (i, prems), Drule.imp_cong' eqn (reflexive (Drule.list_implies
                   (drop (i, prems), concl))))) :: eqns) mss (length prems') ~1
             end
 
@@ -911,13 +901,13 @@ fun bottomc ((simprem,useprem,mutsimp), prover, sign, maxidx) =
        in (case botc skel0 mss1 conc of
            None => (case thm1 of
                None => None
-             | Some thm1' => Some (imp_cong' thm1' (reflexive conc)))
+             | Some thm1' => Some (Drule.imp_cong' thm1' (reflexive conc)))
          | Some thm2 =>
            let val thm2' = disch false (prem1, thm2)
            in (case thm1 of
                None => Some thm2'
              | Some thm1' =>
-                 Some (transitive (imp_cong' thm1' (reflexive conc)) thm2'))
+                 Some (transitive (Drule.imp_cong' thm1' (reflexive conc)) thm2'))
            end)
        end
 
@@ -947,29 +937,6 @@ fun rewrite_cterm mode prover mss ct =
     error ("Exception THM was raised in simplifier:\n" ^ s ^ "\n" ^
       Pretty.string_of (Display.pretty_thms thms));
 
-(*In [A1,...,An]==>B, rewrite the selected A's only -- for rewrite_goals_tac*)
-fun goals_conv pred cv =
-  let fun gconv i ct =
-        let val (A,B) = Drule.dest_implies ct
-        in imp_cong' (if pred i then cv A else reflexive A) (gconv (i+1) B) end
-        handle TERM _ => reflexive ct
-  in gconv 1 end;
-
-(* Rewrite A in !!x1,...,xn. A *)
-fun forall_conv cv ct =
-  let val p as (ct1, ct2) = Thm.dest_comb ct
-  in (case pairself term_of p of
-      (Const ("all", _), Abs (s, _, _)) =>
-         let val (v, ct') = Thm.dest_abs (Some "@") ct2;
-         in Thm.combination (Thm.reflexive ct1)
-           (Thm.abstract_rule s v (forall_conv cv ct'))
-         end
-    | _ => cv ct)
-  end handle TERM _ => cv ct;
-
-(*Use a conversion to transform a theorem*)
-fun fconv_rule cv th = equal_elim (cv (cprop_of th)) th;
-
 (*Rewrite a cterm*)
 fun rewrite_aux _ _ [] = (fn ct => Thm.reflexive ct)
   | rewrite_aux prover full thms = rewrite_cterm (full, false, false) prover (mss_of thms);
@@ -977,20 +944,20 @@ fun rewrite_aux _ _ [] = (fn ct => Thm.reflexive ct)
 (*Rewrite a theorem*)
 fun simplify_aux _ _ [] = (fn th => th)
   | simplify_aux prover full thms =
-      fconv_rule (rewrite_cterm (full, false, false) prover (mss_of thms));
+      Drule.fconv_rule (rewrite_cterm (full, false, false) prover (mss_of thms));
 
-fun rewrite_thm mode prover mss = fconv_rule (rewrite_cterm mode prover mss);
+fun rewrite_thm mode prover mss = Drule.fconv_rule (rewrite_cterm mode prover mss);
 
 (*Rewrite the subgoals of a proof state (represented by a theorem) *)
 fun rewrite_goals_rule_aux _ []   th = th
   | rewrite_goals_rule_aux prover thms th =
-      fconv_rule (goals_conv (K true) (rewrite_cterm (true, true, false) prover
+      Drule.fconv_rule (Drule.goals_conv (K true) (rewrite_cterm (true, true, false) prover
         (mss_of thms))) th;
 
 (*Rewrite the subgoal of a proof state (represented by a theorem) *)
 fun rewrite_goal_rule mode prover mss i thm =
   if 0 < i  andalso  i <= nprems_of thm
-  then fconv_rule (goals_conv (fn j => j=i) (rewrite_cterm mode prover mss)) thm
+  then Drule.fconv_rule (Drule.goals_conv (fn j => j=i) (rewrite_cterm mode prover mss)) thm
   else raise THM("rewrite_goal_rule",i,[thm]);
 
 

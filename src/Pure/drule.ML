@@ -61,7 +61,6 @@ sig
   val reflexive_thm     : thm
   val symmetric_thm     : thm
   val transitive_thm    : thm
-  val refl_implies      : thm
   val symmetric_fun     : thm -> thm
   val extensional       : thm -> thm
   val imp_cong          : thm
@@ -108,6 +107,11 @@ sig
   val add_rules: thm list -> thm list -> thm list
   val del_rules: thm list -> thm list -> thm list
   val merge_rules: thm list * thm list -> thm list
+  val imp_cong'         : thm -> thm -> thm
+  val beta_eta_conversion: cterm -> thm
+  val goals_conv        : (int -> bool) -> (cterm -> thm) -> cterm -> thm
+  val forall_conv       : (cterm -> thm) -> cterm -> thm
+  val fconv_rule        : (cterm -> thm) -> thm -> thm
   val norm_hhf_eq: thm
   val is_norm_hhf: term -> bool
   val norm_hhf: Sign.sg -> term -> term
@@ -518,7 +522,6 @@ val del_rule = del_rules o single;
 val add_rule = add_rules o single;
 fun merge_rules (rules1, rules2) = gen_merge_lists' eq_thm_prop rules1 rules2;
 
-
 (** Mark Staples's weaker version of eq_thm: ignores variable renaming and
     (some) type variable renaming **)
 
@@ -598,7 +601,7 @@ val swap_prems_eq =
         (implies_elim (implies_elim (assume BAC) (assume B)) (assume A))))))
   end;
 
-val refl_implies = reflexive implies;
+val imp_cong' = combination o combination (reflexive implies)
 
 fun abs_def thm =
   let
@@ -610,6 +613,38 @@ fun abs_def thm =
     (symmetric (eta_conversion (fst (dest_equals (cprop_of thm'))))) thm'
   end;
 
+
+local
+  val dest_eq = dest_equals o cprop_of
+  val rhs_of = snd o dest_eq
+in
+fun beta_eta_conversion t =
+  let val thm = beta_conversion true t
+  in transitive thm (eta_conversion (rhs_of thm)) end
+end;
+
+(*In [A1,...,An]==>B, rewrite the selected A's only -- for rewrite_goals_tac*)
+fun goals_conv pred cv =
+  let fun gconv i ct =
+        let val (A,B) = dest_implies ct
+        in imp_cong' (if pred i then cv A else reflexive A) (gconv (i+1) B) end
+        handle TERM _ => reflexive ct
+  in gconv 1 end
+
+(* Rewrite A in !!x1,...,xn. A *)
+fun forall_conv cv ct =
+  let val p as (ct1, ct2) = Thm.dest_comb ct
+  in (case pairself term_of p of
+      (Const ("all", _), Abs (s, _, _)) =>
+         let val (v, ct') = Thm.dest_abs (Some "@") ct2;
+         in Thm.combination (Thm.reflexive ct1)
+           (Thm.abstract_rule s v (forall_conv cv ct'))
+         end
+    | _ => cv ct)
+  end handle TERM _ => cv ct;
+
+(*Use a conversion to transform a theorem*)
+fun fconv_rule cv th = equal_elim (cv (cprop_of th)) th;
 
 (*** Some useful meta-theorems ***)
 
