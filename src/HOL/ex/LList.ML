@@ -302,10 +302,10 @@ by (res_inst_tac [("n", "k")] less_induct 1);
 by (rtac allI 1);
 by (stac prem1 1);
 by (stac prem2 1);
-by (simp_tac (!simpset setloop (split_tac [expand_split,expand_sum_case])) 1);
+by (simp_tac (!simpset setloop (split_tac [expand_sum_case])) 1);
 by (strip_tac 1);
 by (res_inst_tac [("n", "n")] natE 1);
-by (res_inst_tac [("n", "xc")] natE 2);
+by (res_inst_tac [("n", "xb")] natE 2);
 by (ALLGOALS(asm_simp_tac(!simpset addsimps
             [ntrunc_0,ntrunc_one_CONS,ntrunc_CONS])));
 result();
