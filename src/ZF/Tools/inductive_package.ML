@@ -1,4 +1,4 @@
-(*  Title:      ZF/inductive_package.ML
+(*  Title:      ZF/Tools/inductive_package.ML
     ID:         $Id$
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1994  University of Cambridge
@@ -67,7 +67,8 @@ let
   val _ = Theory.requires thy "Inductive" "(co)inductive definitions";
   val sign = sign_of thy;
 
-  val intr_tms = map (#2 o #1) intr_specs;
+  val (intr_names, intr_tms) = split_list (map fst intr_specs);
+  val case_names = RuleCases.case_names intr_names;
 
   (*recT and rec_params should agree for all mutually recursive components*)
   val rec_hds = map head_of rec_tms;
@@ -99,7 +100,7 @@ let
                Sign.string_of_term sign t);
 
   (*** Construct the fixedpoint definition ***)
-  val mk_variant = variant (foldr add_term_names (intr_tms,[]));
+  val mk_variant = variant (foldr add_term_names (intr_tms, []));
 
   val z' = mk_variant"z" and X' = mk_variant"X" and w' = mk_variant"w";
 
@@ -523,9 +524,9 @@ let
                   |> standard
      and mutual_induct = CP.remove_split mutual_induct_fsplit
 
-     val (thy', [induct', mutual_induct']) = thy |>
-       PureThy.add_thms [(("induct", induct), [InductAttrib.induct_set_global big_rec_name]),
-         (("mutual_induct", mutual_induct), [])];
+     val (thy', [induct', mutual_induct']) = thy |> PureThy.add_thms
+      [(("induct", induct), [case_names, InductAttrib.induct_set_global big_rec_name]),
+       (("mutual_induct", mutual_induct), [case_names])];
     in (thy', induct', mutual_induct')
     end;  (*of induction_rules*)
 
@@ -543,13 +544,12 @@ let
     |> PureThy.add_thms
       [(("bnd_mono", bnd_mono), []),
        (("dom_subset", dom_subset), []),
-       (("cases", elim), [InductAttrib.cases_set_global big_rec_name])]
+       (("cases", elim), [case_names, InductAttrib.cases_set_global big_rec_name])]
     |>>> (PureThy.add_thmss o map Thm.no_attributes)
         [("defs", defs),
          ("intros", intrs)];
   val (thy4, intrs'') =
-    thy3 |> PureThy.add_thms
-      (map2 (fn (((bname, _), atts), th) => ((bname, th), atts)) (intr_specs, intrs'))
+    thy3 |> PureThy.add_thms ((intr_names ~~ intrs') ~~ map #2 intr_specs)
     |>> Theory.parent_path;
   in
     (thy4,
