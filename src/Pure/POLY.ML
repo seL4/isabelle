@@ -103,3 +103,16 @@ val use_string =
   in seq exec end;
 
 end;
+
+
+(*** System command execution ***)
+
+(*Execute an Unix command which doesn't take any input from stdin and
+  sends its output to stdout.*)
+fun execute command =
+  let val (is, os) =  ExtendedIO.execute command;
+      val result = input (is, 999999);
+  in close_out os;
+     close_in is;
+     result
+  end;

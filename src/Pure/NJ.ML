@@ -102,3 +102,19 @@ fun pwd () = System.Directory.getWD ();
 fun use_string commands = 
   System.Compile.use_stream (open_string (implode commands));
 
+
+(*** System command execution ***)
+
+(*Execute an Unix command which doesn't take any input from stdin and
+  sends its output to stdout.
+  This could be done more easily by IO.execute, but that function
+  seems to be buggy in SML/NJ 0.93.*)
+fun execute command =
+  let val tmp_name = "isa_converted.tmp"
+      val is = (System.system (command ^ " > " ^ tmp_name);
+                open_in tmp_name);
+      val result = input (is, 999999);
+  in close_in is;
+     delete_file tmp_name;
+     result
+  end;
