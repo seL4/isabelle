@@ -112,7 +112,7 @@ Having disposed of the monotonicity subgoal,
 simplification leaves us with the following main goal
 \begin{isabelle}
 \ {\isadigit{1}}{\isachardot}\ {\isasymAnd}x{\isachardot}\ x\ {\isasymin}\ A\ {\isasymor}\isanewline
-\ \ \ \ \ \ \ \ \ x\ {\isasymin}\ M{\isasyminverse}\ {\isacharbackquote}{\isacharbackquote}{\isacharbackquote}\ {\isacharparenleft}lfp\ {\isacharparenleft}\dots{\isacharparenright}\ {\isasyminter}\ {\isacharbraceleft}x{\isachardot}\ {\isasymexists}t{\isachardot}\ {\isacharparenleft}x{\isacharcomma}\ t{\isacharparenright}\ {\isasymin}\ M\isactrlsup {\isacharasterisk}\ {\isasymand}\ t\ {\isasymin}\ A{\isacharbraceright}{\isacharparenright}\isanewline
+\ \ \ \ \ \ \ \ \ x\ {\isasymin}\ M{\isasyminverse}\ {\isacharbackquote}{\isacharbackquote}\ {\isacharparenleft}lfp\ {\isacharparenleft}\dots{\isacharparenright}\ {\isasyminter}\ {\isacharbraceleft}x{\isachardot}\ {\isasymexists}t{\isachardot}\ {\isacharparenleft}x{\isacharcomma}\ t{\isacharparenright}\ {\isasymin}\ M\isactrlsup {\isacharasterisk}\ {\isasymand}\ t\ {\isasymin}\ A{\isacharbraceright}{\isacharparenright}\isanewline
 \ \ \ \ \ \ \ \ {\isasymLongrightarrow}\ {\isasymexists}t{\isachardot}\ {\isacharparenleft}x{\isacharcomma}\ t{\isacharparenright}\ {\isasymin}\ M\isactrlsup {\isacharasterisk}\ {\isasymand}\ t\ {\isasymin}\ A
 \end{isabelle}
 which is proved by @{text blast} with the help of transitivity of @{text"\<^sup>*"}:

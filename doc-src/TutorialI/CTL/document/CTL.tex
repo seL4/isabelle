@@ -130,33 +130,33 @@ Unfolding \isa{lfp} once and
 simplifying with the definition of \isa{af} finishes the proof.
 
 Now we iterate this process. The following construction of the desired
-path is parameterized by a predicate \isa{P} that should hold along the path:%
+path is parameterized by a predicate \isa{Q} that should hold along the path:%
 \end{isamarkuptext}%
 \isacommand{consts}\ path\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}state\ {\isasymRightarrow}\ {\isacharparenleft}state\ {\isasymRightarrow}\ bool{\isacharparenright}\ {\isasymRightarrow}\ {\isacharparenleft}nat\ {\isasymRightarrow}\ state{\isacharparenright}{\isachardoublequote}\isanewline
 \isacommand{primrec}\isanewline
-{\isachardoublequote}path\ s\ P\ {\isadigit{0}}\ {\isacharequal}\ s{\isachardoublequote}\isanewline
-{\isachardoublequote}path\ s\ P\ {\isacharparenleft}Suc\ n{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}SOME\ t{\isachardot}\ {\isacharparenleft}path\ s\ P\ n{\isacharcomma}t{\isacharparenright}\ {\isasymin}\ M\ {\isasymand}\ P\ t{\isacharparenright}{\isachardoublequote}%
+{\isachardoublequote}path\ s\ Q\ {\isadigit{0}}\ {\isacharequal}\ s{\isachardoublequote}\isanewline
+{\isachardoublequote}path\ s\ Q\ {\isacharparenleft}Suc\ n{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}SOME\ t{\isachardot}\ {\isacharparenleft}path\ s\ Q\ n{\isacharcomma}t{\isacharparenright}\ {\isasymin}\ M\ {\isasymand}\ Q\ t{\isacharparenright}{\isachardoublequote}%
 \begin{isamarkuptext}%
 \noindent
 Element \isa{n\ {\isacharplus}\ {\isadigit{1}}} on this path is some arbitrary successor
-\isa{t} of element \isa{n} such that \isa{P\ t} holds.  Remember that \isa{SOME\ t{\isachardot}\ R\ t}
+\isa{t} of element \isa{n} such that \isa{Q\ t} holds.  Remember that \isa{SOME\ t{\isachardot}\ R\ t}
 is some arbitrary but fixed \isa{t} such that \isa{R\ t} holds (see \S\ref{sec:SOME}). Of
 course, such a \isa{t} need not exist, but that is of no
 concern to us since we will only use \isa{path} when a
 suitable \isa{t} does exist.
 
-Let us show that if each state \isa{s} that satisfies \isa{P}
-has a successor that again satisfies \isa{P}, then there exists an infinite \isa{P}-path:%
+Let us show that if each state \isa{s} that satisfies \isa{Q}
+has a successor that again satisfies \isa{Q}, then there exists an infinite \isa{Q}-path:%
 \end{isamarkuptext}%
 \isacommand{lemma}\ infinity{\isacharunderscore}lemma{\isacharcolon}\isanewline
-\ \ {\isachardoublequote}{\isasymlbrakk}\ P\ s{\isacharsemicolon}\ {\isasymforall}s{\isachardot}\ P\ s\ {\isasymlongrightarrow}\ {\isacharparenleft}{\isasymexists}\ t{\isachardot}\ {\isacharparenleft}s{\isacharcomma}t{\isacharparenright}\ {\isasymin}\ M\ {\isasymand}\ P\ t{\isacharparenright}\ {\isasymrbrakk}\ {\isasymLongrightarrow}\isanewline
-\ \ \ {\isasymexists}p{\isasymin}Paths\ s{\isachardot}\ {\isasymforall}i{\isachardot}\ P{\isacharparenleft}p\ i{\isacharparenright}{\isachardoublequote}%
+\ \ {\isachardoublequote}{\isasymlbrakk}\ Q\ s{\isacharsemicolon}\ {\isasymforall}s{\isachardot}\ Q\ s\ {\isasymlongrightarrow}\ {\isacharparenleft}{\isasymexists}\ t{\isachardot}\ {\isacharparenleft}s{\isacharcomma}t{\isacharparenright}\ {\isasymin}\ M\ {\isasymand}\ Q\ t{\isacharparenright}\ {\isasymrbrakk}\ {\isasymLongrightarrow}\isanewline
+\ \ \ {\isasymexists}p{\isasymin}Paths\ s{\isachardot}\ {\isasymforall}i{\isachardot}\ Q{\isacharparenleft}p\ i{\isacharparenright}{\isachardoublequote}%
 \begin{isamarkuptxt}%
 \noindent
 First we rephrase the conclusion slightly because we need to prove both the path property
-and the fact that \isa{P} holds simultaneously:%
+and the fact that \isa{Q} holds simultaneously:%
 \end{isamarkuptxt}%
-\isacommand{apply}{\isacharparenleft}subgoal{\isacharunderscore}tac\ {\isachardoublequote}{\isasymexists}p{\isachardot}\ s\ {\isacharequal}\ p\ {\isadigit{0}}\ {\isasymand}\ {\isacharparenleft}{\isasymforall}i{\isachardot}\ {\isacharparenleft}p\ i{\isacharcomma}p{\isacharparenleft}i{\isacharplus}{\isadigit{1}}{\isacharparenright}{\isacharparenright}\ {\isasymin}\ M\ {\isasymand}\ P{\isacharparenleft}p\ i{\isacharparenright}{\isacharparenright}{\isachardoublequote}{\isacharparenright}%
+\isacommand{apply}{\isacharparenleft}subgoal{\isacharunderscore}tac\ {\isachardoublequote}{\isasymexists}p{\isachardot}\ s\ {\isacharequal}\ p\ {\isadigit{0}}\ {\isasymand}\ {\isacharparenleft}{\isasymforall}i{\isachardot}\ {\isacharparenleft}p\ i{\isacharcomma}p{\isacharparenleft}i{\isacharplus}{\isadigit{1}}{\isacharparenright}{\isacharparenright}\ {\isasymin}\ M\ {\isasymand}\ Q{\isacharparenleft}p\ i{\isacharparenright}{\isacharparenright}{\isachardoublequote}{\isacharparenright}%
 \begin{isamarkuptxt}%
 \noindent
 From this proposition the original goal follows easily:%
@@ -164,17 +164,17 @@ From this proposition the original goal follows easily:%
 \ \isacommand{apply}{\isacharparenleft}simp\ add{\isacharcolon}Paths{\isacharunderscore}def{\isacharcomma}\ blast{\isacharparenright}%
 \begin{isamarkuptxt}%
 \noindent
-The new subgoal is proved by providing the witness \isa{path\ s\ P} for \isa{p}:%
+The new subgoal is proved by providing the witness \isa{path\ s\ Q} for \isa{p}:%
 \end{isamarkuptxt}%
-\isacommand{apply}{\isacharparenleft}rule{\isacharunderscore}tac\ x\ {\isacharequal}\ {\isachardoublequote}path\ s\ P{\isachardoublequote}\ \isakeyword{in}\ exI{\isacharparenright}\isanewline
+\isacommand{apply}{\isacharparenleft}rule{\isacharunderscore}tac\ x\ {\isacharequal}\ {\isachardoublequote}path\ s\ Q{\isachardoublequote}\ \isakeyword{in}\ exI{\isacharparenright}\isanewline
 \isacommand{apply}{\isacharparenleft}clarsimp{\isacharparenright}%
 \begin{isamarkuptxt}%
 \noindent
 After simplification and clarification the subgoal has the following compact form
 \begin{isabelle}%
-\ {\isadigit{1}}{\isachardot}\ {\isasymAnd}i{\isachardot}\ {\isasymlbrakk}P\ s{\isacharsemicolon}\ {\isasymforall}s{\isachardot}\ P\ s\ {\isasymlongrightarrow}\ {\isacharparenleft}{\isasymexists}t{\isachardot}\ {\isacharparenleft}s{\isacharcomma}\ t{\isacharparenright}\ {\isasymin}\ M\ {\isasymand}\ P\ t{\isacharparenright}{\isasymrbrakk}\isanewline
-\ \ \ \ \ \ \ \ {\isasymLongrightarrow}\ {\isacharparenleft}path\ s\ P\ i{\isacharcomma}\ SOME\ t{\isachardot}\ {\isacharparenleft}path\ s\ P\ i{\isacharcomma}\ t{\isacharparenright}\ {\isasymin}\ M\ {\isasymand}\ P\ t{\isacharparenright}\ {\isasymin}\ M\ {\isasymand}\isanewline
-\ \ \ \ \ \ \ \ \ \ \ P\ {\isacharparenleft}path\ s\ P\ i{\isacharparenright}%
+\ {\isadigit{1}}{\isachardot}\ {\isasymAnd}i{\isachardot}\ {\isasymlbrakk}Q\ s{\isacharsemicolon}\ {\isasymforall}s{\isachardot}\ Q\ s\ {\isasymlongrightarrow}\ {\isacharparenleft}{\isasymexists}t{\isachardot}\ {\isacharparenleft}s{\isacharcomma}\ t{\isacharparenright}\ {\isasymin}\ M\ {\isasymand}\ Q\ t{\isacharparenright}{\isasymrbrakk}\isanewline
+\ \ \ \ \ \ \ \ {\isasymLongrightarrow}\ {\isacharparenleft}path\ s\ Q\ i{\isacharcomma}\ SOME\ t{\isachardot}\ {\isacharparenleft}path\ s\ Q\ i{\isacharcomma}\ t{\isacharparenright}\ {\isasymin}\ M\ {\isasymand}\ Q\ t{\isacharparenright}\ {\isasymin}\ M\ {\isasymand}\isanewline
+\ \ \ \ \ \ \ \ \ \ \ Q\ {\isacharparenleft}path\ s\ Q\ i{\isacharparenright}%
 \end{isabelle}
 and invites a proof by induction on \isa{i}:%
 \end{isamarkuptxt}%
@@ -184,8 +184,8 @@ and invites a proof by induction on \isa{i}:%
 \noindent
 After simplification the base case boils down to
 \begin{isabelle}%
-\ {\isadigit{1}}{\isachardot}\ {\isasymlbrakk}P\ s{\isacharsemicolon}\ {\isasymforall}s{\isachardot}\ P\ s\ {\isasymlongrightarrow}\ {\isacharparenleft}{\isasymexists}t{\isachardot}\ {\isacharparenleft}s{\isacharcomma}\ t{\isacharparenright}\ {\isasymin}\ M\ {\isasymand}\ P\ t{\isacharparenright}{\isasymrbrakk}\isanewline
-\ \ \ \ {\isasymLongrightarrow}\ {\isacharparenleft}s{\isacharcomma}\ SOME\ t{\isachardot}\ {\isacharparenleft}s{\isacharcomma}\ t{\isacharparenright}\ {\isasymin}\ M\ {\isasymand}\ P\ t{\isacharparenright}\ {\isasymin}\ M%
+\ {\isadigit{1}}{\isachardot}\ {\isasymlbrakk}Q\ s{\isacharsemicolon}\ {\isasymforall}s{\isachardot}\ Q\ s\ {\isasymlongrightarrow}\ {\isacharparenleft}{\isasymexists}t{\isachardot}\ {\isacharparenleft}s{\isacharcomma}\ t{\isacharparenright}\ {\isasymin}\ M\ {\isasymand}\ Q\ t{\isacharparenright}{\isasymrbrakk}\isanewline
+\ \ \ \ {\isasymLongrightarrow}\ {\isacharparenleft}s{\isacharcomma}\ SOME\ t{\isachardot}\ {\isacharparenleft}s{\isacharcomma}\ t{\isacharparenright}\ {\isasymin}\ M\ {\isasymand}\ Q\ t{\isacharparenright}\ {\isasymin}\ M%
 \end{isabelle}
 The conclusion looks exceedingly trivial: after all, \isa{t} is chosen such that \isa{{\isacharparenleft}s{\isacharcomma}\ t{\isacharparenright}\ {\isasymin}\ M}
 holds. However, we first have to show that such a \isa{t} actually exists! This reasoning
@@ -194,9 +194,9 @@ is embodied in the theorem \isa{someI{\isadigit{2}}{\isacharunderscore}ex}:
 \ \ \ \ \ {\isasymlbrakk}{\isasymexists}a{\isachardot}\ {\isacharquery}P\ a{\isacharsemicolon}\ {\isasymAnd}x{\isachardot}\ {\isacharquery}P\ x\ {\isasymLongrightarrow}\ {\isacharquery}Q\ x{\isasymrbrakk}\ {\isasymLongrightarrow}\ {\isacharquery}Q\ {\isacharparenleft}SOME\ x{\isachardot}\ {\isacharquery}P\ x{\isacharparenright}%
 \end{isabelle}
 When we apply this theorem as an introduction rule, \isa{{\isacharquery}P\ x} becomes
-\isa{{\isacharparenleft}s{\isacharcomma}\ x{\isacharparenright}\ {\isasymin}\ M\ {\isasymand}\ P\ x} and \isa{{\isacharquery}Q\ x} becomes \isa{{\isacharparenleft}s{\isacharcomma}\ x{\isacharparenright}\ {\isasymin}\ M} and we have to prove
-two subgoals: \isa{{\isasymexists}a{\isachardot}\ {\isacharparenleft}s{\isacharcomma}\ a{\isacharparenright}\ {\isasymin}\ M\ {\isasymand}\ P\ a}, which follows from the assumptions, and
-\isa{{\isacharparenleft}s{\isacharcomma}\ x{\isacharparenright}\ {\isasymin}\ M\ {\isasymand}\ P\ x\ {\isasymLongrightarrow}\ {\isacharparenleft}s{\isacharcomma}\ x{\isacharparenright}\ {\isasymin}\ M}, which is trivial. Thus it is not surprising that
+\isa{{\isacharparenleft}s{\isacharcomma}\ x{\isacharparenright}\ {\isasymin}\ M\ {\isasymand}\ Q\ x} and \isa{{\isacharquery}Q\ x} becomes \isa{{\isacharparenleft}s{\isacharcomma}\ x{\isacharparenright}\ {\isasymin}\ M} and we have to prove
+two subgoals: \isa{{\isasymexists}a{\isachardot}\ {\isacharparenleft}s{\isacharcomma}\ a{\isacharparenright}\ {\isasymin}\ M\ {\isasymand}\ Q\ a}, which follows from the assumptions, and
+\isa{{\isacharparenleft}s{\isacharcomma}\ x{\isacharparenright}\ {\isasymin}\ M\ {\isasymand}\ Q\ x\ {\isasymLongrightarrow}\ {\isacharparenleft}s{\isacharcomma}\ x{\isacharparenright}\ {\isasymin}\ M}, which is trivial. Thus it is not surprising that
 \isa{fast} can prove the base case quickly:%
 \end{isamarkuptxt}%
 \ \isacommand{apply}{\isacharparenleft}fast\ intro{\isacharcolon}someI{\isadigit{2}}{\isacharunderscore}ex{\isacharparenright}%
@@ -231,9 +231,9 @@ It was merely defined to provide the witness in the proof of the
 that we could have given the witness without having to define a new function:
 the term
 \begin{isabelle}%
-\ \ \ \ \ nat{\isacharunderscore}rec\ s\ {\isacharparenleft}{\isasymlambda}n\ t{\isachardot}\ SOME\ u{\isachardot}\ {\isacharparenleft}t{\isacharcomma}\ u{\isacharparenright}\ {\isasymin}\ M\ {\isasymand}\ P\ u{\isacharparenright}%
+\ \ \ \ \ nat{\isacharunderscore}rec\ s\ {\isacharparenleft}{\isasymlambda}n\ t{\isachardot}\ SOME\ u{\isachardot}\ {\isacharparenleft}t{\isacharcomma}\ u{\isacharparenright}\ {\isasymin}\ M\ {\isasymand}\ Q\ u{\isacharparenright}%
 \end{isabelle}
-is extensionally equal to \isa{path\ s\ P},
+is extensionally equal to \isa{path\ s\ Q},
 where \isa{nat{\isacharunderscore}rec} is the predefined primitive recursor on \isa{nat}.%
 \end{isamarkuptext}%
 %

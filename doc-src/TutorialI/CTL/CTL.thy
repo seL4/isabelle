@@ -171,36 +171,36 @@ Unfolding @{term lfp} once and
 simplifying with the definition of @{term af} finishes the proof.
 
 Now we iterate this process. The following construction of the desired
-path is parameterized by a predicate @{term P} that should hold along the path:
+path is parameterized by a predicate @{term Q} that should hold along the path:
 *};
 
 consts path :: "state \<Rightarrow> (state \<Rightarrow> bool) \<Rightarrow> (nat \<Rightarrow> state)";
 primrec
-"path s P 0 = s"
-"path s P (Suc n) = (SOME t. (path s P n,t) \<in> M \<and> P t)";
+"path s Q 0 = s"
+"path s Q (Suc n) = (SOME t. (path s Q n,t) \<in> M \<and> Q t)";
 
 text{*\noindent
 Element @{term"n+1"} on this path is some arbitrary successor
-@{term t} of element @{term n} such that @{term"P t"} holds.  Remember that @{text"SOME t. R t"}
+@{term t} of element @{term n} such that @{term"Q t"} holds.  Remember that @{text"SOME t. R t"}
 is some arbitrary but fixed @{term t} such that @{prop"R t"} holds (see \S\ref{sec:SOME}). Of
 course, such a @{term t} need not exist, but that is of no
 concern to us since we will only use @{term path} when a
 suitable @{term t} does exist.
 
-Let us show that if each state @{term s} that satisfies @{term P}
-has a successor that again satisfies @{term P}, then there exists an infinite @{term P}-path:
+Let us show that if each state @{term s} that satisfies @{term Q}
+has a successor that again satisfies @{term Q}, then there exists an infinite @{term Q}-path:
 *};
 
 lemma infinity_lemma:
-  "\<lbrakk> P s; \<forall>s. P s \<longrightarrow> (\<exists> t. (s,t) \<in> M \<and> P t) \<rbrakk> \<Longrightarrow>
-   \<exists>p\<in>Paths s. \<forall>i. P(p i)";
+  "\<lbrakk> Q s; \<forall>s. Q s \<longrightarrow> (\<exists> t. (s,t) \<in> M \<and> Q t) \<rbrakk> \<Longrightarrow>
+   \<exists>p\<in>Paths s. \<forall>i. Q(p i)";
 
 txt{*\noindent
 First we rephrase the conclusion slightly because we need to prove both the path property
-and the fact that @{term P} holds simultaneously:
+and the fact that @{term Q} holds simultaneously:
 *};
 
-apply(subgoal_tac "\<exists>p. s = p 0 \<and> (\<forall>i. (p i,p(i+1)) \<in> M \<and> P(p i))");
+apply(subgoal_tac "\<exists>p. s = p 0 \<and> (\<forall>i. (p i,p(i+1)) \<in> M \<and> Q(p i))");
 
 txt{*\noindent
 From this proposition the original goal follows easily:
@@ -209,10 +209,10 @@ From this proposition the original goal follows easily:
  apply(simp add:Paths_def, blast);
 
 txt{*\noindent
-The new subgoal is proved by providing the witness @{term "path s P"} for @{term p}:
+The new subgoal is proved by providing the witness @{term "path s Q"} for @{term p}:
 *};
 
-apply(rule_tac x = "path s P" in exI);
+apply(rule_tac x = "path s Q" in exI);
 apply(clarsimp);
 
 txt{*\noindent
@@ -232,9 +232,9 @@ holds. However, we first have to show that such a @{term t} actually exists! Thi
 is embodied in the theorem @{thm[source]someI2_ex}:
 @{thm[display,eta_contract=false]someI2_ex}
 When we apply this theorem as an introduction rule, @{text"?P x"} becomes
-@{prop"(s, x) : M & P x"} and @{text"?Q x"} becomes @{prop"(s,x) : M"} and we have to prove
-two subgoals: @{prop"EX a. (s, a) : M & P a"}, which follows from the assumptions, and
-@{prop"(s, x) : M & P x ==> (s,x) : M"}, which is trivial. Thus it is not surprising that
+@{prop"(s, x) : M & Q x"} and @{text"?Q x"} becomes @{prop"(s,x) : M"} and we have to prove
+two subgoals: @{prop"EX a. (s, a) : M & Q a"}, which follows from the assumptions, and
+@{prop"(s, x) : M & Q x ==> (s,x) : M"}, which is trivial. Thus it is not surprising that
 @{text fast} can prove the base case quickly:
 *};
 
@@ -271,19 +271,19 @@ It was merely defined to provide the witness in the proof of the
 @{thm[source]infinity_lemma}. Aficionados of minimal proofs might like to know
 that we could have given the witness without having to define a new function:
 the term
-@{term[display]"nat_rec s (\<lambda>n t. SOME u. (t,u)\<in>M \<and> P u)"}
-is extensionally equal to @{term"path s P"},
+@{term[display]"nat_rec s (\<lambda>n t. SOME u. (t,u)\<in>M \<and> Q u)"}
+is extensionally equal to @{term"path s Q"},
 where @{term nat_rec} is the predefined primitive recursor on @{typ nat}.
 *};
 (*<*)
 lemma infinity_lemma:
-"\<lbrakk> P s; \<forall> s. P s \<longrightarrow> (\<exists> t. (s,t)\<in>M \<and> P t) \<rbrakk> \<Longrightarrow>
- \<exists> p\<in>Paths s. \<forall> i. P(p i)";
+"\<lbrakk> Q s; \<forall> s. Q s \<longrightarrow> (\<exists> t. (s,t)\<in>M \<and> Q t) \<rbrakk> \<Longrightarrow>
+ \<exists> p\<in>Paths s. \<forall> i. Q(p i)";
 apply(subgoal_tac
- "\<exists> p. s = p 0 \<and> (\<forall> i. (p i,p(Suc i))\<in>M \<and> P(p i))");
+ "\<exists> p. s = p 0 \<and> (\<forall> i. (p i,p(Suc i))\<in>M \<and> Q(p i))");
  apply(simp add:Paths_def);
  apply(blast);
-apply(rule_tac x = "nat_rec s (\<lambda>n t. SOME u. (t,u)\<in>M \<and> P u)" in exI);
+apply(rule_tac x = "nat_rec s (\<lambda>n t. SOME u. (t,u)\<in>M \<and> Q u)" in exI);
 apply(simp);
 apply(intro strip);
 apply(induct_tac i);
