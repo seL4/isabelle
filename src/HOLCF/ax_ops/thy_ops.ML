@@ -154,7 +154,7 @@ fun syn_decls curried sign ((name,typ,CInfixl(i))::tl) =
   | syn_decls _ _ [] = [];
 
 fun translate name vars rhs = 
-    Syntax.<-> ((Ast.mk_appl (Constant (mk_internal_name name)) 
+    Syntax.ParsePrintRule ((Ast.mk_appl (Constant (mk_internal_name name)) 
 		 (map Variable vars)), 
 		rhs); 
 
@@ -178,7 +178,7 @@ fun xrules_of true ((name,typ,CInfixl(i))::tail) =
             |   argnames _ _ = [];
             val names = argnames (ord"A") typ;
         in if names = [] then [] else 
-	    [Syntax.<-> (mk_appl (Constant name) (map Variable names),
+	    [Syntax.ParsePrintRule (mk_appl (Constant name) (map Variable names),
 			 foldl (fn (t,arg) => 
 				(mk_appl (Constant "@fapp") [t,Variable arg]))
 			 (Constant name,names))] 
@@ -207,7 +207,7 @@ fun xrules_of true ((name,typ,CInfixl(i))::tail) =
 	    val vars = map Variable (case typ of (Type("->" ,[t,_])) =>argnames (ord"A") t
 						 | _ => []);
         in if vars = [] then [] else 
-	    [Syntax.<-> 
+	    [Syntax.ParsePrintRule 
 	     (mk_appl (Constant name) vars,
 	      mk_appl (Constant "@fapp")
 	      [Constant name, 

@@ -79,13 +79,15 @@ local open Syntax in
 	fun arg1 n (con,_,args) = if args = [] then expvar n 
 				  else mk_appl (Constant "LAM ") 
 		 [foldr' (app "_idts") (mapn (argvar n) 1 args) , expvar n];
-  in mk_appl (Constant "@case") [Variable "x", foldr'
+  in
+    ParsePrintRule
+      (mk_appl (Constant "@case") [Variable "x", foldr'
 				 (fn (c,cs) => mk_appl (Constant "@case2") [c,cs])
-				 (mapn case1 1 cons')] <->
-     mk_appl (Constant "@fapp") [foldl 
+				 (mapn case1 1 cons')],
+       mk_appl (Constant "@fapp") [foldl 
 				 (fn (w,a ) => mk_appl (Constant "@fapp" ) [w,a ])
 				 (Constant (dname^"_when"),mapn arg1 1 cons'),
-				 Variable "x"]
+				 Variable "x"])
   end;
 end;
 
