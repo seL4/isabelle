@@ -28,25 +28,25 @@ proof (unfold is_subspace_def, intro conjI)
   assume "0 \<in> U" thus "U \<noteq> {}" by fast
 qed (simp+)
 
-lemma subspace_not_empty [intro??]: "is_subspace U V ==> U \<noteq> {}"
+lemma subspace_not_empty [intro?]: "is_subspace U V ==> U \<noteq> {}"
   by (unfold is_subspace_def) simp 
 
-lemma subspace_subset [intro??]: "is_subspace U V ==> U <= V"
+lemma subspace_subset [intro?]: "is_subspace U V ==> U <= V"
   by (unfold is_subspace_def) simp
 
-lemma subspace_subsetD [simp, intro??]: 
+lemma subspace_subsetD [simp, intro?]: 
   "[| is_subspace U V; x \<in> U |] ==> x \<in> V"
   by (unfold is_subspace_def) force
 
-lemma subspace_add_closed [simp, intro??]: 
+lemma subspace_add_closed [simp, intro?]: 
   "[| is_subspace U V; x \<in> U; y \<in> U |] ==> x + y \<in> U"
   by (unfold is_subspace_def) simp
 
-lemma subspace_mult_closed [simp, intro??]: 
+lemma subspace_mult_closed [simp, intro?]: 
   "[| is_subspace U V; x \<in> U |] ==> a \<cdot> x \<in> U"
   by (unfold is_subspace_def) simp
 
-lemma subspace_diff_closed [simp, intro??]: 
+lemma subspace_diff_closed [simp, intro?]: 
   "[| is_subspace U V; is_vectorspace V; x \<in> U; y \<in> U |] 
   ==> x - y \<in> U"
   by (simp! add: diff_eq1 negate_eq1)
@@ -55,7 +55,7 @@ text {* Similar as for linear spaces, the existence of the
 zero element in every subspace follows from the non-emptiness 
 of the carrier set and by vector space laws.*}
 
-lemma zero_in_subspace [intro??]:
+lemma zero_in_subspace [intro?]:
   "[| is_subspace U V; is_vectorspace V |] ==> 0 \<in> U"
 proof - 
   assume "is_subspace U V" and v: "is_vectorspace V"
@@ -71,14 +71,14 @@ proof -
   qed
 qed
 
-lemma subspace_neg_closed [simp, intro??]: 
+lemma subspace_neg_closed [simp, intro?]: 
   "[| is_subspace U V; is_vectorspace V; x \<in> U |] ==> - x \<in> U"
   by (simp add: negate_eq1)
 
 text_raw {* \medskip *}
 text {* Further derived laws: every subspace is a vector space. *}
 
-lemma subspace_vs [intro??]:
+lemma subspace_vs [intro?]:
   "[| is_subspace U V; is_vectorspace V |] ==> is_vectorspace U"
 proof -
   assume "is_subspace U V" "is_vectorspace V"
@@ -144,7 +144,7 @@ constdefs
 lemma linD: "x \<in> lin v = (\<exists>a::real. x = a \<cdot> v)"
   by (unfold lin_def) fast
 
-lemma linI [intro??]: "a \<cdot> x0 \<in> lin x0"
+lemma linI [intro?]: "a \<cdot> x0 \<in> lin x0"
   by (unfold lin_def) fast
 
 text {* Every vector is contained in its linear closure. *}
@@ -157,7 +157,7 @@ qed simp
 
 text {* Any linear closure is a subspace. *}
 
-lemma lin_subspace [intro??]: 
+lemma lin_subspace [intro?]: 
   "[| is_vectorspace V; x \<in> V |] ==> is_subspace (lin x) V"
 proof
   assume "is_vectorspace V" "x \<in> V"
@@ -198,7 +198,7 @@ qed
 
 text {* Any linear closure is a vector space. *}
 
-lemma lin_vs [intro??]: 
+lemma lin_vs [intro?]: 
   "[| is_vectorspace V; x \<in> V |] ==> is_vectorspace (lin x)"
 proof (rule subspace_vs)
   assume "is_vectorspace V" "x \<in> V"
@@ -229,13 +229,13 @@ lemma vs_sumD:
 
 lemmas vs_sumE = vs_sumD [RS iffD1, elimify]
 
-lemma vs_sumI [intro??]: 
+lemma vs_sumI [intro?]: 
   "[| x \<in> U; y \<in> V; t= x + y |] ==> t \<in> U + V"
   by (unfold vs_sum_def) fast
 
 text{* $U$ is a subspace of $U + V$. *}
 
-lemma subspace_vs_sum1 [intro??]: 
+lemma subspace_vs_sum1 [intro?]: 
   "[| is_vectorspace U; is_vectorspace V |]
   ==> is_subspace U (U + V)"
 proof 
@@ -259,7 +259,7 @@ qed
 
 text{* The sum of two subspaces is again a subspace.*}
 
-lemma vs_sum_subspace [intro??]: 
+lemma vs_sum_subspace [intro?]: 
   "[| is_subspace U E; is_subspace V E; is_vectorspace E |] 
   ==> is_subspace (U + V) E"
 proof 
@@ -303,7 +303,7 @@ qed
 
 text{* The sum of two subspaces is a vectorspace. *}
 
-lemma vs_sum_vs [intro??]: 
+lemma vs_sum_vs [intro?]: 
   "[| is_subspace U E; is_subspace V E; is_vectorspace E |] 
   ==> is_vectorspace (U + V)"
 proof (rule subspace_vs)

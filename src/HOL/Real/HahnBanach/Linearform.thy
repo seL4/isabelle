@@ -22,15 +22,15 @@ lemma is_linearformI [intro]:
  ==> is_linearform V f"
  by (unfold is_linearform_def) force
 
-lemma linearform_add [intro??]: 
+lemma linearform_add [intro?]: 
   "[| is_linearform V f; x \<in> V; y \<in> V |] ==> f (x + y) = f x + f y"
   by (unfold is_linearform_def) fast
 
-lemma linearform_mult [intro??]: 
+lemma linearform_mult [intro?]: 
   "[| is_linearform V f; x \<in> V |] ==>  f (a \<cdot> x) = a * (f x)" 
   by (unfold is_linearform_def) fast
 
-lemma linearform_neg [intro??]:
+lemma linearform_neg [intro?]:
   "[|  is_vectorspace V; is_linearform V f; x \<in> V|] 
   ==> f (- x) = - f x"
 proof - 
@@ -41,7 +41,7 @@ proof -
   finally show ?thesis .
 qed
 
-lemma linearform_diff [intro??]: 
+lemma linearform_diff [intro?]: 
   "[| is_vectorspace V; is_linearform V f; x \<in> V; y \<in> V |] 
   ==> f (x - y) = f x - f y"  
 proof -
@@ -55,7 +55,7 @@ qed
 
 text{* Every linear form yields $0$ for the $\zero$ vector.*}
 
-lemma linearform_zero [intro??, simp]: 
+lemma linearform_zero [intro?, simp]: 
   "[| is_vectorspace V; is_linearform V f |] ==> f 0 = #0"
 proof - 
   assume "is_vectorspace V" "is_linearform V f"

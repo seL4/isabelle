@@ -327,17 +327,17 @@ and rem_thm = gen_rem eq_thm;
   is still allowed.*)
 fun warn_dup th (CS{safeIs, safeEs, hazIs, hazEs, xtraIs, xtraEs, ...}) = 
        if mem_thm (th, safeIs) then 
-	 warning ("Rule already declared as safe introduction (intro)\n" ^ string_of_thm th)
+	 warning ("Rule already declared as safe introduction (intro!)\n" ^ string_of_thm th)
   else if mem_thm (th, safeEs) then
-         warning ("Rule already declared as safe elimination (elim)\n" ^ string_of_thm th)
+         warning ("Rule already declared as safe elimination (elim!)\n" ^ string_of_thm th)
   else if mem_thm (th, hazIs) then 
-         warning ("Rule already declared as unsafe introduction (intro?)\n" ^ string_of_thm th)
+         warning ("Rule already declared as unsafe introduction (intro)\n" ^ string_of_thm th)
   else if mem_thm (th, hazEs) then 
-         warning ("Rule already declared as unsafe elimination (elim?)\n" ^ string_of_thm th)
+         warning ("Rule already declared as unsafe elimination (elim)\n" ^ string_of_thm th)
   else if mem_thm (th, xtraIs) then 
-         warning ("Rule already declared as extra introduction (intro??)\n" ^ string_of_thm th)
+         warning ("Rule already declared as extra introduction (intro?)\n" ^ string_of_thm th)
   else if mem_thm (th, xtraEs) then 
-         warning ("Rule already declared as extra elimination (elim??)\n" ^ string_of_thm th)
+         warning ("Rule already declared as extra elimination (elim?)\n" ^ string_of_thm th)
   else ();
 
 (*** Safe rules ***)
@@ -1030,12 +1030,12 @@ val delruleN = "delrule";
 
 val colon = Args.$$$ ":";
 val query = Args.$$$ "?";
-val qquery = Args.$$$ "??";
+val bang = Args.$$$ "!";
 val query_colon = Args.$$$ "?:";
-val qquery_colon = Args.$$$ "??:";
+val bang_colon = Args.$$$ "!:";
 
 fun cla_att change xtra haz safe = Attrib.syntax
-  (Scan.lift ((qquery >> K xtra || query >> K haz || Scan.succeed safe) >> change));
+  (Scan.lift ((query >> K xtra || bang >> K haz || Scan.succeed safe) >> change));
 
 fun cla_attr f g h = (cla_att change_global_cs f g h, cla_att change_local_cs f g h);
 val del_attr = (Attrib.no_args delrule_global, Attrib.no_args delrule_local);
@@ -1146,14 +1146,14 @@ val contradiction = Method.rule [Data.not_elim, Data.not_elim COMP Drule.swap_pr
 (* automatic methods *)
 
 val cla_modifiers =
- [Args.$$$ destN -- qquery_colon >> K ((I, xtra_dest_local):Method.modifier),
-  Args.$$$ destN -- query_colon >> K (I, haz_dest_local),
+ [Args.$$$ destN -- query_colon >> K ((I, xtra_dest_local):Method.modifier),
+  Args.$$$ destN -- bang_colon >> K (I, haz_dest_local),
   Args.$$$ destN -- colon >> K (I, safe_dest_local),
-  Args.$$$ elimN -- qquery_colon >> K (I, xtra_elim_local),
-  Args.$$$ elimN -- query_colon >> K (I, haz_elim_local),
+  Args.$$$ elimN -- query_colon >> K (I, xtra_elim_local),
+  Args.$$$ elimN -- bang_colon >> K (I, haz_elim_local),
   Args.$$$ elimN -- colon >> K (I, safe_elim_local),
-  Args.$$$ introN -- qquery_colon >> K (I, xtra_intro_local),
-  Args.$$$ introN -- query_colon >> K (I, haz_intro_local),
+  Args.$$$ introN -- query_colon >> K (I, xtra_intro_local),
+  Args.$$$ introN -- bang_colon >> K (I, haz_intro_local),
   Args.$$$ introN -- colon >> K (I, safe_intro_local),
   Args.$$$ delN -- colon >> K (I, delrule_local)];
 

@@ -24,16 +24,16 @@ constdefs
   graph :: "['a set, 'a => real] => 'a graph "
   "graph F f == {(x, f x) | x. x \\<in> F}" 
 
-lemma graphI [intro??]: "x \\<in> F ==> (x, f x) \\<in> graph F f"
+lemma graphI [intro?]: "x \\<in> F ==> (x, f x) \\<in> graph F f"
   by (unfold graph_def, intro CollectI exI) force
 
-lemma graphI2 [intro??]: "x \\<in> F ==> \\<exists>t\\<in> (graph F f). t = (x, f x)"
+lemma graphI2 [intro?]: "x \\<in> F ==> \\<exists>t\\<in> (graph F f). t = (x, f x)"
   by (unfold graph_def, force)
 
-lemma graphD1 [intro??]: "(x, y) \\<in> graph F f ==> x \\<in> F"
+lemma graphD1 [intro?]: "(x, y) \\<in> graph F f ==> x \\<in> F"
   by (unfold graph_def, elim CollectE exE) force
 
-lemma graphD2 [intro??]: "(x, y) \\<in> graph H h ==> y = h x"
+lemma graphD2 [intro?]: "(x, y) \\<in> graph H h ==> y = h x"
   by (unfold graph_def, elim CollectE exE) force 
 
 subsection {* Functions ordered by domain extension *}
@@ -46,11 +46,11 @@ lemma graph_extI:
   ==> graph H h <= graph H' h'"
   by (unfold graph_def, force)
 
-lemma graph_extD1 [intro??]: 
+lemma graph_extD1 [intro?]: 
   "[| graph H h <= graph H' h'; x \\<in> H |] ==> h x = h' x"
   by (unfold graph_def, force)
 
-lemma graph_extD2 [intro??]: 
+lemma graph_extD2 [intro?]: 
   "[| graph H h <= graph H' h' |] ==> H <= H'"
   by (unfold graph_def, force)
 

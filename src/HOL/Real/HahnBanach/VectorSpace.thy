@@ -70,7 +70,7 @@ proof (unfold is_vectorspace_def, intro conjI ballI allI)
   fix x y z 
   assume "x \\<in> V" "y \\<in> V" "z \\<in> V"
     "\\<forall>x \\<in> V. \\<forall>y \\<in> V. \\<forall>z \\<in> V. x + y + z = x + (y + z)"
-  thus "x + y + z =  x + (y + z)" by (elim bspec[elimify])
+  thus "x + y + z =  x + (y + z)" by blast
 qed force+
 
 text_raw {* \medskip *}
@@ -96,22 +96,22 @@ lemma diff_eq2:
   "[| is_vectorspace V; x \\<in> V; y \\<in> V |] ==> x + - y = x - y"
   by (unfold is_vectorspace_def) simp  
 
-lemma vs_not_empty [intro??]: "is_vectorspace V ==> (V \\<noteq> {})" 
+lemma vs_not_empty [intro?]: "is_vectorspace V ==> (V \\<noteq> {})" 
   by (unfold is_vectorspace_def) simp
  
-lemma vs_add_closed [simp, intro??]: 
+lemma vs_add_closed [simp, intro?]: 
   "[| is_vectorspace V; x \\<in> V; y \\<in> V |] ==> x + y \\<in> V" 
   by (unfold is_vectorspace_def) simp
 
-lemma vs_mult_closed [simp, intro??]: 
+lemma vs_mult_closed [simp, intro?]: 
   "[| is_vectorspace V; x \\<in> V |] ==> a \\<cdot> x \\<in> V" 
   by (unfold is_vectorspace_def) simp
 
-lemma vs_diff_closed [simp, intro??]: 
+lemma vs_diff_closed [simp, intro?]: 
  "[| is_vectorspace V; x \\<in> V; y \\<in> V |] ==> x - y \\<in> V"
   by (simp add: diff_eq1 negate_eq1)
 
-lemma vs_neg_closed  [simp, intro??]: 
+lemma vs_neg_closed  [simp, intro?]: 
   "[| is_vectorspace V; x \\<in> V |] ==> - x \\<in> V"
   by (simp add: negate_eq1)
 
@@ -323,7 +323,7 @@ proof
     by (simp! only: vs_add_assoc vs_neg_closed)
   also assume "x + y = x + z"
   also have "- x + (x + z) = - x + x + z" 
-    by (simp! only: vs_add_assoc[RS sym] vs_neg_closed)
+    by (simp! only: vs_add_assoc [RS sym] vs_neg_closed)
   also have "... = z" by (simp!)
   finally show ?R .
 qed force

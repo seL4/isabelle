@@ -30,7 +30,7 @@ lemma is_seminormI [intro]:
   ==> is_seminorm V norm"
   by (unfold is_seminorm_def, force)
 
-lemma seminorm_ge_zero [intro??]:
+lemma seminorm_ge_zero [intro?]:
   "[| is_seminorm V norm; x \<in> V |] ==> #0 <= norm x"
   by (unfold is_seminorm_def, force)
 
@@ -86,7 +86,7 @@ lemma is_normI [intro]:
   "\<forall>x \<in> V.  is_seminorm V norm  \<and> (norm x = #0) = (x = 0) 
   ==> is_norm V norm" by (simp only: is_norm_def)
 
-lemma norm_is_seminorm [intro??]: 
+lemma norm_is_seminorm [intro?]: 
   "[| is_norm V norm; x \<in> V |] ==> is_seminorm V norm"
   by (unfold is_norm_def, force)
 
@@ -94,7 +94,7 @@ lemma norm_zero_iff:
   "[| is_norm V norm; x \<in> V |] ==> (norm x = #0) = (x = 0)"
   by (unfold is_norm_def, force)
 
-lemma norm_ge_zero [intro??]:
+lemma norm_ge_zero [intro?]:
   "[|is_norm V norm; x \<in> V |] ==> #0 <= norm x"
   by (unfold is_norm_def is_seminorm_def, force)
 
@@ -115,19 +115,19 @@ lemma normed_vsI [intro]:
   ==> is_normed_vectorspace V norm"
   by (unfold is_normed_vectorspace_def) blast 
 
-lemma normed_vs_vs [intro??]: 
+lemma normed_vs_vs [intro?]: 
   "is_normed_vectorspace V norm ==> is_vectorspace V"
   by (unfold is_normed_vectorspace_def) force
 
-lemma normed_vs_norm [intro??]: 
+lemma normed_vs_norm [intro?]: 
   "is_normed_vectorspace V norm ==> is_norm V norm"
   by (unfold is_normed_vectorspace_def, elim conjE)
 
-lemma normed_vs_norm_ge_zero [intro??]: 
+lemma normed_vs_norm_ge_zero [intro?]: 
   "[| is_normed_vectorspace V norm; x \<in> V |] ==> #0 <= norm x"
   by (unfold is_normed_vectorspace_def, rule, elim conjE)
 
-lemma normed_vs_norm_gt_zero [intro??]: 
+lemma normed_vs_norm_gt_zero [intro?]: 
   "[| is_normed_vectorspace V norm; x \<in> V; x \<noteq> 0 |] ==> #0 < norm x"
 proof (unfold is_normed_vectorspace_def, elim conjE)
   assume "x \<in> V" "x \<noteq> 0" "is_vectorspace V" "is_norm V norm"
@@ -142,13 +142,13 @@ proof (unfold is_normed_vectorspace_def, elim conjE)
   finally show "#0 < norm x" .
 qed
 
-lemma normed_vs_norm_abs_homogenous [intro??]: 
+lemma normed_vs_norm_abs_homogenous [intro?]: 
   "[| is_normed_vectorspace V norm; x \<in> V |] 
   ==> norm (a \<cdot> x) = |a| * norm x"
   by (rule seminorm_abs_homogenous, rule norm_is_seminorm, 
       rule normed_vs_norm)
 
-lemma normed_vs_norm_subadditive [intro??]: 
+lemma normed_vs_norm_subadditive [intro?]: 
   "[| is_normed_vectorspace V norm; x \<in> V; y \<in> V |] 
   ==> norm (x + y) <= norm x + norm y"
   by (rule seminorm_subadditive, rule norm_is_seminorm, 
@@ -157,7 +157,7 @@ lemma normed_vs_norm_subadditive [intro??]:
 text{* Any subspace of a normed vector space is again a 
 normed vectorspace.*}
 
-lemma subspace_normed_vs [intro??]: 
+lemma subspace_normed_vs [intro?]: 
   "[| is_vectorspace E; is_subspace F E;
   is_normed_vectorspace E norm |] ==> is_normed_vectorspace F norm"
 proof (rule normed_vsI)

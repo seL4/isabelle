@@ -550,7 +550,7 @@ information.
   ('fast' | 'best' | 'slow' | slowbest) ('!' ?) (clamod * )
   ;
 
-  clamod: (('intro' | 'elim' | 'dest') (() | '?' | '??') | 'del') ':' thmrefs
+  clamod: (('intro' | 'elim' | 'dest') ('!' | () | '?') | 'del') ':' thmrefs
   ;
 \end{rail}
 
@@ -586,7 +586,7 @@ This is slightly less hazardous than for the Simplifier (see
 
   clasimpmod: ('simp' (() | 'add' | 'del' | 'only') | 'other' |
     ('split' (() | 'add' | 'del')) |
-    (('intro' | 'elim' | 'dest') (() | '?' | '??') | 'del')) ':' thmrefs
+    (('intro' | 'elim' | 'dest') ('!' | () | '?') | 'del')) ':' thmrefs
 \end{rail}
 
 \begin{descr}
@@ -618,7 +618,7 @@ This is slightly less hazardous than for the Simplifier (see
 \end{matharray}
 
 \begin{rail}
-  ('intro' | 'elim' | 'dest') (() | '?' | '??')
+  ('intro' | 'elim' | 'dest') ('!' | () | '?')
   ;
   'iff' (() | 'add' | 'del')
 \end{rail}
@@ -629,9 +629,10 @@ This is slightly less hazardous than for the Simplifier (see
   \cite{isabelle-ref}.  This is a diagnostic command; $undo$ does not apply.
 \item [$intro$, $elim$, and $dest$] declare introduction, elimination, and
   destruct rules, respectively.  By default, rules are considered as
-  \emph{safe}, while a single ``?'' classifies as \emph{unsafe}, and ``??'' as
-  \emph{extra} (i.e.\ not applied in the search-oriented automated methods,
-  but only in single-step methods such as $rule$).
+  \emph{unsafe} (i.e.\ not applied blindly without backtracking), while a
+  single ``!'' classifies as \emph{safe}, and ``?'' as \emph{extra} (i.e.\ not
+  applied in the search-oriented automated methods, but only in single-step
+  methods such as $rule$).
   
 \item [$iff$] declares equations both as rules for the Simplifier and
   Classical Reasoner.
