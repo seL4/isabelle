@@ -17,6 +17,28 @@ sub thmlist {
   $s;
 }
 
+sub subst_RS {
+  s/\(([\w\'\.]+) RS ([\w\'\.]+) RS ([\w\'\.]+) RS ([\w\'\.]+) RS ([\w\'\.]+)\)/$1 \[THEN $2, THEN $3, THEN $4, THEN $5\]/g;
+  s/([\w\'\.]+) RS ([\w\'\.]+) RS ([\w\'\.]+) RS ([\w\'\.]+) RS ([\w\'\.]+)/$1 \[THEN $2, THEN $3, THEN $4, THEN $5\]/g;
+  s/\(([\w\'\.]+) RS ([\w\'\.]+) RS ([\w\'\.]+) RS ([\w\'\.]+)\)/$1 \[THEN $2, THEN $3, THEN $4\]/g;
+  s/([\w\'\.]+) RS ([\w\'\.]+) RS ([\w\'\.]+) RS ([\w\'\.]+)/$1 \[THEN $2, THEN $3, THEN $4\]/g;
+  s/\(([\w\'\.]+) RS ([\w\'\.]+) RS ([\w\'\.]+)\)/$1 \[THEN $2, THEN $3\]/g;
+  s/([\w\'\.]+) RS ([\w\'\.]+) RS ([\w\'\.]+)/$1 \[THEN $2, THEN $3\]/g;
+  s/\(([\w\'\.]+) RS ([\w\'\.]+)\)/$1 \[THEN $2\]/g;
+  s/([\w\'\.]+) RS ([\w\'\.]+)/$1 \[THEN $2\]/g;
+}
+
+sub decl {
+  my $s = shift;
+  my $a = shift;
+  $_ = $s;
+  subst_RS();
+  s/, */ [$a] /g;
+  s/$/ [$a]/;
+  s/\] *\[/, /g;
+  "declare $_";
+}
+
 sub process_tac {
   my $lead = shift;
   my $t = shift;
@@ -97,14 +119,7 @@ sub process_tac {
 
   s/THEN /, /g;
   s/ORELSE/|/g;
-  s/\(([\w\'\.]+) RS ([\w\'\.]+) RS ([\w\'\.]+) RS ([\w\'\.]+) RS ([\w\'\.]+)\)/$1 \[THEN $2, THEN $3, THEN $4, THEN $5\]/g;
-  s/([\w\'\.]+) RS ([\w\'\.]+) RS ([\w\'\.]+) RS ([\w\'\.]+) RS ([\w\'\.]+)/$1 \[THEN $2, THEN $3, THEN $4, THEN $5\]/g;
-  s/\(([\w\'\.]+) RS ([\w\'\.]+) RS ([\w\'\.]+) RS ([\w\'\.]+)\)/$1 \[THEN $2, THEN $3, THEN $4\]/g;
-  s/([\w\'\.]+) RS ([\w\'\.]+) RS ([\w\'\.]+) RS ([\w\'\.]+)/$1 \[THEN $2, THEN $3, THEN $4\]/g;
-  s/\(([\w\'\.]+) RS ([\w\'\.]+) RS ([\w\'\.]+)\)/$1 \[THEN $2, THEN $3\]/g;
-  s/([\w\'\.]+) RS ([\w\'\.]+) RS ([\w\'\.]+)/$1 \[THEN $2, THEN $3\]/g;
-  s/\(([\w\'\.]+) RS ([\w\'\.]+)\)/$1 \[THEN $2\]/g;
-  s/([\w\'\.]+) RS ([\w\'\.]+)/$1 \[THEN $2\]/g;
+  subst_RS();
 
   s/rewtac ([\w\'\. \[,\]]+)/unfold $1/g;
   s/stac ([\w\'\. \[,\]]+?) 1/subst $1/g;
@@ -221,17 +236,17 @@ while (<>) { # main loop
   s/^by(\s*\(?\s*)(.*?)\s*(\)?)\s*$/"apply$1".process_tac($1,$2).$3/se;
   s/^(apply +)\( *([\w\'\.]+)\s*\)\s*$/$1$2/;
                              # remove outermost parentheses if around atoms
-  s/^Addsimps\s*\[\s*([\w\'\. \[,\]]*)\s*\]/"declare ".thmlist($1)." [simp]"/seg;
-  s/^Delsimps\s*\[\s*([\w\'\. \[,\]]*)\s*\]/"declare ".thmlist($1)." [simp del]"/seg;
-  s/^Addsplits\s*\[\s*([\w\'\. \[,\]]*)\s*\]/"declare ".thmlist($1)." [split]"/seg;
-  s/^Delsplits\s*\[\s*([\w\'\. \[,\]]*)\s*\]/"declare ".thmlist($1)." [split del]"/seg;
-  s/^AddIs\s*\[\s*([\w\'\. \[,\]]*)\s*\]/"declare ".thmlist($1)." [intro]"/seg;
-  s/^AddSIs\s*\[\s*([\w\'\. \[,\]]*)\s*\]/"declare ".thmlist($1)." [intro!]"/seg;
-  s/^AddEs\s*\[\s*([\w\'\. \[,\]]*)\s*\]/"declare ".thmlist($1)." [elim]"/seg;
-  s/^AddSEs\s*\[\s*([\w\'\. \[,\]]*)\s*\]/"declare ".thmlist($1)." [elim!]"/seg;
-  s/^AddDs\s*\[\s*([\w\'\. \[,\]]*)\s*\]/"declare ".thmlist($1)." [dest]"/seg;
-  s/^AddSDs\s*\[\s*([\w\'\. \[,\]]*)\s*\]/"declare ".thmlist($1)." [dest!]"/seg;
-  s/^AddIffs\s*\[\s*([\w\'\. \[,\]]*)\s*\]/"declare ".thmlist($1)." [iff]"/seg;
+  s/^Addsimps\s*\[\s*([\w\'\. \[,\]]*)\s*\]/decl($1,"simp")/seg;
+  s/^Delsimps\s*\[\s*([\w\'\. \[,\]]*)\s*\]/decl($1,"simp del")/seg;
+  s/^Addsplits\s*\[\s*([\w\'\. \[,\]]*)\s*\]/decl($1,"split")/seg;
+  s/^Delsplits\s*\[\s*([\w\'\. \[,\]]*)\s*\]/decl($1,"split del")/seg;
+  s/^AddIs\s*\[\s*([\w\'\. \[,\]]*)\s*\]/decl($1,"intro")/seg;
+  s/^AddSIs\s*\[\s*([\w\'\. \[,\]]*)\s*\]/decl($1,"intro!")/seg;
+  s/^AddEs\s*\[\s*([\w\'\. \[,\]]*)\s*\]/decl($1,"elim")/seg;
+  s/^AddSEs\s*\[\s*([\w\'\. \[,\]]*)\s*\]/decl($1,"elim!")/seg;
+  s/^AddDs\s*\[\s*([\w\'\. \[,\]]*)\s*\]/decl($1,"dest")/seg;
+  s/^AddSDs\s*\[\s*([\w\'\. \[,\]]*)\s*\]/decl($1,"dest!")/seg;
+  s/^AddIffs\s*\[\s*([\w\'\. \[,\]]*)\s*\]/decl($1,"iff")/seg;
   print "$_$tail";
   if(!$next) { last; } # prevents reading finally from stdin (thru <>)!
 }
