@@ -14,10 +14,10 @@ Isar commands may be either \emph{proper} document constructors, or
 \emph{improper commands}.  Some proof methods and attributes introduced later
 are classified as improper as well.  Improper Isar language elements, which
 are subsequently marked by $^*$, are often helpful when developing proof
-documents, while their use is usually discouraged for the final outcome.
-Typical examples are diagnostic commands that print terms or theorems
-according to the current context; other commands even emulate old-style
-tactical theorem proving, which facilitates porting of legacy proof scripts.
+documents, while their use is discouraged for the final outcome.  Typical
+examples are diagnostic commands that print terms or theorems according to the
+current context; other commands even emulate old-style tactical theorem
+proving, which facilitates porting of legacy proof scripts.
 
 
 \section{Theory commands}
@@ -33,7 +33,7 @@ tactical theorem proving, which facilitates porting of legacy proof scripts.
 \end{matharray}
 
 Isabelle/Isar ``new-style'' theories are either defined via theory files or
-interactively.  Both actual theory specifications and proofs are handled
+interactively.  Both theory-level specifications and proofs are handled
 uniformly --- occasionally definitional mechanisms even require some explicit
 proof as well.  In contrast, ``old-style'' Isabelle theories support batch
 processing only, with the proof scripts collected in separate ML files.
@@ -67,23 +67,24 @@ last command in a theory file.
   produce chapter or section headings.  See also \S\ref{sec:markup-thy} and
   \S\ref{sec:markup-prf} for further markup commands.
   
-\item [$\THEORY~A = B@1 + \cdots + B@n$] commences a new theory $A$ based on
-  existing ones $B@1 + \cdots + B@n$.  Isabelle's theory loader system ensures
-  that any of the base theories are properly loaded (and fully up-to-date when
-  $\THEORY$ is executed interactively).  The optional $\isarkeyword{files}$
-  specification declares additional dependencies on ML files.  Unless put in
-  parentheses, any file will be loaded immediately via $\isarcmd{use}$ (see
-  also \S\ref{sec:ML}).  The optional ML file \texttt{$A$.ML} that may be
-  associated with any theory should \emph{not} be included in
-  $\isarkeyword{files}$.
+\item [$\THEORY~A = B@1 + \cdots + B@n\colon$] commences a new theory $A$
+  based on existing ones $B@1 + \cdots + B@n$.  Isabelle's theory loader
+  system ensures that any of the base theories are properly loaded (and fully
+  up-to-date when $\THEORY$ is executed interactively).  The optional
+  $\isarkeyword{files}$ specification declares additional dependencies on ML
+  files.  Unless put in parentheses, any file will be loaded immediately via
+  $\isarcmd{use}$ (see also \S\ref{sec:ML}).  The optional ML file
+  \texttt{$A$.ML} that may be associated with any theory should \emph{not} be
+  included in $\isarkeyword{files}$, though.
   
 \item [$\CONTEXT~B$] enters an existing theory context, basically in read-only
-  mode, so only a limited set of commands may be performed.  Just as for
-  $\THEORY$, the theory loader ensures that $B$ is loaded and up-to-date.
+  mode, so only a limited set of commands may be performed without destroying
+  the theory.  Just as for $\THEORY$, the theory loader ensures that $B$ is
+  loaded and up-to-date.
   
 \item [$\END$] concludes the current theory definition or context switch.
-  Note that this command cannot be undone, instead the whole theory definition
-  has to be retracted.
+Note that this command cannot be undone, but the whole theory definition has
+to be retracted.
 \end{descr}
 
 
@@ -101,7 +102,7 @@ last command in a theory file.
 \end{matharray}
 
 Apart from formal comments (see \S\ref{sec:comments}), markup commands provide
-another way to insert text into the document generated from a theory (see
+a structured way to insert text into the document generated from a theory (see
 \cite{isabelle-sys} for more information on Isabelle's document preparation
 tools).
 
@@ -127,16 +128,16 @@ tools).
   becomes available.  A typical application would be to emit
   \verb,\begin{comment}, and \verb,\end{comment}, commands to exclude certain
   parts from the final document.\footnote{This requires the \texttt{comment}
-    {\LaTeX} package to be included}
+    package to be included in {\LaTeX}.}
 \end{descr}
 
 Any markup command (except $\isarkeyword{text_raw}$) corresponds to a {\LaTeX}
-macro with the name derived from \verb,\isamarkup, (e.g.\ 
+macro with the name prefixed by \verb,\isamarkup, (e.g.\ 
 \verb,\isamarkupchapter, for $\isarkeyword{chapter}$). The \railqtoken{text}
-argument is passed to that macro unchanged, i.e.\ any {\LaTeX} commands may be
-included here.
+argument is passed to that macro unchanged, i.e.\ further {\LaTeX} commands
+may be included here as well.
 
-\medskip Further markup commands are available for proofs (see
+\medskip Additional markup commands are available for proofs (see
 \S\ref{sec:markup-prf}).  Also note that the $\isarkeyword{header}$
 declaration (see \S\ref{sec:begin-thy}) admits to insert document markup
 elements just preceding the actual theory definition.
@@ -199,8 +200,7 @@ elements just preceding the actual theory definition.
   $(\vec\alpha)t$ for existing type $\tau$.  Unlike actual type definitions,
   as are available in Isabelle/HOL for example, type synonyms are just purely
   syntactic abbreviations without any logical significance.  Internally, type
-  synonyms are fully expanded, as may be observed when printing terms or
-  theorems.
+  synonyms are fully expanded.
 \item [$\isarkeyword{typedecl}~(\vec\alpha)t$] declares a new type constructor
   $t$, intended as an actual logical type.  Note that object-logics such as
   Isabelle/HOL override $\isarkeyword{typedecl}$ by their own version.
@@ -214,7 +214,7 @@ elements just preceding the actual theory definition.
 \end{descr}
 
 
-\subsection{Constants and simple definitions}
+\subsection{Constants and simple definitions}\label{sec:consts}
 
 \indexisarcmd{consts}\indexisarcmd{defs}\indexisarcmd{constdefs}\indexoutertoken{constdecl}
 \begin{matharray}{rcl}
@@ -248,7 +248,7 @@ elements just preceding the actual theory definition.
 \end{descr}
 
 
-\subsection{Syntax and translations}
+\subsection{Syntax and translations}\label{sec:syn-trans}
 
 \indexisarcmd{syntax}\indexisarcmd{translations}
 \begin{matharray}{rcl}
@@ -274,7 +274,7 @@ elements just preceding the actual theory definition.
   \texttt{output} flag given, all productions are added both to the input and
   output grammar.
 \item [$\isarkeyword{translations}~rules$] specifies syntactic translation
-  rules (i.e.\ \emph{macros}): parse/print rules (\texttt{==}), parse rules
+  rules (i.e.\ \emph{macros}): parse~/ print rules (\texttt{==}), parse rules
   (\texttt{=>}), or print rules (\texttt{<=}).  Translation patterns may be
   prefixed by the syntactic category to be used for parsing; the default is
   \texttt{logic}.
@@ -306,7 +306,7 @@ elements just preceding the actual theory definition.
   Everyday work is typically done the hard way, with proper definitions and
   actual theorems.
 \item [$\isarkeyword{theorems}~a = \vec b$] stores lists of existing theorems.
-  Typical applications would also involve attributes, to augment the default
+  Typical applications would also involve attributes, to augment the
   Simplifier context, for example.
 \item [$\isarkeyword{lemmas}$] is similar to $\isarkeyword{theorems}$, but
   tags the results as ``lemma''.
@@ -358,7 +358,7 @@ following commands provide some way to do so.
 \begin{descr}
 \item [$\isarkeyword{use}~file$] reads and executes ML commands from $file$.
   The current theory context (if present) is passed down to the ML session,
-  but must not be modified.  Furthermore, the file name is checked with the
+  but may not be modified.  Furthermore, the file name is checked with the
   $\isarkeyword{files}$ dependency declaration given in the theory header (see
   also \S\ref{sec:begin-thy}).
   
@@ -370,32 +370,33 @@ following commands provide some way to do so.
   afterwards.  Thus $text$ may actually change the theory as a side effect.
   
 \item [$\isarkeyword{setup}~text$] changes the current theory context by
-  applying setup functions from $text$, which has to refer to an ML expression
-  of type $(theory \to theory)~list$.  The $\isarkeyword{setup}$ command is
-  the canonical way to initialize object-logic specific tools and packages
-  written in ML.
+  applying setup functions from $text$, which refers to an ML expression of
+  type $(theory \to theory)~list$.  The $\isarkeyword{setup}$ command is the
+  canonical way to initialize object-logic specific tools and packages written
+  in ML.
 \end{descr}
 
 
-\subsection{Syntax translation functions}
+%FIXME remove!?
+%\subsection{Syntax translation functions}
 
-\indexisarcmd{parse-ast-translation}\indexisarcmd{parse-translation}
-\indexisarcmd{print-translation}\indexisarcmd{typed-print-translation}
-\indexisarcmd{print-ast-translation}\indexisarcmd{token-translation}
-\begin{matharray}{rcl}
-  \isarcmd{parse_ast_translation} & : & \isartrans{theory}{theory} \\
-  \isarcmd{parse_translation} & : & \isartrans{theory}{theory} \\
-  \isarcmd{print_translation} & : & \isartrans{theory}{theory} \\
-  \isarcmd{typed_print_translation} & : & \isartrans{theory}{theory} \\
-  \isarcmd{print_ast_translation} & : & \isartrans{theory}{theory} \\
-  \isarcmd{token_translation} & : & \isartrans{theory}{theory} \\
-\end{matharray}
+%\indexisarcmd{parse-ast-translation}\indexisarcmd{parse-translation}
+%\indexisarcmd{print-translation}\indexisarcmd{typed-print-translation}
+%\indexisarcmd{print-ast-translation}\indexisarcmd{token-translation}
+%\begin{matharray}{rcl}
+%  \isarcmd{parse_ast_translation} & : & \isartrans{theory}{theory} \\
+%  \isarcmd{parse_translation} & : & \isartrans{theory}{theory} \\
+%  \isarcmd{print_translation} & : & \isartrans{theory}{theory} \\
+%  \isarcmd{typed_print_translation} & : & \isartrans{theory}{theory} \\
+%  \isarcmd{print_ast_translation} & : & \isartrans{theory}{theory} \\
+%  \isarcmd{token_translation} & : & \isartrans{theory}{theory} \\
+%\end{matharray}
 
-Syntax translation functions written in ML admit almost arbitrary
-manipulations of Isabelle's inner syntax.  Any of the above commands have a
-single \railqtoken{text} argument that refers to an ML expression of
-appropriate type.  See \cite[\S8]{isabelle-ref} for more information on syntax
-transformations.
+%Syntax translation functions written in ML admit almost arbitrary
+%manipulations of Isabelle's inner syntax.  Any of the above commands have a
+%single \railqtoken{text} argument that refers to an ML expression of
+%appropriate type.  See \cite[\S8]{isabelle-ref} for more information on syntax
+%transformations.
 
 
 \subsection{Oracles}

@@ -16,19 +16,18 @@ lemma "0 < foo" by (simp add: foo_def);
 end
 \end{ttbox}
 Note that any Isabelle/Isar command may be retracted by \texttt{undo}; the
-\texttt{help} command prints the list of available language elements.
+\texttt{help} command prints a list of available language elements.
 
 Plain TTY-based interaction like this used to be quite feasible with
 traditional tactic based theorem proving, but developing Isar documents
 demands some better user-interface support.  \emph{Proof~General}\index{Proof
   General} of LFCS Edinburgh \cite{proofgeneral} offers a generic Emacs-based
 environment for interactive theorem provers that does all the cut-and-paste
-and forward-backward walk through the document in a very neat way.  Note that
-in Isabelle/Isar, the current position within a partial proof document is
-equally important than the actual proof state.  Thus Proof~General provides
-the canonical working environment for Isabelle/Isar, both for getting
-acquainted (e.g.\ by replaying existing Isar documents) and real production
-work.
+and forward-backward walk through the text in a very neat way.  Note that in
+Isabelle/Isar, the current position within a partial proof document is equally
+important than the actual proof state.  Thus Proof~General provides the
+canonical working environment for Isabelle/Isar, both for getting acquainted
+(e.g.\ by replaying existing Isar documents) and real production work.
 
 \medskip
 
@@ -42,7 +41,8 @@ PROOFGENERAL_OPTIONS="-u false"
 You may have to change \texttt{\$ISABELLE_HOME/contrib/ProofGeneral} to the
 actual installation directory of Proof~General.  From now on, the capital
 \texttt{Isabelle} executable refers to the \texttt{ProofGeneral/isar}
-interface.  Its usage is as follows:
+interface.\footnote{There is also a \texttt{ProofGeneral/isa} interface, for
+  classic Isabelle tactic scripts.}  Its usage is as follows:
 \begin{ttbox}
 Usage: interface [OPTIONS] [FILES ...]
 
@@ -61,20 +61,8 @@ Apart from the command line, the defaults for these options may be overridden
 via the \texttt{PROOFGENERAL_OPTIONS} setting as well.  For example, plain GNU
 Emacs may be configured as follows:
 \begin{ttbox}
-PROOFGENERAL_OPTIONS="-p emacs"
+PROOFGENERAL_OPTIONS="-u false -p emacs"
 \end{ttbox}
-
-With the proper Isabelle interface setup, Isar documents may now be edited by
-visiting appropriate theory files, e.g.\ 
-\begin{ttbox}
-Isabelle \({\langle}isabellehome{\rangle}\)/src/HOL/Isar_examples/BasicLogic.thy
-\end{ttbox}
-Users of XEmacs may note the tool bar for navigating forward and backward
-through the text.  Consult the Proof~General documentation \cite{proofgeneral}
-for further basic command sequences, like ``\texttt{c-c return}'' or
-``\texttt{c-c u}''.
-
-\medskip
 
 Occasionally, a user's \texttt{.emacs} file contains material that is
 incompatible with the version of (X)Emacs that Proof~General prefers.  Then
@@ -83,6 +71,59 @@ option.\footnote{Any Emacs lisp file \texttt{proofgeneral-settings.el}
   occurring in \texttt{\$ISABELLE_HOME/etc} or
   \texttt{\$ISABELLE_HOME_USER/etc} is automatically loaded by the
   Proof~General interface script as well.}
+
+\medskip
+
+With the proper Isabelle interface setup, Isar documents may now be edited by
+visiting appropriate theory files, e.g.\ 
+\begin{ttbox}
+Isabelle \({\langle}isabellehome{\rangle}\)/src/HOL/Isar_examples/BasicLogic.thy
+\end{ttbox}
+Users of XEmacs may note the tool bar for navigating forward and backward
+through the text.  Consult the Proof~General documentation \cite{proofgeneral}
+for further basic command sequences, such as ``\texttt{c-c return}'' or
+``\texttt{c-c u}''.
+
+
+\section{Isabelle/Isar theories}
+
+Isabelle/Isar offers two main improvements over classic Isabelle:
+\begin{enumerate}
+\item A new \emph{theory format}, occasionally referred to as ``new-style
+  theories'', supporting interactive development and unlimited undo operation.
+\item A \emph{formal proof document language} designed to support intelligible
+  semi-automated reasoning.  Instead of putting together unreadable tactic
+  scripts, the author is enabled to express the reasoning in way that is close
+  to mathematical practice.
+\end{enumerate}
+
+The Isar proof language is embedded into the new theory format as a proper
+sub-language.  Proof mode is entered by stating some $\THEOREMNAME$ or
+$\LEMMANAME$ at the theory level, and left again with the final conclusion
+(e.g.\ via $\QEDNAME$).  A few theory extension mechanisms require proof as
+well, such as the HOL $\isarkeyword{typedef}$ which demands non-emptiness of
+the representing sets.
+
+New-style theory files may still be associated with separate ML files
+consisting of plain old tactic scripts.  There is no longer any ML binding
+generated for the theory and theorems, though.  ML functions \texttt{theory},
+\texttt{thm}, and \texttt{thms} retrieve this information \cite{isabelle-ref}.
+Nevertheless, migration between classic Isabelle and Isabelle/Isar is
+relatively easy.  Thus users may start to benefit from interactive theory
+development even before they have any idea of the Isar proof language at all.
+
+\begin{warn}
+  Currently Proof~General does \emph{not} support mixed interactive
+  development of classic Isabelle theory files or tactic scripts, together
+  with Isar documents.  The ``\texttt{isa}'' and ``\texttt{isar}'' versions of
+  Proof~General are handled as two different theorem proving systems, only one
+  of these may be active at the same time.
+\end{warn}
+
+Porting of existing tactic scripts is best done by running two separate
+Proof~General sessions, one for replaying the old script and the other for the
+emerging Isabelle/Isar document.
+
 
 \section{How to write Isar proofs anyway?}
 
@@ -93,17 +134,14 @@ thinking differently in order to make effective use of Isabelle/Isar.  On the
 other hand, Isabelle/Isar comes much closer to existing mathematical practice
 of formal proof, so users with less experience in old-style tactical proving,
 but a good understanding of mathematical proof, might cope with Isar even
-better.
+better.  See also \cite{Wenzel:1999:TPHOL} for further background information
+on Isar.
 
-This document really is a \emph{reference manual}.  Nevertheless, we will give
-some discussions of the general principles underlying Isar in
-chapter~\ref{ch:basics}, and provide some clues of how these may be put into
-practice.  Some more background information on Isar is given in
-\cite{Wenzel:1999:TPHOL}.  While there is no proper tutorial on Isabelle/Isar
-available yet, there are several examples distributed with Isabelle.  See
-\texttt{HOL/Isar_examples} and \texttt{HOL/HOL-Real/HahnBanach} in the
-Isabelle library:
-
+\medskip This really is a \emph{reference manual}.  Nevertheless, we will also
+give some clues of how the concepts introduced here may be put into practice.
+Appendix~\ref{ap:refcard} provides a quick reference card of the most common
+Isabelle/Isar language elements.  There are several examples distributed with
+Isabelle, and available via the Isabelle WWW library:
 \begin{center}\small
   \begin{tabular}{l}
     \url{http://www.cl.cam.ac.uk/Research/HVG/Isabelle/library/} \\
@@ -111,8 +149,9 @@ Isabelle library:
   \end{tabular}
 \end{center}
 
-Apart from browsable HTML sources, both Isabelle/Isar sessions also provide
-actual documents (in PDF).
+See \texttt{HOL/Isar_examples} for a collection of introductory examples.
+\texttt{HOL/HOL-Real/HahnBanach} is a big mathematics application.  Apart from
+browsable HTML sources, both sessions provide actual documents (in PDF).
 
 %%% Local Variables: 
 %%% mode: latex

@@ -18,9 +18,9 @@ within a theory, while \texttt{x + y} is not.
 
 \begin{warn}
   Note that classic Isabelle theories used to fake parts of the inner type
-  syntax, with complicated rules when quotes may be omitted.  Despite the
-  minor drawback of requiring quotes more often, the syntax of Isabelle/Isar
-  is simpler and more robust in that respect.
+  syntax, with rather complicated rules when quotes may be omitted.  Despite
+  the minor drawback of requiring quotes more often, the syntax of
+  Isabelle/Isar is simpler and more robust in that respect.
 \end{warn}
 
 \medskip
@@ -28,10 +28,9 @@ within a theory, while \texttt{x + y} is not.
 Another notable point is proper input termination.  Proof~General demands any
 command to be terminated by ``\texttt{;}''
 (semicolon)\index{semicolon}\index{*;}.  As far as plain Isabelle/Isar is
-concerned, commands may be directly run together, though.  Thus we usually
-omit semicolons when presenting Isar proof text here, in order to gain
-readability.  Note that the documents which automatically generated from
-new-style theories also omit semicolons.
+concerned, commands may be directly run together, though.  In the presentation
+of Isabelle/Isar documents, semicolons are omitted in order to gain
+readability.
 
 
 \section{Lexical matters}\label{sec:lex-syntax}
@@ -65,15 +64,15 @@ should not be confused, though.
 
 The syntax of \texttt{string} admits any characters, including newlines;
 ``\verb|"|'' (double-quote) and ``\verb|\|'' (backslash) have to be escaped by
-a backslash, though.  Note that ML-style control character notation is
-\emph{not} supported.  The body of \texttt{verbatim} may consist of any text
-not containing \verb|*}|.
+a backslash.  Note that ML-style control characters are \emph{not} supported.
+The body of \texttt{verbatim} may consist of any text not containing
+``\verb|*}|''.
 
 Comments take the form \texttt{(*~\dots~*)} and may be
-nested\footnote{Proof~General may get confused by nested comments, though.},
-just as in ML. Note that these are \emph{source} comments only, which are
-stripped after lexical analysis of the input.  The Isar document syntax also
-provides of \emph{formal comments} that are actually part of the text (see
+nested\footnote{Proof~General may get confused by nested comments.}, just as
+in ML. Note that these are \emph{source} comments only, which are stripped
+after lexical analysis of the input.  The Isar document syntax also provides
+\emph{formal comments} that are actually part of the text (see
 \S\ref{sec:comments}).
 
 
@@ -83,7 +82,7 @@ Subsequently, we introduce several basic syntactic entities, such as names,
 terms, and theorem specifications, which have been factored out of the actual
 Isar language elements to be described later.
 
-Note that some of the basic syntactic entities introduced below (such as
+Note that some of the basic syntactic entities introduced below (e.g.\ 
 \railqtoken{name}) act much like tokens rather than plain nonterminals (e.g.\ 
 \railnonterm{sort}), especially for the sake of error messages.  E.g.\ syntax
 elements such as $\CONSTS$ referring to \railqtoken{name} or \railqtoken{type}
@@ -161,12 +160,12 @@ that this is in contrast to types and terms (see \ref{sec:types-terms}).
 The actual inner Isabelle syntax, that of types and terms of the logic, is far
 too sophisticated in order to be modelled explicitly at the outer theory
 level.  Basically, any such entity has to be quoted here to turn it into a
-single token (the parsing and type-checking is performed later).  For
-convenience, a slightly more liberal convention is adopted: quotes may be
+single token (the parsing and type-checking is performed internally later).
+For convenience, a slightly more liberal convention is adopted: quotes may be
 omitted for any type or term that is already \emph{atomic} at the outer level.
 For example, one may write just \texttt{x} instead of \texttt{"x"}.  Note that
-symbolic identifiers such as \texttt{++} are available as well, provided these
-are not superseded by commands or keywords (like \texttt{+}).
+symbolic identifiers (e.g.\ \texttt{++}) are available as well, provided these
+are not superseded by commands or keywords (e.g.\ \texttt{+}).
 
 \indexoutertoken{type}\indexoutertoken{term}\indexoutertoken{prop}
 \begin{rail}
@@ -193,7 +192,7 @@ but no infixes.
 \subsection{Term patterns}\label{sec:term-pats}
 
 Assumptions and goal statements usually admit casual binding of schematic term
-variables by giving (optional) patterns of the form $\ISS{p@1 \dots}{p@n}$.
+variables by giving (optional) patterns of the form $\ISS{p@1\;\dots}{p@n}$.
 There are separate versions available for \railqtoken{term}s and
 \railqtoken{prop}s.  The latter provides a $\CONCLNAME$ part with patterns
 referring the (atomic) conclusion of a rule.
@@ -210,8 +209,10 @@ referring the (atomic) conclusion of a rule.
 \subsection{Mixfix annotations}
 
 Mixfix annotations specify concrete \emph{inner} syntax of Isabelle types and
-terms.  Some commands such as $\TYPES$ admit infixes only, while $\CONSTS$ and
-$\isarkeyword{syntax}$ support the full range of general mixfixes and binders.
+terms.  Some commands such as $\TYPES$ (see \S\ref{sec:types-pure}) admit
+infixes only, while $\CONSTS$ (see \S\ref{sec:consts}) and
+$\isarkeyword{syntax}$ (see \S\ref{sec:syn-trans}) support the full range of
+general mixfixes and binders.
 
 \indexouternonterm{infix}\indexouternonterm{mixfix}
 \begin{rail}
@@ -232,8 +233,8 @@ Attributes (and proof methods, see \S\ref{sec:syn-meth}) have their own
 \railnonterm{args} below is parsed by the attribute a second time.  The
 attribute argument specifications may be any sequence of atomic entities
 (identifiers, strings etc.), or properly bracketed argument lists.  Below
-\railqtoken{atom} refers to any atomic entity, including \railtoken{keyword}s
-conforming to \railtoken{symident}.
+\railqtoken{atom} refers to any atomic entity, including any
+\railtoken{keyword} conforming to \railtoken{symident}.
 
 \indexoutertoken{atom}\indexouternonterm{args}\indexouternonterm{attributes}
 \begin{rail}
@@ -249,13 +250,13 @@ conforming to \railtoken{symident}.
 
 Theorem specifications come in several flavors: \railnonterm{axmdecl} and
 \railnonterm{thmdecl} usually refer to axioms, assumptions or results of goal
-statements, \railnonterm{thmdef} collects lists of existing theorems.
-Existing theorems are given by \railnonterm{thmref} and \railnonterm{thmrefs}
-(the former requires an actual singleton result).  Any of these theorem
+statements, while \railnonterm{thmdef} collects lists of existing theorems.
+Existing theorems are given by \railnonterm{thmref} and \railnonterm{thmrefs},
+the former requires an actual singleton result.  Any of these theorem
 specifications may include lists of attributes both on the left and right hand
 sides; attributes are applied to any immediately preceding theorem.  If names
-are omitted, the theorems are not stored within the theory's theorem database;
-any given attributes are still applied, though.
+are omitted, the theorems are not stored within the theorem database of the
+theory or proof context; any given attributes are still applied, though.
 
 \indexouternonterm{thmdecl}\indexouternonterm{axmdecl}
 \indexouternonterm{thmdef}\indexouternonterm{thmrefs}
@@ -280,12 +281,10 @@ any given attributes are still applied, though.
 
 Proof methods are either basic ones, or expressions composed of methods via
 ``\texttt{,}'' (sequential composition), ``\texttt{|}'' (alternative choices),
-``\texttt{?}'' (try once), ``\texttt{+}'' (repeat at least once).  In
-practice, proof methods are usually just a comma separated list of
-\railqtoken{nameref}~\railnonterm{args} specifications.  Thus the syntax is
-similar to that of attributes, with plain parentheses instead of square
-brackets.  Note that parentheses may be dropped for single method
-specifications (with no arguments).
+``\texttt{?}'' (try), ``\texttt{+}'' (repeat at least once).  In practice,
+proof methods are usually just a comma separated list of
+\railqtoken{nameref}~\railnonterm{args} specifications.  Note that parentheses
+may be dropped for single method specifications (with no arguments).
 
 \indexouternonterm{method}
 \begin{rail}
