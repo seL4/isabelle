@@ -31,19 +31,19 @@ function fail()
 [ "$1" = "-?" ] && usage
 [ "$#" != "3" ] && usage
 
-SUBJECT=$1
-TO=$2
-BODY=$3
+SUBJECT="$1"
+TO="$2"
+BODY="$3"
 
-[ -r $BODY ] || fail "could not read $BODY"
+[ -r "$BODY" ] || fail "could not read $BODY"
 
 case `uname` in
-    Linux*)
-    mail -s "$SUBJECT" $TO <$BODY
+    linux*|Linux*)
+    mail -s "$SUBJECT" "$TO" < "$BODY"
     ;;
 
     SunOS*)
-    mail -t $TO <<EOF
+    mail -t "$TO" <<EOF
 Subject: $SUBJECT
 
 `cat $BODY`
