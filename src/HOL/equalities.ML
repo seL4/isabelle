@@ -1,12 +1,10 @@
-(*  Title:      HOL/equalities
+(*  Title:      HOL/equalities.ML
     ID:         $Id$
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1994  University of Cambridge
 
 Equalities involving union, intersection, inclusion, etc.
 *)
-
-writeln"File HOL/equalities";
 
 AddSIs [equalityI];
 

@@ -1,10 +1,10 @@
-(*  Title:      HOL/subset
+(*  Title:      HOL/subset.ML
     ID:         $Id$
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1991  University of Cambridge
 
-Derived rules involving subsets
-Union and Intersection as lattice operations
+Derived rules involving subsets.  Union and Intersection as lattice
+operations.
 *)
 
 (*** insert ***)
