@@ -317,11 +317,7 @@ goal thy
 \           Says Server B' {|NA',X',Crypt (shrK B') {|NB',K|}|}    \
 \            : set_of_list evs;                                    \
 \           evs : otway |] ==> X=X' & B=B' & NA=NA' & NB=NB'";
-by (dtac lemma 1);
-by (REPEAT (etac exE 1));
-(*Duplicate the assumption*)
-by (forw_inst_tac [("psi", "ALL C.?P(C)")] asm_rl 1);
-by (fast_tac (!claset addSDs [spec]) 1);
+by (prove_unique_tac lemma 1);
 qed "unique_session_keys";
 
 

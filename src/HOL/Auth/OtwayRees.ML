@@ -306,11 +306,7 @@ goal thy
 \           Says Server B' {|NA',X',Crypt (shrK B') {|NB',K|}|}    \
 \            : set_of_list evs;                                    \
 \           evs : otway lost |] ==> X=X' & B=B' & NA=NA' & NB=NB'";
-by (dtac lemma 1);
-by (REPEAT (etac exE 1));
-(*Duplicate the assumption*)
-by (forw_inst_tac [("psi", "ALL C.?P(C)")] asm_rl 1);
-by (fast_tac (!claset addSDs [spec]) 1);
+by (prove_unique_tac lemma 1);
 qed "unique_session_keys";
 
 
@@ -349,12 +345,7 @@ goal thy
 \          Crypt (shrK A) {|NA, Agent A, Agent C|}: parts(sees lost Spy evs); \
 \          evs : otway lost;  A ~: lost |]                                    \
 \        ==> B = C";
-by (dtac lemma 1);
-by (assume_tac 1);
-by (etac exE 1);
-(*Duplicate the assumption*)
-by (forw_inst_tac [("psi", "ALL C.?P(C)")] asm_rl 1);
-by (fast_tac (!claset addSDs [spec]) 1);
+by (prove_unique_tac lemma 1);
 qed "unique_NA";
 
 
@@ -529,12 +520,7 @@ goal thy
 \                  : parts(sees lost Spy evs);         \
 \          evs : otway lost;  B ~: lost |]             \
 \        ==> NC = NA & C = A";
-by (dtac lemma 1);
-by (assume_tac 1);
-by (REPEAT (etac exE 1));
-(*Duplicate the assumption*)
-by (forw_inst_tac [("psi", "ALL C.?P(C)")] asm_rl 1);
-by (fast_tac (!claset addSDs [spec]) 1);
+by (prove_unique_tac lemma 1);
 qed "unique_NB";
 
 
