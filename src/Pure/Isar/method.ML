@@ -112,7 +112,7 @@ fun insert_tac [] i = all_tac
   | insert_tac facts i = EVERY (map (fn th => cut_rule_tac th i) facts);
 
 val insert_facts = METHOD (ALLGOALS o insert_tac);
-fun insert thms = METHOD (fn facts => ALLGOALS (insert_tac (thms @ facts)));
+fun insert thms = METHOD (fn _ => ALLGOALS (insert_tac thms));
 
 end;
 
@@ -384,7 +384,7 @@ val pure_methods =
  [("fail", no_args fail, "force failure"),
   ("succeed", no_args succeed, "succeed"),
   ("-", no_args insert_facts, "do nothing, inserting current facts only"),
-  ("insert", thms_args insert, "insert facts (improper!)"),
+  ("insert", thms_args insert, "insert theorems, ignoring facts (improper!)"),
   ("unfold", thms_args unfold, "unfold definitions"),
   ("fold", thms_args fold, "fold definitions"),
   ("rule", thms_args rule, "apply some rule"),
