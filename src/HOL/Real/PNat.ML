@@ -86,8 +86,6 @@ by (rtac inj_inverseI 1);
 by (rtac Rep_pnat_inverse 1);
 qed "inj_Rep_pnat";
 
-bind_thm ("Zero_not_Suc", Suc_not_Zero RS not_sym);
-
 Goal "0 ~: pnat";
 by (stac pnat_unfold 1);
 by Auto_tac;

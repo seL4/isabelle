@@ -775,30 +775,37 @@ by (auto_tac (claset() addDs [inj_real_of_nat RS injD],
 qed "real_of_nat_eq_cancel";
 
 (*------- lemmas -------*)
-goal NatDef.thy "!!m. [| m < Suc n; n <= m |] ==> m = n";
+context NatDef.thy;
+
+Goal "!!m. [| m < Suc n; n <= m |] ==> m = n";
 by (auto_tac (claset() addSDs [le_imp_less_or_eq] addIs [less_asym],
 	      simpset() addsimps [less_Suc_eq]));
 qed "lemma_nat_not_dense";
 
-goal NatDef.thy "!!m. [| m <= Suc n; n < m |] ==> m = Suc n";
+Goal "!!m. [| m <= Suc n; n < m |] ==> m = Suc n";
 by (auto_tac (claset() addSDs [le_imp_less_or_eq] addIs [less_asym],
 	      simpset() addsimps [le_Suc_eq]));
 qed "lemma_nat_not_dense2";
 
-goal NatDef.thy "!!m. m < Suc n ==> ~ Suc n <= m";
+Goal "!!m. m < Suc n ==> ~ Suc n <= m";
 by (blast_tac (claset() addDs [less_le_trans] addIs [less_asym]) 1);
 qed "lemma_not_leI";
 
-goalw NatDef.thy [le_def] "!!m. ~ Suc n <= m ==> ~ Suc (Suc n) <= m";
+Goalw [le_def] "!!m. ~ Suc n <= m ==> ~ Suc (Suc n) <= m";
 by Auto_tac;
 qed "lemma_not_leI2";
 
 (*------- lemmas -------*)
-val [prem] = goal Arith.thy "n < Suc(m) ==> Suc(m)-n = Suc(m-n)";
-by (rtac (prem RS rev_mp) 1);
+context Arith.thy;
+
+Goal "n < Suc(m) ==> Suc(m)-n = Suc(m-n)";
+by (dtac rev_mp 1);
 by (res_inst_tac [("m","m"),("n","n")] diff_induct 1);
 by (ALLGOALS Asm_simp_tac);
 qed "Suc_diff_n";
+
+
+context thy;
 
 (* Goalw  [real_of_nat_def] 
    "real_of_nat (n1 - n2) = real_of_nat n1 + -real_of_nat n2";*)
@@ -813,5 +820,3 @@ by (auto_tac (claset(),
 by (asm_full_simp_tac (simpset() addsimps [real_of_nat_one RS sym,
 					   real_of_nat_add,Suc_diff_n]) 1);
 qed "real_of_nat_minus";
-
-

@@ -9,7 +9,7 @@
 The temporal level of TLA.
 *)
 
-TLA  =  Init + WF_Rel +
+TLA  =  Init +
 
 consts
   (** abstract syntax **)
@@ -92,5 +92,3 @@ rules
 	      |] ==> G sigma"
   history    "|- EEX h. Init(h = ha) & [](!x. $h = #x --> h` = hb x)"
 end
-
-ML

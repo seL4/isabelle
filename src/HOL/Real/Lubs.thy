@@ -7,7 +7,7 @@
 *) 
 
 
-Lubs = Set +
+Lubs = Main +
 
 consts
     
