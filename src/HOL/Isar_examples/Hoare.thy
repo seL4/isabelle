@@ -60,7 +60,7 @@ constdefs
     ("(3|- _/ (2_)/ _)" [100, 55, 100] 50)
   "|- P c Q == ALL s s'. Sem c s s' --> s : P --> s' : Q"
 
-syntax (symbols)
+syntax (xsymbols)
   Valid :: "'a bexp => 'a com => 'a bexp => bool"
     ("(3\<turnstile> _/ (2_)/ _)" [100, 55, 100] 50)
 
