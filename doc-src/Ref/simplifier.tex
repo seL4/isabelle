@@ -273,6 +273,8 @@ simpset        : unit -> simpset
 simpset_ref    : unit -> simpset ref
 simpset_of     : theory -> simpset
 simpset_ref_of : theory -> simpset ref
+SIMPSET        : (simpset -> tactic) -> tactic
+SIMPSET'       : (simpset -> 'a -> tactic) -> 'a -> tactic
 print_simpset  : theory -> unit
 \end{ttbox}
 
@@ -295,10 +297,25 @@ modified as follows.
 \item[\ttindexbold{simpset_ref_of} $thy$;] retrieves the simpset
   reference variable from theory $thy$.
 
+\item[\ttindexbold{SIMPSET} $tacf$, \ttindexbold{SIMPSET'} $tacf'$]
+  are tacticals that make a tactic depend on the implicit current
+  simpset of the theory associated with the proof state they are
+  applied on.
+
 \item[\ttindexbold{print_simpset} $thy$;] prints the current simpset
   of theory $thy$ in the same way as \texttt{print_ss}.
 
 \end{ttdescription}
+
+\begin{warn}
+  There is a subtle difference between \texttt{(SIMPSET'~$tacf$)} and
+  \texttt{($tacf$~(simpset()))}.  For example \texttt{(SIMPSET'
+    simp_tac)} would depend on the theory of the proof state it is
+  applied to, while \texttt{(simp_tac (simpset()))} implicitly refers
+  to the current theory context.  Both are usually the same in proof
+  scripts, provided that goals are only stated within the current
+  theory.  Robust programs would not count on that, of course.
+\end{warn}
 
 
 \subsection{Rewrite rules}
@@ -687,8 +704,6 @@ asm_simp_tac           : simpset -> int -> tactic
 full_simp_tac          : simpset -> int -> tactic
 asm_full_simp_tac      : simpset -> int -> tactic
 safe_asm_full_simp_tac : simpset -> int -> tactic
-SIMPSET                : (simpset -> tactic) -> tactic
-SIMPSET'               : (simpset -> 'a -> tactic) -> 'a -> tactic
 \end{ttbox}
 
 These are the basic tactics that are underlying any actual
@@ -711,11 +726,6 @@ recursively before the rewrite rule is applied.
   building special tools, e.g.\ for combining the simplifier with the
   classical reasoner.  It is rarely used directly.
   
-\item[\ttindexbold{SIMPSET} $tacf$, \ttindexbold{SIMPSET'} $tacf'$]
-  are tacticals that make a tactic depend on the implicit current
-  simpset of the theory associated with the proof state they are
-  applied on.
-
 \end{ttdescription}
 
 \medskip
@@ -742,16 +752,6 @@ actual proof scripts.  In particular, ML programs like theory
 definition packages or special tactics should refer to simpsets only
 explicitly, via the above tactics used in conjunction with
 \texttt{simpset_of} or the \texttt{SIMPSET} tacticals.
-
-\begin{warn}
-  There is a subtle difference between \texttt{(SIMPSET'~$tacf$)} and
-  \texttt{($tacf$~(simpset()))}.  For example \texttt{(SIMPSET'
-    simp_tac)} would depend on the theory of the proof state it is
-  applied to, while \texttt{(simp_tac (simpset()))} implicitly refers
-  to the current theory context.  Both are usually the same in proof
-  scripts, provided that goals are only stated within the current
-  theory.  Robust programs would not count on that, of course.
-\end{warn}
 
 
 \section{Forward rules and conversions}

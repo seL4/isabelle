@@ -3,7 +3,7 @@
   \item {\tt !!} symbol, 70
   \item {\tt\$}, \bold{61}, 87
   \item {\tt\%} symbol, 70
-  \item * SplitterFun, 127
+  \item * SplitterFun, 128
   \item {\tt ::} symbol, 70, 71
   \item {\tt ==} symbol, 70
   \item {\tt ==>} symbol, 70
@@ -29,10 +29,10 @@
   \item {\tt addaltern}, \bold{136}
   \item {\tt addbefore}, \bold{136}
   \item {\tt Addcongs}, \bold{106}
-  \item {\tt addcongs}, \bold{110}, 126, 127
+  \item {\tt addcongs}, \bold{111}, 126, 127
   \item {\tt AddDs}, \bold{141}
   \item {\tt addDs}, \bold{134}
-  \item {\tt addeqcongs}, \bold{110}, 126
+  \item {\tt addeqcongs}, \bold{111}, 127
   \item {\tt AddEs}, \bold{141}
   \item {\tt addEs}, \bold{134}
   \item {\tt AddIs}, \bold{141}
@@ -45,14 +45,14 @@
   \item {\tt AddSEs}, \bold{141}
   \item {\tt addSEs}, \bold{134}
   \item {\tt Addsimprocs}, \bold{106}
-  \item {\tt addsimprocs}, \bold{109}
+  \item {\tt addsimprocs}, \bold{110}
   \item {\tt Addsimps}, \bold{106}
   \item {\tt addsimps}, \bold{109}, 127
   \item {\tt AddSIs}, \bold{141}
   \item {\tt addSIs}, \bold{134}
   \item {\tt addSolver}, \bold{112}
   \item {\tt Addsplits}, \bold{106}
-  \item {\tt addsplits}, \bold{113}, 114
+  \item {\tt addsplits}, 114, \bold{114}
   \item {\tt addss}, \bold{136}, 137
   \item {\tt addSSolver}, \bold{112}
   \item {\tt addSWrapper}, \bold{136}
@@ -73,11 +73,11 @@
   \item arities
     \subitem context conditions, 56
   \item {\tt Asm_full_simp_tac}, \bold{105}
-  \item {\tt asm_full_simp_tac}, 25, \bold{114}, 119
+  \item {\tt asm_full_simp_tac}, 25, \bold{115}, 119
   \item {\tt asm_full_simplify}, 115
   \item {\tt asm_rl} theorem, 24
-  \item {\tt Asm_simp_tac}, \bold{104}, 116
-  \item {\tt asm_simp_tac}, \bold{114}, 127
+  \item {\tt Asm_simp_tac}, \bold{104}, 117
+  \item {\tt asm_simp_tac}, \bold{115}, 127
   \item {\tt asm_simplify}, 115
   \item associative-commutative operators, 120
   \item {\tt assume}, \bold{46}
@@ -87,7 +87,7 @@
   \item assumptions
     \subitem contradictory, 141
     \subitem deleting, 25
-    \subitem in simplification, 104, 112
+    \subitem in simplification, 104, 113
     \subitem inserting, 22
     \subitem negated, 131
     \subitem of main goal, 8, 9, 11, 16, 17
@@ -202,14 +202,14 @@
   \item definitions, \see{rewriting, meta-level}{1}, 23, \bold{56}
     \subitem unfolding, 8, 9
   \item {\tt Delcongs}, \bold{106}
-  \item {\tt delcongs}, \bold{110}
-  \item {\tt deleqcongs}, \bold{110}
+  \item {\tt delcongs}, \bold{111}
+  \item {\tt deleqcongs}, \bold{111}
   \item {\tt delete_tmpfiles}, \bold{57}
   \item delimiters, \bold{71}, 74, 75, 77
   \item {\tt delloop}, \bold{113}
   \item {\tt delrules}, \bold{134}
   \item {\tt Delsimprocs}, \bold{106}
-  \item {\tt delsimprocs}, \bold{109}
+  \item {\tt delsimprocs}, \bold{110}
   \item {\tt Delsimps}, \bold{106}
   \item {\tt delsimps}, \bold{109}
   \item {\tt Delsplits}, \bold{106}
@@ -326,7 +326,7 @@
   \item {\tt freezeT}, \bold{48}
   \item {\tt frs}, \bold{14}
   \item {\tt Full_simp_tac}, \bold{104}
-  \item {\tt full_simp_tac}, \bold{114}
+  \item {\tt full_simp_tac}, \bold{115}
   \item {\tt full_simplify}, 115
   \item {\textit {fun}} type, 64
   \item function applications, \bold{61}
@@ -476,7 +476,7 @@
   \item {\tt pr}, \bold{12}
   \item {\tt premises}, \bold{8}, 16
   \item {\tt prems_of}, \bold{43}
-  \item {\tt prems_of_ss}, \bold{111}
+  \item {\tt prems_of_ss}, \bold{112}
   \item pretty printing, 75, 77--78, 94
   \item {\tt Pretty.setdepth}, \bold{4}
   \item {\tt Pretty.setmargin}, \bold{4}
@@ -579,7 +579,7 @@
   \item {\tt restore_proof}, \bold{17}
   \item {\tt result}, \bold{9}, 11, 17
   \item {\tt rev_mp} theorem, \bold{103}
-  \item rewrite rules, 108--109
+  \item rewrite rules, 109
     \subitem permutative, 119--122
   \item {\tt rewrite_goals_rule}, \bold{41}
   \item {\tt rewrite_goals_tac}, \bold{23}, 41
@@ -587,7 +587,7 @@
   \item {\tt rewrite_tac}, 9, \bold{23}
   \item rewriting
     \subitem object-level, \see{simplification}{1}
-    \subitem ordered, 119
+    \subitem ordered, 120
     \subitem syntactic, 89--95
   \item {\tt rewtac}, \bold{22}
   \item {\tt RL}, \bold{40}
@@ -604,7 +604,7 @@
 
   \indexspace
 
-  \item {\tt safe_asm_full_simp_tac}, \bold{114}
+  \item {\tt safe_asm_full_simp_tac}, \bold{115}
   \item {\tt Safe_step_tac}, \bold{141}
   \item {\tt safe_step_tac}, 135, \bold{140}
   \item {\tt Safe_tac}, \bold{141}
@@ -624,7 +624,7 @@
   \item {\tt setSolver}, \bold{112}, 127
   \item {\tt setSSolver}, \bold{112}, 127
   \item {\tt setsubgoaler}, \bold{111}, 127
-  \item {\tt settermless}, \bold{119}
+  \item {\tt settermless}, \bold{120}
   \item {\tt setup}
     \subitem simplifier, 128
     \subitem theory, 55
@@ -646,13 +646,13 @@
   \item {\tt sign_of_thm}, \bold{43}
   \item signatures, \bold{53}, 61, 63, 65
   \item {\tt Simp_tac}, \bold{104}
-  \item {\tt simp_tac}, \bold{114}
+  \item {\tt simp_tac}, \bold{115}
   \item simplification, 104--128
     \subitem conversions, 115
     \subitem forward rules, 115
     \subitem from classical reasoner, 136
-    \subitem setting up, 123
-    \subitem setting up the splitter, 127
+    \subitem setting up, 124
+    \subitem setting up the splitter, 128
     \subitem setting up the theory, 128
     \subitem tactics, 114
   \item simplification sets, 107
@@ -662,11 +662,11 @@
   \item {\tt Simplifier.rewrite}, 115
   \item {\tt Simplifier.setup}, \bold{128}
   \item {\tt simplify}, 115
-  \item {\tt SIMPSET}, \bold{114}
+  \item {\tt SIMPSET}, \bold{108}
   \item simpset
     \subitem current, 104, 108
   \item {\tt simpset}, \bold{108}
-  \item {\tt SIMPSET'}, \bold{114}
+  \item {\tt SIMPSET'}, \bold{108}
   \item {\tt simpset_of}, \bold{108}
   \item {\tt simpset_ref}, \bold{108}
   \item {\tt simpset_ref_of}, \bold{108}
