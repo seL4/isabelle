@@ -2650,9 +2650,11 @@ lemma NOT_IN_EMPTY: "ALL x. ~ IN x EMPTY"
 lemma MEMBER_NOT_EMPTY: "ALL x. (EX xa. IN xa x) = (x ~= EMPTY)"
   by (import pred_set MEMBER_NOT_EMPTY)
 
-constdefs
+consts
   UNIV :: "'a => bool" 
-  "pred_set.UNIV == %x. True"
+
+defs
+  UNIV_def: "pred_set.UNIV == %x. True"
 
 lemma UNIV_DEF: "pred_set.UNIV = (%x. True)"
   by (import pred_set UNIV_DEF)
@@ -2719,9 +2721,11 @@ lemma NOT_UNIV_PSUBSET: "ALL x. ~ PSUBSET pred_set.UNIV x"
 lemma PSUBSET_UNIV: "ALL x. PSUBSET x pred_set.UNIV = (EX xa. ~ IN xa x)"
   by (import pred_set PSUBSET_UNIV)
 
-constdefs
+consts
   UNION :: "('a => bool) => ('a => bool) => 'a => bool" 
-  "pred_set.UNION == %s t. GSPEC (%x. (x, IN x s | IN x t))"
+
+defs
+  UNION_def: "pred_set.UNION == %s t. GSPEC (%x. (x, IN x s | IN x t))"
 
 lemma UNION_DEF: "ALL s t. pred_set.UNION s t = GSPEC (%x. (x, IN x s | IN x t))"
   by (import pred_set UNION_DEF)
@@ -2761,9 +2765,11 @@ lemma UNION_UNIV: "(ALL x::'a => bool. pred_set.UNION pred_set.UNIV x = pred_set
 lemma EMPTY_UNION: "ALL x xa. (pred_set.UNION x xa = EMPTY) = (x = EMPTY & xa = EMPTY)"
   by (import pred_set EMPTY_UNION)
 
-constdefs
+consts
   INTER :: "('a => bool) => ('a => bool) => 'a => bool" 
-  "pred_set.INTER == %s t. GSPEC (%x. (x, IN x s & IN x t))"
+
+defs
+  INTER_def: "pred_set.INTER == %s t. GSPEC (%x. (x, IN x s & IN x t))"
 
 lemma INTER_DEF: "ALL s t. pred_set.INTER s t = GSPEC (%x. (x, IN x s & IN x t))"
   by (import pred_set INTER_DEF)
