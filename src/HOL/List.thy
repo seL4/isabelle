@@ -155,8 +155,8 @@ primrec
   (* Warning: simpset does not contain this definition but separate theorems 
      for xs=[] / xs=z#zs *)
 primrec
-  "[i..0(] = []"
-  "[i..(Suc j)(] = (if i <= j then [i..j(] @ [j] else [])"
+  upt_0   "[i..0(] = []"
+  upt_Suc "[i..(Suc j)(] = (if i <= j then [i..j(] @ [j] else [])"
 primrec
   "nodups []     = True"
   "nodups (x#xs) = (x ~: set xs & nodups xs)"
