@@ -193,7 +193,6 @@ fun read stopper scan xs =
   | _ => None);
 
 
-
 (* infinite scans -- draining state-based source *)
 
 fun drain def_prmpt get stopper scan ((state, xs), src) =

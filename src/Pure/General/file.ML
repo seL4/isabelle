@@ -9,7 +9,6 @@ signature FILE =
 sig
   val sys_pack_fn: (Path.T -> string) ref
   val sys_unpack_fn: (string -> Path.T) ref
-  val use: Path.T -> unit
   val rm: Path.T -> unit
   val cd: Path.T -> unit
   val pwd: unit -> Path.T
@@ -23,6 +22,9 @@ sig
   val info: Path.T -> info option
   val exists: Path.T -> bool
   val mkdir: Path.T -> unit
+  val source: Path.T -> (string, string list) Source.source * Position.T
+  val plain_use: Path.T -> unit
+  val symbol_use: Path.T -> unit
 end;
 
 structure File: FILE =
@@ -37,8 +39,6 @@ val sys_unpack_fn = ref Path.unpack;
 fun sysify path = ! sys_pack_fn (Path.expand path);
 fun unsysify s = ! sys_unpack_fn s;
 
-
-val use = use o sysify;
 val rm = OS.FileSys.remove o sysify;
 
 
@@ -92,5 +92,35 @@ val exists = is_some o info;
 
 fun mkdir path = (execute ("mkdir -p " ^ enclose "'" "'" (sysify path)); ());
 
+
+(* source *)
+
+fun source raw_path =
+  let val path = Path.expand raw_path
+  in (Source.of_string (read path), Position.line_name 1 (quote (Path.pack path))) end;
+
+
+(* symbol_use *)
+
+val plain_use = use o sysify;
+
+(* version of 'use' with input filtering *)
+
+val symbol_use =
+  if not needs_filtered_use then plain_use	(*ML system (wrongly!) accepts non-ASCII*)
+  else
+    fn path =>
+      let
+        val txt = read path;
+        val txt_out = Symbol.input txt;
+      in
+        if txt = txt_out then plain_use path
+        else
+          let val tmp_path = tmp_path path in
+            write tmp_path txt_out;
+            plain_use tmp_path handle exn => (rm tmp_path; raise exn);
+            rm tmp_path
+          end
+      end;
 
 end;

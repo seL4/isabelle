@@ -23,11 +23,11 @@ sig
   val length: symbol list -> int
   val beginning: symbol list -> string
   val scan: string list -> symbol * string list
+  val scanner: string -> (symbol list -> 'a * symbol list) -> symbol list -> 'a
   val source: bool -> (string, 'a) Source.source ->
     (symbol, (string, 'a) Source.source) Source.source
   val explode: string -> symbol list
   val input: string -> string
-  val use: Path.T -> unit
   val add_mode: string -> (string -> string * real) -> unit
   val output: string -> string
   val output_width: string -> string * real
@@ -231,6 +231,20 @@ fun symbol' c =
 
 
 
+(** scanning though symbols **)
+
+fun scanner msg scan chs =
+  let
+    fun err_msg cs = msg ^ ": " ^ beginning cs;
+    val fin_scan = Scan.error (Scan.finite stopper (!! (fn (cs, _) => err_msg cs) scan));
+  in
+    (case fin_scan chs of
+      (result, []) => result
+    | (_, rest) => error (err_msg rest))
+  end;
+
+
+
 (** symbol input **)
 
 (* scan *)
@@ -272,26 +286,6 @@ fun input str =
     if forall (fn c => ord c < enc_start) chs then str
     else implode (map symbol' chs)
   end;
-
-
-(* version of 'use' with input filtering *)
-
-val use =
-  if not needs_filtered_use then File.use	(*ML system (wrongly!) accepts non-ASCII*)
-  else
-    fn path =>
-      let
-        val txt = File.read path;
-        val txt_out = input txt;
-      in
-        if txt = txt_out then File.use path
-        else
-          let val tmp_path = File.tmp_path path in
-            File.write tmp_path txt_out;
-            File.use tmp_path handle exn => (File.rm tmp_path; raise exn);
-            File.rm tmp_path
-          end
-      end;
 
 
 
