@@ -6,8 +6,10 @@
 Wellfoundedness, induction, and  recursion
 *)
 
-val H_cong = read_instantiate [("f","H")] (standard(refl RS cong RS cong));
-val H_cong1 = refl RS H_cong;
+Goal "x = y ==> H x z = H y z";
+by (Asm_simp_tac 1);
+val H_cong2 = (*freeze H!*)
+	      read_instantiate [("H","H")] (result());
 
 val [prem] = Goalw [wf_def]
  "[| !!P x. [| !x. (!y. (y,x) : r --> P(y)) --> P(x) |] ==> P(x) |] ==> wf(r)";
@@ -21,10 +23,7 @@ val [prem1,prem2] = Goalw [wf_def]
  "[| r <= A Times A;  \
 \    !!x P. [| ! x. (! y. (y,x) : r --> P(y)) --> P(x);  x:A |] ==> P(x) |]  \
 \ ==>  wf(r)";
-by (Clarify_tac 1);
-by (rtac allE 1);
-by (assume_tac 1);
-by (best_tac (claset() addSEs [prem1 RS subsetD RS SigmaE2] addIs [prem2]) 1);
+by (blast_tac (claset() addSEs [prem1 RS subsetD RS SigmaE2] addIs [prem2]) 1);
 qed "wfI";
 
 val major::prems = Goalw [wf_def]
@@ -61,10 +60,7 @@ by (Clarify_tac 1);
 by (rtac allE 1 THEN assume_tac 1);
 by (etac mp 1);
 by (eres_inst_tac [("a","x")] wf_induct 1);
-by (rtac (impI RS allI) 1);
-by (etac tranclE 1);
-by (Blast_tac 1);
-by (Blast_tac 1);
+by (blast_tac (claset() addEs [tranclE]) 1);
 qed "wf_trancl";
 
 
@@ -121,7 +117,7 @@ by (rtac iffI 1);
 	addIs [rtrancl_into_trancl1,wf_subset,impOfSubs rtrancl_mono]) 1);
 by (asm_full_simp_tac (simpset() addsimps [wf_eq_minimal]) 1);
 by Safe_tac;
-by (EVERY1[rtac allE, atac, etac impE, Blast_tac]);
+by (EVERY1[rtac allE, assume_tac, etac impE, Blast_tac]);
 by (etac bexE 1);
 by (rename_tac "a" 1);
 by (case_tac "a = x" 1);
@@ -166,7 +162,7 @@ by (Clarify_tac 1);
 by (rename_tac "A a" 1);
 by (case_tac "? i:I. ? a:A. ? b:A. (b,a) : r i" 1);
  by (Clarify_tac 1);
- by (EVERY1[dtac bspec, atac,
+ by (EVERY1[dtac bspec, assume_tac,
            eres_inst_tac[("x","{a. a:A & (? b:A. (b,a) : r i)}")]allE]);
  by (EVERY1[etac allE,etac impE]);
   by (Blast_tac 1);
@@ -177,7 +173,7 @@ by (case_tac "? i:I. ? a:A. ? b:A. (b,a) : r i" 1);
  by (Clarify_tac 1);
  by (rename_tac "j" 1);
  by (case_tac "r j = r i" 1);
-  by (EVERY1[etac allE,etac impE,atac]);
+  by (EVERY1[etac allE,etac impE,assume_tac]);
   by (Asm_full_simp_tac 1);
   by (Blast_tac 1);
  by (blast_tac (claset() addEs [equalityE]) 1);
@@ -217,11 +213,11 @@ qed "wf_prod_fun_image";
 
 (*** acyclic ***)
 
-val acyclicI = prove_goalw WF.thy [acyclic_def] 
-"!!r. !x. (x, x) ~: r^+ ==> acyclic r" (K [atac 1]);
+Goalw [acyclic_def] "!x. (x, x) ~: r^+ ==> acyclic r";
+by (assume_tac 1);
+qed "acyclicI";
 
-Goalw [acyclic_def]
- "wf r ==> acyclic r";
+Goalw [acyclic_def] "wf r ==> acyclic r";
 by (blast_tac (claset() addEs [wf_trancl RS wf_irrefl]) 1);
 qed "wf_acyclic";
 
@@ -243,8 +239,7 @@ qed "acyclic_subset";
 
 (*This rewrite rule works upon formulae; thus it requires explicit use of
   H_cong to expose the equality*)
-Goalw [cut_def]
-    "(cut f r x = cut g r x) = (!y. (y,x):r --> f(y)=g(y))";
+Goalw [cut_def] "(cut f r x = cut g r x) = (!y. (y,x):r --> f(y)=g(y))";
 by (simp_tac (HOL_ss addsimps [expand_fun_eq]) 1);
 qed "cuts_eq";
 
@@ -260,7 +255,7 @@ by (etac ssubst 1);
 by (asm_simp_tac HOL_ss 1);
 qed "is_recfun_undef";
 
-(*** NOTE! some simplifications need a different finish_tac!! ***)
+(*** NOTE! some simplifications need a different Solver!! ***)
 fun indhyp_tac hyps =
     (cut_facts_tac hyps THEN'
        DEPTH_SOLVE_1 o (ares_tac [TrueI] ORELSE'
@@ -301,41 +296,23 @@ by (res_inst_tac [("f","cut (%y. H (the_recfun r H y) y) r a1")]
 by (rewtac is_recfun_def);
 by (stac cuts_eq 1);
 by (Clarify_tac 1);
-by (rtac (refl RSN (2,H_cong)) 1);
+by (rtac H_cong2 1);
 by (subgoal_tac
          "the_recfun r H y = cut(%x. H(cut(the_recfun r H y) r x) x) r y" 1);
- by (etac allE 2);
- by (dtac impE 2);
-   by (atac 2);
-  by (atac 3);
- by (atac 2);
+ by (Blast_tac 2);
 by (etac ssubst 1);
 by (simp_tac (HOL_ss addsimps [cuts_eq]) 1);
 by (Clarify_tac 1);
 by (stac cut_apply 1);
  by (fast_tac (claset() addDs [transD]) 1);
-by (rtac (refl RSN (2,H_cong)) 1);
 by (fold_tac [is_recfun_def]);
 by (asm_simp_tac (wf_super_ss addsimps[is_recfun_cut]) 1);
 qed "unfold_the_recfun";
 
-val unwind1_the_recfun = rewrite_rule[is_recfun_def] unfold_the_recfun;
-
-(*--------------Old proof-----------------------------------------------------
-val prems = Goal
-    "[| wf(r);  trans(r) |] ==> is_recfun r H a (the_recfun r H a)";
-by (cut_facts_tac prems 1);
-by (wf_ind_tac "a" prems 1);
-by (res_inst_tac [("f", "cut (%y. wftrec r H y) r a1")] is_the_recfun 1); 
-by (rewrite_goals_tac [is_recfun_def, wftrec_def]);
-by (stac cuts_eq 1);
-(*Applying the substitution: must keep the quantified assumption!!*)
-by (EVERY1 [Clarify_tac, rtac H_cong1, rtac allE, atac,
-            etac (mp RS ssubst), atac]); 
-by (fold_tac [is_recfun_def]);
-by (asm_simp_tac (wf_super_ss addsimps[cut_apply,is_recfun_cut,cuts_eq]) 1);
-qed "unfold_the_recfun";
----------------------------------------------------------------------------*)
+Goal "[| wf r; trans r; (x,a) : r; (x,b) : r |] \
+\     ==> the_recfun r H a x = the_recfun r H b x";
+by (best_tac (claset() addIs [is_recfun_equal, unfold_the_recfun]) 1);
+qed "the_recfun_equal";
 
 (** Removal of the premise trans(r) **)
 val th = rewrite_rule[is_recfun_def]
@@ -343,48 +320,20 @@ val th = rewrite_rule[is_recfun_def]
 
 Goalw [wfrec_def]
     "wf(r) ==> wfrec r H a = H (cut (wfrec r H) r a) a";
-by (rtac H_cong 1);
-by (rtac refl 2);
+by (rtac H_cong2 1);
 by (simp_tac (HOL_ss addsimps [cuts_eq]) 1);
 by (rtac allI 1);
 by (rtac impI 1);
-by (simp_tac(HOL_ss addsimps [wfrec_def]) 1);
 by (res_inst_tac [("a1","a")] (th RS ssubst) 1);
-by (atac 1);
-by (forward_tac[wf_trancl] 1);
-by (forward_tac[r_into_trancl] 1);
+by (assume_tac 1);
+by (forward_tac [wf_trancl] 1);
+by (forward_tac [r_into_trancl] 1);
 by (asm_simp_tac (HOL_ss addsimps [cut_apply]) 1);
-by (rtac H_cong 1);    (*expose the equality of cuts*)
-by (rtac refl 2);
+by (rtac H_cong2 1);    (*expose the equality of cuts*)
 by (simp_tac (HOL_ss addsimps [cuts_eq, cut_apply, r_into_trancl]) 1);
-by (Clarify_tac 1);
-by (res_inst_tac [("r","r^+")] is_recfun_equal 1);
-by (atac 1);
-by (rtac trans_trancl 1);
-by (rtac unfold_the_recfun 1);
-by (atac 1);
-by (rtac trans_trancl 1);
-by (rtac unfold_the_recfun 1);
-by (atac 1);
-by (rtac trans_trancl 1);
-by (rtac transD 1);
-by (rtac trans_trancl 1);
-by (forw_inst_tac [("p","(ya,y)")] r_into_trancl 1);
-by (atac 1);
-by (atac 1);
-by (forw_inst_tac [("p","(ya,y)")] r_into_trancl 1);
-by (atac 1);
+by (blast_tac (claset() addIs [the_recfun_equal, transD, trans_trancl, 
+			       r_into_trancl]) 1);
 qed "wfrec";
-
-(*--------------Old proof-----------------------------------------------------
-Goalw [wfrec_def]
-    "wf(r) ==> wfrec r H a = H (cut (wfrec r H) r a) a";
-by (etac (wf_trancl RS wftrec RS ssubst) 1);
-by (rtac trans_trancl 1);
-by (rtac (refl RS H_cong) 1);    (*expose the equality of cuts*)
-by (simp_tac (HOL_ss addsimps [cuts_eq, cut_apply, r_into_trancl]) 1);
-qed "wfrec";
----------------------------------------------------------------------------*)
 
 (*---------------------------------------------------------------------------
  * This form avoids giant explosions in proofs.  NOTE USE OF == 
