@@ -6,7 +6,7 @@
 Action signatures
 *)
 
-Asig = Option +
+Asig = Prod +
 
 types 
 

@@ -6,7 +6,7 @@
 The I/O automata of Lynch and Tuttle.
 *)
 
-IOA = Asig +
+IOA = Asig + Option +
 
 types
    'a seq            =   "nat => 'a"

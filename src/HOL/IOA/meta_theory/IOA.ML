@@ -6,6 +6,8 @@
 The I/O automata of Lynch and Tuttle.
 *)
 
+Addsimps [Let_def];
+
 open IOA Asig;
 
 val ioa_projections = [asig_of_def, starts_of_def, trans_of_def];
@@ -81,7 +83,7 @@ val [p1,p2] = goalw IOA.thy [invariant_def]
   by (nat_ind_tac "n" 1);
   by (fast_tac (!claset addIs [p1,reachable_0]) 1);
   by (eres_inst_tac[("x","n1")]allE 1);
-  by (eres_inst_tac[("P","%x.!a.?Q x a"), ("opt","fst ex n1")] optE 1);
+  by (eres_inst_tac[("P","%x.!a.?Q x a"), ("opt","fst ex n1")] optionE 1);
   by (Asm_simp_tac 1);
   by (safe_tac (!claset));
   by (etac (p2 RS mp) 1);

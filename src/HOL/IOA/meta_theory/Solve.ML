@@ -75,24 +75,12 @@ by (res_inst_tac [("x",
  by (Simp_tac 1);
  by (Fast_tac 1);
 (* projected execution is indeed an execution *)
-by (asm_full_simp_tac (!simpset addsimps [executions_def,is_execution_fragment_def,
-    par_def, starts_of_def,trans_of_def]) 1);
-by (simp_tac (!simpset addsimps [filter_oseq_def]) 1);
- by (REPEAT(rtac allI 1));
- by (cut_inst_tac [("x","fst ex n")] opt_cases 1);
- by (etac disjE 1);
-(* case 1: action sequence of || had already a None *)
-by (Asm_full_simp_tac 1);
- by (REPEAT(etac exE 1));
- by (case_tac "y:actions(asig_of(C1))" 1);
-(* case 2: action sequence of || had Some(a) and 
-           filtered sequence also       *)
-by (Asm_full_simp_tac 1);
+by (asm_full_simp_tac
+      (!simpset addsimps [executions_def,is_execution_fragment_def,
+                          par_def,starts_of_def,trans_of_def,filter_oseq_def]
+                setloop (split_tac[expand_if,expand_option_case])) 1);
  by (strip_tac 1);
  by (REPEAT(hyp_subst_tac 1)); 
- by (Asm_full_simp_tac 1);
-(* case 3: action sequence pf || had Some(a) but
-           filtered sequence has None      *)
  by (Asm_full_simp_tac 1);
 qed"comp1_reachable";
 
@@ -110,19 +98,12 @@ by (res_inst_tac [("x",
  by (Simp_tac 1);
  by (Fast_tac 1);
 (* projected execution is indeed an execution *)
- by (asm_full_simp_tac (!simpset addsimps [executions_def,is_execution_fragment_def,
-    par_def, starts_of_def,trans_of_def]) 1);
- by (simp_tac (!simpset addsimps [filter_oseq_def]) 1);
- by (REPEAT(rtac allI 1));
- by (cut_inst_tac [("x","fst ex n")] opt_cases 1);
- by (etac disjE 1);
- by (Asm_full_simp_tac 1);
- by (REPEAT(etac exE 1));
- by (case_tac "y:actions(asig_of(C2))" 1);
- by (Asm_full_simp_tac 1);
+by (asm_full_simp_tac
+      (!simpset addsimps [executions_def,is_execution_fragment_def,
+                          par_def,starts_of_def,trans_of_def,filter_oseq_def]
+                setloop (split_tac[expand_if,expand_option_case])) 1);
  by (strip_tac 1);
  by (REPEAT(hyp_subst_tac 1)); 
- by (Asm_full_simp_tac 1);
  by (Asm_full_simp_tac 1);
 qed"comp2_reachable";
 
@@ -183,11 +164,11 @@ by (res_inst_tac [("x",
 \          | Some(x) => g x) ,snd ex)")]  bexI 1);
 by (Simp_tac 1);
 (* execution is indeed an execution of C *)
-by (asm_full_simp_tac (!simpset addsimps [executions_def,is_execution_fragment_def,
-    par_def, starts_of_def,trans_of_def,rename_def]) 1);
-by (REPEAT(rtac allI 1));
-by (cut_inst_tac [("x","fst ex n")] opt_cases 1);
-by (Auto_tac());
+by (asm_full_simp_tac
+      (!simpset addsimps [executions_def,is_execution_fragment_def,
+                          par_def,starts_of_def,trans_of_def,rename_def]
+                setloop (split_tac[expand_option_case])) 1);
+by(Auto_tac());
 qed"reachable_rename_ioa";
 
 
