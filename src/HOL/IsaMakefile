@@ -387,9 +387,9 @@ $(LOG)/HOL-UNITY.gz: $(OUT)/HOL Library/Multiset.thy UNITY/ROOT.ML \
   UNITY/Extend.thy UNITY/FP.ML UNITY/FP.thy UNITY/Follows.ML \
   UNITY/Follows.thy UNITY/GenPrefix.ML UNITY/GenPrefix.thy \
   UNITY/Guar.ML UNITY/Guar.thy  \
-  UNITY/Lift_prog.ML UNITY/Lift_prog.thy \
+  UNITY/Lift_prog.thy \
   UNITY/ListOrder.thy  \
-  UNITY/PPROD.ML UNITY/PPROD.thy \
+  UNITY/PPROD.thy \
   UNITY/Project.ML UNITY/Project.thy \
   UNITY/Rename.ML UNITY/Rename.thy \
   UNITY/SubstAx.ML UNITY/SubstAx.thy UNITY/UNITY.ML \
@@ -410,10 +410,10 @@ $(LOG)/HOL-UNITY.gz: $(OUT)/HOL Library/Multiset.thy UNITY/ROOT.ML \
   UNITY/Comp/Client.ML UNITY/Comp/Client.thy \
   UNITY/Comp/Counter.ML UNITY/Comp/Counter.thy \
   UNITY/Comp/Counterc.ML UNITY/Comp/Counterc.thy \
-  UNITY/Comp/Handshake.ML UNITY/Comp/Handshake.thy \
+  UNITY/Comp/Handshake.thy \
   UNITY/Comp/PriorityAux.ML UNITY/Comp/PriorityAux.thy \
   UNITY/Comp/Priority.ML UNITY/Comp/Priority.thy \
-  UNITY/Comp/TimerArray.ML UNITY/Comp/TimerArray.thy
+  UNITY/Comp/TimerArray.thy
 	@$(ISATOOL) usedir $(OUT)/HOL UNITY
 
 
