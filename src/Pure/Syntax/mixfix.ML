@@ -156,19 +156,21 @@ fun syn_ext_consts logtypes const_decls =
 val pure_types =
   map (fn t => (t, 0, NoSyn))
     (terminals @ [logic, "type", "types", "sort", "classes", args, cargs,
-      "pttrn", "idt", "idts", "aprop", "asms", any, sprop, "dummy"]);
+      "pttrn", "pttrns", "idt", "idts", "aprop", "asms", any, sprop, "dummy"]);
 
 val pure_syntax =
- [("_lambda",      "[idts, 'a] => logic",           Mixfix ("(3%_./ _)", [0, 3], 3)),
+ [("_lambda",      "[pttrns, 'a] => logic",         Mixfix ("(3%_./ _)", [0, 3], 3)),
   ("_abs",         "'a",                            NoSyn),
   ("",             "'a => " ^ args,                 Delimfix "_"),
   ("_args",        "['a, " ^ args ^ "] => " ^ args, Delimfix "_,/ _"),
   ("",             "id => idt",                     Delimfix "_"),
   ("_idtyp",       "[id, type] => idt",             Mixfix ("_::_", [], 0)),
   ("",             "idt => idt",                    Delimfix "'(_')"),
+  ("",             "idt => idts",                   Delimfix "_"),
+  ("_idts",        "[idt, idts] => idts",           Mixfix ("_/ _", [1, 0], 0)),
   ("",             "idt => pttrn",                  Delimfix "_"),
-  ("",             "pttrn => idts",                 Delimfix "_"),
-  ("_idts",        "[pttrn, idts] => idts",         Mixfix ("_/ _", [1, 0], 0)),
+  ("",             "pttrn => pttrns",               Delimfix "_"),
+  ("_pttrns",      "[pttrn, pttrns] => pttrns",     Mixfix ("_/ _", [1, 0], 0)),
   ("",             "id => aprop",                   Delimfix "_"),
   ("",             "var => aprop",                  Delimfix "_"),
   ("_aprop",       "aprop => prop",                 Delimfix "PROP _"),
@@ -198,7 +200,7 @@ val pure_sym_syntax =
   ("_ofsort",  "[tid, sort] => type",   Mixfix ("_\\<Colon>_", [max_pri, 0], max_pri)),
   ("_constrain", "['a, type] => 'a",    Mixfix ("_\\<Colon>_", [4, 0], 3)),
   ("_idtyp",   "[id, type] => idt",     Mixfix ("_\\<Colon>_", [], 0)),
-  ("_lambda",  "[idts, 'a] => logic",   Mixfix ("(3\\<lambda>_./ _)", [0, 3], 3)),
+  ("_lambda",  "[pttrns, 'a] => logic", Mixfix ("(3\\<lambda>_./ _)", [0, 3], 3)),
   ("==>",      "[prop, prop] => prop",  InfixrName ("\\<Midarrow>\\<Rightarrow>", 1)),
   ("_bigimpl", "[asms, prop] => prop",  Mixfix ("((3\\<lbrakk>_\\<rbrakk>)/ \\<Midarrow>\\<Rightarrow> _)", [0, 1], 1)),
   ("==",       "['a::{}, 'a] => prop",  InfixrName ("\\<equiv>", 2)),
