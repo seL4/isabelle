@@ -14,6 +14,7 @@ sig
   val is_arith_rel : term -> bool
   val mk_numeral : int -> term
   val dest_numeral : term -> int
+  val is_numeral : term -> bool
   val zero : term
   val one : term
   val linear_cmul : int -> term -> term
@@ -208,10 +209,13 @@ fun lint vars tm = if is_numeral tm then tm else case tm of
  
 fun mkatom vars p t = Const(p,HOLogic.intT --> HOLogic.intT --> HOLogic.boolT) $ zero $ (lint vars t); 
  
-fun linform vars (Const ("Divides.op dvd",_) $ c $ t) =  
+fun linform vars (Const ("Divides.op dvd",_) $ c $ t) =
+    if is_numeral c then   
       let val c' = (mk_numeral(abs(dest_numeral c)))  
       in (HOLogic.mk_binrel "Divides.op dvd" (c,lint vars t)) 
       end 
+    else (warning "Nonlinear term --- Non numeral leftside at dvd"
+      ;raise COOPER)
   |linform vars  (Const("op =",Type ("fun",[Type ("IntDef.int", []),_])) $ s $ t ) = (mkatom vars "op =" (Const ("op -",HOLogic.intT --> HOLogic.intT --> HOLogic.intT) $ t $ s) ) 
   |linform vars  (Const("op <",_)$ s $t ) = (mkatom vars "op <" (Const ("op -",HOLogic.intT --> HOLogic.intT --> HOLogic.intT) $ t $ s))
   |linform vars  (Const("op >",_) $ s $ t ) = (mkatom vars "op <" (Const ("op -",HOLogic.intT --> HOLogic.intT --> HOLogic.intT) $ s $ t)) 

@@ -24,6 +24,12 @@ sig
   val proof_of_adjustcoeffeq : Sign.sg -> term -> int -> term -> thm
   val prove_elementar : Sign.sg -> string -> term -> thm
   val thm_of : Sign.sg -> (term -> (term list * (thm list -> thm))) -> term -> thm
+  val timef : (unit->thm) -> thm
+  val prtime : unit -> unit
+  val time_reset  : unit -> unit
+  val timef2 : (unit->thm) -> thm
+  val prtime2 : unit -> unit
+  val time_reset2  : unit -> unit
 end;
 
 structure CooperProof : COOPER_PROOF =
@@ -827,7 +833,10 @@ fun decomp_linform sg vars t = case t of
    |(Const("op -->",_)$A$B) => ([A,B], fn [th1,th2] => [th1,th2] MRS qe_impI)
    |(Const("op =", Type ("fun",[Type ("bool", []),_]))$A$B) => ([A,B], fn [th1,th2] => [th1,th2] MRS qe_eqI)
    |(Const("Not",_)$p) => ([p],fn [th] => th RS qe_Not)
-   |(Const("Divides.op dvd",_)$d$r) => ([], fn [] => (prove_elementar sg "lf" (HOLogic.mk_eq (r, lint vars r))) RS (instantiate' [] [None , None, Some (cterm_of sg d)](linearize_dvd)))
+   |(Const("Divides.op dvd",_)$d$r) => 
+     if is_numeral d then ([], fn [] => (prove_elementar sg "lf" (HOLogic.mk_eq (r, lint vars r))) RS (instantiate' [] [None , None, Some (cterm_of sg d)](linearize_dvd)))
+     else (warning "Nonlinear Term --- Non numeral leftside at dvd";
+       raise COOPER)
    |_ => ([], fn [] => prove_elementar sg "lf" (HOLogic.mk_eq (t, linform vars t)));
 
 fun proof_of_linform sg vars f = thm_of sg (decomp_linform sg vars) f;
@@ -870,6 +879,9 @@ fun cooper_thm sg s (x as Free(xn,xT)) cfm dlcm ast bst= case s of
 (* It shoud be plugged in the qfnp argument of the quantifier elimination proof function*)
 (* ------------------------------------------------------------------------- *)
 
+val (timef:(unit->thm) -> thm,prtime,time_reset) = gen_timer();
+val (timef2:(unit->thm) -> thm,prtime2,time_reset2) = gen_timer();
+
 fun cooper_prv sg (x as Free(xn,xT)) efm = let 
    (* lfm_thm : efm = linearized form of efm*)
    val lfm_thm = proof_of_linform sg [xn] efm
@@ -901,12 +913,16 @@ fun cooper_prv sg (x as Free(xn,xT)) efm = let
    val dlcm = mk_numeral (divlcm x cfm)
    (* Which set is smaller to generate the (hoepfully) shorter proof*)
    val cms = if ((length A) < (length B )) then "pi" else "mi"
+   val _ = if cms = "pi" then writeln "Plusinfinity" else writeln "Minusinfinity"
    (* synthesize the proof of cooper's theorem*)
     (* cp_thm: EX x. cfm = Q*)
-   val cp_thm = cooper_thm sg cms x cfm dlcm A B
+   val cp_thm = timef ( fn () => cooper_thm sg cms x cfm dlcm A B)
    (* Exxpand the right hand side to get rid of EX j : {1..d} to get a huge disjunction*)
    (* exp_cp_thm: EX x.cfm = Q' , where Q' is a simplified version of Q*)
-   val exp_cp_thm = refl RS (simplify ss (cp_thm RSN (2,trans)))
+   val _ = prth cp_thm
+   val _ = writeln "Expanding the bounded EX..."
+   val exp_cp_thm = timef2 (fn () => refl RS (simplify ss (cp_thm RSN (2,trans))))
+   val _ = writeln "Expanded"
    (* lsuth = EX.P(l*x) ; rsuth = EX x. l dvd x & P x*)
    val (lsuth,rsuth) = qe_get_terms (uth)
    (* lseacth = EX x. efm; rseacth = EX x. fm*)
