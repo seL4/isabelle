@@ -187,6 +187,6 @@ theorems trans_rules [trans] =
   ord_eq_less_trans
   trans
 
-theorems [elim??] = sym
+theorems [elim?] = sym
 
 end
