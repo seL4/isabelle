@@ -2872,6 +2872,27 @@ proof -
                                    dest: acc_modi_le_Dests)
 qed
 
+subsubsection {* Properties of dynamic accessibility *}
+
+lemma dyn_accessible_Private:
+ assumes dyn_acc: "G \<turnstile> m in C dyn_accessible_from accC" and
+            priv: "accmodi m = Private"
+   shows "accC = declclass m"
+proof -
+  from dyn_acc priv
+  show ?thesis
+  proof (induct)
+    case (Immediate C m)
+    have "G \<turnstile> m in C permits_acc_to accC" and "accmodi m = Private" .
+    then show ?case
+      by (simp add: permits_acc_def)
+  next
+    case Overriding
+    then show ?case
+      by (auto dest!: overrides_commonD)
+  qed
+qed
+
 text {* @{text dyn_accessible_Package} only works with the @{text wf_prog} assumption. 
 Without it. it is easy to leaf the Package!
 *}
@@ -2915,6 +2936,26 @@ proof -
   qed
 qed
 
+text {* For fields we don't need the wellformedness of the program, since
+there is no overriding *}
+lemma dyn_accessible_field_Package:
+ assumes dyn_acc: "G \<turnstile> f in C dyn_accessible_from accC" and
+            pack: "accmodi f = Package" and
+           field: "is_field f"
+   shows "pid accC = pid (declclass f)"
+proof -
+  from dyn_acc pack field
+  show ?thesis
+  proof (induct)
+    case (Immediate C f)
+    have "G \<turnstile> f in C permits_acc_to accC" and "accmodi f = Package" .
+    then show ?case
+      by (simp add: permits_acc_def)
+  next
+    case Overriding
+    then show ?case by (simp add: is_field_def)
+  qed
+qed
 
 text {* @{text dyn_accessible_instance_field_Protected} only works for fields
 since methods can break the package bounds due to overriding
