@@ -112,10 +112,17 @@ definitions; here is an explanation of the constituent parts:
   parse rules ({\tt =>}), print rules ({\tt <=}), and parse/print rules ({\tt
   ==}).
 
-\item[$rule$]
+\item[$rules$]
   is a series of rule declarations.  Each has a name $id$ and the formula is
   given by the $string$.  Rule names must be distinct within any single
   theory file.
+
+\item[$defs$]
+  is a series of definitions.  Just like $rules$, except that every $string$
+  must be a definition.
+
+\item[$constdefs$] combines the declaration of constants and their
+  definition. The first $string$ is the type, the second the definition.
 
 \item[$ml$] \index{*ML section}
   consists of \ML\ code, typically for parse and print translation functions.

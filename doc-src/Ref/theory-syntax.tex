@@ -32,6 +32,7 @@ section : classes
         | types
         | arities
         | consts
+        | constdefs
         | trans
         | defs
         | rules
@@ -84,6 +85,9 @@ constDecl : ( name + ',') '::' (string | type);
 mixfix :  string ( () | ( () | ('[' (nat + ',') ']')) nat )
        | infix
        | 'binder' string nat ;
+
+constdefs : 'constdefs' (id '::' (string | type) string +)
+          ;
 
 trans : 'translations' ( pat ( '==' | '=>' | '<=' ) pat + )
       ;
