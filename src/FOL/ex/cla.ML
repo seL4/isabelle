@@ -1,7 +1,7 @@
 (*  Title: 	FOL/ex/cla
     ID:         $Id$
     Author: 	Lawrence C Paulson, Cambridge University Computer Laboratory
-    Copyright   1992  University of Cambridge
+    Copyright   1994  University of Cambridge
 
 Classical First-Order Logic
 *)
@@ -150,23 +150,23 @@ writeln"Problems requiring quantifier duplication";
 
 (*Needs multiple instantiation of ALL.*)
 goal FOL.thy "(ALL x. P(x)-->P(f(x)))  &  P(d)-->P(f(f(f(d))))";
-by (best_tac FOL_dup_cs 1);
+by (deepen_tac FOL_cs 1 1);
 result();
 
 (*Needs double instantiation of the quantifier*)
 goal FOL.thy "EX x. P(x) --> P(a) & P(b)";
-by (best_tac FOL_dup_cs 1);
+by (deepen_tac FOL_cs 1 1);
 result();
 
 goal FOL.thy "EX z. P(z) --> (ALL x. P(x))";
-by (best_tac FOL_dup_cs 1);
+by (deepen_tac FOL_cs 1 1);
 result();
 
 goal FOL.thy "EX x. (EX y. P(y)) --> P(x)";
-by (best_tac FOL_dup_cs 1);
+by (deepen_tac FOL_cs 1 1);
 result();
 
-(*from Vladimir Lifschitz, What Is the Inverse Method?, JAR 5 (1989), 1--23*)
+(*V. Lifschitz, What Is the Inverse Method?, JAR 5 (1989), 1--23.  NOT PROVED*)
 goal FOL.thy "EX x x'. ALL y. EX z z'. \
 \               (~P(y,y) | P(x,x) | ~S(z,x)) & \
 \               (S(x,y) | ~S(y,z) | Q(z',z'))  & \
@@ -176,12 +176,12 @@ writeln"Hard examples with quantifiers";
 
 writeln"Problem 18";
 goal FOL.thy "EX y. ALL x. P(y)-->P(x)";
-by (best_tac FOL_dup_cs 1);
+by (deepen_tac FOL_cs 1 1);
 result(); 
 
 writeln"Problem 19";
 goal FOL.thy "EX x. ALL y z. (P(y)-->Q(z)) --> (P(x)-->Q(x))";
-by (best_tac FOL_dup_cs 1);
+by (deepen_tac FOL_cs 1 1);
 result();
 
 writeln"Problem 20";
@@ -192,7 +192,7 @@ result();
 
 writeln"Problem 21";
 goal FOL.thy "(EX x. P-->Q(x)) & (EX x. Q(x)-->P) --> (EX x. P<->Q(x))";
-by (best_tac FOL_dup_cs 1);
+by (deepen_tac FOL_cs 1 1);
 result();
 
 writeln"Problem 22";
@@ -219,7 +219,6 @@ goal FOL.thy "(EX x. P(x)) &  \
 \       ((ALL x. P(x)-->Q(x)) | (EX x. P(x)&R(x)))  \
 \   --> (EX x. Q(x)&P(x))";
 by (best_tac FOL_cs 1); 
-(*slow*)
 result();
 
 writeln"Problem 26";
@@ -282,21 +281,20 @@ goal FOL.thy "(ALL x. P(a) & (P(x)-->P(b))-->P(c))  <->    \
 by (best_tac FOL_cs 1);
 result();
 
-writeln"Problem 34  AMENDED (TWICE!!)  NOT PROVED AUTOMATICALLY";
+writeln"Problem 34  AMENDED (TWICE!!)";
 (*Andrews's challenge*)
 goal FOL.thy "((EX x. ALL y. p(x) <-> p(y))  <->		\
 \              ((EX x. q(x)) <-> (ALL y. p(y))))     <->	\
 \             ((EX x. ALL y. q(x) <-> q(y))  <->		\
 \              ((EX x. p(x)) <-> (ALL y. q(y))))";
-by (safe_tac FOL_cs);			(*22 secs*)
-by (TRYALL (fast_tac FOL_cs));		(*128 secs*)
-by (TRYALL (best_tac FOL_dup_cs));	(*77 secs*)
+by (deepen_tac FOL_cs 3 1);
+(*slower with smaller bounds*)
 result();
 
 writeln"Problem 35";
 goal FOL.thy "EX x y. P(x,y) -->  (ALL u v. P(u,v))";
-by (best_tac FOL_dup_cs 1);
-(*6.1 secs*)
+by (MINI (fast_tac FOL_cs) 1);
+(*Without miniscope, would have to use deepen_tac; would be slower*)
 result();
 
 writeln"Problem 36";
@@ -326,6 +324,7 @@ goal FOL.thy
 \            (~p(a) | ~(EX y. p(y) & r(x,y)) |				\
 \             (EX z. EX w. p(z) & r(x,w) & r(w,z))))";
 by (fast_tac FOL_cs 1);
+result();
 
 writeln"Problem 39";
 goal FOL.thy "~ (EX x. ALL y. F(y,x) <-> ~F(y,y))";
@@ -341,17 +340,20 @@ result();
 writeln"Problem 41";
 goal FOL.thy "(ALL z. EX y. ALL x. f(x,y) <-> f(x,z) & ~ f(x,x))	\
 \         --> ~ (EX z. ALL x. f(x,z))";
-by (best_tac FOL_cs 1);
+by (fast_tac FOL_cs 1);
 result();
 
 writeln"Problem 42";
 goal FOL.thy "~ (EX y. ALL x. p(x,y) <-> ~ (EX z. p(x,z) & p(z,x)))";
-by (best_tac FOL_dup_cs 1);
+by (deepen_tac FOL_cs 3 1);
 result();
 
-writeln"Problem 43  NOT PROVED AUTOMATICALLY";
+writeln"Problem 43!!";
 goal FOL.thy "(ALL x. ALL y. q(x,y) <-> (ALL z. p(z,x) <-> p(z,y)))	\
-\         --> (ALL x. (ALL y. q(x,y) <-> q(y,x)))";
+\         --> (ALL x. ALL y. q(x,y) <-> q(y,x))";
+by (MINI (deepen_tac FOL_cs 5) 1);
+(*Very slow if bound is too small*)
+result();
 
 writeln"Problem 44";
 goal FOL.thy "(ALL x. f(x) -->						\
@@ -395,7 +397,8 @@ result();
 writeln"Problem 50";  
 (*What has this to do with equality?*)
 goal FOL.thy "(ALL x. P(a,x) | (ALL y.P(x,y))) --> (EX x. ALL y.P(x,y))";
-by (best_tac FOL_dup_cs 1);
+by (MINI (deepen_tac FOL_cs 1) 1);
+(*Slow*)
 result();
 
 writeln"Problem 51";
@@ -473,7 +476,8 @@ result();
 
 writeln"Problem 59";
 goal FOL.thy "(ALL x. P(x) <-> ~P(f(x))) --> (EX x. P(x) & ~P(f(x)))";
-by (best_tac FOL_dup_cs 1);
+by (deepen_tac FOL_cs 1 1);
+(*slow*)
 result();
 
 writeln"Problem 60";
