@@ -128,13 +128,7 @@ fun process_spec axiomatic cos alt_props int thy =
 	  | myfoldr f [] = error "SpecificationPackage.process_spec internal error"
 
 	val sg = sign_of thy
-	fun typ_equiv t u =
-	    let
-		val tsig = Sign.tsig_of sg
-	    in
-		Type.typ_instance(tsig,t,u) andalso
-		Type.typ_instance(tsig,u,t)
-	    end
+	fun typ_equiv t u = Sign.typ_instance sg (t,u) andalso Sign.typ_instance sg (u,t);
 
 	val cprops = map (Thm.read_cterm sg o rpair Term.propT o snd) alt_props
 	val ss = empty_ss setmksimps single addsimps [thm "HOL.atomize_imp",thm "HOL.atomize_all"]

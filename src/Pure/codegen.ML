@@ -236,7 +236,7 @@ fun gen_assoc_consts prep_type xs thy = foldl (fn (thy, (s, tyopt, syn)) =>
                 None => T
               | Some ty =>
                   let val U = prep_type sg ty
-                  in if Type.typ_instance (Sign.tsig_of sg, U, T) then U
+                  in if Sign.typ_instance sg (U, T) then U
                     else error ("Illegal type constraint for constant " ^ cname)
                   end)
          in (case assoc (consts, (cname, T')) of
@@ -314,7 +314,7 @@ val rename_term = hd o rename_terms o single;
 (**** retrieve definition of constant ****)
 
 fun is_instance thy T1 T2 =
-  Type.typ_instance (Sign.tsig_of (sign_of thy), T1, Type.varifyT T2);
+  Sign.typ_instance (sign_of thy) (T1, Type.varifyT T2);
 
 fun get_assoc_code thy s T = apsome snd (find_first (fn ((s', T'), _) =>
   s = s' andalso is_instance thy T T') (#consts (CodegenData.get thy)));
