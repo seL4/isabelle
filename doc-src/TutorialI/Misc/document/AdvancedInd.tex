@@ -7,7 +7,8 @@
 Now that we have learned about rules and logic, we take another look at the
 finer points of induction. The two questions we answer are: what to do if the
 proposition to be proved is not directly amenable to induction, and how to
-utilize and even derive new induction schemas.%
+utilize and even derive new induction schemas. We conclude with some slightly subtle
+examples of induction.%
 \end{isamarkuptext}%
 %
 \isamarkupsubsection{Massaging the proposition}
@@ -77,7 +78,7 @@ Additionally, you may also have to universally quantify some other variables,
 which can yield a fairly complex conclusion.
 Here is a simple example (which is proved by \isa{blast}):%
 \end{isamarkuptext}%
-\isacommand{lemma}\ simple{\isacharcolon}\ {\isachardoublequote}{\isasymforall}y{\isachardot}\ A\ y\ {\isasymlongrightarrow}\ B\ y\ {\isasymlongrightarrow}\ B\ y\ {\isacharampersand}\ A\ y{\isachardoublequote}%
+\isacommand{lemma}\ simple{\isacharcolon}\ {\isachardoublequote}{\isasymforall}y{\isachardot}\ A\ y\ {\isasymlongrightarrow}\ B\ y\ {\isasymlongrightarrow}\ B\ y\ {\isasymand}\ A\ y{\isachardoublequote}%
 \begin{isamarkuptext}%
 \noindent
 You can get the desired lemma by explicit
@@ -96,7 +97,7 @@ yielding \isa{{\isasymlbrakk}A\ y{\isacharsemicolon}\ B\ y{\isasymrbrakk}\ {\isa
 You can go one step further and include these derivations already in the
 statement of your original lemma, thus avoiding the intermediate step:%
 \end{isamarkuptext}%
-\isacommand{lemma}\ myrule{\isacharbrackleft}rule{\isacharunderscore}format{\isacharbrackright}{\isacharcolon}\ \ {\isachardoublequote}{\isasymforall}y{\isachardot}\ A\ y\ {\isasymlongrightarrow}\ B\ y\ {\isasymlongrightarrow}\ B\ y\ {\isacharampersand}\ A\ y{\isachardoublequote}%
+\isacommand{lemma}\ myrule{\isacharbrackleft}rule{\isacharunderscore}format{\isacharbrackright}{\isacharcolon}\ \ {\isachardoublequote}{\isasymforall}y{\isachardot}\ A\ y\ {\isasymlongrightarrow}\ B\ y\ {\isasymlongrightarrow}\ B\ y\ {\isasymand}\ A\ y{\isachardoublequote}%
 \begin{isamarkuptext}%
 \bigskip
 
@@ -115,7 +116,10 @@ some inductively defined set and the $x@i$ are variables.  If instead we have
 a premise $t \in R$, where $t$ is not just an $n$-tuple of variables, we
 replace it with $(x@1,\dots,x@k) \in R$, and rephrase the conclusion $C$ as
 \[ \forall y@1 \dots y@n.~ (x@1,\dots,x@k) = t \longrightarrow C \]
-For an example see \S\ref{sec:CTL-revisited} below.%
+For an example see \S\ref{sec:CTL-revisited} below.
+
+Of course, all premises that share free variables with $t$ need to be pulled into
+the conclusion as well, under the \isa{{\isasymforall}}, again using \isa{{\isasymlongrightarrow}} as shown above.%
 \end{isamarkuptext}%
 %
 \isamarkupsubsection{Beyond structural and recursion induction}
@@ -138,7 +142,7 @@ holds for all $m<n$. In Isabelle, this is the theorem \isa{nat{\isacharunderscor
 \end{isabelle}
 Here is an example of its application.%
 \end{isamarkuptext}%
-\isacommand{consts}\ f\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}nat\ {\isacharequal}{\isachargreater}\ nat{\isachardoublequote}\isanewline
+\isacommand{consts}\ f\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}nat\ {\isasymRightarrow}\ nat{\isachardoublequote}\isanewline
 \isacommand{axioms}\ f{\isacharunderscore}ax{\isacharcolon}\ {\isachardoublequote}f{\isacharparenleft}f{\isacharparenleft}n{\isacharparenright}{\isacharparenright}\ {\isacharless}\ f{\isacharparenleft}Suc{\isacharparenleft}n{\isacharparenright}{\isacharparenright}{\isachardoublequote}%
 \begin{isamarkuptext}%
 \noindent

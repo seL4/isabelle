@@ -6,7 +6,8 @@ text{*\noindent
 Now that we have learned about rules and logic, we take another look at the
 finer points of induction. The two questions we answer are: what to do if the
 proposition to be proved is not directly amenable to induction, and how to
-utilize and even derive new induction schemas.
+utilize and even derive new induction schemas. We conclude with some slightly subtle
+examples of induction.
 *};
 
 subsection{*Massaging the proposition*};
@@ -82,7 +83,7 @@ which can yield a fairly complex conclusion.
 Here is a simple example (which is proved by @{text"blast"}):
 *};
 
-lemma simple: "\<forall>y. A y \<longrightarrow> B y \<longrightarrow> B y & A y";
+lemma simple: "\<forall>y. A y \<longrightarrow> B y \<longrightarrow> B y \<and> A y";
 (*<*)by blast;(*>*)
 
 text{*\noindent
@@ -105,7 +106,7 @@ You can go one step further and include these derivations already in the
 statement of your original lemma, thus avoiding the intermediate step:
 *};
 
-lemma myrule[rule_format]:  "\<forall>y. A y \<longrightarrow> B y \<longrightarrow> B y & A y";
+lemma myrule[rule_format]:  "\<forall>y. A y \<longrightarrow> B y \<longrightarrow> B y \<and> A y";
 (*<*)
 by blast;
 (*>*)
@@ -129,6 +130,9 @@ a premise $t \in R$, where $t$ is not just an $n$-tuple of variables, we
 replace it with $(x@1,\dots,x@k) \in R$, and rephrase the conclusion $C$ as
 \[ \forall y@1 \dots y@n.~ (x@1,\dots,x@k) = t \longrightarrow C \]
 For an example see \S\ref{sec:CTL-revisited} below.
+
+Of course, all premises that share free variables with $t$ need to be pulled into
+the conclusion as well, under the @{text"\<forall>"}, again using @{text"\<longrightarrow>"} as shown above.
 *};
 
 subsection{*Beyond structural and recursion induction*};
@@ -149,7 +153,7 @@ holds for all $m<n$. In Isabelle, this is the theorem @{thm[source]nat_less_indu
 Here is an example of its application.
 *};
 
-consts f :: "nat => nat";
+consts f :: "nat \<Rightarrow> nat";
 axioms f_ax: "f(f(n)) < f(Suc(n))";
 
 text{*\noindent
@@ -289,7 +293,6 @@ theorem nat_less_induct: "(\<And>n::nat. \<forall>m<n. P m \<Longrightarrow> P n
 by(insert induct_lem, blast);
 
 text{*
-
 Finally we should mention that HOL already provides the mother of all
 inductions, \textbf{well-founded
 induction}\indexbold{induction!well-founded}\index{well-founded

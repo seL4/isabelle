@@ -2,7 +2,7 @@
 \begin{isabellebody}%
 \def\isabellecontext{Base}%
 %
-\isamarkupsection{Case study: Verified model checkers}
+\isamarkupsection{Case study: Verified model checking}
 %
 \begin{isamarkuptext}%
 Model checking is a very popular technique for the verification of finite
@@ -52,17 +52,19 @@ are true'', which is true, and ``on all paths starting from $s_0$ $q$ is always 
 which is false.
 
 Abstracting from this concrete example, we assume there is some type of
-states%
+states:%
 \end{isamarkuptext}%
 \isacommand{typedecl}\ state%
 \begin{isamarkuptext}%
 \noindent
-which we merely declare rather than define because it is an implicit
-parameter of our model.  Of course it would have been more generic to make
-\isa{state} a type parameter of everything but fixing \isa{state} as above
-reduces clutter.
-Similarly we declare an arbitrary but fixed transition system, i.e.\
-relation between states:%
+Command \isacommand{typedecl} merely declares a new type but without
+defining it (see also \S\ref{sec:typedecl}). Thus we know nothing
+about the type other than its existence. That is exactly what we need
+because \isa{state} really is an implicit parameter of our model.  Of
+course it would have been more generic to make \isa{state} a type
+parameter of everything but declaring \isa{state} globally as above
+reduces clutter.  Similarly we declare an arbitrary but fixed
+transition system, i.e.\ relation between states:%
 \end{isamarkuptext}%
 \isacommand{consts}\ M\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}{\isacharparenleft}state\ {\isasymtimes}\ state{\isacharparenright}set{\isachardoublequote}%
 \begin{isamarkuptext}%

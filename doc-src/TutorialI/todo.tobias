@@ -1,27 +1,21 @@
-General questions
-=================
-
-Here is an initial list:
-clarify, clarsimp, hyp_subst_tac, rename_tac, rotate_tac, split
-single step tactics: (e/d/f)rule, insert
-with instantiation: (e/d/f)rule_tac, insert_tac
+Implementation
+==============
 
 Hide global names like Node.
 Why is comp needed in addition to op O?
 Explain in syntax section!
 
-Implementation
-==============
+defs with = and pattern matching
 
-swap in classical.ML has ugly name Pa in it. Rename.
+replace "simp only split" by "split_tac".
 
-Induction rules for int: int_le/ge_induct?
-Needed for ifak example. But is that example worth it?
+arithmetic: allow mixed nat/int formulae
+-> simplify proof of part1 in Inductive/AB.thy
 
 Add map_cong?? (upto 10% slower)
-But we should install UN_cong and INT_cong too.
 
-defs with = and pattern matching
+Recdef: Get rid of function name in header.
+Support mutual recursion (Konrad?)
 
 use arith_tac in recdef to solve termination conditions?
 -> new example in Recdef/termination
@@ -34,15 +28,18 @@ then a number of (unchecked!) @texts could be converted to @terms.
 
 it would be nice if one could get id to the enclosing quotes in the [source] option.
 
-arithmetic: allow mixed nat/int formulae
--> simplify proof of part1 in Inductive/AB.thy
+More predefined functions for datatypes: map?
+
+Induction rules for int: int_le/ge_induct?
+Needed for ifak example. But is that example worth it?
+
 
 Minor fixes in the tutorial
 ===========================
 
-replace simp only split by split_tac.
+explanation of absence of contrapos_pn in Rules?
 
-get rid of use_thy?
+get rid of use_thy in tutorial?
 
 Explain typographic conventions?
 
@@ -62,19 +59,11 @@ literature. In Recdef/termination.thy, at the end.
 
 Syntax section: syntax annotations nor just for consts but also for constdefs and datatype.
 
-Prove EU exercise in CTL.
-
 
 Minor additions to the tutorial, unclear where
 ==============================================
 
 Tacticals: , ? +
-
-"typedecl" is used in CTL/Base, but where is it introduced?
-In More Types chapter? Rephrase the CTL bit accordingly.
-
-print_simpset (-> print_simps?)
-(Another subsection Useful theorems, methods, and commands?)
 
 Mention that simp etc (big step tactics) insist on change?
 
@@ -82,7 +71,7 @@ Rules: Introduce "by" (as a kind of shorthand for apply+done, except that it
 does more.)
 
 A list of further useful commands (rules? tricks?)
-prefer, defer
+prefer, defer, print_simpset (-> print_simps?)
 
 An overview of the automatic methods: simp, auto, fast, blast, force,
 clarify, clarsimp (intro, elim?)
@@ -134,12 +123,8 @@ Trie: function for partial matches (prefixes). Needs sets for spec/proof.
 
 Sets via ordered list of intervals. (Isa/Interval(2))
 
-Sets: PDL and CTL
-
-Ind. defs: Grammar (for same number of as and bs),
 propositional logic (soundness and completeness?),
 predicate logic (soundness?),
-CTL proof.
 
 Tautology checker. Based on Ifexpr or prop.logic?
 Include forward reference in relevant section.
@@ -159,32 +144,17 @@ Mergesort, JVM
 Additional topics
 =================
 
-Beef up recdef (see below).
-Nested recursion? Mutual recursion?
-
-Nested inductive datatypes: better recursion and induction
-(see below)
+Recdef with nested recursion?
 
 Extensionality: applications in
 - boolean expressions: valif o bool2if = value
 - Advanced datatypes exercise subst (f o g) = subst f o subst g
 
 A look at the library?
-Functions. Relations. Lfp/Gfp. Map.
+Map.
 If WF is discussed, make a link to it from AdvancedInd.
 
 Prototyping?
-
-
-Isabelle
-========
-
-Get rid of function name in recdef header
-
-More predefined functions for datatypes: map?
-
-1 and 2 on nat?
-
 
 ==============================================================
 Recdef:

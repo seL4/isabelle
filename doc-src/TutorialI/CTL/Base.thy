@@ -1,6 +1,6 @@
 (*<*)theory Base = Main:(*>*)
 
-section{*Case study: Verified model checkers*}
+section{*Case study: Verified model checking*}
 
 text{*
 Model checking is a very popular technique for the verification of finite
@@ -50,18 +50,20 @@ are true'', which is true, and ``on all paths starting from $s_0$ $q$ is always 
 which is false.
 
 Abstracting from this concrete example, we assume there is some type of
-states
+states:
 *}
 
 typedecl state
 
 text{*\noindent
-which we merely declare rather than define because it is an implicit
-parameter of our model.  Of course it would have been more generic to make
-@{typ state} a type parameter of everything but fixing @{typ state} as above
-reduces clutter.
-Similarly we declare an arbitrary but fixed transition system, i.e.\
-relation between states:
+Command \isacommand{typedecl} merely declares a new type but without
+defining it (see also \S\ref{sec:typedecl}). Thus we know nothing
+about the type other than its existence. That is exactly what we need
+because @{typ state} really is an implicit parameter of our model.  Of
+course it would have been more generic to make @{typ state} a type
+parameter of everything but declaring @{typ state} globally as above
+reduces clutter.  Similarly we declare an arbitrary but fixed
+transition system, i.e.\ relation between states:
 *}
 
 consts M :: "(state \<times> state)set";

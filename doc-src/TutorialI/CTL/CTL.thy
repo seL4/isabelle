@@ -87,7 +87,7 @@ apply(rule equalityI);
  apply(erule lfp_induct);
   apply(rule mono_ef);
  apply(simp);
- apply(blast intro: r_into_rtrancl rtrancl_trans);
+ apply(blast intro: rtrancl_trans);
 apply(rule subsetI);
 apply(simp, clarify);
 apply(erule converse_rtrancl_induct);
@@ -112,10 +112,9 @@ for a change, we do not use fixed point induction but a weaker theorem,
 @{thm[source]lfp_lowerbound}:
 @{thm[display]lfp_lowerbound[of _ "S",no_vars]}
 The instance of the premise @{prop"f S \<subseteq> S"} is proved pointwise,
-starting with simplification and clarification:
+a decision that clarification takes for us:
 *};
 apply(rule lfp_lowerbound);
-apply(rule subsetI);
 apply(clarsimp simp add: af_def Paths_def);
 (*ML"Pretty.setmargin 70";
 pr(latex xsymbols symbols);*)
@@ -380,24 +379,116 @@ apply(auto simp add: EF_lemma equalityI[OF AF_lemma1 AF_lemma2]);
 done
 
 text{*
+
 The above language is not quite CTL. The latter also includes an
-until-operator, which is the subject of the following exercise.
-It is not definable in terms of the other operators!
-\begin{exercise}
-Extend the datatype of formulae by the binary until operator @{term"EU f g"} with semantics
-``there exist a path where @{term f} is true until @{term g} becomes true''
-@{text[display]"s \<Turnstile> EU f g = (\<exists>p\<in>Paths s. \<exists>j. p j \<Turnstile> g \<and> (\<exists>i < j. p i \<Turnstile> f))"}
-and model checking algorithm
+until-operator @{term"EU f g"} with semantics ``there exist a path
+where @{term f} is true until @{term g} becomes true''. With the help
+of an auxiliary function
+*}
+
+consts until:: "state set \<Rightarrow> state set \<Rightarrow> state \<Rightarrow> state list \<Rightarrow> bool"
+primrec
+"until A B s []    = (s \<in> B)"
+"until A B s (t#p) = (s \<in> A \<and> (s,t) \<in> M \<and> until A B t p)"
+(*<*)constdefs
+ eusem :: "state set \<Rightarrow> state set \<Rightarrow> state set"
+"eusem A B \<equiv> {s. \<exists>p. until A B s p}"(*>*)
+
+text{*\noindent
+the semantics of @{term EU} is straightforward:
+@{text[display]"s \<Turnstile> EU f g = (\<exists>p. until A B s p)"}
+Note that @{term EU} is not definable in terms of the other operators!
+
+Model checking @{term EU} is again a least fixed point construction:
 @{text[display]"mc(EU f g) = lfp(\<lambda>T. mc g \<union> mc f \<inter> (M^-1 ^^ T))"}
-Prove the equivalence between semantics and model checking, i.e.\ that
+
+\begin{exercise}
+Extend the datatype of formulae by the above until operator
+and prove the equivalence between semantics and model checking, i.e.\ that
 @{prop[display]"mc(EU f g) = {s. s \<Turnstile> EU f g}"}
 %For readability you may want to annotate {term EU} with its customary syntax
 %{text[display]"| EU formula formula    E[_ U _]"}
 %which enables you to read and write {text"E[f U g]"} instead of {term"EU f g"}.
 \end{exercise}
-For more CTL exercises see, for example \cite{Huth-Ryan-book}.
-\bigskip
+For more CTL exercises see, for example, \cite{Huth-Ryan-book}.
+*}
 
+(*<*)
+constdefs
+ eufix :: "state set \<Rightarrow> state set \<Rightarrow> state set \<Rightarrow> state set"
+"eufix A B T \<equiv> B \<union> A \<inter> (M^-1 ^^ T)"
+
+lemma "lfp(eufix A B) \<subseteq> eusem A B"
+apply(rule lfp_lowerbound)
+apply(clarsimp simp add:eusem_def eufix_def);
+apply(erule disjE);
+ apply(rule_tac x = "[]" in exI);
+ apply simp
+apply(clarsimp);
+apply(rule_tac x = "y#xc" in exI);
+apply simp;
+done
+
+lemma mono_eufix: "mono(eufix A B)";
+apply(simp add: mono_def eufix_def);
+apply blast;
+done
+
+lemma "eusem A B \<subseteq> lfp(eufix A B)";
+apply(clarsimp simp add:eusem_def);
+apply(erule rev_mp);
+apply(rule_tac x = x in spec);
+apply(induct_tac p);
+ apply(rule ssubst[OF lfp_unfold[OF mono_eufix]]);
+ apply(simp add:eufix_def);
+apply(clarsimp);
+apply(rule ssubst[OF lfp_unfold[OF mono_eufix]]);
+apply(simp add:eufix_def);
+apply blast;
+done
+
+(*
+constdefs
+ eusem :: "state set \<Rightarrow> state set \<Rightarrow> state set"
+"eusem A B \<equiv> {s. \<exists>p\<in>Paths s. \<exists>j. p j \<in> B \<and> (\<forall>i < j. p i \<in> A)}"
+
+axioms
+M_total: "\<exists>t. (s,t) \<in> M"
+
+consts apath :: "state \<Rightarrow> (nat \<Rightarrow> state)"
+primrec
+"apath s 0 = s"
+"apath s (Suc i) = (SOME t. (apath s i,t) \<in> M)"
+
+lemma [iff]: "apath s \<in> Paths s";
+apply(simp add:Paths_def);
+apply(blast intro: M_total[THEN someI_ex])
+done
+
+constdefs
+ pcons :: "state \<Rightarrow> (nat \<Rightarrow> state) \<Rightarrow> (nat \<Rightarrow> state)"
+"pcons s p == \<lambda>i. case i of 0 \<Rightarrow> s | Suc j \<Rightarrow> p j"
+
+lemma pcons_PathI: "[| (s,t) : M; p \<in> Paths t |] ==> pcons s p \<in> Paths s";
+by(simp add:Paths_def pcons_def split:nat.split);
+
+lemma "lfp(eufix A B) \<subseteq> eusem A B"
+apply(rule lfp_lowerbound)
+apply(clarsimp simp add:eusem_def eufix_def);
+apply(erule disjE);
+ apply(rule_tac x = "apath x" in bexI);
+  apply(rule_tac x = 0 in exI);
+  apply simp;
+ apply simp;
+apply(clarify);
+apply(rule_tac x = "pcons xb p" in bexI);
+ apply(rule_tac x = "j+1" in exI);
+ apply (simp add:pcons_def split:nat.split);
+apply (simp add:pcons_PathI)
+done
+*)
+(*>*)
+text{*
 Let us close this section with a few words about the executability of our model checkers.
 It is clear that if all sets are finite, they can be represented as lists and the usual
 set operations are easily implemented. Only @{term lfp} requires a little thought.

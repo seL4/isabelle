@@ -66,10 +66,9 @@ for a change, we do not use fixed point induction but a weaker theorem,
 \ \ \ \ \ f\ S\ {\isasymsubseteq}\ S\ {\isasymLongrightarrow}\ lfp\ f\ {\isasymsubseteq}\ S%
 \end{isabelle}
 The instance of the premise \isa{f\ S\ {\isasymsubseteq}\ S} is proved pointwise,
-starting with simplification and clarification:%
+a decision that clarification takes for us:%
 \end{isamarkuptxt}%
 \isacommand{apply}{\isacharparenleft}rule\ lfp{\isacharunderscore}lowerbound{\isacharparenright}\isanewline
-\isacommand{apply}{\isacharparenleft}rule\ subsetI{\isacharparenright}\isanewline
 \isacommand{apply}{\isacharparenleft}clarsimp\ simp\ add{\isacharcolon}\ af{\isacharunderscore}def\ Paths{\isacharunderscore}def{\isacharparenright}%
 \begin{isamarkuptxt}%
 \begin{isabelle}
@@ -282,19 +281,30 @@ necessary equality \isa{lfp{\isacharparenleft}af\ A{\isacharparenright}\ {\isach
 \isacommand{done}%
 \begin{isamarkuptext}%
 The above language is not quite CTL. The latter also includes an
-until-operator, which is the subject of the following exercise.
-It is not definable in terms of the other operators!
-\begin{exercise}
-Extend the datatype of formulae by the binary until operator \isa{EU\ f\ g} with semantics
-``there exist a path where \isa{f} is true until \isa{g} becomes true''
+until-operator \isa{EU\ f\ g} with semantics ``there exist a path
+where \isa{f} is true until \isa{g} becomes true''. With the help
+of an auxiliary function%
+\end{isamarkuptext}%
+\isacommand{consts}\ until{\isacharcolon}{\isacharcolon}\ {\isachardoublequote}state\ set\ {\isasymRightarrow}\ state\ set\ {\isasymRightarrow}\ state\ {\isasymRightarrow}\ state\ list\ {\isasymRightarrow}\ bool{\isachardoublequote}\isanewline
+\isacommand{primrec}\isanewline
+{\isachardoublequote}until\ A\ B\ s\ {\isacharbrackleft}{\isacharbrackright}\ \ \ \ {\isacharequal}\ {\isacharparenleft}s\ {\isasymin}\ B{\isacharparenright}{\isachardoublequote}\isanewline
+{\isachardoublequote}until\ A\ B\ s\ {\isacharparenleft}t{\isacharhash}p{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}s\ {\isasymin}\ A\ {\isasymand}\ {\isacharparenleft}s{\isacharcomma}t{\isacharparenright}\ {\isasymin}\ M\ {\isasymand}\ until\ A\ B\ t\ p{\isacharparenright}{\isachardoublequote}%
+\begin{isamarkuptext}%
+\noindent
+the semantics of \isa{EU} is straightforward:
 \begin{isabelle}%
-\ \ \ \ \ s\ {\isasymTurnstile}\ EU\ f\ g\ {\isacharequal}\ {\isacharparenleft}{\isasymexists}p{\isasymin}Paths\ s{\isachardot}\ {\isasymexists}j{\isachardot}\ p\ j\ {\isasymTurnstile}\ g\ {\isasymand}\ {\isacharparenleft}{\isasymexists}i\ {\isacharless}\ j{\isachardot}\ p\ i\ {\isasymTurnstile}\ f{\isacharparenright}{\isacharparenright}%
+\ \ \ \ \ s\ {\isasymTurnstile}\ EU\ f\ g\ {\isacharequal}\ {\isacharparenleft}{\isasymexists}p{\isachardot}\ until\ A\ B\ s\ p{\isacharparenright}%
 \end{isabelle}
-and model checking algorithm
+Note that \isa{EU} is not definable in terms of the other operators!
+
+Model checking \isa{EU} is again a least fixed point construction:
 \begin{isabelle}%
 \ \ \ \ \ mc{\isacharparenleft}EU\ f\ g{\isacharparenright}\ {\isacharequal}\ lfp{\isacharparenleft}{\isasymlambda}T{\isachardot}\ mc\ g\ {\isasymunion}\ mc\ f\ {\isasyminter}\ {\isacharparenleft}M{\isacharcircum}{\isacharminus}{\isadigit{1}}\ {\isacharcircum}{\isacharcircum}\ T{\isacharparenright}{\isacharparenright}%
 \end{isabelle}
-Prove the equivalence between semantics and model checking, i.e.\ that
+
+\begin{exercise}
+Extend the datatype of formulae by the above until operator
+and prove the equivalence between semantics and model checking, i.e.\ that
 \begin{isabelle}%
 \ \ \ \ \ mc\ {\isacharparenleft}EU\ f\ g{\isacharparenright}\ {\isacharequal}\ {\isacharbraceleft}s{\isachardot}\ s\ {\isasymTurnstile}\ EU\ f\ g{\isacharbraceright}%
 \end{isabelle}
@@ -302,9 +312,10 @@ Prove the equivalence between semantics and model checking, i.e.\ that
 %{text[display]"| EU formula formula    E[_ U _]"}
 %which enables you to read and write {text"E[f U g]"} instead of {term"EU f g"}.
 \end{exercise}
-For more CTL exercises see, for example \cite{Huth-Ryan-book}.
-\bigskip
-
+For more CTL exercises see, for example, \cite{Huth-Ryan-book}.%
+\end{isamarkuptext}%
+%
+\begin{isamarkuptext}%
 Let us close this section with a few words about the executability of our model checkers.
 It is clear that if all sets are finite, they can be represented as lists and the usual
 set operations are easily implemented. Only \isa{lfp} requires a little thought.
