@@ -12,18 +12,18 @@ consts
 
 smap		:: "('a -> 'b) -> 'a stream -> 'b stream"
 
-rules
+defs
 
 smap_def
-  "smap = fix[LAM h f s. stream_when[LAM x l.scons[f[x]][h[f][l]]][s]]"
+  "smap == fix`(LAM h f s. stream_when`(LAM x l.scons `(f`x) `(h`f`l)) `s)"
 
 
 end
       
 
 (*
-		smap[f][UU] = UU
-      x~=UU --> smap[f][scons[x][xs]] = scons[f[x]][smap[f][xs]]
+		smap`f`UU = UU
+      x~=UU --> smap`f`(scons`x`xs) = scons `(f`x) `(smap`f`xs)
 
 *)
 

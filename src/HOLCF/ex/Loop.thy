@@ -13,12 +13,11 @@ consts
 	step  :: "('a -> tr)->('a -> 'a)->'a->'a"
 	while :: "('a -> tr)->('a -> 'a)->'a->'a"
 
-rules
+defs
 
-  step_def	"step == (LAM b g x. If b[x] then g[x] else x fi)"
-  while_def	"while == (LAM b g. fix[LAM f x.
-                 If b[x] then f[g[x]] else x fi])"
-
+  step_def	"step == (LAM b g x. If b`x then g`x else x fi)"
+  while_def	"while == (LAM b g. fix`(LAM f x.
+                   If b`x then f`(g`x) else x fi))"
 
 end
  

@@ -29,7 +29,7 @@ qed_goalw "minimal_cfun" Cfun2.thy [UU_cfun_def] "UU_cfun << f"
 	[
 	(rtac (less_cfun RS ssubst) 1),
 	(rtac (Abs_Cfun_inverse2 RS ssubst) 1),
-	(rtac contX_const 1),
+	(rtac cont_const 1),
 	(fold_goals_tac [UU_fun_def]),
 	(rtac minimal_fun 1)
 	]);
@@ -37,35 +37,34 @@ qed_goalw "minimal_cfun" Cfun2.thy [UU_cfun_def] "UU_cfun << f"
 (* ------------------------------------------------------------------------ *)
 (* fapp yields continuous functions in 'a => 'b                             *)
 (* this is continuity of fapp in its 'second' argument                      *)
-(* contX_fapp2 ==> monofun_fapp2 & contlub_fapp2                            *)
+(* cont_fapp2 ==> monofun_fapp2 & contlub_fapp2                            *)
 (* ------------------------------------------------------------------------ *)
 
-qed_goal "contX_fapp2" Cfun2.thy "contX(fapp(fo))"
+qed_goal "cont_fapp2" Cfun2.thy "cont(fapp(fo))"
 (fn prems =>
 	[
-	(res_inst_tac [("P","contX")] CollectD 1),
+	(res_inst_tac [("P","cont")] CollectD 1),
 	(fold_goals_tac [Cfun_def]),
 	(rtac Rep_Cfun 1)
 	]);
 
-val monofun_fapp2 = contX_fapp2 RS contX2mono;
+val monofun_fapp2 = cont_fapp2 RS cont2mono;
 (* monofun(fapp(?fo1)) *)
 
 
-val contlub_fapp2 = contX_fapp2 RS contX2contlub;
+val contlub_fapp2 = cont_fapp2 RS cont2contlub;
 (* contlub(fapp(?fo1)) *)
 
 (* ------------------------------------------------------------------------ *)
-(* expanded thms contX_fapp2, contlub_fapp2                                 *)
-(* looks nice with mixfix syntac _[_]                                       *)
+(* expanded thms cont_fapp2, contlub_fapp2                                 *)
+(* looks nice with mixfix syntac                                            *)
 (* ------------------------------------------------------------------------ *)
 
-val contX_cfun_arg = (contX_fapp2 RS contXE RS spec RS mp);
-(* is_chain(?x1) ==> range(%i. ?fo3[?x1(i)]) <<| ?fo3[lub(range(?x1))]      *)
+val cont_cfun_arg = (cont_fapp2 RS contE RS spec RS mp);
+(* is_chain(?x1) ==> range (%i. ?fo3`(?x1 i)) <<| ?fo3`(lub (range ?x1))    *)
  
 val contlub_cfun_arg = (contlub_fapp2 RS contlubE RS spec RS mp);
-(* is_chain(?x1) ==> ?fo4[lub(range(?x1))] = lub(range(%i. ?fo4[?x1(i)]))   *)
-
+(* is_chain(?x1) ==> ?fo4`(lub (range ?x1)) = lub (range (%i. ?fo4`(?x1 i))) *)
 
 
 (* ------------------------------------------------------------------------ *)
@@ -84,7 +83,7 @@ qed_goalw "monofun_fapp1" Cfun2.thy [monofun] "monofun(fapp)"
 (* monotonicity of application fapp in mixfix syntax [_]_                   *)
 (* ------------------------------------------------------------------------ *)
 
-qed_goal "monofun_cfun_fun" Cfun2.thy  "f1 << f2 ==> f1[x] << f2[x]"
+qed_goal "monofun_cfun_fun" Cfun2.thy  "f1 << f2 ==> f1`x << f2`x"
 (fn prems =>
 	[
 	(cut_facts_tac prems 1),
@@ -95,14 +94,14 @@ qed_goal "monofun_cfun_fun" Cfun2.thy  "f1 << f2 ==> f1[x] << f2[x]"
 
 
 val monofun_cfun_arg = (monofun_fapp2 RS monofunE RS spec RS spec RS mp);
-(* ?x2 << ?x1 ==> ?fo5[?x2] << ?fo5[?x1]                                    *)
+(* ?x2 << ?x1 ==> ?fo5`?x2 << ?fo5`?x1                                      *)
 
 (* ------------------------------------------------------------------------ *)
 (* monotonicity of fapp in both arguments in mixfix syntax [_]_             *)
 (* ------------------------------------------------------------------------ *)
 
 qed_goal "monofun_cfun" Cfun2.thy
-	"[|f1<<f2;x1<<x2|] ==> f1[x1] << f2[x2]"
+	"[|f1<<f2;x1<<x2|] ==> f1`x1 << f2`x2"
 (fn prems =>
 	[
 	(cut_facts_tac prems 1),
@@ -118,7 +117,7 @@ qed_goal "monofun_cfun" Cfun2.thy
 (* ------------------------------------------------------------------------ *)
 
 qed_goal "ch2ch_fappR" Cfun2.thy 
- "is_chain(Y) ==> is_chain(%i. f[Y(i)])"
+ "is_chain(Y) ==> is_chain(%i. f`(Y i))"
 (fn prems =>
 	[
 	(cut_facts_tac prems 1),
@@ -127,7 +126,7 @@ qed_goal "ch2ch_fappR" Cfun2.thy
 
 
 val ch2ch_fappL = (monofun_fapp1 RS ch2ch_MF2L);
-(* is_chain(?F) ==> is_chain(%i. ?F(i)[?x])                                 *)
+(* is_chain(?F) ==> is_chain (%i. ?F i`?x)                                  *)
 
 
 (* ------------------------------------------------------------------------ *)
@@ -136,7 +135,7 @@ val ch2ch_fappL = (monofun_fapp1 RS ch2ch_MF2L);
 (* ------------------------------------------------------------------------ *)
 
 qed_goal "lub_cfun_mono" Cfun2.thy 
-	"is_chain(F) ==> monofun(% x.lub(range(% j.F(j)[x])))"
+	"is_chain(F) ==> monofun(% x.lub(range(% j.(F j)`x)))"
 (fn prems =>
 	[
 	(cut_facts_tac prems 1),
@@ -153,8 +152,8 @@ qed_goal "lub_cfun_mono" Cfun2.thy
 
 qed_goal "ex_lubcfun" Cfun2.thy
 	"[| is_chain(F); is_chain(Y) |] ==>\
-\		lub(range(%j. lub(range(%i. F(j)[Y(i)])))) =\
-\		lub(range(%i. lub(range(%j. F(j)[Y(i)]))))"
+\		lub(range(%j. lub(range(%i. F(j)`(Y i))))) =\
+\		lub(range(%i. lub(range(%j. F(j)`(Y i)))))"
 (fn prems =>
 	[
 	(cut_facts_tac prems 1),
@@ -169,12 +168,12 @@ qed_goal "ex_lubcfun" Cfun2.thy
 (* the lub of a chain of cont. functions is continuous                      *)
 (* ------------------------------------------------------------------------ *)
 
-qed_goal "contX_lubcfun" Cfun2.thy 
-	"is_chain(F) ==> contX(% x.lub(range(% j.F(j)[x])))"
+qed_goal "cont_lubcfun" Cfun2.thy 
+	"is_chain(F) ==> cont(% x.lub(range(% j.F(j)`x)))"
 (fn prems =>
 	[
 	(cut_facts_tac prems 1),
-	(rtac monocontlub2contX 1),
+	(rtac monocontlub2cont 1),
 	(etac lub_cfun_mono 1),
 	(rtac contlubI 1),
 	(strip_tac 1),
@@ -189,7 +188,7 @@ qed_goal "contX_lubcfun" Cfun2.thy
 (* ------------------------------------------------------------------------ *)
 
 qed_goal "lub_cfun" Cfun2.thy 
-  "is_chain(CCF) ==> range(CCF) <<| fabs(% x.lub(range(% i.CCF(i)[x])))"
+  "is_chain(CCF) ==> range(CCF) <<| (LAM x.lub(range(% i.CCF(i)`x)))"
 (fn prems =>
 	[
 	(cut_facts_tac prems 1),
@@ -199,13 +198,13 @@ qed_goal "lub_cfun" Cfun2.thy
 	(rtac allI 1),
 	(rtac (less_cfun RS ssubst) 1),
 	(rtac (Abs_Cfun_inverse2 RS ssubst) 1),
-	(etac contX_lubcfun 1),
+	(etac cont_lubcfun 1),
 	(rtac (lub_fun RS is_lubE RS conjunct1 RS ub_rangeE RS spec) 1),
 	(etac (monofun_fapp1 RS ch2ch_monofun) 1),
 	(strip_tac 1),
 	(rtac (less_cfun RS ssubst) 1),
 	(rtac (Abs_Cfun_inverse2 RS ssubst) 1),
-	(etac contX_lubcfun 1),
+	(etac cont_lubcfun 1),
 	(rtac (lub_fun RS is_lubE RS conjunct2 RS spec RS mp) 1),
 	(etac (monofun_fapp1 RS ch2ch_monofun) 1),
 	(etac (monofun_fapp1 RS ub2ub_monofun) 1)
@@ -213,7 +212,7 @@ qed_goal "lub_cfun" Cfun2.thy
 
 val thelub_cfun = (lub_cfun RS thelubI);
 (* 
-is_chain(?CCF1) ==> lub(range(?CCF1)) = fabs(%x. lub(range(%i. ?CCF1(i)[x])))
+is_chain(?CCF1) ==>  lub (range ?CCF1) = (LAM x. lub (range (%i. ?CCF1 i`x)))
 *)
 
 qed_goal "cpo_cfun" Cfun2.thy 
@@ -230,7 +229,7 @@ qed_goal "cpo_cfun" Cfun2.thy
 (* Extensionality in 'a -> 'b                                               *)
 (* ------------------------------------------------------------------------ *)
 
-qed_goal "ext_cfun" Cfun1.thy "(!!x. f[x] = g[x]) ==> f = g"
+qed_goal "ext_cfun" Cfun1.thy "(!!x. f`x = g`x) ==> f = g"
  (fn prems =>
 	[
 	(res_inst_tac [("t","f")] (Rep_Cfun_inverse RS subst) 1),
@@ -245,7 +244,7 @@ qed_goal "ext_cfun" Cfun1.thy "(!!x. f[x] = g[x]) ==> f = g"
 (* ------------------------------------------------------------------------ *)
 
 qed_goal "semi_monofun_fabs" Cfun2.thy 
-	"[|contX(f);contX(g);f<<g|]==>fabs(f)<<fabs(g)"
+	"[|cont(f);cont(g);f<<g|]==>fabs(f)<<fabs(g)"
  (fn prems =>
 	[
 	(rtac (less_cfun RS iffD2) 1),
@@ -260,14 +259,14 @@ qed_goal "semi_monofun_fabs" Cfun2.thy
 (* Extenionality wrt. << in 'a -> 'b                                        *)
 (* ------------------------------------------------------------------------ *)
 
-qed_goal "less_cfun2" Cfun2.thy "(!!x. f[x] << g[x]) ==> f << g"
+qed_goal "less_cfun2" Cfun2.thy "(!!x. f`x << g`x) ==> f << g"
  (fn prems =>
 	[
 	(res_inst_tac [("t","f")] (Rep_Cfun_inverse RS subst) 1),
 	(res_inst_tac [("t","g")] (Rep_Cfun_inverse RS subst) 1),
 	(rtac semi_monofun_fabs 1),
-	(rtac contX_fapp2 1),
-	(rtac contX_fapp2 1),
+	(rtac cont_fapp2 1),
+	(rtac cont_fapp2 1),
 	(rtac (less_fun RS iffD2) 1),
 	(rtac allI 1),
 	(resolve_tac prems 1)

@@ -16,17 +16,22 @@ consts
 	ssnd         :: "('a**'b)->'b"
 	ssplit       :: "('a->'b->'c)->('a**'b)->'c"
 
-syntax  "@spair"     :: "'a => 'b => ('a**'b)" ("_##_" [101,100] 100)
+syntax  
+	"@stuple"    :: "['a, args] => 'a ** 'b"	("(1'(|_,/ _|'))")
 
-translations "x##y" == "spair[x][y]"
+translations
+	"(|x, y, z|)"   == "(|x, (|y, z|)|)"
+	"(|x, y|)"      == "spair`x`y"
 
 rules 
 
-inst_sprod_pcpo	"(UU::'a**'b) = Ispair(UU,UU)"
-spair_def	"spair  == (LAM x y.Ispair(x,y))"
-sfst_def	"sfst   == (LAM p.Isfst(p))"
-ssnd_def	"ssnd   == (LAM p.Issnd(p))"	
-ssplit_def	"ssplit == (LAM f. strictify[LAM p.f[sfst[p]][ssnd[p]]])"
+inst_sprod_pcpo	"(UU::'a**'b) = Ispair UU UU"
+
+defs
+spair_def	"spair  == (LAM x y.Ispair x y)"
+sfst_def	"sfst   == (LAM p.Isfst p)"
+ssnd_def	"ssnd   == (LAM p.Issnd p)"	
+ssplit_def	"ssplit == (LAM f. strictify`(LAM p.f`(sfst`p)`(ssnd`p)))"
 
 end
 

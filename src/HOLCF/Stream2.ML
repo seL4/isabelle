@@ -12,8 +12,8 @@ open Stream2;
 (* expand fixed point properties                                             *)
 (* ------------------------------------------------------------------------- *)
 
-val smap_def2 = fix_prover Stream2.thy smap_def 
-	"smap = (LAM f s. stream_when[LAM x l.scons[f[x]][smap[f][l]]][s])";
+val smap_def2 = fix_prover2 Stream2.thy smap_def 
+	"smap = (LAM f s. stream_when`(LAM x l.scons`(f`x) `(smap`f`l)) `s)";
 
 
 (* ------------------------------------------------------------------------- *)
@@ -21,7 +21,7 @@ val smap_def2 = fix_prover Stream2.thy smap_def
 (* ------------------------------------------------------------------------- *)
 
 
-qed_goal "smap1" Stream2.thy "smap[f][UU] = UU"
+qed_goal "smap1" Stream2.thy "smap`f`UU = UU"
  (fn prems =>
 	[
 	(rtac (smap_def2 RS ssubst) 1),
@@ -29,7 +29,7 @@ qed_goal "smap1" Stream2.thy "smap[f][UU] = UU"
 	]);
 
 qed_goal "smap2" Stream2.thy 
-	"x~=UU ==> smap[f][scons[x][xs]] = scons[f[x]][smap[f][xs]]"
+	"x~=UU ==> smap`f`(scons`x`xs) = scons `(f`x) `(smap`f`xs)"
  (fn prems =>
 	[
 	(cut_facts_tac prems 1),

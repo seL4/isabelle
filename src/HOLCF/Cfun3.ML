@@ -20,7 +20,7 @@ qed_goal "contlub_fapp1" Cfun3.thy "contlub(fapp)"
 	(rtac (thelub_cfun RS ssubst) 1),
 	(atac 1),
 	(rtac (Cfunapp2 RS ssubst) 1),
-	(etac contX_lubcfun 1),
+	(etac cont_lubcfun 1),
 	(rtac (thelub_fun RS ssubst) 1),
 	(etac (monofun_fapp1 RS ch2ch_monofun) 1),
 	(rtac refl 1)
@@ -28,25 +28,25 @@ qed_goal "contlub_fapp1" Cfun3.thy "contlub(fapp)"
 
 
 (* ------------------------------------------------------------------------ *)
-(* the contX property for fapp in its first argument                        *)
+(* the cont property for fapp in its first argument                        *)
 (* ------------------------------------------------------------------------ *)
 
-qed_goal "contX_fapp1" Cfun3.thy "contX(fapp)"
+qed_goal "cont_fapp1" Cfun3.thy "cont(fapp)"
 (fn prems =>
 	[
-	(rtac monocontlub2contX 1),
+	(rtac monocontlub2cont 1),
 	(rtac monofun_fapp1 1),
 	(rtac contlub_fapp1 1)
 	]);
 
 
 (* ------------------------------------------------------------------------ *)
-(* contlub, contX properties of fapp in its first argument in mixfix _[_]   *)
+(* contlub, cont properties of fapp in its first argument in mixfix _[_]   *)
 (* ------------------------------------------------------------------------ *)
 
 qed_goal "contlub_cfun_fun" Cfun3.thy 
 "is_chain(FY) ==>\
-\ lub(range(FY))[x] = lub(range(%i.FY(i)[x]))"
+\ lub(range FY)`x = lub(range (%i.FY(i)`x))"
 (fn prems =>
 	[
 	(cut_facts_tac prems 1),
@@ -58,9 +58,9 @@ qed_goal "contlub_cfun_fun" Cfun3.thy
 	]);
 
 
-qed_goal "contX_cfun_fun" Cfun3.thy 
+qed_goal "cont_cfun_fun" Cfun3.thy 
 "is_chain(FY) ==>\
-\ range(%i.FY(i)[x]) <<| lub(range(FY))[x]"
+\ range(%i.FY(i)`x) <<| lub(range FY)`x"
 (fn prems =>
 	[
 	(cut_facts_tac prems 1),
@@ -71,26 +71,26 @@ qed_goal "contX_cfun_fun" Cfun3.thy
 
 
 (* ------------------------------------------------------------------------ *)
-(* contlub, contX  properties of fapp in both argument in mixfix _[_]       *)
+(* contlub, cont  properties of fapp in both argument in mixfix _[_]       *)
 (* ------------------------------------------------------------------------ *)
 
 qed_goal "contlub_cfun" Cfun3.thy 
 "[|is_chain(FY);is_chain(TY)|] ==>\
-\ lub(range(FY))[lub(range(TY))] = lub(range(%i.FY(i)[TY(i)]))"
+\ (lub(range FY))`(lub(range TY)) = lub(range(%i.FY(i)`(TY i)))"
 (fn prems =>
 	[
 	(cut_facts_tac prems 1),
 	(rtac contlub_CF2 1),
-	(rtac contX_fapp1 1),
+	(rtac cont_fapp1 1),
 	(rtac allI 1),
-	(rtac contX_fapp2 1),
+	(rtac cont_fapp2 1),
 	(atac 1),
 	(atac 1)
 	]);
 
-qed_goal "contX_cfun" Cfun3.thy 
+qed_goal "cont_cfun" Cfun3.thy 
 "[|is_chain(FY);is_chain(TY)|] ==>\
-\ range(%i.FY(i)[TY(i)]) <<| lub(range(FY))[lub(range(TY))]"
+\ range(%i.(FY i)`(TY i)) <<| (lub (range FY))`(lub(range TY))"
 (fn prems =>
 	[
 	(cut_facts_tac prems 1),
@@ -106,32 +106,32 @@ qed_goal "contX_cfun" Cfun3.thy
 
 
 (* ------------------------------------------------------------------------ *)
-(* contX2contX lemma for fapp                                               *)
+(* cont2cont lemma for fapp                                               *)
 (* ------------------------------------------------------------------------ *)
 
-qed_goal "contX2contX_fapp" Cfun3.thy 
-	"[|contX(%x.ft(x));contX(%x.tt(x))|] ==> contX(%x.(ft(x))[tt(x)])"
+qed_goal "cont2cont_fapp" Cfun3.thy 
+	"[|cont(%x.ft x);cont(%x.tt x)|] ==> cont(%x. (ft x)`(tt x))"
  (fn prems =>
 	[
 	(cut_facts_tac prems 1),
-	(rtac contX2contX_app2 1),
-	(rtac contX2contX_app2 1),
-	(rtac contX_const 1),
-	(rtac contX_fapp1 1),
+	(rtac cont2cont_app2 1),
+	(rtac cont2cont_app2 1),
+	(rtac cont_const 1),
+	(rtac cont_fapp1 1),
 	(atac 1),
-	(rtac contX_fapp2 1),
+	(rtac cont_fapp2 1),
 	(atac 1)
 	]);
 
 
 
 (* ------------------------------------------------------------------------ *)
-(* contX2mono Lemma for %x. LAM y. c1(x,y)                                  *)
+(* cont2mono Lemma for %x. LAM y. c1(x)(y)                                  *)
 (* ------------------------------------------------------------------------ *)
 
-qed_goal "contX2mono_LAM" Cfun3.thy 
- "[|!x.contX(c1(x)); !y.monofun(%x.c1(x,y))|] ==>\
-\	 		monofun(%x. LAM y. c1(x,y))"
+qed_goal "cont2mono_LAM" Cfun3.thy 
+ "[|!x.cont(c1 x); !y.monofun(%x.c1 x y)|] ==>\
+\	 		monofun(%x. LAM y. c1 x y)"
 (fn prems =>
 	[
 	(cut_facts_tac prems 1),
@@ -148,70 +148,70 @@ qed_goal "contX2mono_LAM" Cfun3.thy
 	]);
 
 (* ------------------------------------------------------------------------ *)
-(* contX2contX Lemma for %x. LAM y. c1(x,y)                                 *)
+(* cont2cont Lemma for %x. LAM y. c1 x y)                                 *)
 (* ------------------------------------------------------------------------ *)
 
-qed_goal "contX2contX_LAM" Cfun3.thy 
- "[| !x.contX(c1(x)); !y.contX(%x.c1(x,y)) |] ==> contX(%x. LAM y. c1(x,y))"
+qed_goal "cont2cont_LAM" Cfun3.thy 
+ "[| !x.cont(c1 x); !y.cont(%x.c1 x y) |] ==> cont(%x. LAM y. c1 x y)"
 (fn prems =>
 	[
 	(cut_facts_tac prems 1),
-	(rtac monocontlub2contX 1),
-	(etac contX2mono_LAM 1),
-	(rtac (contX2mono RS allI) 1),
+	(rtac monocontlub2cont 1),
+	(etac cont2mono_LAM 1),
+	(rtac (cont2mono RS allI) 1),
 	(etac spec 1),
 	(rtac contlubI 1),
 	(strip_tac 1),
 	(rtac (thelub_cfun RS ssubst) 1),
-	(rtac (contX2mono_LAM RS ch2ch_monofun) 1),
+	(rtac (cont2mono_LAM RS ch2ch_monofun) 1),
 	(atac 1),
-	(rtac (contX2mono RS allI) 1),
+	(rtac (cont2mono RS allI) 1),
 	(etac spec 1),
 	(atac 1),
 	(res_inst_tac [("f","fabs")] arg_cong 1),
 	(rtac ext 1),
 	(rtac (beta_cfun RS ext RS ssubst) 1),
 	(etac spec 1),
-	(rtac (contX2contlub RS contlubE 
+	(rtac (cont2contlub RS contlubE 
 		RS spec RS mp ) 1),
 	(etac spec 1),
 	(atac 1)
 	]);
 
 (* ------------------------------------------------------------------------ *)
-(* elimination of quantifier in premisses of contX2contX_LAM yields good    *)
-(* lemma for the contX tactic                                               *)
+(* elimination of quantifier in premisses of cont2cont_LAM yields good    *)
+(* lemma for the cont tactic                                               *)
 (* ------------------------------------------------------------------------ *)
 
-val contX2contX_LAM2 = (allI RSN (2,(allI RS contX2contX_LAM)));
+val cont2cont_LAM2 = (allI RSN (2,(allI RS cont2cont_LAM)));
 (*
-	[| !!x. contX(?c1.0(x)); !!y. contX(%x. ?c1.0(x,y)) |] ==>
-					contX(%x. LAM y. ?c1.0(x,y))
+[| !!x. cont (?c1.0 x);
+    !!y. cont (%x. ?c1.0 x y) |] ==> cont (%x. LAM y. ?c1.0 x y)
 *)
 
 (* ------------------------------------------------------------------------ *)
-(* contX2contX tactic                                                       *)
+(* cont2cont tactic                                                       *)
 (* ------------------------------------------------------------------------ *)
 
-val contX_lemmas = [contX_const, contX_id, contX_fapp2,
-			contX2contX_fapp,contX2contX_LAM2];
+val cont_lemmas = [cont_const, cont_id, cont_fapp2,
+			cont2cont_fapp,cont2cont_LAM2];
 
 
-val contX_tac = (fn i => (resolve_tac contX_lemmas i));
+val cont_tac = (fn i => (resolve_tac cont_lemmas i));
 
-val contX_tacR = (fn i => (REPEAT (contX_tac i)));
+val cont_tacR = (fn i => (REPEAT (cont_tac i)));
 
 (* ------------------------------------------------------------------------ *)
 (* function application _[_]  is strict in its first arguments              *)
 (* ------------------------------------------------------------------------ *)
 
-qed_goal "strict_fapp1" Cfun3.thy "(UU::'a->'b)[x] = (UU::'b)"
+qed_goal "strict_fapp1" Cfun3.thy "(UU::'a->'b)`x = (UU::'b)"
  (fn prems =>
 	[
 	(rtac (inst_cfun_pcpo RS ssubst) 1),
 	(rewrite_goals_tac [UU_cfun_def]),
 	(rtac (beta_cfun RS ssubst) 1),
-	(contX_tac 1),
+	(cont_tac 1),
 	(rtac refl 1)
 	]);
 
@@ -224,19 +224,15 @@ qed_goalw "Istrictify1" Cfun3.thy [Istrictify_def]
 	"Istrictify(f)(UU)= (UU)"
  (fn prems =>
 	[
-	(rtac select_equality 1),
-	(fast_tac HOL_cs 1),
-	(fast_tac HOL_cs 1)
+	(simp_tac HOL_ss 1)
 	]);
 
 qed_goalw "Istrictify2" Cfun3.thy [Istrictify_def]
-	"~x=UU ==> Istrictify(f)(x)=f[x]"
+	"~x=UU ==> Istrictify(f)(x)=f`x"
  (fn prems =>
 	[
 	(cut_facts_tac prems 1),
-	(rtac select_equality 1),
-	(fast_tac HOL_cs 1),
-	(fast_tac HOL_cs 1)
+	(asm_simp_tac HOL_ss 1)
 	]);
 
 qed_goal "monofun_Istrictify1" Cfun3.thy "monofun(Istrictify)"
@@ -295,7 +291,7 @@ qed_goal "contlub_Istrictify1" Cfun3.thy "contlub(Istrictify)"
 	(rtac (thelub_cfun RS ssubst) 1),
 	(atac 1),
 	(rtac (beta_cfun RS ssubst) 1),
-	(rtac contX_lubcfun 1),
+	(rtac cont_lubcfun 1),
 	(atac 1),
 	(rtac refl 1),
 	(hyp_subst_tac 1),
@@ -326,7 +322,7 @@ qed_goal "contlub_Istrictify2" Cfun3.thy "contlub(Istrictify(f::'a -> 'b))"
 	(rtac Istrictify1 1),
 	(rtac (Istrictify2 RS ssubst) 1),
 	(atac 1),
-	(res_inst_tac [("s","lub(range(%i. f[Y(i)]))")] trans 1),
+	(res_inst_tac [("s","lub(range(%i. f`(Y i)))")] trans 1),
 	(rtac contlub_cfun_arg 1),
 	(atac 1),
 	(rtac lub_equal2 1),
@@ -347,38 +343,38 @@ qed_goal "contlub_Istrictify2" Cfun3.thy "contlub(Istrictify(f::'a -> 'b))"
 	]);
 
 
-val contX_Istrictify1 = (contlub_Istrictify1 RS 
-	(monofun_Istrictify1 RS monocontlub2contX)); 
+val cont_Istrictify1 = (contlub_Istrictify1 RS 
+	(monofun_Istrictify1 RS monocontlub2cont)); 
 
-val contX_Istrictify2 = (contlub_Istrictify2 RS 
-	(monofun_Istrictify2 RS monocontlub2contX)); 
+val cont_Istrictify2 = (contlub_Istrictify2 RS 
+	(monofun_Istrictify2 RS monocontlub2cont)); 
 
 
 qed_goalw "strictify1" Cfun3.thy [strictify_def]
-	"strictify[f][UU]=UU"
+	"strictify`f`UU=UU"
  (fn prems =>
 	[
 	(rtac (beta_cfun RS ssubst) 1),
-	(contX_tac 1),
-	(rtac contX_Istrictify2 1),
-	(rtac contX2contX_CF1L 1),
-	(rtac contX_Istrictify1 1),
+	(cont_tac 1),
+	(rtac cont_Istrictify2 1),
+	(rtac cont2cont_CF1L 1),
+	(rtac cont_Istrictify1 1),
 	(rtac (beta_cfun RS ssubst) 1),
-	(rtac contX_Istrictify2 1),
+	(rtac cont_Istrictify2 1),
 	(rtac Istrictify1 1)
 	]);
 
 qed_goalw "strictify2" Cfun3.thy [strictify_def]
-	"~x=UU ==> strictify[f][x]=f[x]"
+	"~x=UU ==> strictify`f`x=f`x"
  (fn prems =>
 	[
 	(rtac (beta_cfun RS ssubst) 1),
-	(contX_tac 1),
-	(rtac contX_Istrictify2 1),
-	(rtac contX2contX_CF1L 1),
-	(rtac contX_Istrictify1 1),
+	(cont_tac 1),
+	(rtac cont_Istrictify2 1),
+	(rtac cont2cont_CF1L 1),
+	(rtac cont_Istrictify1 1),
 	(rtac (beta_cfun RS ssubst) 1),
-	(rtac contX_Istrictify2 1),
+	(rtac cont_Istrictify2 1),
 	(rtac Istrictify2 1),
 	(resolve_tac prems 1)
 	]);
@@ -392,12 +388,12 @@ val Cfun_rews  = [minimal,refl_less,beta_cfun,strict_fapp1,strictify1,
 		strictify2];
 
 (* ------------------------------------------------------------------------ *)
-(* use contX_tac as autotac.                                                *)
+(* use cont_tac as autotac.                                                *)
 (* ------------------------------------------------------------------------ *)
 
 val Cfun_ss = HOL_ss 
 	addsimps  Cfun_rews 
 	setsolver 
 	(fn thms => (resolve_tac (TrueI::refl::thms)) ORELSE' atac ORELSE'
-		    (fn i => DEPTH_SOLVE_1 (contX_tac i))
+		    (fn i => DEPTH_SOLVE_1 (cont_tac i))
 	);

@@ -7,11 +7,12 @@ ROOT file for the conservative extension of HOL by the LCF logic.
 Should be executed in subdirectory HOLCF.
 *)
 
-val banner = "Higher-order Logic of Computable Functions";
+val banner = "Higher-order Logic of Computable Functions; curried version";
 writeln banner;
 print_depth 1;
 
 init_thy_reader();
+
 
 use_thy "Holcfb";
 use_thy "Void";
@@ -63,6 +64,7 @@ use_thy "Dnat2";
 
 use_thy "Stream";
 use_thy "Stream2";
+
 use_thy "Dlist";
 
 use "../Pure/install_pp.ML";

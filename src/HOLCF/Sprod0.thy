@@ -23,13 +23,13 @@ consts
   Isfst		:: "('a ** 'b) => 'a"
   Issnd		:: "('a ** 'b) => 'b"  
 
-rules
-
+defs
   Spair_Rep_def		"Spair_Rep == (%a b. %x y.
 				(~a=UU & ~b=UU --> x=a  & y=b ))"
 
-  Sprod_def		"Sprod == {f. ? a b. f = Spair_Rep(a,b)}"
+  Sprod_def		"Sprod == {f. ? a b. f = Spair_Rep a b}"
 
+rules
   (*faking a type definition... *)
   (* "**" is isomorphic to Sprod *)
 
@@ -37,17 +37,18 @@ rules
   Rep_Sprod_inverse	"Abs_Sprod(Rep_Sprod(p)) = p"	
   Abs_Sprod_inverse	"f:Sprod ==> Rep_Sprod(Abs_Sprod(f)) = f"
 
+defs
    (*defining the abstract constants*)
 
-  Ispair_def	"Ispair(a,b) == Abs_Sprod(Spair_Rep(a,b))"
+  Ispair_def	"Ispair a b == Abs_Sprod(Spair_Rep a b)"
 
   Isfst_def	"Isfst(p) == @z.
-					(p=Ispair(UU,UU) --> z=UU)
-		&(! a b. ~a=UU & ~b=UU & p=Ispair(a,b)   --> z=a)"  
+					(p=Ispair UU UU --> z=UU)
+		&(! a b. ~a=UU & ~b=UU & p=Ispair a b   --> z=a)"  
 
   Issnd_def	"Issnd(p) == @z.
-					(p=Ispair(UU,UU) --> z=UU)
-		&(! a b. ~a=UU & ~b=UU & p=Ispair(a,b)   --> z=b)"  
+					(p=Ispair UU UU  --> z=UU)
+		&(! a b. ~a=UU & ~b=UU & p=Ispair a b    --> z=b)"  
 
 end
 

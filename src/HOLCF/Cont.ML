@@ -31,16 +31,16 @@ qed_goalw "contlubE" Cont.thy [contlub]
 	]);
 
 
-qed_goalw "contXI" Cont.thy [contX]
- "! Y. is_chain(Y) --> range(% i.f(Y(i))) <<| f(lub(range(Y))) ==> contX(f)"
+qed_goalw "contI" Cont.thy [cont]
+ "! Y. is_chain(Y) --> range(% i.f(Y(i))) <<| f(lub(range(Y))) ==> cont(f)"
 (fn prems =>
 	[
 	(cut_facts_tac prems 1),
 	(atac 1)
 	]);
 
-qed_goalw "contXE" Cont.thy [contX]
- "contX(f) ==> ! Y. is_chain(Y) --> range(% i.f(Y(i))) <<| f(lub(range(Y)))"
+qed_goalw "contE" Cont.thy [cont]
+ "cont(f) ==> ! Y. is_chain(Y) --> range(% i.f(Y(i))) <<| f(lub(range(Y)))"
 (fn prems =>
 	[
 	(cut_facts_tac prems 1),
@@ -66,7 +66,7 @@ qed_goalw "monofunE" Cont.thy [monofun]
 
 (* ------------------------------------------------------------------------ *)
 (* the main purpose of cont.thy is to show:                                 *)
-(*              monofun(f) & contlub(f)  <==> contX(f)                      *)
+(*              monofun(f) & contlub(f)  <==> cont(f)                      *)
 (* ------------------------------------------------------------------------ *)
 
 (* ------------------------------------------------------------------------ *)
@@ -100,11 +100,11 @@ qed_goal "ub2ub_monofun" Cont.thy
 	]);
 
 (* ------------------------------------------------------------------------ *)
-(* left to right: monofun(f) & contlub(f)  ==> contX(f)                     *)
+(* left to right: monofun(f) & contlub(f)  ==> cont(f)                     *)
 (* ------------------------------------------------------------------------ *)
 
-qed_goalw "monocontlub2contX" Cont.thy [contX]
-	"[|monofun(f);contlub(f)|] ==> contX(f)"
+qed_goalw "monocontlub2cont" Cont.thy [cont]
+	"[|monofun(f);contlub(f)|] ==> cont(f)"
 (fn prems =>
 	[
 	(cut_facts_tac prems 1),
@@ -120,49 +120,49 @@ qed_goalw "monocontlub2contX" Cont.thy [contX]
 (* first a lemma about binary chains                                        *)
 (* ------------------------------------------------------------------------ *)
 
-qed_goal "binchain_contX" Cont.thy
-"[| contX(f); x << y |]  ==> range(%i. f(if(i = 0,x,y))) <<| f(y)"
+qed_goal "binchain_cont" Cont.thy
+"[| cont(f); x << y |]  ==> range(%i. f(if i = 0 then x else y)) <<| f(y)"
 (fn prems => 
 	[
 	(cut_facts_tac prems 1),
 	(rtac subst 1), 
-	(etac (contXE RS spec RS mp) 2),
+	(etac (contE RS spec RS mp) 2),
 	(etac bin_chain 2),
 	(res_inst_tac [("y","y")] arg_cong 1),
 	(etac (lub_bin_chain RS thelubI) 1)
 	]);
 
 (* ------------------------------------------------------------------------ *)
-(* right to left: contX(f) ==> monofun(f) & contlub(f)                      *)
-(* part1:         contX(f) ==> monofun(f                                    *)
+(* right to left: cont(f) ==> monofun(f) & contlub(f)                      *)
+(* part1:         cont(f) ==> monofun(f                                    *)
 (* ------------------------------------------------------------------------ *)
 
-qed_goalw "contX2mono" Cont.thy [monofun]
-	"contX(f) ==> monofun(f)"
+qed_goalw "cont2mono" Cont.thy [monofun]
+	"cont(f) ==> monofun(f)"
 (fn prems =>
 	[
 	(cut_facts_tac prems 1),
 	(strip_tac 1),
-	(res_inst_tac [("s","if(0 = 0,x,y)")] subst 1),
-	(rtac (binchain_contX RS is_ub_lub) 2),
+	(res_inst_tac [("s","if 0 = 0 then x else y")] subst 1),
+	(rtac (binchain_cont RS is_ub_lub) 2),
 	(atac 2),
 	(atac 2),
 	(simp_tac nat_ss 1)
 	]);
 
 (* ------------------------------------------------------------------------ *)
-(* right to left: contX(f) ==> monofun(f) & contlub(f)                      *)
-(* part2:         contX(f) ==>              contlub(f)                      *)
+(* right to left: cont(f) ==> monofun(f) & contlub(f)                      *)
+(* part2:         cont(f) ==>              contlub(f)                      *)
 (* ------------------------------------------------------------------------ *)
 
-qed_goalw "contX2contlub" Cont.thy [contlub]
-	"contX(f) ==> contlub(f)"
+qed_goalw "cont2contlub" Cont.thy [contlub]
+	"cont(f) ==> contlub(f)"
 (fn prems =>
 	[
 	(cut_facts_tac prems 1),
 	(strip_tac 1),
 	(rtac (thelubI RS sym) 1),
-	(etac (contXE RS spec RS mp) 1),
+	(etac (contE RS spec RS mp) 1),
 	(atac 1)
 	]);
 
@@ -172,7 +172,7 @@ qed_goalw "contX2contlub" Cont.thy [contlub]
 (* ------------------------------------------------------------------------ *)
 
 qed_goal "ch2ch_MF2L" Cont.thy 
-"[|monofun(MF2); is_chain(F)|] ==> is_chain(%i. MF2(F(i),x))"
+"[|monofun(MF2); is_chain(F)|] ==> is_chain(%i. MF2 (F i) x)"
 (fn prems =>
 	[
 	(cut_facts_tac prems 1),
@@ -182,7 +182,7 @@ qed_goal "ch2ch_MF2L" Cont.thy
 
 
 qed_goal "ch2ch_MF2R" Cont.thy 
-"[|monofun(MF2(f)); is_chain(Y)|] ==> is_chain(%i. MF2(f,Y(i)))"
+"[|monofun(MF2(f)); is_chain(Y)|] ==> is_chain(%i. MF2 f (Y i))"
 (fn prems =>
 	[
 	(cut_facts_tac prems 1),
@@ -210,7 +210,7 @@ qed_goal "ch2ch_lubMF2R" Cont.thy
 "[|monofun(MF2::('a::po=>'b::po=>'c::pcpo));\
 \  !f.monofun(MF2(f)::('b::po=>'c::pcpo));\
 \	is_chain(F);is_chain(Y)|] ==> \
-\	is_chain(%j. lub(range(%i. MF2(F(j),Y(i)))))"
+\	is_chain(%j. lub(range(%i. MF2 (F j) (Y i))))"
 (fn prems =>
 	[
 	(cut_facts_tac prems 1),
@@ -230,7 +230,7 @@ qed_goal "ch2ch_lubMF2L" Cont.thy
 "[|monofun(MF2::('a::po=>'b::po=>'c::pcpo));\
 \  !f.monofun(MF2(f)::('b::po=>'c::pcpo));\
 \	is_chain(F);is_chain(Y)|] ==> \
-\	is_chain(%i. lub(range(%j. MF2(F(j),Y(i)))))"
+\	is_chain(%i. lub(range(%j. MF2 (F j) (Y i))))"
 (fn prems =>
 	[
 	(cut_facts_tac prems 1),
@@ -250,7 +250,7 @@ qed_goal "lub_MF2_mono" Cont.thy
 "[|monofun(MF2::('a::po=>'b::po=>'c::pcpo));\
 \  !f.monofun(MF2(f)::('b::po=>'c::pcpo));\
 \	is_chain(F)|] ==> \
-\	monofun(% x.lub(range(% j.MF2(F(j),x))))"
+\	monofun(% x.lub(range(% j.MF2 (F j) (x))))"
 (fn prems =>
 	[
 	(cut_facts_tac prems 1),
@@ -270,8 +270,8 @@ qed_goal "ex_lubMF2" Cont.thy
 "[|monofun(MF2::('a::po=>'b::po=>'c::pcpo));\
 \  !f.monofun(MF2(f)::('b::po=>'c::pcpo));\
 \	is_chain(F); is_chain(Y)|] ==> \
-\		lub(range(%j. lub(range(%i. MF2(F(j),Y(i)))))) =\
-\		lub(range(%i. lub(range(%j. MF2(F(j),Y(i))))))"
+\		lub(range(%j. lub(range(%i. MF2(F j) (Y i))))) =\
+\		lub(range(%i. lub(range(%j. MF2(F j) (Y i)))))"
  (fn prems =>
 	[
 	(cut_facts_tac prems 1),
@@ -374,24 +374,24 @@ qed_goal "diag_lubMF2_2" Cont.thy
 (* ------------------------------------------------------------------------ *)
 
 qed_goal "contlub_CF2" Cont.thy 
-"[|contX(CF2);!f.contX(CF2(f));is_chain(FY);is_chain(TY)|] ==>\
+"[|cont(CF2);!f.cont(CF2(f));is_chain(FY);is_chain(TY)|] ==>\
 \ CF2(lub(range(FY)))(lub(range(TY))) = lub(range(%i.CF2(FY(i))(TY(i))))"
  (fn prems =>
 	[
 	(cut_facts_tac prems 1),
-	(rtac ((hd prems) RS contX2contlub RS contlubE RS spec RS mp RS ssubst) 1),
+	(rtac ((hd prems) RS cont2contlub RS contlubE RS spec RS mp RS ssubst) 1),
 	(atac 1),
 	(rtac (thelub_fun RS ssubst) 1),
-	(rtac ((hd prems) RS contX2mono RS ch2ch_monofun) 1),
+	(rtac ((hd prems) RS cont2mono RS ch2ch_monofun) 1),
 	(atac 1),
 	(rtac trans 1),
-	(rtac (((hd (tl prems)) RS spec RS contX2contlub) RS contlubE RS                spec RS mp RS ext RS arg_cong RS arg_cong) 1),
+	(rtac (((hd (tl prems)) RS spec RS cont2contlub) RS contlubE RS                spec RS mp RS ext RS arg_cong RS arg_cong) 1),
 	(atac 1),
 	(rtac diag_lubMF2_2 1),
-	(etac contX2mono 1),
+	(etac cont2mono 1),
 	(rtac allI 1),
 	(etac allE 1),
-	(etac contX2mono 1),
+	(etac cont2mono 1),
 	(REPEAT (atac 1))
 	]);
 
@@ -434,7 +434,7 @@ qed_goal "monofun_fun" Cont.thy
 (* ------------------------------------------------------------------------ *)
 
 qed_goal "mono2mono_MF1L" Cont.thy 
-	"[|monofun(c1)|] ==> monofun(%x. c1(x,y))"
+	"[|monofun(c1)|] ==> monofun(%x. c1 x y)"
 (fn prems =>
 	[
 	(cut_facts_tac prems 1),
@@ -444,29 +444,29 @@ qed_goal "mono2mono_MF1L" Cont.thy
 	(atac 1)
 	]);
 
-qed_goal "contX2contX_CF1L" Cont.thy 
-	"[|contX(c1)|] ==> contX(%x. c1(x,y))"
+qed_goal "cont2cont_CF1L" Cont.thy 
+	"[|cont(c1)|] ==> cont(%x. c1 x y)"
 (fn prems =>
 	[
 	(cut_facts_tac prems 1),
-	(rtac monocontlub2contX 1),
-	(etac (contX2mono RS mono2mono_MF1L) 1),
+	(rtac monocontlub2cont 1),
+	(etac (cont2mono RS mono2mono_MF1L) 1),
 	(rtac contlubI 1),
 	(strip_tac 1),
-	(rtac ((hd prems) RS contX2contlub RS 
+	(rtac ((hd prems) RS cont2contlub RS 
 		contlubE RS spec RS mp RS ssubst) 1),
 	(atac 1),
 	(rtac (thelub_fun RS ssubst) 1),
 	(rtac ch2ch_monofun 1),
-	(etac contX2mono 1),
+	(etac cont2mono 1),
 	(atac 1),
 	(rtac refl 1)
 	]);
 
-(*********  Note "(%x.%y.c1(x,y)) = c1" ***********)
+(*********  Note "(%x.%y.c1 x y) = c1" ***********)
 
 qed_goal "mono2mono_MF1L_rev" Cont.thy
-	"!y.monofun(%x.c1(x,y)) ==> monofun(c1)"
+	"!y.monofun(%x.c1 x y) ==> monofun(c1)"
 (fn prems =>
 	[
 	(cut_facts_tac prems 1),
@@ -478,23 +478,23 @@ qed_goal "mono2mono_MF1L_rev" Cont.thy
 	(atac 1)
 	]);
 
-qed_goal "contX2contX_CF1L_rev" Cont.thy
-	"!y.contX(%x.c1(x,y)) ==> contX(c1)"
+qed_goal "cont2cont_CF1L_rev" Cont.thy
+	"!y.cont(%x.c1 x y) ==> cont(c1)"
 (fn prems =>
 	[
 	(cut_facts_tac prems 1),
-	(rtac monocontlub2contX 1),
-	(rtac (contX2mono RS allI RS mono2mono_MF1L_rev ) 1),
+	(rtac monocontlub2cont 1),
+	(rtac (cont2mono RS allI RS mono2mono_MF1L_rev ) 1),
 	(etac spec 1),
 	(rtac contlubI 1),
 	(strip_tac 1),
 	(rtac ext 1),
 	(rtac (thelub_fun RS ssubst) 1),
-	(rtac (contX2mono RS allI RS mono2mono_MF1L_rev RS ch2ch_monofun) 1),
+	(rtac (cont2mono RS allI RS mono2mono_MF1L_rev RS ch2ch_monofun) 1),
 	(etac spec 1),
 	(atac 1),
 	(rtac 
-	((hd prems) RS spec RS contX2contlub RS contlubE RS spec RS mp) 1),
+	((hd prems) RS spec RS cont2contlub RS contlubE RS spec RS mp) 1),
 	(atac 1)
 	]);
 
@@ -505,17 +505,17 @@ qed_goal "contX2contX_CF1L_rev" Cont.thy
 (* ------------------------------------------------------------------------ *)
 
 qed_goal "contlub_abstraction" Cont.thy
-"[|is_chain(Y::nat=>'a);!y.contX(%x.(c::'a=>'b=>'c)(x,y))|] ==>\
-\ (%y.lub(range(%i.c(Y(i),y)))) = (lub(range(%i.%y.c(Y(i),y))))"
+"[|is_chain(Y::nat=>'a);!y.cont(%x.(c::'a=>'b=>'c) x y)|] ==>\
+\ (%y.lub(range(%i.c (Y i) y))) = (lub(range(%i.%y.c (Y i) y)))"
  (fn prems =>
 	[
 	(cut_facts_tac prems 1),
 	(rtac trans 1),
-	(rtac (contX2contlub RS contlubE RS spec RS mp) 2),
+	(rtac (cont2contlub RS contlubE RS spec RS mp) 2),
 	(atac 3),
-	(etac contX2contX_CF1L_rev 2),
+	(etac cont2cont_CF1L_rev 2),
 	(rtac ext 1), 
-	(rtac (contX2contlub RS contlubE RS spec RS mp RS sym) 1),
+	(rtac (cont2contlub RS contlubE RS spec RS mp RS sym) 1),
 	(etac spec 1),
 	(atac 1)
 	]);
@@ -539,58 +539,58 @@ qed_goal "mono2mono_app" Cont.thy
 	]);
 
 
-qed_goal "contX2contlub_app" Cont.thy 
-"[|contX(ft);!x.contX(ft(x));contX(tt)|] ==> contlub(%x.(ft(x))(tt(x)))"
+qed_goal "cont2contlub_app" Cont.thy 
+"[|cont(ft);!x.cont(ft(x));cont(tt)|] ==> contlub(%x.(ft(x))(tt(x)))"
  (fn prems =>
 	[
 	(cut_facts_tac prems 1),
 	(rtac contlubI 1),
 	(strip_tac 1),
 	(res_inst_tac [("f3","tt")] (contlubE RS spec RS mp RS ssubst) 1),
-	(etac contX2contlub 1),
+	(etac cont2contlub 1),
 	(atac 1),
 	(rtac contlub_CF2 1),
 	(REPEAT (atac 1)),
-	(etac (contX2mono RS ch2ch_monofun) 1),
+	(etac (cont2mono RS ch2ch_monofun) 1),
 	(atac 1)
 	]);
 
 
-qed_goal "contX2contX_app" Cont.thy 
-"[|contX(ft);!x.contX(ft(x));contX(tt)|] ==>\
-\	 contX(%x.(ft(x))(tt(x)))"
+qed_goal "cont2cont_app" Cont.thy 
+"[|cont(ft);!x.cont(ft(x));cont(tt)|] ==>\
+\	 cont(%x.(ft(x))(tt(x)))"
  (fn prems =>
 	[
-	(rtac monocontlub2contX 1),
+	(rtac monocontlub2cont 1),
 	(rtac mono2mono_app 1),
-	(rtac contX2mono 1),
+	(rtac cont2mono 1),
 	(resolve_tac prems 1),
 	(strip_tac 1),
-	(rtac contX2mono 1),
+	(rtac cont2mono 1),
 	(cut_facts_tac prems 1),
 	(etac spec 1),
-	(rtac contX2mono 1),
+	(rtac cont2mono 1),
 	(resolve_tac prems 1),
-	(rtac contX2contlub_app 1),
+	(rtac cont2contlub_app 1),
 	(resolve_tac prems 1),
 	(resolve_tac prems 1),
 	(resolve_tac prems 1)
 	]);
 
 
-val contX2contX_app2 = (allI RSN (2,contX2contX_app));
-(*  [| contX(?ft); !!x. contX(?ft(x)); contX(?tt) |] ==>                 *)
-(*                                      contX(%x. ?ft(x,?tt(x)))         *)
+val cont2cont_app2 = (allI RSN (2,cont2cont_app));
+(*  [| cont ?ft; !!x. cont (?ft x); cont ?tt |] ==> *)
+(*        cont (%x. ?ft x (?tt x))                    *)
 
 
 (* ------------------------------------------------------------------------ *)
 (* The identity function is continuous                                      *)
 (* ------------------------------------------------------------------------ *)
 
-qed_goal "contX_id" Cont.thy "contX(% x.x)"
+qed_goal "cont_id" Cont.thy "cont(% x.x)"
  (fn prems =>
 	[
-	(rtac contXI 1),
+	(rtac contI 1),
 	(strip_tac 1),
 	(etac thelubE 1),
 	(rtac refl 1)
@@ -602,7 +602,7 @@ qed_goal "contX_id" Cont.thy "contX(% x.x)"
 (* constant functions are continuous                                        *)
 (* ------------------------------------------------------------------------ *)
 
-qed_goalw "contX_const" Cont.thy [contX] "contX(%x.c)"
+qed_goalw "cont_const" Cont.thy [cont] "cont(%x.c)"
  (fn prems =>
 	[
 	(strip_tac 1),
@@ -617,13 +617,13 @@ qed_goalw "contX_const" Cont.thy [contX] "contX(%x.c)"
 	]);
 
 
-qed_goal "contX2contX_app3" Cont.thy 
- "[|contX(f);contX(t) |] ==> contX(%x. f(t(x)))"
+qed_goal "cont2cont_app3" Cont.thy 
+ "[|cont(f);cont(t) |] ==> cont(%x. f(t(x)))"
  (fn prems =>
 	[
 	(cut_facts_tac prems 1),
-	(rtac contX2contX_app2 1),
-	(rtac contX_const 1),
+	(rtac cont2cont_app2 1),
+	(rtac cont_const 1),
 	(atac 1),
 	(atac 1)
 	]);

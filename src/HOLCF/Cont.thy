@@ -21,21 +21,21 @@ default pcpo
 consts  
 	monofun :: "('a::po => 'b::po) => bool"	(* monotonicity    *)
 	contlub	:: "('a => 'b) => bool"		(* first cont. def *)
-	contX	:: "('a => 'b) => bool"		(* secnd cont. def *)
+	cont	:: "('a => 'b) => bool"		(* secnd cont. def *)
 
-rules 
+defs 
 
 monofun		"monofun(f) == ! x y. x << y --> f(x) << f(y)"
 
-contlub		"contlub(f) == ! Y. is_chain(Y) --> 
-				f(lub(range(Y))) = lub(range(% i.f(Y(i))))"
+contlub		"contlub(f) == ! Y. is_chain(Y) --> \
+\				f(lub(range(Y))) = lub(range(% i.f(Y(i))))"
 
-contX		"contX(f)   == ! Y. is_chain(Y) --> 
-				range(% i.f(Y(i))) <<| f(lub(range(Y)))"
+cont		"cont(f)   == ! Y. is_chain(Y) --> \
+\				range(% i.f(Y(i))) <<| f(lub(range(Y)))"
 
 (* ------------------------------------------------------------------------ *)
 (* the main purpose of cont.thy is to show:                                 *)
-(*              monofun(f) & contlub(f)  <==> contX(f)                      *)
+(*              monofun(f) & contlub(f)  <==> cont(f)                      *)
 (* ------------------------------------------------------------------------ *)
 
 end

@@ -27,14 +27,14 @@ qed_goalw "VoidI" Void.thy [UU_void_Rep_def,Void_def]
 (* less_void is a partial ordering on void                                  *)
 (* ------------------------------------------------------------------------ *)
 
-qed_goalw "refl_less_void" Void.thy [ less_void_def ] "less_void(x,x)"
+qed_goalw "refl_less_void" Void.thy [ less_void_def ] "less_void x x"
 (fn prems =>
 	[
 	(fast_tac HOL_cs 1)
 	]);
 
 qed_goalw "antisym_less_void" Void.thy [ less_void_def ] 
-	"[|less_void(x,y); less_void(y,x)|] ==> x = y"
+	"[|less_void x y; less_void y x|] ==> x = y"
 (fn prems =>
 	[
 	(cut_facts_tac prems 1),
@@ -44,7 +44,7 @@ qed_goalw "antisym_less_void" Void.thy [ less_void_def ]
 	]);
 
 qed_goalw "trans_less_void" Void.thy [ less_void_def ] 
-	"[|less_void(x,y); less_void(y,z)|] ==> less_void(x,z)"
+	"[|less_void x y; less_void y z|] ==> less_void x z"
 (fn prems =>
 	[
 	(cut_facts_tac prems 1),

@@ -23,12 +23,19 @@ consts
   UU_void	:: "void"
   less_void	:: "[void,void] => bool"	
 
-rules
+defs
 
   (* The unique element in Void is False:bool *)
 
   UU_void_Rep_def	"UU_void_Rep == False"
   Void_def		"Void == {x. x = UU_void_Rep}"
+
+   (*defining the abstract constants*)
+
+  UU_void_def	"UU_void == Abs_Void(UU_void_Rep)"  
+  less_void_def "less_void x y == (Rep_Void x = Rep_Void y)"  
+
+rules
 
   (*faking a type definition... *)
   (* void is isomorphic to Void *)
@@ -37,10 +44,6 @@ rules
   Rep_Void_inverse	"Abs_Void(Rep_Void(x)) = x"	
   Abs_Void_inverse	"y:Void ==> Rep_Void(Abs_Void(y)) = y"
 
-   (*defining the abstract constants*)
-
-  UU_void_def	"UU_void == Abs_Void(UU_void_Rep)"  
-  less_void_def "less_void(x,y) == (Rep_Void(x) = Rep_Void(y))"  
 end
 
 

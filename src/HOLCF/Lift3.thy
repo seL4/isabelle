@@ -18,10 +18,11 @@ consts
 
 rules 
 
-inst_lift_pcpo	"(UU::('a)u) = UU_lift"
+	inst_lift_pcpo	"(UU::('a)u) = UU_lift"
 
-up_def		"up     == (LAM x.Iup(x))"
-lift_def	"lift   == (LAM f p.Ilift(f)(p))"
+defs
+	up_def		"up     == (LAM x.Iup(x))"
+	lift_def	"lift   == (LAM f p.Ilift(f)(p))"
 
 end
 

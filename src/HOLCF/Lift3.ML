@@ -19,7 +19,7 @@ qed_goal "less_lift3b" Lift3.thy "~ Iup(x) << UU"
 	(rtac less_lift2b 1)
 	]);
 
-qed_goal "defined_Iup2" Lift3.thy "~ Iup(x) = UU"
+qed_goal "defined_Iup2" Lift3.thy "Iup(x) ~= UU"
  (fn prems =>
 	[
 	(rtac (inst_lift_pcpo RS ssubst) 1),
@@ -47,10 +47,10 @@ qed_goal "contlub_Iup" Lift3.thy "contlub(Iup)"
 	(asm_simp_tac Lift_ss 1)
 	]);
 
-qed_goal "contX_Iup" Lift3.thy "contX(Iup)"
+qed_goal "cont_Iup" Lift3.thy "cont(Iup)"
  (fn prems =>
 	[
-	(rtac monocontlub2contX 1),
+	(rtac monocontlub2cont 1),
 	(rtac monofun_Iup 1),
 	(rtac contlub_Iup 1)
 	]);
@@ -124,18 +124,18 @@ qed_goal "contlub_Ilift2" Lift3.thy "contlub(Ilift(f))"
 	(atac 1)
 	]);
 
-qed_goal "contX_Ilift1" Lift3.thy "contX(Ilift)"
+qed_goal "cont_Ilift1" Lift3.thy "cont(Ilift)"
  (fn prems =>
 	[
-	(rtac monocontlub2contX 1),
+	(rtac monocontlub2cont 1),
 	(rtac monofun_Ilift1 1),
 	(rtac contlub_Ilift1 1)
 	]);
 
-qed_goal "contX_Ilift2" Lift3.thy "contX(Ilift(f))"
+qed_goal "cont_Ilift2" Lift3.thy "cont(Ilift(f))"
  (fn prems =>
 	[
-	(rtac monocontlub2contX 1),
+	(rtac monocontlub2cont 1),
 	(rtac monofun_Ilift2 1),
 	(rtac contlub_Ilift2 1)
 	]);
@@ -145,100 +145,100 @@ qed_goal "contX_Ilift2" Lift3.thy "contX(Ilift(f))"
 (* continuous versions of lemmas for ('a)u                                  *)
 (* ------------------------------------------------------------------------ *)
 
-qed_goalw "Exh_Lift1" Lift3.thy [up_def] "z = UU | (? x. z = up[x])"
+qed_goalw "Exh_Lift1" Lift3.thy [up_def] "z = UU | (? x. z = up`x)"
  (fn prems =>
 	[
-	(simp_tac (Lift_ss addsimps [contX_Iup]) 1),
+	(simp_tac (Lift_ss addsimps [cont_Iup]) 1),
 	(rtac (inst_lift_pcpo RS ssubst) 1),
 	(rtac Exh_Lift 1)
 	]);
 
-qed_goalw "inject_up" Lift3.thy [up_def] "up[x]=up[y] ==> x=y"
+qed_goalw "inject_up" Lift3.thy [up_def] "up`x=up`y ==> x=y"
  (fn prems =>
 	[
 	(cut_facts_tac prems 1),
 	(rtac inject_Iup 1),
 	(etac box_equals 1),
-	(simp_tac (Lift_ss addsimps [contX_Iup]) 1),
-	(simp_tac (Lift_ss addsimps [contX_Iup]) 1)
+	(simp_tac (Lift_ss addsimps [cont_Iup]) 1),
+	(simp_tac (Lift_ss addsimps [cont_Iup]) 1)
 	]);
 
-qed_goalw "defined_up" Lift3.thy [up_def] "~ up[x]=UU"
+qed_goalw "defined_up" Lift3.thy [up_def] " up`x ~= UU"
  (fn prems =>
 	[
-	(simp_tac (Lift_ss addsimps [contX_Iup]) 1),
+	(simp_tac (Lift_ss addsimps [cont_Iup]) 1),
 	(rtac defined_Iup2 1)
 	]);
 
 qed_goalw "liftE1" Lift3.thy [up_def] 
-	"[| p=UU ==> Q; !!x. p=up[x]==>Q|] ==>Q"
+	"[| p=UU ==> Q; !!x. p=up`x==>Q|] ==>Q"
  (fn prems =>
 	[
 	(rtac liftE 1),
 	(resolve_tac prems 1),
 	(etac (inst_lift_pcpo RS ssubst) 1),
 	(resolve_tac (tl prems) 1),
-	(asm_simp_tac (Lift_ss addsimps [contX_Iup]) 1)
+	(asm_simp_tac (Lift_ss addsimps [cont_Iup]) 1)
 	]);
 
 
-qed_goalw "lift1" Lift3.thy [up_def,lift_def] "lift[f][UU]=UU"
+qed_goalw "lift1" Lift3.thy [up_def,lift_def] "lift`f`UU=UU"
  (fn prems =>
 	[
 	(rtac (inst_lift_pcpo RS ssubst) 1),
 	(rtac (beta_cfun RS ssubst) 1),
-	(REPEAT (resolve_tac (contX_lemmas @ [contX_Iup,contX_Ilift1,
-		contX_Ilift2,contX2contX_CF1L]) 1)),
+	(REPEAT (resolve_tac (cont_lemmas @ [cont_Iup,cont_Ilift1,
+		cont_Ilift2,cont2cont_CF1L]) 1)),
 	(rtac (beta_cfun RS ssubst) 1),
-	(REPEAT (resolve_tac (contX_lemmas @ [contX_Iup,contX_Ilift1,
-		contX_Ilift2,contX2contX_CF1L]) 1)),
-	(simp_tac (Lift_ss addsimps [contX_Iup,contX_Ilift1,contX_Ilift2]) 1)
+	(REPEAT (resolve_tac (cont_lemmas @ [cont_Iup,cont_Ilift1,
+		cont_Ilift2,cont2cont_CF1L]) 1)),
+	(simp_tac (Lift_ss addsimps [cont_Iup,cont_Ilift1,cont_Ilift2]) 1)
 	]);
 
-qed_goalw "lift2" Lift3.thy [up_def,lift_def] "lift[f][up[x]]=f[x]"
+qed_goalw "lift2" Lift3.thy [up_def,lift_def] "lift`f`(up`x)=f`x"
  (fn prems =>
 	[
 	(rtac (beta_cfun RS ssubst) 1),
-	(rtac contX_Iup 1),
+	(rtac cont_Iup 1),
 	(rtac (beta_cfun RS ssubst) 1),
-	(REPEAT (resolve_tac (contX_lemmas @ [contX_Iup,contX_Ilift1,
-		contX_Ilift2,contX2contX_CF1L]) 1)),
+	(REPEAT (resolve_tac (cont_lemmas @ [cont_Iup,cont_Ilift1,
+		cont_Ilift2,cont2cont_CF1L]) 1)),
 	(rtac (beta_cfun RS ssubst) 1),
-	(rtac contX_Ilift2 1),
-	(simp_tac (Lift_ss addsimps [contX_Iup,contX_Ilift1,contX_Ilift2]) 1)
+	(rtac cont_Ilift2 1),
+	(simp_tac (Lift_ss addsimps [cont_Iup,cont_Ilift1,cont_Ilift2]) 1)
 	]);
 
-qed_goalw "less_lift4b" Lift3.thy [up_def,lift_def] "~ up[x] << UU"
+qed_goalw "less_lift4b" Lift3.thy [up_def,lift_def] "~ up`x << UU"
  (fn prems =>
 	[
-	(simp_tac (Lift_ss addsimps [contX_Iup]) 1),
+	(simp_tac (Lift_ss addsimps [cont_Iup]) 1),
 	(rtac less_lift3b 1)
 	]);
 
 qed_goalw "less_lift4c" Lift3.thy [up_def,lift_def]
-	 "(up[x]<<up[y]) = (x<<y)"
+	 "(up`x << up`y) = (x<<y)"
  (fn prems =>
 	[
-	(simp_tac (Lift_ss addsimps [contX_Iup]) 1),
+	(simp_tac (Lift_ss addsimps [cont_Iup]) 1),
 	(rtac less_lift2c 1)
 	]);
 
 qed_goalw "thelub_lift2a" Lift3.thy [up_def,lift_def] 
-"[| is_chain(Y); ? i x. Y(i) = up[x] |] ==>\
-\      lub(range(Y)) = up[lub(range(%i. lift[LAM x. x][Y(i)]))]"
+"[| is_chain(Y); ? i x. Y(i) = up`x |] ==>\
+\      lub(range(Y)) = up`(lub(range(%i. lift`(LAM x. x)`(Y i))))"
  (fn prems =>
 	[
 	(cut_facts_tac prems 1),
 	(rtac (beta_cfun RS ssubst) 1),
-	(REPEAT (resolve_tac (contX_lemmas @ [contX_Iup,contX_Ilift1,
-		contX_Ilift2,contX2contX_CF1L]) 1)),
+	(REPEAT (resolve_tac (cont_lemmas @ [cont_Iup,cont_Ilift1,
+		cont_Ilift2,cont2cont_CF1L]) 1)),
 	(rtac (beta_cfun RS ssubst) 1),
-	(REPEAT (resolve_tac (contX_lemmas @ [contX_Iup,contX_Ilift1,
-		contX_Ilift2,contX2contX_CF1L]) 1)),
+	(REPEAT (resolve_tac (cont_lemmas @ [cont_Iup,cont_Ilift1,
+		cont_Ilift2,cont2cont_CF1L]) 1)),
 
 	(rtac (beta_cfun RS ext RS ssubst) 1),
-	(REPEAT (resolve_tac (contX_lemmas @ [contX_Iup,contX_Ilift1,
-		contX_Ilift2,contX2contX_CF1L]) 1)),
+	(REPEAT (resolve_tac (cont_lemmas @ [cont_Iup,cont_Ilift1,
+		cont_Ilift2,cont2cont_CF1L]) 1)),
 	(rtac thelub_lift1a 1),
 	(atac 1),
 	(etac exE 1),
@@ -247,13 +247,13 @@ qed_goalw "thelub_lift2a" Lift3.thy [up_def,lift_def]
 	(rtac exI 1),
 	(etac box_equals 1),
 	(rtac refl 1),
-	(simp_tac (Lift_ss addsimps [contX_Iup]) 1)
+	(simp_tac (Lift_ss addsimps [cont_Iup]) 1)
 	]);
 
 
 
 qed_goalw "thelub_lift2b" Lift3.thy [up_def,lift_def] 
-"[| is_chain(Y); ! i x. ~ Y(i) = up[x] |] ==> lub(range(Y)) = UU"
+"[| is_chain(Y); ! i x. Y(i) ~= up`x |] ==> lub(range(Y)) = UU"
  (fn prems =>
 	[
 	(cut_facts_tac prems 1),
@@ -268,11 +268,11 @@ qed_goalw "thelub_lift2b" Lift3.thy [up_def,lift_def]
 	(dtac notnotD 1),
 	(etac box_equals 1),
 	(rtac refl 1),
-	(simp_tac (Lift_ss addsimps [contX_Iup]) 1)
+	(simp_tac (Lift_ss addsimps [cont_Iup]) 1)
 	]);
 
 
-qed_goal "lift_lemma2" Lift3.thy  " (? x.z = up[x]) = (~z=UU)"
+qed_goal "lift_lemma2" Lift3.thy  " (? x.z = up`x) = (z~=UU)"
  (fn prems =>
 	[
 	(rtac iffI 1),
@@ -287,7 +287,7 @@ qed_goal "lift_lemma2" Lift3.thy  " (? x.z = up[x]) = (~z=UU)"
 
 
 qed_goal "thelub_lift2a_rev" Lift3.thy  
-"[| is_chain(Y); lub(range(Y)) = up[x] |] ==> ? i x. Y(i) = up[x]"
+"[| is_chain(Y); lub(range(Y)) = up`x |] ==> ? i x. Y(i) = up`x"
  (fn prems =>
 	[
 	(cut_facts_tac prems 1),
@@ -301,7 +301,7 @@ qed_goal "thelub_lift2a_rev" Lift3.thy
 	]);
 
 qed_goal "thelub_lift2b_rev" Lift3.thy  
-"[| is_chain(Y); lub(range(Y)) = UU |] ==> ! i x. ~ Y(i) = up[x]"
+"[| is_chain(Y); lub(range(Y)) = UU |] ==> ! i x.  Y(i) ~= up`x"
  (fn prems =>
 	[
 	(cut_facts_tac prems 1),
@@ -318,7 +318,7 @@ qed_goal "thelub_lift2b_rev" Lift3.thy
 
 qed_goal "thelub_lift3" Lift3.thy  
 "is_chain(Y) ==> lub(range(Y)) = UU |\
-\                lub(range(Y)) = up[lub(range(%i. lift[LAM x. x][Y(i)]))]"
+\                lub(range(Y)) = up`(lub(range(%i. lift`(LAM x.x)`(Y i))))"
  (fn prems =>
 	[
 	(cut_facts_tac prems 1),
@@ -334,7 +334,7 @@ qed_goal "thelub_lift3" Lift3.thy
 	(fast_tac HOL_cs 1)
 	]);
 
-qed_goal "lift3" Lift3.thy "lift[up][x]=x"
+qed_goal "lift3" Lift3.thy "lift`up`x=x"
  (fn prems =>
 	[
 	(res_inst_tac [("p","x")] liftE1 1),

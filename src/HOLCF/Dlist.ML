@@ -22,7 +22,7 @@ val dlist_rews = [dlist_iso_strict RS conjunct1,
 (* Properties of dlist_copy                                                *)
 (* ------------------------------------------------------------------------*)
 
-val temp = prove_goalw Dlist.thy  [dlist_copy_def] "dlist_copy[f][UU]=UU"
+val temp = prove_goalw Dlist.thy  [dlist_copy_def] "dlist_copy`f`UU=UU"
  (fn prems =>
 	[
 	(asm_simp_tac (HOLCF_ss addsimps 
@@ -33,7 +33,7 @@ val dlist_copy = [temp];
 
 
 val temp = prove_goalw Dlist.thy  [dlist_copy_def,dnil_def] 
-    "dlist_copy[f][dnil]=dnil"
+    "dlist_copy`f`dnil=dnil"
  (fn prems =>
 	[
 	(asm_simp_tac (HOLCF_ss addsimps 
@@ -44,7 +44,7 @@ val dlist_copy = temp :: dlist_copy;
 
 
 val temp = prove_goalw Dlist.thy  [dlist_copy_def,dcons_def] 
-	"xl~=UU ==> dlist_copy[f][dcons[x][xl]]= dcons[x][f[xl]]"
+	"xl~=UU ==> dlist_copy`f`(dcons`x`xl)= dcons`x`(f`xl)"
  (fn prems =>
 	[
 	(cut_facts_tac prems 1),
@@ -64,12 +64,12 @@ val dlist_rews =  dlist_copy @ dlist_rews;
 (* ------------------------------------------------------------------------*)
 
 qed_goalw "Exh_dlist" Dlist.thy [dcons_def,dnil_def]
-	"l = UU | l = dnil | (? x xl. x~=UU &xl~=UU & l = dcons[x][xl])"
+	"l = UU | l = dnil | (? x xl. x~=UU &xl~=UU & l = dcons`x`xl)"
  (fn prems =>
 	[
 	(simp_tac HOLCF_ss  1),
 	(rtac (dlist_rep_iso RS subst) 1),
-	(res_inst_tac [("p","dlist_rep[l]")] ssumE 1),
+	(res_inst_tac [("p","dlist_rep`l")] ssumE 1),
 	(rtac disjI1 1),
 	(asm_simp_tac (HOLCF_ss addsimps dlist_rews) 1),
 	(rtac disjI2 1),
@@ -89,7 +89,7 @@ qed_goalw "Exh_dlist" Dlist.thy [dcons_def,dnil_def]
 
 
 qed_goal "dlistE" Dlist.thy 
-"[| l=UU ==> Q; l=dnil ==> Q;!!x xl.[|l=dcons[x][xl];x~=UU;xl~=UU|]==>Q|]==>Q"
+"[| l=UU ==> Q; l=dnil ==> Q;!!x xl.[|l=dcons`x`xl;x~=UU;xl~=UU|]==>Q|]==>Q"
  (fn prems =>
 	[
 	(rtac (Exh_dlist RS disjE) 1),
@@ -108,7 +108,7 @@ qed_goal "dlistE" Dlist.thy
 (* Properties of dlist_when                                                *)
 (* ------------------------------------------------------------------------*)
 
-val temp = prove_goalw  Dlist.thy  [dlist_when_def] "dlist_when[f1][f2][UU]=UU"
+val temp = prove_goalw  Dlist.thy  [dlist_when_def] "dlist_when`f1`f2`UU=UU"
  (fn prems =>
 	[
 	(asm_simp_tac (HOLCF_ss addsimps [dlist_iso_strict]) 1)
@@ -117,7 +117,7 @@ val temp = prove_goalw  Dlist.thy  [dlist_when_def] "dlist_when[f1][f2][UU]=UU"
 val dlist_when = [temp];
 
 val temp = prove_goalw  Dlist.thy [dlist_when_def,dnil_def]
- "dlist_when[f1][f2][dnil]= f1"
+ "dlist_when`f1`f2`dnil= f1"
  (fn prems =>
 	[
 	(asm_simp_tac (HOLCF_ss addsimps [dlist_abs_iso]) 1)
@@ -126,7 +126,7 @@ val temp = prove_goalw  Dlist.thy [dlist_when_def,dnil_def]
 val dlist_when = temp::dlist_when;
 
 val temp = prove_goalw  Dlist.thy [dlist_when_def,dcons_def]
- "[|x~=UU;xl~=UU|] ==> dlist_when[f1][f2][dcons[x][xl]]= f2[x][xl]"
+ "[|x~=UU;xl~=UU|] ==> dlist_when`f1`f2`(dcons`x`xl)= f2`x`xl"
  (fn prems =>
 	[
 	(cut_facts_tac prems 1),
@@ -148,10 +148,10 @@ fun prover defs thm = prove_goalw Dlist.thy defs thm
 	]);
 
 val dlist_discsel = [
-	prover [is_dnil_def] "is_dnil[UU]=UU",
-	prover [is_dcons_def] "is_dcons[UU]=UU",
-	prover [dhd_def] "dhd[UU]=UU",
-	prover [dtl_def] "dtl[UU]=UU"
+	prover [is_dnil_def] "is_dnil`UU=UU",
+	prover [is_dcons_def] "is_dcons`UU=UU",
+	prover [dhd_def] "dhd`UU=UU",
+	prover [dtl_def] "dtl`UU=UU"
 	];
 
 fun prover defs thm = prove_goalw Dlist.thy defs thm
@@ -163,21 +163,21 @@ fun prover defs thm = prove_goalw Dlist.thy defs thm
 
 val dlist_discsel = [
 prover [is_dnil_def,is_dcons_def,dhd_def,dtl_def]
-  "is_dnil[dnil]=TT",
+  "is_dnil`dnil=TT",
 prover [is_dnil_def,is_dcons_def,dhd_def,dtl_def]
-  "[|x~=UU;xl~=UU|] ==> is_dnil[dcons[x][xl]]=FF",
+  "[|x~=UU;xl~=UU|] ==> is_dnil`(dcons`x`xl)=FF",
 prover [is_dnil_def,is_dcons_def,dhd_def,dtl_def]
-  "is_dcons[dnil]=FF",
+  "is_dcons`dnil=FF",
 prover [is_dnil_def,is_dcons_def,dhd_def,dtl_def]
-  "[|x~=UU;xl~=UU|] ==> is_dcons[dcons[x][xl]]=TT",
+  "[|x~=UU;xl~=UU|] ==> is_dcons`(dcons`x`xl)=TT",
 prover [is_dnil_def,is_dcons_def,dhd_def,dtl_def]
-  "dhd[dnil]=UU",
+  "dhd`dnil=UU",
 prover [is_dnil_def,is_dcons_def,dhd_def,dtl_def]
-  "[|x~=UU;xl~=UU|] ==> dhd[dcons[x][xl]]=x",
+  "[|x~=UU;xl~=UU|] ==> dhd`(dcons`x`xl)=x",
 prover [is_dnil_def,is_dcons_def,dhd_def,dtl_def]
-  "dtl[dnil]=UU",
+  "dtl`dnil=UU",
 prover [is_dnil_def,is_dcons_def,dhd_def,dtl_def]
-  "[|x~=UU;xl~=UU|] ==> dtl[dcons[x][xl]]=xl"] @ dlist_discsel;
+  "[|x~=UU;xl~=UU|] ==> dtl`(dcons`x`xl)=xl"] @ dlist_discsel;
 
 val dlist_rews = dlist_discsel @ dlist_rews;
 
@@ -197,8 +197,9 @@ fun prover contr thm = prove_goal Dlist.thy thm
 
 
 val dlist_constrdef = [
-prover "is_dnil[UU::'a dlist] ~= UU" "dnil~=(UU::'a dlist)",
-prover "is_dcons[UU::'a dlist] ~= UU" "[|x~=UU;xl~=UU|]==>dcons[x::'a][xl]~=UU"
+prover "is_dnil`(UU::'a dlist) ~= UU" "dnil~=(UU::'a dlist)",
+prover "is_dcons`(UU::'a dlist) ~= UU" 
+	"[|x~=UU;xl~=UU|]==>dcons`(x::'a)`xl ~= UU"
  ];
 
 
@@ -209,8 +210,8 @@ fun prover defs thm = prove_goalw Dlist.thy defs thm
 	]);
 
 val dlist_constrdef = [
-	prover [dcons_def] "dcons[UU][xl]=UU",
-	prover [dcons_def] "dcons[x][UU]=UU"
+	prover [dcons_def] "dcons`UU`xl=UU",
+	prover [dcons_def] "dcons`x`UU=UU"
 	] @ dlist_constrdef;
 
 val dlist_rews = dlist_constrdef @ dlist_rews;
@@ -220,7 +221,7 @@ val dlist_rews = dlist_constrdef @ dlist_rews;
 (* Distinctness wrt. << and =                                              *)
 (* ------------------------------------------------------------------------*)
 
-val temp = prove_goal Dlist.thy  "~dnil << dcons[x::'a][xl]"
+val temp = prove_goal Dlist.thy  "~dnil << dcons`(x::'a)`xl"
  (fn prems =>
 	[
 	(res_inst_tac [("P1","TT << FF")] classical3 1),
@@ -237,7 +238,7 @@ val temp = prove_goal Dlist.thy  "~dnil << dcons[x::'a][xl]"
 
 val dlist_dist_less = [temp];
 
-val temp = prove_goal Dlist.thy  "[|x~=UU;xl~=UU|]==>~dcons[x][xl] << dnil"
+val temp = prove_goal Dlist.thy  "[|x~=UU;xl~=UU|]==>~ dcons`x`xl << dnil"
  (fn prems =>
 	[
 	(cut_facts_tac prems 1),
@@ -251,7 +252,7 @@ val temp = prove_goal Dlist.thy  "[|x~=UU;xl~=UU|]==>~dcons[x][xl] << dnil"
 
 val dlist_dist_less = temp::dlist_dist_less;
 
-val temp = prove_goal Dlist.thy  "dnil ~= dcons[x][xl]"
+val temp = prove_goal Dlist.thy  "dnil ~= dcons`x`xl"
  (fn prems =>
 	[
 	(res_inst_tac [("Q","x=UU")] classical2 1),
@@ -275,16 +276,16 @@ val dlist_rews = dlist_dist_less @ dlist_dist_eq @ dlist_rews;
 (* ------------------------------------------------------------------------*)
 
 val temp = prove_goal Dlist.thy "[|x1~=UU; y1~=UU;x2~=UU; y2~=UU;\
-\ dcons[x1][x2] << dcons[y1][y2]|] ==> x1<< y1 & x2 << y2"
+\ dcons`x1`x2 << dcons`y1`y2 |] ==> x1<< y1 & x2 << y2"
  (fn prems =>
 	[
 	(cut_facts_tac prems 1),
 	(rtac conjI 1),
-	(dres_inst_tac [("fo5","dlist_when[UU][LAM x l.x]")] monofun_cfun_arg 1),
+	(dres_inst_tac [("fo5","dlist_when`UU`(LAM x l.x)")] monofun_cfun_arg 1),
 	(etac box_less 1),
 	(asm_simp_tac (HOLCF_ss addsimps dlist_when) 1),
 	(asm_simp_tac (HOLCF_ss addsimps dlist_when) 1),
-	(dres_inst_tac [("fo5","dlist_when[UU][LAM x l.l]")] monofun_cfun_arg 1),
+	(dres_inst_tac [("fo5","dlist_when`UU`(LAM x l.l)")] monofun_cfun_arg 1),
 	(etac box_less 1),
 	(asm_simp_tac (HOLCF_ss addsimps dlist_when) 1),
 	(asm_simp_tac (HOLCF_ss addsimps dlist_when) 1)
@@ -297,16 +298,16 @@ val dlist_invert =[temp];
 (* ------------------------------------------------------------------------*)
 
 val temp = prove_goal Dlist.thy "[|x1~=UU; y1~=UU;x2~=UU; y2~=UU;\
-\ dcons[x1][x2] = dcons[y1][y2]|] ==> x1= y1 & x2 = y2"
+\ dcons`x1`x2 = dcons`y1`y2 |] ==> x1= y1 & x2 = y2"
  (fn prems =>
 	[
 	(cut_facts_tac prems 1),
 	(rtac conjI 1),
-	(dres_inst_tac [("f","dlist_when[UU][LAM x l.x]")] cfun_arg_cong 1),
+	(dres_inst_tac [("f","dlist_when`UU`(LAM x l.x)")] cfun_arg_cong 1),
 	(etac box_equals 1),
 	(asm_simp_tac (HOLCF_ss addsimps dlist_when) 1),
 	(asm_simp_tac (HOLCF_ss addsimps dlist_when) 1),
-	(dres_inst_tac [("f","dlist_when[UU][LAM x l.l]")] cfun_arg_cong 1),
+	(dres_inst_tac [("f","dlist_when`UU`(LAM x l.l)")] cfun_arg_cong 1),
 	(etac box_equals 1),
 	(asm_simp_tac (HOLCF_ss addsimps dlist_when) 1),
 	(asm_simp_tac (HOLCF_ss addsimps dlist_when) 1)
@@ -330,8 +331,8 @@ fun prover thm = prove_goal Dlist.thy thm
 
 val dlist_discsel_def = 
 	[
-	prover "l~=UU ==> is_dnil[l]~=UU", 
-	prover "l~=UU ==> is_dcons[l]~=UU" 
+	prover "l~=UU ==> is_dnil`l~=UU", 
+	prover "l~=UU ==> is_dcons`l~=UU" 
 	];
 
 val dlist_rews = dlist_discsel_def @ dlist_rews;
@@ -340,7 +341,7 @@ val dlist_rews = dlist_discsel_def @ dlist_rews;
 (* enhance the simplifier                                                  *)
 (* ------------------------------------------------------------------------*)
 
-qed_goal "dhd2" Dlist.thy "xl~=UU ==> dhd[dcons[x][xl]]=x"
+qed_goal "dhd2" Dlist.thy "xl~=UU ==> dhd`(dcons`x`xl)=x"
  (fn prems =>
 	[
 	(cut_facts_tac prems 1),
@@ -349,7 +350,7 @@ qed_goal "dhd2" Dlist.thy "xl~=UU ==> dhd[dcons[x][xl]]=x"
 	(asm_simp_tac (HOLCF_ss addsimps dlist_rews) 1)
 	]);
 
-qed_goal "dtl2" Dlist.thy "x~=UU ==> dtl[dcons[x][xl]]=xl"
+qed_goal "dtl2" Dlist.thy "x~=UU ==> dtl`(dcons`x`xl)=xl"
  (fn prems =>
 	[
 	(cut_facts_tac prems 1),
@@ -364,7 +365,7 @@ val dlist_rews = dhd2 :: dtl2 :: dlist_rews;
 (* Properties dlist_take                                                   *)
 (* ------------------------------------------------------------------------*)
 
-val temp = prove_goalw Dlist.thy [dlist_take_def] "dlist_take(n)[UU]=UU"
+val temp = prove_goalw Dlist.thy [dlist_take_def] "dlist_take n`UU=UU"
  (fn prems =>
 	[
 	(res_inst_tac [("n","n")] natE 1),
@@ -375,7 +376,7 @@ val temp = prove_goalw Dlist.thy [dlist_take_def] "dlist_take(n)[UU]=UU"
 
 val dlist_take = [temp];
 
-val temp = prove_goalw Dlist.thy [dlist_take_def] "dlist_take(0)[xs]=UU"
+val temp = prove_goalw Dlist.thy [dlist_take_def] "dlist_take 0`xs=UU"
  (fn prems =>
 	[
 	(asm_simp_tac iterate_ss 1)
@@ -384,7 +385,7 @@ val temp = prove_goalw Dlist.thy [dlist_take_def] "dlist_take(0)[xs]=UU"
 val dlist_take = temp::dlist_take;
 
 val temp = prove_goalw Dlist.thy [dlist_take_def]
-	"dlist_take(Suc(n))[dnil]=dnil"
+	"dlist_take (Suc n)`dnil=dnil"
  (fn prems =>
 	[
 	(asm_simp_tac iterate_ss 1),
@@ -394,7 +395,7 @@ val temp = prove_goalw Dlist.thy [dlist_take_def]
 val dlist_take = temp::dlist_take;
 
 val temp = prove_goalw Dlist.thy [dlist_take_def]
-  "dlist_take(Suc(n))[dcons[x][xl]]=dcons[x][dlist_take(n)[xl]]"
+  "dlist_take (Suc n)`(dcons`x`xl)= dcons`x`(dlist_take n`xl)"
  (fn prems =>
 	[
 	(res_inst_tac [("Q","x=UU")] classical2 1),
@@ -439,7 +440,7 @@ fun prover reach defs thm  = prove_goalw Dlist.thy defs thm
 	]);
 
 val dlist_take_lemma = prover dlist_reach  [dlist_take_def]
-	"(!!n.dlist_take(n)[l1]=dlist_take(n)[l2]) ==> l1=l2";
+	"(!!n.dlist_take n`l1 = dlist_take n`l2) ==> l1=l2";
 
 
 (* ------------------------------------------------------------------------*)
@@ -447,7 +448,7 @@ val dlist_take_lemma = prover dlist_reach  [dlist_take_def]
 (* ------------------------------------------------------------------------*)
 
 qed_goalw "dlist_coind_lemma" Dlist.thy [dlist_bisim_def] 
-"dlist_bisim(R) ==> ! p q.R(p,q) --> dlist_take(n)[p]=dlist_take(n)[q]"
+"dlist_bisim R ==> ! p q. R p q --> dlist_take n`p = dlist_take n`q"
  (fn prems =>
 	[
 	(cut_facts_tac prems 1),
@@ -468,7 +469,7 @@ qed_goalw "dlist_coind_lemma" Dlist.thy [dlist_bisim_def]
 	(fast_tac HOL_cs 1)
 	]);
 
-qed_goal "dlist_coind" Dlist.thy "[|dlist_bisim(R);R(p,q)|] ==> p = q"
+qed_goal "dlist_coind" Dlist.thy "[|dlist_bisim R ; R p q |] ==> p = q"
  (fn prems =>
 	[
 	(rtac dlist_take_lemma 1),
@@ -483,8 +484,8 @@ qed_goal "dlist_coind" Dlist.thy "[|dlist_bisim(R);R(p,q)|] ==> p = q"
 
 qed_goal "dlist_finite_ind" Dlist.thy
 "[|P(UU);P(dnil);\
-\  !! x l1.[|x~=UU;l1~=UU;P(l1)|] ==> P(dcons[x][l1])\
-\  |] ==> !l.P(dlist_take(n)[l])"
+\  !! x l1.[|x~=UU;l1~=UU;P(l1)|] ==> P(dcons`x`l1)\
+\  |] ==> !l.P(dlist_take n`l)"
  (fn prems =>
 	[
 	(nat_ind_tac "n" 1),
@@ -497,7 +498,7 @@ qed_goal "dlist_finite_ind" Dlist.thy
 	(asm_simp_tac (HOLCF_ss addsimps dlist_rews) 1),
 	(resolve_tac prems 1),
 	(asm_simp_tac (HOLCF_ss addsimps dlist_rews) 1),
-	(res_inst_tac [("Q","dlist_take(n1)[xl]=UU")] classical2 1),
+	(res_inst_tac [("Q","dlist_take n1`xl=UU")] classical2 1),
 	(asm_simp_tac (HOLCF_ss addsimps dlist_rews) 1),
 	(resolve_tac prems 1),
 	(resolve_tac prems 1),
@@ -507,7 +508,7 @@ qed_goal "dlist_finite_ind" Dlist.thy
 	]);
 
 qed_goal "dlist_all_finite_lemma1" Dlist.thy
-"!l.dlist_take(n)[l]=UU |dlist_take(n)[l]=l"
+"!l.dlist_take n`l=UU |dlist_take n`l=l"
  (fn prems =>
 	[
 	(nat_ind_tac "n" 1),
@@ -523,18 +524,18 @@ qed_goal "dlist_all_finite_lemma1" Dlist.thy
 	(asm_simp_tac (HOLCF_ss addsimps dlist_rews) 1)
 	]);
 
-qed_goal "dlist_all_finite_lemma2" Dlist.thy "? n.dlist_take(n)[l]=l"
+qed_goal "dlist_all_finite_lemma2" Dlist.thy "? n.dlist_take n`l=l"
  (fn prems =>
 	[
 	(res_inst_tac [("Q","l=UU")] classical2 1),
 	(asm_simp_tac (HOLCF_ss addsimps dlist_rews) 1),
-	(subgoal_tac "(!n.dlist_take(n)[l]=UU) |(? n.dlist_take(n)[l]=l)" 1),
+	(subgoal_tac "(!n.dlist_take n`l=UU) |(? n.dlist_take n`l = l)" 1),
 	(etac disjE 1),
 	(eres_inst_tac [("P","l=UU")] notE 1),
 	(rtac dlist_take_lemma 1),
 	(asm_simp_tac (HOLCF_ss addsimps dlist_rews) 1),
 	(atac 1),
-	(subgoal_tac "!n.!l.dlist_take(n)[l]=UU |dlist_take(n)[l]=l" 1),
+	(subgoal_tac "!n.!l.dlist_take n`l=UU |dlist_take n`l=l" 1),
 	(fast_tac HOL_cs 1),
 	(rtac allI 1),
 	(rtac dlist_all_finite_lemma1 1)
@@ -548,7 +549,7 @@ qed_goalw "dlist_all_finite" Dlist.thy [dlist_finite_def] "dlist_finite(l)"
 
 qed_goal "dlist_ind" Dlist.thy
 "[|P(UU);P(dnil);\
-\  !! x l1.[|x~=UU;l1~=UU;P(l1)|] ==> P(dcons[x][l1])|] ==> P(l)"
+\  !! x l1.[|x~=UU;l1~=UU;P(l1)|] ==> P(dcons`x`l1)|] ==> P(l)"
  (fn prems =>
 	[
 	(rtac (dlist_all_finite_lemma2 RS exE) 1),

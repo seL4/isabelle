@@ -14,36 +14,36 @@ open ccc1;
 (* ------------------------------------------------------------------------ *)
 
 
-qed_goalw "ID1" ccc1.thy [ID_def] "ID[x]=x"
+qed_goalw "ID1" ccc1.thy [ID_def] "ID`x=x"
  (fn prems =>
 	[
 	(rtac (beta_cfun RS ssubst) 1),
-	(rtac contX_id 1),
+	(rtac cont_id 1),
 	(rtac refl 1)
 	]);
 
-qed_goalw "cfcomp1" ccc1.thy [oo_def] "(f oo g)=(LAM x.f[g[x]])"
+qed_goalw "cfcomp1" ccc1.thy [oo_def] "(f oo g)=(LAM x.f`(g`x))"
  (fn prems =>
 	[
 	(rtac (beta_cfun RS ssubst) 1),
-	(contX_tacR 1),
+	(cont_tacR 1),
 	(rtac (beta_cfun RS ssubst) 1),
-	(contX_tacR 1),
+	(cont_tacR 1),
 	(rtac refl 1)
 	]);
 
-qed_goal "cfcomp2" ccc1.thy  "(f oo g)[x]=f[g[x]]"
+qed_goal "cfcomp2" ccc1.thy  "(f oo g)`x=f`(g`x)"
  (fn prems =>
 	[
 	(rtac (cfcomp1 RS ssubst) 1),
 	(rtac (beta_cfun RS ssubst) 1),
-	(contX_tacR 1),
+	(cont_tacR 1),
 	(rtac refl 1)
 	]);
 
 
 (* ------------------------------------------------------------------------ *)
-(* Show that interpretation of (pcpo,_->_) is a ategory                     *)
+(* Show that interpretation of (pcpo,_->_) is a category                    *)
 (* The class of objects is interpretation of syntactical class pcpo         *)
 (* The class of arrows  between objects 'a and 'b is interpret. of 'a -> 'b *)
 (* The identity arrow is interpretation of ID                               *)
@@ -74,7 +74,7 @@ qed_goal "assoc_oo" ccc1.thy "f oo (g oo h) = (f oo g) oo h"
  (fn prems =>
 	[
 	(rtac ext_cfun 1),
-	(res_inst_tac [("s","f[g[h[x]]]")] trans  1),
+	(res_inst_tac [("s","f`(g`(h`x))")] trans  1),
 	(rtac  (cfcomp2 RS ssubst) 1),
 	(rtac  (cfcomp2 RS ssubst) 1),
 	(rtac refl 1),

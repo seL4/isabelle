@@ -9,14 +9,14 @@ Lemmas for theory cprod1.thy
 open Cprod1;
 
 qed_goalw "less_cprod1b" Cprod1.thy [less_cprod_def]
- "less_cprod(p1,p2) = ( fst(p1) << fst(p2) & snd(p1) << snd(p2))"
+ "less_cprod p1 p2 = ( fst(p1) << fst(p2) & snd(p1) << snd(p2))"
  (fn prems =>
 	[
 	(rtac refl 1)
 	]);
 
 qed_goalw "less_cprod2a" Cprod1.thy [less_cprod_def]
- "less_cprod(<x,y>,<UU,UU>) ==> x = UU & y = UU"
+ "less_cprod (x,y) (UU,UU) ==> x = UU & y = UU"
  (fn prems =>
 	[
 	(cut_facts_tac prems 1),
@@ -33,7 +33,7 @@ qed_goalw "less_cprod2a" Cprod1.thy [less_cprod_def]
 	]);
 
 qed_goal "less_cprod2b" Cprod1.thy 
- "less_cprod(p,<UU,UU>) ==> p=<UU,UU>"
+ "less_cprod p (UU,UU) ==> p = (UU,UU)"
  (fn prems =>
 	[
 	(cut_facts_tac prems 1),
@@ -44,7 +44,7 @@ qed_goal "less_cprod2b" Cprod1.thy
 	]);
 
 qed_goalw "less_cprod2c" Cprod1.thy [less_cprod_def]
- "less_cprod(<x1,y1>,<x2,y2>) ==> x1 << x2 & y1 << y2"
+ "less_cprod (x1,y1) (x2,y2) ==> x1 << x2 & y1 << y2"
  (fn prems =>
 	[
 	(cut_facts_tac prems 1),
@@ -64,7 +64,7 @@ qed_goalw "less_cprod2c" Cprod1.thy [less_cprod_def]
 (* less_cprod is a partial order on 'a * 'b                                 *)
 (* ------------------------------------------------------------------------ *)
 
-qed_goalw "refl_less_cprod" Cprod1.thy [less_cprod_def] "less_cprod(p,p)"
+qed_goalw "refl_less_cprod" Cprod1.thy [less_cprod_def] "less_cprod p p"
  (fn prems =>
 	[
 	(res_inst_tac [("p","p")] PairE 1),
@@ -74,7 +74,7 @@ qed_goalw "refl_less_cprod" Cprod1.thy [less_cprod_def] "less_cprod(p,p)"
 	]);
 
 qed_goal "antisym_less_cprod" Cprod1.thy 
- "[|less_cprod(p1,p2);less_cprod(p2,p1)|] ==> p1=p2"
+ "[|less_cprod p1 p2;less_cprod p2 p1|] ==> p1=p2"
  (fn prems =>
 	[
 	(cut_facts_tac prems 1),
@@ -92,7 +92,7 @@ qed_goal "antisym_less_cprod" Cprod1.thy
 
 
 qed_goal "trans_less_cprod" Cprod1.thy 
- "[|less_cprod(p1,p2);less_cprod(p2,p3)|] ==> less_cprod(p1,p3)"
+ "[|less_cprod p1 p2;less_cprod p2 p3|] ==> less_cprod p1 p3"
  (fn prems =>
 	[
 	(cut_facts_tac prems 1),
@@ -114,4 +114,6 @@ qed_goal "trans_less_cprod" Cprod1.thy
 	(etac trans_less 1),
 	(atac 1)
 	]);
+
+
 

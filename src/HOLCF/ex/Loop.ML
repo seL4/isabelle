@@ -13,14 +13,14 @@ open Loop;
 (* --------------------------------------------------------------------------- *)
 
 val step_def2 = prove_goalw Loop.thy [step_def]
-"step[b][g][x] = If b[x] then g[x] else x fi"
+"step`b`g`x = If b`x then g`x else x fi"
  (fn prems =>
 	[
 	(simp_tac Cfun_ss 1)
 	]);
 
 val while_def2 = prove_goalw Loop.thy [while_def]
-"while[b][g] = fix[LAM f x. If b[x] then f[g[x]] else x fi]"
+"while`b`g = fix`(LAM f x. If b`x then f`(g`x) else x fi)"
  (fn prems =>
 	[
 	(simp_tac Cfun_ss 1)
@@ -32,7 +32,7 @@ val while_def2 = prove_goalw Loop.thy [while_def]
 (* ------------------------------------------------------------------------- *)
 
 val while_unfold = prove_goal Loop.thy 
-"while[b][g][x] = If b[x] then while[b][g][g[x]] else x fi"
+"while`b`g`x = If b`x then while`b`g`(g`x) else x fi"
  (fn prems =>
 	[
 	(fix_tac5  while_def2 1),
@@ -40,7 +40,7 @@ val while_unfold = prove_goal Loop.thy
 	]);
 
 val while_unfold2 = prove_goal Loop.thy 
-	"!x.while[b][g][x] = while[b][g][iterate(k,step[b][g],x)]"
+	"!x.while`b`g`x = while`b`g`(iterate k (step`b`g) x)"
  (fn prems =>
 	[
 	(nat_ind_tac "k" 1),
@@ -53,10 +53,10 @@ val while_unfold2 = prove_goal Loop.thy
 	(rtac trans 1),
 	(etac spec 2),
 	(rtac (step_def2 RS ssubst) 1),
-	(res_inst_tac [("p","b[x]")] trE 1),
+	(res_inst_tac [("p","b`x")] trE 1),
 	(asm_simp_tac HOLCF_ss 1),
 	(rtac (while_unfold RS ssubst) 1),
-	(res_inst_tac [("s","UU"),("t","b[UU]")] ssubst 1),
+	(res_inst_tac [("s","UU"),("t","b`UU")]ssubst 1),
 	(etac (flat_tr RS flat_codom RS disjE) 1),
 	(atac 1),
 	(etac spec 1),
@@ -68,10 +68,11 @@ val while_unfold2 = prove_goal Loop.thy
 	]);
 
 val while_unfold3 = prove_goal Loop.thy 
-	"while[b][g][x] = while[b][g][step[b][g][x]]"
+	"while`b`g`x = while`b`g`(step`b`g`x)"
  (fn prems =>
 	[
-	(res_inst_tac [("s","while[b][g][iterate(Suc(0),step[b][g],x)]")] trans 1),
+	(res_inst_tac [("s",
+		"while`b`g`(iterate (Suc 0) (step`b`g) x)")] trans 1),
 	(rtac (while_unfold2 RS spec) 1),
 	(simp_tac iterate_ss 1)
 	]);
@@ -82,7 +83,7 @@ val while_unfold3 = prove_goal Loop.thy
 (* --------------------------------------------------------------------------- *)
 
 val loop_lemma1 = prove_goal Loop.thy
-"[|? y.b[y]=FF; iterate(k,step[b][g],x)=UU|]==>iterate(Suc(k),step[b][g],x)=UU"
+"[|? y.b`y=FF; iterate k (step`b`g) x = UU|]==>iterate(Suc k) (step`b`g) x=UU"
  (fn prems =>
 	[
 	(cut_facts_tac prems 1),
@@ -97,8 +98,8 @@ val loop_lemma1 = prove_goal Loop.thy
 	]);
 
 val loop_lemma2 = prove_goal Loop.thy
-"[|? y.b[y]=FF;~iterate(Suc(k),step[b][g],x)=UU |]==>\
-\~iterate(k,step[b][g],x)=UU"
+"[|? y.b`y=FF;iterate (Suc k) (step`b`g) x ~=UU |]==>\
+\iterate k (step`b`g) x ~=UU"
  (fn prems =>
 	[
 	(cut_facts_tac prems 1),
@@ -109,9 +110,9 @@ val loop_lemma2 = prove_goal Loop.thy
 	]);
 
 val loop_lemma3 = prove_goal Loop.thy
-"[|!x. INV(x) & b[x]=TT & ~g[x]=UU --> INV(g[x]);\
-\? y.b[y]=FF; INV(x)|] ==>\
-\~iterate(k,step[b][g],x)=UU --> INV(iterate(k,step[b][g],x))"
+"[|!x. INV x & b`x=TT & g`x~=UU --> INV (g`x);\
+\? y.b`y=FF; INV x|] ==>\
+\iterate k (step`b`g) x ~=UU --> INV (iterate k (step`b`g) x)"
  (fn prems =>
 	[
 	(cut_facts_tac prems 1),
@@ -119,15 +120,15 @@ val loop_lemma3 = prove_goal Loop.thy
 	(asm_simp_tac iterate_ss 1),
 	(strip_tac 1),
 	(simp_tac (iterate_ss addsimps [step_def2]) 1),
-	(res_inst_tac [("p","b[iterate(k1, step[b][g], x)]")] trE 1),
+	(res_inst_tac [("p","b`(iterate k1 (step`b`g) x)")] trE 1),
 	(etac notE 1),
 	(asm_simp_tac (HOLCF_ss addsimps [step_def2,iterate_Suc] ) 1),
 	(asm_simp_tac HOLCF_ss  1),
 	(rtac mp 1),
 	(etac spec  1),
 	(asm_simp_tac (HOLCF_ss addsimps [loop_lemma2] ) 1),
-	(res_inst_tac [("s","iterate(Suc(k1), step[b][g], x)"),
-		("t","g[iterate(k1, step[b][g], x)]")] ssubst 1),
+	(res_inst_tac [("s","iterate (Suc k1) (step`b`g) x"),
+		("t","g`(iterate k1 (step`b`g) x)")] ssubst 1),
 	(atac 2),
 	(asm_simp_tac (HOLCF_ss addsimps [iterate_Suc,step_def2] ) 1),
 	(asm_simp_tac (HOLCF_ss addsimps [loop_lemma2] ) 1)
@@ -135,7 +136,7 @@ val loop_lemma3 = prove_goal Loop.thy
 
 
 val loop_lemma4 = prove_goal Loop.thy
-"!x. b[iterate(k,step[b][g],x)]=FF --> while[b][g][x]=iterate(k,step[b][g],x)"
+"!x. b`(iterate k (step`b`g) x)=FF --> while`b`g`x= iterate k (step`b`g) x"
  (fn prems =>
 	[
 	(nat_ind_tac "k" 1),
@@ -152,8 +153,8 @@ val loop_lemma4 = prove_goal Loop.thy
 	]);
 
 val loop_lemma5 = prove_goal Loop.thy
-"!k. ~b[iterate(k,step[b][g],x)]=FF ==>\
-\ !m. while[b][g][iterate(m,step[b][g],x)]=UU"
+"!k. b`(iterate k (step`b`g) x) ~= FF ==>\
+\ !m. while`b`g`(iterate m (step`b`g) x)=UU"
  (fn prems =>
 	[
 	(cut_facts_tac prems 1),
@@ -161,14 +162,14 @@ val loop_lemma5 = prove_goal Loop.thy
 	(rtac fix_ind 1),
 	(rtac (allI RS adm_all) 1),
 	(rtac adm_eq 1),
-	(contX_tacR 1),
+	(cont_tacR 1),
 	(simp_tac HOLCF_ss  1),
 	(rtac allI 1),
 	(simp_tac HOLCF_ss  1),
-	(res_inst_tac [("p","b[iterate(m, step[b][g],x)]")] trE 1),
+	(res_inst_tac [("p","b`(iterate m (step`b`g) x)")] trE 1),
 	(asm_simp_tac HOLCF_ss  1),
 	(asm_simp_tac HOLCF_ss  1),
-	(res_inst_tac [("s","xa[iterate(Suc(m), step[b][g], x)]")] trans 1),
+	(res_inst_tac [("s","xa`(iterate (Suc m) (step`b`g) x)")] trans 1),
 	(etac spec 2),
 	(rtac cfun_arg_cong 1),
 	(rtac trans 1),
@@ -180,7 +181,7 @@ val loop_lemma5 = prove_goal Loop.thy
 
 
 val loop_lemma6 = prove_goal Loop.thy
-"!k. ~b[iterate(k,step[b][g],x)]=FF ==> while[b][g][x]=UU"
+"!k. b`(iterate k (step`b`g) x) ~= FF ==> while`b`g`x=UU"
  (fn prems =>
 	[
 	(res_inst_tac [("t","x")] (iterate_0 RS subst) 1),
@@ -189,7 +190,7 @@ val loop_lemma6 = prove_goal Loop.thy
 	]);
 
 val loop_lemma7 = prove_goal Loop.thy
-"~while[b][g][x]=UU ==> ? k. b[iterate(k,step[b][g],x)]=FF"
+"while`b`g`x ~= UU ==> ? k. b`(iterate k (step`b`g) x) = FF"
  (fn prems =>
 	[
 	(cut_facts_tac prems 1),
@@ -199,7 +200,7 @@ val loop_lemma7 = prove_goal Loop.thy
 	]);
 
 val loop_lemma8 = prove_goal Loop.thy
-"~while[b][g][x]=UU ==> ? y. b[y]=FF"
+"while`b`g`x ~= UU ==> ? y. b`y=FF"
  (fn prems =>
 	[
 	(cut_facts_tac prems 1),
@@ -208,17 +209,17 @@ val loop_lemma8 = prove_goal Loop.thy
 	]);
 
 
-(* --------------------------------------------------------------------------- *)
-(* an invariant rule for loops                                                 *)
-(* --------------------------------------------------------------------------- *)
+(* ------------------------------------------------------------------------- *)
+(* an invariant rule for loops                                               *)
+(* ------------------------------------------------------------------------- *)
 
 val loop_inv2 = prove_goal Loop.thy
-"[| (!y. INV(y) & b[y]=TT & ~g[y]=UU --> INV(g[y]));\
-\   (!y. INV(y) & b[y]=FF --> Q(y));\
-\   INV(x); ~while[b][g][x]=UU |] ==> Q(while[b][g][x])"
+"[| (!y. INV y & b`y=TT & g`y ~= UU --> INV (g`y));\
+\   (!y. INV y & b`y=FF --> Q y);\
+\   INV x; while`b`g`x~=UU |] ==> Q (while`b`g`x)"
  (fn prems =>
 	[
-	(res_inst_tac [("P","%k.b[iterate(k,step[b][g],x)]=FF")] exE 1),
+	(res_inst_tac [("P","%k. b`(iterate k (step`b`g) x)=FF")] exE 1),
 	(rtac loop_lemma7 1),
 	(resolve_tac prems 1),
 	(rtac ((loop_lemma4 RS spec RS mp) RS ssubst) 1),
@@ -240,9 +241,9 @@ val loop_inv2 = prove_goal Loop.thy
 	]);
 
 val loop_inv3 = prove_goal Loop.thy
-"[| !!y.[| INV(y); b[y]=TT; ~g[y]=UU|] ==> INV(g[y]);\
-\   !!y.[| INV(y); b[y]=FF|]==> Q(y);\
-\   INV(x); ~while[b][g][x]=UU |] ==> Q(while[b][g][x])"
+"[| !!y.[| INV y; b`y=TT; g`y~=UU|] ==> INV (g`y);\
+\   !!y.[| INV y; b`y=FF|]==> Q y;\
+\   INV x; while`b`g`x~=UU |] ==> Q (while`b`g`x)"
  (fn prems =>
 	[
 	(rtac loop_inv2 1),
@@ -263,10 +264,10 @@ val loop_inv3 = prove_goal Loop.thy
 
 val loop_inv = prove_goal Loop.thy
 "[| P(x);\
-\   !!y.P(y) ==> INV(y);\
-\   !!y.[| INV(y); b[y]=TT; ~g[y]=UU|] ==> INV(g[y]);\
-\   !!y.[| INV(y); b[y]=FF|]==> Q(y);\
-\   ~while[b][g][x]=UU |] ==> Q(while[b][g][x])"
+\   !!y.P y ==> INV y;\
+\   !!y.[| INV y; b`y=TT; g`y~=UU|] ==> INV (g`y);\
+\   !!y.[| INV y; b`y=FF|]==> Q y;\
+\   while`b`g`x ~= UU |] ==> Q (while`b`g`x)"
  (fn prems =>
 	[
 	(rtac loop_inv3 1),

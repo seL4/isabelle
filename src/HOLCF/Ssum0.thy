@@ -24,16 +24,17 @@ consts
   Isinr		:: "'b => ('a ++ 'b)"
   Iwhen		:: "('a->'c)=>('b->'c)=>('a ++ 'b)=> 'c"
 
-rules
+defs
 
   Sinl_Rep_def		"Sinl_Rep == (%a.%x y p.
-				(~a=UU --> x=a  & p))"
+				(a~=UU --> x=a  & p))"
 
   Sinr_Rep_def		"Sinr_Rep == (%b.%x y p.
-				(~b=UU --> y=b  & ~p))"
+				(b~=UU --> y=b  & ~p))"
 
   Ssum_def		"Ssum =={f.(? a.f=Sinl_Rep(a))|(? b.f=Sinr_Rep(b))}"
 
+rules
   (*faking a type definition... *)
   (* "++" is isomorphic to Ssum *)
 
@@ -41,14 +42,14 @@ rules
   Rep_Ssum_inverse	"Abs_Ssum(Rep_Ssum(p)) = p"	
   Abs_Ssum_inverse	"f:Ssum ==> Rep_Ssum(Abs_Ssum(f)) = f"
 
-   (*defining the abstract constants*)
+defs   (*defining the abstract constants*)
   Isinl_def	"Isinl(a) == Abs_Ssum(Sinl_Rep(a))"
   Isinr_def	"Isinr(b) == Abs_Ssum(Sinr_Rep(b))"
 
   Iwhen_def	"Iwhen(f)(g)(s) == @z.
 				    (s=Isinl(UU) --> z=UU)
-			&(!a. ~a=UU & s=Isinl(a) --> z=f[a])
-			&(!b. ~b=UU & s=Isinr(b) --> z=g[b])"  
+			&(!a. a~=UU & s=Isinl(a) --> z=f`a)  
+			&(!b. b~=UU & s=Isinr(b) --> z=g`b)"  
 
 end
 

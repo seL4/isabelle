@@ -13,4 +13,9 @@ A detailed description of the entire development can be found in
                      Dissertation, Technische Universit"at M"unchen, 1994
 
 Changes:
-14.10. New translation mechanism for continuous infixes
+14.10.94 New translation mechanism for continuous infixes
+18.05.95 Conversion to curried version of HOL. 
+
+28.06.95 The old uncurried version of HOLCF is no longer supported
+	 in the distribution.
+ 

@@ -32,9 +32,9 @@ fun prover defs thm =  prove_goalw Stream.thy defs thm
 
 val stream_copy = 
 	[
-	prover [stream_copy_def] "stream_copy[f][UU]=UU",
+	prover [stream_copy_def] "stream_copy`f`UU=UU",
 	prover [stream_copy_def,scons_def] 
-	"x~=UU ==> stream_copy[f][scons[x][xs]]= scons[x][f[xs]]"
+	"x~=UU ==> stream_copy`f`(scons`x`xs)= scons`x`(f`xs)"
 	];
 
 val stream_rews =  stream_copy @ stream_rews; 
@@ -44,12 +44,12 @@ val stream_rews =  stream_copy @ stream_rews;
 (* ------------------------------------------------------------------------*)
 
 qed_goalw "Exh_stream" Stream.thy [scons_def]
-	"s = UU | (? x xs. x~=UU & s = scons[x][xs])"
+	"s = UU | (? x xs. x~=UU & s = scons`x`xs)"
  (fn prems =>
 	[
 	(simp_tac HOLCF_ss  1),
 	(rtac (stream_rep_iso RS subst) 1),
-	(res_inst_tac [("p","stream_rep[s]")] sprodE 1),
+	(res_inst_tac [("p","stream_rep`s")] sprodE 1),
 	(asm_simp_tac (HOLCF_ss addsimps stream_rews) 1),
 	(asm_simp_tac HOLCF_ss  1),
 	(res_inst_tac [("p","y")] liftE1 1),
@@ -62,7 +62,7 @@ qed_goalw "Exh_stream" Stream.thy [scons_def]
 	]);
 
 qed_goal "streamE" Stream.thy 
-	"[| s=UU ==> Q; !!x xs.[|s=scons[x][xs];x~=UU|]==>Q|]==>Q"
+	"[| s=UU ==> Q; !!x xs.[|s=scons`x`xs;x~=UU|]==>Q|]==>Q"
  (fn prems =>
 	[
 	(rtac (Exh_stream RS disjE) 1),
@@ -88,9 +88,9 @@ fun prover defs thm =  prove_goalw Stream.thy defs thm
 
 
 val stream_when = [
-	prover [stream_when_def] "stream_when[f][UU]=UU",
+	prover [stream_when_def] "stream_when`f`UU=UU",
 	prover [stream_when_def,scons_def] 
-		"x~=UU ==> stream_when[f][scons[x][xs]]= f[x][xs]"
+		"x~=UU ==> stream_when`f`(scons`x`xs)= f`x`xs"
 	];
 
 val stream_rews = stream_when @ stream_rews;
@@ -106,9 +106,9 @@ fun prover defs thm = prove_goalw Stream.thy defs thm
 	]);
 
 val stream_discsel = [
-	prover [is_scons_def] "is_scons[UU]=UU",
-	prover [shd_def] "shd[UU]=UU",
-	prover [stl_def] "stl[UU]=UU"
+	prover [is_scons_def] "is_scons`UU=UU",
+	prover [shd_def] "shd`UU=UU",
+	prover [stl_def] "stl`UU=UU"
 	];
 
 fun prover defs thm = prove_goalw Stream.thy defs thm
@@ -119,9 +119,9 @@ fun prover defs thm = prove_goalw Stream.thy defs thm
 	]);
 
 val stream_discsel = [
-prover [is_scons_def,shd_def,stl_def] "x~=UU ==> is_scons[scons[x][xs]]=TT",
-prover [is_scons_def,shd_def,stl_def] "x~=UU ==> shd[scons[x][xs]]=x",
-prover [is_scons_def,shd_def,stl_def] "x~=UU ==> stl[scons[x][xs]]=xs"
+prover [is_scons_def,shd_def,stl_def] "x~=UU ==> is_scons`(scons`x`xs)=TT",
+prover [is_scons_def,shd_def,stl_def] "x~=UU ==> shd`(scons`x`xs)=x",
+prover [is_scons_def,shd_def,stl_def] "x~=UU ==> stl`(scons`x`xs)=xs"
 	] @ stream_discsel;
 
 val stream_rews = stream_discsel @ stream_rews;
@@ -141,7 +141,7 @@ fun prover contr thm = prove_goal Stream.thy thm
 	]);
 
 val stream_constrdef = [
-	prover "is_scons[UU::'a stream] ~= UU" "x~=UU ==> scons[x::'a][xs]~=UU"
+	prover "is_scons`(UU::'a stream)~=UU" "x~=UU ==> scons`(x::'a)`xs~=UU"
 	]; 
 
 fun prover defs thm = prove_goalw Stream.thy defs thm
@@ -151,7 +151,7 @@ fun prover defs thm = prove_goalw Stream.thy defs thm
 	]);
 
 val stream_constrdef = [
-	prover [scons_def] "scons[UU][xs]=UU"
+	prover [scons_def] "scons`UU`xs=UU"
 	] @ stream_constrdef;
 
 val stream_rews = stream_constrdef @ stream_rews;
@@ -169,16 +169,16 @@ val stream_rews = stream_constrdef @ stream_rews;
 val stream_invert =
 	[
 prove_goal Stream.thy "[|x1~=UU; y1~=UU;\
-\ scons[x1][x2] << scons[y1][y2]|] ==> x1<< y1 & x2 << y2"
+\ scons`x1`x2 << scons`y1`y2|] ==> x1<< y1 & x2 << y2"
  (fn prems =>
 	[
 	(cut_facts_tac prems 1),
 	(rtac conjI 1),
-	(dres_inst_tac [("fo5","stream_when[LAM x l.x]")] monofun_cfun_arg 1),
+	(dres_inst_tac [("fo5","stream_when`(LAM x l.x)")] monofun_cfun_arg 1),
 	(etac box_less 1),
 	(asm_simp_tac (HOLCF_ss addsimps stream_when) 1),
 	(asm_simp_tac (HOLCF_ss addsimps stream_when) 1),
-	(dres_inst_tac [("fo5","stream_when[LAM x l.l]")] monofun_cfun_arg 1),
+	(dres_inst_tac [("fo5","stream_when`(LAM x l.l)")] monofun_cfun_arg 1),
 	(etac box_less 1),
 	(asm_simp_tac (HOLCF_ss addsimps stream_when) 1),
 	(asm_simp_tac (HOLCF_ss addsimps stream_when) 1)
@@ -192,16 +192,16 @@ prove_goal Stream.thy "[|x1~=UU; y1~=UU;\
 val stream_inject = 
 	[
 prove_goal Stream.thy "[|x1~=UU; y1~=UU;\
-\ scons[x1][x2] = scons[y1][y2]|] ==> x1= y1 & x2 = y2"
+\ scons`x1`x2 = scons`y1`y2 |] ==> x1= y1 & x2 = y2"
  (fn prems =>
 	[
 	(cut_facts_tac prems 1),
 	(rtac conjI 1),
-	(dres_inst_tac [("f","stream_when[LAM x l.x]")] cfun_arg_cong 1),
+	(dres_inst_tac [("f","stream_when`(LAM x l.x)")] cfun_arg_cong 1),
 	(etac box_equals 1),
 	(asm_simp_tac (HOLCF_ss addsimps stream_when) 1),
 	(asm_simp_tac (HOLCF_ss addsimps stream_when) 1),
-	(dres_inst_tac [("f","stream_when[LAM x l.l]")] cfun_arg_cong 1),
+	(dres_inst_tac [("f","stream_when`(LAM x l.l)")] cfun_arg_cong 1),
 	(etac box_equals 1),
 	(asm_simp_tac (HOLCF_ss addsimps stream_when) 1),
 	(asm_simp_tac (HOLCF_ss addsimps stream_when) 1)
@@ -223,8 +223,8 @@ fun prover thm = prove_goal Stream.thy thm
 
 val stream_discsel_def = 
 	[
-	prover "s~=UU ==> is_scons[s]~=UU", 
-	prover "s~=UU ==> shd[s]~=UU" 
+	prover "s~=UU ==> is_scons`s ~= UU", 
+	prover "s~=UU ==> shd`s ~=UU" 
 	];
 
 val stream_rews = stream_discsel_def @ stream_rews;
@@ -236,7 +236,7 @@ val stream_rews = stream_discsel_def @ stream_rews;
 
 val stream_take =
 	[
-prove_goalw Stream.thy [stream_take_def] "stream_take(n)[UU]=UU"
+prove_goalw Stream.thy [stream_take_def] "stream_take n`UU = UU"
  (fn prems =>
 	[
 	(res_inst_tac [("n","n")] natE 1),
@@ -244,7 +244,7 @@ prove_goalw Stream.thy [stream_take_def] "stream_take(n)[UU]=UU"
 	(asm_simp_tac iterate_ss 1),
 	(simp_tac (HOLCF_ss addsimps stream_rews) 1)
 	]),
-prove_goalw Stream.thy [stream_take_def] "stream_take(0)[xs]=UU"
+prove_goalw Stream.thy [stream_take_def] "stream_take 0`xs=UU"
  (fn prems =>
 	[
 	(asm_simp_tac iterate_ss 1)
@@ -260,7 +260,7 @@ fun prover thm = prove_goalw Stream.thy [stream_take_def] thm
 
 val stream_take = [
 prover 
-  "x~=UU ==> stream_take(Suc(n))[scons[x][xs]]=scons[x][stream_take(n)[xs]]"
+  "x~=UU ==> stream_take (Suc n)`(scons`x`xs) = scons`x`(stream_take n`xs)"
 	] @ stream_take;
 
 val stream_rews = stream_take @ stream_rews;
@@ -270,7 +270,7 @@ val stream_rews = stream_take @ stream_rews;
 (* ------------------------------------------------------------------------*)
 
 qed_goal "stream_copy2" Stream.thy 
-     "stream_copy[f][scons[x][xs]]= scons[x][f[xs]]"
+     "stream_copy`f`(scons`x`xs) = scons`x`(f`xs)"
  (fn prems =>
 	[
 	(res_inst_tac [("Q","x=UU")] classical2 1),
@@ -278,7 +278,7 @@ qed_goal "stream_copy2" Stream.thy
 	(asm_simp_tac (HOLCF_ss addsimps stream_rews) 1)
 	]);
 
-qed_goal "shd2" Stream.thy "shd[scons[x][xs]]=x"
+qed_goal "shd2" Stream.thy "shd`(scons`x`xs) = x"
  (fn prems =>
 	[
 	(res_inst_tac [("Q","x=UU")] classical2 1),
@@ -287,7 +287,7 @@ qed_goal "shd2" Stream.thy "shd[scons[x][xs]]=x"
 	]);
 
 qed_goal "stream_take2" Stream.thy 
- "stream_take(Suc(n))[scons[x][xs]]=scons[x][stream_take(n)[xs]]"
+ "stream_take (Suc n)`(scons`x`xs) = scons`x`(stream_take n`xs)"
  (fn prems =>
 	[
 	(res_inst_tac [("Q","x=UU")] classical2 1),
@@ -327,10 +327,10 @@ fun prover reach defs thm  = prove_goalw Stream.thy defs thm
 	]);
 
 val stream_take_lemma = prover stream_reach  [stream_take_def]
-	"(!!n.stream_take(n)[s1]=stream_take(n)[s2]) ==> s1=s2";
+	"(!!n.stream_take n`s1 = stream_take n`s2) ==> s1=s2";
 
 
-qed_goal "stream_reach2" Stream.thy  "lub(range(%i.stream_take(i)[s]))=s"
+qed_goal "stream_reach2" Stream.thy  "lub(range(%i.stream_take i`s))=s"
  (fn prems =>
 	[
 	(res_inst_tac [("t","s")] (stream_reach RS subst) 1),
@@ -346,7 +346,7 @@ qed_goal "stream_reach2" Stream.thy  "lub(range(%i.stream_take(i)[s]))=s"
 (* ------------------------------------------------------------------------*)
 
 qed_goalw "stream_coind_lemma" Stream.thy [stream_bisim_def] 
-"stream_bisim(R) ==> ! p q.R(p,q) --> stream_take(n)[p]=stream_take(n)[q]"
+"stream_bisim R ==> ! p q. R p q --> stream_take n`p = stream_take n`q"
  (fn prems =>
 	[
 	(cut_facts_tac prems 1),
@@ -365,7 +365,7 @@ qed_goalw "stream_coind_lemma" Stream.thy [stream_bisim_def]
 	(fast_tac HOL_cs 1)
 	]);
 
-qed_goal "stream_coind" Stream.thy "[|stream_bisim(R);R(p,q)|] ==> p = q"
+qed_goal "stream_coind" Stream.thy "[|stream_bisim R ;R p q|] ==> p = q"
  (fn prems =>
 	[
 	(rtac stream_take_lemma 1),
@@ -380,8 +380,8 @@ qed_goal "stream_coind" Stream.thy "[|stream_bisim(R);R(p,q)|] ==> p = q"
 
 qed_goal "stream_finite_ind" Stream.thy
 "[|P(UU);\
-\  !! x s1.[|x~=UU;P(s1)|] ==> P(scons[x][s1])\
-\  |] ==> !s.P(stream_take(n)[s])"
+\  !! x s1.[|x~=UU;P(s1)|] ==> P(scons`x`s1)\
+\  |] ==> !s.P(stream_take n`s)"
  (fn prems =>
 	[
 	(nat_ind_tac "n" 1),
@@ -398,7 +398,7 @@ qed_goal "stream_finite_ind" Stream.thy
 	]);
 
 qed_goalw "stream_finite_ind2" Stream.thy  [stream_finite_def]
-"(!!n.P(stream_take(n)[s])) ==>  stream_finite(s) -->P(s)"
+"(!!n.P(stream_take n`s)) ==>  stream_finite(s) -->P(s)"
  (fn prems =>
 	[
 	(strip_tac 1),
@@ -409,7 +409,7 @@ qed_goalw "stream_finite_ind2" Stream.thy  [stream_finite_def]
 
 qed_goal "stream_finite_ind3" Stream.thy 
 "[|P(UU);\
-\  !! x s1.[|x~=UU;P(s1)|] ==> P(scons[x][s1])\
+\  !! x s1.[|x~=UU;P(s1)|] ==> P(scons`x`s1)\
 \  |] ==> stream_finite(s) --> P(s)"
  (fn prems =>
 	[
@@ -426,7 +426,7 @@ qed_goal "stream_finite_ind3" Stream.thy
 qed_goal "stream_ind" Stream.thy
 "[|adm(P);\
 \  P(UU);\
-\  !! x s1.[|x~=UU;P(s1)|] ==> P(scons[x][s1])\
+\  !! x s1.[|x~=UU;P(s1)|] ==> P(scons`x`s1)\
 \  |] ==> P(s)"
  (fn prems =>
 	[
@@ -446,7 +446,7 @@ qed_goal "stream_ind" Stream.thy
 qed_goal "stream_ind" Stream.thy
 "[|adm(P);\
 \  P(UU);\
-\  !! x s1.[|x~=UU;P(s1)|] ==> P(scons[x][s1])\
+\  !! x s1.[|x~=UU;P(s1)|] ==> P(scons`x`s1)\
 \  |] ==> P(s)"
  (fn prems =>
 	[
@@ -456,7 +456,7 @@ qed_goal "stream_ind" Stream.thy
 	(rtac adm_impl_admw 1),
 	(REPEAT (resolve_tac adm_thms 1)),
 	(rtac adm_subst 1),
-	(contX_tacR 1),
+	(cont_tacR 1),
 	(resolve_tac prems 1),
 	(rtac allI 1),
 	(rtac (rewrite_rule [stream_take_def] stream_finite_ind) 1),
@@ -469,7 +469,7 @@ qed_goal "stream_ind" Stream.thy
 (* simplify use of Co-induction                                            *)
 (* ------------------------------------------------------------------------*)
 
-qed_goal "surjectiv_scons" Stream.thy "scons[shd[s]][stl[s]]=s"
+qed_goal "surjectiv_scons" Stream.thy "scons`(shd`s)`(stl`s)=s"
  (fn prems =>
 	[
 	(res_inst_tac [("s","s")] streamE 1),
@@ -479,7 +479,7 @@ qed_goal "surjectiv_scons" Stream.thy "scons[shd[s]][stl[s]]=s"
 
 
 qed_goalw "stream_coind_lemma2" Stream.thy [stream_bisim_def]
-"!s1 s2. R(s1, s2)-->shd[s1]=shd[s2] & R(stl[s1],stl[s2]) ==>stream_bisim(R)"
+"!s1 s2. R s1 s2 --> shd`s1 = shd`s2 & R (stl`s1) (stl`s2) ==> stream_bisim R"
  (fn prems =>
 	[
 	(cut_facts_tac prems 1),
@@ -495,21 +495,21 @@ qed_goalw "stream_coind_lemma2" Stream.thy [stream_bisim_def]
 	(rtac disjI2 1),
 	(rtac disjE 1),
 	(etac (de_morgan2 RS ssubst) 1),
-	(res_inst_tac [("x","shd[s1]")] exI 1),
-	(res_inst_tac [("x","stl[s1]")] exI 1),
-	(res_inst_tac [("x","stl[s2]")] exI 1),
+	(res_inst_tac [("x","shd`s1")] exI 1),
+	(res_inst_tac [("x","stl`s1")] exI 1),
+	(res_inst_tac [("x","stl`s2")] exI 1),
 	(rtac conjI 1),
 	(eresolve_tac stream_discsel_def 1),
 	(asm_simp_tac (HOLCF_ss addsimps stream_rews addsimps [surjectiv_scons]) 1),
-	(eres_inst_tac [("s","shd[s1]"),("t","shd[s2]")] subst 1),
+	(eres_inst_tac [("s","shd`s1"),("t","shd`s2")] subst 1),
 	(simp_tac (HOLCF_ss addsimps stream_rews addsimps [surjectiv_scons]) 1),
-	(res_inst_tac [("x","shd[s2]")] exI 1),
-	(res_inst_tac [("x","stl[s1]")] exI 1),
-	(res_inst_tac [("x","stl[s2]")] exI 1),
+	(res_inst_tac [("x","shd`s2")] exI 1),
+	(res_inst_tac [("x","stl`s1")] exI 1),
+	(res_inst_tac [("x","stl`s2")] exI 1),
 	(rtac conjI 1),
 	(eresolve_tac stream_discsel_def 1),
 	(asm_simp_tac (HOLCF_ss addsimps stream_rews addsimps [surjectiv_scons]) 1),
-	(res_inst_tac [("s","shd[s1]"),("t","shd[s2]")] ssubst 1),
+	(res_inst_tac [("s","shd`s1"),("t","shd`s2")] ssubst 1),
 	(etac sym 1),
 	(simp_tac (HOLCF_ss addsimps stream_rews addsimps [surjectiv_scons]) 1)
 	]);
@@ -545,7 +545,7 @@ qed_goal "inf_stream_not_UU" Stream.thy  "~stream_finite(s)  ==> s ~= UU"
 (* a lemma about shd                                                       *)
 (* ----------------------------------------------------------------------- *)
 
-qed_goal "stream_shd_lemma1" Stream.thy "shd[s]=UU --> s=UU"
+qed_goal "stream_shd_lemma1" Stream.thy "shd`s=UU --> s=UU"
  (fn prems =>
 	[
 	(res_inst_tac [("s","s")] streamE 1),
@@ -561,7 +561,7 @@ qed_goal "stream_shd_lemma1" Stream.thy "shd[s]=UU --> s=UU"
 
 qed_goal "stream_take_lemma1" Stream.thy 
  "!x xs.x~=UU --> \
-\  stream_take(Suc(n))[scons[x][xs]] = scons[x][xs] --> stream_take(n)[xs]=xs"
+\  stream_take (Suc n)`(scons`x`xs) = scons`x`xs --> stream_take n`xs=xs"
  (fn prems =>
 	[
 	(rtac allI 1),
@@ -577,7 +577,7 @@ qed_goal "stream_take_lemma1" Stream.thy
 
 
 qed_goal "stream_take_lemma2" Stream.thy 
- "! s2. stream_take(n)[s2] = s2 --> stream_take(Suc(n))[s2]=s2"
+ "! s2. stream_take n`s2 = s2 --> stream_take (Suc n)`s2=s2"
  (fn prems =>
 	[
 	(nat_ind_tac "n" 1),
@@ -590,7 +590,7 @@ qed_goal "stream_take_lemma2" Stream.thy
 	(asm_simp_tac (HOLCF_ss addsimps stream_rews) 1),
 	(asm_simp_tac (HOLCF_ss addsimps stream_rews) 1),
 	(strip_tac 1 ),
-	(subgoal_tac "stream_take(n1)[xs] = xs" 1),
+	(subgoal_tac "stream_take n1`xs = xs" 1),
 	(rtac ((hd stream_inject) RS conjunct2) 2),
 	(atac 4),
 	(atac 2),
@@ -601,13 +601,13 @@ qed_goal "stream_take_lemma2" Stream.thy
 
 qed_goal "stream_take_lemma3" Stream.thy 
  "!x xs.x~=UU --> \
-\  stream_take(n)[scons[x][xs]] = scons[x][xs] --> stream_take(n)[xs]=xs"
+\  stream_take n`(scons`x`xs) = scons`x`xs --> stream_take n`xs=xs"
  (fn prems =>
 	[
 	(nat_ind_tac "n" 1),
 	(asm_simp_tac (HOLCF_ss addsimps stream_rews) 1),
 	(strip_tac 1 ),
-	(res_inst_tac [("P","scons[x][xs]=UU")] notE 1),
+	(res_inst_tac [("P","scons`x`xs=UU")] notE 1),
 	(eresolve_tac stream_constrdef 1),
 	(etac sym 1),
 	(strip_tac 1 ),
@@ -620,7 +620,7 @@ qed_goal "stream_take_lemma3" Stream.thy
 
 qed_goal "stream_take_lemma4" Stream.thy 
  "!x xs.\
-\stream_take(n)[xs]=xs --> stream_take(Suc(n))[scons[x][xs]] = scons[x][xs]"
+\stream_take n`xs=xs --> stream_take (Suc n)`(scons`x`xs) = scons`x`xs"
  (fn prems =>
 	[
 	(nat_ind_tac "n" 1),
@@ -631,7 +631,7 @@ qed_goal "stream_take_lemma4" Stream.thy
 (* ---- *)
 
 qed_goal "stream_take_lemma5" Stream.thy 
-"!s. stream_take(n)[s]=s --> iterate(n,stl,s)=UU"
+"!s. stream_take n`s=s --> iterate n stl s=UU"
  (fn prems =>
 	[
 	(nat_ind_tac "n" 1),
@@ -652,7 +652,7 @@ qed_goal "stream_take_lemma5" Stream.thy
 	]);
 
 qed_goal "stream_take_lemma6" Stream.thy 
-"!s.iterate(n,stl,s)=UU --> stream_take(n)[s]=s"
+"!s.iterate n stl s =UU --> stream_take n`s=s"
  (fn prems =>
 	[
 	(nat_ind_tac "n" 1),
@@ -669,7 +669,7 @@ qed_goal "stream_take_lemma6" Stream.thy
 	]);
 
 qed_goal "stream_take_lemma7" Stream.thy 
-"(iterate(n,stl,s)=UU) = (stream_take(n)[s]=s)"
+"(iterate n stl s=UU) = (stream_take n`s=s)"
  (fn prems =>
 	[
 	(rtac iffI 1),
@@ -679,7 +679,7 @@ qed_goal "stream_take_lemma7" Stream.thy
 
 
 qed_goal "stream_take_lemma8" Stream.thy
-"[|adm(P); !n. ? m. n < m & P(stream_take(m)[s])|] ==> P(s)"
+"[|adm(P); !n. ? m. n < m & P (stream_take m`s)|] ==> P(s)"
  (fn prems =>
 	[
 	(cut_facts_tac prems 1),
@@ -697,7 +697,7 @@ qed_goal "stream_take_lemma8" Stream.thy
 (* ----------------------------------------------------------------------- *)
 
 qed_goalw "stream_finite_lemma1" Stream.thy [stream_finite_def]
- "stream_finite(xs) ==> stream_finite(scons[x][xs])"
+ "stream_finite(xs) ==> stream_finite(scons`x`xs)"
  (fn prems =>
 	[
 	(cut_facts_tac prems 1),
@@ -707,7 +707,7 @@ qed_goalw "stream_finite_lemma1" Stream.thy [stream_finite_def]
 	]);
 
 qed_goalw "stream_finite_lemma2" Stream.thy [stream_finite_def]
- "[|x~=UU; stream_finite(scons[x][xs])|] ==> stream_finite(xs)"
+ "[|x~=UU; stream_finite(scons`x`xs)|] ==> stream_finite(xs)"
  (fn prems =>
 	[
 	(cut_facts_tac prems 1),
@@ -718,7 +718,7 @@ qed_goalw "stream_finite_lemma2" Stream.thy [stream_finite_def]
 	]);
 
 qed_goal "stream_finite_lemma3" Stream.thy 
- "x~=UU ==> stream_finite(scons[x][xs]) = stream_finite(xs)"
+ "x~=UU ==> stream_finite(scons`x`xs) = stream_finite(xs)"
  (fn prems =>
 	[
 	(cut_facts_tac prems 1),
@@ -730,7 +730,7 @@ qed_goal "stream_finite_lemma3" Stream.thy
 
 
 qed_goalw "stream_finite_lemma5" Stream.thy [stream_finite_def]
- "(!n. s1 << s2  --> stream_take(n)[s2] = s2 --> stream_finite(s1))\
+ "(!n. s1 << s2  --> stream_take n`s2 = s2 --> stream_finite(s1))\
 \=(s1 << s2  --> stream_finite(s2) --> stream_finite(s1))"
  (fn prems =>
 	[
@@ -740,7 +740,7 @@ qed_goalw "stream_finite_lemma5" Stream.thy [stream_finite_def]
 	]);
 
 qed_goal "stream_finite_lemma6" Stream.thy
- "!s1 s2. s1 << s2  --> stream_take(n)[s2] = s2 --> stream_finite(s1)"
+ "!s1 s2. s1 << s2  --> stream_take n`s2 = s2 --> stream_finite(s1)"
  (fn prems =>
 	[
 	(nat_ind_tac "n" 1),
@@ -767,7 +767,7 @@ qed_goal "stream_finite_lemma6" Stream.thy
 	(strip_tac 1 ),
 	(rtac stream_finite_lemma1 1),
 	(subgoal_tac "xs << xsa" 1),
-	(subgoal_tac "stream_take(n1)[xsa] = xsa" 1),
+	(subgoal_tac "stream_take n1`xsa = xsa" 1),
 	(fast_tac HOL_cs 1),
 	(res_inst_tac  [("x1.1","xa"),("y1.1","xa")] 
                    ((hd stream_inject) RS conjunct2) 1),
@@ -791,7 +791,7 @@ qed_goal "stream_finite_lemma7" Stream.thy
 	]);
 
 qed_goalw "stream_finite_lemma8" Stream.thy [stream_finite_def]
-"stream_finite(s) = (? n. iterate(n,stl,s)=UU)"
+"stream_finite(s) = (? n. iterate n stl s = UU)"
  (fn prems =>
 	[
 	(simp_tac (HOL_ss addsimps [stream_take_lemma7]) 1)
@@ -819,8 +819,8 @@ qed_goalw "adm_not_stream_finite" Stream.thy [adm_def]
 
 (* ----------------------------------------------------------------------- *)
 (* alternative prove for admissibility of ~stream_finite                   *)
-(* show that stream_finite(s) = (? n. iterate(n, stl, s) = UU)             *)
-(* and prove adm. of ~(? n. iterate(n, stl, s) = UU)                       *)
+(* show that stream_finite(s) = (? n. iterate n stl s = UU)                *)
+(* and prove adm. of ~(? n. iterate n stl s = UU)                          *)
 (* proof uses theorems stream_take_lemma5-7; stream_finite_lemma8          *)
 (* ----------------------------------------------------------------------- *)
 
@@ -828,10 +828,10 @@ qed_goalw "adm_not_stream_finite" Stream.thy [adm_def]
 qed_goal "adm_not_stream_finite" Stream.thy "adm(%s. ~ stream_finite(s))"
  (fn prems =>
 	[
-	(subgoal_tac "(!s.(~stream_finite(s))=(!n.iterate(n,stl,s)~=UU))" 1),
+	(subgoal_tac "(!s.(~stream_finite(s))=(!n.iterate n stl s ~=UU))" 1),
 	(etac (adm_cong RS iffD2)1),
 	(REPEAT(resolve_tac adm_thms 1)),
-	(rtac  contX_iterate2 1),
+	(rtac  cont_iterate2 1),
 	(rtac allI 1),
 	(rtac (stream_finite_lemma8 RS ssubst) 1),
 	(fast_tac HOL_cs 1)

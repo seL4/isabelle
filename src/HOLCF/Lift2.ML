@@ -132,7 +132,7 @@ qed_goal "lub_lift1a" Lift2.thy
 	]);
 
 qed_goal "lub_lift1b" Lift2.thy 
-"[|is_chain(Y);!i x.~Y(i)=Iup(x)|] ==>\
+"[|is_chain(Y);!i x. Y(i)~=Iup(x)|] ==>\
 \ range(Y) <<| UU_lift"
  (fn prems =>
 	[
@@ -155,13 +155,16 @@ qed_goal "lub_lift1b" Lift2.thy
 	]);
 
 val thelub_lift1a = lub_lift1a RS thelubI;
-(* [| is_chain(?Y1); ? i x. ?Y1(i) = Iup(x) |] ==>                *)
-(* lub(range(?Y1)) = Iup(lub(range(%i. Ilift(LAM x. x,?Y1(i)))))  *)
+(*
+[| is_chain ?Y1; ? i x. ?Y1 i = Iup x |] ==>
+ lub (range ?Y1) = Iup (lub (range (%i. Ilift (LAM x. x) (?Y1 i))))
+*)
 
 val thelub_lift1b = lub_lift1b RS thelubI;
-(* [| is_chain(?Y1); ! i x. ~ ?Y1(i) = Iup(x) |] ==>              *)
-(*                                     lub(range(?Y1)) = UU_lift  *)
-
+(*
+[| is_chain ?Y1; ! i x. ?Y1 i ~= Iup x |] ==>
+ lub (range ?Y1) = UU_lift
+*)
 
 qed_goal "cpo_lift" Lift2.thy 
 	"is_chain(Y::nat=>('a)u) ==> ? x.range(Y) <<|x"

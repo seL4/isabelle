@@ -72,9 +72,9 @@ fun prover s =  prove_goalw Tr2.thy [neg_def] s
 	]);
 
 val neg_thms = map prover [
-			"neg[TT] = FF",
-			"neg[FF] = TT",
-			"neg[UU] = UU"
+			"neg`TT = FF",
+			"neg`FF = TT",
+			"neg`UU = UU"
 			];
 
 (* ------------------------------------------------------------------------ *) 

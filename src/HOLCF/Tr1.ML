@@ -70,7 +70,7 @@ fun prover s =  prove_goal Tr1.thy s
 	(resolve_tac dist_less_tr 1)
 	]);
 
-val dist_eq_tr = map prover ["~TT=UU","~FF=UU","~TT=FF"];
+val dist_eq_tr = map prover ["TT~=UU","FF~=UU","TT~=FF"];
 val dist_eq_tr = dist_eq_tr @ (map (fn thm => (thm RS not_sym)) dist_eq_tr);
 
 (* ------------------------------------------------------------------------ *) 
@@ -80,7 +80,7 @@ val dist_eq_tr = dist_eq_tr @ (map (fn thm => (thm RS not_sym)) dist_eq_tr);
 qed_goalw "Exh_tr" Tr1.thy [FF_def,TT_def] "t=UU | t = TT | t = FF"
  (fn prems =>
 	[
-	(res_inst_tac [("p","rep_tr[t]")] ssumE 1),
+	(res_inst_tac [("p","rep_tr`t")] ssumE 1),
 	(rtac disjI1 1),
 	(rtac ((abs_tr_iso RS allI) RS ((rep_tr_iso RS allI) RS iso_strict )
 		  RS conjunct2 RS subst) 1),
@@ -155,12 +155,8 @@ fun prover s =  prove_goalw Tr1.thy [tr_when_def,TT_def,FF_def] s
 	]);
 
 val tr_when = map prover [
-			"tr_when[x][y][UU] = UU",
-			"tr_when[x][y][TT] = x",
-			"tr_when[x][y][FF] = y"
+			"tr_when`x`y`UU = UU",
+			"tr_when`x`y`TT = x",
+			"tr_when`x`y`FF = y"
 			];
-
-
-
-
 

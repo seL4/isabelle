@@ -166,7 +166,7 @@ qed_goalw "monofun_Iwhen3" Ssum2.thy [monofun] "monofun(Iwhen(f)(g))"
 
 
 qed_goal "ssum_lemma1" Ssum2.thy 
-"[|~(!i.? x.Y(i::nat)=Isinl(x))|] ==> (? i.! x.~Y(i)=Isinl(x))"
+"[|~(!i.? x.Y(i::nat)=Isinl(x))|] ==> (? i.! x.Y(i)~=Isinl(x))"
  (fn prems =>
 	[
 	(cut_facts_tac prems 1),
@@ -174,8 +174,8 @@ qed_goal "ssum_lemma1" Ssum2.thy
 	]);
 
 qed_goal "ssum_lemma2" Ssum2.thy 
-"[|(? i.!x.~(Y::nat => 'a++'b)(i::nat)=Isinl(x::'a))|] ==>\
-\   (? i y. (Y::nat => 'a++'b)(i::nat)=Isinr(y::'b) & ~y=UU)"
+"[|(? i.!x.(Y::nat => 'a++'b)(i::nat)~=Isinl(x::'a))|] ==>\
+\   (? i y. (Y::nat => 'a++'b)(i::nat)=Isinr(y::'b) & y~=UU)"
  (fn prems =>
 	[
 	(cut_facts_tac prems 1),
@@ -271,7 +271,7 @@ qed_goal "ssum_lemma6" Ssum2.thy
 (* ------------------------------------------------------------------------ *)
 
 qed_goal "ssum_lemma7" Ssum2.thy 
-"[|Isinl(x) << z; ~x=UU|] ==> ? y.z=Isinl(y) & ~y=UU"
+"[|Isinl(x) << z; x~=UU|] ==> ? y.z=Isinl(y) & y~=UU"
  (fn prems =>
 	[
 	(cut_facts_tac prems 1),
@@ -289,7 +289,7 @@ qed_goal "ssum_lemma7" Ssum2.thy
 	]);
 
 qed_goal "ssum_lemma8" Ssum2.thy 
-"[|Isinr(x) << z; ~x=UU|] ==> ? y.z=Isinr(y) & ~y=UU"
+"[|Isinr(x) << z; x~=UU|] ==> ? y.z=Isinr(y) & y~=UU"
  (fn prems =>
 	[
 	(cut_facts_tac prems 1),
@@ -311,7 +311,7 @@ qed_goal "ssum_lemma8" Ssum2.thy
 qed_goal "lub_ssum1a" Ssum2.thy 
 "[|is_chain(Y);(!i.? x.Y(i)=Isinl(x))|] ==>\
 \ range(Y) <<|\
-\ Isinl(lub(range(%i.(Iwhen (LAM x.x) (LAM y.UU))(Y(i)))))"
+\ Isinl(lub(range(%i.(Iwhen (LAM x.x) (LAM y.UU))(Y i))))"
  (fn prems =>
 	[
 	(cut_facts_tac prems 1),
@@ -352,7 +352,7 @@ qed_goal "lub_ssum1a" Ssum2.thy
 qed_goal "lub_ssum1b" Ssum2.thy 
 "[|is_chain(Y);(!i.? x.Y(i)=Isinr(x))|] ==>\
 \ range(Y) <<|\
-\ Isinr(lub(range(%i.(Iwhen (LAM y.UU) (LAM x.x))(Y(i)))))"
+\ Isinr(lub(range(%i.(Iwhen (LAM y.UU) (LAM x.x))(Y i))))"
  (fn prems =>
 	[
 	(cut_facts_tac prems 1),
@@ -391,12 +391,18 @@ qed_goal "lub_ssum1b" Ssum2.thy
 
 
 val thelub_ssum1a = lub_ssum1a RS thelubI;
-(* [| is_chain(?Y1); ! i. ? x. ?Y1(i) = Isinl(x) |] ==>                     *)
-(* lub(range(?Y1)) = Isinl(lub(range(%i. Iwhen(LAM x. x,LAM y. UU,?Y1(i)))))*)
+(*
+[| is_chain ?Y1; ! i. ? x. ?Y1 i = Isinl x |] ==>
+ lub (range ?Y1) = Isinl
+ (lub (range (%i. Iwhen (LAM x. x) (LAM y. UU) (?Y1 i))))
+*)
 
 val thelub_ssum1b = lub_ssum1b RS thelubI;
-(* [| is_chain(?Y1); ! i. ? x. ?Y1(i) = Isinr(x) |] ==>                     *)
-(* lub(range(?Y1)) = Isinr(lub(range(%i. Iwhen(LAM y. UU,LAM x. x,?Y1(i)))))*)
+(*
+[| is_chain ?Y1; ! i. ? x. ?Y1 i = Isinr x |] ==>
+ lub (range ?Y1) = Isinr
+ (lub (range (%i. Iwhen (LAM y. UU) (LAM x. x) (?Y1 i))))
+*)
 
 qed_goal "cpo_ssum" Ssum2.thy 
 	"is_chain(Y::nat=>'a ++'b) ==> ? x.range(Y) <<|x"
@@ -412,3 +418,4 @@ qed_goal "cpo_ssum" Ssum2.thy
 	(etac lub_ssum1b 1),
 	(atac 1)
 	]);
+

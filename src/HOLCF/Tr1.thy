@@ -31,22 +31,14 @@ consts
 
 rules
 
-  abs_tr_iso	"abs_tr[rep_tr[u]] = u"
-  rep_tr_iso	"rep_tr[abs_tr[x]] = x"
+  abs_tr_iso	"abs_tr`(rep_tr`u) = u"
+  rep_tr_iso	"rep_tr`(abs_tr`x) = x"
 
-  TT_def	"TT == abs_tr[sinl[one]]"
-  FF_def	"FF == abs_tr[sinr[one]]"
+defs
 
-  tr_when_def "tr_when == (LAM e1 e2 t.when[LAM x.e1][LAM y.e2][rep_tr[t]])"
+  TT_def	"TT == abs_tr`(sinl`one)"
+  FF_def	"FF == abs_tr`(sinr`one)"
 
+  tr_when_def "tr_when == 
+	(LAM e1 e2 t. sswhen`(LAM x.e1)`(LAM y.e2)`(rep_tr`t))"
 end
-
-
-
-
-
-
-
-
-
-

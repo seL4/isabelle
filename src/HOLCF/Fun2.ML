@@ -54,7 +54,7 @@ qed_goal "ch2ch_fun"  Fun2.thy
 (* ------------------------------------------------------------------------ *)
 
 qed_goal "ub2ub_fun" Fun2.thy 
-   " range(S::nat=>('a::term => 'b::po)) <| u ==> range(%i. S(i,x)) <| u(x)"
+   " range(S::nat=>('a::term => 'b::po)) <| u ==> range(%i. S i x) <| u(x)"
 (fn prems =>
 	[
 	(cut_facts_tac prems 1),
@@ -93,7 +93,7 @@ qed_goal "lub_fun"  Fun2.thy
 	]);
 
 val thelub_fun = (lub_fun RS thelubI);
-(* is_chain(?S1) ==> lub(range(?S1)) = (%x. lub(range(%i. ?S1(i,x)))) *)
+(* is_chain ?S1 ==> lub (range ?S1) = (%x. lub (range (%i. ?S1 i x))) *)
 
 qed_goal "cpo_fun"  Fun2.thy
 	"is_chain(S::nat=>('a::term => 'b::pcpo)) ==> ? x. range(S) <<| x"

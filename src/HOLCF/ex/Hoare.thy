@@ -5,12 +5,12 @@
 
 Theory for an example by C.A.R. Hoare 
 
-p x = if b1(x) 
-         then p(g(x))
+p x = if b1 x 
+         then p (g x)
          else x fi
 
-q x = if b1(x) orelse b2(x) 
-         then q (g(x))
+q x = if b1 x orelse b2 x 
+         then q (g x)
          else x fi
 
 Prove: for all b1 b2 g . 
@@ -30,14 +30,13 @@ consts
 	p :: "'a -> 'a"
 	q :: "'a -> 'a"
 
-rules
+defs
 
-  p_def  "p == fix[LAM f. LAM x.
-                 If b1[x] then f[g[x]] else x fi]"
+  p_def  "p == fix`(LAM f. LAM x.
+                 If b1`x then f`(g`x) else x fi)"
 
-  q_def  "q == fix[LAM f. LAM x.
-                 If b1[x] orelse b2[x] then f[g[x]] else x fi]"
-
+  q_def  "q == fix`(LAM f. LAM x.
+                 If b1`x orelse b2`x then f`(g`x) else x fi)"
 
 end
  

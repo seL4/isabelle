@@ -301,7 +301,7 @@ qed_goal "cpo_void" Porder.thy
 (* ------------------------------------------------------------------------ *)
 
 qed_goalw "lub_finch1" Porder.thy [max_in_chain_def]
-	"[| is_chain(C) ; max_in_chain(i,C)|] ==> range(C) <<| C(i)"
+	"[| is_chain(C) ; max_in_chain i C|] ==> range(C) <<| C(i)"
 (fn prems =>
 	[
 	(cut_facts_tac prems 1),
@@ -323,7 +323,7 @@ qed_goalw "lub_finch1" Porder.thy [max_in_chain_def]
 	]);	
 
 qed_goalw "lub_finch2" Porder.thy [finite_chain_def]
-	"finite_chain(C) ==> range(C) <<| C(@ i. max_in_chain(i,C))"
+	"finite_chain(C) ==> range(C) <<| C(@ i. max_in_chain i C)"
  (fn prems=>
 	[
 	(cut_facts_tac prems 1),
@@ -334,7 +334,7 @@ qed_goalw "lub_finch2" Porder.thy [finite_chain_def]
 	]);
 
 
-qed_goal "bin_chain" Porder.thy "x<<y ==> is_chain(%i. if(i=0,x,y))"
+qed_goal "bin_chain" Porder.thy "x<<y ==> is_chain (%i. if i=0 then x else y)"
  (fn prems =>
 	[
 	(cut_facts_tac prems 1),
@@ -347,7 +347,7 @@ qed_goal "bin_chain" Porder.thy "x<<y ==> is_chain(%i. if(i=0,x,y))"
 	]);
 
 qed_goalw "bin_chainmax" Porder.thy [max_in_chain_def,le_def]
-	"x<<y ==> max_in_chain(Suc(0),%i. if(i=0,x,y))"
+	"x<<y ==> max_in_chain (Suc 0) (%i. if (i=0) then x else y)"
 (fn prems =>
 	[
 	(cut_facts_tac prems 1),
@@ -358,10 +358,10 @@ qed_goalw "bin_chainmax" Porder.thy [max_in_chain_def,le_def]
 	]);
 
 qed_goal "lub_bin_chain" Porder.thy 
-	"x << y ==> range(%i. if(i = 0,x,y)) <<| y"
+	"x << y ==> range(%i. if (i=0) then x else y) <<| y"
 (fn prems=>
 	[ (cut_facts_tac prems 1),
-	(res_inst_tac [("s","if(Suc(0) = 0,x,y)")] subst 1),
+	(res_inst_tac [("s","if (Suc 0) = 0 then x else y")] subst 1),
 	(rtac lub_finch1 2),
 	(etac bin_chain 2),
 	(etac bin_chainmax 2),

@@ -19,13 +19,11 @@ rules
 
 inst_cfun_pcpo	"(UU::'a->'b) = UU_cfun"
 
-Istrictify_def	"Istrictify(f,x) == (@z.
-			  ( x=UU --> z = UU)
-			& (~x=UU --> z = f[x]))"	
+defs
 
-strictify_def	"strictify == (LAM f x.Istrictify(f,x))"
+Istrictify_def	"Istrictify f x == if x=UU then UU else f`x"	
+
+strictify_def	"strictify == (LAM f x.Istrictify f x)"
 
 end
-
-
 

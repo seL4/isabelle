@@ -18,8 +18,7 @@ arities "->" :: (pcpo,pcpo)term		(* No properties for ->'s range *)
 
 consts  
 	Cfun	:: "('a => 'b)set"
-	fapp	:: "('a -> 'b)=>('a => 'b)"	("(_[_])" [1000,0] 1000)
-						(* usually Rep_Cfun *)
+	fapp	:: "('a -> 'b)=>('a => 'b)"	(* usually Rep_Cfun *)
 						(* application      *)
 
 	fabs	:: "('a => 'b)=>('a -> 'b)"	(binder "LAM " 10)
@@ -28,18 +27,24 @@ consts
 
 	less_cfun :: "[('a -> 'b),('a -> 'b)]=>bool"
 
-rules 
+syntax  "@fapp"     :: "('a -> 'b)=>('a => 'b)" ("_`_" [999,1000] 999)
 
-  Cfun_def	"Cfun == {f. contX(f)}"
+translations "f`x" == "fapp f x"
+
+defs 
+  Cfun_def	"Cfun == {f. cont(f)}"
+
+rules
 
   (*faking a type definition... *)
   (* -> is isomorphic to Cfun   *)
 
-  Rep_Cfun		"fapp(fo):Cfun"
-  Rep_Cfun_inverse	"fabs(fapp(fo)) = fo"
-  Abs_Cfun_inverse	"f:Cfun ==> fapp(fabs(f))=f"
+  Rep_Cfun		"fapp fo : Cfun"
+  Rep_Cfun_inverse	"fabs (fapp fo) = fo"
+  Abs_Cfun_inverse	"f:Cfun ==> fapp(fabs f) = f"
 
+defs
   (*defining the abstract constants*)
-  less_cfun_def		"less_cfun(fo1,fo2) == ( fapp(fo1) << fapp(fo2) )"
+  less_cfun_def		"less_cfun fo1 fo2 == ( fapp fo1 << fapp fo2 )"
 
 end

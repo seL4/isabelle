@@ -45,7 +45,7 @@ qed_goalw "inject_Iup" Lift1.thy [Iup_def] "Iup(x)=Iup(y) ==> x=y"
 	(atac 1)
 	]);
 
-qed_goalw "defined_Iup" Lift1.thy [Iup_def,UU_lift_def] "~ Iup(x)=UU_lift"
+qed_goalw "defined_Iup" Lift1.thy [Iup_def,UU_lift_def] "Iup(x)~=UU_lift"
  (fn prems =>
 	[
 	(rtac notI 1),
@@ -76,7 +76,7 @@ qed_goalw "Ilift1"  Lift1.thy [Ilift_def,UU_lift_def]
 	]);
 
 qed_goalw "Ilift2"  Lift1.thy [Ilift_def,Iup_def]
-	"Ilift(f)(Iup(x))=f[x]"
+	"Ilift(f)(Iup(x))=f`x"
  (fn prems =>
 	[
 	(rtac (Abs_Lift_inverse RS ssubst) 1),
@@ -96,7 +96,7 @@ qed_goalw "less_lift1a"  Lift1.thy [less_lift_def,UU_lift_def]
 	]);
 
 qed_goalw "less_lift1b"  Lift1.thy [Iup_def,less_lift_def,UU_lift_def]
-	"~less_lift(Iup(x),UU_lift)"
+	"~less_lift (Iup x) UU_lift"
  (fn prems =>
 	[
 	(rtac notI 1),
@@ -110,7 +110,7 @@ qed_goalw "less_lift1b"  Lift1.thy [Iup_def,less_lift_def,UU_lift_def]
 	]);
 
 qed_goalw "less_lift1c"  Lift1.thy [Iup_def,less_lift_def,UU_lift_def]
-	"less_lift(Iup(x),Iup(y))=(x<<y)"
+	"less_lift (Iup x) (Iup y)=(x<<y)"
  (fn prems =>
 	[
 	(rtac (Abs_Lift_inverse RS ssubst) 1),
@@ -121,7 +121,7 @@ qed_goalw "less_lift1c"  Lift1.thy [Iup_def,less_lift_def,UU_lift_def]
 	]);
 
 
-qed_goal "refl_less_lift"  Lift1.thy "less_lift(p,p)"
+qed_goal "refl_less_lift"  Lift1.thy "less_lift p p"
  (fn prems =>
 	[
 	(res_inst_tac [("p","p")] liftE 1),
@@ -133,7 +133,7 @@ qed_goal "refl_less_lift"  Lift1.thy "less_lift(p,p)"
 	]);
 
 qed_goal "antisym_less_lift"  Lift1.thy 
-	"[|less_lift(p1,p2);less_lift(p2,p1)|] ==> p1=p2"
+	"[|less_lift p1 p2;less_lift p2 p1|] ==> p1=p2"
  (fn prems =>
 	[
 	(cut_facts_tac prems 1),
@@ -143,13 +143,13 @@ qed_goal "antisym_less_lift"  Lift1.thy
 	(hyp_subst_tac 1),
 	(rtac refl 1),
 	(hyp_subst_tac 1),
-	(res_inst_tac [("P","less_lift(Iup(x),UU_lift)")] notE 1),
+	(res_inst_tac [("P","less_lift (Iup x) UU_lift")] notE 1),
 	(rtac less_lift1b 1),
 	(atac 1),
 	(hyp_subst_tac 1),
 	(res_inst_tac [("p","p2")] liftE 1),
 	(hyp_subst_tac 1),
-	(res_inst_tac [("P","less_lift(Iup(x),UU_lift)")] notE 1),
+	(res_inst_tac [("P","less_lift (Iup x) UU_lift")] notE 1),
 	(rtac less_lift1b 1),
 	(atac 1),
 	(hyp_subst_tac 1),
@@ -160,7 +160,7 @@ qed_goal "antisym_less_lift"  Lift1.thy
 	]);
 
 qed_goal "trans_less_lift"  Lift1.thy 
-	"[|less_lift(p1,p2);less_lift(p2,p3)|] ==> less_lift(p1,p3)"
+	"[|less_lift p1 p2;less_lift p2 p3|] ==> less_lift p1 p3"
  (fn prems =>
 	[
 	(cut_facts_tac prems 1),

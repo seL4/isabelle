@@ -13,7 +13,7 @@ open Sprod0;
 (* ------------------------------------------------------------------------ *)
 
 qed_goalw "SprodI" Sprod0.thy [Sprod_def]
-	"Spair_Rep(a,b):Sprod"
+	"(Spair_Rep a b):Sprod"
 (fn prems =>
 	[
 	(EVERY1 [rtac CollectI, rtac exI,rtac exI, rtac refl])
@@ -21,7 +21,7 @@ qed_goalw "SprodI" Sprod0.thy [Sprod_def]
 
 
 qed_goal "inj_onto_Abs_Sprod" Sprod0.thy 
-	"inj_onto(Abs_Sprod,Sprod)"
+	"inj_onto Abs_Sprod Sprod"
 (fn prems =>
 	[
 	(rtac inj_onto_inverseI 1),
@@ -35,7 +35,7 @@ qed_goal "inj_onto_Abs_Sprod" Sprod0.thy
 
 
 qed_goalw "strict_Spair_Rep" Sprod0.thy [Spair_Rep_def]
- "(a=UU | b=UU) ==> (Spair_Rep(a,b) = Spair_Rep(UU,UU))"
+ "(a=UU | b=UU) ==> (Spair_Rep a b) = (Spair_Rep UU UU)"
  (fn prems =>
 	[
 	(cut_facts_tac prems 1),
@@ -47,7 +47,7 @@ qed_goalw "strict_Spair_Rep" Sprod0.thy [Spair_Rep_def]
 	]);
 
 qed_goalw "defined_Spair_Rep_rev" Sprod0.thy [Spair_Rep_def]
- "(Spair_Rep(a,b) = Spair_Rep(UU,UU)) ==> (a=UU | b=UU)"
+ "(Spair_Rep a b) = (Spair_Rep UU UU) ==> (a=UU | b=UU)"
  (fn prems =>
 	[
 	(res_inst_tac [("Q","a=UU|b=UU")] classical2 1),
@@ -65,7 +65,7 @@ qed_goalw "defined_Spair_Rep_rev" Sprod0.thy [Spair_Rep_def]
 (* ------------------------------------------------------------------------ *)
 
 qed_goalw "inject_Spair_Rep" Sprod0.thy [Spair_Rep_def]
-"[|~aa=UU ; ~ba=UU ; Spair_Rep(a,b)=Spair_Rep(aa,ba) |] ==> a=aa & b=ba"
+"[|~aa=UU ; ~ba=UU ; Spair_Rep a b = Spair_Rep aa ba |] ==> a=aa & b=ba"
  (fn prems =>
 	[
 	(cut_facts_tac prems 1),
@@ -77,7 +77,7 @@ qed_goalw "inject_Spair_Rep" Sprod0.thy [Spair_Rep_def]
 
 
 qed_goalw "inject_Ispair" Sprod0.thy [Ispair_def]
-	"[|~aa=UU ; ~ba=UU ; Ispair(a,b)=Ispair(aa,ba) |] ==> a=aa & b=ba"
+	"[|~aa=UU ; ~ba=UU ; Ispair a b = Ispair aa ba |] ==> a=aa & b=ba"
 (fn prems =>
 	[
 	(cut_facts_tac prems 1),
@@ -94,7 +94,7 @@ qed_goalw "inject_Ispair" Sprod0.thy [Ispair_def]
 (* ------------------------------------------------------------------------ *)
 
 qed_goalw "strict_Ispair" Sprod0.thy [Ispair_def] 
- "(a=UU | b=UU) ==> Ispair(a,b)=Ispair(UU,UU)"
+ "(a=UU | b=UU) ==> Ispair a b = Ispair UU UU"
 (fn prems =>
 	[
 	(cut_facts_tac prems 1),
@@ -102,7 +102,7 @@ qed_goalw "strict_Ispair" Sprod0.thy [Ispair_def]
 	]);
 
 qed_goalw "strict_Ispair1" Sprod0.thy [Ispair_def]
-	"Ispair(UU,b) = Ispair(UU,UU)"
+	"Ispair UU b  = Ispair UU UU"
 (fn prems =>
 	[
 	(rtac (strict_Spair_Rep RS arg_cong) 1),
@@ -111,7 +111,7 @@ qed_goalw "strict_Ispair1" Sprod0.thy [Ispair_def]
 	]);
 
 qed_goalw "strict_Ispair2" Sprod0.thy [Ispair_def]
-	"Ispair(a,UU) = Ispair(UU,UU)"
+	"Ispair a UU = Ispair UU UU"
 (fn prems =>
 	[
 	(rtac (strict_Spair_Rep RS arg_cong) 1),
@@ -120,7 +120,7 @@ qed_goalw "strict_Ispair2" Sprod0.thy [Ispair_def]
 	]);
 
 qed_goal "strict_Ispair_rev" Sprod0.thy 
-	"~Ispair(x,y)=Ispair(UU,UU) ==> ~x=UU & ~y=UU"
+	"~Ispair x y = Ispair UU UU ==> ~x=UU & ~y=UU"
 (fn prems =>
 	[
 	(cut_facts_tac prems 1),
@@ -130,7 +130,7 @@ qed_goal "strict_Ispair_rev" Sprod0.thy
 	]);
 
 qed_goalw "defined_Ispair_rev" Sprod0.thy [Ispair_def]
-	"Ispair(a,b) = Ispair(UU,UU) ==> (a = UU | b = UU)"
+	"Ispair a b  = Ispair UU UU ==> (a = UU | b = UU)"
 (fn prems =>
 	[
 	(cut_facts_tac prems 1),
@@ -142,7 +142,7 @@ qed_goalw "defined_Ispair_rev" Sprod0.thy [Ispair_def]
 	]);
 
 qed_goal "defined_Ispair" Sprod0.thy  
-"[|~a=UU; ~b=UU|] ==> ~(Ispair(a,b) = Ispair(UU,UU))" 
+"[|a~=UU; b~=UU|] ==> (Ispair a b) ~= (Ispair UU UU)" 
 (fn prems =>
 	[
 	(cut_facts_tac prems 1),
@@ -159,7 +159,7 @@ qed_goal "defined_Ispair" Sprod0.thy
 (* ------------------------------------------------------------------------ *)
 
 qed_goalw "Exh_Sprod" Sprod0.thy [Ispair_def]
-	"z=Ispair(UU,UU) | (? a b. z=Ispair(a,b) & ~a=UU & ~b=UU)"
+	"z=Ispair UU UU | (? a b. z=Ispair a b & a~=UU & b~=UU)"
 (fn prems =>
 	[
 	(rtac (rewrite_rule [Sprod_def] Rep_Sprod RS CollectE) 1),
@@ -186,7 +186,7 @@ qed_goalw "Exh_Sprod" Sprod0.thy [Ispair_def]
 (* ------------------------------------------------------------------------ *)
 
 qed_goal "IsprodE" Sprod0.thy
-"[|p=Ispair(UU,UU) ==> Q ;!!x y. [|p=Ispair(x,y); ~x=UU ; ~y=UU|] ==> Q|] ==> Q"
+"[|p=Ispair UU UU ==> Q ;!!x y. [|p=Ispair x y; x~=UU ; y~=UU|] ==> Q|] ==> Q"
 (fn prems =>
 	[
 	(rtac (Exh_Sprod RS disjE) 1),
@@ -206,7 +206,7 @@ qed_goal "IsprodE" Sprod0.thy
 (* ------------------------------------------------------------------------ *)
 
 qed_goalw "strict_Isfst" Sprod0.thy [Isfst_def] 
-	"p=Ispair(UU,UU)==>Isfst(p)=UU"
+	"p=Ispair UU UU ==> Isfst p = UU"
 (fn prems =>
 	[
 	(cut_facts_tac prems 1),
@@ -214,7 +214,7 @@ qed_goalw "strict_Isfst" Sprod0.thy [Isfst_def]
 	(rtac conjI 1),
 	(fast_tac HOL_cs  1),
 	(strip_tac 1),
-	(res_inst_tac [("P","Ispair(UU,UU) = Ispair(a,b)")] notE 1),
+	(res_inst_tac [("P","Ispair UU UU = Ispair a b")] notE 1),
 	(rtac not_sym 1),
 	(rtac defined_Ispair 1),
 	(REPEAT (fast_tac HOL_cs  1))
@@ -222,7 +222,7 @@ qed_goalw "strict_Isfst" Sprod0.thy [Isfst_def]
 
 
 qed_goal "strict_Isfst1" Sprod0.thy
-	"Isfst(Ispair(UU,y)) = UU"
+	"Isfst(Ispair UU y) = UU"
 (fn prems =>
 	[
 	(rtac (strict_Ispair1 RS ssubst) 1),
@@ -231,7 +231,7 @@ qed_goal "strict_Isfst1" Sprod0.thy
 	]);
 
 qed_goal "strict_Isfst2" Sprod0.thy
-	"Isfst(Ispair(x,UU)) = UU"
+	"Isfst(Ispair x UU) = UU"
 (fn prems =>
 	[
 	(rtac (strict_Ispair2 RS ssubst) 1),
@@ -241,7 +241,7 @@ qed_goal "strict_Isfst2" Sprod0.thy
 
 
 qed_goalw "strict_Issnd" Sprod0.thy [Issnd_def] 
-	"p=Ispair(UU,UU)==>Issnd(p)=UU"
+	"p=Ispair UU UU ==>Issnd p=UU"
 (fn prems =>
 	[
 	(cut_facts_tac prems 1),
@@ -249,14 +249,14 @@ qed_goalw "strict_Issnd" Sprod0.thy [Issnd_def]
 	(rtac conjI 1),
 	(fast_tac HOL_cs  1),
 	(strip_tac 1),
-	(res_inst_tac [("P","Ispair(UU,UU) = Ispair(a,b)")] notE 1),
+	(res_inst_tac [("P","Ispair UU UU = Ispair a b")] notE 1),
 	(rtac not_sym 1),
 	(rtac defined_Ispair 1),
 	(REPEAT (fast_tac HOL_cs  1))
 	]);
 
 qed_goal "strict_Issnd1" Sprod0.thy
-	"Issnd(Ispair(UU,y)) = UU"
+	"Issnd(Ispair UU y) = UU"
 (fn prems =>
 	[
 	(rtac (strict_Ispair1 RS ssubst) 1),
@@ -265,7 +265,7 @@ qed_goal "strict_Issnd1" Sprod0.thy
 	]);
 
 qed_goal "strict_Issnd2" Sprod0.thy
-	"Issnd(Ispair(x,UU)) = UU"
+	"Issnd(Ispair x UU) = UU"
 (fn prems =>
 	[
 	(rtac (strict_Ispair2 RS ssubst) 1),
@@ -274,14 +274,14 @@ qed_goal "strict_Issnd2" Sprod0.thy
 	]);
 
 qed_goalw "Isfst" Sprod0.thy [Isfst_def]
-	"[|~x=UU ;~y=UU |] ==> Isfst(Ispair(x,y)) = x"
+	"[|x~=UU ;y~=UU |] ==> Isfst(Ispair x y) = x"
 (fn prems =>
 	[
 	(cut_facts_tac prems 1),
 	(rtac  select_equality 1),
 	(rtac conjI 1),
 	(strip_tac 1),
-	(res_inst_tac [("P","Ispair(x,y) = Ispair(UU,UU)")] notE 1),
+	(res_inst_tac [("P","Ispair x y = Ispair UU UU")] notE 1),
 	(etac defined_Ispair 1),
 	(atac 1),
 	(atac 1),
@@ -294,14 +294,14 @@ qed_goalw "Isfst" Sprod0.thy [Isfst_def]
 	]);
 
 qed_goalw "Issnd" Sprod0.thy [Issnd_def]
-	"[|~x=UU ;~y=UU |] ==> Issnd(Ispair(x,y)) = y"
+	"[|x~=UU ;y~=UU |] ==> Issnd(Ispair x y) = y"
 (fn prems =>
 	[
 	(cut_facts_tac prems 1),
 	(rtac  select_equality 1),
 	(rtac conjI 1),
 	(strip_tac 1),
-	(res_inst_tac [("P","Ispair(x,y) = Ispair(UU,UU)")] notE 1),
+	(res_inst_tac [("P","Ispair x y = Ispair UU UU")] notE 1),
 	(etac defined_Ispair 1),
 	(atac 1),
 	(atac 1),
@@ -313,7 +313,7 @@ qed_goalw "Issnd" Sprod0.thy [Issnd_def]
 	(fast_tac HOL_cs  1)
 	]);
 
-qed_goal "Isfst2" Sprod0.thy "~y=UU ==>Isfst(Ispair(x,y))=x"
+qed_goal "Isfst2" Sprod0.thy "y~=UU ==>Isfst(Ispair x y)=x"
 (fn prems =>
 	[
 	(cut_facts_tac prems 1),
@@ -324,7 +324,7 @@ qed_goal "Isfst2" Sprod0.thy "~y=UU ==>Isfst(Ispair(x,y))=x"
 	(rtac strict_Isfst1 1)
 	]);
 
-qed_goal "Issnd2" Sprod0.thy "~x=UU ==>Issnd(Ispair(x,y))=y"
+qed_goal "Issnd2" Sprod0.thy "~x=UU ==>Issnd(Ispair x y)=y"
 (fn prems =>
 	[
 	(cut_facts_tac prems 1),
@@ -347,7 +347,7 @@ val Sprod_ss =
 
 
 qed_goal "defined_IsfstIssnd" Sprod0.thy 
-	"~p=Ispair(UU,UU) ==> ~Isfst(p)=UU & ~Issnd(p)=UU"
+	"p~=Ispair UU UU ==> Isfst p ~= UU & Issnd p ~= UU"
  (fn prems =>
 	[
 	(cut_facts_tac prems 1),
@@ -365,7 +365,7 @@ qed_goal "defined_IsfstIssnd" Sprod0.thy
 (* ------------------------------------------------------------------------ *)
 
 qed_goal "surjective_pairing_Sprod" Sprod0.thy 
-	"z = Ispair(Isfst(z))(Issnd(z))"
+	"z = Ispair(Isfst z)(Issnd z)"
 (fn prems =>
 	[
 	(res_inst_tac [("z1","z")] (Exh_Sprod RS disjE) 1),

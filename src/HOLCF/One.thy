@@ -29,12 +29,12 @@ consts
 	one_when 	:: "'c -> one -> 'c"
 
 rules
-  abs_one_iso	"abs_one[rep_one[u]] = u"
-  rep_one_iso  "rep_one[abs_one[x]] = x"
+  abs_one_iso	"abs_one`(rep_one`u) = u"
+  rep_one_iso	"rep_one`(abs_one`x) = x"
 
-  one_def	"one == abs_one[up[UU]]"
-  one_when_def "one_when == (LAM c u.lift[LAM x.c][rep_one[u]])"
-
+defs
+  one_def	"one == abs_one`(up`UU)"
+  one_when_def "one_when == (LAM c u.lift`(LAM x.c)`(rep_one`u))"
 end
 
 

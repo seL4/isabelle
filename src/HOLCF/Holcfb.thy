@@ -13,9 +13,9 @@ consts
 
 theleast     :: "(nat=>bool)=>nat"
 
-rules
+defs
 
-theleast_def    "theleast(P) == (@z.(P(z) & (!n.P(n)-->z<=n)))"
+theleast_def    "theleast P == (@z.(P z & (!n.P n --> z<=n)))"
 
 end
 

@@ -30,7 +30,7 @@ qed_goalw "SsumIr" Ssum0.thy [Ssum_def] "Sinr_Rep(a):Ssum"
 	(rtac refl 1)
 	]);
 
-qed_goal "inj_onto_Abs_Ssum" Ssum0.thy "inj_onto(Abs_Ssum,Ssum)"
+qed_goal "inj_onto_Abs_Ssum" Ssum0.thy "inj_onto Abs_Ssum Ssum"
 (fn prems =>
 	[
 	(rtac inj_onto_inverseI 1),
@@ -125,7 +125,7 @@ qed_goalw "inject_Sinr_Rep1" Ssum0.thy [Sinr_Rep_def]
 	]);
 
 qed_goalw "inject_Sinl_Rep2" Ssum0.thy [Sinl_Rep_def]
-"[|~a1=UU ; ~a2=UU ; Sinl_Rep(a1)=Sinl_Rep(a2) |] ==> a1=a2"
+"[| a1~=UU ; a2~=UU ; Sinl_Rep(a1)=Sinl_Rep(a2) |] ==> a1=a2"
  (fn prems =>
 	[
 	(rtac ((nth_elem (2,prems)) RS fun_cong  RS fun_cong RS fun_cong 
@@ -135,7 +135,7 @@ qed_goalw "inject_Sinl_Rep2" Ssum0.thy [Sinl_Rep_def]
 	]);
 
 qed_goalw "inject_Sinr_Rep2" Ssum0.thy [Sinr_Rep_def]
-"[|~b1=UU ; ~b2=UU ; Sinr_Rep(b1)=Sinr_Rep(b2) |] ==> b1=b2"
+"[|b1~=UU ; b2~=UU ; Sinr_Rep(b1)=Sinr_Rep(b2) |] ==> b1=b2"
  (fn prems =>
 	[
 	(rtac ((nth_elem (2,prems)) RS fun_cong  RS fun_cong RS fun_cong 
@@ -201,7 +201,7 @@ qed_goalw "inject_Isinr" Ssum0.thy [Isinr_def]
 	]);
 
 qed_goal "inject_Isinl_rev" Ssum0.thy  
-"~a1=a2 ==> ~Isinl(a1) = Isinl(a2)"
+"a1~=a2 ==> Isinl(a1) ~= Isinl(a2)"
  (fn prems =>
 	[
 	(cut_facts_tac prems 1),
@@ -211,7 +211,7 @@ qed_goal "inject_Isinl_rev" Ssum0.thy
 	]);
 
 qed_goal "inject_Isinr_rev" Ssum0.thy  
-"~b1=b2 ==> ~Isinr(b1) = Isinr(b2)"
+"b1~=b2 ==> Isinr(b1) ~= Isinr(b2)"
  (fn prems =>
 	[
 	(cut_facts_tac prems 1),
@@ -226,7 +226,7 @@ qed_goal "inject_Isinr_rev" Ssum0.thy
 (* ------------------------------------------------------------------------ *)
 
 qed_goalw "Exh_Ssum" Ssum0.thy [Isinl_def,Isinr_def]
-	"z=Isinl(UU) | (? a. z=Isinl(a) & ~a=UU) | (? b. z=Isinr(b) & ~b=UU)"
+	"z=Isinl(UU) | (? a. z=Isinl(a) & a~=UU) | (? b. z=Isinr(b) & b~=UU)"
  (fn prems =>
 	[
 	(rtac (rewrite_rule [Ssum_def] Rep_Ssum RS CollectE) 1),
@@ -272,8 +272,8 @@ qed_goalw "Exh_Ssum" Ssum0.thy [Isinl_def,Isinr_def]
 
 qed_goal "IssumE" Ssum0.thy
 	"[|p=Isinl(UU) ==> Q ;\
-\	!!x.[|p=Isinl(x); ~x=UU |] ==> Q;\
-\	!!y.[|p=Isinr(y); ~y=UU |] ==> Q|] ==> Q"
+\	!!x.[|p=Isinl(x); x~=UU |] ==> Q;\
+\	!!y.[|p=Isinr(y); y~=UU |] ==> Q|] ==> Q"
  (fn prems =>
 	[
 	(rtac (Exh_Ssum RS disjE) 1),
@@ -307,7 +307,7 @@ qed_goal "IssumE2" Ssum0.thy
 (* ------------------------------------------------------------------------ *)
 
 qed_goalw "Iwhen1" Ssum0.thy [Iwhen_def]
-	"Iwhen(f)(g)(Isinl(UU)) = UU"
+	"Iwhen f g (Isinl UU) = UU"
  (fn prems =>
 	[
 	(rtac  select_equality 1),
@@ -332,7 +332,7 @@ qed_goalw "Iwhen1" Ssum0.thy [Iwhen_def]
 
 
 qed_goalw "Iwhen2" Ssum0.thy [Iwhen_def]
-	"~x=UU ==> Iwhen(f)(g)(Isinl(x)) = f[x]"
+	"x~=UU ==> Iwhen f g (Isinl x) = f`x"
  (fn prems =>
 	[
 	(cut_facts_tac prems 1),
@@ -358,7 +358,7 @@ qed_goalw "Iwhen2" Ssum0.thy [Iwhen_def]
 	]);
 
 qed_goalw "Iwhen3" Ssum0.thy [Iwhen_def]
-	"~y=UU ==> Iwhen(f)(g)(Isinr(y)) = g[y]"
+	"y~=UU ==> Iwhen f g (Isinr y) = g`y"
  (fn prems =>
 	[
 	(cut_facts_tac prems 1),

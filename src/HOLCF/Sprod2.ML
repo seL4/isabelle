@@ -14,7 +14,7 @@ open Sprod2;
 (* ------------------------------------------------------------------------ *)
 
 qed_goal "less_sprod3a" Sprod2.thy 
-	"p1=Ispair(UU,UU) ==> p1 << p2"
+	"p1=Ispair UU UU ==> p1 << p2"
 (fn prems =>
 	[
 	(cut_facts_tac prems 1),
@@ -24,7 +24,7 @@ qed_goal "less_sprod3a" Sprod2.thy
 
 
 qed_goal "less_sprod3b" Sprod2.thy
- "~p1=Ispair(UU,UU) ==>\
+ "p1~=Ispair UU UU ==>\
 \	(p1<<p2) = (Isfst(p1)<<Isfst(p2) & Issnd(p1)<<Issnd(p2))" 
 (fn prems =>
 	[
@@ -34,7 +34,7 @@ qed_goal "less_sprod3b" Sprod2.thy
 	]);
 
 qed_goal "less_sprod4b" Sprod2.thy 
-	"p << Ispair(UU,UU) ==> p = Ispair(UU,UU)"
+	"p << Ispair UU UU ==> p = Ispair UU UU"
 (fn prems =>
 	[
 	(cut_facts_tac prems 1),
@@ -43,10 +43,10 @@ qed_goal "less_sprod4b" Sprod2.thy
 	]);
 
 val less_sprod4a = (less_sprod4b RS defined_Ispair_rev);
-(* Ispair(?a,?b) << Ispair(UU,UU) ==> ?a = UU | ?b = UU *)
+(* Ispair ?a ?b << Ispair UU UU ==> ?a = UU | ?b = UU *)
 
 qed_goal "less_sprod4c" Sprod2.thy
- "[|Ispair(xa,ya)<<Ispair(x,y);~xa=UU;~ya=UU;~x=UU;~y=UU|] ==>\
+ "[|Ispair xa ya << Ispair x y; xa~=UU; ya~=UU; x~=UU; y~=UU|] ==>\
 \		xa<<x & ya << y"
 (fn prems =>
 	[
@@ -60,7 +60,7 @@ qed_goal "less_sprod4c" Sprod2.thy
 (* type sprod is pointed                                                    *)
 (* ------------------------------------------------------------------------ *)
 
-qed_goal "minimal_sprod" Sprod2.thy  "Ispair(UU,UU)<<p"
+qed_goal "minimal_sprod" Sprod2.thy  "Ispair UU UU << p"
 (fn prems =>
 	[
 	(rtac less_sprod3a 1),
@@ -78,9 +78,9 @@ qed_goalw "monofun_Ispair1" Sprod2.thy [monofun] "monofun(Ispair)"
 	(rtac (less_fun RS iffD2) 1),
 	(strip_tac 1),
 	(res_inst_tac [("Q",
-	" Ispair(y,xa) =Ispair(UU,UU)")] (excluded_middle RS disjE) 1),
+	" Ispair y xa = Ispair UU UU")] (excluded_middle RS disjE) 1),
 	(res_inst_tac [("Q",
-	" Ispair(x,xa) =Ispair(UU,UU)")] (excluded_middle RS disjE) 1),
+	" Ispair x xa = Ispair UU UU")] (excluded_middle RS disjE) 1),
 	(rtac (less_sprod3b RS iffD2) 1),
 	(atac 1),
 	(rtac conjI 1),
@@ -100,9 +100,9 @@ qed_goalw "monofun_Ispair1" Sprod2.thy [monofun] "monofun(Ispair)"
 	(rtac refl_less 1),
 	(etac less_sprod3a 1),
 	(res_inst_tac [("Q",
-	" Ispair(x,xa) =Ispair(UU,UU)")] (excluded_middle RS disjE) 1),
+	" Ispair x xa  = Ispair UU UU")] (excluded_middle RS disjE) 1),
 	(etac less_sprod3a 2),
-	(res_inst_tac [("P","Ispair(y,xa) = Ispair(UU,UU)")] notE 1),
+	(res_inst_tac [("P","Ispair y xa = Ispair UU UU")] notE 1),
 	(atac 2),
 	(rtac defined_Ispair 1),
 	(etac notUU_I 1),
@@ -116,9 +116,9 @@ qed_goalw "monofun_Ispair2" Sprod2.thy [monofun] "monofun(Ispair(x))"
 	[
 	(strip_tac 1),
 	(res_inst_tac [("Q",
-	" Ispair(x,y) =Ispair(UU,UU)")] (excluded_middle RS disjE) 1),
+	" Ispair x y = Ispair UU UU")] (excluded_middle RS disjE) 1),
 	(res_inst_tac [("Q",
-	" Ispair(x,xa) =Ispair(UU,UU)")] (excluded_middle RS disjE) 1),
+	" Ispair x xa = Ispair UU UU")] (excluded_middle RS disjE) 1),
 	(rtac (less_sprod3b RS iffD2) 1),
 	(atac 1),
 	(rtac conjI 1),
@@ -138,9 +138,9 @@ qed_goalw "monofun_Ispair2" Sprod2.thy [monofun] "monofun(Ispair(x))"
 	(atac 1),
 	(etac less_sprod3a 1),
 	(res_inst_tac [("Q",
-	" Ispair(x,xa) =Ispair(UU,UU)")] (excluded_middle RS disjE) 1),
+	" Ispair x xa = Ispair UU UU")] (excluded_middle RS disjE) 1),
 	(etac less_sprod3a 2),
-	(res_inst_tac [("P","Ispair(x,y) = Ispair(UU,UU)")] notE 1),
+	(res_inst_tac [("P","Ispair x y = Ispair UU UU")] notE 1),
 	(atac 2),
 	(rtac defined_Ispair 1),
 	(etac (strict_Ispair_rev RS  conjunct1) 1),
@@ -149,7 +149,7 @@ qed_goalw "monofun_Ispair2" Sprod2.thy [monofun] "monofun(Ispair(x))"
 	]);
 
 qed_goal " monofun_Ispair" Sprod2.thy 
- "[|x1<<x2; y1<<y2|] ==> Ispair(x1,y1)<<Ispair(x2,y2)"
+ "[|x1<<x2; y1<<y2|] ==> Ispair x1 y1 << Ispair x2 y2"
 (fn prems =>
 	[
 	(cut_facts_tac prems 1),
@@ -179,7 +179,7 @@ qed_goalw " monofun_Isfst" Sprod2.thy [monofun] "monofun(Isfst)"
 	(hyp_subst_tac 1),
 	(res_inst_tac [("p","y")] IsprodE 1),
 	(hyp_subst_tac 1),
-	(res_inst_tac [("t","Isfst(Ispair(xa,ya))")] subst 1),
+	(res_inst_tac [("t","Isfst(Ispair xa ya)")] subst 1),
 	(rtac refl_less 2),
 	(etac (less_sprod4b RS sym RS arg_cong) 1),
 	(hyp_subst_tac 1),
@@ -206,7 +206,7 @@ qed_goalw "monofun_Issnd" Sprod2.thy [monofun] "monofun(Issnd)"
 	(hyp_subst_tac 1),
 	(res_inst_tac [("p","y")] IsprodE 1),
 	(hyp_subst_tac 1),
-	(res_inst_tac [("t","Issnd(Ispair(xa,ya))")] subst 1),
+	(res_inst_tac [("t","Issnd(Ispair xa ya)")] subst 1),
 	(rtac refl_less 2),
 	(etac (less_sprod4b RS sym RS arg_cong) 1),
 	(hyp_subst_tac 1),
@@ -227,7 +227,7 @@ qed_goalw "monofun_Issnd" Sprod2.thy [monofun] "monofun(Issnd)"
 
 qed_goal "lub_sprod" Sprod2.thy 
 "[|is_chain(S)|] ==> range(S) <<| \
-\ Ispair(lub(range(%i.Isfst(S(i)))),lub(range(%i.Issnd(S(i)))))"
+\ Ispair (lub(range(%i.Isfst(S i)))) (lub(range(%i.Issnd(S i))))"
 (fn prems =>
 	[
 	(cut_facts_tac prems 1),
@@ -253,8 +253,7 @@ qed_goal "lub_sprod" Sprod2.thy
 	]);
 
 val thelub_sprod = (lub_sprod RS thelubI);
-(* is_chain(?S1) ==> lub(range(?S1)) =                                     *)
-(* Ispair(lub(range(%i. Isfst(?S1(i)))),lub(range(%i. Issnd(?S1(i)))))     *)
+
 
 qed_goal "cpo_sprod" Sprod2.thy 
 	"is_chain(S::nat=>'a**'b)==>? x.range(S)<<| x"

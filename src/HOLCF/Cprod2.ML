@@ -9,7 +9,7 @@ Lemmas for cprod2.thy
 open Cprod2;
 
 qed_goal "less_cprod3a" Cprod2.thy 
-	"p1=<UU,UU> ==> p1 << p2"
+	"p1=(UU,UU) ==> p1 << p2"
  (fn prems =>
 	[
 	(cut_facts_tac prems 1),
@@ -31,7 +31,7 @@ qed_goal "less_cprod3b" Cprod2.thy
 	]);
 
 qed_goal "less_cprod4a" Cprod2.thy 
-	"<x1,x2> << <UU,UU> ==> x1=UU & x2=UU"
+	"(x1,x2) << (UU,UU) ==> x1=UU & x2=UU"
  (fn prems =>
 	[
 	(cut_facts_tac prems 1),
@@ -40,7 +40,7 @@ qed_goal "less_cprod4a" Cprod2.thy
 	]);
 
 qed_goal "less_cprod4b" Cprod2.thy 
-	"p << <UU,UU> ==> p = <UU,UU>"
+	"p << (UU,UU) ==> p = (UU,UU)"
 (fn prems =>
 	[
 	(cut_facts_tac prems 1),
@@ -49,7 +49,7 @@ qed_goal "less_cprod4b" Cprod2.thy
 	]);
 
 qed_goal "less_cprod4c" Cprod2.thy
- " <xa,ya> << <x,y> ==> xa<<x & ya << y"
+ " (xa,ya) << (x,y) ==> xa<<x & ya << y"
 (fn prems =>
 	[
 	(cut_facts_tac prems 1),
@@ -62,7 +62,7 @@ qed_goal "less_cprod4c" Cprod2.thy
 (* type cprod is pointed                                                    *)
 (* ------------------------------------------------------------------------ *)
 
-qed_goal "minimal_cprod" Cprod2.thy  "<UU,UU><<p"
+qed_goal "minimal_cprod" Cprod2.thy  "(UU,UU)<<p"
 (fn prems =>
 	[
 	(rtac less_cprod3a 1),
@@ -94,7 +94,7 @@ qed_goalw "monofun_pair2" Cprod2.thy [monofun] "monofun(Pair(x))"
 	]);
 
 qed_goal "monofun_pair" Cprod2.thy 
- "[|x1<<x2; y1<<y2|] ==> <x1,y1> << <x2,y2>"
+ "[|x1<<x2; y1<<y2|] ==> (x1,y1) << (x2,y2)"
  (fn prems =>
 	[
 	(cut_facts_tac prems 1),
@@ -140,7 +140,7 @@ qed_goalw "monofun_snd" Cprod2.thy [monofun] "monofun(snd)"
 
 qed_goal "lub_cprod" Cprod2.thy 
 " is_chain(S) ==> range(S) <<| \
-\   < lub(range(%i.fst(S(i)))),lub(range(%i.snd(S(i))))> "
+\   (lub(range(%i.fst(S i))),lub(range(%i.snd(S i)))) "
  (fn prems =>
 	[
 	(cut_facts_tac prems 1),
@@ -166,9 +166,12 @@ qed_goal "lub_cprod" Cprod2.thy
 	]);
 
 val thelub_cprod = (lub_cprod RS thelubI);
-(* "is_chain(?S1) ==> lub(range(?S1)) =                                *)
-(*  <lub(range(%i. fst(?S1(i)))), lub(range(%i. snd(?S1(i))))>"        *)
+(*
+"is_chain ?S1 ==>
+ lub (range ?S1) =
+ (lub (range (%i. fst (?S1 i))), lub (range (%i. snd (?S1 i))))" : thm
 
+*)
 
 qed_goal "cpo_cprod" Cprod2.thy 
 	"is_chain(S::nat=>'a*'b)==>? x.range(S)<<| x"
@@ -178,4 +181,5 @@ qed_goal "cpo_cprod" Cprod2.thy
 	(rtac exI 1),
 	(etac lub_cprod 1)
 	]);
+
 

@@ -24,7 +24,8 @@ rules
 
 inst_fun_po	"((op <<)::['a=>'b::po,'a=>'b::po ]=>bool) = less_fun"
 
-(* definitions *)
+defs
+
 (* The least element in type 'a::term => 'b::pcpo *)
 
 UU_fun_def	"UU_fun == (% x.UU)"

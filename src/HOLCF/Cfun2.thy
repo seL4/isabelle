@@ -21,7 +21,7 @@ rules
 
 inst_cfun_po	"((op <<)::['a->'b,'a->'b]=>bool) = less_cfun"
 
-(* definitions *)
+defs
 (* The least element in type 'a->'b *)
 
 UU_cfun_def	"UU_cfun == fabs(% x.UU)"

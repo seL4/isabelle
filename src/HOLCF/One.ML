@@ -15,7 +15,7 @@ open One;
 qed_goalw "Exh_one" One.thy [one_def] "z=UU | z = one"
  (fn prems =>
 	[
-	(res_inst_tac [("p","rep_one[z]")] liftE1 1),
+	(res_inst_tac [("p","rep_one`z")] liftE1 1),
 	(rtac disjI1 1),
 	(rtac ((abs_one_iso RS allI) RS ((rep_one_iso RS allI) RS iso_strict )
 		RS conjunct2 RS subst) 1),
@@ -55,7 +55,7 @@ prove_goalw One.thy [one_def] "~one << UU"
 	])
 ];
 
-val  dist_eq_one = [prove_goal One.thy "~one=UU"
+val  dist_eq_one = [prove_goal One.thy "one~=UU"
  (fn prems =>
 	[
 	(rtac not_less2not_eq 1),
@@ -94,5 +94,5 @@ fun prover s =  prove_goalw One.thy [one_when_def,one_def] s
 	RS iso_strict) RS conjunct1] )1)
 	]);
 
-val one_when = map prover ["one_when[x][UU] = UU","one_when[x][one] = x"];
+val one_when = map prover ["one_when`x`UU = UU","one_when`x`one = x"];
 
