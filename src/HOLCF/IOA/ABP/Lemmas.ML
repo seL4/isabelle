@@ -8,7 +8,7 @@
 (* Logic *)
 
 val prems = goal HOL.thy "(P ==> Q-->R) ==> P&Q --> R";
-  by(fast_tac (!claset addDs prems) 1);
+  by(fast_tac (claset() addDs prems) 1);
 qed "imp_conj_lemma";
 
 goal HOL.thy "(~(A&B)) = ((~A)&B| ~B)";
@@ -42,7 +42,7 @@ val de_morgan = result();
 
 (* Lists *)
 
-val list_ss = simpset_of "List";
+val list_ss = simpset_of List.thy;
 
 goal List.thy "hd(l@m) = (if l~=[] then hd(l) else hd(m))";
 by (List.list.induct_tac "l" 1);

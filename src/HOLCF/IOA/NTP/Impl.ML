@@ -33,7 +33,7 @@ goal Impl.thy
 \  fst(snd(x)) = rec(x)       & \
 \  fst(snd(snd(x))) = srch(x) & \
 \  snd(snd(snd(x))) = rsch(x)";
-by(simp_tac (!simpset addsimps
+by(simp_tac (simpset() addsimps
              [sen_def,rec_def,srch_def,rsch_def]) 1);
 Addsimps [result()];
 
@@ -51,12 +51,12 @@ Delsimps [split_paired_All];
 (* Three Simp_sets in different sizes 
 ----------------------------------------------
 
-1) !simpset does not unfold the transition relations 
+1) simpset() does not unfold the transition relations 
 2) ss unfolds transition relations 
 3) renname_ss unfolds transitions and the abstract channel *)
 
 
-val ss = (!simpset addcongs [if_weak_cong]
+val ss = (simpset() addcongs [if_weak_cong]
                    addsimps transitions);     
 val rename_ss = (ss addsimps unfold_renaming);
 
@@ -73,18 +73,18 @@ val tac_ren = asm_simp_tac ((rename_ss addcongs [conj_cong])
 
 goalw Impl.thy impl_ioas "invariant impl_ioa inv1";
 by (rtac invariantI 1);
-by(asm_full_simp_tac (!simpset
+by(asm_full_simp_tac (simpset()
    addsimps [inv1_def, hdr_sum_def, Sender.srcvd_def,
              Sender.ssent_def, Receiver.rsent_def,Receiver.rrcvd_def]) 1);
 
-by(simp_tac (!simpset delsimps [trans_of_par4]
+by(simp_tac (simpset() delsimps [trans_of_par4]
                 addsimps [fork_lemma,inv1_def]) 1);
 
 (* Split proof in two *)
 by (rtac conjI 1); 
 
 (* First half *)
-by(asm_full_simp_tac (!simpset addsimps [Impl.inv1_def]) 1);
+by(asm_full_simp_tac (simpset() addsimps [Impl.inv1_def]) 1);
 by (rtac Action.action.induct 1);
 
 by (EVERY1[tac, tac, tac, tac]);
@@ -101,7 +101,7 @@ by(EVERY1[tac, tac, tac, tac]);
 
 
 (* Now the other half *)
-by(asm_full_simp_tac (!simpset addsimps [Impl.inv1_def]) 1);
+by(asm_full_simp_tac (simpset() addsimps [Impl.inv1_def]) 1);
 by (rtac Action.action.induct 1);
 by(EVERY1[tac, tac]);
 
@@ -110,7 +110,7 @@ by (tac 1);
 by (tac_ren 1);
 by (rtac impI 1);
 by (REPEAT (etac conjE 1));
-by (asm_simp_tac (!simpset addsimps [hdr_sum_def, Multiset.count_def,
+by (asm_simp_tac (simpset() addsimps [hdr_sum_def, Multiset.count_def,
                                Multiset.countm_nonempty_def]
                      setloop (split_tac [expand_if])) 1);
 (* detour 2 *)
@@ -118,7 +118,7 @@ by (tac 1);
 by (tac_ren 1);
 by (rtac impI 1);
 by (REPEAT (etac conjE 1));
-by (asm_full_simp_tac (!simpset addsimps [Impl.hdr_sum_def, 
+by (asm_full_simp_tac (simpset() addsimps [Impl.hdr_sum_def, 
                                          Multiset.count_def,
                                          Multiset.countm_nonempty_def,
                                          Multiset.delm_nonempty_def,
@@ -139,10 +139,10 @@ by (assume_tac 1);
 
 by (rtac (countm_done_delm RS mp RS sym) 1);
 by (rtac refl 1);
-by (asm_simp_tac (!simpset addsimps [Multiset.count_def]) 1);
+by (asm_simp_tac (simpset() addsimps [Multiset.count_def]) 1);
 
 by (rtac impI 1);
-by (asm_full_simp_tac (!simpset addsimps [neg_flip]) 1);
+by (asm_full_simp_tac (simpset() addsimps [neg_flip]) 1);
 by (hyp_subst_tac 1);
 by (rtac countm_spurious_delm 1);
 by (Simp_tac 1);
@@ -159,12 +159,12 @@ qed "inv1";
 
   by (rtac invariantI1 1); 
   (* Base case *)
-  by (asm_full_simp_tac (!simpset addsimps (inv2_def ::
+  by (asm_full_simp_tac (simpset() addsimps (inv2_def ::
                           (receiver_projections 
                            @ sender_projections @ impl_ioas)))
       1);
 
-  by (asm_simp_tac (!simpset addsimps impl_ioas) 1);
+  by (asm_simp_tac (simpset() addsimps impl_ioas) 1);
   by (Action.action.induct_tac "a" 1);
 
   (* 10 cases. First 4 are simple, since state doesn't change *)
@@ -183,14 +183,14 @@ val tac2 = asm_full_simp_tac (ss addsimps [inv2_def]);
   by (forward_tac [rewrite_rule [Impl.inv1_def]
                                 (inv1 RS invariantE) RS conjunct1] 1);
   by (tac2 1);
-  by (fast_tac (!claset addDs [add_leD1,leD]) 1);
+  by (fast_tac (claset() addDs [add_leD1,leD]) 1);
 
   (* 3 *)
   by (forward_tac [rewrite_rule [Impl.inv1_def] (inv1 RS invariantE)] 1);
 
   by (tac2 1);
   by (fold_tac [rewrite_rule [Packet.hdr_def]Impl.hdr_sum_def]);
-  by (fast_tac (!claset addDs [add_leD1,leD]) 1);
+  by (fast_tac (claset() addDs [add_leD1,leD]) 1);
 
   (* 2 *)
   by (tac2 1);
@@ -223,11 +223,11 @@ goal Impl.thy "invariant impl_ioa inv3";
 
   by (rtac invariantI 1); 
   (* Base case *)
-  by (asm_full_simp_tac (!simpset addsimps 
+  by (asm_full_simp_tac (simpset() addsimps 
                     (Impl.inv3_def :: (receiver_projections 
                                        @ sender_projections @ impl_ioas))) 1);
 
-  by (asm_simp_tac (!simpset addsimps impl_ioas) 1);
+  by (asm_simp_tac (simpset() addsimps impl_ioas) 1);
   by (Action.action.induct_tac "a" 1);
 
 val tac3 = asm_full_simp_tac (ss addsimps [inv3_def] 
@@ -254,7 +254,7 @@ val tac3 = asm_full_simp_tac (ss addsimps [inv3_def]
 
   (* 2 *)
   by (asm_full_simp_tac ss 1);
-  by (simp_tac (!simpset addsimps [inv3_def]) 1);
+  by (simp_tac (simpset() addsimps [inv3_def]) 1);
   by (strip_tac  1 THEN REPEAT (etac conjE 1));
   by (rtac (imp_or_lem RS iffD2) 1);
   by (rtac impI 1);
@@ -265,7 +265,7 @@ val tac3 = asm_full_simp_tac (ss addsimps [inv3_def]
                     ("k","count (rsent(rec s)) (sbit(sen s))")] le_trans 1);
   by (forward_tac [rewrite_rule [inv1_def]
                                 (inv1 RS invariantE) RS conjunct2] 1);
-  by (asm_full_simp_tac (!simpset addsimps
+  by (asm_full_simp_tac (simpset() addsimps
                          [hdr_sum_def, Multiset.count_def]) 1);
   by (rtac (less_eq_add_cong RS mp RS mp) 1);
   by (rtac countm_props 1);
@@ -298,11 +298,11 @@ goal Impl.thy "invariant impl_ioa inv4";
 
   by (rtac invariantI 1); 
   (* Base case *)
-  by (asm_full_simp_tac (!simpset addsimps 
+  by (asm_full_simp_tac (simpset() addsimps 
                     (Impl.inv4_def :: (receiver_projections 
                                        @ sender_projections @ impl_ioas))) 1);
 
-  by (asm_simp_tac (!simpset addsimps impl_ioas) 1);
+  by (asm_simp_tac (simpset() addsimps impl_ioas) 1);
   by (Action.action.induct_tac "a" 1);
 
 val tac4 =  asm_full_simp_tac (ss addsimps [inv4_def]

@@ -37,7 +37,7 @@ qed_goal "oneE" thy
 fun prover t = prove_goalw thy [ONE_def] t
  (fn prems =>
         [
-	(asm_simp_tac (!simpset addsimps [inst_lift_po]) 1)
+	(asm_simp_tac (simpset() addsimps [inst_lift_po]) 1)
 	]);
 
 (* ------------------------------------------------------------------------ *)

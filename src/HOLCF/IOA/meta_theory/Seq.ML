@@ -357,32 +357,32 @@ by (Simp_tac 1);
 by (Simp_tac 1);
 by (Simp_tac 1);
 (* main case *)
-by (asm_full_simp_tac (!simpset setloop split_If_tac) 1);
+by (asm_full_simp_tac (simpset() setloop split_If_tac) 1);
 qed"sfiltersconc";
 
 goal thy "sforall P (stakewhile`P`x)";
-by (simp_tac (!simpset addsimps [sforall_def]) 1);
+by (simp_tac (simpset() addsimps [sforall_def]) 1);
 by (res_inst_tac[("x","x")] seq.ind 1);
 (* adm *)
-by (simp_tac (!simpset addsimps [adm_trick_1]) 1);
+by (simp_tac (simpset() addsimps [adm_trick_1]) 1);
 (* base cases *)
 by (Simp_tac 1);
 by (Simp_tac 1);
 (* main case *)
-by (asm_full_simp_tac (!simpset setloop split_If_tac) 1);
+by (asm_full_simp_tac (simpset() setloop split_If_tac) 1);
 qed"sforallPstakewhileP";
 
 goal thy "sforall P (sfilter`P`x)";
-by (simp_tac (!simpset addsimps [sforall_def]) 1);
+by (simp_tac (simpset() addsimps [sforall_def]) 1);
 by (res_inst_tac[("x","x")] seq.ind 1);
 (* adm *)
 (* FIX should be refined in _one_ tactic *)
-by (simp_tac (!simpset addsimps [adm_trick_1]) 1);
+by (simp_tac (simpset() addsimps [adm_trick_1]) 1);
 (* base cases *)
 by (Simp_tac 1);
 by (Simp_tac 1);
 (* main case *)
-by (asm_full_simp_tac (!simpset setloop split_If_tac) 1);
+by (asm_full_simp_tac (simpset() setloop split_If_tac) 1);
 qed"forallPsfilterP";
 
 
@@ -413,7 +413,7 @@ qed"Finite_UU";
 goal thy "Finite x --> a~=UU --> x=a##xs --> Finite xs";
 by (strip_tac 1);
 by (etac sfinite.elim 1);
-by (fast_tac (HOL_cs addss !simpset) 1);
+by (fast_tac (HOL_cs addss simpset()) 1);
 by (fast_tac (HOL_cs addSDs seq.injects) 1);
 qed"Finite_cons_a";
 
@@ -471,13 +471,13 @@ qed"seq_finite_ind";
    ------------------------------------------------------------------ *)
 
 goal thy "seq_finite nil";
-by (simp_tac (!simpset addsimps [seq.sfinite_def]) 1);
+by (simp_tac (simpset() addsimps [seq.sfinite_def]) 1);
 by (res_inst_tac [("x","Suc 0")] exI 1);
-by (simp_tac (!simpset addsimps seq.rews) 1);
+by (simp_tac (simpset() addsimps seq.rews) 1);
 qed"seq_finite_nil";
 
 goal thy "seq_finite UU";
-by (simp_tac (!simpset addsimps [seq.sfinite_def]) 1);
+by (simp_tac (simpset() addsimps [seq.sfinite_def]) 1);
 qed"seq_finite_UU";
 
 Addsimps[seq_finite_nil,seq_finite_UU];
@@ -494,9 +494,9 @@ goal thy "!!P.[| P nil; \
 by (rtac (logic_lemma RS mp RS mp) 1);
 by (rtac trf_impl_tf 1);
 by (rtac seq_finite_ind 1);
-by (simp_tac (!simpset addsimps [Finite_def]) 1);
-by (simp_tac (!simpset addsimps [Finite_def]) 1);
-by (asm_full_simp_tac (!simpset addsimps [Finite_def]) 1);
+by (simp_tac (simpset() addsimps [Finite_def]) 1);
+by (simp_tac (simpset() addsimps [Finite_def]) 1);
+by (asm_full_simp_tac (simpset() addsimps [Finite_def]) 1);
 qed"Finite_ind";
 
 
@@ -505,17 +505,17 @@ by (rtac seq.ind 1);
 (* adm *)
 (* hier grosses Problem !!!!!!!!!!!!!!! *)
 
-by (simp_tac (!simpset addsimps [Finite_def]) 2);
-by (simp_tac (!simpset addsimps [Finite_def]) 2);
+by (simp_tac (simpset() addsimps [Finite_def]) 2);
+by (simp_tac (simpset() addsimps [Finite_def]) 2);
 
 (* main case *)
-by (asm_full_simp_tac (!simpset addsimps [Finite_def,seq.sfinite_def]) 2);
+by (asm_full_simp_tac (simpset() addsimps [Finite_def,seq.sfinite_def]) 2);
 by (rtac impI 2);
 by (rotate_tac 2 2);
 by (Asm_full_simp_tac 2);
 by (etac exE 2);
 by (res_inst_tac [("x","Suc n")] exI 2);
-by (asm_full_simp_tac (!simpset addsimps seq.rews) 2);
+by (asm_full_simp_tac (simpset() addsimps seq.rews) 2);
 qed"tf_is_trf";
 
 *)

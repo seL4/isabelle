@@ -373,7 +373,7 @@ val n_eqs = length eqs;
 (* ----- theorems concerning finite approximation and finite induction ------ *)
 
 local
-  val iterate_Cprod_ss = simpset_of "Fix"
+  val iterate_Cprod_ss = simpset_of Fix.thy
                          addsimps [cfst_strict, csnd_strict]addsimps Cprod_rews;
   val copy_con_rews  = copy_rews @ con_rews;
   val copy_take_defs =(if n_eqs = 1 then [] else [ax_copy2_def]) @ axs_take_def;

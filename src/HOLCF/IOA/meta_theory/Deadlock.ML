@@ -12,14 +12,14 @@ Deadlock freedom of I/O Automata
 
 goal thy "!! sch. [| Filter (%x. x:act A)`sch : schedules A; a:inp A; input_enabled A; Finite sch|] \
 \         ==> Filter (%x. x:act A)`sch @@ a>>nil : schedules A";
-by (asm_full_simp_tac (!simpset addsimps [schedules_def,has_schedule_def]) 1);
+by (asm_full_simp_tac (simpset() addsimps [schedules_def,has_schedule_def]) 1);
 by (safe_tac set_cs);
 by (forward_tac  [inp_is_act] 1);
-by (asm_full_simp_tac (!simpset addsimps [executions_def]) 1);
+by (asm_full_simp_tac (simpset() addsimps [executions_def]) 1);
 by (pair_tac "ex" 1);
 ren "sch s ex" 1;
 by (subgoal_tac "Finite ex" 1);
-by (asm_full_simp_tac (!simpset addsimps [filter_act_def]) 2);
+by (asm_full_simp_tac (simpset() addsimps [filter_act_def]) 2);
 by (rtac (Map2Finite RS iffD1) 2);
 by (res_inst_tac [("t","Map fst`ex")] subst 2);
 by (assume_tac 2);
@@ -29,7 +29,7 @@ by (forward_tac [exists_laststate] 1);
 by (etac allE 1);
 by (etac exE 1);
 (* using input-enabledness *)
-by (asm_full_simp_tac (!simpset addsimps [input_enabled_def]) 1);
+by (asm_full_simp_tac (simpset() addsimps [input_enabled_def]) 1);
 by (REPEAT (etac conjE 1));
 by (eres_inst_tac [("x","a")] allE 1);
 by (Asm_full_simp_tac 1);
@@ -37,7 +37,7 @@ by (eres_inst_tac [("x","u")] allE 1);
 by (etac exE 1);
 (* instantiate execution *)
 by (res_inst_tac [("x","(s,ex @@ (a,s2)>>nil)")] exI 1);
-by (asm_full_simp_tac (!simpset addsimps [filter_act_def,MapConc]) 1);
+by (asm_full_simp_tac (simpset() addsimps [filter_act_def,MapConc]) 1);
 by (eres_inst_tac [("t","u")] lemma_2_1 1);
 by (Asm_full_simp_tac 1);
 by (rtac sym 1);
@@ -55,10 +55,10 @@ goal thy "!! sch. [| a : local A; Finite sch; sch : schedules (A||B); \
 \            Filter (%x. x:act A)`(sch @@ a>>nil) : schedules A; compatible A B; input_enabled B |] \
 \          ==> (sch @@ a>>nil) : schedules (A||B)";
 
-by (asm_full_simp_tac (!simpset addsimps [compositionality_sch,locals_def]) 1);
+by (asm_full_simp_tac (simpset() addsimps [compositionality_sch,locals_def]) 1);
 by (rtac conjI 1);
 (* a : act (A||B) *)
-by (asm_full_simp_tac (!simpset addsimps [actions_of_par]) 2);
+by (asm_full_simp_tac (simpset() addsimps [actions_of_par]) 2);
 by (rtac disjI1 2);
 by (etac disjE 2);
 by (etac int_is_act 2);

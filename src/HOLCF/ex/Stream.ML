@@ -169,14 +169,14 @@ qed_goalw "stream_take_more" thy [stream.take_def]
 val stream_take_lemma2 = prove_goal thy 
  "! s2. stream_take n`s2 = s2 --> stream_take (Suc n)`s2=s2" (fn prems => [
 	(nat_ind_tac "n" 1),
-	(simp_tac (!simpset addsimps stream_rews) 1),
+	(simp_tac (simpset() addsimps stream_rews) 1),
 	(strip_tac 1),
 	(hyp_subst_tac  1),
-	(simp_tac (!simpset addsimps stream_rews) 1),
+	(simp_tac (simpset() addsimps stream_rews) 1),
 	(rtac allI 1),
 	(res_inst_tac [("s","s2")] streamE 1),
-	(asm_simp_tac (!simpset addsimps stream_rews) 1),
-	(asm_simp_tac (!simpset addsimps stream_rews) 1),
+	(asm_simp_tac (simpset() addsimps stream_rews) 1),
+	(asm_simp_tac (simpset() addsimps stream_rews) 1),
 	(strip_tac 1 ),
 	(subgoal_tac "stream_take n1`xs = xs" 1),
 	(rtac ((hd stream_inject) RS conjunct2) 2),

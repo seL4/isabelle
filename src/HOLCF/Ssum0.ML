@@ -388,6 +388,6 @@ qed_goalw "Iwhen3" Ssum0.thy [Iwhen_def]
 (* instantiate the simplifier                                               *)
 (* ------------------------------------------------------------------------ *)
 
-val Ssum0_ss = (simpset_of "Cfun3") addsimps 
+val Ssum0_ss = (simpset_of Cfun3.thy) addsimps 
                 [(strict_IsinlIsinr RS sym),Iwhen1,Iwhen2,Iwhen3];
 

@@ -27,7 +27,7 @@ by (rtac trans 1);
 by (rtac fix_eq2 1);
 by (rtac corresp_exC_def 1);
 by (rtac beta_cfun 1);
-by (simp_tac (!simpset addsimps [flift1_def]) 1);
+by (simp_tac (simpset() addsimps [flift1_def]) 1);
 qed"corresp_exC_unfold";
 
 goal thy "(corresp_exC A f`UU) s=UU";
@@ -45,7 +45,7 @@ goal thy "(corresp_exC A f`(at>>xs)) s = \
 \          @@ ((corresp_exC A f`xs) (snd at))";
 by (rtac trans 1);
 by (stac corresp_exC_unfold 1);
-by (asm_full_simp_tac (!simpset addsimps [Cons_def,flift1_def]) 1);
+by (asm_full_simp_tac (simpset() addsimps [Cons_def,flift1_def]) 1);
 by (Simp_tac 1);
 qed"corresp_exC_cons";
 
@@ -77,7 +77,7 @@ goal thy
 \    is_exec_frag A (f s,@x. move A x (f s) a (f t))";
 by (cut_inst_tac [] move_is_move 1);
 by (REPEAT (assume_tac 1));
-by (asm_full_simp_tac (!simpset addsimps [move_def]) 1);
+by (asm_full_simp_tac (simpset() addsimps [move_def]) 1);
 qed"move_subprop1";
 
 goal thy
@@ -85,7 +85,7 @@ goal thy
 \    Finite ((@x. move A x (f s) a (f t)))";
 by (cut_inst_tac [] move_is_move 1);
 by (REPEAT (assume_tac 1));
-by (asm_full_simp_tac (!simpset addsimps [move_def]) 1);
+by (asm_full_simp_tac (simpset() addsimps [move_def]) 1);
 qed"move_subprop2";
 
 goal thy
@@ -93,7 +93,7 @@ goal thy
 \    laststate (f s,@x. move A x (f s) a (f t)) = (f t)";
 by (cut_inst_tac [] move_is_move 1);
 by (REPEAT (assume_tac 1));
-by (asm_full_simp_tac (!simpset addsimps [move_def]) 1);
+by (asm_full_simp_tac (simpset() addsimps [move_def]) 1);
 qed"move_subprop3";
 
 goal thy
@@ -103,7 +103,7 @@ goal thy
 
 by (cut_inst_tac [] move_is_move 1);
 by (REPEAT (assume_tac 1));
-by (asm_full_simp_tac (!simpset addsimps [move_def]) 1);
+by (asm_full_simp_tac (simpset() addsimps [move_def]) 1);
 qed"move_subprop4";
 
 
@@ -120,7 +120,7 @@ section "Lemmata for <==";
 
 
 goal thy "mk_trace C`(ex1 @@ ex2)= (mk_trace C`ex1) @@ (mk_trace C`ex2)";
-by (simp_tac (!simpset addsimps [mk_trace_def,filter_act_def,
+by (simp_tac (simpset() addsimps [mk_trace_def,filter_act_def,
                                  FilterConc,MapConc]) 1);
 qed"mk_traceConc";
 
@@ -138,12 +138,12 @@ goalw thy [corresp_ex_def]
 by (pair_induct_tac "xs" [is_exec_frag_def] 1);
 (* cons case *) 
 by (safe_tac set_cs);
-by (asm_full_simp_tac (!simpset addsimps [mk_traceConc]) 1);
+by (asm_full_simp_tac (simpset() addsimps [mk_traceConc]) 1);
 by (forward_tac [reachable.reachable_n] 1);
 by (assume_tac 1);
 by (eres_inst_tac [("x","y")] allE 1);
 by (Asm_full_simp_tac 1);
-by (asm_full_simp_tac (!simpset addsimps [move_subprop4] 
+by (asm_full_simp_tac (simpset() addsimps [move_subprop4] 
                           setloop split_tac [expand_if] ) 1);
 qed"lemma_1";
 
@@ -224,7 +224,7 @@ goalw thy [traces_def]
   "!!f. [| ext C = ext A; is_ref_map f C A |] \
 \          ==> traces C <= traces A"; 
 
-  by (simp_tac(!simpset addsimps [has_trace_def2])1);
+  by (simp_tac(simpset() addsimps [has_trace_def2])1);
   by (safe_tac set_cs);
 
   (* give execution of abstract automata *)
@@ -234,17 +234,17 @@ goalw thy [traces_def]
   by (pair_tac "ex" 1);
   by (etac (lemma_1 RS spec RS mp) 1);
   by (REPEAT (atac 1));
-  by (asm_full_simp_tac (!simpset addsimps [executions_def,reachable.reachable_0]) 1);
+  by (asm_full_simp_tac (simpset() addsimps [executions_def,reachable.reachable_0]) 1);
  
   (* corresp_ex is execution, Lemma 2 *)
   by (pair_tac "ex" 1);
-  by (asm_full_simp_tac (!simpset addsimps [executions_def]) 1);
+  by (asm_full_simp_tac (simpset() addsimps [executions_def]) 1);
   (* start state *) 
   by (rtac conjI 1);
-  by (asm_full_simp_tac (!simpset addsimps [is_ref_map_def,corresp_ex_def]) 1);
+  by (asm_full_simp_tac (simpset() addsimps [is_ref_map_def,corresp_ex_def]) 1);
   (* is-execution-fragment *)
   by (etac (lemma_2 RS spec RS mp) 1);
-  by (asm_full_simp_tac (!simpset addsimps [reachable.reachable_0]) 1);
+  by (asm_full_simp_tac (simpset() addsimps [reachable.reachable_0]) 1);
 qed"trace_inclusion"; 
 
 

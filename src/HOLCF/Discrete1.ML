@@ -22,7 +22,7 @@ qed "discr_chain0";
 
 goal thy
  "!!S::nat=>('a::term)discr. is_chain(S) ==> range(S) = {S 0}";
-by (fast_tac (!claset addEs [discr_chain0]) 1);
+by (fast_tac (claset() addEs [discr_chain0]) 1);
 qed "discr_chain_range0";
 Addsimps [discr_chain_range0];
 

@@ -23,7 +23,7 @@ qed_goal "inst_fun_po" thy "(op <<)=(%f g.!x. f x << g x)"
 qed_goal "minimal_fun" thy "(%z. UU) << x"
 (fn prems =>
         [
-        (simp_tac (!simpset addsimps [inst_fun_po,minimal]) 1)
+        (simp_tac (simpset() addsimps [inst_fun_po,minimal]) 1)
         ]);
 
 bind_thm ("UU_fun_def",minimal_fun RS minimal2UU RS sym);

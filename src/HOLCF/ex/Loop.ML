@@ -119,7 +119,7 @@ val loop_lemma3 = prove_goal Loop.thy
         (nat_ind_tac "k" 1),
         (Asm_simp_tac 1),
         (strip_tac 1),
-        (simp_tac (!simpset addsimps [step_def2]) 1),
+        (simp_tac (simpset() addsimps [step_def2]) 1),
         (res_inst_tac [("p","b`(iterate k (step`b`g) x)")] trE 1),
         (etac notE 1),
         (asm_simp_tac (HOLCF_ss addsimps [step_def2] ) 1),

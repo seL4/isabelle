@@ -70,7 +70,7 @@ qed_goalw "chain_is_tord" thy [is_tord]
         [
         Safe_tac,
         (rtac nat_less_cases 1),
-        (ALLGOALS (fast_tac (!claset addIs [refl_less, chain_mono RS mp])))]);
+        (ALLGOALS (fast_tac (claset() addIs [refl_less, chain_mono RS mp])))]);
 
 (* ------------------------------------------------------------------------ *)
 (* technical lemmas about lub and is_lub                                    *)
@@ -114,7 +114,7 @@ qed_goal "thelubI" thy "M <<| l ==> lub(M) = l"
 
 goal thy "lub{x} = x";
 by (rtac thelubI 1);
-by (simp_tac (!simpset addsimps [is_lub,is_ub]) 1);
+by (simp_tac (simpset() addsimps [is_lub,is_ub]) 1);
 qed "lub_singleton";
 Addsimps [lub_singleton];
 

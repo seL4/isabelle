@@ -339,7 +339,7 @@ bind_thm ("cont_Istrictify2", contlub_Istrictify2 RS
 
 qed_goalw "strictify1" thy [strictify_def] "strictify`f`UU=UU" (fn _ => [
         (stac beta_cfun 1),
-         (simp_tac (!simpset addsimps [cont_Istrictify2,cont_Istrictify1,
+         (simp_tac (simpset() addsimps [cont_Istrictify2,cont_Istrictify1,
 					cont2cont_CF1L]) 1),
         (stac beta_cfun 1),
         (rtac cont_Istrictify2 1),
@@ -349,7 +349,7 @@ qed_goalw "strictify1" thy [strictify_def] "strictify`f`UU=UU" (fn _ => [
 qed_goalw "strictify2" thy [strictify_def]
         "~x=UU ==> strictify`f`x=f`x"  (fn prems => [
         (stac beta_cfun 1),
-         (simp_tac (!simpset addsimps [cont_Istrictify2,cont_Istrictify1,
+         (simp_tac (simpset() addsimps [cont_Istrictify2,cont_Istrictify1,
 					cont2cont_CF1L]) 1),
         (stac beta_cfun 1),
         (rtac cont_Istrictify2 1),
@@ -370,7 +370,7 @@ Addsimps [minimal,refl_less,beta_cfun,strict_fapp1,strictify1, strictify2];
 (* ------------------------------------------------------------------------ *)
 
 (* HINT: cont_tac is now installed in simplifier in Lift.ML ! *)
-(*simpset := !simpset addsolver (K (DEPTH_SOLVE_1 o cont_tac));*)
+(*simpset_ref() := simpset() addsolver (K (DEPTH_SOLVE_1 o cont_tac));*)
 
 (* ------------------------------------------------------------------------ *)
 (* some lemmata for functions with flat/chain_finite domain/range types	    *)

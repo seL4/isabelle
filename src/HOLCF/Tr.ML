@@ -16,7 +16,7 @@ qed_goalw "Exh_tr" thy [FF_def,TT_def] "t=UU | t = TT | t = FF"
         [
 	(lift.induct_tac "t" 1),
 	(fast_tac HOL_cs 1),
-	(fast_tac (HOL_cs addss !simpset) 1)
+	(fast_tac (HOL_cs addss simpset()) 1)
 	]);
 
 qed_goal "trE" thy
@@ -40,7 +40,7 @@ fun prover t =  prove_goal thy t
  (fn prems =>
         [
         (res_inst_tac [("p","y")] trE 1),
-	(REPEAT(asm_simp_tac (!simpset addsimps 
+	(REPEAT(asm_simp_tac (simpset() addsimps 
 		[o_def,flift1_def,flift2_def,inst_lift_po]@tr_defs) 1))
 	]);
 
@@ -129,28 +129,28 @@ auto();
 qed"andalso_and";
 
 goal thy "(Def x ~=FF)= x";
-by (simp_tac (!simpset addsimps [FF_def]) 1);
+by (simp_tac (simpset() addsimps [FF_def]) 1);
 qed"Def_bool1";
 
 goal thy "(Def x = FF) = (~x)";
-by (simp_tac (!simpset addsimps [FF_def]) 1);
+by (simp_tac (simpset() addsimps [FF_def]) 1);
 by (fast_tac HOL_cs 1);
 qed"Def_bool2";
 
 goal thy "(Def x = TT) = x";
-by (simp_tac (!simpset addsimps [TT_def]) 1);
+by (simp_tac (simpset() addsimps [TT_def]) 1);
 qed"Def_bool3";
 
 goal thy "(Def x ~= TT) = (~x)";
-by (simp_tac (!simpset addsimps [TT_def]) 1);
+by (simp_tac (simpset() addsimps [TT_def]) 1);
 qed"Def_bool4";
 
 goal thy 
   "(If Def P then A else B fi)= (if P then A else B)";
 by (res_inst_tac [("p","Def P")]  trE 1);
 by (Asm_full_simp_tac 1);
-by (asm_full_simp_tac (!simpset addsimps tr_defs@[flift1_def,o_def]) 1);
-by (asm_full_simp_tac (!simpset addsimps tr_defs@[flift1_def,o_def]) 1);
+by (asm_full_simp_tac (simpset() addsimps tr_defs@[flift1_def,o_def]) 1);
+by (asm_full_simp_tac (simpset() addsimps tr_defs@[flift1_def,o_def]) 1);
 qed"If_and_if";
 
 Addsimps [Def_bool1,Def_bool2,Def_bool3,Def_bool4];

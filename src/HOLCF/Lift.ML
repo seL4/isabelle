@@ -28,7 +28,7 @@ by (rtac cont2cont_CF1L_rev 1);
 by (strip_tac 1);
 by (res_inst_tac [("x","y")] Lift_cases 1);
 by (Asm_simp_tac 1);
-by (fast_tac (HOL_cs addss !simpset) 1);
+by (fast_tac (HOL_cs addss simpset()) 1);
 qed"cont_flift1_not_arg";
 
 (* flift1 is continuous in a variable that occurs either 
@@ -69,11 +69,11 @@ Addsimps cont_lemmas_ext;
 fun cont_tac  i = resolve_tac cont_lemmas2 i;
 fun cont_tacR i = REPEAT (cont_tac i);
 
-fun cont_tacRs i = simp_tac (!simpset addsimps [flift1_def,flift2_def]) i THEN
+fun cont_tacRs i = simp_tac (simpset() addsimps [flift1_def,flift2_def]) i THEN
                   REPEAT (cont_tac i);
 
 
-simpset := !simpset addSolver (K (DEPTH_SOLVE_1 o cont_tac));
+simpset_ref() := simpset() addSolver (K (DEPTH_SOLVE_1 o cont_tac));
 
 
 
@@ -83,19 +83,19 @@ simpset := !simpset addSolver (K (DEPTH_SOLVE_1 o cont_tac));
 
 
 goal thy "flift1 f`(Def x) = (f x)";
-by (simp_tac (!simpset addsimps [flift1_def]) 1);
+by (simp_tac (simpset() addsimps [flift1_def]) 1);
 qed"flift1_Def";
 
 goal thy "flift2 f`(Def x) = Def (f x)";
-by (simp_tac (!simpset addsimps [flift2_def]) 1);
+by (simp_tac (simpset() addsimps [flift2_def]) 1);
 qed"flift2_Def";
 
 goal thy "flift1 f`UU = UU";
-by (simp_tac (!simpset addsimps [flift1_def]) 1);
+by (simp_tac (simpset() addsimps [flift1_def]) 1);
 qed"flift1_UU";
 
 goal thy "flift2 f`UU = UU";
-by (simp_tac (!simpset addsimps [flift2_def]) 1);
+by (simp_tac (simpset() addsimps [flift2_def]) 1);
 qed"flift2_UU";
 
 Addsimps [flift1_Def,flift2_Def,flift1_UU,flift2_UU];

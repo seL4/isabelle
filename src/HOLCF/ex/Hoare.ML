@@ -136,7 +136,7 @@ val hoare_lemma9 = prove_goal Hoare.thy
         (res_inst_tac [("s","TT"),("t","b1`(iterate k g x)")] ssubst 1),
         (rtac mp 1),
         (etac spec 1),
-        (simp_tac (!simpset addsimps [less_Suc_eq]) 1),
+        (simp_tac (simpset() addsimps [less_Suc_eq]) 1),
         (simp_tac HOLCF_ss 1),
         (etac mp 1),
         (strip_tac 1),
@@ -153,7 +153,7 @@ val hoare_lemma24 = prove_goal Hoare.thy
         [
         (nat_ind_tac "k" 1),
         (Simp_tac 1),
-(simp_tac (!simpset addsimps [less_Suc_eq]) 1),
+(simp_tac (simpset() addsimps [less_Suc_eq]) 1),
         (strip_tac 1),
         (res_inst_tac [("s","q`(iterate k g x)")] trans 1),
         (rtac trans 1),
@@ -210,7 +210,7 @@ val hoare_lemma11 = prove_goal Hoare.thy
         (simp_tac HOLCF_ss 1),
         (rtac trans 1),
         (rtac p_def3 1),
-        (simp_tac (!simpset delsimps [iterate_Suc]
+        (simp_tac (simpset() delsimps [iterate_Suc]
                             addsimps [iterate_Suc RS sym]) 1),
         (eres_inst_tac [("s","FF")] ssubst 1),
         (simp_tac HOLCF_ss 1)

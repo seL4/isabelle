@@ -83,7 +83,7 @@ goal Correctness.thy "l~=[] --> reverse(reduce(l))~=[]";
 by (List.list.induct_tac "l" 1);
 by (Simp_tac 1);
 by (case_tac "list =[]" 1);
-by (asm_full_simp_tac (!simpset addsimps [reverse_Cons]) 1);
+by (asm_full_simp_tac (simpset() addsimps [reverse_Cons]) 1);
 (* main case *)
 by (rotate 1 1);
 by (Asm_full_simp_tac 1);
@@ -93,7 +93,7 @@ by (REPEAT (etac exE 1));
 by (Asm_simp_tac 1);
 by (rtac (expand_if RS ssubst) 1);
 by (hyp_subst_tac 1);
-by (asm_full_simp_tac (!simpset addsimps [reverse_Cons]) 1); 
+by (asm_full_simp_tac (simpset() addsimps [reverse_Cons]) 1); 
 qed"rev_red_not_nil";
 
 (* shows applicability of the induction hypothesis of the following Lemma 1 *)
@@ -109,7 +109,7 @@ goal Correctness.thy "!!l.[| l~=[] |] ==>   \
                           (rev_red_not_nil RS mp)])  1);
 qed"last_ind_on_first";
 
-val impl_ss = !simpset delsimps [reduce_Cons];
+val impl_ss = simpset() delsimps [reduce_Cons];
 
 (* Main Lemma 1 for S_pkt in showing that reduce is refinement  *) 
 goal Correctness.thy 
@@ -122,7 +122,7 @@ by (rtac conjI 1);
 by (List.list.induct_tac "l" 1);
 by (Simp_tac 1);
 by (case_tac "list=[]" 1);
- by (asm_full_simp_tac (!simpset addsimps [reverse_Nil,reverse_Cons]) 1);
+ by (asm_full_simp_tac (simpset() addsimps [reverse_Nil,reverse_Cons]) 1);
  by (rtac impI 1);
 by (Simp_tac 1);
 by (cut_inst_tac [("l","list")] cons_not_nil 1);
@@ -131,16 +131,16 @@ by (cut_inst_tac [("l","list")] cons_not_nil 1);
  by (hyp_subst_tac 1);
 by (asm_full_simp_tac (impl_ss addsimps [last_ind_on_first,l_iff_red_nil]) 1);
 (* <-- *)
-by (simp_tac (!simpset addsimps [and_de_morgan_and_absorbe,l_iff_red_nil]) 1);
+by (simp_tac (simpset() addsimps [and_de_morgan_and_absorbe,l_iff_red_nil]) 1);
 by (List.list.induct_tac "l" 1);
 by (Simp_tac 1);
 by (case_tac "list=[]" 1);
 by (cut_inst_tac [("l","list")] cons_not_nil 2);
-by (asm_full_simp_tac (!simpset setloop split_tac [expand_if]) 1);
-by (auto_tac (!claset, 
+by (asm_full_simp_tac (simpset() setloop split_tac [expand_if]) 1);
+by (auto_tac (claset(), 
 	      impl_ss addsimps [last_ind_on_first,l_iff_red_nil] 
                       setloop split_tac [expand_if]));
-by (asm_full_simp_tac (!simpset setloop split_tac [expand_if]) 1);
+by (asm_full_simp_tac (simpset() setloop split_tac [expand_if]) 1);
 qed"reduce_hd";
 
 
@@ -156,7 +156,7 @@ by (REPEAT (etac exE 1));
 by (Asm_full_simp_tac 1);
 by (rtac (expand_if RS ssubst) 1);
 by (rtac conjI 1);
-by (simp_tac (!simpset addsimps [and_de_morgan_and_absorbe]) 2);
+by (simp_tac (simpset() addsimps [and_de_morgan_and_absorbe]) 2);
 by (Step_tac 1);
 by (ALLGOALS (cut_inst_tac [("l","xs")] cons_not_nil));
 by (Auto_tac());
@@ -169,13 +169,13 @@ val reduce_tl =result();
 
 goal Correctness.thy 
       "is_weak_ref_map reduce ch_ioa ch_fin_ioa";
-by (simp_tac (!simpset addsimps [is_weak_ref_map_def]) 1);
+by (simp_tac (simpset() addsimps [is_weak_ref_map_def]) 1);
 (* ---------------- main-part ------------------- *)
 by (REPEAT (rtac allI 1));
 by (rtac imp_conj_lemma 1);
 by (abs_action.induct_tac "a" 1);
 (* ----------------- 2 cases ---------------------*)
-by (ALLGOALS (simp_tac (!simpset addsimps [externals_def])));
+by (ALLGOALS (simp_tac (simpset() addsimps [externals_def])));
 (* fst case --------------------------------------*)
  by (rtac impI 1);
  by (rtac disjI2 1);
@@ -184,9 +184,9 @@ by (rtac reduce_hd 1);
  by (rtac impI 1);
  by (REPEAT (etac conjE 1));
  by (etac disjE 1);
-by (asm_full_simp_tac (!simpset addsimps [l_iff_red_nil]) 1);
+by (asm_full_simp_tac (simpset() addsimps [l_iff_red_nil]) 1);
 by (etac (hd_is_reduce_hd RS mp) 1); 
-by (asm_full_simp_tac (!simpset addsimps [l_iff_red_nil]) 1);
+by (asm_full_simp_tac (simpset() addsimps [l_iff_red_nil]) 1);
 by (rtac conjI 1);
 by (etac (hd_is_reduce_hd RS mp) 1); 
 by (rtac (bool_if_impl_or RS mp) 1);
@@ -210,7 +210,7 @@ qed"receiver_abstraction";
    the absence of internal actions. *)
 goal Correctness.thy 
       "is_weak_ref_map (%id. id) sender_ioa sender_ioa";
-by (simp_tac (!simpset addsimps [is_weak_ref_map_def]) 1);
+by (simp_tac (simpset() addsimps [is_weak_ref_map_def]) 1);
 by (TRY(
    (rtac conjI 1) THEN
 (* start states *)
@@ -220,13 +220,13 @@ by (REPEAT (rtac allI 1));
 by (rtac imp_conj_lemma 1);
 by (Action.action.induct_tac "a" 1);
 (* 7 cases *)
-by (ALLGOALS (simp_tac ((!simpset addsimps [externals_def]) setloop (split_tac [expand_if]))));
+by (ALLGOALS (simp_tac ((simpset() addsimps [externals_def]) setloop (split_tac [expand_if]))));
 qed"sender_unchanged";
 
 (* 2 copies of before *)
 goal Correctness.thy 
       "is_weak_ref_map (%id. id) receiver_ioa receiver_ioa";
-by (simp_tac (!simpset addsimps [is_weak_ref_map_def]) 1);
+by (simp_tac (simpset() addsimps [is_weak_ref_map_def]) 1);
 by (TRY(
    (rtac conjI 1) THEN
  (* start states *)
@@ -236,12 +236,12 @@ by (REPEAT (rtac allI 1));
 by (rtac imp_conj_lemma 1);
 by (Action.action.induct_tac "a" 1);
 (* 7 cases *)
-by (ALLGOALS (simp_tac ((!simpset addsimps [externals_def]) setloop (split_tac [expand_if]))));
+by (ALLGOALS (simp_tac ((simpset() addsimps [externals_def]) setloop (split_tac [expand_if]))));
 qed"receiver_unchanged";
 
 goal Correctness.thy 
       "is_weak_ref_map (%id. id) env_ioa env_ioa";
-by (simp_tac (!simpset addsimps [is_weak_ref_map_def]) 1);
+by (simp_tac (simpset() addsimps [is_weak_ref_map_def]) 1);
 by (TRY(
    (rtac conjI 1) THEN
 (* start states *)
@@ -251,11 +251,11 @@ by (REPEAT (rtac allI 1));
 by (rtac imp_conj_lemma 1);
 by (Action.action.induct_tac "a" 1);
 (* 7 cases *)
-by (ALLGOALS (simp_tac ((!simpset addsimps [externals_def]) setloop (split_tac [expand_if]))));
+by (ALLGOALS (simp_tac ((simpset() addsimps [externals_def]) setloop (split_tac [expand_if]))));
 qed"env_unchanged";
 
 goal Correctness.thy "compatible srch_ioa rsch_ioa"; 
-by (simp_tac (!simpset addsimps [compatible_def,Int_def,empty_def]) 1);
+by (simp_tac (simpset() addsimps [compatible_def,Int_def,empty_def]) 1);
 by (rtac set_ext 1);
 by (Action.action.induct_tac "x" 1);
 by (ALLGOALS(Simp_tac));
@@ -263,14 +263,14 @@ val compat_single_ch = result();
 
 (* totally the same as before *)
 goal Correctness.thy "compatible srch_fin_ioa rsch_fin_ioa"; 
-by (simp_tac (!simpset addsimps [compatible_def,Int_def,empty_def]) 1);
+by (simp_tac (simpset() addsimps [compatible_def,Int_def,empty_def]) 1);
 by (rtac set_ext 1);
 by (Action.action.induct_tac "x" 1);
 by (ALLGOALS(Simp_tac));
 val compat_single_fin_ch = result();
 
 val ss =
-  !simpset delsimps ([trans_of_def, srch_asig_def,rsch_asig_def,
+  simpset() delsimps ([trans_of_def, srch_asig_def,rsch_asig_def,
                       asig_of_def, actions_def, srch_trans_def, rsch_trans_def,
                       srch_ioa_def, srch_fin_ioa_def, rsch_fin_ioa_def, 
                       rsch_ioa_def, Sender.sender_trans_def,
@@ -336,7 +336,7 @@ val compat_env_fin=result();
 goal Correctness.thy 
  "externals(asig_of(srch_fin_ioa)) = externals(asig_of(srch_ioa)) &  \
 \ externals(asig_of(rsch_fin_ioa)) = externals(asig_of(rsch_ioa))";
-   by (simp_tac (!simpset addsimps [externals_def]) 1);
+   by (simp_tac (simpset() addsimps [externals_def]) 1);
 val ext_single_ch = result();
 
 
@@ -354,7 +354,7 @@ val abstractions = [env_unchanged,sender_unchanged,
             S o u n d n e s s   o f   A b s t r a c t i o n        
 *************************************************************************)
 
-val ss = !simpset delsimps ([asig_of_def, srch_ioa_def, rsch_ioa_def,
+val ss = simpset() delsimps ([asig_of_def, srch_ioa_def, rsch_ioa_def,
                              srch_fin_ioa_def, rsch_fin_ioa_def] @
                             impl_ioas @ env_ioas);
 

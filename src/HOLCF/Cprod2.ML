@@ -40,7 +40,7 @@ qed_goalw "less_cprod4c" thy [inst_cprod_po RS eq_reflection]
 qed_goal "minimal_cprod" thy  "(UU,UU)<<p"
 (fn prems =>
         [
-        (simp_tac(!simpset addsimps[inst_cprod_po])1)
+        (simp_tac(simpset() addsimps[inst_cprod_po])1)
         ]);
 
 bind_thm ("UU_cprod_def",minimal_cprod RS minimal2UU RS sym);
@@ -62,13 +62,13 @@ qed_goalw "monofun_pair1" thy [monofun] "monofun Pair"
         (strip_tac 1),
         (rtac (less_fun RS iffD2) 1),
         (strip_tac 1),
-        (asm_simp_tac (!simpset addsimps [inst_cprod_po]) 1)
+        (asm_simp_tac (simpset() addsimps [inst_cprod_po]) 1)
         ]);
 
 qed_goalw "monofun_pair2" thy [monofun] "monofun(Pair x)"
  (fn prems =>
         [
-        (asm_simp_tac (!simpset addsimps [inst_cprod_po]) 1)
+        (asm_simp_tac (simpset() addsimps [inst_cprod_po]) 1)
         ]);
 
 qed_goal "monofun_pair" thy "[|x1<<x2; y1<<y2|] ==> (x1::'a::cpo,y1::'b::cpo)<<(x2,y2)"

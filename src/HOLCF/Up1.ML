@@ -9,7 +9,7 @@ open Up1;
 qed_goal "Abs_Up_inverse2" thy "Rep_Up (Abs_Up y) = y"
  (fn prems =>
         [
-	(simp_tac (!simpset addsimps [Up_def,Abs_Up_inverse]) 1)
+	(simp_tac (simpset() addsimps [Up_def,Abs_Up_inverse]) 1)
 	]);
 
 qed_goalw "Exh_Up" thy [Iup_def ]
@@ -90,7 +90,7 @@ qed_goalw "Ifup2"  thy [Ifup_def,Iup_def]
         (rtac refl 1)
         ]);
 
-val Up0_ss = (simpset_of "Cfun3") addsimps [Ifup1,Ifup2];
+val Up0_ss = (simpset_of Cfun3.thy) addsimps [Ifup1,Ifup2];
 
 qed_goalw "less_up1a"  thy [less_up_def]
         "Abs_Up(Inl ())<< z"

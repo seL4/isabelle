@@ -71,8 +71,8 @@ goal thy "!!x.[| x:act A; x~:act B; HD`exA=Def a|] \
 \       (x,snd a,t) >> (mkex2 A B`sch`(TL`exA)`exB) (snd a) t";
 by (rtac trans 1);
 by (stac mkex2_unfold 1);
-by (asm_full_simp_tac (!simpset addsimps [Cons_def,If_and_if]) 1);
-by (asm_full_simp_tac (!simpset addsimps [Cons_def]) 1);
+by (asm_full_simp_tac (simpset() addsimps [Cons_def,If_and_if]) 1);
+by (asm_full_simp_tac (simpset() addsimps [Cons_def]) 1);
 qed"mkex2_cons_1";
 
 goal thy "!!x.[| x~:act A; x:act B; HD`exB=Def b|] \
@@ -80,8 +80,8 @@ goal thy "!!x.[| x~:act A; x:act B; HD`exB=Def b|] \
 \       (x,s,snd b) >> (mkex2 A B`sch`exA`(TL`exB)) s (snd b)";
 by (rtac trans 1);
 by (stac mkex2_unfold 1);
-by (asm_full_simp_tac (!simpset addsimps [Cons_def,If_and_if]) 1);
-by (asm_full_simp_tac (!simpset addsimps [Cons_def]) 1);
+by (asm_full_simp_tac (simpset() addsimps [Cons_def,If_and_if]) 1);
+by (asm_full_simp_tac (simpset() addsimps [Cons_def]) 1);
 qed"mkex2_cons_2";
 
 goal thy "!!x.[| x:act A; x:act B; HD`exA=Def a;HD`exB=Def b|] \
@@ -90,8 +90,8 @@ goal thy "!!x.[| x:act A; x:act B; HD`exA=Def a;HD`exB=Def b|] \
 \           (mkex2 A B`sch`(TL`exA)`(TL`exB)) (snd a) (snd b)";
 by (rtac trans 1);
 by (stac mkex2_unfold 1);
-by (asm_full_simp_tac (!simpset addsimps [Cons_def,If_and_if]) 1);
-by (asm_full_simp_tac (!simpset addsimps [Cons_def]) 1);
+by (asm_full_simp_tac (simpset() addsimps [Cons_def,If_and_if]) 1);
+by (asm_full_simp_tac (simpset() addsimps [Cons_def]) 1);
 qed"mkex2_cons_3";
 
 Addsimps [mkex2_UU,mkex2_nil,mkex2_cons_1,mkex2_cons_2,mkex2_cons_3];
@@ -102,17 +102,17 @@ Addsimps [mkex2_UU,mkex2_nil,mkex2_cons_1,mkex2_cons_2,mkex2_cons_3];
 (* ---------------------------------------------------------------- *)
 
 goal thy "mkex A B UU  (s,exA) (t,exB) = ((s,t),UU)";
-by (simp_tac (!simpset addsimps [mkex_def]) 1);
+by (simp_tac (simpset() addsimps [mkex_def]) 1);
 qed"mkex_UU";
 
 goal thy "mkex A B nil (s,exA) (t,exB) = ((s,t),nil)";
-by (simp_tac (!simpset addsimps [mkex_def]) 1);
+by (simp_tac (simpset() addsimps [mkex_def]) 1);
 qed"mkex_nil";
 
 goal thy "!!x.[| x:act A; x~:act B |] \
 \   ==> mkex A B (x>>sch) (s,a>>exA) (t,exB)  =  \
 \       ((s,t), (x,snd a,t) >> snd (mkex A B sch (snd a,exA) (t,exB)))";
-by (simp_tac (!simpset addsimps [mkex_def] 
+by (simp_tac (simpset() addsimps [mkex_def] 
                        setloop (split_tac [expand_if]) ) 1);
 by (cut_inst_tac [("exA","a>>exA")] mkex2_cons_1 1);
 by (Auto_tac());
@@ -121,7 +121,7 @@ qed"mkex_cons_1";
 goal thy "!!x.[| x~:act A; x:act B |] \
 \   ==> mkex A B (x>>sch) (s,exA) (t,b>>exB) =  \ 
 \       ((s,t), (x,s,snd b) >> snd (mkex A B sch (s,exA) (snd b,exB)))";
-by (simp_tac (!simpset addsimps [mkex_def] 
+by (simp_tac (simpset() addsimps [mkex_def] 
                        setloop (split_tac [expand_if]) ) 1);
 by (cut_inst_tac [("exB","b>>exB")] mkex2_cons_2 1);
 by (Auto_tac());
@@ -130,7 +130,7 @@ qed"mkex_cons_2";
 goal thy "!!x.[| x:act A; x:act B |]  \
 \   ==>  mkex A B (x>>sch) (s,a>>exA) (t,b>>exB) = \
 \        ((s,t), (x,snd a,snd b) >> snd (mkex A B sch (snd a,exA) (snd b,exB)))";
-by (simp_tac (!simpset addsimps [mkex_def] 
+by (simp_tac (simpset() addsimps [mkex_def] 
                        setloop (split_tac [expand_if]) ) 1);
 by (cut_inst_tac [("exB","b>>exB"),("exA","a>>exA")] mkex2_cons_3 1);
 by (Auto_tac());
@@ -162,7 +162,7 @@ goalw thy [filter_act_def,Filter_ex2_def]
    "filter_act`(Filter_ex2 (asig_of A)`xs)=\
 \   Filter (%a. a:act A)`(filter_act`xs)";
 
-by (simp_tac (!simpset addsimps [MapFilter,o_def]) 1);
+by (simp_tac (simpset() addsimps [MapFilter,o_def]) 1);
 qed"lemma_2_1a";
 
 
@@ -192,7 +192,7 @@ goal thy "!s. is_exec_frag (A||B) (s,xs) \
 by (pair_induct_tac "xs" [is_exec_frag_def,Forall_def,sforall_def] 1);
 (* main case *)
 by (safe_tac set_cs);
-by (REPEAT (asm_full_simp_tac (!simpset addsimps trans_of_defs2 @ 
+by (REPEAT (asm_full_simp_tac (simpset() addsimps trans_of_defs2 @ 
                                 [actions_asig_comp,asig_of_par]) 1));
 qed"sch_actions_in_AorB";
 
@@ -216,7 +216,7 @@ by (Seq_induct_tac "sch" [Filter_def,Forall_def,sforall_def,mkex_def] 1);
 
 (* main case *) 
 (* splitting into 4 cases according to a:A, a:B *)
-by (asm_full_simp_tac (!simpset setloop split_tac [expand_if]) 1);
+by (asm_full_simp_tac (simpset() setloop split_tac [expand_if]) 1);
 by (safe_tac set_cs);
 
 (* Case y:A, y:B *)
@@ -241,7 +241,7 @@ by (Seq_case_simp_tac "exA" 1);
 by (Asm_full_simp_tac 1);
 
 (* Case y~:A, y~:B *)
-by (asm_full_simp_tac (!simpset addsimps [asig_of_par,actions_asig_comp]) 1);
+by (asm_full_simp_tac (simpset() addsimps [asig_of_par,actions_asig_comp]) 1);
 qed"Mapfst_mkex_is_sch";
 
 
@@ -249,7 +249,7 @@ qed"Mapfst_mkex_is_sch";
 
 fun mkex_induct_tac sch exA exB = 
     EVERY1[Seq_induct_tac sch [Filter_def,Forall_def,sforall_def,mkex_def,stutter_def], 
-           asm_full_simp_tac (!simpset setloop split_tac [expand_if]),
+           asm_full_simp_tac (simpset() setloop split_tac [expand_if]),
            SELECT_GOAL (safe_tac set_cs),
            Seq_case_simp_tac exA,
            Seq_case_simp_tac exB,
@@ -258,7 +258,7 @@ fun mkex_induct_tac sch exA exB =
            Asm_full_simp_tac,
            Seq_case_simp_tac exA,
            Asm_full_simp_tac,
-           asm_full_simp_tac (!simpset addsimps [asig_of_par,actions_asig_comp])
+           asm_full_simp_tac (simpset() addsimps [asig_of_par,actions_asig_comp])
           ];
 
 
@@ -287,7 +287,7 @@ goal thy "!! sch.[|  \
 \ ==> stutter (asig_of A) (ProjA (mkex A B sch exA exB))";
 
 by (cut_facts_tac [stutterA_mkex] 1);
-by (asm_full_simp_tac (!simpset addsimps [stutter_def,ProjA_def,mkex_def]) 1);
+by (asm_full_simp_tac (simpset() addsimps [stutter_def,ProjA_def,mkex_def]) 1);
 by (REPEAT (etac allE 1));
 by (dtac mp 1);
 by (assume_tac 2);
@@ -318,7 +318,7 @@ goal thy "!! sch.[|  \
 \ ==> stutter (asig_of B) (ProjB (mkex A B sch exA exB))";
 
 by (cut_facts_tac [stutterB_mkex] 1);
-by (asm_full_simp_tac (!simpset addsimps [stutter_def,ProjB_def,mkex_def]) 1);
+by (asm_full_simp_tac (simpset() addsimps [stutter_def,ProjB_def,mkex_def]) 1);
 by (REPEAT (etac allE 1));
 by (dtac mp 1);
 by (assume_tac 2);
@@ -362,7 +362,7 @@ qed"Zip_Map_fst_snd";
 goal thy "!! sch ex. \
 \ Filter (%a. a:act AB)`sch = filter_act`ex  \
 \ ==> ex = Zip`(Filter (%a. a:act AB)`sch)`(Map snd`ex)";
-by (asm_full_simp_tac (!simpset addsimps [filter_act_def]) 1);
+by (asm_full_simp_tac (simpset() addsimps [filter_act_def]) 1);
 by (rtac (Zip_Map_fst_snd RS sym) 1);
 qed"trick_against_eq_in_ass";
 
@@ -377,15 +377,15 @@ goal thy "!!sch exA exB.\
 \ Filter (%a. a:act A)`sch = filter_act`(snd exA)  ;\
 \ Filter (%a. a:act B)`sch = filter_act`(snd exB) |]\
 \ ==> Filter_ex (asig_of A) (ProjA (mkex A B sch exA exB)) = exA";
-by (asm_full_simp_tac (!simpset addsimps [ProjA_def,Filter_ex_def]) 1);
+by (asm_full_simp_tac (simpset() addsimps [ProjA_def,Filter_ex_def]) 1);
 by (pair_tac "exA" 1);
 by (pair_tac "exB" 1);
 by (rtac conjI 1);
-by (simp_tac (!simpset addsimps [mkex_def]) 1);
+by (simp_tac (simpset() addsimps [mkex_def]) 1);
 by (stac trick_against_eq_in_ass 1);
 back();
 by (assume_tac 1);
-by (asm_full_simp_tac (!simpset addsimps [filter_mkex_is_exA_tmp]) 1);
+by (asm_full_simp_tac (simpset() addsimps [filter_mkex_is_exA_tmp]) 1);
 qed"filter_mkex_is_exA";
  
 
@@ -421,15 +421,15 @@ goal thy "!!sch exA exB.\
 \ Filter (%a. a:act A)`sch = filter_act`(snd exA)  ;\
 \ Filter (%a. a:act B)`sch = filter_act`(snd exB) |]\
 \ ==> Filter_ex (asig_of B) (ProjB (mkex A B sch exA exB)) = exB";
-by (asm_full_simp_tac (!simpset addsimps [ProjB_def,Filter_ex_def]) 1);
+by (asm_full_simp_tac (simpset() addsimps [ProjB_def,Filter_ex_def]) 1);
 by (pair_tac "exA" 1);
 by (pair_tac "exB" 1);
 by (rtac conjI 1);
-by (simp_tac (!simpset addsimps [mkex_def]) 1);
+by (simp_tac (simpset() addsimps [mkex_def]) 1);
 by (stac trick_against_eq_in_ass 1);
 back();
 by (assume_tac 1);
-by (asm_full_simp_tac (!simpset addsimps [filter_mkex_is_exB_tmp]) 1);
+by (asm_full_simp_tac (simpset() addsimps [filter_mkex_is_exB_tmp]) 1);
 qed"filter_mkex_is_exB";
 
 (* --------------------------------------------------------------------- *)
@@ -460,21 +460,21 @@ goal thy
 \  Filter (%a. a:act B)`sch : schedules B &\
 \  Forall (%x. x:act (A||B)) sch)";
 
-by (simp_tac (!simpset addsimps [schedules_def, has_schedule_def]) 1);
+by (simp_tac (simpset() addsimps [schedules_def, has_schedule_def]) 1);
 by (safe_tac set_cs); 
 (* ==> *) 
 by (res_inst_tac [("x","Filter_ex (asig_of A) (ProjA ex)")] bexI 1);
-by (asm_full_simp_tac (!simpset addsimps [compositionality_ex]) 2);
-by (simp_tac (!simpset addsimps [Filter_ex_def,ProjA_def,
+by (asm_full_simp_tac (simpset() addsimps [compositionality_ex]) 2);
+by (simp_tac (simpset() addsimps [Filter_ex_def,ProjA_def,
                                  lemma_2_1a,lemma_2_1b]) 1); 
 by (res_inst_tac [("x","Filter_ex (asig_of B) (ProjB ex)")] bexI 1);
-by (asm_full_simp_tac (!simpset addsimps [compositionality_ex]) 2);
-by (simp_tac (!simpset addsimps [Filter_ex_def,ProjB_def,
+by (asm_full_simp_tac (simpset() addsimps [compositionality_ex]) 2);
+by (simp_tac (simpset() addsimps [Filter_ex_def,ProjB_def,
                                  lemma_2_1a,lemma_2_1b]) 1);
-by (asm_full_simp_tac (!simpset addsimps [executions_def]) 1);
+by (asm_full_simp_tac (simpset() addsimps [executions_def]) 1);
 by (pair_tac "ex" 1);
 by (etac conjE 1);
-by (asm_full_simp_tac (!simpset addsimps [sch_actions_in_AorB]) 1);
+by (asm_full_simp_tac (simpset() addsimps [sch_actions_in_AorB]) 1);
 
 (* <== *)
 
@@ -485,16 +485,16 @@ by (res_inst_tac [("x","mkex A B sch exA exB")] bexI 1);
 (* mkex actions are just the oracle *)
 by (pair_tac "exA" 1);
 by (pair_tac "exB" 1);
-by (asm_full_simp_tac (!simpset addsimps [Mapfst_mkex_is_sch]) 1);
+by (asm_full_simp_tac (simpset() addsimps [Mapfst_mkex_is_sch]) 1);
 
 (* mkex is an execution -- use compositionality on ex-level *)
-by (asm_full_simp_tac (!simpset addsimps [compositionality_ex]) 1);
-by (asm_full_simp_tac (!simpset addsimps 
+by (asm_full_simp_tac (simpset() addsimps [compositionality_ex]) 1);
+by (asm_full_simp_tac (simpset() addsimps 
                  [stutter_mkex_on_A, stutter_mkex_on_B,
                   filter_mkex_is_exB,filter_mkex_is_exA]) 1);
 by (pair_tac "exA" 1);
 by (pair_tac "exB" 1);
-by (asm_full_simp_tac (!simpset addsimps [mkex_actions_in_AorB]) 1);
+by (asm_full_simp_tac (simpset() addsimps [mkex_actions_in_AorB]) 1);
 qed"compositionality_sch";
 
 
@@ -507,9 +507,9 @@ goalw thy [Scheds_def,par_scheds_def]
 
 "Scheds (A||B) = par_scheds (Scheds A) (Scheds B)";
 
-by (asm_full_simp_tac (!simpset addsimps [asig_of_par]) 1);
+by (asm_full_simp_tac (simpset() addsimps [asig_of_par]) 1);
 br set_ext 1;
-by (asm_full_simp_tac (!simpset addsimps [compositionality_sch,actions_of_par]) 1);
+by (asm_full_simp_tac (simpset() addsimps [compositionality_sch,actions_of_par]) 1);
 qed"compositionality_sch_modules";
 
 

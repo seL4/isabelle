@@ -21,7 +21,7 @@ qed_goal "inst_lift_po" thy "(op <<)=(%x y. x=y|x=Undef)"
 (* ------------------------------------------------------------------------ *)
 
 goal Lift2.thy  "Undef << x";
-by (simp_tac (!simpset addsimps [inst_lift_po]) 1);
+by (simp_tac (simpset() addsimps [inst_lift_po]) 1);
 qed"minimal_lift";
 
 bind_thm ("UU_lift_def",minimal_lift RS minimal2UU RS sym);
@@ -83,7 +83,7 @@ by (rtac sym 1);
 by (etac spec 1); 
 
 by (subgoal_tac "!x y. x<<(y::('a)lift) --> x=Undef | x=y" 1);
-by (simp_tac (!simpset addsimps [inst_lift_po]) 2);
+by (simp_tac (simpset() addsimps [inst_lift_po]) 2);
 by (rtac (chain_mono2_po RS exE) 1); 
 by (Fast_tac 1); 
 by (atac 1); 

@@ -188,7 +188,7 @@ qed_goalw "upE1" thy [up_def]
         (asm_simp_tac (Up0_ss addsimps [cont_Iup]) 1)
         ]);
 
-val tac = (simp_tac (!simpset addsimps [cont_Iup,cont_Ifup1,
+val tac = (simp_tac (simpset() addsimps [cont_Iup,cont_Ifup1,
                 cont_Ifup2,cont2cont_CF1L]) 1);
 
 qed_goalw "fup1" thy [up_def,fup_def] "fup`f`UU=UU"
@@ -337,8 +337,8 @@ qed_goal "fup3" thy "fup`up`x=x"
  (fn prems =>
         [
         (res_inst_tac [("p","x")] upE1 1),
-        (asm_simp_tac ((simpset_of "Cfun3") addsimps [fup1,fup2]) 1),
-        (asm_simp_tac ((simpset_of "Cfun3") addsimps [fup1,fup2]) 1)
+        (asm_simp_tac ((simpset_of Cfun3.thy) addsimps [fup1,fup2]) 1),
+        (asm_simp_tac ((simpset_of Cfun3.thy) addsimps [fup1,fup2]) 1)
         ]);
 
 (* ------------------------------------------------------------------------ *)

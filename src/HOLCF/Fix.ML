@@ -330,7 +330,7 @@ qed_goal "cont_Ifix" thy "cont(Ifix)"
 qed_goalw "fix_eq" thy  [fix_def] "fix`F = F`(fix`F)"
  (fn prems =>
         [
-        (asm_simp_tac (!simpset addsimps [cont_Ifix]) 1),
+        (asm_simp_tac (simpset() addsimps [cont_Ifix]) 1),
         (rtac Ifix_eq 1)
         ]);
 
@@ -338,7 +338,7 @@ qed_goalw "fix_least" thy [fix_def] "F`x = x ==> fix`F << x"
  (fn prems =>
         [
         (cut_facts_tac prems 1),
-        (asm_simp_tac (!simpset addsimps [cont_Ifix]) 1),
+        (asm_simp_tac (simpset() addsimps [cont_Ifix]) 1),
         (etac Ifix_least 1)
         ]);
 
@@ -439,7 +439,7 @@ qed_goalw "fix_def2" thy [fix_def]
  (fn prems =>
         [
         (fold_goals_tac [Ifix_def]),
-        (asm_simp_tac (!simpset addsimps [cont_Ifix]) 1)
+        (asm_simp_tac (simpset() addsimps [cont_Ifix]) 1)
         ]);
 
 
@@ -563,7 +563,7 @@ qed_goalw "adm_chfindom" thy [adm_def] "adm (%(u::'a::cpo->'b::chfin). P(u`s))"
 	strip_tac 1,
 	dtac chfin_fappR 1,
 	eres_inst_tac [("x","s")] allE 1,
-	fast_tac (HOL_cs addss (!simpset addsimps [chfin])) 1]);
+	fast_tac (HOL_cs addss (simpset() addsimps [chfin])) 1]);
 
 (* adm_flat not needed any more, since it is a special case of adm_chfindom *)
 
@@ -670,7 +670,7 @@ qed_goalw "adm_not_UU"  thy [adm_def]
 
 qed_goal "adm_eq"  thy 
         "!!u. [|cont u ; cont v|]==> adm(%x. u x = v x)"
- (fn prems => [asm_simp_tac (!simpset addsimps [po_eq_conv]) 1]);
+ (fn prems => [asm_simp_tac (simpset() addsimps [po_eq_conv]) 1]);
 
 
 
@@ -691,13 +691,13 @@ local
   val adm_disj_lemma2 = prove_goal thy  
   "!!Q. [| adm(Q); ? X. is_chain(X) & (!n. Q(X(n))) &\
   \   lub(range(Y))=lub(range(X))|] ==> Q(lub(range(Y)))"
- (fn _ => [fast_tac (!claset addEs [admD] addss !simpset) 1]);
+ (fn _ => [fast_tac (claset() addEs [admD] addss simpset()) 1]);
 
   val adm_disj_lemma3 = prove_goalw thy [is_chain]
   "!!Q. is_chain(Y) ==> is_chain(%m. if m < Suc i then Y(Suc i) else Y m)"
  (fn _ =>
         [
-        asm_simp_tac (!simpset setloop (split_tac[expand_if])) 1,
+        asm_simp_tac (simpset() setloop (split_tac[expand_if])) 1,
         safe_tac HOL_cs,
         subgoal_tac "ia = i" 1,
         Asm_simp_tac 1,
@@ -708,7 +708,7 @@ local
   "!!Q. !j. i < j --> Q(Y(j))  ==> !n. Q( if n < Suc i then Y(Suc i) else Y n)"
  (fn _ =>
         [
-        asm_simp_tac (!simpset setloop (split_tac[expand_if])) 1,
+        asm_simp_tac (simpset() setloop (split_tac[expand_if])) 1,
         strip_tac 1,
         etac allE 1,
         etac mp 1,
@@ -722,7 +722,7 @@ local
         [
         safe_tac (HOL_cs addSIs [lub_equal2,adm_disj_lemma3]),
         atac 2,
-        asm_simp_tac (!simpset setloop (split_tac[expand_if])) 1,
+        asm_simp_tac (simpset() setloop (split_tac[expand_if])) 1,
         res_inst_tac [("x","i")] exI 1,
         strip_tac 1,
         trans_tac 1

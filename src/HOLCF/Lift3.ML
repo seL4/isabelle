@@ -25,7 +25,7 @@ Addsimps [inst_lift_pcpo];
 local
 
 val case1' = prove_goal thy "lift_case f1 f2 UU = f1"
-             (fn _ => [simp_tac (!simpset addsimps lift.simps) 1]);
+             (fn _ => [simp_tac (simpset() addsimps lift.simps) 1]);
 val case2' = prove_goal thy "lift_case f1 f2 (Def a) = f2 a"
              (fn _ => [Simp_tac 1]);
 val distinct1' = prove_goal thy "UU ~= Def a" 
@@ -125,12 +125,12 @@ goal thy "Def x << Def y = (x = y)";
 by (stac (hd lift.inject RS sym) 1);
 back();
 by (rtac iffI 1);
-by (asm_full_simp_tac (!simpset addsimps [inst_lift_po] ) 1);
+by (asm_full_simp_tac (simpset() addsimps [inst_lift_po] ) 1);
 by (etac (antisym_less_inverse RS conjunct1) 1);
 qed"Def_inject_less_eq";
 
 goal thy "Def x << y = (Def x = y)";
-by (simp_tac (!simpset addsimps [less_lift]) 1);
+by (simp_tac (simpset() addsimps [less_lift]) 1);
 qed"Def_less_is_eq";
 
 Addsimps [Def_less_is_eq];
@@ -140,7 +140,7 @@ Addsimps [Def_less_is_eq];
 (* ---------------------------------------------------------- *)
 
 goal thy "! x y::'a lift. x << y --> x = UU | x = y";
-by (simp_tac (!simpset addsimps [less_lift]) 1);
+by (simp_tac (simpset() addsimps [less_lift]) 1);
 qed"ax_flat_lift";
 
 (* Two specific lemmas for the combination of LCF and HOL terms *)

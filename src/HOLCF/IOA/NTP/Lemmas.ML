@@ -10,7 +10,7 @@ Also: Get rid of all the --> in favour of ==> !!!
 
 (* Logic *)
 val prems = goal HOL.thy "(P ==> Q-->R) ==> P&Q --> R";
-  by(fast_tac (!claset addDs prems) 1);
+  by(fast_tac (claset() addDs prems) 1);
 qed "imp_conj_lemma";
 
 goal HOL.thy "(P --> (? x. Q(x))) = (? x. P --> Q(x))";
@@ -113,8 +113,8 @@ qed "less_add_cong";
 goal Arith.thy "(A::nat) <= B --> C <= D --> A + C <= B + D";
   by (rtac impI 1);
   by (rtac impI 1);
-  by (asm_full_simp_tac (!simpset addsimps [le_eq_less_or_eq]) 1);
-  by (safe_tac (!claset));
+  by (asm_full_simp_tac (simpset() addsimps [le_eq_less_or_eq]) 1);
+  by (safe_tac (claset()));
   by (rtac (less_add_cong RS mp RS mp) 1);
   by (assume_tac 1);
   by (assume_tac 1);
@@ -131,7 +131,7 @@ goal Arith.thy "(w <= y) --> ((x::nat) + y <= z) --> (x + w <= z)";
   by (dtac (less_eq_add_cong RS mp) 1);
   by (cut_facts_tac [le_refl] 1);
   by (dres_inst_tac [("P","x<=x")] mp 1);by (assume_tac 1);
-  by (asm_full_simp_tac (!simpset addsimps [add_commute]) 1);
+  by (asm_full_simp_tac (simpset() addsimps [add_commute]) 1);
   by (rtac impI 1);
   by (etac le_trans 1);
   by (assume_tac 1);
@@ -147,10 +147,10 @@ qed "suc_not_zero";
 
 goal Arith.thy "Suc(x) <= y --> (? z. y = Suc(z))";
   by (rtac impI 1);
-  by (asm_full_simp_tac (!simpset addsimps [le_eq_less_or_eq]) 1);
-  by (safe_tac (!claset));
+  by (asm_full_simp_tac (simpset() addsimps [le_eq_less_or_eq]) 1);
+  by (safe_tac (claset()));
   by (Fast_tac 2);
-  by (asm_simp_tac (!simpset addsimps [suc_not_zero]) 1);
+  by (asm_simp_tac (simpset() addsimps [suc_not_zero]) 1);
 qed "suc_leq_suc";
 
 goal Arith.thy "~0<n --> n = 0";
@@ -160,8 +160,8 @@ qed "zero_eq";
 
 goal Arith.thy "x < Suc(y) --> x<=y";
   by (nat_ind_tac "n" 1);
-  by (asm_simp_tac (!simpset addsimps [less_Suc_eq]) 1);
-  by (safe_tac (!claset));
+  by (asm_simp_tac (simpset() addsimps [less_Suc_eq]) 1);
+  by (safe_tac (claset()));
   by (etac less_imp_le 1);
 qed "less_suc_imp_leq";
 
@@ -187,12 +187,12 @@ qed "unzero_less";
 goal Arith.thy "((x::nat) = y + z) --> (y <= x)";
   by (nat_ind_tac "y" 1);
   by (Simp_tac 1);
-  by (simp_tac (!simpset addsimps [le_refl RS (leq_add_leq RS mp)]) 1);
+  by (simp_tac (simpset() addsimps [le_refl RS (leq_add_leq RS mp)]) 1);
 qed "plus_leq_lem";
 
 (* Lists *)
 
-val list_ss = simpset_of "List";
+val list_ss = simpset_of List.thy;
 
 goal List.thy "(xs @ (y#ys)) ~= []";
   by (list.induct_tac "xs" 1);

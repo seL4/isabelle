@@ -21,15 +21,15 @@ section "recursive equations of operators";
 
 
 goal thy  "ProjA2`UU = UU";
-by (simp_tac (!simpset addsimps [ProjA2_def]) 1);
+by (simp_tac (simpset() addsimps [ProjA2_def]) 1);
 qed"ProjA2_UU";
 
 goal thy  "ProjA2`nil = nil";
-by (simp_tac (!simpset addsimps [ProjA2_def]) 1);
+by (simp_tac (simpset() addsimps [ProjA2_def]) 1);
 qed"ProjA2_nil";
 
 goal thy "ProjA2`((a,t)>>xs) = (a,fst t) >> ProjA2`xs";
-by (simp_tac (!simpset addsimps [ProjA2_def]) 1);
+by (simp_tac (simpset() addsimps [ProjA2_def]) 1);
 qed"ProjA2_cons";
 
 
@@ -39,15 +39,15 @@ qed"ProjA2_cons";
 
 
 goal thy  "ProjB2`UU = UU";
-by (simp_tac (!simpset addsimps [ProjB2_def]) 1);
+by (simp_tac (simpset() addsimps [ProjB2_def]) 1);
 qed"ProjB2_UU";
 
 goal thy  "ProjB2`nil = nil";
-by (simp_tac (!simpset addsimps [ProjB2_def]) 1);
+by (simp_tac (simpset() addsimps [ProjB2_def]) 1);
 qed"ProjB2_nil";
 
 goal thy "ProjB2`((a,t)>>xs) = (a,snd t) >> ProjB2`xs";
-by (simp_tac (!simpset addsimps [ProjB2_def]) 1);
+by (simp_tac (simpset() addsimps [ProjB2_def]) 1);
 qed"ProjB2_cons";
 
 
@@ -58,11 +58,11 @@ qed"ProjB2_cons";
 
 
 goal thy "Filter_ex2 sig`UU=UU";
-by (simp_tac (!simpset addsimps [Filter_ex2_def]) 1);
+by (simp_tac (simpset() addsimps [Filter_ex2_def]) 1);
 qed"Filter_ex2_UU";
 
 goal thy "Filter_ex2 sig`nil=nil";
-by (simp_tac (!simpset addsimps [Filter_ex2_def]) 1);
+by (simp_tac (simpset() addsimps [Filter_ex2_def]) 1);
 qed"Filter_ex2_nil";
 
 goal thy "Filter_ex2 sig`(at >> xs) =    \
@@ -70,7 +70,7 @@ goal thy "Filter_ex2 sig`(at >> xs) =    \
 \                 then at >> (Filter_ex2 sig`xs) \   
 \                 else        Filter_ex2 sig`xs)";
 
-by (asm_full_simp_tac (!simpset addsimps [Filter_ex2_def]) 1);
+by (asm_full_simp_tac (simpset() addsimps [Filter_ex2_def]) 1);
 qed"Filter_ex2_cons";
 
 
@@ -92,7 +92,7 @@ by (rtac trans 1);
 by (rtac fix_eq2 1);
 by (rtac stutter2_def 1);
 by (rtac beta_cfun 1);
-by (simp_tac (!simpset addsimps [flift1_def]) 1);
+by (simp_tac (simpset() addsimps [flift1_def]) 1);
 qed"stutter2_unfold";
 
 goal thy "(stutter2 sig`UU) s=UU";
@@ -110,7 +110,7 @@ goal thy "(stutter2 sig`(at>>xs)) s = \
 \                andalso (stutter2 sig`xs) (snd at))"; 
 br trans 1;
 by (stac stutter2_unfold 1);
-by (asm_full_simp_tac (!simpset addsimps [Cons_def,flift1_def,If_and_if]) 1);
+by (asm_full_simp_tac (simpset() addsimps [Cons_def,flift1_def,If_and_if]) 1);
 by (Simp_tac 1);
 qed"stutter2_cons";
 
@@ -123,16 +123,16 @@ Addsimps [stutter2_UU,stutter2_nil,stutter2_cons];
 (* ---------------------------------------------------------------- *)
 
 goal thy "stutter sig (s, UU)";
-by (simp_tac (!simpset addsimps [stutter_def]) 1);
+by (simp_tac (simpset() addsimps [stutter_def]) 1);
 qed"stutter_UU";
 
 goal thy "stutter sig (s, nil)";
-by (simp_tac (!simpset addsimps [stutter_def]) 1);
+by (simp_tac (simpset() addsimps [stutter_def]) 1);
 qed"stutter_nil";
 
 goal thy "stutter sig (s, (a,t)>>ex) = \
 \     ((a~:actions sig --> (s=t)) & stutter sig (t,ex))";
-by (simp_tac (!simpset addsimps [stutter_def] 
+by (simp_tac (simpset() addsimps [stutter_def] 
                        setloop (split_tac [expand_if]) ) 1);
 qed"stutter_cons";
 
@@ -167,7 +167,7 @@ by (pair_induct_tac "xs" [is_exec_frag_def] 1);
 (* main case *)
 ren "ss a t" 1;
 by (safe_tac set_cs);
-by (REPEAT (asm_full_simp_tac (!simpset addsimps trans_of_defs2
+by (REPEAT (asm_full_simp_tac (simpset() addsimps trans_of_defs2
                        setloop (split_tac [expand_if])) 1));
 qed"lemma_1_1a";
 
@@ -183,7 +183,7 @@ goal thy "!s. is_exec_frag (A||B) (s,xs) \
 by (pair_induct_tac "xs" [stutter_def,is_exec_frag_def] 1);
 (* main case *)
 by (safe_tac set_cs);
-by (REPEAT (asm_full_simp_tac (!simpset addsimps trans_of_defs2
+by (REPEAT (asm_full_simp_tac (simpset() addsimps trans_of_defs2
                  setloop (split_tac [expand_if])) 1));
 qed"lemma_1_1b";
 
@@ -198,7 +198,7 @@ goal thy "!s. (is_exec_frag (A||B) (s,xs) \
 by (pair_induct_tac "xs" [Forall_def,sforall_def,is_exec_frag_def] 1);
 (* main case *)
 by (safe_tac set_cs);
-by (REPEAT (asm_full_simp_tac (!simpset addsimps trans_of_defs2 @ 
+by (REPEAT (asm_full_simp_tac (simpset() addsimps trans_of_defs2 @ 
                                 [actions_asig_comp,asig_of_par]) 1));
 qed"lemma_1_1c";
 
@@ -220,14 +220,14 @@ by (pair_induct_tac "xs" [Forall_def,sforall_def,
 (* main case *)
 by (rtac allI 1); 
 ren "ss a t s" 1;
-by (asm_full_simp_tac (!simpset addsimps trans_of_defs1 @ [actions_asig_comp,asig_of_par]
+by (asm_full_simp_tac (simpset() addsimps trans_of_defs1 @ [actions_asig_comp,asig_of_par]
                setloop (split_tac [expand_if])) 1);
 by (safe_tac set_cs);
 (* problem with asm_full_simp_tac: (fst s) = (fst t) is too high in assumption order ! *)
 by (rotate_tac ~4 1);
-by (asm_full_simp_tac (!simpset setloop (split_tac [expand_if])) 1);
+by (asm_full_simp_tac (simpset() setloop (split_tac [expand_if])) 1);
 by (rotate_tac ~4 1);
-by (asm_full_simp_tac (!simpset setloop (split_tac [expand_if])) 1);
+by (asm_full_simp_tac (simpset() setloop (split_tac [expand_if])) 1);
 qed"lemma_1_2";
 
 
@@ -244,17 +244,17 @@ goal thy
 \ stutter (asig_of A) (ProjA ex) & stutter (asig_of B) (ProjB ex) &\
 \ Forall (%x. fst x:act (A||B)) (snd ex))";
 
-by (simp_tac (!simpset addsimps [executions_def,ProjB_def,
+by (simp_tac (simpset() addsimps [executions_def,ProjB_def,
                                  Filter_ex_def,ProjA_def,starts_of_par]) 1);
 by (pair_tac "ex" 1);
 by (rtac iffI 1);
 (* ==>  *)
 by (REPEAT (etac conjE 1));
-by (asm_full_simp_tac (!simpset addsimps [lemma_1_1a RS spec RS mp,
+by (asm_full_simp_tac (simpset() addsimps [lemma_1_1a RS spec RS mp,
                lemma_1_1b RS spec RS mp,lemma_1_1c RS spec RS mp]) 1);
 (* <==  *)
 by (REPEAT (etac conjE 1));
-by (asm_full_simp_tac (!simpset addsimps [lemma_1_2 RS spec RS mp]) 1);
+by (asm_full_simp_tac (simpset() addsimps [lemma_1_2 RS spec RS mp]) 1);
 qed"compositionality_ex";
 
 
@@ -267,9 +267,9 @@ goalw thy [Execs_def,par_execs_def]
 
 "Execs (A||B) = par_execs (Execs A) (Execs B)";
 
-by (asm_full_simp_tac (!simpset addsimps [asig_of_par]) 1);
+by (asm_full_simp_tac (simpset() addsimps [asig_of_par]) 1);
 br set_ext 1;
-by (asm_full_simp_tac (!simpset addsimps [compositionality_ex,actions_of_par]) 1);
+by (asm_full_simp_tac (simpset() addsimps [compositionality_ex,actions_of_par]) 1);
 qed"compositionality_ex_modules";
 
 

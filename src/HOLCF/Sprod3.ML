@@ -319,7 +319,7 @@ qed_goalw "beta_cfun_sprod" thy [spair_def]
  (fn prems =>
         [
         (stac beta_cfun 1),
-        (simp_tac (!simpset addsimps [cont_Ispair2, cont_Ispair1,
+        (simp_tac (simpset() addsimps [cont_Ispair2, cont_Ispair1,
 					cont2cont_CF1L]) 1),
         (stac beta_cfun 1),
         (rtac cont_Ispair2 1),

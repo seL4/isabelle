@@ -261,7 +261,7 @@ qed_goal "ssum_lemma12" Ssum3.thy
         (res_inst_tac [("t","Y(i)")] ssubst 1),
         (atac 1),
         (fast_tac HOL_cs 1),
-        (simp_tac (simpset_of "Cfun3") 1),
+        (simp_tac (simpset_of Cfun3.thy) 1),
         (rtac (monofun_fapp2 RS ch2ch_monofun) 1),
         (etac (monofun_Iwhen3 RS ch2ch_monofun) 1),
         (etac (monofun_Iwhen3 RS ch2ch_monofun) 1)
@@ -325,7 +325,7 @@ qed_goal "ssum_lemma13" Ssum3.thy
         (res_inst_tac [("t","Y(i)")] ssubst 1),
         (atac 1),
         (fast_tac HOL_cs 1),
-        (simp_tac (simpset_of "Cfun3") 1),
+        (simp_tac (simpset_of Cfun3.thy) 1),
         (rtac (monofun_fapp2 RS ch2ch_monofun) 1),
         (etac (monofun_Iwhen3 RS ch2ch_monofun) 1),
         (etac (monofun_Iwhen3 RS ch2ch_monofun) 1)
@@ -691,9 +691,9 @@ qed_goal "sswhen4" Ssum3.thy
  (fn prems =>
         [
         (res_inst_tac [("p","z")] ssumE 1),
-        (asm_simp_tac ((simpset_of "Cfun3") addsimps [sswhen1,sswhen2,sswhen3]) 1),
-        (asm_simp_tac ((simpset_of "Cfun3") addsimps [sswhen1,sswhen2,sswhen3]) 1),
-        (asm_simp_tac ((simpset_of "Cfun3") addsimps [sswhen1,sswhen2,sswhen3]) 1)
+        (asm_simp_tac ((simpset_of Cfun3.thy) addsimps [sswhen1,sswhen2,sswhen3]) 1),
+        (asm_simp_tac ((simpset_of Cfun3.thy) addsimps [sswhen1,sswhen2,sswhen3]) 1),
+        (asm_simp_tac ((simpset_of Cfun3.thy) addsimps [sswhen1,sswhen2,sswhen3]) 1)
         ]);
 
 

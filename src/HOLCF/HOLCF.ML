@@ -8,7 +8,7 @@ open HOLCF;
 
 use"adm.ML";
 
-simpset := !simpset addSolver(fn thms =>
+simpset_ref() := simpset() addSolver(fn thms =>
             (adm_tac (cut_facts_tac thms THEN' cont_tacRs)));
 
-val HOLCF_ss = !simpset;
+val HOLCF_ss = simpset();

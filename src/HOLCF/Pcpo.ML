@@ -56,7 +56,7 @@ qed_goal "maxinch_is_thelub" thy "is_chain Y ==> \
         safe_tac (HOL_cs addSIs [antisym_less]),
         fast_tac (HOL_cs addSEs [chain_mono3]) 1,
         dtac sym 1,
-        fast_tac ((HOL_cs addSEs [is_ub_thelub]) addss !simpset) 1
+        fast_tac ((HOL_cs addSEs [is_ub_thelub]) addss simpset()) 1
         ]);
 
 
@@ -314,7 +314,7 @@ qed_goal "chfin2finch" thy
 	[
 	cut_facts_tac prems 1,
 	fast_tac (HOL_cs addss 
-		 (!simpset addsimps [chfin,finite_chain_def])) 1
+		 (simpset() addsimps [chfin,finite_chain_def])) 1
 	]);
 
 (* ------------------------------------------------------------------------ *)

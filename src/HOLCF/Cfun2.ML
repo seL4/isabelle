@@ -23,7 +23,7 @@ qed_goal "inst_cfun_po" thy "(op <<)=(%f1 f2. fapp f1 << fapp f2)"
 qed_goal "less_cfun" thy "( f1 << f2 ) = (fapp(f1) << fapp(f2))"
 (fn prems =>
         [
-        (simp_tac (!simpset addsimps [inst_cfun_po]) 1)
+        (simp_tac (simpset() addsimps [inst_cfun_po]) 1)
         ]);
 
 (* ------------------------------------------------------------------------ *)

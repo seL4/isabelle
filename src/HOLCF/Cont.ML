@@ -666,7 +666,7 @@ qed_goalw "flatdom2monofun" thy [monofun]
 	cut_facts_tac prems 1,
 	strip_tac 1,
 	dtac (ax_flat RS spec RS spec RS mp) 1,
-	fast_tac ((HOL_cs addss (!simpset addsimps [minimal]))) 1
+	fast_tac ((HOL_cs addss (simpset() addsimps [minimal]))) 1
 	]);
 
 
