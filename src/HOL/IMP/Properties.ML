@@ -38,4 +38,4 @@ by(EVERY1[strip_tac, eresolve_tac evalc_elim_cases,
 by(EVERY1[strip_tac, eresolve_tac evalc_elim_cases,
           dtac bexp_detD, atac, etac (sym RS False_neq_True),
           fast_tac HOL_cs]);
-result();
+qed "com_det";

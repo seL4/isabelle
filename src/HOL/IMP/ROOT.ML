@@ -2,16 +2,6 @@
     ID:         $Id$
     Author: 	Heiko Loetzbeyer, Robert Sandner, Tobias Nipkow
     Copyright   1995 TUM
-
-The formalization of the denotational, operational and axiomatic semantics of
-a simple while-language, including
-(1) an equivalence proof between denotational and operational semantics and
-(2) the derivation of the Hoare rules from the denotational semantics.
-The whole development essentially formalizes/transcribes chapters 2, 5 and 6 of
-
-Glynn Winskel. The Formal Semantics of Programming Languages.
-MIT Press, 1993.
-
 *)
 
 HOL_build_completed;	(*Make examples fail if HOL did*)
