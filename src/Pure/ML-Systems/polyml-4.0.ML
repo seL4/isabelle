@@ -96,7 +96,7 @@ end;
 
 (** interrupts **)
 
-exception Interrupt;
+exception Interrupt = SML90.Interrupt;
 
 local
 
