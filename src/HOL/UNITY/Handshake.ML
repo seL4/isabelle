@@ -32,7 +32,7 @@ by (constrains_tac 1);
 qed "invFG";
 
 Goal "(F Join G) : ({s. NF s = k} - {s. BB s}) LeadsTo \
-\                          ({s. NF s = k} Int {s. BB s})";
+\                  ({s. NF s = k} Int {s. BB s})";
 by (rtac (ensures_stable_Join1 RS leadsTo_Basis RS leadsTo_imp_LeadsTo) 1);
 by (ensures_tac "cmdG" 2);
 by (constrains_tac 1);
