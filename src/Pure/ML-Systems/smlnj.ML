@@ -21,7 +21,8 @@ val _ =
  (Compiler.Control.Print.printLength := 1000;
   Compiler.Control.Print.printDepth := 350;
   Compiler.Control.Print.stringDepth := 250;
-  Compiler.Control.Print.signatures := 2);
+  Compiler.Control.Print.signatures := 2;
+  Compiler.Control.MC.matchRedundantError := false);
 
 
 (* Poly/ML emulation *)
