@@ -1,9 +1,9 @@
-(*  Title:      HOL/RealBin.ML
+(*  Title:      HOL/Real/RealBin.ML
     ID:         $Id$
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1999  University of Cambridge
 
-Binary arithmetic for the reals (integer literals only)
+Binary arithmetic for the reals (integer literals only).
 *)
 
 (** real_of_int (coercion from int to real) **)
@@ -25,7 +25,7 @@ qed "one_eq_numeral_1";
 
 Goal "(number_of v :: real) + number_of v' = number_of (bin_add v v')";
 by (simp_tac
-    (simpset_of Int.thy addsimps [real_number_of_def, 
+    (HOL_ss addsimps [real_number_of_def, 
 				  real_of_int_add, number_of_add]) 1);
 qed "add_real_number_of";
 
@@ -36,13 +36,13 @@ Addsimps [add_real_number_of];
 
 Goalw [real_number_of_def] "- (number_of w :: real) = number_of (bin_minus w)";
 by (simp_tac
-    (simpset_of Int.thy addsimps [number_of_minus, real_of_int_minus]) 1);
+    (HOL_ss addsimps [number_of_minus, real_of_int_minus]) 1);
 qed "minus_real_number_of";
 
 Goalw [real_number_of_def]
    "(number_of v :: real) - number_of w = number_of (bin_add v (bin_minus w))";
 by (simp_tac
-    (simpset_of Int.thy addsimps [diff_number_of_eq, real_of_int_diff]) 1);
+    (HOL_ss addsimps [diff_number_of_eq, real_of_int_diff]) 1);
 qed "diff_real_number_of";
 
 Addsimps [minus_real_number_of, diff_real_number_of];
@@ -52,7 +52,7 @@ Addsimps [minus_real_number_of, diff_real_number_of];
 
 Goal "(number_of v :: real) * number_of v' = number_of (bin_mult v v')";
 by (simp_tac
-    (simpset_of Int.thy addsimps [real_number_of_def, 
+    (HOL_ss addsimps [real_number_of_def, 
 				  real_of_int_mult, number_of_mult]) 1);
 qed "mult_real_number_of";
 
@@ -64,7 +64,7 @@ val lemma = result();
 
 (*For specialist use: NOT as default simprules*)
 Goal "#2 * z = (z+z::real)";
-by (simp_tac (simpset_of RealDef.thy
+by (simp_tac (simpset ()
 	      addsimps [lemma, real_add_mult_distrib,
 			one_eq_numeral_1 RS sym]) 1);
 qed "real_mult_2";
@@ -81,7 +81,7 @@ qed "real_mult_2_right";
 Goal "((number_of v :: real) = number_of v') = \
 \     iszero (number_of (bin_add v (bin_minus v')))";
 by (simp_tac
-    (simpset_of Int.thy addsimps [real_number_of_def, 
+    (HOL_ss addsimps [real_number_of_def, 
 				  real_of_int_eq_iff, eq_number_of_eq]) 1);
 qed "eq_real_number_of";
 
@@ -93,7 +93,7 @@ Addsimps [eq_real_number_of];
 Goal "((number_of v :: real) < number_of v') = \
 \     neg (number_of (bin_add v (bin_minus v')))";
 by (simp_tac
-    (simpset_of Int.thy addsimps [real_number_of_def, real_of_int_less_iff, 
+    (HOL_ss addsimps [real_number_of_def, real_of_int_less_iff, 
 				  less_number_of_eq_neg]) 1);
 qed "less_real_number_of";
 
@@ -121,15 +121,15 @@ val real_numeral_ss =
     HOL_ss addsimps [zero_eq_numeral_0, one_eq_numeral_1, 
 		     minus_numeral_one];
 
-fun rename_numerals thy th = 
-    asm_full_simplify real_numeral_ss (change_theory thy th);
+fun rename_numerals th = 
+    asm_full_simplify real_numeral_ss (Thm.transfer (the_context ()) th);
 
 
 (*Now insert some identities previously stated for 0 and 1r*)
 
 (** RealDef & Real **)
 
-Addsimps (map (rename_numerals thy) 
+Addsimps (map rename_numerals
 	  [real_minus_zero, real_minus_zero_iff,
 	   real_add_zero_left, real_add_zero_right, 
 	   real_diff_0, real_diff_0_right,
@@ -137,16 +137,16 @@ Addsimps (map (rename_numerals thy)
 	   real_mult_minus_1_right, real_mult_minus_1, real_rinv_1,
 	   real_minus_zero_less_iff]);
 
-AddIffs (map (rename_numerals thy) [real_mult_is_0, real_0_is_mult]);
+AddIffs (map rename_numerals [real_mult_is_0, real_0_is_mult]);
 
 bind_thm ("real_0_less_mult_iff", 
-	  rename_numerals thy real_zero_less_mult_iff);
+	  rename_numerals real_zero_less_mult_iff);
 bind_thm ("real_0_le_mult_iff", 
-	  rename_numerals thy real_zero_le_mult_iff);
+	  rename_numerals real_zero_le_mult_iff);
 bind_thm ("real_mult_less_0_iff", 
-	  rename_numerals thy real_mult_less_zero_iff);
+	  rename_numerals real_mult_less_zero_iff);
 bind_thm ("real_mult_le_0_iff", 
-	  rename_numerals thy real_mult_le_zero_iff);
+	  rename_numerals real_mult_le_zero_iff);
 
 
 (*Perhaps add some theorems that aren't in the default simpset, as
@@ -186,7 +186,7 @@ Goal "real_of_nat (number_of v :: nat) = \
 \        (if neg (number_of v) then #0 \
 \         else (number_of v :: real))";
 by (simp_tac
-    (simpset_of Int.thy addsimps [nat_number_of_def, real_of_nat_real_of_int,
+    (HOL_ss addsimps [nat_number_of_def, real_of_nat_real_of_int,
 				  real_of_nat_neg_int, real_number_of,
 				  zero_eq_numeral_0]) 1);
 qed "real_of_nat_number_of";
@@ -342,9 +342,9 @@ fun find_first_coeff past u [] = raise TERM("find_first_coeff", [])
 
 
 (*Simplify #1*n and n*#1 to n*)
-val add_0s = map (rename_numerals thy) 
+val add_0s = map rename_numerals
                  [real_add_zero_left, real_add_zero_right];
-val mult_1s = map (rename_numerals thy) 
+val mult_1s = map rename_numerals
                   [real_mult_1, real_mult_1_right, 
 		   real_mult_minus_1, real_mult_minus_1_right];
 
@@ -385,7 +385,7 @@ val simplify_meta_eq =
  	  real_mult_0, real_mult_0_right, real_mult_1, real_mult_1_right];
 
 fun prep_simproc (name, pats, proc) = Simplifier.mk_simproc name pats proc;
-fun prep_pat s = Thm.read_cterm (Theory.sign_of RealInt.thy) (s, HOLogic.termT);
+fun prep_pat s = Thm.read_cterm (Theory.sign_of (the_context ())) (s, HOLogic.termT);
 val prep_pats = map prep_pat;
 
 structure CancelNumeralsCommon =
@@ -536,7 +536,7 @@ structure Real_Times_Assoc_Data : ASSOC_FOLD_DATA =
 struct
   val ss		= HOL_ss
   val eq_reflection	= eq_reflection
-  val thy    = RealBin.thy
+  val sg_ref    = Sign.self_ref (Theory.sign_of (the_context ()))
   val T	     = HOLogic.realT
   val plus   = Const ("op *", [HOLogic.realT,HOLogic.realT] ---> HOLogic.realT)
   val add_ac = real_mult_ac
@@ -547,105 +547,3 @@ structure Real_Times_Assoc = Assoc_Fold (Real_Times_Assoc_Data);
 Addsimprocs [Real_Times_Assoc.conv];
 
 
-(*---------------------------------------------------------------------------*)
-(* Linear arithmetic                                                         *)
-(*---------------------------------------------------------------------------*)
-
-(* Instantiation of the generic linear arithmetic package for type real. *)
-
-(*  Author:     Tobias Nipkow, TU Muenchen
-    Copyright   1999 TU Muenchen   
-*)
-
-let
-
-(* reduce contradictory <= to False *)
-val simps = [order_less_irrefl, zero_eq_numeral_0, one_eq_numeral_1, 
-	     add_real_number_of, minus_real_number_of, diff_real_number_of, 
-	     mult_real_number_of, eq_real_number_of, less_real_number_of, 
-	     le_real_number_of_eq_not_less, real_diff_def,
-	     real_minus_add_distrib, real_minus_minus];
-
-val add_rules =  
-    map (rename_numerals thy) 
-        [real_add_zero_left, real_add_zero_right, 
-	 real_add_minus, real_add_minus_left, 
-	 real_mult_0, real_mult_0_right, 
-	 real_mult_1, real_mult_1_right, 
-	 real_mult_minus_1, real_mult_minus_1_right];
-
-val simprocs = [Real_Times_Assoc.conv, Real_Numeral_Simprocs.combine_numerals]@
-               Real_Numeral_Simprocs.cancel_numerals;
-
-val mono_ss = simpset() addsimps
-                [real_add_le_mono,real_add_less_mono,
-		 real_add_less_le_mono,real_add_le_less_mono];
-
-val add_mono_thms =
-  map (fn s => prove_goal thy s
-                 (fn prems => [cut_facts_tac prems 1, asm_simp_tac mono_ss 1]))
-    ["(i <= j) & (k <= l) ==> i + k <= j + (l::real)",
-     "(i  = j) & (k <= l) ==> i + k <= j + (l::real)",
-     "(i <= j) & (k  = l) ==> i + k <= j + (l::real)",
-     "(i  = j) & (k  = l) ==> i + k  = j + (l::real)",
-     "(i < j) & (k = l)   ==> i + k < j + (l::real)",
-     "(i = j) & (k < l)   ==> i + k < j + (l::real)",
-     "(i < j) & (k <= l)  ==> i + k < j + (l::real)",
-     "(i <= j) & (k < l)  ==> i + k < j + (l::real)",
-     "(i < j) & (k < l)   ==> i + k < j + (l::real)"];
-
-in
-LA_Data_Ref.add_mono_thms := !LA_Data_Ref.add_mono_thms @ add_mono_thms;
-LA_Data_Ref.ss_ref := !LA_Data_Ref.ss_ref addsimps simps@add_rules
-                                          addsimprocs simprocs
-                                          addcongs [if_weak_cong];
-LA_Data_Ref.discrete := !LA_Data_Ref.discrete @ [("RealDef.real",false)]
-(*We don't change LA_Data_Ref.lessD because the real ordering is dense!*)
-end;
-
-let
-val real_arith_simproc_pats =
-  map (fn s => Thm.read_cterm (Theory.sign_of RealDef.thy) (s, HOLogic.boolT))
-      ["(m::real) < n","(m::real) <= n", "(m::real) = n"];
-
-val fast_real_arith_simproc = mk_simproc
-  "fast_real_arith" real_arith_simproc_pats Fast_Arith.lin_arith_prover;
-in
-Addsimprocs [fast_real_arith_simproc]
-end;
-
-(* Some test data [omitting examples thet assume the ordering to be discrete!]
-Goal "!!a::real. [| a <= b; c <= d; x+y<z |] ==> a+c <= b+d";
-by (fast_arith_tac 1);
-Goal "!!a::real. [| a <= b; b+b <= c |] ==> a+a <= c";
-by (fast_arith_tac 1);
-Goal "!!a::real. [| a+b <= i+j; a<=b; i<=j |] ==> a+a <= j+j";
-by (fast_arith_tac 1);
-Goal "!!a::real. a+b+c <= i+j+k & a<=b & b<=c & i<=j & j<=k --> a+a+a <= k+k+k";
-by (arith_tac 1);
-Goal "!!a::real. [| a+b+c+d <= i+j+k+l; a<=b; b<=c; c<=d; i<=j; j<=k; k<=l |] \
-\     ==> a <= l";
-by (fast_arith_tac 1);
-Goal "!!a::real. [| a+b+c+d <= i+j+k+l; a<=b; b<=c; c<=d; i<=j; j<=k; k<=l |] \
-\     ==> a+a+a+a <= l+l+l+l";
-by (fast_arith_tac 1);
-Goal "!!a::real. [| a+b+c+d <= i+j+k+l; a<=b; b<=c; c<=d; i<=j; j<=k; k<=l |] \
-\     ==> a+a+a+a+a <= l+l+l+l+i";
-by (fast_arith_tac 1);
-Goal "!!a::real. [| a+b+c+d <= i+j+k+l; a<=b; b<=c; c<=d; i<=j; j<=k; k<=l |] \
-\     ==> a+a+a+a+a+a <= l+l+l+l+i+l";
-by (fast_arith_tac 1);
-Goal "!!a::real. [| a+b+c+d <= i+j+k+l; a<=b; b<=c; c<=d; i<=j; j<=k; k<=l |] \
-\     ==> #6*a <= #5*l+i";
-by (fast_arith_tac 1);
-*)
-
-(*---------------------------------------------------------------------------*)
-(* End of linear arithmetic                                                  *)
-(*---------------------------------------------------------------------------*)
-
-(*useful??*)
-Goal "(z = z + w) = (w = (#0::real))";
-by Auto_tac;
-qed "real_add_left_cancel0";
-Addsimps [real_add_left_cancel0];
