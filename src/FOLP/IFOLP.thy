@@ -28,7 +28,7 @@ consts
       (*** Logical Connectives -- Type Formers ***)
  "="            ::      "['a,'a] => o"  (infixl 50)
  True,False     ::      "o"
- "Not"          ::      "o => o"        ("~ _" [40] 40)
+ Not            ::      "o => o"        ("~ _" [40] 40)
  "&"            ::      "[o,o] => o"    (infixr 35)
  "|"            ::      "[o,o] => o"    (infixr 30)
  "-->"          ::      "[o,o] => o"    (infixr 25)
