@@ -62,6 +62,15 @@ scripts, while still benefitting from proper handling of non-atomic
 statements; NB: major inductive premises need to be put first, all the
 rest of the goal is passed through the induction;
 
+* Pure: proper integration with ``locales''; unlike the original
+version by Florian Kammueller, Isar locales package high-level proof
+contexts rather than raw logical ones (e.g. we admit to include
+attributes everywhere);
+
+* Pure: theory goals now support ad-hoc contexts, which are discharged
+in the result, as in ``lemma (assumes A and B) K: A .''; syntax
+coincides with that of a locale body;
+
 * Pure: renamed "antecedent" case to "rule_context";
 
 * Pure: added 'corollary' command;
