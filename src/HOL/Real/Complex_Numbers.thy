@@ -10,52 +10,39 @@ theory Complex_Numbers = RealPow + Ring_and_Field:
 
 subsection {* The field of real numbers *}  (* FIXME move *)
 
-instance real :: inverse ..
-instance real :: ring
-  by intro_classes (auto simp add: real_add_mult_distrib)
-
 instance real :: field
-proof
-  fix a b :: real
-  show "a \<noteq> 0 \<Longrightarrow> inverse a * a = 1" by simp
-  show "b \<noteq> 0 \<Longrightarrow> a / b = a * inverse b" by (simp add: real_divide_def)
-qed
+  by intro_classes (simp_all add: real_add_mult_distrib real_divide_def)
 
-lemma real_power_two: "(r::real)^2 = r * r"
+lemma real_power_two: "(r::real)\<twosuperior> = r * r"
   by (simp add: numeral_2_eq_2)
 
-lemma real_sqr_ge_zero [iff]: "0 \<le> (r::real)^2"
+lemma real_sqr_ge_zero [iff]: "0 \<le> (r::real)\<twosuperior>"
   by (simp add: real_power_two)
 
-lemma real_sqr_gt_zero [iff]: "(r::real) \<noteq> 0 \<Longrightarrow> 0 < r^2"
+lemma real_sqr_gt_zero: "(r::real) \<noteq> 0 ==> 0 < r\<twosuperior>"
 proof -
   assume "r \<noteq> 0"
-  hence "0 \<noteq> r^2" by simp
-  also have "0 \<le> r^2" by simp
+  hence "0 \<noteq> r\<twosuperior>" by simp
+  also have "0 \<le> r\<twosuperior>" by (simp add: real_sqr_ge_zero)
   finally show ?thesis .
 qed
 
-lemma real_sqr_not_zero: "r \<noteq> 0 \<Longrightarrow> (r::real)^2 \<noteq> 0"
+lemma real_sqr_not_zero: "r \<noteq> 0 ==> (r::real)\<twosuperior> \<noteq> 0"
   by simp
 
 
-subsection {* The field of complex numbers *}
+subsection {* Representation of complex numbers *}
 
 datatype complex = Complex real real
 
-consts Re :: "complex \<Rightarrow> real"
+consts Re :: "complex => real"
 primrec "Re (Complex x y) = x"
 
-consts Im :: "complex \<Rightarrow> real"
+consts Im :: "complex => real"
 primrec "Im (Complex x y) = y"
 
-constdefs
-  complex :: "'a \<Rightarrow> complex"
-  "complex x == Complex (real x) 0"
-  conjg :: "complex \<Rightarrow> complex"
-  "conjg z == Complex (Re z) (-Im z)"
-  im_unit :: complex    ("\<i>")
-  "\<i> == Complex 0 1"
+lemma complex_surj [simp]: "Complex (Re z) (Im z) = z"
+  by (induct z) simp
 
 instance complex :: zero ..
 instance complex :: one ..
@@ -63,7 +50,6 @@ instance complex :: number ..
 instance complex :: plus ..
 instance complex :: minus ..
 instance complex :: times ..
-instance complex :: power ..
 instance complex :: inverse ..
 
 defs (overloaded)
@@ -75,18 +61,11 @@ defs (overloaded)
   uminus_complex_def: "- z == Complex (- Re z) (- Im z)"
   mult_complex_def: "z * w ==
     Complex (Re z * Re w - Im z * Im w) (Re z * Im w + Im z * Re w)"
-  inverse_complex_def: "(z::complex) \<noteq> 0 \<Longrightarrow> inverse z ==
-    Complex (Re z / ((Re z)^2 + (Im z)^2)) (- Im z / ((Re z)^2 + (Im z)^2))"
-  divide_complex_def: "(w::complex) \<noteq> 0 \<Longrightarrow> z / (w::complex) == z * inverse w"
+  inverse_complex_def: "(z::complex) \<noteq> 0 ==> inverse z ==
+    Complex (Re z / ((Re z)\<twosuperior> + (Im z)\<twosuperior>)) (- Im z / ((Re z)\<twosuperior> + (Im z)\<twosuperior>))"
+  divide_complex_def: "(w::complex) \<noteq> 0 ==> z / (w::complex) == z * inverse w"
 
-primrec (power_complex)
- "z^0 = 1"
- "z^(Suc n) = (z::complex) * (z^n)"
-
-lemma complex_surj [simp]: "Complex (Re z) (Im z) = z"
-  by (induct z) simp
-
-lemma complex_equality [simp, intro?]: "Re z = Re w \<Longrightarrow> Im z = Im w \<Longrightarrow> z = w"
+lemma complex_equality [intro?]: "Re z = Re w ==> Im z = Im w ==> z = w"
   by (induct z, induct w) simp
 
 lemma Re_zero [simp]: "Re 0 = 0"
@@ -96,10 +75,6 @@ lemma Re_zero [simp]: "Re 0 = 0"
 lemma Re_one [simp]: "Re 1 = 1"
   and Im_one [simp]: "Im 1 = 0"
   by (simp_all add: one_complex_def)
-
-lemma zero_complex_iff: "(z = 0) = (Re z = 0 \<and> Im z = 0)"
-  and one_complex_iff: "(z = 1) = (Re z = 1 \<and> Im z = 0)"
-  by auto
 
 lemma Re_add [simp]: "Re (z + w) = Re z + Re w"
   by (simp add: add_complex_def)
@@ -113,10 +88,10 @@ lemma Re_diff [simp]: "Re (z - w) = Re z - Re w"
 lemma Im_diff [simp]: "Im (z - w) = Im z - Im w"
   by (simp add: minus_complex_def)
 
-lemma Re_uminus [simp]: "Re (- z) = - Re z"
+lemma Re_uminus [simp]: "Re (-z) = - Re z"
   by (simp add: uminus_complex_def)
 
-lemma Im_uminus [simp]: "Im (- z) = - Im z"
+lemma Im_uminus [simp]: "Im (-z) = - Im z"
   by (simp add: uminus_complex_def)
 
 lemma Re_mult [simp]: "Re (z * w) = Re z * Re w - Im z * Im w"
@@ -125,9 +100,12 @@ lemma Re_mult [simp]: "Re (z * w) = Re z * Re w - Im z * Im w"
 lemma Im_mult [simp]: "Im (z * w) = Re z * Im w + Im z * Re w"
   by (simp add: mult_complex_def)
 
-lemma complex_power_two: "z^2 = z * (z::complex)"
-  by (simp add: numeral_2_eq_2)
+lemma zero_complex_iff: "(z = 0) = (Re z = 0 \<and> Im z = 0)"
+  and one_complex_iff: "(z = 1) = (Re z = 1 \<and> Im z = 0)"
+  by (auto simp add: complex_equality)
 
+
+subsection {* The field of complex numbers *}
 
 instance complex :: field
 proof
@@ -138,9 +116,9 @@ proof
     by (simp add: add_complex_def)
   show "0 + z = z"
     by (simp add: add_complex_def zero_complex_def)
-  show "- z + z = 0"
-    by (simp add: minus_complex_def)
-  show "z - w = z + - w"
+  show "-z + z = 0"
+    by (simp add: complex_equality minus_complex_def)
+  show "z - w = z + -w"
     by (simp add: add_complex_def minus_complex_def uminus_complex_def)
   show "(u * v) * w = u * (v * w)"
     by (simp add: mult_complex_def ring_mult_ac ring_distrib real_diff_def)  (* FIXME *)
@@ -151,6 +129,8 @@ proof
   show "(u + v) * w = u * w + v * w"
     by (simp add: add_complex_def mult_complex_def ring_distrib)
   assume neq: "w \<noteq> 0"
+  thus "z / w = z * inverse w"
+    by (simp add: divide_complex_def)
   show "inverse w * w = 1"
   proof
     have neq': "Re w * Re w + Im w * Im w \<noteq> 0"
@@ -166,13 +146,52 @@ proof
       by (simp add: inverse_complex_def real_power_two
         real_mult_ac real_add_divide_distrib [symmetric])
   qed
-  from neq show "z / w = z * inverse w"
-    by (simp add: divide_complex_def)
 qed
 
 
-lemma im_unit_square: "\<i>^2 = -1"
-  -- {* key property of the imaginary unit @{text \<i>} *}
+subsection {* Basic operations *}
+
+instance complex :: power ..
+primrec (power_complex)
+  "z ^ 0 = 1"
+  "z ^ Suc n = (z::complex) * (z ^ n)"
+
+lemma complex_power_two: "z\<twosuperior> = z * (z::complex)"
+  by (simp add: complex_equality numeral_2_eq_2)
+
+
+constdefs
+  im_unit :: complex    ("\<i>")
+  "\<i> == Complex 0 1"
+
+lemma im_unit_square: "\<i>\<twosuperior> = -1"
   by (simp add: im_unit_def complex_power_two mult_complex_def number_of_complex_def)
+
+
+constdefs
+  conjg :: "complex => complex"
+  "conjg z == Complex (Re z) (- Im z)"
+
+lemma Re_cong [simp]: "Re (conjg z) = Re z"
+  by (simp add: conjg_def)
+
+lemma Im_cong [simp]: "Im (conjg z) = - Im z"
+  by (simp add: conjg_def)
+
+lemma Re_conjg_self: "Re (z * conjg z) = (Re z)\<twosuperior> + (Im z)\<twosuperior>"
+  by (simp add: real_power_two)
+
+lemma Im_conjg_self: "Im (z * conjg z) = 0"
+  by simp
+
+
+subsection {* Embedding other number domains *}
+
+constdefs
+  complex :: "'a => complex"
+  "complex x == Complex (real x) 0";
+
+lemma Re_complex [simp]: "Re (complex x) = real x"
+  by (simp add: complex_def)
 
 end
