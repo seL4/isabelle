@@ -10,13 +10,6 @@ Arithmetic on binary integers.
 Addsimps bin.intrs;
 Addsimps int_typechecks;
 
-(*Perform induction on l, then prove the major premise using prems. *)
-fun bin_ind_tac a prems i = 
-    EVERY [res_inst_tac [("x",a)] bin.induct i,
-           rename_last_tac a ["1"] (i+3),
-           ares_tac prems i];
-
-
 Goal "NCons(Pls,0) = Pls";
 by (Asm_simp_tac 1);
 qed "NCons_Pls_0";
@@ -48,46 +41,47 @@ Addsimps NCons_simps;
 Addsimps [bool_into_nat];
 
 Goal "w: bin ==> integ_of(w) : int";
-by (bin_ind_tac "w" [] 1);
+by (induct_tac "w" 1);
 by (ALLGOALS (Asm_simp_tac));
 qed "integ_of_type";
 Addsimps [integ_of_type];
 
 Goal "[| w: bin; b: bool |] ==> NCons(w,b) : bin";
-by (bin_ind_tac "w" [] 1);
+by (induct_tac "w" 1);
 by Auto_tac;
 qed "NCons_type";
 Addsimps [NCons_type];
 
 Goal "w: bin ==> bin_succ(w) : bin";
-by (bin_ind_tac "w" [] 1);
+by (induct_tac "w" 1);
 by Auto_tac;
 qed "bin_succ_type";
 Addsimps [bin_succ_type];
 
 Goal "w: bin ==> bin_pred(w) : bin";
-by (bin_ind_tac "w" [] 1);
+by (induct_tac "w" 1);
 by Auto_tac;
 qed "bin_pred_type";
 Addsimps [bin_pred_type];
 
 Goal "w: bin ==> bin_minus(w) : bin";
-by (bin_ind_tac "w" [] 1);
+by (induct_tac "w" 1);
 by Auto_tac;
 qed "bin_minus_type";
 Addsimps [bin_minus_type];
 
 (*This proof is complicated by the mutual recursion*)
 Goal "v: bin ==> ALL w: bin. bin_add(v,w) : bin";
-by (bin_ind_tac "v" [] 1);
+by (induct_tac "v" 1);
 by (rtac ballI 3);
-by (bin_ind_tac "w" [] 3);
+by (rename_tac "w'" 3);
+by (induct_tac "w'" 3);
 by Auto_tac;
 bind_thm ("bin_add_type", result() RS bspec);
 Addsimps [bin_add_type];
 
 Goal "[| v: bin; w: bin |] ==> bin_mult(v,w) : bin";
-by (bin_ind_tac "v" [] 1);
+by (induct_tac "v" 1);
 by Auto_tac;
 qed "bin_mult_type";
 Addsimps [bin_mult_type];
@@ -173,7 +167,7 @@ by (etac bin.induct 1);
 by (Simp_tac 1);
 by (Simp_tac 1);
 by (rtac ballI 1);
-by (bin_ind_tac "wa" [] 1);
+by (induct_tac "wa" 1);
 by (ALLGOALS (asm_simp_tac (simpset() addsimps zadd_ac setloop (etac boolE))));
 bind_thm("integ_of_add", result() RS bspec);
 
@@ -184,13 +178,12 @@ Addsimps [integ_of_add];
 
 Goal "[| v: bin;  w: bin |]   \
 \     ==> integ_of(bin_mult(v,w)) = integ_of(v) $* integ_of(w)";
-by (bin_ind_tac "v" [major] 1);
+by (induct_tac "v" 1);
 by (Asm_simp_tac 1);
 by (Asm_simp_tac 1);
 by (etac boolE 1);
 by (asm_simp_tac (simpset() addsimps [zadd_zmult_distrib]) 2);
-by (asm_simp_tac 
-    (simpset() addsimps [zadd_zmult_distrib] @ zadd_ac) 1);
+by (asm_simp_tac (simpset() addsimps [zadd_zmult_distrib] @ zadd_ac) 1);
 qed "integ_of_mult";
 
 (**** Computations ****)

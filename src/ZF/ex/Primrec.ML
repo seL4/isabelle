@@ -175,9 +175,8 @@ qed "ack_add_bound2";
 
 Addsimps [list_add_type, nat_into_Ord];
 
-Goalw [SC_def]
-    "l: list(nat) ==> SC ` l < ack(1, list_add(l))";
-by (etac list.elim 1);
+Goalw [SC_def] "l: list(nat) ==> SC ` l < ack(1, list_add(l))";
+by (exhaust_tac "l" 1);
 by (asm_simp_tac (simpset() addsimps [succ_iff]) 1);
 by (asm_simp_tac (simpset() addsimps [ack_1, add_le_self]) 1);
 qed "SC_case";
@@ -258,7 +257,7 @@ Goalw [PREC_def]
 \           g: prim_rec;  kg: nat;                                       \
 \           l: list(nat)                                                \
 \        |] ==> PREC(f,g)`l #+ list_add(l) < ack(succ(kf#+kg), list_add(l))";
-by (etac list.elim 1);
+by (exhaust_tac "l" 1);
 by (asm_simp_tac (simpset() addsimps [[nat_le_refl, lt_ack2] MRS lt_trans]) 1);
 by (Asm_simp_tac 1);
 by (etac ssubst 1);  (*get rid of the needless assumption*)

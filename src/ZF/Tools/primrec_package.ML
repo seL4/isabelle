@@ -149,7 +149,10 @@ fun process_fun thy (fname, ftype, ls, rs, con_info: constructor_info, eqns) =
 		     $ rec_arg)
 
   in
-      writeln ("def = " ^ Sign.string_of_term (sign_of thy) def_tm);
+      if !Ind_Syntax.trace then
+	    writeln ("primrec def:\n" ^ 
+		     Sign.string_of_term (sign_of thy) def_tm)
+      else();
       (Sign.base_name fname ^ "_" ^ Sign.base_name big_rec_name ^ "_def",
        def_tm)
   end;
@@ -169,14 +172,16 @@ fun add_primrec_i recursion_eqns thy =
                    |> Theory.add_defs_i [def]
     val rewrites = get_axiom thy' (#1 def) ::
 	           map mk_meta_eq (#rec_rewrites con_info)
-    val _ = writeln ("Proving equations for primrec function " ^ fname);
     val char_thms = 
-	map (fn (_,t) => 
-	     prove_goalw_cterm rewrites
-	       (Ind_Syntax.traceIt "next primrec equation = "
-		(cterm_of (sign_of thy') t))
-	     (fn _ => [rtac refl 1]))
-	recursion_eqns;
+	(if !Ind_Syntax.trace then
+	     writeln ("Proving equations for primrec function " ^ fname)
+	 else ();
+	 map (fn (_,t) => 
+	      prove_goalw_cterm rewrites
+		(Ind_Syntax.traceIt "next primrec equation = "
+		 (cterm_of (sign_of thy') t))
+	      (fn _ => [rtac refl 1]))
+	 recursion_eqns);
     val tsimps = Attribute.tthms_of char_thms;
     val thy'' = thy' 
       |> PureThy.add_tthmss [(("simps", tsimps), [Simplifier.simp_add_global])]

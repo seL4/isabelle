@@ -1,9 +1,9 @@
-(*  Title:      ZF/datatype_package.ML
+(*  Title:      ZF/Tools/datatype_package.ML
     ID:         $Id$
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1994  University of Cambridge
 
-Fixedpoint definition module -- for Inductive/Codatatype Definitions
+Datatype/Codatatype Definitions
 
 The functor will be instantiated for normal sums/products (datatype defs)
                          and non-standard sums/products (codatatype defs)
@@ -243,7 +243,7 @@ fun add_datatype_i (dom_sum, rec_tms, con_ty_lists,
     | rec_args ((Const("op :",_)$arg$X)::prems) =
        (case head_of X of
 	    Const(a,_) => (*recursive occurrence?*)
-			  if Sign.base_name a mem_string rec_base_names
+			  if a mem_string rec_names
 			      then arg :: rec_args prems 
 			  else rec_args prems
 	  | _ => rec_args prems)

@@ -49,12 +49,6 @@ by (rtac (major RS TFin.induct) 1);
 by (ALLGOALS (fast_tac (claset() addIs prems)));
 qed "TFin_induct";
 
-(*Perform induction on n, then prove the major premise using prems. *)
-fun TFin_ind_tac a prems i = 
-    EVERY [res_inst_tac [("n",a)] TFin_induct i,
-           rename_last_tac a ["1"] (i+1),
-           rename_last_tac a ["2"] (i+2),
-           ares_tac prems i];
 
 (*** Section 3.  Some Properties of the Transfinite Construction ***)
 

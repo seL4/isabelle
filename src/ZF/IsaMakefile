@@ -43,7 +43,7 @@ $(OUT)/ZF: $(OUT)/FOL $(SRC)/Pure/section_utils.ML AC.ML AC.thy \
   ind_syntax.ML mono.ML mono.thy pair.ML pair.thy simpdata.ML subset.ML \
   subset.thy thy_syntax.ML upair.ML upair.thy \
   Tools/cartprod.ML Tools/datatype_package.ML Tools/inductive_package.ML \
-  Tools/primrec_package.ML Tools/typechk.ML \
+  Tools/primrec_package.ML Tools/induct_tacs.ML Tools/typechk.ML \
   Integ/EquivClass.ML Integ/EquivClass.thy Integ/Int.ML Integ/Int.thy \
   Integ/twos_compl.ML Integ/Bin.ML Integ/Bin.thy 
 	@$(ISATOOL) usedir -b $(OUT)/FOL ZF
