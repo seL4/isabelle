@@ -78,8 +78,6 @@ fun merge_opts _ (None, None) = None
   | merge_opts _ (None, some as Some _) = some
   | merge_opts merge (Some x, Some y) = Some (merge (x, y));
 
-
-
 (** pairs **)
 
 fun pair x y = (x, y);
@@ -126,8 +124,12 @@ fun andl [] = true
 
 (*Several object-logics declare theories named List or Option, hiding the
   eponymous basis library structures.*)
-structure List_ = List
-and       Option_ = Option;
+structure Basis_Library =
+    struct
+    structure List = List
+    and       Option = Option
+    end;
+
 
 (*exists pred [x1, ..., xn] ===> pred x1 orelse ... orelse pred xn*)
 fun exists (pred: 'a -> bool) : 'a list -> bool =
@@ -1009,27 +1011,42 @@ fun transitive_closure [] = []
 
 (* generating identifiers *)
 
+(** Freshly generated identifiers; supplied prefix MUST start with a letter **)
 local
-  val a = ord "a" and z = ord "z" and A = ord "A" and Z = ord "Z"
-  and k0 = ord "0" and k9 = ord "9"
+(*Maps 0-63 to A-Z, a-z, 0-9 or _ or ' for generating random identifiers*)
+fun char i =      if i<26 then chr (ord "A" + i)
+	     else if i<52 then chr (ord "a" + i - 26)
+	     else if i<62 then chr (ord"0" + i - 52)
+	     else if i=62 then "_"
+	     else  (*i=63*)    "'";
+
+val charVec = Vector.tabulate (64, char);
+
+fun newid n = 
+  let 
+  in  implode (map (fn i => Vector.sub(charVec,i)) (radixpand (64,n)))  end
 
   val seedr = ref 0;
+
 in
+fun init_gensym() = (seedr := 0);
 
-(*Maps 0-63 to A-Z, a-z, 0-9 or _ or ' for generating random identifiers*)
-fun newid n = 
-  let fun char i =
-               if i<26 then chr (A+i)
-          else if i<52 then chr (a+i-26)
-          else if i<62 then chr (k0+i-52)
-          else if i=62 then "_"
-          else  (*i=63*)    "'"
-  in  implode (map char (radixpand (64,n)))  end;
-
-(*Freshly generated identifiers with given prefix; MUST start with a letter*)
 fun gensym pre = pre ^ 
                  (#1(newid (!seedr), 
                      seedr := 1+ !seedr))
+end;
+
+
+local
+(*Identifies those character codes legal in identifiers.
+  chould use Basis Library character functions if Poly/ML provided characters*)
+fun idCode k = (ord "a" <= k andalso k < ord "z") orelse 
+               (ord "A" <= k andalso k < ord "Z") orelse
+               (ord "0" <= k andalso k < ord "9");
+
+val idCodeVec = Vector.tabulate (256, idCode);
+
+in
 
 (*Increment a list of letters like a reversed base 26 number.
   If head is "z", bumps chars in tail.
@@ -1037,8 +1054,10 @@ fun gensym pre = pre ^
   "_" and "'" are not changed.
   For making variants of identifiers.*)
 
-fun bump_int_list(c::cs) = if c="9" then "0" :: bump_int_list cs else
-        if k0 <= ord(c) andalso ord(c) < k9 then chr(ord(c)+1) :: cs
+fun bump_int_list(c::cs) = 
+	if c="9" then "0" :: bump_int_list cs 
+	else
+        if "0" <= c andalso c < "9" then chr(ord(c)+1) :: cs
         else "1" :: c :: cs
   | bump_int_list([]) = error("bump_int_list: not an identifier");
 
@@ -1047,12 +1066,13 @@ fun bump_list([], d) = [d]
   | bump_list("z"::cs, _) = "a" :: bump_list(cs, "a")
   | bump_list("Z"::cs, _) = "A" :: bump_list(cs, "A")
   | bump_list("9"::cs, _) = "0" :: bump_int_list cs
-  | bump_list(c::cs, _) = let val k = ord(c)
-        in if (a <= k andalso k < z) orelse (A <= k andalso k < Z) orelse
-              (k0 <= k andalso k < k9) then chr(k+1) :: cs else
-           if c="'" orelse c="_" then c :: bump_list(cs, "") else
-                error("bump_list: not legal in identifier: " ^
-                        implode(rev(c::cs)))
+  | bump_list(c::cs, _) = 
+        let val k = ord(c)
+        in if Vector.sub(idCodeVec,k) then chr(k+1) :: cs 
+	   else
+           if c="'" orelse c="_" then c :: bump_list(cs, "") 
+	   else error("bump_list: not legal in identifier: " ^
+		      implode(rev(c::cs)))
         end;
 
 end;
