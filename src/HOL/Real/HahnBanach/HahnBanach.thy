@@ -257,7 +257,7 @@ proof -
                   (rule vs_sum_subspace [OF _ lin_subspace])
               have "is_subspace F H" .
               also from h lin_vs 
-              have [fold H'_def]: "is_subspace H (H + lin x')" ..
+              have [folded H'_def]: "is_subspace H (H + lin x')" ..
               finally (subspace_trans [OF _ h]) 
               show f_h': "is_subspace F H'" .
             
