@@ -569,7 +569,7 @@ The necessity of universal quantification (\texttt{!t e}) in the two lemmas
 is explained in \S\ref{sec:InductionHeuristics}
 
 \begin{exercise}
-  We strengthen the definition of a {\em normal\/} If-expression as follows:
+  We strengthen the definition of a \texttt{normal} If-expression as follows:
   the first argument of all \texttt{IF}s must be a variable. Adapt the above
   development to this changed requirement. (Hint: you may need to formulate
   some of the goals as implications (\texttt{-->}) rather than equalities
@@ -1399,11 +1399,9 @@ the offending datatypes, here \texttt{list}. The result for \texttt{term}
 would be something like
 \begin{ttbox}
 \input{Datatype/tunfoldeddata}\end{ttbox}
-Although we do not recommend this unfolding to the user, this is how Isabelle
-deals with nested recursion internally. Strictly speaking, this information
-is irrelevant at the user level (and might change in the future), but it
-motivates why \texttt{primrec} and induction work for nested types the way
-they do. We now return to the initial definition of \texttt{term} using
+Although we do not recommend this unfolding to the user, it shows how to
+simulate nested recursion by mutual recursion.
+Now we return to the initial definition of \texttt{term} using
 nested recursion.
 
 Let us define a substitution function on terms. Because terms involve term
@@ -1437,14 +1435,14 @@ strengthen it and prove it. (Note: \texttt{o} is function composition; its
 definition is found in the theorem \texttt{o_def}).
 \end{exercise}
 
-If you feel that the \texttt{App}-equation in the definition of substitution
-is overly complicated, you are right: the simpler
+Returning to the definition of \texttt{subst}, we have to admit that it does
+not really need the auxiliary \texttt{substs} function. The \texttt{App}-case
+can directly be expressed as
 \begin{ttbox}
 \input{Datatype/appmap}\end{ttbox}
-would have done the job. Unfortunately, Isabelle insists on the more verbose
-equation given above. Nevertheless, we can easily {\em prove} that the
-\texttt{map}-equation holds: simply by induction on \texttt{ts} followed by
-\texttt{Auto_tac}.
+Although Isabelle insists on the more verbose version, we can easily {\em
+  prove} that the \texttt{map}-equation holds: simply by induction on
+\texttt{ts} followed by \texttt{Auto_tac}.
 
 %FIXME: forward pointer to section where better induction principles are
 %derived?
@@ -1467,8 +1465,8 @@ page~\pageref{startype}.
 
 How far can we push nested recursion? By the unfolding argument above, we can
 reduce nested to mutual recursion provided the nested recursion only involves
-previously defined datatypes. Isabelle is a bit more generous and also permits
-products as in the \texttt{data} example above.
+previously defined datatypes. The \texttt{data} example above involves
+products, which is fine because products are also datatypes.
 However, functions are most emphatically not allowed:
 \begin{ttbox}
 datatype t = C (t => bool)
@@ -1649,7 +1647,7 @@ Although many total functions have a natural primitive recursive definition,
 this is not always the case. Arbitrary total recursive functions can be
 defined by means of \texttt{recdef}: you can use full pattern-matching,
 recursion need not involve datatypes, and termination is proved by showing
-that each recursive call makes the argument smaller in a suitable (user
+that the arguments of all recursive calls are smaller in a suitable (user
 supplied) sense.
 
 \subsection{Defining recursive functions}
