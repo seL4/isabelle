@@ -48,11 +48,11 @@ qed_goal "cont_fapp2" Cfun2.thy "cont(fapp(fo))"
         (rtac Rep_Cfun 1)
         ]);
 
-val monofun_fapp2 = cont_fapp2 RS cont2mono;
+bind_thm ("monofun_fapp2", cont_fapp2 RS cont2mono);
 (* monofun(fapp(?fo1)) *)
 
 
-val contlub_fapp2 = cont_fapp2 RS cont2contlub;
+bind_thm ("contlub_fapp2", cont_fapp2 RS cont2contlub);
 (* contlub(fapp(?fo1)) *)
 
 (* ------------------------------------------------------------------------ *)
@@ -60,10 +60,10 @@ val contlub_fapp2 = cont_fapp2 RS cont2contlub;
 (* looks nice with mixfix syntac                                            *)
 (* ------------------------------------------------------------------------ *)
 
-val cont_cfun_arg = (cont_fapp2 RS contE RS spec RS mp);
+bind_thm ("cont_cfun_arg", (cont_fapp2 RS contE RS spec RS mp));
 (* is_chain(?x1) ==> range (%i. ?fo3`(?x1 i)) <<| ?fo3`(lub (range ?x1))    *)
  
-val contlub_cfun_arg = (contlub_fapp2 RS contlubE RS spec RS mp);
+bind_thm ("contlub_cfun_arg", (contlub_fapp2 RS contlubE RS spec RS mp));
 (* is_chain(?x1) ==> ?fo4`(lub (range ?x1)) = lub (range (%i. ?fo4`(?x1 i))) *)
 
 
@@ -93,7 +93,7 @@ qed_goal "monofun_cfun_fun" Cfun2.thy  "f1 << f2 ==> f1`x << f2`x"
         ]);
 
 
-val monofun_cfun_arg = (monofun_fapp2 RS monofunE RS spec RS spec RS mp);
+bind_thm ("monofun_cfun_arg", monofun_fapp2 RS monofunE RS spec RS spec RS mp);
 (* ?x2 << ?x1 ==> ?fo5`?x2 << ?fo5`?x1                                      *)
 
 (* ------------------------------------------------------------------------ *)
@@ -125,7 +125,7 @@ qed_goal "ch2ch_fappR" Cfun2.thy
         ]);
 
 
-val ch2ch_fappL = (monofun_fapp1 RS ch2ch_MF2L);
+bind_thm ("ch2ch_fappL", monofun_fapp1 RS ch2ch_MF2L);
 (* is_chain(?F) ==> is_chain (%i. ?F i`?x)                                  *)
 
 
@@ -210,7 +210,7 @@ qed_goal "lub_cfun" Cfun2.thy
         (etac (monofun_fapp1 RS ub2ub_monofun) 1)
         ]);
 
-val thelub_cfun = (lub_cfun RS thelubI);
+bind_thm ("thelub_cfun", lub_cfun RS thelubI);
 (* 
 is_chain(?CCF1) ==>  lub (range ?CCF1) = (LAM x. lub (range (%i. ?CCF1 i`x)))
 *)

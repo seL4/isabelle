@@ -27,10 +27,10 @@ qed_goal "thelubE"  Pcpo.thy
 (* ------------------------------------------------------------------------ *)
 
 
-val is_ub_thelub = (cpo RS lubI RS is_ub_lub);
+bind_thm ("is_ub_thelub", cpo RS lubI RS is_ub_lub);
 (* is_chain(?S1) ==> ?S1(?x) << lub(range(?S1))                             *)
 
-val is_lub_thelub = (cpo RS lubI RS is_lub_lub);
+bind_thm ("is_lub_thelub", cpo RS lubI RS is_lub_lub);
 (* [| is_chain(?S5); range(?S5) <| ?x1 |] ==> lub(range(?S5)) << ?x1        *)
 
 

@@ -42,7 +42,7 @@ qed_goal "less_sprod4b" Sprod2.thy
         (etac (inst_sprod_po RS subst) 1)
         ]);
 
-val less_sprod4a = (less_sprod4b RS defined_Ispair_rev);
+bind_thm ("less_sprod4a", less_sprod4b RS defined_Ispair_rev);
 (* Ispair ?a ?b << Ispair UU UU ==> ?a = UU | ?b = UU *)
 
 qed_goal "less_sprod4c" Sprod2.thy
@@ -252,7 +252,7 @@ qed_goal "lub_sprod" Sprod2.thy
         (etac (monofun_Issnd RS ub2ub_monofun) 1)
         ]);
 
-val thelub_sprod = (lub_sprod RS thelubI);
+bind_thm ("thelub_sprod", lub_sprod RS thelubI);
 
 
 qed_goal "cpo_sprod" Sprod2.thy 

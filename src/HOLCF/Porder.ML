@@ -216,10 +216,10 @@ qed_goalw "ub_rangeI" Porder.thy [is_ub]
         (etac spec 1)
         ]);
 
-val is_ub_lub = (is_lubE RS conjunct1 RS ub_rangeE RS spec);
+bind_thm ("is_ub_lub", is_lubE RS conjunct1 RS ub_rangeE RS spec);
 (* range(?S1) <<| ?x1 ==> ?S1(?x) << ?x1                                    *)
 
-val is_lub_lub = (is_lubE RS conjunct2 RS spec RS mp);
+bind_thm ("is_lub_lub", is_lubE RS conjunct2 RS spec RS mp);
 (* [| ?S3 <<| ?x3; ?S3 <| ?x1 |] ==> ?x3 << ?x1                             *)
 
 (* ------------------------------------------------------------------------ *)
@@ -276,7 +276,7 @@ qed_goalw "lub_void"  Porder.thy [is_lub] "M <<| UU_void"
 (* lub(?M) = UU_void                                                        *)
 (* ------------------------------------------------------------------------ *)
 
-val thelub_void = (lub_void RS thelubI);
+bind_thm ("thelub_void", lub_void RS thelubI);
 
 (* ------------------------------------------------------------------------ *)
 (* void is a cpo wrt. countable chains                                      *)

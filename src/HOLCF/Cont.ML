@@ -578,7 +578,7 @@ qed_goal "cont2cont_app" Cont.thy
         ]);
 
 
-val cont2cont_app2 = (allI RSN (2,cont2cont_app));
+bind_thm ("cont2cont_app2", allI RSN (2,cont2cont_app));
 (*  [| cont ?ft; !!x. cont (?ft x); cont ?tt |] ==> *)
 (*        cont (%x. ?ft x (?tt x))                    *)
 

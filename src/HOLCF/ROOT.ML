@@ -11,6 +11,8 @@ val banner = "HOLCF with sections axioms,ops,domain,generated";
 init_thy_reader();
 
 (* start 8bit 1 *)
+val banner = 
+	"HOLCF with sections axioms,ops,domain,generated and 8bit characters";
 (* end 8bit 1 *)
 
 writeln banner;

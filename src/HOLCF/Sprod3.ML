@@ -612,7 +612,7 @@ qed_goalw "lub_sprod2" Sprod3.thy [sfst_def,ssnd_def,spair_def]
         ]);
 
 
-val thelub_sprod2 = (lub_sprod2 RS thelubI);
+bind_thm ("thelub_sprod2", lub_sprod2 RS thelubI);
 (*
  "is_chain ?S1 ==>
  lub (range ?S1) =

@@ -160,7 +160,7 @@ qed_goal "lub_cprod" Cprod2.thy
         (etac (monofun_snd RS ub2ub_monofun) 1)
         ]);
 
-val thelub_cprod = (lub_cprod RS thelubI);
+bind_thm ("thelub_cprod", lub_cprod RS thelubI);
 (*
 "is_chain ?S1 ==>
  lub (range ?S1) =

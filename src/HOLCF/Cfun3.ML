@@ -183,7 +183,7 @@ qed_goal "cont2cont_LAM" Cfun3.thy
 (* lemma for the cont tactic                                               *)
 (* ------------------------------------------------------------------------ *)
 
-val cont2cont_LAM2 = (allI RSN (2,(allI RS cont2cont_LAM)));
+bind_thm ("cont2cont_LAM2", allI RSN (2,(allI RS cont2cont_LAM)));
 (*
 [| !!x. cont (?c1.0 x);
     !!y. cont (%x. ?c1.0 x y) |] ==> cont (%x. LAM y. ?c1.0 x y)
@@ -343,10 +343,10 @@ qed_goal "contlub_Istrictify2" Cfun3.thy "contlub(Istrictify(f::'a -> 'b))"
         ]);
 
 
-val cont_Istrictify1 = (contlub_Istrictify1 RS 
+bind_thm ("cont_Istrictify1", contlub_Istrictify1 RS 
         (monofun_Istrictify1 RS monocontlub2cont)); 
 
-val cont_Istrictify2 = (contlub_Istrictify2 RS 
+bind_thm ("cont_Istrictify2", contlub_Istrictify2 RS 
         (monofun_Istrictify2 RS monocontlub2cont)); 
 
 

@@ -587,7 +587,7 @@ qed_goalw "flat_imp_chain_finite"  Fix.thy  [is_flat_def,chain_finite_def]
         ]);
 
 
-val adm_flat = flat_imp_chain_finite RS adm_chain_finite;
+bind_thm ("adm_flat", flat_imp_chain_finite RS adm_chain_finite);
 (* is_flat(?x::?'a) ==> adm(?P::?'a => bool) *)
 
 qed_goalw "flat_void" Fix.thy [is_flat_def] "is_flat(UU::void)"
@@ -828,7 +828,7 @@ qed_goal "adm_all"  Fix.thy
         (etac spec 1)
         ]);
 
-val adm_all2 = (allI RS adm_all);
+bind_thm ("adm_all2", allI RS adm_all);
 
 qed_goal "adm_subst"  Fix.thy  
         "[|cont t; adm P|] ==> adm(%x. P (t x))"

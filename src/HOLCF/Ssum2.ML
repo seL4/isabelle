@@ -390,14 +390,14 @@ qed_goal "lub_ssum1b" Ssum2.thy
         ]);
 
 
-val thelub_ssum1a = lub_ssum1a RS thelubI;
+bind_thm ("thelub_ssum1a", lub_ssum1a RS thelubI);
 (*
 [| is_chain ?Y1; ! i. ? x. ?Y1 i = Isinl x |] ==>
  lub (range ?Y1) = Isinl
  (lub (range (%i. Iwhen (LAM x. x) (LAM y. UU) (?Y1 i))))
 *)
 
-val thelub_ssum1b = lub_ssum1b RS thelubI;
+bind_thm ("thelub_ssum1b", lub_ssum1b RS thelubI);
 (*
 [| is_chain ?Y1; ! i. ? x. ?Y1 i = Isinr x |] ==>
  lub (range ?Y1) = Isinr

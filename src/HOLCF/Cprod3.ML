@@ -283,7 +283,7 @@ qed_goalw "lub_cprod2" Cprod3.thy [cfst_def,csnd_def,cpair_def]
         (atac 1)
         ]);
 
-val thelub_cprod2 = (lub_cprod2 RS thelubI);
+bind_thm ("thelub_cprod2", lub_cprod2 RS thelubI);
 (*
 is_chain ?S1 ==>
  lub (range ?S1) =

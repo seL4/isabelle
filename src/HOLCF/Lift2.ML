@@ -154,13 +154,13 @@ qed_goal "lub_lift1b" Lift2.thy
         (rtac minimal_lift 1)
         ]);
 
-val thelub_lift1a = lub_lift1a RS thelubI;
+bind_thm ("thelub_lift1a", lub_lift1a RS thelubI);
 (*
 [| is_chain ?Y1; ? i x. ?Y1 i = Iup x |] ==>
  lub (range ?Y1) = Iup (lub (range (%i. Ilift (LAM x. x) (?Y1 i))))
 *)
 
-val thelub_lift1b = lub_lift1b RS thelubI;
+bind_thm ("thelub_lift1b", lub_lift1b RS thelubI);
 (*
 [| is_chain ?Y1; ! i x. ?Y1 i ~= Iup x |] ==>
  lub (range ?Y1) = UU_lift
