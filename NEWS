@@ -6,45 +6,40 @@ New in this Isabelle release
 
 *** General ***
 
-* Provers/linorder: New generic prover for transitivity reasoning over
-linear orders.  Note: this prover is not efficient!
-
 * Provers/simplifier:
 
-  - Completely reimplemented Asm_full_simp_tac:
+  - Completely reimplemented method simp (ML: Asm_full_simp_tac):
     Assumptions are now subject to complete mutual simplification,
     not just from left to right. The simplifier now preserves
     the order of assumptions.
 
     Potential INCOMPATIBILITY:
 
-    -- Asm_full_simp_tac sometimes diverges where the old version did
-       not, e.g. invoking Asm_full_simp_tac on the goal
+    -- simp sometimes diverges where the old version did
+       not, e.g. invoking simp on the goal
 
         [| P (f x); y = x; f x = f y |] ==> Q
 
-      now gives rise to the infinite reduction sequence
+       now gives rise to the infinite reduction sequence
 
-        P (f x) --(f x = f y)--> P (f y) --(y = x)--> P (f x) --(f x = f y)--> ...
+        P(f x) --(f x = f y)--> P(f y) --(y = x)--> P(f x) --(f x = f y)--> ...
 
-      Using Asm_lr_simp_tac (or "simp (asm_lr)" in Isabelle/Isar) instead
-      often solves this kind of problem.
+       Using "simp (asm_lr)" (ML: Asm_lr_simp_tac) instead often solves this
+       kind of problem.
 
-    -- Tactics combining classical reasoner and simplification (such
-       as auto) are also affected by this change, because many of them
-       rely on Asm_full_simp_tac. They may sometimes diverge as well
-       or yield a different numbers of subgoals. Try to use e.g. force,
-       fastsimp, or safe instead of auto in case of problems. Sometimes
-       subsequent calls to the classical reasoner will fail because a
-       preceeding call to the simplifier too eagerly simplified the
-       goal, e.g. deleted redundant premises.
+    -- Tactics combining classical reasoner and simplification (such as auto)
+       are also affected by this change, because many of them rely on
+       simp. They may sometimes diverge as well or yield a different numbers
+       of subgoals. Try to use e.g. force, fastsimp, or safe instead of auto
+       in case of problems. Sometimes subsequent calls to the classical
+       reasoner will fail because a preceeding call to the simplifier too
+       eagerly simplified the goal, e.g. deleted redundant premises.
 
   - The simplifier trace now shows the names of the applied rewrite rules
 
-* Pure: new flag trace_unify_fail causes unification to print
-diagnostic information (PG: in trace buffer) when it fails. This is
-useful for figuring out why single step proofs like rule, erule or
-assumption failed.
+* Pure: new flag for triggering if the overall goal of a proof state should
+be printed (ML: Proof.show_main_goal).
+PG menu: Isabelle/Isar -> Settigs -> Show Main Goal
 
 * Pure: you can find all matching introduction rules for subgoal 1,
   i.e. all rules whose conclusion matches subgoal 1, by executing
@@ -53,6 +48,11 @@ assumption failed.
   In particular, rules that solve a subgoal outright are displayed first
   (or rather last, the way it is printed).
   TODO: integration with PG
+
+* Pure: new flag trace_unify_fail causes unification to print
+diagnostic information (PG: in trace buffer) when it fails. This is
+useful for figuring out why single step proofs like rule, erule or
+assumption failed.
 
 * Pure: locale specifications now produce predicate definitions
 according to the body of text (covering assumptions modulo local
@@ -83,6 +83,9 @@ the goal statement); "foo" still refers to all facts collectively;
 * Provers: the function blast.overloaded has been removed: all constants
 are regarded as potentially overloaded, which improves robustness in exchange
 for slight decrease in efficiency;
+
+* Provers/linorder: New generic prover for transitivity reasoning over
+linear orders.  Note: this prover is not efficient!
 
 * Isar: preview of problems to finish 'show' now produce an error
 rather than just a warning (in interactive mode);
