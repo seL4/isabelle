@@ -267,7 +267,7 @@ Addsimps [ntrunc_0, ntrunc_Atom, ntrunc_Leaf, ntrunc_Numb, ntrunc_Scons];
 
 (** Injection nodes **)
 
-Goalw [In0_def] "ntrunc (Suc 0) (In0 M) = {}";
+Goalw [In0_def] "ntrunc 1 (In0 M) = {}";
 by (Simp_tac 1);
 by (rewtac Scons_def);
 by (Blast_tac 1);
@@ -278,7 +278,7 @@ Goalw [In0_def]
 by (Simp_tac 1);
 qed "ntrunc_In0";
 
-Goalw [In1_def] "ntrunc (Suc 0) (In1 M) = {}";
+Goalw [In1_def] "ntrunc 1 (In1 M) = {}";
 by (Simp_tac 1);
 by (rewtac Scons_def);
 by (Blast_tac 1);
