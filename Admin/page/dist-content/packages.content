@@ -67,11 +67,11 @@ installation.
 Example installation in <tt>/usr/share</tt> (the default location):
 
 <pre>
-rpm -i --prefix /usr/share polyml.i386.rpm
-rpm -i --prefix /usr/share isabelle.rpm
-rpm -i --prefix /usr/share isabelle-HOL.i386.rpm
-rpm -i --prefix /usr/share proofgeneral.rpm
-rpm -i --prefix /usr/share xsymbol.rpm
+rpm -i --force --prefix /usr/share polyml.i386.rpm
+rpm -i --force --prefix /usr/share isabelle.rpm
+rpm -i --force --prefix /usr/share isabelle-HOL.i386.rpm
+rpm -i --force --prefix /usr/share proofgeneral.rpm
+rpm -i --force --prefix /usr/share xsymbol.rpm
 </pre>
 
 <p>
