@@ -143,15 +143,23 @@ lemma Fake_parts_insert_in_Un:
 by (blast dest: Fake_parts_insert  [THEN subsetD, dest])
 
 method_setup spy_analz = {*
-    Method.no_args (Method.METHOD (fn facts => spy_analz_tac 1)) *}
+    Method.ctxt_args (fn ctxt =>
+        Method.METHOD (fn facts => 
+            gen_spy_analz_tac (Classical.get_local_claset ctxt,
+                               Simplifier.get_local_simpset ctxt) 1)) *}
     "for proving the Fake case when analz is involved"
 
 method_setup atomic_spy_analz = {*
-    Method.no_args (Method.METHOD (fn facts => atomic_spy_analz_tac 1)) *}
+    Method.ctxt_args (fn ctxt =>
+        Method.METHOD (fn facts => 
+            atomic_spy_analz_tac (Classical.get_local_claset ctxt,
+                                  Simplifier.get_local_simpset ctxt) 1)) *}
     "for debugging spy_analz"
 
 method_setup Fake_insert_simp = {*
-    Method.no_args (Method.METHOD (fn facts => Fake_insert_simp_tac 1)) *}
+    Method.ctxt_args (fn ctxt =>
+        Method.METHOD (fn facts =>
+            Fake_insert_simp_tac (Simplifier.get_local_simpset ctxt) 1)) *}
     "for debugging spy_analz"
 
 end

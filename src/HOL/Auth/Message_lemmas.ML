@@ -865,8 +865,8 @@ val Fake_insert_tac =
                   impOfSubs Fake_parts_insert] THEN'
     eresolve_tac [asm_rl, synth.Inj];
 
-fun Fake_insert_simp_tac i = 
-    REPEAT (Fake_insert_tac i) THEN Asm_full_simp_tac i;
+fun Fake_insert_simp_tac ss i = 
+    REPEAT (Fake_insert_tac i) THEN asm_full_simp_tac ss i;
 
 
 (*Analysis of Fake cases.  Also works for messages that forward unknown parts,
@@ -874,14 +874,15 @@ fun Fake_insert_simp_tac i =
   Abstraction over i is ESSENTIAL: it delays the dereferencing of claset
   DEPENDS UPON "X" REFERRING TO THE FRADULENT MESSAGE *)
 
-val atomic_spy_analz_tac = SELECT_GOAL
-    (Fake_insert_simp_tac 1
+fun atomic_spy_analz_tac (cs,ss) = SELECT_GOAL
+    (Fake_insert_simp_tac ss 1
      THEN
      IF_UNSOLVED (Blast.depth_tac
-		  (claset() addIs [analz_insertI,
+		  (cs addIs [analz_insertI,
 				   impOfSubs analz_subset_parts]) 4 1));
 
-fun spy_analz_tac i =
+(*The explicit claset and simpset arguments help it work with Isar*)
+fun gen_spy_analz_tac (cs,ss) i =
   DETERM
    (SELECT_GOAL
      (EVERY 
@@ -889,9 +890,11 @@ fun spy_analz_tac i =
        (REPEAT o CHANGED)
            (res_inst_tac [("x1","X")] (insert_commute RS ssubst) 1),
        (*...allowing further simplifications*)
-       Simp_tac 1,
+       simp_tac ss 1,
        REPEAT (FIRSTGOAL (resolve_tac [allI,impI,notI,conjI,iffI])),
-       DEPTH_SOLVE (atomic_spy_analz_tac 1)]) i);
+       DEPTH_SOLVE (atomic_spy_analz_tac (cs,ss) 1)]) i);
+
+fun spy_analz_tac i = gen_spy_analz_tac (claset(), simpset()) i;
 
 (*By default only o_apply is built-in.  But in the presence of eta-expansion
   this means that some terms displayed as (f o g) will be rewritten, and others

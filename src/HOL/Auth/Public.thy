@@ -40,7 +40,9 @@ use "Public_lemmas.ML"
 (*Specialized methods*)
 
 method_setup possibility = {*
-    Method.no_args (Method.METHOD (fn facts => possibility_tac)) *}
+    Method.ctxt_args (fn ctxt =>
+        Method.METHOD (fn facts =>
+            gen_possibility_tac (Simplifier.get_local_simpset ctxt))) *}
     "for proving possibility theorems"
 
 end

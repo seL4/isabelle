@@ -15,7 +15,7 @@ consts
   shrK    :: "agent => key"  (*symmetric keys*)
 
 axioms
-  isSym_keys: "K \\<in> symKeys"	(*All keys are symmetric*)
+  isSym_keys: "K \<in> symKeys"	(*All keys are symmetric*)
   inj_shrK:   "inj shrK"	(*No two agents have the same long-term key*)
 
 primrec
@@ -38,7 +38,7 @@ use "Shared_lemmas.ML"
 
 (*Lets blast_tac perform this step without needing the simplifier*)
 lemma invKey_shrK_iff [iff]:
-     "(Key (invKey K) \\<in> X) = (Key K \\<in> X)"
+     "(Key (invKey K) \<in> X) = (Key K \<in> X)"
 by auto;
 
 (*Specialized methods*)
@@ -52,7 +52,9 @@ method_setup analz_freshK = {*
     "for proving the Session Key Compromise theorem"
 
 method_setup possibility = {*
-    Method.no_args (Method.METHOD (fn facts => possibility_tac)) *}
+    Method.ctxt_args (fn ctxt =>
+        Method.METHOD (fn facts =>
+            gen_possibility_tac (Simplifier.get_local_simpset ctxt))) *}
     "for proving possibility theorems"
 
 end

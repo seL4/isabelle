@@ -139,14 +139,16 @@ by (rtac someI 1);
 by (Fast_tac 1);
 qed "Nonce_supply";
 
-(*Tactic for possibility theorems*)
-fun possibility_tac st = st |>
+(*Tactic for possibility theorems (Isar interface)*)
+fun gen_possibility_tac ss state = state |>
     REPEAT (*omit used_Says so that Nonces start from different traces!*)
-    (ALLGOALS (simp_tac (simpset() delsimps [used_Says]))
+    (ALLGOALS (simp_tac (ss delsimps [used_Says]))
      THEN
      REPEAT_FIRST (eq_assume_tac ORELSE' 
                    resolve_tac [refl, conjI, Nonce_supply]));
 
+(*Tactic for possibility theorems (ML script version)*)
+fun possibility_tac state = gen_possibility_tac (simpset()) state;
 
 (*** Specialized rewriting for the analz_image_... theorems ***)
 

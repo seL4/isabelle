@@ -201,13 +201,16 @@ qed "Key_supply";
 
 (*Omitting used_Says makes the tactic much faster: it leaves expressions
     such as  Nonce ?N \\<notin> used evs that match Nonce_supply*)
-fun possibility_tac st = st |>
+fun gen_possibility_tac ss state = state |>
    (REPEAT 
-    (ALLGOALS (simp_tac (simpset() delsimps [used_Says, used_Notes, used_Gets] 
+    (ALLGOALS (simp_tac (ss delsimps [used_Says, used_Notes, used_Gets] 
                          setSolver safe_solver))
      THEN
      REPEAT_FIRST (eq_assume_tac ORELSE' 
                    resolve_tac [refl, conjI, Nonce_supply, Key_supply])));
+
+(*Tactic for possibility theorems (ML script version)*)
+fun possibility_tac state = gen_possibility_tac (simpset()) state;
 
 (*For harder protocols (such as Recur) where we have to set up some
   nonces and keys initially*)

@@ -127,38 +127,44 @@ apply possibility
 done
 
 
-(*Case two: Alice, Bob and the server
-WHY WON'T INSERT LET VARS REMAIN???
+(*Case two: Alice, Bob and the server*)
 lemma "\<exists>K. \<exists>NA. \<exists>evs \<in> recur.
         Says B A {|Crypt (shrK A) {|Key K, Agent B, Nonce NA|},
                    END|}  \<in> set evs"
-apply (insert Nonce_supply2 Key_supply2)
+apply (tactic "cut_facts_tac [Nonce_supply2, Key_supply2] 1")
 apply clarify
 apply (intro exI bexI)
-apply (rule_tac [2] recur.Nil [THEN recur.RA1, THEN recur.RA2,
-                               THEN recur.RA3 [OF _ _ respond.One]])
-apply possibility
-apply (DEPTH_SOLVE (erule asm_rl less_not_refl2 less_not_refl3))
+apply (rule_tac [2] 
+          recur.Nil [THEN recur.RA1, 
+                     THEN recur.RA2,
+                     THEN recur.RA3 [OF _ _ respond.One [THEN respond.Cons]],
+                     THEN recur.RA4])
+apply (tactic "basic_possibility_tac")
+apply (tactic
+      "DEPTH_SOLVE (eresolve_tac [asm_rl, less_not_refl2, less_not_refl3] 1)")
 done
-*)
 
 (*Case three: Alice, Bob, Charlie and the server
-  TOO SLOW to run every time!
-Goal "\<exists>K. \<exists>NA. \<exists>evs \<in> recur.
+  Rather slow (16 seconds) to run every time...
+lemma "\<exists>K. \<exists>NA. \<exists>evs \<in> recur.
         Says B A {|Crypt (shrK A) {|Key K, Agent B, Nonce NA|},
                    END|}  \<in> set evs"
-by (cut_facts_tac [Nonce_supply3, Key_supply3] 1);
-by (REPEAT (eresolve_tac [exE, conjE] 1));
-by (REPEAT (resolve_tac [exI,bexI] 1));
-by (rtac (recur.Nil RS recur.RA1 RS recur.RA2 RS recur.RA2 RS
-          (respond.One RS respond.Cons RS respond.Cons RSN
-           (3,recur.RA3)) RS recur.RA4 RS recur.RA4) 2);
-by basic_possibility_tac;
-by (DEPTH_SOLVE (swap_res_tac [refl, conjI, disjCI] 1
-		 ORELSE
-		 eresolve_tac [asm_rl, less_not_refl2, less_not_refl3] 1));
-result();
-****)
+apply (tactic "cut_facts_tac [Nonce_supply3, Key_supply3] 1")
+apply clarify
+apply (intro exI bexI)
+apply (rule_tac [2] 
+          recur.Nil [THEN recur.RA1, 
+                     THEN recur.RA2, THEN recur.RA2,
+                     THEN recur.RA3 
+                          [OF _ _ respond.One 
+                                  [THEN respond.Cons, THEN respond.Cons]],
+                     THEN recur.RA4, THEN recur.RA4])
+apply (tactic "basic_possibility_tac")
+apply (tactic
+      "DEPTH_SOLVE (swap_res_tac [refl, conjI, disjCI] 1 ORELSE \
+\                   eresolve_tac [asm_rl, less_not_refl2, less_not_refl3] 1)")
+done
+*)
 
 (**** Inductive proofs about recur ****)
 
@@ -274,7 +280,8 @@ by (simp del: image_insert
 
 
 (*Everything that's hashed is already in past traffic. *)
-lemma Hash_imp_body: "[| Hash {|Key(shrK A), X|} \<in> parts (spies evs);
+lemma Hash_imp_body:
+     "[| Hash {|Key(shrK A), X|} \<in> parts (spies evs);
          evs \<in> recur;  A \<notin> bad |] ==> X \<in> parts (spies evs)"
 apply (erule rev_mp)
 apply (erule recur.induct,
@@ -405,11 +412,6 @@ apply (blast dest!: resp_analz_insert)
 done
 
 
-(*WHAT'S GOING ON??*)
-method_setup newbla = {*
-    Method.no_args (Method.METHOD (fn facts =>  Blast_tac 1)) *}
-    "for debugging spy_analz"
-
 lemma Spy_not_see_session_key:
      "[| Crypt (shrK A) {|Key K, Agent A', N|} \<in> parts (spies evs);
          A \<notin> bad;  A' \<notin> bad;  evs \<in> recur |]
@@ -423,12 +425,7 @@ apply (drule_tac [4] RA2_analz_spies,
 (*Base*)
 apply force
 (*Fake*)
-apply (intro allI impI notI conjI iffI)
-apply Fake_insert_simp
-apply (blast ); 
-(*???ASK MARKUS WHY METHOD_SETUP DOESN'T WORK.  Should be just
 apply spy_analz
-*)
 (*RA2*)
 apply blast 
 (*RA3 remains*)
@@ -496,7 +493,8 @@ apply blast
 apply blast
 (*RA2: it cannot be a new Nonce, contradiction.*)
 apply blast
-(*RA3*)
+(*RA3*) (*Pity that the proof is so brittle: this step requires the rewriting,
+          which however would break all other steps.*)
 apply (simp add: parts_insert_spies, blast)
 (*RA4*)
 apply blast
