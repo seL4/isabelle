@@ -199,6 +199,14 @@ val ex_all_equiv =
 
 end;
 
+(* Elimination of True from asumptions: *)
+
+val True_implies_equals = prove_goal HOL.thy
+ "(True ==> PROP P) == PROP P"
+(fn _ => [rtac equal_intr_rule 1, atac 2,
+          METAHYPS (fn prems => resolve_tac prems 1) 1,
+          rtac TrueI 1]);
+
 fun prove nm thm  = qed_goal nm HOL.thy thm (fn _ => [blast_tac HOL_cs 1]);
 
 prove "conj_commute" "(P&Q) = (Q&P)";
@@ -355,6 +363,7 @@ val HOL_basic_ss = empty_ss setsubgoaler asm_simp_tac
 val HOL_ss = 
     HOL_basic_ss addsimps 
      ([triv_forall_equality, (* prunes params *)
+       True_implies_equals, (* prune asms `True' *)
        if_True, if_False, if_cancel,
        o_apply, imp_disjL, conj_assoc, disj_assoc,
        de_Morgan_conj, de_Morgan_disj, not_imp,
