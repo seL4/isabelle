@@ -61,9 +61,8 @@ like \isa{map}. For a start, if nothing were known about \isa{map},
 \isacommand{recdef} has been supplied with the congruence theorem
 \isa{map{\isacharunderscore}cong}:
 \begin{isabelle}%
-\ \ \ \ \ xs\ {\isacharequal}\ ys\ {\isasymLongrightarrow}\isanewline
-\ \ \ \ \ {\isacharparenleft}{\isasymAnd}x{\isachardot}\ x\ {\isasymin}\ set\ ys\ {\isasymLongrightarrow}\ f\ x\ {\isacharequal}\ g\ x{\isacharparenright}\ {\isasymLongrightarrow}\isanewline
-\ \ \ \ \ map\ f\ xs\ {\isacharequal}\ map\ g\ ys%
+\ \ \ \ \ {\isasymlbrakk}xs\ {\isacharequal}\ ys{\isacharsemicolon}\ {\isasymAnd}x{\isachardot}\ x\ {\isasymin}\ set\ ys\ {\isasymLongrightarrow}\ f\ x\ {\isacharequal}\ g\ x{\isasymrbrakk}\isanewline
+\ \ \ \ \ {\isasymLongrightarrow}\ map\ f\ xs\ {\isacharequal}\ map\ g\ ys%
 \end{isabelle}
 Its second premise expresses (indirectly) that the second argument of
 \isa{map} is only applied to elements of its third argument. Congruence

@@ -48,7 +48,18 @@ Constant & Type & Syntax \\
 \caption{Overloaded constants in HOL}
 \label{tab:overloading}
 \end{center}
-\end{table}%
+\end{table}
+
+In addition there is a special input syntax for bounded quantifiers:
+\begin{center}
+\begin{tabular}{lcl}
+\isa{{\isasymforall}x\ {\isasymle}\ y{\isachardot}\ P\ x} & \isa{{\isasymequiv}} & \isa{{\isasymforall}x{\isachardot}\ x\ {\isasymle}\ y\ {\isasymlongrightarrow}\ P\ x} \\
+\isa{{\isasymexists}x\ {\isasymle}\ y{\isachardot}\ P\ x} & \isa{{\isasymequiv}} & \isa{{\isasymexists}x{\isachardot}\ x\ {\isasymle}\ y\ {\isasymand}\ P\ x}
+\end{tabular}
+\end{center}
+And analogously for \isa{{\isacharless}} instead of \isa{{\isasymle}}.
+The form on the left is translated into the one on the right upon input but it is not
+translated back upon output.%
 \end{isamarkuptext}%
 \end{isabellebody}%
 %%% Local Variables:

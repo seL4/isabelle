@@ -28,7 +28,7 @@ operators. For example, \isa{xs\ {\isacharequal}\ {\isacharbrackleft}{\isacharbr
 controlled by so-called \bfindex{congruence rules}. This is the one for
 \isa{{\isasymlongrightarrow}}:
 \begin{isabelle}%
-\ \ \ \ \ P\ {\isacharequal}\ P{\isacharprime}\ {\isasymLongrightarrow}\ {\isacharparenleft}P{\isacharprime}\ {\isasymLongrightarrow}\ Q\ {\isacharequal}\ Q{\isacharprime}{\isacharparenright}\ {\isasymLongrightarrow}\ {\isacharparenleft}P\ {\isasymlongrightarrow}\ Q{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}P{\isacharprime}\ {\isasymlongrightarrow}\ Q{\isacharprime}{\isacharparenright}%
+\ \ \ \ \ {\isasymlbrakk}P\ {\isacharequal}\ P{\isacharprime}{\isacharsemicolon}\ P{\isacharprime}\ {\isasymLongrightarrow}\ Q\ {\isacharequal}\ Q{\isacharprime}{\isasymrbrakk}\ {\isasymLongrightarrow}\ {\isacharparenleft}P\ {\isasymlongrightarrow}\ Q{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}P{\isacharprime}\ {\isasymlongrightarrow}\ Q{\isacharprime}{\isacharparenright}%
 \end{isabelle}
 It should be read as follows:
 In order to simplify \isa{P\ {\isasymlongrightarrow}\ Q} to \isa{P{\isacharprime}\ {\isasymlongrightarrow}\ Q{\isacharprime}},
@@ -38,15 +38,14 @@ and assume \isa{P{\isacharprime}} when simplifying \isa{Q} to \isa{Q{\isacharpri
 Here are some more examples.  The congruence rules for bounded
 quantifiers supply contextual information about the bound variable:
 \begin{isabelle}%
-\ \ \ \ \ A\ {\isacharequal}\ B\ {\isasymLongrightarrow}\isanewline
-\ \ \ \ \ {\isacharparenleft}{\isasymAnd}x{\isachardot}\ x\ {\isasymin}\ B\ {\isasymLongrightarrow}\ P\ x\ {\isacharequal}\ Q\ x{\isacharparenright}\ {\isasymLongrightarrow}\ {\isacharparenleft}{\isasymforall}x{\isasymin}A{\isachardot}\ P\ x{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}{\isasymforall}x{\isasymin}B{\isachardot}\ Q\ x{\isacharparenright}%
+\ \ \ \ \ {\isasymlbrakk}A\ {\isacharequal}\ B{\isacharsemicolon}\ {\isasymAnd}x{\isachardot}\ x\ {\isasymin}\ B\ {\isasymLongrightarrow}\ P\ x\ {\isacharequal}\ Q\ x{\isasymrbrakk}\isanewline
+\ \ \ \ \ {\isasymLongrightarrow}\ {\isacharparenleft}{\isasymforall}x{\isasymin}A{\isachardot}\ P\ x{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}{\isasymforall}x{\isasymin}B{\isachardot}\ Q\ x{\isacharparenright}%
 \end{isabelle}
 The congruence rule for conditional expressions supply contextual
 information for simplifying the arms:
 \begin{isabelle}%
-\ \ \ \ \ b\ {\isacharequal}\ c\ {\isasymLongrightarrow}\isanewline
-\ \ \ \ \ {\isacharparenleft}c\ {\isasymLongrightarrow}\ x\ {\isacharequal}\ u{\isacharparenright}\ {\isasymLongrightarrow}\isanewline
-\ \ \ \ \ {\isacharparenleft}{\isasymnot}\ c\ {\isasymLongrightarrow}\ y\ {\isacharequal}\ v{\isacharparenright}\ {\isasymLongrightarrow}\ {\isacharparenleft}if\ b\ then\ x\ else\ y{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}if\ c\ then\ u\ else\ v{\isacharparenright}%
+\ \ \ \ \ {\isasymlbrakk}b\ {\isacharequal}\ c{\isacharsemicolon}\ c\ {\isasymLongrightarrow}\ x\ {\isacharequal}\ u{\isacharsemicolon}\ {\isasymnot}\ c\ {\isasymLongrightarrow}\ y\ {\isacharequal}\ v{\isasymrbrakk}\isanewline
+\ \ \ \ \ {\isasymLongrightarrow}\ {\isacharparenleft}if\ b\ then\ x\ else\ y{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}if\ c\ then\ u\ else\ v{\isacharparenright}%
 \end{isabelle}
 A congruence rule can also \emph{prevent} simplification of some arguments.
 Here is an alternative congruence rule for conditional expressions:
@@ -73,7 +72,7 @@ The effect is reversed by \isa{cong\ del} instead of \isa{cong}.
 \begin{warn}
 The congruence rule \isa{conj{\isacharunderscore}cong}
 \begin{isabelle}%
-\ \ \ \ \ P\ {\isacharequal}\ P{\isacharprime}\ {\isasymLongrightarrow}\ {\isacharparenleft}P{\isacharprime}\ {\isasymLongrightarrow}\ Q\ {\isacharequal}\ Q{\isacharprime}{\isacharparenright}\ {\isasymLongrightarrow}\ {\isacharparenleft}P\ {\isasymand}\ Q{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}P{\isacharprime}\ {\isasymand}\ Q{\isacharprime}{\isacharparenright}%
+\ \ \ \ \ {\isasymlbrakk}P\ {\isacharequal}\ P{\isacharprime}{\isacharsemicolon}\ P{\isacharprime}\ {\isasymLongrightarrow}\ Q\ {\isacharequal}\ Q{\isacharprime}{\isasymrbrakk}\ {\isasymLongrightarrow}\ {\isacharparenleft}P\ {\isasymand}\ Q{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}P{\isacharprime}\ {\isasymand}\ Q{\isacharprime}{\isacharparenright}%
 \end{isabelle}
 is occasionally useful but not a default rule; you have to use it explicitly.
 \end{warn}%

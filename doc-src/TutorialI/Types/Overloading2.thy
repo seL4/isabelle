@@ -47,4 +47,15 @@ Constant & Type & Syntax \\
 \label{tab:overloading}
 \end{center}
 \end{table}
+
+In addition there is a special input syntax for bounded quantifiers:
+\begin{center}
+\begin{tabular}{lcl}
+@{text"\<forall>x \<le> y. P x"} & @{text"\<equiv>"} & @{prop"\<forall>x. x \<le> y \<longrightarrow> P x"} \\
+@{text"\<exists>x \<le> y. P x"} & @{text"\<equiv>"} & @{prop"\<exists>x. x \<le> y \<and> P x"}
+\end{tabular}
+\end{center}
+And analogously for @{text"<"} instead of @{text"\<le>"}.
+The form on the left is translated into the one on the right upon input but it is not
+translated back upon output.
 *}(*<*)end(*>*)

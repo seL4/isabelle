@@ -96,8 +96,8 @@ right increases or decreases the difference by 1, we must have passed through
 1 on our way from 0 to 2. Formally, we appeal to the following discrete
 intermediate value theorem \isa{nat{\isadigit{0}}{\isacharunderscore}intermed{\isacharunderscore}int{\isacharunderscore}val}
 \begin{isabelle}%
-\ \ \ \ \ {\isasymforall}i{\isachardot}\ i\ {\isacharless}\ n\ {\isasymlongrightarrow}\ {\isasymbar}f\ {\isacharparenleft}i\ {\isacharplus}\ {\isadigit{1}}{\isacharparenright}\ {\isacharminus}\ f\ i{\isasymbar}\ {\isasymle}\ {\isacharhash}{\isadigit{1}}\ {\isasymLongrightarrow}\isanewline
-\ \ \ \ \ f\ {\isadigit{0}}\ {\isasymle}\ k\ {\isasymLongrightarrow}\ k\ {\isasymle}\ f\ n\ {\isasymLongrightarrow}\ {\isasymexists}i{\isachardot}\ i\ {\isasymle}\ n\ {\isasymand}\ f\ i\ {\isacharequal}\ k%
+\ \ \ \ \ {\isasymlbrakk}{\isasymforall}i{\isachardot}\ i\ {\isacharless}\ n\ {\isasymlongrightarrow}\ {\isasymbar}f\ {\isacharparenleft}i\ {\isacharplus}\ {\isadigit{1}}{\isacharparenright}\ {\isacharminus}\ f\ i{\isasymbar}\ {\isasymle}\ {\isacharhash}{\isadigit{1}}{\isacharsemicolon}\ f\ {\isadigit{0}}\ {\isasymle}\ k{\isacharsemicolon}\ k\ {\isasymle}\ f\ n{\isasymrbrakk}\isanewline
+\ \ \ \ \ {\isasymLongrightarrow}\ {\isasymexists}i{\isachardot}\ i\ {\isasymle}\ n\ {\isasymand}\ f\ i\ {\isacharequal}\ k%
 \end{isabelle}
 where \isa{f} is of type \isa{nat\ {\isasymRightarrow}\ int}, \isa{int} are the integers,
 \isa{{\isasymbar}{\isachardot}{\isasymbar}} is the absolute value function, and \isa{{\isacharhash}{\isadigit{1}}} is the
