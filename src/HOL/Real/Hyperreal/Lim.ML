@@ -1903,3 +1903,219 @@ qed "isCont_has_Ub";
 (*----------------------------------------------------------------------------*)
 (* Now show that it attains its upper bound                                   *)
 (*----------------------------------------------------------------------------*)
+
+Goal "[| a <= b; ALL x. a <= x & x <= b --> isCont f x |] \
+\        ==> EX M. (ALL x. a <= x & x <= b --> f(x) <= M) & \
+\                  (EX x. a <= x & x <= b & f(x) = M)";
+by (ftac isCont_has_Ub 1 THEN assume_tac 1);
+by (Clarify_tac 1);
+by (res_inst_tac [("x","M")] exI 1);
+by (Asm_full_simp_tac 1); 
+by (rtac ccontr 1);
+by (subgoal_tac "ALL x. a <= x & x <= b --> f x < M" 1 THEN Step_tac 1);
+by (rtac ccontr 2 THEN dtac real_leI 2);
+by (dres_inst_tac [("z","M")] real_le_anti_sym 2);
+by (REPEAT(Blast_tac 2));
+by (subgoal_tac "ALL x. a <= x & x <= b --> isCont (%x. inverse(M - f x)) x" 1);
+by (Step_tac 1);
+by (EVERY[rtac isCont_inverse 2, rtac isCont_diff 2, rtac notI 4]);
+by (ALLGOALS(asm_full_simp_tac (simpset() addsimps [real_diff_eq_eq])));
+by (Blast_tac 2);
+by (subgoal_tac 
+    "EX k. ALL x. a <= x & x <= b --> (%x. inverse(M - (f x))) x <= k" 1);
+by (rtac isCont_bounded 2);
+by (Step_tac 1);
+by (subgoal_tac "ALL x. a <= x & x <= b --> #0 < inverse(M - f(x))" 1);
+by (Asm_full_simp_tac 1); 
+by (Step_tac 1);
+by (asm_full_simp_tac (simpset() addsimps [real_less_diff_eq]) 2);
+by (subgoal_tac 
+    "ALL x. a <= x & x <= b --> (%x. inverse(M - (f x))) x < (k + #1)" 1);
+by (Step_tac 1);
+by (res_inst_tac [("j","k")] real_le_less_trans 2);
+by (asm_full_simp_tac (simpset() addsimps [real_zero_less_one]) 3);
+by (Asm_full_simp_tac 2); 
+by (subgoal_tac "ALL x. a <= x & x <= b --> \
+\                inverse(k + #1) < inverse((%x. inverse(M - (f x))) x)" 1);
+by (Step_tac 1);
+by (rtac real_inverse_less_swap 2);
+by (ALLGOALS Asm_full_simp_tac);
+by (dres_inst_tac [("P", "%N. N<M --> ?Q N"),
+                   ("x","M - inverse(k + #1)")] spec 1);
+by (Step_tac 1 THEN dtac real_leI 1);
+by (dtac (real_le_diff_eq RS iffD1) 1);
+by (REPEAT(dres_inst_tac [("x","a")] spec 1));
+by (Asm_full_simp_tac 1);
+by (asm_full_simp_tac 
+    (simpset() addsimps [real_inverse_eq_divide, pos_real_divide_le_eq]) 1); 
+by (cut_inst_tac [("x","k"),("y","M-f a")] real_0_less_mult_iff 1);
+by (Asm_full_simp_tac 1); 
+(*last one*)
+by (REPEAT(dres_inst_tac [("x","x")] spec 1));
+by (Asm_full_simp_tac 1); 
+qed "isCont_eq_Ub";
+
+
+(*----------------------------------------------------------------------------*)
+(* Same theorem for lower bound                                               *)
+(*----------------------------------------------------------------------------*)
+
+Goal "[| a <= b; ALL x. a <= x & x <= b --> isCont f x |] \
+\        ==> EX M. (ALL x. a <= x & x <= b --> M <= f(x)) & \
+\                  (EX x. a <= x & x <= b & f(x) = M)";
+by (subgoal_tac "ALL x. a <= x & x <= b --> isCont (%x. -(f x)) x" 1);
+by (blast_tac (claset() addIs [isCont_minus]) 2);
+by (dres_inst_tac [("f","(%x. -(f x))")] isCont_eq_Ub 1);
+by (Step_tac 1);
+by (Auto_tac);
+qed "isCont_eq_Lb";
+
+
+(* ------------------------------------------------------------------------- *)
+(* Another version.                                                          *)
+(* ------------------------------------------------------------------------- *)
+
+Goal "[|a <= b; ALL x. a <= x & x <= b --> isCont f x |] \
+\     ==> EX L M. (ALL x. a <= x & x <= b --> L <= f(x) & f(x) <= M) & \
+\         (ALL y. L <= y & y <= M --> (EX x. a <= x & x <= b & (f(x) = y)))";
+by (ftac isCont_eq_Lb 1);
+by (ftac isCont_eq_Ub 2);
+by (REPEAT(assume_tac 1));
+by (Step_tac 1);
+by (res_inst_tac [("x","f x")] exI 1);
+by (res_inst_tac [("x","f xa")] exI 1);
+by (Asm_full_simp_tac 1);
+by (Step_tac 1);
+by (cut_inst_tac [("x","x"),("y","xa")] (CLAIM "x <= y | y <= (x::real)") 1);
+by (Step_tac 1);
+by (cut_inst_tac [("f","f"),("a","x"),("b","xa"),("y","y")] IVT_objl 1);
+by (cut_inst_tac [("f","f"),("a","xa"),("b","x"),("y","y")] IVT2_objl 2);
+by (Step_tac 1);
+by (res_inst_tac [("x","xb")] exI 2);
+by (res_inst_tac [("x","xb")] exI 4);
+by (ALLGOALS(Asm_full_simp_tac));
+qed "isCont_Lb_Ub";
+
+(*----------------------------------------------------------------------------*)
+(* If f'(x) > 0 then x is locally strictly increasing at the right            *)
+(*----------------------------------------------------------------------------*)
+
+(** The next several equations can make the simplifier loop! **)
+
+Goal "(x < - y) = (y < - (x::real))";
+by Auto_tac;  
+qed "real_less_minus"; 
+
+Goal "(- x < y) = (- y < (x::real))";
+by Auto_tac;  
+(*or this:
+by (res_inst_tac [("t","x")] (real_minus_minus RS subst) 1); 
+by (stac real_minus_less_minus 1); 
+by (Simp_tac 1);
+*)
+qed "real_minus_less"; 
+
+Goal "(x <= - y) = (y <= - (x::real))";
+by Auto_tac;  
+qed "real_le_minus"; 
+
+Goal "(- x <= y) = (- y <= (x::real))";
+by Auto_tac;  
+qed "real_minus_le"; 
+
+Goal "(x = - y) = (y = - (x::real))";
+by Auto_tac;
+qed "real_equation_minus";
+
+Goal "(- x = y) = (- (y::real) = x)";
+by Auto_tac;
+qed "real_minus_equation";
+
+
+(*Distributive laws for literals*)
+Addsimps (map (inst "w" "number_of ?v")
+	  [real_add_mult_distrib, real_add_mult_distrib2,
+	   real_diff_mult_distrib, real_diff_mult_distrib2]);
+
+Addsimps (map (inst "x" "number_of ?v") 
+	  [real_less_minus, real_le_minus, real_equation_minus]);
+Addsimps (map (inst "y" "number_of ?v") 
+	  [real_minus_less, real_minus_le, real_minus_equation]);
+
+
+(*move up these rewrites AFTER the rest works*)
+
+Goal "(x+y = (#0::real)) = (y = -x)";
+by Auto_tac;  
+qed "real_add_eq_0_iff";
+AddIffs [real_add_eq_0_iff];
+
+Goal "((#0::real) = x+y) = (y = -x)";
+by Auto_tac;  
+qed "real_0_eq_add_iff";
+AddIffs [real_0_eq_add_iff];
+
+Goal "(x+y < (#0::real)) = (y < -x)";
+by Auto_tac;  
+qed "real_add_less_0_iff";
+AddIffs [real_add_less_0_iff];
+
+Goal "((#0::real) < x+y) = (-x < y)";
+by Auto_tac;  
+qed "real_0_less_add_iff";
+AddIffs [real_0_less_add_iff];
+
+Goal "(x+y <= (#0::real)) = (y <= -x)";
+by Auto_tac;  
+qed "real_add_le_0_iff";
+AddIffs [real_add_le_0_iff];
+
+Goal "((#0::real) <= x+y) = (-x <= y)";
+by Auto_tac;  
+qed "real_0_le_add_iff";
+AddIffs [real_0_le_add_iff];
+
+(*
+Addsimps [symmetric real_diff_def];
+*)
+
+Goalw [deriv_def,LIM_def] 
+    "[| DERIV f x :> l;  #0 < l |] ==> \
+\      EX d. #0 < d & (ALL h. #0 < h & h < d --> f(x) < f(x + h))";
+by (dtac spec 1 THEN Auto_tac);
+by (res_inst_tac [("x","s")] exI 1 THEN Auto_tac);
+by (subgoal_tac "#0 < l*h" 1);
+by (asm_full_simp_tac (simpset() addsimps [real_0_less_mult_iff]) 2); 
+by (dres_inst_tac [("x","h")] spec 1);
+by (asm_full_simp_tac
+    (simpset() addsimps [abs_real_def, real_inverse_eq_divide, 
+                 pos_real_le_divide_eq, pos_real_less_divide_eq]
+              addsplits [split_if_asm]) 1); 
+qed "DERIV_left_inc";
+
+Addsimps [real_minus_less_minus] (****************);
+
+
+Goal "-(x-y) = y - (x::real)";
+by (arith_tac 1);
+qed "real_minus_diff_eq";
+Addsimps [real_minus_diff_eq];  (******************************************************************)
+
+Goalw [deriv_def,LIM_def] 
+    "[| DERIV f x :> l;  l < #0 |] ==> \
+\      EX d. #0 < d & (ALL h. #0 < h & h < d --> f(x) < f(x - h))";
+by (dres_inst_tac [("x","-l")] spec 1 THEN Auto_tac);
+by (res_inst_tac [("x","s")] exI 1 THEN Auto_tac);
+by (subgoal_tac "l*h < #0" 1);
+by (asm_full_simp_tac (simpset() addsimps [real_mult_less_0_iff]) 2); 
+by (dres_inst_tac [("x","-h")] spec 1);
+by (asm_full_simp_tac
+    (simpset() addsimps [abs_real_def, real_inverse_eq_divide, 
+                         pos_real_less_divide_eq,
+                         symmetric real_diff_def]
+               addsplits [split_if_asm]) 1);
+by (subgoal_tac "#0 < (f (x - h) - f x)/h" 1);
+by (arith_tac 2);
+by (asm_full_simp_tac
+    (simpset() addsimps [pos_real_less_divide_eq]) 1); 
+qed "DERIV_left_dec";
