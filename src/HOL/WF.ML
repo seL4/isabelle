@@ -105,7 +105,7 @@ qed "wf_subset";
 Goal "wf({})";
 by (simp_tac (simpset() addsimps [wf_def]) 1);
 qed "wf_empty";
-AddSIs [wf_empty];
+AddIffs [wf_empty];
 
 (*---------------------------------------------------------------------------
  * Wellfoundedness of `insert'
@@ -133,6 +133,74 @@ by (thin_tac "! Q. (? x. x : Q) --> ?P Q" 1);	(*essential for speed*)
 by (best_tac (claset() addIs [rtrancl_into_rtrancl2]) 1);
 qed "wf_insert";
 AddIffs [wf_insert];
+
+(*---------------------------------------------------------------------------
+ * Wellfoundedness of `disjoint union'
+ *---------------------------------------------------------------------------*)
+
+Goal
+ "[| !i:I. wf(r i); \
+\    !i:I.!j:I. r i ~= r j --> Domain(r i) Int Range(r j) = {} & \
+\                              Domain(r j) Int Range(r i) = {} \
+\ |] ==> wf(UN i:I. r i)";
+by(asm_full_simp_tac (HOL_basic_ss addsimps [wf_eq_minimal]) 1);
+by(Clarify_tac 1);
+by(rename_tac "A a" 1);
+by(case_tac "? i:I. ? a:A. ? b:A. (b,a) : r i" 1);
+ by(Clarify_tac 1);
+ by(EVERY1[dtac bspec, atac,
+           eres_inst_tac[("x","{a. a:A & (? b:A. (b,a) : r i)}")]allE]);
+ by(EVERY1[etac allE,etac impE]);
+  by(Blast_tac 1);
+ by(Clarify_tac 1);
+ by(rename_tac "z'" 1);
+ by(res_inst_tac [("x","z'")] bexI 1);
+  ba 2;
+ by(Clarify_tac 1);
+ by(rename_tac "j" 1);
+ by(case_tac "r j = r i" 1);
+  by(EVERY1[etac allE,etac impE,atac]);
+  by(Asm_full_simp_tac 1);
+  by(Blast_tac 1);
+ by(blast_tac (claset() addEs [equalityE]) 1);
+by(Asm_full_simp_tac 1);
+by(case_tac "? i. i:I" 1);
+ by(Clarify_tac 1);
+ by(EVERY1[dtac bspec, atac, eres_inst_tac[("x","A")]allE]);
+ by(Blast_tac 1);
+by(Blast_tac 1);
+qed "wf_UN";
+
+Goalw [Union_def]
+ "[| !r:R. wf r; \
+\    !r:R.!s:R. r ~= s --> Domain r Int Range s = {} & \
+\                          Domain s Int Range r = {} \
+\ |] ==> wf(Union R)";
+br wf_UN 1;
+by(Blast_tac 1);
+by(Blast_tac 1);
+qed "wf_Union";
+
+Goal
+ "[| wf r; wf s; Domain r Int Range s = {}; Domain s Int Range r = {} \
+\ |] ==> wf(r Un s)";
+br(simplify (simpset()) (read_instantiate[("R","{r,s}")]wf_Union)) 1;
+by(Blast_tac 1);
+by(Blast_tac 1);
+qed "wf_Un";
+
+(*---------------------------------------------------------------------------
+ * Wellfoundedness of `image'
+ *---------------------------------------------------------------------------*)
+
+Goal "[| wf r; inj f |] ==> wf(prod_fun f f `` r)";
+by(asm_full_simp_tac (HOL_basic_ss addsimps [wf_eq_minimal]) 1);
+by(Clarify_tac 1);
+by(case_tac "? p. f p : Q" 1);
+by(eres_inst_tac [("x","{p. f p : Q}")]allE 1);
+by(fast_tac (claset() addDs [injD]) 1);
+by(Blast_tac 1);
+qed "wf_prod_fun_image";
 
 (*** acyclic ***)
 

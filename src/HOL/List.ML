@@ -848,6 +848,73 @@ qed "set_replicate";
 Addsimps [set_replicate];
 
 
+(*** Lexcicographic orderings on lists ***)
+section"Lexcicographic orderings on lists";
+
+Goal "wf r ==> wf(lexn r n)";
+by(induct_tac "n" 1);
+by(Simp_tac 1);
+by(Simp_tac 1);
+br wf_subset 1;
+br Int_lower1 2;
+br wf_prod_fun_image 1;
+br injI 2;
+by(Auto_tac);
+qed "wf_lexn";
+
+Goal "!xs ys. (xs,ys) : lexn r n --> length xs = n & length ys = n";
+by(induct_tac "n" 1);
+by(Auto_tac);
+qed_spec_mp "lexn_length";
+
+Goalw [lex_def] "wf r ==> wf(lex r)";
+br wf_UN 1;
+by(blast_tac (claset() addIs [wf_lexn]) 1);
+by(Clarify_tac 1);
+by(rename_tac "m n" 1);
+by(subgoal_tac "m ~= n" 1);
+ by(Blast_tac 2);
+by(blast_tac (claset() addDs [lexn_length,not_sym]) 1);
+qed "wf_lex";
+AddSIs [wf_lex];
+
+Goal
+ "lexn r n = \
+\ {(xs,ys). length xs = n & length ys = n & \
+\           (? xys x y xs' ys'. xs= xys @ x#xs' & ys= xys @ y#ys' & (x,y):r)}";
+by(induct_tac "n" 1);
+ by(Simp_tac 1);
+ by(Blast_tac 1);
+by(asm_full_simp_tac (simpset() addsimps [lex_prod_def]) 1);
+by(Auto_tac);
+  by(Blast_tac 1);
+ by(rename_tac "a xys x xs' y ys'" 1);
+ by(res_inst_tac [("x","a#xys")] exI 1);
+ by(Simp_tac 1);
+by(exhaust_tac "xys" 1);
+ by(ALLGOALS Asm_full_simp_tac);
+by(Blast_tac 1);
+qed "lexn_conv";
+
+Goalw [lex_def]
+ "lex r = \
+\ {(xs,ys). length xs = length ys & \
+\           (? xys x y xs' ys'. xs= xys @ x#xs' & ys= xys @ y#ys' & (x,y):r)}";
+by(force_tac (claset(), simpset() addsimps [lexn_conv]) 1);
+qed "lex_conv";
+
+Goalw [lexico_def] "wf r ==> wf(lexico r)";
+by(Blast_tac 1);
+qed "wf_lexico";
+AddSIs [wf_lexico];
+
+Goalw
+ [lexico_def,diag_def,lex_prod_def,measure_def,inv_image_def]
+"lexico r = {(xs,ys). length xs < length ys | \
+\                     length xs = length ys & (xs,ys) : lex r}";
+by(Simp_tac 1);
+qed "lexico_conv";
+
 (***
 Simplification procedure for all list equalities.
 Currently only tries to rearranges @ to see if

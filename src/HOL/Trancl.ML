@@ -138,8 +138,7 @@ by (blast_tac (claset() addSIs [rtrancl_subset]
 qed "rtrancl_Un_rtrancl";
 
 Goal "(R^=)^* = R^*";
-by (blast_tac (claset() addSIs [rtrancl_subset]
-                       addIs  [rtrancl_refl, r_into_rtrancl]) 1);
+by (blast_tac (claset() addSIs [rtrancl_subset] addIs [r_into_rtrancl]) 1);
 qed "rtrancl_reflcl";
 Addsimps [rtrancl_reflcl];
 

@@ -123,6 +123,11 @@ by (blast_tac (claset() addSEs [equalityCE]) 1);
 qed "image_is_empty";
 AddIffs [image_is_empty];
 
+Goal "f `` {x. P x} = {f x | x. P x}";
+by(Blast_tac 1);
+qed "image_Collect";
+Addsimps [image_Collect];
+
 Goalw [image_def]
 "(%x. if P x then f x else g x) `` S                    \
 \ = (f `` (S Int {x. P x})) Un (g `` (S Int {x. ~(P x)}))";
