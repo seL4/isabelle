@@ -70,7 +70,7 @@ signature SIGN =
 structure Sign : SIGN =
 struct
 
-local open Type Syntax in
+(*local open Type Syntax in*)
 
 (** datatype sg **)
 
@@ -79,7 +79,7 @@ local open Type Syntax in
 
 datatype sg =
   Sg of {
-    tsig: Type.type_sig,                 (*order-sorted signature of types*)
+    tsig: Type.type_sig,            (*order-sorted signature of types*)
     const_tab: typ Symtab.table,    (*types of constants*)
     syn: Syntax.syntax,             (*syntax for parsing and printing*)
     stamps: string ref list};       (*unique theory indentifier*)
@@ -88,31 +88,45 @@ fun rep_sg (Sg args) = args;
 val tsig_of = #tsig o rep_sg;
 
 
-(*** Stamps ***)
+(* stamps *)
 
-(*Avoiding polymorphic equality: 10* speedup*)
-fun mem_stamp (_:string ref, []) = false
-  | mem_stamp (x, y::xs) = x=y orelse mem_stamp(x,xs);
+(*inclusion, equality*)
+local
+  (*avoiding polymorphic equality: factor 10 speedup*)
+  fun mem_stamp (_:string ref, []) = false
+    | mem_stamp (x, y :: ys) = x = y orelse mem_stamp (x, ys);
 
-fun subset_stamp ([], ys) = true
-  | subset_stamp (x :: xs, ys) = mem_stamp(x, ys) andalso subset_stamp(xs, ys);
+  fun subset_stamp ([], ys) = true
+    | subset_stamp (x :: xs, ys) =
+        mem_stamp (x, ys) andalso subset_stamp (xs, ys);
 
-fun eq_set_stamp (xs, ys) =
-    xs = ys orelse (subset_stamp (xs, ys) andalso subset_stamp (ys, xs));
+  (*fast partial test*)
+  fun fast_sub ([]: string ref list, _) = true
+    | fast_sub (_, []) = false
+    | fast_sub (x :: xs, y :: ys) =
+        if x = y then fast_sub (xs, ys)
+        else fast_sub (x :: xs, ys);
+in
+  fun subsig (Sg {stamps = s1, ...}, Sg {stamps = s2, ...}) =
+    s1 = s2 orelse subset_stamp (s1, s2);
 
-fun is_draft (Sg {stamps = ref "#" :: _, ...}) = true
-  | is_draft _ = false;
+  fun fast_subsig (Sg {stamps = s1, ...}, Sg {stamps = s2, ...}) =
+    s1 = s2 orelse fast_sub (s1, s2);
 
-fun subsig (Sg{stamps=s1,...}, Sg{stamps=s2,...}) =
-  s1 = s2 orelse subset_stamp (s1, s2);
+  fun eq_sg (Sg {stamps = s1, ...}, Sg {stamps = s2, ...}) =
+    s1 = s2 orelse (subset_stamp (s1, s2) andalso subset_stamp (s2, s1));
+end;
 
-fun eq_sg (Sg{stamps=s1,...}, Sg{stamps=s2,...}) = eq_set_stamp(s1,s2);
 
-(* test if same theory names are contained in signatures' stamps,
-   i.e. if signatures belong to same theory but not necessarily to the same
-   version of it*)
+(*test if same theory names are contained in signatures' stamps,
+  i.e. if signatures belong to same theory but not necessarily to the
+  same version of it*)
 fun same_sg (Sg {stamps = s1, ...}, Sg {stamps = s2, ...}) =
   eq_set_string (pairself (map (op !)) (s1, s2));
+
+(*test for drafts*)
+fun is_draft (Sg {stamps = ref "#" :: _, ...}) = true
+  | is_draft _ = false;
 
 
 (* consts *)
@@ -169,7 +183,8 @@ fun print_sg sg =
 
 
     val Sg {tsig, const_tab, syn, stamps} = sg;
-    val {classes, subclass, default, tycons, abbrs, arities} = rep_tsig tsig;
+    val {classes, subclass, default, tycons, abbrs, arities} =
+      Type.rep_tsig tsig;
   in
     Pretty.writeln (Pretty.strs ("stamps:" :: stamp_names stamps));
     Pretty.writeln (Pretty.strs ("classes:" :: classes));
@@ -217,19 +232,19 @@ fun err_in_type s =
   error ("The error(s) above occurred in type " ^ quote s);
 
 fun read_raw_typ syn tsig sort_of str =
-  Syntax.read_typ syn (fn x => if_none (sort_of x) (defaultS tsig)) str
+  Syntax.read_typ syn (fn x => if_none (sort_of x) (Type.defaultS tsig)) str
     handle ERROR => err_in_type str;
 
 (*read and certify typ wrt a signature*)
 fun read_typ (Sg {tsig, syn, ...}, sort_of) str =
-  cert_typ tsig (read_raw_typ syn tsig sort_of str)
+  Type.cert_typ tsig (read_raw_typ syn tsig sort_of str)
     handle TYPE (msg, _, _) => (writeln msg; err_in_type str);
 
 
 
 (** certify types and terms **)   (*exception TYPE*)
 
-fun certify_typ (Sg {tsig, ...}) ty = cert_typ tsig ty;
+fun certify_typ (Sg {tsig, ...}) ty = Type.cert_typ tsig ty;
 
 (* check for duplicate TVars with distinct sorts *)
 fun nodup_TVars(tvars,T) = (case T of
@@ -273,7 +288,7 @@ fun certify_term (sg as Sg {tsig, ...}) tm =
   let
     fun valid_const a T =
       (case const_type sg a of
-        Some U => typ_instance (tsig, T, U)
+        Some U => Type.typ_instance (tsig, T, U)
       | _ => false);
 
     fun atom_err (Const (a, T)) =
@@ -285,8 +300,8 @@ fun certify_term (sg as Sg {tsig, ...}) tm =
       | atom_err _ = None;
 
     val norm_tm =
-      (case it_term_types (typ_errors tsig) (tm, []) of
-        [] => map_term_types (norm_typ tsig) tm
+      (case it_term_types (Type.typ_errors tsig) (tm, []) of
+        [] => map_term_types (Type.norm_typ tsig) tm
       | errs => raise_type (cat_lines errs) [] [tm]);
     val _ = nodup_Vars norm_tm;
   in
@@ -380,14 +395,14 @@ fun decls_of name_of mfixs =
 (* add default sort *)
 
 fun ext_defsort (syn, tsig, ctab) defsort =
-  (syn, ext_tsig_defsort tsig defsort, ctab);
+  (syn, Type.ext_tsig_defsort tsig defsort, ctab);
 
 
 (* add type constructors *)
 
 fun ext_types (syn, tsig, ctab) types =
   (Syntax.extend_type_gram syn types,
-    ext_tsig_types tsig (decls_of Syntax.type_name types),
+    Type.ext_tsig_types tsig (decls_of Syntax.type_name types),
     ctab);
 
 
@@ -405,7 +420,7 @@ fun ext_abbrs rd_abbr (syn, tsig, ctab) abbrs =
     fun decl_of (t, vs, rhs, mx) =
       rd_abbr syn1 tsig (Syntax.type_name t mx, vs, rhs);
   in
-    (syn1, ext_tsig_abbrs tsig (map decl_of abbrs), ctab)
+    (syn1, Type.ext_tsig_abbrs tsig (map decl_of abbrs), ctab)
   end;
 
 val ext_tyabbrs_i = ext_abbrs (K (K I));
@@ -416,8 +431,8 @@ val ext_tyabbrs = ext_abbrs read_abbr;
 
 fun ext_arities (syn, tsig, ctab) arities =
   let
-    val tsig1 = ext_tsig_arities tsig arities;
-    val log_types = logical_types tsig1;
+    val tsig1 = Type.ext_tsig_arities tsig arities;
+    val log_types = Type.logical_types tsig1;
   in
     (Syntax.extend_log_types syn log_types, tsig1, ctab)
   end;
@@ -439,10 +454,9 @@ fun read_const syn tsig (c, ty_src, mx) =
 fun ext_cnsts rd_const syn_only (syn, tsig, ctab) raw_consts =
   let
     fun prep_const (c, ty, mx) = 
-	  (c, 
-	   compress_type (varifyT (cert_typ tsig (no_tvars ty))), 
-	   mx)
-      handle TYPE (msg, _, _) => (writeln msg; err_in_const (Syntax.const_name c mx));
+     (c, compress_type (Type.varifyT (Type.cert_typ tsig (Type.no_tvars ty))), mx)
+       handle TYPE (msg, _, _)
+         => (writeln msg; err_in_const (Syntax.const_name c mx));
 
     val consts = map (prep_const o rd_const syn tsig) raw_consts;
     val decls =
@@ -480,7 +494,7 @@ fun ext_classes (syn, tsig, ctab) classes =
       map (fn c => (const_of_class c, a_itselfT --> propT, NoSyn)) names;
   in
     ext_consts_i
-      (Syntax.extend_consts syn names, ext_tsig_classes tsig classes, ctab)
+      (Syntax.extend_consts syn names, Type.ext_tsig_classes tsig classes, ctab)
       consts
   end;
 
@@ -488,7 +502,7 @@ fun ext_classes (syn, tsig, ctab) classes =
 (* add to subclass relation *)
 
 fun ext_classrel (syn, tsig, ctab) pairs =
-  (syn, ext_tsig_subclass tsig pairs, ctab);
+  (syn, Type.ext_tsig_subclass tsig pairs, ctab);
 
 
 (* add to syntax *)
@@ -541,7 +555,9 @@ val make_draft = add_name "#";
 (** merge signatures **)    (*exception TERM*) (*exception ERROR (* FIXME *)*)
 
 fun merge (sg1, sg2) =
-  if subsig (sg2, sg1) then sg1
+  if fast_subsig (sg2, sg1) then sg1
+  else if fast_subsig (sg1, sg2) then sg2
+  else if subsig (sg2, sg1) then sg1
   else if subsig (sg1, sg2) then sg2
   else if is_draft sg1 orelse is_draft sg2 then
     raise_term "Illegal merge of draft signatures" []
@@ -561,7 +577,7 @@ fun merge (sg1, sg2) =
         | dups => raise_term ("Attempt to merge different versions of theories "
             ^ commas_quote dups) []);
 
-      val tsig = merge_tsigs (tsig1, tsig2);
+      val tsig = Type.merge_tsigs (tsig1, tsig2);
 
       val const_tab = Symtab.merge (op =) (const_tab1, const_tab2)
         handle Symtab.DUPS cs =>
@@ -577,7 +593,7 @@ fun merge (sg1, sg2) =
 (** the Pure signature **)
 
 val proto_pure =
-  make_sign (Syntax.pure_syn, tsig0, Symtab.null) [] "#"
+  make_sign (Syntax.pure_syn, Type.tsig0, Symtab.null) [] "#"
   |> add_types
    (("fun", 2, NoSyn) ::
     ("prop", 0, NoSyn) ::
@@ -607,5 +623,5 @@ val cpure = proto_pure
   |> add_syntax Syntax.pure_applC_syntax
   |> add_name "CPure";
 
-end
+(*end*)
 end;
