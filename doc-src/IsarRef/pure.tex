@@ -924,6 +924,21 @@ the latter are calculational proofs (see \S\ref{sec:calculation}).
   \EN & : & \isartrans{proof(state)}{proof(state)} \\
 \end{matharray}
 
+\railalias{lbrace}{\ttlbrace}
+\railterm{lbrace}
+
+\railalias{rbrace}{\ttrbrace}
+\railterm{rbrace}
+
+\begin{rail}
+  'next' comment?
+  ;
+  lbrace comment?
+  ;
+  rbrace comment?
+  ;
+\end{rail}
+
 While Isar is inherently block-structured, opening and closing blocks is
 mostly handled rather casually, with little explicit user-intervention.  Any
 local goal statement automatically opens \emph{two} blocks, which are closed
