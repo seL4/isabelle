@@ -100,8 +100,6 @@ fun prove_primrec_thms flat_names new_type_names descr sorts
     val _ = message "Constructing primrec combinators ...";
 
     val fun_rel_comp_name = "Relation.fun_rel_comp";
-    val [fun_rel_comp_def, o_def] =
-      map (get_thm Relation.thy) ["fun_rel_comp_def", "o_def"];
 
     val big_name = space_implode "_" new_type_names;
     val thy0 = add_path flat_names big_name thy;
