@@ -133,6 +133,8 @@ name spaces;
 
 *** HOL ***
 
+* HOL/Prolog: a (bare-bones) implementation of Lambda-Prolog
+
 * HOL/Algebra: new theory of rings and univariate polynomials, by
 Clemens Ballarin;
 
