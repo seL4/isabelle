@@ -61,6 +61,7 @@ cd "Isar"; use "ROOT.ML"; cd "..";
 
 use "axclass.ML";
 use "codegen.ML";
+use "Proof/extraction.ML";
 
 (*old-style goal package*)
 use "goals.ML";

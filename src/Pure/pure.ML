@@ -23,6 +23,7 @@ local
     Present.setup @
     ProofGeneral.setup @
     Codegen.setup @
+    Extraction.setup @
     Goals.setup;
 in
   structure Pure =

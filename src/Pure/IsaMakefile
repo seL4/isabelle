@@ -40,7 +40,8 @@ $(OUT)/Pure: General/ROOT.ML General/buffer.ML General/file.ML		\
   Isar/thy_header.ML Isar/toplevel.ML ML-Systems/mlworks.ML		\
   ML-Systems/polyml-3.x.ML ML-Systems/polyml.ML				\
   ML-Systems/smlnj-0.93.ML ML-Systems/smlnj-compiler.ML			\
-  ML-Systems/smlnj.ML Proof/ROOT.ML Proof/proof_rewrite_rules.ML	\
+  ML-Systems/smlnj.ML Proof/ROOT.ML Proof/extraction.ML			\
+  Proof/proof_rewrite_rules.ML						\
   Proof/proof_syntax.ML Proof/proofchecker.ML Proof/reconstruct.ML	\
   ROOT.ML Syntax/ROOT.ML Syntax/ast.ML Syntax/lexicon.ML		\
   Syntax/mixfix.ML Syntax/parser.ML Syntax/printer.ML			\
