@@ -268,6 +268,8 @@ in proofs.
 
 \input{Misc/document/prime_def.tex}
 
+\input{Misc/document/Translations.tex}
+
 
 \section{The Definitional Approach}
 \label{sec:definitional}
@@ -288,6 +290,8 @@ result of the definitional approach is that \isacommand{primrec} is as safe
 as pure \isacommand{defs} are, but more convenient. And this is not just the
 case for \isacommand{primrec} but also for the other commands described
 later, like \isacommand{recdef} and \isacommand{inductive}.
+This strict adherence to the definitional approach reduces the risk of 
+soundness errors inside Isabelle/HOL.
 
 \chapter{More Functional Programming}
 

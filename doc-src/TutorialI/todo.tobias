@@ -61,13 +61,12 @@ I guess we should say "HOL" everywhere, with a remark early on about the
 differences between our HOL and the other one.
 
 Syntax translations! Harpoons already used!
+say something about "abbreviations" when defs are introduced.
 
 warning: simp of asms from l to r; may require reordering (rotate_tac)
 
 Adjust FP textbook refs: new Bird, Hudak
 Discrete math textbook: Rosen?
-
-say something about "abbreviations" when defs are introduced.
 
 adjust type of ^ in tab:overloading
 

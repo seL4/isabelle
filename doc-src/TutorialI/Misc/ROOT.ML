@@ -8,6 +8,7 @@ use_thy "pairs";
 use_thy "Option2";
 use_thy "types";
 use_thy "prime_def";
+use_thy "Translations";
 use_thy "simp";
 use_thy "Itrev";
 use_thy "AdvancedInd";

@@ -323,18 +323,17 @@ R\isasymrbrakk\ \isasymLongrightarrow\ R%
 \rulename{UN_E}
 \end{isabelle}
 %
-The following built-in abbreviation lets us express the union
-over a \emph{type}:
+The following built-in syntax translation (see \S\ref{sec:def-translations})
+lets us express the union over a \emph{type}:
 \begin{isabelle}
 \ \ \ \ \
 ({\isasymUnion}x.\ B\ x)\ {\isasymrightleftharpoons}\
 ({\isasymUnion}x{\isasymin}UNIV.\ B\ x)
 \end{isabelle}
-Abbreviations work as you might expect.  The term on the left-hand side of
-the
-\indexboldpos{\isasymrightleftharpoons}{$IsaEqq} symbol is automatically translated to the right-hand side when the
-term is parsed, the reverse translation being done when the term is
-displayed.
+%Abbreviations work as you might expect.  The term on the left-hand side of
+%the \isasymrightleftharpoons\ symbol is automatically translated to the right-hand side when the
+%term is parsed, the reverse translation being done when the term is
+%displayed.
 
 We may also express the union of a set of sets, written \isa{Union\ C} in
 \textsc{ascii}: 
@@ -426,10 +425,10 @@ $k$-element subsets of~$A$ is \index{binomial coefficients}
 $\binom{n}{k}$.
 
 \begin{warn}
-The term \isa{Finite\ A} is an abbreviation for
-\isa{A\ \isasymin\ Finites}, where the constant \isa{Finites} denotes the
-set of all finite sets of a given type.  There is no constant
-\isa{Finite}.
+The term \isa{finite\ A} is defined via a syntax translation as an
+abbreviation for \isa{A \isasymin Finites}, where the constant \isa{Finites}
+denotes the set of all finite sets of a given type.  There is no constant
+\isa{finite}.
 \end{warn}
 \index{sets|)}
 
