@@ -230,6 +230,7 @@ sig
   val merge_lists: ''a list -> ''a list -> ''a list
   val merge_lists': ''a list -> ''a list -> ''a list
   val merge_alists: (''a * 'b) list -> (''a * 'b) list -> (''a * 'b) list
+  val merge_alists': (''a * 'b) list -> (''a * 'b) list -> (''a * 'b) list
 
   (*balanced trees*)
   exception Balance
@@ -1072,6 +1073,7 @@ fun gen_merge_lists' _ xs [] = xs
 fun merge_lists xs ys = gen_merge_lists (op =) xs ys;
 fun merge_lists' xs ys = gen_merge_lists' (op =) xs ys;
 fun merge_alists al = gen_merge_lists eq_fst al;
+fun merge_alists' al = gen_merge_lists' eq_fst al;
 
 
 
