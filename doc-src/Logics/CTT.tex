@@ -159,7 +159,7 @@ term    & = & \hbox{expression of type~$i$} \\
 
 
 \section{Syntax}
-The constants are shown in Figure~\ref{ctt-constants}.  The infixes include
+The constants are shown in Fig.\ts\ref{ctt-constants}.  The infixes include
 the function application operator (sometimes called `apply'), and the
 2-place type operators.  Note that meta-level abstraction and application,
 $\lambda x.b$ and $f(a)$, differ from object-level abstraction and
@@ -170,10 +170,10 @@ Isabelle type is~$i$, not say $i\To i$.
 \indexbold{*F}\indexbold{*T}\indexbold{*SUM}\indexbold{*PROD}
 The empty type is called $F$ and the one-element type is $T$; other finite
 sets are built as $T+T+T$, etc.  The notation for~{\CTT}
-(Figure~\ref{ctt-syntax}) is based on that of Nordstr\"om et
+(Fig.\ts\ref{ctt-syntax}) is based on that of Nordstr\"om et
 al.~\cite{nordstrom90}.  We can write
 \begin{ttbox}
-SUM y:B. PROD x:A. C(x,y)   {\rm for}   Sum(B, %y. Prod(A, %x. C(x,y)))
+SUM y:B. PROD x:A. C(x,y)   {\rm for}   Sum(B, \%y. Prod(A, \%x. C(x,y)))
 \end{ttbox}
 The special cases as \hbox{\tt$A$*$B$} and \hbox{\tt$A$-->$B$} abbreviate
 general sums and products over a constant family.\footnote{Unlike normal
@@ -222,20 +222,20 @@ abbreviations in parsing and uses them whenever possible for printing.
 
 \idx{NE}        [| p: N;  a: C(0);  
              !!u v. [| u: N; v: C(u) |] ==> b(u,v): C(succ(u)) 
-          |] ==> rec(p, a, %u v.b(u,v)) : C(p)
+          |] ==> rec(p, a, \%u v.b(u,v)) : C(p)
 
 \idx{NEL}       [| p = q : N;  a = c : C(0);  
              !!u v. [| u: N; v: C(u) |] ==> b(u,v)=d(u,v): C(succ(u))
-          |] ==> rec(p, a, %u v.b(u,v)) = rec(q,c,d) : C(p)
+          |] ==> rec(p, a, \%u v.b(u,v)) = rec(q,c,d) : C(p)
 
 \idx{NC0}       [| a: C(0);  
              !!u v. [| u: N; v: C(u) |] ==> b(u,v): C(succ(u))
-          |] ==> rec(0, a, %u v.b(u,v)) = a : C(0)
+          |] ==> rec(0, a, \%u v.b(u,v)) = a : C(0)
 
 \idx{NC_succ}   [| p: N;  a: C(0);  
              !!u v. [| u: N; v: C(u) |] ==> b(u,v): C(succ(u)) 
-          |] ==> rec(succ(p), a, %u v.b(u,v)) =
-                 b(p, rec(p, a, %u v.b(u,v))) : C(succ(p))
+          |] ==> rec(succ(p), a, \%u v.b(u,v)) =
+                 b(p, rec(p, a, \%u v.b(u,v))) : C(succ(p))
 
 \idx{zero_ne_succ}      [| a: N;  0 = succ(a) : N |] ==> 0: F
 \end{ttbox}
@@ -277,18 +277,18 @@ abbreviations in parsing and uses them whenever possible for printing.
 
 \idx{SumE}      [| p: SUM x:A.B(x);  
              !!x y. [| x:A; y:B(x) |] ==> c(x,y): C(<x,y>) 
-          |] ==> split(p, %x y.c(x,y)) : C(p)
+          |] ==> split(p, \%x y.c(x,y)) : C(p)
 
 \idx{SumEL}     [| p=q : SUM x:A.B(x); 
              !!x y. [| x:A; y:B(x) |] ==> c(x,y)=d(x,y): C(<x,y>)
-          |] ==> split(p, %x y.c(x,y)) = split(q, %x y.d(x,y)) : C(p)
+          |] ==> split(p, \%x y.c(x,y)) = split(q, \%x y.d(x,y)) : C(p)
 
 \idx{SumC}      [| a: A;  b: B(a);
              !!x y. [| x:A; y:B(x) |] ==> c(x,y): C(<x,y>)
-          |] ==> split(<a,b>, %x y.c(x,y)) = c(a,b) : C(<a,b>)
+          |] ==> split(<a,b>, \%x y.c(x,y)) = c(a,b) : C(<a,b>)
 
-\idx{fst_def}   fst(a) == split(a, %x y.x)
-\idx{snd_def}   snd(a) == split(a, %x y.y)
+\idx{fst_def}   fst(a) == split(a, \%x y.x)
+\idx{snd_def}   snd(a) == split(a, \%x y.y)
 \end{ttbox}
 \caption{Rules for the sum type $\sum@{x\in A}B[x]$} \label{ctt-sum}
 \end{figure}
@@ -308,23 +308,23 @@ abbreviations in parsing and uses them whenever possible for printing.
 \idx{PlusE}     [| p: A+B;
              !!x. x:A ==> c(x): C(inl(x));  
              !!y. y:B ==> d(y): C(inr(y))
-          |] ==> when(p, %x.c(x), %y.d(y)) : C(p)
+          |] ==> when(p, \%x.c(x), \%y.d(y)) : C(p)
 
 \idx{PlusEL}    [| p = q : A+B;
              !!x. x: A ==> c(x) = e(x) : C(inl(x));   
              !!y. y: B ==> d(y) = f(y) : C(inr(y))
-          |] ==> when(p, %x.c(x), %y.d(y)) = 
-                 when(q, %x.e(x), %y.f(y)) : C(p)
+          |] ==> when(p, \%x.c(x), \%y.d(y)) = 
+                 when(q, \%x.e(x), \%y.f(y)) : C(p)
 
 \idx{PlusC_inl} [| a: A;
              !!x. x:A ==> c(x): C(inl(x));  
              !!y. y:B ==> d(y): C(inr(y))
-          |] ==> when(inl(a), %x.c(x), %y.d(y)) = c(a) : C(inl(a))
+          |] ==> when(inl(a), \%x.c(x), \%y.d(y)) = c(a) : C(inl(a))
 
 \idx{PlusC_inr} [| b: B;
              !!x. x:A ==> c(x): C(inl(x));  
              !!y. y:B ==> d(y): C(inr(y))
-          |] ==> when(inr(b), %x.c(x), %y.d(y)) = d(b) : C(inr(b))
+          |] ==> when(inr(b), \%x.c(x), \%y.d(y)) = d(b) : C(inr(b))
 \end{ttbox}
 \caption{Rules for the binary sum type $A+B$} \label{ctt-plus}
 \end{figure}
@@ -406,7 +406,7 @@ rules do not give rise to new theorems about the standard judgements ---
 note that the only rule that makes use of {\tt Reduce} is \ttindex{trans_red},
 whose first premise ensures that $a$ and $b$ (and thus $c$) are well-typed.
 
-Derived rules are shown in Figure~\ref{ctt-derived}.  The rule
+Derived rules are shown in Fig.\ts\ref{ctt-derived}.  The rule
 \ttindex{subst_prodE} is derived from \ttindex{prodE}, and is easier to
 use in backwards proof.  The rules \ttindex{SumE_fst} and
 \ttindex{SumE_snd} express the typing of~\ttindex{fst} and~\ttindex{snd};
@@ -589,16 +589,16 @@ tries to solve subgoal~$i$ by backtracking, using {\tt step_tac}.
 
 \begin{figure} 
 \begin{ttbox}
-\idx{add_def}           a#+b  == rec(a, b, %u v.succ(v))  
-\idx{diff_def}          a-b   == rec(b, a, %u v.rec(v, 0, %x y.x))  
+\idx{add_def}           a#+b  == rec(a, b, \%u v.succ(v))  
+\idx{diff_def}          a-b   == rec(b, a, \%u v.rec(v, 0, \%x y.x))  
 \idx{absdiff_def}       a|-|b == (a-b) #+ (b-a)  
-\idx{mult_def}          a#*b  == rec(a, 0, %u v. b #+ v)  
+\idx{mult_def}          a#*b  == rec(a, 0, \%u v. b #+ v)  
 
 \idx{mod_def}   a mod b == rec(a, 0,
-                      %u v. rec(succ(v) |-| b, 0, %x y.succ(v)))  
+                      \%u v. rec(succ(v) |-| b, 0, \%x y.succ(v)))  
 
 \idx{div_def}   a div b == rec(a, 0,
-                      %u v. rec(succ(u) mod b, succ(v), %x y.v))
+                      \%u v. rec(succ(u) mod b, succ(v), \%x y.v))
 \end{ttbox}
 \subcaption{Definitions of the operators}
 
@@ -643,7 +643,7 @@ remainder, culminating in the theorem
 Figure~\ref{ctt-arith} presents the definitions and some of the key
 theorems, including commutative, distributive, and associative laws.  The
 theory has the {\ML} identifier \ttindexbold{arith.thy}.  All proofs are on
-the file \ttindexbold{CTT/arith.ML}.
+the file {\tt CTT/arith.ML}.
 
 The operators~\verb'#+', \verb'-', \verb'|-|', \verb'#*', \verb'mod'
 and~\verb'div' stand for sum, difference, absolute difference, product,
@@ -665,17 +665,17 @@ such that $0\leq x \leq a$ and $x\bmod b = 0$.
 \section{The examples directory}
 This directory contains examples and experimental proofs in {\CTT}.
 \begin{description}
-\item[\ttindexbold{CTT/ex/typechk.ML}]
+\item[{\tt CTT/ex/typechk.ML}]
 contains simple examples of type checking and type deduction.
 
-\item[\ttindexbold{CTT/ex/elim.ML}]
+\item[{\tt CTT/ex/elim.ML}]
 contains some examples from Martin-L\"of~\cite{martinlof84}, proved using 
 {\tt pc_tac}.
 
-\item[\ttindexbold{CTT/ex/equal.ML}]
+\item[{\tt CTT/ex/equal.ML}]
 contains simple examples of rewriting.
 
-\item[\ttindexbold{CTT/ex/synth.ML}]
+\item[{\tt CTT/ex/synth.ML}]
 demonstrates the use of unknowns with some trivial examples of program
 synthesis. 
 \end{description}
@@ -688,10 +688,10 @@ initially
 unknown, takes shape in the course of the proof.  Our example is the
 predecessor function on the natural numbers.
 \begin{ttbox}
-goal CTT.thy "lam n. rec(n, 0, %x y.x) : ?A";
+goal CTT.thy "lam n. rec(n, 0, \%x y.x) : ?A";
 {\out Level 0}
-{\out lam n. rec(n,0,%x y. x) : ?A}
-{\out  1. lam n. rec(n,0,%x y. x) : ?A}
+{\out lam n. rec(n,0,\%x y. x) : ?A}
+{\out  1. lam n. rec(n,0,\%x y. x) : ?A}
 \end{ttbox}
 Since the term is a Constructive Type Theory $\lambda$-abstraction (not to
 be confused with a meta-level abstraction), we apply the rule
@@ -700,46 +700,57 @@ product type of unknown domain and range.
 \begin{ttbox}
 by (resolve_tac [ProdI] 1);
 {\out Level 1}
-{\out lam n. rec(n,0,%x y. x) : PROD x:?A1. ?B1(x)}
+{\out lam n. rec(n,0,\%x y. x) : PROD x:?A1. ?B1(x)}
 {\out  1. ?A1 type}
-{\out  2. !!n. n : ?A1 ==> rec(n,0,%x y. x) : ?B1(n)}
+{\out  2. !!n. n : ?A1 ==> rec(n,0,\%x y. x) : ?B1(n)}
 \end{ttbox}
-Subgoal~1 can be solved by instantiating~$\Var{A@1}$ to any type, but this
-could invalidate subgoal~2.  We therefore tackle the latter subgoal.  It
-asks the type of a term beginning with {\tt rec}, which can be found by
-$N$-elimination.\index{*NE}
+Subgoal~1 is too flexible.  It can be solved by instantiating~$\Var{A@1}$
+to any type, but most instantiations will invalidate subgoal~2.  We
+therefore tackle the latter subgoal.  It asks the type of a term beginning
+with {\tt rec}, which can be found by $N$-elimination.\index{*NE}
 \begin{ttbox}
 by (eresolve_tac [NE] 2);
 {\out Level 2}
-{\out lam n. rec(n,0,%x y. x) : PROD x:N. ?C2(x,x)}
+{\out lam n. rec(n,0,\%x y. x) : PROD x:N. ?C2(x,x)}
 {\out  1. N type}
 {\out  2. !!n. 0 : ?C2(n,0)}
 {\out  3. !!n x y. [| x : N; y : ?C2(n,x) |] ==> x : ?C2(n,succ(x))}
 \end{ttbox}
-We now know~$\Var{A@1}$ is the type of natural numbers.  However, let us
-continue with subgoal~2.  What is the type of~0?\index{*NIO}
+Subgoal~1 is no longer flexible: we now know~$\Var{A@1}$ is the type of
+natural numbers.  However, let us continue proving nontrivial subgoals.
+Subgoal~2 asks, what is the type of~0?\index{*NIO}
 \begin{ttbox}
 by (resolve_tac [NI0] 2);
 {\out Level 3}
-{\out lam n. rec(n,0,%x y. x) : N --> N}
+{\out lam n. rec(n,0,\%x y. x) : N --> N}
 {\out  1. N type}
 {\out  2. !!n x y. [| x : N; y : N |] ==> x : N}
 \end{ttbox}
-The type~$\Var{A}$ is now determined.  It is $\prod@{n\in N}N$, which is
-equivalent to $N\to N$.  But we must prove all the subgoals to show that
-the original term is validly typed.  Subgoal~2 is provable by assumption
-and the remaining subgoal falls by $N$-formation.\index{*NF}
+The type~$\Var{A}$ is now fully determined.  It is the product type
+$\prod@{x\in N}N$, which is equivalent to function type $N\to N$ because
+there is no dependence on~$x$.  But we must prove all the subgoals to show
+that the original term is validly typed.  Subgoal~2 is provable by
+assumption and the remaining subgoal falls by $N$-formation.\index{*NF}
 \begin{ttbox}
 by (assume_tac 2);
 {\out Level 4}
-{\out lam n. rec(n,0,%x y. x) : N --> N}
+{\out lam n. rec(n,0,\%x y. x) : N --> N}
 {\out  1. N type}
+\ttbreak
 by (resolve_tac [NF] 1);
 {\out Level 5}
-{\out lam n. rec(n,0,%x y. x) : N --> N}
+{\out lam n. rec(n,0,\%x y. x) : N --> N}
 {\out No subgoals!}
 \end{ttbox}
 Calling \ttindex{typechk_tac} can prove this theorem in one step.
+
+Even if the original term is ill-typed, one can infer a type for it, but
+unprovable subgoals will be left.  As an exercise, try to prove the
+following invalid goal:
+\begin{ttbox}
+goal CTT.thy "lam n. rec(n, 0, \%x y.tt) : ?A";
+\end{ttbox}
+
 
 
 \section{An example of logical reasoning}
@@ -786,8 +797,9 @@ One of the premises involves summation ($\Sigma$).  Since it is a premise
 rather than the assumption of a goal, it cannot be found by
 \ttindex{eresolve_tac}.  We could insert it by calling
 \hbox{\tt \ttindex{cut_facts_tac} prems 1}.   Instead, let us resolve the
-$\Sigma$-elimination rule with the premises; this yields one result, which
-we supply to \ttindex{resolve_tac}.\index{*SumE}\index{*RL}
+$\Sigma$-elimination rule with the premises using~{\tt RL}; this forward
+inference yields one result, which we supply to
+\ttindex{resolve_tac}.\index{*SumE}\index{*RL} 
 \begin{ttbox}
 by (resolve_tac (prems RL [SumE]) 1);
 {\out Level 1}
@@ -796,15 +808,15 @@ by (resolve_tac (prems RL [SumE]) 1);
 {\out        [| x : A; y : B(x) + C(x) |] ==>}
 {\out        ?c1(x,y) : (SUM x:A. B(x)) + (SUM x:A. C(x))}
 \end{ttbox}
-The subgoal has two new parameters.  In the main goal, $\Var{a}$ has been
-instantiated with a \ttindex{split} term.  The assumption $y\in B(x) + C(x)$ is
-eliminated next, causing a case split and a new parameter.  The main goal
-now contains~\ttindex{when}.
+The subgoal has two new parameters, $x$ and~$y$.  In the main goal,
+$\Var{a}$ has been instantiated with a \ttindex{split} term.  The
+assumption $y\in B(x) + C(x)$ is eliminated next, causing a case split and
+a further parameter,~$xa$.  It also inserts~\ttindex{when} into the main goal.
 \index{*PlusE}
 \begin{ttbox}
 by (eresolve_tac [PlusE] 1);
 {\out Level 2}
-{\out split(p,%x y. when(y,?c2(x,y),?d2(x,y)))}
+{\out split(p,\%x y. when(y,?c2(x,y),?d2(x,y)))}
 {\out : (SUM x:A. B(x)) + (SUM x:A. C(x))}
 {\out  1. !!x y xa.}
 {\out        [| x : A; xa : B(x) |] ==>}
@@ -822,7 +834,7 @@ injection~(\ttindex{inl}).
 \begin{ttbox}
 by (resolve_tac [PlusI_inl] 1);
 {\out Level 3}
-{\out split(p,%x y. when(y,%xa. inl(?a3(x,y,xa)),?d2(x,y)))}
+{\out split(p,\%x y. when(y,\%xa. inl(?a3(x,y,xa)),?d2(x,y)))}
 {\out : (SUM x:A. B(x)) + (SUM x:A. C(x))}
 {\out  1. !!x y xa. [| x : A; xa : B(x) |] ==> ?a3(x,y,xa) : SUM x:A. B(x)}
 {\out  2. !!x y xa. [| x : A; xa : B(x) |] ==> SUM x:A. C(x) type}
@@ -838,7 +850,7 @@ now contains an ordered pair.
 \begin{ttbox}
 by (resolve_tac [SumI] 1);
 {\out Level 4}
-{\out split(p,%x y. when(y,%xa. inl(<?a4(x,y,xa),?b4(x,y,xa)>),?d2(x,y)))}
+{\out split(p,\%x y. when(y,\%xa. inl(<?a4(x,y,xa),?b4(x,y,xa)>),?d2(x,y)))}
 {\out : (SUM x:A. B(x)) + (SUM x:A. C(x))}
 {\out  1. !!x y xa. [| x : A; xa : B(x) |] ==> ?a4(x,y,xa) : A}
 {\out  2. !!x y xa. [| x : A; xa : B(x) |] ==> ?b4(x,y,xa) : B(?a4(x,y,xa))}
@@ -852,16 +864,18 @@ $\Var{a@4}$ and $\Var{b@4}$ are instantiated throughout the proof state.
 \begin{ttbox}
 by (assume_tac 1);
 {\out Level 5}
-{\out split(p,%x y. when(y,%xa. inl(<x,?b4(x,y,xa)>),?d2(x,y)))}
+{\out split(p,\%x y. when(y,\%xa. inl(<x,?b4(x,y,xa)>),?d2(x,y)))}
 {\out : (SUM x:A. B(x)) + (SUM x:A. C(x))}
+\ttbreak
 {\out  1. !!x y xa. [| x : A; xa : B(x) |] ==> ?b4(x,y,xa) : B(x)}
 {\out  2. !!x y xa. [| x : A; xa : B(x) |] ==> SUM x:A. C(x) type}
 {\out  3. !!x y ya.}
 {\out        [| x : A; ya : C(x) |] ==>}
 {\out        ?d2(x,y,ya) : (SUM x:A. B(x)) + (SUM x:A. C(x))}
+\ttbreak
 by (assume_tac 1);
 {\out Level 6}
-{\out split(p,%x y. when(y,%xa. inl(<x,xa>),?d2(x,y)))}
+{\out split(p,\%x y. when(y,\%xa. inl(<x,xa>),?d2(x,y)))}
 {\out : (SUM x:A. B(x)) + (SUM x:A. C(x))}
 {\out  1. !!x y xa. [| x : A; xa : B(x) |] ==> SUM x:A. C(x) type}
 {\out  2. !!x y ya.}
@@ -873,7 +887,7 @@ supplied with the current list of premises.
 \begin{ttbox}
 by (typechk_tac prems);
 {\out Level 7}
-{\out split(p,%x y. when(y,%xa. inl(<x,xa>),?d2(x,y)))}
+{\out split(p,\%x y. when(y,\%xa. inl(<x,xa>),?d2(x,y)))}
 {\out : (SUM x:A. B(x)) + (SUM x:A. C(x))}
 {\out  1. !!x y ya.}
 {\out        [| x : A; ya : C(x) |] ==>}
@@ -884,7 +898,7 @@ the final proof object.
 \begin{ttbox}
 by (pc_tac prems 1);
 {\out Level 8}
-{\out split(p,%x y. when(y,%xa. inl(<x,xa>),%y. inr(<x,y>)))}
+{\out split(p,\%x y. when(y,\%xa. inl(<x,xa>),\%y. inr(<x,y>)))}
 {\out : (SUM x:A. B(x)) + (SUM x:A. C(x))}
 {\out No subgoals!}
 \end{ttbox}
@@ -895,18 +909,27 @@ proves this theorem.
 \section{Example: deriving a currying functional}
 In simply-typed languages such as {\ML}, a currying functional has the type 
 \[ (A\times B \to C) \to (A\to (B\to C)). \]
-Let us generalize this to~$\Sigma$ and~$\Pi$.  The argument of the
-functional is a function that maps $z:\Sigma(A,B)$ to~$C(z)$; the resulting
-function maps $x\in A$ and $y\in B(x)$ to $C(\langle x,y\rangle)$.  Here
-$B$ is a family over~$A$, while $C$ is a family over $\Sigma(A,B)$.
+Let us generalize this to~$\Sigma$ and~$\Pi$.  
+The functional takes a function~$f$ that maps $z:\Sigma(A,B)$
+to~$C(z)$; the resulting function maps $x\in A$ and $y\in B(x)$ to
+$C(\langle x,y\rangle)$.
+
+Formally, there are three typing premises.  $A$ is a type; $B$ is an
+$A$-indexed family of types; $C$ is a family of types indexed by
+$\Sigma(A,B)$.  The goal is expressed using \hbox{\tt PROD f} to ensure
+that the parameter corresponding to the functional's argument is really
+called~$f$; Isabelle echoes the type using \verb|-->| because there is no
+explicit dependence upon~$f$.
 \begin{ttbox}
 val prems = goal CTT.thy
-    "[| A type; !!x. x:A ==> B(x) type;                    \ttback
-\ttback               !!z. z: (SUM x:A. B(x)) ==> C(z) type |]   \ttback
-\ttback    ==> ?a : (PROD z : (SUM x:A . B(x)) . C(z))           \ttback
-\ttback         --> (PROD x:A . PROD y:B(x) . C(<x,y>))";
+    "[| A type; !!x. x:A ==> B(x) type;                           \ttback
+\ttback               !!z. z: (SUM x:A. B(x)) ==> C(z) type             \ttback
+\ttback    |] ==> ?a : PROD f: (PROD z : (SUM x:A . B(x)) . C(z)).      \ttback
+\ttback                     (PROD x:A . PROD y:B(x) . C(<x,y>))";
+\ttbreak
 {\out Level 0}
-{\out ?a : (PROD z:SUM x:A. B(x). C(z)) --> (PROD x:A. PROD y:B(x). C(<x,y>))}
+{\out ?a : (PROD z:SUM x:A. B(x). C(z)) -->}
+{\out      (PROD x:A. PROD y:B(x). C(<x,y>))}
 {\out  1. ?a : (PROD z:SUM x:A. B(x). C(z)) -->}
 {\out          (PROD x:A. PROD y:B(x). C(<x,y>))}
 \ttbreak
@@ -915,27 +938,32 @@ val prems = goal CTT.thy
 {\out              "?z : SUM x:A. B(x) ==> C(?z) type}
 {\out               [!!z. z : SUM x:A. B(x) ==> C(z) type]"] : thm list}
 \end{ttbox}
-This is an opportunity to demonstrate \ttindex{intr_tac}.  Here, the tactic
-repeatedly applies $\Pi$-introduction, automatically proving the rather
-tiresome typing conditions.  Note that $\Var{a}$ becomes instantiated to
-three nested $\lambda$-abstractions.
+This is a chance to demonstrate \ttindex{intr_tac}.  Here, the tactic
+repeatedly applies $\Pi$-introduction, proving the rather
+tiresome typing conditions.  
+
+Note that $\Var{a}$ becomes instantiated to three nested
+$\lambda$-abstractions.  It would be easier to read if the bound variable
+names agreed with the parameters in the subgoal.  Isabelle attempts to give
+parameters the same names as corresponding bound variables in the goal, but
+this does not always work.  In any event, the goal is logically correct.
 \begin{ttbox}
 by (intr_tac prems);
 {\out Level 1}
 {\out lam x xa xb. ?b7(x,xa,xb)}
 {\out : (PROD z:SUM x:A. B(x). C(z)) --> (PROD x:A. PROD y:B(x). C(<x,y>))}
-{\out  1. !!uu x y.}
-{\out        [| uu : PROD z:SUM x:A. B(x). C(z); x : A; y : B(x) |] ==>}
-{\out        ?b7(uu,x,y) : C(<x,y>)}
+{\out  1. !!f x y.}
+{\out        [| f : PROD z:SUM x:A. B(x). C(z); x : A; y : B(x) |] ==>}
+{\out        ?b7(f,x,y) : C(<x,y>)}
 \end{ttbox}
-Using $\Pi$-elimination, we solve subgoal~1 by applying the function~$uu$.
+Using $\Pi$-elimination, we solve subgoal~1 by applying the function~$f$.
 \index{*ProdE}
 \begin{ttbox}
 by (eresolve_tac [ProdE] 1);
 {\out Level 2}
 {\out lam x xa xb. x ` <xa,xb>}
 {\out : (PROD z:SUM x:A. B(x). C(z)) --> (PROD x:A. PROD y:B(x). C(<x,y>))}
-{\out  1. !!uu x y. [| x : A; y : B(x) |] ==> <x,y> : SUM x:A. B(x)}
+{\out  1. !!f x y. [| x : A; y : B(x) |] ==> <x,y> : SUM x:A. B(x)}
 \end{ttbox}
 Finally, we exhibit a suitable argument for the function application.  This
 is straightforward using introduction rules.
@@ -970,14 +998,14 @@ Theory \cite[page~50]{martinlof84}.  The following definitions work:
 But a completely formal proof is hard to find.  Many of the rules can be
 applied in a multiplicity of ways, yielding a large number of higher-order
 unifiers.  The proof can get bogged down in the details.  But with a
-careful selection of derived rules (recall Figure~\ref{ctt-derived}) and
+careful selection of derived rules (recall Fig.\ts\ref{ctt-derived}) and
 the type checking tactics, we can prove the theorem in nine steps.
 \begin{ttbox}
 val prems = goal CTT.thy
-    "[| A type;  !!x. x:A ==> B(x) type;              \ttback
-\ttback       !!x y.[| x:A;  y:B(x) |] ==> C(x,y) type      \ttback
-\ttback    |] ==> ?a :    (PROD x:A. SUM y:B(x). C(x,y))    \ttback
-\ttback               --> (SUM f: (PROD x:A. B(x)). PROD x:A. C(x, f`x))";
+    "[| A type;  !!x. x:A ==> B(x) type;                    \ttback
+\ttback       !!x y.[| x:A;  y:B(x) |] ==> C(x,y) type            \ttback
+\ttback    |] ==> ?a : PROD h: (PROD x:A. SUM y:B(x). C(x,y)).    \ttback
+\ttback                     (SUM f: (PROD x:A. B(x)). PROD x:A. C(x, f`x))";
 {\out Level 0}
 {\out ?a : (PROD x:A. SUM y:B(x). C(x,y)) -->}
 {\out      (SUM f:PROD x:A. B(x). PROD x:A. C(x,f ` x))}
@@ -1000,18 +1028,19 @@ by (intr_tac prems);
 {\out : (PROD x:A. SUM y:B(x). C(x,y)) -->}
 {\out   (SUM f:PROD x:A. B(x). PROD x:A. C(x,f ` x))}
 \ttbreak
-{\out  1. !!uu x.}
-{\out        [| uu : PROD x:A. SUM y:B(x). C(x,y); x : A |] ==>}
-{\out        ?b7(uu,x) : B(x)}
+{\out  1. !!h x.}
+{\out        [| h : PROD x:A. SUM y:B(x). C(x,y); x : A |] ==>}
+{\out        ?b7(h,x) : B(x)}
 \ttbreak
-{\out  2. !!uu x.}
-{\out        [| uu : PROD x:A. SUM y:B(x). C(x,y); x : A |] ==>}
-{\out        ?b8(uu,x) : C(x,(lam x. ?b7(uu,x)) ` x)}
+{\out  2. !!h x.}
+{\out        [| h : PROD x:A. SUM y:B(x). C(x,y); x : A |] ==>}
+{\out        ?b8(h,x) : C(x,(lam x. ?b7(h,x)) ` x)}
 \end{ttbox}
 Subgoal~1 asks to find the choice function itself, taking $x\in A$ to some
-$\Var{b@7}(uu,x)\in B(x)$.  Subgoal~2 asks, given $x\in A$, for a proof
-object $\Var{b@8}(uu,x)$ to witness that the choice function's argument
-and result lie in the relation~$C$.  
+$\Var{b@7}(h,x)\in B(x)$.  Subgoal~2 asks, given $x\in A$, for a proof
+object $\Var{b@8}(h,x)$ to witness that the choice function's argument and
+result lie in the relation~$C$.  This latter task will take up most of the
+proof.
 \index{*ProdE}\index{*SumE_fst}\index{*RS}
 \begin{ttbox}
 by (eresolve_tac [ProdE RS SumE_fst] 1);
@@ -1020,27 +1049,26 @@ by (eresolve_tac [ProdE RS SumE_fst] 1);
 {\out : (PROD x:A. SUM y:B(x). C(x,y)) -->}
 {\out   (SUM f:PROD x:A. B(x). PROD x:A. C(x,f ` x))}
 \ttbreak
-{\out  1. !!uu x. x : A ==> x : A}
-{\out  2. !!uu x.}
-{\out        [| uu : PROD x:A. SUM y:B(x). C(x,y); x : A |] ==>}
-{\out        ?b8(uu,x) : C(x,(lam x. fst(uu ` x)) ` x)}
+{\out  1. !!h x. x : A ==> x : A}
+{\out  2. !!h x.}
+{\out        [| h : PROD x:A. SUM y:B(x). C(x,y); x : A |] ==>}
+{\out        ?b8(h,x) : C(x,(lam x. fst(h ` x)) ` x)}
 \end{ttbox}
-Above, we have composed \ttindex{fst} with the function~$h$ (named~$uu$ in
-the assumptions).  Unification has deduced that the function must be
-applied to $x\in A$.
+Above, we have composed \ttindex{fst} with the function~$h$.  Unification
+has deduced that the function must be applied to $x\in A$.
 \begin{ttbox}
 by (assume_tac 1);
 {\out Level 3}
 {\out lam x. <lam xa. fst(x ` xa),lam xa. ?b8(x,xa)>}
 {\out : (PROD x:A. SUM y:B(x). C(x,y)) -->}
 {\out   (SUM f:PROD x:A. B(x). PROD x:A. C(x,f ` x))}
-{\out  1. !!uu x.}
-{\out        [| uu : PROD x:A. SUM y:B(x). C(x,y); x : A |] ==>}
-{\out        ?b8(uu,x) : C(x,(lam x. fst(uu ` x)) ` x)}
+{\out  1. !!h x.}
+{\out        [| h : PROD x:A. SUM y:B(x). C(x,y); x : A |] ==>}
+{\out        ?b8(h,x) : C(x,(lam x. fst(h ` x)) ` x)}
 \end{ttbox}
 Before we can compose \ttindex{snd} with~$h$, the arguments of $C$ must be
 simplified.  The derived rule \ttindex{replace_type} lets us replace a type
-by any equivalent type:
+by any equivalent type, shown below as the schematic term $\Var{A@{13}}(h,x)$:
 \begin{ttbox}
 by (resolve_tac [replace_type] 1);
 {\out Level 4}
@@ -1048,13 +1076,13 @@ by (resolve_tac [replace_type] 1);
 {\out : (PROD x:A. SUM y:B(x). C(x,y)) -->}
 {\out   (SUM f:PROD x:A. B(x). PROD x:A. C(x,f ` x))}
 \ttbreak
-{\out  1. !!uu x.}
-{\out        [| uu : PROD x:A. SUM y:B(x). C(x,y); x : A |] ==>}
-{\out        C(x,(lam x. fst(uu ` x)) ` x) = ?A13(uu,x)}
+{\out  1. !!h x.}
+{\out        [| h : PROD x:A. SUM y:B(x). C(x,y); x : A |] ==>}
+{\out        C(x,(lam x. fst(h ` x)) ` x) = ?A13(h,x)}
 \ttbreak
-{\out  2. !!uu x.}
-{\out        [| uu : PROD x:A. SUM y:B(x). C(x,y); x : A |] ==>}
-{\out        ?b8(uu,x) : ?A13(uu,x)}
+{\out  2. !!h x.}
+{\out        [| h : PROD x:A. SUM y:B(x). C(x,y); x : A |] ==>}
+{\out        ?b8(h,x) : ?A13(h,x)}
 \end{ttbox}
 The derived rule \ttindex{subst_eqtyparg} lets us simplify a type's
 argument (by currying, $C(x)$ is a unary type operator):
@@ -1065,21 +1093,22 @@ by (resolve_tac [subst_eqtyparg] 1);
 {\out : (PROD x:A. SUM y:B(x). C(x,y)) -->}
 {\out   (SUM f:PROD x:A. B(x). PROD x:A. C(x,f ` x))}
 \ttbreak
-{\out  1. !!uu x.}
-{\out        [| uu : PROD x:A. SUM y:B(x). C(x,y); x : A |] ==>}
-{\out        (lam x. fst(uu ` x)) ` x = ?c14(uu,x) : ?A14(uu,x)}
+{\out  1. !!h x.}
+{\out        [| h : PROD x:A. SUM y:B(x). C(x,y); x : A |] ==>}
+{\out        (lam x. fst(h ` x)) ` x = ?c14(h,x) : ?A14(h,x)}
 \ttbreak
-{\out  2. !!uu x z.}
-{\out        [| uu : PROD x:A. SUM y:B(x). C(x,y); x : A;}
-{\out           z : ?A14(uu,x) |] ==>}
+{\out  2. !!h x z.}
+{\out        [| h : PROD x:A. SUM y:B(x). C(x,y); x : A;}
+{\out           z : ?A14(h,x) |] ==>}
 {\out        C(x,z) type}
 \ttbreak
-{\out  3. !!uu x.}
-{\out        [| uu : PROD x:A. SUM y:B(x). C(x,y); x : A |] ==>}
-{\out        ?b8(uu,x) : C(x,?c14(uu,x))}
+{\out  3. !!h x.}
+{\out        [| h : PROD x:A. SUM y:B(x). C(x,y); x : A |] ==>}
+{\out        ?b8(h,x) : C(x,?c14(h,x))}
 \end{ttbox}
-The rule \ttindex{ProdC} is simply $\beta$-reduction.  The term
-$\Var{c@{14}}(uu,x)$ receives the simplified form, $f{\tt`}x$.
+Subgoal~1 requires simply $\beta$-contraction, which is the rule
+\ttindex{ProdC}.  The term $\Var{c@{14}}(h,x)$ in the last subgoal
+receives the contracted result.
 \begin{ttbox}
 by (resolve_tac [ProdC] 1);
 {\out Level 6}
@@ -1087,35 +1116,37 @@ by (resolve_tac [ProdC] 1);
 {\out : (PROD x:A. SUM y:B(x). C(x,y)) -->}
 {\out   (SUM f:PROD x:A. B(x). PROD x:A. C(x,f ` x))}
 \ttbreak
-{\out  1. !!uu x.}
-{\out        [| uu : PROD x:A. SUM y:B(x). C(x,y); x : A |] ==> x : ?A15(uu,x)}
+{\out  1. !!h x.}
+{\out        [| h : PROD x:A. SUM y:B(x). C(x,y); x : A |] ==>}
+{\out        x : ?A15(h,x)}
 \ttbreak
-{\out  2. !!uu x xa.}
-{\out        [| uu : PROD x:A. SUM y:B(x). C(x,y); x : A;}
-{\out           xa : ?A15(uu,x) |] ==>}
-{\out        fst(uu ` xa) : ?B15(uu,x,xa)}
+{\out  2. !!h x xa.}
+{\out        [| h : PROD x:A. SUM y:B(x). C(x,y); x : A;}
+{\out           xa : ?A15(h,x) |] ==>}
+{\out        fst(h ` xa) : ?B15(h,x,xa)}
 \ttbreak
-{\out  3. !!uu x z.}
-{\out        [| uu : PROD x:A. SUM y:B(x). C(x,y); x : A;}
-{\out           z : ?B15(uu,x,x) |] ==>}
+{\out  3. !!h x z.}
+{\out        [| h : PROD x:A. SUM y:B(x). C(x,y); x : A;}
+{\out           z : ?B15(h,x,x) |] ==>}
 {\out        C(x,z) type}
 \ttbreak
-{\out  4. !!uu x.}
-{\out        [| uu : PROD x:A. SUM y:B(x). C(x,y); x : A |] ==>}
-{\out        ?b8(uu,x) : C(x,fst(uu ` x))}
+{\out  4. !!h x.}
+{\out        [| h : PROD x:A. SUM y:B(x). C(x,y); x : A |] ==>}
+{\out        ?b8(h,x) : C(x,fst(h ` x))}
 \end{ttbox}
 Routine type checking goals proliferate in Constructive Type Theory, but
 \ttindex{typechk_tac} quickly solves them.  Note the inclusion of
-\ttindex{SumE_fst}.
+\ttindex{SumE_fst} along with the premises.
 \begin{ttbox}
 by (typechk_tac (SumE_fst::prems));
 {\out Level 7}
 {\out lam x. <lam xa. fst(x ` xa),lam xa. ?b8(x,xa)>}
 {\out : (PROD x:A. SUM y:B(x). C(x,y)) -->}
 {\out   (SUM f:PROD x:A. B(x). PROD x:A. C(x,f ` x))}
-{\out  1. !!uu x.}
-{\out        [| uu : PROD x:A. SUM y:B(x). C(x,y); x : A |] ==>}
-{\out        ?b8(uu,x) : C(x,fst(uu ` x))}
+\ttbreak
+{\out  1. !!h x.}
+{\out        [| h : PROD x:A. SUM y:B(x). C(x,y); x : A |] ==>}
+{\out        ?b8(h,x) : C(x,fst(h ` x))}
 \end{ttbox}
 We are finally ready to compose \ttindex{snd} with~$h$.
 \index{*ProdE}\index{*SumE_snd}\index{*RS}
@@ -1125,9 +1156,10 @@ by (eresolve_tac [ProdE RS SumE_snd] 1);
 {\out lam x. <lam xa. fst(x ` xa),lam xa. snd(x ` xa)>}
 {\out : (PROD x:A. SUM y:B(x). C(x,y)) -->}
 {\out   (SUM f:PROD x:A. B(x). PROD x:A. C(x,f ` x))}
-{\out  1. !!uu x. x : A ==> x : A}
-{\out  2. !!uu x. x : A ==> B(x) type}
-{\out  3. !!uu x xa. [| x : A; xa : B(x) |] ==> C(x,xa) type}
+\ttbreak
+{\out  1. !!h x. x : A ==> x : A}
+{\out  2. !!h x. x : A ==> B(x) type}
+{\out  3. !!h x xa. [| x : A; xa : B(x) |] ==> C(x,xa) type}
 \end{ttbox}
 The proof object has reached its final form.  We call \ttindex{typechk_tac}
 to finish the type checking.
