@@ -21,7 +21,7 @@ function fail_out()
 
 if [ -z "$INFILE" ]; then
   INFILE="$ML_HOME/sml"
-  EXIT="val exit = System.Unsafe.CInterface.exit;"
+  EXIT="val exit: int -> unit = System.Unsafe.CInterface.exit;"
 else
   EXIT=""
 fi
@@ -29,7 +29,7 @@ fi
 MOVE=""
 
 if [ -z "$OUTFILE" ]; then
-  COMMIT='fun commit () = (output (std_err, "Error - Database is not opened for writing.\\n"); false);'
+  COMMIT='fun commit () = (output (std_err, "Error - Database is not opened for writing.\n"); false);'
 else
   if [ "$INFILE" -ef "$OUTFILE" ]; then
     OUTDIR=$(dirname "$OUTFILE")/tmp
@@ -41,26 +41,26 @@ else
   COMMIT="fun commit () = not (exportML\"$OUTFILE\");"
 fi
 
-MLTEXT="$EXIT $COMMIT $MLTEXT"
-MLEXIT="commit();"
-
 
 ## run it!
 
-START_SML="$INFILE $ML_OPTIONS"
+MLTEXT="$EXIT $COMMIT $MLTEXT"
+MLEXIT="commit();"
 
-if [ -n "$TERMINATE" ]; then
-  echo "$MLTEXT" "$MLEXIT" | $START_SML
-  RC=$?
-elif [ -z "$MLTEXT" ]; then
-  sh -c "{ $ISABELLE_HOME/lib/scripts/ucat; echo '$MLEXIT'; } | $START_SML"
-  RC=$?
+if [ -z "$TERMINATE" ]; then
+  FEEDER_OPTS=""
 else
-  sh -c "{ echo '$MLTEXT'; $ISABELLE_HOME/lib/scripts/ucat; echo '$MLEXIT'; } | $START_SML"
-  RC=$?
+  FEEDER_OPTS="-q"
 fi
 
-[ -n "$OUTFILE" -a -n "$NOWRITE" ] && chmod -w "$OUTFILE"
+$ISABELLE_HOME/lib/scripts/feeder -p -h "$MLTEXT" -t "$MLEXIT" $FEEDER_OPTS | \
+  { read FPID; $INFILE $ML_OPTIONS; RC=$?; kill -HUP $FPID; exit $RC; }
+RC=$?
+
+
+## fix heap file
+
+[ -n "$OUTFILE" -a -f "$OUTFILE" -a -n "$NOWRITE" ] && chmod -w "$OUTFILE"
 
 if [ -n "$MOVE" -a -f "$OUTFILE" ]; then
   rm -f "$INFILE" || fail_out
