@@ -33,6 +33,6 @@ datatype
 
 types
   bytecode = "instr list"
-  jvm_prog = "(nat \<times> bytecode) prog" 
+  jvm_prog = "(nat \<times> nat \<times> bytecode) prog" 
 
 end

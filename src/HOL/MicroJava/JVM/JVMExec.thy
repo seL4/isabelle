@@ -19,7 +19,7 @@ recdef exec "{}"
 
   "exec (G, None, hp, (stk,loc,C,sig,pc)#frs) =
   (let 
-     i = snd(snd(snd(the(method (G,C) sig)))) ! pc
+     i = snd(snd(snd(snd(the(method (G,C) sig))))) ! pc
    in
      Some (exec_instr i G hp stk loc C sig pc frs))"
 

@@ -66,7 +66,7 @@ primrec
 	     oref	= last argsoref;
 	     xp'	= raise_xcpt (oref=Null) NullPointer;
 	     dynT	= fst(the(hp(the_Addr oref)));
-	     (dc,mh,mxl,c)= the (method (G,dynT) (mn,ps));
+	     (dc,mh,mxs,mxl,c)= the (method (G,dynT) (mn,ps));
 	     frs'	= if xp'=None then 
                 [([],rev argsoref@replicate mxl arbitrary,dc,(mn,ps),0)]
 	            else []
