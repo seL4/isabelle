@@ -62,7 +62,6 @@ signature TACTIC =
   val match_from_net_tac	: (int*thm) Net.net -> int -> tactic
   val match_tac	: thm list -> int -> tactic
   val metacut_tac	: thm -> int -> tactic
-  val metacuts_tac	: thm list -> int -> tactic   
   val net_bimatch_tac	: (bool*thm) list -> int -> tactic
   val net_biresolve_tac	: (bool*thm) list -> int -> tactic
   val net_match_tac	: thm list -> int -> tactic
@@ -326,7 +325,6 @@ fun bires_cut_tac arg i =
 (*The conclusion of the rule gets assumed in subgoal i,
   while subgoal i+1,... are the premises of the rule.*)
 fun metacut_tac rule = bires_cut_tac [(false,rule)];
-fun metacuts_tac rules i = EVERY (map (fn th => metacut_tac th i) rules);
 
 (*Recognizes theorems that are not rules, but simple propositions*)
 fun is_fact rl =
