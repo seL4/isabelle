@@ -118,7 +118,7 @@ val eq_thy = Sign.eq_sg o pairself sign_of;
 
 (* partial Pure theory *)
 
-val pre_pure = make_thy Sign.pre_pure Symtab.null Symtab.null [] [];
+val pre_pure = make_thy Sign.pre_pure Symtab.empty Symtab.empty [] [];
 
 
 
@@ -143,10 +143,10 @@ fun ext_thy thy sign' new_axms new_oras =
     val Theory {sign, axioms, oracles, parents, ancestors} = thy;
     val draft = Sign.is_draft sign;
     val axioms' =
-      Symtab.extend_new (if draft then axioms else Symtab.null, new_axms)
+      Symtab.extend (if draft then axioms else Symtab.empty, new_axms)
         handle Symtab.DUPS names => err_dup_axms names;
     val oracles' =
-      Symtab.extend_new (oracles, new_oras)
+      Symtab.extend (oracles, new_oras)
         handle Symtab.DUPS names => err_dup_oras names;
     val (parents', ancestors') =
       if draft then (parents, ancestors) else ([thy], thy :: ancestors);
@@ -400,7 +400,7 @@ fun prep_ext_merge thys =
         |> Sign.prep_ext
         |> Sign.add_path "/";
 
-      val axioms' = Symtab.null;
+      val axioms' = Symtab.empty;
 
       fun eq_ora ((_, (_, s1: stamp)), (_, (_, s2))) = s1 = s2;
       val oracles' =
