@@ -29,6 +29,8 @@ conditional equations;
    new tactics that use classical reasoning to simplify a subgoal 
    without splitting it into several subgoals;
 
+* Safe_tac: like safe_tac but uses the default claset;
+
 
 *** Simplifier ***
 
@@ -64,6 +66,11 @@ logics (again);
 * added extended adm_tac to simplifier in HOLCF.  Can now discharge
   adm (%x. P (t x)), where P is chainfinite and t continuous.
 
+
+*** FOL and ZF ***
+
+* qed_spec_mp, qed_goal_spec_mp, qed_goalw_spec_mp are available.  As 
+  in HOL, they strip ALL and --> from proved theorems;
 
 
 New in Isabelle94-8 (May 1997)
