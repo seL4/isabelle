@@ -55,10 +55,11 @@ by (fast_tac (!claset addIs (prems@[PartI])
 qed "TF_induct";
 
 (*This lemma replaces a use of subgoal_tac to prove tree_forest_induct*)
-val prems = goalw Simult.thy [Part_def]
- "! M: TF(A). (M: Part (TF A) In0 --> P(M)) & (M: Part (TF A) In1 --> Q(M)) \
-\ ==> (! M: Part (TF A) In0. P(M)) & (! M: Part (TF A) In1. Q(M))";
-by (cfast_tac prems 1);
+goalw Simult.thy [Part_def]
+ "!!A.  ! M: TF(A). (M: Part (TF A) In0 --> P(M)) & \
+\                   (M: Part (TF A) In1 --> Q(M)) \
+\  ==> (! M: Part (TF A) In0. P(M)) & (! M: Part (TF A) In1. Q(M))";
+by (Fast_tac 1);
 qed "TF_induct_lemma";
 
 AddSIs [PartI];

@@ -50,8 +50,8 @@ by (fast_tac (!claset addEs [Inv_f_f RS ssubst]) 1);
 by (fast_tac (!claset addEs [Inv_f_f RS ssubst]) 1);
 qed "inv_image_comp";
 
-val prems = goal Set.thy "f(a) ~: (f``X) ==> a~:X";
-by (cfast_tac prems 1);
+goal Set.thy "!!f. f(a) ~: (f``X) ==> a~:X";
+by (Fast_tac 1);
 qed "contra_imageI";
 
 goal Lfp.thy "(a ~: Compl(X)) = (a:X)";
@@ -66,17 +66,10 @@ by (EVERY1 [rtac (not_Compl RS subst), rtac contra_imageI,
             rtac imageI, rtac Xa]);
 qed "disj_lemma";
 
-goal Lfp.thy "range(%z. if z:X then f(z) else g(z)) = f``X Un g``Compl(X)";
-by (rtac equalityI 1);
-by (rewtac range_def);
-by (fast_tac (!claset addIs [if_P RS sym, if_not_P RS sym]) 2);
-by (rtac subsetI 1);
-by (etac CollectE 1);
-by (etac exE 1);
-by (etac ssubst 1);
-by (rtac (excluded_middle RS disjE) 1);
-by (EVERY' [rtac (if_P     RS ssubst), atac, Fast_tac] 2);
-by (EVERY' [rtac (if_not_P RS ssubst), atac, Fast_tac] 1);
+goalw Lfp.thy [image_def]
+    "range(%z. if z:X then f(z) else g(z)) = f``X Un g``Compl(X)";
+by (simp_tac (!simpset setloop split_tac [expand_if]) 1);
+by (Fast_tac 1);
 qed "range_if_then_else";
 
 goal Lfp.thy "a : X Un Compl(X)";

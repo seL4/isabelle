@@ -207,9 +207,9 @@ by (rtac (sat RS (completeness_0_lemma RS spec)) 1);
 qed "completeness_0";
 
 (*A semantic analogue of the Deduction Theorem*)
-val [sat] = goalw PropLog.thy [sat_def] "insert p H |= q ==> H |= p->q";
+goalw PropLog.thy [sat_def] "!!p H. insert p H |= q ==> H |= p->q";
 by (Simp_tac 1);
-by (cfast_tac [sat] 1);
+by (Fast_tac 1);
 qed "sat_imp";
 
 val [finite] = goal PropLog.thy "H: Fin({p.True}) ==> !p. H |= p --> H |- p";
