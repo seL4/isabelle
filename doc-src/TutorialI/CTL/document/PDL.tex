@@ -127,7 +127,7 @@ pointwise:%
 \noindent
 After simplification and clarification we are left with
 \begin{isabelle}%
-\ {\isadigit{1}}{\isachardot}\ {\isasymAnd}x\ t{\isachardot}\ {\isasymlbrakk}{\isacharparenleft}x{\isacharcomma}\ t{\isacharparenright}\ {\isasymin}\ M\isactrlsup {\isacharasterisk}{\isacharsemicolon}\ t\ {\isasymin}\ A{\isasymrbrakk}\ {\isasymLongrightarrow}\ x\ {\isasymin}\ lfp\ {\isacharparenleft}{\isasymlambda}T{\isachardot}\ A\ {\isasymunion}\ M{\isasyminverse}\ {\isacharcircum}{\isacharcircum}\ T{\isacharparenright}%
+\ {\isadigit{1}}{\isachardot}\ {\isasymAnd}x\ t{\isachardot}\ {\isacharparenleft}x{\isacharcomma}\ t{\isacharparenright}\ {\isasymin}\ M\isactrlsup {\isacharasterisk}\ {\isasymLongrightarrow}\ t\ {\isasymin}\ A\ {\isasymLongrightarrow}\ x\ {\isasymin}\ lfp\ {\isacharparenleft}{\isasymlambda}T{\isachardot}\ A\ {\isasymunion}\ M{\isasyminverse}\ {\isacharcircum}{\isacharcircum}\ T{\isacharparenright}%
 \end{isabelle}
 This goal is proved by induction on \isa{{\isacharparenleft}s{\isacharcomma}\ t{\isacharparenright}\ {\isasymin}\ M\isactrlsup {\isacharasterisk}}. But since the model
 checker works backwards (from \isa{t} to \isa{s}), we cannot use the
@@ -135,9 +135,9 @@ induction theorem \isa{rtrancl{\isacharunderscore}induct} because it works in th
 forward direction. Fortunately the converse induction theorem
 \isa{converse{\isacharunderscore}rtrancl{\isacharunderscore}induct} already exists:
 \begin{isabelle}%
-\ \ \ \ \ {\isasymlbrakk}{\isacharparenleft}a{\isacharcomma}\ b{\isacharparenright}\ {\isasymin}\ r\isactrlsup {\isacharasterisk}{\isacharsemicolon}\ P\ b{\isacharsemicolon}\isanewline
-\ \ \ \ \ \ \ \ {\isasymAnd}y\ z{\isachardot}\ {\isasymlbrakk}{\isacharparenleft}y{\isacharcomma}\ z{\isacharparenright}\ {\isasymin}\ r{\isacharsemicolon}\ {\isacharparenleft}z{\isacharcomma}\ b{\isacharparenright}\ {\isasymin}\ r\isactrlsup {\isacharasterisk}{\isacharsemicolon}\ P\ z{\isasymrbrakk}\ {\isasymLongrightarrow}\ P\ y{\isasymrbrakk}\isanewline
-\ \ \ \ \ {\isasymLongrightarrow}\ P\ a%
+\ \ \ \ \ {\isacharparenleft}a{\isacharcomma}\ b{\isacharparenright}\ {\isasymin}\ r\isactrlsup {\isacharasterisk}\ {\isasymLongrightarrow}\isanewline
+\ \ \ \ \ P\ b\ {\isasymLongrightarrow}\isanewline
+\ \ \ \ \ {\isacharparenleft}{\isasymAnd}y\ z{\isachardot}\ {\isacharparenleft}y{\isacharcomma}\ z{\isacharparenright}\ {\isasymin}\ r\ {\isasymLongrightarrow}\ {\isacharparenleft}z{\isacharcomma}\ b{\isacharparenright}\ {\isasymin}\ r\isactrlsup {\isacharasterisk}\ {\isasymLongrightarrow}\ P\ z\ {\isasymLongrightarrow}\ P\ y{\isacharparenright}\ {\isasymLongrightarrow}\ P\ a%
 \end{isabelle}
 It says that if \isa{{\isacharparenleft}a{\isacharcomma}\ b{\isacharparenright}\ {\isasymin}\ r\isactrlsup {\isacharasterisk}} and we know \isa{P\ b} then we can infer
 \isa{P\ a} provided each step backwards from a predecessor \isa{z} of
