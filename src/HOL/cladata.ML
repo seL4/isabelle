@@ -30,6 +30,12 @@ structure Hypsubst_Data =
 structure Hypsubst = HypsubstFun(Hypsubst_Data);
 open Hypsubst;
 
+(*prevent substitution on bool*)
+fun hyp_subst_tac' i thm = if i <= Thm.nprems_of thm andalso
+  Term.exists_Const (fn ("op =", Type (_, [T, _])) => T <> Type ("bool", []) | _ => false)
+    (Library.nth_elem (i - 1, Thm.prems_of thm)) then hyp_subst_tac i thm else no_tac thm;
+
+
 
 (*** Applying Make_Elim_Fun to create a classical "make_elim" rule ***)
 structure Make_Elim = Make_Elim_Fun (val classical = classical);
