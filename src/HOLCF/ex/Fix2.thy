@@ -16,7 +16,7 @@ consts
 
 rules
 
-gix1_def "F`(gix`F) = gix`F"
-gix2_def "F`y=y ==> gix`F << y"
+gix1_def "F$(gix$F) = gix$F"
+gix2_def "F$y=y ==> gix$F << y"
 
 end

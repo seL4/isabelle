@@ -20,8 +20,8 @@ claset_ref() := claset() delSWrapper "split_all_tac";
 Goal "ex2seqC  = (LAM ex. (%s. case ex of \
 \      nil =>  (s,None,s)>>nil   \
 \    | x##xs => (flift1 (%pr. \
-\                (s,Some (fst pr), snd pr)>> (ex2seqC`xs) (snd pr))  \
-\                `x)  \
+\                (s,Some (fst pr), snd pr)>> (ex2seqC$xs) (snd pr))  \
+\                $x)  \
 \      ))";
 by (rtac trans 1);
 by (rtac fix_eq2 1);
@@ -30,18 +30,18 @@ by (rtac beta_cfun 1);
 by (simp_tac (simpset() addsimps [flift1_def]) 1);
 qed"ex2seqC_unfold";
 
-Goal "(ex2seqC `UU) s=UU";
+Goal "(ex2seqC $UU) s=UU";
 by (stac ex2seqC_unfold 1);
 by (Simp_tac 1);
 qed"ex2seqC_UU";
 
-Goal "(ex2seqC `nil) s = (s,None,s)>>nil";
+Goal "(ex2seqC $nil) s = (s,None,s)>>nil";
 by (stac ex2seqC_unfold 1);
 by (Simp_tac 1);
 qed"ex2seqC_nil";
 
-Goal "(ex2seqC `((a,t)>>xs)) s = \
-\          (s,Some a,t)>> ((ex2seqC`xs) t)";
+Goal "(ex2seqC $((a,t)>>xs)) s = \
+\          (s,Some a,t)>> ((ex2seqC$xs) t)";
 by (rtac trans 1);
 by (stac ex2seqC_unfold 1);
 by (asm_full_simp_tac (simpset() addsimps [Consq_def,flift1_def]) 1);

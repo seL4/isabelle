@@ -60,14 +60,14 @@ xt2_def
   "xt2 P tr == P (fst (snd tr))"
 
 ex2seq_def
-  "ex2seq ex == ((ex2seqC `(mkfin (snd ex))) (fst ex))"
+  "ex2seq ex == ((ex2seqC $(mkfin (snd ex))) (fst ex))"
 
 ex2seqC_def
-  "ex2seqC == (fix`(LAM h ex. (%s. case ex of 
+  "ex2seqC == (fix$(LAM h ex. (%s. case ex of 
       nil =>  (s,None,s)>>nil
     | x##xs => (flift1 (%pr.
-                (s,Some (fst pr), snd pr)>> (h`xs) (snd pr)) 
-                `x)
+                (s,Some (fst pr), snd pr)>> (h$xs) (snd pr)) 
+                $x)
       )))"
 
 validTE_def

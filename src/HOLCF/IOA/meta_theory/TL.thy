@@ -50,7 +50,7 @@ unlift_def
 
 (* this means that for nil and UU the effect is unpredictable *)
 Init_def
-  "Init P s ==  (P (unlift (HD`s)))" 
+  "Init P s ==  (P (unlift (HD$s)))" 
 
 suffix_def
   "suffix s2 s == ? s1. (Finite s1  & s = s1 @@ s2)" 
@@ -62,7 +62,7 @@ Box_def
   "([] P) s == ! s2. tsuffix s2 s --> P s2"
 
 Next_def
-  "(Next P) s == if (TL`s=UU | TL`s=nil) then (P s) else P (TL`s)"
+  "(Next P) s == if (TL$s=UU | TL$s=nil) then (P s) else P (TL$s)"
 
 Diamond_def
   "<> P == .~ ([] (.~ P))"

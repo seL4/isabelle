@@ -43,11 +43,11 @@ is_live_abstraction_def
       temp_weakening (snd AM) (snd CL) h"
 
 cex_abs_def
-  "cex_abs f ex == (f (fst ex), Map (%(a,t). (a,f t))`(snd ex))"
+  "cex_abs f ex == (f (fst ex), Map (%(a,t). (a,f t))$(snd ex))"
 
 (* equals cex_abs on Sequneces -- after ex2seq application -- *)
 cex_absSeq_def
-  "cex_absSeq f == % s. Map (%(s,a,t). (f s,a,f t))`s"
+  "cex_absSeq f == % s. Map (%(s,a,t). (f s,a,f t))$s"
 
 weakeningIOA_def
    "weakeningIOA A C h == ! ex. ex : executions C --> cex_abs h ex : executions A"

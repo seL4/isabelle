@@ -21,8 +21,8 @@ section "corresp_ex";
 Goal "corresp_exC A f  = (LAM ex. (%s. case ex of \
 \      nil =>  nil   \
 \    | x##xs => (flift1 (%pr. (@cex. move A cex (f s) (fst pr) (f (snd pr)))   \
-\                              @@ ((corresp_exC A f `xs) (snd pr)))   \
-\                        `x) ))";
+\                              @@ ((corresp_exC A f $xs) (snd pr)))   \
+\                        $x) ))";
 by (rtac trans 1);
 by (rtac fix_eq2 1);
 by (rtac corresp_exC_def 1);
@@ -30,19 +30,19 @@ by (rtac beta_cfun 1);
 by (simp_tac (simpset() addsimps [flift1_def]) 1);
 qed"corresp_exC_unfold";
 
-Goal "(corresp_exC A f`UU) s=UU";
+Goal "(corresp_exC A f$UU) s=UU";
 by (stac corresp_exC_unfold 1);
 by (Simp_tac 1);
 qed"corresp_exC_UU";
 
-Goal "(corresp_exC A f`nil) s = nil";
+Goal "(corresp_exC A f$nil) s = nil";
 by (stac corresp_exC_unfold 1);
 by (Simp_tac 1);
 qed"corresp_exC_nil";
 
-Goal "(corresp_exC A f`(at>>xs)) s = \
+Goal "(corresp_exC A f$(at>>xs)) s = \
 \          (@cex. move A cex (f s) (fst at) (f (snd at)))  \
-\          @@ ((corresp_exC A f`xs) (snd at))";
+\          @@ ((corresp_exC A f$xs) (snd at))";
 by (rtac trans 1);
 by (stac corresp_exC_unfold 1);
 by (asm_full_simp_tac (simpset() addsimps [Consq_def,flift1_def]) 1);
@@ -98,7 +98,7 @@ qed"move_subprop3";
 
 Goal
    "[|is_ref_map f C A; reachable C s; (s,a,t):trans_of C|] ==>\
-\     mk_trace A`((@x. move A x (f s) a (f t))) = \
+\     mk_trace A$((@x. move A x (f s) a (f t))) = \
 \       (if a:ext A then a>>nil else nil)";
 
 by (cut_inst_tac [] move_is_move 1);
@@ -119,7 +119,7 @@ section "Lemmata for <==";
 (* --------------------------------------------------- *)
 
 
-Goal "mk_trace C`(ex1 @@ ex2)= (mk_trace C`ex1) @@ (mk_trace C`ex2)";
+Goal "mk_trace C$(ex1 @@ ex2)= (mk_trace C$ex1) @@ (mk_trace C$ex2)";
 by (simp_tac (simpset() addsimps [mk_trace_def,filter_act_def,
                                  FilterConc,MapConc]) 1);
 qed"mk_traceConc";
@@ -133,7 +133,7 @@ Delsplits[split_if];
 Goalw [corresp_ex_def]
   "[|is_ref_map f C A; ext C = ext A|] ==>  \     
 \        !s. reachable C s & is_exec_frag C (s,xs) --> \
-\            mk_trace C`xs = mk_trace A`(snd (corresp_ex A f (s,xs)))";
+\            mk_trace C$xs = mk_trace A$(snd (corresp_ex A f (s,xs)))";
 
 by (pair_induct_tac "xs" [is_exec_frag_def] 1);
 (* cons case *) 

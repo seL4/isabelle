@@ -36,7 +36,7 @@ syntax
    "Finite"     :: "'a seq => bool"
 
 translations
-   "xs @@ ys" == "sconc`xs`ys"
+   "xs @@ ys" == "sconc$xs$ys"
    "Finite x" == "x:sfinite"
    "~(Finite x)" =="x~:sfinite"
 
@@ -47,63 +47,63 @@ defs
 (* f not possible at lhs, as "pattern matching" only for % x arguments,
    f cannot be written at rhs in front, as fix_eq3 does not apply later *)
 smap_def
-  "smap == (fix`(LAM h f tr. case tr of 
+  "smap == (fix$(LAM h f tr. case tr of 
       nil   => nil
-    | x##xs => f`x ## h`f`xs))"
+    | x##xs => f$x ## h$f$xs))"
 
 sfilter_def       
-  "sfilter == (fix`(LAM h P t. case t of 
+  "sfilter == (fix$(LAM h P t. case t of 
 	   nil => nil
-	 | x##xs => If P`x                                 
-                    then x##(h`P`xs)
-                    else     h`P`xs
+	 | x##xs => If P$x                                 
+                    then x##(h$P$xs)
+                    else     h$P$xs
                     fi))" 
 sforall_def
-  "sforall P t == (sforall2`P`t ~=FF)" 
+  "sforall P t == (sforall2$P$t ~=FF)" 
 
 
 sforall2_def
-  "sforall2 == (fix`(LAM h P t. case t of 
+  "sforall2 == (fix$(LAM h P t. case t of 
 	   nil => TT
-	 | x##xs => P`x andalso h`P`xs))"
+	 | x##xs => P$x andalso h$P$xs))"
   
 sconc_def
-  "sconc == (fix`(LAM h t1 t2. case t1 of 
+  "sconc == (fix$(LAM h t1 t2. case t1 of 
                nil       => t2
-             | x##xs => x##(h`xs`t2)))"
+             | x##xs => x##(h$xs$t2)))"
 
 slast_def
-  "slast == (fix`(LAM h t. case t of 
+  "slast == (fix$(LAM h t. case t of 
 	   nil => UU
-	 | x##xs => (If is_nil`xs                              
+	 | x##xs => (If is_nil$xs                              
                           then x
-                         else h`xs fi)))"
+                         else h$xs fi)))"
 
 stakewhile_def      
-  "stakewhile == (fix`(LAM h P t. case t of 
+  "stakewhile == (fix$(LAM h P t. case t of 
 	   nil => nil
-	 | x##xs => If P`x                                 
-                    then x##(h`P`xs)
+	 | x##xs => If P$x                                 
+                    then x##(h$P$xs)
                     else nil
                     fi))" 
 sdropwhile_def
-  "sdropwhile == (fix`(LAM h P t. case t of 
+  "sdropwhile == (fix$(LAM h P t. case t of 
 	   nil => nil
-	 | x##xs => If P`x                                 
-                    then h`P`xs
+	 | x##xs => If P$x                                 
+                    then h$P$xs
                     else t
                     fi))" 
 sflat_def
-  "sflat == (fix`(LAM h t. case t of 
+  "sflat == (fix$(LAM h t. case t of 
 	   nil => nil
-	 | x##xs => x @@ (h`xs)))"
+	 | x##xs => x @@ (h$xs)))"
 
 szip_def
-  "szip == (fix`(LAM h t1 t2. case t1 of 
+  "szip == (fix$(LAM h t1 t2. case t1 of 
                nil   => nil
              | x##xs => (case t2 of 
                           nil => UU 
-                        | y##ys => <x,y>##(h`xs`ys))))"
+                        | y##ys => <x,y>##(h$xs$ys))))"
 
 Partial_def
   "Partial x  == (seq_finite x) & ~(Finite x)"

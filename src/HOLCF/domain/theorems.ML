@@ -451,7 +451,7 @@ val finite_ind = pg'' thy [] (ind_term (fn n => fn dn => %(P_name n)$
                                   asm_simp_tac take_ss 1 ::
                                   map (fn arg =>
                                    case_UU_tac (prems@con_rews) 1 (
-                           nth_elem(rec_of arg,dnames)^"_take n`"^vname arg))
+                           nth_elem(rec_of arg,dnames)^"_take n$"^vname arg))
                                   (filter is_nonlazy_rec args) @ [
                                   resolve_tac prems 1] @
                                   map (K (atac 1))      (nonlazy args) @

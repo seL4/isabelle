@@ -27,10 +27,10 @@ defs
 
 
 ProjA_def
- "ProjA ex == (fst (fst ex), ProjA2`(snd ex))" 
+ "ProjA ex == (fst (fst ex), ProjA2$(snd ex))" 
 
 ProjB_def
- "ProjB ex == (snd (fst ex), ProjB2`(snd ex))" 
+ "ProjB ex == (snd (fst ex), ProjB2$(snd ex))" 
 
 
 ProjA2_def
@@ -41,24 +41,24 @@ ProjB2_def
  
 
 Filter_ex_def
-  "Filter_ex sig ex == (fst ex,Filter_ex2 sig`(snd ex))"
+  "Filter_ex sig ex == (fst ex,Filter_ex2 sig$(snd ex))"
 
 
 Filter_ex2_def
   "Filter_ex2 sig ==  Filter (%x. fst x:actions sig)"
 
 stutter_def
-  "stutter sig ex == ((stutter2 sig`(snd ex)) (fst ex) ~= FF)"
+  "stutter sig ex == ((stutter2 sig$(snd ex)) (fst ex) ~= FF)"
 
 stutter2_def
-  "stutter2 sig ==(fix`(LAM h ex. (%s. case ex of 
+  "stutter2 sig ==(fix$(LAM h ex. (%s. case ex of 
       nil => TT
     | x##xs => (flift1 
             (%p.(If Def ((fst p)~:actions sig)
                  then Def (s=(snd p)) 
                  else TT fi)
-                andalso (h`xs) (snd p)) 
-             `x)
+                andalso (h$xs) (snd p)) 
+             $x)
    )))" 
 
 par_execs_def

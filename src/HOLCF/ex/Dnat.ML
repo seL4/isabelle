@@ -13,23 +13,23 @@ open Dnat;
 
 bind_thm ("iterator_def2", fix_prover2 Dnat.thy iterator_def 
 	"iterator = (LAM n f x. case n of dzero => x | \
-\                                     dsucc`m => f`(iterator`m`f`x))");
+\                                     dsucc$m => f$(iterator$m$f$x))");
 
 (* ------------------------------------------------------------------------- *)
 (* recursive  properties                                                     *)
 (* ------------------------------------------------------------------------- *)
 
-Goal "iterator`UU`f`x = UU";
+Goal "iterator$UU$f$x = UU";
 by (stac iterator_def2 1);
 by (simp_tac (HOLCF_ss addsimps dnat.rews) 1);
 qed "iterator1";
 
-Goal "iterator`dzero`f`x = x";
+Goal "iterator$dzero$f$x = x";
 by (stac iterator_def2 1);
 by (simp_tac (HOLCF_ss addsimps dnat.rews) 1);
 qed "iterator2";
 
-Goal "n~=UU ==> iterator`(dsucc`n)`f`x = f`(iterator`n`f`x)";
+Goal "n~=UU ==> iterator$(dsucc$n)$f$x = f$(iterator$n$f$x)";
 by (rtac trans 1);
 by (stac iterator_def2 1);
 by (asm_simp_tac (HOLCF_ss addsimps dnat.rews) 1);

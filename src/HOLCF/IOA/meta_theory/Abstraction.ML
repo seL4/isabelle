@@ -181,7 +181,7 @@ section "Correctness of life abstraction";
    that is to special Map Lemma *)
 Goalw [cex_abs_def,mk_trace_def,filter_act_def]
   "ext C = ext A \
-\        ==> mk_trace C`xs = mk_trace A`(snd (cex_abs f (s,xs)))";
+\        ==> mk_trace C$xs = mk_trace A$(snd (cex_abs f (s,xs)))";
 by (Asm_full_simp_tac 1);
 by (pair_induct_tac "xs" [] 1);
 qed"traces_coincide_abs";
@@ -383,11 +383,11 @@ qed"ex2seq_tsuffix";
 
 (* FIX: NAch Sequence.ML bringen *)
 
-Goal "(Map f`s = nil) = (s=nil)";
+Goal "(Map f$s = nil) = (s=nil)";
 by (Seq_case_simp_tac "s" 1);
 qed"Mapnil";
 
-Goal "(Map f`s = UU) = (s=UU)";
+Goal "(Map f$s = UU) = (s=UU)";
 by (Seq_case_simp_tac "s" 1);
 qed"MapUU";
 
@@ -400,7 +400,7 @@ Goalw [tsuffix_def,suffix_def,cex_absSeq_def]
 by Auto_tac;
 by (asm_full_simp_tac (simpset() addsimps [Mapnil])1);
 by (asm_full_simp_tac (simpset() addsimps [MapUU])1);
-by (res_inst_tac [("x","Map (%(s,a,t). (h s,a, h t))`s1")] exI 1);
+by (res_inst_tac [("x","Map (%(s,a,t). (h s,a, h t))$s1")] exI 1);
 by (asm_full_simp_tac (simpset() addsimps [Map2Finite,MapConc])1);
 qed"cex_absSeq_tsuffix";
 
@@ -433,7 +433,7 @@ qed"strength_Init";
 (* ------------------ Next ----------------------------*)
 
 Goal 
-"(TL`(ex2seq (cex_abs h ex))=UU) = (TL`(ex2seq ex)=UU)";
+"(TL$(ex2seq (cex_abs h ex))=UU) = (TL$(ex2seq ex)=UU)";
 by (pair_tac "ex" 1);
 by (Seq_case_simp_tac "y" 1);
 by (pair_tac "a" 1);
@@ -442,7 +442,7 @@ by (pair_tac "a" 1);
 qed"TL_ex2seq_UU";
 
 Goal 
-"(TL`(ex2seq (cex_abs h ex))=nil) = (TL`(ex2seq ex)=nil)";
+"(TL$(ex2seq (cex_abs h ex))=nil) = (TL$(ex2seq ex)=nil)";
 by (pair_tac "ex" 1);
 by (Seq_case_simp_tac "y" 1);
 by (pair_tac "a" 1);
@@ -451,7 +451,7 @@ by (pair_tac "a" 1);
 qed"TL_ex2seq_nil";
 
 (* FIX: put to Sequence Lemmas *)
-Goal "Map f`(TL`s) = TL`(Map f`s)";
+Goal "Map f$(TL$s) = TL$(Map f$s)";
 by (Seq_induct_tac "s" [] 1);
 qed"MapTL";
 
@@ -459,13 +459,13 @@ qed"MapTL";
   properties carry over *)
 
 Goalw [cex_absSeq_def]
-"cex_absSeq h (TL`s) = (TL`(cex_absSeq h s))";
+"cex_absSeq h (TL$s) = (TL$(cex_absSeq h s))";
 by (simp_tac (simpset() addsimps [MapTL]) 1);
 qed"cex_absSeq_TL";
 
 (* important property of ex2seq: can be shiftet, as defined "pointwise" *)
 
-Goal "[| (snd ex)~=UU ; (snd ex)~=nil |] ==> (? ex'. TL`(ex2seq ex) = ex2seq ex')";
+Goal "[| (snd ex)~=UU ; (snd ex)~=nil |] ==> (? ex'. TL$(ex2seq ex) = ex2seq ex')";
 by (pair_tac "ex" 1);
 by (Seq_case_simp_tac "y" 1);
 by (pair_tac "a" 1);
@@ -473,7 +473,7 @@ by Auto_tac;
 qed"TLex2seq";
 
  
-Goal "(TL`(ex2seq ex)~=nil) = ((snd ex)~=nil & (snd ex)~=UU)";
+Goal "(TL$(ex2seq ex)~=nil) = ((snd ex)~=nil & (snd ex)~=UU)";
 by (pair_tac "ex" 1);
 by (Seq_case_simp_tac "y" 1);
 by (pair_tac "a" 1);

@@ -13,7 +13,7 @@ domain dnat = dzero | dsucc (dpred :: dnat)
 constdefs
 
 iterator :: "dnat -> ('a -> 'a) -> 'a -> 'a"
-            "iterator == fix`(LAM h n f x . case n of dzero   => x
-                                                    | dsucc`m => f`(h`m`f`x))"
+            "iterator == fix$(LAM h n f x . case n of dzero   => x
+                                                    | dsucc$m => f$(h$m$f$x))"
 
 end

@@ -4,20 +4,20 @@ open Focus_ex;
 
 val prems = goal Focus_ex.thy
 "is_g(g) = \ 
-\ (? f. is_f(f) &  (!x.(? z. <g`x,z> = f`<x,z> &  \
-\                  (! w y. <y,w> = f`<x,w>  --> z << w))))";
+\ (? f. is_f(f) &  (!x.(? z. <g$x,z> = f$<x,z> &  \
+\                  (! w y. <y,w> = f$<x,w>  --> z << w))))";
 by (simp_tac (HOL_ss addsimps [is_g,is_net_g]) 1);
 by (fast_tac HOL_cs 1);
 val lemma1 = result();
 
 val prems = goal Focus_ex.thy
-"(? f. is_f(f) &  (!x. (? z. <g`x,z> = f`<x,z> &  \
-\                 (!w y. <y,w> = f`<x,w>  --> z << w)))) \
+"(? f. is_f(f) &  (!x. (? z. <g$x,z> = f$<x,z> &  \
+\                 (!w y. <y,w> = f$<x,w>  --> z << w)))) \
 \ = \ 
 \ (? f. is_f(f) &  (!x. ? z.\
-\       g`x = cfst`(f`<x,z>) &  \
-\         z = csnd`(f`<x,z>) &  \
-\       (! w y.  <y,w> = f`<x,w> --> z << w)))";
+\       g$x = cfst$(f$<x,z>) &  \
+\         z = csnd$(f$<x,z>) &  \
+\       (! w y.  <y,w> = f$<x,w> --> z << w)))";
 by (rtac iffI 1);
 by (etac exE 1);
 by (res_inst_tac [("x","f")] exI 1);
@@ -63,7 +63,7 @@ by (res_inst_tac [("x","f")] exI 1);
 by (REPEAT (etac conjE 1));
 by (etac conjI 1);
 by (strip_tac 1);
-by (res_inst_tac [("x","fix`(LAM k. csnd`(f`<x,k>))")] exI 1);
+by (res_inst_tac [("x","fix$(LAM k. csnd$(f$<x,k>))")] exI 1);
 by (rtac conjI 1);
  by (asm_simp_tac HOLCF_ss 1);
  by (rtac trans 1);
@@ -94,16 +94,16 @@ by (rtac ext_cfun 1);
 by (eres_inst_tac [("x","x")] allE 1);
 by (etac exE 1);
 by (REPEAT (etac conjE 1));
-by (subgoal_tac "fix`(LAM k. csnd`(f`<x, k>)) = z" 1);
+by (subgoal_tac "fix$(LAM k. csnd$(f$<x, k>)) = z" 1);
  by (asm_simp_tac HOLCF_ss 1);
-by (subgoal_tac "! w y. f`<x, w> = <y, w>  --> z << w" 1);
+by (subgoal_tac "! w y. f$<x, w> = <y, w>  --> z << w" 1);
 by (rtac sym 1);
 by (rtac fix_eqI 1);
 by (asm_simp_tac HOLCF_ss 1);
 by (rtac allI 1);
 by (simp_tac HOLCF_ss 1);
 by (strip_tac 1);
-by (subgoal_tac "f`<x, za> = <cfst`(f`<x,za>),za>" 1);
+by (subgoal_tac "f$<x, za> = <cfst$(f$<x,za>),za>" 1);
 by (fast_tac HOL_cs 1);
 by (rtac trans 1);
 by (rtac (surjective_pairing_Cprod2 RS sym) 1);

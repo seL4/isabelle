@@ -24,8 +24,8 @@ Goal "corresp_ex_simC A R  = (LAM ex. (%s. case ex of \
 \                                 T' = @t'. ? ex1. (t,t'):R & move A ex1 s a t' \
 \                             in \
 \                                (@cex. move A cex s a T')  \
-\                              @@ ((corresp_ex_simC A R `xs) T'))   \
-\                        `x) ))";
+\                              @@ ((corresp_ex_simC A R $xs) T'))   \
+\                        $x) ))";
 by (rtac trans 1);
 by (rtac fix_eq2 1);
 by (rtac corresp_ex_simC_def 1);
@@ -33,21 +33,21 @@ by (rtac beta_cfun 1);
 by (simp_tac (simpset() addsimps [flift1_def]) 1);
 qed"corresp_ex_simC_unfold";
 
-Goal "(corresp_ex_simC A R`UU) s=UU";
+Goal "(corresp_ex_simC A R$UU) s=UU";
 by (stac corresp_ex_simC_unfold 1);
 by (Simp_tac 1);
 qed"corresp_ex_simC_UU";
 
-Goal "(corresp_ex_simC A R`nil) s = nil";
+Goal "(corresp_ex_simC A R$nil) s = nil";
 by (stac corresp_ex_simC_unfold 1);
 by (Simp_tac 1);
 qed"corresp_ex_simC_nil";
 
-Goal "(corresp_ex_simC A R`((a,t)>>xs)) s = \
+Goal "(corresp_ex_simC A R$((a,t)>>xs)) s = \
 \          (let T' = @t'. ? ex1. (t,t'):R & move A ex1 s a t' \
 \           in  \
 \            (@cex. move A cex s a T')  \ 
-\             @@ ((corresp_ex_simC A R`xs) T'))";
+\             @@ ((corresp_ex_simC A R$xs) T'))";
 by (rtac trans 1);
 by (stac corresp_ex_simC_unfold 1);
 by (asm_full_simp_tac (simpset() addsimps [Consq_def,flift1_def]) 1);
@@ -128,7 +128,7 @@ qed"move_subprop3_sim";
 Goal
    "[|is_simulation R C A; reachable C s; s-a--C-> t; (s,s'):R|] ==>\
 \   let T' = @t'. ? ex1. (t,t'):R & move A ex1 s' a t' in \
-\     mk_trace A`((@x. move A x s' a T')) = \
+\     mk_trace A$((@x. move A x s' a T')) = \
 \       (if a:ext A then a>>nil else nil)";
 by (cut_inst_tac [] move_is_move_sim 1);
 by (REPEAT (assume_tac 1));
@@ -160,7 +160,7 @@ Delsplits[split_if];
 Goal 
   "[|is_simulation R C A; ext C = ext A|] ==>  \     
 \        !s s'. reachable C s & is_exec_frag C (s,ex) & (s,s'): R --> \
-\            mk_trace C`ex = mk_trace A`((corresp_ex_simC A R`ex) s')";
+\            mk_trace C$ex = mk_trace A$((corresp_ex_simC A R$ex) s')";
 
 by (pair_induct_tac "ex" [is_exec_frag_def] 1);
 (* cons case *) 
@@ -190,7 +190,7 @@ Addsplits[split_if];
 Goal 
  "[| is_simulation R C A |] ==>\
 \ !s s'. reachable C s & is_exec_frag C (s,ex) & (s,s'):R  \
-\ --> is_exec_frag A (s',(corresp_ex_simC A R`ex) s')"; 
+\ --> is_exec_frag A (s',(corresp_ex_simC A R$ex) s')"; 
 
 by (Asm_full_simp_tac 1);
 by (pair_induct_tac "ex" [is_exec_frag_def] 1);

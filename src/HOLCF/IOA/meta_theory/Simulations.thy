@@ -23,7 +23,7 @@ defs
 
 is_simulation_def
   "is_simulation R C A ==                          
-   (!s:starts_of C. R```{s} Int starts_of A ~= {}) &        
+   (!s:starts_of C. R``{s} Int starts_of A ~= {}) &        
    (!s s' t a. reachable C s &                      
                s -a--C-> t   &
                (s,s') : R              
@@ -31,7 +31,7 @@ is_simulation_def
 
 is_backward_simulation_def
   "is_backward_simulation R C A ==                          
-   (!s:starts_of C. R```{s} <= starts_of A) &        
+   (!s:starts_of C. R``{s} <= starts_of A) &        
    (!s t t' a. reachable C s &                      
                s -a--C-> t   &
                (t,t') : R              

@@ -15,9 +15,9 @@ qed"compatibility_consequence3";
 
 Goal 
 "!! A B. [| compatible A B; Forall (%a. a: ext A | a: ext B) tr |] ==> \
-\           Filter (%a. a: act A)`tr= Filter (%a. a: ext A)`tr";
+\           Filter (%a. a: act A)$tr= Filter (%a. a: ext A)$tr";
 by (rtac ForallPFilterQR 1);
-(* i.e.: [| (! x. P x --> (Q x = R x)) ; Forall P tr |] ==> Filter Q`tr = Filter R`tr *)
+(* i.e.: [| (! x. P x --> (Q x = R x)) ; Forall P tr |] ==> Filter Q$tr = Filter R$tr *)
 by (assume_tac 2);
 by (rtac compatibility_consequence3 1);
 by (REPEAT (asm_full_simp_tac (simpset() 
@@ -32,7 +32,7 @@ by Auto_tac;
 qed"compatibility_consequence4";
 
 Goal "[| compatible A B; Forall (%a. a: ext B | a: ext A) tr |] ==> \
-\           Filter (%a. a: act A)`tr= Filter (%a. a: ext A)`tr";
+\           Filter (%a. a: act A)$tr= Filter (%a. a: ext A)$tr";
 by (rtac ForallPFilterQR 1);
 by (assume_tac 2);
 by (rtac compatibility_consequence4 1);

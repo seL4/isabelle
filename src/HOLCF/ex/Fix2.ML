@@ -14,7 +14,7 @@ by (rtac (fix_eq RS sym) 1);
 qed "lemma1";
 
 
-Goal "gix`F=lub(range(%i. iterate i F UU))";
+Goal "gix$F=lub(range(%i. iterate i F UU))";
 by (rtac (lemma1 RS subst) 1);
 by (rtac fix_def2 1);
 qed "lemma2";

@@ -19,7 +19,7 @@ qed"Int_non_empty";
 
 
 Goalw [Image_def]
-"(R```{x} Int S ~= {}) = (? y. (x,y):R & y:S)";
+"(R``{x} Int S ~= {}) = (? y. (x,y):R & y:S)";
 by (simp_tac (simpset() addsimps [Int_non_empty]) 1);
 qed"Sim_start_convert";
 

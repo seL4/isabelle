@@ -19,16 +19,16 @@ Idea: (%i.%G.iterate i G UU) is a chain of continuous functions and
 Since we already proved the theorem
 
 val cont_lubcfun = prove_goal Cfun2.thy 
-        "chain ?F ==> cont (%x. lub (range (%j. ?F j`x)))"
+        "chain ?F ==> cont (%x. lub (range (%j. ?F j$x)))"
 
 
 it suffices to prove:
 
-Ifix  = (%f.lub (range (%j. (LAM f. iterate j f UU)`f)))
+Ifix  = (%f.lub (range (%j. (LAM f. iterate j f UU)$f)))
 
 and 
 
-cont (%f.lub (range (%j. (LAM f. iterate j f UU)`f)))
+cont (%f.lub (range (%j. (LAM f. iterate j f UU)$f)))
 
 Note that if we use the term 
 
@@ -40,15 +40,15 @@ we cannot use the theorem cont_lubcfun
 
 Goal "cont(Ifix)";
 by (res_inst_tac 
- [("t","Ifix"),("s","(%f. lub(range(%j.(LAM f. iterate j f UU)`f)))")]
+ [("t","Ifix"),("s","(%f. lub(range(%j.(LAM f. iterate j f UU)$f)))")]
   ssubst 1);
 by (rtac ext 1);
 by (rewtac Ifix_def );
 by (subgoal_tac 
-  "range(% i. iterate i f UU) = range(%j.(LAM f. iterate j f UU)`f)" 1);
+  "range(% i. iterate i f UU) = range(%j.(LAM f. iterate j f UU)$f)" 1);
 by (etac arg_cong 1);
 by (subgoal_tac 
-        "(% i. iterate i f UU) = (%j.(LAM f. iterate j f UU)`f)" 1);
+        "(% i. iterate i f UU) = (%j.(LAM f. iterate j f UU)$f)" 1);
 by (etac arg_cong 1);
 by (rtac ext 1);
 by (stac beta_cfun 1);
@@ -70,19 +70,19 @@ qed "cont_Ifix2";
 
 (* the proof in little steps *)
 
-Goal "(% i. iterate i f UU) = (%j.(LAM f. iterate j f UU)`f)";
+Goal "(% i. iterate i f UU) = (%j.(LAM f. iterate j f UU)$f)";
 by (rtac ext 1);
 by (simp_tac (simpset() addsimps [beta_cfun, cont2cont_CF1L, cont_iterate]) 1);
 qed "fix_lemma1";
 
-Goal "Ifix = (%f. lub(range(%j.(LAM f. iterate j f UU)`f)))";
+Goal "Ifix = (%f. lub(range(%j.(LAM f. iterate j f UU)$f)))";
 by (rtac ext 1);
 by (simp_tac (simpset() addsimps [Ifix_def, fix_lemma1]) 1);
 qed "fix_lemma2";
 
 (*
 - cont_lubcfun;
-val it = "chain ?F ==> cont (%x. lub (range (%j. ?F j`x)))" : thm   
+val it = "chain ?F ==> cont (%x. lub (range (%j. ?F j$x)))" : thm   
 
 *)
 

@@ -28,19 +28,19 @@ LastActExtsch_def
   "LastActExtsch A sch == (Cut (%x. x: ext A) sch = sch)"
 
 (* LastActExtex_def
-  "LastActExtex A ex == LastActExtsch A (filter_act`ex)" *)
+  "LastActExtex A ex == LastActExtsch A (filter_act$ex)" *)
 
 Cut_def
-  "Cut P s == oraclebuild P`s`(Filter P`s)"
+  "Cut P s == oraclebuild P$s$(Filter P$s)"
 
 oraclebuild_def
-  "oraclebuild P == (fix`(LAM h s t. case t of 
+  "oraclebuild P == (fix$(LAM h s t. case t of 
        nil => nil
     | x##xs => 
       (case x of 
         Undef => UU
-      | Def y => (Takewhile (%x.~P x)`s)
-                  @@ (y>>(h`(TL`(Dropwhile (%x.~ P x)`s))`xs))
+      | Def y => (Takewhile (%x.~P x)$s)
+                  @@ (y>>(h$(TL$(Dropwhile (%x.~ P x)$s))$xs))
       )
     ))"
 
@@ -53,7 +53,7 @@ Cut_prefixcl_Finite
   "Finite s ==> (? y. s = Cut P s @@ y)"
 
 LastActExtsmall1
-  "LastActExtsch A sch ==> LastActExtsch A (TL`(Dropwhile P`sch))"
+  "LastActExtsch A sch ==> LastActExtsch A (TL$(Dropwhile P$sch))"
 
 LastActExtsmall2
   "[| Finite sch1; LastActExtsch A (sch1 @@ sch2) |] ==> LastActExtsch A sch2"

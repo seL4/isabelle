@@ -13,6 +13,6 @@ HoareEx = Denotational +
 types assn = state => bool
 
 constdefs hoare_valid :: [assn,com,assn] => bool ("|= {(1_)}/ (_)/ {(1_)}" 50)
- "|= {A} c {B} == !s t. A s & D c `(Discr s) = Def t --> B t"
+ "|= {A} c {B} == !s t. A s & D c $(Discr s) = Def t --> B t"
 
 end

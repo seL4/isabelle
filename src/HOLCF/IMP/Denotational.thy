@@ -10,7 +10,7 @@ Denotational = HOLCF + Natural +
 
 constdefs
    dlift :: "(('a::term) discr -> 'b::pcpo) => ('a lift -> 'b)"
-  "dlift f == (LAM x. case x of Undef => UU | Def(y) => f`(Discr y))"
+  "dlift f == (LAM x. case x of Undef => UU | Def(y) => f$(Discr y))"
 
 consts D :: "com => state discr -> state lift"
 
@@ -19,9 +19,9 @@ primrec
   "D(X :== a) = (LAM s. Def((undiscr s)[X ::= a(undiscr s)]))"
   "D(c0 ; c1) = (dlift(D c1) oo (D c0))"
   "D(IF b THEN c1 ELSE c2) =
-	(LAM s. if b(undiscr s) then (D c1)`s else (D c2)`s)"
+	(LAM s. if b(undiscr s) then (D c1)$s else (D c2)$s)"
   "D(WHILE b DO c) =
-	fix`(LAM w s. if b(undiscr s) then (dlift w)`((D c)`s)
+	fix$(LAM w s. if b(undiscr s) then (dlift w)$((D c)$s)
                       else Def(undiscr s))"
 
 end

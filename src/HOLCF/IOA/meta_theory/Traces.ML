@@ -26,15 +26,15 @@ section "recursive equations of operators";
 (* ---------------------------------------------------------------- *)
 
 
-Goal  "filter_act`UU = UU";
+Goal  "filter_act$UU = UU";
 by (simp_tac (simpset() addsimps [filter_act_def]) 1);
 qed"filter_act_UU";
 
-Goal  "filter_act`nil = nil";
+Goal  "filter_act$nil = nil";
 by (simp_tac (simpset() addsimps [filter_act_def]) 1);
 qed"filter_act_nil";
 
-Goal "filter_act`(x>>xs) = (fst x) >> filter_act`xs";
+Goal "filter_act$(x>>xs) = (fst x) >> filter_act$xs";
 by (simp_tac (simpset() addsimps [filter_act_def]) 1);
 qed"filter_act_cons";
 
@@ -45,18 +45,18 @@ Addsimps [filter_act_UU,filter_act_nil,filter_act_cons];
 (*                             mk_trace                             *)
 (* ---------------------------------------------------------------- *)
 
-Goal "mk_trace A`UU=UU";
+Goal "mk_trace A$UU=UU";
 by (simp_tac (simpset() addsimps [mk_trace_def]) 1);
 qed"mk_trace_UU";
 
-Goal "mk_trace A`nil=nil";
+Goal "mk_trace A$nil=nil";
 by (simp_tac (simpset() addsimps [mk_trace_def]) 1);
 qed"mk_trace_nil";
 
-Goal "mk_trace A`(at >> xs) =    \
+Goal "mk_trace A$(at >> xs) =    \
 \            (if ((fst at):ext A)    \       
-\                 then (fst at) >> (mk_trace A`xs) \   
-\                 else mk_trace A`xs)";
+\                 then (fst at) >> (mk_trace A$xs) \   
+\                 else mk_trace A$xs)";
 
 by (asm_full_simp_tac (simpset() addsimps [mk_trace_def]) 1);
 qed"mk_trace_cons";
@@ -71,8 +71,8 @@ Addsimps [mk_trace_UU,mk_trace_nil,mk_trace_cons];
 Goal "is_exec_fragC A = (LAM ex. (%s. case ex of \
 \      nil => TT \
 \    | x##xs => (flift1 \ 
-\            (%p. Def ((s,p):trans_of A) andalso (is_exec_fragC A`xs) (snd p)) \
-\             `x) \
+\            (%p. Def ((s,p):trans_of A) andalso (is_exec_fragC A$xs) (snd p)) \
+\             $x) \
 \   ))";
 by (rtac trans 1);
 by (rtac fix_eq2 1);
@@ -81,19 +81,19 @@ by (rtac beta_cfun 1);
 by (simp_tac (simpset() addsimps [flift1_def]) 1);
 qed"is_exec_fragC_unfold";
 
-Goal "(is_exec_fragC A`UU) s=UU";
+Goal "(is_exec_fragC A$UU) s=UU";
 by (stac is_exec_fragC_unfold 1);
 by (Simp_tac 1);
 qed"is_exec_fragC_UU";
 
-Goal "(is_exec_fragC A`nil) s = TT";
+Goal "(is_exec_fragC A$nil) s = TT";
 by (stac is_exec_fragC_unfold 1);
 by (Simp_tac 1);
 qed"is_exec_fragC_nil";
 
-Goal "(is_exec_fragC A`(pr>>xs)) s = \
+Goal "(is_exec_fragC A$(pr>>xs)) s = \
 \                        (Def ((s,pr):trans_of A) \
-\                andalso (is_exec_fragC A`xs)(snd pr))";
+\                andalso (is_exec_fragC A$xs)(snd pr))";
 by (rtac trans 1);
 by (stac is_exec_fragC_unfold 1);
 by (asm_full_simp_tac (simpset() addsimps [Consq_def,flift1_def]) 1);
@@ -163,7 +163,7 @@ section "has_trace, mk_trace";
    take the detour of schedules *)
 
 Goalw  [executions_def,mk_trace_def,has_trace_def,schedules_def,has_schedule_def] 
-"has_trace A b = (? ex:executions A. b = mk_trace A`(snd ex))";
+"has_trace A b = (? ex:executions A. b = mk_trace A$(snd ex))";
 
 by (safe_tac set_cs);
 (* 1 *)
@@ -173,7 +173,7 @@ by (cont_tacR 1);
 by (Simp_tac 1);
 by (Asm_simp_tac 1);
 (* 2 *)
-by (res_inst_tac[("x","filter_act`(snd ex)")] bexI 1);
+by (res_inst_tac[("x","filter_act$(snd ex)")] bexI 1);
 by (stac beta_cfun 1);
 by (cont_tacR 1);
 by (Simp_tac 1);
@@ -195,7 +195,7 @@ section "signatures and executions, schedules";
 
 Goal 
   "!! A. is_trans_of A ==> \
-\ ! s. is_exec_frag A (s,xs) --> Forall (%a. a:act A) (filter_act`xs)";
+\ ! s. is_exec_frag A (s,xs) --> Forall (%a. a:act A) (filter_act$xs)";
 
 by (pair_induct_tac "xs" [is_exec_frag_def,Forall_def,sforall_def] 1);
 (* main case *)
@@ -206,7 +206,7 @@ qed"execfrag_in_sig";
 
 Goal 
   "!! A.[|  is_trans_of A; x:executions A |] ==> \
-\ Forall (%a. a:act A) (filter_act`(snd x))";
+\ Forall (%a. a:act A) (filter_act$(snd x))";
 
 by (asm_full_simp_tac (simpset() addsimps [executions_def]) 1);
 by (pair_tac "x" 1);

@@ -106,7 +106,7 @@ section "LTL Axioms by Manna/Pnueli";
 
 
 Goalw [tsuffix_def,suffix_def]
-"s~=UU & s~=nil --> tsuffix s2 (TL`s) --> tsuffix s2 s";
+"s~=UU & s~=nil --> tsuffix s2 (TL$s) --> tsuffix s2 s";
 by Auto_tac;
 by (Seq_case_simp_tac "s" 1);
 by (res_inst_tac [("x","a>>s1")] exI 1);

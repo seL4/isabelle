@@ -26,10 +26,10 @@ defs
 mkex_def  
   "mkex A B sch exA exB == 
        ((fst exA,fst exB),
-        (mkex2 A B`sch`(snd exA)`(snd exB)) (fst exA) (fst exB))"
+        (mkex2 A B$sch$(snd exA)$(snd exB)) (fst exA) (fst exB))"
 
 mkex2_def
-  "mkex2 A B == (fix`(LAM h sch exA exB. (%s t. case sch of 
+  "mkex2 A B == (fix$(LAM h sch exA exB. (%s t. case sch of 
        nil => nil
     | x##xs => 
       (case x of 
@@ -37,25 +37,25 @@ mkex2_def
       | Def y => 
          (if y:act A then 
              (if y:act B then 
-                (case HD`exA of
+                (case HD$exA of
                    Undef => UU
-                 | Def a => (case HD`exB of
+                 | Def a => (case HD$exB of
                               Undef => UU
                             | Def b => 
                    (y,(snd a,snd b))>>
-                     (h`xs`(TL`exA)`(TL`exB)) (snd a) (snd b)))
+                     (h$xs$(TL$exA)$(TL$exB)) (snd a) (snd b)))
               else
-                (case HD`exA of
+                (case HD$exA of
                    Undef => UU
                  | Def a => 
-                   (y,(snd a,t))>>(h`xs`(TL`exA)`exB) (snd a) t)
+                   (y,(snd a,t))>>(h$xs$(TL$exA)$exB) (snd a) t)
               )
           else 
              (if y:act B then 
-                (case HD`exB of
+                (case HD$exB of
                    Undef => UU
                  | Def b => 
-                   (y,(s,snd b))>>(h`xs`exA`(TL`exB)) s (snd b))
+                   (y,(s,snd b))>>(h$xs$exA$(TL$exB)) s (snd b))
              else
                UU
              )
@@ -67,8 +67,8 @@ par_scheds_def
        let schA = fst SchedsA; sigA = snd SchedsA; 
            schB = fst SchedsB; sigB = snd SchedsB       
        in
-       (    {sch. Filter (%a. a:actions sigA)`sch : schA}
-        Int {sch. Filter (%a. a:actions sigB)`sch : schB}
+       (    {sch. Filter (%a. a:actions sigA)$sch : schA}
+        Int {sch. Filter (%a. a:actions sigB)$sch : schB}
         Int {sch. Forall (%x. x:(actions sigA Un actions sigB)) sch},
         asig_comp sigA sigB)"
 

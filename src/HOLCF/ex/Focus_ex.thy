@@ -30,7 +30,7 @@ agent g
 	input  channel x:'b 
 	output channel y:'c 
 is network
-	<y,z> = f`<x,z>
+	<y,z> = f$<x,z>
 end network
 end g
 
@@ -47,7 +47,7 @@ is_f :: ('b stream * ('b,'c) tc stream ->
 		'c stream * ('b,'c) tc stream) => bool
 
 is_f f  = !i1 i2 o1 o2. 
-	f`<i1,i2> = <o1,o2> --> Rf(i1,i2,o1,o2)
+	f$<i1,i2> = <o1,o2> --> Rf(i1,i2,o1,o2)
 
 Specification of agent g is translated to predicate is_g which uses
 predicate is_net_g
@@ -56,13 +56,13 @@ is_net_g :: ('b stream * ('b,'c) tc stream -> 'c stream * ('b,'c) tc stream) =>
 	    'b stream => 'c stream => bool
 
 is_net_g f x y = 
-	? z. <y,z> = f`<x,z> & 
-	!oy hz. <oy,hz> = f`<x,hz> --> z << hz 
+	? z. <y,z> = f$<x,z> & 
+	!oy hz. <oy,hz> = f$<x,hz> --> z << hz 
 
 
 is_g :: ('b stream -> 'c stream) => bool
 
-is_g g  = ? f. is_f f  & (!x y. g`x = y --> is_net_g f x y
+is_g g  = ? f. is_f f  & (!x y. g$x = y --> is_net_g f x y
 	  
 Third step: (show conservativity)
 -----------
@@ -84,7 +84,7 @@ We define:
 
 def_g g  = 
          (? f. is_f f  & 
-	      g = (LAM x. cfst`(f`<x,fix`(LAM k.csnd`(f`<x,k>))>)) )
+	      g = (LAM x. cfst$(f$<x,fix$(LAM k.csnd$(f$<x,k>))>)) )
 	
 Now we prove:
 
@@ -118,19 +118,19 @@ Rf	 ::
 defs
 
 is_f		"is_f f == (!i1 i2 o1 o2.
-			f`<i1,i2> = <o1,o2> --> Rf(i1,i2,o1,o2))"
+			f$<i1,i2> = <o1,o2> --> Rf(i1,i2,o1,o2))"
 
 is_net_g	"is_net_g f x y == (? z. 
-			<y,z> = f`<x,z> &
-			(!oy hz. <oy,hz> = f`<x,hz> --> z << hz))" 
+			<y,z> = f$<x,z> &
+			(!oy hz. <oy,hz> = f$<x,hz> --> z << hz))" 
 
 is_g		"is_g g  == (? f.
 			is_f f  & 
-			(!x y. g`x = y --> is_net_g f x y))"
+			(!x y. g$x = y --> is_net_g f x y))"
 
 
 def_g		"def_g g == (? f.
 			is_f f  & 
-	      		g = (LAM x. cfst`(f`<x,fix`(LAM  k. csnd`(f`<x,k>))>)))" 
+	      		g = (LAM x. cfst$(f$<x,fix$(LAM  k. csnd$(f$<x,k>))>)))" 
 
 end

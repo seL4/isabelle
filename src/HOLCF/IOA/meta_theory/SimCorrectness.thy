@@ -23,17 +23,17 @@ defs
 corresp_ex_sim_def
   "corresp_ex_sim A R ex == let S'= (@s'.(fst ex,s'):R & s': starts_of A)
                             in 
-                               (S',(corresp_ex_simC A R`(snd ex)) S')"
+                               (S',(corresp_ex_simC A R$(snd ex)) S')"
 
 
 corresp_ex_simC_def
-  "corresp_ex_simC A R  == (fix`(LAM h ex. (%s. case ex of 
+  "corresp_ex_simC A R  == (fix$(LAM h ex. (%s. case ex of 
       nil =>  nil
     | x##xs => (flift1 (%pr. let a = (fst pr); t = (snd pr);
                                  T' = @t'. ? ex1. (t,t'):R & move A ex1 s a t' 
                              in
                                 (@cex. move A cex s a T')
-                                 @@ ((h`xs) T'))
-                        `x) )))"
+                                 @@ ((h$xs) T'))
+                        $x) )))"
  
 end

@@ -20,15 +20,15 @@ consts
 defs
 
 corresp_ex_def
-  "corresp_ex A f ex == (f (fst ex),(corresp_exC A f`(snd ex)) (fst ex))"
+  "corresp_ex A f ex == (f (fst ex),(corresp_exC A f$(snd ex)) (fst ex))"
 
 
 corresp_exC_def
-  "corresp_exC A f  == (fix`(LAM h ex. (%s. case ex of 
+  "corresp_exC A f  == (fix$(LAM h ex. (%s. case ex of 
       nil =>  nil
     | x##xs => (flift1 (%pr. (@cex. move A cex (f s) (fst pr) (f (snd pr)))
-                              @@ ((h`xs) (snd pr)))
-                        `x) )))"
+                              @@ ((h$xs) (snd pr)))
+                        $x) )))"
  
 is_fair_ref_map_def
   "is_fair_ref_map f C A == 

@@ -74,15 +74,15 @@ defs
 
 
 is_exec_frag_def
-  "is_exec_frag A ex ==  ((is_exec_fragC A`(snd ex)) (fst ex) ~= FF)"
+  "is_exec_frag A ex ==  ((is_exec_fragC A$(snd ex)) (fst ex) ~= FF)"
 
 
 is_exec_fragC_def
-  "is_exec_fragC A ==(fix`(LAM h ex. (%s. case ex of 
+  "is_exec_fragC A ==(fix$(LAM h ex. (%s. case ex of 
       nil => TT
     | x##xs => (flift1 
-            (%p. Def ((s,p):trans_of A) andalso (h`xs) (snd p)) 
-             `x)
+            (%p. Def ((s,p):trans_of A) andalso (h$xs) (snd p)) 
+             $x)
    )))" 
 
 
@@ -100,7 +100,7 @@ filter_act_def
 
 has_schedule_def
   "has_schedule ioa sch ==                                               
-     (? ex:executions ioa. sch = filter_act`(snd ex))"
+     (? ex:executions ioa. sch = filter_act$(snd ex))"
 
 schedules_def
   "schedules ioa == {sch. has_schedule ioa sch}"
@@ -110,7 +110,7 @@ schedules_def
 
 has_trace_def
   "has_trace ioa tr ==                                               
-     (? sch:schedules ioa. tr = Filter (%a. a:ext(ioa))`sch)"
+     (? sch:schedules ioa. tr = Filter (%a. a:ext(ioa))$sch)"
  
 traces_def
   "traces ioa == {tr. has_trace ioa tr}"
@@ -118,18 +118,18 @@ traces_def
 
 mk_trace_def
   "mk_trace ioa == LAM tr. 
-     Filter (%a. a:ext(ioa))`(filter_act`tr)"
+     Filter (%a. a:ext(ioa))$(filter_act$tr)"
 
 
 (*  ------------------- Fair Traces ------------------------------ *)
 
 laststate_def
-  "laststate ex == case Last`(snd ex) of
+  "laststate ex == case Last$(snd ex) of
                       Undef  => fst ex
                     | Def at => snd at"
 
 inf_often_def
-  "inf_often P s == Infinite (Filter P`s)"
+  "inf_often P s == Infinite (Filter P$s)"
 
 (*  filtering P yields a finite or partial sequence *)
 fin_often_def
@@ -166,7 +166,7 @@ fairexecutions_def
   "fairexecutions A == {ex. ex:executions A & fair_ex A ex}"
 
 fairtraces_def
-  "fairtraces A == {mk_trace A`(snd ex) | ex. ex:fairexecutions A}"
+  "fairtraces A == {mk_trace A$(snd ex) | ex. ex:fairexecutions A}"
 
 
 (*  ------------------- Implementation ------------------------------ *)

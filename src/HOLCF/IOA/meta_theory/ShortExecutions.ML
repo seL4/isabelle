@@ -29,24 +29,24 @@ bind_thm ("oraclebuild_unfold", fix_prover2 thy oraclebuild_def
 \    | x##xs => \
 \      (case x of\ 
 \        Undef => UU\
-\      | Def y => (Takewhile (%a.~ P a)`s)\
-\                  @@ (y>>(oraclebuild P`(TL`(Dropwhile (%a.~ P a)`s))`xs))\
+\      | Def y => (Takewhile (%a.~ P a)$s)\
+\                  @@ (y>>(oraclebuild P$(TL$(Dropwhile (%a.~ P a)$s))$xs))\
 \      )\
 \    )");
 
-Goal "oraclebuild P`sch`UU = UU";
+Goal "oraclebuild P$sch$UU = UU";
 by (stac oraclebuild_unfold 1);
 by (Simp_tac 1);
 qed"oraclebuild_UU";
 
-Goal "oraclebuild P`sch`nil = nil";
+Goal "oraclebuild P$sch$nil = nil";
 by (stac oraclebuild_unfold 1);
 by (Simp_tac 1);
 qed"oraclebuild_nil";
 
-Goal "oraclebuild P`s`(x>>t) = \
-\         (Takewhile (%a.~ P a)`s)   \
-\          @@ (x>>(oraclebuild P`(TL`(Dropwhile (%a.~ P a)`s))`t))";     
+Goal "oraclebuild P$s$(x>>t) = \
+\         (Takewhile (%a.~ P a)$s)   \
+\          @@ (x>>(oraclebuild P$(TL$(Dropwhile (%a.~ P a)$s))$t))";     
 by (rtac trans 1);
 by (stac oraclebuild_unfold 1);
 by (asm_full_simp_tac (simpset() addsimps [Consq_def]) 1);
@@ -63,7 +63,7 @@ qed"oraclebuild_cons";
 Goalw [Cut_def]
 "[| Forall (%a.~ P a) s; Finite s|] \
 \           ==> Cut P s =nil";
-by (subgoal_tac "Filter P`s = nil" 1);
+by (subgoal_tac "Filter P$s = nil" 1);
 by (asm_simp_tac (simpset() addsimps [oraclebuild_nil]) 1);
 by (rtac ForallQFilterPnil 1);
 by (REPEAT (atac 1));
@@ -72,7 +72,7 @@ qed"Cut_nil";
 Goalw [Cut_def]
 "[| Forall (%a.~ P a) s; ~Finite s|] \
 \           ==> Cut P s =UU";
-by (subgoal_tac "Filter P`s= UU" 1);
+by (subgoal_tac "Filter P$s= UU" 1);
 by (asm_simp_tac (simpset() addsimps [oraclebuild_UU]) 1);
 by (rtac ForallQFilterPUU 1);
 by (REPEAT (atac 1));
@@ -93,7 +93,7 @@ qed"Cut_Cons";
 (* ---------------------------------------------------------------- *)
 
 
-Goal "Filter P`s = Filter P`(Cut P s)";
+Goal "Filter P$s = Filter P$(Cut P s)";
 
 by (res_inst_tac [("A1","%x. True")
                  ,("Q1","%x.~ P x"), ("x1","s")]
@@ -128,7 +128,7 @@ by Auto_tac;
 qed"Cut_idemp";
 
 
-Goal "Map f`(Cut (P o f) s) = Cut P (Map f`s)";
+Goal "Map f$(Cut (P o f) s) = Cut P (Map f$s)";
 
 by (res_inst_tac [("A1","%x. True")
                  ,("Q1","%x.~ P (f x)"), ("x1","s")]
@@ -200,13 +200,13 @@ qed"execThruCut";
 
 
 Goalw [schedules_def,has_schedule_def]
- "[|sch : schedules A ; tr = Filter (%a. a:ext A)`sch|] \
+ "[|sch : schedules A ; tr = Filter (%a. a:ext A)$sch|] \
 \   ==> ? sch. sch : schedules A & \
-\              tr = Filter (%a. a:ext A)`sch &\
+\              tr = Filter (%a. a:ext A)$sch &\
 \              LastActExtsch A sch";
 
 by (safe_tac set_cs);
-by (res_inst_tac [("x","filter_act`(Cut (%a. fst a:ext A) (snd ex))")] exI 1);
+by (res_inst_tac [("x","filter_act$(Cut (%a. fst a:ext A) (snd ex))")] exI 1);
 by (asm_full_simp_tac (simpset() addsimps [executions_def]) 1);
 by (pair_tac "ex" 1);
 by (safe_tac set_cs);
@@ -220,7 +220,7 @@ by (asm_full_simp_tac (simpset() addsimps [execThruCut]) 1);
 (* Subgoal 2:  Lemma:  Filter P s = Filter P (Cut P s) *)
 
 by (simp_tac (simpset() addsimps [filter_act_def]) 1);
-by (subgoal_tac "Map fst`(Cut (%a. fst a: ext A) y)= Cut (%a. a:ext A) (Map fst`y)" 1);
+by (subgoal_tac "Map fst$(Cut (%a. fst a: ext A) y)= Cut (%a. a:ext A) (Map fst$y)" 1);
 
 by (rtac (rewrite_rule [o_def] MapCut) 2);
 by (asm_full_simp_tac (simpset() addsimps [FilterCut RS sym]) 1);
@@ -228,7 +228,7 @@ by (asm_full_simp_tac (simpset() addsimps [FilterCut RS sym]) 1);
 (* Subgoal 3: Lemma: Cut idempotent  *)
 
 by (simp_tac (simpset() addsimps [LastActExtsch_def,filter_act_def]) 1);
-by (subgoal_tac "Map fst`(Cut (%a. fst a: ext A) y)= Cut (%a. a:ext A) (Map fst`y)" 1);
+by (subgoal_tac "Map fst$(Cut (%a. fst a: ext A) y)= Cut (%a. a:ext A) (Map fst$y)" 1);
 by (rtac (rewrite_rule [o_def] MapCut) 2);
 by (asm_full_simp_tac (simpset() addsimps [Cut_idemp]) 1);
 qed"exists_LastActExtsch";
@@ -239,7 +239,7 @@ qed"exists_LastActExtsch";
 (* ---------------------------------------------------------------- *)
 
 Goalw [LastActExtsch_def]
-  "[| LastActExtsch A sch; Filter (%x. x:ext A)`sch = nil |] \
+  "[| LastActExtsch A sch; Filter (%x. x:ext A)$sch = nil |] \
 \   ==> sch=nil";
 by (dtac FilternPnilForallP 1);
 by (etac conjE 1);
@@ -249,7 +249,7 @@ by (Asm_full_simp_tac 1);
 qed"LastActExtimplnil";
 
 Goalw [LastActExtsch_def]
-  "[| LastActExtsch A sch; Filter (%x. x:ext A)`sch = UU |] \
+  "[| LastActExtsch A sch; Filter (%x. x:ext A)$sch = UU |] \
 \   ==> sch=UU";
 by (dtac FilternPUUForallP 1);
 by (etac conjE 1);

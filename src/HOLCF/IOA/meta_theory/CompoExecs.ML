@@ -20,15 +20,15 @@ section "recursive equations of operators";
 (* ---------------------------------------------------------------- *)
 
 
-Goal  "ProjA2`UU = UU";
+Goal  "ProjA2$UU = UU";
 by (simp_tac (simpset() addsimps [ProjA2_def]) 1);
 qed"ProjA2_UU";
 
-Goal  "ProjA2`nil = nil";
+Goal  "ProjA2$nil = nil";
 by (simp_tac (simpset() addsimps [ProjA2_def]) 1);
 qed"ProjA2_nil";
 
-Goal "ProjA2`((a,t)>>xs) = (a,fst t) >> ProjA2`xs";
+Goal "ProjA2$((a,t)>>xs) = (a,fst t) >> ProjA2$xs";
 by (simp_tac (simpset() addsimps [ProjA2_def]) 1);
 qed"ProjA2_cons";
 
@@ -38,15 +38,15 @@ qed"ProjA2_cons";
 (* ---------------------------------------------------------------- *)
 
 
-Goal  "ProjB2`UU = UU";
+Goal  "ProjB2$UU = UU";
 by (simp_tac (simpset() addsimps [ProjB2_def]) 1);
 qed"ProjB2_UU";
 
-Goal  "ProjB2`nil = nil";
+Goal  "ProjB2$nil = nil";
 by (simp_tac (simpset() addsimps [ProjB2_def]) 1);
 qed"ProjB2_nil";
 
-Goal "ProjB2`((a,t)>>xs) = (a,snd t) >> ProjB2`xs";
+Goal "ProjB2$((a,t)>>xs) = (a,snd t) >> ProjB2$xs";
 by (simp_tac (simpset() addsimps [ProjB2_def]) 1);
 qed"ProjB2_cons";
 
@@ -57,18 +57,18 @@ qed"ProjB2_cons";
 (* ---------------------------------------------------------------- *)
 
 
-Goal "Filter_ex2 sig`UU=UU";
+Goal "Filter_ex2 sig$UU=UU";
 by (simp_tac (simpset() addsimps [Filter_ex2_def]) 1);
 qed"Filter_ex2_UU";
 
-Goal "Filter_ex2 sig`nil=nil";
+Goal "Filter_ex2 sig$nil=nil";
 by (simp_tac (simpset() addsimps [Filter_ex2_def]) 1);
 qed"Filter_ex2_nil";
 
-Goal "Filter_ex2 sig`(at >> xs) =    \
+Goal "Filter_ex2 sig$(at >> xs) =    \
 \            (if (fst at:actions sig)    \       
-\                 then at >> (Filter_ex2 sig`xs) \   
-\                 else        Filter_ex2 sig`xs)";
+\                 then at >> (Filter_ex2 sig$xs) \   
+\                 else        Filter_ex2 sig$xs)";
 
 by (asm_full_simp_tac (simpset() addsimps [Filter_ex2_def]) 1);
 qed"Filter_ex2_cons";
@@ -85,8 +85,8 @@ Goal "stutter2 sig = (LAM ex. (%s. case ex of \
 \            (%p.(If Def ((fst p)~:actions sig) \
 \                 then Def (s=(snd p)) \
 \                 else TT fi) \
-\                andalso (stutter2 sig`xs) (snd p))  \
-\             `x) \
+\                andalso (stutter2 sig$xs) (snd p))  \
+\             $x) \
 \           ))";
 by (rtac trans 1);
 by (rtac fix_eq2 1);
@@ -95,19 +95,19 @@ by (rtac beta_cfun 1);
 by (simp_tac (simpset() addsimps [flift1_def]) 1);
 qed"stutter2_unfold";
 
-Goal "(stutter2 sig`UU) s=UU";
+Goal "(stutter2 sig$UU) s=UU";
 by (stac stutter2_unfold 1);
 by (Simp_tac 1);
 qed"stutter2_UU";
 
-Goal "(stutter2 sig`nil) s = TT";
+Goal "(stutter2 sig$nil) s = TT";
 by (stac stutter2_unfold 1);
 by (Simp_tac 1);
 qed"stutter2_nil";
 
-Goal "(stutter2 sig`(at>>xs)) s = \
+Goal "(stutter2 sig$(at>>xs)) s = \
 \              ((if (fst at)~:actions sig then Def (s=snd at) else TT) \
-\                andalso (stutter2 sig`xs) (snd at))"; 
+\                andalso (stutter2 sig$xs) (snd at))"; 
 by (rtac trans 1);
 by (stac stutter2_unfold 1);
 by (asm_full_simp_tac (simpset() addsimps [Consq_def,flift1_def,If_and_if]) 1);
@@ -159,8 +159,8 @@ Addsimps compoex_simps;
 (* --------------------------------------------------------------------- *)
 
 Goal "!s. is_exec_frag (A||B) (s,xs) \
-\      -->  is_exec_frag A (fst s, Filter_ex2 (asig_of A)`(ProjA2`xs)) &\
-\           is_exec_frag B (snd s, Filter_ex2 (asig_of B)`(ProjB2`xs))";
+\      -->  is_exec_frag A (fst s, Filter_ex2 (asig_of A)$(ProjA2$xs)) &\
+\           is_exec_frag B (snd s, Filter_ex2 (asig_of B)$(ProjB2$xs))";
 
 by (pair_induct_tac "xs" [is_exec_frag_def] 1);
 (* main case *)
@@ -175,8 +175,8 @@ qed"lemma_1_1a";
 (* --------------------------------------------------------------------- *)
 
 Goal "!s. is_exec_frag (A||B) (s,xs) \
-\      --> stutter (asig_of A) (fst s,ProjA2`xs)  &\
-\          stutter (asig_of B) (snd s,ProjB2`xs)"; 
+\      --> stutter (asig_of A) (fst s,ProjA2$xs)  &\
+\          stutter (asig_of B) (snd s,ProjB2$xs)"; 
 
 by (pair_induct_tac "xs" [stutter_def,is_exec_frag_def] 1);
 (* main case *)
@@ -205,10 +205,10 @@ qed"lemma_1_1c";
 (* ----------------------------------------------------------------------- *)
 
 Goal 
-"!s. is_exec_frag A (fst s,Filter_ex2 (asig_of A)`(ProjA2`xs)) &\
-\    is_exec_frag B (snd s,Filter_ex2 (asig_of B)`(ProjB2`xs)) &\
-\    stutter (asig_of A) (fst s,(ProjA2`xs)) & \
-\    stutter (asig_of B) (snd s,(ProjB2`xs)) & \
+"!s. is_exec_frag A (fst s,Filter_ex2 (asig_of A)$(ProjA2$xs)) &\
+\    is_exec_frag B (snd s,Filter_ex2 (asig_of B)$(ProjB2$xs)) &\
+\    stutter (asig_of A) (fst s,(ProjA2$xs)) & \
+\    stutter (asig_of B) (snd s,(ProjB2$xs)) & \
 \    Forall (%x. fst x:act (A||B)) xs \
 \    --> is_exec_frag (A||B) (s,xs)";
 

@@ -42,7 +42,7 @@ syntax (symbols)
 
 translations
 
-  "a>>s"         == "Consq a`s"
+  "a>>s"         == "Consq a$s"
   "[x, xs!]"     == "x>>[xs!]"
   "[x!]"         == "x>>nil"
   "[x, xs?]"     == "x>>[xs?]"
@@ -53,22 +53,22 @@ defs
 
 Consq_def     "Consq a == LAM s. Def a ## s"
 
-Filter_def    "Filter P == sfilter`(flift2 P)"
+Filter_def    "Filter P == sfilter$(flift2 P)"
 
-Map_def       "Map f  == smap`(flift2 f)"
+Map_def       "Map f  == smap$(flift2 f)"
 
 Forall_def    "Forall P == sforall (flift2 P)"
 
 Last_def      "Last == slast"
 
-Dropwhile_def "Dropwhile P == sdropwhile`(flift2 P)"
+Dropwhile_def "Dropwhile P == sdropwhile$(flift2 P)"
 
-Takewhile_def "Takewhile P == stakewhile`(flift2 P)"
+Takewhile_def "Takewhile P == stakewhile$(flift2 P)"
 
 Flat_def      "Flat == sflat"
 
 Zip_def
-  "Zip == (fix`(LAM h t1 t2. case t1 of 
+  "Zip == (fix$(LAM h t1 t2. case t1 of 
                nil   => nil
              | x##xs => (case t2 of 
                           nil => UU 
@@ -76,13 +76,13 @@ Zip_def
                                       Undef  => UU
                                     | Def a => (case y of 
                                                   Undef => UU
-                                                | Def b => Def (a,b)##(h`xs`ys))))))"
+                                                | Def b => Def (a,b)##(h$xs$ys))))))"
 
-Filter2_def    "Filter2 P == (fix`(LAM h t. case t of 
+Filter2_def    "Filter2 P == (fix$(LAM h t. case t of 
             nil => nil
 	  | x##xs => (case x of Undef => UU | Def y => (if P y                                 
-                     then x##(h`xs)
-                     else     h`xs))))" 
+                     then x##(h$xs)
+                     else     h$xs))))" 
 
 rules
 

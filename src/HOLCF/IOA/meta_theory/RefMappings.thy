@@ -24,7 +24,7 @@ move_def
   "move ioa ex s a t ==    
     (is_exec_frag ioa (s,ex) &  Finite ex & 
      laststate (s,ex)=t  &     
-     mk_trace ioa`ex = (if a:ext(ioa) then a>>nil else nil))"
+     mk_trace ioa$ex = (if a:ext(ioa) then a>>nil else nil))"
 
 is_ref_map_def
   "is_ref_map f C A ==                          

@@ -45,7 +45,7 @@ liveexecutions_def
    "liveexecutions AP == {exec. exec : executions (fst AP) & (exec |== (snd AP))}"
 
 livetraces_def
-  "livetraces AP == {mk_trace (fst AP)`(snd ex) | ex. ex:liveexecutions AP}"
+  "livetraces AP == {mk_trace (fst AP)$(snd ex) | ex. ex:liveexecutions AP}"
 
 live_implements_def
   "live_implements CL AM == (inp (fst CL) = inp (fst AM)) & 
