@@ -292,8 +292,7 @@ fun err_in_prem sg name t p msg =
 
 val bad_concl = "Conclusion of introduction rule must have form \"t : S_i\"";
 
-val atomize_cterm = InductMethod.rewrite_cterm inductive_atomize;
-fun full_simplify rews = Simplifier.full_simplify (HOL_basic_ss addsimps rews);
+val atomize_cterm = hol_rewrite_cterm inductive_atomize;
 
 in
 
@@ -321,8 +320,8 @@ fun check_rule sg cs ((name, rule), att) =
 
 val rulify =
   standard o Tactic.norm_hhf o
-  full_simplify inductive_rulify2 o full_simplify inductive_rulify1 o
-  full_simplify inductive_conj;
+  hol_simplify inductive_rulify2 o hol_simplify inductive_rulify1 o
+  hol_simplify inductive_conj;
 
 end;
 
