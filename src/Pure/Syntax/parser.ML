@@ -1,6 +1,6 @@
 (*  Title:      Pure/Syntax/parser.ML
     ID:         $Id$
-    Author:     Sonia Mahjoub and Markus Wenzel, TU Muenchen
+    Author:     Sonia Mahjoub, Markus Wenzel and Carsten Clasohm, TU Muenchen
 
 Isabelle's main parser (used for terms and typs).
 
@@ -102,30 +102,31 @@ fun mk_gram prods =
                      chains @ (list_chain ps)
                   end;
 
-            (*convert a list of pairs to an association list*)
-            fun compress chains =
+            (*convert a list of pairs to an association list
+              by using the first element as the key*)
+            fun mk_assoc pairs =
               let fun doit [] result = result
                     | doit ((id1, id2) :: ps) result =
                         doit ps 
                         (overwrite (result, (id1, id2 :: (assocs result id1))));
-              in doit chains [] end;
+              in doit pairs [] end;
 
             (*replace reference by list of rhss in chain pairs*)
-            fun unref (id1, ids) =
-              let fun unref1 [] = []
-                    | unref1 (id :: ids) =
+            fun deref (id1, ids) =
+              let fun deref1 [] = []
+                    | deref1 (id :: ids) =
                         let val (_, rhss) = hd (!id);
-                        in rhss @ (unref1 ids) end;
-              in (id1, unref1 ids) end;
+                        in rhss @ (deref1 ids) end;
+              in (id1, deref1 ids) end;
 
             val chain_pairs = 
-               map unref (transitive_closure (compress (list_chain ref_gram)));
+               map deref (transitive_closure (mk_assoc (list_chain ref_gram)));
 
             (*add new rhss to productions*)
-            fun mk_chain (rhss_ref, rhss) =
+            fun elim (rhss_ref, rhss) =
               let val (dummy, old_rhss) = hd (!rhss_ref);
               in rhss_ref := [(dummy, old_rhss @ rhss)] end;
-        in map mk_chain chain_pairs;
+        in map elim chain_pairs;
            ref_gram
         end;
 
@@ -139,10 +140,10 @@ fun mk_gram prods =
                   if rhss_ref mem result then
                     lambda nts result
                   else
-                    let (*test if a list of rhss contains a production
-                          consisting only of lambda NTs*)
-                        fun only_lambdas _ [] = []
-                          | only_lambdas result ((_, rhss_ref) :: ps) =
+                    let (*list all NTs that can be produced by a rhs
+                          containing only lambda NTs*)
+                        fun only_lambdas [] result = result
+                          | only_lambdas ((_, rhss_ref) :: ps) result =
                               let fun only (symbs, _, _) =
                                    forall (fn (Nonterm (id, _)) => id mem result
                                             | (Term _)          => false) symbs;
@@ -150,25 +151,15 @@ fun mk_gram prods =
                                   val (_, rhss) = hd (!rhss_ref);
                               in if not (rhss_ref mem result) andalso
                                     exists only rhss then
-                                   rhss_ref :: (only_lambdas result ps)
+                                   only_lambdas ref_gram (rhss_ref :: result)
                                  else
-                                   only_lambdas result ps
-                              end;
-
-                        (*search for NTs that can be produced by a list of
-                          lambda NTs*)
-                        fun produced_by [] result = result
-                          | produced_by (rhss_ref :: rhss_refs) result =
-                              let val new_lambdas = 
-                                    only_lambdas result ref_gram;
-                              in produced_by (rhss_refs union new_lambdas)
-                                             (result @ new_lambdas)
+                                   only_lambdas ps result
                               end;
 
                         val (_, rhss) = hd (!rhss_ref);
                     in if exists (fn (symbs, _, _) => null symbs) rhss
                        then lambda nts
-                              (produced_by [rhss_ref] (rhss_ref :: result))
+                              (only_lambdas ref_gram (rhss_ref :: result))
                        else lambda nts result
                     end;
          in lambda ref_gram [] end;
@@ -219,23 +210,23 @@ fun mk_gram prods =
       (*add list of allowed starting tokens to productions*)
       fun mk_lookahead (_, rhss_ref) =
         let (*add item to lookahead list (a list containing pairs of token and 
-              rhss that can be started with this token*)
-            fun add_start _ [] table = table
-              | add_start new_rhs (token :: tks) table =
-                  let fun add [] =
-                            [(token, [new_rhs])]
-                        | add ((tk, rhss) :: ss) =
-                            if token = tk then 
-                              (tk, new_rhs :: rhss) :: ss
+              rhss that can be started with it*)
+            fun add_start new_rhs tokens table =
+                  let fun add [] [] = []
+                        | add (tk :: tks) [] =
+                            (tk, [new_rhs]) :: (add tks [])
+                        | add tokens ((tk, rhss) :: ss) =
+                            if tk mem tokens then 
+                              (tk, new_rhs :: rhss) :: (add (tokens \ tk) ss)
                             else
-                              (tk, rhss) :: (add ss);
-                  in add_start new_rhs tks (add table) end;
+                              (tk, rhss) :: (add tokens ss);
+                  in add tokens table end;
 
             (*combine all lookaheads of a list of nonterminals*)
-            fun combine_starts [] = []
-              | combine_starts (rhss_ref :: ps) =
-                  let val Some tks = assoc (starts, rhss_ref)
-                  in tks union combine_starts ps end;
+            fun combine_starts rhss_refs =
+              foldr (op union) 
+              ((map (fn rhss_ref => let val Some tks = assoc (starts, rhss_ref)
+                                    in tks end) rhss_refs), []);
 
             (*get lookahead for a rhs and update lhs' lookahead list*)
             fun look_rhss [] table = table
@@ -244,9 +235,7 @@ fun mk_gram prods =
                       val starts = case start_token of
                                      Some tk => Some tk 
                                                 ins (combine_starts skipped)
-                                   | None => if skipped = [] 
-                            orelse forall (fn id => id mem lambdas) skipped then
-                                                          (*lambda production?*)
+                                   | None => if skipped subset lambdas then
                                                [None]
                                              else
                                                combine_starts skipped;
