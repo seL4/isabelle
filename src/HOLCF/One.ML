@@ -96,3 +96,4 @@ fun prover s =  prove_goalw One.thy [one_when_def,one_def] s
 
 val one_when = map prover ["one_when`x`UU = UU","one_when`x`one = x"];
 
+Addsimps (one_when @ dist_less_one @ dist_eq_one);

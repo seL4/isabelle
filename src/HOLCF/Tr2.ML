@@ -92,7 +92,8 @@ val ifte_thms = map prover [
                         "If FF then e1 else e2 fi = e2",
                         "If TT then e1 else e2 fi = e1"];
 
-
+Addsimps (dist_less_tr @ dist_eq_tr @ tr_when @ andalso_thms @ 
+	  orelse_thms @ neg_thms @ ifte_thms);
 
 
                 
