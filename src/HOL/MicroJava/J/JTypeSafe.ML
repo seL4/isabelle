@@ -123,7 +123,7 @@ qed "Call_lemma2";
 
 Goalw [wf_java_prog_def]
  "\\<lbrakk> wf_java_prog G; a' \\<noteq> Null; (h, l)\\<Colon>\\<preceq>(G, lT); \
-\    max_spec G T (mn,pTsa) = {((mda,rTa),pTs')}; xc\\<le>|xh; xh\\<le>|h; \
+\    max_spec G C (mn,pTsa) = {((mda,rTa),pTs')}; xc\\<le>|xh; xh\\<le>|h; \
 \    list_all2 (conf G h) pvs pTsa;\
 \    (md, rT, pns, lvars, blk, res) = \
 \              the (method (G,fst (the (h (the_Addr a')))) (mn, pTs'));\
@@ -131,7 +131,7 @@ Goalw [wf_java_prog_def]
 \ (G, lT)\\<turnstile>blk\\<surd> \\<longrightarrow>  h\\<le>|xi \\<and>  (xi, xl)\\<Colon>\\<preceq>(G, lT); \
 \ \\<forall>lT. (xi, xl)\\<Colon>\\<preceq>(G, lT) \\<longrightarrow> (\\<forall>T. (G, lT)\\<turnstile>res\\<Colon>T \\<longrightarrow> \
 \         xi\\<le>|h' \\<and> (h', xj)\\<Colon>\\<preceq>(G, lT) \\<and> (x' = None \\<longrightarrow> G,h'\\<turnstile>v\\<Colon>\\<preceq>T)); \
-\ G,xh\\<turnstile>a'\\<Colon>\\<preceq>RefT T \\<rbrakk> \\<Longrightarrow> \
+\ G,xh\\<turnstile>a'\\<Colon>\\<preceq>Class C \\<rbrakk> \\<Longrightarrow> \
 \ xc\\<le>|h' \\<and> (h', l)\\<Colon>\\<preceq>(G, lT) \\<and>  (x' = None \\<longrightarrow> G,h'\\<turnstile>v\\<Colon>\\<preceq>rTa)";
 by( dtac (insertI1 RSN (2,(equalityD2 RS subsetD))) 1);
 by( dtac (max_spec2appl_meths RS appl_methsD) 1);
@@ -325,7 +325,7 @@ by   Auto_tac;
 qed "exec_type_sound";
 
 Goal "\\<lbrakk>G=prg E; wf_java_prog G; G\\<turnstile>(x,s) -e\\<succ>a'\\<rightarrow> Norm s'; a' \\<noteq> Null;\
-\         s\\<Colon>\\<preceq>E; E\\<turnstile>e\\<Colon>RefT T; m_head G T sig \\<noteq> None\\<rbrakk> \\<Longrightarrow> \
+\         s\\<Colon>\\<preceq>E; E\\<turnstile>e\\<Colon>Class C; m_head G C sig \\<noteq> None\\<rbrakk> \\<Longrightarrow> \
 \ method (G,fst (the (heap s' (the_Addr a')))) sig \\<noteq> None";
 by( dtac eval_type_sound 1);
 by(     atac 1);

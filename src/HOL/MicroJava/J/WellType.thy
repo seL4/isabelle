@@ -36,26 +36,26 @@ consts
 
   more_spec	:: "'c prog \\<Rightarrow> (ty \\<times> 'x) \\<times> ty list \\<Rightarrow>
 		               (ty \\<times> 'x) \\<times> ty list \\<Rightarrow> bool"
-  m_head	:: "'c prog \\<Rightarrow>  ref_ty \\<Rightarrow> sig \\<Rightarrow>  (ty \\<times> ty) option"
-  appl_methds	:: "'c prog \\<Rightarrow>  ref_ty \\<Rightarrow> sig \\<Rightarrow> ((ty \\<times> ty) \\<times> ty list) set"
-  max_spec	:: "'c prog \\<Rightarrow>  ref_ty \\<Rightarrow> sig \\<Rightarrow> ((ty \\<times> ty) \\<times> ty list) set"
+  m_head	:: "'c prog \\<Rightarrow>  cname \\<Rightarrow> sig \\<Rightarrow>  (ty \\<times> ty) option"
+  appl_methds	:: "'c prog \\<Rightarrow>  cname \\<Rightarrow> sig \\<Rightarrow> ((ty \\<times> ty) \\<times> ty list) set"
+  max_spec	:: "'c prog \\<Rightarrow>  cname \\<Rightarrow> sig \\<Rightarrow> ((ty \\<times> ty) \\<times> ty list) set"
 
 defs
 
-  m_head_def  "m_head G t sig \\<equiv> case t of NullT \\<Rightarrow> None | ClassT C \\<Rightarrow>
+  m_head_def  "m_head G C sig \\<equiv> 
 		 option_map (\\<lambda>(md,(rT,mb)). (Class md,rT)) (method (G,C) sig)"
                                                                
   more_spec_def	  "more_spec G \\<equiv> \\<lambda>((d,h),pTs). \\<lambda>((d',h'),pTs'). G\\<turnstile>d\\<preceq>d' \\<and>
 		                  list_all2 (\\<lambda>T T'. G\\<turnstile>T\\<preceq>T') pTs pTs'"
   
   (* applicable methods, cf. 15.11.2.1 *)
-  appl_methds_def "appl_methds G T \\<equiv> \\<lambda>(mn, pTs). {(mh,pTs') |mh pTs'.
-		                  m_head G T (mn, pTs') = Some mh \\<and>
+  appl_methds_def "appl_methds G C \\<equiv> \\<lambda>(mn, pTs). {(mh,pTs') |mh pTs'.
+		                  m_head G C (mn, pTs') = Some mh \\<and>
 		                  list_all2 (\\<lambda>T T'. G\\<turnstile>T\\<preceq>T') pTs pTs'}"
 
   (* maximally specific methods, cf. 15.11.2.2 *)
-   max_spec_def	  "max_spec G rT sig \\<equiv> {m. m \\<in>appl_methds G rT sig \\<and> 
-				          (\\<forall>m'\\<in>appl_methds G rT sig.
+   max_spec_def	  "max_spec G C sig \\<equiv> {m. m \\<in>appl_methds G C sig \\<and> 
+				          (\\<forall>m'\\<in>appl_methds G C sig.
 				                   more_spec G m' m \\<longrightarrow> m' = m)}"
 consts
 
@@ -129,9 +129,9 @@ inductive "ty_expr E" "ty_exprs E" "wt_stmt E" intrs
 
 
   (* cf. 15.11.1, 15.11.2, 15.11.3 *)
-  Call	"\\<lbrakk>E\\<turnstile>a\\<Colon>RefT t;
+  Call	"\\<lbrakk>E\\<turnstile>a\\<Colon>Class C;
 	  E\\<turnstile>ps[\\<Colon>]pTs;
-	  max_spec (prg E) t (mn, pTs) = {((md,rT),pTs')}\\<rbrakk> \\<Longrightarrow>
+	  max_spec (prg E) C (mn, pTs) = {((md,rT),pTs')}\\<rbrakk> \\<Longrightarrow>
 						 E\\<turnstile>a..mn({pTs'}ps)\\<Colon>rT"
 
 (* well-typed expression lists *)
