@@ -417,20 +417,22 @@ Note that there is no separate $split$ method.  The effect of
 
 \subsection{Declaring rules}
 
-\indexisaratt{simp}\indexisaratt{split}
+\indexisaratt{simp}\indexisaratt{split}\indexisaratt{cong}
 \begin{matharray}{rcl}
   simp & : & \isaratt \\
   split & : & \isaratt \\
+  cong & : & \isaratt \\
 \end{matharray}
 
 \begin{rail}
-  ('simp' | 'split') (() | 'add' | 'del')
+  ('simp' | 'split' | 'cong') (() | 'add' | 'del')
   ;
 \end{rail}
 
 \begin{descr}
 \item [$simp$] declares simplification rules.
 \item [$split$] declares split rules.
+\item [$cong$] declares congruence rules.
 \end{descr}
 
 
@@ -583,6 +585,7 @@ This is slightly less hazardous than for the Simplifier (see
 \begin{rail}
   ('intro' | 'elim' | 'dest') (() | '?' | '??')
   ;
+  'iff' (() | 'add' | 'del')
 \end{rail}
 
 \begin{descr}
