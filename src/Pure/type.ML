@@ -531,7 +531,7 @@ fun extend_classes (classes, classrel, new_classes) =
 fun ext_tsig_classes tsig new_classes =
   let
     val TySg {classes, classrel, default, tycons, log_types, univ_witness, abbrs, arities} = tsig;
-    val (classes',classrel') = extend_classes (classes,classrel,new_classes);
+    val (classes', classrel') = extend_classes (classes,classrel, new_classes);
   in make_tsig (classes', classrel', default, tycons, log_types, univ_witness, abbrs, arities) end;
 
 
@@ -540,10 +540,11 @@ fun ext_tsig_classes tsig new_classes =
 fun ext_tsig_classrel tsig pairs =
   let
     val TySg {classes, classrel, default, tycons, log_types, univ_witness, abbrs, arities} = tsig;
+    val cert = cert_class tsig;
 
     (* FIXME clean! *)
     val classrel' =
-      merge_classrel (classrel, Symtab.make (map (fn (c1, c2) => (c1, [c2])) pairs));
+      merge_classrel (classrel, Symtab.make (map (fn (c1, c2) => (cert c1, [cert c2])) pairs));
   in
     make_tsig (classes, classrel', default, tycons, log_types, univ_witness, abbrs, arities)
     |> rebuild_tsig
