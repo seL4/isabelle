@@ -234,7 +234,7 @@ by (auto_tac (claset() addIs [real_less_imp_le] addSDs
 qed_spec_mp "realpow_Suc_le";
 
 Goal "0r <= 0r ^ n";
-by (exhaust_tac "n" 1);
+by (cases_tac "n" 1);
 by (Auto_tac);
 qed "realpow_zero_le";
 Addsimps [realpow_zero_le];

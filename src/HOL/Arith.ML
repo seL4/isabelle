@@ -106,24 +106,24 @@ Addsimps [add_left_cancel, add_right_cancel,
 (** Reasoning about m+0=0, etc. **)
 
 Goal "(m+n = 0) = (m=0 & n=0)";
-by (exhaust_tac "m" 1);
+by (cases_tac "m" 1);
 by (Auto_tac);
 qed "add_is_0";
 AddIffs [add_is_0];
 
 Goal "(0 = m+n) = (m=0 & n=0)";
-by (exhaust_tac "m" 1);
+by (cases_tac "m" 1);
 by (Auto_tac);
 qed "zero_is_add";
 AddIffs [zero_is_add];
 
 Goal "(m+n=1) = (m=1 & n=0 | m=0 & n=1)";
-by (exhaust_tac "m" 1);
+by (cases_tac "m" 1);
 by (Auto_tac);
 qed "add_is_1";
 
 Goal "(1=m+n) = (m=1 & n=0 | m=0 & n=1)";
-by (exhaust_tac "m" 1);
+by (cases_tac "m" 1);
 by (Auto_tac);
 qed "one_is_add";
 
@@ -134,7 +134,7 @@ AddIffs [add_gr_0];
 
 (* Could be generalized, eg to "k<n ==> m+(n-(Suc k)) = (m+n)-(Suc k)" *)
 Goal "0<n ==> m + (n-1) = (m+n)-1";
-by (exhaust_tac "m" 1);
+by (cases_tac "m" 1);
 by (ALLGOALS (asm_simp_tac (simpset() addsimps [diff_Suc, Suc_n_not_n]
                                       addsplits [nat.split])));
 qed "add_pred";
@@ -404,7 +404,7 @@ qed "Suc_diff_diff";
 Addsimps [Suc_diff_diff];
 
 Goal "0<n ==> n - Suc i < n";
-by (exhaust_tac "n" 1);
+by (cases_tac "n" 1);
 by Safe_tac;
 by (asm_simp_tac (simpset() addsimps le_simps) 1);
 qed "diff_Suc_less";
@@ -1161,16 +1161,16 @@ qed "diffs0_imp_equal";
 (** Lemmas for ex/Factorization **)
 
 Goal "[| 1<n; 1<m |] ==> 1<m*n";
-by (exhaust_tac "m" 1);
+by (cases_tac "m" 1);
 by Auto_tac;
 qed "one_less_mult"; 
 
 Goal "[| 1<n; 1<m |] ==> n<m*n";
-by (exhaust_tac "m" 1);
+by (cases_tac "m" 1);
 by Auto_tac;
 qed "n_less_m_mult_n"; 
 
 Goal "[| 1<n; 1<m |] ==> n<n*m";
-by (exhaust_tac "m" 1);
+by (cases_tac "m" 1);
 by Auto_tac;
 qed "n_less_n_mult_m"; 

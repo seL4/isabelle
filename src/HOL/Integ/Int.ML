@@ -90,7 +90,7 @@ by (auto_tac (claset(),
 by (cut_inst_tac [("m","m")] int_Suc_int_1 1);
 by (cut_inst_tac [("m","n")] int_Suc_int_1 1);
 by (Asm_full_simp_tac 1);
-by (exhaust_tac "n" 1);
+by (cases_tac "n" 1);
 by Auto_tac;
 by (cut_inst_tac [("m","m")] int_Suc_int_1 1);
 by (full_simp_tac (simpset() addsimps zadd_ac) 1);

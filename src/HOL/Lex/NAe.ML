@@ -5,7 +5,7 @@
 *)
 
 Goal "steps A w O (eps A)^* = steps A w";
-by (exhaust_tac "w" 1);
+by (cases_tac "w" 1);
 by (ALLGOALS(asm_simp_tac (simpset() addsimps [O_assoc])));
 qed_spec_mp "steps_epsclosure";
 Addsimps [steps_epsclosure];

@@ -29,7 +29,7 @@ Goal "u -> u' ==> !r rs. u = r$$rs --> \
 \       (? s t ts. r = Abs s & rs = t#ts & u' = s[t/0]$$ts))";
 by (etac beta.induct 1);
    by (clarify_tac (claset() delrules [disjCI]) 1);
-   by (exhaust_tac "r" 1);
+   by (cases_tac "r" 1);
      by (Asm_full_simp_tac 1);
     by (asm_full_simp_tac (simpset() addsimps [App_eq_foldl_conv]) 1);
     by (split_asm_tac [split_if_asm] 1);

@@ -15,7 +15,7 @@ Addsimps [count_def, decr_def];
 Goal "Timer : UNIV leadsTo {s. count s = 0}";
 by (res_inst_tac [("f", "count")] lessThan_induct 1);
 by (Simp_tac 1);
-by (exhaust_tac "m" 1);
+by (cases_tac "m" 1);
 by (force_tac (claset() addSIs [subset_imp_leadsTo], simpset()) 1);
 by (ensures_tac "decr" 1);
 qed "Timer_leadsTo_zero";
@@ -36,7 +36,7 @@ by Auto_tac;
 by (constrains_tac 2);
 (*Progress property for the array of Timers*)
 by (res_inst_tac [("f", "sub i o fst")] lessThan_induct 1);
-by (exhaust_tac "m" 1);
+by (cases_tac "m" 1);
 (*Annoying need to massage the conditions to have the form (... Times UNIV)*)
 by (auto_tac (claset() addIs [subset_imp_leadsTo], 
 	      simpset() addsimps [insert_absorb, lessThan_Suc RS sym,

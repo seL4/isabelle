@@ -10,12 +10,12 @@ Fundamental Theorem of Arithmetic (unique factorization into primes)
 (* --- Arithmetic --- *)
 
 Goal "[| m ~= m*k; m ~= 1 |] ==> 1<m";
-by (exhaust_tac "m" 1);
+by (cases_tac "m" 1);
 by Auto_tac;
 qed "one_less_m";
 
 Goal "[| m ~= m*k; 1<m*k |] ==> 1<k";
-by (exhaust_tac "k" 1);
+by (cases_tac "k" 1);
 by Auto_tac;
 qed "one_less_k";
 
@@ -24,7 +24,7 @@ by Auto_tac;
 qed "mult_left_cancel";
 
 Goal "[| 0<m; m*n = m |] ==> n=1";
-by (exhaust_tac "n" 1);
+by (cases_tac "n" 1);
 by Auto_tac;
 qed "mn_eq_m_one";
 
@@ -55,7 +55,7 @@ qed "prime_primel";
 
 Goalw [prime_def,dvd_def] "p:prime ==> ~(p dvd 1)";
 by Auto_tac;
-by (exhaust_tac "k" 1);
+by (cases_tac "k" 1);
 by Auto_tac;
 qed "prime_nd_one";
 
@@ -78,7 +78,7 @@ by Auto_tac;
 qed "primes_eq";
 
 Goalw [primel_def,prime_def] "[| primel xs; prod xs = 1 |] ==> xs = []";
-by (exhaust_tac "xs" 1);
+by (cases_tac "xs" 1);
 by (ALLGOALS Asm_full_simp_tac);
 qed "primel_one_empty";
 
@@ -105,7 +105,7 @@ qed_spec_mp "primel_prod_gz";
 
 Goal "nondec xs --> nondec (oinsert x xs)";
 by (induct_tac "xs" 1);
-by (exhaust_tac "list" 2);
+by (cases_tac "list" 2);
 by (ALLGOALS (Asm_full_simp_tac));
 qed_spec_mp "nondec_oinsert";
 
@@ -123,9 +123,9 @@ Goal "nondec xs --> xs = sort xs";
 by (induct_tac "xs" 1);
 by Safe_tac;
 by (ALLGOALS Asm_full_simp_tac);
-by (exhaust_tac "list" 1);
+by (cases_tac "list" 1);
 by (ALLGOALS Asm_full_simp_tac);
-by (exhaust_tac "list" 1);
+by (cases_tac "list" 1);
 by (Asm_full_simp_tac 1);
 by (res_inst_tac [("y","aa"),("ys","lista")] x_less_y_oinsert 1); 
 by (ALLGOALS Asm_full_simp_tac);
@@ -269,7 +269,7 @@ Goal "ALL xs ys. (primel xs & primel ys & prod xs = prod ys & prod xs = n \
 \     --> xs <~~> ys)";
 by (res_inst_tac [("n","n")] less_induct 1);
 by Safe_tac;
-by (exhaust_tac "xs" 1);
+by (cases_tac "xs" 1);
 by (force_tac (claset() addIs [primel_one_empty], simpset()) 1);
 by (rtac (perm_primel_ex RS exE) 1);
 by (ALLGOALS Asm_full_simp_tac);

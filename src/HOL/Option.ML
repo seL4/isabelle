@@ -82,13 +82,13 @@ claset_ref() := claset() addSD2 ("ospec", ospec);
 
 
 Goal "x : o2s xo = (xo = Some x)";
-by (exhaust_tac "xo" 1);
+by (cases_tac "xo" 1);
 by Auto_tac;
 qed "elem_o2s";
 AddIffs [elem_o2s];
 
 Goal "(o2s xo = {}) = (xo = None)";
-by (exhaust_tac "xo" 1);
+by (cases_tac "xo" 1);
 by Auto_tac;
 qed "o2s_empty_eq";
 

@@ -68,7 +68,7 @@ Goal "G \\<turnstile> T' \\<preceq> T \\<Longrightarrow> T' = NT \\<longrightarr
 be widen.induct 1;
 by(Auto_tac);
 by(rename_tac "R" 1);
-by(exhaust_tac "R" 1);
+by(cases_tac "R" 1);
 by(Auto_tac);
 val lemma = result();
 
@@ -100,7 +100,7 @@ by(forward_tac [wt_jvm_prog_impl_wt_instr_cor] 1);
   ba 1;
  ba 1;
 by(rewtac wt_jvm_prog_def);
-by (exhaust_tac "ls_com" 1);
+by (cases_tac "ls_com" 1);
 by (ALLGOALS (fast_tac (claset() addIs [Load_correct,Store_correct,Bipush_correct,Aconst_null_correct])));
 qed "LS_correct";
 
@@ -119,7 +119,7 @@ be disjE 1;
 by (asm_full_simp_tac (simpset() addsimps [conf_def]) 1);
 by (Clarify_tac 1);
 by (asm_full_simp_tac (simpset() addsimps [obj_ty_def]) 1);
-by (exhaust_tac "v" 1);
+by (cases_tac "v" 1);
 by (ALLGOALS (fast_tac  (claset() addIs [rtrancl_trans] addss (simpset() addsimps [widen.null]))));
 qed "Cast_conf2";
 
@@ -149,7 +149,7 @@ by(forward_tac [wt_jvm_prog_impl_wt_instr_cor] 1);
   ba 1;
  ba 1;
 by(rewtac wt_jvm_prog_def);
-by (exhaust_tac "ch_com" 1);
+by (cases_tac "ch_com" 1);
 by (ALLGOALS (fast_tac (claset() addIs [Checkcast_correct])));
 qed "CH_correct";
 
@@ -223,7 +223,7 @@ by(forward_tac [wt_jvm_prog_impl_wt_instr_cor] 1);
   ba 1;
  ba 1;
 by(rewtac wt_jvm_prog_def);
-by (exhaust_tac "mo_com" 1);
+by (cases_tac "mo_com" 1);
 by (ALLGOALS (fast_tac (claset() addIs [Getfield_correct,Putfield_correct])));
 qed "MO_correct";
 
@@ -263,7 +263,7 @@ by(forward_tac [wt_jvm_prog_impl_wt_instr_cor] 1);
   ba 1;
  ba 1;
 by(rewtac wt_jvm_prog_def);
-by (exhaust_tac "co_com" 1);
+by (cases_tac "co_com" 1);
 by (ALLGOALS (fast_tac (claset() addIs [New_correct])));
 qed "CO_correct";
 
@@ -282,7 +282,7 @@ by(forward_tac [wt_jvm_progD] 1);
 by(etac exE 1);
 by(asm_full_simp_tac (simpset() addsimps defs1) 1);
 by(Clarify_tac 1);
-by(exhaust_tac "X\\<noteq>NT" 1); 
+by(case_tac "X\\<noteq>NT" 1); 
  by (asm_full_simp_tac (simpset()addsimps[raise_xcpt_def]@defs1 
 	addsplits [option.split]) 1);
  by (Clarify_tac 1);
@@ -360,7 +360,7 @@ Goal
 by(forward_tac [wt_jvm_prog_impl_wt_instr_cor] 1);
   ba 1;
  ba 1;
-by (exhaust_tac "mi_com" 1);
+by (cases_tac "mi_com" 1);
 by (ALLGOALS (fast_tac (claset() addIs [Invoke_correct])));
 qed "MI_correct";
 
@@ -401,7 +401,7 @@ Goal
 by(forward_tac [wt_jvm_prog_impl_wt_instr_cor] 1);
   ba 1;
  ba 1;
-by (exhaust_tac "mr" 1);
+by (cases_tac "mr" 1);
 by (ALLGOALS (fast_tac (claset() addIs [Return_correct])));
 qed "MR_correct";
 
@@ -442,7 +442,7 @@ by(forward_tac [wt_jvm_prog_impl_wt_instr_cor] 1);
   ba 1;
  ba 1;
 by(rewtac wt_jvm_prog_def);
-by (exhaust_tac "br_com" 1);
+by (cases_tac "br_com" 1);
 by (ALLGOALS (fast_tac (claset() addIs [Goto_correct,Ifiacmpeq_correct])));
 qed "BR_correct";
 
@@ -521,7 +521,7 @@ by(forward_tac [wt_jvm_prog_impl_wt_instr_cor] 1);
   ba 1;
  ba 1;
 by(rewtac wt_jvm_prog_def);
-by (exhaust_tac "os_com" 1);
+by (cases_tac "os_com" 1);
 by (ALLGOALS (fast_tac (claset() addIs [Pop_correct,Dup_correct,Dup_x1_correct,Dup_x2_correct,Swap_correct])));
 qed "OS_correct";
 
@@ -539,15 +539,15 @@ Goal
 \ \\<Longrightarrow> exec (G,state) = Some state' \\<longrightarrow> G,phi \\<turnstile>JVM state'\\<surd>";
 by(split_all_tac 1);
 by(rename_tac "xp hp frs" 1);
-by (exhaust_tac "xp" 1);
- by (exhaust_tac "frs" 1);
+by (cases_tac "xp" 1);
+ by (cases_tac "frs" 1);
   by (asm_full_simp_tac (simpset() addsimps exec.rules) 1);
  by(split_all_tac 1);
  by(hyp_subst_tac 1);
  by(forward_tac [correct_state_impl_Some_method] 1);
  by (force_tac (claset() addIs [LS_correct,CO_correct,MO_correct,CH_correct,MI_correct,MR_correct,OS_correct,
 	BR_correct], simpset() addsplits [split_if_asm,instr.split,instr.split_asm] addsimps exec.rules@[split_def]) 1);
-by (exhaust_tac "frs" 1);
+by (cases_tac "frs" 1);
  by (ALLGOALS(asm_full_simp_tac (simpset() addsimps exec.rules)));
 qed_spec_mp "BV_correct_1";
 

@@ -123,7 +123,7 @@ qed_goal "RNext_enabled" Memory.thy
 \        --> Enabled (<RNext ch mm rs p>_(rtrner ch ! p, rs!p))" (K [
 	     auto_tac (mem_css addsimps2 [enabled_disj]
 		                  addSIs2 [RWRNext_enabled]),
-             exhaust_tac "arg(ch w p)" 1,
+             cases_tac "arg(ch w p)" 1,
  	      action_simp_tac (simpset()addsimps[Read_def,enabled_ex])
 	                      [ReadInner_enabled,exI] [] 1,
               force_tac (mem_css addDs2 [base_pair]) 1,

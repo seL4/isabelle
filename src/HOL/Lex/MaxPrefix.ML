@@ -26,7 +26,7 @@ by (Asm_simp_tac 1);
 by (case_tac "? us. us <= a#list & P (ps @ us)" 1);
  by (Asm_simp_tac 1);
  by (Clarify_tac 1);
- by (exhaust_tac "us" 1);
+ by (cases_tac "us" 1);
   by (rtac iffI 1);
    by (asm_full_simp_tac (simpset() addsimps [prefix_Cons,prefix_append]) 1);
    by (Blast_tac 1);

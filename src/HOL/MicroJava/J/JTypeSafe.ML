@@ -284,7 +284,7 @@ by prune_params_tac;
 (* Level 45 *)
 
 (* 1 Call *)
-by( exhaust_tac "x" 1);
+by( cases_tac "x" 1);
 by(  Clarsimp_tac 2);
 by(  dtac exec_xcpt 2);
 by(  Asm_full_simp_tac 2);

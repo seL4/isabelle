@@ -6,7 +6,7 @@
 
 
 Goalw[sup_ty_opt_def] "G \\<turnstile> t <=o t";
-by (exhaust_tac "t" 1);
+by (cases_tac "t" 1);
 by Auto_tac;
 qed "sup_ty_opt_refl";
 Addsimps [sup_ty_opt_refl];
@@ -66,7 +66,7 @@ Goal "\\<forall> n b. (G \\<turnstile> a <=l b) \\<longrightarrow> n < length a 
 by (induct_tac "a" 1);
  by (Simp_tac 1);
 by (Clarsimp_tac 1);
-by (exhaust_tac "n" 1);
+by (cases_tac "n" 1);
  by (Asm_full_simp_tac 1);
 by (eres_inst_tac [("x","nat")] allE 1);
 by (smp_tac 1 1);
@@ -89,7 +89,7 @@ Goal "\\<forall>b. length a = length b \\<longrightarrow> (G \\<turnstile> (a@x)
 by (induct_tac "a" 1);
  by (Clarsimp_tac 1);
 by (Clarify_tac 1);
-by (exhaust_tac "b" 1);
+by (cases_tac "b" 1);
  by (Clarsimp_tac 1);  
 by (Clarsimp_tac 1);
 qed_spec_mp "sup_loc_append";
@@ -112,7 +112,7 @@ by (induct_tac "a" 1);
 by (Clarsimp_tac 1);
 by Safe_tac;
  by (clarsimp_tac (claset(), simpset() addsimps [sup_loc_append, sup_loc_length]) 2);
-by (exhaust_tac "b" 1); 
+by (cases_tac "b" 1); 
  bd sup_loc_length 1;
  by (Clarsimp_tac 1);
 by (clarsimp_tac (claset(), simpset() addsimps [sup_loc_append, sup_loc_length]) 1);
@@ -129,7 +129,7 @@ by (auto_tac (claset(), simpset() addsimps [sup_loc_rev, rev_map RS sym]));
 qed "sup_state_rev_fst";
 
 Goal "map x a = Y # YT \\<longrightarrow> map x (tl a) = YT \\<and> x (hd a) = Y \\<and> (\\<exists> y yt. a = y#yt)";
-by (exhaust_tac "a" 1);
+by (cases_tac "a" 1);
 by Auto_tac;
 qed_spec_mp "map_hd_tl";
 
@@ -159,15 +159,15 @@ qed "sup_state_ignore_fst";
 
 Goalw[sup_ty_opt_def] 
 "\\<lbrakk>G \\<turnstile> a <=o b; G \\<turnstile> b <=o c\\<rbrakk> \\<Longrightarrow> G \\<turnstile> a <=o c";
-by (exhaust_tac "c" 1);
+by (cases_tac "c" 1);
  by (Clarsimp_tac 1);
 by (Clarsimp_tac 1);
-by (exhaust_tac "a" 1);
+by (cases_tac "a" 1);
  by (Clarsimp_tac 1);
- by (exhaust_tac "b" 1);
+ by (cases_tac "b" 1);
   by (Clarsimp_tac 1);
  by (Clarsimp_tac 1);
-by (exhaust_tac "b" 1);
+by (cases_tac "b" 1);
  by (Clarsimp_tac 1);
 by (Clarsimp_tac 1);
 be widen_trans 1;
@@ -190,7 +190,7 @@ Goal "\\<forall> b. length a = length b \\<longrightarrow> (\\<forall> n. n < le
 by (induct_tac "a" 1);
  by (Clarsimp_tac 1);
 by (Clarsimp_tac 1);
-by (exhaust_tac "b=[]" 1);
+by (case_tac "b=[]" 1);
  by (Clarsimp_tac 1);
 by (Clarsimp_tac 1);
 by (asm_full_simp_tac (simpset() addsimps [neq_Nil_conv]) 1);
@@ -230,7 +230,7 @@ ba 1;
 qed "sup_state_trans";
 
 Goalw[sup_ty_opt_def] "G \\<turnstile> a <=o Some b \\<Longrightarrow> \\<exists> x. a = Some x";
-by (exhaust_tac "a" 1);
+by (cases_tac "a" 1);
  by Auto_tac;
 qed "sup_ty_opt_some";
 
@@ -240,7 +240,7 @@ Goalw[sup_loc_def]
 by (induct_tac "x" 1);
  by (Simp_tac 1);
 by (clarsimp_tac ((claset(), simpset()) addIffs [sup_loc_Cons2]) 1);
-by (exhaust_tac "n" 1);
+by (cases_tac "n" 1);
  by (clarsimp_tac (claset(), simpset() addsimps [list_all2_Cons1]) 1);
 by (clarsimp_tac (claset(), simpset() addsimps [list_all2_Cons1]) 1);
 qed_spec_mp "sup_loc_update";

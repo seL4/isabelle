@@ -43,7 +43,7 @@ val [p1,p2,p3] = Goal
 \       !!y m. [| n = Suc m; (x,y) : R^m; (y,z) : R |] ==> P  \
 \    |] ==> P";
 by (cut_facts_tac [p1] 1);
-by (exhaust_tac "n" 1);
+by (cases_tac "n" 1);
 by (asm_full_simp_tac (simpset() addsimps [p2]) 1);
 by (Asm_full_simp_tac 1);
 by (etac compEpair 1);
@@ -70,7 +70,7 @@ val [p1,p2,p3] = Goal
 \       !!y m. [| n = Suc m; (x,y) : R; (y,z) : R^m |] ==> P  \
 \    |] ==> P";
 by (cut_facts_tac [p1] 1);
-by (exhaust_tac "n" 1);
+by (cases_tac "n" 1);
 by (asm_full_simp_tac (simpset() addsimps [p2]) 1);
 by (Asm_full_simp_tac 1);
 by (etac compEpair 1);

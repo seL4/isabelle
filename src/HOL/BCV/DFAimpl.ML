@@ -60,7 +60,7 @@ by (rtac iffI 1);
      by (Force_tac 2);
     by (assume_tac 2);
    by (assume_tac 2);
-  by (exhaust_tac "xs!p" 1);
+  by (cases_tac "xs!p" 1);
    by (asm_full_simp_tac (simpset() addsimps [list_update_le_conv]) 1);
   by (asm_full_simp_tac (simpset() addsimps
       [list_update_le_conv,listsn_optionE_in]) 1);
@@ -147,7 +147,7 @@ Goal
 \         step p s = Some(t) & merges t (succs p) sos = sos))";
 by (rtac iffI 1);
  by (asm_simp_tac (simpset() addsimps [next_Some1]) 1);
-by (exhaust_tac "next step succs sos" 1);
+by (cases_tac "next step succs sos" 1);
  by (best_tac (claset() addSDs [next_None] addss simpset()) 1);
 by (rename_tac "sos'" 1);
 by (case_tac "sos' = sos" 1);
@@ -172,7 +172,7 @@ Goal
 \    step_pres_type step n A; succs_bounded succs n;\
 \    sos : listsn n (option A) |] ==> \
 \ next step succs sos : option (listsn n (option A))";
-by (exhaust_tac "next step succs sos" 1);
+by (cases_tac "next step succs sos" 1);
  by (ALLGOALS Asm_simp_tac);
 by (rename_tac "sos'" 1);
 by (case_tac "sos' = sos" 1);
@@ -256,7 +256,7 @@ Goal
 by (subgoal_tac
    "!p<n. !s. sos!p = Some s --> (? u. \
 \             step p s = Some(u) & (!q:set(succs p). Some u<=tos!q))" 1);
- by (exhaust_tac "next step succs sos" 1);
+ by (cases_tac "next step succs sos" 1);
   by (dtac next_None 1);
      by (assume_tac 1);
     by (assume_tac 1);
@@ -279,12 +279,12 @@ by (subgoal_tac
     by (blast_tac (claset() addIs [succs_boundedD,listsn_optionE_in]) 1);
    by (REPEAT(atac 1));
 by (Clarify_tac 1);
-by (exhaust_tac "tos!p" 1);
+by (cases_tac "tos!p" 1);
  by (force_tac (claset() addDs [le_listD],simpset()) 1);
 by (rename_tac "t" 1);
 by (subgoal_tac "s <= t" 1);
  by (force_tac (claset() addDs [le_listD],simpset()) 2);
-by (exhaust_tac "step p s" 1);
+by (cases_tac "step p s" 1);
  by (dtac step_mono_NoneD 1);
      by (assume_tac 4);
     by (blast_tac (claset() addIs [listsn_optionE_in]) 1);

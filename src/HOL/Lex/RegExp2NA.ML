@@ -112,7 +112,7 @@ Goal
 \ ( (w = [] & q = start(union L R)) | \
 \   (w ~= [] & (? p.  q = True  # p & (start L,p) : steps L w | \
 \                     q = False # p & (start R,p) : steps R w)))";
-by (exhaust_tac "w" 1);
+by (cases_tac "w" 1);
  by (Asm_simp_tac 1);
  by (Blast_tac 1);
 by (Asm_simp_tac 1);
@@ -273,7 +273,7 @@ by (rtac iffI 1);
  by (Simp_tac 1);
  by (Blast_tac 1);
 by (Clarify_tac 1);
-by (exhaust_tac "v" 1);
+by (cases_tac "v" 1);
  by (Asm_full_simp_tac 1);
  by (Blast_tac 1);
 by (Asm_full_simp_tac 1);
@@ -336,7 +336,7 @@ AddIffs [step_plus_conv];
 Goal
  "[| (start A,q) : steps A u; u ~= []; fin A p |] \
 \ ==> (p,q) : steps (plus A) u";
-by (exhaust_tac "u" 1);
+by (cases_tac "u" 1);
  by (Blast_tac 1);
 by (Asm_full_simp_tac 1);
 by (blast_tac (claset() addIs [steps_plusI]) 1);
@@ -360,7 +360,7 @@ by (etac disjE 1);
  by (res_inst_tac [("x","us")] exI 1);
  by (Asm_simp_tac 1);
  by (Blast_tac 1);
-by (exhaust_tac "v" 1);
+by (cases_tac "v" 1);
  by (res_inst_tac [("x","us")] exI 1);
  by (Asm_full_simp_tac 1);
 by (res_inst_tac [("x","us@[v]")] exI 1);

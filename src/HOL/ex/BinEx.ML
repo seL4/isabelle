@@ -323,13 +323,13 @@ qed "NCons_False";
 
 Goal "w: normal ==> bin_succ w : normal";
 by (etac normal.induct 1);
-by (exhaust_tac "w" 4);
+by (cases_tac "w" 4);
 by (auto_tac (claset(), simpset() addsimps [NCons_True, bin_succ_BIT]));
 qed "bin_succ_normal";
 
 Goal "w: normal ==> bin_pred w : normal";
 by (etac normal.induct 1);
-by (exhaust_tac "w" 3);
+by (cases_tac "w" 3);
 by (auto_tac (claset(), simpset() addsimps [NCons_False, bin_pred_BIT]));
 qed "bin_pred_normal";
 

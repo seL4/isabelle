@@ -129,7 +129,7 @@ Addsimps [same_genPrefix_genPrefix];
 
 Goal "((xs, y#ys) : genPrefix r) = \
 \     (xs=[] | (EX z zs. xs=z#zs & (z,y) : r & (zs,ys) : genPrefix r))";
-by (exhaust_tac "xs" 1);
+by (cases_tac "xs" 1);
 by Auto_tac;
 qed "genPrefix_Cons";
 
@@ -183,7 +183,7 @@ Goal "ALL i ys. i < length xs \
 \               --> (xs, ys) : genPrefix r --> (xs ! i, ys ! i) : r";
 by (induct_tac "xs" 1);
 by Auto_tac;
-by (exhaust_tac "i" 1);
+by (cases_tac "i" 1);
 by Auto_tac;
 qed_spec_mp "genPrefix_imp_nth";
 
@@ -194,7 +194,7 @@ by (induct_tac "xs" 1);
 by (ALLGOALS (asm_simp_tac (simpset() addsimps [less_Suc_eq_0_disj, 
 						all_conj_distrib])));
 by (Clarify_tac 1);
-by (exhaust_tac "ys" 1);
+by (cases_tac "ys" 1);
 by (ALLGOALS Force_tac);
 qed_spec_mp "nth_imp_genPrefix";
 

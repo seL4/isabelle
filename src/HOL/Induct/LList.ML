@@ -76,7 +76,7 @@ Goalw [LList_corec_def]
     "LList_corec a f <= \
 \    (case f a of None => NIL | Some(z,w) => CONS z (LList_corec w f))";
 by (rtac UN_least 1);
-by (exhaust_tac "k" 1);
+by (cases_tac "k" 1);
 by (ALLGOALS Asm_simp_tac);
 by (REPEAT (resolve_tac [allI, impI, subset_refl RS CONS_mono, 
 			 UNIV_I RS UN_upper] 1));
@@ -132,10 +132,10 @@ by (res_inst_tac [("n", "k")] less_induct 1);
 by (safe_tac (claset() delrules [equalityI]));
 by (etac LListD.elim 1);
 by (safe_tac (claset() delrules [equalityI]));
-by (exhaust_tac "n" 1);
+by (cases_tac "n" 1);
 by (Asm_simp_tac 1);
 by (rename_tac "n'" 1);
-by (exhaust_tac "n'" 1);
+by (cases_tac "n'" 1);
 by (asm_simp_tac (simpset() addsimps [CONS_def]) 1);
 by (asm_simp_tac (simpset() addsimps [CONS_def, less_Suc_eq]) 1);
 qed "LListD_implies_ntrunc_equality";
@@ -295,9 +295,9 @@ by (stac prem1 1);
 by (stac prem2 1);
 by (Simp_tac 1);
 by (strip_tac 1);
-by (exhaust_tac "n" 1);
+by (cases_tac "n" 1);
 by (rename_tac "m" 2);
-by (exhaust_tac "m" 2);
+by (cases_tac "m" 2);
 by (ALLGOALS (asm_simp_tac (simpset() addsimps [less_Suc_eq])));
 result();
 
@@ -598,7 +598,7 @@ Goalw [llist_corec_def,LNil_def,LCons_def]
     "llist_corec a f =  \
 \    (case f a of None => LNil | Some(z,w) => LCons z (llist_corec w f))";
 by (stac LList_corec 1);
-by (exhaust_tac "f a" 1);
+by (cases_tac "f a" 1);
 by (asm_simp_tac (simpset() addsimps [LList_corec_type2]) 1);
 by (force_tac (claset(), simpset() addsimps [LList_corec_type2]) 1);
 qed "llist_corec";

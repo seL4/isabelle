@@ -22,23 +22,23 @@ qed "def_nat_rec_Suc";
 val [nat_case_0, nat_case_Suc] = nat.cases;
 
 Goal "n ~= 0 ==> EX m. n = Suc m";
-by (exhaust_tac "n" 1);
+by (cases_tac "n" 1);
 by (REPEAT (Blast_tac 1));
 qed "not0_implies_Suc";
 
 Goal "m<n ==> n ~= 0";
-by (exhaust_tac "n" 1);
+by (cases_tac "n" 1);
 by (ALLGOALS Asm_full_simp_tac);
 qed "gr_implies_not0";
 
 Goal "(n ~= 0) = (0 < n)";
-by (exhaust_tac "n" 1);
+by (cases_tac "n" 1);
 by Auto_tac;
 qed "neq0_conv";
 AddIffs [neq0_conv];
 
 Goal "(0 ~= n) = (0 < n)";
-by (exhaust_tac "n" 1);
+by (cases_tac "n" 1);
 by Auto_tac;
 qed "zero_neq_conv";
 AddIffs [zero_neq_conv];
@@ -64,7 +64,7 @@ qed_spec_mp "Suc_le_D";
 
 (*Useful in certain inductive arguments*)
 Goal "(m < Suc n) = (m=0 | (EX j. m = Suc j & j < n))";
-by (exhaust_tac "m" 1);
+by (cases_tac "m" 1);
 by Auto_tac;
 qed "less_Suc_eq_0_disj";
 
@@ -74,11 +74,11 @@ by (rtac select_equality 1);
 by (fold_goals_tac [Least_nat_def]);
 by (safe_tac (claset() addSEs [LeastI]));
 by (rename_tac "j" 1);
-by (exhaust_tac "j" 1);
+by (cases_tac "j" 1);
 by (Blast_tac 1);
 by (blast_tac (claset() addDs [Suc_less_SucD, not_less_Least]) 1);
 by (rename_tac "k n" 1);
-by (exhaust_tac "k" 1);
+by (cases_tac "k" 1);
 by (Blast_tac 1);
 by (hyp_subst_tac 1);
 by (rewtac Least_nat_def);
@@ -90,8 +90,8 @@ qed "Least_Suc";
 
 val prems = Goal "[| P 0; P 1; !!k. P k ==> P (Suc (Suc k)) |] ==> P n";
 by (rtac less_induct 1);
-by (exhaust_tac "n" 1);
-by (exhaust_tac "nat" 2);
+by (cases_tac "n" 1);
+by (cases_tac "nat" 2);
 by (ALLGOALS (blast_tac (claset() addIs prems@[less_trans])));
 qed "nat_induct2";
 

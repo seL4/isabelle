@@ -86,7 +86,7 @@ by (res_inst_tac [("t","r")] Apps_dB_induct 1);
   by (eres_inst_tac [("x","Var n $$ us")] allE 1);
   by (Force_tac 1);
 by (rename_tac "u ts" 1);
-by (exhaust_tac "ts" 1);
+by (cases_tac "ts" 1);
  by (Asm_full_simp_tac 1);
  by (blast_tac (claset() addIs IT.intrs) 1);
 by (rename_tac "s ss" 1);

@@ -5,6 +5,6 @@
 *)
 
 Goal "(\\<forall>pt. T \\<noteq> PrimT pt) = (\\<exists>t. T = RefT t)";
-by(exhaust_tac "T" 1);
+by(cases_tac "T" 1);
 by Auto_tac;
 qed "non_PrimT";

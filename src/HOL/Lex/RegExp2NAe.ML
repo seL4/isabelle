@@ -191,7 +191,7 @@ Goal
 \ ( (w = [] & q = start(union L R)) | \
 \   (? p.  q = True  # p & (start L,p) : steps L w | \
 \          q = False # p & (start R,p) : steps R w) )";
-by (exhaust_tac "w" 1);
+by (cases_tac "w" 1);
  by (Asm_simp_tac 1);
  by (Blast_tac 1);
 by (Asm_simp_tac 1);
@@ -568,7 +568,7 @@ Goal
  "(start(star A),r) : steps (star A) w = \
 \ ((w=[] & r= start(star A)) | (True#start A,r) : steps (star A) w)";
 by (rtac iffI 1);
- by (exhaust_tac "w" 1);
+ by (cases_tac "w" 1);
   by (asm_full_simp_tac (simpset() addsimps
     [epsclosure_start_step_star]) 1);
  by (Asm_full_simp_tac 1);
