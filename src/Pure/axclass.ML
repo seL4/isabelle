@@ -26,12 +26,6 @@ sig
   val add_inst_arity_i: string * sort list * sort -> tactic -> theory -> theory
   val default_intro_classes_tac: thm list -> int -> tactic
   val axclass_tac: thm list -> tactic
-  val prove_subclass: theory -> class * class -> thm list
-    -> tactic option -> thm
-  val prove_arity: theory -> string * sort list * class -> thm list
-    -> tactic option -> thm
-  val goal_subclass: theory -> xclass * xclass -> thm list
-  val goal_arity: theory -> xstring * string list * xclass -> thm list
   val instance_subclass_proof: (xclass * xclass) * Comment.text -> bool -> theory -> ProofHistory.T
   val instance_subclass_proof_i: (class * class) * Comment.text -> bool -> theory -> ProofHistory.T
   val instance_arity_proof: (xstring * string list * xclass) * Comment.text
@@ -349,24 +343,16 @@ fun axclass_tac thms =
 
 (* provers *)
 
-fun prove mk_prop str_of thy sig_prop thms usr_tac =
-  let
-    val sign = Theory.sign_of thy;
-    val goal = Thm.cterm_of sign (mk_prop sig_prop)
-      handle TERM (msg, _) => error msg
-        | TYPE (msg, _, _) => error msg;
-    val tac = axclass_tac thms THEN (if_none usr_tac all_tac);
-  in
-    prove_goalw_cterm [] goal (K [tac])
-  end
-  handle ERROR => error ("The error(s) above occurred while trying to prove "
-    ^ quote (str_of (Theory.sign_of thy, sig_prop)));
+fun prove mk_prop str_of sign prop thms usr_tac =
+  (Tactic.prove sign [] [] (mk_prop prop) (K (axclass_tac thms THEN (if_none usr_tac all_tac)))
+    handle ERROR => error ("The error(s) above occurred while trying to prove " ^
+     quote (str_of sign prop))) |> Drule.standard;
 
 val prove_subclass =
-  prove mk_classrel (fn (sg, c1_c2) => Sign.str_of_classrel sg c1_c2);
+  prove mk_classrel (fn sg => fn c1_c2 => Sign.str_of_classrel sg c1_c2);
 
 val prove_arity =
-  prove mk_arity (fn (sg, (t, Ss, c)) => Sign.str_of_arity sg (t, Ss, [c]));
+  prove mk_arity (fn sg => fn (t, Ss, c) => Sign.str_of_arity sg (t, Ss, [c]));
 
 
 
@@ -400,10 +386,12 @@ fun cert_simple_arity arg = prep_arity (K I) Sign.certify_sort (K I) arg;
 (* old-style instance declarations *)
 
 fun ext_inst_subclass prep_classrel raw_c1_c2 names thms usr_tac thy =
-  let val c1_c2 = prep_classrel (Theory.sign_of thy) raw_c1_c2 in
-    message ("Proving class inclusion " ^
-      quote (Sign.str_of_classrel (Theory.sign_of thy) c1_c2) ^ " ...");
-    thy |> add_classrel_thms [prove_subclass thy c1_c2 (witnesses thy names thms) usr_tac]
+  let
+    val sign = Theory.sign_of thy;
+    val c1_c2 = prep_classrel sign raw_c1_c2;
+  in
+    message ("Proving class inclusion " ^ quote (Sign.str_of_classrel sign c1_c2) ^ " ...");
+    thy |> add_classrel_thms [prove_subclass sign c1_c2 (witnesses thy names thms) usr_tac]
   end;
 
 fun ext_inst_arity prep_arity (raw_t, raw_Ss, raw_cs) names thms usr_tac thy =
@@ -414,7 +402,7 @@ fun ext_inst_arity prep_arity (raw_t, raw_Ss, raw_cs) names thms usr_tac thy =
     fun prove c =
      (message ("Proving type arity " ^
         quote (Sign.str_of_arity sign (t, Ss, [c])) ^ " ...");
-        prove_arity thy (t, Ss, c) wthms usr_tac);
+        prove_arity sign (t, Ss, c) wthms usr_tac);
   in add_arity_thms (map prove cs) thy end;
 
 fun sane_inst_subclass prep sub tac = ext_inst_subclass prep sub [] [] (Some tac);
@@ -426,15 +414,6 @@ val add_inst_subclass_i = sane_inst_subclass cert_classrel;
 val add_inst_arity_x = ext_inst_arity read_arity;
 val add_inst_arity = sane_inst_arity read_arity;
 val add_inst_arity_i = sane_inst_arity cert_arity;
-
-
-(* make old-style interactive goals *)
-
-fun mk_goal mk_prop thy sig_prop =
-  Goals.goalw_cterm [] (Thm.cterm_of (Theory.sign_of thy) (mk_prop (Theory.sign_of thy) sig_prop));
-
-val goal_subclass = mk_goal (mk_classrel oo read_classrel);
-val goal_arity = mk_goal (mk_arity oo read_simple_arity);
 
 
 
@@ -485,6 +464,5 @@ val instanceP =
 val _ = OuterSyntax.add_parsers [axclassP, instanceP];
 
 end;
-
 
 end;
