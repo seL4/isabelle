@@ -60,7 +60,7 @@ sig
     (bstring * (term list -> term)) list *
     (bstring * (Syntax.ast list -> Syntax.ast)) list -> theory -> theory
   val add_trfunsT:
-    (bstring * (typ -> term list -> term)) list -> theory -> theory
+    (bstring * (bool -> typ -> term list -> term)) list -> theory -> theory
   val add_tokentrfuns:
     (string * string * (string -> string * int)) list -> theory -> theory
   val add_trrules: (string * string) Syntax.trrule list -> theory -> theory
@@ -310,14 +310,18 @@ fun dest_defn tm =
       | occs_const (t $ u) = occs_const t orelse occs_const u
       | occs_const _ = false;
 
-    val show_frees = commas_quote o map (fst o dest_Free);
+    fun dest_free (Free (x, _)) = x
+      | dest_free (Const ("TYPE", Type ("itself", [TFree (x, _)]))) = x
+      | dest_free _ = raise Match;
+
+    val show_frees = commas_quote o map dest_free;
     val show_tfrees = commas_quote o map fst;
 
     val lhs_dups = duplicates args;
     val rhs_extras = gen_rems (op =) (term_frees rhs, args);
     val rhs_extrasT = gen_rems (op =) (term_tfrees rhs, typ_tfrees ty);
   in
-    if not (forall is_Free args) then
+    if not (forall (can dest_free) args) then
       err "Arguments (on lhs) must be variables"
     else if not (null lhs_dups) then
       err ("Duplicate variables on lhs: " ^ show_frees lhs_dups)
