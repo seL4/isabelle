@@ -331,7 +331,12 @@ fun distinct_v (nvs, Var ((s, 0), T)) =
       in (nvs'', t' $ u') end
   | distinct_v x = x;
 
-fun compile_match nvs eq_ps out_ps success_p fail_p =
+fun is_exhaustive (Var _) = true
+  | is_exhaustive (Const ("Pair", _) $ t $ u) =
+      is_exhaustive t andalso is_exhaustive u
+  | is_exhaustive _ = false;
+
+fun compile_match nvs eq_ps out_ps success_p can_fail =
   let val eqs = flat (separate [Pretty.str " andalso", Pretty.brk 1]
     (map single (flat (map (mk_eq o snd) nvs) @ eq_ps)));
   in
@@ -340,8 +345,10 @@ fun compile_match nvs eq_ps out_ps success_p fail_p =
       (Pretty.block ((if eqs=[] then [] else Pretty.str "if " ::
          [Pretty.block eqs, Pretty.brk 1, Pretty.str "then "]) @
          (success_p ::
-          (if eqs=[] then [] else [Pretty.brk 1, Pretty.str "else ", fail_p]))) ::
-       [Pretty.brk 1, Pretty.str "| _ => ", fail_p, Pretty.str ")"]))
+          (if eqs=[] then [] else [Pretty.brk 1, Pretty.str "else Seq.empty"]))) ::
+       (if can_fail then
+          [Pretty.brk 1, Pretty.str "| _ => Seq.empty)"]
+        else [Pretty.str ")"])))
   end;
 
 fun modename thy s (iss, is) = space_implode "__"
@@ -401,7 +408,7 @@ fun compile_clause thy gr dep all_vs arg_vs modes (iss, is) (ts, ps) =
           in
             (gr5, compile_match (snd nvs) (eq_ps @ eq_ps') out_ps'
               (Pretty.block [Pretty.str "Seq.single", Pretty.brk 1, mk_tuple out_ps])
-              (Pretty.str "Seq.empty"))
+              (exists (not o is_exhaustive) out_ts'''))
           end
       | compile_prems out_ts vs names gr ps =
           let
@@ -435,7 +442,7 @@ fun compile_clause thy gr dep all_vs arg_vs modes (iss, is) (ts, ps) =
                    (gr4, compile_match (snd nvs) eq_ps out_ps
                       (Pretty.block (ps @
                          [Pretty.str " :->", Pretty.brk 1, rest]))
-                      (Pretty.str "Seq.empty"))
+                      (exists (not o is_exhaustive) out_ts''))
                  end
              | Sidecond t =>
                  let
@@ -445,7 +452,7 @@ fun compile_clause thy gr dep all_vs arg_vs modes (iss, is) (ts, ps) =
                    (gr3, compile_match (snd nvs) eq_ps out_ps
                       (Pretty.block [Pretty.str "?? ", side_p,
                         Pretty.str " :->", Pretty.brk 1, rest])
-                      (Pretty.str "Seq.empty"))
+                      (exists (not o is_exhaustive) out_ts''))
                  end)
           end;
 
