@@ -1,3 +1,11 @@
+(*  Title:      TFL/usyntax
+    ID:         $Id$
+    Author:     Konrad Slind, Cambridge University Computer Laboratory
+    Copyright   1997  University of Cambridge
+
+Emulation of HOL's abstract syntax functions
+*)
+
 structure USyntax : USyntax_sig =
 struct
 
@@ -104,7 +112,6 @@ fun beta_conv((t1 as Abs _ ) $ t2) = betapply(t1,t2)
 
 
 (* Construction routines *)
-(* fun mk_var{Name,Ty} = Var((Name,0),Ty); *)
 fun mk_var{Name,Ty} = Free(Name,Ty);
 val mk_prim_var = Var;
 

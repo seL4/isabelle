@@ -1,6 +1,13 @@
-(*-------------------------------------------------------------------------
-there are 3 postprocessors that get applied to the definition:
+(*  Title:      TFL/post
+    ID:         $Id$
+    Author:     Konrad Slind, Cambridge University Computer Laboratory
+    Copyright   1997  University of Cambridge
 
+Postprocessing of TFL definitions
+*)
+
+(*-------------------------------------------------------------------------
+Three postprocessors are applied to the definition:
     - a wellfoundedness prover (WF_TAC)
     - a simplifier (tries to eliminate the language of termination expressions)
     - a termination prover
@@ -75,7 +82,7 @@ fun termination_goals rules =
                                     addss (!simpset)) 1);
 
  val simpls = [less_eq RS eq_reflection,
-               lex_prod_def, rprod_def, measure_def, inv_image_def];
+               lex_prod_def, measure_def, inv_image_def];
 
  (*---------------------------------------------------------------------------
   * Does some standard things with the termination conditions of a definition:
@@ -191,14 +198,14 @@ fun proof_stage theory reducer {f, R, rules, full_pats_TCs, TCs} =
           |   e                 => print_exn e;
 
 
-(*lcp: uncurry the predicate of the induction rule*)
-fun uncurry_rule rl = Prod_Syntax.split_rule_var
+(*lcp: curry the predicate of the induction rule*)
+fun curry_rule rl = Prod_Syntax.split_rule_var
                         (head_of (HOLogic.dest_Trueprop (concl_of rl)), 
 			 rl);
 
 (*lcp: put a theorem into Isabelle form, using meta-level connectives*)
 val meta_outer = 
-    uncurry_rule o standard o 
+    curry_rule o standard o 
     rule_by_tactic (REPEAT_FIRST (resolve_tac [allI, impI, conjI]
 				  ORELSE' etac conjE));
 

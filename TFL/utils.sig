@@ -1,3 +1,11 @@
+(*  Title:      TFL/utils
+    ID:         $Id$
+    Author:     Konrad Slind, Cambridge University Computer Laboratory
+    Copyright   1997  University of Cambridge
+
+Basic utilities
+*)
+
 signature Utils_sig =
 sig
   (* General error format and reporting mechanism *)

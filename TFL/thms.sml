@@ -1,3 +1,9 @@
+(*  Title:      TFL/thms
+    ID:         $Id$
+    Author:     Konrad Slind, Cambridge University Computer Laboratory
+    Copyright   1997  University of Cambridge
+*)
+
 structure Thms : Thms_sig =
 struct
    val WFREC_COROLLARY = get_thm WF_Rel.thy "tfl_wfrec"

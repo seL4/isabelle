@@ -1,3 +1,11 @@
+(*  Title:      TFL/usyntax
+    ID:         $Id$
+    Author:     Konrad Slind, Cambridge University Computer Laboratory
+    Copyright   1997  University of Cambridge
+
+Emulation of HOL's abstract syntax functions
+*)
+
 signature USyntax_sig =
 sig
   structure Utils : Utils_sig

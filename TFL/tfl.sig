@@ -1,3 +1,11 @@
+(*  Title:      TFL/tfl
+    ID:         $Id$
+    Author:     Konrad Slind, Cambridge University Computer Laboratory
+    Copyright   1997  University of Cambridge
+
+Main TFL functor
+*)
+
 signature TFL_sig =
 sig
    structure Rules: Rules_sig

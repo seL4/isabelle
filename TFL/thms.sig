@@ -1,3 +1,9 @@
+(*  Title:      TFL/thms
+    ID:         $Id$
+    Author:     Konrad Slind, Cambridge University Computer Laboratory
+    Copyright   1997  University of Cambridge
+*)
+
 signature Thms_sig =
 sig
    val WF_INDUCTION_THM:thm

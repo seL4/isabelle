@@ -1,7 +1,10 @@
-(*---------------------------------------------------------------------------
- * Some common utilities.
- *---------------------------------------------------------------------------*)
+(*  Title:      TFL/utils
+    ID:         $Id$
+    Author:     Konrad Slind, Cambridge University Computer Laboratory
+    Copyright   1997  University of Cambridge
 
+Basic utilities
+*)
 
 structure Utils = 
 struct

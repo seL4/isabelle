@@ -1,3 +1,9 @@
+(*  Title:      TFL/thry
+    ID:         $Id$
+    Author:     Konrad Slind, Cambridge University Computer Laboratory
+    Copyright   1997  University of Cambridge
+*)
+
 signature Thry_sig =
 sig
   type 'a binding

@@ -1,3 +1,9 @@
+(*  Title:      TFL/dcterm
+    ID:         $Id$
+    Author:     Konrad Slind, Cambridge University Computer Laboratory
+    Copyright   1997  University of Cambridge
+*)
+
 (*---------------------------------------------------------------------------
  * Derived efficient cterm destructors.
  *---------------------------------------------------------------------------*)

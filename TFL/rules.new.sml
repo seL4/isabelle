@@ -1,3 +1,11 @@
+(*  Title:      TFL/rules
+    ID:         $Id$
+    Author:     Konrad Slind, Cambridge University Computer Laboratory
+    Copyright   1997  University of Cambridge
+
+Emulation of HOL inference rules for TFL
+*)
+
 structure FastRules : Rules_sig = 
 struct
 

@@ -1,4 +1,10 @@
-(* Compile the TFL system *)
+(*  Title:      TFL/mask
+    ID:         $Id$
+    Author:     Konrad Slind, Cambridge University Computer Laboratory
+    Copyright   1997  University of Cambridge
+
+Compile the TFL system
+*)
 
 (* Portability stuff *)
 nonfix prefix;

@@ -1,3 +1,9 @@
+(*  Title:      TFL/mask
+    ID:         $Id$
+    Author:     Konrad Slind, Cambridge University Computer Laboratory
+    Copyright   1997  University of Cambridge
+*)
+
 (*---------------------------------------------------------------------------
  * This structure is intended to shield TFL from any constructors already 
  * declared in the environment. In the Isabelle port, for example, there
