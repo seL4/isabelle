@@ -11,20 +11,17 @@ sig
   val name: string
   type T
   val init: theory -> T
-  val print: Proof.context -> T -> unit
+  val print: ProofContext.context -> T -> unit
 end;
 
 signature PROOF_DATA =
 sig
   type T
   val init: theory -> theory
-  val print: Proof.context -> unit
-  val get: Proof.context -> T
-  val put: T -> Proof.context -> Proof.context
-  val map: (T -> T) -> Proof.context -> Proof.context
-  val get_st: Proof.state -> T
-  val put_st: T -> Proof.state -> Proof.state
-  val map_st: (T -> T) -> Proof.state -> Proof.state
+  val print: ProofContext.context -> unit
+  val get: ProofContext.context -> T
+  val put: T -> ProofContext.context -> ProofContext.context
+  val map: (T -> T) -> ProofContext.context -> ProofContext.context
 end;
 
 functor ProofDataFun(Args: PROOF_DATA_ARGS): PROOF_DATA =
@@ -45,13 +42,8 @@ val get = ProofContext.get_data kind (fn Data x => x);
 val put = ProofContext.put_data kind Data;
 fun map f ctxt = put (f (get ctxt)) ctxt;
 
-val get_st = get o Proof.context_of;
-val put_st = Proof.put_data kind Data;
-fun map_st f st = put_st (f (get_st st)) st;
-
 end;
 
 
 (*hide private data access functions*)
 structure ProofContext: PROOF_CONTEXT = ProofContext;
-structure Proof: PROOF = Proof;
