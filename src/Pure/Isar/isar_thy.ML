@@ -3,10 +3,6 @@
     Author:     Markus Wenzel, TU Muenchen
 
 Pure/Isar derived theory operations.
-
-TODO:
-  - 'methods' section (proof macros, ML method defs) (!?);
-  - next_block: ProofHistory open / close (!?);
 *)
 
 signature ISAR_THY =
@@ -44,10 +40,14 @@ sig
   val fix_i: (string * typ) list -> ProofHistory.T -> ProofHistory.T
   val match_bind: (string list * string) list -> ProofHistory.T -> ProofHistory.T
   val match_bind_i: (term list * term) list -> ProofHistory.T -> ProofHistory.T
-  val theorem: string -> Args.src list -> string * string list -> theory -> ProofHistory.T
-  val theorem_i: bstring -> theory attribute list -> term * term list -> theory -> ProofHistory.T
-  val lemma: string -> Args.src list -> string * string list -> theory -> ProofHistory.T
-  val lemma_i: bstring -> theory attribute list -> term * term list -> theory -> ProofHistory.T
+  val theorem: string -> Args.src list -> string * string list
+    -> bool -> theory -> ProofHistory.T
+  val theorem_i: bstring -> theory attribute list -> term * term list
+    -> bool -> theory -> ProofHistory.T
+  val lemma: string -> Args.src list -> string * string list
+    -> bool -> theory -> ProofHistory.T
+  val lemma_i: bstring -> theory attribute list -> term * term list
+    -> bool -> theory -> ProofHistory.T
   val assume: string -> Args.src list -> (string * string list) list
     -> ProofHistory.T -> ProofHistory.T
   val assume_i: string -> Proof.context attribute list -> (term * term list) list
@@ -184,10 +184,12 @@ val match_bind_i = ProofHistory.apply o Proof.match_bind_i;
 
 (* statements *)
 
-fun global_statement f name src s thy =
-  ProofHistory.init (f name (map (Attrib.global_attribute thy) src) s thy);
+fun global_statement f name src s int thy =
+  ProofHistory.init (Toplevel.undo_limit int)
+    (f name (map (Attrib.global_attribute thy) src) s thy);
 
-fun global_statement_i f name atts t thy = ProofHistory.init (f name atts t thy);
+fun global_statement_i f name atts t int thy =
+  ProofHistory.init (Toplevel.undo_limit int) (f name atts t thy);
 
 fun local_statement do_open f g name src s = ProofHistory.apply_cond_open do_open (fn state =>
   f name (map (Attrib.local_attribute (Proof.theory_of state)) src) s (g state));
@@ -227,15 +229,13 @@ val proof = ProofHistory.applys o Method.proof;
 
 (* local endings *)
 
-(* FIXME
-val print_proof = Toplevel.print oo Toplevel.proof;
-*)
-val print_proof = Toplevel.proof;
-
-val local_qed = print_proof o ProofHistory.applys_close o Method.local_qed;
-val local_terminal_proof = print_proof o ProofHistory.applys_close o Method.local_terminal_proof;
-val local_immediate_proof = print_proof (ProofHistory.applys_close Method.local_immediate_proof);
-val local_default_proof = print_proof (ProofHistory.applys_close Method.local_default_proof);
+val local_qed = Toplevel.proof' o (ProofHistory.applys_close oo Method.local_qed);
+val local_terminal_proof =
+  Toplevel.proof' o (ProofHistory.applys_close oo Method.local_terminal_proof);
+val local_immediate_proof =
+  Toplevel.proof' (ProofHistory.applys_close o Method.local_immediate_proof);
+val local_default_proof =
+  Toplevel.proof' (ProofHistory.applys_close o Method.local_default_proof);
 
 
 (* global endings *)
@@ -325,7 +325,7 @@ fun add_oracle (name, txt) =
     ("(" ^ quote name ^ ", " ^ txt ^ ")");
 
 
-(* theory init and exit *)      (* FIXME move? rearrange? *)
+(* theory init and exit *)
 
 fun begin_theory name parents files =
   let
@@ -333,29 +333,21 @@ fun begin_theory name parents files =
     val thy = ThyInfo.begin_theory name parents paths;
   in Present.begin_theory name parents paths thy end;
 
-
-(* FIXME
-fun end_theory thy =
-  let val thy' = PureThy.end_theory thy in
-    Present.end_theory (PureThy.get_name thy');
-    transform_error ThyInfo.put_theory thy'
-      handle exn => raise PureThy.ROLLBACK (thy', Some exn)     (* FIXME !!?? *)
-  end;
-*)
-
 fun end_theory thy =
   (Present.end_theory (PureThy.get_name thy); ThyInfo.end_theory thy);
+
+fun kill_theory thy = ThyInfo.remove_thy (PureThy.get_name thy);
 
 fun bg_theory (name, parents, files) () = begin_theory name parents files;
 fun en_theory thy = (end_theory thy; ());
 
-fun theory spec = Toplevel.init_theory (bg_theory spec) en_theory;
+fun theory spec = Toplevel.init_theory (bg_theory spec) en_theory kill_theory;
 
 
 (* context switch *)
 
 fun switch_theory load s =
-  Toplevel.init_theory (fn () => (the (#2 (Context.pass None load s)))) (K ());
+  Toplevel.init_theory (fn () => (the (#2 (Context.pass None load s)))) (K ()) (K ());
 
 val context = switch_theory ThyInfo.use_thy;
 val update_context = switch_theory ThyInfo.update_thy;
