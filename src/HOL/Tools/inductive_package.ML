@@ -636,9 +636,6 @@ fun add_ind_def verbose declare_consts alt_name coind no_elim no_ind cs
 fun add_ind_axm verbose declare_consts alt_name coind no_elim no_ind cs
     atts intros monos con_defs thy params paramTs cTs cnames =
   let
-    val _ = if verbose then message ("Adding axioms for " ^ coind_prefix coind ^
-      "inductive set(s) " ^ commas_quote cnames) else ();
-
     val rec_name = if alt_name = "" then space_implode "_" cnames else alt_name;
 
     val ((intr_names, intr_ts), intr_atts) = apfst split_list (split_list intros);
