@@ -9,7 +9,13 @@ Supporting code for defining the abstract type "thm"
 infix occs;
 
 signature LOGIC = 
-  sig
+sig
+  val indexname_ord	: indexname * indexname -> order
+  val typ_ord		: typ * typ -> order
+  val typs_ord		: typ list * typ list -> order
+  val term_ord		: term * term -> order
+  val terms_ord		: term list * term list -> order
+  val termless		: term * term -> bool
   val assum_pairs	: term -> (term*term)list
   val auto_rename	: bool ref   
   val close_form	: term -> term   
@@ -48,13 +54,63 @@ signature LOGIC =
   val strip_prems	: int * term list * term -> term list * term
   val unvarify		: term -> term
   val varify		: term -> term
-  val termord		: term * term -> order
-  val lextermord	: term list * term list -> order
-  val termless		: term * term -> bool
-  end;
+end;
 
 structure Logic : LOGIC =
 struct
+
+
+(** type and term orders **)
+
+fun indexname_ord ((x, i), (y, j)) =
+  (case int_ord (i, j) of EQUAL => string_ord (x, y) | ord => ord);
+
+
+(* typ_ord *)
+
+(*assumes that TFrees / TVars with the same name have same sorts*)
+fun typ_ord (Type (a, Ts), Type (b, Us)) =
+      (case string_ord (a, b) of EQUAL => typs_ord (Ts, Us) | ord => ord)
+  | typ_ord (Type _, _) = GREATER
+  | typ_ord (TFree _, Type _) = LESS
+  | typ_ord (TFree (a, _), TFree (b, _)) = string_ord (a, b)
+  | typ_ord (TFree _, TVar _) = GREATER
+  | typ_ord (TVar _, Type _) = LESS
+  | typ_ord (TVar _, TFree _) = LESS
+  | typ_ord (TVar (xi, _), TVar (yj, _)) = indexname_ord (xi, yj)
+and typs_ord Ts_Us = list_ord typ_ord Ts_Us;
+
+
+(* term_ord *)
+
+(*a linear well-founded AC-compatible ordering for terms:
+  s < t <=> 1. size(s) < size(t) or
+            2. size(s) = size(t) and s=f(...) and t=g(...) and f<g or
+            3. size(s) = size(t) and s=f(s1..sn) and t=f(t1..tn) and
+               (s1..sn) < (t1..tn) (lexicographically)*)
+
+fun dest_hd (Const (a, T)) = (((a, 0), T), 0)
+  | dest_hd (Free (a, T)) = (((a, 0), T), 1)
+  | dest_hd (Var v) = (v, 2)
+  | dest_hd (Bound i) = ((("", i), dummyT), 3)
+  | dest_hd (Abs (_, T, _)) = ((("", 0), T), 4);
+
+fun term_ord (Abs (_, T, t), Abs(_, U, u)) =
+      (case term_ord (t, u) of EQUAL => typ_ord (T, U) | ord => ord)
+  | term_ord (t, u) =
+      (case int_ord (size_of_term t, size_of_term u) of
+        EQUAL =>
+          let val (f, ts) = strip_comb t and (g, us) = strip_comb u in
+            (case hd_ord (f, g) of EQUAL => terms_ord (ts, us) | ord => ord)
+          end
+      | ord => ord)
+and hd_ord (f, g) =
+  prod_ord (prod_ord indexname_ord typ_ord) int_ord (dest_hd f, dest_hd g)
+and terms_ord (ts, us) = list_ord term_ord (ts, us);
+
+fun termless tu = (term_ord tu = LESS);
+
+
 
 (*** Abstract syntax operations on the meta-connectives ***)
 
@@ -312,66 +368,6 @@ fun unvarify (Const(a,T))    = Const(a, Type.unvarifyT T)
   | unvarify t = t;
 
 
-(*** term order ***)
-
-fun dest_hd(Const(a,T)) = (a,T,0)
-  | dest_hd(Free(a,T))  = (a,T,1)
-  | dest_hd(Var(v,T))   = (Syntax.string_of_vname v, T, 2)
-  | dest_hd(Bound i)    = (string_of_int i,dummyT,3)
-  | dest_hd(Abs(x,T,_)) = (x,T,4);
-
-(* assumes that vars/frees with the same name have same classes *)
-fun typord(T,U) = if T=U then EQUAL else
- (case (T,U) of
-    (Type(a,Ts),Type(b,Us)) =>
-      (case stringord(a,b) of EQUAL => lextypord(Ts,Us) | ord => ord)
-  | (Type _, _) => GREATER
-  | (TFree _,Type _) => LESS
-  | (TFree(a,_),TFree(b,_)) => stringord(a,b)
-  | (TFree _, TVar _) => GREATER
-  | (TVar _,Type _) => LESS
-  | (TVar _,TFree _) => LESS
-  | (TVar(va,_),TVar(vb,_)) =>
-      stringord(Syntax.string_of_vname va,Syntax.string_of_vname vb))
-and lextypord(T::Ts,U::Us) =
-      (case typord(T,U) of
-         EQUAL => lextypord(Ts,Us)
-       | ord   => ord)
-  | lextypord([],[]) = EQUAL
-  | lextypord _ = error("lextypord");
-
-
-(* a linear well-founded AC-compatible ordering
- * for terms:
- * s < t <=> 1. size(s) < size(t) or
-             2. size(s) = size(t) and s=f(...) and t = g(...) and f<g or
-             3. size(s) = size(t) and s=f(s1..sn) and t=f(t1..tn) and
-                (s1..sn) < (t1..tn) (lexicographically)
- *)
-
-fun termord(Abs(x,T,t),Abs(y,U,u)) =
-      (case termord(t,u) of EQUAL => typord(T,U) | ord => ord)
-  | termord(t,u) =
-      (case intord(size_of_term t,size_of_term u) of
-         EQUAL => let val (f,ts) = strip_comb t and (g,us) = strip_comb u
-                      val (a,T,i) = dest_hd f and (b,U,j) = dest_hd g
-                  in case stringord(a,b) of
-                       EQUAL => (case typord(T,U) of
-                                   EQUAL => (case intord(i,j) of
-                                               EQUAL => lextermord(ts,us)
-                                             | ord => ord)
-                                 | ord => ord)
-                     | ord   => ord
-                  end
-       | ord => ord)
-and lextermord(t::ts,u::us) =
-      (case termord(t,u) of
-         EQUAL => lextermord(ts,us)
-       | ord   => ord)
-  | lextermord([],[]) = EQUAL
-  | lextermord _ = error("lextermord");
-
-fun termless tu = (termord tu = LESS);
 
 (** Test wellformedness of rewrite rules **)
 
