@@ -6,9 +6,9 @@
 Theorems about the transitive closure of a relation
 *)
 
-open Trancl;
-
 (** The relation rtrancl **)
+
+section "^*";
 
 Goal "mono(%s. Id Un (r O s))";
 by (rtac monoI 1);
@@ -195,6 +195,8 @@ qed "r_comp_rtrancl_eq";
 
 (**** The relation trancl ****)
 
+section "^+";
+
 Goalw [trancl_def] "[| p:r^+; r <= s |] ==> p:s^+";
 by (blast_tac (claset() addIs [rtrancl_mono RS subsetD]) 1);
 qed "trancl_mono";
@@ -295,6 +297,24 @@ by (simp_tac (simpset() addsimps [rtrancl_converse,converse_comp]) 1);
 by (simp_tac (simpset() addsimps [rtrancl_converse RS sym,
 				  r_comp_rtrancl_eq]) 1);
 qed "trancl_converse";
+
+Goal "(x,y) : (r^+)^-1 ==> (x,y) : (r^-1)^+";
+by (asm_full_simp_tac (simpset() addsimps [trancl_converse]) 1);
+qed "trancl_converseI";
+
+Goal "(x,y) : (r^-1)^+ ==> (x,y) : (r^+)^-1";
+by (asm_full_simp_tac (simpset() addsimps [trancl_converse]) 1);
+qed "trancl_converseD";
+
+val major::prems = Goal
+    "[| (a,b) : r^+; !!y. (y,b) : r ==> P(y); \
+\       !!y z.[| (y,z) : r;  (z,b) : r^+;  P(z) |] ==> P(y) |]  \
+\     ==> P(a)";
+by (rtac ((major RS converseI RS trancl_converseI) RS trancl_induct) 1);
+ by (resolve_tac prems 1);
+ be converseD 1;
+by (blast_tac (claset() addIs prems addSDs [trancl_converseD])1);
+qed "converse_trancl_induct";
 
 (*Unused*)
 qed_goal "irrefl_tranclI" Trancl.thy 

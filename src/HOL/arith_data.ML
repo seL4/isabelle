@@ -232,3 +232,21 @@ by (asm_simp_tac (simpset() addsimps [Suc_le_eq]) 2);
 by (asm_simp_tac (simpset() addsimps [diff_Suc_le_Suc_diff RS le_less_trans,
 				      Suc_diff_le, less_imp_le]) 1);
 qed_spec_mp "diff_less_mono2";
+
+(** Elimination of - on nat due to John Harrison **)
+(*This proof requires natle_cancel_sums*)
+
+Goal "P(a - b::nat) = (!d. (b = a + d --> P 0) & (a = b + d --> P d))";
+by(case_tac "a <= b" 1);
+by(Auto_tac);
+by(eres_inst_tac [("x","b-a")] allE 1);
+by(Auto_tac);
+qed "nat_diff_split";
+
+(*
+This is an example of the power of nat_diff_split. Many of the `-' thms in
+Arith.ML could take advantage of this, but would need to be moved.
+*)
+Goal "m-n = 0  -->  n-m = 0  -->  m=n";
+by(simp_tac (simpset() addsplits [nat_diff_split]) 1);
+qed_spec_mp "diffs0_imp_equal";

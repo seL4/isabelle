@@ -435,11 +435,6 @@ by (ALLGOALS Asm_simp_tac);
 qed "diff_is_0_eq";
 Addsimps [diff_is_0_eq RS iffD2];
 
-Goal "m-n = 0  -->  n-m = 0  -->  m=n";
-by (res_inst_tac [("m","m"),("n","n")] diff_induct 1);
-by (REPEAT(Simp_tac 1 THEN TRY(atac 1)));
-qed_spec_mp "diffs0_imp_equal";
-
 Goal "(0<n-m) = (m<n)";
 by (res_inst_tac [("m","m"),("n","n")] diff_induct 1);
 by (ALLGOALS Asm_simp_tac);
