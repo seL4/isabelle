@@ -186,16 +186,16 @@ end;
 
 (** primrec **)
 
-fun mk_primrec_decl (names, eqns) =
+fun mk_primrec_decl (alt_name, (names, eqns)) =
   ";\nval (thy, " ^ (if null names then "_" else brackets (commas names)) ^
-  ") = PrimrecPackage.add_primrec None " ^ brackets (commas_quote names) ^ " " ^
-    brackets (commas eqns) ^ " thy;\n\
+  ") = PrimrecPackage.add_primrec " ^ alt_name ^ " " ^
+    brackets (commas_quote names) ^ " " ^ brackets (commas eqns) ^ " thy;\n\
   \val thy = thy\n";
 
 (* either names and axioms or just axioms *)
-val primrec_decl =
-  (repeat1 (ident -- string) >> (mk_primrec_decl o ListPair.unzip)) ||
-  (repeat1 string >> (mk_primrec_decl o (pair [])));
+val primrec_decl = (optional ("(" $$-- name --$$ ")" >> (cat "Some")) "None" --
+  ((repeat1 (ident -- string) >> ListPair.unzip) ||
+   (repeat1 string >> (pair [])))) >> mk_primrec_decl;
 
 
 (** rec: interface to Slind's TFL **)
