@@ -1580,10 +1580,15 @@ provided:
 \end{array}}
 \]
 where $\{r@{j1},\dots,r@{jl@j}\} = \{i \in \{1,\dots k@j\} ~\mid~ \tau@{ji}
-= (\alpha@1,\dots,\alpha@n)t \}$, i.e.\ the property $P$ can be assumed for
-all arguments of the recursive type.
+= (\alpha@1,\dots,\alpha@n)t \} =: Rec@j$, i.e.\ the property $P$ can be
+assumed for all arguments of the recursive type.
 
-\medskip The type also comes with an \ML-like \sdx{case}-construct:
+For convenience, the following additional constructions are predefined for
+each datatype.
+
+\subsubsection{\sdx{case}}
+
+The type comes with an \ML-like \texttt{case}-construct:
 \[
 \begin{array}{rrcl}
 \mbox{\tt case}~e~\mbox{\tt of} & C@1~x@{11}~\dots~x@{1k@1} & \To & e@1 \\
@@ -1599,6 +1604,24 @@ fixed, and nested patterns are not supported (with the exception of tuples).
 Violating this restriction results in strange error messages.
 \end{warn}
 
+\subsubsection{\cdx{size}}
+
+Theory \texttt{Arith} declares an overloaded function \texttt{size} of type
+$\alpha\To nat$. Each datatype defines a particular instance of \texttt{size}
+according to the following scheme:
+\[
+size(C@j~x@{j1}~\dots~x@{jk@1}) =
+\left\{
+\begin{array}{ll}
+0 & \mbox{if $Rec@j = \emptyset$} \\
+size(x@{r@{j1}}) + \cdots + size(x@{r@{jl@j}}) + 1 &
+ \mbox{if $Rec@j = \{r@{j1},\dots,r@{jl@j}\}$}
+\end{array}
+\right.
+\]
+where $Rec@j$ is defined above. Viewing datatypes as generalized trees, the
+size of a leaf is 0 and the size of a node is the sum of the sizes of its
+subtrees $+1$.
 
 \subsection{Defining datatypes}
 
@@ -1623,9 +1646,8 @@ typ      : id | tid | ('(' typevarlist id ')')
 \end{figure}
 
 \begin{warn}
-  If there are 7 or more constructors, the {\it t\_ord} scheme is used
-  for distinctness theorems.  In this case the theory {\tt Arith} must
-  be contained in the current theory, if necessary by including it
+  Every theory containing a datatype declaration must be based, directly or
+  indirectly, on the theory {\tt Arith}, if necessary by including it
   explicitly as a parent.
 \end{warn}
 
@@ -1641,18 +1663,21 @@ In some cases, induction is overkill and a case distinction over all
 constructors of the datatype suffices:
 \begin{ttdescription}
 \item[\ttindexbold{exhaust_tac} {\tt"}$u${\tt"} $i$]
- performs an exhaustive case analysis for an arbitrary term $u$ whose type
+ performs an exhaustive case analysis for the term $u$ whose type
  must be a datatyp or type {\tt nat}. If the datatype has $n$ constructors
  $C@1$, \dots $C@n$, subgoal $i$ is replaced by $n$ new subgoals which
  contain the additional assumption $u = C@j~x@1~\dots~x@{k@j}$ for
  $j=1,\dots,n$.
-
-Note that in contrast to induction, exhaustion is possible even if $u$
-mentions identifiers that occur in the assumptions of the subgoal.
 \end{ttdescription}
+\begin{warn}
+  Induction is only allowed on a free variable that should not occur among
+  the premises of the subgoal. Exhaustion is works for arbitrary terms.
+\end{warn}
+\bigskip
+
 
 For the technically minded, we give a more detailed description.
-Reading the theory file produces a structure which, in addition to the
+Reading the theory file produces an \ML\ structure which, in addition to the
 usual components, contains a structure named $t$ for each datatype $t$
 defined in the file. Each structure $t$ contains the following
 elements:
@@ -1899,7 +1924,7 @@ particular, the (co)inductive sets {\bf must} be declared separately as
 constants, and may have mixfix syntax or be subject to syntax translations.
 
 Each (co)inductive definition adds definitions to the theory and also
-proves some theorems.  Each definition creates an ML structure, which is a
+proves some theorems.  Each definition creates an \ML\ structure, which is a
 substructure of the main theory structure.
 
 This package is derived from the \ZF\ one, described in a separate
