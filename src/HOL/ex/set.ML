@@ -17,6 +17,11 @@ goal Set.thy "!!S::'a set set. ALL x:S. ALL y:S. x<=y ==> EX z. S <= {z}";
 by (blast_tac (claset() delrules [UNIV_I]) 1);
 result();
 
+(*variant of the benchmark above*)
+goal Set.thy "!!S. ALL x:S. Union(S) <= x ==> EX z. S <= {z}";
+by (blast_tac (claset() delrules [UNIV_I]) 1);
+(*just Blast_tac takes 27 seconds instead of 2.2*)
+result();
 
 (*** A unique fixpoint theorem --- fast/best/meson all fail ***)
 
