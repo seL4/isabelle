@@ -186,8 +186,37 @@ apply (rule_tac P=P and Q=Q in conjI)
 oops
 
 
-text{*Quantifiers*}
+text{*unification failure trace *}
 
+ML "set trace_unify_fail"
+
+lemma "P(a, f(b, g(e,a), b), a) \<Longrightarrow> P(a, f(b, g(c,a), b), a)"
+txt{*
+@{subgoals[display,indent=0,margin=65]}
+apply assumption
+Clash: e =/= c
+
+Clash: == =/= Trueprop
+*}
+oops
+
+lemma "\<forall>x y. P(x,y) --> P(y,x)"
+apply auto
+txt{*
+@{subgoals[display,indent=0,margin=65]}
+apply assumption
+
+Clash: bound variable x (depth 1) =/= bound variable y (depth 0)
+
+Clash: == =/= Trueprop
+Clash: == =/= Trueprop
+*}
+oops
+
+ML "reset trace_unify_fail"
+
+
+text{*Quantifiers*}
 
 text {*
 @{thm[display] allI}
