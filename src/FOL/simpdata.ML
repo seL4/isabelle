@@ -369,7 +369,8 @@ val FOL_css = (FOL_cs, FOL_ss);
 (* rulify setup *)
 
 local
-  val ss = FOL_basic_ss addsimps (Drule.norm_hhf_eq :: map Thm.symmetric (thms "atomize"));
+  val ss = FOL_basic_ss addsimps
+    [Drule.norm_hhf_eq, Thm.symmetric (thm "atomize_all"), Thm.symmetric (thm "atomize_imp")];
 in
 
 structure Rulify = RulifyFun

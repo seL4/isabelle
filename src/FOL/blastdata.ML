@@ -10,7 +10,6 @@ structure Blast_Data =
   val hyp_subst_tac = Hypsubst.blast_hyp_subst_tac
   val claset	= Cla.claset
   val rep_cs    = Cla.rep_cs
-  val atomize	= atomize_rules
   val cla_modifiers = Cla.cla_modifiers;
   val cla_meth' = Cla.cla_meth'
   end;
