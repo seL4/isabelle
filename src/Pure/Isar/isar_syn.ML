@@ -323,15 +323,15 @@ val qedP =
 
 val terminal_proofP =
   OuterSyntax.command "by" "terminal backward proof"
-    (method >> (Toplevel.print oo IsarThy.terminal_proof));
+    (method >> IsarThy.terminal_proof)
 
 val immediate_proofP =
   OuterSyntax.command "." "immediate proof"
-    (Scan.succeed (Toplevel.print o IsarThy.immediate_proof));
+    (Scan.succeed IsarThy.immediate_proof);
 
 val default_proofP =
   OuterSyntax.command ".." "default proof"
-    (Scan.succeed (Toplevel.print o IsarThy.default_proof));
+    (Scan.succeed IsarThy.default_proof);
 
 
 (* proof steps *)
