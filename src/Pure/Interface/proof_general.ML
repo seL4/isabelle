@@ -126,7 +126,8 @@ fun setup_state isar =
   if isar then
    (Toplevel.print_state_fn := plain_writeln Toplevel.print_state_default;
     Toplevel.prompt_state_fn := (suffix (oct_char "372") o Toplevel.prompt_state_default))
-  else Goals.print_current_goals_fn := print_current_goals);
+  else ();
+  Goals.print_current_goals_fn := print_current_goals);  (*isar: avoids verbose responses*)
 
 
 (* theory loader actions *)
