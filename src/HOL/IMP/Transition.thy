@@ -13,7 +13,7 @@ consts  evalc1    :: "((com*state)*(com*state))set"
 syntax
         "@evalc1" :: "[(com*state),(com*state)] => bool"
                                 ("_ -1-> _" [81,81] 100)
-        "@evalcn" :: "[(com*state),(com*state)] => nat => bool"
+        "@evalcn" :: "[(com*state),nat,(com*state)] => bool"
                                 ("_ -_-> _" [81,81] 100)
         "@evalc*" :: "[(com*state),(com*state)] => bool"
                                 ("_ -*-> _" [81,81] 100)
