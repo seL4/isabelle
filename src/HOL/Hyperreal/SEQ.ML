@@ -1150,9 +1150,6 @@ by (rtac LIMSEQ_inverse_zero 1 THEN Step_tac 1);
 by (cut_inst_tac [("x","y")] reals_Archimedean2 1);
 by (Step_tac 1 THEN res_inst_tac [("x","n")] exI 1);
 by (auto_tac (claset(), simpset() addsimps [real_of_nat_Suc]));  
-by (subgoal_tac "y < real na" 1);
-by (Asm_simp_tac 1);
-by (blast_tac (claset() addIs [order_less_le_trans]) 1);  
 qed "LIMSEQ_inverse_real_of_nat";
 
 Goal "(%n. inverse(real(Suc n))) ----NS> 0";

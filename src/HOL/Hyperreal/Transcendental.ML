@@ -1601,8 +1601,6 @@ by (rtac real_mult_less_mono 1); (*mult_strict_mono would be stronger*)
 by (ALLGOALS(Asm_simp_tac));
 by (TRYALL(rtac real_less_trans));
 by (auto_tac (claset(),simpset() addsimps [real_of_nat_Suc] delsimps [fact_Suc]));
-by (res_inst_tac [("y","0")] order_less_le_trans 1);
-by (ALLGOALS(Asm_simp_tac));
 qed "sin_gt_zero";
 
 Goal "[|0 < x; x < 2 |] ==> 0 < sin x";

@@ -267,7 +267,17 @@ val real_mult_mono_thms =
 (* reduce contradictory <= to False *)
 val simps = [True_implies_equals,
              inst "a" "(number_of ?v)::real" right_distrib,
-             divide_1,times_divide_eq_right,times_divide_eq_left];
+             divide_1,times_divide_eq_right,times_divide_eq_left,
+         real_of_nat_zero, real_of_nat_Suc, real_of_nat_add, real_of_nat_mult,
+         real_of_int_zero, real_of_one, real_of_int_add RS sym,
+         real_of_int_minus RS sym, real_of_int_diff RS sym,
+         real_of_int_mult RS sym];
+
+val int_inj_thms = [real_of_int_le_iff RS iffD2, real_of_int_less_iff RS iffD2,
+                    real_of_int_inject RS iffD2];
+
+val nat_inj_thms = [real_of_nat_le_iff RS iffD2, real_of_nat_less_iff RS iffD2,
+                    real_of_nat_inject RS iffD2];
 
 in
 
@@ -279,11 +289,13 @@ val real_arith_setup =
  [Fast_Arith.map_data (fn {add_mono_thms, mult_mono_thms, inj_thms, lessD, simpset} =>
    {add_mono_thms = add_mono_thms @ add_mono_thms_real,
     mult_mono_thms = mult_mono_thms @ real_mult_mono_thms,
-    inj_thms = inj_thms, (*FIXME: add real*)
-    lessD = lessD,  (*Can't change LA_Data_Ref.lessD: the reals are dense!*)
+    inj_thms = int_inj_thms @ nat_inj_thms @ inj_thms,
+    lessD = lessD,  (*Can't change lessD: the reals are dense!*)
     simpset = simpset addsimps add_rules
                       addsimps simps
                       addsimprocs simprocs}),
+  arith_inj_const ("RealDef.real", HOLogic.natT --> HOLogic.realT),
+  arith_inj_const ("RealDef.real", HOLogic.intT --> HOLogic.realT),
   arith_discrete ("RealDef.real",false),
   Simplifier.change_simpset_of (op addsimprocs) [fast_real_arith_simproc]];
 

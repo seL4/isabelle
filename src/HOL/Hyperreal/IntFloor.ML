@@ -92,10 +92,6 @@ qed "reals_Archimedean6";
 Goal "0 <= r ==> EX n. real (n) <= r & r < real (Suc n)";
 by (dtac reals_Archimedean6 1);
 by Auto_tac;
-by (res_inst_tac [("x","n - 1")] exI 1);
-by (subgoal_tac "0 < n" 1);
-by (dtac order_le_less_trans 2);
-by Auto_tac;
 qed "reals_Archimedean6a";
 
 Goal "0 <= r ==> EX n. real n <= r & r < real ((n::int) + 1)";
@@ -136,11 +132,6 @@ Goalw  [floor_def,Least_def] "real (floor r) <= r";
 by (cut_inst_tac [("r","r")] real_lb_ub_int 1 THEN Step_tac 1);
 by (rtac theI2 1);
 by Auto_tac;
-by (blast_tac (claset() addIs [lemma_floor]) 1);
-by (ALLGOALS(dres_inst_tac [("x","n")] spec) THEN Auto_tac);
-by (force_tac (claset() addDs [lemma_floor],simpset()) 1);
-by (dtac (real_of_int_le_iff RS iffD2) 1);
-by (blast_tac (claset() addIs [real_le_trans]) 1);
 qed "real_of_int_floor_le";
 Addsimps [real_of_int_floor_le];
 
@@ -169,8 +160,6 @@ Goalw [floor_def,Least_def]
 by (cut_inst_tac [("r","x")] real_lb_ub_int 1 THEN etac exE 1);
 by (rtac theI2 1);
 by (auto_tac (claset() addIs [lemma_floor],simpset()));
-by (force_tac (claset() addDs [lemma_floor],simpset()) 1);
-by (force_tac (claset() addDs [lemma_floor2],simpset()) 1);
 qed "real_of_int_floor_cancel";
 Addsimps [real_of_int_floor_cancel];
 
@@ -212,7 +201,6 @@ Goalw [floor_def,Least_def] "r - 1 <= real(floor r)";
 by (cut_inst_tac [("r","r")] real_lb_ub_int 1 THEN Step_tac 1);
 by (rtac theI2 1);
 by (auto_tac (claset() addIs [lemma_floor],simpset()));
-by (force_tac (claset() addDs [lemma_floor],simpset()) 1);
 qed "real_of_int_floor_ge_diff_one";
 Addsimps [real_of_int_floor_ge_diff_one];
 

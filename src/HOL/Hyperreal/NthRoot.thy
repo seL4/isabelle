@@ -122,8 +122,7 @@ done
 
 lemma real_mult_add_one_minus_ge_zero:
      "0 < r ==>  0 <= r*(1 + -inverse(real (Suc n)))"
-apply (simp add: zero_le_mult_iff real_of_nat_inverse_le_iff) 
-apply (simp add: real_of_nat_Suc) 
+apply (simp add: zero_le_mult_iff real_of_nat_inverse_le_iff)
 done
 
 lemma lemma_nth_realpow_isLub_le:
