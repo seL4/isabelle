@@ -55,7 +55,7 @@ datatype  (*Messages are agent names, nonces, keys, pairs and encryptions*)
 
 (*Allows messages of the form {|A,B,NA|}, etc...*)
 syntax
-  "@MTuple"      :: "['a, args] => 'a * 'b"            ("(1{|_,/ _|})")
+  "@MTuple"      :: "['a, args] => 'a * 'b"            ("(2{|_,/ _|})")
 
 translations
   "{|x, y, z|}"   == "{|x, {|y, z|}|}"
