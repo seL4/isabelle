@@ -253,10 +253,10 @@ constdefs
     "upair_ax(M) == \<forall>x y. M(x) --> M(y) --> (\<exists>z[M]. upair(M,x,y,z))"
 
   Union_ax :: "(i=>o) => o"
-    "Union_ax(M) == \<forall>x[M]. (\<exists>z[M]. big_union(M,x,z))"
+    "Union_ax(M) == \<forall>x[M]. \<exists>z[M]. big_union(M,x,z)"
 
   power_ax :: "(i=>o) => o"
-    "power_ax(M) == \<forall>x[M]. (\<exists>z[M]. powerset(M,x,z))"
+    "power_ax(M) == \<forall>x[M]. \<exists>z[M]. powerset(M,x,z)"
 
   univalent :: "[i=>o, i, [i,i]=>o] => o"
     "univalent(M,A,P) == 
@@ -265,17 +265,16 @@ constdefs
   replacement :: "[i=>o, [i,i]=>o] => o"
     "replacement(M,P) == 
       \<forall>A[M]. univalent(M,A,P) -->
-      (\<exists>Y[M]. (\<forall>b[M]. ((\<exists>x[M]. x\<in>A & P(x,b)) --> b \<in> Y)))"
+      (\<exists>Y[M]. \<forall>b[M]. (\<exists>x[M]. x\<in>A & P(x,b)) --> b \<in> Y)"
 
   strong_replacement :: "[i=>o, [i,i]=>o] => o"
     "strong_replacement(M,P) == 
       \<forall>A[M]. univalent(M,A,P) -->
-      (\<exists>Y[M]. (\<forall>b[M]. (b \<in> Y <-> (\<exists>x[M]. x\<in>A & P(x,b)))))"
+      (\<exists>Y[M]. \<forall>b[M]. b \<in> Y <-> (\<exists>x[M]. x\<in>A & P(x,b)))"
 
   foundation_ax :: "(i=>o) => o"
     "foundation_ax(M) == 
-	\<forall>x[M]. (\<exists>y\<in>x. M(y))
-                 --> (\<exists>y[M]. y\<in>x & ~(\<exists>z[M]. z\<in>x & z \<in> y))"
+	\<forall>x[M]. (\<exists>y\<in>x. M(y)) --> (\<exists>y[M]. y\<in>x & ~(\<exists>z[M]. z\<in>x & z \<in> y))"
 
 
 subsection{*A trivial consistency proof for $V_\omega$ *}
