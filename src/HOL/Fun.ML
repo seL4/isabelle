@@ -19,28 +19,14 @@ by (REPEAT (resolve_tac (prems@[refl]) 1));
 qed "apply_inverse";
 
 
-(*** Range of a function ***)
-
-(*Frequently b does not have the syntactic form of f(x).*)
-val [prem] = goalw Fun.thy [range_def] "b=f(x) ==> b : range(f)";
-by (EVERY1 [rtac CollectI, rtac exI, rtac prem]);
-qed "range_eqI";
-
-val rangeI = refl RS range_eqI;
-
-val [major,minor] = goalw Fun.thy [range_def]
-    "[| b : range(%x.f(x));  !!x. b=f(x) ==> P |] ==> P"; 
-by (rtac (major RS CollectD RS exE) 1);
-by (etac minor 1);
-qed "rangeE";
-
 (*** Image of a set under a function ***)
 
+(*Frequently b does not have the syntactic form of f(x).*)
 val prems = goalw Fun.thy [image_def] "[| b=f(x);  x:A |] ==> b : f``A";
 by (REPEAT (resolve_tac (prems @ [CollectI,bexI,prem]) 1));
 qed "image_eqI";
 
-val imageI = refl RS image_eqI;
+bind_thm ("imageI", refl RS image_eqI);
 
 (*The eta-expansion gives variable-name preservation.*)
 val major::prems = goalw Fun.thy [image_def]
@@ -59,6 +45,19 @@ by (rtac set_ext 1);
 by (fast_tac (!claset addIs [imageI,UnCI] addSEs [imageE,UnE]) 1);
 qed "image_Un";
 
+(*** Range of a function -- just a translation for image! ***)
+
+goal Fun.thy "!!b. b=f(x) ==> b : range(f)";
+by (EVERY1 [etac image_eqI, rtac UNIV_I]);
+bind_thm ("range_eqI", UNIV_I RSN (2,image_eqI));
+
+bind_thm ("rangeI", UNIV_I RS imageI);
+
+val [major,minor] = goal Fun.thy 
+    "[| b : range(%x.f(x));  !!x. b=f(x) ==> P |] ==> P"; 
+by (rtac (major RS imageE) 1);
+by (etac minor 1);
+qed "rangeE";
 (*** inj(f): f is a one-to-one function ***)
 
 val prems = goalw Fun.thy [inj_def]
@@ -181,4 +180,4 @@ AddEs  [ballE, InterD, InterE, INT_D, INT_E, make_elim INT1_D,
 
 val set_cs = !claset delrules [equalityI];
 
-fun cfast_tac prems = cut_facts_tac prems THEN' fast_tac (claset_of "Fun");
+

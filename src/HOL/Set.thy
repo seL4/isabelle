@@ -60,6 +60,7 @@ syntax
 
 translations
   "UNIV"        == "Compl {}"
+  "range(f)"    == "f``UNIV"
   "x ~: y"      == "~ (x : y)"
   "{x, xs}"     == "insert x {xs}"
   "{x}"         == "insert x {}"
@@ -97,7 +98,6 @@ defs
   Pow_def       "Pow(A)         == {B. B <= A}"
   empty_def     "{}             == {x. False}"
   insert_def    "insert a B     == {x.x=a} Un B"
-  range_def     "range(f)       == {y. ? x. y=f(x)}"
   image_def     "f``A           == {y. ? x:A. y=f(x)}"
   inj_def       "inj(f)         == ! x y. f(x)=f(y) --> x=y"
   inj_onto_def  "inj_onto f A   == ! x:A. ! y:A. f(x)=f(y) --> x=y"
