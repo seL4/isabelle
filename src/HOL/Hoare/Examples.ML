@@ -6,7 +6,7 @@
 
 (*** ARITHMETIC ***)
 
-(*** multiplication by successive addition ***)
+(** multiplication by successive addition **)
 
 Goal "|- VARS m s. \
 \  {m=0 & s=0} \
@@ -17,7 +17,7 @@ Goal "|- VARS m s. \
 by (hoare_tac (Asm_full_simp_tac) 1);
 qed "multiply_by_add";
 
-(*** Euclid's algorithm for GCD ***)
+(** Euclid's algorithm for GCD **)
 
 Goal "|- VARS a b. \
 \ {0<A & 0<B & a=A & b=B} \
@@ -36,7 +36,7 @@ by (force_tac (claset(),
 by (asm_simp_tac (simpset() addsimps [gcd_diff_r,less_imp_le]) 1);
 qed "Euclid_GCD";
 
-(*** Power by iterated squaring and multiplication ***)
+(** Power by iterated squaring and multiplication **)
 
 Goal "|- VARS a b c. \
 \ {a=A & b=B} \
@@ -56,6 +56,8 @@ by (asm_full_simp_tac (simpset() addsimps [mod_less]) 1);
 by (asm_simp_tac (simpset() addsimps [mult_assoc]) 1);
 qed "power_by_mult";
 
+(** Factorial **)
+
 Goal "|- VARS a b. \
 \ {a=A} \
 \ b := 1; \
@@ -70,6 +72,34 @@ by (ALLGOALS
     (asm_simp_tac
      (simpset() addsimps [add_mult_distrib,add_mult_distrib2,mult_assoc])));
 qed"factorial";
+
+(** Square root **)
+
+(* the easy way: *
+
+Goal "|- VARS x r. \
+\ {u = 1 & w = 1 & r = 0} \
+\ WHILE (r+1)*(r+1) <= x \
+\ INV {r*r <= x} \
+\ DO r := r+1 OD \
+\ {r*r <= x & x < (r+1)*(r+1)}";
+by (hoare_tac Asm_full_simp_tac 1);
+by(arith_tac 1);
+qed "sqrt";
+
+(* without multiplication *)
+
+Goal "|- VARS x u w r. \
+\ {u = 1 & w = 1 & r = 0} \
+\ WHILE w <= x \
+\ INV {u = r+r+1 & w = (r+1)*(r+1) & r*r <= x} \
+\ DO r := r+1; w := w+u+2; u := u+2 OD \
+\ {r*r <= x & x < (r+1)*(r+1)}";
+by (hoare_tac Asm_full_simp_tac 1);
+by(arith_tac 1);
+by(arith_tac 1);
+qed "sqrt_without_multiplication";
+
 
 (*** LISTS ***)
 
