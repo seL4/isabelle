@@ -2,7 +2,7 @@
 #
 # $Id$
 #
-# DESCRIPTION: install binaries with absolute references to distribution
+# DESCRIPTION: install standalone Isabelle executables
 
 
 PRG=$(basename $0)
@@ -10,13 +10,15 @@ PRG=$(basename $0)
 function usage()
 {
   echo
-  echo "Usage: $PRG BINDIR"
+  echo "Usage: $PRG [OPTIONS]"
   echo
   echo "  Options are:"
   echo "    -d DISTDIR   use DISTDIR as Isabelle distribution (default ISABELLE_HOME)"
+  echo "    -k           install KDE application icon on Desktop"
+  echo "    -p DIR       install standalone binaries in DIR"
   echo
-  echo "  Install standalone Isabelle binaries in directory BINDIR with absolute"
-  echo "  references to DISTDIR/bin, which becomes non-relocatable this way."
+  echo "  Install Isabelle executables with absolute references to the current"
+  echo "  distribution directory."
   echo
   exit 1
 }
@@ -33,12 +35,20 @@ function fail()
 # options
 
 DISTDIR="$ISABELLE_HOME"
+KDE=""
+BINDIR=""
 
-while getopts "d:" OPT
+while getopts "d:kp:" OPT
 do
   case "$OPT" in
     d)
       DISTDIR="$OPTARG"
+      ;;
+    k)
+      KDE=true
+      ;;
+    p)
+      BINDIR="$OPTARG"
       ;;
     \?)
       usage
@@ -51,28 +61,56 @@ shift $(($OPTIND - 1))
 
 # args
 
-BINDIR=""
-[ $# -ge 1 ] && { BINDIR="$1"; shift; }
-
-[ $# -ne 0 -o -z "$BINDIR" -o "$BINDIR" = "-?" ] && usage
+[ $# -ne 0 ] && usage
 
 
 ## main
 
-mkdir -p "$BINDIR" || fail "Bad directory: $BINDIR"
+echo "distribution at $DISTDIR"
+
+
+# standalone binaries
 
 #set by configure
 AUTO_BASH=/bin/bash
 
-echo "using $DISTDIR"
+if [ -n "$BINDIR" ]; then
+  mkdir -p "$BINDIR" || fail "Bad directory: $BINDIR"
 
-for NAME in isatool isabelle Isabelle
-do
-  BIN="$BINDIR/$NAME"
-  DIST="$DISTDIR/bin/$NAME"
-  echo "installing $BIN"
-  echo "#!$AUTO_BASH" >$BIN || fail "Cannot write file: $BIN"
-  echo >>$BIN
-  echo "exec $DIST \"\$@\"" >>$BIN
-  chmod +x $BIN
-done
+  for NAME in isatool isabelle Isabelle
+  do
+    BIN="$BINDIR/$NAME"
+    DIST="$DISTDIR/bin/$NAME"
+    echo "installing $BIN"
+    echo "#!$AUTO_BASH" >$BIN || fail "Cannot write file: $BIN"
+    echo >>$BIN
+    echo "exec $DIST \"\$@\"" >>$BIN
+    chmod +x $BIN
+  done
+fi
+
+
+# install KDE application icon
+
+KDEHOME=~/.kde
+KDEAPP=~/Desktop/Isabelle.kdelnk
+
+if [ "$KDE" = true ]; then
+  mkdir -p $KDEHOME/share/icons || fail "Bad directory: $KDEHOME/share/icons"
+
+  ICON=$KDEHOME/share/icons/isabelle.xpm
+  [ -f $ICON ] || cp $DISTDIR/lib/logo/isabelle-tiny.xpm $ICON || fail "Cannot write file: $ICON"
+
+  echo "installing $KDEAPP"
+  echo "# KDE Config File" >$KDEAPP || fail "Cannot write file: $KDEAPP"
+  echo "[KDE Desktop Entry]" >>$KDEAPP
+  echo "Type=Application" >>$KDEAPP
+  echo "Exec=$DISTDIR/bin/Isabelle" >>$KDEAPP
+  echo "Icon=isabelle.xpm" >>$KDEAPP
+  echo "TerminalOptions=" >>$KDEAPP
+  echo "Path=" >>$KDEAPP
+  echo "Terminal=0" >>$KDEAPP
+  echo "Name=Isabelle" >>$KDEAPP
+
+  type -p kfmclient >/dev/null && kfmclient refreshDesktop
+fi
