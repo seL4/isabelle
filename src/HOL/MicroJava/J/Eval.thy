@@ -48,6 +48,12 @@ inductive "eval G" "evals G" "exec G" intrs
   (* cf. 15.7.1 *)
   Lit				   "G\\<turnstile>Norm s -Lit v\\<succ>v\\<rightarrow> Norm s"
 
+  BinOp "\\<lbrakk>G\\<turnstile>Norm s -e1\\<succ>v1\\<rightarrow> s1;
+	  G\\<turnstile>s1     -e1\\<succ>v2\\<rightarrow> s2;
+	  v = (case bop of Eq  \\<Rightarrow> Bool (v1 = v2)
+	                 | Add \\<Rightarrow> Intg (the_Intg v1 + the_Intg v2))\\<rbrakk> \\<Longrightarrow>
+				   G\\<turnstile>Norm s -BinOp bop e1 e2\\<succ>v\\<rightarrow> s2"
+
   (* cf. 15.13.1, 15.2 *)
   LAcc				  "G\\<turnstile>Norm s -LAcc v\\<succ>the (locals s v)\\<rightarrow> Norm s"
 

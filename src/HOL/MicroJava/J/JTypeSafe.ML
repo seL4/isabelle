@@ -6,6 +6,20 @@
 Type safety proof
 *)
 
+Goalw [conf_def] "G,s\\<turnstile>Unit\\<Colon>\\<preceq>PrimT Void";
+by( Simp_tac 1);
+qed "conf_VoidI";
+
+Goalw [conf_def] "G,s\\<turnstile>Bool b\\<Colon>\\<preceq>PrimT Boolean";
+by( Simp_tac 1);
+qed "conf_BooleanI";
+
+Goalw [conf_def] "G,s\\<turnstile>Intg i\\<Colon>\\<preceq>PrimT Integer";
+by( Simp_tac 1);
+qed "conf_IntegerI";
+
+Addsimps [conf_VoidI, conf_BooleanI, conf_IntegerI];
+
 Addsimps [split_beta];
 
 Goal "\\<lbrakk>h a = None; (h, l)\\<Colon>\\<preceq>(G, lT); wf_prog wf_mb G; is_class G C\\<rbrakk> \\<Longrightarrow> \
@@ -180,6 +194,8 @@ Unify.search_bound := 40;
 Unify.trace_bound  := 40;
 Delsplits[split_if];
 Delsimps[fun_upd_apply];(*###*)
+val forward_hyp_tac = ALLGOALS (TRY o (EVERY' [dtac spec, mp_tac,
+	(mp_tac ORELSE' (dtac spec THEN' mp_tac)), REPEAT o (etac conjE)]));
 Goal
 "wf_java_prog G \\<Longrightarrow> \
 \ (G\\<turnstile>(x,(h,l)) -e  \\<succ>v  \\<rightarrow> (x', (h',l')) \\<longrightarrow> \
@@ -204,7 +220,7 @@ by( rewtac wf_java_prog_def);
 
 (* Level 7 *)
 
-(* 13 NewC *)
+(* 14 NewC *)
 by( dtac new_AddrD 1);
 by( etac disjE 1);
 by(  Asm_simp_tac 2);
@@ -219,8 +235,17 @@ by( Simp_tac 1);
 (* for Cast *)
 by( defer_tac 1);
 
-(* 12 Lit *)
+(* 13 Lit *)
 by( etac conf_litval 1);
+
+(* 12 BinOp *)
+by forward_hyp_tac;
+by forward_hyp_tac;
+by( EVERY'[rtac conjI, eatac hext_trans 1] 1);
+by( etac conjI 1);
+by( Clarsimp_tac 1);
+by( dtac eval_no_xcpt 1);
+by( asm_full_simp_tac (simpset() addsplits [binop.split]) 1);
 
 (* 11 LAcc *)
 by( fast_tac (claset() addEs [conforms_localD RS lconfD]) 1);
@@ -235,8 +260,6 @@ by( EVERY'[eresolve_tac ty_expr_ty_exprs_wt_stmt.elims THEN_ALL_NEW Full_simp_ta
 (* for if *)
 by( (case_tac1 "the_Bool v" THEN_ALL_NEW Asm_full_simp_tac) 8);
 
-val forward_hyp_tac = ALLGOALS (TRY o (EVERY' [dtac spec, mp_tac,
-	(mp_tac ORELSE' (dtac spec THEN' mp_tac)), REPEAT o (etac conjE)]));
 by forward_hyp_tac;
 
 (* 10+1 if *)

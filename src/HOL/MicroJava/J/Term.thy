@@ -21,10 +21,13 @@ datatype val_		(* name non 'val' because of clash with ML token *)
 types	val = val_
 translations "val" <= (type) "val_"
 
+datatype binop = Eq | Add	   (* function codes for binary operation *)
+
 datatype expr
 	= NewC	cname		   (* class instance creation *)
 	| Cast	ty expr		   (* type cast *)
 	| Lit	val		   (* literal value, also references *)
+        | BinOp binop  expr expr   (* binary operation *)
 	| LAcc vname		   (* local (incl. parameter) access *)
 	| LAss vname expr          (* local assign *) ("_\\<Colon>=_"  [      90,90]90)
 	| FAcc cname expr vname    (* field access *) ("{_}_.._"[10,90,99   ]90)

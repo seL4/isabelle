@@ -103,14 +103,21 @@ inductive "ty_expr E" "ty_exprs E" "wt_stmt E" intrs
   Lit	"\\<lbrakk>typeof (\\<lambda>v. None) x = Some T\\<rbrakk> \\<Longrightarrow>
 						 E\\<turnstile>Lit x\\<Colon>T"
 
+  
   (* cf. 15.13.1 *)
   LAcc	"\\<lbrakk>localT E v = Some T; is_type (prg E) T\\<rbrakk> \\<Longrightarrow>
 						 E\\<turnstile>LAcc v\\<Colon>T"
-  
+
+  BinOp "\\<lbrakk>E\\<turnstile>e1\\<Colon>T;
+	  E\\<turnstile>e2\\<Colon>T;
+	  if bop = Eq then T' = PrimT Boolean
+	              else T' = T \\<and> T = PrimT Integer\\<rbrakk> \\<Longrightarrow>
+						 E\\<turnstile>BinOp bop e1 e2\\<Colon>T'"
+
   (* cf. 15.25, 15.25.1 *)
   LAss  "\\<lbrakk>E\\<turnstile>LAcc v\\<Colon>T;
-	   E\\<turnstile>e\\<Colon>T';
-	   prg E\\<turnstile>T'\\<preceq>T\\<rbrakk> \\<Longrightarrow>
+	  E\\<turnstile>e\\<Colon>T';
+	  prg E\\<turnstile>T'\\<preceq>T\\<rbrakk> \\<Longrightarrow>
 						 E\\<turnstile>v\\<Colon>=e\\<Colon>T'"
 
   (* cf. 15.10.1 *)
@@ -148,7 +155,7 @@ inductive "ty_expr E" "ty_exprs E" "wt_stmt E" intrs
   Expr	"\\<lbrakk>E\\<turnstile>e\\<Colon>T\\<rbrakk> \\<Longrightarrow>
 					 E\\<turnstile>Expr e\\<surd>"
 
- Comp	"\\<lbrakk>E\\<turnstile>s1\\<surd>; 
+  Comp	"\\<lbrakk>E\\<turnstile>s1\\<surd>; 
 	  E\\<turnstile>s2\\<surd>\\<rbrakk> \\<Longrightarrow>
 					 E\\<turnstile>s1;; s2\\<surd>"
 

@@ -50,6 +50,20 @@ val conf_litval = prove_goalw thy [conf_def]
 	rtac val_.induct 1,
 	    Auto_tac]) RS mp;
 
+Goalw [conf_def] "G,s\\<turnstile>Unit\\<Colon>\\<preceq>PrimT Void";
+by( Simp_tac 1);
+qed "conf_VoidI";
+
+Goalw [conf_def] "G,s\\<turnstile>Bool b\\<Colon>\\<preceq>PrimT Boolean";
+by( Simp_tac 1);
+qed "conf_BooleanI";
+
+Goalw [conf_def] "G,s\\<turnstile>Intg i\\<Colon>\\<preceq>PrimT Integer";
+by( Simp_tac 1);
+qed "conf_IntegerI";
+
+Addsimps [conf_VoidI, conf_BooleanI, conf_IntegerI];
+
 val conf_AddrI = prove_goalw thy [conf_def] 
 "\\<And>G. \\<lbrakk>h a = Some obj; G\\<turnstile>obj_ty obj\\<preceq>T\\<rbrakk> \\<Longrightarrow> G,h\\<turnstile>Addr a\\<Colon>\\<preceq>T"
 (K [Asm_full_simp_tac 1]);
@@ -59,7 +73,6 @@ val conf_obj_AddrI = prove_goalw thy [conf_def]
 (K [Asm_full_simp_tac 1]);
 
 Goalw [conf_def] "is_type G T \\<longrightarrow> G,h\\<turnstile>default_val T\\<Colon>\\<preceq>T";
-by (Simp_tac 1);
 by (res_inst_tac [("y","T")] ty.exhaust 1);
 by  (etac ssubst 1);
 by  (res_inst_tac [("y","prim_ty")] prim_ty.exhaust 1);

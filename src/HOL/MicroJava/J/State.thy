@@ -10,7 +10,7 @@ State = WellType +
 
 consts
   the_Bool	:: "val \\<Rightarrow> bool"
-  the_Int	:: "val \\<Rightarrow> int"
+  the_Intg	:: "val \\<Rightarrow> int"
   the_Addr	:: "val \\<Rightarrow> loc"
 
   defpval	:: "prim_ty \\<Rightarrow> val"	(* default value for primitive types *)
@@ -20,7 +20,7 @@ primrec
  "the_Bool (Bool b) = b"
 
 primrec
- "the_Int (Intg i) = i"
+ "the_Intg (Intg i) = i"
 
 primrec
  "the_Addr (Addr a) = a"
