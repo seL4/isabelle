@@ -121,7 +121,7 @@ $(OUT)/HOL-Real: $(OUT)/HOL Real/Complex_Numbers.thy \
   Real/RealArith.thy Real/real_arith.ML Real/RealBin.ML \
   Real/RealBin.thy Real/RealDef.ML Real/RealDef.thy Real/RealInt.ML \
   Real/RealInt.thy Real/RealOrd.ML Real/RealOrd.thy Real/RealPow.ML \
-  Real/RealPow.thy Real/real_arith.ML
+  Real/RealPow.thy Real/document/root.tex Real/real_arith.ML
 	@cd Real; $(ISATOOL) usedir -b $(OUT)/HOL HOL-Real
 
 
