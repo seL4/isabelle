@@ -71,13 +71,13 @@ proof (unfold function_norm_def is_function_norm_def is_continous_def Sup_def, e
         also; from _  le; have "... <= c * norm x * rinv (norm x)";
         proof (rule real_mult_le_le_mono2);
           show "0r <= rinv (norm x)";
-          proof (rule less_imp_le);
+          proof (rule real_less_imp_le);
             show "0r < rinv (norm x)";
             proof (rule real_rinv_gt_zero);
               show "0r < norm x"; ..;
             qed;
           qed;
-     (*** or:  by (rule less_imp_le, rule real_rinv_gt_zero, rule normed_vs_norm_gt_zero); ***)
+     (*** or:  by (rule real_less_imp_le, rule real_rinv_gt_zero, rule normed_vs_norm_gt_zero); ***)
         qed;
         also; have "... = c * (norm x * rinv (norm x))"; by (rule real_mult_assoc);
         also; have "(norm x * rinv (norm x)) = 1r"; 
@@ -118,7 +118,7 @@ proof -;
       proof (simp!, rule real_le_mult_order);
         show "0r <= rabs (f x)"; by (simp! only: rabs_ge_zero);
         show "0r <= rinv (norm x)";
-        proof (rule less_imp_le);
+        proof (rule real_less_imp_le);
           show "0r < rinv (norm x)"; 
           proof (rule real_rinv_gt_zero);
             show "0r < norm x"; ..;
@@ -141,7 +141,7 @@ proof -;
   have v: "is_vectorspace V"; ..;
   assume "x:V";
   show "?thesis";
-  proof (rule case [of "x = <0>"]);
+  proof (rule case_split [of "x = <0>"]);
     assume "x ~= <0>";
     show "?thesis";
     proof -;
@@ -197,7 +197,7 @@ proof (unfold function_norm_def);
   assume fb: "ALL x:V. rabs (f x) <= c * norm x"
          and "0r <= c";
   show "Sup UNIV (B V norm f) <= c"; 
-  proof (rule ub_ge_sup);
+  proof (rule sup_le_ub);
     from ex_fnorm [OF _ c]; show "is_Sup UNIV (B V norm f) (Sup UNIV (B V norm f))"; 
       by (simp! add: is_function_norm_def function_norm_def); 
     show "isUb UNIV (B V norm f) c";  
@@ -217,7 +217,7 @@ proof (unfold function_norm_def);
             
 	from lt; have "0r < rinv (norm x)";
 	  by (simp! add: real_rinv_gt_zero);
-	then; have inv_leq: "0r <= rinv (norm x)"; by (rule less_imp_le);
+	then; have inv_leq: "0r <= rinv (norm x)"; by (rule real_less_imp_le);
 
 	from Px; have "y = rabs (f x) * rinv (norm x)"; ..;
 	also; from inv_leq; have "... <= c * norm x * rinv (norm x)";

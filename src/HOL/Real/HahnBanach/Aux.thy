@@ -3,14 +3,12 @@
     Author:     Gertrud Bauer, TU Munich
 *)
 
-theory Aux = Real:;
+theory Aux = Real + Zorn:;
 
-theorems case = case_split_thm;  (* FIXME tmp *);
+lemmas [intro!!] = chainD; 
+lemmas chainE2 = chainD2 [elimify];
+lemmas [intro!!] = isLub_isUb;
 
-lemmas CollectE = CollectD [elimify];
-
-theorem [trans]: "[| (x::'a::order) <= y; x ~= y |] ==> x < y";	    (*  <=  ~=  < *)
-  by (simp! add: order_less_le);
 
 lemma le_max1: "x <= max x (y::'a::linorder)";
   by (simp add: le_max_iff_disj[of x x y]);
@@ -24,8 +22,6 @@ lemma lt_imp_not_eq: "x < (y::'a::order) ==> x ~= y";
 lemma Int_singletonD: "[| A Int B = {v}; x:A; x:B |] ==> x = v";
   by (fast elim: equalityE);
 
-lemmas singletonE = singletonD[elimify];
-
 lemma real_add_minus_eq: "x - y = 0r ==> x = y";
 proof -;
   assume "x - y = 0r";
@@ -33,7 +29,7 @@ proof -;
   also; have "... = 0r"; .;
   finally; have "x + - y = 0r"; .;
   hence "x = - (- y)"; by (rule real_add_minus_eq_minus);
-  also; have "... = y"; by (simp!);
+  also; have "... = y"; by simp;
   finally; show "x = y"; .;
 qed;
 
@@ -44,31 +40,64 @@ proof -;
     show "-1r < 0r";
       by (rule real_minus_zero_less_iff[RS iffD1], simp, rule real_zero_less_one);
   qed;
-  also; have "... = 1r"; by (simp!); 
-  finally; show ?thesis; by (simp!);
+  also; have "... = 1r"; by simp; 
+  finally; show ?thesis; by simp;
 qed;
 
-axioms real_mult_le_le_mono2: "[| 0r <= z; x <= y |] ==> x * z <= y * z";
+lemma real_mult_le_le_mono2: "[| 0r <= z; x <= y |] ==> x * z <= y * z";
+proof -;
+  assume gz: "0r <= z" and ineq: "x <= y";
+  hence "x < y | x = y"; by (force simp add: order_le_less);
+  thus ?thesis;
+  proof (elim disjE); 
+    assume "x < y"; show ?thesis; by (rule real_mult_le_less_mono1);
+  next; 
+    assume "x = y"; 
+    hence "x * z <= y * z"; by simp;
+    thus ?thesis; by fast;
+  qed;
+qed;
 
-axioms real_mult_less_le_anti: "[| z < 0r; x <= y |] ==> z * y <= z * x";
+lemma real_mult_less_le_anti: "[| z < 0r; x <= y |] ==> z * y <= z * x";
+proof -;
+  assume lz: "z < 0r" and ineq: "x <= y";
+  hence "0r < - z"; by simp;
+  hence "0r <= - z"; by (rule real_less_imp_le);
+  with ineq; have "(- z) * x <= (- z) * y"; by (simp add: real_mult_le_le_mono1);
+  hence  "- (z * x) <= - (z * y)"; by (simp add: real_minus_mult_eq1 [RS sym]);
+  thus ?thesis; by simp;
+qed;
 
-axioms real_mult_less_le_mono: "[| 0r < z; x <= y |] ==> z * x <= z * y";
+lemma real_mult_less_le_mono: "[| 0r < z; x <= y |] ==> z * x <= z * y";
+proof -; 
+  assume gt: "0r < z" and ineq: "x <= y";
+  from gt; have "0r <= z"; by (rule real_less_imp_le);
+  thus ?thesis; by (rule real_mult_le_le_mono1); 
+qed;
 
-axioms real_mult_diff_distrib: "a * (- x - (y::real)) = - a * x - a * y";
+lemma real_mult_diff_distrib: "a * (- x - (y::real)) = - a * x - a * y";
+proof -;
+  have "- x - (y::real) = - x + - y"; by simp;
+  also; have "a * ... = a * - x + a * - y"; by (simp add: real_add_mult_distrib2);
+  also; have "... = - a * x - a * y"; 
+    by (simp add: real_minus_mult_eq2 [RS sym] real_minus_mult_eq1 [RS sym]);
+  finally; show ?thesis; .;
+qed;
 
-axioms real_mult_diff_distrib2: "a * (x - (y::real)) = a * x - a * y";
-
-lemma less_imp_le: "(x::real) < y ==> x <= y";
-  by (simp! only: real_less_imp_le);
+lemma real_mult_diff_distrib2: "a * (x - (y::real)) = a * x - a * y";
+proof -; 
+  have "x - (y::real) = x + - y"; by simp;
+  also; have "a * ... = a * x + a * - y"; by (simp add: real_add_mult_distrib2);
+  also; have "... = a * x - a * y";   
+    by (simp add: real_minus_mult_eq2 [RS sym] real_minus_mult_eq1 [RS sym]);
+  finally; show ?thesis; .;
+qed;
 
 lemma le_noteq_imp_less: "[|x <= (r::'a::order); x ~= r |] ==> x < r";
 proof -;
-  assume "x <= (r::'a::order)";
-  assume "x ~= r";
-  then; have "x < r | x = r";
-    by (simp! add: order_le_less);
-  then; show ?thesis;
-    by (simp!);
+  assume "x <= (r::'a::order)" and ne:"x ~= r";
+  then; have "x < r | x = r"; by (simp add: order_le_less);
+  with ne; show ?thesis; by simp;
 qed;
 
 lemma minus_le: "- (x::real) <= y ==> - y <= x";
@@ -80,16 +109,16 @@ proof -;
      assume "- x < y"; show ?thesis; 
      proof -; 
        have "- y < - (- x)"; by (rule real_less_swap_iff [RS iffD1]); 
-       hence "- y < x"; by (simp!);
+       hence "- y < x"; by simp;
        thus ?thesis; by (rule real_less_imp_le);
     qed;
   next; 
-     assume "- x = y"; show ?thesis; by (force!);
+     assume "- x = y"; thus ?thesis; by force;
   qed;
 qed;
 
 lemma rabs_interval_iff_1: "(rabs (x::real) <= r) = (-r <= x & x <= r)";
-proof (rule case [of "rabs x = r"]);
+proof (rule case_split [of "rabs x = r"]);
   assume  a: "rabs x = r";
   show ?thesis; 
   proof;
@@ -97,14 +126,14 @@ proof (rule case [of "rabs x = r"]);
     show "- r <= x & x <= r";
     proof;
       have "- x <= rabs x"; by (rule rabs_ge_minus_self);
-      hence "- x <= r"; by (simp!);
-      thus "- r <= x"; by (simp! add : minus_le [of "x" "r"]);
+      with a; have "- x <= r"; by simp;
+      thus "- r <= x"; by (simp add : minus_le [of "x" "r"]);
       have "x <= rabs x"; by (rule rabs_ge_self); 
-      thus "x <= r"; by (simp!); 
+      with a; show "x <= r"; by simp; 
     qed;
   next; 
     assume "- r <= x & x <= r";
-    show "rabs x <= r"; by (fast!);
+    with a; show "rabs x <= r"; by fast;
   qed;
 next;   
   assume "rabs x ~= r";
@@ -124,26 +153,32 @@ next;
     assume "- r <= x & x <= r";
     thus "rabs x <= r";
     proof; 
-      assume "- r <= x" "x <= r";
+      assume a: "- r <= x" and "x <= r";
       show ?thesis; 
       proof (rule rabs_disj [RS disjE, of x]);
-        assume  "rabs x = x";
-        show ?thesis; by (simp!); 
+        assume "rabs x = x";
+        thus ?thesis; by simp; 
       next; 
         assume "rabs x = - x";
-        from minus_le [of r x]; show ?thesis; by (simp!);
+        with a minus_le [of r x]; show ?thesis; by simp;
       qed;
     qed;
   qed;
 qed;
 
-lemma set_less_imp_diff_not_empty: "H < E ==> EX x0:E. x0 ~: H";
-proof- ;
-  assume "H < E ";
-  have le: "H <= E"; by (rule conjunct1 [OF psubset_eq[RS iffD1]]);
-  have ne: "H ~= E";  by (rule conjunct2 [OF psubset_eq[RS iffD1]]);
-  with le; show ?thesis; by force;
+
+lemma real_diff_ineq_swap: "(d::real) - b <= c + a ==> - a - b <= c - d";
+proof -;
+  assume "d - b <= c + (a::real)";
+  have "- a - b = d - b + (- d - a)"; by (simp!);
+  also; have "... <= c + a + (- d - a)"; by (rule real_add_le_mono1);
+  also; have "... = c - d"; by (simp!);
+  finally; show "- a - b <= c - d"; .;
 qed;
+
+
+lemma set_less_imp_diff_not_empty: "H < E ==> EX x0:E. x0 ~: H";
+ by (force simp add: psubset_eq);
 
 
 end;

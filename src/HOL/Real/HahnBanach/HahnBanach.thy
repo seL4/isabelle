@@ -3,10 +3,18 @@
     Author:     Gertrud Bauer, TU Munich
 *)
 
+(*  The proof of two different versions of the Hahn-Banach theorem, 
+    following H. Heuser, Funktionalanalysis, p. 228 - 232. 
+*)
+
 theory HahnBanach = HahnBanach_lemmas + HahnBanach_h0_lemmas:;
 
 
-theorems [elim!!] = psubsetI;
+section {* The Hahn-Banach theorem for general linear spaces, 
+     H. Heuser, Funktionalanalysis, p.231 *};
+
+text  {* Every linear function f on a subspace of E, which is bounded by a quasinorm on E, 
+     can be extended norm preserving to a function on E *};
 
 theorem hahnbanach: 
   "[| is_vectorspace E; is_subspace F E; is_quasinorm E p; is_linearform F f;
@@ -16,11 +24,12 @@ theorem hahnbanach:
           & (ALL x:E. h x <= p x)";
 proof -;
   assume "is_vectorspace E" "is_subspace F E" "is_quasinorm E p" "is_linearform F f"
-    and "ALL x:F. f x <= p x";
-  def M == "norm_prev_extensions E p F f";
+         "ALL x:F. f x <= p x";
+  
+  def M == "norm_pres_extensions E p F f";
  
-  have aM: "graph F f : norm_prev_extensions E p F f";
-  proof (rule norm_prev_extensionI2);
+  have aM: "graph F f : norm_pres_extensions E p F f";
+  proof (rule norm_pres_extensionI2);
     show "is_subspace F F"; 
     proof;
       show "is_vectorspace F"; ..;
@@ -28,58 +37,56 @@ proof -;
   qed (blast!)+;
 
 
-  sect {* Part I a of the proof of the Hahn-Banach Theorem, 
+  sect {* Part I b of the proof of the Hahn-Banach Theorem, 
      H. Heuser, Funktionalanalysis, p.231 *};
-
+    
+  txt {*  Every chain of norm presenting functions has a supremum in M  *};
 
   have "!! (c:: 'a graph set). c : chain M ==> EX x. x:c ==> (Union c) : M";  
   proof -;
     fix c; assume "c:chain M"; assume "EX x. x:c";
     show "(Union c) : M"; 
 
-    proof (unfold M_def, rule norm_prev_extensionI);
+    proof (unfold M_def, rule norm_pres_extensionI);
       show "EX (H::'a set) h::'a => real. graph H h = Union c
               & is_linearform H h 
               & is_subspace H E 
               & is_subspace F H 
               & (graph F f <= graph H h)
               & (ALL x::'a:H. h x <= p x)" (is "EX (H::'a set) h::'a => real. ?Q H h");
-      proof;
+      proof (intro exI conjI);
         let ?H = "domain (Union c)";
-	show "EX h. ?Q ?H h";
-	proof;
-	  let ?h = "funct (Union c)";
-	  show "?Q ?H ?h";
-	  proof (intro conjI);
- 	    show a: "graph ?H ?h = Union c"; 
-            proof (rule graph_domain_funct);
-              fix x y z; assume "(x, y) : Union c" "(x, z) : Union c";
-              show "z = y"; by (rule sup_uniq);
-            qed;
+        let ?h = "funct (Union c)";
+
+        show a: "graph ?H ?h = Union c"; 
+        proof (rule graph_domain_funct);
+          fix x y z; assume "(x, y) : Union c" "(x, z) : Union c";
+          show "z = y"; by (rule sup_uniq);
+        qed;
             
-	    show "is_linearform ?H ?h";
-              by (simp! add: sup_lf a);       
+        show "is_linearform ?H ?h";
+          by (simp! add: sup_lf a);       
 
-	    show "is_subspace ?H E";
-              by (rule sup_subE, rule a) (simp!)+;
+        show "is_subspace ?H E";
+          by (rule sup_subE, rule a) (simp!)+;
+ 
+        show "is_subspace F ?H";
+          by (rule sup_supF, rule a) (simp!)+;
 
-	    show "is_subspace F ?H";
-              by (rule sup_supF, rule a) (simp!)+;
+        show "graph F f <= graph ?H ?h";       
+          by (rule sup_ext, rule a) (simp!)+;
 
-	    show "graph F f <= graph ?H ?h";       
-               by (rule sup_ext, rule a) (simp!)+;
-
-	    show "ALL x::'a:?H. ?h x <= p x"; 
-               by (rule sup_norm_prev, rule a) (simp!)+;
-	  qed;
-	qed;
+        show "ALL x::'a:?H. ?h x <= p x"; 
+          by (rule sup_norm_pres, rule a) (simp!)+;
       qed;
     qed;
   qed;
-      
+ 
+  txt {* there exists a maximal norm-preserving function g. *};
   
   with aM; have bex_g: "EX g:M. ALL x:M. g <= x --> g = x";
     by (simp! add: Zorn's_Lemma);
+
   thus ?thesis;
   proof;
     fix g; assume g: "g:M" "ALL x:M. g <= x --> g = x";
@@ -90,28 +97,38 @@ proof -;
                          & is_subspace F H
                          & (graph F f <= graph H h)
                          & (ALL x:H. h x <= p x) "; 
-      by (simp! add: norm_prev_extension_D);
+      by (simp! add: norm_pres_extension_D);
     thus ?thesis;
     proof (elim exE conjE);
-      fix H h; assume "graph H h = g" "is_linearform (H::'a set) h"
-	"is_subspace H E" "is_subspace F H"
-        "(graph F f <= graph H h)"; assume h_bound: "ALL x:H. h x <= p x";
+      fix H h; 
+      assume "graph H h = g" "is_linearform (H::'a set) h" "is_subspace H E" "is_subspace F H"
+      and h_ext: "(graph F f <= graph H h)"
+      and h_bound: "ALL x:H. h x <= p x";
+
       show ?thesis; 
       proof;
         have h: "is_vectorspace H"; ..;
         have f: "is_vectorspace F"; ..;
 
-
         sect {* Part I a of the proof of the Hahn-Banach Theorem,
             H. Heuser, Funktionalanalysis, p.230 *};
 
+        txt {* the maximal norm-preserving function is defined on whole E *};
+
 	have eq: "H = E"; 
 	proof (rule classical);
+
+          txt {* assume h is not defined on whole E *};
+
           assume "H ~= E";
           show ?thesis; 
           proof -;
+
             have "EX x:M. g <= x & g ~= x";
             proof -;
+
+              txt {* h can be extended norm-preserving to H0 *};
+
 	      have "EX H0 h0. g <= graph H0 h0 & g ~= graph H0 h0 & graph H0 h0 : M";
 	      proof-;
                 have "H <= E"; ..;
@@ -120,11 +137,11 @@ proof -;
                 thus ?thesis;
                 proof;
                   fix x0; assume "x0:E" "x0~:H";
+
                   have x0:  "x0 ~= <0>";
                   proof (rule classical);
-                    presume "x0 = <0>";
-                    also; have "<0> : H"; ..;
-                    finally; have "x0 : H"; .;
+                    presume "x0 = <0>"; 
+                    with h; have "x0:H"; by simp;
                     thus ?thesis; by contradiction;
                   qed force;
 
@@ -136,29 +153,16 @@ proof -;
                     proof (rule ex_xi);
                       fix u v; assume "u:H" "v:H"; 
                       show "- p (u [+] x0) - h u <= p (v [+] x0) - h v";
-                      proof -;
-                        show "!! a b c d::real. d - b <= c + a ==> - a - b <= c - d";
-                        proof -; (* arith *)
-			  fix a b c d; assume "d - b <= c + (a::real)";
-                          have "- a - b = d - b + (- d - a)"; by (simp!);
-                          also; have "... <= c + a + (- d - a)";
-                            by (rule real_add_le_mono1);
-                          also; have "... = c - d"; by (simp!);
-                          finally; show "- a - b <= c - d"; .;
-                        qed;
+                      proof (rule real_diff_ineq_swap);
+
                         show "h v - h u <= p (v [+] x0) + p (u [+] x0)"; 
                         proof -;
                           from h; have "h v - h u = h (v [-] u)";
-                            by  (rule linearform_diff_linear [RS sym]);
-                          also; have "... <= p (v [-] u)";
-			  proof -;  
-			    from h; have "v [-] u : H"; by (simp!); 
-                            with h_bound; show ?thesis; ..;
-			  qed;
-                          also; have "v [-] u  = x0 [+] [-] x0 [+] v [+] [-] u"; 
+                             by (simp! add: linearform_diff_linear);
+                          also; from h_bound; have "... <= p (v [-] u)"; by (simp!);
+                          also; have "v [-] u = x0 [+] [-] x0 [+] v [+] [-] u"; 
                             by (simp! add: vs_add_minus_eq_diff);
-                          also; have "... = v [+] x0 [+] [-] (u [+] x0)"; 
-                            by (simp!);
+                          also; have "... = v [+] x0 [+] [-] (u [+] x0)"; by (simp!);
                           also; have "... = (v [+] x0) [-] (u [+] x0)";  
                             by (simp! only: vs_add_minus_eq_diff);
                           also; have "p ... <= p (v [+] x0) + p (u [+] x0)"; 
@@ -198,79 +202,59 @@ proof -;
 
                       have "graph H h ~= graph H0 h0";
                       proof;
-                        assume "graph H h = graph H0 h0";
-                        have x1: "(x0, h0 x0) : graph H0 h0";
-                        proof (rule graphI);
-                          show "x0:H0";
-                          proof (unfold H0_def, rule vs_sumI);
-                            from h; show "<0> : H"; ..;
-                            show "x0 : lin x0"; by (rule x_lin_x);
-                            show "x0 = <0> [+] x0"; by (simp!);
-                          qed;
+                        assume e: "graph H h = graph H0 h0";
+                        have "x0:H0"; 
+                        proof (unfold H0_def, rule vs_sumI);
+                          show "x0 = <0> [+] x0"; by (simp!);
+                          show "x0 :lin x0"; by (rule x_lin_x);
+                          from h; show "<0> : H"; ..;
                         qed;
-                        have "(x0, h0 x0) ~: graph H h";
-                        proof;
-                          assume "(x0, h0 x0) : graph H h";
-                          have "x0:H"; ..;
-                          thus "False"; by contradiction;
-                        qed;
-                        hence "(x0, h0 x0) ~: graph H0 h0"; by (simp!);
-                        with x1; show "False"; by contradiction;
+                        hence "(x0, h0 x0) : graph H0 h0"; by (rule graphI);
+                        with e; have "(x0, h0 x0) : graph H h"; by simp;
+                        hence "x0 : H"; ..;
+                        thus "False"; by contradiction;
                       qed;
                       thus "g ~= graph H0 h0"; by (simp!);
 
-                      have "graph H0 h0 : norm_prev_extensions E p F f";
-                      proof (rule norm_prev_extensionI2);
+                      have "graph H0 h0 : norm_pres_extensions E p F f";
+                      proof (rule norm_pres_extensionI2);
 
                         show "is_linearform H0 h0";
                           by (rule h0_lf, rule x0) (simp!)+;
 
                         show "is_subspace H0 E";
-                        proof -;
-                        have "is_subspace (vectorspace_sum H (lin x0)) E"; 
-			  by (rule vs_sum_subspace, rule lin_subspace);
-                          thus ?thesis; by (simp!);
-                        qed;
+                          by (unfold H0_def, rule vs_sum_subspace, rule lin_subspace);
 
                         show f_h0: "is_subspace F H0";
                         proof (rule subspace_trans [of F H H0]);
-                          from h lin_vs; have "is_subspace H (vectorspace_sum H (lin x0))";
-                            by (rule subspace_vs_sum1);
-                          thus "is_subspace H H0"; by (simp!);
+                          from h lin_vs; have "is_subspace H (vectorspace_sum H (lin x0))"; ..;
+                          thus "is_subspace H H0"; by (unfold H0_def);
                         qed;
 
                         show "graph F f <= graph H0 h0";
-                        proof(rule graph_extI);
+                        proof (rule graph_extI);
                           fix x; assume "x:F";
                           show "f x = h0 x";
                           proof -;
-                            have "x:H"; 
-                            proof (rule subsetD);
-                              show "F <= H"; ..;
-                            qed;
                             have eq: "(@ (y, a). x = y [+] a [*] x0 & y : H) = (x, 0r)";
                               by (rule decomp1, rule x0) (simp!)+;
- 
-                            have "h0 x = (let (y,a) = @ (y,a). x = y [+] a [*] x0 & y : H
-                                          in h y + a * xi)"; 
-                              by (simp!);
-                            also; from eq; have "... = (let (y,a) = (x, 0r) in h y + a * xi)";
-                              by simp;
-                            also; have " ... = h x + 0r * xi";
-                              by (simp! add: Let_def);
-                            also; have "... = h x"; by (simp!);
-                            also; have "... = f x"; 
-                            proof (rule sym);
-                              show "f x = h x"; ..;
-                            qed;
-                            finally; show ?thesis; by (rule sym);
+
+                            have "f x = h x"; ..;
+                            also; have " ... = h x + 0r * xi"; by simp;
+                            also; have "... = (let (y,a) = (x, 0r) in h y + a * xi)";
+                               by (simp add: Let_def);
+                            also; from eq; 
+                            have "... = (let (y,a) = @ (y,a). x = y [+] a [*] x0 & y : H
+                                          in h y + a * xi)"; by simp;
+                            also; have "... = h0 x"; by (simp!);
+                            finally; show ?thesis; .;
                           qed;
                         next;
                           from f_h0; show "F <= H0"; ..;
                         qed;
 
                         show "ALL x:H0. h0 x <= p x";
-                          by (rule h0_norm_prev, rule x0) (assumption | (simp!))+;
+                          by (rule h0_norm_pres, rule x0) (assumption | (simp!))+;
                       qed;
                       thus "graph H0 h0 : M"; by (simp!);
                     qed;
@@ -302,6 +286,11 @@ proof -;
 qed;
 
 
+section  {* Part I (for real linear spaces) of the proof of the Hahn-banach Theorem,
+   H. Heuser, Funktionalanalysis, p.229 *};
+
+text {* Alternative Formulation of the theorem *};
+
 theorem rabs_hahnbanach:
   "[| is_vectorspace E; is_subspace F E; is_quasinorm E p; is_linearform F f;
      ALL x:F. rabs (f x) <= p x |]
@@ -310,11 +299,8 @@ theorem rabs_hahnbanach:
          & (ALL x:E. rabs (g x) <= p x)";
 proof -; 
 
- sect {* Part I (for real linear spaces) of the proof of the Hahn-banach Theorem,
-   H. Heuser, Funktionalanalysis, p.229 *};
-
-  assume e: "is_vectorspace E"; 
-  assume "is_subspace F E" "is_quasinorm E p" "is_linearform F f" "ALL x:F. rabs (f x) <= p x";
+  assume e: "is_vectorspace E" and  "is_subspace F E" "is_quasinorm E p" "is_linearform F f" 
+         "ALL x:F. rabs (f x) <= p x";
   have "ALL x:F. f x <= p x"; by (rule rabs_ineq [RS iffD1]);
   hence  "EX g. is_linearform E g & (ALL x:F. g x = f x) & (ALL x:E. g x <= p x)";
     by (simp! only: hahnbanach);
@@ -330,6 +316,12 @@ proof -;
 qed;
 
 
+section {* The Hahn-Banach theorem for normd spaces, 
+     H. Heuser, Funktionalanalysis, p.232 *};
+
+text  {* Every continous linear function f on a subspace of E, 
+     can be extended to a continous function on E with the same norm *};
+
 theorem norm_hahnbanach:
   "[| is_normed_vectorspace E norm; is_subspace F E; is_linearform F f;
       is_continous F norm f |] 
@@ -340,15 +332,13 @@ theorem norm_hahnbanach:
   (concl is "EX g::'a=>real. ?P g");
 
 proof -;
-sect {* Proof of the Hahn-Banach Theorem for normed spaces,
-   H. Heuser, Funktionalanalysis, p.232 *};
 
   assume a: "is_normed_vectorspace E norm";
   assume b: "is_subspace F E" "is_linearform F f";
   assume c: "is_continous F norm f";
   have e: "is_vectorspace E"; ..;
-  from _ e;
-  have f: "is_normed_vectorspace F norm"; ..;
+  from _ e; have f: "is_normed_vectorspace F norm"; ..;
+
   def p == "%x::'a. (function_norm F norm f) * norm x";
   
   let ?P' = "%g. is_linearform E g & (ALL x:F. g x = f x) & (ALL x:E. rabs (g x) <= p x)";

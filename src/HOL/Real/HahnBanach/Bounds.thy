@@ -86,7 +86,7 @@ translations
   "INF x. P" == "INF x:UNIV. P";
 
 
-lemma ub_ge_sup: "isUb A B y ==> is_Sup A B s ==> s <= y";
+lemma sup_le_ub: "isUb A B y ==> is_Sup A B s ==> s <= y";
   by (unfold is_Sup_def, rule isLub_le_isUb);
 
 lemma sup_ub: "y:B ==> is_Sup A B s ==> y <= s";

@@ -46,7 +46,7 @@ proof -;
   finally; show "f (x [-] y) = f x - f y"; by (simp!);
 qed;
 
-lemma linearform_zero [intro!!]: "[| is_vectorspace V; is_linearform V f |] ==> f <0> = 0r"; 
+lemma linearform_zero [intro!!, simp]: "[| is_vectorspace V; is_linearform V f |] ==> f <0> = 0r"; 
 proof -; 
   assume "is_vectorspace V" "is_linearform V f";
   have "f <0> = f (<0> [-] <0>)"; by (simp!);

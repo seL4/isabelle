@@ -57,42 +57,42 @@ proof (unfold domain_def, unfold funct_def, unfold graph_def, auto);
 qed;
 
 constdefs
-  norm_prev_extensions :: 
+  norm_pres_extensions :: 
    "['a set, 'a  => real, 'a set, 'a => real] => 'a graph set"
-  "norm_prev_extensions E p F f == {g. EX H h. graph H h = g 
+  "norm_pres_extensions E p F f == {g. EX H h. graph H h = g 
                                              & is_linearform H h 
                                              & is_subspace H E
                                              & is_subspace F H
                                              & (graph F f <= graph H h)
                                              & (ALL x:H. h x <= p x)}";
                        
-lemma norm_prev_extension_D:  
-  "(g: norm_prev_extensions E p F f) ==> (EX H h. graph H h = g 
+lemma norm_pres_extension_D:  
+  "(g: norm_pres_extensions E p F f) ==> (EX H h. graph H h = g 
                                               & is_linearform H h 
                                               & is_subspace H E
                                               & is_subspace F H
                                               & (graph F f <= graph H h)
                                               & (ALL x:H. h x <= p x))";
- by (unfold norm_prev_extensions_def) force;
+ by (unfold norm_pres_extensions_def) force;
 
-lemma norm_prev_extensionI2 [intro]:  
+lemma norm_pres_extensionI2 [intro]:  
    "[| is_linearform H h;    
        is_subspace H E;
        is_subspace F H;
        (graph F f <= graph H h);
        (ALL x:H. h x <= p x) |]
-   ==> (graph H h : norm_prev_extensions E p F f)";
- by (unfold norm_prev_extensions_def) force;
+   ==> (graph H h : norm_pres_extensions E p F f)";
+ by (unfold norm_pres_extensions_def) force;
 
-lemma norm_prev_extensionI [intro]:  
+lemma norm_pres_extensionI [intro]:  
    "(EX H h. graph H h = g 
              & is_linearform H h    
              & is_subspace H E
              & is_subspace F H
              & (graph F f <= graph H h)
              & (ALL x:H. h x <= p x))
-   ==> (g: norm_prev_extensions E p F f) ";
- by (unfold norm_prev_extensions_def) force;
+   ==> (g: norm_pres_extensions E p F f) ";
+ by (unfold norm_pres_extensions_def) force;
 
 
 end;

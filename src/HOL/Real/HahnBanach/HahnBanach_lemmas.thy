@@ -10,15 +10,15 @@ lemma rabs_ineq: "[| is_subspace H E; is_vectorspace E; is_quasinorm E p; is_lin
  \ ==>  (ALL x:H. rabs (h x) <= p x)  = ( ALL x:H. h x <= p x)" (concl is "?L = ?R");
 proof -;
   assume "is_subspace H E" "is_vectorspace E" "is_quasinorm E p" "is_linearform H h";
-  have H: "is_vectorspace H"; by (rule subspace_vs);
+  have h: "is_vectorspace H"; ..;
   show ?thesis;
   proof; 
     assume l: ?L;
     then; show ?R;
     proof (intro ballI); 
-      fix x; assume "x:H";
+      fix x; assume x: "x:H";
       have "h x <= rabs (h x)"; by (rule rabs_ge_self);
-      also; have "rabs (h x) <= p x"; by (fast!);
+      also; from l; have "... <= p x"; ..;
       finally; show "h x <= p x"; .;
     qed;
   next;
@@ -26,22 +26,16 @@ proof -;
     then; show ?L;
     proof (intro ballI);
       fix x; assume "x:H";
-      have lem: "!! r x. [| - r <= x; x <= r |] ==> rabs x <= r";
-        by (rule conjI [RS rabs_interval_iff_1 [RS iffD2]]); (* arith *)
+ 
       show "rabs (h x) <= p x"; 
-      proof (rule lem);  
-	show "- p x <= h x"; 
+      proof -; 
+        show "!! r x. [| - r <= x; x <= r |] ==> rabs x <= r";
+          by (simp add: rabs_interval_iff_1);
+	show "- p x <= h x";  thm minus_le;
 	proof (rule minus_le);
-	  from H; have "- h x = h ([-] x)"; by (rule linearform_neg_linear [RS sym]);
-	  also; from r; have "... <= p ([-] x)"; 
-	  proof -; 
-	    from H; have "[-] x : H"; by (simp!);
-            with r; show ?thesis; ..;
-          qed;
-	  also; have "... = p x"; 
-          proof (rule quasinorm_minus);
-            show "x:E"; ..;
-          qed;
+	  from h; have "- h x = h ([-] x)"; by (rule linearform_neg_linear [RS sym]);
+	  also; from r; have "... <= p ([-] x)"; by (simp!);
+	  also; have "... = p x"; by (rule quasinorm_minus, rule subspace_subsetD);
 	  finally; show "- h x <= p x"; .; 
 	qed;
 	from r; show "h x <= p x"; ..; 
@@ -50,18 +44,17 @@ proof -;
   qed;
 qed;  
 
-
 lemma  some_H'h't:
-  "[| M = norm_prev_extensions E p F f; c: chain M; graph H h = Union c; x:H|]
+  "[| M = norm_pres_extensions E p F f; c: chain M; graph H h = Union c; x:H|]
    ==> EX H' h' t. t : (graph H h) & t = (x, h x) & (graph H' h'):c & t:graph H' h' &
                        is_linearform H' h' & is_subspace H' E & is_subspace F H' & 
                        (graph F f <= graph H' h') & (ALL x:H'. h' x <= p x)";
 proof -;
-  assume "M = norm_prev_extensions E p F f" and cM: "c: chain M" 
-     and "graph H h = Union c" "x:H"; 
+  assume m: "M = norm_pres_extensions E p F f" and cM: "c: chain M" 
+     and u: "graph H h = Union c" "x:H";
 
-  let ?P = "%H h. is_linearform H h 
-                    & is_subspace H E 
+  let ?P = "%H h. is_linearform H h
+                    & is_subspace H E
                     & is_subspace F H
                     & (graph F f <= graph H h)
                     & (ALL x:H. h x <= p x)";
@@ -70,60 +63,62 @@ proof -;
     by (rule graphI2);
   thus ?thesis;
   proof (elim bexE); 
-    fix t; assume "t : (graph H h)" and "t = (x, h x)";
-    have ex1: "EX g:c. t:g";
-      by (simp! only: Union_iff);
+    fix t; assume t: "t : (graph H h)" "t = (x, h x)";
+    with u; have ex1: "EX g:c. t:g";
+      by (simp only: Union_iff);
     thus ?thesis;
     proof (elim bexE);
-      fix g; assume "g:c" "t:g";
-      have gM: "g:M"; 
-      proof -;
-        from cM; have "c <= M"; by (rule chainD2);
-        thus ?thesis; ..;
-      qed;
-      have "EX H' h'. graph H' h' = g & ?P H' h'"; 
-      proof (rule norm_prev_extension_D);
-        from gM; show "g: norm_prev_extensions E p F f"; by (simp!);
-      qed;
+      fix g; assume g: "g:c" "t:g";
+      from cM; have "c <= M"; by (rule chainD2);
+      hence "g : M"; ..;
+      hence "g : norm_pres_extensions E p F f"; by (simp only: m);
+      hence "EX H' h'. graph H' h' = g & ?P H' h'"; by (rule norm_pres_extension_D);
       thus ?thesis; by (elim exE conjE, intro exI conjI) (simp | simp!)+;
     qed;
   qed;
 qed;
       
-
-lemma some_H'h': "[| M = norm_prev_extensions E p F f; c: chain M; graph H h = Union c; x:H|] 
+lemma some_H'h': "[| M = norm_pres_extensions E p F f; c: chain M; graph H h = Union c; x:H|] 
  ==> EX H' h'. x:H' & (graph H' h' <= graph H h) & 
                is_linearform H' h' & is_subspace H' E & is_subspace F H' & 
                (graph F f <= graph H' h') & (ALL x:H'. h' x <= p x)"; 
 proof -;
-  assume "M = norm_prev_extensions E p F f" "c: chain M" "graph H h = Union c" "x:H"; 
-
-  have "EX H' h' t. t : (graph H h) & t = (x, h x) & (graph H' h'):c & t:graph H' h'
-                  & is_linearform H' h' & is_subspace H' E & is_subspace F H'
-                  & (graph F f <= graph H' h') & (ALL x:H'. h' x <= p x)";
-    by (rule some_H'h't);
- 
+  assume m: "M = norm_pres_extensions E p F f" and cM: "c: chain M" 
+     and u: "graph H h = Union c" "x:H";  
+  have "(x, h x): graph H h"; by (rule graphI); 
+  also; have "... = Union c"; .;
+  finally; have "(x, h x) : Union c"; .;
+  hence "EX g:c. (x, h x):g"; by (simp only: Union_iff);
   thus ?thesis; 
-  proof (elim exE conjE, intro exI conjI);
-    fix H' h' t; 
-    assume "t : graph H h" "t = (x, h x)" "graph H' h' : c" "t : graph H' h'" 
-           "is_linearform H' h'" "is_subspace H' E" "is_subspace F H'" 
-           "graph F f <= graph H' h'" "ALL x:H'. h' x <= p x";
-    show x: "x:H'"; by (simp!, rule graphD1);
-    show "graph H' h' <= graph H h";
-      by (simp! only: chain_ball_Union_upper);
+  proof (elim bexE);
+    fix g; assume g: "g:c" "(x, h x):g";
+    from cM; have "c <= M"; by (rule chainD2);
+    hence "g : M"; ..;
+    hence "g : norm_pres_extensions E p F f"; by (simp only: m);
+    hence "EX H' h'. graph H' h' = g 
+                   & is_linearform H' h'
+                   & is_subspace H' E
+                   & is_subspace F H'
+                   & (graph F f <= graph H' h')
+                   & (ALL x:H'. h' x <= p x)"; by (rule norm_pres_extension_D);
+    thus ?thesis; 
+    proof (elim exE conjE, intro exI conjI);
+      fix H' h'; assume g': "graph H' h' = g";
+      with g; have "(x, h x): graph H' h'"; by simp;
+      thus "x:H'"; by (rule graphD1);
+      from g g'; have "graph H' h' : c"; by simp;
+      with cM u; show "graph H' h' <= graph H h"; by (simp only: chain_ball_Union_upper);
+    qed simp+;
   qed;
 qed;
 
-theorems [trans] = subsetD [COMP swap_prems_rl];
-
 lemma some_H'h'2: 
-  "[| M = norm_prev_extensions E p F f; c: chain M; graph H h = Union c; x:H; y:H|] 
+  "[| M = norm_pres_extensions E p F f; c: chain M; graph H h = Union c; x:H; y:H|] 
   ==> EX H' h'. x:H' & y:H' & (graph H' h' <= graph H h)
                 & is_linearform H' h' & is_subspace H' E & is_subspace F H' & 
                 (graph F f <= graph H' h') & (ALL x:H'. h' x <= p x)"; 
 proof -;
-  assume "M = norm_prev_extensions E p F f" "c: chain M" "graph H h = Union c";
+  assume "M = norm_pres_extensions E p F f" "c: chain M" "graph H h = Union c";
  
   let ?P = "%H h. is_linearform H h 
                     & is_subspace H E 
@@ -142,15 +137,15 @@ proof -;
   from e1 e2; show ?thesis; 
   proof (elim exE conjE);
     fix H' h' t' H'' h'' t''; 
-    assume "t' : graph H h" "t'' : graph H h" 
-      "t' = (y, h y)" "t'' = (x, h x)"
-      "graph H' h' : c" "graph H'' h'' : c"
-      "t' : graph H' h'" "t'' : graph H'' h''" 
-      "is_linearform H' h'" "is_linearform H'' h''"
-      "is_subspace H' E" "is_subspace H'' E"
-      "is_subspace F H'" "is_subspace F H''"
-      "graph F f <= graph H' h'" "graph F f <= graph H'' h''"
-      "ALL x:H'. h' x <= p x" "ALL x:H''. h'' x <= p x";
+    assume "t' : graph H h"             "t'' : graph H h" 
+           "t' = (y, h y)"              "t'' = (x, h x)"
+           "graph H' h' : c"            "graph H'' h'' : c"
+           "t' : graph H' h'"           "t'' : graph H'' h''" 
+           "is_linearform H' h'"        "is_linearform H'' h''"
+           "is_subspace H' E"           "is_subspace H'' E"
+           "is_subspace F H'"           "is_subspace F H''"
+           "graph F f <= graph H' h'"   "graph F f <= graph H'' h''"
+           "ALL x:H'. h' x <= p x"      "ALL x:H''. h'' x <= p x";
 
     have "(graph H'' h'') <= (graph H' h') | (graph H' h') <= (graph H'' h'')";
       by (rule chainD);
@@ -158,9 +153,10 @@ proof -;
     proof; 
       assume "(graph H'' h'') <= (graph H' h')";
       show ?thesis;
-      proof (intro exI conjI); note [trans] = subsetD;
+      proof (intro exI conjI);
+        note [trans] = subsetD;
         have "(x, h x) : graph H'' h''"; by (simp!);
-	also; have "... <= graph H' h'"; by (simp!); 
+	also; have "... <= graph H' h'"; .;
         finally; have xh: "(x, h x): graph H' h'"; .;
 	thus x: "x:H'"; by (rule graphD1);
 	show y: "y:H'"; by (simp!, rule graphD1);
@@ -173,7 +169,7 @@ proof -;
       proof (intro exI conjI);
 	show x: "x:H''"; by (simp!, rule graphD1);
         have "(y, h y) : graph H' h'"; by (simp!);
-        also; have "... <= graph H'' h''"; by (simp!);
+        also; have "... <= graph H'' h''"; .;
 	finally; have yh: "(y, h y): graph H'' h''"; .;
         thus y: "y:H''"; by (rule graphD1);
         show "(graph H'' h'') <= (graph H h)";
@@ -183,24 +179,21 @@ proof -;
   qed;
 qed;
 
-lemmas chainE2 = chainD2 [elimify];
-lemmas [intro!!] = subsetD chainD; 
-
 lemma sup_uniq: "[| is_vectorspace E; is_subspace F E; is_quasinorm E p; is_linearform F f;
-       ALL x:F. f x <= p x; M == norm_prev_extensions E p F f; c : chain M;
+       ALL x:F. f x <= p x; M == norm_pres_extensions E p F f; c : chain M;
        EX x. x : c; (x, y) : Union c; (x, z) : Union c |]
      ==> z = y";
 proof -;
-  assume "M == norm_prev_extensions E p F f" "c : chain M" "(x, y) : Union c" " (x, z) : Union c";
+  assume "M == norm_pres_extensions E p F f" "c : chain M" "(x, y) : Union c" " (x, z) : Union c";
   hence "EX H h. (x, y) : graph H h & (x, z) : graph H h"; 
   proof (elim UnionE chainE2); 
     fix G1 G2; assume "(x, y) : G1" "G1 : c" "(x, z) : G2" "G2 : c" "c <= M";
     have "G1 : M"; ..;
     hence e1: "EX H1 h1. graph H1 h1 = G1";  
-      by (force! dest: norm_prev_extension_D);
+      by (force! dest: norm_pres_extension_D);
     have "G2 : M"; ..;
     hence e2: "EX H2 h2. graph H2 h2 = G2";  
-      by (force! dest: norm_prev_extension_D);
+      by (force! dest: norm_pres_extension_D);
     from e1 e2; show ?thesis; 
     proof (elim exE);
       fix H1 h1 H2 h2; assume "graph H1 h1 = G1" "graph H2 h2 = G2";
@@ -233,10 +226,10 @@ proof -;
 qed;
 
 
-lemma sup_lf: "[| M = norm_prev_extensions E p F f; c: chain M; graph H h = Union c|] 
+lemma sup_lf: "[| M = norm_pres_extensions E p F f; c: chain M; graph H h = Union c|] 
    ==> is_linearform H h";
 proof -; 
-  assume "M = norm_prev_extensions E p F f" "c: chain M" "graph H h = Union c";
+  assume "M = norm_pres_extensions E p F f" "c: chain M" "graph H h = Union c";
  
   let ?P = "%H h. is_linearform H h 
                     & is_subspace H E 
@@ -299,10 +292,10 @@ proof -;
 qed;
 
 
-lemma sup_ext: "[| M = norm_prev_extensions E p F f; c: chain M; EX x. x:c; graph H h = Union c|] 
+lemma sup_ext: "[| M = norm_pres_extensions E p F f; c: chain M; EX x. x:c; graph H h = Union c|] 
    ==> graph F f <= graph H h";
 proof -;
-  assume "M = norm_prev_extensions E p F f" "c: chain M"  "graph H h = Union c"
+  assume "M = norm_pres_extensions E p F f" "c: chain M"  "graph H h = Union c"
     and  e: "EX x. x:c";
  
   thus ?thesis; 
@@ -310,9 +303,9 @@ proof -;
     fix x; assume "x:c"; 
     show ?thesis;    
     proof -;
-      have "x:norm_prev_extensions E p F f"; 
+      have "x:norm_pres_extensions E p F f"; 
       proof (rule subsetD);
-	show "c <= norm_prev_extensions E p F f"; by (simp! add: chainD2);
+	show "c <= norm_pres_extensions E p F f"; by (simp! add: chainD2);
       qed;
  
       hence "(EX G g. graph G g = x
@@ -321,7 +314,7 @@ proof -;
                     & is_subspace F G
                     & (graph F f <= graph G g) 
                     & (ALL x:G. g x <= p x))";
-	by (simp! add: norm_prev_extension_D);
+	by (simp! add: norm_pres_extension_D);
 
       thus ?thesis; 
       proof (elim exE conjE); 
@@ -338,10 +331,10 @@ proof -;
 qed;
 
 
-lemma sup_supF: "[| M = norm_prev_extensions E p F f; c: chain M; EX x. x:c; graph H h = Union c;
+lemma sup_supF: "[| M = norm_pres_extensions E p F f; c: chain M; EX x. x:c; graph H h = Union c;
                     is_subspace F E |] ==> is_subspace F H";
 proof -; 
-  assume "M = norm_prev_extensions E p F f" "c: chain M" "EX x. x:c" "graph H h = Union c"
+  assume "M = norm_pres_extensions E p F f" "c: chain M" "EX x. x:c" "graph H h = Union c"
     "is_subspace F E";
 
   show ?thesis; 
@@ -366,10 +359,10 @@ proof -;
 qed;
 
 
-lemma sup_subE: "[| M = norm_prev_extensions E p F f; c: chain M; EX x. x:c; graph H h = Union c;
+lemma sup_subE: "[| M = norm_pres_extensions E p F f; c: chain M; EX x. x:c; graph H h = Union c;
                     is_subspace F E|] ==> is_subspace H E";
 proof -; 
-  assume "M = norm_prev_extensions E p F f" "c: chain M" "EX x. x:c" "graph H h = Union c"
+  assume "M = norm_pres_extensions E p F f" "c: chain M" "EX x. x:c" "graph H h = Union c"
     "is_subspace F E";
 
   show ?thesis; 
@@ -447,10 +440,10 @@ proof -;
 qed;
 
 
-lemma sup_norm_prev: "[| M = norm_prev_extensions E p F f; c: chain M; graph H h = Union c|] 
+lemma sup_norm_pres: "[| M = norm_pres_extensions E p F f; c: chain M; graph H h = Union c|] 
    ==> ALL x::'a:H. h x <= p x";
 proof;
-  assume "M = norm_prev_extensions E p F f" "c: chain M" "graph H h = Union c";
+  assume "M = norm_pres_extensions E p F f" "c: chain M" "graph H h = Union c";
   fix x; assume "x:H";
   show "h x <= p x"; 
   proof -; 
