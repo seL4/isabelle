@@ -30,9 +30,16 @@ input <KBD>ababaab</KBD> is partitioned into a chopped up prefix
 <KBD>[ab,ab]</KBD> and the suffix <KBD>aab</KBD>.
 <P>
 
-The auto_chopper is implemented in theory AutoChopper. The top part of the
-diagram, i.e. the translation of regular expressions into deterministic
-finite automata is still missing.  <P>
+The auto_chopper is implemented in theory AutoChopper. An alternative (more
+efficient) version is defined in AutoChopper1. However, no properties have
+been proved for it yet.
 
+The top part of the diagram, i.e. the translation of regular expressions into
+deterministic finite automata is still missing (although we have some bits
+and pieces).
+<P>
+
+The directory also contains Regset_of_auto, a theory describing the
+translation of deterministic automata into regular sets.
 </BODY>
 </HTML>

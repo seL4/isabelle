@@ -12,6 +12,8 @@ Main result: auto_chopper satisfies the is_auto_chopper specification.
 
 WARNING: auto_chopper is exponential(?)
 if the recursive calls in the penultimate argument are evaluated eagerly.
+
+A more efficient version is defined in AutoChopper1.
 *)
 
 AutoChopper = Auto + Chopper +
@@ -39,32 +41,3 @@ primrec acc List.list
                 else acc xs (nxt st x) ys (zs@[x]) chopsr A)"
 
 end
-
-(* The following definition of acc should also work:
-consts
-  acc1 :: [('a,'b)auto, 'a list, 'b, 'a list list, 'a list, 'a list]
-          => 'a list list * 'a list
-
-acc1 A [] s xss zs xs =
-  (if xs=[] then (xss, zs)
-   else acc1 A zs (start A) (xss @ [xs]) [] [])
-acc1 A (y#ys) s xss zs rec =
-  let s' = next A s;
-      zs' = (if fin A s' then [] else zs@[y])
-      xs' = (if fin A s' then xs@zs@[y] else xs)
-  in acc1 A ys s' xss zs' xs'
-
-Advantage: does not need lazy evaluation for reasonable (quadratic)
-performance.
-
-Disadavantage: not primrec.
-  
-Termination measure:
-  size(A,ys,s,xss,zs,rec) = (|xs| + |ys| + |zs|, |ys|)
-
-Termination proof: the first clause reduces the first component by |xs|,
-the second clause leaves the first component alone but reduces the second by 1.
-
-Claim: acc1 A xs s [] [] [] = acc xs s [] [] ([],xs) A
-Generalization?
-*)
