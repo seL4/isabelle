@@ -940,7 +940,8 @@ fun bottomc ((simprem,useprem,mutsimp), prover, sign, maxidx) =
 fun rewrite_cterm mode prover mss ct =
   let val {sign, t, maxidx, ...} = rep_cterm ct
       val Mss{depth, ...} = mss
-  in simp_depth := depth;
+  in trace_cterm false "SIMPLIFIER INVOKED ON THE FOLLOWING TERM:" ct;
+     simp_depth := depth;
      bottomc (mode, prover, sign, maxidx) mss ct
   end
   handle THM (s, _, thms) =>
