@@ -26,6 +26,19 @@ qed "component_refl";
 
 AddIffs [component_SKIP, component_refl];
 
+Goalw [component_def] "component F (F Join G)";
+by (Blast_tac 1);
+qed "component_Join1";
+
+Goalw [component_def] "component G (F Join G)";
+by (simp_tac (simpset() addsimps [Join_commute]) 1);
+by (Blast_tac 1);
+qed "component_Join2";
+
+Goalw [component_def] "i : I ==> component (F i) (JN i:I. (F i))";
+by (blast_tac (claset() addIs [JN_absorb]) 1);
+qed "component_JN";
+
 Goalw [component_def] "[| component F G; component G H |] ==> component F H";
 by (blast_tac (claset() addIs [Join_assoc RS sym]) 1);
 qed "component_trans";
@@ -105,8 +118,8 @@ qed "uv_prop_finite";
 (*** guarantees ***)
 
 (*This equation is more intuitive than the official definition*)
-Goal "(F : A guarantees B) = \
-\     (ALL G. F Join G : A & Disjoint F G --> F Join G : B)";
+Goal "(F : X guarantees Y) = \
+\     (ALL G. F Join G : X & Disjoint F G --> F Join G : Y)";
 by (simp_tac (simpset() addsimps [guarantees_def, component_eq]) 1);
 by (Blast_tac 1);
 qed "guarantees_eq";
@@ -150,24 +163,24 @@ by (Blast_tac 1);
 qed "combining2";
 
 Goalw [guarantees_def]
-     "ALL z:I. F : A guarantees (B z) ==> F : A guarantees (INT z:I. B z)";
+     "ALL i:I. F : X guarantees (Y i) ==> F : X guarantees (INT i:I. Y i)";
 by (Blast_tac 1);
 qed "all_guarantees";
 
 Goalw [guarantees_def]
-     "EX z:I. F : A guarantees (B z) ==> F : A guarantees (UN z:I. B z)";
+     "EX i:I. F : X guarantees (Y i) ==> F : X guarantees (UN i:I. Y i)";
 by (Blast_tac 1);
 qed "ex_guarantees";
 
 val prems = Goal
-     "(!!G. [| F Join G : A;  Disjoint F G |] ==> F Join G : B) \
-\     ==> F : A guarantees B";
+     "(!!G. [| F Join G : X;  Disjoint F G |] ==> F Join G : Y) \
+\     ==> F : X guarantees Y";
 by (simp_tac (simpset() addsimps [guarantees_def, component_eq]) 1);
 by (blast_tac (claset() addIs prems) 1);
 qed "guaranteesI";
 
 Goalw [guarantees_def, component_def]
-     "[| F : A guarantees B;  F Join G : A |] ==> F Join G : B";
+     "[| F : X guarantees Y;  F Join G : X |] ==> F Join G : Y";
 by (Blast_tac 1);
 qed "guaranteesD";
 
