@@ -11,7 +11,6 @@ HOL_build_completed;    (*Make examples fail if HOL did*)
 writeln"Root file for HOL/Induct";
 set proof_timing;
 time_use_thy "Perm";
-time_use_thy "FoldSet";
 time_use_thy "Comb";
 time_use_thy "Mutil";
 time_use_thy "Acc";
