@@ -35,6 +35,7 @@ sig
   val names: unit -> string list
   val get_theory: string -> theory
   val put_theory: theory -> unit
+  val get_preds: string -> string list
   val loaded_files: string -> (Path.T * File.info) list
   val load_file: bool -> Path.T -> unit
   val use_path: Path.T -> unit
@@ -122,6 +123,10 @@ fun change_deps name f = change_thy name (fn (deps, x) => (f deps, x));
 fun is_final name = is_none (get_deps name);
 fun get_files name = (case get_deps name of Some {files, ...} => files | _ => []);
 val loaded_files = mapfilter #2 o get_files;
+
+fun get_preds name =
+  (thy_graph Graph.imm_preds name) handle Graph.UNDEFINED _ =>
+    error (loader_msg "nothing known about theory" [name]);
 
 
 (* access theory *)
