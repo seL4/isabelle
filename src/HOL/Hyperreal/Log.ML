@@ -25,7 +25,7 @@ Addsimps [powr_one_gt_zero_iff RS iffD2];
 Goalw [powr_def] 
       "[| 0 < x; 0 < y |] ==> (x * y) powr a = (x powr a) * (y powr a)";
 by (asm_simp_tac (simpset() addsimps [exp_add RS sym,ln_mult,
-    real_add_mult_distrib2]) 1);
+    right_distrib]) 1);
 qed "powr_mult";
 
 Goalw [powr_def] "0 < x powr a";
@@ -39,19 +39,18 @@ qed "powr_not_zero";
 Addsimps [powr_not_zero];
 
 Goal "[| 0 < x; 0 < y |] ==> (x / y) powr a = (x powr a)/(y powr a)";
-by (asm_simp_tac (simpset() addsimps [real_divide_def,real_inverse_gt_0,
-    powr_mult]) 1);
+by (asm_simp_tac (simpset() addsimps [real_divide_def,positive_imp_inverse_positive, powr_mult]) 1);
 by (asm_simp_tac (simpset() addsimps [powr_def,exp_minus RS sym,
     exp_add RS sym,ln_inverse]) 1);
 qed "powr_divide";
 
 Goalw [powr_def] "x powr (a + b) = (x powr a) * (x powr b)";
 by (asm_simp_tac (simpset() addsimps [exp_add RS sym,
-    real_add_mult_distrib]) 1);
+    left_distrib]) 1);
 qed "powr_add";
 
 Goalw [powr_def] "(x powr a) powr b = x powr (a * b)";
-by (simp_tac (simpset() addsimps real_mult_ac) 1);
+by (simp_tac (simpset() addsimps mult_ac) 1);
 qed "powr_powr";
 
 Goal "(x powr a) powr b = (x powr b) powr a";
@@ -108,7 +107,7 @@ Goalw [log_def]
      "[| 0 < a; a ~= 1; 0 < x; 0 < y  |] \
 \     ==> log a (x * y) = log a x + log a y";
 by (auto_tac (claset(),simpset() addsimps [ln_mult,real_divide_def,
-    real_add_mult_distrib]));
+    left_distrib]));
 qed "log_mult";
 
 Goalw [log_def,real_divide_def]
@@ -138,7 +137,7 @@ qed "log_eq_one";
 Addsimps [log_eq_one];
 
 Goal "[| 0 < a; a ~= 1; 0 < x |] ==> log a (inverse x) = - log a x";
-by (res_inst_tac [("x1","log a x")] (real_add_left_cancel RS iffD1) 1);
+by (res_inst_tac [("a1","log a x")] (add_left_cancel RS iffD1) 1);
 by (auto_tac (claset(),simpset() addsimps [log_mult RS sym]));
 qed "log_inverse";
 

@@ -28,7 +28,7 @@ done
 
 lemma realpow_inverse: "inverse ((r::real) ^ n) = (inverse r) ^ n"
 apply (induct_tac "n")
-apply (auto simp add: real_inverse_distrib)
+apply (auto simp add: inverse_mult_distrib)
 done
 
 lemma realpow_abs: "abs(r ^ n) = abs(r::real) ^ n"
@@ -38,7 +38,7 @@ done
 
 lemma realpow_add: "(r::real) ^ (n + m) = (r ^ n) * (r ^ m)"
 apply (induct_tac "n")
-apply (auto simp add: real_mult_ac)
+apply (auto simp add: mult_ac)
 done
 
 lemma realpow_one [simp]: "(r::real) ^ 1 = r"
@@ -49,17 +49,17 @@ by simp
 
 lemma realpow_gt_zero [rule_format]: "(0::real) < r --> 0 < r ^ n"
 apply (induct_tac "n")
-apply (auto intro: real_mult_order simp add: real_zero_less_one)
+apply (auto intro: real_mult_order simp add: zero_less_one)
 done
 
 lemma realpow_ge_zero [rule_format]: "(0::real) \<le> r --> 0 \<le> r ^ n"
 apply (induct_tac "n")
-apply (auto simp add: real_0_le_mult_iff)
+apply (auto simp add: zero_le_mult_iff)
 done
 
 lemma realpow_le [rule_format]: "(0::real) \<le> x & x \<le> y --> x ^ n \<le> y ^ n"
 apply (induct_tac "n")
-apply (auto intro!: real_mult_le_mono)
+apply (auto intro!: mult_mono)
 apply (simp (no_asm_simp) add: realpow_ge_zero)
 done
 
@@ -90,7 +90,7 @@ done
 
 lemma realpow_mult: "((r::real) * s) ^ n = (r ^ n) * (s ^ n)"
 apply (induct_tac "n")
-apply (auto simp add: real_mult_ac)
+apply (auto simp add: mult_ac)
 done
 
 lemma realpow_two_le [simp]: "(0::real) \<le> r^ Suc (Suc 0)"
@@ -106,14 +106,15 @@ lemma realpow_two_gt_one: "(1::real) < r ==> 1 < r^ (Suc (Suc 0))"
 apply auto
 apply (cut_tac real_zero_less_one)
 apply (frule_tac x = 0 in order_less_trans, assumption)
-apply (drule_tac  z = r and x = 1 in real_mult_less_mono1)
-apply (auto intro: order_less_trans)
+apply (frule_tac c = r and a = 1 in mult_strict_right_mono)
+apply assumption; 
+apply (simp add: ); 
 done
 
 lemma realpow_ge_one [rule_format]: "(1::real) < r --> 1 \<le> r ^ n"
 apply (induct_tac "n", auto)
 apply (subgoal_tac "1*1 \<le> r * r^n")
-apply (rule_tac [2] real_mult_le_mono, auto)
+apply (rule_tac [2] mult_mono, auto)
 done
 
 lemma realpow_ge_one2: "(1::real) \<le> r ==> 1 \<le> r ^ n"
@@ -170,7 +171,7 @@ apply (induct_tac "N")
 apply (simp_all (no_asm_simp))
 apply clarify
 apply (subgoal_tac "r * r ^ na \<le> 1 * r ^ n", simp)
-apply (rule real_mult_le_mono)
+apply (rule mult_mono)
 apply (auto simp add: realpow_ge_zero less_Suc_eq)
 done
 
@@ -237,7 +238,7 @@ by simp
 
 lemma realpow_two_diff: "(x::real)^Suc (Suc 0) - y^Suc (Suc 0) = (x - y) * (x + y)"
 apply (unfold real_diff_def)
-apply (simp add: real_add_mult_distrib2 real_add_mult_distrib real_mult_ac)
+apply (simp add: right_distrib left_distrib mult_ac)
 done
 
 lemma realpow_two_disj: "((x::real)^Suc (Suc 0) = y^Suc (Suc 0)) = (x = y | x = -y)"
@@ -247,7 +248,7 @@ done
 
 (* used in Transc *)
 lemma realpow_diff: "[|(x::real) \<noteq> 0; m \<le> n |] ==> x ^ (n - m) = x ^ n * inverse (x ^ m)"
-by (auto simp add: le_eq_less_or_eq less_iff_Suc_add realpow_add realpow_not_zero real_mult_ac)
+by (auto simp add: le_eq_less_or_eq less_iff_Suc_add realpow_add realpow_not_zero mult_ac)
 
 lemma realpow_real_of_nat: "real (m::nat) ^ n = real (m ^ n)"
 apply (induct_tac "n")
@@ -256,7 +257,7 @@ done
 
 lemma realpow_real_of_nat_two_pos [simp] : "0 < real (Suc (Suc 0) ^ n)"
 apply (induct_tac "n")
-apply (auto simp add: real_of_nat_mult real_0_less_mult_iff)
+apply (auto simp add: real_of_nat_mult zero_less_mult_iff)
 done
 
 lemma realpow_increasing:
@@ -284,12 +285,12 @@ by (induct_tac "n", auto)
 
 lemma zero_less_realpow_abs_iff [simp]: "(0 < (abs x)^n) = (x \<noteq> (0::real) | n=0)"
 apply (induct_tac "n")
-apply (auto simp add: real_0_less_mult_iff)
+apply (auto simp add: zero_less_mult_iff)
 done
 
 lemma zero_le_realpow_abs [simp]: "(0::real) \<le> (abs x)^n"
 apply (induct_tac "n")
-apply (auto simp add: real_0_le_mult_iff)
+apply (auto simp add: zero_le_mult_iff)
 done
 
 
@@ -332,7 +333,7 @@ lemma real_sum_squares_cancel_a: "x * x = -(y * y) ==> x = (0::real) & y=0"
   by (auto intro: real_sum_squares_cancel)
 
 lemma real_squared_diff_one_factored: "x*x - (1::real) = (x + 1)*(x - 1)"
-apply (auto simp add: real_add_mult_distrib real_add_mult_distrib2 real_diff_def)
+apply (auto simp add: left_distrib right_distrib real_diff_def)
 done
 
 lemma real_mult_is_one: "(x*x = (1::real)) = (x = 1 | x = - 1)"
@@ -357,14 +358,14 @@ lemma real_mult_inverse_cancel:
       ==> inverse x * y < inverse x1 * u"
 apply (rule_tac c=x in mult_less_imp_less_left) 
 apply (auto simp add: real_mult_assoc [symmetric])
-apply (simp (no_asm) add: real_mult_ac)
+apply (simp (no_asm) add: mult_ac)
 apply (rule_tac c=x1 in mult_less_imp_less_right) 
-apply (auto simp add: real_mult_ac)
+apply (auto simp add: mult_ac)
 done
 
 text{*Used once: in Hyperreal/Transcendental.ML*}
 lemma real_mult_inverse_cancel2: "[|(0::real) < x;0 < x1; x1 * y < x * u |] ==> y * inverse x < u * inverse x1"
-apply (auto dest: real_mult_inverse_cancel simp add: real_mult_ac)
+apply (auto dest: real_mult_inverse_cancel simp add: mult_ac)
 done
 
 lemma inverse_real_of_nat_gt_zero: "0 < inverse (real (Suc n))"
@@ -403,18 +404,18 @@ done
 
 lemma realpow_ge_zero2 [rule_format (no_asm)]: "(0::real) \<le> r --> 0 \<le> r ^ n"
 apply (induct_tac "n")
-apply (auto simp add: real_0_le_mult_iff)
+apply (auto simp add: zero_le_mult_iff)
 done
 
 lemma realpow_le2 [rule_format (no_asm)]: "(0::real) \<le> x & x \<le> y --> x ^ n \<le> y ^ n"
 apply (induct_tac "n")
-apply (auto intro!: real_mult_le_mono simp add: realpow_ge_zero2)
+apply (auto intro!: mult_mono simp add: realpow_ge_zero2)
 done
 
 lemma realpow_Suc_gt_one: "(1::real) < r ==> 1 < r ^ (Suc n)"
 apply (frule_tac n = "n" in realpow_ge_one)
 apply (drule real_le_imp_less_or_eq, safe)
-apply (frule real_zero_less_one [THEN real_less_trans])
+apply (frule zero_less_one [THEN real_less_trans])
 apply (drule_tac y = "r ^ n" in real_mult_less_mono2)
 apply assumption
 apply (auto dest: real_less_trans)

@@ -162,7 +162,7 @@ by (dres_inst_tac [("y","(y + (- X) + 1)")] isLub_le_isUb 2
       THEN assume_tac 2);
 by (full_simp_tac
     (simpset() addsimps [real_diff_def, diff_le_eq RS sym] @
-                        real_add_ac) 2);
+                        add_ac) 2);
 by (rtac (setleI RS isUbI) 1);
 by (Step_tac 1);
 by (res_inst_tac [("R1.0","x"),("R2.0","y")] real_linear_less2 1);
@@ -179,9 +179,9 @@ by (etac order_less_imp_le 2);
 by (blast_tac (claset() addSIs [isLubD2]) 1 THEN Step_tac 1);
 by (full_simp_tac (simpset() addsimps [real_add_assoc]) 1);
 by (blast_tac (claset() addDs [isUbD] addSIs [setleI RS isUbI]
-                        addIs [real_add_le_mono1]) 1);
+                        addIs [add_right_mono]) 1);
 by (blast_tac (claset() addDs [isUbD] addSIs [setleI RS isUbI]
-                        addIs [real_add_le_mono1]) 1);
+                        addIs [add_right_mono]) 1);
 by (Auto_tac);
 qed "reals_complete";
 
@@ -202,7 +202,7 @@ by (asm_full_simp_tac
     (simpset() addsimps [linorder_not_less, inverse_eq_divide]) 2); 
 by (Clarify_tac 2);
 by (dres_inst_tac [("x","n")] spec 2); 
-by (dres_inst_tac [("k","real (Suc n)")] (real_mult_le_mono1) 2); 
+by (dres_inst_tac [("c","real (Suc n)")] (mult_right_mono) 2); 
 by (rtac real_of_nat_ge_zero 2);
 by (asm_full_simp_tac (simpset()  
 	 addsimps [real_of_nat_Suc_gt_zero RS real_not_refl2 RS not_sym, 
@@ -214,7 +214,7 @@ by (dtac reals_complete 1);
 by (auto_tac (claset() addIs [isUbI,setleI],simpset()));
 by (subgoal_tac "ALL m. x*(real(Suc m)) <= t" 1);
 by (asm_full_simp_tac (simpset() addsimps 
-                       [real_of_nat_Suc, real_add_mult_distrib2]) 1);
+                       [real_of_nat_Suc, right_distrib]) 1);
 by (blast_tac (claset() addIs [isLubD2]) 2);
 by (asm_full_simp_tac
     (simpset() addsimps [le_diff_eq RS sym, real_diff_def]) 1);
@@ -223,7 +223,7 @@ by (subgoal_tac "isUb (UNIV::real set) \
 by (blast_tac (claset() addSIs [isUbI,setleI]) 2);
 by (dres_inst_tac [("y","t+(-x)")] isLub_le_isUb 1);
 by (auto_tac (claset(), 
-	      simpset() addsimps [real_of_nat_Suc,real_add_mult_distrib2]));
+	      simpset() addsimps [real_of_nat_Suc,right_distrib]));
 qed "reals_Archimedean";
 
 (*There must be other proofs, e.g. Suc of the largest integer in the
@@ -234,20 +234,17 @@ by (res_inst_tac [("x","0")] exI 1);
 by (res_inst_tac [("x","1")] exI 2);
 by (auto_tac (claset() addEs [order_less_trans],
 	      simpset() addsimps [real_of_nat_one]));
-by (ftac (real_inverse_gt_0 RS reals_Archimedean) 1);
+by (ftac (positive_imp_inverse_positive RS reals_Archimedean) 1);
 by (Step_tac 1 THEN res_inst_tac [("x","Suc n")] exI 1);
-by (forw_inst_tac [("y","inverse x")] real_mult_less_mono1 1);
+by (forw_inst_tac [("b","inverse x")] mult_strict_right_mono 1);
 by Auto_tac;  
-by (rtac (thm "less_imp_inverse_less") 1); 
-by (assume_tac 1); 
-by (assume_tac 1); 
 qed "reals_Archimedean2";
 
 Goal "0 < x ==> ALL y. EX (n::nat). y < real n * x";
 by (Step_tac 1);
 by (cut_inst_tac [("x","y*inverse(x)")] reals_Archimedean2 1);
 by (Step_tac 1);
-by (forw_inst_tac [("x","y * inverse x")] (real_mult_less_mono1) 1);
+by (forw_inst_tac [("a","y * inverse x")] (mult_strict_right_mono) 1);
 by (auto_tac (claset(),simpset() addsimps [real_mult_assoc,real_of_nat_def]));
 qed "reals_Archimedean3";
 

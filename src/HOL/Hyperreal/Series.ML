@@ -30,14 +30,14 @@ Addsimps [sumr_add_lbound_zero];
 
 Goal "sumr m n f + sumr m n g = sumr m n (%n. f n + g n)";
 by (induct_tac "n" 1);
-by (auto_tac (claset(),simpset() addsimps real_add_ac));
+by (auto_tac (claset(),simpset() addsimps add_ac));
 qed "sumr_add";
 
 Goal "r * sumr m n f = sumr m n (%n. r * f n)";
 by (induct_tac "n" 1);
 by (Auto_tac);
 by (auto_tac (claset(),simpset() addsimps 
-    [real_add_mult_distrib2]));
+    [right_distrib]));
 qed "sumr_mult";
 
 Goal "n < p --> sumr 0 n f + sumr n p f = sumr 0 p f";
@@ -49,7 +49,7 @@ qed_spec_mp "sumr_split_add";
 Goal "n < p ==> sumr 0 p f + \
 \                - sumr 0 n f = sumr n p f";
 by (dres_inst_tac [("f1","f")] (sumr_split_add RS sym) 1);
-by (asm_simp_tac (simpset() addsimps real_add_ac) 1);
+by (asm_simp_tac (simpset() addsimps add_ac) 1);
 qed "sumr_split_add_minus";
 
 Goal "0 < n --> n < p --> sumr (Suc 0) n f + sumr n p f = sumr (Suc 0) p f";
@@ -66,7 +66,7 @@ qed "sumr_split_add3";
 Goal "abs(sumr m n f) <= sumr m n (%i. abs(f i))";
 by (induct_tac "n" 1);
 by (auto_tac (claset() addIs [abs_triangle_ineq RS order_trans,
-                              real_add_le_mono1], 
+                              add_right_mono], 
               simpset()));
 qed "sumr_rabs";
 
@@ -79,13 +79,13 @@ qed_spec_mp "sumr_fun_eq";
 Goal "sumr 0 n (%i. r) = real n * r";
 by (induct_tac "n" 1);
 by (auto_tac (claset(),
-              simpset() addsimps [real_add_mult_distrib,real_of_nat_zero,
+              simpset() addsimps [left_distrib,real_of_nat_zero,
                                   real_of_nat_Suc]));
 qed "sumr_const";
 Addsimps [sumr_const];
 
 Goal "sumr 0 n f + -(real n * r) = sumr 0 n (%i. f i + -r)";
-by (full_simp_tac (HOL_ss addsimps [sumr_add RS sym, real_minus_mult_eq2]) 1);
+by (full_simp_tac (HOL_ss addsimps [sumr_add RS sym, minus_mult_right]) 1);
 by (Simp_tac 1);
 qed "sumr_add_mult_const";
 
@@ -103,8 +103,7 @@ Addsimps [sumr_less_bounds_zero];
 Goal "sumr m n (%i. - f i) = - sumr m n f";
 by (induct_tac "n" 1);
 by (case_tac "Suc n <= m" 2);
-by (auto_tac (claset(),simpset() addsimps 
-    [real_minus_add_distrib]));
+by (auto_tac (claset(),simpset() addsimps [minus_add_distrib]));
 qed "sumr_minus";
 
 Goal "sumr (m+k) (n+k) f = sumr m n (%i. f(i + k))";
@@ -131,7 +130,7 @@ by (asm_full_simp_tac (simpset() addsimps [le_Suc_eq])  2);
 by (Step_tac 1);
 by (dres_inst_tac [("x","n")] spec 3);
 by (auto_tac (claset() addSDs [le_imp_less_or_eq], simpset()));
-by (asm_simp_tac (simpset() addsimps [real_add_mult_distrib, Suc_diff_n,
+by (asm_simp_tac (simpset() addsimps [left_distrib, Suc_diff_n,
                                       real_of_nat_Suc]) 1);
 qed_spec_mp "sumr_interval_const";
 
@@ -144,7 +143,7 @@ by (Step_tac 1);
 by (dres_inst_tac [("x","n")] spec 3);
 by (auto_tac (claset() addSDs [le_imp_less_or_eq],
     simpset()));
-by (asm_simp_tac (simpset() addsimps [Suc_diff_n, real_add_mult_distrib,
+by (asm_simp_tac (simpset() addsimps [Suc_diff_n, left_distrib,
                                       real_of_nat_Suc]) 1);
 qed_spec_mp "sumr_interval_const2";
 
@@ -155,15 +154,15 @@ by (ALLGOALS(asm_full_simp_tac (simpset() addsimps [less_Suc_eq_le])));
 by (ALLGOALS(dres_inst_tac [("x","n")] spec));
 by (Step_tac 1);
 by (dtac le_imp_less_or_eq 1 THEN Step_tac 1);
-by (dtac real_add_le_mono 2);
-by (dres_inst_tac [("i","sumr 0 m f")] (order_refl RS real_add_le_mono) 1);
+by (dres_inst_tac [("a","sumr 0 m f")] add_mono 2);
+by (dres_inst_tac [("a","sumr 0 m f")] (order_refl RS add_mono) 1);
 by (Auto_tac);
 qed_spec_mp "sumr_le";
 
 Goal "!!f g. (ALL r. m <= r & r < n --> f r <= g r) \
 \                --> sumr m n f <= sumr m n g";
 by (induct_tac "n" 1);
-by (auto_tac (claset() addIs [real_add_le_mono],
+by (auto_tac (claset() addIs [add_mono],
     simpset() addsimps [le_def]));
 qed_spec_mp "sumr_le2";
 
@@ -228,15 +227,15 @@ qed_spec_mp "sumr_subst";
 Goal "(ALL p. m <= p & p < m + n --> (f(p) <= K)) \
 \     --> (sumr m (m + n) f <= (real n * K))";
 by (induct_tac "n" 1);
-by (auto_tac (claset() addIs [real_add_le_mono],
-              simpset() addsimps [real_add_mult_distrib, real_of_nat_Suc]));
+by (auto_tac (claset() addIs [add_mono],
+              simpset() addsimps [left_distrib, real_of_nat_Suc]));
 qed_spec_mp "sumr_bound";
 
 Goal "(ALL p. 0 <= p & p < n --> (f(p) <= K)) \
 \     --> (sumr 0 n f <= (real n * K))";
 by (induct_tac "n" 1);
-by (auto_tac (claset() addIs [real_add_le_mono],
-        simpset() addsimps [real_add_mult_distrib, real_of_nat_Suc]));
+by (auto_tac (claset() addIs [add_mono],
+        simpset() addsimps [left_distrib, real_of_nat_Suc]));
 qed_spec_mp "sumr_bound2";
 
 Goal "sumr 0 n (%m. sumr (m * k) (m*k + k) f) = sumr 0 (n * k) f";
@@ -358,7 +357,7 @@ by (dtac summable_sums 1);
 by (auto_tac (claset(),simpset() addsimps [sums_def,LIMSEQ_def]));
 by (dres_inst_tac [("x","f(n) + f(n + 1)")] spec 1);
 by (Auto_tac);
-by (rtac ccontr 2 THEN dtac real_leI 2);
+by (rtac ccontr 2 THEN dtac (linorder_not_less RS iffD1) 2);
 by (subgoal_tac "sumr 0 (n + Suc (Suc 0)) f <= sumr 0 (Suc (Suc 0) * (Suc no) + n) f" 2);
 by (induct_tac "no" 3 THEN Simp_tac 3);
 by (res_inst_tac [("y","sumr 0 (Suc (Suc 0)*(Suc na)+n) f")] order_trans 3);
@@ -419,9 +418,9 @@ by (induct_tac "n" 1);
 by (Auto_tac);
 by (res_inst_tac [("c1","x - 1")] (real_mult_right_cancel RS iffD1) 1);
 by (auto_tac (claset(),
-       simpset() addsimps [real_mult_assoc, real_add_mult_distrib]));
+       simpset() addsimps [real_mult_assoc, left_distrib]));
 by (auto_tac (claset(),
-       simpset() addsimps [real_add_mult_distrib2,
+       simpset() addsimps [right_distrib,
                            real_diff_def, real_mult_commute]));
 qed "sumr_geometric";
 
@@ -429,7 +428,7 @@ Goal "abs(x) < 1 ==> (%n. x ^ n) sums (1/(1 - x))";
 by (case_tac "x = 1" 1);
 by (auto_tac (claset() addSDs [LIMSEQ_rabs_realpow_zero2],
              simpset() addsimps [sumr_geometric ,sums_def,
-                                 real_diff_def, real_add_divide_distrib]));
+                                 real_diff_def, add_divide_distrib]));
 by (subgoal_tac "1 / (1 + -x) = 0/(x - 1) + - 1/(x - 1)" 1); 
 by (asm_full_simp_tac (simpset() addsimps [thm"minus_divide_right"]) 2); 
 by (etac ssubst 1); 
@@ -542,7 +541,7 @@ by (dtac order_le_imp_less_or_eq 1);
 by Auto_tac;  
 by (subgoal_tac "0 <= c * abs y" 1);
 by (arith_tac 2);
-by (asm_full_simp_tac (simpset() addsimps [real_0_le_mult_iff]) 1); 
+by (asm_full_simp_tac (simpset() addsimps [zero_le_mult_iff]) 1); 
 qed "rabs_ratiotest_lemma";
 
 (* lemmas *)
@@ -579,9 +578,9 @@ by (dtac (le_Suc_ex_iff RS iffD1) 1);
 by (auto_tac (claset(),simpset() addsimps [realpow_add, realpow_not_zero]));
 by (induct_tac "na" 1 THEN Auto_tac);
 by (res_inst_tac [("y","c*abs(f(N + n))")] order_trans 1);
-by (auto_tac (claset() addIs [real_mult_le_mono1],
+by (auto_tac (claset() addIs [mult_right_mono],
               simpset() addsimps [summable_def]));
-by (asm_full_simp_tac (simpset() addsimps real_mult_ac) 1);
+by (asm_full_simp_tac (simpset() addsimps mult_ac) 1);
 by (res_inst_tac [("x","abs(f N) * (1/(1 - c)) / (c ^ N)")] exI 1);
 by (rtac sums_divide 1); 
 by (rtac sums_mult 1); 

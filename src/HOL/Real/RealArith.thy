@@ -51,7 +51,7 @@ lemma real_divide_minus1 [simp]: "x/-1 = -(x::real)"
 by simp
 
 lemma real_minus1_divide [simp]: "-1/(x::real) = - (1/x)"
-by (simp add: real_divide_def real_minus_inverse)
+by (simp add: real_divide_def inverse_minus_eq)
 
 lemma real_lbound_gt_zero:
      "[| (0::real) < d1; 0 < d2 |] ==> \<exists>e. 0 < e & e < d1 & e < d2"
@@ -116,14 +116,14 @@ lemma abs_real_of_nat_cancel [simp]: "abs (real x) = real (x::nat)"
 by (auto intro: abs_eqI1 simp add: real_of_nat_ge_zero)
 
 lemma abs_add_one_not_less_self [simp]: "~ abs(x) + (1::real) < x"
-apply (rule real_leD)
+apply (simp add: linorder_not_less)
 apply (auto intro: abs_ge_self [THEN order_trans])
 done
  
 text{*Used only in Hyperreal/Lim.ML*}
 lemma abs_sum_triangle_ineq: "abs ((x::real) + y + (-l + -m)) \<le> abs(x + -l) + abs(y + -m)"
 apply (simp add: real_add_assoc)
-apply (rule_tac x1 = y in real_add_left_commute [THEN ssubst])
+apply (rule_tac a1 = y in add_left_commute [THEN ssubst])
 apply (rule real_add_assoc [THEN subst])
 apply (rule abs_triangle_ineq)
 done

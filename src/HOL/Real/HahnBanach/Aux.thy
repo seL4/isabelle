@@ -3,7 +3,7 @@
     Author:     Gertrud Bauer, TU Munich
 *)
 
-header {* Auxiliary theorems *}  (* FIXME clean *)
+header {* Auxiliary theorems *}  (* FIXME clean: many are in Ring_and_Field *)
 
 theory Aux = Real + Bounds + Zorn:
 
@@ -38,45 +38,16 @@ lemma abs_minus_one: "abs (- (1::real)) = 1"
 
 lemma real_mult_le_le_mono1a:
   "(0::real) \<le> z \<Longrightarrow> x \<le> y \<Longrightarrow> z * x  \<le> z * y"
-  by (simp add: real_mult_le_mono2)
+  by (simp add: mult_left_mono)
 
-lemma real_mult_le_le_mono2:
-  "(0::real) \<le> z \<Longrightarrow> x \<le> y \<Longrightarrow> x * z \<le> y * z"
-proof -
-  assume "(0::real) \<le> z"  "x \<le> y"
-  hence "x < y \<or> x = y" by (auto simp add: order_le_less)
-  thus ?thesis
-  proof
-    assume "x < y"
-    show ?thesis by (rule real_mult_le_less_mono1) (simp!)
-  next
-    assume "x = y"
-    thus ?thesis by simp
-  qed
-qed
-
+text{*The next two results are needlessly weak*}
 lemma real_mult_less_le_anti:
   "z < (0::real) \<Longrightarrow> x \<le> y \<Longrightarrow> z * y \<le> z * x"
-proof -
-  assume "z < 0"  "x \<le> y"
-  hence "0 < - z" by simp
-  hence "0 \<le> - z" by (rule order_less_imp_le)
-  hence "x * (- z) \<le> y * (- z)"
-    by (rule real_mult_le_le_mono2)
-  hence  "- (x * z) \<le> - (y * z)"
-    by (simp only: real_mult_minus_eq2)
-  thus ?thesis by (simp only: real_mult_commute)
-qed
+  by (simp add: mult_left_mono_neg order_less_imp_le)
 
 lemma real_mult_less_le_mono:
   "(0::real) < z \<Longrightarrow> x \<le> y \<Longrightarrow> z * x \<le> z * y"
-proof -
-  assume "0 < z"  "x \<le> y"
-  have "0 \<le> z" by (rule order_less_imp_le)
-  hence "x * z \<le> y * z"
-    by (rule real_mult_le_le_mono2)
-  thus ?thesis by (simp only: real_mult_commute)
-qed
+  by (simp add: mult_left_mono order_less_imp_le)
 
 lemma real_mult_inv_right1: "(x::real) \<noteq> 0 \<Longrightarrow> x * inverse x = 1"
   by simp
@@ -86,14 +57,14 @@ lemma real_mult_inv_left1: "(x::real) \<noteq> 0 \<Longrightarrow> inverse x * x
 
 lemma real_le_mult_order1a:
   "(0::real) \<le> x \<Longrightarrow> 0 \<le> y \<Longrightarrow> 0 \<le> x * y"
-  by (simp add: real_0_le_mult_iff)
+  by (simp add: zero_le_mult_iff)
 
 lemma real_mult_diff_distrib:
   "a * (- x - (y::real)) = - a * x - a * y"
 proof -
   have "- x - y = - x + - y" by simp
   also have "a * ... = a * - x + a * - y"
-    by (simp only: real_add_mult_distrib2)
+    by (simp only: right_distrib)
   also have "... = - a * x - a * y"
     by simp
   finally show ?thesis .
@@ -103,7 +74,7 @@ lemma real_mult_diff_distrib2: "a * (x - (y::real)) = a * x - a * y"
 proof -
   have "x - y = x + - y" by simp
   also have "a * ... = a * x + a * - y"
-    by (simp only: real_add_mult_distrib2)
+    by (simp only: right_distrib)
   also have "... = a * x - a * y"
     by simp
   finally show ?thesis .

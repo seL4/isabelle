@@ -120,10 +120,10 @@ proof
       thus ?thesis by rule (insert ge, arith+)
     qed
     with neq show "Re (inverse w * w) = Re 1"
-      by (simp add: inverse_complex_def real_power_two real_add_divide_distrib [symmetric])
+      by (simp add: inverse_complex_def real_power_two add_divide_distrib [symmetric])
     from neq show "Im (inverse w * w) = Im 1"
       by (simp add: inverse_complex_def real_power_two
-        real_mult_ac real_add_divide_distrib [symmetric])
+        mult_ac add_divide_distrib [symmetric])
   qed
 qed
 

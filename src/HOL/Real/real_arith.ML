@@ -34,7 +34,7 @@ structure CancelNumeralFactorCommon =
   val norm_tac =
      ALLGOALS (simp_tac (HOL_ss addsimps real_minus_from_mult_simps @ mult_1s))
      THEN ALLGOALS (simp_tac (HOL_ss addsimps bin_simps@real_mult_minus_simps))
-     THEN ALLGOALS (simp_tac (HOL_ss addsimps real_mult_ac))
+     THEN ALLGOALS (simp_tac (HOL_ss addsimps mult_ac))
   val numeral_simp_tac  =
          ALLGOALS (simp_tac (HOL_ss addsimps rel_real_number_of@bin_simps))
   val simplify_meta_eq  = simplify_meta_eq
@@ -155,7 +155,7 @@ structure CancelFactorCommon =
   val dest_coeff        = dest_coeff
   val find_first        = find_first []
   val trans_tac         = trans_tac
-  val norm_tac = ALLGOALS (simp_tac (HOL_ss addsimps mult_1s@real_mult_ac))
+  val norm_tac = ALLGOALS (simp_tac (HOL_ss addsimps mult_1s@mult_ac))
   end;
 
 structure EqCancelFactor = ExtractCommonTermFun
@@ -210,16 +210,11 @@ test "a*(b*c)/(y*z) = d*(b::real)*(x*a)/z";
 (****Augmentation of real linear arithmetic with 
      rational coefficient handling****)
 
-val divide_1 = thm"divide_1";
-
-val times_divide_eq_left = thm"times_divide_eq_left";
-val times_divide_eq_right = thm"times_divide_eq_right";
-
 local
 
 (* reduce contradictory <= to False *)
 val simps = [True_implies_equals,
-             inst "w" "number_of ?v" real_add_mult_distrib2,
+             inst "a" "(number_of ?v)::real" right_distrib,
              divide_1,times_divide_eq_right,times_divide_eq_left];
 
 val simprocs = [real_cancel_numeral_factors_divide,
@@ -230,8 +225,8 @@ fun cvar(th,_ $ (_ $ _ $ var)) = cterm_of (#sign(rep_thm th)) var;
 val real_mult_mono_thms =
  [(rotate_prems 1 real_mult_less_mono2,
    cvar(real_mult_less_mono2, hd(prems_of real_mult_less_mono2))),
-  (real_mult_le_mono2,
-   cvar(real_mult_le_mono2, hd(tl(prems_of real_mult_le_mono2))))]
+  (real_mult_left_mono,
+   cvar(real_mult_left_mono, hd(tl(prems_of real_mult_left_mono))))]
 
 in
 

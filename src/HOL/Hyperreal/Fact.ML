@@ -51,7 +51,7 @@ by (Auto_tac);
 qed "fact_less_mono";
 
 Goal "0 < inverse (real (fact n))";
-by (auto_tac (claset(),simpset() addsimps [real_inverse_gt_0]));
+by (auto_tac (claset(),simpset() addsimps [positive_imp_inverse_positive]));
 qed "inv_real_of_nat_fact_gt_zero";
 Addsimps [inv_real_of_nat_fact_gt_zero];
 

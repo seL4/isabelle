@@ -326,7 +326,7 @@ done
 lemma hypreal_add_commute: "(z::hypreal) + w = w + z"
 apply (rule_tac z = z in eq_Abs_hypreal)
 apply (rule_tac z = w in eq_Abs_hypreal)
-apply (simp add: real_add_ac hypreal_add)
+apply (simp add: add_ac hypreal_add)
 done
 
 lemma hypreal_add_assoc: "((z1::hypreal) + z2) + z3 = z1 + (z2 + z3)"
@@ -419,7 +419,7 @@ lemma hypreal_add_mult_distrib:
 apply (rule_tac z = z1 in eq_Abs_hypreal)
 apply (rule_tac z = z2 in eq_Abs_hypreal)
 apply (rule_tac z = w in eq_Abs_hypreal)
-apply (simp add: hypreal_mult hypreal_add real_add_mult_distrib)
+apply (simp add: hypreal_mult hypreal_add left_distrib)
 done
 
 text{*one and zero are distinct*}
@@ -452,7 +452,7 @@ apply (unfold hypreal_one_def hypreal_zero_def)
 apply (rule_tac z = x in eq_Abs_hypreal)
 apply (simp add: hypreal_inverse hypreal_mult)
 apply (drule FreeUltrafilterNat_Compl_mem)
-apply (blast intro!: real_mult_inv_right FreeUltrafilterNat_subset)
+apply (blast intro!: right_inverse FreeUltrafilterNat_subset)
 done
 
 lemma hypreal_mult_inverse_left:
@@ -475,10 +475,6 @@ proof
   show "x \<noteq> 0 ==> inverse x * x = 1" by (simp add: hypreal_mult_inverse_left)
   show "y \<noteq> 0 ==> x / y = x * inverse y" by (simp add: hypreal_divide_def)
 qed
-
-(*Pull negations out*)
-declare minus_mult_right [symmetric, simp] 
-        minus_mult_left [symmetric, simp]
 
 
 lemma HYPREAL_INVERSE_ZERO: "inverse 0 = (0::hypreal)"

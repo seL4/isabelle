@@ -52,7 +52,7 @@ qed_spec_mp "hrealpow_gt_zero";
 
 Goal "x <= y & (0::hypreal) < x --> x ^ n <= y ^ n";
 by (induct_tac "n" 1);
-by (auto_tac (claset() addSIs [hypreal_mult_le_mono], simpset()));
+by (auto_tac (claset() addSIs [mult_mono], simpset()));
 by (asm_simp_tac (simpset() addsimps [hrealpow_ge_zero]) 1);
 qed_spec_mp "hrealpow_le";
 
@@ -104,7 +104,7 @@ by (auto_tac (claset() addIs [order_antisym], simpset()));
 qed "hypreal_add_nonneg_eq_0_iff";
 
 Goal "(x*x + y*y + z*z = 0) = (x = 0 & y = 0 & z = (0::hypreal))";
-by (simp_tac (HOL_ss addsimps [hypreal_le_square, hypreal_le_add_order, 
+by (simp_tac (HOL_ss addsimps [zero_le_square, hypreal_le_add_order, 
                          hypreal_add_nonneg_eq_0_iff]) 1);
 by Auto_tac;
 qed "hypreal_three_squares_add_zero_iff";

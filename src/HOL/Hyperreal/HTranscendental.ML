@@ -466,7 +466,7 @@ qed "starfun_ln_HFinite_not_Infinitesimal";
 (* we do proof by considering ln of 1/x *)
 Goal "[| x : Infinitesimal; 0 < x |] ==> ( *f* ln) x : HInfinite";
 by (dtac Infinitesimal_inverse_HInfinite 1);
-by (ftac hypreal_inverse_gt_0 1);
+by (ftac positive_imp_inverse_positive 1);
 by (dtac starfun_ln_HInfinite 2);
 by (auto_tac (claset(),simpset() addsimps [starfun_ln_inverse,
     HInfinite_minus_iff]));

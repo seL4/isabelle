@@ -644,7 +644,7 @@ Goal "u @c= 0 ==> hcmod(x + u) - hcmod x : Infinitesimal";
 by (res_inst_tac [("e","hcmod u"),("e'","- hcmod u")] Infinitesimal_interval2 1);
 by (auto_tac (claset() addDs [capprox_approx_zero_iff RS iffD1], 
     simpset() addsimps [mem_infmal_iff RS sym,hypreal_diff_def]));
-by (res_inst_tac [("C","hcmod x")] hypreal_le_add_left_cancel 1);
+by (res_inst_tac [("c1","hcmod x")] (add_le_cancel_left RS iffD1) 1);
 by (auto_tac (claset(),simpset() addsimps [symmetric hypreal_diff_def]));
 qed "Infinitesimal_hcmod_add_diff";
 
@@ -868,7 +868,7 @@ by (res_inst_tac [("x","u")] exI 1 THEN Auto_tac);
 by (Ultra_tac 1);
 by (dtac sym 1 THEN res_inst_tac [("z","X x")] eq_Abs_complex 1);
 by (auto_tac (claset(),simpset() addsimps [complex_mod,numeral_2_eq_2] delsimps [realpow_Suc]));
-by (rtac ccontr 1 THEN dtac real_leI 1);
+by (rtac ccontr 1 THEN dtac (linorder_not_less RS iffD1) 1);
 by (dtac order_less_le_trans 1 THEN assume_tac 1);
 by (dtac (real_sqrt_ge_abs1 RSN (2,order_less_le_trans)) 1);
 by (auto_tac (claset(),simpset() addsimps [numeral_2_eq_2 RS sym]));
@@ -883,7 +883,7 @@ by (res_inst_tac [("x","u")] exI 1 THEN Auto_tac);
 by (Ultra_tac 1);
 by (dtac sym 1 THEN res_inst_tac [("z","X x")] eq_Abs_complex 1);
 by (auto_tac (claset(),simpset() addsimps [complex_mod] delsimps [realpow_Suc]));
-by (rtac ccontr 1 THEN dtac real_leI 1);
+by (rtac ccontr 1 THEN dtac (linorder_not_less RS iffD1) 1);
 by (dtac order_less_le_trans 1 THEN assume_tac 1);
 by (dtac (real_sqrt_ge_abs2 RSN (2,order_less_le_trans)) 1);
 by Auto_tac;

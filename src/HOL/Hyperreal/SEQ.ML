@@ -914,7 +914,7 @@ val lemma_trans4 = result();
  ---------------------------------------------------------*)
 Goalw [Cauchy_def,Bseq_def] "Cauchy X ==> Bseq X";
 by (dres_inst_tac [("x","1")] spec 1);
-by (etac (real_zero_less_one RSN (2,impE)) 1);
+by (etac (zero_less_one RSN (2,impE)) 1);
 by (Step_tac 1);
 by (dres_inst_tac [("x","M")] spec 1);
 by (Asm_full_simp_tac 1);
@@ -1126,9 +1126,9 @@ by (Step_tac 1 THEN Asm_full_simp_tac 1);
 by (dres_inst_tac [("x","inverse r")] spec 1 THEN Step_tac 1);
 by (res_inst_tac [("x","N")] exI 1 THEN Step_tac 1);
 by (dtac spec 1 THEN Auto_tac);
-by (ftac real_inverse_gt_0 1);
+by (ftac positive_imp_inverse_positive 1);
 by (ftac order_less_trans 1 THEN assume_tac 1);
-by (forw_inst_tac [("x","f n")] real_inverse_gt_0 1);
+by (forw_inst_tac [("a","f n")] positive_imp_inverse_positive 1);
 by (asm_simp_tac (simpset() addsimps [abs_eqI2]) 1);
 by (res_inst_tac [("t","r")] (inverse_inverse_eq RS subst) 1);
 by (auto_tac (claset() addIs [inverse_less_iff_less RS iffD2], 

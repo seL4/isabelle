@@ -226,13 +226,13 @@ Addsimps [hlog_eq_one];
 Goal "[| 0 < a; a ~= 1; 0 < x |] ==> hlog a (inverse x) = - hlog a x";
 by (res_inst_tac [("a1","hlog a x")] (add_left_cancel RS iffD1) 1);
 by (auto_tac (claset(),simpset() addsimps [hypreal_not_refl2 RS not_sym,
-    hlog_mult RS sym,hypreal_inverse_gt_0]));
+    hlog_mult RS sym,positive_imp_inverse_positive]));
 qed "hlog_inverse";
 
 Goal "[| 0 < a; a ~= 1; 0 < x; 0 < y|] \
 \     ==> hlog a (x/y) = hlog a x - hlog a y";
 by (auto_tac (claset(),
-    simpset() addsimps [hypreal_inverse_gt_0,hlog_mult, hlog_inverse,hypreal_diff_def,hypreal_divide_def]));
+    simpset() addsimps [positive_imp_inverse_positive,hlog_mult, hlog_inverse,hypreal_diff_def,hypreal_divide_def]));
 qed "hlog_divide";
 
 Goal "[| 1 < a; 0 < x; 0 < y |] ==> (hlog a x < hlog a y) = (x < y)";

@@ -214,8 +214,8 @@ fun cvar(th,_ $ (_ $ _ $ var)) = cterm_of (#sign(rep_thm th)) var;
 val hypreal_mult_mono_thms =
  [(rotate_prems 1 hypreal_mult_less_mono2,
    cvar(hypreal_mult_less_mono2, hd(prems_of hypreal_mult_less_mono2))),
-  (hypreal_mult_le_mono2,
-   cvar(hypreal_mult_le_mono2, hd(tl(prems_of hypreal_mult_le_mono2))))]
+  (mult_left_mono,
+   cvar(mult_left_mono, hd(tl(prems_of mult_left_mono))))]
 
 in
 

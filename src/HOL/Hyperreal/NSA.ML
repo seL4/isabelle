@@ -347,8 +347,8 @@ Goalw [HInfinite_def,Infinitesimal_def]
      "x: HInfinite ==> inverse x: Infinitesimal";
 by Auto_tac;
 by (eres_inst_tac [("x","inverse r")] ballE 1);
-by (forw_inst_tac [("x1","r"),("z","abs x")]
-    (hypreal_inverse_gt_0 RS order_less_trans) 1);
+by (forw_inst_tac [("a1","r"),("z","abs x")]
+    (positive_imp_inverse_positive RS order_less_trans) 1);
 by (assume_tac 1);
 by (dtac ((inverse_inverse_eq RS sym) RS subst) 1);
 by (rtac (inverse_less_iff_less RS iffD1) 1);
@@ -457,8 +457,8 @@ by (asm_full_simp_tac (simpset() addsimps [linorder_not_less]) 1);
 by (eres_inst_tac [("x","r*ra")] ballE 1);
 by (fast_tac (claset() addIs [SReal_mult]) 2);
 by (auto_tac (claset(), simpset() addsimps [zero_less_mult_iff]));
-by (cut_inst_tac [("x","ra"),("y","abs y"),
-                  ("u","r"),("v","abs x")] hypreal_mult_le_mono 1);
+by (cut_inst_tac [("c","ra"),("d","abs y"),
+                  ("a","r"),("b","abs x")] mult_mono 1);
 by Auto_tac;
 qed "not_Infinitesimal_mult";
 
@@ -1514,7 +1514,7 @@ Goalw [hypreal_le_def]
      "[| u: Infinitesimal; hypreal_of_real x + u <= hypreal_of_real y |] \
 \     ==> hypreal_of_real x <= hypreal_of_real y";
 by (EVERY1 [rtac notI, rtac contrapos_np, assume_tac]);
-by (res_inst_tac [("C","-u")] hypreal_less_add_right_cancel 1);
+by (res_inst_tac [("c1","-u")] (add_less_cancel_right RS iffD1) 1);
 by (Asm_full_simp_tac 1);
 by (dtac (Infinitesimal_minus_iff RS iffD2) 1);
 by (dtac Infinitesimal_add_hypreal_of_real_less 1);
@@ -1560,16 +1560,16 @@ qed "Infinitesimal_add_not_zero";
 
 Goal "x*x + y*y : Infinitesimal ==> x*x : Infinitesimal";
 by (rtac Infinitesimal_interval2 1);
-by (rtac hypreal_le_square 3);
+by (rtac zero_le_square 3);
 by (assume_tac 1);
-by Auto_tac;
+by (auto_tac (claset(), simpset() addsimps [zero_le_square]));
 qed "Infinitesimal_square_cancel";
 Addsimps [Infinitesimal_square_cancel];
 
 Goal "x*x + y*y : HFinite ==> x*x : HFinite";
 by (rtac HFinite_bounded 1);
 by (assume_tac 1);
-by Auto_tac;
+by (auto_tac (claset(), simpset() addsimps [zero_le_square]));
 qed "HFinite_square_cancel";
 Addsimps [HFinite_square_cancel];
 
@@ -1590,7 +1590,7 @@ Addsimps [HFinite_square_cancel2];
 Goal "x*x + y*y + z*z : Infinitesimal ==> x*x : Infinitesimal";
 by (rtac Infinitesimal_interval2 1);
 by (assume_tac 1);
-by (rtac hypreal_le_square 2);
+by (rtac zero_le_square 2);
 by (Asm_full_simp_tac 1);
 by (cut_inst_tac [("a","y")] (thm"zero_le_square") 1);
 by (cut_inst_tac [("a","z")] (thm"zero_le_square") 1);
@@ -1601,7 +1601,7 @@ Addsimps [Infinitesimal_sum_square_cancel];
 Goal "x*x + y*y + z*z : HFinite ==> x*x : HFinite";
 by (rtac HFinite_bounded 1);
 by (assume_tac 1);
-by (rtac hypreal_le_square 2);
+by (rtac zero_le_square 2);
 by (cut_inst_tac [("a","y")] (thm"zero_le_square") 1);
 by (cut_inst_tac [("a","z")] (thm"zero_le_square") 1);
 by (asm_simp_tac (simpset() addsimps []) 1); 
@@ -2073,7 +2073,7 @@ by (Step_tac 1);
 by (dres_inst_tac [("x","inverse (hypreal_of_real(real (Suc n)))")]
     bspec 1);
 by (full_simp_tac (simpset() addsimps [SReal_inverse]) 1);
-by (rtac (real_of_nat_Suc_gt_zero RS real_inverse_gt_0 RS
+by (rtac (real_of_nat_Suc_gt_zero RS positive_imp_inverse_positive RS
           (hypreal_of_real_less_iff RS iffD2) RSN(2,impE)) 1);
 by (assume_tac 2);
 by (asm_full_simp_tac (simpset() addsimps
@@ -2156,7 +2156,7 @@ qed "FreeUltrafilterNat_nat_gt_real";
  --------------------------------------------------------------*)
 Goal "- {n::nat. real n <= u} = {n. u < real n}";
 by (auto_tac (claset() addSDs [order_le_less_trans],
-              simpset() addsimps [not_real_leE]));
+              simpset() addsimps [linorder_not_le]));
 val lemma = result();
 
 (*-----------------------------------------------
@@ -2274,7 +2274,7 @@ qed "inverse_real_of_posnat_ge_real_FreeUltrafilterNat";
 Goal "- {n. u <= inverse(real(Suc n))} = \
 \     {n. inverse(real(Suc n)) < u}";
 by (auto_tac (claset() addSDs [order_le_less_trans],
-              simpset() addsimps [not_real_leE]));
+              simpset() addsimps [linorder_not_le]));
 val lemma = result();
 
 Goal "0 < u ==> \

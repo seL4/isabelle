@@ -355,9 +355,9 @@ by (REPEAT(dtac spec 1) THEN Auto_tac);
 by (subgoal_tac 
     "abs((rsum(D,p) f - k2) - (rsum(D,p) f - k1)) < abs(k1 - k2)" 1);
 by (arith_tac 1);
-by (dtac real_add_less_mono 1 THEN assume_tac 1);
+by (dtac add_strict_mono 1 THEN assume_tac 1);
 by (auto_tac (claset(),
-    HOL_ss addsimps [real_add_mult_distrib RS sym,
+    HOL_ss addsimps [left_distrib RS sym,
                      real_mult_2_right RS sym, mult_less_cancel_right]));
 by (ALLGOALS(arith_tac));
 qed "Integral_unique";
@@ -390,7 +390,7 @@ by (auto_tac (claset(),simpset() addsimps [rsum_def,Integral_def]));
 by (res_inst_tac [("x","%x. b - a")] exI 1);
 by (auto_tac (claset(),simpset() addsimps 
     [sumr_mult RS sym,gauge_def,abs_interval_iff,
-     real_diff_mult_distrib2 RS sym,partition,tpart_def]));
+     right_diff_distrib RS sym,partition,tpart_def]));
 qed "Integral_mult_const";
 
 Goal "[| a <= b; Integral(a,b) f k |] ==> Integral(a,b) (%x. c * f x) (c * k)";
@@ -404,15 +404,17 @@ by (res_inst_tac [("a2","c")] ((abs_ge_zero RS real_le_imp_less_or_eq)
 by (dtac sym 2);
 by (Asm_full_simp_tac 2 THEN Blast_tac 2);
 by (dres_inst_tac [("x","e/abs c")] spec 1 THEN Auto_tac);
-by (asm_full_simp_tac (simpset() addsimps [real_0_less_mult_iff,
+by (asm_full_simp_tac (simpset() addsimps [zero_less_mult_iff,
     real_divide_def]) 1);
 by (rtac exI 1 THEN Auto_tac);
 by (REPEAT(dtac spec 1) THEN Auto_tac);
 by (res_inst_tac [("z1","inverse(abs c)")] (real_mult_less_iff1 RS iffD1) 1);
 by (fold_tac [real_divide_def]);
-by (auto_tac (claset(),simpset() addsimps [real_diff_mult_distrib2 
-    RS sym,abs_mult,real_mult_assoc RS sym,
-    ARITH_PROVE "c ~= 0 ==> abs (c::real) ~= 0",real_inverse_gt_0]));
+by (auto_tac (claset(),
+      simpset() addsimps [right_diff_distrib RS sym,
+                     abs_mult, real_mult_assoc RS sym,
+    ARITH_PROVE "c ~= 0 ==> abs (c::real) ~= 0",
+    positive_imp_inverse_positive]));
 qed "Integral_mult";
 
 (* ------------------------------------------------------------------------ *)
@@ -476,15 +478,15 @@ by (asm_full_simp_tac (simpset()
      addsimps [abs_mult RS sym, real_mult_assoc RS sym]) 2);
 by (subgoal_tac "inverse (z - x) * (f z - f x - f' x * (z - x)) = \
 \                (f z - f x)/(z - x) - f' x" 2);
-by (asm_full_simp_tac (simpset() addsimps [abs_mult RS sym] @ real_mult_ac) 2);
+by (asm_full_simp_tac (simpset() addsimps [abs_mult RS sym] @ mult_ac) 2);
 by (asm_full_simp_tac (simpset() addsimps [real_diff_def]) 2);
 by (rtac (real_mult_commute RS subst) 2);
-by (asm_full_simp_tac (simpset() addsimps [real_add_mult_distrib,
+by (asm_full_simp_tac (simpset() addsimps [left_distrib,
     real_diff_def]) 2);
 by (dtac (CLAIM "z ~= x ==> z + -x ~= (0::real)") 2);
 by (asm_full_simp_tac (simpset() addsimps [real_mult_assoc,
     real_divide_def]) 2);
-by (simp_tac (simpset() addsimps [real_add_mult_distrib]) 2);
+by (simp_tac (simpset() addsimps [left_distrib]) 2);
 by (res_inst_tac [("x","s")] exI 1 THEN Auto_tac);
 by (res_inst_tac [("u1","u"),("v1","v")] (ARITH_PROVE "u < v | v <= (u::real)"
     RS disjE) 1);
@@ -494,10 +496,10 @@ by Auto_tac;
 by (res_inst_tac [("j","abs((f(v) - f(x)) - (f'(x) * (v - x))) + \
 \                  abs((f(x) - f(u)) - (f'(x) * (x - u)))")] real_le_trans 1);
 by (rtac (abs_triangle_ineq RSN (2,real_le_trans)) 1);
-by (asm_full_simp_tac (simpset() addsimps [real_diff_mult_distrib2]) 1);
+by (asm_full_simp_tac (simpset() addsimps [right_diff_distrib]) 1);
 by (arith_tac 1);
 by (res_inst_tac [("t","e*(v - u)")] (real_sum_of_halves RS subst) 1);
-by (rtac real_add_le_mono 1);
+by (rtac add_mono 1);
 by (res_inst_tac [("j","(e / 2) * abs(v - x)")] real_le_trans 1);
 
 by (Asm_full_simp_tac 2 THEN arith_tac 2);
@@ -511,7 +513,7 @@ by (arith_tac 1);
 by (subgoal_tac "abs (f u - f x - f' x * (u - x)) = \
 \                abs (f x - f u - f' x * (x - u))" 1);
 by (Asm_full_simp_tac 1);
-by (asm_full_simp_tac (simpset() addsimps [real_add_mult_distrib2,
+by (asm_full_simp_tac (simpset() addsimps [right_distrib,
     real_diff_def]) 2);
 by (arith_tac 2);
 by(rtac real_le_trans 1);
@@ -521,8 +523,8 @@ qed "lemma_straddle";
 
 Goal "((number_of c - 1) * x <= 0) =((number_of c ::real) * x <= x)";
 by (rtac ((ARITH_PROVE "(x <= y) = (x - y <= (0::real))") RS ssubst) 1);
-by (simp_tac (simpset() addsimps [real_diff_mult_distrib,
-    CLAIM_SIMP "c * x - x = (c - 1) * (x::real)" [real_diff_mult_distrib]]) 1);
+by (simp_tac (simpset() addsimps [left_diff_distrib,
+    CLAIM_SIMP "c * x - x = (c - 1) * (x::real)" [left_diff_distrib]]) 1);
 qed "lemma_number_of_mult_le";
  
 
@@ -615,7 +617,7 @@ qed "partition_lt_Suc";
 Goal "tpart(a,c) (D,p) ==> p = (%n. if D n < c then p n else c)";
 by (rtac ext 1);
 by (auto_tac (claset(),simpset() addsimps [tpart_def]));
-by (dtac real_leI 1);
+by (dtac (linorder_not_less RS iffD1) 1);
 by (dres_inst_tac [("r","Suc n")] partition_ub 1);
 by (dres_inst_tac [("x","n")] spec 1);
 by Auto_tac;
@@ -859,10 +861,10 @@ by (auto_tac (claset(),simpset() addsimps
      tpart_tag_eq RS sym]));
 by (ftac (tpart_partition RSN (3,lemma_additivity1)) 1); 
 by (auto_tac (claset(),simpset() addsimps [tpart_def]));
-by (dtac (real_leI RS real_le_imp_less_or_eq) 2);
+by (dtac ((linorder_not_less RS iffD1) RS real_le_imp_less_or_eq) 2);
 by (Auto_tac);
 by (blast_tac (claset() addDs [lemma_additivity3]) 2);
-by (dtac real_leI 2 THEN dres_inst_tac [("x","na")] spec 2);
+by (dtac (linorder_not_less RS iffD1) 2 THEN dres_inst_tac [("x","na")] spec 2);
 by (arith_tac 2);
 by (ftac lemma_additivity4_psize_eq 1);
 by (REPEAT(assume_tac 1));
@@ -889,7 +891,7 @@ by (ALLGOALS (dres_inst_tac [("x","na")] spec) THEN Auto_tac);
 by (ALLGOALS(dres_inst_tac [("x","na")] spec));
 by Auto_tac;
 by (asm_full_simp_tac (simpset() addsimps [split_if]) 1);
-by (dtac (real_leI RS real_le_imp_less_or_eq) 1);
+by (dtac ((linorder_not_less RS iffD1) RS real_le_imp_less_or_eq) 1);
 by (Step_tac 1);
 by (blast_tac (claset() addDs [lemma_additivity3a]) 1);
 by (dtac sym 1 THEN Auto_tac);
@@ -935,7 +937,7 @@ qed "fine_right1";
 
 Goalw [rsum_def] 
    "rsum (D, p) (%x. f x + g x) =  rsum (D, p) f + rsum(D, p) g";
-by (auto_tac (claset(),simpset() addsimps [sumr_add,real_add_mult_distrib]));
+by (auto_tac (claset(),simpset() addsimps [sumr_add,left_distrib]));
 qed "rsum_add";
 
 (* Bartle/Sherbert: Theorem 10.1.5 p. 278 *)
@@ -950,10 +952,10 @@ by (res_inst_tac [("x","(%x. if ga x < gaa x then ga x else gaa x)")] exI 1);
 by Auto_tac;
 by (dtac fine_min 1);
 by (REPEAT(dtac spec 1) THEN Auto_tac);
-by (dres_inst_tac  [("R1.0","abs (rsum (D, p) f - k1)* 2"),
-    ("R2.0","abs (rsum (D, p) g - k2) * 2")] 
-    real_add_less_mono 1 THEN assume_tac 1);
-by (auto_tac (claset(),HOL_ss addsimps [rsum_add,real_add_mult_distrib RS sym,
+by (dres_inst_tac  [("a","abs (rsum (D, p) f - k1)* 2"),
+    ("c","abs (rsum (D, p) g - k2) * 2")] 
+    add_strict_mono 1 THEN assume_tac 1);
+by (auto_tac (claset(),HOL_ss addsimps [rsum_add,left_distrib RS sym,
     real_mult_2_right RS sym,real_mult_less_iff1,CLAIM "(0::real) < 2"]));
 by (arith_tac 1);
 qed "Integral_add_fun";
@@ -1011,8 +1013,8 @@ by (ftac lemma_Integral_rsum_le 1 THEN assume_tac 1);
 by (subgoal_tac 
     "abs((rsum(D,p) f - k1) - (rsum(D,p) g - k2)) < abs(k1 - k2)" 1);
 by (arith_tac 1);
-by (dtac real_add_less_mono 1 THEN assume_tac 1);
-by (auto_tac (claset(),HOL_ss addsimps [real_add_mult_distrib RS sym,
+by (dtac add_strict_mono 1 THEN assume_tac 1);
+by (auto_tac (claset(),HOL_ss addsimps [left_distrib RS sym,
     real_mult_2_right RS sym,real_mult_less_iff1,CLAIM "(0::real) < 2"]));
 by (arith_tac 1);
 qed "Integral_le";
@@ -1033,8 +1035,8 @@ by (forw_inst_tac [("x","D1")] spec 1);
 by (forw_inst_tac [("x","D2")] spec 1);
 by (REPEAT(dtac spec 1) THEN Auto_tac);
 by (thin_tac "0 < e" 1);
-by (dtac real_add_less_mono 1 THEN assume_tac 1);
-by (auto_tac (claset(),HOL_ss addsimps [real_add_mult_distrib RS sym,
+by (dtac add_strict_mono 1 THEN assume_tac 1);
+by (auto_tac (claset(),HOL_ss addsimps [left_distrib RS sym,
     real_mult_2_right RS sym,real_mult_less_iff1,CLAIM "(0::real) < 2"]));
 by (arith_tac 1);
 qed "Integral_imp_Cauchy";

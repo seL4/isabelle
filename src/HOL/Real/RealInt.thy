@@ -6,7 +6,7 @@
 
 header{*Embedding the Integers into the Reals*}
 
-theory RealInt = RealOrd:
+theory RealInt = RealDef:
 
 defs (overloaded)
   real_of_int_def:
@@ -106,9 +106,8 @@ lemma real_of_int_less_cancel: "real (x::int) < real y ==> x < y"
 apply (rule ccontr, drule linorder_not_less [THEN iffD1])
 apply (auto simp add: zle_iff_zadd real_of_int_add [symmetric] real_of_int_real_of_nat linorder_not_le [symmetric])
 apply (subgoal_tac "~ real y + 0 \<le> real y + real n") 
- prefer 2 apply (simp add: ); 
-apply (simp only: add_le_cancel_left) 
-apply (simp add: ); 
+ prefer 2 apply simp 
+apply (simp only: add_le_cancel_left, simp) 
 done
 
 lemma real_of_int_inject [iff]: "(real (x::int) = real y) = (x = y)"

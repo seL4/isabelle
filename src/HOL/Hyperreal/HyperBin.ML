@@ -615,23 +615,4 @@ Addsimps
     hypreal_of_real_le_number_of_iff, hypreal_of_real_less_number_of_iff,
     number_of_le_hypreal_of_real_iff, number_of_less_hypreal_of_real_iff]);
 
-(** <= monotonicity results: needed for arithmetic **)
-
-Goal "[| i <= j;  (0::hypreal) <= k |] ==> i*k <= j*k";
-by (auto_tac (claset(),
-              simpset() addsimps [order_le_less, hypreal_mult_less_mono1]));
-qed "hypreal_mult_le_mono1";
-
-Goal "[| i <= j;  (0::hypreal) <= k |] ==> k*i <= k*j";
-by (dtac hypreal_mult_le_mono1 1);
-by (ALLGOALS (asm_full_simp_tac (simpset() addsimps [hypreal_mult_commute])));
-qed "hypreal_mult_le_mono2";
-
-Goal "[| u <= v;  x <= y;  0 <= v;  (0::hypreal) <= x |] ==> u * x <= v * y";
-by (etac (hypreal_mult_le_mono1 RS order_trans) 1);
-by (assume_tac 1);
-by (etac hypreal_mult_le_mono2 1);
-by (assume_tac 1);
-qed "hypreal_mult_le_mono";
-
 Addsimps [hypreal_minus_1_eq_m1];

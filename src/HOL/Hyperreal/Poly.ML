@@ -68,7 +68,7 @@ by (Simp_tac 2);
 by (rtac allI 2 );
 by (case_tac "q" 2);
 by (Asm_simp_tac 2);
-by (asm_simp_tac (simpset() addsimps [real_add_mult_distrib2] ) 2);
+by (asm_simp_tac (simpset() addsimps [right_distrib] ) 2);
 by (Asm_simp_tac 1);
 qed "poly_cmult_distr";
 
@@ -92,14 +92,14 @@ by (subgoal_tac "ALL p2. poly (p1 +++ p2) x = poly( p1 ) x + poly( p2 ) x" 1);
 by (induct_tac "p1" 2);
 by Auto_tac;
 by (case_tac "p2" 1);
-by (auto_tac (claset(),simpset() addsimps [real_add_mult_distrib2]));
+by (auto_tac (claset(),simpset() addsimps [right_distrib]));
 qed "poly_add";
 
 Goal "poly (c %* p) x = c * poly p x";
 by (induct_tac "p" 1); 
 by (case_tac "x=0" 2);
-by (auto_tac (claset(),simpset() addsimps [real_add_mult_distrib2] 
-    @ real_mult_ac));
+by (auto_tac (claset(),simpset() addsimps [right_distrib] 
+    @ mult_ac));
 qed "poly_cmult";
 
 Goalw [poly_minus_def] "poly (-- p) x = - (poly p x)";
@@ -113,7 +113,7 @@ by (induct_tac "p1" 1);
 by (auto_tac (claset(),simpset() addsimps [poly_cmult]));
 by (case_tac "list" 1);
 by (auto_tac (claset(),simpset() addsimps [poly_cmult,poly_add,
-    real_add_mult_distrib,real_add_mult_distrib2] @ real_mult_ac));
+    left_distrib,right_distrib] @ mult_ac));
 qed "poly_mult";
 
 Goal "poly (p %^ n) x = (poly p x) ^ n";
@@ -178,7 +178,7 @@ Goal "ALL n. DERIV (%x. (x ^ (Suc n) * poly p x)) x :> \
     \   x ^ n * poly (pderiv_aux (Suc n) p) x ";
 by (induct_tac "p" 1);
 by (auto_tac (claset() addSIs [DERIV_add,DERIV_cmult2],simpset() addsimps 
-    [pderiv_def,real_add_mult_distrib2,real_mult_assoc RS sym] delsimps 
+    [pderiv_def,right_distrib,real_mult_assoc RS sym] delsimps 
     [realpow_Suc]));
 by (rtac (real_mult_commute RS subst) 1);
 by (simp_tac (simpset() delsimps [realpow_Suc]) 1);
@@ -232,7 +232,7 @@ qed "poly_IVT_pos";
 Goal "[| a < b; 0 < poly p a; poly p b < 0 |] \
 \     ==> EX x. a < x & x < b & (poly p x = 0)";
 by (blast_tac (claset() addIs [full_simplify (simpset() 
-    addsimps [poly_minus, rename_numerals real_minus_zero_less_iff2])
+    addsimps [poly_minus, rename_numerals neg_less_0_iff_less])
    (read_instantiate [("p","-- p")] poly_IVT_pos)]) 1);
 qed "poly_IVT_neg";
 
@@ -256,7 +256,7 @@ Goal "ALL p2 n. poly (pderiv_aux n (p1 +++ p2)) x = \
 by (induct_tac "p1" 1);
 by (Step_tac 2);
 by (case_tac "p2" 2);
-by (auto_tac (claset(),simpset() addsimps [real_add_mult_distrib2]));
+by (auto_tac (claset(),simpset() addsimps [right_distrib]));
 qed "lemma_poly_pderiv_aux_add";
 
 Goal "poly (pderiv_aux n (p1 +++ p2)) x = \
@@ -266,7 +266,7 @@ qed "poly_pderiv_aux_add";
 
 Goal "ALL n. poly (pderiv_aux n (c %* p) ) x = poly (c %* pderiv_aux n p) x";
 by (induct_tac "p" 1);
-by (auto_tac (claset(),simpset() addsimps [poly_cmult] @ real_mult_ac));
+by (auto_tac (claset(),simpset() addsimps [poly_cmult] @ mult_ac));
 qed "lemma_poly_pderiv_aux_cmult";
 
 Goal "poly (pderiv_aux n (c %* p) ) x = poly (c %* pderiv_aux n p) x";
@@ -281,7 +281,7 @@ qed "poly_pderiv_aux_minus";
 Goal "ALL n. poly (pderiv_aux (Suc n) p) x = poly ((pderiv_aux n p) +++ p) x";
 by (induct_tac "p" 1);
 by (auto_tac (claset(),simpset() addsimps [real_of_nat_Suc,
-    real_add_mult_distrib]));
+    left_distrib]));
 qed "lemma_poly_pderiv_aux_mult1";
 
 Goal "poly (pderiv_aux (Suc n) p) x = poly ((pderiv_aux n p) +++ p) x";
@@ -326,8 +326,8 @@ by (rtac (lemma_poly_mult_pderiv RS ssubst) 1);
 by (rtac (lemma_poly_mult_pderiv RS ssubst) 1);
 by (rtac (poly_add RS ssubst) 1);
 by (rtac (poly_add RS ssubst) 1);
-by (asm_simp_tac (simpset() addsimps [poly_mult,real_add_mult_distrib2] 
-    @ real_add_ac @ real_mult_ac) 1);
+by (asm_simp_tac (simpset() addsimps [poly_mult,right_distrib] 
+    @ add_ac @ mult_ac) 1);
 qed "poly_pderiv_mult";
 
 Goal "poly (pderiv (p %^ (Suc n))) x = \
@@ -335,8 +335,8 @@ Goal "poly (pderiv (p %^ (Suc n))) x = \
 by (induct_tac "n" 1);
 by (auto_tac (claset(),simpset() addsimps [poly_add,poly_pderiv_cmult,
     poly_cmult,poly_pderiv_mult,real_of_nat_zero,poly_mult,
-    real_of_nat_Suc,real_add_mult_distrib2,real_add_mult_distrib]
-    @ real_mult_ac));
+    real_of_nat_Suc,right_distrib,left_distrib]
+    @ mult_ac));
 qed "poly_pderiv_exp";
 
 Goal "poly (pderiv ([-a, 1] %^ (Suc n))) x = \
@@ -372,7 +372,7 @@ qed "poly_linear_rem";
 
 Goal "(poly p a = 0) = ((p = []) | (EX q. p = [-a, 1] *** q))";
 by (auto_tac (claset(),simpset() addsimps [poly_add,poly_cmult,
-    real_add_mult_distrib2]));
+    right_distrib]));
 by (case_tac "p" 1);
 by (cut_inst_tac [("h","aa"),("t","list"),("a","a")] poly_linear_rem 2);
 by (Step_tac 2);
@@ -439,8 +439,7 @@ Addsimps [poly_root_mult_length];
 
 Goal "(poly (p *** q) x ~= poly [] x) = \
 \     (poly p x ~= poly [] x & poly q x ~= poly [] x)";
-by (auto_tac (claset(),simpset() addsimps [poly_mult,rename_numerals
-    real_mult_not_zero]));
+by (auto_tac (claset(),simpset() addsimps [poly_mult]));
 qed "poly_mult_not_eq_poly_Nil";
 Addsimps [poly_mult_not_eq_poly_Nil];
 
@@ -571,7 +570,7 @@ qed "poly_add_minus_zero_iff";
 
 Goal "poly (p *** q +++ --(p *** r)) = poly (p *** (q +++ -- r))";
 by (auto_tac (claset(),simpset() addsimps [poly_add,poly_minus_def,
-    fun_eq,poly_mult,poly_cmult,real_add_mult_distrib2]));
+    fun_eq,poly_mult,poly_cmult,right_distrib]));
 qed "poly_add_minus_mult_eq";
 
 Goal "(poly (p *** q) = poly (p *** r)) = (poly p = poly [] | poly q = poly r)";
@@ -686,14 +685,14 @@ qed "poly_pderiv_welldef";
 
 Goal "([a, 1] divides (p *** q)) = ([a, 1] divides p | [a, 1] divides q)";
 by (auto_tac (claset(),simpset() addsimps [divides_def,fun_eq,poly_mult,
-    poly_add,poly_cmult,real_add_mult_distrib RS sym]));
+    poly_add,poly_cmult,left_distrib RS sym]));
 by (dres_inst_tac [("x","-a")] spec 1);
 by (auto_tac (claset(),simpset() addsimps [poly_linear_divides,poly_add,
-    poly_cmult,real_add_mult_distrib RS sym]));
+    poly_cmult,left_distrib RS sym]));
 by (res_inst_tac [("x","qa *** q")] exI 1);
 by (res_inst_tac [("x","p *** qa")] exI 2);
 by (auto_tac (claset(),simpset() addsimps [poly_add,poly_mult,
-    poly_cmult] @ real_mult_ac));
+    poly_cmult] @ mult_ac));
 qed "poly_primes";
 
 Goalw [divides_def] "p divides p";
@@ -721,7 +720,7 @@ by (rtac poly_divides_trans 2);
 by (auto_tac (claset(),simpset() addsimps [divides_def]));
 by (res_inst_tac [("x","p")] exI 1);
 by (auto_tac (claset(),simpset() addsimps [poly_mult,fun_eq]
-    @ real_mult_ac));
+    @ mult_ac));
 qed "poly_divides_exp";
 
 Goal "[| (p %^ n) divides q;  m <= n |] ==> (p %^ m) divides q";
@@ -733,7 +732,7 @@ Goalw [divides_def]
 by Auto_tac;
 by (res_inst_tac [("x","qa +++ qaa")] exI 1);
 by (auto_tac (claset(),simpset() addsimps [poly_add,fun_eq,poly_mult,
-    real_add_mult_distrib2]));
+    right_distrib]));
 qed "poly_divides_add";
 
 Goalw [divides_def] 
@@ -741,14 +740,14 @@ Goalw [divides_def]
 by Auto_tac;
 by (res_inst_tac [("x","qaa +++ -- qa")] exI 1);
 by (auto_tac (claset(),simpset() addsimps [poly_add,fun_eq,poly_mult,
-    poly_minus,real_add_mult_distrib2,
+    poly_minus,right_distrib,
     ARITH_PROVE "(x = y + -z) = (z + x = (y::real))"]));
 qed "poly_divides_diff";
 
 Goal "[| p divides r; p divides (q +++ r) |] ==> p divides q";
 by (etac poly_divides_diff 1);
 by (auto_tac (claset(),simpset() addsimps [poly_add,fun_eq,poly_mult,
-    divides_def] @ real_add_ac));
+    divides_def] @ add_ac));
 qed "poly_divides_diff2";
 
 Goalw [divides_def] "poly p = poly [] ==> q divides p";
@@ -793,7 +792,7 @@ by (res_inst_tac [("x","q")] exI 1);
 by (induct_tac "n" 1);
 by (Simp_tac 1);
 by (asm_simp_tac (simpset() addsimps [poly_add,poly_cmult,poly_mult,
-    real_add_mult_distrib2] @ real_mult_ac) 1);
+    right_distrib] @ mult_ac) 1);
 by (Step_tac 1);
 by (rotate_tac 2 1);
 by (rtac swap 1 THEN assume_tac 2);
@@ -916,7 +915,7 @@ by (res_inst_tac [("x","q")] exI 1);
 by (Step_tac 1);
 by (dres_inst_tac [("x","qa")] spec 1);
 by (auto_tac (claset(),simpset() addsimps [poly_mult,fun_eq,poly_exp] 
-    @ real_mult_ac delsimps [pmult_Cons]));
+    @ mult_ac delsimps [pmult_Cons]));
 qed "order_decomp";
 
 (* ------------------------------------------------------------------------- *)
@@ -934,7 +933,7 @@ by (asm_full_simp_tac (simpset() addsimps [divides_def,fun_eq,poly_exp_add,
     poly_mult] delsimps [pmult_Cons]) 1);
 by (Step_tac 1);
 by (res_inst_tac [("x","qa *** qaa")] exI 1);
-by (asm_full_simp_tac (simpset() addsimps [poly_mult] @ real_mult_ac
+by (asm_full_simp_tac (simpset() addsimps [poly_mult] @ mult_ac
     delsimps [pmult_Cons]) 1);
 by (REPEAT(dres_inst_tac [("a","a")] order_decomp 1));
 by (Step_tac 1);
@@ -955,7 +954,7 @@ by (subgoal_tac "poly ([-a, 1] %^ (order a q) *** \
 by (dtac (poly_mult_left_cancel RS iffD1) 1);
 by (Force_tac 1);
 by (asm_full_simp_tac (simpset() addsimps [fun_eq,poly_exp_add,poly_mult] 
-    @ real_mult_ac delsimps [pmult_Cons]) 1);
+    @ mult_ac delsimps [pmult_Cons]) 1);
 qed "order_mult";
 
 (* FIXME: too too long! *)
@@ -980,10 +979,10 @@ by (res_inst_tac
     [("x","[-a, 1] *** (pderiv q) +++ real (Suc n) %* q")] exI 1);
 by (asm_full_simp_tac (simpset() addsimps [poly_pderiv_mult,
     poly_pderiv_exp_prime,poly_add,poly_mult,poly_cmult,
-    real_add_mult_distrib2] @ real_mult_ac
+    right_distrib] @ mult_ac
     delsimps [pmult_Cons,pexp_Suc]) 1);
-by (asm_full_simp_tac (simpset() addsimps [poly_mult,real_add_mult_distrib2,
-    real_add_mult_distrib] @ real_mult_ac delsimps [pmult_Cons]) 1);
+by (asm_full_simp_tac (simpset() addsimps [poly_mult,right_distrib,
+    left_distrib] @ mult_ac delsimps [pmult_Cons]) 1);
 by (thin_tac "ALL r. \
 \             r divides pderiv p = \
 \             r divides pderiv ([- a, 1] %^ Suc n *** q)" 1);
@@ -1010,11 +1009,11 @@ by (res_inst_tac [("c1","real (Suc n)")] (real_mult_left_cancel
 by (Simp_tac 1);
 by (rtac ((CLAIM_SIMP 
     "a * (b * (c * (d * e))) = e * (b * (c * (d * (a::real))))" 
-     real_mult_ac) RS ssubst) 1);
+     mult_ac) RS ssubst) 1);
 by (rotate_tac 2 1);
 by (dres_inst_tac [("x","xa")] spec 1);
 by (asm_full_simp_tac (simpset()
-    addsimps [real_add_mult_distrib] @ real_mult_ac
+    addsimps [left_distrib] @ mult_ac
     delsimps [pmult_Cons]) 1);
 qed_spec_mp "lemma_order_pderiv";
 
@@ -1063,7 +1062,7 @@ by (asm_full_simp_tac (simpset() addsimps [divides_def]
 by (Step_tac 2);
 by (res_inst_tac [("x","r *** qa +++ s *** qaa")] exI 2);
 by (asm_full_simp_tac (simpset() addsimps [fun_eq,poly_add,poly_mult,
-    real_add_mult_distrib, real_add_mult_distrib2] @ real_mult_ac
+    left_distrib, right_distrib] @ mult_ac
     delsimps [pexp_Suc,pmult_Cons]) 2);
 by Auto_tac;
 qed "poly_squarefree_decomp_order";
@@ -1199,7 +1198,7 @@ by (induct_tac "p" 1);
 by Auto_tac;
 by (res_inst_tac [("j","abs a + abs(x * poly list x)")] real_le_trans 1);
 by (rtac abs_triangle_ineq 1);
-by (auto_tac (claset() addSIs [real_mult_le_mono],simpset() 
+by (auto_tac (claset() addSIs [mult_mono],simpset() 
     addsimps [abs_mult]));
 by (arith_tac 1);
 qed_spec_mp "poly_mono"; 

@@ -65,7 +65,7 @@ val lemma = result();
 
 (*For specialist use: NOT as default simprules*)
 Goal "2 * z = (z+z::real)";
-by (simp_tac (simpset () addsimps [lemma, real_add_mult_distrib]) 1);
+by (simp_tac (simpset () addsimps [lemma, left_distrib]) 1);
 qed "real_mult_2";
 
 Goal "z * 2 = (z+z::real)";
@@ -115,8 +115,7 @@ by (simp_tac (simpset() addsimps [real_numeral_1_eq_1 RS sym]) 1);
 qed "real_minus_1_eq_m1";
 
 Goal "-1 * z = -(z::real)";
-by (simp_tac (simpset() addsimps [real_minus_1_eq_m1 RS sym,
-                                  real_mult_minus_1]) 1);
+by (simp_tac (simpset() addsimps [real_minus_1_eq_m1 RS sym]) 1);
 qed "real_mult_minus1";
 
 Goal "z * -1 = -(z::real)";
@@ -195,7 +194,7 @@ Addsimps [real_of_nat_number_of];
 (** For combine_numerals **)
 
 Goal "i*u + (j*u + k) = (i+j)*u + (k::real)";
-by (asm_simp_tac (simpset() addsimps [real_add_mult_distrib] @ add_ac) 1);
+by (asm_simp_tac (simpset() addsimps [left_distrib] @ add_ac) 1);
 qed "left_real_add_mult_distrib";
 
 
@@ -207,33 +206,33 @@ val rel_iff_rel_0_rls = map (inst "b" "?u+?v")
                    [less_iff_diff_less_0, eq_iff_diff_eq_0, le_iff_diff_le_0];
 
 Goal "!!i::real. (i*u + m = j*u + n) = ((i-j)*u + m = n)";
-by (asm_simp_tac (simpset() addsimps [real_diff_def, real_add_mult_distrib]@
-                                     real_add_ac@rel_iff_rel_0_rls) 1);
+by (asm_simp_tac (simpset() addsimps [real_diff_def, left_distrib]@
+                                     add_ac@rel_iff_rel_0_rls) 1);
 qed "real_eq_add_iff1";
 
 Goal "!!i::real. (i*u + m = j*u + n) = (m = (j-i)*u + n)";
-by (asm_simp_tac (simpset() addsimps [real_diff_def, real_add_mult_distrib]@
-                                     real_add_ac@rel_iff_rel_0_rls) 1);
+by (asm_simp_tac (simpset() addsimps [real_diff_def, left_distrib]@
+                                     add_ac@rel_iff_rel_0_rls) 1);
 qed "real_eq_add_iff2";
 
 Goal "!!i::real. (i*u + m < j*u + n) = ((i-j)*u + m < n)";
-by (asm_simp_tac (simpset() addsimps [real_diff_def, real_add_mult_distrib]@
-                                     real_add_ac@rel_iff_rel_0_rls) 1);
+by (asm_simp_tac (simpset() addsimps [real_diff_def, left_distrib]@
+                                     add_ac@rel_iff_rel_0_rls) 1);
 qed "real_less_add_iff1";
 
 Goal "!!i::real. (i*u + m < j*u + n) = (m < (j-i)*u + n)";
-by (asm_simp_tac (simpset() addsimps [real_diff_def, real_add_mult_distrib]@
-                                     real_add_ac@rel_iff_rel_0_rls) 1);
+by (asm_simp_tac (simpset() addsimps [real_diff_def, left_distrib]@
+                                     add_ac@rel_iff_rel_0_rls) 1);
 qed "real_less_add_iff2";
 
 Goal "!!i::real. (i*u + m <= j*u + n) = ((i-j)*u + m <= n)";
-by (asm_simp_tac (simpset() addsimps [real_diff_def, real_add_mult_distrib]@
-                                     real_add_ac@rel_iff_rel_0_rls) 1);
+by (asm_simp_tac (simpset() addsimps [real_diff_def, left_distrib]@
+                                     add_ac@rel_iff_rel_0_rls) 1);
 qed "real_le_add_iff1";
 
 Goal "!!i::real. (i*u + m <= j*u + n) = (m <= (j-i)*u + n)";
-by (asm_simp_tac (simpset() addsimps [real_diff_def, real_add_mult_distrib]
-                                     @real_add_ac@rel_iff_rel_0_rls) 1);
+by (asm_simp_tac (simpset() addsimps [real_diff_def, left_distrib]
+                                     @add_ac@rel_iff_rel_0_rls) 1);
 qed "real_le_add_iff2";
 
 
@@ -344,21 +343,15 @@ val real_minus_simps = NCons_simps @
                     bin_pred_1, bin_pred_0, bin_pred_Pls, bin_pred_Min];
 
 (*To let us treat subtraction as addition*)
-val diff_simps = [real_diff_def, real_minus_add_distrib, real_minus_minus];
-
-(*push the unary minus down: - x * y = x * - y
-val real_minus_mult_eq_1_to_2 =
-    [real_minus_mult_eq1 RS sym, real_minus_mult_eq2] MRS trans |> standard;
-same as real_minus_mult_commute
-*)
+val diff_simps = [real_diff_def, minus_add_distrib, minus_minus];
 
 (*to extract again any uncancelled minuses*)
 val real_minus_from_mult_simps =
-    [real_minus_minus, real_mult_minus_eq1, real_mult_minus_eq2];
+    [minus_minus, minus_mult_left RS sym, minus_mult_right RS sym];
 
 (*combine unary minus with numeric literals, however nested within a product*)
 val real_mult_minus_simps =
-    [real_mult_assoc, real_minus_mult_eq1, real_minus_mult_commute];
+    [real_mult_assoc, minus_mult_left, real_minus_mult_commute];
 
 (*Apply the given rewrite (if present) just once*)
 fun trans_tac None      = all_tac
@@ -367,8 +360,8 @@ fun trans_tac None      = all_tac
 (*Final simplification: cancel + and *  *)
 val simplify_meta_eq =
     Int_Numeral_Simprocs.simplify_meta_eq
-         [real_add_zero_left, real_add_zero_right,
-          real_mult_0, real_mult_0_right, real_mult_1, real_mult_1_right];
+         [add_0, add_0_right,
+          mult_left_zero, mult_right_zero, mult_1, mult_1_right];
 
 fun prep_simproc (name, pats, proc) =
   Simplifier.simproc (Theory.sign_of (the_context ())) name pats proc;
@@ -383,11 +376,11 @@ structure CancelNumeralsCommon =
   val trans_tac         = trans_tac
   val norm_tac =
      ALLGOALS (simp_tac (HOL_ss addsimps add_0s@mult_1s@diff_simps@
-                                         real_minus_simps@real_add_ac))
+                                         real_minus_simps@add_ac))
      THEN ALLGOALS (simp_tac (HOL_ss addsimps non_add_bin_simps@real_mult_minus_simps))
      THEN ALLGOALS
               (simp_tac (HOL_ss addsimps real_minus_from_mult_simps@
-                                         real_add_ac@real_mult_ac))
+                                         add_ac@mult_ac))
   val numeral_simp_tac  = ALLGOALS (simp_tac (HOL_ss addsimps add_0s@bin_simps))
   val simplify_meta_eq  = simplify_meta_eq
   end;
@@ -451,10 +444,10 @@ structure CombineNumeralsData =
   val trans_tac         = trans_tac
   val norm_tac =
      ALLGOALS (simp_tac (HOL_ss addsimps numeral_syms@add_0s@mult_1s@
-                                   diff_simps@real_minus_simps@real_add_ac))
+                                   diff_simps@real_minus_simps@add_ac))
      THEN ALLGOALS (simp_tac (HOL_ss addsimps non_add_bin_simps@real_mult_minus_simps))
      THEN ALLGOALS (simp_tac (HOL_ss addsimps real_minus_from_mult_simps@
-                                              real_add_ac@real_mult_ac))
+                                              add_ac@mult_ac))
   val numeral_simp_tac  = ALLGOALS
                     (simp_tac (HOL_ss addsimps add_0s@bin_simps))
   val simplify_meta_eq  =
@@ -582,7 +575,7 @@ struct
   val sg_ref    = Sign.self_ref (Theory.sign_of (the_context ()))
   val T      = HOLogic.realT
   val plus   = Const ("op *", [HOLogic.realT,HOLogic.realT] ---> HOLogic.realT)
-  val add_ac = real_mult_ac
+  val add_ac = mult_ac
 end;
 
 structure Real_Times_Assoc = Assoc_Fold (Real_Times_Assoc_Data);
@@ -593,24 +586,5 @@ Addsimprocs [Real_Times_Assoc.conv];
 AddIffs [less_iff_diff_less_0 RS sym];
 AddIffs [eq_iff_diff_eq_0 RS sym];
 AddIffs [le_iff_diff_le_0 RS sym];
-
-(** <= monotonicity results: needed for arithmetic **)
-
-Goal "[| i <= j;  (0::real) <= k |] ==> i*k <= j*k";
-by (auto_tac (claset(),
-              simpset() addsimps [order_le_less, real_mult_less_mono1]));
-qed "real_mult_le_mono1";
-
-Goal "[| i <= j;  (0::real) <= k |] ==> k*i <= k*j";
-by (dtac real_mult_le_mono1 1);
-by (ALLGOALS (asm_full_simp_tac (simpset() addsimps [real_mult_commute])));
-qed "real_mult_le_mono2";
-
-Goal "[| (i::real) <= j;  k <= l;  0 <= j;  0 <= k |] ==> i*k <= j*l";
-by (etac (real_mult_le_mono1 RS order_trans) 1);
-by (assume_tac 1);
-by (etac real_mult_le_mono2 1);
-by (assume_tac 1);
-qed "real_mult_le_mono";
 
 Addsimps [real_minus_1_eq_m1];

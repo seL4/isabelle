@@ -50,7 +50,7 @@ Goal "ALL s. 0 < s --> (EX xa.  xa ~= x & \
 \             cmod(xa - x) < inverse(real(Suc n)) & r <= cmod(f xa - L)";
 by (Clarify_tac 1); 
 by (cut_inst_tac [("n1","n")]
-    (real_of_nat_Suc_gt_zero RS real_inverse_gt_0) 1);
+    (real_of_nat_Suc_gt_zero RS positive_imp_inverse_positive) 1);
 by Auto_tac;
 val lemma_CLIM = result();
 
@@ -132,7 +132,7 @@ Goal "ALL s. 0 < s --> (EX xa.  xa ~= x & \
 \             cmod(xa - x) < inverse(real(Suc n)) & r <= abs (f xa - L)";
 by (Clarify_tac 1); 
 by (cut_inst_tac [("n1","n")]
-    (real_of_nat_Suc_gt_zero RS real_inverse_gt_0) 1);
+    (real_of_nat_Suc_gt_zero RS positive_imp_inverse_positive) 1);
 by Auto_tac;
 val lemma_CRLIM = result();
 

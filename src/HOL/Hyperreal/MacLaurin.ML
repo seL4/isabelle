@@ -101,9 +101,9 @@ by (rtac lemma_DERIV_subst 3);
 by (rtac DERIV_quotient 3);
 by (rtac DERIV_const 4);
 by (rtac DERIV_pow 3);
-by (asm_simp_tac (simpset() addsimps [real_inverse_distrib,
+by (asm_simp_tac (simpset() addsimps [inverse_mult_distrib,
     CLAIM_SIMP "(a::real) * b * c * (d * e) = a * b * (c * d) * e" 
-    real_mult_ac,fact_diff_Suc]) 4);
+    mult_ac,fact_diff_Suc]) 4);
 by (Asm_simp_tac 3);
 by (forw_inst_tac [("m","ma")] less_add_one 2);
 by (Clarify_tac 2);
@@ -126,8 +126,8 @@ by (rtac lemma_DERIV_subst 2);
 by DERIV_tac;
 by (stac fact_Suc 2);
 by (stac real_of_nat_mult 2);
-by (simp_tac (simpset() addsimps [real_inverse_distrib] @
-    real_mult_ac) 2);
+by (simp_tac (simpset() addsimps [inverse_mult_distrib] @
+    mult_ac) 2);
 by (subgoal_tac "ALL ma. ma < n --> \
 \        (EX t. 0 < t & t < h & difg (Suc ma) t = 0)" 1);
 by (rotate_tac 11 1);
@@ -267,7 +267,7 @@ by (cut_inst_tac [("f","%x. f (-x)"),
                  ("h","-h"),("n","n")] Maclaurin_objl 1);
 by (Asm_full_simp_tac 1);
 by (etac impE 1 THEN Step_tac 1);
-by (stac real_minus_mult_eq2 1);
+by (stac minus_mult_right 1);
 by (rtac DERIV_cmult 1);
 by (rtac lemma_DERIV_subst 1);
 by (rtac (read_instantiate [("g","uminus")] DERIV_chain2) 1);
@@ -446,7 +446,7 @@ by (case_tac "d" 1 THEN Auto_tac);
 qed "lemma_exhaust_less_4";
 
 bind_thm ("real_mult_le_lemma",
-          simplify (simpset()) (inst "y" "1" real_mult_le_le_mono2));
+          simplify (simpset()) (inst "b" "1" mult_right_mono));
 
 
 Goal "abs(sin x - \
@@ -489,7 +489,7 @@ by (dtac lemma_even_mod_4_div_2 1);
 by (asm_full_simp_tac (simpset() addsimps [numeral_2_eq_2,real_divide_def]) 1);
 by (dtac lemma_odd_mod_4_div_2 1);
 by (asm_full_simp_tac (simpset() addsimps [numeral_2_eq_2, real_divide_def]) 1);
-by (auto_tac (claset() addSIs [real_mult_le_lemma,real_mult_le_le_mono2],
+by (auto_tac (claset() addSIs [real_mult_le_lemma,mult_right_mono],
       simpset() addsimps [real_divide_def,abs_mult,abs_inverse,realpow_abs RS
 sym]));
 qed "Maclaurin_sin_bound";
@@ -660,7 +660,7 @@ by (rtac (CLAIM "[|x = y; x' = y'|] ==> x + x' = y + (y'::real)") 1);
 by (rtac sumr_fun_eq 1);
 by (auto_tac (claset(),simpset() addsimps [odd_not_even RS sym]));
 by (auto_tac (claset(),simpset() addsimps [odd_Suc_mult_two_ex,
-    even_mult_two_ex,real_add_mult_distrib,cos_add]  delsimps 
+    even_mult_two_ex,left_distrib,cos_add]  delsimps 
     [fact_Suc,realpow_Suc]));
 by (auto_tac (claset(),simpset() addsimps [real_mult_commute]));
 qed "Maclaurin_cos_expansion";
@@ -687,7 +687,7 @@ by (rtac (CLAIM "[|x = y; x' = y'|] ==> x + x' = y + (y'::real)") 1);
 by (rtac sumr_fun_eq 1);
 by (auto_tac (claset(),simpset() addsimps [odd_not_even RS sym]));
 by (auto_tac (claset(),simpset() addsimps [odd_Suc_mult_two_ex,
-    even_mult_two_ex,real_add_mult_distrib,cos_add]  delsimps 
+    even_mult_two_ex,left_distrib,cos_add]  delsimps 
     [fact_Suc,realpow_Suc]));
 by (auto_tac (claset(),simpset() addsimps [real_mult_commute]));
 qed "Maclaurin_cos_expansion2";
@@ -714,7 +714,7 @@ by (rtac (CLAIM "[|x = y; x' = y'|] ==> x + x' = y + (y'::real)") 1);
 by (rtac sumr_fun_eq 1);
 by (auto_tac (claset(),simpset() addsimps [odd_not_even RS sym]));
 by (auto_tac (claset(),simpset() addsimps [odd_Suc_mult_two_ex,
-    even_mult_two_ex,real_add_mult_distrib,cos_add]  delsimps 
+    even_mult_two_ex,left_distrib,cos_add]  delsimps 
     [fact_Suc,realpow_Suc]));
 by (auto_tac (claset(),simpset() addsimps [real_mult_commute]));
 qed "Maclaurin_minus_cos_expansion";

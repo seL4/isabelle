@@ -382,7 +382,7 @@ proof -
         show "0 \<le> \<parallel>f\<parallel>\<hyphen>F" by (rule ge_zero)
         from x y show "\<parallel>x + y\<parallel> \<le> \<parallel>x\<parallel> + \<parallel>y\<parallel>" ..
       qed
-      also have "\<dots> = \<parallel>f\<parallel>\<hyphen>F * \<parallel>x\<parallel> + \<parallel>f\<parallel>\<hyphen>F * \<parallel>y\<parallel>" by (simp only: real_add_mult_distrib2)
+      also have "\<dots> = \<parallel>f\<parallel>\<hyphen>F * \<parallel>x\<parallel> + \<parallel>f\<parallel>\<hyphen>F * \<parallel>y\<parallel>" by (simp only: right_distrib)
       also have "\<dots> = p x + p y" by (simp only: p_def)
       finally show ?thesis .
     qed

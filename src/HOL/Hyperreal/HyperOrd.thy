@@ -25,19 +25,8 @@ apply (erule add_right_mono [THEN order_le_less_trans])
 apply (erule add_strict_left_mono) 
 done
 
-lemma hypreal_less_add_right_cancel: "(A::hypreal) + C < B + C ==> A < B"
-apply (simp (no_asm_use))
-done
-
 lemma hypreal_add_zero_less_le_mono: "[|r < x; (0::hypreal) \<le> y|] ==> r < x + y"
 by (auto dest: hypreal_add_less_le_mono)
-
-lemma hypreal_le_add_left_cancel: "!!(A::hypreal). C + A \<le> C + B ==> A \<le> B"
-apply simp
-done
-
-lemma hypreal_le_square [simp]: "(0::hypreal) \<le> x*x"
-  by (rule Ring_and_Field.zero_le_square)
 
 lemma hypreal_add_order: "[| 0 < x; 0 < y |] ==> (0::hypreal) < x + y"
 apply (erule order_less_trans)
@@ -54,12 +43,6 @@ lemma hypreal_mult_less_mono:
      "[| u<v;  x<y;  (0::hypreal) < v;  0 < x |] ==> u*x < v* y"
  by (simp add: Ring_and_Field.mult_strict_mono order_less_imp_le)
 
-lemma hypreal_inverse_gt_0: "0 < x ==> 0 < inverse (x::hypreal)"
-  by (rule Ring_and_Field.positive_imp_inverse_positive)
-
-lemma hypreal_inverse_less_0: "x < 0 ==> inverse (x::hypreal) < 0"
-  by (rule Ring_and_Field.negative_imp_inverse_negative)
-
 
 subsection{*Existence of Infinite Hyperreal Number*}
 
@@ -68,9 +51,11 @@ apply (unfold omega_def)
 apply (rule Rep_hypreal)
 done
 
-(* existence of infinite number not corresponding to any real number *)
-(* use assumption that member FreeUltrafilterNat is not finite       *)
-(* a few lemmas first *)
+text{*Existence of infinite number not corresponding to any real number.
+Use assumption that member @{term FreeUltrafilterNat} is not finite.*}
+
+
+text{*A few lemmas first*}
 
 lemma lemma_omega_empty_singleton_disj: "{n::nat. x = real n} = {} |  
       (\<exists>y. {n::nat. x = real n} = {y})"
@@ -82,16 +67,18 @@ by (cut_tac x = x in lemma_omega_empty_singleton_disj, auto)
 lemma not_ex_hypreal_of_real_eq_omega: 
       "~ (\<exists>x. hypreal_of_real x = omega)"
 apply (unfold omega_def hypreal_of_real_def)
-apply (auto simp add: real_of_nat_Suc diff_eq_eq [symmetric] lemma_finite_omega_set [THEN FreeUltrafilterNat_finite])
+apply (auto simp add: real_of_nat_Suc diff_eq_eq [symmetric] 
+            lemma_finite_omega_set [THEN FreeUltrafilterNat_finite])
 done
 
 lemma hypreal_of_real_not_eq_omega: "hypreal_of_real x \<noteq> omega"
 by (cut_tac not_ex_hypreal_of_real_eq_omega, auto)
 
-(* existence of infinitesimal number also not *)
-(* corresponding to any real number *)
+text{*Existence of infinitesimal number also not corresponding to any
+ real number*}
 
-lemma lemma_epsilon_empty_singleton_disj: "{n::nat. x = inverse(real(Suc n))} = {} |  
+lemma lemma_epsilon_empty_singleton_disj:
+     "{n::nat. x = inverse(real(Suc n))} = {} |  
       (\<exists>y. {n::nat. x = inverse(real(Suc n))} = {y})"
 apply (auto simp add: inj_real_of_nat [THEN inj_eq])
 done
@@ -123,15 +110,10 @@ val hypreal_le_add_order = thm"hypreal_le_add_order";
 val hypreal_add_left_le_mono1 = thm"hypreal_add_left_le_mono1";
 val hypreal_add_less_le_mono = thm"hypreal_add_less_le_mono";
 val hypreal_add_le_less_mono = thm"hypreal_add_le_less_mono";
-val hypreal_less_add_right_cancel = thm"hypreal_less_add_right_cancel";
 val hypreal_add_zero_less_le_mono = thm"hypreal_add_zero_less_le_mono";
-val hypreal_le_add_left_cancel = thm"hypreal_le_add_left_cancel";
-val hypreal_le_square = thm"hypreal_le_square";
 val hypreal_mult_less_mono1 = thm"hypreal_mult_less_mono1";
 val hypreal_mult_less_mono2 = thm"hypreal_mult_less_mono2";
 val hypreal_mult_less_mono = thm"hypreal_mult_less_mono";
-val hypreal_inverse_gt_0 = thm"hypreal_inverse_gt_0";
-val hypreal_inverse_less_0 = thm"hypreal_inverse_less_0";
 val Rep_hypreal_omega = thm"Rep_hypreal_omega";
 val lemma_omega_empty_singleton_disj = thm"lemma_omega_empty_singleton_disj";
 val lemma_finite_omega_set = thm"lemma_finite_omega_set";

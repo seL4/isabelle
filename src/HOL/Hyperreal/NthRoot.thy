@@ -18,9 +18,9 @@ lemma lemma_nth_realpow_non_empty:
      "[| (0::real) < a; 0 < n |] ==> \<exists>s. s : {x. x ^ n <= a & 0 < x}"
 apply (case_tac "1 <= a")
 apply (rule_tac x = "1" in exI)
-apply (drule_tac [2] not_real_leE)
+apply (drule_tac [2] linorder_not_le [THEN iffD1])
 apply (drule_tac [2] less_not_refl2 [THEN not0_implies_Suc])
-apply (auto intro!: realpow_Suc_le_self simp add: real_zero_less_one)
+apply (auto intro!: realpow_Suc_le_self simp add: zero_less_one)
 done
 
 lemma lemma_nth_realpow_isUb_ex:
@@ -28,20 +28,20 @@ lemma lemma_nth_realpow_isUb_ex:
       ==> \<exists>u. isUb (UNIV::real set) {x. x ^ n <= a & 0 < x} u"
 apply (case_tac "1 <= a")
 apply (rule_tac x = "a" in exI)
-apply (drule_tac [2] not_real_leE)
+apply (drule_tac [2] linorder_not_le [THEN iffD1])
 apply (rule_tac [2] x = "1" in exI)
 apply (rule_tac [!] setleI [THEN isUbI])
 apply safe
 apply (simp_all (no_asm))
 apply (rule_tac [!] ccontr)
-apply (drule_tac [!] not_real_leE)
+apply (drule_tac [!] linorder_not_le [THEN iffD1])
 apply (drule realpow_ge_self2 , assumption)
 apply (drule_tac n = "n" in realpow_less)
 apply (assumption+)
 apply (drule real_le_trans , assumption)
 apply (drule_tac y = "y ^ n" in order_less_le_trans)
 apply (assumption , erule real_less_irrefl)
-apply (drule_tac n = "n" in real_zero_less_one [THEN realpow_less])
+apply (drule_tac n = "n" in zero_less_one [THEN realpow_less])
 apply auto
 done
 
@@ -86,7 +86,7 @@ lemma realpow_nth_ge:
      {x. x ^ n <= a & 0 < x} u |] ==> a <= u ^ n"
 apply (frule lemma_nth_realpow_isLub_ge , safe)
 apply (rule LIMSEQ_inverse_real_of_nat_add [THEN LIMSEQ_pow, THEN LIMSEQ_le_const])
-apply (auto simp add: real_of_nat_def real_of_posnat_Suc)
+apply (auto simp add: real_of_nat_def)
 done
 
 subsection{*Second Half*}
@@ -109,15 +109,16 @@ apply (auto simp add: real_le_def)
 done
 
 lemma real_mult_less_self: "0 < r ==> r * (1 + -inverse(real (Suc n))) < r"
-apply (simp (no_asm) add: real_add_mult_distrib2)
-apply (rule_tac C = "-r" in real_less_add_left_cancel)
-apply (auto intro: real_mult_order simp add: real_add_assoc [symmetric] real_minus_zero_less_iff2)
+apply (simp (no_asm) add: right_distrib)
+apply (rule add_less_cancel_left [of "-r", THEN iffD1])
+apply (auto intro: mult_pos
+            simp add: add_assoc [symmetric] neg_less_0_iff_less)
 done
 
 lemma real_mult_add_one_minus_ge_zero:
      "0 < r ==>  0 <= r*(1 + -inverse(real (Suc n)))"
 apply (simp add: zero_le_mult_iff real_of_nat_inverse_le_iff) 
-apply (simp add: RealOrd.real_of_nat_Suc) 
+apply (simp add: real_of_nat_Suc) 
 done
 
 lemma lemma_nth_realpow_isLub_le:
@@ -141,7 +142,7 @@ lemma realpow_nth_le:
      {x. x ^ n <= a & 0 < x} u |] ==> u ^ n <= a"
 apply (frule lemma_nth_realpow_isLub_le , safe)
 apply (rule LIMSEQ_inverse_real_of_nat_add_minus_mult [THEN LIMSEQ_pow, THEN LIMSEQ_le_const2])
-apply (auto simp add: real_of_nat_def real_of_posnat_Suc)
+apply (auto simp add: real_of_nat_def)
 done
 
 (*----------- The theorem at last! -----------*)

@@ -30,7 +30,7 @@ Addsimps [sumc_add_lbound_zero];
 
 Goal "sumc m n f + sumc m n g = sumc m n (%n. f n + g n)";
 by (induct_tac "n" 1);
-by (auto_tac (claset(),simpset() addsimps real_add_ac));
+by (auto_tac (claset(),simpset() addsimps add_ac));
 qed "sumc_add";
 
 Goal "r * sumc m n f = sumc m n (%n. r * f n)";
@@ -107,7 +107,7 @@ Addsimps [sumc_minus_one_complexpow_zero];
 Goal "(ALL n. m <= Suc n --> f n = r) & m <= na \
 \                --> sumc m na f = (complex_of_real(real (na - m)) * r)";
 by (induct_tac "na" 1);
-by (auto_tac (claset(),simpset() addsimps [real_add_mult_distrib, Suc_diff_n,
+by (auto_tac (claset(),simpset() addsimps [left_distrib, Suc_diff_n,
                                       real_of_nat_Suc,complex_of_real_add RS sym,
                                       complex_add_mult_distrib]));
 qed_spec_mp "sumc_interval_const";
@@ -115,7 +115,7 @@ qed_spec_mp "sumc_interval_const";
 Goal "(ALL n. m <= n --> f n = r) & m <= na \
 \     --> sumc m na f = (complex_of_real(real (na - m)) * r)";
 by (induct_tac "na" 1);
-by (auto_tac (claset(),simpset() addsimps [real_add_mult_distrib, Suc_diff_n,
+by (auto_tac (claset(),simpset() addsimps [left_distrib, Suc_diff_n,
                                       real_of_nat_Suc,complex_of_real_add RS sym,
                                       complex_add_mult_distrib]));
 qed_spec_mp "sumc_interval_const2";
@@ -128,15 +128,15 @@ by (ALLGOALS(asm_full_simp_tac (simpset() addsimps [less_Suc_eq_le])));
 by (ALLGOALS(dres_inst_tac [("x","n")] spec));
 by (Step_tac 1);
 by (dtac le_imp_less_or_eq 1 THEN Step_tac 1);
-by (dtac real_add_le_mono 2);
-by (dres_inst_tac [("i","sumr 0 m f")] (order_refl RS real_add_le_mono) 1);
+by (dtac add_mono 2);
+by (dres_inst_tac [("i","sumr 0 m f")] (order_refl RS add_mono) 1);
 by (Auto_tac);
 qed_spec_mp "sumc_le";
 
 Goal "!!f g. (ALL r. m <= r & r < n --> f r <= g r) \
 \                --> sumc m n f <= sumc m n g";
 by (induct_tac "n" 1);
-by (auto_tac (claset() addIs [real_add_le_mono],
+by (auto_tac (claset() addIs [add_mono],
     simpset() addsimps [le_def]));
 qed_spec_mp "sumc_le2";
 

@@ -127,9 +127,10 @@ proof -
 
           note y_rep
           also have "\<bar>f x\<bar> * inverse \<parallel>x\<parallel> \<le> (c * \<parallel>x\<parallel>) * inverse \<parallel>x\<parallel>"
-          proof (rule real_mult_le_le_mono2)
+          proof (rule mult_right_mono)
             from c show "\<bar>f x\<bar> \<le> c * \<parallel>x\<parallel>" ..
-            from gt have "0 < inverse \<parallel>x\<parallel>" by (rule real_inverse_gt_0)
+            from gt have "0 < inverse \<parallel>x\<parallel>" 
+              by (rule positive_imp_inverse_positive)
             thus "0 \<le> inverse \<parallel>x\<parallel>" by (rule order_less_imp_le)
           qed
           also have "\<dots> = c * (\<parallel>x\<parallel> * inverse \<parallel>x\<parallel>)"
@@ -211,7 +212,7 @@ next
   with x have neq: "\<parallel>x\<parallel> \<noteq> 0" by simp
   then have "\<bar>f x\<bar> = (\<bar>f x\<bar> * inverse \<parallel>x\<parallel>) * \<parallel>x\<parallel>" by simp
   also have "\<dots> \<le>  \<parallel>f\<parallel>\<hyphen>V * \<parallel>x\<parallel>"
-  proof (rule real_mult_le_le_mono2)
+  proof (rule mult_right_mono)
     from x show "0 \<le> \<parallel>x\<parallel>" ..
     from x and neq have "\<bar>f x\<bar> * inverse \<parallel>x\<parallel> \<in> B V f"
       by (auto simp add: B_def real_divide_def)
@@ -246,7 +247,7 @@ proof (rule fn_norm_leastB [folded B_def fn_norm_def])
       by (auto simp add: B_def real_divide_def)
     note b_rep
     also have "\<bar>f x\<bar> * inverse \<parallel>x\<parallel> \<le> (c * \<parallel>x\<parallel>) * inverse \<parallel>x\<parallel>"
-    proof (rule real_mult_le_le_mono2)
+    proof (rule mult_right_mono)
       have "0 < \<parallel>x\<parallel>" ..
       then show "0 \<le> inverse \<parallel>x\<parallel>" by simp
       from ineq and x show "\<bar>f x\<bar> \<le> c * \<parallel>x\<parallel>" ..

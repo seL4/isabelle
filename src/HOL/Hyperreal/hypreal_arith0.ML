@@ -14,8 +14,7 @@ val add_rules =
      add_hypreal_number_of, minus_hypreal_number_of, diff_hypreal_number_of,
      mult_hypreal_number_of, eq_hypreal_number_of, less_hypreal_number_of,
      le_hypreal_number_of_eq_not_less, hypreal_diff_def,
-     minus_add_distrib, minus_minus, hypreal_mult_assoc,
-     minus_zero,
+     minus_add_distrib, minus_minus, mult_assoc, minus_zero,
      hypreal_add_zero_left, hypreal_add_zero_right,
      hypreal_add_minus, hypreal_add_minus_left,
      mult_left_zero, mult_right_zero,
@@ -49,8 +48,8 @@ fun cvar(th,_ $ (_ $ _ $ var)) = cterm_of (#sign(rep_thm th)) var;
 val hypreal_mult_mono_thms =
  [(rotate_prems 1 hypreal_mult_less_mono2,
    cvar(hypreal_mult_less_mono2, hd(prems_of hypreal_mult_less_mono2))),
-  (hypreal_mult_le_mono2,
-   cvar(hypreal_mult_le_mono2, hd(tl(prems_of hypreal_mult_le_mono2))))]
+  (mult_left_mono,
+   cvar(mult_left_mono, hd(tl(prems_of mult_left_mono))))]
 
 in
 
