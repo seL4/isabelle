@@ -19,6 +19,7 @@ sig
   val begin_theory: string -> string list -> (Path.T * bool) list -> theory -> theory
   val end_theory: string -> unit
   val theorem: string -> thm -> unit
+  val theorems: string -> thm list -> unit
   val setup: (theory -> theory) list
 end;
 
@@ -319,8 +320,8 @@ fun begin_theory name raw_parents orig_files thy =
   let
     val parents = map (parent_link remote_path path) raw_parents;
     val ml_path = ThyLoad.ml_path name;
-    val files = orig_files @		(* FIXME improve!? *)
-      (if is_some (ThyLoad.check_file ml_path) then [(ml_path, true)] else []);
+    val files = map (apsnd Some) orig_files @
+      (if is_some (ThyLoad.check_file ml_path) then [(ml_path, None)] else []);
 
     fun prep_file (raw_path, loadit) =
       (case ThyLoad.check_file raw_path of
@@ -359,6 +360,7 @@ fun begin_theory name raw_parents orig_files thy =
 fun end_theory _ = ();
 
 fun theorem name thm = with_session () (fn _ => with_context add_html (HTML.theorem name thm));
+fun theorems name thms = with_session () (fn _ => with_context add_html (HTML.theorems name thms));
 fun section s = with_session () (fn _ => with_context add_html (HTML.section s));
 
 
