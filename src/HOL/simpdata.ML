@@ -180,7 +180,7 @@ val imp_cong = impI RSN
     (2, prove_goal HOL.thy "(P=P')--> (P'--> (Q=Q'))--> ((P-->Q) = (P'-->Q'))"
         (fn _=> [fast_tac HOL_cs 1]) RS mp RS mp);
 
-val o_apply = prove_goalw HOL.thy [o_def] "(f o g)(x) = f(g(x))"
+val o_apply = prove_goalw HOL.thy [o_def] "(f o g) x = f (g x)"
  (fn _ => [rtac refl 1]);
 
 (*Miniscoping: pushing in existential quantifiers*)
@@ -325,7 +325,9 @@ qed_goal "if_distrib" HOL.thy
   "f(if c then x else y) = (if c then f x else f y)" 
   (fn _ => [simp_tac (HOL_ss setloop (split_tac [expand_if])) 1]);
 
-qed_goalw "o_assoc" HOL.thy [o_def] "f o (g o h) = (f o g o h)"
+bind_thm ("o_apply", o_apply);
+
+qed_goalw "o_assoc" HOL.thy [o_def] "f o (g o h) = f o g o h"
   (fn _=>[rtac ext 1, rtac refl 1]);
 
 
