@@ -370,11 +370,10 @@ New in Isabelle2004 (April 2004)
   matrix theory to linear programming.
 
 * Unions and Intersections:
-  The x-symbol output syntax of UN and INT has been changed
-  from "\<Union>x \<in> A. B" to "\<Union\<^bsub>x \<in> A\<^esub> B"
-  i.e. the index formulae has become a subscript, like in normal math.
-  Similarly for "\<Union>x. B", and for \<Inter> instead of \<Union>.
-  The subscript version is also accepted as input syntax.
+  The latex output syntax of UN and INT has been changed
+  from "\Union x \in A. B" to "\Union_{x \in A} B"
+  i.e. the index formulae has become a subscript.
+  Similarly for "\Union x. B", and for \Inter instead of \Union.
 
 * Unions and Intersections over Intervals:
   There is new short syntax "UN i<=n. A" for "UN i:{0..n}. A". There is
