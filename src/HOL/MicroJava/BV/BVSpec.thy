@@ -136,7 +136,9 @@ primrec
 	(let (ST,LT) = phi ! pc
 	 in
 	 pc+1 < max_pc \\<and> (nat(int pc+branch)) < max_pc \\<and> 
-	 (\\<exists>ts ts' ST'. ST = ts # ts' # ST' \\<and>  (G \\<turnstile> ts \\<preceq> ts' \\<or> G \\<turnstile> ts' \\<preceq> ts) \\<and>
+	 (\\<exists>ts ts' ST'. ST = ts # ts' # ST' \\<and>
+          ((\\<exists>p. ts = PrimT p \\<and> ts' = PrimT p) \\<or>
+           (\\<exists>r r'. ts = RefT r \\<and> ts' = RefT r')) \\<and>
 		       G \\<turnstile> (ST' , LT) <=s phi ! (pc+1) \\<and>
 		       G \\<turnstile> (ST' , LT) <=s phi ! (nat(int pc+branch))))"
 
@@ -151,13 +153,14 @@ consts
 primrec
 "wt_MI (Invoke mn fpTs) G phi max_pc pc =
 	(let (ST,LT) = phi ! pc
-	 in
+	 in         
          pc+1 < max_pc \\<and>
-         (\\<exists>apTs C ST'. ST = (rev apTs) @ (Class C # ST') \\<and>
+         (\\<exists>apTs X ST'. ST = (rev apTs) @ (X # ST') \\<and>
          length apTs = length fpTs \\<and>
+         (X = NT \\<or> (\\<exists>C. X = Class C \\<and>  
          (\\<forall>(aT,fT)\\<in>set(zip apTs fpTs). G \\<turnstile> aT \\<preceq> fT) \\<and>
          (\\<exists>D rT b. method (G,C) (mn,fpTs) = Some(D,rT,b) \\<and>
-         G \\<turnstile> (rT # ST' , LT) <=s phi ! (pc+1))))"
+         G \\<turnstile> (rT # ST' , LT) <=s phi ! (pc+1))))))"
 
 consts
  wt_MR	:: "[meth_ret,jvm_prog,ty,method_type,p_count] \\<Rightarrow> bool"
@@ -192,7 +195,7 @@ constdefs
  "wt_method G C pTs rT mxl ins phi \\<equiv>
 	let max_pc = length ins
         in
-	0 < max_pc \\<and> wt_start G C pTs mxl phi \\<and> 
+	length ins < length phi \\<and> 0 < max_pc \\<and> wt_start G C pTs mxl phi \\<and> 
 	(\\<forall>pc. pc<max_pc \\<longrightarrow> wt_instr (ins ! pc) G rT phi max_pc pc)"
 
  wt_jvm_prog :: "[jvm_prog,prog_type] \\<Rightarrow> bool"
