@@ -333,7 +333,7 @@ fun exn_message TERMINATE = "Exit."
   | exn_message RESTART = "Restart."
   | exn_message (BREAK _) = "Break."
   | exn_message (FAIL (exn, msg)) = cat_lines [exn_message exn, msg]
-  | exn_message Interrupt = "Interrupt (exec)."
+  | exn_message Interrupt = "Interrupt."
   | exn_message ERROR = "ERROR."
   | exn_message (ERROR_MESSAGE msg) = msg
   | exn_message (THEORY (msg, _)) = msg
@@ -452,7 +452,7 @@ fun >> tr =
 
 fun raw_loop src =
   (case get_interruptible (Source.set_prompt (prompt_state (get_state ())) src) of
-    None => (writeln "\nInterrupt (read)."; raw_loop src)
+    None => (writeln "\nInterrupt."; raw_loop src)
   | Some None => ()
   | Some (Some (tr, src')) => if >> tr then raw_loop src' else ());
 
