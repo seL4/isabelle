@@ -245,7 +245,7 @@ by (simp_tac
 				  nat_less_eq_zless, less_number_of_eq_neg,
 				  nat_0]) 1);
 by (simp_tac (simpset_of Int.thy addsimps [neg_eq_less_int0, zminus_zless, 
-				    number_of_minus, zless_zero_nat]) 1);
+				number_of_minus, zless_nat_eq_int_zless]) 1);
 qed "less_nat_number_of";
 
 Addsimps [less_nat_number_of];
@@ -380,3 +380,87 @@ val binomial_n_n' = rename_numerals thy binomial_n_n;
 Addsimps (map (rename_numerals thy) 
 	  [binomial_n_0, binomial_zero, binomial_1]);
 
+
+(*** Comparisons involving 0 ***)
+
+Goal "(number_of v = 0) = \
+\     (if neg (number_of v) then True else iszero (number_of v))";
+by (simp_tac (simpset() addsimps [numeral_0_eq_0 RS sym]) 1);
+qed "eq_number_of_0";
+
+Goal "(0 = number_of v) = \
+\     (if neg (number_of v) then True else iszero (number_of v))";
+by (rtac ([eq_sym_conv, eq_number_of_0] MRS trans) 1);
+qed "eq_0_number_of";
+
+Goal "(0 < number_of v) = neg (number_of (bin_minus v))";
+by (simp_tac (simpset() addsimps [numeral_0_eq_0 RS sym]) 1);
+qed "less_0_number_of";
+
+(*Simplification already handles n<0, n<=0 and 0<=n.*)
+Addsimps [eq_number_of_0, eq_0_number_of, less_0_number_of];
+
+
+(*** Comparisons involving Suc ***)
+
+Goal "(number_of v = Suc n) = \
+\       (let pv = number_of (bin_pred v) in \
+\        if neg pv then False else nat pv = n)";
+by (simp_tac
+    (simpset_of Int.thy addsimps
+      [Let_def, neg_eq_less_0, linorder_not_less, number_of_pred,
+       nat_number_of_def, zadd_0]@zadd_ac@zcompare_rls) 1);
+by (res_inst_tac [("x", "number_of v")] spec 1);
+by (auto_tac (claset(),
+	      simpset() addsimps [nat_eq_iff]@zcompare_rls));
+qed "eq_number_of_Suc";
+
+Goal "(Suc n = number_of v) = \
+\       (let pv = number_of (bin_pred v) in \
+\        if neg pv then False else nat pv = n)";
+by (rtac ([eq_sym_conv, eq_number_of_Suc] MRS trans) 1);
+qed "Suc_eq_number_of";
+
+Goal "(number_of v < Suc n) = \
+\       (let pv = number_of (bin_pred v) in \
+\        if neg pv then True else nat pv < n)";
+by (simp_tac
+    (simpset_of Int.thy addsimps
+      [Let_def, neg_eq_less_0, linorder_not_less, number_of_pred,
+       nat_number_of_def, zadd_0]@zadd_ac@zcompare_rls) 1);
+by (res_inst_tac [("x", "number_of v")] spec 1);
+by (auto_tac (claset(),
+	      simpset() addsimps [nat_less_iff]@zcompare_rls));
+qed "less_number_of_Suc";
+
+Goal "(Suc n < number_of v) = \
+\       (let pv = number_of (bin_pred v) in \
+\        if neg pv then False else n < nat pv)";
+by (simp_tac
+    (simpset_of Int.thy addsimps
+      [Let_def, neg_eq_less_0, linorder_not_less, number_of_pred,
+       nat_number_of_def, zadd_0]@zadd_ac@zcompare_rls) 1);
+by (res_inst_tac [("x", "number_of v")] spec 1);
+by (auto_tac (claset(),
+	      simpset() addsimps [zless_nat_eq_int_zless]@zcompare_rls));
+qed "less_Suc_number_of";
+
+Goal "(number_of v <= Suc n) = \
+\       (let pv = number_of (bin_pred v) in \
+\        if neg pv then True else nat pv <= n)";
+by (simp_tac
+    (simpset_of Int.thy addsimps
+      [Let_def, less_Suc_number_of, linorder_not_less RS sym]) 1);
+qed "le_number_of_Suc";
+
+Goal "(Suc n <= number_of v) = \
+\       (let pv = number_of (bin_pred v) in \
+\        if neg pv then False else n <= nat pv)";
+by (simp_tac
+    (simpset_of Int.thy addsimps
+      [Let_def, less_number_of_Suc, linorder_not_less RS sym]) 1);
+qed "le_Suc_number_of";
+
+Addsimps [eq_number_of_Suc, Suc_eq_number_of, 
+	  less_number_of_Suc, less_Suc_number_of, 
+	  le_number_of_Suc, le_Suc_number_of];
