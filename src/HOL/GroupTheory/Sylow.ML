@@ -267,9 +267,9 @@ val H_elem_map_eq = H_elem_map RS someI_ex RS conjunct2;
 
 Goal "(%C:{*H*}. M1 #> (@g. g \\<in> (G .<cr>) \\<and> H #> g = C)) \\<in> {* H *} \\<rightarrow> M";
 by (simp_tac (simpset() addsimps [setrcos_eq]) 1);
-by (deepen_tac (claset() addIs [someI2] 
+by (fast_tac (claset() addIs [someI2] 
             addSIs [restrictI, RelM_equiv, M_in_quot,
-                    M1_RelM_rcosetGM1g RSN (4, EquivElemClass),M1_in_M]) 0 1); 
+                    [RelM_equiv,M_in_quot,asm_rl,M1_RelM_rcosetGM1g] MRS EquivElemClass, M1_in_M]) 1);
 qed "setrcos_H_funcset_M";
 
 Goal "\\<exists>g \\<in> {* H *}\\<rightarrow>M. inj_on g ({* H *})";
