@@ -71,11 +71,11 @@ inductive "evalb"
 (** Commands **)
 
 datatype
-  com = skip
-      | ":="   loc aexp          (infixl  60)
-      | semic  com com           ("_; _"  [60, 60] 10)
-      | whileC bexp com          ("while _ do _"  60)
-      | ifC    bexp com com      ("ifc _ then _ else _"  60)
+  com = Skip
+      | ":="  loc aexp         (infixl  60)
+      | Semi  com com          ("_; _"  [60, 60] 10)
+      | Cond  bexp com com     ("IF _ THEN _ ELSE _"  60)
+      | While bexp com         ("WHILE _ DO _"  60)
 
 (** Execution of commands **)
 consts  evalc    :: "(com*state*state)set"
@@ -85,28 +85,28 @@ consts  evalc    :: "(com*state*state)set"
 translations
        "<ce,sig> -c-> s" == "(ce,sig,s) : evalc"
 
-rules 
-        assign_def      "s[m/x] == (%y. if y=x then m else s y)"
+defs 
+  assign_def   "s[m/x] == (%y. if y=x then m else s y)"
 
 inductive "evalc"
   intrs
-    skip    "<skip,s> -c-> s"
+    skip    "<Skip,s> -c-> s"
 
     assign  "<a,s> -a-> m ==> <x := a,s> -c-> s[m/x]"
 
     semi    "[| <c0,s> -c-> s2; <c1,s2> -c-> s1 |] 
             ==> <c0 ; c1, s> -c-> s1"
 
-    ifcTrue "[| <b,s> -b-> True; <c0,s> -c-> s1 |] 
-            ==> <ifc b then c0 else c1, s> -c-> s1"
+    IfTrue "[| <b,s> -b-> True; <c0,s> -c-> s1 |] 
+            ==> <IF b THEN c0 ELSE c1, s> -c-> s1"
 
-    ifcFalse "[| <b,s> -b-> False; <c1,s> -c-> s1 |] 
-             ==> <ifc b then c0 else c1, s> -c-> s1"
+    IfFalse "[| <b,s> -b-> False; <c1,s> -c-> s1 |] 
+             ==> <IF b THEN c0 ELSE c1, s> -c-> s1"
 
-    whileFalse "<b, s> -b-> False ==> <while b do c,s> -c-> s"
+    WhileFalse "<b, s> -b-> False ==> <WHILE b DO c,s> -c-> s"
 
-    whileTrue  "[| <b,s> -b-> True; <c,s> -c-> s2; 
-                  <while b do c, s2> -c-> s1 |] 
-               ==> <while b do c, s> -c-> s1 "
+    WhileTrue  "[| <b,s> -b-> True; <c,s> -c-> s2; 
+                  <WHILE b DO c, s2> -c-> s1 |] 
+               ==> <WHILE b DO c, s> -c-> s1"
  
 end

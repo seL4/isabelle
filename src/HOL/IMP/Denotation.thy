@@ -35,12 +35,12 @@ defs
                          {st. st : id & ~B b (fst st)})"
 
 primrec C com
-  C_skip    "C(skip) = id"
+  C_skip    "C(Skip) = id"
   C_assign  "C(x := a) = {st . snd(st) = fst(st)[A a (fst st)/x]}"
   C_comp    "C(c0 ; c1) = C(c1) O C(c0)"
-  C_if      "C(ifc b then c0 else c1) =   
+  C_if      "C(IF b THEN c0 ELSE c1) =   
                    {st. st:C(c0) & (B b (fst st))} Un 
                    {st. st:C(c1) & ~(B b (fst st))}"
-  C_while   "C(while b do c) = lfp (Gamma b (C c))"
+  C_while   "C(WHILE b DO c) = lfp (Gamma b (C c))"
 
 end

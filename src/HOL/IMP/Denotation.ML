@@ -19,3 +19,10 @@ val C_simps = map (fn t => t RS eq_reflection)
 qed_goalw "Gamma_mono" Denotation.thy [mono_def,Gamma_def]
         "mono (Gamma b c)"
      (fn _ => [(best_tac comp_cs 1)]);
+
+goal Denotation.thy "C(WHILE b DO c) = C(IF b THEN c;WHILE b DO c ELSE Skip)";
+by(Simp_tac 1);
+by(EVERY1[stac (Gamma_mono RS lfp_Tarski),
+          stac (Gamma_def RS meta_eq_to_obj_eq RS fun_cong), rtac refl]);
+qed "C_While_If";
+

@@ -37,11 +37,11 @@ primrec vc acom
                               (I s & B b s --> wp c I s) & vc c I s)"
 
 primrec astrip acom
-  astrip_Askip  "astrip Askip = skip"
+  astrip_Askip  "astrip Askip = Skip"
   astrip_Aass   "astrip (Aass x a) = (x:=a)"
   astrip_Asemi  "astrip (Asemi c d) = (astrip c;astrip d)"
-  astrip_Aif    "astrip (Aif b c d) = ifC b (astrip c) (astrip d)"
-  astrip_Awhile "astrip (Awhile b I c) = whileC b (astrip c)"
+  astrip_Aif    "astrip (Aif b c d) = (IF b THEN astrip c ELSE astrip d)"
+  astrip_Awhile "astrip (Awhile b I c) = (WHILE b DO astrip c)"
 
 (* simultaneous computation of vc and wp: *)
 primrec vcwp acom

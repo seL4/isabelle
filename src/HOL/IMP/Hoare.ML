@@ -3,12 +3,13 @@
     Author:     Tobias Nipkow
     Copyright   1995 TUM
 
-Soundness of Hoare rules wrt denotational semantics
+Soundness (and part of) relative completeness of Hoare rules
+wrt denotational semantics
 *)
 
 open Hoare;
 
-goalw Hoare.thy [spec_def] "!P c Q. ({{P}}c{{Q}}) --> spec P c Q";
+goalw Hoare.thy [hoare_valid_def] "!P c Q. ({{P}}c{{Q}}) --> |= {{P}}c{{Q}}";
 by (rtac hoare.mutual_induct 1);
     by(ALLGOALS Asm_simp_tac);
   by(fast_tac rel_cs 1);
@@ -24,28 +25,87 @@ by (safe_tac comp_cs);
   by(ALLGOALS Asm_full_simp_tac);
 qed "hoare_sound";
 
-(*
-fun while_tac inv ss i =
-  EVERY[res_inst_tac[("P",inv)] hoare_conseq i, atac i, rtac hoare_while i,
-        asm_full_simp_tac ss (i+1)];
+goalw Hoare.thy [swp_def] "swp Skip Q = Q";
+by(Simp_tac 1);
+br ext 1;
+by(fast_tac HOL_cs 1);
+qed "swp_Skip";
 
-fun assign_tac ss = EVERY'[rtac hoare_assign, simp_tac ss,
-                           TRY o (strip_tac THEN' atac)];
+goalw Hoare.thy [swp_def] "swp (x:=a) Q = (%s.Q(s[A a s/x]))";
+by(Simp_tac 1);
+br ext 1;
+by(fast_tac HOL_cs 1);
+qed "swp_Ass";
 
-fun hoare_tac ss =
-  REPEAT(STATE(fn th => FIRST'[rtac hoare_seq, assign_tac ss] (nprems_of th)));
+goalw Hoare.thy [swp_def] "swp (c;d) Q = swp c (swp d Q)";
+by(Simp_tac 1);
+br ext 1;
+by(fast_tac comp_cs 1);
+qed "swp_Semi";
 
-(* example *)
-val prems = goal Hoare.thy
-  "[| u ~= y; u ~= z; y ~= z |] ==> \
-\  {{%s.s(x)=i & s(y)=j}} \
-\  z := X x; (u := N 0; \
-\  while noti(ROp op = (X u) (X y)) \
-\             do (u := Op1 Suc (X u); z := Op1 Suc (X z))) \
-\  {{%s. s(z)=i+j}}";
-val ss = !simpset addsimps (eq_sym_conv::assign_def::prems);
-by(hoare_tac ss);
-by(while_tac "%s.s z = i + s u & s y = j" ss 3);
-by(hoare_tac ss);
-result();
-*)
+goalw Hoare.thy [swp_def]
+  "swp (IF b THEN c ELSE d) Q = (%s. (B b s --> swp c Q s) & \
+\                                    (~B b s --> swp d Q s))";
+by(Simp_tac 1);
+br ext 1;
+by(fast_tac comp_cs 1);
+qed "swp_If";
+
+goalw Hoare.thy [swp_def]
+  "!!s. B b s ==> swp (WHILE b DO c) Q s = swp (c;WHILE b DO c) Q s";
+by(stac C_While_If 1);
+by(Asm_simp_tac 1);
+qed "swp_While_True";
+
+goalw Hoare.thy [swp_def] "!!s. ~B b s ==> swp (WHILE b DO c) Q s = Q s";
+by(stac C_While_If 1);
+by(Asm_simp_tac 1);
+by(fast_tac HOL_cs 1);
+qed "swp_While_False";
+
+Addsimps [swp_Skip,swp_Ass,swp_Semi,swp_If,swp_While_True,swp_While_False];
+
+Delsimps [C_while];
+
+goalw Hoare.thy [hoare_valid_def,swp_def]
+  "!!c. |= {{P}}c{{Q}} ==> !s. P s --> swp c Q s";
+by(fast_tac HOL_cs 1);
+qed "swp_is_weakest";
+
+goal Hoare.thy "!Q. {{swp c Q}} c {{Q}}";
+by(com.induct_tac "c" 1);
+by(ALLGOALS Simp_tac);
+    by(fast_tac (HOL_cs addIs [hoare.skip]) 1);
+   by(fast_tac (HOL_cs addIs [hoare.ass]) 1);
+  by(fast_tac (HOL_cs addIs [hoare.semi]) 1);
+ by(safe_tac (HOL_cs addSIs [hoare.If]));
+  br hoare.conseq 1;
+    by(fast_tac HOL_cs 2);
+   by(fast_tac HOL_cs 2);
+  by(fast_tac HOL_cs 1);
+ br hoare.conseq 1;
+   by(fast_tac HOL_cs 2);
+  by(fast_tac HOL_cs 2);
+ by(fast_tac HOL_cs 1);
+br hoare.conseq 1;
+  br hoare.While 2;
+  be thin_rl 1;
+  by(fast_tac HOL_cs 1);
+ br hoare.conseq 1;
+   be thin_rl 3;
+   br allI 3;
+   br impI 3;
+   ba 3;
+  by(fast_tac HOL_cs 2);
+ by(safe_tac HOL_cs);
+ by(rotate_tac ~1 1);
+ by(Asm_full_simp_tac 1);
+by(rotate_tac ~1 1);
+by(Asm_full_simp_tac 1);
+bind_thm("swp_is_pre", result() RS spec);
+
+goal Hoare.thy "!!c. |= {{P}}c{{Q}} ==> {{P}}c{{Q}}";
+br (swp_is_pre RSN (2,hoare.conseq)) 1;
+ by(fast_tac HOL_cs 2);
+be swp_is_weakest 1;
+qed "hoare_relative_complete";

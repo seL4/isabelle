@@ -21,8 +21,8 @@ bind_thm("bexp_detD", conjI RS (result() RS spec RS spec RS mp));
 
 
 val evalc_elim_cases = map (evalc.mk_cases com.simps)
-   ["<skip,s> -c-> t", "<x:=a,s> -c-> t", "<c1;c2, s> -c-> t",
-    "<ifc b then c1 else c2, s> -c-> t", "<while b do c,s> -c-> t"];
+   ["<Skip,s> -c-> t", "<x:=a,s> -c-> t", "<c1;c2, s> -c-> t",
+    "<IF b THEN c1 ELSE c2, s> -c-> t", "<WHILE b DO c,s> -c-> t"];
 
 (* evaluation of com is deterministic *)
 goal Com.thy "!!c. <c,s> -c-> t ==> !u. <c,s> -c-> u --> u=t";
