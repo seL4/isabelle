@@ -14,7 +14,7 @@ consts  listn ::i=>i
 inductive
   domains   "listn(A)" <= "nat*list(A)"
   intrs
-    NilI  "<0,Nil> : listn(A)"
-    ConsI "[| a: A;  <n,l> : listn(A) |] ==> <succ(n), Cons(a,l)> : listn(A)"
+    NilI  "<0,Nil> \\<in> listn(A)"
+    ConsI "[| a \\<in> A; <n,l> \\<in> listn(A) |] ==> <succ(n), Cons(a,l)> \\<in> listn(A)"
   type_intrs "nat_typechecks @ list.intrs"
 end

@@ -17,7 +17,7 @@ consts
 inductive
   domains "acc(r)" <= "field(r)"
   intrs
-    vimage  "[| r-``{a}: Pow(acc(r)); a: field(r) |] ==> a: acc(r)"
+    vimage  "[| r-``{a}: Pow(acc(r)); a \\<in> field(r) |] ==> a \\<in> acc(r)"
   monos      Pow_mono
 
 end

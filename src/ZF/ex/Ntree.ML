@@ -11,7 +11,7 @@ Based upon ex/Term.ML
 
 (** ntree **)
 
-Goal "ntree(A) = A * (UN n: nat. n -> ntree(A))";
+Goal "ntree(A) = A * (\\<Union>n \\<in> nat. n -> ntree(A))";
 let open ntree;  val rew = rewrite_rule con_defs in  
 by (fast_tac (claset() addSIs (map rew intrs) addEs [rew elim]) 1)
 end;
@@ -19,8 +19,8 @@ qed "ntree_unfold";
 
 (*A nicer induction rule than the standard one*)
 val major::prems = goal Ntree.thy
-    "[| t: ntree(A);                                                    \
-\       !!x n h. [| x: A;  n: nat;  h: n -> ntree(A);  ALL i:n. P(h`i)  \
+    "[| t \\<in> ntree(A);                                                    \
+\       !!x n h. [| x \\<in> A;  n \\<in> nat;  h \\<in> n -> ntree(A);  \\<forall>i \\<in> n. P(h`i)  \
 \                |] ==> P(Branch(x,h))                                  \
 \    |] ==> P(t)";
 by (rtac (major RS ntree.induct) 1);
@@ -32,8 +32,8 @@ qed "ntree_induct";
 
 (*Induction on ntree(A) to prove an equation*)
 val major::prems = goal Ntree.thy
-  "[| t: ntree(A);  f: ntree(A)->B;  g: ntree(A)->B;                      \
-\     !!x n h. [| x: A;  n: nat;  h: n -> ntree(A);  f O h = g O h |] ==> \
+  "[| t \\<in> ntree(A);  f \\<in> ntree(A)->B;  g \\<in> ntree(A)->B;                      \
+\     !!x n h. [| x \\<in> A;  n \\<in> nat;  h \\<in> n -> ntree(A);  f O h = g O h |] ==> \
 \              f ` Branch(x,h) = g ` Branch(x,h)                          \
 \  |] ==> f`t=g`t";
 by (rtac (major RS ntree_induct) 1);
@@ -46,14 +46,14 @@ qed "ntree_induct_eqn";
 
 (**  Lemmas to justify using "Ntree" in other recursive type definitions **)
 
-Goalw ntree.defs "A<=B ==> ntree(A) <= ntree(B)";
+Goalw ntree.defs "A \\<subseteq> B ==> ntree(A) \\<subseteq> ntree(B)";
 by (rtac lfp_mono 1);
 by (REPEAT (rtac ntree.bnd_mono 1));
 by (REPEAT (ares_tac (univ_mono::basic_monos) 1));
 qed "ntree_mono";
 
 (*Easily provable by induction also*)
-Goalw (ntree.defs@ntree.con_defs) "ntree(univ(A)) <= univ(A)";
+Goalw (ntree.defs@ntree.con_defs) "ntree(univ(A)) \\<subseteq> univ(A)";
 by (rtac lfp_lowerbound 1);
 by (rtac (A_subset_univ RS univ_mono) 2);
 by Safe_tac;
@@ -66,7 +66,7 @@ val ntree_subset_univ = [ntree_mono, ntree_univ] MRS subset_trans |> standard;
 (** ntree recursion **)
 
 Goal "ntree_rec(b, Branch(x,h)) \
-\     = b(x, h, lam i: domain(h). ntree_rec(b, h`i))";
+\     = b(x, h, \\<lambda>i \\<in> domain(h). ntree_rec(b, h`i))";
 by (rtac (ntree_rec_def RS def_Vrecursor RS trans) 1);
 by (Simp_tac 1);
 by (rewrite_goals_tac ntree.con_defs);
@@ -75,13 +75,13 @@ by (asm_simp_tac (simpset() addsimps [rank_pair2 RSN (2, lt_trans),
 qed "ntree_rec_Branch";
 
 Goalw [ntree_copy_def]
- "ntree_copy (Branch(x, h)) = Branch(x, lam i : domain(h). ntree_copy (h`i))";
+ "ntree_copy (Branch(x, h)) = Branch(x, \\<lambda>i \\<in> domain(h). ntree_copy (h`i))";
 by (rtac ntree_rec_Branch 1);
 qed "ntree_copy_Branch";
 
 Addsimps [ntree_copy_Branch];
 
-Goal "z : ntree(A) ==> ntree_copy(z) = z";
+Goal "z \\<in> ntree(A) ==> ntree_copy(z) = z";
 by (induct_tac "z" 1);
 by (auto_tac (claset(), simpset() addsimps [domain_of_fun, Pi_Collect_iff]));
 qed "ntree_copy_is_ident";
@@ -98,9 +98,9 @@ qed "maptree_unfold";
 
 (*A nicer induction rule than the standard one*)
 val major::prems = goal Ntree.thy
-    "[| t: maptree(A);                                                  \
-\       !!x n h. [| x: A;  h: maptree(A) -||> maptree(A);               \
-\                   ALL y: field(h). P(y)                               \
+    "[| t \\<in> maptree(A);                                                  \
+\       !!x n h. [| x \\<in> A;  h \\<in> maptree(A) -||> maptree(A);               \
+\                   \\<forall>y \\<in> field(h). P(y)                               \
 \                |] ==> P(Sons(x,h))                                    \
 \    |] ==> P(t)";
 by (rtac (major RS maptree.induct) 1);
@@ -122,8 +122,8 @@ qed "maptree2_unfold";
 
 (*A nicer induction rule than the standard one*)
 val major::prems = goal Ntree.thy
-    "[| t: maptree2(A,B);                                                 \
-\       !!x n h. [| x: A;  h: B -||> maptree2(A,B);  ALL y:range(h). P(y) \
+    "[| t \\<in> maptree2(A,B);                                                 \
+\       !!x n h. [| x \\<in> A;  h \\<in> B -||> maptree2(A,B);  \\<forall>y \\<in> range(h). P(y) \
 \                |] ==> P(Sons2(x,h))                                     \
 \    |] ==> P(t)";
 by (rtac (major RS maptree2.induct) 1);

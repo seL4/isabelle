@@ -15,16 +15,16 @@ consts
   prime   :: i=>o                  (* prime definition *)
   
 defs
-  dvd_def     "m dvd n == m:nat & n:nat & (EX k:nat. n = m#*k)"
+  dvd_def     "m dvd n == m \\<in> nat & n \\<in> nat & (\\<exists>k \\<in> nat. n = m#*k)"
 
   gcd_def     "gcd(p,m,n) == ((p dvd m) & (p dvd n))   &
-               (ALL d. (d dvd m) & (d dvd n) --> d dvd p)"
+               (\\<forall>d. (d dvd m) & (d dvd n) --> d dvd p)"
 
   egcd_def    "egcd(m,n) ==   
-               transrec(n, %n f. lam m:nat. if(n=0, m, f`(m mod n)`n)) ` m"
+               transrec(n, %n f. \\<lambda>m \\<in> nat. if(n=0, m, f`(m mod n)`n)) ` m"
 
   coprime_def "coprime(m,n) == egcd(m,n) = 1"
 
-  prime_def   "prime(n) == (1<n) & (ALL m:nat. 1<m & m<n --> ~(m dvd n))"
+  prime_def   "prime(n) == (1<n) & (\\<forall>m \\<in> nat. 1<m & m<n --> ~(m dvd n))"
 
 end

@@ -12,7 +12,7 @@ by (Blast_tac 1);
 qed "square_sym";                
 
 
-Goalw [square_def] "[| square(r,s,t,u); t <= t' |] ==> square(r,s,t',u)";
+Goalw [square_def] "[| square(r,s,t,u); t \\<subseteq> t' |] ==> square(r,s,t',u)";
 by (Blast_tac 1);
 qed "square_subset"; 
 
@@ -81,7 +81,7 @@ qed "diamond_confluent";
 
 Goalw [confluent_def]
  "[| confluent(r); confluent(s); commute(r^*, s^*); \
-\           r<=Sigma(A,B); s<=Sigma(C,D) |] ==> confluent(r Un s)";
+\           r \\<subseteq> Sigma(A,B); s \\<subseteq> Sigma(C,D) |] ==> confluent(r Un s)";
 by (rtac (rtrancl_Un_rtrancl RS subst) 1);
 by (blast_tac (claset() addDs [diamond_Un] 
      addIs [rewrite_rule [confluent_def] diamond_confluent]) 3);
@@ -90,7 +90,7 @@ qed "confluent_Un";
 
 
 Goal
- "[| diamond(r); s<=r; r<= s^* |] ==> confluent(s)";
+ "[| diamond(r); s \\<subseteq> r; r<= s^* |] ==> confluent(s)";
 by (dresolve_tac [rtrancl_subset RS sym] 1);
 by (assume_tac 1);
 by (ALLGOALS(asm_simp_tac (simpset() addsimps[confluent_def])));

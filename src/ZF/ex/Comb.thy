@@ -20,7 +20,7 @@ consts comb :: i
 datatype
   "comb" = K
          | S
-         | "#" ("p: comb", "q: comb")   (infixl 90)
+         | "#" ("p \\<in> comb", "q \\<in> comb")   (infixl 90)
 
 (** Inductive definition of contractions, -1->
              and (multi-step) reductions, --->
@@ -31,16 +31,16 @@ consts
   "--->"    :: [i,i] => o                       (infixl 50)
 
 translations
-  "p -1-> q" == "<p,q> : contract"
-  "p ---> q" == "<p,q> : contract^*"
+  "p -1-> q" == "<p,q> \\<in> contract"
+  "p ---> q" == "<p,q> \\<in> contract^*"
 
 inductive
   domains   "contract" <= "comb*comb"
   intrs
-    K     "[| p:comb;  q:comb |] ==> K#p#q -1-> p"
-    S     "[| p:comb;  q:comb;  r:comb |] ==> S#p#q#r -1-> (p#r)#(q#r)"
-    Ap1   "[| p-1->q;  r:comb |] ==> p#r -1-> q#r"
-    Ap2   "[| p-1->q;  r:comb |] ==> r#p -1-> r#q"
+    K     "[| p \\<in> comb;  q \\<in> comb |] ==> K#p#q -1-> p"
+    S     "[| p \\<in> comb;  q \\<in> comb;  r \\<in> comb |] ==> S#p#q#r -1-> (p#r)#(q#r)"
+    Ap1   "[| p-1->q;  r \\<in> comb |] ==> p#r -1-> q#r"
+    Ap2   "[| p-1->q;  r \\<in> comb |] ==> r#p -1-> r#q"
   type_intrs "comb.intrs"
 
 
@@ -53,15 +53,15 @@ consts
   "===>"    :: [i,i] => o                       (infixl 50)
 
 translations
-  "p =1=> q" == "<p,q> : parcontract"
-  "p ===> q" == "<p,q> : parcontract^+"
+  "p =1=> q" == "<p,q> \\<in> parcontract"
+  "p ===> q" == "<p,q> \\<in> parcontract^+"
 
 inductive
   domains   "parcontract" <= "comb*comb"
   intrs
-    refl  "[| p:comb |] ==> p =1=> p"
-    K     "[| p:comb;  q:comb |] ==> K#p#q =1=> p"
-    S     "[| p:comb;  q:comb;  r:comb |] ==> S#p#q#r =1=> (p#r)#(q#r)"
+    refl  "[| p \\<in> comb |] ==> p =1=> p"
+    K     "[| p \\<in> comb;  q \\<in> comb |] ==> K#p#q =1=> p"
+    S     "[| p \\<in> comb;  q \\<in> comb;  r \\<in> comb |] ==> S#p#q#r =1=> (p#r)#(q#r)"
     Ap    "[| p=1=>q;  r=1=>s |] ==> p#r =1=> q#s"
   type_intrs "comb.intrs"
 
@@ -72,8 +72,8 @@ constdefs
   "I == S#K#K"
 
   diamond :: i => o
-  "diamond(r) == ALL x y. <x,y>:r --> 
-                          (ALL y'. <x,y'>:r --> 
-                                   (EX z. <y,z>:r & <y',z> : r))"
+  "diamond(r) == \\<forall>x y. <x,y>:r --> 
+                          (\\<forall>y'. <x,y'>:r --> 
+                                   (\\<exists>z. <y,z>:r & <y',z> \\<in> r))"
 
 end

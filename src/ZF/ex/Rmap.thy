@@ -14,10 +14,10 @@ consts
 inductive
   domains "rmap(r)" <= "list(domain(r))*list(range(r))"
   intrs
-    NilI  "<Nil,Nil> : rmap(r)"
+    NilI  "<Nil,Nil> \\<in> rmap(r)"
 
-    ConsI "[| <x,y>: r;  <xs,ys> : rmap(r) |] ==> 
-          <Cons(x,xs), Cons(y,ys)> : rmap(r)"
+    ConsI "[| <x,y>: r;  <xs,ys> \\<in> rmap(r) |] ==> 
+          <Cons(x,xs), Cons(y,ys)> \\<in> rmap(r)"
 
   type_intrs "[domainI,rangeI] @ list.intrs"
 

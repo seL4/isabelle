@@ -16,7 +16,7 @@ AddSIs [subset_refl, cons_subsetI, subset_consI,
 	Un_upper1, Un_upper2, Int_lower1, Int_lower2];
 
 (*An elimination rule, for type-checking*)
-val LConsE = llist.mk_cases "LCons(a,l) : llist(A)";
+val LConsE = llist.mk_cases "LCons(a,l) \\<in> llist(A)";
 
 (*Proving freeness results*)
 val LCons_iff      = llist.mk_free "LCons(a,l)=LCons(a',l') <-> a=a' & l=l'";
@@ -30,7 +30,7 @@ qed "llist_unfold";
 
 (*** Lemmas to justify using "llist" in other recursive type definitions ***)
 
-Goalw llist.defs "A<=B ==> llist(A) <= llist(B)";
+Goalw llist.defs "A \\<subseteq> B ==> llist(A) \\<subseteq> llist(B)";
 by (rtac gfp_mono 1);
 by (REPEAT (rtac llist.bnd_mono 1));
 by (REPEAT (ares_tac (quniv_mono::basic_monos) 1));
@@ -44,7 +44,7 @@ AddSIs [QPair_Int_Vset_subset_UN RS subset_trans,
 AddSDs [qunivD];
 AddSEs [Ord_in_Ord];
 
-Goal "Ord(i) ==> ALL l: llist(quniv(A)). l Int Vset(i) <= univ(eclose(A))";
+Goal "Ord(i) ==> \\<forall>l \\<in> llist(quniv(A)). l Int Vset(i) \\<subseteq> univ(eclose(A))";
 by (etac trans_induct 1);
 by (rtac ballI 1);
 by (etac llist.elim 1);
@@ -55,7 +55,7 @@ by (Asm_simp_tac 1);
 by (deepen_tac (claset() addIs [Ord_trans, Int_lower1 RS subset_trans]) 2 1);
 qed "llist_quniv_lemma";
 
-Goal "llist(quniv(A)) <= quniv(A)";
+Goal "llist(quniv(A)) \\<subseteq> quniv(A)";
 by (rtac (qunivI RS subsetI) 1);
 by (rtac Int_Vset_subset 1);
 by (REPEAT (ares_tac [llist_quniv_lemma RS bspec] 1));
@@ -71,7 +71,7 @@ AddSIs [QPair_Int_Vset_subset_UN RS subset_trans, QPair_mono];
 AddSEs [Ord_in_Ord, Pair_inject];
 
 (*Lemma for proving finality.  Unfold the lazy list; use induction hypothesis*)
-Goal "Ord(i) ==> ALL l l'. <l,l'> : lleq(A) --> l Int Vset(i) <= l'";
+Goal "Ord(i) ==> \\<forall>l l'. <l,l'> \\<in> lleq(A) --> l Int Vset(i) \\<subseteq> l'";
 by (etac trans_induct 1);
 by (REPEAT (resolve_tac [allI, impI] 1));
 by (etac lleq.elim 1);
@@ -85,7 +85,7 @@ bind_thm ("lleq_Int_Vset_subset",
 
 
 (*lleq(A) is a symmetric relation because qconverse(lleq(A)) is a fixedpoint*)
-val [prem] = goal LList.thy "<l,l'> : lleq(A) ==> <l',l> : lleq(A)";
+val [prem] = goal LList.thy "<l,l'> \\<in> lleq(A) ==> <l',l> \\<in> lleq(A)";
 by (rtac (prem RS converseI RS lleq.coinduct) 1);
 by (rtac (lleq.dom_subset RS converse_type) 1);
 by Safe_tac;
@@ -93,15 +93,15 @@ by (etac lleq.elim 1);
 by (ALLGOALS Fast_tac);
 qed "lleq_symmetric";
 
-Goal "<l,l'> : lleq(A) ==> l=l'";
+Goal "<l,l'> \\<in> lleq(A) ==> l=l'";
 by (rtac equalityI 1);
 by (REPEAT (ares_tac [lleq_Int_Vset_subset RS Int_Vset_subset] 1
      ORELSE etac lleq_symmetric 1));
 qed "lleq_implies_equal";
 
 val [eqprem,lprem] = goal LList.thy
-    "[| l=l';  l: llist(A) |] ==> <l,l'> : lleq(A)";
-by (res_inst_tac [("X", "{<l,l>. l: llist(A)}")] lleq.coinduct 1);
+    "[| l=l';  l \\<in> llist(A) |] ==> <l,l'> \\<in> lleq(A)";
+by (res_inst_tac [("X", "{<l,l>. l \\<in> llist(A)}")] lleq.coinduct 1);
 by (rtac (lprem RS RepFunI RS (eqprem RS subst)) 1);
 by Safe_tac;
 by (etac llist.elim 1);
@@ -130,12 +130,12 @@ val lconst_subset = lconst_def RS def_lfp_subset;
 
 bind_thm ("member_subset_Union_eclose", (arg_into_eclose RS Union_upper));
 
-Goal "a : A ==> lconst(a) : quniv(A)";
+Goal "a \\<in> A ==> lconst(a) \\<in> quniv(A)";
 by (rtac (lconst_subset RS subset_trans RS qunivI) 1);
 by (etac (arg_into_eclose RS eclose_subset RS univ_mono) 1);
 qed "lconst_in_quniv";
 
-Goal "a:A ==> lconst(a): llist(A)";
+Goal "a \\<in> A ==> lconst(a): llist(A)";
 by (rtac (singletonI RS llist.coinduct) 1);
 by (etac (lconst_in_quniv RS singleton_subsetI) 1);
 by (fast_tac (claset() addSIs [lconst]) 1);
@@ -145,7 +145,7 @@ qed "lconst_type";
 
 Addsimps [flip_LNil, flip_LCons, not_type];
 
-goal QUniv.thy "!!b. b:bool ==> b Int X <= univ(eclose(A))";
+goal QUniv.thy "!!b. b \\<in> bool ==> b Int X \\<subseteq> univ(eclose(A))";
 by (fast_tac (claset() addIs [Int_lower1 RS subset_trans] addSEs [boolE]) 1);
 qed "bool_Int_subset_univ";
 
@@ -154,7 +154,7 @@ AddIs  [bool_Int_subset_univ];
 
 (*Reasoning borrowed from lleq.ML; a similar proof works for all
   "productive" functions -- cf Coquand's "Infinite Objects in Type Theory".*)
-Goal "Ord(i) ==> ALL l: llist(bool). flip(l) Int Vset(i) <= \
+Goal "Ord(i) ==> \\<forall>l \\<in> llist(bool). flip(l) Int Vset(i) \\<subseteq> \
 \                   univ(eclose(bool))";
 by (etac trans_induct 1);
 by (rtac ballI 1);
@@ -166,13 +166,13 @@ by (ALLGOALS
 by (deepen_tac (claset() addIs [Ord_trans, Int_lower1 RS subset_trans]) 2 1);
 qed "flip_llist_quniv_lemma";
 
-Goal "l: llist(bool) ==> flip(l) : quniv(bool)";
+Goal "l \\<in> llist(bool) ==> flip(l) \\<in> quniv(bool)";
 by (rtac (flip_llist_quniv_lemma RS bspec RS Int_Vset_subset RS qunivI) 1);
 by (REPEAT (assume_tac 1));
 qed "flip_in_quniv";
 
-val [prem] = goal LList.thy "l : llist(bool) ==> flip(l): llist(bool)";
-by (res_inst_tac [("X", "{flip(l) . l:llist(bool)}")]
+val [prem] = goal LList.thy "l \\<in> llist(bool) ==> flip(l): llist(bool)";
+by (res_inst_tac [("X", "{flip(l) . l \\<in> llist(bool)}")]
        llist.coinduct 1);
 by (rtac (prem RS RepFunI) 1);
 by (fast_tac (claset() addSIs [flip_in_quniv]) 1);
@@ -183,8 +183,8 @@ by (Fast_tac 1);
 qed "flip_type";
 
 val [prem] = goal LList.thy
-    "l : llist(bool) ==> flip(flip(l)) = l";
-by (res_inst_tac [("X1", "{<flip(flip(l)),l> . l:llist(bool)}")]
+    "l \\<in> llist(bool) ==> flip(flip(l)) = l";
+by (res_inst_tac [("X1", "{<flip(flip(l)),l> . l \\<in> llist(bool)}")]
        (lleq.coinduct RS lleq_implies_equal) 1);
 by (rtac (prem RS RepFunI) 1);
 by (fast_tac (claset() addSIs [flip_type]) 1);

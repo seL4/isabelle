@@ -20,10 +20,10 @@ qed "brouwer_unfold";
 
 (*A nicer induction rule than the standard one*)
 val major::prems = goal Brouwer.thy
-    "[| b: brouwer;                                     \
+    "[| b \\<in> brouwer;                                     \
 \       P(Zero);                                        \
-\       !!b. [| b: brouwer;  P(b) |] ==> P(Suc(b));     \
-\       !!h. [| h: nat -> brouwer;  ALL i:nat. P(h`i)   \
+\       !!b. [| b \\<in> brouwer;  P(b) |] ==> P(Suc(b));     \
+\       !!h. [| h \\<in> nat -> brouwer;  \\<forall>i \\<in> nat. P(h`i)   \
 \            |] ==> P(Lim(h))                           \
 \    |] ==> P(b)";
 by (rtac (major RS brouwer.induct) 1);
@@ -35,7 +35,7 @@ qed "brouwer_induct2";
 
 (** The Martin-Löf wellordering type **)
 
-Goal "Well(A,B) = (SUM x:A. B(x) -> Well(A,B))";
+Goal "Well(A,B) = (\\<Sigma>x \\<in> A. B(x) -> Well(A,B))";
 let open Well;  val rew = rewrite_rule con_defs in  
 by (fast_tac (claset() addSIs (map rew intrs) addEs [rew elim]) 1)
 end;
@@ -43,8 +43,8 @@ qed "Well_unfold";
 
 (*A nicer induction rule than the standard one*)
 val major::prems = goal Brouwer.thy
-    "[| w: Well(A,B);                                                   \
-\       !!a f. [| a: A;  f: B(a) -> Well(A,B);  ALL y: B(a). P(f`y)     \
+    "[| w \\<in> Well(A,B);                                                   \
+\       !!a f. [| a \\<in> A;  f \\<in> B(a) -> Well(A,B);  \\<forall>y \\<in> B(a). P(f`y)     \
 \            |] ==> P(Sup(a,f))                                         \
 \    |] ==> P(w)";
 by (rtac (major RS Well.induct) 1);

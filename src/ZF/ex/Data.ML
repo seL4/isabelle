@@ -17,13 +17,13 @@ qed "data_unfold";
 
 (**  Lemmas to justify using "data" in other recursive type definitions **)
 
-Goalw data.defs "[| A<=C; B<=D |] ==> data(A,B) <= data(C,D)";
+Goalw data.defs "[| A \\<subseteq> C; B \\<subseteq> D |] ==> data(A,B) \\<subseteq> data(C,D)";
 by (rtac lfp_mono 1);
 by (REPEAT (rtac data.bnd_mono 1));
 by (REPEAT (ares_tac (univ_mono::Un_mono::basic_monos) 1));
 qed "data_mono";
 
-Goalw (data.defs@data.con_defs) "data(univ(A),univ(A)) <= univ(A)";
+Goalw (data.defs@data.con_defs) "data(univ(A),univ(A)) \\<subseteq> univ(A)";
 by (rtac lfp_lowerbound 1);
 by (rtac ([A_subset_univ, Un_upper1] MRS subset_trans RS univ_mono) 2);
 by (fast_tac (claset() addSIs [zero_in_univ, Inl_in_univ, Inr_in_univ,

@@ -11,7 +11,7 @@ See discussion in
 *)
 
 (*USELESS because folding on Con(?xa) == ?xa fails*)
-val ConE = counit.mk_cases "Con(x) : counit";
+val ConE = counit.mk_cases "Con(x) \\<in> counit";
 
 (*Proving freeness results*)
 val Con_iff = counit.mk_free "Con(x)=Con(y) <-> x=y";
@@ -31,7 +31,7 @@ qed "counit_eq_univ";
   The resulting set is a singleton.
 *)
 
-val Con2E = counit2.mk_cases "Con2(x,y) : counit2";
+val Con2E = counit2.mk_cases "Con2(x,y) \\<in> counit2";
 
 (*Proving freeness results*)
 val Con2_iff = counit2.mk_free "Con2(x,y)=Con2(x',y') <-> x=x' & y=y'";
@@ -41,7 +41,7 @@ by (rtac bnd_monoI 1);
 by (REPEAT (ares_tac [subset_refl, QPair_subset_univ, QPair_mono] 1));
 qed "Con2_bnd_mono";
 
-Goal "lfp(univ(0), %x. Con2(x,x)) : counit2";
+Goal "lfp(univ(0), %x. Con2(x,x)) \\<in> counit2";
 by (rtac (singletonI RS counit2.coinduct) 1);
 by (rtac (qunivI RS singleton_subsetI) 1);
 by (rtac ([lfp_subset, empty_subsetI RS univ_mono] MRS subset_trans) 1);
@@ -49,7 +49,7 @@ by (fast_tac (claset() addSIs [Con2_bnd_mono RS lfp_unfold]) 1);
 qed "lfp_Con2_in_counit2";
 
 (*Lemma for proving finality.  Borrowed from ex/llist_eq.ML!*)
-Goal "Ord(i) ==> ALL x y. x: counit2 & y: counit2 --> x Int Vset(i) <= y";
+Goal "Ord(i) ==> \\<forall>x y. x \\<in> counit2 & y \\<in> counit2 --> x Int Vset(i) \\<subseteq> y";
 by (etac trans_induct 1);
 by (safe_tac subset_cs);
 by (etac counit2.elim 1);
@@ -63,7 +63,7 @@ qed "counit2_Int_Vset_subset_lemma";
 val counit2_Int_Vset_subset = standard
         (counit2_Int_Vset_subset_lemma RS spec RS spec RS mp);
 
-Goal "[| x: counit2;  y: counit2 |] ==> x=y";
+Goal "[| x \\<in> counit2;  y \\<in> counit2 |] ==> x=y";
 by (rtac equalityI 1);
 by (REPEAT (ares_tac [conjI, counit2_Int_Vset_subset RS Int_Vset_subset] 1));
 qed "counit2_implies_equal";

@@ -19,7 +19,7 @@ CoUnit = Datatype +
 consts
   counit :: i
 codatatype
-  "counit" = Con ("x: counit")
+  "counit" = Con ("x \\<in> counit")
 
 
 (*A similar example, but the constructor is non-degenerate and it works!
@@ -29,6 +29,6 @@ codatatype
 consts
   counit2 :: i
 codatatype
-  "counit2" = Con2 ("x: counit2", "y: counit2")
+  "counit2" = Con2 ("x \\<in> counit2", "y \\<in> counit2")
 
 end

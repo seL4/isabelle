@@ -15,7 +15,7 @@ Goalw [evnodd_def] "<i,j>: evnodd(A,b) <-> <i,j>: A & (i#+j) mod 2 = b";
 by (Blast_tac 1);
 qed "evnodd_iff";
 
-Goalw [evnodd_def] "evnodd(A, b) <= A";
+Goalw [evnodd_def] "evnodd(A, b) \\<subseteq> A";
 by (Blast_tac 1);
 qed "evnodd_subset";
 
@@ -44,11 +44,11 @@ Addsimps [evnodd_cons, evnodd_0];
 
 (*** Dominoes ***)
 
-Goal "d:domino ==> Finite(d)";
+Goal "d \\<in> domino ==> Finite(d)";
 by (blast_tac (claset() addSIs [Finite_cons, Finite_0] addEs [domino.elim]) 1);
 qed "domino_Finite";
 
-Goal "[| d:domino; b<2 |] ==> EX i' j'. evnodd(d,b) = {<i',j'>}";
+Goal "[| d \\<in> domino; b<2 |] ==> \\<exists>i' j'. evnodd(d,b) = {<i',j'>}";
 by (eresolve_tac [domino.elim] 1);
 by (res_inst_tac [("k1", "i#+j")] (mod2_cases RS disjE) 2);
 by (res_inst_tac [("k1", "i#+j")] (mod2_cases RS disjE) 1);
@@ -63,8 +63,8 @@ qed "domino_singleton";
 
 (** The union of two disjoint tilings is a tiling **)
 
-Goal "t: tiling(A) ==> \
-\              u: tiling(A) --> t Int u = 0 --> t Un u : tiling(A)";
+Goal "t \\<in> tiling(A) ==> \
+\              u \\<in> tiling(A) --> t Int u = 0 --> t Un u \\<in> tiling(A)";
 by (etac tiling.induct 1);
 by (simp_tac (simpset() addsimps tiling.intrs) 1);
 by (asm_full_simp_tac (simpset() addsimps [Un_assoc,
@@ -72,13 +72,13 @@ by (asm_full_simp_tac (simpset() addsimps [Un_assoc,
 by (blast_tac (claset() addIs tiling.intrs) 1);
 qed_spec_mp "tiling_UnI";
 
-Goal "t:tiling(domino) ==> Finite(t)";
+Goal "t \\<in> tiling(domino) ==> Finite(t)";
 by (eresolve_tac [tiling.induct] 1);
 by (rtac Finite_0 1);
 by (blast_tac (claset() addSIs [Finite_Un] addIs [domino_Finite]) 1);
 qed "tiling_domino_Finite";
 
-Goal "t: tiling(domino) ==> |evnodd(t,0)| = |evnodd(t,1)|";
+Goal "t \\<in> tiling(domino) ==> |evnodd(t,0)| = |evnodd(t,1)|";
 by (eresolve_tac [tiling.induct] 1);
 by (simp_tac (simpset() addsimps [evnodd_def]) 1);
 by (res_inst_tac [("b1","0")] (domino_singleton RS exE) 1);
@@ -86,7 +86,7 @@ by (Simp_tac 2 THEN assume_tac 1);
 by (res_inst_tac [("b1","1")] (domino_singleton RS exE) 1);
 by (Simp_tac 2 THEN assume_tac 1);
 by Safe_tac;
-by (subgoal_tac "ALL p b. p:evnodd(a,b) --> p~:evnodd(t,b)" 1);
+by (subgoal_tac "\\<forall>p b. p \\<in> evnodd(a,b) --> p\\<notin>evnodd(t,b)" 1);
 by (asm_simp_tac 
     (simpset() addsimps [evnodd_Un, Un_cons, tiling_domino_Finite,
 			 evnodd_subset RS subset_Finite,
@@ -95,7 +95,7 @@ by (blast_tac (claset() addSDs [evnodd_subset RS subsetD]
                         addEs [equalityE]) 1);
 qed "tiling_domino_0_1";
 
-Goal "[| i: nat;  n: nat |] ==> {i} * (n #+ n) : tiling(domino)";
+Goal "[| i \\<in> nat;  n \\<in> nat |] ==> {i} * (n #+ n) \\<in> tiling(domino)";
 by (induct_tac "n" 1);
 by (simp_tac (simpset() addsimps tiling.intrs) 1);
 by (asm_simp_tac (simpset() addsimps [Un_assoc RS sym, Sigma_succ2]) 1);
@@ -109,7 +109,7 @@ by (asm_simp_tac (simpset() addsimps [domino.horiz]) 1);
 by (blast_tac (claset() addEs [mem_irrefl, mem_asym]) 1);
 qed "dominoes_tile_row";
 
-Goal "[| m: nat;  n: nat |] ==> m * (n #+ n) : tiling(domino)";
+Goal "[| m \\<in> nat;  n \\<in> nat |] ==> m * (n #+ n) \\<in> tiling(domino)";
 by (induct_tac "m" 1);
 by (simp_tac (simpset() addsimps tiling.intrs) 1);
 by (asm_simp_tac (simpset() addsimps [Sigma_succ1]) 1);
@@ -121,14 +121,14 @@ Goal "[| x=y; x<y |] ==> P";
 by Auto_tac;
 qed "eq_lt_E";
 
-Goal "[| m: nat;  n: nat;                                 \
+Goal "[| m \\<in> nat;  n \\<in> nat;                                 \
 \        t = (succ(m)#+succ(m))*(succ(n)#+succ(n));       \
 \        t' = t - {<0,0>} - {<succ(m#+m), succ(n#+n)>} |] \
-\     ==> t' ~: tiling(domino)";
+\     ==> t' \\<notin> tiling(domino)";
 by (rtac notI 1);
 by (dtac tiling_domino_0_1 1);
 by (eres_inst_tac [("x", "|?A|")] eq_lt_E 1);
-by (subgoal_tac "t : tiling(domino)" 1);
+by (subgoal_tac "t \\<in> tiling(domino)" 1);
 (*Requires a small simpset that won't move the succ applications*)
 by (asm_simp_tac (ZF_ss addsimps [nat_succI, add_type, 
                                   dominoes_tile_matrix]) 2);

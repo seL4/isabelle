@@ -11,7 +11,7 @@ consts
     bt          :: i=>i
 
 datatype
-  "bt(A)" = Lf  |  Br ("a: A",  "t1: bt(A)",  "t2: bt(A)")
+  "bt(A)" = Lf  |  Br ("a \\<in> A",  "t1: bt(A)",  "t2: bt(A)")
 
 consts
     n_nodes     :: i=>i

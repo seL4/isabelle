@@ -12,7 +12,7 @@ consts
   term      :: i=>i
 
 datatype
-  "term(A)" = Apply ("a: A", "l: list(term(A))")
+  "term(A)" = Apply ("a \\<in> A", "l \\<in> list(term(A))")
   monos        list_mono
 
   type_elims  "[make_elim (list_univ RS subsetD)]"

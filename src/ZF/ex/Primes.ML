@@ -12,7 +12,7 @@ eta_contract:=false;
 (** Divides Relation                           **)
 (************************************************)
 
-Goalw [dvd_def] "m dvd n ==> m:nat & n:nat & (EX k:nat. n = m#*k)";
+Goalw [dvd_def] "m dvd n ==> m \\<in> nat & n \\<in> nat & (\\<exists>k \\<in> nat. n = m#*k)";
 by (assume_tac 1);
 qed "dvdD";
 
@@ -20,7 +20,7 @@ bind_thm ("dvd_imp_nat1", dvdD RS conjunct1);
 bind_thm ("dvd_imp_nat2", dvdD RS conjunct2 RS conjunct1);
 
 
-Goalw [dvd_def] "m:nat ==> m dvd 0";
+Goalw [dvd_def] "m \\<in> nat ==> m dvd 0";
 by (fast_tac (claset() addIs [nat_0I, mult_0_right RS sym]) 1);
 qed "dvd_0_right";
 
@@ -28,7 +28,7 @@ Goalw [dvd_def] "0 dvd m ==> m = 0";
 by (fast_tac (claset() addss (simpset())) 1);
 qed "dvd_0_left";
 
-Goalw [dvd_def] "m:nat ==> m dvd m";
+Goalw [dvd_def] "m \\<in> nat ==> m dvd m";
 by (fast_tac (claset() addIs [nat_1I, mult_1_right RS sym]) 1);
 qed "dvd_refl";
 
@@ -48,23 +48,23 @@ qed "dvd_anti_sym";
 
 (* GCD by Euclid's Algorithm *)
 
-Goalw [egcd_def] "m:nat ==> egcd(m,0) = m";
+Goalw [egcd_def] "m \\<in> nat ==> egcd(m,0) = m";
 by (stac transrec 1);
 by (Asm_simp_tac 1);
 qed "egcd_0";
 
 Goalw [egcd_def]
-    "[| 0<n; m:nat; n:nat |] ==> egcd(m,n) = egcd(n, m mod n)";
+    "[| 0<n; m \\<in> nat; n \\<in> nat |] ==> egcd(m,n) = egcd(n, m mod n)";
 by (res_inst_tac [("P", "%z. ?left(z) = ?right")] (transrec RS ssubst) 1);
 by (asm_simp_tac (simpset() addsimps [ltD RS mem_imp_not_eq RS not_sym,
                                      mod_less_divisor RS ltD]) 1);
 qed "egcd_lt_0";
 
-Goal "m:nat ==> egcd(m,0) dvd m";
+Goal "m \\<in> nat ==> egcd(m,0) dvd m";
 by (asm_simp_tac (simpset() addsimps [egcd_0,dvd_refl]) 1);
 qed "egcd_0_dvd_m";
 
-Goal "m:nat ==> egcd(m,0) dvd 0";
+Goal "m \\<in> nat ==> egcd(m,0) dvd 0";
 by (asm_simp_tac (simpset() addsimps [egcd_0,dvd_0_right]) 1);
 qed "egcd_0_dvd_0";
 
@@ -72,11 +72,11 @@ Goalw [dvd_def] "[| k dvd a; k dvd b |] ==> k dvd (a #+ b)";
 by (fast_tac (claset() addIs [add_mult_distrib_left RS sym, add_type]) 1);
 qed "dvd_add";
 
-Goalw [dvd_def] "[| k dvd a; q:nat |] ==> k dvd (q #* a)";
+Goalw [dvd_def] "[| k dvd a; q \\<in> nat |] ==> k dvd (q #* a)";
 by (fast_tac (claset() addIs [mult_left_commute, mult_type]) 1);
 qed "dvd_mult";
 
-Goal "[| k dvd b; k dvd (a mod b); 0 < b; a:nat |] ==> k dvd a";
+Goal "[| k dvd b; k dvd (a mod b); 0 < b; a \\<in> nat |] ==> k dvd a";
 by (deepen_tac 
     (claset() addIs [mod_div_equality RS subst]
            addDs [dvdD]
@@ -86,7 +86,7 @@ qed "gcd_ind";
 
 (* egcd type *)
 
-Goal "b:nat ==> ALL a:nat. egcd(a,b):nat";
+Goal "b \\<in> nat ==> \\<forall>a \\<in> nat. egcd(a,b):nat";
 by (etac complete_induct 1);
 by (rtac ballI 1);
 by (excluded_middle_tac "x=0" 1);
@@ -103,7 +103,7 @@ qed "egcd_type";
 
 (* Property 1: egcd(a,b) divides a and b *)
 
-Goal "b:nat ==> ALL a: nat. (egcd(a,b) dvd a) & (egcd(a,b) dvd b)";
+Goal "b \\<in> nat ==> \\<forall>a \\<in> nat. (egcd(a,b) dvd a) & (egcd(a,b) dvd b)";
 by (res_inst_tac [("i","b")] complete_induct 1);
 by (assume_tac 1);
 by (rtac ballI 1);
@@ -138,8 +138,8 @@ qed "dvd_mod";
 
 (* Property 2: for all a,b,f naturals, 
                if f divides a and f divides b then f divides egcd(a,b)*)
-Goal "[| b:nat; f:nat |] ==>    \
-\              ALL a. (f dvd a) & (f dvd b) --> f dvd egcd(a,b)";
+Goal "[| b \\<in> nat; f \\<in> nat |] ==>    \
+\              \\<forall>a. (f dvd a) & (f dvd b) --> f dvd egcd(a,b)";
 by (etac complete_induct 1);
 by (rtac allI 1);
 by (excluded_middle_tac "x=0" 1);
@@ -157,9 +157,9 @@ by (asm_full_simp_tac
 by (fast_tac (claset() addSIs [dvd_mod, nat_into_Ord RS Ord_0_lt]) 1);
 qed "egcd_prop2";
 
-(* GCD PROOF : GCD exists and egcd fits the definition *)
+(* GCD PROOF \\<in> GCD exists and egcd fits the definition *)
 
-Goalw [gcd_def] "[| a: nat; b:nat |] ==> gcd(egcd(a,b), a, b)";
+Goalw [gcd_def] "[| a \\<in> nat; b \\<in> nat |] ==> gcd(egcd(a,b), a, b)";
 by (asm_simp_tac (simpset() addsimps [egcd_prop1]) 1);
 by (fast_tac (claset() addIs [egcd_prop2 RS spec RS mp, dvd_imp_nat1]) 1);
 qed "gcd";

@@ -25,17 +25,17 @@ translations
 
 defs
 
-  SC_def    "SC == lam l:list(nat).list_case(0, %x xs. succ(x), l)"
+  SC_def    "SC == \\<lambda>l \\<in> list(nat).list_case(0, %x xs. succ(x), l)"
 
-  CONST_def "CONST(k) == lam l:list(nat).k"
+  CONST_def "CONST(k) == \\<lambda>l \\<in> list(nat).k"
 
-  PROJ_def  "PROJ(i) == lam l:list(nat). list_case(0, %x xs. x, drop(i,l))"
+  PROJ_def  "PROJ(i) == \\<lambda>l \\<in> list(nat). list_case(0, %x xs. x, drop(i,l))"
 
-  COMP_def  "COMP(g,fs) == lam l:list(nat). g ` List.map(%f. f`l, fs)"
+  COMP_def  "COMP(g,fs) == \\<lambda>l \\<in> list(nat). g ` List.map(%f. f`l, fs)"
 
   (*Note that g is applied first to PREC(f,g)`y and then to y!*)
   PREC_def  "PREC(f,g) == 
-            lam l:list(nat). list_case(0, 
+            \\<lambda>l \\<in> list(nat). list_case(0, 
                       %x xs. rec(x, f`xs, %y r. g ` Cons(r, Cons(y, xs))), l)"
   
 primrec

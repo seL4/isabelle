@@ -14,8 +14,8 @@ consts
 
 datatype
   "data(A,B)" = Con0
-              | Con1 ("a: A")
-              | Con2 ("a: A", "b: B")
-              | Con3 ("a: A", "b: B", "d: data(A,B)")
+              | Con1 ("a \\<in> A")
+              | Con2 ("a \\<in> A", "b \\<in> B")
+              | Con3 ("a \\<in> A", "b \\<in> B", "d \\<in> data(A,B)")
 
 end

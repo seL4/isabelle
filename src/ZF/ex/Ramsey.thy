@@ -27,20 +27,20 @@ consts
 defs
 
   Symmetric_def
-    "Symmetric(E) == (ALL x y. <x,y>:E --> <y,x>:E)"
+    "Symmetric(E) == (\\<forall>x y. <x,y>:E --> <y,x>:E)"
 
   Clique_def
-    "Clique(C,V,E) == (C<=V) & (ALL x:C. ALL y:C. x~=y --> <x,y> : E)"
+    "Clique(C,V,E) == (C \\<subseteq> V) & (\\<forall>x \\<in> C. \\<forall>y \\<in> C. x\\<noteq>y --> <x,y> \\<in> E)"
 
   Indept_def
-    "Indept(I,V,E) == (I<=V) & (ALL x:I. ALL y:I. x~=y --> <x,y> ~: E)"
+    "Indept(I,V,E) == (I \\<subseteq> V) & (\\<forall>x \\<in> I. \\<forall>y \\<in> I. x\\<noteq>y --> <x,y> \\<notin> E)"
 
   Atleast_def
-    "Atleast(n,S) == (EX f. f: inj(n,S))"
+    "Atleast(n,S) == (\\<exists>f. f \\<in> inj(n,S))"
 
   Ramsey_def
-    "Ramsey(n,i,j) == ALL V E. Symmetric(E) & Atleast(n,V) -->  
-         (EX C. Clique(C,V,E) & Atleast(i,C)) |       
-         (EX I. Indept(I,V,E) & Atleast(j,I))"
+    "Ramsey(n,i,j) == \\<forall>V E. Symmetric(E) & Atleast(n,V) -->  
+         (\\<exists>C. Clique(C,V,E) & Atleast(i,C)) |       
+         (\\<exists>I. Indept(I,V,E) & Atleast(j,I))"
 
 end

@@ -14,13 +14,13 @@ consts
   Well    :: [i,i=>i]=>i
  
 datatype <= "Vfrom(0, csucc(nat))"
-  "brouwer" = Zero | Suc ("b: brouwer") | Lim ("h: nat -> brouwer")
+  "brouwer" = Zero | Suc ("b \\<in> brouwer") | Lim ("h \\<in> nat -> brouwer")
   monos        Pi_mono
   type_intrs  "inf_datatype_intrs"
 
 (*The union with nat ensures that the cardinal is infinite*)
-datatype <= "Vfrom(A Un (UN x:A. B(x)), csucc(nat Un |UN x:A. B(x)|))"
-  "Well(A,B)" = Sup ("a:A", "f: B(a) -> Well(A,B)")
+datatype <= "Vfrom(A Un (\\<Union>x \\<in> A. B(x)), csucc(nat Un |\\<Union>x \\<in> A. B(x)|))"
+  "Well(A,B)" = Sup ("a \\<in> A", "f \\<in> B(a) -> Well(A,B)")
   monos        Pi_mono
   type_intrs  "[[UN_upper_cardinal, le_nat_Un_cardinal] MRS le_trans]   
                @ inf_datatype_intrs"

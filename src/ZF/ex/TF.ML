@@ -13,11 +13,11 @@ AddTCs   tree_forest.intrs;
 
 val [_, tree_def, forest_def] = tree_forest.defs;
 
-Goalw [tree_def] "tree(A) <= tree_forest(A)";
+Goalw [tree_def] "tree(A) \\<subseteq> tree_forest(A)";
 by (rtac Part_subset 1);
 qed "tree_subset_TF";
 
-Goalw [forest_def] "forest(A) <= tree_forest(A)";
+Goalw [forest_def] "forest(A) \\<subseteq> tree_forest(A)";
 by (rtac Part_subset 1);
 qed "forest_subset_TF";
 
@@ -40,13 +40,13 @@ val tree_forest_unfold' = rewrite_rule [tree_def, forest_def]
                           tree_forest_unfold;
 
 Goalw [tree_def, forest_def]
-    "tree(A) = {Inl(x). x: A*forest(A)}";
+    "tree(A) = {Inl(x). x \\<in> A*forest(A)}";
 by (rtac (Part_Inl RS subst) 1);
 by (rtac (tree_forest_unfold' RS subst_context) 1);
 qed "tree_unfold";
 
 Goalw [tree_def, forest_def]
-    "forest(A) = {Inr(x). x: {0} + tree(A)*forest(A)}";
+    "forest(A) = {Inr(x). x \\<in> {0} + tree(A)*forest(A)}";
 by (rtac (Part_Inr RS subst) 1);
 by (rtac (tree_forest_unfold' RS subst_context) 1);
 qed "forest_unfold";
@@ -55,26 +55,26 @@ qed "forest_unfold";
 (** Type checking for recursor: Not needed; possibly interesting (??) **)
 
 val major::prems = goal TF.thy
-    "[| z: tree_forest(A);  \
-\       !!x f r. [| x: A;  f: forest(A);  r: C(f)               \
+    "[| z \\<in> tree_forest(A);  \
+\       !!x f r. [| x \\<in> A;  f \\<in> forest(A);  r \\<in> C(f)               \
 \                 |] ==> b(x,f,r): C(Tcons(x,f));       \
-\       c : C(Fnil);                                            \
-\       !!t f r1 r2. [| t: tree(A);  f: forest(A);  r1: C(t); r2: C(f) \
+\       c \\<in> C(Fnil);                                            \
+\       !!t f r1 r2. [| t \\<in> tree(A);  f \\<in> forest(A);  r1: C(t); r2: C(f) \
 \                     |] ==> d(t,f,r1,r2): C(Fcons(t,f))        \
-\    |] ==> tree_forest_rec(b,c,d,z) : C(z)";
+\    |] ==> tree_forest_rec(b,c,d,z) \\<in> C(z)";
 by (rtac (major RS tree_forest.induct) 1);
 by (ALLGOALS (asm_simp_tac (simpset() addsimps prems)));
 qed "TF_rec_type";
 
 (*Mutually recursive version*)
 val prems = goal TF.thy
-    "[| !!x f r. [| x: A;  f: forest(A);  r: D(f)               \
+    "[| !!x f r. [| x \\<in> A;  f \\<in> forest(A);  r \\<in> D(f)               \
 \                 |] ==> b(x,f,r): C(Tcons(x,f));               \
-\       c : D(Fnil);                                            \
-\       !!t f r1 r2. [| t: tree(A);  f: forest(A);  r1: C(t); r2: D(f) \
+\       c \\<in> D(Fnil);                                            \
+\       !!t f r1 r2. [| t \\<in> tree(A);  f \\<in> forest(A);  r1: C(t); r2: D(f) \
 \                     |] ==> d(t,f,r1,r2): D(Fcons(t,f))        \
-\    |] ==> (ALL t:tree(A).    tree_forest_rec(b,c,d,t)  : C(t)) &       \
-\           (ALL f: forest(A). tree_forest_rec(b,c,d,f) : D(f))";
+\    |] ==> (\\<forall>t \\<in> tree(A).    tree_forest_rec(b,c,d,t)  \\<in> C(t)) &       \
+\           (\\<forall>f \\<in> forest(A). tree_forest_rec(b,c,d,f) \\<in> D(f))";
 by (rewtac Ball_def);
 by (rtac tree_forest.mutual_induct 1);
 by (ALLGOALS (asm_simp_tac (simpset() addsimps prems)));
@@ -83,12 +83,12 @@ qed "tree_forest_rec_type";
 
 (** list_of_TF and of_list **)
 
-Goal "z: tree_forest(A) ==> list_of_TF(z) : list(tree(A))";
+Goal "z \\<in> tree_forest(A) ==> list_of_TF(z) \\<in> list(tree(A))";
 by (etac tree_forest.induct 1);
 by (ALLGOALS Asm_simp_tac);
 qed "list_of_TF_type";
 
-Goal "l: list(tree(A)) ==> of_list(l) : forest(A)";
+Goal "l \\<in> list(tree(A)) ==> of_list(l) \\<in> forest(A)";
 by (etac list.induct 1);
 by (ALLGOALS Asm_simp_tac);
 qed "of_list_type";
@@ -97,9 +97,9 @@ qed "of_list_type";
 (** map **)
 
 val prems = Goal
-    "[| !!x. x: A ==> h(x): B |] ==> \
-\      (ALL t:tree(A). map(h,t) : tree(B)) &  \
-\      (ALL f: forest(A). map(h,f) : forest(B))";
+    "[| !!x. x \\<in> A ==> h(x): B |] ==> \
+\      (\\<forall>t \\<in> tree(A). map(h,t) \\<in> tree(B)) &  \
+\      (\\<forall>f \\<in> forest(A). map(h,f) \\<in> forest(B))";
 by (rewtac Ball_def);
 by (rtac tree_forest.mutual_induct 1);
 by (ALLGOALS (asm_simp_tac (simpset() addsimps prems)));
@@ -108,7 +108,7 @@ qed "map_type";
 
 (** size **)
 
-Goal "z: tree_forest(A) ==> size(z) : nat";
+Goal "z \\<in> tree_forest(A) ==> size(z) \\<in> nat";
 by (etac tree_forest.induct 1);
 by (ALLGOALS Asm_simp_tac);
 qed "size_type";
@@ -116,7 +116,7 @@ qed "size_type";
 
 (** preorder **)
 
-Goal "z: tree_forest(A) ==> preorder(z) : list(A)";
+Goal "z \\<in> tree_forest(A) ==> preorder(z) \\<in> list(A)";
 by (etac tree_forest.induct 1);
 by (ALLGOALS Asm_simp_tac);
 qed "preorder_type";
@@ -133,15 +133,15 @@ AddTCs [treeI, forestI, list_of_TF_type, map_type, size_type, preorder_type];
 
 (*essentially the same as list induction*)
 val major::prems = Goal
-    "[| f: forest(A);   \
+    "[| f \\<in> forest(A);   \
 \       R(Fnil);        \
-\       !!t f. [| t: tree(A);  f: forest(A);  R(f) |] ==> R(Fcons(t,f))  \
+\       !!t f. [| t \\<in> tree(A);  f \\<in> forest(A);  R(f) |] ==> R(Fcons(t,f))  \
 \    |] ==> R(f)";
 by (rtac (major RS (tree_forest.mutual_induct RS conjunct2 RS spec RSN (2,rev_mp))) 1);
 by (REPEAT (ares_tac (TrueI::prems) 1));
 qed "forest_induct";
 
-Goal "f: forest(A) ==> of_list(list_of_TF(f)) = f";
+Goal "f \\<in> forest(A) ==> of_list(list_of_TF(f)) = f";
 by (etac forest_induct 1);
 by (ALLGOALS Asm_simp_tac);
 qed "forest_iso";
@@ -153,31 +153,31 @@ qed "tree_list_iso";
 
 (** theorems about map **)
 
-Goal "z: tree_forest(A) ==> map(%u. u, z) = z";
+Goal "z \\<in> tree_forest(A) ==> map(%u. u, z) = z";
 by (etac tree_forest.induct 1);
 by (ALLGOALS Asm_simp_tac);
 qed "map_ident";
 
-Goal "z: tree_forest(A) ==> map(h, map(j,z)) = map(%u. h(j(u)), z)";
+Goal "z \\<in> tree_forest(A) ==> map(h, map(j,z)) = map(%u. h(j(u)), z)";
 by (etac tree_forest.induct 1);
 by (ALLGOALS Asm_simp_tac);
 qed "map_compose";
 
 (** theorems about size **)
 
-Goal "z: tree_forest(A) ==> size(map(h,z)) = size(z)";
+Goal "z \\<in> tree_forest(A) ==> size(map(h,z)) = size(z)";
 by (etac tree_forest.induct 1);
 by (ALLGOALS Asm_simp_tac);
 qed "size_map";
 
-Goal "z: tree_forest(A) ==> size(z) = length(preorder(z))";
+Goal "z \\<in> tree_forest(A) ==> size(z) = length(preorder(z))";
 by (etac tree_forest.induct 1);
 by (ALLGOALS (asm_simp_tac (simpset() addsimps [length_app])));
 qed "size_length";
 
 (** theorems about preorder **)
 
-Goal "z: tree_forest(A) ==> preorder(TF.map(h,z)) = List.map(h, preorder(z))";
+Goal "z \\<in> tree_forest(A) ==> preorder(TF.map(h,z)) = List.map(h, preorder(z))";
 by (etac tree_forest.induct 1);
 by (ALLGOALS (asm_simp_tac (simpset() addsimps [map_app_distrib])));
 qed "preorder_map";

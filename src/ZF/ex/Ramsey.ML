@@ -43,17 +43,17 @@ by (Fast_tac 1);
 qed "Atleast0";
 
 Goalw [Atleast_def]
-    "Atleast(succ(m),A) ==> EX x:A. Atleast(m, A-{x})";
+    "Atleast(succ(m),A) ==> \\<exists>x \\<in> A. Atleast(m, A-{x})";
 by (fast_tac (claset() addEs [inj_is_fun RS apply_type, inj_succ_restrict]) 1);
 qed "Atleast_succD";
 
 Goalw [Atleast_def]
-    "[| Atleast(n,A);  A<=B |] ==> Atleast(n,B)";
+    "[| Atleast(n,A);  A \\<subseteq> B |] ==> Atleast(n,B)";
 by (fast_tac (claset() addEs [inj_weaken_type]) 1);
 qed "Atleast_superset";
 
 Goalw [Atleast_def,succ_def]
-    "[| Atleast(m,B);  b~: B |] ==> Atleast(succ(m), cons(b,B))";
+    "[| Atleast(m,B);  b\\<notin> B |] ==> Atleast(succ(m), cons(b,B))";
 by (etac exE 1);
 by (rtac exI 1);
 by (etac inj_extend 1);
@@ -61,7 +61,7 @@ by (rtac mem_not_refl 1);
 by (assume_tac 1);
 qed "Atleast_succI";
 
-Goal "[| Atleast(m, B-{x});  x: B |] ==> Atleast(succ(m), B)";
+Goal "[| Atleast(m, B-{x});  x \\<in> B |] ==> Atleast(succ(m), B)";
 by (etac (Atleast_succI RS Atleast_superset) 1);
 by (Fast_tac 1);
 by (Fast_tac 1);
@@ -71,8 +71,8 @@ qed "Atleast_Diff_succI";
 
 (*The #-succ(0) strengthens the original theorem statement, but precisely
   the same proof could be used!!*)
-Goal "m: nat ==> \
-\     ALL n: nat. ALL A B. Atleast((m#+n) #- succ(0), A Un B) -->   \
+Goal "m \\<in> nat ==> \
+\     \\<forall>n \\<in> nat. \\<forall>A B. Atleast((m#+n) #- succ(0), A Un B) -->   \
 \                          Atleast(m,A) | Atleast(n,B)";
 by (induct_tac "m" 1);
 by (fast_tac (claset() addSIs [Atleast0]) 1);
@@ -86,14 +86,14 @@ by Safe_tac;
 by (etac (Atleast_succD RS bexE) 1);
 by (rename_tac "n' A B z" 1);
 by (etac UnE 1);
-(**case z:B.  Instantiate the 'ALL A B' induction hypothesis. **)
+(**case z \\<in> B.  Instantiate the '\\<forall>A B' induction hypothesis. **)
 by (dres_inst_tac [("x1","A"), ("x","B-{z}")] (spec RS spec) 2);
 by (etac (mp RS disjE) 2);
 (*cases Atleast(succ(m1),A) and Atleast(succ(k),B)*)
 by (REPEAT (eresolve_tac [asm_rl, notE, Atleast_Diff_succI] 3));
 (*proving the condition*)
 by (etac Atleast_superset 2 THEN Fast_tac 2);
-(**case z:A.  Instantiate the 'ALL n:nat. ALL A B' induction hypothesis. **)
+(**case z \\<in> A.  Instantiate the '\\<forall>n \\<in> nat. \\<forall>A B' induction hypothesis. **)
 by (dres_inst_tac [("x2","succ(n')"), ("x1","A-{z}"), ("x","B")] 
     (bspec RS spec RS spec) 1);
 by (etac nat_succI 1);
@@ -122,24 +122,24 @@ qed "Ramseyi0";
 
 (*The use of succ(m) here, rather than #-succ(0), simplifies the proof of 
   Ramsey_step_lemma.*)
-Goal "[| Atleast(m #+ n, A);  m: nat;  n: nat |]  \
-\     ==> Atleast(succ(m), {x:A. ~P(x)}) | Atleast(n, {x:A. P(x)})";
+Goal "[| Atleast(m #+ n, A);  m \\<in> nat;  n \\<in> nat |]  \
+\     ==> Atleast(succ(m), {x \\<in> A. ~P(x)}) | Atleast(n, {x \\<in> A. P(x)})";
 by (rtac (nat_succI RS pigeon2) 1);
 by (Asm_simp_tac 3);
 by (rtac Atleast_superset 3);
 by Auto_tac;
 qed "Atleast_partition";
 
-(*For the Atleast part, proves ~(a:I) from the second premise!*)
+(*For the Atleast part, proves ~(a \\<in> I) from the second premise!*)
 Goalw [Symmetric_def,Indept_def]
-    "[| Symmetric(E);  Indept(I, {z: V-{a}. <a,z> ~: E}, E);  a: V;  \
+    "[| Symmetric(E);  Indept(I, {z \\<in> V-{a}. <a,z> \\<notin> E}, E);  a \\<in> V;  \
 \       Atleast(j,I) |] ==>   \
 \    Indept(cons(a,I), V, E) & Atleast(succ(j), cons(a,I))";
 by (blast_tac (claset() addSIs [Atleast_succI]) 1);
 qed "Indept_succ";
 
 Goalw [Symmetric_def,Clique_def]
-    "[| Symmetric(E);  Clique(C, {z: V-{a}. <a,z>:E}, E);  a: V;  \
+    "[| Symmetric(E);  Clique(C, {z \\<in> V-{a}. <a,z>:E}, E);  a \\<in> V;  \
 \       Atleast(j,C) |] ==>   \
 \    Clique(cons(a,C), V, E) & Atleast(succ(j), cons(a,C))";
 by (blast_tac (claset() addSIs [Atleast_succI]) 1);
@@ -150,7 +150,7 @@ qed "Clique_succ";
 (*Published proofs gloss over the need for Ramsey numbers to be POSITIVE.*)
 val ram1::ram2::prems = goalw Ramsey.thy [Ramsey_def] 
    "[| Ramsey(succ(m), succ(i), j);  Ramsey(n, i, succ(j));  \
-\      m: nat;  n: nat |] ==> \
+\      m \\<in> nat;  n \\<in> nat |] ==> \
 \   Ramsey(succ(m#+n), succ(i), succ(j))";
 by Safe_tac;
 by (etac (Atleast_succD RS bexE) 1);
@@ -161,7 +161,7 @@ by (rtac (ram1 RS spec RS spec RS mp RS disjE) 1);
 by (Fast_tac 1);
 by (fast_tac (claset() addEs [Clique_superset]) 1); (*easy -- given a Clique*)
 by Safe_tac;
-by (eresolve_tac (swapify [exI]) 1);             (*ignore main EX quantifier*)
+by (eresolve_tac (swapify [exI]) 1);             (*ignore main \\<exists>quantifier*)
 by (REPEAT (ares_tac [Indept_succ] 1));          (*make a bigger Indept*)
 (*case n*)
 by (rtac (ram2 RS spec RS spec RS mp RS disjE) 1);
@@ -176,7 +176,7 @@ qed "Ramsey_step_lemma";
 (** The actual proof **)
 
 (*Again, the induction requires Ramsey numbers to be positive.*)
-Goal "i: nat ==> ALL j: nat. EX n:nat. Ramsey(succ(n), i, j)";
+Goal "i \\<in> nat ==> \\<forall>j \\<in> nat. \\<exists>n \\<in> nat. Ramsey(succ(n), i, j)";
 by (induct_tac "i" 1);
 by (fast_tac (claset() addSIs [Ramsey0j]) 1);
 by (rtac ballI 1);
@@ -187,7 +187,7 @@ by (fast_tac (claset() addSDs [bspec]
 qed "ramsey_lemma";
 
 (*Final statement in a tidy form, without succ(...) *)
-Goal "[| i: nat;  j: nat |] ==> EX n:nat. Ramsey(n,i,j)";
+Goal "[| i \\<in> nat;  j \\<in> nat |] ==> \\<exists>n \\<in> nat. Ramsey(n,i,j)";
 by (best_tac (claset() addDs [ramsey_lemma]) 1);
 qed "ramsey";
 

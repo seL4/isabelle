@@ -11,9 +11,9 @@ consts
   tree, forest, tree_forest    :: i=>i
 
 datatype
-  "tree(A)"   = Tcons ("a: A",  "f: forest(A)")
+  "tree(A)"   = Tcons ("a \\<in> A",  "f \\<in> forest(A)")
 and
-  "forest(A)" = Fnil  |  Fcons ("t: tree(A)",  "f: forest(A)")
+  "forest(A)" = Fnil  |  Fcons ("t \\<in> tree(A)",  "f \\<in> forest(A)")
 
 
 consts

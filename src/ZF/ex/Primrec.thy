@@ -21,11 +21,11 @@ consts
 inductive
   domains "prim_rec" <= "list(nat)->nat"
   intrs
-    SC       "SC : prim_rec"
-    CONST    "k: nat ==> CONST(k) : prim_rec"
-    PROJ     "i: nat ==> PROJ(i) : prim_rec"
-    COMP     "[| g: prim_rec; fs: list(prim_rec) |] ==> COMP(g,fs): prim_rec"
-    PREC     "[| f: prim_rec; g: prim_rec |] ==> PREC(f,g): prim_rec"
+    SC       "SC \\<in> prim_rec"
+    CONST    "k \\<in> nat ==> CONST(k) \\<in> prim_rec"
+    PROJ     "i \\<in> nat ==> PROJ(i) \\<in> prim_rec"
+    COMP     "[| g \\<in> prim_rec; fs: list(prim_rec) |] ==> COMP(g,fs): prim_rec"
+    PREC     "[| f \\<in> prim_rec; g \\<in> prim_rec |] ==> PREC(f,g): prim_rec"
   monos       list_mono
   con_defs    SC_def, CONST_def, PROJ_def, COMP_def, PREC_def
   type_intrs "nat_typechecks @ list.intrs @                     

@@ -12,8 +12,8 @@ Commutation = Main +
 constdefs
   square  :: [i, i, i, i] => o
    "square(r,s,t,u) ==
-   (ALL a b. <a,b>:r --> (ALL c. <a, c>:s
-                          --> (EX x. <b,x>:t & <c,x>:u)))"
+   (\\<forall>a b. <a,b>:r --> (\\<forall>c. <a, c>:s
+                          --> (\\<exists>x. <b,x>:t & <c,x>:u)))"
 
    commute :: [i, i] => o       
    "commute(r,s) == square(r,s,s,r)"
@@ -25,8 +25,8 @@ constdefs
   "strip(r) == commute(r^*, r)"
 
   Church_Rosser :: i => o     
-  "Church_Rosser(r) == (ALL x y. <x,y>: (r Un converse(r))^* -->
-			(EX z. <x,z>:r^* & <y,z>:r^*))"
+  "Church_Rosser(r) == (\\<forall>x y. <x,y>: (r Un converse(r))^* -->
+			(\\<exists>z. <x,z>:r^* & <y,z>:r^*))"
   confluent :: i=>o    
   "confluent(r) == diamond(r^*)"
 end          

@@ -69,73 +69,73 @@ rules
   
   po_def
     "po(D) ==   \
-\    (ALL x:set(D). rel(D,x,x)) &   \
-\    (ALL x:set(D). ALL y:set(D). ALL z:set(D).   \
+\    (\\<forall>x \\<in> set(D). rel(D,x,x)) &   \
+\    (\\<forall>x \\<in> set(D). \\<forall>y \\<in> set(D). \\<forall>z \\<in> set(D).   \
 \      rel(D,x,y) --> rel(D,y,z) --> rel(D,x,z)) &   \
-\    (ALL x:set(D). ALL y:set(D). rel(D,x,y) --> rel(D,y,x) --> x = y)"
+\    (\\<forall>x \\<in> set(D). \\<forall>y \\<in> set(D). rel(D,x,y) --> rel(D,y,x) --> x = y)"
 
     (* Chains are object level functions nat->set(D) *)
 
   chain_def
-    "chain(D,X) == X:nat->set(D) & (ALL n:nat. rel(D,X`n,X`(succ(n))))"
+    "chain(D,X) == X \\<in> nat->set(D) & (\\<forall>n \\<in> nat. rel(D,X`n,X`(succ(n))))"
 
   isub_def
-    "isub(D,X,x) == x:set(D) & (ALL n:nat. rel(D,X`n,x))"
+    "isub(D,X,x) == x \\<in> set(D) & (\\<forall>n \\<in> nat. rel(D,X`n,x))"
 
   islub_def
-    "islub(D,X,x) == isub(D,X,x) & (ALL y. isub(D,X,y) --> rel(D,x,y))"
+    "islub(D,X,x) == isub(D,X,x) & (\\<forall>y. isub(D,X,y) --> rel(D,x,y))"
 
   lub_def
     "lub(D,X) == THE x. islub(D,X,x)"
 
   cpo_def
-    "cpo(D) == po(D) & (ALL X. chain(D,X) --> (EX x. islub(D,X,x)))"
+    "cpo(D) == po(D) & (\\<forall>X. chain(D,X) --> (\\<exists>x. islub(D,X,x)))"
 
   pcpo_def
-    "pcpo(D) == cpo(D) & (EX x:set(D). ALL y:set(D). rel(D,x,y))"
+    "pcpo(D) == cpo(D) & (\\<exists>x \\<in> set(D). \\<forall>y \\<in> set(D). rel(D,x,y))"
   
   bot_def
-    "bot(D) == THE x. x:set(D) & (ALL y:set(D). rel(D,x,y))"
+    "bot(D) == THE x. x \\<in> set(D) & (\\<forall>y \\<in> set(D). rel(D,x,y))"
 
   
   mono_def
     "mono(D,E) ==   \
-\    {f:set(D)->set(E).   \
-\     ALL x:set(D). ALL y:set(D). rel(D,x,y) --> rel(E,f`x,f`y)}"
+\    {f \\<in> set(D)->set(E).   \
+\     \\<forall>x \\<in> set(D). \\<forall>y \\<in> set(D). rel(D,x,y) --> rel(E,f`x,f`y)}"
 
   cont_def
     "cont(D,E) ==   \
-\    {f:mono(D,E).   \
-\     ALL X. chain(D,X) --> f`(lub(D,X)) = lub(E,lam n:nat. f`(X`n))}" 
+\    {f \\<in> mono(D,E).   \
+\     \\<forall>X. chain(D,X) --> f`(lub(D,X)) = lub(E,\\<lambda>n \\<in> nat. f`(X`n))}" 
   
   cf_def
     "cf(D,E) ==   \
 \    <cont(D,E),   \
-\     {y:cont(D,E)*cont(D,E). ALL x:set(D). rel(E,(fst(y))`x,(snd(y))`x)}>"
+\     {y \\<in> cont(D,E)*cont(D,E). \\<forall>x \\<in> set(D). rel(E,(fst(y))`x,(snd(y))`x)}>"
 
   suffix_def
-    "suffix(X,n) == lam m:nat. X`(n #+ m)"
+    "suffix(X,n) == \\<lambda>m \\<in> nat. X`(n #+ m)"
 
   subchain_def
-    "subchain(X,Y) == ALL m:nat. EX n:nat. X`m = Y`(m #+ n)"
+    "subchain(X,Y) == \\<forall>m \\<in> nat. \\<exists>n \\<in> nat. X`m = Y`(m #+ n)"
 
   dominate_def
-    "dominate(D,X,Y) == ALL m:nat. EX n:nat. rel(D,X`m,Y`n)"
+    "dominate(D,X,Y) == \\<forall>m \\<in> nat. \\<exists>n \\<in> nat. rel(D,X`m,Y`n)"
 
   matrix_def
     "matrix(D,M) ==   \
-\    M: nat -> (nat -> set(D)) &   \
-\    (ALL n:nat. ALL m:nat. rel(D,M`n`m,M`succ(n)`m)) &   \
-\    (ALL n:nat. ALL m:nat. rel(D,M`n`m,M`n`succ(m))) &   \
-\    (ALL n:nat. ALL m:nat. rel(D,M`n`m,M`succ(n)`succ(m)))"
+\    M \\<in> nat -> (nat -> set(D)) &   \
+\    (\\<forall>n \\<in> nat. \\<forall>m \\<in> nat. rel(D,M`n`m,M`succ(n)`m)) &   \
+\    (\\<forall>n \\<in> nat. \\<forall>m \\<in> nat. rel(D,M`n`m,M`n`succ(m))) &   \
+\    (\\<forall>n \\<in> nat. \\<forall>m \\<in> nat. rel(D,M`n`m,M`succ(n)`succ(m)))"
 
   projpair_def
     "projpair(D,E,e,p) ==   \
-\    e:cont(D,E) & p:cont(E,D) &   \
+\    e \\<in> cont(D,E) & p \\<in> cont(E,D) &   \
 \    p O e = id(set(D)) & rel(cf(E,E),e O p,id(set(E)))"
 
   emb_def
-    "emb(D,E,e) == EX p. projpair(D,E,e,p)"
+    "emb(D,E,e) == \\<exists>p. projpair(D,E,e,p)"
 
   Rp_def
     "Rp(D,E,e) == THE p. projpair(D,E,e,p)"
@@ -144,32 +144,32 @@ rules
 
   iprod_def
     "iprod(DD) ==   \
-\    <(PROD n:nat. set(DD`n)),  \
-\     {x:(PROD n:nat. set(DD`n))*(PROD n:nat. set(DD`n)).   \
-\      ALL n:nat. rel(DD`n,fst(x)`n,snd(x)`n)}>"
+\    <(\\<Pi>n \\<in> nat. set(DD`n)),  \
+\     {x:(\\<Pi>n \\<in> nat. set(DD`n))*(\\<Pi>n \\<in> nat. set(DD`n)).   \
+\      \\<forall>n \\<in> nat. rel(DD`n,fst(x)`n,snd(x)`n)}>"
 
   mkcpo_def   (* Cannot use rel(D), is meta fun, need two more args *)
     "mkcpo(D,P) ==   \
-\    <{x:set(D). P(x)},{x:set(D)*set(D). rel(D,fst(x),snd(x))}>"
+\    <{x \\<in> set(D). P(x)},{x \\<in> set(D)*set(D). rel(D,fst(x),snd(x))}>"
 
 
   subcpo_def
     "subcpo(D,E) ==   \
-\    set(D) <= set(E) &   \
-\    (ALL x:set(D). ALL y:set(D). rel(D,x,y) <-> rel(E,x,y)) &   \
-\    (ALL X. chain(D,X) --> lub(E,X):set(D))"
+\    set(D) \\<subseteq> set(E) &   \
+\    (\\<forall>x \\<in> set(D). \\<forall>y \\<in> set(D). rel(D,x,y) <-> rel(E,x,y)) &   \
+\    (\\<forall>X. chain(D,X) --> lub(E,X):set(D))"
 
   subpcpo_def
     "subpcpo(D,E) == subcpo(D,E) & bot(E):set(D)"
 
   emb_chain_def
     "emb_chain(DD,ee) ==   \
-\    (ALL n:nat. cpo(DD`n)) & (ALL n:nat. emb(DD`n,DD`succ(n),ee`n))"
+\    (\\<forall>n \\<in> nat. cpo(DD`n)) & (\\<forall>n \\<in> nat. emb(DD`n,DD`succ(n),ee`n))"
 
   Dinf_def
     "Dinf(DD,ee) ==   \
 \    mkcpo(iprod(DD))   \
-\    (%x. ALL n:nat. Rp(DD`n,DD`succ(n),ee`n)`(x`succ(n)) = x`n)"
+\    (%x. \\<forall>n \\<in> nat. Rp(DD`n,DD`succ(n),ee`n)`(x`succ(n)) = x`n)"
 
   e_less_def (* Valid for m le n only. *)
     "e_less(DD,ee,m,n) == rec(n#-m,id(set(DD`m)),%x y. ee`(m#+x) O y)"
@@ -183,17 +183,17 @@ rules
     "eps(DD,ee,m,n) == if(m le n,e_less(DD,ee,m,n),e_gr(DD,ee,m,n))"
 
   rho_emb_def
-    "rho_emb(DD,ee,n) == lam x:set(DD`n). lam m:nat. eps(DD,ee,n,m)`x"
+    "rho_emb(DD,ee,n) == \\<lambda>x \\<in> set(DD`n). \\<lambda>m \\<in> nat. eps(DD,ee,n,m)`x"
 
   rho_proj_def
-    "rho_proj(DD,ee,n) == lam x:set(Dinf(DD,ee)). x`n"
+    "rho_proj(DD,ee,n) == \\<lambda>x \\<in> set(Dinf(DD,ee)). x`n"
   
   commute_def
     "commute(DD,ee,E,r) ==   \
-\    (ALL n:nat. emb(DD`n,E,r(n))) &   \
-\    (ALL m:nat. ALL n:nat. m le n --> r(n) O eps(DD,ee,m,n) = r(m))"
+\    (\\<forall>n \\<in> nat. emb(DD`n,E,r(n))) &   \
+\    (\\<forall>m \\<in> nat. \\<forall>n \\<in> nat. m le n --> r(n) O eps(DD,ee,m,n) = r(m))"
 
   mediating_def
-    "mediating(E,G,r,f,t) == emb(E,G,t) & (ALL n:nat. f(n) = t O r(n))"
+    "mediating(E,G,r,f,t) == emb(E,G,t) & (\\<forall>n \\<in> nat. f(n) = t O r(n))"
 
 end

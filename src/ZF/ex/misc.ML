@@ -10,27 +10,27 @@ Composition of homomorphisms, Pastre's examples, ...
 (*These two are cited in Benzmueller and Kohlhase's system description of LEO,
   CADE-15, 1998 (page 139-143) as theorems LEO could not prove.*)
 
-Goal "(X = Y Un Z) <-> (Y<=X & Z<=X & (ALL V. Y<=V & Z<=V --> X<=V))";
+Goal "(X = Y Un Z) <-> (Y \\<subseteq> X & Z \\<subseteq> X & (\\<forall>V. Y \\<subseteq> V & Z \\<subseteq> V --> X \\<subseteq> V))";
 by (blast_tac (claset() addSIs [equalityI]) 1);
 qed "";
 
 (*the dual of the previous one*)
-Goal "(X = Y Int Z) <-> (X<=Y & X<=Z & (ALL V. V<=Y & V<=Z --> V<=X))";
+Goal "(X = Y Int Z) <-> (X \\<subseteq> Y & X \\<subseteq> Z & (\\<forall>V. V \\<subseteq> Y & V \\<subseteq> Z --> V \\<subseteq> X))";
 by (blast_tac (claset() addSIs [equalityI]) 1);
 qed "";
 
 (*trivial example of term synthesis: apparently hard for some provers!*)
-Goal "a ~= b ==> a:?X & b ~: ?X";
+Goal "a \\<noteq> b ==> a:?X & b \\<notin> ?X";
 by (Blast_tac 1);
 qed "";
 
 (*Nice Blast_tac benchmark.  Proved in 0.3s; old tactics can't manage it!*)
-Goal "ALL x:S. ALL y:S. x<=y ==> EX z. S <= {z}";
+Goal "\\<forall>x \\<in> S. \\<forall>y \\<in> S. x \\<subseteq> y ==> \\<exists>z. S \\<subseteq> {z}";
 by (Blast_tac 1);
 qed "";
 
 (*variant of the benchmark above*)
-Goal "ALL x:S. Union(S) <= x ==> EX z. S <= {z}";
+Goal "\\<forall>x \\<in> S. Union(S) \\<subseteq> x ==> \\<exists>z. S \\<subseteq> {z}";
 by (Blast_tac 1);
 qed "";
 
@@ -40,7 +40,7 @@ context Perm.thy;
  W. Bledsoe.  A Maximal Method for Set Variables in Automatic Theorem-proving.
  In: J. Hayes and D. Michie and L. Mikulich, eds.  Machine Intelligence 9.
  Ellis Horwood, 53-100 (1979). *)
-Goal "(ALL F. {x}: F --> {y}:F) --> (ALL A. x:A --> y:A)";
+Goal "(\\<forall>F. {x}: F --> {y}:F) --> (\\<forall>A. x \\<in> A --> y \\<in> A)";
 by (Best_tac 1);
 qed "";
 
@@ -60,21 +60,21 @@ Addsimps [comp_fun, SigmaI, apply_funtype];
   proving conditions of rewrites such as comp_fun_apply;
   rewriting does not instantiate Vars*)
 goal Perm.thy
-    "(ALL A f B g. hom(A,f,B,g) = \
-\          {H: A->B. f:A*A->A & g:B*B->B & \
-\                    (ALL x:A. ALL y:A. H`(f`<x,y>) = g`<H`x,H`y>)}) --> \
-\    J : hom(A,f,B,g) & K : hom(B,g,C,h) -->  \
-\    (K O J) : hom(A,f,C,h)";
+    "(\\<forall>A f B g. hom(A,f,B,g) = \
+\          {H \\<in> A->B. f \\<in> A*A->A & g \\<in> B*B->B & \
+\                    (\\<forall>x \\<in> A. \\<forall>y \\<in> A. H`(f`<x,y>) = g`<H`x,H`y>)}) --> \
+\    J \\<in> hom(A,f,B,g) & K \\<in> hom(B,g,C,h) -->  \
+\    (K O J) \\<in> hom(A,f,C,h)";
 by (asm_simp_tac (simpset() setloop (K Safe_tac)) 1);
 qed "";
 
 (*This version uses meta-level rewriting, safe_tac and asm_simp_tac*)
 val [hom_def] = goal Perm.thy
     "(!! A f B g. hom(A,f,B,g) == \
-\          {H: A->B. f:A*A->A & g:B*B->B & \
-\                    (ALL x:A. ALL y:A. H`(f`<x,y>) = g`<H`x,H`y>)}) ==> \
-\    J : hom(A,f,B,g) & K : hom(B,g,C,h) -->  \
-\    (K O J) : hom(A,f,C,h)";
+\          {H \\<in> A->B. f \\<in> A*A->A & g \\<in> B*B->B & \
+\                    (\\<forall>x \\<in> A. \\<forall>y \\<in> A. H`(f`<x,y>) = g`<H`x,H`y>)}) ==> \
+\    J \\<in> hom(A,f,B,g) & K \\<in> hom(B,g,C,h) -->  \
+\    (K O J) \\<in> hom(A,f,C,h)";
 by (rewtac hom_def);
 by Safe_tac;
 by (Asm_simp_tac 1);
@@ -85,7 +85,7 @@ qed "comp_homs";
 (** A characterization of functions, suggested by Tobias Nipkow **)
 
 Goalw [Pi_def, function_def]
-    "r: domain(r)->B  <->  r <= domain(r)*B & (ALL X. r `` (r -`` X) <= X)";
+    "r \\<in> domain(r)->B  <->  r \\<subseteq> domain(r)*B & (\\<forall>X. r `` (r -`` X) \\<subseteq> X)";
 by (Best_tac 1);
 qed "";
 
@@ -119,7 +119,7 @@ val prems = goalw Perm.thy [bij_def]
     "[| (h O g O f): inj(A,A);          \
 \       (f O h O g): surj(B,B);         \
 \       (g O f O h): surj(C,C);         \
-\       f: A->B;  g: B->C;  h: C->A |] ==> h: bij(C,A)";
+\       f \\<in> A->B;  g \\<in> B->C;  h \\<in> C->A |] ==> h \\<in> bij(C,A)";
 by (REPEAT (resolve_tac (IntI :: pastre_facts prems) 1));
 qed "pastre1";
 
@@ -127,7 +127,7 @@ val prems = goalw Perm.thy [bij_def]
     "[| (h O g O f): surj(A,A);         \
 \       (f O h O g): inj(B,B);          \
 \       (g O f O h): surj(C,C);         \
-\       f: A->B;  g: B->C;  h: C->A |] ==> h: bij(C,A)";
+\       f \\<in> A->B;  g \\<in> B->C;  h \\<in> C->A |] ==> h \\<in> bij(C,A)";
 by (REPEAT (resolve_tac (IntI :: pastre_facts prems) 1));
 qed "pastre2";
 
@@ -135,7 +135,7 @@ val prems = goalw Perm.thy [bij_def]
     "[| (h O g O f): surj(A,A);         \
 \       (f O h O g): surj(B,B);         \
 \       (g O f O h): inj(C,C);          \
-\       f: A->B;  g: B->C;  h: C->A |] ==> h: bij(C,A)";
+\       f \\<in> A->B;  g \\<in> B->C;  h \\<in> C->A |] ==> h \\<in> bij(C,A)";
 by (REPEAT (resolve_tac (IntI :: pastre_facts prems) 1));
 qed "pastre3";
 
@@ -143,7 +143,7 @@ val prems = goalw Perm.thy [bij_def]
     "[| (h O g O f): surj(A,A);         \
 \       (f O h O g): inj(B,B);          \
 \       (g O f O h): inj(C,C);          \
-\       f: A->B;  g: B->C;  h: C->A |] ==> h: bij(C,A)";
+\       f \\<in> A->B;  g \\<in> B->C;  h \\<in> C->A |] ==> h \\<in> bij(C,A)";
 by (REPEAT (resolve_tac (IntI :: pastre_facts prems) 1));
 qed "pastre4";
 
@@ -151,7 +151,7 @@ val prems = goalw Perm.thy [bij_def]
     "[| (h O g O f): inj(A,A);          \
 \       (f O h O g): surj(B,B);         \
 \       (g O f O h): inj(C,C);          \
-\       f: A->B;  g: B->C;  h: C->A |] ==> h: bij(C,A)";
+\       f \\<in> A->B;  g \\<in> B->C;  h \\<in> C->A |] ==> h \\<in> bij(C,A)";
 by (REPEAT (resolve_tac (IntI :: pastre_facts prems) 1));
 qed "pastre5";
 
@@ -159,16 +159,16 @@ val prems = goalw Perm.thy [bij_def]
     "[| (h O g O f): inj(A,A);          \
 \       (f O h O g): inj(B,B);          \
 \       (g O f O h): surj(C,C);         \
-\       f: A->B;  g: B->C;  h: C->A |] ==> h: bij(C,A)";
+\       f \\<in> A->B;  g \\<in> B->C;  h \\<in> C->A |] ==> h \\<in> bij(C,A)";
 by (REPEAT (resolve_tac (IntI :: pastre_facts prems) 1));
 qed "pastre6";
 
 (** Yet another example... **)
 
 goal Perm.thy
-    "(lam Z:Pow(A+B). <{x:A. Inl(x):Z}, {y:B. Inr(y):Z}>) \
-\    : bij(Pow(A+B), Pow(A)*Pow(B))";
-by (res_inst_tac [("d", "%<X,Y>.{Inl(x).x:X} Un {Inr(y).y:Y}")] 
+    "(\\<lambda>Z \\<in> Pow(A+B). <{x \\<in> A. Inl(x):Z}, {y \\<in> B. Inr(y):Z}>) \
+\    \\<in> bij(Pow(A+B), Pow(A)*Pow(B))";
+by (res_inst_tac [("d", "%<X,Y>.{Inl(x).x \\<in> X} Un {Inr(y).y \\<in> Y}")] 
     lam_bijective 1);
 (*Auto_tac no longer proves it*)
 by Auto_tac;
@@ -177,9 +177,9 @@ qed "Pow_sum_bij";
 
 (*As a special case, we have  bij(Pow(A*B), A -> Pow B)  *)
 goal Perm.thy
-    "(lam r:Pow(Sigma(A,B)). lam x:A. r``{x}) \
-\    : bij(Pow(Sigma(A,B)), PROD x:A. Pow(B(x)))";
-by (res_inst_tac [("d", "%f. UN x:A. UN y:f`x. {<x,y>}")] lam_bijective 1);
+    "(\\<lambda>r \\<in> Pow(Sigma(A,B)). \\<lambda>x \\<in> A. r``{x}) \
+\    \\<in> bij(Pow(Sigma(A,B)), \\<Pi>x \\<in> A. Pow(B(x)))";
+by (res_inst_tac [("d", "%f. \\<Union>x \\<in> A. \\<Union>y \\<in> f`x. {<x,y>}")] lam_bijective 1);
 by (blast_tac (claset() addDs [apply_type]) 2);
 by (blast_tac (claset() addIs [lam_type]) 1);
 by (ALLGOALS Asm_simp_tac);

@@ -9,23 +9,23 @@ See Ch. Paulin-Mohring, Inductive Definitions in the System Coq.
 Research Report 92-49, LIP, ENS Lyon.  Dec 1992.
 *)
 
-(*The introduction rule must require  a:field(r)  
+(*The introduction rule must require  a \\<in> field(r)  
   Otherwise acc(r) would be a proper class!    *)
 
 (*The intended introduction rule*)
 val prems = goal Acc.thy
-    "[| !!b. <b,a>:r ==> b: acc(r);  a: field(r) |] ==> a: acc(r)";
+    "[| !!b. <b,a>:r ==> b \\<in> acc(r);  a \\<in> field(r) |] ==> a \\<in> acc(r)";
 by (fast_tac (claset() addIs prems@acc.intrs) 1);
 qed "accI";
 
-Goal "[| b: acc(r);  <a,b>: r |] ==> a: acc(r)";
+Goal "[| b \\<in> acc(r);  <a,b>: r |] ==> a \\<in> acc(r)";
 by (etac acc.elim 1);
 by (Fast_tac 1);
 qed "acc_downward";
 
 val [major,indhyp] = goal Acc.thy
-    "[| a : acc(r);                                             \
-\       !!x. [| x: acc(r);  ALL y. <y,x>:r --> P(y) |] ==> P(x) \
+    "[| a \\<in> acc(r);                                             \
+\       !!x. [| x \\<in> acc(r);  \\<forall>y. <y,x>:r --> P(y) |] ==> P(x) \
 \    |] ==> P(a)";
 by (rtac (major RS acc.induct) 1);
 by (rtac indhyp 1);
@@ -41,10 +41,10 @@ by (etac acc_induct 1);
 by (Fast_tac 1);
 qed "wf_on_acc";
 
-(* field(r) <= acc(r) ==> wf(r) *)
+(* field(r) \\<subseteq> acc(r) ==> wf(r) *)
 val acc_wfI = wf_on_acc RS wf_on_subset_A RS wf_on_field_imp_wf;
 
-val [major] = goal Acc.thy "wf(r) ==> field(r) <= acc(r)";
+val [major] = goal Acc.thy "wf(r) ==> field(r) \\<subseteq> acc(r)";
 by (rtac subsetI 1);
 by (etac (major RS wf_induct2) 1);
 by (rtac subset_refl 1);
@@ -53,6 +53,6 @@ by (assume_tac 2);
 by (Fast_tac 1);
 qed "acc_wfD";
 
-Goal "wf(r) <-> field(r) <= acc(r)";
+Goal "wf(r) <-> field(r) \\<subseteq> acc(r)";
 by (EVERY1 [rtac iffI, etac acc_wfD, etac acc_wfI]);
 qed "wf_acc_iff";

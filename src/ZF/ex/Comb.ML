@@ -19,7 +19,7 @@ HOL system proofs may be found in
 
 Goalw [diamond_def]
     "!!x y r. [| diamond(r);  <x,y>:r^+ |] ==> \
-\    ALL y'. <x,y'>:r --> (EX z. <y',z>: r^+ & <y,z>: r)";
+\    \\<forall>y'. <x,y'>:r --> (\\<exists>z. <y',z>: r^+ & <y,z>: r)";
 by (etac trancl_induct 1);
 by (blast_tac (claset() addIs [r_into_trancl]) 1);
 by (slow_best_tac (claset() addSDs [spec RS mp]
@@ -37,14 +37,14 @@ qed "diamond_trancl";
 
 
 val [_,_,comb_Ap] = comb.intrs;
-val Ap_E = comb.mk_cases "p#q : comb";
+val Ap_E = comb.mk_cases "p#q \\<in> comb";
 
 AddSIs comb.intrs;
 
 
 (*** Results about Contraction ***)
 
-(*For type checking: replaces a-1->b by a,b:comb *)
+(*For type checking: replaces a-1->b by a,b \\<in> comb *)
 val contract_combE2 = contract.dom_subset RS subsetD RS SigmaE2;
 val contract_combD1 = contract.dom_subset RS subsetD RS SigmaD1;
 val contract_combD2 = contract.dom_subset RS subsetD RS SigmaD2;
@@ -67,11 +67,11 @@ val reduction_rls = [contract.K RS rtrancl_into_rtrancl2,
                      contract.Ap2 RS rtrancl_into_rtrancl2];
 
 (*Example only: not used*)
-Goalw [I_def] "p:comb ==> I#p ---> p";
+Goalw [I_def] "p \\<in> comb ==> I#p ---> p";
 by (blast_tac (claset() addIs reduction_rls) 1);
 qed "reduce_I";
 
-Goalw [I_def] "I: comb";
+Goalw [I_def] "I \\<in> comb";
 by (Blast_tac 1);
 qed "comb_I";
 
@@ -89,11 +89,11 @@ Goalw [I_def] "I -1-> r ==> P";
 by Auto_tac;
 qed "I_contract_E";
 
-Goal "K#p -1-> r ==> (EX q. r = K#q & p -1-> q)";
+Goal "K#p -1-> r ==> (\\<exists>q. r = K#q & p -1-> q)";
 by Auto_tac;
 qed "K1_contractD";
 
-Goal "[| p ---> q;  r: comb |] ==> p#r ---> q#r";
+Goal "[| p ---> q;  r \\<in> comb |] ==> p#r ---> q#r";
 by (forward_tac [rtrancl_type RS subsetD RS SigmaD1] 1);
 by (dtac (field_contract_eq RS equalityD1 RS subsetD) 1);
 by (etac rtrancl_induct 1);
@@ -102,7 +102,7 @@ by (etac (trans_rtrancl RS transD) 1);
 by (blast_tac (claset() addIs (contract_combD2::reduction_rls)) 1);
 qed "Ap_reduce1";
 
-Goal "[| p ---> q;  r: comb |] ==> r#p ---> r#q";
+Goal "[| p ---> q;  r \\<in> comb |] ==> r#p ---> r#q";
 by (forward_tac [rtrancl_type RS subsetD RS SigmaD1] 1);
 by (dtac (field_contract_eq RS equalityD1 RS subsetD) 1);
 by (etac rtrancl_induct 1);
@@ -134,7 +134,7 @@ qed "not_diamond_contract";
 
 (*** Results about Parallel Contraction ***)
 
-(*For type checking: replaces a=1=>b by a,b:comb *)
+(*For type checking: replaces a=1=>b by a,b \\<in> comb *)
 val parcontract_combE2 = parcontract.dom_subset RS subsetD RS SigmaE2;
 val parcontract_combD1 = parcontract.dom_subset RS subsetD RS SigmaD1;
 val parcontract_combD2 = parcontract.dom_subset RS subsetD RS SigmaD2;
@@ -154,17 +154,17 @@ AddSEs [Ap_E, K_parcontractE, S_parcontractE, Ap_parcontractE];
 
 (*** Basic properties of parallel contraction ***)
 
-Goal "K#p =1=> r ==> (EX p'. r = K#p' & p =1=> p')";
+Goal "K#p =1=> r ==> (\\<exists>p'. r = K#p' & p =1=> p')";
 by Auto_tac;
 qed "K1_parcontractD";
 AddSDs [K1_parcontractD];
 
-Goal "S#p =1=> r ==> (EX p'. r = S#p' & p =1=> p')";
+Goal "S#p =1=> r ==> (\\<exists>p'. r = S#p' & p =1=> p')";
 by Auto_tac;
 qed "S1_parcontractD";
 AddSDs [S1_parcontractD];
 
-Goal "S#p#q =1=> r ==> (EX p' q'. r = S#p'#q' & p =1=> p' & q =1=> q')";
+Goal "S#p#q =1=> r ==> (\\<exists>p' q'. r = S#p'#q' & p =1=> p' & q =1=> q')";
 by Auto_tac;
 qed "S2_parcontractD";
 AddSDs [S2_parcontractD];

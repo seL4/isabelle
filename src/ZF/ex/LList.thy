@@ -20,7 +20,7 @@ consts
   llist  :: i=>i
 
 codatatype
-  "llist(A)" = LNil | LCons ("a: A", "l: llist(A)")
+  "llist(A)" = LNil | LCons ("a \\<in> A", "l \\<in> llist(A)")
 
 
 (*Coinductive definition of equality*)
@@ -33,8 +33,8 @@ consts
 coinductive
   domains "lleq(A)" <= "llist(A) * llist(A)"
   intrs
-    LNil  "<LNil, LNil> : lleq(A)"
-    LCons "[| a:A; <l,l'>: lleq(A) |] ==> <LCons(a,l), LCons(a,l')>: lleq(A)"
+    LNil  "<LNil, LNil> \\<in> lleq(A)"
+    LCons "[| a \\<in> A; <l,l'>: lleq(A) |] ==> <LCons(a,l), LCons(a,l')>: lleq(A)"
   type_intrs  "llist.intrs"
 
 
@@ -49,7 +49,7 @@ defs
 rules
   flip_LNil   "flip(LNil) = LNil"
 
-  flip_LCons  "[| x:bool; l: llist(bool) |] ==> 
+  flip_LCons  "[| x \\<in> bool; l \\<in> llist(bool) |] ==> 
               flip(LCons(x,l)) = LCons(not(x), flip(l))"
 
 end
