@@ -219,7 +219,8 @@ fun prove_elementar sg s fm2 = case s of
         [zdvd_iff_zmod_eq_0,unity_coeff_ex]
       val ct =  cert_Trueprop sg fm2
     in 
-      simple_prove_goal_cterm2 ct [simp_tac ss 1, TRY (simple_arith_tac 1)]
+      simple_prove_goal_cterm2 ct [simp_tac ss 1, TRY (simple_arith_tac 1)] 
+
     end
 
   (*"bl" like blast tactic*)
@@ -251,7 +252,8 @@ fun prove_elementar sg s fm2 = case s of
 
   | "fa" =>
     let val ct = cert_Trueprop sg fm2
-    in simple_prove_goal_cterm2 ct [simple_arith_tac 1]
+    in simple_prove_goal_cterm2 ct [simple_arith_tac 1]  
+
     end
 
   | "sa" =>
@@ -259,7 +261,8 @@ fun prove_elementar sg s fm2 = case s of
       val ss = presburger_ss addsimps zadd_ac
       val ct = cert_Trueprop sg fm2
     in 
-      simple_prove_goal_cterm2 ct [simp_tac ss 1, TRY (simple_arith_tac 1)]
+      simple_prove_goal_cterm2 ct [simp_tac ss 1, TRY (simple_arith_tac 1)]  
+
     end
   (* like Existance Conjunction *)
   | "ec" =>
@@ -283,7 +286,8 @@ fun prove_elementar sg s fm2 = case s of
       val ss = presburger_ss addsimps zadd_ac
       val ct = cert_Trueprop sg fm2
     in 
-      simple_prove_goal_cterm2 ct [simp_tac ss 1, TRY (simple_arith_tac 1)]
+      simple_prove_goal_cterm2 ct [simp_tac ss 1, TRY (simple_arith_tac 1)]  
+
     end;
 
 (*=============================================================*)
@@ -915,6 +919,71 @@ fun cooper_prv sg (x as Free(xn,xT)) efm = let
  in  ([e_ac_thm,[(prove_elementar sg "ss" (HOLogic.mk_eq (rseacth,lsuth))),u_c_thm] MRS trans] MRS trans)
    end
 |cooper_prv _ _ _ =  error "Parameters format";
+
+
+(* **************************************** *)
+(*    An Other Version of cooper proving    *)
+(*     by giving a withness for EX          *)
+(* **************************************** *)
+
+
+
+fun cooper_prv_w sg (x as Free(xn,xT)) efm = let 
+   (* lfm_thm : efm = linearized form of efm*)
+   val lfm_thm = proof_of_linform sg [xn] efm
+   (*efm2 is the linearized form of efm *) 
+   val efm2 = snd(qe_get_terms lfm_thm)
+   (* l is the lcm of all coefficients of x *)
+   val l = formlcm x efm2
+   (*ac_thm: efm = efm2 with adjusted coefficients of x *)
+   val ac_thm = [lfm_thm , (proof_of_adjustcoeffeq sg x l efm2)] MRS trans
+   (* fm is efm2 with adjusted coefficients of x *)
+   val fm = snd (qe_get_terms ac_thm)
+  (* cfm is l dvd x & fm' where fm' is fm where l*x is replaced by x*)
+   val  cfm = unitycoeff x fm
+   (*afm is fm where c*x is replaced by 1*x or -1*x *)
+   val afm = adjustcoeff x l fm
+   (* P = %x.afm*)
+   val P = absfree(xn,xT,afm)
+   (* This simpset allows the elimination of the sets in bex {1..d} *)
+   val ss = presburger_ss addsimps
+     [simp_from_to] delsimps [P_eqtrue, P_eqfalse, bex_triv, insert_iff]
+   (* uth : EX x.P(l*x) = EX x. l dvd x & P x*)
+   val uth = instantiate' [] [Some (cterm_of sg P) , Some (cterm_of sg (mk_numeral l))] (unity_coeff_ex)
+   (* e_ac_thm : Ex x. efm = EX x. fm*)
+   val e_ac_thm = (forall_intr (cterm_of sg x) ac_thm) COMP (qe_exI)
+   (* lsuth = EX.P(l*x) ; rsuth = EX x. l dvd x & P x*)
+   val (lsuth,rsuth) = qe_get_terms (uth)
+   (* lseacth = EX x. efm; rseacth = EX x. fm*)
+   val (lseacth,rseacth) = qe_get_terms(e_ac_thm)
+
+   val (w,rs) = cooper_w [] cfm
+   val exp_cp_thm =  case w of 
+     (* FIXME - e_ac_thm just tipped to test syntactical correctness of the program!!!!*)
+    Some n =>  e_ac_thm (* Prove cfm (n) and use exI and then Eq_TrueI*)
+   |_ => let 
+    (* A and B set of the formula*)
+    val A = aset x cfm
+    val B = bset x cfm
+    (* the divlcm (delta) of the formula*)
+    val dlcm = mk_numeral (divlcm x cfm)
+    (* Which set is smaller to generate the (hoepfully) shorter proof*)
+    val cms = if ((length A) < (length B )) then "pi" else "mi"
+    (* synthesize the proof of cooper's theorem*)
+     (* cp_thm: EX x. cfm = Q*)
+    val cp_thm = cooper_thm sg cms x cfm dlcm A B
+     (* Exxpand the right hand side to get rid of EX j : {1..d} to get a huge disjunction*)
+    (* exp_cp_thm: EX x.cfm = Q' , where Q' is a simplified version of Q*)
+    in refl RS (simplify ss (cp_thm RSN (2,trans)))
+    end
+   (* lscth = EX x. cfm; rscth = Q' *)
+   val (lscth,rscth) = qe_get_terms (exp_cp_thm)
+   (* u_c_thm: EX x. P(l*x) = Q'*)
+   val  u_c_thm = [([uth,prove_elementar sg "ss" (HOLogic.mk_eq (rsuth,lscth))] MRS trans),exp_cp_thm] MRS trans
+   (* result: EX x. efm = Q'*)
+ in  ([e_ac_thm,[(prove_elementar sg "ss" (HOLogic.mk_eq (rseacth,lsuth))),u_c_thm] MRS trans] MRS trans)
+   end
+|cooper_prv_w _ _ _ =  error "Parameters format";
 
 
 

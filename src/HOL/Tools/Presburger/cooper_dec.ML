@@ -42,6 +42,7 @@ sig
   val plusinf : term -> term -> term
   val onatoms : (term -> term) -> term -> term
   val evalc : term -> term
+  val cooper_w : string list -> term -> (term option * term)
   val integer_qelim : Term.term -> Term.term
   val mk_presburger_oracle : (Sign.sg * exn) -> term
 end;
@@ -197,7 +198,7 @@ fun lint vars tm = if is_numeral tm then tm else case tm of
  
          else (warning "lint: apparent nonlinearity"; raise COOPER)
          end 
-  |_ =>   (error "COOPER:lint: unknown term  ")
+  |_ =>  error ("COOPER:lint: unknown term  \n");
    
  
  
@@ -414,7 +415,31 @@ fun linrep vars x t fm = case fm of
 (* ------------------------------------------------------------------------- *) 
 (* Evaluation of constant expressions.                                       *) 
 (* ------------------------------------------------------------------------- *) 
- 
+
+(* An other implementation of divides, that covers more cases*) 
+
+exception DVD_UNKNOWN
+
+fun dvd_op (d, t) = 
+ if not(is_numeral d) then raise DVD_UNKNOWN
+ else let 
+   val dn = dest_numeral d
+   fun coeffs_of x = case x of 
+     Const(p,_) $ tl $ tr => 
+       if p = "op +" then (coeffs_of tl) union (coeffs_of tr)
+          else if p = "op *" 
+	        then if (is_numeral tr) 
+		 then [(dest_numeral tr) * (dest_numeral tl)] 
+		 else [dest_numeral tl]
+	        else []
+    |_ => if (is_numeral t) then [dest_numeral t]  else []
+   val ts = coeffs_of t
+   in case ts of
+     [] => raise DVD_UNKNOWN
+    |_  => foldr (fn(k,r) => r andalso (k mod dn = 0)) (ts,true)
+   end;
+
+
 val operations = 
   [("op =",op=), ("op <",op<), ("op >",op>), ("op <=",op<=) , ("op >=",op>=), 
    ("Divides.op dvd",fn (x,y) =>((y mod x) = 0))]; 
@@ -423,22 +448,44 @@ fun applyoperation (Some f) (a,b) = f (a, b)
     |applyoperation _ (_, _) = false; 
  
 (*Evaluation of constant atomic formulas*) 
- 
+ (*FIXME : This is an optimation but still incorrect !! *)
+(*
 fun evalc_atom at = case at of  
-      (Const (p,_) $ s $ t) =>(  
-         case assoc (operations,p) of 
-             Some f => ((if (f ((dest_numeral s),(dest_numeral t))) then HOLogic.true_const else HOLogic.false_const)  
-              handle _ => at) 
-             | _ =>  at) 
-     |Const("Not",_)$(Const (p,_) $ s $ t) =>(  
-         case assoc (operations,p) of 
-             Some f => ((if (f ((dest_numeral s),(dest_numeral t))) then 
-	     HOLogic.false_const else HOLogic.true_const)  
-              handle _ => at) 
-             | _ =>  at) 
-     | _ =>  at; 
- 
-(*Function onatoms apllys function f on the atomic formulas involved in a.*) 
+  (Const (p,_) $ s $ t) =>
+   (if p="Divides.op dvd" then 
+     ((if dvd_op(s,t) then HOLogic.true_const
+     else HOLogic.false_const)
+      handle _ => at)
+    else
+  case assoc (operations,p) of 
+    Some f => ((if (f ((dest_numeral s),(dest_numeral t))) then HOLogic.true_const else HOLogic.false_const)  
+    handle _ => at) 
+      | _ =>  at) 
+      |Const("Not",_)$(Const (p,_) $ s $ t) =>(  
+  case assoc (operations,p) of 
+    Some f => ((if (f ((dest_numeral s),(dest_numeral t))) then 
+    HOLogic.false_const else HOLogic.true_const)  
+    handle _ => at) 
+      | _ =>  at) 
+      | _ =>  at; 
+
+*)
+
+fun evalc_atom at = case at of  
+  (Const (p,_) $ s $ t) =>
+   ( case assoc (operations,p) of 
+    Some f => ((if (f ((dest_numeral s),(dest_numeral t))) then HOLogic.true_const else HOLogic.false_const)  
+    handle _ => at) 
+      | _ =>  at) 
+      |Const("Not",_)$(Const (p,_) $ s $ t) =>(  
+  case assoc (operations,p) of 
+    Some f => ((if (f ((dest_numeral s),(dest_numeral t))) then 
+    HOLogic.false_const else HOLogic.true_const)  
+    handle _ => at) 
+      | _ =>  at) 
+      | _ =>  at; 
+
+ (*Function onatoms apllys function f on the atomic formulas involved in a.*) 
  
 fun onatoms f a = if (is_arith_rel a) then f a else case a of 
  
@@ -653,6 +700,48 @@ fun cooperpi vars1 fm =
   | _ => error "cooper: not an existential formula";
   
 
+(* Try to find a withness for the formula *)
+
+fun inf_w mi d vars x p = 
+  let val f = if mi then minusinf else plusinf in
+   case (simpl (minusinf x p)) of
+   Const("True",_)  => (Some (mk_numeral 1), HOLogic.true_const)
+  |Const("False",_) => (None,HOLogic.false_const)
+  |F => 
+      let 
+      fun h n =
+       case ((simpl o evalc) (linrep vars x (mk_numeral n) F)) of 
+	Const("True",_) => (Some (mk_numeral n),HOLogic.true_const)
+       |F' => if n=1 then (None,F')
+	     else let val (rw,rf) = h (n-1) in 
+	       (rw,HOLogic.mk_disj(F',rf))
+	     end
+
+      in (h d)
+      end
+  end;
+
+fun set_w d b st vars x p = let 
+    fun h ns = case ns of 
+    [] => (None,HOLogic.false_const)
+   |n::nl => ( case ((simpl o evalc) (linrep vars x n p)) of
+      Const("True",_) => (Some n,HOLogic.true_const)
+      |F' => let val (rw,rf) = h nl 
+             in (rw,HOLogic.mk_disj(F',rf)) 
+	     end)
+    val f = if b then linear_add else linear_sub
+    val p_elements = foldr (fn (i,l) => l union (map (fn e => f [] e (mk_numeral i)) st)) (1 upto d,[])
+    in h p_elements
+    end;
+
+fun withness d b st vars x p = case (inf_w b d vars x p) of 
+   (Some n,_) => (Some n,HOLogic.true_const)
+  |(None,Pinf) => (case (set_w d b st vars x p) of 
+    (Some n,_) => (Some n,HOLogic.true_const)
+    |(_,Pst) => (None,HOLogic.mk_disj(Pinf,Pst)));
+
+
+
 
 (*Cooper main procedure*) 
   
@@ -678,6 +767,29 @@ fun cooper vars1 fm =
   | _ => error "cooper: not an existential formula";
 
 
+(* A Version of cooper that returns a withness *)
+fun cooper_w vars1 fm =
+  case fm of
+   Const ("Ex",_) $ Abs(x0,T,p0) => let 
+    val (xn,p1) = variant_abs (x0,T,p0)
+    val x = Free (xn,T)
+    val vars = (xn::vars1)
+(*     val p = unitycoeff x  (posineq (simpl p1)) *)
+    val p = unitycoeff x  p1 
+    val ast = aset x p
+    val bst = bset x p
+    val d = divlcm x p
+    val (p_inf,S ) = 
+    if (length bst) <= (length ast) 
+     then (true,bst)
+     else (false,ast)
+    in withness d p_inf S vars x p 
+(*    fun p_element j a = linrep vars x (f vars a (mk_numeral j)) p
+    fun stage j = list_disj (linrep vars x (mk_numeral j) p_inf :: map (p_element j) S)
+   in (list_disj (map stage js))
+*)
+   end
+  | _ => error "cooper: not an existential formula";
 
  
 (*Function itlist applys a double parametred function f : 'a->'b->b iteratively to a List l : 'a 
@@ -811,8 +923,8 @@ val integer_qelim = simpl o evalc o (lift_qelim linform (cnnf posineq o evalc) c
 fun mk_presburger_oracle (sg,COOPER_ORACLE t) = 
     if (!quick_and_dirty) 
     then HOLogic.mk_Trueprop (HOLogic.mk_eq(t,integer_qelim t))
-    else raise COOPER_ORACLE t;
-
+    else raise COOPER_ORACLE t
+    |mk_presburger_oracle (sg,_) = error "Oops";
 end;
 
 
