@@ -40,7 +40,7 @@ proof (unfold mult1_def);
       with N; have n: "N = K' + K + {#a#}"; by (simp add: union_ac);
 
       assume "M0 = K' + {#a'#}";
-      with r; have "?R (K' + K) M0"; by simp blast;
+      with r; have "?R (K' + K) M0"; by blast;
       with n; have ?case1; by simp; thus ?thesis; ..;
     qed;
   qed;
