@@ -6,16 +6,13 @@
 
 One = Lift +
 
-types one = "unit lift"
+types one = unit lift
 
-consts
-	ONE             :: "one"
+constdefs
+  ONE :: "one"
+  "ONE == Def ()"
 
 translations
-	     "one" == (type) "unit lift" 
+  "one" <= (type) "unit lift" 
 
-rules
-  ONE_def     "ONE == Def()"
 end
-
-
