@@ -6,6 +6,8 @@ text{*Helps us solve for de Bruijn indices!*}
 lemma nth_ConsI: "[|nth(n,l) = x; n \<in> nat|] ==> nth(succ(n), Cons(a,l)) = x"
 by simp
 
+lemmas nth_rules = nth_0 nth_ConsI nat_0I nat_succI
+lemmas sep_rules = nth_0 nth_ConsI FOL_iff_sats fun_plus_iff_sats
 
 lemma Collect_conj_in_DPow:
      "[| {x\<in>A. P(x)} \<in> DPow(A);  {x\<in>A. Q(x)} \<in> DPow(A) |] 
@@ -41,7 +43,7 @@ apply (simp add: Lset_succ Collect_conj_in_DPow_Lset)
 done
 
 
-subsubsection{*Separation for Intersection*}
+subsection{*Separation for Intersection*}
 
 lemma Inter_Reflects:
      "REFLECTS[\<lambda>x. \<forall>y[L]. y\<in>A --> x \<in> y, 
@@ -64,7 +66,7 @@ apply (rule_tac i=0 and j=2 in mem_iff_sats)
 apply (simp_all add: succ_Un_distrib [symmetric])
 done
 
-subsubsection{*Separation for Cartesian Product*}
+subsection{*Separation for Cartesian Product*}
 
 lemma cartprod_Reflects [simplified]:
      "REFLECTS[\<lambda>z. \<exists>x[L]. x\<in>A & (\<exists>y[L]. y\<in>B & pair(L,x,y,z)),
@@ -86,16 +88,11 @@ apply (rename_tac u)
 apply (rule bex_iff_sats) 
 apply (rule conj_iff_sats)
 apply (rule_tac i=0 and j=2 and env="[x,u,A,B]" in mem_iff_sats, simp_all)
-apply (rule bex_iff_sats) 
-apply (rule conj_iff_sats)
-apply (rule mem_iff_sats)
-apply (blast intro: nth_0 nth_ConsI) 
-apply (blast intro: nth_0 nth_ConsI, simp_all)
-apply (rule_tac i=1 and j=0 and k=2 in pair_iff_sats)
+apply (rule sep_rules | simp)+
 apply (simp_all add: succ_Un_distrib [symmetric])
 done
 
-subsubsection{*Separation for Image*}
+subsection{*Separation for Image*}
 
 text{*No @{text simplified} here: it simplifies the occurrence of 
       the predicate @{term pair}!*}
@@ -118,22 +115,12 @@ apply (rule DPowI2)
 apply (rule bex_iff_sats) 
 apply (rule conj_iff_sats)
 apply (rule_tac env="[p,y,A,r]" in mem_iff_sats)
-apply (blast intro: nth_0 nth_ConsI) 
-apply (blast intro: nth_0 nth_ConsI, simp_all)
-apply (rule bex_iff_sats) 
-apply (rule conj_iff_sats)
-apply (rule mem_iff_sats)
-apply (blast intro: nth_0 nth_ConsI) 
-apply (blast intro: nth_0 nth_ConsI, simp_all)
-apply (rule pair_iff_sats)
-apply (blast intro: nth_0 nth_ConsI) 
-apply (blast intro: nth_0 nth_ConsI) 
-apply (blast intro: nth_0 nth_ConsI)
+apply (rule sep_rules | simp)+
 apply (simp_all add: succ_Un_distrib [symmetric])
 done
 
 
-subsubsection{*Separation for Converse*}
+subsection{*Separation for Converse*}
 
 lemma converse_Reflects:
   "REFLECTS[\<lambda>z. \<exists>p[L]. p\<in>r & (\<exists>x[L]. \<exists>y[L]. pair(L,x,y,p) & pair(L,y,x,z)),
@@ -155,19 +142,12 @@ apply (rename_tac u)
 apply (rule bex_iff_sats) 
 apply (rule conj_iff_sats)
 apply (rule_tac i=0 and j="2" and env="[p,u,r]" in mem_iff_sats, simp_all)
-apply (rule bex_iff_sats) 
-apply (rule bex_iff_sats) 
-apply (rule conj_iff_sats)
-apply (rule_tac i=1 and j=0 and k=2 in pair_iff_sats, simp_all)
-apply (rule pair_iff_sats)
-apply (blast intro: nth_0 nth_ConsI) 
-apply (blast intro: nth_0 nth_ConsI) 
-apply (blast intro: nth_0 nth_ConsI)
+apply (rule sep_rules | simp)+
 apply (simp_all add: succ_Un_distrib [symmetric])
 done
 
 
-subsubsection{*Separation for Restriction*}
+subsection{*Separation for Restriction*}
 
 lemma restrict_Reflects:
      "REFLECTS[\<lambda>z. \<exists>x[L]. x\<in>A & (\<exists>y[L]. pair(L,x,y,z)),
@@ -187,13 +167,12 @@ apply (rename_tac u)
 apply (rule bex_iff_sats) 
 apply (rule conj_iff_sats)
 apply (rule_tac i=0 and j="2" and env="[x,u,A]" in mem_iff_sats, simp_all)
-apply (rule bex_iff_sats) 
-apply (rule_tac i=1 and j=0 and k=2 in pair_iff_sats)
+apply (rule sep_rules | simp)+
 apply (simp_all add: succ_Un_distrib [symmetric])
 done
 
 
-subsubsection{*Separation for Composition*}
+subsection{*Separation for Composition*}
 
 lemma comp_Reflects:
      "REFLECTS[\<lambda>xz. \<exists>x[L]. \<exists>y[L]. \<exists>z[L]. \<exists>xy[L]. \<exists>yz[L]. 
@@ -221,32 +200,11 @@ apply (rule bex_iff_sats)+
 apply (rename_tac x y z)  
 apply (rule conj_iff_sats)
 apply (rule_tac env="[z,y,x,u,r,s]" in pair_iff_sats)
-apply (blast intro: nth_0 nth_ConsI) 
-apply (blast intro: nth_0 nth_ConsI) 
-apply (blast intro: nth_0 nth_ConsI, simp_all)
-apply (rule bex_iff_sats) 
-apply (rule conj_iff_sats)
-apply (rule pair_iff_sats)
-apply (blast intro: nth_0 nth_ConsI) 
-apply (blast intro: nth_0 nth_ConsI) 
-apply (blast intro: nth_0 nth_ConsI, simp_all)
-apply (rule bex_iff_sats) 
-apply (rule conj_iff_sats)
-apply (rule pair_iff_sats)
-apply (blast intro: nth_0 nth_ConsI) 
-apply (blast intro: nth_0 nth_ConsI) 
-apply (blast intro: nth_0 nth_ConsI, simp_all) 
-apply (rule conj_iff_sats)
-apply (rule mem_iff_sats) 
-apply (blast intro: nth_0 nth_ConsI) 
-apply (blast intro: nth_0 nth_ConsI, simp) 
-apply (rule mem_iff_sats) 
-apply (blast intro: nth_0 nth_ConsI) 
-apply (blast intro: nth_0 nth_ConsI)
+apply (rule sep_rules | simp)+
 apply (simp_all add: succ_Un_distrib [symmetric])
 done
 
-subsubsection{*Separation for Predecessors in an Order*}
+subsection{*Separation for Predecessors in an Order*}
 
 lemma pred_Reflects:
      "REFLECTS[\<lambda>y. \<exists>p[L]. p\<in>r & pair(L,y,x,p),
@@ -266,17 +224,12 @@ apply (rename_tac u)
 apply (rule bex_iff_sats)
 apply (rule conj_iff_sats)
 apply (rule_tac env = "[p,u,r,x]" in mem_iff_sats) 
-apply (blast intro: nth_0 nth_ConsI) 
-apply (blast intro: nth_0 nth_ConsI, simp) 
-apply (rule pair_iff_sats)
-apply (blast intro: nth_0 nth_ConsI) 
-apply (blast intro: nth_0 nth_ConsI) 
-apply (blast intro: nth_0 nth_ConsI, simp_all)
+apply (rule sep_rules | simp)+
 apply (simp_all add: succ_Un_distrib [symmetric])
 done
 
 
-subsubsection{*Separation for the Membership Relation*}
+subsection{*Separation for the Membership Relation*}
 
 lemma Memrel_Reflects:
      "REFLECTS[\<lambda>z. \<exists>x[L]. \<exists>y[L]. pair(L,x,y,z) & x \<in> y,
@@ -293,20 +246,14 @@ apply (erule reflection_imp_L_separation)
   apply (simp_all add: lt_Ord2)
 apply (rule DPowI2)
 apply (rename_tac u) 
-apply (rule bex_iff_sats)+
-apply (rule conj_iff_sats)
+apply (rule bex_iff_sats conj_iff_sats)+
 apply (rule_tac env = "[y,x,u]" in pair_iff_sats) 
-apply (blast intro: nth_0 nth_ConsI) 
-apply (blast intro: nth_0 nth_ConsI) 
-apply (blast intro: nth_0 nth_ConsI, simp_all) 
-apply (rule mem_iff_sats)
-apply (blast intro: nth_0 nth_ConsI) 
-apply (blast intro: nth_0 nth_ConsI)
+apply (rule sep_rules | simp)+
 apply (simp_all add: succ_Un_distrib [symmetric])
 done
 
 
-subsubsection{*Replacement for FunSpace*}
+subsection{*Replacement for FunSpace*}
 		
 lemma funspace_succ_Reflects:
  "REFLECTS[\<lambda>z. \<exists>p[L]. p\<in>A & (\<exists>f[L]. \<exists>b[L]. \<exists>nb[L]. \<exists>cnbf[L]. 
@@ -336,34 +283,12 @@ apply (rename_tac u)
 apply (rule bex_iff_sats)
 apply (rule conj_iff_sats)
 apply (rule_tac env = "[x,u,n,A]" in mem_iff_sats) 
-apply (blast intro: nth_0 nth_ConsI) 
-apply (blast intro: nth_0 nth_ConsI, simp_all) 
-apply (rule conj_iff_sats bex_iff_sats)+
-apply (rule pair_iff_sats) 
-apply (blast intro: nth_0 nth_ConsI) 
-apply (blast intro: nth_0 nth_ConsI) 
-apply (blast intro: nth_0 nth_ConsI, simp_all) 
-apply (rule bex_iff_sats)
-apply (rule conj_iff_sats)
-apply (rule pair_iff_sats) 
-apply (blast intro: nth_0 nth_ConsI) 
-apply (blast intro: nth_0 nth_ConsI) 
-apply (blast intro: nth_0 nth_ConsI, simp_all) 
-apply (rule bex_iff_sats)
-apply (rule conj_iff_sats)
-apply (rule cons_iff_sats) 
-apply (blast intro!: nth_0 nth_ConsI) 
-apply (blast intro!: nth_0 nth_ConsI) 
-apply (blast intro!: nth_0 nth_ConsI, simp_all)
-apply (rule upair_iff_sats) 
-apply (blast intro: nth_0 nth_ConsI) 
-apply (blast intro: nth_0 nth_ConsI) 
-apply (blast intro: nth_0 nth_ConsI) 
+apply (rule sep_rules | simp)+
 apply (simp_all add: succ_Un_distrib [symmetric])
 done
 
 
-subsubsection{*Separation for Order-Isomorphisms*}
+subsection{*Separation for Order-Isomorphisms*}
 
 lemma well_ord_iso_Reflects:
   "REFLECTS[\<lambda>x. x\<in>A --> 
@@ -386,23 +311,112 @@ apply (rule DPowI2)
 apply (rename_tac u) 
 apply (rule imp_iff_sats)
 apply (rule_tac env = "[u,A,f,r]" in mem_iff_sats) 
-apply (blast intro: nth_0 nth_ConsI) 
-apply (blast intro: nth_0 nth_ConsI, simp_all) 
+apply (rule sep_rules | simp)+
+apply (simp_all add: succ_Un_distrib [symmetric])
+done
+
+
+subsection{*Separation for @{term "obase"}*}
+
+lemma obase_reflects:
+  "REFLECTS[\<lambda>a. \<exists>x[L]. \<exists>g[L]. \<exists>mx[L]. \<exists>par[L]. 
+	     ordinal(L,x) & membership(L,x,mx) & pred_set(L,A,a,r,par) &
+	     order_isomorphism(L,par,r,x,mx,g),
+        \<lambda>i a. \<exists>x \<in> Lset(i). \<exists>g \<in> Lset(i). \<exists>mx \<in> Lset(i). \<exists>par \<in> Lset(i). 
+	     ordinal(**Lset(i),x) & membership(**Lset(i),x,mx) & pred_set(**Lset(i),A,a,r,par) &
+	     order_isomorphism(**Lset(i),par,r,x,mx,g)]"
+by (intro FOL_reflection function_reflection fun_plus_reflection)
+
+lemma obase_separation:
+     --{*part of the order type formalization*}
+     "[| L(A); L(r) |] 
+      ==> separation(L, \<lambda>a. \<exists>x[L]. \<exists>g[L]. \<exists>mx[L]. \<exists>par[L]. 
+	     ordinal(L,x) & membership(L,x,mx) & pred_set(L,A,a,r,par) &
+	     order_isomorphism(L,par,r,x,mx,g))"
+apply (rule separation_CollectI) 
+apply (rule_tac A="{A,r,z}" in subset_LsetE, blast ) 
+apply (rule ReflectsE [OF obase_reflects], assumption)
+apply (drule subset_Lset_ltD, assumption) 
+apply (erule reflection_imp_L_separation)
+  apply (simp_all add: lt_Ord2)
+apply (rule DPowI2)
+apply (rename_tac u) 
 apply (rule bex_iff_sats)
 apply (rule conj_iff_sats)
-apply (rule fun_apply_iff_sats) 
-apply (blast intro: nth_0 nth_ConsI) 
-apply (blast intro: nth_0 nth_ConsI) 
-apply (blast intro: nth_0 nth_ConsI, simp_all) 
-apply (rule bex_iff_sats)
-apply (rule conj_iff_sats)
-apply (rule pair_iff_sats) 
-apply (blast intro: nth_0 nth_ConsI) 
-apply (blast intro: nth_0 nth_ConsI) 
-apply (blast intro: nth_0 nth_ConsI, simp_all) 
-apply (rule mem_iff_sats)
-apply (blast intro: nth_0 nth_ConsI) 
-apply (blast intro: nth_0 nth_ConsI)
+apply (rule_tac env = "[x,u,A,r]" in ordinal_iff_sats) 
+apply (rule sep_rules | simp)+
+apply (simp_all add: succ_Un_distrib [symmetric])
+done
+
+
+subsection{*Separation for @{term "well_ord_iso"}*}
+
+lemma obase_equals_reflects:
+  "REFLECTS[\<lambda>x. x\<in>A --> ~(\<exists>y[L]. \<exists>g[L]. 
+		ordinal(L,y) & (\<exists>my[L]. \<exists>pxr[L]. 
+		membership(L,y,my) & pred_set(L,A,x,r,pxr) &
+		order_isomorphism(L,pxr,r,y,my,g))),
+	\<lambda>i x. x\<in>A --> ~(\<exists>y \<in> Lset(i). \<exists>g \<in> Lset(i). 
+		ordinal(**Lset(i),y) & (\<exists>my \<in> Lset(i). \<exists>pxr \<in> Lset(i). 
+		membership(**Lset(i),y,my) & pred_set(**Lset(i),A,x,r,pxr) &
+		order_isomorphism(**Lset(i),pxr,r,y,my,g)))]"
+by (intro FOL_reflection function_reflection fun_plus_reflection)
+
+
+lemma obase_equals_separation:
+     "[| L(A); L(r) |] 
+      ==> separation (L, \<lambda>x. x\<in>A --> ~(\<exists>y[L]. \<exists>g[L]. 
+			      ordinal(L,y) & (\<exists>my[L]. \<exists>pxr[L]. 
+			      membership(L,y,my) & pred_set(L,A,x,r,pxr) &
+			      order_isomorphism(L,pxr,r,y,my,g))))"
+apply (rule separation_CollectI) 
+apply (rule_tac A="{A,r,z}" in subset_LsetE, blast ) 
+apply (rule ReflectsE [OF obase_equals_reflects], assumption)
+apply (drule subset_Lset_ltD, assumption) 
+apply (erule reflection_imp_L_separation)
+  apply (simp_all add: lt_Ord2)
+apply (rule DPowI2)
+apply (rename_tac u) 
+apply (rule imp_iff_sats ball_iff_sats disj_iff_sats not_iff_sats)+
+apply (rule_tac env = "[u,A,r]" in mem_iff_sats) 
+apply (rule sep_rules | simp)+
+apply (simp_all add: succ_Un_distrib [symmetric])
+done
+
+
+subsection{*Replacement for @{term "omap"}*}
+
+lemma omap_reflects:
+ "REFLECTS[\<lambda>z. \<exists>a[L]. a\<in>B & (\<exists>x[L]. \<exists>g[L]. \<exists>mx[L]. \<exists>par[L]. 
+     ordinal(L,x) & pair(L,a,x,z) & membership(L,x,mx) & 
+     pred_set(L,A,a,r,par) & order_isomorphism(L,par,r,x,mx,g)),
+ \<lambda>i z. \<exists>a \<in> Lset(i). a\<in>B & (\<exists>x \<in> Lset(i). \<exists>g \<in> Lset(i). \<exists>mx \<in> Lset(i). 
+        \<exists>par \<in> Lset(i). 
+	 ordinal(**Lset(i),x) & pair(**Lset(i),a,x,z) & 
+         membership(**Lset(i),x,mx) & pred_set(**Lset(i),A,a,r,par) & 
+         order_isomorphism(**Lset(i),par,r,x,mx,g))]"
+by (intro FOL_reflection function_reflection fun_plus_reflection)
+
+lemma omap_replacement:
+     "[| L(A); L(r) |] 
+      ==> strong_replacement(L,
+             \<lambda>a z. \<exists>x[L]. \<exists>g[L]. \<exists>mx[L]. \<exists>par[L]. 
+	     ordinal(L,x) & pair(L,a,x,z) & membership(L,x,mx) & 
+	     pred_set(L,A,a,r,par) & order_isomorphism(L,par,r,x,mx,g))"
+apply (rule strong_replacementI) 
+apply (rule rallI)
+apply (rename_tac B)  
+apply (rule separation_CollectI) 
+apply (rule_tac A="{A,B,r,z}" in subset_LsetE, blast ) 
+apply (rule ReflectsE [OF omap_reflects], assumption)
+apply (drule subset_Lset_ltD, assumption) 
+apply (erule reflection_imp_L_separation)
+  apply (simp_all add: lt_Ord2)
+apply (rule DPowI2)
+apply (rename_tac u) 
+apply (rule bex_iff_sats conj_iff_sats)+
+apply (rule_tac env = "[x,u,A,B,r]" in mem_iff_sats) 
+apply (rule sep_rules | simp)+
 apply (simp_all add: succ_Un_distrib [symmetric])
 done
 

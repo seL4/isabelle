@@ -130,6 +130,11 @@ lemma equal_iff_sats:
        ==> (x=y) <-> sats(A, Equal(i,j), env)" 
 by (simp add: satisfies.simps)
 
+lemma not_iff_sats:
+      "[| P <-> sats(A,p,env); env \<in> list(A)|]
+       ==> (~P) <-> sats(A, Neg(p), env)"
+by simp
+
 lemma conj_iff_sats:
       "[| P <-> sats(A,p,env); Q <-> sats(A,q,env); env \<in> list(A)|]
        ==> (P & Q) <-> sats(A, And(p,q), env)"
@@ -165,6 +170,10 @@ lemma bex_iff_sats:
        ==> (\<exists>x\<in>A. P(x)) <-> sats(A, Exists(p), env)"
 by (simp add: sats_Exists_iff) 
 
+lemmas FOL_iff_sats = 
+        mem_iff_sats equal_iff_sats not_iff_sats conj_iff_sats
+        disj_iff_sats imp_iff_sats iff_iff_sats imp_iff_sats ball_iff_sats
+        bex_iff_sats
 
 constdefs incr_var :: "[i,i]=>i"
     "incr_var(x,lev) == if x<lev then x else succ(x)"

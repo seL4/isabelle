@@ -309,8 +309,7 @@ lemma ReflectsE:
      "[| REFLECTS[P,Q]; Ord(i);
          !!j. [|i<j;  \<forall>x \<in> Lset(j). P(x) <-> Q(j,x)|] ==> R |]
       ==> R"
-apply (drule ReflectsD, assumption)
-apply blast 
+apply (drule ReflectsD, assumption, blast) 
 done
 
 lemma Collect_mem_eq: "{x\<in>A. x\<in>B} = A \<inter> B";
@@ -1083,5 +1082,16 @@ theorem order_isomorphism_reflection:
 apply (simp only: order_isomorphism_def setclass_simps)
 apply (intro FOL_reflection function_reflection bijection_reflection)  
 done
+
+lemmas fun_plus_reflection =
+        typed_function_reflection injection_reflection surjection_reflection
+        bijection_reflection order_isomorphism_reflection
+
+lemmas fun_plus_iff_sats = upair_iff_sats pair_iff_sats union_iff_sats
+	cons_iff_sats fun_apply_iff_sats ordinal_iff_sats Memrel_iff_sats
+	pred_set_iff_sats domain_iff_sats range_iff_sats image_iff_sats
+	relation_iff_sats function_iff_sats typed_function_iff_sats 
+        injection_iff_sats surjection_iff_sats bijection_iff_sats 
+        order_isomorphism_iff_sats
 
 end

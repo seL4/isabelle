@@ -753,11 +753,10 @@ assumes Inter_separation:
 	     order_isomorphism(M,par,r,x,mx,g))"
   and obase_equals_separation:
      "[| M(A); M(r) |] 
-      ==> separation
-      (M, \<lambda>x. x\<in>A --> ~(\<exists>y[M]. \<exists>g[M]. 
-	      ordinal(M,y) & (\<exists>my[M]. \<exists>pxr[M]. 
-	      membership(M,y,my) & pred_set(M,A,x,r,pxr) &
-	      order_isomorphism(M,pxr,r,y,my,g))))"
+      ==> separation (M, \<lambda>x. x\<in>A --> ~(\<exists>y[M]. \<exists>g[M]. 
+			      ordinal(M,y) & (\<exists>my[M]. \<exists>pxr[M]. 
+			      membership(M,y,my) & pred_set(M,A,x,r,pxr) &
+			      order_isomorphism(M,pxr,r,y,my,g))))"
   and omap_replacement:
      "[| M(A); M(r) |] 
       ==> strong_replacement(M,
