@@ -1,6 +1,6 @@
 (*<*)theory Mutual = Main:(*>*)
 
-subsection{*Mutually inductive definitions*}
+subsection{*Mutually Inductive Definitions*}
 
 text{*
 Just as there are datatypes defined by mutual recursion, there are sets defined

@@ -1,25 +1,25 @@
 (*<*)theory AB = Main:(*>*)
 
-section{*Case study: A context free grammar*}
+section{*Case Study: A Context Free Grammar*}
 
 text{*\label{sec:CFG}
 Grammars are nothing but shorthands for inductive definitions of nonterminals
 which represent sets of strings. For example, the production
 $A \to B c$ is short for
 \[ w \in B \Longrightarrow wc \in A \]
-This section demonstrates this idea with a standard example
-\cite[p.\ 81]{HopcroftUllman}, a grammar for generating all words with an
-equal number of $a$'s and $b$'s:
+This section demonstrates this idea with an example
+due to Hopcroft and Ullman, a grammar for generating all words with an
+equal number of $a$'s and~$b$'s:
 \begin{eqnarray}
 S &\to& \epsilon \mid b A \mid a B \nonumber\\
 A &\to& a S \mid b A A \nonumber\\
 B &\to& b S \mid a B B \nonumber
 \end{eqnarray}
-At the end we say a few words about the relationship of the formalization
-and the text in the book~\cite[p.\ 81]{HopcroftUllman}.
+At the end we say a few words about the relationship between
+the original proof \cite[p.\ts81]{HopcroftUllman} and our formal version.
 
 We start by fixing the alphabet, which consists only of @{term a}'s
-and @{term b}'s:
+and~@{term b}'s:
 *}
 
 datatype alfa = a | b;
@@ -29,12 +29,11 @@ For convenience we include the following easy lemmas as simplification rules:
 *}
 
 lemma [simp]: "(x \<noteq> a) = (x = b) \<and> (x \<noteq> b) = (x = a)";
-apply(case_tac x);
-by(auto);
+by (case_tac x, auto)
 
 text{*\noindent
 Words over this alphabet are of type @{typ"alfa list"}, and
-the three nonterminals are declare as sets of such words:
+the three nonterminals are declared as sets of such words:
 *}
 
 consts S :: "alfa list set"
@@ -42,9 +41,9 @@ consts S :: "alfa list set"
        B :: "alfa list set";
 
 text{*\noindent
-The above productions are recast as a \emph{simultaneous} inductive
+The productions above are recast as a \emph{mutual} inductive
 definition\index{inductive definition!simultaneous}
-of @{term S}, @{term A} and @{term B}:
+of @{term S}, @{term A} and~@{term B}:
 *}
 
 inductive S A B
@@ -61,8 +60,8 @@ intros
 
 text{*\noindent
 First we show that all words in @{term S} contain the same number of @{term
-a}'s and @{term b}'s. Since the definition of @{term S} is by simultaneous
-induction, so is this proof: we show at the same time that all words in
+a}'s and @{term b}'s. Since the definition of @{term S} is by mutual
+induction, so is the proof: we show at the same time that all words in
 @{term A} contain one more @{term a} than @{term b} and all words in @{term
 B} contains one more @{term b} than @{term a}.
 *}
@@ -76,26 +75,25 @@ txt{*\noindent
 These propositions are expressed with the help of the predefined @{term
 filter} function on lists, which has the convenient syntax @{text"[x\<in>xs. P
 x]"}, the list of all elements @{term x} in @{term xs} such that @{prop"P x"}
-holds. Remember that on lists @{term size} and @{term length} are synonymous.
+holds. Remember that on lists @{text size} and @{text length} are synonymous.
 
 The proof itself is by rule induction and afterwards automatic:
 *}
 
-apply(rule S_A_B.induct);
-by(auto);
+by (rule S_A_B.induct, auto)
 
 text{*\noindent
 This may seem surprising at first, and is indeed an indication of the power
 of inductive definitions. But it is also quite straightforward. For example,
 consider the production $A \to b A A$: if $v,w \in A$ and the elements of $A$
-contain one more $a$ than $b$'s, then $bvw$ must again contain one more $a$
-than $b$'s.
+contain one more $a$ than~$b$'s, then $bvw$ must again contain one more $a$
+than~$b$'s.
 
 As usual, the correctness of syntactic descriptions is easy, but completeness
 is hard: does @{term S} contain \emph{all} words with an equal number of
 @{term a}'s and @{term b}'s? It turns out that this proof requires the
-following little lemma: every string with two more @{term a}'s than @{term
-b}'s can be cut somehwere such that each half has one more @{term a} than
+following lemma: every string with two more @{term a}'s than @{term
+b}'s can be cut somewhere such that each half has one more @{term a} than
 @{term b}. This is best seen by imagining counting the difference between the
 number of @{term a}'s and @{term b}'s starting at the left end of the
 word. We start with 0 and end (at the right end) with 2. Since each move to the
@@ -122,9 +120,9 @@ lemma step1: "\<forall>i < size w.
 txt{*\noindent
 The lemma is a bit hard to read because of the coercion function
 @{term[source]"int :: nat \<Rightarrow> int"}. It is required because @{term size} returns
-a natural number, but @{text-} on @{typ nat} will do the wrong thing.
+a natural number, but subtraction on type~@{typ nat} will do the wrong thing.
 Function @{term take} is predefined and @{term"take i xs"} is the prefix of
-length @{term i} of @{term xs}; below we als need @{term"drop i xs"}, which
+length @{term i} of @{term xs}; below we also need @{term"drop i xs"}, which
 is what remains after that prefix has been dropped from @{term xs}.
 
 The proof is by induction on @{term w}, with a trivial base case, and a not
@@ -137,8 +135,8 @@ apply(induct w);
 by(force simp add:zabs_def take_Cons split:nat.split if_splits); 
 
 text{*
-Finally we come to the above mentioned lemma about cutting a word with two
-more elements of one sort than of the other sort into two halves:
+Finally we come to the above mentioned lemma about cutting in half a word with two
+more elements of one sort than of the other sort:
 *}
 
 lemma part1:
@@ -146,7 +144,7 @@ lemma part1:
   \<exists>i\<le>size w. size[x\<in>take i w. P x] = size[x\<in>take i w. \<not>P x]+1";
 
 txt{*\noindent
-This is proved by force with the help of the intermediate value theorem,
+This is proved by @{text force} with the help of the intermediate value theorem,
 instantiated appropriately and with its first premise disposed of by lemma
 @{thm[source]step1}:
 *}
@@ -157,7 +155,7 @@ by force;
 text{*\noindent
 
 Lemma @{thm[source]part1} tells us only about the prefix @{term"take i w"}.
-The suffix @{term"drop i w"} is dealt with in the following easy lemma:
+An easy lemma deals with the suffix @{term"drop i w"}:
 *}
 
 
@@ -169,8 +167,11 @@ lemma part2:
 by(simp del:append_take_drop_id);
 
 text{*\noindent
-Lemma @{thm[source]append_take_drop_id}, @{thm append_take_drop_id[no_vars]},
-which is generally useful, needs to be disabled for once.
+In the proof, we have had to disable a normally useful lemma:
+\begin{isabelle}
+@{thm append_take_drop_id[no_vars]}
+\rulename{append_take_drop_id}
+\end{isabelle}
 
 To dispose of trivial cases automatically, the rules of the inductive
 definition are declared simplification rules:
@@ -182,8 +183,8 @@ text{*\noindent
 This could have been done earlier but was not necessary so far.
 
 The completeness theorem tells us that if a word has the same number of
-@{term a}'s and @{term b}'s, then it is in @{term S}, and similarly and
-simultaneously for @{term A} and @{term B}:
+@{term a}'s and @{term b}'s, then it is in @{term S}, and similarly 
+for @{term A} and @{term B}:
 *}
 
 theorem completeness:
@@ -218,7 +219,7 @@ apply(case_tac w);
 txt{*\noindent
 Simplification disposes of the base case and leaves only two step
 cases to be proved:
-if @{prop"w = a#v"} and @{prop"size[x\<in>v. x=a] = size[x\<in>v. x=b]+2"} then
+if @{prop"w = a#v"} and @{prop[display]"size[x\<in>v. x=a] = size[x\<in>v. x=b]+2"} then
 @{prop"b#v \<in> A"}, and similarly for @{prop"w = b#v"}.
 We only consider the first case in detail.
 
@@ -235,9 +236,9 @@ apply(rule conjI);
 
 txt{*\noindent
 This yields an index @{prop"i \<le> length v"} such that
-@{prop"length [x\<in>take i v . x = a] = length [x\<in>take i v . x = b] + 1"}.
+@{prop[display]"length [x\<in>take i v . x = a] = length [x\<in>take i v . x = b] + 1"}
 With the help of @{thm[source]part1} it follows that
-@{prop"length [x\<in>drop i v . x = a] = length [x\<in>drop i v . x = b] + 1"}.
+@{prop[display]"length [x\<in>drop i v . x = a] = length [x\<in>drop i v . x = b] + 1"}
 *}
 
  apply(drule part2[of "\<lambda>x. x=a", simplified]);
@@ -266,7 +267,7 @@ Note that the variables @{term n1} and @{term t} referred to in the
 substitution step above come from the derived theorem @{text"subst[OF
 append_take_drop_id]"}.
 
-The case @{prop"w = b#v"} is proved completely analogously:
+The case @{prop"w = b#v"} is proved analogously:
 *}
 
 apply(clarify);
@@ -281,9 +282,9 @@ apply(rule S_A_B.intros);
 by(force simp add:min_less_iff_disj split add: nat_diff_split);
 
 text{*
-We conclude this section with a comparison of the above proof and the one
-in the textbook \cite[p.\ 81]{HopcroftUllman}. For a start, the texbook
-grammar, for no good reason, excludes the empty word, which complicates
+We conclude this section with a comparison of our proof with 
+Hopcroft and Ullman's \cite[p.\ts81]{HopcroftUllman}. For a start, the texbook
+grammar, for no good reason, excludes the empty word.  That complicates
 matters just a little bit because we now have 8 instead of our 7 productions.
 
 More importantly, the proof itself is different: rather than separating the
