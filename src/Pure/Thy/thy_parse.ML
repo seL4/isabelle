@@ -50,6 +50,7 @@ sig
   val opt_infix: token list -> string * token list
   val opt_mixfix: token list -> string * token list
   val opt_witness: token list -> string * token list
+  val const_decls: token list -> string * token list
   type syntax
   val make_syntax: string list ->
     (string * (token list -> (string * string) * token list)) list -> syntax
