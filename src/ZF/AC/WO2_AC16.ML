@@ -105,7 +105,7 @@ goal thy "!!A. [| A eqpoll a; Card(a); ~Finite(a); B lesspoll a;  \
 \       C lesspoll a |] ==> A - B - C eqpoll a";
 by (rtac Diff_lesspoll_eqpoll_Card 1 THEN (REPEAT (assume_tac 1)));
 by (rtac Diff_lesspoll_eqpoll_Card 1 THEN (REPEAT (assume_tac 1)));
-val dbl_Diff_eqpoll_Card = result();
+qed "dbl_Diff_eqpoll_Card";
 
 (* ********************************************************************** *)
 (* Case of finite ordinals                                                *)
@@ -121,11 +121,11 @@ by (fast_tac (!claset addSEs [eqpoll_sym RS eqpoll_trans]) 2);
 by (rtac lepoll_trans 1 THEN (assume_tac 2));
 by (fast_tac (!claset addSEs [Ord_nat RSN (2, ltI) RS leI RS le_imp_subset RS 
         subset_imp_lepoll RSN (2, eqpoll_imp_lepoll RS lepoll_trans)]) 1);
-val Finite_lesspoll_infinite_Ord = result();
+qed "Finite_lesspoll_infinite_Ord";
 
 goal thy "!!x. x:X ==> Union(X) = Union(X-{x}) Un x";
 by (Fast_tac 1);
-val Union_eq_Un_Diff = result();
+qed "Union_eq_Un_Diff";
 
 goal thy "!!n. n:nat ==> ALL X. X eqpoll n --> (ALL x:X. Finite(x))  \
 \       --> Finite(Union(X))";
@@ -139,19 +139,19 @@ by (res_inst_tac [("P","%z. Finite(z)")] (Union_eq_Un_Diff RS ssubst) 1
 by (rtac Finite_Un 1);
 by (Fast_tac 2);
 by (fast_tac (!claset addSIs [Diff_sing_eqpoll]) 1);
-val Finite_Union_lemma = result();
+qed "Finite_Union_lemma";
 
 goal thy "!!X. [| ALL x:X. Finite(x); Finite(X) |] ==> Finite(Union(X))";
 by (eresolve_tac [Finite_def RS def_imp_iff RS iffD1 RS bexE] 1);
 by (dtac Finite_Union_lemma 1);
 by (Fast_tac 1);
-val Finite_Union = result();
+qed "Finite_Union";
 
 goalw thy [Finite_def] "!!x. [| x lepoll n; n:nat |] ==> Finite(x)";
 by (fast_tac (!claset
         addEs [nat_into_Ord RSN (2, lepoll_imp_ex_le_eqpoll) RS exE,
         Ord_nat RSN (2, ltI) RSN (2, lt_trans1) RS ltD]) 1);
-val lepoll_nat_num_imp_Finite = result();
+qed "lepoll_nat_num_imp_Finite";
 
 goal thy "!!X. [| ALL x:X. x lepoll n & x <= T; well_ord(T, R); X lepoll b;  \
 \       b<a; ~Finite(a); Card(a); n:nat |]  \
@@ -175,7 +175,7 @@ by (eresolve_tac [lt_trans1 RSN (2, lt_Card_imp_lesspoll)] 1
         THEN REPEAT (assume_tac 1));
 by (rtac UN_lepoll 1
         THEN (TRYALL (fast_tac (!claset addSEs [lt_Ord]))));
-val Union_lesspoll = result();
+qed "Union_lesspoll";
 
 (* ********************************************************************** *)
 (* recfunAC16_lepoll_index                                                *)
@@ -183,20 +183,20 @@ val Union_lesspoll = result();
 
 goal thy "A Un {a} = cons(a, A)";
 by (Fast_tac 1);
-val Un_sing_eq_cons = result();
+qed "Un_sing_eq_cons";
 
 goal thy "!!A. A lepoll B ==> A Un {a} lepoll succ(B)";
 by (asm_simp_tac (!simpset addsimps [Un_sing_eq_cons, succ_def]) 1);
 by (eresolve_tac [mem_not_refl RSN (2, cons_lepoll_cong)] 1);
-val Un_lepoll_succ = result();
+qed "Un_lepoll_succ";
 
 goal thy "!!a. Ord(a) ==> F(a) - (UN b<succ(a). F(b)) = 0";
 by (fast_tac (!claset addSIs [OUN_I, le_refl]) 1);
-val Diff_UN_succ_empty = result();
+qed "Diff_UN_succ_empty";
 
 goal thy "!!a. Ord(a) ==> F(a) Un X - (UN b<succ(a). F(b)) <= X";
 by (fast_tac (!claset addSIs [OUN_I, le_refl]) 1);
-val Diff_UN_succ_subset = result();
+qed "Diff_UN_succ_subset";
 
 goal thy "!!x. Ord(x) ==>  \
 \       recfunAC16(f, g, x, a) - (UN i<x. recfunAC16(f, g, i, a)) lepoll 1";
@@ -211,12 +211,12 @@ by (fast_tac (!claset addSIs [empty_subsetI RS subset_imp_lepoll]
                 addSEs [Diff_UN_succ_empty RS ssubst]) 1);
 by (fast_tac (!claset addSEs [Diff_UN_succ_subset RS subset_imp_lepoll RS
         (singleton_eqpoll_1 RS eqpoll_imp_lepoll RSN (2, lepoll_trans))]) 1);
-val recfunAC16_Diff_lepoll_1 = result();
+qed "recfunAC16_Diff_lepoll_1";
 
 goal thy "!!z. [| z : F(x); Ord(x) |]  \
 \       ==> z:F(LEAST i. z:F(i)) - (UN j<(LEAST i. z:F(i)). F(j))";
 by (fast_tac (!claset addEs [less_LeastE] addSEs [OUN_E, LeastI]) 1);
-val in_Least_Diff = result();
+qed "in_Least_Diff";
 
 goal thy "!!w. [| (LEAST i. w:F(i)) = (LEAST i. z:F(i));  \
 \       w:(UN i<a. F(i)); z:(UN i<a. F(i)) |]  \
@@ -229,11 +229,11 @@ by (rtac conjI 1 THEN (assume_tac 2));
 by (etac subst 1 THEN (assume_tac 1));
 by (eresolve_tac [lt_Ord RSN (2, Least_le) RS lt_trans1] 1
         THEN (REPEAT (assume_tac 1)));
-val Least_eq_imp_ex = result();
+qed "Least_eq_imp_ex";
 
 goal thy "!!A. [| A lepoll 1; a:A; b:A |] ==> a=b";
 by (fast_tac (!claset addSDs [lepoll_1_is_sing]) 1);
-val two_in_lepoll_1 = result();
+qed "two_in_lepoll_1";
 
 goal thy "!!a. [| ALL i<a. F(i)-(UN j<i. F(j)) lepoll 1; Limit(a) |]  \
 \       ==> (UN x<a. F(x)) lepoll a";
@@ -252,7 +252,7 @@ by (Asm_simp_tac 1);
 by (rtac impI 1);
 by (dtac Least_eq_imp_ex 1 THEN (REPEAT (assume_tac 1)));
 by (fast_tac (!claset addSEs [two_in_lepoll_1]) 1);
-val UN_lepoll_index = result();
+qed "UN_lepoll_index";
 
 goal thy "!!y. Ord(y) ==> recfunAC16(f, fa, y, a) lepoll y";
 by (etac trans_induct 1);
@@ -266,7 +266,7 @@ by (fast_tac (!claset addIs [conjI RS (expand_if RS iffD2)]
 by (asm_simp_tac (!simpset addsimps [recfunAC16_Limit]) 1);
 by (fast_tac (!claset addSEs [lt_Ord RS recfunAC16_Diff_lepoll_1]
         addSIs [UN_lepoll_index]) 1);
-val recfunAC16_lepoll_index = result();
+qed "recfunAC16_lepoll_index";
 
 goal thy "!!y. [| recfunAC16(f,g,y,a) <= {X: Pow(A). X eqpoll n};  \
 \               A eqpoll a; y<a; ~Finite(a); Card(a); n:nat |]  \
@@ -277,7 +277,7 @@ by (eresolve_tac [lt_Ord RS recfunAC16_lepoll_index] 3);
 by (eresolve_tac [[bij_is_inj, Card_is_Ord RS well_ord_Memrel] MRS
         well_ord_rvimage] 2 THEN (assume_tac 2));
 by (fast_tac (!claset addSEs [eqpoll_imp_lepoll]) 1);
-val Union_recfunAC16_lesspoll = result();
+qed "Union_recfunAC16_lesspoll";
 
 goal thy
   "!!a. [| recfunAC16(f, fa, y, a) <= {X: Pow(A) . X eqpoll succ(k #+ m)};  \
@@ -293,7 +293,7 @@ by (resolve_tac [nat_succI RSN (2, bexI RS (Finite_def RS def_imp_iff RS
         THEN (TRYALL assume_tac));
 by (eresolve_tac [ltD RSN (2, bij_is_fun RS apply_type) RS CollectE] 1
         THEN (TRYALL assume_tac));
-val dbl_Diff_eqpoll = result();
+qed "dbl_Diff_eqpoll";
 
 (* back to the proof *)
 
@@ -313,7 +313,7 @@ by (rtac disj_Un_eqpoll_nat_sum 1
 by (fast_tac (!claset addSIs [equals0I]) 1);
 by (eresolve_tac [ltD RSN (2, bij_is_fun RS apply_type RS CollectE)] 1
         THEN (REPEAT (assume_tac 1)));
-val Un_in_Collect = result();
+qed "Un_in_Collect";
 
 (* ********************************************************************** *)
 (* Lemmas simplifying assumptions                                         *)
@@ -346,15 +346,15 @@ by (eresolve_tac [Ord_nat RSN (2, ltI) RS
                 lepoll_imp_eqpoll_subset RS exE] 1 
         THEN REPEAT (assume_tac 1));
 by (fast_tac (!claset addSEs [eqpoll_sym]) 1);
-val ex_subset_eqpoll = result();
+qed "ex_subset_eqpoll";
 
 goal thy "!!A. [| A <= B Un C; A Int C = 0 |] ==> A <= B";
 by (fast_tac (!claset addDs [equals0D]) 1);
-val subset_Un_disjoint = result();
+qed "subset_Un_disjoint";
 
 goal thy "!!F. [| X:Pow(A - Union(B) -C); T:B; F<=T |] ==> F Int X = 0";
 by (fast_tac (!claset addSIs [equals0I]) 1);
-val Int_empty = result();
+qed "Int_empty";
 
 (* ********************************************************************** *)
 (* equipollent subset (and finite) is the whole set                       *)
@@ -362,7 +362,7 @@ val Int_empty = result();
 
 goal thy "!!A. [| A <= B; a : A; A - {a} = B - {a} |] ==> A = B";
 by (fast_tac (!claset addSEs [equalityE]) 1);
-val Diffs_eq_imp_eq = result();
+qed "Diffs_eq_imp_eq";
 
 goal thy "!!A. m:nat ==> ALL A B. A <= B & m lepoll A & B lepoll m --> A=B";
 by (etac nat_induct 1);
@@ -380,11 +380,11 @@ by (Fast_tac 2);
 by (Fast_tac 1);
 by (etac Diffs_eq_imp_eq 1
         THEN REPEAT (assume_tac 1));
-val subset_imp_eq_lemma = result();
+qed "subset_imp_eq_lemma";
 
 goal thy "!!A. [| A <= B; m lepoll A; B lepoll m; m:nat |] ==> A=B";
 by (fast_tac (FOL_cs addSDs [subset_imp_eq_lemma]) 1);
-val subset_imp_eq = result();
+qed "subset_imp_eq";
 
 goal thy "!!f. [| f:bij(a, {Y:X. Y eqpoll succ(k)}); k:nat; f`b<=f`y; b<a;  \
 \       y<a |] ==> b=y";
@@ -396,7 +396,7 @@ by (fast_tac (!claset addSEs [bij_is_fun RS (ltD RSN (2, apply_type)) RS
         CollectE, eqpoll_imp_lepoll]) 1);
 by (rewrite_goals_tac [bij_def, inj_def]);
 by (fast_tac (!claset addSDs [ltD]) 1);
-val bij_imp_arg_eq = result();
+qed "bij_imp_arg_eq";
 
 goal thy
   "!!a. [| recfunAC16(f, fa, y, a) <= {X: Pow(A) . X eqpoll succ(k #+ m)};  \
@@ -427,7 +427,7 @@ by (dresolve_tac [Int_empty RSN (2, subset_Un_disjoint)] 1
 by (dtac bij_imp_arg_eq 1 THEN REPEAT (assume_tac 1));
 by (hyp_subst_tac 1);
 by (eresolve_tac [bexI RSN (2, notE)] 1 THEN TRYALL assume_tac);
-val ex_next_set = result();
+qed "ex_next_set";
 
 (* ********************************************************************** *)
 (* Lemma ex_next_Ord states that for any successor                        *)
@@ -450,11 +450,11 @@ by (resolve_tac [bij_converse_bij RS bij_is_fun RS apply_type RS ltI RSN
         (2, oexI)] 1);
 by (resolve_tac [right_inverse_bij RS ssubst] 1
         THEN REPEAT (ares_tac [Card_is_Ord] 1));
-val ex_next_Ord = result();
+qed "ex_next_Ord";
 
 goal thy "!!Z. [| EX! Y. Y:Z & P(Y); ~P(W) |] ==> EX! Y. Y: (Z Un {W}) & P(Y)";
 by (Fast_tac 1);
-val ex1_in_Un_sing = result();
+qed "ex1_in_Un_sing";
 
 (* ********************************************************************** *)
 (* Lemma simplifying assumptions                                          *)
@@ -520,7 +520,7 @@ by (eresolve_tac [Least_le RS lt_trans2 RS ltD] 1
         THEN REPEAT (ares_tac [lt_Ord, succ_leI] 1));
 (*VERY SLOW!  24 secs??*)
 by (eresolve_tac [lt_Ord RSN (2, LeastI)] 1 THEN (assume_tac 1));
-val main_induct = result();
+qed "main_induct";
 
 (* ********************************************************************** *)
 (* Lemma to simplify the inductive proof                                  *)
@@ -568,7 +568,7 @@ by (dresolve_tac [lt_trans RSN (2, ospec)] 1 THEN (TRYALL assume_tac));
 by (dresolve_tac [disjI1 RSN (2, mp)] 1 THEN (assume_tac 1));
 by (etac ex1_two_eq 1);
 by (REPEAT (Fast_tac 1));
-val lemma_simp_induct = result();
+qed "lemma_simp_induct";
 
 (* ********************************************************************** *)
 (* The target theorem                                                     *)

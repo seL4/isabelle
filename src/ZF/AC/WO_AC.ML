@@ -11,12 +11,12 @@ goal thy "!!A. [| well_ord(Union(A),r); 0~:A; B:A |]  \
 \               ==> (THE b. first(b,B,r)) : B";
 by (fast_tac (!claset addSEs [well_ord_imp_ex1_first RS theI RS
                 (first_def RS def_imp_iff RS iffD1 RS conjunct1)]) 1);
-val first_in_B = result();
+qed "first_in_B";
 
 goal thy "!!A. [| well_ord(Union(A), R); 0~:A |] ==> EX f. f:(PROD X:A. X)";
 by (fast_tac (!claset addSEs [first_in_B] addSIs [lam_type]) 1);
-val ex_choice_fun = result();
+qed "ex_choice_fun";
 
 goal thy "!!A. well_ord(A, R) ==> EX f. f:(PROD X: Pow(A)-{0}. X)";
 by (fast_tac (!claset addSEs [well_ord_subset RS ex_choice_fun]) 1);
-val ex_choice_fun_Pow = result();
+qed "ex_choice_fun_Pow";

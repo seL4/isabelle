@@ -31,7 +31,7 @@ goalw thy [lepoll_def] "!!A. A~=0 ==> B lepoll A*B";
 by (etac not_emptyE 1);
 by (res_inst_tac [("x","lam z:B. <x,z>")] exI 1);
 by (fast_tac (!claset addSIs [snd_conv, lam_injective]) 1);
-val lepoll_Sigma = result();
+qed "lepoll_Sigma";
 
 goal thy "!!A. 0~:A ==> ALL B:{cons(0,x*nat). x:A}. ~Finite(B)";
 by (rtac ballI 1);
@@ -42,7 +42,7 @@ by (dresolve_tac [subset_consI RS subset_imp_lepoll RS lepoll_Finite] 1);
 by (resolve_tac [lepoll_Sigma RS lepoll_Finite RS (nat_not_Finite RS notE)] 1
         THEN (assume_tac 2));
 by (Fast_tac 1);
-val cons_times_nat_not_Finite = result();
+qed "cons_times_nat_not_Finite";
 
 goal thy "!!A. [| Union(C)=A; a:A |] ==> EX B:C. a:B & B <= A";
 by (Fast_tac 1);
@@ -113,7 +113,7 @@ goal thy "!!A. [| EX f. ALL B:{cons(0, x*nat). x:A}.  \
 by (fast_tac (empty_cs addSDs [lemma3, theI] addDs [bspec]
                 addSEs [exE, conjE]
                 addIs [exI, ballI, lemma5]) 1);
-val ex_fun_AC13_AC15 = result();
+qed "ex_fun_AC13_AC15";
 
 (* ********************************************************************** *)
 (* The target proofs                                                      *)
@@ -232,7 +232,7 @@ qed "AC14_AC15";
 
 goal thy "!!A. [| A~=0; A lepoll 1 |] ==> EX a. A={a}";
 by (fast_tac (!claset addSEs [not_emptyE, lepoll_1_is_sing]) 1);
-val lemma_aux = result();
+qed "lemma_aux";
 
 goal thy "!!f. ALL B:A. f(B)~=0 & f(B)<=B & f(B) lepoll 1  \
 \               ==> (lam x:A. THE y. f(x)={y}) : (PROD X:A. X)";

@@ -13,7 +13,7 @@ open recfunAC16;
 
 goalw thy [recfunAC16_def] "recfunAC16(f,fa,0,a) = 0";
 by (rtac transrec2_0 1);
-val recfunAC16_0 = result();
+qed "recfunAC16_0";
 
 goalw thy [recfunAC16_def] "recfunAC16(f,fa,succ(i),a) =  \
 \       if (EX y:recfunAC16(f,fa,i,a). fa ` i <= y, recfunAC16(f,fa,i,a), \
@@ -21,12 +21,12 @@ goalw thy [recfunAC16_def] "recfunAC16(f,fa,succ(i),a) =  \
 \       (ALL b<a. (fa`b <= f`j  \
 \       --> (ALL t:recfunAC16(f,fa,i,a). ~ fa`b <= t))))})";
 by (rtac transrec2_succ 1);
-val recfunAC16_succ = result();
+qed "recfunAC16_succ";
 
 goalw thy [recfunAC16_def] "!!i. Limit(i)  \
 \       ==> recfunAC16(f,fa,i,a) = (UN j<i. recfunAC16(f,fa,j,a))";
 by (etac transrec2_Limit 1);
-val recfunAC16_Limit = result();
+qed "recfunAC16_Limit";
 
 (* ********************************************************************** *)
 (* Monotonicity of transrec2                                              *)
@@ -44,14 +44,14 @@ by (fast_tac (FOL_cs addSIs [succI1, prem1]
 by (fast_tac (!claset addIs [OUN_I, ltI]
         addSEs [Limit_has_succ RS ltE, succI1 RSN (2, Ord_in_Ord) RS le_refl,
                 transrec2_Limit RS ssubst]) 1);
-val transrec2_mono_lemma = result();
+qed "transrec2_mono_lemma";
 
 val [prem1, prem2] = goal thy "[| !!g r. r <= B(g,r); j le i |]  \
 \       ==> transrec2(j, 0, B) <= transrec2(i, 0, B)";
 by (resolve_tac [prem2 RS leE] 1);
 by (resolve_tac [transrec2_mono_lemma RS impE] 1);
 by (TRYALL (fast_tac (!claset addSIs [prem1, prem2, lt_Ord2])));
-val transrec2_mono = result();
+qed "transrec2_mono";
 
 (* ********************************************************************** *)
 (* Monotonicity of recfunAC16                                             *)
@@ -61,5 +61,5 @@ goalw thy [recfunAC16_def]
         "!!i. i le j ==> recfunAC16(f, g, i, a) <= recfunAC16(f, g, j, a)";
 by (rtac transrec2_mono 1);
 by (REPEAT (fast_tac (!claset addIs [expand_if RS iffD2]) 1));
-val recfunAC16_mono = result();
+qed "recfunAC16_mono";
 

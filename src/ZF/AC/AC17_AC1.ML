@@ -19,7 +19,7 @@ by (rtac exI 1);
 by (eresolve_tac [[bij_Least_HH_x RS bij_converse_bij RS bij_is_inj,
                 Ord_Least RS well_ord_Memrel] MRS well_ord_rvimage] 1);
 by (assume_tac 1);
-val UN_eq_imp_well_ord = result();
+qed "UN_eq_imp_well_ord";
 
 (* *********************************************************************** *)
 (* theorems closer to the proof                                            *)
@@ -35,7 +35,7 @@ by (rtac ballI 1);
 by (etac swap 1);
 by (rtac impI 1);
 by (fast_tac (!claset addSIs [restrict_type]) 1);
-val not_AC1_imp_ex = result();
+qed "not_AC1_imp_ex";
 
 goal thy "!!x. [| ALL f:Pow(x) - {0} -> x. EX u: Pow(x) - {0}. f`u~:u;  \
 \       EX f: Pow(x)-{0}->x. \

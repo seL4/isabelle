@@ -8,7 +8,7 @@ AC0 comes from Suppes, AC1 from Rubin & Rubin
 
 goal thy "!!A. 0~:A ==> A <= Pow(Union(A))-{0}";
 by (Fast_tac 1);
-val subset_Pow_Union = result();
+qed "subset_Pow_Union";
 
 goal thy "!!f. [| f:(PROD X:A. X); D<=A |] ==> EX g. g:(PROD X:D. X)";
 by (fast_tac (!claset addSIs [restrict_type, apply_type]) 1);

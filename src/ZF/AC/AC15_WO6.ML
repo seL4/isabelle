@@ -9,7 +9,7 @@ open AC15_WO6;
 
 goal thy "!!x. Ord(x) ==> (UN a<x. F(a)) = (UN a:x. F(a))";
 by (fast_tac (!claset addSIs [ltI] addSDs [ltD]) 1);
-val OUN_eq_UN = result();
+qed "OUN_eq_UN";
 
 val [prem] = goal thy "ALL x:Pow(A)-{0}. f`x~=0 & f`x<=x & f`x lepoll m ==>  \
 \       (UN i<LEAST x. HH(f,A,x)={A}. HH(f,A,i)) = A";

@@ -13,7 +13,7 @@ LEMMA is the sentence denoted by (**)
 goalw thy [WO7_def] "WO7 <-> (ALL X. ~Finite(X) -->  \
 \                       (EX R. well_ord(X,R) & ~well_ord(X,converse(R))))";
 by (fast_tac (!claset addSEs [Finite_well_ord_converse]) 1);
-val WO7_iff_LEMMA = result();
+qed "WO7_iff_LEMMA";
 
 (* ********************************************************************** *)
 (* It is also easy to show that LEMMA implies WO1.                        *)
@@ -28,7 +28,7 @@ by (Fast_tac 1);
 by (rewrite_goals_tac [Finite_def, eqpoll_def]);
 by (fast_tac (!claset addSIs [[bij_is_inj, nat_implies_well_ord] MRS
                                  well_ord_rvimage]) 1);
-val LEMMA_imp_WO1 = result();
+qed "LEMMA_imp_WO1";
 
 (* ********************************************************************** *)
 (* The Rubins' proof of the other implication is contained within the     *)
@@ -55,12 +55,12 @@ by (etac bexE 1);
 by (eres_inst_tac [("x","succ(x)")] allE 1);
 by (fast_tac (!claset addSIs [nat_succI, converseI, MemrelI, 
                             nat_succI RSN (2, subsetD)]) 1);
-val converse_Memrel_not_wf_on = result();
+qed "converse_Memrel_not_wf_on";
 
 goalw thy [well_ord_def] 
     "!!a. [| Ord(a); ~Finite(a) |] ==> ~well_ord(a,converse(Memrel(a)))";
 by (fast_tac (!claset addSDs [converse_Memrel_not_wf_on]) 1);
-val converse_Memrel_not_well_ord = result();
+qed "converse_Memrel_not_well_ord";
 
 goal thy "!!A. [| well_ord(A,r); well_ord(A,converse(r)) |]  \
 \       ==> well_ord(ordertype(A,r), converse(Memrel(ordertype(A, r))))";
@@ -72,7 +72,7 @@ by (rtac (rvimage_converse RS subst) 1);
 by (etac (ordertype_ord_iso RS ord_iso_sym RS ord_iso_is_bij RS
                 bij_is_inj RS well_ord_rvimage) 1
         THEN (assume_tac 1));
-val well_ord_converse_Memrel = result();
+qed "well_ord_converse_Memrel";
 
 goalw thy [WO1_def] "!!Z. WO1 ==> ALL X. ~Finite(X) -->  \
 \                       (EX R. well_ord(X,R) & ~well_ord(X,converse(R)))";
@@ -86,5 +86,5 @@ by (fast_tac (empty_cs addSEs [ordertype_ord_iso RS ord_iso_is_bij RS
                 bij_is_inj RS (exI RS (lepoll_def RS def_imp_iff RS iffD2))
                 RS lepoll_Finite]
                 addSIs [notI] addEs [notE]) 1);
-val WO1_imp_LEMMA = result();
+qed "WO1_imp_LEMMA";
 

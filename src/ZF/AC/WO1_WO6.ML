@@ -34,16 +34,16 @@ qed "WO1_WO2";
 
 goal thy "!!f. f: A->B ==> (lam x:A. {f`x}): A -> {{b}. b:B}";
 by (fast_tac (!claset addSIs [lam_type, apply_type]) 1);
-val lam_sets = result();
+qed "lam_sets";
 
 goalw thy [surj_def] "!!f. f:surj(A,B) ==> (UN a:A. {f`a}) = B";
 by (fast_tac (!claset addSEs [apply_type]) 1);
-val surj_imp_eq_ = result();
+qed "surj_imp_eq_";
 
 goal thy "!!f. [| f:surj(A,B); Ord(A) |] ==> (UN a<A. {f`a}) = B";
 by (fast_tac (!claset addSDs [surj_imp_eq_]
                 addSIs [ltI] addSEs [ltE]) 1);
-val surj_imp_eq = result();
+qed "surj_imp_eq";
 
 goalw thy WO_defs "!!Z. WO1 ==> WO4(1)";
 by (rtac allI 1);

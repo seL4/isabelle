@@ -31,7 +31,7 @@ qed "Ord_lepoll_imp_ex_well_ord";
 goal thy "!!X. [| Ord(a); a lepoll X |] ==>  \
 \               EX Y. Y<=X & (EX R. R<=X*X & ordertype(Y,R)=a)";
 by (dtac Ord_lepoll_imp_ex_well_ord 1 THEN (assume_tac 1));
-by (Step_tac 1);
+by Safe_tac;
 by (REPEAT (ares_tac [exI, conjI] 1));
 by (etac ordertype_Int 2);
 by (Fast_tac 1);

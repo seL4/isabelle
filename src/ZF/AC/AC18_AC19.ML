@@ -18,7 +18,7 @@ by (dtac apply_type 1);
 by (rtac RepFunI 1 THEN (assume_tac 1));
 by (dtac bspec 1 THEN (assume_tac 1));
 by (etac subsetD 1 THEN (assume_tac 1));
-val PROD_subsets = result();
+qed "PROD_subsets";
 
 goal thy "!!X. [| ALL A. 0 ~: A --> (EX f. f : (PROD X:A. X)); A ~= 0 |] ==>  \
 \  (INT a:A. UN b:B(a). X(a, b)) <= (UN f:PROD a:A. B(a). INT a:A. X(a, f`a))";
@@ -33,7 +33,7 @@ by (fast_tac (!claset addSEs [PROD_subsets]) 1);
 by (Simp_tac 1);
 by (fast_tac (!claset addSEs [not_emptyE] addDs [RepFunI RSN (2, apply_type)]
                 addEs [CollectD2] addSIs [INT_I]) 1);
-val lemma_AC18 = result();
+qed "lemma_AC18";
 
 val [prem] = goalw thy (AC18_def::AC_defs) "AC1 ==> AC18";
 by (resolve_tac [prem RS revcut_rl] 1);
@@ -60,7 +60,7 @@ goalw thy [u_def]
 by (fast_tac (!claset addSIs [not_emptyI, RepFunI]
                 addSEs [not_emptyE, RepFunE]
                 addSDs [sym RS (RepFun_eq_0_iff RS iffD1)]) 1);
-val RepRep_conj = result();
+qed "RepRep_conj";
 
 goal thy "!!c. [|c : a; x = c Un {0}; x ~: a |] ==> x - {0} : a";
 by (hyp_subst_tac 1);

@@ -15,26 +15,26 @@ instances of AC.
 
 goal ZF.thy "!!A. [| C~:A; B:A |] ==> B~=C";
 by (Fast_tac 1);
-val mem_not_eq_not_mem = result();
+qed "mem_not_eq_not_mem";
 
 goal thy "!!A. [| 0~:A; B:A |] ==> (nat->Union(A))*B ~= 0";
 by (fast_tac (!claset addSDs [Sigma_empty_iff RS iffD1]
                 addDs [fun_space_emptyD, mem_not_eq_not_mem]
                 addEs [equals0D]
                 addSIs [equals0I,UnionI]) 1);
-val Sigma_fun_space_not0 = result();
+qed "Sigma_fun_space_not0";
 
 goal thy "!!A C. (ALL B:A. B eqpoll C) ==> (ALL B1:A. ALL B2:A. B1 eqpoll B2)";
 by (REPEAT (rtac ballI 1));
 by (resolve_tac [bspec RS (bspec RSN (2, eqpoll_sym RSN (2, eqpoll_trans)))] 1
         THEN REPEAT (assume_tac 1));
-val all_eqpoll_imp_pair_eqpoll = result();
+qed "all_eqpoll_imp_pair_eqpoll";
 
 goal thy "!!A. [| ALL a:A. if(a=b, P(a), Q(a)) = if(a=b, R(a), S(a)); b:A   \
 \       |] ==> P(b)=R(b)";
 by (dtac bspec 1 THEN (assume_tac 1));
 by (Asm_full_simp_tac 1);
-val if_eqE1 = result();
+qed "if_eqE1";
 
 goal thy "!!A. ALL a:A. if(a=b, P(a), Q(a)) = if(a=b, R(a), S(a))  \
 \       ==> ALL a:A. a~=b --> Q(a)=S(a)";
@@ -42,13 +42,13 @@ by (rtac ballI 1);
 by (rtac impI 1);
 by (dtac bspec 1 THEN (assume_tac 1));
 by (Asm_full_simp_tac 1);
-val if_eqE2 = result();
+qed "if_eqE2";
 
 goal thy "!!A. [| (lam x:A. f(x))=(lam x:A. g(x)); a:A |] ==> f(a)=g(a)";
 by (fast_tac (!claset addDs [subsetD]
                 addSIs [lamI]
                 addEs [equalityE, lamE]) 1);
-val lam_eqE = result();
+qed "lam_eqE";
 
 goalw thy [inj_def]
         "!!A. C:A ==> (lam g:(nat->Union(A))*C.  \
@@ -76,7 +76,7 @@ by (fast_tac (!claset addSEs [prod_lepoll_self, not_sym RS not_emptyE,
                 subst_elem] addEs [swap]) 2);
 by (rewtac lepoll_def);
 by (fast_tac (!claset addSIs [lemma]) 1);
-val Sigma_fun_space_eqpoll = result();
+qed "Sigma_fun_space_eqpoll";
 
 
 (* ********************************************************************** *)

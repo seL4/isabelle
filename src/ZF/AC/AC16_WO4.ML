@@ -32,22 +32,22 @@ val lemma1 = result();
 (* ********************************************************************** *)
 
 (* well_ord(x,r) ==> well_ord({{y,z}. y:x}, Something(x,z))  **)
-val well_ord_paired = standard (paired_bij RS bij_is_inj RS well_ord_rvimage);
+bind_thm ("well_ord_paired", (paired_bij RS bij_is_inj RS well_ord_rvimage));
 
 goal thy "!!A. [| A lepoll B; ~ A lepoll C |] ==> ~ B lepoll C";
 by (fast_tac (!claset addEs [notE, lepoll_trans]) 1);
-val lepoll_trans1 = result();
+qed "lepoll_trans1";
 
 goalw thy [lepoll_def]
         "!!X.[| Y lepoll X; well_ord(X, R) |] ==> EX S. well_ord(Y, S)";
 by (fast_tac (!claset addSEs [well_ord_rvimage]) 1);
-val well_ord_lepoll = result();
+qed "well_ord_lepoll";
 
 goal thy "!!X. [| well_ord(X,R); well_ord(Y,S)  \
 \               |] ==> EX T. well_ord(X Un Y, T)";
 by (eresolve_tac [well_ord_radd RS (Un_lepoll_sum RS well_ord_lepoll)] 1);
 by (assume_tac 1);
-val well_ord_Un = result();
+qed "well_ord_Un";
 
 (* ********************************************************************** *)
 (* There exists a well ordered set y such that ...                        *)
@@ -70,7 +70,7 @@ val lemma2 = result();
 val [prem] = goal thy "~Finite(B) ==> ~Finite(A Un B)";
 by (fast_tac (!claset
         addSIs [subset_imp_lepoll RS (prem RSN (2, lepoll_infinite))]) 1);
-val infinite_Un = result();
+qed "infinite_Un";
 
 (* ********************************************************************** *)
 (* There is a v : s_u such that k lepoll x Int y (in our case succ(k))    *)
@@ -92,12 +92,12 @@ by (ALLGOALS
     (asm_simp_tac 
      (!simpset addsimps [inj_is_fun RS apply_type, left_inverse] 
       setloop (split_tac [expand_if] ORELSE' Step_tac))));
-val succ_not_lepoll_lemma = result();
+qed "succ_not_lepoll_lemma";
 
 goalw thy [lepoll_def, eqpoll_def, bij_def, surj_def]
         "!!A. [| ~A eqpoll B; A lepoll B |] ==> succ(A) lepoll B";
 by (fast_tac (!claset addSEs [succ_not_lepoll_lemma, inj_is_fun]) 1);
-val succ_not_lepoll_imp_eqpoll = result();
+qed "succ_not_lepoll_imp_eqpoll";
 
 val [prem] = goalw thy [s_u_def]
         "(ALL v:s_u(u, t_n, k, y). k eqpoll v Int y ==> False)  \
@@ -109,7 +109,7 @@ by (etac CollectE 1);
 by (etac conjE 1);
 by (etac swap 1);
 by (fast_tac (!claset addSEs [succ_not_lepoll_imp_eqpoll]) 1);
-val suppose_not = result();
+qed "suppose_not";
 
 (* ********************************************************************** *)
 (* There is a k-2 element subset of y                                     *)
@@ -120,7 +120,7 @@ goalw thy [lepoll_def, eqpoll_def]
 by (fast_tac (FOL_cs addSDs [Ord_nat RSN (2, OrdmemD) RSN (2, restrict_inj)]
         addSIs [subset_refl]
         addSEs [restrict_bij, inj_is_fun RS fun_is_rel RS image_subset]) 1);
-val nat_lepoll_imp_ex_eqpoll_n = result();
+qed "nat_lepoll_imp_ex_eqpoll_n";
 
 val ordertype_eqpoll =
         ordermap_bij RS (exI RS (eqpoll_def RS def_imp_iff RS iffD2));
@@ -133,14 +133,14 @@ by (resolve_tac [ordertype_eqpoll RS eqpoll_sym RS eqpoll_imp_lepoll
 by (fast_tac (!claset addSIs [nat_le_infinite_Ord RS le_imp_lepoll]
                 addSEs [Ord_ordertype, ordertype_eqpoll RS eqpoll_imp_lepoll
                         RS lepoll_infinite]) 1);
-val ex_subset_eqpoll_n = result();
+qed "ex_subset_eqpoll_n";
 
 goalw thy [lesspoll_def] "!!n. n: nat ==> n lesspoll nat";
 by (fast_tac (!claset addSEs [Ord_nat RSN (2, ltI) RS leI RS le_imp_lepoll,
         eqpoll_sym RS eqpoll_imp_lepoll]
         addIs [Ord_nat RSN (2, nat_succI RS ltI) RS leI
         RS le_imp_lepoll RS lepoll_trans RS succ_lepoll_natE]) 1);
-val n_lesspoll_nat = result();
+qed "n_lesspoll_nat";
 
 goal thy "!!y. [| well_ord(y,R); ~Finite(y); k eqpoll a; a <= y; k: nat |]  \
 \       ==> y - a eqpoll y";
@@ -154,31 +154,31 @@ by (fast_tac (empty_cs addIs [lepoll_lesspoll_lesspoll]
                 n_lesspoll_nat RS lesspoll_lepoll_lesspoll,
                 well_ord_cardinal_eqpoll RS eqpoll_sym RS eqpoll_imp_lepoll
                 RS lepoll_infinite]) 1);
-val Diff_Finite_eqpoll = result();
+qed "Diff_Finite_eqpoll";
 
 goal thy "!!x. [| a<=y; b:y-a; u:x |] ==> cons(b, cons(u, a)) : Pow(x Un y)";
 by (Fast_tac 1);
-val cons_cons_subset = result();
+qed "cons_cons_subset";
 
 goal thy "!!x. [| a eqpoll k; a<=y; b:y-a; u:x; x Int y = 0  \
 \       |] ==> cons(b, cons(u, a)) eqpoll succ(succ(k))";
 by (fast_tac (!claset addSIs [cons_eqpoll_succ] addEs [equals0D]) 1);
-val cons_cons_eqpoll = result();
+qed "cons_cons_eqpoll";
 
 goalw thy [s_u_def] "s_u(u, t_n, k, y) <= t_n";
 by (Fast_tac 1);
-val s_u_subset = result();
+qed "s_u_subset";
 
 goalw thy [s_u_def, succ_def]
         "!!w. [| w:t_n; cons(b,cons(u,a)) <= w; a <= y; b : y-a; k eqpoll a  \
 \       |] ==> w: s_u(u, t_n, succ(k), y)";
 by (fast_tac (!claset addDs [eqpoll_imp_lepoll RS cons_lepoll_cong]
                 addSEs [subset_imp_lepoll RSN (2, lepoll_trans)]) 1);
-val s_uI = result();
+qed "s_uI";
 
 goalw thy [s_u_def] "!!v. v : s_u(u, t_n, k, y) ==> u : v";
 by (Fast_tac 1);
-val in_s_u_imp_u_in = result();
+qed "in_s_u_imp_u_in";
 
 goal thy
         "!!y. [| ALL z:{z: Pow(x Un y) . z eqpoll succ(succ(k))}.  \
@@ -199,7 +199,7 @@ by (etac allE 1);
 by (etac impE 1);
 by (assume_tac 2);
 by (fast_tac (!claset addSEs [s_u_subset RS subsetD, in_s_u_imp_u_in]) 1);
-val ex1_superset_a = result();
+qed "ex1_superset_a";
 
 goal thy
         "!!A. [| succ(k) eqpoll A; k eqpoll B; B <= A; a : A-B; k:nat  \
@@ -216,7 +216,7 @@ by (Fast_tac 1);
 by (fast_tac (!claset addSIs [nat_succI]
         addSEs [[eqpoll_sym RS eqpoll_imp_lepoll, subset_imp_lepoll] MRS
         (lepoll_trans RS lepoll_trans) RS succ_lepoll_natE]) 1);
-val set_eq_cons = result();
+qed "set_eq_cons";
 
 goal thy
         "!!y. [| ALL z:{z: Pow(x Un y) . z eqpoll succ(succ(k))}.  \
@@ -228,19 +228,19 @@ goal thy
 by (dresolve_tac [ex1_superset_a RS theI] 1 THEN REPEAT (assume_tac 1));
 by (rtac set_eq_cons 1);
 by (REPEAT (Fast_tac 1));
-val the_eq_cons = result();
+qed "the_eq_cons";
 
 goal thy "!!a. [| cons(x,a) = cons(y,a); x~: a |] ==> x = y ";
 by (fast_tac (!claset addSEs [equalityE]) 1);
-val cons_eqE = result();
+qed "cons_eqE";
 
 goal thy "!!A. A = B ==> A Int C = B Int C";
 by (Asm_simp_tac 1);
-val eq_imp_Int_eq = result();
+qed "eq_imp_Int_eq";
 
 goal thy "!!a. [| a=b; a=c; b=d |] ==> c=d";
 by (Asm_full_simp_tac 1);
-val msubst = result();
+qed "msubst";
 
 (* ********************************************************************** *)
 (*   1. y is less than or equipollent to {v:s_u. a <= v}                  *)
@@ -275,7 +275,7 @@ by (Fast_tac 2);
 by (dres_inst_tac [("A","THE c. ?P(c)"), ("C","y")] eq_imp_Int_eq 1);
 by (eresolve_tac [[asm_rl, the_eq_cons, the_eq_cons] MRS msubst] 1
         THEN REPEAT (assume_tac 1));
-val y_lepoll_subset_s_u = result();
+qed "y_lepoll_subset_s_u";
 
 (* ********************************************************************** *)
 (* some arithmetic                                                        *)
@@ -298,7 +298,7 @@ by (asm_full_simp_tac (!simpset addsimps [add_succ]) 1);
 by (fast_tac (!claset addSIs [Diff_sing_eqpoll, lepoll_Diff_sing]) 1);
 by (res_inst_tac [("P","%z. z lepoll m")] subst 1 THEN (assume_tac 2));
 by (Fast_tac 1);
-val eqpoll_sum_imp_Diff_lepoll_lemma = result();
+qed "eqpoll_sum_imp_Diff_lepoll_lemma";
 
 goal thy "!!k. [| A eqpoll succ(k #+ m); B<=A; succ(k) lepoll B;  \
 \       k:nat; m:nat |]  \
@@ -307,7 +307,7 @@ by (dresolve_tac [add_succ RS ssubst] 1);
 by (dresolve_tac [nat_succI RS eqpoll_sum_imp_Diff_lepoll_lemma] 1
         THEN (REPEAT (assume_tac 1)));
 by (Fast_tac 1);
-val eqpoll_sum_imp_Diff_lepoll = result();
+qed "eqpoll_sum_imp_Diff_lepoll";
 
 (* ********************************************************************** *)
 (* similar properties for eqpoll                                          *)
@@ -330,7 +330,7 @@ by (fast_tac (!claset addSIs [Diff_sing_eqpoll,
         addss (!simpset addsimps [add_succ])) 1);
 by (res_inst_tac [("P","%z. z eqpoll m")] subst 1 THEN (assume_tac 2));
 by (Fast_tac 1);
-val eqpoll_sum_imp_Diff_eqpoll_lemma = result();
+qed "eqpoll_sum_imp_Diff_eqpoll_lemma";
 
 goal thy "!!k. [| A eqpoll succ(k #+ m); B<=A; succ(k) eqpoll B;  \
 \       k:nat; m:nat |]  \
@@ -339,7 +339,7 @@ by (dresolve_tac [add_succ RS ssubst] 1);
 by (dresolve_tac [nat_succI RS eqpoll_sum_imp_Diff_eqpoll_lemma] 1
         THEN (REPEAT (assume_tac 1)));
 by (Fast_tac 1);
-val eqpoll_sum_imp_Diff_eqpoll = result();
+qed "eqpoll_sum_imp_Diff_eqpoll";
 
 (* ********************************************************************** *)
 (* back to the second part                                                *)
@@ -348,7 +348,7 @@ val eqpoll_sum_imp_Diff_eqpoll = result();
 goal thy "!!w. [| x Int y = 0; w <= x Un y |]  \
 \        ==> w Int (x - {u}) = w - cons(u, w Int y)";
 by (fast_tac (!claset addEs [equals0D]) 1);
-val w_Int_eq_w_Diff = result();
+qed "w_Int_eq_w_Diff";
 
 goal thy "!!w. [| w:{v:s_u(u, t_n, succ(l), y). a <= v};  \
 \       l eqpoll a; t_n <= {v:Pow(x Un y). v eqpoll succ(succ(l) #+ m)};  \
@@ -362,18 +362,18 @@ by (fast_tac (!claset addEs [equals0D] addSDs [bspec]
         addDs [s_u_subset RS subsetD]
         addSEs [eqpoll_sym RS cons_eqpoll_succ RS eqpoll_sym, in_s_u_imp_u_in]
         addSIs [nat_succI, eqpoll_sum_imp_Diff_eqpoll]) 1);
-val w_Int_eqpoll_m = result();
+qed "w_Int_eqpoll_m";
 
 goal thy "!!m. [| 0<m; x eqpoll m; m:nat |] ==> x ~= 0";
 by (fast_tac (empty_cs
         addSEs [mem_irrefl, ltE, eqpoll_succ_imp_not_empty, natE]) 1);
-val eqpoll_m_not_empty = result();
+qed "eqpoll_m_not_empty";
 
 goal thy
         "!!z. [| z : xa Int (x - {u}); l eqpoll a; a <= y; x Int y = 0; u:x  \
 \       |] ==> cons(z, cons(u, a)) : {v: Pow(x Un y). v eqpoll succ(succ(l))}";
 by (fast_tac (!claset addSIs [cons_eqpoll_succ] addEs [equals0D, eqpoll_sym]) 1);
-val cons_cons_in = result();
+qed "cons_cons_in";
 
 (* ********************************************************************** *)
 (*   2. {v:s_u. a <= v} is less than or equipollent                       *)
@@ -408,13 +408,13 @@ by (dresolve_tac [cons_cons_in RSN (2, bspec)] 1 THEN REPEAT (assume_tac 1));
 by (etac ex1_two_eq 1);
 by (fast_tac (!claset addSEs [s_u_subset RS subsetD, in_s_u_imp_u_in]) 1);
 by (fast_tac (!claset addSEs [s_u_subset RS subsetD, in_s_u_imp_u_in]) 1);
-val subset_s_u_lepoll_w = result();
+qed "subset_s_u_lepoll_w";
 
 goal thy "!!k. [| 0<k; k:nat |] ==> EX l:nat. k = succ(l)";
 by (etac natE 1);
 by (fast_tac (empty_cs addSEs [ltE, mem_irrefl]) 1);
 by (fast_tac (empty_cs addSIs [refl, bexI]) 1);
-val ex_eq_succ = result();
+qed "ex_eq_succ";
 
 goal thy
  "!!x. [| ALL z:{z: Pow(x Un y) . z eqpoll succ(k)}.  \
@@ -432,7 +432,7 @@ by (etac conjE 1);
 by (forward_tac [[y_lepoll_subset_s_u, subset_s_u_lepoll_w] MRS lepoll_trans] 1
         THEN REPEAT (assume_tac 1));
 by (contr_tac 1);
-val exists_proper_in_s_u = result();
+qed "exists_proper_in_s_u";
 
 (* ********************************************************************** *)
 (* LL can be well ordered                                                 *)
@@ -441,7 +441,7 @@ val exists_proper_in_s_u = result();
 goal thy "{x:Pow(X). x lepoll 0} = {0}";
 by (fast_tac (!claset addSDs [lepoll_0_is_0]
                       addSIs [lepoll_refl]) 1);
-val subsets_lepoll_0_eq_unit = result();
+qed "subsets_lepoll_0_eq_unit";
 
 goal thy "!!X. [| well_ord(X, R); ~Finite(X); n:nat |]  \
 \               ==> EX S. well_ord({Y: Pow(X) . Y eqpoll succ(n)}, S)";
@@ -449,21 +449,21 @@ by (resolve_tac [well_ord_infinite_subsets_eqpoll_X
         RS (eqpoll_def RS def_imp_iff RS iffD1) RS exE] 1
     THEN (REPEAT (assume_tac 1)));
 by (fast_tac (!claset addSEs [bij_is_inj RS well_ord_rvimage]) 1);
-val well_ord_subsets_eqpoll_n = result();
+qed "well_ord_subsets_eqpoll_n";
 
 goal thy "!!n. n:nat ==> {z:Pow(y). z lepoll succ(n)} =  \
 \       {z:Pow(y). z lepoll n} Un {z:Pow(y). z eqpoll succ(n)}";
 by (fast_tac (!claset addIs [le_refl, leI, le_imp_lepoll]
                 addSDs [lepoll_succ_disj]
                 addSEs [nat_into_Ord, lepoll_trans, eqpoll_imp_lepoll]) 1);
-val subsets_lepoll_succ = result();
+qed "subsets_lepoll_succ";
 
 goal thy "!!n. n:nat ==>  \
 \       {z:Pow(y). z lepoll n} Int {z:Pow(y). z eqpoll succ(n)} = 0";
 by (fast_tac (!claset addSEs [eqpoll_sym RS eqpoll_imp_lepoll 
                 RS lepoll_trans RS succ_lepoll_natE]
                 addSIs [equals0I]) 1);
-val Int_empty = result();
+qed "Int_empty";
 
 (* ********************************************************************** *)
 (* unit set is well-ordered by the empty relation                         *)
@@ -472,15 +472,15 @@ val Int_empty = result();
 goalw thy [irrefl_def, trans_on_def, part_ord_def, linear_def, tot_ord_def]
         "tot_ord({a},0)";
 by (Simp_tac 1);
-val tot_ord_unit = result();
+qed "tot_ord_unit";
 
 goalw thy [wf_on_def, wf_def] "wf[{a}](0)";
 by (Fast_tac 1);
-val wf_on_unit = result();
+qed "wf_on_unit";
 
 goalw thy [well_ord_def] "well_ord({a},0)";
 by (simp_tac (!simpset addsimps [tot_ord_unit, wf_on_unit]) 1);
-val well_ord_unit = result();
+qed "well_ord_unit";
 
 (* ********************************************************************** *)
 (* well_ord_subsets_lepoll_n                                              *)
@@ -499,7 +499,7 @@ by (dtac well_ord_radd 1 THEN (assume_tac 1));
 by (eresolve_tac [Int_empty RS disj_Un_eqpoll_sum RS 
                 (eqpoll_def RS def_imp_iff RS iffD1) RS exE] 1);
 by (fast_tac (!claset addSEs [bij_is_inj RS well_ord_rvimage]) 1);
-val well_ord_subsets_lepoll_n = result();
+qed "well_ord_subsets_lepoll_n";
 
 goalw thy [LL_def, MM_def]
         "!!x. t_n <= {v:Pow(x Un y). v eqpoll n}  \
@@ -507,7 +507,7 @@ goalw thy [LL_def, MM_def]
 by (fast_tac (!claset addSEs [RepFunE]
         addIs [subset_imp_lepoll RS (eqpoll_imp_lepoll
                 RSN (2, lepoll_trans))]) 1);
-val LL_subset = result();
+qed "LL_subset";
 
 goal thy "!!x. [| t_n <= {v:Pow(x Un y). v eqpoll n}; \
 \               well_ord(y, R); ~Finite(y); n:nat  \
@@ -515,7 +515,7 @@ goal thy "!!x. [| t_n <= {v:Pow(x Un y). v eqpoll n}; \
 by (fast_tac (FOL_cs addIs [exI]
                 addSEs [LL_subset RSN (2,  well_ord_subset)]
                 addEs [well_ord_subsets_lepoll_n RS exE]) 1);
-val well_ord_LL = result();
+qed "well_ord_LL";
 
 (* ********************************************************************** *)
 (* every element of LL is a contained in exactly one element of MM        *)
@@ -526,7 +526,7 @@ goalw thy [MM_def, LL_def]
 \       t_n <= {v:Pow(x Un y). v eqpoll n}; \
 \       v:LL(t_n, k, y)  \
 \       |] ==> EX! w. w:MM(t_n, k, y) & v<=w";
-by (step_tac (!claset addSEs [RepFunE]) 1);
+by (safe_tac (!claset addSEs [RepFunE]));
 by (Fast_tac 1);
 by (resolve_tac [lepoll_imp_eqpoll_subset RS exE] 1 THEN (assume_tac 1));
 by (eres_inst_tac [("x","xa")] ballE 1);
@@ -536,7 +536,7 @@ by (dtac spec 1);
 by (dtac spec 1);
 by (etac mp 1);
 by (Fast_tac 1);
-val unique_superset_in_MM = result();
+qed "unique_superset_in_MM";
 
 (* ********************************************************************** *)
 (* The function GG satisfies the conditions of WO4                        *)
@@ -557,15 +557,15 @@ by (eresolve_tac [exists_proper_in_s_u RS bexE] 1
         THEN REPEAT (assume_tac 1));
 by (rewrite_goals_tac [MM_def, s_u_def]);
 by (Fast_tac 1);
-val exists_in_MM = result();
+qed "exists_in_MM";
 
 goalw thy [LL_def] "!!w. w : MM(t_n, k, y) ==> w Int y : LL(t_n, k, y)";
 by (Fast_tac 1);
-val Int_in_LL = result();
+qed "Int_in_LL";
 
 goalw thy [MM_def] "MM(t_n, k, y) <= t_n";
 by (Fast_tac 1);
-val MM_subset = result();
+qed "MM_subset";
 
 goal thy 
         "!!x. [| ALL z:{z: Pow(x Un y) . z eqpoll succ(k)}.  \
@@ -583,7 +583,7 @@ by (asm_full_simp_tac (!simpset delsimps ball_simps addsimps [Int_in_LL]) 1);
 by (eresolve_tac [unique_superset_in_MM RS the_equality2 RS ssubst] 1
         THEN (assume_tac 1));
 by (REPEAT (fast_tac (!claset addEs [equals0D] addSEs [Int_in_LL]) 1));
-val exists_in_LL = result();
+qed "exists_in_LL";
 
 goalw thy [LL_def] 
         "!!x. [| ALL z:{z: Pow(x Un y) . z eqpoll k}. EX! w. w:t_n & z <= w; \
@@ -592,7 +592,7 @@ goalw thy [LL_def]
 \       ==> v = (THE x. x : MM(t_n, k, y) & v <= x) Int y";
 by (fast_tac (!claset addSEs [Int_in_LL,
                 unique_superset_in_MM RS the_equality2 RS ssubst]) 1);
-val in_LL_eq_Int = result();
+qed "in_LL_eq_Int";
 
 goal thy  
         "!!x. [| ALL z:{z: Pow(x Un y) . z eqpoll k}. EX! w. w:t_n & z <= w; \
@@ -601,7 +601,7 @@ goal thy
 \       ==> (THE x. x : MM(t_n, k, y) & v <= x) <= x Un y";
 by (fast_tac (!claset addSDs [unique_superset_in_MM RS theI RS conjunct1 RS 
         (MM_subset RS subsetD)]) 1);
-val the_in_MM_subset = result();
+qed "the_in_MM_subset";
 
 goalw thy [GG_def] 
         "!!x. [| ALL z:{z: Pow(x Un y) . z eqpoll k}. EX! w. w:t_n & z <= w; \
@@ -615,7 +615,7 @@ by (rtac subsetI 1);
 by (etac DiffE 1);
 by (etac swap 1);
 by (fast_tac (!claset addEs [ssubst]) 1);
-val GG_subset = result();
+qed "GG_subset";
 
 goal thy  
         "!!x. [| well_ord(LL(t_n, succ(k), y), S);  \
@@ -640,7 +640,7 @@ by (resolve_tac [Ord_ordertype RSN (2, ltI)] 1 THEN (assume_tac 2));
 by (eresolve_tac [ordermap_type RS apply_type] 1);
 by (eresolve_tac [ordermap_bij RS bij_is_inj RS left_inverse RS ssubst] 1
         THEN REPEAT (assume_tac 1));
-val OUN_eq_x = result();
+qed "OUN_eq_x";
 
 (* ********************************************************************** *)
 (* Every element of the family is less than or equipollent to n-k (m)     *)
@@ -650,12 +650,12 @@ goalw thy [MM_def]
         "!!w. [| w : MM(t_n, k, y); t_n <= {v:Pow(x Un y). v eqpoll n}  \
 \       |] ==> w eqpoll n";
 by (Fast_tac 1);
-val in_MM_eqpoll_n = result();
+qed "in_MM_eqpoll_n";
 
 goalw thy [LL_def, MM_def]
         "!!w. w : LL(t_n, k, y) ==> k lepoll w";
 by (Fast_tac 1);
-val in_LL_eqpoll_n = result();
+qed "in_LL_eqpoll_n";
 
 goalw thy [GG_def] 
         "!!x. [|  \
@@ -678,7 +678,7 @@ by (REPEAT (fast_tac
         addEs [unique_superset_in_MM RS theI RS conjunct1 RS in_MM_eqpoll_n,
           in_LL_eq_Int RS equalityD1 RS (Int_lower1 RSN (2, subset_trans)),
         ordermap_bij RS bij_converse_bij RS bij_is_fun RS apply_type]) 1));
-val all_in_lepoll_m = result();
+qed "all_in_lepoll_m";
 
 (* ********************************************************************** *)
 (* The main theorem AC16(n, k) ==> WO4(n-k)                               *)

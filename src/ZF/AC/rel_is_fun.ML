@@ -22,7 +22,7 @@ by (forward_tac [inj_is_fun RS apply_type] 1 THEN (atac 1));
 by (rtac LeastI2 1);
 by (REPEAT (fast_tac (!claset addSEs [nat_into_Ord RS Ord_in_Ord]
               addss (!simpset addsimps [left_inverse])) 1));
-val lepoll_m_imp_domain_lepoll_m = result();
+qed "lepoll_m_imp_domain_lepoll_m";
 
 goalw Cardinal.thy [function_def]
     "!!r. [| succ(m) lepoll domain(r); r lepoll succ(m); m:nat |] ==> \
@@ -32,11 +32,11 @@ by (resolve_tac [excluded_middle RS disjE] 1 THEN (atac 2));
 by (fast_tac (!claset addSEs [lepoll_trans RS succ_lepoll_natE, 
                         Diff_sing_lepoll RSN (2, lepoll_m_imp_domain_lepoll_m)]
                 addEs [not_sym RSN (2, domain_Diff_eq) RS subst]) 1);
-val rel_domain_ex1 = result();
+qed "rel_domain_ex1";
 
 goal Cardinal.thy
     "!!r. [| succ(m) lepoll domain(r);  r lepoll succ(m);  m:nat;  \
 \            r<=A*B; A=domain(r) |] ==> r: A->B";
 by (hyp_subst_tac 1);
 by (asm_simp_tac (!simpset addsimps [Pi_iff, rel_domain_ex1]) 1);
-val rel_is_fun = result();
+qed "rel_is_fun";

@@ -29,7 +29,7 @@ by (rtac ballI 1);
 by (eres_inst_tac [("n","n")] natE 1);
 by (asm_simp_tac (!simpset addsimps [inj_def, succI1 RS Pi_empty2]) 1);
 by (fast_tac (!claset addSIs [le_imp_subset RS id_subset_inj]) 1);
-val nat_le_imp_lepoll_lemma = result();
+qed "nat_le_imp_lepoll_lemma";
 
 (* used in : AC10-AC15.ML WO1-WO6.ML WO6WO1.ML*)
 val nat_le_imp_lepoll = nat_le_imp_lepoll_lemma RS bspec RS mp |> standard;
@@ -40,14 +40,14 @@ val nat_le_imp_lepoll = nat_le_imp_lepoll_lemma RS bspec RS mp |> standard;
 
 goal thy "!!X. (A->X)=0 ==> X=0";
 by (fast_tac (!claset addSIs [equals0I] addEs [lam_type RSN (2, equals0D)]) 1);
-val fun_space_emptyD = result();
+qed "fun_space_emptyD";
 
 (* used only in WO1_DC.ML *)
 (*Note simpler proof*)
 goal ZF.thy "!!A f g. [| ALL x:A. f`x=g`x; f:Df->Cf; g:Dg->Cg;  \
 \         A<=Df; A<=Dg |] ==> f``A=g``A";
 by (asm_simp_tac (!simpset addsimps [image_fun]) 1);
-val images_eq = result();
+qed "images_eq";
 
 (* used in : AC10-AC15.ML AC16WO4.ML WO6WO1.ML *)
 (*I don't know where to put this one.*)
@@ -60,7 +60,7 @@ by (res_inst_tac [("A2","A")]
      (Diff_sing_lepoll RSN (2, subset_imp_lepoll RS lepoll_trans)) 1 
     THEN (REPEAT (assume_tac 2)));
 by (Fast_tac 1);
-val Diff_lepoll = result();
+qed "Diff_lepoll";
 
 (* ********************************************************************** *)
 (*              lemmas concerning lepoll and eqpoll relations             *)
@@ -73,13 +73,13 @@ val Diff_lepoll = result();
 (* lemma for ordertype_Int *)
 goalw Cardinal.thy [rvimage_def] "rvimage(A,id(A),r) = r Int A*A";
 by (rtac equalityI 1);
-by (Step_tac 1);
+by Safe_tac;
 by (dres_inst_tac [("P","%a. <id(A)`xb,a>:r")] (id_conv RS subst) 1
     THEN (assume_tac 1));
 by (dres_inst_tac [("P","%a. <a,ya>:r")] (id_conv RS subst) 1
     THEN (REPEAT (assume_tac 1)));
 by (fast_tac (!claset addIs [id_conv RS ssubst]) 1);
-val rvimage_id = result();
+qed "rvimage_id";
 
 (* used only in Hartog.ML *)
 goal Cardinal.thy
@@ -87,49 +87,49 @@ goal Cardinal.thy
 by (res_inst_tac [("P","%a. ordertype(A,a)=ordertype(A,r)")] 
     (rvimage_id RS subst) 1);
 by (eresolve_tac [id_bij RS bij_ordertype_vimage] 1);
-val ordertype_Int = result();
+qed "ordertype_Int";
 
 (* used only in AC16_lemmas.ML *)
 goalw CardinalArith.thy [InfCard_def]
         "!!i. [| ~Finite(i); Card(i) |] ==> InfCard(i)";
 by (asm_simp_tac (!simpset addsimps [Card_is_Ord RS nat_le_infinite_Ord]) 1);
-val Inf_Card_is_InfCard = result();
+qed "Inf_Card_is_InfCard";
 
 goal thy "(THE z. {x}={z}) = x";
 by (fast_tac (!claset addSIs [the_equality]
                 addSEs [singleton_eq_iff RS iffD1 RS sym]) 1);
-val the_element = result();
+qed "the_element";
 
 goal thy "(lam x:A. {x}) : bij(A, {{x}. x:A})";
 by (res_inst_tac [("d","%z. THE x. z={x}")] lam_bijective 1);
 by (TRYALL (eresolve_tac [RepFunI, RepFunE]));
 by (REPEAT (asm_full_simp_tac (!simpset addsimps [the_element]) 1));
-val lam_sing_bij = result();
+qed "lam_sing_bij";
 
 val [major,minor] = goal thy 
         "[| f : Pi(A,B); (!!x. x:A ==> B(x)<=C(x)) |] ==> f : Pi(A,C)";
 by (fast_tac (!claset addSIs [major RS Pi_type, minor RS subsetD,
                 major RS apply_type]) 1);
-val Pi_weaken_type = result();
+qed "Pi_weaken_type";
 
 val [major, minor] = goalw thy [inj_def]
         "[| f:inj(A, B); (!!a. a:A ==> f`a : C) |] ==> f:inj(A,C)";
 by (fast_tac (!claset addSEs [minor]
         addSIs [major RS CollectD1 RS Pi_type, major RS CollectD2]) 1);
-val inj_strengthen_type = result();
+qed "inj_strengthen_type";
 
 goal thy "A*B=0 <-> A=0 | B=0";
 by (fast_tac (!claset addSIs [equals0I] addEs [equals0D]) 1);
-val Sigma_empty_iff = result();
+qed "Sigma_empty_iff";
 
 goalw thy [Finite_def] "!!n. n:nat ==> Finite(n)";
 by (fast_tac (!claset addSIs [eqpoll_refl]) 1);
-val nat_into_Finite = result();
+qed "nat_into_Finite";
 
 goalw thy [Finite_def] "~Finite(nat)";
 by (fast_tac (!claset addSDs [eqpoll_imp_lepoll]
                 addIs [Ord_nat RSN (2, ltI) RS lt_not_lepoll RS notE]) 1);
-val nat_not_Finite = result();
+qed "nat_not_Finite";
 
 val le_imp_lepoll = le_imp_subset RS subset_imp_lepoll;
 
@@ -142,7 +142,7 @@ by (etac ex1E 1);
 by (res_inst_tac [("b","xa")] (sym RSN (2, trans)) 1);
 by (Fast_tac 1);
 by (Fast_tac 1);
-val ex1_two_eq = result();
+qed "ex1_two_eq";
 
 (* ********************************************************************** *)
 (* image of a surjection                                                  *)
@@ -153,14 +153,14 @@ by (etac CollectE 1);
 by (resolve_tac [subset_refl RSN (2, image_fun) RS ssubst] 1 
     THEN (assume_tac 1));
 by (fast_tac (!claset addSEs [apply_type] addIs [equalityI]) 1);
-val surj_image_eq = result();
+qed "surj_image_eq";
 
 
 goal thy "!!y. succ(x) lepoll y ==> y ~= 0";
 by (fast_tac (!claset addSDs [lepoll_0_is_0]) 1);
-val succ_lepoll_imp_not_empty = result();
+qed "succ_lepoll_imp_not_empty";
 
 goal thy "!!x. x eqpoll succ(n) ==> x ~= 0";
 by (fast_tac (!claset addSEs [eqpoll_sym RS eqpoll_0_is_0 RS succ_neq_0]) 1);
-val eqpoll_succ_imp_not_empty = result();
+qed "eqpoll_succ_imp_not_empty";
 
