@@ -136,7 +136,8 @@ val all_pattern = Thm.read_cterm (Theory.sign_of (the_context ()))
     ("ALL x:A. P(x) & P'(x) --> Q(x)",HOLogic.boolT)
 
 val swap = prove_goal thy
-  "((!x. Q x --> P x --> R x) = S) ==> ((!x. P x --> Q x --> R x) = S)"
+  "((!x. A x & EP x --> Q x) = (!x. E x --> A x & P x --> Q x)) ==> \
+\  ((!x. A x --> EP x --> Q x) = (!x. A x --> E x --> P x --> Q x))"
   (fn ths => [cut_facts_tac ths 1, Blast_tac 1]);
 
 val prove_ball_tac = rewrite_goals_tac [Ball_def] THEN rtac swap 1 THEN
