@@ -2,7 +2,7 @@
 \begin{isabellebody}%
 \def\isabellecontext{PDL}%
 %
-\isamarkupsubsection{Propositional dynamic logic---PDL%
+\isamarkupsubsection{Propositional Dynamic Logic---PDL%
 }
 %
 \begin{isamarkuptext}%
@@ -10,7 +10,7 @@
 The formulae of PDL are built up from atomic propositions via the customary
 propositional connectives of negation and conjunction and the two temporal
 connectives \isa{AX} and \isa{EF}. Since formulae are essentially
-(syntax) trees, they are naturally modelled as a datatype:%
+syntax trees, they are naturally modelled as a datatype:%
 \end{isamarkuptext}%
 \isacommand{datatype}\ formula\ {\isacharequal}\ Atom\ atom\isanewline
 \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ {\isacharbar}\ Neg\ formula\isanewline
@@ -20,8 +20,7 @@ connectives \isa{AX} and \isa{EF}. Since formulae are essentially
 \begin{isamarkuptext}%
 \noindent
 This is almost the same as in the boolean expression case study in
-\S\ref{sec:boolex}, except that what used to be called \isa{Var} is now
-called \isa{Atom}.
+\S\ref{sec:boolex}.
 
 The meaning of these formulae is given by saying which formula is true in
 which state:%
@@ -29,9 +28,10 @@ which state:%
 \isacommand{consts}\ valid\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}state\ {\isasymRightarrow}\ formula\ {\isasymRightarrow}\ bool{\isachardoublequote}\ \ \ {\isacharparenleft}{\isachardoublequote}{\isacharparenleft}{\isacharunderscore}\ {\isasymTurnstile}\ {\isacharunderscore}{\isacharparenright}{\isachardoublequote}\ {\isacharbrackleft}{\isadigit{8}}{\isadigit{0}}{\isacharcomma}{\isadigit{8}}{\isadigit{0}}{\isacharbrackright}\ {\isadigit{8}}{\isadigit{0}}{\isacharparenright}%
 \begin{isamarkuptext}%
 \noindent
-The concrete syntax annotation allows us to write \isa{s\ {\isasymTurnstile}\ f} instead of
-\isa{valid\ s\ f}.
+The syntax annotation allows us to write \isa{s\ {\isasymTurnstile}\ f} instead of
+\hbox{\isa{valid\ s\ f}}.
 
+\smallskip
 The definition of \isa{{\isasymTurnstile}} is by recursion over the syntax:%
 \end{isamarkuptext}%
 \isacommand{primrec}\isanewline
@@ -45,7 +45,7 @@ The definition of \isa{{\isasymTurnstile}} is by recursion over the syntax:%
 The first three equations should be self-explanatory. The temporal formula
 \isa{AX\ f} means that \isa{f} is true in all next states whereas
 \isa{EF\ f} means that there exists some future state in which \isa{f} is
-true. The future is expressed via \isa{\isactrlsup {\isacharasterisk}}, the transitive reflexive
+true. The future is expressed via \isa{\isactrlsup {\isacharasterisk}}, the reflexive transitive
 closure. Because of reflexivity, the future includes the present.
 
 Now we come to the model checker itself. It maps a formula into the set of
@@ -58,12 +58,12 @@ too:%
 {\isachardoublequote}mc{\isacharparenleft}Neg\ f{\isacharparenright}\ \ \ {\isacharequal}\ {\isacharminus}mc\ f{\isachardoublequote}\isanewline
 {\isachardoublequote}mc{\isacharparenleft}And\ f\ g{\isacharparenright}\ {\isacharequal}\ mc\ f\ {\isasyminter}\ mc\ g{\isachardoublequote}\isanewline
 {\isachardoublequote}mc{\isacharparenleft}AX\ f{\isacharparenright}\ \ \ \ {\isacharequal}\ {\isacharbraceleft}s{\isachardot}\ {\isasymforall}t{\isachardot}\ {\isacharparenleft}s{\isacharcomma}t{\isacharparenright}\ {\isasymin}\ M\ \ {\isasymlongrightarrow}\ t\ {\isasymin}\ mc\ f{\isacharbraceright}{\isachardoublequote}\isanewline
-{\isachardoublequote}mc{\isacharparenleft}EF\ f{\isacharparenright}\ \ \ \ {\isacharequal}\ lfp{\isacharparenleft}{\isasymlambda}T{\isachardot}\ mc\ f\ {\isasymunion}\ M{\isasyminverse}\ {\isacharbackquote}{\isacharbackquote}\ T{\isacharparenright}{\isachardoublequote}%
+{\isachardoublequote}mc{\isacharparenleft}EF\ f{\isacharparenright}\ \ \ \ {\isacharequal}\ lfp{\isacharparenleft}{\isasymlambda}T{\isachardot}\ mc\ f\ {\isasymunion}\ {\isacharparenleft}M{\isasyminverse}\ {\isacharbackquote}{\isacharbackquote}\ T{\isacharparenright}{\isacharparenright}{\isachardoublequote}%
 \begin{isamarkuptext}%
 \noindent
 Only the equation for \isa{EF} deserves some comments. Remember that the
 postfix \isa{{\isasyminverse}} and the infix \isa{{\isacharbackquote}{\isacharbackquote}} are predefined and denote the
-converse of a relation and the application of a relation to a set. Thus
+converse of a relation and the image of a set under a relation.  Thus
 \isa{M{\isasyminverse}\ {\isacharbackquote}{\isacharbackquote}\ T} is the set of all predecessors of \isa{T} and the least
 fixed point (\isa{lfp}) of \isa{{\isasymlambda}T{\isachardot}\ mc\ f\ {\isasymunion}\ M{\isasyminverse}\ {\isacharbackquote}{\isacharbackquote}\ T} is the least set
 \isa{T} containing \isa{mc\ f} and all predecessors of \isa{T}. If you
@@ -71,25 +71,24 @@ find it hard to see that \isa{mc\ {\isacharparenleft}EF\ f{\isacharparenright}} 
 which there is a path to a state where \isa{f} is true, do not worry---that
 will be proved in a moment.
 
-First we prove monotonicity of the function inside \isa{lfp}%
+First we prove monotonicity of the function inside \isa{lfp}
+in order to make sure it really has a least fixed point.%
 \end{isamarkuptext}%
-\isacommand{lemma}\ mono{\isacharunderscore}ef{\isacharcolon}\ {\isachardoublequote}mono{\isacharparenleft}{\isasymlambda}T{\isachardot}\ A\ {\isasymunion}\ M{\isasyminverse}\ {\isacharbackquote}{\isacharbackquote}\ T{\isacharparenright}{\isachardoublequote}\isanewline
+\isacommand{lemma}\ mono{\isacharunderscore}ef{\isacharcolon}\ {\isachardoublequote}mono{\isacharparenleft}{\isasymlambda}T{\isachardot}\ A\ {\isasymunion}\ {\isacharparenleft}M{\isasyminverse}\ {\isacharbackquote}{\isacharbackquote}\ T{\isacharparenright}{\isacharparenright}{\isachardoublequote}\isanewline
 \isacommand{apply}{\isacharparenleft}rule\ monoI{\isacharparenright}\isanewline
 \isacommand{apply}\ blast\isanewline
 \isacommand{done}%
 \begin{isamarkuptext}%
 \noindent
-in order to make sure it really has a least fixed point.
-
 Now we can relate model checking and semantics. For the \isa{EF} case we need
 a separate lemma:%
 \end{isamarkuptext}%
 \isacommand{lemma}\ EF{\isacharunderscore}lemma{\isacharcolon}\isanewline
-\ \ {\isachardoublequote}lfp{\isacharparenleft}{\isasymlambda}T{\isachardot}\ A\ {\isasymunion}\ M{\isasyminverse}\ {\isacharbackquote}{\isacharbackquote}\ T{\isacharparenright}\ {\isacharequal}\ {\isacharbraceleft}s{\isachardot}\ {\isasymexists}t{\isachardot}\ {\isacharparenleft}s{\isacharcomma}t{\isacharparenright}\ {\isasymin}\ M\isactrlsup {\isacharasterisk}\ {\isasymand}\ t\ {\isasymin}\ A{\isacharbraceright}{\isachardoublequote}%
+\ \ {\isachardoublequote}lfp{\isacharparenleft}{\isasymlambda}T{\isachardot}\ A\ {\isasymunion}\ {\isacharparenleft}M{\isasyminverse}\ {\isacharbackquote}{\isacharbackquote}\ T{\isacharparenright}{\isacharparenright}\ {\isacharequal}\ {\isacharbraceleft}s{\isachardot}\ {\isasymexists}t{\isachardot}\ {\isacharparenleft}s{\isacharcomma}t{\isacharparenright}\ {\isasymin}\ M\isactrlsup {\isacharasterisk}\ {\isasymand}\ t\ {\isasymin}\ A{\isacharbraceright}{\isachardoublequote}%
 \begin{isamarkuptxt}%
 \noindent
 The equality is proved in the canonical fashion by proving that each set
-contains the other; the containment is shown pointwise:%
+includes the other; the inclusion is shown pointwise:%
 \end{isamarkuptxt}%
 \isacommand{apply}{\isacharparenleft}rule\ equalityI{\isacharparenright}\isanewline
 \ \isacommand{apply}{\isacharparenleft}rule\ subsetI{\isacharparenright}\isanewline
@@ -118,7 +117,7 @@ which is proved by \isa{blast} with the help of transitivity of \isa{\isactrlsup
 \end{isamarkuptxt}%
 \ \isacommand{apply}{\isacharparenleft}blast\ intro{\isacharcolon}\ rtrancl{\isacharunderscore}trans{\isacharparenright}%
 \begin{isamarkuptxt}%
-We now return to the second set containment subgoal, which is again proved
+We now return to the second set inclusion subgoal, which is again proved
 pointwise:%
 \end{isamarkuptxt}%
 \isacommand{apply}{\isacharparenleft}rule\ subsetI{\isacharparenright}\isanewline

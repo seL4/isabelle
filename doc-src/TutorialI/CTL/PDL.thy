@@ -1,12 +1,12 @@
 (*<*)theory PDL = Base:(*>*)
 
-subsection{*Propositional dynamic logic---PDL*}
+subsection{*Propositional Dynamic Logic---PDL*}
 
 text{*\index{PDL|(}
 The formulae of PDL are built up from atomic propositions via the customary
 propositional connectives of negation and conjunction and the two temporal
 connectives @{text AX} and @{text EF}. Since formulae are essentially
-(syntax) trees, they are naturally modelled as a datatype:
+syntax trees, they are naturally modelled as a datatype:
 *}
 
 datatype formula = Atom atom
@@ -17,8 +17,7 @@ datatype formula = Atom atom
 
 text{*\noindent
 This is almost the same as in the boolean expression case study in
-\S\ref{sec:boolex}, except that what used to be called @{text Var} is now
-called @{term Atom}.
+\S\ref{sec:boolex}.
 
 The meaning of these formulae is given by saying which formula is true in
 which state:
@@ -27,9 +26,10 @@ which state:
 consts valid :: "state \<Rightarrow> formula \<Rightarrow> bool"   ("(_ \<Turnstile> _)" [80,80] 80)
 
 text{*\noindent
-The concrete syntax annotation allows us to write @{term"s \<Turnstile> f"} instead of
-@{text"valid s f"}.
+The syntax annotation allows us to write @{term"s \<Turnstile> f"} instead of
+\hbox{@{text"valid s f"}}.
 
+\smallskip
 The definition of @{text"\<Turnstile>"} is by recursion over the syntax:
 *}
 
@@ -44,7 +44,7 @@ text{*\noindent
 The first three equations should be self-explanatory. The temporal formula
 @{term"AX f"} means that @{term f} is true in all next states whereas
 @{term"EF f"} means that there exists some future state in which @{term f} is
-true. The future is expressed via @{text"\<^sup>*"}, the transitive reflexive
+true. The future is expressed via @{text"\<^sup>*"}, the reflexive transitive
 closure. Because of reflexivity, the future includes the present.
 
 Now we come to the model checker itself. It maps a formula into the set of
@@ -58,12 +58,12 @@ primrec
 "mc(Neg f)   = -mc f"
 "mc(And f g) = mc f \<inter> mc g"
 "mc(AX f)    = {s. \<forall>t. (s,t) \<in> M  \<longrightarrow> t \<in> mc f}"
-"mc(EF f)    = lfp(\<lambda>T. mc f \<union> M\<inverse> `` T)"
+"mc(EF f)    = lfp(\<lambda>T. mc f \<union> (M\<inverse> `` T))"
 
 text{*\noindent
 Only the equation for @{term EF} deserves some comments. Remember that the
 postfix @{text"\<inverse>"} and the infix @{text"``"} are predefined and denote the
-converse of a relation and the application of a relation to a set. Thus
+converse of a relation and the image of a set under a relation.  Thus
 @{term "M\<inverse> `` T"} is the set of all predecessors of @{term T} and the least
 fixed point (@{term lfp}) of @{term"\<lambda>T. mc f \<union> M\<inverse> `` T"} is the least set
 @{term T} containing @{term"mc f"} and all predecessors of @{term T}. If you
@@ -72,26 +72,25 @@ which there is a path to a state where @{term f} is true, do not worry---that
 will be proved in a moment.
 
 First we prove monotonicity of the function inside @{term lfp}
+in order to make sure it really has a least fixed point.
 *}
 
-lemma mono_ef: "mono(\<lambda>T. A \<union> M\<inverse> `` T)"
+lemma mono_ef: "mono(\<lambda>T. A \<union> (M\<inverse> `` T))"
 apply(rule monoI)
 apply blast
 done
 
 text{*\noindent
-in order to make sure it really has a least fixed point.
-
 Now we can relate model checking and semantics. For the @{text EF} case we need
 a separate lemma:
 *}
 
 lemma EF_lemma:
-  "lfp(\<lambda>T. A \<union> M\<inverse> `` T) = {s. \<exists>t. (s,t) \<in> M\<^sup>* \<and> t \<in> A}"
+  "lfp(\<lambda>T. A \<union> (M\<inverse> `` T)) = {s. \<exists>t. (s,t) \<in> M\<^sup>* \<and> t \<in> A}"
 
 txt{*\noindent
 The equality is proved in the canonical fashion by proving that each set
-contains the other; the containment is shown pointwise:
+includes the other; the inclusion is shown pointwise:
 *}
 
 apply(rule equalityI);
@@ -122,7 +121,7 @@ which is proved by @{text blast} with the help of transitivity of @{text"\<^sup>
  apply(blast intro: rtrancl_trans);
 
 txt{*
-We now return to the second set containment subgoal, which is again proved
+We now return to the second set inclusion subgoal, which is again proved
 pointwise:
 *}
 

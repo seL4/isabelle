@@ -1,19 +1,22 @@
 (*<*)theory Base = Main:(*>*)
 
-section{*Case study: Verified model checking*}
+section{*Case Study: Verified Model Checking*}
 
 text{*\label{sec:VMC}
-Model checking is a very popular technique for the verification of finite
+This chapter ends with a case study concerning model checking for 
+Computation Tree Logic (CTL), a temporal logic.
+Model checking is a popular technique for the verification of finite
 state systems (implementations) with respect to temporal logic formulae
-(specifications) \cite{ClarkeGP-book,Huth-Ryan-book}. Its foundations are completely set theoretic
-and this section will explore them a little in HOL\@. This is done in two steps: first
+(specifications) \cite{ClarkeGP-book,Huth-Ryan-book}. Its foundations are set theoretic
+and this section will explore them in HOL\@. This is done in two steps.  First
 we consider a simple modal logic called propositional dynamic
-logic (PDL) which we then extend to the temporal logic CTL used in many real
+logic (PDL), which we then extend to the temporal logic CTL, which is
+used in many real
 model checkers. In each case we give both a traditional semantics (@{text \<Turnstile>}) and a
 recursive function @{term mc} that maps a formula into the set of all states of
 the system where the formula is valid. If the system has a finite number of
-states, @{term mc} is directly executable, i.e.\ a model checker, albeit not a
-very efficient one. The main proof obligation is to show that the semantics
+states, @{term mc} is directly executable: it is a model checker, albeit an
+inefficient one. The main proof obligation is to show that the semantics
 and the model checker agree.
 
 \underscoreon
@@ -63,7 +66,7 @@ because @{typ state} really is an implicit parameter of our model.  Of
 course it would have been more generic to make @{typ state} a type
 parameter of everything but declaring @{typ state} globally as above
 reduces clutter.  Similarly we declare an arbitrary but fixed
-transition system, i.e.\ relation between states:
+transition system, i.e.\ a relation between states:
 *}
 
 consts M :: "(state \<times> state)set";

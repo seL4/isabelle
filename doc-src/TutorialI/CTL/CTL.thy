@@ -1,11 +1,11 @@
 (*<*)theory CTL = Base:;(*>*)
 
-subsection{*Computation tree logic---CTL*};
+subsection{*Computation Tree Logic---CTL*};
 
 text{*\label{sec:CTL}
-The semantics of PDL only needs transitive reflexive closure.
-Let us now be a bit more adventurous and introduce a new temporal operator
-that goes beyond transitive reflexive closure. We extend the datatype
+The semantics of PDL only needs reflexive transitive closure.
+Let us be adventurous and introduce a more expressive temporal operator.
+We extend the datatype
 @{text formula} by a new constructor
 *};
 (*<*)
@@ -27,7 +27,7 @@ constdefs Paths :: "state \<Rightarrow> (nat \<Rightarrow> state)set"
 
 text{*\noindent
 This definition allows a very succinct statement of the semantics of @{term AF}:
-\footnote{Do not be mislead: neither datatypes nor recursive functions can be
+\footnote{Do not be misled: neither datatypes nor recursive functions can be
 extended by new constructors or equations. This is just a trick of the
 presentation. In reality one has to define a new datatype and a new function.}
 *};
@@ -52,7 +52,7 @@ constdefs af :: "state set \<Rightarrow> state set \<Rightarrow> state set"
          "af A T \<equiv> A \<union> {s. \<forall>t. (s, t) \<in> M \<longrightarrow> t \<in> T}";
 
 text{*\noindent
-Now we define @{term "mc(AF f)"} as the least set @{term T} that contains
+Now we define @{term "mc(AF f)"} as the least set @{term T} that includes
 @{term"mc f"} and all states all of whose direct successors are in @{term T}:
 *};
 (*<*)
@@ -97,9 +97,9 @@ apply(rule ssubst[OF lfp_unfold[OF mono_ef]]);
 by(blast);
 (*>*)
 text{*
-All we need to prove now is that @{term mc} and @{text"\<Turnstile>"}
-agree for @{term AF}, i.e.\ that @{prop"mc(AF f) = {s. s \<Turnstile>
-AF f}"}. This time we prove the two containments separately, starting
+All we need to prove now is  @{prop"mc(AF f) = {s. s \<Turnstile> AF f}"}, which states
+that @{term mc} and @{text"\<Turnstile>"} agree for @{term AF}\@.
+This time we prove the two inclusions separately, starting
 with the easy one:
 *};
 
@@ -145,7 +145,7 @@ done;
 
 
 text{*
-The opposite containment is proved by contradiction: if some state
+The opposite inclusion is proved by contradiction: if some state
 @{term s} is not in @{term"lfp(af A)"}, then we can construct an
 infinite @{term A}-avoiding path starting from @{term s}. The reason is
 that by unfolding @{term lfp} we find that if @{term s} is not in
@@ -154,7 +154,8 @@ direct successor of @{term s} that is again not in @{term"lfp(af
 A)"}. Iterating this argument yields the promised infinite
 @{term A}-avoiding path. Let us formalize this sketch.
 
-The one-step argument in the above sketch
+The one-step argument in the sketch above
+is proved by a variant of contraposition:
 *};
 
 lemma not_in_lfp_afD:
@@ -165,8 +166,7 @@ apply(simp add:af_def);
 done;
 
 text{*\noindent
-is proved by a variant of contraposition:
-assume the negation of the conclusion and prove @{term"s : lfp(af A)"}.
+We assume the negation of the conclusion and prove @{term"s : lfp(af A)"}.
 Unfolding @{term lfp} once and
 simplifying with the definition of @{term af} finishes the proof.
 
@@ -183,8 +183,8 @@ text{*\noindent
 Element @{term"n+1"} on this path is some arbitrary successor
 @{term t} of element @{term n} such that @{term"P t"} holds.  Remember that @{text"SOME t. R t"}
 is some arbitrary but fixed @{term t} such that @{prop"R t"} holds (see \S\ref{sec:SOME}). Of
-course, such a @{term t} may in general not exist, but that is of no
-concern to us since we will only use @{term path} in such cases where a
+course, such a @{term t} need not exist, but that is of no
+concern to us since we will only use @{term path} when a
 suitable @{term t} does exist.
 
 Let us show that if each state @{term s} that satisfies @{term P}
@@ -266,15 +266,14 @@ apply(blast);
 done;
 
 text{*
-Function @{term path} has fulfilled its purpose now and can be forgotten
-about. It was merely defined to provide the witness in the proof of the
+Function @{term path} has fulfilled its purpose now and can be forgotten.
+It was merely defined to provide the witness in the proof of the
 @{thm[source]infinity_lemma}. Aficionados of minimal proofs might like to know
 that we could have given the witness without having to define a new function:
 the term
 @{term[display]"nat_rec s (\<lambda>n t. SOME u. (t,u)\<in>M \<and> P u)"}
 is extensionally equal to @{term"path s P"},
-where @{term nat_rec} is the predefined primitive recursor on @{typ nat}, whose defining
-equations we omit.
+where @{term nat_rec} is the predefined primitive recursor on @{typ nat}.
 *};
 (*<*)
 lemma infinity_lemma:
@@ -329,8 +328,8 @@ Both are solved automatically:
 done;
 
 text{*
-If you found the above proofs somewhat complicated we recommend you read
-\S\ref{sec:CTL-revisited} where we shown how inductive definitions lead to
+If you find these proofs too complicated, we recommend that you read
+\S\ref{sec:CTL-revisited}, where we show how inductive definitions lead to
 simpler arguments.
 
 The main theorem is proved as for PDL, except that we also derive the
@@ -345,8 +344,8 @@ done
 
 text{*
 
-The above language is not quite CTL\@. The latter also includes an
-until-operator @{term"EU f g"} with semantics ``there exist a path
+The language defined above is not quite CTL\@. The latter also includes an
+until-operator @{term"EU f g"} with semantics ``there exists a path
 where @{term f} is true until @{term g} becomes true''. With the help
 of an auxiliary function
 *}
@@ -375,7 +374,7 @@ and prove the equivalence between semantics and model checking, i.e.\ that
 %{text[display]"| EU formula formula    E[_ U _]"}
 %which enables you to read and write {text"E[f U g]"} instead of {term"EU f g"}.
 \end{exercise}
-For more CTL exercises see, for example, \cite{Huth-Ryan-book}.
+For more CTL exercises see, for example, Huth and Ryan \cite{Huth-Ryan-book}.
 *}
 
 (*<*)
@@ -457,8 +456,11 @@ text{*
 Let us close this section with a few words about the executability of our model checkers.
 It is clear that if all sets are finite, they can be represented as lists and the usual
 set operations are easily implemented. Only @{term lfp} requires a little thought.
-Fortunately the HOL library proves that in the case of finite sets and a monotone @{term F},
-@{term"lfp F"} can be computed by iterated application of @{term F} to @{term"{}"} until
+\REMARK{you had `in the library' but I assume you meant it was a 
+built in lemma.  Do we give its name?}
+Fortunately, Isabelle/HOL provides a theorem stating that 
+in the case of finite sets and a monotone @{term F},
+the value of @{term"lfp F"} can be computed by iterated application of @{term F} to~@{term"{}"} until
 a fixed point is reached. It is actually possible to generate executable functional programs
 from HOL definitions, but that is beyond the scope of the tutorial.
 *}

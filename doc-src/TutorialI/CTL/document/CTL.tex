@@ -2,14 +2,14 @@
 \begin{isabellebody}%
 \def\isabellecontext{CTL}%
 %
-\isamarkupsubsection{Computation tree logic---CTL%
+\isamarkupsubsection{Computation Tree Logic---CTL%
 }
 %
 \begin{isamarkuptext}%
 \label{sec:CTL}
-The semantics of PDL only needs transitive reflexive closure.
-Let us now be a bit more adventurous and introduce a new temporal operator
-that goes beyond transitive reflexive closure. We extend the datatype
+The semantics of PDL only needs reflexive transitive closure.
+Let us be adventurous and introduce a more expressive temporal operator.
+We extend the datatype
 \isa{formula} by a new constructor%
 \end{isamarkuptext}%
 \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ {\isacharbar}\ AF\ formula%
@@ -24,7 +24,7 @@ in HOL: it is simply a function from \isa{nat} to \isa{state}.%
 \begin{isamarkuptext}%
 \noindent
 This definition allows a very succinct statement of the semantics of \isa{AF}:
-\footnote{Do not be mislead: neither datatypes nor recursive functions can be
+\footnote{Do not be misled: neither datatypes nor recursive functions can be
 extended by new constructors or equations. This is just a trick of the
 presentation. In reality one has to define a new datatype and a new function.}%
 \end{isamarkuptext}%
@@ -38,7 +38,7 @@ is just complicated enough to warrant a separate definition:%
 \ \ \ \ \ \ \ \ \ {\isachardoublequote}af\ A\ T\ {\isasymequiv}\ A\ {\isasymunion}\ {\isacharbraceleft}s{\isachardot}\ {\isasymforall}t{\isachardot}\ {\isacharparenleft}s{\isacharcomma}\ t{\isacharparenright}\ {\isasymin}\ M\ {\isasymlongrightarrow}\ t\ {\isasymin}\ T{\isacharbraceright}{\isachardoublequote}%
 \begin{isamarkuptext}%
 \noindent
-Now we define \isa{mc\ {\isacharparenleft}AF\ f{\isacharparenright}} as the least set \isa{T} that contains
+Now we define \isa{mc\ {\isacharparenleft}AF\ f{\isacharparenright}} as the least set \isa{T} that includes
 \isa{mc\ f} and all states all of whose direct successors are in \isa{T}:%
 \end{isamarkuptext}%
 {\isachardoublequote}mc{\isacharparenleft}AF\ f{\isacharparenright}\ \ \ \ {\isacharequal}\ lfp{\isacharparenleft}af{\isacharparenleft}mc\ f{\isacharparenright}{\isacharparenright}{\isachardoublequote}%
@@ -52,8 +52,9 @@ that is irrelevant) \isa{af\ A} has a least fixed point:%
 \isacommand{apply}\ blast\isanewline
 \isacommand{done}%
 \begin{isamarkuptext}%
-All we need to prove now is that \isa{mc} and \isa{{\isasymTurnstile}}
-agree for \isa{AF}, i.e.\ that \isa{mc\ {\isacharparenleft}AF\ f{\isacharparenright}\ {\isacharequal}\ {\isacharbraceleft}s{\isachardot}\ s\ {\isasymTurnstile}\ AF\ f{\isacharbraceright}}. This time we prove the two containments separately, starting
+All we need to prove now is  \isa{mc\ {\isacharparenleft}AF\ f{\isacharparenright}\ {\isacharequal}\ {\isacharbraceleft}s{\isachardot}\ s\ {\isasymTurnstile}\ AF\ f{\isacharbraceright}}, which states
+that \isa{mc} and \isa{{\isasymTurnstile}} agree for \isa{AF}\@.
+This time we prove the two inclusions separately, starting
 with the easy one:%
 \end{isamarkuptext}%
 \isacommand{theorem}\ AF{\isacharunderscore}lemma{\isadigit{1}}{\isacharcolon}\isanewline
@@ -105,7 +106,7 @@ first element. The rest is practically automatic:%
 \isacommand{apply}\ blast\isanewline
 \isacommand{done}%
 \begin{isamarkuptext}%
-The opposite containment is proved by contradiction: if some state
+The opposite inclusion is proved by contradiction: if some state
 \isa{s} is not in \isa{lfp\ {\isacharparenleft}af\ A{\isacharparenright}}, then we can construct an
 infinite \isa{A}-avoiding path starting from \isa{s}. The reason is
 that by unfolding \isa{lfp} we find that if \isa{s} is not in
@@ -113,7 +114,8 @@ that by unfolding \isa{lfp} we find that if \isa{s} is not in
 direct successor of \isa{s} that is again not in \isa{lfp\ {\isacharparenleft}af\ A{\isacharparenright}}. Iterating this argument yields the promised infinite
 \isa{A}-avoiding path. Let us formalize this sketch.
 
-The one-step argument in the above sketch%
+The one-step argument in the sketch above
+is proved by a variant of contraposition:%
 \end{isamarkuptext}%
 \isacommand{lemma}\ not{\isacharunderscore}in{\isacharunderscore}lfp{\isacharunderscore}afD{\isacharcolon}\isanewline
 \ {\isachardoublequote}s\ {\isasymnotin}\ lfp{\isacharparenleft}af\ A{\isacharparenright}\ {\isasymLongrightarrow}\ s\ {\isasymnotin}\ A\ {\isasymand}\ {\isacharparenleft}{\isasymexists}\ t{\isachardot}\ {\isacharparenleft}s{\isacharcomma}t{\isacharparenright}{\isasymin}M\ {\isasymand}\ t\ {\isasymnotin}\ lfp{\isacharparenleft}af\ A{\isacharparenright}{\isacharparenright}{\isachardoublequote}\isanewline
@@ -123,8 +125,7 @@ The one-step argument in the above sketch%
 \isacommand{done}%
 \begin{isamarkuptext}%
 \noindent
-is proved by a variant of contraposition:
-assume the negation of the conclusion and prove \isa{s\ {\isasymin}\ lfp\ {\isacharparenleft}af\ A{\isacharparenright}}.
+We assume the negation of the conclusion and prove \isa{s\ {\isasymin}\ lfp\ {\isacharparenleft}af\ A{\isacharparenright}}.
 Unfolding \isa{lfp} once and
 simplifying with the definition of \isa{af} finishes the proof.
 
@@ -140,8 +141,8 @@ path is parameterized by a predicate \isa{P} that should hold along the path:%
 Element \isa{n\ {\isacharplus}\ {\isadigit{1}}} on this path is some arbitrary successor
 \isa{t} of element \isa{n} such that \isa{P\ t} holds.  Remember that \isa{SOME\ t{\isachardot}\ R\ t}
 is some arbitrary but fixed \isa{t} such that \isa{R\ t} holds (see \S\ref{sec:SOME}). Of
-course, such a \isa{t} may in general not exist, but that is of no
-concern to us since we will only use \isa{path} in such cases where a
+course, such a \isa{t} need not exist, but that is of no
+concern to us since we will only use \isa{path} when a
 suitable \isa{t} does exist.
 
 Let us show that if each state \isa{s} that satisfies \isa{P}
@@ -224,8 +225,8 @@ show the proof commands but do not describe the details:%
 \isacommand{apply}{\isacharparenleft}blast{\isacharparenright}\isanewline
 \isacommand{done}%
 \begin{isamarkuptext}%
-Function \isa{path} has fulfilled its purpose now and can be forgotten
-about. It was merely defined to provide the witness in the proof of the
+Function \isa{path} has fulfilled its purpose now and can be forgotten.
+It was merely defined to provide the witness in the proof of the
 \isa{infinity{\isacharunderscore}lemma}. Aficionados of minimal proofs might like to know
 that we could have given the witness without having to define a new function:
 the term
@@ -233,8 +234,7 @@ the term
 \ \ \ \ \ nat{\isacharunderscore}rec\ s\ {\isacharparenleft}{\isasymlambda}n\ t{\isachardot}\ SOME\ u{\isachardot}\ {\isacharparenleft}t{\isacharcomma}\ u{\isacharparenright}\ {\isasymin}\ M\ {\isasymand}\ P\ u{\isacharparenright}%
 \end{isabelle}
 is extensionally equal to \isa{path\ s\ P},
-where \isa{nat{\isacharunderscore}rec} is the predefined primitive recursor on \isa{nat}, whose defining
-equations we omit.%
+where \isa{nat{\isacharunderscore}rec} is the predefined primitive recursor on \isa{nat}.%
 \end{isamarkuptext}%
 %
 \begin{isamarkuptext}%
@@ -267,8 +267,8 @@ Both are solved automatically:%
 \ \isacommand{apply}{\isacharparenleft}auto\ dest{\isacharcolon}not{\isacharunderscore}in{\isacharunderscore}lfp{\isacharunderscore}afD{\isacharparenright}\isanewline
 \isacommand{done}%
 \begin{isamarkuptext}%
-If you found the above proofs somewhat complicated we recommend you read
-\S\ref{sec:CTL-revisited} where we shown how inductive definitions lead to
+If you find these proofs too complicated, we recommend that you read
+\S\ref{sec:CTL-revisited}, where we show how inductive definitions lead to
 simpler arguments.
 
 The main theorem is proved as for PDL, except that we also derive the
@@ -280,8 +280,8 @@ necessary equality \isa{lfp{\isacharparenleft}af\ A{\isacharparenright}\ {\isach
 \isacommand{apply}{\isacharparenleft}auto\ simp\ add{\isacharcolon}\ EF{\isacharunderscore}lemma\ equalityI{\isacharbrackleft}OF\ AF{\isacharunderscore}lemma{\isadigit{1}}\ AF{\isacharunderscore}lemma{\isadigit{2}}{\isacharbrackright}{\isacharparenright}\isanewline
 \isacommand{done}%
 \begin{isamarkuptext}%
-The above language is not quite CTL\@. The latter also includes an
-until-operator \isa{EU\ f\ g} with semantics ``there exist a path
+The language defined above is not quite CTL\@. The latter also includes an
+until-operator \isa{EU\ f\ g} with semantics ``there exists a path
 where \isa{f} is true until \isa{g} becomes true''. With the help
 of an auxiliary function%
 \end{isamarkuptext}%
@@ -312,15 +312,18 @@ and prove the equivalence between semantics and model checking, i.e.\ that
 %{text[display]"| EU formula formula    E[_ U _]"}
 %which enables you to read and write {text"E[f U g]"} instead of {term"EU f g"}.
 \end{exercise}
-For more CTL exercises see, for example, \cite{Huth-Ryan-book}.%
+For more CTL exercises see, for example, Huth and Ryan \cite{Huth-Ryan-book}.%
 \end{isamarkuptext}%
 %
 \begin{isamarkuptext}%
 Let us close this section with a few words about the executability of our model checkers.
 It is clear that if all sets are finite, they can be represented as lists and the usual
 set operations are easily implemented. Only \isa{lfp} requires a little thought.
-Fortunately the HOL library proves that in the case of finite sets and a monotone \isa{F},
-\isa{lfp\ F} can be computed by iterated application of \isa{F} to \isa{{\isacharbraceleft}{\isacharbraceright}} until
+\REMARK{you had `in the library' but I assume you meant it was a 
+built in lemma.  Do we give its name?}
+Fortunately, Isabelle/HOL provides a theorem stating that 
+in the case of finite sets and a monotone \isa{F},
+the value of \isa{lfp\ F} can be computed by iterated application of \isa{F} to~\isa{{\isacharbraceleft}{\isacharbraceright}} until
 a fixed point is reached. It is actually possible to generate executable functional programs
 from HOL definitions, but that is beyond the scope of the tutorial.%
 \end{isamarkuptext}%
