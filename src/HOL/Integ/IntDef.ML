@@ -149,13 +149,13 @@ Addsimps [zminus_int0];
 
 Goalw [neg_def, int_def] "~ neg(int n)";
 by (Simp_tac 1);
-qed "not_neg_nat";
+qed "not_neg_int";
 
 Goalw [neg_def, int_def] "neg(- (int (Suc n)))";
 by (simp_tac (simpset() addsimps [zminus]) 1);
-qed "neg_zminus_nat";
+qed "neg_zminus_int";
 
-Addsimps [neg_zminus_nat, not_neg_nat]; 
+Addsimps [neg_zminus_int, not_neg_int]; 
 
 
 (**** zadd: addition on Integ ****)
@@ -377,6 +377,10 @@ qed "zdiff_zmult_distrib";
 Goal "(w::int) * (z1 - z2) = (w * z1) - (w * z2)";
 by (simp_tac (simpset() addsimps [zmult_commute',zdiff_zmult_distrib]) 1);
 qed "zdiff_zmult_distrib2";
+
+Goalw [int_def] "(int m) * (int n) = int (m * n)";
+by (simp_tac (simpset() addsimps [zmult]) 1);
+qed "zmult_int";
 
 Goalw [int_def] "int 0 * z = int 0";
 by (res_inst_tac [("z","z")] eq_Abs_Integ 1);
