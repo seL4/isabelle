@@ -330,13 +330,14 @@ laws relating division to addition, multiplication, etc.;
 * ZF/UNITY: Chandy and Misra's UNITY is now available in ZF, giving a
 typeless version of the formalism;
 
-* ZF/AC, Coind, IMP, Resid: updated and converted to new-style theory format;
+* ZF/AC, Coind, IMP, Resid: updated and converted to new-style theory
+format;
 
 * ZF/Induct: new directory for examples of inductive definitions,
 including theory Multiset for multiset orderings; converted to
 new-style theory format;
 
-* Many new theorems about lists, ordinals, etc.;
+* ZF: many new theorems about lists, ordinals, etc.;
 
 
 *** General ***
