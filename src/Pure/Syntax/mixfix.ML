@@ -116,8 +116,8 @@ fun syn_ext_consts logtypes const_decls =
     fun name_of (c, _, mx) = const_name c mx;
 
     fun mk_infix sy ty c p1 p2 p3 =
-      [Mfix ("(_ " ^ sy ^ "/ _)", ty, c, [p1, p2], p3),
-       Mfix ("op " ^ sy, ty, c, [], max_pri)];
+      [Mfix ("op " ^ sy, ty, c, [], max_pri),
+       Mfix ("(_ " ^ sy ^ "/ _)", ty, c, [p1, p2], p3)];
 
     fun binder_typ _ (Type ("fun", [Type ("fun", [_, ty2]), ty3])) =
           [Type ("idts", []), ty2] ---> ty3
