@@ -5,7 +5,7 @@
 #stty cs8
 
 #sunbroy52:
-stty pass8
+#stty pass8
 
 bash $*
 
