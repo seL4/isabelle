@@ -2,7 +2,7 @@
     ID:         $Id$
     Author:     Markus Wenzel, TU Muenchen
 
-Setup the actual Pure and CPure theories.
+Final setup of the Pure theories.
 *)
 
 local
@@ -33,8 +33,6 @@ in
   end;
 end;
 
-ThyInfo.loaded_thys :=
-  (Symtab.make (map ThyInfo.mk_info
-    [("ProtoPure", ["Pure", "CPure"], [], ProtoPure.thy),
-     ("Pure", [], ["ProtoPure"], Pure.thy),
-     ("CPure", [], ["ProtoPure"], CPure.thy)]));
+ThyInfo.register_theory ProtoPure.thy;
+ThyInfo.register_theory Pure.thy;
+ThyInfo.register_theory CPure.thy;
