@@ -41,7 +41,8 @@ sig
   val use: string -> unit
   val quiet_update_thy: bool -> string -> unit
   val pretend_use_thy_only: string -> unit
-  val begin_theory: (string -> string list -> (Path.T * bool) list -> theory -> theory) ->
+  val begin_theory: (Path.T option -> string -> string list ->
+      (Path.T * bool) list -> theory -> theory) ->
     bool -> string -> string list -> (Path.T * bool) list -> theory
   val end_theory: theory -> theory
   val finish: unit -> unit
@@ -226,6 +227,10 @@ fun check_unfinished fail name =
 
 (* load_file *)
 
+val opt_path = apsome (Path.dir o fst o ThyLoad.get_thy);
+fun opt_path' (d : deps option) = if_none (apsome (opt_path o #master) d) None;
+fun opt_path'' d = if_none (apsome opt_path' d) None;
+
 local
 
 fun provide path name info (deps as Some {present, outdated, master, files}) =
@@ -237,10 +242,11 @@ fun provide path name info (deps as Some {present, outdated, master, files}) =
 
 fun run_file path =
   (case apsome PureThy.get_name (Context.get_context ()) of
-    None => (ThyLoad.load_file path; ())
-  | Some name =>
-      if known_thy name then change_deps name (provide path name (ThyLoad.load_file path))
-      else (ThyLoad.load_file path; ()));
+    None => (ThyLoad.load_file None path; ())
+  | Some name => (case lookup_deps name of
+      Some deps => change_deps name (provide path name
+        (ThyLoad.load_file (opt_path' deps) path))
+    | None => (ThyLoad.load_file None path; ())));
 
 in
 
@@ -297,14 +303,19 @@ fun load_deps ml dir name =
   let val (master, (parents, files)) = ThyLoad.deps_thy dir name ml
   in (Some (init_deps (Some master) files), parents) end;
 
-fun file_current (_, None) = false
-  | file_current (path, info) = (info = ThyLoad.check_file path);
+fun file_current master (_, None) = false
+  | file_current master (path, info) =
+      (info = ThyLoad.check_file (opt_path master) path);
 
 fun current_deps ml strict dir name =
   (case lookup_deps name of
     None => (false, load_deps ml dir name)
   | Some deps =>
-      let val same_deps = (None, thy_graph Graph.imm_preds name) in
+      let
+        fun get_name s = (case opt_path'' (lookup_deps s) of None => s
+          | Some p => Path.pack (Path.append p (Path.basic s)));
+        val same_deps = (None, map get_name (thy_graph Graph.imm_preds name))
+      in
         (case deps of
           None => (true, same_deps)
         | Some {present, outdated, master, files} =>
@@ -312,7 +323,7 @@ fun current_deps ml strict dir name =
             else
               let val master' = Some (ThyLoad.check_thy dir name ml) in
                 if master <> master' then (false, load_deps ml dir name)
-                else (not outdated andalso forall file_current files, same_deps)
+                else (not outdated andalso forall (file_current master') files, same_deps)
               end)
       end);
 
@@ -333,9 +344,7 @@ fun require_thy really ml time strict keep_strict initiators prfx (visited, str)
         val (current, (new_deps, parents)) = current_deps ml strict dir name handle ERROR =>
           error (loader_msg "the error(s) above occurred while examining theory" [name] ^
             (if null initiators then "" else required_by "\n" initiators));
-        val dir' = (case new_deps of
-            None => dir
-          | Some (Some {master = Some m, ...}) => Path.dir (fst (ThyLoad.get_thy m)));
+        val dir' = if_none (opt_path'' new_deps) dir;
         val (visited', parent_results) = foldl_map (req_parent dir') (name :: visited, parents);
 
         val thy = if not really then Some (get_theory name) else None;
@@ -350,16 +359,19 @@ fun require_thy really ml time strict keep_strict initiators prfx (visited, str)
       in (visited', (result, name)) end
   end;
 
-fun gen_use_thy req s =
-  let val (_, (_, name)) = req [] Path.current ([], s)
+fun gen_use_thy' req prfx s =
+  let val (_, (_, name)) = req [] prfx ([], s)
   in Context.context (get_theory name) end;
+
+fun gen_use_thy req = gen_use_thy' req Path.current;
 
 fun warn_finished f name = (check_unfinished warning name; f name);
 
 in
 
-val weak_use_thy        = gen_use_thy (require_thy true true false false false);
-fun quiet_update_thy ml = gen_use_thy (require_thy true ml false true true);
+val weak_use_thy         = gen_use_thy' (require_thy true true false false false);
+fun quiet_update_thy' ml = gen_use_thy' (require_thy true ml false true true);
+fun quiet_update_thy ml  = gen_use_thy (require_thy true ml false true true);
 
 val use_thy          = warn_finished (gen_use_thy (require_thy true true false true false));
 val time_use_thy     = warn_finished (gen_use_thy (require_thy true true true true false));
@@ -388,7 +400,9 @@ fun remove_thy name =
 fun begin_theory present upd name parents paths =
   let
     val bparents = map base_of_path parents;
-    val assert_thy = if upd then quiet_update_thy true else weak_use_thy;
+    val dir' = opt_path'' (lookup_deps name);
+    val dir = if_none dir' Path.current;
+    val assert_thy = if upd then quiet_update_thy' true dir else weak_use_thy dir;
     val _ = check_unfinished error name;
     val _ = seq assert_thy parents;
     val theory = PureThy.begin_theory name (map get_theory bparents);
@@ -398,7 +412,7 @@ fun begin_theory present upd name parents paths =
     val use_paths = mapfilter (fn (x, true) => Some x | _ => None) paths;
 
     val _ = change_thys (update_node name bparents (deps, Some (Theory.copy theory)));
-    val theory' = theory |> present name bparents paths;
+    val theory' = theory |> present dir' name bparents paths;
     val _ = put_theory name (Theory.copy theory');
     val ((), theory'') = Context.pass_theory theory' (seq (load_file false)) use_paths;
     val _ = put_theory name (Theory.copy theory'');
