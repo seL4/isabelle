@@ -23,7 +23,7 @@ function usage()
 
 function checkfonts()
 {
-  RESULT=$(xlsfonts -fn "-isabelle-*" 2>&1) || return 1
+  RESULT=$(xlsfonts -fn "-isabelle-*-isabelle-0" 2>&1) || return 1
 
   case "$RESULT" in
     xlsfonts:*)
