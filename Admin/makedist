@@ -154,9 +154,9 @@ cd $DISTBASE
 
 chown -R $LOGNAME:isabelle $DISTNAME
 chmod -R u+w $DISTNAME
-chmod -R g+w $DISTNAME
 
-if [ -n $(type -path gtar) ]; then
+if type -path gtar
+then
   gtar czf $DISTNAME.tar.gz $DISTNAME
 else
   tar cf - $DISTNAME | gzip >$DISTNAME.tar.gz
