@@ -24,12 +24,12 @@ sig
     -> thm list -> tactic option -> theory -> theory
   val add_inst_arity: xstring * string list * string -> tactic -> theory -> theory
   val add_inst_arity_i: string * sort list * sort -> tactic -> theory -> theory
-  val default_intro_classes_tac: thm list -> int -> tactic
+  val default_intro_classes_tac: thm list -> tactic
   val axclass_tac: thm list -> tactic
   val instance_subclass_proof: xclass * xclass -> bool -> theory -> ProofHistory.T
   val instance_subclass_proof_i: class * class -> bool -> theory -> ProofHistory.T
-  val instance_arity_proof: xstring * string list * xclass -> bool -> theory -> ProofHistory.T
-  val instance_arity_proof_i: string * sort list * class -> bool -> theory -> ProofHistory.T
+  val instance_arity_proof: xstring * string list * string -> bool -> theory -> ProofHistory.T
+  val instance_arity_proof_i: string * sort list * sort -> bool -> theory -> ProofHistory.T
   val setup: (theory -> theory) list
 end;
 
@@ -94,10 +94,12 @@ fun dest_classrel tm =
 
 (* arities as terms *)
 
-fun mk_arity (t, ss, c) =
+fun mk_arity (t, Ss, c) =
   let
-    val tfrees = ListPair.map TFree (Term.invent_type_names [] (length ss), ss);
+    val tfrees = ListPair.map TFree (Term.invent_type_names [] (length Ss), Ss);
   in Logic.mk_inclass (Type (t, tfrees), c) end;
+
+fun mk_arities (t, Ss, S) = map (fn c => mk_arity (t, Ss, c)) S;
 
 fun dest_arity tm =
   let
@@ -299,29 +301,30 @@ fun class_axms sign =
 
 (* intro_classes *)
 
-fun intro_classes_tac facts i st =
-  ((Method.insert_tac facts THEN'
-    REPEAT_ALL_NEW (resolve_tac (class_axms (Thm.sign_of_thm st)))) i
-    THEN Tactic.distinct_subgoals_tac) st;    (*affects all subgoals!?*)
+fun intro_classes_tac facts st =
+  (ALLGOALS (Method.insert_tac facts THEN'
+      REPEAT_ALL_NEW (resolve_tac (class_axms (Thm.sign_of_thm st))))
+    THEN Tactic.distinct_subgoals_tac) st;
 
 val intro_classes_method =
-  ("intro_classes", Method.no_args (Method.METHOD (HEADGOAL o intro_classes_tac)),
+  ("intro_classes", Method.no_args (Method.METHOD intro_classes_tac),
     "back-chain introduction rules of axiomatic type classes");
 
 
 (* default method *)
 
-fun default_intro_classes_tac [] i = intro_classes_tac [] i
-  | default_intro_classes_tac _ _ = Tactical.no_tac;    (*no error message!*)
+fun default_intro_classes_tac [] = intro_classes_tac []
+  | default_intro_classes_tac _ = Tactical.no_tac;    (*no error message!*)
 
 fun default_tac rules ctxt facts =
-  HEADGOAL (Method.some_rule_tac rules ctxt facts ORELSE' default_intro_classes_tac facts);
+  HEADGOAL (Method.some_rule_tac rules ctxt facts) ORELSE
+    default_intro_classes_tac facts;
 
 val default_method =
   ("default", Method.thms_ctxt_args (Method.METHOD oo default_tac), "apply some intro/elim rule");
 
 
-(* axclass_tac *)
+(* old-style axclass_tac *)
 
 (*(1) repeatedly resolve goals of form "OFCLASS(ty, c_class)",
       try class_trivs first, then "cI" axioms
@@ -333,13 +336,13 @@ fun axclass_tac thms =
     val defs = filter is_def thms;
     val non_defs = filter_out is_def thms;
   in
-    HEADGOAL (intro_classes_tac []) THEN
+    intro_classes_tac [] THEN
     TRY (rewrite_goals_tac defs) THEN
     TRY (REPEAT_FIRST (fn i => assume_tac i ORELSE resolve_tac non_defs i))
   end;
 
 
-(* provers *)
+(* old-style provers *)
 
 fun prove mk_prop str_of sign prop thms usr_tac =
   (Tactic.prove sign [] [] (mk_prop prop) (K (axclass_tac thms THEN (if_none usr_tac all_tac)))
@@ -377,8 +380,6 @@ fun prep_arity prep_tycon prep_sort prep_x sg (t, Ss, x) =
 
 val read_arity = prep_arity Sign.intern_tycon Sign.read_sort Sign.read_sort;
 val cert_arity = prep_arity (K I) Sign.certify_sort Sign.certify_sort;
-val read_simple_arity = prep_arity Sign.intern_tycon Sign.read_sort Sign.intern_class;
-fun cert_simple_arity arg = prep_arity (K I) Sign.certify_sort (K I) arg;
 
 
 (* old-style instance declarations *)
@@ -417,17 +418,18 @@ val add_inst_arity_i = sane_inst_arity cert_arity;
 
 (** instance proof interfaces **)
 
-fun inst_attribute add_thms (thy, thm) = (add_thms [thm] thy, thm);
+fun inst_proof mk_prop add_thms inst int theory =
+  theory
+  |> IsarThy.multi_theorem_i Drule.internalK
+    ("", [fn (thy, th) => (add_thms [th] thy, th)]) []
+    (map (fn t => (("", []), [(t, ([], []))])) (mk_prop (Theory.sign_of theory) inst)) int;
 
-fun inst_proof mk_prop add_thms sig_prop int thy =
-  thy
-  |> IsarThy.theorem_i Drule.internalK (("", [inst_attribute add_thms]),
-    (mk_prop (Theory.sign_of thy) sig_prop, ([], []))) int;
-
-val instance_subclass_proof = inst_proof (mk_classrel oo read_classrel) add_classrel_thms;
-val instance_subclass_proof_i = inst_proof (mk_classrel oo cert_classrel) add_classrel_thms;
-val instance_arity_proof = inst_proof (mk_arity oo read_simple_arity) add_arity_thms;
-val instance_arity_proof_i = inst_proof (mk_arity oo cert_simple_arity) add_arity_thms;
+val instance_subclass_proof =
+  inst_proof (single oo (mk_classrel oo read_classrel)) add_classrel_thms;
+val instance_subclass_proof_i =
+  inst_proof (single oo (mk_classrel oo cert_classrel)) add_classrel_thms;
+val instance_arity_proof = inst_proof (mk_arities oo read_arity) add_arity_thms;
+val instance_arity_proof_i = inst_proof (mk_arities oo cert_arity) add_arity_thms;
 
 
 
@@ -453,7 +455,7 @@ val axclassP =
 val instanceP =
   OuterSyntax.command "instance" "prove type arity or subclass relation" K.thy_goal
     ((P.xname -- ((P.$$$ "\\<subseteq>" || P.$$$ "<") |-- P.xname) >> instance_subclass_proof ||
-      (P.xname -- (P.$$$ "::" |-- P.simple_arity) >> P.triple2) >> instance_arity_proof)
+      (P.xname -- (P.$$$ "::" |-- P.arity) >> P.triple2) >> instance_arity_proof)
       >> (Toplevel.print oo Toplevel.theory_to_proof));
 
 val _ = OuterSyntax.add_parsers [axclassP, instanceP];

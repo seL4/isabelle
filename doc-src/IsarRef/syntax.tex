@@ -204,7 +204,7 @@ given directly at the outer level.
 \railalias{subseteq}{\isasymsubseteq}
 \railterm{subseteq}
 
-\indexouternonterm{sort}\indexouternonterm{arity}\indexouternonterm{simplearity}
+\indexouternonterm{sort}\indexouternonterm{arity}
 \indexouternonterm{classdecl}
 \begin{rail}
   classdecl: name (('<' | subseteq) (nameref + ','))?
@@ -212,8 +212,6 @@ given directly at the outer level.
   sort: nameref
   ;
   arity: ('(' (sort + ',') ')')? sort
-  ;
-  simplearity: ('(' (sort + ',') ')')? nameref
   ;
 \end{rail}
 

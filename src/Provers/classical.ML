@@ -924,7 +924,8 @@ val setup_attrs = Attrib.add_attributes
 
 (** proof methods **)
 
-(* METHOD_CLASET' *)
+fun METHOD_CLASET tac ctxt =
+  Method.METHOD (tac ctxt (get_local_claset ctxt));
 
 fun METHOD_CLASET' tac ctxt =
   Method.METHOD (HEADGOAL o tac ctxt (get_local_claset ctxt));
@@ -947,12 +948,12 @@ fun rule_tac [] ctxt cs facts = some_rule_tac ctxt cs facts
   | rule_tac rules _ _ facts = Method.rule_tac rules facts;
 
 fun default_tac rules ctxt cs facts =
-  rule_tac rules ctxt cs facts ORELSE'
+  HEADGOAL (rule_tac rules ctxt cs facts) ORELSE
   AxClass.default_intro_classes_tac facts;
 
 in
   val rule = METHOD_CLASET' o rule_tac;
-  val default = METHOD_CLASET' o default_tac;
+  val default = METHOD_CLASET o default_tac;
 end;
 
 

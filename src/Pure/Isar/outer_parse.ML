@@ -47,7 +47,6 @@ sig
   val uname: token list -> string option * token list
   val sort: token list -> string * token list
   val arity: token list -> (string list * string) * token list
-  val simple_arity: token list -> (string list * xclass) * token list
   val type_args: token list -> string list * token list
   val typ: token list -> string * token list
   val opt_infix: token list -> Syntax.mixfix * token list
@@ -185,7 +184,6 @@ fun gen_arity cod =
   Scan.optional ($$$ "(" |-- !!! (list1 sort --| $$$ ")")) [] -- cod;
 
 val arity = gen_arity sort;
-val simple_arity = gen_arity xname;
 
 
 (* types *)
