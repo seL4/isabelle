@@ -50,7 +50,6 @@ use "tctical.ML";
 use "search.ML";
 use "tactic.ML";
 use "goals.ML";
-use "axclass.ML";
 
 (*theory system operations*)
 cd "Thy"; use "ROOT.ML"; cd "..";
@@ -59,6 +58,7 @@ cd "Thy"; use "ROOT.ML"; cd "..";
 cd "Isar"; use "ROOT.ML"; cd "..";
 
 (*final Pure theory setup*)
+use "axclass.ML";
 use "pure.ML";
 
 (*several object-logics declare theories that hide basis library structures*)
