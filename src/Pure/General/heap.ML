@@ -1,62 +1,77 @@
-(* Source code from
- *   Purely Functional Data Structures (Chapter 3)
- *   Chris Okasaki
- *   Cambridge University Press, 1998
- *
- * Copyright (c) 1998 Cambridge University Press
+(*  Title:      Pure/General/heap.ML
     ID:         $Id$
- *)
+    Author:     Markus Wenzel, TU Muenchen
+    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
-signature ORDERED =
-  (* a totally ordered type and its comparison functions *)
-sig
-  type T
-
-  val eq  : T * T -> bool
-  val lt  : T * T -> bool
-  val leq : T * T -> bool
-end;
+Heaps over linearly ordered types.  See also Chris Okasaki: "Purely
+Functional Data Structures" (Chapter 3), Cambridge University Press,
+1998.
+*)
 
 signature HEAP =
 sig
-  structure Elem : ORDERED
-
-  type Heap
-
-  val empty     : Heap
-  val isEmpty   : Heap -> bool
-
-  val insert    : Elem.T * Heap -> Heap
-  val merge     : Heap * Heap -> Heap
-
-  val findMin   : Heap -> Elem.T   (* raises Empty if heap is empty *)
-  val deleteMin : Heap -> Heap     (* raises Empty if heap is empty *)
+  type elem
+  type T
+  val empty: T
+  val is_empty: T -> bool
+  val merge: T * T -> T
+  val insert: elem * T -> T
+  exception EMPTY
+  val min: T -> elem        (*exception EMPTY*)
+  val delete_min: T -> T    (*exception EMPTY*)
 end;
 
-functor LeftistHeap (Element : ORDERED) : HEAP =
+functor HeapFun(type elem val ord: elem * elem -> order): HEAP =
 struct
-  structure Elem = Element
 
-  datatype Heap = E | T of int * Elem.T * Heap * Heap
 
-  fun rank E = 0
-    | rank (T (r,_,_,_)) = r
-  fun makeT (x, a, b) = if rank a >= rank b then T (rank b + 1, x, a, b)
-                        else T (rank a + 1, x, b, a)
+(* datatype heap *)
 
-  val empty = E
-  fun isEmpty E = true | isEmpty _ = false
+type elem = elem;
+datatype T = Empty | Heap of int * elem * T * T;
 
-  fun merge (h, E) = h
-    | merge (E, h) = h
-    | merge (h1 as T (_, x, a1, b1), h2 as T (_, y, a2, b2)) =
-        if Elem.leq (x, y) then makeT (x, a1, merge (b1, h2))
-        else makeT (y, a2, merge (h1, b2))
 
-  fun insert (x, h) = merge (T (1, x, E, E), h)
+(* empty heaps *)
 
-  fun findMin E = raise List.Empty
-    | findMin (T (_, x, a, b)) = x
-  fun deleteMin E = raise List.Empty
-    | deleteMin (T (_, x, a, b)) = merge (a, b)
+val empty = Empty;
+
+fun is_empty Empty = true
+  | is_empty (Heap _) = false;
+
+
+(* build heaps *)
+
+local
+
+fun rank Empty = 0
+  | rank (Heap (r, _, _, _)) = r;
+
+fun heap x a b =
+  if rank a >= rank b then Heap (rank b + 1, x, a, b)
+  else Heap (rank a + 1, x, b, a);
+
+in
+
+fun merge (h, Empty) = h
+  | merge (Empty, h) = h
+  | merge (h1 as Heap (_, x1, a1, b1), h2 as Heap (_, x2, a2, b2)) =
+      (case ord (x1, x2) of
+        Library.GREATER => heap x2 a2 (merge (h1, b2))
+      | _ => heap x1 a1 (merge (b1, h2)));
+
+fun insert (x, h) = merge (Heap (1, x, Empty, Empty), h);
+
+end;
+
+
+(* minimum element *)
+
+exception EMPTY
+
+fun min Empty = raise EMPTY
+  | min (Heap (_, x, _, _)) = x;
+
+fun delete_min Empty = raise EMPTY
+  | delete_min (Heap (_, _, a, b)) = merge (a, b);
+
 end;
