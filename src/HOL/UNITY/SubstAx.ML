@@ -13,19 +13,33 @@ Blast.overloaded ("SubstAx.LeadsTo",
 
 (*** Specialized laws for handling invariants ***)
 
-Goal "[| Invariant prg INV;  LeadsTo prg (INV Int A) A' |]   \
+(** Conjoining a safety property **)
+
+Goal "[| reachable prg <= C;  LeadsTo prg (C Int A) A' |]   \
 \     ==> LeadsTo prg A A'";
 by (asm_full_simp_tac
-    (simpset() addsimps [LeadsTo_def, reachable_Int_INV,
-			 Int_assoc RS sym]) 1);
-qed "Invariant_LeadsToI";
+    (simpset() addsimps [LeadsTo_def, Int_absorb2, Int_assoc RS sym]) 1);
+qed "reachable_LeadsToI";
 
-Goal "[| Invariant prg INV;  LeadsTo prg A A' |]   \
-\     ==> LeadsTo prg A (INV Int A')";
+Goal "[| reachable prg <= C;  LeadsTo prg A A' |]   \
+\     ==> LeadsTo prg A (C Int A')";
 by (asm_full_simp_tac
-    (simpset() addsimps [LeadsTo_def, reachable_Int_INV,
+    (simpset() addsimps [LeadsTo_def, Int_absorb2,
 			 Int_assoc RS sym]) 1);
-qed "Invariant_LeadsToD";
+qed "reachable_LeadsToD";
+
+
+(** Conjoining an invariant **)
+
+(* [| Invariant prg C; LeadsTo prg (C Int A) A' |] ==> LeadsTo prg A A' *)
+bind_thm ("Invariant_LeadsToI", 
+	  Invariant_includes_reachable RS reachable_LeadsToI);
+
+(* [| Invariant prg C; LeadsTo prg A A' |] ==> LeadsTo prg A (C Int A') *)
+bind_thm ("Invariant_LeadsToD", 
+	  Invariant_includes_reachable RS reachable_LeadsToD);
+
+
 
 
 (*** Introduction rules: Basis, Trans, Union ***)
@@ -104,6 +118,12 @@ by (blast_tac (claset() addIs [LeadsTo_weaken_R, LeadsTo_weaken_L,
 			       LeadsTo_Trans]) 1);
 qed "LeadsTo_weaken";
 
+Goal "[| reachable prg <= C;  LeadsTo prg A A'; id: Acts prg;   \
+\        C Int B <= A;   C Int A' <= B' |] \
+\     ==> LeadsTo prg B B'";
+by (blast_tac (claset() addDs [reachable_LeadsToI] addIs[LeadsTo_weaken]
+                        addIs [reachable_LeadsToD]) 1);
+qed "reachable_LeadsTo_weaken";
 
 (** Two theorems for "proof lattices" **)
 
@@ -328,6 +348,20 @@ by (rtac (wf_less_than RS LeadsTo_wf_induct) 1);
 by (assume_tac 2);
 by (Asm_simp_tac 1);
 qed "LessThan_induct";
+
+(*Integer version.  Could generalize from #0 to any lower bound*)
+val [reach, prem, id] =
+Goal "[| reachable prg <= {s. #0 <= f s};  \
+\        !! z. LeadsTo prg (A Int {s. f s = z})                     \
+\                           ((A Int {s. f s < z}) Un B);   \
+\        id: Acts prg |] \
+\     ==> LeadsTo prg A B";
+by (res_inst_tac [("f", "nat_of o f")] (allI RS LessThan_induct) 1);
+by (simp_tac (simpset() addsimps [vimage_def]) 1);
+br ([reach, prem] MRS reachable_LeadsTo_weaken) 1;
+by (auto_tac (claset(),
+	      simpset() addsimps [id, nat_of_eq_iff, nat_of_less_iff]));
+qed "integ_0_le_induct";
 
 Goal "[| ALL m:(greaterThan l). LeadsTo prg (A Int f-``{m})   \
 \                                        ((A Int f-``(lessThan m)) Un B);   \
