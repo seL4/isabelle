@@ -39,7 +39,7 @@ constdefs
   (*simplifies the expression of specifications*)
   constdefs
     sub :: ['a, 'a=>'b] => 'b
-      "sub i f == f i"
+      "sub == %i f. f i"
 
 
 end

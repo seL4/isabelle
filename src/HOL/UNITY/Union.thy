@@ -8,6 +8,8 @@ Unions of programs
 Partly from Misra's Chapter 5: Asynchronous Compositions of Programs
 
 Do we need a Meet operator?  (Aka Intersection)
+
+CAN PROBABLY DELETE the "Disjoint" predicate
 *)
 
 Union = SubstAx + FP +

@@ -191,11 +191,6 @@ by (simp_tac (simpset() addsimps [Join_component_iff]) 1);
 by (Blast_tac 1);
 qed "guarantees_Join_Un";
 
-Goal "((JOIN I F) <= H) = (ALL i: I. F i <= H)";
-by (simp_tac (simpset() addsimps [component_eq_subset]) 1);
-by (Blast_tac 1);
-qed "JN_component_iff";
-
 Goalw [guar_def]
     "[| ALL i:I. F i : X i guarantees Y i |] \
 \    ==> (JOIN I F) : (INTER I X) guarantees (INTER I Y)";

@@ -30,20 +30,7 @@ qed "Diff_lift_set";
 
 Addsimps [Int_lift_set, Un_lift_set, Diff_lift_set];
 
-(*Converse fails*)
-Goalw [drop_set_def] "f : A ==> f i : drop_set i A";
-by Auto_tac;
-qed "drop_set_I";
-
 (** lift_act and drop_act **)
-
-Goalw [lift_act_def] "lift_act i Id = Id";
-by Auto_tac;
-by (etac rev_mp 1);
-by (dtac sym 1);
-by (asm_simp_tac (simpset() addsimps [fun_upd_idem_iff]) 1);
-qed "lift_act_Id";
-Addsimps [lift_act_Id];
 
 (*For compatibility with the original definition and perhaps simpler proofs*)
 Goalw [lift_act_def]
@@ -53,12 +40,6 @@ by (rtac exI 1);
 by Auto_tac;
 qed "lift_act_eq";
 AddIffs [lift_act_eq];
-
-Goalw [drop_set_def, drop_act_def]
-     "UNIV <= drop_set i C ==> drop_act i (Restrict C Id) = Id";
-by (Blast_tac 1);
-qed "drop_act_Id";
-Addsimps [drop_act_Id];
 
 (** lift_prog and drop_prog **)
 
@@ -86,7 +67,10 @@ Addsimps [Acts_drop_prog];
 
 (*** sub ***)
 
-Addsimps [sub_def];
+Goal "sub i f = f i";
+by (simp_tac (simpset() addsimps [sub_def]) 1);
+qed "sub_apply";
+Addsimps [sub_apply];
 
 Goal "lift_set i {s. P s} = {s. P (sub i s)}";
 by (asm_simp_tac (simpset() addsimps [lift_set_def]) 1);
@@ -338,8 +322,9 @@ qed "reachable_lift_prog";
 
 Goal "(lift_prog i F : (lift_set i A) Co (lift_set i B))  =  \
 \     (F : A Co B)";
-by (simp_tac (simpset() addsimps [Constrains_def, reachable_lift_prog,
-				  lift_prog_constrains]) 1);
+by (simp_tac
+    (simpset() addsimps [lift_prog_correct, lift_set_correct, 
+			 lift_export extend_Constrains]) 1);
 qed "lift_prog_Constrains";
 
 Goal "(lift_prog i F : Stable (lift_set i A)) = (F : Stable A)";
@@ -453,14 +438,13 @@ by (dtac (lift_export extend_localTo_guar_increasing) 1);
 by (asm_full_simp_tac (simpset() addsimps [lift_prog_correct, o_def]) 1);
 qed "lift_prog_localTo_guar_increasing";
 
-(***
-Goal "F : (v LocalTo G) guarantees Increasing func  \
-\     ==> lift_prog i F : (v o sub i) LocalTo (lift_prog i G)  \
+Goal "[| F : (v LocalTo H) guarantees Increasing func;  H <= F |]  \
+\     ==> lift_prog i F : (v o sub i) LocalTo (lift_prog i H)  \
 \                         guarantees Increasing (func o sub i)";
 by (dtac (lift_export extend_LocalTo_guar_Increasing) 1);
-by (asm_full_simp_tac (simpset() addsimps [lift_prog_correct, o_def]) 1);
+by (auto_tac (claset(),
+	      simpset() addsimps [lift_prog_correct, o_def]));
 qed "lift_prog_LocalTo_guar_Increasing";
-***)
 
 Goal "F : Always A guarantees Always B \
 \ ==> lift_prog i F : Always(lift_set i A) guarantees Always (lift_set i B)";

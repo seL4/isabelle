@@ -123,6 +123,13 @@ by Auto_tac;
 qed "extend_set_inverse";
 Addsimps [extend_set_inverse];
 
+Goalw [extend_set_def, project_set_def]
+     "C <= extend_set h (project_set h C)";
+by (auto_tac (claset(), 
+	      simpset() addsimps [split_extended_all]));
+by (Blast_tac 1);
+qed "extend_set_project_set";
+
 Goal "inj (extend_set h)";
 by (rtac inj_on_inverseI 1);
 by (rtac extend_set_inverse 1);
@@ -453,6 +460,12 @@ by (res_inst_tac [("f", "All")] (ext RS arg_cong) 1);
 by (stac Collect_eq_extend_set 1);
 by (simp_tac (simpset() addsimps [Diff_extend_stable]) 1);
 qed "extend_localTo_extend_eq";
+
+Goal "[| F : v localTo[C] H;  C' <= extend_set h C |] \
+\     ==> extend h F : (v o f) localTo[C'] extend h H";
+by (blast_tac (claset() addDs [extend_localTo_extend_eq RS iffD2,
+			       impOfSubs localTo_anti_mono]) 1);
+qed "extend_localTo_extend_I";
 
 (*USED?? opposite inclusion fails*)
 Goal "Restrict C (extend_act h act) <= \

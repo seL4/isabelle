@@ -56,6 +56,11 @@ Goal "G<=F ==> F Join G = F";
 by (auto_tac (claset(), simpset() addsimps Join_ac@[component_def]));
 qed "Join_absorb2";
 
+Goal "((JOIN I F) <= H) = (ALL i: I. F i <= H)";
+by (simp_tac (simpset() addsimps [component_eq_subset]) 1);
+by (Blast_tac 1);
+qed "JN_component_iff";
+
 Goalw [component_def] "i : I ==> (F i) <= (JN i:I. (F i))";
 by (blast_tac (claset() addIs [JN_absorb]) 1);
 qed "component_JN";
@@ -84,4 +89,19 @@ by (auto_tac (claset(),
 	      simpset() addsimps [constrains_def, component_eq_subset]));
 qed "component_constrains";
 
+(*Used in Guar.thy to show that programs are partially ordered*)
 bind_thm ("program_less_le", strict_component_def RS meta_eq_to_obj_eq);
+
+Goal "F' <= F ==> Diff C G (Acts F) <= Diff C G (Acts F')";
+by (auto_tac (claset(), simpset() addsimps [Diff_def, component_eq_subset]));
+qed "Diff_anti_mono";
+
+(*The LocalTo analogue fails unless 
+    reachable (F Join G) <= reachable (F' Join G),
+  e.g. if the initial condition of F is stronger than that of F'*)
+Goalw [LOCALTO_def, stable_def]
+     "[| G : v localTo[C] F';  F' <= F |] ==> G : v localTo[C] F";
+by (auto_tac (claset() addIs [Diff_anti_mono RS component_constrains], 
+	      simpset()));
+qed "localTo_component";
+

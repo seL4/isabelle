@@ -325,6 +325,9 @@ by Auto_tac;
 by (blast_tac (claset() addIs [Restrict_eq_mono RSN (2,Restrict_imageI)]) 1);
 qed "localTo_anti_mono";
 
+bind_thm ("localTo_UNIV_imp_localTo", 
+	  impOfSubs (subset_UNIV RS localTo_anti_mono));
+
 Goalw [LocalTo_def]
      "G : v localTo[UNIV] F ==> G : v LocalTo F";
 by (blast_tac (claset() addDs [impOfSubs localTo_anti_mono]) 1);
@@ -354,6 +357,15 @@ by (simp_tac
     (simpset() addsimps [LOCALTO_def, stable_def, constrains_def, 
 			 Diff_self_eq]) 1);
 qed "self_localTo";
+
+Goal "(F Join G : v localTo[C] F) = (G : v localTo[C] F)";
+by (simp_tac (simpset() addsimps [Join_localTo, self_localTo]) 1);
+qed "self_Join_localTo";
+
+Goal "(F Join G : v LocalTo F) = (G : v LocalTo F)";
+by (simp_tac (simpset() addsimps [self_Join_localTo, LocalTo_def,
+				  Join_left_absorb]) 1);
+qed "self_Join_LocalTo";
 
 
 

@@ -19,8 +19,7 @@ constdefs
   extending :: "['c program => 'c set, 'a*'b => 'c, 'a program, 
 		 'c program set, 'c program set, 'a program set] => bool"
   "extending C h F X' Y' Y ==
-     ALL G. F Join project h (C G) G : Y & extend h F Join G : X' &
-            Disjoint UNIV (extend h F) G
+     ALL G. F Join project h (C G) G : Y & extend h F Join G : X'
             --> extend h F Join G : Y'"
 
 end

@@ -18,12 +18,13 @@ val image_eqI' = read_instantiate_sg (sign_of thy)
 Goalw [PLam_def] "Init (PLam I F) = (INT i:I. lift_set i (Init (F i)))";
 by Auto_tac;
 qed "Init_PLam";
-Addsimps [Init_PLam];
 
 Goal "Acts (PLam I F) = insert Id (UN i:I. lift_act i `` Acts (F i))";
 by (auto_tac (claset(),
 	      simpset() addsimps [PLam_def]));
 qed "Acts_PLam";
+
+Addsimps [Init_PLam, Acts_PLam];
 
 Goal "PLam {} F = SKIP";
 by (simp_tac (simpset() addsimps [PLam_def]) 1);
@@ -39,6 +40,10 @@ Goalw [PLam_def]
     "PLam (insert i I) F = (lift_prog i (F i)) Join (PLam I F)";
 by Auto_tac;
 qed "PLam_insert";
+
+Goal "((PLam I F) <= H) = (ALL i: I. lift_prog i (F i) <= H)";
+by (simp_tac (simpset() addsimps [PLam_def, JN_component_iff]) 1);
+qed "PLam_component_iff";
 
 Goalw [PLam_def] "i : I ==> lift_prog i (F i) <= (PLam I F)";
 (*blast_tac doesn't use HO unification*)
@@ -121,13 +126,20 @@ by (auto_tac (claset(),
 qed "const_PLam_invariant";
 
 
+(** localTo **)
+
+Goal "(PLam I F) : (sub i) localTo[C] lift_prog i (F i)";
+by (simp_tac (simpset() addsimps [LOCALTO_def, Diff_def, extend_def, 
+				  stable_def, constrains_def]) 1);
+by (Force_tac 1);
+qed "PLam_sub_localTo";
+
+
 (** Reachability **)
 
 Goal "[| f : reachable (PLam I F);  i : I |] ==> f i : reachable (F i)";
 by (etac reachable.induct 1);
-by (auto_tac
-    (claset() addIs reachable.intrs,
-     simpset() addsimps [Acts_PLam]));
+by (auto_tac (claset() addIs reachable.intrs, simpset()));
 qed "reachable_PLam";
 
 (*Result to justify a re-organization of this file*)
@@ -149,10 +161,10 @@ by (etac reachable.induct 1);
 (*Init, Init case*)
 by (force_tac (claset() addIs reachable.intrs, simpset()) 1);
 (*Init of F, action of PLam F case*)
-by (rtac reachable.Acts 1);
+by (res_inst_tac [("act","act")] reachable.Acts 1);
 by (Force_tac 1);
 by (assume_tac 1);
-by (force_tac (claset() addIs [ext], simpset() addsimps [Acts_PLam]) 1);
+by (force_tac (claset() addIs [ext], simpset()) 1);
 (*induction over the 2nd "reachable" assumption*)
 by (eres_inst_tac [("xa","f")] reachable.induct 1);
 (*Init of PLam F, action of F case*)
@@ -161,10 +173,10 @@ by (Force_tac 1);
 by (force_tac (claset() addIs [reachable.Init], simpset()) 1);
 by (force_tac (claset() addIs [ext], simpset() addsimps [lift_act_def]) 1);
 (*last case: an action of PLam I F*)
-by (rtac reachable.Acts 1);
+by (res_inst_tac [("act","acta")] reachable.Acts 1);
 by (Force_tac 1);
 by (assume_tac 1);
-by (force_tac (claset() addIs [ext], simpset() addsimps [Acts_PLam]) 1);
+by (force_tac (claset() addIs [ext], simpset()) 1);
 qed_spec_mp "reachable_lift_Join_PLam";
 
 

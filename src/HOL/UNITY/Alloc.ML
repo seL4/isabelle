@@ -402,7 +402,34 @@ by (rtac (lift_export projecting_Increasing RS projecting_weaken) 1);
 by (auto_tac (claset(), simpset() addsimps [o_def]));
 qed "Client_i_Progress";
 
+Goal "extend sysOfAlloc F \
+\       : (v o client) localTo[C] extend sysOfClient (lift_prog i Client)";
+br localTo_UNIV_imp_localTo 1;
+by (simp_tac (simpset() addsimps [LOCALTO_def, Diff_def, extend_def, 
+				  stable_def, constrains_def,
+				  image_eq_UN, extend_act_def,
+				  sysOfAlloc_def, sysOfClient_def]) 1);
+by (Force_tac 1);
+qed "sysOfAlloc_in_client_localTo_xl_Client";
+
+Goal "extend sysOfClient (plam x: I. Client) : ((%z. z i) o client) \
+\     localTo[C] extend sysOfClient (lift_prog i Client)";
+br localTo_UNIV_imp_localTo 1;
+by (rtac (client_export (extend_set_UNIV_eq RS equalityD2 RSN
+			 (2, extend_localTo_extend_I))) 1);
+br (rewrite_rule [sub_def] PLam_sub_localTo) 1;
+qed "sysOfClient_in_client_localTo_xl_Client";
+
 xxxxxxxxxxxxxxxx;
+
+THIS PROOF requires an extra locality specification for Network:
+    Network : rel o sub i o client localTo[C] 
+                     extend sysOfClient (lift_prog i Client)
+and similarly for ask o sub i o client.
+
+The LeadsTo rule must be refined so as not to require the whole of client to
+be local, since giv is written by the Network.
+
 
 Goalw [System_def]
      "i < Nclients \
@@ -411,17 +438,23 @@ Goalw [System_def]
 \            LeadsTo {s. tokens h <= (tokens o rel o sub i o client) s})";
 by (rtac (guarantees_Join_I2 RS guaranteesD) 1);
 by (rtac (guarantees_PLam_I RS project_guarantees) 1);
-by (rtac Client_i_Progress  1);
+by (rtac Client_i_Progress 1);
 by (Force_tac 1);
 by (rtac (client_export extending_LeadsTo RS extending_weaken RS extending_INT) 2);
 by (rtac subset_refl 4);
 by (simp_tac (simpset()addsimps [client_export Collect_eq_extend_set RS sym]) 3);
-by (rtac projecting_Int 1);
-by (rtac (client_export projecting_Increasing) 1);
-by (rtac (client_export projecting_localTo) 1);
+(*The next step goes wrong: it makes an impossible localTo subgoal*)
+(*blast_tac doesn't use HO unification*)
+by (fast_tac (claset() addIs [projecting_Int,
+			      client_export projecting_Increasing,
+			      component_PLam,
+			      client_export projecting_LocalTo]) 1);
+by (asm_simp_tac
+    (simpset() addsimps [rewrite_rule [System_def] System_Increasing_giv,
+			 LocalTo_def, Join_localTo,
+			 sysOfClient_in_client_localTo_xl_Client,
+			 sysOfAlloc_in_client_localTo_xl_Client]) 2);
+auto();
 
-by (simp_tac (simpset()addsimps [lift_prog_correct]) 1);
 
-by (rtac (client_export ) 1);
 
-Client_Progress;
