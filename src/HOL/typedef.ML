@@ -108,7 +108,7 @@ fun ext_typedef prep_term name (t, vs, mx) raw_set axms thms usr_tac thy =
 
     thy
     |> Theory.add_types [(t, tlen, mx)]
-    |> Theory.add_arities
+    |> Theory.add_arities_i
      [(tname, replicate tlen logicS, logicS),
       (tname, replicate tlen termS, termS)]
     |> Theory.add_consts_i

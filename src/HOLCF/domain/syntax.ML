@@ -116,7 +116,7 @@ let
   val ctt           = map (calc_syntax funprod) eqs';
   val add_cur_ops_i = ThyOps.add_ops_i {curried=true, strict=false, total=false};
 in thy'' |> Theory.add_types      thy_types
-	 |> Theory.add_arities    thy_arities
+	 |> Theory.add_arities_i  thy_arities
 	 |> add_cur_ops_i (flat(map fst ctt))
 	 |> add_cur_ops_i ((if length eqs'>1 then [const_copy] else[])@[const_bisim])
 	 |> Theory.add_trrules_i (flat(map snd ctt))
