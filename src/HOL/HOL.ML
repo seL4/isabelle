@@ -348,7 +348,7 @@ end;
 
 
 
-(*** Load simpdata.ML to be able to initialize HOL's simpset ***)
+(*** Setting up the classical reasoner and simplifier ***)
 
 
 (** Applying HypsubstFun to generate hyp_subst_tac **)
