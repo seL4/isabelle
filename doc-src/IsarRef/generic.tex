@@ -1,0 +1,60 @@
+
+\chapter{Generic Tools and Packages}
+
+\section{Axiomatic Type Classes}\label{sec:axclass}
+
+\indexisarcmd{axclass}\indexisarcmd{instance}
+\begin{matharray}{rcl}
+  \isarcmd{axclass} & : & \isartrans{theory}{theory} \\
+  \isarcmd{instance} & : & \isartrans{theory}{proof(prove)} \\
+\end{matharray}
+
+Axiomatic type classes are provided by Isabelle/Pure as a purely
+\emph{definitional} interface to type classes (cf.~\S\ref{sec:classes}).  Thus
+any object logic may make use of this light-weight mechanism for abstract
+theories.  See \cite{Wenzel:1997:TPHOL} for more information.  There is also a
+tutorial on \emph{Using Axiomatic Type Classes in Isabelle} that is part of
+the standard Isabelle documentation.
+
+\begin{rail}
+  'axclass' classdecl (axmdecl prop comment? +)
+  ;
+  'instance' (nameref '<' nameref | nameref '::' simplearity) comment?
+  ;
+\end{rail}
+
+\begin{description}
+\item [$\isarkeyword{axclass}~$] FIXME
+\item [$\isarkeyword{instance}~c@1 < c@2$ and $\isarkeyword{instance}~c@1 <
+  c@2$] setup up a goal stating the class relation or type arity.  The proof
+  would usually proceed by the $expand_classes$ method, and then establish the
+  characteristic theorems of the type classes involved.  After the final
+  $\QED{}$, the theory will be augmented by a type signature declaration
+  corresponding to the resulting theorem.
+\end{description}
+
+
+
+\section{The Simplifier}
+
+\section{The Classical Reasoner}
+
+
+%\indexisarcmd{}
+%\begin{matharray}{rcl}
+%  \isarcmd{} & : & \isartrans{}{} \\
+%\end{matharray}
+
+%\begin{rail}
+  
+%\end{rail}
+
+%\begin{description}
+%\item [$ $]
+%\end{description}
+
+
+%%% Local Variables: 
+%%% mode: latex
+%%% TeX-master: "isar-ref"
+%%% End: 

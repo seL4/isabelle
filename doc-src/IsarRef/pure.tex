@@ -105,7 +105,7 @@ declared in the current theory, e.g.\ type-checking of included terms.
 \end{description}
 
 
-\subsection{Type classes and sorts}
+\subsection{Type classes and sorts}\label{sec:classes}
 
 \indexisarcmd{classes}\indexisarcmd{classrel}\indexisarcmd{defaultsort}
 \begin{matharray}{rcl}
@@ -115,7 +115,7 @@ declared in the current theory, e.g.\ type-checking of included terms.
 \end{matharray}
 
 \begin{rail}
-  'classes' (name ('<' (nameref ',' +))? comment? +)
+  'classes' (classdecl +)
   ;
   'classrel' nameref '<' nameref comment?
   ;
@@ -253,7 +253,7 @@ declared in the current theory, e.g.\ type-checking of included terms.
 \end{matharray}
 
 \begin{rail}
-  'axioms' (name attributes? ':' prop comment? +)
+  'axioms' (axmdecl prop comment? +)
   ;
   ('theorems' | 'lemmas') thmdef? thmrefs
   ;

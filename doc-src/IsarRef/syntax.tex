@@ -74,6 +74,7 @@ that this in contrast to that types and terms (see below).  Only few commands
 ever refer to sorts or arities explicitly.
 
 \indexouternonterm{sort}\indexouternonterm{arity}\indexouternonterm{simplearity}
+\indexouternonterm{classdecl}
 \begin{rail}
   sort : nameref | lbrace (nameref * ',') rbrace
   ;
@@ -81,6 +82,7 @@ ever refer to sorts or arities explicitly.
   ;
   simplearity : ( () | '(' (sort + ',') ')' ) nameref
   ;
+  classdecl: name ('<' (nameref ',' +))? comment?
 \end{rail}
 
 
@@ -181,9 +183,12 @@ refers to the result of an assumption or goal statement (e.g.\ $\SHOWNAME$),
 as proof method arguments).  Any of these may include lists of attributes,
 which are applied to the preceding theorem or list of theorems.
 
-\indexouternonterm{thmdecl}\indexouternonterm{thmdef}\indexouternonterm{thmrefs}
+\indexouternonterm{thmdecl}\indexouternonterm{axmdecl}
+\indexouternonterm{thmdef}\indexouternonterm{thmrefs}
 \begin{rail}
   thmname : name attributes | name | attributes
+  ;
+  axmdecl : name attributes? ':'
   ;
   thmdecl : thmname ':'
   ;
