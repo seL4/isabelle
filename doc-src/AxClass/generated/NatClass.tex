@@ -4,7 +4,9 @@
 %
 \isamarkupheader{Defining natural numbers in FOL \label{sec:ex-natclass}%
 }
-\isacommand{theory}\ NatClass\ {\isacharequal}\ FOL{\isacharcolon}%
+\isamarkuptrue%
+\isacommand{theory}\ NatClass\ {\isacharequal}\ FOL{\isacharcolon}\isamarkupfalse%
+%
 \begin{isamarkuptext}%
 \medskip\noindent Axiomatic type classes abstract over exactly one
  type argument. Thus, any \emph{axiomatic} theory extension where each
@@ -15,11 +17,13 @@
  Isabelle/FOL.\footnote{See also
  \url{http://isabelle.in.tum.de/library/FOL/ex/NatClass.html}}%
 \end{isamarkuptext}%
+\isamarkuptrue%
 \isacommand{consts}\isanewline
 \ \ zero\ {\isacharcolon}{\isacharcolon}\ {\isacharprime}a\ \ \ \ {\isacharparenleft}{\isachardoublequote}{\isasymzero}{\isachardoublequote}{\isacharparenright}\isanewline
 \ \ Suc\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}{\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a{\isachardoublequote}\isanewline
 \ \ rec\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}{\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a\ {\isasymRightarrow}\ {\isacharparenleft}{\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a{\isacharparenright}\ {\isasymRightarrow}\ {\isacharprime}a{\isachardoublequote}\isanewline
 \isanewline
+\isamarkupfalse%
 \isacommand{axclass}\ nat\ {\isasymsubseteq}\ {\isachardoublequote}term{\isachardoublequote}\isanewline
 \ \ induct{\isacharcolon}\ {\isachardoublequote}P{\isacharparenleft}{\isasymzero}{\isacharparenright}\ {\isasymLongrightarrow}\ {\isacharparenleft}{\isasymAnd}x{\isachardot}\ P{\isacharparenleft}x{\isacharparenright}\ {\isasymLongrightarrow}\ P{\isacharparenleft}Suc{\isacharparenleft}x{\isacharparenright}{\isacharparenright}{\isacharparenright}\ {\isasymLongrightarrow}\ P{\isacharparenleft}n{\isacharparenright}{\isachardoublequote}\isanewline
 \ \ Suc{\isacharunderscore}inject{\isacharcolon}\ {\isachardoublequote}Suc{\isacharparenleft}m{\isacharparenright}\ {\isacharequal}\ Suc{\isacharparenleft}n{\isacharparenright}\ {\isasymLongrightarrow}\ m\ {\isacharequal}\ n{\isachardoublequote}\isanewline
@@ -27,9 +31,11 @@
 \ \ rec{\isacharunderscore}{\isadigit{0}}{\isacharcolon}\ {\isachardoublequote}rec{\isacharparenleft}{\isasymzero}{\isacharcomma}\ a{\isacharcomma}\ f{\isacharparenright}\ {\isacharequal}\ a{\isachardoublequote}\isanewline
 \ \ rec{\isacharunderscore}Suc{\isacharcolon}\ {\isachardoublequote}rec{\isacharparenleft}Suc{\isacharparenleft}m{\isacharparenright}{\isacharcomma}\ a{\isacharcomma}\ f{\isacharparenright}\ {\isacharequal}\ f{\isacharparenleft}m{\isacharcomma}\ rec{\isacharparenleft}m{\isacharcomma}\ a{\isacharcomma}\ f{\isacharparenright}{\isacharparenright}{\isachardoublequote}\isanewline
 \isanewline
+\isamarkupfalse%
 \isacommand{constdefs}\isanewline
 \ \ add\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}{\isacharprime}a{\isacharcolon}{\isacharcolon}nat\ {\isasymRightarrow}\ {\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a{\isachardoublequote}\ \ \ \ {\isacharparenleft}\isakeyword{infixl}\ {\isachardoublequote}{\isacharplus}{\isachardoublequote}\ {\isadigit{6}}{\isadigit{0}}{\isacharparenright}\isanewline
-\ \ {\isachardoublequote}m\ {\isacharplus}\ n\ {\isasymequiv}\ rec{\isacharparenleft}m{\isacharcomma}\ n{\isacharcomma}\ {\isasymlambda}x\ y{\isachardot}\ Suc{\isacharparenleft}y{\isacharparenright}{\isacharparenright}{\isachardoublequote}%
+\ \ {\isachardoublequote}m\ {\isacharplus}\ n\ {\isasymequiv}\ rec{\isacharparenleft}m{\isacharcomma}\ n{\isacharcomma}\ {\isasymlambda}x\ y{\isachardot}\ Suc{\isacharparenleft}y{\isacharparenright}{\isacharparenright}{\isachardoublequote}\isamarkupfalse%
+%
 \begin{isamarkuptext}%
 This is an abstract version of the plain \isa{Nat} theory in
  FOL.\footnote{See
@@ -55,7 +61,9 @@ This is an abstract version of the plain \isa{Nat} theory in
  re-used with some trivial changes only (mostly adding some type
  constraints).%
 \end{isamarkuptext}%
-\isacommand{end}\end{isabellebody}%
+\isamarkuptrue%
+\isacommand{end}\isamarkupfalse%
+\end{isabellebody}%
 %%% Local Variables:
 %%% mode: latex
 %%% TeX-master: "root"

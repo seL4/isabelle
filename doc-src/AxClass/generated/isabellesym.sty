@@ -5,16 +5,6 @@
 %% definitions of standard Isabelle symbols
 %%
 
-% Required packages for unusual symbols -- see below for details.
-%\usepackage{latexsym}
-%\usepackage{amssymb}
-%\usepackage[english]{babel}
-%\usepackage[latin1]{inputenc}
-%\usepackage[only,bigsqcap]{stmaryrd}
-%\usepackage{wasysym}
-%\usepackage{eufrak}
-
-
 % symbol definitions
 
 \newcommand{\isasymA}{\isamath{\mathcal{A}}}
@@ -219,6 +209,8 @@
 \newcommand{\isasymdiamond}{\isamath{\Diamond}}  %requires latexsym
 \newcommand{\isasymturnstile}{\isamath{\vdash}}
 \newcommand{\isasymTurnstile}{\isamath{\models}}
+\newcommand{\isasymtturnstile}{\isamath{\vdash\!\!\!\vdash}}
+\newcommand{\isasymTTurnstile}{\isamath{\mid\!\models}}
 \newcommand{\isasymstileturn}{\isamath{\dashv}}
 \newcommand{\isasymsurd}{\isamath{\surd}}
 \newcommand{\isasymle}{\isamath{\le}}
@@ -273,10 +265,10 @@
 \newcommand{\isasymdiv}{\isamath{\div}}
 \newcommand{\isasymcdot}{\isamath{\cdot}}
 \newcommand{\isasymstar}{\isamath{\star}}
+\newcommand{\isasymbullet}{\boldmath\isamath{\mathchoice{\displaystyle{\cdot}}{\textstyle{\cdot}}{\scriptstyle{\bullet}}{\scriptscriptstyle{\bullet}}}}
+\newcommand{\isasymcirc}{\isamath{\circ}}
 \newcommand{\isasymdagger}{\isamath{\dagger}}
 \newcommand{\isasymddagger}{\isamath{\ddagger}}
-\newcommand{\isasymcirc}{\isamath{\circ}}
-\newcommand{\isasymbullet}{\isamath{\bullet}}
 \newcommand{\isasymlhd}{\isamath{\lhd}}
 \newcommand{\isasymrhd}{\isamath{\rhd}}
 \newcommand{\isasymunlhd}{\isamath{\unlhd}}
@@ -347,4 +339,3 @@
 \newcommand{\isasymdieresis}{\isatext{\"\relax}}
 \newcommand{\isasymcedilla}{\isatext{\c\relax}}
 \newcommand{\isasymhungarumlaut}{\isatext{\H\relax}}
-
