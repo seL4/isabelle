@@ -117,6 +117,15 @@ echo "###"
 cd "$DISTBASE"
 
 $EXPORT || fail "Export failed!"
+
+if [ -n "$CVS2CL" ]; then
+  cd $DISTNAME
+  $CVS2CL
+  gzip ChangeLog
+  mv ChangeLog.gz ..
+  cd ..
+fi
+
 $FIND . -name CVS -print | xargs rm -rf
 $FIND . -name .cvsignore -print | xargs rm -rf
 $FIND . "(" -type d -a -empty ")" -print | xargs rm -rf

@@ -26,6 +26,7 @@ DISTPREFIX=$HOME/isadist
 MAKEDIST=$HOME/bin/makedist
 MAKEALL=$HOME/bin/isatest-makeall
 TAR=gtar
+CVS2CL=$HOME/bin/cvs2cl
 
 SSH="ssh -f"
 
@@ -57,6 +58,7 @@ rm -f $ERRORDIR/isatest-*.log
 rm -f $RUNNING/*.runnning
 
 export DISTPREFIX
+export CVS2CL
 
 DATE=$(date "+%Y-%m-%d")
 DISTLOG=$LOGPREFIX/isatest-makedist-$DATE.log
