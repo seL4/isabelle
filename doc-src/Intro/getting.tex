@@ -1,19 +1,25 @@
 %% $Id$
 \part{Getting Started with Isabelle}\label{chap:getting}
-Let us consider how to perform simple proofs using Isabelle.  At present,
-Isabelle's user interface is \ML.  Proofs are conducted by applying certain
-\ML{} functions, which update a stored proof state.  All syntax must be
-expressed using {\sc ascii} characters.  Menu-driven graphical interfaces
-are under construction, but Isabelle users will always need to know some
-\ML, at least to use tacticals.
+Let us consider how to perform simple proofs using Isabelle.  At
+present, Isabelle's user interface is \ML.  Proofs are conducted by
+applying certain \ML{} functions, which update a stored proof state.
+Basically, all syntax must be expressed using plain {\sc ascii}
+characters. There are also mechanisms built into Isabelle that support
+alternative syntaxes, for example using mathematical symbols from a
+special screen font. The meta-logic and major object-logics already
+provide such fancy output as an option.
 
-Object-logics are built upon Pure Isabelle, which implements the meta-logic
-and provides certain fundamental data structures: types, terms, signatures,
-theorems and theories, tactics and tacticals.  These data structures have
-the corresponding \ML{} types {\tt typ}, {\tt term}, {\tt Sign.sg}, {\tt thm},
-{\tt theory} and {\tt tactic}; tacticals have function types such as {\tt
-tactic->tactic}.  Isabelle users can operate on these data structures by
-writing \ML{} programs.
+%FIXME remove
+%Menu-driven graphical interfaces are under construction, but Isabelle
+%users will always need to know some \ML, at least to use tacticals.
+
+Object-logics are built upon Pure Isabelle, which implements the
+meta-logic and provides certain fundamental data structures: types,
+terms, signatures, theorems and theories, tactics and tacticals.
+These data structures have the corresponding \ML{} types {\tt typ},
+{\tt term}, {\tt Sign.sg}, {\tt thm}, {\tt theory} and {\tt tactic};
+tacticals have function types such as {\tt tactic->tactic}.  Isabelle
+users can operate on these data structures by writing \ML{} programs.
 
 \section{Forward proof}\label{sec:forward} \index{forward proof|(}
 This section describes the concrete syntax for types, terms and theorems,
@@ -65,10 +71,11 @@ Classes are denoted by identifiers; the built-in class \cldx{logic}
 contains the `logical' types.  Sorts are lists of classes enclosed in
 braces~\} and \{; singleton sorts may be abbreviated by dropping the braces.
 
-\index{types!syntax of|bold}\index{sort constraints}
-Types are written with a syntax like \ML's.  The built-in type \tydx{prop}
-is the type of propositions.  Type variables can be constrained to particular
-classes or sorts, for example {\tt 'a::term} and {\tt ?'b::\{ord,arith\}}.
+\index{types!syntax of|bold}\index{sort constraints} Types are written
+with a syntax like \ML's.  The built-in type \tydx{prop} is the type
+of propositions.  Type variables can be constrained to particular
+classes or sorts, for example {\tt 'a::term} and {\tt ?'b::\ttlbrace
+  ord, arith\ttrbrace}.
 \[\dquotes
 \index{*:: symbol}\index{*=> symbol}
 \index{{}@{\tt\ttlbrace} symbol}\index{{}@{\tt\ttrbrace} symbol}
@@ -76,7 +83,7 @@ classes or sorts, for example {\tt 'a::term} and {\tt ?'b::\{ord,arith\}}.
 \begin{array}{lll}
     \multicolumn{3}{c}{\hbox{ASCII Notation for Types}} \\ \hline
   \alpha "::" C              & \alpha :: C        & \hbox{class constraint} \\
-  \alpha "::" "\{" C@1 "," \ldots "," C@n "\}" &
+  \alpha "::" "\ttlbrace" C@1 "," \ldots "," C@n "\ttrbrace" &
      \alpha :: \{C@1,\dots,C@n\}             & \hbox{sort constraint} \\
   \sigma " => " \tau        & \sigma\To\tau & \hbox{function type} \\
   "[" \sigma@1 "," \ldots "," \sigma@n "] => " \tau &
@@ -118,7 +125,7 @@ are just terms of type~{\tt prop}.
   \List{\phi@1;\ldots;\phi@n} \Imp \psi & \hbox{nested implication} \\
   "!!" x "." \phi & \Forall x.\phi & \hbox{meta-quantification} \\
   "!!" x@1\ldots x@n "." \phi & 
-  \Forall x@1. \ldots \Forall x@n.\phi & \hbox{nested quantification}
+  \Forall x@1. \ldots x@n.\phi & \hbox{nested quantification}
   \end{array}
 \]
 Flex-flex constraints are meta-equalities arising from unification; they
@@ -138,8 +145,8 @@ it with the symbol {\tt PROP}:\index{*PROP symbol}
 PROP ?psi ==> PROP ?theta 
 \end{ttbox}
 
-Symbols of object-logics also must be rendered into {\sc ascii}, typically
-as follows:
+Symbols of object-logics are typically rendered into {\sc ascii} as
+follows:
 \[ \begin{tabular}{l@{\quad}l@{\quad}l}
       \tt True          & $\top$        & true \\
       \tt False         & $\bot$        & false \\
@@ -154,9 +161,8 @@ as follows:
 \]
 To illustrate the notation, consider two axioms for first-order logic:
 $$ \List{P; Q} \Imp P\conj Q                 \eqno(\conj I) $$
-$$ \List{\exists x.P(x);  \Forall x. P(x)\imp Q} \Imp Q  \eqno(\exists E) $$
-Using the {\tt [|\ldots|]} shorthand, $({\conj}I)$ translates into
-{\sc ascii} characters as
+$$ \List{\exists x.P(x); \Forall x. P(x)\imp Q} \Imp Q \eqno(\exists E) $$
+$({\conj}I)$ translates into {\sc ascii} characters as
 \begin{ttbox}
 [| ?P; ?Q |] ==> ?P & ?Q
 \end{ttbox}
@@ -406,14 +412,19 @@ and the {\it formula\/} is written as an \ML\ string.
 applies the {\it tactic\/} to the current proof
 state, raising an exception if the tactic fails.
 
-\item[\ttindex{undo}(); ] 
+\item[\ttindex{undo}(); ]
   reverts to the previous proof state.  Undo can be repeated but cannot be
   undone.  Do not omit the parentheses; typing {\tt\ \ undo;\ \ } merely
   causes \ML\ to echo the value of that function.
 
-\item[\ttindex{result}()] 
+\item[\ttindex{result}();]
 returns the theorem just proved, in a standard format.  It fails if
 unproved subgoals are left, etc.
+
+\item[\ttindex{qed} {\it name};] is the usual way of ending a proof.
+  It gets the theorem using {\tt result}, stores it in Isabelle's
+  theorem database and binds it to an \ML{} identifier.
+
 \end{ttdescription}
 The commands and tactics given above are cumbersome for interactive use.
 Although our examples will use the full commands, you may prefer Isabelle's
@@ -494,9 +505,9 @@ by (assume_tac 1);
 {\out No subgoals!}
 \end{ttbox}
 Isabelle tells us that there are no longer any subgoals: the proof is
-complete.  Calling {\tt result} returns the theorem.
+complete.  Calling {\tt qed} stores the theorem.
 \begin{ttbox}
-val mythm = result(); 
+qed "mythm";
 {\out val mythm = "?P | ?P --> ?P" : thm} 
 \end{ttbox}
 Isabelle has replaced the free variable~{\tt P} by the scheme
@@ -664,7 +675,7 @@ have~{\tt?y}, whose instances may not contain the bound variable~{\tt x}.
 The reflexivity axiom does not unify with subgoal~1.
 \begin{ttbox}
 by (resolve_tac [refl] 1);
-{\out by: tactic returned no results}
+{\out by: tactic failed}
 \end{ttbox}
 There can be no proof of $\exists y.\forall x.x=y$ by the soundness of
 first-order logic.  I have elsewhere proved the faithfulness of Isabelle's
@@ -727,7 +738,7 @@ of {\tt?y3(z)} can only contain~{\tt z}.  Due to the restriction on~{\tt ?x1},
 proof by assumption will fail.
 \begin{ttbox}
 by (assume_tac 1);
-{\out by: tactic returned no results}
+{\out by: tactic failed}
 {\out uncaught exception ERROR}
 \end{ttbox}
 

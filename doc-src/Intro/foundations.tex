@@ -72,11 +72,13 @@ $(bool)list$ is the type of lists of booleans.  Function types have the
 form $(\sigma,\tau)fun$ or $\sigma\To\tau$, where $\sigma$ and $\tau$ are
 types.  Curried function types may be abbreviated:
 \[  \sigma@1\To (\cdots \sigma@n\To \tau\cdots)  \quad \hbox{as} \quad
-   [\sigma@1, \ldots, \sigma@n] \To \tau \]
+[\sigma@1, \ldots, \sigma@n] \To \tau \]
  
-\index{terms!syntax of}
-The syntax for terms is summarised below.  Note that function application is
-written $t(u)$ rather than the usual $t\,u$.
+\index{terms!syntax of} The syntax for terms is summarised below.
+Note that there are two versions of function application syntax
+available in Isabelle: either $t\,u$, which is the usual form for
+higher-order languages, or $t(u)$, trying to look more like
+first-order. The latter syntax is used throughout the manual.
 \[ 
 \index{lambda abs@$\lambda$-abstractions}\index{function applications}
 \begin{array}{ll}
@@ -322,7 +324,9 @@ axiom.
 
 One of the simplest rules is $(\conj E1)$.  Making
 everything explicit, its formalization in the meta-logic is
-$$ \Forall P\;Q. Trueprop(P\conj Q) \Imp Trueprop(P).   \eqno(\conj E1) $$
+$$
+\Forall P\;Q. Trueprop(P\conj Q) \Imp Trueprop(P).   \eqno(\conj E1)
+$$
 This may look formidable, but it has an obvious reading: for all object-level
 truth values $P$ and~$Q$, if $P\conj Q$ is true then so is~$P$.  The
 reading is correct because the meta-logic has simple models, where
@@ -400,13 +404,13 @@ This means, `if $P(x)$ is true for all~$x$, then $\forall x.P(x)$ is true.'
 The $\forall E$ rule exploits $\beta$-conversion.  Hiding $Trueprop$, the
 $\forall$ axioms are
 $$ \left(\Forall x. P(x)\right)  \Imp  \forall x.P(x)   \eqno(\forall I) $$
-$$ (\forall x.P(x))  \Imp P(t).  \eqno(\forall E)$$
+$$ (\forall x.P(x))  \Imp P(t).  \eqno(\forall E) $$
 
 \noindent
 We have defined the object-level universal quantifier~($\forall$)
 using~$\Forall$.  But we do not require meta-level counterparts of all the
 connectives of the object-logic!  Consider the existential quantifier: 
-$$ P(t)  \Imp  \exists x.P(x)  \eqno(\exists I)$$
+$$ P(t)  \Imp  \exists x.P(x)  \eqno(\exists I) $$
 $$ \List{\exists x.P(x);\; \Forall x. P(x)\Imp Q} \Imp Q  \eqno(\exists E) $$
 Let us verify $(\exists E)$ semantically.  Suppose that the premises
 hold; since $\exists x.P(x)$ is true, we may choose an~$a$ such that $P(a)$ is
@@ -420,47 +424,48 @@ throughout~$P$, which cannot be expressed using $\beta$-conversion.  Our
 rule~$(subst)$ uses~$P$ as a template for substitution, inferring $P[u/x]$
 from~$P[t/x]$.  When we formalize this as an axiom, the template becomes a
 function variable:
-$$ \List{t=u; P(t)} \Imp P(u).  \eqno(subst)$$
+$$ \List{t=u; P(t)} \Imp P(u).  \eqno(subst) $$
 
 
 \subsection{Signatures and theories}
 \index{signatures|bold}
 
 A {\bf signature} contains the information necessary for type checking,
-parsing and pretty printing a term.  It specifies classes and their
+parsing and pretty printing a term.  It specifies type classes and their
 relationships, types and their arities, constants and their types, etc.  It
-also contains syntax rules, specified using mixfix declarations.
+also contains grammar rules, specified using mixfix declarations.
 
 Two signatures can be merged provided their specifications are compatible ---
 they must not, for example, assign different types to the same constant.
 Under similar conditions, a signature can be extended.  Signatures are
 managed internally by Isabelle; users seldom encounter them.
 
-\index{theories|bold}
-A {\bf theory} consists of a signature plus a collection of axioms.  The
-{\bf pure} theory contains only the meta-logic.  Theories can be combined
-provided their signatures are compatible.  A theory definition extends an
-existing theory with further signature specifications --- classes, types,
-constants and mixfix declarations --- plus a list of axioms, expressed as
-strings to be parsed.  A theory can formalize a small piece of mathematics,
-such as lists and their operations, or an entire logic.  A mathematical
-development typically involves many theories in a hierarchy.  For example,
-the pure theory could be extended to form a theory for
-Fig.\ts\ref{fol-fig}; this could be extended in two separate ways to form a
-theory for natural numbers and a theory for lists; the union of these two
-could be extended into a theory defining the length of a list:
+\index{theories|bold} A {\bf theory} consists of a signature plus a
+collection of axioms.  The {\Pure} theory contains only the
+meta-logic.  Theories can be combined provided their signatures are
+compatible.  A theory definition extends an existing theory with
+further signature specifications --- classes, types, constants and
+mixfix declarations --- plus lists of axioms and definitions etc.,
+expressed as strings to be parsed.  A theory can formalize a small
+piece of mathematics, such as lists and their operations, or an entire
+logic.  A mathematical development typically involves many theories in
+a hierarchy.  For example, the {\Pure} theory could be extended to
+form a theory for Fig.\ts\ref{fol-fig}; this could be extended in two
+separate ways to form a theory for natural numbers and a theory for
+lists; the union of these two could be extended into a theory defining
+the length of a list:
 \begin{tt}
 \[
 \begin{array}{c@{}c@{}c@{}c@{}c}
-     {}   &     {} & \hbox{Length} &  {}   &     {}   \\
-     {}   &     {}   &  \uparrow &     {}   &     {}   \\
-     {}   &     {} &\hbox{Nat}+\hbox{List}&  {}   &     {}   \\
-     {}   & \nearrow &     {}    & \nwarrow &     {}   \\
- \hbox{Nat} &   {}   &     {}    &     {}   & \hbox{List} \\
-     {}   & \nwarrow &     {}    & \nearrow &     {}   \\
+     {}   &     {}   &\hbox{Pure}&     {}  &     {}  \\
+     {}   &     {}   &  \downarrow &     {}   &     {}   \\
      {}   &     {}   &\hbox{FOL} &     {}   &     {}   \\
-     {}   &     {}   &  \uparrow &     {}   &     {}   \\
-     {}   &     {}   &\hbox{Pure}&     {}  &     {}
+     {}   & \swarrow &     {}    & \searrow &     {}   \\
+ \hbox{Nat} &   {}   &     {}    &     {}   & \hbox{List} \\
+     {}   & \searrow &     {}    & \swarrow &     {}   \\
+     {}   &     {} &\hbox{Nat}+\hbox{List}&  {}   &     {}   \\
+     {}   &     {}   &  \downarrow &     {}   &     {}   \\
+     {}   &     {} & \hbox{Length} &  {}   &     {}
 \end{array}
 \]
 \end{tt}%
@@ -472,7 +477,7 @@ session.
 \begin{warn}\index{constants!clashes with variables}%
   Confusing problems arise if you work in the wrong theory.  Each theory
   defines its own syntax.  An identifier may be regarded in one theory as a
-  constant and in another as a variable.
+  constant and in another as a variable, for example.
 \end{warn}
 
 \section{Proof construction in Isabelle}
@@ -566,7 +571,7 @@ result of suitable type, it guesses
 where $\Var{h@1}$, \ldots, $\Var{h@m}$ are new unknowns.  Assuming there are no
 other occurrences of~$\Var{f}$, equation~(\ref{hou-eqn}) simplifies to the 
 equation 
-\[ t(\Var{h@1}(t),\ldots,\Var{h@m}(t)) \qeq g(u@1,\ldots,u@k). $$ 
+\[ t(\Var{h@1}(t),\ldots,\Var{h@m}(t)) \qeq g(u@1,\ldots,u@k). \]
 
 \begin{warn}\index{unification!incompleteness of}%
 Huet's unification procedure is complete.  Isabelle's polymorphic version,
@@ -634,11 +639,11 @@ $1\leq i\leq n$) as a parameter and may yield infinitely many conclusions,
 one for each unifier of $\psi$ with $\phi@i$.  Isabelle returns these
 conclusions as a sequence (lazy list).
 
-Resolution expects the rules to have no outer quantifiers~($\Forall$).  It
-may rename or instantiate any schematic variables, but leaves free
-variables unchanged.  When constructing a theory, Isabelle puts the rules
-into a standard form containing no free variables; for instance, $({\imp}E)$
-becomes
+Resolution expects the rules to have no outer quantifiers~($\Forall$).
+It may rename or instantiate any schematic variables, but leaves free
+variables unchanged.  When constructing a theory, Isabelle puts the
+rules into a standard form containing only schematic variables;
+for instance, $({\imp}E)$ becomes
 \[ \List{\Var{P}\imp \Var{Q}; \Var{P}}  \Imp \Var{Q}. 
 \]
 When resolving two rules, the unknowns in the first rule are renamed, by
@@ -770,7 +775,7 @@ Resolution is convenient for deriving simple rules and for reasoning
 forward from facts.  It can also support backward proof, where we start
 with a goal and refine it to progressively simpler subgoals until all have
 been solved.  {\sc lcf} and its descendants {\sc hol} and Nuprl provide
-tactics and tacticals, which constitute a high-level language for
+tactics and tacticals, which constitute a sophisticated language for
 expressing proof searches.  {\bf Tactics} refine subgoals while {\bf
   tacticals} combine tactics.
 
@@ -1074,7 +1079,7 @@ is simply
 Elim-resolution's simultaneous unification gives better control
 than ordinary resolution.  Recall the substitution rule:
 $$ \List{\Var{t}=\Var{u}; \Var{P}(\Var{t})} \Imp \Var{P}(\Var{u}) 
-   \eqno(subst) $$
+\eqno(subst) $$
 Unsuitable for ordinary resolution because $\Var{P}(\Var{u})$ admits many
 unifiers, $(subst)$ works well with elim-resolution.  It deletes some
 assumption of the form $x=y$ and replaces every~$y$ by~$x$ in the subgoal
@@ -1146,7 +1151,7 @@ Discharging them in the order $\theta@k,\ldots,\theta@1$ yields the
 meta-theorem $\List{\theta@1; \ldots; \theta@k} \Imp \phi$, with no
 assumptions.  This represents the desired rule.
 Let us derive the general $\conj$ elimination rule:
-$$ \infer{R}{P\conj Q & \infer*{R}{[P,Q]}}  \eqno(\conj E)$$
+$$ \infer{R}{P\conj Q & \infer*{R}{[P,Q]}}  \eqno(\conj E) $$
 We assume $P\conj Q$ and $\List{P;Q}\Imp R$, and commence backward proof in
 the state $R\Imp R$.  Resolving this with the second assumption yields the
 state 

@@ -3,14 +3,15 @@
 Before continuing, it might be wise to try some of your own examples in
 Isabelle, reinforcing your knowledge of the basic functions.
 
-Look through {\em Isabelle's Object-Logics\/} and try proving some simple
-theorems.  You probably should begin with first-order logic ({\tt FOL}
-or~{\tt LK}).  Try working some of the examples provided, and others from
-the literature.  Set theory~({\tt ZF}) and Constructive Type Theory~({\tt
-  CTT}) form a richer world for mathematical reasoning and, again, many
-examples are in the literature.  Higher-order logic~({\tt HOL}) is
-Isabelle's most sophisticated logic because its types and functions are
-identified with those of the meta-logic.
+Look through {\em Isabelle's Object-Logics\/} and try proving some
+simple theorems.  You probably should begin with first-order logic
+({\tt FOL} or~{\tt LK}).  Try working some of the examples provided,
+and others from the literature.  Set theory~({\tt ZF}) and
+Constructive Type Theory~({\tt CTT}) form a richer world for
+mathematical reasoning and, again, many examples are in the
+literature.  Higher-order logic~({\tt HOL}) is Isabelle's most
+elaborate logic. Its types and functions are identified with those of
+the meta-logic.
 
 Choose a logic that you already understand.  Isabelle is a proof
 tool, not a teaching tool; if you do not know how to do a particular proof
@@ -36,11 +37,12 @@ definitions.
 \index{examples!of deriving rules}\index{assumptions!of main goal}
 
 The subgoal module supports the derivation of rules, as discussed in
-\S\ref{deriving}.  The \ttindex{goal} command, when supplied a goal of the
-form $\List{\theta@1; \ldots; \theta@k} \Imp \phi$, creates $\phi\Imp\phi$
-as the initial proof state and returns a list consisting of the theorems
-${\theta@i\;[\theta@i]}$, for $i=1$, \ldots,~$k$.  These meta-assumptions
-are also recorded internally, allowing {\tt result} to discharge them
+\S\ref{deriving}.  The \ttindex{goal} command, when supplied a goal of
+the form $\List{\theta@1; \ldots; \theta@k} \Imp \phi$, creates
+$\phi\Imp\phi$ as the initial proof state and returns a list
+consisting of the theorems ${\theta@i\;[\theta@i]}$, for $i=1$,
+\ldots,~$k$.  These meta-assumptions are also recorded internally,
+allowing {\tt result} (which is called by {\tt qed}) to discharge them
 in the original order.
 
 Let us derive $\conj$ elimination using Isabelle.
@@ -91,13 +93,13 @@ by (resolve_tac [major RS conjunct2] 1);
 {\out No subgoals!}
 \end{ttbox}
 Calling \ttindex{topthm} returns the current proof state as a theorem.
-Note that it contains assumptions.  Calling \ttindex{result} discharges the
-assumptions --- both occurrences of $P\conj Q$ are discharged as one ---
-and makes the variables schematic.
+Note that it contains assumptions.  Calling \ttindex{qed} discharges
+the assumptions --- both occurrences of $P\conj Q$ are discharged as
+one --- and makes the variables schematic.
 \begin{ttbox}
 topthm();
 {\out val it = "R  [P & Q, P & Q, [| P; Q |] ==> R]" : thm}
-val conjE = result();
+qed "conjE";
 {\out val conjE = "[| ?P & ?Q; [| ?P; ?Q |] ==> ?R |] ==> ?R" : thm}
 \end{ttbox}
 
@@ -139,8 +141,8 @@ peculiar.  Using Isabelle, we shall derive pleasanter negation rules:
 \[  \infer[({\neg}I)]{\neg P}{\infer*{\bot}{[P]}}   \qquad
     \infer[({\neg}E)]{Q}{\neg P & P}  \]
 This requires proving the following meta-formulae:
-$$ (P\Imp\bot)    \Imp \neg P   \eqno(\neg I)$$
-$$ \List{\neg P; P} \Imp Q.       \eqno(\neg E)$$
+$$ (P\Imp\bot)    \Imp \neg P   \eqno(\neg I) $$
+$$ \List{\neg P; P} \Imp Q.       \eqno(\neg E) $$
 
 
 \subsection{Deriving the $\neg$ introduction rule}
@@ -185,7 +187,7 @@ by (assume_tac 1);
 {\out ~P}
 {\out No subgoals!}
 \ttbreak
-val notI = result();
+qed "notI";
 {\out val notI = "(?P ==> False) ==> ~?P" : thm}
 \end{ttbox}
 \indexbold{*notI theorem}
@@ -251,7 +253,7 @@ by (resolve_tac [minor] 1);
 {\out Level 4}
 {\out R}
 {\out No subgoals!}
-val notE = result();
+qed "notE";
 {\out val notE = "[| ~?P; ?P |] ==> ?R" : thm}
 \end{ttbox}
 \indexbold{*notE theorem}
@@ -313,10 +315,10 @@ by (assume_tac 1);
 {\out !!P R. [| ~ P; P |] ==> R}
 {\out No subgoals!}
 \end{ttbox}
-Calling \ttindex{result} strips the meta-quantifiers, so the resulting
+Calling \ttindex{qed} strips the meta-quantifiers, so the resulting
 theorem is the same as before.
 \begin{ttbox}
-val notE = result();
+qed "notE";
 {\out val notE = "[| ~?P; ?P |] ==> ?R" : thm}
 \end{ttbox}
 Do not use the {\tt!!}\ trick if the premises contain meta-level
@@ -328,62 +330,67 @@ for deriving the introduction rule~$(\neg I)$.
 \section{Defining theories}\label{sec:defining-theories}
 \index{theories!defining|(}
 
-Isabelle makes no distinction between simple extensions of a logic --- like
-defining a type~$bool$ with constants~$true$ and~$false$ --- and defining
-an entire logic.  A theory definition has the form
+Isabelle makes no distinction between simple extensions of a logic ---
+like specifying a type~$bool$ with constants~$true$ and~$false$ ---
+and defining an entire logic.  A theory definition has a form like
 \begin{ttbox}
 \(T\) = \(S@1\) + \(\cdots\) + \(S@n\) +
 classes      {\it class declarations}
 default      {\it sort}
 types        {\it type declarations and synonyms}
-arities      {\it arity declarations}
+arities      {\it type arity declarations}
 consts       {\it constant declarations}
-translations {\it translation declarations}
-defs         {\it definitions}
+syntax       {\it syntactic constant declarations}
+translations {\it ast translation rules}
+defs         {\it meta-logical definitions}
 rules        {\it rule declarations}
 end
 ML           {\it ML code}
 \end{ttbox}
 This declares the theory $T$ to extend the existing theories
-$S@1$,~\ldots,~$S@n$.  It may declare new classes, types, arities
-(overloadings of existing types), constants and rules; it can specify the
-default sort for type variables.  A constant declaration can specify an
-associated concrete syntax.  The translations section specifies rewrite
-rules on abstract syntax trees, for defining notations and abbreviations.
-\index{*ML section}
-The {\tt ML} section contains code to perform arbitrary syntactic
-transformations.  The main declaration forms are discussed below.
-The full syntax can be found in \iflabelundefined{app:TheorySyntax}{the
-  appendix of the {\it Reference Manual}}{App.\ts\ref{app:TheorySyntax}}.
+$S@1$,~\ldots,~$S@n$.  It may introduce new classes, types, arities
+(of existing types), constants and rules; it can specify the default
+sort for type variables.  A constant declaration can specify an
+associated concrete syntax.  The translations section specifies
+rewrite rules on abstract syntax trees, handling notations and
+abbreviations.  \index{*ML section} The {\tt ML} section may contain
+code to perform arbitrary syntactic transformations.  The main
+declaration forms are discussed below.  The full syntax can be found
+in \iflabelundefined{app:TheorySyntax}{an appendix of the {\it
+    Reference Manual}}{App.\ts\ref{app:TheorySyntax}}.  Also note that
+object-logics may add further theory sections, for example {\tt
+  typedef}, {\tt datatype} in \HOL.
 
-All the declaration parts can be omitted or repeated and may appear in any
-order, except that the {\ML} section must be last.  In the simplest case, $T$
-is just the union of $S@1$,~\ldots,~$S@n$.  New theories always extend one or
-more other theories, inheriting their types, constants, syntax, etc.  The
-theory \thydx{Pure} contains nothing but Isabelle's meta-logic.
+All the declaration parts can be omitted or repeated and may appear in
+any order, except that the {\ML} section must be last (after the {\tt
+  end} keyword).  In the simplest case, $T$ is just the union of
+$S@1$,~\ldots,~$S@n$.  New theories always extend one or more other
+theories, inheriting their types, constants, syntax, etc.  The theory
+\thydx{Pure} contains nothing but Isabelle's meta-logic. The variant
+\thydx{CPure} offers the more usual higher-order function application
+syntax $t\,u@1\ldots\,u@n$ instead of $t(u@1,\ldots,u@n)$.
 
-Each theory definition must reside in a separate file, whose name is the
-theory's with {\tt.thy} appended.  For example, theory {\tt ListFn} resides
-on a file named {\tt ListFn.thy}.  Isabelle uses this convention to locate the
-file containing a given theory; \ttindexbold{use_thy} automatically loads a
-theory's parents before loading the theory itself.
+Each theory definition must reside in a separate file, whose name is
+the theory's with {\tt.thy} appended.  Calling
+\ttindexbold{use_thy}~{\tt"{\it T\/}"} reads the definition from {\it
+  T}{\tt.thy}, writes a corresponding file of {\ML} code {\tt.{\it
+    T}.thy.ML}, reads the latter file, and deletes it if no errors
+occurred.  This declares the {\ML} structure~$T$, which contains a
+component {\tt thy} denoting the new theory, a component for each
+rule, and everything declared in {\it ML code}.
 
-Calling \ttindexbold{use_thy}~{\tt"{\it T\/}"} reads a theory from the
-file {\it T}{\tt.thy}, writes the corresponding {\ML} code to the file
-{\tt.{\it T}.thy.ML}, reads the latter file, and deletes it if no errors
-occurred.  This declares the {\ML} structure~$T$, which contains a component
-{\tt thy} denoting the new theory, a component for each rule, and everything
-declared in {\it ML code}.
+Errors may arise during the translation to {\ML} (say, a misspelled
+keyword) or during creation of the new theory (say, a type error in a
+rule).  But if all goes well, {\tt use_thy} will finally read the file
+{\it T}{\tt.ML} (if it exists).  This file typically contains proofs
+that refer to the components of~$T$. The structure is automatically
+opened, so its components may be referred to by unqualified names,
+e.g.\ just {\tt thy} instead of $T${\tt .thy}.
 
-Errors may arise during the translation to {\ML} (say, a misspelled keyword)
-or during creation of the new theory (say, a type error in a rule).  But if
-all goes well, {\tt use_thy} will finally read the file {\it T}{\tt.ML}, if
-it exists.  This file typically begins with the {\ML} declaration {\tt
-open}~$T$ and contains proofs that refer to the components of~$T$.
-
-When a theory file is modified, many theories may have to be reloaded.
-Isabelle records the modification times and dependencies of theory files.
-See 
+\ttindexbold{use_thy} automatically loads a theory's parents before
+loading the theory itself.  When a theory file is modified, many
+theories may have to be reloaded.  Isabelle records the modification
+times and dependencies of theory files.  See
 \iflabelundefined{sec:reloading-theories}{the {\em Reference Manual\/}}%
                  {\S\ref{sec:reloading-theories}}
 for more details.
@@ -418,23 +425,23 @@ where $id@1$, \ldots, $id@n$ are \ML{} identifiers and $rule@1$, \ldots,
 $rule@n$ are expressions of type~$prop$.  Each rule {\em must\/} be
 enclosed in quotation marks.
 
-\indexbold{definitions} The {\bf definition part} is similar, but with the
-keyword {\tt defs} instead of {\tt rules}.  {\bf Definitions} are rules of the
-form $s \equiv t$, and should serve only as abbreviations. The simplest form
-of a definition is $f \equiv t$, where $f$ is a constant. Isabelle also
-allows a derived form where the arguments of~$f$ appear on the left:
-\begin{itemize}
-\item In uncurried syntax: $f(x@1,\dots,x@n) \equiv u$ (\FOL, \ZF, \dots)
-\item In curried syntax: $f~x@1~\dots~x@n \equiv u$ (\HOL, \HOLCF)
-\end{itemize}
-Isabelle checks for common errors in definitions, such as extra variables on
-the right-hand side.  Determined users can write non-conservative
-`definitions' by using mutual recursion, for example; the consequences of
-such actions are their responsibility.
+\indexbold{definitions} The {\bf definition part} is similar, but with
+the keyword {\tt defs} instead of {\tt rules}.  {\bf Definitions} are
+rules of the form $s \equiv t$, and should serve only as
+abbreviations. The simplest form of a definition is $f \equiv t$,
+where $f$ is a constant. Also allowed are $\eta$-equivalent forms,
+where the arguments of~$f$ appear applied on the left-hand side of the
+equation instead of abstracted on the right-hand side.
 
-\index{examples!of theories} 
-This theory extends first-order logic by declaring and defining two constants,
-{\em nand} and {\em xor}:
+Isabelle checks for common errors in definitions, such as extra
+variables on the right-hand side, but currently does not a complete
+test of well-formedness. Thus determined users can write
+non-conservative `definitions' by using mutual recursion, for example;
+the consequences of such actions are their responsibility.
+
+\index{examples!of theories} This example theory extends first-order
+logic by declaring and defining two constants, {\em nand} and {\em
+  xor}:
 \begin{ttbox}
 Gate = FOL +
 consts  nand,xor :: [o,o] => o
@@ -557,11 +564,11 @@ Multiple arity declarations may be abbreviated to a single line:
 arities \(tycon@1\), \ldots, \(tycon@n\) :: \(arity\)
 \end{ttbox}
 
-\begin{warn}
-Arity declarations resemble constant declarations, but there are {\it no\/}
-quotation marks!  Types and rules must be quoted because the theory
-translator passes them verbatim to the {\ML} output file.
-\end{warn}
+%\begin{warn}
+%Arity declarations resemble constant declarations, but there are {\it no\/}
+%quotation marks!  Types and rules must be quoted because the theory
+%translator passes them verbatim to the {\ML} output file.
+%\end{warn}
 
 \subsection{Type synonyms}\indexbold{type synonyms}
 Isabelle supports {\bf type synonyms} ({\bf abbreviations}) which are similar
@@ -579,11 +586,11 @@ types nat
       signal    = nat stream
       'a list
 \end{ttbox}
-A synonym is merely an abbreviation for some existing type expression.  Hence
-synonyms may not be recursive!  Internally all synonyms are fully expanded.  As
-a consequence Isabelle output never contains synonyms.  Their main purpose is
-to improve the readability of theories.  Synonyms can be used just like any
-other type:
+A synonym is merely an abbreviation for some existing type expression.
+Hence synonyms may not be recursive!  Internally all synonyms are
+fully expanded.  As a consequence Isabelle output never contains
+synonyms.  Their main purpose is to improve the readability of theory
+definitions.  Synonyms can be used just like any other type:
 \begin{ttbox}
 consts and,or :: gate
        negate :: signal => signal
@@ -623,10 +630,10 @@ This declares a constant $If$ of type $[o,o,o] \To o$ with concrete syntax {\tt
   if~$P$ then~$Q$ else~$R$} as well as {\tt If($P$,$Q$,$R$)}.  Underscores
 denote argument positions.  
 
-The declaration above does not allow the {\tt if}-{\tt then}-{\tt else}
-construct to be split across several lines, even if it is too long to fit
-on one line.  Pretty-printing information can be added to specify the
-layout of mixfix operators.  For details, see
+The declaration above does not allow the {\tt if}-{\tt then}-{\tt
+  else} construct to be printed split across several lines, even if it
+is too long to fit on one line.  Pretty-printing information can be
+added to specify the layout of mixfix operators.  For details, see
 \iflabelundefined{Defining-Logics}%
     {the {\it Reference Manual}, chapter `Defining Logics'}%
     {Chap.\ts\ref{Defining-Logics}}.
@@ -672,9 +679,11 @@ end
 \end{ttbox}
 
 \begin{warn}
-The name of the type constructor is~{\tt *} and not {\tt op~*}, as it would
-be in the case of an infix constant.  Only infix type constructors can have
-symbolic names like~{\tt *}.  There is no general mixfix syntax for types.
+  The name of the type constructor is~{\tt *} and not {\tt op~*}, as
+  it would be in the case of an infix constant.  Only infix type
+  constructors can have symbolic names like~{\tt *}.  General mixfix
+  syntax for types may be introduced via appropriate {\tt syntax}
+  declarations.
 \end{warn}
 
 
@@ -826,11 +835,7 @@ end
 \end{ttbox}
 In axiom {\tt add_def}, recall that \verb|%| stands for~$\lambda$.
 Loading this theory file creates the \ML\ structure {\tt Nat}, which
-contains the theory and axioms.  Opening structure {\tt Nat} lets us write
-{\tt induct} instead of {\tt Nat.induct}, and so forth.
-\begin{ttbox}
-open Nat;
-\end{ttbox}
+contains the theory and axioms.
 
 \subsection{Proving some recursion equations}
 File {\tt FOL/ex/Nat.ML} contains proofs involving this theory of the
@@ -846,7 +851,7 @@ by (resolve_tac [rec_0] 1);
 {\out Level 1}
 {\out 0 + n = n}
 {\out No subgoals!}
-val add_0 = result();
+qed "add_0";
 \end{ttbox}
 And here is the successor case:
 \begin{ttbox}
@@ -859,7 +864,7 @@ by (resolve_tac [rec_Suc] 1);
 {\out Level 1}
 {\out Suc(m) + n = Suc(m + n)}
 {\out No subgoals!}
-val add_Suc = result();
+qed "add_Suc";
 \end{ttbox}
 The induction rule raises some complications, which are discussed next.
 \index{theories!defining|)}
