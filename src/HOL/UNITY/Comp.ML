@@ -26,6 +26,11 @@ qed "component_refl";
 
 AddIffs [component_SKIP, component_refl];
 
+Goal "F component SKIP ==> F = SKIP";
+by (auto_tac (claset() addSIs [program_equalityI],
+	      simpset() addsimps [component_eq_subset]));
+qed "SKIP_minimal";
+
 Goalw [component_def] "F component (F Join G)";
 by (Blast_tac 1);
 qed "component_Join1";
@@ -52,6 +57,11 @@ Goalw [component_def]
       "F component H = (EX G. F Join G = H & Disjoint F G)";
 by (blast_tac (claset() addSIs [Diff_Disjoint, Join_Diff2]) 1);
 qed "component_eq";
+
+Goal "((F Join G) component H) = (F component H & G component H)";
+by (simp_tac (simpset() addsimps [component_eq_subset, Acts_Join]) 1);
+by (Blast_tac 1);
+qed "Join_component_iff";
 
 
 (*** existential properties ***)
@@ -110,12 +120,32 @@ qed "uv_prop_finite";
 
 (*** guarantees ***)
 
+val prems = Goal
+     "(!!G. [| F Join G : X;  Disjoint F G |] ==> F Join G : Y) \
+\     ==> F : X guar Y";
+by (simp_tac (simpset() addsimps [guarantees_def, component_eq]) 1);
+by (blast_tac (claset() addIs prems) 1);
+qed "guaranteesI";
+
+Goalw [guarantees_def, component_def]
+     "[| F : X guar Y;  F Join G : X |] ==> F Join G : Y";
+by (Blast_tac 1);
+qed "guaranteesD";
+
 (*This equation is more intuitive than the official definition*)
 Goal "(F : X guar Y) = \
 \     (ALL G. F Join G : X & Disjoint F G --> F Join G : Y)";
 by (simp_tac (simpset() addsimps [guarantees_def, component_eq]) 1);
 by (Blast_tac 1);
 qed "guarantees_eq";
+
+Goalw [guarantees_def] "[| F: X guar X'; Y <= X; X' <= Y' |] ==> F: Y guar Y'";
+by (Blast_tac 1);
+qed "guarantees_weaken";
+
+Goalw [guarantees_def] "[| F: X guar Y; F component F' |] ==> F': X guar Y";
+by (blast_tac (claset() addIs [component_trans]) 1);
+qed "guarantees_weaken_prog";
 
 Goalw [guarantees_def] "X <= Y ==> X guar Y = UNIV";
 by (Blast_tac 1);
@@ -193,17 +223,38 @@ Goalw [guarantees_def]
 by (Blast_tac 1);
 qed "ex_guarantees";
 
-val prems = Goal
-     "(!!G. [| F Join G : X;  Disjoint F G |] ==> F Join G : Y) \
-\     ==> F : X guar Y";
-by (simp_tac (simpset() addsimps [guarantees_def, component_eq]) 1);
-by (blast_tac (claset() addIs prems) 1);
-qed "guaranteesI";
+(*** Additional guarantees laws, by lcp ***)
 
-Goalw [guarantees_def, component_def]
-     "[| F : X guar Y;  F Join G : X |] ==> F Join G : Y";
+Goalw [guarantees_def]
+    "[| F: U guar V;  G: X guar Y |] ==> F Join G: (U Int X) guar (V Int Y)";
+by (simp_tac (simpset() addsimps [Join_component_iff]) 1);
 by (Blast_tac 1);
-qed "guaranteesD";
+qed "guarantees_Join_Int";
+
+Goalw [guarantees_def]
+    "[| F: U guar V;  G: X guar Y |] ==> F Join G: (U Un X) guar (V Un Y)";
+by (simp_tac (simpset() addsimps [Join_component_iff]) 1);
+by (Blast_tac 1);
+qed "guarantees_Join_Un";
+
+Goal "((JOIN I F) component H) = (ALL i: I. F i component H)";
+by (simp_tac (simpset() addsimps [component_eq_subset, Acts_JN]) 1);
+by (Blast_tac 1);
+qed "JN_component_iff";
+
+Goalw [guarantees_def]
+    "[| ALL i:I. F i : X i guar Y i |] \
+\    ==> (JOIN I F) : (INTER I X) guar (INTER I Y)";
+by (simp_tac (simpset() addsimps [JN_component_iff]) 1);
+by (Blast_tac 1);
+qed "guarantees_JN_INT";
+
+Goalw [guarantees_def]
+    "[| ALL i:I. F i : X i guar Y i |] \
+\    ==> (JOIN I F) : (UNION I X) guar (UNION I Y)";
+by (simp_tac (simpset() addsimps [JN_component_iff]) 1);
+by (Blast_tac 1);
+qed "guarantees_JN_UN";
 
 
 (*** well-definedness ***)
