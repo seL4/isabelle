@@ -16,7 +16,7 @@ syntax
   TTP :: agent
 
 translations
-  "TTP" == "Server"
+  "TTP" == "Server "
 
 syntax
   f_sub :: nat

@@ -2,10 +2,14 @@
     ID:         $Id$
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1996  University of Cambridge
+*)
 
-Inductive relation "otway" for the Otway-Rees protocol.
+header{*The Otway-Rees Protocol as Modified by Abadi and Needham*}
 
-Abadi-Needham simplified version: minimal encryption, explicit messages
+theory OtwayRees_AN = Public:
+
+text{*
+This simplified version has minimal encryption and explicit messages.
 
 Note that the formalization does not even assume that nonces are fresh.
 This is because the protocol does not rely on uniqueness of nonces for
@@ -13,11 +17,10 @@ security, only for freshness, and the proof script does not prove freshness
 properties.
 
 From page 11 of
-  Abadi and Needham.  Prudent Engineering Practice for Cryptographic Protocols.
-  IEEE Trans. SE 22 (1), 1996
-*)
-
-theory OtwayRees_AN = Shared:
+  Abadi and Needham (1996).  
+  Prudent Engineering Practice for Cryptographic Protocols.
+  IEEE Trans. SE 22 (1)
+*}
 
 consts  otway   :: "event list set"
 inductive "otway"
@@ -138,7 +141,7 @@ lemma Says_Server_message_form:
          evs \<in> otway |]
       ==> K \<notin> range shrK & (\<exists>i. NA = Nonce i) & (\<exists>j. NB = Nonce j)"
 apply (erule rev_mp)
-apply (erule otway.induct, simp_all, blast)
+apply (erule otway.induct, auto)
 done
 
 
@@ -161,9 +164,9 @@ lemma analz_image_freshK [rule_format]:
    \<forall>K KK. KK <= -(range shrK) -->
           (Key K \<in> analz (Key`KK Un (knows Spy evs))) =
           (K \<in> KK | Key K \<in> analz (knows Spy evs))"
-apply (erule otway.induct, force)
-apply (frule_tac [7] Says_Server_message_form)
-apply (drule_tac [6] OR4_analz_knows_Spy, analz_freshK, spy_analz)
+apply (erule otway.induct) 
+apply (frule_tac [8] Says_Server_message_form)
+apply (drule_tac [7] OR4_analz_knows_Spy, analz_freshK, spy_analz, auto) 
 done
 
 lemma analz_insert_freshK:

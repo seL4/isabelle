@@ -2,11 +2,11 @@
     ID:         $Id$
     Author:     Giampaolo Bella, Cambridge University Computer Laboratory
     Copyright   1998  University of Cambridge
-
-The Kerberos protocol, version IV.
 *)
 
-theory KerberosIV = Shared:
+header{*The Kerberos Protocol, Version IV*}
+
+theory KerberosIV = Public:
 
 syntax
   Kas :: agent
@@ -128,7 +128,7 @@ inductive "kerberos"
 (*---------------------------------------------------------------------*)
 
 (*FROM Kas *)
-   K2:  "[| evs2 \<in> kerberos; Key AuthKey \<notin> used evs2;
+   K2:  "[| evs2 \<in> kerberos; Key AuthKey \<notin> used evs2; AuthKey \<in> symKeys;
             Says A' Kas {|Agent A, Agent Tgs, Number Ta|} \<in> set evs2 |]
           ==> Says Kas A
                 (Crypt (shrK A) {|Key AuthKey, Agent Tgs, Number (CT evs2),
@@ -163,7 +163,8 @@ inductive "kerberos"
    specification. Adding it strengthens the guarantees assessed by the
    protocol. Theorems that exploit it have the suffix `_refined'
 *)
-   K4:  "[| evs4 \<in> kerberos; Key ServKey \<notin> used evs4; B \<noteq> Tgs;
+   K4:  "[| evs4 \<in> kerberos; Key ServKey \<notin> used evs4; ServKey \<in> symKeys;
+            B \<noteq> Tgs;  AuthKey \<in> symKeys;
             Says A' Tgs {|
              (Crypt (shrK Tgs) {|Agent A, Agent Tgs, Key AuthKey,
 				 Number Tk|}),
@@ -189,9 +190,9 @@ inductive "kerberos"
 (*---------------------------------------------------------------------*)
 
 (* FROM the initiator *)
-   K5:  "[| evs5 \<in> kerberos;
+   K5:  "[| evs5 \<in> kerberos; AuthKey \<in> symKeys; ServKey \<in> symKeys;
             Says A Tgs
-                {|AuthTicket, (Crypt AuthKey {|Agent A, Number Ta1|}),
+                {|AuthTicket, Crypt AuthKey {|Agent A, Number Ta1|},
 		  Agent B|}
               \<in> set evs5;
             Says Tgs' A
@@ -242,7 +243,7 @@ inductive "kerberos"
 
 (*---------------------------------------------------------------------*)
 
-declare Says_imp_knows_Spy [THEN parts.Inj, dest] 
+declare Says_imp_knows_Spy [THEN parts.Inj, dest]
 declare parts.Body [dest]
 declare analz_into_parts [dest]
 declare Fake_parts_insert_in_Un [dest]
@@ -260,7 +261,7 @@ apply (induct_tac "evs")
 apply (induct_tac [2] "a", auto)
 done
 
-lemma spies_Notes_rev: "spies (evs @ [Notes A X]) =  
+lemma spies_Notes_rev: "spies (evs @ [Notes A X]) =
           (if A:bad then insert X (spies evs) else spies evs)"
 apply (induct_tac "evs")
 apply (induct_tac [2] "a", auto)
@@ -290,30 +291,30 @@ apply (unfold AuthKeys_def)
 apply (simp (no_asm))
 done
 
-lemma AuthKeys_not_insert: 
- "(\<forall>A Tk akey Peer.               
-   ev \<noteq> Says Kas A (Crypt (shrK A) {|akey, Agent Peer, Tk,       
-              (Crypt (shrK Peer) {|Agent A, Agent Peer, akey, Tk|})|}))  
+lemma AuthKeys_not_insert:
+ "(\<forall>A Tk akey Peer.
+   ev \<noteq> Says Kas A (Crypt (shrK A) {|akey, Agent Peer, Tk,
+              (Crypt (shrK Peer) {|Agent A, Agent Peer, akey, Tk|})|}))
        ==> AuthKeys (ev # evs) = AuthKeys evs"
 by (unfold AuthKeys_def, auto)
 
-lemma AuthKeys_insert: 
-  "AuthKeys  
-     (Says Kas A (Crypt (shrK A) {|Key K, Agent Peer, Number Tk,  
-      (Crypt (shrK Peer) {|Agent A, Agent Peer, Key K, Number Tk|})|}) # evs)  
+lemma AuthKeys_insert:
+  "AuthKeys
+     (Says Kas A (Crypt (shrK A) {|Key K, Agent Peer, Number Tk,
+      (Crypt (shrK Peer) {|Agent A, Agent Peer, Key K, Number Tk|})|}) # evs)
        = insert K (AuthKeys evs)"
 by (unfold AuthKeys_def, auto)
 
-lemma AuthKeys_simp: 
-   "K \<in> AuthKeys  
-    (Says Kas A (Crypt (shrK A) {|Key K', Agent Peer, Number Tk,  
-     (Crypt (shrK Peer) {|Agent A, Agent Peer, Key K', Number Tk|})|}) # evs)  
+lemma AuthKeys_simp:
+   "K \<in> AuthKeys
+    (Says Kas A (Crypt (shrK A) {|Key K', Agent Peer, Number Tk,
+     (Crypt (shrK Peer) {|Agent A, Agent Peer, Key K', Number Tk|})|}) # evs)
         ==> K = K' | K \<in> AuthKeys evs"
 by (unfold AuthKeys_def, auto)
 
-lemma AuthKeysI: 
-   "Says Kas A (Crypt (shrK A) {|Key K, Agent Tgs, Number Tk,  
-     (Crypt (shrK Tgs) {|Agent A, Agent Tgs, Key K, Number Tk|})|}) \<in> set evs  
+lemma AuthKeysI:
+   "Says Kas A (Crypt (shrK A) {|Key K, Agent Tgs, Number Tk,
+     (Crypt (shrK Tgs) {|Agent A, Agent Tgs, Key K, Number Tk|})|}) \<in> set evs
         ==> K \<in> AuthKeys evs"
 by (unfold AuthKeys_def, auto)
 
@@ -325,34 +326,34 @@ subsection{*Forwarding Lemmas*}
 
 text{*--For reasoning about the encrypted portion of message K3--*}
 lemma K3_msg_in_parts_spies:
-     "Says Kas' A (Crypt KeyA {|AuthKey, Peer, Tk, AuthTicket|})  
+     "Says Kas' A (Crypt KeyA {|AuthKey, Peer, Tk, AuthTicket|})
                \<in> set evs ==> AuthTicket \<in> parts (spies evs)"
 by blast
 
 lemma Oops_range_spies1:
-     "[| Says Kas A (Crypt KeyA {|Key AuthKey, Peer, Tk, AuthTicket|})  
-           \<in> set evs ; 
-         evs \<in> kerberos |] ==> AuthKey \<notin> range shrK"
+     "[| Says Kas A (Crypt KeyA {|Key AuthKey, Peer, Tk, AuthTicket|})
+           \<in> set evs ;
+         evs \<in> kerberos |] ==> AuthKey \<notin> range shrK & AuthKey \<in> symKeys"
 apply (erule rev_mp)
 apply (erule kerberos.induct, auto)
 done
 
 text{*--For reasoning about the encrypted portion of message K5--*}
 lemma K5_msg_in_parts_spies:
-     "Says Tgs' A (Crypt AuthKey {|ServKey, Agent B, Tt, ServTicket|}) 
+     "Says Tgs' A (Crypt AuthKey {|ServKey, Agent B, Tt, ServTicket|})
                \<in> set evs ==> ServTicket \<in> parts (spies evs)"
 by blast
 
 lemma Oops_range_spies2:
-     "[| Says Tgs A (Crypt AuthKey {|Key ServKey, Agent B, Tt, ServTicket|})  
-           \<in> set evs ; 
-         evs \<in> kerberos |] ==> ServKey \<notin> range shrK"
+     "[| Says Tgs A (Crypt AuthKey {|Key ServKey, Agent B, Tt, ServTicket|})
+           \<in> set evs ;
+         evs \<in> kerberos |] ==> ServKey \<notin> range shrK & ServKey \<in> symKeys"
 apply (erule rev_mp)
 apply (erule kerberos.induct, auto)
 done
 
 lemma Says_ticket_in_parts_spies:
-     "Says S A (Crypt K {|SesKey, B, TimeStamp, Ticket|}) \<in> set evs  
+     "Says S A (Crypt K {|SesKey, B, TimeStamp, Ticket|}) \<in> set evs
       ==> Ticket \<in> parts (spies evs)"
 by blast
 
@@ -360,9 +361,9 @@ by blast
 (*Spy never sees another agent's shared key! (unless it's lost at start)*)
 lemma Spy_see_shrK [simp]:
      "evs \<in> kerberos ==> (Key (shrK A) \<in> parts (spies evs)) = (A \<in> bad)"
-apply (erule kerberos.induct) 
-apply (frule_tac [7] K5_msg_in_parts_spies) 
-apply (frule_tac [5] K3_msg_in_parts_spies, simp_all) 
+apply (erule kerberos.induct)
+apply (frule_tac [7] K5_msg_in_parts_spies)
+apply (frule_tac [5] K3_msg_in_parts_spies, simp_all)
 apply (blast+)
 done
 
@@ -376,22 +377,25 @@ by (blast dest: Spy_see_shrK)
 lemmas Spy_analz_shrK_D = analz_subset_parts [THEN subsetD, THEN Spy_see_shrK_D, dest!]
 
 text{*Nobody can have used non-existent keys!*}
-lemma new_keys_not_used [rule_format, simp]:
-     "evs \<in> kerberos ==> Key K \<notin> used evs --> K \<notin> keysFor (parts (spies evs))"
-apply (erule kerberos.induct) 
-apply (frule_tac [7] K5_msg_in_parts_spies) 
-apply (frule_tac [5] K3_msg_in_parts_spies, simp_all) 
+lemma new_keys_not_used [simp]:
+    "[|Key K \<notin> used evs; K \<in> symKeys; evs \<in> kerberos|]
+     ==> K \<notin> keysFor (parts (spies evs))"
+apply (erule rev_mp)
+apply (erule kerberos.induct)
+apply (frule_tac [7] K5_msg_in_parts_spies)
+apply (frule_tac [5] K3_msg_in_parts_spies, simp_all)
 txt{*Fake*}
 apply (force dest!: keysFor_parts_insert)
 txt{*Others*}
-apply (blast+)
+apply (force dest!: analz_shrK_Decrypt)+
 done
 
-(*Earlier, all protocol proofs declared this theorem.  
+(*Earlier, all protocol proofs declared this theorem.
   But few of them actually need it! (Another is Yahalom) *)
 lemma new_keys_not_analzd:
- "[|evs \<in> kerberos; Key K \<notin> used evs|] ==> K \<notin> keysFor (analz (spies evs))"
-by (blast dest: new_keys_not_used intro: keysFor_mono [THEN subsetD]) 
+ "[|evs \<in> kerberos; K \<in> symKeys; Key K \<notin> used evs|]
+  ==> K \<notin> keysFor (analz (spies evs))"
+by (blast dest: new_keys_not_used intro: keysFor_mono [THEN subsetD])
 
 
 subsection{*Regularity Lemmas*}
@@ -399,11 +403,11 @@ text{*These concern the form of items passed in messages*}
 
 text{*Describes the form of AuthKey, AuthTicket, and K sent by Kas*}
 lemma Says_Kas_message_form:
-     "[| Says Kas A (Crypt K {|Key AuthKey, Agent Peer, Tk, AuthTicket|})  
-           \<in> set evs;                  
-         evs \<in> kerberos |]              
-      ==> AuthKey \<notin> range shrK & AuthKey \<in> AuthKeys evs &  
-  AuthTicket = (Crypt (shrK Tgs) {|Agent A, Agent Tgs, Key AuthKey, Tk|}) & 
+     "[| Says Kas A (Crypt K {|Key AuthKey, Agent Peer, Tk, AuthTicket|})
+           \<in> set evs;
+         evs \<in> kerberos |]
+      ==> AuthKey \<notin> range shrK & AuthKey \<in> AuthKeys evs & AuthKey \<in> symKeys & 
+  AuthTicket = (Crypt (shrK Tgs) {|Agent A, Agent Tgs, Key AuthKey, Tk|}) &
              K = shrK A  & Peer = Tgs"
 apply (erule rev_mp)
 apply (erule kerberos.induct)
@@ -411,8 +415,8 @@ apply (simp_all (no_asm) add: AuthKeys_def AuthKeys_insert)
 apply (blast+)
 done
 
-(*This lemma is essential for proving Says_Tgs_message_form: 
-  
+(*This lemma is essential for proving Says_Tgs_message_form:
+
   the session key AuthKey
   supplied by Kas in the authentication ticket
   cannot be a long-term key!
@@ -420,35 +424,35 @@ done
   Generalised to any session keys (both AuthKey and ServKey).
 *)
 lemma SesKey_is_session_key:
-     "[| Crypt (shrK Tgs_B) {|Agent A, Agent Tgs_B, Key SesKey, Number T|} 
-            \<in> parts (spies evs); Tgs_B \<notin> bad; 
-         evs \<in> kerberos |]     
+     "[| Crypt (shrK Tgs_B) {|Agent A, Agent Tgs_B, Key SesKey, Number T|}
+            \<in> parts (spies evs); Tgs_B \<notin> bad;
+         evs \<in> kerberos |]
       ==> SesKey \<notin> range shrK"
 apply (erule rev_mp)
-apply (erule kerberos.induct) 
-apply (frule_tac [7] K5_msg_in_parts_spies) 
+apply (erule kerberos.induct)
+apply (frule_tac [7] K5_msg_in_parts_spies)
 apply (frule_tac [5] K3_msg_in_parts_spies, simp_all, blast)
 done
 
 lemma A_trusts_AuthTicket:
-     "[| Crypt (shrK Tgs) {|Agent A, Agent Tgs, Key AuthKey, Tk|}   
-           \<in> parts (spies evs);                               
-         evs \<in> kerberos |]                           
-      ==> Says Kas A (Crypt (shrK A) {|Key AuthKey, Agent Tgs, Tk,  
-                 Crypt (shrK Tgs) {|Agent A, Agent Tgs, Key AuthKey, Tk|}|})   
+     "[| Crypt (shrK Tgs) {|Agent A, Agent Tgs, Key AuthKey, Tk|}
+           \<in> parts (spies evs);
+         evs \<in> kerberos |]
+      ==> Says Kas A (Crypt (shrK A) {|Key AuthKey, Agent Tgs, Tk,
+                 Crypt (shrK Tgs) {|Agent A, Agent Tgs, Key AuthKey, Tk|}|})
             \<in> set evs"
 apply (erule rev_mp)
-apply (erule kerberos.induct) 
-apply (frule_tac [7] K5_msg_in_parts_spies) 
-apply (frule_tac [5] K3_msg_in_parts_spies, simp_all) 
+apply (erule kerberos.induct)
+apply (frule_tac [7] K5_msg_in_parts_spies)
+apply (frule_tac [5] K3_msg_in_parts_spies, simp_all)
 txt{*Fake, K4*}
 apply (blast+)
 done
 
 lemma AuthTicket_crypt_AuthKey:
-     "[| Crypt (shrK Tgs) {|Agent A, Agent Tgs, Key AuthKey, Number Tk|} 
-           \<in> parts (spies evs); 
-         evs \<in> kerberos |]     
+     "[| Crypt (shrK Tgs) {|Agent A, Agent Tgs, Key AuthKey, Number Tk|}
+           \<in> parts (spies evs);
+         evs \<in> kerberos |]
       ==> AuthKey \<in> AuthKeys evs"
 apply (frule A_trusts_AuthTicket, assumption)
 apply (simp (no_asm) add: AuthKeys_def)
@@ -457,12 +461,13 @@ done
 
 text{*Describes the form of ServKey, ServTicket and AuthKey sent by Tgs*}
 lemma Says_Tgs_message_form:
-     "[| Says Tgs A (Crypt AuthKey {|Key ServKey, Agent B, Tt, ServTicket|}) 
-           \<in> set evs;  
-         evs \<in> kerberos |]     
-   ==> B \<noteq> Tgs & ServKey \<notin> range shrK & ServKey \<notin> AuthKeys evs & 
-       ServTicket = (Crypt (shrK B) {|Agent A, Agent B, Key ServKey, Tt|}) &  
-       AuthKey \<notin> range shrK & AuthKey \<in> AuthKeys evs"
+     "[| Says Tgs A (Crypt AuthKey {|Key ServKey, Agent B, Tt, ServTicket|})
+           \<in> set evs;
+         evs \<in> kerberos |]
+   ==> B \<noteq> Tgs & 
+       ServKey \<notin> range shrK & ServKey \<notin> AuthKeys evs & ServKey \<in> symKeys &
+       ServTicket = (Crypt (shrK B) {|Agent A, Agent B, Key ServKey, Tt|}) &
+       AuthKey \<notin> range shrK & AuthKey \<in> AuthKeys evs & AuthKey \<in> symKeys"
 apply (erule rev_mp)
 apply (erule kerberos.induct)
 apply (simp_all add: AuthKeys_insert AuthKeys_not_insert AuthKeys_empty AuthKeys_simp, blast, auto)
@@ -472,18 +477,18 @@ apply (blast dest!: SesKey_is_session_key)
 apply (blast dest: AuthTicket_crypt_AuthKey)
 done
 
-text{*Authenticity of AuthKey for A: 
+text{*Authenticity of AuthKey for A:
      If a certain encrypted message appears then it originated with Kas*}
 lemma A_trusts_AuthKey:
-     "[| Crypt (shrK A) {|Key AuthKey, Peer, Tk, AuthTicket|}   
-           \<in> parts (spies evs);                               
-         A \<notin> bad;  evs \<in> kerberos |]                         
-      ==> Says Kas A (Crypt (shrK A) {|Key AuthKey, Peer, Tk, AuthTicket|})   
+     "[| Crypt (shrK A) {|Key AuthKey, Peer, Tk, AuthTicket|}
+           \<in> parts (spies evs);
+         A \<notin> bad;  evs \<in> kerberos |]
+      ==> Says Kas A (Crypt (shrK A) {|Key AuthKey, Peer, Tk, AuthTicket|})
             \<in> set evs"
 apply (erule rev_mp)
-apply (erule kerberos.induct) 
-apply (frule_tac [7] K5_msg_in_parts_spies) 
-apply (frule_tac [5] K3_msg_in_parts_spies, simp_all) 
+apply (erule kerberos.induct)
+apply (frule_tac [7] K5_msg_in_parts_spies)
+apply (frule_tac [5] K3_msg_in_parts_spies, simp_all)
 txt{*Fake*}
 apply blast
 txt{*K4*}
@@ -493,18 +498,18 @@ done
 
 text{*If a certain encrypted message appears then it originated with Tgs*}
 lemma A_trusts_K4:
-     "[| Crypt AuthKey {|Key ServKey, Agent B, Tt, ServTicket|}      
-           \<in> parts (spies evs);                                      
-         Key AuthKey \<notin> analz (spies evs);            
-         AuthKey \<notin> range shrK;                       
-         evs \<in> kerberos |]          
- ==> \<exists>A. Says Tgs A (Crypt AuthKey {|Key ServKey, Agent B, Tt, ServTicket|}) 
+     "[| Crypt AuthKey {|Key ServKey, Agent B, Tt, ServTicket|}
+           \<in> parts (spies evs);
+         Key AuthKey \<notin> analz (spies evs);
+         AuthKey \<notin> range shrK;
+         evs \<in> kerberos |]
+ ==> \<exists>A. Says Tgs A (Crypt AuthKey {|Key ServKey, Agent B, Tt, ServTicket|})
        \<in> set evs"
 apply (erule rev_mp)
 apply (erule rev_mp)
 apply (erule kerberos.induct, analz_mono_contra)
-apply (frule_tac [7] K5_msg_in_parts_spies) 
-apply (frule_tac [5] K3_msg_in_parts_spies, simp_all) 
+apply (frule_tac [7] K5_msg_in_parts_spies)
+apply (frule_tac [5] K3_msg_in_parts_spies, simp_all)
 txt{*Fake*}
 apply blast
 txt{*K2*}
@@ -514,55 +519,60 @@ apply auto
 done
 
 lemma AuthTicket_form:
-     "[| Crypt (shrK A) {|Key AuthKey, Agent Tgs, Tk, AuthTicket|}  
-           \<in> parts (spies evs);           
-         A \<notin> bad;                        
-         evs \<in> kerberos |]                 
-    ==> AuthKey \<notin> range shrK &                
+     "[| Crypt (shrK A) {|Key AuthKey, Agent Tgs, Tk, AuthTicket|}
+           \<in> parts (spies evs);
+         A \<notin> bad;
+         evs \<in> kerberos |]
+    ==> AuthKey \<notin> range shrK & AuthKey \<in> symKeys & 
         AuthTicket = Crypt (shrK Tgs) {|Agent A, Agent Tgs, Key AuthKey, Tk|}"
 apply (erule rev_mp)
-apply (erule kerberos.induct) 
-apply (frule_tac [7] K5_msg_in_parts_spies) 
-apply (frule_tac [5] K3_msg_in_parts_spies, simp_all) 
+apply (erule kerberos.induct)
+apply (frule_tac [7] K5_msg_in_parts_spies)
+apply (frule_tac [5] K3_msg_in_parts_spies, simp_all)
 apply (blast+)
 done
 
-text{* This form holds also over an AuthTicket, but is not needed below.     *}
+text{* This form holds also over an AuthTicket, but is not needed below.*}
 lemma ServTicket_form:
-     "[| Crypt AuthKey {|Key ServKey, Agent B, Tt, ServTicket|}  
-              \<in> parts (spies evs);  
-            Key AuthKey \<notin> analz (spies evs);   
-            evs \<in> kerberos |]                                        
-         ==> ServKey \<notin> range shrK &   
+     "[| Crypt AuthKey {|Key ServKey, Agent B, Tt, ServTicket|}
+              \<in> parts (spies evs);
+            Key AuthKey \<notin> analz (spies evs);
+            evs \<in> kerberos |]
+         ==> ServKey \<notin> range shrK & ServKey \<in> symKeys & 
     (\<exists>A. ServTicket = Crypt (shrK B) {|Agent A, Agent B, Key ServKey, Tt|})"
 apply (erule rev_mp)
 apply (erule rev_mp)
 apply (erule kerberos.induct, analz_mono_contra)
-apply (frule_tac [7] K5_msg_in_parts_spies) 
+apply (frule_tac [7] K5_msg_in_parts_spies)
 apply (frule_tac [5] K3_msg_in_parts_spies, simp_all, blast)
 done
 
 text{* Essentially the same as @{text AuthTicket_form} *}
 lemma Says_kas_message_form:
-     "[| Says Kas' A (Crypt (shrK A)  
-              {|Key AuthKey, Agent Tgs, Tk, AuthTicket|}) \<in> set evs;  
-         evs \<in> kerberos |]     
-      ==> AuthKey \<notin> range shrK &  
-          AuthTicket =  
-                  Crypt (shrK Tgs) {|Agent A, Agent Tgs, Key AuthKey, Tk|} 
+     "[| Says Kas' A (Crypt (shrK A)
+              {|Key AuthKey, Agent Tgs, Tk, AuthTicket|}) \<in> set evs;
+         evs \<in> kerberos |]
+      ==> AuthKey \<notin> range shrK & AuthKey \<in> symKeys & 
+          AuthTicket =
+                  Crypt (shrK Tgs) {|Agent A, Agent Tgs, Key AuthKey, Tk|}
           | AuthTicket \<in> analz (spies evs)"
-by (blast dest: Says_imp_spies [THEN analz.Inj] AuthTicket_form)
+by (blast dest: analz_shrK_Decrypt AuthTicket_form
+                Says_imp_spies [THEN analz.Inj])
+
 
 lemma Says_tgs_message_form:
-     "[| Says Tgs' A (Crypt AuthKey  
-              {|Key ServKey, Agent B, Tt, ServTicket|}) \<in> set evs;  
-         evs \<in> kerberos |]     
-      ==> ServKey \<notin> range shrK &  
-          (\<exists>A. ServTicket =  
-                  Crypt (shrK B) {|Agent A, Agent B, Key ServKey, Tt|})   
-           | ServTicket \<in> analz (spies evs)"
-by (blast dest: Says_imp_spies [THEN analz.Inj] ServTicket_form)
-
+ "[| Says Tgs' A (Crypt AuthKey {|Key ServKey, Agent B, Tt, ServTicket|})
+       \<in> set evs;  AuthKey \<in> symKeys;
+     evs \<in> kerberos |]
+  ==> ServKey \<notin> range shrK &
+      (\<exists>A. ServTicket =
+	      Crypt (shrK B) {|Agent A, Agent B, Key ServKey, Tt|})
+       | ServTicket \<in> analz (spies evs)"
+apply (frule Says_imp_spies [THEN analz.Inj], auto)
+ apply (force dest!: ServTicket_form)
+apply (frule analz_into_parts)
+apply (frule ServTicket_form, auto)
+done
 
 subsection{*Unicity Theorems*}
 
@@ -571,18 +581,18 @@ text{* The session key, if secure, uniquely identifies the Ticket
    also Tgs in the place of B.                                     *}
 
 lemma unique_CryptKey:
-     "[| Crypt (shrK B)  {|Agent A,  Agent B,  Key SesKey, T|}         
-           \<in> parts (spies evs);             
-         Crypt (shrK B') {|Agent A', Agent B', Key SesKey, T'|}      
-           \<in> parts (spies evs);  Key SesKey \<notin> analz (spies evs);    
-         evs \<in> kerberos |]   
+     "[| Crypt (shrK B)  {|Agent A,  Agent B,  Key SesKey, T|}
+           \<in> parts (spies evs);
+         Crypt (shrK B') {|Agent A', Agent B', Key SesKey, T'|}
+           \<in> parts (spies evs);  Key SesKey \<notin> analz (spies evs);
+         evs \<in> kerberos |]
       ==> A=A' & B=B' & T=T'"
 apply (erule rev_mp)
 apply (erule rev_mp)
 apply (erule rev_mp)
 apply (erule kerberos.induct, analz_mono_contra)
-apply (frule_tac [7] K5_msg_in_parts_spies) 
-apply (frule_tac [5] K3_msg_in_parts_spies, simp_all) 
+apply (frule_tac [7] K5_msg_in_parts_spies)
+apply (frule_tac [5] K3_msg_in_parts_spies, simp_all)
 txt{*Fake, K2, K4*}
 apply (blast+)
 done
@@ -591,18 +601,18 @@ text{*An AuthKey is encrypted by one and only one Shared key.
   A ServKey is encrypted by one and only one AuthKey.
 *}
 lemma Key_unique_SesKey:
-     "[| Crypt K  {|Key SesKey,  Agent B, T, Ticket|}         
-           \<in> parts (spies evs);             
-         Crypt K' {|Key SesKey,  Agent B', T', Ticket'|}      
-           \<in> parts (spies evs);  Key SesKey \<notin> analz (spies evs);             
-         evs \<in> kerberos |]   
+     "[| Crypt K  {|Key SesKey,  Agent B, T, Ticket|}
+           \<in> parts (spies evs);
+         Crypt K' {|Key SesKey,  Agent B', T', Ticket'|}
+           \<in> parts (spies evs);  Key SesKey \<notin> analz (spies evs);
+         evs \<in> kerberos |]
       ==> K=K' & B=B' & T=T' & Ticket=Ticket'"
 apply (erule rev_mp)
 apply (erule rev_mp)
 apply (erule rev_mp)
 apply (erule kerberos.induct, analz_mono_contra)
-apply (frule_tac [7] K5_msg_in_parts_spies) 
-apply (frule_tac [5] K3_msg_in_parts_spies, simp_all) 
+apply (frule_tac [7] K5_msg_in_parts_spies)
+apply (frule_tac [5] K3_msg_in_parts_spies, simp_all)
 txt{*Fake, K2, K4*}
 apply (blast+)
 done
@@ -612,47 +622,47 @@ done
   At reception of any message mentioning A, Kas associates shrK A with
   a new AuthKey. Realistic, as the user gets a new AuthKey at each login.
   Similarly, at reception of any message mentioning an AuthKey
-  (a legitimate user could make several requests to Tgs - by K3), Tgs 
+  (a legitimate user could make several requests to Tgs - by K3), Tgs
   associates it with a new ServKey.
 
   Therefore, a goal like
 
-   "evs \<in> kerberos  
-     ==> Key Kc \<notin> analz (spies evs) -->    
-           (\<exists>K' B' T' Ticket'. \<forall>K B T Ticket.                           
-            Crypt Kc {|Key K, Agent B, T, Ticket|}     
+   "evs \<in> kerberos
+     ==> Key Kc \<notin> analz (spies evs) -->
+           (\<exists>K' B' T' Ticket'. \<forall>K B T Ticket.
+            Crypt Kc {|Key K, Agent B, T, Ticket|}
              \<in> parts (spies evs) --> K=K' & B=B' & T=T' & Ticket=Ticket')"
 
   would fail on the K2 and K4 cases.
 *)
 
 lemma unique_AuthKeys:
-     "[| Says Kas A                                           
-              (Crypt Ka {|Key AuthKey, Agent Tgs, Tk, X|}) \<in> set evs;       
-         Says Kas A'                                          
-              (Crypt Ka' {|Key AuthKey, Agent Tgs, Tk', X'|}) \<in> set evs;    
+     "[| Says Kas A
+              (Crypt Ka {|Key AuthKey, Agent Tgs, Tk, X|}) \<in> set evs;
+         Says Kas A'
+              (Crypt Ka' {|Key AuthKey, Agent Tgs, Tk', X'|}) \<in> set evs;
          evs \<in> kerberos |] ==> A=A' & Ka=Ka' & Tk=Tk' & X=X'"
 apply (erule rev_mp)
 apply (erule rev_mp)
-apply (erule kerberos.induct) 
-apply (frule_tac [7] K5_msg_in_parts_spies) 
-apply (frule_tac [5] K3_msg_in_parts_spies, simp_all) 
+apply (erule kerberos.induct)
+apply (frule_tac [7] K5_msg_in_parts_spies)
+apply (frule_tac [5] K3_msg_in_parts_spies, simp_all)
 txt{*K2*}
 apply blast
 done
 
 text{* ServKey uniquely identifies the message from Tgs *}
 lemma unique_ServKeys:
-     "[| Says Tgs A                                              
-              (Crypt K {|Key ServKey, Agent B, Tt, X|}) \<in> set evs;   
-         Says Tgs A'                                                  
-              (Crypt K' {|Key ServKey, Agent B', Tt', X'|}) \<in> set evs;  
+     "[| Says Tgs A
+              (Crypt K {|Key ServKey, Agent B, Tt, X|}) \<in> set evs;
+         Says Tgs A'
+              (Crypt K' {|Key ServKey, Agent B', Tt', X'|}) \<in> set evs;
          evs \<in> kerberos |] ==> A=A' & B=B' & K=K' & Tt=Tt' & X=X'"
 apply (erule rev_mp)
 apply (erule rev_mp)
-apply (erule kerberos.induct) 
-apply (frule_tac [7] K5_msg_in_parts_spies) 
-apply (frule_tac [5] K3_msg_in_parts_spies, simp_all) 
+apply (erule kerberos.induct)
+apply (frule_tac [7] K5_msg_in_parts_spies)
+apply (frule_tac [5] K3_msg_in_parts_spies, simp_all)
 txt{*K4*}
 apply blast
 done
@@ -663,19 +673,19 @@ subsection{*Lemmas About the Predicate @{term KeyCryptKey}*}
 lemma not_KeyCryptKey_Nil [iff]: "~ KeyCryptKey AuthKey ServKey []"
 by (simp add: KeyCryptKey_def)
 
-lemma KeyCryptKeyI: 
- "[| Says Tgs A (Crypt AuthKey {|Key ServKey, Agent B, tt, X |}) \<in> set evs;  
+lemma KeyCryptKeyI:
+ "[| Says Tgs A (Crypt AuthKey {|Key ServKey, Agent B, tt, X |}) \<in> set evs;
      evs \<in> kerberos |] ==> KeyCryptKey AuthKey ServKey evs"
 apply (unfold KeyCryptKey_def)
 apply (blast dest: Says_Tgs_message_form)
 done
 
-lemma KeyCryptKey_Says [simp]: 
-   "KeyCryptKey AuthKey ServKey (Says S A X # evs) =                        
-     (Tgs = S &                                                             
-      (\<exists>B tt. X = Crypt AuthKey         
-                {|Key ServKey, Agent B, tt,   
-                  Crypt (shrK B) {|Agent A, Agent B, Key ServKey, tt|} |})  
+lemma KeyCryptKey_Says [simp]:
+   "KeyCryptKey AuthKey ServKey (Says S A X # evs) =
+     (Tgs = S &
+      (\<exists>B tt. X = Crypt AuthKey
+                {|Key ServKey, Agent B, tt,
+                  Crypt (shrK B) {|Agent A, Agent B, Key ServKey, tt|} |})
      | KeyCryptKey AuthKey ServKey evs)"
 apply (unfold KeyCryptKey_def)
 apply (simp (no_asm))
@@ -684,33 +694,33 @@ done
 
 (*A fresh AuthKey cannot be associated with any other
   (with respect to a given trace). *)
-lemma Auth_fresh_not_KeyCryptKey: 
-     "[| Key AuthKey \<notin> used evs; evs \<in> kerberos |]  
+lemma Auth_fresh_not_KeyCryptKey:
+     "[| Key AuthKey \<notin> used evs; evs \<in> kerberos |]
       ==> ~ KeyCryptKey AuthKey ServKey evs"
 apply (unfold KeyCryptKey_def)
 apply (erule rev_mp)
-apply (erule kerberos.induct) 
-apply (frule_tac [7] K5_msg_in_parts_spies) 
+apply (erule kerberos.induct)
+apply (frule_tac [7] K5_msg_in_parts_spies)
 apply (frule_tac [5] K3_msg_in_parts_spies, simp_all, blast)
 done
 
 (*A fresh ServKey cannot be associated with any other
   (with respect to a given trace). *)
-lemma Serv_fresh_not_KeyCryptKey: 
+lemma Serv_fresh_not_KeyCryptKey:
  "Key ServKey \<notin> used evs ==> ~ KeyCryptKey AuthKey ServKey evs"
 apply (unfold KeyCryptKey_def, blast)
 done
 
 lemma AuthKey_not_KeyCryptKey:
-     "[| Crypt (shrK Tgs) {|Agent A, Agent Tgs, Key AuthKey, tk|} 
-           \<in> parts (spies evs);  evs \<in> kerberos |]  
+     "[| Crypt (shrK Tgs) {|Agent A, Agent Tgs, Key AuthKey, tk|}
+           \<in> parts (spies evs);  evs \<in> kerberos |]
       ==> ~ KeyCryptKey K AuthKey evs"
 apply (erule rev_mp)
-apply (erule kerberos.induct) 
-apply (frule_tac [7] K5_msg_in_parts_spies) 
-apply (frule_tac [5] K3_msg_in_parts_spies, simp_all) 
+apply (erule kerberos.induct)
+apply (frule_tac [7] K5_msg_in_parts_spies)
+apply (frule_tac [5] K3_msg_in_parts_spies, simp_all)
 txt{*Fake*}
-apply blast 
+apply blast
 txt{*K2: by freshness*}
 apply (simp add: KeyCryptKey_def)
 txt{*K4*}
@@ -718,59 +728,59 @@ apply (blast+)
 done
 
 text{*A secure serverkey cannot have been used to encrypt others*}
-lemma ServKey_not_KeyCryptKey: 
- "[| Crypt (shrK B) {|Agent A, Agent B, Key SK, tt|} \<in> parts (spies evs);  
-     Key SK \<notin> analz (spies evs);              
-     B \<noteq> Tgs;  evs \<in> kerberos |]  
+lemma ServKey_not_KeyCryptKey:
+ "[| Crypt (shrK B) {|Agent A, Agent B, Key SK, tt|} \<in> parts (spies evs);
+     Key SK \<notin> analz (spies evs);  SK \<in> symKeys;
+     B \<noteq> Tgs;  evs \<in> kerberos |]
   ==> ~ KeyCryptKey SK K evs"
 apply (erule rev_mp)
 apply (erule rev_mp)
 apply (erule kerberos.induct, analz_mono_contra)
-apply (frule_tac [7] K5_msg_in_parts_spies) 
+apply (frule_tac [7] K5_msg_in_parts_spies)
 apply (frule_tac [5] K3_msg_in_parts_spies, simp_all, blast)
 txt{*K4 splits into distinct subcases*}
 apply auto
 txt{*ServKey can't have been enclosed in two certificates*}
  prefer 2 apply (blast dest: unique_CryptKey)
-txt{*ServKey is fresh and so could not have been used, by 
+txt{*ServKey is fresh and so could not have been used, by
    @{text new_keys_not_used}*}
 apply (force dest!: Crypt_imp_invKey_keysFor simp add: KeyCryptKey_def)
 done
 
 text{*Long term keys are not issued as ServKeys*}
-lemma shrK_not_KeyCryptKey: 
+lemma shrK_not_KeyCryptKey:
      "evs \<in> kerberos ==> ~ KeyCryptKey K (shrK A) evs"
 apply (unfold KeyCryptKey_def)
-apply (erule kerberos.induct) 
-apply (frule_tac [7] K5_msg_in_parts_spies) 
-apply (frule_tac [5] K3_msg_in_parts_spies, simp_all) 
+apply (erule kerberos.induct)
+apply (frule_tac [7] K5_msg_in_parts_spies)
+apply (frule_tac [5] K3_msg_in_parts_spies, auto)
 done
 
-text{*The Tgs message associates ServKey with AuthKey and therefore not with any 
+text{*The Tgs message associates ServKey with AuthKey and therefore not with any
   other key AuthKey.*}
-lemma Says_Tgs_KeyCryptKey: 
-     "[| Says Tgs A (Crypt AuthKey {|Key ServKey, Agent B, tt, X |})  
-           \<in> set evs;                                          
-         AuthKey' \<noteq> AuthKey;  evs \<in> kerberos |]                       
+lemma Says_Tgs_KeyCryptKey:
+     "[| Says Tgs A (Crypt AuthKey {|Key ServKey, Agent B, tt, X |})
+           \<in> set evs;
+         AuthKey' \<noteq> AuthKey;  evs \<in> kerberos |]
       ==> ~ KeyCryptKey AuthKey' ServKey evs"
 apply (unfold KeyCryptKey_def)
 apply (blast dest: unique_ServKeys)
 done
 
 lemma KeyCryptKey_not_KeyCryptKey:
-     "[| KeyCryptKey AuthKey ServKey evs;  evs \<in> kerberos |]  
+     "[| KeyCryptKey AuthKey ServKey evs;  evs \<in> kerberos |]
       ==> ~ KeyCryptKey ServKey K evs"
 apply (erule rev_mp)
-apply (erule kerberos.induct) 
-apply (frule_tac [7] K5_msg_in_parts_spies) 
+apply (erule kerberos.induct)
+apply (frule_tac [7] K5_msg_in_parts_spies)
 apply (frule_tac [5] K3_msg_in_parts_spies, simp_all, safe)
 txt{*K4 splits into subcases*}
 apply simp_all
 prefer 4 apply (blast dest!: AuthKey_not_KeyCryptKey)
-txt{*ServKey is fresh and so could not have been used, by 
+txt{*ServKey is fresh and so could not have been used, by
    @{text new_keys_not_used}*}
- prefer 2
- apply (force dest!: Says_imp_spies [THEN parts.Inj] Crypt_imp_invKey_keysFor simp add: KeyCryptKey_def)
+ prefer 2 
+ apply (force dest!: Crypt_imp_invKey_keysFor simp add: KeyCryptKey_def)
 txt{*Others by freshness*}
 apply (blast+)
 done
@@ -781,30 +791,29 @@ text{*The only session keys that can be found with the help of session keys are
 text{*We take some pains to express the property
   as a logical equivalence so that the simplifier can apply it.*}
 lemma Key_analz_image_Key_lemma:
-     "P --> (Key K \<in> analz (Key`KK Un H)) --> (K:KK | Key K \<in> analz H)   
-      ==>        
+     "P --> (Key K \<in> analz (Key`KK Un H)) --> (K:KK | Key K \<in> analz H)
+      ==>
       P --> (Key K \<in> analz (Key`KK Un H)) = (K:KK | Key K \<in> analz H)"
 by (blast intro: analz_mono [THEN subsetD])
 
 
 lemma KeyCryptKey_analz_insert:
-     "[| KeyCryptKey K K' evs; evs \<in> kerberos |]  
+     "[| KeyCryptKey K K' evs; K \<in> symKeys; evs \<in> kerberos |]
       ==> Key K' \<in> analz (insert (Key K) (spies evs))"
-apply (simp (no_asm_use) add: KeyCryptKey_def)
-apply clarify
+apply (simp add: KeyCryptKey_def, clarify)
 apply (drule Says_imp_spies [THEN analz.Inj, THEN analz_insertI], auto)
 done
 
 lemma AuthKeys_are_not_KeyCryptKey:
-     "[| K \<in> AuthKeys evs Un range shrK;  evs \<in> kerberos |]   
+     "[| K \<in> AuthKeys evs Un range shrK;  evs \<in> kerberos |]
       ==> \<forall>SK. ~ KeyCryptKey SK K evs"
 apply (simp add: KeyCryptKey_def)
 apply (blast dest: Says_Tgs_message_form)
 done
 
 lemma not_AuthKeys_not_KeyCryptKey:
-     "[| K \<notin> AuthKeys evs;  
-         K \<notin> range shrK; evs \<in> kerberos |]   
+     "[| K \<notin> AuthKeys evs;
+         K \<notin> range shrK; evs \<in> kerberos |]
       ==> \<forall>SK. ~ KeyCryptKey K SK evs"
 apply (simp add: KeyCryptKey_def)
 apply (blast dest: Says_Tgs_message_form)
@@ -815,10 +824,10 @@ subsection{*Secrecy Theorems*}
 
 text{*For the Oops2 case of the next theorem*}
 lemma Oops2_not_KeyCryptKey:
-     "[| evs \<in> kerberos;   
-         Says Tgs A (Crypt AuthKey  
-                     {|Key ServKey, Agent B, Number Tt, ServTicket|})  
-           \<in> set evs |]  
+     "[| evs \<in> kerberos;
+         Says Tgs A (Crypt AuthKey
+                     {|Key ServKey, Agent B, Number Tt, ServTicket|})
+           \<in> set evs |]
       ==> ~ KeyCryptKey ServKey SK evs"
 apply (blast dest: KeyCryptKeyI KeyCryptKey_not_KeyCryptKey)
 done
@@ -831,10 +840,10 @@ text{* Big simplification law for keys SK that are not crypted by keys in KK
  [simplified by LCP] *}
 lemma Key_analz_image_Key [rule_format (no_asm)]:
      "evs \<in> kerberos ==>
-      (\<forall>SK KK. KK <= -(range shrK) -->
-      (\<forall>K \<in> KK. ~ KeyCryptKey K SK evs)   -->
-      (Key SK \<in> analz (Key`KK Un (spies evs))) =
-      (SK \<in> KK | Key SK \<in> analz (spies evs)))"
+      (\<forall>SK KK. SK \<in> symKeys & KK <= -(range shrK) -->
+       (\<forall>K \<in> KK. ~ KeyCryptKey K SK evs)   -->
+       (Key SK \<in> analz (Key`KK Un (spies evs))) =
+       (SK \<in> KK | Key SK \<in> analz (spies evs)))"
 apply (erule kerberos.induct)
 apply (frule_tac [10] Oops_range_spies2)
 apply (frule_tac [9] Oops_range_spies1)
@@ -845,13 +854,17 @@ txt{*Case-splits for Oops1 and message 5: the negated case simplifies using
  the induction hypothesis*}
 apply (case_tac [11] "KeyCryptKey AuthKey SK evsO1")
 apply (case_tac [8] "KeyCryptKey ServKey SK evs5")
-apply (simp_all del: image_insert 
+apply (simp_all del: image_insert
           add: analz_image_freshK_simps KeyCryptKey_Says shrK_not_KeyCryptKey
-               Oops2_not_KeyCryptKey Auth_fresh_not_KeyCryptKey 
+               Oops2_not_KeyCryptKey Auth_fresh_not_KeyCryptKey
                Serv_fresh_not_KeyCryptKey Says_Tgs_KeyCryptKey Spy_analz_shrK)
   --{*18 seconds on a 1.8GHz machine??*}
-txt{*Fake*}
+txt{*Fake*} 
 apply spy_analz
+txt{*K2*}
+apply blast 
+txt{*K3*}
+apply blast 
 txt{*K4*}
 apply (blast dest!: AuthKey_not_KeyCryptKey)
 txt{*K5*}
@@ -861,32 +874,35 @@ apply (simp (no_asm_simp) add: analz_insert_eq Un_upper2 [THEN analz_mono, THEN 
 txt{*...therefore ServKey is uncompromised.*}
 txt{*The KeyCryptKey ServKey SK evs5 case leads to a contradiction.*}
 apply (blast elim!: ServKey_not_KeyCryptKey [THEN [2] rev_notE] del: allE ballE)
+txt{*Another K5 case*}
+apply blast 
 txt{*Oops1*}
-apply simp
+apply simp 
 apply (blast dest!: KeyCryptKey_analz_insert)
 done
-
 
 text{* First simplification law for analz: no session keys encrypt
 authentication keys or shared keys. *}
 lemma analz_insert_freshK1:
      "[| evs \<in> kerberos;  K \<in> (AuthKeys evs) Un range shrK;
+         K \<in> symKeys;
          SesKey \<notin> range shrK |]
       ==> (Key K \<in> analz (insert (Key SesKey) (spies evs))) =
           (K = SesKey | Key K \<in> analz (spies evs))"
 apply (frule AuthKeys_are_not_KeyCryptKey, assumption)
-apply (simp del: image_insert 
+apply (simp del: image_insert
             add: analz_image_freshK_simps add: Key_analz_image_Key)
 done
 
 
 text{* Second simplification law for analz: no service keys encrypt any other keys.*}
 lemma analz_insert_freshK2:
-     "[| evs \<in> kerberos;  ServKey \<notin> (AuthKeys evs); ServKey \<notin> range shrK|]
+     "[| evs \<in> kerberos;  ServKey \<notin> (AuthKeys evs); ServKey \<notin> range shrK;
+         K \<in> symKeys|]
       ==> (Key K \<in> analz (insert (Key ServKey) (spies evs))) =
           (K = ServKey | Key K \<in> analz (spies evs))"
 apply (frule not_AuthKeys_not_KeyCryptKey, assumption, assumption)
-apply (simp del: image_insert 
+apply (simp del: image_insert
             add: analz_image_freshK_simps add: Key_analz_image_Key)
 done
 
@@ -896,12 +912,12 @@ certain service key.*}
 lemma analz_insert_freshK3:
  "[| Says Tgs A
             (Crypt AuthKey {|Key ServKey, Agent B, Number Tt, ServTicket|})
-              \<in> set evs;
-            AuthKey \<noteq> AuthKey'; AuthKey' \<notin> range shrK; evs \<in> kerberos |]
+        \<in> set evs;  ServKey \<in> symKeys;
+     AuthKey \<noteq> AuthKey'; AuthKey' \<notin> range shrK; evs \<in> kerberos |]
         ==> (Key ServKey \<in> analz (insert (Key AuthKey') (spies evs))) =
                 (ServKey = AuthKey' | Key ServKey \<in> analz (spies evs))"
-apply (drule_tac AuthKey' = "AuthKey'" in Says_Tgs_KeyCryptKey, blast, assumption)
-apply (simp del: image_insert 
+apply (drule_tac AuthKey' = AuthKey' in Says_Tgs_KeyCryptKey, blast, assumption)
+apply (simp del: image_insert
             add: analz_image_freshK_simps add: Key_analz_image_Key)
 done
 
@@ -910,11 +926,10 @@ text{*a weakness of the protocol*}
 lemma AuthKey_compromises_ServKey:
      "[| Says Tgs A
               (Crypt AuthKey {|Key ServKey, Agent B, Number Tt, ServTicket|})
-           \<in> set evs;
+           \<in> set evs;  AuthKey \<in> symKeys;
          Key AuthKey \<in> analz (spies evs); evs \<in> kerberos |]
       ==> Key ServKey \<in> analz (spies evs)"
-apply (force dest: Says_imp_spies [THEN analz.Inj, THEN analz.Decrypt, THEN analz.Fst])
-done
+by (force dest: Says_imp_spies [THEN analz.Inj, THEN analz.Decrypt, THEN analz.Fst])
 
 
 subsection{* Guarantees for Kas *}
@@ -938,7 +953,7 @@ done
 text{*If Spy sees the Authentication Key sent in msg K2, then
     the Key has expired.*}
 lemma Confidentiality_Kas_lemma [rule_format]:
-     "[| A \<notin> bad;  evs \<in> kerberos |]
+     "[| AuthKey \<in> symKeys; A \<notin> bad;  evs \<in> kerberos |]
       ==> Says Kas A
                (Crypt (shrK A)
                   {|Key AuthKey, Agent Tgs, Number Tk,
@@ -967,7 +982,6 @@ txt{*Oops2*}
 apply (blast dest: Says_Tgs_message_form Says_Kas_message_form)
 done
 
-
 lemma Confidentiality_Kas:
      "[| Says Kas A
               (Crypt Ka {|Key AuthKey, Agent Tgs, Number Tk, AuthTicket|})
@@ -982,16 +996,18 @@ subsection{* Guarantees for Tgs *}
 
 text{*If Spy sees the Service Key sent in msg K4, then
     the Key has expired.*}
+
 lemma Confidentiality_lemma [rule_format]:
      "[| Says Tgs A
-         (Crypt AuthKey
-            {|Key ServKey, Agent B, Number Tt,
-              Crypt (shrK B) {|Agent A, Agent B, Key ServKey, Number Tt|}|})
-         \<in> set evs;
-       Key AuthKey \<notin> analz (spies evs);
-       A \<notin> bad;  B \<notin> bad; B \<noteq> Tgs; evs \<in> kerberos |]
-   ==> Key ServKey \<in> analz (spies evs) -->
-       ExpirServ Tt evs"
+	    (Crypt AuthKey
+	       {|Key ServKey, Agent B, Number Tt,
+		 Crypt (shrK B) {|Agent A, Agent B, Key ServKey, Number Tt|}|})
+	   \<in> set evs;
+	Key AuthKey \<notin> analz (spies evs);
+        ServKey \<in> symKeys;
+	A \<notin> bad;  B \<notin> bad; B \<noteq> Tgs; evs \<in> kerberos |]
+      ==> Key ServKey \<in> analz (spies evs) -->
+	  ExpirServ Tt evs"
 apply (erule rev_mp)
 apply (erule rev_mp)
 apply (erule kerberos.induct)
@@ -999,7 +1015,7 @@ apply (rule_tac [9] impI)+;
   --{*The Oops1 case is unusual: must simplify
     @{term "Authkey \<notin> analz (spies (ev#evs))"}, not letting
    @{text analz_mono_contra} weaken it to
-   @{term "Authkey \<notin> analz (spies evs)"}, 
+   @{term "Authkey \<notin> analz (spies evs)"},
   for we then conclude @{term "AuthKey \<noteq> AuthKeya"}.*}
 apply analz_mono_contra
 apply (frule_tac [10] Oops_range_spies2)
@@ -1018,11 +1034,11 @@ txt{*Oops2*}
   prefer 3
   apply (blast dest: Says_imp_spies [THEN parts.Inj] Key_unique_SesKey intro: less_SucI)
 txt{*Oops1*}
- prefer 2 
+ prefer 2
  apply (blast dest: Says_Kas_message_form Says_Tgs_message_form intro: less_SucI)
 txt{*K5.  Not clear how this step could be integrated with the main
        simplification step.*}
-apply clarify 
+apply clarify
 apply (erule_tac V = "Says Aa Tgs ?X \<in> set ?evs" in thin_rl)
 apply (frule Says_imp_spies [THEN parts.Inj, THEN ServKey_notin_AuthKeysD])
 apply (assumption, blast, assumption)
@@ -1214,8 +1230,8 @@ lemma Confidentiality_B:
          A \<notin> bad;  B \<notin> bad; B \<noteq> Tgs; evs \<in> kerberos |]
       ==> Key ServKey \<notin> analz (spies evs)"
 apply (frule A_trusts_AuthKey)
-apply (frule_tac [3] Confidentiality_Kas) 
-apply (frule_tac [6] B_trusts_ServTicket, auto) 
+apply (frule_tac [3] Confidentiality_Kas)
+apply (frule_tac [6] B_trusts_ServTicket, auto)
 apply (blast dest!: Confidentiality_Tgs2 dest: Says_Kas_message_form A_trusts_K4 unique_ServKeys unique_AuthKeys)
 done
 (*
@@ -1224,7 +1240,7 @@ apply (blast dest: A_trusts_AuthKey A_trusts_K4
                                Says_Kas_message_form B_trusts_ServTicket
                                unique_ServKeys unique_AuthKeys
                                Confidentiality_Kas
-                               Confidentiality_Tgs2) 
+                               Confidentiality_Tgs2)
 It is very brittle: we can't use this command partway
 through the script above.
 *)
@@ -1449,8 +1465,7 @@ lemma K3_imp_K2:
 apply (erule rev_mp)
 apply (erule kerberos.induct)
 apply (frule_tac [7] K5_msg_in_parts_spies)
-apply (frule_tac [5] K3_msg_in_parts_spies, simp_all, blast)
-apply blast
+apply (frule_tac [5] K3_msg_in_parts_spies, simp_all, blast, blast)
 apply (blast dest: Says_imp_spies [THEN parts.Inj, THEN A_trusts_AuthKey])
 done
 
@@ -1492,14 +1507,14 @@ apply (frule_tac [5] Says_ticket_in_parts_spies)
 apply (frule_tac [7] Says_ticket_in_parts_spies)
 apply (simp_all (no_asm_simp))
 apply clarify
-txt{*K6*}
+txt{*K5*}
 apply auto
 apply (simp add: takeWhile_tail)
 txt{*Level 15: case study necessary because the assumption doesn't state
   the form of ServTicket. The guarantee becomes stronger.*}
-apply (blast dest: Says_imp_spies [THEN analz.Inj, THEN analz_Decrypt'] 
-                   K3_imp_K2 K4_trustworthy' 
-                   parts_spies_takeWhile_mono [THEN subsetD] 
+apply (blast dest: Says_imp_spies [THEN analz.Inj, THEN analz_Decrypt']
+                   K3_imp_K2 K4_trustworthy'
+                   parts_spies_takeWhile_mono [THEN subsetD]
                    parts_spies_evs_revD2 [THEN subsetD]
              intro: Says_Auth)
 apply (simp add: takeWhile_tail)

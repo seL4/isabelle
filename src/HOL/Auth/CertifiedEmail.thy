@@ -156,7 +156,7 @@ lemma Spy_dont_know_private_keys [dest!]:
 apply (erule rev_mp) 
 apply (erule certified_mail.induct, simp_all)
 txt{*Fake*}
-apply (blast dest: Fake_parts_insert_in_Un); 
+apply (blast dest: Fake_parts_insert_in_Un) 
 txt{*Message 1*}
 apply blast  
 txt{*Message 3*}
@@ -170,7 +170,7 @@ done
 lemma Spy_know_private_keys_iff [simp]:
     "evs \<in> certified_mail
      ==> (Key (privateKey b A) \<in> parts (spies evs)) = (A \<in> bad)"
-by (blast intro: elim:); 
+by blast 
 
 lemma Spy_dont_know_TTPKey_parts [simp]:
      "evs \<in> certified_mail ==> Key (privateKey b TTP) \<notin> parts(spies evs)" 
@@ -210,7 +210,7 @@ lemma Spy_dont_know_RPwd [rule_format]:
     "evs \<in> certified_mail ==> Key (RPwd A) \<in> parts(spies evs) --> A \<in> bad"
 apply (erule certified_mail.induct, simp_all) 
 txt{*Fake*}
-apply (blast dest: Fake_parts_insert_in_Un); 
+apply (blast dest: Fake_parts_insert_in_Un) 
 txt{*Message 1*}
 apply blast  
 txt{*Message 3*}
@@ -246,8 +246,7 @@ txt{*Message 3*}
 apply (frule_tac hr_form, assumption)
 apply (elim disjE exE) 
 apply (simp_all add: parts_insert2 parts_insert_knows_A) 
- apply (blast dest!: Fake_parts_sing_imp_Un)
-apply (blast intro: elim:);
+ apply (blast dest!: Fake_parts_sing_imp_Un, blast)
 done
 
 
@@ -333,7 +332,7 @@ by (blast intro: S2TTP_sender_lemma)
 
 
 text{*Nobody can have used non-existent keys!*}
-lemma new_keys_not_used [rule_format, simp]:
+lemma new_keys_not_used [simp]:
     "[|Key K \<notin> used evs; K \<in> symKeys; evs \<in> certified_mail|]
      ==> K \<notin> keysFor (parts (spies evs))"
 apply (erule rev_mp) 

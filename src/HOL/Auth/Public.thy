@@ -10,6 +10,9 @@ Private and public keys; initial states of agents
 
 theory Public = Event:
 
+lemma invKey_K: "K \<in> symKeys ==> invKey K = K"
+by (simp add: symKeys_def)
+
 subsection{*Asymmetric Keys*}
 
 consts
@@ -51,8 +54,7 @@ specification (publicKey)
   injective_publicKey:
     "publicKey b A = publicKey c A' ==> b=c & A=A'"
    apply (rule exI [of _ "%b A. 2 * agent_case 0 (\<lambda>n. n + 2) 1 A + (if b then 1 else 0)"]) 
-   apply (auto simp add: inj_on_def split: agent.split) 
-   apply presburger+
+   apply (auto simp add: inj_on_def split: agent.split, presburger+)
 (*faster would be this:
    apply (drule_tac f="%x. x mod 2" in arg_cong, simp add: mod_Suc)+
 *)
@@ -137,6 +139,17 @@ axioms
 (*Injectiveness: Agents' long-term keys are distinct.*)
 declare inj_shrK [THEN inj_eq, iff]
 
+lemma invKey_shrK [simp]: "invKey (shrK A) = shrK A"
+by (simp add: invKey_K) 
+
+lemma analz_shrK_Decrypt:
+     "[| Crypt (shrK A) X \<in> analz H; Key(shrK A) \<in> analz H |] ==> X \<in> analz H"
+by auto
+
+lemma analz_Decrypt':
+     "[| Crypt K X \<in> analz H; K \<in> symKeys; Key K \<in> analz H |] ==> X \<in> analz H"
+by (auto simp add: invKey_K)
+
 lemma priK_neq_shrK [iff]: "shrK A \<noteq> privateKey b C"
 by (simp add: symKeys_neq_imp_neq)
 
@@ -164,6 +177,9 @@ by auto
 
 lemma shrK_image_eq [simp]: "(shrK x \<in> shrK ` AA) = (x \<in> AA)"
 by auto
+
+text{*For some reason, moving this up can make some proofs loop!*}
+declare invKey_K [simp]
 
 
 subsection{*Initial States of Agents*}
@@ -233,7 +249,6 @@ by (induct B, auto)
 lemma Crypt_notin_used_empty [simp]: "Crypt K X \<notin> used []"
 by (simp add: Crypt_notin_initState used_Nil)
 
-
 (*** Basic properties of shrK ***)
 
 (*Agents see their own shared keys!*)
@@ -246,16 +261,18 @@ by (simp add: initState_subset_knows [THEN subsetD])
 lemma shrK_in_used [iff]: "Key (shrK A) \<in> used evs"
 by (rule initState_into_used, blast)
 
+
 (** Fresh keys never clash with long-term shared keys **)
 
 (*Used in parts_induct_tac and analz_Fake_tac to distinguish session keys
   from long-term shared keys*)
-lemma Key_not_used: "Key K \<notin> used evs ==> K \<notin> range shrK"
+lemma Key_not_used [simp]: "Key K \<notin> used evs ==> K \<notin> range shrK"
 by blast
 
 lemma shrK_neq: "Key K \<notin> used evs ==> shrK B \<noteq> K"
 by blast
 
+declare shrK_neq [THEN not_sym, simp]
 
 
 subsection{*Function @{term spies} *}
@@ -299,6 +316,12 @@ lemma privateKey_into_used [iff]: "Key (privateKey b A) \<in> used evs"
 apply(rule initState_into_used)
 apply(rule priK_in_initState [THEN parts.Inj])
 done
+
+(*For case analysis on whether or not an agent is compromised*)
+lemma Crypt_Spy_analz_bad:
+     "[| Crypt (shrK A) X \<in> analz (knows Spy evs);  A \<in> bad |]  
+      ==> X \<in> analz (knows Spy evs)"
+by force
 
 
 subsection{*Fresh Nonces*}
@@ -344,36 +367,48 @@ val insert_Key_singleton = thm "insert_Key_singleton";
 val insert_Key_image = thm "insert_Key_image";
 *}
 
-(*
-val not_symKeys_pubK = thm "not_symKeys_pubK";
-val not_symKeys_priK = thm "not_symKeys_priK";
-val symKeys_neq_imp_neq = thm "symKeys_neq_imp_neq";
-val analz_symKeys_Decrypt = thm "analz_symKeys_Decrypt";
-val invKey_image_eq = thm "invKey_image_eq";
-val pubK_image_eq = thm "pubK_image_eq";
-val priK_pubK_image_eq = thm "priK_pubK_image_eq";
-val keysFor_parts_initState = thm "keysFor_parts_initState";
-val priK_in_initState = thm "priK_in_initState";
-val spies_pubK = thm "spies_pubK";
-val Spy_spies_bad = thm "Spy_spies_bad";
-val Nonce_notin_initState = thm "Nonce_notin_initState";
-val Nonce_notin_used_empty = thm "Nonce_notin_used_empty";
 
-*)
-
-
-lemma invKey_K [simp]: "K \<in> symKeys ==> invKey K = K"
-by (simp add: symKeys_def)
-
-lemma Crypt_imp_keysFor :"[|K \<in> symKeys; Crypt K X \<in> H|] ==> K \<in> keysFor H"
+lemma Crypt_imp_keysFor :"[|Crypt K X \<in> H; K \<in> symKeys|] ==> K \<in> keysFor H"
 by (drule Crypt_imp_invKey_keysFor, simp)
 
+text{*Lemma for the trivial direction of the if-and-only-if of the 
+Session Key Compromise Theorem*}
+lemma analz_image_freshK_lemma:
+     "(Key K \<in> analz (Key`nE \<union> H)) --> (K \<in> nE | Key K \<in> analz H)  ==>  
+         (Key K \<in> analz (Key`nE \<union> H)) = (K \<in> nE | Key K \<in> analz H)"
+by (blast intro: analz_mono [THEN [2] rev_subsetD])
+
+lemmas analz_image_freshK_simps =
+       simp_thms mem_simps --{*these two allow its use with @{text "only:"}*}
+       disj_comms 
+       image_insert [THEN sym] image_Un [THEN sym] empty_subsetI insert_subset
+       analz_insert_eq Un_upper2 [THEN analz_mono, THEN subsetD]
+       insert_Key_singleton 
+       Key_not_used insert_Key_image Un_assoc [THEN sym]
+
+ML
+{*
+val analz_image_freshK_lemma = thm "analz_image_freshK_lemma";
+val analz_image_freshK_simps = thms "analz_image_freshK_simps";
+
+val analz_image_freshK_ss = 
+     simpset() delsimps [image_insert, image_Un]
+	       delsimps [imp_disjL]    (*reduces blow-up*)
+	       addsimps thms "analz_image_freshK_simps"
+*}
+
+method_setup analz_freshK = {*
+    Method.no_args
+     (Method.METHOD
+      (fn facts => EVERY [REPEAT_FIRST (resolve_tac [allI, ballI, impI]),
+                          REPEAT_FIRST (rtac analz_image_freshK_lemma),
+                          ALLGOALS (asm_simp_tac analz_image_freshK_ss)])) *}
+    "for proving the Session Key Compromise theorem"
 
 subsection{*Specialized Methods for Possibility Theorems*}
 
 ML
 {*
-val Nonce_supply1 = thm "Nonce_supply1";
 val Nonce_supply = thm "Nonce_supply";
 
 (*Tactic for possibility theorems (Isar interface)*)
@@ -386,6 +421,14 @@ fun gen_possibility_tac ss state = state |>
 
 (*Tactic for possibility theorems (ML script version)*)
 fun possibility_tac state = gen_possibility_tac (simpset()) state
+
+(*For harder protocols (such as Recur) where we have to set up some
+  nonces and keys initially*)
+fun basic_possibility_tac st = st |>
+    REPEAT 
+    (ALLGOALS (asm_simp_tac (simpset() setSolver safe_solver))
+     THEN
+     REPEAT_FIRST (resolve_tac [refl, conjI]))
 *}
 
 method_setup possibility = {*
@@ -393,23 +436,5 @@ method_setup possibility = {*
         Method.METHOD (fn facts =>
             gen_possibility_tac (Simplifier.get_local_simpset ctxt))) *}
     "for proving possibility theorems"
-
-
-
-lemmas analz_image_freshK_simps =
-       simp_thms mem_simps --{*these two allow its use with @{text "only:"}*}
-       disj_comms 
-       image_insert [THEN sym] image_Un [THEN sym] empty_subsetI insert_subset
-       analz_insert_eq Un_upper2 [THEN analz_mono, THEN subsetD]
-       insert_Key_singleton 
-       Key_not_used insert_Key_image Un_assoc [THEN sym]
-
-ML
-{*
-val analz_image_freshK_ss =
-     simpset() delsimps [image_insert, image_Un]
-	       delsimps [imp_disjL]    (*reduces blow-up*)
-	       addsimps thms"analz_image_freshK_simps"
-*}
 
 end

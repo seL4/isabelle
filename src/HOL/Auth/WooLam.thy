@@ -2,19 +2,21 @@
     ID:         $Id$
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1996  University of Cambridge
-
-Inductive relation "woolam" for the Woo-Lam protocol.
-
-Simplified version from page 11 of
-  Abadi and Needham.  Prudent Engineering Practice for Cryptographic Protocols.
-  IEEE Trans. S.E. 22(1), 1996, pages 6-15.
-
-Note: this differs from the Woo-Lam protocol discussed by Lowe in his paper
-  Some New Attacks upon Security Protocols.
-  Computer Security Foundations Workshop, 1996.
 *)
 
-theory WooLam = Shared:
+header{*The Woo-Lam Protocol*}
+
+theory WooLam = Public:
+
+text{*Simplified version from page 11 of
+  Abadi and Needham (1996). 
+  Prudent Engineering Practice for Cryptographic Protocols.
+  IEEE Trans. S.E. 22(1), pages 6-15.
+
+Note: this differs from the Woo-Lam protocol discussed by Lowe (1996):
+  Some New Attacks upon Security Protocols.
+  Computer Security Foundations Workshop
+*}
 
 consts  woolam  :: "event list set"
 inductive woolam
@@ -87,8 +89,7 @@ done
 (*Spy never sees a good agent's shared key!*)
 lemma Spy_see_shrK [simp]:
      "evs \<in> woolam ==> (Key (shrK A) \<in> parts (spies evs)) = (A \<in> bad)"
-apply (erule woolam.induct, force, simp_all, blast+)
-done
+by (erule woolam.induct, force, simp_all, blast+)
 
 lemma Spy_analz_shrK [simp]:
      "evs \<in> woolam ==> (Key (shrK A) \<in> analz (spies evs)) = (A \<in> bad)"
@@ -108,8 +109,7 @@ lemma NB_Crypt_imp_Alice_msg:
      "[| Crypt (shrK A) (Nonce NB) \<in> parts (spies evs);
          A \<notin> bad;  evs \<in> woolam |]
       ==> \<exists>B. Says A B (Crypt (shrK A) (Nonce NB)) \<in> set evs"
-apply (erule rev_mp, erule woolam.induct, force, simp_all, blast+)
-done
+by (erule rev_mp, erule woolam.induct, force, simp_all, blast+)
 
 (*Guarantee for Server: if it gets a message containing a certificate from
   Alice, then she originated that certificate.  But we DO NOT know that B
@@ -130,16 +130,14 @@ lemma Server_sent_WL5 [dest]:
          evs \<in> woolam |]
       ==> \<exists>B'. Says B' Server {|Agent A, Agent B, Crypt (shrK A) NB|}
              \<in> set evs"
-apply (erule rev_mp, erule woolam.induct, force, simp_all, blast+)
-done
+by (erule rev_mp, erule woolam.induct, force, simp_all, blast+)
 
 (*If the encrypted message appears then it originated with the Server!*)
 lemma NB_Crypt_imp_Server_msg [rule_format]:
      "[| Crypt (shrK B) {|Agent A, NB|} \<in> parts (spies evs);
          B \<notin> bad;  evs \<in> woolam |]
       ==> Says Server B (Crypt (shrK B) {|Agent A, NB|}) \<in> set evs"
-apply (erule rev_mp, erule woolam.induct, force, simp_all, blast+)
-done
+by (erule rev_mp, erule woolam.induct, force, simp_all, blast+)
 
 (*Guarantee for B.  If B gets the Server's certificate then A has encrypted
   the nonce using her key.  This event can be no older than the nonce itself.
@@ -156,8 +154,7 @@ by (blast dest!: NB_Crypt_imp_Server_msg)
 lemma B_said_WL2:
      "[| Says B A (Nonce NB) \<in> set evs;  B \<noteq> Spy;  evs \<in> woolam |]
       ==> \<exists>A'. Says A' B (Agent A) \<in> set evs"
-apply (erule rev_mp, erule woolam.induct, force, simp_all, blast+)
-done
+by (erule rev_mp, erule woolam.induct, force, simp_all, blast+)
 
 
 (**CANNOT be proved because A doesn't know where challenges come from...*)

@@ -2,18 +2,17 @@
     ID:         $Id$
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1996  University of Cambridge
-
-
-From page 244 of
-  Burrows, Abadi and Needham.  A Logic of Authentication.
-  Proc. Royal Soc. 426 (1989)
 *)
 
-header{*Verifying the Otway-Rees protocol*}
+header{*The Original Otway-Rees Protocol*}
 
-theory OtwayRees = Shared:
+theory OtwayRees = Public:
 
-text{*This is the original version, which encrypts Nonce NB.*}
+text{* From page 244 of
+  Burrows, Abadi and Needham (1989).  A Logic of Authentication.
+  Proc. Royal Soc. 426
+
+This is the original version, which encrypts Nonce NB.*}
 
 consts  otway   :: "event list set"
 inductive "otway"
@@ -180,10 +179,10 @@ lemma analz_image_freshK [rule_format]:
    \<forall>K KK. KK <= -(range shrK) -->
           (Key K \<in> analz (Key`KK Un (knows Spy evs))) =
           (K \<in> KK | Key K \<in> analz (knows Spy evs))"
-apply (erule otway.induct, force)
-apply (frule_tac [7] Says_Server_message_form)
-apply (drule_tac [6] OR4_analz_knows_Spy)
-apply (drule_tac [4] OR2_analz_knows_Spy, analz_freshK, spy_analz)
+apply (erule otway.induct)
+apply (frule_tac [8] Says_Server_message_form)
+apply (drule_tac [7] OR4_analz_knows_Spy)
+apply (drule_tac [5] OR2_analz_knows_Spy, analz_freshK, spy_analz, auto) 
 done
 
 

@@ -2,11 +2,11 @@
     ID:         $Id$
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1996  University of Cambridge
-
-Inductive relation "recur" for the Recursive Authentication protocol.
 *)
 
-theory Recur = Shared:
+header{*The Otway-Bull Recursive Authentication Protocol*}
+
+theory Recur = Public:
 
 text{*End marker for message bundles*}
 syntax        END :: "msg"
@@ -63,26 +63,26 @@ inductive "recur"
 
          (*Alice initiates a protocol run.
            END is a placeholder to terminate the nesting.*)
-   RA1:  "[| evs1: recur;  Nonce NA \<notin> used evs1 |]
+   RA1:  "[| evs1 \<in> recur;  Nonce NA \<notin> used evs1 |]
           ==> Says A B (Hash[Key(shrK A)] {|Agent A, Agent B, Nonce NA, END|})
               # evs1 \<in> recur"
 
          (*Bob's response to Alice's message.  C might be the Server.
            We omit PA = {|XA, Agent A, Agent B, Nonce NA, P|} because
            it complicates proofs, so B may respond to any message at all!*)
-   RA2:  "[| evs2: recur;  Nonce NB \<notin> used evs2;
+   RA2:  "[| evs2 \<in> recur;  Nonce NB \<notin> used evs2;
              Says A' B PA \<in> set evs2 |]
           ==> Says B C (Hash[Key(shrK B)] {|Agent B, Agent C, Nonce NB, PA|})
               # evs2 \<in> recur"
 
          (*The Server receives Bob's message and prepares a response.*)
-   RA3:  "[| evs3: recur;  Says B' Server PB \<in> set evs3;
+   RA3:  "[| evs3 \<in> recur;  Says B' Server PB \<in> set evs3;
              (PB,RB,K) \<in> respond evs3 |]
           ==> Says Server B RB # evs3 \<in> recur"
 
          (*Bob receives the returned message and compares the Nonces with
            those in the message he previously sent the Server.*)
-   RA4:  "[| evs4: recur;
+   RA4:  "[| evs4 \<in> recur;
              Says B  C {|XH, Agent B, Agent C, Nonce NB,
                          XA, Agent A, Agent B, Nonce NA, P|} \<in> set evs4;
              Says C' B {|Crypt (shrK B) {|Key KBC, Agent C, Nonce NB|},
@@ -98,7 +98,7 @@ inductive "recur"
      the chain.  Oops cases proved using parts_cut, Key_in_keysFor_parts,
      etc.
 
-   Oops:  "[| evso: recur;  Says Server B RB \<in> set evso;
+   Oops:  "[| evso \<in> recur;  Says Server B RB \<in> set evso;
 	      RB \<in> responses evs';  Key K \<in> parts {RB} |]
            ==> Notes Spy {|Key K, RB|} # evso \<in> recur"
   *)
@@ -129,28 +129,30 @@ done
 
 
 text{*Case two: Alice, Bob and the server*}
-lemma "[| Key K \<notin> used []; Key K' \<notin> used []; K \<noteq> K' |]
-       ==> \<exists>K. \<exists>NA. \<exists>evs \<in> recur.
+lemma "[| Key K \<notin> used []; Key K' \<notin> used []; K \<noteq> K';
+          Nonce NA \<notin> used []; Nonce NB \<notin> used []; NA < NB |]
+       ==> \<exists>NA. \<exists>evs \<in> recur.
         Says B A {|Crypt (shrK A) {|Key K, Agent B, Nonce NA|},
                    END|}  \<in> set evs"
-apply (cut_tac Nonce_supply2, clarify)
 apply (intro exI bexI)
 apply (rule_tac [2] 
-          recur.Nil [THEN recur.RA1, 
-                     THEN recur.RA2,
-                     THEN recur.RA3 [OF _ _ respond.One [THEN respond.Cons]],
-                     THEN recur.RA4])
-apply possibility
+          recur.Nil
+           [THEN recur.RA1 [of _ NA], 
+	    THEN recur.RA2 [of _ NB],
+	    THEN recur.RA3 [OF _ _ respond.One 
+                                     [THEN respond.Cons [of _ _ K _ K']]],
+	    THEN recur.RA4], possibility)
 apply (auto simp add: used_Cons)
 done
 
 (*Case three: Alice, Bob, Charlie and the server Rather slow (5 seconds)*)
 lemma "[| Key K \<notin> used []; Key K' \<notin> used [];  
-                       Key K'' \<notin> used []; K \<noteq> K'; K' \<noteq> K''; K \<noteq> K'' |]
+          Key K'' \<notin> used []; K \<noteq> K'; K' \<noteq> K''; K \<noteq> K'';
+          Nonce NA \<notin> used []; Nonce NB \<notin> used []; Nonce NC \<notin> used []; 
+          NA < NB; NB < NC |]
        ==> \<exists>K. \<exists>NA. \<exists>evs \<in> recur.
              Says B A {|Crypt (shrK A) {|Key K, Agent B, Nonce NA|},
                         END|}  \<in> set evs"
-apply (cut_tac Nonce_supply3, clarify)
 apply (intro exI bexI)
 apply (rule_tac [2] 
           recur.Nil [THEN recur.RA1, 
@@ -163,7 +165,6 @@ apply (tactic "basic_possibility_tac")
 apply (tactic "DEPTH_SOLVE (swap_res_tac [refl, conjI, disjCI] 1)")
 done
 
-(**** Inductive proofs about recur ****)
 
 lemma respond_imp_not_used: "(PA,RB,KAB) \<in> respond evs ==> Key KAB \<notin> used evs"
 by (erule respond.induct, simp_all)
@@ -236,12 +237,13 @@ lemma resp_analz_image_freshK_lemma:
      ==> \<forall>K KK. KK \<subseteq> - (range shrK) -->
                    (Key K \<in> analz (insert RB (Key`KK Un H))) =
                    (K \<in> KK | Key K \<in> analz (insert RB H))"
-by (erule responses.induct,
-    simp_all del: image_insert
-	     add: analz_image_freshK_simps)
+apply (erule responses.induct)
+apply (simp_all del: image_insert
+	        add: analz_image_freshK_simps, auto)
+done 
 
 
-text{*Version for the protocol.  Proof is almost trivial, thanks to the lemma.*}
+text{*Version for the protocol.  Proof is easy, thanks to the lemma.*}
 lemma raw_analz_image_freshK:
  "evs \<in> recur ==>
    \<forall>K KK. KK \<subseteq> - (range shrK) -->
@@ -320,9 +322,10 @@ done
 lemma shrK_in_analz_respond [simp]:
      "[| RB \<in> responses evs;  evs \<in> recur |]
   ==> (Key (shrK B) \<in> analz (insert RB (spies evs))) = (B:bad)"
-by (erule responses.induct,
-    simp_all del: image_insert
-             add: analz_image_freshK_simps resp_analz_image_freshK)
+apply (erule responses.induct)
+apply (simp_all del: image_insert
+                add: analz_image_freshK_simps resp_analz_image_freshK, auto) 
+done
 
 
 lemma resp_analz_insert_lemma:
@@ -452,8 +455,6 @@ apply (erule recur.induct,
        drule_tac [6] RA4_parts_spies,
        drule_tac [4] RA2_parts_spies,
        simp_all)
-txt{*Nil*}
-apply force
 txt{*Fake, RA3*}
 apply (blast dest: Hash_in_parts_respond)+
 done

@@ -52,8 +52,7 @@ declare image_eq_UN [simp]  (*accelerates proofs involving nested images*)
 lemma "\<exists>NB. \<exists>evs \<in> ns_public. Says A B (Crypt (pubEK B) (Nonce NB)) \<in> set evs"
 apply (intro exI bexI)
 apply (rule_tac [2] ns_public.Nil [THEN ns_public.NS1, THEN ns_public.NS2, 
-                                   THEN ns_public.NS3])
-apply possibility
+                                   THEN ns_public.NS3], possibility)
 done
 
 (** Theorems of the form X \<notin> parts (spies evs) imply that NOBODY

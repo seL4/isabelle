@@ -2,15 +2,17 @@
     ID:         $Id$
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1996  University of Cambridge
-
-Inductive relation "ns_shared" for Needham-Schroeder Shared-Key protocol.
-
-From page 247 of
-  Burrows, Abadi and Needham.  A Logic of Authentication.
-  Proc. Royal Soc. 426 (1989)
 *)
 
-theory NS_Shared = Shared:
+header{*The Needham-Schroeder Shared-Key Protocol*}
+
+theory NS_Shared = Public:
+
+text{*
+From page 247 of
+  Burrows, Abadi and Needham (1989).  A Logic of Authentication.
+  Proc. Royal Soc. 426
+*}
 
 consts  ns_shared   :: "event list set"
 inductive "ns_shared"
@@ -31,7 +33,7 @@ inductive "ns_shared"
 	  !! It may respond more than once to A's request !!
 	  Server doesn't know who the true sender is, hence the A' in
 	      the sender field.*)
-  NS2:  "\<lbrakk>evs2 \<in> ns_shared;  Key KAB \<notin> used evs2;
+  NS2:  "\<lbrakk>evs2 \<in> ns_shared;  Key KAB \<notin> used evs2;  KAB \<in> symKeys;
 	  Says A' Server \<lbrace>Agent A, Agent B, Nonce NA\<rbrace> \<in> set evs2\<rbrakk>
 	 \<Longrightarrow> Says Server A
 	       (Crypt (shrK A)
@@ -48,7 +50,7 @@ inductive "ns_shared"
 
 	(*Bob's nonce exchange.  He does not know who the message came
 	  from, but responds to A because she is mentioned inside.*)
-  NS4:  "\<lbrakk>evs4 \<in> ns_shared;  Nonce NB \<notin> used evs4;
+  NS4:  "\<lbrakk>evs4 \<in> ns_shared;  Nonce NB \<notin> used evs4;  K \<in> symKeys;
 	  Says A' B (Crypt (shrK B) \<lbrace>Key K, Agent A\<rbrace>) \<in> set evs4\<rbrakk>
 	 \<Longrightarrow> Says B A (Crypt K (Nonce NB)) # evs4 \<in> ns_shared"
 
@@ -57,7 +59,7 @@ inductive "ns_shared"
 	  We do NOT send NB-1 or similar as the Spy cannot spoof such things.
 	  Letting the Spy add or subtract 1 lets him send all nonces.
 	  Instead we distinguish the messages by sending the nonce twice.*)
-  NS5:  "\<lbrakk>evs5 \<in> ns_shared;
+  NS5:  "\<lbrakk>evs5 \<in> ns_shared;  K \<in> symKeys;
 	  Says B' A (Crypt K (Nonce NB)) \<in> set evs5;
 	  Says S  A (Crypt (shrK A) \<lbrace>Nonce NA, Agent B, Key K, X\<rbrace>)
 	    \<in> set evs5\<rbrakk>
@@ -80,14 +82,14 @@ declare image_eq_UN [simp]  (*accelerates proofs involving nested images*)
 
 
 text{*A "possibility property": there are traces that reach the end*}
-lemma "[| A \<noteq> Server; Key K \<notin> used [] |] 
+lemma "[| A \<noteq> Server; Key K \<notin> used []; K \<in> symKeys |]
        ==> \<exists>N. \<exists>evs \<in> ns_shared.
                     Says A B (Crypt K \<lbrace>Nonce N, Nonce N\<rbrace>) \<in> set evs"
 apply (intro exI bexI)
 apply (rule_tac [2] ns_shared.Nil
        [THEN ns_shared.NS1, THEN ns_shared.NS2, THEN ns_shared.NS3,
 	THEN ns_shared.NS4, THEN ns_shared.NS5])
-apply (possibility, simp add: used_Cons) 
+apply (possibility, simp add: used_Cons)
 done
 
 (*This version is similar, while instantiating ?K and ?N to epsilon-terms
@@ -126,8 +128,10 @@ by auto
 
 
 text{*Nobody can have used non-existent keys!*}
-lemma new_keys_not_used [rule_format, simp]:
-    "evs \<in> ns_shared \<Longrightarrow> Key K \<notin> used evs \<longrightarrow> K \<notin> keysFor (parts (spies evs))"
+lemma new_keys_not_used [simp]:
+    "[|Key K \<notin> used evs; K \<in> symKeys; evs \<in> ns_shared|]
+     ==> K \<notin> keysFor (parts (spies evs))"
+apply (erule rev_mp)
 apply (erule ns_shared.induct, force, drule_tac [4] NS3_msg_in_parts_spies, simp_all)
 txt{*Fake, NS2, NS4, NS5*}
 apply (force dest!: keysFor_parts_insert, blast+)
@@ -161,15 +165,15 @@ lemma cert_A_form:
       \<Longrightarrow> K \<notin> range shrK \<and>  X = (Crypt (shrK B) \<lbrace>Key K, Agent A\<rbrace>)"
 by (blast dest!: A_trusts_NS2 Says_Server_message_form)
 
-(*EITHER describes the form of X when the following message is sent,
+text{*EITHER describes the form of X when the following message is sent,
   OR     reduces it to the Fake case.
-  Use Says_Server_message_form if applicable.*)
+  Use @{text Says_Server_message_form} if applicable.*}
 lemma Says_S_message_form:
      "\<lbrakk>Says S A (Crypt (shrK A) \<lbrace>Nonce NA, Agent B, Key K, X\<rbrace>) \<in> set evs;
        evs \<in> ns_shared\<rbrakk>
       \<Longrightarrow> (K \<notin> range shrK \<and> X = (Crypt (shrK B) \<lbrace>Key K, Agent A\<rbrace>))
           \<or> X \<in> analz (spies evs)"
-by (blast dest: Says_imp_knows_Spy cert_A_form analz.Inj)
+by (blast dest: Says_imp_knows_Spy analz_shrK_Decrypt cert_A_form analz.Inj)
 
 
 (*Alternative version also provable
@@ -216,9 +220,11 @@ lemma analz_image_freshK [rule_format]:
    \<forall>K KK. KK \<subseteq> - (range shrK) \<longrightarrow>
              (Key K \<in> analz (Key`KK \<union> (spies evs))) =
              (K \<in> KK \<or> Key K \<in> analz (spies evs))"
-apply (erule ns_shared.induct, force)
-apply (drule_tac [7] Says_Server_message_form)
-apply (erule_tac [4] Says_S_message_form [THEN disjE], analz_freshK, spy_analz)
+apply (erule ns_shared.induct)
+apply (drule_tac [8] Says_Server_message_form)
+apply (erule_tac [5] Says_S_message_form [THEN disjE], analz_freshK, spy_analz)
+txt{*NS2, NS3*}
+apply blast+; 
 done
 
 
@@ -255,10 +261,10 @@ apply (erule ns_shared.induct, force)
 apply (frule_tac [7] Says_Server_message_form)
 apply (frule_tac [4] Says_S_message_form)
 apply (erule_tac [5] disjE)
-apply (simp_all add: analz_insert_eq analz_insert_freshK pushes split_ifs, spy_analz)  
+apply (simp_all add: analz_insert_eq analz_insert_freshK pushes split_ifs, spy_analz)
 txt{*NS2*}
 apply blast
-txt{*NS3, Server sub-case*} 
+txt{*NS3, Server sub-case*}
 apply (blast dest!: Crypt_Spy_analz_bad A_trusts_NS2
 	     dest:  Says_imp_knows_Spy analz.Inj unique_session_keys)
 txt{*NS3, Spy sub-case; also Oops*}
@@ -298,13 +304,13 @@ lemma A_trusts_NS4_lemma [rule_format]:
       Crypt K (Nonce NB) \<in> parts (spies evs) \<longrightarrow>
       Says B A (Crypt K (Nonce NB)) \<in> set evs"
 apply (erule ns_shared.induct, force, drule_tac [4] NS3_msg_in_parts_spies)
-apply (analz_mono_contra, simp_all, blast) 
-(*NS2: contradiction from the assumptions
-  Key K \<notin> used evs2  and Crypt K (Nonce NB) \<in> parts (spies evs2) *)
-apply (force dest!: Crypt_imp_keysFor)     
+apply (analz_mono_contra, simp_all, blast)
+txt{*NS2: contradiction from the assumptions @{term "Key K \<notin> used evs2"} and
+    @{term "Crypt K (Nonce NB) \<in> parts (spies evs2)"} *} 
+apply (force dest!: Crypt_imp_keysFor)
 txt{*NS3*}
-apply blast 
-txt{*NS4*} 
+apply blast
+txt{*NS4*}
 apply (blast dest: B_trusts_NS3
 	           Says_imp_knows_Spy [THEN analz.Inj]
                    Crypt_Spy_analz_bad unique_session_keys)
@@ -320,9 +326,9 @@ lemma A_trusts_NS4:
 by (blast intro: A_trusts_NS4_lemma
           dest: A_trusts_NS2 Spy_not_see_encrypted_key)
 
-(*If the session key has been used in NS4 then somebody has forwarded
+text{*If the session key has been used in NS4 then somebody has forwarded
   component X in some instance of NS4.  Perhaps an interesting property,
-  but not needed (after all) for the proofs below.*)
+  but not needed (after all) for the proofs below.*}
 theorem NS4_implies_NS3 [rule_format]:
   "evs \<in> ns_shared \<Longrightarrow>
      Key K \<notin> analz (spies evs) \<longrightarrow>
@@ -332,7 +338,7 @@ theorem NS4_implies_NS3 [rule_format]:
 apply (erule ns_shared.induct, force, drule_tac [4] NS3_msg_in_parts_spies, analz_mono_contra)
 apply (simp_all add: ex_disj_distrib, blast)
 txt{*NS2*}
-apply (blast dest!: new_keys_not_used Crypt_imp_keysFor)  
+apply (blast dest!: new_keys_not_used Crypt_imp_keysFor)
 txt{*NS3*}
 apply blast
 txt{*NS4*}
@@ -352,9 +358,9 @@ lemma B_trusts_NS5_lemma [rule_format]:
      Says A B (Crypt K \<lbrace>Nonce NB, Nonce NB\<rbrace>) \<in> set evs"
 apply (erule ns_shared.induct, force, drule_tac [4] NS3_msg_in_parts_spies, analz_mono_contra, simp_all, blast)
 txt{*NS2*}
-apply (blast dest!: new_keys_not_used Crypt_imp_keysFor)  
+apply (blast dest!: new_keys_not_used Crypt_imp_keysFor)
 txt{*NS3*}
-apply (blast dest!: cert_A_form) 
+apply (blast dest!: cert_A_form)
 txt{*NS5*}
 apply (blast dest!: A_trusts_NS2
 	     dest: Says_imp_knows_Spy [THEN analz.Inj]
