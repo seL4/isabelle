@@ -15,7 +15,7 @@ sig
   val touch_thy: string -> Toplevel.transition -> Toplevel.transition
   val remove_thy: string -> Toplevel.transition -> Toplevel.transition
   val cannot_undo: string -> Toplevel.transition -> Toplevel.transition
-  val clear_undo: Toplevel.transition -> Toplevel.transition
+  val clear_undos_theory: int -> Toplevel.transition -> Toplevel.transition
   val redo: Toplevel.transition -> Toplevel.transition
   val undos_proof: int -> Toplevel.transition -> Toplevel.transition
   val kill_proof: Toplevel.transition -> Toplevel.transition
@@ -74,7 +74,7 @@ fun remove_thy name = Toplevel.imperative (fn () => ThyInfo.remove_thy name);
 (* history commands *)
 
 fun cannot_undo txt = Toplevel.imperative (fn () => error ("Cannot undo " ^ quote txt));
-val clear_undo = Toplevel.history History.clear o Toplevel.proof ProofHistory.clear;
+val clear_undos_theory = Toplevel.history o History.clear;
 val redo = Toplevel.history History.redo o Toplevel.proof ProofHistory.redo;
 
 fun undos_proof n = Toplevel.proof (fn prf =>
