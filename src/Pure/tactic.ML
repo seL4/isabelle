@@ -553,7 +553,7 @@ fun rename_tac str i =
   let val cs = explode str 
   in  
   if !Logic.auto_rename 
-  then (writeln"Note: setting Logic.auto_rename := false"; 
+  then (warning "Resetting Logic.auto_rename"; 
 	Logic.auto_rename := false)
   else ();
   case #2 (take_prefix (is_letdig orf is_blank) cs) of
