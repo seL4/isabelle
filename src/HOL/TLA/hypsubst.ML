@@ -63,7 +63,9 @@ struct
 fun STATE tacfun st = tacfun st st;
 
 
-local open Data in
+local open Data 
+           BasisLibrary  (*for Int, List, ...*)
+in
 
 exception EQ_VAR;
 
