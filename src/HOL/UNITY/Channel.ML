@@ -26,14 +26,11 @@ qed_spec_mp "minSet_nonempty";
 
 Goal "F : (minSet -`` {Some x}) leadsTo (minSet -`` (Some``greaterThan x))";
 by (rtac leadsTo_weaken 1);
-by (rtac ([UC2, UC1] MRS psp) 1);
-by (ALLGOALS Asm_simp_tac);
-by (Blast_tac 1);
+by (res_inst_tac [("x1","x")] ([UC2, UC1] MRS psp) 1);
 by Safe_tac;
 by (auto_tac (claset() addDs [minSet_eq_SomeD], 
-	      simpset() addsimps [le_def, linorder_neq_iff]));
+	      simpset() addsimps [linorder_neq_iff]));
 qed "minSet_greaterThan";
-
 
 (*The induction*)
 Goal "F : (UNIV-{{}}) leadsTo (minSet -`` (Some``atLeast y))";
