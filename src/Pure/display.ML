@@ -70,7 +70,7 @@ fun prthq thseq =
   (Sequence.prints (fn _ => print_thm) 100000 thseq; thseq);
 
 (*Print and return a list of theorems, separated by blank lines. *)
-fun prths ths = (print_list_ln print_thm ths; ths);
+fun prths ths = (seq (fn th => (print_thm th; writeln "")) ths; ths);
 
 
 (* other printing commands *)
