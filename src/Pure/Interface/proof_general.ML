@@ -1,8 +1,9 @@
 (*  Title:      Pure/Interface/proof_general.ML
     ID:         $Id$
     Author:     Markus Wenzel, TU Muenchen
+    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
-Configuration for Proof General of LFCS Edinburgh.
+Configuration for Proof General (see http://www.dcs.ed.ac.uk/home/proofgen/).
 *)
 
 signature PROOF_GENERAL =
