@@ -457,11 +457,12 @@ by (rtac (open_stop RS Invariant_LeadsToI) 1);
 by (rtac subset_imp_LeadsTo 1);
 by (rtac id_in_Acts 2);
 by (Clarify_tac 1);
-	(*stops simplification from looping*)
-by (Full_simp_tac 1);
+(*The case split is not essential but makes Blast_tac much faster.
+  Must also be careful to prevent simplification from looping*)
+by (case_tac "open x" 1);
+by (ALLGOALS (rotate_tac ~1));
+by (ALLGOALS Asm_full_simp_tac);
 by (Blast_tac 1);
 qed "lift_1";
 
 Close_locale;
-
-
