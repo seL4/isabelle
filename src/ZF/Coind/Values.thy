@@ -12,10 +12,10 @@ consts
   Val, ValEnv, Val_ValEnv  :: i
 
 codatatype
-    "Val" = v_const ("c:Const")
-          | v_clos ("x:ExVar","e:Exp","ve:ValEnv")
+    "Val" = v_const ("c \\<in> Const")
+          | v_clos ("x \\<in> ExVar","e \\<in> Exp","ve \\<in> ValEnv")
   and
-    "ValEnv" = ve_mk ("m:PMap(ExVar,Val)")
+    "ValEnv" = ve_mk ("m \\<in> PMap(ExVar,Val)")
   monos       map_mono
   type_intrs  A_into_univ, mapQU
 

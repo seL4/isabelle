@@ -11,8 +11,8 @@ consts
   TyConst :: i          (* Abstract type of type constants *)
 
 datatype
-  "Ty" = t_const ("tc:TyConst")
-       | t_fun ("t1:Ty","t2:Ty")
+  "Ty" = t_const ("tc \\<in> TyConst")
+       | t_fun ("t1 \\<in> Ty","t2 \\<in> Ty")
   
 
 (* Definition of type environments and associated operators *)
@@ -22,7 +22,7 @@ consts
 
 datatype
   "TyEnv" = te_emp
-          | te_owr ("te:TyEnv","x:ExVar","t:Ty") 
+          | te_owr ("te \\<in> TyEnv","x \\<in> ExVar","t \\<in> Ty") 
 
 consts
   te_dom :: i => i

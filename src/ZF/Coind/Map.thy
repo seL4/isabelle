@@ -6,23 +6,21 @@
 
 Map = QUniv +
 
-consts
+constdefs
   TMap :: [i,i] => i
-  PMap :: [i,i] => i
-defs
-  TMap_def "TMap(A,B) == {m:Pow(A*Union(B)).ALL a:A. m``{a}:B}"
-  PMap_def "PMap(A,B) == TMap(A,cons(0,B))"
+   "TMap(A,B) == {m \\<in> Pow(A*Union(B)).\\<forall>a \\<in> A. m``{a} \\<in> B}"
 
-(* Note: 0:B ==> TMap(A,B) = PMap(A,B) *)
+  PMap :: [i,i] => i
+   "PMap(A,B) == TMap(A,cons(0,B))"
+
+(* Note: 0 \\<in> B ==> TMap(A,B) = PMap(A,B) *)
   
-consts
   map_emp :: i
+   "map_emp == 0"
+
   map_owr :: [i,i,i]=>i
+   "map_owr(m,a,b) == \\<Sigma>x \\<in> {a} Un domain(m). if x=a then b else m``{x}"
   map_app :: [i,i]=>i
-defs
-  map_emp_def "map_emp == 0"
-  map_owr_def "map_owr(m,a,b) ==
-	         SUM x:{a} Un domain(m). if x=a then b else m``{x}"
-  map_app_def "map_app(m,a) == m``{a}"
+   "map_app(m,a) == m``{a}"
   
 end

@@ -12,21 +12,21 @@ inductive
   domains "ElabRel" <= "TyEnv * Exp * Ty"
   intrs
     constI
-      " [| te:TyEnv; c:Const; t:Ty; isof(c,t) |] ==>   
+      " [| te \\<in> TyEnv; c \\<in> Const; t \\<in> Ty; isof(c,t) |] ==>   
        <te,e_const(c),t>:ElabRel "
     varI
-      " [| te:TyEnv; x:ExVar; x:te_dom(te) |] ==>   
+      " [| te \\<in> TyEnv; x \\<in> ExVar; x \\<in> te_dom(te) |] ==>   
        <te,e_var(x),te_app(te,x)>:ElabRel "
     fnI
-      " [| te:TyEnv; x:ExVar; e:Exp; t1:Ty; t2:Ty;   
+      " [| te \\<in> TyEnv; x \\<in> ExVar; e \\<in> Exp; t1 \\<in> Ty; t2 \\<in> Ty;   
           <te_owr(te,x,t1),e,t2>:ElabRel |] ==>   
        <te,e_fn(x,e),t_fun(t1,t2)>:ElabRel "
     fixI
-      " [| te:TyEnv; f:ExVar; x:ExVar; t1:Ty; t2:Ty;   
+      " [| te \\<in> TyEnv; f \\<in> ExVar; x \\<in> ExVar; t1 \\<in> Ty; t2 \\<in> Ty;   
           <te_owr(te_owr(te,f,t_fun(t1,t2)),x,t1),e,t2>:ElabRel |] ==>   
        <te,e_fix(f,x,e),t_fun(t1,t2)>:ElabRel "
     appI
-      " [| te:TyEnv; e1:Exp; e2:Exp; t1:Ty; t2:Ty;   
+      " [| te \\<in> TyEnv; e1 \\<in> Exp; e2 \\<in> Exp; t1 \\<in> Ty; t2 \\<in> Ty;   
           <te,e1,t_fun(t1,t2)>:ElabRel;   
           <te,e2,t1>:ElabRel |] ==>   
        <te,e_app(e1,e2),t2>:ElabRel "

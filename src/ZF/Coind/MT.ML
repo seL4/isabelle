@@ -8,23 +8,23 @@
 (* The Consistency theorem                                      *)
 (* ############################################################ *)
 
-Goal "[| c:Const; hastyenv(ve,te);<te,e_const(c),t>:ElabRel |] ==>         \
-\       <v_const(c), t> : HasTyRel";
+Goal "[| c \\<in> Const; hastyenv(ve,te);<te,e_const(c),t>:ElabRel |] ==>         \
+\       <v_const(c), t> \\<in> HasTyRel";
 by (Fast_tac 1);
 qed "consistency_const";
 
 
 Goalw [hastyenv_def]
-  "[| x:ve_dom(ve); hastyenv(ve,te); <te,e_var(x),t>:ElabRel |] ==>     \
+  "[| x \\<in> ve_dom(ve); hastyenv(ve,te); <te,e_var(x),t>:ElabRel |] ==>     \
 \  <ve_app(ve,x),t>:HasTyRel";
 by (Fast_tac 1);
 qed "consistency_var";
 
 
 Goalw [hastyenv_def]
-  "[| ve:ValEnv; x:ExVar; e:Exp; hastyenv(ve,te);       \
+  "[| ve \\<in> ValEnv; x \\<in> ExVar; e \\<in> Exp; hastyenv(ve,te);       \
 \          <te,e_fn(x,e),t>:ElabRel  \
-\       |] ==> <v_clos(x, e, ve), t> : HasTyRel";
+\       |] ==> <v_clos(x, e, ve), t> \\<in> HasTyRel";
 by (Blast_tac 1);
 qed "consistency_fn";
 
@@ -40,7 +40,7 @@ val clean_tac =
     (ematch_tac [te_owrE] i));
 
 Goalw [hastyenv_def]
-  "[| ve:ValEnv; x:ExVar; e:Exp; f:ExVar; cl:Val;               \
+  "[| ve \\<in> ValEnv; x \\<in> ExVar; e \\<in> Exp; f \\<in> ExVar; cl \\<in> Val;               \
 \     v_clos(x,e,ve_owr(ve,f,cl)) = cl;                         \ 
 \     hastyenv(ve,te); <te,e_fix(f,x,e),t>:ElabRel |] ==>       \
 \  <cl,t>:HasTyRel";
@@ -75,12 +75,12 @@ by Auto_tac;
 qed "consistency_fix";
 
 
-Goal "[| ve:ValEnv; e1:Exp; e2:Exp; c1:Const; c2:Const;   \
+Goal "[| ve \\<in> ValEnv; e1 \\<in> Exp; e2 \\<in> Exp; c1 \\<in> Const; c2 \\<in> Const;   \
 \     <ve,e1,v_const(c1)>:EvalRel;                      \
-\     ALL t te.                                         \
+\     \\<forall>t te.                                         \
 \       hastyenv(ve,te) --> <te,e1,t>:ElabRel --> <v_const(c1),t>:HasTyRel; \
-\     <ve, e2, v_const(c2)> : EvalRel;                  \
-\     ALL t te.                                         \
+\     <ve, e2, v_const(c2)> \\<in> EvalRel;                  \
+\     \\<forall>t te.                                         \
 \       hastyenv(ve,te) --> <te,e2,t>:ElabRel --> <v_const(c2),t>:HasTyRel; \
 \     hastyenv(ve, te);                                 \
 \     <te,e_app(e1,e2),t>:ElabRel |] ==>                \
@@ -89,19 +89,19 @@ by (etac elab_appE 1);
 by (fast_tac ((mk_htr_cs ZF_cs) addSIs [c_appI] addIs [isof_app]) 1);
 qed "consistency_app1";
 
-Goal "[| ve:ValEnv; vem:ValEnv; e1:Exp; e2:Exp; em:Exp; xm:ExVar; v:Val;  \
+Goal "[| ve \\<in> ValEnv; vem \\<in> ValEnv; e1 \\<in> Exp; e2 \\<in> Exp; em \\<in> Exp; xm \\<in> ExVar; v \\<in> Val;  \
 \        <ve,e1,v_clos(xm,em,vem)>:EvalRel;       \
-\        ALL t te.                                \
+\        \\<forall>t te.                                \
 \          hastyenv(ve,te) -->                    \
 \          <te,e1,t>:ElabRel -->                  \
 \          <v_clos(xm,em,vem),t>:HasTyRel;        \
 \        <ve,e2,v2>:EvalRel;                      \
-\        ALL t te.                                \
+\        \\<forall>t te.                                \
 \          hastyenv(ve,te) -->                    \
 \          <te,e2,t>:ElabRel -->                  \
 \          <v2,t>:HasTyRel;                       \
 \        <ve_owr(vem,xm,v2),em,v>:EvalRel;        \
-\        ALL t te.                                \
+\        \\<forall>t te.                                \
 \          hastyenv(ve_owr(vem,xm,v2),te) -->     \
 \          <te,em,t>:ElabRel -->                  \
 \          <v,t>:HasTyRel;                        \
@@ -130,14 +130,14 @@ by (Fast_tac 1);
 qed "consistency_app2";
 
 Goal "<ve,e,v>:EvalRel ==>         \
-\       (ALL t te. hastyenv(ve,te) --> <te,e,t>:ElabRel --> <v,t>:HasTyRel)";
+\       (\\<forall>t te. hastyenv(ve,te) --> <te,e,t>:ElabRel --> <v,t>:HasTyRel)";
 by (etac EvalRel.induct 1);
 by (blast_tac (claset() addIs [consistency_app2]) 6);
 by (ALLGOALS (asm_simp_tac (simpset() addsimps [consistency_const, consistency_var, consistency_fn, consistency_fix, consistency_app1])));
 qed "consistency";
 
 
-Goal "[| ve:ValEnv; te:TyEnv;              \
+Goal "[| ve \\<in> ValEnv; te \\<in> TyEnv;              \
 \        isofenv(ve,te);                   \
 \        <ve,e,v_const(c)>:EvalRel;        \
 \        <te,e,t>:ElabRel                  \

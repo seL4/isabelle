@@ -6,9 +6,9 @@
 
 (* Specialised co-induction rule *)
 
-Goal "[| x:ExVar; e:Exp; t:Ty; ve:ValEnv; te:TyEnv;  \
+Goal "[| x \\<in> ExVar; e \\<in> Exp; t \\<in> Ty; ve \\<in> ValEnv; te \\<in> TyEnv;  \
 \        <te, e_fn(x, e), t>:ElabRel; ve_dom(ve) = te_dom(te); \
-\        {<ve_app(ve,y),te_app(te,y)>.y:ve_dom(ve)}: \
+\        {<ve_app(ve,y),te_app(te,y)>.y \\<in> ve_dom(ve)}: \
 \        Pow({<v_clos(x,e,ve),t>} Un HasTyRel) |]    \
 \     ==> <v_clos(x, e, ve),t>:HasTyRel";
 by (rtac (singletonI RS HasTyRel.coinduct) 1);
@@ -40,7 +40,7 @@ bind_thm ("HasTyRel_non_zero",
 	  HasTyRel.dom_subset RS subsetD RS SigmaD1 RS ValNEE);
 
 Goalw [hastyenv_def]
-  "[| ve:ValEnv; te:TyEnv; hastyenv(ve,te); <v,t>:HasTyRel |] ==> \
+  "[| ve \\<in> ValEnv; te \\<in> TyEnv; hastyenv(ve,te); <v,t>:HasTyRel |] ==> \
 \   hastyenv(ve_owr(ve,x,v),te_owr(te,x,t))";
 by (asm_full_simp_tac
     (simpset() addsimps [ve_app_owr, HasTyRel_non_zero, ve_dom_owr]) 1);
@@ -48,7 +48,7 @@ by Auto_tac;
 qed "hastyenv_owr";
 
 Goalw  [isofenv_def,hastyenv_def]
-  "[| ve:ValEnv; te:TyEnv; isofenv(ve,te) |] ==> hastyenv(ve,te)";
+  "[| ve \\<in> ValEnv; te \\<in> TyEnv; isofenv(ve,te) |] ==> hastyenv(ve,te)";
 by Safe_tac;
 by (dtac bspec 1);
 by (assume_tac 1);

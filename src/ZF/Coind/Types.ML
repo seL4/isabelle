@@ -10,12 +10,12 @@ Goal "te_app(te_owr(te,x,t),x) = t";
 by (Simp_tac 1);
 qed "te_app_owr1";
 
-Goal "x ~= y ==> te_app(te_owr(te,x,t),y) = te_app(te,y)";
+Goal "x \\<noteq> y ==> te_app(te_owr(te,x,t),y) = te_app(te,y)";
 by Auto_tac;
 qed "te_app_owr2";
 
-Goal "[| te:TyEnv; x:ExVar; x:te_dom(te) |] ==> te_app(te,x):Ty";
-by (res_inst_tac [("P","x:te_dom(te)")] impE 1);
+Goal "[| te \\<in> TyEnv; x \\<in> ExVar; x \\<in> te_dom(te) |] ==> te_app(te,x):Ty";
+by (res_inst_tac [("P","x \\<in> te_dom(te)")] impE 1);
 by (assume_tac 2);
 by (assume_tac 2);
 by (etac TyEnv.induct 1);

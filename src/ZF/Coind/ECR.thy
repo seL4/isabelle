@@ -14,12 +14,12 @@ coinductive
   domains "HasTyRel" <= "Val * Ty"
   intrs
     htr_constI
-      "[| c:Const; t:Ty; isof(c,t) |] ==> <v_const(c),t>:HasTyRel"
+      "[| c \\<in> Const; t \\<in> Ty; isof(c,t) |] ==> <v_const(c),t>:HasTyRel"
     htr_closI
-      "[| x:ExVar; e:Exp; t:Ty; ve:ValEnv; te:TyEnv; 
+      "[| x \\<in> ExVar; e \\<in> Exp; t \\<in> Ty; ve \\<in> ValEnv; te \\<in> TyEnv; 
           <te,e_fn(x,e),t>:ElabRel;  
           ve_dom(ve) = te_dom(te);   
-          {<ve_app(ve,y),te_app(te,y)>.y:ve_dom(ve)}:Pow(HasTyRel)  
+          {<ve_app(ve,y),te_app(te,y)>.y \\<in> ve_dom(ve)}:Pow(HasTyRel)  
       |] ==>   
       <v_clos(x,e,ve),t>:HasTyRel" 
   monos  Pow_mono
@@ -33,6 +33,6 @@ defs
   hastyenv_def 
     " hastyenv(ve,te) ==                        
      ve_dom(ve) = te_dom(te) &          
-     (ALL x:ve_dom(ve). <ve_app(ve,x),te_app(te,x)>:HasTyRel)"
+     (\\<forall>x \\<in> ve_dom(ve). <ve_app(ve,x),te_app(te,x)>:HasTyRel)"
 
 end
