@@ -262,12 +262,12 @@ end;
 
 (* load_thy *)
 
-fun required_by [] = ""
-  | required_by initiators = " (required by " ^ show_path (rev initiators) ^ ")";
+fun required_by _ [] = ""
+  | required_by s initiators = s ^ "(required by " ^ show_path (rev initiators) ^ ")";
 
 fun load_thy ml time initiators dir name parents =
   let
-    val _ = writeln ("Loading theory " ^ quote name ^ required_by initiators);
+    val _ = writeln ("Loading theory " ^ quote name ^ required_by " " initiators);
 
     val _ = touch_thy name;
     val master = ThyLoad.load_thy dir name ml time;
@@ -326,7 +326,7 @@ fun require_thy ml time strict keep_strict initiators prfx (visited, str) =
 
         val (current, (new_deps, parents)) = current_deps ml strict dir name handle ERROR =>
           error (loader_msg "the error(s) above occurred while examining theory" [name] ^
-            (if null initiators then "" else "\n" ^ required_by initiators));
+            (if null initiators then "" else required_by "\n" initiators));
         val (visited', parent_results) = foldl_map req_parent (name :: visited, parents);
 
         val result =
