@@ -704,11 +704,11 @@ fun congc (prover,signt,maxt) {thm=cong,lhs=lhs} t =
          is handled when congc is called *)
       val thm' = Thm.instantiate insts (Thm.rename_boundvars (term_of rlhs) (term_of t) rthm);
       val unit = trace_thm "Applying congruence rule:" thm';
-      fun err (msg, thm) = (prthm false msg thm; error "Failed congruence proof!")
+      fun err (msg, thm) = (trace_thm msg thm; None)
   in case prover thm' of
-       None => err ("Could not prove", thm')
+       None => err ("Congruence proof failed.  Could not prove", thm')
      | Some thm2 => (case check_conv true (beta_eta_conversion t) thm2 of
-          None => err ("Should not have proved", thm2)
+          None => err ("Congruence proof failed.  Should not have proved", thm2)
         | Some thm2' =>
             if op aconv (pairself term_of (dest_equals (cprop_of thm2')))
             then None else Some thm2')
