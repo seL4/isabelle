@@ -1,6 +1,8 @@
 #!/bin/sh
 #
 # $Id$
+# Author: Markus Wenzel, TU Muenchen
+# License: GPL (GNU GENERAL PUBLIC LICENSE)
 #
 # configure - adapt Isabelle distribution to system environment
 

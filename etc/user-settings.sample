@@ -1,10 +1,11 @@
 #
 # $Id$
+# Author: Markus Wenzel, TU Muenchen
+# License: GPL (GNU GENERAL PUBLIC LICENSE)
 #
 # Isabelle user settings sample (everything commented out)
 #   -- may be copied to ~/isabelle/etc/settings
 #
 
-#ISABELLE_USEDIR_OPTIONS="-i true -d pdf"
-
-#ISABELLE_LOGIC=ZF
+ISABELLE_USEDIR_OPTIONS="-i true -d pdf"
+ISABELLE_LOGIC=HOL

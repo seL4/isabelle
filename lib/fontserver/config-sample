@@ -1,5 +1,7 @@
 #
 # $Id$
+# Author: Markus Wenzel, TU Muenchen
+# License: GPL (GNU GENERAL PUBLIC LICENSE)
 #
 # X11 font server sample configuration
 # (Cf. your local man page of 'xfs' or 'fs'!)
