@@ -83,9 +83,9 @@ the default settings of Isabelle.
 <p>
 
 A typical Linux/x86 site installation of Isabelle/HOL works as
-follows.  Using GNU <tt>tar</tt> we uncompress and unpack the archives
-into the <tt>/usr/local</tt> directory; this location may be changed
-to anything appropriate.
+follows.  By using GNU <tt>tar</tt>, the archives are uncompressed and
+unpacked into the <tt>/usr/local</tt> directory (this location may be
+changed to anything appropriate).
 
 <p>
 
