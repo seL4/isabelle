@@ -287,7 +287,10 @@ ML_setup {*
    Quasi_Tac.quasi_tac are not of much use. *)
 
 fun decomp_gen sort sign (Trueprop $ t) =
-  let fun of_sort t = Sign.of_sort sign (type_of t, sort)
+  let fun of_sort t = let val T = type_of t in
+        (* exclude numeric types: linear arithmetic subsumes transitivity *)
+        T <> HOLogic.natT andalso T <> HOLogic.intT andalso
+        T <> HOLogic.realT andalso Sign.of_sort sign (T, sort) end
   fun dec (Const ("Not", _) $ t) = (
 	  case dec t of
 	    NONE => NONE

@@ -96,7 +96,8 @@ $(OUT)/HOL: $(OUT)/Pure $(SRC)/Provers/quantifier1.ML \
   Nat.ML Nat.thy NatArith.thy Power.thy PreList.thy Product_Type.thy \
   Refute.thy ROOT.ML \
   Recdef.thy Reconstruction.thy Record.thy Relation.ML Relation.thy \
-  Relation_Power.thy LOrder.thy OrderedGroup.thy OrderedGroup.ML Ring_and_Field.thy\
+  Relation_Power.thy LOrder.thy OrderedGroup.thy OrderedGroup.ML \
+  Orderings.ML Orderings.thy Ring_and_Field.thy\
   Set.ML Set.thy SetInterval.thy \
   Sum_Type.thy Tools/datatype_abs_proofs.ML Tools/datatype_aux.ML \
   Tools/datatype_codegen.ML Tools/datatype_package.ML Tools/datatype_prop.ML \
