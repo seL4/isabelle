@@ -1326,12 +1326,12 @@ lemma bc_mt_corresp_Invoke: "\<lbrakk> wf_prog wf_mb G;
     apply (rule HOL.refl) apply assumption
     apply (simp add: max_ssize_def max_of_list_elem ssize_sto_def)
 
-  -- "<=s"
+  -- {* @{text "<=s"} *}
   apply (frule max_spec2mheads, (erule exE)+, (erule conjE)+)
   apply (frule comp_method, assumption+)
   apply (simp add: max_spec_preserves_length [THEN sym])
 
-  -- "check_type"
+  -- "@{text check_type}"
 apply (simp add: max_ssize_def ssize_sto_def max_def)
 apply (simp add: max_of_list_def)
 apply (subgoal_tac "(max (length pTsa + length ST) (length ST)) = (length pTsa + length ST)")

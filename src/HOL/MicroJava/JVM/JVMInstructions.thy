@@ -22,8 +22,8 @@ datatype
         | Return                    -- "return from method"
         | Pop                       -- "pop top element from opstack"
         | Dup                       -- "duplicate top element of opstack"
-        | Dup_x1                    -- "duplicate next to top element"
-        | Dup_x2                    -- "duplicate 3rd element"
+        | Dup_x1                    -- "duplicate top element and push 2 down"
+        | Dup_x2                    -- "duplicate top element and push 3 down"
         | Swap                      -- "swap top and next to top element"
         | IAdd                      -- "integer addition"
         | Goto int                  -- "goto relative address"
@@ -36,7 +36,7 @@ types
                   -- "start-pc, end-pc, handler-pc, exception type"
   exception_table = "exception_entry list"
   jvm_method = "nat \<times> nat \<times> bytecode \<times> exception_table"
-             -- "max stacksize, length of local var array, \<dots>"
+   -- "max stacksize, size of register set, instruction sequence, handler table"
   jvm_prog = "jvm_method prog" 
 
 end
