@@ -56,12 +56,12 @@ fun dest_bin_str tm =
 
 (* translation of integer numeral tokens to and from bitstrings *)
 
-fun numeral_tr (*"_Numeral"*) [t as Free (str, _)] =
+fun numeral_tr (*"_Numeral"*) [t as Const (str, _)] =
       (Syntax.const "Numeral.number_of" $ HOLogic.mk_bin (Syntax.read_xnum str))
   | numeral_tr (*"_Numeral"*) ts = raise TERM ("numeral_tr", ts);
 
 fun numeral_tr' show_sorts (*"number_of"*) (Type ("fun", [_, T])) (t :: ts) =
-      let val t' = Syntax.const "_Numeral" $ (Syntax.const "_xnum" $ Syntax.free (dest_bin_str t)) in
+      let val t' = Syntax.const "_Numeral" $ Syntax.free (dest_bin_str t) in
         if not (! show_types) andalso can Term.dest_Type T then t'
         else Syntax.const Syntax.constrainC $ t' $ Syntax.term_of_typ show_sorts T
       end

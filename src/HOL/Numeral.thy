@@ -19,8 +19,13 @@ axclass
 consts
   number_of :: "bin => 'a::number"
 
+nonterminals
+  numeral
+
 syntax
-  "_Numeral" :: "xnum => 'a"    ("_")
+  "_constify" :: "xnum => numeral"    ("_")
+  "_Numeral" :: "numeral => 'a"    ("_")
+
 
 setup NumeralSyntax.setup
 
