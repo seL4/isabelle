@@ -488,13 +488,6 @@ fun case_tac a = res_inst_tac [("P",a)] case_split_thm;
 
 (** Standard abbreviations **)
 
-(*Apply an equality or definition ONCE.
-  Fails unless the substitution has an effect*)
-fun stac th = 
-  let val th' = th RS def_imp_eq handle THM _ => th
-  in  CHANGED_GOAL (rtac (th' RS ssubst))
-  end;
-
 (* combination of (spec RS spec RS ...(j times) ... spec RS mp *) 
 local
   fun wrong_prem (Const ("All", _) $ (Abs (_, _, t))) = wrong_prem t

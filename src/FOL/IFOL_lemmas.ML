@@ -290,16 +290,8 @@ by (rewrite_goals_tac prems);
 by (rtac refl 1);
 qed "meta_eq_to_obj_eq";
 
-
-(*Substitution: rule and tactic*)
+(*substitution*)
 bind_thm ("ssubst", sym RS subst);
-
-(*Apply an equality or definition ONCE.
-  Fails unless the substitution has an effect*)
-fun stac th = 
-  let val th' = th RS meta_eq_to_obj_eq handle THM _ => th
-  in  CHANGED_GOAL (rtac (th' RS ssubst))
-  end;
 
 (*A special case of ex1E that would otherwise need quantifier expansion*)
 val prems = Goal
