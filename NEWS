@@ -152,6 +152,8 @@ current context is now done automatically);
 * Pure: theory command 'method_setup' provides a simple interface for
 definining proof methods in ML;
 
+* Provers: 'simp' method now supports 'cong' modifiers;
+
 * Provers: hypsubst support; also plain subst and symmetric attribute
 (the latter supercedes [RS sym]);
 
@@ -313,18 +315,22 @@ simplifier and classical reasoner simultaneously;
 
 *** General ***
 
-* blast(_tac) now handles actual object-logic rules as assumptions;
-note that auto(_tac) uses blast(_tac) internally, too;
+* Provers: blast(_tac) now handles actual object-logic rules as
+assumptions; note that auto(_tac) uses blast(_tac) internally as well;
 
-* AST translation rules no longer require constant head on LHS;
+* Provers: Simplifier.easy_setup provides a fast path to basic
+Simplifier setup for new object-logics;
 
-* improved name spaces: ambiguous output is qualified; support for
-hiding of names;
+* Pure: AST translation rules no longer require constant head on LHS;
 
-* compression of ML heaps images may now be controlled via -c option
-of isabelle and isatool usedir (currently only observed by Poly/ML);
+* Pure: improved name spaces: ambiguous output is qualified; support
+for hiding of names;
 
-* provide TAGS file for Isabelle sources;
+* system: compression of ML heaps images may now be controlled via -c
+option of isabelle and isatool usedir (currently only observed by
+Poly/ML);
+
+* system: provide TAGS file for Isabelle sources;
 
 * settings: smart setup of canonical ML_HOME, ISABELLE_INTERFACE, and
 XSYMBOL_HOME; no longer need to do manual configuration in most
