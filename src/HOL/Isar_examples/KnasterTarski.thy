@@ -9,8 +9,6 @@ Typical textbook proof example.
 theory KnasterTarski = Main:;
 
 
-theorems [dest] = monoD;  (* FIXME [dest!!] *)
-
 text {*
  The proof of Knaster-Tarski below closely follows the presentation in
  'Introduction to Lattices' and Order by Davey/Priestley, pages
