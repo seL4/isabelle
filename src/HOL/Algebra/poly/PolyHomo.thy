@@ -13,7 +13,7 @@ instance
 
 consts
   EVAL2	:: ('a::ringS => 'b) => 'b => 'a up => 'b::ringS
-  EVAL	:: 'a => 'a up => 'a
+  EVAL	:: 'a::ringS => 'a up => 'a
 
 defs
   EVAL2_def	"EVAL2 phi a p == SUM (deg p) (%i. phi (coeff i p) * a ^ i)"

@@ -11,20 +11,20 @@ Lubs = Main +
 
 consts
     
-    "*<=" :: ['a set, 'a] => bool     (infixl 70)
-    "<=*" :: ['a, 'a set] => bool     (infixl 70)
+    "*<=" :: ['a set, 'a::ord] => bool     (infixl 70)
+    "<=*" :: ['a::ord, 'a set] => bool     (infixl 70)
 
 constdefs
-    leastP      :: ['a =>bool,'a] => bool
+    leastP      :: ['a =>bool,'a::ord] => bool
     "leastP P x == (P x & x <=* Collect P)"
 
-    isLub       :: ['a set, 'a set, 'a] => bool    
+    isLub       :: ['a set, 'a set, 'a::ord] => bool    
     "isLub R S x  == leastP (isUb R S) x"
 
-    isUb        :: ['a set, 'a set, 'a] => bool     
+    isUb        :: ['a set, 'a set, 'a::ord] => bool     
     "isUb R S x   == S *<= x & x: R"
 
-    ubs         :: ['a set, 'a set] => 'a set
+    ubs         :: ['a set, 'a::ord set] => 'a set
     "ubs R S      == Collect (isUb R S)"
 
 defs

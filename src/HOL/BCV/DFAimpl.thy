@@ -34,11 +34,11 @@ constdefs
  step_pres_type :: "(nat => 's => 's option) => nat => 's set => bool"
 "step_pres_type step n L == !s:L. !p<n. !t. step p s = Some(t) --> t:L"
 
- step_mono_None :: "(nat => 's => 's option) => nat => 's set => bool"
+ step_mono_None :: "(nat => 's::ord => 's option) => nat => 's set => bool"
 "step_mono_None step n L == !s p t.
    s : L & p < n & s <= t & step p s = None --> step p t = None"
 
- step_mono :: "(nat => 's => 's option) => nat => 's set => bool"
+ step_mono :: "(nat => 's::ord => 's option) => nat => 's set => bool"
 "step_mono step n L == !s p t u.
    s : L & p < n & s <= t & step p s = Some(u)
    --> (!v. step p t = Some(v) --> u <= v)"

@@ -14,7 +14,7 @@ record 'a grouptype =
   unit     :: "'a"
 
 constdefs
-  Group :: "('a, 'more) grouptype_scheme set"
+  Group :: "('a, 'more::more) grouptype_scheme set"
   "Group == {G. (bin_op G): carrier G -> carrier G -> carrier G &
 	        inverse G : carrier G -> carrier G 
              & unit G : carrier G &
