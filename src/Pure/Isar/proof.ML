@@ -50,7 +50,6 @@ sig
   val method_cases: (thm list -> thm -> (thm * (string * RuleCases.T) list) Seq.seq) -> method
   val refine: (context -> method) -> state -> state Seq.seq
   val refine_end: (context -> method) -> state -> state Seq.seq
-  val export_thm: context -> thm -> thm
   val match_bind: (string list * string) list -> state -> state
   val match_bind_i: (term list * term) list -> state -> state
   val let_bind: (string list * string) list -> state -> state
@@ -429,14 +428,6 @@ fun export_goal print_rule raw_rule inner state =
         val thmq = FINDGOAL (refine_tac rule) thm;
       in Seq.map (fn th => map_goal I (K ((result, (facts, th)), f)) state) thmq end;
   in raw_rule |> exp_tac |> (Seq.flat o Seq.map exp_rule) end;
-
-fun export_thm inner thm =
-  let val exp_tac = ProofContext.export_wrt false inner None in
-    (case Seq.chop (2, exp_tac thm) of
-      ([thm'], _) => thm'
-    | ([], _) => raise THM ("export: failed", 0, [thm])
-    | _ => raise THM ("export: more than one result", 0, [thm]))
-  end;
 
 fun transfer_facts inner_state state =
   (case get_facts inner_state of
