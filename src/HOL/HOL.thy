@@ -274,6 +274,15 @@ next
   thus B by (rule mp)
 qed
 
+lemma atomize_not: "(A ==> False) == Trueprop (~A)"
+proof
+  assume r: "A ==> False"
+  show "~A" by (rule notI) (rule r)
+next
+  assume "~A" and A
+  thus False by (rule notE)
+qed
+
 lemma atomize_eq [atomize]: "(x == y) == Trueprop (x = y)"
 proof
   assume "x == y"

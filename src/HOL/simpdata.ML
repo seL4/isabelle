@@ -72,7 +72,7 @@ val rev_conj_cong = thm "rev_conj_cong";
 val simp_thms = thms "simp_thms";
 val split_if = thm "split_if";
 val split_if_asm = thm "split_if_asm";
-
+val atomize_not = thm"atomize_not";
 
 local
 val uncurry = prove_goal (the_context()) "P --> Q --> R ==> P & Q --> R"
