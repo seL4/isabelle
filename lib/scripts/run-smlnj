@@ -21,7 +21,7 @@ function fail_out()
 
 EXIT=""
 COMMIT=""
-FIXNAME=""
+SUFFIX=""
 
 case "$ML_SYSTEM" in
   smlnj-1.0[678]*)
@@ -33,7 +33,8 @@ case "$ML_SYSTEM" in
     EXIT="fun exit 0 : unit = OS.Process.exit OS.Process.success | exit _ = OS.Process.exit OS.Process.failure;"
     COMMIT="fun commit () = not (SMLofNJ.exportML\"$OUTFILE\");"
     COMMIT_RO='fun commit () = (TextIO.output (TextIO.stdErr, "Error - Database is not opened for writing.\\n"); false);'
-    FIXNAME=true
+    eval $($ML_HOME/.arch-n-opsys)
+    SUFFIX=".$ARCH-$OPSYS"
     ;;
 esac
 
@@ -47,13 +48,7 @@ if [ -n "$DB" ]; then
   EXIT=""
 fi
 
-if [ -z "$OUTFILE" ]; then
-  COMMIT="$COMMIT_RO"
-elif [ -n "$INFILE" -a ! "$INFILE" -ef "$OUTFILE" ]; then
-  [ -f "$OUTFILE" ] && { rm -f "$OUTFILE" || fail_out; }
-  cp "$INFILE" "$OUTFILE" || fail_out
-fi
-
+[ -z "$OUTFILE" ] && COMMIT="$COMMIT_RO"
 [ -n "$OUTFILE" -a -f "$OUTFILE" ] && { chmod +w "$OUTFILE" || fail_out; }
 
 MLTEXT="$EXIT $COMMIT $MLTEXT"
@@ -65,7 +60,7 @@ MLEXIT="commit ();"
 START_SML="$ML_HOME/sml $ML_OPTIONS $DB"
 
 if [ -n "$TERMINATE" ]; then
-  echo "$MLTEXT" "$MLEXIT" | $START_SML
+  sh -c "echo '$MLTEXT' '$MLEXIT' | $START_SML"
   RC=$?
 elif [ -z "$MLTEXT" ]; then
   sh -c "{ $ISABELLE_HOME/lib/scripts/ucat; echo '$MLEXIT'; } | $START_SML"
@@ -76,10 +71,7 @@ else
 fi
 
 #fix heap file name
-if [ -n "$OUTFILE" -a -n "$FIXNAME" ]; then
-  eval $($ML_HOME/.arch-n-opsys)
-  SUFFIX=$ARCH-$OPSYS
-  [ -f $OUTFILE.$SUFFIX ] && mv $OUTFILE.$SUFFIX $OUTFILE
-fi
+[ -n "$OUTFILE" -a -n "$SUFFIX" -a -f "$OUTFILE$SUFFIX" ] \
+  && mv "$OUTFILE$SUFFIX" "$OUTFILE"
 
 exit $RC
