@@ -99,13 +99,6 @@ sig
   val eq_ix: indexname * indexname -> bool
   val ins_ix: indexname * indexname list -> indexname list
   val mem_ix: indexname * indexname list -> bool
-  val eq_sort: sort * class list -> bool
-  val mem_sort: sort * class list list -> bool
-  val subset_sort: sort list * class list list -> bool
-  val eq_set_sort: sort list * sort list -> bool
-  val ins_sort: sort * class list list -> class list list
-  val union_sort: sort list * sort list -> sort list
-  val rems_sort: sort list * sort list -> sort list
   val aconv: term * term -> bool
   val aconvs: term list * term list -> bool
   val mem_term: term * term list -> bool
@@ -192,11 +185,14 @@ sig
   val terms_ord: term list * term list -> order
   val hd_ord: term * term -> order
   val termless: term * term -> bool
+  val no_dummyT: typ -> typ
   val dummy_patternN: string
   val no_dummy_patterns: term -> term
   val replace_dummy_patterns: int * term -> int * term
   val is_replaced_dummy_pattern: indexname -> bool
   val adhoc_freeze_vars: term -> term * string list
+  val string_of_vname: indexname -> string
+  val string_of_vname': indexname -> string
 end;
 
 structure Term: TERM =
@@ -533,6 +529,7 @@ fun subst_bound (arg, t) : term =
 fun betapply (Abs(_,_,t), u) = subst_bound (u,t)
   | betapply (f,u) = f$u;
 
+
 (** Equality, membership and insertion of indexnames (string*ints) **)
 
 (*optimized equality test for indexnames.  Yields a huge gain under Poly/ML*)
@@ -575,29 +572,6 @@ fun union_term (xs, []) = xs
 fun inter_term ([], ys) = []
   | inter_term (x::xs, ys) =
       if mem_term (x,ys) then x :: inter_term(xs,ys) else inter_term(xs,ys);
-
-(** Equality, membership and insertion of sorts (string lists) **)
-
-fun eq_sort ([]:sort, []) = true
-  | eq_sort ((s::ss), (t::ts)) = s=t andalso eq_sort(ss,ts)
-  | eq_sort (_, _) = false;
-
-fun mem_sort (_:sort, []) = false
-  | mem_sort (S, S'::Ss) = eq_sort (S, S') orelse mem_sort(S,Ss);
-
-fun ins_sort(S,Ss) = if mem_sort(S,Ss) then Ss else S :: Ss;
-
-fun union_sort (xs, []) = xs
-  | union_sort ([], ys) = ys
-  | union_sort ((x :: xs), ys) = union_sort (xs, ins_sort (x, ys));
-
-fun subset_sort ([], ys) = true
-  | subset_sort (x :: xs, ys) = mem_sort (x, ys) andalso subset_sort(xs, ys);
-
-fun eq_set_sort (xs, ys) =
-    xs = ys orelse (subset_sort (xs, ys) andalso subset_sort (ys, xs));
-
-val rems_sort = gen_rems eq_sort;
 
 (*are two term lists alpha-convertible in corresponding elements?*)
 fun aconvs ([],[]) = true
@@ -736,6 +710,14 @@ fun incr_tvar k = map_type_tvar (fn ((a,i),S) => TVar((a,i+k),S));
 
 (*Dummy type for parsing and printing.  Will be replaced during type inference. *)
 val dummyT = Type("dummy",[]);
+
+fun no_dummyT typ =
+  let
+    fun check (T as Type ("dummy", _)) =
+          raise TYPE ("Illegal occurrence of '_' dummy type", [T], [])
+      | check (Type (_, Ts)) = seq check Ts
+      | check _ = ();
+  in check typ; typ end;
 
 (*read a numeral of the given radix, normally 10*)
 fun read_radixint (radix: int, cs) : int * string list =
@@ -1121,8 +1103,22 @@ fun adhoc_freeze_vars tm =
   in (subst_atomic insts tm, xs) end;
 
 
-end;
+(* string_of_vname *)
 
+fun string_of_vname (x, i) =
+  let
+    val si = string_of_int i;
+    val dot = if_none (try (Symbol.is_digit o last_elem o Symbol.explode) x) true;
+  in
+    if dot then "?" ^ x ^ "." ^ si
+    else if i = 0 then "?" ^ x
+    else "?" ^ x ^ si
+  end;
+
+fun string_of_vname' (x, ~1) = x
+  | string_of_vname' xi = string_of_vname xi;
+
+end;
 
 structure BasicTerm: BASIC_TERM = Term;
 open BasicTerm;
