@@ -1,10 +1,11 @@
 \chapter*{Preface}
 \markboth{Preface}{Preface}
 
-This volume is a self-contained introduction to interactive proof using
-Isabelle/HOL\@.  Compared with existing Isabelle documentation, it
-provides a straightforward route into higher-order logic, which most
-people prefer these days. It bypasses first-order logic and minimizes
+This volume is a self-contained introduction to interactive proof
+in higher-order logic (HOL), using the proof assistant Isabelle/HOL\@. 
+Compared with existing Isabelle documentation,
+it provides a direct route into higher-order logic, which most people
+prefer these days. It bypasses first-order logic and minimizes
 discussion of meta-theory.  It is written for potential users rather
 than for our colleagues in the research world.
 
@@ -16,12 +17,48 @@ does that.  Wenzel's dedicated syntax is elegant, replacing for example
 eight simplification tactics with a single method, namely \isa{simp},
 with associated options.
 
-\REMARK{mention Wenzel once author?}
+The book has three parts.  
+\begin{itemize}
+\item 
+The first part, \textbf{Basic Techniques},
+shows how to model functional programs in higher-order logic.  Early
+examples involve lists and the natural numbers.  Most proofs
+are two steps long, consisting of induction on a chosen variable
+followed by the \isa{auto} tactic.  But even this elementary part
+covers such advanced topics as nested and mutual recursion.
+\item 
+The second part, \textbf{Logic and Sets}, presents a collection of
+lower-level tactics that you can use to apply rules selectively.  It
+also describes Isabelle/HOL's treatment of sets, functions and
+relations and explains how to define sets inductively.  One of the
+examples concerns the theory of model checking, and another is drawn
+from a classic textbook on formal languages.
+\item 
+The third part, \textbf{Advanced Material}, describes a variety of
+other topics.  Among these are the real numbers, records and
+overloading.  Esoteric techniques are described involving induction and
+recursion.  A whole chapter is devoted to an extended example: the
+verification of a security protocol.
+\end{itemize}
+
 The typesetting relies on Wenzel's theory presentation tools.  An
 annotated source file is run, typesetting the theory
 % and any requested Isabelle responses
 in the form of a \TeX\ source file.  This book is
 derived almost entirely from output generated in this way.
+
+Isabelle's
+\href{http://www.cl.cam.ac.uk/Research/HVG/Isabelle/}{web site}
+contains links to the download area and to documentation and other
+information.  Most Isabelle sessions are now run from within David
+Aspinall's wonderful user interface,
+\href{http://www.proofgeneral.org/}{Proof General}.  This book says
+very little about Proof General, which has its own documentation.  In
+order to run Isabelle, you will need a Standard ML compiler.  We
+recommend \href{http://www.polyml.org/}{Poly/ML}, which is free and
+gives the best performance.  The other supported compiler is
+\href{http://cm.bell-labs.com/cm/cs/what/smlnj/index.html}{Standard
+ML of New Jersey}.
 
 This tutorial owes a lot to the constant discussions with and the valuable
 feedback from the Isabelle group at Munich: Stefan Berghofer, Olaf
@@ -29,7 +66,7 @@ M{\"u}ller, Wolfgang Naraschewski, David von Oheimb, Leonor Prensa Nieto,
 Cornelia Pusch, Norbert Schirmer, Martin Strecker and Markus Wenzel. Stephan
 Merz was also kind enough to read and comment on a draft version.  We
 received comments from Stefano Bistarelli, Gergely Buday and Tanja
-Vos.\REMARK{incomplete list!}
+Vos.
 
 The research has been funded by many sources, including the {\sc dfg} grants
 Ni~491/2, Ni~491/3, Ni~491/4 and the {\sc epsrc} grants GR\slash K57381,
