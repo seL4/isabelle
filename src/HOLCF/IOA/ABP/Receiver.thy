@@ -54,6 +54,6 @@ receiver_trans_def "receiver_trans ==
       R_ack(b) => False}"
 
 receiver_ioa_def "receiver_ioa == 
- (receiver_asig, {([],False)}, receiver_trans)"
+ (receiver_asig, {([],False)}, receiver_trans,{},{})"
 
 end

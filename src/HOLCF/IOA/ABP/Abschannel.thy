@@ -59,7 +59,7 @@ ch_trans_def "ch_trans ==
                     b = hd(s) &                                 
                     ((t = s) | (t = tl(s)))    }"
   
-ch_ioa_def "ch_ioa == (ch_asig, {[]}, ch_trans)"
+ch_ioa_def "ch_ioa == (ch_asig, {[]}, ch_trans,{},{})"
 
 (**********************************************************
   C o n c r e t e  C h a n n e l s  b y   R e n a m i n g 

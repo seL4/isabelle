@@ -52,6 +52,6 @@ sender_trans_def "sender_trans ==
                      sq(t)=sq(s) & sbit(t)=sbit(s)}"
 
 sender_ioa_def "sender_ioa == 
- (sender_asig, {([],True)}, sender_trans)"
+ (sender_asig, {([],True)}, sender_trans,{},{})"
 
 end

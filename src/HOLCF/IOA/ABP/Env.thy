@@ -41,7 +41,7 @@ env_trans_def "env_trans ==
       R_ack(b)   => False}"
 
 env_ioa_def "env_ioa == 
- (env_asig, {True}, env_trans)"
+ (env_asig, {True}, env_trans,{},{})"
 
 end
 

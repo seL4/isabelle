@@ -13,7 +13,7 @@ qed"exis_elim";
 Delsimps [split_paired_All];
 Addsimps 
  ([srch_asig_def, rsch_asig_def, rsch_ioa_def, srch_ioa_def, ch_ioa_def, 
-   ch_asig_def, srch_actions_def, rsch_actions_def, rename_def, asig_of_def, 
+   ch_asig_def, srch_actions_def, rsch_actions_def, rename_def, rename_set_def, asig_of_def, 
    actions_def, exis_elim, srch_trans_def, rsch_trans_def, ch_trans_def, 
    trans_of_def] @ asig_projections @ set_lemmas);
 
