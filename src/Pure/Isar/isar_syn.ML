@@ -391,20 +391,20 @@ val forget_proofP =
 (* proof steps *)
 
 val deferP =
-  OuterSyntax.improper_command "defer" "shuffle internal proof state"
+  OuterSyntax.command "defer" "shuffle internal proof state"
     K.prf_script (Scan.option P.nat >> (Toplevel.print oo (Toplevel.proof o IsarThy.defer)));
 
 val preferP =
-  OuterSyntax.improper_command "prefer" "shuffle internal proof state"
+  OuterSyntax.command "prefer" "shuffle internal proof state"
     K.prf_script (P.nat >> (Toplevel.print oo (Toplevel.proof o IsarThy.prefer)));
 
 val applyP =
-  OuterSyntax.improper_command "apply" "unstructured backward proof step, ignoring facts"
-    K.prf_script (P.method >> (Toplevel.print oo (Toplevel.proof o IsarThy.tac)));
+  OuterSyntax.command "apply" "initial refinement step (unstructured)"
+    K.prf_script (P.method >> (Toplevel.print oo (Toplevel.proof o IsarThy.apply)));
 
-val then_applyP =
-  OuterSyntax.improper_command "then_apply" "unstructured backward proof step, using facts"
-    K.prf_script (P.method >> (Toplevel.print oo (Toplevel.proof o IsarThy.then_tac)));
+val apply_endP =
+  OuterSyntax.command "apply_end" "terminal refinement (unstructured)"
+    K.prf_script (P.method >> (Toplevel.print oo (Toplevel.proof o IsarThy.apply_end)));
 
 val proofP =
   OuterSyntax.command "proof" "backward proof" K.prf_block
@@ -429,7 +429,7 @@ val finallyP =
 (* proof navigation *)
 
 val backP =
-  OuterSyntax.improper_command "back" "backtracking of proof command" K.prf_script
+  OuterSyntax.command "back" "backtracking of proof command" K.prf_script
     (Scan.optional (P.$$$ "!" >> K true) false >>
       (Toplevel.print oo (Toplevel.proof o ProofHistory.back)));
 
@@ -633,7 +633,7 @@ val parsers = [
   theoremP, lemmaP, showP, haveP, thusP, henceP, assumeP, presumeP,
   defP, fixP, letP, thenP, thenceP, fromP, withP, noteP, beginP, endP,
   nextP, qedP, terminal_proofP, immediate_proofP, default_proofP,
-  skip_proofP, forget_proofP, deferP, preferP, applyP, then_applyP,
+  skip_proofP, forget_proofP, deferP, preferP, applyP, apply_endP,
   proofP, alsoP, finallyP, backP, cannot_undoP, clear_undosP, redoP,
   undos_proofP, kill_proofP, undoP,
   (*diagnostic commands*)
