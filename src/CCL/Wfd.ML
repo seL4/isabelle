@@ -179,7 +179,7 @@ goalw Wfd.thy [NatPR_def]  "p : NatPR <-> (EX x:Nat.p=<x,succ(x)>)";
 by (fast_tac set_cs 1);
 val NatPRXH = result();
 
-goalw Wfd.thy [ListPR_def]  "p : ListPR(A) <-> (EX h:A.EX t:List(A).p=<t,h.t>)";
+goalw Wfd.thy [ListPR_def]  "p : ListPR(A) <-> (EX h:A.EX t:List(A).p=<t,h$t>)";
 by (fast_tac set_cs 1);
 val ListPRXH = result();
 

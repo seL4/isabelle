@@ -183,9 +183,9 @@ fun mk_iXH_tac teqs ddefs rls s = prove_goalw Type.thy ddefs s
 val iXH_tac = mk_iXH_tac ind_type_eqs ind_data_defs [];
 
 val NatXH  = iXH_tac "a : Nat <-> (a=zero | (EX x:Nat.a=succ(x)))";
-val ListXH = iXH_tac "a : List(A) <-> (a=[] | (EX x:A.EX xs:List(A).a=x.xs))";
-val ListsXH = iXH_tac "a : Lists(A) <-> (a=[] | (EX x:A.EX xs:Lists(A).a=x.xs))";
-val IListsXH = iXH_tac "a : ILists(A) <-> (EX x:A.EX xs:ILists(A).a=x.xs)";
+val ListXH = iXH_tac "a : List(A) <-> (a=[] | (EX x:A.EX xs:List(A).a=x$xs))";
+val ListsXH = iXH_tac "a : Lists(A) <-> (a=[] | (EX x:A.EX xs:Lists(A).a=x$xs))";
+val IListsXH = iXH_tac "a : ILists(A) <-> (EX x:A.EX xs:ILists(A).a=x$xs)";
 
 val iXHs = [NatXH,ListXH];
 val icase_rls = XH_to_Es iXHs;
@@ -198,7 +198,7 @@ val incanT_tac = mk_ncanT_tac Type.thy [] icase_rls case_rls;
 val zeroT = icanT_tac "zero : Nat";
 val succT = icanT_tac "n:Nat ==> succ(n) : Nat";
 val nilT  = icanT_tac "[] : List(A)";
-val consT = icanT_tac "[| h:A;  t:List(A) |] ==> h.t : List(A)";
+val consT = icanT_tac "[| h:A;  t:List(A) |] ==> h$t : List(A)";
 
 val icanTs = [zeroT,succT,nilT,consT];
 
@@ -209,7 +209,7 @@ val ncaseT = incanT_tac
 
 val lcaseT = incanT_tac
      "[| l:List(A); l=[] ==> b:C([]); \
-\        !!h t.[| h:A;  t:List(A); l=h.t |] ==> c(h,t):C(h.t) |] ==> \
+\        !!h t.[| h:A;  t:List(A); l=h$t |] ==> c(h,t):C(h$t) |] ==> \
 \     lcase(l,b,c) : C(l)";
 
 val incanTs = [ncaseT,lcaseT];
@@ -230,7 +230,7 @@ val Nat_ind = ind_tac
 
 val List_ind = ind_tac
      "[| l:List(A); P([]); \
-\        !!x xs.[| x:A;  xs:List(A); P(xs) |] ==> P(x.xs) |] ==> \
+\        !!x xs.[| x:A;  xs:List(A); P(xs) |] ==> P(x$xs) |] ==> \
 \     P(l)";
 
 val inds = [Nat_ind,List_ind];
@@ -250,7 +250,7 @@ val nrecT = prec_tac
 
 val lrecT = prec_tac
      "[| l:List(A); b:C([]); \
-\        !!x xs g.[| x:A;  xs:List(A); g:C(xs) |] ==> c(x,xs,g):C(x.xs) |] ==>  \
+\        !!x xs g.[| x:A;  xs:List(A); g:C(xs) |] ==> c(x,xs,g):C(x$xs) |] ==>  \
 \     lrec(l,b,c) : C(l)";
 
 val precTs = [nrecT,lrecT];
@@ -300,7 +300,7 @@ val def_gfpI = result();
 (* EG *)
 
 val prems = goal Type.thy 
-    "letrec g x be zero.g(x) in g(bot) : Lists(Nat)";
+    "letrec g x be zero$g(x) in g(bot) : Lists(Nat)";
 by (rtac (refl RS (XH_to_I UnitXH) RS (Lists_def RS def_gfpI)) 1);
 br (letrecB RS ssubst) 1;
 bw cons_def;

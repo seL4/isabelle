@@ -58,11 +58,11 @@ val V_rls = map mk_V_rl
               "[| n ---> zero; t ---> c |] ==> nrec(n,t,u) ---> c",
               "[| n--->succ(x); u(x,nrec(x,t,u))--->c |] ==> nrec(n,t,u)--->c",
               "[] ---> []",
-              "h.t ---> h.t",
+              "h$t ---> h$t",
               "[| l ---> []; t ---> c |] ==> lcase(l,t,u) ---> c",
-              "[| l ---> x.xs; u(x,xs) ---> c |] ==> lcase(l,t,u) ---> c",
+              "[| l ---> x$xs; u(x,xs) ---> c |] ==> lcase(l,t,u) ---> c",
               "[| l ---> []; t ---> c |] ==> lrec(l,t,u) ---> c",
-              "[| l--->x.xs; u(x,xs,lrec(xs,t,u))--->c |] ==> lrec(l,t,u)--->c"];
+              "[| l--->x$xs; u(x,xs,lrec(xs,t,u))--->c |] ==> lrec(l,t,u)--->c"];
 
 EVal_rls := !EVal_rls @ V_rls;
 
@@ -93,12 +93,12 @@ isle "succ(succ(succ(succ(succ(zero)))))" "succ(succ(succ(succ(zero))))";
 (* Reverse *)
 
 val prems = goal thy
-    "letrec id l be lcase(l,[],%x xs.x.id(xs)) \
-\              in id(zero.succ(zero).[]) ---> ?a";
+    "letrec id l be lcase(l,[],%x xs.x$id(xs)) \
+\              in id(zero$succ(zero)$[]) ---> ?a";
 by (ceval_tac []);
 
 val prems = goal thy
-    "letrec rev l be lcase(l,[],%x xs.lrec(rev(xs),x.[],%y ys g.y.g)) \
-\              in rev(zero.succ(zero).(succ((lam x.x)`succ(zero))).([])) ---> ?a";
+    "letrec rev l be lcase(l,[],%x xs.lrec(rev(xs),x$[],%y ys g.y$g)) \
+\              in rev(zero$succ(zero)$(succ((lam x.x)`succ(zero)))$([])) ---> ?a";
 by (ceval_tac []);
 

@@ -90,10 +90,10 @@ val nrecBsucc  = mk_beta_rl "nrec(succ(n),t,u) = u(n,nrec(n,t,u))";
 val nrecBbot   = mk_beta_rl "nrec(bot,t,u) = bot";
 
 val lcaseBnil  = mk_beta_rl "lcase([],t,u) = t";
-val lcaseBcons = mk_beta_rl "lcase(x.xs,t,u) = u(x,xs)";
+val lcaseBcons = mk_beta_rl "lcase(x$xs,t,u) = u(x,xs)";
 val lcaseBbot  = mk_beta_rl "lcase(bot,t,u) = bot";
 val lrecBnil   = mk_beta_rl "lrec([],t,u) = t";
-val lrecBcons  = mk_beta_rl "lrec(x.xs,t,u) = u(x,xs,lrec(xs,t,u))";
+val lrecBcons  = mk_beta_rl "lrec(x$xs,t,u) = u(x,xs,lrec(xs,t,u))";
 val lrecBbot   = mk_beta_rl "lrec(bot,t,u) = bot";
 
 val letrec2B = raw_mk_beta_rl (data_defs @ [letrec2_def])
@@ -120,12 +120,12 @@ val term_injs = map (mk_inj_rl Term.thy
                ["(inl(a) = inl(a')) <-> (a=a')",
                 "(inr(a) = inr(a')) <-> (a=a')",
                 "(succ(a) = succ(a')) <-> (a=a')",
-                "(a.b = a'.b') <-> (a=a' & b=b')"];
+                "(a$b = a'$b') <-> (a=a' & b=b')"];
 
 (*** Constructors are distinct ***)
 
 val term_dstncts = mkall_dstnct_thms Term.thy data_defs (ccl_injs @ term_injs)
-                    [["bot","inl","inr"],["bot","zero","succ"],["bot","nil","op ."]];
+                    [["bot","inl","inr"],["bot","zero","succ"],["bot","nil","op $"]];
 
 (*** Rules for pre-order [= ***)
 
@@ -136,7 +136,7 @@ in
   val term_porews = map mk_thm ["inl(a) [= inl(a') <-> a [= a'",
                                 "inr(b) [= inr(b') <-> b [= b'",
                                 "succ(n) [= succ(n') <-> n [= n'",
-                                "x.xs [= x'.xs' <-> x [= x'  & xs [= xs'"];
+                                "x$xs [= x'$xs' <-> x [= x'  & xs [= xs'"];
 end;
 
 (*** Rewriting and Proving ***)

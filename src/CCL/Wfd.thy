@@ -30,5 +30,5 @@ rules
   "ra**rb == {p. EX a a' b b'.p = <<a,b>,<a',b'>> & (<a,a'> : ra | (a=a' & <b,b'> : rb))}"
 
   NatPR_def      "NatPR == {p.EX x:Nat. p=<x,succ(x)>}"
-  ListPR_def     "ListPR(A) == {p.EX h:A.EX t:List(A). p=<t,h.t>}"
+  ListPR_def     "ListPR(A) == {p.EX h:A.EX t:List(A). p=<t,h$t>}"
 end

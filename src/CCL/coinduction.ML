@@ -60,7 +60,7 @@ val POgenIs = map (mk_genIs Term.thy data_defs POgenXH POgen_mono)
        "<[],[]> : POgen(lfp(%x. POgen(x) Un R Un PO))",
        "[| <h,h'> : lfp(%x. POgen(x) Un R Un PO); \
 \          <t,t'> : lfp(%x. POgen(x) Un R Un PO) |] ==> \
-\       <h.t,h'.t'> : POgen(lfp(%x. POgen(x) Un R Un PO))"];
+\       <h$t,h'$t'> : POgen(lfp(%x. POgen(x) Un R Un PO))"];
 
 fun POgen_tac (rla,rlb) i =
        SELECT_GOAL (safe_tac ccl_cs) i THEN
@@ -90,7 +90,7 @@ val EQgenIs = map (mk_genIs Term.thy data_defs EQgenXH EQgen_mono)
  "<[],[]> : EQgen(lfp(%x. EQgen(x) Un R Un EQ))",
  "[| <h,h'> : lfp(%x. EQgen(x) Un R Un EQ); \
 \          <t,t'> : lfp(%x. EQgen(x) Un R Un EQ) |] ==> \
-\       <h.t,h'.t'> : EQgen(lfp(%x. EQgen(x) Un R Un EQ))"];
+\       <h$t,h'$t'> : EQgen(lfp(%x. EQgen(x) Un R Un EQ))"];
 
 fun EQgen_raw_tac i =
        (REPEAT (resolve_tac (EQgenIs @ [EQ_refl RS (EQgen_mono RS ci3_AI)] @ 

@@ -28,7 +28,7 @@ consts
   nrec       ::	      "[i,i,[i,i]=>i]=>i"
 
   nil        ::       "i"                    ("([])")
-  "."        ::       "[i,i]=>i"             (infixr 80)
+  "$"        ::       "[i,i]=>i"             (infixr 80)
   lcase      ::	      "[i,i,[i,i]=>i]=>i"
   lrec       ::	      "[i,i,[i,i,i]=>i]=>i"
 
@@ -60,7 +60,7 @@ rules
   ncase_def         "ncase(n,b,c) == when(n,%x.b,%y.c(y))"
   nrec_def          " nrec(n,b,c) == letrec g x be ncase(x,b,%y.c(y,g(y))) in g(n)"
   nil_def	              "[] == inl(one)"
-  cons_def                   "h.t == inr(<h,t>)"
+  cons_def                   "h$t == inr(<h,t>)"
   lcase_def         "lcase(l,b,c) == when(l,%x.b,%y.split(y,c))"
   lrec_def           "lrec(l,b,c) == letrec g x be lcase(x,b,%h t.c(h,t,g(t))) in g(l)"
 

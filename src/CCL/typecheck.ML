@@ -25,7 +25,7 @@ val Subtype_canTs =
             "P(zero) ==> zero : {x:Nat.P(x)}",
             "a : {x:Nat.P(succ(x))} ==> succ(a) : {x:Nat.P(x)}",
             "P([]) ==> [] : {x:List(A).P(x)}",
-            "h : {x:A. t : {y:List(A).P(x.y)}} ==> h.t : {x:List(A).P(x)}"
+            "h : {x:A. t : {y:List(A).P(x$y)}} ==> h$t : {x:List(A).P(x)}"
         ] end;
 *)
 val Subtype_canTs = 
@@ -38,7 +38,7 @@ val Subtype_canTs =
             "a : {x:A.P(inl(x))} ==> inl(a) : {x:A+B.P(x)}",
             "b : {x:B.P(inr(x))} ==> inr(b) : {x:A+B.P(x)}",
             "a : {x:Nat.P(succ(x))} ==> succ(a) : {x:Nat.P(x)}",
-            "h : {x:A. t : {y:List(A).P(x.y)}} ==> h.t : {x:List(A).P(x)}"
+            "h : {x:A. t : {y:List(A).P(x$y)}} ==> h$t : {x:List(A).P(x)}"
         ] end;
 
 val prems = goal Type.thy

@@ -70,7 +70,7 @@ in
                            "zero : HTT",
                            "succ(n) : HTT <-> n : HTT",
                            "[] : HTT",
-                           "x.xs : HTT <-> x : HTT & xs : HTT"];
+                           "x$xs : HTT <-> x : HTT & xs : HTT"];
 end;
 
 val HTT_Is = HTT_rews @ (HTT_rews RL [iffD2]);
@@ -108,7 +108,7 @@ val HTTgenIs = map (mk_genIs Hered.thy data_defs HTTgenXH HTTgen_mono)
 \                         succ(n) : HTTgen(lfp(%x. HTTgen(x) Un R Un HTT))",
         "[] : HTTgen(lfp(%x. HTTgen(x) Un R Un HTT))",
         "[| h : lfp(%x. HTTgen(x) Un R Un HTT); t : lfp(%x. HTTgen(x) Un R Un HTT) |] ==>\
-\                         h.t : HTTgen(lfp(%x. HTTgen(x) Un R Un HTT))"];
+\                         h$t : HTTgen(lfp(%x. HTTgen(x) Un R Un HTT))"];
 
 (*** Formation Rules for Types ***)
 
