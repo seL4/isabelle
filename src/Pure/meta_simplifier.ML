@@ -17,20 +17,20 @@ sig
   include BASIC_META_SIMPLIFIER
   exception SIMPLIFIER of string * thm
   type meta_simpset
-  val dest_mss		: meta_simpset ->
+  val dest_mss          : meta_simpset ->
     {simps: thm list, congs: thm list, procs: (string * cterm list) list}
   val empty_mss         : meta_simpset
-  val clear_mss		: meta_simpset -> meta_simpset
-  val merge_mss		: meta_simpset * meta_simpset -> meta_simpset
+  val clear_mss         : meta_simpset -> meta_simpset
+  val merge_mss         : meta_simpset * meta_simpset -> meta_simpset
   val add_simps         : meta_simpset * thm list -> meta_simpset
   val del_simps         : meta_simpset * thm list -> meta_simpset
   val mss_of            : thm list -> meta_simpset
   val add_congs         : meta_simpset * thm list -> meta_simpset
   val del_congs         : meta_simpset * thm list -> meta_simpset
-  val add_simprocs	: meta_simpset *
+  val add_simprocs      : meta_simpset *
     (string * cterm list * (Sign.sg -> thm list -> term -> thm option) * stamp) list
       -> meta_simpset
-  val del_simprocs	: meta_simpset *
+  val del_simprocs      : meta_simpset *
     (string * cterm list * (Sign.sg -> thm list -> term -> thm option) * stamp) list
       -> meta_simpset
   val add_prems         : meta_simpset * thm list -> meta_simpset
@@ -64,19 +64,18 @@ exception SIMPLIFIER of string * thm;
 
 val simp_depth = ref 0;
 
-fun println a = tracing (replicate_string (! simp_depth) " " ^ a);
+local
+
+fun println a =
+  tracing ((case ! simp_depth of 0 => "" | n => "[" ^ string_of_int n ^ "]") ^ a);
 
 fun prnt warn a = if warn then warning a else println a;
+fun prtm warn a sign t = prnt warn (a ^ "\n" ^ Sign.string_of_term sign t);
+fun prctm warn a t = prnt warn (a ^ "\n" ^ Display.string_of_cterm t);
 
-fun prtm warn a sign t =
-  (prnt warn a; prnt warn (Sign.string_of_term sign t));
+in
 
-fun prctm warn a t =
-  (prnt warn a; prnt warn (Display.string_of_cterm t));
-
-fun prthm warn a thm =
-  let val {sign, prop, ...} = rep_thm thm
-  in prtm warn a sign prop end;
+fun prthm warn a = prctm warn a o Thm.cprop_of;
 
 val trace_simp = ref false;
 val debug_simp = ref false;
@@ -92,6 +91,7 @@ fun trace_thm warn a thm =
   let val {sign, prop, ...} = rep_thm thm
   in trace_term warn a sign prop end;
 
+end;
 
 
 (** meta simp sets **)
@@ -104,7 +104,7 @@ type rrule = {thm: thm, lhs: term, elhs: cterm, fo: bool, perm: bool};
    elhs: the etac-contracted lhs.
    fo:  use first-order matching
    perm: the rewrite rule is permutative
-Reamrks:
+Remarks:
   - elhs is used for matching,
     lhs only for preservation of bound variable names.
   - fo is set iff
@@ -120,7 +120,7 @@ type simproc =
 fun eq_rrule ({thm = thm1, ...}: rrule, {thm = thm2, ...}: rrule) =
   #prop (rep_thm thm1) aconv #prop (rep_thm thm2);
 
-fun eq_cong ({thm = thm1, ...}: cong, {thm = thm2, ...}: cong) = 
+fun eq_cong ({thm = thm1, ...}: cong, {thm = thm2, ...}: cong) =
   #prop (rep_thm thm1) aconv #prop (rep_thm thm2);
 
 fun eq_prem (thm1, thm2) =
@@ -181,7 +181,7 @@ fun clear_mss (Mss {mk_rews, termless, ...}) =
 
 fun incr_depth(Mss{rules,congs,procs,bounds,prems,mk_rews,termless,depth}) =
   mk_mss (rules, congs, procs, bounds, prems, mk_rews, termless, depth+1)
- 
+
 
 
 (** simpset operations **)
@@ -204,7 +204,7 @@ fun dest_mss (Mss {rules, congs, procs, ...}) =
      |> Library.sort_wrt #1};
 
 
-(* merge_mss *)	      (*NOTE: ignores mk_rews, termless and depth of 2nd mss*)
+(* merge_mss *)       (*NOTE: ignores mk_rews, termless and depth of 2nd mss*)
 
 fun merge_mss
  (Mss {rules = rules1, congs = (congs1,weak1), procs = procs1,
@@ -430,10 +430,10 @@ fun add_proc (mss as Mss {rules,congs,procs,bounds,prems,mk_rews,termless,depth}
       sign t;
     mk_mss (rules, congs,
       Net.insert_term ((t, mk_simproc (name, proc, lhs, id)), procs, eq_simproc)
-        handle Net.INSERT => 
-	    (warning ("Ignoring duplicate simplification procedure \"" 
-	              ^ name ^ "\""); 
-	     procs),
+        handle Net.INSERT =>
+            (warning ("Ignoring duplicate simplification procedure \""
+                      ^ name ^ "\"");
+             procs),
         bounds, prems, mk_rews, termless,depth))
   end;
 
@@ -449,9 +449,9 @@ fun del_proc (mss as Mss {rules,congs,procs,bounds,prems,mk_rews,termless,depth}
     (name, lhs, proc, id)) =
   mk_mss (rules, congs,
     Net.delete_term ((term_of lhs, mk_simproc (name, proc, lhs, id)), procs, eq_simproc)
-      handle Net.DELETE => 
-	  (warning ("Simplification procedure \"" ^ name ^
-		       "\" not in simpset"); procs),
+      handle Net.DELETE =>
+          (warning ("Simplification procedure \"" ^ name ^
+                       "\" not in simpset"); procs),
       bounds, prems, mk_rews, termless, depth);
 
 fun del_simproc (mss, (name, lhss, proc, id)) =
@@ -630,11 +630,11 @@ fun rewritec (prover, signt, maxt)
           in case opt of None => rews rrules | some => some end;
 
     fun sort_rrules rrs = let
-      fun is_simple({thm, ...}:rrule) = case #prop (rep_thm thm) of 
+      fun is_simple({thm, ...}:rrule) = case #prop (rep_thm thm) of
                                       Const("==",_) $ _ $ _ => true
-                                      | _                   => false 
+                                      | _                   => false
       fun sort []        (re1,re2) = re1 @ re2
-        | sort (rr::rrs) (re1,re2) = if is_simple rr 
+        | sort (rr::rrs) (re1,re2) = if is_simple rr
                                      then sort rrs (rr::re1,re2)
                                      else sort rrs (re1,rr::re2)
     in sort rrs ([],[]) end
@@ -823,7 +823,7 @@ fun bottomc ((simprem,useprem,mutsimp), prover, sign, maxidx) =
         fun rebuild None = (case rewritec (prover, sign, maxidx) mss
             (mk_implies (prem1, conc)) of
               None => None
-            | Some (thm, _) => 
+            | Some (thm, _) =>
                 let val (prem, conc) = Drule.dest_implies (rhs_of thm)
                 in (case mut_impc (prems, prem, conc, mss) of
                     None => Some (None, thm)
