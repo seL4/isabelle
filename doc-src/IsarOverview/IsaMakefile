@@ -7,7 +7,7 @@ default: Isar
 SRC = $(ISABELLE_HOME)/src
 OUT = $(ISABELLE_OUTPUT)
 LOG = $(OUT)/log
-USEDIR = $(ISATOOL) usedir -i true -d ps -D document -v true
+USEDIR = $(ISATOOL) usedir -i false -g false -d false -D document -v true
 
 
 ## Isar
