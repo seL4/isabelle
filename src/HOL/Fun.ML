@@ -130,6 +130,10 @@ by (etac subst 1);
 by (etac inv_f_f 1);
 qed "inv_f_eq";
 
+Goal "[| inj f; ALL x. f(g x) = x |] ==> inv f = g";
+by (blast_tac (claset() addIs [ext, inv_f_eq]) 1); 
+qed "inj_imp_inv_eq";
+
 (* Useful??? *)
 val [oneone,minor] = Goal
     "[| inj(f); !!y. y: range(f) ==> P(inv f y) |] ==> P(x)";
@@ -238,6 +242,12 @@ by (asm_simp_tac (simpset() addsimps [o_def, expand_fun_eq]) 1);
 by (blast_tac (claset() addIs [surjI, surj_f_inv_f]) 1);
 qed "surj_iff";
 
+Goal "[| surj f; ALL x. g(f x) = x |] ==> inv f = g";
+by (rtac ext 1);
+by (dres_inst_tac [("x","inv f x")] spec 1); 
+by (asm_full_simp_tac (simpset() addsimps [surj_f_inv_f]) 1); 
+qed "surj_imp_inv_eq";
+
 
 (** Bijections **)
 
@@ -267,6 +277,13 @@ Goalw [bij_def] "bij f ==> inv (inv f) = f";
 by (rtac inv_equality 1);
 by (auto_tac (claset(), simpset() addsimps [surj_f_inv_f]));
 qed "inv_inv_eq";
+
+(** bij(inv f) implies little about f.  Consider f::bool=>bool such that
+    f(True)=f(False)=True.  Then it's consistent with axiom someI that
+    inv(f) could be any function at all, including the identity function.
+    If inv(f)=id then inv(f) is a bijection, but inj(f), surj(f) and
+    inv(inv(f))=f all fail.
+**)
 
 Goalw [bij_def] "[| bij f; bij g |] ==> inv (f o g) = inv g o inv f";
 by (rtac (inv_equality) 1);
