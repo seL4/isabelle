@@ -46,15 +46,15 @@ structure synth =
 
 
 (*Equations hold because constructors are injective; cannot prove for all f*)
-Goal "(Friend x : Friend`A) = (x:A)";
+Goal "(Friend x \\<in> Friend`A) = (x:A)";
 by Auto_tac;
 qed "Friend_image_eq";
 
-Goal "(Key x : Key`A) = (x:A)";
+Goal "(Key x \\<in> Key`A) = (x:A)";
 by Auto_tac;
 qed "Key_image_eq";
 
-Goal "(Nonce x ~: Key`A)";
+Goal "(Nonce x \\<notin> Key`A)";
 by Auto_tac;
 qed "Nonce_Key_image_eq";
 Addsimps [Friend_image_eq, Key_image_eq, Nonce_Key_image_eq];
@@ -132,7 +132,7 @@ by Auto_tac;
 qed "keysFor_image_Key";
 Addsimps [keysFor_image_Key];
 
-Goalw [keysFor_def] "Crypt K X : H ==> invKey K : keysFor H";
+Goalw [keysFor_def] "Crypt K X \\<in> H ==> invKey K \\<in> keysFor H";
 by (Blast_tac 1);
 qed "Crypt_imp_invKey_keysFor";
 
@@ -140,8 +140,8 @@ qed "Crypt_imp_invKey_keysFor";
 (**** Inductive relation "parts" ****)
 
 val major::prems = 
-Goal "[| {|X,Y|} : parts H;       \
-\         [| X : parts H; Y : parts H |] ==> P  \
+Goal "[| {|X,Y|} \\<in> parts H;       \
+\         [| X \\<in> parts H; Y \\<in> parts H |] ==> P  \
 \     |] ==> P";
 by (cut_facts_tac [major] 1);
 by (resolve_tac prems 1);
@@ -326,7 +326,7 @@ Addsimps [parts_image_Key];
 
 
 (*In any message, there is an upper bound N on its greatest nonce.*)
-Goal "EX N. ALL n. N<=n --> Nonce n ~: parts {msg}";
+Goal "EX N. ALL n. N<=n --> Nonce n \\<notin> parts {msg}";
 by (induct_tac "msg" 1);
 by (ALLGOALS (asm_simp_tac (simpset() addsimps [exI, parts_insert2])));
 (*MPair case: blast_tac works out the necessary sum itself!*)
@@ -340,8 +340,8 @@ qed "msg_Nonce_supply";
 (**** Inductive relation "analz" ****)
 
 val major::prems = 
-Goal "[| {|X,Y|} : analz H;       \
-\            [| X : analz H; Y : analz H |] ==> P  \
+Goal "[| {|X,Y|} \\<in> analz H;       \
+\            [| X \\<in> analz H; Y \\<in> analz H |] ==> P  \
 \         |] ==> P";
 by (cut_facts_tac [major] 1);
 by (resolve_tac prems 1);
@@ -424,7 +424,7 @@ qed "analz_insert_Hash";
 
 (*Can only pull out Keys if they are not needed to decrypt the rest*)
 Goalw [keysFor_def]
-    "K ~: keysFor (analz H) ==>  \
+    "K \\<notin> keysFor (analz H) ==>  \
 \         analz (insert (Key K) H) = insert (Key K) (analz H)";
 by (analz_tac 1);
 qed "analz_insert_Key";
@@ -440,13 +440,13 @@ by (ALLGOALS (blast_tac (claset() addIs [analz.Fst, analz.Snd])));
 qed "analz_insert_MPair";
 
 (*Can pull out enCrypted message if the Key is not known*)
-Goal "Key (invKey K) ~: analz H ==>  \
+Goal "Key (invKey K) \\<notin> analz H ==>  \
 \              analz (insert (Crypt K X) H) = \
 \              insert (Crypt K X) (analz H)";
 by (analz_tac 1);
 qed "analz_insert_Crypt";
 
-Goal "Key (invKey K) : analz H ==>  \
+Goal "Key (invKey K) \\<in> analz H ==>  \
 \              analz (insert (Crypt K X) H) <= \
 \              insert (Crypt K X) (analz (insert X H))";
 by (rtac subsetI 1);
@@ -454,7 +454,7 @@ by (eres_inst_tac [("xa","x")] analz.induct 1);
 by Auto_tac;
 val lemma1 = result();
 
-Goal "Key (invKey K) : analz H ==>  \
+Goal "Key (invKey K) \\<in> analz H ==>  \
 \              insert (Crypt K X) (analz (insert X H)) <= \
 \              analz (insert (Crypt K X) H)";
 by Auto_tac;
@@ -463,7 +463,7 @@ by Auto_tac;
 by (blast_tac (claset() addIs [analz_insertI, analz.Decrypt]) 1);
 val lemma2 = result();
 
-Goal "Key (invKey K) : analz H ==>  \
+Goal "Key (invKey K) \\<in> analz H ==>  \
 \              analz (insert (Crypt K X) H) = \
 \              insert (Crypt K X) (analz (insert X H))";
 by (REPEAT (ares_tac [equalityI, lemma1, lemma2] 1));
@@ -474,10 +474,10 @@ qed "analz_insert_Decrypt";
   Use with split_if;  apparently split_tac does not cope with patterns
   such as "analz (insert (Crypt K X) H)" *)
 Goal "analz (insert (Crypt K X) H) =                \
-\         (if (Key (invKey K) : analz H)                \
+\         (if (Key (invKey K) \\<in> analz H)                \
 \          then insert (Crypt K X) (analz (insert X H)) \
 \          else insert (Crypt K X) (analz H))";
-by (case_tac "Key (invKey K)  : analz H " 1);
+by (case_tac "Key (invKey K)  \\<in> analz H " 1);
 by (ALLGOALS (asm_simp_tac (simpset() addsimps [analz_insert_Crypt, 
 						analz_insert_Decrypt])));
 qed "analz_Crypt_if";
@@ -562,7 +562,7 @@ by (asm_simp_tac (simpset() addsimps [insert_def] delsimps [singleton_conv]
 qed "analz_insert_cong";
 
 (*If there are no pairs or encryptions then analz does nothing*)
-Goal "[| ALL X Y. {|X,Y|} ~: H;  ALL X K. Crypt K X ~: H |] ==> \
+Goal "[| ALL X Y. {|X,Y|} \\<notin> H;  ALL X K. Crypt K X \\<notin> H |] ==> \
 \         analz H = H";
 by Safe_tac;
 by (etac analz.induct 1);
@@ -622,23 +622,23 @@ by (etac synth_trans 1);
 by (Blast_tac 1);
 qed "synth_cut";
 
-Goal "Agent A : synth H";
+Goal "Agent A \\<in> synth H";
 by (Blast_tac 1);
 qed "Agent_synth";
 
-Goal "Number n : synth H";
+Goal "Number n \\<in> synth H";
 by (Blast_tac 1);
 qed "Number_synth";
 
-Goal "(Nonce N : synth H) = (Nonce N : H)";
+Goal "(Nonce N \\<in> synth H) = (Nonce N \\<in> H)";
 by (Blast_tac 1);
 qed "Nonce_synth_eq";
 
-Goal "(Key K : synth H) = (Key K : H)";
+Goal "(Key K \\<in> synth H) = (Key K \\<in> H)";
 by (Blast_tac 1);
 qed "Key_synth_eq";
 
-Goal "Key K ~: H ==> (Crypt K X : synth H) = (Crypt K X : H)";
+Goal "Key K \\<notin> H ==> (Crypt K X \\<in> synth H) = (Crypt K X \\<in> H)";
 by (Blast_tac 1);
 qed "Crypt_synth_eq";
 
@@ -647,7 +647,7 @@ Addsimps [Agent_synth, Number_synth,
 
 
 Goalw [keysFor_def]
-    "keysFor (synth H) = keysFor H Un invKey`{K. Key K : H}";
+    "keysFor (synth H) = keysFor H Un invKey`{K. Key K \\<in> H}";
 by (Blast_tac 1);
 qed "keysFor_synth";
 Addsimps [keysFor_synth];
@@ -706,7 +706,7 @@ qed "Fake_parts_insert";
 Goal "X: synth (analz G) ==> \
 \     analz (insert X H) <= synth (analz G) Un analz (G Un H)";
 by (rtac subsetI 1);
-by (subgoal_tac "x : analz (synth (analz G) Un H)" 1);
+by (subgoal_tac "x \\<in> analz (synth (analz G) Un H)" 1);
 by (blast_tac (claset() addIs [impOfSubs analz_mono,
 			       impOfSubs (analz_mono RS synth_mono)]) 2);
 by (Full_simp_tac 1);
@@ -725,21 +725,21 @@ AddIffs [analz_conj_parts, analz_disj_parts];
 
 (*Without this equation, other rules for synth and analz would yield
   redundant cases*)
-Goal "({|X,Y|} : synth (analz H)) = \
-\     (X : synth (analz H) & Y : synth (analz H))";
+Goal "({|X,Y|} \\<in> synth (analz H)) = \
+\     (X \\<in> synth (analz H) & Y \\<in> synth (analz H))";
 by (Blast_tac 1);
 qed "MPair_synth_analz";
 
 AddIffs [MPair_synth_analz];
 
-Goal "[| Key K : analz H;  Key (invKey K) : analz H |] \
-\      ==> (Crypt K X : synth (analz H)) = (X : synth (analz H))";
+Goal "[| Key K \\<in> analz H;  Key (invKey K) \\<in> analz H |] \
+\      ==> (Crypt K X \\<in> synth (analz H)) = (X \\<in> synth (analz H))";
 by (Blast_tac 1);
 qed "Crypt_synth_analz";
 
 
-Goal "X ~: synth (analz H) \
-\     ==> (Hash{|X,Y|} : synth (analz H)) = (Hash{|X,Y|} : analz H)";
+Goal "X \\<notin> synth (analz H) \
+\     ==> (Hash{|X,Y|} \\<in> synth (analz H)) = (Hash{|X,Y|} \\<in> analz H)";
 by (Blast_tac 1);
 qed "Hash_synth_analz";
 Addsimps [Hash_synth_analz];
@@ -812,9 +812,9 @@ Goalw [HPair_def]
 by (Simp_tac 1);
 qed "analz_insert_HPair";
 
-Goalw [HPair_def] "X ~: synth (analz H) \
-\   ==> (Hash[X] Y : synth (analz H)) = \
-\       (Hash {|X, Y|} : analz H & Y : synth (analz H))";
+Goalw [HPair_def] "X \\<notin> synth (analz H) \
+\   ==> (Hash[X] Y \\<in> synth (analz H)) = \
+\       (Hash {|X, Y|} \\<in> analz H & Y \\<in> synth (analz H))";
 by (Simp_tac 1);
 by (Blast_tac 1);
 qed "HPair_synth_analz";
@@ -847,7 +847,7 @@ bind_thms ("pushes", pushKeys@pushCrypts);
 (*** Tactics useful for many protocol proofs ***)
 
 (*Prove base case (subgoal i) and simplify others.  A typical base case
-  concerns  Crypt K X ~: Key`shrK`bad  and cannot be proved by rewriting
+  concerns  Crypt K X \\<notin> Key`shrK`bad  and cannot be proved by rewriting
   alone.*)
 fun prove_simple_subgoals_tac i = 
     force_tac (claset(), simpset() addsimps [image_eq_UN]) i THEN
@@ -859,7 +859,7 @@ fun Fake_parts_insert_tac i =
 			       impOfSubs Fake_parts_insert]) i;
 
 (*Apply rules to break down assumptions of the form
-  Y : parts(insert X H)  and  Y : analz(insert X H)
+  Y \\<in> parts(insert X H)  and  Y \\<in> analz(insert X H)
 *)
 val Fake_insert_tac = 
     dresolve_tac [impOfSubs Fake_analz_insert,
