@@ -106,7 +106,7 @@ $(OUT)/HOL: $(OUT)/Pure $(SRC)/Provers/quantifier1.ML \
   Wellfounded_Relations.thy arith_data.ML blastdata.ML cladata.ML \
   document/root.tex equalities.ML hologic.ML meson_lemmas.ML mono.ML \
   simpdata.ML subset.ML thy_syntax.ML
-	@$(ISATOOL) usedir -b $(OUT)/Pure HOL
+	@$(ISATOOL) usedir -b -g true $(OUT)/Pure HOL
 
 
 ## HOL-Real
