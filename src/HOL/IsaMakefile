@@ -182,9 +182,9 @@ $(OUT)/HOL-Hyperreal: $(OUT)/HOL-Real Hyperreal/ROOT.ML\
 
 HOL-Hyperreal-ex: HOL-Hyperreal $(LOG)/HOL-Hyperreal-ex.gz
 
-$(LOG)/HOL-Hyperreal-ex.gz: $(OUT)/HOL-Hyperreal Hyperreal/ex/ROOT.ML \
-  Hyperreal/ex/document/root.tex Hyperreal/ex/Sqrt.thy \
-  Hyperreal/ex/Sqrt_Script.thy
+$(LOG)/HOL-Hyperreal-ex.gz: $(OUT)/HOL-Hyperreal Library/Primes.thy \
+  Hyperreal/ex/ROOT.ML Hyperreal/ex/document/root.tex \
+  Hyperreal/ex/Sqrt.thy Hyperreal/ex/Sqrt_Script.thy
 	@cd Hyperreal; $(ISATOOL) usedir $(OUT)/HOL-Hyperreal ex
 
 

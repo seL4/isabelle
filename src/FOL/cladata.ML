@@ -12,7 +12,7 @@ section "Classical Reasoner";
 structure Make_Elim = Make_Elim_Fun(val classical = classical);
 
 (*we don't redeclare the original make_elim (Tactic.make_elim) for 
-  compatibliity with strange things done in many existing proofs *)
+  compatibility with strange things done in many existing proofs *)
 val cla_make_elim = Make_Elim.make_elim;
 
 (*** Applying ClassicalFun to create a classical prover ***)
