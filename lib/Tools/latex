@@ -87,7 +87,7 @@ function copy_styles () { cp -f "$ISABELLE_HOME/lib/texinputs"/*.sty "$DIR"; }
 function extract_syms ()
 {
   "$AUTO_PERL" -n \
-    -e '!m,%requires, && m,\\newcommand\{\\isasym(\w+)\}, && print "$1\n";' \
+    -e '(!m,%requires, || m,%requires latin1, || m,%requires amssymb, || m,%requires textcomp,) && m,\\newcommand\{\\isasym(\w+)\}, && print "$1\n";' \
     "$ISABELLE_HOME/lib/texinputs/isabellesym.sty" > "$DIR/syms.lst"
   "$AUTO_PERL" -n \
     -e 'm,\\newcommand\{\\isactrl(\w+)\}, && print "$1\n";' \
