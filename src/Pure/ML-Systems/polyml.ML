@@ -155,3 +155,13 @@ fun getenv var =
   (case OS.Process.getEnv var of
     NONE => ""
   | SOME txt => txt);
+
+
+(* profiling: version that works even with 
+ML{*profiling 1*}
+apply \\<dots>
+ML{*profiling 0*}
+*)
+
+val profiling: int->unit =
+     RunCall.run_call1 RuntimeCalls.POLY_SYS_profiler;
