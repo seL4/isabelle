@@ -234,11 +234,9 @@ about large specifications.
 \begin{rail}
   'cases' ('simplified' ':')? term? rule?  ;
 
-  'induct' ('stripped' ':')? (inst * 'and') rule?
+  'induct' ('stripped' ':')? (insts * 'and') rule?
   ;
 
-  inst: (term +)
-  ;
   rule: ('type' | 'set') ':' nameref | 'rule' ':' thmref
   ;
 \end{rail}
@@ -345,7 +343,7 @@ proof scripts to refer to parameters of some subgoal, for example.
 \begin{rail}
   casetac goalspec? term rule?
   ;
-  inducttac goalspec? (var +) rule?
+  inducttac goalspec? (insts * 'and') rule?
   ;
 
   rule: ('rule' ':' thmref)
@@ -353,9 +351,10 @@ proof scripts to refer to parameters of some subgoal, for example.
 \end{rail}
 
 By default, $case_tac$ and $induct_tac$ admit to reason about datatypes only,
-unless an alternative explicit rule is given.  Also note that named local
-contexts (see \S\ref{sec:cases}) are not provided as would be by the proper
-$induct$ and $cases$ proof methods (see \S\ref{sec:induct-method-proper}).
+unless an alternative explicit rule is given; only variables may be given as
+instantiation for $induct_tac$.  Also note that named local contexts (see
+\S\ref{sec:cases}) are not provided as would be by the proper $induct$ and
+$cases$ proof methods (see \S\ref{sec:induct-method-proper}).
 
 
 \section{Arithmetic}
