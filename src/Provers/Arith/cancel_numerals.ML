@@ -36,7 +36,8 @@ sig
   val bal_add1: thm
   val bal_add2: thm
   (*proof tools*)
-  val prove_conv: tactic list -> Sign.sg -> term * term -> thm option
+  val prove_conv: tactic list -> Sign.sg -> 
+                  thm list -> term * term -> thm option
   val trans_tac: thm option -> tactic (*applies the initial lemma*)
   val norm_tac: tactic                (*proves the initial lemma*)
   val numeral_simp_tac: tactic        (*proves the final theorem*)
@@ -68,7 +69,7 @@ fun find_common (terms1,terms2) =
   in  seek terms1 end;
 
 (*the simplification procedure*)
-fun proc sg _ t =
+fun proc sg hyps t =
   let (*first freeze any Vars in the term to prevent flex-flex problems*)
       val rand_s = gensym"_"
       fun mk_inst (var as Var((a,i),T))  = 
@@ -85,7 +86,7 @@ fun proc sg _ t =
 		       i + #m + j + k == #m + i + (j + k) *)
 	    if n1=0 orelse n2=0 then   (*trivial, so do nothing*)
 		raise TERM("cancel_numerals", []) 
-	    else Data.prove_conv [Data.norm_tac] sg 
+	    else Data.prove_conv [Data.norm_tac] sg hyps
 			(t', 
 			 Data.mk_bal (newshape(n1,terms1'), 
 				      newshape(n2,terms2')))
@@ -94,13 +95,13 @@ fun proc sg _ t =
        (if n2<=n1 then 
 	    Data.prove_conv 
 	       [Data.trans_tac reshape, rtac Data.bal_add1 1,
-		Data.numeral_simp_tac] sg
+		Data.numeral_simp_tac] sg hyps
 	       (t', Data.mk_bal (newshape(n1-n2,terms1'), 
 				 Data.mk_sum terms2'))
 	else
 	    Data.prove_conv 
 	       [Data.trans_tac reshape, rtac Data.bal_add2 1,
-		Data.numeral_simp_tac] sg
+		Data.numeral_simp_tac] sg hyps
 	       (t', Data.mk_bal (Data.mk_sum terms1', 
 				 newshape(n2-n1,terms2'))))
   end
