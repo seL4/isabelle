@@ -252,9 +252,14 @@ subsubsection {* Classical Reasoner setup *}
 
 use "cladata.ML"
 setup hypsubst_setup
+
 declare atomize_all [symmetric, rulify]  atomize_imp [symmetric, rulify]
+
 setup Classical.setup
 setup clasetup
+
+declare ext [intro?]
+declare disjI1 [elim?]  disjI2 [elim?]  ex1_implies_ex [elim?]  sym [elim?]
 
 use "blastdata.ML"
 setup Blast.setup
