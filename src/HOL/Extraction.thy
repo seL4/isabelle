@@ -221,213 +221,213 @@ theorem exE_realizer': "P (snd p) (fst p) \<Longrightarrow>
 
 realizers
   impI (P, Q): "\<lambda>pq. pq"
-    "\<Lambda>P Q pq (h: _). allI \<cdot> _ \<bullet> (\<Lambda>x. impI \<cdot> _ \<cdot> _ \<bullet> (h \<cdot> x))"
+    "\<Lambda> P Q pq (h: _). allI \<cdot> _ \<bullet> (\<Lambda> x. impI \<cdot> _ \<cdot> _ \<bullet> (h \<cdot> x))"
 
   impI (P): "Null"
-    "\<Lambda>P Q (h: _). allI \<cdot> _ \<bullet> (\<Lambda>x. impI \<cdot> _ \<cdot> _ \<bullet> (h \<cdot> x))"
+    "\<Lambda> P Q (h: _). allI \<cdot> _ \<bullet> (\<Lambda> x. impI \<cdot> _ \<cdot> _ \<bullet> (h \<cdot> x))"
 
-  impI (Q): "\<lambda>q. q" "\<Lambda>P Q q. impI \<cdot> _ \<cdot> _"
+  impI (Q): "\<lambda>q. q" "\<Lambda> P Q q. impI \<cdot> _ \<cdot> _"
 
   impI: "Null" "impI"
 
   mp (P, Q): "\<lambda>pq. pq"
-    "\<Lambda>P Q pq (h: _) p. mp \<cdot> _ \<cdot> _ \<bullet> (spec \<cdot> _ \<cdot> p \<bullet> h)"
+    "\<Lambda> P Q pq (h: _) p. mp \<cdot> _ \<cdot> _ \<bullet> (spec \<cdot> _ \<cdot> p \<bullet> h)"
 
   mp (P): "Null"
-    "\<Lambda>P Q (h: _) p. mp \<cdot> _ \<cdot> _ \<bullet> (spec \<cdot> _ \<cdot> p \<bullet> h)"
+    "\<Lambda> P Q (h: _) p. mp \<cdot> _ \<cdot> _ \<bullet> (spec \<cdot> _ \<cdot> p \<bullet> h)"
 
-  mp (Q): "\<lambda>q. q" "\<Lambda>P Q q. mp \<cdot> _ \<cdot> _"
+  mp (Q): "\<lambda>q. q" "\<Lambda> P Q q. mp \<cdot> _ \<cdot> _"
 
   mp: "Null" "mp"
 
-  allI (P): "\<lambda>p. p" "\<Lambda>P p. allI \<cdot> _"
+  allI (P): "\<lambda>p. p" "\<Lambda> P p. allI \<cdot> _"
 
   allI: "Null" "allI"
 
-  spec (P): "\<lambda>x p. p x" "\<Lambda>P x p. spec \<cdot> _ \<cdot> x"
+  spec (P): "\<lambda>x p. p x" "\<Lambda> P x p. spec \<cdot> _ \<cdot> x"
 
   spec: "Null" "spec"
 
-  exI (P): "\<lambda>x p. (x, p)" "\<Lambda>P x p. exI_realizer \<cdot> P \<cdot> p \<cdot> x"
+  exI (P): "\<lambda>x p. (x, p)" "\<Lambda> P x p. exI_realizer \<cdot> P \<cdot> p \<cdot> x"
 
-  exI: "\<lambda>x. x" "\<Lambda>P x (h: _). h"
+  exI: "\<lambda>x. x" "\<Lambda> P x (h: _). h"
 
   exE (P, Q): "\<lambda>p pq. case p of (x, y) \<Rightarrow> pq x y"
-    "\<Lambda>P Q p (h: _) pq. exE_realizer \<cdot> P \<cdot> p \<cdot> Q \<cdot> pq \<bullet> h"
+    "\<Lambda> P Q p (h: _) pq. exE_realizer \<cdot> P \<cdot> p \<cdot> Q \<cdot> pq \<bullet> h"
 
   exE (P): "Null"
-    "\<Lambda>P Q p. exE_realizer' \<cdot> _ \<cdot> _ \<cdot> _"
+    "\<Lambda> P Q p. exE_realizer' \<cdot> _ \<cdot> _ \<cdot> _"
 
   exE (Q): "\<lambda>x pq. pq x"
-    "\<Lambda>P Q x (h1: _) pq (h2: _). h2 \<cdot> x \<bullet> h1"
+    "\<Lambda> P Q x (h1: _) pq (h2: _). h2 \<cdot> x \<bullet> h1"
 
   exE: "Null"
-    "\<Lambda>P Q x (h1: _) (h2: _). h2 \<cdot> x \<bullet> h1"
+    "\<Lambda> P Q x (h1: _) (h2: _). h2 \<cdot> x \<bullet> h1"
 
   conjI (P, Q): "Pair"
-    "\<Lambda>P Q p (h: _) q. conjI_realizer \<cdot> P \<cdot> p \<cdot> Q \<cdot> q \<bullet> h"
+    "\<Lambda> P Q p (h: _) q. conjI_realizer \<cdot> P \<cdot> p \<cdot> Q \<cdot> q \<bullet> h"
 
   conjI (P): "\<lambda>p. p"
-    "\<Lambda>P Q p. conjI \<cdot> _ \<cdot> _"
+    "\<Lambda> P Q p. conjI \<cdot> _ \<cdot> _"
 
   conjI (Q): "\<lambda>q. q"
-    "\<Lambda>P Q (h: _) q. conjI \<cdot> _ \<cdot> _ \<bullet> h"
+    "\<Lambda> P Q (h: _) q. conjI \<cdot> _ \<cdot> _ \<bullet> h"
 
   conjI: "Null" "conjI"
 
   conjunct1 (P, Q): "fst"
-    "\<Lambda>P Q pq. conjunct1 \<cdot> _ \<cdot> _"
+    "\<Lambda> P Q pq. conjunct1 \<cdot> _ \<cdot> _"
 
   conjunct1 (P): "\<lambda>p. p"
-    "\<Lambda>P Q p. conjunct1 \<cdot> _ \<cdot> _"
+    "\<Lambda> P Q p. conjunct1 \<cdot> _ \<cdot> _"
 
   conjunct1 (Q): "Null"
-    "\<Lambda>P Q q. conjunct1 \<cdot> _ \<cdot> _"
+    "\<Lambda> P Q q. conjunct1 \<cdot> _ \<cdot> _"
 
   conjunct1: "Null" "conjunct1"
 
   conjunct2 (P, Q): "snd"
-    "\<Lambda>P Q pq. conjunct2 \<cdot> _ \<cdot> _"
+    "\<Lambda> P Q pq. conjunct2 \<cdot> _ \<cdot> _"
 
   conjunct2 (P): "Null"
-    "\<Lambda>P Q p. conjunct2 \<cdot> _ \<cdot> _"
+    "\<Lambda> P Q p. conjunct2 \<cdot> _ \<cdot> _"
 
   conjunct2 (Q): "\<lambda>p. p"
-    "\<Lambda>P Q p. conjunct2 \<cdot> _ \<cdot> _"
+    "\<Lambda> P Q p. conjunct2 \<cdot> _ \<cdot> _"
 
   conjunct2: "Null" "conjunct2"
 
   disjI1 (P, Q): "Inl"
-    "\<Lambda>P Q p. iffD2 \<cdot> _ \<cdot> _ \<bullet> (sum.cases_1 \<cdot> P \<cdot> _ \<cdot> p)"
+    "\<Lambda> P Q p. iffD2 \<cdot> _ \<cdot> _ \<bullet> (sum.cases_1 \<cdot> P \<cdot> _ \<cdot> p)"
 
   disjI1 (P): "Some"
-    "\<Lambda>P Q p. iffD2 \<cdot> _ \<cdot> _ \<bullet> (option.cases_2 \<cdot> _ \<cdot> P \<cdot> p)"
+    "\<Lambda> P Q p. iffD2 \<cdot> _ \<cdot> _ \<bullet> (option.cases_2 \<cdot> _ \<cdot> P \<cdot> p)"
 
   disjI1 (Q): "None"
-    "\<Lambda>P Q. iffD2 \<cdot> _ \<cdot> _ \<bullet> (option.cases_1 \<cdot> _ \<cdot> _)"
+    "\<Lambda> P Q. iffD2 \<cdot> _ \<cdot> _ \<bullet> (option.cases_1 \<cdot> _ \<cdot> _)"
 
   disjI1: "Left"
-    "\<Lambda>P Q. iffD2 \<cdot> _ \<cdot> _ \<bullet> (sumbool.cases_1 \<cdot> _ \<cdot> _)"
+    "\<Lambda> P Q. iffD2 \<cdot> _ \<cdot> _ \<bullet> (sumbool.cases_1 \<cdot> _ \<cdot> _)"
 
   disjI2 (P, Q): "Inr"
-    "\<Lambda>Q P q. iffD2 \<cdot> _ \<cdot> _ \<bullet> (sum.cases_2 \<cdot> _ \<cdot> Q \<cdot> q)"
+    "\<Lambda> Q P q. iffD2 \<cdot> _ \<cdot> _ \<bullet> (sum.cases_2 \<cdot> _ \<cdot> Q \<cdot> q)"
 
   disjI2 (P): "None"
-    "\<Lambda>Q P. iffD2 \<cdot> _ \<cdot> _ \<bullet> (option.cases_1 \<cdot> _ \<cdot> _)"
+    "\<Lambda> Q P. iffD2 \<cdot> _ \<cdot> _ \<bullet> (option.cases_1 \<cdot> _ \<cdot> _)"
 
   disjI2 (Q): "Some"
-    "\<Lambda>Q P q. iffD2 \<cdot> _ \<cdot> _ \<bullet> (option.cases_2 \<cdot> _ \<cdot> Q \<cdot> q)"
+    "\<Lambda> Q P q. iffD2 \<cdot> _ \<cdot> _ \<bullet> (option.cases_2 \<cdot> _ \<cdot> Q \<cdot> q)"
 
   disjI2: "Right"
-    "\<Lambda>Q P. iffD2 \<cdot> _ \<cdot> _ \<bullet> (sumbool.cases_2 \<cdot> _ \<cdot> _)"
+    "\<Lambda> Q P. iffD2 \<cdot> _ \<cdot> _ \<bullet> (sumbool.cases_2 \<cdot> _ \<cdot> _)"
 
   disjE (P, Q, R): "\<lambda>pq pr qr.
      (case pq of Inl p \<Rightarrow> pr p | Inr q \<Rightarrow> qr q)"
-    "\<Lambda>P Q R pq (h1: _) pr (h2: _) qr.
+    "\<Lambda> P Q R pq (h1: _) pr (h2: _) qr.
        disjE_realizer \<cdot> _ \<cdot> _ \<cdot> pq \<cdot> R \<cdot> pr \<cdot> qr \<bullet> h1 \<bullet> h2"
 
   disjE (Q, R): "\<lambda>pq pr qr.
      (case pq of None \<Rightarrow> pr | Some q \<Rightarrow> qr q)"
-    "\<Lambda>P Q R pq (h1: _) pr (h2: _) qr.
+    "\<Lambda> P Q R pq (h1: _) pr (h2: _) qr.
        disjE_realizer2 \<cdot> _ \<cdot> _ \<cdot> pq \<cdot> R \<cdot> pr \<cdot> qr \<bullet> h1 \<bullet> h2"
 
   disjE (P, R): "\<lambda>pq pr qr.
      (case pq of None \<Rightarrow> qr | Some p \<Rightarrow> pr p)"
-    "\<Lambda>P Q R pq (h1: _) pr (h2: _) qr (h3: _).
+    "\<Lambda> P Q R pq (h1: _) pr (h2: _) qr (h3: _).
        disjE_realizer2 \<cdot> _ \<cdot> _ \<cdot> pq \<cdot> R \<cdot> qr \<cdot> pr \<bullet> h1 \<bullet> h3 \<bullet> h2"
 
   disjE (R): "\<lambda>pq pr qr.
      (case pq of Left \<Rightarrow> pr | Right \<Rightarrow> qr)"
-    "\<Lambda>P Q R pq (h1: _) pr (h2: _) qr.
+    "\<Lambda> P Q R pq (h1: _) pr (h2: _) qr.
        disjE_realizer3 \<cdot> _ \<cdot> _ \<cdot> pq \<cdot> R \<cdot> pr \<cdot> qr \<bullet> h1 \<bullet> h2"
 
   disjE (P, Q): "Null"
-    "\<Lambda>P Q R pq. disjE_realizer \<cdot> _ \<cdot> _ \<cdot> pq \<cdot> (\<lambda>x. R) \<cdot> _ \<cdot> _"
+    "\<Lambda> P Q R pq. disjE_realizer \<cdot> _ \<cdot> _ \<cdot> pq \<cdot> (\<lambda>x. R) \<cdot> _ \<cdot> _"
 
   disjE (Q): "Null"
-    "\<Lambda>P Q R pq. disjE_realizer2 \<cdot> _ \<cdot> _ \<cdot> pq \<cdot> (\<lambda>x. R) \<cdot> _ \<cdot> _"
+    "\<Lambda> P Q R pq. disjE_realizer2 \<cdot> _ \<cdot> _ \<cdot> pq \<cdot> (\<lambda>x. R) \<cdot> _ \<cdot> _"
 
   disjE (P): "Null"
-    "\<Lambda>P Q R pq (h1: _) (h2: _) (h3: _).
+    "\<Lambda> P Q R pq (h1: _) (h2: _) (h3: _).
        disjE_realizer2 \<cdot> _ \<cdot> _ \<cdot> pq \<cdot> (\<lambda>x. R) \<cdot> _ \<cdot> _ \<bullet> h1 \<bullet> h3 \<bullet> h2"
 
   disjE: "Null"
-    "\<Lambda>P Q R pq. disjE_realizer3 \<cdot> _ \<cdot> _ \<cdot> pq \<cdot> (\<lambda>x. R) \<cdot> _ \<cdot> _"
+    "\<Lambda> P Q R pq. disjE_realizer3 \<cdot> _ \<cdot> _ \<cdot> pq \<cdot> (\<lambda>x. R) \<cdot> _ \<cdot> _"
 
   FalseE (P): "arbitrary"
-    "\<Lambda>P. FalseE \<cdot> _"
+    "\<Lambda> P. FalseE \<cdot> _"
 
   FalseE: "Null" "FalseE"
 
   notI (P): "Null"
-    "\<Lambda>P (h: _). allI \<cdot> _ \<bullet> (\<Lambda>x. notI \<cdot> _ \<bullet> (h \<cdot> x))"
+    "\<Lambda> P (h: _). allI \<cdot> _ \<bullet> (\<Lambda> x. notI \<cdot> _ \<bullet> (h \<cdot> x))"
 
   notI: "Null" "notI"
 
   notE (P, R): "\<lambda>p. arbitrary"
-    "\<Lambda>P R (h: _) p. notE \<cdot> _ \<cdot> _ \<bullet> (spec \<cdot> _ \<cdot> p \<bullet> h)"
+    "\<Lambda> P R (h: _) p. notE \<cdot> _ \<cdot> _ \<bullet> (spec \<cdot> _ \<cdot> p \<bullet> h)"
 
   notE (P): "Null"
-    "\<Lambda>P R (h: _) p. notE \<cdot> _ \<cdot> _ \<bullet> (spec \<cdot> _ \<cdot> p \<bullet> h)"
+    "\<Lambda> P R (h: _) p. notE \<cdot> _ \<cdot> _ \<bullet> (spec \<cdot> _ \<cdot> p \<bullet> h)"
 
   notE (R): "arbitrary"
-    "\<Lambda>P R. notE \<cdot> _ \<cdot> _"
+    "\<Lambda> P R. notE \<cdot> _ \<cdot> _"
 
   notE: "Null" "notE"
 
   subst (P): "\<lambda>s t ps. ps"
-    "\<Lambda>s t P (h: _) ps. subst \<cdot> s \<cdot> t \<cdot> P ps \<bullet> h"
+    "\<Lambda> s t P (h: _) ps. subst \<cdot> s \<cdot> t \<cdot> P ps \<bullet> h"
 
   subst: "Null" "subst"
 
   iffD1 (P, Q): "fst"
-    "\<Lambda>Q P pq (h: _) p.
+    "\<Lambda> Q P pq (h: _) p.
        mp \<cdot> _ \<cdot> _ \<bullet> (spec \<cdot> _ \<cdot> p \<bullet> (conjunct1 \<cdot> _ \<cdot> _ \<bullet> h))"
 
   iffD1 (P): "\<lambda>p. p"
-    "\<Lambda>Q P p (h: _). mp \<cdot> _ \<cdot> _ \<bullet> (conjunct1 \<cdot> _ \<cdot> _ \<bullet> h)"
+    "\<Lambda> Q P p (h: _). mp \<cdot> _ \<cdot> _ \<bullet> (conjunct1 \<cdot> _ \<cdot> _ \<bullet> h)"
 
   iffD1 (Q): "Null"
-    "\<Lambda>Q P q1 (h: _) q2.
+    "\<Lambda> Q P q1 (h: _) q2.
        mp \<cdot> _ \<cdot> _ \<bullet> (spec \<cdot> _ \<cdot> q2 \<bullet> (conjunct1 \<cdot> _ \<cdot> _ \<bullet> h))"
 
   iffD1: "Null" "iffD1"
 
   iffD2 (P, Q): "snd"
-    "\<Lambda>P Q pq (h: _) q.
+    "\<Lambda> P Q pq (h: _) q.
        mp \<cdot> _ \<cdot> _ \<bullet> (spec \<cdot> _ \<cdot> q \<bullet> (conjunct2 \<cdot> _ \<cdot> _ \<bullet> h))"
 
   iffD2 (P): "\<lambda>p. p"
-    "\<Lambda>P Q p (h: _). mp \<cdot> _ \<cdot> _ \<bullet> (conjunct2 \<cdot> _ \<cdot> _ \<bullet> h)"
+    "\<Lambda> P Q p (h: _). mp \<cdot> _ \<cdot> _ \<bullet> (conjunct2 \<cdot> _ \<cdot> _ \<bullet> h)"
 
   iffD2 (Q): "Null"
-    "\<Lambda>P Q q1 (h: _) q2.
+    "\<Lambda> P Q q1 (h: _) q2.
        mp \<cdot> _ \<cdot> _ \<bullet> (spec \<cdot> _ \<cdot> q2 \<bullet> (conjunct2 \<cdot> _ \<cdot> _ \<bullet> h))"
 
   iffD2: "Null" "iffD2"
 
   iffI (P, Q): "Pair"
-    "\<Lambda>P Q pq (h1 : _) qp (h2 : _). conjI_realizer \<cdot>
+    "\<Lambda> P Q pq (h1 : _) qp (h2 : _). conjI_realizer \<cdot>
        (\<lambda>pq. \<forall>x. P x \<longrightarrow> Q (pq x)) \<cdot> pq \<cdot>
        (\<lambda>qp. \<forall>x. Q x \<longrightarrow> P (qp x)) \<cdot> qp \<bullet>
-       (allI \<cdot> _ \<bullet> (\<Lambda>x. impI \<cdot> _ \<cdot> _ \<bullet> (h1 \<cdot> x))) \<bullet>
-       (allI \<cdot> _ \<bullet> (\<Lambda>x. impI \<cdot> _ \<cdot> _ \<bullet> (h2 \<cdot> x)))"
+       (allI \<cdot> _ \<bullet> (\<Lambda> x. impI \<cdot> _ \<cdot> _ \<bullet> (h1 \<cdot> x))) \<bullet>
+       (allI \<cdot> _ \<bullet> (\<Lambda> x. impI \<cdot> _ \<cdot> _ \<bullet> (h2 \<cdot> x)))"
 
   iffI (P): "\<lambda>p. p"
-    "\<Lambda>P Q (h1 : _) p (h2 : _). conjI \<cdot> _ \<cdot> _ \<bullet>
-       (allI \<cdot> _ \<bullet> (\<Lambda>x. impI \<cdot> _ \<cdot> _ \<bullet> (h1 \<cdot> x))) \<bullet>
+    "\<Lambda> P Q (h1 : _) p (h2 : _). conjI \<cdot> _ \<cdot> _ \<bullet>
+       (allI \<cdot> _ \<bullet> (\<Lambda> x. impI \<cdot> _ \<cdot> _ \<bullet> (h1 \<cdot> x))) \<bullet>
        (impI \<cdot> _ \<cdot> _ \<bullet> h2)"
 
   iffI (Q): "\<lambda>q. q"
-    "\<Lambda>P Q q (h1 : _) (h2 : _). conjI \<cdot> _ \<cdot> _ \<bullet>
+    "\<Lambda> P Q q (h1 : _) (h2 : _). conjI \<cdot> _ \<cdot> _ \<bullet>
        (impI \<cdot> _ \<cdot> _ \<bullet> h1) \<bullet>
-       (allI \<cdot> _ \<bullet> (\<Lambda>x. impI \<cdot> _ \<cdot> _ \<bullet> (h2 \<cdot> x)))"
+       (allI \<cdot> _ \<bullet> (\<Lambda> x. impI \<cdot> _ \<cdot> _ \<bullet> (h2 \<cdot> x)))"
 
   iffI: "Null" "iffI"
 
 (*
   classical: "Null"
-    "\<Lambda>P. classical \<cdot> _"
+    "\<Lambda> P. classical \<cdot> _"
 *)
 
 end
