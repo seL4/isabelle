@@ -353,19 +353,22 @@ fun expand_proof sg thms prf =
               | (b, Some prop') => a = b andalso prop = prop') thms)
           then (maxidx, prfs, prf) else
           let
-            val (maxidx', (i, prf), prfs') = (case assoc (prfs, (a, prop)) of
+            fun inc i =
+              map_proof_terms (Logic.incr_indexes ([], i)) (incr_tvar i);
+            val (maxidx', i, prf, prfs') = (case assoc (prfs, (a, prop)) of
                 None =>
                   let
                     val _ = message ("Reconstructing proof of " ^ a);
                     val _ = message (Sign.string_of_term sg prop);
-                    val i = maxidx + 1;
-                    val prf' = map_proof_terms (Logic.incr_indexes ([], i))
-                      (incr_tvar i) (forall_intr_vfs_prf prop
-                        (reconstruct_proof sg prop cprf));
+                    val prf' = forall_intr_vfs_prf prop
+                      (reconstruct_proof sg prop cprf);
                     val (maxidx', prfs', prf) = expand
                       (maxidx_of_proof prf') prfs prf'
-                  in (maxidx', (i, prf), ((a, prop), (i, prf)) :: prfs') end
-              | Some p => (maxidx, p, prfs));
+                  in (maxidx' + maxidx + 1, maxidx + 1, inc (maxidx + 1) prf,
+                    ((a, prop), (maxidx', prf)) :: prfs')
+                  end
+              | Some (maxidx', prf) => (maxidx' + maxidx + 1,
+                  maxidx + 1, inc (maxidx + 1) prf, prfs));
             val tye = map (fn ((s, j), _) => (s, i + j)) (term_tvars prop) ~~ Ts
           in
             (maxidx', prfs',
