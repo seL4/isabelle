@@ -516,7 +516,8 @@ fun trace_ex(sg,params,atoms,discr,n,hist:history) =
            val (v,lineqs) :: hist' = hist
            val start = if v = ~1 then (findex0 discr n lineqs,hist')
                        else (replicate n rat0,hist)
-       in print_ex ((map s_of_t atoms)~~discr) (findex discr start)
+       in warning "arith failed - see trace for a counter example";
+          print_ex ((map s_of_t atoms)~~discr) (findex discr start)
           handle NoEx =>
   (tracing "The decision procedure failed to prove your proposition\n\
            \but could not construct a counter example either.\n\
