@@ -25,10 +25,6 @@ arities
   bool :: term
 
 
-syntax ("" output)
-  "op ="        :: ['a, 'a] => bool                 ("(_ =/ _)" [51, 51] 50)
-  "op ~="       :: ['a, 'a] => bool                 ("(_ ~=/ _)" [51, 51] 50)
-
 consts
 
   (* Constants *)
@@ -75,6 +71,7 @@ consts
   "*"           :: ['a::times, 'a] => 'a            (infixl 70)
   (*See Nat.thy for "^"*)
 
+
 (** Additional concrete syntax **)
 
 types
@@ -116,11 +113,9 @@ translations
   "_Let (_binds b bs) e"  == "_Let b (_Let bs e)"
   "let x = a in e"        == "Let a (%x. e)"
 
-syntax (symbols output)
-  "op ~="       :: ['a, 'a] => bool                 ("(_ \\<noteq>/ _)" [51, 51] 50)
-  "*All"        :: [idts, bool] => bool             ("(3\\<forall>_./ _)" [0, 10] 10)
-  "*Ex"         :: [idts, bool] => bool             ("(3\\<exists>_./ _)" [0, 10] 10)
-  "*Ex1"        :: [idts, bool] => bool             ("(3\\<exists>!_./ _)" [0, 10] 10)
+syntax ("" output)
+  "op ="        :: ['a, 'a] => bool                 ("(_ =/ _)" [51, 51] 50)
+  "op ~="       :: ['a, 'a] => bool                 ("(_ ~=/ _)" [51, 51] 50)
 
 syntax (symbols)
   Not           :: bool => bool                     ("\\<not> _" [40] 40)
@@ -135,6 +130,12 @@ syntax (symbols)
   "?! "         :: [idts, bool] => bool             ("(3\\<exists>!_./ _)" [0, 10] 10)
   "@case1"      :: ['a, 'b] => case_syn             ("(2_ \\<Rightarrow>/ _)" 10)
 (*"@case2"      :: [case_syn, cases_syn] => cases_syn   ("_/ \\<orelse> _")*)
+
+syntax (symbols output)
+  "op ~="       :: ['a, 'a] => bool                 ("(_ \\<noteq>/ _)" [51, 51] 50)
+  "*All"        :: [idts, bool] => bool             ("(3\\<forall>_./ _)" [0, 10] 10)
+  "*Ex"         :: [idts, bool] => bool             ("(3\\<exists>_./ _)" [0, 10] 10)
+  "*Ex1"        :: [idts, bool] => bool             ("(3\\<exists>!_./ _)" [0, 10] 10)
 
 
 
@@ -178,8 +179,9 @@ defs
   o_def         "(f::'b=>'c) o g == (%(x::'a). f(g(x)))"
   if_def        "If P x y == @z::'a. (P=True --> z=x) & (P=False --> z=y)"
 
-constdefs arbitrary :: 'a
-         "arbitrary == @x.False"
+consts
+  arbitrary :: 'a
+
 
 end
 

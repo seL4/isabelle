@@ -11,6 +11,10 @@ Ord = HOL +
 axclass
   ord < term
 
+syntax
+  "op <"        :: ['a::ord, 'a] => bool             ("op <")
+  "op <="       :: ['a::ord, 'a] => bool             ("op <=")
+
 consts
   "op <"        :: ['a::ord, 'a] => bool             ("(_/ < _)"  [50, 51] 50)
   "op <="       :: ['a::ord, 'a] => bool             ("(_/ <= _)" [50, 51] 50)
@@ -19,13 +23,10 @@ consts
 
   Least         :: ('a::ord=>bool) => 'a             (binder "LEAST " 10)
 
-syntax
-  "op <"        :: ['a::ord, 'a] => bool             ("op <")
-  "op <="       :: ['a::ord, 'a] => bool             ("op <=")
-
 syntax (symbols)
-  "op <="       :: ['a::ord, 'a] => bool             ("(_/ \\<le> _)"  [50, 51] 50)
   "op <="       :: ['a::ord, 'a] => bool             ("op \\<le>")
+  "op <="       :: ['a::ord, 'a] => bool             ("(_/ \\<le> _)"  [50, 51] 50)
+
 
 defs
   mono_def      "mono(f) == (!A B. A <= B --> f(A) <= f(B))"

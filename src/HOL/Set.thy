@@ -18,6 +18,9 @@ arities
 instance
   set :: (term) {ord, minus, power}
 
+syntax
+  "op :"        :: ['a, 'a set] => bool             ("op :")
+
 consts
   "{}"          :: 'a set                           ("{}")
   insert        :: ['a, 'a set] => 'a set
@@ -42,14 +45,12 @@ consts
 
 syntax
 
-  "op :"        :: ['a, 'a set] => bool               ("op :")
-
   UNIV          :: 'a set
 
   (* Infix syntax for non-membership *)
 
-  "op ~:"       :: ['a, 'a set] => bool               ("(_/ ~: _)" [50, 51] 50)
   "op ~:"       :: ['a, 'a set] => bool               ("op ~:")
+  "op ~:"       :: ['a, 'a set] => bool               ("(_/ ~: _)" [50, 51] 50)
 
   "@Finset"     :: args => 'a set                     ("{(_)}")
 
@@ -83,22 +84,22 @@ translations
   "EX x:A. P"   => "Bex A (%x. P)"
 
 syntax ("" output)
-  "_setle"      :: ['a set, 'a set] => bool           ("(_/ <= _)" [50, 51] 50)
   "_setle"      :: ['a set, 'a set] => bool           ("op <=")
-  "_setless"    :: ['a set, 'a set] => bool           ("(_/ < _)" [50, 51] 50)
+  "_setle"      :: ['a set, 'a set] => bool           ("(_/ <= _)" [50, 51] 50)
   "_setless"    :: ['a set, 'a set] => bool           ("op <")
+  "_setless"    :: ['a set, 'a set] => bool           ("(_/ < _)" [50, 51] 50)
 
 syntax (symbols)
-  "_setle"      :: ['a set, 'a set] => bool           ("(_/ \\<subseteq> _)" [50, 51] 50)
   "_setle"      :: ['a set, 'a set] => bool           ("op \\<subseteq>")
-  "_setless"    :: ['a set, 'a set] => bool           ("(_/ \\<subset> _)" [50, 51] 50)
+  "_setle"      :: ['a set, 'a set] => bool           ("(_/ \\<subseteq> _)" [50, 51] 50)
   "_setless"    :: ['a set, 'a set] => bool           ("op \\<subset>")
+  "_setless"    :: ['a set, 'a set] => bool           ("(_/ \\<subset> _)" [50, 51] 50)
   "op Int"      :: ['a set, 'a set] => 'a set         (infixl "\\<inter>" 70)
   "op Un"       :: ['a set, 'a set] => 'a set         (infixl "\\<union>" 65)
-  "op :"        :: ['a, 'a set] => bool               ("(_/ \\<in> _)" [50, 51] 50)
   "op :"        :: ['a, 'a set] => bool               ("op \\<in>")
-  "op ~:"       :: ['a, 'a set] => bool               ("(_/ \\<notin> _)" [50, 51] 50)
+  "op :"        :: ['a, 'a set] => bool               ("(_/ \\<in> _)" [50, 51] 50)
   "op ~:"       :: ['a, 'a set] => bool               ("op \\<notin>")
+  "op ~:"       :: ['a, 'a set] => bool               ("(_/ \\<notin> _)" [50, 51] 50)
   "UN "         :: [idts, bool] => bool               ("(3\\<Union> _./ _)" 10)
   "INT "        :: [idts, bool] => bool               ("(3\\<Inter> _./ _)" 10)
   "@UNION"      :: [pttrn, 'a set, 'b set] => 'b set  ("(3\\<Union> _\\<in>_./ _)" 10)
