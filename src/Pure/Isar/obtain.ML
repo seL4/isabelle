@@ -12,17 +12,11 @@ proof texts.
   {
     fix thesis
     assume that: "!!x. P x ==> thesis"
-    <chain_facts> have thesis <proof>
+    <chain_facts> have thesis <proof (insert that)>
   }
-  fix x assm(obtained) "P x"
+  fix x assm (obtained) "P x"
 
 *)
-
-signature OBTAIN_DATA =
-sig
-  val atomic_thesis: string -> term
-  val that_atts: Proof.context attribute list
-end;
 
 signature OBTAIN =
 sig
@@ -34,7 +28,7 @@ sig
       * Comment.text) list -> ProofHistory.T -> ProofHistory.T
 end;
 
-functor ObtainFun(Data: OBTAIN_DATA): OBTAIN =
+structure Obtain: OBTAIN =
 struct
 
 
@@ -58,7 +52,7 @@ fun disch_obtained state parms rule cprops thm =
       raise Proof.STATE ("Conclusion contains obtained parameters: " ^
         space_implode " " (map (Sign.string_of_term sign) bads), state)
     else if not (AutoBind.is_judgment (Logic.strip_assums_concl prop)) then
-      raise Proof.STATE ("Conclusion is not an object-logic judgment", state)
+      raise Proof.STATE ("Conclusions of 'obtain' context must be object-logic judgments", state)
     else (Tactic.rtac thm' THEN' RANGE elim_tacs) 1 rule
   end;
 
@@ -102,7 +96,7 @@ fun gen_obtain prep_vars prep_propp prep_att (raw_vars, raw_asms) state =
     val xs' = mapfilter occs_var xs;
     val parms = map (bind_skolem o Free) xs';
 
-    val bound_thesis = bind_skolem (Data.atomic_thesis thesisN);
+    val bound_thesis = bind_skolem (AutoBind.atomic_judgment (Proof.theory_of state) thesisN);
     val that_prop = Term.list_all_free (xs', Logic.list_implies (asm_props, bound_thesis));
 
     fun export_obtained rule =
@@ -118,16 +112,19 @@ fun gen_obtain prep_vars prep_propp prep_att (raw_vars, raw_asms) state =
     |> Proof.enter_forward
     |> Proof.begin_block
     |> Proof.fix_i [([thesisN], None)]
-    |> Proof.assume_i [(thatN, Data.that_atts, [(that_prop, ([], []))])]
-    |> Proof.from_facts chain_facts
-    |> Proof.have_i after_qed "" [] (bound_thesis, ([], []))
+    |> Proof.assume_i [(thatN, [Method.intro_local], [(that_prop, ([], []))])]
+    |> (fn state' =>
+      state'
+      |> Proof.from_facts chain_facts
+      |> Proof.have_i after_qed "" [] (bound_thesis, ([], []))
+      |> Method.refine (Method.Basic (K (Method.insert (Proof.the_facts state')))))
   end;
 
 
-val obtain = ProofHistory.apply o
+val obtain = ProofHistory.applys o
   (gen_obtain ProofContext.read_vars ProofContext.read_propp Attrib.local_attribute);
 
-val obtain_i = ProofHistory.apply o
+val obtain_i = ProofHistory.applys o
   (gen_obtain ProofContext.cert_vars ProofContext.cert_propp (K I));
 
 
