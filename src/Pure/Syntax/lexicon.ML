@@ -234,19 +234,20 @@ fun predef_term "id" = Some (IdentSy "id")
   | predef_term _ = None;
 
 
+fun scan_enclosed(a1,a2,z1,z2,kind) =
+  let val scan_chr =
+        $$ "\\" |-- Scan.one Symbol.not_eof ||
+        Scan.one (not_equal z1 andf Symbol.not_eof) ||
+        $$ z1 --| Scan.ahead (Scan.one (not_equal z2));
+  in $$ a1 |-- $$ a2 |--
+    !! (fn (cs, _) => "Inner lexical error: missing end of " ^ kind ^ " at " ^
+                      quote (a1 ^ a2 ^ Symbol.beginning cs))
+    (Scan.repeat scan_chr --| $$ z1 --| $$ z2)
+  end;
+
 (* xstr tokens *)
 
-val scan_chr =
-  $$ "\\" |-- Scan.one Symbol.not_eof ||
-  Scan.one (not_equal "'" andf Symbol.not_eof) ||
-  $$ "'" --| Scan.ahead (Scan.one (not_equal "'"));
-
-val scan_str =
-  $$ "'" |-- $$ "'" |--
-    !! (fn (cs, _) => "Inner lexical error: malformed literal string at " ^
-      quote ("''" ^ Symbol.beginning cs))
-    (Scan.repeat scan_chr --| $$ "'" --| $$ "'");
-
+val scan_str = scan_enclosed("'","'","'","'","string")
 
 fun implode_xstr cs = enclose "''" "''" (implode (map (fn "'" => "\\'" | c => c) cs));
 
@@ -256,6 +257,7 @@ fun explode_xstr str =
   | _ => error ("Inner lexical error: literal string expected at " ^ quote str));
 
 
+val scan_comment = scan_enclosed("(","*","*",")","comment")
 
 (** tokenize **)
 
@@ -277,6 +279,7 @@ fun tokenize lex xids chs =
     val scan_lit = Scan.literal lex >> (pair Token o implode);
 
     val scan_token =
+      scan_comment >> K None ||
       Scan.max (op <= o pairself snd) scan_lit scan_val >> (fn (tk, s) => Some (tk s)) ||
       scan_str >> (Some o StrSy o implode_xstr) ||
       Scan.one Symbol.is_blank >> K None;
