@@ -24,6 +24,8 @@ sig
   val delsimps2	: clasimpset * thm list -> clasimpset
   val addSss	: claset * simpset -> claset
   val addss	: claset * simpset -> claset
+  val CLASIMPSET: (clasimpset -> tactic) -> tactic
+  val CLASIMPSET': (clasimpset -> 'a -> tactic) -> 'a -> tactic
   val mk_auto_tac:clasimpset -> int -> int -> tactic
   val auto_tac	: clasimpset -> tactic
   val Auto_tac	: tactic
@@ -61,6 +63,10 @@ fun cs addSss ss = cs addSaltern ("safe_asm_full_simp_tac",
 			CHANGED o (safe_asm_full_simp_tac ss));
 fun cs addss  ss = cs addbefore  (     "asm_full_simp_tac",
 					asm_full_simp_tac ss);
+
+
+fun CLASIMPSET tacf state = CLASET (fn cs => SIMPSET (fn ss => tacf (cs, ss))) state;
+fun CLASIMPSET' tacf i state = CLASET (fn cs => SIMPSET (fn ss => tacf (cs, ss) i)) state;
 
 
 local
