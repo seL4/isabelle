@@ -101,6 +101,7 @@ sig
   val kind_internal: 'a attribute
   val has_internal: tag list -> bool
   val impose_hyps: cterm list -> thm -> thm
+  val satisfy_hyps: thm list -> thm -> thm
   val close_derivation: thm -> thm
   val local_standard: thm -> thm
   val compose_single: thm * int * thm -> thm
@@ -349,6 +350,10 @@ fun implies_elim_list impth ths = foldl (uncurry implies_elim) (impth,ths);
 fun impose_hyps chyps th =
   let val chyps' = gen_rems (op aconv o apfst Thm.term_of) (chyps, #hyps (Thm.rep_thm th))
   in implies_elim_list (implies_intr_list chyps' th) (map Thm.assume chyps') end;
+
+(* maps A1,...,An and A1,...,An |- B to |- B *)
+fun satisfy_hyps ths th =
+  implies_elim_list (implies_intr_list (map (#prop o Thm.crep_thm) ths) th) ths;
 
 (*Reset Var indexes to zero, renaming to preserve distinctness*)
 fun zero_var_indexes th =
