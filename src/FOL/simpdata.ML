@@ -90,9 +90,15 @@ structure Induction = InductionFun(struct val spec=IFOL.spec end);
 
 open Simplifier Induction;
 
-infix addcongs;
+(*Add congruence rules for = or <-> (instead of ==) *)
+infix 4 addcongs;
 fun ss addcongs congs =
     ss addeqcongs (congs RL [eq_reflection,iff_reflection]);
+
+(*Add a simpset to a classical set!*)
+infix 4 addss;
+fun cs addss ss = cs addbefore asm_full_simp_tac ss 1;
+
 
 val IFOL_rews =
    [refl RS P_iff_T] @ conj_rews @ disj_rews @ not_rews @ 
