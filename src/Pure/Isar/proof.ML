@@ -14,6 +14,7 @@ sig
   val theory_of: state -> theory
   val sign_of: state -> Sign.sg
   val the_facts: state -> thm list
+  val the_fact: state -> thm
   val goal_facts: (state -> thm list) -> state -> state
   val use_facts: state -> state
   val reset_facts: state -> state
@@ -21,6 +22,7 @@ sig
   val enter_forward: state -> state
   val verbose: bool ref
   val print_state: state -> unit
+  val level: state -> int
   type method
   val method: (thm list -> thm ->
     (thm * (indexname * term) list * (string * thm list) list) Seq.seq) -> method
@@ -179,6 +181,11 @@ fun let_thms name_thms state =
 fun the_facts (State ({facts = Some facts, ...}, _)) = facts
   | the_facts state = raise STATE ("No current facts available", state);
 
+fun the_fact state =
+  (case the_facts state of
+    [fact] => fact
+  | _ => raise STATE ("Single fact expected", state));
+
 fun put_facts facts state =
   state
   |> map_current (fn (ctxt, _, mode, goal) => (ctxt, facts, mode, goal))
@@ -243,6 +250,8 @@ val assert_backward = assert_mode (equal Backward);
 
 
 (* blocks *)
+
+fun level (State (_, nodes)) = length nodes;
 
 fun open_block (State (node, nodes)) = State (node, node :: nodes);
 
