@@ -18,6 +18,8 @@ sig
   local open Ast in
     val logic: string
     val args: string
+    val any: string
+    val sprop: string
     val applC: string
     val typ_to_nonterm: typ -> string
     datatype xsymb =
@@ -42,7 +44,7 @@ sig
         print_rules: (ast * ast) list,
         print_ast_translation: (string * (ast list -> ast)) list}
     val mk_syn_ext: bool -> string list -> mfix list ->
-      string list -> (string * (ast list -> ast)) list * 
+      string list -> (string * (ast list -> ast)) list *
       (string * (term list -> term)) list *
       (string * (term list -> term)) list * (string * (ast list -> ast)) list
       -> (ast * ast) list * (ast * ast) list -> syn_ext
@@ -75,8 +77,6 @@ open Lexicon Ast;
 val logic = "logic";
 val logicT = Type (logic, []);
 
-val logic1 = "logic1";
-
 val args = "args";
 val argsT = Type (args, []);
 
@@ -87,6 +87,7 @@ val spropT = Type (sprop, []);
 
 val any = "any";
 val anyT = Type (any, []);
+
 
 (* constants *)
 
@@ -151,11 +152,11 @@ datatype mfix = Mfix of string * typ * string * int list * int;
 (* typ_to_nonterm *)
 
 (*get nonterminal for rhs*)
-fun typ_to_nonterm (Type (c, _)) = if c="fun" then logic else c
+fun typ_to_nonterm (Type (c, _)) = c
   | typ_to_nonterm _ = any;
 
 (*get nonterminal for lhs*)
-fun typ_to_nonterm1 (ty as Type (c, _)) = typ_to_nonterm ty
+fun typ_to_nonterm1 (Type (c, _)) = c
   | typ_to_nonterm1 _ = logic;
 
 
@@ -164,7 +165,7 @@ fun typ_to_nonterm1 (ty as Type (c, _)) = typ_to_nonterm ty
 fun mfix_to_xprod convert logtypes (Mfix (sy, typ, const, pris, pri)) =
   let
     fun err msg =
-      (writeln ("Error in mixfix annotation " ^ quote sy ^ " for " 
+      (writeln ("Error in mixfix annotation " ^ quote sy ^ " for "
                 ^ quote const);
         error msg);
 
