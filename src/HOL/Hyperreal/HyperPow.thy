@@ -7,7 +7,7 @@
 header{*Exponentials on the Hyperreals*}
 
 theory HyperPow
-import HyperArith HyperNat "../Real/RealPow"
+imports HyperArith HyperNat "../Real/RealPow"
 begin
 
 instance hypreal :: power ..

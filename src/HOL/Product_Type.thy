@@ -7,7 +7,7 @@
 header {* Cartesian products *}
 
 theory Product_Type
-import Fun
+imports Fun
 files ("Tools/split_rule.ML")
 begin
 

@@ -8,7 +8,7 @@ Converted to Isar and polished by lcp
 header{*Infinite Numbers, Infinitesimals, Infinitely Close Relation*}
 
 theory NSA
-import HyperArith RComplete
+imports HyperArith RComplete
 begin
 
 constdefs

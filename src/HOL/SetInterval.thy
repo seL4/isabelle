@@ -10,7 +10,7 @@ lessThan, greaterThan, atLeast, atMost and two-sided intervals
 header {* Set intervals *}
 
 theory SetInterval
-import IntArith
+imports IntArith
 begin
 
 constdefs

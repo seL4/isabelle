@@ -8,7 +8,7 @@
 *)
 
 theory PReal
-import Rational
+imports Rational
 begin
 
 text{*Could be generalized and moved to @{text Ring_and_Field}*}

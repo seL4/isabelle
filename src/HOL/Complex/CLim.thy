@@ -7,7 +7,7 @@
 header{*Limits, Continuity and Differentiation for Complex Functions*}
 
 theory CLim
-import CSeries
+imports CSeries
 begin
 
 (*not in simpset?*)

@@ -6,7 +6,7 @@
 header {* Datatypes *}
 
 theory Datatype
-import Datatype_Universe
+imports Datatype_Universe
 begin
 
 subsection {* Representing primitive types *}

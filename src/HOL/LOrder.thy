@@ -6,7 +6,7 @@
 header {* Lattice Orders *}
 
 theory LOrder
-import HOL
+imports HOL
 begin
 
 text {*

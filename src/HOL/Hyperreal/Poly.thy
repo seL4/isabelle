@@ -9,7 +9,7 @@
 header{*Univariate Real Polynomials*}
 
 theory Poly
-import Transcendental
+imports Transcendental
 begin
 
 text{*Application of polynomial as a real function.*}

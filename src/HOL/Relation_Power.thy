@@ -13,7 +13,7 @@ Examples: range(f^n) = A and Range(R^n) = B need constraints.
 *)
 
 theory Relation_Power
-import Nat
+imports Nat
 begin
 
 instance

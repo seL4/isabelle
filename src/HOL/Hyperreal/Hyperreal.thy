@@ -8,7 +8,7 @@ and mechanization of Nonstandard Real Analysis
 *)
 
 theory Hyperreal
-import Poly MacLaurin HLog
+imports Poly MacLaurin HLog
 begin
 
 end

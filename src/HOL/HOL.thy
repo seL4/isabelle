@@ -6,7 +6,7 @@
 header {* The basis of Higher-Order Logic *}
 
 theory HOL
-import CPure
+imports CPure
 files ("HOL_lemmas.ML") ("cladata.ML") ("blastdata.ML") ("simpdata.ML")
 begin
 

@@ -7,7 +7,7 @@
 header {* A general ``while'' combinator *}
 
 theory While_Combinator
-import Main
+imports Main
 begin
 
 text {*

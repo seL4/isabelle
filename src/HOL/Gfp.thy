@@ -7,7 +7,7 @@ Greatest fixed points (requires Lfp too!)
 *)
 
 theory Gfp 
-import Lfp
+imports Lfp
 begin
 
 constdefs

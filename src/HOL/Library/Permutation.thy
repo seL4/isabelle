@@ -5,7 +5,7 @@
 header {* Permutations *}
 
 theory Permutation
-import Multiset
+imports Multiset
 begin
 
 consts

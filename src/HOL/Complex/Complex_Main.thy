@@ -7,7 +7,7 @@
 header{*Comprehensive Complex Theory*}
 
 theory Complex_Main
-import CLim
+imports CLim
 begin
 
 end

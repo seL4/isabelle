@@ -7,7 +7,7 @@
 header{*Arithmetic on Binary Integers*}
 
 theory Numeral
-import IntDef
+imports IntDef
 files "Tools/numeral_syntax.ML"
 begin
 

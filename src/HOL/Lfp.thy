@@ -7,7 +7,7 @@ The Knaster-Tarski Theorem
 *)
 
 theory Lfp
-import Product_Type
+imports Product_Type
 begin
 
 constdefs

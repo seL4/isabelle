@@ -3,7 +3,9 @@
     Author:     Dieter Nazareth, Tobias Nipkow, Thomas Stauner, Markus Wenzel
 *)
 
-theory W0 = Main:
+theory W0
+imports Main
+begin
 
 section {* Universal error monad *}
 

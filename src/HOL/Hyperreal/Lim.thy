@@ -8,7 +8,7 @@
 header{*Limits, Continuity and Differentiation*}
 
 theory Lim
-import SEQ RealDef
+imports SEQ RealDef
 begin
 
 text{*Standard and Nonstandard Definitions*}

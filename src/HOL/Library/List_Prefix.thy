@@ -6,7 +6,7 @@
 header {* List prefixes and postfixes *}
 
 theory List_Prefix
-import Main
+imports Main
 begin
 
 subsection {* Prefix order on lists *}

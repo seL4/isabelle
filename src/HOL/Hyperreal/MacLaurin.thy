@@ -6,7 +6,7 @@
 *)
 
 theory MacLaurin
-import Log
+imports Log
 begin
 
 lemma sumr_offset: "sumr 0 n (%m. f (m+k)) = sumr 0 (n+k) f - sumr 0 k f"

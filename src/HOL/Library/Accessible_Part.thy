@@ -7,7 +7,7 @@
 header {* The accessible part of a relation *}
 
 theory Accessible_Part
-import Main
+imports Main
 begin
 
 subsection {* Inductive definition *}

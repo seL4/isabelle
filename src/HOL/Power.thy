@@ -8,7 +8,7 @@
 header{*Exponentiation and Binomial Coefficients*}
 
 theory Power
-import Divides
+imports Divides
 begin
 
 subsection{*Powers for Arbitrary Semirings*}

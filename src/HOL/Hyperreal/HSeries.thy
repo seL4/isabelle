@@ -8,7 +8,7 @@ Converted to Isar and polished by lcp
 header{*Finite Summation and Infinite Series for Hyperreals*}
 
 theory HSeries
-import Series
+imports Series
 begin
 
 constdefs 

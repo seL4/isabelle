@@ -7,7 +7,7 @@
 *)
 
 theory RealPow
-import RealDef
+imports RealDef
 begin
 
 declare abs_mult_self [simp]

@@ -8,7 +8,7 @@
 header{*Power Series, Transcendental Functions etc.*}
 
 theory Transcendental
-import NthRoot Fact HSeries EvenOdd Lim
+imports NthRoot Fact HSeries EvenOdd Lim
 begin
 
 constdefs

@@ -6,7 +6,7 @@
 header {* Binary Words *}
 
 theory Word
-import Main
+imports Main
 files "word_setup.ML"
 begin
 

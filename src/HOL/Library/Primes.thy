@@ -7,7 +7,7 @@
 header {* The Greatest Common Divisor and Euclid's algorithm *}
 
 theory Primes
-import Main
+imports Main
 begin
 
 text {*

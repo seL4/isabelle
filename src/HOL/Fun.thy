@@ -7,7 +7,7 @@ Notions about functions.
 *)
 
 theory Fun 
-import Typedef
+imports Typedef
 begin
 
 instance set :: (type) order

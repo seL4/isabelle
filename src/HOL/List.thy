@@ -6,7 +6,7 @@
 header {* The datatype of finite lists *}
 
 theory List
-import PreList
+imports PreList
 begin
 
 datatype 'a list =

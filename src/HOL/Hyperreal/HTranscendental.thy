@@ -8,7 +8,7 @@ Converted to Isar and polished by lcp
 header{*Nonstandard Extensions of Transcendental Functions*}
 
 theory HTranscendental
-import Transcendental Integration
+imports Transcendental Integration
 begin
 
 text{*really belongs in Transcendental*}

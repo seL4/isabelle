@@ -7,7 +7,7 @@
 header {* Relations *}
 
 theory Relation
-import Product_Type
+imports Product_Type
 begin
 
 subsection {* Definitions *}

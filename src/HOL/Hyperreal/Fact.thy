@@ -7,7 +7,7 @@
 header{*Factorial Function*}
 
 theory Fact
-import Real
+imports Real
 begin
 
 consts fact :: "nat => nat"

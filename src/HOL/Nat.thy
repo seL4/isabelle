@@ -9,7 +9,7 @@ and * (for div, mod and dvd, see theory Divides).
 header {* Natural numbers *}
 
 theory Nat
-import Wellfounded_Recursion Ring_and_Field
+imports Wellfounded_Recursion Ring_and_Field
 begin
 
 subsection {* Type @{text ind} *}

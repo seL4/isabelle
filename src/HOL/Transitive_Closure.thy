@@ -7,7 +7,7 @@
 header {* Reflexive and Transitive closure of a relation *}
 
 theory Transitive_Closure
-import Inductive
+imports Inductive
 files ("../Provers/trancl.ML")
 begin
 

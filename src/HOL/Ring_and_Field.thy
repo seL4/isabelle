@@ -6,7 +6,7 @@
 header {* (Ordered) Rings and Fields *}
 
 theory Ring_and_Field 
-import OrderedGroup
+imports OrderedGroup
 begin
 
 text {*

@@ -7,7 +7,7 @@ header{*Star-transforms in NSA, Extending Sets of Complex Numbers
       and Complex Functions*}
 
 theory CStar
-import NSCA
+imports NSCA
 begin
 
 constdefs

@@ -6,7 +6,7 @@
 *)
 
 theory ComplexBin
-import Complex
+imports Complex
 begin
 
 end

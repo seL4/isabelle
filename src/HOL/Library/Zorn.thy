@@ -7,7 +7,7 @@
 header {* Zorn's Lemma *}
 
 theory Zorn
-import Main
+imports Main
 begin
 
 text{*

@@ -6,7 +6,7 @@
 header {* Ordered Groups *}
 
 theory OrderedGroup
-import Inductive LOrder
+imports Inductive LOrder
 files "../Provers/Arith/abel_cancel.ML"
 begin
 

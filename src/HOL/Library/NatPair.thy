@@ -7,7 +7,7 @@
 header {* Pairs of Natural Numbers *}
 
 theory NatPair
-import Main
+imports Main
 begin
 
 text{*

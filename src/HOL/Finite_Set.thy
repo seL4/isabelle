@@ -7,7 +7,7 @@
 header {* Finite sets *}
 
 theory Finite_Set
-import Divides Power Inductive
+imports Divides Power Inductive
 begin
 
 subsection {* Collection of finite sets *}

@@ -9,7 +9,7 @@ generation for Cooper Algorithm
 header {* Presburger Arithmetic: Cooper's Algorithm *}
 
 theory Presburger
-import NatSimprocs SetInterval
+imports NatSimprocs SetInterval
 files ("cooper_dec.ML") ("cooper_proof.ML") ("qelim.ML") ("presburger.ML")
 begin
 

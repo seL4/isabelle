@@ -7,7 +7,7 @@
 header {* Binary arithmetic for the natural numbers *}
 
 theory NatBin
-import IntDiv
+imports IntDiv
 begin
 
 text {*

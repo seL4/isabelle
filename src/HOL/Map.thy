@@ -9,7 +9,7 @@ The datatype of `maps' (written ~=>); strongly resembles maps in VDM.
 header {* Maps *}
 
 theory Map
-import List
+imports List
 begin
 
 types ('a,'b) "~=>" = "'a => 'b option" (infixr 0)

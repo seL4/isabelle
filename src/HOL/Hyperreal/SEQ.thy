@@ -6,7 +6,7 @@
 *)
 
 theory SEQ
-import NatStar HyperPow
+imports NatStar HyperPow
 begin
 
 constdefs

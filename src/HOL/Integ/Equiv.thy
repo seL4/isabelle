@@ -7,7 +7,7 @@
 header {* Equivalence relations in Higher-Order Set Theory *}
 
 theory Equiv
-import Relation Finite_Set
+imports Relation Finite_Set
 begin
 
 subsection {* Equivalence relations *}

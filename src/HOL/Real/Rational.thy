@@ -6,7 +6,7 @@
 header {* Rational numbers *}
 
 theory Rational
-import Quotient
+imports Quotient
 files ("rat_arith.ML")
 begin
 

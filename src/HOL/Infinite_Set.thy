@@ -6,7 +6,7 @@
 header {* Infnite Sets and Related Concepts*}
 
 theory Infinite_Set
-import Hilbert_Choice Finite_Set SetInterval
+imports Hilbert_Choice Finite_Set SetInterval
 begin
 
 subsection "Infinite Sets"

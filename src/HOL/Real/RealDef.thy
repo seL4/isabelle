@@ -8,7 +8,7 @@
 header{*Defining the Reals from the Positive Reals*}
 
 theory RealDef
-import PReal
+imports PReal
 files ("real_arith.ML")
 begin
 

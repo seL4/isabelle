@@ -6,7 +6,7 @@
 header {* Quotient types *}
 
 theory Quotient
-import Main
+imports Main
 begin
 
 text {*

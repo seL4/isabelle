@@ -6,7 +6,7 @@
 header{*Finite Summation and Infinite Series for Complex Numbers*}
 
 theory CSeries
-import CStar
+imports CStar
 begin
 
 consts sumc :: "[nat,nat,(nat=>complex)] => complex"

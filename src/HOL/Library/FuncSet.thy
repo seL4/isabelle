@@ -6,7 +6,7 @@
 header {* Pi and Function Sets *}
 
 theory FuncSet
-import Main
+imports Main
 begin
 
 constdefs

@@ -8,7 +8,7 @@ Converted to Isar and polished by lcp
 header{*Construction of Hypernaturals using Ultrafilters*}
 
 theory HyperNat
-import Star
+imports Star
 begin
 
 constdefs

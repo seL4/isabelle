@@ -8,7 +8,7 @@
 header{*Nonstandard Complex Numbers*}
 
 theory NSComplex
-import Complex
+imports Complex
 begin
 
 constdefs

@@ -8,7 +8,7 @@
 header {* Complex Numbers: Rectangular and Polar Representations *}
 
 theory Complex
-import "../Hyperreal/HLog"
+imports "../Hyperreal/HLog"
 begin
 
 datatype complex = Complex real real

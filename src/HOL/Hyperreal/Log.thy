@@ -6,7 +6,7 @@
 header{*Logarithms: Standard Version*}
 
 theory Log
-import Transcendental
+imports Transcendental
 begin
 
 constdefs

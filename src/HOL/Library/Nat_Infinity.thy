@@ -6,7 +6,7 @@
 header {* Natural numbers with infinity *}
 
 theory Nat_Infinity
-import Main
+imports Main
 begin
 
 subsection "Definitions"

@@ -4,7 +4,7 @@
 *)
 
 theory Record
-import Product_Type
+imports Product_Type
 files ("Tools/record_package.ML")
 begin
 

@@ -6,7 +6,7 @@
 header{*Logarithms: Non-Standard Version*}
 
 theory HLog
-import Log HTranscendental
+imports Log HTranscendental
 begin
 
 

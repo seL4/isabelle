@@ -32,7 +32,7 @@ Here is the division algorithm in ML:
 
 
 theory IntDiv
-import IntArith Recdef
+imports IntArith Recdef
 files ("IntDiv_setup.ML")
 begin
 

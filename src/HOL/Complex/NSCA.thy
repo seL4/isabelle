@@ -6,7 +6,7 @@
 header{*Non-Standard Complex Analysis*}
 
 theory NSCA
-import NSComplex
+imports NSComplex
 begin
 
 constdefs

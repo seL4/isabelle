@@ -1,6 +1,6 @@
 (*<*)
 theory Library
-import
+imports
   Accessible_Part
   Continuity
   FuncSet

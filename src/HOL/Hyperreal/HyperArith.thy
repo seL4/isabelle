@@ -7,7 +7,7 @@
 header{*Binary arithmetic and Simplification for the Hyperreals*}
 
 theory HyperArith
-import HyperDef
+imports HyperDef
 files ("hypreal_arith.ML")
 begin
 

@@ -6,7 +6,7 @@
 header {* HOL type definitions *}
 
 theory Typedef
-import Set
+imports Set
 files ("Tools/typedef_package.ML")
 begin
 

@@ -6,7 +6,7 @@
 header {* More arithmetic on natural numbers *}
 
 theory NatArith
-import Nat
+imports Nat
 files "arith_data.ML"
 begin
 

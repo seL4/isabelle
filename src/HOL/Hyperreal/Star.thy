@@ -7,7 +7,7 @@
 header{*Star-Transforms in Non-Standard Analysis*}
 
 theory Star
-import NSA
+imports NSA
 begin
 
 constdefs

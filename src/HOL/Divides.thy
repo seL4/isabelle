@@ -7,7 +7,7 @@ The division operators div, mod and the divides relation "dvd"
 *)
 
 theory Divides
-import NatArith
+imports NatArith
 begin
 
 (*We use the same class for div and mod;

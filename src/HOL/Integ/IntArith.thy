@@ -6,7 +6,7 @@
 header {* Integer arithmetic *}
 
 theory IntArith
-import Numeral
+imports Numeral
 files ("int_arith1.ML")
 begin
 

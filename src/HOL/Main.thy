@@ -6,7 +6,7 @@
 header {* Main HOL *}
 
 theory Main
-import Map Infinite_Set Extraction Refute
+imports Map Infinite_Set Extraction Refute
 begin
 
 text {*

@@ -7,7 +7,7 @@
 header{*Even and Odd Numbers: Compatibility file for Parity*}
 
 theory EvenOdd
-import NthRoot
+imports NthRoot
 begin
 
 subsection{*General Lemmas About Division*}
