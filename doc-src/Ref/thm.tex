@@ -830,9 +830,23 @@ them directly to the derivation of a named theorem is therefore pointless.
 Use {\tt Deriv.drop} with argument~1 to skip over the initial {\tt Theorem}
 constructor.
 
-
 \index{proof objects|)}
 \index{theorems|)}
+
+\medskip
+
+The dependencies of theorems can be viewed using the function \ttindexbold{thm_deps}:
+\begin{ttbox}
+thm_deps [\(thm@1\), \(\ldots\), \(thm@n\)];
+\end{ttbox}
+generates the dependency graph of the theorems $thm@1$, $\ldots$, $thm@n$ and
+displays it using Isabelle's graph browser. This function expects derivations
+to be enabled. The structure \texttt{ThmDeps} contains the two functions
+\begin{ttbox}
+enable : unit -> unit
+disable : unit -> unit
+\end{ttbox}
+which set \texttt{keep_derivs} appropriately.
 
 
 %%% Local Variables: 
