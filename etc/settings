@@ -225,7 +225,7 @@ XSYMBOL_HOME=$(choosefrom \
 #EINDHOVEN_HOME=/usr/local/bin
 
 # ZChaff, Version 2004.05.13 (SAT Solver)
-ZCHAFF_HOME=/home/webertj/bin
+#ZCHAFF_HOME=/usr/local/bin
 
 # BerkMin561 (SAT Solver)
 #BERKMIN_HOME=/usr/local/bin
