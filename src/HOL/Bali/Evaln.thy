@@ -743,6 +743,10 @@ next
     by (rule evaln.Super)
   then show ?case ..
 next
+-- {* 
+\par
+*} (* dummy text command to break paragraph for latex;
+              large paragraphs exhaust memory of debian pdflatex *)
   case (Acc f s0 s1 v va)
   then obtain n where
     "G\<turnstile>Norm s0 \<midarrow>va=\<succ>(v, f)\<midarrow>n\<rightarrow> s1"

@@ -1047,15 +1047,6 @@ proof (rule MGFn_free_wt_da_NormalConformI [rule_format],clarsimp)
   qed
 qed
 
-(* To term *)
-lemma term_cases: "
-  \<lbrakk>\<And> v. P \<langle>v\<rangle>\<^sub>v; \<And> e. P \<langle>e\<rangle>\<^sub>e;\<And> c. P \<langle>c\<rangle>\<^sub>s;\<And> l. P \<langle>l\<rangle>\<^sub>l\<rbrakk>
-  \<Longrightarrow> P t"
-  apply (cases t)
-  apply (case_tac a)
-  apply auto
-  done
-
 lemma MGFn_lemma:
   assumes mgf_methds: 
            "\<And> n. \<forall> C sig. G,(A::state triple set)\<turnstile>{=:n} \<langle>Methd C sig\<rangle>\<^sub>e\<succ> {G\<rightarrow>}"
@@ -1243,6 +1234,10 @@ proof (induct rule: full_nat_induct)
       show "G,A\<turnstile>{=:n} \<langle>Methd D mn\<rangle>\<^sub>e\<succ> {G\<rightarrow>}"
 	by simp
     next
+-- {* 
+\par
+*} (* dummy text command to break paragraph for latex;
+              large paragraphs exhaust memory of debian pdflatex *)
       case (Body D c)
       have mgf_c: "G,A\<turnstile>{=:n} \<langle>c\<rangle>\<^sub>s\<succ> {G\<rightarrow>}" .
       from wf MGFn_Init [OF hyp] mgf_c

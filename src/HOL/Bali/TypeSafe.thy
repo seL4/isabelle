@@ -1938,6 +1938,10 @@ proof -
           a boolean value is part of @{term hyp_e}. See also Loop 
        *}
   next
+-- {* 
+\par
+*} (* dummy text command to break paragraph for latex;
+              large paragraphs exhaust memory of debian pdflatex *)
     case (Loop b c e l s0 s1 s2 s3 L accC T A)
     have eval_e: "G\<turnstile>Norm s0 \<midarrow>e-\<succ>b\<rightarrow> s1" .
     have hyp_e: "PROP ?TypeSafe (Norm s0) s1 (In1l e) (In1 b)" .
@@ -2228,6 +2232,10 @@ proof -
       qed
     qed
   next
+-- {* 
+\par
+*} (* dummy text command to break paragraph for latex;
+              large paragraphs exhaust memory of debian pdflatex *)
     case (Fin c1 c2 s0 s1 s2 s3 x1 L accC T A)
     have eval_c1: "G\<turnstile>Norm s0 \<midarrow>c1\<rightarrow> (x1, s1)" .
     have eval_c2: "G\<turnstile>Norm s1 \<midarrow>c2\<rightarrow> s2" .
@@ -2506,6 +2514,10 @@ proof -
           (error_free (Norm s0) = error_free s3) "
       by simp
   next
+-- {* 
+\par
+*} (* dummy text command to break paragraph for latex;
+              large paragraphs exhaust memory of debian pdflatex *)
     case (Cast castT e s0 s1 s2 v L accC T A)
     have "G\<turnstile>Norm s0 \<midarrow>e-\<succ>v\<rightarrow> s1" .
     have s2:"s2 = abupd (raise_if (\<not> G,store s1\<turnstile>v fits castT) ClassCast) s1" .
@@ -2719,6 +2731,10 @@ proof -
            (error_free (Norm s) = error_free (Norm s))"
       by simp
   next
+-- {* 
+\par
+*} (* dummy text command to break paragraph for latex;
+              large paragraphs exhaust memory of debian pdflatex *)
     case (Acc upd s0 s1 w v L accC T A) 
     have hyp: "PROP ?TypeSafe (Norm s0) s1 (In2 v) (In2 (w,upd))" .
     have conf_s0: "Norm s0\<Colon>\<preceq>(G, L)" .
@@ -3342,6 +3358,10 @@ proof -
       qed
     qed
   next
+-- {* 
+\par
+*} (* dummy text command to break paragraph for latex;
+              large paragraphs exhaust memory of debian pdflatex *)
     case (Methd D s0 s1 sig v L accC T A)
     have "G\<turnstile>Norm s0 \<midarrow>body G D sig-\<succ>v\<rightarrow> s1" .
     have hyp:"PROP ?TypeSafe (Norm s0) s1 (In1l (body G D sig)) (In1 v)" .
@@ -3707,6 +3727,10 @@ proof -
     then show ?case
       by (auto elim!: wt_elim_cases)
   next
+-- {* 
+\par
+*} (* dummy text command to break paragraph for latex;
+              large paragraphs exhaust memory of debian pdflatex *)
     case (Cons e es s0 s1 s2 v vs L accC T A)
     have eval_e: "G\<turnstile>Norm s0 \<midarrow>e-\<succ>v\<rightarrow> s1" .
     have eval_es: "G\<turnstile>s1 \<midarrow>es\<doteq>\<succ>vs\<rightarrow> s2" .

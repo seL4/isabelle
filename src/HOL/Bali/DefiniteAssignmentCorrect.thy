@@ -2829,6 +2829,10 @@ proof -
       ultimately show ?thesis by (intro conjI)
     qed
   next
+-- {* 
+\par
+*} (* dummy text command to break paragraph for latex;
+              large paragraphs exhaust memory of debian pdflatex *)
     case (If b c1 c2 e s0 s1 s2 Env T A)
     have G: "prg Env = G" .
     with If.hyps have eval_e: "prg Env \<turnstile>Norm s0 \<midarrow>e-\<succ>b\<rightarrow> s1" by simp
@@ -3325,6 +3329,10 @@ proof -
       qed
     qed
   next
+-- {* 
+\par
+*} (* dummy text command to break paragraph for latex;
+              large paragraphs exhaust memory of debian pdflatex *)
     case (Fin c1 c2 s0 s1 s2 s3 x1 Env T A)
     have G: "prg Env = G" .
     from Fin.prems obtain C1 C2 where 
@@ -3580,6 +3588,10 @@ proof -
       by simp_all      
     ultimately show ?case by (intro conjI)
   next
+-- {* 
+\par
+*} (* dummy text command to break paragraph for latex;
+              large paragraphs exhaust memory of debian pdflatex *)
     case (NewA elT a e i s0 s1 s2 s3 Env T A) 
     have G: "prg Env = G" .
     from NewA.prems obtain
@@ -3881,6 +3893,10 @@ proof -
       by simp_all
     ultimately show ?case by (intro conjI) 
   next
+-- {* 
+\par
+*} (* dummy text command to break paragraph for latex;
+              large paragraphs exhaust memory of debian pdflatex *)
     case (Super s Env T A)
     from Super.prems
     have "nrm A = dom (locals (store ((Norm s)::state)))"
@@ -4271,6 +4287,10 @@ proof -
       by simp_all
     ultimately show ?case by (intro conjI)
   next
+-- {* 
+\par
+*} (* dummy text command to break paragraph for latex;
+              large paragraphs exhaust memory of debian pdflatex *)
     case (LVar s vn Env T A)
     from LVar.prems
     have "nrm A = dom (locals (store ((Norm s)::state)))"

@@ -383,6 +383,14 @@ lemma var_elist_inj_term [iff]: "\<langle>t::var\<rangle> \<noteq> \<langle>w::e
 lemma elist_var_inj_term [iff]: "\<langle>t::expr list\<rangle> \<noteq> \<langle>w::var\<rangle>"
   by (simp add: inj_term_simps)
 
+lemma term_cases: "
+  \<lbrakk>\<And> v. P \<langle>v\<rangle>\<^sub>v; \<And> e. P \<langle>e\<rangle>\<^sub>e;\<And> c. P \<langle>c\<rangle>\<^sub>s;\<And> l. P \<langle>l\<rangle>\<^sub>l\<rbrakk>
+  \<Longrightarrow> P t"
+  apply (cases t)
+  apply (case_tac a)
+  apply auto
+  done
+
 section {* Evaluation of unary operations *}
 consts eval_unop :: "unop \<Rightarrow> val \<Rightarrow> val"
 primrec

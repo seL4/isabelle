@@ -569,7 +569,11 @@ next
       ultimately show ?thesis using Q by simp
     qed
   qed
-next   
+next
+-- {* 
+\par
+*} (* dummy text command to break paragraph for latex;
+              large paragraphs exhaust memory of debian pdflatex *)   
   case (AVar A P Q R e1 e2)
   have valid_e1: "G,A|\<Turnstile>\<Colon>{ {Normal P} e1-\<succ> {Q} }" .
   have valid_e2: "\<And> a. G,A|\<Turnstile>\<Colon>{ {Q\<leftarrow>In1 a} e2-\<succ> {\<lambda>Val:i:. avar G i a ..; R} }"
@@ -879,6 +883,10 @@ next
     qed
   qed
 next
+-- {* 
+\par
+*} (* dummy text command to break paragraph for latex;
+              large paragraphs exhaust memory of debian pdflatex *)
   case (BinOp A P Q R binop e1 e2)
   assume valid_e1: "G,A|\<Turnstile>\<Colon>{ {Normal P} e1-\<succ> {Q} }" 
   have valid_e2: "\<And> v1.  G,A|\<Turnstile>\<Colon>{ {Q\<leftarrow>In1 v1}
@@ -1216,6 +1224,10 @@ next
     qed
   qed
 next
+-- {* 
+\par
+*} (* dummy text command to break paragraph for latex;
+              large paragraphs exhaust memory of debian pdflatex *)
   case (Call A P Q R S accC' args e mn mode pTs' statT)
   have valid_e: "G,A|\<Turnstile>\<Colon>{ {Normal P} e-\<succ> {Q} }" .
   have valid_args: "\<And> a. G,A|\<Turnstile>\<Colon>{ {Q\<leftarrow>In1 a} args\<doteq>\<succ> {R a} }"
@@ -1799,6 +1811,10 @@ next
     qed
   qed
 next
+-- {* 
+\par
+*} (* dummy text command to break paragraph for latex;
+              large paragraphs exhaust memory of debian pdflatex *)
   case (Lab A P Q c l)
   have valid_c: "G,A|\<Turnstile>\<Colon>{ {Normal P} .c. {abupd (absorb l) .; Q} }".
   show "G,A|\<Turnstile>\<Colon>{ {Normal P} .l\<bullet> c. {Q} }"
@@ -2202,6 +2218,10 @@ next
     qed
   qed
 next
+-- {* 
+\par
+*} (* dummy text command to break paragraph for latex;
+              large paragraphs exhaust memory of debian pdflatex *)
   case (Jmp A P j)
   show "G,A|\<Turnstile>\<Colon>{ {Normal (abupd (\<lambda>a. Some (Jump j)) .; P\<leftarrow>\<diamondsuit>)} .Jmp j. {P} }"
   proof (rule valid_stmt_NormalI)
@@ -2473,6 +2493,10 @@ next
     qed
   qed
 next
+-- {* 
+\par
+*} (* dummy text command to break paragraph for latex;
+              large paragraphs exhaust memory of debian pdflatex *)
   case (Done A C P)
   show "G,A|\<Turnstile>\<Colon>{ {Normal (P\<leftarrow>\<diamondsuit> \<and>. initd C)} .Init C. {P} }" 
   proof (rule valid_stmt_NormalI)
