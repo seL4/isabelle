@@ -112,6 +112,11 @@ goal Relation.thy "(r O s)^-1 = s^-1 O r^-1";
 by (Blast_tac 1);
 qed "inverse_comp";
 
+goal Relation.thy "id^-1 = id";
+by (Blast_tac 1);
+qed "inverse_id";
+Addsimps [inverse_id];
+
 (** Domain **)
 
 qed_goalw "Domain_iff" Relation.thy [Domain_def]
@@ -130,6 +135,11 @@ qed_goal "DomainE" Relation.thy
 AddIs  [DomainI];
 AddSEs [DomainE];
 
+goal thy "Domain id = UNIV";
+by (Blast_tac 1);
+qed "Domain_id";
+Addsimps [Domain_id];
+
 (** Range **)
 
 qed_goalw "RangeI" Relation.thy [Range_def] "!!a b r.(a,b): r ==> b : Range(r)"
@@ -144,6 +154,11 @@ qed_goalw "RangeE" Relation.thy [Range_def]
 
 AddIs  [RangeI];
 AddSEs [RangeE];
+
+goal thy "Range id = UNIV";
+by (Blast_tac 1);
+qed "Range_id";
+Addsimps [Range_id];
 
 (*** Image of a set under a relation ***)
 
