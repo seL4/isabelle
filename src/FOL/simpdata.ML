@@ -355,9 +355,8 @@ val simpsetup = [fn thy => (simpset_ref_of thy := FOL_ss; thy)];
 (*** integration of simplifier with classical reasoner ***)
 
 structure Clasimp = ClasimpFun
- (structure Simplifier = Simplifier 
-        and Classical  = Cla
-        and Blast      = Blast);
+ (structure Simplifier = Simplifier and Splitter = Splitter
+   and Classical  = Cla and Blast = Blast);
 open Clasimp;
 
 val FOL_css = (FOL_cs, FOL_ss);
