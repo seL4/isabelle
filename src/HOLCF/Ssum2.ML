@@ -62,12 +62,12 @@ qed "least_ssum";
 (* Isinl, Isinr are monotone                                                *)
 (* ------------------------------------------------------------------------ *)
 
-val prems = goalw thy [monofun]  "monofun(Isinl)";
+Goalw [monofun]  "monofun(Isinl)";
 by (strip_tac 1);
 by (etac (less_ssum3a RS iffD2) 1);
 qed "monofun_Isinl";
 
-val prems = goalw thy [monofun]  "monofun(Isinr)";
+Goalw [monofun]  "monofun(Isinr)";
 by (strip_tac 1);
 by (etac (less_ssum3b RS iffD2) 1);
 qed "monofun_Isinr";
@@ -78,7 +78,7 @@ qed "monofun_Isinr";
 (* ------------------------------------------------------------------------ *)
 
 
-val prems = goalw thy [monofun]  "monofun(Iwhen)";
+Goalw [monofun]  "monofun(Iwhen)";
 by (strip_tac 1);
 by (rtac (less_fun RS iffD2) 1);
 by (strip_tac 1);
@@ -92,7 +92,7 @@ by (etac monofun_cfun_fun 1);
 by (asm_simp_tac Ssum0_ss 1);
 qed "monofun_Iwhen1";
 
-val prems = goalw thy [monofun]  "monofun(Iwhen(f))";
+Goalw [monofun]  "monofun(Iwhen(f))";
 by (strip_tac 1);
 by (rtac (less_fun RS iffD2) 1);
 by (strip_tac 1);
@@ -104,7 +104,7 @@ by (asm_simp_tac Ssum0_ss 1);
 by (etac monofun_cfun_fun 1);
 qed "monofun_Iwhen2";
 
-val prems = goalw thy [monofun]  "monofun(Iwhen(f)(g))";
+Goalw [monofun]  "monofun(Iwhen(f)(g))";
 by (strip_tac 1);
 by (res_inst_tac [("p","x")] IssumE 1);
 by (hyp_subst_tac 1);
@@ -182,13 +182,13 @@ by (eres_inst_tac [("P","x=UU")] notE 1);
 by (rtac (less_ssum3d RS iffD1) 1);
 by (eres_inst_tac [("s","Y(i)"),("t","Isinr(x)::'a++'b")] subst 1);
 by (eres_inst_tac [("s","Y(ia)"),("t","Isinl(xa)::'a++'b")] subst 1);
-by (etac (chain_mono RS mp) 1);
+by (etac (chain_mono) 1);
 by (atac 1);
 by (eres_inst_tac [("P","xa=UU")] notE 1);
 by (rtac (less_ssum3c RS iffD1) 1);
 by (eres_inst_tac [("s","Y(i)"),("t","Isinr(x)::'a++'b")] subst 1);
 by (eres_inst_tac [("s","Y(ia)"),("t","Isinl(xa)::'a++'b")] subst 1);
-by (etac (chain_mono RS mp) 1);
+by (etac (chain_mono) 1);
 by (atac 1);
 qed "ssum_lemma3";
 
@@ -261,9 +261,7 @@ qed "ssum_lemma8";
 Goal "[|chain(Y);(!i.? x. Y(i)=Isinl(x))|] ==>\
 \     range(Y) <<| Isinl(lub(range(%i.(Iwhen (LAM x. x) (LAM y. UU))(Y i))))";
 by (rtac is_lubI 1);
-by (rtac conjI 1);
 by (rtac ub_rangeI 1);
-by (rtac allI 1);
 by (etac allE 1);
 by (etac exE 1);
 by (res_inst_tac [("t","Y(i)")] (ssum_lemma5 RS subst) 1);
@@ -290,16 +288,14 @@ by (etac notE 1);
 by (rtac (less_ssum3c RS iffD1) 1);
 by (res_inst_tac [("t","Isinl(x)")] subst 1);
 by (atac 1);
-by (etac (ub_rangeE RS spec) 1);
+by (etac (ub_rangeD) 1);
 qed "lub_ssum1a";
 
 
 Goal "[|chain(Y);(!i.? x. Y(i)=Isinr(x))|] ==>\
 \     range(Y) <<| Isinr(lub(range(%i.(Iwhen (LAM y. UU) (LAM x. x))(Y i))))";
 by (rtac is_lubI 1);
-by (rtac conjI 1);
 by (rtac ub_rangeI 1);
-by (rtac allI 1);
 by (etac allE 1);
 by (etac exE 1);
 by (res_inst_tac [("t","Y(i)")] (ssum_lemma6 RS subst) 1);
@@ -320,7 +316,7 @@ by (etac notE 1);
 by (rtac (less_ssum3d RS iffD1) 1);
 by (res_inst_tac [("t","Isinr(y)")] subst 1);
 by (atac 1);
-by (etac (ub_rangeE RS spec) 1);
+by (etac (ub_rangeD) 1);
 by (res_inst_tac [("t","u")] (ssum_lemma6 RS subst) 1);
 by (atac 1);
 by (rtac (monofun_Isinr RS monofunE RS spec RS spec RS mp) 1);

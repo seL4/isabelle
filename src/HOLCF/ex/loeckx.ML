@@ -2,20 +2,12 @@
 (* Elegant proof for continuity of fixed-point operator *)
 (* Loeckx & Sieber S.88                                 *)
 
-val prems = goalw Fix.thy [Ifix_def]
-"Ifix F= lub (range (%i.%G. iterate i G UU)) F";
+Goalw [Ifix_def] "Ifix F= lub (range (%i.%G. iterate i G UU)) F";
 by (stac thelub_fun 1);
-by (rtac ch2ch_fun 1);
-back();
 by (rtac refl 2);
-by (rtac chainI 1);
-by (strip_tac 1);
-by (rtac (less_fun RS iffD2) 1);
-by (strip_tac 1);
-by (rtac (less_fun RS iffD2) 1);
-by (strip_tac 1);
-by (rtac (chain_iterate RS chainE RS spec) 1);
-val loeckx_sieber = result();
+by (blast_tac (claset() addIs [ch2ch_fun, chainI, less_fun RS iffD2,
+                               chain_iterate RS chainE]) 1); 
+qed "loeckx_sieber";
 
 (* 
 
@@ -46,7 +38,7 @@ we cannot use the theorem cont_lubcfun
 
 *)
 
-val prems = goal Fix.thy  "cont(Ifix)";
+Goal "cont(Ifix)";
 by (res_inst_tac 
  [("t","Ifix"),("s","(%f. lub(range(%j.(LAM f. iterate j f UU)`f)))")]
   ssubst 1);
@@ -73,27 +65,20 @@ by (rtac cont_iterate 1);
 by (stac beta_cfun 1);
 by (rtac  cont2cont_CF1L 1);
 by (rtac cont_iterate 1);
-by (rtac (chain_iterate RS chainE RS spec) 1);
-val cont_Ifix2 = result();
+by (rtac (chain_iterate RS chainE) 1);
+qed "cont_Ifix2";
 
 (* the proof in little steps *)
 
-val prems = goal Fix.thy  
-"(% i. iterate i f UU) = (%j.(LAM f. iterate j f UU)`f)";
+Goal "(% i. iterate i f UU) = (%j.(LAM f. iterate j f UU)`f)";
 by (rtac ext 1);
-by (stac beta_cfun 1);
-by (rtac  cont2cont_CF1L 1);
-by (rtac cont_iterate 1);
-by (rtac refl 1);
-val fix_lemma1 = result();
+by (simp_tac (simpset() addsimps [beta_cfun, cont2cont_CF1L, cont_iterate]) 1);
+qed "fix_lemma1";
 
-val prems = goal Fix.thy  
-" Ifix = (%f. lub(range(%j.(LAM f. iterate j f UU)`f)))";
+Goal "Ifix = (%f. lub(range(%j.(LAM f. iterate j f UU)`f)))";
 by (rtac ext 1);
-by (rewtac Ifix_def ); 
-by (stac fix_lemma1 1);
-by (rtac refl 1);
-val fix_lemma2 = result();
+by (simp_tac (simpset() addsimps [Ifix_def, fix_lemma1]) 1);
+qed "fix_lemma2";
 
 (*
 - cont_lubcfun;
@@ -101,11 +86,10 @@ val it = "chain ?F ==> cont (%x. lub (range (%j. ?F j`x)))" : thm
 
 *)
 
-val prems = goal Fix.thy "cont Ifix";
+Goal "cont Ifix";
 by (stac fix_lemma2 1);
 by (rtac cont_lubcfun 1);
 by (rtac chainI 1);
-by (strip_tac 1);
 by (rtac less_cfun2 1);
 by (stac beta_cfun 1);
 by (rtac  cont2cont_CF1L 1);
@@ -113,6 +97,6 @@ by (rtac cont_iterate 1);
 by (stac beta_cfun 1);
 by (rtac  cont2cont_CF1L 1);
 by (rtac cont_iterate 1);
-by (rtac (chain_iterate RS chainE RS spec) 1);
-val cont_Ifix2 = result();
+by (rtac (chain_iterate RS chainE) 1);
+qed "cont_Ifix2";
 

@@ -12,11 +12,7 @@ AddIffs [refl_less];
 (* minimal fixes least element                                              *)
 (* ------------------------------------------------------------------------ *)
 Goal "!x::'a::po. uu<<x ==> uu=(@u.!y. u<<y)";
-by (rtac antisym_less 1);
-by (etac spec 1);
-by (res_inst_tac [("a","uu")] selectI2 1);
-by (atac 1);
-by (etac spec 1);
+by (blast_tac (claset() addIs [selectI2,antisym_less]) 1);
 bind_thm ("minimal2UU", allI RS result());
 
 (* ------------------------------------------------------------------------ *)
@@ -24,9 +20,7 @@ bind_thm ("minimal2UU", allI RS result());
 (* ------------------------------------------------------------------------ *)
 
 Goal "(x::'a::po)=y ==> x << y & y << x";
-by (rtac conjI 1);
-by ((rtac subst 1) THEN (rtac refl_less 2) THEN (atac 1));
-by ((rtac subst 1) THEN (rtac refl_less 2) THEN (etac sym 1));
+by (Blast_tac 1);
 qed "antisym_less_inverse";
 
 

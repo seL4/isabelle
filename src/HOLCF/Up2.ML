@@ -25,7 +25,7 @@ qed "minimal_up";
 
 bind_thm ("UU_up_def",minimal_up RS minimal2UU RS sym);
 
-Goal "? x::'a u.!y. x<<y";
+Goal "EX x::'a u. ALL y. x<<y";
 by (res_inst_tac [("x","Abs_Up(Inl ())")] exI 1);
 by (rtac (minimal_up RS allI) 1);
 qed "least_up";
@@ -46,12 +46,12 @@ qed "less_up2c";
 (* Iup and Ifup are monotone                                               *)
 (* ------------------------------------------------------------------------ *)
 
-val prems = goalw thy [monofun]  "monofun(Iup)";
+Goalw [monofun]  "monofun(Iup)";
 by (strip_tac 1);
 by (etac (less_up2c RS iffD2) 1);
 qed "monofun_Iup";
 
-val prems = goalw thy [monofun]  "monofun(Ifup)";
+Goalw [monofun]  "monofun(Ifup)";
 by (strip_tac 1);
 by (rtac (less_fun RS iffD2) 1);
 by (strip_tac 1);
@@ -61,7 +61,7 @@ by (asm_simp_tac Up0_ss 1);
 by (etac monofun_cfun_fun 1);
 qed "monofun_Ifup1";
 
-val prems = goalw thy [monofun]  "monofun(Ifup(f))";
+Goalw [monofun]  "monofun(Ifup(f))";
 by (strip_tac 1);
 by (res_inst_tac [("p","x")] upE 1);
 by (asm_simp_tac Up0_ss 1);
@@ -89,12 +89,10 @@ qed "up_lemma1";
 (* ('a)u is a cpo                                                           *)
 (* ------------------------------------------------------------------------ *)
 
-Goal "[|chain(Y);? i x. Y(i)=Iup(x)|] \
+Goal "[|chain(Y);EX i x. Y(i)=Iup(x)|] \
 \     ==> range(Y) <<| Iup(lub(range(%i.(Ifup (LAM x. x) (Y(i))))))";
 by (rtac is_lubI 1);
-by (rtac conjI 1);
 by (rtac ub_rangeI 1);
-by (rtac allI 1);
 by (res_inst_tac [("p","Y(i)")] upE 1);
 by (res_inst_tac [("s","Abs_Up (Inl ())"),("t","Y(i)")] subst 1);
 by (etac sym 1);
@@ -113,7 +111,7 @@ by (res_inst_tac [("s","Iup(x)"),("t","Y(i)")] ssubst 1);
 by (atac 1);
 by (rtac less_up2b 1);
 by (hyp_subst_tac 1);
-by (etac (ub_rangeE RS spec) 1);
+by (etac ub_rangeD 1);
 by (res_inst_tac [("t","u")] (up_lemma1 RS subst) 1);
 by (atac 1);
 by (rtac (less_up2c RS iffD2) 1);
@@ -122,11 +120,9 @@ by (etac (monofun_Ifup2 RS ch2ch_monofun) 1);
 by (etac (monofun_Ifup2 RS ub2ub_monofun) 1);
 qed "lub_up1a";
 
-Goal "[|chain(Y);!i x. Y(i)~=Iup(x)|] ==> range(Y) <<| Abs_Up (Inl ())";
+Goal "[|chain(Y); ALL i x. Y(i)~=Iup(x)|] ==> range(Y) <<| Abs_Up (Inl ())";
 by (rtac is_lubI 1);
-by (rtac conjI 1);
 by (rtac ub_rangeI 1);
-by (rtac allI 1);
 by (res_inst_tac [("p","Y(i)")] upE 1);
 by (res_inst_tac [("s","Abs_Up (Inl ())"),("t","Y(i)")] ssubst 1);
 by (atac 1);
@@ -142,7 +138,7 @@ qed "lub_up1b";
 
 bind_thm ("thelub_up1a", lub_up1a RS thelubI);
 (*
-[| chain ?Y1; ? i x. ?Y1 i = Iup x |] ==>
+[| chain ?Y1; EX i x. ?Y1 i = Iup x |] ==>
  lub (range ?Y1) = Iup (lub (range (%i. Iup (LAM x. x) (?Y1 i))))
 *)
 
@@ -152,7 +148,7 @@ bind_thm ("thelub_up1b", lub_up1b RS thelubI);
  lub (range ?Y1) = UU_up
 *)
 
-Goal "chain(Y::nat=>('a)u) ==> ? x. range(Y) <<|x";
+Goal "chain(Y::nat=>('a)u) ==> EX x. range(Y) <<|x";
 by (rtac disjE 1);
 by (rtac exI 2);
 by (etac lub_up1a 2);

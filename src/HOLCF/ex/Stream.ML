@@ -12,65 +12,60 @@ fun stream_case_tac s i = res_inst_tac [("x",s)] stream.casedist i
 
 val [stream_con_rew1,stream_con_rew2] = stream.con_rews;
 
+Addsimps stream.take_rews;
+Addsimps stream.when_rews;
+Addsimps stream.sel_rews;
+
 (* ----------------------------------------------------------------------- *)
 (* theorems about scons                                                    *)
 (* ----------------------------------------------------------------------- *)
 
 section "scons";
 
-qed_goal "scons_eq_UU" thy "a && s = UU = (a = UU)" (fn _ => [
-	safe_tac HOL_cs,
-	etac contrapos2 1,
-	safe_tac (HOL_cs addSIs stream.con_rews)]);
+Goal "a && s = UU = (a = UU)";
+by Safe_tac;
+by (etac contrapos2 1);
+by (safe_tac (claset() addSIs stream.con_rews));
+qed "scons_eq_UU";
 
-qed_goal "scons_not_empty" thy "[| a && x = UU; a ~= UU |] ==> R" 
- (fn prems => [
-	cut_facts_tac prems 1,
-	dresolve_tac [stream_con_rew2] 1,
-	contr_tac 1]);
+Goal "[| a && x = UU; a ~= UU |] ==> R";
+by (dresolve_tac [stream_con_rew2] 1);
+by (contr_tac 1);
+qed "scons_not_empty";
 
-qed_goal "stream_exhaust_eq" thy "x ~= UU = (? a y. a ~= UU &  x = a && y)" 
- (fn _ =>[
-	cut_facts_tac [stream.exhaust] 1,
-	safe_tac HOL_cs,
-	   contr_tac 1,
-	  fast_tac (HOL_cs addDs [stream_con_rew2]) 1,
-	 fast_tac HOL_cs 1,
-	fast_tac (HOL_cs addDs [stream_con_rew2]) 1]);
+Goal "x ~= UU = (EX a y. a ~= UU &  x = a && y)";
+by (cut_facts_tac [stream.exhaust] 1);
+by (best_tac (claset() addDs [stream_con_rew2]) 1);
+qed "stream_exhaust_eq";
 
-qed_goal "stream_prefix" thy 
-"[| a && s << t; a ~= UU  |] ==> ? b tt. t = b && tt &  b ~= UU &  s << tt" 
- (fn prems => [
-	cut_facts_tac prems 1,
-	stream_case_tac "t" 1,
-	 fast_tac (HOL_cs addDs [eq_UU_iff RS iffD2, stream_con_rew2]) 1,
-	fast_tac (HOL_cs addDs stream.inverts) 1]);
+Goal 
+"[| a && s << t; a ~= UU  |] ==> EX b tt. t = b && tt &  b ~= UU &  s << tt";
+by (stream_case_tac "t" 1);
+by (fast_tac (claset() addDs [eq_UU_iff RS iffD2, stream_con_rew2]) 1);
+by (fast_tac (claset() addDs stream.inverts) 1);
+qed "stream_prefix";
 
-qed_goal "stream_flat_prefix" thy 
-"[| x && xs << y && ys; (x::'a::flat) ~= UU|] ==> x = y & xs << ys"
-(fn prems=>[
-	cut_facts_tac prems 1,
-	(cut_facts_tac [read_instantiate[("x1","x::'a::flat"),
-					 ("x","y::'a::flat")]
-			(ax_flat RS spec RS spec)] 1),
-	(forward_tac stream.inverts 1),
-	(safe_tac HOL_cs),
-	(dtac (hd stream.con_rews RS subst) 1),
-	(fast_tac (HOL_cs addDs [eq_UU_iff RS iffD2, stream_con_rew2]) 1)]);
+Goal "[| x && xs << y && ys; (x::'a::flat) ~= UU|] ==> x = y & xs << ys";
+by (cut_inst_tac [("x1","x::'a::flat"), ("x","y::'a::flat")] 
+                 (ax_flat RS spec RS spec) 1);
+by (forward_tac stream.inverts 1);
+by Safe_tac;
+by (dtac (hd stream.con_rews RS subst) 1);
+by (fast_tac (claset() addDs [eq_UU_iff RS iffD2, stream_con_rew2]) 1);
+qed "stream_flat_prefix";
 
-qed_goal "stream_prefix'" thy "b ~= UU ==> x << b && z = \
-\(x = UU |  (? a y. x = a && y &  a ~= UU &  a << b &  y << z))" (fn prems => [
-	cut_facts_tac prems 1,
-	safe_tac HOL_cs,
-	  stream_case_tac "x" 1,
-	   safe_tac (HOL_cs addSDs stream.inverts 
-			    addSIs [minimal, monofun_cfun, monofun_cfun_arg]),
-	fast_tac HOL_cs 1]);
+Goal "b ~= UU ==> x << b && z = \
+\           (x = UU |  (EX a y. x = a && y &  a ~= UU &  a << b &  y << z))";
+by Safe_tac;
+by (stream_case_tac "x" 1);
+by (safe_tac (claset() addSDs stream.inverts 
+                addSIs [minimal, monofun_cfun, monofun_cfun_arg]));
+by (Fast_tac 1);
+qed "stream_prefix'";
 
-qed_goal "stream_inject_eq" thy
- "[| a ~= UU; b ~= UU |] ==> (a && s = b && t) = (a = b &  s = t)" (fn prems => [
-	cut_facts_tac prems 1,
-	safe_tac (HOL_cs addSEs stream.injects)]);	
+Goal "[| a ~= UU; b ~= UU |] ==> (a && s = b && t) = (a = b &  s = t)";
+by (best_tac (claset() addSEs stream.injects) 1);
+qed "stream_inject_eq";	
 
 
 (* ----------------------------------------------------------------------- *)
@@ -79,10 +74,10 @@ qed_goal "stream_inject_eq" thy
 
 section "stream_when";
 
-qed_goal "stream_when_strictf" thy "stream_when`UU`s=UU" (fn _ => [
-	stream_case_tac "s" 1,
-	ALLGOALS(asm_simp_tac (HOL_ss addsimps strict_Rep_CFun1::stream.when_rews))
-	]);
+Goal "stream_when`UU`s=UU";
+by (stream_case_tac "s" 1);
+by (ALLGOALS(asm_simp_tac (simpset() addsimps [strict_Rep_CFun1])));
+qed "stream_when_strictf";
 	
 
 (* ----------------------------------------------------------------------- *)
@@ -92,39 +87,38 @@ qed_goal "stream_when_strictf" thy "stream_when`UU`s=UU" (fn _ => [
 section "ft & rt";
 
 (*
-qed_goal "stream_ft_lemma1" thy "ft`s=UU --> s=UU" (fn prems => [
-	stream_case_tac "s" 1,
-	REPEAT (asm_simp_tac (HOLCF_ss addsimps stream.rews) 1)]);
+Goal "ft`s=UU --> s=UU";
+by (stream_case_tac "s" 1);
+by (REPEAT (asm_simp_tac (simpset() addsimps stream.rews) 1));
+qed "stream_ft_lemma1";
 *)
 
-qed_goal "ft_defin" thy "s~=UU ==> ft`s~=UU" (fn prems => [
-	cut_facts_tac prems 1,
-	stream_case_tac "s" 1,
-	fast_tac HOL_cs 1,
-	asm_simp_tac (HOLCF_ss addsimps stream.rews) 1]);
+Goal "s~=UU ==> ft`s~=UU";
+by (stream_case_tac "s" 1);
+by (Blast_tac 1);
+by (asm_simp_tac (simpset() addsimps stream.rews) 1);
+qed "ft_defin";
 
-qed_goal "rt_strict_rev" thy "rt`s~=UU ==> s~=UU" (fn prems => [
-	cut_facts_tac prems 1,
-	etac contrapos 1,
-	asm_simp_tac (HOLCF_ss addsimps stream.sel_rews) 1]);
+Goal "rt`s~=UU ==> s~=UU";
+by Auto_tac;
+qed "rt_strict_rev";
 
-qed_goal "surjectiv_scons" thy "(ft`s)&&(rt`s)=s"
- (fn prems =>
-	[
-	stream_case_tac "s" 1,
-	REPEAT (asm_simp_tac (HOLCF_ss addsimps stream.rews) 1)
-	]);
+Goal "(ft`s)&&(rt`s)=s";
+by (stream_case_tac "s" 1);
+by (ALLGOALS (asm_simp_tac (simpset() addsimps stream.rews)));
+qed "surjectiv_scons";
 
-qed_goal_spec_mp "monofun_rt_mult" thy 
-"!x s. x << s --> iterate i rt x << iterate i rt s" (fn _ => [
-	nat_ind_tac "i" 1,
-	simp_tac (HOLCF_ss addsimps stream.take_rews) 1,
-	strip_tac 1,
-	stream_case_tac "x" 1,
-	rtac (minimal RS (monofun_iterate2 RS monofunE RS spec RS spec RS mp))1,
-	dtac stream_prefix 1,
-	 safe_tac HOL_cs,
-	asm_simp_tac (HOL_ss addsimps iterate_Suc2::stream.rews) 1]);
+Goal "ALL x s. x << s --> iterate i rt x << iterate i rt s";
+by (induct_tac "i" 1);
+by (Simp_tac 1);
+by (strip_tac 1);
+by (stream_case_tac "x" 1);
+by (rtac (minimal RS (monofun_iterate2 RS monofunE RS spec RS spec RS mp))1);
+by (dtac stream_prefix 1);
+by Safe_tac;
+by (asm_simp_tac (HOL_ss addsimps iterate_Suc2::stream.rews) 1);
+qed_spec_mp "monofun_rt_mult";
+
 			
 
 (* ----------------------------------------------------------------------- *)
@@ -133,88 +127,84 @@ qed_goal_spec_mp "monofun_rt_mult" thy
 
 section "stream_take";
 
-qed_goal "stream_reach2" thy  "(LUB i. stream_take i`s) = s"
- (fn prems =>
-	[
-	(res_inst_tac [("t","s")] (stream.reach RS subst) 1),
-	(stac fix_def2 1),
-	(rewrite_goals_tac [stream.take_def]),
-	(stac contlub_cfun_fun 1),
-	(rtac chain_iterate 1),
-	(rtac refl 1)
-	]);
+Goal  "(LUB i. stream_take i`s) = s";
+by (subgoal_tac "(LUB i. stream_take i`s) = fix`stream_copy`s" 1);
+by (simp_tac (simpset() addsimps [fix_def2, stream.take_def,
+                                  contlub_cfun_fun, chain_iterate]) 2);
+by (asm_full_simp_tac (simpset() addsimps [stream.reach]) 1);
+qed "stream_reach2";
 
-qed_goal "chain_stream_take" thy "chain (%i. stream_take i`s)" (fn _ => [
-	rtac chainI 1,
-	subgoal_tac "!i s. stream_take i`s << stream_take (Suc i)`s" 1,
-	fast_tac HOL_cs 1,
-	rtac allI 1,
-	nat_ind_tac "i" 1,
-	 simp_tac (HOLCF_ss addsimps stream.take_rews) 1,
-	rtac allI 1,
-	stream_case_tac "s" 1,
-	 simp_tac (HOLCF_ss addsimps stream.take_rews) 1,
-	asm_simp_tac (HOLCF_ss addsimps monofun_cfun_arg::stream.take_rews) 1]);
+Goal "chain (%i. stream_take i`s)";
+by (rtac chainI 1);
+by (subgoal_tac "ALL i s. stream_take i`s << stream_take (Suc i)`s" 1);
+by (Fast_tac 1);
+by (rtac allI 1);
+by (induct_tac "ia" 1);
+by (Simp_tac 1);
+by (rtac allI 1);
+by (stream_case_tac "s" 1);
+by (Simp_tac 1);
+by (asm_simp_tac (simpset() addsimps [monofun_cfun_arg]) 1);
+qed "chain_stream_take";
 
-qed_goalw "stream_take_more" thy [stream.take_def] 
-	"stream_take n`x = x ==> stream_take (Suc n)`x = x" (fn prems => [
-		cut_facts_tac prems 1,
-		rtac antisym_less 1,
-		rtac (stream.reach RS subst) 1, (* 1*back(); *)
-		rtac monofun_cfun_fun 1,
-		stac fix_def2 1,
-		rtac is_ub_thelub 1,
-		rtac chain_iterate 1,
-		etac subst 1, (* 2*back(); *)
-		rtac monofun_cfun_fun 1,
-		rtac (rewrite_rule [chain] chain_iterate RS spec) 1]);
+
+Goalw [stream.take_def]
+	"stream_take n`x = x ==> stream_take (Suc n)`x = x";
+by (rtac antisym_less 1);
+by (subgoal_tac "iterate (Suc n) stream_copy UU`x << fix`stream_copy`x" 1);
+by (asm_full_simp_tac (simpset() addsimps [stream.reach]) 1);
+by (rtac monofun_cfun_fun 1);
+by (stac fix_def2 1);
+by (rtac is_ub_thelub 1);
+by (rtac chain_iterate 1);
+by (etac subst 1 THEN rtac monofun_cfun_fun 1);
+by (rtac (rewrite_rule [chain] chain_iterate RS spec) 1);
+qed "stream_take_more";
 
 (*
-val stream_take_lemma2 = prove_goal thy 
- "! s2. stream_take n`s2 = s2 --> stream_take (Suc n)`s2=s2" (fn prems => [
-	(nat_ind_tac "n" 1),
-	(simp_tac (simpset() addsimps stream_rews) 1),
-	(strip_tac 1),
-	(hyp_subst_tac  1),
-	(simp_tac (simpset() addsimps stream_rews) 1),
-	(rtac allI 1),
-	(res_inst_tac [("s","s2")] streamE 1),
-	(asm_simp_tac (simpset() addsimps stream_rews) 1),
-	(asm_simp_tac (simpset() addsimps stream_rews) 1),
-	(strip_tac 1 ),
-	(subgoal_tac "stream_take n1`xs = xs" 1),
-	(rtac ((hd stream_inject) RS conjunct2) 2),
-	(atac 4),
-	(atac 2),
-	(atac 2),
-	(rtac cfun_arg_cong 1),
-	(fast_tac HOL_cs 1)
-	]);
+Goal 
+ "ALL  s2. stream_take n`s2 = s2 --> stream_take (Suc n)`s2=s2";
+by (induct_tac "n" 1);
+by (simp_tac (simpset() addsimps stream_rews) 1);
+by (strip_tac 1);
+by (hyp_subst_tac  1);
+by (simp_tac (simpset() addsimps stream_rews) 1);
+by (rtac allI 1);
+by (res_inst_tac [("s","s2")] streamE 1);
+by (asm_simp_tac (simpset() addsimps stream_rews) 1);
+by (asm_simp_tac (simpset() addsimps stream_rews) 1);
+by (strip_tac 1 );
+by (subgoal_tac "stream_take n1`xs = xs" 1);
+by (rtac ((hd stream_inject) RS conjunct2) 2);
+by (atac 4);
+by (atac 2);
+by (atac 2);
+by (rtac cfun_arg_cong 1);
+by (Blast_tac 1);
+qed "stream_take_lemma2";
 *)
 
-val stream_take_lemma3 = prove_goal thy 
- "!x xs. x~=UU --> stream_take n`(x && xs) = x && xs --> stream_take n`xs=xs"
- (fn prems => [
-	(nat_ind_tac "n" 1),
-	(asm_simp_tac (HOL_ss addsimps stream.take_rews) 1),
-	(strip_tac 1),
-	(res_inst_tac [("P","x && xs=UU")] notE 1),
-	(eresolve_tac stream.con_rews 1),
-	(etac sym 1),
-	(strip_tac 1),
-	(rtac stream_take_more 1),
-	(res_inst_tac [("a1","x")] ((hd stream.injects) RS conjunct2) 1),
-	(etac (hd(tl(tl(stream.take_rews))) RS subst) 1),
-	(atac 1),
-	(atac 1)]) RS spec RS spec RS mp RS mp;
+Goal 
+ "ALL x xs. x~=UU --> stream_take n`(x && xs) = x && xs --> stream_take n`xs=xs";
+by (induct_tac "n" 1);
+by (Asm_simp_tac 1);
+by (strip_tac 1);
+by (res_inst_tac [("P","x && xs=UU")] notE 1);
+by (eresolve_tac stream.con_rews 1);
+by (etac sym 1);
+by (strip_tac 1);
+by (rtac stream_take_more 1);
+by (res_inst_tac [("a1","x")] ((hd stream.injects) RS conjunct2) 1);
+by (assume_tac 3);
+by (etac (hd(tl(tl(stream.take_rews))) RS subst) 1);
+by (atac 1);
+qed_spec_mp "stream_take_lemma3";
 
-val stream_take_lemma4 = prove_goal thy 
- "!x xs. stream_take n`xs=xs --> stream_take (Suc n)`(x && xs) = x && xs"
- (fn _ => [
-	(nat_ind_tac "n" 1),
-	(simp_tac (HOL_ss addsimps stream.take_rews) 1),
-	(simp_tac (HOL_ss addsimps stream.take_rews) 1)
-	]) RS spec RS spec RS mp;
+Goal 
+ "ALL x xs. stream_take n`xs=xs --> stream_take (Suc n)`(x && xs) = x && xs";
+by (induct_tac "n" 1);
+by Auto_tac;  
+qed_spec_mp "stream_take_lemma4";
 
 
 (* ------------------------------------------------------------------------- *)
@@ -223,50 +213,58 @@ val stream_take_lemma4 = prove_goal thy
 
 section "induction";
 
-qed_goalw "stream_finite_ind" thy [stream.finite_def] 
- "[| stream_finite x; P UU; !!a s. [| a ~= UU; P s |] ==> P (a && s) |] ==> P x" 
- (fn prems => [
-	(cut_facts_tac prems 1),
-	(etac exE 1),
-	(etac subst 1),
-	(rtac stream.finite_ind 1),
-	(atac 1),
-	(eresolve_tac prems 1),
-	(atac 1)]);
 
-qed_goal "stream_finite_ind2" thy
+val prems = Goalw [stream.finite_def]
+ "[| stream_finite x;  \
+\    P UU; \
+\    !!a s. [| a ~= UU; P s |] \
+\ ==> P (a && s) |] ==> P x";
+by (cut_facts_tac prems 1);
+by (etac exE 1);
+by (etac subst 1);
+by (rtac stream.finite_ind 1);
+by (atac 1);
+by (eresolve_tac prems 1);
+by (atac 1);
+qed "stream_finite_ind";
+
+val major::prems = Goal
 "[| P UU;\
 \   !! x    .    x ~= UU                  ==> P (x      && UU); \
 \   !! y z s. [| y ~= UU; z ~= UU; P s |] ==> P (y && z && s )  \
-\   |] ==> !s. P (stream_take n`s)" (fn prems => [
-	res_inst_tac [("n","n")] nat_induct2 1,
-	  asm_simp_tac (HOL_ss addsimps (hd prems)::stream.take_rews) 1,
-	 rtac allI 1,
-	 stream_case_tac "s" 1,
-	  asm_simp_tac (HOL_ss addsimps (hd prems)::stream.take_rews) 1,
-	 asm_simp_tac (HOL_ss addsimps stream.take_rews addsimps prems) 1,
-	rtac allI 1,
-	stream_case_tac "s" 1,
-	 asm_simp_tac (HOL_ss addsimps (hd prems)::stream.take_rews) 1,
-	res_inst_tac [("x","sa")] stream.casedist 1,
-	 asm_simp_tac (HOL_ss addsimps stream.take_rews addsimps prems) 1,
-	asm_simp_tac (HOL_ss addsimps stream.take_rews addsimps prems) 1]);
+\   |] ==> !s. P (stream_take n`s)";
+by (res_inst_tac [("n","n")] nat_induct2 1);
+by (asm_simp_tac (simpset() addsimps [major]) 1);
+by (rtac allI 1);
+by (stream_case_tac "s" 1);
+by (asm_simp_tac (simpset() addsimps [major]) 1);
+by (asm_simp_tac (simpset() addsimps prems) 1);
+by (rtac allI 1);
+by (stream_case_tac "s" 1);
+by (asm_simp_tac (simpset() addsimps [major]) 1);
+by (res_inst_tac [("x","sa")] stream.casedist 1);
+by (asm_simp_tac (simpset() addsimps prems) 1);
+by (asm_simp_tac (simpset() addsimps prems) 1);
+qed "stream_finite_ind2";
 
 
-qed_goal "stream_ind2" thy
+val prems = Goal
 "[| adm P; P UU; !!a. a ~= UU ==> P (a && UU); \
 \   !!a b s. [| a ~= UU; b ~= UU; P s |] ==> P (a && b && s)\
-\ |] ==> P x" (fn prems => [
-	rtac (stream.reach RS subst) 1,
-	rtac (adm_impl_admw RS wfix_ind) 1,
-	rtac adm_subst 1,
-	cont_tacR 1,
-	resolve_tac prems 1,
-	rtac allI 1,
-	rtac (rewrite_rule [stream.take_def] stream_finite_ind2 RS spec) 1,
-	resolve_tac prems 1,
-	eresolve_tac prems 1,
-	eresolve_tac prems 1, atac 1, atac 1]);
+\ |] ==> P x";
+by (rtac (stream.reach RS subst) 1);
+by (rtac (adm_impl_admw RS wfix_ind) 1);
+by (rtac adm_subst 1);
+by (cont_tacR 1);
+by (resolve_tac prems 1);
+by (rtac allI 1);
+by (rtac (rewrite_rule [stream.take_def] stream_finite_ind2 RS spec) 1);
+by (resolve_tac prems 1);
+by (eresolve_tac prems 1);
+by (eresolve_tac prems 1);
+by (atac 1);
+by (atac 1);
+qed "stream_ind2";
 
 
 (* ----------------------------------------------------------------------- *)
@@ -275,41 +273,39 @@ qed_goal "stream_ind2" thy
 
 section "coinduction";
 
-qed_goalw "stream_coind_lemma2" thy [stream.bisim_def]
-"!s1 s2. R s1 s2 --> ft`s1 = ft`s2 &  R (rt`s1) (rt`s2) ==> stream_bisim R"
- (fn prems =>
-	[
-	(cut_facts_tac prems 1),
-	(strip_tac 1),
-	(etac allE 1),
-	(etac allE 1),
-	(dtac mp 1),
-	(atac 1),
-	(etac conjE 1),
-	(case_tac "x = UU & x' = UU" 1),
-	(rtac disjI1 1),
-	(fast_tac HOL_cs 1),
-	(rtac disjI2 1),
-	(rtac disjE 1),
-	(etac (de_Morgan_conj RS subst) 1),
-	(res_inst_tac [("x","ft`x")] exI 1),
-	(res_inst_tac [("x","rt`x")] exI 1),
-	(res_inst_tac [("x","rt`x'")] exI 1),
-	(rtac conjI 1),
-	(etac ft_defin 1),
-	(asm_simp_tac (HOLCF_ss addsimps stream.rews addsimps [surjectiv_scons]) 1),
-	(eres_inst_tac [("s","ft`x"),("t","ft`x'")] subst 1),
-	(simp_tac (HOLCF_ss addsimps stream.rews addsimps [surjectiv_scons]) 1),
-	(res_inst_tac [("x","ft`x'")] exI 1),
-	(res_inst_tac [("x","rt`x")] exI 1),
-	(res_inst_tac [("x","rt`x'")] exI 1),
-	(rtac conjI 1),
-	(etac ft_defin 1),
-	(asm_simp_tac (HOLCF_ss addsimps stream.rews addsimps [surjectiv_scons]) 1),
-	(res_inst_tac [("s","ft`x"),("t","ft`x'")] ssubst 1),
-	(etac sym 1),
-	(simp_tac (HOLCF_ss addsimps stream.rews addsimps [surjectiv_scons]) 1)
-	]);
+
+Goalw [stream.bisim_def]
+"!s1 s2. R s1 s2 --> ft`s1 = ft`s2 &  R (rt`s1) (rt`s2) ==> stream_bisim R";
+by (strip_tac 1);
+by (etac allE 1);
+by (etac allE 1);
+by (dtac mp 1);
+by (atac 1);
+by (etac conjE 1);
+by (case_tac "x = UU & x' = UU" 1);
+by (rtac disjI1 1);
+by (Blast_tac 1);
+by (rtac disjI2 1);
+by (rtac disjE 1);
+by (etac (de_Morgan_conj RS subst) 1);
+by (res_inst_tac [("x","ft`x")] exI 1);
+by (res_inst_tac [("x","rt`x")] exI 1);
+by (res_inst_tac [("x","rt`x'")] exI 1);
+by (rtac conjI 1);
+by (etac ft_defin 1);
+by (asm_simp_tac (simpset() addsimps stream.rews addsimps [surjectiv_scons]) 1);
+by (eres_inst_tac [("s","ft`x"),("t","ft`x'")] subst 1);
+by (simp_tac (simpset() addsimps stream.rews addsimps [surjectiv_scons]) 1);
+by (res_inst_tac [("x","ft`x'")] exI 1);
+by (res_inst_tac [("x","rt`x")] exI 1);
+by (res_inst_tac [("x","rt`x'")] exI 1);
+by (rtac conjI 1);
+by (etac ft_defin 1);
+by (asm_simp_tac (simpset() addsimps stream.rews addsimps [surjectiv_scons]) 1);
+by (res_inst_tac [("s","ft`x"),("t","ft`x'")] ssubst 1);
+by (etac sym 1);
+by (simp_tac (simpset() addsimps stream.rews addsimps [surjectiv_scons]) 1);
+qed "stream_coind_lemma2";
 
 (* ----------------------------------------------------------------------- *)
 (* theorems about stream_finite                                            *)
@@ -317,59 +313,44 @@ qed_goalw "stream_coind_lemma2" thy [stream.bisim_def]
 
 section "stream_finite";
 
-qed_goalw "stream_finite_UU" thy [stream.finite_def] "stream_finite UU" 
-	(fn prems => [
-	(rtac exI 1),
-	(simp_tac (HOLCF_ss addsimps stream.rews) 1)]);
 
-qed_goal "stream_finite_UU_rev" thy  "~  stream_finite s ==> s ~= UU"  (fn prems =>
-	[
-	(cut_facts_tac prems 1),
-	(etac contrapos 1),
-	(hyp_subst_tac  1),
-	(rtac stream_finite_UU 1)
-	]);
+Goalw [stream.finite_def] "stream_finite UU";
+by (rtac exI 1);
+by (simp_tac (simpset() addsimps stream.rews) 1);
+qed "stream_finite_UU";
 
-qed_goalw "stream_finite_lemma1" thy [stream.finite_def]
- "stream_finite xs ==> stream_finite (x && xs)" (fn prems => [
-	(cut_facts_tac prems 1),
-	(etac exE 1),
-	(rtac exI 1),
-	(etac stream_take_lemma4 1)
-	]);
+Goal  "~  stream_finite s ==> s ~= UU";
+by (blast_tac (claset() addIs [stream_finite_UU]) 1);
+qed "stream_finite_UU_rev";
 
-qed_goalw "stream_finite_lemma2" thy [stream.finite_def]
- "[| x ~= UU; stream_finite (x && xs) |] ==> stream_finite xs" (fn prems =>
-	[
-	(cut_facts_tac prems 1),
-	(etac exE 1),
-	(rtac exI 1),
-	(etac stream_take_lemma3 1),
-	(atac 1)
-	]);
+Goalw [stream.finite_def] "stream_finite xs ==> stream_finite (x && xs)";
+by (blast_tac (claset() addIs [stream_take_lemma4]) 1);
+qed "stream_finite_lemma1";
 
-qed_goal "stream_finite_rt_eq" thy "stream_finite (rt`s) = stream_finite s"
-	(fn _ => [
-	stream_case_tac "s" 1,
-	 simp_tac (HOL_ss addsimps stream_finite_UU::stream.sel_rews) 1,
-	asm_simp_tac (HOL_ss addsimps stream.sel_rews) 1,
-	fast_tac (HOL_cs addIs [stream_finite_lemma1] 
-			 addDs [stream_finite_lemma2]) 1]);
+Goalw [stream.finite_def]
+ "[| x ~= UU; stream_finite (x && xs) |] ==> stream_finite xs";
+by (blast_tac (claset() addIs [stream_take_lemma3]) 1);
+qed "stream_finite_lemma2";
 
-qed_goal_spec_mp "stream_finite_less" thy 
- "stream_finite s ==> !t. t<<s --> stream_finite t" (fn prems => [
-	cut_facts_tac prems 1,
-	eres_inst_tac [("x","s")] stream_finite_ind 1,
-	 strip_tac 1, dtac UU_I 1,
-	 asm_simp_tac (HOLCF_ss addsimps [stream_finite_UU]) 1,
-	strip_tac 1,
-	asm_full_simp_tac (HOL_ss addsimps [stream_prefix']) 1,
-	fast_tac (HOL_cs addSIs [stream_finite_UU, stream_finite_lemma1]) 1]);
+Goal "stream_finite (rt`s) = stream_finite s";
+by (stream_case_tac "s" 1);
+by (simp_tac (simpset() addsimps [stream_finite_UU]) 1);
+by (Asm_simp_tac 1);
+by (fast_tac (claset() addIs [stream_finite_lemma1] 
+                       addDs [stream_finite_lemma2]) 1);
+qed "stream_finite_rt_eq";
 
-qed_goal "adm_not_stream_finite" thy "adm (%x. ~  stream_finite x)" (fn _ => [
-	rtac admI2 1,
-	dtac spec 1,
-	etac contrapos 1,
-	dtac stream_finite_less 1,
-	 etac is_ub_thelub 1,
-	atac 1]);
+Goal "stream_finite s ==> !t. t<<s --> stream_finite t";
+by (eres_inst_tac [("x","s")] stream_finite_ind 1);
+by (strip_tac 1); 
+by (dtac UU_I 1);
+by (asm_simp_tac (simpset() addsimps [stream_finite_UU]) 1);
+by (strip_tac 1);
+by (asm_full_simp_tac (simpset() addsimps [stream_prefix']) 1);
+by (fast_tac (claset() addSIs [stream_finite_UU, stream_finite_lemma1]) 1);
+qed_spec_mp "stream_finite_less";
+
+Goal "adm (%x. ~  stream_finite x)";
+by (rtac admI2 1);
+by (best_tac (claset() addIs [stream_finite_less, is_ub_thelub]) 1);
+qed "adm_not_stream_finite";

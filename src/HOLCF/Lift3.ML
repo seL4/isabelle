@@ -8,7 +8,7 @@ Class Instance lift::(term)pcpo
 
 
 (* for compatibility with old HOLCF-Version *)
-val prems = goal thy "UU = Undef";
+Goal "UU = Undef";
 by (simp_tac (HOL_ss addsimps [UU_def,UU_lift_def]) 1);
 qed "inst_lift_pcpo";
 
@@ -86,8 +86,7 @@ by (rtac exI 1);
 by (Asm_simp_tac 1);
 qed"Lift_exhaust";
 
-val prems = goal thy 
-  "[| x = UU ==> P; ? a. x = Def a ==> P |] ==> P";
+val prems = Goal "[| x = UU ==> P; ? a. x = Def a ==> P |] ==> P";
 by (cut_facts_tac [Lift_exhaust] 1);
 by (fast_tac (HOL_cs addSEs prems) 1);
 qed"Lift_cases";
@@ -103,13 +102,11 @@ val def_tac = etac (not_Undef_is_Def RS iffD1 RS exE) THEN' Asm_simp_tac;
 
 bind_thm("Undef_eq_UU", inst_lift_pcpo RS sym);
 
-val prems = goal thy "Def x = UU ==> R";
-by (cut_facts_tac prems 1);
+Goal "Def x = UU ==> R";
 by (asm_full_simp_tac (HOL_ss addsimps [Def_not_UU]) 1);
 qed "DefE";
 
-val prems = goal thy "[| x = Def s; x = UU |] ==> R";
-by (cut_facts_tac prems 1);
+Goal "[| x = Def s; x = UU |] ==> R";
 by (fast_tac (HOL_cs addSDs [DefE]) 1);
 qed"DefE2";
 
@@ -151,10 +148,8 @@ qed"cont_Rep_CFun_app_app";
 
 
 (* continuity of if then else *)
-val prems = goal thy "[| cont f1; cont f2 |] ==> \
-\   cont (%x. if b then f1 x else f2 x)";
-by (cut_facts_tac prems 1);
+Goal "[| cont f1; cont f2 |] ==> cont (%x. if b then f1 x else f2 x)";
 by (case_tac "b" 1);
-by (TRYALL (fast_tac (HOL_cs addss HOL_ss)));
+by Auto_tac;
 qed"cont_if";
 

@@ -7,7 +7,7 @@ Class Instance **::(pcpo,pcpo)po
 *)
 
 (* for compatibility with old HOLCF-Version *)
-val prems = goal thy "(op <<)=(%x y. Isfst x<<Isfst y&Issnd x<<Issnd y)";
+Goal "(op <<)=(%x y. Isfst x<<Isfst y&Issnd x<<Issnd y)";
 by (fold_goals_tac [less_sprod_def]);
 by (rtac refl 1);
 qed "inst_sprod_po";
@@ -16,13 +16,13 @@ qed "inst_sprod_po";
 (* type sprod is pointed                                                    *)
 (* ------------------------------------------------------------------------ *)
 
-val prems = goal thy "Ispair UU UU << p";
+Goal "Ispair UU UU << p";
 by (simp_tac(Sprod0_ss addsimps[inst_sprod_po,minimal])1);
 qed "minimal_sprod";
 
 bind_thm ("UU_sprod_def",minimal_sprod RS minimal2UU RS sym);
 
-val prems = goal thy "? x::'a**'b.!y. x<<y";
+Goal "? x::'a**'b.!y. x<<y";
 by (res_inst_tac [("x","Ispair UU UU")] exI 1);
 by (rtac (minimal_sprod RS allI) 1);
 qed "least_sprod";
@@ -31,7 +31,7 @@ qed "least_sprod";
 (* Ispair is monotone in both arguments                                     *)
 (* ------------------------------------------------------------------------ *)
 
-val prems = goalw Sprod2.thy [monofun]  "monofun(Ispair)";
+Goalw [monofun]  "monofun(Ispair)";
 by (strip_tac 1);
 by (rtac (less_fun RS iffD2) 1);
 by (strip_tac 1);
@@ -42,7 +42,7 @@ by (atac 1);
 by (REPEAT(asm_simp_tac(Sprod0_ss addsimps[inst_sprod_po,refl_less,minimal]) 1));
 qed "monofun_Ispair1";
 
-val prems = goalw Sprod2.thy [monofun]  "monofun(Ispair(x))";
+Goalw [monofun]  "monofun(Ispair(x))";
 by (strip_tac 1);
 by (res_inst_tac [("Q","x=UU")] (excluded_middle RS disjE) 1);
 by (res_inst_tac [("Q","xa=UU")] (excluded_middle RS disjE) 1);
@@ -64,11 +64,11 @@ qed "monofun_Ispair";
 (* Isfst and Issnd are monotone                                             *)
 (* ------------------------------------------------------------------------ *)
 
-val prems = goalw Sprod2.thy [monofun]  "monofun(Isfst)";
+Goalw [monofun]  "monofun(Isfst)";
 by (simp_tac (HOL_ss addsimps [inst_sprod_po]) 1);
 qed "monofun_Isfst";
 
-val prems = goalw Sprod2.thy [monofun]  "monofun(Issnd)";
+Goalw [monofun]  "monofun(Issnd)";
 by (simp_tac (HOL_ss addsimps [inst_sprod_po]) 1);
 qed "monofun_Issnd";
 
@@ -76,12 +76,11 @@ qed "monofun_Issnd";
 (* the type 'a ** 'b is a cpo                                               *)
 (* ------------------------------------------------------------------------ *)
 
-val prems = goal Sprod2.thy 
+Goal 
 "[|chain(S)|] ==> range(S) <<| \
 \ Ispair (lub(range(%i. Isfst(S i)))) (lub(range(%i. Issnd(S i))))";
-by (cut_facts_tac prems 1);
-by (rtac (conjI RS is_lubI) 1);
-by (rtac (allI RS ub_rangeI) 1);
+by (rtac (is_lubI) 1);
+by (rtac (ub_rangeI) 1);
 by (res_inst_tac [("t","S(i)")] (surjective_pairing_Sprod RS ssubst) 1);
 by (rtac monofun_Ispair 1);
 by (rtac is_ub_thelub 1);
@@ -102,9 +101,7 @@ qed "lub_sprod";
 bind_thm ("thelub_sprod", lub_sprod RS thelubI);
 
 
-val prems = goal Sprod2.thy 
-        "chain(S::nat=>'a**'b)==>? x. range(S)<<| x";
-by (cut_facts_tac prems 1);
+Goal "chain(S::nat=>'a**'b)==>? x. range(S)<<| x";
 by (rtac exI 1);
 by (etac lub_sprod 1);
 qed "cpo_sprod";

@@ -5,6 +5,6 @@
 *)
 
 (* for compatibility with old HOLCF-Version *)
-val prems = goal thy "UU = (%x. UU)";
+Goal "UU = (%x. UU)";
 by (simp_tac (HOL_ss addsimps [UU_def,UU_fun_def]) 1);
 qed "inst_fun_pcpo";

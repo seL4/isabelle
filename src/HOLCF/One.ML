@@ -10,14 +10,13 @@ The unit domain
 (* Exhaustion and Elimination for type one                                  *)
 (* ------------------------------------------------------------------------ *)
 
-val prems = goalw thy [ONE_def] "t=UU | t = ONE";
+Goalw [ONE_def] "t=UU | t = ONE";
 by (lift.induct_tac "t" 1);
 by (Simp_tac 1);
 by (Simp_tac 1);
 qed "Exh_one";
 
-val prems = goal thy
-        "[| p=UU ==> Q; p = ONE ==>Q|] ==>Q";
+val prems = Goal "[| p=UU ==> Q; p = ONE ==>Q|] ==>Q";
 by (rtac (Exh_one RS disjE) 1);
 by (eresolve_tac prems 1);
 by (eresolve_tac prems 1);

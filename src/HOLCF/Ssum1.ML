@@ -32,11 +32,10 @@ fun UU_right s1 =
         (res_inst_tac [("t",s1)](noteq_IsinlIsinr RS conjunct2 RS ssubst)1)
         THEN (rtac trans 1)
         THEN (atac 2)
-        THEN (etac sym 1))
+        THEN (etac sym 1));
 
-val prems = goalw thy [less_ssum_def]
+Goalw [less_ssum_def]
 "[|s1=Isinl(x::'a); s2=Isinl(y::'a)|] ==> s1 << s2 = (x << y)";
-by (cut_facts_tac prems 1);
 by (rtac select_equality 1);
 by (dtac conjunct1 2);
 by (dtac spec 2);
@@ -73,9 +72,8 @@ by (Simp_tac 1);
 qed "less_ssum1a";
 
 
-val prems = goalw thy [less_ssum_def]
+Goalw [less_ssum_def]
 "[|s1=Isinr(x::'b); s2=Isinr(y::'b)|] ==> s1 << s2 = (x << y)";
-by (cut_facts_tac prems 1);
 by (rtac select_equality 1);
 by (dtac conjunct2 2);
 by (dtac conjunct1 2);
@@ -113,9 +111,8 @@ by (rtac refl_less 1);
 qed "less_ssum1b";
 
 
-val prems = goalw thy [less_ssum_def]
+Goalw [less_ssum_def]
 "[|s1=Isinl(x::'a); s2=Isinr(y::'b)|] ==> s1 << s2 = ((x::'a) = UU)";
-by (cut_facts_tac prems 1);
 by (rtac select_equality 1);
 by (rtac conjI 1);
 by (strip_tac 1);
@@ -153,9 +150,8 @@ by (fast_tac HOL_cs 1);
 qed "less_ssum1c";
 
 
-val prems = goalw thy [less_ssum_def]
+Goalw [less_ssum_def]
 "[|s1=Isinr(x); s2=Isinl(y)|] ==> s1 << s2 = (x = UU)";
-by (cut_facts_tac prems 1);
 by (rtac select_equality 1);
 by (dtac conjunct2 2);
 by (dtac conjunct2 2);

@@ -7,7 +7,7 @@ Class instance of  -> for class pcpo
 *)
 
 (* for compatibility with old HOLCF-Version *)
-val prems = goal thy "UU = Abs_CFun(%x. UU)";
+Goal "UU = Abs_CFun(%x. UU)";
 by (simp_tac (HOL_ss addsimps [UU_def,UU_cfun_def]) 1);
 qed "inst_cfun_pcpo";
 
@@ -15,7 +15,7 @@ qed "inst_cfun_pcpo";
 (* the contlub property for Rep_CFun its 'first' argument                       *)
 (* ------------------------------------------------------------------------ *)
 
-val prems = goal thy "contlub(Rep_CFun)";
+Goal "contlub(Rep_CFun)";
 by (rtac contlubI 1);
 by (strip_tac 1);
 by (rtac (expand_fun_eq RS iffD2) 1);
@@ -34,7 +34,7 @@ qed "contlub_Rep_CFun1";
 (* the cont property for Rep_CFun in its first argument                        *)
 (* ------------------------------------------------------------------------ *)
 
-val prems = goal thy "cont(Rep_CFun)";
+Goal "cont(Rep_CFun)";
 by (rtac monocontlub2cont 1);
 by (rtac monofun_Rep_CFun1 1);
 by (rtac contlub_Rep_CFun1 1);
@@ -45,10 +45,9 @@ qed "cont_Rep_CFun1";
 (* contlub, cont properties of Rep_CFun in its first argument in mixfix _[_]   *)
 (* ------------------------------------------------------------------------ *)
 
-val prems = goal thy 
+Goal 
 "chain(FY) ==>\
 \ lub(range FY)`x = lub(range (%i. FY(i)`x))";
-by (cut_facts_tac prems 1);
 by (rtac trans 1);
 by (etac (contlub_Rep_CFun1 RS contlubE RS spec RS mp RS fun_cong) 1);
 by (stac thelub_fun 1);
@@ -57,10 +56,9 @@ by (rtac refl 1);
 qed "contlub_cfun_fun";
 
 
-val prems = goal thy 
+Goal 
 "chain(FY) ==>\
 \ range(%i. FY(i)`x) <<| lub(range FY)`x";
-by (cut_facts_tac prems 1);
 by (rtac thelubE 1);
 by (etac ch2ch_Rep_CFunL 1);
 by (etac (contlub_cfun_fun RS sym) 1);
@@ -71,10 +69,9 @@ qed "cont_cfun_fun";
 (* contlub, cont  properties of Rep_CFun in both argument in mixfix _[_]       *)
 (* ------------------------------------------------------------------------ *)
 
-val prems = goal thy 
+Goal 
 "[|chain(FY);chain(TY)|] ==>\
 \ (lub(range FY))`(lub(range TY)) = lub(range(%i. FY(i)`(TY i)))";
-by (cut_facts_tac prems 1);
 by (rtac contlub_CF2 1);
 by (rtac cont_Rep_CFun1 1);
 by (rtac allI 1);
@@ -83,10 +80,9 @@ by (atac 1);
 by (atac 1);
 qed "contlub_cfun";
 
-val prems = goal thy 
+Goal 
 "[|chain(FY);chain(TY)|] ==>\
 \ range(%i.(FY i)`(TY i)) <<| (lub (range FY))`(lub(range TY))";
-by (cut_facts_tac prems 1);
 by (rtac thelubE 1);
 by (rtac (monofun_Rep_CFun1 RS ch2ch_MF2LR) 1);
 by (rtac allI 1);
@@ -113,7 +109,7 @@ qed "cont2cont_Rep_CFun";
 (* cont2mono Lemma for %x. LAM y. c1(x)(y)                                  *)
 (* ------------------------------------------------------------------------ *)
 
-val [p1,p2] = goal thy 
+val [p1,p2] = Goal  
  "[| !!x. cont(c1 x); !!y. monofun(%x. c1 x y)|] ==> monofun(%x. LAM y. c1 x y)";
 by (rtac monofunI 1);
 by (strip_tac 1);
@@ -131,7 +127,7 @@ qed "cont2mono_LAM";
 (* cont2cont Lemma for %x. LAM y. c1 x y)                                 *)
 (* ------------------------------------------------------------------------ *)
 
-val [p1,p2] = goal thy 
+val [p1,p2] = Goal  
  "[| !!x. cont(c1 x); !!y. cont(%x. c1 x y) |] ==> cont(%x. LAM y. c1 x y)";
 by (rtac monocontlub2cont 1);
 by (rtac (p1 RS cont2mono_LAM) 1);
@@ -166,7 +162,7 @@ Addsimps cont_lemmas1;
 (* function application _[_]  is strict in its first arguments              *)
 (* ------------------------------------------------------------------------ *)
 
-val prems = goal thy "(UU::'a::cpo->'b)`x = (UU::'b)";
+Goal "(UU::'a::cpo->'b)`x = (UU::'b)";
 by (stac inst_cfun_pcpo 1);
 by (stac beta_cfun 1);
 by (Simp_tac 1);
@@ -178,18 +174,17 @@ qed "strict_Rep_CFun1";
 (* results about strictify                                                  *)
 (* ------------------------------------------------------------------------ *)
 
-val prems = goalw thy [Istrictify_def]
+Goalw [Istrictify_def]
         "Istrictify(f)(UU)= (UU)";
 by (Simp_tac 1);
 qed "Istrictify1";
 
-val prems = goalw thy [Istrictify_def]
+Goalw [Istrictify_def]
         "~x=UU ==> Istrictify(f)(x)=f`x";
-by (cut_facts_tac prems 1);
 by (Asm_simp_tac 1);
 qed "Istrictify2";
 
-val prems = goal thy "monofun(Istrictify)";
+Goal "monofun(Istrictify)";
 by (rtac monofunI 1);
 by (strip_tac 1);
 by (rtac (less_fun RS iffD2) 1);
@@ -207,7 +202,7 @@ by (stac Istrictify1 1);
 by (rtac refl_less 1);
 qed "monofun_Istrictify1";
 
-val prems = goal thy "monofun(Istrictify(f))";
+Goal "monofun(Istrictify(f))";
 by (rtac monofunI 1);
 by (strip_tac 1);
 by (res_inst_tac [("Q","x=UU")] (excluded_middle RS disjE) 1);
@@ -224,7 +219,7 @@ by (rtac minimal 1);
 qed "monofun_Istrictify2";
 
 
-val prems = goal thy "contlub(Istrictify)";
+Goal "contlub(Istrictify)";
 by (rtac contlubI 1);
 by (strip_tac 1);
 by (rtac (expand_fun_eq RS iffD2) 1);
@@ -276,7 +271,7 @@ bind_thm ("cont_Istrictify2", contlub_Istrictify2 RS
         (monofun_Istrictify2 RS monocontlub2cont)); 
 
 
-val _ = goalw thy [strictify_def] "strictify`f`UU=UU";
+Goalw [strictify_def] "strictify`f`UU=UU";
 by (stac beta_cfun 1);
 by (simp_tac (simpset() addsimps [cont_Istrictify2,cont_Istrictify1, cont2cont_CF1L]) 1);
 by (stac beta_cfun 1);
@@ -284,14 +279,12 @@ by (rtac cont_Istrictify2 1);
 by (rtac Istrictify1 1);
 qed "strictify1";
 
-val prems = goalw thy [strictify_def]
-        "~x=UU ==> strictify`f`x=f`x";
+Goalw [strictify_def] "~x=UU ==> strictify`f`x=f`x";
 by (stac beta_cfun 1);
 by (simp_tac (simpset() addsimps [cont_Istrictify2,cont_Istrictify1, cont2cont_CF1L]) 1);
 by (stac beta_cfun 1);
 by (rtac cont_Istrictify2 1);
-by (rtac Istrictify2 1);
-by (resolve_tac prems 1);
+by (etac Istrictify2 1);
 qed "strictify2";
 
 
@@ -326,7 +319,7 @@ qed "chfin_Rep_CFunR";
 (* a prove for embedding projection pairs is similar                        *)
 (* ------------------------------------------------------------------------ *)
 
-val prems = goal  thy  
+Goal  
 "!!f g.[|!y. f`(g`y)=(y::'b) ; !x. g`(f`x)=(x::'a) |] \
 \ ==> f`UU=UU & g`UU=UU";
 by (rtac conjI 1);
@@ -341,9 +334,7 @@ by (rtac (minimal RS monofun_cfun_arg) 1);
 qed "iso_strict";
 
 
-val prems = goal thy 
-        "[|!x. rep`(ab`x)=x;!y. ab`(rep`y)=y; z~=UU|] ==> rep`z ~= UU";
-by (cut_facts_tac prems 1);
+Goal "[|!x. rep`(ab`x)=x;!y. ab`(rep`y)=y; z~=UU|] ==> rep`z ~= UU";
 by (etac swap 1);
 by (dtac notnotD 1);
 by (dres_inst_tac [("f","ab")] cfun_arg_cong 1);
@@ -353,9 +344,7 @@ by (etac (iso_strict RS conjunct1) 1);
 by (atac 1);
 qed "isorep_defined";
 
-val prems = goal thy 
-        "[|!x. rep`(ab`x) = x;!y. ab`(rep`y)=y ; z~=UU|] ==> ab`z ~= UU";
-by (cut_facts_tac prems 1);
+Goal "[|!x. rep`(ab`x) = x;!y. ab`(rep`y)=y ; z~=UU|] ==> ab`z ~= UU";
 by (etac swap 1);
 by (dtac notnotD 1);
 by (dres_inst_tac [("f","rep")] cfun_arg_cong 1);
@@ -369,7 +358,7 @@ qed "isoabs_defined";
 (* propagation of flatness and chainfiniteness by continuous isomorphisms   *)
 (* ------------------------------------------------------------------------ *)
 
-val prems = goal thy "!!f g.[|! Y::nat=>'a. chain Y --> (? n. max_in_chain n Y); \
+Goal "!!f g.[|! Y::nat=>'a. chain Y --> (? n. max_in_chain n Y); \
 \ !y. f`(g`y)=(y::'b) ; !x. g`(f`x)=(x::'a::chfin) |] \
 \ ==> ! Y::nat=>'b. chain Y --> (? n. max_in_chain n Y)";
 by (rewtac max_in_chain_def);
@@ -391,7 +380,7 @@ by (atac 1);
 qed "chfin2chfin";
 
 
-val prems = goal thy "!!f g.[|!x y::'a. x<<y --> x=UU | x=y; \
+Goal "!!f g.[|!x y::'a. x<<y --> x=UU | x=y; \
 \ !y. f`(g`y)=(y::'b); !x. g`(f`x)=(x::'a)|] ==> !x y::'b. x<<y --> x=UU | x=y";
 by (strip_tac 1);
 by (rtac disjE 1);
@@ -419,9 +408,7 @@ qed "flat2flat";
 (* a result about functions with flat codomain                               *)
 (* ------------------------------------------------------------------------- *)
 
-val prems = goal thy 
-"f`(x::'a)=(c::'b::flat) ==> f`(UU::'a)=(UU::'b) | (!z. f`(z::'a)=c)";
-by (cut_facts_tac prems 1);
+Goal "f`(x::'a)=(c::'b::flat) ==> f`(UU::'a)=(UU::'b) | (!z. f`(z::'a)=c)";
 by (case_tac "f`(x::'a)=(UU::'b)" 1);
 by (rtac disjI1 1);
 by (rtac UU_I 1);
@@ -448,13 +435,13 @@ qed "flat_codom";
 (* ------------------------------------------------------------------------ *)
 
 
-val prems = goalw thy [ID_def] "ID`x=x";
+Goalw [ID_def] "ID`x=x";
 by (stac beta_cfun 1);
 by (rtac cont_id 1);
 by (rtac refl 1);
 qed "ID1";
 
-val _ = goalw thy [oo_def] "(f oo g)=(LAM x. f`(g`x))";
+Goalw [oo_def] "(f oo g)=(LAM x. f`(g`x))";
 by (stac beta_cfun 1);
 by (Simp_tac 1);
 by (stac beta_cfun 1);
@@ -462,7 +449,7 @@ by (Simp_tac 1);
 by (rtac refl 1);
 qed "cfcomp1";
 
-val _ = goal thy  "(f oo g)`x=f`(g`x)";
+Goal  "(f oo g)`x=f`(g`x)";
 by (stac cfcomp1 1);
 by (stac beta_cfun 1);
 by (Simp_tac 1);
@@ -479,14 +466,14 @@ qed "cfcomp2";
 (* ------------------------------------------------------------------------ *)
 
 
-val prems = goal thy "f oo ID = f ";
+Goal "f oo ID = f ";
 by (rtac ext_cfun 1);
 by (stac cfcomp2 1);
 by (stac ID1 1);
 by (rtac refl 1);
 qed "ID2";
 
-val prems = goal thy "ID oo f = f ";
+Goal "ID oo f = f ";
 by (rtac ext_cfun 1);
 by (stac cfcomp2 1);
 by (stac ID1 1);
@@ -494,7 +481,7 @@ by (rtac refl 1);
 qed "ID3";
 
 
-val prems = goal thy "f oo (g oo h) = (f oo g) oo h";
+Goal "f oo (g oo h) = (f oo g) oo h";
 by (rtac ext_cfun 1);
 by (res_inst_tac [("s","f`(g`(h`x))")] trans  1);
 by (stac cfcomp2 1);
