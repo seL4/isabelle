@@ -16,7 +16,7 @@ subsection {* Monoids *}
 (*First, we must simulate a record declaration:
 record monoid = 
   carrier :: i
-  mult :: "[i,i] => i" (infixl "\<otimes>\<index>" 70)
+  mult :: "[i,i] => i" (infixl "\<cdot>\<index>" 70)
   one :: i ("\<one>\<index>")
 *)
 
@@ -261,9 +261,9 @@ lemma (in subgroup) group_axiomsI [intro]:
   shows "group_axioms (update_carrier(G,H))"
 by (force intro: group_axioms.intro l_inv r_inv) 
 
-lemma (in subgroup) groupI [intro]:
+lemma (in subgroup) is_group [intro]:
   includes group G
-  shows "group  (update_carrier(G,H))"
+  shows "group (update_carrier(G,H))"
   by (rule groupI) (auto intro: m_assoc l_inv mem_carrier)
 
 text {*
@@ -465,7 +465,7 @@ by (simp add: subgroup_def prems)
 
 lemma (in group) subgroup_imp_group:
   "subgroup(H,G) \<Longrightarrow> group (update_carrier(G,H))"
-by (simp add: subgroup.groupI)
+by (simp add: subgroup.is_group)
 
 lemma (in group) subgroupI:
   assumes subset: "H \<subseteq> carrier(G)" and non_empty: "H \<noteq> 0"
@@ -546,7 +546,7 @@ next
 qed
 
 theorem (in group) AutoGroup: "group (AutoGroup(G))"
-by (simp add: AutoGroup_def Group.subgroup.groupI subgroup_auto group_BijGroup)
+by (simp add: AutoGroup_def subgroup.is_group subgroup_auto group_BijGroup)
 
 
 
@@ -1010,13 +1010,10 @@ lemma (in normal) rcosets_inv_mult_group_eq:
      "M \<in> rcosets H \<Longrightarrow> set_inv M <#> M = H"
 by (auto simp add: RCOSETS_def rcos_inv rcos_sum subgroup.subset prems)
 
-text{*Hack required because @{text subgroup.groupI} hides this theorem.*}
-lemmas G_groupI = groupI;
-
 theorem (in normal) factorgroup_is_group:
   "group (G Mod H)"
 apply (simp add: FactGroup_def)
-apply (rule G_groupI)
+apply (rule groupI)
     apply (simp add: setmult_closed)
    apply (simp add: normal_imp_subgroup subgroup_in_rcosets)
   apply (simp add: setmult_closed rcosets_assoc)
@@ -1038,7 +1035,10 @@ lemma (in normal) r_coset_hom_Mod:
 by (auto simp add: FactGroup_def RCOSETS_def hom_def rcos_sum intro: lam_type) 
 
 
-subsection{*Quotienting by the Kernel of a Homomorphism*}
+subsection{*The First Isomorphism Theorem*}
+
+text{*The quotient by the kernel of a homomorphism is isomorphic to the 
+  range of that homomorphism.*}
 
 constdefs
   kernel :: "[i,i,i] => i" 
@@ -1116,7 +1116,6 @@ proof (simp add: hom_def FactGroup_contents_mem lam_type mult_FactGroup normal.F
     by (simp add: all image_eq_UN [OF hom_is_fun] FactGroup_nonempty 
                   X X' Xsub X'sub)
 qed
-
 
 
 text{*Lemma for the following injectivity result*}
