@@ -16,9 +16,8 @@ function usage()
   echo "    -o FORMAT    specify output format: dvi (default), dvi.gz, ps, ps.gz,"
   echo "                 pdf, or bbl"
   echo
-  echo
-  echo "  Run LaTeX (and related tools) on FILE (default root.tex), producing the"
-  echo "  speficied output format."
+  echo "  Run LaTeX (and related tools) on FILE (default root.tex),"
+  echo "  producing the specified output format."
   echo
   exit 1
 }

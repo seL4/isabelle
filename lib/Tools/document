@@ -15,9 +15,8 @@ function usage()
   echo "  Options are:"
   echo "    -o FORMAT    specify output format: dvi (default), dvi.gz, ps, ps.gz, pdf"
   echo
-  echo
-  echo "  Prepare the theory session document in DIR (default .)"
-  echo "  producing the speficied output format."
+  echo "  Prepare the theory session document in DIR (default '.')"
+  echo "  producing the specified output format."
   echo
   exit 1
 }
