@@ -14,7 +14,7 @@ proof_timing := true;
 (***  Section 10.4  ***)
 
 val ex_thy = extend_theory thy "Ex 10.4"
-([], [], [], [],
+([], [], [], [], [],
  [(["P"], "'a => tr"),
   (["G","H"], "'a => 'a"),
   (["K"], "('a => 'a) => ('a => 'a)")
@@ -56,7 +56,7 @@ val H_idemp = rewrite_rule [mk_meta_eq (H RS sym)] H_idemp_lemma;
 (***  Example 3.8  ***)
 
 val ex_thy = extend_theory thy "Ex 3.8"
-([], [], [], [],
+([], [], [], [], [],
  [(["P"], "'a => tr"),
   (["F","G"], "'a => 'a"),
   (["H"], "'a => 'b => 'b"),
@@ -86,7 +86,7 @@ result();
 (*** Addition with fixpoint of successor ***)
 
 val ex_thy = extend_theory thy "fix ex"
-([], [], [], [],
+([], [], [], [], [],
  [(["s"], "'a => 'a"),
   (["p"], "'a => 'a => 'a")
  ],

@@ -10,7 +10,7 @@ open Cube;
 
 val simple = [s_b,strip_s,strip_b,app,lam_ss,pi_ss];
 
-val L2_thy = extend_theory Cube.thy "L2" ([],[],[],[],[],None)
+val L2_thy = extend_theory Cube.thy "L2" ([],[],[],[],[],[],None)
 [
   ("pi_bs",  "[| A:[]; !!x. x:A ==> B(x):* |] ==> Prod(A,B):*"),
 
@@ -23,7 +23,7 @@ val pi_bs = get_axiom L2_thy "pi_bs";
 
 val L2 = simple @ [lam_bs,pi_bs];
 
-val Lomega_thy = extend_theory Cube.thy "Lomega" ([],[],[],[],[],None)
+val Lomega_thy = extend_theory Cube.thy "Lomega" ([],[],[],[],[],[],None)
 [
   ("pi_bb",  "[| A:[]; !!x. x:A ==> B(x):[] |] ==> Prod(A,B):[]"),
 
@@ -38,7 +38,7 @@ val Lomega = simple @ [lam_bb,pi_bb];
 val LOmega_thy = merge_theories(L2_thy,Lomega_thy);
 val LOmega = simple @ [lam_bs,pi_bs,lam_bb,pi_bb];
 
-val LP_thy = extend_theory Cube.thy "LP" ([],[],[],[],[],None)
+val LP_thy = extend_theory Cube.thy "LP" ([],[],[],[],[],[],None)
 [
   ("pi_sb",  "[| A:*; !!x. x:A ==> B(x):[] |] ==> Prod(A,B):[]"),
 
