@@ -39,7 +39,7 @@ $(OUT)/HOLCF: $(OUT)/HOL Cfun1.ML Cfun1.thy Cfun2.ML Cfun2.thy \
   Up1.thy Up2.ML Up2.thy Up3.ML Up3.thy adm.ML cont_consts.ML \
   domain/axioms.ML domain/extender.ML domain/interface.ML \
   domain/library.ML domain/syntax.ML domain/theorems.ML holcf_logic.ML
-	@$(ISATOOL) usedir -b $(OUT)/HOL HOLCF
+	@$(ISATOOL) usedir -b -r $(OUT)/HOL HOLCF
 
 
 ## HOLCF-IMP

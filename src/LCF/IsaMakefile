@@ -28,7 +28,7 @@ FOL:
 
 $(OUT)/LCF: $(OUT)/FOL LCF.ML LCF.thy ROOT.ML fix.ML fix.thy pair.ML \
   pair.thy simpdata.ML
-	@$(ISATOOL) usedir -b $(OUT)/FOL LCF
+	@$(ISATOOL) usedir -b -r $(OUT)/FOL LCF
 
 
 ## LCF-ex

@@ -31,7 +31,7 @@ $(OUT)/CCL: $(OUT)/FOL CCL.ML CCL.thy Fix.ML Fix.thy Gfp.ML Gfp.thy \
   Term.thy Trancl.ML Trancl.thy Type.ML Type.thy Wfd.ML Wfd.thy \
   coinduction.ML equalities.ML eval.ML genrec.ML mono.ML subset.ML \
   typecheck.ML
-	@$(ISATOOL) usedir -b $(OUT)/FOL CCL
+	@$(ISATOOL) usedir -b -r $(OUT)/FOL CCL
 
 
 ## CCL-ex

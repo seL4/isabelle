@@ -46,7 +46,7 @@ $(OUT)/ZF: $(OUT)/FOL $(SRC)/Pure/section_utils.ML AC.ML AC.thy \
   Tools/primrec_package.ML Tools/induct_tacs.ML Tools/typechk.ML \
   Integ/EquivClass.ML Integ/EquivClass.thy Integ/Int.ML Integ/Int.thy \
   Integ/twos_compl.ML Integ/Bin.ML Integ/Bin.thy 
-	@$(ISATOOL) usedir -b $(OUT)/FOL ZF
+	@$(ISATOOL) usedir -b -r $(OUT)/FOL ZF
 
 
 ## ZF-IMP
