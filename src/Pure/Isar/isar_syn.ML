@@ -378,6 +378,11 @@ val skip_proofP =
   OuterSyntax.improper_command "sorry" "skip proof (quick-and-dirty mode only!)" K.qed
     (P.marg_comment >> IsarThy.skip_proof);
 
+val forget_proofP =
+  OuterSyntax.improper_command "oops" "forget proof" K.qed_global
+    (P.marg_comment >> IsarThy.forget_proof);
+
+
 
 (* proof steps *)
 
@@ -624,9 +629,9 @@ val parsers = [
   theoremP, lemmaP, showP, haveP, thusP, henceP, assumeP, presumeP,
   defP, fixP, letP, thenP, thenceP, fromP, withP, noteP, beginP, endP,
   nextP, qedP, terminal_proofP, immediate_proofP, default_proofP,
-  skip_proofP, deferP, preferP, applyP, then_applyP, proofP, alsoP,
-  finallyP, backP, cannot_undoP, clear_undosP, redoP, undos_proofP,
-  kill_proofP, undoP,
+  skip_proofP, forget_proofP, deferP, preferP, applyP, then_applyP,
+  proofP, alsoP, finallyP, backP, cannot_undoP, clear_undosP, redoP,
+  undos_proofP, kill_proofP, undoP,
   (*diagnostic commands*)
   pretty_setmarginP, print_commandsP, print_contextP, print_theoryP,
   print_syntaxP, print_theoremsP, print_attributesP, print_methodsP,

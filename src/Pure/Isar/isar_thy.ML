@@ -122,7 +122,6 @@ sig
   val then_tac: Method.text -> ProofHistory.T -> ProofHistory.T
   val proof: (Comment.interest * (Method.text * Comment.interest) option) * Comment.text
     -> ProofHistory.T -> ProofHistory.T
-  val kill_proof: ProofHistory.T -> theory
   val qed: (Method.text * Comment.interest) option * Comment.text
     -> Toplevel.transition -> Toplevel.transition
   val terminal_proof: ((Method.text * Comment.interest) * (Method.text * Comment.interest) option)
@@ -130,6 +129,7 @@ sig
   val immediate_proof: Comment.text -> Toplevel.transition -> Toplevel.transition
   val default_proof: Comment.text -> Toplevel.transition -> Toplevel.transition
   val skip_proof: Comment.text -> Toplevel.transition -> Toplevel.transition
+  val forget_proof: Comment.text -> Toplevel.transition -> Toplevel.transition
   val get_thmss: (string * Args.src list) list -> Proof.state -> thm list
   val also: ((string * Args.src list) list * Comment.interest) option * Comment.text
     -> Toplevel.transition -> Toplevel.transition
@@ -402,8 +402,6 @@ val local_skip_proof = proof'' (ProofHistory.applys o SkipProof.local_skip_proof
 
 (* global endings *)
 
-val kill_proof = Proof.theory_of o ProofHistory.current;
-
 fun global_result finish = Toplevel.proof_to_theory (fn prf =>
   let
     val state = ProofHistory.current prf;
@@ -425,6 +423,8 @@ fun terminal_proof (meths, comment) = local_terminal_proof meths o global_termin
 fun immediate_proof comment = local_immediate_proof o global_immediate_proof;
 fun default_proof comment = local_default_proof o global_default_proof;
 fun skip_proof comment = local_skip_proof o global_skip_proof;
+
+fun forget_proof comment = Toplevel.proof_to_theory (Proof.theory_of o ProofHistory.current);
 
 
 (* calculational proof commands *)
