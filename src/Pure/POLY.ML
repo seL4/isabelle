@@ -38,19 +38,25 @@ fun make_pp _ pprint (str, blk, brk, en) obj =
 
 (*** File handling ***)
 
+local
+
+(*These are functions from library.ML *)
+fun take_suffix _ [] = ([], [])
+  | take_suffix pred (x :: xs) =
+      (case take_suffix pred xs of
+         ([], sffx) => if pred x then ([], x :: sffx)
+                                 else ([x], sffx)
+       | (prfx, sffx) => (x :: prfx, sffx));
+
+fun apr (f,y) x = f(x,y);
+
+in
+
 (*Get a string containing the time of last modification, attributes, owner
   and size of file (but not the path) *)
 fun file_info "" = ""
   | file_info name =
       let
-          (*These are functions from library.ML *)
-          fun take_suffix _ [] = ([], [])
-            | take_suffix pred (x :: xs) =
-                (case take_suffix pred xs of
-                  ([], sffx) => if pred x then ([], x :: sffx) else ([x], sffx)
-                | (prfx, sffx) => (x :: prfx, sffx));
-          fun apr (f,y) x = f(x,y);
-
           val (is, os) = ExtendedIO.execute ("ls -l " ^ name)
           val (result, _) = take_suffix (apr(op<>," ")) 
                               (explode (ExtendedIO.input_line is))
@@ -62,5 +68,20 @@ fun file_info "" = ""
 
 (*Delete a file *)
 fun delete_file name =
-  let val (_,_) = ExtendedIO.execute ("rm " ^ name)
-  in () end;
+  let val (is, os) = ExtendedIO.execute ("rm " ^ name)
+  in close_in is;
+     close_out os
+  end;
+
+(*Get pathname of current working directory *)
+fun pwd () =
+  let val (is, os) = ExtendedIO.execute ("pwd")
+      val (path, _) = take_suffix (apr(op=,"\n"))
+                       (explode (ExtendedIO.input_line is)) (*remove newline *)
+  in close_in is;
+     close_out os;
+     implode path
+  end;
+
+end;
+

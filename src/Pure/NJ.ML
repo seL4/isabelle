@@ -94,3 +94,5 @@ fun delete_file name =
   let val _ = System.system ("rm " ^ name)
   in () end;
 
+(*Get pathname of current working directory *)
+fun pwd () = System.Directory.getWD ();
