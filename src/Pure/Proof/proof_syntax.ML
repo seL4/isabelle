@@ -147,7 +147,7 @@ fun proof_of_term thy tab ty =
              | "thm" :: xs =>
                  let val name = NameSpace.pack xs;
                  in (case assoc (thms, name) of
-                     Some thm => fst (strip_combt (#2 (#der (rep_thm thm))))
+                     Some thm => fst (strip_combt (Thm.proof_of thm))
                    | None => (case Symtab.lookup (tab, name) of
                          Some prf => prf
                        | None => error ("Unknown theorem " ^ quote name)))

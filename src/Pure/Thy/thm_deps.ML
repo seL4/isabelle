@@ -70,7 +70,7 @@ fun thm_deps thms =
   let
     val _ = writeln "Generating graph ...";
     val gra = map snd (Symtab.dest (fst (foldl make_deps_graph ((Symtab.empty, []),
-      map (#2 o #der o Thm.rep_thm) thms))));
+      map Thm.proof_of thms))));
     val path = File.tmp_path (Path.unpack "theorems.graph");
     val _ = Present.write_graph gra path;
     val _ = system ("$ISATOOL browser -d " ^ Path.pack (Path.expand path) ^ " &");
