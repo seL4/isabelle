@@ -17,7 +17,7 @@ subsubsection {* The type of fractions *}
 
 typedef fraction = "{(a, b) :: int \<times> int | a b. b \<noteq> 0}"
 proof
-  show "(0, Numeral1) \<in> ?fraction" by simp
+  show "(0, 1) \<in> ?fraction" by simp
 qed
 
 constdefs
@@ -55,17 +55,9 @@ instance fraction :: eqv ..
 defs (overloaded)
   equiv_fraction_def: "Q \<sim> R == num Q * den R = num R * den Q"
 
-lemma equiv_fraction_iff:
+lemma equiv_fraction_iff [iff]:
     "b \<noteq> 0 ==> b' \<noteq> 0 ==> (fract a b \<sim> fract a' b') = (a * b' = a' * b)"
   by (simp add: equiv_fraction_def)
-
-lemma equiv_fractionI [intro]:
-    "a * b' = a' * b ==> b \<noteq> 0 ==> b' \<noteq> 0 ==> fract a b \<sim> fract a' b'"
-  by (insert equiv_fraction_iff) blast
-
-lemma equiv_fractionD [dest]:
-    "fract a b \<sim> fract a' b' ==> b \<noteq> 0 ==> b' \<noteq> 0 ==> a * b' = a' * b"
-  by (insert equiv_fraction_iff) blast
 
 instance fraction :: equiv
 proof
@@ -111,17 +103,9 @@ proof
   }
 qed
 
-lemma eq_fraction_iff:
+lemma eq_fraction_iff [iff]:
     "b \<noteq> 0 ==> b' \<noteq> 0 ==> (\<lfloor>fract a b\<rfloor> = \<lfloor>fract a' b'\<rfloor>) = (a * b' = a' * b)"
   by (simp add: equiv_fraction_iff quot_equality)
-
-lemma eq_fractionI [intro]:
-    "a * b' = a' * b ==> b \<noteq> 0 ==> b' \<noteq> 0 ==> \<lfloor>fract a b\<rfloor> = \<lfloor>fract a' b'\<rfloor>"
-  by (insert eq_fraction_iff) blast
-
-lemma eq_fractionD [dest]:
-    "\<lfloor>fract a b\<rfloor> = \<lfloor>fract a' b'\<rfloor> ==> b \<noteq> 0 ==> b' \<noteq> 0 ==> a * b' = a' * b"
-  by (insert eq_fraction_iff) blast
 
 
 subsubsection {* Operations on fractions *}
@@ -133,6 +117,7 @@ text {*
 *}
 
 instance fraction :: zero ..
+instance fraction :: one ..
 instance fraction :: plus ..
 instance fraction :: minus ..
 instance fraction :: times ..
@@ -140,7 +125,8 @@ instance fraction :: inverse ..
 instance fraction :: ord ..
 
 defs (overloaded)
-  zero_fraction_def: "0 == fract 0 Numeral1"
+  zero_fraction_def: "0 == fract 0 1"
+  one_fraction_def: "1 == fract 1 1"
   add_fraction_def: "Q + R ==
     fract (num Q * den R + num R * den Q) (den Q * den R)"
   minus_fraction_def: "-Q == fract (-(num Q)) (den Q)"
@@ -368,6 +354,7 @@ qed
 subsubsection {* Standard operations on rational numbers *}
 
 instance rat :: zero ..
+instance rat :: one ..
 instance rat :: plus ..
 instance rat :: minus ..
 instance rat :: times ..
@@ -377,6 +364,7 @@ instance rat :: number ..
 
 defs (overloaded)
   zero_rat_def: "0 == rat_of 0"
+  one_rat_def: "1 == rat_of 1"
   add_rat_def: "q + r == rat_of (fraction_of q + fraction_of r)"
   minus_rat_def: "-q == rat_of (-(fraction_of q))"
   diff_rat_def: "q - r == q + (-(r::rat))"
@@ -386,10 +374,13 @@ defs (overloaded)
   le_rat_def: "q \<le> r == fraction_of q \<le> fraction_of r"
   less_rat_def: "q < r == q \<le> r \<and> q \<noteq> (r::rat)"
   abs_rat_def: "\<bar>q\<bar> == if q < 0 then -q else (q::rat)"
-  number_of_rat_def: "number_of b == Fract (number_of b) Numeral1"
+  number_of_rat_def: "number_of b == Fract (number_of b) 1"
 
-theorem zero_rat: "0 = Fract 0 Numeral1"
-  by (simp add: zero_rat_def zero_fraction_def rat_of_def Fract_def)
+theorem zero_rat: "0 = Fract 0 1"
+  by (simp add: zero_rat_def zero_fraction_def rat_of_def Fract_def)        
+
+theorem one_rat: "1 = Fract 1 1"
+  by (simp add: one_rat_def one_fraction_def rat_of_def Fract_def)
 
 theorem add_rat: "b \<noteq> 0 ==> d \<noteq> 0 ==>
   Fract a b + Fract c d = Fract (a * d + c * b) (b * d)"
@@ -497,18 +488,16 @@ proof
     by (induct q) (simp add: zero_rat minus_rat add_rat eq_rat)
   show "q - r = q + (-r)"
     by (induct q, induct r) (simp add: add_rat minus_rat diff_rat)
-  show "(0::rat) = Numeral0"
-    by (simp add: zero_rat number_of_rat_def)
   show "(q * r) * s = q * (r * s)"
     by (induct q, induct r, induct s) (simp add: mult_rat zmult_ac)
   show "q * r = r * q"
     by (induct q, induct r) (simp add: mult_rat zmult_ac)
-  show "Numeral1 * q = q"
-    by (induct q) (simp add: number_of_rat_def mult_rat)
+  show "1 * q = q"
+    by (induct q) (simp add: one_rat mult_rat)
   show "(q + r) * s = q * s + r * s"
     by (induct q, induct r, induct s) (simp add: add_rat mult_rat eq_rat int_distrib)
-  show "q \<noteq> 0 ==> inverse q * q = Numeral1"
-    by (induct q) (simp add: inverse_rat mult_rat number_of_rat_def zero_rat eq_rat)
+  show "q \<noteq> 0 ==> inverse q * q = 1"
+    by (induct q) (simp add: inverse_rat mult_rat one_rat zero_rat eq_rat)
   show "r \<noteq> 0 ==> q / r = q * inverse r"
     by (induct q, induct r) (simp add: mult_rat divide_rat inverse_rat zero_rat eq_rat)
 qed
@@ -629,16 +618,16 @@ qed
 subsection {* Embedding integers *}
 
 constdefs
-  rat :: "int => rat"    (* FIXME generalize int to any numeric subtype *)
-  "rat z == Fract z Numeral1"
-  int_set :: "rat set"    ("\<int>")    (* FIXME generalize rat to any numeric supertype *)
+  rat :: "int => rat"    (* FIXME generalize int to any numeric subtype (?) *)
+  "rat z == Fract z 1"
+  int_set :: "rat set"    ("\<int>")    (* FIXME generalize rat to any numeric supertype (?) *)
   "\<int> == range rat"
 
 lemma rat_inject: "(rat z = rat w) = (z = w)"
 proof
   assume "rat z = rat w"
-  hence "Fract z Numeral1 = Fract w Numeral1" by (unfold rat_def)
-  hence "\<lfloor>fract z Numeral1\<rfloor> = \<lfloor>fract w Numeral1\<rfloor>" ..
+  hence "Fract z 1 = Fract w 1" by (unfold rat_def)
+  hence "\<lfloor>fract z 1\<rfloor> = \<lfloor>fract w 1\<rfloor>" ..
   thus "z = w" by auto
 next
   assume "z = w"
@@ -657,6 +646,6 @@ lemma int_set_induct [case_names rat, induct set: int_set]:
   by (rule int_set_cases) auto
 
 theorem number_of_rat: "number_of b = rat (number_of b)"
-  by (simp only: number_of_rat_def rat_def)
+  by (simp add: number_of_rat_def rat_def)
 
 end
