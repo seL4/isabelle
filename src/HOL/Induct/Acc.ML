@@ -26,8 +26,8 @@ Goal "(b,a) : r^* ==> a : acc r --> b : acc r";
 by (etac rtrancl_induct 1);
 by (Blast_tac 1);
  by (blast_tac (claset() addDs [acc_downward]) 1);
-val lemma = result();
 no_qed();
+val lemma = result();
 
 Goal "[| a : acc r; (b,a) : r^* |] ==> b : acc r";
 by (blast_tac (claset() addDs [lemma]) 1);
