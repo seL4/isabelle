@@ -81,8 +81,17 @@ lemma gcd_greatest [rule_format]:
       "k dvd m \<longrightarrow> k dvd n \<longrightarrow> k dvd gcd(m,n)"
 apply (induct_tac m n rule: gcd.induct)
 apply (case_tac "n=0")
+txt{*subgoals after the case tac
+@{subgoals[display,indent=0,margin=65]}
+*};
 apply (simp_all add: dvd_mod)
 done
+
+(*just checking the claim that case_tac "n" works too*)
+lemma "k dvd m \<longrightarrow> k dvd n \<longrightarrow> k dvd gcd(m,n)"
+apply (induct_tac m n rule: gcd.induct)
+apply (case_tac "n")
+by (simp_all add: dvd_mod)
 
 theorem gcd_greatest_iff [iff]: 
         "(k dvd gcd(m,n)) = (k dvd m \<and> k dvd n)"
