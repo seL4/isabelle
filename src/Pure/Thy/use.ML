@@ -39,7 +39,7 @@ val use_filter =
     fn name =>
       let
         val txt = File.read name;
-        val txt_out = implode (SymbolFont.write_charnames' (explode txt));
+        val txt_out = Symbol.input txt;
       in
         if txt = txt_out then use_orig name
         else
