@@ -115,3 +115,37 @@ Goal "[| ensures (Acts prgF) A B;  stable (Acts prgG) A |]     \
 by (asm_simp_tac (simpset() addsimps [Join_def, ensures_stable_Un2]) 1);
 qed "ensures_stable_Join2";
 
+
+(** Theoretical issues **)
+
+Goalw [Join_def] "Join prgF prgG = Join prgG prgF";
+by (simp_tac (simpset() addsimps [Un_commute, Int_commute]) 1);
+qed "Join_commute";
+
+Goalw [Join_def] "Join (Join prgF prgG) prgH = Join prgF (Join prgG prgH)";
+by (simp_tac (simpset() addsimps [Un_assoc, Int_assoc]) 1);
+qed "Join_assoc";
+
+(**NOT PROVABLE because no "surjective pairing" for records
+Goalw [Join_def, Null_def] "id: Acts prgF ==> Join prgF Null = prgF";
+by (asm_simp_tac (simpset() addsimps [insert_absorb]) 1);
+qed "Join_Null";
+*)
+
+(**NOT PROVABLE because no "surjective pairing" for records
+Goalw [Join_def] "Join prgF prgF = prgF";
+auto();
+qed "Join_absorb";
+*)
+
+
+(*
+val field_defs = thms"program.field_defs";
+val dest_defs = thms"program.dest_defs";
+val dest_convs = thms"program.dest_convs";
+
+val update_defs = thms"program.update_defs";
+val make_defs = thms"program.make_defs";
+val update_convs = thms"program.update_convs";
+val simps = thms"program.simps";
+*)

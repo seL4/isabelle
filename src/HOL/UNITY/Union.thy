@@ -12,8 +12,11 @@ Union = SubstAx + FP +
 
 constdefs
 
-   Join :: "['a program, 'a program] => 'a program"
+   Join :: ['a program, 'a program] => 'a program
     "Join prgF prgG == (|Init = Init prgF Int Init prgG,
 			 Acts = Acts prgF Un Acts prgG|)"
+
+   Null :: 'a program
+    "Null == (|Init = UNIV, Acts = {id}|)"
 
 end
