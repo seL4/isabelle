@@ -16,6 +16,6 @@ theory Inductive = Fixedpt + mono
     "Tools/primrec_package.ML":
 
 setup IndCases.setup
-setup induct_tacs_setup
+setup DatatypeTactics.setup
 
 end
