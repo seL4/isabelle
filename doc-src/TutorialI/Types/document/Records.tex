@@ -37,10 +37,11 @@
 %
 \begin{isamarkuptext}%
 Record types are not primitive in Isabelle and have a delicate
-  internal representation based on nested copies of the primitive
-  product type.  A \commdx{record} declaration introduces a new record
-  type scheme by specifying its fields, which are packaged internally
-  to hold up the perception of the record as a distinguished entity.%
+  internal representation \cite{NaraschewskiW-TPHOLs98}, based on
+  nested copies of the primitive product type.  A \commdx{record}
+  declaration introduces a new record type scheme by specifying its
+  fields, which are packaged internally to hold up the perception of
+  the record as a distinguished entity.  Here is a simply example.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{record}\ point\ {\isacharequal}\isanewline
@@ -60,9 +61,8 @@ Records of type \isa{point} have two fields named \isa{Xcoord}
 \begin{isamarkuptext}%
 We see above the ASCII notation for record brackets.  You can also
   use the symbolic brackets \isa{{\isasymlparr}} and \isa{{\isasymrparr}}.  Record type
-  expressions can be written directly as well, without referring to
-  previously declared names (which happen to be mere type
-  abbreviations):%
+  expressions can be also written directly with individual fields.
+  The type name above is merely an abbreviations.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{constdefs}\isanewline
@@ -82,7 +82,7 @@ For each field, there is a \emph{selector}\index{selector!record}
 \begin{isamarkuptext}%
 The \emph{update}\index{update!record} operation is functional.  For
   example, \isa{p{\isasymlparr}Xcoord\ {\isacharcolon}{\isacharequal}\ {\isadigit{0}}{\isasymrparr}} is a record whose \isa{Xcoord}
-  value is zero and whose \isa{Ycoord} value is copied from~\isa{p}.  Updates are also simplified automatically:%
+  value is zero and whose \isa{Ycoord} value is copied from~\isa{p}.  Updates of explicit records are also simplified automatically:%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{lemma}\ {\isachardoublequote}{\isasymlparr}Xcoord\ {\isacharequal}\ a{\isacharcomma}\ Ycoord\ {\isacharequal}\ b{\isasymrparr}{\isasymlparr}Xcoord\ {\isacharcolon}{\isacharequal}\ {\isadigit{0}}{\isasymrparr}\ {\isacharequal}\isanewline
@@ -118,7 +118,7 @@ The \emph{update}\index{update!record} operation is functional.  For
 %
 \begin{isamarkuptext}%
 The fields of this new type are \isa{Xcoord}, \isa{Ycoord} and
-  \isa{col}, in that order:%
+  \isa{col}, in that order.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{constdefs}\isanewline
@@ -127,14 +127,15 @@ The fields of this new type are \isa{Xcoord}, \isa{Ycoord} and
 %
 \begin{isamarkuptext}%
 We can define generic operations that work on arbitrary instances of
-  a record scheme, e.g.\ covering \isa{point}, \isa{cpoint} and any
+  a record scheme, e.g.\ covering \isa{point}, \isa{cpoint}, and any
   further extensions.  Every record structure has an implicit
   pseudo-field, \cdx{more}, that keeps the extension as an explicit
   value.  Its type is declared as completely polymorphic:~\isa{{\isacharprime}a}.
   When a fixed record value is expressed using just its standard
   fields, the value of \isa{more} is implicitly set to \isa{{\isacharparenleft}{\isacharparenright}},
   the empty tuple, which has type \isa{unit}.  Within the record
-  brackets, you can refer to the \isa{more} field by writing \isa{{\isasymdots}} (three dots):%
+  brackets, you can refer to the \isa{more} field by writing
+  ``\isa{{\isasymdots}}'' (three dots):%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{lemma}\ {\isachardoublequote}Xcoord\ {\isasymlparr}Xcoord\ {\isacharequal}\ a{\isacharcomma}\ Ycoord\ {\isacharequal}\ b{\isacharcomma}\ {\isasymdots}\ {\isacharequal}\ p{\isasymrparr}\ {\isacharequal}\ a{\isachardoublequote}\isanewline
@@ -142,7 +143,8 @@ We can define generic operations that work on arbitrary instances of
 \isacommand{by}\ simp\isamarkupfalse%
 %
 \begin{isamarkuptext}%
-This lemma applies to any record whose first two fields are \isa{Xcoord} and~\isa{Ycoord}.  Note that \isa{{\isasymlparr}Xcoord\ {\isacharequal}\ a{\isacharcomma}\ Ycoord\ {\isacharequal}\ b{\isacharcomma}\ {\isasymdots}\ {\isacharequal}\ {\isacharparenleft}{\isacharparenright}{\isasymrparr}} is really the same as \isa{{\isasymlparr}Xcoord\ {\isacharequal}\ a{\isacharcomma}\ Ycoord\ {\isacharequal}\ b{\isasymrparr}}.  Selectors and updates are always polymorphic wrt.\ the \isa{more} part of a record scheme, its value is just ignored (for
+This lemma applies to any record whose first two fields are \isa{Xcoord} and~\isa{Ycoord}.  Note that \isa{{\isasymlparr}Xcoord\ {\isacharequal}\ a{\isacharcomma}\ Ycoord\ {\isacharequal}\ b{\isacharcomma}\ {\isasymdots}\ {\isacharequal}\ {\isacharparenleft}{\isacharparenright}{\isasymrparr}} is exactly the same as \isa{{\isasymlparr}Xcoord\ {\isacharequal}\ a{\isacharcomma}\ Ycoord\ {\isacharequal}\ b{\isasymrparr}}.  Selectors and updates are always polymorphic wrt.\ the
+  \isa{more} part of a record scheme, its value is just ignored (for
   select) or copied (for update).
 
   The \isa{more} pseudo-field may be manipulated directly as well,
@@ -154,14 +156,14 @@ This lemma applies to any record whose first two fields are \isa{Xcoord} and~\is
 \isacommand{by}\ {\isacharparenleft}simp\ add{\isacharcolon}\ cpt{\isadigit{1}}{\isacharunderscore}def{\isacharparenright}\isamarkupfalse%
 %
 \begin{isamarkuptext}%
-We see that the colour attached to this \isa{point} is a
+We see that the colour part attached to this \isa{point} is a
   (rudimentary) record in its own right, namely \isa{{\isasymlparr}col\ {\isacharequal}\ Green{\isasymrparr}}.  In order to select or update \isa{col}, this fragment
   needs to be put back into the context of the parent type scheme, say
   as \isa{more} part of another \isa{point}.
 
   To define generic operations, we need to know a bit more about
-  records.  Our definition of \isa{point} above generated two type
-  abbreviations:
+  records.  Our definition of \isa{point} above has generated two
+  type abbreviations:
 
   \medskip
   \begin{tabular}{l}
@@ -193,8 +195,8 @@ Here is a generic method that modifies a point, incrementing its
 \isamarkuptrue%
 \isacommand{constdefs}\isanewline
 \ \ incX\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}{\isacharprime}a\ point{\isacharunderscore}scheme\ {\isasymRightarrow}\ {\isacharprime}a\ point{\isacharunderscore}scheme{\isachardoublequote}\isanewline
-\ \ {\isachardoublequote}incX\ r\ {\isasymequiv}\ {\isasymlparr}Xcoord\ {\isacharequal}\ Xcoord\ r\ {\isacharplus}\ {\isadigit{1}}{\isacharcomma}\isanewline
-\ \ \ \ Ycoord\ {\isacharequal}\ Ycoord\ r{\isacharcomma}\ {\isasymdots}\ {\isacharequal}\ point{\isachardot}more\ r{\isasymrparr}{\isachardoublequote}\isamarkupfalse%
+\ \ {\isachardoublequote}incX\ r\ {\isasymequiv}\isanewline
+\ \ \ \ {\isasymlparr}Xcoord\ {\isacharequal}\ Xcoord\ r\ {\isacharplus}\ {\isadigit{1}}{\isacharcomma}\ Ycoord\ {\isacharequal}\ Ycoord\ r{\isacharcomma}\ {\isasymdots}\ {\isacharequal}\ point{\isachardot}more\ r{\isasymrparr}{\isachardoublequote}\isamarkupfalse%
 %
 \begin{isamarkuptext}%
 Generic theorems can be proved about generic methods.  This trivial
@@ -223,8 +225,8 @@ Generic theorems can be proved about generic methods.  This trivial
 %
 \begin{isamarkuptext}%
 Two records are equal\index{equality!of records} if all pairs of
-  corresponding fields are equal.  Record equalities are simplified
-  automatically:%
+  corresponding fields are equal.  Concrete record equalities are
+  simplified automatically:%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{lemma}\ {\isachardoublequote}{\isacharparenleft}{\isasymlparr}Xcoord\ {\isacharequal}\ a{\isacharcomma}\ Ycoord\ {\isacharequal}\ b{\isasymrparr}\ {\isacharequal}\ {\isasymlparr}Xcoord\ {\isacharequal}\ a{\isacharprime}{\isacharcomma}\ Ycoord\ {\isacharequal}\ b{\isacharprime}{\isasymrparr}{\isacharparenright}\ {\isacharequal}\isanewline
@@ -334,8 +336,8 @@ The \methdx{cases} method adds an equality to replace the
 The generic cases method does not admit references to locally bound
   parameters of a goal.  In longer proof scripts one might have to
   fall back on the primitive \isa{rule{\isacharunderscore}tac} used together with the
-  internal representation rules of records.  E.g.\ the above use of
-  \isa{{\isacharparenleft}cases\ r{\isacharparenright}} would become \isa{{\isacharparenleft}rule{\isacharunderscore}tac\ r\ {\isacharequal}\ r\ in\ point{\isachardot}cases{\isacharunderscore}scheme{\isacharparenright}}.%
+  internal field representation rules of records.  E.g.\ the above use
+  of \isa{{\isacharparenleft}cases\ r{\isacharparenright}} would become \isa{{\isacharparenleft}rule{\isacharunderscore}tac\ r\ {\isacharequal}\ r\ in\ point{\isachardot}cases{\isacharunderscore}scheme{\isacharparenright}}.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
