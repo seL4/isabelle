@@ -9,15 +9,50 @@ header {* Correctness of a simple expression compiler *};
 
 theory ExprCompiler = Main:;
 
-subsection {* Basics *};
+text {*
+ This is a (quite trivial) example of program verification.  We model
+ a compiler translating expressions to stack machine instructions, and
+ prove its correctness wrt.\ evaluation semantics.
+*};
+
+
+subsection {* Binary operations *};
 
 text {*
- First we define a type abbreviation for binary operations over some
- type of values.
+ Binary operations are just functions over some type of values.  This
+ is both for syntax and semantics, i.e.\ we use a ``shallow
+ embedding''.
 *};
 
 types
   'val binop = "'val => 'val => 'val";
+
+
+subsection {* Expressions *};
+
+text {*
+ The language of expressions is defined as an inductive type,
+ consisting of variables, constants, and binary operations on
+ expressions.
+*};
+
+datatype ('adr, 'val) expr =
+  Variable 'adr |
+  Constant 'val |
+  Binop "'val binop" "('adr, 'val) expr" "('adr, 'val) expr";
+
+text {*
+ Evaluation (wrt.\ an environment) is defined by primitive recursion
+ over the structure of expressions.
+*};
+
+consts
+  eval :: "('adr, 'val) expr => ('adr => 'val) => 'val";
+
+primrec
+  "eval (Variable x) env = env x"
+  "eval (Constant c) env = c"
+  "eval (Binop f e1 e2) env = f (eval e1 env) (eval e2 env)";
 
 
 subsection {* Machine *};
@@ -32,8 +67,8 @@ datatype ('adr, 'val) instr =
   Apply "'val binop";
 
 text {*
- Execution of a list of stack machine instructions is
- straight-forward.
+ Execution of a list of stack machine instructions is easily defined
+ as follows.
 *};
 
 consts
@@ -54,35 +89,10 @@ constdefs
   "execute instrs env == hd (exec instrs [] env)";
 
 
-subsection {* Expressions *};
-
-text {*
- We introduce a simple language of expressions: variables, constants,
- binary operations.
-*};
-
-datatype ('adr, 'val) expr =
-  Variable 'adr |
-  Constant 'val |
-  Binop "'val binop" "('adr, 'val) expr" "('adr, 'val) expr";
-
-text {*
- Evaluation of expressions does not do any unexpected things.
-*};
-
-consts
-  eval :: "('adr, 'val) expr => ('adr => 'val) => 'val";
-
-primrec
-  "eval (Variable x) env = env x"
-  "eval (Constant c) env = c"
-  "eval (Binop f e1 e2) env = f (eval e1 env) (eval e2 env)";
-
-
 subsection {* Compiler *};
 
 text {*
- So we are ready to define the compilation function of expressions to
+ We are ready to define the compilation function of expressions to
  lists of stack machine instructions.
 *};
 

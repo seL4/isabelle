@@ -30,7 +30,7 @@ translations
 
 subsection {* Summation laws *};
 
-verbatim {* \begin{comment} *};
+text_raw {* \begin{comment} *};
 
 (* FIXME binary arithmetic does not yet work here *)
 
@@ -46,7 +46,7 @@ translations
 
 theorems [simp] = add_mult_distrib add_mult_distrib2 mult_ac;
 
-verbatim {* \end{comment} *};
+text_raw {* \end{comment} *};
 
 
 theorem sum_of_naturals:

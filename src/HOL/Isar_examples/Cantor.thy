@@ -5,7 +5,7 @@
 
 header {* Cantor's Theorem *};
 
-theory Cantor = Main:;verbatim {* \footnote{This is an Isar version of
+theory Cantor = Main:;text_raw {* \footnote{This is an Isar version of
  the final example of the Isabelle/HOL manual \cite{isabelle-HOL}.}
 *};
 
