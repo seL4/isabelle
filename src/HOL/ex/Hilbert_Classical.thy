@@ -52,8 +52,7 @@ proof -
 	hence "Eps ?P = Eps ?Q" by (rule arg_cong)
 	also note P
 	also note Q
-	finally have "False = True" .	
-	thus False by (rule False_neq_True)
+	finally show False by (rule False_neq_True)
       qed
       have "\<not> A"
       proof
