@@ -60,14 +60,9 @@ by (Blast_tac 1);
 qed "OR4_analz_spies";
 
 goal thy "!!evs. Says Server B {|NA, X, Crypt K' {|NB,K|}|} : set evs \
-\                 ==> K : parts (spies evs)";
+\                ==> K : parts (spies evs)";
 by (Blast_tac 1);
 qed "Oops_parts_spies";
-
-(*OR2_analz... and OR4_analz... let us treat those cases using the same 
-  argument as for the Fake case.  This is possible for most, but not all,
-  proofs: Fake does not invent new nonces (as in OR2), and of course Fake
-  messages originate from the Spy. *)
 
 bind_thm ("OR2_parts_spies",
           OR2_analz_spies RS (impOfSubs analz_subset_parts));
@@ -86,8 +81,7 @@ fun parts_induct_tac i =
 (** Theorems of the form X ~: parts (spies evs) imply that NOBODY
     sends messages containing X! **)
 
-
-(*Spy never sees another agent's shared key! (unless it's bad at start)*)
+(*Spy never sees a good agent's shared key!*)
 goal thy 
  "!!evs. evs : otway ==> (Key (shrK A) : parts (spies evs)) = (A : bad)";
 by (parts_induct_tac 1);
@@ -111,6 +105,7 @@ goal thy "!!evs. evs : otway ==>          \
 by (parts_induct_tac 1);
 (*Fake*)
 by (blast_tac (claset() addSDs [keysFor_parts_insert]) 1);
+(*OR2, OR3*)
 by (ALLGOALS Blast_tac);
 qed_spec_mp "new_keys_not_used";
 
@@ -141,8 +136,7 @@ qed "Says_Server_message_form";
 val analz_spies_tac = 
     dtac OR2_analz_spies 4 THEN 
     dtac OR4_analz_spies 6 THEN
-    forward_tac [Says_Server_message_form] 7 THEN
-    assume_tac 7 THEN
+    forward_tac [Says_Server_message_form] 7 THEN assume_tac 7 THEN
     REPEAT ((eresolve_tac [exE, conjE] ORELSE' hyp_subst_tac) 7);
 
 
@@ -194,7 +188,7 @@ by (ALLGOALS (asm_simp_tac (simpset() addsimps [all_conj_distrib])));
 by (ALLGOALS Clarify_tac);
 (*Remaining cases: OR3 and OR4*)
 by (ex_strip_tac 2);
-by (Best_tac 2);
+by (Best_tac 2);	(*Blast_tac's too slow (in reconstruction)*)
 by (expand_case_tac "K = ?y" 1);
 by (REPEAT (ares_tac [refl,exI,impI,conjI] 2));
 (*...we assume X is a recent message, and handle this case by contradiction*)
@@ -315,11 +309,11 @@ qed "A_trusts_OR4";
     the premises, e.g. by having A=Spy **)
 
 goal thy 
- "!!evs. [| A ~: bad;  B ~: bad;  evs : otway |]                    \
+ "!!evs. [| A ~: bad;  B ~: bad;  evs : otway |]                      \
 \        ==> Says Server B                                            \
 \              {|NA, Crypt (shrK A) {|NA, Key K|},                    \
 \                Crypt (shrK B) {|NB, Key K|}|} : set evs -->         \
-\            Says B Spy {|NA, NB, Key K|} ~: set evs -->              \
+\            Notes Spy {|NA, NB, Key K|} ~: set evs -->               \
 \            Key K ~: analz (spies evs)";
 by (etac otway.induct 1);
 by analz_spies_tac;
@@ -341,8 +335,8 @@ goal thy
  "!!evs. [| Says Server B                                           \
 \            {|NA, Crypt (shrK A) {|NA, Key K|},                    \
 \                  Crypt (shrK B) {|NB, Key K|}|} : set evs;        \
-\           Says B Spy {|NA, NB, Key K|} ~: set evs;                \
-\           A ~: bad;  B ~: bad;  evs : otway |]                  \
+\           Notes Spy {|NA, NB, Key K|} ~: set evs;                 \
+\           A ~: bad;  B ~: bad;  evs : otway |]                    \
 \        ==> Key K ~: analz (spies evs)";
 by (forward_tac [Says_Server_message_form] 1 THEN assume_tac 1);
 by (blast_tac (claset() addSEs [lemma]) 1);

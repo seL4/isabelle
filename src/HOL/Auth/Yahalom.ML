@@ -202,12 +202,12 @@ qed "unique_session_keys";
 (** Crucial secrecy property: Spy does not see the keys sent in msg YM3 **)
 
 goal thy 
- "!!evs. [| A ~: bad;  B ~: bad;  evs : yahalom |]         \
+ "!!evs. [| A ~: bad;  B ~: bad;  evs : yahalom |]                \
 \        ==> Says Server A                                        \
 \              {|Crypt (shrK A) {|Agent B, Key K, na, nb|},       \
 \                Crypt (shrK B) {|Agent A, Key K|}|}              \
 \             : set evs -->                                       \
-\            Says A Spy {|na, nb, Key K|} ~: set evs -->          \
+\            Notes Spy {|na, nb, Key K|} ~: set evs -->           \
 \            Key K ~: analz (spies evs)";
 by (etac yahalom.induct 1);
 by analz_spies_tac;
@@ -232,8 +232,8 @@ goal thy
 \              {|Crypt (shrK A) {|Agent B, Key K, na, nb|},       \
 \                Crypt (shrK B) {|Agent A, Key K|}|}              \
 \             : set evs;                                          \
-\           Says A Spy {|na, nb, Key K|} ~: set evs;              \
-\           A ~: bad;  B ~: bad;  evs : yahalom |]         \
+\           Notes Spy {|na, nb, Key K|} ~: set evs;               \
+\           A ~: bad;  B ~: bad;  evs : yahalom |]                \
 \        ==> Key K ~: analz (spies evs)";
 by (forward_tac [Says_Server_message_form] 1 THEN assume_tac 1);
 by (blast_tac (claset() addSEs [lemma]) 1);
@@ -322,6 +322,12 @@ by (Blast_tac 1);
 qed "KeyWithNonce_Says";
 Addsimps [KeyWithNonce_Says];
 
+goalw thy [KeyWithNonce_def]
+   "KeyWithNonce K NB (Notes A X # evs) = KeyWithNonce K NB evs";
+by (Simp_tac 1);
+qed "KeyWithNonce_Notes";
+Addsimps [KeyWithNonce_Notes];
+
 (*A fresh key cannot be associated with any nonce 
   (with respect to a given trace). *)
 goalw thy [KeyWithNonce_def]
@@ -372,7 +378,8 @@ by (ALLGOALS  (*12 seconds*)
      (analz_image_freshK_ss 
        addsimps expand_ifs
        addsimps [all_conj_distrib, analz_image_freshK,
-		 KeyWithNonce_Says, fresh_not_KeyWithNonce, 
+		 KeyWithNonce_Says, KeyWithNonce_Notes,
+		 fresh_not_KeyWithNonce, 
 		 imp_disj_not1,		     (*Moves NBa~=NB to the front*)
 		 Says_Server_KeyWithNonce])));
 (*Fake*) 
@@ -478,7 +485,7 @@ goal thy
 \ ==> Says B Server                                                    \
 \          {|Agent B, Crypt (shrK B) {|Agent A, Nonce NA, Nonce NB|}|} \
 \     : set evs -->                                                    \
-\     (ALL k. Says A Spy {|Nonce NA, Nonce NB, k|} ~: set evs) -->     \
+\     (ALL k. Notes Spy {|Nonce NA, Nonce NB, k|} ~: set evs) -->      \
 \     Nonce NB ~: analz (spies evs)";
 by (etac yahalom.induct 1);
 by analz_spies_tac;
@@ -529,7 +536,7 @@ bind_thm ("Spy_not_see_NB", result() RSN(2,rev_mp) RSN(2,rev_mp));
 
 
 (*B's session key guarantee from YM4.  The two certificates contribute to a
-  single conclusion about the Server's message.  Note that the "Says A Spy"
+  single conclusion about the Server's message.  Note that the "Notes Spy"
   assumption must quantify over ALL POSSIBLE keys instead of our particular K.
   If this run is broken and the spy substitutes a certificate containing an
   old key, B has no means of telling.*)
@@ -539,7 +546,7 @@ goal thy
 \             : set evs;                                                    \
 \           Says A' B {|Crypt (shrK B) {|Agent A, Key K|},                  \
 \                       Crypt K (Nonce NB)|} : set evs;                     \
-\           ALL k. Says A Spy {|Nonce NA, Nonce NB, k|} ~: set evs;         \
+\           ALL k. Notes Spy {|Nonce NA, Nonce NB, k|} ~: set evs;          \
 \           A ~: bad;  B ~: bad;  evs : yahalom |]       \
 \         ==> Says Server A                                                 \
 \                     {|Crypt (shrK A) {|Agent B, Key K,                    \
@@ -636,7 +643,7 @@ goal thy
 \             : set evs;                                                    \
 \           Says A' B {|Crypt (shrK B) {|Agent A, Key K|},                  \
 \                       Crypt K (Nonce NB)|} : set evs;                     \
-\           (ALL NA k. Says A Spy {|Nonce NA, Nonce NB, k|} ~: set evs);    \
+\           (ALL NA k. Notes Spy {|Nonce NA, Nonce NB, k|} ~: set evs);     \
 \           A ~: bad;  B ~: bad;  evs : yahalom |]       \
 \        ==> EX X. Says A B {|X, Crypt K (Nonce NB)|} : set evs";
 by (dtac B_trusts_YM4 1);

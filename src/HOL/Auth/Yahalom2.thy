@@ -68,6 +68,6 @@ inductive "yahalom"
              Says Server A {|Nonce NB, 
                              Crypt (shrK A) {|Agent B, Key K, Nonce NA|},
                              X|}  : set evso |]
-          ==> Says A Spy {|Nonce NA, Nonce NB, Key K|} # evso : yahalom"
+          ==> Notes Spy {|Nonce NA, Nonce NB, Key K|} # evso : yahalom"
 
 end

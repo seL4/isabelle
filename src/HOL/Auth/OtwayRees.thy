@@ -75,6 +75,6 @@ inductive "otway"
     Oops "[| evso: otway;  B ~= Spy;
              Says Server B {|Nonce NA, X, Crypt (shrK B) {|Nonce NB, Key K|}|}
                : set evso |]
-          ==> Says B Spy {|Nonce NA, Nonce NB, Key K|} # evso : otway"
+          ==> Notes Spy {|Nonce NA, Nonce NB, Key K|} # evso : otway"
 
 end

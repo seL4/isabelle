@@ -58,10 +58,6 @@ goal thy "!!evs. Says Server B {|X, Crypt K' {|NB, a, Agent B, K|}|} \
 by (Blast_tac 1);
 qed "Oops_parts_spies";
 
-(*OR4_analz_spies lets us treat those cases using the same 
-  argument as for the Fake case.  This is possible for most, but not all,
-  proofs, since Fake messages originate from the Spy. *)
-
 bind_thm ("OR4_parts_spies",
           OR4_analz_spies RS (impOfSubs analz_subset_parts));
 
@@ -76,7 +72,7 @@ fun parts_induct_tac i =
 (** Theorems of the form X ~: parts (spies evs) imply that NOBODY
     sends messages containing X! **)
 
-(*Spy never sees another agent's shared key! (unless it's bad at start)*)
+(*Spy never sees a good agent's shared key!*)
 goal thy 
  "!!evs. evs : otway ==> (Key (shrK A) : parts (spies evs)) = (A : bad)";
 by (parts_induct_tac 1);
@@ -248,12 +244,12 @@ qed "A_trusts_OR4";
     the premises, e.g. by having A=Spy **)
 
 goal thy 
- "!!evs. [| A ~: bad;  B ~: bad;  evs : otway |]                 \
+ "!!evs. [| A ~: bad;  B ~: bad;  evs : otway |]                   \
 \        ==> Says Server B                                         \
 \             {|Crypt (shrK A) {|NA, Agent A, Agent B, Key K|},    \
 \               Crypt (shrK B) {|NB, Agent A, Agent B, Key K|}|}   \
 \            : set evs -->                                         \
-\            Says B Spy {|NA, NB, Key K|} ~: set evs -->           \
+\            Notes Spy {|NA, NB, Key K|} ~: set evs -->            \
 \            Key K ~: analz (spies evs)";
 by (etac otway.induct 1);
 by analz_spies_tac;
@@ -276,8 +272,8 @@ goal thy
 \              {|Crypt (shrK A) {|NA, Agent A, Agent B, Key K|},    \
 \                Crypt (shrK B) {|NB, Agent A, Agent B, Key K|}|}   \
 \             : set evs;                                            \
-\           Says B Spy {|NA, NB, Key K|} ~: set evs;                \
-\           A ~: bad;  B ~: bad;  evs : otway |]                  \
+\           Notes Spy {|NA, NB, Key K|} ~: set evs;                 \
+\           A ~: bad;  B ~: bad;  evs : otway |]                    \
 \        ==> Key K ~: analz (spies evs)";
 by (forward_tac [Says_Server_message_form] 1 THEN assume_tac 1);
 by (blast_tac (claset() addSEs [lemma]) 1);

@@ -209,7 +209,7 @@ goal thy
 \              {|nb, Crypt (shrK A) {|Agent B, Key K, na|},     \
 \                    Crypt (shrK B) {|nb, Key K, Agent A|}|}    \
 \             : set evs -->                                     \
-\            Says A Spy {|na, nb, Key K|} ~: set evs -->        \
+\            Notes Spy {|na, nb, Key K|} ~: set evs -->         \
 \            Key K ~: analz (spies evs)";
 by (etac yahalom.induct 1);
 by analz_spies_tac;
@@ -235,8 +235,8 @@ goal thy
 \              {|nb, Crypt (shrK A) {|Agent B, Key K, na|},  \
 \                    Crypt (shrK B) {|nb, Key K, Agent A|}|} \
 \           : set evs;                                       \
-\           Says A Spy {|na, nb, Key K|} ~: set evs;         \
-\           A ~: bad;  B ~: bad;  evs : yahalom |]         \
+\           Notes Spy {|na, nb, Key K|} ~: set evs;          \
+\           A ~: bad;  B ~: bad;  evs : yahalom |]           \
 \        ==> Key K ~: analz (spies evs)";
 by (forward_tac [Says_Server_message_form] 1 THEN assume_tac 1);
 by (blast_tac (claset() addSEs [lemma]) 1);
@@ -249,8 +249,8 @@ qed "Spy_not_see_encrypted_key";
   May now apply Spy_not_see_encrypted_key, subject to its conditions.*)
 goal thy
  "!!evs. [| Crypt (shrK A) {|Agent B, Key K, na|}                      \
-\            : parts (spies evs);                                   \
-\           A ~: bad;  evs : yahalom |]                               \
+\            : parts (spies evs);                                      \
+\           A ~: bad;  evs : yahalom |]                                \
 \         ==> EX nb. Says Server A                                     \
 \                      {|nb, Crypt (shrK A) {|Agent B, Key K, na|},    \
 \                            Crypt (shrK B) {|nb, Key K, Agent A|}|}   \
@@ -384,7 +384,7 @@ val lemma = normalize_thm [RSspec, RSmp] (result()) |> standard;
 goal thy 
  "!!evs. [| Says A' B {|Crypt (shrK B) {|Nonce NB, Key K, Agent A|},    \
 \                       Crypt K (Nonce NB)|} : set evs;                 \
-\           (ALL NA. Says A Spy {|Nonce NA, Nonce NB, Key K|} ~: set evs); \
+\           (ALL NA. Notes Spy {|Nonce NA, Nonce NB, Key K|} ~: set evs); \
 \           A ~: bad;  B ~: bad;  evs : yahalom |]                    \
 \        ==> EX X. Says A B {|X, Crypt K (Nonce NB)|} : set evs";
 by (etac (Says_imp_spies RS parts.Inj RS MPair_parts) 1);

@@ -75,6 +75,6 @@ inductive "ns_shared"
              Says B A (Crypt K (Nonce NB)) : set evso;
              Says Server A (Crypt (shrK A) {|Nonce NA, Agent B, Key K, X|})
                : set evso |]
-          ==> Says A Spy {|Nonce NA, Nonce NB, Key K|} # evso : ns_shared"
+          ==> Notes Spy {|Nonce NA, Nonce NB, Key K|} # evso : ns_shared"
 
 end

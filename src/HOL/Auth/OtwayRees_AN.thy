@@ -68,6 +68,6 @@ inductive "otway"
                       {|Crypt (shrK A) {|Nonce NA, Agent A, Agent B, Key K|}, 
                         Crypt (shrK B) {|Nonce NB, Agent A, Agent B, Key K|}|}
                : set evso |]
-          ==> Says B Spy {|Nonce NA, Nonce NB, Key K|} # evso : otway"
+          ==> Notes Spy {|Nonce NA, Nonce NB, Key K|} # evso : otway"
 
 end

@@ -258,7 +258,7 @@ goal thy
 \              (Crypt (shrK A) {|NA, Agent B, Key K,                   \
 \                                Crypt (shrK B) {|Key K, Agent A|}|})  \
 \             : set evs -->                                            \
-\        (ALL NB. Says A Spy {|NA, NB, Key K|} ~: set evs) -->         \
+\        (ALL NB. Notes Spy {|NA, NB, Key K|} ~: set evs) -->          \
 \        Key K ~: analz (spies evs)";
 by (etac ns_shared.induct 1);
 by analz_spies_tac;
@@ -288,7 +288,7 @@ val lemma = result() RS mp RS mp RSN(2,rev_notE);
 goal thy 
  "!!evs. [| Says Server A                                        \
 \              (Crypt K' {|NA, Agent B, Key K, X|}) : set evs;   \
-\           ALL NB. Says A Spy {|NA, NB, Key K|} ~: set evs;     \
+\           ALL NB. Notes Spy {|NA, NB, Key K|} ~: set evs;      \
 \           A ~: bad;  B ~: bad;  evs : ns_shared                \
 \        |] ==> Key K ~: analz (spies evs)";
 by (forward_tac [Says_Server_message_form] 1 THEN assume_tac 1);
@@ -345,7 +345,7 @@ qed "A_trusts_NS4_lemma";
 goal thy
  "!!evs. [| Crypt K (Nonce NB) : parts (spies evs);                   \
 \           Crypt (shrK A) {|NA, Agent B, Key K, X|} : parts (spies evs); \
-\           ALL NB. Says A Spy {|NA, NB, Key K|} ~: set evs;          \
+\           ALL NB. Notes Spy {|NA, NB, Key K|} ~: set evs;           \
 \           A ~: bad;  B ~: bad;  evs : ns_shared |]                  \
 \        ==> Says B A (Crypt K (Nonce NB)) : set evs";
 by (blast_tac (claset() addSIs [A_trusts_NS2, A_trusts_NS4_lemma]
@@ -415,7 +415,7 @@ goal thy
  "!!evs. [| Crypt K {|Nonce NB, Nonce NB|} : parts (spies evs);      \
 \           Says B A (Crypt K (Nonce NB))  : set evs;                \
 \           Crypt (shrK B) {|Key K, Agent A|} : parts (spies evs);   \
-\           ALL NA NB. Says A Spy {|NA, NB, Key K|} ~: set evs;      \
+\           ALL NA NB. Notes Spy {|NA, NB, Key K|} ~: set evs;       \
 \           A ~: bad;  B ~: bad;  evs : ns_shared |]                 \
 \        ==> Says A B (Crypt K {|Nonce NB, Nonce NB|}) : set evs";
 by (dtac B_trusts_NS3 1);
