@@ -28,16 +28,6 @@ goal List.thy "!!x. xs = x#xs' ==> x : set_of_list xs";
 by (Asm_simp_tac 1);
 qed "set_of_list_eqI1";
 
-goal List.thy "set_of_list l <= set_of_list (x#l)";
-by (Simp_tac 1);
-by (Fast_tac 1);
-qed "set_of_list_subset_Cons";
-
-(*Not for Addsimps -- it can cause goals to blow up!*)
-goal Set.thy "(a : (if Q then x else y)) = ((Q --> a:x) & (~Q --> a : y))";
-by (simp_tac (!simpset setloop split_tac [expand_if]) 1);
-qed "mem_if";
-
 (*FUN.ML??  WE NEED A NOTION OF INVERSE IMAGE, OR GRAPH!!*)
 goal Set.thy "!!f. B <= range f = (B = f`` {x. f x: B})";
 by (fast_tac (!claset addEs [equalityE]) 1);
@@ -53,34 +43,34 @@ Addsimps [Un_insert_left, Un_insert_right];
   will not!*)
 Addsimps [o_def];
 
-(*** Basic properties of serverKey and newK ***)
+(*** Basic properties of shrK and newK ***)
 
-(* invKey (serverKey A) = serverKey A *)
-bind_thm ("invKey_serverKey", rewrite_rule [isSymKey_def] isSym_serverKey);
+(* invKey (shrK A) = shrK A *)
+bind_thm ("invKey_shrK", rewrite_rule [isSymKey_def] isSym_shrK);
 
 (* invKey (newK evs) = newK evs *)
 bind_thm ("invKey_newK", rewrite_rule [isSymKey_def] isSym_newK);
-Addsimps [invKey_serverKey, invKey_newK];
+Addsimps [invKey_shrK, invKey_newK];
 
 
 (*New keys and nonces are fresh*)
-val serverKey_inject = inj_serverKey RS injD;
+val shrK_inject = inj_shrK RS injD;
 val newN_inject = inj_newN RS injD
 and newK_inject = inj_newK RS injD;
-AddSEs [serverKey_inject, newN_inject, newK_inject,
+AddSEs [shrK_inject, newN_inject, newK_inject,
 	fresh_newK RS notE, fresh_newN RS notE];
-Addsimps [inj_serverKey RS inj_eq, inj_newN RS inj_eq, inj_newK RS inj_eq];
+Addsimps [inj_shrK RS inj_eq, inj_newN RS inj_eq, inj_newK RS inj_eq];
 Addsimps [fresh_newN, fresh_newK];
 
-goal thy "newK evs ~= serverKey B";
-by (subgoal_tac "newK evs = serverKey B --> \
+goal thy "newK evs ~= shrK B";
+by (subgoal_tac "newK evs = shrK B --> \
 \                Key (newK evs) : parts (initState B)" 1);
 by (Fast_tac 1);
 by (agent.induct_tac "B" 1);
 by (auto_tac (!claset addIs [range_eqI], !simpset));
-qed "newK_neq_serverKey";
+qed "newK_neq_shrK";
 
-Addsimps [newK_neq_serverKey, newK_neq_serverKey RS not_sym];
+Addsimps [newK_neq_shrK, newK_neq_shrK RS not_sym];
 
 (*Good for talking about Server's initial state*)
 goal thy "!!H. H <= Key``E ==> parts H = H";
@@ -112,25 +102,25 @@ by (Auto_tac ());
 qed "keysFor_image_Key";
 Addsimps [keysFor_image_Key];
 
-goal thy "serverKey A ~: newK``E";
+goal thy "shrK A ~: newK``E";
 by (agent.induct_tac "A" 1);
 by (Auto_tac ());
-qed "serverKey_notin_image_newK";
-Addsimps [serverKey_notin_image_newK];
+qed "shrK_notin_image_newK";
+Addsimps [shrK_notin_image_newK];
 
 
-(*Agents see their own serverKeys!*)
-goal thy "Key (serverKey A) : analz (sees A evs)";
+(*Agents see their own shrKs!*)
+goal thy "Key (shrK A) : analz (sees A evs)";
 by (list.induct_tac "evs" 1);
 by (asm_simp_tac (!simpset addsimps [impOfSubs(Un_upper2 RS analz_mono)]) 2);
 by (agent.induct_tac "A" 1);
 by (auto_tac (!claset addIs [range_eqI], !simpset));
-qed "analz_own_serverKey";
+qed "analz_own_shrK";
 
-bind_thm ("parts_own_serverKey",
-	  [analz_subset_parts, analz_own_serverKey] MRS subsetD);
+bind_thm ("parts_own_shrK",
+	  [analz_subset_parts, analz_own_shrK] MRS subsetD);
 
-Addsimps [analz_own_serverKey, parts_own_serverKey];
+Addsimps [analz_own_shrK, parts_own_shrK];
 
 
 
@@ -202,7 +192,7 @@ qed_spec_mp "Says_imp_sees_Enemy";
 Addsimps [Says_imp_sees_Enemy];
 AddIs    [Says_imp_sees_Enemy];
 
-goal thy "initState C <= Key `` range serverKey";
+goal thy "initState C <= Key `` range shrK";
 by (agent.induct_tac "C" 1);
 by (Auto_tac ());
 qed "initState_subset";
@@ -210,7 +200,7 @@ qed "initState_subset";
 goal thy "X : sees C evs --> \
 \          (EX A B. Says A B X : set_of_list evs) | \
 \          (EX A. Notes A X : set_of_list evs) | \
-\          (EX A. X = Key (serverKey A))";
+\          (EX A. X = Key (shrK A))";
 by (list.induct_tac "evs" 1);
 by (ALLGOALS Asm_simp_tac);
 by (fast_tac (!claset addDs [impOfSubs initState_subset]) 1);
@@ -266,40 +256,40 @@ qed "NS3_msg_in_parts_sees_Enemy";
 (*Enemy never sees another agent's server key!*)
 goal thy 
  "!!evs. [| evs : traces; A ~= Enemy |] ==> \
-\        Key (serverKey A) ~: parts (sees Enemy evs)";
+\        Key (shrK A) ~: parts (sees Enemy evs)";
 be traces.induct 1;
 bd NS3_msg_in_parts_sees_Enemy 5;
 by (Auto_tac());
 (*Deals with Fake message*)
 by (best_tac (!claset addDs [impOfSubs analz_subset_parts,
 			     impOfSubs synth_analz_parts_insert_subset_Un]) 1);
-qed "Enemy_not_see_serverKey";
+qed "Enemy_not_see_shrK";
 
-bind_thm ("Enemy_not_analz_serverKey",
-	  [analz_subset_parts, Enemy_not_see_serverKey] MRS contra_subsetD);
+bind_thm ("Enemy_not_analz_shrK",
+	  [analz_subset_parts, Enemy_not_see_shrK] MRS contra_subsetD);
 
-Addsimps [Enemy_not_see_serverKey, 
-	  not_sym RSN (2, Enemy_not_see_serverKey), 
-	  Enemy_not_analz_serverKey, 
-	  not_sym RSN (2, Enemy_not_analz_serverKey)];
+Addsimps [Enemy_not_see_shrK, 
+	  not_sym RSN (2, Enemy_not_see_shrK), 
+	  Enemy_not_analz_shrK, 
+	  not_sym RSN (2, Enemy_not_analz_shrK)];
 
 (*We go to some trouble to preserve R in the 3rd subgoal*)
 val major::prems = 
-goal thy  "[| Key (serverKey A) : parts (sees Enemy evs);    \
+goal thy  "[| Key (shrK A) : parts (sees Enemy evs);    \
 \             evs : traces;                                  \
 \             A=Enemy ==> R                                  \
 \           |] ==> R";
 br ccontr 1;
-br ([major, Enemy_not_see_serverKey] MRS rev_notE) 1;
+br ([major, Enemy_not_see_shrK] MRS rev_notE) 1;
 by (swap_res_tac prems 2);
 by (ALLGOALS (fast_tac (!claset addIs prems)));
-qed "Enemy_see_serverKey_E";
+qed "Enemy_see_shrK_E";
 
-bind_thm ("Enemy_analz_serverKey_E", 
-	  analz_subset_parts RS subsetD RS Enemy_see_serverKey_E);
+bind_thm ("Enemy_analz_shrK_E", 
+	  analz_subset_parts RS subsetD RS Enemy_see_shrK_E);
 
 (*Classical reasoner doesn't need the not_sym versions (with swapped ~=) *)
-AddSEs [Enemy_see_serverKey_E, Enemy_analz_serverKey_E];
+AddSEs [Enemy_see_shrK_E, Enemy_analz_shrK_E];
 
 
 (*No Friend will ever see another agent's server key 
@@ -307,22 +297,22 @@ AddSEs [Enemy_see_serverKey_E, Enemy_analz_serverKey_E];
   The Server, of course, knows all server keys.*)
 goal thy 
  "!!evs. [| evs : traces; A ~= Enemy;  A ~= Friend j |] ==> \
-\        Key (serverKey A) ~: parts (sees (Friend j) evs)";
+\        Key (shrK A) ~: parts (sees (Friend j) evs)";
 br (sees_agent_subset_sees_Enemy RS parts_mono RS contra_subsetD) 1;
 by (ALLGOALS Asm_simp_tac);
-qed "Friend_not_see_serverKey";
+qed "Friend_not_see_shrK";
 
 
 (*Not for Addsimps -- it can cause goals to blow up!*)
 goal thy  
  "!!evs. evs : traces ==>                                  \
-\        (Key (serverKey A) \
-\           : analz (insert (Key (serverKey B)) (sees Enemy evs))) =  \
+\        (Key (shrK A) \
+\           : analz (insert (Key (shrK B)) (sees Enemy evs))) =  \
 \        (A=B | A=Enemy)";
 by (best_tac (!claset addDs [impOfSubs analz_subset_parts]
 		      addIs [impOfSubs (subset_insertI RS analz_mono)]
 	              addss (!simpset)) 1);
-qed "serverKey_mem_analz";
+qed "shrK_mem_analz";
 
 
 
@@ -429,7 +419,7 @@ val pushCrypts = map (insComm "Crypt ?X ?K")
 (*Cannot be added with Addsimps -- we don't always want to re-order messages*)
 val pushes = pushKeys@pushCrypts;
 
-val pushKey_newK = insComm "Key (newK ?evs)"  "Key (serverKey ?C)";
+val pushKey_newK = insComm "Key (newK ?evs)"  "Key (shrK ?C)";
 
 
 (** Lemmas concerning the form of items passed in messages **)
@@ -441,8 +431,8 @@ goal thy
 \           evs : traces    \
 \        |] ==> (EX evt:traces. \
 \                         K = Key(newK evt) & \
-\                         X = (Crypt {|K, Agent A|} (serverKey B)) & \
-\                         K' = serverKey A & \
+\                         X = (Crypt {|K, Agent A|} (shrK B)) & \
+\                         K' = shrK A & \
 \                         length evt < length evs)";
 be rev_mp 1;
 be traces.induct 1;
@@ -461,7 +451,7 @@ goal thy
 \                 (Crypt {|N, Agent(Friend j), K, X|} K') # evs';  \
 \           evs : traces;  i~=k                                    \
 \        |] ==>                                                    \
-\     K ~: analz (insert (Key (serverKey (Friend k))) (sees Enemy evs))";
+\     K ~: analz (insert (Key (shrK (Friend k))) (sees Enemy evs))";
 be rev_mp 1;
 be traces.induct 1;
 by (ALLGOALS (asm_full_simp_tac (!simpset addsimps pushes)));
@@ -475,10 +465,10 @@ val Enemy_not_see_encrypted_key_lemma = result();
 goal thy
  "!!evs. evs : traces ==>                             \
 \        ALL A NA B K X.                            \
-\            (Crypt {|Nonce NA, Agent B, Key K, X|} (serverKey A)) \
+\            (Crypt {|Nonce NA, Agent B, Key K, X|} (shrK A)) \
 \            : parts (sees Enemy evs) & A ~= Enemy  -->   \
 \          (EX evt:traces. K = newK evt & \
-\                          X = (Crypt {|Key K, Agent A|} (serverKey B)))";
+\                          X = (Crypt {|Key K, Agent A|} (shrK B)))";
 be traces.induct 1;
 bd NS3_msg_in_parts_sees_Enemy 5;
 by (Step_tac 1);
@@ -496,7 +486,7 @@ qed_spec_mp "encrypted_form";
 goal thy 
  "!!evs. evs : traces ==>                             \
 \        ALL S A NA B K X.                            \
-\            Says S A (Crypt {|Nonce NA, Agent B, Key K, X|} (serverKey A)) \
+\            Says S A (Crypt {|Nonce NA, Agent B, Key K, X|} (shrK A)) \
 \            : set_of_list evs  -->   \
 \        S = Server | S = Enemy";
 be traces.induct 1;
@@ -519,11 +509,11 @@ qed_spec_mp "Server_or_Enemy";
 (*Describes the form of X when the following message is sent;
   use Says_Server_message_form if applicable*)
 goal thy 
- "!!evs. [| Says S A (Crypt {|Nonce NA, Agent B, Key K, X|} (serverKey A)) \
+ "!!evs. [| Says S A (Crypt {|Nonce NA, Agent B, Key K, X|} (shrK A)) \
 \            : set_of_list evs;                              \
 \           evs : traces               \
 \        |] ==> (EX evt:traces. K = newK evt & length evt < length evs & \
-\                               X = (Crypt {|Key K, Agent A|} (serverKey B)))";
+\                               X = (Crypt {|Key K, Agent A|} (shrK B)))";
 by (forward_tac [Server_or_Enemy] 1);
 ba 1;
 by (Step_tac 1);
@@ -536,11 +526,11 @@ qed "Says_S_message_form";
 (*Currently unused.  Needed only to reason about the VERY LAST message.*)
 goal thy 
  "!!evs. [| evs = Says S A (Crypt {|Nonce NA, Agent B, Key K, X|}   \
-\                           (serverKey A)) # evs';                  \
+\                           (shrK A)) # evs';                  \
 \           evs : traces                                           \
 \        |] ==> (EX evt:traces. evs' : traces & length evt < length evs & \
 \                               K = newK evt & \
-\                               X = (Crypt {|Key K, Agent A|} (serverKey B)))";
+\                               X = (Crypt {|Key K, Agent A|} (shrK B)))";
 by (forward_tac [traces_eq_ConsE] 1);
 by (dtac (set_of_list_eqI1 RS Says_S_message_form) 2);
 by (Auto_tac());	
@@ -552,8 +542,8 @@ qed "Says_S_message_form_eq";
  The following is to prove theorems of the form
 
           Key K : analz (insert (Key (newK evt)) 
-	                   (insert (Key (serverKey C)) (sees Enemy evs))) ==>
-          Key K : analz (insert (Key (serverKey C)) (sees Enemy evs))
+	                   (insert (Key (shrK C)) (sees Enemy evs))) ==>
+          Key K : analz (insert (Key (shrK C)) (sees Enemy evs))
 
  A more general formula must be proved inductively.
 
@@ -600,10 +590,10 @@ val insert_Key_image = result();
 
 goal thy  
  "!!evs. evs : traces ==> \
-\  ALL K E. (Key K : analz (insert (Key (serverKey C)) \
+\  ALL K E. (Key K : analz (insert (Key (shrK C)) \
 \                             (Key``(newK``E) Un (sees Enemy evs)))) = \
 \           (K : newK``E |  \
-\            Key K : analz (insert (Key (serverKey C)) \
+\            Key K : analz (insert (Key (shrK C)) \
 \                             (sees Enemy evs)))";
 be traces.induct 1;
 by (forward_tac [Says_S_message_form] 5 THEN assume_tac 5);	
@@ -624,7 +614,7 @@ by (fast_tac (!claset addSEs [impOfSubs analz_mono]) 2);
 by (subgoal_tac 
     "Key K : analz \
 \             (synth \
-\              (analz (insert (Key (serverKey C)) \
+\              (analz (insert (Key (shrK C)) \
 \                        (Key``(newK``E) Un (sees Enemy evsa)))))" 1);
 (*First, justify this subgoal*)
 (*Discard formulae for better speed*)
@@ -640,10 +630,10 @@ qed_spec_mp "analz_image_newK";
 goal thy  
  "!!evs. evs : traces ==>                                  \
 \        Key K : analz (insert (Key (newK evt))            \
-\                         (insert (Key (serverKey C))      \
+\                         (insert (Key (shrK C))      \
 \                          (sees Enemy evs))) =            \
 \             (K = newK evt |                              \
-\              Key K : analz (insert (Key (serverKey C))   \
+\              Key K : analz (insert (Key (shrK C))   \
 \                               (sees Enemy evs)))";
 by (asm_simp_tac (HOL_ss addsimps [pushKey_newK, analz_image_newK, 
 				   insert_Key_singleton]) 1);
@@ -659,7 +649,7 @@ goal thy
 \      EX X'. ALL C S A Y N B X.               \
 \         C ~= Enemy -->                       \
 \         Says S A Y : set_of_list evs -->     \
-\         ((Crypt {|N, Agent B, Key K, X|} (serverKey C)) : parts{Y} --> \
+\         ((Crypt {|N, Agent B, Key K, X|} (shrK C)) : parts{Y} --> \
 \       (X = X'))";
 be traces.induct 1;
 by (forward_tac [Says_S_message_form] 5 THEN assume_tac 5);	
@@ -682,7 +672,7 @@ br conjI 1;
 ba 2;
 by (Step_tac 1);
 (** LEVEL 12 **)
-by (subgoal_tac "Crypt {|N, Agent Ba, Key K, Xa|} (serverKey C) \
+by (subgoal_tac "Crypt {|N, Agent Ba, Key K, Xa|} (shrK C) \
 \                  : parts (sees Enemy evsa)" 1);
 by (eres_inst_tac [("V","ALL S.?P(S)")] thin_rl 2);
 by (best_tac (!claset addSEs [impOfSubs analz_subset_parts]
@@ -701,10 +691,10 @@ val lemma = result();
 (*In messages of this form, the session key uniquely identifies the rest*)
 goal thy 
  "!!evs. [| Says S A          \
-\             (Crypt {|N, Agent B, Key K, X|} (serverKey C))     \
+\             (Crypt {|N, Agent B, Key K, X|} (shrK C))     \
 \                  : set_of_list evs; \
  \          Says S' A'                                         \
-\             (Crypt {|N', Agent B', Key K, X'|} (serverKey C')) \
+\             (Crypt {|N', Agent B', Key K, X'|} (shrK C')) \
 \                  : set_of_list evs;                         \
 \           evs : traces;  C ~= Enemy;  C' ~= Enemy    |] ==> X = X'";
 bd lemma 1;
@@ -722,7 +712,7 @@ goal thy
 \            (Crypt {|N, Agent(Friend j), K, X|} K') : set_of_list evs;  \
 \           evs : traces;  Friend i ~= C;  Friend j ~= C              \
 \        |] ==>                                                       \
-\     K ~: analz (insert (Key (serverKey C)) (sees Enemy evs))";
+\     K ~: analz (insert (Key (shrK C)) (sees Enemy evs))";
 be rev_mp 1;
 be traces.induct 1;
 by (ALLGOALS (asm_simp_tac (!simpset addsimps pushes)));
@@ -742,7 +732,7 @@ by (fast_tac (!claset addSEs [less_irrefl]) 2);
 br notI 1;
 by (subgoal_tac 
     "Key (newK evt) : \
-\    analz (synth (analz (insert (Key (serverKey C)) \
+\    analz (synth (analz (insert (Key (shrK C)) \
 \                                  (sees Enemy evsa))))" 1);
 be (impOfSubs analz_mono) 2;
 by (deepen_tac (!claset addIs [analz_mono RS synth_mono RSN (2,rev_subsetD),
@@ -764,7 +754,7 @@ bd unique_session_keys 1;
 by (REPEAT_FIRST assume_tac);
 by (ALLGOALS Full_simp_tac);
 by (Step_tac 1);
-by (asm_full_simp_tac (!simpset addsimps [serverKey_mem_analz]) 1);
+by (asm_full_simp_tac (!simpset addsimps [shrK_mem_analz]) 1);
 qed "Enemy_not_see_encrypted_key";
 
 
@@ -827,7 +817,7 @@ goal thy
 \                 (Crypt {|N, Agent(Friend j), K, X|} K') # evs';  \
 \           evs : traces;  i~=k                                    \
 \        |] ==>                                                    \
-\     K ~: analz (insert (Key (serverKey (Friend k))) (sees Enemy evs))";
+\     K ~: analz (insert (Key (shrK (Friend k))) (sees Enemy evs))";
 be rev_mp 1;
 be traces.induct 1;
 by (ALLGOALS (asm_full_simp_tac (!simpset addsimps pushes)));
@@ -846,11 +836,11 @@ val Enemy_not_see_encrypted_key_lemma = result();
   same thing.*)
 goal thy 
  "!!evs. [| evs : traces; A ~= Enemy;  A ~= Friend j |] ==> \
-\        Key (serverKey A) ~:                               \
-\          analz (insert (Key (serverKey (Friend j))) (sees Enemy evs))";
+\        Key (shrK A) ~:                               \
+\          analz (insert (Key (shrK (Friend j))) (sees Enemy evs))";
 br (analz_subset_parts RS contra_subsetD) 1;
 by (Asm_simp_tac 1);
-qed "insert_not_analz_serverKey";
+qed "insert_not_analz_shrK";
 
 
 
@@ -868,10 +858,10 @@ YYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYY;
   that Friend or the Server originally sent it.*)
 goal thy 
  "!!evs. evs : traces ==>                             \
-\    ALL A B X i. Says A B (Crypt X (serverKey (Friend i))) \
+\    ALL A B X i. Says A B (Crypt X (shrK (Friend i))) \
 \        : set_of_list evs  -->   \
-\    (EX B'. Says Server B' (Crypt X (serverKey (Friend i))) : set_of_list evs | \
-\            Says (Friend i) B' (Crypt X (serverKey (Friend i))) : set_of_list evs)";
+\    (EX B'. Says Server B' (Crypt X (shrK (Friend i))) : set_of_list evs | \
+\            Says (Friend i) B' (Crypt X (shrK (Friend i))) : set_of_list evs)";
 be traces.induct 1;
 by (Step_tac 1);
 by (ALLGOALS Asm_full_simp_tac);
@@ -894,7 +884,7 @@ by ((dtac spec THEN' dtac spec THEN' dtac spec THEN' dtac spec)2);
 
 (*The NS3 case needs the induction hypothesis twice!
     One application is to the X component of the most recent message.*)
-by (subgoal_tac "? evs'. X = Crypt {|Key (newK evs'), Agent A|} (serverKey B)" 2);
+by (subgoal_tac "? evs'. X = Crypt {|Key (newK evs'), Agent A|} (shrK B)" 2);
 by (Fast_tac 3);
 by (full_simp_tac (!simpset addsimps [all_conj_distrib]) 2);
 be conjE 2;
