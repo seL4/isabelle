@@ -303,6 +303,7 @@ until the goal is solved completely.
 \begin{ttbox} 
 has_fewer_prems : int -> thm -> bool
 eq_thm          : thm * thm -> bool
+eq_thm_prop     : thm * thm -> bool
 size_of_thm     : thm -> int
 \end{ttbox}
 \begin{ttdescription}
@@ -312,9 +313,14 @@ reports whether $thm$ has fewer than~$n$ premises.  By currying,
 be given to the searching tacticals.
 
 \item[\ttindexbold{eq_thm} ($thm@1$, $thm@2$)] reports whether $thm@1$ and
-  $thm@2$ are equal.  Both theorems must have identical signatures.  Both
-  theorems must have the same conclusions, and the same hypotheses, in the
-  same order.  Names of bound variables are ignored.
+  $thm@2$ are equal.  Both theorems must have compatible signatures.  Both
+  theorems must have the same conclusions, the same hypotheses (in the same
+  order), and the same set of sort hypotheses.  Names of bound variables are
+  ignored.
+  
+\item[\ttindexbold{eq_thm_prop} ($thm@1$, $thm@2$)] reports whether the
+  propositions of $thm@1$ and $thm@2$ are equal.  Names of bound variables are
+  ignored.
 
 \item[\ttindexbold{size_of_thm} $thm$] 
 computes the size of $thm$, namely the number of variables, constants and
