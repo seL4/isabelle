@@ -885,6 +885,12 @@ apply (case_tac zs)
 apply auto
 done
 
+lemma take_add [rule_format]: 
+    "\<forall>i. i+j \<le> length(xs) --> take (i+j) xs = take i xs @ take j (drop i xs)"
+apply (induct xs, auto) 
+apply (case_tac i, simp_all) 
+done
+
 
 subsection {* @{text takeWhile} and @{text dropWhile} *}
 
