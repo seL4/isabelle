@@ -363,9 +363,13 @@ val letP =
     (P.and_list1 (P.enum1 "and" P.term -- (P.$$$ "=" |-- P.term) -- P.marg_comment)
       >> (Toplevel.print oo (Toplevel.proof o IsarThy.let_bind)));
 
+val case_spec =
+  (P.$$$ "(" |-- P.!!! (P.xname -- Scan.repeat1 (P.underscore >> K None || P.name >> Some)
+    --| P.$$$ ")") || P.xname >> rpair []) -- P.opt_attribs >> P.triple1;
+
 val caseP =
   OuterSyntax.command "case" "invoke local context" K.prf_asm
-    (P.xthm -- P.marg_comment >> (Toplevel.print oo (Toplevel.proof o IsarThy.invoke_case)));
+    (case_spec -- P.marg_comment >> (Toplevel.print oo (Toplevel.proof o IsarThy.invoke_case)));
 
 
 (* proof structure *)

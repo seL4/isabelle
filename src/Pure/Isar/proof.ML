@@ -80,7 +80,7 @@ sig
     -> state -> state
   val presume_i: ((string * context attribute list) * (term * (term list * term list)) list) list
     -> state -> state
-  val invoke_case: string * context attribute list -> state -> state
+  val invoke_case: string * string option list * context attribute list -> state -> state
   val theorem: string -> bstring -> theory attribute list -> string * (string list * string list)
     -> theory -> state
   val theorem_i: string -> bstring -> theory attribute list -> term * (term list * term list)
@@ -549,10 +549,10 @@ end;
 
 (* invoke_case *)
 
-fun invoke_case (name, atts) state =
+fun invoke_case (name, xs, atts) state =
   let
     val (state', (lets, asms)) =
-      map_context_result (ProofContext.apply_case (get_case state name)) state;
+      map_context_result (ProofContext.apply_case (get_case state name xs)) state;
   in
     state'
     |> add_binds_i lets

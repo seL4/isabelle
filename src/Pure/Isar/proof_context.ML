@@ -88,7 +88,7 @@ sig
   val fix: (string list * string option) list -> context -> context
   val fix_i: (string list * typ option) list -> context -> context
   val bind_skolem: context -> string list -> term -> term
-  val get_case: context -> string -> RuleCases.T
+  val get_case: context -> string -> string option list -> RuleCases.T
   val add_cases: (string * RuleCases.T) list -> context -> context
   val apply_case: RuleCases.T -> context -> context * ((indexname * term option) list * term list)
   val show_hyps: bool ref
@@ -953,16 +953,22 @@ fun bind_skolem ctxt xs =
 
 (** cases **)
 
-fun check_case ctxt name {fixes, assumes, binds} =
-  if null (foldr Term.add_typ_tvars (map snd fixes, [])) andalso
-    null (foldr Term.add_term_vars (assumes, [])) then
-      {fixes = fixes, assumes = assumes, binds = map drop_schematic binds}
-  else raise CONTEXT ("Illegal schematic variable(s) in case " ^ quote name, ctxt);
+fun prep_case ctxt name xs {fixes, assumes, binds} =
+  let
+    fun replace (opt_x :: xs) ((y, T) :: ys) = (if_none opt_x y, T) :: replace xs ys
+      | replace [] ys = ys
+      | replace (_ :: _) [] = raise CONTEXT ("Too many parameters for case " ^ quote name, ctxt);
+  in
+    if null (foldr Term.add_typ_tvars (map snd fixes, [])) andalso
+      null (foldr Term.add_term_vars (assumes, [])) then
+        {fixes = replace xs fixes, assumes = assumes, binds = map drop_schematic binds}
+    else raise CONTEXT ("Illegal schematic variable(s) in case " ^ quote name, ctxt)
+  end;
 
-fun get_case (ctxt as Context {cases, ...}) name =
+fun get_case (ctxt as Context {cases, ...}) name xs =
   (case assoc (cases, name) of
     None => raise CONTEXT ("Unknown case: " ^ quote name, ctxt)
-  | Some c => check_case ctxt name c);
+  | Some c => prep_case ctxt name xs c);
 
 
 fun add_cases xs = map_context (fn (thy, data, asms, binds, thms, cases, defs) =>
