@@ -50,8 +50,6 @@ val product_typeI = thm "product_typeI";
 val product_type_inject = thm "product_type_inject";
 val product_type_conv1 = thm "product_type_conv1";
 val product_type_conv2 = thm "product_type_conv2";
-val product_type_induct = thm "product_type_induct";
-val product_type_cases = thm "product_type_cases";
 val product_type_split_paired_all = thm "product_type_split_paired_all";
 
 
@@ -113,13 +111,6 @@ val RepN = "Rep_";
 val AbsN = "Abs_";
 
 
-(** generic operations **)
-
-(* adhoc priming of vars *)
-
-fun prime (Free (x, T)) = Free (x ^ "'", T)
-  | prime t = raise TERM ("prime: no free variable", [t]);
-
 
 (** tuple operations **)
 
@@ -148,7 +139,7 @@ fun mk_Rep U (c, T) =
 fun mk_Abs U (c, T) =
   Const (suffix field_typeN (prefix_base AbsN c),
     HOLogic.mk_prodT (T, U) --> mk_fieldT ((c, T), U));
-  
+
 
 (* constructors *)
 
@@ -266,12 +257,21 @@ fun record_update_tr [t, u] =
   | record_update_tr ts = raise TERM ("record_update_tr", ts);
 
 
+fun update_name_tr (Free (x, T) :: ts) = Term.list_comb (Free (suffix updateN x, T), ts)
+  | update_name_tr (Const (x, T) :: ts) = Term.list_comb (Const (suffix updateN x, T), ts)
+  | update_name_tr (((c as Const ("_constrain", _)) $ t $ ty) :: ts) =
+      Term.list_comb (c $ update_name_tr [t] $
+        (Syntax.const "fun" $ ty $ Syntax.const "dummy"), ts)
+  | update_name_tr ts = raise TERM ("update_name_tr", ts);
+
+
 val parse_translation =
  [("_record_type", record_type_tr),
   ("_record_type_scheme", record_type_scheme_tr),
   ("_record", record_tr),
   ("_record_scheme", record_scheme_tr),
-  ("_record_update", record_update_tr)];
+  ("_record_update", record_update_tr),
+  ("_update_name", update_name_tr)];
 
 
 (* print translations *)

@@ -13,7 +13,7 @@ subsection {* Abstract product types *}
 
 constdefs
   product_type :: "('p => 'a * 'b) => ('a * 'b => 'p) =>
-    ('a => 'b => 'p) => ('p \<Rightarrow> 'a) => ('p => 'b) => bool"
+    ('a => 'b => 'p) => ('p => 'a) => ('p => 'b) => bool"
   "product_type Rep Abs pair dest1 dest2 ==
     type_definition Rep Abs UNIV \<and>
     pair = (\<lambda>a b. Abs (a, b)) \<and>
@@ -23,8 +23,8 @@ constdefs
 lemma product_typeI:
   "type_definition Rep Abs UNIV ==>
     pair == \<lambda>a b. Abs (a, b) ==>
-    dest1 == (\<lambda>p. fst (Rep p)) \<Longrightarrow>
-    dest2 == (\<lambda>p. snd (Rep p)) \<Longrightarrow>
+    dest1 == (\<lambda>p. fst (Rep p)) ==>
+    dest2 == (\<lambda>p. snd (Rep p)) ==>
     product_type Rep Abs pair dest1 dest2"
   by (simp add: product_type_def)
 
@@ -93,10 +93,10 @@ qed
 
 theorem product_type_cases [cases set: product_type]:
   "product_type Rep Abs pair dest1 dest2 ==>
-    (!!x y. p = pair x y \<Longrightarrow> C) ==> C"
+    (!!x y. p = pair x y ==> C) ==> C"
 proof -
   assume prod_type: "product_type Rep Abs pair dest1 dest2"
-  assume "!!x y. p = pair x y \<Longrightarrow> C"
+  assume "!!x y. p = pair x y ==> C"
   with prod_type show C
     by (induct p) (simp only: product_type_inject [OF prod_type], blast)
 qed
@@ -112,7 +112,7 @@ qed
 
 theorem product_type_split_paired_all:
   "product_type Rep Abs pair dest1 dest2 ==>
-  (\<And>x. PROP P x) \<equiv> (\<And>a b. PROP P (pair a b))"
+  (!!x. PROP P x) == (!!a b. PROP P (pair a b))"
 proof
   fix a b
   assume "!!x. PROP P x"
@@ -126,19 +126,13 @@ next
 qed
 
 
-text {* \medskip Type class for record extensions. *}
+subsection {* Type class for record extensions *}
 
 axclass more < "term"
 instance unit :: more ..
 
 
-subsection {* Record package setup *}
-
-use "Tools/record_package.ML"
-setup RecordPackage.setup
-
-
-subsection {* Concrete syntax *}
+subsection {* Concrete record syntax *}
 
 nonterminals
   ident field_type field_types field fields update updates
@@ -172,17 +166,10 @@ syntax (xsymbols)
   "_record_scheme"      :: "[fields, 'a] => 'a"                 ("(3\<lparr>_,/ (2\<dots> =/ _)\<rparr>)")
   "_record_update"      :: "['a, updates] => 'b"                ("_/(3\<lparr>_\<rparr>)" [900,0] 900)
 
-parse_translation {*
-  let
-    fun update_name_tr (Free (x, T) :: ts) =
-          Term.list_comb (Free (suffix RecordPackage.updateN x, T), ts)
-      | update_name_tr (Const (x, T) :: ts) =
-          Term.list_comb (Const (suffix RecordPackage.updateN x, T), ts)
-      | update_name_tr (((c as Const ("_constrain", _)) $ t $ ty) :: ts) =
-          Term.list_comb (c $ update_name_tr [t] $
-            (Syntax.const "fun" $ ty $ Syntax.const "dummy"), ts)
-      | update_name_tr ts = raise TERM ("update_name_tr", ts);
-  in [("_update_name", update_name_tr)] end
-*}
+
+subsection {* Package setup *}
+
+use "Tools/record_package.ML"
+setup RecordPackage.setup
 
 end
