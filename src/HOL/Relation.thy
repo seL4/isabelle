@@ -189,10 +189,10 @@ subsection {* Converse *}
 lemma converse_iff [iff]: "((a,b): r^-1) = ((b,a) : r)"
   by (simp add: converse_def)
 
-lemma converseI: "(a, b) : r ==> (b, a) : r^-1"
+lemma converseI[sym]: "(a, b) : r ==> (b, a) : r^-1"
   by (simp add: converse_def)
 
-lemma converseD: "(a,b) : r^-1 ==> (b, a) : r"
+lemma converseD[sym]: "(a,b) : r^-1 ==> (b, a) : r"
   by (simp add: converse_def)
 
 lemma converseE [elim!]:

@@ -138,46 +138,48 @@ lemma Church_Rosser_confluent: "Church_Rosser R = confluent R"
 
 subsection {* Newman's lemma *}
 
-theorem Newman:
+theorem newman:
   assumes wf: "wf (R\<inverse>)"
   and lc: "\<And>a b c. (a, b) \<in> R \<Longrightarrow> (a, c) \<in> R \<Longrightarrow>
     \<exists>d. (b, d) \<in> R\<^sup>* \<and> (c, d) \<in> R\<^sup>*"
-  shows "\<And>b c. (a, b) \<in> R\<^sup>* \<Longrightarrow> (a, c) \<in> R\<^sup>* \<Longrightarrow>
-    \<exists>d. (b, d) \<in> R\<^sup>* \<and> (c, d) \<in> R\<^sup>*"
-  using wf
-proof induct
-  case (less x b c)
-  have xc: "(x, c) \<in> R\<^sup>*" .
-  have xb: "(x, b) \<in> R\<^sup>*" . thus ?case
-  proof (rule converse_rtranclE)
-    assume "x = b"
-    with xc have "(b, c) \<in> R\<^sup>*" by simp
-    thus ?thesis by rules
-  next
-    fix y
-    assume xy: "(x, y) \<in> R"
-    assume yb: "(y, b) \<in> R\<^sup>*"
-    from xc show ?thesis
+  shows "(a, b) \<in> R\<^sup>* \<Longrightarrow> (a, c) \<in> R\<^sup>* \<Longrightarrow>
+    \<exists>d. (b, d) \<in> R\<^sup>* \<and> (c, d) \<in> R\<^sup>*" (is "PROP ?conf b c")
+proof -
+  from wf show "\<And>b c. PROP ?conf b c"
+  proof induct
+    case (less x b c)
+    have xc: "(x, c) \<in> R\<^sup>*" .
+    have xb: "(x, b) \<in> R\<^sup>*" . thus ?case
     proof (rule converse_rtranclE)
-      assume "x = c"
-      with xb have "(c, b) \<in> R\<^sup>*" by simp
+      assume "x = b"
+      with xc have "(b, c) \<in> R\<^sup>*" by simp
       thus ?thesis by rules
     next
-      fix y'
-      assume y'c: "(y', c) \<in> R\<^sup>*"
-      assume xy': "(x, y') \<in> R"
-      with xy have "\<exists>u. (y, u) \<in> R\<^sup>* \<and> (y', u) \<in> R\<^sup>*" by (rule lc)
-      then obtain u where yu: "(y, u) \<in> R\<^sup>*" and y'u: "(y', u) \<in> R\<^sup>*" by rules
-      from xy have "(y, x) \<in> R\<inverse>" ..
-      from this and yb yu have "\<exists>d. (b, d) \<in> R\<^sup>* \<and> (u, d) \<in> R\<^sup>*" by (rule less)
-      then obtain v where bv: "(b, v) \<in> R\<^sup>*" and uv: "(u, v) \<in> R\<^sup>*" by rules
-      from xy' have "(y', x) \<in> R\<inverse>" ..
-      moreover from y'u and uv have "(y', v) \<in> R\<^sup>*" by (rule rtrancl_trans)
-      moreover note y'c
-      ultimately have "\<exists>d. (v, d) \<in> R\<^sup>* \<and> (c, d) \<in> R\<^sup>*" by (rule less)
-      then obtain w where vw: "(v, w) \<in> R\<^sup>*" and cw: "(c, w) \<in> R\<^sup>*" by rules
-      from bv vw have "(b, w) \<in> R\<^sup>*" by (rule rtrancl_trans)
-      with cw show ?thesis by rules
+      fix y
+      assume xy: "(x, y) \<in> R"
+      assume yb: "(y, b) \<in> R\<^sup>*"
+      from xc show ?thesis
+      proof (rule converse_rtranclE)
+	assume "x = c"
+	with xb have "(c, b) \<in> R\<^sup>*" by simp
+	thus ?thesis by rules
+      next
+	fix y'
+	assume y'c: "(y', c) \<in> R\<^sup>*"
+	assume xy': "(x, y') \<in> R"
+	with xy have "\<exists>u. (y, u) \<in> R\<^sup>* \<and> (y', u) \<in> R\<^sup>*" by (rule lc)
+        then obtain u where yu: "(y, u) \<in> R\<^sup>*" and y'u: "(y', u) \<in> R\<^sup>*" by rules
+	from xy[symmetric] yb yu have "\<exists>d. (b, d) \<in> R\<^sup>* \<and> (u, d) \<in> R\<^sup>*"
+	  by (rule less)
+	then obtain v where bv: "(b, v) \<in> R\<^sup>*" and uv: "(u, v) \<in> R\<^sup>*" by rules
+	note xy'[symmetric]
+	moreover from y'u and uv have "(y', v) \<in> R\<^sup>*" by (rule rtrancl_trans)
+	moreover note y'c
+	ultimately have "\<exists>d. (v, d) \<in> R\<^sup>* \<and> (c, d) \<in> R\<^sup>*" by (rule less)
+	then obtain w where vw: "(v, w) \<in> R\<^sup>*" and cw: "(c, w) \<in> R\<^sup>*" by rules
+	from bv vw have "(b, w) \<in> R\<^sup>*" by (rule rtrancl_trans)
+	with cw show ?thesis by rules
+      qed
     qed
   qed
 qed
