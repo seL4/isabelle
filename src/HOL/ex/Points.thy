@@ -15,7 +15,7 @@ record point =
   x :: nat
   y :: nat;
 
-text {|
+text {*
   Apart many other things, above record declaration produces the
   following theorems:
 
@@ -25,16 +25,16 @@ text {|
 
   The set of theorems "point.simps" is added automatically to the
   standard simpset, "point.iffs" is added to the claset and simpset.
-|};
+*};
 
-text {|
+text {*
   Record declarations define new type abbreviations:
 
     point = "(| x :: nat, y :: nat |)"
     'a point_scheme = "(| x :: nat, y :: nat, ... :: 'a |)"
 
   Extensions `...' must be in type class `more'!
-|};
+*};
 
 consts foo1 :: point;
 consts foo2 :: "(| x :: nat, y :: nat |)";
@@ -137,12 +137,12 @@ record cpoint = point +
   colour :: colour;
 
 
-text {|
+text {*
   The record declaration defines new type constructors:
 
     cpoint = (| x :: nat, y :: nat, colour :: colour |)
     'a cpoint_scheme = (| x :: nat, y :: nat, colour :: colour, ... :: 'a |)
-|};
+*};
 
 consts foo6 :: cpoint;
 consts foo7 :: "(| x :: nat, y :: nat, colour :: colour |)";
@@ -178,7 +178,7 @@ record point' =
 consts
   foo12 :: nat;
 
-text {| Definition @{term "foo12 == getX (| x' = 2, y' = 0 |)"} is invalid |};
+text {* Definition @{term "foo12 == getX (| x' = 2, y' = 0 |)"} is invalid *};
 
 
 text "polymorphic records";

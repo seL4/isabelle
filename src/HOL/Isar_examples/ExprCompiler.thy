@@ -14,10 +14,10 @@ title
 
 section "Basics";
 
-text {|
+text {*
   First we define a type abbreviation for binary operations over some
   type @{type "'val"} of values.
-|};
+*};
 
 types
   'val binop = "'val => 'val => 'val";
@@ -25,19 +25,19 @@ types
 
 section "Machine";
 
-text {|
+text {*
   Next we model a simple stack machine, with three instructions.
-|};
+*};
 
 datatype ('adr, 'val) instr =
   Const 'val |
   Load 'adr |
   Apply "'val binop";
 
-text {|
+text {*
   Execution of a list of stack machine instructions is
   straight-forward.
-|};
+*};
 
 consts
   exec :: "(('adr, 'val) instr) list => 'val list => ('adr => 'val) => 'val list";
@@ -57,19 +57,19 @@ constdefs
 
 section "Expressions";
 
-text {|
+text {*
   We introduce a simple language of expressions: variables ---
   constants --- binary operations.
-|};
+*};
 
 datatype ('adr, 'val) expr =
   Variable 'adr |
   Constant 'val |
   Binop "'val binop" "('adr, 'val) expr" "('adr, 'val) expr";
 
-text {|
+text {*
   Evaluation of expressions does not do any unexpected things.
-|};
+*};
 
 consts
   eval :: "('adr, 'val) expr => ('adr => 'val) => 'val";
@@ -82,10 +82,10 @@ primrec
 
 section "Compiler";
 
-text {|
+text {*
   So we are ready to define the compilation function of expressions to
   lists of stack machine instructions.
-|};
+*};
 
 consts
   comp :: "('adr, 'val) expr => (('adr, 'val) instr) list";
@@ -96,10 +96,10 @@ primrec
   "comp (Binop f e1 e2) = comp e2 @ comp e1 @ [Apply f]";
 
 
-text {|
+text {*
   The main result of this developement is the correctness theorem for
   @{term "comp"}.  We first establish some lemmas.
-|};
+*};
 
 
 lemma exec_append:

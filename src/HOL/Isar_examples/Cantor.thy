@@ -11,7 +11,7 @@ theory Cantor = Main:;
 
 section "Example: Cantor's Theorem";
 
-text {|
+text {*
   Cantor's Theorem states that every set has more subsets than it has
   elements.  It has become a favourite example in higher-order logic
   since it is so easily expressed: @{display term[show_types] "ALL f
@@ -23,14 +23,14 @@ text {|
 
   The Isabelle/Isar proofs below use HOL's set theory, with the type
   @{type "'a set"} and the operator @{term range}.
-|};
+*};
 
 
-text {|
+text {*
   We first consider a rather verbose version of the proof, with the
   reasoning expressed quite naively.  We only make use of the pure
   core of the Isar proof language.
-|};
+*};
 
 theorem "EX S. S ~: range(f :: 'a => 'a set)";
 proof;
@@ -59,11 +59,11 @@ proof;
 qed;
 
 
-text {|
+text {*
   The following version essentially does the same reasoning, only that
   it is expressed more neatly, with some derived Isar language
   elements involved.
-|};
+*};
 
 theorem "EX S. S ~: range(f :: 'a => 'a set)";
 proof;
@@ -90,7 +90,7 @@ proof;
 qed;
 
 
-text {|
+text {*
   How much creativity is required?  As it happens, Isabelle can prove
   this theorem automatically.  The default classical set contains
   rules for most of the constructs of HOL's set theory.  We must
@@ -98,18 +98,18 @@ text {|
   then apply best-first search.  Depth-first search would diverge, but
   best-first search successfully navigates through the large search
   space.
-|};
+*};
 
 theorem "EX S. S ~: range(f :: 'a => 'a set)";
   by (best elim: equalityCE);
 
-text {|
+text {*
   While this establishes the same theorem internally, we do not get
   any idea of how the proof actually works.  There is currently no way
   to transform internal system-level representations of Isabelle
   proofs back into Isar documents.  Writing Isabelle/Isar proof
   documents actually \emph{is} a creative process.
-|};
+*};
 
 
 end;
