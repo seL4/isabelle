@@ -1,7 +1,7 @@
 Summary:	X-Symbol mode for XEmacs to display mathematical symbols
 Name:		xsymbol
-Version:	3.3
-Release:	2
+Version:	3.3d
+Release:	1
 Group:		Applications/Editors/Emacs
 Copyright:	GPL
 Url:		http://www.fmi.uni-passau.de/~wedler/x-symbol/
@@ -25,7 +25,8 @@ images/figures are also supported.
 
 This distribution of X-Symbol is intended to be used together with
 Isabelle and Proof General.  It relies on Isabelle's automatic
-configuration of contributed packages.
+configuration of contributed packages.  Please ignore the installation
+instructions of X-Symbol!
 
 %prep
 find /usr/share/x-symbol -type f -print | xargs perl -pi -e 's:^#!.*/perl:#!usr/bin/perl:'
