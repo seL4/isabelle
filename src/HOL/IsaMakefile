@@ -269,6 +269,9 @@ $(LOG)/HOL-NumberTheory.gz: $(OUT)/HOL \
   NumberTheory/Chinese.thy NumberTheory/EulerFermat.thy \
   NumberTheory/IntFact.thy NumberTheory/IntPrimes.thy \
   NumberTheory/WilsonBij.thy NumberTheory/WilsonRuss.thy \
+  NumberTheory/Finite2.thy NumberTheory/Int2.thy NumberTheory/EvenOdd.thy\
+  NumberTheory/Residues.thy NumberTheory/Euler.thy NumberTheory/Gauss.thy\
+  NumberTheory/Quadratic_Reciprocity.thy\
   NumberTheory/ROOT.ML
 	@$(ISATOOL) usedir -g true $(OUT)/HOL NumberTheory
 
