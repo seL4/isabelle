@@ -304,7 +304,7 @@ val general_statement =
 
 fun gen_theorem k =
   OuterSyntax.command k ("state " ^ k) K.thy_goal
-    (P.locale_target -- Scan.optional (P.thm_name ":" --|
+    (P.locale_target -- Scan.optional (P.opt_thm_name ":" --|
       Scan.ahead (P.locale_keyword || P.$$$ "shows")) ("", []) --
       general_statement >> (fn ((x, y), (z, w)) =>
       (Toplevel.print o Toplevel.theory_to_proof (IsarThy.smart_multi_theorem k x y z w))));
