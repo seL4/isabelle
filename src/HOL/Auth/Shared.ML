@@ -1,4 +1,4 @@
-(*  Title:      HOL/Auth/Message
+(*  Title:      HOL/Auth/Shared
     ID:         $Id$
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1996  University of Cambridge
@@ -7,27 +7,6 @@ Theory of Shared Keys (common to all symmetric-key protocols)
 
 Server keys; initial states of agents; new nonces and keys; function "sees" 
 *)
-
-
-val prems = goal HOL.thy "[| P ==> Q(True); ~P ==> Q(False) |] ==> Q(P)";
-by (case_tac "P" 1);
-by (ALLGOALS (asm_simp_tac (!simpset addsimps prems)));
-val expand_case = result();
-
-fun expand_case_tac P i =
-    res_inst_tac [("P",P)] expand_case i THEN
-    Simp_tac (i+1) THEN 
-    Simp_tac i;
-
-
-
-(*GOALS.ML??*)
-fun prlim n = (goals_limit:=n; pr());
-
-(*FUN.ML??  WE NEED A NOTION OF INVERSE IMAGE, OR GRAPH!!*)
-goal Set.thy "!!f. B <= range f = (B = f`` {x. f x: B})";
-by (fast_tac (!claset addEs [equalityE]) 1);
-val subset_range_iff = result();
 
 
 open Shared;
@@ -59,10 +38,10 @@ Addsimps [invKey_shrK, invKey_newK];
 AddIffs [inj_shrK RS inj_eq];
 AddSDs  [newN_length, newK_length];
 
+Addsimps [newK_neq_shrK, newK_neq_shrK RS not_sym];
+
 (** Rewrites should not refer to  initState(Friend i) 
     -- not in normal form! **)
-
-Addsimps [newK_neq_shrK, newK_neq_shrK RS not_sym];
 
 goal thy "Key (newK evs) ~: parts (initState lost B)";
 by (agent.induct_tac "B" 1);
@@ -186,11 +165,13 @@ by (fast_tac (!claset addSDs [Says_imp_sees_Spy RS analz.Inj]
                       addss (!simpset)) 1);
 qed "Says_Crypt_not_lost";
 
+(*NEEDED??*)
 goal thy "initState lost C <= Key `` range shrK";
 by (agent.induct_tac "C" 1);
 by (Auto_tac ());
 qed "initState_subset";
 
+(*NEEDED??*)
 goal thy "X : sees lost C evs --> \
 \          (EX A B. Says A B X : set_of_list evs) | (EX A. X = Key (shrK A))";
 by (list.induct_tac "evs" 1);
@@ -226,48 +207,6 @@ by (auto_tac (!claset addDs [sees_Says_subset_insert RS subsetD], (!simpset)));
 qed_spec_mp "sees_lost_agent_subset_sees_Spy";
 
 
-(** Rewrites to push in Key and Crypt messages, so that other messages can
-    be pulled out using the analz_insert rules **)
-
-fun insComm x y = read_instantiate_sg (sign_of thy) [("x",x), ("y",y)] 
-                      insert_commute;
-
-val pushKeys = map (insComm "Key ?K") 
-                  ["Agent ?C", "Nonce ?N", "MPair ?X ?Y", "Crypt ?X ?K'"];
-
-val pushCrypts = map (insComm "Crypt ?X ?K") 
-                    ["Agent ?C", "Nonce ?N", "MPair ?X' ?Y"];
-
-(*Cannot be added with Addsimps -- we don't always want to re-order messages*)
-val pushes = pushKeys@pushCrypts;
-
-val pushKey_newK = insComm "Key (newK ?evs)"  "Key (shrK ?C)";
-
-
-(*No premature instantiation of variables.  For proving weak liveness.*)
-fun safe_solver prems =
-    match_tac (TrueI::refl::prems) ORELSE' eq_assume_tac
-    ORELSE' etac FalseE;
-
-(*Analysis of Fake cases and of messages that forward unknown parts
-  Abstraction over i is ESSENTIAL: it delays the dereferencing of claset
-  DEPENDS UPON "X" REFERRING TO THE FRADULENT MESSAGE *)
-fun spy_analz_tac i =
-  SELECT_GOAL 
-   (EVERY [  (*push in occurrences of X...*)
-           (REPEAT o CHANGED)
-             (res_inst_tac [("x1","X")] (insert_commute RS ssubst) 1),
-             (*...allowing further simplifications*)
-           simp_tac (!simpset setloop split_tac [expand_if]) 1,
-           REPEAT (resolve_tac [allI,impI,notI] 1),
-           dtac (impOfSubs Fake_analz_insert) 1,
-           eresolve_tac [asm_rl, synth.Inj] 1,
-           Fast_tac 1,
-           Asm_full_simp_tac 1,
-           IF_UNSOLVED (depth_tac (!claset addIs [impOfSubs analz_mono]) 2 1)
-           ]) i;
-
-
 (** Simplifying   parts (insert X (sees lost A evs))
       = parts {X} Un parts (sees lost A evs) -- since general case loops*)
 
@@ -278,6 +217,9 @@ val parts_insert_sees =
 
 
 (*** Specialized rewriting for analz_insert_Key_newK ***)
+
+(*Push newK applications in, allowing other keys to be pulled out*)
+val pushKey_newK = insComm thy "Key (newK ?evs)"  "Key (shrK ?C)";
 
 goal thy "!!K. newK evs = invKey K ==> newK evs = K";
 by (rtac (invKey_eq RS iffD1) 1);
@@ -309,8 +251,3 @@ goal thy
 \        (Key K : analz (Key``nE Un H)) = (K : nE | Key K : analz H)";
 by (fast_tac (!claset addSEs [impOfSubs analz_mono]) 1);
 qed "analz_image_newK_lemma";
-
-
-(*Useful in many uniqueness proofs*)
-fun ex_strip_tac i = REPEAT (ares_tac [exI, conjI] i) THEN assume_tac (i+1);
-
