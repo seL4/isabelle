@@ -17,6 +17,8 @@ Only take premises and conclusions into account that are already (negated)
 (in)equations. lin_arith_prover tries to prove or disprove the term.
 *)
 
+(* Debugging: (*? -> (*?*), !*) -> (*!*) *)
+
 (*** Data needed for setting up the linear arithmetic package ***)
 
 signature LIN_ARITH_LOGIC =
@@ -54,9 +56,8 @@ sig
                             (* [| i rel1 j; m rel2 n |] ==> i + m rel3 j + n *)
   val lessD:            thm list ref (* m < n ==> m+1 <= n *)
   val decomp:
-    term ->
-      ((term * int)list * int * string * (term * int)list * int * bool)option
-  val simp: (thm -> thm) ref
+    term -> ((term*int)list * int * string * (term*int)list * int * bool)option
+  val ss_ref: simpset ref
 end;
 (*
 decomp(`x Rel y') should yield (p,i,Rel,q,j,d)
@@ -65,7 +66,7 @@ decomp(`x Rel y') should yield (p,i,Rel,q,j,d)
          of summand * multiplicity pairs and a constant summand and
          d indicates if the domain is discrete.
 
-simp must reduce contradictory <= to False.
+ss_ref must reduce contradictory <= to False.
    It should also cancel common summands to keep <= reduced;
    otherwise <= can grow to massive proportions.
 *)
@@ -202,7 +203,7 @@ fun print_ineqs ineqs =
 
 
 fun elim ineqs =
-  let (*val dummy = print_ineqs ineqs;*)
+  let (*?val dummy = print_ineqs ineqs;!*)
       val (triv,nontriv) = partition is_trivial ineqs in
   if not(null triv)
   then case find_first is_answer triv of
@@ -268,19 +269,20 @@ fun mkthm sg asms just =
         in if n < 0 then mul(~n,thm) RS LA_Logic.sym else mul(n,thm) end;
 
       fun simp thm =
-        let val thm' = !LA_Data.simp thm
+        let val thm' = simplify (!LA_Data.ss_ref) thm
         in if LA_Logic.is_False thm' then raise FalseE thm' else thm' end
 
-      fun mk(Asm i) = ((*writeln"Asm";prth*)(nth_elem(i,asms)))
-        | mk(Nat(i)) = ((*writeln"N";*)LA_Logic.mk_nat_thm sg (nth_elem(i,atoms)))
-        | mk(LessD(j)) = ((*writeln"L";prth*)(hd([mk j] RL !LA_Data.lessD)))
-        | mk(NotLeD(j)) = ((*writeln"NLe";prth*)(mk j RS LA_Logic.not_leD))
-        | mk(NotLeDD(j)) = ((*writeln"NLeD";prth*)(hd([mk j RS LA_Logic.not_leD] RL !LA_Data.lessD)))
-        | mk(NotLessD(j)) = ((*writeln"NL";prth*)(mk j RS LA_Logic.not_lessD))
-        | mk(Added(j1,j2)) = ((*writeln"+";prth*)(simp((*prth*)(addthms (mk j1) (mk j2)))))
-        | mk(Multiplied(n,j)) = ((*writeln"*";*)multn(n,mk j))
+      fun mk(Asm i) = ((*?writeln"Asm";prth!*)(nth_elem(i,asms)))
+        | mk(Nat(i)) = ((*?writeln"Nat";!*)LA_Logic.mk_nat_thm sg (nth_elem(i,atoms)))
+        | mk(LessD(j)) = ((*?writeln"L";prth!*)(hd([mk j] RL !LA_Data.lessD)))
+        | mk(NotLeD(j)) = ((*?writeln"NLe";prth!*)(mk j RS LA_Logic.not_leD))
+        | mk(NotLeDD(j)) = ((*?writeln"NLeD";prth!*)(hd([mk j RS LA_Logic.not_leD] RL !LA_Data.lessD)))
+        | mk(NotLessD(j)) = ((*?writeln"NL";prth!*)(mk j RS LA_Logic.not_lessD))
+        | mk(Added(j1,j2)) = ((*?writeln"+";prth!*)(simp((*?prth!*)(addthms (mk j1) (mk j2)))))
+        | mk(Multiplied(n,j)) = ((*?writeln"*";!*)multn(n,mk j))
 
-  in (*writeln"mkthm";*)!LA_Data.simp(mk just) handle FalseE thm => thm end
+  in (*?writeln"mkthm";!*)
+     simplify (!LA_Data.ss_ref) (mk just) handle FalseE thm => thm end
 end;
 
 fun coeff poly atom = case assoc(poly,atom) of None => 0 | Some i => i;

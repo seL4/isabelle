@@ -480,22 +480,17 @@ include rules for turning multiplication with constants into addition.
 (The latter option is very inefficient!)
 *)
 
-structure Int_LA_Data(*: LIN_ARITH_DATA*) =
-struct
-
-val lessD = Nat_LA_Data.lessD @ [add1_zle_eq RS iffD2];
+(* Update parameters of arithmetic prover *)
+let
 
 (* reduce contradictory <= to False *)
 val add_rules = simp_thms @ bin_arith_simps @ bin_rel_simps @
                 [int_0,zmult_0,zmult_0_right];
 
-val cancel_sums_ss = Nat_LA_Data.cancel_sums_ss addsimps add_rules
-          addsimprocs [Int_Cancel.sum_conv, Int_Cancel.rel_conv,
-                       Int_CC.sum_conv, Int_CC.rel_conv];
+val simprocs = [Int_Cancel.sum_conv, Int_Cancel.rel_conv,
+                Int_CC.sum_conv, Int_CC.rel_conv];
 
-val simp = simplify cancel_sums_ss;
-
-val add_mono_thms = Nat_LA_Data.add_mono_thms @
+val add_mono_thms =
   map (fn s => prove_goal Int.thy s
                  (fn prems => [cut_facts_tac prems 1,
                       asm_simp_tac (simpset() addsimps [zadd_zle_mono]) 1]))
@@ -505,31 +500,24 @@ val add_mono_thms = Nat_LA_Data.add_mono_thms @
      "(i  = j) & (k  = l) ==> i + k  = j + (l::int)"
     ];
 
+in
+LA_Data_Ref.add_mono_thms := !LA_Data_Ref.add_mono_thms @ add_mono_thms;
+LA_Data_Ref.lessD := !LA_Data_Ref.lessD @ [add1_zle_eq RS iffD2];
+LA_Data_Ref.ss_ref := !LA_Data_Ref.ss_ref addsimps add_rules
+                      addsimprocs simprocs;
+LA_Data_Ref.discrete := !LA_Data_Ref.discrete @ [("IntDef.int",true)]
 end;
 
-(* Update parameters of arithmetic prover *)
-LA_Data_Ref.add_mono_thms := Int_LA_Data.add_mono_thms;
-LA_Data_Ref.lessD :=         Int_LA_Data.lessD;
-LA_Data_Ref.simp :=          Int_LA_Data.simp;
-LA_Data_Ref.discrete := !LA_Data_Ref.discrete @ [("IntDef.int",true)];
-
-
+let
 val int_arith_simproc_pats =
   map (fn s => Thm.read_cterm (Theory.sign_of Int.thy) (s, HOLogic.boolT))
       ["(m::int) < n","(m::int) <= n", "(m::int) = n"];
 
-val fast_int_arith_simproc = mk_simproc "fast_int_arith" int_arith_simproc_pats
-                                        Fast_Arith.lin_arith_prover;
-
-Addsimprocs [fast_int_arith_simproc];
-
-(* FIXME: K true should be replaced by a sensible test to speed things up
-   in case there are lots of irrelevant terms involved.
-
-val arith_tac =
-  refute_tac (K true) (REPEAT o split_tac[nat_diff_split])
-             ((REPEAT_DETERM o etac linorder_neqE) THEN' fast_arith_tac);
-*)
+val fast_int_arith_simproc = mk_simproc
+  "fast_int_arith" int_arith_simproc_pats Fast_Arith.lin_arith_prover;
+in
+Addsimprocs [fast_int_arith_simproc]
+end;
 
 (* Some test data
 Goal "!!a::int. [| a <= b; c <= d; x+y<z |] ==> a+c <= b+d";

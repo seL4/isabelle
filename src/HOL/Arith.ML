@@ -890,29 +890,18 @@ fun mk_nat_thm sg t =
 
 end;
 
-structure Nat_LA_Data (* : LIN_ARITH_DATA *) =
+signature LIN_ARITH_DATA2 =
+sig
+  include LIN_ARITH_DATA
+  val discrete: (string * bool)list ref
+end;
+
+structure LA_Data_Ref: LIN_ARITH_DATA2 =
 struct
-
-val lessD = [Suc_leI];
-
-(* reduce contradictory <= to False.
-   Most of the work is done by the cancel tactics.
-*)
-val add_rules = [add_0,add_0_right,Zero_not_Suc,Suc_not_Zero,le_0_eq];
-
-val cancel_sums_ss = HOL_basic_ss addsimps add_rules
-                                  addsimprocs nat_cancel_sums_add;
-
-val simp = simplify cancel_sums_ss;
-
-val add_mono_thms = map (fn s => prove_goal Arith.thy s
- (fn prems => [cut_facts_tac prems 1,
-               blast_tac (claset() addIs [add_le_mono]) 1]))
-["(i <= j) & (k <= l) ==> i + k <= j + (l::nat)",
- "(i  = j) & (k <= l) ==> i + k <= j + (l::nat)",
- "(i <= j) & (k  = l) ==> i + k <= j + (l::nat)",
- "(i  = j) & (k  = l) ==> i + k  = j + (l::nat)"
-];
+  val add_mono_thms = ref ([]:thm list);
+  val lessD = ref ([]:thm list);
+  val ss_ref = ref HOL_basic_ss;
+  val discrete = ref ([]:(string*bool)list);
 
 (* Decomposition of terms *)
 
@@ -953,31 +942,44 @@ fun decomp2(rel,lhs,rhs) =
 fun negate(Some(x,i,rel,y,j,d)) = Some(x,i,"~"^rel,y,j,d)
   | negate None = None;
 
-fun decomp1 tab (T,xxx) =
+fun decomp1 (T,xxx) =
   (case T of
      Type("fun",[Type(D,[]),_]) =>
-       (case assoc(!tab,D) of
+       (case assoc(!discrete,D) of
           None => None
         | Some d => (case decomp2 xxx of
                        None => None
                      | Some(p,i,rel,q,j) => Some(p,i,rel,q,j,d)))
    | _ => None);
 
-(* tab: (string * bool)list ref  contains the discreteneness flag *)
-fun decomp tab (_$(Const(rel,T)$lhs$rhs)) = decomp1 tab (T,(rel,lhs,rhs))
-  | decomp tab (_$(Const("Not",_)$(Const(rel,T)$lhs$rhs))) =
-      negate(decomp1 tab (T,(rel,lhs,rhs)))
-  | decomp _ _ = None
-
+fun decomp (_$(Const(rel,T)$lhs$rhs)) = decomp1 (T,(rel,lhs,rhs))
+  | decomp (_$(Const("Not",_)$(Const(rel,T)$lhs$rhs))) =
+      negate(decomp1 (T,(rel,lhs,rhs)))
+  | decomp _ = None
 end;
 
-structure LA_Data_Ref =
-struct
-  val add_mono_thms = ref Nat_LA_Data.add_mono_thms
-  val lessD = ref Nat_LA_Data.lessD
-  val simp = ref Nat_LA_Data.simp
-  val discrete = ref [("nat",true)]
-  val decomp = Nat_LA_Data.decomp discrete
+let
+
+(* reduce contradictory <= to False.
+   Most of the work is done by the cancel tactics.
+*)
+val add_rules = [add_0,add_0_right,Zero_not_Suc,Suc_not_Zero,le_0_eq];
+
+val add_mono_thms = map (fn s => prove_goal Arith.thy s
+ (fn prems => [cut_facts_tac prems 1,
+               blast_tac (claset() addIs [add_le_mono]) 1]))
+["(i <= j) & (k <= l) ==> i + k <= j + (l::nat)",
+ "(i  = j) & (k <= l) ==> i + k <= j + (l::nat)",
+ "(i <= j) & (k  = l) ==> i + k <= j + (l::nat)",
+ "(i  = j) & (k  = l) ==> i + k  = j + (l::nat)"
+];
+
+in
+LA_Data_Ref.add_mono_thms := !LA_Data_Ref.add_mono_thms @ add_mono_thms;
+LA_Data_Ref.lessD := !LA_Data_Ref.lessD @ [Suc_leI];
+LA_Data_Ref.ss_ref := !LA_Data_Ref.ss_ref addsimps add_rules
+                      addsimprocs nat_cancel_sums_add;
+LA_Data_Ref.discrete := !LA_Data_Ref.discrete @ [("nat",true)]
 end;
 
 structure Fast_Arith =
@@ -985,14 +987,16 @@ structure Fast_Arith =
 
 val fast_arith_tac = Fast_Arith.lin_arith_tac;
 
+let
 val nat_arith_simproc_pats =
   map (fn s => Thm.read_cterm (Theory.sign_of Arith.thy) (s, HOLogic.boolT))
       ["(m::nat) < n","(m::nat) <= n", "(m::nat) = n"];
 
-val fast_nat_arith_simproc = mk_simproc "fast_nat_arith" nat_arith_simproc_pats
-                                        Fast_Arith.lin_arith_prover;
-
-Addsimprocs [fast_nat_arith_simproc];
+val fast_nat_arith_simproc = mk_simproc
+  "fast_nat_arith" nat_arith_simproc_pats Fast_Arith.lin_arith_prover;
+in
+Addsimprocs [fast_nat_arith_simproc]
+end;
 
 (* Because of fast_nat_arith_simproc, the arithmetic solver is really only
 useful to detect inconsistencies among the premises for subgoals which are
@@ -1017,9 +1021,10 @@ qed "nat_diff_split";
    (max m n + k <= r) = (m+k <= r & n+k <= r)
    (l <= min m n + k) = (l <= m+k & l <= n+k)
 *)
-val arith_tac =
-  refute_tac (K true) (REPEAT o split_tac[nat_diff_split,split_min,split_max])
-             ((REPEAT_DETERM o etac linorder_neqE) THEN' fast_arith_tac);
+val arith_tac_split_thms = ref [nat_diff_split,split_min,split_max];
+fun arith_tac i =
+  refute_tac (K true) (REPEAT o split_tac (!arith_tac_split_thms))
+             ((REPEAT_DETERM o etac linorder_neqE) THEN' fast_arith_tac) i;
 
 
 (* proof method setup *)
