@@ -772,9 +772,9 @@ subsubsection "permits access"
 constdefs 
 permits_acc:: 
  "prog \<Rightarrow> (qtname \<times> memberdecl) \<Rightarrow> qtname \<Rightarrow> qtname \<Rightarrow> bool"
-                   ("_ \<turnstile> _ in _ permits'_acc'_to _" [61,61,61,61] 60)
+                   ("_ \<turnstile> _ in _ permits'_acc'_from _" [61,61,61,61] 60)
 
-"G\<turnstile>membr in class permits_acc_to accclass 
+"G\<turnstile>membr in class permits_acc_from accclass 
   \<equiv> (case (accmodi membr) of
        Private   \<Rightarrow> (declclass membr = accclass)
      | Package   \<Rightarrow> (pid (declclass membr) = pid accclass)
@@ -849,7 +849,7 @@ translations
 inductive "accessible_fromR G accclass" intros
 Immediate:  "\<lbrakk>G\<turnstile>membr member_of class;
               G\<turnstile>(Class class) accessible_in (pid accclass);
-              G\<turnstile>membr in class permits_acc_to accclass 
+              G\<turnstile>membr in class permits_acc_from accclass 
              \<rbrakk> \<Longrightarrow> G\<turnstile>membr of class accessible_from accclass"
 
 Overriding: "\<lbrakk>G\<turnstile>membr member_of class;
@@ -902,7 +902,7 @@ translations
   
 inductive "dyn_accessible_fromR G accclass" intros
 Immediate:  "\<lbrakk>G\<turnstile>membr member_in class;
-              G\<turnstile>membr in class permits_acc_to accclass 
+              G\<turnstile>membr in class permits_acc_from accclass 
              \<rbrakk> \<Longrightarrow> G\<turnstile>membr in class dyn_accessible_from accclass"
 
 Overriding: "\<lbrakk>G\<turnstile>membr member_in class;
@@ -1141,15 +1141,15 @@ lemma no_Private_override: "\<lbrakk>G\<turnstile>new overrides old\<rbrakk> \<L
 by (induct set: overridesR) (auto simp add: inheritable_in_def)
 
 lemma permits_acc_inheritance:
- "\<lbrakk>G\<turnstile>m in statC permits_acc_to accC; G\<turnstile>dynC \<preceq>\<^sub>C statC
-  \<rbrakk> \<Longrightarrow> G\<turnstile>m in dynC permits_acc_to accC"
+ "\<lbrakk>G\<turnstile>m in statC permits_acc_from accC; G\<turnstile>dynC \<preceq>\<^sub>C statC
+  \<rbrakk> \<Longrightarrow> G\<turnstile>m in dynC permits_acc_from accC"
 by (cases "accmodi m")
    (auto simp add: permits_acc_def
             intro: subclseq_trans) 
 
 lemma permits_acc_static_declC:
- "\<lbrakk>G\<turnstile>m in C permits_acc_to accC; G\<turnstile>m member_in C; is_static m
-  \<rbrakk> \<Longrightarrow> G\<turnstile>m in (declclass m) permits_acc_to accC"
+ "\<lbrakk>G\<turnstile>m in C permits_acc_from accC; G\<turnstile>m member_in C; is_static m
+  \<rbrakk> \<Longrightarrow> G\<turnstile>m in (declclass m) permits_acc_from accC"
 by (cases "accmodi m") (auto simp add: permits_acc_def)
 
 lemma dyn_accessible_from_static_declC: 
@@ -1179,13 +1179,13 @@ lemma field_accessible_fromD:
  "\<lbrakk>G\<turnstile>membr of C accessible_from accC;is_field membr\<rbrakk> 
   \<Longrightarrow> G\<turnstile>membr member_of C \<and>
       G\<turnstile>(Class C) accessible_in (pid accC) \<and>
-      G\<turnstile>membr in C permits_acc_to accC"
+      G\<turnstile>membr in C permits_acc_from accC"
 by (cases set: accessible_fromR)
    (auto simp add: is_field_def split: memberdecl.splits) 
 
 lemma field_accessible_from_permits_acc_inheritance:
 "\<lbrakk>G\<turnstile>membr of statC accessible_from accC; is_field membr; G \<turnstile> dynC \<preceq>\<^sub>C statC\<rbrakk>
-\<Longrightarrow> G\<turnstile>membr in dynC permits_acc_to accC"
+\<Longrightarrow> G\<turnstile>membr in dynC permits_acc_from accC"
 by (auto dest: field_accessible_fromD intro: permits_acc_inheritance)
 
 
@@ -1202,7 +1202,7 @@ proof -
   proof (induct rule: accessible_fromR.induct)
     fix C m
     assume "G\<turnstile>m member_of C"
-           "G \<turnstile> m in C permits_acc_to S"
+           "G \<turnstile> m in C permits_acc_from S"
            "accmodi m = Package"      
     then show "?P C m"
       by (auto dest: member_of_Package simp add: permits_acc_def)
@@ -1244,7 +1244,7 @@ lemma accessible_fieldD:
  "\<lbrakk>G\<turnstile>membr of C accessible_from accC; is_field membr\<rbrakk>
  \<Longrightarrow> G\<turnstile>membr member_of C \<and>
      G\<turnstile>(Class C) accessible_in (pid accC) \<and>
-     G\<turnstile>membr in C permits_acc_to accC"
+     G\<turnstile>membr in C permits_acc_from accC"
 by (induct rule: accessible_fromR.induct) (auto dest: is_fieldD)
       
 

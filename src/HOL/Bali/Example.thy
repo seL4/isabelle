@@ -697,7 +697,7 @@ lemma Ext_foo_member_in_Ext:
 by (rule member_of_to_member_in [OF Ext_foo_member_of_Ext])
 
 lemma Base_foo_permits_acc:
- "tprg \<turnstile> (Base, mdecl Base_foo) in Base permits_acc_to S"
+ "tprg \<turnstile> (Base, mdecl Base_foo) in Base permits_acc_from S"
 by ( simp add: permits_acc_def Base_foo_def)
 
 lemma Base_foo_accessible [simp]:
@@ -720,7 +720,7 @@ apply (simp add: snd_special_simp fst_special_simp)
 done
 
 lemma Ext_foo_permits_acc:
- "tprg \<turnstile> (Ext, mdecl Ext_foo) in Ext permits_acc_to S"
+ "tprg \<turnstile> (Ext, mdecl Ext_foo) in Ext permits_acc_from S"
 by ( simp add: permits_acc_def Ext_foo_def)
 
 lemma Ext_foo_accessible [simp]:

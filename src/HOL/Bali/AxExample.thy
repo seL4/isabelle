@@ -130,12 +130,12 @@ apply      (simp (no_asm))
 apply      (tactic "ax_tac 1" (* FVar *))
 apply       (tactic "ax_tac 2", tactic "ax_tac 2", tactic "ax_tac 2")
 apply      (tactic "ax_tac 1")
-apply     (tactic {* inst1_tac "R14" "\<lambda>a'. Normal ((\<lambda>Vals:vs (x, s) Z. arr_inv s \<and> inited Ext (globs s) \<and> a' \<noteq> Null \<and> hd vs = Null) \<and>. heap_free two)" *})
+apply     (tactic {* inst1_tac "R14" "\<lambda>a'. Normal ((\<lambda>Vals:vs (x, s) Z. arr_inv s \<and> inited Ext (globs s) \<and> a' \<noteq> Null \<and> vs = [Null]) \<and>. heap_free two)" *})
 apply     fastsimp
 prefer 4
 apply    (rule ax_derivs.Done [THEN conseq1],force)
 apply   (rule ax_subst_Val_allI)
-apply   (tactic {* inst1_tac "P'33" "\<lambda>u a. Normal (?PP a\<leftarrow>?x) u" *})
+apply   (tactic {* inst1_tac "P'34" "\<lambda>u a. Normal (?PP a\<leftarrow>?x) u" *})
 apply   (simp (no_asm) del: peek_and_def2)
 apply   (tactic "ax_tac 1")
 prefer 2

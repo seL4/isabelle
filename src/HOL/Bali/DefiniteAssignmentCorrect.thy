@@ -2851,11 +2851,6 @@ proof -
        wt_c1: "Env\<turnstile>c1\<Colon>\<surd>" and
        wt_c2: "Env\<turnstile>c2\<Colon>\<surd>" 
       by (elim wt_elim_cases)
-    from wt_e da_e G
-    obtain nrm_s1: "?NormalAssigned s1 E" and 
-           brk_s1: "?BreakAssigned (Norm s0) s1 E" and
-           res_s1: "?ResAssigned (Norm s0) s1"
-      by (elim If.hyps [elim_format]) simp+
     from If.hyps have
      s0_s1:"dom (locals (store ((Norm s0)::state))) \<subseteq> dom (locals (store s1))"
       by (elim dom_locals_eval_mono_elim)
@@ -2930,7 +2925,7 @@ proof -
       then obtain abr where abr: "abrupt s1 = Some abr"
 	by (cases s1) auto
       moreover
-      from eval_e _ wt_e have "\<And> l. abrupt s1 \<noteq> Some (Jump (Break l))"
+      from eval_e _ wt_e have "\<And> j. abrupt s1 \<noteq> Some (Jump j)"
 	by (rule eval_expression_no_jump) (simp_all add: G wf)
       moreover
       have "s2 = s1"
@@ -2939,7 +2934,7 @@ proof -
         with abr show ?thesis  
 	  by (cases s1) simp
       qed
-      ultimately show ?thesis using res_s1 by simp
+      ultimately show ?thesis by simp
     qed
   next
 -- {* 

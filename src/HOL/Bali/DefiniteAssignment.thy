@@ -511,7 +511,7 @@ record assigned =
          nrm :: "lname set" --{* Definetly assigned variables 
                                  for normal completion*}
          brk :: "breakass" --{* Definetly assigned variables for 
-                                abnormal completion with a break *}
+                                abrupt completion with a break *}
 
 consts da :: "(env \<times> lname set \<times> term \<times> assigned) set"  
 text {* The environment @{term env} is only needed for the 
@@ -638,7 +638,7 @@ inductive "da" intros
      and so we can't guarantee that any variable will be assigned in @{term c1}.
      The @{text Finally} statement completes
      normally if both @{term c1} and @{term c2} complete normally. If @{term c1}
-     completes abnormally with a break, then @{term c2} also will be executed 
+     completes abruptly with a break, then @{term c2} also will be executed 
      and may terminate normally or with a break. The overall break map then is
      the intersection of the maps of both paths. If @{term c2} terminates 
      normally we have to extend all break sets in @{term "brk C1"} with 

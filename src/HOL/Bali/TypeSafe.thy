@@ -1230,53 +1230,22 @@ proof (induct xs)
   case Nil thus ?case by simp
 next
   case (Cons x xs tab tab' ys)
-  have "(tab(x\<mapsto>hd ys)(xs[\<mapsto>]tl ys)) z = (tab'(x\<mapsto>hd ys)(xs[\<mapsto>]tl ys)) z"
-    by (rule Cons.hyps) (rule map_upd_cong_ext)
-  thus ?case
-    by simp
+  note Hyps = this
+  show ?case
+  proof (cases ys)
+    case Nil
+    thus ?thesis by simp
+  next
+    case (Cons y ys')
+    have "(tab(x\<mapsto>y)(xs[\<mapsto>]ys')) z = (tab'(x\<mapsto>y)(xs[\<mapsto>]ys')) z"
+      by (rules intro: Hyps map_upd_cong_ext)
+    with Cons show ?thesis
+      by simp
+  qed
 qed
    
 lemma map_upd_override: "(tab(x\<mapsto>y)) x = (tab'(x\<mapsto>y)) x"
   by simp
-
-
-lemma map_upds_override_cong:
-"\<And> tab tab' zs. x\<in> set ws \<Longrightarrow> 
- (tab(ws[\<mapsto>]zs)) x = (tab'(ws[\<mapsto>]zs)) x"
-proof (induct ws)
-  case Nil thus ?case by simp
-next
-  case (Cons w ws tab tab' zs)
-  have x: "x \<in> set (w#ws)" .
-  show ?case
-  proof (cases "x=w")
-    case True thus ?thesis
-      by simp (rule map_upds_cong_ext, rule map_upd_override)
-  next
-    case False
-    with x have "x \<in> set ws"
-      by simp
-    with Cons.hyps show ?thesis
-      by simp
-  qed
-qed
-
-lemma map_upds_in_suffix: assumes x: "x \<in> set xs" 
- shows "\<And> tab qs. (tab(ps @ xs[\<mapsto>]qs)) x = (tab(xs[\<mapsto>]drop (length ps) qs)) x"
-proof (induct ps)
-  case Nil thus ?case by simp
-next
-  case (Cons p ps tab qs)
-  have "(tab(p\<mapsto>hd qs)(ps @ xs[\<mapsto>](tl qs))) x
-          =(tab(p\<mapsto>hd qs)(xs[\<mapsto>]drop (length ps) (tl qs))) x"
-    by (rule Cons.hyps)
-  moreover
-  have "drop (Suc (length ps)) qs=drop (length ps) (tl qs)"
-    by (cases qs) simp+
-  ultimately show ?case
-    by simp (rule map_upds_override_cong)
-qed
- 
 
 lemma map_upds_eq_length_suffix: "\<And> tab qs. 
         length ps = length qs \<Longrightarrow> tab(ps@xs[\<mapsto>]qs) = tab(ps[\<mapsto>]qs)(xs[\<mapsto>][])"
@@ -1327,13 +1296,21 @@ proof (induct xs)
   case Nil thus ?case by simp
 next
   case (Cons x xs tab ys z)
-  have "tab vn = Some z" .
-  then obtain z' where "(tab(x\<mapsto>hd ys)) vn = Some z'" 
-    by (rule map_upd_Some_expand [of tab,elim_format]) blast
-  hence "\<exists> z. (tab (x\<mapsto>hd ys)(xs[\<mapsto>]tl ys)) vn = Some z"
-    by (rule Cons.hyps)
-  thus ?case
-    by simp
+  have z: "tab vn = Some z" .
+  show ?case
+  proof (cases ys)
+    case Nil
+    with z show ?thesis by simp
+  next
+    case (Cons y ys')
+    have ys: "ys = y#ys'".
+    from z obtain z' where "(tab(x\<mapsto>y)) vn = Some z'"
+      by (rule map_upd_Some_expand [of tab,elim_format]) blast
+    hence "\<exists>z. ((tab(x\<mapsto>y))(xs[\<mapsto>]ys')) vn = Some z"
+      by (rule Cons.hyps)
+    with ys show ?thesis
+      by simp
+  qed
 qed
 
 
@@ -1349,22 +1326,6 @@ by (simp add: fun_upd_def)
 lemma map_eq_upd_eq: "tab vn = tab' vn \<Longrightarrow> (tab(x\<mapsto>y)) vn = (tab'(x\<mapsto>y)) vn"
 by (simp add: fun_upd_def)
 
-lemma map_eq_upds_eq: 
-  "\<And> tab tab' ys. 
-   tab vn = tab' vn \<Longrightarrow> (tab(xs[\<mapsto>]ys)) vn = (tab'(xs[\<mapsto>]ys)) vn"
-proof (induct xs)
-  case Nil thus ?case by simp 
-next
-  case (Cons x xs tab tab' ys)
-  have "tab vn = tab' vn" .
-  hence "(tab(x\<mapsto>hd ys)) vn = (tab'(x\<mapsto>hd ys)) vn"
-    by (rule map_eq_upd_eq)
-  hence "(tab(x\<mapsto>hd ys)(xs[\<mapsto>]tl ys)) vn = (tab'(x\<mapsto>hd ys)(xs[\<mapsto>]tl ys)) vn"
-    by (rule Cons.hyps)
-  thus ?case 
-    by simp
-qed
-
 lemma map_upd_in_expansion_map_swap:
  "\<lbrakk>(tab(x\<mapsto>y)) vn = Some z;tab vn \<noteq> Some z\<rbrakk> 
                  \<Longrightarrow>  (tab'(x\<mapsto>y)) vn = Some z"
@@ -1377,32 +1338,37 @@ proof (induct xs)
   case Nil thus ?case by simp
 next
   case (Cons x xs tab tab' ys z)
-  from Cons.prems obtain 
-    some: "(tab(x\<mapsto>hd ys)(xs[\<mapsto>]tl ys)) vn = Some z" and
-    tab_not_z: "tab vn \<noteq> Some z"
-    by simp
+  have some: "(tab(x # xs[\<mapsto>]ys)) vn = Some z" .
+  have tab_not_z: "tab vn \<noteq> Some z".
   show ?case
-  proof (cases "(tab(x\<mapsto>hd ys)) vn \<noteq> Some z")
-    case True
-    with some have "(tab'(x\<mapsto>hd ys)(xs[\<mapsto>]tl ys)) vn = Some z"
-      by (rule Cons.hyps)
-    thus ?thesis 
-      by simp
+  proof (cases "ys")
+    case Nil with some tab_not_z show ?thesis by simp
   next
-    case False
-    hence tabx_z: "(tab(x\<mapsto>hd ys)) vn = Some z" by blast
-    moreover
-    from tabx_z tab_not_z
-    have "(tab'(x\<mapsto>hd ys)) vn = Some z" 
-      by (rule map_upd_in_expansion_map_swap)
-    ultimately
-    have "(tab(x\<mapsto>hd ys)) vn =(tab'(x\<mapsto>hd ys)) vn"
-      by simp
-    hence "(tab(x\<mapsto>hd ys)(xs[\<mapsto>]tl ys)) vn = (tab'(x\<mapsto>hd ys)(xs[\<mapsto>]tl ys)) vn"
-      by (rule map_eq_upds_eq)
-    with some 
-    show ?thesis 
-      by simp
+    case (Cons y tl)
+    have ys: "ys = y#tl".
+    show ?thesis
+    proof (cases "(tab(x\<mapsto>y)) vn \<noteq> Some z")
+      case True
+      with some ys have "(tab'(x\<mapsto>y)(xs[\<mapsto>]tl)) vn = Some z"
+	by (fastsimp intro: Cons.hyps)
+      with ys show ?thesis 
+	by simp
+    next
+      case False
+      hence tabx_z: "(tab(x\<mapsto>y)) vn = Some z" by blast
+      moreover
+      from tabx_z tab_not_z
+      have "(tab'(x\<mapsto>y)) vn = Some z" 
+	by (rule map_upd_in_expansion_map_swap)
+      ultimately
+      have "(tab(x\<mapsto>y)) vn =(tab'(x\<mapsto>y)) vn"
+	by simp
+      hence "(tab(x\<mapsto>y)(xs[\<mapsto>]tl)) vn = (tab'(x\<mapsto>y)(xs[\<mapsto>]tl)) vn"
+	by (rule map_upds_cong_ext)
+      with some ys
+      show ?thesis 
+	by simp
+    qed
   qed
 qed
    
@@ -1464,17 +1430,28 @@ proof  (induct "xs")
   case Nil thus ?case by simp
 next
   case (Cons x xs tab tab' ys)
-  from Cons.prems
-  have "(tab(x\<mapsto>hd ys)) vn = Some el"
-    by - (rule Cons.hyps,auto)
-  moreover from Cons.prems 
-  have "(tab'(x\<mapsto>hd ys)(xs[\<mapsto>]tl ys)) vn = None" 
-    by simp
-  hence "(tab'(x\<mapsto>hd ys)) vn = None"
-    by (rule map_upds_None_cut)
-  ultimately show "tab vn = Some el" 
-    by (rule map_upd_cut_irrelevant)
+  have tab_vn: "(tab(x # xs[\<mapsto>]ys)) vn = Some el".
+  have tab'_vn: "(tab'(x # xs[\<mapsto>]ys)) vn = None".
+  show ?case
+  proof (cases ys)
+    case Nil
+    with tab_vn show ?thesis by simp
+  next
+    case (Cons y tl)
+    have ys: "ys=y#tl".
+    with tab_vn tab'_vn 
+    have "(tab(x\<mapsto>y)) vn = Some el"
+      by - (rule Cons.hyps,auto)
+    moreover from tab'_vn ys
+    have "(tab'(x\<mapsto>y)(xs[\<mapsto>]tl)) vn = None" 
+      by simp
+    hence "(tab'(x\<mapsto>y)) vn = None"
+      by (rule map_upds_None_cut)
+    ultimately show "tab vn = Some el" 
+      by (rule map_upd_cut_irrelevant)
+  qed
 qed
+
    
 lemma dom_vname_split:
  "dom (lname_case (ename_case (tab(x\<mapsto>y)(xs[\<mapsto>]ys)) a) b)
@@ -1531,22 +1508,30 @@ qed
 lemma dom_map_upd: "\<And> tab. dom (tab(x\<mapsto>y)) = dom tab \<union> {x}"
 by (auto simp add: dom_def fun_upd_def)
 
-lemma dom_map_upds: "\<And> tab ys. dom (tab(xs[\<mapsto>]ys)) = dom tab \<union> set xs"
+lemma dom_map_upds: "\<And> tab ys. length xs = length ys 
+  \<Longrightarrow> dom (tab(xs[\<mapsto>]ys)) = dom tab \<union> set xs"
 proof (induct xs)
   case Nil thus ?case by (simp add: dom_def)
 next
   case (Cons x xs tab ys)
-  have "dom (tab(x\<mapsto>hd ys)(xs[\<mapsto>]tl ys)) = dom (tab(x\<mapsto>hd ys)) \<union> set xs" .
-  moreover 
-  have "dom (tab(x\<mapsto>hd ys)) = dom tab \<union> {x}"
-    by (rule dom_map_upd)
-  ultimately
+  note Hyp = Cons.hyps
+  have len: "length (x#xs)=length ys".
   show ?case
-    by simp
+  proof (cases ys)
+    case Nil with len show ?thesis by simp
+  next
+    case (Cons y tl)
+    with len have "dom (tab(x\<mapsto>y)(xs[\<mapsto>]tl)) = dom (tab(x\<mapsto>y)) \<union> set xs"
+      by - (rule Hyp,simp)
+    moreover 
+    have "dom (tab(x\<mapsto>hd ys)) = dom tab \<union> {x}"
+      by (rule dom_map_upd)
+    ultimately
+    show ?thesis using Cons
+      by simp
+  qed
 qed
  
-
-
 lemma dom_ename_case_None_simp:
  "dom (ename_case vname_tab None) = VNam ` (dom vname_tab)"
   apply (auto simp add: dom_def image_def )
@@ -1583,14 +1568,17 @@ lemma image_comp:
  "f ` g ` A = (f \<circ> g) ` A"
 by (auto simp add: image_def)
 
+
 lemma dom_locals_init_lvars: 
   assumes m: "m=(mthd (the (methd G C sig)))"  
+  assumes len: "length (pars m) = length pvs"
   shows "dom (locals (store (init_lvars G C sig (invmode m e) a pvs s)))  
            = parameters m"
 proof -
   from m
   have static_m': "is_static m = static m"
     by simp
+  from len
   have dom_vnames: "dom (empty(pars m[\<mapsto>]pvs))=set (pars m)"
     by (simp add: dom_map_upds)
   show ?thesis
@@ -1608,6 +1596,7 @@ proof -
                               dom_lname_ename_case_simps image_comp)
   qed
 qed
+
 
 lemma da_e2_BinOp:
   assumes da: "\<lparr>prg=G,cls=accC,lcl=L\<rparr>
@@ -3283,10 +3272,25 @@ proof -
 	      from is_static_eq 
 	      have "(invmode (mthd dynM) e) = (invmode statM e)"
 		by (simp add: invmode_def)
-	      with init_lvars dynM' is_static_eq normal_s2 mode 
+	      moreover
+	      have "length (pars (mthd dynM)) = length vs" 
+	      proof -
+		from normal_s2 conf_args
+		have "length vs = length pTs"
+		  by (simp add: list_all2_def)
+		also from pTs_widen
+		have "\<dots> = length pTs'"
+		  by (simp add: widens_def list_all2_def)
+		also from wf_dynM
+		have "\<dots> = length (pars (mthd dynM))"
+		  by (simp add: wf_mdecl_def wf_mhead_def)
+		finally show ?thesis ..
+	      qed
+	      moreover note init_lvars dynM' is_static_eq normal_s2 mode 
+	      ultimately
 	      have "parameters (mthd dynM) = dom (locals (store s3))"
 		using dom_locals_init_lvars 
-                  [of "mthd dynM" G invDeclC "\<lparr>name=mn,parTs=pTs'\<rparr>" e a vs s2]
+                  [of "mthd dynM" G invDeclC "\<lparr>name=mn,parTs=pTs'\<rparr>" vs e a s2]
 		by simp
 	      also from check
 	      have "dom (locals (store s3)) \<subseteq>  dom (locals (store s3'))"

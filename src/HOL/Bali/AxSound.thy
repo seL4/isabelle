@@ -1557,10 +1557,25 @@ next
 	      from is_static_eq 
 	      have "(invmode (mthd dynM) e) = (invmode statM e)"
 		by (simp add: invmode_def)
-	      with s3 dynM' is_static_eq normal_s2 mode 
+	      moreover
+	      have "length (pars (mthd dynM)) = length vs" 
+	      proof -
+		from normal_s2 conf_args
+		have "length vs = length pTs"
+		  by (simp add: list_all2_def)
+		also from pTs_widen
+		have "\<dots> = length pTs'"
+		  by (simp add: widens_def list_all2_def)
+		also from wf_dynM
+		have "\<dots> = length (pars (mthd dynM))"
+		  by (simp add: wf_mdecl_def wf_mhead_def)
+		finally show ?thesis ..
+	      qed
+	      moreover note s3 dynM' is_static_eq normal_s2 mode 
+	      ultimately
 	      have "parameters (mthd dynM) = dom (locals (store s3))"
 		using dom_locals_init_lvars 
-                  [of "mthd dynM" G invDeclC "\<lparr>name=mn,parTs=pTs'\<rparr>" e a vs s2]
+                  [of "mthd dynM" G invDeclC "\<lparr>name=mn,parTs=pTs'\<rparr>" vs e a s2]
 		by simp
 	      thus ?thesis using eq_s3'_s3 by simp
 	    qed

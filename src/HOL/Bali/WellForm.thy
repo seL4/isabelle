@@ -509,7 +509,8 @@ text {*
 A program declaration is wellformed if:
 \begin{itemize}
 \item the class ObjectC of Object is defined
-\item every method of has an access modifier distinct from Package. This is
+\item every method of Object has an access modifier distinct from Package. 
+      This is
       necessary since every interface automatically inherits from Object.  
       We must know, that every time a Object method is "overriden" by an 
       interface method this is also overriden by the class implementing the
@@ -2922,7 +2923,7 @@ proof -
   show ?thesis
   proof (induct)
     case (Immediate C m)
-    have "G \<turnstile> m in C permits_acc_to accC" and "accmodi m = Private" .
+    have "G \<turnstile> m in C permits_acc_from accC" and "accmodi m = Private" .
     then show ?case
       by (simp add: permits_acc_def)
   next
@@ -2948,7 +2949,7 @@ proof -
   proof (induct rule: dyn_accessible_fromR.induct)
     case (Immediate C m)
     assume "G\<turnstile>m member_in C"
-           "G \<turnstile> m in C permits_acc_to accC"
+           "G \<turnstile> m in C permits_acc_from accC"
            "accmodi m = Package"      
     then show "?P m"
       by (auto simp add: permits_acc_def)
@@ -2987,7 +2988,7 @@ proof -
   show ?thesis
   proof (induct)
     case (Immediate C f)
-    have "G \<turnstile> f in C permits_acc_to accC" and "accmodi f = Package" .
+    have "G \<turnstile> f in C permits_acc_from accC" and "accmodi f = Package" .
     then show ?case
       by (simp add: permits_acc_def)
   next
@@ -3011,7 +3012,7 @@ proof -
   show ?thesis
   proof (induct)
     case (Immediate C f)
-    have "G \<turnstile> f in C permits_acc_to accC" .
+    have "G \<turnstile> f in C permits_acc_from accC" .
     moreover 
     assume "accmodi f = Protected" and  "is_field f" and "\<not> is_static f" and
            "pid (declclass f) \<noteq> pid accC"
@@ -3039,7 +3040,7 @@ proof -
     assume "accmodi f = Protected" and  "is_field f" and "is_static f" and
            "pid (declclass f) \<noteq> pid accC"
     moreover 
-    have "G \<turnstile> f in C permits_acc_to accC" .
+    have "G \<turnstile> f in C permits_acc_from accC" .
     ultimately
     have "G\<turnstile> accC \<preceq>\<^sub>C declclass f"
       by (auto simp add: permits_acc_def)
