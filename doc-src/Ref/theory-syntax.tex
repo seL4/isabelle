@@ -76,7 +76,7 @@ constType : simpleType | '(' constType ')' | '[' ( constType + "," ) ']'
             '=>' constType | constType '=>' constType;
 
 simpleType: id | ( tid ( () | '::' id ) ) |
-            '(' ( constType + "," ) ')' id | simpleType id;
+            '(' ( constType + "," ) ')' ( id + ',' ) | simpleType ( id + ',' );
 
 mixfix :  string ( () | ( () | ('[' (nat + ',') ']')) nat )
        | infix
