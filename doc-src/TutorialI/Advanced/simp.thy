@@ -157,7 +157,7 @@ sides.  They may not contain extraneous term or type variables, though.
 
 subsubsection{*The preprocessor*}
 
-text{*
+text{*\label{sec:simp-preprocessor}
 When some theorem is declared a simplification rule, it need not be a
 conditional equation already.  The simplifier will turn it into a set of
 conditional equations automatically.  For example, given @{prop"f x =
@@ -175,7 +175,8 @@ P \land Q &\mapsto& P,\ Q \nonumber\\
 \end{eqnarray}
 Once this conversion process is finished, all remaining non-equations
 $P$ are turned into trivial equations $P = True$.
-For example, the formula @{prop"(p \<longrightarrow> q \<and> r) \<and> s"} is converted into the three rules
+For example, the formula \begin{center}@{prop"(p \<longrightarrow> q \<and> r) \<and> s"}\end{center}
+is converted into the three rules
 \begin{center}
 @{prop"p \<Longrightarrow> q = True"},\quad  @{prop"p \<Longrightarrow> r = True"},\quad  @{prop"s = True"}.
 \end{center}

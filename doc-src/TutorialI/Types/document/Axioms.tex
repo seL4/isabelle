@@ -45,7 +45,8 @@ that \isa{{\isacharless}{\isacharless}} is not symmetric:%
 \begin{isamarkuptxt}%
 \noindent
 The conclusion is not simply \isa{{\isasymnot}\ y\ {\isacharless}{\isacharless}\ x} because the preprocessor
-of the simplifier would turn this into \isa{{\isacharparenleft}y\ {\isacharless}{\isacharless}\ x{\isacharparenright}\ {\isacharequal}\ False}, thus yielding
+of the simplifier (see \S\ref{sec:simp-preprocessor})
+would turn this into \isa{{\isacharparenleft}y\ {\isacharless}{\isacharless}\ x{\isacharparenright}\ {\isacharequal}\ False}, thus yielding
 a nonterminating rewrite rule. In the above form it is a generally useful
 rule.
 The type constraint is necessary because otherwise Isabelle would only assume

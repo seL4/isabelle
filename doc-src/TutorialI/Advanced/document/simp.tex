@@ -177,6 +177,7 @@ sides.  They may not contain extraneous term or type variables, though.%
 }
 %
 \begin{isamarkuptext}%
+\label{sec:simp-preprocessor}
 When some theorem is declared a simplification rule, it need not be a
 conditional equation already.  The simplifier will turn it into a set of
 conditional equations automatically.  For example, given \isa{f\ x\ {\isacharequal}\ g\ x\ {\isasymand}\ h\ x\ {\isacharequal}\ k\ x} the simplifier will turn this into the two separate
@@ -193,7 +194,8 @@ P \land Q &\mapsto& P,\ Q \nonumber\\
 \end{eqnarray}
 Once this conversion process is finished, all remaining non-equations
 $P$ are turned into trivial equations $P = True$.
-For example, the formula \isa{{\isacharparenleft}p\ {\isasymlongrightarrow}\ q\ {\isasymand}\ r{\isacharparenright}\ {\isasymand}\ s} is converted into the three rules
+For example, the formula \begin{center}\isa{{\isacharparenleft}p\ {\isasymlongrightarrow}\ q\ {\isasymand}\ r{\isacharparenright}\ {\isasymand}\ s}\end{center}
+is converted into the three rules
 \begin{center}
 \isa{p\ {\isasymLongrightarrow}\ q\ {\isacharequal}\ True},\quad  \isa{p\ {\isasymLongrightarrow}\ r\ {\isacharequal}\ True},\quad  \isa{s\ {\isacharequal}\ True}.
 \end{center}

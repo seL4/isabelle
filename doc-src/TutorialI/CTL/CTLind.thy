@@ -128,7 +128,7 @@ into a @{text"\<And>p"}, which would complicate matters below. As it is,
 @{thm[display]Avoid_in_lfp[no_vars]}
 The main theorem is simply the corollary where @{prop"t = s"},
 in which case the assumption @{prop"t \<in> Avoid s A"} is trivially true
-by the first @{term Avoid}-rule). Isabelle confirms this:
+by the first @{term Avoid}-rule. Isabelle confirms this:
 *}
 
 theorem AF_lemma2:

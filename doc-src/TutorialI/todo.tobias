@@ -75,6 +75,8 @@ Move section on rule inversion further to the front, and combine
 Minor additions to the tutorial, unclear where
 ==============================================
 
+case_tac on bool?
+
 Tacticals: , ? +
 Note: + is used in typedef section!
 

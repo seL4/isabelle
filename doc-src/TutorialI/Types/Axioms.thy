@@ -43,7 +43,8 @@ lemma [simp]: "(x::'a::parord) << y \<Longrightarrow> (\<not> y << x) = True";
 
 txt{*\noindent
 The conclusion is not simply @{prop"\<not> y << x"} because the preprocessor
-of the simplifier would turn this into @{prop"y << x = False"}, thus yielding
+of the simplifier (see \S\ref{sec:simp-preprocessor})
+would turn this into @{prop"y << x = False"}, thus yielding
 a nonterminating rewrite rule. In the above form it is a generally useful
 rule.
 The type constraint is necessary because otherwise Isabelle would only assume
