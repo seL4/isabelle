@@ -1,6 +1,6 @@
 (*  Title:      Pure/Syntax/syn_ext.ML
     ID:         $Id$
-    Author:     Markus Wenzel, TU Muenchen
+    Author:     Markus Wenzel and Carsten Clasohm, TU Muenchen
 
 Syntax extension (internal interface).
 *)
@@ -186,23 +186,31 @@ fun mfix_to_xprod convert logtypes (Mfix (sy, typ, const, pris, pri)) =
       else err "unbalanced block parentheses";
 
 
-    fun is_meta c = c mem ["(", ")", "/", "_"];
+    local
+      fun is_meta c = c mem ["(", ")", "/", "_"];
 
-    fun scan_delim_char ("'" :: c :: cs) =
-          if is_blank c then err "illegal spaces in delimiter" else (c, cs)
-      | scan_delim_char ["'"] = err "trailing escape character"
-      | scan_delim_char (chs as c :: cs) =
-          if is_blank c orelse is_meta c then raise LEXICAL_ERROR else (c, cs)
-      | scan_delim_char [] = raise LEXICAL_ERROR;
+      fun scan_delim_char ("'" :: c :: cs) =
+            if is_blank c then raise LEXICAL_ERROR else (c, cs)
+        | scan_delim_char ["'"] = err "trailing escape character"
+        | scan_delim_char (chs as c :: cs) =
+            if is_blank c orelse is_meta c then raise LEXICAL_ERROR else (c, cs)
+        | scan_delim_char [] = raise LEXICAL_ERROR;
 
-    val scan_symb =
-      $$ "_" >> K (Argument ("", 0)) ||
-      $$ "(" -- scan_int >> (Bg o #2) ||
-      $$ ")" >> K En ||
-      $$ "/" -- $$ "/" >> K (Brk ~1) ||
-      $$ "/" -- scan_any is_blank >> (Brk o length o #2) ||
-      scan_any1 is_blank >> (Space o implode) ||
-      repeat1 scan_delim_char >> (Delim o implode);
+      val scan_sym =
+        $$ "_" >> K (Argument ("", 0)) ||
+        $$ "(" -- scan_int >> (Bg o #2) ||
+        $$ ")" >> K En ||
+        $$ "/" -- $$ "/" >> K (Brk ~1) ||
+        $$ "/" -- scan_any is_blank >> (Brk o length o #2) ||
+        scan_any1 is_blank >> (Space o implode) ||
+        repeat1 scan_delim_char >> (Delim o implode);
+
+      val scan_symb =
+        scan_sym >> Some ||
+        $$ "'" -- scan_one is_blank >> K None;
+    in
+      val scan_symbs = mapfilter I o #1 o repeat scan_symb;
+    end;
 
 
     val cons_fst = apfst o cons;
@@ -237,7 +245,7 @@ fun mfix_to_xprod convert logtypes (Mfix (sy, typ, const, pris, pri)) =
           else a
       | unify_logtypes _ a = a;
 
-    val (raw_symbs, _) = repeat scan_symb (explode sy);
+    val raw_symbs = scan_symbs (explode sy);
     val (symbs, lhs) = add_args raw_symbs typ pris;
     val copy_prod = lhs mem ["prop", "logic"]
           andalso const <> ""

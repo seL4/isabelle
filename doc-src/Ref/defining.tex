@@ -458,7 +458,7 @@ prop}).  Otherwise it is $ty$ (note that only the outermost type constructor
 is taken into account).  Finally, the nonterminal of a type variable is {\tt
 any}.
 
-\begin{warn} 
+\begin{warn}
   Theories must sometimes declare types for purely syntactic purposes ---
   merely playing the role of nonterminals. One example is \tydx{type}, the
   built-in type of types.  This is a `type of all types' in the syntactic
@@ -480,10 +480,10 @@ requires additional syntactic translations, see also
 Chapter~\ref{chap:syntax}).
 
 
-\medskip 
-As a special case of the general mixfix declaration, the form 
+\medskip
+As a special case of the general mixfix declaration, the form
 \begin{center}
-  {\tt $c$ ::\ "$\sigma$" ("$template$")} 
+  {\tt $c$ ::\ "$\sigma$" ("$template$")}
 \end{center}
 specifies no priorities.  The resulting production puts no priority
 constraints on any of its arguments and has maximal priority itself.
@@ -560,7 +560,8 @@ sequences:
   other than the special characters {\tt _}, {\tt(}, {\tt)} and~{\tt/}.
   Even these characters may appear if escaped; this means preceding it with
   a~{\tt '} (single quote).  Thus you have to write {\tt ''} if you really
-  want a single quote.  Delimiters may never contain spaces.
+  want a single quote.  Furthermore, a~{\tt '} followed by a space separates
+  delimiters without extra white space being added for printing.
 
 \item[~{\tt_}~] is an argument position, which stands for a nonterminal symbol
   or name token.
