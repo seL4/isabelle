@@ -192,7 +192,7 @@ result();
 
 writeln"Problem 24";
 goal FOLP.thy "?p : ~(EX x. S(x)&Q(x)) & (ALL x. P(x) --> Q(x)|R(x)) &  \
-\    ~(EX x.P(x)) --> (EX x.Q(x)) & (ALL x. Q(x)|R(x) --> S(x))  \
+\    (~(EX x.P(x)) --> (EX x.Q(x))) & (ALL x. Q(x)|R(x) --> S(x))  \
 \   --> (EX x. P(x)&R(x))";
 by (fast_tac FOLP_cs 1); 
 result();
