@@ -76,7 +76,7 @@ Addsimps [prefix_prefix];
 
 Goalw [prefix_def]
    "(xs <= y#ys) = (xs=[] | (? zs. xs=y#zs & zs <= ys))";
-by (cases_tac "xs" 1);
+by (case_tac "xs" 1);
 by Auto_tac;
 qed "prefix_Cons";
 
@@ -92,7 +92,7 @@ qed "prefix_append";
 Goalw [prefix_def]
   "[| xs <= ys; length xs < length ys |] ==> xs @ [ys ! length xs] <= ys";
 by (auto_tac(claset(), simpset() addsimps [nth_append]));
-by (cases_tac "ys" 1);
+by (case_tac "ys" 1);
 by Auto_tac;
 qed "append_one_prefix";
 

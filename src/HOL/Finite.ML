@@ -248,7 +248,7 @@ qed "finite_has_card";
 
 Goal "[| x ~: A; insert x A = {f i|i. i<n} |]  \
 \     ==> ? m::nat. m<n & (? g. A = {g i|i. i<m})";
-by (cases_tac "n" 1);
+by (case_tac "n" 1);
  by (hyp_subst_tac 1);
  by (Asm_full_simp_tac 1);
 by (rename_tac "m" 1);

@@ -83,7 +83,7 @@ val optionE = prove_goal thy
 	eresolve_tac prems 1]);
 
 fun option_case_tac2 s i = EVERY [
-	 cases_tac s i,
+	 case_tac s i,
 	 rotate_tac ~1 (i+1), asm_full_simp_tac HOL_basic_ss (i+1), 
 	 rotate_tac ~1  i   , asm_full_simp_tac HOL_basic_ss i];
 

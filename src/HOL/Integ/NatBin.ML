@@ -319,17 +319,17 @@ qed "Suc_eq_add_numeral_1";
 (* These two can be useful when m = number_of... *)
 
 Goal "(m::nat) + n = (if m=#0 then n else Suc ((m - #1) + n))";
-by (cases_tac "m" 1);
+by (case_tac "m" 1);
 by (ALLGOALS (asm_simp_tac numeral_ss));
 qed "add_eq_if";
 
 Goal "(m::nat) * n = (if m=#0 then #0 else n + ((m - #1) * n))";
-by (cases_tac "m" 1);
+by (case_tac "m" 1);
 by (ALLGOALS (asm_simp_tac numeral_ss));
 qed "mult_eq_if";
 
 Goal "(p ^ m :: nat) = (if m=#0 then #1 else p * (p ^ (m - #1)))";
-by (cases_tac "m" 1);
+by (case_tac "m" 1);
 by (ALLGOALS (asm_simp_tac numeral_ss));
 qed "power_eq_if";
 

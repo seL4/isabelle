@@ -23,7 +23,7 @@ qed "less_le_typ";
 Goal "(UNIV::typ set) = {Atyp,Btyp,Ctyp,Top}";
 by (Auto_tac);
 by (rename_tac "t" 1);
-by (cases_tac "t" 1);
+by (case_tac "t" 1);
 by (Auto_tac);
 qed "UNIV_typ_enum";
 

@@ -30,7 +30,7 @@ by (Asm_full_simp_tac 1);
 by (rtac iffI 1);
  by (etac exE 1);
  by (rename_tac "ts" 1);
- by (cases_tac "ts" 1);
+ by (case_tac "ts" 1);
   by (Force_tac 1);
  by (Force_tac 1);
 by (etac disjE 1);
@@ -51,7 +51,7 @@ Goal "[| (ys,x#xs) : step1 r; \
 \        !y. ys = y#xs --> (y,x) : r --> R; \
 \        !zs. ys = x#zs --> (zs,xs) : step1 r --> R \
 \     |] ==> R";
-by (cases_tac "ys" 1);
+by (case_tac "ys" 1);
  by (asm_full_simp_tac (simpset() addsimps [step1_def]) 1);
 by (Blast_tac 1);
 val lemma = result();

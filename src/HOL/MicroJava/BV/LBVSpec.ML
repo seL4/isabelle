@@ -11,15 +11,15 @@ qed "rev_eq";
 
 Goal "\\<lbrakk>wtl_inst i G rT s0 s1 cert max_pc pc; \
 \      wtl_inst i G rT s0 s1' cert max_pc pc\\<rbrakk> \\<Longrightarrow> s1 = s1'";
-by (cases_tac "i" 1);
-by (cases_tac "branch" 8);
-by (cases_tac "op_stack" 7);
-by (cases_tac "meth_ret" 6);
-by (cases_tac "meth_inv" 5);
-by (cases_tac "check_object" 4);
-by (cases_tac "manipulate_object" 3);
-by (cases_tac "create_object" 2);
-by (cases_tac "load_and_store" 1);
+by (case_tac "i" 1);
+by (case_tac "branch" 8);
+by (case_tac "op_stack" 7);
+by (case_tac "meth_ret" 6);
+by (case_tac "meth_inv" 5);
+by (case_tac "check_object" 4);
+by (case_tac "manipulate_object" 3);
+by (case_tac "create_object" 2);
+by (case_tac "load_and_store" 1);
 by Auto_tac;
 by (ALLGOALS (dtac rev_eq));
 by (TRYALL atac);
@@ -29,7 +29,7 @@ qed "wtl_inst_unique";
 
 Goal "\\<lbrakk>wtl_inst_option i G rT s0 s1 cert max_pc pc; \
 \      wtl_inst_option i G rT s0 s1' cert max_pc pc\\<rbrakk> \\<Longrightarrow> s1 = s1'";
-by (cases_tac "cert!pc" 1);
+by (case_tac "cert!pc" 1);
 by (auto_tac (claset(), simpset() addsimps [wtl_inst_unique, wtl_inst_option_def]));
 qed "wtl_inst_option_unique";
 
@@ -49,12 +49,12 @@ Goal "\\<forall> pc' pc s. \
 \                  wtl_inst_list b G rT s1 s' cert mpc (pc+length a))";
 by(induct_tac "is" 1);
  by Auto_tac;
-by (cases_tac "pc'" 1);
+by (case_tac "pc'" 1);
  by (dres_inst_tac [("x","pc'")] spec 1);
  by (smp_tac 3 1);
  by (res_inst_tac [("x","[]")] exI 1);
  by (Asm_full_simp_tac 1);
- by (cases_tac "cert!pc" 1);
+ by (case_tac "cert!pc" 1);
   by (Force_tac 1);
  by (force_tac (claset(), simpset() addsimps [wtl_inst_option_def]) 1);
 by (dres_inst_tac [("x","nat")] spec 1);

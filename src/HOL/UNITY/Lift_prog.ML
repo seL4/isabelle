@@ -16,7 +16,7 @@ qed "insert_map_inverse";
 Goal "(insert_map i x (delete_map i g)) = g(i:=x)";
 by (rtac ext 1);
 by (auto_tac (claset(), simpset() addsplits [nat_diff_split]));
-by (cases_tac "d" 1);
+by (case_tac "d" 1);
 by (ALLGOALS Asm_simp_tac);
 qed "insert_map_delete_map_eq";
 

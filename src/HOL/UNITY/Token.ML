@@ -16,7 +16,7 @@ qed "HasToK_partition";
 
 Goalw Token_defs "(s ~: E i) = (s : H i | s : T i)";
 by (Simp_tac 1);
-by (cases_tac "proc s i" 1);
+by (case_tac "proc s i" 1);
 by Auto_tac;
 qed "not_E_eq";
 

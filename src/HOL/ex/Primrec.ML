@@ -185,7 +185,7 @@ by (Simp_tac 1);
 by (induct_tac "l" 1);
 by (ALLGOALS Asm_simp_tac);
 by (rtac allI 1);
-by (cases_tac "i" 1);
+by (case_tac "i" 1);
 by (asm_simp_tac (simpset() addsimps [le_add1, le_imp_less_Suc]) 1);
 by (Asm_simp_tac 1);
 by (blast_tac (claset() addIs [less_le_trans] 
@@ -223,7 +223,7 @@ Goalw [PREC_def]
  "[| ALL l. f l + list_add l < ack(kf, list_add l); \
 \    ALL l. g l + list_add l < ack(kg, list_add l)  \
 \ |] ==> PREC f g l + list_add l < ack(Suc(kf+kg), list_add l)";
-by (cases_tac "l" 1);
+by (case_tac "l" 1);
 by (ALLGOALS Asm_simp_tac);
 by (blast_tac (claset() addIs [less_trans]) 1);
 by (etac ssubst 1);  (*get rid of the needless assumption*)

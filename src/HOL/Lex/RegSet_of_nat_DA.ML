@@ -11,7 +11,7 @@ Addsimps [image_eqI];
 (* Lists *)
 
 Goal "(butlast xs = []) = (case xs of [] => True | y#ys => ys=[])";
-by (cases_tac "xs" 1);
+by (case_tac "xs" 1);
 by (ALLGOALS Asm_simp_tac);
 qed "butlast_empty";
 AddIffs [butlast_empty];
@@ -103,14 +103,14 @@ qed_spec_mp "trace_concat";
 Addsimps [trace_concat];
 
 Goal "!i. (trace d i xs = []) = (xs = [])";
-by (cases_tac "xs" 1);
+by (case_tac "xs" 1);
 by (ALLGOALS Asm_simp_tac);
 qed "trace_is_Nil";
 Addsimps [trace_is_Nil];
 
 Goal "(trace d i xs = n#ns) = \
 \         (case xs of [] => False | y#ys => n = d y i & ns = trace d n ys)";
-by (cases_tac "xs" 1);
+by (case_tac "xs" 1);
 by (ALLGOALS Asm_simp_tac);
 by (Blast_tac 1);
 qed_spec_mp "trace_is_Cons_conv";

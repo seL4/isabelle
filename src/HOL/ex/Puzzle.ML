@@ -14,7 +14,7 @@ Goal "! n. k=f(n) --> n <= f(n)";
 by (res_inst_tac [("n","k")] less_induct 1);
 by (rtac allI 1);
 by (rename_tac "i" 1);
-by (cases_tac "i" 1);
+by (case_tac "i" 1);
  by (Asm_simp_tac 1);
 by (blast_tac (claset() addSIs [Suc_leI] addIs [le_less_trans]) 1);
 val lemma = result() RS spec RS mp;

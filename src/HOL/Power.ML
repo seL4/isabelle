@@ -48,7 +48,7 @@ qed_spec_mp "power_less_dvd";
 (*** Binomial Coefficients, following Andy Gordon and Florian Kammueller ***)
 
 Goal "(n choose 0) = 1";
-by (cases_tac "n" 1);
+by (case_tac "n" 1);
 by (ALLGOALS Asm_simp_tac);
 qed "binomial_n_0";
 
@@ -99,7 +99,7 @@ Goal "ALL k. k <= n --> Suc n * (n choose k) = (Suc n choose Suc k) * Suc k";
 by (induct_tac "n" 1);
 by (simp_tac (simpset() addsimps [binomial_0]) 1);
 by (Clarify_tac 1);
-by (cases_tac "k" 1);
+by (case_tac "k" 1);
 by (auto_tac (claset(),
 	      simpset() addsimps [add_mult_distrib, add_mult_distrib2,
 				  le_Suc_eq, binomial_eq_0]));

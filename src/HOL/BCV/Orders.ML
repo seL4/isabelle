@@ -37,7 +37,7 @@ by (Clarify_tac 1);
 by (case_tac "? a. Some a : Q" 1);
  by (eres_inst_tac [("x","{a . Some a : Q}")] allE 1);
  by (Blast_tac 1);
-by (cases_tac "x" 1);
+by (case_tac "x" 1);
  by (Fast_tac 1);
 by (Blast_tac 1);
 qed "acc_option";
@@ -70,18 +70,18 @@ by (rtac iffI 1);
  by (Asm_full_simp_tac 1);
 by (Asm_full_simp_tac 1);
 by (Clarify_tac 1);
-by (cases_tac "i" 1);
+by (case_tac "i" 1);
 by (ALLGOALS Asm_simp_tac);
 qed "Cons_le_Cons";
 AddIffs [Cons_le_Cons];
 
 Goal "(x#xs <= ys) = (? z zs. ys = z#zs & x <= z & xs <= zs)";
-by (cases_tac "ys" 1);
+by (case_tac "ys" 1);
 by (ALLGOALS Asm_simp_tac);
 qed "Cons_le_iff";
 
 Goal "(xs <= y#ys) = (? z zs. xs = z#zs & z <= y & zs <= ys)";
-by (cases_tac "xs" 1);
+by (case_tac "xs" 1);
 by (ALLGOALS Asm_simp_tac);
 qed "le_Cons_iff";
 
@@ -120,7 +120,7 @@ Addsimps [listsn_0];
 
 Goalw [listsn_def]
  "(xs : listsn (Suc n) A) = (? y:A. ? ys:listsn n A. xs = y#ys)";
-by (cases_tac "xs" 1);
+by (case_tac "xs" 1);
 by (Auto_tac);
 qed "in_listsn_Suc_iff";
 

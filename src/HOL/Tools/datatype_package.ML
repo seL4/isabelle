@@ -9,7 +9,6 @@ Datatype package for Isabelle/HOL.
 signature BASIC_DATATYPE_PACKAGE =
 sig
   val induct_tac : string -> int -> tactic
-  val exhaust_tac : string -> int -> tactic		(* FIXME remove !? *)
   val case_tac : string -> int -> tactic
   val distinct_simproc : simproc
 end;
@@ -200,8 +199,6 @@ fun case_tac aterm i state =
         val exh_vname = implode (tl (explode (Syntax.string_of_vname ixn)))
       in res_inst_tac [(exh_vname, aterm)] exhaustion i state end
   end;
-
-val exhaust_tac = case_tac;
 
 
 

@@ -165,7 +165,7 @@ qed_goal "N2_live" Inc.thy
   (fn _ => [auto_tac (Inc_css addsimps2 Init_defs
                               addSIs2 [(temp_use N2_leadsto_a) 
                                        RSN(2, (temp_use leadsto_init))]),
-	    cases_tac "pc2 (st1 sigma)" 1,
+	    case_tac "pc2 (st1 sigma)" 1,
 	    Auto_tac
 	   ]);
 
@@ -212,7 +212,7 @@ qed_goal "N1_live" Inc.thy
   (fn _ => [auto_tac (Inc_css addsimps2 Init_defs
                               addSIs2 [(temp_use N1_leadsto_b) 
                                        RSN(2, temp_use leadsto_init)]),
-	    cases_tac "pc1 (st1 sigma)" 1,
+	    case_tac "pc1 (st1 sigma)" 1,
 	    Auto_tac
 	   ]);
 

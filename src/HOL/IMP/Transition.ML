@@ -220,7 +220,7 @@ by (res_inst_tac [("n","n")] less_induct 1);
 by (Clarify_tac 1);
 by (etac rel_pow_E2 1);
  by (asm_full_simp_tac (simpset() addsimps evalc.intrs) 1);
-by (cases_tac "c" 1);
+by (case_tac "c" 1);
     by (fast_tac (claset() addSDs [hlemma]) 1);
    by (Blast_tac 1);
   by (blast_tac (claset() addSDs [rel_pow_Suc_I2 RS comp_decomp_lemma]) 1);

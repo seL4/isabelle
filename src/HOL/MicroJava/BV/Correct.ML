@@ -40,7 +40,7 @@ qed_spec_mp "approx_val_Null";
 Goal
 "\\<lbrakk> wf_prog wt G \\<rbrakk> \
 \\\<Longrightarrow> approx_val G hp v (Some T) \\<longrightarrow> G\\<turnstile> T\\<preceq>T' \\<longrightarrow> approx_val G hp v (Some T')";
-by (cases_tac "T" 1);
+by (case_tac "T" 1);
  by (Asm_simp_tac 1);
 by (fast_tac (claset() addIs [conf_widen] addss (simpset()addsimps[approx_val_def])) 1);
 qed_spec_mp "approx_val_imp_approx_val_assConvertible";
@@ -56,7 +56,7 @@ qed_spec_mp "approx_val_imp_approx_val_sup_heap";
 Goal
 "\\<lbrakk> hp a = Some obj' ; G,hp\\<turnstile> v\\<Colon>\\<preceq>T ; obj_ty obj = obj_ty obj' \\<rbrakk> \
 \\\<Longrightarrow>G,(hp(a\\<mapsto>obj))\\<turnstile> v\\<Colon>\\<preceq>T";
-by (cases_tac "v" 1);
+by (case_tac "v" 1);
 by (auto_tac (claset() , simpset() addsimps [obj_ty_def,conf_def] addsplits [option.split]));
 qed_spec_mp "approx_val_imp_approx_val_heap_update";
 
@@ -97,7 +97,7 @@ qed_spec_mp "assConv_approx_stk_imp_approx_loc";
 
 Goalw [approx_loc_def,list_all2_def]
 "\\<forall> lvars. approx_loc G hp lvars lt \\<longrightarrow>  hp \\<le>| hp' \\<longrightarrow> approx_loc G hp' lvars lt";
-by (cases_tac "lt" 1);
+by (case_tac "lt" 1);
  by (Asm_simp_tac 1);
 by (force_tac (claset() addIs [approx_val_imp_approx_val_sup_heap],
 	       simpset() addsimps [neq_Nil_conv]) 1);

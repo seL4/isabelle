@@ -58,11 +58,11 @@ Goalw [le_list]
 by (induct_tac "xs" 1);
  by (Simp_tac 1);
 by (rtac allI 1);
-by (cases_tac "ys" 1);
+by (case_tac "ys" 1);
  by (hyp_subst_tac 1);
  by (Simp_tac 1);
 by (rtac allI 1);
-by (cases_tac "zs" 1);
+by (case_tac "zs" 1);
  by (hyp_subst_tac 1);
  by (Simp_tac 1);
 by (hyp_subst_tac 1);
@@ -87,7 +87,7 @@ Goalw [le_list]
 by (induct_tac "xs" 1);
  by (Simp_tac 1);
 by (rtac allI 1);
-by (cases_tac "ys" 1);
+by (case_tac "ys" 1);
  by (hyp_subst_tac 1);
  by (Simp_tac 1);
 by (hyp_subst_tac 1);
