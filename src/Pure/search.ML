@@ -38,20 +38,13 @@ signature SEARCH =
   end;
 
 
-(** Instantiation of leftist heaps for best-first search **)
+(** Instantiation of heaps for best-first search **)
 
-(*Termless makes the ordering total, allowing duplicates to be found*)
-structure MeasureThm : ORDERED =
-struct
-  type T = int * thm
-  fun eq ((m,th):T, (m',th')) = (m=m' andalso eq_thm(th,th'))
-  fun lt ((m,th):T, (m',th')) = 
-          (m<m' orelse 
-	   m=m' andalso Term.termless (#prop(rep_thm th), #prop(rep_thm th')))
-  fun leq (mth, mth') = not (lt (mth',mth))
-end;
-
-structure MeasureThmHeap = LeftistHeap(MeasureThm);
+(*total ordering on theorems, allowing duplicates to be found*)
+structure ThmHeap =
+  HeapFun (type elem = int * thm
+    val ord = Library.prod_ord Library.int_ord
+      (Term.term_ord o Library.pairself (#prop o Thm.rep_thm)));
 
 
 structure Search : SEARCH = 
@@ -207,9 +200,9 @@ fun some_of_list []     = None
 
 (*Check for and delete duplicate proof states*)
 fun deleteAllMin prf heap = 
-      if MeasureThmHeap.isEmpty heap then heap
-      else if eq_thm (prf, #2 (MeasureThmHeap.findMin heap))
-      then deleteAllMin prf (MeasureThmHeap.deleteMin heap)
+      if ThmHeap.is_empty heap then heap
+      else if eq_thm (prf, #2 (ThmHeap.min heap))
+      then deleteAllMin prf (ThmHeap.delete_min heap)
       else heap;
 
 (*Best-first search for a state that satisfies satp (incl initial state)
@@ -220,20 +213,20 @@ fun THEN_BEST_FIRST tac0 (satp, sizef) tac1 =
       fun pairsize th = (sizef th, th);
       fun bfs (news,nprf_heap) =
 	   (case  partition satp news  of
-		([],nonsats) => next(foldr MeasureThmHeap.insert
+		([],nonsats) => next(foldr ThmHeap.insert
 					(map pairsize nonsats, nprf_heap)) 
 	      | (sats,_)  => some_of_list sats)
       and next nprf_heap =
-            if MeasureThmHeap.isEmpty nprf_heap then None
+            if ThmHeap.is_empty nprf_heap then None
 	    else 
-	    let val (n,prf) = MeasureThmHeap.findMin nprf_heap
+	    let val (n,prf) = ThmHeap.min nprf_heap
 	    in if !trace_BEST_FIRST 
 	       then writeln("state size = " ^ string_of_int n)  
                else ();
 	       bfs (Seq.list_of (tac prf), 
-		    deleteAllMin prf (MeasureThmHeap.deleteMin nprf_heap))
+		    deleteAllMin prf (ThmHeap.delete_min nprf_heap))
             end
-      fun btac st = bfs (Seq.list_of (tac0 st),  MeasureThmHeap.empty)
+      fun btac st = bfs (Seq.list_of (tac0 st), ThmHeap.empty)
   in traced_tac btac end;
 
 (*Ordinary best-first search, with no initial tactic*)
