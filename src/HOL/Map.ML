@@ -27,6 +27,13 @@ by (rtac ext 1);
 by (Asm_simp_tac 1);
 qed "map_upd_triv";
 
+Goal "t(k|->x) ~= empty";
+by Safe_tac;
+by (dres_inst_tac [("x","k")] fun_cong 1);
+by (Full_simp_tac 1);
+qed "map_upd_nonempty";
+Addsimps[map_upd_nonempty];
+
 Goalw [image_def] "finite (range f) ==> finite (range (f(a|->b)))";
 by (full_simp_tac (simpset() addsimps [full_SetCompr_eq]) 1);
 by (rtac finite_subset 1);
