@@ -1,2 +1,4 @@
-
-Real = RComplete + RealPow
+theory Real
+imports RComplete RealPow
+begin
+end

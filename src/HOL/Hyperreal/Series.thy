@@ -11,13 +11,15 @@ theory Series
 imports SEQ Lim
 begin
 
+declare atLeastLessThan_empty[simp];
+
 syntax sumr :: "[nat,nat,(nat=>real)] => real"
 translations
   "sumr m n f" => "setsum (f::nat=>real) (atLeastLessThan m n)"
 
 constdefs
    sums  :: "[nat=>real,real] => bool"     (infixr "sums" 80)
-   "f sums s  == (%n. sumr 0 n f) ----> s"
+   "f sums s  == (%n. setsum f {0..<n}) ----> s"
 
    summable :: "(nat=>real) => bool"
    "summable f == (\<exists>s. f sums s)"
@@ -27,9 +29,10 @@ constdefs
 
 
 lemma sumr_Suc [simp]:
-     "sumr m (Suc n) f = (if n < m then 0 else sumr m n f + f(n))"
-by (simp add: atLeastLessThanSuc)
+  "setsum f {m..<Suc n} = (if n < m then 0 else setsum f {m..<n} + f(n))"
+by (simp add: atLeastLessThanSuc add_commute)
 
+(*
 lemma sumr_add: "sumr m n f + sumr m n g = sumr m n (%n. f n + g n)"
 by (simp add: setsum_addf)
 
@@ -42,13 +45,22 @@ apply (induct "p", auto)
 apply (rename_tac k) 
 apply (subgoal_tac "n=k", auto) 
 done
+*)
+
+lemma sumr_split_add: "\<lbrakk> m \<le> n; n \<le> p \<rbrakk> \<Longrightarrow>
+  setsum f {m..<n} + setsum f {n..<p} = setsum f {m..<p::nat}"
+by (simp add:setsum_Un_disjoint[symmetric] ivl_disj_int ivl_disj_un)
 
 lemma sumr_split_add_minus:
      "n < p ==> sumr 0 p f + - sumr 0 n f = sumr n p (f::nat=>real)"
-apply (drule_tac f1 = f in sumr_split_add [symmetric])
+using sumr_split_add [of 0 n p f,symmetric]
 apply (simp add: add_ac)
 done
 
+lemma sumr_diff_mult_const: "sumr 0 n f - (real n*r) = sumr 0 n (%i. f i - r)"
+by (simp add: diff_minus setsum_addf real_of_nat_def)
+
+(*
 lemma sumr_rabs: "abs(sumr m n  (f::nat=>real)) \<le> sumr m n (%i. abs(f i))"
 by (simp add: setsum_abs)
 
@@ -60,14 +72,12 @@ lemma sumr_fun_eq:
      "(\<forall>r. m \<le> r & r < n --> f r = g r) ==> sumr m n f = sumr m n g"
 by (auto intro: setsum_cong) 
 
-lemma sumr_diff_mult_const: "sumr 0 n f - (real n*r) = sumr 0 n (%i. f i - r)"
-by (simp add: diff_minus setsum_addf real_of_nat_def)
-
 lemma sumr_less_bounds_zero [simp]: "n < m ==> sumr m n f = 0"
 by (simp add: atLeastLessThan_empty)
 
 lemma sumr_minus: "sumr m n (%i. - f i) = - sumr m n f"
 by (simp add: Finite_Set.setsum_negf)
+*)
 
 lemma sumr_shift_bounds: "sumr (m+k) (n+k) f = sumr m n (%i. f(i + k))"
 by (induct "n", auto)
@@ -114,6 +124,7 @@ apply (induct "n", auto)
 apply (drule_tac x = n in spec, arith)
 done
 
+(* FIXME generalize *)
 lemma rabs_sumr_rabs_cancel [simp]:
      "abs (sumr m n (%k. abs (f k))) = (sumr m n (%k. abs (f k)))"
 by (induct "n", simp_all add: add_increasing)
@@ -132,10 +143,10 @@ lemma sumr_one_lb_realpow_zero [simp]: "sumr (Suc 0) n (%n. f(n) * 0 ^ n) = 0"
 apply (induct "n")
 apply (case_tac [2] "n", auto)
 done
-
+(*
 lemma sumr_diff: "sumr m n f - sumr m n g = sumr m n (%n. f n - g n)"
-by (simp add: diff_minus sumr_add [symmetric] sumr_minus)
-
+by (simp add: diff_minus setsum_addf setsum_negf)
+*)
 lemma sumr_subst [rule_format (no_asm)]:
      "(\<forall>p. m \<le> p & p < m+n --> (f p = g p)) --> sumr m n f = sumr m n g"
 by (induct "n", auto)
@@ -213,14 +224,14 @@ apply (drule sumr_interval_const2, auto)
 done
 
 lemma sums_mult: "x sums x0 ==> (%n. c * x(n)) sums (c * x0)"
-by (auto simp add: sums_def sumr_mult [symmetric]
+by (auto simp add: sums_def setsum_mult [symmetric]
          intro!: LIMSEQ_mult intro: LIMSEQ_const)
 
 lemma sums_divide: "x sums x' ==> (%n. x(n)/c) sums (x'/c)"
 by (simp add: real_divide_def sums_mult mult_commute [of _ "inverse c"])
 
 lemma sums_diff: "[| x sums x0; y sums y0 |] ==> (%n. x n - y n) sums (x0-y0)"
-by (auto simp add: sums_def sumr_diff [symmetric] intro: LIMSEQ_diff)
+by (auto simp add: sums_def setsum_subtractf intro: LIMSEQ_diff)
 
 lemma suminf_mult: "summable f ==> suminf f * c = suminf(%n. f n * c)"
 by (auto intro!: sums_unique sums_mult summable_sums simp add: mult_commute)
@@ -234,7 +245,7 @@ lemma suminf_diff:
 by (auto intro!: sums_diff sums_unique summable_sums)
 
 lemma sums_minus: "x sums x0 ==> (%n. - x n) sums - x0"
-by (auto simp add: sums_def intro!: LIMSEQ_minus simp add: sumr_minus)
+by (auto simp add: sums_def intro!: LIMSEQ_minus simp add: setsum_negf)
 
 lemma sums_group:
      "[|summable f; 0 < k |] ==> (%n. sumr (n*k) (n*k + k) f) sums (suminf f)"
@@ -356,7 +367,7 @@ apply (rotate_tac 2)
 apply (drule_tac x = m in spec)
 apply (auto, rotate_tac 2, drule_tac x = n in spec)
 apply (rule_tac y = "sumr m n (%k. abs (f k))" in order_le_less_trans)
-apply (rule sumr_rabs)
+apply (rule setsum_abs)
 apply (rule_tac y = "sumr m n g" in order_le_less_trans)
 apply (auto intro: sumr_le2 simp add: abs_interval_iff)
 done
@@ -387,18 +398,18 @@ done
 
 text{*Absolute convergence imples normal convergence*}
 lemma summable_rabs_cancel: "summable (%n. abs (f n)) ==> summable f"
-apply (auto simp add: sumr_rabs summable_Cauchy)
+apply (auto simp add: summable_Cauchy)
 apply (drule spec, auto)
 apply (rule_tac x = N in exI, auto)
 apply (drule spec, auto)
 apply (rule_tac y = "sumr m n (%n. abs (f n))" in order_le_less_trans)
-apply (auto intro: sumr_rabs)
+apply (auto)
 done
 
 text{*Absolute convergence of series*}
 lemma summable_rabs:
      "summable (%n. abs (f n)) ==> abs(suminf f) \<le> suminf (%n. abs(f n))"
-by (auto intro: LIMSEQ_le LIMSEQ_imp_rabs summable_rabs_cancel summable_sumr_LIMSEQ_suminf sumr_rabs)
+by (auto intro: LIMSEQ_le LIMSEQ_imp_rabs summable_rabs_cancel summable_sumr_LIMSEQ_suminf)
 
 
 subsection{* The Ratio Test*}
@@ -465,19 +476,13 @@ val sums_def = thm"sums_def";
 val summable_def = thm"summable_def";
 val suminf_def = thm"suminf_def";
 
-val sumr_add = thm "sumr_add";
-val sumr_mult = thm "sumr_mult";
 val sumr_split_add = thm "sumr_split_add";
-val sumr_rabs = thm "sumr_rabs";
-val sumr_fun_eq = thm "sumr_fun_eq";
-val sumr_diff_mult_const = thm "sumr_diff_mult_const";
 val sumr_minus_one_realpow_zero = thm "sumr_minus_one_realpow_zero";
 val sumr_le2 = thm "sumr_le2";
 val rabs_sumr_rabs_cancel = thm "rabs_sumr_rabs_cancel";
 val sumr_zero = thm "sumr_zero";
 val Suc_le_imp_diff_ge2 = thm "Suc_le_imp_diff_ge2";
 val sumr_one_lb_realpow_zero = thm "sumr_one_lb_realpow_zero";
-val sumr_diff = thm "sumr_diff";
 val sumr_subst = thm "sumr_subst";
 val sumr_bound = thm "sumr_bound";
 val sumr_bound2 = thm "sumr_bound2";

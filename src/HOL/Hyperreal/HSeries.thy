@@ -73,12 +73,12 @@ done
 
 lemma sumhr_add: "sumhr (m,n,f) + sumhr(m,n,g) = sumhr(m,n,%i. f i + g i)"
 apply (cases m, cases n)
-apply (simp add: sumhr hypreal_add sumr_add)
+apply (simp add: sumhr hypreal_add setsum_addf)
 done
 
 lemma sumhr_mult: "hypreal_of_real r * sumhr(m,n,f) = sumhr(m,n,%n. r * f n)"
 apply (cases m, cases n)
-apply (simp add: sumhr hypreal_of_real_def hypreal_mult sumr_mult)
+apply (simp add: sumhr hypreal_of_real_def hypreal_mult setsum_mult)
 done
 
 lemma sumhr_split_add: "n < p ==> sumhr(0,n,f) + sumhr(n,p,f) = sumhr(0,p,f)"
@@ -92,7 +92,7 @@ by (drule_tac f1 = f in sumhr_split_add [symmetric], simp)
 
 lemma sumhr_hrabs: "abs(sumhr(m,n,f)) \<le> sumhr(m,n,%i. abs(f i))"
 apply (cases n, cases m)
-apply (simp add: sumhr hypreal_le hypreal_hrabs sumr_rabs)
+apply (simp add: sumhr hypreal_le hypreal_hrabs setsum_abs)
 done
 
 text{* other general version also needed *}
@@ -100,9 +100,8 @@ lemma sumhr_fun_hypnat_eq:
    "(\<forall>r. m \<le> r & r < n --> f r = g r) -->  
       sumhr(hypnat_of_nat m, hypnat_of_nat n, f) =  
       sumhr(hypnat_of_nat m, hypnat_of_nat n, g)"
-apply (safe, drule sumr_fun_eq)
-apply (simp add: sumhr hypnat_of_nat_eq)
-done
+by (fastsimp simp add: sumhr hypnat_of_nat_eq intro:setsum_cong)
+
 
 lemma sumhr_const:
      "sumhr(0, n, %i. r) = hypreal_of_hypnat n * hypreal_of_real r"
@@ -119,7 +118,7 @@ done
 
 lemma sumhr_minus: "sumhr(m, n, %i. - f i) = - sumhr(m, n, f)"
 apply (cases m, cases n)
-apply (simp add: sumhr hypreal_minus sumr_minus)
+apply (simp add: sumhr hypreal_minus setsum_negf)
 done
 
 lemma sumhr_shift_bounds:

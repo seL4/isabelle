@@ -343,7 +343,7 @@ done
 lemma Integral_mult_const: "a \<le> b ==> Integral(a,b) (%x. c)  (c*(b - a))"
 apply (auto simp add: order_le_less rsum_def Integral_def)
 apply (rule_tac x = "%x. b - a" in exI)
-apply (auto simp add: sumr_mult [symmetric] gauge_def abs_interval_iff 
+apply (auto simp add: setsum_mult [symmetric] gauge_def abs_interval_iff 
                right_diff_distrib [symmetric] partition tpart_def)
 done
 
@@ -351,7 +351,7 @@ lemma Integral_mult:
      "[| a \<le> b; Integral(a,b) f k |] ==> Integral(a,b) (%x. c * f x) (c * k)"
 apply (auto simp add: order_le_less 
             dest: Integral_unique [OF order_refl Integral_zero])
-apply (auto simp add: rsum_def Integral_def sumr_mult [symmetric] mult_assoc)
+apply (auto simp add: rsum_def Integral_def setsum_mult[symmetric] mult_assoc)
 apply (rule_tac a2 = c in abs_ge_zero [THEN real_le_imp_less_or_eq, THEN disjE])
  prefer 2 apply force
 apply (drule_tac x = "e/abs c" in spec, auto)
@@ -459,13 +459,13 @@ apply (subgoal_tac "sumr 0 (psize D) (%n. f(D(Suc n)) - f(D n)) = f b - f a")
         in sumr_partition_eq_diff_bounds)
  apply (simp add: partition_lhs partition_rhs)
 apply (drule sym, simp)
-apply (simp (no_asm) add: sumr_diff)
-apply (rule sumr_rabs [THEN order_trans])
+apply (simp (no_asm) add: setsum_subtractf[symmetric])
+apply (rule setsum_abs [THEN order_trans])
 apply (subgoal_tac "ea = sumr 0 (psize D) (%n. (ea / (b - a)) * (D (Suc n) - (D n)))")
 apply (simp add: abs_minus_commute)
 apply (rule_tac t = ea in ssubst, assumption)
 apply (rule sumr_le2)
-apply (rule_tac [2] sumr_mult [THEN subst])
+apply (rule_tac [2] setsum_mult [THEN subst])
 apply (auto simp add: partition_rhs partition_lhs partition_lb partition_ub
           fine_def)
 done
@@ -769,7 +769,7 @@ apply (erule partition_lt_gen [THEN order_less_imp_le], arith+)
 done
 
 lemma rsum_add: "rsum (D, p) (%x. f x + g x) =  rsum (D, p) f + rsum(D, p) g"
-by (simp add: rsum_def sumr_add left_distrib)
+by (simp add: rsum_def setsum_addf left_distrib)
 
 text{* Bartle/Sherbert: Theorem 10.1.5 p. 278 *}
 lemma Integral_add_fun:

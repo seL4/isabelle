@@ -366,7 +366,7 @@ subsection{*Properties of Power Series*}
 lemma lemma_realpow_diff_sumr:
      "sumr 0 (Suc n) (%p. (x ^ p) * y ^ ((Suc n) - p)) =  
       y * sumr 0 (Suc n) (%p. (x ^ p) * (y ^ (n - p)))"
-apply (auto simp add: sumr_mult simp del: sumr_Suc)
+apply (auto simp add: setsum_mult simp del: sumr_Suc)
 apply (rule sumr_subst)
 apply (intro strip)
 apply (subst lemma_realpow_diff)
@@ -504,10 +504,10 @@ apply (auto simp add: lemma_realpow_diff_sumr2
             simp del: realpow_Suc sumr_Suc)
 apply (auto simp add: lemma_realpow_rev_sumr simp del: sumr_Suc)
 apply (auto simp add: real_of_nat_Suc sumr_diff_mult_const left_distrib 
-                sumdiff lemma_termdiff1 sumr_mult)
+                sumdiff lemma_termdiff1 setsum_mult)
 apply (auto intro!: sumr_subst simp add: diff_minus real_add_assoc)
 apply (simp add: diff_minus [symmetric] less_iff_Suc_add) 
-apply (auto simp add: sumr_mult lemma_realpow_diff_sumr2 mult_ac simp
+apply (auto simp add: setsum_mult lemma_realpow_diff_sumr2 mult_ac simp
                  del: sumr_Suc realpow_Suc)
 done
 
@@ -518,7 +518,7 @@ lemma lemma_termdiff3:
 apply (subst lemma_termdiff2, assumption)
 apply (simp add: abs_mult mult_commute) 
 apply (simp add: mult_commute [of _ "K ^ (n - 2)"]) 
-apply (rule sumr_rabs [THEN real_le_trans])
+apply (rule setsum_abs [THEN real_le_trans])
 apply (simp add: mult_assoc [symmetric])
 apply (simp add: mult_commute [of _ "real (n - Suc 0)"])
 apply (auto intro!: sumr_bound2 simp add: abs_mult)
@@ -535,7 +535,7 @@ apply (rule_tac j = "real (Suc d) * (K ^ d)" in real_le_trans)
 apply (subgoal_tac [2] "0 \<le> K")
 apply (drule_tac [2] n = d in zero_le_power)
 apply (auto simp del: sumr_Suc)
-apply (rule sumr_rabs [THEN real_le_trans])
+apply (rule setsum_abs [THEN real_le_trans])
 apply (rule sumr_bound2, auto dest!: less_add_one intro!: mult_mono simp add: abs_mult power_add)
 apply (auto intro!: power_mono zero_le_power simp add: power_abs, arith+)
 done

@@ -267,7 +267,7 @@ apply force
 apply (rule_tac x = "-t" in exI, auto)
 apply (subgoal_tac "(\<Sum>m = 0..<n. -1 ^ m * diff m 0 * (-h)^m / real(fact m)) =
                     (\<Sum>m = 0..<n. diff m 0 * h ^ m / real(fact m))")
-apply (rule_tac [2] sumr_fun_eq)
+apply (rule_tac [2] setsum_cong[OF refl])
 apply (auto simp add: divide_inverse power_mult_distrib [symmetric])
 done
 
@@ -435,7 +435,7 @@ apply (rule ccontr, simp)
 apply (drule_tac x = x in spec, simp)
 apply (erule ssubst)
 apply (rule_tac x = t in exI, simp)
-apply (rule sumr_fun_eq)
+apply (rule setsum_cong[OF refl])
 apply (auto simp add: sin_zero_iff odd_Suc_mult_two_ex times_divide_eq)
 done
 
@@ -465,7 +465,7 @@ apply simp
 apply (simp (no_asm) add: times_divide_eq)
 apply (erule ssubst)
 apply (rule_tac x = t in exI, simp)
-apply (rule sumr_fun_eq)
+apply (rule setsum_cong[OF refl])
 apply (auto simp add: sin_zero_iff odd_Suc_mult_two_ex times_divide_eq)
 done
 
@@ -483,7 +483,7 @@ apply simp
 apply (simp (no_asm) add: times_divide_eq)
 apply (erule ssubst)
 apply (rule_tac x = t in exI, simp)
-apply (rule sumr_fun_eq)
+apply (rule setsum_cong[OF refl])
 apply (auto simp add: sin_zero_iff odd_Suc_mult_two_ex times_divide_eq)
 done
 
@@ -516,7 +516,7 @@ apply (rule ccontr, simp)
 apply (drule_tac x = x in spec, simp)
 apply (erule ssubst)
 apply (rule_tac x = t in exI, simp)
-apply (rule sumr_fun_eq)
+apply (rule setsum_cong[OF refl])
 apply (auto simp add: cos_zero_iff even_mult_two_ex)
 done
 
@@ -535,7 +535,7 @@ apply simp
 apply (simp (no_asm) add: times_divide_eq)
 apply (erule ssubst)
 apply (rule_tac x = t in exI, simp)
-apply (rule sumr_fun_eq)
+apply (rule setsum_cong[OF refl])
 apply (auto simp add: cos_zero_iff even_mult_two_ex)
 done
 
@@ -554,7 +554,7 @@ apply simp
 apply (simp (no_asm) add: times_divide_eq)
 apply (erule ssubst)
 apply (rule_tac x = t in exI, simp)
-apply (rule sumr_fun_eq)
+apply (rule setsum_cong[OF refl])
 apply (auto simp add: cos_zero_iff even_mult_two_ex)
 done
 
@@ -585,10 +585,10 @@ proof -
     apply (rule lemma_DERIV_subst, rule DERIV_minus, rule DERIV_cos, simp)
     apply (erule ssubst)
     apply (rule sin_bound_lemma)
-    apply (rule sumr_fun_eq, safe)
-    apply (rule_tac f = "%u. u * (x^r)" in arg_cong)
+    apply (rule setsum_cong[OF refl])
+    apply (rule_tac f = "%u. u * (x^xa)" in arg_cong)
     apply (subst even_even_mod_4_iff)
-    apply (cut_tac m=r in mod_exhaust_less_4, simp, safe)
+    apply (cut_tac m=xa in mod_exhaust_less_4, simp, safe)
     apply (simp_all add:even_num_iff)
     apply (drule lemma_even_mod_4_div_2[simplified])
     apply(simp add: numeral_2_eq_2 divide_inverse)
