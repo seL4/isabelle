@@ -8,10 +8,6 @@ Simprocs for common factor cancellation & Rational coefficient handling
 Instantiation of the generic linear arithmetic package for type real.
 *)
 
-(*FIXME DELETE*)
-val real_mult_left_mono =
-    read_instantiate_sg(sign_of (the_context())) [("a","?a::real")] mult_left_mono;
-
 val real_le_def = thm "real_le_def";
 val real_diff_def = thm "real_diff_def";
 val real_divide_def = thm "real_divide_def";
@@ -102,14 +98,6 @@ val real_of_int_of_nat_eq = thm"real_of_int_of_nat_eq";
 
 local
 
-fun cvar(th,_ $ (_ $ _ $ var)) = cterm_of (#sign(rep_thm th)) var;
-
-val real_mult_mono_thms =
- [(rotate_prems 1 real_mult_less_mono2,
-   cvar(real_mult_less_mono2, hd(prems_of real_mult_less_mono2))),
-  (real_mult_left_mono,
-   cvar(real_mult_left_mono, hd(tl(prems_of real_mult_left_mono))))]
-
 val simps = [real_of_nat_zero, real_of_nat_Suc, real_of_nat_add, 
        real_of_nat_mult, real_of_int_zero, real_of_one, real_of_int_add RS sym,
        real_of_int_minus RS sym, real_of_int_diff RS sym,
@@ -132,7 +120,7 @@ val fast_real_arith_simproc =
 val real_arith_setup =
  [Fast_Arith.map_data (fn {add_mono_thms, mult_mono_thms, inj_thms, lessD, simpset} =>
    {add_mono_thms = add_mono_thms,
-    mult_mono_thms = mult_mono_thms @ real_mult_mono_thms,
+    mult_mono_thms = mult_mono_thms,
     inj_thms = int_inj_thms @ nat_inj_thms @ inj_thms,
     lessD = lessD,  (*Can't change LA_Data_Ref.lessD: the reals are dense!*)
     simpset = simpset addsimps simps}),

@@ -338,17 +338,18 @@ val HOL_css = (HOL_cs, HOL_ss);
    where the Ai are atomic, i.e. no top-level &, | or EX
 *)
 
-fun refute_tac test prep_tac ref_tac =
-  let val nnf_simps =
+local
+  val nnf_simps =
         [imp_conv_disj,iff_conv_conj_imp,de_Morgan_disj,de_Morgan_conj,
          not_all,not_ex,not_not];
-      val nnf_simpset =
+  val nnf_simpset =
         empty_ss setmkeqTrue mk_eq_True
                  setmksimps (mksimps mksimps_pairs)
                  addsimps nnf_simps;
-      val prem_nnf_tac = full_simp_tac nnf_simpset;
-
-      val refute_prems_tac =
+  val prem_nnf_tac = full_simp_tac nnf_simpset
+in
+fun refute_tac test prep_tac ref_tac =
+  let val refute_prems_tac =
         REPEAT_DETERM
               (eresolve_tac [conjE, exE] 1 ORELSE
                filter_prems_tac test 1 ORELSE
@@ -359,3 +360,4 @@ fun refute_tac test prep_tac ref_tac =
             REPEAT_DETERM o etac rev_mp, prep_tac, rtac ccontr, prem_nnf_tac,
             SELECT_GOAL (DEPTH_SOLVE refute_prems_tac)]
   end;
+end;

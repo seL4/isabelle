@@ -71,9 +71,9 @@ ss must reduce contradictory <= to False.
 signature FAST_LIN_ARITH =
 sig
   val setup: (theory -> theory) list
-  val map_data: ({add_mono_thms: thm list, mult_mono_thms: (thm*cterm)list, inj_thms: thm list,
+  val map_data: ({add_mono_thms: thm list, mult_mono_thms: thm list, inj_thms: thm list,
                  lessD: thm list, simpset: Simplifier.simpset}
-                 -> {add_mono_thms: thm list, mult_mono_thms: (thm*cterm)list, inj_thms: thm list,
+                 -> {add_mono_thms: thm list, mult_mono_thms: thm list, inj_thms: thm list,
                      lessD: thm list, simpset: Simplifier.simpset})
                 -> theory -> theory
   val trace           : bool ref
@@ -95,7 +95,7 @@ struct
 structure DataArgs =
 struct
   val name = "Provers/fast_lin_arith";
-  type T = {add_mono_thms: thm list, mult_mono_thms: (thm*cterm)list, inj_thms: thm list,
+  type T = {add_mono_thms: thm list, mult_mono_thms: thm list, inj_thms: thm list,
             lessD: thm list, simpset: Simplifier.simpset};
 
   val empty = {add_mono_thms = [], mult_mono_thms = [], inj_thms = [],
@@ -108,8 +108,7 @@ struct
              {add_mono_thms= add_mono_thms2, mult_mono_thms= mult_mono_thms2, inj_thms= inj_thms2,
               lessD = lessD2, simpset = simpset2}) =
     {add_mono_thms = Drule.merge_rules (add_mono_thms1, add_mono_thms2),
-     mult_mono_thms = gen_merge_lists' (Drule.eq_thm_prop o pairself fst)
-       mult_mono_thms1 mult_mono_thms2,
+     mult_mono_thms = Drule.merge_rules (mult_mono_thms1, mult_mono_thms2),
      inj_thms = Drule.merge_rules (inj_thms1, inj_thms2),
      lessD = Drule.merge_rules (lessD1, lessD2),
      simpset = Simplifier.merge_ss (simpset1, simpset2)};
@@ -450,10 +449,18 @@ fun mkthm sg asms just =
       fun multn(n,thm) =
         let fun mul(i,th) = if i=1 then th else mul(i-1, addthms thm th)
         in if n < 0 then mul(~n,thm) RS LA_Logic.sym else mul(n,thm) end;
-
+(*
       fun multn2(n,thm) =
         let val Some(mth,cv) =
               get_first (fn (th,cv) => Some(thm RS th,cv) handle THM _ => None) mult_mono_thms
+            val ct = cterm_of sg (LA_Data.number_of(n,#T(rep_cterm cv)))
+        in instantiate ([],[(cv,ct)]) mth end
+*)
+      fun multn2(n,thm) =
+        let val Some(mth) =
+              get_first (fn th => Some(thm RS th) handle THM _ => None) mult_mono_thms
+            fun cvar(th,_ $ (_ $ _ $ var)) = cterm_of (#sign(rep_thm th)) var;
+            val cv = cvar(mth, hd(prems_of mth));
             val ct = cterm_of sg (LA_Data.number_of(n,#T(rep_cterm cv)))
         in instantiate ([],[(cv,ct)]) mth end
 

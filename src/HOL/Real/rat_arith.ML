@@ -8,28 +8,11 @@ Simprocs for common factor cancellation & Rational coefficient handling
 Instantiation of the generic linear arithmetic package for type rat.
 *)
 
-(*FIXME: these monomorphic versions are necessary because of a bug in the arith
-  procedure*)
-val rat_mult_strict_left_mono =
-    read_instantiate_sg(sign_of (the_context())) [("a","?a::rat")] mult_strict_left_mono;
-
-val rat_mult_left_mono =
- read_instantiate_sg(sign_of (the_context())) [("a","?a::rat")] mult_left_mono;
-
-
 (****Instantiation of the generic linear arithmetic package for fields****)
 
 local
 
 val simprocs = field_cancel_numeral_factors
-
-fun cvar(th,_ $ (_ $ _ $ var)) = cterm_of (#sign(rep_thm th)) var;
-
-val rat_mult_mono_thms =
- [(rat_mult_strict_left_mono,
-   cvar(rat_mult_strict_left_mono, hd(tl(prems_of rat_mult_strict_left_mono)))),
-  (rat_mult_left_mono,
-   cvar(rat_mult_left_mono, hd(tl(prems_of rat_mult_left_mono))))]
 
 val simps = [order_less_irrefl, neg_less_iff_less, True_implies_equals,
              inst "a" "(number_of ?v)" right_distrib,
@@ -57,7 +40,7 @@ val ratT = Type("Rational.rat", []);
 val rat_arith_setup =
  [Fast_Arith.map_data (fn {add_mono_thms, mult_mono_thms, inj_thms, lessD, simpset} =>
    {add_mono_thms = add_mono_thms,
-    mult_mono_thms = mult_mono_thms @ rat_mult_mono_thms,
+    mult_mono_thms = mult_mono_thms,
     inj_thms = int_inj_thms @ inj_thms,
     lessD = lessD,  (*Can't change LA_Data_Ref.lessD: the rats are dense!*)
     simpset = simpset addsimps simps
