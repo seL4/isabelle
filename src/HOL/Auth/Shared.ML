@@ -56,7 +56,8 @@ Addsimps [invKey_shrK, invKey_newK];
 
 
 (*Injectiveness and freshness of new keys and nonces*)
-AddIffs [inj_shrK RS inj_eq, inj_newN RS inj_eq, inj_newK RS inj_eq];
+AddIffs [inj_shrK RS inj_eq];
+AddSDs  [newN_length, newK_length];
 
 (** Rewrites should not refer to  initState(Friend i) 
     -- not in normal form! **)

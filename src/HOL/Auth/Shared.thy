@@ -54,9 +54,9 @@ consts
 rules
   inj_shrK      "inj shrK"
 
-  inj_newN      "inj newN"
+  newN_length   "(newN evs = newN evt) ==> (length evs = length evt)"
+  newK_length   "(newK evs = newK evt) ==> (length evs = length evt)"
 
-  inj_newK      "inj newK"
   newK_neq_shrK "newK evs ~= shrK A" 
   isSym_newK    "isSymKey (newK evs)"
 

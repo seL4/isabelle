@@ -114,7 +114,8 @@ goal thy "!!evs. evs : ns_shared lost ==>      \
 \                length evs <= length evs' --> \
 \                Key (newK evs') ~: parts (sees lost Spy evs)";
 by (parts_induct_tac 1);
-by (ALLGOALS (fast_tac (!claset addDs [impOfSubs analz_subset_parts,
+by (ALLGOALS (fast_tac (!claset addEs [leD RS notE]
+				addDs [impOfSubs analz_subset_parts,
                                        impOfSubs parts_insert_subset_Un,
                                        Suc_leD]
                                 addss (!simpset))));
@@ -144,7 +145,8 @@ by (parts_induct_tac 1);
 by (REPEAT_FIRST
     (fast_tac (!claset addSEs partsEs
                        addSDs  [Says_imp_sees_Spy RS parts.Inj]
-                       addDs  [impOfSubs analz_subset_parts,
+                       addEs [leD RS notE]
+				addDs  [impOfSubs analz_subset_parts,
                                impOfSubs parts_insert_subset_Un, Suc_leD]
                        addss (!simpset))));
 qed_spec_mp "new_nonces_not_seen";

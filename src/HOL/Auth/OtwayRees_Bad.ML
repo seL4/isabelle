@@ -136,7 +136,8 @@ goal thy "!!evs. evs : otway ==>               \
 \                length evs <= length evs' --> \
 \                Key (newK evs') ~: parts (sees lost Spy evs)";
 by (parts_induct_tac 1);
-by (REPEAT_FIRST (best_tac (!claset addDs [impOfSubs analz_subset_parts,
+by (REPEAT_FIRST (best_tac (!claset addEs [leD RS notE]
+				    addDs [impOfSubs analz_subset_parts,
 					   impOfSubs parts_insert_subset_Un,
 					   Suc_leD]
                                 addss (!simpset))));
@@ -165,6 +166,7 @@ by (parts_induct_tac 1);
 by (REPEAT_FIRST
     (fast_tac (!claset addSEs partsEs
 	               addSDs  [Says_imp_sees_Spy RS parts.Inj]
+		       addEs [leD RS notE]
 		       addDs  [impOfSubs analz_subset_parts,
 			       impOfSubs parts_insert_subset_Un, Suc_leD]
 		       addss (!simpset))));
