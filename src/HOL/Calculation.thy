@@ -17,6 +17,12 @@ theorem [trans]: "[| P s; s = t |] ==> P t";		    (*  x  =  x  *)
 
 theorems [trans] = dvd_trans;                               (* dvd dvd dvd *)
 
+theorem [trans]: "[| x ~= y; (x::'a::order) <= y |] ==> x < y";     (*  ~=  <=  < *)
+  by (simp! add: order_less_le);
+
+theorem [trans]: "[| (x::'a::order) <= y; x ~= y |] ==> x < y";     (*  <=  ~=  < *)
+  by (simp! add: order_less_le);
+
 theorem [trans]: "[| (x::'a::order) < y; y < x |] ==> P";   (*  <  >  P  *)
   by (rule order_less_asym);
 
