@@ -40,3 +40,28 @@ bind_thm("minimal2UU",allI RS (prove_goal thy "!x.uu<<x==>uu=(@u.!y.u<<y)"
 	(atac 1),
 	(etac spec 1)
         ])));
+
+(* ------------------------------------------------------------------------ *)
+(* the reverse law of anti--symmetrie of <<                                 *)
+(* ------------------------------------------------------------------------ *)
+
+qed_goal "antisym_less_inverse" thy "x=y ==> x << y & y << x"
+(fn prems =>
+        [
+        (cut_facts_tac prems 1),
+        (rtac conjI 1),
+        ((rtac subst 1) THEN (rtac refl_less 2) THEN (atac 1)),
+        ((rtac subst 1) THEN (rtac refl_less 2) THEN (etac sym 1))
+        ]);
+
+
+qed_goal "box_less" thy
+"[| a << b; c << a; b << d|] ==> c << d"
+ (fn prems =>
+        [
+        (cut_facts_tac prems 1),
+        (etac trans_less 1),
+        (etac trans_less 1),
+        (atac 1)
+        ]);
+
