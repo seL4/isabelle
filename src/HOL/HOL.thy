@@ -954,7 +954,7 @@ lemma order_less_asym': "(a::'a::order) < b ==> b < a ==> P"
   by (rule order_less_asym)
 
 
-subsubsection {* Setup of transitivity reasoner *}
+subsubsection {* Setup of transitivity reasoner as Solver *}
 
 lemma less_imp_neq: "[| (x::'a::order) < y |] ==> x ~= y"
   by (erule contrapos_pn, erule subst, rule order_less_irrefl)
@@ -1015,6 +1015,10 @@ Context.>> (fn thy => (simpset_ref_of thy :=
   simpset_of thy
     addSolver (mk_solver "Trans_linear" (fn _ => Trans_Tac.linear_tac))
     addSolver (mk_solver "Trans_partial" (fn _ => Trans_Tac.partial_tac));
+  (* Adding the transitivity reasoners also as safe solvers showed a slight
+     speed up, but the reasoning strength appears to be not higher (at least
+     no breaking of additional proofs in the entire HOL distribution, as
+     of 5 March 2004, was observed). *)
   thy))
 *}
 
@@ -1026,6 +1030,10 @@ method_setup trans_partial =
 method_setup trans_linear =
   {* Method.no_args (Method.SIMPLE_METHOD' HEADGOAL (trans_tac_linear)) *}
   {* simple transitivity reasoner *}
+*)
+
+(*
+declare order.order_refl [simp del] order_less_irrefl [simp del]
 *)
 
 subsubsection "Bounded quantifiers"
