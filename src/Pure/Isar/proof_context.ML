@@ -73,7 +73,7 @@ sig
   val setup: (theory -> theory) list
 end;
 
-signature PROOF_CONTEXT_PRIVATE =
+signature PRIVATE_PROOF_CONTEXT =
 sig
   include PROOF_CONTEXT
   val init_data: Object.kind -> (theory -> Object.T) * (context -> Object.T -> unit)
@@ -83,7 +83,7 @@ sig
   val put_data: Object.kind -> ('a -> Object.T) -> 'a -> context -> context
 end;
 
-structure ProofContext: PROOF_CONTEXT_PRIVATE =
+structure ProofContext: PRIVATE_PROOF_CONTEXT =
 struct
 
 
