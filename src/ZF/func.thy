@@ -22,6 +22,10 @@ by (unfold Pi_def function_def, blast)
 lemma fun_is_function: "f: Pi(A,B) ==> function(f)"
 by (simp only: Pi_iff)
 
+lemma function_imp_Pi:
+     "[|function(f); relation(f)|] ==> f \<in> domain(f) -> range(f)"
+by (simp add: Pi_iff relation_def, blast) 
+
 lemma functionI: 
      "[| !!x y y'. [| <x,y>:r; <x,y'>:r |] ==> y=y' |] ==> function(r)"
 by (simp add: function_def, blast) 
