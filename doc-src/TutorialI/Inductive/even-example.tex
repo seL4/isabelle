@@ -57,7 +57,7 @@ Introduction rules are used to show that specific values belong to the
 inductive set.  Such proofs typically involve 
 induction, perhaps over some other inductive set.
 \begin{isabelle}
-\isacommand{lemma}\ two_times_even[intro!]:\ "\#2*k\ \isasymin \ even"
+\isacommand{lemma}\ two_times_even[intro!]:\ "2*k\ \isasymin \ even"
 \isanewline
 \isacommand{apply}\ (induct_tac\ k)\isanewline
 \ \isacommand{apply}\ auto\isanewline
@@ -67,8 +67,8 @@ induction, perhaps over some other inductive set.
 The first step is induction on the natural number \isa{k}, which leaves
 two subgoals:
 \begin{isabelle}
-\ 1.\ \#2\ *\ 0\ \isasymin \ even\isanewline
-\ 2.\ \isasymAnd n.\ \#2\ *\ n\ \isasymin \ even\ \isasymLongrightarrow \ \#2\ *\ Suc\ n\ \isasymin \ even
+\ 1.\ 2\ *\ 0\ \isasymin \ even\isanewline
+\ 2.\ \isasymAnd n.\ 2\ *\ n\ \isasymin \ even\ \isasymLongrightarrow \ 2\ *\ Suc\ n\ \isasymin \ even
 \end{isabelle}
 %
 Here \isa{auto} simplifies both subgoals so that they match the introduction
@@ -79,7 +79,7 @@ definition of \isa{even} (using the divides relation) and our inductive
 definition.  One direction of this equivalence is immediate by the lemma
 just proved, whose \isa{intro!} attribute ensures it is applied automatically.
 \begin{isabelle}
-\isacommand{lemma}\ dvd_imp_even:\ "\#2\ dvd\ n\ \isasymLongrightarrow \ n\ \isasymin \ even"\isanewline
+\isacommand{lemma}\ dvd_imp_even:\ "2\ dvd\ n\ \isasymLongrightarrow \ n\ \isasymin \ even"\isanewline
 \isacommand{by}\ (auto\ simp\ add:\ dvd_def)
 \end{isabelle}
 
@@ -113,7 +113,7 @@ Induction is the usual way of proving a property of the elements of an
 inductively defined set.  Let us prove that all members of the set
 \isa{even} are multiples of two.  
 \begin{isabelle}
-\isacommand{lemma}\ even_imp_dvd:\ "n\ \isasymin \ even\ \isasymLongrightarrow \ \#2\ dvd\ n"
+\isacommand{lemma}\ even_imp_dvd:\ "n\ \isasymin \ even\ \isasymLongrightarrow \ 2\ dvd\ n"
 \end{isabelle}
 %
 We begin by applying induction.  Note that \isa{even.induct} has the form
@@ -122,8 +122,8 @@ subgoals:
 \begin{isabelle}
 \isacommand{apply}\ (erule\ even.induct)
 \isanewline\isanewline
-\ 1.\ \#2\ dvd\ 0\isanewline
-\ 2.\ \isasymAnd n.\ \isasymlbrakk n\ \isasymin \ even;\ \#2\ dvd\ n\isasymrbrakk \ \isasymLongrightarrow \ \#2\ dvd\ Suc\ (Suc\ n)
+\ 1.\ 2\ dvd\ 0\isanewline
+\ 2.\ \isasymAnd n.\ \isasymlbrakk n\ \isasymin \ even;\ 2\ dvd\ n\isasymrbrakk \ \isasymLongrightarrow \ 2\ dvd\ Suc\ (Suc\ n)
 \end{isabelle}
 %
 We unfold the definition of \isa{dvd} in both subgoals, proving the first
@@ -132,16 +132,16 @@ one and simplifying the second:
 \isacommand{apply}\ (simp_all\ add:\ dvd_def)
 \isanewline\isanewline
 \ 1.\ \isasymAnd n.\ \isasymlbrakk n\ \isasymin \ even;\ \isasymexists k.\
-n\ =\ \#2\ *\ k\isasymrbrakk \ \isasymLongrightarrow \ \isasymexists k.\
-Suc\ (Suc\ n)\ =\ \#2\ *\ k
+n\ =\ 2\ *\ k\isasymrbrakk \ \isasymLongrightarrow \ \isasymexists k.\
+Suc\ (Suc\ n)\ =\ 2\ *\ k
 \end{isabelle}
 %
 The next command eliminates the existential quantifier from the assumption
-and replaces \isa{n} by \isa{\#2\ *\ k}.
+and replaces \isa{n} by \isa{2\ *\ k}.
 \begin{isabelle}
 \isacommand{apply}\ clarify
 \isanewline\isanewline
-\ 1.\ \isasymAnd n\ k.\ \#2\ *\ k\ \isasymin \ even\ \isasymLongrightarrow \ \isasymexists ka.\ Suc\ (Suc\ (\#2\ *\ k))\ =\ \#2\ *\ ka%
+\ 1.\ \isasymAnd n\ k.\ 2\ *\ k\ \isasymin \ even\ \isasymLongrightarrow \ \isasymexists ka.\ Suc\ (Suc\ (2\ *\ k))\ =\ 2\ *\ ka%
 \end{isabelle}
 %
 To conclude, we tell Isabelle that the desired value is
@@ -157,7 +157,7 @@ equivalence relating \isa{even} and \isa{dvd}.
 %
 %we don't want [iff]: discuss?
 \begin{isabelle}
-\isacommand{theorem}\ even_iff_dvd:\ "(n\ \isasymin \ even)\ =\ (\#2\ dvd\ n)"\isanewline
+\isacommand{theorem}\ even_iff_dvd:\ "(n\ \isasymin \ even)\ =\ (2\ dvd\ n)"\isanewline
 \isacommand{by}\ (blast\ intro:\ dvd_imp_even\ even_imp_dvd)
 \end{isabelle}
 
@@ -192,7 +192,7 @@ in general is described in {\S}\ref{sec:ind-var-in-prems} below.
 In the current case the solution is easy because
 we have the necessary inverse, subtraction:
 \begin{isabelle}
-\isacommand{lemma}\ even_imp_even_minus_2:\ "n\ \isasymin \ even\ \isasymLongrightarrow \ n-\#2\ \isasymin \ even"\isanewline
+\isacommand{lemma}\ even_imp_even_minus_2:\ "n\ \isasymin \ even\ \isasymLongrightarrow \ n-2\ \isasymin \ even"\isanewline
 \isacommand{apply}\ (erule\ even.induct)\isanewline
 \ \isacommand{apply}\ auto\isanewline
 \isacommand{done}
@@ -200,11 +200,11 @@ we have the necessary inverse, subtraction:
 %
 This lemma is trivially inductive.  Here are the subgoals:
 \begin{isabelle}
-\ 1.\ 0\ -\ \#2\ \isasymin \ even\isanewline
-\ 2.\ \isasymAnd n.\ \isasymlbrakk n\ \isasymin \ even;\ n\ -\ \#2\ \isasymin \ even\isasymrbrakk \ \isasymLongrightarrow \ Suc\ (Suc\ n)\ -\ \#2\ \isasymin \ even%
+\ 1.\ 0\ -\ 2\ \isasymin \ even\isanewline
+\ 2.\ \isasymAnd n.\ \isasymlbrakk n\ \isasymin \ even;\ n\ -\ 2\ \isasymin \ even\isasymrbrakk \ \isasymLongrightarrow \ Suc\ (Suc\ n)\ -\ 2\ \isasymin \ even%
 \end{isabelle}
-The first is trivial because \isa{0\ -\ \#2} simplifies to \isa{0}, which is
-even.  The second is trivial too: \isa{Suc\ (Suc\ n)\ -\ \#2} simplifies to
+The first is trivial because \isa{0\ -\ 2} simplifies to \isa{0}, which is
+even.  The second is trivial too: \isa{Suc\ (Suc\ n)\ -\ 2} simplifies to
 \isa{n}, matching the assumption.%
 \index{rule induction|)}  %the sequel isn't really about induction
 
