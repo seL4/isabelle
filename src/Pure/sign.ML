@@ -43,6 +43,7 @@ sig
   val nodup_Vars: term -> unit
   val norm_sort: sg -> sort -> sort
   val nonempty_sort: sg -> sort list -> sort -> bool
+  val of_sort: sg -> typ * sort -> bool
   val long_names: bool ref
   val classK: string
   val typeK: string
@@ -178,11 +179,6 @@ val pprint_sg = Pretty.pprint o pretty_sg;
 val tsig_of = #tsig o rep_sg;
 
 fun const_type (Sg (_, {const_tab, ...})) c = Symtab.lookup (const_tab, c);
-val classes = #classes o Type.rep_tsig o tsig_of;
-
-val subsort = Type.subsort o tsig_of;
-val norm_sort = Type.norm_sort o tsig_of;
-val nonempty_sort = Type.nonempty_sort o tsig_of;
 
 
 (* id and self *)
@@ -242,6 +238,18 @@ fun same_sg (sg1 as Sg ({stamps = s1, ...}, _), sg2 as Sg ({stamps = s2, ...}, _
 (*test for drafts*)
 fun is_draft (Sg ({stamps = ref "#" :: _, ...}, _)) = true
   | is_draft _ = false;
+
+
+(* classes and sorts *)
+
+val classes = #classes o Type.rep_tsig o tsig_of;
+
+val subsort = Type.subsort o tsig_of;
+val norm_sort = Type.norm_sort o tsig_of;
+val nonempty_sort = Type.nonempty_sort o tsig_of;
+
+fun of_sort (Sg (_, {tsig, ...})) =
+  Sorts.of_sort (#classrel (Type.rep_tsig tsig)) (#arities (Type.rep_tsig tsig));
 
 
 
