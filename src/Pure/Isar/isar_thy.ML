@@ -376,7 +376,7 @@ in
 val print_result = Pretty.writeln o pretty_result;
 
 fun cond_print_result_rule int =
-  if int then (print_result, priority o Pretty.string_of o pretty_rule "Trying")
+  if int then (print_result, priority o Pretty.string_of o pretty_rule "Attempt")
   else (K (), K ());
 
 fun proof'' f = Toplevel.proof' (f o cond_print_result_rule);
