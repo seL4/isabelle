@@ -5,7 +5,7 @@
 
 header {* Extensible records with structural subtyping *}
 
-theory Record = Datatype
+theory Record = Product_Type
 files ("Tools/record_package.ML"):
 
 
@@ -13,65 +13,116 @@ subsection {* Abstract product types *}
 
 constdefs
   product_type :: "('p => 'a * 'b) => ('a * 'b => 'p) =>
-    ('a => 'b => 'p) => (('a => 'b => 'c) => 'p => 'c) => bool"
-  "product_type Rep Abs intro elim ==
+    ('a => 'b => 'p) => ('p \<Rightarrow> 'a) => ('p => 'b) => bool"
+  "product_type Rep Abs pair dest1 dest2 ==
     type_definition Rep Abs UNIV \<and>
-    intro = (\<lambda>a b. Abs (a, b)) \<and>
-    elim = (\<lambda>f. prod_case f o Rep)"
+    pair = (\<lambda>a b. Abs (a, b)) \<and>
+    dest1 = (\<lambda>p. fst (Rep p)) \<and>
+    dest2 = (\<lambda>p. snd (Rep p))"
 
 lemma product_typeI:
-  "type_definition Rep Abs A ==> A == UNIV ==>
-    intro == \<lambda>a b. Abs (a, b) ==> elim == \<lambda>f. prod_case f o Rep ==>
-    product_type Rep Abs intro elim"
+  "type_definition Rep Abs UNIV ==>
+    pair == \<lambda>a b. Abs (a, b) ==>
+    dest1 == (\<lambda>p. fst (Rep p)) \<Longrightarrow>
+    dest2 == (\<lambda>p. snd (Rep p)) \<Longrightarrow>
+    product_type Rep Abs pair dest1 dest2"
   by (simp add: product_type_def)
 
 lemma product_type_typedef:
-    "product_type Rep Abs intro elim ==> type_definition Rep Abs UNIV"
+    "product_type Rep Abs pair dest1 dest2 ==> type_definition Rep Abs UNIV"
   by (unfold product_type_def) blast
 
-lemma product_type_intro:
-    "product_type Rep Abs intro elim ==> intro = (\<lambda>a b. Abs (a, b))"
+lemma product_type_pair:
+    "product_type Rep Abs pair dest1 dest2 ==> pair a b = Abs (a, b)"
   by (unfold product_type_def) blast
 
-lemma product_type_elim:
-    "product_type Rep Abs intro elim ==> elim = (\<lambda>f. prod_case f o Rep)"
-  by (unfold product_type_def) fast  (* FIXME blast fails!? *)
+lemma product_type_dest1:
+    "product_type Rep Abs pair dest1 dest2 ==> dest1 p = fst (Rep p)"
+  by (unfold product_type_def) blast
 
-lemma product_type_inject:
-  "product_type Rep Abs intro elim ==>
-    (intro x y = intro x' y') = (x = x' \<and> y = y')"
+lemma product_type_dest2:
+    "product_type Rep Abs pair dest1 dest2 ==> dest2 p = snd (Rep p)"
+  by (unfold product_type_def) blast
+
+
+theorem product_type_inject:
+  "product_type Rep Abs pair dest1 dest2 ==>
+    (pair x y = pair x' y') = (x = x' \<and> y = y')"
 proof -
   case rule_context
   show ?thesis
-    by (simp add: product_type_intro [OF rule_context]
+    by (simp add: product_type_pair [OF rule_context]
       Abs_inject [OF product_type_typedef [OF rule_context]])
 qed
 
-lemma product_type_surject:
-  "product_type Rep Abs intro elim ==>
-    elim f (intro x y) = f x y"
+theorem product_type_conv1:
+  "product_type Rep Abs pair dest1 dest2 ==> dest1 (pair x y) = x"
 proof -
   case rule_context
   show ?thesis
-    by (simp add: product_type_intro [OF rule_context]
-      product_type_elim [OF rule_context]
+    by (simp add: product_type_pair [OF rule_context]
+      product_type_dest1 [OF rule_context]
       Abs_inverse [OF product_type_typedef [OF rule_context]])
 qed
 
-lemma product_type_induct:
-  "product_type Rep Abs intro elim ==>
-    (!!x y. P (intro x y)) ==> P p"
+theorem product_type_conv2:
+  "product_type Rep Abs pair dest1 dest2 ==> dest2 (pair x y) = y"
 proof -
-  assume hyp: "!!x y. P (intro x y)"
-  assume prod_type: "product_type Rep Abs intro elim"
+  case rule_context
+  show ?thesis
+    by (simp add: product_type_pair [OF rule_context]
+      product_type_dest2 [OF rule_context]
+      Abs_inverse [OF product_type_typedef [OF rule_context]])
+qed
+
+theorem product_type_induct [induct set: product_type]:
+  "product_type Rep Abs pair dest1 dest2 ==>
+    (!!x y. P (pair x y)) ==> P p"
+proof -
+  assume hyp: "!!x y. P (pair x y)"
+  assume prod_type: "product_type Rep Abs pair dest1 dest2"
   show "P p"
   proof (rule Abs_induct [OF product_type_typedef [OF prod_type]])
     fix pair show "P (Abs pair)"
-    proof (rule prod.induct)
+    proof (rule prod_induct)
       fix x y from hyp show "P (Abs (x, y))"
-	by (simp only: product_type_intro [OF prod_type])
+        by (simp only: product_type_pair [OF prod_type])
     qed
   qed
+qed
+
+theorem product_type_cases [cases set: product_type]:
+  "product_type Rep Abs pair dest1 dest2 ==>
+    (!!x y. p = pair x y \<Longrightarrow> C) ==> C"
+proof -
+  assume prod_type: "product_type Rep Abs pair dest1 dest2"
+  assume "!!x y. p = pair x y \<Longrightarrow> C"
+  with prod_type show C
+    by (induct p) (simp only: product_type_inject [OF prod_type], blast)
+qed
+
+theorem product_type_surjective_pairing:
+  "product_type Rep Abs pair dest1 dest2 ==>
+    p = pair (dest1 p) (dest2 p)"
+proof -
+  case rule_context
+  thus ?thesis by (induct p)
+    (simp add: product_type_conv1 [OF rule_context] product_type_conv2 [OF rule_context])
+qed
+
+theorem product_type_split_paired_all:
+  "product_type Rep Abs pair dest1 dest2 ==>
+  (\<And>x. PROP P x) \<equiv> (\<And>a b. PROP P (pair a b))"
+proof
+  fix a b
+  assume "!!x. PROP P x"
+  thus "PROP P (pair a b)" .
+next
+  case rule_context
+  fix x
+  assume "!!a b. PROP P (pair a b)"
+  hence "PROP P (pair (dest1 x) (dest2 x))" .
+  thus "PROP P x" by (simp only: product_type_surjective_pairing [OF rule_context, symmetric])
 qed
 
 
@@ -81,7 +132,13 @@ axclass more < "term"
 instance unit :: more ..
 
 
-subsection {* Concrete syntax of records *}
+subsection {* Record package setup *}
+
+use "Tools/record_package.ML"
+setup RecordPackage.setup
+
+
+subsection {* Concrete syntax *}
 
 nonterminals
   ident field_type field_types field fields update updates
@@ -115,11 +172,6 @@ syntax (xsymbols)
   "_record_scheme"      :: "[fields, 'a] => 'a"                 ("(3\<lparr>_,/ (2\<dots> =/ _)\<rparr>)")
   "_record_update"      :: "['a, updates] => 'b"                ("_/(3\<lparr>_\<rparr>)" [900,0] 900)
 
-
-subsection {* Package setup *}
-
-use "Tools/record_package.ML"
-
 parse_translation {*
   let
     fun update_name_tr (Free (x, T) :: ts) =
@@ -132,7 +184,5 @@ parse_translation {*
       | update_name_tr ts = raise TERM ("update_name_tr", ts);
   in [("_update_name", update_name_tr)] end
 *}
-
-setup RecordPackage.setup
 
 end
