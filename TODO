@@ -2,6 +2,8 @@ For Isabelle2005:
 
 - update course material slides to new theory format (Tobias)
 
+- attach additional ML code to consts_code section (Stefan)
+
 - modular generation of ML code with structures (Stefan)
 
 > Unfortunately when ?s are switched off during building Isabelle this 
@@ -14,11 +16,13 @@ For Isabelle2005:
 - check/establish conformity of HTML files to (some version of) the HTML
   language specification (cf. http://validator.w3.org/) (Tjark, or anyone
   who is interested)
-  
+
 - update or remove ex/MT (Larry)  
 
 - Include IsaPlanner? (Larry to co-ordinate)
 
 - update LaTeXsugar, remove references to future Isabelle2005 etc. (Gerwin)
+
+- rules -> iprover (Stefan)
 
 - remove this file (Tobias)
