@@ -22,7 +22,7 @@ by (rtac classical 1);
 by (dtac not_leE 1);
 by (subgoal_tac "f(na) <= f(f(na))" 1);
 by (fast_tac (!claset addIs [Puzzle.f_ax]) 2);
-by (rtac lessD 1);
+by (rtac Suc_leI 1);
 by (fast_tac (!claset delrules [order_refl] 
                       addIs [Puzzle.f_ax, le_less_trans]) 1);
 val lemma = result() RS spec RS mp;
@@ -56,5 +56,5 @@ qed "f_mono";
 goal Puzzle.thy "f(n) = n";
 by (rtac le_anti_sym 1);
 by (rtac lemma1 2);
-by (fast_tac (!claset addIs [Puzzle.f_ax,leI] addDs [leD,f_mono,lessD]) 1);
+by (fast_tac (!claset addIs [Puzzle.f_ax,leI] addDs [leD,f_mono,Suc_leI]) 1);
 result();
