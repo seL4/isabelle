@@ -31,14 +31,19 @@ derive "streamlined" induction rules for relations.
 signature INDUCTIVE_PACKAGE =
 sig
   val quiet_mode: bool ref
+  val get_inductive: theory -> string ->
+    {names: string list, coind: bool} * {defs: thm list, elims: thm list, raw_induct: thm,
+      induct: thm, intrs: thm list, mk_cases: string -> thm, mono: thm, unfold: thm}
+  val print_inductives: theory -> unit
   val add_inductive_i: bool -> bool -> bstring -> bool -> bool -> bool -> term list ->
     ((bstring * term) * theory attribute list) list -> thm list -> thm list -> theory -> theory *
       {defs: thm list, elims: thm list, raw_induct: thm, induct: thm,
-       intrs: thm list, mk_cases: string -> thm, mono: thm, unfold:thm}
+       intrs: thm list, mk_cases: string -> thm, mono: thm, unfold: thm}
   val add_inductive: bool -> bool -> string list -> ((bstring * string) * Args.src list) list ->
     (xstring * Args.src list) list -> (xstring * Args.src list) list -> theory -> theory *
       {defs: thm list, elims: thm list, raw_induct: thm, induct: thm,
-       intrs:thm list, mk_cases: string -> thm, mono: thm, unfold: thm}
+       intrs: thm list, mk_cases: string -> thm, mono: thm, unfold: thm}
+  val setup: (theory -> theory) list
 end;
 
 structure InductivePackage: INDUCTIVE_PACKAGE =
@@ -137,6 +142,48 @@ fun check_rule sign cs r =
   end;
 
 fun try' f msg sign t = (f t) handle _ => error (msg ^ Sign.string_of_term sign t);
+
+
+
+(*** theory data ***)
+
+(* data kind 'HOL/inductive' *)
+
+type inductive_info =
+  {names: string list, coind: bool} * {defs: thm list, elims: thm list, raw_induct: thm,
+    induct: thm, intrs: thm list, mk_cases: string -> thm, mono: thm, unfold: thm};
+
+structure InductiveArgs =
+struct
+  val name = "HOL/inductive";
+  type T = inductive_info Symtab.table;
+
+  val empty = Symtab.empty;
+  val prep_ext = I;
+  val merge: T * T -> T = Symtab.merge (K true);
+
+  fun print sg tab =
+    Pretty.writeln (Pretty.strs ("(co)inductives:" ::
+      map (Sign.cond_extern sg Sign.constK o fst) (Symtab.dest tab)));
+end;
+
+structure InductiveData = TheoryDataFun(InductiveArgs);
+val print_inductives = InductiveData.print;
+
+
+(* get and put data *)
+
+fun get_inductive thy name =
+  (case Symtab.lookup (InductiveData.get thy, name) of
+    Some info => info
+  | None => error ("Unknown (co)inductive set " ^ quote name));
+
+fun put_inductives names info thy =
+  let
+    fun upd (tab, name) = Symtab.update_new ((name, info), tab);
+    val tab = foldl upd (InductiveData.get thy, names)
+      handle Symtab.DUP name => error ("Duplicate definition of (co)inductive set " ^ quote name);
+  in InductiveData.put tab thy end;
 
 
 
@@ -578,17 +625,20 @@ fun add_inductive_i verbose declare_consts alt_name coind no_elim no_ind cs
     val cTs = map (try' (HOLogic.dest_setT o fastype_of)
       "Recursive component not of type set: " sign) cs;
 
-    val cnames = map (try' (Sign.base_name o fst o dest_Const o head_of)
+    val full_cnames = map (try' (fst o dest_Const o head_of)
       "Recursive set not previously declared as constant: " sign) cs;
+    val cnames = map Sign.base_name full_cnames;
 
     val _ = assert_all Syntax.is_identifier cnames	(* FIXME why? *)
        (fn a => "Base name of recursive set not an identifier: " ^ a);
     val _ = seq (check_rule sign cs o snd o fst) intros;
-  in
-    (if ! quick_and_dirty then add_ind_axm else add_ind_def)
-      verbose declare_consts alt_name coind no_elim no_ind cs intros monos
-      con_defs thy params paramTs cTs cnames
-  end;
+
+    val (thy1, result) =
+      (if ! quick_and_dirty then add_ind_axm else add_ind_def)
+        verbose declare_consts alt_name coind no_elim no_ind cs intros monos
+        con_defs thy params paramTs cTs cnames;
+    val thy2 = thy1 |> put_inductives full_cnames ({names = full_cnames, coind = coind}, result);
+  in (thy2, result) end;
 
 
 
@@ -641,7 +691,14 @@ fun add_inductive verbose coind c_strings intro_srcs raw_monos raw_con_defs thy 
 
 
 
-(** outer syntax **)
+(** package setup **)
+
+(* setup theory *)
+
+val setup = [InductiveData.init];
+
+
+(* outer syntax *)
 
 local open OuterParse in
 
