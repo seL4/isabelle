@@ -214,7 +214,7 @@ qed "bot_in";
 
 AddTCs [pcpo_cpo, bot_least, bot_in];
 
-val prems = goal Limit.thy  (* bot_unique *)
+val prems = Goal  (* bot_unique *)
     "[| pcpo(D); x:set(D); !!y. y:set(D) ==> rel(D,x,y)|] ==> x = bot(D)";
 by (blast_tac (claset() addIs ([cpo_antisym,pcpo_cpo,bot_in,bot_least]@
                                prems)) 1);
@@ -364,14 +364,14 @@ by (typecheck_tac (tcset() addTCs (chain_fun RS apply_type)::
 		                  xprem::yprem::prems));
 qed "matrix_chainI";
 
-val lemma = prove_goal Limit.thy
-    "!!z.[|m : nat; rel(D, (lam n:nat. M`n`n)`m, y)|] ==> rel(D,M`m`m, y)"
-    (fn prems => [Asm_full_simp_tac 1]);
+Goal "[|m : nat; rel(D, (lam n:nat. M`n`n)`m, y)|] ==> rel(D,M`m`m, y)";
+by (Asm_full_simp_tac 1);
+qed "lemma";
 
-val lemma2 = prove_goal Limit.thy
-    "!!z.[|x:nat; m:nat; rel(D,(lam n:nat. M`n`m1)`x,(lam n:nat. M`n`m1)`m)|] ==> \
-\        rel(D,M`x`m1,M`m`m1)"
-    (fn prems => [Asm_full_simp_tac 1]);
+Goal "[|x:nat; m:nat; rel(D,(lam n:nat. M`n`m1)`x,(lam n:nat. M`n`m1)`m)|] \
+\     ==> rel(D,M`x`m1,M`m`m1)";
+by (Asm_full_simp_tac 1);
+qed "lemma2";
 
 Goalw [isub_def]  (* isub_lemma *)
     "[|isub(D, lam n:nat. M`n`n, y); matrix(D,M); cpo(D)|] ==>  \
@@ -563,7 +563,7 @@ qed "cont_cf";
 (* rel_cf originally an equality. Now stated as two rules. Seemed easiest. 
    Besides, now complicated by typing assumptions. *)
 
-val prems = goal Limit.thy
+val prems = Goal
     "[|!!x. x:set(D) ==> rel(E,f`x,g`x); f:cont(D,E); g:cont(D,E)|] ==> \
 \    rel(cf(D,E),f,g)";
 by (asm_simp_tac (simpset() addsimps [rel_I, cf_def]@prems) 1);
@@ -1080,7 +1080,7 @@ by (etac rel_iprodE 2);
 brr(lam_type::(chain_iprod RS cpo_lub RS islub_in)::iprodE::prems) 1;
 qed "islub_iprod";
 
-val prems = goal Limit.thy (* cpo_iprod *)
+val prems = Goal (* cpo_iprod *)
     "(!!n. n:nat ==> cpo(DD`n)) ==> cpo(iprod(DD))";
 brr[cpoI,poI] 1;
 by (rtac rel_iprodI 1); (* not repeated: want to solve 1 and leave 2 unchanged *)
@@ -1230,7 +1230,7 @@ by (blast_tac (claset() addIs [rel_mkcpo RS iffD1, chain_rel, mkcpoD1,
                                chain_in,nat_succI]) 1);
 qed "chain_mkcpo";
 
-val prems = goal Limit.thy  (* subcpo_mkcpo *)
+val prems = Goal  (* subcpo_mkcpo *)
     "[|!!X. chain(mkcpo(D,P),X) ==> P(lub(D,X)); cpo(D)|] ==>   \
 \    subcpo(mkcpo(D,P),D)";
 brr(subcpoI::subsetI::prems) 1;
@@ -1250,15 +1250,16 @@ by Safe_tac;
 by (REPEAT (ares_tac prems 1));
 qed "emb_chainI";
 
-val emb_chain_cpo = prove_goalw Limit.thy [emb_chain_def] 
-    "!!x. [|emb_chain(DD,ee); n:nat|] ==> cpo(DD`n)"
-  (fn prems => [Fast_tac 1]);
+Goalw [emb_chain_def] "[|emb_chain(DD,ee); n:nat|] ==> cpo(DD`n)";
+by (Fast_tac 1);
+qed "emb_chain_cpo";
 
 AddTCs [emb_chain_cpo];
 
-val emb_chain_emb = prove_goalw Limit.thy [emb_chain_def] 
-    "!!x. [|emb_chain(DD,ee); n:nat|] ==> emb(DD`n,DD`succ(n),ee`n)"
-  (fn prems => [Fast_tac 1]);
+Goalw [emb_chain_def] 
+    "[|emb_chain(DD,ee); n:nat|] ==> emb(DD`n,DD`succ(n),ee`n)";
+by (Fast_tac 1);
+qed "emb_chain_emb";
 
 (*----------------------------------------------------------------------*)
 (* Dinf, the inverse Limit.                                             *)
@@ -1358,12 +1359,11 @@ qed "e_less_add";
 
 (* Again, would like more theorems about arithmetic. *)
 
-val add1 = prove_goal Limit.thy
-    "!!x. n:nat ==> succ(n) = n #+ 1"
-  (fn prems => [Asm_simp_tac 1]);
+Goal "n:nat ==> succ(n) = n #+ 1";
+by (Asm_simp_tac 1);
+qed "add1";
 
-Goal  (* succ_sub1 *)
-    "x:nat ==> 0 < x --> succ(x #- 1)=x";
+Goal "x:nat ==> 0 < x --> succ(x #- 1)=x";
 by (induct_tac "x" 1);
 by Auto_tac;
 qed "succ_sub1";
@@ -1416,7 +1416,7 @@ Goal "m:nat ==> e_less(DD,ee,m,succ(m)) = ee`m O id(set(DD`m))";
 by (asm_simp_tac(simpset() addsimps[e_less_le, e_less_eq]) 1);
 qed "e_less_succ";
 
-val prems = goal Limit.thy  (* e_less_succ_emb *)
+val prems = Goal  (* e_less_succ_emb *)
     "[|!!n. n:nat ==> emb(DD`n,DD`succ(n),ee`n); m:nat|] ==>   \
 \    e_less(DD,ee,m,succ(m)) = ee`m";
 by (asm_simp_tac(simpset() addsimps e_less_succ::prems) 1);
@@ -1446,9 +1446,9 @@ by (asm_simp_tac(simpset() addsimps[emb_e_less_add]) 1);
 by (REPEAT (assume_tac 1));
 qed "emb_e_less";
 
-val comp_mono_eq = prove_goal Limit.thy
-    "!!z.[|f=f'; g=g'|] ==> f O g = f' O g'"
-  (fn prems => [Asm_simp_tac 1]);
+Goal "[|f=f'; g=g'|] ==> f O g = f' O g'";
+by (Asm_simp_tac 1);
+qed "comp_mono_eq";
 
 (* Typing, typing, typing, three irritating assumptions. Extra theorems
    needed in proof, but no real difficulty. *)
@@ -1695,7 +1695,7 @@ by (asm_simp_tac(simpset() addsimps[eps_e_gr_add]) 1);
 by (REPEAT (assume_tac 1));
 qed "eps_e_gr";
 
-val prems = goal Limit.thy  (* eps_succ_ee *)
+val prems = Goal  (* eps_succ_ee *)
     "[|!!n. n:nat ==> emb(DD`n,DD`succ(n),ee`n); m:nat|] ==>  \
 \    eps(DD,ee,m,succ(m)) = ee`m";
 by (asm_simp_tac(simpset() addsimps eps_e_less::le_succ_iff::e_less_succ_emb::
@@ -1752,7 +1752,7 @@ qed "eps_split_add_right_rev";
 
 (* Arithmetic, little support in Isabelle/ZF. *)
 
-val prems = goal Limit.thy  (* le_exists_lemma *)
+val prems = Goal  (* le_exists_lemma *)
     "[|n le k; k le m;  \
 \      !!p q. [|p le q; k=n#+p; m=n#+q; p:nat; q:nat|] ==> R; \
 \      m:nat; n:nat; k:nat|]==>R";
@@ -1871,17 +1871,19 @@ by (dtac asm_rl 1);
 by (asm_full_simp_tac(simpset() addsimps[eps_succ_Rp, e_less_eq, id_conv, nat_succI]) 1);
 qed "rho_emb_fun";
 
-val rho_emb_apply1 = prove_goalw Limit.thy [rho_emb_def]
-    "!!z. x:set(DD`n) ==> rho_emb(DD,ee,n)`x = (lam m:nat. eps(DD,ee,n,m)`x)"
-  (fn prems => [Asm_simp_tac 1]);
+Goalw [rho_emb_def]
+    "x:set(DD`n) ==> rho_emb(DD,ee,n)`x = (lam m:nat. eps(DD,ee,n,m)`x)";
+by (Asm_simp_tac 1);
+qed "rho_emb_apply1";
 
-val rho_emb_apply2 = prove_goalw Limit.thy [rho_emb_def]
-    "!!z. [|x:set(DD`n); m:nat|] ==> rho_emb(DD,ee,n)`x`m = eps(DD,ee,n,m)`x"
-  (fn prems => [Asm_simp_tac 1]);
+Goalw [rho_emb_def]
+    "[|x:set(DD`n); m:nat|] ==> rho_emb(DD,ee,n)`x`m = eps(DD,ee,n,m)`x";
+by (Asm_simp_tac 1);
+qed "rho_emb_apply2";
 
-val rho_emb_id = prove_goal Limit.thy 
-  "!!z. [| x:set(DD`n); n:nat|] ==> rho_emb(DD,ee,n)`x`n = x"
-  (fn prems => [asm_simp_tac(simpset() addsimps[rho_emb_apply2,eps_id]) 1]);
+Goal "[| x:set(DD`n); n:nat|] ==> rho_emb(DD,ee,n)`x`n = x";
+by (asm_simp_tac(simpset() addsimps[rho_emb_apply2,eps_id]) 1);
+qed "rho_emb_id";
 
 (* Shorter proof, 23 against 62. *)
 
@@ -2078,10 +2080,9 @@ by (rtac (eps_split_left RS subst) 4);
 by (auto_tac (claset() addIs [eps_fun], simpset()));
 qed "rho_emb_commute";
 
-val le_succ = prove_goal Arith.thy "n:nat ==> n le succ(n)"
- (fn prems =>
-   [REPEAT (ares_tac
-    ((disjI1 RS(le_succ_iff RS iffD2))::le_refl::nat_into_Ord::prems) 1)]);
+val prems = goal Arith.thy "n:nat ==> n le succ(n)";
+by (REPEAT (ares_tac ((disjI1 RS(le_succ_iff RS iffD2))::le_refl::nat_into_Ord::prems) 1));
+qed "le_succ";
 
 (* Shorter proof: 21 vs 83 (106 - 23, due to OAssoc complication) *)
 
@@ -2348,17 +2349,19 @@ qed "suffix_lemma";
 
 
 
-val mediatingI = prove_goalw Limit.thy [mediating_def]
-  "[|emb(E,G,t);  !!n. n:nat ==> f(n) = t O r(n) |]==>mediating(E,G,r,f,t)"
- (fn prems => [Safe_tac,REPEAT (ares_tac prems 1)]);
+val prems = Goalw [mediating_def]
+  "[|emb(E,G,t);  !!n. n:nat ==> f(n) = t O r(n) |]==>mediating(E,G,r,f,t)";
+by (Safe_tac);
+by (REPEAT (ares_tac prems 1));
+qed "mediatingI";
 
-val mediating_emb = prove_goalw Limit.thy [mediating_def]
-  "!!z. mediating(E,G,r,f,t) ==> emb(E,G,t)"
- (fn prems => [Fast_tac 1]);
+Goalw [mediating_def] "mediating(E,G,r,f,t) ==> emb(E,G,t)";
+by (Fast_tac 1);
+qed "mediating_emb";
 
-val mediating_eq = prove_goalw Limit.thy [mediating_def]
-  "!!z. [| mediating(E,G,r,f,t); n:nat |] ==> f(n) = t O r(n)"
- (fn prems => [Blast_tac 1]);
+Goalw [mediating_def] "[| mediating(E,G,r,f,t); n:nat |] ==> f(n) = t O r(n)";
+by (Blast_tac 1);
+qed "mediating_eq";
 
 Goal (* lub_universal_mediating *)
   "[| lub(cf(E,E), lam n:nat. r(n) O Rp(DD`n,E,r(n))) = id(set(E));  \

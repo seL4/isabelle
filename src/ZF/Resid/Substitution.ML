@@ -9,26 +9,23 @@
 (*   Arithmetic extensions                                                   *)
 (* ------------------------------------------------------------------------- *)
 
-goal Arith.thy
-    "!!m.[| p < n; n:nat|] ==> n~=p";
+Goal "[| p < n; n:nat|] ==> n~=p";
 by (Fast_tac 1);
 qed "gt_not_eq";
 
-val succ_pred = prove_goal Arith.thy 
-    "!!i.[|j:nat; i:nat|] ==> i < j --> succ(j #- 1) = j"
- (fn prems =>[(induct_tac "j" 1),
-              (Fast_tac 1),
-              (Asm_simp_tac 1)]);
+Goal "[|j:nat; i:nat|] ==> i < j --> succ(j #- 1) = j";
+by (induct_tac "j" 1);
+by (Fast_tac 1);
+by (Asm_simp_tac 1);
+qed "succ_pred";
 
-goal Arith.thy 
-    "!!i.[|succ(x)<n; n:nat; x:nat|] ==> x < n #- 1 ";
+Goal "[|succ(x)<n; n:nat; x:nat|] ==> x < n #- 1 ";
 by (rtac succ_leE 1);
 by (forward_tac [nat_into_Ord RS le_refl RS lt_trans] 1 THEN assume_tac 1);
 by (asm_simp_tac (simpset() addsimps [succ_pred]) 1);
 qed "lt_pred";
 
-goal Arith.thy 
-    "!!i.[|n < succ(x); p<n; p:nat; n:nat; x:nat|] ==> n #- 1 < x ";
+Goal "[|n < succ(x); p<n; p:nat; n:nat; x:nat|] ==> n #- 1 < x ";
 by (rtac succ_leE 1);
 by (asm_simp_tac (simpset() addsimps [succ_pred]) 1);
 qed "gt_pred";

@@ -32,63 +32,78 @@ val iff_reflection = thm "iff_reflection";
 
 
 
-qed_goalw "TrueI" (the_context ()) [True_def] "True"
- (fn _ => [ (REPEAT (ares_tac [impI] 1)) ]);
+Goalw [True_def]  "True";
+by (REPEAT (ares_tac [impI] 1)) ;
+qed "TrueI";
 
 (*** Sequent-style elimination rules for & --> and ALL ***)
 
-qed_goal "conjE" (the_context ()) 
-    "[| P&Q; [| P; Q |] ==> R |] ==> R"
- (fn prems=>
-  [ (REPEAT (resolve_tac prems 1
-      ORELSE (resolve_tac [conjunct1, conjunct2] 1 THEN
-              resolve_tac prems 1))) ]);
+val major::prems = Goal 
+    "[| P&Q; [| P; Q |] ==> R |] ==> R";
+by (resolve_tac prems 1);
+by (rtac (major RS conjunct1) 1);
+by (rtac (major RS conjunct2) 1);
+qed "conjE";
 
-qed_goal "impE" (the_context ()) 
-    "[| P-->Q;  P;  Q ==> R |] ==> R"
- (fn prems=> [ (REPEAT (resolve_tac (prems@[mp]) 1)) ]);
+val major::prems = Goal 
+    "[| P-->Q;  P;  Q ==> R |] ==> R";
+by (resolve_tac prems 1);
+by (rtac (major RS mp) 1);
+by (resolve_tac prems 1);
+qed "impE";
 
-qed_goal "allE" (the_context ()) 
-    "[| ALL x. P(x); P(x) ==> R |] ==> R"
- (fn prems=> [ (REPEAT (resolve_tac (prems@[spec]) 1)) ]);
+val major::prems = Goal 
+    "[| ALL x. P(x); P(x) ==> R |] ==> R";
+by (resolve_tac prems 1);
+by (rtac (major RS spec) 1);
+qed "allE";
 
 (*Duplicates the quantifier; for use with eresolve_tac*)
-qed_goal "all_dupE" (the_context ()) 
+val major::prems = Goal 
     "[| ALL x. P(x);  [| P(x); ALL x. P(x) |] ==> R \
-\    |] ==> R"
- (fn prems=> [ (REPEAT (resolve_tac (prems@[spec]) 1)) ]);
+\    |] ==> R";
+by (resolve_tac prems 1);
+by (rtac (major RS spec) 1);
+by (rtac major 1);
+qed "all_dupE";
 
 
 (*** Negation rules, which translate between ~P and P-->False ***)
 
-qed_goalw "notI" (the_context ()) [not_def] "(P ==> False) ==> ~P"
- (fn prems=> [ (REPEAT (ares_tac (prems@[impI]) 1)) ]);
+val prems = Goalw [not_def]  "(P ==> False) ==> ~P";
+by (REPEAT (ares_tac (prems@[impI]) 1)) ;
+qed "notI";
 
-qed_goalw "notE" (the_context ()) [not_def] "[| ~P;  P |] ==> R"
- (fn prems=>
-  [ (resolve_tac [mp RS FalseE] 1),
-    (REPEAT (resolve_tac prems 1)) ]);
+Goalw [not_def]  "[| ~P;  P |] ==> R";
+by (etac (mp RS FalseE) 1);
+by (assume_tac 1);
+qed "notE";
 
-qed_goal "rev_notE" (the_context ()) "!!P R. [| P; ~P |] ==> R"
- (fn _ => [REPEAT (ares_tac [notE] 1)]);
+Goal "[| P; ~P |] ==> R";
+by (etac notE 1);
+by (assume_tac 1);
+qed "rev_notE";
 
 (*This is useful with the special implication rules for each kind of P. *)
-qed_goal "not_to_imp" (the_context ()) 
-    "[| ~P;  (P-->False) ==> Q |] ==> Q"
- (fn prems=> [ (REPEAT (ares_tac (prems@[impI,notE]) 1)) ]);
+val prems = Goal 
+    "[| ~P;  (P-->False) ==> Q |] ==> Q";
+by (REPEAT (ares_tac (prems@[impI,notE]) 1)) ;
+qed "not_to_imp";
 
 (* For substitution into an assumption P, reduce Q to P-->Q, substitute into
    this implication, then apply impI to move P back into the assumptions.
    To specify P use something like
       eres_inst_tac [ ("P","ALL y. ?S(x,y)") ] rev_mp 1   *)
-qed_goal "rev_mp" (the_context ()) "[| P;  P --> Q |] ==> Q"
- (fn prems=> [ (REPEAT (resolve_tac (prems@[mp]) 1)) ]);
+Goal "[| P;  P --> Q |] ==> Q";
+by (etac mp 1);
+by (assume_tac 1);
+qed "rev_mp";
 
 (*Contrapositive of an inference rule*)
-qed_goal "contrapos" (the_context ()) "[| ~Q;  P==>Q |] ==> ~P"
- (fn [major,minor]=> 
-  [ (rtac (major RS notE RS notI) 1), 
-    (etac minor 1) ]);
+val [major,minor]= Goal "[| ~Q;  P==>Q |] ==> ~P";
+by (rtac (major RS notE RS notI) 1);
+by (etac minor 1) ;
+qed "contrapos";
 
 
 (*** Modus Ponens Tactics ***)
@@ -102,44 +117,55 @@ fun eq_mp_tac i = eresolve_tac [notE,impE] i  THEN  eq_assume_tac i;
 
 (*** If-and-only-if ***)
 
-qed_goalw "iffI" (the_context ()) [iff_def]
-   "[| P ==> Q;  Q ==> P |] ==> P<->Q"
- (fn prems=> [ (REPEAT (ares_tac (prems@[conjI, impI]) 1)) ]);
+val prems = Goalw [iff_def] 
+   "[| P ==> Q;  Q ==> P |] ==> P<->Q";
+by (REPEAT (ares_tac (prems@[conjI, impI]) 1)) ;
+qed "iffI";
 
 
 (*Observe use of rewrite_rule to unfold "<->" in meta-assumptions (prems) *)
-qed_goalw "iffE" (the_context ()) [iff_def]
-    "[| P <-> Q;  [| P-->Q; Q-->P |] ==> R |] ==> R"
- (fn prems => [ (rtac conjE 1), (REPEAT (ares_tac prems 1)) ]);
+val prems = Goalw [iff_def] 
+    "[| P <-> Q;  [| P-->Q; Q-->P |] ==> R |] ==> R";
+by (rtac conjE 1);
+by (REPEAT (ares_tac prems 1)) ;
+qed "iffE";
 
 (* Destruct rules for <-> similar to Modus Ponens *)
 
-qed_goalw "iffD1" (the_context ()) [iff_def] "[| P <-> Q;  P |] ==> Q"
- (fn prems => [ (rtac (conjunct1 RS mp) 1), (REPEAT (ares_tac prems 1)) ]);
+Goalw [iff_def]  "[| P <-> Q;  P |] ==> Q";
+by (etac (conjunct1 RS mp) 1);
+by (assume_tac 1);
+qed "iffD1";
 
-qed_goalw "iffD2" (the_context ()) [iff_def] "[| P <-> Q;  Q |] ==> P"
- (fn prems => [ (rtac (conjunct2 RS mp) 1), (REPEAT (ares_tac prems 1)) ]);
+val prems = Goalw [iff_def]  "[| P <-> Q;  Q |] ==> P";
+by (etac (conjunct2 RS mp) 1);
+by (assume_tac 1);
+qed "iffD2";
 
-qed_goal "rev_iffD1" (the_context ()) "!!P. [| P; P <-> Q |] ==> Q"
- (fn _ => [etac iffD1 1, assume_tac 1]);
+Goal "[| P; P <-> Q |] ==> Q";
+by (etac iffD1 1);
+by (assume_tac 1);
+qed "rev_iffD1";
 
-qed_goal "rev_iffD2" (the_context ()) "!!P. [| Q; P <-> Q |] ==> P"
- (fn _ => [etac iffD2 1, assume_tac 1]);
+Goal "[| Q; P <-> Q |] ==> P";
+by (etac iffD2 1);
+by (assume_tac 1);
+qed "rev_iffD2";
 
-qed_goal "iff_refl" (the_context ()) "P <-> P"
- (fn _ => [ (REPEAT (ares_tac [iffI] 1)) ]);
+Goal "P <-> P";
+by (REPEAT (ares_tac [iffI] 1)) ;
+qed "iff_refl";
 
-qed_goal "iff_sym" (the_context ()) "Q <-> P ==> P <-> Q"
- (fn [major] =>
-  [ (rtac (major RS iffE) 1),
-    (rtac iffI 1),
-    (REPEAT (eresolve_tac [asm_rl,mp] 1)) ]);
+Goal "Q <-> P ==> P <-> Q";
+by (etac iffE 1);
+by (rtac iffI 1);
+by (REPEAT (eresolve_tac [asm_rl,mp] 1)) ;
+qed "iff_sym";
 
-qed_goal "iff_trans" (the_context ())
-    "!!P Q R. [| P <-> Q;  Q<-> R |] ==> P <-> R"
- (fn _ =>
-  [ (rtac iffI 1),
-    (REPEAT (eresolve_tac [asm_rl,iffE] 1 ORELSE mp_tac 1)) ]);
+Goal "[| P <-> Q;  Q<-> R |] ==> P <-> R";
+by (rtac iffI 1);
+by (REPEAT (eresolve_tac [asm_rl,iffE] 1 ORELSE mp_tac 1)) ;
+qed "iff_trans";
 
 
 (*** Unique existence.  NOTE THAT the following 2 quantifications
@@ -148,21 +174,23 @@ qed_goal "iff_trans" (the_context ())
  do NOT mean the same thing.  The parser treats EX!x y.P(x,y) as sequential.
 ***)
 
-qed_goalw "ex1I" (the_context ()) [ex1_def]
-    "[| P(a);  !!x. P(x) ==> x=a |] ==> EX! x. P(x)"
- (fn prems => [ (REPEAT (ares_tac (prems@[exI,conjI,allI,impI]) 1)) ]);
+val prems = Goalw [ex1_def] 
+    "[| P(a);  !!x. P(x) ==> x=a |] ==> EX! x. P(x)";
+by (REPEAT (ares_tac (prems@[exI,conjI,allI,impI]) 1)) ;
+qed "ex1I";
 
 (*Sometimes easier to use: the premises have no shared variables.  Safe!*)
-qed_goal "ex_ex1I" (the_context ())
-    "[| EX x. P(x);  !!x y. [| P(x); P(y) |] ==> x=y |] ==> EX! x. P(x)"
- (fn [ex,eq] => [ (rtac (ex RS exE) 1),
-                  (REPEAT (ares_tac [ex1I,eq] 1)) ]);
+val [ex,eq] = Goal
+    "[| EX x. P(x);  !!x y. [| P(x); P(y) |] ==> x=y |] ==> EX! x. P(x)";
+by (rtac (ex RS exE) 1);
+by (REPEAT (ares_tac [ex1I,eq] 1)) ;
+qed "ex_ex1I";
 
-qed_goalw "ex1E" (the_context ()) [ex1_def]
-    "[| EX! x. P(x);  !!x. [| P(x);  ALL y. P(y) --> y=x |] ==> R |] ==> R"
- (fn prems =>
-  [ (cut_facts_tac prems 1),
-    (REPEAT (eresolve_tac [exE,conjE] 1 ORELSE ares_tac prems 1)) ]);
+val prems = Goalw [ex1_def] 
+    "[| EX! x. P(x);  !!x. [| P(x);  ALL y. P(y) --> y=x |] ==> R |] ==> R";
+by (cut_facts_tac prems 1);
+by (REPEAT (eresolve_tac [exE,conjE] 1 ORELSE ares_tac prems 1)) ;
+qed "ex1E";
 
 
 (*** <-> congruence rules for simplification ***)
@@ -172,83 +200,78 @@ fun iff_tac prems i =
     resolve_tac (prems RL [iffE]) i THEN
     REPEAT1 (eresolve_tac [asm_rl,mp] i);
 
-qed_goal "conj_cong" (the_context ()) 
-    "[| P <-> P';  P' ==> Q <-> Q' |] ==> (P&Q) <-> (P'&Q')"
- (fn prems =>
-  [ (cut_facts_tac prems 1),
-    (REPEAT  (ares_tac [iffI,conjI] 1
-      ORELSE  eresolve_tac [iffE,conjE,mp] 1
-      ORELSE  iff_tac prems 1)) ]);
+val prems = Goal 
+    "[| P <-> P';  P' ==> Q <-> Q' |] ==> (P&Q) <-> (P'&Q')";
+by (cut_facts_tac prems 1);
+by (REPEAT  (ares_tac [iffI,conjI] 1
+     ORELSE  eresolve_tac [iffE,conjE,mp] 1 
+     ORELSE  iff_tac prems 1)) ;
+qed "conj_cong";
 
 (*Reversed congruence rule!   Used in ZF/Order*)
-qed_goal "conj_cong2" (the_context ()) 
-    "[| P <-> P';  P' ==> Q <-> Q' |] ==> (Q&P) <-> (Q'&P')"
- (fn prems =>
-  [ (cut_facts_tac prems 1),
-    (REPEAT  (ares_tac [iffI,conjI] 1
-      ORELSE  eresolve_tac [iffE,conjE,mp] 1
-      ORELSE  iff_tac prems 1)) ]);
+val prems = Goal 
+    "[| P <-> P';  P' ==> Q <-> Q' |] ==> (Q&P) <-> (Q'&P')";
+by (cut_facts_tac prems 1);
+by (REPEAT  (ares_tac [iffI,conjI] 1
+     ORELSE  eresolve_tac [iffE,conjE,mp] 1 ORELSE  iff_tac prems 1)) ;
+qed "conj_cong2";
 
-qed_goal "disj_cong" (the_context ()) 
-    "[| P <-> P';  Q <-> Q' |] ==> (P|Q) <-> (P'|Q')"
- (fn prems =>
-  [ (cut_facts_tac prems 1),
-    (REPEAT  (eresolve_tac [iffE,disjE,disjI1,disjI2] 1
-      ORELSE  ares_tac [iffI] 1
-      ORELSE  mp_tac 1)) ]);
+val prems = Goal 
+    "[| P <-> P';  Q <-> Q' |] ==> (P|Q) <-> (P'|Q')";
+by (cut_facts_tac prems 1);
+by (REPEAT  (eresolve_tac [iffE,disjE,disjI1,disjI2] 1
+             ORELSE  ares_tac [iffI] 1 ORELSE  mp_tac 1)) ;
+qed "disj_cong";
 
-qed_goal "imp_cong" (the_context ()) 
-    "[| P <-> P';  P' ==> Q <-> Q' |] ==> (P-->Q) <-> (P'-->Q')"
- (fn prems =>
-  [ (cut_facts_tac prems 1),
-    (REPEAT   (ares_tac [iffI,impI] 1
-      ORELSE  etac iffE 1
-      ORELSE  mp_tac 1 ORELSE iff_tac prems 1)) ]);
+val prems = Goal 
+    "[| P <-> P';  P' ==> Q <-> Q' |] ==> (P-->Q) <-> (P'-->Q')";
+by (cut_facts_tac prems 1);
+by (REPEAT   (ares_tac [iffI,impI] 1
+      ORELSE  etac iffE 1 ORELSE  mp_tac 1 ORELSE iff_tac prems 1)) ;
+qed "imp_cong";
 
-qed_goal "iff_cong" (the_context ()) 
-    "[| P <-> P';  Q <-> Q' |] ==> (P<->Q) <-> (P'<->Q')"
- (fn prems =>
-  [ (cut_facts_tac prems 1),
-    (REPEAT   (etac iffE 1
-      ORELSE  ares_tac [iffI] 1
-      ORELSE  mp_tac 1)) ]);
+val prems = Goal 
+    "[| P <-> P';  Q <-> Q' |] ==> (P<->Q) <-> (P'<->Q')";
+by (cut_facts_tac prems 1);
+by (REPEAT   (etac iffE 1 ORELSE  ares_tac [iffI] 1 ORELSE  mp_tac 1)) ;
+qed "iff_cong";
 
-qed_goal "not_cong" (the_context ()) 
-    "P <-> P' ==> ~P <-> ~P'"
- (fn prems =>
-  [ (cut_facts_tac prems 1),
-    (REPEAT   (ares_tac [iffI,notI] 1
-      ORELSE  mp_tac 1
-      ORELSE  eresolve_tac [iffE,notE] 1)) ]);
+val prems = Goal 
+    "P <-> P' ==> ~P <-> ~P'";
+by (cut_facts_tac prems 1);
+by (REPEAT   (ares_tac [iffI,notI] 1
+      ORELSE  mp_tac 1 ORELSE  eresolve_tac [iffE,notE] 1)) ;
+qed "not_cong";
 
-qed_goal "all_cong" (the_context ()) 
-    "(!!x. P(x) <-> Q(x)) ==> (ALL x. P(x)) <-> (ALL x. Q(x))"
- (fn prems =>
-  [ (REPEAT   (ares_tac [iffI,allI] 1
-      ORELSE   mp_tac 1
-      ORELSE   etac allE 1 ORELSE iff_tac prems 1)) ]);
+val prems = Goal 
+    "(!!x. P(x) <-> Q(x)) ==> (ALL x. P(x)) <-> (ALL x. Q(x))";
+by (REPEAT   (ares_tac [iffI,allI] 1
+     ORELSE   mp_tac 1 ORELSE   etac allE 1 ORELSE iff_tac prems 1)) ;
+qed "all_cong";
 
-qed_goal "ex_cong" (the_context ()) 
-    "(!!x. P(x) <-> Q(x)) ==> (EX x. P(x)) <-> (EX x. Q(x))"
- (fn prems =>
-  [ (REPEAT   (etac exE 1 ORELSE ares_tac [iffI,exI] 1
-      ORELSE   mp_tac 1
-      ORELSE   iff_tac prems 1)) ]);
+val prems = Goal 
+    "(!!x. P(x) <-> Q(x)) ==> (EX x. P(x)) <-> (EX x. Q(x))";
+by (REPEAT   (etac exE 1 ORELSE ares_tac [iffI,exI] 1
+     ORELSE   mp_tac 1 ORELSE   iff_tac prems 1)) ;
+qed "ex_cong";
 
-qed_goal "ex1_cong" (the_context ()) 
-    "(!!x. P(x) <-> Q(x)) ==> (EX! x. P(x)) <-> (EX! x. Q(x))"
- (fn prems =>
-  [ (REPEAT   (eresolve_tac [ex1E, spec RS mp] 1 ORELSE ares_tac [iffI,ex1I] 1
-      ORELSE   mp_tac 1
-      ORELSE   iff_tac prems 1)) ]);
+val prems = Goal 
+    "(!!x. P(x) <-> Q(x)) ==> (EX! x. P(x)) <-> (EX! x. Q(x))";
+by (REPEAT   (eresolve_tac [ex1E, spec RS mp] 1
+       ORELSE ares_tac [iffI,ex1I] 1 ORELSE   mp_tac 1
+       ORELSE   iff_tac prems 1)) ;
+qed "ex1_cong";
 
 (*** Equality rules ***)
 
-qed_goal "sym" (the_context ()) "a=b ==> b=a"
- (fn [major] => [ (rtac (major RS subst) 1), (rtac refl 1) ]);
+Goal "a=b ==> b=a";
+by (etac subst 1);
+by (rtac refl 1) ;
+qed "sym";
 
-qed_goal "trans" (the_context ()) "[| a=b;  b=c |] ==> a=c"
- (fn [prem1,prem2] => [ (rtac (prem2 RS subst) 1), (rtac prem1 1) ]);
+Goal "[| a=b;  b=c |] ==> a=c";
+by (etac subst 1 THEN assume_tac 1) ;
+qed "trans";
 
 (** ~ b=a ==> ~ a=b **)
 bind_thm ("not_sym", hd (compose(sym,2,contrapos)));
@@ -257,12 +280,12 @@ bind_thm ("not_sym", hd (compose(sym,2,contrapos)));
 (* Two theorms for rewriting only one instance of a definition:
    the first for definitions of formulae and the second for terms *)
 
-val prems = goal (the_context ()) "(A == B) ==> A <-> B";
+val prems = goal (the_context()) "(A == B) ==> A <-> B";
 by (rewrite_goals_tac prems);
 by (rtac iff_refl 1);
 qed "def_imp_iff";
 
-val prems = goal (the_context ()) "(A == B) ==> A = B";
+val prems = goal (the_context()) "(A == B) ==> A = B";
 by (rewrite_goals_tac prems);
 by (rtac refl 1);
 qed "meta_eq_to_obj_eq";
@@ -279,75 +302,67 @@ fun stac th =
   end;
 
 (*A special case of ex1E that would otherwise need quantifier expansion*)
-qed_goal "ex1_equalsE" (the_context ())
-    "[| EX! x. P(x);  P(a);  P(b) |] ==> a=b"
- (fn prems =>
-  [ (cut_facts_tac prems 1),
-    (etac ex1E 1),
-    (rtac trans 1),
-    (rtac sym 2),
-    (REPEAT (eresolve_tac [asm_rl, spec RS mp] 1)) ]);
+val prems = Goal
+    "[| EX! x. P(x);  P(a);  P(b) |] ==> a=b";
+by (cut_facts_tac prems 1);
+by (etac ex1E 1);
+by (rtac trans 1);
+by (rtac sym 2);
+by (REPEAT (eresolve_tac [asm_rl, spec RS mp] 1)) ;
+qed "ex1_equalsE";
 
 (** Polymorphic congruence rules **)
 
-qed_goal "subst_context" (the_context ()) 
-   "[| a=b |]  ==>  t(a)=t(b)"
- (fn prems=>
-  [ (resolve_tac (prems RL [ssubst]) 1),
-    (rtac refl 1) ]);
+Goal "[| a=b |]  ==>  t(a)=t(b)";
+by (etac ssubst 1);
+by (rtac refl 1) ;
+qed "subst_context";
 
-qed_goal "subst_context2" (the_context ()) 
-   "[| a=b;  c=d |]  ==>  t(a,c)=t(b,d)"
- (fn prems=>
-  [ (EVERY1 (map rtac ((prems RL [ssubst]) @ [refl]))) ]);
+Goal "[| a=b;  c=d |]  ==>  t(a,c)=t(b,d)";
+by (REPEAT (etac ssubst 1));
+by (rtac refl 1) ;
+qed "subst_context2";
 
-qed_goal "subst_context3" (the_context ()) 
-   "[| a=b;  c=d;  e=f |]  ==>  t(a,c,e)=t(b,d,f)"
- (fn prems=>
-  [ (EVERY1 (map rtac ((prems RL [ssubst]) @ [refl]))) ]);
+Goal "[| a=b;  c=d;  e=f |]  ==>  t(a,c,e)=t(b,d,f)";
+by (REPEAT (etac ssubst 1));
+by (rtac refl 1) ;
+qed "subst_context3";
 
 (*Useful with eresolve_tac for proving equalties from known equalities.
         a = b
         |   |
         c = d   *)
-qed_goal "box_equals" (the_context ())
-    "[| a=b;  a=c;  b=d |] ==> c=d"  
- (fn prems=>
-  [ (rtac trans 1),
-    (rtac trans 1),
-    (rtac sym 1),
-    (REPEAT (resolve_tac prems 1)) ]);
+Goal "[| a=b;  a=c;  b=d |] ==> c=d";
+by (rtac trans 1);
+by (rtac trans 1);
+by (rtac sym 1);
+by (REPEAT (assume_tac 1));
+qed "box_equals";
 
 (*Dual of box_equals: for proving equalities backwards*)
-qed_goal "simp_equals" (the_context ())
-    "[| a=c;  b=d;  c=d |] ==> a=b"  
- (fn prems=>
-  [ (rtac trans 1),
-    (rtac trans 1),
-    (REPEAT (resolve_tac (prems @ (prems RL [sym])) 1)) ]);
+Goal "[| a=c;  b=d;  c=d |] ==> a=b";
+by (rtac trans 1);
+by (rtac trans 1);
+by (REPEAT (assume_tac 1));
+by (etac sym 1);
+qed "simp_equals";
 
 (** Congruence rules for predicate letters **)
 
-qed_goal "pred1_cong" (the_context ())
-    "a=a' ==> P(a) <-> P(a')"
- (fn prems =>
-  [ (cut_facts_tac prems 1),
-    (rtac iffI 1),
-    (DEPTH_SOLVE (eresolve_tac [asm_rl, subst, ssubst] 1)) ]);
+Goal "a=a' ==> P(a) <-> P(a')";
+by (rtac iffI 1);
+by (DEPTH_SOLVE (eresolve_tac [asm_rl, subst, ssubst] 1)) ;
+qed "pred1_cong";
 
-qed_goal "pred2_cong" (the_context ())
-    "[| a=a';  b=b' |] ==> P(a,b) <-> P(a',b')"
- (fn prems =>
-  [ (cut_facts_tac prems 1),
-    (rtac iffI 1),
-    (DEPTH_SOLVE (eresolve_tac [asm_rl, subst, ssubst] 1)) ]);
+Goal "[| a=a';  b=b' |] ==> P(a,b) <-> P(a',b')";
+by (rtac iffI 1);
+by (DEPTH_SOLVE (eresolve_tac [asm_rl, subst, ssubst] 1)) ;
+qed "pred2_cong";
 
-qed_goal "pred3_cong" (the_context ())
-    "[| a=a';  b=b';  c=c' |] ==> P(a,b,c) <-> P(a',b',c')"
- (fn prems =>
-  [ (cut_facts_tac prems 1),
-    (rtac iffI 1),
-    (DEPTH_SOLVE (eresolve_tac [asm_rl, subst, ssubst] 1)) ]);
+Goal "[| a=a';  b=b';  c=c' |] ==> P(a,b,c) <-> P(a',b',c')";
+by (rtac iffI 1);
+by (DEPTH_SOLVE (eresolve_tac [asm_rl, subst, ssubst] 1)) ;
+qed "pred3_cong";
 
 (*special cases for free variables P, Q, R, S -- up to 3 arguments*)
 
@@ -368,52 +383,52 @@ bind_thm ("eq_cong", read_instantiate [("P","op =")] pred2_cong);
    R. Dyckhoff, Contraction-free sequent calculi for intuitionistic logic
     (preprint, University of St Andrews, 1991)  ***)
 
-qed_goal "conj_impE" (the_context ()) 
-    "[| (P&Q)-->S;  P-->(Q-->S) ==> R |] ==> R"
- (fn major::prems=>
-  [ (REPEAT (ares_tac ([conjI, impI, major RS mp]@prems) 1)) ]);
+val major::prems= Goal 
+    "[| (P&Q)-->S;  P-->(Q-->S) ==> R |] ==> R";
+by (REPEAT (ares_tac ([conjI, impI, major RS mp]@prems) 1)) ;
+qed "conj_impE";
 
-qed_goal "disj_impE" (the_context ()) 
-    "[| (P|Q)-->S;  [| P-->S; Q-->S |] ==> R |] ==> R"
- (fn major::prems=>
-  [ (DEPTH_SOLVE (ares_tac ([disjI1, disjI2, impI, major RS mp]@prems) 1)) ]);
+val major::prems= Goal 
+    "[| (P|Q)-->S;  [| P-->S; Q-->S |] ==> R |] ==> R";
+by (DEPTH_SOLVE (ares_tac ([disjI1, disjI2, impI, major RS mp]@prems) 1)) ;
+qed "disj_impE";
 
 (*Simplifies the implication.  Classical version is stronger. 
   Still UNSAFE since Q must be provable -- backtracking needed.  *)
-qed_goal "imp_impE" (the_context ()) 
-    "[| (P-->Q)-->S;  [| P; Q-->S |] ==> Q;  S ==> R |] ==> R"
- (fn major::prems=>
-  [ (REPEAT (ares_tac ([impI, major RS mp]@prems) 1)) ]);
+val major::prems= Goal 
+    "[| (P-->Q)-->S;  [| P; Q-->S |] ==> Q;  S ==> R |] ==> R";
+by (REPEAT (ares_tac ([impI, major RS mp]@prems) 1)) ;
+qed "imp_impE";
 
 (*Simplifies the implication.  Classical version is stronger. 
   Still UNSAFE since ~P must be provable -- backtracking needed.  *)
-qed_goal "not_impE" (the_context ())
-    "[| ~P --> S;  P ==> False;  S ==> R |] ==> R"
- (fn major::prems=>
-  [ (REPEAT (ares_tac ([notI, impI, major RS mp]@prems) 1)) ]);
+val major::prems= Goal
+    "[| ~P --> S;  P ==> False;  S ==> R |] ==> R";
+by (REPEAT (ares_tac ([notI, impI, major RS mp]@prems) 1)) ;
+qed "not_impE";
 
 (*Simplifies the implication.   UNSAFE.  *)
-qed_goal "iff_impE" (the_context ()) 
+val major::prems= Goal 
     "[| (P<->Q)-->S;  [| P; Q-->S |] ==> Q;  [| Q; P-->S |] ==> P;  \
-\       S ==> R |] ==> R"
- (fn major::prems=>
-  [ (REPEAT (ares_tac ([iffI, impI, major RS mp]@prems) 1)) ]);
+\       S ==> R |] ==> R";
+by (REPEAT (ares_tac ([iffI, impI, major RS mp]@prems) 1)) ;
+qed "iff_impE";
 
 (*What if (ALL x.~~P(x)) --> ~~(ALL x.P(x)) is an assumption? UNSAFE*)
-qed_goal "all_impE" (the_context ()) 
-    "[| (ALL x. P(x))-->S;  !!x. P(x);  S ==> R |] ==> R"
- (fn major::prems=>
-  [ (REPEAT (ares_tac ([allI, impI, major RS mp]@prems) 1)) ]);
+val major::prems= Goal 
+    "[| (ALL x. P(x))-->S;  !!x. P(x);  S ==> R |] ==> R";
+by (REPEAT (ares_tac ([allI, impI, major RS mp]@prems) 1)) ;
+qed "all_impE";
 
 (*Unsafe: (EX x.P(x))-->S  is equivalent to  ALL x.P(x)-->S.  *)
-qed_goal "ex_impE" (the_context ()) 
-    "[| (EX x. P(x))-->S;  P(x)-->S ==> R |] ==> R"
- (fn major::prems=>
-  [ (REPEAT (ares_tac ([exI, impI, major RS mp]@prems) 1)) ]);
+val major::prems= Goal 
+    "[| (EX x. P(x))-->S;  P(x)-->S ==> R |] ==> R";
+by (REPEAT (ares_tac ([exI, impI, major RS mp]@prems) 1)) ;
+qed "ex_impE";
 
 (*** Courtesy of Krzysztof Grabczewski ***)
 
-val major::prems = goal (the_context ()) "[| P|Q;  P==>R;  Q==>S |] ==> R|S";
+val major::prems = Goal "[| P|Q;  P==>R;  Q==>S |] ==> R|S";
 by (rtac (major RS disjE) 1);
 by (REPEAT (eresolve_tac (prems RL [disjI1, disjI2]) 1));
 qed "disj_imp_disj";
