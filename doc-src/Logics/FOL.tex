@@ -198,7 +198,7 @@ derived rules.
 \item 
 It instantiates the simplifier.  Both equality ($=$) and the biconditional
 ($\bimp$) may be used for rewriting.  Tactics such as {\tt Asm_simp_tac} and
-{\tt Full_simp_tac} use the default simpset ({\tt!simpset}), which works for
+{\tt Full_simp_tac} refer to the default simpset ({\tt simpset()}), which works for
 most purposes.  Named simplification sets include \ttindexbold{IFOL_ss},
 for intuitionistic first-order logic, and \ttindexbold{FOL_ss},
 for classical logic.  See the file
@@ -338,7 +338,7 @@ well as classical elimination rules for~$\imp$ and~$\bimp$, and the swap
 rule (see Fig.\ts\ref{fol-cla-derived}).
 
 The classical reasoner is installed.  Tactics such as {\tt Blast_tac} and {\tt
-Best_tac} use the default claset ({\tt!claset}), which works for most
+Best_tac} refer to the default claset ({\tt claset()}), which works for most
 purposes.  Named clasets include \ttindexbold{prop_cs}, which includes the
 propositional rules, and \ttindexbold{FOL_cs}, which also includes quantifier
 rules.  See the file {\tt FOL/cladata.ML} for lists of the
@@ -671,10 +671,10 @@ val prems = goalw If.thy [if_def]
 {\out  1. P & Q | ~ P & R}
 \end{ttbox}
 The premises (bound to the {\ML} variable {\tt prems}) are passed as
-introduction rules to \ttindex{blast_tac}.  Remember that {\tt!claset} refers
+introduction rules to \ttindex{blast_tac}.  Remember that {\tt claset()} refers
 to the default classical set.
 \begin{ttbox}
-by (blast_tac (!claset addIs prems) 1);
+by (blast_tac (claset() addIs prems) 1);
 {\out Level 1}
 {\out if(P,Q,R)}
 {\out No subgoals!}
@@ -702,7 +702,7 @@ by (cut_facts_tac [major] 1);
 {\out S}
 {\out  1. P & Q | ~ P & R ==> S}
 \ttbreak
-by (blast_tac (!claset addIs prems) 1);
+by (blast_tac (claset() addIs prems) 1);
 {\out Level 2}
 {\out S}
 {\out No subgoals!}

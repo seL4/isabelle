@@ -1779,7 +1779,7 @@ Again, \ttindex{Blast_tac} can prove the theorem in one
 step, provided we somehow supply it with~\texttt{prem}.  We can add
 \hbox{\tt prem RS subsetD} to the claset as an introduction rule:
 \begin{ttbox}
-by (blast_tac (!claset addIs [prem RS subsetD]) 1);
+by (blast_tac (claset() addIs [prem RS subsetD]) 1);
 {\out Depth = 0}
 {\out Depth = 1}
 {\out Depth = 2}

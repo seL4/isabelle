@@ -8,9 +8,9 @@
   \item {\tt\#-} symbol, 47
   \item {\tt\&} symbol, 7, 60, 105
   \item {\tt *} symbol, 26, 61, 79, 119
-  \item {\tt *} type, 76
+  \item {\tt *} type, 77
   \item {\tt +} symbol, 43, 61, 79, 119
-  \item {\tt +} type, 76
+  \item {\tt +} type, 77
   \item {\tt -} symbol, 25, 61, 79, 128
   \item {\tt -->} symbol, 7, 60, 105, 119
   \item {\tt ->} symbol, 26
@@ -49,6 +49,7 @@
   \item {\tt add_unsafes}, \bold{111}
   \item {\tt addC0} theorem, 128
   \item {\tt addC_succ} theorem, 128
+  \item {\tt Addsplits}, \bold{76}
   \item {\tt addsplits}, \bold{76}, 81, 87
   \item {\tt ALL} symbol, 7, 26, 60, 62, 69, 70, 105
   \item {\tt All} constant, 7, 60, 105
@@ -188,6 +189,8 @@
 
   \item {\tt datatype}, 86--91
   \item {\tt deepen_tac}, 16
+  \item {\tt Delsplits}, \bold{76}
+  \item {\tt delsplits}, \bold{76}
   \item {\tt diff_0_eq_0} theorem, 128
   \item {\tt Diff_cancel} theorem, 41
   \item {\tt Diff_contains} theorem, 36
@@ -279,9 +282,6 @@
   \item {\tt exI} theorem, 8, 66
   \item {\tt exL} theorem, 107
   \item {\tt Exp} theory, 100
-  \item {\tt expand_if} theorem, 66, 76
-  \item {\tt expand_split} theorem, 77
-  \item {\tt expand_sum_case} theorem, 79
   \item {\tt exR} theorem, 107, 110, 112
   \item {\tt exR_thin} theorem, 108, 112, 113
   \item {\tt ext} theorem, 63, 64
@@ -403,9 +403,9 @@
   \item {\tt impL} theorem, 107
   \item {\tt impR} theorem, 107
   \item {\tt in} symbol, 27, 61
-  \item {\textit {ind}} type, 80
+  \item {\textit {ind}} type, 78
   \item {\tt induct} theorem, 44
-  \item {\tt induct_tac}, 81, \bold{89}
+  \item {\tt induct_tac}, 80, \bold{89}
   \item {\tt inductive}, 96--99
   \item {\tt Inf} constant, 25, 29
   \item {\tt infinity} theorem, 31
@@ -414,8 +414,8 @@
   \item {\tt inj_def} theorem, 45, 75
   \item {\tt inj_Inl} theorem, 79
   \item {\tt inj_Inr} theorem, 79
-  \item {\tt inj_onto} constant, 75
-  \item {\tt inj_onto_def} theorem, 75
+  \item {\tt inj_on} constant, 75
+  \item {\tt inj_on_def} theorem, 75
   \item {\tt inj_Suc} theorem, 79
   \item {\tt Inl} constant, 43, 79
   \item {\tt inl} constant, 117, 122, 132
@@ -568,7 +568,7 @@
   \item {\tt n_not_Suc_n} theorem, 79
   \item {\tt Nat} theory, 46, 80
   \item {\textit {nat}} type, 79, 80, 89
-  \item {\textit{nat}} type, 80--81
+  \item {\textit{nat}} type, 78--81
   \item {\tt nat} constant, 47
   \item {\tt nat_0I} theorem, 47
   \item {\tt nat_case} constant, 47
@@ -577,9 +577,9 @@
   \item {\tt nat_case_succ} theorem, 47
   \item {\tt nat_def} theorem, 47
   \item {\tt nat_induct} theorem, 47, 79
-  \item {\tt nat_rec} constant, 81
+  \item {\tt nat_rec} constant, 80
   \item {\tt nat_succI} theorem, 47
-  \item {\tt NatDef} theory, 80
+  \item {\tt NatDef} theory, 78
   \item {\tt NC0} theorem, 121
   \item {\tt NC_succ} theorem, 121
   \item {\tt NE} theorem, 120, 121, 129
@@ -655,7 +655,7 @@
   \item priorities, 2
   \item {\tt PROD} symbol, 26, 28, 118, 119
   \item {\tt Prod} constant, 117
-  \item {\tt Prod} theory, 76
+  \item {\tt Prod} theory, 77
   \item {\tt ProdC} theorem, 121, 137
   \item {\tt ProdC2} theorem, 121
   \item {\tt ProdE} theorem, 121, 134, 136, 138
@@ -780,7 +780,10 @@
   \item {\tt split_$t$_case} theorem, 87
   \item {\tt split_all_tac}, \bold{78}
   \item {\tt split_def} theorem, 31
+  \item {\tt split_if} theorem, 66, 76
   \item {\tt split_list_case} theorem, 81
+  \item {\tt split_split} theorem, 77
+  \item {\tt split_sum_case} theorem, 79
   \item {\tt ssubst} theorem, 9, 65, 67
   \item {\tt stac}, \bold{75}
   \item {\tt Step_tac}, 22

@@ -907,7 +907,7 @@ simplifier and the classical reasoner.
 
 The simplifier is available in \HOL.  Tactics such as {\tt
   Asm_simp_tac} and \texttt{Full_simp_tac} use the default simpset
-({\tt!simpset}), which works for most purposes.  A quite minimal
+({\tt simpset()}), which works for most purposes.  A quite minimal
 simplification set for higher-order logic is~\ttindexbold{HOL_ss},
 even more frugal is \ttindexbold{HOL_basic_ss}.  Equality~($=$), which
 also expresses logical equivalence, may be used for rewriting.  See
@@ -967,7 +967,7 @@ left-hand side is not a higher-order pattern in the sense of
 (analogous to \texttt{addsimps}) that adds rules such as $(*)$ to a
 simpset, as in
 \begin{ttbox}
-by(simp_tac (!simpset addsplits [split_if]) 1);
+by(simp_tac (simpset() addsplits [split_if]) 1);
 \end{ttbox}
 The effect is that after each round of simplification, one occurrence of
 \texttt{if} is split acording to \texttt{split_if}, until all occurences of
@@ -978,7 +978,7 @@ do. Hence \texttt{split_if} is already included in the default simpset. If
 you want to delete it from a simpset, use \ttindexbold{delsplits}, which is
 the inverse of \texttt{addsplits}:
 \begin{ttbox}
-by(simp_tac (!simpset delsplits [split_if]) 1);
+by(simp_tac (simpset() delsplits [split_if]) 1);
 \end{ttbox}
 
 In general, \texttt{addsplits} accepts rules of the form
@@ -1006,7 +1006,7 @@ well as classical elimination rules for~$\imp$ and~$\bimp$, and the swap
 rule; recall Fig.\ts\ref{hol-lemmas2} above.
 
 The classical reasoner is installed.  Tactics such as \texttt{Blast_tac} and {\tt
-Best_tac} use the default claset ({\tt!claset}), which works for most
+Best_tac} refer to the default claset ({\tt claset()}), which works for most
 purposes.  Named clasets include \ttindexbold{prop_cs}, which includes the
 propositional rules, and \ttindexbold{HOL_cs}, which also includes quantifier
 rules.  See the file \texttt{HOL/cladata.ML} for lists of the classical rules,
@@ -2079,7 +2079,7 @@ where
 \item the \textit{simplification set} is used to prove that the supplied
   relation is well-founded.  It is also used to prove the \textbf{termination
     conditions}: assertions that arguments of recursive calls decrease under
-  \textit{rel}.  By default, simplification uses \texttt{!simpset}, which
+  \textit{rel}.  By default, simplification uses \texttt{simpset()}, which
   is sufficient to prove well-foundedness for the built-in relations listed
   above. 
   
@@ -2127,7 +2127,7 @@ Isabelle can prove the \texttt{gcd} function's termination condition
 automatically if supplied with the right simpset.
 \begin{ttbox}
 recdef gcd "measure ((\%(m,n).n) ::nat*nat=>nat)"
-  simpset "!simpset addsimps [mod_less_divisor, zero_less_eq]"
+  simpset "simpset() addsimps [mod_less_divisor, zero_less_eq]"
     "gcd (m, n) = (if n=0 then m else gcd(n, m mod n))"
 \end{ttbox}
 
@@ -2512,7 +2512,7 @@ by (assume_tac 1);
 {\out No subgoals!}
 \end{ttbox}
 How much creativity is required?  As it happens, Isabelle can prove this
-theorem automatically.  The default classical set {\tt!claset} contains rules
+theorem automatically.  The default classical set {\tt claset()} contains rules
 for most of the constructs of \HOL's set theory.  We must augment it with
 \tdx{equalityCE} to break up set equalities, and then apply best-first
 search.  Depth-first search would diverge, but best-first search
@@ -2524,7 +2524,7 @@ choplev 0;
 {\out ?S ~: range f}
 {\out  1. ?S ~: range f}
 \ttbreak
-by (best_tac (!claset addSEs [equalityCE]) 1);
+by (best_tac (claset() addSEs [equalityCE]) 1);
 {\out Level 1}
 {\out {\ttlbrace}x. x ~: f x{\ttrbrace} ~: range f}
 {\out No subgoals!}
