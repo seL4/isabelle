@@ -175,12 +175,17 @@ fun print_goals maxgoals state =
     val ngoals = length As;
 
     val orig_no_freeTs = ! show_no_free_types;
+    val orig_types = ! show_types;
     val orig_sorts = ! show_sorts;
 
     fun restore () =
-      (show_no_free_types := orig_no_freeTs; show_sorts := orig_sorts);
+      (show_no_free_types := orig_no_freeTs;
+        show_types := orig_types;
+        show_sorts := orig_sorts);
   in
-    (show_no_free_types := true; show_sorts := false;
+    (show_no_free_types := true;
+      show_types := (orig_types orelse orig_sorts);
+      show_sorts := false;
       Pretty.writeln (pretty_term B);
       if ngoals = 0 then writeln "No subgoals!"
       else if ngoals > maxgoals then
@@ -192,7 +197,7 @@ fun print_goals maxgoals state =
 
       if orig_sorts then
         (print_types prop; print_sorts prop)
-      else if ! show_types then
+      else if orig_types then
         print_types prop
       else ())
     handle exn => (restore (); raise exn);
