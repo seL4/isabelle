@@ -458,11 +458,14 @@ fun add_oracle ((name, txt), comment_ignore) =
 
 (* theory init and exit *)
 
-fun begin_theory name parents files =
+fun gen_begin_theory bg name parents files =
   let
     val paths = map (apfst Path.unpack) files;
-    val thy = ThyInfo.begin_theory name parents paths;
+    val thy = bg name parents paths;
   in Present.begin_theory name parents paths thy end;
+
+val begin_theory = gen_begin_theory ThyInfo.begin_theory;
+val begin_update_theory = gen_begin_theory ThyInfo.begin_update_theory;
 
 fun end_theory thy =
   (Present.end_theory (PureThy.get_name thy); ThyInfo.end_theory thy);
@@ -471,8 +474,7 @@ fun kill_theory thy = ThyInfo.remove_thy (PureThy.get_name thy);
 
 
 fun bg_theory (name, parents, files) int =
-  (if int then seq ThyInfo.update_thy parents else ();   (*FIXME robust!? *)
-    begin_theory name parents files);
+  (if int then begin_update_theory else begin_theory) name parents files;
 
 fun en_theory thy = (end_theory thy; ());
 
@@ -482,7 +484,7 @@ fun theory spec = Toplevel.init_theory (bg_theory spec) en_theory kill_theory;
 (* context switch *)
 
 fun context name =
-  Toplevel.init_theory (fn _ => (the (#2 (Context.pass None ThyInfo.update_thy name))))
+  Toplevel.init_theory (fn _ => (the (#2 (Context.pass None ThyInfo.quiet_update_thy name))))
   (K ()) (K ());
 
 
