@@ -228,7 +228,7 @@ fun add_inductive_i verbose (rec_tms, dom_sum, intr_tms,
      rewrite_goals_tac con_defs,
      REPEAT (rtac refl 2),
      (*Typechecking; this can fail*)
-     if !Ind_Syntax.trace then print_tac "The typechecking subgoal:"
+     if !Ind_Syntax.trace then print_tac "The type-checking subgoal:"
      else all_tac,
      REPEAT (FIRSTGOAL (        dresolve_tac rec_typechecks
 			ORELSE' eresolve_tac (asm_rl::PartE::SigmaE2::
