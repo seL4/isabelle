@@ -33,7 +33,6 @@ sig
   val classical : thm           (* (~P ==> P) ==> P *)
   val sizef     : thm -> int    (* size function for BEST_FIRST *)
   val hyp_subst_tacs: (int -> tactic) list
-  val atomize: thm list
 end;
 
 signature BASIC_CLASSICAL =
@@ -181,8 +180,6 @@ struct
 local open Data in
 
 (*** Useful tactics for classical reasoning ***)
-
-val atomize_tac = Method.atomize_tac atomize;
 
 val imp_elim = (*cannot use bind_thm within a structure!*)
   store_thm ("imp_elim", Data.make_elim mp);
@@ -837,24 +834,24 @@ fun slow_step_tac cs i = safe_tac cs ORELSE appWrappers cs
 
 (*Dumb but fast*)
 fun fast_tac cs =
-  atomize_tac THEN' SELECT_GOAL (DEPTH_SOLVE (step_tac cs 1));
+  ObjectLogic.atomize_tac THEN' SELECT_GOAL (DEPTH_SOLVE (step_tac cs 1));
 
 (*Slower but smarter than fast_tac*)
 fun best_tac cs =
-  atomize_tac THEN'
+  ObjectLogic.atomize_tac THEN'
   SELECT_GOAL (BEST_FIRST (has_fewer_prems 1, sizef) (step_tac cs 1));
 
 (*even a bit smarter than best_tac*)
 fun first_best_tac cs =
-  atomize_tac THEN'
+  ObjectLogic.atomize_tac THEN'
   SELECT_GOAL (BEST_FIRST (has_fewer_prems 1, sizef) (FIRSTGOAL (step_tac cs)));
 
 fun slow_tac cs =
-  atomize_tac THEN'
+  ObjectLogic.atomize_tac THEN'
   SELECT_GOAL (DEPTH_SOLVE (slow_step_tac cs 1));
 
 fun slow_best_tac cs =
-  atomize_tac THEN'
+  ObjectLogic.atomize_tac THEN'
   SELECT_GOAL (BEST_FIRST (has_fewer_prems 1, sizef) (slow_step_tac cs 1));
 
 
@@ -862,13 +859,13 @@ fun slow_best_tac cs =
 val weight_ASTAR = ref 5;
 
 fun astar_tac cs =
-  atomize_tac THEN'
+  ObjectLogic.atomize_tac THEN'
   SELECT_GOAL
     (ASTAR (has_fewer_prems 1, fn lev => fn thm => size_of_thm thm + !weight_ASTAR * lev)
       (step_tac cs 1));
 
 fun slow_astar_tac cs =
-  atomize_tac THEN'
+  ObjectLogic.atomize_tac THEN'
   SELECT_GOAL
     (ASTAR (has_fewer_prems 1, fn lev => fn thm => size_of_thm thm + !weight_ASTAR * lev)
       (slow_step_tac cs 1));
