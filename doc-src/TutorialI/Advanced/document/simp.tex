@@ -94,8 +94,8 @@ include \isa{x\ {\isacharminus}\ y\ {\isacharminus}\ z\ {\isacharequal}\ x\ {\is
 once they apply, they can be used forever. The simplifier is aware of this
 danger and treats permutative rules by means of a special strategy, called
 \bfindex{ordered rewriting}: a permutative rewrite
-rule is only applied if the term becomes ``smaller'' (with respect to a fixed
-lexicographic ordering on terms). For example, commutativity rewrites
+rule is only applied if the term becomes smaller with respect to a fixed
+lexicographic ordering on terms. For example, commutativity rewrites
 \isa{b\ {\isacharplus}\ a} to \isa{a\ {\isacharplus}\ b}, but then stops because \isa{a\ {\isacharplus}\ b} is strictly
 smaller than \isa{b\ {\isacharplus}\ a}.  Permutative rewrite rules can be turned into
 simplification rules in the usual manner via the \isa{simp} attribute; the
@@ -150,7 +150,7 @@ unknowns may occur.  Higher-order patterns are terms in $\beta$-normal
 form (this will always be the case unless you have done something
 strange) where each occurrence of an unknown is of the form
 $\Var{f}~x@1~\dots~x@n$, where the $x@i$ are distinct bound
-variables. Thus all ``standard'' rewrite rules, where all unknowns are
+variables. Thus all ordinary rewrite rules, where all unknowns are
 of base type, for example \isa{{\isacharquery}m\ {\isacharplus}\ {\isacharquery}n\ {\isacharplus}\ {\isacharquery}k\ {\isacharequal}\ {\isacharquery}m\ {\isacharplus}\ {\isacharparenleft}{\isacharquery}n\ {\isacharplus}\ {\isacharquery}k{\isacharparenright}}, are OK: if an unknown is
 of base type, it cannot have any arguments. Additionally, the rule
 \isa{{\isacharparenleft}{\isasymforall}x{\isachardot}\ {\isacharquery}P\ x\ {\isasymand}\ {\isacharquery}Q\ x{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}{\isacharparenleft}{\isasymforall}x{\isachardot}\ {\isacharquery}P\ x{\isacharparenright}\ {\isasymand}\ {\isacharparenleft}{\isasymforall}x{\isachardot}\ {\isacharquery}Q\ x{\isacharparenright}{\isacharparenright}} is also OK, in

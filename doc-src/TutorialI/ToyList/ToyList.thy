@@ -177,7 +177,7 @@ apply(induct_tac xs);
 
 txt{*\noindent\index{*induct_tac}%
 This tells Isabelle to perform induction on variable @{term"xs"}. The suffix
-@{term"tac"} stands for ``tactic'', a synonym for ``theorem proving function''.
+@{term"tac"} stands for \bfindex{tactic}, a synonym for ``theorem proving function''.
 By default, induction acts on the first subgoal. The new proof state contains
 two subgoals, namely the base case (@{term[source]Nil}) and the induction step
 (@{term[source]Cons}):
@@ -207,7 +207,7 @@ apply(auto);
 txt{*\noindent
 This command tells Isabelle to apply a proof strategy called
 @{text"auto"} to all subgoals. Essentially, @{text"auto"} tries to
-``simplify'' the subgoals.  In our case, subgoal~1 is solved completely (thanks
+simplify the subgoals.  In our case, subgoal~1 is solved completely (thanks
 to the equation @{prop"rev [] = []"}) and disappears; the simplified version
 of subgoal~2 becomes the new subgoal~1:
 @{subgoals[display,indent=0,margin=70]}

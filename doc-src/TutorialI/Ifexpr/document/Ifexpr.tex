@@ -12,7 +12,7 @@ expressions and some algorithms for manipulating them, and it demonstrates
 the constructs introduced above.%
 \end{isamarkuptext}%
 %
-\isamarkupsubsubsection{How Can We Model Boolean Expressions?%
+\isamarkupsubsubsection{Modelling Boolean Expressions%
 }
 %
 \begin{isamarkuptext}%
@@ -30,7 +30,7 @@ The two constants are represented by \isa{Const\ True} and
 For example, the formula $P@0 \land \neg P@1$ is represented by the term
 \isa{And\ {\isacharparenleft}Var\ {\isadigit{0}}{\isacharparenright}\ {\isacharparenleft}Neg\ {\isacharparenleft}Var\ {\isadigit{1}}{\isacharparenright}{\isacharparenright}}.
 
-\subsubsection{What is the Value of a Boolean Expression?}
+\subsubsection{The Value of a Boolean Expression}
 
 The value of a boolean expression depends on the value of its variables.
 Hence the function \isa{value} takes an additional parameter, an
@@ -64,9 +64,8 @@ The evaluation of If-expressions proceeds as for \isa{boolex}:%
 {\isachardoublequote}valif\ {\isacharparenleft}IF\ b\ t\ e{\isacharparenright}\ env\ {\isacharequal}\ {\isacharparenleft}if\ valif\ b\ env\ then\ valif\ t\ env\isanewline
 \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ else\ valif\ e\ env{\isacharparenright}{\isachardoublequote}%
 \begin{isamarkuptext}%
-\subsubsection{Transformation Into and of If-Expressions}
+\subsubsection{Converting Boolean and If-Expressions}
 
-\REMARK{is this the title you wanted?}
 The type \isa{boolex} is close to the customary representation of logical
 formulae, whereas \isa{ifex} is designed for efficiency. It is easy to
 translate from \isa{boolex} into \isa{ifex}:%

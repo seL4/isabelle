@@ -6,7 +6,10 @@ recursive function definitions. Isabelle/HOL also provides the type
 \isa{int} of \textbf{integers}, which lack induction but support true
 subtraction. The logic HOL-Real also has the type \isa{real} of real
 numbers.  Isabelle has no subtyping,  so the numeric types are distinct and
-there are  functions to convert between them. 
+there are  functions to convert between them. Fortunately most numeric
+operations are overloaded: the same symbol can be used at all numeric types.
+Table~\ref{tab:overloading} in the appendix shows the most important operations,
+together with the priorities of the infix symbols.
 
 The integers are preferable to the natural  numbers for reasoning about
 complicated arithmetic expressions. For  example, a termination proof

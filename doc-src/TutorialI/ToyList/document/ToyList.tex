@@ -172,7 +172,7 @@ not much choice except to induct on \isa{xs}:%
 \begin{isamarkuptxt}%
 \noindent\index{*induct_tac}%
 This tells Isabelle to perform induction on variable \isa{xs}. The suffix
-\isa{tac} stands for ``tactic'', a synonym for ``theorem proving function''.
+\isa{tac} stands for \bfindex{tactic}, a synonym for ``theorem proving function''.
 By default, induction acts on the first subgoal. The new proof state contains
 two subgoals, namely the base case (\isa{Nil}) and the induction step
 (\isa{Cons}):
@@ -204,7 +204,7 @@ Let us try to solve both goals automatically:%
 \noindent
 This command tells Isabelle to apply a proof strategy called
 \isa{auto} to all subgoals. Essentially, \isa{auto} tries to
-``simplify'' the subgoals.  In our case, subgoal~1 is solved completely (thanks
+simplify the subgoals.  In our case, subgoal~1 is solved completely (thanks
 to the equation \isa{rev\ {\isacharbrackleft}{\isacharbrackright}\ {\isacharequal}\ {\isacharbrackleft}{\isacharbrackright}}) and disappears; the simplified version
 of subgoal~2 becomes the new subgoal~1:
 \begin{isabelle}%

@@ -79,8 +79,8 @@ y A) = insert y (insert x A)"} for sets. Such rules are problematic because
 once they apply, they can be used forever. The simplifier is aware of this
 danger and treats permutative rules by means of a special strategy, called
 \bfindex{ordered rewriting}: a permutative rewrite
-rule is only applied if the term becomes ``smaller'' (with respect to a fixed
-lexicographic ordering on terms). For example, commutativity rewrites
+rule is only applied if the term becomes smaller with respect to a fixed
+lexicographic ordering on terms. For example, commutativity rewrites
 @{term"b+a"} to @{term"a+b"}, but then stops because @{term"a+b"} is strictly
 smaller than @{term"b+a"}.  Permutative rewrite rules can be turned into
 simplification rules in the usual manner via the @{text simp} attribute; the
@@ -131,7 +131,7 @@ unknowns may occur.  Higher-order patterns are terms in $\beta$-normal
 form (this will always be the case unless you have done something
 strange) where each occurrence of an unknown is of the form
 $\Var{f}~x@1~\dots~x@n$, where the $x@i$ are distinct bound
-variables. Thus all ``standard'' rewrite rules, where all unknowns are
+variables. Thus all ordinary rewrite rules, where all unknowns are
 of base type, for example @{thm add_assoc}, are OK: if an unknown is
 of base type, it cannot have any arguments. Additionally, the rule
 @{text"(\<forall>x. ?P x \<and> ?Q x) = ((\<forall>x. ?P x) \<and> (\<forall>x. ?Q x))"} is also OK, in

@@ -234,8 +234,8 @@ Now let us examine the analogous proof for conjunction.
 Recall that the conjunction elimination rules --- whose Isabelle names are 
 \isa{conjunct1} and \isa{conjunct2} --- simply return the first or second half
 of a conjunction.  Rules of this sort (where the conclusion is a subformula of a
-premise) are called \textbf{destruction} rules, by analogy with the destructor
-functions of functional programming.%
+premise) are called \textbf{destruction} rules because they take apart and destroy
+a premise.%
 \footnote{This Isabelle terminology has no counterpart in standard logic texts, 
 although the distinction between the two forms of elimination rule is well known. 
 Girard \cite[page 74]{girard89}, for example, writes ``The elimination rules 
@@ -365,7 +365,7 @@ context that requires a formula of higher-order logic.  Use
 conclusion.  
 
 \medskip
-\indexbold{by}
+\indexbold{*by}
 The \isacommand{by} command is useful for proofs like these that use
 \isa{assumption} heavily.  It executes an
 \isacommand{apply} command, then tries to prove all remaining subgoals using
@@ -781,7 +781,7 @@ placeholder: it can be replaced by any term.
 To see how this works, let us derive a rule about reducing 
 the scope of a universal quantifier.  In mathematical notation we write
 \[ \infer{P\imp\forall x.\,Q}{\forall x.\,P\imp Q} \]
-with the proviso `$x$ not free in~$P$.'  Isabelle's treatment of
+with the proviso ``$x$ not free in~$P$.''  Isabelle's treatment of
 substitution makes the proviso unnecessary.  The conclusion is expressed as
 \isa{P\
 \isasymlongrightarrow\ ({\isasymforall}x.\ Q\ x)}. No substitution for the
@@ -860,7 +860,7 @@ called \isa{xa} and~\isa{ya}.  You can rename them by invoking \isa{rename_tac}:
 \isacommand{apply}\ (rename_tac\ v\ w)\isanewline
 \ 1.\ \isasymAnd v\ w.\ x\ <\ y\ \isasymLongrightarrow \ P\ v\ (f\ w)
 \end{isabelle}
-Recall that \isa{rule_tac}\index{rule_tac|and renaming} instantiates a
+Recall that \isa{rule_tac}\index{*rule_tac!and renaming} instantiates a
 theorem with specified terms.  These terms may involve the goal's bound
 variables, but beware of referring to  variables
 like~\isa{xa}.  A future change to your theories could change the set of names
@@ -1686,7 +1686,7 @@ replaces \isa{?m} by~\isa{1} but leaves \isa{?k} unchanged.
 
 The next step is to put
 the theorem \isa{gcd_mult_0} into a simplified form, performing the steps 
-$\gcd(1,n)=1$ and $k\times1=k$.  The \isa{simplified}\indexbold{simplified}
+$\gcd(1,n)=1$ and $k\times1=k$.  The \isaindexbold{simplified}
 attribute takes a theorem
 and returns the result of simplifying it, with respect to the default
 simplification rules:
@@ -1769,7 +1769,7 @@ is the Isabelle version:
 \end{isabelle}
 
 \medskip
-The \isa{rule_format}\indexbold{rule_format} directive replaces a common usage
+The \isaindexbold{rule_format} directive replaces a common usage
 of \isa{THEN}\@.  It is needed in proofs by induction when the induction formula must be
 expressed using
 \isa{\isasymlongrightarrow} and \isa{\isasymforall}.  For example, in 

@@ -11,3 +11,4 @@ use_thy "prime_def";
 use_thy "simp";
 use_thy "Itrev";
 use_thy "AdvancedInd";
+use_thy "appendix";

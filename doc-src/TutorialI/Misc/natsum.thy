@@ -41,8 +41,8 @@ see~\S\ref{sec:numerals}.
   \ttindexboldpos{\mystar}{$HOL2arithfun}, \isaindexbold{min},
   \isaindexbold{max}, \indexboldpos{\isasymle}{$HOL2arithrel} and
   \ttindexboldpos{<}{$HOL2arithrel} are overloaded, i.e.\ they are available
-  not just for natural numbers but at other types as well (see
-  \S\ref{sec:overloading}). For example, given the goal @{prop"x+0 = x"},
+  not just for natural numbers but at other types as well.
+  For example, given the goal @{prop"x+0 = x"},
   there is nothing to indicate that you are talking about natural numbers.
   Hence Isabelle can only infer that @{term x} is of some arbitrary type where
   @{term 0} and @{text"+"} are declared. As a consequence, you will be unable
@@ -52,6 +52,10 @@ see~\S\ref{sec:numerals}.
   @{text"x+0 = (x::nat)"}. If there is enough contextual information this
   may not be necessary: @{prop"Suc x = x"} automatically implies
   @{text"x::nat"} because @{term Suc} is not overloaded.
+
+  For details see \S\ref{sec:numbers} and \S\ref{sec:overloading};
+  Table~\ref{tab:overloading} in the appendix shows the most important overloaded
+  operations.
 \end{warn}
 
 Simple arithmetic goals are proved automatically by both @{term auto} and the

@@ -43,8 +43,8 @@ see~\S\ref{sec:numerals}.
   \ttindexboldpos{\mystar}{$HOL2arithfun}, \isaindexbold{min},
   \isaindexbold{max}, \indexboldpos{\isasymle}{$HOL2arithrel} and
   \ttindexboldpos{<}{$HOL2arithrel} are overloaded, i.e.\ they are available
-  not just for natural numbers but at other types as well (see
-  \S\ref{sec:overloading}). For example, given the goal \isa{x\ {\isacharplus}\ {\isadigit{0}}\ {\isacharequal}\ x},
+  not just for natural numbers but at other types as well.
+  For example, given the goal \isa{x\ {\isacharplus}\ {\isadigit{0}}\ {\isacharequal}\ x},
   there is nothing to indicate that you are talking about natural numbers.
   Hence Isabelle can only infer that \isa{x} is of some arbitrary type where
   \isa{{\isadigit{0}}} and \isa{{\isacharplus}} are declared. As a consequence, you will be unable
@@ -54,6 +54,10 @@ see~\S\ref{sec:numerals}.
   \isa{x{\isacharplus}{\isadigit{0}}\ {\isacharequal}\ {\isacharparenleft}x{\isacharcolon}{\isacharcolon}nat{\isacharparenright}}. If there is enough contextual information this
   may not be necessary: \isa{Suc\ x\ {\isacharequal}\ x} automatically implies
   \isa{x{\isacharcolon}{\isacharcolon}nat} because \isa{Suc} is not overloaded.
+
+  For details see \S\ref{sec:numbers} and \S\ref{sec:overloading};
+  Table~\ref{tab:overloading} in the appendix shows the most important overloaded
+  operations.
 \end{warn}
 
 Simple arithmetic goals are proved automatically by both \isa{auto} and the
