@@ -816,7 +816,7 @@ fun gen_tyvar(S) = TVar(("'a", new_tvar_inx()), S);
 fun occ v tye =
   let fun occ(Type(_, Ts)) = exists occ Ts
         | occ(TFree _) = false
-        | occ(TVar(w, _)) = v=w orelse
+        | occ(TVar(w, _)) = eq_ix(v,w) orelse
                            (case assoc(tye, w) of
                               None   => false
                             | Some U => occ U);
@@ -834,7 +834,7 @@ to avoid chains of the form 'a |-> 'b |-> 'c ... *)
 
 fun add_to_tye(p,[]) = [p]
   | add_to_tye(vT as (v,T),(xU as (x,TVar(w,S)))::ps) =
-      (if v=w then (x,T) else xU) :: (add_to_tye(vT,ps))
+      (if eq_ix(v,w) then (x,T) else xU) :: (add_to_tye(vT,ps))
   | add_to_tye(v,x::xs) = x::(add_to_tye(v,xs));
 
 (* 'dom' returns for a type constructor t the list of those domains
@@ -875,7 +875,7 @@ fun unify1 (tsig as TySg{subclass, arities, ...}) =
   let fun unif ((T, U), tye) =
         case (devar(T, tye), devar(U, tye)) of
           (T as TVar(v, S1), U as TVar(w, S2)) =>
-             if v=w then tye else
+             if eq_ix(v,w) then tye else
              if sortorder subclass (S1, S2) then add_to_tye((w, T),tye) else
              if sortorder subclass (S2, S1) then add_to_tye((v, U),tye)
              else let val nu = gen_tyvar (union_sort subclass (S1, S2))

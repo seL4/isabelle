@@ -146,7 +146,7 @@ fun occurs_terms (seen: (indexname list) ref,
 	| occur (Free _)  = false
 	| occur (Var (w,_))  = 
 	    if mem_ix (w, !seen) then false
-	    else if v=w then true
+	    else if eq_ix(v,w) then true
 	      (*no need to lookup: v has no assignment*)
 	    else (seen := w:: !seen;  
 	          case  Envir.lookup(env,w)  of
@@ -209,7 +209,7 @@ fun rigid_occurs_term (seen: (indexname list)ref, env, v: indexname, t) =
 	| occur (Free _)  = NoOcc
 	| occur (Var (w,_))  = 
 	    if mem_ix (w, !seen) then NoOcc
-	    else if v=w then Rigid
+	    else if eq_ix(v,w) then Rigid
 	    else (seen := w:: !seen;  
 	          case  Envir.lookup(env,w)  of
 		      None    => NoOcc
@@ -218,7 +218,7 @@ fun rigid_occurs_term (seen: (indexname list)ref, env, v: indexname, t) =
 	| occur (t as f$_) =  (*switch to nonrigid search?*)
 	   (case head_of_in (env,f) of
 	      Var (w,_) => (*w is not assigned*)
-		if v=w then Rigid  
+		if eq_ix(v,w) then Rigid  
 		else  nonrigid t
 	    | Abs(_,_,body) => nonrigid t (*not in normal form*)
 	    | _ => occomb t)
@@ -593,7 +593,7 @@ fun add_ffpair ((rbinder,t0,u0), (env,tpairs))
   let val t = Envir.norm_term env t0  and  u = Envir.norm_term env u0
   in  case  (head_of t, head_of u) of
       (Var(v,T), Var(w,U)) =>  (*Check for identical variables...*)
-	if v=w then		(*...occur check would falsely return true!*)
+	if eq_ix(v,w) then     (*...occur check would falsely return true!*)
 	    if T=U then (env, add_tpair (rbinder, (t,u), tpairs))
 	    else raise TERM ("add_ffpair: Var name confusion", [t,u])
 	else if xless(v,w) then (*prefer to update the LARGER variable*)
