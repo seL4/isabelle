@@ -44,16 +44,21 @@ fun mk_cntxt Ts t pos T maxi =
 
 fun add_lbnos(is,t) = add_loose_bnos(t,0,is);
 
-fun typ_test _ [] = true
-  | typ_test T ((_,U,_)::_) = (T=U);
+(* check if the innermost quantifier that needs to be removed
+   has a body of type T; otherwise the expansion thm will fail later on
+*)
+fun type_test(T,lbnos,apsns) =
+  let val (_,U,_) = nth_elem(min lbnos,apsns)
+  in T=U end;
 
 fun mk_split_pack(thm,T,n,ts,apsns) =
-  if n <= length ts andalso typ_test T apsns
-  then let val lev = length apsns
+  if n > length ts then []
+  else let val lev = length apsns
            val lbnos = foldl add_lbnos ([],take(n,ts))
            val flbnos = filter (fn i => i < lev) lbnos
-       in [(thm, if null flbnos then [] else rev apsns)] end
-  else [];
+       in if null flbnos then [(thm,[])]
+          else if type_test(T,flbnos,apsns) then [(thm, rev apsns)] else []
+       end;
 
 fun split_posns cmap Ts t =
   let fun posns Ts pos apsns (Abs(_,T,t)) =
