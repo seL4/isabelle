@@ -244,7 +244,7 @@ fun no_syms [] = true
 fun sym_explode str =
   let val chs = explode str in
     if no_syms chs then chs     (*tune trivial case*)
-    else map symbol (#1 (Scan.error (Scan.finite stopper (Scan.repeat scan)) chs))
+    else map symbol (the (Scan.read stopper (Scan.repeat scan) chs))
   end;
 
 

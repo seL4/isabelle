@@ -187,7 +187,7 @@ local
     $$ "'" -- Scan.one Symbol.is_blank >> K None;
 
   val scan_symbs = Scan.repeat scan_symb --| Scan.ahead (Scan.one (not_equal "'"));
-  val read_symbs = mapfilter I o #1 o Scan.error (Scan.finite Symbol.stopper scan_symbs);
+  val read_symbs = mapfilter I o the o Scan.read Symbol.stopper scan_symbs;
 in
   val read_mixfix = read_symbs o Symbol.explode;
 end;
