@@ -55,10 +55,10 @@ shift $(($OPTIND - 1))
 
 # args
 
-NAME=""
+NAME="-"
 [ $# -ge 1 ] && { NAME="$1"; shift; }
 
-[ $# -ne 0 -o -z "$NAME" ] && usage
+[ $# -ne 0 -o "$NAME" = "-" ] && usage
 
 
 ## main
