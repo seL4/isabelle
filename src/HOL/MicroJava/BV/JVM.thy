@@ -386,6 +386,107 @@ proof -
   thus ?thesis by blast
 qed
 
+
+(* there's still two nontrivial (but provable) "sorry"s in here  *)
+theorem wt_kil_complete:
+  "[| wt_method G C pTs rT maxs mxl bs phi; wf_prog wf_mb G; 
+      length phi = length bs; is_class G C; \<forall>x \<in> set pTs. is_type G x |]
+  ==> wt_kil G C pTs rT maxs mxl bs"
+proof -
+  assume wf:      "wf_prog wf_mb G"  
+  assume isclass: "is_class G C"
+  assume istype:  "\<forall>x \<in> set pTs. is_type G x"
+  assume length:  "length phi = length bs"
+
+  assume "wt_method G C pTs rT maxs mxl bs phi"
+  then obtain
+    instrs:   "0 < length bs" and
+    wt_start: "wt_start G C pTs mxl phi" and
+    wt_ins:   "\<forall>pc. pc < length bs \<longrightarrow> 
+                    wt_instr (bs ! pc) G rT phi maxs (length bs) pc"
+    by (unfold wt_method_def) simp
+
+  let ?succs = "\<lambda>pc. succs (bs!pc) pc"
+  let ?step  = "\<lambda>pc. step (bs!pc) G"
+  let ?app   = "\<lambda>pc. app (bs!pc) G maxs rT"
+
+  from wt_ins
+  have bounded: "bounded ?succs (size bs)"
+    by (unfold wt_instr_def bounded_def) blast
+
+  from wt_ins
+  have "static_wt (sup_state_opt G) ?app ?step ?succs phi"
+    apply (unfold static_wt_def wt_instr_def lesub_def)
+    apply (simp (no_asm) only: length)
+    apply blast
+    done
+
+  with bounded
+  have "dynamic_wt (sup_state_opt G) (err_step ?app ?step) ?succs (map OK phi)"
+    by - (erule static_imp_dynamic, simp add: length)
+
+  hence dynamic:
+    "dynamic_wt (sup_state_opt G) (exec G maxs rT bs) ?succs (map OK phi)"
+    by (unfold exec_def)
+ 
+  let ?maxr = "1+size pTs+mxl"
+
+  from wf bounded
+  have is_bcv: 
+    "is_bcv (JVM.le G maxs ?maxr) Err (exec G maxs rT bs) ?succs 
+            (size bs) (states G maxs ?maxr) (kiljvm G maxs ?maxr rT bs)"
+    by (rule is_bcv_kiljvm)
+
+  let ?start = "OK (Some ([],(OK (Class C))#((map OK pTs))@(replicate mxl Err)))
+                #(replicate (size bs-1) (OK None))"
+
+  { fix l x
+    have "set (replicate l x) \<subseteq> {x}"
+      by (cases "0 < l") simp+
+  } note subset_replicate = this
+
+  from istype
+  have "set pTs \<subseteq> types G"
+    by auto
+
+  hence "OK `` set pTs \<subseteq> err (types G)"
+    by auto
+
+  with instrs isclass 
+  have start:
+    "?start \<in> list (length bs) (states G maxs ?maxr)"
+    apply (unfold list_def JVM_states_unfold)
+    apply simp
+    apply (rule conjI)
+     apply (simp add: Un_subset_iff)
+     apply (rule_tac B = "{Err}" in subset_trans)
+      apply (simp add: subset_replicate)
+     apply simp
+    apply (rule_tac B = "{OK None}" in subset_trans)
+     apply (simp add: subset_replicate)
+    apply simp
+    done
+
+  let ?phi = "map OK phi"
+
+  have 1: "?phi \<in> list (length bs) (states G maxs ?maxr)" sorry
+
+  from wt_start
+  have 2: "?start <=[le G maxs ?maxr] ?phi" sorry
+
+  from dynamic
+  have "welltyping (le G maxs ?maxr) Err (exec G maxs rT bs) ?succs ?phi"
+    by (simp add: dynamic_wt_def JVM_le_Err_conv)
+  
+  with start 1 2 is_bcv
+  have "\<forall>p. p < length bs \<longrightarrow> kiljvm G maxs ?maxr rT bs ?start ! p \<noteq> Err"
+    by (unfold is_bcv_def) blast
+
+  with bounded instrs
+  show "wt_kil G C pTs rT maxs mxl bs"
+    by (unfold wt_kil_def) simp
+qed
+
 lemma is_type_pTs:
   "[| wf_prog wf_mb G; (C,S,fs,mdecls) \<in> set G; (sig,rT,code) \<in> set mdecls; 
       t \<in> set (snd sig) |]
