@@ -7,29 +7,15 @@
 
 theory HyperOrd = HyperDef:
 
+ML
+{*
+val left_distrib = thm"left_distrib";
+*}
 
 (*** Monotonicity results ***)
 
-lemma hypreal_add_right_cancel_less: "(v+z < w+z) = (v < (w::hypreal))"
-  by (rule Ring_and_Field.add_less_cancel_right)
-
-lemma hypreal_add_left_cancel_less: "(z+v < z+w) = (v < (w::hypreal))"
-  by (rule Ring_and_Field.add_less_cancel_left)
-
-lemma hypreal_add_right_cancel_le: "(v+z \<le> w+z) = (v \<le> (w::hypreal))"
-  by (rule Ring_and_Field.add_le_cancel_right)
-
-lemma hypreal_add_left_cancel_le: "(z+v \<le> z+w) = (v \<le> (w::hypreal))"
-  by (rule Ring_and_Field.add_le_cancel_left)
-
-lemma hypreal_add_less_mono: "[| (z1::hypreal) < y1; z2 < y2 |] ==> z1 + z2 < y1 + y2"
- by (rule Ring_and_Field.add_strict_mono)
-
-lemma hypreal_add_le_mono: "[|(i::hypreal)\<le>j;  k\<le>l |] ==> i + k \<le> j + l"
- by (rule Ring_and_Field.add_mono)
-
 lemma hypreal_add_less_le_mono: "[|(i::hypreal)<j;  k\<le>l |] ==> i + k < j + l"
-by (auto dest!: order_le_imp_less_or_eq intro: hypreal_add_less_mono1 hypreal_add_less_mono)
+by (auto dest!: order_le_imp_less_or_eq intro: hypreal_add_less_mono1 add_strict_mono)
 
 lemma hypreal_add_less_mono2: "!!(A::hypreal). A < B ==> C + A < C + B"
 by (auto intro: hypreal_add_less_mono1 simp add: hypreal_add_commute)
@@ -43,18 +29,11 @@ lemma hypreal_less_add_right_cancel: "(A::hypreal) + C < B + C ==> A < B"
 apply (simp (no_asm_use))
 done
 
-lemma hypreal_less_add_left_cancel: "(C::hypreal) + A < C + B ==> A < B"
-apply (simp (no_asm_use))
-done
-
 lemma hypreal_add_zero_less_le_mono: "[|r < x; (0::hypreal) \<le> y|] ==> r < x + y"
 by (auto dest: hypreal_add_less_le_mono)
 
-lemma hypreal_le_add_right_cancel: "!!(A::hypreal). A + C \<le> B + C ==> A \<le> B"
-  by (rule Ring_and_Field.add_le_imp_le_right)
-
 lemma hypreal_le_add_left_cancel: "!!(A::hypreal). C + A \<le> C + B ==> A \<le> B"
-apply (simp add: ); 
+apply simp
 done
 
 lemma hypreal_le_square [simp]: "(0::hypreal) \<le> x*x"
@@ -112,9 +91,6 @@ by (cut_tac not_ex_hypreal_of_real_eq_omega, auto)
 (* existence of infinitesimal number also not *)
 (* corresponding to any real number *)
 
-lemma real_of_nat_inverse_inj: "inverse (real (x::nat)) = inverse (real y) ==> x = y"
-by (rule inj_real_of_nat [THEN injD], simp)
-
 lemma lemma_epsilon_empty_singleton_disj: "{n::nat. x = inverse(real(Suc n))} = {} |  
       (\<exists>y. {n::nat. x = inverse(real(Suc n))} = {y})"
 apply (auto simp add: inj_real_of_nat [THEN inj_eq])
@@ -139,72 +115,16 @@ lemma hypreal_epsilon_inverse_omega: "epsilon = inverse(omega)"
 by (simp add: hypreal_inverse omega_def epsilon_def)
 
 
-subsection{*Routine Properties*}
-
-(* this proof is so much simpler than one for reals!! *)
-lemma hypreal_inverse_less_swap:
-     "[| 0 < r; r < x |] ==> inverse x < inverse (r::hypreal)"
-  by (rule Ring_and_Field.less_imp_inverse_less)
-
-lemma hypreal_inverse_less_iff:
-     "[| 0 < r; 0 < x|] ==> (inverse x < inverse (r::hypreal)) = (r < x)"
-by (rule Ring_and_Field.inverse_less_iff_less)
-
-lemma hypreal_inverse_le_iff:
-     "[| 0 < r; 0 < x|] ==> (inverse x \<le> inverse r) = (r \<le> (x::hypreal))"
-by (rule Ring_and_Field.inverse_le_iff_le)
-
-
-subsection{*Convenient Biconditionals for Products of Signs*}
-
-lemma hypreal_0_less_mult_iff:
-     "((0::hypreal) < x*y) = (0 < x & 0 < y | x < 0 & y < 0)"
-  by (rule Ring_and_Field.zero_less_mult_iff) 
-
-lemma hypreal_0_le_mult_iff: "((0::hypreal) \<le> x*y) = (0 \<le> x & 0 \<le> y | x \<le> 0 & y \<le> 0)"
-  by (rule Ring_and_Field.zero_le_mult_iff) 
-
-lemma hypreal_mult_less_0_iff: "(x*y < (0::hypreal)) = (0 < x & y < 0 | x < 0 & 0 < y)"
-  by (rule Ring_and_Field.mult_less_0_iff) 
-
-lemma hypreal_mult_le_0_iff: "(x*y \<le> (0::hypreal)) = (0 \<le> x & y \<le> 0 | x \<le> 0 & 0 \<le> y)"
-  by (rule Ring_and_Field.mult_le_0_iff) 
-
-
-lemma hypreal_mult_self_sum_ge_zero: "(0::hypreal) \<le> x*x + y*y"
-proof -
-  have "0 + 0 \<le> x*x + y*y" by (blast intro: add_mono zero_le_square)
-  thus ?thesis by simp
-qed
-
-(*TO BE DELETED*)
-ML
-{*
-val hypreal_add_ac = thms"hypreal_add_ac";
-val hypreal_mult_ac = thms"hypreal_mult_ac";
-
-val hypreal_less_irrefl = thm"hypreal_less_irrefl";
-*}
-
 ML
 {*
 val hypreal_add_less_mono1 = thm"hypreal_add_less_mono1";
-val hypreal_add_less_mono2 = thm"hypreal_add_less_mono2";
 val hypreal_mult_order = thm"hypreal_mult_order";
 val hypreal_le_add_order = thm"hypreal_le_add_order";
-val hypreal_add_right_cancel_less = thm"hypreal_add_right_cancel_less";
-val hypreal_add_left_cancel_less = thm"hypreal_add_left_cancel_less";
-val hypreal_add_right_cancel_le = thm"hypreal_add_right_cancel_le";
-val hypreal_add_left_cancel_le = thm"hypreal_add_left_cancel_le";
-val hypreal_add_less_mono = thm"hypreal_add_less_mono";
 val hypreal_add_left_le_mono1 = thm"hypreal_add_left_le_mono1";
-val hypreal_add_le_mono = thm"hypreal_add_le_mono";
 val hypreal_add_less_le_mono = thm"hypreal_add_less_le_mono";
 val hypreal_add_le_less_mono = thm"hypreal_add_le_less_mono";
 val hypreal_less_add_right_cancel = thm"hypreal_less_add_right_cancel";
-val hypreal_less_add_left_cancel = thm"hypreal_less_add_left_cancel";
 val hypreal_add_zero_less_le_mono = thm"hypreal_add_zero_less_le_mono";
-val hypreal_le_add_right_cancel = thm"hypreal_le_add_right_cancel";
 val hypreal_le_add_left_cancel = thm"hypreal_le_add_left_cancel";
 val hypreal_le_square = thm"hypreal_le_square";
 val hypreal_mult_less_mono1 = thm"hypreal_mult_less_mono1";
@@ -217,21 +137,10 @@ val lemma_omega_empty_singleton_disj = thm"lemma_omega_empty_singleton_disj";
 val lemma_finite_omega_set = thm"lemma_finite_omega_set";
 val not_ex_hypreal_of_real_eq_omega = thm"not_ex_hypreal_of_real_eq_omega";
 val hypreal_of_real_not_eq_omega = thm"hypreal_of_real_not_eq_omega";
-val real_of_nat_inverse_inj = thm"real_of_nat_inverse_inj";
-val lemma_epsilon_empty_singleton_disj = thm"lemma_epsilon_empty_singleton_disj";
-val lemma_finite_epsilon_set = thm"lemma_finite_epsilon_set";
 val not_ex_hypreal_of_real_eq_epsilon = thm"not_ex_hypreal_of_real_eq_epsilon";
 val hypreal_of_real_not_eq_epsilon = thm"hypreal_of_real_not_eq_epsilon";
 val hypreal_epsilon_not_zero = thm"hypreal_epsilon_not_zero";
 val hypreal_epsilon_inverse_omega = thm"hypreal_epsilon_inverse_omega";
-val hypreal_inverse_less_swap = thm"hypreal_inverse_less_swap";
-val hypreal_inverse_less_iff = thm"hypreal_inverse_less_iff";
-val hypreal_inverse_le_iff = thm"hypreal_inverse_le_iff";
-val hypreal_0_less_mult_iff = thm"hypreal_0_less_mult_iff";
-val hypreal_0_le_mult_iff = thm"hypreal_0_le_mult_iff";
-val hypreal_mult_less_0_iff = thm"hypreal_mult_less_0_iff";
-val hypreal_mult_le_0_iff = thm"hypreal_mult_le_0_iff";
-val hypreal_mult_self_sum_ge_zero = thm "hypreal_mult_self_sum_ge_zero";
 *}
 
 end

@@ -1062,19 +1062,19 @@ by (forward_tac [CInfinitesimal_add_not_zero] 1);
 by (asm_full_simp_tac (simpset() addsimps [hcomplex_add_commute,numeral_2_eq_2]) 2); 
 by (auto_tac (claset(),
      simpset() addsimps [starfunC_inverse_inverse,hcomplex_diff_def] 
-               delsimps [hcomplex_minus_mult_eq1 RS sym,
+               delsimps [minus_mult_right RS sym, minus_mult_left RS sym,
+                         hcomplex_minus_mult_eq1 RS sym,
                          hcomplex_minus_mult_eq2 RS sym]));
 by (asm_simp_tac
      (simpset() addsimps [inverse_add,
           inverse_mult_distrib RS sym, hcomplex_minus_inverse RS sym] 
           @ hcomplex_add_ac @ hcomplex_mult_ac 
-       delsimps [thm"Ring_and_Field.inverse_minus_eq",
-		 inverse_mult_distrib, hcomplex_minus_mult_eq1 RS sym,
+       delsimps [inverse_minus_eq,
+		 inverse_mult_distrib, minus_mult_right RS sym, minus_mult_left RS sym,
+                         hcomplex_minus_mult_eq1 RS sym,
                  hcomplex_minus_mult_eq2 RS sym] ) 1);
-by (asm_simp_tac (simpset() addsimps [hcomplex_mult_assoc RS sym,
-                                      hcomplex_add_mult_distrib2] 
-         delsimps [hcomplex_minus_mult_eq1 RS sym, 
-                   hcomplex_minus_mult_eq2 RS sym]) 1);
+by (asm_simp_tac (HOL_ss addsimps [hcomplex_mult_assoc RS sym,
+                                      hcomplex_add_mult_distrib2]) 1);
 by (res_inst_tac [("y"," inverse(- hcomplex_of_complex x * hcomplex_of_complex x)")] 
                  capprox_trans 1);
 by (rtac inverse_add_CInfinitesimal_capprox2 1);

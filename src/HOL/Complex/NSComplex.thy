@@ -1015,7 +1015,7 @@ declare hcmod_triangle_ineq [simp]
 
 lemma hcmod_triangle_ineq2: "hcmod(b + a) - hcmod b <= hcmod a"
 apply (cut_tac x1 = "b" and y1 = "a" and c = "-hcmod b" in hcmod_triangle_ineq [THEN add_right_mono])
-apply (simp add: hypreal_add_ac)
+apply (simp add: add_ac)
 done
 declare hcmod_triangle_ineq2 [simp]
 

@@ -448,9 +448,8 @@ qed "capprox_add_minus";
 
 Goalw [capprox_def,hcomplex_diff_def] 
       "[| a @c= b; c: CFinite|] ==> a*c @c= b*c"; 
-by (asm_full_simp_tac (simpset() addsimps [CInfinitesimal_CFinite_mult,
-    hcomplex_minus_mult_eq1,hcomplex_add_mult_distrib RS sym] 
-    delsimps [hcomplex_minus_mult_eq1 RS sym]) 1);
+by (asm_full_simp_tac (HOL_ss addsimps [CInfinitesimal_CFinite_mult,
+    hcomplex_minus_mult_eq1,hcomplex_add_mult_distrib RS sym]) 1);
 qed "capprox_mult1";
 
 Goal "[|a @c= b; c: CFinite|] ==> c*a @c= c*b"; 

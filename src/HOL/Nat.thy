@@ -659,16 +659,16 @@ lemma nat_add_left_commute: "x + (y + z) = y + ((x + z)::nat)"
   apply (rule nat_add_commute)
   done
 
-lemma add_left_cancel [simp]: "(k + m = k + n) = (m = (n::nat))"
+lemma nat_add_left_cancel [simp]: "(k + m = k + n) = (m = (n::nat))"
   by (induct k) simp_all
 
-lemma add_right_cancel [simp]: "(m + k = n + k) = (m=(n::nat))"
+lemma nat_add_right_cancel [simp]: "(m + k = n + k) = (m=(n::nat))"
   by (induct k) simp_all
 
-lemma add_left_cancel_le [simp]: "(k + m \<le> k + n) = (m\<le>(n::nat))"
+lemma nat_add_left_cancel_le [simp]: "(k + m \<le> k + n) = (m\<le>(n::nat))"
   by (induct k) simp_all
 
-lemma add_left_cancel_less [simp]: "(k + m < k + n) = (m<(n::nat))"
+lemma nat_add_left_cancel_less [simp]: "(k + m < k + n) = (m<(n::nat))"
   by (induct k) simp_all
 
 text {* Reasoning about @{text "m + 0 = 0"}, etc. *}

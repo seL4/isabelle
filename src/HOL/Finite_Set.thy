@@ -483,7 +483,7 @@ lemma card_Diff_subset:
     "finite A ==> B <= A ==> card A - card B = card (A - B)"
   apply (subgoal_tac "(A - B) Un B = A")
    prefer 2 apply blast
-  apply (rule add_right_cancel [THEN iffD1])
+  apply (rule nat_add_right_cancel [THEN iffD1])
   apply (rule card_Un_disjoint [THEN subst])
      apply (erule_tac [4] ssubst)
      prefer 3 apply blast

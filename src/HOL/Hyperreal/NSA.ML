@@ -270,7 +270,7 @@ Goal "[|x : HFinite; y <= x; 0 <= y |] ==> y: HFinite";
 by (case_tac "x <= 0" 1);
 by (dres_inst_tac [("y","x")] order_trans 1);
 by (dtac hypreal_le_anti_sym 2);
-by (auto_tac (claset() addSDs [not_hypreal_leE], simpset()));
+by (auto_tac (claset(), simpset() addsimps [linorder_not_le]));
 by (auto_tac (claset() addSIs [bexI] addIs [order_le_less_trans],
      simpset() addsimps [hrabs_eqI1,hrabs_eqI2,hrabs_minus_eqI1,HFinite_def]));
 qed "HFinite_bounded";
@@ -351,7 +351,7 @@ by (forw_inst_tac [("x1","r"),("z","abs x")]
     (hypreal_inverse_gt_0 RS order_less_trans) 1);
 by (assume_tac 1);
 by (dtac ((inverse_inverse_eq RS sym) RS subst) 1);
-by (rtac (hypreal_inverse_less_iff RS iffD1) 1);
+by (rtac (inverse_less_iff_less RS iffD1) 1);
 by (auto_tac (claset(), simpset() addsimps [SReal_inverse]));
 qed "HInfinite_inverse_Infinitesimal";
 
@@ -364,7 +364,7 @@ by (eres_inst_tac [("x","r")] ballE 1);
 by (case_tac "y=0" 1);
 by (cut_inst_tac [("x","1"),("y","abs x"),
                   ("u","r"),("v","abs y")] hypreal_mult_less_mono 2);
-by (auto_tac (claset(), simpset() addsimps hypreal_mult_ac));
+by (auto_tac (claset(), simpset() addsimps mult_ac));
 qed "HInfinite_mult";
 
 Goalw [HInfinite_def]
@@ -392,7 +392,7 @@ Goal "[|x: HInfinite; y <= 0; x <= 0|] ==> (x + y): HInfinite";
 by (dtac (HInfinite_minus_iff RS iffD2) 1);
 by (rtac (HInfinite_minus_iff RS iffD1) 1);
 by (auto_tac (claset() addIs [HInfinite_add_ge_zero],
-              simpset() addsimps [hypreal_minus_zero_le_iff]));
+              simpset()));
 qed "HInfinite_add_le_zero";
 
 Goal "[|x: HInfinite; y < 0; x < 0|] ==> (x + y): HInfinite";
@@ -456,7 +456,7 @@ by (Clarify_tac 1);
 by (asm_full_simp_tac (simpset() addsimps [linorder_not_less]) 1);
 by (eres_inst_tac [("x","r*ra")] ballE 1);
 by (fast_tac (claset() addIs [SReal_mult]) 2);
-by (auto_tac (claset(), simpset() addsimps [hypreal_0_less_mult_iff]));
+by (auto_tac (claset(), simpset() addsimps [zero_less_mult_iff]));
 by (cut_inst_tac [("x","ra"),("y","abs y"),
                   ("u","r"),("v","abs x")] hypreal_mult_le_mono 1);
 by Auto_tac;
@@ -598,9 +598,9 @@ qed "Infinitesimal_approx";
 
 val prem1::prem2::rest =
 goalw thy [approx_def] "[| a @= b; c @= d |] ==> a+c @= b+d";
-by (stac hypreal_minus_add_distrib 1);
+by (stac minus_add_distrib 1);
 by (stac hypreal_add_assoc 1);
-by (res_inst_tac [("y1","c")] (hypreal_add_left_commute RS subst) 1);
+by (res_inst_tac [("b1","c")] (add_left_commute RS subst) 1);
 by (rtac (hypreal_add_assoc RS subst) 1);
 by (rtac ([prem1,prem2] MRS Infinitesimal_add) 1);
 qed "approx_add";
@@ -627,8 +627,8 @@ qed "approx_add_minus";
 
 Goalw [approx_def] "[| a @= b; c: HFinite|] ==> a*c @= b*c";
 by (asm_full_simp_tac (simpset() addsimps [Infinitesimal_HFinite_mult,
-    hypreal_minus_mult_eq1,hypreal_add_mult_distrib RS sym]
-    delsimps [hypreal_minus_mult_eq1 RS sym]) 1);
+    minus_mult_left,left_distrib RS sym]
+    delsimps [minus_mult_left RS sym]) 1);
 qed "approx_mult1";
 
 Goal "[|a @= b; c: HFinite|] ==> c*a @= c*b";
@@ -668,14 +668,14 @@ qed "bex_Infinitesimal_iff2";
 Goal "[| y: Infinitesimal; x + y = z |] ==> x @= z";
 by (rtac (bex_Infinitesimal_iff RS iffD1) 1);
 by (dtac (Infinitesimal_minus_iff RS iffD2) 1);
-by (auto_tac (claset(), simpset() addsimps [hypreal_minus_add_distrib,
+by (auto_tac (claset(), simpset() addsimps [minus_add_distrib,
     hypreal_add_assoc RS sym]));
 qed "Infinitesimal_add_approx";
 
 Goal "y: Infinitesimal ==> x @= x + y";
 by (rtac (bex_Infinitesimal_iff RS iffD1) 1);
 by (dtac (Infinitesimal_minus_iff RS iffD2) 1);
-by (auto_tac (claset(), simpset() addsimps [hypreal_minus_add_distrib,
+by (auto_tac (claset(), simpset() addsimps [minus_add_distrib,
     hypreal_add_assoc RS sym]));
 qed "Infinitesimal_add_approx_self";
 
@@ -705,8 +705,8 @@ qed "Infinitesimal_add_right_cancel";
 Goal "d + b  @= d + c ==> b @= c";
 by (dtac (approx_minus_iff RS iffD1) 1);
 by (asm_full_simp_tac (simpset() addsimps
-    [hypreal_minus_add_distrib,approx_minus_iff RS sym]
-    @ hypreal_add_ac) 1);
+    [minus_add_distrib,approx_minus_iff RS sym]
+    @ add_ac) 1);
 qed "approx_add_left_cancel";
 
 Goal "b + d @= c + d ==> b @= c";
@@ -718,8 +718,8 @@ qed "approx_add_right_cancel";
 Goal "b @= c ==> d + b @= d + c";
 by (rtac (approx_minus_iff RS iffD2) 1);
 by (asm_full_simp_tac (simpset() addsimps
-    [hypreal_minus_add_distrib,approx_minus_iff RS sym]
-    @ hypreal_add_ac) 1);
+    [minus_add_distrib,approx_minus_iff RS sym]
+    @ add_ac) 1);
 qed "approx_add_mono1";
 
 Goal "b @= c ==> b + a @= c + a";
@@ -1054,7 +1054,7 @@ Goal "[| x: HFinite; \
 \        r: Reals; 0 < r |] \
 \     ==> t + -r <= x";
 by (ftac isLubD1a 1);
-by (rtac ccontr 1 THEN dtac not_hypreal_leE 1);
+by (rtac ccontr 1 THEN dtac (linorder_not_le RS iffD1) 1);
 by (dtac SReal_minus 1 THEN dres_inst_tac [("x","t")]
     SReal_add 1 THEN assume_tac 1);
 by (dtac lemma_st_part_gt_ub 1 THEN REPEAT(assume_tac 1));
@@ -1117,7 +1117,7 @@ Goal "[| x: HFinite; \
 \        isLub Reals {s. s: Reals & s < x} t; \
 \        r: Reals; 0 < r |] \
 \     ==> -(x + -t) ~= r";
-by (auto_tac (claset(), simpset() addsimps [hypreal_minus_add_distrib]));
+by (auto_tac (claset(), simpset() addsimps [minus_add_distrib]));
 by (ftac isLubD1a 1);
 by (dtac SReal_add_cancel 1 THEN assume_tac 1);
 by (dres_inst_tac [("x","-x")] SReal_minus 1);
@@ -1400,8 +1400,8 @@ Goal "[| 0 < x;  x ~:Infinitesimal;  e :Infinitesimal |] ==> e < x";
 by (rtac ccontr 1);
 by (auto_tac (claset()
                addIs [Infinitesimal_zero RSN (2, Infinitesimal_interval)]
-               addSDs [hypreal_leI, order_le_imp_less_or_eq],
-              simpset()));
+               addSDs [order_le_imp_less_or_eq],
+              simpset() addsimps [linorder_not_less]));
 qed "less_Infinitesimal_less";
 
 Goal "[| 0 < x;  x ~: Infinitesimal; u: monad x |] ==> 0 < u";
@@ -1545,7 +1545,7 @@ by (blast_tac (claset() addSIs [hypreal_of_real_le_iff RS iffD1,
 qed "hypreal_of_real_le_add_Infininitesimal_cancel2";
 
 Goal "[| hypreal_of_real x < e; e: Infinitesimal |] ==> hypreal_of_real x <= 0";
-by (rtac hypreal_leI 1 THEN Step_tac 1);
+by (rtac (linorder_not_less RS iffD1) 1 THEN Safe_tac);
 by (dtac Infinitesimal_interval 1);
 by (dtac (SReal_hypreal_of_real RS SReal_Infinitesimal_zero) 4);
 by Auto_tac;
@@ -1610,25 +1610,25 @@ Addsimps [HFinite_sum_square_cancel];
 
 Goal "y*y + x*x + z*z : Infinitesimal ==> x*x : Infinitesimal";
 by (rtac Infinitesimal_sum_square_cancel 1);
-by (asm_full_simp_tac (simpset() addsimps hypreal_add_ac) 1);
+by (asm_full_simp_tac (simpset() addsimps add_ac) 1);
 qed "Infinitesimal_sum_square_cancel2";
 Addsimps [Infinitesimal_sum_square_cancel2];
 
 Goal "y*y + x*x + z*z : HFinite ==> x*x : HFinite";
 by (rtac HFinite_sum_square_cancel 1);
-by (asm_full_simp_tac (simpset() addsimps hypreal_add_ac) 1);
+by (asm_full_simp_tac (simpset() addsimps add_ac) 1);
 qed "HFinite_sum_square_cancel2";
 Addsimps [HFinite_sum_square_cancel2];
 
 Goal "z*z + y*y + x*x : Infinitesimal ==> x*x : Infinitesimal";
 by (rtac Infinitesimal_sum_square_cancel 1);
-by (asm_full_simp_tac (simpset() addsimps hypreal_add_ac) 1);
+by (asm_full_simp_tac (simpset() addsimps add_ac) 1);
 qed "Infinitesimal_sum_square_cancel3";
 Addsimps [Infinitesimal_sum_square_cancel3];
 
 Goal "z*z + y*y + x*x : HFinite ==> x*x : HFinite";
 by (rtac HFinite_sum_square_cancel 1);
-by (asm_full_simp_tac (simpset() addsimps hypreal_add_ac) 1);
+by (asm_full_simp_tac (simpset() addsimps add_ac) 1);
 qed "HFinite_sum_square_cancel3";
 Addsimps [HFinite_sum_square_cancel3];
 
@@ -1729,7 +1729,7 @@ by (Step_tac 1);
 by (subgoal_tac "st (x + y) = st ((st x + e) + (st y + ea))" 1);
 by (dtac sym 2 THEN dtac sym 2);
 by (Asm_full_simp_tac 2);
-by (asm_simp_tac (simpset() addsimps hypreal_add_ac) 1);
+by (asm_simp_tac (simpset() addsimps add_ac) 1);
 by (REPEAT(dtac st_SReal 1));
 by (dtac SReal_add 1 THEN assume_tac 1);
 by (dtac Infinitesimal_add 1 THEN assume_tac 1);
@@ -1770,7 +1770,7 @@ by (forw_inst_tac [("x","e"),("y","y")] Infinitesimal_HFinite_mult 1);
 by (forw_inst_tac [("x","ea"),("y","x")] Infinitesimal_HFinite_mult 2);
 by (dtac Infinitesimal_mult 3);
 by (auto_tac (claset() addIs [Infinitesimal_add],
-              simpset() addsimps hypreal_add_ac @ hypreal_mult_ac));
+              simpset() addsimps add_ac @ mult_ac));
 qed "lemma_st_mult";
 
 Goal "[| x: HFinite; y: HFinite |] \
@@ -1783,8 +1783,7 @@ by (dtac sym 2 THEN dtac sym 2);
 by (Asm_full_simp_tac 2);
 by (thin_tac "x = st x + e" 1);
 by (thin_tac "y = st y + ea" 1);
-by (asm_full_simp_tac (simpset() addsimps
-    [hypreal_add_mult_distrib,hypreal_add_mult_distrib2]) 1);
+by (asm_full_simp_tac (simpset() addsimps [left_distrib,right_distrib]) 1);
 by (REPEAT(dtac st_SReal 1));
 by (full_simp_tac (simpset() addsimps [hypreal_add_assoc]) 1);
 by (rtac st_Infinitesimal_add_SReal 1);
@@ -1874,8 +1873,8 @@ qed "st_zero_ge";
 
 Goal "x: HFinite ==> abs(st x) = st(abs x)";
 by (case_tac "0 <= x" 1);
-by (auto_tac (claset() addSDs [not_hypreal_leE, order_less_imp_le],
-              simpset() addsimps [st_zero_le,hrabs_eqI1, hrabs_minus_eqI1,
+by (auto_tac (claset() addSDs [order_less_imp_le],
+              simpset() addsimps [linorder_not_le,st_zero_le,hrabs_eqI1, hrabs_minus_eqI1,
                                   st_zero_ge,st_minus]));
 qed "st_hrabs";
 
@@ -2214,9 +2213,9 @@ Addsimps [epsilon_approx_zero];
 Goal "0 < u  ==> \
 \     (u < inverse (real(Suc n))) = (real(Suc n) < inverse u)";
 by (asm_full_simp_tac (simpset() addsimps [inverse_eq_divide]) 1);
-by (stac pos_real_less_divide_eq 1);
+by (stac pos_less_divide_eq 1);
 by (assume_tac 1);
-by (stac pos_real_less_divide_eq 1);
+by (stac pos_less_divide_eq 1);
 by (simp_tac (simpset() addsimps [real_mult_commute]) 2);
 by (simp_tac (simpset() addsimps [real_of_nat_Suc_gt_zero]) 1);
 qed "real_of_nat_less_inverse_iff";
@@ -2237,7 +2236,7 @@ qed "lemma_real_le_Un_eq2";
 Goal "(inverse (real(Suc n)) <= r) = (1 <= r * real(Suc n))";
 by (simp_tac (simpset() addsimps [linorder_not_less RS sym]) 1);
 by (simp_tac (simpset() addsimps [inverse_eq_divide]) 1);
-by (stac pos_real_less_divide_eq 1);
+by (stac pos_less_divide_eq 1);
 by (simp_tac (simpset() addsimps [real_of_nat_Suc_gt_zero]) 1);
 by (simp_tac (simpset() addsimps [real_mult_commute]) 1);
 qed "real_of_nat_inverse_le_iff";

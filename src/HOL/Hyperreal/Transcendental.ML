@@ -3062,7 +3062,7 @@ by (auto_tac (claset(),simpset() addsimps [starfun,
 qed "STAR_exp_ln";
 
 Goal "[|e : Infinitesimal; 0 < x |] ==> 0 < hypreal_of_real x + e";
-by (res_inst_tac [("z1","-e")] (hypreal_add_right_cancel_less RS iffD1) 1);
+by (res_inst_tac [("c1","-e")] (add_less_cancel_right RS iffD1) 1);
 by (auto_tac (claset() addIs [Infinitesimal_less_SReal],simpset()));
 qed "hypreal_add_Infinitesimal_gt_zero";
 

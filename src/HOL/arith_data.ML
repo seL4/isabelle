@@ -106,7 +106,7 @@ structure EqCancelSums = CancelSumsFun
   open Sum;
   val mk_bal = HOLogic.mk_eq;
   val dest_bal = HOLogic.dest_bin "op =" HOLogic.natT;
-  val uncancel_tac = gen_uncancel_tac add_left_cancel;
+  val uncancel_tac = gen_uncancel_tac nat_add_left_cancel;
 end);
 
 
@@ -117,7 +117,7 @@ structure LessCancelSums = CancelSumsFun
   open Sum;
   val mk_bal = HOLogic.mk_binrel "op <";
   val dest_bal = HOLogic.dest_bin "op <" HOLogic.natT;
-  val uncancel_tac = gen_uncancel_tac add_left_cancel_less;
+  val uncancel_tac = gen_uncancel_tac nat_add_left_cancel_less;
 end);
 
 
@@ -128,7 +128,7 @@ structure LeCancelSums = CancelSumsFun
   open Sum;
   val mk_bal = HOLogic.mk_binrel "op <=";
   val dest_bal = HOLogic.dest_bin "op <=" HOLogic.natT;
-  val uncancel_tac = gen_uncancel_tac add_left_cancel_le;
+  val uncancel_tac = gen_uncancel_tac nat_add_left_cancel_le;
 end);
 
 

@@ -23,7 +23,7 @@ structure CancelNumeralFactorCommon =
   val norm_tac =
      ALLGOALS (simp_tac (HOL_ss addsimps hypreal_minus_from_mult_simps @ mult_1s))
      THEN ALLGOALS (simp_tac (HOL_ss addsimps bin_simps@hypreal_mult_minus_simps))
-     THEN ALLGOALS (simp_tac (HOL_ss addsimps hypreal_mult_ac))
+     THEN ALLGOALS (simp_tac (HOL_ss addsimps mult_ac))
   val numeral_simp_tac  =
          ALLGOALS (simp_tac (HOL_ss addsimps rel_hypreal_number_of@bin_simps))
   val simplify_meta_eq  = simplify_meta_eq
@@ -143,7 +143,7 @@ structure CancelFactorCommon =
   val dest_coeff        = dest_coeff
   val find_first        = find_first []
   val trans_tac         = Real_Numeral_Simprocs.trans_tac
-  val norm_tac = ALLGOALS (simp_tac (HOL_ss addsimps mult_1s@hypreal_mult_ac))
+  val norm_tac = ALLGOALS (simp_tac (HOL_ss addsimps mult_1s@mult_ac))
   end;
 
 structure EqCancelFactor = ExtractCommonTermFun
@@ -203,7 +203,8 @@ test "a*(b*c)/(y*z) = d*(b::hypreal)*(x*a)/z";
 local
 
 (* reduce contradictory <= to False *)
-val simps = [True_implies_equals,inst "w" "number_of ?v" hypreal_add_mult_distrib2,
+val simps = [True_implies_equals,
+             inst "a" "(number_of ?v)::hypreal" right_distrib,
              divide_1,times_divide_eq_right,times_divide_eq_left];
 
 val simprocs = [hypreal_cancel_numeral_factors_divide];

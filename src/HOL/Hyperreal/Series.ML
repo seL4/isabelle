@@ -85,8 +85,8 @@ qed "sumr_const";
 Addsimps [sumr_const];
 
 Goal "sumr 0 n f + -(real n * r) = sumr 0 n (%i. f i + -r)";
-by (full_simp_tac (simpset() addsimps [sumr_add RS sym,
-    real_minus_mult_eq2] delsimps [real_mult_minus_eq2]) 1);
+by (full_simp_tac (HOL_ss addsimps [sumr_add RS sym, real_minus_mult_eq2]) 1);
+by (Simp_tac 1);
 qed "sumr_add_mult_const";
 
 Goalw [real_diff_def] 

@@ -1271,7 +1271,7 @@ by (cut_inst_tac [("a","a"),("x1","inverse x")]
 by (auto_tac (claset(), 
               simpset() addsimps [real_divide_def, realpow_inverse])); 
 by (asm_simp_tac (simpset() addsimps [inverse_eq_divide,
-                                      pos_real_divide_less_eq]) 1); 
+                                      pos_divide_less_eq]) 1); 
 qed "LIMSEQ_divide_realpow_zero";
 
 (*----------------------------------------------------------------

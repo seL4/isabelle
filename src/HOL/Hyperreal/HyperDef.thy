@@ -336,18 +336,7 @@ apply (rule_tac z = z3 in eq_Abs_hypreal)
 apply (simp add: hypreal_add real_add_assoc)
 done
 
-(*For AC rewriting*)
-lemma hypreal_add_left_commute: "(x::hypreal)+(y+z)=y+(x+z)"
-  apply (rule mk_left_commute [of "op +"])
-  apply (rule hypreal_add_assoc)
-  apply (rule hypreal_add_commute)
-  done
-
-(* hypreal addition is an AC operator *)
-lemmas hypreal_add_ac =
-       hypreal_add_assoc hypreal_add_commute hypreal_add_left_commute
-
-lemma hypreal_add_zero_left [simp]: "(0::hypreal) + z = z"
+lemma hypreal_add_zero_left: "(0::hypreal) + z = z"
 apply (unfold hypreal_zero_def)
 apply (rule_tac z = z in eq_Abs_hypreal)
 apply (simp add: hypreal_add)
@@ -376,27 +365,6 @@ apply (simp add: hyprel_in_hypreal [THEN Abs_hypreal_inverse]
                UN_equiv_class [OF equiv_hyprel hypreal_minus_congruent])
 done
 
-lemma hypreal_minus_minus [simp]: "- (- z) = (z::hypreal)"
-apply (rule_tac z = z in eq_Abs_hypreal)
-apply (simp add: hypreal_minus)
-done
-
-lemma inj_hypreal_minus: "inj(%r::hypreal. -r)"
-apply (rule inj_onI)
-apply (drule_tac f = uminus in arg_cong)
-apply (simp add: hypreal_minus_minus)
-done
-
-lemma hypreal_minus_zero [simp]: "- 0 = (0::hypreal)"
-apply (unfold hypreal_zero_def)
-apply (simp add: hypreal_minus)
-done
-
-lemma hypreal_minus_zero_iff [simp]: "(-x = 0) = (x = (0::hypreal))"
-apply (rule_tac z = x in eq_Abs_hypreal)
-apply (auto simp add: hypreal_zero_def hypreal_minus)
-done
-
 lemma hypreal_diff:
      "Abs_hypreal(hyprel``{%n. X n}) - Abs_hypreal(hyprel``{%n. Y n}) =  
       Abs_hypreal(hyprel``{%n. X n - Y n})"
@@ -409,23 +377,8 @@ apply (rule_tac z = z in eq_Abs_hypreal)
 apply (simp add: hypreal_minus hypreal_add)
 done
 
-lemma hypreal_add_minus_left [simp]: "-z + z = (0::hypreal)"
+lemma hypreal_add_minus_left: "-z + z = (0::hypreal)"
 by (simp add: hypreal_add_commute hypreal_add_minus)
-
-lemma hypreal_add_left_cancel: "((x::hypreal) + y = x + z) = (y = z)"
-apply safe
-apply (drule_tac f = "%t.-x + t" in arg_cong)
-apply (simp add: hypreal_add_assoc [symmetric])
-done
-
-lemma hypreal_add_right_cancel: "(y + (x::hypreal)= z + x) = (y = z)"
-by (simp add: hypreal_add_commute hypreal_add_left_cancel)
-
-lemma hypreal_add_minus_cancelA [simp]: "z + ((- z) + w) = (w::hypreal)"
-by (simp add: hypreal_add_assoc [symmetric])
-
-lemma hypreal_minus_add_cancelA [simp]: "(-z) + (z + w) = (w::hypreal)"
-by (simp add: hypreal_add_assoc [symmetric])
 
 
 subsection{*Hyperreal Multiplication*}
@@ -445,70 +398,21 @@ done
 lemma hypreal_mult_commute: "(z::hypreal) * w = w * z"
 apply (rule_tac z = z in eq_Abs_hypreal)
 apply (rule_tac z = w in eq_Abs_hypreal)
-apply (simp add: hypreal_mult real_mult_ac)
+apply (simp add: hypreal_mult mult_ac)
 done
 
 lemma hypreal_mult_assoc: "((z1::hypreal) * z2) * z3 = z1 * (z2 * z3)"
 apply (rule_tac z = z1 in eq_Abs_hypreal)
 apply (rule_tac z = z2 in eq_Abs_hypreal)
 apply (rule_tac z = z3 in eq_Abs_hypreal)
-apply (simp add: hypreal_mult real_mult_assoc)
+apply (simp add: hypreal_mult mult_assoc)
 done
 
-lemma hypreal_mult_left_commute: "(z1::hypreal) * (z2 * z3) = z2 * (z1 * z3)"
-  apply (rule mk_left_commute [of "op *"])
-  apply (rule hypreal_mult_assoc)
-  apply (rule hypreal_mult_commute)
-  done
-
-(* hypreal multiplication is an AC operator *)
-lemmas hypreal_mult_ac =
-       hypreal_mult_assoc hypreal_mult_commute hypreal_mult_left_commute
-
-lemma hypreal_mult_1 [simp]: "(1::hypreal) * z = z"
+lemma hypreal_mult_1: "(1::hypreal) * z = z"
 apply (unfold hypreal_one_def)
 apply (rule_tac z = z in eq_Abs_hypreal)
 apply (simp add: hypreal_mult)
 done
-
-lemma hypreal_mult_1_right [simp]: "z * (1::hypreal) = z"
-by (simp add: hypreal_mult_commute hypreal_mult_1)
-
-lemma hypreal_mult_0 [simp]: "0 * z = (0::hypreal)"
-apply (unfold hypreal_zero_def)
-apply (rule_tac z = z in eq_Abs_hypreal)
-apply (simp add: hypreal_mult)
-done
-
-lemma hypreal_mult_0_right [simp]: "z * 0 = (0::hypreal)"
-by (simp add: hypreal_mult_commute)
-
-lemma hypreal_minus_mult_eq1: "-(x * y) = -x * (y::hypreal)"
-apply (rule_tac z = x in eq_Abs_hypreal)
-apply (rule_tac z = y in eq_Abs_hypreal)
-apply (auto simp add: hypreal_minus hypreal_mult real_mult_ac real_add_ac)
-done
-
-lemma hypreal_minus_mult_eq2: "-(x * y) = (x::hypreal) * -y"
-apply (rule_tac z = x in eq_Abs_hypreal)
-apply (rule_tac z = y in eq_Abs_hypreal)
-apply (auto simp add: hypreal_minus hypreal_mult real_mult_ac real_add_ac)
-done
-
-(*Pull negations out*)
-declare hypreal_minus_mult_eq2 [symmetric, simp] 
-        hypreal_minus_mult_eq1 [symmetric, simp]
-
-lemma hypreal_mult_minus_1 [simp]: "(- (1::hypreal)) * z = -z"
-by simp
-
-lemma hypreal_mult_minus_1_right [simp]: "z * (- (1::hypreal)) = -z"
-by (subst hypreal_mult_commute, simp)
-
-lemma hypreal_minus_mult_commute: "(-x) * y = (x::hypreal) * -y"
-by auto
-
-subsection{*A few more theorems *}
 
 lemma hypreal_add_mult_distrib:
      "((z1::hypreal) + z2) * w = (z1 * w) + (z2 * w)"
@@ -518,23 +422,7 @@ apply (rule_tac z = w in eq_Abs_hypreal)
 apply (simp add: hypreal_mult hypreal_add real_add_mult_distrib)
 done
 
-lemma hypreal_add_mult_distrib2:
-     "(w::hypreal) * (z1 + z2) = (w * z1) + (w * z2)"
-by (simp add: hypreal_mult_commute [of w] hypreal_add_mult_distrib)
-
-
-lemma hypreal_diff_mult_distrib:
-     "((z1::hypreal) - z2) * w = (z1 * w) - (z2 * w)"
-
-apply (unfold hypreal_diff_def)
-apply (simp add: hypreal_add_mult_distrib)
-done
-
-lemma hypreal_diff_mult_distrib2:
-     "(w::hypreal) * (z1 - z2) = (w * z1) - (w * z2)"
-by (simp add: hypreal_mult_commute [of w] hypreal_diff_mult_distrib)
-
-(*** one and zero are distinct ***)
+text{*one and zero are distinct*}
 lemma hypreal_zero_not_eq_one: "0 \<noteq> (1::hypreal)"
 apply (unfold hypreal_zero_def hypreal_one_def)
 apply (auto simp add: real_zero_not_eq_one)
@@ -558,23 +446,7 @@ apply (simp add: hyprel_in_hypreal [THEN Abs_hypreal_inverse]
            UN_equiv_class [OF equiv_hyprel hypreal_inverse_congruent])
 done
 
-lemma HYPREAL_INVERSE_ZERO: "inverse 0 = (0::hypreal)"
-by (simp add: hypreal_inverse hypreal_zero_def)
-
-lemma HYPREAL_DIVISION_BY_ZERO: "a / (0::hypreal) = 0"
-by (simp add: hypreal_divide_def HYPREAL_INVERSE_ZERO)
-
-instance hypreal :: division_by_zero
-proof
-  fix x :: hypreal
-  show "inverse 0 = (0::hypreal)" by (rule HYPREAL_INVERSE_ZERO)
-  show "x/0 = 0" by (rule HYPREAL_DIVISION_BY_ZERO) 
-qed
-
-
-subsection{*Existence of Inverse*}
-
-lemma hypreal_mult_inverse [simp]: 
+lemma hypreal_mult_inverse: 
      "x \<noteq> 0 ==> x*inverse(x) = (1::hypreal)"
 apply (unfold hypreal_one_def hypreal_zero_def)
 apply (rule_tac z = x in eq_Abs_hypreal)
@@ -583,9 +455,45 @@ apply (drule FreeUltrafilterNat_Compl_mem)
 apply (blast intro!: real_mult_inv_right FreeUltrafilterNat_subset)
 done
 
-lemma hypreal_mult_inverse_left [simp]:
+lemma hypreal_mult_inverse_left:
      "x \<noteq> 0 ==> inverse(x)*x = (1::hypreal)"
 by (simp add: hypreal_mult_inverse hypreal_mult_commute)
+
+instance hypreal :: field
+proof
+  fix x y z :: hypreal
+  show "(x + y) + z = x + (y + z)" by (rule hypreal_add_assoc)
+  show "x + y = y + x" by (rule hypreal_add_commute)
+  show "0 + x = x" by simp
+  show "- x + x = 0" by (simp add: hypreal_add_minus_left)
+  show "x - y = x + (-y)" by (simp add: hypreal_diff_def)
+  show "(x * y) * z = x * (y * z)" by (rule hypreal_mult_assoc)
+  show "x * y = y * x" by (rule hypreal_mult_commute)
+  show "1 * x = x" by (simp add: hypreal_mult_1)
+  show "(x + y) * z = x * z + y * z" by (simp add: hypreal_add_mult_distrib)
+  show "0 \<noteq> (1::hypreal)" by (rule hypreal_zero_not_eq_one)
+  show "x \<noteq> 0 ==> inverse x * x = 1" by (simp add: hypreal_mult_inverse_left)
+  show "y \<noteq> 0 ==> x / y = x * inverse y" by (simp add: hypreal_divide_def)
+qed
+
+(*Pull negations out*)
+declare minus_mult_right [symmetric, simp] 
+        minus_mult_left [symmetric, simp]
+
+
+lemma HYPREAL_INVERSE_ZERO: "inverse 0 = (0::hypreal)"
+by (simp add: hypreal_inverse hypreal_zero_def)
+
+lemma HYPREAL_DIVISION_BY_ZERO: "a / (0::hypreal) = 0"
+by (simp add: hypreal_divide_def HYPREAL_INVERSE_ZERO 
+              hypreal_mult_commute [of a])
+
+instance hypreal :: division_by_zero
+proof
+  fix x :: hypreal
+  show "inverse 0 = (0::hypreal)" by (rule HYPREAL_INVERSE_ZERO)
+  show "x/0 = 0" by (rule HYPREAL_DIVISION_BY_ZERO) 
+qed
 
 
 subsection{*Theorems for Ordering*}
@@ -602,8 +510,6 @@ lemma hypreal_less:
 apply (unfold hypreal_less_def)
 apply (auto intro!: lemma_hyprel_refl, ultra)
 done
-
-(* prove introduction and elimination rules for hypreal_less *)
 
 lemma hypreal_less_not_refl: "~ (R::hypreal) < R"
 apply (rule_tac z = R in eq_Abs_hypreal)
@@ -656,8 +562,6 @@ lemma hypreal_trichotomyE:
 apply (insert hypreal_trichotomy [of x], blast) 
 done
 
-subsection{*More properties of Less Than*}
-
 lemma hypreal_less_minus_iff: "((x::hypreal) < y) = (0 < y + -x)"
 apply (rule_tac z = x in eq_Abs_hypreal)
 apply (rule_tac z = y in eq_Abs_hypreal)
@@ -670,18 +574,10 @@ apply (rule_tac z = y in eq_Abs_hypreal)
 apply (auto simp add: hypreal_add hypreal_zero_def hypreal_minus hypreal_less)
 done
 
-lemma hypreal_eq_minus_iff: "((x::hypreal) = y) = (x + - y = 0)"
-apply auto
-apply (rule_tac x1 = "-y" in hypreal_add_right_cancel [THEN iffD1], auto)
-done
-
 lemma hypreal_eq_minus_iff2: "((x::hypreal) = y) = (0 = y + - x)"
 apply auto
-apply (rule_tac x1 = "-x" in hypreal_add_right_cancel [THEN iffD1], auto)
+apply (rule Ring_and_Field.add_right_cancel [of _ "-x", THEN iffD1], auto)
 done
-
-
-subsection{*Linearity*}
 
 lemma hypreal_linear: "(x::hypreal) < y | x = y | y < x"
 apply (subst hypreal_eq_minus_iff2)
@@ -709,22 +605,6 @@ apply (unfold hypreal_le_def real_le_def)
 apply (auto simp add: hypreal_less)
 apply (ultra+)
 done
-
-lemma hypreal_leI: 
-     "~(w < z) ==> z <= (w::hypreal)"
-apply (unfold hypreal_le_def, assumption)
-done
-
-lemma hypreal_leD: 
-      "z<=w ==> ~(w<(z::hypreal))"
-apply (unfold hypreal_le_def, assumption)
-done
-
-lemma hypreal_less_le_iff: "(~(w < z)) = (z <= (w::hypreal))"
-by (fast intro!: hypreal_leI hypreal_leD)
-
-lemma not_hypreal_leE: "~ z <= w ==> w<(z::hypreal)"
-by (unfold hypreal_le_def, fast)
 
 lemma hypreal_le_imp_less_or_eq: "!!(x::hypreal). x <= y ==> x < y | x = y"
 apply (unfold hypreal_le_def)
@@ -780,49 +660,6 @@ instance hypreal :: order
 instance hypreal :: linorder 
   by (intro_classes, rule hypreal_le_linear)
 
-lemma hypreal_minus_zero_less_iff [simp]: "(0 < -R) = (R < (0::hypreal))"
-apply (rule_tac z = R in eq_Abs_hypreal)
-apply (auto simp add: hypreal_zero_def hypreal_less hypreal_minus)
-done
-
-lemma hypreal_minus_zero_less_iff2 [simp]: "(-R < 0) = ((0::hypreal) < R)"
-apply (rule_tac z = R in eq_Abs_hypreal)
-apply (auto simp add: hypreal_zero_def hypreal_less hypreal_minus)
-done
-
-lemma hypreal_minus_zero_le_iff [simp]: "((0::hypreal) <= -r) = (r <= 0)"
-apply (unfold hypreal_le_def)
-apply (simp add: hypreal_minus_zero_less_iff2)
-done
-
-lemma hypreal_minus_zero_le_iff2 [simp]: "(-r <= (0::hypreal)) = (0 <= r)"
-apply (unfold hypreal_le_def)
-apply (simp add: hypreal_minus_zero_less_iff2)
-done
-
-
-lemma hypreal_self_eq_minus_self_zero: "x = -x ==> x = (0::hypreal)"
-apply (rule_tac z = x in eq_Abs_hypreal)
-apply (auto simp add: hypreal_minus hypreal_zero_def, ultra)
-done
-
-lemma hypreal_add_self_zero_cancel [simp]: "(x + x = 0) = (x = (0::hypreal))"
-apply (rule_tac z = x in eq_Abs_hypreal)
-apply (auto simp add: hypreal_add hypreal_zero_def)
-done
-
-lemma hypreal_add_self_zero_cancel2 [simp]:
-     "(x + x + y = y) = (x = (0::hypreal))"
-apply auto
-apply (drule hypreal_eq_minus_iff [THEN iffD1])
-apply (auto simp add: hypreal_add_assoc hypreal_self_eq_minus_self_zero)
-done
-
-lemma hypreal_minus_eq_swap: "(b = -a) = (-b = (a::hypreal))"
-by auto
-
-lemma hypreal_minus_eq_cancel [simp]: "(-b = -a) = (b = (a::hypreal))"
-by (simp add: hypreal_minus_eq_swap)
 
 lemma hypreal_add_less_mono1: "(A::hypreal) < B ==> A + C < B + C"
 apply (rule_tac z = A in eq_Abs_hypreal)
@@ -849,7 +686,7 @@ apply (rotate_tac 1)
 apply (drule hypreal_less_minus_iff [THEN iffD1])
 apply (rule hypreal_less_minus_iff [THEN iffD2])
 apply (drule hypreal_mult_order, assumption)
-apply (simp add: hypreal_add_mult_distrib2 hypreal_mult_commute)
+apply (simp add: right_distrib hypreal_mult_commute)
 done
 
 lemma hypreal_mult_less_mono2: "[| (0::hypreal)<z; x<y |] ==> z*x<z*y"
@@ -858,31 +695,23 @@ done
 
 subsection{*The Hyperreals Form an Ordered Field*}
 
-instance hypreal :: inverse ..
-
 instance hypreal :: ordered_field
 proof
   fix x y z :: hypreal
-  show "(x + y) + z = x + (y + z)" by (rule hypreal_add_assoc)
-  show "x + y = y + x" by (rule hypreal_add_commute)
-  show "0 + x = x" by simp
-  show "- x + x = 0" by simp
-  show "x - y = x + (-y)" by (simp add: hypreal_diff_def)
-  show "(x * y) * z = x * (y * z)" by (rule hypreal_mult_assoc)
-  show "x * y = y * x" by (rule hypreal_mult_commute)
-  show "1 * x = x" by simp
-  show "(x + y) * z = x * z + y * z" by (simp add: hypreal_add_mult_distrib)
-  show "0 \<noteq> (1::hypreal)" by (rule hypreal_zero_not_eq_one)
   show "x \<le> y ==> z + x \<le> z + y" by (rule hypreal_add_left_le_mono1)
   show "x < y ==> 0 < z ==> z * x < z * y" by (simp add: hypreal_mult_less_mono2)
   show "\<bar>x\<bar> = (if x < 0 then -x else x)"
     by (auto dest: order_le_less_trans simp add: hrabs_def linorder_not_le)
-  show "x \<noteq> 0 ==> inverse x * x = 1" by simp
-  show "y \<noteq> 0 ==> x / y = x * inverse y" by (simp add: hypreal_divide_def)
 qed
 
-lemma hypreal_minus_add_distrib [simp]: "-(x + (y::hypreal)) = -x + -y"
-  by (rule Ring_and_Field.minus_add_distrib)
+lemma hypreal_mult_1_right: "z * (1::hypreal) = z"
+  by (rule Ring_and_Field.mult_1_right)
+
+lemma hypreal_mult_minus_1 [simp]: "(- (1::hypreal)) * z = -z"
+by (simp)
+
+lemma hypreal_mult_minus_1_right [simp]: "z * (- (1::hypreal)) = -z"
+by (subst hypreal_mult_commute, simp)
 
 (*Used ONCE: in NSA.ML*)
 lemma hypreal_minus_distrib1: "-(y + -(x::hypreal)) = x + -y"
@@ -892,6 +721,12 @@ by (simp add: hypreal_add_commute)
 lemma hypreal_eq_minus_iff3: "(x = y + z) = (x + -z = (y::hypreal))"
 by (auto simp add: hypreal_add_assoc)
 
+lemma hypreal_eq_minus_iff: "((x::hypreal) = y) = (x + - y = 0)"
+apply auto
+apply (rule Ring_and_Field.add_right_cancel [of _ "-y", THEN iffD1], auto)
+done
+
+(*Used 3 TIMES: in Lim.ML*)
 lemma hypreal_not_eq_minus_iff: "(x \<noteq> a) = (x + -a \<noteq> (0::hypreal))"
 by (auto dest: hypreal_eq_minus_iff [THEN iffD2])
 
@@ -938,13 +773,13 @@ subsection{*@{term hypreal_of_real} Preserves Field and Order Properties*}
 lemma hypreal_of_real_add [simp]: 
      "hypreal_of_real (z1 + z2) = hypreal_of_real z1 + hypreal_of_real z2"
 apply (unfold hypreal_of_real_def)
-apply (simp add: hypreal_add hypreal_add_mult_distrib)
+apply (simp add: hypreal_add left_distrib)
 done
 
 lemma hypreal_of_real_mult [simp]: 
      "hypreal_of_real (z1 * z2) = hypreal_of_real z1 * hypreal_of_real z2"
 apply (unfold hypreal_of_real_def)
-apply (simp add: hypreal_mult hypreal_add_mult_distrib2)
+apply (simp add: hypreal_mult right_distrib)
 done
 
 lemma hypreal_of_real_less_iff [simp]: 
@@ -1069,44 +904,24 @@ val inj_hypreal_of_real = thm "inj_hypreal_of_real";
 val eq_Abs_hypreal = thm "eq_Abs_hypreal";
 val hypreal_minus_congruent = thm "hypreal_minus_congruent";
 val hypreal_minus = thm "hypreal_minus";
-val hypreal_minus_minus = thm "hypreal_minus_minus";
-val inj_hypreal_minus = thm "inj_hypreal_minus";
-val hypreal_minus_zero = thm "hypreal_minus_zero";
-val hypreal_minus_zero_iff = thm "hypreal_minus_zero_iff";
 val hypreal_add_congruent2 = thm "hypreal_add_congruent2";
 val hypreal_add = thm "hypreal_add";
 val hypreal_diff = thm "hypreal_diff";
 val hypreal_add_commute = thm "hypreal_add_commute";
 val hypreal_add_assoc = thm "hypreal_add_assoc";
-val hypreal_add_left_commute = thm "hypreal_add_left_commute";
 val hypreal_add_zero_left = thm "hypreal_add_zero_left";
 val hypreal_add_zero_right = thm "hypreal_add_zero_right";
 val hypreal_add_minus = thm "hypreal_add_minus";
 val hypreal_add_minus_left = thm "hypreal_add_minus_left";
-val hypreal_minus_add_distrib = thm "hypreal_minus_add_distrib";
 val hypreal_minus_distrib1 = thm "hypreal_minus_distrib1";
-val hypreal_add_left_cancel = thm "hypreal_add_left_cancel";
-val hypreal_add_right_cancel = thm "hypreal_add_right_cancel";
-val hypreal_add_minus_cancelA = thm "hypreal_add_minus_cancelA";
-val hypreal_minus_add_cancelA = thm "hypreal_minus_add_cancelA";
 val hypreal_mult_congruent2 = thm "hypreal_mult_congruent2";
 val hypreal_mult = thm "hypreal_mult";
 val hypreal_mult_commute = thm "hypreal_mult_commute";
 val hypreal_mult_assoc = thm "hypreal_mult_assoc";
-val hypreal_mult_left_commute = thm "hypreal_mult_left_commute";
 val hypreal_mult_1 = thm "hypreal_mult_1";
 val hypreal_mult_1_right = thm "hypreal_mult_1_right";
-val hypreal_mult_0 = thm "hypreal_mult_0";
-val hypreal_mult_0_right = thm "hypreal_mult_0_right";
-val hypreal_minus_mult_eq1 = thm "hypreal_minus_mult_eq1";
-val hypreal_minus_mult_eq2 = thm "hypreal_minus_mult_eq2";
 val hypreal_mult_minus_1 = thm "hypreal_mult_minus_1";
 val hypreal_mult_minus_1_right = thm "hypreal_mult_minus_1_right";
-val hypreal_minus_mult_commute = thm "hypreal_minus_mult_commute";
-val hypreal_add_mult_distrib = thm "hypreal_add_mult_distrib";
-val hypreal_add_mult_distrib2 = thm "hypreal_add_mult_distrib2";
-val hypreal_diff_mult_distrib = thm "hypreal_diff_mult_distrib";
-val hypreal_diff_mult_distrib2 = thm "hypreal_diff_mult_distrib2";
 val hypreal_zero_not_eq_one = thm "hypreal_zero_not_eq_one";
 val hypreal_inverse_congruent = thm "hypreal_inverse_congruent";
 val hypreal_inverse = thm "hypreal_inverse";
@@ -1121,6 +936,7 @@ val hypreal_mult_not_0 = thm "hypreal_mult_not_0";
 val hypreal_minus_inverse = thm "hypreal_minus_inverse";
 val hypreal_inverse_distrib = thm "hypreal_inverse_distrib";
 val hypreal_less_not_refl = thm "hypreal_less_not_refl";
+val hypreal_less_irrefl = thm"hypreal_less_irrefl";
 val hypreal_not_refl2 = thm "hypreal_not_refl2";
 val hypreal_less_trans = thm "hypreal_less_trans";
 val hypreal_less_asym = thm "hypreal_less_asym";
@@ -1136,22 +952,13 @@ val hypreal_linear = thm "hypreal_linear";
 val hypreal_neq_iff = thm "hypreal_neq_iff";
 val hypreal_linear_less2 = thm "hypreal_linear_less2";
 val hypreal_le = thm "hypreal_le";
-val hypreal_leI = thm "hypreal_leI";
-val hypreal_leD = thm "hypreal_leD";
-val hypreal_less_le_iff = thm "hypreal_less_le_iff";
-val not_hypreal_leE = thm "not_hypreal_leE";
 val hypreal_le_imp_less_or_eq = thm "hypreal_le_imp_less_or_eq";
-val hypreal_less_or_eq_imp_le = thm "hypreal_less_or_eq_imp_le";
 val hypreal_le_eq_less_or_eq = thm "hypreal_le_eq_less_or_eq";
 val hypreal_le_refl = thm "hypreal_le_refl";
 val hypreal_le_linear = thm "hypreal_le_linear";
 val hypreal_le_trans = thm "hypreal_le_trans";
 val hypreal_le_anti_sym = thm "hypreal_le_anti_sym";
 val hypreal_less_le = thm "hypreal_less_le";
-val hypreal_minus_zero_less_iff = thm "hypreal_minus_zero_less_iff";
-val hypreal_minus_zero_less_iff2 = thm "hypreal_minus_zero_less_iff2";
-val hypreal_minus_zero_le_iff = thm "hypreal_minus_zero_le_iff";
-val hypreal_minus_zero_le_iff2 = thm "hypreal_minus_zero_le_iff2";
 val hypreal_of_real_add = thm "hypreal_of_real_add";
 val hypreal_of_real_mult = thm "hypreal_of_real_mult";
 val hypreal_of_real_less_iff = thm "hypreal_of_real_less_iff";
@@ -1166,15 +973,9 @@ val hypreal_of_real_divide = thm "hypreal_of_real_divide";
 val hypreal_divide_one = thm "hypreal_divide_one";
 val hypreal_add_divide_distrib = thm "hypreal_add_divide_distrib";
 val hypreal_inverse_add = thm "hypreal_inverse_add";
-val hypreal_self_eq_minus_self_zero = thm "hypreal_self_eq_minus_self_zero";
-val hypreal_add_self_zero_cancel = thm "hypreal_add_self_zero_cancel";
-val hypreal_add_self_zero_cancel2 = thm "hypreal_add_self_zero_cancel2";
-val hypreal_minus_eq_swap = thm "hypreal_minus_eq_swap";
-val hypreal_minus_eq_cancel = thm "hypreal_minus_eq_cancel";
 val hypreal_zero_num = thm "hypreal_zero_num";
 val hypreal_one_num = thm "hypreal_one_num";
 val hypreal_omega_gt_zero = thm "hypreal_omega_gt_zero";
 *}
-
 
 end

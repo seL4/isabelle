@@ -105,7 +105,7 @@ by (subgoal_tac "0 < r" 1);
 by (asm_full_simp_tac (simpset() addsimps [hrabs_def] 
                                  addsplits [split_if_asm]) 2); 
 by (case_tac "y = 0" 1);
-by (asm_full_simp_tac (simpset() addsimps [hypreal_0_less_mult_iff]) 1); 
+by (asm_full_simp_tac (simpset() addsimps [zero_less_mult_iff]) 1); 
 by (rtac hypreal_mult_less_mono 1); 
 by (auto_tac (claset(), 
               simpset() addsimps [hrabs_def, linorder_neq_iff] 

@@ -28,7 +28,7 @@ qed "hrealpow_hrabs";
 
 Goal "(r::hypreal) ^ (n + m) = (r ^ n) * (r ^ m)";
 by (induct_tac "n" 1);
-by (auto_tac (claset(), simpset() addsimps hypreal_mult_ac));
+by (auto_tac (claset(), simpset() addsimps mult_ac));
 qed "hrealpow_add";
 
 Goal "(r::hypreal) ^ Suc 0 = r";
@@ -42,12 +42,12 @@ qed "hrealpow_two";
 
 Goal "(0::hypreal) <= r --> 0 <= r ^ n";
 by (induct_tac "n" 1);
-by (auto_tac (claset(), simpset() addsimps [hypreal_0_le_mult_iff]));
+by (auto_tac (claset(), simpset() addsimps [zero_le_mult_iff]));
 qed_spec_mp "hrealpow_ge_zero";
 
 Goal "(0::hypreal) < r --> 0 < r ^ n";
 by (induct_tac "n" 1);
-by (auto_tac (claset(), simpset() addsimps [hypreal_0_less_mult_iff]));
+by (auto_tac (claset(), simpset() addsimps [zero_less_mult_iff]));
 qed_spec_mp "hrealpow_gt_zero";
 
 Goal "x <= y & (0::hypreal) < x --> x ^ n <= y ^ n";
@@ -81,11 +81,11 @@ Addsimps [hrabs_hrealpow_minus_one];
 
 Goal "((r::hypreal) * s) ^ n = (r ^ n) * (s ^ n)";
 by (induct_tac "n" 1);
-by (auto_tac (claset(), simpset() addsimps hypreal_mult_ac));
+by (auto_tac (claset(), simpset() addsimps mult_ac));
 qed "hrealpow_mult";
 
 Goal "(0::hypreal) <= r ^ Suc (Suc 0)";
-by (auto_tac (claset(), simpset() addsimps [hypreal_0_le_mult_iff]));
+by (auto_tac (claset(), simpset() addsimps [zero_le_mult_iff]));
 qed "hrealpow_two_le";
 Addsimps [hrealpow_two_le];
 
@@ -117,7 +117,7 @@ Addsimps [hrealpow_three_squares_add_zero_iff];
 
 Goal "abs(x ^ Suc (Suc 0)) = (x::hypreal) ^ Suc (Suc 0)";
 by (auto_tac (claset(), 
-              simpset() addsimps [hrabs_def, hypreal_0_le_mult_iff])); 
+              simpset() addsimps [hrabs_def, zero_le_mult_iff])); 
 qed "hrabs_hrealpow_two";
 Addsimps [hrabs_hrealpow_two];
 
@@ -149,7 +149,7 @@ qed "two_hrealpow_ge_one";
 Goal "hypreal_of_nat n < 2 ^ n";
 by (induct_tac "n" 1);
 by (auto_tac (claset(),
-        simpset() addsimps [hypreal_of_nat_Suc, hypreal_add_mult_distrib]));
+        simpset() addsimps [hypreal_of_nat_Suc, left_distrib]));
 by (cut_inst_tac [("n","n")] two_hrealpow_ge_one 1);
 by (arith_tac 1);
 qed "two_hrealpow_gt";
@@ -198,7 +198,7 @@ qed "hrealpow";
 Goal "(x + (y::hypreal)) ^ Suc (Suc 0) = \
 \     x ^ Suc (Suc 0) + y ^ Suc (Suc 0) + (hypreal_of_nat (Suc (Suc 0)))*x*y";
 by (simp_tac (simpset() addsimps
-              [hypreal_add_mult_distrib2, hypreal_add_mult_distrib, 
+              [right_distrib, left_distrib, 
                hypreal_of_nat_zero, hypreal_of_nat_Suc]) 1);
 qed "hrealpow_sum_square_expand";
 
@@ -379,7 +379,7 @@ qed "hyperpow_mult";
 
 Goal "(0::hypreal) <= r pow ((1::hypnat) + (1::hypnat))";
 by (auto_tac (claset(), 
-              simpset() addsimps [hyperpow_two, hypreal_0_le_mult_iff]));
+              simpset() addsimps [hyperpow_two, zero_le_mult_iff]));
 qed "hyperpow_two_le";
 Addsimps [hyperpow_two_le];
 
@@ -532,7 +532,7 @@ qed "Infinitesimal_hrealpow";
 (* MOVE UP *)
 Goal "(0::hypreal) <= x * x";
 by (auto_tac (claset(),simpset() addsimps 
-    [hypreal_0_le_mult_iff]));
+    [zero_le_mult_iff]));
 qed "hypreal_mult_self_ge_zero";
 Addsimps [hypreal_mult_self_ge_zero];
 

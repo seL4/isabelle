@@ -74,8 +74,7 @@ qed "hypreal_sqrt_approx_zero";
 Addsimps [hypreal_sqrt_approx_zero];
 
 Goal "0 <= x ==> (( *f* sqrt)(x) @= 0) = (x @= 0)";
-by (auto_tac (claset() addSDs [hypreal_le_imp_less_or_eq],
-              simpset()));
+by (auto_tac (claset(), simpset() addsimps [order_le_less]));
 qed "hypreal_sqrt_approx_zero2";
 Addsimps [hypreal_sqrt_approx_zero2];
 
@@ -637,8 +636,7 @@ by (ftac ([Infinitesimal_pi_divide_HNatInfinite,pi_divide_HNatInfinite_not_zero]
           MRS STAR_sin_Infinitesimal_divide) 1);
 by (auto_tac (claset(),simpset() addsimps [hypreal_inverse_distrib]));
 by (res_inst_tac [("a","inverse(hypreal_of_real pi)")] approx_SReal_mult_cancel 1);
-by (auto_tac (claset() addIs [SReal_inverse],simpset() addsimps [hypreal_divide_def] @ 
-    hypreal_mult_ac));
+by (auto_tac (claset() addIs [SReal_inverse],simpset() addsimps [hypreal_divide_def] @ mult_ac));
 qed "STAR_sin_pi_divide_HNatInfinite_approx_pi";
 
 Goal "n : HNatInfinite \

@@ -64,7 +64,7 @@ val lemma = result();
 (*For specialist use: NOT as default simprules*)
 Goal "2 * z = (z+z::hypreal)";
 by (simp_tac (simpset ()
-              addsimps [lemma, hypreal_add_mult_distrib,
+              addsimps [lemma, left_distrib,
                         hypreal_numeral_1_eq_1]) 1);
 qed "hypreal_mult_2";
 
@@ -151,7 +151,7 @@ Addsimps [hypreal_add_number_of_left, hypreal_mult_number_of_left,
 (** For combine_numerals **)
 
 Goal "i*u + (j*u + k) = (i+j)*u + (k::hypreal)";
-by (asm_simp_tac (simpset() addsimps [hypreal_add_mult_distrib] @ add_ac) 1);
+by (asm_simp_tac (simpset() addsimps [left_distrib] @ add_ac) 1);
 qed "left_hypreal_add_mult_distrib";
 
 
@@ -167,38 +167,38 @@ val rel_iff_rel_0_rls =
 
 Goal "!!i::hypreal. (i*u + m = j*u + n) = ((i-j)*u + m = n)";
 by (asm_simp_tac
-    (simpset() addsimps [hypreal_diff_def, hypreal_add_mult_distrib]@
-                         hypreal_add_ac@rel_iff_rel_0_rls) 1);
+    (simpset() addsimps [hypreal_diff_def, left_distrib]@
+                         add_ac@rel_iff_rel_0_rls) 1);
 qed "hypreal_eq_add_iff1";
 
 Goal "!!i::hypreal. (i*u + m = j*u + n) = (m = (j-i)*u + n)";
 by (asm_simp_tac
-    (simpset() addsimps [hypreal_diff_def, hypreal_add_mult_distrib]@
-                         hypreal_add_ac@rel_iff_rel_0_rls) 1);
+    (simpset() addsimps [hypreal_diff_def, left_distrib]@
+                         add_ac@rel_iff_rel_0_rls) 1);
 qed "hypreal_eq_add_iff2";
 
 Goal "!!i::hypreal. (i*u + m < j*u + n) = ((i-j)*u + m < n)";
 by (asm_simp_tac
-    (simpset() addsimps [hypreal_diff_def, hypreal_add_mult_distrib]@
-                         hypreal_add_ac@rel_iff_rel_0_rls) 1);
+    (simpset() addsimps [hypreal_diff_def, left_distrib]@
+                         add_ac@rel_iff_rel_0_rls) 1);
 qed "hypreal_less_add_iff1";
 
 Goal "!!i::hypreal. (i*u + m < j*u + n) = (m < (j-i)*u + n)";
 by (asm_simp_tac
-    (simpset() addsimps [hypreal_diff_def, hypreal_add_mult_distrib]@
-                         hypreal_add_ac@rel_iff_rel_0_rls) 1);
+    (simpset() addsimps [hypreal_diff_def, left_distrib]@
+                         add_ac@rel_iff_rel_0_rls) 1);
 qed "hypreal_less_add_iff2";
 
 Goal "!!i::hypreal. (i*u + m <= j*u + n) = ((i-j)*u + m <= n)";
 by (asm_simp_tac
-    (simpset() addsimps [hypreal_diff_def, hypreal_add_mult_distrib]@
-                         hypreal_add_ac@rel_iff_rel_0_rls) 1);
+    (simpset() addsimps [hypreal_diff_def, left_distrib]@
+                         add_ac@rel_iff_rel_0_rls) 1);
 qed "hypreal_le_add_iff1";
 
 Goal "!!i::hypreal. (i*u + m <= j*u + n) = (m <= (j-i)*u + n)";
 by (asm_simp_tac
-    (simpset() addsimps [hypreal_diff_def, hypreal_add_mult_distrib]@
-                        hypreal_add_ac@rel_iff_rel_0_rls) 1);
+    (simpset() addsimps [hypreal_diff_def, left_distrib]@
+                        add_ac@rel_iff_rel_0_rls) 1);
 qed "hypreal_le_add_iff2";
 
 Goal "-1 * (z::hypreal) = -z";
@@ -325,29 +325,26 @@ val hypreal_minus_simps = NCons_simps @
                     bin_pred_1, bin_pred_0, bin_pred_Pls, bin_pred_Min];
 
 (*To let us treat subtraction as addition*)
-val diff_simps = [hypreal_diff_def, hypreal_minus_add_distrib,
-                  hypreal_minus_minus];
+val diff_simps = [hypreal_diff_def, minus_add_distrib, minus_minus];
 
 (*push the unary minus down: - x * y = x * - y *)
 val hypreal_minus_mult_eq_1_to_2 =
-    [hypreal_minus_mult_eq1 RS sym, hypreal_minus_mult_eq2] MRS trans
+    [minus_mult_left RS sym, minus_mult_right] MRS trans
     |> standard;
 
 (*to extract again any uncancelled minuses*)
 val hypreal_minus_from_mult_simps =
-    [hypreal_minus_minus, hypreal_minus_mult_eq1 RS sym,
-     hypreal_minus_mult_eq2 RS sym];
+    [minus_minus, minus_mult_left RS sym, minus_mult_right RS sym];
 
 (*combine unary minus with numeric literals, however nested within a product*)
 val hypreal_mult_minus_simps =
-    [hypreal_mult_assoc, hypreal_minus_mult_eq1, hypreal_minus_mult_eq_1_to_2];
+    [hypreal_mult_assoc, minus_mult_left, hypreal_minus_mult_eq_1_to_2];
 
 (*Final simplification: cancel + and *  *)
 val simplify_meta_eq =
     Int_Numeral_Simprocs.simplify_meta_eq
          [hypreal_add_zero_left, hypreal_add_zero_right,
-          hypreal_mult_0, hypreal_mult_0_right, hypreal_mult_1,
-          hypreal_mult_1_right];
+          mult_left_zero, mult_right_zero, mult_1, mult_1_right];
 
 val prep_simproc = Real_Numeral_Simprocs.prep_simproc;
 
@@ -361,11 +358,11 @@ structure CancelNumeralsCommon =
   val trans_tac         = Real_Numeral_Simprocs.trans_tac
   val norm_tac =
      ALLGOALS (simp_tac (HOL_ss addsimps add_0s@mult_1s@diff_simps@
-                                         hypreal_minus_simps@hypreal_add_ac))
+                                         hypreal_minus_simps@add_ac))
      THEN ALLGOALS (simp_tac (HOL_ss addsimps non_add_bin_simps@hypreal_mult_minus_simps))
      THEN ALLGOALS
               (simp_tac (HOL_ss addsimps hypreal_minus_from_mult_simps@
-                                         hypreal_add_ac@hypreal_mult_ac))
+                                         add_ac@mult_ac))
   val numeral_simp_tac  = ALLGOALS (simp_tac (HOL_ss addsimps add_0s@bin_simps))
   val simplify_meta_eq  = simplify_meta_eq
   end;
@@ -429,10 +426,10 @@ structure CombineNumeralsData =
   val trans_tac         = Real_Numeral_Simprocs.trans_tac
   val norm_tac =
      ALLGOALS (simp_tac (HOL_ss addsimps add_0s@mult_1s@diff_simps@
-                                         hypreal_minus_simps@hypreal_add_ac))
+                                         hypreal_minus_simps@add_ac))
      THEN ALLGOALS (simp_tac (HOL_ss addsimps non_add_bin_simps@hypreal_mult_minus_simps))
      THEN ALLGOALS (simp_tac (HOL_ss addsimps hypreal_minus_from_mult_simps@
-                                              hypreal_add_ac@hypreal_mult_ac))
+                                              add_ac@mult_ac))
   val numeral_simp_tac  = ALLGOALS
                     (simp_tac (HOL_ss addsimps add_0s@bin_simps))
   val simplify_meta_eq  = simplify_meta_eq
@@ -461,7 +458,7 @@ fun find_first past u []         = raise TERM("find_first", [])
 (*Final simplification: cancel + and *  *)
 fun cancel_simplify_meta_eq cancel_th th =
     Int_Numeral_Simprocs.simplify_meta_eq
-        [hypreal_mult_1, hypreal_mult_1_right]
+        [mult_1, mult_1_right]
         (([th, cancel_th]) MRS trans);
 
 (*** Making constant folding work for 0 and 1 too ***)
@@ -559,7 +556,7 @@ struct
   val sg_ref    = Sign.self_ref (Theory.sign_of (the_context ()))
   val T      = Hyperreal_Numeral_Simprocs.hyprealT
   val plus   = Const ("op *", [T,T] ---> T)
-  val add_ac = hypreal_mult_ac
+  val add_ac = mult_ac
 end;
 
 structure Hyperreal_Times_Assoc = Assoc_Fold (Hyperreal_Times_Assoc_Data);
