@@ -18,6 +18,7 @@ term "a \<in> A" term "b \<notin> A"
 term "{a,b}" term "{x. P x}"
 term "\<Union> M"  term "\<Union>a \<in> A. F a"(*>*)
 
+
 subsection{*Some Functions*}
 
 text{*
@@ -28,6 +29,7 @@ text{*
 @{thm vimage_def[no_vars]}
 \end{tabular}*}
 (*<*)thm id_def o_def[no_vars] image_def[no_vars] vimage_def[no_vars](*>*)
+
 
 subsection{*Some Relations*}
 
@@ -47,6 +49,7 @@ thm relpow.simps[no_vars]
 thm rtrancl.intros[no_vars]
 thm trancl_def[no_vars](*>*)
 
+
 subsection{*Wellfoundedness*}
 
 text{*
@@ -56,6 +59,7 @@ text{*
 \end{tabular}*}
 (*<*)thm wf_def[no_vars]
 thm wf_iff_no_infinite_down_chain[no_vars](*>*)
+
 
 subsection{*Fixed Point Operators*}
 
@@ -69,8 +73,8 @@ text{*
 thm lfp_unfold
 thm lfp_induct(*>*)
 
-subsection{*Case Study: Verified Model Checking*}
 
+subsection{*Case Study: Verified Model Checking*}
 
 typedecl state
 
@@ -81,10 +85,10 @@ typedecl atom
 consts L :: "state \<Rightarrow> atom set"
 
 datatype formula = Atom atom
-                  | Neg formula
-                  | And formula formula
-                  | AX formula
-                  | EF formula
+                 | Neg formula
+                 | And formula formula
+                 | AX formula
+                 | EF formula
 
 consts valid :: "state \<Rightarrow> formula \<Rightarrow> bool"   ("(_ \<Turnstile> _)" [80,80] 80)
 

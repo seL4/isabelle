@@ -35,7 +35,6 @@ lemma "min i (max j k) = max (min k i) (min i (j::nat))"
 by(arith)
 
 text{*Not proved automatically because it involves multiplication:*}
-
 lemma "n*n = n \<Longrightarrow> n=0 \<or> n=(1::int)"
 (*<*)oops(*>*)
 
@@ -44,7 +43,6 @@ subsubsection{*Pairs*}
 
 lemma "fst(x,y) = snd(z,x)"
 by auto
-
 
 
 subsection{*Definitions*}
@@ -92,13 +90,6 @@ lemma "rev(rev(xs @ [])) = xs"
 apply (simp del: rev_rev_ident)
 (*<*)oops(*>*)
 
-subsubsection{*Assumptions*}
-
-lemma "\<lbrakk> xs @ zs = ys @ xs; [] @ xs = [] @ [] \<rbrakk> \<Longrightarrow> ys = zs"
-by simp
-
-lemma "\<forall>x. f x = g (f (g x)) \<Longrightarrow> f [] = f [] @ []"
-by(simp (no_asm))
 
 subsubsection{*Rewriting with Definitions*}
 
@@ -110,10 +101,9 @@ done
 
 subsubsection{*Conditional Equations*}
 
-lemma hd_Cons_tl[simp]: "xs \<noteq> []  \<Longrightarrow>  hd xs # tl xs = xs"
-by(case_tac xs, simp_all)
-
-lemma "xs \<noteq> [] \<Longrightarrow> hd(rev xs) # tl(rev xs) = rev xs"
+(*<*)thm hd_Cons_tl(*>*)
+text{*A pre-proved simplification rule: @{thm hd_Cons_tl[no_vars]}*}
+lemma "hd(xs @ [x]) # tl(xs @ [x]) = xs @ [x]"
 by simp
 
 
@@ -121,24 +111,16 @@ subsubsection{*Automatic Case Splits*}
 
 lemma "\<forall>xs. if xs = [] then A else B"
 apply simp
-(*<*)oops(*>*)text_raw{* \isanewline\isanewline *}
-
-lemma "case xs @ [] of [] \<Rightarrow> P | y#ys \<Rightarrow> Q ys y"
-apply simp
-apply(simp split: list.split)
 (*<*)oops(*>*)
+text{*Case-expressions are only split on demand.*}
 
 
 subsubsection{*Arithmetic*}
 
-text{*Is simple enough for the default arithmetic:*}
+text{*Only simple arithmetic:*}
 lemma "\<lbrakk> \<not> m < n; m < n+(1::nat) \<rbrakk> \<Longrightarrow> m = n"
 by simp
-
-text{*Contains boolean combinations and needs full arithmetic:*}
-lemma "\<not> m < n \<and> m < n+(1::nat) \<Longrightarrow> m = n"
-apply simp
-by(arith)
+text{*\noindent Complex goals need @{text arith}-method.*}
 
 (*<*)
 subsubsection{*Tracing*}

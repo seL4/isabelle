@@ -55,28 +55,29 @@ apply assumption
 done
 
 
-subsection{*Destruction Rules*}
+subsection{*Negation*}
 
-text{* Destruction rules for propositional logic:
+text{*
 \begin{center}
 \begin{tabular}{ll}
-@{thm[source]conjunct1} & @{thm conjunct1[no_vars]} \\
-@{thm[source]conjunct2} & @{thm conjunct2[no_vars]} \\
-@{thm[source]iffD1} & @{thm iffD1[no_vars]} \\
-@{thm[source]iffD2} & @{thm iffD2[no_vars]}
+@{thm[source]notI} & @{thm notI[no_vars]} \\
+@{thm[source]notE} & @{thm notE[no_vars]} \\
+@{thm[source]ccontr} & @{thm ccontr[no_vars]}
 \end{tabular}
 \end{center}
 *}
 
-(*<*)thm conjunct1 conjunct1 iffD1 iffD2(*>*)
+(*<*)thm notI notE ccontr(*>*)
 
-lemma conj_swap: "P \<and> Q \<Longrightarrow> Q \<and> P"
-apply (rule conjI)
- apply (drule conjunct2)
- apply assumption
-apply (drule conjunct1)
+lemma "\<not>\<not>P \<Longrightarrow> P"
+apply (rule ccontr)
+apply (erule notE)
 apply assumption
 done
+
+text{*A simple exercise:*}
+lemma "\<not>P \<or> \<not>Q \<Longrightarrow> \<not>(P \<and> Q)"
+(*<*)oops(*>*)
 
 
 subsection{*Quantifiers*}
@@ -97,8 +98,10 @@ thm allI exI
 thm allE exE
 thm spec
 (*>*)
+text{*Another classic exercise:*}
 lemma "\<exists>x.\<forall>y. P x y \<Longrightarrow> \<forall>y.\<exists>x. P x y"
 (*<*)oops(*>*)
+
 
 subsection{*Instantiation*}
 
