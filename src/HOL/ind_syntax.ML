@@ -13,6 +13,9 @@ See also hologic.ML and ../Pure/section-utils.ML
 structure Ind_Syntax =
 struct
 
+(*Print tracing messages during processing of "inductive" theory sections*)
+val trace = ref false;
+
 (** Abstract syntax definitions for HOL **)
 
 open HOLogic;
@@ -92,3 +95,6 @@ val elim_rls = [asm_rl, FalseE, (*Suc_neq_Zero, Zero_neq_Suc,
                 refl_thin, conjE, exE, disjE];
 
 end;
+
+
+val trace_induct = Ind_Syntax.trace;

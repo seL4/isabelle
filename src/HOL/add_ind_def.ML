@@ -151,7 +151,10 @@ fun add_fp_def_i (rec_tms, intr_tms) thy =
              | _ => rec_tms ~~          (*define the sets as Parts*)
                     map (subst_atomic [(freeX, big_rec_tm)]) parts));
 
-    val _ = seq (writeln o Sign.string_of_term sign o #2) axpairs
+    (*tracing: print the fixedpoint definition*)
+    val _ = if !Ind_Syntax.trace then
+		seq (writeln o Sign.string_of_term sign o #2) axpairs
+            else ()
   
     (*Detect occurrences of operator, even with other types!*)
     val _ = (case rec_names inter (add_term_names (lfp_rhs,[])) of

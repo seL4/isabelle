@@ -65,7 +65,7 @@ fun induct_prem ind_alist intr =
   in list_all_free (quantfrees, Logic.list_implies (iprems,concl)) end
   handle Bind => error"Recursion term not found in conclusion";
 
-(*Avoids backtracking by delivering the correct premise to each goal*)
+(*Minimizes backtracking by delivering the correct premise to each goal*)
 fun ind_tac [] 0 = all_tac
   | ind_tac(prem::prems) i = 
         DEPTH_SOLVE_1 (ares_tac [Part_eqI, prem, refl] i) THEN
@@ -76,13 +76,15 @@ val pred = Free(pred_name, elem_type --> Ind_Syntax.boolT);
 val ind_prems = map (induct_prem (map (rpair pred) Inductive.rec_tms)) 
                     Inductive.intr_tms;
 
-(*Debugging code...
-val _ = writeln "ind_prems = ";
-val _ = seq (writeln o Sign.string_of_term sign) ind_prems;
-*)
+val _ = if !Ind_Syntax.trace then 
+            (writeln "ind_prems = ";
+	     seq (writeln o Sign.string_of_term sign) ind_prems;
+	     writeln "raw_induct = "; print_thm Intr_elim.raw_induct)
+        else ();
+
 
 (*We use a MINIMAL simpset because others (such as HOL_ss) contain too many
-  simplifications.  If the premises get simplified, then the proofs will 
+  simplifications.  If the premises get simplified, then the proofs could 
   fail.  This arose with a premise of the form {(F n,G n)|n . True}, which
   expanded to something containing ...&True. *)
 val min_ss = HOL_basic_ss;
@@ -97,7 +99,11 @@ val quant_induct =
        [rtac (impI RS allI) 1,
         DETERM (etac Intr_elim.raw_induct 1),
         full_simp_tac (min_ss addsimps [Part_Collect]) 1,
-        REPEAT (FIRSTGOAL (eresolve_tac [IntE, CollectE, exE, conjE, disjE] 
+        (*This CollectE and disjE separates out the introduction rules*)
+	REPEAT (FIRSTGOAL (eresolve_tac [CollectE, disjE])),
+	(*Now break down the individual cases.  No disjE here in case
+          some premise involves disjunction.*)
+        REPEAT (FIRSTGOAL (eresolve_tac [CollectE, IntE, exE, conjE] 
                            ORELSE' hyp_subst_tac)),
         ind_tac (rev prems) (length prems)])
     handle e => print_sign_exn sign e;
@@ -161,7 +167,8 @@ val lemma = (*makes the link between the two induction rules*)
 	    REPEAT (rewrite_goals_tac [split RS eq_reflection] THEN
 		    lemma_tac 1)])
       handle e => print_sign_exn sign e)
-  else TrueI;
+  else (writeln "  [ No mutual induction rule needed ]";
+        TrueI);
 
 (*Mutual induction follows by freeness of Inl/Inr.*)
 
