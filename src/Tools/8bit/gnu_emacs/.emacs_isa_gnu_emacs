@@ -14,7 +14,7 @@
 
 (setq default-frame-alist  
         '(
-        (font . "isacr14")
+        (font . "isabelle14")
         (icon-type . t) 
         (menu-bar-lines . 1)
         (width . 80)

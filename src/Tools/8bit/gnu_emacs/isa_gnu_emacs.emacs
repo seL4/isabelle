@@ -11,7 +11,7 @@
 ;;   
 
 ;;; Isabelle font as default
-(set-default-font "isacr14")
+(set-default-font "isabelle14")
 
 ;;   activate 8bit chars 
 ;;   ...for all new buffers
@@ -25,8 +25,8 @@
 (setcdr x-fixed-font-alist
             (cons  '("Symbol fonts"
                     ;; These are the available isabelle and spectrum fonts.
-("14 isabelle " "isacr14")
-("24 isabelle " "isacb24")
+("14 isabelle " "isabelle14")
+("24 isabelle " "isabelle24")
 )
                     (cdr x-fixed-font-alist)))
 
