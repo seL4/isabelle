@@ -568,18 +568,19 @@ by (fast_tac (HOL_cs addDs [new_scheme_list_le,new_tv_subst_scheme_list,new_tv_W
 by (case_tac "na: free_tv t - free_tv Sa" 2);
 (* case na ~: free_tv t - free_tv Sa *)
 by( asm_full_simp_tac (!simpset setloop (split_tac [expand_if])) 3);
+by (Fast_tac 3);
 (* case na : free_tv t - free_tv Sa *)
 by( asm_full_simp_tac (!simpset setloop (split_tac [expand_if])) 2);
 by (dres_inst_tac [("A1","$ S A")] (subst_comp_scheme_list RSN (2,trans)) 2);
 by (dtac eq_subst_scheme_list_eq_free 2);
 by (fast_tac (HOL_cs addIs [free_tv_W,free_tv_le_new_tv] addDs [new_tv_W]) 2);
+(** LEVEL 75 **)
 by (asm_full_simp_tac (!simpset addsimps [free_tv_subst,dom_def]) 2);
-
 by (asm_simp_tac (!simpset setloop (split_tac [expand_option_bind])) 1); 
 by (safe_tac HOL_cs );
 by (dtac mgu_Some 1);
 by( fast_tac (HOL_cs addss !simpset) 1);
-
+(** LEVEL 80 *)
 by ((dtac mgu_mg 1) THEN (atac 1));
 by (etac exE 1);
 by (res_inst_tac [("x","Rb")] exI 1);
@@ -588,8 +589,8 @@ by (dres_inst_tac [("x","ma")] fun_cong 2);
 by( asm_full_simp_tac (!simpset addsimps [eq_sym_conv]) 2);
 by (simp_tac (!simpset addsimps [subst_comp_scheme_list]) 1);
 by (simp_tac (!simpset addsimps [subst_comp_scheme_list RS sym]) 1);
-by (res_inst_tac [("A2","($ Sa ($ S A))")] ((subst_comp_scheme_list RS sym) RSN 
-    (2,trans)) 1);
+by (res_inst_tac [("A2","($ Sa ($ S A))")]
+       ((subst_comp_scheme_list RS sym) RSN (2,trans)) 1);
 by( asm_full_simp_tac (!simpset addsimps [o_def,eq_sym_conv]) 1);
 by (rtac eq_free_eq_subst_scheme_list 1);
 by( safe_tac HOL_cs );
@@ -598,10 +599,10 @@ by ((forward_tac [new_tv_W] 2) THEN (atac 2));
 by (etac conjE 2);
 by (dtac new_tv_subst_scheme_list 2);
 by (fast_tac (HOL_cs addIs [new_scheme_list_le] addDs [sym RS W_var_geD]) 2);
-by (( forw_inst_tac [("n","m")] (sym RSN (2,new_tv_W)) 2) THEN (atac 2));
+by (forw_inst_tac [("n","m")] new_tv_W 2  THEN  atac 2);
 by (etac conjE 2);
 by (dtac (free_tv_app_subst_scheme_list RS subsetD) 2);
-by (fast_tac (set_cs addDs [W_var_geD,new_scheme_list_le,codD,
+by (fast_tac (set_cs addDs [sym RS W_var_geD,new_scheme_list_le,codD,
     new_tv_not_free_tv]) 2);
 by (case_tac "na: free_tv t - free_tv Sa" 1);
 (* case na ~: free_tv t - free_tv Sa *)
