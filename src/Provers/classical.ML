@@ -26,11 +26,12 @@ type wrapper = (int -> tactic) -> (int -> tactic);
 
 signature CLASET_THY_DATA =
 sig
-  val clasetK: string
-  exception ClasetData of object ref
+  val clasetN: string
+  val clasetK: Object.kind
+  exception ClasetData of Object.T ref
   val setup: (theory -> theory) list
-  val fix_methods: object * (object -> object) *
-    (object * object -> object) * (Sign.sg -> object -> unit) -> unit
+  val fix_methods: Object.T * (Object.T -> Object.T) *
+    (Object.T * Object.T -> Object.T) * (Sign.sg -> Object.T -> unit) -> unit
 end;
 
 signature CLASSICAL_DATA =
@@ -139,23 +140,24 @@ struct
 
 (* data kind claset -- forward declaration *)
 
-val clasetK = "Provers/claset";
-exception ClasetData of object ref;
+val clasetN = "Provers/claset";
+val clasetK = Object.kind clasetN;
+exception ClasetData of Object.T ref;
 
 local
   fun undef _ = raise Match;
 
   val empty_ref = ref ERROR;
-  val prep_ext_fn = ref (undef: object -> object);
-  val merge_fn = ref (undef: object * object -> object);
-  val print_fn = ref (undef: Sign.sg -> object -> unit);
+  val prep_ext_fn = ref (undef: Object.T -> Object.T);
+  val merge_fn = ref (undef: Object.T * Object.T -> Object.T);
+  val print_fn = ref (undef: Sign.sg -> Object.T -> unit);
 
   val empty = ClasetData empty_ref;
   fun prep_ext exn = ! prep_ext_fn exn;
   fun merge exn = ! merge_fn exn;
   fun print sg exn = ! print_fn sg exn;
 in
-  val setup = [Theory.init_data [(clasetK, (empty, prep_ext, merge, print))]];
+  val setup = [Theory.init_data clasetK (empty, prep_ext, merge, print)];
   fun fix_methods (e, ext, mrg, prt) =
     (empty_ref := e; prep_ext_fn := ext; merge_fn := mrg; print_fn := prt);
 end;
@@ -754,12 +756,9 @@ end;
 
 (* access claset *)
 
-fun print_claset thy = Display.print_data thy clasetK;
+val print_claset = Theory.print_data clasetK;
 
-fun claset_ref_of_sg sg =
-  (case Sign.get_data sg clasetK of
-    ClasetData (ref (CSData r)) => r
-  | _ => type_error clasetK);
+val claset_ref_of_sg = Sign.get_data clasetK (fn ClasetData (ref (CSData r)) => r);
 
 val claset_ref_of = claset_ref_of_sg o sign_of;
 val claset_of_sg = ! o claset_ref_of_sg;

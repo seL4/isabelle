@@ -256,14 +256,13 @@ type parent_info =
   simps: tthm list};
 
 
-(* theory data *)
-
-val recordsK = "HOL/records";
-exception Records of record_info Symtab.table;
-
-fun print_records thy = Display.print_data thy recordsK;
+(* data kind 'records' *)
 
 local
+  val recordsK = Object.kind "HOL/records";
+  exception Records of record_info Symtab.table;
+
+
   val empty = Records Symtab.empty;
 
   fun prep_ext (x as Records _) = x;
@@ -290,21 +289,16 @@ local
       seq (Pretty.writeln o pretty_record) (Symtab.dest tab)
     end;
 in
-  val record_thy_data = (recordsK, (empty, prep_ext, merge, print));
+  val init_records = Theory.init_data recordsK (empty, prep_ext, merge, print);
+  val print_records = Theory.print_data recordsK;
+  val get_records = Theory.get_data recordsK (fn Records x => x);
+  val put_records = Theory.put_data recordsK Records;
 end;
 
 
 (* get and put records *)
 
-fun get_records thy =
-  (case Theory.get_data thy recordsK of
-    Records tab => tab
-  | _ => type_error recordsK);
-
 fun get_record thy name = Symtab.lookup (get_records thy, name);
-
-fun put_records tab thy =
-  Theory.put_data (recordsK, Records tab) thy;
 
 fun put_record name info thy =
   put_records (Symtab.update ((name, info), get_records thy)) thy;
@@ -707,7 +701,7 @@ val add_record_i = gen_add_record cert_typ (K I);
 (** setup theory **)
 
 val setup =
- [Theory.init_data [record_thy_data],
+ [init_records,
   Theory.add_trfuns
     ([], [("_record", record_tr), ("_record_scheme", record_scheme_tr)], [], [])];
 

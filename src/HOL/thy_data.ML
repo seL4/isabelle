@@ -5,7 +5,6 @@
 HOL theory data: datatypes.
 *)
 
-(*for datatypes*)
 type datatype_info =
  {case_const: term,
   case_rewrites: thm list,
@@ -29,14 +28,12 @@ structure ThyData: THY_DATA =
 struct
 
 
-(** datatypes **)
-
 (* data kind 'datatypes' *)
 
-val datatypesK = "HOL/datatypes";
-exception DatatypeInfo of datatype_info Symtab.table;
-
 local
+  val datatypesK = Object.kind "HOL/datatypes";
+  exception DatatypeInfo of datatype_info Symtab.table;
+
   val empty = DatatypeInfo Symtab.empty;
 
   fun prep_ext (x as DatatypeInfo _) = x;
@@ -48,27 +45,16 @@ local
     Pretty.writeln (Pretty.strs ("datatypes:" ::
       map (Sign.cond_extern sg Sign.typeK o fst) (Symtab.dest tab)));
 in
-  val datatypes_thy_data = (datatypesK, (empty, prep_ext, merge, print));
+  val init_datatypes = Theory.init_data datatypesK (empty, prep_ext, merge, print);
+  val get_datatypes_sg = Sign.get_data datatypesK (fn DatatypeInfo tab => tab);
+  val get_datatypes = get_datatypes_sg o sign_of;
+  val put_datatypes = Theory.put_data datatypesK DatatypeInfo;
 end;
 
 
-(* get and put datatypes *)
+(* setup *)
 
-fun get_datatypes_sg sg =
-  (case Sign.get_data sg datatypesK of
-    DatatypeInfo tab => tab
-  | _ => type_error datatypesK);
-
-val get_datatypes = get_datatypes_sg o sign_of;
-
-fun put_datatypes tab thy =
-  Theory.put_data (datatypesK, DatatypeInfo tab) thy;
-
-
-
-(** theory data setup **)
-
-val setup = [Theory.init_data [datatypes_thy_data]];
+val setup = [init_datatypes];
 
 
 end;

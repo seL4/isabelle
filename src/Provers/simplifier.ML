@@ -254,7 +254,8 @@ fun merge_ss
 
 (** simpset data **)
 
-val simpsetK = "Provers/simpset";
+val simpsetN = "Provers/simpset";
+val simpsetK = Object.kind simpsetN;
 
 
 (* global simpset ref *)
@@ -272,18 +273,15 @@ local
 
   fun print _ (SimpsetGlobal (ref ss)) = print_ss ss;
 in
-  val setup_thy_data = Theory.init_data [(simpsetK, (empty, prep_ext, merge, print))];
+  val setup_thy_data = Theory.init_data simpsetK (empty, prep_ext, merge, print);
 end;
 
 
 (* access global simpset *)
 
-fun print_simpset thy = Display.print_data thy simpsetK;
+val print_simpset = Theory.print_data simpsetK;
 
-fun simpset_ref_of_sg sg =
-  (case Sign.get_data sg simpsetK of
-    SimpsetGlobal r => r
-  | _ => type_error simpsetK);
+val simpset_ref_of_sg = Sign.get_data simpsetK (fn SimpsetGlobal r => r);
 
 val simpset_ref_of = simpset_ref_of_sg o sign_of;
 val simpset_of_sg = ! o simpset_ref_of_sg;
@@ -311,13 +309,13 @@ val Delsimprocs = change_simpset (op delsimprocs);
 exception SimpsetLocal of simpset;
 
 fun get_local_simpset (thy, data) =
-  (case Symtab.lookup (data, simpsetK) of
+  (case Symtab.lookup (data, simpsetN) of
     Some (SimpsetLocal ss) => ss
   | None => simpset_of thy
-  | _ => type_error simpsetK);
+  | _ => Object.kind_error simpsetK);
 
 fun put_local_simpset ss (thy, data) =
-  (thy, Symtab.update ((simpsetK, SimpsetLocal ss), data));
+  (thy, Symtab.update ((simpsetN, SimpsetLocal ss), data));
 
 
 
@@ -353,7 +351,8 @@ local
   val simp_attr_global = simp_attr change_global_ss;
   val simp_attr_local = simp_attr change_local_ss;
 in
-  val setup_attrs = Attribute.add_attrs [(simpN, (simp_attr_global, simp_attr_local))];
+  val setup_attrs = Attribute.add_attributes
+    [(simpN, simp_attr_global, simp_attr_local, "simplifier")];
 
   val simp_add_global = simp_attr_global [simp_addN];
   val simp_del_global = simp_attr_global [simp_delN];
