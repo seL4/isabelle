@@ -10,6 +10,9 @@
 #
 #Renames old versions of the files as FILE1~~ ... FILEn~~
 #
+s/\bsafe_tac *\(claset *\( *\) *\)/Safe_tac/;
+s/ *\(Safe_tac\) *([0-9]+)/ Safe_tac \1/;
+s/ *\(Safe_tac\)/ Safe_tac/;
 s/\bby\(/by (/;
 s/\bba\b *(\d+);/by (assume_tac \1);/;
 s/\bbr\b *([^;]*) (\d+);/by (rtac \1 \2);/;
