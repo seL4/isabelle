@@ -79,7 +79,7 @@ STARTUP=/tmp/isa-start$$.el
   echo "(setq isa-manual-path \"$DOC\")"
   echo
 
-  for FILE in ~/.emacs "$ISABELLE_HOME/etc/isa-settings.el" \
+  for FILE in "$ISABELLE_HOME/etc/isa-settings.el" \
     "$ISABELLE_HOME_USER/etc/isa-settings.el"
   do
     [ -f "$FILE" ] && echo "(load \"$FILE\")"
