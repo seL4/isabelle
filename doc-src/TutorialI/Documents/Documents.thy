@@ -654,7 +654,7 @@ text {\ttlbrace}*
 *}
 
 
-subsection {* Interpretation of symbols \label{sec:doc-prep-symbols} *}
+subsection {* Interpretation of Symbols \label{sec:doc-prep-symbols} *}
 
 text {*
   As has been pointed out before (\S\ref{sec:syntax-symbols}),
