@@ -34,12 +34,24 @@ consts
   Pair          :: "['a, 'b] => 'a * 'b"
   Sigma         :: "['a set, 'a => 'b set] => ('a * 'b) set"
 
+(** Patterns -- extends pre-defined type "pttrn" used in abstractions **)
+types pttrns
+
 syntax
   "@Tuple"      :: "['a, args] => 'a * 'b"            ("(1'(_,/ _'))")
+
+  "@pttrn"  :: "pttrns => pttrn"            ("'(_')")
+  ""        :: " pttrn           => pttrns" ("_")
+  "@pttrns" :: "[pttrn,pttrns]   => pttrns" ("_,/_")
 
 translations
   "(x, y, z)"   == "(x, (y, z))"
   "(x, y)"      == "Pair x y"
+
+  "%(x,y,zs).b"   => "split(%x (y,zs).b)"
+  "%(x,y).b"      => "split(%x y.b)"
+(* The <= direction fails if split has more than one argument because
+   ast-matching fails. Otherwise it would work fine *)
 
 defs
   Pair_def      "Pair a b == Abs_Prod(Pair_Rep a b)"
@@ -63,3 +75,34 @@ defs
   Unity_def     "() == Abs_Unit(True)"
 
 end
+
+ML
+
+local open Syntax
+
+fun pttrn s = const"@pttrn" $ s;
+fun pttrns s t = const"@pttrns" $ s $ t;
+
+fun split2(Abs(x,T,t)) =
+      let val (pats,u) = split1 t
+      in (pttrns (Free(x,T)) pats, subst_bounds([free x],u)) end
+  | split2(Const("split",_) $ r) =
+      let val (pats,s) = split2(r)
+          val (pats2,t) = split1(s)
+      in (pttrns (pttrn pats) pats2, t) end
+and split1(Abs(x,T,t)) =  (Free(x,T), subst_bounds([free x],t))
+  | split1(Const("split",_)$t) = split2(t);
+
+fun split_tr'(t::args) =
+  let val (pats,ft) = split2(t)
+  in case args of
+       [] => const"_abs" $ pttrn pats $ ft
+     | arg::rest =>
+         list_comb(const"_Let"$(const"_bind"$(pttrn pats)$arg)$ft, rest)
+  end
+
+in
+
+val print_translation = [("split", split_tr')];
+
+end;

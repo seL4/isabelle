@@ -41,20 +41,20 @@ syntax
 
   "@Finset"     :: "args => 'a set"                   ("{(_)}")
 
-  "@Coll"       :: "[idt, bool] => 'a set"            ("(1{_./ _})")
+  "@Coll"       :: "[pttrn, bool] => 'a set"          ("(1{_./ _})")
   "@SetCompr"   :: "['a, idts, bool] => 'a set"       ("(1{_ |/_./ _})")
 
   (* Big Intersection / Union *)
 
-  "@INTER"      :: "[idt, 'a set, 'b set] => 'b set"  ("(3INT _:_./ _)" 10)
-  "@UNION"      :: "[idt, 'a set, 'b set] => 'b set"  ("(3UN _:_./ _)" 10)
+  "@INTER"      :: "[pttrn, 'a set, 'b set] => 'b set"  ("(3INT _:_./ _)" 10)
+  "@UNION"      :: "[pttrn, 'a set, 'b set] => 'b set"  ("(3UN _:_./ _)" 10)
 
   (* Bounded Quantifiers *)
 
-  "@Ball"       :: "[idt, 'a set, bool] => bool"      ("(3! _:_./ _)" 10)
-  "@Bex"        :: "[idt, 'a set, bool] => bool"      ("(3? _:_./ _)" 10)
-  "*Ball"       :: "[idt, 'a set, bool] => bool"      ("(3ALL _:_./ _)" 10)
-  "*Bex"        :: "[idt, 'a set, bool] => bool"      ("(3EX _:_./ _)" 10)
+  "@Ball"       :: "[pttrn, 'a set, bool] => bool"      ("(3! _:_./ _)" 10)
+  "@Bex"        :: "[pttrn, 'a set, bool] => bool"      ("(3? _:_./ _)" 10)
+  "*Ball"       :: "[pttrn, 'a set, bool] => bool"      ("(3ALL _:_./ _)" 10)
+  "*Bex"        :: "[pttrn, 'a set, bool] => bool"      ("(3EX _:_./ _)" 10)
 
 translations
   "x ~: y"      == "~ (x : y)"

@@ -43,7 +43,7 @@ consts
 
   (* Binders *)
 
-  Eps           :: "('a => bool) => 'a"               (binder "@" 10)
+  Eps           :: "('a => bool) => 'a"
   All           :: "('a => bool) => bool"             (binder "! " 10)
   Ex            :: "('a => bool) => bool"             (binder "? " 10)
   Ex1           :: "('a => bool) => bool"             (binder "?! " 10)
@@ -53,7 +53,6 @@ consts
 
   o             :: "['b => 'c, 'a => 'b, 'a] => 'c"   (infixr 50)
   "="           :: "['a, 'a] => bool"                 (infixl 50)
-(*"~="          :: "['a, 'a] => bool"                 (infixl 50)*)
   "&"           :: "[bool, bool] => bool"             (infixr 35)
   "|"           :: "[bool, bool] => bool"             (infixr 30)
   "-->"         :: "[bool, bool] => bool"             (infixr 25)
@@ -73,6 +72,8 @@ syntax
 
   "~="          :: "['a, 'a] => bool"                 (infixl 50)
 
+  "@Eps"        :: "[pttrn,bool] => 'a"               ("(3@ _./ _)" 10)
+
   (* Alternative Quantifiers *)
 
   "*All"        :: "[idts, bool] => bool"             ("(3ALL _./ _)" 10)
@@ -81,7 +82,7 @@ syntax
 
   (* Let expressions *)
 
-  "_bind"       :: "[idt, 'a] => letbind"             ("(2_ =/ _)" 10)
+  "_bind"       :: "[pttrn, 'a] => letbind"           ("(2_ =/ _)" 10)
   ""            :: "letbind => letbinds"              ("_")
   "_binds"      :: "[letbind, letbinds] => letbinds"  ("_;/ _")
   "_Let"        :: "[letbinds, 'a] => 'a"             ("(let (_)/ in (_))" 10)
@@ -95,6 +96,7 @@ syntax
 
 translations
   "x ~= y"      == "~ (x = y)"
+  "@ x.b"       == "Eps(%x.b)"
   "ALL xs. P"   => "! xs. P"
   "EX xs. P"    => "? xs. P"
   "EX! xs. P"   => "?! xs. P"

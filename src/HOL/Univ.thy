@@ -76,7 +76,7 @@ defs
   In1_def    "In1(M) == Numb(Suc(0)) $ M"
 
   (*the set of nodes with depth less than k*)
-  ndepth_def "ndepth(n) == split (%f x. LEAST k. f(k)=0) (Rep_Node n)"
+  ndepth_def "ndepth(n) == (%(f,x). LEAST k. f(k)=0) (Rep_Node n)"
   ntrunc_def "ntrunc k N == {n. n:N & ndepth(n)<k}"
 
   (*products and sums for the "universe"*)
@@ -94,10 +94,9 @@ defs
 
   diag_def   "diag(A) == UN x:A. {(x,x)}"
 
-  dprod_def  "r<**>s == UN u:r. split (%x x'. \
-\                       UN v:s. split (%y y'. {(x$y,x'$y')}) v) u"
+  dprod_def  "r<**>s == UN (x,x'):r. UN (y,y'):s. {(x$y,x'$y')}"
 
-  dsum_def   "r<++>s == (UN u:r. split (%x x'. {(In0(x),In0(x'))}) u) Un \
-\                       (UN v:s. split (%y y'. {(In1(y),In1(y'))}) v)"
+  dsum_def   "r<++>s == (UN (x,x'):r. {(In0(x),In0(x'))}) Un \
+\                       (UN (y,y'):s. {(In1(y),In1(y'))})"
 
 end
