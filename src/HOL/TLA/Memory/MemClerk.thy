@@ -65,5 +65,3 @@ constdefs
       "MClkISpec send rcv cst == TEMP (ALL p. MClkIPSpec send rcv cst p)"
 
 end
-
-

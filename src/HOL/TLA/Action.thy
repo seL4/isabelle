@@ -71,5 +71,3 @@ rules
 
   enabled_def   "s |= Enabled A  ==  EX u. (s,u) |= A"
 end
-
-

@@ -11,10 +11,8 @@ Isabelle/HOL's datatype package generates useful simplifications
 and case distinction tactics.
 *)
 
-Pcount  =  Datatype +
+Pcount  =  Main +
 
 datatype pcount = a | b | g
 
 end
-
-ML

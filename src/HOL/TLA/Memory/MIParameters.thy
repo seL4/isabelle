@@ -9,9 +9,8 @@
     RPC-Memory example: Parameters of the memory implementation.
 *)
 
-MIParameters = Datatype +
+MIParameters = Main +
 
 datatype  histState  =  histA | histB
 
 end
-

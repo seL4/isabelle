@@ -133,6 +133,3 @@ rules
 
   MemInv_def        "MemInv mm l == PRED  #l : #MemLoc --> mm!l : #MemVal"
 end
-
-
-

@@ -61,5 +61,3 @@ rules
   unit_base "basevars (v::unit stfun)"
 
 end
-
-ML

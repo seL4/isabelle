@@ -9,7 +9,7 @@
     Lamport's "increment" example.
 *)
 
-Inc  =  TLA + Nat +
+Inc  =  TLA +
 
 (* program counter as an enumeration type *)
 datatype pcount = a | b | g
@@ -67,5 +67,3 @@ rules
   PsiInv_def   "PsiInv   == PRED (PsiInv1 | PsiInv2 | PsiInv3)"
   
 end
-
-ML

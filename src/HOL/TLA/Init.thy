@@ -42,5 +42,3 @@ defs
   fw_stp_def  "first_world == st1"
   fw_act_def  "first_world == %sigma. (st1 sigma, st2 sigma)"
 end
-
-ML

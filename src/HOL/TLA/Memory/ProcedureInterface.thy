@@ -83,5 +83,3 @@ rules
   LegalReturner_def     "LegalReturner ch == TEMP (! p. PLegalReturner ch p)"
 
 end
-
-

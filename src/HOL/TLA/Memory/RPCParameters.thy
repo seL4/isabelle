@@ -43,5 +43,3 @@ defs
 		         case ra of (memcall m) => m
 		                  | (othercall v) => arbitrary"
 end
-
-

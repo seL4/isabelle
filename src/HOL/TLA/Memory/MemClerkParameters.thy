@@ -28,4 +28,3 @@ constdefs
     "MClkReplyVal v == if v = RPCFailure then MemFailure else v"
 
 end
-
