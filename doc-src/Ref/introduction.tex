@@ -97,7 +97,7 @@ performs {\tt use~"$file$"} and prints the total execution time.
 \end{ttdescription}
 
 
-\section{Printing of terms and theorems}
+\section{Printing of terms and theorems}\label{sec:printing-control}
 \index{printing control|(}
 Isabelle's pretty printer is controlled by a number of parameters.
 
@@ -107,7 +107,8 @@ Pretty.setdepth  : int -> unit
 Pretty.setmargin : int -> unit
 print_depth      : int -> unit
 \end{ttbox}
-These set limits for terminal output.
+These set limits for terminal output.  See also {\tt goals_limit}, which
+limits the number of subgoals printed (page~\pageref{sec:goals-printing}).
 
 \begin{ttdescription}
 \item[\ttindexbold{Pretty.setdepth} \(d\);]  
@@ -127,22 +128,28 @@ These set limits for terminal output.
 \end{ttdescription}
 
 
-\subsection{Printing of hypotheses, types and sorts}
+\subsection{Printing of hypotheses, brackets, types and sorts}
 \index{meta-assumptions!printing of}
 \index{types!printing of}\index{sorts!printing of}
 \begin{ttbox} 
-show_hyps  : bool ref \hfill{\bf initially true}
-show_types : bool ref \hfill{\bf initially false}
-show_sorts : bool ref \hfill{\bf initially false}
+show_hyps     : bool ref \hfill{\bf initially true}
+show_brackets : bool ref \hfill{\bf initially false}
+show_types    : bool ref \hfill{\bf initially false}
+show_sorts    : bool ref \hfill{\bf initially false}
 \end{ttbox}
 These flags allow you to control how much information is displayed for
-terms and theorems.  The hypotheses are normally shown; types and sorts are
-not.  Displaying types and sorts may explain why a polymorphic inference
-rule fails to resolve with some goal.
+terms and theorems.  The hypotheses are normally shown; superfluous
+parentheses are not.  Types and sorts are normally hidden.  Displaying
+types and sorts may explain why a polymorphic inference rule fails to
+resolve with some goal.
 
 \begin{ttdescription}
 \item[\ttindexbold{show_hyps} := false;]   
 makes Isabelle show each meta-level hypothesis as a dot.
+
+\item[\ttindexbold{show_brackets} := true;] 
+  makes Isabelle show full bracketing.  This reveals the
+  grouping of infix operators.
 
 \item[\ttindexbold{show_types} := true;]
 makes Isabelle show types when printing a term or theorem.
