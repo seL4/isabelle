@@ -78,6 +78,7 @@ sig
   val root_path: theory -> theory
   val add_space: string * string list -> theory -> theory
   val add_name: string -> theory -> theory
+  val copy: theory -> theory
   val prep_ext: theory -> theory
   val prep_ext_merge: theory list -> theory
   val requires: theory -> string -> string -> unit
@@ -206,7 +207,7 @@ val root_path        = add_path "/";
 val add_space        = ext_sign Sign.add_space;
 val add_name         = ext_sign Sign.add_name;
 val prep_ext         = ext_sign (K Sign.prep_ext) ();
-
+val copy             = prep_ext;	(*an approximation ...*)
 
 
 (** add axioms **)
