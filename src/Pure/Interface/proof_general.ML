@@ -13,8 +13,8 @@ sig
   val show_context: unit -> theory
   val kill_goal: unit -> unit
   val repeat_undo: int -> unit
-  val init: bool -> unit
   val isa_restart: unit -> unit
+  val init: bool -> unit
 end;
 
 structure ProofGeneral: PROOF_GENERAL =
@@ -156,11 +156,10 @@ val help = writeln o Session.welcome;
 val show_context = Context.the_context;
 
 fun kill_goal () =
-  (Goal "PROP no_goal_supplied"; writeln ("Proof General, please clear the goals buffer."));
+  (Goals.reset_goals (); writeln ("Proof General, please clear the goals buffer."));
 
 fun repeat_undo 0 = ()
   | repeat_undo n = (undo(); repeat_undo (n - 1));
-
 
 fun isa_restart () =
  (ml_prompts ("> " ^ oct_char "372") ("- " ^ oct_char "373");
