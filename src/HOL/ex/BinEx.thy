@@ -4,7 +4,7 @@
     Copyright   1998  University of Cambridge
 
 Definition of normal form for proving that binary arithmetic on
-ormalized operands yields normalized results.
+normalized operands yields normalized results.
 
 Normal means no leading 0s on positive numbers and no leading 1s on negatives.
 *)

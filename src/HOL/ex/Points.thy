@@ -1,6 +1,7 @@
 (*  Title:      HOL/ex/Points.thy
     ID:         $Id$
     Author:     Wolfgang Naraschewski and Markus Wenzel, TU Muenchen
+    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 *)
 
 header {* Points and coloured points --- using extensible records in HOL *}

@@ -1,9 +1,7 @@
 (*  Title:      HOL/ex/ROOT.ML
     ID:         $Id$
-    Author:     Tobias Nipkow, Cambridge University Computer Laboratory
-    Copyright   1991  University of Cambridge
 
-Executes miscellaneous examples for Higher-Order Logic. 
+Miscellaneous examples for Higher-Order Logic.
 *)
 
 (*some examples of recursive function definitions: the TFL package*)
