@@ -25,6 +25,7 @@ signature PATTERN =
   val match             : type_sig -> term * term
                           -> (indexname*typ)list * (indexname*term)list
   val matches           : type_sig -> term * term -> bool
+  val matches_subterm   : type_sig -> term * term -> bool
   val unify             : sg * env * (term * term)list -> env
   exception Unif
   exception MATCH
@@ -389,5 +390,16 @@ end;
 
 (*Predicate: does the pattern match the object?*)
 fun matches tsig po = (match tsig po; true) handle MATCH => false;
+
+(* Does pat match a subterm of obj? *)
+fun matches_subterm tsig (pat,obj) =
+  let fun msub(bounds,obj) = matches tsig (pat,obj) orelse
+            case obj of
+              Abs(x,T,t) => let val y = variant bounds x
+                                val f = Free(":" ^ y,T)
+                            in msub(x::bounds,subst_bound(f,t)) end
+            | s$t => msub(bounds,s) orelse msub(bounds,t)
+            | _ => false
+  in msub([],obj) end;
 
 end;

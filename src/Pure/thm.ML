@@ -164,7 +164,7 @@ signature THM =
   val add_prems         : meta_simpset * thm list -> meta_simpset
   val prems_of_mss      : meta_simpset -> thm list
   val set_mk_rews       : meta_simpset * (thm -> thm list) -> meta_simpset
-  val mk_rews_of_mss    : meta_simpset -> thm -> thm list
+(*  val mk_rews_of_mss    : meta_simpset -> thm -> thm list *)
   val set_termless      : meta_simpset * (term * term -> bool) -> meta_simpset
   val trace_simp        : bool ref
   val rewrite_cterm     : bool * bool -> meta_simpset ->
@@ -1575,33 +1575,39 @@ fun mk_rrule (thm as Thm {sign_ref, prop, ...}) =
 
 (* add_simps *)
 
-fun add_simp
-  (mss as Mss {rules, congs, procs, bounds, prems, mk_rews, termless},
-    thm as Thm {sign_ref, prop, ...}) =
-  (case mk_rrule thm of
+fun add_simp1(mss as Mss {rules,congs,procs,bounds,prems,mk_rews,termless},
+              thm as Thm {sign_ref, prop, ...}) =
+  case mk_rrule thm of
     None => mss
   | Some (rrule as {lhs, ...}) =>
       (trace_thm false "Adding rewrite rule:" thm;
-        mk_mss (Net.insert_term ((lhs, rrule), rules, eq_rrule) handle Net.INSERT =>
-          (prtm true "ignoring duplicate rewrite rule" (Sign.deref sign_ref) prop; rules),
-            congs, procs, bounds, prems, mk_rews, termless)));
+       mk_mss (Net.insert_term ((lhs, rrule), rules, eq_rrule),
+               congs, procs, bounds, prems, mk_rews, termless)
+       handle Net.INSERT =>
+       (prtm true "ignoring duplicate rewrite rule" (Sign.deref sign_ref) prop;
+        mss));
+
+fun add_simp(mss as Mss{mk_rews,...},thm) = foldl add_simp1 (mss, mk_rews thm);
 
 val add_simps = foldl add_simp;
 
-fun mss_of thms = add_simps (empty_mss, thms);
+fun mss_of thms = foldl add_simp1 (empty_mss, thms);
 
 
 (* del_simps *)
 
-fun del_simp
-  (mss as Mss {rules, congs, procs, bounds, prems, mk_rews, termless},
-    thm as Thm {sign_ref, prop, ...}) =
-  (case mk_rrule thm of
+fun del_simp1(mss as Mss {rules,congs,procs,bounds,prems,mk_rews,termless},
+              thm as Thm {sign_ref, prop, ...}) =
+  case mk_rrule thm of
     None => mss
   | Some (rrule as {lhs, ...}) =>
-      mk_mss (Net.delete_term ((lhs, rrule), rules, eq_rrule) handle Net.DELETE =>
-        (prtm true "rewrite rule not in simpset" (Sign.deref sign_ref) prop; rules),
-          congs, procs, bounds, prems, mk_rews, termless));
+      (mk_mss (Net.delete_term ((lhs, rrule), rules, eq_rrule),
+               congs, procs, bounds, prems, mk_rews, termless)
+       handle Net.DELETE =>
+       (prtm true "rewrite rule not in simpset" (Sign.deref sign_ref) prop;
+        mss));
+
+fun del_simp(mss as Mss{mk_rews,...},thm) = foldl del_simp1 (mss, mk_rews thm);
 
 val del_simps = foldl del_simp;
 
@@ -1951,7 +1957,7 @@ fun bottomc ((simprem,useprem),prover,sign_ref,maxidx) =
                end)
          | _ => None)
 
-     and impc(shyps, hyps, s, u, mss as Mss{mk_rews,...}, ders) =
+     and impc(shyps, hyps, s, u, mss, ders) =
        let val (shyps1,hyps1,s1,ders1) =
              if simprem then try_botc mss (shyps,hyps,s,ders)
                         else (shyps,hyps,s,ders);
@@ -1963,7 +1969,7 @@ fun bottomc ((simprem,useprem),prover,sign_ref,maxidx) =
                                                   (Sign.deref sign_ref) s1; mss)
              else let val thm = assume (Cterm{sign_ref=sign_ref, t=s1, 
                                               T=propT, maxidx= ~1})
-                  in add_simps(add_prems(mss,[thm]), mk_rews thm) end
+                  in add_simp(add_prems(mss,[thm]), thm) end
            val (shyps2,hyps2,u1,ders2) = try_botc mss1 (shyps1,hyps1,u,ders1)
            val hyps3 = if gen_mem (op aconv) (s1, hyps1)
                        then hyps2 else hyps2\s1

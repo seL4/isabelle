@@ -324,11 +324,11 @@ fun looptest sign prems lhs rhs =
   orelse
    (null prems andalso
     Pattern.matches (#tsig (Sign.rep_sg sign)) (lhs, rhs))
-  orelse
+(*  orelse
    (case lhs of
       (f as Free _) $ (Var _) => exists (fn p => f occs p) prems orelse
                                  (null prems andalso f occs rhs)
-    | _ => false);
+    | _ => false)*);
 (*the condition "null prems" in the last cases is necessary because
   conditional rewrites with extra variables in the conditions may terminate
   although the rhs is an instance of the lhs. Example:
