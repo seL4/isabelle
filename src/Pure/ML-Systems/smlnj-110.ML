@@ -1,0 +1,122 @@
+(*  Title:      Pure/ML-Systems/smlnj-110.ML
+    ID:         $Id$
+    Author:     Carsten Clasohm, TU Muenchen
+    Copyright   1996  TU Muenchen
+
+Compatibility file for Standard ML of New Jersey version 110 or later.
+*)
+
+(** ML system related **)
+
+(* restore old-style character / string functions *)
+
+fun ord s = Char.ord (String.sub (s, 0));
+val chr = str o Char.chr;
+val explode = (map str) o String.explode;
+val implode = String.concat;
+
+
+(* New Jersey ML parameters *)
+
+val _ =
+ (Compiler.Control.Print.printLength := 1000;
+  Compiler.Control.Print.printDepth := 350;
+  Compiler.Control.Print.stringDepth := 250;
+  Compiler.Control.Print.signatures := 2);
+
+
+(* Poly/ML emulation *)
+
+fun quit () = exit 0;
+
+(*limit the printing depth -- divided by 2 for comparibility with Poly/ML*)
+fun print_depth n =
+ (Compiler.Control.Print.printDepth := n div 2;
+  Compiler.Control.Print.printLength := n);
+
+(*Poly/ML-like prompts*)
+Compiler.Control.primaryPrompt := "> ";
+Compiler.Control.secondaryPrompt := "# ";
+
+
+(** Compiler-independent timing functions **)
+
+(*Note start point for timing*)
+fun startTiming() = 
+  let val CPUtimer = Timer.startCPUTimer();
+      val time = Timer.checkCPUTimer(CPUtimer)
+  in  (CPUtimer,time)  end;
+
+(*Finish timing and return string*)
+fun endTiming (CPUtimer, {gc,sys,usr}) =
+  let open Time  (*...for Time.toString, Time.+ and Time.- *)
+      val {gc=gc2,sys=sys2,usr=usr2} = Timer.checkCPUTimer(CPUtimer)
+  in  "User " ^ toString (usr2-usr) ^
+      "  GC " ^ toString (gc2-gc) ^
+      "  All "^ toString (sys2-sys + usr2-usr + gc2-gc) ^
+      " secs"
+      handle Time => ""
+  end;
+
+
+(* toplevel pretty printing (see also Pure/install_pp.ML) *)
+
+fun make_pp path pprint =
+  let
+    open Compiler.PrettyPrint;
+
+    fun pp pps obj =
+      pprint obj
+        (add_string pps, begin_block pps INCONSISTENT,
+          fn wd => add_break pps (wd, 0), fn () => add_newline pps,
+          fn () => end_block pps);
+  in
+    (path, pp)
+  end;
+
+fun install_pp (path, pp) = Compiler.PPTable.install_pp path pp;
+
+
+(* ML command execution *)
+
+val use_strings = Compiler.Interact.useStream o TextIO.openString o implode;
+
+
+
+(** OS related **)
+
+(* system command execution *)
+
+(*execute Unix command which doesn't take any input from stdin and
+  sends its output to stdout; could be done more easily by Unix.execute,
+  but that function doesn't use the PATH*)
+fun execute command =
+  let
+    val tmp_name = OS.FileSys.tmpName ();
+    val is = (OS.Process.system (command ^ " > " ^ tmp_name); TextIO.openIn tmp_name);
+    val result = TextIO.inputAll is;
+  in
+    TextIO.closeIn is;
+    OS.FileSys.remove tmp_name;
+    result
+  end;
+
+
+(* file handling *)
+
+(*get time of last modification; if file doesn't exist return an empty string*)
+fun file_info "" = ""		(* FIXME !? *)
+  | file_info name = Time.toString (OS.FileSys.modTime name) handle _ => "";
+
+
+(* getenv *)
+
+fun getenv var =
+  (case OS.Process.getEnv var of
+    NONE => ""
+  | SOME txt => txt);
+
+
+(* non-ASCII input (see also Thy/symbol_input.ML) *)
+
+val needs_filtered_use = false;
