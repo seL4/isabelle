@@ -9,25 +9,26 @@ Cardinals in Zermelo-Fraenkel Set Theory
 Cardinal = OrderType + Fixedpt + Nat + Sum + 
 consts
   Least            :: "(i=>o) => i"    (binder "LEAST " 10)
-  eqpoll, lepoll   :: "[i,i] => o"     (infixl 50)
-  "cardinal"       :: "i=>i"           ("|_|")
-  Card             :: "i=>o"
-
-  swap       :: "[i,i,i]=>i"     (*not used; useful??*)
+  eqpoll, lepoll,
+          lesspoll :: "[i,i] => o"     (infixl 50)
+  cardinal         :: "i=>i"           ("|_|")
+  Finite, Card     :: "i=>o"
 
 defs
 
   (*least ordinal operator*)
-  Least_def  "Least(P) == THE i. Ord(i) & P(i) & (ALL j. j<i --> ~P(j))"
+  Least_def     "Least(P) == THE i. Ord(i) & P(i) & (ALL j. j<i --> ~P(j))"
 
-  eqpoll_def "A eqpoll B == EX f. f: bij(A,B)"
+  eqpoll_def    "A eqpoll B == EX f. f: bij(A,B)"
 
-  lepoll_def "A lepoll B == EX f. f: inj(A,B)"
+  lepoll_def    "A lepoll B == EX f. f: inj(A,B)"
 
-  cardinal_def "|A| == LEAST i. i eqpoll A"
+  lesspoll_def  "A lesspoll B == A lepoll B & ~(A eqpoll B)"
 
-  Card_def     "Card(i) == ( i = |i| )"
+  Finite_def    "Finite(A) == EX n:nat. A eqpoll n"
 
-  swap_def   "swap(A,x,y) == (lam z:A. if(z=x, y, if(z=y, x, z)))"
+  cardinal_def  "|A| == LEAST i. i eqpoll A"
+
+  Card_def      "Card(i) == (i = |i|)"
 
 end
