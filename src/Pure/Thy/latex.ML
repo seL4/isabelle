@@ -104,7 +104,7 @@ val isabelle_file = enclose
   \%%% Local Variables:\n\
   \%%% mode: latex\n\
   \%%% TeX-master: \"root\"\n\
-  \%%% End:\n%";
+  \%%% End:\n";
 
 fun old_symbol_source name syms =
   isabelle_file ("\\isamarkupheader{" ^ output_syms name ^ "}%\n" ^ output_symbols syms);
