@@ -97,6 +97,7 @@ sig
   val internalK         : string
   val kind_internal     : 'a attribute
   val has_internal      : tag list -> bool
+  val impose_hyps       : cterm list -> thm -> thm
   val close_derivation  : thm -> thm
   val compose_single    : thm * int * thm -> thm
   val add_rules         : thm list -> thm list -> thm list
@@ -317,6 +318,10 @@ fun implies_intr_list cAs th = foldr (uncurry implies_intr) (cAs,th);
 
 (* maps [| A1;...;An |] ==> B and [A1,...,An]   to   B *)
 fun implies_elim_list impth ths = foldl (uncurry implies_elim) (impth,ths);
+
+(* maps |- B to A1,...,An |- B *)
+fun impose_hyps chyps th =
+  implies_elim_list (implies_intr_list chyps th) (map Thm.assume chyps);
 
 (*Reset Var indexes to zero, renaming to preserve distinctness*)
 fun zero_var_indexes th =
