@@ -40,6 +40,7 @@ sig
   val extend_tokentrfuns: syntax -> (string * string * (string -> string * int)) list -> syntax
   val extend_trrules: syntax -> (string * string) trrule list -> syntax
   val extend_trrules_i: syntax -> ast trrule list -> syntax
+  val map_trrule: ('a -> 'b) -> 'a trrule -> 'b trrule
   val merge_syntaxes: syntax -> syntax -> syntax
   val type_syn: syntax
   val pure_syn: syntax
@@ -397,9 +398,9 @@ datatype 'a trrule =
   PrintRule of 'a * 'a |
   ParsePrintRule of 'a * 'a;
 
-fun map_rule f (ParseRule (x, y)) = ParseRule (f x, f y)
-  | map_rule f (PrintRule (x, y)) = PrintRule (f x, f y)
-  | map_rule f (ParsePrintRule (x, y)) = ParsePrintRule (f x, f y);
+fun map_trrule f (ParseRule (x, y)) = ParseRule (f x, f y)
+  | map_trrule f (PrintRule (x, y)) = PrintRule (f x, f y)
+  | map_trrule f (ParsePrintRule (x, y)) = ParsePrintRule (f x, f y);
 
 fun parse_rule (ParseRule pats) = Some pats
   | parse_rule (PrintRule _) = None
@@ -437,7 +438,7 @@ fun read_pattern syn (root, str) =
 
 
 fun prep_rules rd_pat raw_rules =
-  let val rules = map (map_rule rd_pat) raw_rules in
+  let val rules = map (map_trrule rd_pat) raw_rules in
     (map check_rule (mapfilter parse_rule rules),
       map check_rule (mapfilter print_rule rules))
   end
