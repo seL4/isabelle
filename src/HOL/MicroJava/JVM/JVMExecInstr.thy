@@ -28,19 +28,17 @@ primrec
   (let (oref,xp') = new_Addr hp;
        fs   = init_vars (fields(G,C));
        hp'  = if xp'=None then hp(oref \<mapsto> (C,fs)) else hp;
-       stk' = if xp'=None then (Addr oref)#stk else stk;
        pc'  = if xp'=None then pc+1 else pc
    in 
-      (xp', hp', (stk', vars, Cl, sig, pc')#frs))"
+      (xp', hp', (Addr oref#stk, vars, Cl, sig, pc')#frs))"
 
  "exec_instr (Getfield F C) G hp stk vars Cl sig pc frs = 
   (let oref = hd stk;
        xp'  = raise_system_xcpt (oref=Null) NullPointer;
        (oc,fs)  = the(hp(the_Addr oref));
-       stk' = if xp'=None then the(fs(F,C))#(tl stk) else tl stk;
        pc'  = if xp'=None then pc+1 else pc
    in
-      (xp', hp, (stk', vars, Cl, sig, pc')#frs))"
+      (xp', hp, (the(fs(F,C))#(tl stk), vars, Cl, sig, pc')#frs))"
 
  "exec_instr (Putfield F C) G hp stk vars Cl sig pc frs = 
   (let (fval,oref)= (hd stk, hd(tl stk));
