@@ -80,6 +80,7 @@ sig
   val CLASET': (claset -> 'a -> tactic) -> 'a -> tactic
   val claset: unit -> claset
   val claset_ref: unit -> claset ref
+  val local_claset_of   : Proof.context -> claset
 
   val fast_tac          : claset -> int -> tactic
   val slow_tac          : claset -> int -> tactic
@@ -136,6 +137,10 @@ end;
 signature CLASSICAL =
 sig
   include BASIC_CLASSICAL
+  val add_context_safe_wrapper: string * (Proof.context -> wrapper) -> theory -> theory
+  val del_context_safe_wrapper: string -> theory -> theory
+  val add_context_unsafe_wrapper: string * (Proof.context -> wrapper) -> theory -> theory
+  val del_context_unsafe_wrapper: string -> theory -> theory
   val print_local_claset: Proof.context -> unit
   val get_local_claset: Proof.context -> claset
   val put_local_claset: claset -> Proof.context -> Proof.context
@@ -256,12 +261,14 @@ val empty_cs =
      dup_netpair   = empty_netpair,
      xtra_netpair  = empty_netpair};
 
-fun print_cs (CS {safeIs, safeEs, hazIs, hazEs, ...}) =
+fun print_cs (CS {safeIs, safeEs, hazIs, hazEs, swrappers, uwrappers, ...}) =
   let val pretty_thms = map Display.pretty_thm in
     [Pretty.big_list "safe introduction rules (intro!):" (pretty_thms safeIs),
       Pretty.big_list "introduction rules (intro):" (pretty_thms hazIs),
       Pretty.big_list "safe elimination rules (elim!):" (pretty_thms safeEs),
-      Pretty.big_list "elimination rules (elim):" (pretty_thms hazEs)]
+      Pretty.big_list "elimination rules (elim):" (pretty_thms hazEs),
+      Pretty.strs ("safe wrappers:" :: map #1 swrappers),
+      Pretty.strs ("unsafe wrappers:" :: map #1 uwrappers)]
     |> Pretty.chunks |> Pretty.writeln
   end;
 
@@ -565,15 +572,17 @@ fun cs addWrapper new_uwrapper = update_uwrappers cs (fn uwrappers =>
 
 (*Remove a safe wrapper*)
 fun cs delSWrapper name = update_swrappers cs (fn swrappers =>
-    let val (del,rest) = partition (fn (n,_) => n=name) swrappers
-    in if null del then (warning ("No such safe wrapper in claset: "^ name);
-                         swrappers) else rest end);
+  let val swrappers' = filter_out (equal name o #1) swrappers in
+    if length swrappers <> length swrappers' then swrappers'
+    else (warning ("No such safe wrapper in claset: "^ name); swrappers)
+  end);
 
 (*Remove an unsafe wrapper*)
 fun cs delWrapper name = update_uwrappers cs (fn uwrappers =>
-    let val (del,rest) = partition (fn (n,_) => n=name) uwrappers
-    in if null del then (warning ("No such unsafe wrapper in claset: " ^ name);
-                         uwrappers) else rest end);
+  let val uwrappers' = filter_out (equal name o #1) uwrappers in
+    if length uwrappers <> length uwrappers' then uwrappers'
+    else (warning ("No such unsafe wrapper in claset: " ^ name); uwrappers)
+  end);
 
 (* compose a safe tactic alternatively before/after safe_step_tac *)
 fun cs addSbefore  (name,    tac1) =
@@ -772,6 +781,36 @@ fun deepen_tac cs = DEEPEN (2,10) (safe_depth_tac cs);
 
 
 
+(** context dependent claset components **)
+
+datatype context_cs = ContextCS of
+ {swrappers: (string * (Proof.context -> wrapper)) list,
+  uwrappers: (string * (Proof.context -> wrapper)) list};
+
+fun context_cs ctxt cs (ContextCS {swrappers, uwrappers}) =
+  let
+    fun add_wrapper add (name, f) claset = add (claset, (name, f ctxt));
+  in
+    cs |> fold_rev (add_wrapper (op addSWrapper)) swrappers
+    |> fold_rev (add_wrapper (op addWrapper)) uwrappers
+  end;
+
+fun make_context_cs (swrappers, uwrappers) =
+  ContextCS {swrappers = swrappers, uwrappers = uwrappers};
+
+val empty_context_cs = make_context_cs ([], []);
+
+fun merge_context_cs (ctxt_cs1, ctxt_cs2) =
+  let
+    val ContextCS {swrappers = swrappers1, uwrappers = uwrappers1} = ctxt_cs1;
+    val ContextCS {swrappers = swrappers2, uwrappers = uwrappers2} = ctxt_cs2;
+
+    val swrappers' = merge_alists swrappers1 swrappers2;
+    val uwrappers' = merge_alists uwrappers1 uwrappers2;
+  in make_context_cs (swrappers', uwrappers') end;
+
+
+
 (** claset theory data **)
 
 (* theory data kind 'Provers/claset' *)
@@ -779,19 +818,24 @@ fun deepen_tac cs = DEEPEN (2,10) (safe_depth_tac cs);
 structure GlobalClasetArgs =
 struct
   val name = "Provers/claset";
-  type T = claset ref;
+  type T = claset ref * context_cs;
 
-  val empty = ref empty_cs;
-  fun copy (ref cs) = (ref cs): T;            (*create new reference!*)
+  val empty = (ref empty_cs, empty_context_cs);
+  fun copy (ref cs, ctxt_cs) = (ref cs, ctxt_cs): T;            (*create new reference!*)
   val prep_ext = copy;
-  fun merge (ref cs1, ref cs2) = ref (merge_cs (cs1, cs2));
-  fun print _ (ref cs) = print_cs cs;
+  fun merge ((ref cs1, ctxt_cs1), (ref cs2, ctxt_cs2)) =
+    (ref (merge_cs (cs1, cs2)), merge_context_cs (ctxt_cs1, ctxt_cs2));
+  fun print _ (ref cs, _) = print_cs cs;
 end;
 
 structure GlobalClaset = TheoryDataFun(GlobalClasetArgs);
 val print_claset = GlobalClaset.print;
-val claset_ref_of_sg = GlobalClaset.get_sg;
-val claset_ref_of = GlobalClaset.get;
+val claset_ref_of_sg = #1 o GlobalClaset.get_sg;
+val claset_ref_of = #1 o GlobalClaset.get;
+val get_context_cs = #2 o GlobalClaset.get o ProofContext.theory_of;
+
+fun map_context_cs f = GlobalClaset.map (apsnd
+  (fn ContextCS {swrappers, uwrappers} => make_context_cs (f (swrappers, uwrappers))));
 
 
 (* access claset *)
@@ -819,6 +863,15 @@ val AddSIs = change_claset (op addSIs);
 val Delrules = change_claset (op delrules);
 
 
+(* context dependent components *)
+
+fun add_context_safe_wrapper wrapper = map_context_cs (apfst (merge_alists [wrapper]));
+fun del_context_safe_wrapper name = map_context_cs (apfst (filter_out (equal name o #1)));
+
+fun add_context_unsafe_wrapper wrapper = map_context_cs (apsnd (merge_alists [wrapper]));
+fun del_context_unsafe_wrapper name = map_context_cs (apsnd (filter_out (equal name o #1)));
+
+
 (* proof data kind 'Provers/claset' *)
 
 structure LocalClasetArgs =
@@ -826,13 +879,16 @@ struct
   val name = "Provers/claset";
   type T = claset;
   val init = claset_of;
-  fun print _ cs = print_cs cs;
+  fun print ctxt cs = print_cs (context_cs ctxt cs (get_context_cs ctxt));
 end;
 
 structure LocalClaset = ProofDataFun(LocalClasetArgs);
 val print_local_claset = LocalClaset.print;
 val get_local_claset = LocalClaset.get;
 val put_local_claset = LocalClaset.put;
+
+fun local_claset_of ctxt =
+  context_cs ctxt (get_local_claset ctxt) (get_context_cs ctxt);
 
 
 (* attributes *)
@@ -925,10 +981,10 @@ val setup_attrs = Attrib.add_attributes
 (** proof methods **)
 
 fun METHOD_CLASET tac ctxt =
-  Method.METHOD (tac ctxt (get_local_claset ctxt));
+  Method.METHOD (tac ctxt (local_claset_of ctxt));
 
 fun METHOD_CLASET' tac ctxt =
-  Method.METHOD (HEADGOAL o tac ctxt (get_local_claset ctxt));
+  Method.METHOD (HEADGOAL o tac ctxt (local_claset_of ctxt));
 
 
 local
@@ -974,10 +1030,10 @@ val cla_modifiers =
   Args.del -- Args.colon >> K (I, rule_del_local)];
 
 fun cla_meth tac prems ctxt = Method.METHOD (fn facts =>
-  ALLGOALS (Method.insert_tac (prems @ facts)) THEN tac (get_local_claset ctxt));
+  ALLGOALS (Method.insert_tac (prems @ facts)) THEN tac (local_claset_of ctxt));
 
 fun cla_meth' tac prems ctxt = Method.METHOD (fn facts =>
-  HEADGOAL (Method.insert_tac (prems @ facts) THEN' tac (get_local_claset ctxt)));
+  HEADGOAL (Method.insert_tac (prems @ facts) THEN' tac (local_claset_of ctxt)));
 
 val cla_method = Method.bang_sectioned_args cla_modifiers o cla_meth;
 val cla_method' = Method.bang_sectioned_args cla_modifiers o cla_meth';
