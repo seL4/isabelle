@@ -4,7 +4,7 @@
 # Author: Markus Wenzel, TU Muenchen
 # License: GPL (GNU GENERAL PUBLIC LICENSE)
 #
-# DESCRIPTION: install the isabelle fonts into your X11 server
+# DESCRIPTION: install symbol fonts on the current X11 server
 
 
 PRG=$(basename "$0")
@@ -12,20 +12,48 @@ PRG=$(basename "$0")
 function usage()
 {
   echo
-  echo "Usage: $PRG"
+  echo "Usage: $PRG [OPTIONS]"
   echo
-  echo "  Install the isabelle fonts into your X11 server."
-  echo "  (May be safely called repeatedly.)"
+  echo "  Options are:"
+  echo "    -x           install X-Symbol fonts"
+  echo
+  echo "  Install symbol fonts on the current X11 server."
   echo
   exit 1
 }
 
 
-## check for isabelle fonts
+## process command line
+
+# options
+
+XSYMB=""
+
+while getopts "x" OPT
+do
+  case "$OPT" in
+    x)
+      XSYMB=true
+      ;;
+    \?)
+      usage
+      ;;
+  esac
+done
+
+shift $(($OPTIND - 1))
+
+
+# args
+
+[ "$#" -ne 0 ] && usage
+
+
+## check fonts
 
 function checkfonts()
 {
-  RESULT=$(xlsfonts -fn "-isabelle-fixed-*-isabelle-0" 2>&1) || return 1
+  RESULT=$(xlsfonts -fn "$1" 2>&1) || return 1
 
   case "$RESULT" in
     xlsfonts:*)
@@ -39,7 +67,15 @@ function checkfonts()
 
 ## main
 
-[ "$#" -ne 0 ] && usage
+ISABELLE_PATTERN="-isabelle-fixed-*-isabelle-0"
+XSYMBOL_PATTERN="-xsymb-xsymb0-*"
 
-checkfonts || eval $ISABELLE_INSTALLFONTS
-checkfonts || echo "WARNING: Isabelle fonts probably not installed correctly!" >&2
+if [ -z "$XSYMB" ]; then
+  checkfonts "$ISABELLE_PATTERN" || eval $ISABELLE_INSTALLFONTS
+  checkfonts "$ISABELLE_PATTERN" || \
+    echo "Warning: Isabelle fonts probably not installed correctly!" >&2
+else
+  checkfonts "$XSYMBOL_PATTERN" || eval $XSYMBOL_INSTALLFONTS
+  checkfonts "$XSYMBOL_PATTERN" || \
+    echo "Warning: X-Symbol fonts probably not installed correctly!" >&2
+fi
