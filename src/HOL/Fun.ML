@@ -6,7 +6,6 @@
 Lemmas about functions.
 *)
 
-
 Goal "(f = g) = (! x. f(x)=g(x))";
 by (rtac iffI 1);
 by (Asm_simp_tac 1);
@@ -175,8 +174,8 @@ by (Blast_tac 1);
 qed "inj_on_contraD";
 
 Goal "inj (%s. {s})";
-br injI 1;
-be singleton_inject 1;
+by (rtac injI 1);
+by (etac singleton_inject 1);
 qed "inj_singleton";
 
 Goalw [inj_on_def] "[| A<=B; inj_on f B |] ==> inj_on f A";
@@ -198,20 +197,9 @@ Goalw [surj_def] "surj f ==> EX x. y = f x";
 by (Blast_tac 1);
 qed "surjD";
 
-
-(** Bijections **)
-
-Goalw [bij_def] "[| inj f; surj f |] ==> bij f";
-by (Blast_tac 1);
-qed "bijI";
-
-Goalw [bij_def] "bij f ==> inj f";
-by (Blast_tac 1);
-qed "bij_is_inj";
-
-Goalw [bij_def] "bij f ==> surj f";
-by (Blast_tac 1);
-qed "bij_is_surj";
+Goal "inj f ==> surj (inv f)";
+by (blast_tac (claset() addIs [surjI, inv_f_f]) 1);
+qed "inj_imp_surj_inv";
 
 
 (*** Lemmas about injective functions and inv ***)
@@ -241,6 +229,42 @@ qed "inj_on_inv";
 Goal "surj f ==> inj (inv f)";
 by (asm_simp_tac (simpset() addsimps [inj_on_inv, surj_range]) 1);
 qed "surj_imp_inj_inv";
+
+
+(** Bijections **)
+
+Goalw [bij_def] "[| inj f; surj f |] ==> bij f";
+by (Blast_tac 1);
+qed "bijI";
+
+Goalw [bij_def] "bij f ==> inj f";
+by (Blast_tac 1);
+qed "bij_is_inj";
+
+Goalw [bij_def] "bij f ==> surj f";
+by (Blast_tac 1);
+qed "bij_is_surj";
+
+Goalw [bij_def] "bij f ==> bij (inv f)";
+by (asm_simp_tac (simpset() addsimps [inj_imp_surj_inv, surj_imp_inj_inv]) 1);
+qed "bij_imp_bij_inv";
+
+val prems = 
+Goalw [inv_def] "[| !! x. g (f x) = x;  !! y. f (g y) = y |] ==> inv f = g";
+by (rtac ext 1);
+by (auto_tac (claset(), simpset() addsimps prems));
+qed "inv_equality";
+
+Goalw [bij_def] "bij f ==> inv (inv f) = f";
+by (rtac inv_equality 1);
+by (auto_tac (claset(), simpset() addsimps [surj_f_inv_f]));
+qed "inv_inv_eq";
+
+Goalw [bij_def] "[| bij f; bij g |] ==> inv (f o g) = inv g o inv f";
+by (rtac (inv_equality) 1);
+by (auto_tac (claset(), simpset() addsimps [surj_f_inv_f]));
+qed "o_inv_distrib";
+
 
 (** We seem to need both the id-forms and the (%x. x) forms; the latter can
     arise by rewriting, while id may be used explicitly. **)
@@ -280,9 +304,17 @@ Goal "surj f ==> f `` (f -`` A) = A";
 by (asm_simp_tac (simpset() addsimps [surj_range]) 1);
 qed "surj_image_vimage_eq";
 
+Goal "surj f ==> f `` (inv f `` A) = A";
+by (asm_simp_tac (simpset() addsimps [image_eq_UN, surj_f_inv_f]) 1);
+qed "image_surj_f_inv_f";
+
 Goalw [inj_on_def] "inj f ==> f -`` (f `` A) = A";
 by (Blast_tac 1);
 qed "inj_vimage_image_eq";
+
+Goal "inj f ==> (inv f) `` (f `` A) = A";
+by (asm_simp_tac (simpset() addsimps [image_eq_UN]) 1);
+qed "image_inv_f_f";
 
 Goalw [surj_def] "surj f ==> f -`` B <= A ==> B <= f `` A";
 by (blast_tac (claset() addIs [sym]) 1);
@@ -330,6 +362,10 @@ qed "inv_image_comp";
 Goal "inj f ==> (f a : f``A) = (a : A)";
 by (blast_tac (claset() addDs [injD]) 1);
 qed "inj_image_mem_iff";
+
+Goalw [inj_on_def] "inj f ==> (f``A <= f``B) = (A<=B)";
+by (Blast_tac 1);
+qed "inj_image_subset_iff";
 
 Goal "inj f ==> (f``A = f``B) = (A = B)";
 by (blast_tac (claset() addSEs [equalityE] addDs [injD]) 1);
