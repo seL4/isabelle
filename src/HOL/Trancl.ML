@@ -238,12 +238,6 @@ by (rtac (rtrancl_trans RS rtrancl_into_trancl1) 1);
 by (REPEAT (ares_tac [r_into_rtrancl] 1));
 qed "rtrancl_into_trancl2";
 
-Goal "(a, b) : R^* ==> a = b | (a, b) : R^+";
-by (etac rtranclE 1);
-by  (datac rtrancl_into_trancl1 1 2);
-by   Auto_tac;
-qed "rtranclD";
-
 (*Nice induction rule for trancl*)
 val major::prems = Goal
   "[| (a,b) : r^+;                                      \
@@ -402,3 +396,9 @@ by (rtac (reflcl_trancl RS subst) 1);
 by (Simp_tac 1);
 qed "rtrancl_empty";
 Addsimps[rtrancl_empty];
+
+Goal "(a,b):R^* ==> a=b | a~=b & (a,b):R^+";
+by(force_tac (claset(), simpset() addsimps [reflcl_trancl RS sym] 
+				  delsimps [reflcl_trancl]) 1);
+qed "rtranclD";
+
