@@ -25,8 +25,8 @@ consts
   star          :: "term"                               ("*")
   box           :: "term"                               ("[]")
   "^"           :: "[term, term] => term"               (infixl 20)
-  Lam           :: "[id, term, term] => term"           ("(3Lam _:_./ _)" [0, 0, 0] 10)
-  Pi            :: "[id, term, term] => term"           ("(3Pi _:_./ _)" [0, 0] 10)
+  Lam           :: "[idt, term, term] => term"          ("(3Lam _:_./ _)" [0, 0, 0] 10)
+  Pi            :: "[idt, term, term] => term"          ("(3Pi _:_./ _)" [0, 0] 10)
   "->"          :: "[term, term] => term"               (infixr 10)
   Has_type      :: "[term, term] => typing"             ("(_:/ _)" [0, 0] 5)
 
@@ -34,6 +34,7 @@ translations
   (prop) "x:X"  == (prop) "|- x:X"
   "Lam x:A. B"  == "Abs(A, %x. B)"
   "Pi x:A. B"   => "Prod(A, %x. B)"
+  "A -> B"      => "Prod(A, _K(B))"
 
 rules
   s_b           "*: []"
@@ -55,6 +56,5 @@ end
 
 ML
 
-val parse_translation = [("op ->", ndependent_tr "Prod")];
 val print_translation = [("Prod", dependent_tr' ("Pi", "op ->"))];
 
