@@ -462,7 +462,7 @@ goalw Nat.thy [le_def]
         "!!m. Suc m <= n ==> m < n";
 by (asm_full_simp_tac (!simpset addsimps [less_Suc_eq]) 1);
 by (cut_facts_tac [less_linear] 1);
-by (fast_tac HOL_cs 1);
+by (Fast_tac 1);
 qed "Suc_le_lessD";
 
 goal Nat.thy "(Suc m <= n) = (m < n)";
