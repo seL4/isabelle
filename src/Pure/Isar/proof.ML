@@ -22,6 +22,8 @@ sig
   val assert_forward: state -> state
   val assert_backward: state -> state
   val enter_forward: state -> state
+  val show_hyps: bool ref
+  val pretty_thm: thm -> Pretty.T
   val verbose: bool ref
   val print_state: state -> unit
   val level: state -> int
@@ -70,8 +72,8 @@ sig
   val have_i: string -> context attribute list -> term * (term list * term list)
     -> state -> state
   val at_bottom: state -> bool
-  val local_qed: (state -> state Seq.seq) -> ({kind: string, name: string, thm: thm} -> unit)
-    -> state -> state Seq.seq
+  val local_qed: (state -> state Seq.seq)
+    -> ({kind: string, name: string, thm: thm} -> unit) * (thm -> unit) -> state -> state Seq.seq
   val global_qed: (state -> state Seq.seq) -> state
     -> (theory * {kind: string, name: string, thm: thm}) Seq.seq
   val begin_block: state -> state
@@ -280,11 +282,14 @@ fun close_block (state as State (_, node :: nodes)) =
 
 (** print_state **)
 
+val show_hyps = ProofContext.show_hyps;
+val pretty_thm = ProofContext.pretty_thm;
+
 val verbose = ProofContext.verbose;
 
 fun print_facts _ None = ()
-  | print_facts s (Some ths) = Pretty.writeln (Pretty.big_list (s ^ " facts:")
-      (map Display.pretty_thm_no_hyps ths));
+  | print_facts s (Some ths) =
+      Pretty.writeln (Pretty.big_list (s ^ " facts:") (map pretty_thm ths));
 
 fun print_state (state as State ({context, facts, mode, goal = _}, nodes)) =
   let
@@ -395,11 +400,12 @@ end;
 fun RANGE [] _ = all_tac
   | RANGE (tac :: tacs) i = RANGE tacs (i + 1) THEN tac i;
 
-fun export_goal raw_rule inner state =
+fun export_goal print_rule raw_rule inner state =
   let
     val (outer, (_, (result, (facts, thm)))) = find_goal 0 state;
     val (exp, tacs) = export_wrt inner (Some outer);
     val rule = exp raw_rule;
+    val _ = print_rule rule;
     val thmq = FIRSTGOAL (Tactic.rtac rule THEN' RANGE (map #1 tacs)) thm;
   in Seq.map (fn th => map_goal (K (result, (facts, th))) state) thmq end;
 
@@ -639,13 +645,13 @@ fun end_proof bot state =
 
 (* local_qed *)
 
-fun finish_local print_result state =
+fun finish_local (print_result, print_rule) state =
   let
     val (ctxt, ((kind, name, t), (_, raw_thm))) = current_goal state;
     val result = prep_result state t raw_thm;
     val (atts, opt_solve) =
       (case kind of
-        Goal atts => (atts, export_goal result ctxt)
+        Goal atts => (atts, export_goal print_rule result ctxt)
       | Aux atts => (atts, Seq.single)
       | _ => err_malformed "finish_local" state);
   in
@@ -657,11 +663,11 @@ fun finish_local print_result state =
     |> opt_solve
   end;
 
-fun local_qed finalize print_result state =
+fun local_qed finalize print state =
   state
   |> end_proof false
   |> finalize
-  |> (Seq.flat o Seq.map (finish_local print_result));
+  |> (Seq.flat o Seq.map (finish_local print));
 
 
 (* global_qed *)
