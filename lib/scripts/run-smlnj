@@ -25,6 +25,17 @@ function check_mlhome_file()
   fi
 }
 
+function check_heap_file()
+{
+  if [ ! -f "$1" ]; then
+    echo "Expected to find ML heap file $1" >&2
+    return 1
+  else
+    return 0
+  fi
+}
+
+
 
 ## compiler binaries
 
@@ -74,11 +85,10 @@ RC=$?
 
 if [ -n "$OUTFILE" ]; then
   eval $($ARCH_N_OPSYS)
-  SUFFIX=".$ARCH-$OPSYS"
-  if [ -f "$OUTFILE$SUFFIX" ]; then
-    mv "$OUTFILE$SUFFIX" "$OUTFILE"
+  [ -z "$HEAP_SUFFIX" ] && HEAP_SUFFIX="$ARCH-$OPSYS"
+  HEAP="$OUTFILE.$HEAP_SUFFIX"
+  check_heap_file "$HEAP" && mv "$HEAP" "$OUTFILE" && \
     [ -n "$NOWRITE" ] && chmod -w "$OUTFILE"
-  fi
 fi
 
 exit $RC
