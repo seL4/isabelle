@@ -330,8 +330,6 @@ val Delsplits        = Splitter.Delsplits;
   rewriting by "(P|Q --> R) = ((P-->R)&(Q-->R))" might be justified on the
   grounds that it allows simplification of R in the two cases.*)
 
-fun gen_all th = forall_elim_vars (#maxidx(rep_thm th)+1) th;
-
 val mksimps_pairs =
   [("op -->", [mp]), ("op &", [conjunct1,conjunct2]),
    ("All", [spec]), ("True", []), ("False", []),
@@ -354,7 +352,7 @@ fun mk_atomize pairs =
          | _ => [th])
   in atoms end;
 
-fun mksimps pairs = (map mk_eq o mk_atomize pairs o gen_all);
+fun mksimps pairs = (map mk_eq o mk_atomize pairs o forall_elim_vars_safe);
 
 fun unsafe_solver_tac prems =
   FIRST'[resolve_tac(reflexive_thm::TrueI::refl::prems), atac, etac FalseE];
