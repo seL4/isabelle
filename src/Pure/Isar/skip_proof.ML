@@ -12,8 +12,8 @@ sig
   val make_thm: theory -> term -> thm
   val cheat_tac: theory -> tactic
   val prove: theory -> string list -> term list -> term -> (thm list -> tactic) -> thm
-  val local_skip_proof: ({kind: string, name: string, thm: thm} -> unit) * (thm -> unit)
-    -> Proof.state -> Proof.state Seq.seq
+  val local_skip_proof: (Proof.context -> {kind: string, name: string, thm: thm} -> unit) *
+    (Proof.context -> thm -> unit) -> Proof.state -> Proof.state Seq.seq
   val global_skip_proof: Proof.state -> theory * {kind: string, name: string, thm: thm}
   val setup: (theory -> theory) list
 end;

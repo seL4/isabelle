@@ -360,21 +360,21 @@ val invoke_case_i = ProofHistory.apply o Proof.invoke_case o Comment.ignore;
 
 local
 
-fun pretty_result {kind, name, thm} =
+fun pretty_result ctxt {kind, name, thm} =
   Pretty.block [Pretty.str (kind ^ (if name = "" then "" else " " ^ name) ^ ":"),
-    Pretty.fbrk, Proof.pretty_thm thm];
+    Pretty.fbrk, ProofContext.pretty_thm ctxt thm];
 
-fun pretty_rule s thm =
+fun pretty_rule s ctxt thm =
   Pretty.block [Pretty.str (s ^ " to solve goal by exported rule:"),
-    Pretty.fbrk, Proof.pretty_thm thm];
+    Pretty.fbrk, ProofContext.pretty_thm ctxt thm];
 
 in
 
-val print_result = Pretty.writeln o pretty_result;
+val print_result = Pretty.writeln oo pretty_result;
 
 fun cond_print_result_rule int =
-  if int then (print_result, priority o Pretty.string_of o pretty_rule "Attempt")
-  else (K (), K ());
+  if int then (print_result, priority oo (Pretty.string_of oo pretty_rule "Attempt"))
+  else (K (K ()), K (K ()));
 
 fun proof'' f = Toplevel.proof' (f o cond_print_result_rule);
 
@@ -386,10 +386,11 @@ fun check_goal false state = state
           (["Problem! Local statement will fail to solve any pending goal"] @
           (case exn of None => [] | Some e => [Toplevel.exn_message e]) @
           (case ! rule of None => [] | Some thm =>
-            [Pretty.string_of (pretty_rule "Failed attempt" thm)]))
+            [Pretty.string_of (pretty_rule "Failed attempt" (Proof.context_of state) thm)]))
           |> cat_lines |> warning;
         val check =
-          (fn () => Seq.pull (SkipProof.local_skip_proof (K (), fn thm => rule := Some thm) state))
+          (fn () => Seq.pull (SkipProof.local_skip_proof (K (K ()),
+            fn _ => fn thm => rule := Some thm) state))
           |> Library.setmp quick_and_dirty true
           |> Library.setmp proofs 0
           |> Library.transform_error;
@@ -507,7 +508,8 @@ fun global_result finish = Toplevel.proof_to_theory (fn prf =>
     val (thy, res as {kind, name, thm}) = finish state;
   in
     if kind = "" orelse kind = Drule.internalK then ()
-    else (print_result res; Context.setmp (Some thy) (Present.result kind name) thm);
+    else (print_result (Proof.context_of state) res;
+      Context.setmp (Some thy) (Present.result kind name) thm);
     thy
   end);
 
@@ -535,8 +537,9 @@ fun forget_proof comment = Toplevel.proof_to_theory (Proof.theory_of o ProofHist
 
 local
 
-fun cond_print_calc int thms =
-  if int then Pretty.writeln (Pretty.big_list "calculation:" (map Proof.pretty_thm thms))
+fun cond_print_calc int ctxt thms =
+  if int then
+    Pretty.writeln (Pretty.big_list "calculation:" (map (ProofContext.pretty_thm ctxt) thms))
   else ();
 
 fun proof''' f = Toplevel.proof' (f o cond_print_calc);

@@ -16,7 +16,7 @@ end;
 signature METHOD =
 sig
   include BASIC_METHOD
-  val trace: thm list -> unit
+  val trace: Proof.context -> thm list -> unit
   val print_global_rules: theory -> unit
   val print_local_rules: Proof.context -> unit
   val dest_global: theory attribute
@@ -99,17 +99,17 @@ sig
   val refine_end: text -> Proof.state -> Proof.state Seq.seq
   val proof: text option -> Proof.state -> Proof.state Seq.seq
   val local_qed: bool -> text option
-    -> ({kind: string, name: string, thm: thm} -> unit) * (thm -> unit)
-    -> Proof.state -> Proof.state Seq.seq
+    -> (Proof.context -> {kind: string, name: string, thm: thm} -> unit) *
+      (Proof.context -> thm -> unit) -> Proof.state -> Proof.state Seq.seq
   val local_terminal_proof: text * text option
-    -> ({kind: string, name: string, thm: thm} -> unit) * (thm -> unit)
-    -> Proof.state -> Proof.state Seq.seq
-  val local_default_proof: ({kind: string, name: string, thm: thm} -> unit) * (thm -> unit)
-    -> Proof.state -> Proof.state Seq.seq
-  val local_immediate_proof: ({kind: string, name: string, thm: thm} -> unit) * (thm -> unit)
-    -> Proof.state -> Proof.state Seq.seq
-  val local_done_proof: ({kind: string, name: string, thm: thm} -> unit) * (thm -> unit)
-    -> Proof.state -> Proof.state Seq.seq
+    -> (Proof.context -> {kind: string, name: string, thm: thm} -> unit) *
+      (Proof.context -> thm -> unit) -> Proof.state -> Proof.state Seq.seq
+  val local_default_proof: (Proof.context -> {kind: string, name: string, thm: thm} -> unit) *
+    (Proof.context -> thm -> unit) -> Proof.state -> Proof.state Seq.seq
+  val local_immediate_proof: (Proof.context -> {kind: string, name: string, thm: thm} -> unit) *
+    (Proof.context -> thm -> unit) -> Proof.state -> Proof.state Seq.seq
+  val local_done_proof: (Proof.context -> {kind: string, name: string, thm: thm} -> unit) *
+    (Proof.context -> thm -> unit) -> Proof.state -> Proof.state Seq.seq
   val global_qed: bool -> text option
     -> Proof.state -> theory * {kind: string, name: string, thm: thm}
   val global_terminal_proof: text * text option
@@ -132,9 +132,9 @@ struct
 
 val trace_rules = ref false;
 
-fun trace rules =
+fun trace ctxt rules =
   if not (! trace_rules) orelse null rules then ()
-  else Pretty.writeln (Pretty.big_list "rules:" (map Display.pretty_thm rules));
+  else Pretty.writeln (Pretty.big_list "rules:" (map (ProofContext.pretty_thm ctxt) rules));
 
 
 
@@ -153,12 +153,11 @@ fun kind_name 0 = "safe introduction rules (intro!)"
   | kind_name 3 = "elimination rules (elim)"
   | kind_name _ = "unknown";
 
-fun prt_rules sg (k, rs) =
-  Pretty.writeln (Pretty.big_list (kind_name k ^ ":")
-    (map (Display.pretty_thm_sg sg) (NetRules.rules rs)));
+fun prt_rules prt x (k, rs) =
+  Pretty.writeln (Pretty.big_list (kind_name k ^ ":") (map (prt x) (NetRules.rules rs)));
 
 in
-  fun print_rules sg rules = seq (prt_rules sg) (0 upto length rules - 1 ~~ rules);
+  fun print_rules prt x rules = seq (prt_rules prt x) (0 upto length rules - 1 ~~ rules);
 end;
 
 
@@ -173,7 +172,7 @@ struct
   val copy = I;
   val prep_ext = I;
   fun merge x = map2 NetRules.merge x;
-  val print = print_rules;
+  val print = print_rules Display.pretty_thm_sg;
 end;
 
 structure GlobalRules = TheoryDataFun(GlobalRulesArgs);
@@ -187,7 +186,7 @@ struct
   val name = GlobalRulesArgs.name;
   type T = GlobalRulesArgs.T;
   val init = GlobalRules.get;
-  val print = print_rules o ProofContext.sign_of;
+  val print = print_rules ProofContext.pretty_thm;
 end;
 
 structure LocalRules = ProofDataFun(LocalRulesArgs);
@@ -352,7 +351,7 @@ fun gen_some_rule_tac tac arg_rules ctxt facts = SUBGOAL (fn (goal, i) =>
       if not (null arg_rules) then arg_rules
       else find_erules facts (get elim_bangK) @ find_erules facts (get elimK) @
         find_rules goal (get intro_bangK) @ find_rules goal (get introK);
-  in trace rules; tac rules facts i end);
+  in trace ctxt rules; tac rules facts i end);
 
 fun meth tac x = METHOD (HEADGOAL o tac x);
 fun meth' tac x y = METHOD (HEADGOAL o tac x y);

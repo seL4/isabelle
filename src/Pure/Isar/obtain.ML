@@ -50,7 +50,7 @@ fun export_obtain state parms rule _ cprops thm =
   in
     if not (null bads) then
       raise Proof.STATE ("Conclusion contains obtained parameters: " ^
-        space_implode " " (map (Sign.string_of_term sign) bads), state)
+        space_implode " " (map (ProofContext.string_of_term (Proof.context_of state)) bads), state)
     else if not (ObjectLogic.is_judgment sign (Logic.strip_assums_concl prop)) then
       raise Proof.STATE ("Conclusions of 'obtain' context must be object-logic judgments", state)
     else (Tactic.rtac thm' THEN' RANGE elim_tacs) 1 rule

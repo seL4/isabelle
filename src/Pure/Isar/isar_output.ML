@@ -292,21 +292,17 @@ val pretty_text = Pretty.chunks o map Pretty.str o map tweak_line o Library.spli
 val pretty_source =
   pretty_text o space_implode " " o map Args.string_of o #2 o #1 o Args.dest_src;
 
-fun pretty_typ ctxt T =
-  Sign.pretty_typ (ProofContext.sign_of ctxt) T;
+fun pretty_term ctxt = ProofContext.pretty_term ctxt o ProofContext.extern_skolem ctxt;
 
-fun pretty_term ctxt t =
-  Sign.pretty_term (ProofContext.sign_of ctxt) (ProofContext.extern_skolem ctxt t);
-
-fun pretty_thm ctxt thms =
+fun pretty_thms ctxt thms =
   Pretty.chunks (map (pretty_term ctxt o #prop o Thm.rep_thm) thms);
 
-fun pretty_prf full ctxt thms =
+fun pretty_prf full ctxt thms =    (* FIXME context syntax!? *)
   Pretty.chunks (map (ProofSyntax.pretty_proof_of full) thms);
 
 fun output_with pretty src ctxt x =
   let
-    val prt = pretty ctxt x;      (*always pretty!*)
+    val prt = pretty ctxt x;      (*always pretty in order to catch errors!*)
     val prt' = if ! source then pretty_source src else prt;
   in cond_display (cond_quote prt') end;
 
@@ -316,12 +312,12 @@ fun output_goals main_goal src state = args (Scan.succeed ()) (output_with (fn _
 
 val _ = add_commands
  [("text", args (Scan.lift Args.name) (output_with (K pretty_text))),
-  ("thm", args Attrib.local_thmss (output_with pretty_thm)),
+  ("thm", args Attrib.local_thmss (output_with pretty_thms)),
   ("prf", args Attrib.local_thmss (output_with (pretty_prf false))),
   ("full_prf", args Attrib.local_thmss (output_with (pretty_prf true))),
   ("prop", args Args.local_prop (output_with pretty_term)),
   ("term", args Args.local_term (output_with pretty_term)),
-  ("typ", args Args.local_typ_no_norm (output_with pretty_typ)),
+  ("typ", args Args.local_typ_no_norm (output_with ProofContext.pretty_typ)),
   ("goals", output_goals true),
   ("subgoals", output_goals false)];
 

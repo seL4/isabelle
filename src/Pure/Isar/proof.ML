@@ -37,9 +37,6 @@ sig
   val assert_backward: state -> state
   val assert_no_chain: state -> state
   val enter_forward: state -> state
-  val show_hyps: bool ref
-  val pretty_thm: thm -> Pretty.T
-  val pretty_thms: thm list -> Pretty.T
   val verbose: bool ref
   val print_state: int -> state -> unit
   val pretty_goals: bool -> state -> Pretty.T list
@@ -95,7 +92,8 @@ sig
     -> term * (term list * term list) -> state -> state
   val at_bottom: state -> bool
   val local_qed: (state -> state Seq.seq)
-    -> ({kind: string, name: string, thm: thm} -> unit) * (thm -> unit) -> state -> state Seq.seq
+    -> (context -> {kind: string, name: string, thm: thm} -> unit) *
+      (context -> thm -> unit) -> state -> state Seq.seq
   val global_qed: (state -> state Seq.seq) -> state
     -> (theory * {kind: string, name: string, thm: thm}) Seq.seq
   val begin_block: state -> state
@@ -203,7 +201,6 @@ val auto_bind_facts = map_context oo ProofContext.auto_bind_facts;
 val put_thms = map_context o ProofContext.put_thms;
 val put_thmss = map_context o ProofContext.put_thmss;
 val reset_thms = map_context o ProofContext.reset_thms;
-val assumptions = ProofContext.assumptions o context_of;
 val get_case = ProofContext.get_case o context_of;
 
 
@@ -308,18 +305,11 @@ fun close_block (state as State (_, node :: nodes)) = State (node, nodes)
 
 (** print_state **)
 
-val show_hyps = ProofContext.show_hyps;
-val pretty_thm = ProofContext.pretty_thm;
-
-fun pretty_thms [th] = pretty_thm th
-  | pretty_thms ths = Pretty.blk (0, Pretty.fbreaks (map pretty_thm ths));
-
-
 val verbose = ProofContext.verbose;
 
-fun pretty_facts _ None = []
-  | pretty_facts s (Some ths) =
-      [Pretty.big_list (s ^ "this:") (map pretty_thm ths), Pretty.str ""];
+fun pretty_facts _ _ None = []
+  | pretty_facts s ctxt (Some ths) =
+      [Pretty.big_list (s ^ "this:") (map (ProofContext.pretty_thm ctxt) ths), Pretty.str ""];
 
 fun print_state nr (state as State (Node {context, facts, mode, goal = _}, nodes)) =
   let
@@ -334,7 +324,7 @@ fun print_state nr (state as State (Node {context, facts, mode, goal = _}, nodes
       | subgoals n = ", " ^ string_of_int n ^ " subgoals";
       
     fun pretty_goal (_, (i, (((kind, name, _), (goal_facts, thm)), _))) =
-      pretty_facts "using "
+      pretty_facts "using " context
         (if mode <> Backward orelse null goal_facts then None else Some goal_facts) @
       [Pretty.str ("goal (" ^ kind_name (sign_of state) kind ^
           (if name = "" then "" else " " ^ name) ^
@@ -343,7 +333,7 @@ fun print_state nr (state as State (Node {context, facts, mode, goal = _}, nodes
 
     val ctxt_prts =
       if ! verbose orelse mode = Forward then ProofContext.pretty_context context
-      else if mode = Backward then ProofContext.pretty_prems context
+      else if mode = Backward then ProofContext.pretty_asms context
       else [];
 
     val prts =
@@ -352,8 +342,8 @@ fun print_state nr (state as State (Node {context, facts, mode, goal = _}, nodes
         else "")), Pretty.str ""] @
      (if null ctxt_prts then [] else ctxt_prts @ [Pretty.str ""]) @
      (if ! verbose orelse mode = Forward then
-       (pretty_facts "" facts @ pretty_goal (find_goal state))
-      else if mode = ForwardChain then pretty_facts "picking " facts
+       (pretty_facts "" context facts @ pretty_goal (find_goal state))
+      else if mode = ForwardChain then pretty_facts "picking " context facts
       else pretty_goal (find_goal state))
   in Pretty.writeln (Pretty.chunks prts) end;
 
@@ -424,7 +414,7 @@ fun export_goal print_rule raw_rule inner state =
     val exp_tac = ProofContext.export true inner outer;
     fun exp_rule rule =
       let
-        val _ = print_rule rule;
+        val _ = print_rule outer rule;
         val thmq = FINDGOAL (refine_tac rule) thm;
       in Seq.map (fn th => map_goal I (K ((result, (facts, th)), f)) state) thmq end;
   in raw_rule |> exp_tac |> (Seq.flat o Seq.map exp_rule) end;
@@ -455,13 +445,13 @@ fun prep_result state t raw_thm =
     val {hyps, prop, sign, ...} = Thm.rep_thm thm;
     val tsig = Sign.tsig_of sign;
 
-    val casms = flat (map #1 (assumptions state));
+    val casms = flat (map #1 (ProofContext.assumptions_of (context_of state)));
     val bad_hyps = Library.gen_rems Term.aconv (hyps, map Thm.term_of casms);
   in
-    if not (null bad_hyps) then
-      err ("Additional hypotheses:\n" ^ cat_lines (map (Sign.string_of_term sign) bad_hyps))
+    if not (null bad_hyps) then err ("Additional hypotheses:\n" ^
+        cat_lines (map (ProofContext.string_of_term ctxt) bad_hyps))
     else if not (Pattern.matches (Sign.tsig_of (sign_of state)) (t, prop)) then
-      err ("Proved a different theorem: " ^ Sign.string_of_term sign prop)
+      err ("Proved a different theorem: " ^ ProofContext.string_of_term ctxt prop)
     else thm
   end;
 
@@ -608,7 +598,7 @@ fun setup_goal opt_block prepp autofix kind after_qed name raw_propp state =
       commas (map (Syntax.string_of_vname o #1) tvars), state);
     if null vars then ()
     else warning ("Goal statement contains unbound schematic variable(s): " ^
-      commas (map (Sign.string_of_term (sign_of state)) vars));
+      commas (map (ProofContext.string_of_term (context_of state')) vars));
     state'
     |> map_context (autofix prop)
     |> put_goal (Some (((kind, name, prop), ([], goal)), after_qed o map_context gen_binds))
@@ -700,7 +690,7 @@ fun finish_local (print_result, print_rule) state =
       | Have atts => (atts, Seq.single)
       | _ => err_malformed "finish_local" state);
   in
-    print_result {kind = kind_name (sign_of state) kind, name = name, thm = result};
+    print_result goal_ctxt {kind = kind_name (sign_of state) kind, name = name, thm = result};
     outer_state
     |> auto_bind_facts name [ProofContext.generalize goal_ctxt outer_ctxt t]
     |> (fn st => Seq.map (fn res =>

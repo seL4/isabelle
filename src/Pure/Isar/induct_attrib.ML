@@ -88,9 +88,15 @@ val init_rules = NetRules.init (fn ((s1: string, th1), (s2, th2)) => s1 = s2
 
 fun lookup_rule (rs: rules) name = Library.assoc (NetRules.rules rs, name);
 
-fun print_rules kind sg rs =
+fun print_rules prt kind x rs =
   let val thms = map snd (NetRules.rules rs)
-  in Pretty.writeln (Pretty.big_list kind (map (Display.pretty_thm_sg sg) thms)) end;
+  in Pretty.writeln (Pretty.big_list kind (map (prt x) thms)) end;
+
+fun print_all_rules prt x ((casesT, casesS), (inductT, inductS)) =
+ (print_rules prt "induct type:" x inductT;
+  print_rules prt "induct set:" x inductS;
+  print_rules prt "cases type:" x casesT;
+  print_rules prt "cases set:" x casesS);
 
 
 (* theory data kind 'Isar/induction' *)
@@ -110,11 +116,7 @@ struct
     ((NetRules.merge (casesT1, casesT2), NetRules.merge (casesS1, casesS2)),
       (NetRules.merge (inductT1, inductT2), NetRules.merge (inductS1, inductS2)));
 
-  fun print sg ((casesT, casesS), (inductT, inductS)) =
-    (print_rules "induct type:" sg inductT;
-      print_rules "induct set:" sg inductS;
-      print_rules "cases type:" sg casesT;
-      print_rules "cases set:" sg casesS);
+  val print = print_all_rules Display.pretty_thm_sg;
 
   fun dest ((casesT, casesS), (inductT, inductS)) =
     {type_cases = NetRules.rules casesT,
@@ -136,7 +138,7 @@ struct
   type T = GlobalInductArgs.T;
 
   fun init thy = GlobalInduct.get thy;
-  fun print x = GlobalInductArgs.print (ProofContext.sign_of x);
+  val print = print_all_rules ProofContext.pretty_thm;
 end;
 
 structure LocalInduct = ProofDataFun(LocalInductArgs);

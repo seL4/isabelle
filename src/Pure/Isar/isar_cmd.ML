@@ -218,7 +218,7 @@ val print_binds = Toplevel.unknown_proof o Toplevel.keep (fn state =>
 
 val print_lthms = Toplevel.unknown_proof o Toplevel.keep (fn state =>
   ProofContext.setmp_verbose
-    ProofContext.print_thms (Proof.context_of (Toplevel.proof_of state)));
+    ProofContext.print_lthms (Proof.context_of (Toplevel.proof_of state)));
 
 val print_cases = Toplevel.unknown_proof o Toplevel.keep (fn state =>
   ProofContext.setmp_verbose
@@ -228,34 +228,37 @@ val print_cases = Toplevel.unknown_proof o Toplevel.keep (fn state =>
 (* print theorems / types / terms / props *)
 
 fun string_of_thms state ms args = with_modes ms (fn () =>
-  Pretty.string_of (Proof.pretty_thms (IsarThy.get_thmss args state)));
+  Pretty.string_of (ProofContext.pretty_thms (Proof.context_of state)
+    (IsarThy.get_thmss args state)));
 
 fun string_of_prfs full state ms args = with_modes ms (fn () =>
-  Pretty.string_of (Pretty.chunks
+  Pretty.string_of (Pretty.chunks    (* FIXME context syntax!? *)
     (map (ProofSyntax.pretty_proof_of full) (IsarThy.get_thmss args state))));
 
 fun string_of_prop state ms s =
   let
-    val sign = Proof.sign_of state;
-    val prop = ProofContext.read_prop (Proof.context_of state) s;
-  in with_modes ms (fn () => Pretty.string_of (Pretty.quote (Sign.pretty_term sign prop))) end;
+    val ctxt = Proof.context_of state;
+    val prop = ProofContext.read_prop ctxt s;
+  in
+    with_modes ms (fn () => Pretty.string_of (Pretty.quote (ProofContext.pretty_term ctxt prop)))
+  end;
 
 fun string_of_term state ms s =
   let
-    val sign = Proof.sign_of state;
-    val t = ProofContext.read_term (Proof.context_of state) s;
+    val ctxt = Proof.context_of state;
+    val t = ProofContext.read_term ctxt s;
     val T = Term.type_of t;
   in
     with_modes ms (fn () => Pretty.string_of
-      (Pretty.block [Pretty.quote (Sign.pretty_term sign t), Pretty.fbrk,
-        Pretty.str "::", Pretty.brk 1, Pretty.quote (Sign.pretty_typ sign T)]))
+      (Pretty.block [Pretty.quote (ProofContext.pretty_term ctxt t), Pretty.fbrk,
+        Pretty.str "::", Pretty.brk 1, Pretty.quote (ProofContext.pretty_typ ctxt T)]))
   end;
 
 fun string_of_type state ms s =
   let
-    val sign = Proof.sign_of state;
-    val T = ProofContext.read_typ (Proof.context_of state) s;
-  in with_modes ms (fn () => Pretty.string_of (Pretty.quote (Sign.pretty_typ sign T))) end;
+    val ctxt = Proof.context_of state;
+    val T = ProofContext.read_typ ctxt s;
+  in with_modes ms (fn () => Pretty.string_of (Pretty.quote (ProofContext.pretty_typ ctxt T))) end;
 
 fun print_item string_of (x, y) = Toplevel.keep (fn state =>
   writeln (string_of (Toplevel.enter_forward_proof state) x y));

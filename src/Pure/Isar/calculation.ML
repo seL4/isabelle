@@ -14,10 +14,12 @@ sig
   val trans_del_global: theory attribute
   val trans_add_local: Proof.context attribute
   val trans_del_local: Proof.context attribute
-  val also: thm list option -> (thm list -> unit) -> Proof.state -> Proof.state Seq.seq
-  val finally: thm list option -> (thm list -> unit) -> Proof.state -> Proof.state Seq.seq
-  val moreover: (thm list -> unit) -> Proof.state -> Proof.state
-  val ultimately: (thm list -> unit) -> Proof.state -> Proof.state
+  val also: thm list option -> (Proof.context -> thm list -> unit)
+    -> Proof.state -> Proof.state Seq.seq
+  val finally: thm list option -> (Proof.context -> thm list -> unit)
+    -> Proof.state -> Proof.state Seq.seq
+  val moreover: (Proof.context -> thm list -> unit) -> Proof.state -> Proof.state
+  val ultimately: (Proof.context -> thm list -> unit) -> Proof.state -> Proof.state
   val setup: (theory -> theory) list
 end;
 
@@ -28,8 +30,8 @@ struct
 
 (* theory data kind 'Isar/calculation' *)
 
-fun print_rules sg rs = Pretty.writeln (Pretty.big_list "transitivity rules:"
-  (map (Display.pretty_thm_sg sg) (NetRules.rules rs)));
+fun print_rules prt x rs =
+  Pretty.writeln (Pretty.big_list "transitivity rules:" (map (prt x) (NetRules.rules rs)));
 
 structure GlobalCalculationArgs =
 struct
@@ -40,7 +42,7 @@ struct
   val copy = I;
   val prep_ext = I;
   val merge = NetRules.merge;
-  val print = print_rules;
+  val print = print_rules Display.pretty_thm_sg;
 end;
 
 structure GlobalCalculation = TheoryDataFun(GlobalCalculationArgs);
@@ -55,7 +57,7 @@ struct
   type T = thm NetRules.T * (thm list * int) option;
 
   fun init thy = (GlobalCalculation.get thy, None);
-  fun print ctxt (rs, _) = print_rules (ProofContext.sign_of ctxt) rs;
+  fun print ctxt (rs, _) = print_rules ProofContext.pretty_thm ctxt rs;
 end;
 
 structure LocalCalculation = ProofDataFun(LocalCalculationArgs);
@@ -143,7 +145,8 @@ fun calculate final opt_rules print state =
   in
     err_if state (initial andalso final) "No calculation yet";
     err_if state (initial andalso is_some opt_rules) "Initial calculation -- no rules to be given";
-    calculations |> Seq.map (fn calc => (print calc; state |> maintain_calculation final calc))
+    calculations |> Seq.map (fn calc => (print (Proof.context_of state) calc;
+        state |> maintain_calculation final calc))
   end;
 
 fun also print = calculate false print;
@@ -162,7 +165,7 @@ fun collect final print state =
     val calc = thms @ facts;
   in
     err_if state (initial andalso final) "No calculation yet";
-    print calc;
+    print (Proof.context_of state) calc;
     state |> maintain_calculation final calc
   end;
 
