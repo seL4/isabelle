@@ -10,6 +10,7 @@ sig
   val show_brackets: bool ref
   val show_sorts: bool ref
   val show_types: bool ref
+  val show_no_free_types: bool ref
 end;
 
 signature PRINTER =
@@ -46,6 +47,8 @@ open SynTrans.Parser.Lexicon SynExt.Ast SynExt TypeExt SynTrans;
 val show_types = ref false;
 val show_sorts = ref false;
 val show_brackets = ref false;
+val show_no_free_types = ref false;
+
 
 
 (** convert term or typ to ast **)
@@ -58,14 +61,16 @@ fun apply_trans name a f args =
 
 fun ast_of_term trf show_types show_sorts tm =
   let
+    val no_freeTs = ! show_no_free_types;
+
     fun prune_typs (t_seen as (Const _, _)) = t_seen
       | prune_typs (t as Free (x, ty), seen) =
           if ty = dummyT then (t, seen)
-          else if t mem seen then (free x, seen)
+          else if no_freeTs orelse t mem seen then (free x, seen)
           else (t, t :: seen)
       | prune_typs (t as Var (xi, ty), seen) =
           if ty = dummyT then (t, seen)
-          else if t mem seen then (var xi, seen)
+          else if no_freeTs orelse t mem seen then (var xi, seen)
           else (t, t :: seen)
       | prune_typs (t_seen as (Bound _, _)) = t_seen
       | prune_typs (Abs (x, ty, t), seen) =
