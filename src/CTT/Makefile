@@ -24,12 +24,18 @@ FILES = 	ROOT.ML CTT.thy CTT.ML Bool.thy Bool.ML \
 EX_FILES = ex/ROOT.ML ex/elim.ML ex/equal.ML ex/synth.ML ex/typechk.ML
 
 $(BIN)/CTT:   $(BIN)/Pure  $(FILES) 
+	if [ -d $${ISABELLEBIN:?}/Pure ];\
+           	then echo Bad value for ISABELLEBIN: \
+                	$(BIN) is the Isabelle source directory; \
+                	exit 1; \
+           	fi;\
 	case "$(COMP)" in \
 	poly*)	echo 'make_database"$(BIN)/CTT"; quit();'  \
 			| $(COMP) $(BIN)/Pure;\
 		echo 'open PolyML; use"ROOT";' | $(COMP) $(BIN)/CTT ;;\
 	sml*)	echo 'use"ROOT.ML"; xML"$(BIN)/CTT" banner;' | $(BIN)/Pure ;;\
-	*)	echo Bad value for ISABELLECOMP;;\
+	*)	echo Bad value for ISABELLECOMP: \
+                	$(COMP) is not poly or sml;;\
 	esac
 
 $(BIN)/Pure:
@@ -39,7 +45,8 @@ test:   ex/ROOT.ML $(BIN)/CTT  $(EX_FILES)
 	case "$(COMP)" in \
 	poly*)	echo 'use"ex/ROOT.ML"; quit();' | $(COMP) $(BIN)/CTT ;;\
 	sml*)	echo 'use"ex/ROOT.ML";' | $(BIN)/CTT;;\
-	*)	echo Bad value for ISABELLECOMP;;\
+	*)	echo Bad value for ISABELLECOMP: \
+                	$(COMP) is not poly or sml;;\
 	esac
 
 .PRECIOUS:  $(BIN)/Pure  $(BIN)/CTT 
