@@ -11,7 +11,8 @@ ease use and installation of the complete Isabelle working
 environment.  This includes Proof General user interface support, WWW
 presentation of theories and the Isabelle document preparation system.
 
-The most prominent highlights of Isabelle99-1 are as follows.
+The most prominent highlights of Isabelle99-1 are as follows.  See the
+NEWS file distributed with Isabelle for more details.
 
   * Isabelle/Isar improvements (Markus Wenzel)
       o Support of tactic-emulation scripts for easy porting of legacy ML
@@ -27,19 +28,16 @@ The most prominent highlights of Isabelle99-1 are as follows.
     Rings and univariate polynomials.
 
   * HOL/BCV (Tobias Nipkow)
-    Generic model of bytecode verification, i.e. data-flow
-    analysis for assembly languages with subtypes.
+    Generic model of bytecode verification.
 
   * HOL/IMPP (David von Oheimb)
-    Extension of IMP with local variables and mutually recursive
-    procedures.
+    Extension of IMP with local variables and mutually recursive procedures.
 
   * HOL/Isar_examples (Markus Wenzel)
     More examples, including a formulation of Hoare Logic in Isabelle/Isar.
 
   * HOL/Lambda (Stefan Berghofer and Tobias Nipkow)
-    More on termination of simply-typed lambda-terms; converted into
-    an Isabelle/Isar tactic emulation script.
+    More on termination of simply-typed lambda-terms (Isar script).
 
   * HOL/Lattice (Markus Wenzel)
     Lattices and orders in Isabelle/Isar.
@@ -47,8 +45,7 @@ The most prominent highlights of Isabelle99-1 are as follows.
   * HOL/MicroJava (Gerwin Klein, Tobias Nipkow, David von Oheimb, and
     Cornelia Pusch)
     Formalization of a fragment of Java, together with a corresponding
-    virtual machine and a specification of its bytecode verifier and a
-    lightweight bytecode verifier, including proofs of type-safety.
+    virtual machine and a specification of its bytecode verifier.
 
   * HOL/NumberTheory (Thomas Rasmussen)
     Fundamental Theorem of Arithmetic, Chinese Remainder Theorem,
@@ -59,10 +56,6 @@ The most prominent highlights of Isabelle99-1 are as follows.
 
   * HOL/Real (Jacques Fleuriot)
     More on nonstandard real analysis.
-
-
-See the NEWS file distributed with Isabelle for more details.
-
 
 You may get Isabelle99-1 from any of the following mirror sites:
 
