@@ -11,11 +11,18 @@
 ## Uncomment and adapt one of the sections below.  Note that ML_HOME
 ## specifies the location of the actual compiler binaries.
 
+# Poly/ML 3.x
+POLYML_HOME=$ISABELLE_HOME/../polyml
+ML_PLATFORM=$($POLYML_HOME/bin/polyml-platform 2>/dev/null)
+ML_HOME=$POLYML_HOME/$ML_PLATFORM
+ML_SYSTEM=polyml-3.x
+ML_OPTIONS="-h 30000"
+
 # Standard ML of New Jersey 110 or later
-ML_SYSTEM=smlnj-110
-ML_HOME=$ISABELLE_HOME/../smlnj/bin
-ML_OPTIONS="@SMLdebug=/dev/null"
-ML_PLATFORM=$(eval $($ML_HOME/.arch-n-opsys 2>/dev/null); echo $HEAP_SUFFIX)
+#ML_SYSTEM=smlnj-110
+#ML_HOME=$ISABELLE_HOME/../smlnj/bin
+#ML_OPTIONS="@SMLdebug=/dev/null"
+#ML_PLATFORM=$(eval $($ML_HOME/.arch-n-opsys 2>/dev/null); echo $HEAP_SUFFIX)
 
 # MLWorks 2.0 or later
 #ML_SYSTEM=mlworks
@@ -28,13 +35,6 @@ ML_PLATFORM=$(eval $($ML_HOME/.arch-n-opsys 2>/dev/null); echo $HEAP_SUFFIX)
 #ML_HOME=/usr/local/ldist/DIR/polyml/polyml/solaris2
 #ML_OPTIONS="-h 30000"
 #ML_PLATFORM=""
-
-# Poly/ML 3.1
-#ML_SYSTEM=polyml-3.1
-#ML_HOME=/usr/local/ldist/DIR/polyml-3.1/polyml/sunos5.4
-#ML_OPTIONS="-h 30000"
-#ML_PLATFORM=""
-#LM_LICENSE_FILE=$ML_HOME/license.dat
 
 # Standard ML of New Jersey 0.93
 #ML_SYSTEM=smlnj-0.93
