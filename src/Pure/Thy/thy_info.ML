@@ -30,7 +30,7 @@ sig
   val names: unit -> string list
   val get_theory: string -> theory
   val get_preds: string -> string list
-  val loaded_files: string -> (Path.T * File.info) list
+  val loaded_files: string -> ((Path.T * File.info) * bool) list
   val touch_all_thys: unit -> unit
   val may_load_file: bool -> bool -> Path.T -> unit
   val use_path: Path.T -> unit
@@ -93,7 +93,7 @@ fun update_node name parents entry G =
 
 type deps =
   {present: bool, outdated: bool,
-    master: ThyLoad.master option, files: (Path.T * (Path.T * File.info) option) list};
+    master: ThyLoad.master option, files: (Path.T * ((Path.T * File.info) * bool) option) list};
 
 fun make_deps present outdated master files =
   {present = present, outdated = outdated, master = master, files = files}: deps;
@@ -140,7 +140,7 @@ fun get_files name = (case get_deps name of Some {files, ...} => files | _ => []
 
 fun loaded_files name =
   (case get_deps name of
-    Some {master = Some master, files, ...} => ThyLoad.get_thy master :: mapfilter #2 files
+    Some {master = Some master, files, ...} => (ThyLoad.get_thy master, true) :: mapfilter #2 files
   | Some {files, ...} => mapfilter #2 files
   | None => []);
 
@@ -207,7 +207,8 @@ fun may_run_file really path =
     val load = ThyLoad.may_load_file really;
     fun provide name info (deps as Some {present, outdated, master, files}) =
           if exists (equal path o #1) files then
-            Some (make_deps present outdated master (overwrite (files, (path, Some info))))
+            Some (make_deps present outdated master
+              (overwrite (files, (path, Some (info, really)))))
           else (warning (loader_msg "undeclared dependency of theory" [name] ^
             " on file: " ^ quote (Path.pack path)); deps)
       | provide _ _ None = None;
@@ -272,7 +273,7 @@ fun load_deps dir name =
   in (Some (init_deps (Some master) files), parents) end;
 
 fun file_current (_, None) = false
-  | file_current (path, info) = info = ThyLoad.check_file path;
+  | file_current (path, info) = (apsome fst info = ThyLoad.check_file path);
 
 fun current_deps strict dir name =
   (case lookup_deps name of
