@@ -245,9 +245,7 @@ val oracleP =
 
 (* statements *)
 
-val is_props = P.$$$ "(" |-- P.!!! (Scan.repeat1 (P.$$$ "is" |-- P.prop) --| P.$$$ ")");
-val propp = P.prop -- Scan.optional is_props [];
-fun statement f = (P.opt_thm_name ":" -- propp >> P.triple1) -- P.marg_comment >> f;
+fun statement f = (P.opt_thm_name ":" -- P.propp >> P.triple1) -- P.marg_comment >> f;
 
 val theoremP =
   OuterSyntax.command "theorem" "state theorem" K.thy_goal
@@ -280,6 +278,10 @@ val thenP =
   OuterSyntax.command "then" "forward chaining" K.prf_chain
     (P.marg_comment >> (Toplevel.print oo (Toplevel.proof o IsarThy.chain)));
 
+val thenceP =
+  OuterSyntax.command "thence" "forward chaining, including full export" K.prf_chain
+    (P.marg_comment >> (Toplevel.print oo (Toplevel.proof o IsarThy.export_chain)));
+
 val fromP =
   OuterSyntax.command "from" "forward chaining from given facts" K.prf_chain
     (P.xthms1 -- P.marg_comment >> (Toplevel.print oo (Toplevel.proof o IsarThy.from_facts)));
@@ -297,12 +299,12 @@ val noteP =
 
 val assumeP =
   OuterSyntax.command "assume" "assume propositions" K.prf_asm
-    ((P.opt_thm_name ":" -- Scan.repeat1 propp >> P.triple1) -- P.marg_comment
+    ((P.opt_thm_name ":" -- Scan.repeat1 P.propp >> P.triple1) -- P.marg_comment
       >> (Toplevel.print oo (Toplevel.proof o IsarThy.assume)));
 
 val presumeP =
   OuterSyntax.command "presume" "assume propositions, to be established later" K.prf_asm
-    ((P.opt_thm_name ":" -- Scan.repeat1 propp >> P.triple1) -- P.marg_comment
+    ((P.opt_thm_name ":" -- Scan.repeat1 P.propp >> P.triple1) -- P.marg_comment
       >> (Toplevel.print oo (Toplevel.proof o IsarThy.presume)));
 
 val fixP =
@@ -345,7 +347,7 @@ val qedP =
 
 val terminal_proofP =
   OuterSyntax.command "by" "terminal backward proof" K.qed
-    (P.method -- P.interest >> IsarThy.terminal_proof);
+    (P.method -- P.interest -- Scan.option (P.method -- P.interest) >> IsarThy.terminal_proof);
 
 val immediate_proofP =
   OuterSyntax.command "." "immediate proof" K.qed
@@ -534,8 +536,8 @@ val breakP =
 
 val keywords =
  ["!", "%", "(", ")", "*", "+", ",", "--", ":", "::", ";", "<", "<=",
-  "=", "==", "=>", "?", "[", "]", "and", "as", "binder", "files",
-  "infixl", "infixr", "is", "output", "{", "|", "}"];
+  "=", "==", "=>", "?", "[", "]", "and", "as", "binder", "concl",
+  "files", "infixl", "infixr", "is", "output", "{", "|", "}"];
 
 val parsers = [
   (*theory structure*)
@@ -550,10 +552,10 @@ val parsers = [
   print_ast_translationP, token_translationP, oracleP,
   (*proof commands*)
   theoremP, lemmaP, showP, haveP, thusP, henceP, assumeP, presumeP,
-  fixP, letP, thenP, fromP, withP, noteP, beginP, endP, nextP,
-  qed_withP, qedP, terminal_proofP, immediate_proofP, default_proofP,
-  skip_proofP, applyP, then_applyP, proofP, alsoP, finallyP, backP,
-  cannot_undoP, clear_undoP, redoP, undos_proofP,
+  fixP, letP, thenP, thenceP, fromP, withP, noteP, beginP, endP,
+  nextP, qed_withP, qedP, terminal_proofP, immediate_proofP,
+  default_proofP, skip_proofP, applyP, then_applyP, proofP, alsoP,
+  finallyP, backP, cannot_undoP, clear_undoP, redoP, undos_proofP,
   kill_proofP, undoP,
   (*diagnostic commands*)
   print_commandsP, print_theoryP, print_syntaxP, print_attributesP,
