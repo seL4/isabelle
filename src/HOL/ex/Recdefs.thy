@@ -19,6 +19,16 @@ recdef Fact  less_than
   "Fact 0 = 1"
   "Fact (Suc x) = Fact x * Suc x"
 
+consts fib :: "int => int"
+recdef fib  "measure nat"
+  eqn:  "fib n = (if n < 1 then 0
+                  else if n=1 then 1
+                  else fib(n - 2) + fib(n - 1))";
+
+lemma "fib 7 = 13"
+by simp
+
+
 consts map2 :: "('a => 'b => 'c) * 'a list * 'b list => 'c list"
 recdef map2  "measure(\<lambda>(f, l1, l2). size l1)"
   "map2 (f, [], [])  = []"
