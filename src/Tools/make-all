@@ -19,7 +19,7 @@
 # A typical shell script for /bin/sh is...
 # ML_DBASE=/usr/groups/theory/poly2.04/`arch`/ML_dbase
 # ISABELLEBIN=/homes/`whoami`/bin
-# ISABELLECOMP="poly -noDisplay"
+# ISABELLECOMP="/usr/bin/poly -noDisplay"
 # export ML_DBASE ISABELLEBIN ISABELLECOMP 
 # nohup make-all $*
 
