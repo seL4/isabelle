@@ -17,6 +17,6 @@ ZF_build_completed;     (*Make examples fail if ZF did*)
 writeln"Root file for ZF/Resid";
 proof_timing := true;
 
-time_use_thy "Confluence";
+time_use_thy "Conversion";
 
 writeln"END: Root file for ZF/Resid";
