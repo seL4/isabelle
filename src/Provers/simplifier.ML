@@ -156,7 +156,7 @@ fun asm_full_simp_tac(SS{mss,simps,congs,subgoal_tac,finish_tac,loop_tac}) =
       and looper i = TRY(NEWSUBGOALS (loop_tac i) (allsimp i))
       and simp_loop_tac i = Tactic(simp_loop i)
 
-  in fn i => COND (has_fewer_prems 0) no_tac (simp_loop_tac i) end;
+  in fn i => COND (has_fewer_prems 1) no_tac (simp_loop_tac i) end;
 
 fun asm_simp_tac ss =
       METAHYPS(fn prems => asm_full_simp_tac (add_asms ss prems) 1);
