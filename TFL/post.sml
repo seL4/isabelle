@@ -48,12 +48,16 @@ struct
  structure Prim = Prim
  structure S = USyntax
 
+ fun read_term thy = Sign.simple_read_term (Theory.sign_of thy) HOLogic.termT;
+
+
  (* messages *)
 
  val quiet_mode = ref false;
  fun message s = if ! quiet_mode then () else writeln s;
 
  val trace = Prim.trace
+
 
  (*---------------------------------------------------------------------------
   * Extract termination goals so that they can be put it into a goalstack, or 
@@ -141,14 +145,12 @@ struct
    let val dummy = message "Proving induction theorem ..."
        val ind = Prim.mk_induction theory 
                     {fconst=f, R=R, SV=[], pat_TCs_list=full_pats_TCs}
-       val dummy = (message "Proved induction theorem."; 
-		    message "Postprocessing ...");
+       val dummy = message "Postprocessing ...";
        val {rules, induction, nested_tcs} = 
 	   std_postprocessor ss theory {rules=rules, induction=ind, TCs=TCs}
    in
    case nested_tcs
-   of [] => (message "Postprocessing done.";
-	     {induction=induction, rules=rules,tcs=[]})
+   of [] => {induction=induction, rules=rules,tcs=[]}
    | L  => let val dummy = message "Simplifying nested TCs ..."
 	       val (solved,simplified,stubborn) =
 		U.itlist (fn th => fn (So,Si,St) =>
@@ -159,7 +161,6 @@ struct
 	       val rewr = full_simplify (ss addsimps (solved @ simplified'));
 	       val induction' = rewr induction
 	       and rules'     = rewr rules
-	       val dummy = message "Postprocessing done."
 	   in
 	   {induction = induction',
 		rules = rules',
@@ -187,7 +188,7 @@ struct
  fun simplify_defn (ss, tflCongs) (thy,(id,pats)) =
     let val dummy = deny (id mem (Sign.stamp_names_of (Theory.sign_of thy)))
 			 ("Recursive definition " ^ id ^ 
-			  " would clash with the theory of the same name!")
+			  " would clash with the theory of the same name!")	(* FIXME !? *)
 	val def = freezeT(get_def thy id)   RS   meta_eq_to_obj_eq
 	val {theory,rules,rows,TCs,full_pats_TCs} = 
 		 Prim.post_definition (Prim.congs tflCongs)
@@ -220,10 +221,8 @@ struct
    end;
 
  fun define thy fid R ss_congs seqs = 
-   let val _ =  writeln ("Recursive function " ^ fid)
-       val read = readtm (Theory.sign_of thy) HOLogic.termT;
-   in  define_i thy fid (read R) ss_congs (map read seqs)  end
-   handle Utils.ERR {mesg,...} => error mesg;
+   define_i thy fid (read_term thy R) ss_congs (map (read_term thy) seqs)
+     handle Utils.ERR {mesg,...} => error mesg;
 
 
 (*---------------------------------------------------------------------------
@@ -242,11 +241,9 @@ struct
   let val {rules,R,theory,full_pats_TCs,SV,...} = 
 	      Prim.lazyR_def thy (Sign.base_name fid) congs eqs
       val f = func_of_cond_eqn (concl(R.CONJUNCT1 rules handle _ => rules))
-      val dummy = (message "Definition made."; 
-		   message "Proving induction theorem ...");
+      val dummy = message "Proving induction theorem ...";
       val induction = Prim.mk_induction theory 
                          {fconst=f, R=R, SV=SV, pat_TCs_list=full_pats_TCs}
-      val dummy = message "Induction theorem proved."
   in (theory, 
       (*return the conjoined induction rule and recursion equations, 
 	with assumptions remaining to discharge*)
@@ -254,9 +251,8 @@ struct
   end
 
  fun defer thy fid congs seqs = 
-   let val read = readtm (Theory.sign_of thy) HOLogic.termT;
-   in  defer_i thy fid congs (map read seqs)  end
-   handle Utils.ERR {mesg,...} => error mesg;
+   defer_i thy fid congs (map (read_term thy) seqs)
+     handle Utils.ERR {mesg,...} => error mesg;
  end;
 
 end;
