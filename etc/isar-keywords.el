@@ -202,6 +202,7 @@
     "monos"
     "morphisms"
     "notes"
+    "open"
     "output"
     "outputs"
     "overloaded"

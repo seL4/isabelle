@@ -189,6 +189,7 @@
     "is"
     "monos"
     "notes"
+    "open"
     "output"
     "overloaded"
     "recursor_eqns"
