@@ -149,14 +149,19 @@ by (arith_tac 1);
 qed "two_hrealpow_gt";
 Addsimps [two_hrealpow_gt,two_hrealpow_ge_one];
 
-Goal "#-1 ^ (2*n) = (#1::hypreal)";
+Goal "#-1 ^ (#2*n) = (#1::hypreal)";
 by (induct_tac "n" 1);
 by (Auto_tac);
 qed "hrealpow_minus_one";
 
+Goal "n+n = (#2*n::nat)";
+by Auto_tac; 
+qed "double_lemma";
+
+(*ugh: need to get rid fo the n+n*)
 Goal "#-1 ^ (n + n) = (#1::hypreal)";
-by (induct_tac "n" 1);
-by (Auto_tac);
+by (auto_tac (claset(), 
+              simpset() addsimps [double_lemma, hrealpow_minus_one]));
 qed "hrealpow_minus_one2";
 Addsimps [hrealpow_minus_one2];
 
@@ -398,7 +403,8 @@ by (Asm_full_simp_tac 1);
 by (simp_tac (HOL_ss addsimps [hypreal_one_def]) 1);
 by (res_inst_tac [("z","n")] eq_Abs_hypnat 1);
 by (auto_tac (claset(),
-              simpset() addsimps [hyperpow, hypnat_add,hypreal_minus]));
+              simpset() addsimps [double_lemma, hyperpow, hypnat_add,
+                                  hypreal_minus]));
 qed "hyperpow_minus_one2";
 Addsimps [hyperpow_minus_one2];
 

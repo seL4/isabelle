@@ -74,6 +74,8 @@ lemma fib_Cassini: "int (fib (Suc (Suc n)) * fib n) =
    apply (simp add: fib.Suc_Suc mod_Suc)
   apply (simp add: fib.Suc_Suc
     add_mult_distrib add_mult_distrib2 mod_Suc zmult_int [symmetric] zmult_ac)
+  apply (subgoal_tac "x mod #2 < #2", arith)
+  apply simp
   done
 
 

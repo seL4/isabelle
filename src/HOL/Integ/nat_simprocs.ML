@@ -148,6 +148,9 @@ fun dest_sum t =
 
 fun dest_Sucs_sum t = dest_sum (dest_Sucs (0,t));
 
+
+(** Other simproc items **)
+
 val trans_tac = Int_Numeral_Simprocs.trans_tac;
 
 val prove_conv = Int_Numeral_Simprocs.prove_conv;
@@ -159,7 +162,8 @@ val bin_simps = [add_nat_number_of, nat_number_of_add_left,
                 bin_arith_simps @ bin_rel_simps;
 
 fun prep_simproc (name, pats, proc) = Simplifier.mk_simproc name pats proc;
-fun prep_pat s = Thm.read_cterm (Theory.sign_of (the_context ())) (s, HOLogic.termT);
+fun prep_pat s = Thm.read_cterm (Theory.sign_of (the_context ()))
+                                (s, HOLogic.termT);
 val prep_pats = map prep_pat;
 
 
@@ -209,6 +213,23 @@ val simplify_meta_eq =
     Int_Numeral_Simprocs.simplify_meta_eq
          [numeral_0_eq_0, numeral_1_eq_1, add_0, add_0_right,
          mult_0, mult_0_right, mult_1, mult_1_right];
+
+
+(** Restricted version of dest_Sucs_sum for nat_combine_numerals:
+    Simprocs never apply unless the original expression contains at least one
+    numeral in a coefficient position.
+**)
+
+fun is_numeral (Const("Numeral.number_of", _) $ w) = true
+  | is_numeral _ = false;
+
+fun prod_has_numeral t = exists is_numeral (dest_prod t);
+
+fun restricted_dest_Sucs_sum t = 
+  let val ts = dest_Sucs_sum t
+  in  if exists prod_has_numeral ts then ts
+      else raise TERM("Nat_Numeral_Simprocs.restricted_dest_Sucs_sum", ts)
+  end;
 
 
 (*** Applying CancelNumeralsFun ***)
@@ -299,7 +320,7 @@ structure CombineNumeralsData =
   struct
   val add		= op + : int*int -> int 
   val mk_sum            = long_mk_sum    (*to work for e.g. #2*x + #3*x *)
-  val dest_sum          = dest_Sucs_sum
+  val dest_sum          = restricted_dest_Sucs_sum
   val mk_coeff          = mk_coeff
   val dest_coeff        = dest_coeff
   val left_distrib      = left_add_mult_distrib RS trans

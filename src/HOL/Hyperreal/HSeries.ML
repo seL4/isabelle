@@ -202,7 +202,8 @@ Goalw [hypnat_zero_def, hypnat_omega_def]
      "sumhr(0, whn + whn, %i. (-#1) ^ (i+1)) = #0";
 by (simp_tac (HOL_ss addsimps
              [zero_eq_numeral_0 RS sym, hypreal_zero_def]) 1); 
-by (simp_tac (simpset() addsimps [sumhr,hypnat_add] delsimps [realpow_Suc]) 1);
+by (simp_tac (simpset() addsimps [sumhr,hypnat_add,double_lemma] 
+                        delsimps [realpow_Suc]) 1);
 qed "sumhr_minus_one_realpow_zero";
 Addsimps [sumhr_minus_one_realpow_zero];
 

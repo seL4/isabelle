@@ -116,7 +116,7 @@ text {*
 
 lemma sum_of_2_powers: "setsum (\<lambda>i. #2^i) (lessThan n) = #2^n - 1"
   apply (induct n)
-   apply auto
+   apply (auto split: nat_diff_split) 
   done
 
 lemma sum_of_3_powers: "#2 * setsum (\<lambda>i. #3^i) (lessThan n) = #3^n - 1"
