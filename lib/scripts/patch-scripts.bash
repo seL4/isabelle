@@ -13,14 +13,14 @@ function findbin()
   local BINARY=""
 
   if [ -f "$DEFAULT" ]; then	# preferred location
-    echo "found $DEFAULT" >&2
+    echo "using $DEFAULT" >&2
     echo "$DEFAULT"
     return
   else				# find in PATH
     BASE=$(basename "$DEFAULT")
     BINARY=$(type -path "$BASE")
     if [ -n "$BINARY" ]; then
-      echo "found $BINARY" >&2
+      echo "using $BINARY" >&2
       echo "$BINARY"
       return
     else

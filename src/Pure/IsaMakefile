@@ -6,11 +6,6 @@
 # The Pure part is common to all systems. Object-logics (like FOL)
 # are loaded on top of it.
 #
-# How to build:
-#   (1) put the Isabelle bin dir into your PATH (try 'which isabelle')
-#   (2) make sure Isabelle's etc/settings are appropriate (ML system etc.)
-#   (3) cd here and run 'isatool make'
-#
 
 OUT = $(ISABELLE_OUTPUT_DIR)
 
