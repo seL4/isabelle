@@ -14,17 +14,12 @@
 # binaries.  Do not invent new ML system names unless you know what
 # you are doing.  Only one of the sections below should be activated.
 
-# Poly/ML 3.x and 4.0
+# Poly/ML 3.x or later
 POLYML_HOME=$(choosefrom \
-  "$ISABELLE_HOME/contrib/polyml-4.0" \
-  "$ISABELLE_HOME/contrib/polyml-3.x" \
   "$ISABELLE_HOME/contrib/polyml" \
-  "$ISABELLE_HOME/../polyml-4.0" \
-  "$ISABELLE_HOME/../polyml-3.x" \
   "$ISABELLE_HOME/../polyml" \
-  "/usr/share/polyml-4.0" \
-  "/usr/share/polyml-3.x" \
-  "/usr/share/polyml")
+  "/usr/share/polyml" \
+  "/usr/local/polyml")
 ML_SYSTEM=$("$POLYML_HOME/bin/polyml-version" 2>/dev/null || echo polyml)
 ML_PLATFORM=$("$POLYML_HOME/bin/polyml-platform" 2>/dev/null)
 ML_HOME="$POLYML_HOME/$ML_PLATFORM"
@@ -155,6 +150,7 @@ ISABELLE_INTERFACE=$(choosefrom \
   "$ISABELLE_HOME/contrib/ProofGeneral/isar/interface" \
   "$ISABELLE_HOME/../ProofGeneral/isar/interface" \
   "/usr/share/ProofGeneral/isar/interface" \
+  "/usr/local/ProofGeneral/isar/interface" \
   "$ISABELLE_INTERFACE")
 PROOFGENERAL_OPTIONS=""
 
@@ -163,6 +159,7 @@ XSYMBOL_HOME=$(choosefrom \
   "$ISABELLE_HOME/contrib/x-symbol" \
   "$ISABELLE_HOME/../x-symbol" \
   "/usr/share/x-symbol" \
+  "/usr/local/x-symbol" \
   "")
 
 
