@@ -7,8 +7,8 @@ Datatype package for Isabelle/HOL.
 
 TODO:
   - streamline internal interfaces (!??);
-  - rep_datatype outer syntax ('and' vs. ',' (!?));
   - methods: induct, exhaust;
+  - infix types (!?!?);
 *)
 
 signature BASIC_DATATYPE_PACKAGE =
@@ -44,8 +44,19 @@ sig
        induction : thm,
        size : thm list,
        simps : thm list}
-  val rep_datatype : string list option -> thm list list ->
-    thm list list -> thm -> theory -> theory *
+  val rep_datatype_i : string list option -> (thm * theory attribute list) list list ->
+    (thm * theory attribute list) list list -> (thm * theory attribute list) -> theory -> theory *
+      {distinct : thm list list,
+       inject : thm list list,
+       exhaustion : thm list,
+       rec_thms : thm list,
+       case_thms : thm list list,
+       split_thms : (thm * thm) list,
+       induction : thm,
+       size : thm list,
+       simps : thm list}
+  val rep_datatype : string list option -> (xstring * Args.src list) list list ->
+    (xstring * Args.src list) list list -> xstring * Args.src list -> theory -> theory *
       {distinct : thm list list,
        inject : thm list list,
        exhaustion : thm list,
@@ -312,12 +323,8 @@ fun add_datatype_axm flat_names new_type_names descr sorts types_syntax constr_s
       (** new types **)
 
       curry (foldr (fn (((name, mx), tvs), thy') => thy' |>
-        PureThy.add_typedecls [(name, tvs, mx)] |>
-        Theory.add_arities_i
-          [(Sign.full_name (sign_of thy') (Syntax.type_name name mx),
-            replicate (length tvs) HOLogic.termS, HOLogic.termS)]))
-              (types_syntax ~~ tyvars) |>
-
+          TypedefPackage.add_typedecls [(name, tvs, mx)]))
+        (types_syntax ~~ tyvars) |>
       add_path flat_names (space_implode "_" new_type_names) |>
 
       (** primrec combinators **)
@@ -483,11 +490,18 @@ fun add_datatype_def flat_names new_type_names descr sorts types_syntax constr_s
   end;
 
 
-(*********************** declare non-datatype as datatype *********************)
+(*********************** declare existing type as datatype *********************)
 
-fun rep_datatype alt_names distinct inject induction thy =
+fun gen_rep_datatype apply_theorems alt_names raw_distinct raw_inject raw_induction thy0 =
   let
-    val sign = sign_of thy;
+    fun app_thmss srcs thy = foldl_map (fn (thy, x) => apply_theorems x thy) (thy, srcs);
+    fun app_thm src thy = apsnd Library.hd (apply_theorems [src] thy);
+
+    val (((thy1, induction), inject), distinct) = thy0
+      |> app_thmss raw_distinct
+      |> apfst (app_thmss raw_inject)
+      |> apfst (apfst (app_thm raw_induction));
+    val sign = sign_of thy1;
 
     val induction' = freezeT induction;
 
@@ -518,11 +532,11 @@ fun rep_datatype alt_names distinct inject induction thy =
 
     val descr = make_dt_spec dtnames 0 (map get_constr (prems_of induction'));
     val sorts = add_term_tfrees (concl_of induction', []);
-    val dt_info = get_datatypes thy;
+    val dt_info = get_datatypes thy1;
 
     val _ = writeln ("Proofs for datatype(s) " ^ commas new_type_names);
 
-    val (thy2, casedist_thms) = thy |>
+    val (thy2, casedist_thms) = thy1 |>
       DatatypeAbsProofs.prove_casedist_thms new_type_names [descr] sorts induction;
     val (thy3, reccomb_names, rec_thms) = DatatypeAbsProofs.prove_primrec_thms
       false new_type_names [descr] sorts dt_info inject distinct induction thy2;
@@ -568,6 +582,9 @@ fun rep_datatype alt_names distinct inject induction thy =
       size = size_thms,
       simps = simps})
   end;
+
+val rep_datatype = gen_rep_datatype IsarThy.apply_theorems;
+val rep_datatype_i = gen_rep_datatype IsarThy.apply_theorems_i;
 
 
 (******************************** add datatype ********************************)
@@ -651,7 +668,7 @@ val setup = [DatatypesData.init];
 
 (* outer syntax *)
 
-open OuterParse;
+local open OuterParse in
 
 val datatype_decl =
   Scan.option ($$$ "(" |-- name --| $$$ ")") -- type_args -- name -- opt_infix --
@@ -664,12 +681,28 @@ fun mk_datatype args =
   in #1 o add_datatype false names specs end;
 
 val datatypeP =
-  OuterSyntax.parser false "datatype" "define inductive datatypes"
+  OuterSyntax.command "datatype" "define inductive datatypes"
     (enum1 "and" datatype_decl >> (Toplevel.theory o mk_datatype));
 
+
+val rep_datatype_decl =
+  Scan.option (Scan.repeat1 name) --
+    Scan.optional ($$$ "distinct" |-- !!! (and_list1 xthms1)) [] --
+    Scan.optional ($$$ "inject" |-- !!! (and_list1 xthms1)) [] --
+    ($$$ "induct" |-- !!! xthm);
+
+fun mk_rep_datatype (((opt_ts, dss), iss), ind) = #1 o rep_datatype opt_ts dss iss ind;
+
+val rep_datatypeP =
+  OuterSyntax.command "rep_datatype" "represent existing types inductively"
+    (rep_datatype_decl >> (Toplevel.theory o mk_rep_datatype));
+
+
 val _ = OuterSyntax.add_keywords ["distinct", "inject", "induct"];
-(* FIXME val _ = OuterSyntax.add_parsers [datatypeP, rep_datatypeP]; *)
-val _ = OuterSyntax.add_parsers [datatypeP];
+val _ = OuterSyntax.add_parsers [datatypeP, rep_datatypeP];
+
+end;
+
 
 end;
 
