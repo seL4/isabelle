@@ -40,6 +40,9 @@ sig
   val set_mk_rews       : meta_simpset * (thm -> thm list) -> meta_simpset
   val set_mk_sym        : meta_simpset * (thm -> thm option) -> meta_simpset
   val set_mk_eq_True    : meta_simpset * (thm -> thm option) -> meta_simpset
+  val get_mk_rews       : meta_simpset -> thm -> thm list
+  val get_mk_sym        : meta_simpset -> thm -> thm option
+  val get_mk_eq_True    : meta_simpset -> thm -> thm option
   val set_termless      : meta_simpset * (term * term -> bool) -> meta_simpset
   val beta_eta_conversion: cterm -> thm
   val rewrite_cterm: bool * bool * bool ->
@@ -517,6 +520,10 @@ fun set_mk_eq_True
     mk_mss (rules, congs, procs, bounds, prems,
             {mk= #mk mk_rews, mk_sym= #mk_sym mk_rews, mk_eq_True= mk_eq_True},
             termless,depth);
+
+fun get_mk_rews    (Mss {mk_rews,...}) = #mk         mk_rews
+fun get_mk_sym     (Mss {mk_rews,...}) = #mk_sym     mk_rews
+fun get_mk_eq_True (Mss {mk_rews,...}) = #mk_eq_True mk_rews
 
 (* termless *)
 
