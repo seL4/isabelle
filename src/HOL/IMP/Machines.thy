@@ -163,74 +163,46 @@ apply(erule stepa1.induct)
  apply arith
 apply(fastsimp simp add:exec01.JMPB)
 done
-
-lemma drop_take_rev: "\<And>i. drop (length xs - i) (rev xs) = rev (take i xs)"
+(*
+lemma rev_take: "\<And>i. rev (take i xs) = drop (length xs - i) (rev xs)"
 apply(induct xs)
  apply simp_all
 apply(case_tac i)
 apply simp_all
 done
 
-lemma take_drop_rev: "\<And>i. take (length xs - i) (rev xs) = rev (drop i xs)"
+lemma rev_drop: "\<And>i. rev (drop i xs) = take (length xs - i) (rev xs)"
 apply(induct xs)
  apply simp_all
 apply(case_tac i)
 apply simp_all
 done
-
+*)
 lemma direction2:
  "rpq \<turnstile> \<langle>sp,s\<rangle> -1\<rightarrow> \<langle>sp',t\<rangle> \<Longrightarrow>
  \<forall>p q p' q'. rpq = rev p @ q & sp = size p & sp' = size p' \<longrightarrow>
           rev p' @ q' = rev p @ q \<longrightarrow> \<langle>q,p,s\<rangle> -1\<rightarrow> \<langle>q',p',t\<rangle>"
 apply(erule exec01.induct)
-   apply(clarsimp simp add: neq_Nil_conv)
-   apply(rule conjI)
-    apply(drule_tac f = "drop (size p')" in arg_cong)
-    apply simp
-    apply(drule sym)
-    apply simp
-   apply(drule_tac f = "take (size p')" in arg_cong)
-   apply simp
+   apply(clarsimp simp add: neq_Nil_conv append_eq_conv_conj)
    apply(drule sym)
    apply simp
    apply(rule rev_revD)
    apply simp
-  apply(clarsimp simp add: neq_Nil_conv)
-  apply(rule conjI)
-   apply(drule_tac f = "drop (size p')" in arg_cong)
-   apply simp
-   apply(drule sym)
-   apply simp
-  apply(drule_tac f = "take (size p')" in arg_cong)
-  apply simp
+  apply(clarsimp simp add: neq_Nil_conv append_eq_conv_conj)
   apply(drule sym)
   apply simp
   apply(rule rev_revD)
   apply simp
- apply(clarsimp simp add: neq_Nil_conv)
- apply(rule conjI)
-  apply(drule_tac f = "drop (size p')" in arg_cong)
-  apply simp
-  apply(drule sym)
-  apply simp
- apply(drule_tac f = "take (size p')" in arg_cong)
- apply simp
+ apply(clarsimp simp add: neq_Nil_conv append_eq_conv_conj)
  apply(drule sym)
  apply simp
  apply(rule rev_revD)
  apply simp
-apply(clarsimp simp add: neq_Nil_conv)
-apply(rule conjI)
- apply(drule_tac f = "drop (size p')" in arg_cong)
- apply simp
- apply(drule sym)
- apply(simp add:drop_take_rev)
-apply(drule_tac f = "take (size p')" in arg_cong)
-apply simp
+apply(clarsimp simp add: neq_Nil_conv append_eq_conv_conj)
 apply(drule sym)
-apply simp
+apply(simp add:rev_take)
 apply(rule rev_revD)
-apply(simp add:take_drop_rev)
+apply(simp add:rev_drop)
 done
 
 
