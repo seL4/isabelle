@@ -8,28 +8,26 @@ Internal interface for typedefs.
 signature TYPEDEF =
 sig
   val prove_nonempty: cterm -> thm list -> tactic option -> thm
-  val add_typedef: string -> string * string list * mixfix ->
+  val add_typedef: string -> rstring * string list * mixfix ->
     string -> string list -> thm list -> tactic option -> theory -> theory
-  val add_typedef_i: string -> string * string list * mixfix ->
+  val add_typedef_i: string -> rstring * string list * mixfix ->
     term -> string list -> thm list -> tactic option -> theory -> theory
 end;
 
 structure Typedef: TYPEDEF =
 struct
 
-open Syntax Logic HOLogic;
-
 
 (* prove non-emptyness of a set *)   (*exception ERROR*)
 
-val is_def = is_equals o #prop o rep_thm;
+val is_def = Logic.is_equals o #prop o rep_thm;
 
 fun prove_nonempty cset thms usr_tac =
   let
     val {T = setT, t = set, maxidx, sign} = rep_cterm cset;
-    val T = dest_setT setT;
-    val goal =
-      cterm_of sign (mk_Trueprop (mk_mem (Var (("x", maxidx + 1), T), set)));
+    val T = HOLogic.dest_setT setT;
+    val goal = cterm_of sign
+      (HOLogic.mk_Trueprop (HOLogic.mk_mem (Var (("x", maxidx + 1), T), set)));
     val tac =
       TRY (rewrite_goals_tac (filter is_def thms)) THEN
       TRY (REPEAT_FIRST (resolve_tac (filter_out is_def thms))) THEN
@@ -45,37 +43,38 @@ fun prove_nonempty cset thms usr_tac =
 
 fun ext_typedef prep_term name (t, vs, mx) raw_set axms thms usr_tac thy =
   let
-    val dummy = require_thy thy "Set" "typedefs";
+    val _ = require_thy thy "Set" "typedefs";
     val sign = sign_of thy;
+    val full_name = Sign.full_name sign;
 
     (*rhs*)
     val cset = prep_term sign raw_set;
     val {T = setT, t = set, ...} = rep_cterm cset;
     val rhs_tfrees = term_tfrees set;
-    val oldT = dest_setT setT handle TYPE _ =>
+    val oldT = HOLogic.dest_setT setT handle TYPE _ =>
       error ("Not a set type: " ^ quote (Sign.string_of_typ sign setT));
 
     (*lhs*)
     val lhs_tfrees =
-      map (fn v => (v, if_none (assoc (rhs_tfrees, v)) termS)) vs;
+      map (fn v => (v, if_none (assoc (rhs_tfrees, v)) HOLogic.termS)) vs;
 
-    val tname = type_name t mx;
+    val tname = Syntax.type_name t mx;
     val tlen = length vs;
-    val newT = Type (tname, map TFree lhs_tfrees);
+    val newT = Type (full_name tname, map TFree lhs_tfrees);
 
     val Rep_name = "Rep_" ^ name;
     val Abs_name = "Abs_" ^ name;
-    val setC = Const (name, setT);
-    val RepC = Const (Rep_name, newT --> oldT);
-    val AbsC = Const (Abs_name, oldT --> newT);
+    val setC = Const (full_name name, setT);
+    val RepC = Const (full_name Rep_name, newT --> oldT);
+    val AbsC = Const (full_name Abs_name, oldT --> newT);
     val x_new = Free ("x", newT);
     val y_old = Free ("y", oldT);
 
     (*axioms*)
-    val rep_type = mk_Trueprop (mk_mem (RepC $ x_new, setC));
-    val rep_type_inv = mk_Trueprop (mk_eq (AbsC $ (RepC $ x_new), x_new));
-    val abs_type_inv = mk_implies (mk_Trueprop (mk_mem (y_old, setC)),
-      mk_Trueprop (mk_eq (RepC $ (AbsC $ y_old), y_old)));
+    val rep_type = HOLogic.mk_Trueprop (HOLogic.mk_mem (RepC $ x_new, setC));
+    val rep_type_inv = HOLogic.mk_Trueprop (HOLogic.mk_eq (AbsC $ (RepC $ x_new), x_new));
+    val abs_type_inv = Logic.mk_implies (HOLogic.mk_Trueprop (HOLogic.mk_mem (y_old, setC)),
+      HOLogic.mk_Trueprop (HOLogic.mk_eq (RepC $ (AbsC $ y_old), y_old)));
 
 
     (* errors *)
@@ -109,14 +108,14 @@ fun ext_typedef prep_term name (t, vs, mx) raw_set axms thms usr_tac thy =
     thy
     |> Theory.add_types [(t, tlen, mx)]
     |> Theory.add_arities_i
-     [(tname, replicate tlen logicS, logicS),
-      (tname, replicate tlen termS, termS)]
+     [(full_name tname, replicate tlen logicS, logicS),
+      (full_name tname, replicate tlen HOLogic.termS, HOLogic.termS)]
     |> Theory.add_consts_i
      [(name, setT, NoSyn),
       (Rep_name, newT --> oldT, NoSyn),
       (Abs_name, oldT --> newT, NoSyn)]
     |> Theory.add_defs_i
-     [(name ^ "_def", mk_equals (setC, set))]
+     [(name ^ "_def", Logic.mk_equals (setC, set))]
     |> Theory.add_axioms_i
      [(Rep_name, rep_type),
       (Rep_name ^ "_inverse", rep_type_inv),
@@ -132,7 +131,7 @@ fun cert_term sg tm =
   cterm_of sg tm handle TERM (msg, _) => error msg;
 
 fun read_term sg str =
-  read_cterm sg (str, termTVar);
+  read_cterm sg (str, HOLogic.termTVar);
 
 val add_typedef = ext_typedef read_term;
 val add_typedef_i = ext_typedef cert_term;
