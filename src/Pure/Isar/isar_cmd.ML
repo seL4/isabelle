@@ -178,12 +178,8 @@ val print_cases = Toplevel.keep (ProofContext.print_cases o Proof.context_of o T
 (* print theorems / types / terms / props *)
 
 fun print_thms (ms, args) = Toplevel.keep (fn state =>
-  let
-    val st = Toplevel.node_case Proof.init_state Proof.enter_forward state;
-    val transfer = Thm.transfer (Toplevel.theory_of state);
-  in
-    with_modes ms (fn () =>
-      Pretty.writeln (Proof.pretty_thms (map transfer (IsarThy.get_thmss args st))))
+  let val st = Toplevel.node_case Proof.init_state Proof.enter_forward state in
+    with_modes ms (fn () => Pretty.writeln (Proof.pretty_thms (IsarThy.get_thmss args st)))
   end);
 
 fun print_type (ms, s) = Toplevel.keep (fn state =>
