@@ -96,8 +96,8 @@ fun gen_make raw open_parms raw_thm names =
 
 in
 
-val make = gen_make false;
-val make_raw = gen_make true;
+fun make x = gen_make false x;
+fun make_raw x = gen_make true x;
 
 end;
 
