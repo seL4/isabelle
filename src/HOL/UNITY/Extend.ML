@@ -300,8 +300,7 @@ qed "project_increasing";
 
 (*Opposite direction fails because Diff in the extended state may remove
   fewer actions, i.e. those that affect other state variables.*)
-Goal "Diff (project h G) acts  component  \
-\     project h (Diff G (extend_act h `` acts))";
+Goal "Diff (project h G) acts <= project h (Diff G (extend_act h `` acts))";
 by (force_tac (claset(), 
 	       simpset() addsimps [component_eq_subset, Diff_def]) 1);
 qed "Diff_project_component_project_Diff";

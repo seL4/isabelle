@@ -40,7 +40,7 @@ Goalw [PLam_def]
 by Auto_tac;
 qed "PLam_insert";
 
-Goalw [PLam_def] "i : I ==> (lift_prog i (F i)) component (PLam I F)";
+Goalw [PLam_def] "i : I ==> lift_prog i (F i) <= (PLam I F)";
 (*blast_tac doesn't use HO unification*)
 by (fast_tac (claset() addIs [component_JN]) 1);
 qed "component_PLam";

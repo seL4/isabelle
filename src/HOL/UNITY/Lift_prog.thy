@@ -6,7 +6,7 @@
 lift_prog, etc: replication of components
 *)
 
-Lift_prog = Union + Comp +
+Lift_prog = Guar +
 
 constdefs
 

@@ -10,42 +10,13 @@ From Chandy and Sanders, "Reasoning About Program Composition"
 
 Comp = Union +
 
-constdefs
+instance
+  program :: (term)ord
 
-  (*Existential and Universal properties.  I formalize the two-program
-    case, proving equivalence with Chandy and Sanders's n-ary definitions*)
+defs
 
-  ex_prop  :: 'a program set => bool
-   "ex_prop X == ALL F G. F:X | G: X --> (F Join G) : X"
+  component_def   "F <= H == EX G. F Join G = H"
 
-  strict_ex_prop  :: 'a program set => bool
-   "strict_ex_prop X == ALL F G. (F:X | G: X) = (F Join G : X)"
-
-  uv_prop  :: 'a program set => bool
-   "uv_prop X == SKIP : X & (ALL F G. F:X & G: X --> (F Join G) : X)"
-
-  strict_uv_prop  :: 'a program set => bool
-   "strict_uv_prop X == SKIP : X & (ALL F G. (F:X & G: X) = (F Join G : X))"
-
-  (*Ill-defined programs can arise through "Join"*)
-  welldef :: 'a program set  
-   "welldef == {F. Init F ~= {}}"
-
-  component :: ['a program, 'a program] => bool     (infixl 50)
-   "F component H == EX G. F Join G = H"
-
-  guar :: ['a program set, 'a program set] => 'a program set
-   (infixl "guarantees" 55)    (*higher than membership, lower than Co*)
-   "X guarantees Y == {F. ALL H. F component H --> H:X --> H:Y}"
-
-  refines :: ['a program, 'a program, 'a program set] => bool
-			("(3_ refines _ wrt _)" [10,10,10] 10)
-   "G refines F wrt X ==
-      ALL H. (F Join H) : welldef Int X --> G Join H : welldef Int X"
-
-  iso_refines :: ['a program, 'a program, 'a program set] => bool
-			("(3_ iso'_refines _ wrt _)" [10,10,10] 10)
-   "G iso_refines F wrt X ==
-      F : welldef Int X --> G : welldef Int X"
+  strict_component_def   "(F < (H::'a program)) == (F <= H & F ~= H)"
 
 end

@@ -6,6 +6,18 @@
 Specification of Chandy and Charpentier's Allocator
 *)
 
+
+Goal "~ f #2 ==> ~ (!t::nat. (#0 <= t & t <= #10) --> f t)";
+
+(*Useful examples:  singletonI RS subst_elem,  subst_elem RSN (2,IntI) *)
+Goal "[| b:A;  a=b |] ==> a:A";
+by (etac ssubst 1);
+by (assume_tac 1);
+qed "subst_elem";
+
+
+
+
 (*Generalized version allowing different clients*)
 Goal "[| Alloc : alloc_spec;  \
 \        Client : (lessThan Nclients) funcset client_spec;  \
@@ -32,6 +44,20 @@ qed "surj_sysOfAlloc";
 
 AddIffs [inj_sysOfAlloc, surj_sysOfAlloc];
 
+val bij_sysOfAlloc = [inj_sysOfAlloc, surj_sysOfAlloc] MRS bijI;
+
+(*MUST BE AUTOMATED: even the statement of such results*)
+Goal "!!s. inv sysOfAlloc s = \
+\            ((| allocGiv = allocGiv s,   \
+\                allocAsk = allocAsk s,   \
+\                allocRel = allocRel s|), \
+\             client s)";
+by (rtac (inj_sysOfAlloc RS inv_f_eq) 1);
+by (auto_tac (claset() addSWrapper record_split_wrapper, 
+	      simpset() addsimps [sysOfAlloc_def]));
+qed "inv_sysOfAlloc_eq";
+
+
 (**SHOULD NOT BE NECESSARY: The various injections into the system
    state need to be treated symmetrically or done automatically*)
 Goalw [sysOfClient_def] "inj sysOfClient";
@@ -49,6 +75,7 @@ qed "surj_sysOfClient";
 
 AddIffs [inj_sysOfClient, surj_sysOfClient];
 
+val bij_sysOfClient = [inj_sysOfClient, surj_sysOfClient] MRS bijI;
 
 (*MUST BE AUTOMATED: even the statement of such results*)
 Goal "!!s. inv sysOfClient s = \
@@ -57,8 +84,8 @@ Goal "!!s. inv sysOfClient s = \
 \                allocAsk = allocAsk s, \
 \                allocRel = allocRel s|) )";
 by (rtac (inj_sysOfClient RS inv_f_eq) 1);
-by (rewrite_goals_tac [sysOfAlloc_def, sysOfClient_def]);
-by (auto_tac (claset() addSWrapper record_split_wrapper, simpset()));
+by (auto_tac (claset() addSWrapper record_split_wrapper, 
+	      simpset() addsimps [sysOfAlloc_def, sysOfClient_def]));
 qed "inv_sysOfClient_eq";
 
 
@@ -128,20 +155,21 @@ val Alloc_Progress = (Alloc_Spec RS IntD2
 
 (*Not sure what to say about the other components because they involve
   extend*)
-Goalw [System_def] "Network component System";
+Goalw [System_def] "Network <= System";
 by (blast_tac (claset() addIs [componentI]) 1);
 qed "Network_component_System";
 
-AddIffs [Network_component_System];
+Goalw [System_def] "(extend sysOfAlloc Alloc) <= System";
+by (blast_tac (claset() addIs [componentI]) 1);
+qed "Alloc_component_System";
 
+AddIffs [Network_component_System, Alloc_component_System];
 
-val project_guarantees' =
-  [surj_sysOfClient, inj_sysOfClient] MRS export project_guarantees;
 
 (* F : UNIV guarantees Increasing func
    ==> extend sysOfClient F : UNIV guarantees Increasing (func o client) *)
-val extend_guar_Increasing' =
-  [surj_sysOfClient, inj_sysOfClient] MRS export extend_guar_Increasing
+val extend_Client_guar_Increasing =
+  bij_sysOfClient RS export extend_guar_Increasing
   |> simplify (simpset() addsimps [inv_sysOfClient_eq]);
 
 
@@ -154,7 +182,7 @@ by (rtac ([guaranteesI RS disjI2 RS guarantees_Join_I, UNIV_I]
 	  MRS guaranteesD) 1);
 by (asm_simp_tac 
     (simpset() addsimps [guarantees_PLam_I, 
-			 extend_guar_Increasing' RS guaranteesD,
+			 extend_Client_guar_Increasing RS guaranteesD,
 			 lift_prog_guar_Increasing]) 1);
 qed "System_Increasing_rel";
 
@@ -169,13 +197,81 @@ by (blast_tac (claset() addIs [Network_Rel RS component_guaranteesD,
 			       System_Increasing_rel, Network]) 1);
 qed "System_Increasing_allocRel";
 
-Goal "i < Nclients \
-\ ==> System : Always {s. sum (%i. (tokens o sub i o allocGiv) s) Nclients \
-\                  <= NbT + sum (%i. (tokens o sub i o allocRel) s) Nclients}";
-fr component_guaranteesD;
 
-val extend_guar_Increasing'' =
-  [surj_sysOfAlloc, inj_sysOfAlloc] MRS export extend_guar_Increasing
+(*NEED TO PROVE something like this (maybe without premise)*)
+Goal "i < Nclients ==> System : (sub i o allocRel) localTo Network";
+
+fun alloc_export th = bij_sysOfAlloc RS export th;
+
+val extend_Alloc_guar_Increasing =
+  alloc_export extend_guar_Increasing
   |> simplify (simpset() addsimps [inv_sysOfAlloc_eq]);
 
+Goal "System : Always {s. sum (%i. (tokens o sub i o allocGiv) s) Nclients \
+\                  <= NbT + sum (%i. (tokens o sub i o allocRel) s) Nclients}";
+by (res_inst_tac 
+    [("X", "(INT i : lessThan Nclients. (sub i o allocRel) localTo Network \
+\                                       Int Increasing (sub i o allocRel))")] 
+    component_guaranteesD 1);;
+br Alloc_component_System 3;
+br project_guarantees 1;
+br Alloc_Safety 1;
+by (dtac (alloc_export (project_extend_Join RSN (2, subst_elem RS project_Always_D))) 2 
+     THEN
+     full_simp_tac
+     (simpset() addsimps [inv_sysOfAlloc_eq,
+			  alloc_export Collect_eq_extend_set RS sym]) 2);
+auto();
+by (force_tac (claset(), simpset() addsimps [System_Increasing_allocRel]) 3);
+
+bd bspec 1;
+by (Blast_tac 1);
+
+
+xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx;
+
+       [| i < Nclients;
+          extend sysOfAlloc Alloc Join G
+          : (sub i o allocRel) localTo Network &
+          extend sysOfAlloc Alloc Join G : Increasing (sub i o allocRel) |]
+       ==> Alloc Join project sysOfAlloc G : Increasing (sub i o allocRel)
+
+
+       [| i < Nclients;
+          H : (sub i o allocRel) localTo Network &
+          H : Increasing (sub i o allocRel) |]
+       ==> project sysOfAlloc H : Increasing (sub i o allocRel)
+
+Open_locale"Extend";
+
+Goal "(H : (func o f) localTo G) ==> (project h H : func localTo (project h G))";
+by (asm_full_simp_tac 
+    (simpset() addsimps [localTo_def, 
+			 project_extend_Join RS sym,
+			 Diff_project_stable,
+			 Collect_eq_extend_set RS sym]) 1);
+auto();
+br Diff_project_stable 1;
+PROBABLY FALSE;
+
+by (Clarify_tac 1);
+by (dres_inst_tac [("x","z")] spec 1);
+
+br (alloc_export project_Always_D) 2;
+
+by (rtac (alloc_export extend_Always RS iffD2) 2);
+
+xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx;
+
+br guaranteesI 1;
+
+by (res_inst_tac 
+    [("X", "(INT i : lessThan Nclients. Increasing (sub i o allocRel))")] 
+    component_guaranteesD 1);;
+
+
 by (rtac (Alloc_Safety RS component_guaranteesD) 1);
+
+
+br (alloc_export guarantees_imp_extend_guarantees RS guarantees_weaken) 1;
+br Alloc_Safety 1;

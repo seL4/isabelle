@@ -68,12 +68,12 @@ Addsimps [Acts_drop_prog];
 
 (** These monotonicity results look natural but are UNUSED **)
 
-Goal "F component G ==> lift_prog i F component lift_prog i G";
+Goal "F <= G ==> lift_prog i F <= lift_prog i G";
 by (full_simp_tac (simpset() addsimps [component_eq_subset]) 1);
 by Auto_tac;
 qed "lift_prog_mono";
 
-Goal "F component G ==> drop_prog i F component drop_prog i G";
+Goal "F <= G ==> drop_prog i F <= drop_prog i G";
 by (full_simp_tac (simpset() addsimps [component_eq_subset, drop_set_def]) 1);
 by Auto_tac;
 qed "drop_prog_mono";
@@ -217,6 +217,8 @@ qed "drop_prog_stable";
 
 
 (*** Diff, needed for localTo ***)
+
+(** THESE PROOFS CAN BE GENERALIZED AS IN EXTEND.ML **)
 
 Goal "Diff G (lift_act i `` Acts F) : (lift_set i A) co (lift_set i B)  \
 \     ==> Diff (drop_prog i G) (Acts F) : A co B";
@@ -382,7 +384,10 @@ by Auto_tac;
 by (blast_tac (claset() addDs [lift_prog_Join_eq_lift_prog_D, guaranteesD]) 1);
 qed "lift_prog_guarantees";
 
-(*Weak precondition and postcondition; this is the good one!*)
+(*Weak precondition and postcondition; this is the good one!
+CAN WEAKEN 2ND PREMISE TO  
+      !!G. extend h F Join G : XX ==> F Join project h G : X; 
+*)
 val [xguary,drop_prog,lift_prog] =
 Goal "[| F : X guarantees Y;  \
 \        !!H. H : XX ==> drop_prog i H : X;  \

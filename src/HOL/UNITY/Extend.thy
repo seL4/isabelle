@@ -8,7 +8,7 @@ Extending of state sets
   function g (forgotten) maps the extended state to the "extending part"
 *)
 
-Extend = Union + Comp +
+Extend = Guar +
 
 constdefs
 
