@@ -9,7 +9,7 @@ export ISABELLE_HOME
 
 set -o allexport
 
-. $ISABELLE_HOME/etc/settings
+. $ISABELLE_HOME/etc/settings || exit 2
 [ -f $ISABELLE_HOME_USER/etc/settings ] && . $ISABELLE_HOME_USER/etc/settings
 
 set +o allexport
