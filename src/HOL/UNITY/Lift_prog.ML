@@ -426,17 +426,12 @@ qed "lift_prog_transient_eq_disj";
 
 (*** guarantees properties ***)
 
-val [xguary,project,lift_prog] =
 Goal "[| F : X guarantees Y;  \
-\        !!G. lift_prog i F Join G : X' ==> F Join proj G : X;  \
-\        !!G. [| F Join proj G : Y; lift_prog i F Join G : X'; \
-\                Disjoint (lift_prog i F) G |] \
-\             ==> lift_prog i F Join G : Y' |] \
+\        projecting C (lift_map i) F X' X;  \
+\        extending  C (lift_map i) F X' Y' Y |] \
 \     ==> lift_prog i F : X' guarantees Y'";
-by (rtac (xguary RS guaranteesD RS lift_prog RS guaranteesI) 1);
-by (etac project 1);
-by (assume_tac 1);
-by (assume_tac 1);
+by (asm_simp_tac 
+    (simpset() addsimps [lift_prog_correct, project_guarantees]) 1);
 qed "drop_prog_guarantees";
 
 
