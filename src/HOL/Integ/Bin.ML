@@ -193,7 +193,7 @@ Addsimps [integ_of_bin_add RS sym,
           norm_Bcons_Bcons];
 
 
-(** Simplification rules for comparison of binary numbers (Norbert Völker) **) 
+(** Simplification rules for comparison of binary numbers (Norbert Voelker) **) 
 
 Addsimps [zadd_assoc];
 

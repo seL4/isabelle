@@ -241,7 +241,7 @@ by (REPEAT (ares_tac [congt] 1
 qed "congruent2_commuteI";
 
 
-(*** Cardinality results suggested by Florian Kammüller ***)
+(*** Cardinality results suggested by Florian Kammueller ***)
 
 (*Recall that  equiv A r  implies  r <= A Times A   (equiv_type) *)
 goal thy "!!A. [| finite A; r <= A Times A |] ==> finite (A/r)";

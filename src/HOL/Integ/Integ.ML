@@ -757,7 +757,7 @@ by (asm_full_simp_tac (simpset() addsimps [zadd_commute]) 1);
 qed "zadd_zle_self";
 
 
-(**** Comparisons: lemmas and proofs by Norbert Völker ****)
+(**** Comparisons: lemmas and proofs by Norbert Voelker ****)
 
 (** One auxiliary theorem...**)
 
