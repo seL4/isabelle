@@ -95,7 +95,7 @@ recdef find "same_fst (\<lambda>f. wf(step1 f)) step1"
   "find(f,x) = (if wf(step1 f)
                 then if f x = x then x else find(f, f x)
                 else arbitrary)"
-(hints recdef_simp:same_fst_def step1_def)
+(hints recdef_simp: step1_def)
 
 text{*\noindent
 The recursion equation itself should be clear enough: it is our aborted
@@ -115,8 +115,8 @@ is known to the well-foundedness prover of \isacommand{recdef}.  Thus
 well-foundedness of the relation given to \isacommand{recdef} is immediate.
 Furthermore, each recursive call descends along that relation: the first
 argument stays unchanged and the second one descends along @{term"step1
-f"}. The proof merely requires unfolding of some definitions, as specified in
-the \isacommand{hints} above.
+f"}. The proof requires unfolding the definition of @{term step1},
+as specified in the \isacommand{hints} above.
 
 Normally you will then derive the following conditional variant of and from
 the recursion equation

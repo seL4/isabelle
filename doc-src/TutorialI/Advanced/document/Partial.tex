@@ -98,7 +98,7 @@ must be well-founded. Thus we make the following definition:%
 \ \ {\isachardoublequote}find{\isacharparenleft}f{\isacharcomma}x{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}if\ wf{\isacharparenleft}step{\isadigit{1}}\ f{\isacharparenright}\isanewline
 \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ then\ if\ f\ x\ {\isacharequal}\ x\ then\ x\ else\ find{\isacharparenleft}f{\isacharcomma}\ f\ x{\isacharparenright}\isanewline
 \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ else\ arbitrary{\isacharparenright}{\isachardoublequote}\isanewline
-{\isacharparenleft}\isakeyword{hints}\ recdef{\isacharunderscore}simp{\isacharcolon}same{\isacharunderscore}fst{\isacharunderscore}def\ step{\isadigit{1}}{\isacharunderscore}def{\isacharparenright}%
+{\isacharparenleft}\isakeyword{hints}\ recdef{\isacharunderscore}simp{\isacharcolon}\ step{\isadigit{1}}{\isacharunderscore}def{\isacharparenright}%
 \begin{isamarkuptext}%
 \noindent
 The recursion equation itself should be clear enough: it is our aborted
@@ -123,8 +123,8 @@ required relation on pairs.  The theorem
 is known to the well-foundedness prover of \isacommand{recdef}.  Thus
 well-foundedness of the relation given to \isacommand{recdef} is immediate.
 Furthermore, each recursive call descends along that relation: the first
-argument stays unchanged and the second one descends along \isa{step{\isadigit{1}}\ f}. The proof merely requires unfolding of some definitions, as specified in
-the \isacommand{hints} above.
+argument stays unchanged and the second one descends along \isa{step{\isadigit{1}}\ f}. The proof requires unfolding the definition of \isa{step{\isadigit{1}}},
+as specified in the \isacommand{hints} above.
 
 Normally you will then derive the following conditional variant of and from
 the recursion equation%
