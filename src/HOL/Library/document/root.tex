@@ -1,0 +1,42 @@
+
+% $Id$
+
+\documentclass[11pt,a4paper]{article}
+\usepackage{ifthen}
+\usepackage{isabelle,isabellesym,pdfsetup}
+
+\urlstyle{rm}
+\isabellestyle{it}
+\pagestyle{myheadings}
+
+\begin{document}
+
+\title{The Supplemental Isabelle/HOL Library}
+\author{
+  Gertrud Bauer \\
+  Tobias Nipkow \\
+  Lawrence C Paulson \\
+  Markus Wenzel}
+\maketitle
+
+\tableofcontents
+\newpage
+
+%now hack the "header" markup to support \title and \author
+\newcommand{\isabelletitle}{}\newcommand{\title}[1]{\gdef\isabelletitle{#1}}
+\newcommand{\isabelleauthor}{}\newcommand{\author}[1]{\gdef\isabelleauthor{#1}}
+\renewcommand{\isamarkupheader}[1]%
+{\newpage\title{***~Theory ``\isabellecontext'': unknown title}\author{}#1%
+\markright{THEORY~``\isabellecontext''}
+\ifthenelse{\equal{}{\isabelletitle}}{}{\section{\isabelletitle}}%
+\ifthenelse{\equal{}{\isabelleauthor}}{}%
+{{\flushright\footnotesize\sl (By \isabelleauthor)\par\bigskip}}}
+
+\parindent 0pt \parskip 0.5ex
+\input{session}
+
+\pagestyle{headings}
+\bibliographystyle{abbrv}
+\bibliography{root}
+
+\end{document}
