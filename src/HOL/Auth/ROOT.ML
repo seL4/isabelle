@@ -25,4 +25,5 @@ time_use_thy "Yahalom2";
 (*Public-key protocols*)
 time_use_thy "NS_Public_Bad";
 time_use_thy "NS_Public";
+time_use_thy "TLS";
 
