@@ -91,8 +91,8 @@ val OR2_OR4_tac =
 
 (*Enemy never sees another agent's shared key! (unless it is leaked at start)*)
 goal thy 
- "!!evs. [| evs : otway;  A ~: bad |] ==> \
-\        Key (shrK A) ~: parts (sees Enemy evs)";
+ "!!evs. [| evs : otway;  A ~: bad |]    \
+\        ==> Key (shrK A) ~: parts (sees Enemy evs)";
 be otway.induct 1;
 by OR2_OR4_tac;
 by (Auto_tac());
@@ -148,8 +148,8 @@ val lemma = result();
 
 (*Variant needed for the main theorem below*)
 goal thy 
- "!!evs. [| evs : otway;  length evs <= length evs' |] ==> \
-\        Key (newK evs') ~: parts (sees C evs)";
+ "!!evs. [| evs : otway;  length evs <= length evs' |]    \
+\        ==> Key (newK evs') ~: parts (sees C evs)";
 by (fast_tac (!claset addDs [lemma]) 1);
 qed "new_keys_not_seen";
 Addsimps [new_keys_not_seen];
@@ -194,8 +194,8 @@ by (best_tac (!claset addEs  [new_keys_not_seen RSN(2,rev_notE)]
 val lemma = result();
 
 goal thy 
- "!!evs. [| evs : otway;  length evs <= length evs' |] ==> \
-\        newK evs' ~: keysFor (parts (sees C evs))";
+ "!!evs. [| evs : otway;  length evs <= length evs' |]    \
+\        ==> newK evs' ~: keysFor (parts (sees C evs))";
 by (fast_tac (!claset addSDs [lemma] addss (!simpset)) 1);
 qed "new_keys_not_used";
 
