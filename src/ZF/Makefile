@@ -71,9 +71,15 @@ Coind:  $(BIN)/ZF  $(COIND_FILES)
 	echo 'exit_use"Coind/ROOT.ML";quit();' | $(LOGIC)
 
 ##AC examples
-AC_NAMES = AC_Equiv OrdQuant Transrec2 WO6_WO1 rel_is_fun
+AC_NAMES = AC_Equiv OrdQuant Transrec2 Cardinal_aux \
+	   AC15_WO6 AC16_WO4 AC16_lemmas AC17_AC1 AC18_AC19 AC1_WO2 \
+           DC DC_lemmas HH Hartog WO1_AC \
+           WO2_AC16 WO6_WO1 WO_AC first recfunAC16 rel_is_fun
 
-AC_FILES = AC/ROOT.ML $(AC_NAMES:%=AC/%.thy) $(AC_NAMES:%=AC/%.ML)
+AC_FILES = AC/ROOT.ML AC/AC0_AC1.ML AC/AC10_AC15.ML AC/AC1_AC17.ML \
+           AC/AC2_AC6.ML AC/AC7_AC9.ML \
+           AC/WO1_WO6.ML AC/WO1_WO7.ML AC/WO1_WO8.ML \
+           $(AC_NAMES:%=AC/%.thy) $(AC_NAMES:%=AC/%.ML)
 
 AC:  $(BIN)/ZF  $(AC_FILES)
 	echo 'exit_use"AC/ROOT.ML";quit();' | $(LOGIC)
