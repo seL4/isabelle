@@ -391,7 +391,7 @@ fun select tac st i =
 	      val {maxidx,...} = rep_thm st'
               val ct = cterm_of (sign_of ProtoPure.thy)
 		                (Var(("A",maxidx+1), propT))
-	      val rev_triv_goal' = instantiate' [] [Some ct] rev_triv_goal
+	      val rev_triv_goal' = instantiate' [] [Some ct] Drule.rev_triv_goal
               fun bic th = bicompose false (false, th, np')
           in  bic (Seq.hd (bic (restore st') 1 rev_triv_goal')) i st  end 
   in  Seq.flat (Seq.map next (tac eq_cprem))
