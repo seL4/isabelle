@@ -12,7 +12,7 @@ functions that yield sets.
 Relations too can be defined inductively, since they are just sets of pairs.
 A perfect example is the function that maps a relation to its
 reflexive transitive closure.  This concept was already
-introduced in \S\ref{sec:Relations}, where the operator \isa{{\isacharcircum}{\isacharasterisk}} was
+introduced in \S\ref{sec:Relations}, where the operator \isa{\isactrlsup {\isacharasterisk}} was
 defined as a least fixed point because inductive definitions were not yet
 available. But now they are:%
 \end{isamarkuptext}%
@@ -102,7 +102,7 @@ using $\longrightarrow$.
 \end{quote}
 A similar heuristic for other kinds of inductions is formulated in
 \S\ref{sec:ind-var-in-prems}. The \isa{rule{\isacharunderscore}format} directive turns
-\isa{{\isasymlongrightarrow}} back into \isa{{\isasymLongrightarrow}}. Thus in the end we obtain the original
+\isa{{\isasymlongrightarrow}} back into \isa{{\isasymLongrightarrow}}: in the end we obtain the original
 statement of our lemma.%
 \end{isamarkuptxt}%
 \isacommand{apply}{\isacharparenleft}erule\ rtc{\isachardot}induct{\isacharparenright}%
@@ -152,8 +152,7 @@ So why did we start with the first definition? Because it is simpler. It
 contains only two rules, and the single step rule is simpler than
 transitivity.  As a consequence, \isa{rtc{\isachardot}induct} is simpler than
 \isa{rtc{\isadigit{2}}{\isachardot}induct}. Since inductive proofs are hard enough
-anyway, we should
-certainly pick the simplest induction schema available.
+anyway, we should always pick the simplest induction schema available.
 Hence \isa{rtc} is the definition of choice.
 
 \begin{exercise}\label{ex:converse-rtc-step}

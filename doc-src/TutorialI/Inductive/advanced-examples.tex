@@ -65,7 +65,7 @@ Intuitively, this theorem says that
 enlarging the set of function symbols enlarges the set of ground 
 terms. The proof is a trivial rule induction.
 First we use the \isa{clarify} method to assume the existence of an element of
-\isa{terms~F}.  (We could have used \isa{intro subsetI}.)  We then
+\isa{gterms~F}.  (We could have used \isa{intro subsetI}.)  We then
 apply rule induction. Here is the resulting subgoal: 
 \begin{isabelle}
 \ 1.\ \isasymAnd x\ args\ f.\isanewline
@@ -96,14 +96,14 @@ inversion is done in Isabelle.
 Recall that \isa{even} is the minimal set closed under these two rules:
 \begin{isabelle}
 0\ \isasymin \ even\isanewline
-n\ \isasymin \ even\ \isasymLongrightarrow \ (Suc\ (Suc\ n))\ \isasymin
+n\ \isasymin \ even\ \isasymLongrightarrow \ Suc\ (Suc\ n)\ \isasymin
 \ even
 \end{isabelle}
 Minimality means that \isa{even} contains only the elements that these
 rules force it to contain.  If we are told that \isa{a}
 belongs to
 \isa{even} then there are only two possibilities.  Either \isa{a} is \isa{0}
-or else \isa{a} has the form \isa{Suc(Suc~n)}, for an arbitrary \isa{n}
+or else \isa{a} has the form \isa{Suc(Suc~n)}, for some suitable \isa{n}
 that belongs to
 \isa{even}.  That is the gist of the \isa{cases} rule, which Isabelle proves
 for us when it accepts an inductive definition:

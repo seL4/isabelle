@@ -8,7 +8,7 @@ functions that yield sets.
 Relations too can be defined inductively, since they are just sets of pairs.
 A perfect example is the function that maps a relation to its
 reflexive transitive closure.  This concept was already
-introduced in \S\ref{sec:Relations}, where the operator @{text"^*"} was
+introduced in \S\ref{sec:Relations}, where the operator @{text"\<^sup>*"} was
 defined as a least fixed point because inductive definitions were not yet
 available. But now they are:
 *}
@@ -97,7 +97,7 @@ using $\longrightarrow$.
 \end{quote}
 A similar heuristic for other kinds of inductions is formulated in
 \S\ref{sec:ind-var-in-prems}. The @{text rule_format} directive turns
-@{text"\<longrightarrow>"} back into @{text"\<Longrightarrow>"}. Thus in the end we obtain the original
+@{text"\<longrightarrow>"} back into @{text"\<Longrightarrow>"}: in the end we obtain the original
 statement of our lemma.
 *}
 
@@ -148,8 +148,7 @@ So why did we start with the first definition? Because it is simpler. It
 contains only two rules, and the single step rule is simpler than
 transitivity.  As a consequence, @{thm[source]rtc.induct} is simpler than
 @{thm[source]rtc2.induct}. Since inductive proofs are hard enough
-anyway, we should
-certainly pick the simplest induction schema available.
+anyway, we should always pick the simplest induction schema available.
 Hence @{term rtc} is the definition of choice.
 
 \begin{exercise}\label{ex:converse-rtc-step}

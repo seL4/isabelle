@@ -105,7 +105,7 @@ where @{term f} is of type @{typ"nat \<Rightarrow> int"}, @{typ int} are the int
 @{text"\<bar>.\<bar>"} is the absolute value function, and @{term"#1::int"} is the
 integer 1 (see \S\ref{sec:numbers}).
 
-First we show that the our specific function, the difference between the
+First we show that our specific function, the difference between the
 numbers of @{term a}'s and @{term b}'s, does indeed only change by 1 in every
 move to the right. At this point we also start generalizing from @{term a}'s
 and @{term b}'s to an arbitrary property @{term P}. Otherwise we would have
@@ -119,7 +119,7 @@ lemma step1: "\<forall>i < size w.
 
 txt{*\noindent
 The lemma is a bit hard to read because of the coercion function
-@{term[source]"int :: nat \<Rightarrow> int"}. It is required because @{term size} returns
+@{text"int :: nat \<Rightarrow> int"}. It is required because @{term size} returns
 a natural number, but subtraction on type~@{typ nat} will do the wrong thing.
 Function @{term take} is predefined and @{term"take i xs"} is the prefix of
 length @{term i} of @{term xs}; below we also need @{term"drop i xs"}, which
@@ -237,7 +237,7 @@ apply(rule conjI);
 txt{*\noindent
 This yields an index @{prop"i \<le> length v"} such that
 @{prop[display]"length [x\<in>take i v . x = a] = length [x\<in>take i v . x = b] + 1"}
-With the help of @{thm[source]part1} it follows that
+With the help of @{thm[source]part2} it follows that
 @{prop[display]"length [x\<in>drop i v . x = a] = length [x\<in>drop i v . x = b] + 1"}
 *}
 
@@ -287,18 +287,20 @@ Hopcroft and Ullman's \cite[p.\ts81]{HopcroftUllman}. For a start, the texbook
 grammar, for no good reason, excludes the empty word.  That complicates
 matters just a little bit because we now have 8 instead of our 7 productions.
 
-More importantly, the proof itself is different: rather than separating the
-two directions, they perform one induction on the length of a word. This
-deprives them of the beauty of rule induction and in the easy direction
-(correctness) their reasoning is more detailed than our @{text auto}. For the
-hard part (completeness), they consider just one of the cases that our @{text
-simp_all} disposes of automatically. Then they conclude the proof by saying
-about the remaining cases: ``We do this in a manner similar to our method of
-proof for part (1); this part is left to the reader''. But this is precisely
-the part that requires the intermediate value theorem and thus is not at all
-similar to the other cases (which are automatic in Isabelle). We conclude
-that the authors are at least cavalier about this point and may even have
-overlooked the slight difficulty lurking in the omitted cases. This is not
-atypical for pen-and-paper proofs, once analysed in detail.  *}
+More importantly, the proof itself is different: rather than
+separating the two directions, they perform one induction on the
+length of a word. This deprives them of the beauty of rule induction,
+and in the easy direction (correctness) their reasoning is more
+detailed than our @{text auto}. For the hard part (completeness), they
+consider just one of the cases that our @{text simp_all} disposes of
+automatically. Then they conclude the proof by saying about the
+remaining cases: ``We do this in a manner similar to our method of
+proof for part (1); this part is left to the reader''. But this is
+precisely the part that requires the intermediate value theorem and
+thus is not at all similar to the other cases (which are automatic in
+Isabelle). The authors are at least cavalier about this point and may
+even have overlooked the slight difficulty lurking in the omitted
+cases. This is not atypical for pen-and-paper proofs, once analysed in
+detail.  *}
 
 (*<*)end(*>*)

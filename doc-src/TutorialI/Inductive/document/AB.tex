@@ -101,7 +101,7 @@ where \isa{f} is of type \isa{nat\ {\isasymRightarrow}\ int}, \isa{int} are the 
 \isa{{\isasymbar}{\isachardot}{\isasymbar}} is the absolute value function, and \isa{{\isacharhash}{\isadigit{1}}} is the
 integer 1 (see \S\ref{sec:numbers}).
 
-First we show that the our specific function, the difference between the
+First we show that our specific function, the difference between the
 numbers of \isa{a}'s and \isa{b}'s, does indeed only change by 1 in every
 move to the right. At this point we also start generalizing from \isa{a}'s
 and \isa{b}'s to an arbitrary property \isa{P}. Otherwise we would have
@@ -114,7 +114,7 @@ roles of \isa{a}'s and \isa{b}'s interchanged.%
 \begin{isamarkuptxt}%
 \noindent
 The lemma is a bit hard to read because of the coercion function
-\isa{{\isachardoublequote}int\ {\isacharcolon}{\isacharcolon}\ nat\ {\isasymRightarrow}\ int{\isachardoublequote}}. It is required because \isa{size} returns
+\isa{int\ {\isacharcolon}{\isacharcolon}\ nat\ {\isasymRightarrow}\ int}. It is required because \isa{size} returns
 a natural number, but subtraction on type~\isa{nat} will do the wrong thing.
 Function \isa{take} is predefined and \isa{take\ i\ xs} is the prefix of
 length \isa{i} of \isa{xs}; below we also need \isa{drop\ i\ xs}, which
@@ -222,7 +222,7 @@ This yields an index \isa{i\ {\isasymle}\ length\ v} such that
 \begin{isabelle}%
 \ \ \ \ \ length\ {\isacharbrackleft}x{\isasymin}take\ i\ v\ {\isachardot}\ x\ {\isacharequal}\ a{\isacharbrackright}\ {\isacharequal}\ length\ {\isacharbrackleft}x{\isasymin}take\ i\ v\ {\isachardot}\ x\ {\isacharequal}\ b{\isacharbrackright}\ {\isacharplus}\ {\isadigit{1}}%
 \end{isabelle}
-With the help of \isa{part{\isadigit{1}}} it follows that
+With the help of \isa{part{\isadigit{2}}} it follows that
 \begin{isabelle}%
 \ \ \ \ \ length\ {\isacharbrackleft}x{\isasymin}drop\ i\ v\ {\isachardot}\ x\ {\isacharequal}\ a{\isacharbrackright}\ {\isacharequal}\ length\ {\isacharbrackleft}x{\isasymin}drop\ i\ v\ {\isachardot}\ x\ {\isacharequal}\ b{\isacharbrackright}\ {\isacharplus}\ {\isadigit{1}}%
 \end{isabelle}%
