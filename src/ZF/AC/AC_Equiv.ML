@@ -44,7 +44,7 @@ val fun_space_emptyD = result();
 
 (* used only in WO1_DC.ML *)
 (*Note simpler proof*)
-goal upair.thy "!!A f g. [| ALL x:A. f`x=g`x; f:Df->Cf; g:Dg->Cg;  \
+goal ZF.thy "!!A f g. [| ALL x:A. f`x=g`x; f:Df->Cf; g:Dg->Cg;  \
 \         A<=Df; A<=Dg |] ==> f``A=g``A";
 by (asm_simp_tac (!simpset addsimps [image_fun]) 1);
 val images_eq = result();

@@ -13,7 +13,7 @@ instances of AC.
 (*  - Sigma_fun_space_eqpoll                                              *)
 (* ********************************************************************** *)
 
-goal upair.thy "!!A. [| C~:A; B:A |] ==> B~=C";
+goal ZF.thy "!!A. [| C~:A; B:A |] ==> B~=C";
 by (Fast_tac 1);
 val mem_not_eq_not_mem = result();
 

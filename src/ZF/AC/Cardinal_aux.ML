@@ -68,11 +68,11 @@ val Un_eqpoll_Inf_Ord = result();
 val ss = (!simpset) addsimps [inj_is_fun RS apply_type, left_inverse] 
                setloop (split_tac [expand_if] ORELSE' etac UnE);
 
-goal upair.thy "{x, y} - {y} = {x} - {y}";
+goal ZF.thy "{x, y} - {y} = {x} - {y}";
 by (Fast_tac 1);
 val double_Diff_sing = result();
 
-goal upair.thy "if({y,z}-{z}=0, z, THE w. {y,z}-{z}={w}) = y";
+goal ZF.thy "if({y,z}-{z}=0, z, THE w. {y,z}-{z}={w}) = y";
 by (split_tac [expand_if] 1);
 by (asm_full_simp_tac (!simpset addsimps [double_Diff_sing, Diff_eq_0_iff]) 1);
 by (fast_tac (!claset addSIs [the_equality] addEs [equalityE]) 1);

@@ -236,11 +236,11 @@ qed "hyps_cons";
 
 (** Two lemmas for use with weaken_left **)
 
-goal upair.thy "B-C <= cons(a, B-cons(a,C))";
+goal ZF.thy "B-C <= cons(a, B-cons(a,C))";
 by (Fast_tac 1);
 qed "cons_Diff_same";
 
-goal upair.thy "cons(a, B-{c}) - D <= cons(a, B-cons(c,D))";
+goal ZF.thy "cons(a, B-{c}) - D <= cons(a, B-cons(c,D))";
 by (Fast_tac 1);
 qed "cons_Diff_subset2";
 

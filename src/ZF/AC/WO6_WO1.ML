@@ -174,7 +174,7 @@ by (dtac ex_d_uu_not_empty 1 THEN REPEAT (assume_tac 1));
 by (fast_tac (!claset addSEs [LeastI, lt_Ord]) 1);
 val uu_not_empty = result();
 
-goal upair.thy "!!r. [| r<=A*B; r~=0 |] ==> domain(r)~=0";
+goal ZF.thy "!!r. [| r<=A*B; r~=0 |] ==> domain(r)~=0";
 by (REPEAT (eresolve_tac [asm_rl, not_emptyE, subsetD RS SigmaE, 
                 sym RSN (2, subst_elem) RS domainI RS not_emptyI] 1));
 val not_empty_rel_imp_domain = result();
@@ -188,7 +188,7 @@ by (resolve_tac [Least_le RS lt_trans1] 1
         THEN (REPEAT (ares_tac [lt_Ord] 1)));
 val Least_uu_not_empty_lt_a = result();
 
-goal upair.thy "!!B. [| B<=A; a~:B |] ==> B <= A-{a}";
+goal ZF.thy "!!B. [| B<=A; a~:B |] ==> B <= A-{a}";
 by (Fast_tac 1);
 val subset_Diff_sing = result();
 
