@@ -26,3 +26,21 @@ use "outer_syntax.ML";
 use "isar_thy.ML";
 use "isar_cmd.ML";
 use "isar_syn.ML";
+
+
+structure PureIsar =
+struct
+  structure ProofContext = ProofContext;
+  structure Proof = Proof;
+  structure Args = Args;
+  structure Attrib = Attrib;
+  structure Method = Method;
+  structure OuterLex = OuterLex;
+  structure OuterParse = OuterParse;
+  structure ProofHistory = ProofHistory;
+  structure Toplevel = Toplevel;
+  structure OuterSyntax = OuterSyntax;
+  structure IsarThy = IsarThy;
+  structure IsarCmd = IsarCmd;
+  structure IsarSyn = IsarSyn;
+end;
