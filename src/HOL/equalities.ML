@@ -336,6 +336,11 @@ goal Set.thy "Union(A Int B) <= Union(A) Int Union(B)";
 by (Blast_tac 1);
 qed "Union_Int_subset";
 
+goal Set.thy "(Union M = {}) = (! A : M. A = {})"; 
+by (blast_tac (!claset addEs [equalityE]) 1);
+qed"Union_empty_conv"; 
+AddIffs [Union_empty_conv];
+
 val prems = goal Set.thy
    "(Union(C) Int A = {}) = (! B:C. B Int A = {})";
 by (blast_tac (!claset addSEs [equalityE]) 1);
