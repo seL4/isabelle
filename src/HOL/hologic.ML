@@ -27,20 +27,30 @@ sig
   val mk_exists: string * typ * term -> term
   val mk_Collect: string * typ * term -> term
   val mk_mem: term * term -> term
+  val mk_binop: string -> term * term -> term
+  val mk_binrel: string -> term * term -> term
+  val dest_bin: string -> typ -> term -> term * term
+  val natT: typ
+  val zero: term
+  val is_zero: term -> bool
+  val mk_Suc: term -> term
+  val dest_Suc: term -> term
+  val mk_nat: int -> term
 end;
+
 
 structure HOLogic: HOLOGIC =
 struct
 
-(* classes *)
+(* basics *)
 
 val termC: class = "term";
 val termS: sort = [termC];
 
-
-(* types *)
-
 val termTVar = TVar (("'a", 0), termS);
+
+
+(* bool and set *)
 
 val boolT = Type ("bool", []);
 
@@ -49,8 +59,6 @@ fun mk_setT T = Type ("set", [T]);
 fun dest_setT (Type ("set", [T])) = T
   | dest_setT T = raise_type "dest_setT: set type expected" [T] [];
 
-
-(* terms *)
 
 val Trueprop = Const ("Trueprop", boolT --> propT);
 
@@ -82,5 +90,38 @@ fun mk_mem (x, A) =
   end;
 
 
-end;
+(* binary oprations and relations *)
 
+fun mk_binop c (t, u) =
+  let val T = fastype_of t in
+    Const (c, [T, T] ---> T) $ t $ u
+  end;
+
+fun mk_binrel c (t, u) =
+  let val T = fastype_of t in
+    Const (c, [T, T] ---> boolT) $ t $ u
+  end;
+
+fun dest_bin c T (tm as Const (c', Type ("fun", [T', _])) $ t $ u) =
+      if c = c' andalso T = T' then (t, u)
+      else raise_term ("dest_bin " ^ c) [tm]
+  | dest_bin c _ tm = raise_term ("dest_bin " ^ c) [tm];
+
+
+(* nat *)
+
+val natT = Type ("nat", []);
+
+val zero = Const ("0", natT);
+fun is_zero t = t = zero;
+
+fun mk_Suc t = Const ("Suc", natT --> natT) $ t;
+
+fun dest_Suc (Const ("Suc", _) $ t) = t
+  | dest_Suc t = raise_term "dest_Suc" [t];
+
+fun mk_nat 0 = zero
+  | mk_nat n = mk_Suc (mk_nat (n - 1));
+
+
+end;
