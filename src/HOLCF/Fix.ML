@@ -686,8 +686,7 @@ local
         Asm_simp_tac 1,
         safe_tac HOL_cs,
         subgoal_tac "ia = i" 1,
-        Asm_simp_tac 1,
-        trans_tac 1
+        ALLGOALS Asm_simp_tac
         ]);
 
   val adm_disj_lemma4 = prove_goal Nat.thy
@@ -705,7 +704,7 @@ local
         Asm_simp_tac 1,
         res_inst_tac [("x","i")] exI 1,
         strip_tac 1,
-        trans_tac 1
+        Simp_tac 1
         ]);
 
   val adm_disj_lemma6 = prove_goal thy
