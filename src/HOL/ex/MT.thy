@@ -66,7 +66,7 @@ consts
   ve_dom :: "ValEnv => ExVar set"
   ve_app :: "[ValEnv, ExVar] => Val"
 
-  clos_mk :: "[ExVar, Ex, ValEnv] => Clos" ("<| _  , _ , _ |>" [0,0,0] 1000)
+  clos_mk :: "[ExVar, Ex, ValEnv] => Clos" ("<| _ , _ , _ |>" [0,0,0] 1000)
 
   te_emp :: "TyEnv"
   te_owr :: "[TyEnv, ExVar, Ty] => TyEnv" ("_ + { _ |=> _ }" [36,0,0] 50)

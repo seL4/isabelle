@@ -8,25 +8,24 @@ Executes miscellaneous examples for Higher-Order Logic.
 
 CHOL_build_completed;    (*Cause examples to fail if CHOL did*)
 
-(writeln "Root file for CHOL examples";
- proof_timing := true;
- loadpath := ["ex"];
- time_use     "ex/cla.ML";
- time_use     "ex/meson.ML";
- time_use     "ex/mesontest.ML";
- time_use_thy "String";
- time_use_thy "InSort";
- time_use_thy "Qsort";
- time_use_thy "LexProd";
- time_use_thy "Puzzle";
- time_use_thy "NatSum";
- time_use     "ex/set.ML";
- time_use_thy "SList";
- time_use_thy "LList";
- time_use_thy "Acc";
- time_use_thy "PropLog";
- time_use_thy "Term";
- time_use_thy "Simult";
- time_use_thy "MT";
- writeln "END: Root file for CHOL examples"
-)  handle _ => exit 1;
+writeln "Root file for CHOL examples";
+proof_timing := true;
+loadpath := ["ex"];
+time_use     "ex/cla.ML";
+time_use     "ex/meson.ML";
+time_use     "ex/mesontest.ML";
+time_use_thy "String";
+time_use_thy "InSort";
+time_use_thy "Qsort";
+time_use_thy "LexProd";
+time_use_thy "Puzzle";
+time_use_thy "NatSum";
+time_use     "ex/set.ML";
+time_use_thy "SList";
+time_use_thy "LList";
+time_use_thy "Acc";
+time_use_thy "PropLog";
+time_use_thy "Term";
+time_use_thy "Simult";
+time_use_thy "MT";
+writeln "END: Root file for CHOL examples";
