@@ -36,11 +36,10 @@ installed by default.
 
 <p>
 
-Some of the packages below are platform dependent.  We include a
-complete binary distribution for Linux/x86 and Solaris/Sparc systems;
-the PowerPC platform requires separate compilation of Isabelle logic
-images.  Isabelle also works with different Standard ML
-implementations (for further platforms) not included here.
+Some of the packages below are platform dependent.  We include binary
+packages for Linux/x86, Solaris/Sparc, and Darwin/PPC (MacOS X).
+Isabelle also works with different Standard ML implementations (and
+further platforms).
 
 <p>
 
@@ -49,29 +48,31 @@ implementations (for further platforms) not included here.
 
 <table border="0" cellspacing="5" cellpadding="4" width="520">
 
-<!-- _GP_ downloadhead("Isabelle system") -->
+<!-- _GP_ downloadhead("Isabelle") -->
 <!-- _GP_ download(1, "Main sources and documentation", distname . ".tar.gz", "../..") -->
 <!-- _GP_ download(1, "Alternative documentation in PDF", distname . "_pdf.tar.gz", "../..") -->
 <!-- _GP_ download(1, "Browsable version of theory library", distname . "_library.tar.gz", "../..") -->
 
-<!-- _GP_ downloadhead("Poly/ML compiler and runtime system") -->
-<!-- _GP_ download(1, "Poly/ML base system", "contrib/polyml_base.tar.gz", "../..") -->
-<!-- _GP_ download(4, "Poly/ML binary modules", "contrib/polyml_x86-linux.tar.gz", "../..") -->
-<!-- _GP_ download(0, "", "contrib/polyml_sparc-solaris.tar.gz", "../..") -->
-<!-- _GP_ download(0, "", "contrib/polyml_ppc-linux.tar.gz", "../..") -->
-<!-- _GP_ download(0, "", "contrib/polyml_ppc-darwin.tar.gz", "../..") -->
-
-<!-- _GP_ downloadhead("Precompiled Isabelle logics") -->
-<!-- _GP_ download(2, "HOL", "HOL_x86-linux.tar.gz", "../..") -->
-<!-- _GP_ download(0, "", "HOL_sparc-solaris.tar.gz", "../..") -->
-<!-- _GP_ download(2, "HOL-Real", "HOL-Real_x86-linux.tar.gz", "../..") -->
-<!-- _GP_ download(0, "", "HOL-Real_sparc-solaris.tar.gz", "../..") -->
-<!-- _GP_ download(2, "ZF", "ZF_x86-linux.tar.gz", "../..") -->
-<!-- _GP_ download(0, "", "ZF_sparc-solaris.tar.gz", "../..") -->
-
-<!-- _GP_ downloadhead("Proof General system") -->
+<!-- _GP_ downloadhead("Proof General") -->
 <!-- _GP_ download(1, "Proof General", "contrib/ProofGeneral.tar.gz", "../..") -->
 <!-- _GP_ download(1, "X-Symbol package", "contrib/x-symbol.tar.gz", "../..") -->
+
+<!-- _GP_ downloadhead("Poly/ML compiler and runtime system") -->
+<!-- _GP_ download(1, "Poly/ML base system", "contrib/polyml_base.tar.gz", "../..") -->
+<!-- _GP_ download(3, "Poly/ML binary modules", "contrib/polyml_x86-linux.tar.gz", "../..") -->
+<!-- _GP_ download(0, "", "contrib/polyml_sparc-solaris.tar.gz", "../..") -->
+<!-- _GP_ download(0, "", "contrib/polyml_ppc-darwin.tar.gz", "../..") -->
+
+<!-- _GP_ downloadhead("Precompiled logics") -->
+<!-- _GP_ download(3, "HOL", "HOL_x86-linux.tar.gz", "../..") -->
+<!-- _GP_ download(0, "", "HOL_sparc-solaris.tar.gz", "../..") -->
+<!-- _GP_ download(0, "", "HOL_ppc-darwin.tar.gz", "../..") -->
+<!-- _GP_ download(3, "HOL-Real", "HOL-Real_x86-linux.tar.gz", "../..") -->
+<!-- _GP_ download(0, "", "HOL-Real_sparc-solaris.tar.gz", "../..") -->
+<!-- _GP_ download(0, "", "HOL-Real_ppc-darwin.tar.gz", "../..") -->
+<!-- _GP_ download(3, "ZF", "ZF_x86-linux.tar.gz", "../..") -->
+<!-- _GP_ download(0, "", "ZF_sparc-solaris.tar.gz", "../..") -->
+<!-- _GP_ download(0, "", "ZF_ppc-darwin.tar.gz", "../..") -->
 
 </table>
 </center>
@@ -80,9 +81,9 @@ implementations (for further platforms) not included here.
 
 <h2>Installation</h2>
 
-Actually there is no ``installation'' required, users may just unpack
-all required packages within the same directory.  The default settings
-of Isabelle should be reasonable for most circumstances.
+In fact, there is no installation required.  Users may just unpack all
+required packages within the same directory.  The default settings of
+Isabelle should be reasonable for most circumstances.
 
 <p>
 
@@ -97,15 +98,15 @@ location may be changed to anything appropriate).
 &nbsp;&nbsp; tar -C /usr/local -xzf
 <!-- _GP_ href(distname . ".tar.gz", distname . ".tar.gz") --> <br>
 &nbsp;&nbsp; tar -C /usr/local -xzf
+<!-- _GP_ href("contrib/ProofGeneral.tar.gz", "ProofGeneral.tar.gz") --> <br>
+&nbsp;&nbsp; tar -C /usr/local -xzf
+<!-- _GP_ href("contrib/x-symbol.tar.gz", "x-symbol.tar.gz") --> <br>
+&nbsp;&nbsp; tar -C /usr/local -xzf
 <!-- _GP_ href("contrib/polyml_base.tar.gz", "polyml_base.tar.gz") --> <br>
 &nbsp;&nbsp; tar -C /usr/local -xzf
 <!-- _GP_ href("contrib/polyml_x86-linux.tar.gz", "polyml_x86-linux.tar.gz") --> <br>
 &nbsp;&nbsp; tar -C /usr/local -xzf
 <!-- _GP_ href("HOL_x86-linux.tar.gz", "HOL_x86-linux.tar.gz") --> <br>
-&nbsp;&nbsp; tar -C /usr/local -xzf
-<!-- _GP_ href("contrib/ProofGeneral.tar.gz", "ProofGeneral.tar.gz") --> <br>
-&nbsp;&nbsp; tar -C /usr/local -xzf
-<!-- _GP_ href("contrib/x-symbol.tar.gz", "x-symbol.tar.gz") --> <br>
 </tt>
 
 <p>
