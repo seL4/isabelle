@@ -7,7 +7,6 @@ Basic theory of lattices and orders via axiomatic type classes.
 
 open AxClass;
 
-reset HOL_quantifiers;
 reset eta_contract;
 set show_types;
 set show_sorts;

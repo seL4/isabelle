@@ -9,7 +9,6 @@ Root file for UNITY proofs.
 writeln"Root file for HOL/UNITY";
 
 set proof_timing;
-set HOL_quantifiers;
 
 time_use_thy "UNITY";
 time_use_thy "Deadlock";

@@ -9,7 +9,6 @@ From Misra, "A Logic for Concurrent Programming", 1994
 *)
 
 set proof_timing;
-HOL_quantifiers := false;
 
 
 (*** General lemmas ***)

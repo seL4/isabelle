@@ -5,7 +5,6 @@
 Some bits of group theory via axiomatic type classes.
 *)
 
-reset HOL_quantifiers;
 set show_types;
 set show_sorts;
 

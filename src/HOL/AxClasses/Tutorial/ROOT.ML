@@ -7,7 +7,6 @@ Axiomatic Type Classes in Isabelle --- a tutorial".  (The NatClass
 example resides in directory FOL/ex/.)
 *)
 
-reset HOL_quantifiers;
 set show_types;
 set show_sorts;
 
