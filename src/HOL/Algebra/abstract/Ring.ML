@@ -274,7 +274,8 @@ by Auto_tac;
 qed "inverse_unique";
 
 Goal "!! a::'a::ring. a dvd 1 ==> a * inverse a = 1";
-by (asm_full_simp_tac (simpset () addsimps [inverse_def, dvd_def]) 1);
+by (asm_full_simp_tac (simpset () addsimps [inverse_def, dvd_def]
+  delsimprocs [ring_simproc]) 1);
 by (Clarify_tac 1);
 by (rtac theI 1);
 by (atac 1);

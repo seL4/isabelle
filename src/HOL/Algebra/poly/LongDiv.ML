@@ -105,13 +105,13 @@ by (asm_full_simp_tac (simpset() addsimps [eucl_size_def]) 1);
 (* case "x ~= 0 *)
 by (rotate_tac ~1 1);
 by (asm_full_simp_tac (simpset() addsimps [eucl_size_def]) 1);
-by (Simp_tac 1);
+(* by (Simp_tac 1); *)
 by (rtac impI 1);
 by (rtac deg_lcoeff_cancel2 1);
   (* replace by linear arithmetic??? *)
-  by (rtac le_trans 1);
-  by (rtac deg_smult_ring 1);
-  by (Simp_tac 1);
+  by (rtac le_trans 2);
+  by (rtac deg_smult_ring 2);
+  by (Simp_tac 2);
   by (Simp_tac 1);
   by (rtac le_trans 1);
   by (rtac deg_mult_ring 1);
@@ -220,9 +220,10 @@ by (Simp_tac 1);
 val uminus_zero = result();
 
 Goal "!!a::'a::ring. a - b = 0 ==> a = b";
-br trans 1;
-by (res_inst_tac [("b", "a")] (thm "bug") 2);
-by (Asm_simp_tac 1);
+by (res_inst_tac [("s", "a - (a - b)")] trans 1);
+by (asm_simp_tac (simpset() delsimprocs [ring_simproc]) 1);
+by (Simp_tac 1);
+by (Simp_tac 1);
 val diff_zero_imp_eq = result();
 
 Goal "!!a::'a::ring. a = b ==> a + (-b) = 0";

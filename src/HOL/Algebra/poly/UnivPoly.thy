@@ -145,9 +145,19 @@ lemma coeff_one [simp]: "coeff 1 n = (if n=0 then 1 else 0)"
 proof (unfold up_one_def)
 qed simp
 
+(* term order
 lemma coeff_smult [simp]: "coeff (a *s p) n = (a::'a::ring) * coeff p n"
 proof -
   have "!!f. f : UP ==> (%n. a * f n) : UP"
+    by (unfold UP_def) (force simp add: ring_simps)
+*)      (* this force step is slow *)
+(*  then show ?thesis
+    apply (simp add: coeff_def smult_def Abs_UP_inverse Rep_UP)
+qed
+*)
+lemma coeff_smult [simp]: "coeff (a *s p) n = (a::'a::ring) * coeff p n"
+proof -
+  have "Rep_UP p : UP ==> (%n. a * Rep_UP p n) : UP"
     by (unfold UP_def) (force simp add: ring_simps)
       (* this force step is slow *)
   then show ?thesis
@@ -315,7 +325,7 @@ proof
 lemma monom_zero [simp]:
   "monom 0 n = 0"
   by (simp add: monom_def up_zero_def)
-
+(* term order: application of coeff_mult goes wrong: rule not symmetric
 lemma monom_mult_is_smult:
   "monom (a::'a::ring) 0 * p = a *s p"
 proof (rule up_eqI)
@@ -327,6 +337,23 @@ proof (rule up_eqI)
     case Suc then show ?thesis by simp
   qed
 qed
+*)
+ML_setup {* Delsimprocs [ring_simproc] *}
+
+lemma monom_mult_is_smult:
+  "monom (a::'a::ring) 0 * p = a *s p"
+proof (rule up_eqI)
+  fix k
+  have "coeff (p * monom a 0) k = coeff (a *s p) k"
+  proof (cases k)
+    case 0 then show ?thesis by simp ring
+  next
+    case Suc then show ?thesis by (simp add: ring_simps) ring
+  qed
+  then show "coeff (monom a 0 * p) k = coeff (a *s p) k" by ring
+qed
+
+ML_setup {* Addsimprocs [ring_simproc] *}
 
 lemma monom_add [simp]:
   "monom (a + b) n = monom (a::'a::ring) n + monom b n"
@@ -740,9 +767,13 @@ proof -
   also have "... = (a = 0)" by (simp add: monom_inj del: monom_zero)
   finally show ?thesis .
 qed
-
+(* term order: makes this simpler!!!
 lemma smult_integral:
   "(a::'a::domain) *s p = 0 ==> a = 0 | p = 0"
 by (simp add: monom_mult_is_smult [THEN sym] integral_iff monom_inj_zero) fast
+*)
+lemma smult_integral:
+  "(a::'a::domain) *s p = 0 ==> a = 0 | p = 0"
+by (simp add: monom_mult_is_smult [THEN sym] integral_iff monom_inj_zero)
 
 end

@@ -51,7 +51,7 @@ by (induct_tac "n" 1);
 by (Asm_simp_tac 1);
 by (Simp_tac 1);
 by (dres_inst_tac [("a", "g (Suc n)"), ("b", "setsum g {..n}")] homo_add 1);
-by (Asm_simp_tac 1);
+by (Asm_full_simp_tac 1);
 qed "homo_SUM";
 
 Addsimps [homo_add, homo_mult, homo_one, homo_zero, 

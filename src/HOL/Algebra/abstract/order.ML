@@ -1,135 +1,78 @@
 (*
   Title:     Term order, needed for normal forms in rings
   Id:        $Id$
-  Author:    Clemens Ballarin and Roland Zumkeller
+  Author:    Clemens Ballarin
   Copyright: TU Muenchen
 *)
 
 local
 
-(* 
-An order is a value of type
-  ('a -> bool, 'a * 'a -> bool).
+(*** Lexicographic path order on terms.
 
-The two parts are:
- 1) a unary predicate denoting the order's domain
- 2) a binary predicate with the semanitcs "greater than"
+  See Baader & Nipkow, Term rewriting, CUP 1998.
+  Without variables.  Const, Var, Bound, Free and Abs are treated all as
+  constants.
 
-If (d, ord) is an order then ord (a,b) is defined if both d a and d b.
-*)
+  f_ord maps strings to integers and serves two purposes:
+  - Predicate on constant symbols.  Those that are not recognised by f_ord
+    must be mapped to ~1.
+  - Order on the recognised symbols.  These must be mapped to distinct
+    integers >= 0.
 
-(*
-Combines two orders with disjoint domains and returns
-another one. 
-When the compared values are from the same domain, the corresponding
-order is used. If not the ones from the first domain are considerer
-greater. (If a value is in neither of the two domains, exception
-"Domain" is raised.)
-*)
+***)
 
-fun combineOrd ((d1, ord1), (d2, ord2)) = 
-  (fn x => d1 x orelse d2 x, 
-   fn (a, b) =>
-     if d1 a andalso d1 b then ord1 (a, b) else
-     if d1 a andalso d2 b then true else
-     if d2 a andalso d2 b then ord2 (a, b) else
-     if d2 a andalso d1 b then false else raise Domain)
+fun dest_hd f_ord (Const (a, T)) = 
+      let val ord = f_ord a in
+        if ord = ~1 then ((1, ((a, 0), T)), 0) else ((0, (("", ord), T)), 0)
+      end
+  | dest_hd _ (Free (a, T)) = ((1, ((a, 0), T)), 0)
+  | dest_hd _ (Var v) = ((1, v), 1)
+  | dest_hd _ (Bound i) = ((1, (("", i), Term.dummyT)), 2)
+  | dest_hd _ (Abs (_, T, _)) = ((1, (("", 0), T)), 3);
 
-
-(* Counts the number of function applications + 1. *)
-(* ### is there a standard Isabelle function for this? *)
-
-fun tsize (a $ b) = tsize a + tsize b
-  | tsize _ = 1;
-
-(* foldl on non-empty lists *)
-
-fun foldl2 f (x::xs) = foldl f (x,xs)
-
-
-(* Compares two terms, ignoring type information. *)
-infix e;
-fun (Const (s1, _))   e (Const (s2, _))   = s1 = s2
-  | (Free (s1, _))    e (Free (s2, _))    = s1 = s2
-  | (Var (ix1, _))    e (Var (ix2, _))    = ix1 = ix2
-  | (Bound i1)        e (Bound i2)        = i1 = i2
-  | (Abs (s1, _, t1)) e (Abs (s2, _, t2)) = s1 = s2 andalso t1 = t2
-  | (s1 $ s2)         e (t1 $ t2)         = s1 = t1 andalso s2 = t2
-  | _ e _ = false
-
-
-
-(* Curried lexicographich path order induced by an order on function symbols.
-Its feature include:
-- compatibility with Epsilon-operations 
-- closure under substitutions
-- well-foundedness
-- subterm-property
-- termination
-- defined on all terms (not only on ground terms)
-- linearity
-
-The order ignores types.
-*)
-
-infix g;
-fun clpo (d, ord) (s,t) = 
-  let val (op g) = clpo (d, ord) in
-     (s <> t) andalso
-     if tsize s < tsize t then not (t g s) else
-       (* improves performance. allowed because clpo is total. *)
-     #2 (foldl2 combineOrd [
-        (fn _ $ _ => true | Abs _ => true | _ => false, 
-  	 fn (Abs (_, _, s'), t) => s' e t orelse s' g t orelse 
- 				   (case t of
- 					Abs (_, _, t') => s' g t'
- 				      | t1 $ t2 => s g t1 andalso s g t2
- 			           )
-           | (s1 $ s2, t) => s1 e t orelse s2 e t orelse 
-                             s1 g t orelse s2 g t orelse
- 			    (case t of
- 				 t1 $ t2 => (s1 e t1 andalso s2 g t2) orelse
- 					    (s1 g t1 andalso s g t2)
- 			       | _ => false
-                             )
-        ),
-        (fn Free _       => true      | _ => false,   fn (Free (a,_), Free (b,_))     => a > b),
-        (fn Bound _      => true      | _ => false,   fn (Bound a, Bound b)           => a > b),
-        (fn Const (c, _) => not (d c) | _ => false,   fn (Const (a, _), Const (b, _)) => a > b),
-        (fn Const (c, _) => d c       | _ => false,   fn (Const (a, _), Const (b, _)) => ord (a,b))
-    ]) (s,t)
-  end;
-
-(*
-Open Issues: 
-- scheme variables have to be ordered (should be simple)
-*)
-
-(* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *)
-
-(* Returns the position of an element in a list. If the
-element doesn't occur in the list, a MatchException is raised. *)
-fun pos (x::xs) i = if x = i then 0 else 1 + pos xs i;
-
-(* Generates a finite linear order from a list. 
-[a, b, c] results in the order "a > b > c". *)
-fun linOrd l = fn (a,b) => pos l a < pos l b;
-
-(* Determines whether an element is contained in a list. *)
-fun contains (x::xs) i = (x = i) orelse (contains xs i) |
-    contains [] i = false;
+fun term_lpo f_ord (s, t) =
+  let val (f, ss) = strip_comb s and (g, ts) = strip_comb t in
+    if forall (fn si => term_lpo f_ord (si, t) = LESS) ss
+    then case hd_ord f_ord (f, g) of
+	GREATER =>
+	  if forall (fn ti => term_lpo f_ord (s, ti) = GREATER) ts
+	  then GREATER else LESS
+      | EQUAL =>
+	  if forall (fn ti => term_lpo f_ord (s, ti) = GREATER) ts
+	  then list_ord (term_lpo f_ord) (ss, ts)
+	  else LESS
+      | LESS => LESS
+    else GREATER
+  end
+and hd_ord f_ord (f, g) = case (f, g) of
+    (Abs (_, T, t), Abs (_, U, u)) =>
+      (case term_lpo f_ord (t, u) of EQUAL => Term.typ_ord (T, U) | ord => ord)
+  | (_, _) => prod_ord (prod_ord int_ord
+                  (prod_ord Term.indexname_ord Term.typ_ord)) int_ord
+                (dest_hd f_ord f, dest_hd f_ord g)
 
 in
 
-(* Term order for commutative rings *)
+(*** Term order for commutative rings ***)
 
-fun termless_ring (a, b) =
-  let
-    val S = ["op *", "op -", "uminus", "op +", "0"];
-    (* Order (decending from left to right) on the constant symbols *)
-    val baseOrd = (contains S, linOrd S);
-  in clpo baseOrd (b, a)
-  end;
+fun ring_ord a =
+  find_index_eq a ["0", "op +", "uminus", "op -", "1", "op *"];
+
+fun termless_ring (a, b) = (term_lpo ring_ord (a, b) = LESS);
+
+(* Some code useful for debugging
+
+val intT = HOLogic.intT;
+val a = Free ("a", intT);
+val b = Free ("b", intT);
+val c = Free ("c", intT);
+val plus = Const ("op +", [intT, intT]--->intT);
+val mult = Const ("op *", [intT, intT]--->intT);
+val uminus = Const ("uminus", intT-->intT);
+val one = Const ("1", intT);
+val f = Const("f", intT-->intT);
+
+*)
 
 (*** Rewrite rules ***)
 
@@ -233,13 +176,13 @@ val r_minus = prove_goal thy "(a::'a::ring) * (-b) = - (a * b)"
 val ring_ss = HOL_basic_ss settermless termless_ring addsimps
   [a_assoc, l_zero, l_neg, a_comm, m_assoc, l_one, l_distr, m_comm, minus_def,
    r_zero, r_neg, r_neg2, r_neg1, minus_add, minus_minus, minus0,
-   a_lcomm, m_lcomm, r_distr, l_null, r_null, l_minus, r_minus];
+   a_lcomm, m_lcomm, (*r_one,*) r_distr, l_null, r_null, l_minus, r_minus];
 
-val x = bind_thms ("ring_simps", [l_zero, r_zero, l_neg, r_neg,
-  minus_minus, minus0, 
+(* Note: r_one is not necessary in ring_ss *)
+
+val x = bind_thms ("ring_simps", 
+  [l_zero, r_zero, l_neg, r_neg, minus_minus, minus0, 
   l_one, r_one, l_null, r_null, l_minus, r_minus]);
-
-(* note: r_one added to ring_simp but not ring_ss *)
 
 (* note: not added (and not proved):
   a_lcancel_eq, a_rcancel_eq, power_one, power_Suc, power_zero, power_one,

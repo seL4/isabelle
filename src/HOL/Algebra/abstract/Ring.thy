@@ -211,12 +211,12 @@ qed
 
 (*
 lemma "(a::'a::ring) - (a - b) = b" apply simp
-simproc seems to fail on this example
+ simproc seems to fail on this example (fixed with new term order)
 *)
-
+(*
 lemma bug: "(b::'a::ring) - (b - a) = a" by simp
-  (* simproc for rings cannot prove "(a::'a::ring) - (a - b) = b" *)
-
+   simproc for rings cannot prove "(a::'a::ring) - (a - b) = b" 
+*)
 lemma m_lcancel:
   assumes prem: "(a::'a::domain) ~= 0" shows conc: "(a * b = a * c) = (b = c)"
 proof
@@ -225,7 +225,7 @@ proof
   then have "a = 0 | (b - c) = 0" by (simp only: integral_iff)
   with prem have "b - c = 0" by auto 
   then have "b = b - (b - c)" by simp 
-  also have "b - (b - c) = c" by (rule bug) 
+  also have "b - (b - c) = c" by simp
   finally show "b = c" .
 next
   assume "b = c" then show "a * b = a * c" by simp
