@@ -1,0 +1,83 @@
+%
+\begin{isabellebody}%
+\def\isabellecontext{a{\isadigit{3}}}%
+\isamarkupfalse%
+%
+\isamarkupsubsection{Natural deduction -- Propositional Logic \label{psv0304a3}%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+In this exercise, we will prove some lemmas of propositional
+logic with the aid of a calculus of natural deduction.
+
+For the proofs, you may only use
+
+\begin{itemize}
+\item the following lemmas: \\
+\isa{notI{\isacharcolon}}~\isa{{\isacharparenleft}A\ {\isasymLongrightarrow}\ False{\isacharparenright}\ {\isasymLongrightarrow}\ {\isasymnot}\ A},\\
+\isa{notE{\isacharcolon}}~\isa{{\isasymlbrakk}{\isasymnot}\ A{\isacharsemicolon}\ A{\isasymrbrakk}\ {\isasymLongrightarrow}\ B},\\
+\isa{conjI{\isacharcolon}}~\isa{{\isasymlbrakk}A{\isacharsemicolon}\ B{\isasymrbrakk}\ {\isasymLongrightarrow}\ A\ {\isasymand}\ B},\\ 
+\isa{conjE{\isacharcolon}}~\isa{{\isasymlbrakk}A\ {\isasymand}\ B{\isacharsemicolon}\ {\isasymlbrakk}A{\isacharsemicolon}\ B{\isasymrbrakk}\ {\isasymLongrightarrow}\ C{\isasymrbrakk}\ {\isasymLongrightarrow}\ C},\\
+\isa{disjI{\isadigit{1}}{\isacharcolon}}~\isa{A\ {\isasymLongrightarrow}\ A\ {\isasymor}\ B},\\
+\isa{disjI{\isadigit{2}}{\isacharcolon}}~\isa{A\ {\isasymLongrightarrow}\ B\ {\isasymor}\ A},\\
+\isa{disjE{\isacharcolon}}~\isa{{\isasymlbrakk}A\ {\isasymor}\ B{\isacharsemicolon}\ A\ {\isasymLongrightarrow}\ C{\isacharsemicolon}\ B\ {\isasymLongrightarrow}\ C{\isasymrbrakk}\ {\isasymLongrightarrow}\ C},\\
+\isa{impI{\isacharcolon}}~\isa{{\isacharparenleft}A\ {\isasymLongrightarrow}\ B{\isacharparenright}\ {\isasymLongrightarrow}\ A\ {\isasymlongrightarrow}\ B},\\
+\isa{impE{\isacharcolon}}~\isa{{\isasymlbrakk}A\ {\isasymlongrightarrow}\ B{\isacharsemicolon}\ A{\isacharsemicolon}\ B\ {\isasymLongrightarrow}\ C{\isasymrbrakk}\ {\isasymLongrightarrow}\ C},\\
+\isa{mp{\isacharcolon}}~\isa{{\isasymlbrakk}A\ {\isasymlongrightarrow}\ B{\isacharsemicolon}\ A{\isasymrbrakk}\ {\isasymLongrightarrow}\ B}\\
+\isa{iffI{\isacharcolon}}~\isa{{\isasymlbrakk}A\ {\isasymLongrightarrow}\ B{\isacharsemicolon}\ B\ {\isasymLongrightarrow}\ A{\isasymrbrakk}\ {\isasymLongrightarrow}\ A\ {\isacharequal}\ B}, \\
+\isa{iffE{\isacharcolon}}~\isa{{\isasymlbrakk}A\ {\isacharequal}\ B{\isacharsemicolon}\ {\isasymlbrakk}A\ {\isasymlongrightarrow}\ B{\isacharsemicolon}\ B\ {\isasymlongrightarrow}\ A{\isasymrbrakk}\ {\isasymLongrightarrow}\ C{\isasymrbrakk}\ {\isasymLongrightarrow}\ C}\\
+\isa{classical{\isacharcolon}}~\isa{{\isacharparenleft}{\isasymnot}\ A\ {\isasymLongrightarrow}\ A{\isacharparenright}\ {\isasymLongrightarrow}\ A}
+
+\item the proof methods \isa{rule}, \isa{erule} and \isa{assumption}
+\end{itemize}%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{lemma}\ I{\isacharcolon}\ {\isachardoublequote}A\ {\isasymlongrightarrow}\ A{\isachardoublequote}\isamarkupfalse%
+\isanewline
+\isamarkupfalse%
+\isacommand{lemma}\ {\isachardoublequote}A\ {\isasymand}\ B\ {\isasymlongrightarrow}\ B\ {\isasymand}\ A{\isachardoublequote}\isamarkupfalse%
+\isanewline
+\isamarkupfalse%
+\isacommand{lemma}\ {\isachardoublequote}{\isacharparenleft}A\ {\isasymand}\ B{\isacharparenright}\ {\isasymlongrightarrow}\ {\isacharparenleft}A\ {\isasymor}\ B{\isacharparenright}{\isachardoublequote}\isamarkupfalse%
+\isanewline
+\isamarkupfalse%
+\isacommand{lemma}\ {\isachardoublequote}{\isacharparenleft}{\isacharparenleft}A\ {\isasymor}\ B{\isacharparenright}\ {\isasymor}\ C{\isacharparenright}\ {\isasymlongrightarrow}\ A\ {\isasymor}\ {\isacharparenleft}B\ {\isasymor}\ C{\isacharparenright}{\isachardoublequote}\isamarkupfalse%
+\isanewline
+\isamarkupfalse%
+\isacommand{lemma}\ K{\isacharcolon}\ {\isachardoublequote}A\ {\isasymlongrightarrow}\ B\ {\isasymlongrightarrow}\ A{\isachardoublequote}\isamarkupfalse%
+\isanewline
+\isamarkupfalse%
+\isacommand{lemma}\ {\isachardoublequote}{\isacharparenleft}A\ {\isasymor}\ A{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}A\ {\isasymand}\ A{\isacharparenright}{\isachardoublequote}\isamarkupfalse%
+\isanewline
+\isamarkupfalse%
+\isacommand{lemma}\ S{\isacharcolon}\ {\isachardoublequote}{\isacharparenleft}A\ {\isasymlongrightarrow}\ B\ {\isasymlongrightarrow}\ C{\isacharparenright}\ {\isasymlongrightarrow}\ {\isacharparenleft}A\ {\isasymlongrightarrow}\ B{\isacharparenright}\ {\isasymlongrightarrow}\ A\ {\isasymlongrightarrow}\ C{\isachardoublequote}\isamarkupfalse%
+\isanewline
+\isamarkupfalse%
+\isacommand{lemma}\ {\isachardoublequote}{\isacharparenleft}A\ {\isasymlongrightarrow}\ B{\isacharparenright}\ {\isasymlongrightarrow}\ {\isacharparenleft}B\ {\isasymlongrightarrow}\ C{\isacharparenright}\ {\isasymlongrightarrow}\ A\ {\isasymlongrightarrow}\ C{\isachardoublequote}\isamarkupfalse%
+\isanewline
+\isamarkupfalse%
+\isacommand{lemma}\ {\isachardoublequote}{\isasymnot}\ {\isasymnot}\ A\ {\isasymlongrightarrow}\ A{\isachardoublequote}\isamarkupfalse%
+\isanewline
+\isamarkupfalse%
+\isacommand{lemma}\ {\isachardoublequote}A\ {\isasymlongrightarrow}\ {\isasymnot}\ {\isasymnot}\ A{\isachardoublequote}\isamarkupfalse%
+\isanewline
+\isamarkupfalse%
+\isacommand{lemma}\ {\isachardoublequote}{\isacharparenleft}{\isasymnot}\ A\ {\isasymlongrightarrow}\ B{\isacharparenright}\ {\isasymlongrightarrow}\ {\isacharparenleft}{\isasymnot}\ B\ {\isasymlongrightarrow}\ A{\isacharparenright}{\isachardoublequote}\isamarkupfalse%
+\isanewline
+\isamarkupfalse%
+\isacommand{lemma}\ {\isachardoublequote}{\isacharparenleft}{\isacharparenleft}A\ {\isasymlongrightarrow}\ B{\isacharparenright}\ {\isasymlongrightarrow}\ A{\isacharparenright}\ {\isasymlongrightarrow}\ A{\isachardoublequote}\isamarkupfalse%
+\isanewline
+\isamarkupfalse%
+\isacommand{lemma}\ {\isachardoublequote}A\ {\isasymor}\ {\isasymnot}\ A{\isachardoublequote}\isamarkupfalse%
+\isanewline
+\isamarkupfalse%
+\isacommand{lemma}\ {\isachardoublequote}{\isacharparenleft}{\isasymnot}\ {\isacharparenleft}A\ {\isasymand}\ B{\isacharparenright}{\isacharparenright}\ {\isacharequal} {\isacharparenleft}{\isasymnot}\ A\ {\isasymor}\ {\isasymnot}\ B{\isacharparenright}{\isachardoublequote}\isamarkupfalse%
+\isamarkupfalse%
+\isanewline
+\isamarkupfalse%
+\end{isabellebody}%
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: "root"
+%%% End:

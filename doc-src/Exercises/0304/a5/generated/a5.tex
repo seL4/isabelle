@@ -1,0 +1,124 @@
+%
+\begin{isabellebody}%
+\def\isabellecontext{a{\isadigit{5}}}%
+\isamarkupfalse%
+%
+\isamarkupsubsection{The Euclidean Algorithm -- Inductively%
+}
+\isamarkuptrue%
+%
+\isamarkupsubsubsection{Rules without Base Case%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+Show that the following%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{consts}\ evenempty\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}nat\ set{\isachardoublequote}\isanewline
+\isamarkupfalse%
+\isacommand{inductive}\ evenempty\isanewline
+\ \ \isakeyword{intros}\isanewline
+\ \ Add{\isadigit{2}}Ie{\isacharcolon}\ {\isachardoublequote}n\ {\isasymin}\ evenempty\ {\isasymLongrightarrow}\ Suc{\isacharparenleft}Suc\ n{\isacharparenright}\ {\isasymin}\ evenempty{\isachardoublequote}\isamarkupfalse%
+%
+\begin{isamarkuptext}%
+defines the empty set:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{lemma}\ evenempty{\isacharunderscore}empty{\isacharcolon}\ {\isachardoublequote}evenempty\ {\isacharequal}\ {\isacharbraceleft}{\isacharbraceright}{\isachardoublequote}\isamarkupfalse%
+\isamarkupfalse%
+%
+\isamarkupsubsubsection{The Euclidean Algorithm%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+Define inductively the set \isa{gcd}, which characterizes
+the greatest common divisor of two natural numbers:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\ \ gcd\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}{\isacharparenleft}nat\ {\isasymtimes}\ nat\ {\isasymtimes}\ nat{\isacharparenright}\ set{\isachardoublequote}\isamarkupfalse%
+%
+\begin{isamarkuptext}%
+Here, \isa{{\isacharparenleft}a{\isacharcomma}b{\isacharcomma}g{\isacharparenright}\ {\isasymin}\ gcd} means that \isa{g} is the gcd
+of \isa{a} und \isa{b}. The definition should closely follow the
+Euclidean algorithm.
+
+Reminder: The Euclidean algorithm repeatedly subtracts the smaller
+from the larger number, until one of the numbers is 0. Then, the other
+number is the gcd.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+Now, compute the gcd of 15 and 10:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{lemma}\ {\isachardoublequote}{\isacharparenleft}{\isadigit{1}}{\isadigit{5}}{\isacharcomma}\ {\isadigit{1}}{\isadigit{0}}{\isacharcomma}\ {\isacharquery}g{\isacharparenright}\ \ {\isasymin}\ gcd{\isachardoublequote}\isamarkupfalse%
+\isamarkupfalse%
+%
+\begin{isamarkuptext}%
+How does your algorithm behave on special cases as the following?%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{lemma}\ {\isachardoublequote}{\isacharparenleft}{\isadigit{0}}{\isacharcomma}\ {\isadigit{0}}{\isacharcomma}\ {\isacharquery}g{\isacharparenright}\ \ {\isasymin}\ gcd{\isachardoublequote}\isamarkupfalse%
+\isamarkupfalse%
+%
+\begin{isamarkuptext}%
+Show that the gcd is really a divisor (for the proof, you need an appropriate lemma):%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{lemma}\ gcd{\isacharunderscore}divides{\isacharcolon}\ {\isachardoublequote}{\isacharparenleft}a{\isacharcomma}b{\isacharcomma}g{\isacharparenright}\ {\isasymin}\ gcd\ {\isasymLongrightarrow}\ g\ dvd\ a\ {\isasymand}\ g\ dvd\ b{\isachardoublequote}\isamarkupfalse%
+\isamarkupfalse%
+%
+\begin{isamarkuptext}%
+Show that the gcd is the greatest common divisor:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{lemma}\ gcd{\isacharunderscore}greatest\ {\isacharbrackleft}rule{\isacharunderscore}format{\isacharbrackright}{\isacharcolon}\ {\isachardoublequote}{\isacharparenleft}a{\isacharcomma}b{\isacharcomma}g{\isacharparenright}\ {\isasymin}\ gcd\ {\isasymLongrightarrow}\isanewline
+\ \ {\isadigit{0}}\ {\isacharless}\ a\ {\isasymor}\ {\isadigit{0}}\ {\isacharless}\ b\ {\isasymlongrightarrow}\ {\isacharparenleft}{\isasymforall}\ d{\isachardot}\ d\ dvd\ a\ {\isasymlongrightarrow}\ d\ dvd\ b\ {\isasymlongrightarrow}\ d\ {\isasymle}\ g{\isacharparenright}{\isachardoublequote}\isamarkupfalse%
+\isamarkupfalse%
+%
+\begin{isamarkuptext}%
+Here as well, you will have to prove a suitable lemma. What is
+the precondition \isa{{\isadigit{0}}\ {\isacharless}\ a\ {\isasymor}\ {\isadigit{0}}\ {\isacharless}\ b} good for?
+
+So far, we have only shown that \isa{gcd} is correct, but your
+algorithm might not compute a result for all values \isa{a{\isacharcomma}b}. Thus, show completeness of the algorithm:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{lemma}\ gcd{\isacharunderscore}defined{\isacharcolon}\ {\isachardoublequote}{\isasymforall}\ a\ b{\isachardot}\ {\isasymexists}\ g{\isachardot}\ {\isacharparenleft}a{\isacharcomma}\ b{\isacharcomma}\ g{\isacharparenright}\ {\isasymin}\ gcd{\isachardoublequote}\isamarkupfalse%
+\isamarkupfalse%
+%
+\begin{isamarkuptext}%
+The following lemma, proved by course-of-value recursion over
+\isa{n}, may be useful. Why does standard induction over natural
+numbers not work here?%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{lemma}\ gcd{\isacharunderscore}defined{\isacharunderscore}aux\ {\isacharbrackleft}rule{\isacharunderscore}format{\isacharbrackright}{\isacharcolon}\ \isanewline
+\ \ {\isachardoublequote}{\isasymforall}\ a\ b{\isachardot}\ {\isacharparenleft}a\ {\isacharplus}\ b{\isacharparenright}\ {\isasymle}\ n\ {\isasymlongrightarrow}\ {\isacharparenleft}{\isasymexists}\ g{\isachardot}\ {\isacharparenleft}a{\isacharcomma}\ b{\isacharcomma}\ g{\isacharparenright}\ {\isasymin}\ gcd{\isacharparenright}{\isachardoublequote}\isanewline
+\isamarkupfalse%
+\isacommand{apply}\ {\isacharparenleft}induct\ rule{\isacharcolon}\ nat{\isacharunderscore}less{\isacharunderscore}induct{\isacharparenright}\isanewline
+\isamarkupfalse%
+\isacommand{apply}\ clarify\isanewline
+\isamarkupfalse%
+\isamarkupfalse%
+%
+\begin{isamarkuptext}%
+The idea is to show that \isa{gcd} yields a result for all
+\isa{a{\isacharcomma}\ b} whenever it is known that \isa{gcd} yields a result
+for all \isa{a{\isacharprime}{\isacharcomma}\ b{\isacharprime}} whose sum is smaller than \isa{a\ {\isacharplus}\ b}.
+
+In order to prove this lemma, make case distinctions corresponding to
+the different clauses of the algorithm, and show how to reduce
+computation of \isa{gcd} for \isa{a{\isacharcomma}\ b} to computation of \isa{gcd} for suitable smaller \isa{a{\isacharprime}{\isacharcomma}\ b{\isacharprime}}.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isanewline
+\isamarkupfalse%
+\end{isabellebody}%
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: "root"
+%%% End:

@@ -1,0 +1,108 @@
+%
+\begin{isabellebody}%
+\def\isabellecontext{a{\isadigit{1}}}%
+\isamarkupfalse%
+%
+\isamarkupsubsection{List functions%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+Define a function \isa{sum}, which computes the sum of
+elements of a list of natural numbers.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\ \ sum\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}nat\ list\ {\isasymRightarrow}\ nat{\isachardoublequote}\isamarkupfalse%
+%
+\begin{isamarkuptext}%
+Then, define a function \isa{flatten} which flattens a list
+of lists by appending the member lists.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\ \ flatten\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}{\isacharprime}a\ list\ list\ {\isasymRightarrow}\ {\isacharprime}a\ list{\isachardoublequote}\isamarkupfalse%
+%
+\begin{isamarkuptext}%
+Test your function by applying them to the following example lists:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{lemma}\ {\isachardoublequote}sum\ {\isacharbrackleft}{\isadigit{2}}{\isacharcolon}{\isacharcolon}nat{\isacharcomma}\ {\isadigit{4}}{\isacharcomma}\ {\isadigit{8}}{\isacharbrackright}\ {\isacharequal}\ x{\isachardoublequote}\isamarkupfalse%
+\isanewline
+\isamarkupfalse%
+\isacommand{lemma}\ {\isachardoublequote}flatten\ {\isacharbrackleft}{\isacharbrackleft}{\isadigit{2}}{\isacharcolon}{\isacharcolon}nat{\isacharcomma}\ {\isadigit{3}}{\isacharbrackright}{\isacharcomma}\ {\isacharbrackleft}{\isadigit{4}}{\isacharcomma}\ {\isadigit{5}}{\isacharbrackright}{\isacharcomma}\ {\isacharbrackleft}{\isadigit{7}}{\isacharcomma}\ {\isadigit{9}}{\isacharbrackright}{\isacharbrackright}\ {\isacharequal}\ x{\isachardoublequote}\isamarkupfalse%
+\isamarkupfalse%
+%
+\begin{isamarkuptext}%
+Prove the following statements, or give a counterexample:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{lemma}\ {\isachardoublequote}length\ {\isacharparenleft}flatten\ xs{\isacharparenright}\ {\isacharequal}\ sum\ {\isacharparenleft}map\ length\ xs{\isacharparenright}{\isachardoublequote}\isamarkupfalse%
+\isanewline
+\isamarkupfalse%
+\isacommand{lemma}\ sum{\isacharunderscore}append{\isacharcolon}\ {\isachardoublequote}sum\ {\isacharparenleft}xs\ {\isacharat}\ ys{\isacharparenright}\ {\isacharequal}\ sum\ xs\ {\isacharplus}\ sum\ ys{\isachardoublequote}\isamarkupfalse%
+\isanewline
+\isamarkupfalse%
+\isacommand{lemma}\ flatten{\isacharunderscore}append{\isacharcolon}\ {\isachardoublequote}flatten\ {\isacharparenleft}xs\ {\isacharat}\ ys{\isacharparenright}\ {\isacharequal}\ flatten\ xs\ {\isacharat}\ flatten\ ys{\isachardoublequote}\isamarkupfalse%
+\isanewline
+\isamarkupfalse%
+\isacommand{lemma}\ {\isachardoublequote}flatten\ {\isacharparenleft}map\ rev\ {\isacharparenleft}rev\ xs{\isacharparenright}{\isacharparenright}\ {\isacharequal}\ rev\ {\isacharparenleft}flatten\ xs{\isacharparenright}{\isachardoublequote}\isamarkupfalse%
+\isanewline
+\isamarkupfalse%
+\isacommand{lemma}\ {\isachardoublequote}flatten\ {\isacharparenleft}rev\ {\isacharparenleft}map\ rev\ xs{\isacharparenright}{\isacharparenright}\ {\isacharequal}\ rev\ {\isacharparenleft}flatten\ xs{\isacharparenright}{\isachardoublequote}\isamarkupfalse%
+\isanewline
+\isamarkupfalse%
+\isacommand{lemma}\ {\isachardoublequote}list{\isacharunderscore}all\ {\isacharparenleft}list{\isacharunderscore}all\ P{\isacharparenright}\ xs\ {\isacharequal}\ list{\isacharunderscore}all\ P\ {\isacharparenleft}flatten\ xs{\isacharparenright}{\isachardoublequote}\isamarkupfalse%
+\isanewline
+\isamarkupfalse%
+\isacommand{lemma}\ {\isachardoublequote}flatten\ {\isacharparenleft}rev\ xs{\isacharparenright}\ {\isacharequal}\ flatten\ xs{\isachardoublequote}\isamarkupfalse%
+\isanewline
+\isamarkupfalse%
+\isacommand{lemma}\ {\isachardoublequote}sum\ {\isacharparenleft}rev\ xs{\isacharparenright}\ {\isacharequal}\ sum\ xs{\isachardoublequote}\isamarkupfalse%
+\isamarkupfalse%
+%
+\begin{isamarkuptext}%
+Find a predicate \isa{P} which satisfies%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{lemma}\ {\isachardoublequote}list{\isacharunderscore}all\ P\ xs\ {\isasymlongrightarrow}\ length\ xs\ {\isasymle}\ sum\ xs{\isachardoublequote}\isamarkupfalse%
+\isamarkupfalse%
+%
+\begin{isamarkuptext}%
+Define, by means of primitive recursion, a function \isa{exists} which checks whether an element satisfying a given property is
+contained in the list:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\ \ list{\isacharunderscore}exists\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}{\isacharparenleft}{\isacharprime}a\ {\isasymRightarrow}\ bool{\isacharparenright}\ {\isasymRightarrow}\ {\isacharparenleft}{\isacharprime}a\ list\ {\isasymRightarrow}\ bool{\isacharparenright}{\isachardoublequote}\isamarkupfalse%
+%
+\begin{isamarkuptext}%
+Test your function on the following examples:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{lemma}\ {\isachardoublequote}list{\isacharunderscore}exists\ {\isacharparenleft}{\isasymlambda}\ n{\isachardot}\ n\ {\isacharless}\ {\isadigit{3}}{\isacharparenright}\ {\isacharbrackleft}{\isadigit{4}}{\isacharcolon}{\isacharcolon}nat{\isacharcomma}\ {\isadigit{3}}{\isacharcomma}\ {\isadigit{7}}{\isacharbrackright}\ {\isacharequal}\ b{\isachardoublequote}\isamarkupfalse%
+\isanewline
+\isamarkupfalse%
+\isacommand{lemma}\ {\isachardoublequote}list{\isacharunderscore}exists\ {\isacharparenleft}{\isasymlambda}\ n{\isachardot}\ n\ {\isacharless}\ {\isadigit{4}}{\isacharparenright}\ {\isacharbrackleft}{\isadigit{4}}{\isacharcolon}{\isacharcolon}nat{\isacharcomma}\ {\isadigit{3}}{\isacharcomma}\ {\isadigit{7}}{\isacharbrackright}\ {\isacharequal}\ b{\isachardoublequote}\isamarkupfalse%
+\isamarkupfalse%
+%
+\begin{isamarkuptext}%
+Prove the following statements:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{lemma}\ list{\isacharunderscore}exists{\isacharunderscore}append{\isacharcolon}\ \isanewline
+\ \ {\isachardoublequote}list{\isacharunderscore}exists\ P\ {\isacharparenleft}xs\ {\isacharat}\ ys{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}list{\isacharunderscore}exists\ P\ xs\ {\isasymor}\ list{\isacharunderscore}exists\ P\ ys{\isacharparenright}{\isachardoublequote}\isamarkupfalse%
+\isanewline
+\isamarkupfalse%
+\isacommand{lemma}\ {\isachardoublequote}list{\isacharunderscore}exists\ {\isacharparenleft}list{\isacharunderscore}exists\ P{\isacharparenright}\ xs\ {\isacharequal}\ list{\isacharunderscore}exists\ P\ {\isacharparenleft}flatten\ xs{\isacharparenright}{\isachardoublequote}\isamarkupfalse%
+\isamarkupfalse%
+%
+\begin{isamarkuptext}%
+You could have defined \isa{list{\isacharunderscore}exists} only with the aid of
+\isa{list{\isacharunderscore}all}. Do this now, i.e. define a function \isa{list{\isacharunderscore}exists{\isadigit{2}}} and show that it is equivalent to \isa{list{\isacharunderscore}exists}.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isanewline
+\isamarkupfalse%
+\end{isabellebody}%
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: "root"
+%%% End:

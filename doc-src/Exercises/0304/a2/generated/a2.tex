@@ -1,0 +1,176 @@
+%
+\begin{isabellebody}%
+\def\isabellecontext{a{\isadigit{2}}}%
+\isamarkupfalse%
+%
+\isamarkupsubsection{Folding Lists and Trees%
+}
+\isamarkuptrue%
+%
+\isamarkupsubsubsection{Some more list functions%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+Recall the summation function%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\ \ sum\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}nat\ list\ {\isasymRightarrow}\ nat{\isachardoublequote}\isanewline
+\isamarkupfalse%
+\isacommand{primrec}\isanewline
+\ \ {\isachardoublequote}sum\ {\isacharbrackleft}{\isacharbrackright}\ {\isacharequal}\ {\isadigit{0}}{\isachardoublequote}\isanewline
+\ \ {\isachardoublequote}sum\ {\isacharparenleft}x\ {\isacharhash}\ xs{\isacharparenright}\ {\isacharequal}\ x\ {\isacharplus}\ sum\ xs{\isachardoublequote}\isamarkupfalse%
+%
+\begin{isamarkuptext}%
+In the Isabelle library, you will find in theory
+\texttt{List.thy} the functions \isa{foldr} and \isa{foldl}, which
+allow you to define some list functions, among them \isa{sum} and
+\isa{length}. Show the following:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{lemma}\ sum{\isacharunderscore}foldr{\isacharcolon}\ {\isachardoublequote}sum\ xs\ {\isacharequal}\ foldr\ {\isacharparenleft}op\ {\isacharplus}{\isacharparenright}\ xs\ {\isadigit{0}}{\isachardoublequote}\isamarkupfalse%
+\isanewline
+\isamarkupfalse%
+\isacommand{lemma}\ length{\isacharunderscore}foldr{\isacharcolon}\ {\isachardoublequote}length\ xs\ {\isacharequal}\ foldr\ {\isacharparenleft}{\isasymlambda}\ x\ res{\isachardot}\ {\isadigit{1}}\ {\isacharplus}\ res{\isacharparenright}\ xs\ {\isadigit{0}}{\isachardoublequote}\isamarkupfalse%
+\isamarkupfalse%
+%
+\begin{isamarkuptext}%
+Repeated application of \isa{foldr} and \isa{map} has the
+disadvantage that a list is traversed several times. A single traversal is sufficient, as
+illustrated by the following example:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{lemma}\ {\isachardoublequote}sum\ {\isacharparenleft}map\ {\isacharparenleft}{\isasymlambda}\ x{\isachardot}\ x\ {\isacharplus}\ {\isadigit{3}}{\isacharparenright}\ xs{\isacharparenright}\ {\isacharequal}\ foldr\ h\ xs\ b{\isachardoublequote}\isamarkupfalse%
+\isamarkupfalse%
+%
+\begin{isamarkuptext}%
+Find terms \isa{h} and \isa{b} which solve this
+equation. Generalize this result, i.e. show for appropriate \isa{h}
+and \isa{b}:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{lemma}\ {\isachardoublequote}foldr\ g\ {\isacharparenleft}map\ f\ xs{\isacharparenright}\ a\ {\isacharequal}\ foldr\ h\ xs\ b{\isachardoublequote}\isamarkupfalse%
+\isamarkupfalse%
+%
+\begin{isamarkuptext}%
+Hint: Isabelle can help you find the solution if you use the
+equalities arising during a proof attempt.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+The following function \isa{rev{\isacharunderscore}acc} reverses a list in linear time:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{consts}\isanewline
+\ \ rev{\isacharunderscore}acc\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}{\isacharbrackleft}{\isacharprime}a\ list{\isacharcomma}\ {\isacharprime}a\ list{\isacharbrackright}\ {\isasymRightarrow}\ {\isacharprime}a\ list{\isachardoublequote}\isanewline
+\isamarkupfalse%
+\isacommand{primrec}\isanewline
+\ \ {\isachardoublequote}rev{\isacharunderscore}acc\ {\isacharbrackleft}{\isacharbrackright}\ ys\ {\isacharequal}\ ys{\isachardoublequote}\isanewline
+\ \ {\isachardoublequote}rev{\isacharunderscore}acc\ {\isacharparenleft}x{\isacharhash}xs{\isacharparenright}\ ys\ {\isacharequal}\ {\isacharparenleft}rev{\isacharunderscore}acc\ xs\ {\isacharparenleft}x{\isacharhash}ys{\isacharparenright}{\isacharparenright}{\isachardoublequote}\isamarkupfalse%
+%
+\begin{isamarkuptext}%
+Show that \isa{rev{\isacharunderscore}acc} can be defined by means of \isa{foldl}.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{lemma}\ rev{\isacharunderscore}acc{\isacharunderscore}foldl{\isacharcolon}\ {\isachardoublequote}rev{\isacharunderscore}acc\ xs\ a\ {\isacharequal}\ foldl\ {\isacharparenleft}{\isasymlambda}\ ys\ x{\isachardot}\ x\ {\isacharhash}\ ys{\isacharparenright}\ a\ xs{\isachardoublequote}\isamarkupfalse%
+\isamarkupfalse%
+%
+\begin{isamarkuptext}%
+On the first exercise sheet, we have shown:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{lemma}\ sum{\isacharunderscore}append\ {\isacharbrackleft}simp{\isacharbrackright}{\isacharcolon}\ {\isachardoublequote}sum\ {\isacharparenleft}xs\ {\isacharat}\ ys{\isacharparenright}\ {\isacharequal}\ sum\ xs\ {\isacharplus}\ sum\ ys{\isachardoublequote}\isanewline
+\ \ \isamarkupfalse%
+\isacommand{by}\ {\isacharparenleft}induct\ xs{\isacharparenright}\ auto\isamarkupfalse%
+%
+\begin{isamarkuptext}%
+Prove a similar distributivity property for \isa{foldr},
+i.e. something like \isa{foldr\ f\ {\isacharparenleft}xs\ {\isacharat}\ ys{\isacharparenright}\ a\ {\isacharequal}\ f\ {\isacharparenleft}foldr\ f\ xs\ a{\isacharparenright}\ {\isacharparenleft}foldr\ f\ ys\ a{\isacharparenright}}. However, you will have to strengthen the premisses
+by taking into account algebraic properties of \isa{f} and \isa{a}.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{lemma}\ foldr{\isacharunderscore}append{\isacharcolon}\ {\isachardoublequote}foldr\ f\ {\isacharparenleft}xs\ {\isacharat}\ ys{\isacharparenright}\ a\ {\isacharequal}\ f\ {\isacharparenleft}foldr\ f\ xs\ a{\isacharparenright}\ {\isacharparenleft}foldr\ f\ ys\ a{\isacharparenright}{\isachardoublequote}\isamarkupfalse%
+\isamarkupfalse%
+%
+\begin{isamarkuptext}%
+Now, define the function \isa{prod}, which computes the product of all list elements:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\ \ prod\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}nat\ list\ {\isasymRightarrow}\ nat{\isachardoublequote}\isamarkupfalse%
+%
+\begin{isamarkuptext}%
+direcly with the aid of  a fold and prove the following:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{lemma}\ {\isachardoublequote}prod\ {\isacharparenleft}xs\ {\isacharat}\ ys{\isacharparenright}\ {\isacharequal}\ prod\ xs\ {\isacharasterisk}\ prod\ ys{\isachardoublequote}\isamarkupfalse%
+\isamarkupfalse%
+%
+\isamarkupsubsubsection{Functions on Trees%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+Consider the following type of binary trees:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{datatype}\ {\isacharprime}a\ tree\ {\isacharequal}\ Tip\ {\isacharbar}\ Node\ {\isachardoublequote}{\isacharprime}a\ tree{\isachardoublequote}\ {\isacharprime}a\ {\isachardoublequote}{\isacharprime}a\ tree{\isachardoublequote}\isamarkupfalse%
+%
+\begin{isamarkuptext}%
+Define functions which convert a tree into a list by traversing it in pre- resp. postorder:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\ \ preorder\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}{\isacharprime}a\ tree\ {\isasymRightarrow}\ {\isacharprime}a\ list{\isachardoublequote}\isanewline
+\ \ postorder\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}{\isacharprime}a\ tree\ {\isasymRightarrow}\ {\isacharprime}a\ list{\isachardoublequote}\isamarkupfalse%
+%
+\begin{isamarkuptext}%
+You have certainly realized that computation of postorder traversal can be efficiently realized with an accumulator, in analogy to  \isa{rev{\isacharunderscore}acc}:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{consts}\isanewline
+\ \ postorder{\isacharunderscore}acc\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}{\isacharbrackleft}{\isacharprime}a\ tree{\isacharcomma}\ {\isacharprime}a\ list{\isacharbrackright}\ {\isasymRightarrow}\ {\isacharprime}a\ list{\isachardoublequote}\isamarkupfalse%
+%
+\begin{isamarkuptext}%
+Define this function and show:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{lemma}\ {\isachardoublequote}postorder{\isacharunderscore}acc\ t\ xs\ {\isacharequal}\ {\isacharparenleft}postorder\ t{\isacharparenright}\ {\isacharat}\ xs{\isachardoublequote}\isamarkupfalse%
+\isamarkupfalse%
+%
+\begin{isamarkuptext}%
+\isa{postorder{\isacharunderscore}acc} is the instance of a function
+\isa{foldl{\isacharunderscore}tree}, which is similar to \isa{foldl}.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{consts}\isanewline
+\ \ foldl{\isacharunderscore}tree\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}{\isacharparenleft}{\isacharprime}b\ {\isacharequal}{\isachargreater}\ {\isacharprime}a\ {\isacharequal}{\isachargreater}\ {\isacharprime}b{\isacharparenright}\ {\isasymRightarrow}\ {\isacharprime}b\ {\isasymRightarrow}\ {\isacharprime}a\ tree\ {\isasymRightarrow}\ {\isacharprime}b{\isachardoublequote}\isamarkupfalse%
+%
+\begin{isamarkuptext}%
+Show the following:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{lemma}\ {\isachardoublequote}{\isasymforall}\ a{\isachardot}\ postorder{\isacharunderscore}acc\ t\ a\ {\isacharequal}\ foldl{\isacharunderscore}tree\ {\isacharparenleft}{\isasymlambda}\ xs\ x{\isachardot}\ Cons\ x\ xs{\isacharparenright}\ a\ t{\isachardoublequote}\isamarkupfalse%
+\isamarkupfalse%
+%
+\begin{isamarkuptext}%
+Define a function \isa{tree{\isacharunderscore}sum} that computes the sum of
+the elements of a tree of natural numbers:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{consts}\isanewline
+\ \ tree{\isacharunderscore}sum\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}nat\ tree\ {\isasymRightarrow}\ nat{\isachardoublequote}\isamarkupfalse%
+%
+\begin{isamarkuptext}%
+and show that this function satisfies%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{lemma}\ {\isachardoublequote}tree{\isacharunderscore}sum\ t\ {\isacharequal}\ sum\ {\isacharparenleft}preorder\ t{\isacharparenright}{\isachardoublequote}\isamarkupfalse%
+\isanewline
+\isamarkupfalse%
+\isanewline
+\isamarkupfalse%
+\end{isabellebody}%
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: "root"
+%%% End:

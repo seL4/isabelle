@@ -1,0 +1,106 @@
+%
+\begin{isabellebody}%
+\def\isabellecontext{a{\isadigit{4}}}%
+\isamarkupfalse%
+%
+\isamarkupsubsection{Natural Deduction -- Predicate Logic; Sets as Lists%
+}
+\isamarkuptrue%
+%
+\isamarkupsubsubsection{Predicate Logic Formulae%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+We are again talking about proofs in the calculus of Natural
+Deduction. In addition to the rules of section~\ref{psv0304a3}, you may now also use
+
+
+  \isa{exI{\isacharcolon}}~\isa{P\ x\ {\isasymLongrightarrow}\ {\isasymexists}x{\isachardot}\ P\ x}\\
+  \isa{exE{\isacharcolon}}~\isa{{\isasymlbrakk}{\isasymexists}x{\isachardot}\ P\ x{\isacharsemicolon}\ {\isasymAnd}x{\isachardot}\ P\ x\ {\isasymLongrightarrow}\ Q{\isasymrbrakk}\ {\isasymLongrightarrow}\ Q}\\
+  \isa{allI{\isacharcolon}}~\isa{{\isacharparenleft}{\isasymAnd}x{\isachardot}\ P\ x{\isacharparenright}\ {\isasymLongrightarrow}\ {\isasymforall}x{\isachardot}\ P\ x}\\
+  \isa{allE{\isacharcolon}}~\isa{{\isasymlbrakk}{\isasymforall}x{\isachardot}\ P\ x{\isacharsemicolon}\ P\ x\ {\isasymLongrightarrow}\ R{\isasymrbrakk}\ {\isasymLongrightarrow}\ R}\\
+
+Give a proof of the following propositions or an argument why the formula is not valid:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{lemma}\ {\isachardoublequote}{\isacharparenleft}{\isasymexists}x{\isachardot}\ {\isasymforall}y{\isachardot}\ P\ x\ y{\isacharparenright}\ {\isasymlongrightarrow}\ {\isacharparenleft}{\isasymforall}y{\isachardot}\ {\isasymexists}x{\isachardot}\ P\ x\ y{\isacharparenright}{\isachardoublequote}\isamarkupfalse%
+\isanewline
+\isamarkupfalse%
+\isacommand{lemma}\ {\isachardoublequote}{\isacharparenleft}{\isasymforall}x{\isachardot}\ P\ x\ {\isasymlongrightarrow}\ Q{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}{\isacharparenleft}{\isasymexists}x{\isachardot}\ P\ x{\isacharparenright}\ {\isasymlongrightarrow}\ Q{\isacharparenright}{\isachardoublequote}\isamarkupfalse%
+\isanewline
+\isamarkupfalse%
+\isacommand{lemma}\ {\isachardoublequote}{\isacharparenleft}{\isacharparenleft}{\isasymforall}\ x{\isachardot}\ P\ x{\isacharparenright}\ \ {\isasymand}\ {\isacharparenleft}{\isasymforall}\ x{\isachardot}\ Q\ x{\isacharparenright}{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}{\isasymforall}\ x{\isachardot}\ {\isacharparenleft}P\ x\ {\isasymand}\ Q\ x{\isacharparenright}{\isacharparenright}{\isachardoublequote}\isamarkupfalse%
+\isanewline
+\isamarkupfalse%
+\isacommand{lemma}\ {\isachardoublequote}{\isacharparenleft}{\isacharparenleft}{\isasymforall}\ x{\isachardot}\ P\ x{\isacharparenright}\ {\isasymor}\ {\isacharparenleft}{\isasymforall}\ x{\isachardot}\ Q\ x{\isacharparenright}{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}{\isasymforall}\ x{\isachardot}\ {\isacharparenleft}P\ x\ {\isasymor}\ Q\ x{\isacharparenright}{\isacharparenright}{\isachardoublequote}\isamarkupfalse%
+\isanewline
+\isamarkupfalse%
+\isacommand{lemma}\ {\isachardoublequote}{\isacharparenleft}{\isacharparenleft}{\isasymexists}\ x{\isachardot}\ P\ x{\isacharparenright}\ {\isasymor}\ {\isacharparenleft}{\isasymexists}\ x{\isachardot}\ Q\ x{\isacharparenright}{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}{\isasymexists}\ x{\isachardot}\ {\isacharparenleft}P\ x\ {\isasymor}\ Q\ x{\isacharparenright}{\isacharparenright}{\isachardoublequote}\isamarkupfalse%
+\isanewline
+\isamarkupfalse%
+\isacommand{lemma}\ {\isachardoublequote}{\isasymexists}x{\isachardot}\ {\isacharparenleft}P\ x\ {\isasymlongrightarrow}\ {\isacharparenleft}{\isasymforall}x{\isachardot}\ P\ x{\isacharparenright}{\isacharparenright}{\isachardoublequote}\isamarkupfalse%
+\isamarkupfalse%
+%
+\isamarkupsubsubsection{Sets as Lists%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+Finite sets can obviously be implemented by lists. In the
+following, you will be asked to implement the set operations union,
+intersection and difference and to show that these implementations are
+correct. Thus, for a function%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\ \ list{\isacharunderscore}union\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}{\isacharbrackleft}{\isacharprime}a\ list{\isacharcomma}\ {\isacharprime}a\ list{\isacharbrackright}\ {\isasymRightarrow}\ {\isacharprime}a\ list{\isachardoublequote}\isamarkupfalse%
+%
+\begin{isamarkuptext}%
+to be defined by you it has to be shown that%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{lemma}\ {\isachardoublequote}set\ {\isacharparenleft}list{\isacharunderscore}union\ xs\ ys{\isacharparenright}\ {\isacharequal}\ set\ xs\ {\isasymunion}\ set\ ys{\isachardoublequote}\isamarkupfalse%
+\isamarkupfalse%
+%
+\begin{isamarkuptext}%
+In addition, the functions should be space efficient in the
+sense that one obtains lists without duplicates (\isa{distinct})
+whenever the parameters of the functions are duplicate-free. Thus, for
+example,%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{lemma}\ {\isacharbrackleft}rule{\isacharunderscore}format{\isacharbrackright}{\isacharcolon}\ \isanewline
+\ \ {\isachardoublequote}distinct\ xs\ {\isasymlongrightarrow}\ distinct\ ys\ {\isasymlongrightarrow}\ {\isacharparenleft}distinct\ {\isacharparenleft}list{\isacharunderscore}union\ xs\ ys{\isacharparenright}{\isacharparenright}{\isachardoublequote}\isamarkupfalse%
+\isamarkupfalse%
+%
+\begin{isamarkuptext}%
+\emph{Hint:} \isa{distinct} is defined in \isa{List{\isachardot}thy}. Also the function \isa{mem} and the lemma \isa{set{\isacharunderscore}mem{\isacharunderscore}eq} may be useful.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsubsubsection{Quantification over Sets%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+Define a set \isa{S} such that the following proposition holds:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{lemma}\ {\isachardoublequote}{\isacharparenleft}{\isacharparenleft}{\isasymforall}\ x\ {\isasymin}\ A{\isachardot}\ P\ x{\isacharparenright}\ {\isasymand}\ {\isacharparenleft}{\isasymforall}\ x\ {\isasymin}\ B{\isachardot}\ P\ x{\isacharparenright}{\isacharparenright}\ {\isasymlongrightarrow}\ {\isacharparenleft}{\isasymforall}\ x\ {\isasymin}\ S{\isachardot}\ P\ x{\isacharparenright}{\isachardoublequote}\isamarkupfalse%
+\isamarkupfalse%
+%
+\begin{isamarkuptext}%
+Define a predicate \isa{P} such that%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{lemma}\ {\isachardoublequote}{\isasymforall}\ x\ {\isasymin}\ A{\isachardot}\ P\ {\isacharparenleft}f\ x{\isacharparenright}\ {\isasymLongrightarrow}\ \ {\isasymforall}\ y\ {\isasymin}\ f\ {\isacharbackquote}\ A{\isachardot}\ Q\ y{\isachardoublequote}\isamarkupfalse%
+\isanewline
+\isanewline
+\isamarkupfalse%
+\isanewline
+\isamarkupfalse%
+\end{isabellebody}%
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: "root"
+%%% End:
