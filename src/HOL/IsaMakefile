@@ -94,11 +94,11 @@ $(OUT)/HOL: $(OUT)/Pure $(SRC)/Provers/quantifier1.ML \
   Relation.ML Relation.thy Relation_Power.ML Relation_Power.thy \
   SVC_Oracle.ML SVC_Oracle.thy Set.ML Set.thy SetInterval.ML \
   SetInterval.thy Sum_Type.ML Sum_Type.thy \
-  Tools/basic_codegen.ML Tools/datatype_abs_proofs.ML Tools/datatype_aux.ML \
-  Tools/datatype_package.ML Tools/datatype_prop.ML \
+  Tools/datatype_abs_proofs.ML Tools/datatype_aux.ML \
+  Tools/datatype_codegen.ML Tools/datatype_package.ML Tools/datatype_prop.ML \
   Tools/datatype_rep_proofs.ML \
   Tools/inductive_package.ML Tools/inductive_codegen.ML Tools/meson.ML Tools/numeral_syntax.ML \
-  Tools/primrec_package.ML Tools/recdef_package.ML \
+  Tools/primrec_package.ML Tools/recdef_package.ML Tools/recfun_codegen.ML \
   Tools/record_package.ML Tools/split_rule.ML \
   Tools/svc_funcs.ML Tools/typedef_package.ML \
   Transitive_Closure.thy Transitive_Closure_lemmas.ML Typedef.thy \
@@ -462,8 +462,10 @@ $(LOG)/HOL-MicroJava.gz: $(OUT)/HOL MicroJava/ROOT.ML \
   MicroJava/J/Term.thy MicroJava/J/Type.thy MicroJava/J/TypeRel.thy \
   MicroJava/J/WellForm.thy MicroJava/J/Value.thy \
   MicroJava/J/WellType.thy MicroJava/J/Example.thy \
+  MicroJava/J/JListExample.thy \
   MicroJava/JVM/JVMExec.thy MicroJava/JVM/JVMInstructions.thy\
   MicroJava/JVM/JVMState.thy MicroJava/JVM/JVMExecInstr.thy\
+  MicroJava/JVM/JVMListExample.thy \
   MicroJava/BV/BVSpec.thy MicroJava/BV/BVSpecTypeSafe.thy \
   MicroJava/BV/Correct.thy MicroJava/BV/Err.thy MicroJava/BV/JType.thy \
   MicroJava/BV/JVM.thy MicroJava/BV/JVMType.thy MicroJava/BV/Kildall.thy \
@@ -531,7 +533,8 @@ HOL-ex: HOL $(LOG)/HOL-ex.gz
 $(LOG)/HOL-ex.gz: $(OUT)/HOL ex/AVL.ML ex/AVL.thy ex/Antiquote.thy \
   ex/BT.thy ex/BinEx.thy ex/Group.ML ex/Group.thy ex/Higher_Order_Logic.thy \
   ex/Hilbert_Classical.thy ex/InSort.ML ex/InSort.thy ex/IntRing.ML \
-  ex/IntRing.thy ex/Lagrange.ML ex/Lagrange.thy ex/Locales.thy \
+  ex/IntRing.thy ex/Intuitionistic.thy \
+  ex/Lagrange.ML ex/Lagrange.thy ex/Locales.thy \
   ex/MT.ML ex/MT.thy ex/MonoidGroup.thy ex/Multiquote.thy \
   ex/NatSum.thy ex/PER.thy ex/Primrec.thy ex/Puzzle.ML ex/Puzzle.thy \
   ex/Qsort.ML ex/Qsort.thy ex/ROOT.ML ex/Recdefs.thy ex/Records.thy \
