@@ -227,20 +227,8 @@ fun forall_intr_frees th =
          th
     end;
 
-(*Replace outermost quantified variable by Var of given index.
-    Could clash with Vars already present.*)
-fun forall_elim_var i th =
-    let val {prop,sign,...} = rep_thm th
-    in case prop of
-          Const("all",_) $ Abs(a,T,_) =>
-              forall_elim (cterm_of sign (Var((a,i), T)))  th
-        | _ => raise THM("forall_elim_var", i, [th])
-    end;
-
-(*Repeat forall_elim_var until all outer quantifiers are removed*)
-fun forall_elim_vars i th =
-    forall_elim_vars i (forall_elim_var i th)
-        handle THM _ => th;
+val forall_elim_var = PureThy.forall_elim_var;
+val forall_elim_vars = PureThy.forall_elim_vars;
 
 (*Specialization over a list of cterms*)
 fun forall_elim_list cts th = foldr (uncurry forall_elim) (rev cts, th);
