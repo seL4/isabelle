@@ -49,7 +49,6 @@ use "goals.ML";
 use "axclass.ML";
 
 (*theory parser and loader*)
-val global_names = ref false;		(* FIXME tmp *)
 cd "Thy";
 use "ROOT.ML";
 cd "..";
