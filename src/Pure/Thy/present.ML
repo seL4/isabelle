@@ -17,7 +17,7 @@ sig
   include BASIC_PRESENT
   val write_graph: {name: string, ID: string, dir: string, unfold: bool,
    path: string, parents: string list} list -> Path.T -> unit
-  val init: bool -> string -> bool -> string list -> string -> Path.T option
+  val init: bool -> bool -> string -> bool -> string list -> string -> Path.T option
     -> Url.T option * bool -> bool -> unit
   val finish: unit -> unit
   val init_theory: string -> unit
@@ -272,8 +272,8 @@ fun copy_files path1 path2 =
      ("cp " ^ File.sysify_path path1 ^ " " ^ File.sysify_path path2));
 
 
-fun init info doc doc_graph path name doc_prefix2 (remote_path, first_time) verbose =
-  if not info andalso doc = "" andalso is_none doc_prefix2 then
+fun init build info doc doc_graph path name doc_prefix2 (remote_path, first_time) verbose =
+  if not build andalso not info andalso doc = "" andalso is_none doc_prefix2 then
     (browser_info := empty_browser_info; session_info := None)
   else
     let
