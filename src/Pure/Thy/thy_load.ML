@@ -81,7 +81,7 @@ fun load_file raw_path =
 (* check_thy *)
 
 fun tmp_path path f x =
-  if Path.is_current path then f x else Library.setmp load_path [path] f x;
+  if Path.is_current path then f x else Library.setmp load_path (path :: ! load_path) f x;
 
 fun check_thy_aux name ml =
   (case check_file (thy_path name) of
