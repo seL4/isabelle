@@ -9,6 +9,9 @@ signature SYMBOL =
 sig
   type symbol
   val space: symbol
+  val sync: symbol
+  val is_sync: symbol -> bool
+  val not_sync: symbol -> bool
   val eof: symbol
   val is_eof: symbol -> bool
   val not_eof: symbol -> bool
@@ -55,10 +58,14 @@ struct
 type symbol = string;
 
 val space = " ";
+val sync = "\\<^sync>";
 val eof = "";
 
 
 (* kinds *)
+
+fun is_sync s = s = sync;
+fun not_sync s = s <> sync;
 
 fun is_eof s = s = eof;
 fun not_eof s = s <> eof;
