@@ -30,9 +30,9 @@ proof
 qed
 
 syntax (symbols)
-  "*"      :: "[type, type] => type"         ("(_ \\<times>/ _)" [21, 20] 20)
+  "*"      :: "[type, type] => type"         ("(_ \<times>/ _)" [21, 20] 20)
 syntax (HTML output)
-  "*"      :: "[type, type] => type"         ("(_ \\<times>/ _)" [21, 20] 20)
+  "*"      :: "[type, type] => type"         ("(_ \<times>/ _)" [21, 20] 20)
 
 
 (* abstract constants and syntax *)
@@ -74,8 +74,8 @@ translations
   "A <*> B"      => "Sigma A (_K B)"
 
 syntax (symbols)
-  "@Sigma" :: "[pttrn, 'a set, 'b set] => ('a * 'b) set"  ("(3\\<Sigma> _\\<in>_./ _)"   10)
-  "@Times" :: "['a set,  'a => 'b set] => ('a * 'b) set"  ("_ \\<times> _" [81, 80] 80)
+  "@Sigma" :: "[pttrn, 'a set, 'b set] => ('a * 'b) set"  ("(3\<Sigma> _\<in>_./ _)"   10)
+  "@Times" :: "['a set,  'a => 'b set] => ('a * 'b) set"  ("_ \<times> _" [81, 80] 80)
 
 print_translation {* [("Sigma", dependent_tr' ("@Sigma", "@Times"))] *}
 
@@ -117,6 +117,11 @@ defs
 (** lemmas and tool setup **)
 
 use "Product_Type_lemmas.ML"
+
+lemma pair_imageI [intro]: "(a, b) : A ==> f a b : (%(a, b). f a b) ` A"
+apply (rule_tac x = "(a,b)" in image_eqI)
+apply  auto
+done
 
 constdefs
   internal_split :: "('a => 'b => 'c) => 'a * 'b => 'c"
