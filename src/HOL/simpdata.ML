@@ -38,7 +38,8 @@ fun mk_eq th = case concl_of th of
     |   _                       => th RS Eq_TrueI;
 (* last 2 lines requires all formulae to be of the from Trueprop(.) *)
 
-fun mk_eq_True r = Some(r RS meta_eq_to_obj_eq RS Eq_TrueI);
+fun mk_eq_True r =
+  Some (r RS meta_eq_to_obj_eq RS Eq_TrueI) handle Thm.THM _ => None;
 
 (*Congruence rules for = (instead of ==)*)
 fun mk_meta_cong rl =
@@ -352,7 +353,8 @@ fun mk_atomize pairs =
          | _ => [th])
   in atoms end;
 
-fun mksimps pairs = (map mk_eq o mk_atomize pairs o forall_elim_vars_safe);
+fun mksimps pairs =
+  (mapfilter (try mk_eq) o mk_atomize pairs o forall_elim_vars_safe);
 
 fun unsafe_solver_tac prems =
   FIRST'[resolve_tac(reflexive_thm::TrueI::refl::prems), atac, etac FalseE];
