@@ -11,4 +11,4 @@ open Let;
 val [prem] = goalw thy
     [Let_def] "(!!x. x=t ==> P(u(x))) ==> P(let x=t in u(x))";
 br (refl RS prem) 1;
-qed "letI";
+qed "LetI";

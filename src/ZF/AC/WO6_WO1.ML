@@ -83,7 +83,7 @@ val UN_oadd = result();
 (* ********************************************************************** *)
 
 goalw thy [vv1_def] "vv1(f,m,b) <= f`b";
-by (rtac (letI RS letI) 1);
+by (rtac (LetI RS LetI) 1);
 by (split_tac [expand_if] 1);
 by (simp_tac (ZF_ss addsimps [domain_uu_subset]) 1);
 val vv1_subset = result();
