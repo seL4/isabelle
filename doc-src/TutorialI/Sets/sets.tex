@@ -43,11 +43,11 @@ the  resemblance to those for conjunction.
 \begin{isabelle}
 \isasymlbrakk c\ \isasymin\ A;\ c\ \isasymin\ B\isasymrbrakk\ 
 \isasymLongrightarrow\ c\ \isasymin\ A\ \isasyminter\ B%
-\rulename{IntI}\isanewline
+\rulenamedx{IntI}\isanewline
 c\ \isasymin\ A\ \isasyminter\ B\ \isasymLongrightarrow\ c\ \isasymin\ A
-\rulename{IntD1}\isanewline
+\rulenamedx{IntD1}\isanewline
 c\ \isasymin\ A\ \isasyminter\ B\ \isasymLongrightarrow\ c\ \isasymin\ B
-\rulename{IntD2}
+\rulenamedx{IntD2}
 \end{isabelle}
 
 Here are two of the many installed theorems concerning set
@@ -55,7 +55,7 @@ complement.\index{complement!of a set}%
 Note that it is denoted by a minus sign.
 \begin{isabelle}
 (c\ \isasymin\ -\ A)\ =\ (c\ \isasymnotin\ A)
-\rulename{Compl_iff}\isanewline
+\rulenamedx{Compl_iff}\isanewline
 -\ (A\ \isasymunion\ B)\ =\ -\ A\ \isasyminter\ -\ B
 \rulename{Compl_Un}
 \end{isabelle}
@@ -75,12 +75,12 @@ of one is also an element of the other. This relation is reflexive.  These
 are its natural deduction rules:
 \begin{isabelle}
 ({\isasymAnd}x.\ x\ \isasymin\ A\ \isasymLongrightarrow\ x\ \isasymin\ B)\ \isasymLongrightarrow\ A\ \isasymsubseteq\ B%
-\rulename{subsetI}%
+\rulenamedx{subsetI}%
 \par\smallskip%          \isanewline didn't leave enough space
 \isasymlbrakk A\ \isasymsubseteq\ B;\ c\ \isasymin\
 A\isasymrbrakk\ \isasymLongrightarrow\ c\
 \isasymin\ B%
-\rulename{subsetD}
+\rulenamedx{subsetD}
 \end{isabelle}
 In harder proofs, you may need to apply \isa{subsetD} giving a specific term
 for~\isa{c}.  However, \isa{blast} can instantly prove facts such as this
@@ -88,7 +88,7 @@ one:
 \begin{isabelle}
 (A\ \isasymunion\ B\ \isasymsubseteq\ C)\ =\
 (A\ \isasymsubseteq\ C\ \isasymand\ B\ \isasymsubseteq\ C)
-\rulename{Un_subset_iff}
+\rulenamedx{Un_subset_iff}
 \end{isabelle}
 Here is another example, also proved automatically:
 \begin{isabelle}
@@ -125,7 +125,7 @@ for sets.
 \begin{isabelle}
 ({\isasymAnd}x.\ (x\ {\isasymin}\ A)\ =\ (x\ {\isasymin}\ B))\
 {\isasymLongrightarrow}\ A\ =\ B
-\rulename{set_ext}
+\rulenamedx{set_ext}
 \end{isabelle}
 Extensionality can be expressed as 
 $A=B\iff (A\subseteq B)\conj (B\subseteq A)$.  
@@ -135,12 +135,12 @@ directions of this equivalence.  Proving a set equation using
 \begin{isabelle}
 \isasymlbrakk A\ \isasymsubseteq\ B;\ B\ \isasymsubseteq\
 A\isasymrbrakk\ \isasymLongrightarrow\ A\ =\ B
-\rulename{equalityI}
+\rulenamedx{equalityI}
 \par\smallskip%          \isanewline didn't leave enough space
 \isasymlbrakk A\ =\ B;\ \isasymlbrakk A\ \isasymsubseteq\ B;\ B\
 \isasymsubseteq\ A\isasymrbrakk\ \isasymLongrightarrow\ P\isasymrbrakk\
 \isasymLongrightarrow\ P%
-\rulename{equalityE}
+\rulenamedx{equalityE}
 \end{isabelle}
 
 
@@ -264,13 +264,13 @@ bounded universal quantifier.  Occasionally you will need to apply
 \begin{isabelle}
 ({\isasymAnd}x.\ x\ \isasymin\ A\ \isasymLongrightarrow\ P\ x)\ \isasymLongrightarrow\ {\isasymforall}x\isasymin
 A.\ P\ x%
-\rulename{ballI}%
+\rulenamedx{ballI}%
 \isanewline
 \isasymlbrakk{\isasymforall}x\isasymin A.\
 P\ x;\ x\ \isasymin\
 A\isasymrbrakk\ \isasymLongrightarrow\ P\
 x%
-\rulename{bspec}
+\rulenamedx{bspec}
 \end{isabelle}
 %
 Dually, here are the natural deduction rules for the
@@ -282,14 +282,14 @@ x\ \isasymin\ A\isasymrbrakk\
 \isasymLongrightarrow\
 \isasymexists x\isasymin A.\ P\
 x%
-\rulename{bexI}%
+\rulenamedx{bexI}%
 \isanewline
 \isasymlbrakk\isasymexists x\isasymin A.\
 P\ x;\ {\isasymAnd}x.\
 {\isasymlbrakk}x\ \isasymin\ A;\
 P\ x\isasymrbrakk\ \isasymLongrightarrow\
 Q\isasymrbrakk\ \isasymLongrightarrow\ Q%
-\rulename{bexE}
+\rulenamedx{bexE}
 \end{isabelle}
 \index{quantifiers!for sets|)}
 
@@ -301,7 +301,7 @@ x\isasymin A.\ B} in \textsc{ascii}. Indexed union satisfies this basic law:
 (b\ \isasymin\
 (\isasymUnion x\isasymin A.\ B\ x))\ =\ (\isasymexists x\isasymin A.\
 b\ \isasymin\ B\ x)
-\rulename{UN_iff}
+\rulenamedx{UN_iff}
 \end{isabelle}
 It has two natural deduction rules similar to those for the existential
 quantifier.  Sometimes \isa{UN_I} must be applied explicitly:
@@ -312,7 +312,7 @@ B\ a\isasymrbrakk\ \isasymLongrightarrow\
 b\ \isasymin\
 ({\isasymUnion}x\isasymin A.\
 B\ x)
-\rulename{UN_I}%
+\rulenamedx{UN_I}%
 \isanewline
 \isasymlbrakk b\ \isasymin\
 ({\isasymUnion}x\isasymin A.\
@@ -321,7 +321,7 @@ B\ x);\
 A;\ b\ \isasymin\
 B\ x\isasymrbrakk\ \isasymLongrightarrow\
 R\isasymrbrakk\ \isasymLongrightarrow\ R%
-\rulename{UN_E}
+\rulenamedx{UN_E}
 \end{isabelle}
 %
 The following built-in syntax translation (see \S\ref{sec:def-translations})
@@ -341,7 +341,7 @@ We may also express the union of a set of sets, written \isa{Union\ C} in
 \begin{isabelle}
 (A\ \isasymin\ \isasymUnion C)\ =\ (\isasymexists X\isasymin C.\ A\
 \isasymin\ X)
-\rulename{Union_iff}
+\rulenamedx{Union_iff}
 \end{isabelle}
 
 \index{intersection!indexed}%
@@ -356,13 +356,13 @@ B\ x))\
 =\
 ({\isasymforall}x\isasymin A.\
 b\ \isasymin\ B\ x)
-\rulename{INT_iff}%
+\rulenamedx{INT_iff}%
 \isanewline
 (A\ \isasymin\
 \isasymInter C)\ =\
 ({\isasymforall}X\isasymin C.\
 A\ \isasymin\ X)
-\rulename{Inter_iff}
+\rulenamedx{Inter_iff}
 \end{isabelle}
 
 Isabelle uses logical equivalences such as those above in automatic proof. 
@@ -404,12 +404,12 @@ powerset:\index{cardinality}
 \begin{isabelle}
 {\isasymlbrakk}finite\ A;\ finite\ B\isasymrbrakk\isanewline
 \isasymLongrightarrow\ card\ A\ \isacharplus\ card\ B\ =\ card\ (A\ \isasymunion\ B)\ \isacharplus\ card\ (A\ \isasyminter\ B)
-\rulename{card_Un_Int}%
+\rulenamedx{card_Un_Int}%
 \isanewline
 \isanewline
 finite\ A\ \isasymLongrightarrow\ card\
 (Pow\ A)\  =\ 2\ \isacharcircum\ card\ A%
-\rulename{card_Pow}%
+\rulenamedx{card_Pow}%
 \isanewline
 \isanewline
 finite\ A\ \isasymLongrightarrow\isanewline
@@ -449,7 +449,7 @@ arguments.  This is the principle of
 functions:
 \begin{isabelle}
 ({\isasymAnd}x.\ f\ x\ =\ g\ x)\ {\isasymLongrightarrow}\ f\ =\ g
-\rulename{ext}
+\rulenamedx{ext}
 \end{isabelle}
 
 \indexbold{updating a function}%
@@ -478,11 +478,11 @@ The \bfindex{identity function} and function
 defined:
 \begin{isabelle}%
 id\ \isasymequiv\ {\isasymlambda}x.\ x%
-\rulename{id_def}\isanewline
+\rulenamedx{id_def}\isanewline
 f\ \isasymcirc\ g\ \isasymequiv\
 {\isasymlambda}x.\ f\
 (g\ x)%
-\rulename{o_def}
+\rulenamedx{o_def}
 \end{isabelle}
 %
 Many familiar theorems concerning the identity and composition 
@@ -500,12 +500,12 @@ A function may be \textbf{injective}, \textbf{surjective} or \textbf{bijective}:
 inj_on\ f\ A\ \isasymequiv\ {\isasymforall}x\isasymin A.\
 {\isasymforall}y\isasymin  A.\ f\ x\ =\ f\ y\ \isasymlongrightarrow\ x\
 =\ y%
-\rulename{inj_on_def}\isanewline
+\rulenamedx{inj_on_def}\isanewline
 surj\ f\ \isasymequiv\ {\isasymforall}y.\
 \isasymexists x.\ y\ =\ f\ x%
-\rulename{surj_def}\isanewline
+\rulenamedx{surj_def}\isanewline
 bij\ f\ \isasymequiv\ inj\ f\ \isasymand\ surj\ f
-\rulename{bij_def}
+\rulenamedx{bij_def}
 \end{isabelle}
 The second argument
 of \isa{inj_on} lets us express that a function is injective over a
@@ -588,7 +588,7 @@ has the obvious definition:
 \begin{isabelle}
 f\ `\ A\ \isasymequiv\ \isacharbraceleft y.\ \isasymexists x\isasymin
 A.\ y\ =\ f\ x\isacharbraceright
-\rulename{image_def}
+\rulenamedx{image_def}
 \end{isabelle}
 %
 Here are some of the many facts proved about image: 
@@ -637,7 +637,7 @@ theorem concerning images.
 It is defined as follows: 
 \begin{isabelle}
 f\ -`\ B\ \isasymequiv\ \isacharbraceleft x.\ f\ x\ \isasymin\ B\isacharbraceright
-\rulename{vimage_def}
+\rulenamedx{vimage_def}
 \end{isabelle}
 %
 This is one of the facts proved about it:
@@ -662,7 +662,7 @@ The \bfindex{identity relation}, also known as equality, has the obvious
 definition: 
 \begin{isabelle}
 Id\ \isasymequiv\ \isacharbraceleft p.\ \isasymexists x.\ p\ =\ (x,x){\isacharbraceright}%
-\rulename{Id_def}
+\rulenamedx{Id_def}
 \end{isabelle}
 
 \indexbold{composition!of relations}%
@@ -670,7 +670,7 @@ Id\ \isasymequiv\ \isacharbraceleft p.\ \isasymexists x.\ p\ =\ (x,x){\isacharbr
 available: 
 \begin{isabelle}
 r\ O\ s\ \isasymequiv\ \isacharbraceleft(x,z).\ \isasymexists y.\ (x,y)\ \isasymin\ s\ \isasymand\ (y,z)\ \isasymin\ r\isacharbraceright
-\rulename{comp_def}
+\rulenamedx{comp_def}
 \end{isabelle}
 %
 This is one of the many lemmas proved about these concepts: 
@@ -698,7 +698,7 @@ notation~\isa{r\isasyminverse} or
 \begin{isabelle}
 ((a,b)\ \isasymin\ r\isasyminverse)\ =\
 ((b,a)\ \isasymin\ r)
-\rulename{converse_iff}
+\rulenamedx{converse_iff}
 \end{isabelle}
 %
 Here is a typical law proved about converse and composition: 
@@ -713,7 +713,7 @@ analogously  to image under a function:
 \begin{isabelle}
 (b\ \isasymin\ r\ ``\ A)\ =\ (\isasymexists x\isasymin
 A.\ (x,b)\ \isasymin\ r)
-\rulename{Image_iff}
+\rulenamedx{Image_iff}
 \end{isabelle}
 It satisfies many similar laws.
 
@@ -724,13 +724,13 @@ standard way:
 \begin{isabelle}
 (a\ \isasymin\ Domain\ r)\ =\ (\isasymexists y.\ (a,y)\ \isasymin\
 r)
-\rulename{Domain_iff}%
+\rulenamedx{Domain_iff}%
 \isanewline
 (a\ \isasymin\ Range\ r)\
 \ =\ (\isasymexists y.\
 (y,a)\
 \isasymin\ r)
-\rulename{Range_iff}
+\rulenamedx{Range_iff}
 \end{isabelle}
 
 Iterated composition of a relation is available.  The notation overloads 
@@ -757,13 +757,13 @@ Among its basic properties are three that serve as introduction
 rules:
 \begin{isabelle}
 (a,\ a)\ \isasymin \ r\isactrlsup *
-\rulename{rtrancl_refl}\isanewline
+\rulenamedx{rtrancl_refl}\isanewline
 p\ \isasymin \ r\ \isasymLongrightarrow \ p\ \isasymin \ r\isactrlsup *
-\rulename{r_into_rtrancl}\isanewline
+\rulenamedx{r_into_rtrancl}\isanewline
 \isasymlbrakk (a,b)\ \isasymin \ r\isactrlsup *;\ 
 (b,c)\ \isasymin \ r\isactrlsup *\isasymrbrakk \ \isasymLongrightarrow \
 (a,c)\ \isasymin \ r\isactrlsup *
-\rulename{rtrancl_trans}
+\rulenamedx{rtrancl_trans}
 \end{isabelle}
 %
 Induction over the reflexive transitive closure is available: 
@@ -785,9 +785,9 @@ The transitive closure is similar.  The ASCII syntax is
 \isa{r\isacharcircum+}.  It has two  introduction rules: 
 \begin{isabelle}
 p\ \isasymin \ r\ \isasymLongrightarrow \ p\ \isasymin \ r\isactrlsup +
-\rulename{r_into_trancl}\isanewline
+\rulenamedx{r_into_trancl}\isanewline
 \isasymlbrakk (a,\ b)\ \isasymin \ r\isactrlsup +;\ (b,\ c)\ \isasymin \ r\isactrlsup +\isasymrbrakk \ \isasymLongrightarrow \ (a,\ c)\ \isasymin \ r\isactrlsup +
-\rulename{trancl_trans}
+\rulenamedx{trancl_trans}
 \end{isabelle}
 %
 The induction rule resembles the one shown above. 
@@ -910,7 +910,7 @@ that is, a set of pairs of natural numbers. Two theorems tell us that this
 relation  behaves as expected and that it is well-founded: 
 \begin{isabelle}
 ((x,y)\ \isasymin\ less_than)\ =\ (x\ <\ y)
-\rulename{less_than_iff}\isanewline
+\rulenamedx{less_than_iff}\isanewline
 wf\ less_than
 \rulename{wf_less_than}
 \end{isabelle}
@@ -925,7 +925,7 @@ theorem stating that it preserves well-foundedness:
 \begin{isabelle}
 inv_image\ r\ f\ \isasymequiv\ \isacharbraceleft(x,y).\ (f\ x,\ f\ y)\
 \isasymin\ r\isacharbraceright
-\rulename{inv_image_def}\isanewline
+\rulenamedx{inv_image_def}\isanewline
 wf\ r\ \isasymLongrightarrow\ wf\ (inv_image\ r\ f)
 \rulename{wf_inv_image}
 \end{isabelle}
@@ -936,7 +936,7 @@ datatype.  Isabelle/HOL defines
 \isa{measure} as shown: 
 \begin{isabelle}
 measure\ \isasymequiv\ inv_image\ less_than%
-\rulename{measure_def}\isanewline
+\rulenamedx{measure_def}\isanewline
 wf\ (measure\ f)
 \rulename{wf_measure}
 \end{isabelle}
@@ -953,7 +953,7 @@ ra\ <*lex*>\ rb\ \isasymequiv \isanewline
 \isasymor\isanewline
 \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \,a=a'\ \isasymand \ (b,b')\
 \isasymin \ rb\isacharbraceright 
-\rulename{lex_prod_def}%
+\rulenamedx{lex_prod_def}%
 \par\smallskip
 \isasymlbrakk wf\ ra;\ wf\ rb\isasymrbrakk \ \isasymLongrightarrow \ wf\ (ra\ <*lex*>\ rb)
 \rulename{wf_lex_prod}
@@ -986,7 +986,7 @@ In Isabelle, the induction rule is expressed like this:
   {\isasymAnd}x.\ {\isasymforall}y.\ (y,x)\ \isasymin\ r\
 \isasymlongrightarrow\ P\ y\ \isasymLongrightarrow\ P\ x\isasymrbrakk\
 \isasymLongrightarrow\ P\ a
-\rulename{wf_induct}
+\rulenamedx{wf_induct}
 \end{isabelle}
 Here \isa{wf\ r} expresses that the relation~\isa{r} is well-founded.
 
@@ -1021,7 +1021,7 @@ The theory applies only to monotonic functions.\index{monotone functions|bold}
 Isabelle's definition of monotone is overloaded over all orderings:
 \begin{isabelle}
 mono\ f\ \isasymequiv\ {\isasymforall}A\ B.\ A\ \isasymle\ B\ \isasymlongrightarrow\ f\ A\ \isasymle\ f\ B%
-\rulename{mono_def}
+\rulenamedx{mono_def}
 \end{isabelle}
 %
 For fixed point operators, the ordering will be the subset relation: if

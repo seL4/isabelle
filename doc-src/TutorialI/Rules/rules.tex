@@ -67,7 +67,7 @@ disappear.
 
 In Isabelle notation, the rule looks like this:
 \begin{isabelle}
-\isasymlbrakk?P;\ ?Q\isasymrbrakk\ \isasymLongrightarrow\ ?P\ \isasymand\ ?Q\rulename{conjI}
+\isasymlbrakk?P;\ ?Q\isasymrbrakk\ \isasymLongrightarrow\ ?P\ \isasymand\ ?Q\rulenamedx{conjI}
 \end{isabelle}
 Carefully examine the syntax.  The premises appear to the
 left of the arrow and the conclusion to the right.  The premises (if 
@@ -159,7 +159,7 @@ to emphasize that they are local to their subproofs.  In Isabelle
 notation, the already-familiar \isa{\isasymLongrightarrow} syntax serves the
 same  purpose:
 \begin{isabelle}
-\isasymlbrakk?P\ \isasymor\ ?Q;\ ?P\ \isasymLongrightarrow\ ?R;\ ?Q\ \isasymLongrightarrow\ ?R\isasymrbrakk\ \isasymLongrightarrow\ ?R\rulename{disjE}
+\isasymlbrakk?P\ \isasymor\ ?Q;\ ?P\ \isasymLongrightarrow\ ?R;\ ?Q\ \isasymLongrightarrow\ ?R\isasymrbrakk\ \isasymLongrightarrow\ ?R\rulenamedx{disjE}
 \end{isabelle}
 When we use this sort of elimination rule backwards, it produces 
 a case split.  (We have seen this before, in proofs by induction.)  The following  proof
@@ -281,7 +281,7 @@ assumptions.  The easiest way to do so is by using an
 alternative conjunction elimination rule that resembles \isa{disjE}\@.  It is
 seldom, if ever, seen in logic books.  In Isabelle syntax it looks like this: 
 \begin{isabelle}
-\isasymlbrakk?P\ \isasymand\ ?Q;\ \isasymlbrakk?P;\ ?Q\isasymrbrakk\ \isasymLongrightarrow\ ?R\isasymrbrakk\ \isasymLongrightarrow\ ?R\rulename{conjE}
+\isasymlbrakk?P\ \isasymand\ ?Q;\ \isasymlbrakk?P;\ ?Q\isasymrbrakk\ \isasymLongrightarrow\ ?R\isasymrbrakk\ \isasymLongrightarrow\ ?R\rulenamedx{conjE}
 \end{isabelle}
 \index{destruction rules|)}
 
@@ -298,13 +298,13 @@ a destruction rule. The matching introduction rule looks like this
 in Isabelle: 
 \begin{isabelle}
 (?P\ \isasymLongrightarrow\ ?Q)\ \isasymLongrightarrow\ ?P\
-\isasymlongrightarrow\ ?Q\rulename{impI}
+\isasymlongrightarrow\ ?Q\rulenamedx{impI}
 \end{isabelle}
 And this is \emph{modus ponens}\index{modus ponens@\emph{modus ponens}} :
 \begin{isabelle}
 \isasymlbrakk?P\ \isasymlongrightarrow\ ?Q;\ ?P\isasymrbrakk\
 \isasymLongrightarrow\ ?Q
-\rulename{mp}
+\rulenamedx{mp}
 \end{isabelle}
 
 Here is a proof using the implication rules.  This 
@@ -413,16 +413,16 @@ contradiction. Negation elimination deduces any formula in the
 presence of $\neg P$ together with~$P$: 
 \begin{isabelle}
 (?P\ \isasymLongrightarrow\ False)\ \isasymLongrightarrow\ \isasymnot\ ?P%
-\rulename{notI}\isanewline
+\rulenamedx{notI}\isanewline
 \isasymlbrakk{\isasymnot}\ ?P;\ ?P\isasymrbrakk\ \isasymLongrightarrow\ ?R%
-\rulename{notE}
+\rulenamedx{notE}
 \end{isabelle}
 %
 Classical logic allows us to assume $\neg P$ 
 when attempting to prove~$P$: 
 \begin{isabelle}
 (\isasymnot\ ?P\ \isasymLongrightarrow\ ?P)\ \isasymLongrightarrow\ ?P%
-\rulename{classical}
+\rulenamedx{classical}
 \end{isabelle}
 
 \index{contrapositives|(}%
@@ -500,7 +500,7 @@ The following example may be skipped on a first reading.  It involves a
 peculiar but important rule, a form of disjunction introduction:
 \begin{isabelle}
 (\isasymnot \ ?Q\ \isasymLongrightarrow \ ?P)\ \isasymLongrightarrow \ ?P\ \isasymor \ ?Q%
-\rulename{disjCI}
+\rulenamedx{disjCI}
 \end{isabelle}
 This rule combines the effects of \isa{disjI1} and \isa{disjI2}.  Its great
 advantage is that we can remove the disjunction symbol without deciding
@@ -680,7 +680,7 @@ The Isabelle version of the substitution rule looks like this:
 \begin{isabelle}
 \isasymlbrakk?t\ =\ ?s;\ ?P\ ?s\isasymrbrakk\ \isasymLongrightarrow\ ?P\
 ?t
-\rulename{ssubst}
+\rulenamedx{ssubst}
 \end{isabelle}
 Crucially, \isa{?P} is a function 
 variable.  It can be replaced by a $\lambda$-term 
@@ -876,7 +876,7 @@ can be used to define constants.
 Returning to the universal quantifier, we find that having a similar quantifier
 as part of the meta-logic makes the introduction rule trivial to express:
 \begin{isabelle}
-(\isasymAnd x.\ ?P\ x)\ \isasymLongrightarrow\ {\isasymforall}x.\ ?P\ x\rulename{allI}
+(\isasymAnd x.\ ?P\ x)\ \isasymLongrightarrow\ {\isasymforall}x.\ ?P\ x\rulenamedx{allI}
 \end{isabelle}
 
 
@@ -910,7 +910,7 @@ the rule looks like this:
 The conclusion is $P$ with $t$ substituted for the variable~$x$.  
 Isabelle expresses substitution using a function variable: 
 \begin{isabelle}
-{\isasymforall}x.\ ?P\ x\ \isasymLongrightarrow\ ?P\ ?x\rulename{spec}
+{\isasymforall}x.\ ?P\ x\ \isasymLongrightarrow\ ?P\ ?x\rulenamedx{spec}
 \end{isabelle}
 This destruction rule takes a 
 universally quantified formula and removes the quantifier, replacing 
@@ -923,7 +923,7 @@ available in the standard elimination format.  Like \isa{conjE}, it never
 appears in logic books:
 \begin{isabelle}
 \isasymlbrakk \isasymforall x.\ ?P\ x;\ ?P\ ?x\ \isasymLongrightarrow \ ?R\isasymrbrakk \ \isasymLongrightarrow \ ?R%
-\rulename{allE}
+\rulenamedx{allE}
 \end{isabelle}
 The methods \isa{drule~spec} and \isa{erule~allE} do precisely the
 same inference.
@@ -1005,7 +1005,7 @@ The concepts just presented also apply
 to the existential quantifier, whose introduction rule looks like this in
 Isabelle: 
 \begin{isabelle}
-?P\ ?x\ \isasymLongrightarrow\ {\isasymexists}x.\ ?P\ x\rulename{exI}
+?P\ ?x\ \isasymLongrightarrow\ {\isasymexists}x.\ ?P\ x\rulenamedx{exI}
 \end{isabelle}
 If we can exhibit some $x$ such that $P(x)$ is true, then $\exists x.
 P(x)$ is also true.  It is a dual of the universal elimination rule, and
@@ -1018,7 +1018,7 @@ in a logic text:
 %
 It looks like this in Isabelle: 
 \begin{isabelle}
-\isasymlbrakk{\isasymexists}x.\ ?P\ x;\ \isasymAnd x.\ ?P\ x\ \isasymLongrightarrow\ ?Q\isasymrbrakk\ \isasymLongrightarrow\ ?Q\rulename{exE}
+\isasymlbrakk{\isasymexists}x.\ ?P\ x;\ \isasymAnd x.\ ?P\ x\ \isasymLongrightarrow\ ?Q\isasymrbrakk\ \isasymLongrightarrow\ ?Q\rulenamedx{exE}
 \end{isabelle}
 %
 Given an existentially quantified theorem and some
@@ -1170,7 +1170,7 @@ We have forced the desired instantiation.
 
 \medskip
 Existential formulas can be instantiated too.  The next example uses the 
-\textbf{divides} relation\indexbold{divides relation}
+\textbf{divides} relation\index{divides relation}
 of number theory: 
 \begin{isabelle}
 ?m\ dvd\ ?n\ \isasymequiv\ {\isasymexists}k.\ ?n\ =\ ?m\ *\ k
@@ -1255,7 +1255,7 @@ We reason using this rule:\REMARK{update if we add iota}
 \begin{isabelle}
 \isasymlbrakk P\ a;\ \isasymAnd x.\ P\ x\ \isasymLongrightarrow \ x\ =\ a\isasymrbrakk \ 
 \isasymLongrightarrow \ (SOME\ x.\ P\ x)\ =\ a%
-\rulename{some_equality}
+\rulenamedx{some_equality}
 \end{isabelle}
 For instance, we can define the
 cardinality of a finite set~$A$ to be that
@@ -1309,7 +1309,8 @@ to \isa{auto} does it all:
 Occasionally, \hbox{\isa{SOME\ x.\ P\ x}} serves as an \textbf{indefinite
 description}, when it makes an arbitrary selection from the values
 satisfying~\isa{P}\@.  Here is the definition
-of~\isa{inv},\index{*inv (constant)} which expresses inverses of functions:
+of~\cdx{inv}, which expresses inverses of
+functions:
 \begin{isabelle}
 inv\ f\ \isasymequiv \ \isasymlambda y.\ SOME\ x.\ f\ x\ =\ y%
 \rulename{inv_def}
@@ -1335,10 +1336,10 @@ situations in which the value is  described uniquely.  To go further is
 tricky and requires rules such as these:
 \begin{isabelle}
 P\ x\ \isasymLongrightarrow \ P\ (SOME\ x.\ P\ x)
-\rulename{someI}\isanewline
+\rulenamedx{someI}\isanewline
 \isasymlbrakk P\ a;\ \isasymAnd x.\ P\ x\ \isasymLongrightarrow \ Q\
 x\isasymrbrakk \ \isasymLongrightarrow \ Q\ (SOME\ x.\ P\ x)
-\rulename{someI2}
+\rulenamedx{someI2}
 \end{isabelle}
 Rule \isa{someI} is basic: if anything satisfies \isa{P} then so does
 \hbox{\isa{SOME\ x.\ P\ x}}.  The repetition of~\isa{P} in the conclusion makes it
@@ -1838,7 +1839,7 @@ To re-orient the equation requires the symmetry rule:
 ?s\ =\ ?t\
 \isasymLongrightarrow\ ?t\ =\
 ?s%
-\rulename{sym}
+\rulenamedx{sym}
 \end{isabelle}
 The following declaration gives our equation to \isa{sym}:
 \begin{isabelle}
@@ -1859,10 +1860,10 @@ $\vcenter{\infer{Q}{P}}$. Similar to \isa{mp} are the following two rules,
 which extract  the two directions of reasoning about a boolean equivalence:
 \begin{isabelle}
 \isasymlbrakk?Q\ =\ ?P;\ ?Q\isasymrbrakk\ \isasymLongrightarrow\ ?P%
-\rulename{iffD1}%
+\rulenamedx{iffD1}%
 \isanewline
 \isasymlbrakk?P\ =\ ?Q;\ ?Q\isasymrbrakk\ \isasymLongrightarrow\ ?P%
-\rulename{iffD2}
+\rulenamedx{iffD2}
 \end{isabelle}
 %
 Normally we would never name the intermediate theorems
@@ -2017,7 +2018,7 @@ reason forward from a subgoal.  We have seen them already, using rules such as
 such as these:
 \begin{isabelle}
 x\ =\ y\ \isasymLongrightarrow \ f\ x\ =\ f\ y%
-\rulename{arg_cong}\isanewline
+\rulenamedx{arg_cong}\isanewline
 i\ \isasymle \ j\ \isasymLongrightarrow \ i\ *\ k\ \isasymle \ j\ *\ k%
 \rulename{mult_le_mono1}
 \end{isabelle}
@@ -2096,8 +2097,8 @@ Simplification has yielded an equation for~\isa{m}.  The rest of the proof
 is omitted.
 
 \medskip
-Here is another demonstration of \isa{insert}.  \REMARK{Effect with
-unknowns?} Division  and remainder obey a well-known law: 
+Here is another demonstration of \isa{insert}.  Division and
+remainder obey a well-known law: 
 \begin{isabelle}
 (?m\ div\ ?n)\ *\ ?n\ +\ ?m\ mod\ ?n\ =\ ?m
 \rulename{mod_div_equality}
