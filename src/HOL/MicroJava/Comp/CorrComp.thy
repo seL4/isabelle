@@ -586,7 +586,7 @@ lemma state_ok_exec: "\<lbrakk>xs::\<preceq>E; wf_java_prog (prg E); wtpd_stmt E
   (xs,st,xs') \<in> Eval.exec (prg E)\<rbrakk> \<Longrightarrow>  xs'::\<preceq>E"
 apply (simp only: wtpd_stmt_def)
 apply (case_tac xs', case_tac xs)
-apply (auto intro: exec_type_sound)
+apply (auto dest: exec_type_sound)
 done
 
 
@@ -650,10 +650,9 @@ lemma eval_conf: "\<lbrakk>G \<turnstile> s -e\<succ>v-> s'; wf_java_prog G; s::
   E\<turnstile>e::T; gx s' = None; prg E = G \<rbrakk> 
   \<Longrightarrow> G,gh s'\<turnstile>v::\<preceq>T"
 apply (simp add: gh_def)
-apply (rule_tac x2="fst s" and "s2"="snd s"and "x'2"="fst s'"  
-  in eval_type_sound [THEN conjunct2 [THEN mp], simplified])
-apply (rule sym) apply assumption
-apply assumption
+apply (rule_tac x3="fst s" and "s3"="snd s"and "x'3"="fst s'"  
+  in eval_type_sound [THEN conjunct2 [THEN conjunct1 [THEN mp]], simplified])
+apply assumption+
 apply (simp (no_asm_use) add: surjective_pairing [THEN sym])
 apply (simp only: surjective_pairing [THEN sym])
 apply (auto simp add: gs_def gx_def)
@@ -1188,12 +1187,13 @@ apply (erule exE)+ apply (erule conjE)+
 apply (rule_tac Ts="pTsa" in conf_list_gext_widen) apply assumption
 apply (subgoal_tac "((gx s1, gs s1), ps, pvs, x, h, l) \<in> evals G")
 apply (frule_tac E="env_of_jmb G CL S" in evals_type_sound)
+apply assumption+
 apply (simp only: env_of_jmb_fst) 
-apply assumption
 apply (simp add: conforms_def xconf_def gs_def)
 apply simp
 apply (simp (no_asm_use) only: gx_def gs_def surjective_pairing [THEN sym])
 apply (simp (no_asm_use) only: ty_exprs_list_all2) apply simp
+apply simp
 apply (simp (no_asm_use) only: gx_def gs_def surjective_pairing [THEN sym])
     (* list_all2 (\<lambda>T T'. G \<turnstile> T \<preceq> T') pTsa pTs *)
     apply (rule max_spec_widen, simp only: env_of_jmb_fst)
