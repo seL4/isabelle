@@ -7,30 +7,7 @@
 
 header "Kildall for the JVM"
 
-theory JVM = Kildall + JType + Opt + Product + DFA_err + StepMono + BVSpec:
-
-types state = "state_type option err"
-
-constdefs
- stk_esl :: "'c prog => nat => ty list esl"
-"stk_esl S maxs == upto_esl maxs (JType.esl S)"
-
- reg_sl :: "'c prog => nat => ty err list sl"
-"reg_sl S maxr == Listn.sl maxr (Err.sl (JType.esl S))"
-
- sl :: "'c prog => nat => nat => state sl"
-"sl S maxs maxr ==
- Err.sl(Opt.esl(Product.esl (stk_esl S maxs) (Err.esl(reg_sl S maxr))))"
-
- states :: "'c prog => nat => nat => state set"
-"states S maxs maxr == fst(sl S maxs maxr)"
-
- le :: "'c prog => nat => nat => state ord"
-"le S maxs maxr == fst(snd(sl S maxs maxr))"
-
- sup :: "'c prog => nat => nat => state binop"
-"sup S maxs maxr == snd(snd(sl S maxs maxr))"
-
+theory JVM = Kildall + JVMType + Opt + Product + DFA_err + StepMono + BVSpec:
 
 constdefs
   exec :: "jvm_prog \<Rightarrow> nat \<Rightarrow> ty \<Rightarrow> instr list \<Rightarrow> nat \<Rightarrow> state \<Rightarrow> state"
@@ -38,7 +15,7 @@ constdefs
 
   kiljvm :: "jvm_prog => nat => nat => ty => instr list => state list => state list"
   "kiljvm G maxs maxr rT bs ==
-  kildall (sl G maxs maxr) (exec G maxs rT bs) (\<lambda>pc. succs (bs!pc) pc)"
+  kildall (JVMType.sl G maxs maxr) (exec G maxs rT bs) (\<lambda>pc. succs (bs!pc) pc)"
 
   wt_kil :: "jvm_prog \<Rightarrow> cname \<Rightarrow> ty list \<Rightarrow> ty \<Rightarrow> nat \<Rightarrow> nat \<Rightarrow> instr list \<Rightarrow> bool"
   "wt_kil G C pTs rT mxs mxl ins ==
@@ -52,102 +29,6 @@ constdefs
   "wt_jvm_prog_kildall G ==
   wf_prog (\<lambda>G C (sig,rT,(maxs,maxl,b)). wt_kil G C (snd sig) rT maxs maxl b) G"
 
-lemma JVM_states_unfold: 
-  "states S maxs maxr == err(opt((Union {list n (types S) |n. n <= maxs}) <*>
-                                  list maxr (err(types S))))"
-  apply (unfold states_def JVM.sl_def Opt.esl_def Err.sl_def
-         stk_esl_def reg_sl_def Product.esl_def
-         Listn.sl_def upto_esl_def JType.esl_def Err.esl_def)
-  by simp
-
-
-lemma JVM_le_unfold:
- "le S m n == 
-  Err.le(Opt.le(Product.le(Listn.le(subtype S))(Listn.le(Err.le(subtype S)))))" 
-  apply (unfold JVM.le_def JVM.sl_def Opt.esl_def Err.sl_def
-         stk_esl_def reg_sl_def Product.esl_def  
-         Listn.sl_def upto_esl_def JType.esl_def Err.esl_def) 
-  by simp
-
-
-lemma Err_convert:
-  "Err.le (subtype G) a b = G \<turnstile> a <=o b"
-  by (auto simp add: Err.le_def sup_ty_opt_def lift_top_def lesub_def subtype_def
-           split: err.split)
-
-lemma loc_convert:
-  "Listn.le (Err.le (subtype G)) a b = G \<turnstile> a <=l b"
-  by (unfold Listn.le_def lesub_def sup_loc_def list_all2_def)
-     (simp add: Err_convert)
-
-lemma zip_map [rule_format]:
-  "\<forall>a. length a = length b --> zip (map f a) (map g b) = map (\<lambda>(x,y). (f x, g y)) (zip a b)"
-  apply (induct b) 
-   apply simp
-  apply clarsimp
-  apply (case_tac aa)
-  apply simp+
-  done
-
-lemma stk_convert:
-  "Listn.le (subtype G) a b = G \<turnstile> map OK a <=l map OK b"
-proof 
-  assume "Listn.le (subtype G) a b"
-
-  hence le: "list_all2 (subtype G) a b"
-    by (unfold Listn.le_def lesub_def)
-  
-  { fix x' y'
-    assume "length a = length b"
-           "(x',y') \<in> set (zip (map OK a) (map OK b))"
-    then
-    obtain x y where OK:
-      "x' = OK x" "y' = OK y" "(x,y) \<in> set (zip a b)"
-      by (auto simp add: zip_map)
-    with le
-    have "subtype G x y"
-      by (simp add: list_all2_def Ball_def)
-    with OK
-    have "G \<turnstile> x' <=o y'"
-      by (simp add: subtype_def)
-  }
-  
-  with le
-  show "G \<turnstile> map OK a <=l map OK b"
-    by (auto simp add: sup_loc_def list_all2_def)
-next
-  assume "G \<turnstile> map OK a <=l map OK b"
-
-  thus "Listn.le (subtype G) a b"
-    apply (unfold sup_loc_def list_all2_def Listn.le_def lesub_def)
-    apply (clarsimp simp add: zip_map subtype_def)
-    apply (drule bspec, assumption)
-    apply auto
-    done
-qed
-
-
-lemma state_conv:
-  "Product.le (Listn.le (subtype G)) (Listn.le (Err.le (subtype G))) a b = G \<turnstile> a <=s b"
-  by (unfold Product.le_def lesub_def sup_state_def)
-     (simp add: split_beta stk_convert loc_convert)
-
-lemma state_opt_conv:
-  "Opt.le (Product.le (Listn.le (subtype G)) (Listn.le (Err.le (subtype G)))) a b = G \<turnstile> a <=' b"
-  by (unfold Opt.le_def lesub_def sup_state_opt_def lift_bottom_def)
-     (auto simp add: state_conv split: option.split)
-
-lemma JVM_le_convert:
-  "le G m n (OK t1) (OK t2) = G \<turnstile> t1 <=' t2"
-  by (simp add: JVM_le_unfold Err.le_def lesub_def state_opt_conv)
-
-lemma JVM_le_Err_conv:
-  "le G m n = Err.le (sup_state_opt G)"
-  apply (simp add: expand_fun_eq)
-  apply (unfold Err.le_def JVM_le_unfold lesub_def)
-  apply (clarsimp split: err.splits)
-  apply (simp add: state_opt_conv)
-  done
 
 lemma special_ex_swap_lemma [iff]: 
   "(? X. (? n. X = A n & P n) & Q X) = (? n. Q(A n) & P n)"
@@ -208,7 +89,7 @@ lemmas [iff] = not_None_eq
 
 theorem exec_mono:
   "wf_prog wf_mb G ==>
-  mono (JVM.le G maxs maxr) (exec G maxs rT bs) (size bs) (states G maxs maxr)"
+  mono (JVMType.le G maxs maxr) (exec G maxs rT bs) (size bs) (states G maxs maxr)"
   apply (unfold mono_def)
   apply clarify
   apply (unfold lesub_def)
@@ -227,8 +108,8 @@ theorem exec_mono:
   done
 
 theorem semilat_JVM_slI:
-  "[| wf_prog wf_mb G |] ==> semilat(sl G maxs maxr)"
-  apply (unfold JVM.sl_def stk_esl_def reg_sl_def)
+  "[| wf_prog wf_mb G |] ==> semilat (JVMType.sl G maxs maxr)"
+  apply (unfold JVMType.sl_def stk_esl_def reg_sl_def)
   apply (rule semilat_opt)
   apply (rule err_semilat_Product_esl)
   apply (rule err_semilat_upto_esl)
@@ -239,16 +120,14 @@ theorem semilat_JVM_slI:
   done
 
 lemma sl_triple_conv:
-  "sl G maxs maxr == 
-  (states G maxs maxr, le G maxs maxr, sup G maxs maxr)"
-  by (simp (no_asm) add: states_def JVM.le_def JVM.sup_def)
+  "JVMType.sl G maxs maxr == 
+  (states G maxs maxr, JVMType.le G maxs maxr, JVMType.sup G maxs maxr)"
+  by (simp (no_asm) add: states_def JVMType.le_def JVMType.sup_def)
 
-
-ML_setup {* bind_thm ("wf_subcls1", wf_subcls1); *}
 
 theorem is_bcv_kiljvm:
   "[| wf_prog wf_mb G; bounded (\<lambda>pc. succs (bs!pc) pc) (size bs) |] ==> 
-      is_bcv (JVM.le G maxs maxr) Err (exec G maxs rT bs) (\<lambda>pc. succs (bs!pc) pc)
+      is_bcv (JVMType.le G maxs maxr) Err (exec G maxs rT bs) (\<lambda>pc. succs (bs!pc) pc)
              (size bs) (states G maxs maxr) (kiljvm G maxs maxr rT bs)"
   apply (unfold kiljvm_def sl_triple_conv)
   apply (rule is_bcv_kildall)
@@ -295,7 +174,7 @@ proof -
 
   from wf bounded
   have bcv:
-    "is_bcv (le G maxs maxr) Err (exec G maxs rT bs) (\<lambda>pc. succs (bs!pc) pc)
+    "is_bcv (JVMType.le G maxs maxr) Err (exec G maxs rT bs) (\<lambda>pc. succs (bs!pc) pc)
             (size bs) (states G maxs maxr) (kiljvm G maxs maxr rT bs)"
     by (rule is_bcv_kiljvm)
 
@@ -328,14 +207,14 @@ proof -
   with bcv success result 
   have 
     "\<exists>ts\<in>list (length bs) (states G maxs maxr).
-         ?start <=[le G maxs maxr] ts \<and>
-         welltyping (JVM.le G maxs maxr) Err (JVM.exec G maxs rT bs) (\<lambda>pc. succs (bs ! pc) pc) ts"
+         ?start <=[JVMType.le G maxs maxr] ts \<and>
+         welltyping (JVMType.le G maxs maxr) Err (exec G maxs rT bs) (\<lambda>pc. succs (bs ! pc) pc) ts"
     by (unfold is_bcv_def) auto
 
   then obtain phi' where
     l: "phi' \<in> list (length bs) (states G maxs maxr)" and
-    s: "?start <=[le G maxs maxr] phi'" and
-    w: "welltyping (le G maxs maxr) Err (exec G maxs rT bs) (\<lambda>pc. succs (bs ! pc) pc) phi'"
+    s: "?start <=[JVMType.le G maxs maxr] phi'" and
+    w: "welltyping (JVMType.le G maxs maxr) Err (exec G maxs rT bs) (\<lambda>pc. succs (bs ! pc) pc) phi'"
     by blast
    
   hence dynamic:
@@ -343,7 +222,7 @@ proof -
     by (simp add: dynamic_wt_def exec_def JVM_le_Err_conv)
 
   from s
-  have le: "le G maxs maxr (?start ! 0) (phi'!0)"    
+  have le: "JVMType.le G maxs maxr (?start ! 0) (phi'!0)"    
     by (drule_tac p=0 in le_listD) (simp add: lesub_def)+
 
   from l
@@ -356,7 +235,7 @@ proof -
 
   with instrs l
   have phi0: "OK (map ok_val phi' ! 0) = phi' ! 0"
-    by clarsimp
+    by (clarsimp simp add: not_Err_eq)
 
   from l bounded
   have "bounded (\<lambda>pc. succs (bs ! pc) pc) (length phi')"
@@ -434,7 +313,7 @@ proof -
 
   from wf bounded
   have is_bcv: 
-    "is_bcv (JVM.le G maxs ?maxr) Err (exec G maxs rT bs) ?succs 
+    "is_bcv (JVMType.le G maxs ?maxr) Err (exec G maxs rT bs) ?succs 
             (size bs) (states G maxs ?maxr) (kiljvm G maxs ?maxr rT bs)"
     by (rule is_bcv_kiljvm)
 

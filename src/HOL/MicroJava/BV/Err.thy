@@ -54,6 +54,13 @@ translations
 "err_semilat L" == "semilat(Err.sl L)"
 
 
+consts
+  strict  :: "('a => 'b err) => ('a err => 'b err)"
+primrec
+  "strict f Err    = Err"
+  "strict f (OK x) = f x"
+
+
 lemma not_Err_eq:
   "(x \<noteq> Err) = (\<exists>a. x = OK a)" 
   by (cases x) auto
@@ -61,6 +68,7 @@ lemma not_Err_eq:
 lemma not_OK_eq:
   "(\<forall>y. x \<noteq> OK y) = (x = Err)"
   by (cases x) auto  
+
 
 
 lemma unfold_lesub_err:

@@ -20,12 +20,12 @@ proof (induct (open) ?P b)
   show "?P []" by simp
 
   case Cons
-  show "?P (a#list)"
-  proof (clarsimp simp add: list_all2_Cons1 sup_loc_def)
+  show "?P (a#list)" 
+  proof (clarsimp simp add: list_all2_Cons1 sup_loc_def Listn.le_def lesub_def)
     fix z zs n
     assume * : 
       "G \<turnstile> a <=o z" "list_all2 (sup_ty_opt G) list zs" 
-      "n < Suc (length zs)" "(z # zs) ! n = OK t"
+      "n < Suc (length list)" "(z # zs) ! n = OK t"
 
     show "(\<exists>t. (a # list) ! n = OK t) \<and> G \<turnstile>(a # list) ! n <=o OK t" 
     proof (cases n) 
@@ -34,9 +34,9 @@ proof (induct (open) ?P b)
     next
       case Suc
       with Cons *
-      show ?thesis by (simp add: sup_loc_def)
+      show ?thesis by (simp add: sup_loc_def Listn.le_def lesub_def) 
     qed
-  qed
+  qed 
 qed
    
 
@@ -116,6 +116,7 @@ proof -
   qed
 qed
 
+lemmas [iff] = not_Err_eq
 
 lemma app_mono: 
 "[|G \<turnstile> s <=' s'; app i G m rT s'|] ==> app i G m rT s"
@@ -125,27 +126,22 @@ proof -
     assume G:   "G \<turnstile> s2 <=s s1"
     assume app: "app i G m rT (Some s1)"
 
-    (*
-    from G
-    have l: "length (fst s2) = length (fst s1)"
-      by simp
-      *)
-
     have "app i G m rT (Some s2)"
     proof (cases (open) i)
       case Load
     
       from G Load app
-      have "G \<turnstile> snd s2 <=l snd s1" by (auto simp add: sup_state_def)
+      have "G \<turnstile> snd s2 <=l snd s1" by (auto simp add: sup_state_conv)
       
       with G Load app 
-      show ?thesis by clarsimp (drule sup_loc_some, simp+)
+      show ?thesis 
+        by clarsimp (drule sup_loc_some, simp+)
     next
       case Store
       with G app
       show ?thesis
         by - (cases s2, auto simp add: map_eq_Cons sup_loc_Cons2 
-                                       sup_loc_length sup_state_def)
+                                       sup_loc_length sup_state_conv)
     next
       case Bipush
       with G app
@@ -283,7 +279,7 @@ proof -
     
       from G'
       have "G \<turnstile> map OK apTs' <=l map OK apTs"
-        by (simp add: sup_state_def)
+        by (simp add: sup_state_conv)
       also
       from l w
       have "G \<turnstile> map OK apTs <=l map OK list" 
@@ -345,19 +341,19 @@ proof (cases s1, cases s2)
        y': "nat < length b2" "b2 ! nat = OK y'" by clarsimp
 
     from G s 
-    have "G \<turnstile> b1 <=l b2" by (simp add: sup_state_def)
+    have "G \<turnstile> b1 <=l b2" by (simp add: sup_state_conv)
 
     with y y'
     have "G \<turnstile> y \<preceq> y'" 
       by - (drule sup_loc_some, simp+)
     
     with Load G y y' s step app1 app2 
-    show ?thesis by (clarsimp simp add: sup_state_def)
+    show ?thesis by (clarsimp simp add: sup_state_conv)
   next
     case Store
     with G s step app1 app2
     show ?thesis
-      by (clarsimp simp add: sup_state_def sup_loc_update)
+      by (clarsimp simp add: sup_state_conv sup_loc_update)
   next
     case Bipush
     with G s step app1 app2
@@ -421,7 +417,7 @@ proof (cases s1, cases s2)
 
     with Invoke G s step app1 app2 s1 s2 l l'
     show ?thesis 
-      by (clarsimp simp add: sup_state_def)
+      by (clarsimp simp add: sup_state_conv)
   next
     case Return 
     with G step
@@ -478,6 +474,7 @@ lemma step_mono:
   by (cases s1, cases s2, auto dest: step_mono_Some)
 
 lemmas [simp del] = step_def
+lemmas [iff del] = not_Err_eq
 
 end
 

@@ -1,60 +1,63 @@
-(*  Title:      HOL/MicroJava/BV/Convert.thy
+(*  Title:      HOL/BCV/JVM.thy
     ID:         $Id$
-    Author:     Cornelia Pusch and Gerwin Klein
-    Copyright   1999 Technische Universitaet Muenchen
+    Author:     Gerwin Klein
+    Copyright   2000 TUM
+
 *)
 
-header "Lifted Type Relations"
+header "JVM Type System"
 
-theory Convert = Err + JVMExec:
-
-text "The supertype relation lifted to type err, type lists and state types."
+theory JVMType = Opt + Product + Listn + JType:
 
 types
- locvars_type = "ty err list"
- opstack_type = "ty list"
- state_type   = "opstack_type \<times> locvars_type"
- method_type  = "state_type option list"
- class_type	  = "sig => method_type"
- prog_type	  = "cname => class_type"
+  locvars_type = "ty err list"
+  opstack_type = "ty list"
+  state_type   = "opstack_type \<times> locvars_type"
+  state        = "state_type option err"    (* for Kildall *)
+  method_type  = "state_type option list"   (* for BVSpec *)
+  class_type   = "sig => method_type"
+  prog_type    = "cname => class_type"
 
-consts
-  strict  :: "('a => 'b err) => ('a err => 'b err)"
-primrec
-  "strict f Err    = Err"
-  "strict f (OK x) = f x"
 
-  
 constdefs
-  (* lifts a relation to err with Err as top element *)
-  lift_top :: "('a => 'b => bool) => ('a err => 'b err => bool)"
-  "lift_top P a' a == case a of 
-                       Err  => True
-                     | OK t => (case a' of Err => False | OK t' => P t' t)"
+  stk_esl :: "'c prog => nat => ty list esl"
+  "stk_esl S maxs == upto_esl maxs (JType.esl S)"
 
-  (* lifts a relation to option with None as bottom element *)
-  lift_bottom :: "('a => 'b => bool) => ('a option => 'b option => bool)"
-  "lift_bottom P a' a == 
-   case a' of 
-     None    => True 
-   | Some t' => (case a of None => False | Some t => P t' t)"
+  reg_sl :: "'c prog => nat => ty err list sl"
+  "reg_sl S maxr == Listn.sl maxr (Err.sl (JType.esl S))"
 
+  sl :: "'c prog => nat => nat => state sl"
+  "sl S maxs maxr ==
+  Err.sl(Opt.esl(Product.esl (stk_esl S maxs) (Err.esl(reg_sl S maxr))))"
+
+constdefs
+  states :: "'c prog => nat => nat => state set"
+  "states S maxs maxr == fst(sl S maxs maxr)"
+
+  le :: "'c prog => nat => nat => state ord"
+  "le S maxs maxr == fst(snd(sl S maxs maxr))"
+
+  sup :: "'c prog => nat => nat => state binop"
+  "sup S maxs maxr == snd(snd(sl S maxs maxr))"
+
+
+constdefs
   sup_ty_opt :: "['code prog,ty err,ty err] => bool" 
                  ("_ \<turnstile> _ <=o _" [71,71] 70)
-  "sup_ty_opt G == lift_top (\<lambda>t t'. G \<turnstile> t \<preceq> t')"
+  "sup_ty_opt G == Err.le (subtype G)"
 
   sup_loc :: "['code prog,locvars_type,locvars_type] => bool" 
               ("_ \<turnstile> _ <=l _"  [71,71] 70)
-  "G \<turnstile> LT <=l LT' == list_all2 (\<lambda>t t'. (G \<turnstile> t <=o t')) LT LT'"
+  "sup_loc G == Listn.le (sup_ty_opt G)"
 
   sup_state :: "['code prog,state_type,state_type] => bool"	  
                ("_ \<turnstile> _ <=s _"  [71,71] 70)
-  "G \<turnstile> s <=s s' == 
-   (G \<turnstile> map OK (fst s) <=l map OK (fst s')) \<and> G \<turnstile> snd s <=l snd s'"
+  "sup_state G == Product.le (Listn.le (subtype G)) (sup_loc G)"
 
   sup_state_opt :: "['code prog,state_type option,state_type option] => bool" 
                    ("_ \<turnstile> _ <=' _"  [71,71] 70)
-  "sup_state_opt G == lift_bottom (\<lambda>t t'. G \<turnstile> t <=s t')"
+  "sup_state_opt G == Opt.le (sup_state G)"
+
 
 syntax (HTML) 
   sup_ty_opt    :: "['code prog,ty err,ty err] => bool" 
@@ -67,160 +70,124 @@ syntax (HTML)
                    ("_ |- _ <=' _"  [71,71] 70)
                    
 
-lemmas [iff] = not_Err_eq not_OK_eq
+lemma JVM_states_unfold: 
+  "states S maxs maxr == err(opt((Union {list n (types S) |n. n <= maxs}) <*>
+                                  list maxr (err(types S))))"
+  apply (unfold states_def sl_def Opt.esl_def Err.sl_def
+         stk_esl_def reg_sl_def Product.esl_def
+         Listn.sl_def upto_esl_def JType.esl_def Err.esl_def)
+  by simp
 
-lemma lift_top_refl [simp]:
-  "[| !!x. P x x |] ==> lift_top P x x"
-  by (simp add: lift_top_def split: err.splits)
 
-lemma lift_top_trans [trans]:
-  "[| !!x y z. [| P x y; P y z |] ==> P x z; lift_top P x y; lift_top P y z |]
-  ==> lift_top P x z"
-proof -
-  assume [trans]: "!!x y z. [| P x y; P y z |] ==> P x z"
-  assume a: "lift_top P x y"
-  assume b: "lift_top P y z"
+lemma JVM_le_unfold:
+ "le S m n == 
+  Err.le(Opt.le(Product.le(Listn.le(subtype S))(Listn.le(Err.le(subtype S)))))" 
+  apply (unfold le_def sl_def Opt.esl_def Err.sl_def
+         stk_esl_def reg_sl_def Product.esl_def  
+         Listn.sl_def upto_esl_def JType.esl_def Err.esl_def) 
+  by simp
 
-  { assume "z = Err" 
-    hence ?thesis by (simp add: lift_top_def)
-  } note z_none = this
+lemma JVM_le_convert:
+  "le G m n (OK t1) (OK t2) = G \<turnstile> t1 <=' t2"
+  by (simp add: JVM_le_unfold Err.le_def lesub_def sup_state_opt_def 
+                sup_state_def sup_loc_def sup_ty_opt_def)
 
-  { assume "x = Err"
-    with a b
-    have ?thesis
-      by (simp add: lift_top_def split: err.splits)
-  } note x_none = this
+lemma JVM_le_Err_conv:
+  "le G m n = Err.le (sup_state_opt G)"
+  by (unfold sup_state_opt_def sup_state_def sup_loc_def  
+             sup_ty_opt_def JVM_le_unfold) simp
+
+lemma zip_map [rule_format]:
+  "\<forall>a. length a = length b --> zip (map f a) (map g b) = map (\<lambda>(x,y). (f x, g y)) (zip a b)"
+  apply (induct b) 
+   apply simp
+  apply clarsimp
+  apply (case_tac aa)
+  apply simp+
+  done
+
+lemma [simp]: "Err.le r (OK a) (OK b) = r a b"
+  by (simp add: Err.le_def lesub_def)
+
+lemma stk_convert:
+  "Listn.le (subtype G) a b = G \<turnstile> map OK a <=l map OK b"
+proof 
+  assume "Listn.le (subtype G) a b"
+
+  hence le: "list_all2 (subtype G) a b"
+    by (unfold Listn.le_def lesub_def)
   
-  { fix r t
-    assume x: "x = OK r" and z: "z = OK t"    
-    with a b
-    obtain s where y: "y = OK s" 
-      by (simp add: lift_top_def split: err.splits)
-    
-    from a x y
-    have "P r s" by (simp add: lift_top_def)
-    also
-    from b y z
-    have "P s t" by (simp add: lift_top_def)
-    finally 
-    have "P r t" .
+  { fix x' y'
+    assume "length a = length b"
+           "(x',y') \<in> set (zip (map OK a) (map OK b))"
+    then
+    obtain x y where OK:
+      "x' = OK x" "y' = OK y" "(x,y) \<in> set (zip a b)"
+      by (auto simp add: zip_map)
+    with le
+    have "subtype G x y"
+      by (simp add: list_all2_def Ball_def)
+    with OK
+    have "G \<turnstile> x' <=o y'"
+      by (simp add: sup_ty_opt_def)
+  }
+  
+  with le
+  show "G \<turnstile> map OK a <=l map OK b"
+    by (unfold sup_loc_def Listn.le_def lesub_def list_all2_def) auto
+next
+  assume "G \<turnstile> map OK a <=l map OK b"
 
-    with x z
-    have ?thesis by (simp add: lift_top_def)
-  } 
-
-  with x_none z_none
-  show ?thesis by blast
+  thus "Listn.le (subtype G) a b"
+    apply (unfold sup_loc_def list_all2_def Listn.le_def lesub_def)
+    apply (clarsimp simp add: zip_map)
+    apply (drule bspec, assumption)
+    apply (auto simp add: sup_ty_opt_def subtype_def)
+    done
 qed
 
-lemma lift_top_Err_any [simp]:
-  "lift_top P Err any = (any = Err)"
-  by (simp add: lift_top_def split: err.splits)
 
-lemma lift_top_OK_OK [simp]:
-  "lift_top P (OK a) (OK b) = P a b"
-  by (simp add: lift_top_def split: err.splits)
-
-lemma lift_top_any_OK [simp]:
-  "lift_top P any (OK b) = (\<exists>a. any = OK a \<and> P a b)"
-  by (simp add: lift_top_def split: err.splits)
-
-lemma lift_top_OK_any:
-  "lift_top P (OK a) any = (any = Err \<or> (\<exists>b. any = OK b \<and> P a b))"
-  by (simp add: lift_top_def split: err.splits)
+lemma sup_state_conv:
+  "(G \<turnstile> s1 <=s s2) == (G \<turnstile> map OK (fst s1) <=l map OK (fst s2)) \<and> (G \<turnstile> snd s1 <=l snd s2)"
+  by (auto simp add: sup_state_def stk_convert lesub_def Product.le_def split_beta)
 
 
-lemma lift_bottom_refl [simp]:
-  "[| !!x. P x x |] ==> lift_bottom P x x"
-  by (simp add: lift_bottom_def split: option.splits)
-
-lemma lift_bottom_trans [trans]:
-  "[| !!x y z. [| P x y; P y z |] ==> P x z; 
-      lift_bottom P x y; lift_bottom P y z |]
-  ==> lift_bottom P x z"
-proof -
-  assume [trans]: "!!x y z. [| P x y; P y z |] ==> P x z"
-  assume a: "lift_bottom P x y"
-  assume b: "lift_bottom P y z"
-
-  { assume "x = None" 
-    hence ?thesis by (simp add: lift_bottom_def)
-  } note z_none = this
-
-  { assume "z = None"
-    with a b
-    have ?thesis
-      by (simp add: lift_bottom_def split: option.splits)
-  } note x_none = this
-  
-  { fix r t
-    assume x: "x = Some r" and z: "z = Some t"    
-    with a b
-    obtain s where y: "y = Some s" 
-      by (simp add: lift_bottom_def split: option.splits)
-    
-    from a x y
-    have "P r s" by (simp add: lift_bottom_def)
-    also
-    from b y z
-    have "P s t" by (simp add: lift_bottom_def)
-    finally 
-    have "P r t" .
-
-    with x z
-    have ?thesis by (simp add: lift_bottom_def)
-  } 
-
-  with x_none z_none
-  show ?thesis by blast
-qed
-
-lemma lift_bottom_any_None [simp]:
-  "lift_bottom P any None = (any = None)"
-  by (simp add: lift_bottom_def split: option.splits)
-
-lemma lift_bottom_Some_Some [simp]:
-  "lift_bottom P (Some a) (Some b) = P a b"
-  by (simp add: lift_bottom_def split: option.splits)
-
-lemma lift_bottom_any_Some [simp]:
-  "lift_bottom P (Some a) any = (\<exists>b. any = Some b \<and> P a b)"
-  by (simp add: lift_bottom_def split: option.splits)
-
-lemma lift_bottom_Some_any:
-  "lift_bottom P any (Some b) = (any = None \<or> (\<exists>a. any = Some a \<and> P a b))"
-  by (simp add: lift_bottom_def split: option.splits)
-
-
+lemma subtype_refl [simp]:
+  "subtype G t t"
+  by (simp add: subtype_def)
 
 theorem sup_ty_opt_refl [simp]:
   "G \<turnstile> t <=o t"
-  by (simp add: sup_ty_opt_def)
+  by (simp add: sup_ty_opt_def Err.le_def lesub_def split: err.split)
+
+lemma le_list_refl2 [simp]: 
+  "(\<And>xs. r xs xs) \<Longrightarrow> Listn.le r xs xs"
+  by (induct xs, auto simp add: Listn.le_def lesub_def)
 
 theorem sup_loc_refl [simp]:
   "G \<turnstile> t <=l t"
-  by (induct t, auto simp add: sup_loc_def)
+  by (simp add: sup_loc_def)
 
 theorem sup_state_refl [simp]:
   "G \<turnstile> s <=s s"
-  by (simp add: sup_state_def)
+  by (auto simp add: sup_state_def Product.le_def lesub_def)
 
 theorem sup_state_opt_refl [simp]:
   "G \<turnstile> s <=' s"
-  by (simp add: sup_state_opt_def)
-
+  by (simp add: sup_state_opt_def Opt.le_def lesub_def split: option.split)
+  
 
 theorem anyConvErr [simp]:
   "(G \<turnstile> Err <=o any) = (any = Err)"
-  by (simp add: sup_ty_opt_def)
+  by (simp add: sup_ty_opt_def Err.le_def split: err.split)
 
 theorem OKanyConvOK [simp]:
   "(G \<turnstile> (OK ty') <=o (OK ty)) = (G \<turnstile> ty' \<preceq> ty)"
-  by (simp add: sup_ty_opt_def)
+  by (simp add: sup_ty_opt_def Err.le_def lesub_def subtype_def)
 
 theorem sup_ty_opt_OK:
   "G \<turnstile> a <=o (OK b) ==> \<exists> x. a = OK x"
-  by (clarsimp simp add: sup_ty_opt_def)
+  by (clarsimp simp add: sup_ty_opt_def Err.le_def split: err.splits)
 
 lemma widen_PrimT_conv1 [simp]:
   "[| G \<turnstile> S \<preceq> T; S = PrimT x|] ==> T = PrimT x"
@@ -228,28 +195,27 @@ lemma widen_PrimT_conv1 [simp]:
 
 theorem sup_PTS_eq:
   "(G \<turnstile> OK (PrimT p) <=o X) = (X=Err \<or> X = OK (PrimT p))"
-  by (auto simp add: sup_ty_opt_def lift_top_OK_any)
-
-
+  by (auto simp add: sup_ty_opt_def Err.le_def lesub_def subtype_def 
+              split: err.splits)
 
 theorem sup_loc_Nil [iff]:
   "(G \<turnstile> [] <=l XT) = (XT=[])"
-  by (simp add: sup_loc_def)
+  by (simp add: sup_loc_def Listn.le_def)
 
 theorem sup_loc_Cons [iff]:
   "(G \<turnstile> (Y#YT) <=l XT) = (\<exists>X XT'. XT=X#XT' \<and> (G \<turnstile> Y <=o X) \<and> (G \<turnstile> YT <=l XT'))"
-  by (simp add: sup_loc_def list_all2_Cons1)
+  by (simp add: sup_loc_def Listn.le_def lesub_def list_all2_Cons1)
 
 theorem sup_loc_Cons2:
   "(G \<turnstile> YT <=l (X#XT)) = (\<exists>Y YT'. YT=Y#YT' \<and> (G \<turnstile> Y <=o X) \<and> (G \<turnstile> YT' <=l XT))"
-  by (simp add: sup_loc_def list_all2_Cons2)
+  by (simp add: sup_loc_def Listn.le_def lesub_def list_all2_Cons2)
 
 
 theorem sup_loc_length:
   "G \<turnstile> a <=l b ==> length a = length b"
 proof -
   assume G: "G \<turnstile> a <=l b"
-  have "\<forall> b. (G \<turnstile> a <=l b) --> length a = length b"
+  have "\<forall>b. (G \<turnstile> a <=l b) --> length a = length b"
     by (induct a, auto)
   with G
   show ?thesis by blast
@@ -278,7 +244,6 @@ proof -
   with a
   show ?thesis by blast
 qed
-
 
 theorem all_nth_sup_loc:
   "\<forall>b. length a = length b --> (\<forall> n. n < length a --> (G \<turnstile> (a!n) <=o (b!n))) 
@@ -400,64 +365,66 @@ qed
 theorem sup_state_length [simp]:
   "G \<turnstile> s2 <=s s1 ==> 
    length (fst s2) = length (fst s1) \<and> length (snd s2) = length (snd s1)"
-  by (auto dest: sup_loc_length simp add: sup_state_def);
+  by (auto dest: sup_loc_length simp add: sup_state_def stk_convert lesub_def Product.le_def);
 
 theorem sup_state_append_snd:
   "length a = length b ==> 
   (G \<turnstile> (i,a@x) <=s (j,b@y)) = ((G \<turnstile> (i,a) <=s (j,b)) \<and> (G \<turnstile> (i,x) <=s (j,y)))"
-  by (auto simp add: sup_state_def sup_loc_append)
+  by (auto simp add: sup_state_def stk_convert lesub_def Product.le_def sup_loc_append)
 
 theorem sup_state_append_fst:
   "length a = length b ==> 
   (G \<turnstile> (a@x,i) <=s (b@y,j)) = ((G \<turnstile> (a,i) <=s (b,j)) \<and> (G \<turnstile> (x,i) <=s (y,j)))"
-  by (auto simp add: sup_state_def sup_loc_append)
+  by (auto simp add: sup_state_def stk_convert lesub_def Product.le_def sup_loc_append)
 
 theorem sup_state_Cons1:
   "(G \<turnstile> (x#xt, a) <=s (yt, b)) = 
    (\<exists>y yt'. yt=y#yt' \<and> (G \<turnstile> x \<preceq> y) \<and> (G \<turnstile> (xt,a) <=s (yt',b)))"
-  by (auto simp add: sup_state_def map_eq_Cons)
+  by (auto simp add: sup_state_def stk_convert lesub_def Product.le_def map_eq_Cons)
 
 theorem sup_state_Cons2:
   "(G \<turnstile> (xt, a) <=s (y#yt, b)) = 
    (\<exists>x xt'. xt=x#xt' \<and> (G \<turnstile> x \<preceq> y) \<and> (G \<turnstile> (xt',a) <=s (yt,b)))"
-  by (auto simp add: sup_state_def map_eq_Cons sup_loc_Cons2)
+  by (auto simp add: sup_state_def stk_convert lesub_def Product.le_def map_eq_Cons sup_loc_Cons2)
 
 theorem sup_state_ignore_fst:  
   "G \<turnstile> (a, x) <=s (b, y) ==> G \<turnstile> (c, x) <=s (c, y)"
-  by (simp add: sup_state_def)
+  by (simp add: sup_state_def lesub_def Product.le_def)
 
 theorem sup_state_rev_fst:
   "(G \<turnstile> (rev a, x) <=s (rev b, y)) = (G \<turnstile> (a, x) <=s (b, y))"
 proof -
   have m: "!!f x. map f (rev x) = rev (map f x)" by (simp add: rev_map)
-  show ?thesis by (simp add: m sup_state_def)
+  show ?thesis by (simp add: m sup_state_def stk_convert lesub_def Product.le_def)
 qed
   
 
 lemma sup_state_opt_None_any [iff]:
   "(G \<turnstile> None <=' any) = True"
-  by (simp add: sup_state_opt_def lift_bottom_def)
+  by (simp add: sup_state_opt_def Opt.le_def split: option.split)
 
 lemma sup_state_opt_any_None [iff]:
   "(G \<turnstile> any <=' None) = (any = None)"
-  by (simp add: sup_state_opt_def)
+  by (simp add: sup_state_opt_def Opt.le_def split: option.split)
 
 lemma sup_state_opt_Some_Some [iff]:
   "(G \<turnstile> (Some a) <=' (Some b)) = (G \<turnstile> a <=s b)"
-  by (simp add: sup_state_opt_def del: split_paired_Ex)
+  by (simp add: sup_state_opt_def Opt.le_def lesub_def del: split_paired_Ex)
 
 lemma sup_state_opt_any_Some [iff]:
   "(G \<turnstile> (Some a) <=' any) = (\<exists>b. any = Some b \<and> G \<turnstile> a <=s b)"
-  by (simp add: sup_state_opt_def)
+  by (simp add: sup_state_opt_def Opt.le_def lesub_def split: option.split)
 
 lemma sup_state_opt_Some_any:
   "(G \<turnstile> any <=' (Some b)) = (any = None \<or> (\<exists>a. any = Some a \<and> G \<turnstile> a <=s b))"
-  by (simp add: sup_state_opt_def lift_bottom_Some_any)
+  by (simp add: sup_state_opt_def Opt.le_def lesub_def split: option.split)
 
 
 theorem sup_ty_opt_trans [trans]:
   "[|G \<turnstile> a <=o b; G \<turnstile> b <=o c|] ==> G \<turnstile> a <=o c"
-  by (auto intro: lift_top_trans widen_trans simp add: sup_ty_opt_def)
+  by (auto intro: widen_trans 
+           simp add: sup_ty_opt_def Err.le_def lesub_def subtype_def 
+           split: err.splits)
 
 theorem sup_loc_trans [trans]:
   "[|G \<turnstile> a <=l b; G \<turnstile> b <=l c|] ==> G \<turnstile> a <=l c"
@@ -487,11 +454,12 @@ qed
 
 theorem sup_state_trans [trans]:
   "[|G \<turnstile> a <=s b; G \<turnstile> b <=s c|] ==> G \<turnstile> a <=s c"
-  by (auto intro: sup_loc_trans simp add: sup_state_def)
+  by (auto intro: sup_loc_trans simp add: sup_state_def stk_convert Product.le_def lesub_def)
 
 theorem sup_state_opt_trans [trans]:
   "[|G \<turnstile> a <=' b; G \<turnstile> b <=' c|] ==> G \<turnstile> a <=' c"
-  by (auto intro: lift_bottom_trans sup_state_trans simp add: sup_state_opt_def)
-
+  by (auto intro: sup_state_trans 
+           simp add: sup_state_opt_def Opt.le_def lesub_def 
+           split: option.splits)
 
 end

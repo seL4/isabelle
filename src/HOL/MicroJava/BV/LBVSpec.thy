@@ -62,6 +62,8 @@ constdefs
   wf_prog (\<lambda>G C (sig,rT,maxs,maxl,b). wtl_method G C (snd sig) rT maxs maxl b (cert C sig)) G"
 
 
+lemmas [iff] = not_Err_eq
+
 
 lemma wtl_inst_OK:
 "(wtl_inst i G rT s cert maxs max_pc pc = OK s') =
@@ -78,7 +80,7 @@ lemma wtl_Cons:
   "wtl_inst_list (i#is) G rT cert maxs max_pc pc s \<noteq> Err = 
   (\<exists>s'. wtl_cert i G rT s cert maxs max_pc pc = OK s' \<and> 
         wtl_inst_list is G rT cert maxs max_pc (pc+1) s' \<noteq> Err)"
-by (auto simp del: split_paired_Ex)
+  by (auto simp del: split_paired_Ex)
 
 lemma wtl_append:
 "\<forall> s pc. (wtl_inst_list (a@b) G rT cert mxs mpc pc s = OK s') =

@@ -1,12 +1,10 @@
 (*  Title:      HOL/BCV/JType.thy
     ID:         $Id$
-    Author:     Tobias Nipkow
+    Author:     Tobias Nipkow, Gerwin Klein
     Copyright   2000 TUM
-
-The type system of the JVM
 *)
 
-header "JVM Type System as Semilattice"
+header "Java Type System as Semilattice"
 
 theory JType = WellForm + Err:
 
@@ -201,10 +199,11 @@ proof -
          (cases s, auto intro: widen.null 
                         split: ty.splits ref_ty.splits if_splits)
   } note this [intro]
-
+  
   have
     "\<forall>x\<in>err (types G). \<forall>y\<in>err (types G). x <=_(le (subtype G)) x +_(lift2 (sup G)) y"
     by (auto simp add: lesub_def plussub_def le_def lift2_def split: err.split)
+
   moreover
 
   { fix c1 c2
@@ -284,8 +283,6 @@ qed
 lemma single_valued_subcls1:
   "wf_prog wf_mb G ==> single_valued (subcls1 G)"
   by (unfold wf_prog_def unique_def single_valued_def subcls1_def) auto
-
-ML_setup {* bind_thm ("acyclic_subcls1", acyclic_subcls1) *}
 
 theorem err_semilat_JType_esl:
   "wf_prog wf_mb G ==> err_semilat (esl G)"

@@ -166,7 +166,7 @@ done
 lemma approx_loc_imp_approx_loc_sup [rule_format]:
   "wf_prog wt G ==> approx_loc G hp lvars lt --> G \<turnstile> lt <=l lt' 
   --> approx_loc G hp lvars lt'"
-apply (unfold sup_loc_def approx_loc_def list_all2_def)
+apply (unfold Listn.le_def lesub_def sup_loc_def approx_loc_def list_all2_def)
 apply (auto simp add: all_set_conv_all_nth)
 apply (auto elim: approx_val_imp_approx_val_sup)
 done

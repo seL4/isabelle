@@ -7,7 +7,7 @@
 header {* Effect of instructions on the state type *}
 
 
-theory Step = Convert:
+theory Step = JVMType + JVMExec:
 
 
 text "Effect of instruction on the state type:"
