@@ -5,8 +5,14 @@
 Proof states and methods.
 *)
 
+signature BASIC_PROOF =
+sig
+  val FINDGOAL: (int -> tactic) -> tactic
+end;
+
 signature PROOF =
 sig
+  include BASIC_PROOF
   type context
   type state
   exception STATE of string * state
@@ -86,13 +92,13 @@ sig
   val next_block: state -> state
 end;
 
-signature PROOF_PRIVATE =
+signature PRIVATE_PROOF =
 sig
   include PROOF
   val put_data: Object.kind -> ('a -> Object.T) -> 'a -> state -> state
 end;
 
-structure Proof: PROOF_PRIVATE =
+structure Proof: PRIVATE_PROOF =
 struct
 
 
@@ -380,18 +386,18 @@ fun most_general_varify_tfrees thm =
     val leave_tfrees = foldr Term.add_term_tfree_names (frees, []);
   in thm |> Thm.varifyT' leave_tfrees end;
 
+fun export fixes casms thm =
+  thm
+  |> Drule.implies_intr_list casms
+  |> varify_frees fixes
+  |> most_general_varify_tfrees;
+
 fun diff_context inner None = (ProofContext.fixed_names inner, ProofContext.assumptions inner)
   | diff_context inner (Some outer) =
       (ProofContext.fixed_names inner \\ ProofContext.fixed_names outer,
         Library.drop (length (ProofContext.assumptions outer), ProofContext.assumptions inner));
 
 in
-
-fun export fixes casms thm =
-  thm
-  |> Drule.implies_intr_list casms
-  |> varify_frees fixes
-  |> most_general_varify_tfrees;
 
 fun export_wrt inner opt_outer =
   let
@@ -408,13 +414,17 @@ end;
 fun RANGE [] _ = all_tac
   | RANGE (tac :: tacs) i = RANGE tacs (i + 1) THEN tac i;
 
+fun FINDGOAL tac st =
+  let fun find (i, n) = if i > n then no_tac else tac i APPEND find (i + 1, n)
+  in find (1, nprems_of st) st end;
+
 fun export_goal print_rule raw_rule inner state =
   let
     val (outer, (_, ((result, (facts, thm)), f))) = find_goal 0 state;
     val (exp, tacs) = export_wrt inner (Some outer);
     val rule = exp raw_rule;
     val _ = print_rule rule;
-    val thmq = FIRSTGOAL (Tactic.rtac rule THEN' RANGE (map #1 tacs)) thm;
+    val thmq = FINDGOAL (Tactic.rtac rule THEN' RANGE (map #1 tacs)) thm;
   in Seq.map (fn th => map_goal (K ((result, (facts, th)), f)) state) thmq end;
 
 
@@ -465,17 +475,6 @@ fun prep_result state t raw_thm =
       err ("Proved a different theorem: " ^ Sign.string_of_term sign prop)
     else Drule.forall_elim_vars (maxidx + 1) thm
   end;
-
-
-(* prepare final result *)
-
-fun strip_flexflex thm =
-  Seq.hd (Thm.flexflex_rule thm) handle THM _ => thm;
-
-fun final_result state thm =
-  thm
-  |> strip_flexflex
-  |> Drule.standard;
 
 
 
@@ -677,7 +676,7 @@ fun local_qed finalize print state =
 fun finish_global state =
   let
     val (_, (((kind, name, t), (_, raw_thm)), _)) = current_goal state;   (*ignores after_qed!*)
-    val result = final_result state (prep_result state t raw_thm);
+    val result = Drule.standard (prep_result state t raw_thm);
 
     val atts =
       (case kind of
@@ -730,3 +729,7 @@ fun next_block state =
 
 
 end;
+
+
+structure BasicProof: BASIC_PROOF = Proof;
+open BasicProof;
