@@ -12,6 +12,10 @@ Extend = Guar +
 
 constdefs
 
+  good_map :: "['a*'b => 'c] => bool"
+    "good_map h == surj h & (ALL x y. fst (inv h (h (x,y))) = x)"
+     (*Using the locale constant "f", this is  f (h (x,y))) = x*)
+  
   extend_set :: "['a*'b => 'c, 'a set] => 'c set"
     "extend_set h A == h `` (A Times UNIV)"
 
@@ -38,14 +42,12 @@ locale Extend =
     g       :: 'c => 'b
     h       :: "'a*'b => 'c"    (*isomorphism between 'a * 'b and 'c *)
     slice   :: ['c set, 'b] => 'a set
-    f_act   :: "('c * 'c) set => ('a*'a) set"
 
   assumes
-    bij_h  "bij h"
+    good_h  "good_map h"
   defines
     f_def       "f z == fst (inv h z)"
     g_def       "g z == snd (inv h z)"
     slice_def   "slice Z y == {x. h(x,y) : Z}"
-    f_act_def   "f_act act == (%(z,z'). (f z, f z')) `` act"
 
 end

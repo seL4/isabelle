@@ -6,9 +6,12 @@
 lift_prog, etc: replication of components
 *)
 
-Lift_prog = Guar +
+Lift_prog = Guar + Extend +
 
 constdefs
+
+  lift_map :: "['a, 'b * ('a => 'b)] => ('a => 'b)"
+    "lift_map i == %(s,f). f(i := s)"
 
   lift_set :: "['a, 'b set] => ('a => 'b) set"
     "lift_set i A == {f. f i : A}"

@@ -44,7 +44,9 @@ qed "surj_sysOfAlloc";
 
 AddIffs [inj_sysOfAlloc, surj_sysOfAlloc];
 
-val bij_sysOfAlloc = [inj_sysOfAlloc, surj_sysOfAlloc] MRS bijI;
+Goalw [good_map_def] "good_map sysOfAlloc";
+by Auto_tac;
+qed "good_map_sysOfAlloc";
 
 (*MUST BE AUTOMATED: even the statement of such results*)
 Goal "!!s. inv sysOfAlloc s = \
@@ -75,7 +77,9 @@ qed "surj_sysOfClient";
 
 AddIffs [inj_sysOfClient, surj_sysOfClient];
 
-val bij_sysOfClient = [inj_sysOfClient, surj_sysOfClient] MRS bijI;
+Goalw [good_map_def] "good_map sysOfClient";
+by Auto_tac;
+qed "good_map_sysOfClient";
 
 (*MUST BE AUTOMATED: even the statement of such results*)
 Goal "!!s. inv sysOfClient s = \
@@ -169,7 +173,7 @@ AddIffs [Network_component_System, Alloc_component_System];
 (* F : UNIV guarantees Increasing func
    ==> extend sysOfClient F : UNIV guarantees Increasing (func o client) *)
 val extend_Client_guar_Increasing =
-  bij_sysOfClient RS export extend_guar_Increasing
+  good_map_sysOfClient RS export extend_guar_Increasing
   |> simplify (simpset() addsimps [inv_sysOfClient_eq]);
 
 
@@ -201,7 +205,7 @@ qed "System_Increasing_allocRel";
 (*NEED TO PROVE something like this (maybe without premise)*)
 Goal "i < Nclients ==> System : (sub i o allocRel) localTo Network";
 
-fun alloc_export th = bij_sysOfAlloc RS export th;
+fun alloc_export th = good_map_sysOfAlloc RS export th;
 
 val extend_Alloc_guar_Increasing =
   alloc_export extend_guar_Increasing
@@ -213,18 +217,18 @@ by (res_inst_tac
     [("X", "(INT i : lessThan Nclients. (sub i o allocRel) localTo Network \
 \                                       Int Increasing (sub i o allocRel))")] 
     component_guaranteesD 1);;
-br Alloc_component_System 3;
-br project_guarantees 1;
-br Alloc_Safety 1;
+by (rtac Alloc_component_System 3);
+by (rtac project_guarantees 1);
+by (rtac Alloc_Safety 1);
 by (dtac (alloc_export (project_extend_Join RSN (2, subst_elem RS project_Always_D))) 2 
      THEN
      full_simp_tac
      (simpset() addsimps [inv_sysOfAlloc_eq,
 			  alloc_export Collect_eq_extend_set RS sym]) 2);
-auto();
+by Auto_tac;
 by (force_tac (claset(), simpset() addsimps [System_Increasing_allocRel]) 3);
 
-bd bspec 1;
+by (dtac bspec 1);
 by (Blast_tac 1);
 
 
@@ -250,20 +254,20 @@ by (asm_full_simp_tac
 			 project_extend_Join RS sym,
 			 Diff_project_stable,
 			 Collect_eq_extend_set RS sym]) 1);
-auto();
-br Diff_project_stable 1;
+by Auto_tac;
+by (rtac Diff_project_stable 1);
 PROBABLY FALSE;
 
 by (Clarify_tac 1);
 by (dres_inst_tac [("x","z")] spec 1);
 
-br (alloc_export project_Always_D) 2;
+by (rtac (alloc_export project_Always_D) 2);
 
 by (rtac (alloc_export extend_Always RS iffD2) 2);
 
 xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx;
 
-br guaranteesI 1;
+by (rtac guaranteesI 1);
 
 by (res_inst_tac 
     [("X", "(INT i : lessThan Nclients. Increasing (sub i o allocRel))")] 
@@ -273,5 +277,5 @@ by (res_inst_tac
 by (rtac (Alloc_Safety RS component_guaranteesD) 1);
 
 
-br (alloc_export guarantees_imp_extend_guarantees RS guarantees_weaken) 1;
-br Alloc_Safety 1;
+by (rtac (alloc_export guarantees_imp_extend_guarantees RS guarantees_weaken) 1);
+by (rtac Alloc_Safety 1);

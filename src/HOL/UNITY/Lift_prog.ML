@@ -2,6 +2,8 @@
     ID:         $Id$
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1998  University of Cambridge
+
+THESE PROOFS CAN BE REPLACED BY INVOCATIONS OF RESULTS FROM EXTEND.ML
 *)
 
 
@@ -134,8 +136,6 @@ by Auto_tac;
 by (res_inst_tac [("x", "f(i:=a)")] exI 1);
 by (Asm_simp_tac 1);
 by (res_inst_tac [("x", "f(i:=b)")] exI 1);
-by (Asm_simp_tac 1);
-by (rtac ext 1);
 by (Asm_simp_tac 1);
 qed "lift_act_inverse";
 Addsimps [lift_act_inverse];
@@ -490,3 +490,78 @@ by Auto_tac;
 by (stac Collect_eq_lift_set 1); 
 by (asm_simp_tac (simpset() addsimps [Diff_lift_prog_stable]) 1); 
 qed "localTo_lift_prog_I";
+
+
+(*****************************************************************)
+
+(**EQUIVALENCE WITH "EXTEND" VERSION**)
+
+Goalw [lift_map_def] "good_map (lift_map i)";
+by (rtac good_mapI 1);
+by (res_inst_tac [("f", "%f. (f i, f)")] surjI 1);
+by Auto_tac;
+by (dres_inst_tac [("f", "%f. f i")] arg_cong 1);
+by Auto_tac;
+qed "good_map_lift_map";
+
+
+
+Goal "fst (inv (lift_map i) g) = g i";
+br (good_map_lift_map RS good_map_is_surj RS fst_inv_equalityI) 1;
+by (auto_tac (claset(), simpset() addsimps [lift_map_def]));
+qed "fst_inv_lift_map";
+Addsimps [fst_inv_lift_map];
+
+
+Goal "lift_set i A = extend_set (lift_map i) A";
+by (auto_tac (claset(), 
+	      simpset() addsimps [good_map_lift_map RS export mem_extend_set_iff]));
+qed "lift_set_correct";
+
+Goalw [drop_set_def, project_set_def, lift_map_def]
+     "drop_set i A = project_set (lift_map i) A";
+auto();
+br image_eqI 2;
+br exI 1;
+by (stac (refl RS fun_upd_idem) 1);
+auto();
+qed "drop_set_correct";
+
+Goal "lift_act i = extend_act (lift_map i)";
+br ext 1;
+by Auto_tac;
+by (forward_tac [good_map_lift_map RS export extend_act_D] 2);
+by(Full_simp_tac 2);
+bws [extend_act_def, lift_map_def];
+by Auto_tac;
+br bexI 1;
+ba 2;
+auto();
+br exI 1;
+auto();
+qed "lift_act_correct";
+
+Goal "drop_act i = project_act (lift_map i)";
+br ext 1;
+bws [project_act_def, drop_act_def, lift_map_def];
+by Auto_tac;
+br image_eqI 2;
+by (REPEAT (rtac exI 1 ORELSE stac (refl RS fun_upd_idem) 1));
+auto();
+qed "drop_act_correct";
+
+
+Goal "lift_prog i F = extend (lift_map i) F";
+by (rtac program_equalityI 1);
+by (simp_tac (simpset() addsimps [lift_set_correct]) 1);
+by (simp_tac (simpset() 
+	      addsimps [good_map_lift_map RS export Acts_extend, lift_act_correct]) 1);
+qed "lift_prog_correct";
+
+Goal "drop_prog i F = project (lift_map i) F";
+by (rtac program_equalityI 1);
+by (simp_tac (simpset() addsimps [drop_set_correct]) 1);
+by (simp_tac (simpset() 
+	      addsimps [good_map_lift_map RS export Acts_project, drop_act_correct]) 1);
+qed "drop_prog_correct";
+
