@@ -49,6 +49,7 @@ sig
   val print_locales: Toplevel.transition -> Toplevel.transition
   val print_locale: Locale.expr -> Toplevel.transition -> Toplevel.transition
   val print_attributes: Toplevel.transition -> Toplevel.transition
+  val print_rules: Toplevel.transition -> Toplevel.transition
   val print_induct_rules: Toplevel.transition -> Toplevel.transition
   val print_trans_rules: Toplevel.transition -> Toplevel.transition
   val print_methods: Toplevel.transition -> Toplevel.transition
@@ -197,6 +198,10 @@ fun print_locale name = Toplevel.unknown_theory o
 
 val print_attributes = Toplevel.unknown_theory o
   Toplevel.keep (Attrib.print_attributes o Toplevel.theory_of);
+
+val print_rules = Toplevel.unknown_context o
+  Toplevel.keep (Toplevel.node_case ContextRules.print_global_rules
+    (ContextRules.print_local_rules o Proof.context_of));
 
 val print_induct_rules = Toplevel.unknown_context o
   Toplevel.keep (Toplevel.node_case InductAttrib.print_global_rules
