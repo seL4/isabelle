@@ -4,6 +4,7 @@
 This file builds the theory parser and autoloading system.
 *)
 
+use "position.ML";
 use "path.ML";
 use "file.ML";
 use "use.ML";
