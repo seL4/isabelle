@@ -565,6 +565,7 @@ lemmas extra_iff_sats =
 
 subsection{*Well-Founded Recursion!*}
 
+subsubsection{*The Operator @{term M_is_recfun}*}
 
 text{*Alternative definition, minimizing nesting of quantifiers around MH*}
 lemma M_is_recfun_iff:

@@ -172,7 +172,7 @@ apply (intro FOL_reflections function_reflections
 done
 
 
-subsection{*Separation for the Proof of @{text "wellfounded_on_trancl"}*}
+subsubsection{*Separation for the Proof of @{text "wellfounded_on_trancl"}*}
 
 lemma wellfounded_trancl_reflects:
   "REFLECTS[\<lambda>x. \<exists>w[L]. \<exists>wx[L]. \<exists>rp[L].

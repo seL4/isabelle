@@ -601,7 +601,7 @@ apply (rule wfrec_closed_lemma, assumption+)
 apply (simp_all add: wfrec_replacement_iff trans_eq_pair_wfrec_iff) 
 done
 
-section{*Absoluteness without assuming transitivity*}
+subsection{*Absoluteness without assuming transitivity*}
 lemma (in M_trancl) eq_pair_wfrec_iff:
   "[|wf(r);  M(r);  M(y); 
      strong_replacement(M, \<lambda>x z. \<exists>y[M]. \<exists>g[M].

@@ -40,7 +40,7 @@ apply (simp_all add: LPow_in_L, auto)
 apply (blast intro: transL)
 done
 
-subsubsection{*For L to satisfy Replacement *}
+subsection{*For L to satisfy Replacement *}
 
 (*Can't move these to Formula unless the definition of univalent is moved
 there too!*)

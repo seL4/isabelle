@@ -9,6 +9,8 @@ header{*Relativized Well-Founded Recursion*}
 theory WFrec = Wellorderings:
 
 
+subsection{*General Lemmas*}
+
 (*Many of these might be useful in WF.thy*)
 
 lemma apply_recfun2:
@@ -69,6 +71,8 @@ apply (erule is_recfun_cong_lemma, auto)
 apply (erule is_recfun_cong_lemma)
 apply (blast intro: sym)+
 done
+
+subsection{*Reworking of the Recursion Theory Within @{term M}*}
 
 lemma (in M_axioms) is_recfun_separation':
     "[| f \<in> r -`` {a} \<rightarrow> range(f); g \<in> r -`` {b} \<rightarrow> range(g);
@@ -149,20 +153,6 @@ apply (subgoal_tac "is_function(M,f)")
 apply (frule pair_components_in_M, assumption) 
 apply (simp add: is_recfun_imp_function function_restrictI) 
 done
-
-(* ideas for further weaking the H-closure premise:
-apply (drule spec [THEN spec]) 
-apply (erule mp)
-apply (intro conjI)
-apply (blast dest!: pair_components_in_M)
-apply (blast intro!: function_restrictI dest!: pair_components_in_M)
-apply (blast intro!: function_restrictI dest!: pair_components_in_M)
-apply (simp only: subset_iff domain_iff restrict_iff vimage_iff) 
-apply (simp add: vimage_singleton_iff) 
-apply (intro allI impI conjI)
-apply (blast intro: transM dest!: pair_components_in_M)
-prefer 4;apply blast 
-*)
 
 lemma (in M_axioms) is_recfun_restrict:
      "[| wellfounded(M,r); trans(r); is_recfun(r,x,H,f); \<langle>y,x\<rangle> \<in> r; 
@@ -280,6 +270,9 @@ apply (rule exists_is_recfun_indstep)
       apply (blast dest: transM del: rev_rallE, assumption+)
 done
 
+
+subsection{*Relativization of the ZF Predicate @{term is_recfun}*}
+
 constdefs
   M_is_recfun :: "[i=>o, [i,i,i]=>o, i, i, i] => o"
    "M_is_recfun(M,MH,r,a,f) == 
@@ -338,6 +331,10 @@ lemma wfrec_replacement_cong [cong]:
           wfrec_replacement(M, %x y. MH'(x,y), r')" 
 by (simp add: is_wfrec_def wfrec_replacement_def) 
 
+
+subsection{*Ordinal Arithmetic: Two Examples of Recursion*}
+
+subsubsection{*Ordinal Addition*}
 
 (*FIXME: update to use new techniques!!*)
 constdefs
@@ -485,7 +482,7 @@ apply (simp add: apply_closed is_oadd_fun_iff_oadd [symmetric])
 done
 
 
-text{*Ordinal Multiplication*}
+subsubsection{*Ordinal Multiplication*}
 
 lemma omult_eqns_unique:
      "[| omult_eqns(i,x,g,z); omult_eqns(i,x,g,z') |] ==> z=z'";
