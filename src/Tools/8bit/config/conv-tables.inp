@@ -1,14 +1,7 @@
-############################################################
-# conv-tables.inp
-# Franz Regensburger <regensbu@informatik.tu-muenchen.de>
-# 4.3.95
-# 
-# last edited
-# 11.3.95
-# 20-Mar-96 by David von Oheimb: SEQ_TABLE extended
-# 10-May-96 by David von Oheimb: HI_TABLE and SEQ_TABLE rearranged
-#
-#
+#   Title:      Tools/8bit/config/conf-tables.inp
+#   ID:         $Id$
+#   Author:     Franz Regensburger and David von Oheimb
+#   Copyright   1995 TU Muenchen
 ############################################################
 #
 # This is the configuration file for the converter isa2latex
@@ -28,13 +21,13 @@
 ############################################################ 
 # General setup
 #
-### Absolut path to the sources of the converter, 
+### path to the sources of the converter, 
 #   Must be readable for user.
 #   
 #   Must be delimited by "
 #
 
-CONV_SOURCE_DIR "/usr/proj/isabelle/8bit/c-sources/isa2latex"
+CONV_SOURCE_DIR "../c-sources/isa2latex"
 
 # End of  general setup
 ############################################################ 
@@ -93,17 +86,17 @@ BEGIN_LOW_TABLE
 #>  "\\x22{}"		double quotes are not removed 
 >  "\x22{}"		double quotes are not removed 
 #
->  "\#"
+>  "\mbox{$\#$}"
 >  "\$"
 >  "\%"
->  "\mbox{$\&$}"
+>  "\&"
 >  "'"
->  "("
->  ")"
->  "\mbox{$*$}"
->  "\mbox{$+$}"
+>  "\mbox{$($}"
+>  "\mbox{$)$}"
+>  "{*}"
+>  "+"
 >  ","
->  "\mbox{$-$}"
+>  "-"
 >  "."
 >  "/"
 >  "0"
@@ -150,10 +143,10 @@ BEGIN_LOW_TABLE
 >  "Y"
 >  "Z"
 >  "\mbox{$[$}"
->  "\mbox{$\backslash$}"	Backslash
+>  "\ttbackslash{}"
 >  "\mbox{$]$}"
 >  "\^{}"			
->  "\_"	
+>  "{\_\hspace{.344ex}}"
 >  "`"
 >  "a"
 >  "b"
@@ -181,10 +174,10 @@ BEGIN_LOW_TABLE
 >  "x"
 >  "y"
 >  "z"
->  "\{"
->  "\mbox{$|$}"
->  "\}"
->  "\~{}"	negation
+>  "\mbox{$\{$}" #"\ttlbrace{}"
+>  "\mbox{$\mid$}"
+>  "\mbox{$\}$}" #"\ttrbrace{}"
+>  "\tttilde{}"
 END_LOW_TABLE
 
 ############################################################ 
@@ -202,7 +195,7 @@ END_LOW_TABLE
 #   Must be delimited by "
 #
 
-START_HI_TABLE "161"
+START_HI_TABLE "160"
 
 ### The translation table HI_TABLE
 #
@@ -239,120 +232,124 @@ START_HI_TABLE "161"
 
 BEGIN_HI_TABLE
 
+# big (i.e. double) blank space, for compensation of other too long symbols
+>  "\ \ "		"  "		"\ \ "
+
 # big greek letters
->  "\\Gamma\ "		"\Gamma"	"\mbox{$\Gamma$}" 
->  "\\Delta\ "		"\Delta"	"\mbox{$\Delta$}" 
->  "\\Theta\ "		"\Theta"	"\mbox{$\Theta$}" 
->  "LAM\ "		"LAM"		"\mbox{$\Lambda$}" 
->  "\\Pi\ "		"\Pi"		"\mbox{$\Pi$}" 
->  "\\Sigma\ "		"\Sigma"	"\mbox{$\Sigma$}" 
->  "\\Phi\ "		"\Phi"		"\mbox{$\Phi$}" 
->  "\\Psi\ "		"\Psi"		"\mbox{$\Psi$}" 
->  "\\Omega\ "		"\Omega"	"\mbox{$\Omega$}" 
+>  "\\Gamma"		"\Gamma"	"\mbox{$\Gamma$}"
+>  "\\Delta"		"\Delta"	"\mbox{$\Delta$}"
+>  "\\Theta"		"\Theta"	"\mbox{$\Theta$}"
+>  "LAM\ "		"LAM "		"\mbox{$\Lambda$}" 
+>  "\\Pi"		"\Pi"		"\mbox{$\Pi$}" 
+>  "\\Sigma"		"\Sigma"	"\mbox{$\Sigma$}" 
+>  "\\Phi"		"\Phi"		"\mbox{$\Phi$}" 
+>  "\\Psi"		"\Psi"		"\mbox{$\Psi$}" 
+>  "\\Omega"		"\Omega"	"\mbox{$\Omega$}" 
 
 # small greek letters, HOL, HOLCF
 >  "'a"			"'a"		"\mbox{$\alpha$}" 
 >  "'b"			"'b"		"\mbox{$\beta$}" 
 >  "'c"			"'c"		"\mbox{$\gamma$}" 
->  "\\delta\ "		"\delta"	"\mbox{$\delta$}" 
->  "\\varepsilon\ "	"\varepsilon"	"\mbox{$\varepsilon$}" 
->  "\\zeta\ "		"\zeta"		"\mbox{$\zeta$}" 
->  "\\eta\ "		"\eta"		"\mbox{$\eta$}" 
->  "\\vartheta\ "	"\vartheta"	"\mbox{$\vartheta$}" 
->  "\\kappa\ "		"\kappa"	"\mbox{$\kappa$}" 
+>  "\\delta"		"\delta"	"\mbox{$\delta$}" 
+>  "\\varepsilon"	"@"		"\mbox{$\varepsilon$}" 
+>  "\\zeta"		"\zeta"		"\mbox{$\zeta$}"
+>  "\\eta"		"\eta"		"\mbox{$\eta$}" 
+>  "\\vartheta"		"\vartheta"	"\mbox{$\vartheta$}" 
+>  "\\kappa"		"\kappa"	"\mbox{$\kappa$}" 
 >  "%\ "		"%"		"\mbox{$\lambda$}" 
->  "\\mu\ "		"\mu"		"\mbox{$\mu$}" 
->  "\\nu\ "		"\nu"		"\mbox{$\nu$}" 
->  "\\xi\ "		"\xi"		"\mbox{$\xi$}" 
->  "\\pi\ "		"\pi"		"\mbox{$\pi$}" 
+>  "\\mu"		"\mu"		"\mbox{$\mu$}" 
+>  "\\nu"		"\nu"		"\mbox{$\nu$}" 
+>  "\\xi"		"\xi"		"\mbox{$\xi$}" 
+>  "\\pi"		"\p"		"\mbox{$\pi$}" 
 >  "'r"			"'r"		"\mbox{$\rho$}" 
 >  "'s"			"'s"		"\mbox{$\sigma$}" 
 >  "'t"			"'t"		"\mbox{$\tau$}" 
->  "\\varphi\ "		"\varphi"	"\mbox{$\varphi$}" 
->  "\\chi\ "		"\chi"		"\mbox{$\chi$}" 
->  "\\psi\ "		"\psi"		"\mbox{$\psi$}" 
->  "\\omega\ "		"\omega"	"\mbox{$\omega$}" 
+>  "\\varphi"		"\varphi"	"\mbox{$\varphi$}" 
+>  "\\chi"		"\chi"		"\mbox{$\chi$}" 
+>  "\\psi"		"\psi"		"\mbox{$\psi$}" 
+>  "\\omega"		"\omega"	"\mbox{$\omega$}" 
 
 # logical symbols, HOL
->  "~\ "		"~"		"\mbox{$\neg$}" 
->  "&\ "		"&"		"\mbox{$\wedge$}" 
->  "\|\ "		"|"		"\mbox{$\vee$}" 
->  "!\ "		"!"		"\mbox{$\forall$}" 
->  "\?\ "		"?"		"\mbox{$\exists$}"
+>  "~\ "		"~ "		"\mbox{$\neg$}" 
+>  "&\ "		"& "		"\mbox{$\hspace{-.185ex}\wedge\hspace{-.185ex}$}\ " 
+>  "\|\ "		"| "		"\mbox{$\hspace{-.185ex}\vee\hspace{-.185ex}$}\ " 
+>  "!\ "		"!"		"\mbox{$\hspace{-.07ex}\forall$}" 
+>  "\?\ "		"? "		"\mbox{$\hspace{-.07ex}\exists$}"
 >  "!!"			"!!"		"\mbox{$\bigwedge$}" 
 
-# parenthesis. Pure, HOLCF
->  "\\lceil\ "		"\lceil"	"\mbox{$\lceil$}" 
->  "\\rceil\ "		"\rceil"	"\mbox{$\rceil$}" 
->  "\\lfloor\ "		"\lfloor"	"\mbox{$\lfloor$}" 
->  "\\rfloor\ "		"\rfloor"	"\mbox{$\rfloor$}" 
->  "\(\|"		"(|"		"\mbox{$(\!|$}"		#\llparenthesis
->  "\|\)"		"|)"		"\mbox{$|\!)$}"		#\rrparenthesis
->  "\[\|"		"[|"		"\mbox{$[\![$}"		#\llbracket
->  "\|\]"		"|]"		"\mbox{$]\!]$}"		#\rrbracket
+# parenthesis. Pure, HOLCF, ...
+>  "\\lceil"		"\lceil"	"\mbox{$\lceil$}" 
+>  "\\rceil"		"\rceil"	"\mbox{$\rceil$}" 
+>  "\\lfloor"		"\lfloor"	"\mbox{$\lfloor$}" 
+>  "\\rfloor"		"\rfloor"	"\mbox{$\rfloor$}" 
+#> "\|-"		"|-"		"\mbox{$\vdash\hspace{-.2ex}$}"
+>  "\|-"		"|-"		"\mbox{$\hspace{.49ex}\vdash\hspace{.49ex}$}"
+>  "\|="		"|="		"\mbox{$\models$}"
+>  "\[\|"		"[|"		"\mbox{$[\![\hspace{.32ex}$}"#\llbracket
+>  "\|\]"		"|]"		"\mbox{$\hspace{.32ex}]\!]$}"#\rrbracket
+>  "\\cdot"		"\cdot"		"\mbox{$\hspace{.28ex}\cdot\hspace{.28ex}$}"
 
 # set theory, HOL
->  "{}"			"\emptyset"	"\mbox{$\emptyset$}"
->  "\ :\ "		":"		"\mbox{$\in$}" 
->  "\subseteq\ "	"\subseteq"	"\mbox{$\subseteq$}" 
->  "\ Int\ "		"Int"		"\mbox{$\cap$}" 
->  "\ Un\ "		"Un"		"\mbox{$\cup$}" 
->  "Inter\ "		"Inter"		"\mbox{$\bigcap$}" 
->  "Union\ "		"Union"		"\mbox{$\bigcup$}" 
+>  "\ :\ "		":"		"\hspace{.1ex}\mbox{$\in$}\hspace{.1ex}"#"\mbox{$\in$}"
+>  "\ \subseteq\ "	" \subseteq "	"\mbox{$\subseteq$}" 
+>  "\ Int\ "		" Int "		"\mbox{$\cap$}" 
+>  "\ Un\ "		" Un "		"\mbox{$\cup$}" 
+>  "Inter\ "		"Inter "	"\mbox{$\bigcap$}"
+>  "Union\ "		"Union "	"\mbox{$\bigcup$}" 
 
 # domain theory, HOLCF
->  "\sqcap\ "		"\sqcap"	"\mbox{$\sqcap$}" 
->  "\sqcup\ "		"\sqcup"	"\mbox{$\sqcup$}" 
->  "glb\ "		"glb"		"\mbox{$\overline{|\,\,|}$}" #\bigsqcap
->  "lub\ "		"lub"		"\mbox{$\bigsqcup$}" 
->  "UU"			"UU"		"\mbox{$\perp$}" 
+>  "\\sqcap"		"\sqcap"	"\mbox{$\hspace{.29ex}\sqcap\hspace{.29ex}$}" 
+>  "\\sqcup"		"\sqcup"	"\mbox{$\hspace{.29ex}\sqcup\hspace{.29ex}$}" 
+>  "glb\ "		"glb "		"\mbox{$\overline{|\,\,|}$}"#\bigsqcap
+>  "LUB\ "		"LUB "		"\mbox{$\bigsqcup$}" 
+>  "UU"			"UU"		"\mbox{$\bot$}" 
 
 # relational symbols, Pure, HOLCF
->  "==="		"==="		"\mbox{$\doteq$}" 
->  "=="			"=="		"\mbox{$\equiv$}" 
+>  "==="		".="		"\mbox{$\doteq$}" 
+>  "=="			"=="		"\mbox{$\hspace{.29ex}\equiv\hspace{.29ex}$}" 
 >  "~="			"~="		"\mbox{$\not=$}" 
->  "\\sqsubset\ "	"\sqsubset"	"\mbox{$\sqsubset$}" 
->  "<<"			"<<"		"\mbox{$\sqsubseteq$}" 
->  "\\prec\ "		"\prec"		"\mbox{$\prec$}" 
->  "\\preceq\ "		"\preceq"	"\mbox{$\preceq$}" 
->  "\\succ\ "		"\succ"		"\mbox{$\succ$}" 
->  "\\succeq\ "		"\succeq"	"\mbox{$\succeq$}" 
->  "\\sim\ "		"\sim"		"\mbox{$\sim$}" 
->  "\\simeq\ "		"\simeq"	"\mbox{$\simeq$}" 
->  "\\le\ "		"\le"		"\mbox{$\le$}" 
->  "\\ge\ "		"\ge"		"\mbox{$\ge$}" 
+>  "\\sqsubset"		"\sqsubset"	"\mbox{$\hspace{.29ex}\sqsubset\hspace{.29ex}$}" 
+>  "<<"			"<<"		"\mbox{$\hspace{.29ex}\sqsubseteq\hspace{.29ex}$}" 
+>  "<:"			"<:"		"\mbox{$\hspace{.29ex}\prec\hspace{.29ex}$}\ " 
+>  "<=:"		"<=:"		"\mbox{$\hspace{.29ex}\preceq\hspace{.29ex}$}" 
+>  ":>"			":>"		"\mbox{$\hspace{.29ex}\succ\hspace{.29ex}$}\ " 
+>  "~~"			"~~"		"\mbox{$\hspace{.29ex}\approx\hspace{.29ex}$}" 
+>  "\\sim\ "		"\sim "		"\mbox{$\hspace{.29ex}\sim\hspace{.29ex}$}\ " 
+>  "\\simeq"		"\simeq"	"\mbox{$\hspace{.29ex}\simeq\hspace{.29ex}$}" 
+>  "<="			"<="		"\mbox{$\hspace{.29ex}\le\hspace{.29ex}$}" 
+>  "::"			"::"		"\mbox{$\hspace{-.1ex}:\hspace{-.07ex}:\hspace{.1ex}$}" 
 
 # arrows, Pure, HOL
 >  "<-"		"<-"		"\mbox{$\leftarrow$}" 
 >  "-@@@@@"		"-"		"\mbox{$-$}" 
 >  "->"			"->"		"\mbox{$\rightarrow$}" 
->  "\\Leftarrow\ "	"<="		"\mbox{$\Leftarrow$}" 
+>  "\\Leftarrow"	"<="		"\mbox{$\Leftarrow$}" 
 >  "=@@@@@"		"="		"\mbox{$=$}" 
->  "=>"			"=>"		"\mbox{$\Rightarrow$}" 
->  "->>"		"->>"		"\mbox{$\twoheadrightarrow$}" 
->  "\\mapsto\ "		"\mapsto"	"\mbox{$\mapsto$}" 
->  "\\leadsto\ "	"\leadsto"	"\mbox{$\leadsto$}" 
->  "\\uparrow\ "	"\uparrow"	"\mbox{$\uparrow$}" 
->  "\\downarrow\ "	"\downarrow"	"\mbox{$\downarrow$}" 
+>  "=>"			"=>"		"\mbox{$\hspace{.12ex}\Rightarrow$}" 
+>  "\\frown"		"\frown"	"\mbox{$\frown$}" 
+>  "\\mapsto"		"|->"		"\mbox{$\mapsto$}" 
+>  "\\leadsto"		"~>"		"\mbox{$\hspace{.05ex}\leadsto$}" 
+>  "\\uparrow"		"\uparrow"	"\mbox{$\uparrow$}" 
+>  "\\downarrow"	"\downarrow"	"\mbox{$\downarrow$}" 
 >  "~:"			"~:"		"\mbox{$\notin$}" 
 
 # arithmetic, HOLCF
->  "\\times\ "		"*"		"\mbox{$\times$}" 
->  "\\oplus\ "		"++"		"\mbox{$\oplus$}"	#\varoplus
->  "\\ominus\ "		"\ominus"	"\mbox{$\ominus$}" "	#\varominus
->  "\\otimes\ "		"**"		"\mbox{$\otimes$}" "	#\varotimes
->  "\\oslash\ "		"\oslash"	"\mbox{$\oslash$}" 	#\varoslash
->  "\\natural\ "	"\natural"	"\mbox{$\natural$}" 
->  "\\infty\ "		"\infty"	"\mbox{$\infty$}" 
+>  "\\times"		"*"		"\mbox{$\hspace{-.29ex}\times\hspace{-.29ex}$}" 
+>  "\\oplus"		"++"		"\mbox{$\hspace{.29ex}\oplus\hspace{.29ex}$}"	#\varoplus
+>  "\\ominus"		"--"		"\mbox{$\hspace{.29ex}\ominus\hspace{.29ex}$}"	#\varominus
+>  "\\otimes"		"**"		"\mbox{$\hspace{.29ex}\otimes\hspace{.29ex}$}"	#\varotimes
+>  "\\oslash"		"//"		"\mbox{$\hspace{.29ex}\oslash\hspace{.29ex}$}" 	#\varoslash
+>  "\\subset"		"\subset"	"\mbox{$\subset$}" 
+>  "\\infty"		"\infty"	"\mbox{$\infty$}" 
 
 # misc
->  "\\Box\ "		"\Box"		"\mbox{$\Box$}" 
->  "\\Diamond\ "	"\Diamond"	"\mbox{$\Diamond$}" 
->  "\\circ\ "		"\circ"		"\mbox{$\circ$}" 
->  "\\bullet\ "		"\bullet"	"\mbox{$\bullet$}" 
+>  "\\Box"		"\Box"		"\mbox{$\Box$}" 
+>  "\\Diamond"		"<>"		"\mbox{$\hspace{.29ex}\Diamond\hspace{.29ex}$}"
+>  "\\circ"		" o "		"\mbox{$\circ$}" 
+>  "\\bullet"		"\bullet"	"\mbox{$\bullet$}" 
 >  "\|\|"		"||"		"\mbox{$\parallel$}" 
->  "\\tick\ "		"\tick"		"\mbox{$\surd$}" 
->  "\\filter\ "		"\filter"	"\mbox{\copyright}"
+>  "\\tick"		"\tick"		"\mbox{$\surd$}" 
+>  "\\filter"		"\filter"	"\mbox{\copyright}"
 END_HI_TABLE
 
 ############################################################ 
@@ -392,21 +389,41 @@ END_HI_TABLE
 BEGIN_SEQ_TABLE
 
 # Pure
->  "кл"		"==>"		"==>"		"\mbox{$\Longrightarrow$}"
+>  "кл"		"==>"		"==>"		"\mbox{$\hspace{-.083ex}\Longrightarrow$}"
 
 # HOL
 >  "зи"		"-->"		"-->"		"\mbox{$\longrightarrow$}"
->  "Г!"		"\?!"		"?!"		"\mbox{$\exists$}!"
->  "ALL@@@@@"	"ALL\ "		"ALL"		"\mbox{$\forall$}" 
->  "EX@@@@@"	"EX\ "		"EX"		"\mbox{$\exists$}" 
+>  "Г!"		"\?!"		"?!"		"\mbox{$\exists_1$}"
+>  "ALL@@@@@"	"ALL\ "		"ALL "		"\mbox{$\forall$}" 
+>  "EX@@@@@"	"EX\ "		"EX "		"\mbox{$\exists$}" 
 
 #HOLCF
->  "<\|@@@@@"	"<\|"		"<|"		"\mbox{$<\!\mid$}"
->  "<<\|@@@@@"	"<<\|"		"<<|"		"\mbox{$\ll\!\mid$}"
+>  "<<\|"	"<<\|"		"<<|"		"\mbox{$\ll\!\mid$}"
+>  "<\|"	"<\|"		"<|"		"\mbox{$<\!\mid$}"
 
 # misc ?
 >  "йк"		"<=="		"<=="		"\mbox{$\Longleftarrow$}"
 >  "йл"		"<=>"		"<=>"		"\mbox{$\Leftrightarrow$}"
 >  "жз"		"<--"		"<--"		"\mbox{$\longleftarrow$}"
->  "жи"		"<->"		"<->"		"\mbox{$\leftrightarrow$}"
+>  "жи"		"<->"		"<->""\mbox{$\leftrightarrow$}"
+>  "\^-1"	"\^-1"		"^-1"		"\mbox{$^{\tt -1}$}" 
+
+#Isabelle
+>  "arities"	"@arities"	"arities"	"\mbox{\bf arities}"
+>  "axclass"	"@axclass"	"axclass"	"\mbox{\bf axclass}"
+>  "constdefs"	"@constdefs"	"constdefs"	"\mbox{\bf constdefs}"
+>  "consts"	"@consts"	"consts"	"\mbox{\bf consts}"
+>  "datatype"	"@datatype"	"datatype"	"\mbox{\bf datatype}"
+>  "defs"	"@defs"		"defs"		"\mbox{\bf defs}"
+>  "domain"	"@domain"	"domain"	"\mbox{\bf domain}"
+>  "inductive"	"@inductive"	"inductive"	"\mbox{\bf inductive}"
+>  "instance"	"@instance"	"instance"	"\mbox{\bf instance}"
+>  "primrec"	"@primrec"	"primrec"	"\mbox{\bf primrec}"
+>  "recdef"	"@recdef"	"recdef"	"\mbox{\bf recdef}"
+>  "rules"	"@rules"	"rules"		"\mbox{\bf rules}"
+>  "translations""@translations""translations"	"\mbox{\bf translations}"
+>  "typedef"	"@typedef"	"typedef"	"\mbox{\bf typedef}"
+>  "types"	"@types"	"types"		"\mbox{\bf types}"
 END_SEQ_TABLE
+
+
