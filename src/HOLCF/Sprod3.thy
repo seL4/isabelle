@@ -34,12 +34,6 @@ ssnd_def        "ssnd   == (LAM p.Issnd p)"
 ssplit_def      "ssplit == (LAM f. strictify`(LAM p.f`(sfst`p)`(ssnd`p)))"
 
 (* start 8bit 1 *)
-syntax  
-	"@Gstuple"    :: "['a, args] => 'a ** 'b"	("(1…_,/ _ )")
-
-translations
-	"…x, y, z "   == "…x, …y, z  "
-	"…x, y "      == "(|x,y|)"
 (* end 8bit 1 *)
 
 end

@@ -43,14 +43,6 @@ defs
         (LAM e1 e2 t. sswhen`(LAM x.e1)`(LAM y.e2)`(rep_tr`t))"
 
 (* start 8bit 1 *)
-syntax
-  "GeqTT"        :: "tr => bool"               ("(≈_∆)")
-  "GeqFF"        :: "tr => bool"               ("(«_»)")
-
-translations
-  "≈x∆"	== "x = TT"
-  "«x»"	== "x = FF"
-
 (* end 8bit 1 *)
 
 

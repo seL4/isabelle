@@ -82,9 +82,6 @@ translations
   (* reverse translation <= does not work yet !! *)
 
 (* start 8bit 1 *)
-translations
-  "Let x = a in e"          == "CLet`a`(¤ x.e)"
-
 (* end 8bit 1 *)
 end
 

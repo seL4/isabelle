@@ -14,11 +14,5 @@ rules
 inst_void_pcpo  "(UU::void) = UU_void"
 
 (* start 8bit 1 *)
-syntax
-	"GUU" :: "'a::pcpo"	("Ø")	
-
-translations
-  "Ø"		== "UU"
-
 (* end 8bit 1 *)
 end 

@@ -52,14 +52,6 @@ defs   (*defining the abstract constants*)
                         &(!b. b~=UU & s=Isinr(b) --> z=g`b)"  
 
 (* start 8bit 1 *)
-types
-
-('a, 'b) "ó"          (infixr 10)
-
-translations
-
-(type)  "x ó y"	== (type) "x ++ y" 
-
 (* end 8bit 1 *)
 end
 

@@ -40,12 +40,6 @@ trans_less      "[|x<<y ; y<<z |] ==> x<<z"
 inst_void_po    "((op <<)::[void,void]=>bool) = less_void"
 
 (* start 8bit 1 *)
-syntax
-	"Ý"	::	"['a,'a::po] => bool"	(infixl 55)
-
-translations
-  "x Ý y"	== "x << y"
-
 (* end 8bit 1 *)
 
 end 

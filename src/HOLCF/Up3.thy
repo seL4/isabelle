@@ -29,9 +29,6 @@ translations
 "case l of up`x => t1" == "fup`(LAM x.t1)`l"
 
 (* start 8bit 1 *)
-translations
-
-"case l of up`x => t1" == "fup`(¤x.t1)`l"
 (* end 8bit 1 *)
 
 end

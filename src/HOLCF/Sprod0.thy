@@ -51,14 +51,6 @@ defs
                 &(! a b. ~a=UU & ~b=UU & p=Ispair a b    --> z=b)"  
 
 (* start 8bit 1 *)
-types
-
-('a, 'b) "õ"          (infixr 20)
-
-translations
-
-(type)  "x õ y"	== (type) "x ** y" 
-
 (* end 8bit 1 *)
 
 end
