@@ -71,21 +71,20 @@ sig
   type modifier
   val sectioned_args: (Proof.context * Args.T list -> 'a * (Proof.context * Args.T list)) ->
     (Args.T list -> modifier * Args.T list) list ->
-    ('a -> Proof.context -> Proof.method) -> Args.src -> Proof.context -> Proof.method
+    ('a -> Proof.context -> 'b) -> Args.src -> Proof.context -> 'b
   val bang_sectioned_args:
     (Args.T list -> modifier * Args.T list) list ->
-    (thm list -> Proof.context -> Proof.method) -> Args.src -> Proof.context -> Proof.method
+    (thm list -> Proof.context -> 'a) -> Args.src -> Proof.context -> 'a
   val bang_sectioned_args':
     (Args.T list -> modifier * Args.T list) list ->
     (Proof.context * Args.T list -> 'a * (Proof.context * Args.T list)) ->
-    ('a -> thm list -> Proof.context -> Proof.method) -> Args.src -> Proof.context -> Proof.method
+    ('a -> thm list -> Proof.context -> 'b) -> Args.src -> Proof.context -> 'b
   val only_sectioned_args:
     (Args.T list -> modifier * Args.T list) list ->
-    (Proof.context -> Proof.method) -> Args.src -> Proof.context -> Proof.method
-  val thms_ctxt_args: (thm list -> Proof.context -> Proof.method)
-    -> Args.src -> Proof.context -> Proof.method
-  val thms_args: (thm list -> Proof.method) -> Args.src -> Proof.context -> Proof.method
-  val thm_args: (thm -> Proof.method) -> Args.src -> Proof.context -> Proof.method
+    (Proof.context -> 'a) -> Args.src -> Proof.context -> 'a
+  val thms_ctxt_args: (thm list -> Proof.context -> 'a) -> Args.src -> Proof.context -> 'a
+  val thms_args: (thm list -> 'a) -> Args.src -> Proof.context -> 'a
+  val thm_args: (thm -> 'a) -> Args.src -> Proof.context -> 'a
   datatype text =
     Basic of (Proof.context -> Proof.method) |
     Source of Args.src |
