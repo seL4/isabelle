@@ -64,7 +64,7 @@ computation rules might require a second simplifier.
 \begin{figure} \tabcolsep=1em  %wider spacing in tables
 \begin{center}
 \begin{tabular}{rrr} 
-  \it symbol    & \it meta-type         & \it description \\ 
+  \it name      & \it meta-type         & \it description \\ 
   \idx{Type}    & $t \to prop$          & judgement form \\
   \idx{Eqtype}  & $[t,t]\to prop$       & judgement form\\
   \idx{Elem}    & $[i, t]\to prop$      & judgement form\\
@@ -80,8 +80,8 @@ computation rules might require a second simplifier.
   \idx{Sum}     & $[t, i\to t]\to t$    & general sum type\\
   \idx{pair}    & $[i,i]\to i$          & constructor\\
   \idx{split}   & $[i,[i,i]\to i]\to i$ & eliminator\\
-  \idx{fst} snd & $i\to i$              & projections\\[2ex]
-  \idx{inl} inr & $i\to i$              & constructors for $+$\\
+  \idx{fst} \idx{snd} & $i\to i$        & projections\\[2ex]
+  \idx{inl} \idx{inr} & $i\to i$        & constructors for $+$\\
   \idx{when}    & $[i,i\to i, i\to i]\to i$    & eliminator for $+$\\[2ex]
   \idx{Eq}      & $[t,i,i]\to t$        & equality type\\
   \idx{eq}      & $i$                   & constructor\\[2ex]
