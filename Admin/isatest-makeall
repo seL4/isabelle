@@ -7,16 +7,19 @@
 # DESCRIPTION: Run isatool makeall from specified distribution and settings.
 #              Send email if it fails.
 
+# canoncical home for all platforms
+HOME=/usr/stud/isatest
+
 ## global settings
 MAILTO="kleing@in.tum.de nipkow@in.tum.de berghofe@in.tum.de schirmer@in.tum.de lp15@cam.ac.uk"
 
-LOGPREFIX=~/log
+LOGPREFIX=$HOME/log
 
 MASTERLOG=$LOGPREFIX/isatest.log
 
 TMP=/tmp/isatest-makeall.$$
 
-MAIL=~/bin/pmail
+MAIL=$HOME/bin/pmail
 
 ## diagnostics
 
@@ -107,7 +110,7 @@ for SETTINGS in $@; do
     then
         echo ------------------- test successful --- `date` --- $HOSTNAME >> $TESTLOG 2>&1
         gzip -f $TESTLOG
-	rm -rf ~/isabelle-$SHORT
+	rm -rf $HOME/isabelle-$SHORT
     else
         echo ------------------- test FAILED --- `date` --- $HOSTNAME >> $TESTLOG 2>&1
 	FAIL="$FAIL$SHORT "

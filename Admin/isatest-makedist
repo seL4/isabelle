@@ -9,18 +9,20 @@
 # source bashrc, we're called by cron
 . ~/.bashrc
 
+# canoncical home for all platforms
+HOME=/usr/stud/isatest
 
 ## global settings
 MAILTO="kleing@in.tum.de nipkow@in.tum.de berghofe@in.tum.de schirmer@in.tum.de lp15@cam.ac.uk"
 
 TMP=/tmp/isatest-makedist.$$
-MAIL=~/bin/pmail
+MAIL=$HOME/bin/pmail
 
-LOGPREFIX=~/log
+LOGPREFIX=$HOME/log
 MASTERLOG=$LOGPREFIX/isatest.log
-DISTPREFIX=~/isadist
-MAKEDIST=~/bin/makedist
-MAKEALL=~/bin/isatest-makeall
+DISTPREFIX=$HOME/isadist
+MAKEDIST=$HOME/bin/makedist
+MAKEALL=$HOME/bin/isatest-makeall
 TAR=gtar
 
 SSH="ssh -f"
@@ -58,7 +60,7 @@ echo "### cleaning up old dist directory"  >> $DISTLOG 2>&1
 rm -rf $DISTPREFIX >> $DISTLOG 2>&1
 
 echo "### cleaning up old isabelle-* directories" >> $DISTLOG 2>&1
-rm -rf ~/isabelle-*
+rm -rf $HOME/isabelle-*
 
 echo "### building distribution"  >> $DISTLOG 2>&1
 $MAKEDIST - >> $DISTLOG 2>&1
@@ -85,7 +87,7 @@ cd $DISTPREFIX >> $DISTLOG 2>&1
 $TAR xvzf `cat $DISTPREFIX/ISABELLE_DIST` >> $DISTLOG 2>&1
 
 echo "### generating development snapshot web page" >> $DISTLOG 2>&1
-(cd ~/devel-page; make)
+(cd $HOME/devel-page; make)
 
 echo ------------------- prepared test successfully --- `date` --- $HOSTNAME >> $DISTLOG 2>&1
 gzip -f $DISTLOG
@@ -96,8 +98,8 @@ echo "$(date) $HOSTNAME $PRG: dist build successful, elapsed time $ELAPSED." >> 
 
 ## spawn test runs
 
-$SSH sunbroy2 "$MAKEALL $DISTPREFIX ~/settings/sun-poly ~/settings/sun-sml"
-$SSH atbroy51 "$MAKEALL $DISTPREFIX ~/settings/at-poly ~/settings/at-sml"
-$SSH macbroy33 "$MAKEALL $DISTPREFIX ~/settings/mac-poly"
+$SSH sunbroy2 "$MAKEALL $DISTPREFIX $HOME/settings/sun-poly $HOME/settings/sun-sml"
+$SSH atbroy51 "$MAKEALL $DISTPREFIX $HOME/settings/at-poly $HOME/settings/at-sml"
+$SSH macbroy33 "$MAKEALL $DISTPREFIX $HOME/settings/mac-poly"
 
 ## end
