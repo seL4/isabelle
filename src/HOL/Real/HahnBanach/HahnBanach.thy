@@ -355,11 +355,10 @@ proof -
     fix x y a assume x: "x \<in> E" and y: "y \<in> E"
 
     txt {* @{text p} is positive definite: *}
-    show "0 \<le> p x"
-    proof (unfold p_def, rule real_le_mult_order1a)
-      show "0 \<le> \<parallel>f\<parallel>\<hyphen>F" by (rule ge_zero)
-      from x show "0 \<le> \<parallel>x\<parallel>" ..
-    qed
+      have "0 \<le> \<parallel>f\<parallel>\<hyphen>F" by (rule ge_zero)
+      moreover from x have "0 \<le> \<parallel>x\<parallel>" ..
+    ultimately show "0 \<le> p x"  
+      by (simp add: p_def zero_le_mult_iff)
 
     txt {* @{text p} is absolutely homogenous: *}
 
@@ -377,11 +376,10 @@ proof -
     show "p (x + y) \<le> p x + p y"
     proof -
       have "p (x + y) = \<parallel>f\<parallel>\<hyphen>F * \<parallel>x + y\<parallel>" by (simp only: p_def)
-      also have "\<dots> \<le> \<parallel>f\<parallel>\<hyphen>F * (\<parallel>x\<parallel> + \<parallel>y\<parallel>)"
-      proof (rule real_mult_le_le_mono1a)
-        show "0 \<le> \<parallel>f\<parallel>\<hyphen>F" by (rule ge_zero)
-        from x y show "\<parallel>x + y\<parallel> \<le> \<parallel>x\<parallel> + \<parallel>y\<parallel>" ..
-      qed
+      also have a: "0 \<le> \<parallel>f\<parallel>\<hyphen>F" by (rule ge_zero)
+      from x y have "\<parallel>x + y\<parallel> \<le> \<parallel>x\<parallel> + \<parallel>y\<parallel>" ..
+      with a have " \<parallel>f\<parallel>\<hyphen>F * \<parallel>x + y\<parallel> \<le> \<parallel>f\<parallel>\<hyphen>F * (\<parallel>x\<parallel> + \<parallel>y\<parallel>)"
+        by (simp add: mult_left_mono)
       also have "\<dots> = \<parallel>f\<parallel>\<hyphen>F * \<parallel>x\<parallel> + \<parallel>f\<parallel>\<hyphen>F * \<parallel>y\<parallel>" by (simp only: right_distrib)
       also have "\<dots> = p x + p y" by (simp only: p_def)
       finally show ?thesis .

@@ -22,6 +22,8 @@ text {*
   of @{text c}.  Every element in @{text H} is member of one of the
   elements of the chain.
 *}
+lemmas [dest?] = chainD
+lemmas chainE2 [elim?] = chainD2 [elim_format, standard]
 
 lemma some_H'h't:
   assumes M: "M = norm_pres_extensions E p F f"
@@ -417,19 +419,17 @@ proof
       fix x assume x: "x \<in> H"
       show "\<And>a b :: real. - a \<le> b \<Longrightarrow> b \<le> a \<Longrightarrow> \<bar>b\<bar> \<le> a"
         by arith
-      show "- p x \<le> h x"
-      proof (rule real_minus_le)
-        have "linearform H h" .
-        from this H x have "- h x = h (- x)" by (rule linearform.neg [symmetric])
-        also
-	from H x have "- x \<in> H" by (rule vectorspace.neg_closed)
-	with r have "h (- x) \<le> p (- x)" ..
-        also have "\<dots> = p x"
-        proof (rule seminorm.minus)
-          from x show "x \<in> E" ..
-        qed
-        finally show "- h x \<le> p x" .
+      have "linearform H h" .
+      from this H x have "- h x = h (- x)" by (rule linearform.neg [symmetric])
+      also
+      from H x have "- x \<in> H" by (rule vectorspace.neg_closed)
+      with r have "h (- x) \<le> p (- x)" ..
+      also have "\<dots> = p x"
+      proof (rule seminorm.minus)
+        from x show "x \<in> E" ..
       qed
+      finally have "- h x \<le> p x" .
+      then show "- p x \<le> h x" by simp
       from r x show "h x \<le> p x" ..
     qed
   }

@@ -5,7 +5,7 @@
 
 header {* Extending non-maximal functions *}
 
-theory HahnBanachExtLemmas = FunctionNorm:
+theory HahnBanachExtLemmas = FunctionNorm + RealLemmas:
 
 text {*
   In this section the following context is presumed.  Let @{text E} be
@@ -223,10 +223,11 @@ proof
       have "- p (inverse a \<cdot> y + x0) - h (inverse a \<cdot> y) \<le> xi" ..
       with lz have "a * xi \<le>
           a * (- p (inverse a \<cdot> y + x0) - h (inverse a \<cdot> y))"
-        by (rule real_mult_less_le_anti)
+        by (simp add: mult_left_mono_neg order_less_imp_le)
+
       also have "\<dots> =
           - a * (p (inverse a \<cdot> y + x0)) - a * (h (inverse a \<cdot> y))"
-        by (rule real_mult_diff_distrib)
+	by (rule real_mult_diff_distrib) 
       also from lz x0 y' have "- a * (p (inverse a \<cdot> y + x0)) =
           p (a \<cdot> (inverse a \<cdot> y + x0))"
         by (simp add: abs_homogenous abs_minus_eqI2)
@@ -244,9 +245,9 @@ proof
       have "xi \<le> p (inverse a \<cdot> y + x0) - h (inverse a \<cdot> y)" ..
       with gz have "a * xi \<le>
           a * (p (inverse a \<cdot> y + x0) - h (inverse a \<cdot> y))"
-        by (rule real_mult_less_le_mono)
+        by simp
       also have "... = a * p (inverse a \<cdot> y + x0) - a * h (inverse a \<cdot> y)"
-        by (rule real_mult_diff_distrib2)
+	by (rule real_mult_diff_distrib2) 
       also from gz x0 y'
       have "a * p (inverse a \<cdot> y + x0) = p (a \<cdot> (inverse a \<cdot> y + x0))"
         by (simp add: abs_homogenous abs_eqI2)

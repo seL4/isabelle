@@ -137,7 +137,7 @@ proof -
             by (rule real_mult_assoc)
           also
           from gt have "\<parallel>x\<parallel> \<noteq> 0" by simp
-          hence "\<parallel>x\<parallel> * inverse \<parallel>x\<parallel> = 1" by (simp add: real_mult_inv_right1)
+          hence "\<parallel>x\<parallel> * inverse \<parallel>x\<parallel> = 1" by simp 
           also have "c * 1 \<le> b" by (simp add: b_def le_maxI1)
           finally show "y \<le> b" .
         qed
@@ -199,13 +199,11 @@ proof cases
   then have "\<bar>f x\<bar> = \<bar>f 0\<bar>" by simp
   also have "f 0 = 0" ..
   also have "\<bar>\<dots>\<bar> = 0" by simp
-  also have "\<dots> \<le> \<parallel>f\<parallel>\<hyphen>V * \<parallel>x\<parallel>"
-  proof (rule real_le_mult_order1a)
-    show "0 \<le> \<parallel>f\<parallel>\<hyphen>V"
+  also have a: "0 \<le> \<parallel>f\<parallel>\<hyphen>V"
       by (unfold B_def fn_norm_def)
         (rule fn_norm_ge_zero [OF _ continuous.intro])
-    show "0 \<le> norm x" ..
-  qed
+    have "0 \<le> norm x" ..
+  with a have "0 \<le> \<parallel>f\<parallel>\<hyphen>V * \<parallel>x\<parallel>" by (simp add: zero_le_mult_iff)
   finally show "\<bar>f x\<bar> \<le> \<parallel>f\<parallel>\<hyphen>V * \<parallel>x\<parallel>" .
 next
   assume "x \<noteq> 0"

@@ -5,7 +5,7 @@
 
 header {* Zorn's Lemma *}
 
-theory ZornLemma = Aux + Zorn:
+theory ZornLemma = Zorn:
 
 text {*
   Zorn's Lemmas states: if every linear ordered subset of an ordered
