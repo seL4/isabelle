@@ -90,7 +90,7 @@ fun CLASIMPSET' tacf i state =
   Classical.CLASET (fn cs => Simplifier.SIMPSET (fn ss => tacf (cs, ss) i)) state;
 
 
-fun clarsimp_tac (cs, ss) = Simplifier.safe_asm_full_simp_tac ss THEN_MAYBE'
+fun clarsimp_tac (cs, ss) = Simplifier.safe_asm_full_simp_tac ss THEN_ALL_NEW
 			    Classical.clarify_tac (cs addSss ss);
 fun Clarsimp_tac i = clarsimp_tac (Classical.claset(), Simplifier.simpset()) i;
 
