@@ -1,0 +1,21 @@
+#!/bin/bash
+#
+# Emacs / Isamode interface.
+#
+# $Id$
+#
+# TODO: isabelle fonts
+
+
+## diagnostics
+
+function fail()
+{
+  echo "$1"
+  exit 2
+}
+
+
+## main
+
+exec emacs -name "isabelle" -l "$ISAMODE_HOME/elisp/isa-site.el" -l "$HOME/.emacs" -l "$ISAMODE_HOME/elisp/isa-start.el"
