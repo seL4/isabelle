@@ -717,7 +717,7 @@ fun use_thy1 tmp_loadpath_valid name =
           val theory_list =
             TextIO.openAppend (tack_on (!index_path) ".theory_list.txt")
               handle _ => (make_html := false;
-                           writeln ("Warning: Cannot write to " ^
+                           warning ("Cannot write to " ^
                                   (!index_path) ^ " while making HTML files.\n\
                                   \HTML generation has been switched off.\n\
                                   \Call init_html() from within a \
