@@ -267,7 +267,7 @@ by (Fast_tac 1);
 by (Fast_tac 1);
 qed_spec_mp "subst_Var_IT";
 
-val Var_IT = rewrite_rule [mk_meta_eq foldl_Nil] (lists.Nil RS IT.VarI);
+bind_thm ("Var_IT", rewrite_rule [mk_meta_eq foldl_Nil] (lists.Nil RS IT.VarI));
 
 Goal "t : IT ==> t $ Var i : IT";
 by (etac IT.induct 1);
