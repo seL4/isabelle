@@ -202,7 +202,7 @@ sig
   val accesses_bal: ('a -> 'a) * ('a -> 'a) * 'a -> int -> 'a list
 
   (*orders*)
-  datatype order = EQUAL | GREATER | LESS
+  datatype order = LESS | EQUAL | GREATER
   val rev_order: order -> order
   val make_ord: ('a * 'a -> bool) -> 'a * 'a -> order
   val int_ord: int * int -> order
