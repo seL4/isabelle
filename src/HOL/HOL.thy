@@ -212,7 +212,7 @@ ML
 
 (** Choice between the HOL and Isabelle style of quantifiers **)
 
-val HOL_quantifiers = ref false;
+val HOL_quantifiers = ref true;
 
 fun alt_ast_tr' (name, alt_name) =
   let
