@@ -3,7 +3,7 @@
     Author:     David von Oheimb, TU Muenchen
 
 Combination of classical reasoner and simplifier (depends on
-simplifier.ML, classical.ML, blast.ML).
+simplifier.ML, splitter.ML classical.ML, blast.ML).
 *)
 
 infix 4 addSIs2 addSEs2 addSDs2 addIs2 addEs2 addDs2 addsimps2 delsimps2;
@@ -12,6 +12,7 @@ infix 4 addSss addss;
 signature CLASIMP_DATA =
 sig
   structure Simplifier: SIMPLIFIER
+  structure Splitter: SPLITTER
   structure Classical: CLASSICAL
   structure Blast: BLAST
   sharing type Classical.claset = Blast.claset
@@ -152,7 +153,8 @@ fun force i = by (Force_tac i);
 fun get_local_clasimpset ctxt =
   (Classical.get_local_claset ctxt, Simplifier.get_local_simpset ctxt);
 
-val clasimp_modifiers = Classical.cla_modifiers @ Simplifier.simp_modifiers;
+val clasimp_modifiers =
+  Simplifier.simp_modifiers @ Splitter.split_modifiers @ Classical.cla_modifiers;
 
 fun clasimp_meth tac prems ctxt = Method.METHOD (fn facts =>
   ALLGOALS (Method.insert_tac (prems @ facts)) THEN tac (get_local_clasimpset ctxt));
