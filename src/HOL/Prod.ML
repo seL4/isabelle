@@ -321,24 +321,25 @@ qed_goalw "SigmaE" Prod.thy [Sigma_def]
     (REPEAT (eresolve_tac [UN_E, singletonE] 1 ORELSE ares_tac prems 1)) ]);
 
 (** Elimination of (a,b):A*B -- introduces no eigenvariables **)
-qed_goal "SigmaD1" Prod.thy "(a,b) : Sigma A B ==> a : A"
- (fn [major]=>
-  [ (rtac (major RS SigmaE) 1),
-    (REPEAT (eresolve_tac [asm_rl,Pair_inject,ssubst] 1)) ]);
 
-qed_goal "SigmaD2" Prod.thy "(a,b) : Sigma A B ==> b : B(a)"
- (fn [major]=>
-  [ (rtac (major RS SigmaE) 1),
-    (REPEAT (eresolve_tac [asm_rl,Pair_inject,ssubst] 1)) ]);
+Goal "(a,b) : Sigma A B ==> a : A";
+by (etac SigmaE 1);
+by (REPEAT (eresolve_tac [asm_rl,Pair_inject,ssubst] 1)) ;
+qed "SigmaD1";
 
-qed_goal "SigmaE2" Prod.thy
+Goal "(a,b) : Sigma A B ==> b : B(a)";
+by (etac SigmaE 1);
+by (REPEAT (eresolve_tac [asm_rl,Pair_inject,ssubst] 1)) ;
+qed "SigmaD2";
+
+val [major,minor]= goal Prod.thy
     "[| (a,b) : Sigma A B;    \
 \       [| a:A;  b:B(a) |] ==> P   \
-\    |] ==> P"
- (fn [major,minor]=>
-  [ (rtac minor 1),
-    (rtac (major RS SigmaD1) 1),
-    (rtac (major RS SigmaD2) 1) ]);
+\    |] ==> P";
+by (rtac minor 1);
+by (rtac (major RS SigmaD1) 1);
+by (rtac (major RS SigmaD2) 1) ;
+qed "SigmaE2";
 
 AddSEs [SigmaE2, SigmaE];
 
@@ -348,11 +349,13 @@ by (cut_facts_tac prems 1);
 by (blast_tac (claset() addIs (prems RL [subsetD])) 1);
 qed "Sigma_mono";
 
-qed_goal "Sigma_empty1" Prod.thy "Sigma {} B = {}"
- (fn _ => [ (Blast_tac 1) ]);
+Goal "Sigma {} B = {}";
+by (Blast_tac 1) ;
+qed "Sigma_empty1";
 
-qed_goal "Sigma_empty2" Prod.thy "A Times {} = {}"
- (fn _ => [ (Blast_tac 1) ]);
+Goal "A Times {} = {}";
+by (Blast_tac 1) ;
+qed "Sigma_empty2";
 
 Addsimps [Sigma_empty1,Sigma_empty2]; 
 

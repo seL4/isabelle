@@ -53,15 +53,15 @@ val HOL_cs = prop_cs addSIs [allI,ex_ex1I] addIs [exI, select_equality]
 claset_ref() := HOL_cs;
 
 (*Better then ex1E for classical reasoner: needs no quantifier duplication!*)
-qed_goal "alt_ex1E" thy
+val major::prems = goal thy
     "[| ?! x. P(x);                                              \
 \       !!x. [| P(x);  ALL y y'. P(y) & P(y') --> y=y' |] ==> R  \
-\    |] ==> R"
- (fn major::prems =>
-  [ (rtac (major RS ex1E) 1),
-    (REPEAT (ares_tac (allI::prems) 1)),
-    (etac (dup_elim allE) 1),
-    (Fast_tac 1)]);
+\    |] ==> R";
+by (rtac (major RS ex1E) 1);
+by (REPEAT (ares_tac (allI::prems) 1));
+by (etac (dup_elim allE) 1);
+by (Fast_tac 1);
+qed "alt_ex1E";
 
 AddSEs [alt_ex1E];
 

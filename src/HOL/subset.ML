@@ -9,8 +9,10 @@ Union and Intersection as lattice operations
 
 (*** insert ***)
 
-qed_goal "subset_insertI" Set.thy "B <= insert a B"
- (fn _=> [ (rtac subsetI 1), (etac insertI2 1) ]);
+Goal "B <= insert a B";
+by (rtac subsetI 1);
+by (etac insertI2 1) ;
+qed "subset_insertI";
 
 Goal "x ~: A ==> (A <= insert x B) = (A <= B)";
 by (Blast_tac 1);
@@ -89,8 +91,9 @@ qed "Int_greatest";
 
 (*** Set difference ***)
 
-qed_goal "Diff_subset" Set.thy "A-B <= (A::'a set)"
- (fn _ => [ (Blast_tac 1) ]);
+Goal "A-B <= (A::'a set)";
+by (Blast_tac 1) ;
+qed "Diff_subset";
 
 (*** Monotonicity ***)
 

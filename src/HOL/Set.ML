@@ -71,10 +71,11 @@ Goalw [Bex_def] "[| x:A;  P(x) |] ==> ? x:A. P(x)";
 by (Blast_tac 1);
 qed "rev_bexI";
 
-qed_goal "bexCI" Set.thy 
-   "[| ! x:A. ~P(x) ==> P(a);  a:A |] ==> ? x:A. P(x)" (fn prems =>
-  [ (rtac classical 1),
-    (REPEAT (ares_tac (prems@[bexI,ballI,notI,notE]) 1))  ]);
+val prems = goal Set.thy 
+   "[| ! x:A. ~P(x) ==> P(a);  a:A |] ==> ? x:A. P(x)";
+by (rtac classical 1);
+by (REPEAT (ares_tac (prems@[bexI,ballI,notI,notE]) 1))  ;
+qed "bexCI";
 
 val major::prems = Goalw [Bex_def]
     "[| ? x:A. P(x);  !!x. [| x:A; P(x) |] ==> Q  |] ==> Q";
@@ -139,17 +140,20 @@ by (Blast_tac 1);
 qed "subsetD";
 
 (*The same, with reversed premises for use with etac -- cf rev_mp*)
-qed_goal "rev_subsetD" Set.thy "[| c:A;  A <= B |] ==> c:B"
- (fn prems=>  [ (REPEAT (resolve_tac (prems@[subsetD]) 1)) ]);
+Goal "[| c:A;  A <= B |] ==> c:B";
+by (REPEAT (ares_tac [subsetD] 1)) ;
+qed "rev_subsetD";
 
 (*Converts A<=B to x:A ==> x:B*)
 fun impOfSubs th = th RSN (2, rev_subsetD);
 
-qed_goal "contra_subsetD" Set.thy "!!c. [| A <= B; c ~: B |] ==> c ~: A"
- (fn prems=>  [ (REPEAT (eresolve_tac [asm_rl, contrapos, subsetD] 1)) ]);
+Goal "[| A <= B; c ~: B |] ==> c ~: A";
+by (REPEAT (eresolve_tac [asm_rl, contrapos, subsetD] 1)) ;
+qed "contra_subsetD";
 
-qed_goal "rev_contra_subsetD" Set.thy "!!c. [| c ~: B;  A <= B |] ==> c ~: A"
- (fn prems=>  [ (REPEAT (eresolve_tac [asm_rl, contrapos, subsetD] 1)) ]);
+Goal "[| c ~: B;  A <= B |] ==> c ~: A";
+by (REPEAT (eresolve_tac [asm_rl, contrapos, subsetD] 1)) ;
+qed "rev_contra_subsetD";
 
 (*Classical elimination rule*)
 val major::prems = Goalw [subset_def] 
@@ -164,8 +168,9 @@ fun set_mp_tac i = etac subsetCE i  THEN  mp_tac i;
 AddSIs [subsetI];
 AddEs  [subsetD, subsetCE];
 
-qed_goal "subset_refl" Set.thy "A <= (A::'a set)"
- (fn _=> [Fast_tac 1]);		(*Blast_tac would try order_refl and fail*)
+Goal "A <= (A::'a set)";
+by (Fast_tac 1);
+qed "subset_refl";		(*Blast_tac would try order_refl and fail*)
 
 Goal "[| A<=B;  B<=C |] ==> A<=(C::'a set)";
 by (Blast_tac 1);
@@ -242,29 +247,33 @@ Addsimps [ball_UNIV, bex_UNIV];
 
 section "The empty set -- {}";
 
-qed_goalw "empty_iff" Set.thy [empty_def] "(c : {}) = False"
- (fn _ => [ (Blast_tac 1) ]);
+Goalw [empty_def] "(c : {}) = False";
+by (Blast_tac 1) ;
+qed "empty_iff";
 
 Addsimps [empty_iff];
 
-qed_goal "emptyE" Set.thy "!!a. a:{} ==> P"
- (fn _ => [Full_simp_tac 1]);
+Goal "a:{} ==> P";
+by (Full_simp_tac 1);
+qed "emptyE";
 
 AddSEs [emptyE];
 
-qed_goal "empty_subsetI" Set.thy "{} <= A"
- (fn _ => [ (Blast_tac 1) ]);
+Goal "{} <= A";
+by (Blast_tac 1) ;
+qed "empty_subsetI";
 
 (*One effect is to delete the ASSUMPTION {} <= A*)
 AddIffs [empty_subsetI];
 
-qed_goal "equals0I" Set.thy "[| !!y. y:A ==> False |] ==> A={}"
- (fn [prem]=>
-  [ (blast_tac (claset() addIs [prem RS FalseE]) 1) ]);
+val [prem]= goal Set.thy "[| !!y. y:A ==> False |] ==> A={}";
+by (blast_tac (claset() addIs [prem RS FalseE]) 1) ;
+qed "equals0I";
 
 (*Use for reasoning about disjointness: A Int B = {} *)
-qed_goal "equals0D" Set.thy "!!a. A={} ==> a ~: A"
- (fn _ => [ (Blast_tac 1) ]);
+Goal "A={} ==> a ~: A";
+by (Blast_tac 1) ;
+qed "equals0D";
 
 AddDs [equals0D, sym RS equals0D];
 
@@ -286,16 +295,20 @@ AddIffs [UNIV_not_empty];
 
 section "The Powerset operator -- Pow";
 
-qed_goalw "Pow_iff" Set.thy [Pow_def] "(A : Pow(B)) = (A <= B)"
- (fn _ => [ (Asm_simp_tac 1) ]);
+Goalw [Pow_def] "(A : Pow(B)) = (A <= B)";
+by (Asm_simp_tac 1);
+qed "Pow_iff";
 
 AddIffs [Pow_iff]; 
 
-qed_goalw "PowI" Set.thy [Pow_def] "!!A B. A <= B ==> A : Pow(B)"
- (fn _ => [ (etac CollectI 1) ]);
+Goalw [Pow_def] "!!A B. A <= B ==> A : Pow(B)";
+by (etac CollectI 1);
+qed "PowI";
 
-qed_goalw "PowD" Set.thy [Pow_def] "!!A B. A : Pow(B)  ==>  A<=B"
- (fn _=> [ (etac CollectD 1) ]);
+Goalw [Pow_def] "!!A B. A : Pow(B)  ==>  A<=B";
+by (etac CollectD 1);
+qed "PowD";
+
 
 val Pow_bottom = empty_subsetI RS PowI;        (* {}: Pow(B) *)
 val Pow_top = subset_refl RS PowI;             (* A : Pow(A) *)
@@ -341,10 +354,11 @@ by (Asm_simp_tac 1);
 qed "UnI2";
 
 (*Classical introduction rule: no commitment to A vs B*)
-qed_goal "UnCI" Set.thy "(c~:B ==> c:A) ==> c : A Un B"
- (fn prems=>
-  [ (Simp_tac 1),
-    (REPEAT (ares_tac (prems@[disjCI]) 1)) ]);
+
+val prems= goal Set.thy "(c~:B ==> c:A) ==> c : A Un B";
+by (Simp_tac 1);
+by (REPEAT (ares_tac (prems@[disjCI]) 1)) ;
+qed "UnCI";
 
 val major::prems = Goalw [Un_def]
     "[| c : A Un B;  c:A ==> P;  c:B ==> P |] ==> P";
@@ -392,19 +406,22 @@ qed_goalw "Diff_iff" Set.thy [set_diff_def] "(c : A-B) = (c:A & c~:B)"
 
 Addsimps [Diff_iff];
 
-qed_goal "DiffI" Set.thy "!!c. [| c : A;  c ~: B |] ==> c : A - B"
- (fn _=> [ Asm_simp_tac 1 ]);
+Goal "[| c : A;  c ~: B |] ==> c : A - B";
+by (Asm_simp_tac 1) ;
+qed "DiffI";
 
-qed_goal "DiffD1" Set.thy "!!c. c : A - B ==> c : A"
- (fn _=> [ (Asm_full_simp_tac 1) ]);
+Goal "c : A - B ==> c : A";
+by (Asm_full_simp_tac 1) ;
+qed "DiffD1";
 
-qed_goal "DiffD2" Set.thy "!!c. [| c : A - B;  c : B |] ==> P"
- (fn _=> [ (Asm_full_simp_tac 1) ]);
+Goal "[| c : A - B;  c : B |] ==> P";
+by (Asm_full_simp_tac 1) ;
+qed "DiffD2";
 
-qed_goal "DiffE" Set.thy "[| c : A - B;  [| c:A; c~:B |] ==> P |] ==> P"
- (fn prems=>
-  [ (resolve_tac prems 1),
-    (REPEAT (ares_tac (prems RL [DiffD1, DiffD2 RS notI]) 1)) ]);
+val prems= goal Set.thy "[| c : A - B;  [| c:A; c~:B |] ==> P |] ==> P";
+by (resolve_tac prems 1);
+by (REPEAT (ares_tac (prems RL [DiffD1, DiffD2 RS notI]) 1)) ;
+qed "DiffE";
 
 AddSIs [DiffI];
 AddSEs [DiffE];
@@ -417,31 +434,34 @@ qed_goalw "insert_iff" Set.thy [insert_def] "a : insert b A = (a=b | a:A)"
 
 Addsimps [insert_iff];
 
-qed_goal "insertI1" Set.thy "a : insert a B"
- (fn _ => [Simp_tac 1]);
+val _ = goal Set.thy "a : insert a B";
+by (Simp_tac 1);
+qed "insertI1";
 
-qed_goal "insertI2" Set.thy "!!a. a : B ==> a : insert b B"
- (fn _=> [Asm_simp_tac 1]);
+Goal "!!a. a : B ==> a : insert b B";
+by (Asm_simp_tac 1);
+qed "insertI2";
 
-qed_goalw "insertE" Set.thy [insert_def]
-    "[| a : insert b A;  a=b ==> P;  a:A ==> P |] ==> P"
- (fn major::prems=>
-  [ (rtac (major RS UnE) 1),
-    (REPEAT (eresolve_tac (prems @ [CollectE]) 1)) ]);
+val major::prems = Goalw [insert_def]
+    "[| a : insert b A;  a=b ==> P;  a:A ==> P |] ==> P";
+by (rtac (major RS UnE) 1);
+by (REPEAT (eresolve_tac (prems @ [CollectE]) 1));
+qed "insertE";
 
 (*Classical introduction rule*)
-qed_goal "insertCI" Set.thy "(a~:B ==> a=b) ==> a: insert b B"
- (fn prems=>
-  [ (Simp_tac 1),
-    (REPEAT (ares_tac (prems@[disjCI]) 1)) ]);
+val prems= goal Set.thy "(a~:B ==> a=b) ==> a: insert b B";
+by (Simp_tac 1);
+by (REPEAT (ares_tac (prems@[disjCI]) 1)) ;
+qed "insertCI";
 
 AddSIs [insertCI]; 
 AddSEs [insertE];
 
 section "Singletons, using insert";
 
-qed_goal "singletonI" Set.thy "a : {a}"
- (fn _=> [ (rtac insertI1 1) ]);
+Goal "a : {a}";
+by (rtac insertI1 1) ;
+qed "singletonI";
 
 Goal "b : {a} ==> b=a";
 by (Blast_tac 1);
@@ -449,8 +469,9 @@ qed "singletonD";
 
 bind_thm ("singletonE", make_elim singletonD);
 
-qed_goal "singleton_iff" thy "(b : {a}) = (b=a)" 
-(fn _ => [Blast_tac 1]);
+Goal "(b : {a}) = (b=a)";
+by (Blast_tac 1);
+qed "singleton_iff";
 
 Goal "{a}={b} ==> a=b";
 by (blast_tac (claset() addEs [equalityE]) 1);

@@ -251,7 +251,7 @@ val major::prems = goal thy
 \    !!x y. (x,y) : r ==> P x y; \
 \    !!x y z. [| (x,y) : r^+; P x y; (y,z) : r^+; P y z |] ==> P x z \
 \ |] ==> P x y";
-by(blast_tac (claset() addIs ([r_into_trancl,major RS trancl_induct]@prems))1);
+by (blast_tac (claset() addIs ([r_into_trancl,major RS trancl_induct]@prems))1);
 qed "trancl_trans_induct";
 
 (*elimination of r^+ -- NOT an induction rule*)
@@ -326,13 +326,13 @@ by (blast_tac (claset() addIs prems addSDs [trancl_converseD])1);
 qed "converse_trancl_induct";
 
 (*Unused*)
-qed_goal "irrefl_tranclI" Trancl.thy 
-   "!!r. r^-1 Int r^+ = {} ==> (x, x) ~: r^+" 
- (K [subgoal_tac "!y. (x, y) : r^+ --> x~=y" 1,
-     Fast_tac 1,
-     strip_tac 1,
-     etac trancl_induct 1,
-     auto_tac (claset() addIs [r_into_trancl], simpset())]);
+Goal "r^-1 Int r^+ = {} ==> (x, x) ~: r^+";
+by (subgoal_tac "!y. (x, y) : r^+ --> x~=y" 1);
+by (Fast_tac 1);
+by (strip_tac 1);
+by (etac trancl_induct 1);
+by (auto_tac (claset() addIs [r_into_trancl], simpset()));
+qed "irrefl_tranclI";
 
 Goal "[| (a,b) : r^*;  r <= A Times A |] ==> a=b | a:A";
 by (etac rtrancl_induct 1);
@@ -368,10 +368,13 @@ by (Fast_tac 1);
 qed "trancl_reflcl";
 Addsimps[trancl_reflcl];
 
-qed_goal "trancl_empty" Trancl.thy "{}^+ = {}" 
-  (K [auto_tac (claset() addEs [trancl_induct], simpset())]);
+Goal "{}^+ = {}";
+by (auto_tac (claset() addEs [trancl_induct], simpset()));
+qed "trancl_empty";
 Addsimps[trancl_empty];
 
-qed_goal "rtrancl_empty" Trancl.thy "{}^* = Id" 
-  (K [rtac (reflcl_trancl RS subst) 1, Simp_tac 1]);
+Goal "{}^* = Id";
+by (rtac (reflcl_trancl RS subst) 1);
+by (Simp_tac 1);
+qed "rtrancl_empty";
 Addsimps[rtrancl_empty];

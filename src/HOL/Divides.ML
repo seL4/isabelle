@@ -97,7 +97,7 @@ Addsimps [mod_mult_self_is_0];
 (*** Quotient ***)
 
 Goal "(%m. m div n) = wfrec (trancl pred_nat) \
-                        \            (%f j. if j<n then 0 else Suc (f (j-n)))";
+\            (%f j. if j<n then 0 else Suc (f (j-n)))";
 by (simp_tac (simpset() addsimps [div_def]) 1);
 qed "div_eq";
 
@@ -116,7 +116,6 @@ Goal "[| 0<n;  n<=m |] ==> m div n = Suc((m-n) div n)";
 by (asm_simp_tac (simpset() addsimps [div_geq, not_less_iff_le]) 1);
 qed "le_div_geq";
 
-(*NOT suitable for rewriting: loops*)
 Goal "0<n ==> m div n = (if m<n then 0 else Suc((m-n) div n))";
 by (asm_simp_tac (simpset() addsimps [div_less, div_geq]) 1);
 qed "div_if";
@@ -306,7 +305,7 @@ Delrules [less_SucE];
 
 (*** More division laws ***)
 
-Goal "0<n ==> m*n div n = m";
+Goal "0<n ==> (m*n) div n = m";
 by (cut_inst_tac [("m", "m*n")] mod_div_equality 1);
 by (assume_tac 1);
 by (asm_full_simp_tac (simpset() addsimps [mod_mult_self_is_0]) 1);

@@ -12,16 +12,18 @@ Some from the Hoare example from Norbert Galm
 
 (** Difference **)
 
-qed_goal "diff_0_eq_0" thy
-    "0 - n = 0"
- (fn _ => [induct_tac "n" 1,  ALLGOALS Asm_simp_tac]);
+Goal "0 - n = 0";
+by (induct_tac "n" 1);
+by (ALLGOALS Asm_simp_tac);
+qed "diff_0_eq_0";
 
 (*Must simplify BEFORE the induction!  (Else we get a critical pair)
   Suc(m) - Suc(n)   rewrites to   pred(Suc(m) - n)  *)
-qed_goal "diff_Suc_Suc" thy
-    "Suc(m) - Suc(n) = m - n"
- (fn _ =>
-  [Simp_tac 1, induct_tac "n" 1, ALLGOALS Asm_simp_tac]);
+Goal "Suc(m) - Suc(n) = m - n";
+by (Simp_tac 1);
+by (induct_tac "n" 1);
+by (ALLGOALS Asm_simp_tac);
+qed "diff_Suc_Suc";
 
 Addsimps [diff_0_eq_0, diff_Suc_Suc];
 
@@ -40,25 +42,36 @@ Delsimps [diff_Suc];
 
 (*** Addition ***)
 
-qed_goal "add_0_right" thy "m + 0 = m"
- (fn _ => [induct_tac "m" 1, ALLGOALS Asm_simp_tac]);
+Goal "m + 0 = m";
+by (induct_tac "m" 1);
+by (ALLGOALS Asm_simp_tac);
+qed "add_0_right";
 
-qed_goal "add_Suc_right" thy "m + Suc(n) = Suc(m+n)"
- (fn _ => [induct_tac "m" 1, ALLGOALS Asm_simp_tac]);
+Goal "m + Suc(n) = Suc(m+n)";
+by (induct_tac "m" 1);
+by (ALLGOALS Asm_simp_tac);
+qed "add_Suc_right";
 
 Addsimps [add_0_right,add_Suc_right];
 
+
 (*Associative law for addition*)
-qed_goal "add_assoc" thy "(m + n) + k = m + ((n + k)::nat)"
- (fn _ => [induct_tac "m" 1, ALLGOALS Asm_simp_tac]);
+Goal "(m + n) + k = m + ((n + k)::nat)";
+by (induct_tac "m" 1);
+by (ALLGOALS Asm_simp_tac);
+qed "add_assoc";
 
 (*Commutative law for addition*)  
-qed_goal "add_commute" thy "m + n = n + (m::nat)"
- (fn _ =>  [induct_tac "m" 1, ALLGOALS Asm_simp_tac]);
+Goal "m + n = n + (m::nat)";
+by (induct_tac "m" 1);
+by (ALLGOALS Asm_simp_tac);
+qed "add_commute";
 
-qed_goal "add_left_commute" thy "x+(y+z)=y+((x+z)::nat)"
- (fn _ => [rtac (add_commute RS trans) 1, rtac (add_assoc RS trans) 1,
-           rtac (add_commute RS arg_cong) 1]);
+Goal "x+(y+z)=y+((x+z)::nat)";
+by (rtac (add_commute RS trans) 1);
+by (rtac (add_assoc RS trans) 1);
+by (rtac (add_commute RS arg_cong) 1);
+qed "add_left_commute";
 
 (*Addition is an AC-operator*)
 val add_ac = [add_assoc, add_commute, add_left_commute];
@@ -264,13 +277,16 @@ qed "add_le_mono";
 (*** Multiplication ***)
 
 (*right annihilation in product*)
-qed_goal "mult_0_right" thy "m * 0 = 0"
- (fn _ => [induct_tac "m" 1, ALLGOALS Asm_simp_tac]);
+Goal "m * 0 = 0";
+by (induct_tac "m" 1);
+by (ALLGOALS Asm_simp_tac);
+qed "mult_0_right";
 
 (*right successor law for multiplication*)
-qed_goal "mult_Suc_right" thy  "m * Suc(n) = m + (m * n)"
- (fn _ => [induct_tac "m" 1,
-           ALLGOALS(asm_simp_tac (simpset() addsimps add_ac))]);
+Goal  "m * Suc(n) = m + (m * n)";
+by (induct_tac "m" 1);
+by (ALLGOALS(asm_simp_tac (simpset() addsimps add_ac)));
+qed "mult_Suc_right";
 
 Addsimps [mult_0_right, mult_Suc_right];
 
@@ -283,26 +299,35 @@ by (Asm_simp_tac 1);
 qed "mult_1_right";
 
 (*Commutative law for multiplication*)
-qed_goal "mult_commute" thy "m * n = n * (m::nat)"
- (fn _ => [induct_tac "m" 1, ALLGOALS Asm_simp_tac]);
+Goal "m * n = n * (m::nat)";
+by (induct_tac "m" 1);
+by (ALLGOALS Asm_simp_tac);
+qed "mult_commute";
 
 (*addition distributes over multiplication*)
-qed_goal "add_mult_distrib" thy "(m + n)*k = (m*k) + ((n*k)::nat)"
- (fn _ => [induct_tac "m" 1,
-           ALLGOALS(asm_simp_tac (simpset() addsimps add_ac))]);
+Goal "(m + n)*k = (m*k) + ((n*k)::nat)";
+by (induct_tac "m" 1);
+by (ALLGOALS(asm_simp_tac (simpset() addsimps add_ac)));
+qed "add_mult_distrib";
 
-qed_goal "add_mult_distrib2" thy "k*(m + n) = (k*m) + ((k*n)::nat)"
- (fn _ => [induct_tac "m" 1,
-           ALLGOALS(asm_simp_tac (simpset() addsimps add_ac))]);
+Goal "k*(m + n) = (k*m) + ((k*n)::nat)";
+by (induct_tac "m" 1);
+by (ALLGOALS(asm_simp_tac (simpset() addsimps add_ac)));
+qed "add_mult_distrib2";
 
 (*Associative law for multiplication*)
-qed_goal "mult_assoc" thy "(m * n) * k = m * ((n * k)::nat)"
-  (fn _ => [induct_tac "m" 1, 
-            ALLGOALS (asm_simp_tac (simpset() addsimps [add_mult_distrib]))]);
+Goal "(m * n) * k = m * ((n * k)::nat)";
+by (induct_tac "m" 1);
+by (ALLGOALS (asm_simp_tac (simpset() addsimps [add_mult_distrib])));
+qed "mult_assoc";
 
-qed_goal "mult_left_commute" thy "x*(y*z) = y*((x*z)::nat)"
- (fn _ => [rtac trans 1, rtac mult_commute 1, rtac trans 1,
-           rtac mult_assoc 1, rtac (mult_commute RS arg_cong) 1]);
+Goal "x*(y*z) = y*((x*z)::nat)";
+by (rtac trans 1);
+by (rtac mult_commute 1);
+by (rtac trans 1);
+by (rtac mult_assoc 1);
+by (rtac (mult_commute RS arg_cong) 1);
+qed "mult_left_commute";
 
 val mult_ac = [mult_assoc,mult_commute,mult_left_commute];
 
@@ -322,9 +347,11 @@ qed "le_square";
 
 (*** Difference ***)
 
+Goal "m - m = 0";
+by (induct_tac "m" 1);
+by (ALLGOALS Asm_simp_tac);
+qed "diff_self_eq_0";
 
-qed_goal "diff_self_eq_0" thy "m - m = 0"
- (fn _ => [induct_tac "m" 1, ALLGOALS Asm_simp_tac]);
 Addsimps [diff_self_eq_0];
 
 (*Addition is the inverse of subtraction: if n<=m then n+(m-n) = m. *)

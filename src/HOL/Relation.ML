@@ -207,14 +207,14 @@ Goalw [Domain_def] "a: Domain(r) = (EX y. (a,y): r)";
 by (Blast_tac 1);
 qed "Domain_iff";
 
-qed_goal "DomainI" thy "!!a b r. (a,b): r ==> a: Domain(r)"
- (fn _ => [ (etac (exI RS (Domain_iff RS iffD2)) 1) ]);
+Goal "(a,b): r ==> a: Domain(r)";
+by (etac (exI RS (Domain_iff RS iffD2)) 1) ;
+qed "DomainI";
 
-qed_goal "DomainE" thy
-    "[| a : Domain(r);  !!y. (a,y): r ==> P |] ==> P"
- (fn prems=>
-  [ (rtac (Domain_iff RS iffD1 RS exE) 1),
-    (REPEAT (ares_tac prems 1)) ]);
+val prems= Goal "[| a : Domain(r);  !!y. (a,y): r ==> P |] ==> P";
+by (rtac (Domain_iff RS iffD1 RS exE) 1);
+by (REPEAT (ares_tac prems 1)) ;
+qed "DomainE";
 
 AddIs  [DomainI];
 AddSEs [DomainE];
@@ -298,22 +298,23 @@ overload_1st_set "Relation.op ^^";
 
 qed_goalw "Image_iff" thy [Image_def]
     "b : r^^A = (? x:A. (x,b):r)"
- (fn _ => [ Blast_tac 1 ]);
+ (fn _ => [(Blast_tac 1)]);
 
 qed_goalw "Image_singleton" thy [Image_def]
     "r^^{a} = {b. (a,b):r}"
- (fn _ => [ Blast_tac 1 ]);
+ (fn _ => [(Blast_tac 1)]);
 
-qed_goal "Image_singleton_iff" thy
-    "(b : r^^{a}) = ((a,b):r)"
- (fn _ => [ rtac (Image_iff RS trans) 1,
-            Blast_tac 1 ]);
+Goal
+    "(b : r^^{a}) = ((a,b):r)";
+by (rtac (Image_iff RS trans) 1);
+by (Blast_tac 1);
+qed "Image_singleton_iff";
 
 AddIffs [Image_singleton_iff];
 
-qed_goalw "ImageI" thy [Image_def]
-    "!!a b r. [| (a,b): r;  a:A |] ==> b : r^^A"
- (fn _ => [ (Blast_tac 1)]);
+Goalw [Image_def] "[| (a,b): r;  a:A |] ==> b : r^^A";
+by (Blast_tac 1);
+qed "ImageI";
 
 qed_goalw "ImageE" thy [Image_def]
     "[| b: r^^A;  !!x.[| (x,b): r;  x:A |] ==> P |] ==> P"
@@ -327,9 +328,10 @@ AddIs  [ImageI];
 AddSEs [ImageE];
 
 
-qed_goal "Image_empty" thy
-    "R^^{} = {}"
- (fn _ => [ Blast_tac 1 ]);
+Goal
+    "R^^{} = {}";
+by (Blast_tac 1);
+qed "Image_empty";
 
 Addsimps [Image_empty];
 
@@ -343,17 +345,18 @@ qed "Image_diag";
 
 Addsimps [Image_Id, Image_diag];
 
-qed_goal "Image_Int_subset" thy
-    "R ^^ (A Int B) <= R ^^ A Int R ^^ B"
- (fn _ => [ Blast_tac 1 ]);
+Goal "R ^^ (A Int B) <= R ^^ A Int R ^^ B";
+by (Blast_tac 1);
+qed "Image_Int_subset";
 
-qed_goal "Image_Un" thy "R ^^ (A Un B) = R ^^ A Un R ^^ B"
- (fn _ => [ Blast_tac 1 ]);
+Goal "R ^^ (A Un B) = R ^^ A Un R ^^ B";
+by (Blast_tac 1);
+qed "Image_Un";
 
-qed_goal "Image_subset" thy "!!A B r. r <= A Times B ==> r^^C <= B"
- (fn _ =>
-  [ (rtac subsetI 1),
-    (REPEAT (eresolve_tac [asm_rl, ImageE, subsetD RS SigmaD2] 1)) ]);
+Goal "r <= A Times B ==> r^^C <= B";
+by (rtac subsetI 1);
+by (REPEAT (eresolve_tac [asm_rl, ImageE, subsetD RS SigmaD2] 1)) ;
+qed "Image_subset";
 
 (*NOT suitable for rewriting*)
 Goal "r^^B = (UN y: B. r^^{y})";
