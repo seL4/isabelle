@@ -122,7 +122,8 @@ Goal "(#0::int) <= z ==> nat z * nat z' = nat (z*z')";
 by (case_tac "#0 <= z'" 1);
 by (subgoal_tac "z'*z <= #0" 2);
 by (rtac (neg_imp_zmult_nonpos_iff RS iffD2) 3);
-by Auto_tac;
+by (auto_tac (claset(),
+	      simpset() addsimps [zmult_commute]));
 by (subgoal_tac "#0 <= z*z'" 1);
 by (force_tac (claset() addDs [zmult_zle_mono1], simpset()) 2);
 by (rtac (inj_int RS injD) 1);
