@@ -6,15 +6,16 @@
 Executes all examples for Constructive Type Theory. 
 *)
 
-CTT_build_completed;    (*Cause examples to fail if CTT did*)
-
 writeln"Root file for CTT examples";
+
+CTT_build_completed;    (*Cause examples to fail if CTT did*)
 
 print_depth 2;  
 proof_timing := true;
-time_use "ex/typechk.ML";
-time_use "ex/elim.ML";
-time_use "ex/equal.ML";
-time_use "ex/synth.ML";
+time_use "typechk.ML";
+time_use "elim.ML";
+time_use "equal.ML";
+time_use "synth.ML";
 
+cd "..";
 maketest"END: Root file for CTT examples";

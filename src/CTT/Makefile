@@ -61,8 +61,8 @@ $(BIN)/Pure:
 
 test:	ex/ROOT.ML $(BIN)/CTT  $(EX_FILES) 
 	@case `basename "$(COMP)"` in \
-	poly*)	echo 'exit_use"ex/ROOT.ML"; quit();' | $(COMP) $(BIN)/CTT ;;\
-	sml*)	echo 'exit_use"ex/ROOT.ML";' | $(BIN)/CTT;;\
+	poly*)	echo 'exit_use_dir"ex"; quit();' | $(COMP) $(BIN)/CTT ;;\
+	sml*)	echo 'exit_use_dir"ex";' | $(BIN)/CTT;;\
 	*)	echo Bad value for ISABELLECOMP: \
 			\"$(COMP)\" is not poly or sml;;\
 	esac
