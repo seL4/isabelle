@@ -325,16 +325,22 @@ qed_goal "diff_self_eq_0" Arith.thy "m - m = 0"
 Addsimps [diff_self_eq_0];
 
 (*Addition is the inverse of subtraction: if n<=m then n+(m-n) = m. *)
-val [prem] = goal Arith.thy "[| ~ m<n |] ==> n+(m-n) = (m::nat)";
+val [prem] = goal Arith.thy "~ m<n ==> n+(m-n) = (m::nat)";
 by (rtac (prem RS rev_mp) 1);
 by (res_inst_tac [("m","m"),("n","n")] diff_induct 1);
-by (ALLGOALS (Asm_simp_tac));
+by (ALLGOALS Asm_simp_tac);
 qed "add_diff_inverse";
 
 Delsimps  [diff_Suc];
 
 
 (*** More results about difference ***)
+
+val [prem] = goal Arith.thy "n < Suc(m) ==> Suc(m)-n = Suc(m-n)";
+by (rtac (prem RS rev_mp) 1);
+by (res_inst_tac [("m","m"),("n","n")] diff_induct 1);
+by (ALLGOALS Asm_simp_tac);
+qed "Suc_diff_n";
 
 goal Arith.thy "m - n < Suc(m)";
 by (res_inst_tac [("m","m"),("n","n")] diff_induct 1);
@@ -347,6 +353,30 @@ by (res_inst_tac [("m","m"), ("n","n")] diff_induct 1);
 by (ALLGOALS Asm_simp_tac);
 qed "diff_le_self";
 
+goal Arith.thy "!!i::nat. i-j-k = i - (j+k)";
+by (res_inst_tac [("m","i"),("n","j")] diff_induct 1);
+by (ALLGOALS Asm_simp_tac);
+qed "diff_diff_left";
+
+(*This and the next few suggested by Florian Kammüller*)
+goal Arith.thy "!!i::nat. i-j-k = i-k-j";
+by (simp_tac (!simpset addsimps [diff_diff_left, add_commute]) 1);
+qed "diff_commute";
+
+goal Arith.thy "!!i j k:: nat. k<=j --> j<=i --> i - (j - k) = i - j + k";
+by (res_inst_tac [("m","i"),("n","j")] diff_induct 1);
+by (ALLGOALS Asm_simp_tac);
+by (asm_simp_tac
+    (!simpset addsimps [Suc_diff_n, le_imp_less_Suc, le_Suc_eq]) 1);
+by (simp_tac
+    (!simpset addsimps [add_diff_inverse, not_less_iff_le, add_commute]) 1);
+qed_spec_mp "diff_diff_right";
+
+goal Arith.thy "!!i j k:: nat. k<=j --> (i + j) - k = i + (j - k)";
+by (res_inst_tac [("m","j"),("n","k")] diff_induct 1);
+by (ALLGOALS Asm_simp_tac);
+qed_spec_mp "diff_add_assoc";
+
 goal Arith.thy "!!n::nat. (n+m) - n = m";
 by (induct_tac "n" 1);
 by (ALLGOALS Asm_simp_tac);
@@ -354,8 +384,7 @@ qed "diff_add_inverse";
 Addsimps [diff_add_inverse];
 
 goal Arith.thy "!!n::nat.(m+n) - n = m";
-by (res_inst_tac [("m1","m")] (add_commute RS ssubst) 1);
-by (REPEAT (ares_tac [diff_add_inverse] 1));
+by (simp_tac (!simpset addsimps [diff_add_assoc]) 1);
 qed "diff_add_inverse2";
 Addsimps [diff_add_inverse2];
 
@@ -363,7 +392,7 @@ val [prem] = goal Arith.thy "m < Suc(n) ==> m-n = 0";
 by (rtac (prem RS rev_mp) 1);
 by (res_inst_tac [("m","m"),("n","n")] diff_induct 1);
 by (asm_simp_tac (!simpset addsimps [less_Suc_eq]) 1);
-by (ALLGOALS (Asm_simp_tac));
+by (ALLGOALS Asm_simp_tac);
 qed "less_imp_diff_is_0";
 
 val prems = goal Arith.thy "m-n = 0  -->  n-m = 0  -->  m=n";
@@ -374,14 +403,8 @@ qed_spec_mp "diffs0_imp_equal";
 val [prem] = goal Arith.thy "m<n ==> 0<n-m";
 by (rtac (prem RS rev_mp) 1);
 by (res_inst_tac [("m","m"),("n","n")] diff_induct 1);
-by (ALLGOALS (Asm_simp_tac));
+by (ALLGOALS Asm_simp_tac);
 qed "less_imp_diff_positive";
-
-val [prem] = goal Arith.thy "n < Suc(m) ==> Suc(m)-n = Suc(m-n)";
-by (rtac (prem RS rev_mp) 1);
-by (res_inst_tac [("m","m"),("n","n")] diff_induct 1);
-by (ALLGOALS (Asm_simp_tac));
-qed "Suc_diff_n";
 
 goal Arith.thy "Suc(m)-n = (if m<n then 0 else Suc(m-n))";
 by (simp_tac (!simpset addsimps [less_imp_diff_is_0, not_less_eq, Suc_diff_n]

@@ -132,13 +132,13 @@ qed "finite_subset";
 
 goalw Finite.thy [finite_def] "finite(F Un G) = (finite F & finite G)";
 by (Simp_tac 1);
-qed "subset_finite";
-Addsimps[subset_finite];
+qed "finite_Un_eq";
+Addsimps[finite_Un_eq];
 
 goalw Finite.thy [finite_def] "finite(insert a A) = finite(A)";
 by (Simp_tac 1);
-qed "insert_finite";
-Addsimps[insert_finite];
+qed "finite_insert";
+Addsimps[finite_insert];
 
 (* finite B ==> finite (B - Ba) *)
 bind_thm ("finite_Diff", Diff_subset RS finite_subset);
@@ -291,11 +291,46 @@ goalw Finite.thy [card_def]
 by (etac lemma 1);
 by (assume_tac 1);
 qed "card_insert_disjoint";
+Addsimps [card_insert_disjoint];
+
+goal Finite.thy  "!!A. finite A ==> !B. B <= A --> card(B) <= card(A)";
+by (etac finite_induct 1);
+by (Simp_tac 1);
+by (strip_tac 1);
+by (case_tac "x:B" 1);
+ by (dtac mk_disjoint_insert 1);
+ by (SELECT_GOAL(safe_tac (!claset))1);
+ by (rotate_tac ~1 1);
+ by (asm_full_simp_tac (!simpset addsimps [subset_insert_iff,finite_subset]) 1);
+by (rotate_tac ~1 1);
+by (asm_full_simp_tac (!simpset addsimps [subset_insert_iff,finite_subset]) 1);
+qed_spec_mp "card_mono";
+
+goal Finite.thy "!!A B. [| finite A; finite B |]\
+\                       ==> A Int B = {} --> card(A Un B) = card A + card B";
+by (etac finite_induct 1);
+by (ALLGOALS 
+    (asm_simp_tac (!simpset addsimps [Un_insert_left, Int_insert_left]
+		            setloop split_tac [expand_if])));
+qed_spec_mp "card_Un_disjoint";
+
+goal Finite.thy "!!A. [| finite A; B<=A |] ==> card A - card B = card (A - B)";
+by (subgoal_tac "(A-B) Un B = A" 1);
+by (Blast_tac 2);
+br (add_right_cancel RS iffD1) 1;
+br (card_Un_disjoint RS subst) 1;
+be ssubst 4;
+by (Blast_tac 3);
+by (ALLGOALS 
+    (asm_simp_tac
+     (!simpset addsimps [add_commute, not_less_iff_le, 
+			 add_diff_inverse, card_mono, finite_subset])));
+qed "card_Diff_subset";
 
 goal Finite.thy "!!A. [| finite A; x: A |] ==> Suc(card(A-{x})) = card A";
 by (res_inst_tac [("t", "A")] (insert_Diff RS subst) 1);
 by (assume_tac 1);
-by (asm_simp_tac (!simpset addsimps [card_insert_disjoint]) 1);
+by (Asm_simp_tac 1);
 qed "card_Suc_Diff";
 
 goal Finite.thy "!!A. [| finite A; x: A |] ==> card(A-{x}) < card A";
@@ -331,19 +366,6 @@ by (Blast_tac 1);
 by (Blast_tac 1);
 qed_spec_mp "card_image";
 
-
-goal Finite.thy  "!!A. finite A ==> !B. B <= A --> card(B) <= card(A)";
-by (etac finite_induct 1);
-by (Simp_tac 1);
-by (strip_tac 1);
-by (case_tac "x:B" 1);
- by (dtac mk_disjoint_insert 1);
- by (SELECT_GOAL(safe_tac (!claset))1);
- by (rotate_tac ~1 1);
- by (asm_full_simp_tac (!simpset addsimps [subset_insert_iff,finite_subset]) 1);
-by (rotate_tac ~1 1);
-by (asm_full_simp_tac (!simpset addsimps [subset_insert_iff,finite_subset]) 1);
-qed_spec_mp "card_mono";
 
 goalw Finite.thy [psubset_def]
 "!!B. finite B ==> !A. A < B --> card(A) < card(B)";
