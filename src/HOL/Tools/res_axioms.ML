@@ -182,8 +182,8 @@ sig
 
 val clausify_axiom : Thm.thm -> ResClause.clause list
 val cnf_axiom : Thm.thm -> Thm.thm list
+val meta_cnf_axiom : Thm.thm -> Thm.thm list
 val cnf_elim : Thm.thm -> Thm.thm list
-val cnf_intro : Thm.thm -> Thm.thm list
 val cnf_rule : Thm.thm -> Thm.thm list
 val cnf_classical_rules_thy : Theory.theory -> Thm.thm list list * Thm.thm list
 val clausify_classical_rules_thy 
@@ -232,15 +232,11 @@ fun skolem_axiom thm =
     end;
 
 
-fun isa_cls thm = map zero_var_indexes (make_clauses [skolem_axiom thm])
+fun isa_cls thm = make_clauses [skolem_axiom thm]
 
 fun cnf_elim thm = isa_cls (transform_elim thm);
 
-val cnf_intro = isa_cls;
 val cnf_rule = isa_cls;	
-
-
-fun is_introR thm = true;
 
 
 
@@ -264,11 +260,12 @@ fun rm_redundant_cls [] = []
 (* transform an Isabelle thm into CNF *)
 fun cnf_axiom thm =
     let val thm' = transfer_to_Reconstruction thm
-	val thm'' = if (is_elimR thm') then (cnf_elim thm')
-		    else (if (is_introR thm') then cnf_intro thm' else cnf_rule thm')
+	val thm'' = if (is_elimR thm') then (cnf_elim thm')  else cnf_rule thm'
     in
 	rm_redundant_cls thm''
     end;
+
+fun meta_cnf_axiom thm = map (zero_var_indexes o make_meta_clause) (cnf_axiom thm);
 
 
 (* changed: with one extra case added *)

@@ -101,12 +101,13 @@ fun factor x = syntax ((Scan.lift (Args.nat -- Args.nat)) >> factor_syntax) x;
   as the second to last premises of the result.*)
 val rev_subst = rotate_prems 1 subst;
 
-fun paramod_rule ((cl1, lit1), (cl2 , lit2)) =
+fun paramod_rule ((cl1, lit1), (cl2, lit2)) =
     let  val eq_lit_th = select_literal (lit1+1) cl1
          val mod_lit_th = select_literal (lit2+1) cl2
          val eqsubst = eq_lit_th RSN (2,rev_subst)
          val newth = Seq.hd (biresolution false [(false, mod_lit_th)] 1 eqsubst)
-    in negated_asm_of_head newth end;
+         val newth' = Seq.hd (flexflex_rule newth)
+    in negated_asm_of_head newth' end;
 
 
 fun paramod_syntax ((i, B), j) (x, A) = (x, paramod_rule ((A,i), (B,j)));
@@ -121,14 +122,13 @@ val paramod_local = gen_paramod local_thm;
 
 fun demod_rule ((cl1, lit1), (cl2 , lit2)) = 
     let  val eq_lit_th = select_literal (lit1+1) cl1
-         val offset = #maxidx(rep_thm eq_lit_th) + 1
-	     (*ensures "renaming apart" even when Vars are frozen*)
          val mod_lit_th = select_literal (lit2+1) cl2
 	 val (fmod_th,thaw) = Drule.freeze_thaw_robust mod_lit_th
          val eqsubst = eq_lit_th RSN (2,rev_subst)
          val newth = Seq.hd(biresolution false [(false, fmod_th)] 1 eqsubst)
-    in negated_asm_of_head (thaw offset newth) end
-    handle _ => raise THM ("select_literal", lit1, [cl1,cl2]);
+         val offset = #maxidx(rep_thm newth) + 1
+	                  (*ensures "renaming apart" even when Vars are frozen*)
+    in negated_asm_of_head (thaw offset newth) end;
 
 fun demod_syntax ((i, B), j) (x, A) = (x, demod_rule ((A,i), (B,j)));
 
@@ -147,21 +147,21 @@ local
 
   fun memo_cnf th =
     case Thm.name_of_thm th of
-        "" => ResAxioms.cnf_axiom th (*no name, so can't cache*)
+        "" => ResAxioms.meta_cnf_axiom th (*no name, so can't cache*)
       | s  => case Symtab.lookup (!cc,s) of
       	        None => 
-      	        	let val cls = ResAxioms.cnf_axiom th
+      	        	let val cls = ResAxioms.meta_cnf_axiom th
       	        	in  cc := Symtab.update ((s, (th,cls)), !cc); cls
       	        	end
       	      | Some(th',cls) =>
       	      	    if eq_thm(th,th') then cls
       	      	    else (*New theorem stored under the same name? Possible??*)
-      	      	      let val cls = ResAxioms.cnf_axiom th
+      	      	      let val cls = ResAxioms.meta_cnf_axiom th
       	        	  in  cc := Symtab.update ((s, (th,cls)), !cc); cls
       	        	  end;
 
 in
-fun clausify_rule (A,i) = make_meta_clause (List.nth(memo_cnf A,i))
+fun clausify_rule (A,i) = List.nth (memo_cnf A,i)
 end;
 
 fun clausify_syntax i (x, A) = (x, clausify_rule (A,i));
