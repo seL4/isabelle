@@ -12,6 +12,8 @@ theory Ssum
 imports Cfun
 begin
 
+subsection {* Definition of strict sum type *}
+
 constdefs
   Sinl_Rep      :: "['a,'a,'b,bool]=>bool"
  "Sinl_Rep == (%a.%x y p. (a~=UU --> x=a & p))"
@@ -32,7 +34,7 @@ consts
   Isinr         :: "'b => ('a ++ 'b)"
   Iwhen         :: "('a->'c)=>('b->'c)=>('a ++ 'b)=> 'c"
 
-defs   (*defining the abstract constants*)
+defs   -- {*defining the abstract constants*}
   Isinl_def:     "Isinl(a) == Abs_Ssum(Sinl_Rep(a))"
   Isinr_def:     "Isinr(b) == Abs_Ssum(Sinr_Rep(b))"
 
@@ -41,55 +43,40 @@ defs   (*defining the abstract constants*)
                         &(!a. a~=UU & s=Isinl(a) --> z=f$a)  
                         &(!b. b~=UU & s=Isinr(b) --> z=g$b)"  
 
-(* ------------------------------------------------------------------------ *)
-(* A non-emptyness result for Sssum                                         *)
-(* ------------------------------------------------------------------------ *)
+text {* A non-emptiness result for Ssum *}
 
 lemma SsumIl: "Sinl_Rep(a):Ssum"
-apply (unfold Ssum_def)
-apply blast
-done
+by (unfold Ssum_def) blast
 
 lemma SsumIr: "Sinr_Rep(a):Ssum"
-apply (unfold Ssum_def)
-apply blast
-done
+by (unfold Ssum_def) blast
 
 lemma inj_on_Abs_Ssum: "inj_on Abs_Ssum Ssum"
 apply (rule inj_on_inverseI)
 apply (erule Abs_Ssum_inverse)
 done
 
-(* ------------------------------------------------------------------------ *)
-(* Strictness of Sinr_Rep, Sinl_Rep and Isinl, Isinr                        *)
-(* ------------------------------------------------------------------------ *)
+text {* Strictness of @{term Sinr_Rep}, @{term Sinl_Rep} and @{term Isinl}, @{term Isinr} *}
 
 lemma strict_SinlSinr_Rep: 
  "Sinl_Rep(UU) = Sinr_Rep(UU)"
 apply (unfold Sinr_Rep_def Sinl_Rep_def)
-apply (rule ext)
-apply (rule ext)
-apply (rule ext)
+apply (rule ext)+
 apply fast
 done
 
-lemma strict_IsinlIsinr: 
- "Isinl(UU) = Isinr(UU)"
+lemma strict_IsinlIsinr: "Isinl(UU) = Isinr(UU)"
 apply (unfold Isinl_def Isinr_def)
 apply (rule strict_SinlSinr_Rep [THEN arg_cong])
 done
 
-
-(* ------------------------------------------------------------------------ *)
-(* distinctness of  Sinl_Rep, Sinr_Rep and Isinl, Isinr                     *)
-(* ------------------------------------------------------------------------ *)
+text {* distinctness of @{term Sinl_Rep}, @{term Sinr_Rep} and @{term Isinl}, @{term Isinr} *}
 
 lemma noteq_SinlSinr_Rep: 
         "(Sinl_Rep(a) = Sinr_Rep(b)) ==> a=UU & b=UU"
 apply (unfold Sinl_Rep_def Sinr_Rep_def)
 apply (blast dest!: fun_cong)
 done
-
 
 lemma noteq_IsinlIsinr: 
         "Isinl(a)=Isinr(b) ==> a=UU & b=UU"
@@ -100,11 +87,7 @@ apply (rule SsumIl)
 apply (rule SsumIr)
 done
 
-
-
-(* ------------------------------------------------------------------------ *)
-(* injectivity of Sinl_Rep, Sinr_Rep and Isinl, Isinr                       *)
-(* ------------------------------------------------------------------------ *)
+text {* injectivity of @{term Sinl_Rep}, @{term Sinr_Rep} and @{term Isinl}, @{term Isinr} *}
 
 lemma inject_Sinl_Rep1: "(Sinl_Rep(a) = Sinl_Rep(UU)) ==> a=UU"
 apply (unfold Sinl_Rep_def)
@@ -173,19 +156,17 @@ apply (rule SsumIr)
 done
 
 declare inject_Isinl [dest!] inject_Isinr [dest!]
+declare noteq_IsinlIsinr [dest!]
+declare noteq_IsinlIsinr [OF sym, dest!]
 
 lemma inject_Isinl_rev: "a1~=a2 ==> Isinl(a1) ~= Isinl(a2)"
-apply blast
-done
+by blast
 
 lemma inject_Isinr_rev: "b1~=b2 ==> Isinr(b1) ~= Isinr(b2)"
-apply blast
-done
+by blast
 
-(* ------------------------------------------------------------------------ *)
-(* Exhaustion of the strict sum ++                                          *)
-(* choice of the bottom representation is arbitrary                         *)
-(* ------------------------------------------------------------------------ *)
+text {* Exhaustion of the strict sum @{typ "'a ++ 'b"} *}
+text {* choice of the bottom representation is arbitrary *}
 
 lemma Exh_Ssum: 
         "z=Isinl(UU) | (? a. z=Isinl(a) & a~=UU) | (? b. z=Isinr(b) & b~=UU)"
@@ -227,9 +208,7 @@ apply (erule arg_cong)
 apply (erule arg_cong)
 done
 
-(* ------------------------------------------------------------------------ *)
-(* elimination rules for the strict sum ++                                  *)
-(* ------------------------------------------------------------------------ *)
+text {* elimination rules for the strict sum @{typ "'a ++ 'b"} *}
 
 lemma IssumE:
         "[|p=Isinl(UU) ==> Q ; 
@@ -245,12 +224,7 @@ apply (rule IssumE)
 apply auto
 done
 
-
-
-
-(* ------------------------------------------------------------------------ *)
-(* rewrites for Iwhen                                                       *)
-(* ------------------------------------------------------------------------ *)
+text {* rewrites for @{term Iwhen} *}
 
 lemma Iwhen1: 
         "Iwhen f g (Isinl UU) = UU"
@@ -325,17 +299,15 @@ apply (rule inject_Isinr)
 apply fast
 done
 
-(* ------------------------------------------------------------------------ *)
-(* instantiate the simplifier                                               *)
-(* ------------------------------------------------------------------------ *)
+text {* instantiate the simplifier *}
 
 lemmas Ssum0_ss = strict_IsinlIsinr[symmetric] Iwhen1 Iwhen2 Iwhen3
 
 declare Ssum0_ss [simp]
 
-(* Partial ordering for the strict sum ++ *)
+subsection {* Ordering for type @{typ "'a ++ 'b"} *}
 
-instance "++"::(pcpo,pcpo)sq_ord ..
+instance "++"::(pcpo, pcpo) sq_ord ..
 
 defs (overloaded)
   less_ssum_def: "(op <<) == (%s1 s2.@z.
@@ -348,113 +320,23 @@ lemma less_ssum1a:
 "[|s1=Isinl(x::'a); s2=Isinl(y::'a)|] ==> s1 << s2 = (x << y)"
 apply (unfold less_ssum_def)
 apply (rule some_equality)
-apply (drule_tac [2] conjunct1)
-apply (drule_tac [2] spec)
-apply (drule_tac [2] spec)
-apply (erule_tac [2] mp)
-prefer 2 apply fast
-apply (rule conjI)
-apply (intro strip)
-apply (erule conjE)
-apply simp
-apply (drule inject_Isinl)
-apply (drule inject_Isinl)
-apply simp
-apply (rule conjI)
-apply (intro strip)
-apply (erule conjE)
-apply simp
-apply (drule noteq_IsinlIsinr[OF sym])
-apply simp
-apply (rule conjI)
-apply (intro strip)
-apply (erule conjE)
-apply simp
-apply (drule inject_Isinl)
-apply (drule noteq_IsinlIsinr[OF sym])
-apply simp
-apply (rule eq_UU_iff[symmetric])
-apply (intro strip)
-apply (erule conjE)
-apply simp
-apply (drule noteq_IsinlIsinr[OF sym])
-apply simp
+prefer 2 apply simp
+apply (safe elim!: UU_I)
 done
-
 
 lemma less_ssum1b: 
 "[|s1=Isinr(x::'b); s2=Isinr(y::'b)|] ==> s1 << s2 = (x << y)"
 apply (unfold less_ssum_def)
 apply (rule some_equality)
-apply (drule_tac [2] conjunct2)
-apply (drule_tac [2] conjunct1)
-apply (drule_tac [2] spec)
-apply (drule_tac [2] spec)
-apply (erule_tac [2] mp)
-prefer 2 apply fast
-apply (rule conjI)
-apply (intro strip)
-apply (erule conjE)
-apply simp
-apply (drule noteq_IsinlIsinr)
-apply (drule noteq_IsinlIsinr)
-apply simp
-apply (rule conjI)
-apply (intro strip)
-apply (erule conjE)
-apply simp
-apply (drule inject_Isinr)
-apply (drule inject_Isinr)
-apply simp
-apply (rule conjI)
-apply (intro strip)
-apply (erule conjE)
-apply simp
-apply (drule noteq_IsinlIsinr)
-apply (drule inject_Isinr)
-apply simp
-apply (intro strip)
-apply (erule conjE)
-apply simp
-apply (drule inject_Isinr)
-apply (drule noteq_IsinlIsinr)
-apply simp
-apply (rule eq_UU_iff[symmetric])
+prefer 2 apply simp
+apply (safe elim!: UU_I)
 done
-
 
 lemma less_ssum1c: 
 "[|s1=Isinl(x::'a); s2=Isinr(y::'b)|] ==> s1 << s2 = ((x::'a) = UU)"
 apply (unfold less_ssum_def)
 apply (rule some_equality)
-apply (rule conjI)
-apply (intro strip)
-apply (erule conjE)
-apply simp
-apply (drule inject_Isinl)
-apply (drule noteq_IsinlIsinr)
-apply simp
-apply (rule eq_UU_iff)
-apply (rule conjI)
-apply (intro strip)
-apply (erule conjE)
-apply simp
-apply (drule noteq_IsinlIsinr[OF sym])
-apply (drule inject_Isinr)
-apply simp
-apply (rule conjI)
-apply (intro strip)
-apply (erule conjE)
-apply simp
-apply (drule inject_Isinl)
-apply (drule inject_Isinr)
-apply simp
-apply (intro strip)
-apply (erule conjE)
-apply simp
-apply (drule noteq_IsinlIsinr[OF sym])
-apply (drule noteq_IsinlIsinr)
-apply simp
+prefer 2
 apply (drule conjunct2)
 apply (drule conjunct2)
 apply (drule conjunct1)
@@ -462,53 +344,25 @@ apply (drule spec)
 apply (drule spec)
 apply (erule mp)
 apply fast
+apply (safe elim!: UU_I)
 done
-
 
 lemma less_ssum1d: 
 "[|s1=Isinr(x); s2=Isinl(y)|] ==> s1 << s2 = (x = UU)"
 apply (unfold less_ssum_def)
 apply (rule some_equality)
-apply (drule_tac [2] conjunct2)
-apply (drule_tac [2] conjunct2)
-apply (drule_tac [2] conjunct2)
-apply (drule_tac [2] spec)
-apply (drule_tac [2] spec)
-apply (erule_tac [2] mp)
-prefer 2 apply fast
-apply (rule conjI)
-apply (intro strip)
-apply (erule conjE)
-apply simp
-apply (drule noteq_IsinlIsinr)
-apply (drule inject_Isinl)
-apply simp
-apply (rule conjI)
-apply (intro strip)
-apply (erule conjE)
-apply simp
-apply (drule noteq_IsinlIsinr[OF sym])
-apply (drule inject_Isinr)
-apply simp
-apply (rule eq_UU_iff)
-apply (rule conjI)
-apply (intro strip)
-apply (erule conjE)
-apply simp
-apply (drule noteq_IsinlIsinr)
-apply (drule noteq_IsinlIsinr[OF sym])
-apply simp
-apply (intro strip)
-apply (erule conjE)
-apply simp
-apply (drule inject_Isinr)
-apply simp
+prefer 2
+apply (drule conjunct2)
+apply (drule conjunct2)
+apply (drule conjunct2)
+apply (drule spec)
+apply (drule spec)
+apply (erule mp)
+apply fast
+apply (safe elim!: UU_I)
 done
 
-
-(* ------------------------------------------------------------------------ *)
-(* optimize lemmas about less_ssum                                          *)
-(* ------------------------------------------------------------------------ *)
+text {* optimize lemmas about @{term less_ssum} *}
 
 lemma less_ssum2a: "(Isinl x) << (Isinl y) = (x << y)"
 apply (rule less_ssum1a)
@@ -534,19 +388,12 @@ apply (rule refl)
 apply (rule refl)
 done
 
-
-(* ------------------------------------------------------------------------ *)
-(* less_ssum is a partial order on ++                                     *)
-(* ------------------------------------------------------------------------ *)
+subsection {* Type @{typ "'a ++ 'b"} is a partial order *}
 
 lemma refl_less_ssum: "(p::'a++'b) << p"
 apply (rule_tac p = "p" in IssumE2)
-apply (erule ssubst)
-apply (rule less_ssum2a [THEN iffD2])
-apply (rule refl_less)
-apply (erule ssubst)
-apply (rule less_ssum2b [THEN iffD2])
-apply (rule refl_less)
+apply (simp add: less_ssum2a)
+apply (simp add: less_ssum2b)
 done
 
 lemma antisym_less_ssum: "[|(p1::'a++'b) << p2; p2 << p1|] ==> p1=p2"
@@ -625,16 +472,11 @@ apply (erule less_ssum2b [THEN iffD1])
 apply (erule less_ssum2b [THEN iffD1])
 done
 
-(* Class Instance ++::(pcpo,pcpo)po *)
+instance "++" :: (pcpo, pcpo) po
+by intro_classes
+  (assumption | rule refl_less_ssum antisym_less_ssum trans_less_ssum)+
 
-instance "++"::(pcpo,pcpo)po
-apply (intro_classes)
-apply (rule refl_less_ssum)
-apply (rule antisym_less_ssum, assumption+)
-apply (rule trans_less_ssum, assumption+)
-done
-
-(* for compatibility with old HOLCF-Version *)
+text {* for compatibility with old HOLCF-Version *}
 lemma inst_ssum_po: "(op <<)=(%s1 s2.@z.
          (! u x. s1=Isinl u & s2=Isinl x --> z = u << x)
         &(! v y. s1=Isinr v & s2=Isinr y --> z = v << y)
@@ -644,38 +486,16 @@ apply (fold less_ssum_def)
 apply (rule refl)
 done
 
-(* ------------------------------------------------------------------------ *)
-(* access to less_ssum in class po                                          *)
-(* ------------------------------------------------------------------------ *)
-
-lemma less_ssum3a: "Isinl x << Isinl y = x << y"
-apply (simp (no_asm) add: less_ssum2a)
-done
-
-lemma less_ssum3b: "Isinr x << Isinr y = x << y"
-apply (simp (no_asm) add: less_ssum2b)
-done
-
-lemma less_ssum3c: "Isinl x << Isinr y = (x = UU)"
-apply (simp (no_asm) add: less_ssum2c)
-done
-
-lemma less_ssum3d: "Isinr x << Isinl y = (x = UU)"
-apply (simp (no_asm) add: less_ssum2d)
-done
-
-(* ------------------------------------------------------------------------ *)
-(* type ssum ++ is pointed                                                  *)
-(* ------------------------------------------------------------------------ *)
+subsection {* Type @{typ "'a ++ 'b"} is pointed *}
 
 lemma minimal_ssum: "Isinl UU << s"
 apply (rule_tac p = "s" in IssumE2)
 apply simp
-apply (rule less_ssum3a [THEN iffD2])
+apply (rule less_ssum2a [THEN iffD2])
 apply (rule minimal)
 apply simp
 apply (subst strict_IsinlIsinr)
-apply (rule less_ssum3b [THEN iffD2])
+apply (rule less_ssum2b [THEN iffD2])
 apply (rule minimal)
 done
 
@@ -686,35 +506,22 @@ apply (rule_tac x = "Isinl UU" in exI)
 apply (rule minimal_ssum [THEN allI])
 done
 
-(* ------------------------------------------------------------------------ *)
-(* Isinl, Isinr are monotone                                                *)
-(* ------------------------------------------------------------------------ *)
+subsection {* Monotonicity of @{term Isinl}, @{term Isinr}, @{term Iwhen} *}
+
+text {* @{term Isinl} and @{term Isinr} are monotone *}
 
 lemma monofun_Isinl: "monofun(Isinl)"
-apply (unfold monofun)
-apply (intro strip)
-apply (erule less_ssum3a [THEN iffD2])
-done
+by (simp add: monofun less_ssum2a)
 
 lemma monofun_Isinr: "monofun(Isinr)"
-apply (unfold monofun)
-apply (intro strip)
-apply (erule less_ssum3b [THEN iffD2])
-done
+by (simp add: monofun less_ssum2b)
 
-
-(* ------------------------------------------------------------------------ *)
-(* Iwhen is monotone in all arguments                                       *)
-(* ------------------------------------------------------------------------ *)
-
+text {* @{term Iwhen} is monotone in all arguments *}
 
 lemma monofun_Iwhen1: "monofun(Iwhen)"
-apply (unfold monofun)
-apply (intro strip)
-apply (rule less_fun [THEN iffD2])
-apply (intro strip)
-apply (rule less_fun [THEN iffD2])
-apply (intro strip)
+apply (rule monofunI [rule_format])
+apply (rule less_fun [THEN iffD2, rule_format])
+apply (rule less_fun [THEN iffD2, rule_format])
 apply (rule_tac p = "xb" in IssumE)
 apply simp
 apply simp
@@ -723,10 +530,8 @@ apply simp
 done
 
 lemma monofun_Iwhen2: "monofun(Iwhen(f))"
-apply (unfold monofun)
-apply (intro strip)
-apply (rule less_fun [THEN iffD2])
-apply (intro strip)
+apply (rule monofunI [rule_format])
+apply (rule less_fun [THEN iffD2, rule_format])
 apply (rule_tac p = "xa" in IssumE)
 apply simp
 apply simp
@@ -735,8 +540,7 @@ apply (erule monofun_cfun_fun)
 done
 
 lemma monofun_Iwhen3: "monofun(Iwhen(f)(g))"
-apply (unfold monofun)
-apply (intro strip)
+apply (rule monofunI [rule_format])
 apply (rule_tac p = "x" in IssumE)
 apply simp
 apply (rule_tac p = "y" in IssumE)
@@ -744,32 +548,28 @@ apply simp
 apply (rule_tac P = "xa=UU" in notE)
 apply assumption
 apply (rule UU_I)
-apply (rule less_ssum3a [THEN iffD1])
+apply (rule less_ssum2a [THEN iffD1])
 apply assumption
 apply simp
 apply (rule monofun_cfun_arg)
-apply (erule less_ssum3a [THEN iffD1])
+apply (erule less_ssum2a [THEN iffD1])
 apply (simp del: Iwhen2)
 apply (rule_tac s = "UU" and t = "xa" in subst)
-apply (erule less_ssum3c [THEN iffD1, symmetric])
+apply (erule less_ssum2c [THEN iffD1, symmetric])
 apply simp
 apply (rule_tac p = "y" in IssumE)
 apply simp
-apply (simp only: less_ssum3d)
-apply (simp only: less_ssum3d)
+apply (simp only: less_ssum2d)
+apply (simp only: less_ssum2d)
 apply simp
 apply (rule monofun_cfun_arg)
-apply (erule less_ssum3b [THEN iffD1])
+apply (erule less_ssum2b [THEN iffD1])
 done
 
-
-(* ------------------------------------------------------------------------ *)
-(* some kind of exhaustion rules for chains in 'a ++ 'b                     *)
-(* ------------------------------------------------------------------------ *)
+text {* some kind of exhaustion rules for chains in @{typ "'a ++ 'b"} *}
 
 lemma ssum_lemma1: "[|~(!i.? x. Y(i::nat)=Isinl(x))|] ==> (? i.! x. Y(i)~=Isinl(x))"
-apply fast
-done
+by fast
 
 lemma ssum_lemma2: "[|(? i.!x.(Y::nat => 'a++'b)(i::nat)~=Isinl(x::'a))|]   
       ==> (? i y. (Y::nat => 'a++'b)(i::nat)=Isinr(y::'b) & y~=UU)"
@@ -781,7 +581,6 @@ apply (drule spec)
 apply (erule notE, assumption)
 apply fast
 done
-
 
 lemma ssum_lemma3: "[|chain(Y);(? i x. Y(i)=Isinr(x::'b) & (x::'b)~=UU)|]  
       ==> (!i.? y. Y(i)=Isinr(y))"
@@ -799,13 +598,13 @@ apply (rule_tac m = "i" and n = "ia" in nat_less_cases)
 prefer 2 apply simp
 apply (rule exI, rule refl)
 apply (erule_tac P = "x=UU" in notE)
-apply (rule less_ssum3d [THEN iffD1])
+apply (rule less_ssum2d [THEN iffD1])
 apply (erule_tac s = "Y (i) " and t = "Isinr (x) ::'a++'b" in subst)
 apply (erule_tac s = "Y (ia) " and t = "Isinl (xa) ::'a++'b" in subst)
 apply (erule chain_mono)
 apply assumption
 apply (erule_tac P = "xa=UU" in notE)
-apply (rule less_ssum3c [THEN iffD1])
+apply (rule less_ssum2c [THEN iffD1])
 apply (erule_tac s = "Y (i) " and t = "Isinr (x) ::'a++'b" in subst)
 apply (erule_tac s = "Y (ia) " and t = "Isinl (xa) ::'a++'b" in subst)
 apply (erule chain_mono)
@@ -821,10 +620,7 @@ apply (rule ssum_lemma2)
 apply (erule ssum_lemma1)
 done
 
-
-(* ------------------------------------------------------------------------ *)
-(* restricted surjectivity of Isinl                                         *)
-(* ------------------------------------------------------------------------ *)
+text {* restricted surjectivity of @{term Isinl} *}
 
 lemma ssum_lemma5: "z=Isinl(x)==> Isinl((Iwhen (LAM x. x) (LAM y. UU))(z)) = z"
 apply simp
@@ -833,9 +629,7 @@ apply simp
 apply simp
 done
 
-(* ------------------------------------------------------------------------ *)
-(* restricted surjectivity of Isinr                                         *)
-(* ------------------------------------------------------------------------ *)
+text {* restricted surjectivity of @{term Isinr} *}
 
 lemma ssum_lemma6: "z=Isinr(x)==> Isinr((Iwhen (LAM y. UU) (LAM x. x))(z)) = z"
 apply simp
@@ -844,21 +638,19 @@ apply simp
 apply simp
 done
 
-(* ------------------------------------------------------------------------ *)
-(* technical lemmas                                                         *)
-(* ------------------------------------------------------------------------ *)
+text {* technical lemmas *}
 
 lemma ssum_lemma7: "[|Isinl(x) << z; x~=UU|] ==> ? y. z=Isinl(y) & y~=UU"
 apply (rule_tac p = "z" in IssumE)
 apply simp
 apply (erule notE)
 apply (rule antisym_less)
-apply (erule less_ssum3a [THEN iffD1])
+apply (erule less_ssum2a [THEN iffD1])
 apply (rule minimal)
 apply fast
 apply simp
 apply (rule notE)
-apply (erule_tac [2] less_ssum3c [THEN iffD1])
+apply (erule_tac [2] less_ssum2c [THEN iffD1])
 apply assumption
 done
 
@@ -866,17 +658,15 @@ lemma ssum_lemma8: "[|Isinr(x) << z; x~=UU|] ==> ? y. z=Isinr(y) & y~=UU"
 apply (rule_tac p = "z" in IssumE)
 apply simp
 apply (erule notE)
-apply (erule less_ssum3d [THEN iffD1])
+apply (erule less_ssum2d [THEN iffD1])
 apply simp
 apply (rule notE)
-apply (erule_tac [2] less_ssum3d [THEN iffD1])
+apply (erule_tac [2] less_ssum2d [THEN iffD1])
 apply assumption
 apply fast
 done
 
-(* ------------------------------------------------------------------------ *)
-(* the type 'a ++ 'b is a cpo in three steps                                *)
-(* ------------------------------------------------------------------------ *)
+subsection {* Type @{typ "'a ++ 'b"} is a cpo in three steps *}
 
 lemma lub_ssum1a: "[|chain(Y);(!i.? x. Y(i)=Isinl(x))|] ==> 
       range(Y) <<| Isinl(lub(range(%i.(Iwhen (LAM x. x) (LAM y. UU))(Y i))))"
@@ -897,20 +687,19 @@ apply (rule is_lub_thelub)
 apply (erule monofun_Iwhen3 [THEN ch2ch_monofun])
 apply (erule monofun_Iwhen3 [THEN ub2ub_monofun])
 apply simp
-apply (rule less_ssum3c [THEN iffD2])
+apply (rule less_ssum2c [THEN iffD2])
 apply (rule chain_UU_I_inverse)
 apply (rule allI)
 apply (rule_tac p = "Y (i) " in IssumE)
 apply simp
 apply simp
 apply (erule notE)
-apply (rule less_ssum3c [THEN iffD1])
+apply (rule less_ssum2c [THEN iffD1])
 apply (rule_tac t = "Isinl (x) " in subst)
 apply assumption
 apply (erule ub_rangeD)
 apply simp
 done
-
 
 lemma lub_ssum1b: "[|chain(Y);(!i.? x. Y(i)=Isinr(x))|] ==> 
       range(Y) <<| Isinr(lub(range(%i.(Iwhen (LAM y. UU) (LAM x. x))(Y i))))"
@@ -925,14 +714,14 @@ apply (rule is_ub_thelub)
 apply (erule monofun_Iwhen3 [THEN ch2ch_monofun])
 apply (rule_tac p = "u" in IssumE2)
 apply simp
-apply (rule less_ssum3d [THEN iffD2])
+apply (rule less_ssum2d [THEN iffD2])
 apply (rule chain_UU_I_inverse)
 apply (rule allI)
 apply (rule_tac p = "Y (i) " in IssumE)
 apply simp
 apply simp
 apply (erule notE)
-apply (rule less_ssum3d [THEN iffD1])
+apply (rule less_ssum2d [THEN iffD1])
 apply (rule_tac t = "Isinr (y) " in subst)
 apply assumption
 apply (erule ub_rangeD)
@@ -943,7 +732,6 @@ apply (rule is_lub_thelub)
 apply (erule monofun_Iwhen3 [THEN ch2ch_monofun])
 apply (erule monofun_Iwhen3 [THEN ub2ub_monofun])
 done
-
 
 lemmas thelub_ssum1a = lub_ssum1a [THEN thelubI, standard]
 (*
@@ -970,13 +758,20 @@ apply (erule lub_ssum1b)
 apply assumption
 done
 
-(* Class instance of  ++ for class pcpo *)
+instance "++" :: (pcpo, pcpo) cpo
+by intro_classes (rule cpo_ssum)
 
-instance "++" :: (pcpo,pcpo)pcpo
-apply (intro_classes)
-apply (erule cpo_ssum)
-apply (rule least_ssum)
+instance "++" :: (pcpo, pcpo) pcpo
+by intro_classes (rule least_ssum)
+
+text {* for compatibility with old HOLCF-Version *}
+lemma inst_ssum_pcpo: "UU = Isinl UU"
+apply (simp add: UU_def UU_ssum_def)
 done
+
+declare inst_ssum_pcpo [symmetric, simp]
+
+subsection {* Continuous versions of constants *}
 
 consts  
         sinl    :: "'a -> ('a++'b)" 
@@ -992,16 +787,7 @@ sscase_def:      "sscase   == (LAM f g s. Iwhen(f)(g)(s))"
 translations
 "case s of sinl$x => t1 | sinr$y => t2" == "sscase$(LAM x. t1)$(LAM y. t2)$s"
 
-(* for compatibility with old HOLCF-Version *)
-lemma inst_ssum_pcpo: "UU = Isinl UU"
-apply (simp add: UU_def UU_ssum_def)
-done
-
-declare inst_ssum_pcpo [symmetric, simp]
-
-(* ------------------------------------------------------------------------ *)
-(* continuity for Isinl and Isinr                                           *)
-(* ------------------------------------------------------------------------ *)
+text {* continuity for @{term Isinl} and @{term Isinr} *}
 
 lemma contlub_Isinl: "contlub(Isinl)"
 apply (rule contlubI)
@@ -1063,24 +849,19 @@ apply (simp only: Ssum0_ss)
 apply simp
 done
 
-lemma cont_Isinl: "cont(Isinl)"
+lemma cont_Isinl [iff]: "cont(Isinl)"
 apply (rule monocontlub2cont)
 apply (rule monofun_Isinl)
 apply (rule contlub_Isinl)
 done
 
-lemma cont_Isinr: "cont(Isinr)"
+lemma cont_Isinr [iff]: "cont(Isinr)"
 apply (rule monocontlub2cont)
 apply (rule monofun_Isinr)
 apply (rule contlub_Isinr)
 done
 
-declare cont_Isinl [iff] cont_Isinr [iff]
-
-
-(* ------------------------------------------------------------------------ *)
-(* continuity for Iwhen in the firts two arguments                          *)
-(* ------------------------------------------------------------------------ *)
+text {* continuity for @{term Iwhen} in the first two arguments *}
 
 lemma contlub_Iwhen1: "contlub(Iwhen)"
 apply (rule contlubI)
@@ -1122,13 +903,9 @@ apply simp
 apply (erule contlub_cfun_fun)
 done
 
-(* ------------------------------------------------------------------------ *)
-(* continuity for Iwhen in its third argument                               *)
-(* ------------------------------------------------------------------------ *)
+text {* continuity for @{term Iwhen} in its third argument *}
 
-(* ------------------------------------------------------------------------ *)
-(* first 5 ugly lemmas                                                      *)
-(* ------------------------------------------------------------------------ *)
+text {* first 5 ugly lemmas *}
 
 lemma ssum_lemma9: "[| chain(Y); lub(range(Y)) = Isinl(x)|] ==> !i.? x. Y(i)=Isinl(x)"
 apply (intro strip)
@@ -1137,12 +914,11 @@ apply (erule exI)
 apply (erule exI)
 apply (rule_tac P = "y=UU" in notE)
 apply assumption
-apply (rule less_ssum3d [THEN iffD1])
+apply (rule less_ssum2d [THEN iffD1])
 apply (erule subst)
 apply (erule subst)
 apply (erule is_ub_thelub)
 done
-
 
 lemma ssum_lemma10: "[| chain(Y); lub(range(Y)) = Isinr(x)|] ==> !i.? x. Y(i)=Isinr(x)"
 apply (intro strip)
@@ -1153,7 +929,7 @@ apply (rule strict_IsinlIsinr)
 apply (erule_tac [2] exI)
 apply (rule_tac P = "xa=UU" in notE)
 apply assumption
-apply (rule less_ssum3c [THEN iffD1])
+apply (rule less_ssum2c [THEN iffD1])
 apply (erule subst)
 apply (erule subst)
 apply (erule is_ub_thelub)
@@ -1219,7 +995,6 @@ apply (erule monofun_Iwhen3 [THEN ch2ch_monofun])
 apply (erule monofun_Iwhen3 [THEN ch2ch_monofun])
 done
 
-
 lemma ssum_lemma13: "[| chain(Y); lub(range(Y)) = Isinr(x); x ~= UU |] ==> 
     Iwhen f g (lub(range Y)) = lub(range(%i. Iwhen f g (Y i)))"
 apply simp
@@ -1269,7 +1044,6 @@ apply (erule monofun_Iwhen3 [THEN ch2ch_monofun])
 apply (erule monofun_Iwhen3 [THEN ch2ch_monofun])
 done
 
-
 lemma contlub_Iwhen3: "contlub(Iwhen(f)(g))"
 apply (rule contlubI)
 apply (intro strip)
@@ -1302,9 +1076,7 @@ apply (rule monofun_Iwhen3)
 apply (rule contlub_Iwhen3)
 done
 
-(* ------------------------------------------------------------------------ *)
-(* continuous versions of lemmas for 'a ++ 'b                               *)
-(* ------------------------------------------------------------------------ *)
+text {* continuous versions of lemmas for @{typ "'a ++ 'b"} *}
 
 lemma strict_sinl [simp]: "sinl$UU =UU"
 apply (unfold sinl_def)
@@ -1355,7 +1127,6 @@ apply simp
 apply (subst inst_ssum_pcpo)
 apply (rule Exh_Ssum)
 done
-
 
 lemma ssumE:
 assumes major: "p=UU ==> Q"
@@ -1436,7 +1207,7 @@ apply (subst beta_cfun)
 apply (rule cont_Isinl)
 apply (subst beta_cfun)
 apply (rule cont_Isinl)
-apply (rule less_ssum3a)
+apply (rule less_ssum2a)
 done
 
 lemma less_ssum4b: 
@@ -1446,7 +1217,7 @@ apply (subst beta_cfun)
 apply (rule cont_Isinr)
 apply (subst beta_cfun)
 apply (rule cont_Isinr)
-apply (rule less_ssum3b)
+apply (rule less_ssum2b)
 done
 
 lemma less_ssum4c: 
@@ -1456,7 +1227,7 @@ apply (simplesubst beta_cfun)
 apply (rule cont_Isinr)
 apply (subst beta_cfun)
 apply (rule cont_Isinl)
-apply (rule less_ssum3c)
+apply (rule less_ssum2c)
 done
 
 lemma less_ssum4d: 
@@ -1466,7 +1237,7 @@ apply (simplesubst beta_cfun)
 apply (rule cont_Isinl)
 apply (subst beta_cfun)
 apply (rule cont_Isinr)
-apply (rule less_ssum3d)
+apply (rule less_ssum2d)
 done
 
 lemma ssum_chainE: 
@@ -1556,12 +1327,16 @@ apply (rule_tac p = "z" in ssumE)
 apply auto
 done
 
-
-(* ------------------------------------------------------------------------ *)
-(* install simplifier for Ssum                                              *)
-(* ------------------------------------------------------------------------ *)
+text {* install simplifier for Ssum *}
 
 lemmas Ssum_rews = strict_sinl strict_sinr defined_sinl defined_sinr
                 sscase1 sscase2 sscase3
+
+text {* for backward compatibility *}
+
+lemmas less_ssum3a = less_ssum2a
+lemmas less_ssum3b = less_ssum2b
+lemmas less_ssum3c = less_ssum2c
+lemmas less_ssum3d = less_ssum2d
 
 end

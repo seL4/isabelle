@@ -12,12 +12,9 @@ theory Up
 imports Cfun Sum_Type Datatype
 begin
 
-(* new type for lifting *)
+subsection {* Definition of new type for lifting *}
 
-typedef (Up) ('a) "u" = "{x::(unit + 'a).True}"
-by auto
-
-instance u :: (sq_ord)sq_ord ..
+typedef (Up) ('a) "u" = "UNIV :: (unit + 'a) set" ..
 
 consts
   Iup         :: "'a => ('a)u"
@@ -27,15 +24,8 @@ defs
   Iup_def:     "Iup x == Abs_Up(Inr(x))"
   Ifup_def:    "Ifup(f)(x)== case Rep_Up(x) of Inl(y) => UU | Inr(z) => f$z"
 
-defs (overloaded)
-  less_up_def: "(op <<) == (%x1 x2. case Rep_Up(x1) of                 
-               Inl(y1) => True          
-             | Inr(y2) => (case Rep_Up(x2) of Inl(z1) => False       
-                                            | Inr(z2) => y2<<z2))"
-
 lemma Abs_Up_inverse2: "Rep_Up (Abs_Up y) = y"
-apply (simp (no_asm) add: Up_def Abs_Up_inverse)
-done
+by (simp add: Up_def Abs_Up_inverse)
 
 lemma Exh_Up: "z = Abs_Up(Inl ()) | (? x. z = Iup x)"
 apply (unfold Iup_def)
@@ -61,14 +51,12 @@ apply (rule inj_on_inverseI)
 apply (rule Rep_Up_inverse)
 done
 
-lemma inject_Iup: "Iup x=Iup y ==> x=y"
+lemma inject_Iup [dest!]: "Iup x=Iup y ==> x=y"
 apply (unfold Iup_def)
 apply (rule inj_Inr [THEN injD])
 apply (rule inj_Abs_Up [THEN injD])
 apply assumption
 done
-
-declare inject_Iup [dest!]
 
 lemma defined_Iup: "Iup x~=Abs_Up(Inl ())"
 apply (unfold Iup_def)
@@ -79,7 +67,6 @@ apply (rule sym)
 apply (erule inj_Abs_Up [THEN injD])
 done
 
-
 lemma upE: "[| p=Abs_Up(Inl ()) ==> Q; !!x. p=Iup(x)==>Q|] ==>Q"
 apply (rule Exh_Up [THEN disjE])
 apply fast
@@ -87,57 +74,43 @@ apply (erule exE)
 apply fast
 done
 
-lemma Ifup1: "Ifup(f)(Abs_Up(Inl ()))=UU"
+lemma Ifup1 [simp]: "Ifup(f)(Abs_Up(Inl ()))=UU"
 apply (unfold Ifup_def)
 apply (subst Abs_Up_inverse2)
 apply (subst sum_case_Inl)
 apply (rule refl)
 done
 
-lemma Ifup2: 
-        "Ifup(f)(Iup(x))=f$x"
+lemma Ifup2 [simp]: "Ifup(f)(Iup(x))=f$x"
 apply (unfold Ifup_def Iup_def)
 apply (subst Abs_Up_inverse2)
 apply (subst sum_case_Inr)
 apply (rule refl)
 done
 
-lemmas Up0_ss = Ifup1 Ifup2
+subsection {* Ordering on type @{typ "'a u"} *}
 
-declare Ifup1 [simp] Ifup2 [simp]
+instance u :: (sq_ord) sq_ord ..
 
-lemma less_up1a: 
+defs (overloaded)
+  less_up_def: "(op <<) == (%x1 x2. case Rep_Up(x1) of                 
+               Inl(y1) => True          
+             | Inr(y2) => (case Rep_Up(x2) of Inl(z1) => False       
+                                            | Inr(z2) => y2<<z2))"
+
+lemma less_up1a [iff]: 
         "Abs_Up(Inl ())<< z"
-apply (unfold less_up_def)
-apply (subst Abs_Up_inverse2)
-apply (subst sum_case_Inl)
-apply (rule TrueI)
-done
+by (simp add: less_up_def Abs_Up_inverse2)
 
-lemma less_up1b: 
+lemma less_up1b [iff]: 
         "~(Iup x) << (Abs_Up(Inl ()))"
-apply (unfold Iup_def less_up_def)
-apply (rule notI)
-apply (rule iffD1)
-prefer 2 apply (assumption)
-apply (subst Abs_Up_inverse2)
-apply (subst Abs_Up_inverse2)
-apply (subst sum_case_Inr)
-apply (subst sum_case_Inl)
-apply (rule refl)
-done
+by (simp add: Iup_def less_up_def Abs_Up_inverse2)
 
-lemma less_up1c: 
+lemma less_up1c [iff]: 
         "(Iup x) << (Iup y)=(x<<y)"
-apply (unfold Iup_def less_up_def)
-apply (subst Abs_Up_inverse2)
-apply (subst Abs_Up_inverse2)
-apply (subst sum_case_Inr)
-apply (subst sum_case_Inr)
-apply (rule refl)
-done
+by (simp add: Iup_def less_up_def Abs_Up_inverse2)
 
-declare less_up1a [iff] less_up1b [iff] less_up1c [iff]
+subsection {* Type @{typ "'a u"} is a partial order *}
 
 lemma refl_less_up: "(p::'a u) << p"
 apply (rule_tac p = "p" in upE)
@@ -167,16 +140,11 @@ apply auto
 apply (blast intro: trans_less)
 done
 
-(* Class Instance u::(pcpo)po *)
+instance u :: (pcpo) po
+by intro_classes
+  (assumption | rule refl_less_up antisym_less_up trans_less_up)+
 
-instance u :: (pcpo)po
-apply (intro_classes)
-apply (rule refl_less_up)
-apply (rule antisym_less_up, assumption+)
-apply (rule trans_less_up, assumption+)
-done
-
-(* for compatibility with old HOLCF-Version *)
+text {* for compatibility with old HOLCF-Version *}
 lemma inst_up_po: "(op <<)=(%x1 x2. case Rep_Up(x1) of                 
                 Inl(y1) => True  
               | Inr(y2) => (case Rep_Up(x2) of Inl(z1) => False  
@@ -185,49 +153,14 @@ apply (fold less_up_def)
 apply (rule refl)
 done
 
-(* -------------------------------------------------------------------------*)
-(* type ('a)u is pointed                                                    *)
-(* ------------------------------------------------------------------------ *)
-
-lemma minimal_up: "Abs_Up(Inl ()) << z"
-apply (simp (no_asm) add: less_up1a)
-done
-
-lemmas UU_up_def = minimal_up [THEN minimal2UU, symmetric, standard]
-
-lemma least_up: "EX x::'a u. ALL y. x<<y"
-apply (rule_tac x = "Abs_Up (Inl ())" in exI)
-apply (rule minimal_up [THEN allI])
-done
-
-(* -------------------------------------------------------------------------*)
-(* access to less_up in class po                                          *)
-(* ------------------------------------------------------------------------ *)
-
-lemma less_up2b: "~ Iup(x) << Abs_Up(Inl ())"
-apply (simp (no_asm) add: less_up1b)
-done
-
-lemma less_up2c: "(Iup(x)<<Iup(y)) = (x<<y)"
-apply (simp (no_asm) add: less_up1c)
-done
-
-(* ------------------------------------------------------------------------ *)
-(* Iup and Ifup are monotone                                               *)
-(* ------------------------------------------------------------------------ *)
+subsection {* Monotonicity of @{term Iup} and @{term Ifup} *}
 
 lemma monofun_Iup: "monofun(Iup)"
-
-apply (unfold monofun)
-apply (intro strip)
-apply (erule less_up2c [THEN iffD2])
-done
+by (simp add: monofun)
 
 lemma monofun_Ifup1: "monofun(Ifup)"
-apply (unfold monofun)
-apply (intro strip)
-apply (rule less_fun [THEN iffD2])
-apply (intro strip)
+apply (rule monofunI [rule_format])
+apply (rule less_fun [THEN iffD2, rule_format])
 apply (rule_tac p = "xa" in upE)
 apply simp
 apply simp
@@ -235,8 +168,7 @@ apply (erule monofun_cfun_fun)
 done
 
 lemma monofun_Ifup2: "monofun(Ifup(f))"
-apply (unfold monofun)
-apply (intro strip)
+apply (rule monofunI [rule_format])
 apply (rule_tac p = "x" in upE)
 apply simp
 apply simp
@@ -246,17 +178,12 @@ apply simp
 apply (erule monofun_cfun_arg)
 done
 
-(* ------------------------------------------------------------------------ *)
-(* Some kind of surjectivity lemma                                          *)
-(* ------------------------------------------------------------------------ *)
+subsection {* Type @{typ "'a u"} is a cpo *}
+
+text {* Some kind of surjectivity lemma *}
 
 lemma up_lemma1: "z=Iup(x) ==> Iup(Ifup(LAM x. x)(z)) = z"
-apply simp
-done
-
-(* ------------------------------------------------------------------------ *)
-(* ('a)u is a cpo                                                           *)
-(* ------------------------------------------------------------------------ *)
+by simp
 
 lemma lub_up1a: "[|chain(Y);EX i x. Y(i)=Iup(x)|]  
       ==> range(Y) <<| Iup(lub(range(%i.(Ifup (LAM x. x) (Y(i))))))"
@@ -265,10 +192,10 @@ apply (rule ub_rangeI)
 apply (rule_tac p = "Y (i) " in upE)
 apply (rule_tac s = "Abs_Up (Inl ())" and t = "Y (i) " in subst)
 apply (erule sym)
-apply (rule minimal_up)
+apply (rule less_up1a)
 apply (rule_tac t = "Y (i) " in up_lemma1 [THEN subst])
 apply assumption
-apply (rule less_up2c [THEN iffD2])
+apply (rule less_up1c [THEN iffD2])
 apply (rule is_ub_thelub)
 apply (erule monofun_Ifup2 [THEN ch2ch_monofun])
 apply (rule_tac p = "u" in upE)
@@ -277,12 +204,12 @@ apply (erule exE)
 apply (rule_tac P = "Y (i) <<Abs_Up (Inl ())" in notE)
 apply (rule_tac s = "Iup (x) " and t = "Y (i) " in ssubst)
 apply assumption
-apply (rule less_up2b)
+apply (rule less_up1b)
 apply (erule subst)
 apply (erule ub_rangeD)
 apply (rule_tac t = "u" in up_lemma1 [THEN subst])
 apply assumption
-apply (rule less_up2c [THEN iffD2])
+apply (rule less_up1c [THEN iffD2])
 apply (rule is_lub_thelub)
 apply (erule monofun_Ifup2 [THEN ch2ch_monofun])
 apply (erule monofun_Ifup2 [THEN ub2ub_monofun])
@@ -295,12 +222,8 @@ apply (rule_tac p = "Y (i) " in upE)
 apply (rule_tac s = "Abs_Up (Inl ())" and t = "Y (i) " in ssubst)
 apply assumption
 apply (rule refl_less)
-apply (rule notE)
-apply (drule spec)
-apply (drule spec)
-apply assumption
-apply assumption
-apply (rule minimal_up)
+apply simp
+apply (rule less_up1a)
 done
 
 lemmas thelub_up1a = lub_up1a [THEN thelubI, standard]
@@ -316,60 +239,55 @@ lemmas thelub_up1b = lub_up1b [THEN thelubI, standard]
 *)
 
 lemma cpo_up: "chain(Y::nat=>('a)u) ==> EX x. range(Y) <<|x"
-apply (rule disjE)
-apply (rule_tac [2] exI)
-apply (erule_tac [2] lub_up1a)
-prefer 2 apply (assumption)
-apply (rule_tac [2] exI)
-apply (erule_tac [2] lub_up1b)
-prefer 2 apply (assumption)
-apply fast
+apply (case_tac "\<exists> i x. Y i = Iup x")
+apply (rule exI)
+apply (erule lub_up1a)
+apply assumption
+apply (rule exI)
+apply (erule lub_up1b)
+apply simp
 done
 
-(* Class instance of  ('a)u for class pcpo *)
+instance u :: (pcpo) cpo
+by intro_classes (rule cpo_up)
 
-instance u :: (pcpo)pcpo
-apply (intro_classes)
-apply (erule cpo_up)
-apply (rule least_up)
+subsection {* Type @{typ "'a u"} is pointed *}
+
+lemma minimal_up: "Abs_Up(Inl ()) << z"
+by (rule less_up1a)
+
+lemmas UU_up_def = minimal_up [THEN minimal2UU, symmetric, standard]
+
+lemma least_up: "EX x::'a u. ALL y. x<<y"
+apply (rule_tac x = "Abs_Up (Inl ())" in exI)
+apply (rule minimal_up [THEN allI])
 done
 
-constdefs  
-        up  :: "'a -> ('a)u"
-       "up  == (LAM x. Iup(x))"
-        fup :: "('a->'c)-> ('a)u -> 'c"
-       "fup == (LAM f p. Ifup(f)(p))"
+instance u :: (pcpo) pcpo
+by intro_classes (rule least_up)
 
-translations
-"case l of up$x => t1" == "fup$(LAM x. t1)$l"
-
-(* for compatibility with old HOLCF-Version *)
+text {* for compatibility with old HOLCF-Version *}
 lemma inst_up_pcpo: "UU = Abs_Up(Inl ())"
-apply (simp add: UU_def UU_up_def)
-done
+by (simp add: UU_def UU_up_def)
 
-(* -------------------------------------------------------------------------*)
-(* some lemmas restated for class pcpo                                      *)
-(* ------------------------------------------------------------------------ *)
+text {* some lemmas restated for class pcpo *}
 
 lemma less_up3b: "~ Iup(x) << UU"
 apply (subst inst_up_pcpo)
-apply (rule less_up2b)
+apply (rule less_up1b)
 done
 
-lemma defined_Iup2: "Iup(x) ~= UU"
+lemma defined_Iup2 [iff]: "Iup(x) ~= UU"
 apply (subst inst_up_pcpo)
 apply (rule defined_Iup)
 done
-declare defined_Iup2 [iff]
 
-(* ------------------------------------------------------------------------ *)
-(* continuity for Iup                                                       *)
-(* ------------------------------------------------------------------------ *)
+subsection {* Continuity of @{term Iup} and @{term Ifup} *}
+
+text {* continuity for @{term Iup} *}
 
 lemma contlub_Iup: "contlub(Iup)"
-apply (rule contlubI)
-apply (intro strip)
+apply (rule contlubI [rule_format])
 apply (rule trans)
 apply (rule_tac [2] thelub_up1a [symmetric])
 prefer 3 apply fast
@@ -382,20 +300,16 @@ apply (erule monofun_Iup [THEN ch2ch_monofun])
 apply simp
 done
 
-lemma cont_Iup: "cont(Iup)"
+lemma cont_Iup [iff]: "cont(Iup)"
 apply (rule monocontlub2cont)
 apply (rule monofun_Iup)
 apply (rule contlub_Iup)
 done
-declare cont_Iup [iff]
 
-(* ------------------------------------------------------------------------ *)
-(* continuity for Ifup                                                     *)
-(* ------------------------------------------------------------------------ *)
+text {* continuity for @{term Ifup} *}
 
 lemma contlub_Ifup1: "contlub(Ifup)"
-apply (rule contlubI)
-apply (intro strip)
+apply (rule contlubI [rule_format])
 apply (rule trans)
 apply (rule_tac [2] thelub_fun [symmetric])
 apply (erule_tac [2] monofun_Ifup1 [THEN ch2ch_monofun])
@@ -407,10 +321,8 @@ apply simp
 apply (erule contlub_cfun_fun)
 done
 
-
 lemma contlub_Ifup2: "contlub(Ifup(f))"
-apply (rule contlubI)
-apply (intro strip)
+apply (rule contlubI [rule_format])
 apply (rule disjE)
 defer 1
 apply (subst thelub_up1a)
@@ -464,13 +376,20 @@ apply (rule monofun_Ifup2)
 apply (rule contlub_Ifup2)
 done
 
+subsection {* Continuous versions of constants *}
 
-(* ------------------------------------------------------------------------ *)
-(* continuous versions of lemmas for ('a)u                                  *)
-(* ------------------------------------------------------------------------ *)
+constdefs  
+        up  :: "'a -> ('a)u"
+       "up  == (LAM x. Iup(x))"
+        fup :: "('a->'c)-> ('a)u -> 'c"
+       "fup == (LAM f p. Ifup(f)(p))"
+
+translations
+"case l of up$x => t1" == "fup$(LAM x. t1)$l"
+
+text {* continuous versions of lemmas for @{typ "('a)u"} *}
 
 lemma Exh_Up1: "z = UU | (EX x. z = up$x)"
-
 apply (unfold up_def)
 apply simp
 apply (subst inst_up_pcpo)
@@ -483,10 +402,8 @@ apply (rule inject_Iup)
 apply auto
 done
 
-lemma defined_up: " up$x ~= UU"
-apply (unfold up_def)
-apply auto
-done
+lemma defined_up [simp]: " up$x ~= UU"
+by (simp add: up_def)
 
 lemma upE1: 
         "[| p=UU ==> Q; !!x. p=up$x==>Q|] ==>Q"
@@ -499,7 +416,7 @@ done
 
 lemmas up_conts = cont_lemmas1 cont_Iup cont_Ifup1 cont_Ifup2 cont2cont_CF1L
 
-lemma fup1: "fup$f$UU=UU"
+lemma fup1 [simp]: "fup$f$UU=UU"
 apply (unfold up_def fup_def)
 apply (subst inst_up_pcpo)
 apply (subst beta_cfun)
@@ -509,7 +426,7 @@ apply (rule cont_Ifup2)
 apply simp
 done
 
-lemma fup2: "fup$f$(up$x)=f$x"
+lemma fup2 [simp]: "fup$f$(up$x)=f$x"
 apply (unfold up_def fup_def)
 apply (simplesubst beta_cfun)
 apply (rule cont_Iup)
@@ -521,16 +438,10 @@ apply simp
 done
 
 lemma less_up4b: "~ up$x << UU"
-apply (unfold up_def fup_def)
-apply simp
-apply (rule less_up3b)
-done
+by (simp add: up_def fup_def less_up3b)
 
-lemma less_up4c: 
-         "(up$x << up$y) = (x<<y)"
-apply (unfold up_def fup_def)
-apply simp
-done
+lemma less_up4c: "(up$x << up$y) = (x<<y)"
+by (simp add: up_def fup_def)
 
 lemma thelub_up2a: 
 "[| chain(Y); EX i x. Y(i) = up$x |] ==> 
@@ -553,34 +464,25 @@ apply (rule refl)
 apply simp
 done
 
-
-
 lemma thelub_up2b: 
 "[| chain(Y); ! i x. Y(i) ~= up$x |] ==> lub(range(Y)) = UU"
 apply (unfold up_def fup_def)
 apply (subst inst_up_pcpo)
-apply (rule thelub_up1b)
-apply assumption
-apply (intro strip)
-apply (drule spec)
-apply (drule spec)
+apply (erule thelub_up1b)
 apply simp
 done
-
 
 lemma up_lemma2: "(EX x. z = up$x) = (z~=UU)"
 apply (rule iffI)
 apply (erule exE)
 apply simp
-apply (rule defined_up)
 apply (rule_tac p = "z" in upE1)
-apply (erule notE)
-apply assumption
+apply simp
 apply (erule exI)
 done
 
-
-lemma thelub_up2a_rev: "[| chain(Y); lub(range(Y)) = up$x |] ==> EX i x. Y(i) = up$x"
+lemma thelub_up2a_rev:
+  "[| chain(Y); lub(range(Y)) = up$x |] ==> EX i x. Y(i) = up$x"
 apply (rule exE)
 apply (rule chain_UU_I_inverse2)
 apply (rule up_lemma2 [THEN iffD1])
@@ -590,10 +492,9 @@ apply (rule up_lemma2 [THEN iffD2])
 apply assumption
 done
 
-lemma thelub_up2b_rev: "[| chain(Y); lub(range(Y)) = UU |] ==> ! i x.  Y(i) ~= up$x"
-apply (blast dest!: chain_UU_I [THEN spec] exI [THEN up_lemma2 [THEN iffD1]])
-done
-
+lemma thelub_up2b_rev:
+  "[| chain(Y); lub(range(Y)) = UU |] ==> ! i x.  Y(i) ~= up$x"
+by (blast dest!: chain_UU_I [THEN spec] exI [THEN up_lemma2 [THEN iffD1]])
 
 lemma thelub_up3: "chain(Y) ==> lub(range(Y)) = UU |  
                    lub(range(Y)) = up$(lub(range(%i. fup$(LAM x. x)$(Y i))))"
@@ -611,17 +512,13 @@ done
 
 lemma fup3: "fup$up$x=x"
 apply (rule_tac p = "x" in upE1)
-apply (simp add: fup1 fup2)
-apply (simp add: fup1 fup2)
+apply simp
+apply simp
 done
 
-(* ------------------------------------------------------------------------ *)
-(* install simplifier for ('a)u                                             *)
-(* ------------------------------------------------------------------------ *)
+text {* for backward compatibility *}
 
-declare fup1 [simp] fup2 [simp] defined_up [simp]
+lemmas less_up2b = less_up1b
+lemmas less_up2c = less_up1c
 
 end
-
-
-
