@@ -11,6 +11,7 @@ sig
   val sys_pack_fn: (Path.T -> string) ref
   val sys_unpack_fn: (string -> Path.T) ref
   val sysify_path: Path.T -> string
+  val quote_sysify_path: Path.T -> string
   val rm: Path.T -> unit
   val cd: Path.T -> unit
   val pwd: unit -> Path.T
@@ -40,6 +41,7 @@ val sys_pack_fn = ref Path.pack;
 val sys_unpack_fn = ref Path.unpack;
 
 fun sysify_path path = ! sys_pack_fn (Path.expand path);
+val quote_sysify_path = enclose "'" "'" o sysify_path;
 fun unsysify_path s = ! sys_unpack_fn s;
 
 val rm = OS.FileSys.remove o sysify_path;
@@ -94,16 +96,14 @@ val exists = is_some o info;
 
 (* directories *)
 
-val quote_sysify = enclose "'" "'" o sysify_path;
-
 fun system_command cmd =
   if system cmd <> 0 then error ("System command failed: " ^ cmd)
   else ();
     
-fun mkdir path = system_command ("mkdir -p " ^ quote_sysify path);
+fun mkdir path = system_command ("mkdir -p " ^ quote_sysify_path path);
 
 fun copy_all path1 path2 =  (*dereferences symlinks!*)
-  system_command ("cp -r " ^ quote_sysify path1 ^ " " ^ quote_sysify path2);
+  system_command ("cp -r " ^ quote_sysify_path path1 ^ " " ^ quote_sysify_path path2);
 
 
 (* symbol_use *)
