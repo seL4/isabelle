@@ -10,6 +10,8 @@
 LOGPREFIX=~/log
 DISTPREFIX=~/isadist
 MAKEDIST=~/bin/makedist
+MAKEALL=~/bin/isatest-makeall
+TAR=gtar
 
 SUN=sunbroy2
 AT=atbroy37
@@ -59,17 +61,17 @@ then
 fi
 
 cd $DISTPREFIX >> $DISTLOG 2>&1
-tar xvzf `cat $DISTPREFIX/ISABELLE_DIST` >> $DISTLOG 2>&1
+$TAR xvzf `cat $DISTPREFIX/ISABELLE_DIST` >> $DISTLOG 2>&1
 
 echo ------------------- prepared test successfully --- `date` --- $HOSTNAME >> $DISTLOG 2>&1
 
 ## spawn test runs
 
 # run tests in parallel on multiprocessor sun 
-$SSH $SUN "$MAKEDIST $DISTPREFIX ~/settings/sun-poly"
-$SSH $SUN "$MAKEDIST $DISTPREFIX ~/settings/sun-sml"
+$SSH $SUN "$MAKEALL $DISTPREFIX ~/settings/sun-poly"
+$SSH $SUN "$MAKEALL $DISTPREFIX ~/settings/sun-sml"
 
 # run tests sequentially on x86
-$SSH $AT "$MAKEDIST $DISTPREFIX ~/settings/at-poly ~/settings/at-sml"
+$SSH $AT "$MAKEALL $DISTPREFIX ~/settings/at-poly ~/settings/at-sml"
 
 ## end
