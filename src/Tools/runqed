@@ -1,6 +1,10 @@
-#!/bin/csh
-foreach n (*ML)
-qed $n $n:r.MLL
-mv $n $n:r.bak
-mv $n:r.MLL $n
+#! /bin/csh
+# $Id$
+# Run qed on all ML files in the current directory
+foreach f (*ML)
+echo Expanding shorthands in $f. \ Backup file is $f:r.bak
+qed $f $f:r.MLL
+mv $f $f:r.bak
+mv $f:r.MLL $f
 end
+echo Finished.
