@@ -369,7 +369,7 @@ done
 
 text{*Fundamental theorem of calculus (Part I)*}
 
-text{*"Straddle Lemma" : Swartz & Thompson: AMM 95(7) 1988 *}
+text{*"Straddle Lemma" : Swartz and Thompson: AMM 95(7) 1988 *}
 
 lemma choiceP: "\<forall>x. P(x) --> (\<exists>y. Q x y) ==> \<exists>f. (\<forall>x. P(x) --> Q x (f x))"
 by meson
