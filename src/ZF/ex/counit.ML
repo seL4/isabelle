@@ -9,7 +9,8 @@ Need to find sufficient conditions for codatatypes to work correctly!
 *)
 
 (*This degenerate definition does not work well because the one constructor's
-  definition is trivial!
+  definition is trivial!  The same thing occurs with Aczel's Special Final
+  Coalgebra Theorem
 *)
 structure CoUnit = CoDatatype_Fun
  (val thy = QUniv.thy;
@@ -79,28 +80,14 @@ by (rtac ([lfp_subset, empty_subsetI RS univ_mono] MRS subset_trans) 1);
 by (fast_tac (ZF_cs addSIs [Con2_bnd_mono RS lfp_Tarski]) 1);
 val lfp_Con2_in_counit2 = result();
 
-(*borrowed from ex/llist_eq.ML! the proofs are almost identical!*)
-val lleq_cs = subset_cs
-	addSIs [succI1, Int_Vset_0_subset,
-		QPair_Int_Vset_succ_subset_trans,
-		QPair_Int_Vset_subset_trans];
-
+(*Lemma for proving finality.  Borrowed from ex/llist_eq.ML!*)
 goal CoUnit2.thy
     "!!i. Ord(i) ==> ALL x y. x: counit2 & y: counit2 --> x Int Vset(i) <= y";
 by (etac trans_induct 1);
 by (safe_tac subset_cs);
 by (etac CoUnit2.elim 1);
 by (etac CoUnit2.elim 1);
-by (safe_tac subset_cs);
 by (rewrite_goals_tac CoUnit2.con_defs);
-by (etac Ord_cases 1 THEN REPEAT_FIRST hyp_subst_tac);
-(*0 case*)
-by (fast_tac lleq_cs 1);
-(*succ(j) case*)
-by (fast_tac lleq_cs 1);
-(*Limit(i) case*)
-by (etac (Limit_Vfrom_eq RS ssubst) 1);
-by (rtac (Int_UN_distrib RS ssubst) 1);
 by (fast_tac lleq_cs 1);
 val counit2_Int_Vset_subset_lemma = result();
 

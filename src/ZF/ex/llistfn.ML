@@ -42,51 +42,33 @@ val lconst_type = result();
 
 val flip_ss = ZF_ss addsimps [flip_LNil, flip_LCons, not_type];
 
-goal QUniv.thy "!!b. b:bool ==> b Int X : quniv(A)";
-by (etac boolE 1);
-by (REPEAT (resolve_tac [one_Int_in_quniv, zero_Int_in_quniv] 1
-     ORELSE etac ssubst 1));
-val bool_Int_into_quniv = result();
+goal QUniv.thy "!!b. b:bool ==> b Int X <= univ(eclose(A))";
+by (fast_tac (quniv_cs addSEs [boolE]) 1);
+val bool_Int_subset_univ = result();
 
-(* (!!x. x : A ==> B(x) : quniv(C)) ==> (UN x:A. B(x)) : quniv(C) *)
-val UN_in_quniv = standard (qunivD RS UN_least RS qunivI);
-
-val Int_Vset_in_quniv = qunivD RS Int_Vset_subset RS qunivI;
-
-val flip_cs = 
-  ZF_cs addSIs [not_type,
-		QPair_in_quniv, QInl_in_quniv, QInr_in_quniv, 
-		zero_in_quniv, Int_Vset_0_subset RS qunivI,
-		Transset_0,
-		zero_Int_in_quniv, one_Int_in_quniv,
-		QPair_Int_Vfrom_succ_in_quniv, QPair_Int_Vfrom_in_quniv]
-        addIs  [bool_Int_into_quniv, Int_quniv_in_quniv];
+val flip_cs = quniv_cs addSIs [not_type]
+                       addIs  [bool_Int_subset_univ];
 
 (*Reasoning borrowed from llist_eq.ML; a similar proof works for all
   "productive" functions -- cf Coquand's "Infinite Objects in Type Theory".*)
 goal LListFn.thy
-   "!!i. Ord(i) ==> ALL l: llist(bool). flip(l) Int Vset(i) : quniv(bool)";
+   "!!i. Ord(i) ==> ALL l: llist(bool). flip(l) Int Vset(i) <= \
+\                   univ(eclose(bool))";
 by (etac trans_induct 1);
-by (safe_tac ZF_cs);
+by (rtac ballI 1);
 by (etac LList.elim 1);
 by (asm_simp_tac flip_ss 1);
 by (asm_simp_tac flip_ss 2);
 by (rewrite_goals_tac ([QInl_def,QInr_def]@LList.con_defs));
+(*LNil case*)
 by (fast_tac flip_cs 1);
-by (etac Ord_cases 1 THEN REPEAT_FIRST hyp_subst_tac);
-(*0 case*)
-by (fast_tac flip_cs 1);
-(*succ(j) case*)
-by (fast_tac flip_cs 1);
-(*Limit(i) case*)
-by (etac (Limit_Vfrom_eq RS ssubst) 1);
-by (rtac (Int_UN_distrib RS ssubst) 1);
-by (rtac UN_in_quniv 1);
-by (fast_tac flip_cs 1);
+(*LCons case*)
+by (safe_tac flip_cs);
+by (ALLGOALS (fast_tac (flip_cs addSEs [Ord_trans, make_elim bspec])));
 val flip_llist_quniv_lemma = result();
 
 goal LListFn.thy "!!l. l: llist(bool) ==> flip(l) : quniv(bool)";
-by (rtac (flip_llist_quniv_lemma RS bspec RS Int_Vset_in_quniv) 1);
+by (rtac (flip_llist_quniv_lemma RS bspec RS Int_Vset_subset RS qunivI) 1);
 by (REPEAT (assume_tac 1));
 val flip_in_quniv = result();
 

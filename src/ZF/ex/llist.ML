@@ -3,7 +3,7 @@
     Author: 	Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1993  University of Cambridge
 
-CoDatatype definition of Lazy Lists
+Codatatype definition of Lazy Lists
 *)
 
 structure LList = CoDatatype_Fun
@@ -40,32 +40,29 @@ val llist_mono = result();
 
 (** Closure of quniv(A) under llist -- why so complex?  Its a gfp... **)
 
-val in_quniv_rls =
- [Transset_quniv, QPair_Int_quniv_in_quniv, Int_Vfrom_0_in_quniv, 
-  zero_Int_in_quniv, one_Int_in_quniv,
-  QPair_Int_Vfrom_succ_in_quniv, QPair_Int_Vfrom_in_quniv];
+val quniv_cs = subset_cs addSIs [QPair_Int_Vset_subset_UN RS subset_trans, 
+				 QPair_subset_univ,
+				 empty_subsetI, one_in_quniv RS qunivD]
+                 addIs  [Int_lower1 RS subset_trans]
+		 addSDs [qunivD]
+                 addSEs [Ord_in_Ord];
 
-val quniv_cs = ZF_cs addSIs in_quniv_rls 
-                     addIs (Int_quniv_in_quniv::codatatype_intrs);
-
-(*Keep unfolding the lazy list until the induction hypothesis applies*)
 goal LList.thy
-   "!!i. i : nat ==> 	\
-\        ALL l: llist(quniv(A)). l Int Vfrom(quniv(A), i) : quniv(A)";
-by (etac complete_induct 1);
+   "!!i. Ord(i) ==> ALL l: llist(quniv(A)). l Int Vset(i) <= univ(eclose(A))";
+by (etac trans_induct 1);
 by (rtac ballI 1);
 by (etac LList.elim 1);
 by (rewrite_goals_tac ([QInl_def,QInr_def]@LList.con_defs));
+(*LNil case*)
 by (fast_tac quniv_cs 1);
-by (etac natE 1 THEN REPEAT_FIRST hyp_subst_tac);
-by (fast_tac quniv_cs 1);
-by (fast_tac quniv_cs 1);
+(*LCons case*)
+by (safe_tac quniv_cs);
+by (ALLGOALS (fast_tac (quniv_cs addSEs [Ord_trans, make_elim bspec])));
 val llist_quniv_lemma = result();
 
 goal LList.thy "llist(quniv(A)) <= quniv(A)";
-by (rtac subsetI 1);
-by (rtac quniv_Int_Vfrom 1);
-by (etac (LList.dom_subset RS subsetD) 1);
+by (rtac (qunivI RS subsetI) 1);
+by (rtac Int_Vset_subset 1);
 by (REPEAT (ares_tac [llist_quniv_lemma RS bspec] 1));
 val llist_quniv = result();
 

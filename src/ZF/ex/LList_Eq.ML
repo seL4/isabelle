@@ -28,30 +28,18 @@ structure LList_Eq = CoInductive_Fun
 **)
 
 val lleq_cs = subset_cs
-	addSIs [succI1, Int_Vset_0_subset,
-		QPair_Int_Vset_succ_subset_trans,
-		QPair_Int_Vset_subset_trans];
+	addSIs [QPair_Int_Vset_subset_UN RS subset_trans, QPair_mono]
+        addSEs [Ord_in_Ord, Pair_inject];
 
-(** Some key feature of this proof needs to be made a general theorem! **)
-
-(*Keep unfolding the lazy list until the induction hypothesis applies*)
+(*Lemma for proving finality.  Unfold the lazy list; use induction hypothesis*)
 goal LList_Eq.thy
    "!!i. Ord(i) ==> ALL l l'. <l,l'> : lleq(A) --> l Int Vset(i) <= l'";
 by (etac trans_induct 1);
-by (safe_tac subset_cs);
+by (REPEAT (resolve_tac [allI, impI] 1));
 by (etac LList_Eq.elim 1);
-by (safe_tac (subset_cs addSEs [Pair_inject]));
-by (rewrite_goals_tac LList.con_defs);
-by (etac Ord_cases 1 THEN REPEAT_FIRST hyp_subst_tac);
-(*0 case*)
-by (fast_tac lleq_cs 1);
-(*succ(j) case*)
-by (rewtac QInr_def);
-by (fast_tac lleq_cs 1);
-(*Limit(i) case*)
-by (etac (Limit_Vfrom_eq RS ssubst) 1);
-by (rtac (Int_UN_distrib RS ssubst) 1);
-by (fast_tac lleq_cs 1);
+by (rewrite_goals_tac (QInr_def::LList.con_defs));
+by (safe_tac lleq_cs);
+by (fast_tac (subset_cs addSEs [Ord_trans, make_elim bspec]) 1);
 val lleq_Int_Vset_subset_lemma = result();
 
 val lleq_Int_Vset_subset = standard
