@@ -395,6 +395,11 @@ proof
     by (simp add: hypnat_mult_less_mono2)
 qed
 
+lemma hypnat_le_zero_cancel [iff]: "(n \<le> (0::hypnat)) = (n = 0)"
+apply (rule eq_Abs_hypnat [of n])
+apply (simp add: hypnat_zero_def hypnat_le)
+done
+
 lemma hypnat_mult_is_0 [simp]: "(m*n = (0::hypnat)) = (m=0 | n=0)"
 apply (rule eq_Abs_hypnat [of m])
 apply (rule eq_Abs_hypnat [of n])
@@ -807,6 +812,12 @@ apply (auto simp add: hypreal_of_hypnat hypreal_inverse
       HNatInfinite_FreeUltrafilterNat_iff Infinitesimal_FreeUltrafilterNat_iff2)
 apply (rule bexI, rule_tac [2] lemma_hyprel_refl, auto)
 apply (drule_tac x = "m + 1" in spec, ultra)
+done
+
+lemma HNatInfinite_hypreal_of_hypnat_gt_zero:
+     "N \<in> HNatInfinite ==> 0 < hypreal_of_hypnat N"
+apply (rule ccontr)
+apply (simp add: hypreal_of_hypnat_zero [symmetric] linorder_not_less)
 done
 
 
