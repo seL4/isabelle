@@ -593,6 +593,79 @@ fun rename_aTs names vars : (string*typ)list =
 
 fun rename_wrt_term t = rename_aTs (add_term_names(t,[]));
 
+
+
+(*** Compression of terms and types by sharing common subtrees.  Currently
+     naive but could be made to run faster.  Saves 50-75% on storage  
+     requirements.  As it is slow, should be called only for axioms, stored
+     theorems, etc. ***)
+
+(** Sharing of types **)
+
+(*Allow non-"fun" types??*)
+fun atomic_tag (Type (a,_)) = if a<>"fun" then a else raise Match
+  | atomic_tag (TFree (a,_)) = a
+  | atomic_tag (TVar ((a,_),_)) = a;
+
+fun type_tag (Type("fun",[S,T])) = atomic_tag S ^ type_tag T
+  | type_tag T = atomic_tag T;
+
+val memo_types = ref (Symtab.null : typ list Symtab.table);
+
+fun find_type (T, []: typ list) = None
+  | find_type (T, T'::Ts) =
+       if T=T' then Some T'
+       else find_type (T, Ts);
+
+fun compress_type T =
+  let val tag = type_tag T
+      val tylist = the (Symtab.lookup (!memo_types, tag))
+	           handle _ => []
+  in  
+      case find_type (T,tylist) of
+	Some T' => T'
+      | None => 
+	    let val T' =
+		case T of
+		    Type (a,Ts) => Type (a, map compress_type Ts)
+		  | _ => T
+	    in  memo_types := Symtab.update ((tag, T'::tylist), !memo_types);
+		T
+	    end
+  end
+  handle Match =>
+      let val Type (a,Ts) = T
+      in  Type (a, map compress_type Ts)  end;
+
+(** Sharing of atomic terms **)
+
+val memo_terms = ref (Symtab.null : term list Symtab.table);
+
+fun find_term (t, []: term list) = None
+  | find_term (t, t'::ts) =
+       if t=t' then Some t'
+       else find_term (t, ts);
+
+fun const_tag (Const (a,_)) = a
+  | const_tag (Free (a,_))  = a
+  | const_tag (Var ((a,i),_)) = a
+  | const_tag (t as Bound _)  = ".B.";
+
+fun share_term (t $ u) = share_term t $ share_term u
+  | share_term (Abs (a,T,u)) = Abs (a, T, share_term u)
+  | share_term t =
+      let val tag = const_tag t
+	  val ts = the (Symtab.lookup (!memo_terms, tag))
+	               handle _ => []
+      in 
+	  case find_term (t,ts) of
+	      Some t' => t'
+	    | None => (memo_terms := Symtab.update ((tag, t::ts), !memo_terms);
+		       t)
+      end;
+
+val compress_term = share_term o map_term_types compress_type;
+
 end;
 
 open Term;
