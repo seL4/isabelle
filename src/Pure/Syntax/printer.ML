@@ -1,6 +1,8 @@
-(*  Title:      Pure/Syntax/printer
+(*  Title:      Pure/Syntax/printer.ML
     ID:         $Id$
     Author:     Tobias Nipkow and Markus Wenzel, TU Muenchen
+
+Pretty printing of asts, terms, types and print (ast) translation.
 *)
 
 signature PRINTER0 =
@@ -16,14 +18,15 @@ sig
   structure XGram: XGRAM
   structure Pretty: PRETTY
   local open XGram XGram.Ast in
-    val pretty_ast: ast -> Pretty.T
-    val pretty_rule: (ast * ast) -> Pretty.T
     val term_to_ast: (string -> (term list -> term) option) -> term -> ast
     val typ_to_ast: (string -> (term list -> term) option) -> typ -> ast
-    type tab
-    val mk_print_tab: (string prod list) -> (ast list -> ast) Symtab.table -> tab
-    val pretty_term_ast: tab -> ast -> Pretty.T
-    val pretty_typ_ast: tab -> ast -> Pretty.T
+    type prtab
+    val empty_prtab: prtab
+    val extend_prtab: prtab -> (string prod list) -> (string * (ast list -> ast)) list
+      -> prtab
+    val mk_prtab: (string prod list) -> (string * (ast list -> ast)) list -> prtab
+    val pretty_term_ast: prtab -> ast -> Pretty.T
+    val pretty_typ_ast: prtab -> ast -> Pretty.T
   end
 end;
 
@@ -46,36 +49,27 @@ val show_sorts = ref false;
 
 
 
-(** simple prettying **)
+(** convert term or typ to ast **)
 
-(* pretty_ast *)
-
-fun pretty_ast (Constant a) = Pretty.str (quote a)
-  | pretty_ast (Variable x) = Pretty.str x
-  | pretty_ast (Appl asts) =
-      Pretty.blk
-        (2, (Pretty.str "(") ::
-          (separate (Pretty.brk 1) (map pretty_ast asts)) @ [Pretty.str ")"]);
-
-
-(* pretty_rule *)
-
-fun pretty_rule (lhs, rhs) =
-  Pretty.blk
-    (2, [pretty_ast lhs, Pretty.str "  ->", Pretty.brk 2, pretty_ast rhs]);
-
-
-
-(** convert term/typ to ast **)   (* FIXME check *)
-
-fun apply_trans a f args =
-  ((f args) handle
+fun apply_trans name a f args =
+  (f args handle
     Match => raise Match
-  | exn => (writeln ("Error in translation for " ^ quote a); raise exn));
+  | exn => (writeln ("Error in " ^ name ^ " for " ^ quote a); raise exn));
 
 
 fun ast_of_term trf show_types show_sorts tm =
   let
+(*(* FIXME old - remove *)
+    fun fix_aprop tys (Abs (x, ty, t)) = Abs (x, ty, fix_aprop (ty :: tys) t)
+      | fix_aprop tys t =
+          let
+            val (f, args) = strip_comb t;
+            val t' = list_comb (f, map (fix_aprop tys) args);
+          in
+            if not (is_Const f) andalso fastype_of (tys, t) = propT
+            then Const (apropC, dummyT) $ t' else t'
+          end;
+
     val aprop_const = Const (apropC, dummyT);
 
     fun fix_aprop (tm as Const _) = tm
@@ -86,6 +80,28 @@ fun ast_of_term trf show_types show_sorts tm =
       | fix_aprop (tm as Bound _) = tm
       | fix_aprop (Abs (x, ty, t)) = Abs (x, ty, fix_aprop t)
       | fix_aprop (t1 $ t2) = fix_aprop t1 $ fix_aprop t2;
+
+    val fix_aprop = fn _ => fn tm => fix_aprop tm;
+*)
+
+    (* FIXME check *)
+
+    fun aprop t = Const (apropC, dummyT) $ t;
+
+    fun is_prop tys tm =
+      fastype_of (tys, tm) = propT handle TERM _ => false;
+
+    fun fix_aprop _ (tm as Const _) = tm
+      | fix_aprop _ (tm as Free (x, ty)) =
+          if ty = propT then aprop (Free (x, dummyT)) else tm
+      | fix_aprop _ (tm as Var (xi, ty)) =
+          if ty = propT then aprop (Var (xi, dummyT)) else tm
+      | fix_aprop tys (tm as Bound _) =
+          if is_prop tys tm then aprop tm else tm
+      | fix_aprop tys (Abs (x, ty, t)) = Abs (x, ty, fix_aprop (ty :: tys) t)
+      | fix_aprop tys (tm as t1 $ t2) =
+          (if is_Const (head_of tm) orelse not (is_prop tys tm)
+            then I else aprop) (fix_aprop tys t1 $ fix_aprop tys t2);
 
 
     fun prune_typs (t_seen as (Const _, _)) = t_seen
@@ -122,7 +138,7 @@ fun ast_of_term trf show_types show_sorts tm =
 
     and trans a args =
       (case trf a of
-        Some f => ast_of (apply_trans a f args)
+        Some f => ast_of (apply_trans "print translation" a f args)
       | None => raise Match)
           handle Match => mk_appl (Constant a) (map ast_of args)
 
@@ -131,8 +147,8 @@ fun ast_of_term trf show_types show_sorts tm =
         ast_of (Const (constrainC, dummyT) $ t $ term_of_typ show_sorts ty)
       else Variable x;
   in
-    if show_types then ast_of (fst (prune_typs (fix_aprop tm, [])))
-    else ast_of (fix_aprop tm)
+    if show_types then ast_of (#1 (prune_typs (fix_aprop [] tm, [])))
+    else ast_of (fix_aprop [] tm)
   end;
 
 
@@ -149,7 +165,7 @@ fun typ_to_ast trf ty =
 
 
 
-(** type tab **)
+(** type prtab **)
 
 datatype symb =
   Arg of int |
@@ -163,13 +179,18 @@ datatype format =
   Trns of ast list -> ast |
   TorP of (ast list -> ast) * (symb list * int * int);
 
-type tab = format Symtab.table;
+type prtab = format Symtab.table;
+
+
+(* empty_prtab *)
+
+val empty_prtab = Symtab.null;
 
 
 
-(** mk_print_tab **)
+(** extend_prtab **)
 
-fun mk_print_tab prods ast_trans =
+fun extend_prtab prtab prods trfuns =
   let
     fun nargs (Arg _ :: symbs) = nargs symbs + 1
       | nargs (TypArg _ :: symbs) = nargs symbs + 1
@@ -181,15 +202,15 @@ fun mk_print_tab prods ast_trans =
     fun merge (s, String s' :: l) = String (s ^ s') :: l
       | merge (s, l) = String s :: l;
 
-    fun mk_prnp sy opn p =
+    fun mk_prnp sy c p =
       let
-        val constr = (opn = constrainC orelse opn = constrainIdtC);
+        val constr = (c = constrainC orelse c = constrainIdtC);
 
         fun syn2pr (Terminal s :: sy) =
-              let val (symbs, sy') = syn2pr sy
+              let val (symbs, sy') = syn2pr sy;
               in (merge (s, symbs), sy') end
           | syn2pr (Space s :: sy) =
-              let val (symbs, sy') = syn2pr sy
+              let val (symbs, sy') = syn2pr sy;
               in (merge (s, symbs), sy') end
           | syn2pr (Nonterminal (s, p) :: sy) =
               let
@@ -204,7 +225,7 @@ fun mk_print_tab prods ast_trans =
                 val (symbs, sy'') = syn2pr sy';
               in (Block (i, bsymbs) :: symbs, sy'') end
           | syn2pr (Brk i :: sy) =
-              let val (symbs, sy') = syn2pr sy
+              let val (symbs, sy') = syn2pr sy;
               in (Break i :: symbs, sy') end
           | syn2pr (En :: sy) = ([], sy)
           | syn2pr [] = ([], []);
@@ -214,38 +235,54 @@ fun mk_print_tab prods ast_trans =
         (pr, nargs pr, p)
       end;
 
-    fun add_prod (Prod (_, _, "", _), tab) = tab
-      | add_prod (Prod (_, sy, opn, p), tab) =
-          (case Symtab.lookup (tab, opn) of
-            None => Symtab.update ((opn, Prnt (mk_prnp sy opn p)), tab)
-          | Some (Prnt _) => tab
-          | Some (Trns f) => Symtab.update ((opn, TorP (f, mk_prnp sy opn p)), tab)
-          | Some (TorP _) => tab);
+    fun trns_err c = error ("More than one parse ast translation for " ^ quote c);
 
-    fun add_tr (tab, (opn, f)) = Symtab.update_new ((opn, Trns f), tab);
+    fun add_fmt tab c fmt x = Symtab.update ((c, fmt x), tab);
+
+    fun add_prod (tab, Prod (_, _, "", _)) = tab
+      | add_prod (tab, Prod (_, sy, c, p)) =
+          (case Symtab.lookup (tab, c) of
+            None => add_fmt tab c Prnt (mk_prnp sy c p)
+          | Some (Prnt _) => add_fmt tab c Prnt (mk_prnp sy c p)
+          | Some (Trns f) => add_fmt tab c TorP (f, mk_prnp sy c p)
+          | Some (TorP (f, _)) => add_fmt tab c TorP (f, mk_prnp sy c p));
+
+    fun add_tr (tab, (c, f)) =
+      (case Symtab.lookup (tab, c) of
+        None => add_fmt tab c Trns f
+      | Some (Prnt pr) => add_fmt tab c TorP (f, pr)
+      | Some (Trns _) => trns_err c
+      | Some (TorP _) => trns_err c);
   in
-    Symtab.balance
-      (foldr add_prod
-        (prods, foldl add_tr (Symtab.null, Symtab.alist_of ast_trans)))
+    Symtab.balance (foldl add_prod (foldl add_tr (prtab, trfuns), prods))
   end;
 
 
+(* mk_prtab *)
 
-(** pretty term/typ asts **)  (* FIXME check *)
+val mk_prtab = extend_prtab empty_prtab;
 
-(*assumes a syntax derived from Pure*)
 
-fun pretty tab appT ast0 p0 =
+
+(** pretty term/typ asts **)
+
+(*pretty assumes a syntax derived from Pure, otherwise it may loop forever*)
+
+fun pretty tab type_mode ast0 p0 =
   let
+    val trans = apply_trans "print ast translation";
+
+    val appT = if type_mode then tappl_ast_tr' else appl_ast_tr';
+
     fun synT ([], args) = ([], args)
       | synT (Arg p :: symbs, t :: args) =
-          let val (Ts, args') = synT (symbs, args)
+          let val (Ts, args') = synT (symbs, args);
           in (astT (t, p) @ Ts, args') end
       | synT (TypArg p :: symbs, t :: args) =
-          let val (Ts, args') = synT (symbs, args)
-          in (pretty tab tappl_ast_tr' t p @ Ts, args') end
+          let val (Ts, args') = synT (symbs, args);
+          in (pretty tab true t p @ Ts, args') end
       | synT (String s :: symbs, args) =
-          let val (Ts, args') = synT (symbs, args)
+          let val (Ts, args') = synT (symbs, args);
           in (Pretty.str s :: Ts, args') end
       | synT (Block (i, bsymbs) :: symbs, args) =
           let
@@ -253,39 +290,47 @@ fun pretty tab appT ast0 p0 =
             val (Ts, args'') = synT (symbs, args');
           in (Pretty.blk (i, bTs) :: Ts, args'') end
       | synT (Break i :: symbs, args) =
-          let val (Ts, args') = synT (symbs, args)
-          in (Pretty.brk i :: Ts, args') end
+          let val (Ts, args') = synT (symbs, args);
+          in ((if i < 0 then Pretty.fbrk else Pretty.brk i) :: Ts, args') end
       | synT (_ :: _, []) = error "synT"
 
     and parT (pr, args, p, p': int) =
-      if p > p' then fst (synT ([Block(1, String"(" :: pr @ [String")"])], args))
-      else fst (synT (pr, args))
+      if p > p' then
+        #1 (synT ([Block (1, String "(" :: pr @ [String ")"])], args))
+      else #1 (synT (pr, args))
 
     and prefixT (_, a, [], _) = [Pretty.str a]
       | prefixT (c, _, args, p) = astT (appT (c, args), p)
 
+    and splitT 0 ([x], ys) = (x, ys)
+      | splitT 0 (rev_xs, ys) = (Appl (rev rev_xs), ys)
+      | splitT n (rev_xs, y :: ys) = splitT (n - 1) (y :: rev_xs, ys)
+      | splitT _ _ = error "splitT"
+
     and combT (tup as (c, a, args, p)) =
       let
         val nargs = length args;
+
         fun prnt (pr, n, p') =
-          if n = nargs then parT (pr, args, p, p')
-          else if n > nargs then prefixT tup
-          else astT (appT (c, args), p);     (* FIXME ??? *)
+          if nargs = n then parT (pr, args, p, p')
+          else if nargs < n orelse type_mode then prefixT tup
+          else astT (appT (splitT n ([c], args)), p);
       in
-        case Symtab.lookup (tab, a) of
+        (case Symtab.lookup (tab, a) of
           None => prefixT tup
         | Some (Prnt prnp) => prnt prnp
         | Some (Trns f) =>
-            (astT (apply_trans a f args, p) handle Match => prefixT tup)
+            (astT (trans a f args, p) handle Match => prefixT tup)
         | Some (TorP (f, prnp)) =>
-            (astT (apply_trans a f args, p) handle Match => prnt prnp)
+            (astT (trans a f args, p) handle Match => prnt prnp))
       end
 
     and astT (c as Constant a, p) = combT (c, a, [], p)
       | astT (Variable x, _) = [Pretty.str x]
-      | astT (Appl ((c as Constant a) :: args), p) = combT (c, a, args, p)
+      | astT (Appl ((c as Constant a) :: (args as _ :: _)), p) =
+          combT (c, a, args, p)
       | astT (Appl (f :: (args as _ :: _)), p) = astT (appT (f, args), p)
-      | astT (ast as (Appl _), _) = raise_ast "pretty: malformed ast" [ast];
+      | astT (ast as Appl _, _) = raise_ast "pretty: malformed ast" [ast];
   in
     astT (ast0, p0)
   end;
@@ -294,13 +339,13 @@ fun pretty tab appT ast0 p0 =
 (* pretty_term_ast *)
 
 fun pretty_term_ast tab ast =
-  Pretty.blk (0, pretty tab appl_ast_tr' ast 0);
+  Pretty.blk (0, pretty tab false ast 0);
 
 
 (* pretty_typ_ast *)
 
 fun pretty_typ_ast tab ast =
-  Pretty.blk (0, pretty tab tappl_ast_tr' ast 0);
+  Pretty.blk (0, pretty tab true ast 0);
 
 
 end;

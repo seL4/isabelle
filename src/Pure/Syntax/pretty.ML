@@ -1,9 +1,9 @@
-(*  Title:      Pure/Syntax/pretty
+(*  Title:      Pure/Syntax/pretty.ML
     ID:         $Id$
     Author:     Lawrence C Paulson
     Copyright   1991  University of Cambridge
 
-Pretty printing module
+Generic pretty printing module.
 
 Loosely based on
   D. C. Oppen, "Pretty Printing",
@@ -20,24 +20,24 @@ The stored length of a block is used in breakdist (to treat each inner block as
 a unit for breaking).
 *)
 
-(* FIXME improve? *)
-type pprint_args = (string -> unit) * (int -> unit) * (int -> unit) * (unit -> unit);
+type pprint_args = (string -> unit) * (int -> unit) * (int -> unit) *
+  (unit -> unit) * (unit -> unit);
 
 signature PRETTY =
-  sig
+sig
   type T
-  val blk : int * T list -> T
-  val brk : int -> T
-  val fbrk : T
-  val str : string -> T
-  val lst : string * string -> T list -> T
-  val quote : T -> T
-  val string_of : T -> string
-  val str_of : T -> string
-  val pprint : T -> pprint_args -> unit
+  val blk: int * T list -> T
+  val brk: int -> T
+  val fbrk: T
+  val str: string -> T
+  val lst: string * string -> T list -> T
+  val quote: T -> T
+  val string_of: T -> string
+  val str_of: T -> string
+  val pprint: T -> pprint_args -> unit
   val setdepth: int -> unit
   val setmargin: int -> unit
-  end;
+end;
 
 functor PrettyFun () : PRETTY =
 struct
@@ -159,23 +159,23 @@ fun prune dp e = if dp>0 then pruning dp e else e;
 fun string_of e = #tx (format ([prune (!depth) e],0,0) emptytext);
 
 
-fun brk_width (force, wd) = if force andalso wd = 0 then 1 else wd;
-
 fun str_of prt =
   let
     fun s_of (Block (prts, _, _)) = implode (map s_of prts)
       | s_of (String s) = s
-      | s_of (Break f_w) = repstring " " (brk_width f_w);
+      | s_of (Break (false, wd)) = repstring " " wd
+      | s_of (Break (true, _)) = " ";
   in
     s_of (prune (! depth) prt)
   end;
 
 
-fun pprint prt (put_str, begin_blk, put_brk, end_blk) =
+fun pprint prt (put_str, begin_blk, put_brk, put_fbrk, end_blk) =
   let
     fun pp (Block (prts, ind, _)) = (begin_blk ind; pp_lst prts; end_blk ())
       | pp (String s) = put_str s
-      | pp (Break f_w) = put_brk (brk_width f_w)
+      | pp (Break (false, wd)) = put_brk wd
+      | pp (Break (true, _)) = put_fbrk ()
     and pp_lst [] = ()
       | pp_lst (prt :: prts) = (pp prt; pp_lst prts);
   in

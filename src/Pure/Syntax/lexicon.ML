@@ -1,251 +1,388 @@
-(*  Title:      Lexicon
+(*  Title:      Pure/Syntax/lexicon.ML
     ID:         $Id$
-    Author:     Tobias Nipkow, TU Muenchen
-    Copyright   1993  TU Muenchen
+    Author:     Tobias Nipkow and Markus Wenzel, TU Muenchen
 
-The Isabelle Lexer
-
-Changes:
-TODO:
-  Lexicon -> lexicon, Token -> token
-  end_token -> EndToken ?
+Scanner combinators and Isabelle's main lexer (used for terms and typs).
 *)
+
+infix 5 -- ^^;
+infix 3 >>;
+infix 0 ||;
 
 signature LEXICON0 =
 sig
   val is_identifier: string -> bool
-  val scan_varname: string list -> indexname * string list
   val string_of_vname: indexname -> string
+  val scan_varname: string list -> indexname * string list
+  val scan_var: string -> term
 end;
 
 signature LEXICON =
 sig
-  type Lexicon
-  datatype Token = Token of string
-                 | IdentSy of string
-                 | VarSy of string * int
-                 | TFreeSy of string
-                 | TVarSy of string * int
-                 | end_token;
-  val empty: Lexicon
-  val extend: Lexicon * string list -> Lexicon
-  val matching_tokens: Token * Token -> bool
-  val mk_lexicon: string list -> Lexicon
-  val name_of_token: Token -> string
-  val predef_term: string -> Token
-  val is_terminal: string -> bool
-  val tokenize: Lexicon -> string -> Token list
-  val token_to_string: Token -> string
-  val valued_token: Token -> bool
-  type 'b TokenMap
-  val mkTokenMap: ('b * Token list) list -> 'b TokenMap
-  val applyTokenMap: 'b TokenMap * Token -> 'b list
   include LEXICON0
+  val is_xid: string -> bool
+  val is_tfree: string -> bool
+  type lexicon
+  datatype token =
+    Token of string |
+    IdentSy of string |
+    VarSy of string |
+    TFreeSy of string |
+    TVarSy of string |
+    EndToken;
+  val id: string
+  val var: string
+  val tfree: string
+  val tvar: string
+  val str_of_token: token -> string
+  val display_token: token -> string
+  val matching_tokens: token * token -> bool
+  val valued_token: token -> bool
+  val predef_term: string -> token
+  val is_terminal: string -> bool
+  val empty_lexicon: lexicon
+  val extend_lexicon: lexicon -> string list -> lexicon
+  val mk_lexicon: string list -> lexicon
+  val tokenize: lexicon -> bool -> string -> token list
+
+  exception LEXICAL_ERROR
+  val >> : ('a -> 'b * 'c) * ('b -> 'd) -> 'a -> 'd * 'c
+  val || : ('a -> 'b) * ('a -> 'b) -> 'a -> 'b
+  val -- : ('a -> 'b * 'c) * ('c -> 'd * 'e) -> 'a -> ('b * 'd) * 'e
+  val ^^ : ('a -> string * 'b) * ('b -> string * 'c) -> 'a -> string * 'c
+  val $$ : ''a -> ''a list -> ''a * ''a list
+  val scan_empty: 'a list -> 'b list * 'a list
+  val scan_one: ('a -> bool) -> 'a list -> 'a * 'a list
+  val scan_any: ('a -> bool) -> 'a list -> 'a list * 'a list
+  val scan_any1: ('a -> bool) -> 'a list -> 'a list * 'a list
+  val scan_end: 'a list -> 'b list * 'a list
+  val optional: ('a -> 'b * 'a) -> 'a -> 'b option * 'a
+  val repeat: ('a -> 'b * 'a) -> 'a -> 'b list * 'a
+  val repeat1: ('a -> 'b * 'a) -> 'a -> 'b list * 'a
 end;
 
-functor LexiconFun(Extension: EXTENSION): LEXICON =
+functor LexiconFun(): LEXICON =
 struct
 
-open Extension;
+
+(** is_identifier etc. **)
+
+fun is_ident [] = false
+  | is_ident (c :: cs) = is_letter c andalso forall is_letdig cs;
+
+val is_identifier = is_ident o explode;
+
+fun is_xid s =
+  (case explode s of
+    "_" :: cs => is_ident cs
+  | cs => is_ident cs);
+
+fun is_tfree s =
+  (case explode s of
+    "'" :: cs => is_ident cs
+  | _ => false);
 
 
-datatype Token = Token of string
-               | IdentSy of string
-               | VarSy of string * int
-               | TFreeSy of string
-               | TVarSy of string * int
-               | end_token;
-val no_token = "";
 
-datatype dfa = Tip | Branch of string * string * dfa * dfa * dfa;
+(** string_of_vname **)
 
-type Lexicon = dfa;
+fun string_of_vname (x, i) =
+  let
+    val si = string_of_int i;
+  in
+    if is_digit (last_elem (explode x)) then "?" ^ x ^ "." ^ si
+    else if i = 0 then "?" ^ x
+    else "?" ^ x ^ si
+  end;
 
-fun is_id(c::cs) = is_letter(c) andalso forall is_letdig cs
-  | is_id([])    = false;
 
-fun is_identifier s = is_id(explode s);
 
-val empty = Tip;
+(** datatype token **)
 
-fun extend1(dfa, s) =
-    let fun add(Branch(c, a, less, eq, gr), cs as (d::ds)) =
-              if c>d then Branch(c, a, add(less, cs), eq, gr) else
-              if c<d then Branch(c, a, less, eq, add(gr, cs)) else
-              Branch(c, if null ds then s else a, less, add(eq, ds), gr)
-          | add(Tip, c::cs) =
-              Branch(c, if null cs then s else no_token, Tip, add(Tip, cs), Tip)
-          | add(dfa, []) = dfa
+datatype token =
+  Token of string |
+  IdentSy of string |
+  VarSy of string |
+  TFreeSy of string |
+  TVarSy of string |
+  EndToken;
 
-    in add(dfa, explode s) end;
 
-val extend = foldl extend1;
+(* names of valued tokens *)
 
-fun mk_lexicon ss = extend(empty, ss);
+val id = "id";
+val var = "var";
+val tfree = "tfree";
+val tvar = "tvar";
 
-fun next_dfa (Tip, _) = None
-  | next_dfa (Branch(d, a, less, eq, gr), c) =
-      if c<d then next_dfa(less, c) else
-      if c>d then next_dfa(gr, c)   else Some(a, eq);
 
-exception ID of string * string list;
+(* str_of_token *)
 
-val eof_id = "End of input - identifier expected.\n";
+fun str_of_token (Token s) = s
+  | str_of_token (IdentSy s) = s
+  | str_of_token (VarSy s) = s
+  | str_of_token (TFreeSy s) = s
+  | str_of_token (TVarSy s) = s
+  | str_of_token EndToken = "";
 
-(*A string of letters, digits, or ' _ *)
-fun xscan_ident exn =
-let fun scan []  =  raise exn(eof_id, [])
-      | scan(c::cs) =
-        if  is_letter c
-        then let val (ds, tail) = take_prefix is_letdig cs
-             in  (implode(c::ds), tail)  end
-        else raise exn("Identifier expected: ", c::cs)
-in scan end;
 
-(*Scan the offset of a Var, if present; otherwise ~1 *)
-fun scan_offset cs = case cs of
-    ("."::[]) => (~1, cs)
-  | ("."::(ds as c::cs')) => if is_digit c then scan_int ds else (~1, cs)
-  | _ => (~1, cs);
+(* display_token *)
 
-fun split_varname s =
-    let val (rpost, rpref) = take_prefix is_digit (rev(explode s))
-        val (i, _) = scan_int(rev rpost)
-    in (implode(rev rpref), i) end;
+fun display_token (Token s) = quote s
+  | display_token (IdentSy s) = "id(" ^ s ^ ")"
+  | display_token (VarSy s) = "var(" ^ s ^ ")"
+  | display_token (TFreeSy s) = "tfree(" ^ s ^ ")"
+  | display_token (TVarSy s) = "tvar(" ^ s ^ ")"
+  | display_token EndToken = "";
 
-fun xscan_varname exn cs : (string*int) * string list =
-let val (a, ds) = xscan_ident exn cs;
-    val (i, es) = scan_offset ds
-in if i = ~1 then (split_varname a, es) else ((a, i), es) end;
 
-fun scan_varname s = xscan_varname ID s
-        handle ID(err, cs) => error(err^(implode cs));
+(* matching_tokens *)
 
-fun tokenize (dfa) (s:string) : Token list =
-let exception LEX_ERR;
-    exception FAIL of string * string list;
-    val lexerr = "Lexical error: ";
+fun matching_tokens (Token x, Token y) = (x = y)
+  | matching_tokens (IdentSy _, IdentSy _) = true
+  | matching_tokens (VarSy _, VarSy _) = true
+  | matching_tokens (TFreeSy _, TFreeSy _) = true
+  | matching_tokens (TVarSy _, TVarSy _) = true
+  | matching_tokens (EndToken, EndToken) = true
+  | matching_tokens _ = false;
 
-    fun tokenize1 (_:dfa, []:string list) : Token * string list =
-          raise LEX_ERR
-      | tokenize1(dfa, c::cs) =
-          case next_dfa(dfa, c) of
-            None => raise LEX_ERR
-          | Some(a, dfa') =>
-             if a=no_token then tokenize1(dfa', cs)
-             else (tokenize1(dfa', cs) handle LEX_ERR =>
-                   if is_identifier a andalso not(null cs) andalso
-                      is_letdig(hd cs)
-                   then raise LEX_ERR else (Token(a), cs));
 
-    fun token(cs) = tokenize1(dfa, cs) handle LEX_ERR => raise FAIL(lexerr, cs);
+(* valued_token *)
 
-    fun id([]) = raise FAIL(eof_id, [])
-      | id(cs as c::cs') =
-        if is_letter(c)
-        then let val (id, cs'') = xscan_ident FAIL cs
-             in (IdentSy(id), cs'') end
-        else
-        if c = "?"
-        then case cs' of
-                "'"::xs => let val ((a, i), ys) = xscan_varname FAIL xs
-                           in (TVarSy("'"^a, i), ys) end
-             | _ => let val ((a, i), ys) = xscan_varname FAIL cs'
-                    in (VarSy(a, i), ys) end
-        else
-        if c = "'"
-        then let val (a, cs'') = xscan_ident FAIL cs'
-             in (TFreeSy("'" ^ a), cs'') end
-        else raise FAIL(lexerr, cs);
+fun valued_token (Token _) = false
+  | valued_token (IdentSy _) = true
+  | valued_token (VarSy _) = true
+  | valued_token (TFreeSy _) = true
+  | valued_token (TVarSy _) = true
+  | valued_token EndToken = false;
 
-    fun tknize([], ts) = rev(ts)
-      | tknize(cs as c::cs', ts) =
-        if is_blank(c) then tknize(cs', ts) else
-        let val (t, cs'') =
-                if c="?" then id(cs) handle FAIL _ => token(cs)
-                else (token(cs) handle FAIL _ => id(cs))
-        in tknize(cs'', t::ts) end
 
-in tknize(explode s, []) handle FAIL(s, cs) => error(s^(implode cs)) end;
+(* predef_term *)
 
-(*Variables have the form ?nameidx, or ?name.idx if "name" ends with a digit*)
-fun string_of_vname (a, idx) = case rev(explode a) of
-        []   => "?NULL_VARIABLE_NAME"
-      | c::_ => "?" ^
-                (if is_digit c then a ^ "." ^ string_of_int idx
-                 else if idx = 0 then a
-                 else a ^ string_of_int idx);
-
-fun token_to_string (Token(s)) = s
-  | token_to_string (IdentSy(s)) = s
-  | token_to_string (VarSy v) = string_of_vname v
-  | token_to_string (TFreeSy a) = a
-  | token_to_string (TVarSy v) = string_of_vname v
-  | token_to_string end_token = "\n";
-
-(* MMW *)
-fun name_of_token (Token s) = quote s
-  | name_of_token (IdentSy _) = id
-  | name_of_token (VarSy _) = var
-  | name_of_token (TFreeSy _) = tfree
-  | name_of_token (TVarSy _) = tvar;
-
-fun matching_tokens(Token(i), Token(j)) = (i=j) |
-    matching_tokens(IdentSy(_), IdentSy(_)) = true |
-    matching_tokens(VarSy _, VarSy _) = true |
-    matching_tokens(TFreeSy _, TFreeSy _) = true |
-    matching_tokens(TVarSy _, TVarSy _) = true |
-    matching_tokens(end_token, end_token) = true |
-    matching_tokens(_, _) = false;
-
-fun valued_token(end_token) = false
-  | valued_token(Token _) = false
-  | valued_token(IdentSy _) = true
-  | valued_token(VarSy _) = true
-  | valued_token(TFreeSy _) = true
-  | valued_token(TVarSy _) = true;
-
-(* MMW *)
 fun predef_term name =
   if name = id then IdentSy name
-  else if name = var then VarSy (name, 0)
+  else if name = var then VarSy name
   else if name = tfree then TFreeSy name
-  else if name = tvar then TVarSy (name, 0)
-  else end_token;
+  else if name = tvar then TVarSy name
+  else EndToken;
 
-(* MMW *)
+
+(* is_terminal **)
+
 fun is_terminal s = s mem [id, var, tfree, tvar];
 
 
 
-type 'b TokenMap = (Token * 'b list) list * 'b list;
-val first_token = 0;
+(** datatype lexicon **)
 
-fun int_of_token(Token(tk)) = first_token |
-    int_of_token(IdentSy _) = first_token - 1 |
-    int_of_token(VarSy _) = first_token - 2 |
-    int_of_token(TFreeSy _) = first_token - 3 |
-    int_of_token(TVarSy _) = first_token - 4 |
-    int_of_token(end_token) = first_token - 5;
+datatype lexicon =
+  Empty |
+  Branch of string * string * lexicon * lexicon * lexicon;
 
-fun lesstk(s, t) = int_of_token(s) < int_of_token(t) orelse
-                  (case (s, t) of (Token(a), Token(b)) => a<b | _ => false);
+val no_token = "";
 
-fun mkTokenMap(atll) =
-    let val aill = atll;
-        val dom = sort lesstk (distinct(flat(map snd aill)));
-        val mt = map fst (filter (null o snd) atll);
-        fun mktm(i) =
-            let fun add(l, (a, il)) = if i mem il then a::l else l
-            in (i, foldl add ([], aill)) end;
-    in (map mktm dom, mt) end;
 
-fun find_al (i) =
-    let fun find((j, al)::l) = if lesstk(i, j) then [] else
-                              if matching_tokens(i, j) then al else find l |
-            find [] = [];
-    in find end;
-fun applyTokenMap((l, mt), tk:Token) = mt@(find_al tk l);
+(* empty_lexicon *)
+
+val empty_lexicon = Empty;
+
+
+(* extend_lexicon *)
+
+fun extend_lexicon lexicon strs =
+  let
+    fun ext (lex, s) =
+      let
+        fun add (Branch (d, a, lt, eq, gt)) (chs as c :: cs) =
+              if c < d then Branch (d, a, add lt chs, eq, gt)
+              else if c > d then Branch (d, a, lt, eq, add gt chs)
+              else Branch (d, if null cs then s else a, lt, add eq cs, gt)
+          | add Empty [c] =
+              Branch (c, s, Empty, Empty, Empty)
+          | add Empty (c :: cs) =
+              Branch (c, no_token, Empty, add Empty cs, Empty)
+          | add lex [] = lex;
+
+        val cs = explode s;
+      in
+        if exists is_blank cs then
+          error ("extend_lexicon: blank in literal " ^ quote s)
+        else add lex cs
+      end;
+  in
+    foldl ext (lexicon, strs)
+  end;
+
+
+(* mk_lexicon *)
+
+val mk_lexicon = extend_lexicon empty_lexicon;
+
+
+
+(** scanners **)
+
+exception LEXICAL_ERROR;
+
+
+(* scanner combinators *)
+
+fun (scan >> f) cs = apfst f (scan cs);
+
+fun (scan1 || scan2) cs = scan1 cs handle LEXICAL_ERROR => scan2 cs;
+
+fun (scan1 -- scan2) cs =
+  let
+    val (x, cs') = scan1 cs;
+    val (y, cs'') = scan2 cs';
+  in
+    ((x, y), cs'')
+  end;
+
+fun (scan1 ^^ scan2) = scan1 -- scan2 >> op ^;
+
+
+(* generic scanners *)
+
+fun $$ _ [] = raise LEXICAL_ERROR
+  | $$ a (c :: cs) =
+      if a = c then (c, cs) else raise LEXICAL_ERROR;
+
+fun scan_empty cs = ([], cs);
+
+fun scan_one _ [] = raise LEXICAL_ERROR
+  | scan_one pred (c :: cs) =
+      if pred c then (c, cs) else raise LEXICAL_ERROR;
+
+val scan_any = take_prefix;
+
+fun scan_any1 pred = scan_one pred -- scan_any pred >> op ::;
+
+fun scan_rest cs = (cs, []);
+
+fun scan_end [] = ([], [])
+  | scan_end _ = raise LEXICAL_ERROR;
+
+fun optional scan = scan >> Some || scan_empty >> K None;
+
+fun repeat scan cs = (scan -- repeat scan >> op :: || scan_empty) cs;
+
+fun repeat1 scan = scan -- repeat scan >> op ::;
+
+
+(* other scanners *)
+
+val scan_letter_letdigs = scan_one is_letter -- scan_any is_letdig >> op ::;
+
+val scan_digits1 = scan_any1 is_digit;
+
+val scan_id = scan_letter_letdigs >> implode;
+
+val scan_id_nat =
+  scan_id ^^ ($$ "." ^^ (scan_digits1 >> implode) || scan_empty >> K "");
+
+
+(* scan_literal *)
+
+fun scan_literal lex chrs =
+  let
+    fun scan_lit _ s_cs [] = s_cs
+      | scan_lit Empty s_cs _ = s_cs
+      | scan_lit (Branch (d, a, lt, eq, gt)) s_cs (chs as c :: cs) =
+          if c < d then scan_lit lt s_cs chs
+          else if c > d then scan_lit gt s_cs chs
+          else scan_lit eq (if a = no_token then s_cs else Some (a, cs)) cs;
+  in
+    (case scan_lit lex None chrs of
+      None => raise LEXICAL_ERROR
+    | Some s_cs => s_cs)
+  end;
+
+
+
+(** tokenize **)
+
+fun tokenize lex xids str =
+  let
+    val scan_xid =
+      if xids then $$ "_" ^^ scan_id || scan_id
+      else scan_id;
+
+    val scan_lit = scan_literal lex >> pair Token;
+
+    val scan_ident =
+      $$ "?" ^^ $$ "'" ^^ scan_id_nat >> pair TVarSy ||
+      $$ "?" ^^ scan_id_nat >> pair VarSy ||
+      $$ "'" ^^ scan_id >> pair TFreeSy ||
+      scan_xid >> pair IdentSy;
+
+    fun scan_max_token cs =
+      (case (optional scan_lit cs, optional scan_ident cs) of
+        (tok1, (None, _)) => tok1
+      | ((None, _), tok2) => tok2
+      | (tok1 as (Some (_, s1), _), tok2 as (Some (_, s2), _)) =>
+          if size s1 >= size s2 then tok1 else tok2);
+
+    fun scan_tokens [] rev_toks = rev (EndToken :: rev_toks)
+      | scan_tokens (chs as c :: cs) rev_toks =
+          if is_blank c then scan_tokens cs rev_toks
+          else
+            (case scan_max_token chs of
+              (None, _) => error ("Lexical error at: " ^ quote (implode chs))
+            | (Some (tk, s), chs') => scan_tokens chs' (tk s :: rev_toks));
+  in
+    scan_tokens (explode str) []
+  end;
+
+
+
+(** scan variables **)
+
+(* scan_vname *)
+
+fun scan_vname chrs =
+  let
+    fun nat_of_chs n [] = n
+      | nat_of_chs n (c :: cs) = nat_of_chs (n * 10 + (ord c - ord "0")) cs;
+
+    val nat_of = nat_of_chs 0;
+
+    fun split_vname chs =
+      let val (cs, ds) = take_suffix is_digit chs
+      in (implode cs, nat_of ds) end
+
+    val scan =
+      scan_letter_letdigs --
+        ($$ "." -- scan_digits1 >> (nat_of o #2) || scan_empty >> K ~1);
+  in
+    (case scan chrs of
+      ((cs, ~1), cs') => (split_vname cs, cs')
+    | ((cs, i), cs') => ((implode cs, i), cs'))
+  end;
+
+
+(* scan_varname *)
+
+fun scan_varname chs =
+  scan_vname chs handle LEXICAL_ERROR
+    => error ("scan_varname: bad varname " ^ quote (implode chs));
+
+
+(* scan_var *)
+
+fun scan_var str =
+  let
+    fun tvar (x, i) = Var (("'" ^ x, i), dummyT);
+    fun var x_i = Var (x_i, dummyT);
+    fun free x = Free (x, dummyT);
+
+    val scan =
+      $$ "?" -- $$ "'" -- scan_vname -- scan_end >> (tvar o #2 o #1) ||
+      $$ "?" -- scan_vname -- scan_end >> (var o #2 o #1) ||
+      scan_rest >> (free o implode);
+  in
+    #1 (scan (explode str))
+  end;
 
 
 end;

@@ -1,8 +1,12 @@
-(*  Title:      Pure/Syntax/type_ext
+(*  Title:      Pure/Syntax/type_ext.ML
     ID:         $Id$
     Author:     Tobias Nipkow and Markus Wenzel, TU Muenchen
 
-The concrete syntax of types (used to bootstrap Pure)
+The concrete syntax of types (used to bootstrap Pure).
+
+TODO:
+  term_of_typ: prune sorts
+  move "_K" (?)
 *)
 
 signature TYPE_EXT0 =
@@ -25,39 +29,41 @@ functor TypeExtFun(structure Extension: EXTENSION and Lexicon: LEXICON): TYPE_EX
 struct
 
 structure Extension = Extension;
-open Extension Extension.XGram.Ast;
+open Extension Extension.XGram Extension.XGram.Ast Lexicon;
 
 
-(** typ_of_term **)   (* FIXME check *)
+(** typ_of_term **)
 
 fun typ_of_term def_sort t =
   let
     fun sort_err (xi as (x, i)) =
-      error ("typ_of_term: inconsistent sort constraints for type variable " ^
-        (if i < 0 then x else Lexicon.string_of_vname xi));
-
-    fun is_tfree name =
-      (case explode name of
-        "'" :: _ :: _ => true
-      | _ :: _ => false
-      | _ => error ("typ_of_term: bad var name " ^ quote name));
+      error ("Inconsistent sort constraints for type variable " ^
+        quote (if i < 0 then x else string_of_vname xi));
 
     fun put_sort scs xi s =
       (case assoc (scs, xi) of
         None => (xi, s) :: scs
       | Some s' =>  if s = s' then scs else sort_err xi);
 
-    fun classes (Const (s, _)) = [s]
-      | classes (Free (s, _)) = [s]
-      | classes (Const ("_sortcons", _) $ Const (s, _) $ cls) = s :: classes cls
-      | classes (Const ("_sortcons", _) $ Free (s, _) $ cls) = s :: classes cls
-      | classes tm = raise (TERM ("typ_of_term: bad encoding of classes", [tm]));
+    fun insert x [] = [x: string]
+      | insert x (lst as y :: ys) =
+          if x > y then y :: insert x ys
+          else if x = y then lst
+          else x :: lst;
+
+    fun classes (Const (c, _)) = [c]
+      | classes (Free (c, _)) = [c]
+      | classes (Const ("_classes", _) $ Const (c, _) $ cls) =
+          insert c (classes cls)
+      | classes (Const ("_classes", _) $ Free (c, _) $ cls) =
+          insert c (classes cls)
+      | classes tm = raise_term "typ_of_term: bad encoding of classes" [tm];
 
     fun sort (Const ("_emptysort", _)) = []
       | sort (Const (s, _)) = [s]
       | sort (Free (s, _)) = [s]
-      | sort (Const ("_classes", _) $ cls) = classes cls
-      | sort tm = raise (TERM ("typ_of_term: bad encoding of sort", [tm]));
+      | sort (Const ("_sort", _) $ cls) = classes cls
+      | sort tm = raise_term "typ_of_term: bad encoding of sort" [tm];
 
     fun typ (Free (x, _), scs) =
           (if is_tfree x then TFree (x, []) else Type (x, []), scs)
@@ -67,19 +73,19 @@ fun typ_of_term def_sort t =
       | typ (Const ("_ofsort", _) $ Var (xi, _) $ st, scs) =
           (TVar (xi, []), put_sort scs xi (sort st))
       | typ (Const (a, _), scs) = (Type (a, []), scs)
-      | typ (tm as (_ $ _), scs) =
+      | typ (tm as _ $ _, scs) =
           let
             val (t, ts) = strip_comb tm;
             val a =
-              case t of
+              (case t of
                 Const (x, _) => x
               | Free (x, _) => x
-              | _ => raise (TERM ("typ_of_term: bad type application", [tm]));
+              | _ => raise_term "typ_of_term: bad type application" [tm]);
             val (tys, scs') = typs (ts, scs);
           in
             (Type (a, tys), scs')
           end
-      | typ (tm, _) = raise (TERM ("typ_of_term: bad encoding of typ", [tm]))
+      | typ (tm, _) = raise_term "typ_of_term: bad encoding of typ" [tm]
     and typs (t :: ts, scs) =
           let
             val (ty, scs') = typ (t, scs);
@@ -109,40 +115,43 @@ fun typ_of_term def_sort t =
 fun term_of_typ show_sorts ty =
   let
     fun const x = Const (x, dummyT);
+    fun free x = Free (x, dummyT);
+    fun var xi = Var (xi, dummyT);
 
     fun classes [] = raise Match
-      | classes [s] = const s
-      | classes (s :: ss) = const "_sortcons" $ const s $ classes ss;
+      | classes [c] = free c
+      | classes (c :: cs) = const "_classes" $ free c $ classes cs;
 
     fun sort [] = const "_emptysort"
-      | sort [s] = const s
-      | sort ss = const "_classes" $ classes ss;
+      | sort [s] = free s
+      | sort ss = const "_sort" $ classes ss;
 
     fun of_sort t ss =
       if show_sorts then const "_ofsort" $ t $ sort ss else t;
 
-    fun typ (Type (a, tys)) = list_comb (const a, map typ tys)
-      | typ (TFree (x, ss)) = of_sort (Free (x, dummyT)) ss
-      | typ (TVar (xi, ss)) = of_sort (Var (xi, dummyT)) ss;
+    fun term_of (Type (a, tys)) = list_comb (const a, map term_of tys)
+      | term_of (TFree (x, ss)) = of_sort (free x) ss
+      | term_of (TVar (xi, ss)) = of_sort (var xi) ss;
   in
-    typ ty
+    term_of ty
   end;
 
 
 
 (** the type syntax **)
 
-(* parse translations *)
+(* parse ast translations *)
 
-fun tappl_ast_tr (*"_tappl"*) [types, f] = Appl (f :: unfold_ast "_types" types)
-  | tappl_ast_tr (*"_tappl"*) asts = raise_ast "tappl_ast_tr" asts;
+fun tappl_ast_tr (*"_tapp(l)"*) [types, f] =
+      Appl (f :: unfold_ast "_types" types)
+  | tappl_ast_tr (*"_tapp(l)"*) asts = raise_ast "tappl_ast_tr" asts;
 
 fun bracket_ast_tr (*"_bracket"*) [dom, cod] =
       fold_ast_p "fun" (unfold_ast "_types" dom, cod)
   | bracket_ast_tr (*"_bracket"*) asts = raise_ast "bracket_ast_tr" asts;
 
 
-(* print translations *)
+(* print ast translations *)
 
 fun tappl_ast_tr' (f, []) = raise_ast "tappl_ast_tr'" [f]
   | tappl_ast_tr' (f, [ty]) = Appl [Constant "_tapp", ty, f]
@@ -150,7 +159,7 @@ fun tappl_ast_tr' (f, []) = raise_ast "tappl_ast_tr'" [f]
 
 fun fun_ast_tr' (*"fun"*) asts =
   (case unfold_ast_p "fun" (Appl (Constant "fun" :: asts)) of
-    (dom as (_ :: _ :: _), cod)
+    (dom as _ :: _ :: _, cod)
       => Appl [Constant "_bracket", fold_ast "_types" dom, cod]
   | _ => raise Match);
 
@@ -165,31 +174,27 @@ val type_ext =
   Ext {
     roots = [logic, "type"],
     mfix = [
-      Mfix ("_",           idT --> sortT,                 "", [], max_pri),
-      Mfix ("{}",          sortT,                         "_emptysort", [], max_pri),
-      Mfix ("{_}",         classesT --> sortT,            "_classes", [], max_pri),
-      Mfix ("_",           idT --> classesT,              "", [], max_pri),
-      Mfix ("_,_",         [idT, classesT] ---> classesT, "_sortcons", [], max_pri),
       Mfix ("_",           tfreeT --> typeT,              "", [], max_pri),
       Mfix ("_",           tvarT --> typeT,               "", [], max_pri),
       Mfix ("_",           idT --> typeT,                 "", [], max_pri),
       Mfix ("_::_",        [tfreeT, sortT] ---> typeT,    "_ofsort", [max_pri, 0], max_pri),
       Mfix ("_::_",        [tvarT, sortT] ---> typeT,     "_ofsort", [max_pri, 0], max_pri),
-      Mfix ("_ _",         [typeT, idT] ---> typeT,       "_tapp", [max_pri, 0], max_pri),
-      Mfix ("((1'(_'))_)", [typesT, idT] ---> typeT,      "_tappl", [], max_pri),
+      Mfix ("_",           idT --> sortT,                 "", [], max_pri),
+      Mfix ("{}",          sortT,                         "_emptysort", [], max_pri),
+      Mfix ("{_}",         classesT --> sortT,            "_sort", [], max_pri),
+      Mfix ("_",           idT --> classesT,              "", [], max_pri),
+      Mfix ("_,_",         [idT, classesT] ---> classesT, "_classes", [], max_pri),
+      Mfix ("_ _",         [typeT, idT] ---> typeT,       "_tapp", [max_pri, 0], max_pri),  (* FIXME ambiguous *)
+      Mfix ("((1'(_'))_)", [typesT, idT] ---> typeT,      "_tappl", [], max_pri),           (* FIXME ambiguous *)
       Mfix ("_",           typeT --> typesT,              "", [], max_pri),
       Mfix ("_,/ _",       [typeT, typesT] ---> typesT,   "_types", [], max_pri),
       Mfix ("(_/ => _)",   [typeT, typeT] ---> typeT,     "fun", [1, 0], 0),
       Mfix ("([_]/ => _)", [typesT, typeT] ---> typeT,    "_bracket", [0, 0], 0)],
-    extra_consts = ["fun"],
+    extra_consts = ["_K"],
     parse_ast_translation = [("_tapp", tappl_ast_tr), ("_tappl", tappl_ast_tr),
       ("_bracket", bracket_ast_tr)],
-    parse_preproc = None,
-    parse_postproc = None,
     parse_translation = [],
     print_translation = [],
-    print_preproc = None,
-    print_postproc = None,
     print_ast_translation = [("fun", fun_ast_tr')]};
 
 

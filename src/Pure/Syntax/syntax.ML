@@ -1,47 +1,53 @@
-(*  Title:      Pure/Syntax/syntax
+(*  Title:      Pure/Syntax/syntax.ML
     ID:         $Id$
     Author:     Tobias Nipkow and Markus Wenzel, TU Muenchen
+
+Root of Isabelle's syntax module.
+
+TODO:
+  extend_tables (requires extend_gram) (roots!)
+  replace add_synrules by extend_tables
+  extend, merge: make roots handling more robust
+  extend: read_typ (incl check) as arg, remove def_sort
+  extend: use extend_tables
 *)
 
 signature SYNTAX =
 sig
-  (* FIXME include AST0 (?) *)
+  include AST0
   include LEXICON0
   include EXTENSION0
   include TYPE_EXT0
   include SEXTENSION1
   include PRINTER0
-  structure Extension: EXTENSION
-  structure Pretty: PRETTY
-  local open Extension.XGram Extension.XGram.Ast in
-    type syntax
-    val print_gram: syntax -> unit
-    val print_trans: syntax -> unit
-    val print_syntax: syntax -> unit
-    val read_ast: syntax -> string * string -> ast
-    val read: syntax -> typ -> string -> term
-    val pretty_term: syntax -> term -> Pretty.T
-    val pretty_typ: syntax -> typ -> Pretty.T
-    val string_of_term: syntax -> term -> string
-    val string_of_typ: syntax -> typ -> string
-    val type_syn: syntax
-    val extend: syntax * (indexname -> sort) -> string list * string list * sext
-      -> syntax
-    val merge: syntax * syntax -> syntax
-  end
+  type syntax
+  val type_syn: syntax
+  val extend: syntax * (indexname -> sort) -> string list * string list * sext
+    -> syntax
+  val merge: syntax * syntax -> syntax
+  val print_gram: syntax -> unit
+  val print_trans: syntax -> unit
+  val print_syntax: syntax -> unit
+  val test_read: syntax -> string -> string -> unit
+  val read: syntax -> typ -> string -> term
+  val pretty_term: syntax -> term -> Pretty.T
+  val pretty_typ: syntax -> typ -> Pretty.T
+  val string_of_term: syntax -> term -> string
+  val string_of_typ: syntax -> typ -> string
 end;
 
 functor SyntaxFun(structure Symtab: SYMTAB and TypeExt: TYPE_EXT
   and Parser: PARSER and SExtension: SEXTENSION and Printer: PRINTER
-  sharing TypeExt.Extension.XGram = Parser.XGram = Printer.XGram
-  and TypeExt.Extension = SExtension.Extension
-  and Parser.ParseTree.Ast = Parser.XGram.Ast)(*: SYNTAX *) = (* FIXME *)
+  sharing TypeExt.Extension = SExtension.Extension
+  and Parser.XGram = TypeExt.Extension.XGram = Printer.XGram
+  and Parser.XGram.Ast = Parser.ParseTree.Ast)(*: SYNTAX *) = (* FIXME *)
 struct
 
 structure Extension = TypeExt.Extension;
 structure XGram = Extension.XGram;
 structure Lexicon = Parser.ParseTree.Lexicon;
-open Lexicon Extension TypeExt SExtension Printer XGram XGram.Ast;
+open Lexicon Parser Parser.ParseTree Extension TypeExt SExtension Printer
+  XGram XGram.Ast;
 
 
 fun lookup tab a = Symtab.lookup (tab, a);
@@ -51,20 +57,17 @@ fun lookup tab a = Symtab.lookup (tab, a);
 (** datatype syntax **)
 
 datatype tables =
-  Tab of {
-    gram: Parser.Gram,
-    lexicon: Lexicon,
-    const_tab: unit Symtab.table,
+  Tabs of {
+    lexicon: lexicon,
+    roots: string list,
+    gram: gram,
+    consts: string list,
     parse_ast_trtab: (ast list -> ast) Symtab.table,
-    parse_preproc: ast -> ast,
     parse_ruletab: (ast * ast) list Symtab.table,
-    parse_postproc: ast -> ast,
     parse_trtab: (term list -> term) Symtab.table,
     print_trtab: (term list -> term) Symtab.table,
-    print_preproc: ast -> ast,
     print_ruletab: (ast * ast) list Symtab.table,
-    print_postproc: ast -> ast,
-    print_tab: Printer.tab};
+    prtab: prtab};
 
 datatype gramgraph =
   EmptyGG |
@@ -77,6 +80,75 @@ datatype syntax = Syntax of gramgraph ref * tables;
 
 (*** compile syntax ***)
 
+(* translation funs *)
+
+fun extend_trtab tab trfuns name =
+  Symtab.balance (Symtab.st_of_alist (trfuns, tab)) handle Symtab.DUPLICATE s
+    => error ("More than one " ^ name ^ " for " ^ quote s);
+
+val mk_trtab = extend_trtab Symtab.null;
+
+
+(* translation rules *)
+
+fun mk_ruletab rules =
+  let
+    fun add_rule (r, tab) =
+      let val a = head_of_rule r;
+      in
+        (case lookup tab a of
+          None => Symtab.update ((a, [r]), tab)
+        | Some rs => Symtab.update ((a, r :: rs), tab))
+      end;
+  in
+    Symtab.balance (foldr add_rule (rules, Symtab.null))
+  end;
+
+fun extend_ruletab tab rules =
+  mk_ruletab (flat (map #2 (Symtab.alist_of tab)) @ rules);
+
+
+(* mk_tables *)
+
+fun mk_tables (XGram xgram) =
+  let
+    val {roots, prods, consts, parse_ast_translation, parse_rules,
+      parse_translation, print_translation, print_rules,
+      print_ast_translation} = xgram;
+  in
+    Tabs {
+      lexicon = mk_lexicon (literals_of prods),
+      roots = roots,
+      gram = mk_gram roots prods,
+      consts = consts,
+      parse_ast_trtab = mk_trtab parse_ast_translation "parse ast translation",
+      parse_ruletab = mk_ruletab parse_rules,
+      parse_trtab = mk_trtab parse_translation "parse translation",
+      print_trtab = mk_trtab print_translation "print translation",
+      print_ruletab = mk_ruletab print_rules,
+      prtab = mk_prtab prods print_ast_translation}
+  end;
+
+
+(* add_synrules *)
+
+fun add_synrules (Tabs tabs) (SynRules rules) =
+  let
+    val {lexicon, roots, gram, consts, parse_ast_trtab, parse_ruletab,
+      parse_trtab, print_trtab, print_ruletab, prtab} = tabs;
+    val {parse_rules, print_rules} = rules;
+  in
+    Tabs {
+      lexicon = lexicon, roots = roots, gram = gram, consts = consts,
+      parse_ast_trtab = parse_ast_trtab,
+      parse_ruletab = extend_ruletab parse_ruletab parse_rules,
+      parse_trtab = parse_trtab,
+      print_trtab = print_trtab,
+      print_ruletab = extend_ruletab print_ruletab print_rules,
+      prtab = prtab}
+  end;
+
+
 (* ggr_to_xgram *)
 
 fun ggr_to_xgram ggr =
@@ -86,121 +158,24 @@ fun ggr_to_xgram ggr =
     and flatGG' (ref EmptyGG) xgv = xgv
       | flatGG' (ref (ExtGG (ggr, ext))) xgv =
           let
-            val (xg', v') = flatGG ggr xgv
+            val (xg', v') = flatGG ggr xgv;
           in
-            (Extension.extend xg' ext, v')
+            (extend_xgram xg' ext, v')
           end
       | flatGG' (ref (MergeGG (ggr1, ggr2))) xgv =
           flatGG ggr1 (flatGG ggr2 xgv);
   in
-    fst (flatGG ggr (Extension.empty, []))
-  end;
-
-
-(* mk_ruletab *)
-
-fun mk_ruletab rules =
-  let
-    fun add_rule (r, tab) =
-      let
-        val a = head_of_rule r
-      in
-        case lookup tab a of
-          None => Symtab.update ((a, [r]), tab)
-        | Some rs => Symtab.update ((a, r :: rs), tab)
-      end;
-  in
-    Symtab.balance (foldr add_rule (rules, Symtab.null))
+    #1 (flatGG ggr (empty_xgram, []))
   end;
 
 
 (* make_syntax *)
 
-fun make_syntax ggr =
-  let
-    fun mk_const_tab cs =
-      Symtab.balance
-        (Symtab.st_of_alist ((map (fn c => (c, ())) cs), Symtab.null));
-
-    fun mk_trtab alst name =
-      Symtab.balance (Symtab.st_of_alist (alst, Symtab.null))
-        handle Symtab.DUPLICATE s => error ("More than one " ^ name ^ " for " ^ quote s);
-
-    fun mk_proc (Some f) = f
-      | mk_proc None = I;
-
-    fun all_strings (opl: string prod list): string list =
-        flat (map (fn Prod (_, syn, _, _) => terminals syn) opl);
-
-    fun str_to_tok (opl: string prod list, lex: Lexicon): Token prod list =
-      map
-        (fn Prod (t, syn, s, pa) =>
-          Prod (t, translate (hd o tokenize lex) syn, s, pa))
-        opl;
-
-    fun xgram_to_tables (XGram xgram) =
-      let
-        val {roots, prods, consts, parse_ast_translation, parse_preproc, parse_rules,
-          parse_postproc, parse_translation, print_translation, print_preproc,
-          print_rules, print_postproc, print_ast_translation} = xgram;
-        val lexicon = mk_lexicon (all_strings prods);
-      in
-        Tab {
-          gram = Parser.compile_xgram (roots, str_to_tok (prods, lexicon)),
-          lexicon = lexicon,
-          const_tab = mk_const_tab consts,
-          parse_ast_trtab = mk_trtab parse_ast_translation "parse ast translation",
-          parse_preproc = mk_proc parse_preproc,
-          parse_ruletab = mk_ruletab parse_rules,
-          parse_postproc = mk_proc parse_postproc,
-          parse_trtab = mk_trtab parse_translation "parse translation",
-          print_trtab = mk_trtab print_translation "print translation",
-          print_preproc = mk_proc print_preproc,
-          print_ruletab = mk_ruletab print_rules,
-          print_postproc = mk_proc print_postproc,
-          print_tab = mk_print_tab prods
-            (mk_trtab print_ast_translation "print ast translation")}
-      end;
-  in
-    Syntax (ggr, xgram_to_tables (ggr_to_xgram ggr))
-  end;
-
-
-(* add_synrules *)
-
-fun add_synrules (Tab tabs) (SynRules rules) =
-  let
-    val {gram, lexicon, const_tab, parse_ast_trtab, parse_preproc, parse_ruletab,
-      parse_postproc, parse_trtab, print_trtab, print_preproc, print_ruletab,
-      print_postproc, print_tab} = tabs;
-    val {parse_rules, print_rules} = rules;
-    val parse_rs = flat (map snd (Symtab.alist_of parse_ruletab)) @ parse_rules;
-    val print_rs = flat (map snd (Symtab.alist_of print_ruletab)) @ print_rules;
-  in
-    Tab {
-      gram = gram, lexicon = lexicon, const_tab = const_tab,
-      parse_ast_trtab = parse_ast_trtab,
-      parse_preproc = parse_preproc,
-      parse_ruletab = mk_ruletab parse_rs,
-      parse_postproc = parse_postproc,
-      parse_trtab = parse_trtab,
-      print_trtab = print_trtab,
-      print_preproc = print_preproc,
-      print_ruletab = mk_ruletab print_rs,
-      print_postproc = print_postproc,
-      print_tab = print_tab}
-  end;
+fun make_syntax ggr = Syntax (ggr, mk_tables (ggr_to_xgram ggr));
 
 
 
 (*** inspect syntax ***)
-
-(* print_syntax_old *) (* FIXME remove *)
-
-fun print_syntax_old (Syntax (_, Tab {gram, lexicon, ...})) =
-  Parser.print_gram (gram, lexicon);
-
-
 
 fun xgram_of (Syntax (ggr, _)) = ggr_to_xgram ggr;
 
@@ -208,8 +183,13 @@ fun string_of_big_list name prts =
   Pretty.string_of (Pretty.blk (2,
     separate Pretty.fbrk (Pretty.str name :: prts)));
 
+fun string_of_strings name strs =
+  Pretty.string_of (Pretty.blk (2,
+    separate (Pretty.brk 1)
+      (map Pretty.str (name :: map quote (sort_strings strs)))));
 
-(* print_gram *)    (* FIXME check *)
+
+(* print_gram *)
 
 fun prt_gram (XGram {roots, prods, ...}) =
   let
@@ -233,50 +213,35 @@ fun prt_gram (XGram {roots, prods, ...}) =
       Pretty.blk (2, pretty_name name @ pretty_xsymbs xsymbs @
         pretty_const const @ pretty_pri pri);
   in
+    writeln (string_of_strings "lexicon:" (literals_of prods));
     writeln (Pretty.string_of (Pretty.blk (2,
       separate (Pretty.brk 1) (map Pretty.str ("roots:" :: roots)))));
     writeln (string_of_big_list "prods:" (map pretty_prod prods))
   end;
 
-
 val print_gram = prt_gram o xgram_of;
 
 
-(* print_trans *)   (* FIXME check *)
+(* print_trans *)
 
 fun prt_trans (XGram xgram) =
   let
-    fun string_of_strings name strs =
-      Pretty.string_of (Pretty.blk (2,
-        separate (Pretty.brk 1) (map Pretty.str (name :: map quote strs))));
-
     fun string_of_trs name trs = string_of_strings name (map fst trs);
-
-    fun string_of_proc name proc =
-      Pretty.string_of (Pretty.blk (2, [Pretty.str name, Pretty.brk 1,
-        Pretty.str (if is_none proc then "None" else "Some fn")]));
 
     fun string_of_rules name rules =
       string_of_big_list name (map pretty_rule rules);
 
-
-    val {consts, parse_ast_translation, parse_preproc, parse_rules,
-      parse_postproc, parse_translation, print_translation, print_preproc,
-      print_rules, print_postproc, print_ast_translation, ...} = xgram;
+    val {consts, parse_ast_translation, parse_rules, parse_translation,
+      print_translation, print_rules, print_ast_translation, ...} = xgram;
   in
     writeln (string_of_strings "consts:" consts);
     writeln (string_of_trs "parse_ast_translation:" parse_ast_translation);
-    writeln (string_of_proc "parse_preproc:" parse_preproc);
     writeln (string_of_rules "parse_rules:" parse_rules);
-    writeln (string_of_proc "parse_postproc:" parse_postproc);
     writeln (string_of_trs "parse_translation:" parse_translation);
     writeln (string_of_trs "print_translation:" print_translation);
-    writeln (string_of_proc "print_preproc:" print_preproc);
     writeln (string_of_rules "print_rules:" print_rules);
-    writeln (string_of_proc "print_postproc:" print_postproc);
     writeln (string_of_trs "print_ast_translation:" print_ast_translation)
   end;
-
 
 val print_trans = prt_trans o xgram_of;
 
@@ -294,63 +259,116 @@ fun print_syntax syn =
 
 (*** parsing and printing ***)
 
-(* read_ast *)
+(* mk_get_rules *)
 
-fun read_ast syn (root, s) =
-  let
-    val Syntax (_, Tab {gram, lexicon, parse_ast_trtab, ...}) = syn;
-    val root = if Parser.parsable (gram, root) then root else error ("Unparsable root " ^ root) (* Extension.logic *);    (* FIXME *)
-    fun syn_err toks =
-      error ("Syntax error at\n" ^ space_implode " " (map token_to_string toks));
-  in
-    Parser.ParseTree.pt_to_ast (lookup parse_ast_trtab)
-      (Parser.parse (gram, root, tokenize lexicon s))
-        handle Parser.SYNTAX_ERR toks => syn_err toks
-  end;
-
-
-(* norm_ast *)
-
-fun norm_ast ruletab ast =
+fun mk_get_rules ruletab =
   let
     fun get_rules a =
       (case lookup ruletab a of
         Some rules => rules
       | None => []);
   in
-    normalize (if Symtab.is_null ruletab then None else Some get_rules) ast
+    if Symtab.is_null ruletab then None else Some get_rules
   end;
+
+
+(* read_ast *)
+
+fun read_ast (Syntax (_, tabs)) xids root str =
+  let
+    val Tabs {lexicon, gram, parse_ast_trtab, ...} = tabs;
+  in
+    pt_to_ast (lookup parse_ast_trtab)
+      (parse gram root (tokenize lexicon xids str))
+  end;
+
+
+
+(** test_read **)
+
+fun test_read (Syntax (_, tabs)) root str =
+  let
+    val Tabs {lexicon, gram, parse_ast_trtab, parse_ruletab, ...} = tabs;
+
+    val toks = tokenize lexicon false str;
+    val _ = writeln ("tokens: " ^ space_implode " " (map display_token toks));
+
+    val pt = parse gram root toks;
+    val raw_ast = pt_to_ast (K None) pt;
+    val _ = writeln ("raw: " ^ str_of_ast raw_ast);
+
+    val pre_ast = pt_to_ast (lookup parse_ast_trtab) pt;
+    val _ = normalize true true (mk_get_rules parse_ruletab) pre_ast;
+  in () end;
 
 
 
 (** read **)
 
-fun read (syn as Syntax (_, Tab tabs)) ty s =
+fun read (syn as Syntax (_, tabs)) ty str =
   let
-    val {parse_preproc, parse_ruletab, parse_postproc, parse_trtab, ...} = tabs;
-    val ast = read_ast syn (typ_to_nt ty, s);
+    val Tabs {parse_ruletab, parse_trtab, ...} = tabs;
+    val ast = read_ast syn false (typ_to_nonterm ty) str;
   in
     ast_to_term (lookup parse_trtab)
-      (parse_postproc (norm_ast parse_ruletab (parse_preproc ast)))
+      (normalize_ast (mk_get_rules parse_ruletab) ast)
   end;
 
 
 
-(** pprint_ast **)
+(** read_rule **)
 
-val pprint_ast = Pretty.pprint o pretty_ast;
-
-
-
-(** pretty term, typ **)
-
-fun pretty_t t_to_ast pretty_t (syn as Syntax (_, Tab tabs)) t =
+fun read_rule syn (xrule as ((_, lhs_src), (_, rhs_src))) =
   let
-    val {print_trtab, print_preproc, print_ruletab, print_postproc, print_tab, ...} = tabs;
+    val Syntax (_, Tabs {consts, ...}) = syn;
+
+    fun constantify (ast as Constant _) = ast
+      | constantify (ast as Variable x) =
+          if x mem consts then Constant x else ast
+      | constantify (Appl asts) = Appl (map constantify asts);
+
+    fun read_pat (root, str) =
+      constantify (read_ast syn true root str)
+        handle ERROR => error ("The error above occurred in " ^ quote str);
+
+    val rule as (lhs, rhs) = (pairself read_pat) xrule;
+  in
+    (case rule_error rule of
+      Some msg =>
+        error ("Error in syntax translation rule: " ^ msg ^
+          "\nexternal: " ^ quote lhs_src ^ "  ->  " ^ quote rhs_src ^
+          "\ninternal: " ^ str_of_ast lhs ^ "  ->  " ^ str_of_ast rhs)
+    | None => rule)
+  end;
+
+
+
+(** read_xrules **)
+
+fun read_xrules syn xrules =
+  let
+    fun right_rule (xpat1 |-> xpat2) = Some (xpat1, xpat2)
+      | right_rule (xpat1 <-| xpat2) = None
+      | right_rule (xpat1 <-> xpat2) = Some (xpat1, xpat2);
+
+    fun left_rule (xpat1 |-> xpat2) = None
+      | left_rule (xpat1 <-| xpat2) = Some (xpat2, xpat1)
+      | left_rule (xpat1 <-> xpat2) = Some (xpat2, xpat1);
+  in
+    (map (read_rule syn) (mapfilter right_rule xrules),
+     map (read_rule syn) (mapfilter left_rule xrules))
+  end;
+
+
+
+(** pretty terms or typs **)
+
+fun pretty_t t_to_ast pretty_t (syn as Syntax (_, tabs)) t =
+  let
+    val Tabs {print_trtab, print_ruletab, prtab, ...} = tabs;
     val ast = t_to_ast (lookup print_trtab) t;
   in
-    pretty_t print_tab
-      (print_postproc (norm_ast print_ruletab (print_preproc ast)))
+    pretty_t prtab (normalize_ast (mk_get_rules print_ruletab) ast)
   end;
 
 val pretty_term = pretty_t term_to_ast pretty_term_ast;
@@ -370,53 +388,23 @@ fun string_of_typ syn ty = Pretty.string_of (pretty_typ syn ty);
 val type_syn = make_syntax (ref (ExtGG (ref EmptyGG, (type_ext, empty_synrules))));
 
 
-(* extend *)  (* FIXME check *)
+(** extend **)
 
 fun extend (old_syn as Syntax (ggr, _), def_sort) (roots, xconsts, sext) =
   let
     fun read_typ s = typ_of_term def_sort (read old_syn typeT s);
     val ext = ext_of_sext roots xconsts read_typ sext;
 
-    fun right_rule (xpat1 |-> xpat2) = Some (xpat1, xpat2)
-      | right_rule (xpat1 <-| xpat2) = None
-      | right_rule (xpat1 <-> xpat2) = Some (xpat1, xpat2);
-
-    fun left_rule (xpat1 |-> xpat2) = None
-      | left_rule (xpat1 <-| xpat2) = Some (xpat2, xpat1)
-      | left_rule (xpat1 <-> xpat2) = Some (xpat2, xpat1);
-
     val (tmp_syn as Syntax (_, tmp_tabs)) =
       make_syntax (ref (ExtGG (ggr, (ext, empty_synrules))));
-    val Syntax (_, Tab {const_tab, ...}) = tmp_syn;
 
-    fun constantify (ast as (Constant _)) = ast
-      | constantify (ast as (Variable x)) =
-          if is_some (lookup const_tab x) then Constant x else ast
-      | constantify (Appl asts) = Appl (map constantify asts);
-
-    fun read_pat (r_s as (root, s)) =
-      constantify ((read_ast tmp_syn r_s)
-        handle ERROR => error ("The error above occurred in " ^ quote s));
-
-    fun read_rule (xrule as ((_, lhs_src), (_, rhs_src))) =
-      let
-        val rule as (lhs, rhs) = (pairself read_pat) xrule;
-      in
-        case rule_error rule of
-          Some msg =>
-            error ("Error in syntax translation rule: " ^ msg ^
-              "\nexternal: " ^ quote lhs_src ^ "  ->  " ^ quote rhs_src ^
-              "\ninternal: " ^ str_of_ast lhs ^ "  ->  " ^ str_of_ast rhs)
-        | None => rule
-      end;
-
-    val xrules = xrules_of sext;
-    val new_rules =
+    val (parse_rules, print_rules) = read_xrules tmp_syn (xrules_of sext);
+    val rules =
       SynRules {
-        parse_rules = map read_rule (mapfilter right_rule xrules),
-        print_rules = map read_rule (mapfilter left_rule xrules)};
+        parse_rules = parse_rules,
+        print_rules = print_rules};
   in
-    Syntax (ref (ExtGG (ggr, (ext, new_rules))), add_synrules tmp_tabs new_rules)
+    Syntax (ref (ExtGG (ggr, (ext, rules))), add_synrules tmp_tabs rules)
   end;
 
 

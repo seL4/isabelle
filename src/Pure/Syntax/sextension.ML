@@ -1,20 +1,13 @@
-(*  Title:      Pure/Syntax/sextension
+(*  Title:      Pure/Syntax/sextension.ML
     ID:         $Id$
     Author:     Tobias Nipkow and Markus Wenzel, TU Muenchen
 
-Syntax extensions: mixfix declarations, syntax rules, infixes, binders and
-the Pure syntax.
+Syntax extensions (external interface): mixfix declarations, syntax rules,
+infixes, binders and the Pure syntax.
 
-Changes:
-  SEXTENSION: added Ast, xrule
-  changed sext
-  added ast_to_term
-  ext_of_sext: added xconsts
-  SEXTENSION1: added empty_sext, appl_ast_tr'
-  SEXTENSION1: removed appl_tr'
 TODO:
+  move ast_to_term (?)
 *)
-
 
 infix |-> <-| <->;
 
@@ -43,17 +36,13 @@ sig
         mixfix: mixfix list,
         xrules: xrule list,
         parse_ast_translation: (string * (ast list -> ast)) list,
-        parse_preproc: (ast -> ast) option,
-        parse_postproc: (ast -> ast) option,
         parse_translation: (string * (term list -> term)) list,
         print_translation: (string * (term list -> term)) list,
-        print_preproc: (ast -> ast) option,
-        print_postproc: (ast -> ast) option,
         print_ast_translation: (string * (ast list -> ast)) list}
     val eta_contract: bool ref
     val mk_binder_tr: string * string -> string * (term list -> term)
     val mk_binder_tr': string * string -> string * (term list -> term)
-    val ndependent_tr: string -> term list -> term
+    val ndependent_tr: string -> term list -> term    (* FIXME remove *)
     val dependent_tr': string * string -> term list -> term
     val max_pri: int
   end
@@ -86,12 +75,12 @@ sig
   end
 end;
 
-functor SExtensionFun(structure TypeExt: TYPE_EXT and Lexicon: LEXICON)(*: SEXTENSION *) = (* FIXME *)
+functor SExtensionFun(structure TypeExt: TYPE_EXT and Lexicon: LEXICON): SEXTENSION =
 struct
 
 structure Extension = TypeExt.Extension;
 structure Ast = Extension.XGram.Ast;
-open Extension Ast;
+open Lexicon Extension Extension.XGram Ast;
 
 
 (** datatype sext **)
@@ -119,12 +108,8 @@ datatype sext =
     mixfix: mixfix list,
     xrules: xrule list,
     parse_ast_translation: (string * (ast list -> ast)) list,
-    parse_preproc: (ast -> ast) option,
-    parse_postproc: (ast -> ast) option,
     parse_translation: (string * (term list -> term)) list,
     print_translation: (string * (term list -> term)) list,
-    print_preproc: (ast -> ast) option,
-    print_postproc: (ast -> ast) option,
     print_ast_translation: (string * (ast list -> ast)) list};
 
 
@@ -145,12 +130,8 @@ fun sext_components (Sext {mixfix, parse_translation, print_translation}) =
       {mixfix = mixfix,
         xrules = [],
         parse_ast_translation = [],
-        parse_preproc = None,
-        parse_postproc = None,
         parse_translation = parse_translation,
         print_translation = print_translation,
-        print_preproc = None,
-        print_postproc = None,
         print_ast_translation = []}
   | sext_components (NewSext cmps) = cmps;
 
@@ -168,7 +149,7 @@ fun xrules_of (Sext _) = []
 
 
 
-(** parse translations **)
+(** parse (ast) translations **)
 
 (* application *)
 
@@ -182,18 +163,24 @@ fun idtyp_ast_tr (*"_idtyp"*) [x, ty] = Appl [Constant constrainC, x, ty]
   | idtyp_ast_tr (*"_idtyp"*) asts = raise_ast "idtyp_ast_tr" asts;
 
 fun lambda_ast_tr (*"_lambda"*) [idts, body] =
-      fold_ast_p "_%" (unfold_ast "_idts" idts, body)
+      fold_ast_p "_abs" (unfold_ast "_idts" idts, body)
   | lambda_ast_tr (*"_lambda"*) asts = raise_ast "lambda_ast_tr" asts;
 
-fun abs_tr (*"_%"*) [Free (x, T), body] = absfree (x, T, body)
-  | abs_tr (*"_%"*) (ts as [Const (c, _) $ Free (x, T) $ tT, body]) =
+fun abs_tr (*"_abs"*) [Free (x, T), body] = absfree (x, T, body)
+  | abs_tr (*"_abs"*) (ts as [Const (c, _) $ Free (x, T) $ tT, body]) =
       if c = constrainC then
         Const ("_constrainAbs", dummyT) $ absfree (x, T, body) $ tT
-      else raise (TERM ("abs_tr", ts))
-  | abs_tr (*"_%"*) ts = raise (TERM ("abs_tr", ts));
+      else raise_term "abs_tr" ts
+  | abs_tr (*"_abs"*) ts = raise_term "abs_tr" ts;
 
 
-(* binder *)  (* FIXME check *) (* FIXME check *)
+(* nondependent abstraction *)
+
+fun k_tr (*"_K"*) [t] = Abs ("x", dummyT, incr_boundvars 1 t)
+  | k_tr (*"_K"*) ts = raise_term "k_tr" ts;
+
+
+(* binder *)
 
 fun mk_binder_tr (sy, name) =
   let
@@ -201,14 +188,14 @@ fun mk_binder_tr (sy, name) =
 
     fun tr (Free (x, T), t) = const $ absfree (x, T, t)
       | tr (Const ("_idts", _) $ idt $ idts, t) = tr (idt, tr (idts, t))
-      | tr (t1 as (Const (c, _) $ Free (x, T) $ tT), t) =   (* FIXME *)
+      | tr (t1 as Const (c, _) $ Free (x, T) $ tT, t) =
           if c = constrainC then
             const $ (Const ("_constrainAbs", dummyT) $ absfree (x, T, t) $ tT)
-          else raise (TERM ("binder_tr", [t1, t]))
-      | tr (t1, t2) = raise (TERM ("binder_tr", [t1, t2]));
+          else raise_term "binder_tr" [t1, t]
+      | tr (t1, t2) = raise_term "binder_tr" [t1, t2];
 
     fun binder_tr (*sy*) [idts, body] = tr (idts, body)
-      | binder_tr (*sy*) ts = raise (TERM ("binder_tr", ts));
+      | binder_tr (*sy*) ts = raise_term "binder_tr" ts;
   in
     (sy, binder_tr)
   end;
@@ -216,8 +203,9 @@ fun mk_binder_tr (sy, name) =
 
 (* atomic props *)
 
-fun aprop_ast_tr (*"_aprop"*) [ast] = ast
-  | aprop_ast_tr (*"_aprop"*) asts = raise_ast "aprop_ast_tr" asts;
+fun aprop_tr (*"_aprop"*) [t] =
+      Const (constrainC, dummyT) $ t $ Free ("prop", dummyT)
+  | aprop_tr (*"_aprop"*) ts = raise_term "aprop_tr" ts;
 
 
 (* meta implication *)
@@ -227,15 +215,15 @@ fun bigimpl_ast_tr (*"_bigimpl"*) [asms, concl] =
   | bigimpl_ast_tr (*"_bigimpl"*) asts = raise_ast "bigimpl_ast_tr" asts;
 
 
-(* 'dependent' type operators *)
+(* 'dependent' type operators *)  (* FIXME remove *)
 
 fun ndependent_tr q [A, B] =
       Const (q, dummyT) $ A $ Abs ("x", dummyT, incr_boundvars 1 B)
-  | ndependent_tr _ _ = raise Match;
+  | ndependent_tr _ ts = raise_term "ndependent_tr" ts;
 
 
 
-(** print translations **)
+(** print (ast) translations **)
 
 (* application *)
 
@@ -243,16 +231,17 @@ fun appl_ast_tr' (f, []) = raise_ast "appl_ast_tr'" [f]
   | appl_ast_tr' (f, args) = Appl [Constant "_appl", f, fold_ast "_args" args];
 
 
-(* abstraction *)   (* FIXME check *)
+(* abstraction *)
 
 fun strip_abss vars_of body_of tm =
   let
+    fun free (x, _) = Free (x, dummyT);
+
     val vars = vars_of tm;
     val body = body_of tm;
     val rev_new_vars = rename_wrt_term body vars;
   in
-    (map Free (rev rev_new_vars),
-      subst_bounds (map (fn (x, _) => Free (x, dummyT)) rev_new_vars, body))
+    (map Free (rev rev_new_vars), subst_bounds (map free rev_new_vars, body))
   end;
 
 (*do (partial) eta-contraction before printing*)
@@ -263,7 +252,7 @@ fun eta_contr tm =
   let
     fun eta_abs (Abs (a, T, t)) =
           (case eta_abs t of
-            t' as (f $ u) =>
+            t' as f $ u =>
               (case eta_abs u of
                 Bound 0 =>
                   if not (0 mem loose_bnos f) then incr_boundvars ~1 f
@@ -277,17 +266,17 @@ fun eta_contr tm =
 
 
 fun abs_tr' tm =
-  foldr (fn (x, t) => Const ("_%", dummyT) $ x $ t)
+  foldr (fn (x, t) => Const ("_abs", dummyT) $ x $ t)
     (strip_abss strip_abs_vars strip_abs_body (eta_contr tm));
 
 
-fun lambda_ast_tr' (*"_%"*) asts =
-  (case unfold_ast_p "_%" (Appl (Constant "_%" :: asts)) of
-    ([], _) => raise_ast "lambda_ast_tr'" asts
+fun abs_ast_tr' (*"_abs"*) asts =
+  (case unfold_ast_p "_abs" (Appl (Constant "_abs" :: asts)) of
+    ([], _) => raise_ast "abs_ast_tr'" asts
   | (xs, body) => Appl [Constant "_lambda", fold_ast "_idts" xs, body]);
 
 
-(* binder *) (* FIXME check *)
+(* binder *)
 
 fun mk_binder_tr' (name, sy) =
   let
@@ -323,59 +312,43 @@ fun idts_ast_tr' (*"_idts"*) [Appl [Constant c, x, ty], xs] =
 
 fun impl_ast_tr' (*"==>"*) asts =
   (case unfold_ast_p "==>" (Appl (Constant "==>" :: asts)) of
-    (asms as (_ :: _ :: _), concl)
+    (asms as _ :: _ :: _, concl)
       => Appl [Constant "_bigimpl", fold_ast "_asms" asms, concl]
   | _ => raise Match);
 
 
-(* 'dependent' type operators *)
+(* dependent / nondependent quantifiers *)
 
-fun dependent_tr' (q, r) [A, Abs (x, T, B)] =
+fun dependent_tr' (q, r) (A :: Abs (x, T, B) :: ts) =
       if 0 mem (loose_bnos B) then
         let val (x', B') = variant_abs (x, dummyT, B);
-        in Const (q, dummyT) $ Free (x', T) $ A $ B' end
-      else Const (r, dummyT) $ A $ B
+        in list_comb (Const (q, dummyT) $ Free (x', T) $ A $ B', ts) end
+      else list_comb (Const (r, dummyT) $ A $ B, ts)
   | dependent_tr' _ _ = raise Match;
 
 
 
-(** constants **)
+(** ext_of_sext **)
 
-(* FIXME opn, clean: move *)
-val clean =
+fun strip_esc str =
   let
-    fun q ("'" :: c :: cs) = c ^ q cs
-      | q (c :: cs) = c ^ q cs
-      | q ([]) = ""
-  in q o explode end;
-
-val opn = "op ";
-
-
-fun constants sext =
-  let
-    fun consts (Delimfix (_, ty, c)) = ([c], ty)
-      | consts (Mixfix (_, ty, c, _, _)) = ([c], ty)
-      | consts (Infixl (c, ty, _)) = ([opn ^ clean c], ty)
-      | consts (Infixr (c, ty, _)) = ([opn ^ clean c], ty)
-      | consts (Binder (_, ty, c, _, _)) = ([c], ty)
-      | consts _ = ([""], "");    (*is filtered out below*)
+    fun strip ("'" :: c :: cs) = c :: strip cs
+      | strip ["'"] = []
+      | strip (c :: cs) = c :: strip cs
+      | strip [] = [];
   in
-    distinct (filter_out (fn (l, _) => l = [""]) (map consts (mixfix_of sext)))
+    implode (strip (explode str))
   end;
 
+fun infix_name sy = "op " ^ strip_esc sy;
 
-
-(** ext_of_sext **)   (* FIXME check, clean *)
 
 fun ext_of_sext roots xconsts read_typ sext =
   let
-    val
-      {mixfix, parse_ast_translation, parse_preproc, parse_postproc,
-        parse_translation, print_translation, print_preproc, print_postproc,
-        print_ast_translation, ...} = sext_components sext;
+    val {mixfix, parse_ast_translation, parse_translation, print_translation,
+      print_ast_translation, ...} = sext_components sext;
 
-    val infixT = [typeT, typeT] ---> typeT;
+    val tinfixT = [typeT, typeT] ---> typeT;
 
     fun binder (Binder (sy, _, name, _, _)) = Some (sy, name)
       | binder _ = None;
@@ -384,46 +357,53 @@ fun ext_of_sext roots xconsts read_typ sext =
       (case read_typ ty of
         Type ("fun", [Type ("fun", [_, T2]), T3]) =>
           [Type ("idts", []), T2] ---> T3
-      | _ => error (quote ty ^ " is not a valid binder type."));
+      | _ => error ("Illegal binder type " ^ quote ty));
 
-    fun mfix_of (Mixfix (sy, ty, c, pl, p)) = [Mfix (sy, read_typ ty, c, pl, p)]
+    fun mk_infix sy T c p1 p2 p3 =
+      [Mfix ("op " ^ sy, T, c, [], max_pri),
+       Mfix ("(_ " ^ sy ^ "/ _)", T, c, [p1, p2], p3)];
+
+    fun mfix_of (Mixfix (sy, ty, c, ps, p)) = [Mfix (sy, read_typ ty, c, ps, p)]
       | mfix_of (Delimfix (sy, ty, c)) = [Mfix (sy, read_typ ty, c, [], max_pri)]
       | mfix_of (Infixl (sy, ty, p)) =
-          let val T = read_typ ty and c = opn ^ sy and c' = opn ^ clean sy
-          in
-            [Mfix (c, T, c', [], max_pri),
-             Mfix("(_ " ^ sy ^ "/ _)", T, c', [p, p + 1], p)]
-          end
+          mk_infix sy (read_typ ty) (infix_name sy) p (p + 1) p
       | mfix_of (Infixr (sy, ty, p)) =
-          let val T = read_typ ty and c = opn ^ sy and c' = opn ^ clean sy
-          in
-            [Mfix(c, T, c', [], max_pri),
-             Mfix("(_ " ^ sy ^ "/ _)", T, c', [p + 1, p], p)]
-          end
+          mk_infix sy (read_typ ty) (infix_name sy) (p + 1) p p
       | mfix_of (Binder (sy, ty, _, p, q)) =
           [Mfix ("(3" ^ sy ^ "_./ _)", binder_typ ty, sy, [0, p], q)]
       | mfix_of (TInfixl (s, c, p)) =
-          [Mfix ("(_ " ^ s ^ "/ _)", infixT, c, [p, p + 1], p)]
+          [Mfix ("(_ " ^ s ^ "/ _)", tinfixT, c, [p, p + 1], p)]
       | mfix_of (TInfixr (s, c, p)) =
-          [Mfix ("(_ " ^ s ^ "/ _)", infixT, c, [p + 1, p], p)];
+          [Mfix ("(_ " ^ s ^ "/ _)", tinfixT, c, [p + 1, p], p)];
 
     val mfix = flat (map mfix_of mixfix);
-    val mfix_consts = map (fn (Mfix (_, _, c, _, _)) => c) mfix;
-    val bs = mapfilter binder mixfix;
-    val bparses = map mk_binder_tr bs;
-    val bprints = map (mk_binder_tr' o (fn (x, y) => (y, x))) bs;
+    val binders = mapfilter binder mixfix;
+    val bparses = map mk_binder_tr binders;
+    val bprints = map (mk_binder_tr' o (fn (x, y) => (y, x))) binders;
   in
     Ext {
       roots = roots, mfix = mfix,
-      extra_consts = distinct (filter Lexicon.is_identifier (xconsts @ mfix_consts)),
+      extra_consts = distinct (filter is_xid xconsts),
       parse_ast_translation = parse_ast_translation,
-      parse_preproc = parse_preproc,
-      parse_postproc = parse_postproc,
       parse_translation = bparses @ parse_translation,
       print_translation = bprints @ print_translation,
-      print_preproc = print_preproc,
-      print_postproc = print_postproc,
       print_ast_translation = print_ast_translation}
+  end;
+
+
+
+(** constants **)
+
+fun constants sext =
+  let
+    fun consts (Delimfix (_, ty, c)) = ([c], ty)
+      | consts (Mixfix (_, ty, c, _, _)) = ([c], ty)
+      | consts (Infixl (c, ty, _)) = ([infix_name c], ty)
+      | consts (Infixr (c, ty, _)) = ([infix_name c], ty)
+      | consts (Binder (_, ty, c, _, _)) = ([c], ty)
+      | consts _ = ([""], "");    (*is filtered out below*)
+  in
+    distinct (filter_out (fn (l, _) => l = [""]) (map consts (mixfix_of sext)))
   end;
 
 
@@ -432,31 +412,21 @@ fun ext_of_sext roots xconsts read_typ sext =
 
 fun ast_to_term trf ast =
   let
-    fun scan_vname prfx cs =
-      (case Lexicon.scan_varname cs of
-        ((x, i), []) => Var ((prfx ^ x, i), dummyT)
-      | _ => error ("ast_to_term: bad variable name " ^ quote (implode cs)));
-
-    fun vname_to_var v =
-      (case explode v of
-        "?" :: "'" :: cs => scan_vname "'" cs
-      | "?" :: cs => scan_vname "" cs
-      | _ => Free (v, dummyT));
-
     fun trans a args =
       (case trf a of
         None => list_comb (Const (a, dummyT), args)
-      | Some f => ((f args)
-          handle _ => error ("ast_to_term: error in translation for " ^ quote a)));
+      | Some f => f args handle exn
+          => (writeln ("Error in parse translation for " ^ quote a); raise exn));
 
-    fun trav (Constant a) = trans a []
-      | trav (Appl (Constant a :: (asts as _ :: _))) = trans a (map trav asts)
-      | trav (Appl (ast :: (asts as _ :: _))) =
-          list_comb (trav ast, map trav asts)
-      | trav (ast as (Appl _)) = raise_ast "ast_to_term: malformed ast" [ast]
-      | trav (Variable x) = vname_to_var x;
+    fun term_of (Constant a) = trans a []
+      | term_of (Variable x) = scan_var x
+      | term_of (Appl (Constant a :: (asts as _ :: _))) =
+          trans a (map term_of asts)
+      | term_of (Appl (ast :: (asts as _ :: _))) =
+          list_comb (term_of ast, map term_of asts)
+      | term_of (ast as Appl _) = raise_ast "ast_to_term: malformed ast" [ast];
   in
-    trav ast
+    term_of ast
   end;
 
 
@@ -488,19 +458,14 @@ val pure_sext =
     xrules = [],
     parse_ast_translation =
       [(applC, appl_ast_tr), ("_lambda", lambda_ast_tr), ("_idtyp", idtyp_ast_tr),
-        ("_aprop", aprop_ast_tr), ("_bigimpl", bigimpl_ast_tr)],
-    parse_preproc = None,
-    parse_postproc = None,
-    parse_translation = [("_%", abs_tr)],
+        ("_bigimpl", bigimpl_ast_tr)],
+    parse_translation = [("_abs", abs_tr), ("_K", k_tr), ("_aprop", aprop_tr)],
     print_translation = [],
-    print_preproc = None,
-    print_postproc = None,
-    print_ast_translation = [("_%", lambda_ast_tr'), ("_idts", idts_ast_tr'),
+    print_ast_translation = [("_abs", abs_ast_tr'), ("_idts", idts_ast_tr'),
       ("==>", impl_ast_tr')]};
 
-val syntax_types =    (* FIXME clean, check *)
-  [logic, "aprop", args, "asms", id, "idt", "idts", tfree, tvar, "type", "types",
-    var, "sort", "classes"]
+val syntax_types = [id, var, tfree, tvar, logic, "type", "types", "sort",
+  "classes", args, "idt", "idts", "aprop", "asms"];
 
 val constrainIdtC = "_idtyp";
 val constrainAbsC = "_constrainAbs";

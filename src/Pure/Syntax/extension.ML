@@ -1,8 +1,13 @@
-(*  Title:      Pure/Syntax/extension
+(*  Title:      Pure/Syntax/extension.ML
     ID:         $Id$
     Author:     Tobias Nipkow and Markus Wenzel, TU Muenchen
 
-Syntax definition (internal interface)
+External grammar definition (internal interface).
+
+TODO:
+  Ext of {roots, mfix, extra_consts} * {.._translation} * {.._rules}
+  remove synrules
+  extend_xgram: move '.. \\ roots1' to Syntax.extend_tables
 *)
 
 signature EXTENSION0 =
@@ -23,52 +28,43 @@ sig
         mfix: mfix list,
         extra_consts: string list,
         parse_ast_translation: (string * (ast list -> ast)) list,
-        parse_preproc: (ast -> ast) option,
-        parse_postproc: (ast -> ast) option,
         parse_translation: (string * (term list -> term)) list,
         print_translation: (string * (term list -> term)) list,
-        print_preproc: (ast -> ast) option,
-        print_postproc: (ast -> ast) option,
         print_ast_translation: (string * (ast list -> ast)) list}
     datatype synrules =
       SynRules of {
         parse_rules: (ast * ast) list,
         print_rules: (ast * ast) list}
-    val max_pri: int
     val logic: string
-    val id: string
-    val idT: typ
-    val var: string
-    val varT: typ
-    val tfree: string
-    val tfreeT: typ
-    val tvar: string
-    val tvarT: typ
-    val typ_to_nt: typ -> string
-    val applC: string
     val args: string
+    val idT: typ
+    val varT: typ
+    val tfreeT: typ
+    val tvarT: typ
+    val typ_to_nonterm: typ -> string
+    val applC: string
     val empty_synrules: synrules
-    val empty: string xgram
-    val extend: string xgram -> (ext * synrules) -> string xgram
+    val empty_xgram: xgram
+    val extend_xgram: xgram -> (ext * synrules) -> xgram
+    val mk_xgram: (ext * synrules) -> xgram
   end
 end;
 
-functor ExtensionFun(XGram: XGRAM): EXTENSION =
+functor ExtensionFun(structure XGram: XGRAM and Lexicon: LEXICON): EXTENSION =
 struct
 
 structure XGram = XGram;
-open XGram XGram.Ast;
+open XGram XGram.Ast Lexicon;
 
 
 (** datatype ext **)
 
-(* Mfix (sy, ty, c, pl, p):
-    sy: production as symbolic string
+(*Mfix (sy, ty, c, ps, p):
+    sy: rhs of production as symbolic string
     ty: type description of production
-    c: corresponding Isabelle Const
-    pl: priorities of nonterminals in sy
-    p: priority of production
-*)
+    c: head of parse tree
+    ps: priorities of arguments in sy
+    p: priority of production*)
 
 datatype mfix = Mfix of string * typ * string * int list * int;
 
@@ -78,12 +74,8 @@ datatype ext =
     mfix: mfix list,
     extra_consts: string list,
     parse_ast_translation: (string * (ast list -> ast)) list,
-    parse_preproc: (ast -> ast) option,
-    parse_postproc: (ast -> ast) option,
     parse_translation: (string * (term list -> term)) list,
     print_translation: (string * (term list -> term)) list,
-    print_preproc: (ast -> ast) option,
-    print_postproc: (ast -> ast) option,
     print_ast_translation: (string * (ast list -> ast)) list};
 
 datatype synrules =
@@ -97,27 +89,20 @@ datatype synrules =
 val empty_synrules = SynRules {parse_rules = [], print_rules = []};
 
 
-(* empty xgram *)
+(* empty_xgram *)
 
-val empty =
+val empty_xgram =
   XGram {
     roots = [], prods = [], consts = [],
     parse_ast_translation = [],
-    parse_preproc = None,
     parse_rules = [],
-    parse_postproc = None,
     parse_translation = [],
     print_translation = [],
-    print_preproc = None,
     print_rules = [],
-    print_postproc = None,
     print_ast_translation = []};
 
 
-
-(** syntactic constants etc. **)
-
-val max_pri = 1000;   (*maximum legal priority*)
+(* syntactic categories *)
 
 val logic = "logic";
 val logicT = Type (logic, []);
@@ -125,114 +110,127 @@ val logicT = Type (logic, []);
 val logic1 = "logic1";
 val logic1T = Type (logic1, []);
 
+val args = "args";
+val argsT = Type (args, []);
+
 val funT = Type ("fun", []);
+
+val typeT = Type ("type", []);
 
 
 (* terminals *)
 
-val id = "id";
 val idT = Type (id, []);
-
-val var = "var";
 val varT = Type (var, []);
-
-val tfree = "tfree";
 val tfreeT = Type (tfree, []);
-
-val tvar = "tvar";
 val tvarT = Type (tvar, []);
 
-val terminalTs = [idT, varT, tfreeT, tvarT];
 
-
-val args = "args";
-val argsT = Type (args, []);
-
-val typeT = Type ("type", []);
+(* constants *)
 
 val applC = "_appl";
 val constrainC = "_constrain";
 
 
-fun typ_to_nt (Type (c, _)) = c
-  | typ_to_nt _ = logic;
+(* typ_to_nonterm *)
+
+fun typ_to_nonterm (Type (c, _)) = c
+  | typ_to_nonterm _ = logic;
+
+fun typ_to_nonterm1 (Type (c, _)) = c
+  | typ_to_nonterm1 _ = logic1;
 
 
 
-(** extend xgram **)    (* FIXME clean *)
+(** mfix_to_prod **)
 
-fun nonts syn = foldl (fn (i, "_") => i + 1 | (i, _) => i) (0, explode syn);
-
-val meta_chs = ["(", ")", "/", "_"];
-
-fun mk_term(pref, []) = (pref, [])
-  | mk_term(pref, "'"::c::cl) = mk_term(pref^c, cl)
-  | mk_term(pref, l as c::cl) = if is_blank(c) orelse c mem meta_chs
-        then (pref, l) else mk_term(pref^c, cl);
-
-fun mk_space(sp, []) = (sp, []) |
-    mk_space(sp, cl as c::cl') =
-      if is_blank(c) then mk_space(sp^c, cl') else (sp, cl);
-
-exception ARG_EXN;
-exception BLOCK_EXN;
-
-fun mk_syntax([], ar, _, b, sy) = if b=0 then (sy, ar) else raise BLOCK_EXN
-  | mk_syntax("_"::cs, Type("fun", [ar, ar']), [], b, sy) =
-        mk_syntax(cs, ar', [], b, sy@[Nonterminal(typ_to_nt ar, 0)])
-  | mk_syntax("_"::cs, Type("fun", [ar, ar']), p::pl, b, sy) =
-        mk_syntax(cs, ar', pl, b, sy@[Nonterminal(typ_to_nt ar, p)])
-  | mk_syntax("_"::cs, _, _, _, _) = raise ARG_EXN
-  | mk_syntax("("::cs, ar, pl, b, sy) = let val (i, cs') = scan_int cs
-        in mk_syntax(cs', ar, pl, b+1, sy@[Bg(i)]) end
-  | mk_syntax(")"::cs, ar, pl, b, sy) =
-        if b>0 then mk_syntax(cs, ar, pl, b-1, sy@[En]) else raise BLOCK_EXN
-  | mk_syntax("/"::cs, ar, pl, b, sy) = let val (sp, cs') = take_prefix is_blank cs
-        in mk_syntax(cs', ar, pl, b, sy@[Brk(length sp)]) end
-  | mk_syntax(c::cs, ar, pl, b, sy) =
-        let val (term, rest) =
-           if is_blank(c)
-           then let val (sp, cs') = mk_space(c, cs) in (Space(sp), cs') end
-           else let val (tk, cs') = mk_term("", c::cs) in(Terminal(tk), cs') end
-        in mk_syntax(rest, ar, pl, b, sy@[term]) end;
-
-fun pri_test1 p = if 0 <= p andalso p <= max_pri then ()
-        else error("Priority out of range: " ^ string_of_int p)
-fun pri_test(pl, p) = (pri_test1 p; seq pri_test1 pl);
-
-fun mk_prod2(sy, T, opn, pl, p) =
-let val (syn, T') = mk_syntax(explode sy, T, pl, 0, []) handle
-        ARG_EXN =>
-        error("More arguments in "^sy^" than in corresponding type") |
-        BLOCK_EXN => error("Unbalanced block parantheses in "^sy);
-    val nt = case T' of Type(c, _) => c | _ => logic1;
-in Prod(nt, syn, opn, p) end;
-
-fun mk_prod1(sy, T, opn, pl, p) = (pri_test(pl, p); mk_prod2(sy, T, opn, pl, p));
-
-
-fun terminal1(T as Type("fun", _)) = hd(binder_types T) mem terminalTs
-  | terminal1 _ = false;
-
-fun mk_prod(Mfix(sy, T, "", pl, p)) = if nonts sy <> 1
-        then error"Copy op must have exactly one argument" else
-        if filter_out is_blank (explode sy) = ["_"] andalso
-           not(terminal1 T)
-        then mk_prod2(sy, T, "", [copy_pri], copy_pri)
-        else mk_prod1(sy, T, "", pl, p)
-  | mk_prod(Mfix(sy, T, const, pl, p)) = mk_prod1(sy, T, const, pl, p)
-
-
-
-fun extend (XGram xgram) (Ext ext, SynRules rules) =
+fun mfix_to_prod (Mfix (sy, typ, const, pris, pri)) =
   let
-    infix oo;
+    fun err msg =
+      (writeln ("Error in mixfix annotation " ^ quote sy ^ " for " ^ quote const);
+        error msg);
 
-    fun None oo None = None
-      | (Some f) oo None = Some f
-      | None oo (Some g) = Some g
-      | (Some f) oo (Some g) = Some (f o g);
+    fun check_pri p =
+      if p >= 0 andalso p <= max_pri then ()
+      else err ("precedence out of range: " ^ string_of_int p);
 
+    fun blocks_ok [] 0 = true
+      | blocks_ok [] _ = false
+      | blocks_ok (Bg _ :: syms) n = blocks_ok syms (n + 1)
+      | blocks_ok (En :: _) 0 = false
+      | blocks_ok (En :: syms) n = blocks_ok syms (n - 1)
+      | blocks_ok (_ :: syms) n = blocks_ok syms n;
+
+    fun check_blocks syms =
+      if blocks_ok syms 0 then ()
+      else err "unbalanced block parentheses";
+
+
+    fun is_meta c = c mem ["(", ")", "/", "_"];
+
+    fun scan_delim_char ("'" :: c :: cs) =
+          if is_blank c then err "illegal spaces in delimiter" else (c, cs)
+      | scan_delim_char ["'"] = err "trailing escape character"
+      | scan_delim_char (chs as c :: cs) =
+          if is_blank c orelse is_meta c then raise LEXICAL_ERROR else (c, cs)
+      | scan_delim_char [] = raise LEXICAL_ERROR;
+
+    val scan_symb =
+      $$ "_" >> K (Nonterminal ("", 0)) ||
+      $$ "(" -- scan_int >> (Bg o #2) ||
+      $$ ")" >> K En ||
+      $$ "/" -- $$ "/" >> K (Brk ~1) ||
+      $$ "/" -- scan_any is_blank >> (Brk o length o #2) ||
+      scan_any1 is_blank >> (Space o implode) ||
+      repeat1 scan_delim_char >> (Terminal o implode);
+
+
+    val cons_fst = apfst o cons;
+
+    fun add_args [] ty [] = ([], typ_to_nonterm1 ty)
+      | add_args [] _ _ = err "too many precedences"
+      | add_args (Nonterminal _ :: syms) (Type ("fun", [ty, tys])) [] =
+          cons_fst (Nonterminal (typ_to_nonterm ty, 0)) (add_args syms tys [])
+      | add_args (Nonterminal _ :: syms) (Type ("fun", [ty, tys])) (p :: ps) =
+          cons_fst (Nonterminal (typ_to_nonterm ty, p)) (add_args syms tys ps)
+      | add_args (Nonterminal _ :: _) _ _ =
+          err "more arguments than in corresponding type"
+      | add_args (sym :: syms) ty ps = cons_fst sym (add_args syms ty ps);
+
+
+    fun is_arg (Nonterminal _) = true
+      | is_arg _ = false;
+
+    fun is_term (Terminal _) = true
+      | is_term (Nonterminal (s, _)) = is_terminal s
+      | is_term _ = false;
+
+    fun rem_pri (Nonterminal (s, _)) = Nonterminal (s, chain_pri)
+      | rem_pri sym = sym;
+
+
+    val (raw_symbs, _) = repeat scan_symb (explode sy);
+    val (symbs, lhs) = add_args raw_symbs typ pris;
+    val prod = Prod (lhs, symbs, const, pri);
+  in
+    seq check_pri pris;
+    check_pri pri;
+    check_blocks symbs;
+    if is_terminal lhs then err ("illegal lhs: " ^ lhs) else ();
+
+    if const <> "" then prod
+    else if length (filter is_arg symbs) <> 1 then
+      err "copy production must have exactly one argument"
+    else if exists is_term symbs then prod
+    else Prod (lhs, map rem_pri symbs, "", chain_pri)
+  end;
+
+
+
+(** extend_xgram **)
+
+fun extend_xgram (XGram xgram) (Ext ext, SynRules rules) =
+  let
     fun descend (from, to) = Mfix ("_", to --> from, "", [0], 0);
 
     fun parents T = Mfix ("(1'(_'))", T --> T, "", [0], max_pri);
@@ -245,29 +243,21 @@ fun extend (XGram xgram) (Ext ext, SynRules rules) =
     fun mkvar T = Mfix ("_", varT --> T, "", [], max_pri);
 
     fun constrain T =
-      Mfix ("_::_", [T, typeT]--->T, constrainC, [max_pri, 0], max_pri - 1);
+      Mfix ("_::_", [T, typeT] ---> T, constrainC, [max_pri, 0], max_pri - 1);
 
 
     val {roots = roots1, prods, consts,
       parse_ast_translation = parse_ast_translation1,
-      parse_preproc = parse_preproc1,
       parse_rules = parse_rules1,
-      parse_postproc = parse_postproc1,
       parse_translation = parse_translation1,
       print_translation = print_translation1,
-      print_preproc = print_preproc1,
       print_rules = print_rules1,
-      print_postproc = print_postproc1,
       print_ast_translation = print_ast_translation1} = xgram;
 
     val {roots = roots2, mfix, extra_consts,
       parse_ast_translation = parse_ast_translation2,
-      parse_preproc = parse_preproc2,
-      parse_postproc = parse_postproc2,
       parse_translation = parse_translation2,
       print_translation = print_translation2,
-      print_preproc = print_preproc2,
-      print_postproc = print_postproc2,
       print_ast_translation = print_ast_translation2} = ext;
 
     val {parse_rules = parse_rules2, print_rules = print_rules2} = rules;
@@ -278,23 +268,25 @@ fun extend (XGram xgram) (Ext ext, SynRules rules) =
       map mkid Troots' @ map mkvar Troots' @ map constrain Troots' @
       map (apl (logicT, descend)) (Troots \\ [typeT, logicT]) @
       map (apr (descend, logic1T)) Troots';
+    val mfix_consts =
+      distinct (filter is_xid (map (fn (Mfix (_, _, c, _, _)) => c) mfix'));
   in
     XGram {
       roots = distinct (roots1 @ roots2),
-(*      roots = roots1 union roots2,  *)    (* FIXME remove *)
-      prods = prods @ map mk_prod mfix',
-      consts = consts union extra_consts,
+      prods = prods @ map mfix_to_prod mfix',
+      consts = extra_consts union (mfix_consts union consts),
       parse_ast_translation = parse_ast_translation1 @ parse_ast_translation2,
-      parse_preproc = parse_preproc1 oo parse_preproc2,
       parse_rules = parse_rules1 @ parse_rules2,
-      parse_postproc = parse_postproc2 oo parse_postproc1,
       parse_translation = parse_translation1 @ parse_translation2,
       print_translation = print_translation1 @ print_translation2,
-      print_preproc = print_preproc1 oo print_preproc2,
       print_rules = print_rules1 @ print_rules2,
-      print_postproc = print_postproc2 oo print_postproc1,
       print_ast_translation = print_ast_translation1 @ print_ast_translation2}
   end;
+
+
+(* mk_xgram *)
+
+val mk_xgram = extend_xgram empty_xgram;
 
 
 end;

@@ -1,69 +1,103 @@
-(*  Title:      Pure/Syntax/ast
+(*  Title:      Pure/Syntax/ast.ML
     ID:         $Id$
     Author:     Markus Wenzel, TU Muenchen
 
-Abstract Syntax Trees, Syntax Rules and translation, matching, normalization
-of asts.
+Abstract syntax trees, translation rules, matching and normalization of asts.
 *)
 
-signature AST =
+signature AST0 =
 sig
+  structure Pretty: PRETTY
   datatype ast =
     Constant of string |
     Variable of string |
     Appl of ast list
   val mk_appl: ast -> ast list -> ast
   exception AST of string * ast list
-  val raise_ast: string -> ast list -> 'a
   val str_of_ast: ast -> string
+  val pretty_ast: ast -> Pretty.T
+  val pretty_rule: (ast * ast) -> Pretty.T
+  val pprint_ast: ast -> pprint_args -> unit
+  val trace_norm_ast: bool ref
+  val stat_norm_ast: bool ref
+end
+
+signature AST =
+sig
+  include AST0
+  val raise_ast: string -> ast list -> 'a
   val head_of_rule: ast * ast -> string
   val rule_error: ast * ast -> string option
   val fold_ast: string -> ast list -> ast
   val fold_ast_p: string -> ast list * ast -> ast
   val unfold_ast: string -> ast -> ast list
   val unfold_ast_p: string -> ast -> ast list * ast
-  val trace_norm: bool ref
-  val stat_norm: bool ref
-  val normalize: (string -> (ast * ast) list) option -> ast -> ast
+  val normalize: bool -> bool -> (string -> (ast * ast) list) option -> ast -> ast
+  val normalize_ast: (string -> (ast * ast) list) option -> ast -> ast
 end;
 
-functor AstFun()(*: AST *) =  (* FIXME *)
+functor AstFun(Pretty: PRETTY): AST =
 struct
 
+structure Pretty = Pretty;
 
-(** Abstract Syntax Trees **)
+
+(** abstract syntax trees **)
 
 (*asts come in two flavours:
-   - proper asts representing terms and types: Variables are treated like
-     Constants;
+   - ordinary asts representing terms and typs: Variables are (often) treated
+     like Constants;
    - patterns used as lhs and rhs in rules: Variables are placeholders for
      proper asts*)
 
 datatype ast =
-  Constant of string |    (* "not", "_%", "fun" *)
-  Variable of string |    (* x, ?x, 'a, ?'a *)
-  Appl of ast list;       (* (f x y z), ("fun" 'a 'b) *)
+  Constant of string |    (*"not", "_abs", "fun"*)
+  Variable of string |    (*x, ?x, 'a, ?'a*)
+  Appl of ast list;       (*(f x y z), ("fun" 'a 'b), ("_abs" x t)*)
 
 
 (*the list of subasts of an Appl node has to contain at least 2 elements, i.e.
   there are no empty asts or nullary applications; use mk_appl for convenience*)
 
-fun mk_appl ast [] = ast
-  | mk_appl ast asts = Appl (ast :: asts);
+fun mk_appl f [] = f
+  | mk_appl f args = Appl (f :: args);
 
 
 (*exception for system errors involving asts*)
 
 exception AST of string * ast list;
 
-fun raise_ast msg asts = raise (AST (msg, asts));
+fun raise_ast msg asts = raise AST (msg, asts);
 
 
-(* print asts in a LISP-like style *)
+(** print asts in a LISP-like style **)
+
+(* str_of_ast *)
 
 fun str_of_ast (Constant a) = quote a
   | str_of_ast (Variable x) = x
   | str_of_ast (Appl asts) = "(" ^ (space_implode " " (map str_of_ast asts)) ^ ")";
+
+
+(* pretty_ast *)
+
+fun pretty_ast (Constant a) = Pretty.str (quote a)
+  | pretty_ast (Variable x) = Pretty.str x
+  | pretty_ast (Appl asts) =
+      Pretty.blk (2, (Pretty.str "(") ::
+        (separate (Pretty.brk 1) (map pretty_ast asts)) @ [Pretty.str ")"]);
+
+
+(* pprint_ast *)
+
+val pprint_ast = Pretty.pprint o pretty_ast;
+
+
+(* pretty_rule *)
+
+fun pretty_rule (lhs, rhs) =
+  Pretty.blk
+    (2, [pretty_ast lhs, Pretty.str "  ->", Pretty.brk 2, pretty_ast rhs]);
 
 
 (* head_of_ast, head_of_rule *)
@@ -76,9 +110,9 @@ fun head_of_rule (lhs, _) = the (head_of_ast lhs);
 
 
 
-(** check Syntax Rules **)
+(** check translation rules **)
 
-(*a wellformed rule (lhs, rhs): (ast * ast) has the following properties:
+(*a wellformed rule (lhs, rhs): (ast * ast) obeys the following conditions:
    - the head of lhs is a constant,
    - the lhs has unique vars,
    - vars of rhs is subset of vars of lhs*)
@@ -103,7 +137,7 @@ fun rule_error (rule as (lhs, rhs)) =
 
 
 
-(** translation utilities **)
+(** ast translation utilities **)
 
 (* fold asts *)
 
@@ -120,16 +154,20 @@ fun unfold_ast c (y as Appl [Constant c', x, xs]) =
       if c = c' then x :: (unfold_ast c xs) else [y]
   | unfold_ast _ y = [y];
 
-fun cons_fst x (xs, y) = (x :: xs, y);
-
 fun unfold_ast_p c (y as Appl [Constant c', x, xs]) =
-      if c = c' then cons_fst x (unfold_ast_p c xs)
+      if c = c' then apfst (cons x) (unfold_ast_p c xs)
       else ([], y)
   | unfold_ast_p _ y = ([], y);
 
 
 
 (** normalization of asts **)
+
+(* tracing options *)
+
+val trace_norm_ast = ref false;
+val stat_norm_ast = ref false;
+
 
 (* simple env *)
 
@@ -163,25 +201,20 @@ fun match ast pat =
   end;
 
 
-(* normalize *)   (* FIXME clean *)
-
-val trace_norm = ref false;
-val stat_norm = ref false;
+(* normalize *)
 
 (*the normalizer works yoyo-like: top-down, bottom-up, top-down, ...*)
 
-fun normalize get_rules pre_ast =
+fun normalize trace stat get_rules pre_ast =
   let
     val passes = ref 0;
     val lookups = ref 0;
     val failed_matches = ref 0;
     val changes = ref 0;
 
-    val trace = ! trace_norm;
-
     fun inc i = i := ! i + 1;
 
-    fun subst _ (ast as (Constant _)) = ast
+    fun subst _ (ast as Constant _) = ast
       | subst env (Variable x) = Env.get (env, x)
       | subst env (Appl asts) = Appl (map (subst env) asts);
 
@@ -189,7 +222,7 @@ fun normalize get_rules pre_ast =
           (case match ast lhs of
             Some env => (inc changes; Some (subst env rhs))
           | None => (inc failed_matches; try_rules ast pats))
-      | try_rules ast [] = None;
+      | try_rules _ [] = None;
 
     fun try ast a = (inc lookups; try_rules ast (the get_rules a));
 
@@ -230,11 +263,11 @@ fun normalize get_rules pre_ast =
       end;
 
 
-    val () = if trace then writeln ("pre: " ^ str_of_ast pre_ast) else ();
+    val _ = if trace then writeln ("pre: " ^ str_of_ast pre_ast) else ();
 
     val post_ast = if is_some get_rules then normal pre_ast else pre_ast;
   in
-    if trace orelse ! stat_norm then
+    if trace orelse stat then
       writeln ("post: " ^ str_of_ast post_ast ^ "\nnormalize: " ^
         string_of_int (! passes) ^ " passes, " ^
         string_of_int (! lookups) ^ " lookups, " ^
@@ -243,6 +276,12 @@ fun normalize get_rules pre_ast =
     else ();
     post_ast
   end;
+
+
+(* normalize_ast *)
+
+fun normalize_ast get_rules ast =
+  normalize (! trace_norm_ast) (! stat_norm_ast) get_rules ast;
 
 
 end;
