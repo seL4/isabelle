@@ -82,50 +82,6 @@
 \label{fig:ascii}
 \end{figure}\indexbold{ASCII symbols}
 
-\begin{figure}[htbp]
-\begin{center}
-\begin{tabular}{|lllll|}
-\hline
-\texttt{and} &
-\texttt{arities} &
-\texttt{assumes} &
-\texttt{axclass} &
-\texttt{binder} \\
-\texttt{classes} &
-\texttt{constdefs} &
-\texttt{consts} &
-\texttt{default} &
-\texttt{defines} \\
-\texttt{defs} &
-\texttt{end} &
-\texttt{fixes} &
-\texttt{global} &
-\texttt{inductive} \\
-\texttt{infixl} &
-\texttt{infixr} &
-\texttt{instance} &
-\texttt{local} &
-\texttt{locale} \\
-\texttt{mixfix} &
-\texttt{ML} &
-\texttt{MLtext} &
-\texttt{nonterminals} &
-\texttt{oracle} \\
-\texttt{output} &
-\texttt{path} &
-\texttt{primrec} &
-\texttt{rules} &
-\texttt{setup} \\
-\texttt{syntax} &
-\texttt{translations} &
-\texttt{typedef} &
-\texttt{types} &\\
-\hline
-\end{tabular}
-\end{center}
-\caption{Keywords in theory files}
-\label{fig:keywords}
-\end{figure}
 
 \begin{figure}[htbp]
 \begin{center}
@@ -157,6 +113,184 @@
 \hline
 \end{tabular}
 \end{center}
-\caption{Reserved words in HOL}
+\caption{Reserved words in HOL terms}
 \label{fig:ReservedWords}
+\end{figure}
+
+
+\begin{figure}[htbp]
+
+%FIXME too long to be useful!??
+\begin{center}
+\begin{tabular}{|lll|}
+\hline
+\texttt{ML} &
+\texttt{ML_command} &
+\texttt{ML_setup} \\
+\texttt{also} &
+\texttt{apply} &
+\texttt{apply_end} \\
+\texttt{arities} &
+\texttt{assume} &
+\texttt{axclass} \\
+\texttt{axioms} &
+\texttt{back} &
+\texttt{by} \\
+\texttt{cannot_undo} &
+\texttt{case} &
+\texttt{cd} \\
+\texttt{chapter} &
+\texttt{classes} &
+\texttt{classrel} \\
+\texttt{clear_undos} &
+\texttt{coinductive} &
+\texttt{commit} \\
+\texttt{constdefs} &
+\texttt{consts} &
+\texttt{context} \\
+\texttt{datatype} &
+\texttt{def} &
+\texttt{defaultsort} \\
+\texttt{defer} &
+\texttt{defer_recdef} &
+\texttt{defs} \\
+\texttt{disable_pr} &
+\texttt{enable_pr} &
+\texttt{end} \\
+\texttt{exit} &
+\texttt{finally} &
+\texttt{fix} \\
+\texttt{from} &
+\texttt{global} &
+\texttt{have} \\
+\texttt{header} &
+\texttt{help} &
+\texttt{hence} \\
+\texttt{hide} &
+\texttt{inductive} &
+\texttt{inductive_cases} \\
+\texttt{init_toplevel} &
+\texttt{instance} &
+\texttt{judgment} \\
+\texttt{kill} &
+\texttt{kill_thy} &
+\texttt{lemma} \\
+\texttt{lemmas} &
+\texttt{let} &
+\texttt{local} \\
+\texttt{moreover} &
+\texttt{next} &
+\texttt{nonterminals} \\
+\texttt{note} &
+\texttt{obtain} &
+\texttt{oops} \\
+\texttt{oracle} &
+\texttt{parse_ast_translation} &
+\texttt{parse_translation} \\
+\texttt{pr} &
+\texttt{prefer} &
+\texttt{presume} \\
+\texttt{pretty_setmargin} &
+\texttt{primrec} &
+\texttt{print_ast_translation} \\
+\texttt{print_attributes} &
+\texttt{print_binds} &
+\texttt{print_cases} \\
+\texttt{print_claset} &
+\texttt{print_context} &
+\texttt{print_facts} \\
+\texttt{print_methods} &
+\texttt{print_simpset} &
+\texttt{print_syntax} \\
+\texttt{print_theorems} &
+\texttt{print_theory} &
+\texttt{print_translation} \\
+\texttt{proof} &
+\texttt{prop} &
+\texttt{pwd} \\
+\texttt{qed} &
+\texttt{quit} &
+\texttt{recdef} \\
+\texttt{record} &
+\texttt{redo} &
+\texttt{remove_thy} \\
+\texttt{rep_datatype} &
+\texttt{sect} &
+\texttt{section} \\
+\texttt{setup} &
+\texttt{show} &
+\texttt{sorry} \\
+\texttt{subsect} &
+\texttt{subsection} &
+\texttt{subsubsect} \\
+\texttt{subsubsection} &
+\texttt{syntax} &
+\texttt{term} \\
+\texttt{text} &
+\texttt{text_raw} &
+\texttt{then} \\
+\texttt{theorem} &
+\texttt{theorems} &
+\texttt{theory} \\
+\texttt{thm} &
+\texttt{thms_containing} &
+\texttt{thus} \\
+\texttt{token_translation} &
+\texttt{touch_all_thys} &
+\texttt{touch_child_thys} \\
+\texttt{touch_thy} &
+\texttt{translations} &
+\texttt{txt} \\
+\texttt{txt_raw} &
+\texttt{typ} &
+\texttt{typed_print_translation} \\
+\texttt{typedecl} &
+\texttt{typedef} &
+\texttt{types} \\
+\texttt{ultimately} &
+\texttt{undo} &
+\texttt{undos_proof} \\
+\texttt{update_thy} &
+\texttt{update_thy_only} &
+\texttt{use} \\
+\texttt{use_thy} &
+\texttt{use_thy_only} &
+\texttt{welcome} \\
+\texttt{with} &
+ &
+ \\
+\hline
+\end{tabular}
+\end{center}
+
+\begin{center}
+\begin{tabular}{|lllll|}
+\hline
+\texttt{and} &
+\texttt{binder} &
+\texttt{con_defs} &
+\texttt{concl} &
+\texttt{congs} \\
+\texttt{distinct} &
+\texttt{files} &
+\texttt{in} &
+\texttt{induction} &
+\texttt{infixl} \\
+\texttt{infixr} &
+\texttt{inject} &
+\texttt{intrs} &
+\texttt{is} &
+\texttt{monos} \\
+\texttt{output} &
+\texttt{where} &
+ &
+ &
+ \\
+\hline
+\end{tabular}
+\end{center}
+
+
+\caption{Commands and minor keywords in HOL theories}
+\label{fig:keywords}
 \end{figure}
