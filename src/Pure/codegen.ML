@@ -248,7 +248,9 @@ fun gen_mk_id kind rename sg s =
     (if not (Symbol.is_letter x) then "id" else "") ^ check_str xs
   end;
 
-val mk_const_id = gen_mk_id Sign.constK I;
+val mk_const_id = gen_mk_id Sign.constK
+  (fn s => if s mem ThmDatabase.ml_reserved then s ^ "_const" else s);
+
 val mk_type_id = gen_mk_id Sign.typeK
   (fn s => if s mem ThmDatabase.ml_reserved then s ^ "_type" else s);
 
