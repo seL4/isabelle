@@ -15,7 +15,7 @@ default
   term
 
 types
-  o 0
+  o
 
 arities
   o :: logic

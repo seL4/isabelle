@@ -8,7 +8,7 @@ Modified version of HOL/set.thy that extends FOL
 Set = FOL +
 
 types
-  set 1
+  'a set
 
 arities
   set :: (term) term
