@@ -31,7 +31,7 @@ signature INTR_ELIM =
   val dom_subset : thm			(*inclusion of recursive set in dom*)
   val intrs      : thm list		(*introduction rules*)
   val elim       : thm			(*case analysis theorem*)
-  val mk_cases : thm list -> string -> thm	(*generates case theorems*)
+  val mk_cases   : thm list -> string -> thm	(*generates case theorems*)
   end;
 
 signature INTR_ELIM_AUX =	(** Used to make induction rules **)
@@ -138,18 +138,14 @@ val basic_elim_tac =
 
 in
   struct
-  val thy = Inductive.thy;
-
-  val defs = big_rec_def :: part_rec_defs;
-
-  val bnd_mono   = bnd_mono
+  val thy = Inductive.thy
+  and defs = big_rec_def :: part_rec_defs
+  and bnd_mono   = bnd_mono
   and dom_subset = dom_subset
   and intrs      = intrs;
 
   val elim = rule_by_tactic basic_elim_tac 
 		  (unfold RS Ind_Syntax.equals_CollectD);
-
-  val raw_induct = standard ([big_rec_def, bnd_mono] MRS Fp.induct);
 
   (*Applies freeness of the given constructors, which *must* be unfolded by
       the given defs.  Cannot simply use the local con_defs because  
@@ -161,7 +157,8 @@ in
 		      fold_tac defs)
 	(assume_read Inductive.thy s  RS  elim);
 
-  val rec_names = rec_names
+  val raw_induct = standard ([big_rec_def, bnd_mono] MRS Fp.induct)
+  and rec_names = rec_names
   end
 end;
 
