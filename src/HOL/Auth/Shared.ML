@@ -63,7 +63,8 @@ qed "Crypt_Spy_analz_bad";
 fun not_bad_tac s =
     case_tac ("(" ^ s ^ ") : bad") THEN'
     SELECT_GOAL 
-      (REPEAT_DETERM (dtac (Says_imp_spies RS analz.Inj) 1) THEN
+      (REPEAT_DETERM (etac exE 1) THEN
+       REPEAT_DETERM (dtac (Says_imp_spies RS analz.Inj) 1) THEN
        REPEAT_DETERM (etac MPair_analz 1) THEN
        THEN_BEST_FIRST 
          (dres_inst_tac [("A", s)] Crypt_Spy_analz_bad 1 THEN assume_tac 1)
