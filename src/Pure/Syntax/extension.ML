@@ -233,7 +233,7 @@ fun extend_xgram (XGram xgram) (Ext ext, SynRules rules) =
   let
     fun descend (from, to) = Mfix ("_", to --> from, "", [0], 0);
 
-    fun parents T = Mfix ("(1'(_'))", T --> T, "", [0], max_pri);
+    fun parents T = Mfix ("'(_')", T --> T, "", [0], max_pri);
 
     fun mkappl T =
       Mfix ("(1_/(1'(_')))", [funT, argsT] ---> T, applC, [max_pri, 0], max_pri);
