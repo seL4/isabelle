@@ -10,8 +10,6 @@ header {* Examples for the 'refute' command *}
 
 theory Refute_Examples = Main:
 
-section {* 'refute': General usage *}
-
 lemma "P x"
   refute
 oops
@@ -25,8 +23,6 @@ lemma "P \<and> Q"
   refute [maxsize=5]           -- {* we can override parameters ... *}
   refute [satsolver="dpll"] 2  -- {* ... and specify a subgoal at the same time *}
 oops
-
-refute_params [satsolver="dpll"]
 
 section {* Examples and Test Cases *}
 
@@ -110,6 +106,7 @@ lemma "(f::('d\<Rightarrow>'d)\<Rightarrow>('c\<Rightarrow>'d)) = g"
 oops
 
 lemma "distinct [a,b]"
+  refute
   apply simp
   refute
 oops
@@ -155,17 +152,17 @@ oops
 text {* A true statement (also testing names of free and bound variables being identical) *}
 
 lemma "(\<forall>x y. P x y \<longrightarrow> P y x) \<longrightarrow> (\<forall>x. P x y) \<longrightarrow> P y x"
-  refute
+  refute [maxsize=6]
   apply fast
 done
 
-text {* "A type has at most 3 elements." *}
+text {* "A type has at most 4 elements." *}
 
-lemma "a=b | a=c | a=d | b=c | b=d | c=d"
+lemma "a=b | a=c | a=d | a=e | b=c | b=d | b=e | c=d | c=e | d=e"
   refute
 oops
 
-lemma "\<forall>a b c d. a=b | a=c | a=d | b=c | b=d | c=d"
+lemma "\<forall>a b c d e. a=b | a=c | a=d | a=e | b=c | b=d | b=e | c=d | c=e | d=e"
   refute
 oops
 
@@ -178,7 +175,7 @@ oops
 text {* The "Drinker's theorem" ... *}
 
 lemma "\<exists>x. f x = g x \<longrightarrow> f = g"
-  refute
+  refute [maxsize=4]
   apply (auto simp add: ext)
 done
 
@@ -262,7 +259,7 @@ lemma "(\<forall>x y. (P x y | R x y) \<longrightarrow> T x y) \<longrightarrow>
         \<longrightarrow> trans_closure TP P
         \<longrightarrow> trans_closure TR R
         \<longrightarrow> (T x y = (TP x y | TR x y))"
-  refute
+  refute [satsolver="dpll"]
 oops
 
 text {* "Every surjective function is invertible." *}
@@ -280,7 +277,7 @@ oops
 text {* Every point is a fixed point of some function. *}
 
 lemma "\<exists>f. f x = x"
-  refute [maxsize=5]
+  refute [maxsize=4]
   apply (rule_tac x="\<lambda>x. x" in exI)
   apply simp
 done
@@ -294,12 +291,12 @@ oops
 text {* ... and now two correct ones *}
 
 lemma "(\<forall>x. \<exists>y. P x y) \<longrightarrow> (\<exists>f. \<forall>x. P x (f x))"
-  refute
+  refute [maxsize=4]
   apply (simp add: choice)
 done
 
 lemma "(\<forall>x. EX!y. P x y) \<longrightarrow> (EX!f. \<forall>x. P x (f x))"
-  refute
+  refute [maxsize=2, satsolver="dpll"]
   apply auto
     apply (simp add: ex1_implies_ex choice)
   apply (fast intro: ext)
@@ -456,6 +453,25 @@ lemma "Ex P \<longrightarrow> P (Eps P)"
   apply (auto simp add: someI)
 done
 
+subsection {* Subtypes (typedef), typedecl *}
+
+typedef 'a myTdef = "insert (arbitrary::'a) (arbitrary::'a set)"
+  -- {* a completely unspecified non-empty subset of @{typ "'a"} *}
+  by auto
+
+lemma "(x::'a myTdef) = y"
+  refute [satsolver=dpll]
+oops
+
+typedecl myTdecl
+
+typedef 'a T_bij = "{(f::'a\<Rightarrow>'a). \<forall>y. \<exists>!x. f x = y}"
+  by auto
+
+lemma "P (f::(myTdecl myTdef) T_bij)"
+  refute
+oops
+
 subsection {* Inductive datatypes *}
 
 subsubsection {* unit *}
@@ -479,6 +495,10 @@ lemma "P (x::'a option)"
 oops
 
 lemma "\<forall>x::'a option. P x"
+  refute
+oops
+
+lemma "P None"
   refute
 oops
 
@@ -566,29 +586,50 @@ oops
 
 datatype ('a,'b) T3 = E "'a \<Rightarrow> 'b"
 
+lemma "P (x::('a,'b) T3)"
+  refute
+oops
+
+lemma "\<forall>x::('a,'b) T3. P x"
+  refute
+oops
+
 lemma "P E"
   refute
 oops
 
 subsubsection {* Recursive datatypes *}
 
-datatype Nat = Zero | Suc Nat
-
-lemma "P (x::Nat)"
+lemma "P (x::nat)"
+  refute
 oops
 
-lemma "\<forall>x::Nat. P x"
+lemma "\<forall>x::nat. P x"
+  refute
 oops
 
-lemma "P (Suc Zero)"
+lemma "P (Suc 0)"
+  refute
+oops
+
+lemma "P Suc"
+  refute  -- {* @{term "Suc"} is a partial function (regardless of the size
+                of the model), hence @{term "P Suc"} is undefined, hence no
+                model will be found *}
 oops
 
 datatype 'a BinTree = Leaf 'a | Node "'a BinTree" "'a BinTree"
 
 lemma "P (x::'a BinTree)"
+  refute
 oops
 
 lemma "\<forall>x::'a BinTree. P x"
+  refute
+oops
+
+lemma "P (Node (Leaf x) (Leaf y))"
+  refute
 oops
 
 subsubsection {* Mutually recursive datatypes *}
@@ -597,30 +638,49 @@ datatype 'a aexp = Number 'a | ITE "'a bexp" "'a aexp" "'a aexp"
      and 'a bexp = Equal "'a aexp" "'a aexp"
 
 lemma "P (x::'a aexp)"
+  refute
 oops
 
 lemma "\<forall>x::'a aexp. P x"
+  refute
 oops
 
 lemma "P (x::'a bexp)"
+  refute
 oops
 
 lemma "\<forall>x::'a bexp. P x"
+  refute
 oops
 
 lemma "P (ITE (Equal (Number x) (Number y)) (Number x) (Number y))"
+  refute
 oops
 
 subsubsection {* Other datatype examples *}
 
-datatype InfTree = Leaf | Node "Nat \<Rightarrow> InfTree"
+datatype InfTree = Leaf | Node "nat \<Rightarrow> InfTree"
 
 lemma "P (x::InfTree)"
+  refute
 oops
 
 datatype 'a lambda = Var 'a | App "'a lambda" "'a lambda" | Lam "'a \<Rightarrow> 'a lambda"
 
-lemma "P (x::'a lambda)"
+lemma "P (x::'a lambda) | P (App x y)"
+  refute
+oops
+
+lemma "(xs::'a list) = ys"
+  refute
+oops
+
+lemma "a # xs = b # xs"
+  refute
+oops
+
+lemma "P [x, y]"
+  refute
 oops
 
 end
