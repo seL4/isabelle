@@ -37,8 +37,8 @@ translations
 
 axioms
   (*Spy has access to his own key for spoof messages, but Server is secure*)
-  Spy_in_bad     [iff] :     "Spy: bad"
-  Server_not_bad [iff] : "Server ~: bad"
+  Spy_in_bad     [iff] :    "Spy \<in> bad"
+  Server_not_bad [iff] : "Server \<notin> bad"
 
 primrec
   knows_Nil:   "knows A [] = initState A"
@@ -49,7 +49,7 @@ primrec
 	   Says A' B X => insert X (knows Spy evs)
 	 | Gets A' X => knows Spy evs
 	 | Notes A' X  => 
-	     if A' : bad then insert X (knows Spy evs) else knows Spy evs)
+	     if A' \<in> bad then insert X (knows Spy evs) else knows Spy evs)
 	else
 	(case ev of
 	   Says A' B X => 
@@ -84,6 +84,6 @@ use "Event_lemmas.ML"
 method_setup analz_mono_contra = {*
     Method.no_args
       (Method.METHOD (fn facts => REPEAT_FIRST analz_mono_contra_tac)) *}
-    "for proving theorems of the form X ~: analz (knows Spy evs) --> P"
+    "for proving theorems of the form X \<notin> analz (knows Spy evs) --> P"
 
 end

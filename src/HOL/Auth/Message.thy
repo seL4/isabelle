@@ -11,7 +11,7 @@ theory Message = Main
 files ("Message_lemmas.ML"):
 
 (*Eliminates a commonly-occurring expression*)
-lemma [simp] : "~ (ALL x. x~=y)"
+lemma [simp] : "~ (\<forall> x. x\<noteq>y)"
 by blast
 
 (*Needed occasionally with spy_analz_tac, e.g. in analz_insert_Key_newK*)
@@ -66,17 +66,17 @@ constdefs
 
   (*Keys useful to decrypt elements of a message set*)
   keysFor :: "msg set => key set"
-  "keysFor H == invKey ` {K. EX X. Crypt K X : H}"
+  "keysFor H == invKey ` {K. \<exists>X. Crypt K X \<in> H}"
 
 (** Inductive definition of all "parts" of a message.  **)
 
 consts  parts   :: "msg set => msg set"
 inductive "parts H"
   intros 
-    Inj [intro]          : "X: H  ==> X : parts H"
-    Fst:     "{|X,Y|}   : parts H ==> X : parts H"
-    Snd:     "{|X,Y|}   : parts H ==> Y : parts H"
-    Body:    "Crypt K X : parts H ==> X : parts H"
+    Inj [intro]:               "X \<in> H ==> X \<in> parts H"
+    Fst:         "{|X,Y|}   \<in> parts H ==> X \<in> parts H"
+    Snd:         "{|X,Y|}   \<in> parts H ==> Y \<in> parts H"
+    Body:        "Crypt K X \<in> parts H ==> X \<in> parts H"
 
 
 (*Monotonicity*)
@@ -94,11 +94,11 @@ done
 consts  analz   :: "msg set => msg set"
 inductive "analz H"
   intros 
-    Inj [intro,simp] :    "X: H ==> X: analz H"
-    Fst:     "{|X,Y|} : analz H ==> X : analz H"
-    Snd:     "{|X,Y|} : analz H ==> Y : analz H"
+    Inj [intro,simp] :    "X \<in> H ==> X \<in> analz H"
+    Fst:     "{|X,Y|} \<in> analz H ==> X \<in> analz H"
+    Snd:     "{|X,Y|} \<in> analz H ==> Y \<in> analz H"
     Decrypt [dest]: 
-             "[|Crypt K X : analz H; Key(invKey K): analz H|] ==> X : analz H"
+             "[|Crypt K X \<in> analz H; Key(invKey K): analz H|] ==> X \<in> analz H"
 
 
 (*Monotonicity; Lemma 1 of Lowe's paper*)
@@ -116,12 +116,12 @@ done
 consts  synth   :: "msg set => msg set"
 inductive "synth H"
   intros 
-    Inj    [intro]:   "X: H ==> X: synth H"
-    Agent  [intro]:   "Agent agt : synth H"
-    Number [intro]:   "Number n  : synth H"
-    Hash   [intro]:   "X: synth H ==> Hash X : synth H"
-    MPair  [intro]:   "[|X: synth H;  Y: synth H|] ==> {|X,Y|} : synth H"
-    Crypt  [intro]:   "[|X: synth H;  Key(K) : H|] ==> Crypt K X : synth H"
+    Inj    [intro]:   "X \<in> H ==> X \<in> synth H"
+    Agent  [intro]:   "Agent agt \<in> synth H"
+    Number [intro]:   "Number n  \<in> synth H"
+    Hash   [intro]:   "X \<in> synth H ==> Hash X \<in> synth H"
+    MPair  [intro]:   "[|X \<in> synth H;  Y \<in> synth H|] ==> {|X,Y|} \<in> synth H"
+    Crypt  [intro]:   "[|X \<in> synth H;  Key(K) \<in> H|] ==> Crypt K X \<in> synth H"
 
 (*Monotonicity*)
 lemma synth_mono: "G<=H ==> synth(G) <= synth(H)"
@@ -131,11 +131,11 @@ apply (auto dest: Fst Snd Body)
 done
 
 (*NO Agent_synth, as any Agent name can be synthesized.  Ditto for Number*)
-inductive_cases Nonce_synth [elim!]: "Nonce n : synth H"
-inductive_cases Key_synth   [elim!]: "Key K : synth H"
-inductive_cases Hash_synth  [elim!]: "Hash X : synth H"
-inductive_cases MPair_synth [elim!]: "{|X,Y|} : synth H"
-inductive_cases Crypt_synth [elim!]: "Crypt K X : synth H"
+inductive_cases Nonce_synth [elim!]: "Nonce n \<in> synth H"
+inductive_cases Key_synth   [elim!]: "Key K \<in> synth H"
+inductive_cases Hash_synth  [elim!]: "Hash X \<in> synth H"
+inductive_cases MPair_synth [elim!]: "{|X,Y|} \<in> synth H"
+inductive_cases Crypt_synth [elim!]: "Crypt K X \<in> synth H"
 
 use "Message_lemmas.ML"
 
