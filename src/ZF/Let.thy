@@ -12,7 +12,7 @@ types
   letbinds  letbind
 
 consts
-  Let           :: ['a, 'a => 'b] => 'b
+  Let           :: ['a::logic, 'a => 'b] => ('b::logic)
 
 syntax
   "_bind"       :: [pttrn, 'a] => letbind           ("(2_ =/ _)" 10)

@@ -96,6 +96,9 @@ the well-founded relation;
 
 * many new identities for unions, intersections, set difference, etc.;
 
+*** ZF ***
+
+* in  let x=t in u(x), neither t nor u(x) has to be an FOL term.
 
 
 New in Isabelle98 (January 1998)
