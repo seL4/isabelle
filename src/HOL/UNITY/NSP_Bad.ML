@@ -40,20 +40,6 @@ result();
 
 (**** Inductive proofs about ns_public ****)
 
-(*Nobody sends themselves messages*)
-Goal "Invariant Nprg {s. ALL X. Says A A X ~: set s}";
-by (rtac InvariantI 1);
-by (Force_tac 1);
-by (constrains_tac 1);
-by Auto_tac;
-qed "not_Says_to_self";
-
-(** HOW TO USE??  They don't seem to be needed!
-Addsimps [not_Says_to_self];
-AddSEs   [not_Says_to_self RSN (2, rev_notE)];
-**)
-
-
 (*can be used to simulate analz_mono_contra_tac
 val analz_impI = read_instantiate_sg (sign_of thy)
                 [("P", "?Y ~: analz (spies ?evs)")] impI;

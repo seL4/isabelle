@@ -22,7 +22,7 @@ constdefs
   Fake :: "(state*state) set"
     "Fake == {(s,s').
 	      EX B X. s' = Says Spy B X # s
-		    & B ~= Spy & X: synth (analz (spies s))}"
+		    & X: synth (analz (spies s))}"
   
   (*The numeric suffixes on A identify the rule*)
 
@@ -31,7 +31,7 @@ constdefs
     "NS1 == {(s1,s').
 	     EX A1 B NA.
 	         s' = Says A1 B (Crypt (pubK B) {|Nonce NA, Agent A1|}) # s1
-	       & A1 ~= B & Nonce NA ~: used s1}"
+	       & Nonce NA ~: used s1}"
   
   (*Bob responds to Alice's message with a further nonce*)
   NS2 :: "(state*state) set"
@@ -39,7 +39,7 @@ constdefs
 	     EX A' A2 B NA NB.
 	         s' = Says B A2 (Crypt (pubK A2) {|Nonce NA, Nonce NB|}) # s2
                & Says A' B (Crypt (pubK B) {|Nonce NA, Agent A2|}) : set s2
-	       & A2 ~= B & Nonce NB ~: used s2}"
+	       & Nonce NB ~: used s2}"
  
   (*Alice proves her existence by sending NB back to Bob.*)
   NS3 :: "(state*state) set"
