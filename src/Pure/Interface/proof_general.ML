@@ -145,7 +145,7 @@ end;
 (* prepare theory context *)
 
 val thy_name = Path.pack o Path.drop_ext o Path.base o Path.unpack;
-val update_thy_only = setmp Thm.trace_simp false ThyInfo.update_thy_only;
+val update_thy_only = setmp MetaSimplifier.trace_simp false ThyInfo.update_thy_only;
 
 fun which_context () =
   (case Context.get_context () of

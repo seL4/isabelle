@@ -279,7 +279,7 @@ fun fold thms = SIMPLE_METHOD (CHANGED (fold_goals_tac thms));
 (* atomize meta-connectives *)
 
 fun rewrite_goal_tac rews =
-  Tactic.asm_rewrite_goal_tac (true, false, false) (K no_tac) (Thm.mss_of rews);
+  Tactic.asm_rewrite_goal_tac (true, false, false) (K no_tac) (MetaSimplifier.mss_of rews);
 
 fun atomize_tac rews =
   let val rew_tac = rewrite_goal_tac rews in
