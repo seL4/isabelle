@@ -11,7 +11,7 @@ NOTE: univ(A) could be a translation; would simplify many proofs!
   But Ind_Syntax.univ refers to the constant "Univ.univ"
 *)
 
-Univ = Arith + Sum + Finite + mono +
+Univ = Epsilon + Sum + Finite + mono +
 
 consts
     Vfrom       :: [i,i]=>i
