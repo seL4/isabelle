@@ -221,7 +221,7 @@ fun warn_same name =
 
 fun enter_thmx sg app_name (bname, thmx) =
   let
-    val name = Sign.full_name sg bname;
+    val name = Sign.full_name sg (default_name bname);
     val named_thms = map Thm.name_thm (app_name name thmx);
 
     val r as ref {space, thms_tab, const_idx} = get_theorems_sg sg;
