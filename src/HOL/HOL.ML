@@ -251,9 +251,9 @@ qed_goalw "ex1E" HOL.thy [Ex1_def]
   [rtac (major RS exE) 1, REPEAT (etac conjE 1 ORELSE ares_tac prems 1)]);
 
 Goal "?! x. P x ==> ? x. P x";
-be ex1E 1;
-br exI 1;
-ba 1;
+by (etac ex1E 1);
+by (rtac exI 1);
+by (assume_tac 1);
 qed "ex1_implies_ex";
 
 
