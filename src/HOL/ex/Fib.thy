@@ -3,8 +3,7 @@
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1997  University of Cambridge
 
-Fibonacci numbers and other simple examples of recursive definitions
-	(the TFL package)
+The Fibonacci function.  Demonstrates the use of recdef.
 *)
 
 Fib = WF_Rel + Divides +
