@@ -28,11 +28,6 @@ cd "Syntax";
 use "ROOT.ML";
 cd "..";
 
-(* Theory parser *)
-cd "Thy";
-use "ROOT.ML";
-cd "..";
-
 print_depth 1;
 use "type.ML";
 use "sign.ML";
@@ -69,3 +64,9 @@ structure Goals = GoalsFun(structure Logic=Logic and Drule=Drule
 open Basic_Syntax Thm Drule Tactical Tactic Goals;
 
 structure Pure = struct val thy = pure_thy end;
+
+(* Theory parser *)
+cd "Thy";
+use "ROOT.ML";
+cd "..";
+
