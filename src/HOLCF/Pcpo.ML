@@ -21,11 +21,11 @@ qed_goalw "UU_least" thy [ UU_def ] "!z.UU << z"
 bind_thm("minimal",UU_least RS spec);
 
 (* ------------------------------------------------------------------------ *)
-(* in pcpo's everthing equal to THE lub has lub properties for every chain  *)
+(* in cpo's everthing equal to THE lub has lub properties for every chain  *)
 (* ------------------------------------------------------------------------ *)
 
 qed_goal "thelubE"  thy 
-        "[| is_chain(S);lub(range(S)) = (l::'a::pcpo)|] ==> range(S) <<| l "
+        "[| is_chain(S);lub(range(S)) = (l::'a::cpo)|] ==> range(S) <<| l "
 (fn prems =>
         [
         (cut_facts_tac prems 1), 
@@ -46,7 +46,7 @@ bind_thm ("is_lub_thelub", cpo RS lubI RS is_lub_lub);
 (* [| is_chain(?S5); range(?S5) <| ?x1 |] ==> lub(range(?S5)) << ?x1        *)
 
 qed_goal "maxinch_is_thelub" thy "is_chain Y ==> \
-\       max_in_chain i Y = (lub(range(Y)) = ((Y i)::'a::pcpo))" 
+\       max_in_chain i Y = (lub(range(Y)) = ((Y i)::'a::cpo))" 
 (fn prems => 
         [
         cut_facts_tac prems 1,
@@ -65,7 +65,7 @@ qed_goal "maxinch_is_thelub" thy "is_chain Y ==> \
 (* ------------------------------------------------------------------------ *)
 
 qed_goal "lub_mono" thy 
-        "[|is_chain(C1::(nat=>'a::pcpo));is_chain(C2); ! k. C1(k) << C2(k)|]\
+        "[|is_chain(C1::(nat=>'a::cpo));is_chain(C2); ! k. C1(k) << C2(k)|]\
 \           ==> lub(range(C1)) << lub(range(C2))"
 (fn prems =>
         [
@@ -83,7 +83,7 @@ qed_goal "lub_mono" thy
 (* ------------------------------------------------------------------------ *)
 
 qed_goal "lub_equal" thy
-"[| is_chain(C1::(nat=>'a::pcpo));is_chain(C2);!k.C1(k)=C2(k)|]\
+"[| is_chain(C1::(nat=>'a::cpo));is_chain(C2);!k.C1(k)=C2(k)|]\
 \       ==> lub(range(C1))=lub(range(C2))"
 (fn prems =>
         [
@@ -108,7 +108,7 @@ qed_goal "lub_equal" thy
 (* ------------------------------------------------------------------------ *)
 
 qed_goal "lub_mono2" thy 
-"[|? j.!i. j<i --> X(i::nat)=Y(i);is_chain(X::nat=>'a::pcpo);is_chain(Y)|]\
+"[|? j.!i. j<i --> X(i::nat)=Y(i);is_chain(X::nat=>'a::cpo);is_chain(Y)|]\
 \ ==> lub(range(X))<<lub(range(Y))"
  (fn prems =>
         [
@@ -137,7 +137,7 @@ qed_goal "lub_mono2" thy
         ]);
 
 qed_goal "lub_equal2" thy 
-"[|? j.!i. j<i --> X(i)=Y(i);is_chain(X::nat=>'a::pcpo);is_chain(Y)|]\
+"[|? j.!i. j<i --> X(i)=Y(i);is_chain(X::nat=>'a::cpo);is_chain(Y)|]\
 \ ==> lub(range(X))=lub(range(Y))"
  (fn prems =>
         [
@@ -153,7 +153,7 @@ qed_goal "lub_equal2" thy
         (fast_tac HOL_cs 1)
         ]);
 
-qed_goal "lub_mono3" thy "[|is_chain(Y::nat=>'a::pcpo);is_chain(X);\
+qed_goal "lub_mono3" thy "[|is_chain(Y::nat=>'a::cpo);is_chain(X);\
 \! i. ? j. Y(i)<< X(j)|]==> lub(range(Y))<<lub(range(X))"
  (fn prems =>
         [
