@@ -281,6 +281,9 @@ element: {..u}, {..u(}, {l..}, {)l..}. See theory SetInterval.
 
 * HOL: theorems impI, allI, ballI bound as "strip";
 
+* new function rulify: thm -> thm for turning outer -->/! into ==>/?; behaves
+like eq_spec_mp;
+
 * theory Sexp now in HOL/Induct examples (it used to be part of main
 HOL, but was unused);
 
