@@ -86,11 +86,6 @@ primrec
 	            (bin_add v (if (x & y) then bin_succ w else w)) (x~=y)" 
 
 
-(*For implementing the equality test on integer constants*)
-constdefs
-  iszero :: int => bool
-  "iszero z == z = $# 0"
-  
 end
 
 ML
