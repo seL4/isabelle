@@ -209,6 +209,73 @@ command required.
 %calculational steps in combination with natural deduction.
 
 
+\section{Named local contexts (cases)}\label{sec:cases}
+
+\indexisarcmd{case}\indexisarcmd{print-cases}
+\indexisaratt{case-names}\indexisaratt{params}
+\begin{matharray}{rcl}
+  \isarcmd{case} & : & \isartrans{proof(state)}{proof(state)} \\
+  \isarcmd{print_cases} & : & \isarkeep{proof} \\[0.5ex]
+  case_names & : & \isaratt \\
+  params & : & \isaratt \\
+\end{matharray}
+
+Basically, Isar proof contexts are built up explicitly using commands like
+$\FIXNAME$, $\ASSUMENAME$ etc.\ (see \S\ref{sec:proof-context}).  In typical
+verification tasks this can become hard to manage, though.  In particular, a
+large number of local contexts may emerge from case analysis or induction over
+inductive sets and types.
+
+\medskip
+
+The $\CASENAME$ command provides a shorthand to refer to certain parts of
+logical context symbolically.  Proof methods may provide an environment of
+named ``cases'' of the form $c\colon \vec x, \vec \chi$.  Then the effect of
+$\CASE{c}$ is exactly the same as $\FIX{\vec x}~\ASSUME{c}{\vec\chi}$.
+
+It is important to note that $\CASENAME$ does \emph{not} provide any means to
+peek at the current goal state, which is treated as strictly non-observable in
+Isar!  Instead, the cases considered here usually emerge in a canonical way
+from certain pieces of specification that appear in the theory somewhere else
+(e.g.\ in an inductive definition, or recursive function).  See also
+\S\ref{sec:induct-method} for more details of how this works in HOL.
+
+\medskip
+
+Named cases may be exhibited in the current proof context only if both the
+proof method and the corresponding rule support this.  Case names and
+parameters of basic rules may be declared by hand as well, by using
+appropriate attributes.  Thus variant versions of rules that have been derived
+manually may be used in advanced case analysis later.
+
+\railalias{casenames}{case\_names}
+\railterm{casenames}
+
+\begin{rail}
+  'case' nameref attributes?
+  ;
+  casenames (name + )
+  ;
+  'params' ((name * ) + 'and')
+  ;
+\end{rail}
+
+\begin{descr}
+\item [$\CASE{c}$] invokes a named local context $c\colon \vec x, \vec \chi$,
+  as provided by an appropriate proof method (such as $cases$ and $induct$,
+  see \S\ref{sec:induct-method}).  The command $\CASE{c}$ abbreviates
+  $\FIX{\vec x}~\ASSUME{c}{\vec\chi}$.
+\item [$\isarkeyword{print_cases}$] prints all local contexts of the current
+  goal context, using Isar proof language notation.  This is a diagnostic
+  command; $undo$ does not apply.
+\item [$case_names~\vec c$] declares names for the local contexts of premises
+  of some theorem ($\vec c$ refers to the \emph{suffix} of the list premises).
+\item [$params~\vec p@1 \dots \vec p@n$] renames the innermost parameters of
+  premises $1, \dots, n$ of some theorem.  An empty list of names be be given
+  to skip positions, leaving the corresponding parameters unchanged.
+\end{descr}
+
+
 \section{Axiomatic Type Classes}\label{sec:axclass}
 
 \indexisarcmd{axclass}\indexisarcmd{instance}\indexisarmeth{intro-classes}
@@ -261,51 +328,69 @@ Isabelle documentation.
 
 \subsection{Simplification methods}\label{sec:simp}
 
-\indexisarmeth{simp}
+\indexisarmeth{simp}\indexisarmeth{simp-all}
 \begin{matharray}{rcl}
   simp & : & \isarmeth \\
+  simp_all & : & \isarmeth \\
 \end{matharray}
 
+\railalias{simpall}{simp\_all}
+\railterm{simpall}
+
 \begin{rail}
-  'simp' ('!' ?) (simpmod * )
+  ('simp' | simpall) ('!' ?) (simpmod * )
   ;
 
-  simpmod: ('add' | 'del' | 'only' | 'other') ':' thmrefs
+  simpmod: ('add' | 'del' | 'only' | 'split' (() | 'add' | 'del') | 'other') ':' thmrefs
   ;
 \end{rail}
 
 \begin{descr}
 \item [$simp$] invokes Isabelle's simplifier, after modifying the context by
   adding or deleting rules as specified.  The \railtoken{only} modifier first
-  removes all other rewrite rules and congruences, and then is like
-  \railtoken{add}.  In contrast, \railtoken{other} ignores its arguments;
-  nevertheless there may be side-effects on the context via
-  attributes.\footnote{This provides a back door for arbitrary context
-    manipulation.}
+  removes all other rewrite rules, congruences, and looper tactics (including
+  splits), and then behaves like \railtoken{add}.
   
-  The $simp$ method is based on \texttt{asm_full_simp_tac}
-  \cite[\S10]{isabelle-ref}, but is much better behaved in practice.  Just the
-  local premises of the actual goal are involved by default.  Additional facts
-  may be inserted via forward-chaining (using $\THEN$, $\FROMNAME$ etc.).  The
-  full context of assumptions is only included in the $simp!$ version, which
-  should be used with care.
+  The \railtoken{split} modifiers add or delete rules for the Splitter (see
+  also \cite{isabelle-ref}), the default is to add.  This works only if the
+  Simplifier method has been properly setup to include the Splitter (all major
+  object logics such HOL, HOLCF, FOL, ZF do this already).
+  
+  The \railtoken{other} modifier ignores its arguments.  Nevertheless there
+  may be side-effects on the context via attributes.\footnote{This provides a
+    back door for arbitrary context manipulation.}
+  
+\item [$simp_all$] is similar to $simp$, but acts on all goals.
 \end{descr}
 
-\subsection{Modifying the context}
+The $simp$ methods are based on \texttt{asm_full_simp_tac}
+\cite[\S10]{isabelle-ref}, but is much better behaved in practice.  Just the
+local premises of the actual goal are involved by default.  Additional facts
+may be inserted via forward-chaining (using $\THEN$, $\FROMNAME$ etc.).  The
+full context of assumptions is only included in the $simp!$ versions, which
+should be used with some care, though.
 
-\indexisaratt{simp}
+Note that there is no separate $split$ method.  The effect of
+\texttt{split_tac} can be simulated via $(simp~only\colon~split\colon~thms)$.
+
+
+\subsection{Declaring rules}
+
+\indexisaratt{simp}\indexisaratt{split}
 \begin{matharray}{rcl}
   simp & : & \isaratt \\
+  split & : & \isaratt \\
 \end{matharray}
 
 \begin{rail}
-  'simp' (() | 'add' | 'del')
+  ('simp' | 'split') (() | 'add' | 'del')
   ;
 \end{rail}
 
 \begin{descr}
 \item [$simp$] adds or deletes rules from the theory or proof context (the
   default is to add).
+\item [$split$] is similar to $simp$, but refers to split rules.
 \end{descr}
 
 
@@ -421,7 +506,8 @@ context of assumptions to be included as well.\footnote{This is slightly less
   ('force' | 'auto') ('!' ?) (clasimpmod * )
   ;
 
-  clasimpmod: ('simp' ('add' | 'del' | 'only') | 'other' |
+  clasimpmod: ('simp' (() | 'add' | 'del' | 'only') | 'other' |
+    ('split' (() | 'add' | 'del')) |
     (('intro' | 'elim' | 'dest') (() | '?' | '??') | 'del')) ':' thmrefs
 \end{rail}
 
@@ -439,7 +525,7 @@ context of assumptions to be included as well.\footnote{This is slightly less
 \end{descr}
 
 
-\subsection{Modifying the context}\label{sec:classical-mod}
+\subsection{Declaring rules}\label{sec:classical-mod}
 
 \indexisaratt{intro}\indexisaratt{elim}\indexisaratt{dest}
 \indexisaratt{iff}\indexisaratt{delrule}
