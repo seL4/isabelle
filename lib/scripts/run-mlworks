@@ -6,7 +6,7 @@
 #
 # MLWorks startup script (for 1.0r2 or later).
 
-export -n INFILE OUTFILE COMPRESS MLTEXT TERMINATE NOWRITE
+export -n INFILE OUTFILE COPYDB COMPRESS MLTEXT TERMINATE NOWRITE
 
 
 ## diagnostics

@@ -6,7 +6,7 @@
 #
 # Poly/ML startup script.
 
-export -n INFILE OUTFILE COMPRESS MLTEXT TERMINATE NOWRITE
+export -n INFILE OUTFILE COPYDB COMPRESS MLTEXT TERMINATE NOWRITE
 
 
 ## diagnostics
@@ -48,13 +48,12 @@ esac
 
 ## prepare databases
 
-COPYDB=true
-
 if [ -z "$INFILE" ]; then
   INFILE="$ML_HOME/ML_dbase"
   check_mlhome_file "$INFILE"
-  COPYDB=""
   MLTEXT="val use = PolyML.use; $EXIT $MLTEXT"
+else
+  COPYDB=true
 fi
 
 if [ -z "$OUTFILE" ]; then
