@@ -1,9 +1,9 @@
-(*  Title:      HOL/nat
+(*  Title:      HOL/Nat.ML
     ID:         $Id$
     Author:     Tobias Nipkow, Cambridge University Computer Laboratory
     Copyright   1991  University of Cambridge
 
-For nat.thy.  Type nat is defined as a set (Nat) over the type ind.
+For Nat.thy.  Type nat is defined as a set (Nat) over the type ind.
 *)
 
 open Nat;
@@ -380,6 +380,23 @@ by (wf_ind_tac "n" [wf_pred_nat RS wf_trancl] 1);
 by (eresolve_tac prems 1);
 qed "less_induct";
 
+qed_goal "nat_induct2" Nat.thy 
+"[| P 0; P 1; !!k. P k ==> P (Suc (Suc k)) |] ==> P n" (fn prems => [
+	cut_facts_tac prems 1,
+	rtac less_induct 1,
+	res_inst_tac [("n","n")] natE 1,
+	 hyp_subst_tac 1,
+	 atac 1,
+	hyp_subst_tac 1,
+	res_inst_tac [("n","x")] natE 1,
+	 hyp_subst_tac 1,
+	 atac 1,
+	hyp_subst_tac 1,
+	resolve_tac prems 1,
+	dtac spec 1,
+	etac mp 1,
+	rtac (lessI RS less_trans) 1,
+	rtac (lessI RS Suc_mono) 1]);
 
 (*** Properties of <= ***)
 
@@ -472,6 +489,8 @@ goalw Nat.thy [le_def] "!!m. m <= n ==> m <= Suc n";
 by (fast_tac (!claset addDs [Suc_lessD]) 1);
 qed "le_SucI";
 Addsimps[le_SucI];
+
+bind_thm ("le_Suc", not_Suc_n_less_n RS leI);
 
 goalw Nat.thy [le_def] "!!m. m < n ==> m <= (n::nat)";
 by (fast_tac (!claset addEs [less_asym]) 1);
