@@ -47,7 +47,10 @@ inductive woolam
              Says B' A (Nonce NB) : set evs |]
           ==> Says A B (Crypt (shrK A) (Nonce NB)) # evs : woolam"
 
-         (*Bob forwards Alice's response to the Server.*)
+         (*Bob forwards Alice's response to the Server.  NOTE: usually
+           the messages are shown in chronological order, for clarity.
+           But here, exchanging the two events would cause the lemma
+           WL4_analz_sees_Spy to pick up the wrong assumption!*)
     WL4  "[| evs: woolam;  B ~= Server;  
              Says A'  B X         : set evs;
              Says A'' B (Agent A) : set evs |]
