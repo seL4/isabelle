@@ -192,7 +192,7 @@ defs
 (* theory and package setup *)
 
 use "HOL_lemmas.ML"	setup attrib_setup
-use "cladata.ML"	setup Classical.setup setup clasetup
+use "cladata.ML"	setup hypsubst_setup setup Classical.setup setup clasetup
 
 lemma all_eq: "(!!x. P x) == Trueprop (ALL x. P x)"
 proof (rule equal_intr_rule)
@@ -212,6 +212,8 @@ next
   assume "A --> B" and A
   thus B ..
 qed
+
+lemmas atomize = all_eq imp_eq
 
 use "blastdata.ML"	setup Blast.setup
 use "simpdata.ML"	setup Simplifier.setup
