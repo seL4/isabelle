@@ -8,6 +8,9 @@ R^n = R O ... O R, the n-fold composition of R
 
 RelPow = Nat +
 
+instance
+  set :: (term) {power}   (* only ('a * 'a) set should be in power! *)
+
 primrec
   "R^0 = Id"
   "R^(Suc n) = R O (R^n)"
