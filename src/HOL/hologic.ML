@@ -57,7 +57,7 @@ val boolT = Type ("bool", []);
 fun mk_setT T = Type ("set", [T]);
 
 fun dest_setT (Type ("set", [T])) = T
-  | dest_setT T = raise_type "dest_setT: set type expected" [T] [];
+  | dest_setT T = raise TYPE ("dest_setT: set type expected", [T], []);
 
 
 val Trueprop = Const ("Trueprop", boolT --> propT);
@@ -65,7 +65,7 @@ val Trueprop = Const ("Trueprop", boolT --> propT);
 fun mk_Trueprop P = Trueprop $ P;
 
 fun dest_Trueprop (Const ("Trueprop", _) $ P) = P
-  | dest_Trueprop t = raise_term "dest_Trueprop" [t];
+  | dest_Trueprop t = raise TERM ("dest_Trueprop", [t]);
 
 
 val conj = Const ("op &", [boolT, boolT] ---> boolT)
@@ -104,8 +104,8 @@ fun mk_binrel c (t, u) =
 
 fun dest_bin c T (tm as Const (c', Type ("fun", [T', _])) $ t $ u) =
       if c = c' andalso T = T' then (t, u)
-      else raise_term ("dest_bin " ^ c) [tm]
-  | dest_bin c _ tm = raise_term ("dest_bin " ^ c) [tm];
+      else raise TERM ("dest_bin " ^ c, [tm])
+  | dest_bin c _ tm = raise TERM ("dest_bin " ^ c, [tm]);
 
 
 (* nat *)
@@ -118,7 +118,7 @@ fun is_zero t = t = zero;
 fun mk_Suc t = Const ("Suc", natT --> natT) $ t;
 
 fun dest_Suc (Const ("Suc", _) $ t) = t
-  | dest_Suc t = raise_term "dest_Suc" [t];
+  | dest_Suc t = raise TERM ("dest_Suc", [t]);
 
 fun mk_nat 0 = zero
   | mk_nat n = mk_Suc (mk_nat (n - 1));
