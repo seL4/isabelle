@@ -17,8 +17,8 @@ nonterminals
 
 syntax
   (*field names*)
-  "_field_name"         :: "id => ident"                                ("_")
-  "_field_name"         :: "longid => ident"                            ("_")
+  "_constify"           :: "id => ident"                                ("_")
+  "_constify"           :: "longid => ident"                            ("_")
 
   (*record types*)
   "_field_type"         :: "[ident, type] => field_type"                ("(2_ ::/ _)")
