@@ -770,13 +770,30 @@ fun assert_all pred l msg_fn =
                         else error (msg_fn x)
   in  asl l  end;
 
-(*for the "test" target in Makefiles -- signifies successful termination*)
+
+(* read / write files *)
+
+fun read_file name =
+  let
+    val instream  = TextIO.openIn name;
+    val intext = TextIO.inputAll instream;
+  in
+    TextIO.closeIn instream;
+    intext
+  end;
+
+fun write_file name txt =
+  let
+    val outstream = TextIO.openOut name;
+  in
+    TextIO.output (outstream, txt);
+    TextIO.closeOut outstream
+  end;
+
+
+(*for the "test" target in IsaMakefiles -- signifies successful termination*)
 fun maketest msg =
-  (writeln msg; 
-   let val os = TextIO.openOut "test" 
-   in  TextIO.output (os, "Test examples ran successfully\n");
-       TextIO.closeOut os
-   end);
+  (writeln msg; write_file "test" "Test examples ran successfully\n");
 
 
 (*print a list surrounded by the brackets lpar and rpar, with comma separator
@@ -816,7 +833,7 @@ fun time_use fname = timeit (fn () =>
   (writeln ("\n**** Starting " ^ fname ^ " ****"); use fname;
    writeln ("\n**** Finished " ^ fname ^ " ****")));
 
-(*For Makefiles: use the file, but exit with error code if errors found.*)
+(*use the file, but exit with error code if errors found.*)
 fun exit_use fname = use fname handle _ => exit 1;
 
 
