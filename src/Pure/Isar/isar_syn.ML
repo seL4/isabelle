@@ -554,6 +554,10 @@ val touch_all_thysP =
   OuterSyntax.improper_command "touch_all_thys" "outdate all non-finished theories" K.diag
     (Scan.succeed IsarCmd.touch_all_thys);
 
+val touch_child_thysP =
+  OuterSyntax.improper_command "touch_child_thys" "outdate child theories" K.diag
+    (P.name >> IsarCmd.touch_child_thys);
+
 val remove_thyP =
   OuterSyntax.improper_command "remove_thy" "remove theory from loader database" K.diag
     (P.name >> IsarCmd.remove_thy);
@@ -632,8 +636,9 @@ val parsers = [
   print_propP, print_termP, print_typeP,
   (*system commands*)
   cdP, pwdP, use_thyP, use_thy_onlyP, update_thyP, update_thy_onlyP,
-  touch_thyP, touch_all_thysP, remove_thyP, prP, disable_prP,
-  enable_prP, commitP, quitP, exitP, init_toplevelP, welcomeP];
+  touch_thyP, touch_all_thysP, touch_child_thysP, remove_thyP, prP,
+  disable_prP, enable_prP, commitP, quitP, exitP, init_toplevelP,
+  welcomeP];
 
 
 end;
