@@ -14,7 +14,7 @@ infix 3 >>;
 infix 0 ||;
 
 signature THY_PARSE =
-  sig
+sig
   type token
   val !! : ('a -> 'b * 'c) -> 'a -> 'b * 'c
   val >> : ('a -> 'b * 'c) * ('b -> 'd) -> 'a -> 'd * 'c
@@ -46,6 +46,7 @@ signature THY_PARSE =
     -> token list -> 'a list * token list
   val name: token list -> string * token list
   val sort: token list -> string * token list
+  val typ: token list -> string * token list
   val opt_infix: token list -> string * token list
   val opt_mixfix: token list -> string * token list
   val opt_witness: token list -> string * token list
@@ -70,7 +71,7 @@ signature THY_PARSE =
   val mk_pair: string * string -> string
   val mk_triple: string * string * string -> string
   val strip_quotes: string -> string
-  end;
+end;
 
 
 structure ThyParse : THY_PARSE=
@@ -153,8 +154,9 @@ fun repeat1 parse = parse -- repeat parse >> op ::;
 fun enum1 sep parse = parse -- repeat (sep $$-- parse) >> op ::;
 fun enum sep parse = enum1 sep parse || empty;
 
-fun list  parse = enum  "," parse;
 fun list1 parse = enum1 "," parse;
+fun list parse = enum "," parse;
+
 
 
 (** theory parsers **)
@@ -235,6 +237,8 @@ val opt_mixfix = opt_syn (mixfix || infxl || infxr || binder);
 
 (* types *)
 
+(* FIXME clean!! *)
+
 (*Parse an identifier, but only if it is not followed by "::", "=" or ",";
   the exclusion of a postfix comma can be controlled to allow expressions
   like "(id, id)" but disallow ones like "'a => id id,id :: ..."*)
@@ -250,15 +254,14 @@ fun ident_no_colon _ [] = eof_err()
 
 (*type used in types, consts and syntax sections*)
 fun const_type allow_comma toks =
-  let val simple_type =
-        (ident ||
-         kind TypeVar -- optional ("::" $$-- ident >> cat "::") "" >>
-           (fn (tv, cl) => cat tv cl)) --
-           repeat (ident_no_colon allow_comma) >>
-           (fn (args, ts) => cat args (space_implode " " ts)) ||
-         ("(" $$-- (list1 (const_type true)) --$$ ")" >> (parens o commas)) --
-           repeat1 (ident_no_colon allow_comma) >>
-           (fn (args, ts) => cat args (space_implode " " ts));
+  let
+    val simple_type =
+      (ident || kind TypeVar ^^ optional ($$ "::" ^^ ident) "") --
+          repeat (ident_no_colon allow_comma)
+          >> (fn (args, ts) => cat args (space_implode " " ts)) ||
+        ("(" $$-- (list1 (const_type true)) --$$ ")" >> (parens o commas)) --
+          repeat1 (ident_no_colon allow_comma)
+          >> (fn (args, ts) => cat args (space_implode " " ts));
 
       val appl_param =
         simple_type || "(" $$-- const_type true --$$ ")" >> parens || 
@@ -273,6 +276,9 @@ fun const_type allow_comma toks =
       simple_type ||
       "(" $$-- const_type true --$$ ")" >> parens) toks
   end;
+
+val typ = string || (const_type false >> quote);
+
 
 fun mk_old_type_decl ((ts, n), syn) =
   map (fn t => (mk_triple (t, n, syn), false)) ts;
@@ -295,8 +301,7 @@ val type_args =
   empty >> K [];
 
 val type_decl = type_args -- name --
-  optional ("=" $$-- (string || (const_type false >> quote)) >> Some) None
-  -- opt_infix >> mk_type_decl;
+  optional ("=" $$-- typ >> Some) None -- opt_infix >> mk_type_decl;
 
 val type_decls =
   repeat1 (old_type_decl || type_decl) >> (mk_type_decls o flat);
@@ -305,8 +310,7 @@ val type_decls =
 (* consts *)
 
 val const_decls =
-  repeat1
-    (names1 --$$ "::" -- !! ((string || const_type false >> quote) -- opt_mixfix))
+  repeat1 (names1 --$$ "::" -- !! (typ -- opt_mixfix))
   >> (mk_big_list o map mk_triple2 o split_decls);
 
 val opt_mode =
@@ -375,9 +379,8 @@ fun mk_constaxiom_decls x =
   end;
 
 val constaxiom_decls =
-  repeat1 (ident --$$ "::" -- !!
-           ((string || const_type false >> quote) -- opt_mixfix) -- !!
-           string) >> mk_constaxiom_decls;
+  repeat1 (ident --$$ "::" -- !! (typ -- opt_mixfix) -- !! string)
+  >> mk_constaxiom_decls;
 
 
 (* axclass *)
