@@ -43,7 +43,7 @@ signature THM =
   val keep_derivs       : deriv_kind ref
   datatype rule = 
       MinProof                          
-    | Oracle of theory * Sign.sg * exn
+    | Oracle of theory * string * Sign.sg * exn
     | Axiom               of theory * string
     | Theorem             of string       
     | Assume              of cterm
@@ -98,7 +98,7 @@ signature THM =
   val force_strip_shyps : bool ref      (* FIXME tmp (since 1995/08/01) *)
   val strip_shyps       : thm -> thm
   val implies_intr_shyps: thm -> thm
-  val get_axiom         : theory -> string -> thm
+  val get_axiom         : theory -> xstring -> thm
   val name_thm          : string * thm -> thm
   val axioms_of         : theory -> (string * thm) list
 
@@ -166,7 +166,7 @@ signature THM =
   val rewrite_cterm     : bool * bool -> meta_simpset ->
                           (meta_simpset -> thm -> thm option) -> cterm -> thm
 
-  val invoke_oracle     : theory * Sign.sg * exn -> thm
+  val invoke_oracle     : theory -> xstring -> Sign.sg * exn -> thm
 end;
 
 structure Thm: THM =
@@ -301,7 +301,7 @@ fun read_cterms sg (bs, Ts) =
   executed in ML.*)
 datatype rule = 
     MinProof                            (*for building minimal proof terms*)
-  | Oracle              of theory * Sign.sg * exn       (*oracles*)
+  | Oracle              of theory * string * Sign.sg * exn       (*oracles*)
 (*Axioms/theorems*)
   | Axiom               of theory * string
   | Theorem             of string
@@ -548,8 +548,9 @@ fun implies_intr_shyps thm =
 (** Axioms **)
 
 (*look up the named axiom in the theory*)
-fun get_axiom theory name =
+fun get_axiom theory raw_name =
   let
+    val name = Sign.intern (sign_of theory) Theory.thmK raw_name;
     fun get_ax [] = raise Match
       | get_ax (thy :: thys) =
           let val {sign, new_axioms, parents, ...} = rep_theory thy
@@ -2003,23 +2004,32 @@ fun rewrite_cterm mode mss prover ct =
 
 (*** Oracles ***)
 
-fun invoke_oracle (thy, sign, exn) =
-    case #oraopt(rep_theory thy) of
-        None => raise THM ("No oracle in supplied theory", 0, [])
-      | Some oracle => 
-            let val sign' = Sign.merge(sign_of thy, sign)
-                val (prop, T, maxidx) = 
-                    Sign.certify_term sign' (oracle (sign', exn))
-            in if T<>propT then
-                  raise THM("Oracle's result must have type prop", 0, [])
-               else fix_shyps [] []
-                     (Thm {sign = sign', 
-                           der = Join (Oracle(thy,sign,exn), []),
-                           maxidx = maxidx,
-                           shyps = [], 
-                           hyps = [], 
-                           prop = prop})
-            end;
+fun invoke_oracle thy raw_name =
+  let
+    val {sign = sg, oracles, ...} = rep_theory thy;
+    val name = Sign.intern sg Theory.oracleK raw_name;
+    val oracle =
+      (case Symtab.lookup (oracles, name) of
+        None => raise THM ("Unknown oracle: " ^ name, 0, [])
+      | Some (f, _) => f);
+  in
+    fn (sign, exn) =>
+      let
+        val sign' = Sign.merge (sg, sign);
+        val (prop, T, maxidx) = Sign.certify_term sign' (oracle (sign', exn));
+      in
+        if T <> propT then
+          raise THM ("Oracle's result must have type prop: " ^ name, 0, [])
+        else fix_shyps [] []
+          (Thm {sign = sign', 
+            der = Join (Oracle (thy, name, sign, exn), []),
+            maxidx = maxidx,
+            shyps = [], 
+            hyps = [], 
+            prop = prop})
+      end
+  end;
+
 
 end;
 
