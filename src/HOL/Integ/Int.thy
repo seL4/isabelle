@@ -373,7 +373,6 @@ done
 (*Legacy ML bindings, but no longer the structure Int.*)
 ML
 {*
-val Int_thy = the_context ()
 val zabs_def = thm "zabs_def"
 val nat_def  = thm "nat_def"
 

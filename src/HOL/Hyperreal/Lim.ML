@@ -2043,7 +2043,7 @@ qed "Rolle";
 Goal "f a - (f b - f a)/(b - a) * a = \
 \     f b - (f b - f a)/(b - a) * (b::real)";
 by (case_tac "a = b" 1);
-by (asm_full_simp_tac (simpset() addsimps [REAL_DIVIDE_ZERO]) 1); 
+by (asm_full_simp_tac (simpset() addsimps [DIVISION_BY_ZERO]) 1); 
 by (res_inst_tac [("c1","b - a")] (real_mult_left_cancel RS iffD1) 1);
 by (arith_tac 1);
 by (auto_tac (claset(),

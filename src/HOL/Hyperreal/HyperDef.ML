@@ -1047,7 +1047,7 @@ qed "hypreal_of_real_zero_iff";
 
 Goal "hypreal_of_real (inverse r) = inverse (hypreal_of_real r)";
 by (case_tac "r=0" 1);
-by (asm_simp_tac (simpset() addsimps [REAL_DIVIDE_ZERO, INVERSE_ZERO, 
+by (asm_simp_tac (simpset() addsimps [DIVISION_BY_ZERO, INVERSE_ZERO, 
                               HYPREAL_INVERSE_ZERO]) 1);
 by (res_inst_tac [("c1","hypreal_of_real r")] 
     (hypreal_mult_left_cancel RS iffD1) 1);
