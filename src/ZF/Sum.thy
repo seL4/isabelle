@@ -90,10 +90,10 @@ by (simp add: sum_defs)
 lemma Inr_iff [iff]: "Inr(a)=Inr(b) <-> a=b"
 by (simp add: sum_defs)
 
-lemma Inl_Inr_iff [iff]: "Inl(a)=Inr(b) <-> False"
+lemma Inl_Inr_iff [simp]: "Inl(a)=Inr(b) <-> False"
 by (simp add: sum_defs)
 
-lemma Inr_Inl_iff [iff]: "Inr(b)=Inl(a) <-> False"
+lemma Inr_Inl_iff [simp]: "Inr(b)=Inl(a) <-> False"
 by (simp add: sum_defs)
 
 lemma sum_empty [simp]: "0+0 = 0"
@@ -103,8 +103,8 @@ by (simp add: sum_defs)
 
 lemmas Inl_inject = Inl_iff [THEN iffD1, standard]
 lemmas Inr_inject = Inr_iff [THEN iffD1, standard]
-lemmas Inl_neq_Inr = Inl_Inr_iff [THEN iffD1, THEN FalseE]
-lemmas Inr_neq_Inl = Inr_Inl_iff [THEN iffD1, THEN FalseE]
+lemmas Inl_neq_Inr = Inl_Inr_iff [THEN iffD1, THEN FalseE, elim!]
+lemmas Inr_neq_Inl = Inr_Inl_iff [THEN iffD1, THEN FalseE, elim!]
 
 
 lemma InlD: "Inl(a): A+B ==> a: A"

@@ -113,11 +113,11 @@ done
 lemma naturals_not_limit: "a \<in> nat ==> ~ Limit(a)"
 by (induct a rule: nat_induct, auto)
 
-lemma succ_natD [dest!]: "succ(i): nat ==> i: nat"
+lemma succ_natD: "succ(i): nat ==> i: nat"
 by (rule Ord_trans [OF succI1], auto)
 
 lemma nat_succ_iff [iff]: "succ(n): nat <-> n: nat"
-by blast
+by (blast dest!: succ_natD)
 
 lemma nat_le_Limit: "Limit(i) ==> nat le i"
 apply (rule subset_imp_le)

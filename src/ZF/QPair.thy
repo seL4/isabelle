@@ -233,10 +233,10 @@ by (simp add: qsum_defs )
 lemma QInr_iff [iff]: "QInr(a)=QInr(b) <-> a=b"
 by (simp add: qsum_defs )
 
-lemma QInl_QInr_iff [iff]: "QInl(a)=QInr(b) <-> False"
+lemma QInl_QInr_iff [simp]: "QInl(a)=QInr(b) <-> False"
 by (simp add: qsum_defs )
 
-lemma QInr_QInl_iff [iff]: "QInr(b)=QInl(a) <-> False"
+lemma QInr_QInl_iff [simp]: "QInr(b)=QInl(a) <-> False"
 by (simp add: qsum_defs )
 
 lemma qsum_empty [simp]: "0<+>0 = 0"
@@ -246,8 +246,8 @@ by (simp add: qsum_defs )
 
 lemmas QInl_inject = QInl_iff [THEN iffD1, standard]
 lemmas QInr_inject = QInr_iff [THEN iffD1, standard]
-lemmas QInl_neq_QInr = QInl_QInr_iff [THEN iffD1, THEN FalseE]
-lemmas QInr_neq_QInl = QInr_QInl_iff [THEN iffD1, THEN FalseE]
+lemmas QInl_neq_QInr = QInl_QInr_iff [THEN iffD1, THEN FalseE, elim!]
+lemmas QInr_neq_QInl = QInr_QInl_iff [THEN iffD1, THEN FalseE, elim!]
 
 lemma QInlD: "QInl(a): A<+>B ==> a: A"
 by blast

@@ -49,9 +49,11 @@ lemma radd_Inr_iff [iff]:
     "<Inr(b'), Inr(b)> : radd(A,r,B,s) <->  b':B & b:B & <b',b>:s"
 by (unfold radd_def, blast)
 
-lemma radd_Inr_Inl_iff [iff]: 
-    "<Inr(b), Inl(a)> : radd(A,r,B,s) <->  False"
+lemma radd_Inr_Inl_iff [simp]: 
+    "<Inr(b), Inl(a)> : radd(A,r,B,s) <-> False"
 by (unfold radd_def, blast)
+
+declare radd_Inr_Inl_iff [THEN iffD1, dest!] 
 
 subsubsection{*Elimination Rule*}
 
