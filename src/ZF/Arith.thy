@@ -19,7 +19,7 @@ text{*Proofs about elementary arithmetic: addition, multiplication, etc.*}
 
 constdefs
   pred   :: "i=>i"    (*inverse of succ*)
-    "pred(y) == THE x. y = succ(x)"
+    "pred(y) == nat_case(0, %x. x, y)"
 
   natify :: "i=>i"    (*coerces non-nats to nats*)
     "natify == Vrecursor(%f a. if a = succ(pred(a)) then succ(f`pred(a))
@@ -375,6 +375,48 @@ apply (subgoal_tac "natify(n) #- (natify(n) #+ natify(m)) = 0")
 apply (rule_tac [2] n = "natify(n) " in nat_induct)
 apply auto
 done
+
+lemma pred_0 [simp]: "pred(0) = 0"
+by (simp add: pred_def)
+
+lemma eq_succ_imp_eq_m1: "[|i = succ(j); i\<in>nat|] ==> j = i #- 1 & j \<in>nat"
+by simp 
+
+lemma pred_Un_distrib:
+    "[|i\<in>nat; j\<in>nat|] ==> pred(i Un j) = pred(i) Un pred(j)"
+apply (erule_tac n=i in natE, simp) 
+apply (erule_tac n=j in natE, simp) 
+apply (simp add:  succ_Un_distrib [symmetric])
+done
+
+lemma pred_type [TC,simp]:
+    "i \<in> nat ==> pred(i) \<in> nat"
+by (simp add: pred_def split: split_nat_case)
+
+lemma nat_diff_pred: "[|i\<in>nat; j\<in>nat|] ==> i #- succ(j) = pred(i #- j)";
+apply (rule_tac m=i and n=j in diff_induct) 
+apply (auto simp add: pred_def nat_imp_quasinat split: split_nat_case)
+done
+
+lemma diff_succ_eq_pred: "i #- succ(j) = pred(i #- j)";
+apply (insert nat_diff_pred [of "natify(i)" "natify(j)"])
+apply (simp add: natify_succ [symmetric]) 
+done
+
+lemma nat_diff_Un_distrib:
+    "[|i\<in>nat; j\<in>nat; k\<in>nat|] ==> (i Un j) #- k = (i#-k) Un (j#-k)"
+apply (rule_tac n=k in nat_induct) 
+apply (simp_all add: diff_succ_eq_pred pred_Un_distrib) 
+done
+
+lemma diff_Un_distrib:
+    "[|i\<in>nat; j\<in>nat|] ==> (i Un j) #- k = (i#-k) Un (j#-k)"
+by (insert nat_diff_Un_distrib [of i j "natify(k)"], simp)
+
+text{*We actually prove @{term "i #- j #- k = i #- (j #+ k)"}*}
+lemma diff_diff_left [simplified]:
+     "natify(i)#-natify(j)#-k = natify(i) #- (natify(j)#+k)";
+by (rule_tac m="natify(i)" and n="natify(j)" in diff_induct, auto)
 
 
 (** Lemmas for the CancelNumerals simproc **)
