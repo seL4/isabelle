@@ -15,6 +15,8 @@ NAME = system
 FILES = system.tex basics.tex misc.tex fonts.tex present.tex symbols.tex \
 	../iman.sty ../extra.sty ../ttbox.sty ../manual.bib
 
+OUTPUT = syms.tex
+
 syms.tex: showsymbols ../../Distribution/lib/texinputs/isabellesym.sty
 	@./showsymbols <../../Distribution/lib/texinputs/isabellesym.sty >syms.tex
 

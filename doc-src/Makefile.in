@@ -13,8 +13,10 @@ RAIL = rail -a
 SEDINDEX = ../sedindex
 FIXBOOKMARKS = perl -pi ../fixbookmarks.pl
 
-GARBAGE = *.aux *.log *.toc *.idx *.rai *.rao *.bbl *.ind *.ilg *.blg *.out
-OUTPUT = *.dvi *.pdf *.ps
+DEFAULT_GARBAGE = *.aux *.log *.toc *.idx *.rai *.rao *.bbl *.ind *.ilg *.blg *.out
+DEFAULT_OUTPUT = *.dvi *.pdf *.ps
+GARBAGE =
+OUTPUT =
 
 
 ## actions
@@ -22,10 +24,10 @@ OUTPUT = *.dvi *.pdf *.ps
 nothing:
 
 clean:
-	@rm -f $(GARBAGE)
+	@rm -f $(DEFAULT_GARBAGE) $(GARBAGE)
 
 mrproper:
-	@rm -f $(OUTPUT) $(GARBAGE)
+	@rm -f $(DEFAULT_GARBAGE) $(DEFAULT_OUTPUT) $(GARBAGE) $(OUTPUT)
 
 
 isabelle.eps:
