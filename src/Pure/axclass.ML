@@ -360,8 +360,11 @@ val prove_arity =
 fun intrn_classrel sg c1_c2 =
   pairself (Sign.intern_class sg) c1_c2;
 
-fun intrn_arity intrn sg (t, Ss, x) =
-  (Sign.intern_tycon sg t, map (Sign.intern_sort sg) Ss, intrn sg x);
+fun intrn_arity intrn sg (raw_t, Ss, x) =
+  let val t = Sign.intern_tycon sg raw_t in
+    if Sign.is_type_abbr sg t then error ("Illegal type abbreviation: " ^ quote t)
+    else (t, map (Sign.intern_sort sg) Ss, intrn sg x)
+  end;
 
 
 fun ext_inst_subclass prep_classrel raw_c1_c2 names thms usr_tac thy =
