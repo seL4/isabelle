@@ -223,9 +223,19 @@ fun mk_makeC rT (c, Ts) = (c, Ts ---> rT);
 
 (** concrete syntax for records **)
 
+(* parse ast translations *)
+
+fun field_name_ast_tr [Syntax.Variable c] = Syntax.Constant c
+  | field_name_ast_tr asts = raise Syntax.AST ("field_name_ast_tr", asts);
+
+
+val parse_ast_translation =
+ [("_field_name", field_name_ast_tr)];
+
+
 (* parse translations *)
 
-fun gen_field_tr mark sfx (t as Const (c, _) $ Free (name, _) $ arg) =
+fun gen_field_tr mark sfx (t as Const (c, _) $ Const (name, _) $ arg) =
       if c = mark then Syntax.const (suffix sfx name) $ arg
       else raise TERM ("gen_field_tr: " ^ mark, [t])
   | gen_field_tr mark _ t = raise TERM ("gen_field_tr: " ^ mark, [t]);
@@ -965,7 +975,7 @@ val add_record_i = gen_add_record cert_typ (K I);
 
 val setup =
  [RecordsData.init,
-  Theory.add_trfuns ([], parse_translation, [], []),
+  Theory.add_trfuns (parse_ast_translation, parse_translation, [], []),
   Method.add_methods [record_split_method],
   Simplifier.change_simpset_of Simplifier.addsimprocs [record_simproc]];
 
