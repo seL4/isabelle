@@ -44,6 +44,34 @@ lemma iterates_commute: "n \<in> nat ==> F(F^n (x)) = F^n (F(x))"
 by (induct_tac n, simp_all)
 
 
+subsection{* Transfinite Recursion *}
+
+text{*Transfinite recursion for definitions based on the 
+    three cases of ordinals*}
+
+constdefs
+  transrec3 :: "[i, i, [i,i]=>i, [i,i]=>i] =>i"
+    "transrec3(k, a, b, c) ==                     
+       transrec(k, \<lambda>x r.
+         if x=0 then a
+         else if Limit(x) then c(x, \<lambda>y\<in>x. r`y)
+         else b(Arith.pred(x), r ` Arith.pred(x)))"
+
+lemma transrec3_0 [simp]: "transrec3(0,a,b,c) = a"
+by (rule transrec3_def [THEN def_transrec, THEN trans], simp)
+
+lemma transrec3_succ [simp]:
+     "transrec3(succ(i),a,b,c) = b(i, transrec3(i,a,b,c))"
+by (rule transrec3_def [THEN def_transrec, THEN trans], simp)
+
+lemma transrec3_Limit:
+     "Limit(i) ==> 
+      transrec3(i,a,b,c) = c(i, \<lambda>j\<in>i. transrec3(j,a,b,c))"
+by (rule transrec3_def [THEN def_transrec, THEN trans], force)
+
+
+subsection{* Remaining Declarations *}
+
 (* belongs to theory IntDiv *)
 lemmas posDivAlg_induct = posDivAlg_induct [consumes 2]
   and negDivAlg_induct = negDivAlg_induct [consumes 2]
