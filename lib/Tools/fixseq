@@ -1,0 +1,40 @@
+#!/bin/bash
+#
+# $Id$
+#
+# DESCRIPTION: fix references to obsolete Pure/Sequence structure
+
+
+## diagnostics
+
+PRG=$(basename $0)
+
+function usage()
+{
+  echo
+  echo "Usage: $PRG [FILES|DIRS...]"
+  echo
+  echo "  Recursively find .ML files, fixing references to"
+  echo "  the obsolete Pure/Sequence structure."
+  echo
+  echo "  Renames old versions of FILES by appending \"~~\"."
+  echo
+  exit 1
+}
+
+
+## process command line
+
+[ $# -eq 0 -o "$1" = "-?" ] && usage
+
+SPECS="$@"; shift $#
+
+
+## main
+
+PERL=$(type -path perl)
+if [ -z $PERL ]; then
+  echo "$PRG fatal error: no perl!?"
+else
+  find $SPECS -name \*.ML -print | xargs $PERL $ISABELLE_HOME/lib/scripts/fixseq.pl
+fi
