@@ -460,8 +460,6 @@ val asm_full_rewrite = simp_cterm (true, true, false);
 
 val simpN = "simp";
 val congN = "cong";
-val addN = "add";
-val delN = "del";
 val onlyN = "only";
 val no_asmN = "no_asm";
 val no_asm_useN = "no_asm_use";
@@ -518,19 +516,19 @@ val simp_options =
 
 val cong_modifiers =
  [Args.$$$ congN -- Args.colon >> K ((I, cong_add_local):Method.modifier),
-  Args.$$$ congN -- Args.$$$ addN -- Args.colon >> K (I, cong_add_local),
-  Args.$$$ congN -- Args.$$$ delN -- Args.colon >> K (I, cong_del_local)];
+  Args.$$$ congN -- Args.$$$ Args.addN -- Args.colon >> K (I, cong_add_local),
+  Args.$$$ congN -- Args.$$$ Args.delN -- Args.colon >> K (I, cong_del_local)];
 
 val simp_modifiers =
  [Args.$$$ simpN -- Args.colon >> K (I, simp_add_local),
-  Args.$$$ simpN -- Args.$$$ addN -- Args.colon >> K (I, simp_add_local),
-  Args.$$$ simpN -- Args.$$$ delN -- Args.colon >> K (I, simp_del_local),
+  Args.$$$ simpN -- Args.$$$ Args.addN -- Args.colon >> K (I, simp_add_local),
+  Args.$$$ simpN -- Args.$$$ Args.delN -- Args.colon >> K (I, simp_del_local),
   Args.$$$ simpN -- Args.$$$ onlyN -- Args.colon >> K (map_local_simpset clear_ss, simp_add_local)]
    @ cong_modifiers;
 
 val simp_modifiers' =
- [Args.$$$ addN -- Args.colon >> K (I, simp_add_local),
-  Args.$$$ delN -- Args.colon >> K (I, simp_del_local),
+ [Args.$$$ Args.addN -- Args.colon >> K (I, simp_add_local),
+  Args.$$$ Args.delN -- Args.colon >> K (I, simp_del_local),
   Args.$$$ onlyN -- Args.colon >> K (map_local_simpset clear_ss, simp_add_local)]
    @ cong_modifiers;
 

@@ -29,6 +29,8 @@ sig
   val nat: T list -> int * T list
   val int: T list -> int * T list
   val var: T list -> indexname * T list
+  val addN: string
+  val delN: string
   val enum: string -> ('a * T list -> 'b * ('a * T list)) -> 'a * T list -> 'b list * ('a * T list)
   val enum1: string -> ('a * T list -> 'b * ('a * T list)) -> 'a * T list -> 'b list * ('a * T list)
   val and_list: ('a * T list -> 'b * ('a * T list)) -> 'a * T list -> 'b list * ('a * T list)
@@ -134,6 +136,9 @@ fun kind f = Scan.one (K true) :--
 val nat = kind Syntax.read_nat;
 val int = Scan.optional ($$$ "-" >> K ~1) 1 -- nat >> op *;
 val var = kind (apsome #1 o try Term.dest_Var o Syntax.read_var);
+
+val addN = "add";
+val delN = "del";
 
 
 (* enumerations *)

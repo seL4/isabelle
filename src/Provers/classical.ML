@@ -1027,7 +1027,6 @@ val introN = "intro";
 val elimN = "elim";
 val destN = "dest";
 val ruleN = "rule";
-val delN = "del";
 
 val colon = Args.$$$ ":";
 val query = Args.$$$ "?";
@@ -1040,7 +1039,7 @@ fun cla_att change xtra haz safe = Attrib.syntax
 
 fun cla_attr f g h = (cla_att change_global_cs f g h, cla_att change_local_cs f g h);
 
-fun del_args att = Attrib.syntax (Scan.lift (Args.$$$ delN) >> K att);
+fun del_args att = Attrib.syntax (Scan.lift (Args.$$$ Args.delN) >> K att);
 val rule_del_attr = (del_args rule_del_global, del_args rule_del_local);
 
 
@@ -1159,7 +1158,7 @@ val cla_modifiers =
   Args.$$$ introN -- query_colon >> K (I, xtra_intro_local),
   Args.$$$ introN -- bang_colon >> K (I, safe_intro_local),
   Args.$$$ introN -- colon >> K (I, haz_intro_local),
-  Args.$$$ delN -- colon >> K (I, rule_del_local)];
+  Args.$$$ Args.delN -- colon >> K (I, rule_del_local)];
 
 fun cla_meth tac prems ctxt = Method.METHOD (fn facts =>
   ALLGOALS (Method.insert_tac (prems @ facts)) THEN tac (get_local_claset ctxt));

@@ -272,13 +272,11 @@ val iff_attr =
 (* method modifiers *)
 
 val iffN = "iff";
-val addN = "add";
-val delN = "del";
 
 val iff_modifiers =
  [Args.$$$ iffN -- Args.colon >> K ((I, iff_add_local): Method.modifier),
-  Args.$$$ iffN -- Args.$$$ addN -- Args.colon >> K (I, iff_add_local),
-  Args.$$$ iffN -- Args.$$$ delN -- Args.colon >> K (I, iff_del_local)];
+  Args.$$$ iffN -- Args.$$$ Args.addN -- Args.colon >> K (I, iff_add_local),
+  Args.$$$ iffN -- Args.$$$ Args.delN -- Args.colon >> K (I, iff_del_local)];
 
 val clasimp_modifiers =
   Simplifier.simp_modifiers @ Splitter.split_modifiers @
