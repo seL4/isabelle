@@ -3,9 +3,7 @@ theory natsum = Main:;
 (*>*)
 text{*\noindent
 In particular, there are @{text"case"}-expressions, for example
-\begin{quote}
 @{term[display]"case n of 0 => 0 | Suc m => m"}
-\end{quote}
 primitive recursion, for example
 *}
 

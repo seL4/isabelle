@@ -7,13 +7,11 @@
 \label{sec:case-expressions}
 HOL also features \isaindexbold{case}-expressions for analyzing
 elements of a datatype. For example,
-\begin{quote}
-
+%
 \begin{isabelle}%
-case\ xs\ of\ {\isacharbrackleft}{\isacharbrackright}\ {\isasymRightarrow}\ \isadigit{1}\ {\isacharbar}\ y\ {\isacharhash}\ ys\ {\isasymRightarrow}\ y
+\ \ \ \ \ case\ xs\ of\ {\isacharbrackleft}{\isacharbrackright}\ {\isasymRightarrow}\ \isadigit{1}\ {\isacharbar}\ y\ {\isacharhash}\ ys\ {\isasymRightarrow}\ y%
 \end{isabelle}%
 
-\end{quote}
 evaluates to \isa{\isadigit{1}} if \isa{xs} is \isa{{\isacharbrackleft}{\isacharbrackright}} and to \isa{y} if 
 \isa{xs} is \isa{y\ {\isacharhash}\ ys}. (Since the result in both branches must be of
 the same type, it follows that \isa{y} is of type \isa{nat} and hence
@@ -38,20 +36,18 @@ error messages.
 \noindent
 Nested patterns can be simulated by nested \isa{case}-expressions: instead
 of
-% 
-\begin{quote}
-\isa{case\ xs\ of\ {\isacharbrackleft}{\isacharbrackright}\ {\isacharequal}{\isachargreater}\ \isadigit{1}\ {\isacharbar}\ {\isacharbrackleft}x{\isacharbrackright}\ {\isacharequal}{\isachargreater}\ x\ {\isacharbar}\ x{\isacharhash}{\isacharparenleft}y{\isacharhash}zs{\isacharparenright}\ {\isacharequal}{\isachargreater}\ y}
-%~~~case~xs~of~[]~{\isasymRightarrow}~1~|~[x]~{\isasymRightarrow}~x~|~x~\#~y~\#~zs~{\isasymRightarrow}~y
-\end{quote}
-write
-\begin{quote}
-
+%
 \begin{isabelle}%
-case\ xs\ of\ {\isacharbrackleft}{\isacharbrackright}\ {\isasymRightarrow}\ \isadigit{1}\isanewline
-{\isacharbar}\ x\ {\isacharhash}\ ys\ {\isasymRightarrow}\ case\ ys\ of\ {\isacharbrackleft}{\isacharbrackright}\ {\isasymRightarrow}\ x\ {\isacharbar}\ y\ {\isacharhash}\ zs\ {\isasymRightarrow}\ y
+\ \ \ \ \ case\ xs\ of\ {\isacharbrackleft}{\isacharbrackright}\ {\isacharequal}{\isachargreater}\ \isadigit{1}\ {\isacharbar}\ {\isacharbrackleft}x{\isacharbrackright}\ {\isacharequal}{\isachargreater}\ x\ {\isacharbar}\ x\ {\isacharhash}\ {\isacharparenleft}y\ {\isacharhash}\ zs{\isacharparenright}\ {\isacharequal}{\isachargreater}\ y%
 \end{isabelle}%
 
-\end{quote}
+write
+%
+\begin{isabelle}%
+\ \ \ \ \ case\ xs\ of\ {\isacharbrackleft}{\isacharbrackright}\ {\isasymRightarrow}\ \isadigit{1}\isanewline
+\ \ \ \ \ {\isacharbar}\ x\ {\isacharhash}\ ys\ {\isasymRightarrow}\ case\ ys\ of\ {\isacharbrackleft}{\isacharbrackright}\ {\isasymRightarrow}\ x\ {\isacharbar}\ y\ {\isacharhash}\ zs\ {\isasymRightarrow}\ y%
+\end{isabelle}%
+
 
 Note that \isa{case}-expressions may need to be enclosed in parentheses to
 indicate their scope%

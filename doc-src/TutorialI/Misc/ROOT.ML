@@ -1,3 +1,4 @@
+use "../settings.ML";
 use_thy "Tree";
 use_thy "Tree2";
 use_thy "case_exprs";

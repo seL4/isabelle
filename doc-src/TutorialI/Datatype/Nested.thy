@@ -76,9 +76,7 @@ because the two halves of the goal would be unrelated.
 \begin{exercise}
 The fact that substitution distributes over composition can be expressed
 roughly as follows:
-\begin{quote}
 @{text[display]"subst (f o g) t = subst f (subst g t)"}
-\end{quote}
 Correct this statement (you will find that it does not type-check),
 strengthen it, and prove it. (Note: \isaindexbold{o} is function composition;
 its definition is found in theorem @{thm[source]o_def}).
@@ -92,9 +90,7 @@ that recursively reverses the order of arguments of all function symbols in a
 The experienced functional programmer may feel that our above definition of
 @{term"subst"} is unnecessarily complicated in that @{term"substs"} is
 completely unnecessary. The @{term"App"}-case can be defined directly as
-\begin{quote}
 @{term[display]"subst s (App f ts) = App f (map (subst s) ts)"}
-\end{quote}
 where @{term"map"} is the standard list function such that
 @{text"map f [x1,...,xn] = [f x1,...,f xn]"}. This is true, but Isabelle
 insists on the above fixed format. Fortunately, we can easily \emph{prove}

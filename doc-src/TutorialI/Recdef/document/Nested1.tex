@@ -20,13 +20,11 @@ suggested at the end of \S\ref{sec:nested-datatype}:%
 Remember that function \isa{size} is defined for each \isacommand{datatype}.
 However, the definition does not succeed. Isabelle complains about an
 unproved termination condition
-\begin{quote}
-
+%
 \begin{isabelle}%
-t\ {\isasymin}\ set\ ts\ {\isasymlongrightarrow}\ size\ t\ {\isacharless}\ Suc\ {\isacharparenleft}term{\isacharunderscore}list{\isacharunderscore}size\ ts{\isacharparenright}
+\ \ \ \ \ t\ {\isasymin}\ set\ ts\ {\isasymlongrightarrow}\ size\ t\ {\isacharless}\ Suc\ {\isacharparenleft}term{\isacharunderscore}list{\isacharunderscore}size\ ts{\isacharparenright}%
 \end{isabelle}%
 
-\end{quote}
 where \isa{set} returns the set of elements of a list (no special
 knowledge of sets is required in the following) and \isa{term{\isacharunderscore}list{\isacharunderscore}size\ {\isacharcolon}{\isacharcolon}\ term\ list\ {\isasymRightarrow}\ nat} is an auxiliary function automatically defined by Isabelle
 (when \isa{term} was defined).  First we have to understand why the

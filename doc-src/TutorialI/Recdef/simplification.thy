@@ -18,9 +18,7 @@ recdef gcd "measure (\\<lambda>(m,n).n)"
 text{*\noindent
 According to the measure function, the second argument should decrease with
 each recursive call. The resulting termination condition
-\begin{quote}
 @{term[display]"n ~= 0 ==> m mod n < n"}
-\end{quote}
 is provded automatically because it is already present as a lemma in the
 arithmetic library. Thus the recursion equation becomes a simplification
 rule. Of course the equation is nonterminating if we are allowed to unfold
@@ -29,17 +27,11 @@ languages and our simplifier don't do that. Unfortunately the simplifier does
 something else which leads to the same problem: it splits @{text"if"}s if the
 condition simplifies to neither @{term"True"} nor @{term"False"}. For
 example, simplification reduces
-\begin{quote}
 @{term[display]"gcd(m,n) = k"}
-\end{quote}
 in one step to
-\begin{quote}
 @{term[display]"(if n=0 then m else gcd(n, m mod n)) = k"}
-\end{quote}
 where the condition cannot be reduced further, and splitting leads to
-\begin{quote}
 @{term[display]"(n=0 --> m=k) & (n ~= 0 --> gcd(n, m mod n)=k)"}
-\end{quote}
 Since the recursive call @{term"gcd(n, m mod n)"} is no longer protected by
 an @{text"if"}, it is unfolded again, which leads to an infinite chain of
 simplification steps. Fortunately, this problem can be avoided in many

@@ -1,0 +1,1 @@
+IsarOutput.indent := 5;

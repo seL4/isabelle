@@ -28,9 +28,7 @@ lemma "trev(trev t) = t";
 apply(induct_tac t rule:trev.induct);
 txt{*\noindent
 This leaves us with a trivial base case @{term"trev (trev (Var x)) = Var x"} and the step case
-\begin{quote}
 @{term[display,margin=60]"ALL t. t : set ts --> trev (trev t) = t ==> trev (trev (App f ts)) = App f ts"}
-\end{quote}
 both of which are solved by simplification:
 *};
 
@@ -67,9 +65,7 @@ like @{term"map"}. For a start, if nothing were known about @{term"map"},
 (term_list_size ts)"}, without any assumption about @{term"t"}.  Therefore
 \isacommand{recdef} has been supplied with the congruence theorem
 @{thm[source]map_cong}:
-\begin{quote}
 @{thm[display,margin=50]"map_cong"[no_vars]}
-\end{quote}
 Its second premise expresses (indirectly) that the second argument of
 @{term"map"} is only applied to elements of its third argument. Congruence
 rules for other higher-order functions on lists would look very similar but

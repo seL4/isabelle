@@ -135,9 +135,7 @@ Structural induction on @{typ"nat"} is
 usually known as ``mathematical induction''. There is also ``complete
 induction'', where you must prove $P(n)$ under the assumption that $P(m)$
 holds for all $m<n$. In Isabelle, this is the theorem @{thm[source]less_induct}:
-\begin{quote}
 @{thm[display]"less_induct"[no_vars]}
-\end{quote}
 Here is an example of its application.
 *};
 
@@ -267,9 +265,7 @@ ML"reset quick_and_dirty"
 
 text{*\noindent
 The elimination rule @{thm[source]less_SucE} expresses the case distinction:
-\begin{quote}
 @{thm[display]"less_SucE"[no_vars]}
-\end{quote}
 
 Now it is straightforward to derive the original version of
 @{thm[source]less_induct} by manipulting the conclusion of the above lemma:
@@ -285,9 +281,7 @@ by(insert induct_lem, blast);
 text{*\noindent
 Finally we should mention that HOL already provides the mother of all
 inductions, \emph{wellfounded induction} (@{thm[source]wf_induct}):
-\begin{quote}
 @{thm[display]"wf_induct"[no_vars]}
-\end{quote}
 where @{term"wf r"} means that the relation @{term"r"} is wellfounded.
 For example @{thm[source]less_induct} is the special case where @{term"r"} is
 @{text"<"} on @{typ"nat"}. For details see the library.

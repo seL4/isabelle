@@ -16,13 +16,11 @@ Let us look at an example:%
 \noindent
 According to the measure function, the second argument should decrease with
 each recursive call. The resulting termination condition
-\begin{quote}
-
+%
 \begin{isabelle}%
-n\ {\isasymnoteq}\ \isadigit{0}\ {\isasymLongrightarrow}\ m\ mod\ n\ {\isacharless}\ n
+\ \ \ \ \ n\ {\isasymnoteq}\ \isadigit{0}\ {\isasymLongrightarrow}\ m\ mod\ n\ {\isacharless}\ n%
 \end{isabelle}%
 
-\end{quote}
 is provded automatically because it is already present as a lemma in the
 arithmetic library. Thus the recursion equation becomes a simplification
 rule. Of course the equation is nonterminating if we are allowed to unfold
@@ -31,29 +29,23 @@ languages and our simplifier don't do that. Unfortunately the simplifier does
 something else which leads to the same problem: it splits \isa{if}s if the
 condition simplifies to neither \isa{True} nor \isa{False}. For
 example, simplification reduces
-\begin{quote}
-
+%
 \begin{isabelle}%
-gcd\ {\isacharparenleft}m{\isacharcomma}\ n{\isacharparenright}\ {\isacharequal}\ k
+\ \ \ \ \ gcd\ {\isacharparenleft}m{\isacharcomma}\ n{\isacharparenright}\ {\isacharequal}\ k%
 \end{isabelle}%
 
-\end{quote}
 in one step to
-\begin{quote}
-
+%
 \begin{isabelle}%
-{\isacharparenleft}if\ n\ {\isacharequal}\ \isadigit{0}\ then\ m\ else\ gcd\ {\isacharparenleft}n{\isacharcomma}\ m\ mod\ n{\isacharparenright}{\isacharparenright}\ {\isacharequal}\ k
+\ \ \ \ \ {\isacharparenleft}if\ n\ {\isacharequal}\ \isadigit{0}\ then\ m\ else\ gcd\ {\isacharparenleft}n{\isacharcomma}\ m\ mod\ n{\isacharparenright}{\isacharparenright}\ {\isacharequal}\ k%
 \end{isabelle}%
 
-\end{quote}
 where the condition cannot be reduced further, and splitting leads to
-\begin{quote}
-
+%
 \begin{isabelle}%
-{\isacharparenleft}n\ {\isacharequal}\ \isadigit{0}\ {\isasymlongrightarrow}\ m\ {\isacharequal}\ k{\isacharparenright}\ {\isasymand}\ {\isacharparenleft}n\ {\isasymnoteq}\ \isadigit{0}\ {\isasymlongrightarrow}\ gcd\ {\isacharparenleft}n{\isacharcomma}\ m\ mod\ n{\isacharparenright}\ {\isacharequal}\ k{\isacharparenright}
+\ \ \ \ \ {\isacharparenleft}n\ {\isacharequal}\ \isadigit{0}\ {\isasymlongrightarrow}\ m\ {\isacharequal}\ k{\isacharparenright}\ {\isasymand}\ {\isacharparenleft}n\ {\isasymnoteq}\ \isadigit{0}\ {\isasymlongrightarrow}\ gcd\ {\isacharparenleft}n{\isacharcomma}\ m\ mod\ n{\isacharparenright}\ {\isacharequal}\ k{\isacharparenright}%
 \end{isabelle}%
 
-\end{quote}
 Since the recursive call \isa{gcd\ {\isacharparenleft}n{\isacharcomma}\ m\ mod\ n{\isacharparenright}} is no longer protected by
 an \isa{if}, it is unfolded again, which leads to an infinite chain of
 simplification steps. Fortunately, this problem can be avoided in many

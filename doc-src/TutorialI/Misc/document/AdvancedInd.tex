@@ -120,13 +120,11 @@ Structural induction on \isa{nat} is
 usually known as ``mathematical induction''. There is also ``complete
 induction'', where you must prove $P(n)$ under the assumption that $P(m)$
 holds for all $m<n$. In Isabelle, this is the theorem \isa{less{\isacharunderscore}induct}:
-\begin{quote}
-
+%
 \begin{isabelle}%
-{\isacharparenleft}{\isasymAnd}n{\isachardot}\ {\isasymforall}m{\isachardot}\ m\ {\isacharless}\ n\ {\isasymlongrightarrow}\ P\ m\ {\isasymLongrightarrow}\ P\ n{\isacharparenright}\ {\isasymLongrightarrow}\ P\ n
+\ \ \ \ \ {\isacharparenleft}{\isasymAnd}n{\isachardot}\ {\isasymforall}m{\isachardot}\ m\ {\isacharless}\ n\ {\isasymlongrightarrow}\ P\ m\ {\isasymLongrightarrow}\ P\ n{\isacharparenright}\ {\isasymLongrightarrow}\ P\ n%
 \end{isabelle}%
 
-\end{quote}
 Here is an example of its application.%
 \end{isamarkuptext}%
 \isacommand{consts}\ f\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}nat\ {\isacharequal}{\isachargreater}\ nat{\isachardoublequote}\isanewline
@@ -242,13 +240,11 @@ the induction hypothesis:%
 \begin{isamarkuptext}%
 \noindent
 The elimination rule \isa{less{\isacharunderscore}SucE} expresses the case distinction:
-\begin{quote}
-
+%
 \begin{isabelle}%
-{\isasymlbrakk}m\ {\isacharless}\ Suc\ n{\isacharsemicolon}\ m\ {\isacharless}\ n\ {\isasymLongrightarrow}\ P{\isacharsemicolon}\ m\ {\isacharequal}\ n\ {\isasymLongrightarrow}\ P{\isasymrbrakk}\ {\isasymLongrightarrow}\ P
+\ \ \ \ \ {\isasymlbrakk}m\ {\isacharless}\ Suc\ n{\isacharsemicolon}\ m\ {\isacharless}\ n\ {\isasymLongrightarrow}\ P{\isacharsemicolon}\ m\ {\isacharequal}\ n\ {\isasymLongrightarrow}\ P{\isasymrbrakk}\ {\isasymLongrightarrow}\ P%
 \end{isabelle}%
 
-\end{quote}
 
 Now it is straightforward to derive the original version of
 \isa{less{\isacharunderscore}induct} by manipulting the conclusion of the above lemma:
@@ -263,13 +259,11 @@ desired goal:%
 \noindent
 Finally we should mention that HOL already provides the mother of all
 inductions, \emph{wellfounded induction} (\isa{wf{\isacharunderscore}induct}):
-\begin{quote}
-
+%
 \begin{isabelle}%
-{\isasymlbrakk}wf\ r{\isacharsemicolon}\ {\isasymAnd}x{\isachardot}\ {\isasymforall}y{\isachardot}\ {\isacharparenleft}y{\isacharcomma}\ x{\isacharparenright}\ {\isasymin}\ r\ {\isasymlongrightarrow}\ P\ y\ {\isasymLongrightarrow}\ P\ x{\isasymrbrakk}\ {\isasymLongrightarrow}\ P\ a
+\ \ \ \ \ {\isasymlbrakk}wf\ r{\isacharsemicolon}\ {\isasymAnd}x{\isachardot}\ {\isasymforall}y{\isachardot}\ {\isacharparenleft}y{\isacharcomma}\ x{\isacharparenright}\ {\isasymin}\ r\ {\isasymlongrightarrow}\ P\ y\ {\isasymLongrightarrow}\ P\ x{\isasymrbrakk}\ {\isasymLongrightarrow}\ P\ a%
 \end{isabelle}%
 
-\end{quote}
 where \isa{wf\ r} means that the relation \isa{r} is wellfounded.
 For example \isa{less{\isacharunderscore}induct} is the special case where \isa{r} is
 \isa{{\isacharless}} on \isa{nat}. For details see the library.%

@@ -22,9 +22,7 @@ text{*\noindent
 Remember that function @{term"size"} is defined for each \isacommand{datatype}.
 However, the definition does not succeed. Isabelle complains about an
 unproved termination condition
-\begin{quote}
 @{term[display]"t : set ts --> size t < Suc (term_list_size ts)"}
-\end{quote}
 where @{term"set"} returns the set of elements of a list (no special
 knowledge of sets is required in the following) and @{text"term_list_size ::
 term list \<Rightarrow> nat"} is an auxiliary function automatically defined by Isabelle
