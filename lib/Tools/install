@@ -95,7 +95,7 @@ esac
 if [ -n "$BINDIR" ]; then
   mkdir -p "$BINDIR" || fail "Bad directory: $BINDIR"
 
-  for NAME in isatool isabelle Isabelle
+  for NAME in isatool isabelle-process isabelle-interface
   do
     BIN="$BINDIR/$NAME"
     DIST="$DISTDIR/bin/$NAME"
@@ -103,6 +103,14 @@ if [ -n "$BINDIR" ]; then
     echo "#!$BASH" > "$BIN" || fail "Cannot write file: $BIN"
     echo >> "$BIN"
     echo "exec \"$DIST\" \"\$@\"" >> "$BIN"
+    chmod +x "$BIN"
+  done
+  for NAME in Isabelle isabelle
+  do
+    BIN="$BINDIR/$NAME"
+    DIST="$DISTDIR/bin/$NAME"
+    echo "installing $BIN"
+    cp "$DIST" "$BIN" || fail "Cannot write file: $BIN"
     chmod +x "$BIN"
   done
 fi
@@ -138,7 +146,7 @@ if [ -n "$KDE" ]; then
   echo "# KDE Config File" > "$KDEAPP" || fail "Cannot write file: $KDEAPP"
   echo "[KDE Desktop Entry]" >> "$KDEAPP"
   echo "Type=Application" >> "$KDEAPP"
-  echo "Exec=\"$DISTDIR/bin/Isabelle\" %f" >> "$KDEAPP"
+  echo "Exec=\"$DISTDIR/bin/isabelle-interface\" %f" >> "$KDEAPP"
   echo "Icon=isabelle.xpm" >> "$KDEAPP"
   echo "TerminalOptions=" >> "$KDEAPP"
   echo "Path=" >> "$KDEAPP"
