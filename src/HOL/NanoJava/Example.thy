@@ -101,8 +101,8 @@ lemma Nat_atleast_set_locs [rule_format, simp]:
 apply (induct n)
 by auto
 
-lemma Nat_atleast_reset_locs [rule_format, simp]: 
- "\<forall>s v. reset_locs s:v \<ge> n = (s:v \<ge> n)"
+lemma Nat_atleast_del_locs [rule_format, simp]: 
+ "\<forall>s v. del_locs s:v \<ge> n = (s:v \<ge> n)"
 apply (induct n)
 by auto
 

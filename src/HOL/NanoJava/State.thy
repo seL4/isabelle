@@ -52,8 +52,8 @@ translations
 
 constdefs
 
-  reset_locs     :: "state => state"
- "reset_locs s \<equiv> s (| locals := empty |)"
+  del_locs     :: "state => state"
+ "del_locs s \<equiv> s (| locals := empty |)"
 
   init_locs     :: "cname => mname => state => state"
  "init_locs C m s \<equiv> s (| locals := locals s ++ 
@@ -122,8 +122,8 @@ lemma get_field_set_locs [simp]:
 by (simp add: lupd_def get_field_def set_locs_def get_obj_def)
 
 lemma get_field_set_locs [simp]:
-  "get_field (reset_locs s) a f = get_field s a f"
-by (simp add: lupd_def get_field_def reset_locs_def get_obj_def)
+  "get_field (del_locs s) a f = get_field s a f"
+by (simp add: lupd_def get_field_def del_locs_def get_obj_def)
 
 lemma new_obj_get_local [simp]: "new_obj a C s <x> = s<x>"
 by (simp add: new_obj_def hupd_def get_local_def)
@@ -141,8 +141,8 @@ by (simp add: hupd_def)
 lemma hupd_hupd [simp]: "hupd(a\<mapsto>obj) (hupd(a\<mapsto>obj') s) = hupd(a\<mapsto>obj) s"
 by (simp add: hupd_def)
 
-lemma heap_reset_locs [simp]: "heap (reset_locs s) = heap s"
-by (simp add: reset_locs_def)
+lemma heap_del_locs [simp]: "heap (del_locs s) = heap s"
+by (simp add: del_locs_def)
 
 lemma heap_set_locs [simp]: "heap (set_locs l s) = heap s"
 by (simp add: set_locs_def)
@@ -151,24 +151,24 @@ lemma hupd_lupd [simp]:
   "hupd(a\<mapsto>obj) (lupd(x\<mapsto>y) s) = lupd(x\<mapsto>y) (hupd(a\<mapsto>obj) s)"
 by (simp add: hupd_def lupd_def)
 
-lemma hupd_reset_locs [simp]: 
-  "hupd(a\<mapsto>obj) (reset_locs s) = reset_locs (hupd(a\<mapsto>obj) s)"
-by (simp add: hupd_def reset_locs_def)
+lemma hupd_del_locs [simp]: 
+  "hupd(a\<mapsto>obj) (del_locs s) = del_locs (hupd(a\<mapsto>obj) s)"
+by (simp add: hupd_def del_locs_def)
 
 lemma new_obj_lupd [simp]: 
   "new_obj a C (lupd(x\<mapsto>y) s) = lupd(x\<mapsto>y) (new_obj a C s)"
 by (simp add: new_obj_def)
 
-lemma new_obj_reset_locs [simp]: 
-  "new_obj a C (reset_locs s) = reset_locs (new_obj a C s)"
+lemma new_obj_del_locs [simp]: 
+  "new_obj a C (del_locs s) = del_locs (new_obj a C s)"
 by (simp add: new_obj_def)
 
 lemma upd_obj_lupd [simp]: 
   "upd_obj a f v (lupd(x\<mapsto>y) s) = lupd(x\<mapsto>y) (upd_obj a f v s)"
 by (simp add: upd_obj_def Let_def split_beta)
 
-lemma upd_obj_reset_locs [simp]: 
-  "upd_obj a f v (reset_locs s) = reset_locs (upd_obj a f v s)"
+lemma upd_obj_del_locs [simp]: 
+  "upd_obj a f v (del_locs s) = del_locs (upd_obj a f v s)"
 by (simp add: upd_obj_def Let_def split_beta)
 
 lemma get_field_hupd_same [simp]:

@@ -79,7 +79,7 @@ intros
 
   Call: "[| A |-e {P} e1 {Q}; \<forall>a. A |-e {Q a} e2 {R a};
     \<forall>a p ls. A |- {\<lambda>s'. \<exists>s. R a p s \<and> ls = s \<and> 
-                    s' = lupd(This\<mapsto>a)(lupd(Par\<mapsto>p)(reset_locs s))}
+                    s' = lupd(This\<mapsto>a)(lupd(Par\<mapsto>p)(del_locs s))}
                   Meth (C,m) {\<lambda>s. S (s<Res>) (set_locs ls s)} |] ==>
              A |-e {P} {C}e1..m(e2) {S}"
 
