@@ -160,22 +160,15 @@ lemma closed_err_types:
   done
 
 
-lemma err_semilat_JType_esl_lemma:
-  "[| wf_prog wf_mb G; single_valued (subcls1 G); acyclic (subcls1 G) |] 
-  ==> err_semilat (esl G)"
+lemma sup_subtype_greater:
+  "[| wf_prog wf_mb G; single_valued (subcls1 G); acyclic (subcls1 G);
+      is_type G t1; is_type G t2; sup G t1 t2 = OK s |] 
+  ==> subtype G t1 s \<and> subtype G t2 s"
 proof -
-  assume wf_prog:   "wf_prog wf_mb G"
+  assume wf_prog:       "wf_prog wf_mb G"
   assume single_valued: "single_valued (subcls1 G)" 
-  assume acyclic:   "acyclic (subcls1 G)"
-  
-  hence "order (subtype G)"
-    by (rule order_widen)
-  moreover
-  from wf_prog single_valued acyclic
-  have "closed (err (types G)) (lift2 (sup G))"
-    by (rule closed_err_types)
-  moreover
-  
+  assume acyclic:       "acyclic (subcls1 G)"
+ 
   { fix c1 c2
     assume is_class: "is_class G c1" "is_class G c2"
     with wf_prog 
@@ -185,53 +178,31 @@ proof -
       by (blast intro: subcls_C_Object)
     with wf_prog single_valued
     obtain u where
-      "is_lub ((subcls1 G)^* ) c1 c2 u"
+      "is_lub ((subcls1 G)^* ) c1 c2 u"      
       by (blast dest: single_valued_has_lubs)
     with acyclic
-    have "G \<turnstile> c1 \<preceq>C some_lub ((subcls1 G)^* ) c1 c2"
+    have "G \<turnstile> c1 \<preceq>C some_lub ((subcls1 G)^* ) c1 c2 \<and>
+          G \<turnstile> c2 \<preceq>C some_lub ((subcls1 G)^* ) c1 c2"
       by (simp add: some_lub_conv) (blast dest: is_lubD is_ubD)
-  } note this [intro]
+  } note this [simp]
       
-  { fix t1 t2 s
-    assume "is_type G t1" "is_type G t2" "sup G t1 t2 = OK s"    
-    hence "subtype G t1 s"
-      by (unfold sup_def subtype_def) 
-         (cases s, auto intro: widen.null 
-                        split: ty.splits ref_ty.splits if_splits)
-  } note this [intro]
-  
-  have
-    "\<forall>x\<in>err (types G). \<forall>y\<in>err (types G). x <=_(le (subtype G)) x +_(lift2 (sup G)) y"
-    by (auto simp add: lesub_def plussub_def le_def lift2_def split: err.split)
+  assume "is_type G t1" "is_type G t2" "sup G t1 t2 = OK s"
+  thus ?thesis
+    apply (unfold sup_def subtype_def) 
+    apply (cases s)
+    apply (auto split: ty.split_asm ref_ty.split_asm split_if_asm)
+    done
+qed
 
-  moreover
-
-  { fix c1 c2
-    assume "is_class G c1" "is_class G c2"
-    with wf_prog
-    obtain 
-      "G \<turnstile> c1 \<preceq>C Object"
-      "G \<turnstile> c2 \<preceq>C Object"
-      by (blast intro: subcls_C_Object)
-    with wf_prog single_valued
-    obtain u where
-      "is_lub ((subcls1 G)^* ) c2 c1 u"
-      by (blast dest: single_valued_has_lubs)
-    with acyclic
-    have "G \<turnstile> c1 \<preceq>C some_lub ((subcls1 G)^* ) c2 c1"
-      by (simp add: some_lub_conv) (blast dest: is_lubD is_ubD)
-  } note this [intro]
-      
-  have "\<forall>x\<in>err (types G). \<forall>y\<in>err (types G). 
-    y <=_(le (subtype G)) x +_(lift2 (sup G)) y"
-    by (auto simp add: lesub_def plussub_def le_def sup_def subtype_def lift2_def 
-             split: err.split ty.splits ref_ty.splits if_splits intro: widen.null)
-  moreover
-    
-  have [intro]: 
-    "!!a b c. [| G \<turnstile> a \<preceq> c; G \<turnstile> b \<preceq> c; sup G a b = Err |] ==> False"
-    by (auto simp add: PrimT_PrimT PrimT_PrimT2 sup_def 
-             split: ty.splits ref_ty.splits)
+lemma sup_subtype_smallest:
+  "[| wf_prog wf_mb G; single_valued (subcls1 G); acyclic (subcls1 G);
+      is_type G a; is_type G b; is_type G c; 
+      subtype G a c; subtype G b c; sup G a b = OK d |]
+  ==> subtype G d c"
+proof -
+  assume wf_prog:       "wf_prog wf_mb G"
+  assume single_valued: "single_valued (subcls1 G)" 
+  assume acyclic:       "acyclic (subcls1 G)"
 
   { fix c1 c2 D
     assume is_class: "is_class G c1" "is_class G c2"
@@ -261,18 +232,48 @@ proof -
     "!!C T. G \<turnstile> Class C \<preceq> T ==> \<exists>D. T=Class D \<and> G \<turnstile> C \<preceq>C D"
     by (frule widen_Class, auto)
 
-  { fix a b c d
-    assume "is_type G a" "is_type G b" "is_type G c" and
-           "G \<turnstile> a \<preceq> c" "G \<turnstile> b \<preceq> c" and
-           "sup G a b = OK d" 
-    hence "G \<turnstile> d \<preceq> c"
-      by (auto simp add: sup_def split: ty.splits ref_ty.splits if_splits)
-  } note this [intro]
+  assume "is_type G a" "is_type G b" "is_type G c"
+         "subtype G a c" "subtype G b c" "sup G a b = OK d"
+  thus ?thesis
+    by (auto simp add: subtype_def sup_def 
+             split: ty.split_asm ref_ty.split_asm split_if_asm)
+qed
 
+lemma sup_exists:
+  "[| subtype G a c; subtype G b c; sup G a b = Err |] ==> False"
+  by (auto simp add: PrimT_PrimT PrimT_PrimT2 sup_def subtype_def
+           split: ty.splits ref_ty.splits)
+
+lemma err_semilat_JType_esl_lemma:
+  "[| wf_prog wf_mb G; single_valued (subcls1 G); acyclic (subcls1 G) |] 
+  ==> err_semilat (esl G)"
+proof -
+  assume wf_prog:   "wf_prog wf_mb G"
+  assume single_valued: "single_valued (subcls1 G)" 
+  assume acyclic:   "acyclic (subcls1 G)"
+  
+  hence "order (subtype G)"
+    by (rule order_widen)
+  moreover
+  from wf_prog single_valued acyclic
+  have "closed (err (types G)) (lift2 (sup G))"
+    by (rule closed_err_types)
+  moreover
+
+  from wf_prog single_valued acyclic 
+  have
+    "(\<forall>x\<in>err (types G). \<forall>y\<in>err (types G). x <=_(le (subtype G)) x +_(lift2 (sup G)) y) \<and> 
+     (\<forall>x\<in>err (types G). \<forall>y\<in>err (types G). y <=_(le (subtype G)) x +_(lift2 (sup G)) y)"
+    by (auto simp add: lesub_def plussub_def le_def lift2_def sup_subtype_greater split: err.split)
+
+  moreover    
+
+  from wf_prog single_valued acyclic 
   have
     "\<forall>x\<in>err (types G). \<forall>y\<in>err (types G). \<forall>z\<in>err (types G). 
     x <=_(le (subtype G)) z \<and> y <=_(le (subtype G)) z \<longrightarrow> x +_(lift2 (sup G)) y <=_(le (subtype G)) z"
-    by (simp add: lift2_def plussub_def lesub_def subtype_def le_def split: err.splits) blast
+    by (unfold lift2_def plussub_def lesub_def le_def)
+       (auto intro: sup_subtype_smallest sup_exists split: err.split)
 
   ultimately
   
