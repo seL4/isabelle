@@ -17,6 +17,9 @@ sig
   val header: string
   val string_of_tree: tree -> string
   val tree_of_string: string -> tree
+  val parse_content: string list -> tree list * string list
+  val parse_elem: string list -> tree * string list
+  val parse_document: string list -> (string option * tree) * string list
 end;
 
 structure XML: XML =
@@ -64,50 +67,66 @@ val header = "<?xml version=\"1.0\"?>\n";
 
 (* parser *)
 
-datatype token_kind = Idt | Sym | Str | Chr;
+fun err s (xs, _) = "XML parsing error: " ^ s ^ "\nfound:\n" ^
+  implode (take (100, xs));
 
-fun is_kind k (k', _) = k = k';
+val scan_whspc = Scan.repeat ($$ " " || $$ "\n");
 
-val stopper = ((Sym, ""), fn (Sym, "") => true | _ => false);
-
-val scan_whspc = $$ " " || $$ "\n";
-
-val scan_symb = Scan.literal (Scan.make_lexicon
-  (map explode ["<", "</", ">", "/>", "\"", "=", "&"])) >> implode;
+val literal = Scan.literal o Scan.make_lexicon o single o explode;
 
 val scan_special = $$ "&" ^^ Symbol.scan_id ^^ $$ ";" >> decode;
 
-val lexer = Scan.repeat (Scan.repeat scan_whspc |--
-  (   Scan.max (op <= o pairself (size o snd))
-        (Symbol.scan_id >> pair Idt)
-        (Scan.repeat1 (scan_special || Scan.unless (scan_whspc || scan_symb)
-           (Scan.one Symbol.not_eof)) >> (pair Chr o implode))
-   || $$ "\"" |-- Scan.repeat
-        (   scan_special
-         || Scan.unless ($$ "\"") (Scan.one Symbol.not_eof)) --|
-           $$ "\"" >> (pair Str o implode)
-   || scan_symb >> pair Sym) --| Scan.repeat scan_whspc);
+val parse_chars = Scan.repeat1 (Scan.unless (scan_whspc -- $$ "<")
+  (scan_special || Scan.one Symbol.not_eof)) >> implode;
 
-val parse_att = (Scan.one (is_kind Idt) >> snd) --| $$ (Sym, "=") --
-  (Scan.one (is_kind Str) >> snd);
+val parse_cdata = literal "<![CDATA[" |--
+  (Scan.repeat (Scan.unless (literal "]]>") (Scan.one Symbol.not_eof)) >>
+    implode) --| literal "]]>";
 
-fun parse_tree xs =
-  ($$ (Sym, "<") |-- (Scan.one (is_kind Idt) >> snd) --
-    Scan.repeat parse_att :-- (fn (s, _) =>
-          $$ (Sym, "/>") >> K []
-       || $$ (Sym, ">") |-- Scan.repeat
-            (   Scan.one (not o is_kind Sym) >> (Text o snd)
-             || parse_tree) --|
-          $$ (Sym, "</") --| Scan.one (equal (Idt, s)) --| $$ (Sym, ">")) >>
+val parse_att =
+  Symbol.scan_id --| scan_whspc --| $$ "=" --| scan_whspc --| $$ "\"" --
+  (Scan.repeat (Scan.unless ($$ "\"")
+    (scan_special || Scan.one Symbol.not_eof)) >> implode) --| $$ "\"";
+
+val parse_comment = literal "<!--" --
+  Scan.repeat (Scan.unless (literal "-->") (Scan.one Symbol.not_eof)) --
+  literal "-->";
+
+val parse_pi = literal "<?" |--
+  Scan.repeat (Scan.unless (literal "?>") (Scan.one Symbol.not_eof)) --|
+  literal "?>";
+
+fun parse_content xs =
+  ((Scan.optional (scan_whspc |-- parse_chars >> (single o Text)) [] --
+    (Scan.repeat (scan_whspc |--
+       (   parse_elem >> single
+        || parse_cdata >> (single o Text)
+        || parse_pi >> K []
+        || parse_comment >> K []) --
+       Scan.optional (scan_whspc |-- parse_chars >> (single o Text)) []
+         >> op @) >> flat) >> op @) --| scan_whspc) xs
+
+and parse_elem xs =
+  ($$ "<" |-- Symbol.scan_id --
+    Scan.repeat (scan_whspc |-- parse_att) --| scan_whspc :-- (fn (s, _) =>
+      !! (err "Expected > or />")
+        (   literal "/>" >> K []
+         || $$ ">" |-- parse_content --|
+            !! (err ("Expected </" ^ s ^ ">"))
+              (literal ("</" ^ s) --| scan_whspc --| $$ ">"))) >>
     (fn ((s, atts), ts) => Elem (s, atts, ts))) xs;
 
+val parse_document =
+  Scan.option (literal "<!DOCTYPE" -- scan_whspc |--
+    (Scan.repeat (Scan.unless ($$ ">")
+      (Scan.one Symbol.not_eof)) >> implode) --| $$ ">" --| scan_whspc) --
+  parse_elem;
+
 fun tree_of_string s =
-  let val msg = "Malformed XML expression:\n" ^ s
-  in case Scan.finite Symbol.stopper lexer (explode s) of
-      (toks, []) => (case Scan.finite stopper
-        (Scan.error (!! (K msg) parse_tree)) toks of
-          (t, []) => t | _ => error msg)
-    | _ => error msg
-  end;
+  (case Scan.finite Symbol.stopper (Scan.error (!! (err "Malformed element")
+      (scan_whspc |-- parse_elem --| scan_whspc))) (Symbol.explode s) of
+     (x, []) => x
+   | (_, ys) => error ("XML parsing error: Unprocessed input\n" ^
+       implode (take (100, ys))));
 
 end;
