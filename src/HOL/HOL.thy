@@ -1160,7 +1160,15 @@ let
 
   | all_tr' [Const ("_bound",_) $ Free (v,_), 
                Const("op -->",_) $ (Const ("op <=",_) $ (Const ("_bound",_) $ Free (v',_)) $ n ) $ P] = 
-  (if v=v' then Syntax.const "_leAll" $ Syntax.mark_bound v' $ n $ P else raise Match);
+  (if v=v' then Syntax.const "_leAll" $ Syntax.mark_bound v' $ n $ P else raise Match)
+
+  | all_tr' [Const ("_bound",_) $ Free (v,_), 
+               Const("op -->",_) $ (Const ("op <",_) $ n $ (Const ("_bound",_) $ Free (v',_))) $ P] = 
+  (if v=v' then Syntax.const "_gtAll" $ Syntax.mark_bound v' $ n $ P else raise Match)
+
+  | all_tr' [Const ("_bound",_) $ Free (v,_), 
+               Const("op -->",_) $ (Const ("op <=",_) $ n $ (Const ("_bound",_) $ Free (v',_))) $ P] = 
+  (if v=v' then Syntax.const "_geAll" $ Syntax.mark_bound v' $ n $ P else raise Match);
 
   fun ex_tr' [Const ("_bound",_) $ Free (v,_), 
                Const("op &",_) $ (Const ("op <",_) $ (Const ("_bound",_) $ Free (v',_)) $ n ) $ P] = 
@@ -1168,7 +1176,16 @@ let
 
   | ex_tr' [Const ("_bound",_) $ Free (v,_), 
                Const("op &",_) $ (Const ("op <=",_) $ (Const ("_bound",_) $ Free (v',_)) $ n ) $ P] = 
-  (if v=v' then Syntax.const "_leEx" $ Syntax.mark_bound v' $ n $ P else raise Match)
+  (if v=v' then Syntax.const "_leEx" $ Syntax.mark_bound v' $ n $ P else
+               raise Match)
+
+  | ex_tr' [Const ("_bound",_) $ Free (v,_), 
+               Const("op &",_) $ (Const ("op <",_) $ n $ (Const ("_bound",_) $ Free (v',_))) $ P] = 
+  (if v=v' then Syntax.const "_gtEx" $ Syntax.mark_bound v' $ n $ P else raise Match)
+
+  | ex_tr' [Const ("_bound",_) $ Free (v,_), 
+               Const("op &",_) $ (Const ("op <=",_) $ n $ (Const ("_bound",_) $ Free (v',_))) $ P] = 
+  (if v=v' then Syntax.const "_geEx" $ Syntax.mark_bound v' $ n $ P else raise Match)
 in
 [("ALL ", all_tr'), ("EX ", ex_tr')]
 end
