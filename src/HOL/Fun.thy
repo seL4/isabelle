@@ -10,16 +10,12 @@ Fun = Vimage + equalities +
 
 instance set :: (term) order
                        (subset_refl,subset_trans,subset_antisym,psubset_eq)
-nonterminals
-  updbinds  updbind
-
 consts
   fun_upd  :: "('a => 'b) => 'a => 'b => ('a => 'b)"
 
+nonterminals
+  updbinds updbind
 syntax
-
-  (* Let expressions *)
-
   "_updbind"       :: ['a, 'a] => updbind             ("(2_ :=/ _)")
   ""               :: updbind => updbinds             ("_")
   "_updbinds"      :: [updbind, updbinds] => updbinds ("_,/ _")
