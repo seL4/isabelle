@@ -122,6 +122,11 @@ logics (again);
 * HOL/Lists: the function "set_of_list" has been renamed "set"
   (and its theorems too);
 
+* HOL/Set: UNIV is now a constant and is no longer translated to Compl{};
+
+* HOL/Set: The operator (UN x.B x) now abbreviates (UN x:UNIV. B x) and its
+  specialist theorems (like UN1_I) are gone.  Similarly for (INT x.B x);
+
 
 *** HOLCF ***
 
