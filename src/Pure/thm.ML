@@ -87,7 +87,7 @@ signature THM =
 functor ThmFun (structure Logic: LOGIC and Unify: UNIFY and Pattern:PATTERN
                       and Net:NET
                 sharing type Pattern.type_sig = Unify.Sign.Type.type_sig)
-        : THM = 
+        (*: THM*) = (* FIXME *)
 struct
 structure Sequence = Unify.Sequence;
 structure Envir = Unify.Envir;
