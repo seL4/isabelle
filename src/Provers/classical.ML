@@ -1094,7 +1094,7 @@ fun find_rules concl nets =
   let fun rules_of (inet, _) = order_rules (Net.unify_term inet concl)
   in flat (map rules_of nets) end;
 
-fun some_rule_tac cs facts =
+fun some_rule_tac ctxt cs facts =
   let
     val nets = get_nets cs;
     val erules = find_erules facts nets;
@@ -1104,11 +1104,14 @@ fun some_rule_tac cs facts =
         val irules = find_rules (Logic.strip_assums_concl goal) nets;
         val rules = erules @ irules;
         val ruleq = Method.multi_resolves facts rules;
-      in Method.trace rules; fn st => Seq.flat (Seq.map (fn rule => Tactic.rtac rule i st) ruleq) end);
+      in
+        Method.trace ctxt rules;
+        fn st => Seq.flat (Seq.map (fn rule => Tactic.rtac rule i st) ruleq)
+      end);
   in tac end;
 
 fun rule_tac [] ctxt cs facts =
-    Method.some_rule_tac [] ctxt facts APPEND' some_rule_tac cs facts
+    Method.some_rule_tac [] ctxt facts APPEND' some_rule_tac ctxt cs facts
   | rule_tac rules _ _ facts = Method.rule_tac rules facts;
 
 fun default_tac rules ctxt cs facts =

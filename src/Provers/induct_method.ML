@@ -106,7 +106,7 @@ fun cases_tac (ctxt, (open_parms, (insts, opt_rule))) facts =
       | (_, _, None) =>
           let val rules = find_casesS ctxt facts @ find_casesT ctxt insts in
             if null rules then error "Unable to figure out cases rule" else ();
-            Method.trace rules;
+            Method.trace ctxt rules;
             Seq.flat (Seq.map (Seq.try inst_rule) (Seq.of_list rules))
           end
       | (_, _, Some r) => Seq.single (inst_rule r));
@@ -263,7 +263,7 @@ fun induct_tac (ctxt, (open_parms, (insts, opt_rule))) facts =
         None =>
           let val rules = find_inductS ctxt facts @ find_inductT ctxt insts in
             if null rules then error "Unable to figure out induct rule" else ();
-            Method.trace rules;
+            Method.trace ctxt rules;
             Seq.flat (Seq.map (Seq.try inst_rule) (Seq.of_list rules))
           end
       | Some r => Seq.single (inst_rule r));
