@@ -1,11 +1,11 @@
-(*  Title:      Pure/NJ
+(*  Title:      Pure/basis.ML
     ID:         $Id$
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1993  University of Cambridge
 
-Basis Library emulation
+Basis Library emulation.
 
-Needed for Poly/ML and Standard ML of New Jersey version 0.93
+Needed for Poly/ML and Standard ML of New Jersey version 0.93 to 1.08.
 
 Full compatibility cannot be obtained using a file: what about char constants?
 *)
