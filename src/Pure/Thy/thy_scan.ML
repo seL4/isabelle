@@ -1,138 +1,153 @@
-(*  Title:      Pure/Thy/thy_scan.ML
-    ID:         $Id$
-    Author:     Markus Wenzel, TU Muenchen
+(*  Title:	Pure/Thy/thy_scan.ML
+    ID:		$Id$
+    Author:	Markus Wenzel, TU Muenchen
 
-The scanner for theory files.
+Lexer for the outer Isabelle syntax.
+
+TODO:
+  - old vs. new: interpreted strings, no 'ML', var!?;
 *)
 
 signature THY_SCAN =
-  sig
+sig
   datatype token_kind =
-    Keyword | Ident | LongIdent | TypeVar | Nat | String | Verbatim | EOF
+    Keyword | Ident | LongIdent | Var | TypeVar | Nat | String | Verbatim | Ignore | EOF
   val name_of_kind: token_kind -> string
-  type lexicon
-  val make_lexicon: string list -> lexicon
-  val tokenize: lexicon -> string -> (token_kind * string * int) list
-  end;
+  val tokenize: Scan.lexicon -> string -> (token_kind * string * int) list
+end;
 
-
-structure ThyScan : THY_SCAN =
+structure ThyScan: THY_SCAN =
 struct
-
-open Scanner;
 
 
 (** token kinds **)
 
 datatype token_kind =
-  Keyword | Ident | LongIdent | TypeVar | Nat | String | Verbatim | EOF;
+  Keyword | Ident | LongIdent | Var | TypeVar | Nat | String | Verbatim | Ignore | EOF;
 
 fun name_of_kind Keyword = "keyword"
   | name_of_kind Ident = "identifier"
   | name_of_kind LongIdent = "long identifier"
+  | name_of_kind Var = "schematic variable"
   | name_of_kind TypeVar = "type variable"
   | name_of_kind Nat = "natural number"
   | name_of_kind String = "string"
   | name_of_kind Verbatim = "verbatim text"
+  | name_of_kind Ignore = "ignore"
   | name_of_kind EOF = "end-of-file";
 
 
 
 (** scanners **)
 
-fun lex_err line msg =
-  error ("Lexical error on line " ^ string_of_int line ^ ": " ^ msg);
+(* diagnostics *)
+
+fun lex_err None msg = "Outer lexical error: " ^ msg
+  | lex_err (Some n) msg = "Outer lexical error on line " ^ string_of_int n ^ ": " ^ msg;
 
 
-(* misc utilities *)
+(* line numbering *)
 
-fun count_lines cs =
-  foldl (fn (sum, c) => if c = "\n" then sum + 1 else sum) (0, cs);
+val incr = apsome (fn n:int => n + 1);
 
-fun inc_line n s = n + count_lines (explode s);
+fun incr_line scan = Scan.depend (fn n => scan >> pair (incr n));
+val keep_line = Scan.lift;
 
-fun cons_fst c (cs, x, y) = (c :: cs, x, y);
+val scan_blank =
+  incr_line ($$ "\n") ||
+  keep_line (Scan.one Symbol.is_blank);
 
 
-(* scan strings *)
+(* scan ML-style strings *)
 
-val scan_ctrl = $$ "^" ^^ scan_one (fn c => ord c >= 64 andalso ord c <= 95);
+val scan_ctrl =
+  $$ "^" ^^ Scan.one (fn c => Symbol.is_ascii c andalso ord c >= 64 andalso ord c <= 95);
 
-val scan_dig = scan_one is_digit;
-
-val scan_blanks1 = scan_any1 is_blank >> implode;
+val scan_dig = Scan.one Symbol.is_digit;
 
 val scan_esc =
-  $$ "n" || $$ "t" || $$ "\"" || $$ "\\" ||
-  scan_ctrl || scan_dig ^^ scan_dig ^^ scan_dig ||
-  scan_blanks1 ^^ $$ "\\";
+  keep_line ($$ "\\") ^^ !! (fn (n, _) => lex_err n "bad escape sequence in string")
+    (keep_line ($$ "n" || $$ "t" || $$ "\"" || $$ "\\" ||
+      scan_ctrl || scan_dig ^^ scan_dig ^^ scan_dig) ||
+      (Scan.repeat1 scan_blank >> implode) ^^ keep_line ($$ "\\"));
 
-fun string ("\"" :: cs) n = (["\""], cs, n)
-  | string ("\\" :: cs) n =
-      (case optional scan_esc cs of
-        (None, _) => lex_err n "bad escape sequence in string"
-      | (Some s, cs') => cons_fst ("\\" ^ s) (string cs' (inc_line n s)))
-  | string ("\n" :: cs) n = cons_fst " " (string cs (n + 1))
-  | string (c :: cs) n = 
-      if is_blank c then cons_fst " " (string cs n)
-      else cons_fst c (string cs n)
-  | string [] n = lex_err n "missing quote at end of string";
+val scan_str =
+  scan_esc ||
+  scan_blank >> K " " ||
+  keep_line (Scan.one (not_equal "\"" andf Symbol.not_eof));
+
+val scan_string =
+  keep_line ($$ "\"") ^^
+  !! (fn (n, _) => lex_err n "missing quote at end of string")
+    ((Scan.repeat scan_str >> implode) ^^ keep_line ($$ "\""));
 
 
 (* scan verbatim text *)
 
-fun verbatim ("|" :: "}" :: cs) n = ([], cs, n)
-  | verbatim (c :: cs) n = cons_fst c (verbatim cs (inc_line n c))
-  | verbatim [] n = lex_err n "missing end of verbatim text";
+val scan_verb =
+  scan_blank ||
+  keep_line ($$ "|" --| Scan.ahead (Scan.one (not_equal "}"))) ||
+  keep_line (Scan.one (not_equal "|" andf Symbol.not_eof));
+
+val scan_verbatim =
+  keep_line ($$ "{" -- $$ "|") |--
+  !! (fn (n, _) => lex_err n "missing end of verbatim text")
+    ((Scan.repeat scan_verb >> implode) --| keep_line ($$ "|" -- $$ "}"));
 
 
 (* scan nested comments *)
 
-fun comment ("*" :: ")" :: cs) n 1 = (cs, n)
-  | comment ("*" :: ")" :: cs) n d = comment cs n (d - 1)
-  | comment ("(" :: "*" :: cs) n d = comment cs n (d + 1)
-  | comment (c :: cs) n d = comment cs (inc_line n c) d
-  | comment [] n _ = lex_err n "missing end of comment";
+val scan_cmt =
+  Scan.lift scan_blank ||
+  Scan.depend (fn d => keep_line ($$ "(" ^^ $$ "*") >> pair (d + 1)) ||
+  Scan.depend (fn 0 => Scan.fail | d => keep_line ($$ "*" ^^ $$ ")") >> pair (d - 1)) ||
+  Scan.lift (keep_line ($$ "*" --| Scan.ahead (Scan.one (not_equal ")")))) ||
+  Scan.lift (keep_line (Scan.one (not_equal "*" andf Symbol.not_eof)));
+
+val scan_comment =
+  keep_line ($$ "(" -- $$ "*") |--
+  !! (fn (n, _) => lex_err n "missing end of comment")
+    (Scan.pass 0 (Scan.repeat scan_cmt) |-- keep_line ($$ "*" -- $$ ")") >> K "");
 
 
+(* scan token *)
 
-(** tokenize **)
+fun token k None x = (k, x, 0)
+  | token k (Some n) x = (k, x, n);
 
-fun scan_word lex =
-  max_of
-    (scan_literal lex >> pair Keyword)
-    (scan_longid >> pair LongIdent ||
-      scan_id >> pair Ident ||
-      scan_tid >> pair TypeVar ||
-      scan_nat >> pair Nat);
+fun scan_tok lex (n, cs) =
+ (scan_string >> token String n ||
+  scan_verbatim >> token Verbatim n ||
+  Scan.repeat1 scan_blank >> (token Ignore n o implode) ||
+  scan_comment >> token Ignore n ||
+  keep_line (Scan.max (fn ((_, x, _), (_, x', _)) => x <= x')
+    (Scan.literal lex >> (token Keyword n o implode))
+    (Syntax.scan_longid >> token LongIdent n ||
+      Syntax.scan_id >> token Ident n ||
+      Syntax.scan_var >> token Var n ||
+      Syntax.scan_tid >> token TypeVar n ||
+      Syntax.scan_nat >> token Nat n))) (n, cs);
 
-fun add_tok toks kind n (cs, cs', n') =
-  ((kind, implode cs, n) :: toks, cs', n');
+val scan_rest = Scan.any Symbol.not_eof >> implode;
 
-val take_line = implode o fst o take_prefix (not_equal "\n");
+fun scan_token lex x =
+  (case scan_tok lex x of
+    ((Keyword, "ML", n), x') => (keep_line scan_rest >> token Verbatim (Some n)) x'
+  | tok_x' => tok_x');
 
+
+(* tokenize *)
 
 fun tokenize lex str =
   let
-    fun scan (toks, [], n) = rev ((EOF, "end-of-file", n) :: toks)
-      | scan (toks, "\"" :: cs, n) =
-          scan (add_tok toks String n (cons_fst "\"" (string cs n)))
-      | scan (toks, "{" :: "|" :: cs, n) =
-          scan (add_tok toks Verbatim n (verbatim cs n))
-      | scan (toks, "(" :: "*" :: cs, n) =
-          scan ((fn (cs', n') => (toks, cs', n')) (comment cs n 1))
-      | scan (toks, chs as c :: cs, n) =
-          if is_blank c then scan (toks, cs, inc_line n c)
-          else
-            (case scan_word lex chs of
-              (None, _) => lex_err n (quote (take_line chs))
-            | (Some (Keyword, "ML"), chs') => scan ((Verbatim, implode chs', n)
-                :: (Keyword, "ML", n) :: toks, [], n + count_lines chs')
-            | (Some (tk, s), chs') => scan ((tk, s, n) :: toks, chs', n));
+    val chs = explode str;	(*sic!*)
+    val scan_toks = Scan.repeat (scan_token lex);
+    val ignore = fn (Ignore, _, _) => true | _ => false;
   in
-    scan ([], explode str, 1)
+    (case Scan.error (Scan.finite' Symbol.eof scan_toks) (Some 1, chs) of
+      (toks, (n, [])) => filter_out ignore toks @ [token EOF n "end-of-file"]
+    | (_, (n, cs)) => error (lex_err n ("Bad input " ^ quote (beginning cs))))
   end;
 
 
 end;
-
