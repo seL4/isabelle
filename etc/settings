@@ -65,4 +65,5 @@ LM_LICENSE_FILE=$ML_HOME/license.dat
 
 ## misc
 
-DVI_VIEWER="xdvi -geometry 498x704 -expert -s 5"
+#DVI_VIEWER="xdvi -geometry 498x704 -expert -s 5"
+DVI_VIEWER="xdvi -geometry 555x782 -expert -s 9"
