@@ -220,13 +220,33 @@ This treatment of facts fed into a proof is not restricted to implicit
 application of introduction and elimination rules but applies to explicit
 application of rules as well. Thus you could replace the final ``..'' above
 with \isakeyword{by}@{text"(rule conjI)"}. 
-
-Note that Isar's predefined introduction and elimination rules include all the
-usual natural deduction rules. We conclude this
-section with an extended example --- which rules are used implicitly where?
-Rule @{thm[source]ccontr} is @{thm ccontr[no_vars]}.
 *}
 
+subsection{*More constructs*}
+
+text{* In the previous proof of @{prop"A \<and> B \<longrightarrow> B \<and> A"} we needed to feed
+more than one fact into a proof step, a frequent situation. Then the
+UNIX-pipe model appears to break down and we need to name the different
+facts to refer to them. But this can be avoided:
+*}
+lemma "A \<and> B \<longrightarrow> B \<and> A"
+proof
+  assume ab: "A \<and> B"
+  from ab have B ..
+  moreover
+  from ab have A ..
+  ultimately show "B \<and> A" ..
+qed
+text{*\noindent You can combine any number of facts @{term A1} \dots\ @{term
+An} into a sequence by separating their proofs with
+\isakeyword{moreover}. After the final fact, \isakeyword{ultimately} stands
+for \isakeyword{from}~@{term A1}~\dots~@{term An}.  This avoids having to
+introduce names for all of the sequence elements.  *}
+
+text{* Although we have only seen a few introduction and elemination rules so
+far, Isar's predefined rules include all the usual natural deduction
+rules. We conclude our exposition of propositional logic with an extended
+example --- which rules are used implicitly where? *}
 lemma "\<not> (A \<and> B) \<longrightarrow> \<not> A \<or> \<not> B"
 proof
   assume n: "\<not> (A \<and> B)"
@@ -249,7 +269,10 @@ proof
     with nn show False ..
   qed
 qed
-text{*\noindent Apart from demonstrating the strangeness of classical
+text{*\noindent
+Rule @{thm[source]ccontr} (``classical contradiction'') is
+@{thm ccontr[no_vars]}.
+Apart from demonstrating the strangeness of classical
 arguments by contradiction, this example also introduces two new
 abbreviations:
 \begin{center}
