@@ -54,10 +54,13 @@ MLEXIT="commit();"
 START_SML="$ML_HOME/sml $ML_OPTIONS $DB"
 
 if [ -n "$TERMINATE" ]; then
-  { echo "$MLTEXT"; echo "$MLEXIT" } | $START_SML
+  { echo "$MLTEXT" "$MLEXIT" } | $START_SML
+  RC=$?
+elif [ -z "$MLTEXT" ]; then
+  sh -c "{ $ISABELLE_HOME/lib/scripts/ucat; echo '$MLEXIT'; } | $START_SML"
   RC=$?
 else
-  { echo "$MLTEXT"; $ISABELLE_HOME/lib/scripts/ucat; echo "$MLEXIT" } | $START_SML
+  sh -c "{ echo '$MLTEXT'; $ISABELLE_HOME/lib/scripts/ucat; echo '$MLEXIT'; } | $START_SML"
   RC=$?
 fi
 

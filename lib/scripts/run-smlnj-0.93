@@ -29,7 +29,7 @@ fi
 MOVE=""
 
 if [ -z "$OUTFILE" ]; then
-  COMMIT='fun commit () = (output (std_err, "Error - Database is not opened for writing.\n"); false);'
+  COMMIT='fun commit () = (output (std_err, "Error - Database is not opened for writing.\\n"); false);'
 else
   if [ "$INFILE" -ef "$OUTFILE" ]; then
     OUTDIR=$(dirname "$OUTFILE")/tmp
@@ -50,10 +50,13 @@ MLEXIT="commit();"
 START_SML="$INFILE $ML_OPTIONS"
 
 if [ -n "$TERMINATE" ]; then
-  { echo "$MLTEXT"; echo "$MLEXIT" } | $START_SML
+  { echo "$MLTEXT" "$MLEXIT" } | $START_SML
+  RC=$?
+elif [ -z "$MLTEXT" ]; then
+  sh -c "{ $ISABELLE_HOME/lib/scripts/ucat; echo '$MLEXIT'; } | $START_SML"
   RC=$?
 else
-  { echo "$MLTEXT"; $ISABELLE_HOME/lib/scripts/ucat; echo "$MLEXIT" } | $START_SML
+  sh -c "{ echo '$MLTEXT'; $ISABELLE_HOME/lib/scripts/ucat; echo '$MLEXIT'; } | $START_SML"
   RC=$?
 fi
 
