@@ -22,6 +22,9 @@ to your system environment. Simply type:
   cd [ISABELLE_HOME]
   ./configure
 
+This does not store any references to [ISABELLE_HOME]. You may safely
+move the system later, without running ./configure again.
+
 
 ML system settings and compilation
 ----------------------------------
