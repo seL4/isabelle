@@ -57,8 +57,5 @@ constdefs
   Always :: "i => i"
     "Always(A) == initially(A) Int Stable(A)"
 
-  (* Increasing is the weak from of increasing *)
-  Increasing :: [i,i, i] => i 
-  "Increasing(A, r, f) ==  INT a:A. Stable({s:state.  <a, f`s>:r})"
 end
 

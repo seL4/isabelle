@@ -8,7 +8,7 @@ fold f e {x1,...,xn} = f x1 (... (f xn e)) where f is at
 least left-commutative.  
 *)
 
-FoldSet =  Main +
+FoldSet = Main +
 
 consts fold_set :: "[i, i, [i,i]=>i, i] => i"
 

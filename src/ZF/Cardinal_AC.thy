@@ -17,7 +17,8 @@ apply (rule AC_well_ord [THEN exE])
 apply (erule well_ord_cardinal_eqpoll)
 done
 
-lemmas cardinal_idem = cardinal_eqpoll [THEN cardinal_cong, standard]
+text{*The theorem @{term "||A|| = |A|"} *}
+lemmas cardinal_idem = cardinal_eqpoll [THEN cardinal_cong, standard, simp]
 
 lemma cardinal_eqE: "|X| = |Y| ==> X eqpoll Y"
 apply (rule AC_well_ord [THEN exE])
@@ -65,7 +66,7 @@ apply (erule well_ord_InfCard_square_eq, assumption)
 done
 
 
-subsection{*Other Applications of AC*}
+subsection {*The relationship between cardinality and le-pollence*}
 
 lemma Card_le_imp_lepoll: "|A| le |B| ==> A lepoll B"
 apply (rule cardinal_eqpoll
@@ -79,6 +80,27 @@ apply (erule Card_cardinal_eq [THEN subst], rule iffI,
        erule Card_le_imp_lepoll)
 apply (erule lepoll_imp_Card_le) 
 done
+
+lemma cardinal_0_iff_0 [simp]: "|A| = 0 <-> A = 0";
+apply auto 
+apply (drule cardinal_0 [THEN ssubst])
+apply (blast intro: eqpoll_0_iff [THEN iffD1] cardinal_eqpoll_iff [THEN iffD1])
+done
+
+lemma cardinal_lt_iff_lesspoll: "Ord(i) ==> i < |A| <-> i lesspoll A"
+apply (cut_tac A = "A" in cardinal_eqpoll)
+apply (auto simp add: eqpoll_iff)
+apply (blast intro: lesspoll_trans2 lt_Card_imp_lesspoll Card_cardinal)
+apply (force intro: cardinal_lt_imp_lt lesspoll_cardinal_lt lesspoll_trans2 
+             simp add: cardinal_idem)
+done
+
+lemma cardinal_le_imp_lepoll: " i \<le> |A| ==> i \<lesssim> A"
+apply (blast intro: lt_Ord Card_le_imp_lepoll Ord_cardinal_le le_trans)
+done
+
+
+subsection{*Other Applications of AC*}
 
 lemma surj_implies_inj: "f: surj(X,Y) ==> EX g. g: inj(Y,X)"
 apply (unfold surj_def)
@@ -170,5 +192,10 @@ apply (rule lt_subset_trans [OF inj_UN_subset cardinal_UN_Ord_lt_csucc], assumpt
 apply (blast intro!: Ord_UN elim: ltE)
 done
 
-end
+ML
+{*
+val cardinal_0_iff_0 = thm "cardinal_0_iff_0";
+val cardinal_lt_iff_lesspoll = thm "cardinal_lt_iff_lesspoll";
+*}
 
+end

@@ -103,8 +103,10 @@ by (simp_tac (simpset() addsimps
 qed "Join_commute";
 
 Goal "A Join (B Join C) = B Join (A Join C)";
-by (asm_simp_tac (simpset() addsimps 
-     Un_ac@Int_ac@[Join_def,Int_Un_distrib2, cons_absorb]) 1);
+by (simp_tac (simpset() addsimps
+    [Join_def,Int_Un_distrib2, cons_absorb]) 1);
+by (simp_tac (simpset() addsimps 
+        Un_ac@Int_ac@[Int_Un_distrib2, cons_absorb]) 1);
 qed "Join_left_commute";
 
 Goal "(F Join G) Join H = F Join (G Join H)";
@@ -584,7 +586,7 @@ by (rewtac safety_prop_def);
 by Auto_tac;
 qed "Allowed_eq";
 
-Goal "[| F == mk_program (init, acts, UN F:X. Acts(F)); X:property; safety_prop(X) |] \
+Goal "[| F == mk_program (init, acts, UN F:X. Acts(F)); safety_prop(X) |] \
 \     ==> Allowed(F) = X";
 by (asm_simp_tac (simpset() addsimps [Allowed_eq]) 1); 
 qed "def_prg_Allowed";

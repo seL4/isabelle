@@ -480,7 +480,7 @@ declare refl [THEN update_idem, simp]
 lemma domain_update [simp]: "domain(f(x:=y)) = cons(x, domain(f))"
 by (unfold update_def, simp)
 
-lemma update_type: "[| f: A -> B;  x : A;  y: B |] ==> f(x:=y) : A -> B"
+lemma update_type: "[| f:Pi(A,B);  x : A;  y: B(x) |] ==> f(x:=y) : Pi(A, B)"
 apply (unfold update_def)
 apply (simp add: domain_of_fun cons_absorb apply_funtype lam_type)
 done

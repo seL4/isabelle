@@ -1,4 +1,4 @@
-(*  Title:      HOL/UNITY/FP.ML
+(*  Title:      ZF/UNITY/FP.ML
     ID:         $Id$
     Author:     Sidi O Ehmety, Computer Laboratory
     Copyright   2001  University of Cambridge
@@ -28,10 +28,6 @@ by (rtac FP_type 1);
 qed "st_set_FP";
 AddIffs [st_set_FP];
 
-Goal "Union(B) Int A = (UN C:B. C Int A)"; 
-by (Blast_tac 1);
-qed "Int_Union2";
-
 Goalw [FP_Orig_def, stable_def] "F:program ==> F:stable(FP_Orig(F) Int B)";
 by (stac Int_Union2 1);
 by (blast_tac (claset() addIs [constrains_UN]) 1);
@@ -43,11 +39,6 @@ by (Blast_tac 1);
 qed "FP_Orig_weakest2";
 
 bind_thm("FP_Orig_weakest",  allI RS FP_Orig_weakest2);
-
-Goal "A Int cons(a, B) = \
-   \ (if a : A then cons(a, cons(a, (A Int B))) else A Int B)";
-by Auto_tac;
-qed "Int_cons_right";
 
 Goal "F:program ==> F : stable (FP(F) Int B)";
 by (subgoal_tac "FP(F) Int B = (UN x:B. FP(F) Int {x})" 1);

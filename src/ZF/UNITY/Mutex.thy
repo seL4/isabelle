@@ -14,18 +14,18 @@ consts
   p, m, n, u, v :: i
   
 translations
-  "p" == "Var([])"
-  "m" == "Var([0])"
-  "n" == "Var([1])"
-  "u" == "Var([1,0])"
-  "v" == "Var([1,1])"
+  "p" == "Var([0])"
+  "m" == "Var([1])"
+  "n" == "Var([0,0])"
+  "u" == "Var([0,1])"
+  "v" == "Var([1,0])"
   
 rules (** Type declarations  **)
-  p_type  "type_of(p)=bool"
-  m_type  "type_of(m)=int"
-  n_type  "type_of(n)=int"
-  u_type  "type_of(u)=bool"
-  v_type  "type_of(v)=bool"
+  p_type  "type_of(p)=bool & default_val(p)=0"
+  m_type  "type_of(m)=int  & default_val(m)=#0"
+  n_type  "type_of(n)=int  & default_val(n)=#0"
+  u_type  "type_of(u)=bool & default_val(u)=0"
+  v_type  "type_of(v)=bool & default_val(v)=0"
   
 constdefs
   (** The program for process U **)
@@ -64,7 +64,7 @@ constdefs
 
  Mutex :: i
  "Mutex == mk_program({s:state. s`u=0 & s`v=0 & s`m = #0 & s`n = #0},
-                       {U0, U1, U2, U3, U4, V0, V1, V2, V3, V4}, Pow(state*state))"
+              {U0, U1, U2, U3, U4, V0, V1, V2, V3, V4}, Pow(state*state))"
 
   (** The correct invariants **)
 

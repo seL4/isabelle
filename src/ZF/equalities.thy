@@ -206,6 +206,12 @@ by blast
 (*Intersection is an AC-operator*)
 lemmas Int_ac= Int_assoc Int_left_absorb Int_commute Int_left_commute
 
+lemma Int_absorb1: "B \<subseteq> A ==> A \<inter> B = B"
+  by blast
+
+lemma Int_absorb2: "A \<subseteq> B ==> A \<inter> B = A"
+  by blast
+
 lemma Int_Un_distrib: "A Int (B Un C) = (A Int B) Un (A Int C)"
 by blast
 
@@ -257,6 +263,12 @@ by blast
 
 (*Union is an AC-operator*)
 lemmas Un_ac = Un_assoc Un_left_absorb Un_commute Un_left_commute
+
+lemma Un_absorb1: "A \<subseteq> B ==> A \<union> B = B"
+  by blast
+
+lemma Un_absorb2: "B \<subseteq> A ==> A \<union> B = A"
+  by blast
 
 lemma Un_Int_distrib: "(A Int B) Un C  =  (A Un C) Int (B Un C)"
 by blast
@@ -1217,8 +1229,11 @@ val Collect_Int_Collect_eq = thm "Collect_Int_Collect_eq";
 
 val Int_ac = thms "Int_ac";
 val Un_ac = thms "Un_ac";
-
+val Int_absorb1 = thm "Int_absorb1";
+val Int_absorb2 = thm "Int_absorb2";
+val Un_absorb1 = thm "Un_absorb1";
+val Un_absorb2 = thm "Un_absorb2";
 *}
-
+ 
 end
 

@@ -52,7 +52,7 @@ by (rtac equalityI 1);
 by (ALLGOALS(Clarify_tac));
 by (cut_inst_tac [("F", "x")] Acts_type 1);
 by (asm_full_simp_tac (simpset() addsimps [Diff_cancel]) 1);
-by Auto_tac;
+by (auto_tac (claset() addIs [st0_in_state], simpset()));
 qed "transient_state";
 
 Goalw [transient_def,st_set_def] "state<=B ==> transient(B) = 0";
@@ -61,7 +61,7 @@ by (ALLGOALS(Clarify_tac));
 by (cut_inst_tac [("F", "x")] Acts_type 1);
 by (asm_full_simp_tac (simpset() addsimps [Diff_cancel]) 1);
 by (subgoal_tac "B=state" 1);
-by Auto_tac;
+by (auto_tac (claset() addIs [st0_in_state], simpset()));
 qed "transient_state2";
 
 Goalw [transient_def] "transient(0) = program";
@@ -526,34 +526,43 @@ by (res_inst_tac [("b", "x")] UN_I 1);
 by Auto_tac;
 qed "leadsTo_wf_induct";
 
-Goalw [field_def] "field(less_than(nat)) = nat";
-by (simp_tac (simpset() addsimps [less_than_equals]) 1);
+Goalw [field_def] "field(measure(nat, %x. x)) = nat";
+by (asm_full_simp_tac (simpset() addsimps [measure_def]) 1) ;
 by (rtac equalityI 1);
 by (force_tac (claset(), simpset()) 1);
 by (Clarify_tac 1);
 by (thin_tac "x~:range(?y)" 1);
 by (etac nat_induct 1);
-by (ALLGOALS(asm_full_simp_tac (simpset() addsimps [domain_def])));
-by (res_inst_tac [("x", "<succ(xa),succ(succ(xa))>")] ReplaceI 2);
-by (res_inst_tac [("x", "<0,1>")] ReplaceI 1);
-by (REPEAT(force_tac (claset() addIs [splitI], simpset()) 1));
-qed "nat_less_than_field";
+by (res_inst_tac [("b", "succ(succ(xa))")] domainI 2);
+by (res_inst_tac [("b","succ(0)")] domainI 1); 
+by (ALLGOALS Asm_full_simp_tac);
+qed "nat_measure_field";
+
+
+Goal "k<A ==> measure(A, %x. x) -`` {k} = k";
+by (rtac equalityI 1);
+by (auto_tac (claset(), simpset() addsimps [measure_def]));
+by (blast_tac (claset() addIs [ltD]) 1); 
+by (rtac vimageI 1); 
+by (blast_tac (claset() addIs []) 2); 
+by (asm_full_simp_tac (simpset() addsimps [lt_Ord, lt_Ord2, Ord_mem_iff_lt]) 1); 
+by (blast_tac (claset() addIs [lt_trans]) 1); 
+qed "Image_inverse_lessThan";
 
 (*Alternative proof is via the lemma F : (A Int f-`(lessThan m)) leadsTo B*)
 Goal
  "[| A<=f-``nat;\ 
 \    F:program; st_set(A); st_set(B); \
-\    ALL m:nat. F:(A Int f-``{m}) leadsTo ((A Int f-``lessThan(m,nat)) Un B) |] \
+\    ALL m:nat. F:(A Int f-``{m}) leadsTo ((A Int f -`` m) Un B) |] \
 \     ==> F : A leadsTo B";
-by (res_inst_tac [("A1", "nat")]
-        (wf_less_than RS leadsTo_wf_induct) 1);
+by (res_inst_tac [("A1", "nat"),("f1", "%x. x")]
+        (wf_measure RS leadsTo_wf_induct) 1);
 by (Clarify_tac 6);
 by (ALLGOALS(asm_full_simp_tac 
-          (simpset() addsimps [nat_less_than_field])));
-by (Clarify_tac 1);
-by (ALLGOALS(asm_full_simp_tac 
-    (simpset() addsimps [rewrite_rule [vimage_def] Image_inverse_less_than])));
+          (simpset() addsimps [nat_measure_field]))); 
+by (asm_simp_tac (simpset() addsimps [ltI, Image_inverse_lessThan, symmetric vimage_def]) 1); 
 qed "lessThan_induct";
+
 
 (*** wlt ****)
 

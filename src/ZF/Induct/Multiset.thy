@@ -13,7 +13,7 @@ consts
   (* Short cut for multiset space *)
   Mult :: i=>i 
 translations 
-  "Mult(A)" => "A-||>nat-{0}"
+  "Mult(A)" => "A -||> nat-{0}"
   
 constdefs
   
@@ -26,7 +26,7 @@ constdefs
 
   (* M is a multiset *)
   multiset :: i => o
-  "multiset(M) == EX A. M:A->nat-{0} & Finite(A)"
+  "multiset(M) == EX A. M : A -> nat-{0} & Finite(A)"
 
   mset_of :: "i=>i"
   "mset_of(M) == domain(M)"
@@ -36,9 +36,12 @@ constdefs
      if x:mset_of(M) Int mset_of(N) then  (M`x) #+ (N`x)
      else (if x:mset_of(M) then M`x else N`x)"
 
-  (* eliminating 0's from a function *)
+  (*convert a function to a multiset by eliminating 0*)
   normalize :: i => i   
-  "normalize(M) == funrestrict(M, {x:mset_of(M). 0<M`x})"
+  "normalize(f) ==
+       if (EX A. f : A -> nat & Finite(A)) then
+            funrestrict(f, {x:mset_of(f). 0 < f`x})
+       else 0"
 
   mdiff  :: "[i, i] => i" (infixl "-#" 65)
   "M -# N ==  normalize(lam x:mset_of(M).

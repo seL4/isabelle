@@ -365,34 +365,35 @@ by Auto_tac;
 qed "setsum_addf";
 
 
-val major::prems = Goal
+Goal "[| A=A'; B=B'; e=e';  \
+\ (ALL x:A'. ALL y:B'. f(x,y) = f'(x,y)) |] ==> \
+\  fold_set(A,B,f,e) = fold_set(A',B',f',e')";
+by (asm_full_simp_tac (simpset() addsimps [thm"fold_set_def"]) 1); 
+by (rtac (thm"lfp_cong") 1); 
+by (rtac refl 1); 
+by (rtac Collect_cong 1);  
+by (rtac refl 1); 
+by (rtac disj_cong 1);  
+by (rtac iff_refl 1); 
+by (REPEAT (rtac ex_cong 1));  
+by Auto_tac; 
+qed "fold_set_cong";
+
+val prems = Goal 
+"[| B=B'; A=A'; e=e';  \
+\   !!x y. [|x:A'; y:B'|] ==> f(x,y) = f'(x,y) |] ==> \
+\  fold[B](f,e,A) = fold[B'](f', e', A')";
+by (asm_full_simp_tac (simpset() addsimps fold_def::prems) 1); 
+by (stac fold_set_cong 1); 
+by (rtac refl 5); 
+by (ALLGOALS (asm_full_simp_tac (simpset() addsimps prems)));
+qed "fold_cong";
+
+val prems = Goal
  "[| A=B; !!x. x:B ==> f(x) = g(x) |] ==> \
 \    setsum(f, A) = setsum(g, B)";
-by (case_tac "Finite(B)" 1);
-by (asm_simp_tac (simpset() addsimps [setsum_def, major]) 2);
-by (subgoal_tac  "ALL C. C <= B --> (ALL x:C. f(x) = g(x)) \
-                 \  --> setsum(f,C) = setsum(g, C)" 1);
-by (cut_facts_tac [major] 1);
- by (asm_full_simp_tac (simpset() addsimps [major]@prems) 1); 
-by (etac Finite_induct 1);
-by (ALLGOALS(Clarify_tac));
-by (subgoal_tac "C=0" 1);
-by (Force_tac 1);
-by (Blast_tac 1);
-by (asm_full_simp_tac (simpset() addsimps [major,subset_cons_iff]@prems) 1);
-by Safe_tac;
-by (ftac subset_Finite 1);
-by (assume_tac 1);
-by (Blast_tac 1);
-by (ftac subset_Finite 1);
-by (assume_tac 1);
-by (subgoal_tac "C = cons(x, C - {x})" 1);
-by (Blast_tac 2);
-by (etac ssubst 1);
-by (dtac spec 1); 
-by (mp_tac 1);
-by (asm_full_simp_tac (simpset() addsimps [Ball_def, major]@prems) 1); 
-qed_spec_mp  "setsum_cong";
+by (asm_simp_tac (simpset() addsimps setsum_def::prems addcongs [fold_cong]) 1);
+qed  "setsum_cong";
 
 Goal "[| Finite(A); Finite(B) |] \
 \     ==> setsum(f, A Un B) = \

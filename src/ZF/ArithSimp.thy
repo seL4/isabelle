@@ -12,7 +12,7 @@ files "arith_data.ML":
 
 subsection{*Difference*}
 
-lemma diff_self_eq_0: "m #- m = 0"
+lemma diff_self_eq_0 [simp]: "m #- m = 0"
 apply (subgoal_tac "natify (m) #- natify (m) = 0")
 apply (rule_tac [2] natify_in_nat [THEN nat_induct], auto)
 done

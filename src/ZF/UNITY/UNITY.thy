@@ -68,19 +68,13 @@ constdefs
   invariant :: i => i
   "invariant(A) == initially(A) Int stable(A)"
     
-  (* The `increasing' relation of Charpentier. Increasing's parameters are:
-   a state function f, a domain A and an order relation r over the domain A. *)
-  
-  increasing :: [i,i, i] => i 
-  "increasing(A, r, f) ==  INT a:A. stable({s:state.  <a, f`s>:r})"
+  (* meta-function composition *)
+  comp :: "[i=>i, i=>i] => (i=>i)" (infixl 65)
+  "f comp g == %x. f(g(x))"
 
-  (* The definition of a partial order in ZF (predicate part_ord in theory Order)
-     describes a strict order: irreflexive and transitive.
-     However, the order used in association with Charpentier's increasing
-     relation is not, hence the definition below: *)
-  part_order :: [i, i] => o
-  "part_order(A, r) == refl(A,r) & trans[A](r) & antisym(r)"
-
+  pg_compl :: "i=>i"
+  "pg_compl(X)== program - X"
+    
 defs
   (* Condition `st_set(A)' makes the definition slightly stronger than the HOL one *)
   constrains_def "A co B == {F:program. (ALL act:Acts(F). act``A<=B) & st_set(A)}"

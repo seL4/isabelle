@@ -38,11 +38,12 @@ constdefs
   Gt :: i
     "Gt == {<x,y>:nat*nat. y < x}"
 
-  less_than :: "i=>i"
-    "less_than(n) == {i:nat.  i<n}"
-
   greater_than :: "i=>i"
     "greater_than(n) == {i:nat. n < i}"
+
+text{*No need for a less-than operator: a natural number is its list of
+predecessors!*}
+
 
 lemma nat_bnd_mono: "bnd_mono(Inf, %X. {0} Un {succ(i). i:X})"
 apply (rule bnd_monoI)
@@ -281,6 +282,14 @@ done
 lemma nat_nonempty [simp]: "nat ~= 0"
 by blast
 
+text{*A natural number is the set of its predecessors*}
+lemma nat_eq_Collect_lt: "i \<in> nat ==> {j\<in>nat. j<i} = i"
+apply (rule equalityI)
+apply (blast dest: ltD)  
+apply (auto simp add: Ord_mem_iff_lt)
+apply (blast intro: lt_trans) 
+done
+
 
 ML
 {*
@@ -288,7 +297,6 @@ val Le_def = thm "Le_def";
 val Lt_def = thm "Lt_def";
 val Ge_def = thm "Ge_def";
 val Gt_def = thm "Gt_def";
-val less_than_def = thm "less_than_def";
 val greater_than_def = thm "greater_than_def";
 
 val nat_bnd_mono = thm "nat_bnd_mono";

@@ -116,6 +116,8 @@ by (simp_tac (simpset()
     addsimps [RawInit_type, Init_def]) 1);
 qed "Init_type";
 
+bind_thm("InitD", Init_type RS subsetD);
+
 Goalw [st_set_def] "st_set(Init(F))";
 by (rtac Init_type 1);
 qed "st_set_Init";
@@ -132,6 +134,15 @@ Goal
 by (simp_tac (simpset() 
      addsimps [RawAllowedActs_type, AllowedActs_def]) 1);
 qed "AllowedActs_type";
+
+(* Needed in Behaviors *)
+Goal "[| act:Acts(F); <s,s'>:act |] ==> s:state & s':state";
+by (blast_tac (claset() addDs [Acts_type RS subsetD]) 1);
+qed "ActsD";
+
+Goal "[| act:AllowedActs(F); <s,s'>:act |] ==> s:state & s':state";
+by (blast_tac (claset() addDs [AllowedActs_type RS subsetD]) 1);
+qed "AllowedActsD";
 
 (** More simplification rules involving state 
     and Init, Acts, and AllowedActs **)
@@ -575,6 +586,12 @@ by (auto_tac (claset() addDs [Acts_type RS subsetD], simpset()));
 qed "stable_state";
 AddIffs [stable_state];
 
+Goalw [unless_def, stable_def]
+ "stable(A)= A unless 0"; 
+by Auto_tac;
+qed "stable_unless";
+
+
 (** Union **)
 
 Goalw [stable_def]
@@ -607,9 +624,8 @@ qed "stable_All";
 
 Goalw [stable_def, constrains_def, st_set_def]
 "[| F : stable(C); F : A co (C Un A') |] ==> F : (C Un A) co (C Un A')";
-by (cut_inst_tac [("F", "F")] Acts_type 1);
 by Auto_tac;
-by (Blast.depth_tac (claset()) 10 1);
+by (blast_tac (claset() addSDs [bspec]) 1); 
 qed "stable_constrains_Un";
 
 Goalw [stable_def, constrains_def, st_set_def]
@@ -684,76 +700,6 @@ by Safe_tac;
 by (dtac InterD 1);
 by Auto_tac;
 qed "strongest_rhs_is_strongest";
-
-(*** increasing ***)
-Goalw [increasing_def] "increasing(A, r, f) <= program";
-by (case_tac "A=0" 1);
-by (etac not_emptyE 2);
-by (Clarify_tac 2);
-by (ALLGOALS(asm_full_simp_tac (simpset() addsimps [Inter_iff, Inter_0])));
-by (blast_tac (claset() addDs [stable_type RS subsetD]) 1); 
-qed "increasing_type";
-
-Goalw [increasing_def]
-   "[| F:increasing(A, r, f); a:A |] ==> F:stable({s:state. <a, f`s>:r})";
-by (Blast_tac 1);
-qed "increasingD";
-
-Goalw [increasing_def]
-"F:increasing(A, r, f) ==> F:program & (EX a. a:A)";
-by (auto_tac (claset() addDs [stable_type RS subsetD],
-              simpset() addsimps [INT_iff]));
-qed "increasingD2";
-
-Goalw [increasing_def, stable_def]
- "F:increasing(A, r, lam s:state. c) <-> F:program & (EX a. a:A)";
-by (auto_tac (claset() addDs [constrains_type RS subsetD],
-               simpset() addsimps [INT_iff]));
-qed "increasing_constant";
-AddIffs [increasing_constant];
-
-Goalw [increasing_def, stable_def, constrains_def, st_set_def, part_order_def]
-"[| g:mono_map(A,r,A,r); part_order(A, r); f:state->A |] \
-\  ==> increasing(A, r,f) <= increasing(A, r,g O f)";
-by (case_tac "A=0" 1);
-by (Asm_full_simp_tac 1);
-by (etac not_emptyE 1);
-by (Clarify_tac 1);
-by (cut_inst_tac [("F", "xa")] Acts_type 1);
-by (asm_full_simp_tac (simpset() addsimps [Inter_iff, mono_map_def]) 1);
-by Auto_tac;
-by (rename_tac "xa xc xd act xe xf" 1);
-by (dres_inst_tac [("psi", "ALL x:A. ALL xa:A. ?u(x,xa)")] asm_rl 1); 
-by (dres_inst_tac [("x", "f`xf")] bspec 1);
-by Auto_tac;
-by (dres_inst_tac [("psi", "ALL x:A. ALL xa:A. ?u(x,xa)")] asm_rl 1); 
-by (dres_inst_tac [("x", "act")] bspec 1);
-by Auto_tac;
-by (dres_inst_tac [("psi", "Acts(?u) <= ?v")] asm_rl 1);
-by (dres_inst_tac [("psi", "?u <= state")] asm_rl 1);
-by (dres_inst_tac [("c", "xe")] subsetD 1);
-by (rtac imageI 1);
-by Auto_tac;
-by (asm_full_simp_tac (simpset() addsimps [refl_def, apply_type]) 1);
-by (dres_inst_tac [("x1", "f`xf"), ("x", "f`xe")] (bspec RS bspec) 1);
-by (ALLGOALS(asm_full_simp_tac (simpset() addsimps [apply_type])));
-by (res_inst_tac [("b", "g ` (f ` xf)")] trans_onD 1);
-by (ALLGOALS(asm_full_simp_tac (simpset() addsimps [apply_type])));
-qed "mono_increasing_comp";
-
-(*Holds by the theorem (succ(m) le n) = (m < n) *)
-Goalw [increasing_def]
-     "[| F:increasing(nat, {<m,n>:nat*nat. m le n}, f); f:state->nat; k:nat |] \
-\  ==> F: stable({s:state. k < f`s})";
-by (Clarify_tac 1);
-by (asm_full_simp_tac (simpset() addsimps [INT_iff]) 1);
-by Safe_tac;
-by (dres_inst_tac [("x", "succ(k)")] bspec 1);
-by (auto_tac (claset(), simpset() addsimps [apply_type, Collect_conj_eq]));
-by (subgoal_tac "{x: state . f`x : nat} = state" 1);
-by Auto_tac;
-qed "strict_increasingD";
-
 
 (* Used in WFair.thy *)
 Goal "A:Pow(Pow(B)) ==> Union(A):Pow(B)";

@@ -5,10 +5,11 @@
 
 Formalizes UNITY-program states.
 *)
-AddIffs [some_assume];
-
-AddIs var.intrs;
-Addsimps var.intrs;
+Goalw [state_def, st0_def] "st0:state";
+by Auto_tac;
+qed "st0_in_state";
+Addsimps [st0_in_state];
+AddTCs [st0_in_state];
 
 Goalw [st_set_def] "st_set({x:state. P(x)})";
 by Auto_tac;
@@ -85,6 +86,29 @@ Goalw [st_set_def]
 "[| st_set(A); B<=A |] ==> st_set(B)";
 by Auto_tac;
 qed "st_set_subset";
+
+
+Goalw [state_def]
+"[| s:state; x:var; y:type_of(x) |] ==> s(x:=y):state";
+by (blast_tac (claset() addIs [update_type]) 1);
+qed "state_update_type";
+
+Goalw [st_compl_def] "st_set(st_compl(A))";
+by Auto_tac;
+qed "st_set_compl";
+Addsimps [st_set_compl];
+
+Goalw [st_compl_def] "x:st_compl(A) <-> x:state & x ~:A";
+by Auto_tac;
+qed "st_compl_iff";
+Addsimps [st_compl_iff];
+
+Goalw [st_compl_def] "st_compl({s:state. P(s)}) = {s:state. ~P(s)}";
+by Auto_tac;
+qed "st_compl_Collect";
+Addsimps [st_compl_Collect];
+
+
 
 
 

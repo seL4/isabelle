@@ -445,7 +445,6 @@ apply (rule well_ord_cardinal_eqpoll)
 apply (erule well_ord_rvimage, assumption)
 done
 
-
 lemma lepoll_cardinal_le: "[| A \<lesssim> i; Ord(i) |] ==> |A| le i"
 apply (rule le_trans)
 apply (erule well_ord_Memrel [THEN well_ord_lepoll_imp_Card_le], assumption)
@@ -455,12 +454,16 @@ done
 lemma lepoll_Ord_imp_eqpoll: "[| A \<lesssim> i; Ord(i) |] ==> |A| \<approx> A"
 by (blast intro: lepoll_cardinal_le well_ord_Memrel well_ord_cardinal_eqpoll dest!: lepoll_well_ord)
 
-lemma lesspoll_imp_eqpoll: 
-     "[| A \<prec> i; Ord(i) |] ==> |A| \<approx> A"
+lemma lesspoll_imp_eqpoll: "[| A \<prec> i; Ord(i) |] ==> |A| \<approx> A"
 apply (unfold lesspoll_def)
 apply (blast intro: lepoll_Ord_imp_eqpoll)
 done
 
+lemma cardinal_subset_Ord: "[|A<=i; Ord(i)|] ==> |A| <= i"
+apply (drule subset_imp_lepoll [THEN lepoll_cardinal_le])
+apply (auto simp add: lt_def)
+apply (blast intro: Ord_trans)
+done
 
 subsection{*The finite cardinals *}
 
@@ -1091,6 +1094,7 @@ val well_ord_lepoll_imp_Card_le = thm "well_ord_lepoll_imp_Card_le";
 val lepoll_cardinal_le = thm "lepoll_cardinal_le";
 val lepoll_Ord_imp_eqpoll = thm "lepoll_Ord_imp_eqpoll";
 val lesspoll_imp_eqpoll = thm "lesspoll_imp_eqpoll";
+val cardinal_subset_Ord = thm "cardinal_subset_Ord";
 val cons_lepoll_consD = thm "cons_lepoll_consD";
 val cons_eqpoll_consD = thm "cons_eqpoll_consD";
 val succ_lepoll_succD = thm "succ_lepoll_succD";

@@ -11,7 +11,7 @@ Charpentier's Generalized Prefix Relation
 Based on Lex/Prefix
 *)
 
-GenPrefix = ListPlus + 
+GenPrefix = Main + 
 
 consts
   gen_prefix :: "[i, i] => i"
@@ -37,14 +37,6 @@ constdefs
 
    strict_prefix :: i=>i  
   "strict_prefix(A) == prefix(A) - id(list(A))"
-
-  (* Probably to be moved elsewhere *)
-
-   Le :: i
-  "Le == {<x,y>:nat*nat. x le y}"
-  
-   Ge :: i
-  "Ge == {<x,y>:nat*nat. y le x}"
 
 syntax
   (* less or equal and greater or equal over prefixes *)

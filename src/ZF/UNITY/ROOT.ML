@@ -6,6 +6,8 @@
 Root file for ZF/UNITY proofs.
 *)
 
+add_path "../Induct";  (*for Multisets*)
+
 (*Basic meta-theory*)
 time_use_thy "Guar";
 

@@ -15,7 +15,7 @@ Theory ported from HOL.
   
 *)
 
-Comp = Union +
+Comp = Union + Increasing +
 
 constdefs
 
@@ -36,9 +36,12 @@ constdefs
   preserves :: (i=>i)=>i
   "preserves(f) == {F:program. ALL z. F: stable({s:state. f(s) = z})}"
 
+  fun_pair :: "[i=>i, i =>i] =>(i=>i)"
+  "fun_pair(f, g) == %x. <f(x), g(x)>"
+
 localize  :: "[i=>i, i] => i"
   "localize(f,F) == mk_program(Init(F), Acts(F),
-			       AllowedActs(F) Int (UN G:preserves(f). Acts(G)))"
+		       AllowedActs(F) Int (UN G:preserves(f). Acts(G)))"
 
   
   end

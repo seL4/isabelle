@@ -279,19 +279,19 @@ by (Clarify_tac 1);
 by (rtac conjI 1);
 by (blast_tac (claset() addIs [gen_prefix.append]) 1);
 by (thin_tac "length(xs) < length(ys) -->?u" 1);
-by (case_tac "zs=[]" 1);
-by (auto_tac (claset(), simpset() addsimps [neq_Nil_iff]));
+by (eres_inst_tac [("a","zs")] list.elim 1);
+by Auto_tac;  
 by (res_inst_tac [("P1", "%x. <?u(x), ?v>:?w")] (nat_diff_split RS iffD2) 1);
 by Auto_tac;
 by (stac append_cons_conv 1);
-by (rtac   gen_prefix.append 2);
+by (rtac gen_prefix.append 2);
 by (auto_tac (claset() addEs [ConsE],
               simpset() addsimps [gen_prefix_append_both]));
-val lemma = result() RS mp;
+val append_one_gen_prefix_lemma = result() RS mp;
 
 Goal "[| <xs,ys>: gen_prefix(A, r);  length(xs) < length(ys);  refl(A, r) |] \
 \     ==> <xs @ [nth(length(xs), ys)], ys>:gen_prefix(A, r)";
-by (blast_tac (claset() addIs [lemma]) 1);
+by (blast_tac (claset() addIs [append_one_gen_prefix_lemma]) 1);
 qed "append_one_gen_prefix";
 
 
@@ -499,13 +499,10 @@ by (rtac iffI 1);
 by (Clarify_tac 1);
 by (eres_inst_tac [("xs", "ysa")] rev_list_elim 1);
 by (Asm_full_simp_tac 1);
-by (dres_inst_tac [("psi", "ya:list(A)")] asm_rl 1);
-by (rotate_tac ~1 1);
 by (asm_full_simp_tac (simpset() addsimps [app_type, app_assoc RS sym]) 1);
 by (auto_tac (claset(), simpset() addsimps [app_assoc, app_type]));
 qed "prefix_snoc";
 Addsimps [prefix_snoc];
-
 
 Goal "zs:list(A) ==> ALL xs:list(A). ALL ys:list(A). \
 \  (<xs, ys@zs>:prefix(A)) <-> \
@@ -606,9 +603,34 @@ Goalw [prefix_def, Ge_def]
 by (rtac (gen_prefix_mono RS subsetD) 1);
 by Auto_tac;
 qed "prefix_imp_pfixGe";
+(* Added by Sidi: prefix and take *)
 
+Goalw [prefix_def]
+"<xs, ys>:prefix(A) ==> xs=take(length(xs), ys)";
+by (etac gen_prefix.induct 1);
+by (subgoal_tac "length(xs):nat" 3);
+by (auto_tac (claset() addDs [gen_prefix.dom_subset RS subsetD],
+              simpset() addsimps [length_type]));
+by (forward_tac [gen_prefix.dom_subset RS subsetD] 1);
+by (forward_tac [gen_prefix_length_le] 1);
+by (auto_tac (claset(), simpset() addsimps [take_append]));
+by (subgoal_tac "length(xs) #- length(ys)=0" 1);
+by (ALLGOALS(asm_simp_tac (simpset() addsimps [diff_is_0_iff])));
+qed "prefix_imp_take";
 
+Goalw [prefix_def]
+"xs:list(A) ==> ALL n:nat. <take(n, xs), xs>:prefix(A)";
+by (etac list.induct 1);
+by Auto_tac;
+by (etac natE 1);
+by Auto_tac;
+qed_spec_mp "take_prefix";
 
-
-
-
+Goal "<xs, ys>:prefix(A) <-> (xs=take(length(xs), ys) & xs:list(A) & ys:list(A))";
+by (rtac iffI 1);
+by (forward_tac [prefix_type RS subsetD] 1);
+by (blast_tac (claset() addIs [prefix_imp_take]) 1);
+by (Clarify_tac 1);
+by (etac ssubst 1);
+by (blast_tac (claset() addIs [take_prefix, length_type]) 1);
+qed "prefix_take_iff";

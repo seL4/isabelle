@@ -314,14 +314,13 @@ by (REPEAT(Blast_tac 1));
 qed "LeadsTo_wf_induct";
 
 
-Goal "[| ALL m:nat. F:(A Int f-``{m}) LeadsTo ((A Int f-``lessThan(m,nat)) Un B); \
+Goal "[| ALL m:nat. F:(A Int f-``{m}) LeadsTo ((A Int f-``m) Un B); \
 \     A<=f-``nat; F:program |] ==> F : A LeadsTo B";
-by (res_inst_tac [("A1", "nat"), ("I", "nat")] (wf_less_than RS LeadsTo_wf_induct) 1);
+by (res_inst_tac [("A1", "nat"),("f1", "%x. x")]
+        (wf_measure RS LeadsTo_wf_induct) 1);
 by (ALLGOALS(asm_full_simp_tac 
-          (simpset() addsimps [nat_less_than_field])));
-by (Clarify_tac 1);
-by (ALLGOALS(asm_full_simp_tac 
-    (simpset() addsimps [rewrite_rule [vimage_def] Image_inverse_less_than])));
+          (simpset() addsimps [nat_measure_field])));
+by (asm_simp_tac (simpset() addsimps [ltI, Image_inverse_lessThan, symmetric vimage_def]) 1);
 qed "LessThan_induct";
 
 
@@ -407,7 +406,7 @@ fun ensures_tac sact =
              Clarify_tac 3, dtac swap 3, Force_tac 4,
              rtac ReplaceI 3, Force_tac 3, Force_tac 4,
              Asm_full_simp_tac 3, rtac conjI 3, Simp_tac 4,
-             REPEAT (rtac update_type2 3),
+             REPEAT (rtac state_update_type 3),
              constrains_tac 1,
              ALLGOALS Clarify_tac,
              ALLGOALS (asm_full_simp_tac 

@@ -2,8 +2,6 @@
     ID:         $Id$
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1992  University of Cambridge
-
-Proved in the lattice of subsets of D, namely Pow(D), with Inter as glb
 *)
 
 header{*Least and Greatest Fixed Points; the Knaster-Tarski Theorem*}
@@ -22,6 +20,8 @@ constdefs
   gfp      :: "[i,i=>i]=>i"
      "gfp(D,h) == Union({X: Pow(D). X <= h(X)})"
 
+text{*The theorem is proved in the lattice of subsets of @{term D}, 
+      namely @{term "Pow(D)"}, with Inter as the greatest lower bound.*}
 
 subsection{*Monotone Operators*}
 
@@ -69,7 +69,7 @@ apply (erule bnd_monoD2, rule Int_lower1, assumption)
 apply (erule bnd_monoD2, rule Int_lower2, assumption) 
 done
 
-(**** Proof of Knaster-Tarski Theorem for the lfp ****)
+subsection{*Proof of Knaster-Tarski Theorem using @{term lfp}*}
 
 (*lfp is contained in each pre-fixedpoint*)
 lemma lfp_lowerbound: 
@@ -181,8 +181,15 @@ apply (rule lfp_greatest, assumption)
 apply (rule lfp_lowerbound, blast, assumption)
 done
 
+lemma lfp_cong:
+     "[|D=D'; !!X. X <= D' ==> h(X) = h'(X)|] ==> lfp(D,h) = lfp(D',h')"
+apply (simp add: lfp_def)
+apply (rule_tac t=Inter in subst_context)
+apply (rule Collect_cong, simp_all) 
+done 
 
-(**** Proof of Knaster-Tarski Theorem for the gfp ****)
+
+subsection{*Proof of Knaster-Tarski Theorem using @{term gfp}*}
 
 (*gfp contains each post-fixedpoint that is contained in D*)
 lemma gfp_upperbound: "[| A <= h(A);  A<=D |] ==> A <= gfp(D,h)"

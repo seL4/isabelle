@@ -1284,7 +1284,7 @@ done
 
 lemma e_less_eq:
     "m \<in> nat ==> e_less(DD,ee,m,m) = id(set(DD`m))"
-by (simp add: e_less_def diff_self_eq_0)
+by (simp add: e_less_def)
 
 lemma lemma_succ_sub: "succ(m#+n)#-m = succ(natify(n))"
 by simp
@@ -1378,9 +1378,7 @@ by (blast intro: e_less_split_add_lemma)
 
 lemma e_gr_eq:
     "m \<in> nat ==> e_gr(DD,ee,m,m) = id(set(DD`m))"
-apply (simp add: e_gr_def)
-apply (simp add: diff_self_eq_0)
-done
+by (simp add: e_gr_def)
 
 lemma e_gr_add:
     "[|n \<in> nat; k \<in> nat|] 
