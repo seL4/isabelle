@@ -176,7 +176,6 @@
     "assumes"
     "binder"
     "compose"
-    "con_defs"
     "concl"
     "congs"
     "defines"
