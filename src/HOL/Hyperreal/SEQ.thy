@@ -14,7 +14,7 @@ constdefs
   
   (* Nonstandard definition of convergence of sequence *)
   NSLIMSEQ :: [nat=>real,real] => bool    ("((_)/ ----NS> (_))" [60, 60] 60)
-  "X ----NS> L == (ALL N: HNatInfinite. (*fNat* X) N @= hypreal_of_real L)"
+  "X ----NS> L == (ALL N: HNatInfinite. ( *fNat* X) N @= hypreal_of_real L)"
 
   (* define value of limit using choice operator*)
   lim :: (nat => real) => real
@@ -37,7 +37,7 @@ constdefs
  
   (* Nonstandard definition for bounded sequence *)
   NSBseq :: (nat=>real) => bool
-  "NSBseq X == (ALL N: HNatInfinite. (*fNat* X) N : HFinite)" 
+  "NSBseq X == (ALL N: HNatInfinite. ( *fNat* X) N : HFinite)" 
 
   (* Definition for monotonicity *)
   monoseq :: (nat=>real)=>bool
@@ -58,6 +58,6 @@ constdefs
 
   NSCauchy :: (nat => real) => bool
   "NSCauchy X == (ALL M: HNatInfinite. ALL N: HNatInfinite.
-                      (*fNat* X) M @= (*fNat* X) N)"
+                      ( *fNat* X) M @= ( *fNat* X) N)"
 end
 

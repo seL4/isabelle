@@ -498,7 +498,7 @@ qed "HNatInfinite_inverse_not_zero";
 Addsimps [HNatInfinite_inverse_not_zero];
 
 Goal "N : HNatInfinite \
-\     ==> (*fNat* (%x. inverse (real x))) N : Infinitesimal";
+\     ==> ( *fNat* (%x. inverse (real x))) N : Infinitesimal";
 by (res_inst_tac [("f1","inverse")]  (starfun_stafunNat_o2 RS subst) 1);
 by (subgoal_tac "hypreal_of_hypnat N ~= 0" 1);
 by (auto_tac (claset(),simpset() addsimps [starfunNat_real_of_nat]));

@@ -438,7 +438,7 @@ qed "LIM_self2";
 
 Goalw [isNSCont_def] 
       "[| isNSCont f a; y \\<approx> hypreal_of_real a |] \
-\           ==> (*f* f) y \\<approx> hypreal_of_real (f a)";
+\           ==> ( *f* f) y \\<approx> hypreal_of_real (f a)";
 by (Blast_tac 1);
 qed "isNSContD";
 
@@ -662,7 +662,7 @@ qed "isCont_isopen_iff";
                         Uniform continuity
  ------------------------------------------------------------------*)
 Goalw [isNSUCont_def] 
-      "[| isNSUCont f; x \\<approx> y|] ==> (*f* f) x \\<approx> (*f* f) y";
+      "[| isNSUCont f; x \\<approx> y|] ==> ( *f* f) x \\<approx> ( *f* f) y";
 by (Blast_tac 1);
 qed "isNSUContD";
 
@@ -859,7 +859,7 @@ Goalw [real_diff_def]
      "(NSDERIV f x :> D) = \
 \     (\\<forall>xa. \
 \       xa \\<noteq> hypreal_of_real x & xa \\<approx> hypreal_of_real x --> \
-\       (*f* (%z. (f z - f x) / (z - x))) xa \\<approx> hypreal_of_real D)";
+\       ( *f* (%z. (f z - f x) / (z - x))) xa \\<approx> hypreal_of_real D)";
 by (auto_tac (claset(), simpset() addsimps [NSDERIV_NSLIM_iff2, NSLIM_def]));
 qed "NSDERIV_iff2";
 
@@ -867,7 +867,7 @@ qed "NSDERIV_iff2";
 Goal "(NSDERIV f x :> D) ==> \
 \    (\\<forall>u. \
 \       u \\<approx> hypreal_of_real x --> \
-\       (*f* (%z. f z - f x)) u \\<approx> hypreal_of_real D * (u - hypreal_of_real x))";
+\       ( *f* (%z. f z - f x)) u \\<approx> hypreal_of_real D * (u - hypreal_of_real x))";
 by (auto_tac (claset(), simpset() addsimps [NSDERIV_iff2]));
 by (case_tac "u = hypreal_of_real x" 1);
 by (auto_tac (claset(), simpset() addsimps [hypreal_diff_def]));
@@ -876,7 +876,7 @@ by Auto_tac;
 by (dres_inst_tac [("c","u - hypreal_of_real x"),("b","hypreal_of_real D")]
      approx_mult1 1);
 by (ALLGOALS(dtac (hypreal_not_eq_minus_iff RS iffD1)));
-by (subgoal_tac "(*f* (%z. z - x)) u \\<noteq> (0::hypreal)" 2);
+by (subgoal_tac "( *f* (%z. z - x)) u \\<noteq> (0::hypreal)" 2);
 by (auto_tac (claset(),
     simpset() addsimps [real_diff_def, hypreal_diff_def, 
 		(approx_minus_iff RS iffD1) RS (mem_infmal_iff RS iffD2),  
@@ -885,7 +885,7 @@ qed "NSDERIVD5";
 
 Goal "(NSDERIV f x :> D) ==> \
 \     (\\<forall>h \\<in> Infinitesimal. \
-\              ((*f* f)(hypreal_of_real x + h) - \
+\              (( *f* f)(hypreal_of_real x + h) - \
 \                hypreal_of_real (f x))\\<approx> (hypreal_of_real D) * h)";
 by (auto_tac (claset(),simpset() addsimps [nsderiv_def]));
 by (case_tac "h = (0::hypreal)" 1);
@@ -898,7 +898,7 @@ qed "NSDERIVD4";
 
 Goal "(NSDERIV f x :> D) ==> \
 \     (\\<forall>h \\<in> Infinitesimal - {0}. \
-\              ((*f* f)(hypreal_of_real x + h) - \
+\              (( *f* f)(hypreal_of_real x + h) - \
 \                hypreal_of_real (f x))\\<approx> (hypreal_of_real D) * h)";
 by (auto_tac (claset(),simpset() addsimps [nsderiv_def]));
 by (rtac ccontr 1 THEN dres_inst_tac [("x","h")] bspec 1);
@@ -1114,13 +1114,13 @@ qed "DERIV_diff";
  ---------------------------------------------------------------*)
 Goalw [increment_def] 
       "f NSdifferentiable x ==> \
-\     increment f x h = (*f* f) (hypreal_of_real(x) + h) + \
+\     increment f x h = ( *f* f) (hypreal_of_real(x) + h) + \
 \     -hypreal_of_real (f x)";
 by (Blast_tac 1);
 qed "incrementI";
 
 Goal "NSDERIV f x :> D ==> \
-\    increment f x h = (*f* f) (hypreal_of_real(x) + h) + \
+\    increment f x h = ( *f* f) (hypreal_of_real(x) + h) + \
 \    -hypreal_of_real (f x)";
 by (etac (NSdifferentiableI RS incrementI) 1);
 qed "incrementI2";
@@ -1133,7 +1133,7 @@ by (dtac bspec 1 THEN Auto_tac);
 by (dtac (bex_Infinitesimal_iff2 RS iffD2) 1 THEN Step_tac 1);
 by (forw_inst_tac [("b1","hypreal_of_real(D) + y")] 
     ((hypreal_mult_right_cancel RS iffD2)) 1);
-by (thin_tac "((*f* f) (hypreal_of_real(x) + h) + \
+by (thin_tac "(( *f* f) (hypreal_of_real(x) + h) + \
 \   - hypreal_of_real (f x)) / h = hypreal_of_real(D) + y" 2);
 by (assume_tac 1);
 by (asm_full_simp_tac (simpset() addsimps [hypreal_times_divide1_eq RS sym]
@@ -1169,7 +1169,7 @@ qed "increment_approx_zero";
 (* lemmas *)
 Goalw [nsderiv_def] 
       "[| NSDERIV g x :> D; \
-\              (*f* g) (hypreal_of_real(x) + xa) = hypreal_of_real(g x);\
+\              ( *f* g) (hypreal_of_real(x) + xa) = hypreal_of_real(g x);\
 \              xa \\<in> Infinitesimal;\
 \              xa \\<noteq> 0 \
 \           |] ==> D = 0";
@@ -1180,7 +1180,7 @@ qed "NSDERIV_zero";
 (* can be proved differently using NSLIM_isCont_iff *)
 Goalw [nsderiv_def] 
      "[| NSDERIV f x :> D;  h \\<in> Infinitesimal;  h \\<noteq> 0 |]  \
-\     ==> (*f* f) (hypreal_of_real(x) + h) + -hypreal_of_real(f x) \\<approx> 0";    
+\     ==> ( *f* f) (hypreal_of_real(x) + h) + -hypreal_of_real(f x) \\<approx> 0";    
 by (asm_full_simp_tac (simpset() addsimps 
     [mem_infmal_iff RS sym]) 1);
 by (rtac Infinitesimal_ratio 1);
@@ -1196,11 +1196,11 @@ qed "NSDERIV_approx";
                   x - a
  ---------------------------------------------------------------*)
 Goal "[| NSDERIV f (g x) :> Da; \
-\        (*f* g) (hypreal_of_real(x) + xa) \\<noteq> hypreal_of_real (g x); \
-\        (*f* g) (hypreal_of_real(x) + xa) \\<approx> hypreal_of_real (g x) \
-\     |] ==> ((*f* f) ((*f* g) (hypreal_of_real(x) + xa)) \
+\        ( *f* g) (hypreal_of_real(x) + xa) \\<noteq> hypreal_of_real (g x); \
+\        ( *f* g) (hypreal_of_real(x) + xa) \\<approx> hypreal_of_real (g x) \
+\     |] ==> (( *f* f) (( *f* g) (hypreal_of_real(x) + xa)) \
 \                  + - hypreal_of_real (f (g x))) \
-\             / ((*f* g) (hypreal_of_real(x) + xa) + - hypreal_of_real (g x)) \
+\             / (( *f* g) (hypreal_of_real(x) + xa) + - hypreal_of_real (g x)) \
 \            \\<approx> hypreal_of_real(Da)";
 by (auto_tac (claset(),
        simpset() addsimps [NSDERIV_NSLIM_iff2, NSLIM_def]));
@@ -1214,7 +1214,7 @@ qed "NSDERIVD1";
                        h
  --------------------------------------------------------------*)
 Goal "[| NSDERIV g x :> Db; xa \\<in> Infinitesimal; xa \\<noteq> 0 |] \
-\     ==> ((*f* g) (hypreal_of_real(x) + xa) + - hypreal_of_real(g x)) / xa \
+\     ==> (( *f* g) (hypreal_of_real(x) + xa) + - hypreal_of_real(g x)) / xa \
 \         \\<approx> hypreal_of_real(Db)";
 by (auto_tac (claset(),
     simpset() addsimps [NSDERIV_NSLIM_iff, NSLIM_def, 
@@ -1235,10 +1235,10 @@ by (asm_simp_tac (simpset() addsimps [NSDERIV_NSLIM_iff,
 by (forw_inst_tac [("f","g")] NSDERIV_approx 1);
 by (auto_tac (claset(),
               simpset() addsimps [starfun_lambda_cancel2, starfun_o RS sym]));
-by (case_tac "(*f* g) (hypreal_of_real(x) + xa) = hypreal_of_real (g x)" 1);
+by (case_tac "( *f* g) (hypreal_of_real(x) + xa) = hypreal_of_real (g x)" 1);
 by (dres_inst_tac [("g","g")] NSDERIV_zero 1);
 by (auto_tac (claset(), simpset() addsimps [hypreal_divide_def]));
-by (res_inst_tac [("z1","(*f* g) (hypreal_of_real(x) + xa) + -hypreal_of_real (g x)"),
+by (res_inst_tac [("z1","( *f* g) (hypreal_of_real(x) + xa) + -hypreal_of_real (g x)"),
     ("y1","inverse xa")] (lemma_chain RS ssubst) 1);
 by (etac (hypreal_not_eq_minus_iff RS iffD1) 1);
 by (rtac approx_mult_hypreal_of_real 1);

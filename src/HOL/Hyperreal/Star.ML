@@ -51,7 +51,7 @@ by (blast_tac (claset() addIs [FreeUltrafilterNat_Int,
 by (REPEAT(blast_tac (claset() addIs [FreeUltrafilterNat_subset]) 1));
 qed "STAR_Int";
 
-Goalw [starset_def] "*s* -A = -(*s* A)";
+Goalw [starset_def] "*s* -A = -( *s* A)";
 by (Auto_tac);
 by (res_inst_tac [("z","x")] eq_Abs_hypreal 1);
 by (res_inst_tac [("z","x")] eq_Abs_hypreal 2);
@@ -198,7 +198,7 @@ by (ALLGOALS(Fuf_tac));
 qed "starfun_congruent";
 
 Goalw [starfun_def]
-      "(*f* f) (Abs_hypreal(hyprel``{%n. X n})) = \
+      "( *f* f) (Abs_hypreal(hyprel``{%n. X n})) = \
 \      Abs_hypreal(hyprel `` {%n. f (X n)})";
 by (res_inst_tac [("f","Abs_hypreal")] arg_cong 1);
 by (simp_tac (simpset() addsimps 
@@ -209,7 +209,7 @@ qed "starfun";
 (*-------------------------------------------
   multiplication: ( *f ) x ( *g ) = *(f x g)  
  ------------------------------------------*)
-Goal "(*f* f) xa * (*f* g) xa = (*f* (%x. f x * g x)) xa";
+Goal "( *f* f) xa * ( *f* g) xa = ( *f* (%x. f x * g x)) xa";
 by (res_inst_tac [("z","xa")] eq_Abs_hypreal 1);
 by (auto_tac (claset(),simpset() addsimps [starfun,hypreal_mult]));
 qed "starfun_mult";
@@ -218,7 +218,7 @@ Addsimps [starfun_mult RS sym];
 (*---------------------------------------
   addition: ( *f ) + ( *g ) = *(f + g)  
  ---------------------------------------*)
-Goal "(*f* f) xa + (*f* g) xa = (*f* (%x. f x + g x)) xa";
+Goal "( *f* f) xa + ( *f* g) xa = ( *f* (%x. f x + g x)) xa";
 by (res_inst_tac [("z","xa")] eq_Abs_hypreal 1);
 by (auto_tac (claset(),simpset() addsimps [starfun,hypreal_add]));
 qed "starfun_add";
@@ -228,20 +228,20 @@ Addsimps [starfun_add RS sym];
   subtraction: ( *f ) + -( *g ) = *(f + -g)  
  -------------------------------------------*)
 
-Goal "- (*f* f) x = (*f* (%x. - f x)) x";
+Goal "- ( *f* f) x = ( *f* (%x. - f x)) x";
 by (res_inst_tac [("z","x")] eq_Abs_hypreal 1);
 by (auto_tac (claset(),simpset() addsimps [starfun, hypreal_minus]));
 qed "starfun_minus";
 Addsimps [starfun_minus RS sym];
 
 (*FIXME: delete*)
-Goal "(*f* f) xa + -(*f* g) xa = (*f* (%x. f x + -g x)) xa";
+Goal "( *f* f) xa + -( *f* g) xa = ( *f* (%x. f x + -g x)) xa";
 by (Simp_tac 1);
 qed "starfun_add_minus";
 Addsimps [starfun_add_minus RS sym];
 
 Goalw [hypreal_diff_def,real_diff_def]
-  "(*f* f) xa  - (*f* g) xa = (*f* (%x. f x - g x)) xa";
+  "( *f* f) xa  - ( *f* g) xa = ( *f* (%x. f x - g x)) xa";
 by (rtac starfun_add_minus 1);
 qed "starfun_diff";
 Addsimps [starfun_diff RS sym];
@@ -250,20 +250,20 @@ Addsimps [starfun_diff RS sym];
   composition: ( *f ) o ( *g ) = *(f o g)  
  ---------------------------------------*)
 
-Goal "(%x. (*f* f) ((*f* g) x)) = *f* (%x. f (g x))"; 
+Goal "(%x. ( *f* f) (( *f* g) x)) = *f* (%x. f (g x))"; 
 by (rtac ext 1);
 by (res_inst_tac [("z","x")] eq_Abs_hypreal 1);
 by (auto_tac (claset(),simpset() addsimps [starfun]));
 qed "starfun_o2";
 
-Goalw [o_def] "(*f* f) o (*f* g) = (*f* (f o g))";
+Goalw [o_def] "( *f* f) o ( *f* g) = ( *f* (f o g))";
 by (simp_tac (simpset() addsimps [starfun_o2]) 1);
 qed "starfun_o";
 
 (*--------------------------------------
   NS extension of constant function
  --------------------------------------*)
-Goal "(*f* (%x. k)) xa = hypreal_of_real  k";
+Goal "( *f* (%x. k)) xa = hypreal_of_real  k";
 by (res_inst_tac [("z","xa")] eq_Abs_hypreal 1);
 by (auto_tac (claset(),simpset() addsimps [starfun,
     hypreal_of_real_def]));
@@ -275,12 +275,12 @@ Addsimps [starfun_const_fun];
    the NS extension of the identity function
  ----------------------------------------------------*)
 
-Goal "x @= hypreal_of_real a ==> (*f* (%x. x)) x @= hypreal_of_real  a";
+Goal "x @= hypreal_of_real a ==> ( *f* (%x. x)) x @= hypreal_of_real  a";
 by (res_inst_tac [("z","x")] eq_Abs_hypreal 1);
 by (auto_tac (claset(),simpset() addsimps [starfun]));
 qed "starfun_Idfun_approx";
 
-Goal "(*f* (%x. x)) x = x";
+Goal "( *f* (%x. x)) x = x";
 by (res_inst_tac [("z","x")] eq_Abs_hypreal 1);
 by (auto_tac (claset(),simpset() addsimps [starfun]));
 qed "starfun_Id";
@@ -290,7 +290,7 @@ Addsimps [starfun_Id];
       the *-function is a (nonstandard) extension of the function
  ----------------------------------------------------------------------*)
 
-Goalw [is_starext_def] "is_starext (*f* f) f";
+Goalw [is_starext_def] "is_starext ( *f* f) f";
 by (Auto_tac);
 by (res_inst_tac [("z","x")] eq_Abs_hypreal 1);
 by (res_inst_tac [("z","y")] eq_Abs_hypreal 1);
@@ -305,7 +305,7 @@ Goalw [is_starext_def] "is_starext F f ==> F = *f* f";
 by (rtac ext 1);
 by (res_inst_tac [("z","x")] eq_Abs_hypreal 1);
 by (dres_inst_tac [("x","x")] spec 1);
-by (dres_inst_tac [("x","(*f* f) x")] spec 1);
+by (dres_inst_tac [("x","( *f* f) x")] spec 1);
 by (auto_tac (claset() addSDs [FreeUltrafilterNat_Compl_mem],
     simpset() addsimps [starfun]));
 by (Fuf_empty_tac 1);
@@ -320,41 +320,41 @@ qed "is_starext_starfun_iff";
    version for real arguments. i.e they are the same
    for all real arguments
  -------------------------------------------------------*)
-Goal "(*f* f) (hypreal_of_real a) = hypreal_of_real (f a)";
+Goal "( *f* f) (hypreal_of_real a) = hypreal_of_real (f a)";
 by (auto_tac (claset(),simpset() addsimps 
      [starfun,hypreal_of_real_def]));
 qed "starfun_eq";
 
 Addsimps [starfun_eq];
 
-Goal "(*f* f) (hypreal_of_real a) @= hypreal_of_real (f a)";
+Goal "( *f* f) (hypreal_of_real a) @= hypreal_of_real (f a)";
 by (Auto_tac);
 qed "starfun_approx";
 
 (* useful for NS definition of derivatives *)
-Goal "(*f* (%h. f (x + h))) xa  = (*f* f) (hypreal_of_real  x + xa)";
+Goal "( *f* (%h. f (x + h))) xa  = ( *f* f) (hypreal_of_real  x + xa)";
 by (res_inst_tac [("z","xa")] eq_Abs_hypreal 1);
 by (auto_tac (claset(),simpset() addsimps [starfun,
     hypreal_of_real_def,hypreal_add]));
 qed "starfun_lambda_cancel";
 
-Goal "(*f* (%h. f(g(x + h)))) xa = (*f* (f o g)) (hypreal_of_real x + xa)";
+Goal "( *f* (%h. f(g(x + h)))) xa = ( *f* (f o g)) (hypreal_of_real x + xa)";
 by (res_inst_tac [("z","xa")] eq_Abs_hypreal 1);
 by (auto_tac (claset(),simpset() addsimps [starfun,
     hypreal_of_real_def,hypreal_add]));
 qed "starfun_lambda_cancel2";
 
-Goal "[| (*f* f) xa @= l; (*f* g) xa @= m; \
+Goal "[| ( *f* f) xa @= l; ( *f* g) xa @= m; \
 \                 l: HFinite; m: HFinite  \
-\              |] ==>  (*f* (%x. f x * g x)) xa @= l * m";
+\              |] ==>  ( *f* (%x. f x * g x)) xa @= l * m";
 by (dtac approx_mult_HFinite 1);
 by (REPEAT(assume_tac 1));
 by (auto_tac (claset() addIs [approx_sym RSN (2,approx_HFinite)],
               simpset()));
 qed "starfun_mult_HFinite_approx";
 
-Goal "[| (*f* f) xa @= l; (*f* g) xa @= m \
-\              |] ==>  (*f* (%x. f x + g x)) xa @= l + m";
+Goal "[| ( *f* f) xa @= l; ( *f* g) xa @= m \
+\              |] ==>  ( *f* (%x. f x + g x)) xa @= l + m";
 by (auto_tac (claset() addIs [approx_add], simpset()));
 qed "starfun_add_approx";
 
@@ -372,14 +372,14 @@ by (rtac (hrabs_is_starext_rabs RS
           (is_starext_starfun_iff RS iffD1) RS sym) 1);
 qed "starfun_rabs_hrabs";
 
-Goal "(*f* inverse) x = inverse(x)";
+Goal "( *f* inverse) x = inverse(x)";
 by (res_inst_tac [("z","x")] eq_Abs_hypreal 1);
 by (auto_tac (claset(),
             simpset() addsimps [starfun, hypreal_inverse, hypreal_zero_def]));
 qed "starfun_inverse_inverse";
 Addsimps [starfun_inverse_inverse];
 
-Goal "inverse ((*f* f) x) = (*f* (%x. inverse (f x))) x";
+Goal "inverse (( *f* f) x) = ( *f* (%x. inverse (f x))) x";
 by (res_inst_tac [("z","x")] eq_Abs_hypreal 1);
 by (auto_tac (claset(),
               simpset() addsimps [starfun, hypreal_inverse]));
@@ -387,12 +387,12 @@ qed "starfun_inverse";
 Addsimps [starfun_inverse RS sym];
 
 Goalw [hypreal_divide_def,real_divide_def]
-  "(*f* f) xa  / (*f* g) xa = (*f* (%x. f x / g x)) xa";
+  "( *f* f) xa  / ( *f* g) xa = ( *f* (%x. f x / g x)) xa";
 by Auto_tac;
 qed "starfun_divide";
 Addsimps [starfun_divide RS sym];
 
-Goal "inverse ((*f* f) x) = (*f* (%x. inverse (f x))) x";
+Goal "inverse (( *f* f) x) = ( *f* (%x. inverse (f x))) x";
 by (res_inst_tac [("z","x")] eq_Abs_hypreal 1);
 by (auto_tac (claset() addIs [FreeUltrafilterNat_subset]
                        addSDs [FreeUltrafilterNat_Compl_mem],
@@ -404,7 +404,7 @@ qed "starfun_inverse2";
     topology of the reals
  ------------------------------------------------------------*)
 Goalw [starset_def] 
-      "(*f* f) x : *s* A ==> x : *s* {x. f x : A}";
+      "( *f* f) x : *s* A ==> x : *s* {x. f x : A}";
 by (res_inst_tac [("z","x")] eq_Abs_hypreal 1);
 by (auto_tac (claset(),simpset() addsimps [starfun]));
 by (dres_inst_tac [("x","%n. f (Xa n)")] bspec 1);
@@ -440,7 +440,7 @@ qed "STAR_rabs_add_minus";
 
 Goalw [starset_def]
   "*s* {x. abs (f x + - y) < r} = \
-\      {x. abs((*f* f) x + -hypreal_of_real y) < hypreal_of_real r}";
+\      {x. abs(( *f* f) x + -hypreal_of_real y) < hypreal_of_real r}";
 by (Step_tac 1);
 by (ALLGOALS(res_inst_tac [("z","x")] eq_Abs_hypreal));
 by (auto_tac (claset() addSIs [exI] addSDs [bspec],

@@ -11,7 +11,7 @@
  -------------------------------------------------------------------------- *)
 
 Goalw [hypnat_omega_def] 
-      "(*fNat* (%n::nat. inverse(real(Suc n)))) whn : Infinitesimal";
+      "( *fNat* (%n::nat. inverse(real(Suc n)))) whn : Infinitesimal";
 by (auto_tac (claset(),
       simpset() addsimps [Infinitesimal_FreeUltrafilterNat_iff,starfunNat]));
 by (rtac bexI 1 THEN rtac lemma_hyprel_refl 2);
@@ -31,7 +31,7 @@ by (Simp_tac 1);
 qed "LIMSEQ_iff";
 
 Goalw [NSLIMSEQ_def] 
-    "(X ----NS> L) = (ALL N: HNatInfinite. (*fNat* X) N @= hypreal_of_real L)";
+    "(X ----NS> L) = (ALL N: HNatInfinite. ( *fNat* X) N @= hypreal_of_real L)";
 by (Simp_tac 1);
 qed "NSLIMSEQ_iff";
 
@@ -121,7 +121,7 @@ by Auto_tac;
 val lemmaLIM2 = result();
 
 Goal "[| 0 < r; ALL n. r <= abs (X (f n) + - L); \
-\          (*fNat* X) (Abs_hypnat (hypnatrel `` {f})) + \
+\          ( *fNat* X) (Abs_hypnat (hypnatrel `` {f})) + \
 \          - hypreal_of_real  L @= 0 |] ==> False";
 by (auto_tac (claset(),simpset() addsimps [starfunNat,
     mem_infmal_iff RS sym,hypreal_of_real_def,
@@ -419,12 +419,12 @@ by (simp_tac (simpset() addsimps [lemma_NBseq_def2]) 1);
 qed "Bseq_iff1a";
 
 Goalw [NSBseq_def]
-     "[| NSBseq X;  N: HNatInfinite |] ==> (*fNat* X) N : HFinite";
+     "[| NSBseq X;  N: HNatInfinite |] ==> ( *fNat* X) N : HFinite";
 by (Blast_tac 1);
 qed "NSBseqD";
 
 Goalw [NSBseq_def]
-     "ALL N: HNatInfinite. (*fNat* X) N : HFinite ==> NSBseq X";
+     "ALL N: HNatInfinite. ( *fNat* X) N : HFinite ==> NSBseq X";
 by (assume_tac 1);
 qed "NSBseqI";
 

@@ -45,7 +45,7 @@ Addsimps [sumhr_zero];
 (* Theorem corresponding to recursive case in def of sumr *)
 Goalw [hypnat_one_def]
      "sumhr(m,n+(1::hypnat),f) = (if n + (1::hypnat) <= m then 0 \
-\                         else sumhr(m,n,f) + (*fNat* f) n)";
+\                         else sumhr(m,n,f) + ( *fNat* f) n)";
 by (res_inst_tac [("z","m")] eq_Abs_hypnat 1);
 by (res_inst_tac [("z","n")] eq_Abs_hypnat 1);
 by (auto_tac (claset(),
@@ -68,7 +68,7 @@ qed "sumhr_eq_bounds";
 Addsimps [sumhr_eq_bounds];
 
 Goalw [hypnat_one_def] 
-     "sumhr (m,m + (1::hypnat),f) = (*fNat* f) m";
+     "sumhr (m,m + (1::hypnat),f) = ( *fNat* f) m";
 by (res_inst_tac [("z","m")] eq_Abs_hypnat 1);
 by (auto_tac (claset(),
               simpset() addsimps [sumhr, hypnat_add,starfunNat]));
@@ -206,7 +206,7 @@ by (auto_tac (claset() addSDs [sumr_interval_const],
 qed "sumhr_interval_const";
 
 Goalw [hypnat_zero_def]
-     "(*fNat* (%n. sumr 0 n f)) N = sumhr(0,N,f)";
+     "( *fNat* (%n. sumr 0 n f)) N = sumhr(0,N,f)";
 by (res_inst_tac [("z","N")] eq_Abs_hypnat 1);
 by (asm_full_simp_tac (simpset() addsimps [starfunNat,sumhr]) 1);
 qed "starfunNat_sumr";
