@@ -12,6 +12,7 @@ sig
   val show_sorts: bool ref
   val show_types: bool ref
   val show_no_free_types: bool ref
+  val show_all_types: bool ref
 end;
 
 signature PRINTER =
@@ -42,7 +43,7 @@ val show_types = ref false;
 val show_sorts = ref false;
 val show_brackets = ref false;
 val show_no_free_types = ref false;
-
+val show_all_types = ref false;
 
 
 (** misc utils **)
@@ -110,7 +111,7 @@ fun mark_freevars ((t as Const (c, _)) $ u) =
       else Lexicon.const "_var" $ t
   | mark_freevars a = a;
 
-fun ast_of_term trf no_freeTs show_types show_sorts tm =
+fun ast_of_term trf show_const_types no_freeTs show_types show_sorts tm =
   let
     fun prune_typs (t_seen as (Const _, _)) = t_seen
       | prune_typs (t as Free (x, ty), seen) =
@@ -140,7 +141,10 @@ fun ast_of_term trf no_freeTs show_types show_sorts tm =
           Ast.mk_appl (constrain (c $ Lexicon.free x) T) (map ast_of ts)
       | ((c as Const ("_var", _)), Var (xi, T) :: ts) =>
           Ast.mk_appl (constrain (c $ Lexicon.var xi) T) (map ast_of ts)
-      | (Const (c, T), ts) => trans c T ts
+      | (c' as Const (c, T), ts) =>
+	if show_const_types
+	then Ast.mk_appl (constrain c' T) (map ast_of ts)
+	else trans c T ts
       | (t, ts) => Ast.mk_appl (simple_ast_of t) (map ast_of ts))
 
     and trans a T args =
@@ -161,7 +165,7 @@ fun ast_of_term trf no_freeTs show_types show_sorts tm =
   end;
 
 fun term_to_ast trf tm =
-  ast_of_term trf (! show_no_free_types) (! show_types orelse ! show_sorts)
+  ast_of_term trf (! show_all_types) (! show_no_free_types) (! show_types orelse ! show_sorts orelse ! show_all_types)
     (! show_sorts) tm;
 
 
