@@ -208,14 +208,14 @@ fun gen_field_tr mark sfx (t as Const (c, _) $ Free (name, _) $ arg) =
 
 fun gen_fields_tr sep mark sfx (tm as Const (c, _) $ t $ u) =
       if c = sep then gen_field_tr mark sfx t :: gen_fields_tr sep mark sfx u
-      else [gen_field_tr mark sfx  tm]
-  | gen_fields_tr _ mark sfx t = [gen_field_tr mark sfx t];
+      else [gen_field_tr mark sfx tm]
+  | gen_fields_tr _ mark sfx tm = [gen_field_tr mark sfx tm];
 
 fun gen_record_tr sep mark sfx unit [t] = foldr (op $) (gen_fields_tr sep mark sfx t, unit)
-  | gen_record_tr _ _ _ _ ts = raise TERM ("record_tr", ts);
+  | gen_record_tr _ _ _ _ ts = raise TERM ("gen_record_tr", ts);
 
 fun gen_record_scheme_tr sep mark sfx [t, more] = foldr (op $) (gen_fields_tr sep mark sfx t, more)
-  | gen_record_scheme_tr _ _ _ ts = raise TERM ("record_scheme_tr", ts);
+  | gen_record_scheme_tr _ _ _ ts = raise TERM ("gen_record_scheme_tr", ts);
 
 
 val record_type_tr = gen_record_tr "_field_types" "_field_type" field_typeN (Syntax.const "unit");
@@ -238,10 +238,6 @@ val parse_translation =
 
 
 (* print translations *)
-
-fun gen_field_tr' sfx f name =
-  let val name_sfx = suffix sfx name
-  in (name_sfx, fn [t, u] => f (Syntax.const name_sfx $ t $ u) | _ => raise Match) end;
 
 fun gen_fields_tr' mark sfx (tm as Const (name_field, _) $ t $ u) =
       (case try (unsuffix sfx) name_field of
@@ -273,6 +269,10 @@ fun record_update_tr' tm =
       foldr1 (fn (v, w) => Syntax.const "_updates" $ v $ w) (rev ts)
   end;
 
+
+fun gen_field_tr' sfx tr' name =
+  let val name_sfx = suffix sfx name
+  in (name_sfx, fn [t, u] => tr' (Syntax.const name_sfx $ t $ u) | _ => raise Match) end;
 
 fun print_translation names =
   map (gen_field_tr' field_typeN record_type_tr') names @
