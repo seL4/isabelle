@@ -74,7 +74,7 @@ by Auto_tac;
 qed "generator_in_ideal";
 
 Goalw [ideal_of_def] "ideal_of {<1>::'a::ring} = UNIV";
-by (auto_tac (claset() addSDs [is_ideal_mult], simpset()));
+by (force_tac (claset() addDs [is_ideal_mult], simpset()) 1);
   (* loops if is_ideal_mult is added as non-safe rule *)
 qed "ideal_of_one_eq";
 
