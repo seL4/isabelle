@@ -357,7 +357,7 @@ let fun merge [] = SS_DATA empty_ss
     fun put (SS_DATA ss) = simpset := ss;
 
     fun get () = SS_DATA (!simpset);
-in add_thydata HOL.thy
+in add_thydata "HOL"
      ("simpset", ThyMethods {merge = merge, put = put, get = get})
 end;
 
@@ -371,7 +371,7 @@ let fun merge [] = DT_DATA []
     fun put (DT_DATA ds) = datatypes := ds;
 
     fun get () = DT_DATA (!datatypes);
-in add_thydata HOL.thy
+in add_thydata "HOL"
      ("datatypes", ThyMethods {merge = merge, put = put, get = get})
 end;
 
