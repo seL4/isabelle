@@ -150,7 +150,7 @@ export THIS_IS_ISABELLE_BUILD=true
 
 for L in $MAKE_LOGICS
 do
-  ( cd $ISABELLE_HOME/src/$L; $ISATOOL make $TEST )
+  ( cd $ISABELLE_HOME/src/$L; $ISATOOL make images $TEST )
 done
 
 echo -n "Finished at "; date
