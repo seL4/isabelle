@@ -155,12 +155,19 @@ fun try_update_thy_only file =
 
 (* get informed about files *)
 
-(* FIXME improve, e.g. do something like pretend_use_thy *)
-fun inform_file_processed file =
-  ThyInfo.if_known_thy ThyInfo.touch_child_thys (thy_name file);
+val touch_child_thys = ThyInfo.if_known_thy ThyInfo.touch_child_thys;
 
-fun inform_file_retracted file =
-  ThyInfo.if_known_thy ThyInfo.touch_child_thys (thy_name file);
+val inform_file_processed = touch_child_thys o thy_name;
+val inform_file_retracted = touch_child_thys o thy_name;
+
+fun proper_inform_file_processed file state =
+  let val name = thy_name file in
+    touch_child_thys name;
+    if not (Toplevel.is_toplevel state) then
+      warning ("Not at toplevel -- cannot register theory " ^ quote name)
+    else Library.transform_error ThyInfo.pretend_use_thy_only name handle ERROR_MESSAGE msg =>
+      (warning msg; warning ("Failed to register theory " ^ quote name))
+  end;
 
 
 (* misc commands for ProofGeneral/isa *)
@@ -205,7 +212,7 @@ end;
 
 local structure P = OuterParse and K = OuterSyntax.Keyword in
 
-val old_undoP = (* FIXME same name for compatibility with PG/Isabelle99 *)
+val old_undoP = (*same name for compatibility with PG/Isabelle99*)
   OuterSyntax.improper_command "undo" "undo last command (no output)" K.control
     (Scan.succeed (Toplevel.no_timing o IsarCmd.undo));
 
@@ -233,7 +240,7 @@ val kill_proofP =
 val inform_file_processedP =
   OuterSyntax.improper_command "ProofGeneral.inform_file_processed" "(internal)" K.control
     (P.name >> (Toplevel.no_timing oo
-      (fn name => Toplevel.imperative (fn () => inform_file_processed name))));
+      (fn name => Toplevel.keep (proper_inform_file_processed name))));
 
 val inform_file_retractedP =
   OuterSyntax.improper_command "ProofGeneral.inform_file_retracted" "(internal)" K.control
