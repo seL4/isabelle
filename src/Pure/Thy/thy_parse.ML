@@ -24,6 +24,7 @@ sig
   val long_ident: token list -> string * token list
   val long_id: token list -> string * token list
   val type_var: token list -> string * token list
+  val type_args: token list -> string list * token list
   val nat: token list -> string * token list
   val string: token list -> string * token list
   val verbatim: token list -> string * token list
@@ -43,6 +44,7 @@ sig
   val sort: token list -> string * token list
   val opt_infix: token list -> string * token list
   val opt_mixfix: token list -> string * token list
+  val opt_witness: token list -> string * token list
   type syntax
   val make_syntax: string list ->
     (string * (token list -> (string * string) * token list)) list -> syntax
@@ -56,12 +58,12 @@ sig
   val pure_sections:
     (string * (token list -> (string * string) * token list)) list
   (*items for building strings*)
-  val parens	: string -> string   
-  val brackets	: string -> string   
-  val mk_list	: string list -> string   
-  val mk_big_list : string list -> string   
-  val mk_pair	: string * string -> string   
-  val mk_triple	: string * string * string -> string   
+  val parens: string -> string   
+  val brackets: string -> string   
+  val mk_list: string list -> string   
+  val mk_big_list: string list -> string   
+  val mk_pair: string * string -> string   
+  val mk_triple: string * string * string -> string   
 end;
 
 functor ThyParseFun(structure Symtab: SYMTAB and ThyScan: THY_SCAN): THY_PARSE =
@@ -329,8 +331,8 @@ val opt_witness =
   >> mk_witness;
 
 val instance_decl =
-  (name --$$ "<" -- name >> (pair "|> add_inst_subclass" o mk_pair) ||
-    name --$$ "::" -- arity >> (pair "|> add_inst_arity" o mk_triple2))
+  (name --$$ "<" -- name >> (pair "|> AxClass.add_inst_subclass" o mk_pair) ||
+    name --$$ "::" -- arity >> (pair "|> AxClass.add_inst_arity" o mk_triple2))
   -- opt_witness
   >> (fn ((x, y), z) => (cat_lines [x, y, z], ""));
 
@@ -459,7 +461,7 @@ val pure_sections =
   ("MLtext", verbatim >> rpair ""),
   axm_section "rules" "|> add_axioms" axiom_decls,
   axm_section "defs" "|> add_defs" axiom_decls,
-  axm_section "axclass" "|> add_axclass" axclass_decl,
+  axm_section "axclass" "|> AxClass.add_axclass" axclass_decl,
   ("instance", instance_decl)];
 
 
