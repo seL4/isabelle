@@ -15,10 +15,11 @@ by (res_inst_tac [("n","k")] less_induct 1);
 by (rtac allI 1);
 by (rename_tac "i" 1);
 by (exhaust_tac "i" 1);
- by Auto_tac;
+ by (Asm_simp_tac 1);
+by (rtac impI 1);
 by (subgoal_tac "f(nat) <= f(f(nat))" 1);
  by (Blast_tac 2);
-by (blast_tac (claset() addIs [Suc_leI,le_less_trans]) 1);
+by (blast_tac (claset() addSDs [spec] addIs [Suc_leI,le_less_trans]) 1);
 val lemma = result() RS spec RS mp;
 
 Goal "n <= f(n)";
