@@ -101,7 +101,7 @@ val setup = [Theory.add_tokentrfuns proof_general_trans];
 (* messages *)
 
 val plain_output = std_output o suffix "\n";
-val plain_writeln = Library.setmp writeln_fn plain_output;
+fun plain_writeln x = Library.setmp writeln_fn plain_output x;
 
 fun decorate_lines bg en "" = plain_output o enclose bg en
   | decorate_lines bg en prfx = plain_output o enclose bg en o prefix_lines prfx;
