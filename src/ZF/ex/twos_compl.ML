@@ -3,14 +3,14 @@
     Author: 	Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1993  University of Cambridge
 
-ML code for Arithmetic on binary integers; the model for theory BinFn
+ML code for Arithmetic on binary integers; the model for theory Bin
 
-   The sign Plus stands for an infinite string of leading 0's.
-   The sign Minus stands for an infinite string of leading 1's.
+   The sign Plus stands for an infinite string of leading 0s.
+   The sign Minus stands for an infinite string of leading 1s.
 
-A number can have multiple representations, namely leading 0's with sign
-Plus and leading 1's with sign Minus.  See int_of_binary for the numerical
-interpretation.
+See int_of_binary for the numerical interpretation.  A number can have
+multiple representations, namely leading 0s with sign Plus and leading 1s with
+sign Minus.  A number is in NORMAL FORM if it has no such extra bits.
 
 The representation expects that (m mod 2) is 0 or 1, even if m is negative;
 For instance, ~5 div 2 = ~3 and ~5 mod 2 = 1; thus ~5 = (~3)*2 + 1
@@ -21,7 +21,7 @@ print_depth 40;
 System.Control.Print.printDepth := 350; 
 *)
 
-infix 5 $$ 
+infix 5 $$ $$$
 
 (*Recursive datatype of binary integers*)
 datatype bin = Plus | Minus | op $$ of bin * int;
@@ -38,25 +38,36 @@ fun binary_of_int 0 = Plus
 
 (*** Addition ***)
 
-(*Adding one to a number*)
+(*Attach a bit while preserving the normal form.  Cases left as default
+  are Plus$$$1 and Minus$$$0. *)
+fun  Plus $$$ 0 = Plus
+  | Minus $$$ 1 = Minus
+  |     v $$$ x = v$$x;
+
+(*Successor of an integer, assumed to be in normal form.
+  If w$$1 is normal then w is not Minus, so bin_succ(w) $$ 0 is normal.
+  But Minus$$0 is normal while Minus$$1 is not.*)
 fun bin_succ Plus = Plus$$1
   | bin_succ Minus = Plus
   | bin_succ (w$$1) = bin_succ(w) $$ 0
-  | bin_succ (w$$0) = w$$1;
+  | bin_succ (w$$0) = w $$$ 1;
 
-(*Subtracing one from a number*)
+(*Predecessor of an integer, assumed to be in normal form.
+  If w$$0 is normal then w is not Plus, so bin_pred(w) $$ 1 is normal.
+  But Plus$$1 is normal while Plus$$0 is not.*)
 fun bin_pred Plus = Minus
   | bin_pred Minus = Minus$$0
-  | bin_pred (w$$1) = w$$0
+  | bin_pred (w$$1) = w $$$ 0
   | bin_pred (w$$0) = bin_pred(w) $$ 1;
 
-(*sum of two binary integers*)
+(*Sum of two binary integers in normal form.  
+  Ensure last $$ preserves normal form! *)
 fun bin_add (Plus, w) = w
   | bin_add (Minus, w) = bin_pred w
   | bin_add (v$$x, Plus) = v$$x
   | bin_add (v$$x, Minus) = bin_pred (v$$x)
-  | bin_add (v$$x, w$$y) = bin_add(v, if x+y=2 then bin_succ w else w) $$ 
-                           ((x+y) mod 2);
+  | bin_add (v$$x, w$$y) = 
+      bin_add(v, if x+y=2 then bin_succ w else w) $$$ ((x+y) mod 2);
 
 (*** Subtraction ***)
 
@@ -68,11 +79,11 @@ fun bin_minus Plus = Plus
 
 (*** Multiplication ***)
 
-(*product of two bins*)
+(*product of two bins; a factor of 0 might cause leading 0s in result*)
 fun bin_mult (Plus, _) = Plus
   | bin_mult (Minus, v) = bin_minus v
-  | bin_mult (w$$1, v) = bin_add(bin_mult(w,v) $$ 0,  v)
-  | bin_mult (w$$0, v) = bin_mult(w,v) $$ 0;
+  | bin_mult (w$$1, v) = bin_add(bin_mult(w,v) $$$ 0,  v)
+  | bin_mult (w$$0, v) = bin_mult(w,v) $$$ 0;
 
 (*** Testing ***)
 
@@ -94,10 +105,11 @@ int_of_binary it;
 bfact 69;
 int_of_binary it;
 
-(*leading zeros!*)
+(*leading zeros??*)
 bin_add(binary_of_int 1234, binary_of_int ~1234);
 bin_mult(binary_of_int 1234, Plus);
 
-(*leading ones!*)
+(*leading ones??*)
+bin_add(binary_of_int 1, binary_of_int ~2);
 bin_add(binary_of_int 1234, binary_of_int ~1235);
 *)
