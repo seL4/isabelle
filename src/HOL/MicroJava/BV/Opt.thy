@@ -101,7 +101,7 @@ apply auto
 done 
 
 
-lemma semilat_opt:
+lemma semilat_opt [intro, simp]:
   "\<And>L. err_semilat L \<Longrightarrow> err_semilat (Opt.esl L)"
 proof (unfold Opt.esl_def Err.sl_def, simp add: split_tupled_all)
   

@@ -15,9 +15,6 @@ types
   's step_type = "nat \<Rightarrow> 's \<Rightarrow> (nat \<times> 's) list"
 
 constdefs
- bounded :: "'s step_type \<Rightarrow> nat \<Rightarrow> bool"
-"bounded step n == !p<n. !s. !(q,t):set(step p s). q<n"  
-
  stable :: "'s ord \<Rightarrow> 's step_type \<Rightarrow> 's list \<Rightarrow> nat \<Rightarrow> bool"
 "stable r step ss p == !(q,s'):set(step p (ss!p)). s' <=_r ss!q"
 

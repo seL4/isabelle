@@ -7,7 +7,7 @@
 
 header {* \isaheader{Static and Dynamic Welltyping} *}
 
-theory Typing_Framework_err = Typing_Framework:
+theory Typing_Framework_err = Typing_Framework + SemilatAlg:
 
 constdefs
 

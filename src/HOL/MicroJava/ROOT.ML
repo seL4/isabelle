@@ -13,9 +13,8 @@ use_thy "JVMListExample";
 use_thy "JVM";
 use_thy "BVSpecTypeSafe";
 use_thy "BVExample";
-use_thy "LBVSpec"; 
+use_thy "LBVCorrect";
 
 (* momentarily broken:
-use_thy "LBVCorrect";
 use_thy "LBVComplete";
 *)
