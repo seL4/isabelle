@@ -18,19 +18,20 @@ sig
   include BASIC_ATTRIBUTE
   val thm_of: tthm -> thm
   val tthm_of: thm -> tthm
+  val fail: string -> string -> 'a
   val apply: ('a * tthm) * 'a attribute list -> ('a * tthm)
   val pretty_tthm: tthm -> Pretty.T
   val tag: tag -> 'a attribute
-  val simple: string -> 'a attribute
+  val untag: tag -> 'a attribute
   val lemma: tag
   val assumption: tag
   val tag_lemma: 'a attribute
   val tag_assumption: 'a attribute
   val setup: theory -> theory
-  val global_attr: theory -> xstring -> string list -> theory attribute
-  val local_attr: theory -> xstring -> string list -> object Symtab.table attribute
+  val global_attr: theory -> (xstring * string list) -> theory attribute
+  val local_attr: theory -> (xstring * string list) -> local_theory attribute
   val add_attrs: (bstring * ((string list -> theory attribute) *
-      (string list -> object Symtab.table attribute))) list -> theory -> theory
+      (string list -> local_theory attribute))) list -> theory -> theory
 end;
 
 structure Attribute: ATTRIBUTE =
@@ -46,7 +47,18 @@ type 'a attribute = 'a * tthm -> 'a * tthm;
 fun thm_of (thm, _) = thm;
 fun tthm_of thm = (thm, []);
 
-fun apply x_attrs = foldl (op |>) x_attrs;
+
+(* apply attributes *)
+
+exception FAIL of string * string;
+
+fun fail name msg = raise FAIL (name, msg);
+
+fun warn_failed (name, msg) =
+  warning ("Invocation of " ^ quote name ^ " attribute failed: " ^ msg);
+
+fun apply (x, []) = x
+  | apply (x, f :: fs) = apply (f x handle FAIL info => (warn_failed info; x), fs);
 
 
 (* display tagged theorems *)
@@ -64,8 +76,8 @@ fun pretty_tthm (thm, []) = Pretty.quote (Display.pretty_thm thm)
 
 (* basic attributes *)
 
-fun tag name_args (x, (thm, tags)) = (x, (thm, name_args ins tags));
-fun simple name = tag (name, []);
+fun tag tg (x, (thm, tags)) = (x, (thm, tg ins tags));
+fun untag tg (x, (thm, tags)) = (x, (thm, tags \ tg));
 
 val lemma = ("lemma", []);
 val assumption = ("assumption", []);
@@ -84,7 +96,7 @@ exception Attributes of
   {space: NameSpace.T,
    attrs:
     ((string list -> theory attribute) *
-     (string list -> object Symtab.table attribute)) Symtab.table};
+     (string list -> local_theory attribute)) Symtab.table};
 
 fun print_attributes thy = Display.print_data thy attributesK;
 
@@ -122,7 +134,7 @@ val get_attributes = get_attributes_sg o Theory.sign_of;
 
 (* get global / local attributes *)
 
-fun attrs which thy raw_name args =
+fun attrs which thy (raw_name, args) =
   let
     val {space, attrs} = get_attributes thy;
     val name = NameSpace.intern space raw_name;
