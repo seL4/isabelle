@@ -7,7 +7,8 @@ Infinite-branching datatype definitions
 *)
 
 val fun_Limit_VfromE =
-   [apply_funtype, InfCard_csucc RS InfCard_is_Limit] MRS Limit_VfromE 
+   [apply_funtype, InfCard_csucc RS InfCard_is_Limit] MRS
+     transfer InfDatatype.thy Limit_VfromE 
    |> standard;
 
 goal InfDatatype.thy
