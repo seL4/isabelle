@@ -23,6 +23,13 @@ Goal "0 < i ==> 0 < i^n";
 by (induct_tac "n" 1);
 by (ALLGOALS (asm_simp_tac (simpset() addsimps [zero_less_mult_iff])));
 qed "zero_less_power";
+Addsimps [zero_less_power];
+
+Goal "!!i::nat. 1 <= i ==> 1 <= i^n";
+by (induct_tac "n" 1);
+by Auto_tac;
+qed "one_le_power";
+Addsimps [one_le_power];
 
 Goalw [dvd_def] "!!(m::nat) (i::nat). m<=n ==> i^m dvd i^n";
 by (etac (not_less_iff_le RS iffD2 RS add_diff_inverse RS subst) 1);
