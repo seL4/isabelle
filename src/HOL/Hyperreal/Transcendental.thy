@@ -9,8 +9,6 @@ header{*Power Series, Transcendental Functions etc.*}
 
 theory Transcendental = NthRoot + Fact + HSeries + EvenOdd + Lim:
 
-(*????FOR RING_AND_FIELD*)
-
 constdefs
     root :: "[nat,real] => real"
     "root n x == (@u. ((0::real) < x --> 0 < u) & (u ^ n = x))"
@@ -664,7 +662,7 @@ apply (rule_tac [2] powser_inside, rule_tac [4] powser_inside)
 apply (auto simp add: add_commute)
 apply (drule_tac x="(\<lambda>n. c n * (xa + x) ^ n)" in sums_diff, assumption) 
 apply (drule_tac x = " (%n. c n * (xa + x) ^ n - c n * x ^ n) " and c = "inverse xa" in sums_mult)
-apply (rule sums_unique [symmetric])
+apply (rule sums_unique)
 apply (simp add: diff_def divide_inverse add_ac mult_ac)
 apply (rule LIM_zero_cancel)
 apply (rule_tac g = "%h. suminf (%n. c (n) * ((( ((x + h) ^ n) - (x ^ n)) * inverse h) - (real n * (x ^ (n - Suc 0))))) " in LIM_trans)
@@ -690,7 +688,6 @@ apply (frule_tac x = " (%n. c n * ((xa + x) ^ n - x ^ n))" and c = "inverse xa" 
 apply (simp add: sums_summable [THEN suminf_mult2])
 apply (frule_tac x = " (%n. inverse xa * (c n * ((xa + x) ^ n - x ^ n))) " and y = " (%n. real n * c n * x ^ (n - Suc 0))" in sums_diff)
 apply assumption
-apply (subst minus_equation_iff, simp (no_asm))  
 apply (simp add: suminf_diff [OF sums_summable sums_summable] add_ac mult_ac)
 apply (rule_tac f = suminf in arg_cong)
 apply (rule ext)
@@ -1268,35 +1265,39 @@ done
 lemma sin_add: "sin (x + y) = sin x * cos y + cos x * sin y"
 apply (cut_tac x = x and y = y in sin_cos_add)
 apply (auto dest!: real_sum_squares_cancel_a 
-            simp add: numeral_2_eq_2 simp del: sin_cos_add)
+            simp add: numeral_2_eq_2 real_add_eq_0_iff simp del: sin_cos_add)
 done
 
 lemma cos_add: "cos (x + y) = cos x * cos y - sin x * sin y"
 apply (cut_tac x = x and y = y in sin_cos_add)
 apply (auto dest!: real_sum_squares_cancel_a
-            simp add: numeral_2_eq_2 simp del: sin_cos_add)
+            simp add: numeral_2_eq_2 real_add_eq_0_iff simp del: sin_cos_add)
 done
 
-lemma lemma_DERIV_sin_cos_minus: "\<forall>x.  
-          DERIV (%x. (sin(-x) + (sin x)) ^ 2 + (cos(-x) - (cos x)) ^ 2) x :> 0"
+lemma lemma_DERIV_sin_cos_minus:
+    "\<forall>x. DERIV (%x. (sin(-x) + (sin x)) ^ 2 + (cos(-x) - (cos x)) ^ 2) x :> 0"
 apply (safe, rule lemma_DERIV_subst)
 apply (best intro!: DERIV_intros intro: DERIV_chain2) 
 apply (auto simp add: real_diff_def left_distrib right_distrib mult_ac add_ac)
 done
 
-lemma sin_cos_minus [simp]: "(sin(-x) + (sin x)) ^ 2 + (cos(-x) - (cos x)) ^ 2 = 0"
-apply (cut_tac y = 0 and x = x in lemma_DERIV_sin_cos_minus [THEN DERIV_isconst_all])
+lemma sin_cos_minus [simp]: 
+    "(sin(-x) + (sin x)) ^ 2 + (cos(-x) - (cos x)) ^ 2 = 0"
+apply (cut_tac y = 0 and x = x 
+       in lemma_DERIV_sin_cos_minus [THEN DERIV_isconst_all])
 apply (auto simp add: numeral_2_eq_2)
 done
 
 lemma sin_minus [simp]: "sin (-x) = -sin(x)"
 apply (cut_tac x = x in sin_cos_minus)
-apply (auto dest!: real_sum_squares_cancel_a simp add: numeral_2_eq_2 simp del: sin_cos_minus)
+apply (auto dest!: real_sum_squares_cancel_a 
+       simp add: numeral_2_eq_2 real_add_eq_0_iff simp del: sin_cos_minus)
 done
 
 lemma cos_minus [simp]: "cos (-x) = cos(x)"
 apply (cut_tac x = x in sin_cos_minus)
-apply (auto dest!: real_sum_squares_cancel_a simp add: numeral_2_eq_2 simp del: sin_cos_minus)
+apply (auto dest!: real_sum_squares_cancel_a 
+                   simp add: numeral_2_eq_2 simp del: sin_cos_minus)
 done
 
 lemma sin_diff: "sin (x - y) = sin x * cos y - cos x * sin y"
@@ -1368,7 +1369,7 @@ apply (simp only: mult_less_cancel_left, simp)
 apply (simp (no_asm_simp) add: numeral_2_eq_2 [symmetric] mult_assoc [symmetric])
 apply (subgoal_tac "x*x < 2*3", simp) 
 apply (rule mult_strict_mono)
-apply (auto simp add: real_of_nat_Suc simp del: fact_Suc)
+apply (auto simp add: real_0_less_add_iff real_of_nat_Suc simp del: fact_Suc)
 apply (subst fact_Suc)
 apply (subst fact_Suc)
 apply (subst fact_Suc)
@@ -1430,7 +1431,8 @@ apply (simp (no_asm) add: fact_num_eq_if realpow_num_eq_if del: fact_Suc realpow
 apply (simp (no_asm) add: mult_assoc del: sumr_Suc)
 apply (rule sumr_pos_lt_pair)
 apply (erule sums_summable, safe)
-apply (simp (no_asm) add: divide_inverse mult_assoc [symmetric] del: fact_Suc)
+apply (simp (no_asm) add: divide_inverse real_0_less_add_iff mult_assoc [symmetric] 
+            del: fact_Suc)
 apply (rule real_mult_inverse_cancel2)
 apply (rule real_of_nat_fact_gt_zero)+
 apply (simp (no_asm) add: mult_assoc [symmetric] del: fact_Suc)
@@ -1692,9 +1694,8 @@ lemma sin_zero_lemma: "[| 0 \<le> x; sin x = 0 |] ==>
 apply (subgoal_tac "\<exists>n::nat. ~ even n & x + pi/2 = real n * (pi/2) ")
  apply (clarify, rule_tac x = "n - 1" in exI)
  apply (force simp add: odd_Suc_mult_two_ex real_of_nat_Suc left_distrib)
-apply (rule cos_zero_lemma, clarify) 
-apply (rule minus_le_iff [THEN iffD1])  
-apply (rule_tac y=0 in order_trans, auto)
+apply (rule cos_zero_lemma)
+apply (simp_all add: add_increasing)  
 done
 
 
@@ -1992,12 +1993,14 @@ apply (auto dest: realpow_not_zero
         simp del: realpow_Suc)
 done
 
-lemma lemma_sin_cos_eq [simp]: "sin (xa + 1 / 2 * real (Suc m) * pi) =  
+text{*NEEDED??*}
+lemma [simp]: "sin (xa + 1 / 2 * real (Suc m) * pi) =  
       cos (xa + 1 / 2 * real  (m) * pi)"
 apply (simp only: cos_add sin_add real_of_nat_Suc left_distrib right_distrib, auto)
 done
 
-lemma lemma_sin_cos_eq2 [simp]: "sin (xa + real (Suc m) * pi / 2) =  
+text{*NEEDED??*}
+lemma [simp]: "sin (xa + real (Suc m) * pi / 2) =  
       cos (xa + real (m) * pi / 2)"
 apply (simp only: cos_add sin_add divide_inverse real_of_nat_Suc left_distrib right_distrib, auto)
 done
@@ -2333,8 +2336,8 @@ lemma lemma_sin_cos_eq:
          1 - (cos xa)\<twosuperior> = (y / sqrt (x * x + y * y)) ^ 2 |]
       ==> (cos xa)\<twosuperior> = (x / sqrt (x * x + y * y)) ^ 2"
 apply (auto simp add: realpow_divide power2_eq_square [symmetric])
-apply (rule add_commute [THEN subst])
-apply (rule lemma_divide_rearrange, simp)
+apply (subst add_commute)
+apply (rule lemma_divide_rearrange, simp add: real_add_eq_0_iff)
 apply (simp add: add_commute)
 done
 
@@ -2395,22 +2398,24 @@ apply (drule_tac x = x in real_sqrt_divide_less_zero, auto)
 done
 
 lemma real_sum_squares_cancel2a: "x * x = -(y * y) ==> y = (0::real)"
-by (auto intro: real_sum_squares_cancel)
+by (auto intro: real_sum_squares_cancel iff: real_add_eq_0_iff)
 
 lemma polar_ex2: "[| x \<noteq> 0; y < 0 |] ==> \<exists>r a. x = r * cos a & y = r * sin a"
 apply (cut_tac x = 0 and y = x in linorder_less_linear, auto)
 apply (rule_tac x = "sqrt (x\<twosuperior> + y\<twosuperior>) " in exI)
 apply (rule_tac x = "arcsin (y / sqrt (x * x + y * y))" in exI)
-apply (auto dest: real_sum_squares_cancel2a simp add: power2_eq_square)
+apply (auto dest: real_sum_squares_cancel2a 
+            simp add: power2_eq_square real_0_le_add_iff real_add_eq_0_iff)
 apply (unfold arcsin_def)
 apply (cut_tac x1 = x and y1 = y 
        in sin_total [OF cos_x_y_ge_minus_one1a cos_x_y_le_one2])
 apply (rule someI2_ex, blast)
 apply (erule_tac V = "EX! xa. - (pi/2) \<le> xa & xa \<le> pi/2 & sin xa = y / sqrt (x * x + y * y) " in thin_rl)
-apply (cut_tac x=x and y=y in cos_x_y_disj, simp, blast, auto)
+apply (cut_tac x=x and y=y in cos_x_y_disj, simp, blast)
+apply (auto simp add: real_0_le_add_iff real_add_eq_0_iff)
 apply (drule cos_ge_zero, force)
 apply (drule_tac x = y in real_sqrt_divide_less_zero)
-apply (auto simp add: real_add_commute)
+apply (auto simp add: add_commute)
 apply (insert polar_ex1 [of x "-y"], simp, clarify) 
 apply (rule_tac x = r in exI)
 apply (rule_tac x = "-a" in exI, simp) 
@@ -2539,8 +2544,7 @@ prefer 2 apply force
 apply (drule_tac d = e in isCont_inj_range)
 prefer 2 apply (assumption, assumption, safe)
 apply (rule_tac x = ea in exI, auto)
-apply (rotate_tac 4)
-apply (drule_tac x = "f (x) + xa" in spec)
+apply (drule_tac x = "f (x) + xa" and P = "%y. \<bar>y - f x\<bar> \<le> ea \<longrightarrow> (\<exists>z. \<bar>z - x\<bar> \<le> e \<and> f z = y)" in spec)
 apply auto
 apply (drule sym, auto, arith)
 done
@@ -2867,7 +2871,6 @@ val sin_x_y_disj = thm "sin_x_y_disj";
 val cos_x_y_disj = thm "cos_x_y_disj";
 val real_sqrt_divide_less_zero = thm "real_sqrt_divide_less_zero";
 val polar_ex1 = thm "polar_ex1";
-val real_sum_squares_cancel2a = thm "real_sum_squares_cancel2a";
 val polar_ex2 = thm "polar_ex2";
 val polar_Ex = thm "polar_Ex";
 val real_sqrt_ge_abs1 = thm "real_sqrt_ge_abs1";

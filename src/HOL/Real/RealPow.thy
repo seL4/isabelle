@@ -140,7 +140,9 @@ subsection{*Various Other Theorems*}
 
 text{*Used several times in Hyperreal/Transcendental.ML*}
 lemma real_sum_squares_cancel_a: "x * x = -(y * y) ==> x = (0::real) & y=0"
-  by (auto intro: real_sum_squares_cancel)
+  apply (auto dest: real_sum_squares_cancel simp add: real_add_eq_0_iff [symmetric])
+  apply (auto dest: real_sum_squares_cancel simp add: add_commute)
+  done
 
 lemma real_squared_diff_one_factored: "x*x - (1::real) = (x + 1)*(x - 1)"
 by (auto simp add: left_distrib right_distrib real_diff_def)

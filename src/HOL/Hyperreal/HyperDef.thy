@@ -7,7 +7,7 @@
 
 header{*Construction of Hyperreals Using Ultrafilters*}
 
-theory HyperDef = Filter + Real
+theory HyperDef = Filter + "../Real/Real"
 files ("fuf.ML"):  (*Warning: file fuf.ML refers to the name Hyperdef!*)
 
 

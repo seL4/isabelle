@@ -796,7 +796,7 @@ apply (drule_tac [2] lemma_trans4)
 apply (rule_tac x = "1 + \<bar>X M\<bar> " in exI)
 apply (rule_tac [2] x = "1 + \<bar>X M\<bar> " in exI)
 apply (rule_tac [3] x = "\<bar>X m\<bar> " in exI)
-apply (auto elim!: lemma_Nat_covered, arith+)
+apply (auto elim!: lemma_Nat_covered)
 done
 
 text{*A Cauchy sequence is bounded -- nonstandard version*}

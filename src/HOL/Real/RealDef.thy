@@ -765,19 +765,19 @@ by (simp add: real_divide_def zero_le_mult_iff, auto)
 lemma real_add_minus_iff [simp]: "(x + - a = (0::real)) = (x=a)" 
 by arith
 
-lemma real_add_eq_0_iff [iff]: "(x+y = (0::real)) = (y = -x)"
+lemma real_add_eq_0_iff: "(x+y = (0::real)) = (y = -x)"
 by auto
 
-lemma real_add_less_0_iff [iff]: "(x+y < (0::real)) = (y < -x)"
+lemma real_add_less_0_iff: "(x+y < (0::real)) = (y < -x)"
 by auto
 
-lemma real_0_less_add_iff [iff]: "((0::real) < x+y) = (-x < y)"
+lemma real_0_less_add_iff: "((0::real) < x+y) = (-x < y)"
 by auto
 
-lemma real_add_le_0_iff [iff]: "(x+y \<le> (0::real)) = (y \<le> -x)"
+lemma real_add_le_0_iff: "(x+y \<le> (0::real)) = (y \<le> -x)"
 by auto
 
-lemma real_0_le_add_iff [iff]: "((0::real) \<le> x+y) = (-x \<le> y)"
+lemma real_0_le_add_iff: "((0::real) \<le> x+y) = (-x \<le> y)"
 by auto
 
 
@@ -860,12 +860,6 @@ done
 ML
 {*
 val real_0_le_divide_iff = thm"real_0_le_divide_iff";
-val real_add_minus_iff = thm"real_add_minus_iff";
-val real_add_eq_0_iff = thm"real_add_eq_0_iff";
-val real_add_less_0_iff = thm"real_add_less_0_iff";
-val real_0_less_add_iff = thm"real_0_less_add_iff";
-val real_add_le_0_iff = thm"real_add_le_0_iff";
-val real_0_le_add_iff = thm"real_0_le_add_iff";
 val real_0_less_diff_iff = thm"real_0_less_diff_iff";
 val real_0_le_diff_iff = thm"real_0_le_diff_iff";
 val real_lbound_gt_zero = thm"real_lbound_gt_zero";

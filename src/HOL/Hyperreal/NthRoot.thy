@@ -76,7 +76,8 @@ lemma lemma_nth_realpow_isLub_ge:
          0 < a; 0 < n |] ==> ALL k. a <= (u + inverse(real (Suc k))) ^ n"
 apply safe
 apply (frule lemma_nth_realpow_seq, safe)
-apply (auto elim: order_less_asym simp add: linorder_not_less [symmetric])
+apply (auto elim: order_less_asym simp add: linorder_not_less [symmetric]
+            iff: real_0_less_add_iff) --{*legacy iff rule!*}
 apply (simp add: linorder_not_less)
 apply (rule order_less_trans [of _ 0])
 apply (auto intro: lemma_nth_realpow_isLub_gt_zero)
@@ -118,8 +119,7 @@ done
 
 lemma real_mult_add_one_minus_ge_zero:
      "0 < r ==>  0 <= r*(1 + -inverse(real (Suc n)))"
-apply (simp add: zero_le_mult_iff real_of_nat_inverse_le_iff)
-done
+by (simp add: zero_le_mult_iff real_of_nat_inverse_le_iff real_0_le_add_iff)
 
 lemma lemma_nth_realpow_isLub_le:
      "[| isLub (UNIV::real set) {x. x ^ n <= a & (0::real) < x} u;  

@@ -146,27 +146,11 @@ qed_spec_mp "sumc_ge_zero2";
 ***)
 
 lemma sumr_cmod_ge_zero [iff]: "0 \<le> sumr m n (%n. cmod (f n))"
-apply (induct_tac "n", auto)
-apply (rule_tac j = 0 in real_le_trans, auto)
-done
+by (induct_tac "n", auto simp add: add_increasing) 
 
 lemma rabs_sumc_cmod_cancel [simp]:
      "abs (sumr m n (%n. cmod (f n))) = (sumr m n (%n. cmod (f n)))"
 by (simp add: abs_if linorder_not_less)
-
-lemma sumc_zero:
-     "\<forall>n. N \<le> n --> f n = 0  
-      ==> \<forall>m n. N \<le> m --> sumc m n f = 0"
-apply safe
-apply (induct_tac "n", auto)
-done
-
-lemma fun_zero_sumc_zero:
-     "\<forall>n. N \<le> n --> f (Suc n) = 0  
-      ==> \<forall>m n. Suc N \<le> m --> sumc m n f = 0"
-apply (rule sumc_zero, safe)
-apply (drule_tac x = "n - 1" in spec, auto, arith)
-done
 
 lemma sumc_one_lb_complexpow_zero [simp]: "sumc 1 n (%n. f(n) * 0 ^ n) = 0"
 apply (induct_tac "n")
@@ -210,8 +194,6 @@ val sumc_interval_const = thm "sumc_interval_const";
 val sumc_interval_const2 = thm "sumc_interval_const2";
 val sumr_cmod_ge_zero = thm "sumr_cmod_ge_zero";
 val rabs_sumc_cmod_cancel = thm "rabs_sumc_cmod_cancel";
-val sumc_zero = thm "sumc_zero";
-val fun_zero_sumc_zero = thm "fun_zero_sumc_zero";
 val sumc_one_lb_complexpow_zero = thm "sumc_one_lb_complexpow_zero";
 val sumc_diff = thm "sumc_diff";
 val sumc_subst = thm "sumc_subst";

@@ -270,7 +270,8 @@ lemma sumr_pos_lt_pair:
 apply (drule summable_sums)
 apply (auto simp add: sums_def LIMSEQ_def)
 apply (drule_tac x = "f (n) + f (n + 1) " in spec)
-apply auto
+apply (auto iff: real_0_less_add_iff)
+   --{*legacy proof: not necessarily better!*}
 apply (rule_tac [2] ccontr, drule_tac [2] linorder_not_less [THEN iffD1])
 apply (frule_tac [2] no=no in sumr_pos_lt_pair_lemma) 
 apply (drule_tac x = 0 in spec, simp)
@@ -291,11 +292,9 @@ apply (simp add: abs_if)
 apply (auto simp add: linorder_not_less [symmetric])
 done
 
+text{*A summable series of positive terms has limit that is at least as
+great as any partial sum.*}
 
-
-(*-----------------------------------------------------------------
-   Summable series of positive terms has limit >= any partial sum 
- ----------------------------------------------------------------*)
 lemma series_pos_le: 
      "[| summable f; \<forall>m. n \<le> m --> 0 \<le> f(m) |] ==> sumr 0 n f \<le> suminf f"
 apply (drule summable_sums)
@@ -314,9 +313,7 @@ apply (rule_tac [2] series_pos_le, auto)
 apply (drule_tac x = m in spec, auto)
 done
 
-(*-------------------------------------------------------------------
-                    sum of geometric progression                 
- -------------------------------------------------------------------*)
+text{*Sum of a geometric progression.*}
 
 lemma sumr_geometric: "x ~= 1 ==> sumr 0 n (%n. x ^ n) = (x ^ n - 1) / (x - 1)"
 apply (induct_tac "n", auto)
@@ -334,9 +331,8 @@ apply (rule LIMSEQ_add, rule LIMSEQ_divide)
 apply (auto intro: LIMSEQ_const simp add: real_diff_def minus_divide_right LIMSEQ_rabs_realpow_zero2)
 done
 
-(*-------------------------------------------------------------------
-    Cauchy-type criterion for convergence of series (c.f. Harrison)
- -------------------------------------------------------------------*)
+text{*Cauchy-type criterion for convergence of series (c.f. Harrison)*}
+
 lemma summable_convergent_sumr_iff: "summable f = convergent (%n. sumr 0 n f)"
 by (simp add: summable_def sums_def convergent_def)
 
@@ -355,14 +351,8 @@ apply (auto intro: abs_minus_add_cancel [THEN subst]
             simp add: sumr_split_add_minus abs_minus_add_cancel)
 done
 
-(*-------------------------------------------------------------------
-     Terms of a convergent series tend to zero
-     > Goalw [LIMSEQ_def] "summable f ==> f ----> 0"
-     Proved easily in HSeries after proving nonstandard case.
- -------------------------------------------------------------------*)
-(*-------------------------------------------------------------------
-                    Comparison test
- -------------------------------------------------------------------*)
+text{*Comparison test*}
+
 lemma summable_comparison_test:
      "[| \<exists>N. \<forall>n. N \<le> n --> abs(f n) \<le> g n; summable g |] ==> summable f"
 apply (auto simp add: summable_Cauchy)
@@ -384,9 +374,8 @@ apply (rule summable_comparison_test)
 apply (auto simp add: abs_idempotent)
 done
 
-(*------------------------------------------------------------------*)
-(*       Limit comparison property for series (c.f. jrh)            *)
-(*------------------------------------------------------------------*)
+text{*Limit comparison property for series (c.f. jrh)*}
+
 lemma summable_le:
      "[|\<forall>n. f n \<le> g n; summable f; summable g |] ==> suminf f \<le> suminf g"
 apply (drule summable_sums)+
@@ -402,9 +391,7 @@ apply (auto intro: summable_comparison_test intro!: summable_le)
 apply (simp add: abs_le_interval_iff)
 done
 
-(*-------------------------------------------------------------------
-         Absolute convergence imples normal convergence
- -------------------------------------------------------------------*)
+text{*Absolute convergence imples normal convergence*}
 lemma summable_rabs_cancel: "summable (%n. abs (f n)) ==> summable f"
 apply (auto simp add: sumr_rabs summable_Cauchy)
 apply (drule spec, auto)
@@ -414,9 +401,7 @@ apply (rule_tac y = "sumr m n (%n. abs (f n))" in order_le_less_trans)
 apply (auto intro: sumr_rabs)
 done
 
-(*-------------------------------------------------------------------
-         Absolute convergence of series
- -------------------------------------------------------------------*)
+text{*Absolute convergence of series*}
 lemma summable_rabs:
      "summable (%n. abs (f n)) ==> abs(suminf f) \<le> suminf (%n. abs(f n))"
 by (auto intro: LIMSEQ_le LIMSEQ_imp_rabs summable_rabs_cancel summable_sumr_LIMSEQ_suminf sumr_rabs)
@@ -469,9 +454,7 @@ apply (auto intro!: sums_mult geometric_sums simp add: abs_if)
 done
 
 
-(*--------------------------------------------------------------------------*)
-(* Differentiation of finite sum                                            *)
-(*--------------------------------------------------------------------------*)
+text{*Differentiation of finite sum*}
 
 lemma DERIV_sumr [rule_format (no_asm)]:
      "(\<forall>r. m \<le> r & r < (m + n) --> DERIV (%x. f r x) x :> (f' r x))  

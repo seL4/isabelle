@@ -127,6 +127,61 @@ lemma log_le_cancel_iff [simp]:
 by (simp add: linorder_not_less [symmetric])
 
 
+subsection{*Further Results Courtesy Jeremy Avigad*}
+
+lemma powr_realpow: "0 < x ==> x powr (real n) = x^n"
+  apply (induct n, simp)
+  apply (subgoal_tac "real(Suc n) = real n + 1")
+  apply (erule ssubst)
+  apply (subst powr_add, simp, simp)
+done
+
+lemma powr_realpow2: "0 <= x ==> 0 < n ==> x^n = (if (x = 0) then 0
+  else x powr (real n))"
+  apply (case_tac "x = 0", simp, simp)
+  apply (rule powr_realpow [THEN sym], simp)
+done
+
+lemma ln_pwr: "0 < x ==> 0 < y ==> ln(x powr y) = y * ln x"
+by (unfold powr_def, simp)
+
+lemma ln_bound: "1 <= x ==> ln x <= x"
+  apply (subgoal_tac "ln(1 + (x - 1)) <= x - 1")
+  apply simp
+  apply (rule ln_add_one_self_le_self, simp)
+done
+
+lemma powr_mono: "a <= b ==> 1 <= x ==> x powr a <= x powr b"
+  apply (case_tac "x = 1", simp)
+  apply (case_tac "a = b", simp)
+  apply (rule order_less_imp_le)
+  apply (rule powr_less_mono, auto)
+done
+
+lemma ge_one_powr_ge_zero: "1 <= x ==> 0 <= a ==> 1 <= x powr a"
+  apply (subst powr_zero_eq_one [THEN sym])
+  apply (rule powr_mono, assumption+)
+done
+
+lemma powr_less_mono2: "0 < a ==> 0 < x ==> x < y ==> x powr a <
+    y powr a"
+  apply (unfold powr_def)
+  apply (rule exp_less_mono)
+  apply (rule mult_strict_left_mono)
+  apply (subst ln_less_cancel_iff, assumption)
+  apply (rule order_less_trans)
+  prefer 2
+  apply assumption+
+done
+
+lemma powr_mono2: "0 <= a ==> 0 < x ==> x <= y ==> x powr a <= y powr a";
+  apply (case_tac "a = 0", simp)
+  apply (case_tac "x = y", simp)
+  apply (rule order_less_imp_le)
+  apply (rule powr_less_mono2, auto)
+done
+
+
 
 ML
 {*

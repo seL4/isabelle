@@ -988,8 +988,9 @@ apply (cases z)
 apply (simp add: hsgn hcmod hIm hypreal_divide)
 done
 
+(*????move to RealDef????*)
 lemma real_two_squares_add_zero_iff [simp]: "(x*x + y*y = 0) = ((x::real) = 0 & y = 0)"
-by (auto intro: real_sum_squares_cancel)
+by (auto intro: real_sum_squares_cancel iff: real_add_eq_0_iff)
 
 lemma hcomplex_inverse_complex_split:
      "inverse(hcomplex_of_hypreal x + iii * hcomplex_of_hypreal y) =

@@ -7,7 +7,7 @@
 
 header {* Complex Numbers: Rectangular and Polar Representations *}
 
-theory Complex = HLog:
+theory Complex = "../Hyperreal/HLog":
 
 datatype complex = Complex real real
 
@@ -440,7 +440,8 @@ subsection{*Modulus*}
 
 lemma complex_mod_eq_zero_cancel [simp]: "(cmod x = 0) = (x = 0)"
 apply (induct x)
-apply (auto intro: real_sum_squares_cancel real_sum_squares_cancel2
+apply (auto iff: real_0_le_add_iff 
+            intro: real_sum_squares_cancel real_sum_squares_cancel2
             simp add: complex_mod complex_zero_def power2_eq_square)
 done
 
@@ -453,7 +454,7 @@ by (induct x, simp add: complex_mod complex_minus power2_eq_square)
 
 lemma complex_mod_mult_cnj: "cmod(z * cnj(z)) = cmod(z) ^ 2"
 apply (induct z, simp add: complex_mod complex_cnj complex_mult)
-apply (simp add: power2_eq_square abs_if linorder_not_less)
+apply (simp add: power2_eq_square abs_if linorder_not_less real_0_le_add_iff)
 done
 
 lemma complex_mod_squared: "cmod(Complex x y) ^ 2 = x ^ 2 + y ^ 2"
@@ -510,7 +511,7 @@ by (rule order_trans [OF _ complex_mod_ge_zero], simp)
 lemma complex_mod_triangle_ineq [simp]: "cmod (x + y) \<le> cmod(x) + cmod(y)"
 apply (rule_tac n = 1 in realpow_increasing)
 apply (auto intro:  order_trans [OF _ complex_mod_ge_zero]
-            simp add: power2_eq_square [symmetric])
+            simp add: add_increasing power2_eq_square [symmetric])
 done
 
 lemma complex_mod_triangle_ineq2 [simp]: "cmod(b + a) - cmod b \<le> cmod a"
