@@ -345,6 +345,9 @@ http://fink.sourceforge.net/);
 
 * system: support Poly/ML 4.1.1 (able to manage larger heaps);
 
+* system: reduced base memory usage by Poly/ML (approx. 20 MB instead
+of 40 MB), cf. ML_OPTIONS;
+
 * system: Proof General keywords specification is now part of the
 Isabelle distribution (see etc/isar-keywords.el);
 
