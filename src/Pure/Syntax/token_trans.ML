@@ -2,7 +2,7 @@
     ID:         $Id$
     Author:     Markus Wenzel, TU Muenchen
 
-Token translations for xterm and LaTeX output.
+Token translations for xterm, emacs and latex output.
 *)
 
 signature TOKEN_TRANS =
@@ -37,11 +37,12 @@ end;
 structure TokenTrans: TOKEN_TRANS =
 struct
 
+
 (** misc utils **)
 
 fun trans_mode m trs = map (fn (s, f) => (m, s, f)) trs;
 
-val tok_classes = ["class", "tfree", "tvar", "free", "bound", "var"];
+val std_token_classes = ["class", "tfree", "tvar", "free", "bound", "var"];
 
 
 
@@ -99,18 +100,51 @@ val xterm_trans =
    ("var", style xterm_color_var)];
 
 
+
+(** emacs output (Isamode) **)
+
+(* tags *)
+
+val end_tag = "\^A0";
+val tclass_tag = "\^A1";
+val tfree_tag = "\^A2";
+val tvar_tag = "\^A3";
+val free_tag = "\^A4";
+val bound_tag = "\^A5";
+val var_tag = "\^A6";
+
+fun tagit p x = (p ^ x ^ end_tag, size x);
+
+
+(* print mode "emacs" *)
+
+val emacs_trans =
+ trans_mode "emacs"
+  [("class", tagit tclass_tag),
+   ("tfree", tagit tfree_tag),
+   ("tvar", tagit tvar_tag),
+   ("free", tagit free_tag),
+   ("bound", tagit bound_tag),
+   ("var", tagit var_tag)];
+
+
+
 (** LaTeX output **)
 
 (* FIXME 'a -> \alpha etc. *)
 
+val latex_trans =
+ trans_mode "latex" [];
 
-(** token translations **)
+
+
+(** standard token translations **)
 
 val token_translation =
-  map (fn s => ("", s, fn x => (x, size x))) tok_classes @
-  (* FIXME tmp test *)
-  map (fn s => ("test", s, fn x => (s ^ "[" ^ x ^ "]", size x + size s + 2))) tok_classes @
-  xterm_trans;
+  map (fn s => ("", s, fn x => (x, size x))) std_token_classes @
+  xterm_trans @
+  emacs_trans @
+  latex_trans;
 
 
 end;
