@@ -1,0 +1,1040 @@
+\chapter{Sets, Functions and Relations}
+
+Mathematics relies heavily on set theory: not just unions and intersections
+but least fixed points and other concepts.  In computer science, sets are
+used to formalize grammars, state transition systems, etc.  The set theory
+of Isabelle/HOL should not be confused with traditional,  untyped set
+theory, in which everything is a set. There the slogan  is `set theory is
+the foundation of mathematics.' Our sets are  typed. In a given set, all
+elements have the same type, say
+\isa{T},  and the set itself has type \isa{T set}.  Sets are typed in the
+same way as lists. 
+
+Relations are simply sets of pairs.  This chapter describes
+the main operations on relations, such as converse, composition and
+transitive closure.  Functions are also covered below.  They are not sets in
+Isabelle/HOL, but (for example) the range of a function is a set,
+and the inverse image of a function maps sets to sets.
+
+This chapter ends with a case study concerning model checking for the
+temporal logic CTL\@.  Most of the other examples are simple.  The
+chapter presents a small selection of built-in theorems in order to point
+out some key properties of the various constants and to introduce you to
+the notation. 
+
+Natural deduction rules are provided for the set theory constants, but they
+are seldom used directly, so only a few are presented here.  Many formulas
+involving sets can be proved automatically or simplified to a great extent.
+Expressing your concepts in terms of sets will probably  make your proofs
+easier.
+
+
+\section{Sets}
+
+We begin with \textbf{intersection}, \textbf{union} and \textbf{complement}  (denoted 
+by a minus sign). In addition to the \textbf{membership} relation, there 
+is a symbol for its negation. These points can be seen below.  
+
+Here are the natural deduction rules for intersection.  Note the 
+resemblance to those for conjunction.  
+\begin{isabelle}
+\isasymlbrakk c\ \isasymin\
+A;\ c\ \isasymin\
+B\isasymrbrakk\ \isasymLongrightarrow\ c\
+\isasymin\ A\ \isasyminter\ B%
+\rulename{IntI}\isanewline
+c\ \isasymin\ A\ \isasyminter\
+B\ \isasymLongrightarrow\ c\ \isasymin\
+A%
+\rulename{IntD1}\isanewline
+c\ \isasymin\ A\ \isasyminter\
+B\ \isasymLongrightarrow\ c\ \isasymin\
+B%
+\rulename{IntD2}%
+\end{isabelle}
+
+Here are two of the many installed theorems concerning set complement:
+\begin{isabelle}
+(c\ \isasymin\ \isacharminus\ A)\ =\ (c\ \isasymnotin\ A)
+\rulename{Compl_iff}\isanewline
+\isacharminus\ (A\ \isasymunion\
+B)\ =\ \isacharminus\
+A\ \isasyminter\ \isacharminus\ B
+\rulename{Compl_Un}
+\end{isabelle}
+
+Set \textbf{difference} means the same thing as intersection with the 
+complement of another set. Here we also see the syntax for the 
+empty set and for the universal set. 
+\begin{isabelle}
+A\ \isasyminter\ (B\
+\isacharminus\ A)\ =\
+\isacharbraceleft{\isacharbraceright}
+\rulename{Diff_disjoint}%
+\isanewline
+A\ \isasymunion\ \isacharminus\ A\
+=\ UNIV%
+\rulename{Compl_partition}
+\end{isabelle}
+
+The \textbf{subset} relation holds between two sets just if every element 
+of one is also an element of the other. This relation is reflexive.  These
+are its natural deduction rules:
+\begin{isabelle}
+({\isasymAnd}x.\ x\ \isasymin\ A\ \isasymLongrightarrow\ x\ \isasymin\ B)\ \isasymLongrightarrow\ A\ \isasymsubseteq\ B%
+\rulename{subsetI}%
+\par\smallskip%          \isanewline didn't leave enough space
+\isasymlbrakk A\ \isasymsubseteq\ B;\ c\ \isasymin\
+A\isasymrbrakk\ \isasymLongrightarrow\ c\
+\isasymin\ B%
+\rulename{subsetD}
+\end{isabelle}
+In harder proofs, you may need to apply \isa{subsetD} giving a specific term
+for~\isa{c}.  However, \isa{blast} can instantly prove facts such as this
+one: 
+\begin{isabelle}
+(A\ \isasymunion\ B\
+\isasymsubseteq\ C)\ =\
+(A\ \isasymsubseteq\ C\
+\isasymand\ B\ \isasymsubseteq\
+C)
+\rulename{Un_subset_iff}
+\end{isabelle}
+Here is another example, also proved automatically:
+\begin{isabelle}
+\isacommand{lemma}\ "(A\
+\isasymsubseteq\ -B)\ =\
+(B\ \isasymsubseteq\
+-A)"\isanewline
+\isacommand{apply}\ (blast)\isanewline
+\isacommand{done}
+\end{isabelle}
+%
+This is the same example using ASCII syntax, illustrating a pitfall: 
+\begin{isabelle}
+\isacommand{lemma}\ "(A\ \isacharless=\ -B)\ =\ (B\ \isacharless=\
+-A)"
+\end{isabelle}
+%
+The proof fails.  It is not a statement about sets, due to overloading;
+the relation symbol~\isa{<=} can be any relation, not just  
+subset. 
+In this general form, the statement is not valid.  Putting
+in a type constraint forces the variables to denote sets, allowing the
+proof to succeed:
+
+\begin{isabelle}
+\isacommand{lemma}\ "((A::\ {\isacharprime}a\ set)\ \isacharless=\ -B)\ =\ (B\ \isacharless=\
+-A)"
+\end{isabelle}
+Incidentally, \isa{A\ \isasymsubseteq\ -B} asserts that
+the sets \isa{A} and \isa{B} are disjoint.
+
+\medskip
+Two sets are \textbf{equal} if they contain the same elements.  
+This is
+the principle of \textbf{extensionality} for sets. 
+\begin{isabelle}
+({\isasymAnd}x.\ (x\ {\isasymin}\ A)\ =\ (x\ {\isasymin}\ B))\
+{\isasymLongrightarrow}\ A\ =\ B
+\rulename{set_ext}
+\end{isabelle}
+Extensionality is often expressed as 
+$A=B\iff A\subseteq B\conj B\subseteq A$.  
+The following rules express both
+directions of this equivalence.  Proving a set equation using
+\isa{equalityI} allows the two inclusions to be proved independently.
+\begin{isabelle}
+\isasymlbrakk A\ \isasymsubseteq\ B;\ B\ \isasymsubseteq\
+A\isasymrbrakk\ \isasymLongrightarrow\ A\ =\ B%
+\rulename{equalityI}
+\par\smallskip%          \isanewline didn't leave enough space
+\isasymlbrakk A\ =\ B;\ \isasymlbrakk A\ \isasymsubseteq\ B;\ B\
+\isasymsubseteq\ A\isasymrbrakk\ \isasymLongrightarrow\ P\isasymrbrakk\
+\isasymLongrightarrow\ P%
+\rulename{equalityE}
+\end{isabelle}
+
+
+\subsection{Finite set notation} 
+
+Finite sets are expressed using the constant {\isa{insert}}, which is
+closely related to union:
+\begin{isabelle}
+insert\ a\ A\ =\
+\isacharbraceleft a\isacharbraceright\ \isasymunion\
+A%
+\rulename{insert_is_Un}
+\end{isabelle}
+%
+The finite set expression \isa{\isacharbraceleft
+a,b\isacharbraceright} abbreviates
+\isa{insert\ a\ (insert\ b\ \isacharbraceleft\isacharbraceright)}.
+Many simple facts can be proved automatically: 
+\begin{isabelle}
+\isacommand{lemma}\
+"{\isacharbraceleft}a,b\isacharbraceright\
+\isasymunion\ {\isacharbraceleft}c,d\isacharbraceright\
+=\
+{\isacharbraceleft}a,b,c,d\isacharbraceright"\isanewline
+\isacommand{apply}\
+(blast)\isanewline
+\isacommand{done}
+\end{isabelle}
+
+
+Not everything that we would like to prove is valid. 
+Consider this try: 
+\begin{isabelle}
+\isacommand{lemma}\ "{\isacharbraceleft}a,b\isacharbraceright\ \isasyminter\ {\isacharbraceleft}b,c\isacharbraceright\ =\
+{\isacharbraceleft}b\isacharbraceright"\isanewline
+\isacommand{apply}\
+(auto)
+\end{isabelle}
+%
+The proof fails, leaving the subgoal \isa{b=c}. To see why it 
+fails, consider a correct version: 
+\begin{isabelle}
+\isacommand{lemma}\ "{\isacharbraceleft}a,b\isacharbraceright\ \isasyminter\ {\isacharbraceleft}b,c\isacharbraceright\ =\ (if\ a=c\ then\ {\isacharbraceleft}a,b\isacharbraceright\ else\ {\isacharbraceleft}b\isacharbraceright)"\isanewline
+\isacommand{apply}\ (simp)\isanewline
+\isacommand{apply}\ (blast)\isanewline
+\isacommand{done}%
+\end{isabelle}
+
+Our mistake was to suppose that the various items were distinct.  Another
+remark: this proof uses two methods, namely {\isa{simp}}  and
+{\isa{blast}}. Calling {\isa{simp}} eliminates the
+\isa{if}-\isa{then}-\isa{else} expression,  which {\isa{blast}}
+cannot break down. The combined methods (namely {\isa{force}}  and
+{\isa{auto}}) can prove this fact in one step. 
+
+
+\subsection{Set comprehension}
+
+A set comprehension expresses the set of all elements that satisfy 
+a given predicate. Formally, we do not need sets at all. We are 
+working in higher-order logic, where variables can range over 
+predicates. The main benefit of using sets is their notation; 
+we can write \isa{x{\isasymin}A} and \isa{{\isacharbraceleft}z.\
+P\isacharbraceright} where predicates would require writing
+\isa{A(x)} and
+\isa{{\isasymlambda}z.\ P}. 
+
+These two laws describe the relationship between set 
+comprehension and the membership relation. 
+\begin{isabelle}
+(a\ \isasymin\
+{\isacharbraceleft}x.\ P\
+x\isacharbraceright)\ =\
+P\ a%
+\rulename{mem_Collect_eq}%
+\isanewline
+{\isacharbraceleft}x.\ x\ \isasymin\
+A\isacharbraceright\ =\ A%
+\rulename{Collect_mem_eq}
+\end{isabelle}
+
+Facts such as these have trivial proofs:
+\begin{isabelle}
+\isacommand{lemma}\
+"{\isacharbraceleft}x.\ P\ x\ \isasymor\
+x\ \isasymin\ A\isacharbraceright\ =\
+{\isacharbraceleft}x.\ P\ x\isacharbraceright\
+\isasymunion\ A"
+\par\smallskip
+\isacommand{lemma}\
+"{\isacharbraceleft}x.\ P\ x\
+\isasymlongrightarrow\ Q\ x\isacharbraceright\ =\
+\isacharminus{\isacharbraceleft}x.\ P\ x\isacharbraceright\
+\isasymunion\ {\isacharbraceleft}x.\ Q\
+x\isacharbraceright"
+\end{isabelle}
+
+Isabelle has a general syntax for comprehension, which is best 
+described through an example: 
+\begin{isabelle}
+\isacommand{lemma}\ "{\isacharbraceleft}p*q\ \isacharbar\ p\ q.\ 
+p{\isasymin}prime\ \isasymand\ q{\isasymin}prime\isacharbraceright\ =\ 
+\isanewline
+\ \ \ \ \ \ \ \ {\isacharbraceleft}z.\ {\isasymexists}p\ q.\ z\ =\ p*q\
+\isasymand\ p{\isasymin}prime\ \isasymand\
+q{\isasymin}prime\isacharbraceright"
+\end{isabelle}
+The proof is trivial because the left and right hand side 
+of the expression are synonymous. The syntax appearing on the 
+left-hand side abbreviates the right-hand side: in this case, all numbers
+that are the product of two primes. In general,  the syntax provides a neat
+way of expressing any set given by an expression built up from variables
+under specific constraints. 
+
+
+
+\subsection{Binding operators}
+
+Universal and existential quantifications may range over sets, 
+with the obvious meaning.  Here are the natural deduction rules for the
+bounded universal quantifier.  Occasionally you will need to apply
+\isa{bspec} with an explicit instantiation of the variable~\isa{x}:
+%
+\begin{isabelle}
+({\isasymAnd}x.\ x\ \isasymin\ A\ \isasymLongrightarrow\ P\ x)\ \isasymLongrightarrow\ {\isasymforall}x\isasymin
+A.\ P\ x%
+\rulename{ballI}%
+\isanewline
+\isasymlbrakk{\isasymforall}x\isasymin A.\
+P\ x;\ x\ \isasymin\
+A\isasymrbrakk\ \isasymLongrightarrow\ P\
+x%
+\rulename{bspec}
+\end{isabelle}
+%
+Dually, here are the natural deduction rules for the
+bounded existential quantifier.  You may need to apply
+\isa{bexI} with an explicit instantiation:
+\begin{isabelle}
+\isasymlbrakk P\ x;\
+x\ \isasymin\ A\isasymrbrakk\
+\isasymLongrightarrow\
+{\isasymexists}x\isasymin A.\ P\
+x%
+\rulename{bexI}%
+\isanewline
+\isasymlbrakk{\isasymexists}x\isasymin A.\
+P\ x;\ {\isasymAnd}x.\
+{\isasymlbrakk}x\ \isasymin\ A;\
+P\ x\isasymrbrakk\ \isasymLongrightarrow\
+Q\isasymrbrakk\ \isasymLongrightarrow\ Q%
+\rulename{bexE}
+\end{isabelle}
+
+Unions can be formed over the values of a given  set.  The syntax is
+\isa{\isasymUnion x\isasymin A.\ B} or \isa{UN
+x:\ A.\ B} in \textsc{ascii}. Indexed union satisfies this basic law:
+\begin{isabelle}
+(b\ \isasymin\
+(\isasymUnion x\isasymin A.\ B\ x))\ =\ ({\isasymexists}x\isasymin A.\
+b\ \isasymin\ B\ x)
+\rulename{UN_iff}
+\end{isabelle}
+It has two natural deduction rules similar to those for the existential
+quantifier.  Sometimes \isa{UN_I} must be applied explicitly:
+\begin{isabelle}
+\isasymlbrakk a\ \isasymin\
+A;\ b\ \isasymin\
+B\ a\isasymrbrakk\ \isasymLongrightarrow\
+b\ \isasymin\
+({\isasymUnion}x\isasymin A.\
+B\ x)
+\rulename{UN_I}%
+\isanewline
+\isasymlbrakk b\ \isasymin\
+({\isasymUnion}x\isasymin A.\
+B\ x);\
+{\isasymAnd}x.\ {\isasymlbrakk}x\ \isasymin\
+A;\ b\ \isasymin\
+B\ x\isasymrbrakk\ \isasymLongrightarrow\
+R\isasymrbrakk\ \isasymLongrightarrow\ R%
+\rulename{UN_E}
+\end{isabelle}
+%
+The following built-in abbreviation lets us express the union
+over a \emph{type}:
+\begin{isabelle}
+\ \ \ \ \
+({\isasymUnion}x.\ B\ x)\ {==}\
+({\isasymUnion}x{\isasymin}UNIV.\ B\ x)
+\end{isabelle}
+Abbreviations work as you might expect.  The term on the left-hand side of
+the
+\isa{==} symbol is automatically translated to the right-hand side when the
+term is parsed, the reverse translation being done when the term is
+displayed.
+
+We may also express the union of a set of sets, written \isa{Union\ C} in
+\textsc{ascii}: 
+\begin{isabelle}
+(A\ \isasymin\ \isasymUnion C)\ =\ ({\isasymexists}X\isasymin C.\ A\
+\isasymin\ X)
+\rulename{Union_iff}
+\end{isabelle}
+
+Intersections are treated dually, although they seem to be used less often
+than unions.  The syntax below would be \isa{INT
+x:\ A.\ B} and \isa{Inter\ C} in \textsc{ascii}.  Among others, these
+theorems are available:
+\begin{isabelle}
+(b\ \isasymin\
+({\isasymInter}x\isasymin A.\
+B\ x))\
+=\
+({\isasymforall}x\isasymin A.\
+b\ \isasymin\ B\ x)
+\rulename{INT_iff}%
+\isanewline
+(A\ \isasymin\
+\isasymInter C)\ =\
+({\isasymforall}X\isasymin C.\
+A\ \isasymin\ X)
+\rulename{Inter_iff}
+\end{isabelle}
+
+Isabelle uses logical equivalences such as those above in automatic proof. 
+Unions, intersections and so forth are not simply replaced by their
+definitions.  Instead, membership tests are simplified.  For example,  $x\in
+A\cup B$ is replaced by $x\in A\vee x\in B$.
+
+The internal form of a comprehension involves the constant  
+\isa{Collect}, which occasionally appears when a goal or theorem
+is displayed.  For example, \isa{Collect\ P}  is the same term as
+\isa{{\isacharbraceleft}z.\ P\ x\isacharbraceright}.  The same thing can
+happen with quantifiers:  for example, \isa{Ball\ A\ P} is 
+\isa{{\isasymforall}z\isasymin A.\ P\ x} and \isa{Bex\ A\ P} is 
+\isa{{\isasymexists}z\isasymin A.\ P\ x}.  For indexed unions and
+intersections, you may see the constants \isa{UNION} and \isa{INTER}\@.
+
+We have only scratched the surface of Isabelle/HOL's set theory. 
+One primitive not mentioned here is the powerset operator
+{\isa{Pow}}.  Hundreds of theorems are proved in theory \isa{Set} and its
+descendants.
+
+
+\subsection{Finiteness and cardinality}
+
+The predicate \isa{finite} holds of all finite sets.  Isabelle/HOL includes
+many familiar theorems about finiteness and cardinality 
+(\isa{card}). For example, we have theorems concerning the cardinalities
+of unions, intersections and the powerset:
+%
+\begin{isabelle}
+{\isasymlbrakk}finite\ A;\ finite\ B\isasymrbrakk\isanewline
+\isasymLongrightarrow\ card\ A\ \isacharplus\ card\ B\ =\ card\ (A\ \isasymunion\ B)\ \isacharplus\ card\ (A\ \isasyminter\ B)
+\rulename{card_Un_Int}%
+\isanewline
+\isanewline
+finite\ A\ \isasymLongrightarrow\ card\
+(Pow\ A)\  =\ 2\ \isacharcircum\ card\ A%
+\rulename{card_Pow}%
+\isanewline
+\isanewline
+finite\ A\ \isasymLongrightarrow\isanewline
+card\ {\isacharbraceleft}B.\ B\ \isasymsubseteq\
+A\ \isasymand\ card\ B\ =\
+k\isacharbraceright\ =\ card\ A\ choose\ k%
+\rulename{n_subsets}
+\end{isabelle}
+Writing $|A|$ as $n$, the last of these theorems says that the number of
+$k$-element subsets of~$A$ is $n \choose k$.
+
+\emph{Note}: the term \isa{Finite\ A} is an abbreviation for
+\isa{A\ \isasymin\ Finites}, where the constant \isa{Finites} denotes the
+set of all finite sets of a given type.  So there is no constant
+\isa{Finite}.
+ 
+
+\section{Functions}
+
+This section describes a few concepts that involve functions. 
+Some of the more important theorems are given along with the 
+names. A few sample proofs appear. Unlike with set theory, however, 
+we cannot simply state lemmas and expect them to be proved using {\isa{blast}}. 
+
+Two functions are \textbf{equal} if they yield equal results given equal arguments. 
+This is the principle of \textbf{extensionality} for functions:
+\begin{isabelle}
+({\isasymAnd}x.\ f\ x\ =\ g\ x)\ {\isasymLongrightarrow}\ f\ =\ g
+\rulename{ext}
+\end{isabelle}
+
+
+Function \textbf{update} is useful for modelling machine states. It has 
+the obvious definition and many useful facts are proved about 
+it.  In particular, the following equation is installed as a simplification
+rule:
+\begin{isabelle}
+(f(x:=y))\ z\ =\ (if\ z\ =\ x\ then\ y\ else\ f\ z)
+\rulename{fun_upd_apply}
+\end{isabelle}
+Two syntactic points must be noted.  In
+\isa{(f(x:=y))\ z} we are applying an updated function to an
+argument; the outer parentheses are essential.  A series of two or more
+updates can be abbreviated as shown on the left-hand side of this theorem:
+\begin{isabelle}
+f(x:=y,\ x:=z)\ =\ f(x:=z)
+\rulename{fun_upd_upd}
+\end{isabelle}
+Note also that we can write \isa{f(x:=z)} with only one pair of parentheses
+when it is not being applied to an argument.
+
+\medskip
+The \textbf{identity} function and function \textbf{composition} are defined as 
+follows: 
+\begin{isabelle}%
+id\ \isasymequiv\ {\isasymlambda}x.\ x%
+\rulename{id_def}\isanewline
+f\ \isasymcirc\ g\ \isasymequiv\
+{\isasymlambda}x.\ f\
+(g\ x)%
+\rulename{o_def}
+\end{isabelle}
+%
+Many familiar theorems concerning the identity and composition 
+are proved. For example, we have the associativity of composition: 
+\begin{isabelle}
+f\ \isasymcirc\ (g\ \isasymcirc\ h)\ =\ f\ \isasymcirc\ g\ \isasymcirc\ h
+\rulename{o_assoc}
+\end{isabelle}
+
+\medskip
+
+A function may be \textbf{injective}, \textbf{surjective} or \textbf{bijective}: 
+\begin{isabelle}
+inj_on\ f\ A\ \isasymequiv\ {\isasymforall}x\isasymin A.\
+{\isasymforall}y\isasymin  A.\ f\ x\ =\ f\ y\ \isasymlongrightarrow\ x\
+=\ y%
+\rulename{inj_on_def}\isanewline
+surj\ f\ \isasymequiv\ {\isasymforall}y.\
+{\isasymexists}x.\ y\ =\ f\ x%
+\rulename{surj_def}\isanewline
+bij\ f\ \isasymequiv\ inj\ f\ \isasymand\ surj\ f
+\rulename{bij_def}
+\end{isabelle}
+The second argument
+of \isa{inj_on} lets us express that a function is injective over a
+given set. This refinement is useful in higher-order logic, where
+functions are total; in some cases, a function's natural domain is a subset
+of its domain type.  Writing \isa{inj\ f} abbreviates \isa{inj_on\ f\
+UNIV}, for when \isa{f} is injective everywhere.
+
+The operator {\isa{inv}} expresses the \textbf{inverse} of a function. In 
+general the inverse may not be well behaved.  We have the usual laws,
+such as these: 
+\begin{isabelle}
+inj\ f\ \ \isasymLongrightarrow\ inv\ f\ (f\ x)\ =\ x%
+\rulename{inv_f_f}\isanewline
+surj\ f\ \isasymLongrightarrow\ f\ (inv\ f\ y)\ =\ y
+\rulename{surj_f_inv_f}\isanewline
+bij\ f\ \ \isasymLongrightarrow\ inv\ (inv\ f)\ =\ f
+\rulename{inv_inv_eq}
+\end{isabelle}
+%
+%Other useful facts are that the inverse of an injection 
+%is a surjection and vice versa; the inverse of a bijection is 
+%a bijection. 
+%\begin{isabelle}
+%inj\ f\ \isasymLongrightarrow\ surj\
+%(inv\ f)
+%\rulename{inj_imp_surj_inv}\isanewline
+%surj\ f\ \isasymLongrightarrow\ inj\ (inv\ f)
+%\rulename{surj_imp_inj_inv}\isanewline
+%bij\ f\ \isasymLongrightarrow\ bij\ (inv\ f)
+%\rulename{bij_imp_bij_inv}
+%\end{isabelle}
+%
+%The converses of these results fail.  Unless a function is 
+%well behaved, little can be said about its inverse. Here is another 
+%law: 
+%\begin{isabelle}
+%{\isasymlbrakk}bij\ f;\ bij\ g\isasymrbrakk\ \isasymLongrightarrow\ inv\ (f\ \isasymcirc\ g)\ =\ inv\ g\ \isasymcirc\ inv\ f%
+%\rulename{o_inv_distrib}
+%\end{isabelle}
+
+Theorems involving these concepts can be hard to prove. The following 
+example is easy, but it cannot be proved automatically. To begin 
+with, we need a law that relates the quality of functions to 
+equality over all arguments: 
+\begin{isabelle}
+(f\ =\ g)\ =\ ({\isasymforall}x.\ f\ x\ =\ g\ x)
+\rulename{expand_fun_eq}
+\end{isabelle}
+
+This is just a restatement of extensionality.  Our lemma states 
+that an injection can be cancelled from the left 
+side of function composition: 
+\begin{isabelle}
+\isacommand{lemma}\ "inj\ f\ \isasymLongrightarrow\ (f\ o\ g\ =\ f\ o\ h)\ =\ (g\ =\ h)"\isanewline
+\isacommand{apply}\ (simp\ add:\ expand_fun_eq\ inj_on_def\ o_def)\isanewline
+\isacommand{apply}\ (auto)\isanewline
+\isacommand{done}
+\end{isabelle}
+
+The first step of the proof invokes extensionality and the definitions 
+of injectiveness and composition. It leaves one subgoal:
+\begin{isabelle}
+%inj\ f\ \isasymLongrightarrow\ (f\ \isasymcirc\ g\ =\ f\ \isasymcirc\ h)\
+%=\ (g\ =\ h)\isanewline
+\ 1.\ {\isasymforall}x\ y.\ f\ x\ =\ f\ y\ \isasymlongrightarrow\ x\ =\ y\ \isasymLongrightarrow\isanewline
+\ \ \ \ ({\isasymforall}x.\ f\ (g\ x)\ =\ f\ (h\ x))\ =\ ({\isasymforall}x.\ g\ x\ =\ h\ x)
+\end{isabelle}
+This can be proved using the {\isa{auto}} method. 
+
+\medskip
+
+The \textbf{image} of a set under a function is a most useful notion.  It
+has the obvious definition: 
+\begin{isabelle}
+f\ ``\ A\ \isasymequiv\ {\isacharbraceleft}y.\ {\isasymexists}x\isasymin
+A.\ y\ =\ f\ x\isacharbraceright
+\rulename{image_def}
+\end{isabelle}
+%
+Here are some of the many facts proved about image: 
+\begin{isabelle}
+(f\ \isasymcirc\ g)\ ``\ r\ =\ f\ ``\ g\ ``\ r
+\rulename{image_compose}\isanewline
+f``(A\ \isasymunion\ B)\ =\ f``A\ \isasymunion\ f``B
+\rulename{image_Un}\isanewline
+inj\ f\ \isasymLongrightarrow\ f``(A\ \isasyminter\
+B)\ =\ f``A\ \isasyminter\ f``B
+\rulename{image_Int}
+%\isanewline
+%bij\ f\ \isasymLongrightarrow\ f\ ``\ (-\ A)\ =\ \isacharminus\ f\ ``\ A%
+%\rulename{bij_image_Compl_eq}
+\end{isabelle}
+
+
+Laws involving image can often be proved automatically. Here 
+are two examples, illustrating connections with indexed union and with the
+general syntax for comprehension:
+\begin{isabelle}
+\isacommand{lemma}\ "f``A\ \isasymunion\ g``A\ =\ ({\isasymUnion}x{\isasymin}A.\ {\isacharbraceleft}f\ x,\ g\
+x\isacharbraceright)
+\par\smallskip
+\isacommand{lemma}\ "f\ ``\ \isacharbraceleft(x,y){.}\ P\ x\ y\isacharbraceright\ =\ {\isacharbraceleft}f(x,y)\ \isacharbar\ x\ y.\ P\ x\
+y\isacharbraceright"
+\end{isabelle}
+
+\medskip
+ A function's \textbf{range} is the set of values that the function can 
+take on. It is, in fact, the image of the universal set under 
+that function. There is no constant {\isa{range}}.  Instead, {\isa{range}} 
+abbreviates an application of image to {\isa{UNIV}}: 
+\begin{isabelle}
+\ \ \ \ \ range\ f\
+{==}\ f``UNIV
+\end{isabelle}
+%
+Few theorems are proved specifically 
+for {\isa{range}}; in most cases, you should look for a more general
+theorem concerning images.
+
+\medskip
+\textbf{Inverse image} is also  useful. It is defined as follows: 
+\begin{isabelle}
+f\ \isacharminus``\ B\ \isasymequiv\ {\isacharbraceleft}x.\ f\ x\ \isasymin\ B\isacharbraceright
+\rulename{vimage_def}
+\end{isabelle}
+%
+This is one of the facts proved about it:
+\begin{isabelle}
+f\ \isacharminus``\ (-\ A)\ =\ \isacharminus\ f\ \isacharminus``\ A%
+\rulename{vimage_Compl}
+\end{isabelle}
+
+
+\section{Relations}
+
+A \textbf{relation} is a set of pairs.  As such, the set operations apply
+to them.  For instance, we may form the union of two relations.  Other
+primitives are defined specifically for relations. 
+
+The \textbf{identity} relation, also known as equality, has the obvious 
+definition: 
+\begin{isabelle}
+Id\ \isasymequiv\ {\isacharbraceleft}p.\ {\isasymexists}x.\ p\ =\ (x,x){\isacharbraceright}%
+\rulename{Id_def}
+\end{isabelle}
+
+\textbf{Composition} of relations (the infix \isa{O}) is also available: 
+\begin{isabelle}
+r\ O\ s\ \isasymequiv\ \isacharbraceleft(x,z){.}\ {\isasymexists}y.\ (x,y)\ \isasymin\ s\ \isasymand\ (y,z)\ \isasymin\ r\isacharbraceright
+\rulename{comp_def}
+\end{isabelle}
+
+This is one of the many lemmas proved about these concepts: 
+\begin{isabelle}
+R\ O\ Id\ =\ R
+\rulename{R_O_Id}
+\end{isabelle}
+%
+Composition is monotonic, as are most of the primitives appearing 
+in this chapter.  We have many theorems similar to the following 
+one: 
+\begin{isabelle}
+\isasymlbrakk r\isacharprime\ \isasymsubseteq\ r;\ s\isacharprime\
+\isasymsubseteq\ s\isasymrbrakk\ \isasymLongrightarrow\ r\isacharprime\ O\
+s\isacharprime\ \isasymsubseteq\ r\ O\ s%
+\rulename{comp_mono}
+\end{isabelle}
+
+The \textbf{converse} or inverse of a relation exchanges the roles 
+of the two operands.  Note that \isa{\isacharcircum-1} is a postfix
+operator.
+\begin{isabelle}
+((a,b)\ \isasymin\ r\isacharcircum-1)\ =\
+((b,a)\ \isasymin\ r)
+\rulename{converse_iff}
+\end{isabelle}
+%
+Here is a typical law proved about converse and composition: 
+\begin{isabelle}
+(r\ O\ s){\isacharcircum}\isacharminus1\ =\ s\isacharcircum-1\ O\ r\isacharcircum-1
+\rulename{converse_comp}
+\end{isabelle}
+
+
+The \textbf{image} of a set under a relation is defined analogously 
+to image under a function: 
+\begin{isabelle}
+(b\ \isasymin\ r\ \isacharcircum{\isacharcircum}\ A)\ =\ ({\isasymexists}x\isasymin
+A.\ (x,b)\ \isasymin\ r)
+\rulename{Image_iff}
+\end{isabelle}
+It satisfies many similar laws.
+
+%Image under relations, like image under functions, distributes over unions: 
+%\begin{isabelle}
+%r\ \isacharcircum{\isacharcircum}\ 
+%({\isasymUnion}x\isasyminA.\
+%B\
+%x)\ =\ 
+%({\isasymUnion}x\isasyminA.\
+%r\ \isacharcircum{\isacharcircum}\ B\
+%x)
+%\rulename{Image_UN}
+%\end{isabelle}
+
+
+The \textbf{domain} and \textbf{range} of a relation are defined in the 
+standard way: 
+\begin{isabelle}
+(a\ \isasymin\ Domain\ r)\ =\ ({\isasymexists}y.\ (a,y)\ \isasymin\
+r)
+\rulename{Domain_iff}%
+\isanewline
+(a\ \isasymin\ Range\ r)\
+\ =\ ({\isasymexists}y.\
+(y,a)\
+\isasymin\ r)
+\rulename{Range_iff}
+\end{isabelle}
+
+Iterated composition of a relation is available.  The notation overloads 
+that of exponentiation: 
+\begin{isabelle}
+R\ \isacharcircum\ \isadigit{0}\ =\ Id\isanewline
+R\ \isacharcircum\ Suc\ n\ =\ R\ O\ R\isacharcircum n
+\rulename{RelPow.relpow.simps}
+\end{isabelle}
+
+The \textbf{reflexive transitive closure} of a relation is particularly 
+important.  It has the postfix syntax \isa{r\isacharcircum{*}}.  The
+construction is defined   to be the least fixedpoint satisfying the
+following equation: 
+\begin{isabelle}
+r\isacharcircum{*}\ =\ Id\ \isasymunion\ (r\ O\ r\isacharcircum{*})
+\rulename{rtrancl_unfold}
+\end{isabelle}
+%
+Among its basic properties are three that serve as introduction 
+rules:
+\begin{isabelle}
+(a,a)\ \isasymin\
+r\isacharcircum{*}
+\rulename{rtrancl_refl}%
+\isanewline
+p\ \isasymin\ r\ \isasymLongrightarrow\
+p\ \isasymin\
+r\isacharcircum{*}
+\rulename{r_into_rtrancl}%
+\isanewline
+\isasymlbrakk(a,b)\ \isasymin\
+r\isacharcircum{*};\
+(b,c)\ \isasymin\ r\isacharcircum{*}\isasymrbrakk\
+\isasymLongrightarrow\
+(a,c)\ \isasymin\ r\isacharcircum{*}
+\rulename{rtrancl_trans}
+\end{isabelle}
+%
+Induction over the reflexive transitive closure is available: 
+\begin{isabelle}
+\isasymlbrakk(a,b)\ \isasymin\ r\isacharcircum{*};\ P\ a;\isanewline
+\ \ {\isasymAnd}y\ z.\
+\isasymlbrakk(a,y)\ \isasymin\ r\isacharcircum{*};\
+(y,z)\ \isasymin\ r;\ P\ y\isasymrbrakk\
+\isasymLongrightarrow\ P\ z\isasymrbrakk\isanewline
+\isasymLongrightarrow\ P\ b%
+\rulename{rtrancl_induct}
+\end{isabelle}
+%
+Here is one of the many laws proved about the reflexive transitive 
+closure: 
+\begin{isabelle}
+(r\isacharcircum{*}){\isacharcircum}*\ =\ r\isacharcircum{*}
+\rulename{rtrancl_idemp}
+\end{isabelle}
+
+The transitive closure is similar. It has two 
+introduction rules: 
+\begin{isabelle}
+p\ \isasymin\ r\ \isasymLongrightarrow\ p\ \isasymin\ r\isacharcircum{\isacharplus}
+\rulename{r_into_trancl}\isanewline
+\isasymlbrakk(a,b)\ \isasymin\
+r\isacharcircum{\isacharplus};\ (b,c)\
+\isasymin\ r\isacharcircum{\isacharplus}\isasymrbrakk\
+\isasymLongrightarrow\ (a,c)\ \isasymin\
+r\isacharcircum{\isacharplus}
+\rulename{trancl_trans}
+\end{isabelle}
+%
+The induction rule is similar to the one shown above. 
+A typical lemma states that transitive closure commutes with the converse
+operator: 
+\begin{isabelle}
+(r\isacharcircum-1){\isacharcircum}\isacharplus\ =\ (r\isacharcircum{\isacharplus}){\isacharcircum}\isacharminus1
+\rulename{trancl_converse}
+\end{isabelle}
+
+
+The reflexive transitive closure also commutes with the converse. 
+Let us examine the proof. Each direction of the equivalence is 
+proved separately. The two proofs are almost identical. Here 
+is the first one: 
+\begin{isabelle}
+\isacommand{lemma}\ rtrancl_converseD:\ "(x,y)\ \isasymin\ (r\isacharcircum-1){\isacharcircum}*\ \isasymLongrightarrow\ (x,y)\ \isasymin\ (r\isacharcircum{*}){\isacharcircum}\isacharminus1"\isanewline
+\isacommand{apply}\ (erule\
+rtrancl_induct)\isanewline
+\ \isacommand{apply}\ (rule\ rtrancl_refl)\isanewline
+\isacommand{apply}\ (blast\ intro:\ r_into_rtrancl\ rtrancl_trans)\isanewline
+\isacommand{done}
+\end{isabelle}
+
+The first step of the proof applies induction, leaving these subgoals: 
+\begin{isabelle}
+\ 1.\ (x,x)\ \isasymin\ r\isacharcircum{*}\isanewline
+\ 2.\ {\isasymAnd}y\ z.\ \isasymlbrakk(x,y)\ \isasymin\ (r\isacharcircum-1){\isacharcircum}*;\ (y,z)\ \isasymin\ r\isacharcircum-1;\ (y,x)\ \isasymin\ r\isacharcircum{*}\isasymrbrakk\isanewline
+\ \ \ \ \ \ \ \ \ \ \isasymLongrightarrow\ (z,x)\ \isasymin\ r\isacharcircum{*}
+\end{isabelle}
+
+The first subgoal is trivial by reflexivity. The second follows 
+by first eliminating the converse operator, yielding the
+assumption \isa{(z,y)\
+\isasymin\ r}, and then
+applying the introduction rules shown above.  The same proof script handles
+the other direction: 
+\begin{isabelle}
+\isacommand{lemma}\ rtrancl_converseI:\ "(x,y)\ \isasymin\ (r\isacharcircum{*}){\isacharcircum}\isacharminus1\ \isasymLongrightarrow\ (x,y)\ \isasymin\ (r\isacharcircum-1){\isacharcircum}*"\isanewline
+\isacommand{apply}\ (drule\ converseD)\isanewline
+\isacommand{apply}\ (erule\ rtrancl_induct)\isanewline
+\ \isacommand{apply}\ (rule\ rtrancl_refl)\isanewline
+\isacommand{apply}\ (blast\ intro:\ r_into_rtrancl\ rtrancl_trans)\isanewline
+\isacommand{done}
+\end{isabelle}
+
+
+Finally, we combine the two lemmas to prove the desired equation: 
+\begin{isabelle}
+\isacommand{lemma}\ rtrancl_converse:\ "(r\isacharcircum-1){\isacharcircum}*\ =\ (r\isacharcircum{*}){\isacharcircum}\isacharminus1"\isanewline
+\isacommand{apply}\ (auto\ intro:\
+rtrancl_converseI\ dest:\
+rtrancl_converseD)\isanewline
+\isacommand{done}
+\end{isabelle}
+
+Note one detail. The {\isa{auto}} method can prove this but
+{\isa{blast}} cannot. \remark{move to a later section?}
+This is because the
+lemmas we have proved only apply  to ordered pairs. {\isa{Auto}} can
+convert a bound variable of  a product type into a pair of bound variables,
+allowing the lemmas  to be applied.  A toy example demonstrates this
+point:
+\begin{isabelle}
+\isacommand{lemma}\ "A\ \isasymsubseteq\ Id"\isanewline
+\isacommand{apply}\ (rule\ subsetI)\isanewline
+\isacommand{apply}\ (auto)
+\end{isabelle}
+Applying the introduction rule \isa{subsetI} leaves the goal of showing
+that an arbitrary element of~\isa{A} belongs to~\isa{Id}.
+\begin{isabelle}
+A\ \isasymsubseteq\ Id\isanewline
+\ 1.\ {\isasymAnd}x.\ x\ \isasymin\ A\ \isasymLongrightarrow\ x\ \isasymin\ Id
+\end{isabelle}
+The \isa{simp} and \isa{blast} methods can do nothing here.  However,
+\isa{x} is of product type and therefore denotes an ordered pair.  The
+\isa{auto} method (and some others, including \isa{clarify})
+can replace
+\isa{x} by a pair, which then allows the further simplification from
+\isa{(a,b)\ \isasymin\ A} to \isa{a\ =\ b}.
+\begin{isabelle}
+A\ \isasymsubseteq\ Id\isanewline
+\ 1.\ {\isasymAnd}a\ b.\ (a,b)\ \isasymin\ A\ \isasymLongrightarrow\ a\ =\ b
+\end{isabelle}
+
+
+
+\section{Well-founded relations and induction}
+
+Induction comes in many forms, including traditional mathematical 
+induction, structural induction on lists and induction on size. 
+More general than these is induction over a well-founded relation. 
+Such A relation expresses the notion of a terminating process. 
+Intuitively, the relation~$\prec$ is \textbf{well-founded} if it admits no
+infinite  descending chains
+\[ \cdots \prec a@2 \prec a@1 \prec a@0. \]
+If $\prec$ is well-founded then it can be used with the well-founded 
+induction rule: 
+\[ \infer{P(a)}{\infer*{P(x)}{[\forall y.\, y\prec x \imp P(y)]}} \]
+To show $P(a)$ for a particular term~$a$, it suffices to show $P(x)$ for
+arbitrary~$x$ under the assumption that $P(y)$ holds for $y\prec x$. 
+Intuitively, the well-foundedness of $\prec$ ensures that the chains of
+reasoning are finite.
+
+In Isabelle, the induction rule is expressed like this:
+\begin{isabelle}
+{\isasymlbrakk}wf\ r;\ 
+  {\isasymAnd}x.\ {\isasymforall}y.\ (y,x)\ \isasymin\ r\
+\isasymlongrightarrow\ P\ y\ \isasymLongrightarrow\ P\ x\isasymrbrakk\
+\isasymLongrightarrow\ P\ a
+\rulename{wf_induct}
+\end{isabelle}
+Here \isa{wf\ r} expresses that relation~\isa{r} is well-founded.
+
+Many familiar induction principles are instances of this rule. 
+For example, the predecessor relation on the natural numbers 
+is well-founded; induction over it is mathematical induction. 
+The `tail of' relation on lists is well-founded; induction over 
+it is structural induction. 
+
+Well-foundedness can be difficult to show. The various equivalent
+formulations are all hard to use formally.  However,  often a relation
+is obviously well-founded by construction. The  HOL library provides
+several theorems concerning ways of constructing  a well-founded relation.
+For example, a relation can be defined  by means of a measure function
+involving an existing relation, or two relations can be
+combined lexicographically.
+
+The library declares \isa{less_than} as a relation object, 
+that is, a set of pairs of natural numbers. Two theorems tell us that this
+relation  behaves as expected and that it is well-founded: 
+\begin{isabelle}
+((x,y)\ \isasymin\ less_than)\ =\ (x\ <\ y)
+\rulename{less_than_iff}\isanewline
+wf\ less_than
+\rulename{wf_less_than}
+\end{isabelle}
+
+The notion of measure generalizes to the \textbf{inverse image} of
+relation. Given a relation~\isa{r} and a function~\isa{f}, we express  a new
+relation using \isa{f} as a measure.  An infinite descending chain on this
+new relation would give rise to an infinite descending chain on~\isa{r}. 
+The library holds the definition of this concept and a theorem stating
+that it preserves well-foundedness: 
+\begin{isabelle}
+inv_image\ r\ f\ \isasymequiv\ \isacharbraceleft(x,y).\ (f\ x,\ f\ y)\
+\isasymin\ r\isacharbraceright
+\rulename{inv_image_def}\isanewline
+wf\ r\ \isasymLongrightarrow\ wf\ (inv_image\ r\ f)
+\rulename{wf_inv_image}
+\end{isabelle}
+
+The most familiar notion of measure involves the natural numbers. This yields, 
+for example, induction on the length of the list or the size 
+of a tree. The library defines \isa{measure} specifically: 
+\begin{isabelle}
+measure\ \isasymequiv\ inv_image\ less_than%
+\rulename{measure_def}\isanewline
+wf\ (measure\ f)
+\rulename{wf_measure}
+\end{isabelle}
+
+Of the other constructions, the most important is the \textbf{lexicographic 
+product} of two relations. It expresses the standard dictionary 
+ordering over pairs.  We write \isa{ra\ <*lex*>\ rb}, where \isa{ra}
+and \isa{rb} are the two operands.  The lexicographic product satisfies the
+usual  definition and it preserves well-foundedness: 
+\begin{isabelle}
+ra\ <*lex*>\ rb\ \isasymequiv \isanewline
+\ \ \isacharbraceleft ((a,b),(a',b')).\ (a,a')\ \isasymin \ ra\
+\isasymor\isanewline
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \,a=a'\ \isasymand \ (b,b')\
+\isasymin \ rb\isacharbraceright 
+\rulename{lex_prod_def}%
+\par\smallskip
+\isasymlbrakk wf\ ra;\ wf\ rb\isasymrbrakk \ \isasymLongrightarrow \ wf\ (ra\ <*lex*>\ rb)
+\rulename{wf_lex_prod}
+\end{isabelle}
+
+These constructions can be used in a
+\textbf{recdef} declaration (\S\ref{sec:recdef-simplification}) to define
+the well-founded relation used to prove termination.
+
+
+
+
+
+\section{Fixed point operators}
+
+Fixed point operators define sets recursively.  Most users invoke 
+them through Isabelle's inductive definition facility, which 
+is discussed later. However, they can be invoked directly. The \textbf{least} 
+or \textbf{strongest} fixed point yields an inductive definition; 
+the \textbf{greatest} or \textbf{weakest} fixed point yields a coinductive 
+definition. Mathematicians may wish to note that the existence 
+of these fixed points is guaranteed by the Knaster-Tarski theorem. 
+
+
+The theory works applies only to monotonic functions. Isabelle's 
+definition of monotone is overloaded over all orderings:
+\begin{isabelle}
+mono\ f\ \isasymequiv\ {\isasymforall}A\ B.\ A\ \isasymle\ B\ \isasymlongrightarrow\ f\ A\ \isasymle\ f\ B%
+\rulename{mono_def}
+\end{isabelle}
+%
+For fixed point operators, the ordering will be the subset relation: if
+$A\subseteq B$ then we expect $f(A)\subseteq f(B)$.  In addition to its
+definition, monotonicity has the obvious introduction and destruction
+rules:
+\begin{isabelle}
+({\isasymAnd}A\ B.\ A\ \isasymle\ B\ \isasymLongrightarrow\ f\ A\ \isasymle\ f\ B)\ \isasymLongrightarrow\ mono\ f%
+\rulename{monoI}%
+\par\smallskip%          \isanewline didn't leave enough space
+{\isasymlbrakk}mono\ f;\ A\ \isasymle\ B\isasymrbrakk\
+\isasymLongrightarrow\ f\ A\ \isasymle\ f\ B%
+\rulename{monoD}
+\end{isabelle}
+
+The most important properties of the least fixed point are that 
+it is a fixed point and that it enjoys an induction rule: 
+\begin{isabelle}
+mono\ f\ \isasymLongrightarrow\ lfp\ f\ =\ f\ (lfp\ f)
+\rulename{lfp_unfold}%
+\par\smallskip%          \isanewline didn't leave enough space
+{\isasymlbrakk}a\ \isasymin\ lfp\ f;\ mono\ f;\isanewline
+  \ {\isasymAnd}x.\ x\
+\isasymin\ f\ (lfp\ f\ \isasyminter\ {\isacharbraceleft}x.\ P\
+x\isacharbraceright)\ \isasymLongrightarrow\ P\ x\isasymrbrakk\
+\isasymLongrightarrow\ P\ a%
+\rulename{lfp_induct}
+\end{isabelle}
+%
+The induction rule shown above is more convenient than the basic 
+one derived from the minimality of {\isa{lfp}}.  Observe that both theorems
+demand \isa{mono\ f} as a premise.
+
+The greatest fixed point is similar, but it has a \textbf{coinduction} rule: 
+\begin{isabelle}
+mono\ f\ \isasymLongrightarrow\ gfp\ f\ =\ f\ (gfp\ f)
+\rulename{gfp_unfold}%
+\isanewline
+{\isasymlbrakk}mono\ f;\ a\ \isasymin\ X;\ X\ \isasymsubseteq\ f\ (X\
+\isasymunion\ gfp\ f)\isasymrbrakk\ \isasymLongrightarrow\ a\ \isasymin\
+gfp\ f%
+\rulename{coinduct}
+\end{isabelle}
+A \textbf{bisimulation} is perhaps the best-known concept defined as a
+greatest fixed point.  Exhibiting a bisimulation to prove the equality of
+two agents in a process algebra is an example of coinduction.
+The coinduction rule can be strengthened in various ways; see 
+theory {\isa{Gfp}} for details.  
+An example using the fixed point operators appears later in this 
+chapter, in the section on computation tree logic
+(\S\ref{sec:ctl-case-study}).
