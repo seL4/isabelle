@@ -38,9 +38,22 @@ sig
   val setup: (theory -> theory) list
 end;
 
-
 structure RecordPackage: RECORD_PACKAGE =
 struct
+
+
+(*** theory context references ***)
+
+val product_typeN = "Record.product_type";
+
+val product_typeI = thm "product_typeI";
+val product_type_inject = thm "product_type_inject";
+val product_type_conv1 = thm "product_type_conv1";
+val product_type_conv2 = thm "product_type_conv2";
+val product_type_induct = thm "product_type_induct";
+val product_type_cases = thm "product_type_cases";
+val product_type_split_paired_all = thm "product_type_split_paired_all";
+
 
 
 (*** utilities ***)
@@ -51,12 +64,18 @@ val quiet_mode = ref false;
 fun message s = if ! quiet_mode then () else writeln s;
 
 
-(* definitions and equations *)
+(* fundamental syntax *)
 
 infix 0 :== ===;
 
 val (op :==) = Logic.mk_defpair;
 val (op ===) = HOLogic.mk_Trueprop o HOLogic.mk_eq;
+
+fun lambda v t =
+  let val (x, T) = Term.dest_Free v
+  in Abs (x, T, abstract_over (v, t)) end;
+
+fun prefix_base s = NameSpace.map_base (fn bname => s ^ bname);
 
 
 (* proof by simplification *)
@@ -81,18 +100,17 @@ fun prove_simp sign ss tacs simps =
 val recordN = "record";
 val moreN = "more";
 val schemeN = "_scheme";
-val fieldN = "_field";
-val raw_fieldN = "_raw_field";
 val field_typeN = "_field_type";
+val fieldN = "_field";
 val fstN = "_val";
 val sndN = "_more";
 val updateN = "_update";
 val makeN = "make";
 val make_schemeN = "make_scheme";
 
-(*see datatype package*)
-val caseN = "_case";
-
+(*see typedef_package.ML*)
+val RepN = "Rep_";
+val AbsN = "Abs_";
 
 
 (** generic operations **)
@@ -101,19 +119,6 @@ val caseN = "_case";
 
 fun prime (Free (x, T)) = Free (x ^ "'", T)
   | prime t = raise TERM ("prime: no free variable", [t]);
-
-
-(* product case *)
-
-fun fst_fn T U = Abs ("x", T, Abs ("y", U, Bound 1));
-fun snd_fn T U = Abs ("x", T, Abs ("y", U, Bound 0));
-
-fun mk_prod_case name f p =
-  let
-    val fT as Type ("fun", [A, Type ("fun", [B, C])]) = fastype_of f;
-    val pT = fastype_of p;
-  in Const (suffix caseN name, fT --> pT --> C) $ f $ p end;
-
 
 
 (** tuple operations **)
@@ -134,16 +139,24 @@ fun dest_fieldT (typ as Type (c_field_type, [T, U])) =
   | dest_fieldT typ = raise TYPE ("dest_fieldT", [typ], []);
 
 
+(* morphisms *)
+
+fun mk_Rep U (c, T) =
+  Const (suffix field_typeN (prefix_base RepN c),
+    mk_fieldT ((c, T), U) --> HOLogic.mk_prodT (T, U));
+
+fun mk_Abs U (c, T) =
+  Const (suffix field_typeN (prefix_base AbsN c),
+    HOLogic.mk_prodT (T, U) --> mk_fieldT ((c, T), U));
+  
+
 (* constructors *)
 
 fun mk_fieldC U (c, T) = (suffix fieldN c, T --> U --> mk_fieldT ((c, T), U));
 
-fun gen_mk_field sfx ((c, t), u) =
+fun mk_field ((c, t), u) =
   let val T = fastype_of t and U = fastype_of u
-  in Const (suffix sfx c, [T, U] ---> mk_fieldT ((c, T), U)) $ t $ u end;
-
-val mk_field = gen_mk_field fieldN;
-val mk_raw_field = gen_mk_field raw_fieldN;
+  in Const (suffix fieldN c, [T, U] ---> mk_fieldT ((c, T), U)) $ t $ u end;
 
 
 (* destructors *)
@@ -528,121 +541,87 @@ val record_split_method =
     "split record fields");
 
 
-
 (** internal theory extenders **)
 
-(* field_type_defs *)
+(* field_typedefs *)
 
-fun field_type_def ((thy, simps), (name, tname, vs, T, U)) =
+fun field_typedefs zeta moreT names theory =
   let
-    val full = Sign.full_name (Theory.sign_of thy);
-    val (thy', {simps = simps', ...}) =
-      thy
-      |> setmp DatatypePackage.quiet_mode true
-        (DatatypePackage.add_datatype_i true [tname]
-          [(vs, tname, Syntax.NoSyn, [(name, [T, U], Syntax.NoSyn)])]);
-    val thy'' =
-      thy'
-      |> setmp AxClass.quiet_mode true
-        (AxClass.add_inst_arity_i (full tname, [HOLogic.termS, moreS], moreS) [] [] None);
-  in (thy'', simps' @ simps) end;
+    val alpha = "'a";
+    val aT = TFree (alpha, HOLogic.termS);
+    val UNIV = HOLogic.mk_UNIV (HOLogic.mk_prodT (aT, moreT));
 
-fun field_type_defs args thy = foldl field_type_def ((thy, []), args);
+    fun type_def (thy, name) =
+      let val (thy', {type_definition, set_def = Some def, ...}) = thy
+        |> setmp TypedefPackage.quiet_mode true
+          (TypedefPackage.add_typedef_i true None
+            (suffix field_typeN (Sign.base_name name), [alpha, zeta], Syntax.NoSyn) UNIV None
+          (Tactic.rtac UNIV_witness 1))
+        |>> setmp AxClass.quiet_mode true (AxClass.add_inst_arity_i
+            (suffix field_typeN name, [HOLogic.termS, moreS], moreS) all_tac)
+      in (thy', Tactic.rewrite_rule [def] type_definition) end
+  in foldl_map type_def (theory, names) end;
 
 
 (* field_definitions *)
 
-fun field_definitions fields names xs zeta moreT more vars named_vars thy =
+fun field_definitions fields names xs alphas zeta moreT more vars named_vars thy =
   let
     val sign = Theory.sign_of thy;
     val base = Sign.base_name;
     val full_path = Sign.full_name_path sign;
 
+    val xT = TFree (variant alphas "'x", HOLogic.termS);
+
 
     (* prepare declarations and definitions *)
-
-    (*field types*)
-    fun mk_fieldT_spec c =
-      (suffix raw_fieldN c, suffix field_typeN c,
-        ["'a", zeta], TFree ("'a", HOLogic.termS), moreT);
-    val fieldT_specs = map (mk_fieldT_spec o base) names;
 
     (*field constructors*)
     val field_decls = map (mk_fieldC moreT) fields;
 
-    fun mk_field_spec (c, v) =
-      mk_field ((c, v), more) :== mk_raw_field ((c, v), more);
-    val field_specs = map mk_field_spec named_vars;
+    fun mk_field_spec ((c, T), v) =
+      Term.head_of (mk_field ((c, v), more)) :==
+        lambda v (lambda more (mk_Abs moreT (c, T) $ (HOLogic.mk_prod (v, more))));
+    val field_specs = map mk_field_spec (fields ~~ vars);
 
     (*field destructors*)
     val dest_decls = map (mk_fstC moreT) fields @ map (mk_sndC moreT) fields;
 
-    fun mk_dest_spec dest f (c, T) =
+    fun mk_dest_spec dest sel (c, T) =
       let val p = Free ("p", mk_fieldT ((c, T), moreT));
-      in dest p :== mk_prod_case (suffix field_typeN c) (f T moreT) p end;
-    val dest_specs =
-      map (mk_dest_spec mk_fst fst_fn) fields @
-      map (mk_dest_spec mk_snd snd_fn) fields;
+      in Term.head_of (dest p) :== lambda p (sel (mk_Rep moreT (c, T) $ p)) end;
+    val dest_specs1 = map (mk_dest_spec mk_fst HOLogic.mk_fst) fields;
+    val dest_specs2 = map (mk_dest_spec mk_snd HOLogic.mk_snd) fields;
 
 
-    (* prepare theorems *)
+    (* 1st stage: defs_thy *)
 
-    (*constructor injects*)
-    fun mk_inject_prop (c, v) =
-      HOLogic.mk_eq (mk_field ((c, v), more), mk_field ((c, prime v), prime more)) ===
-        (HOLogic.conj $ HOLogic.mk_eq (v, prime v) $ HOLogic.mk_eq (more, prime more));
-    val inject_props = map mk_inject_prop named_vars;
-
-    (*destructor conversions*)
-    fun mk_dest_prop dest dest' (c, v) =
-      dest (mk_field ((c, v), more)) === dest' (v, more);
-    val dest_props =
-      map (mk_dest_prop mk_fst fst) named_vars @
-      map (mk_dest_prop mk_snd snd) named_vars;
-
-    (*surjective pairing*)
-    fun mk_surj_prop (c, T) =
-      let val p = Free ("p", mk_fieldT ((c, T), moreT));
-      in p === mk_field ((c, mk_fst p), mk_snd p) end;
-    val surj_props = map mk_surj_prop fields;
-
-
-    (* 1st stage: types_thy *)
-
-    val (types_thy, datatype_simps) =
+    val (defs_thy, (((typedefs, field_defs), dest_defs1), dest_defs2)) =
       thy
-      |> field_type_defs fieldT_specs;
+      |> field_typedefs zeta moreT names
+      |>> (Theory.add_consts_i o map (Syntax.no_syn o apfst base)) (field_decls @ dest_decls)
+      |>>> (PureThy.add_defs_i false o map Thm.no_attributes) field_specs
+      |>>> (PureThy.add_defs_i false o map Thm.no_attributes) dest_specs1
+      |>>> (PureThy.add_defs_i false o map Thm.no_attributes) dest_specs2;
+
+    val prod_types = map (fn (((a, b), c), d) => product_typeI OF [a, b, c, d])
+      (typedefs ~~ field_defs ~~ dest_defs1 ~~ dest_defs2);
 
 
-    (* 2nd stage: defs_thy *)
+    (* 2nd stage: thms_thy *)
 
-    val (defs_thy, (field_defs, dest_defs)) =
-      types_thy
-       |> (Theory.add_consts_i o map (Syntax.no_syn o apfst base)) (field_decls @ dest_decls)
-       |> (PureThy.add_defs_i false o map (fn x => (x, [Drule.kind_internal]))) field_specs
-       |>>> (PureThy.add_defs_i false o map (fn x => (x, [Drule.kind_internal]))) dest_specs;
+    fun make th = map (fn prod_type => Drule.standard (th OF [prod_type])) prod_types;
 
-
-    (* 3rd stage: thms_thy *)
-
-    val prove = prove_simp (Theory.sign_of defs_thy) HOL_basic_ss;
-    val prove_std = prove [] (field_defs @ dest_defs @ datatype_simps);
-
-    val field_injects = map prove_std inject_props;
-    val dest_convs = map prove_std dest_props;
-    val surj_pairs = map (prove [DatatypePackage.induct_tac "p" 1]
-      (map Thm.symmetric field_defs @ dest_convs)) surj_props;
-
-    fun mk_split (x, th) = SplitPairedAll.rule_params x moreN (th RS eq_reflection);
-    val field_splits = map2 mk_split (xs, surj_pairs);
+    val field_injects = make product_type_inject;
+    val dest_convs = make product_type_conv1 @ make product_type_conv2;
+    val field_splits = make product_type_split_paired_all;
 
     val thms_thy =
       defs_thy
       |> (#1 oo (PureThy.add_thmss o map Thm.no_attributes))
         [("field_defs", field_defs),
-          ("dest_defs", dest_defs),
+          ("dest_defs", dest_defs1 @ dest_defs2),
           ("dest_convs", dest_convs),
-          ("surj_pairs", surj_pairs),
           ("field_splits", field_splits)];
 
   in (thms_thy, dest_convs, field_injects, field_splits) end;
@@ -785,7 +764,7 @@ fun record_definition (args, bname) parent (parents: parent_info list) bfields t
     val (fields_thy, field_simps, field_injects, field_splits) =
       thy
       |> Theory.add_path bname
-      |> field_definitions fields names xs zeta moreT more vars named_vars;
+      |> field_definitions fields names xs alphas zeta moreT more vars named_vars;
 
     val named_splits = map2 (fn (c, th) => (suffix field_typeN c, th)) (names, field_splits);
 
@@ -801,8 +780,8 @@ fun record_definition (args, bname) parent (parents: parent_info list) bfields t
       |> Theory.add_trfuns ([], [], field_tr's, [])
       |> (Theory.add_consts_i o map Syntax.no_syn)
         (sel_decls @ update_decls @ make_decls)
-      |> (PureThy.add_defs_i false o map (fn x => (x, [Drule.kind_internal]))) sel_specs
-      |>>> (PureThy.add_defs_i false o map (fn x => (x, [Drule.kind_internal]))) update_specs
+      |> (PureThy.add_defs_i false o map Thm.no_attributes) sel_specs
+      |>>> (PureThy.add_defs_i false o map Thm.no_attributes) update_specs
       |>>> (PureThy.add_defs_i false o map Thm.no_attributes) make_specs;
 
 
