@@ -794,7 +794,7 @@ val list_eq_pattern =
 
 fun last (cons as Const("List.list.op #",_) $ _ $ xs) =
       (case xs of Const("List.list.[]",_) => cons | _ => last xs)
-  | last (Const("List.list.op @",_) $ _ $ ys) = last ys
+  | last (Const("List.op @",_) $ _ $ ys) = last ys
   | last t = t;
 
 fun list1 (Const("List.list.op #",_) $ _ $ Const("List.list.[]",_)) = true
@@ -802,7 +802,7 @@ fun list1 (Const("List.list.op #",_) $ _ $ Const("List.list.[]",_)) = true
 
 fun butlast ((cons as Const("List.list.op #",_) $ x) $ xs) =
       (case xs of Const("List.list.[]",_) => xs | _ => cons $ butlast xs)
-  | butlast ((app as Const("List.list.op @",_) $ xs) $ ys) = app $ butlast ys
+  | butlast ((app as Const("List.op @",_) $ xs) $ ys) = app $ butlast ys
   | butlast xs = Const("List.list.[]",fastype_of xs);
 
 val rearr_tac =
@@ -815,7 +815,7 @@ fun list_eq sg _ (F as (eq as Const(_,eqT)) $ lhs $ rhs) =
       let val lhs1 = butlast lhs and rhs1 = butlast rhs
           val Type(_,listT::_) = eqT
           val appT = [listT,listT] ---> listT
-          val app = Const("List.list.op @",appT)
+          val app = Const("List.op @",appT)
           val F2 = eq $ (app$lhs1$lastl) $ (app$rhs1$lastr)
           val ct = cterm_of sg (HOLogic.mk_Trueprop(HOLogic.mk_eq(F,F2)))
           val thm = prove_goalw_cterm [] ct (K [rearr_tac 1])
