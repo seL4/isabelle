@@ -78,7 +78,7 @@ This chapter assumes familiarity with~{\FOL{}}.
 \begin{tabular}{rrrr} 
   \it symbol    & \it meta-type & \it priority & \it description \\ 
   \sdx{o}       & $[\beta\To\gamma,\alpha\To\beta]\To (\alpha\To\gamma)$ & 
-        Right 50 & composition ($\circ$) \\
+        Left 55 & composition ($\circ$) \\
   \tt =         & $[\alpha::term,\alpha]\To bool$ & Left 50 & equality ($=$) \\
   \tt <         & $[\alpha::ord,\alpha]\To bool$ & Left 50 & less than ($<$) \\
   \tt <=        & $[\alpha::ord,\alpha]\To bool$ & Left 50 & 
@@ -922,10 +922,18 @@ It instantiates the simplifier, defining~\ttindexbold{HOL_ss} as the
 simplification set for higher-order logic.  Equality~($=$), which also
 expresses logical equivalence, may be used for rewriting.  See the file
 {\tt HOL/simpdata.ML} for a complete listing of the simplification
-rules. 
+rules.
 \item 
 It instantiates the classical reasoner, as described below. 
 \end{itemize}
+\begin{warn}\index{simplification!of conjunctions}
+  The simplifier is not set up to reduce, for example, \verb$a = b & ...a...$
+  to \verb$a = b & ...b...$: it does not use the left part of a conjunction
+  while simplifying the right part. This can be changed by including
+  \ttindex{conj_cong} in a simpset: \verb$addcongs [conj_cong]$. It can slow
+  down rewriting and is therefore not included by default.
+\end{warn}
+
 \HOL\ derives classical introduction rules for $\disj$ and~$\exists$, as
 well as classical elimination rules for~$\imp$ and~$\bimp$, and the swap
 rule; recall Fig.\ts\ref{hol-lemmas2} above.
