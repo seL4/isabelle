@@ -56,7 +56,7 @@ record 'a systemState =
 
 constdefs
 
-(** Merge specification (NbT is the number of inputs) ***)
+(** Merge specification (the number of inputs is Nclients) ***)
 
   (*spec (10)*)
   merge_increasing :: ('a,'b) merge_u program set
@@ -74,7 +74,7 @@ constdefs
   merge_bounded :: ('a,'b) merge_u program set
     "merge_bounded ==
          UNIV guarantees[merge.iOut]
-         Always {s. ALL elt : set (merge.iOut s). elt <= NbT}"
+         Always {s. ALL elt : set (merge.iOut s). elt < Nclients}"
 
   (*spec (13)*)
   merge_follows :: ('a,'b) merge_u program set
@@ -83,14 +83,8 @@ constdefs
 	 guarantees[funPair merge.Out merge.iOut]
 	 (INT i : lessThan Nclients. 
 	  (%s. sublist (merge.Out s) 
-                       {k. k < size(merge.iOut s) & nth(merge.iOut s)k = i})
+                       {k. k < size(merge.iOut s) & merge.iOut s! k = i})
 	  Fols (sub i o merge.In))"
-
-(*
-	  (%s. map fst (filter (%p. snd p = i)
-			(zip (merge.Out s) (merge.iOut s))))
-	  Fols (sub i o merge.In)
-*)
 
   (*spec: preserves part*)
     merge_preserves :: ('a,'b) merge_u program set
@@ -99,6 +93,20 @@ constdefs
   merge_spec :: ('a,'b) merge_u program set
     "merge_spec == merge_increasing Int merge_eqOut Int merge_bounded Int
                    merge_follows Int merge_preserves"
+
+(** Distributor specification (the number of outputs is Nclients) ***)
+
+  (*spec (14)*)
+  distr_follows :: ('a,'b) distr_u program set
+    "distr_follows ==
+	 Increasing distr.In Int Increasing distr.iIn Int
+	 Always {s. ALL elt : set (distr.iIn s). elt < Nclients}
+	 guarantees[distr.Out]
+	 (INT i : lessThan Nclients. 
+	  (sub i o distr.Out) Fols
+	  (%s. sublist (distr.In s) 
+                       {k. k < size(distr.iIn s) & distr.iIn s ! k = i}))"
+
 
 (** Single-client allocator specification (required) ***)
 
