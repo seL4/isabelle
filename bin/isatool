@@ -69,4 +69,4 @@ do
   [ -f "$TOOL" -a -x "$TOOL" ] && exec "$TOOL" "$@"
 done
 
-fail "Unknown isabelle tool: $TOOLNAME"
+fail "Unknown Isabelle tool: $TOOLNAME"
