@@ -4,6 +4,12 @@
 ; Setup GNU Emacs for Isabelle environment.
 ;
 
+;; Misc settins
+
+(setq listener-base-mode 'fundamental-mode)
+(setq isa-thy-use-sml-mode nil)
+
+
 ;; Isabelle fonts
 
 (set-default-font "isabelle14")
