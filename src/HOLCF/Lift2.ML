@@ -1,6 +1,6 @@
 (*  Title:      HOLCF/Lift2.ML
     ID:         $Id$
-    Author:     Olaf Mueller, Robert Sandner
+    Author:     Olaf Mueller
     Copyright   1996 Technische Universitaet Muenchen
 
 Theorems for Lift2.thy
