@@ -154,7 +154,8 @@ $(LOG)/HOL-Real-Hyperreal.gz: $(OUT)/HOL-Real \
 HOL-Real-ex: HOL-Real $(LOG)/HOL-Real-ex.gz
 
 $(LOG)/HOL-Real-ex.gz: $(OUT)/HOL-Real Real/ex/ROOT.ML \
-  Real/ex/BinEx.thy Real/ex/document/root.tex Real/ex/Sqrt_Irrational.thy
+  Real/ex/BinEx.thy Real/ex/document/root.tex Real/ex/Sqrt_Irrational.thy\
+      Real/ex/Sqrt_Script.thy
 	@cd Real; $(ISATOOL) usedir $(OUT)/HOL-Real ex
 
 
