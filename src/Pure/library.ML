@@ -216,7 +216,8 @@ fun writeln s = prs (s ^ "\n");
 
 (*Print error message and abort to top level*)
 exception ERROR;
-fun error (msg) = (writeln msg;  raise ERROR);
+fun error msg = (writeln msg; raise ERROR);
+fun sys_error msg = (writeln "-- System Error --"; error msg);
 
 fun assert p msg = if p then () else error msg;
 fun deny p msg = if p then error msg else ();
