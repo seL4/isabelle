@@ -173,7 +173,7 @@ fun abs_tr (*"_abs"*) [Free (x, T), body] = absfree (x, T, body)
 
 (* nondependent abstraction *)
 
-fun k_tr (*"_K"*) [t] = Abs ("x", dummyT, incr_boundvars 1 t)
+fun k_tr (*"_K"*) [t] = Abs ("uu", dummyT, incr_boundvars 1 t)
   | k_tr (*"_K"*) ts = raise_term "k_tr" ts;
 
 
