@@ -281,6 +281,7 @@ fun make_elisp_syntax (keywords, commands) =
   \;;\n\
   \;; $" ^ "Id$\n\
   \;;\n" ^
+  defconst "major" (map #1 commands) ^
   defconst "minor" (filter Syntax.is_identifier keywords) ^
   implode (map (make_elisp_commands commands) OuterSyntax.Keyword.kinds) ^
   "\n(provide 'isar-keywords)\n";
