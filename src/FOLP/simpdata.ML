@@ -102,7 +102,6 @@ structure FOLP_SimpData : SIMP_DATA =
   end;
 
 structure FOLP_Simp = SimpFun(FOLP_SimpData);
-structure Induction = InductionFun(struct val spec=IFOLP.spec end);
 
 (*not a component of SIMP_DATA, but an argument of SIMP_TAC *)
 val FOLP_congs = 
@@ -113,7 +112,7 @@ val IFOLP_rews =
    [refl_iff_T] @ conj_rews @ disj_rews @ not_rews @ 
     imp_rews @ iff_rews @ quant_rews;
 
-open FOLP_Simp Induction;
+open FOLP_Simp;
 
 val auto_ss = empty_ss setauto ares_tac [TrueI];
 
