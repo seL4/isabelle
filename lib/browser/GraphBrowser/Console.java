@@ -5,6 +5,8 @@
   License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
   This is the graph browser's main class when run as a console application.
+  It duplicates some logic from GraphBrowser and GraphView.
+  It does so to remove dependency on AWT.
 
 ***************************************************************************/
 
@@ -17,7 +19,7 @@ import awtUtilities.*;
 
 public class Console {
 	Graph g;
-	String gfname;
+	String gfname;  
 
   public Console(String name) {
     gfname = name;
@@ -28,10 +30,29 @@ public class Console {
 		g.PS(fname,printable);
 	}
 
+
+	public void collapseNodes(Vector collapsedDir) { 
+		Enumeration e1=collapsedDir.elements();
+		Graph gra=(Graph)(g.clone());
+
+		while (e1.hasMoreElements()) {
+			Directory d=(Directory)(e1.nextElement());
+			Vector v=gra.decode(d.getCollapsed());
+			if (!v.isEmpty())
+				gra.collapse(v,"["+d.getName()+"]",d.getCollapsed());
+		}
+    
+    g = gra;
+	}
+
+
 	public void initBrowser(InputStream is) {
 		try {
 			TreeNode tn = new TreeNode("Root", "", -1, true);
       g = new Graph(is, tn);
+			Vector v = new Vector(10,10);
+			tn.collapsedDirectories(v);      
+      collapseNodes(v);
 		} catch (IOException exn) {
 			System.err.println("\nI/O error while reading graph file.");
 		} catch (ParseError exn) {
