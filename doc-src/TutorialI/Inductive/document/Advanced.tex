@@ -36,7 +36,7 @@ F\ {\isasymsubseteq}\ G\ {\isasymLongrightarrow}\ gterms\ F\ {\isasymsubseteq}\ 
 We completely forgot about "rule inversion". 
 
 \begin{isabelle}%
-\ \ \ \ \ {\isasymlbrakk}a\ {\isasymin}\ even{\isacharsemicolon}\ a\ {\isacharequal}\ {\isadigit{0}}\ {\isasymLongrightarrow}\ P{\isacharsemicolon}\ {\isasymAnd}n{\isachardot}\ {\isasymlbrakk}a\ {\isacharequal}\ Suc\ {\isacharparenleft}Suc\ n{\isacharparenright}{\isacharsemicolon}\ n\ {\isasymin}\ even{\isasymrbrakk}\ {\isasymLongrightarrow}\ P{\isasymrbrakk}\ {\isasymLongrightarrow}\ P%
+\ \ \ \ \ a\ {\isasymin}\ even\ {\isasymLongrightarrow}\ {\isacharparenleft}a\ {\isacharequal}\ {\isadigit{0}}\ {\isasymLongrightarrow}\ P{\isacharparenright}\ {\isasymLongrightarrow}\ {\isacharparenleft}{\isasymAnd}n{\isachardot}\ a\ {\isacharequal}\ Suc\ {\isacharparenleft}Suc\ n{\isacharparenright}\ {\isasymLongrightarrow}\ n\ {\isasymin}\ even\ {\isasymLongrightarrow}\ P{\isacharparenright}\ {\isasymLongrightarrow}\ P%
 \end{isabelle}
 \rulename{even.cases}
 
@@ -50,7 +50,7 @@ result to a name%
 \isacommand{thm}\ Suc{\isacharunderscore}Suc{\isacharunderscore}cases%
 \begin{isamarkuptext}%
 \begin{isabelle}%
-\ \ \ \ \ {\isasymlbrakk}Suc\ {\isacharparenleft}Suc\ n{\isacharparenright}\ {\isasymin}\ even{\isacharsemicolon}\ n\ {\isasymin}\ even\ {\isasymLongrightarrow}\ P{\isasymrbrakk}\ {\isasymLongrightarrow}\ P%
+\ \ \ \ \ Suc\ {\isacharparenleft}Suc\ n{\isacharparenright}\ {\isasymin}\ even\ {\isasymLongrightarrow}\ {\isacharparenleft}n\ {\isasymin}\ even\ {\isasymLongrightarrow}\ P{\isacharparenright}\ {\isasymLongrightarrow}\ P%
 \end{isabelle}
 \rulename{Suc_Suc_cases}
 
@@ -65,7 +65,7 @@ and now the one for local usage:%
 this is what we get:
 
 \begin{isabelle}%
-\ \ \ \ \ {\isasymlbrakk}Apply\ f\ args\ {\isasymin}\ gterms\ F{\isacharsemicolon}\ {\isasymlbrakk}{\isasymforall}t{\isasymin}set\ args{\isachardot}\ t\ {\isasymin}\ gterms\ F{\isacharsemicolon}\ f\ {\isasymin}\ F{\isasymrbrakk}\ {\isasymLongrightarrow}\ P{\isasymrbrakk}\ {\isasymLongrightarrow}\ P%
+\ \ \ \ \ Apply\ f\ args\ {\isasymin}\ gterms\ F\ {\isasymLongrightarrow}\ {\isacharparenleft}{\isasymforall}t{\isasymin}set\ args{\isachardot}\ t\ {\isasymin}\ gterms\ F\ {\isasymLongrightarrow}\ f\ {\isasymin}\ F\ {\isasymLongrightarrow}\ P{\isacharparenright}\ {\isasymLongrightarrow}\ P%
 \end{isabelle}
 \rulename{gterm_Apply_elim}%
 \end{isamarkuptext}%

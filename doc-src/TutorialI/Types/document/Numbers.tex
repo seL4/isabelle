@@ -75,12 +75,12 @@ Suc\ {\isacharparenleft}i\ {\isacharplus}\ j\ {\isacharasterisk}\ l\ {\isacharas
 %
 \begin{isamarkuptext}%
 \begin{isabelle}%
-\ \ \ \ \ {\isasymlbrakk}i\ {\isasymle}\ j{\isacharsemicolon}\ k\ {\isasymle}\ l{\isasymrbrakk}\ {\isasymLongrightarrow}\ i\ {\isacharasterisk}\ k\ {\isasymle}\ j\ {\isacharasterisk}\ l%
+\ \ \ \ \ i\ {\isasymle}\ j\ {\isasymLongrightarrow}\ k\ {\isasymle}\ l\ {\isasymLongrightarrow}\ i\ {\isacharasterisk}\ k\ {\isasymle}\ j\ {\isacharasterisk}\ l%
 \end{isabelle}
 \rulename{mult_le_mono}
 
 \begin{isabelle}%
-\ \ \ \ \ {\isasymlbrakk}i\ {\isacharless}\ j{\isacharsemicolon}\ {\isadigit{0}}\ {\isacharless}\ k{\isasymrbrakk}\ {\isasymLongrightarrow}\ i\ {\isacharasterisk}\ k\ {\isacharless}\ j\ {\isacharasterisk}\ k%
+\ \ \ \ \ i\ {\isacharless}\ j\ {\isasymLongrightarrow}\ {\isadigit{0}}\ {\isacharless}\ k\ {\isasymLongrightarrow}\ i\ {\isacharasterisk}\ k\ {\isacharless}\ j\ {\isacharasterisk}\ k%
 \end{isabelle}
 \rulename{mult_less_mono1}
 
@@ -160,12 +160,12 @@ Suc\ {\isacharparenleft}i\ {\isacharplus}\ j\ {\isacharasterisk}\ l\ {\isacharas
 \rulename{DIVISION_BY_ZERO_MOD}
 
 \begin{isabelle}%
-\ \ \ \ \ {\isasymlbrakk}m\ dvd\ n{\isacharsemicolon}\ n\ dvd\ m{\isasymrbrakk}\ {\isasymLongrightarrow}\ m\ {\isacharequal}\ n%
+\ \ \ \ \ m\ dvd\ n\ {\isasymLongrightarrow}\ n\ dvd\ m\ {\isasymLongrightarrow}\ m\ {\isacharequal}\ n%
 \end{isabelle}
 \rulename{dvd_anti_sym}
 
 \begin{isabelle}%
-\ \ \ \ \ {\isasymlbrakk}k\ dvd\ m{\isacharsemicolon}\ k\ dvd\ n{\isasymrbrakk}\ {\isasymLongrightarrow}\ k\ dvd\ {\isacharparenleft}m\ {\isacharplus}\ n{\isacharparenright}%
+\ \ \ \ \ k\ dvd\ m\ {\isasymLongrightarrow}\ k\ dvd\ n\ {\isasymLongrightarrow}\ k\ dvd\ {\isacharparenleft}m\ {\isacharplus}\ n{\isacharparenright}%
 \end{isabelle}
 \rulename{dvd_add}
 

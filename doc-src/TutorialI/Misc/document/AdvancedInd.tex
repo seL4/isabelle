@@ -95,7 +95,7 @@ or the wholesale stripping of \isa{{\isasymforall}} and
 \isacommand{lemmas}\ myrule\ {\isacharequal}\ simple{\isacharbrackleft}rule{\isacharunderscore}format{\isacharbrackright}%
 \begin{isamarkuptext}%
 \noindent
-yielding \isa{{\isasymlbrakk}A\ y{\isacharsemicolon}\ B\ y{\isasymrbrakk}\ {\isasymLongrightarrow}\ B\ y\ {\isasymand}\ A\ y}.
+yielding \isa{A\ y\ {\isasymLongrightarrow}\ B\ y\ {\isasymLongrightarrow}\ B\ y\ {\isasymand}\ A\ y}.
 You can go one step further and include these derivations already in the
 statement of your original lemma, thus avoiding the intermediate step:%
 \end{isamarkuptext}%
@@ -182,8 +182,7 @@ the other case:%
 \begin{isamarkuptxt}%
 \begin{isabelle}%
 \ {\isadigit{1}}{\isachardot}\ {\isasymAnd}n\ i\ nat{\isachardot}\isanewline
-\ \ \ \ \ \ \ {\isasymlbrakk}{\isasymforall}m{\isachardot}\ m\ {\isacharless}\ n\ {\isasymlongrightarrow}\ {\isacharparenleft}{\isasymforall}i{\isachardot}\ m\ {\isacharequal}\ f\ i\ {\isasymlongrightarrow}\ i\ {\isasymle}\ f\ i{\isacharparenright}{\isacharsemicolon}\ i\ {\isacharequal}\ Suc\ nat{\isasymrbrakk}\isanewline
-\ \ \ \ \ \ \ {\isasymLongrightarrow}\ n\ {\isacharequal}\ f\ i\ {\isasymlongrightarrow}\ i\ {\isasymle}\ f\ i%
+\ \ \ \ \ \ \ {\isasymforall}m{\isachardot}\ m\ {\isacharless}\ n\ {\isasymlongrightarrow}\ {\isacharparenleft}{\isasymforall}i{\isachardot}\ m\ {\isacharequal}\ f\ i\ {\isasymlongrightarrow}\ i\ {\isasymle}\ f\ i{\isacharparenright}\ {\isasymLongrightarrow}\ i\ {\isacharequal}\ Suc\ nat\ {\isasymLongrightarrow}\ n\ {\isacharequal}\ f\ i\ {\isasymlongrightarrow}\ i\ {\isasymle}\ f\ i%
 \end{isabelle}%
 \end{isamarkuptxt}%
 \isacommand{by}{\isacharparenleft}blast\ intro{\isacharbang}{\isacharcolon}\ f{\isacharunderscore}ax\ Suc{\isacharunderscore}leI\ intro{\isacharcolon}\ le{\isacharunderscore}less{\isacharunderscore}trans{\isacharparenright}%
@@ -196,7 +195,7 @@ Since \isa{i\ {\isacharequal}\ Suc\ j} it suffices to show
 proved as follows. From \isa{f{\isacharunderscore}ax} we have \isa{f\ {\isacharparenleft}f\ j{\isacharparenright}\ {\isacharless}\ f\ {\isacharparenleft}Suc\ j{\isacharparenright}}
 (1) which implies \isa{f\ j\ {\isasymle}\ f\ {\isacharparenleft}f\ j{\isacharparenright}} (by the induction hypothesis).
 Using (1) once more we obtain \isa{f\ j\ {\isacharless}\ f\ {\isacharparenleft}Suc\ j{\isacharparenright}} (2) by transitivity
-(\isa{le{\isacharunderscore}less{\isacharunderscore}trans}: \isa{{\isasymlbrakk}i\ {\isasymle}\ j{\isacharsemicolon}\ j\ {\isacharless}\ k{\isasymrbrakk}\ {\isasymLongrightarrow}\ i\ {\isacharless}\ k}).
+(\isa{le{\isacharunderscore}less{\isacharunderscore}trans}: \isa{i\ {\isasymle}\ j\ {\isasymLongrightarrow}\ j\ {\isacharless}\ k\ {\isasymLongrightarrow}\ i\ {\isacharless}\ k}).
 Using the induction hypothesis once more we obtain \isa{j\ {\isasymle}\ f\ j}
 which, together with (2) yields \isa{j\ {\isacharless}\ f\ {\isacharparenleft}Suc\ j{\isacharparenright}} (again by
 \isa{le{\isacharunderscore}less{\isacharunderscore}trans}).
@@ -268,7 +267,7 @@ the induction hypothesis:%
 \noindent
 The elimination rule \isa{less{\isacharunderscore}SucE} expresses the case distinction:
 \begin{isabelle}%
-\ \ \ \ \ {\isasymlbrakk}m\ {\isacharless}\ Suc\ n{\isacharsemicolon}\ m\ {\isacharless}\ n\ {\isasymLongrightarrow}\ P{\isacharsemicolon}\ m\ {\isacharequal}\ n\ {\isasymLongrightarrow}\ P{\isasymrbrakk}\ {\isasymLongrightarrow}\ P%
+\ \ \ \ \ m\ {\isacharless}\ Suc\ n\ {\isasymLongrightarrow}\ {\isacharparenleft}m\ {\isacharless}\ n\ {\isasymLongrightarrow}\ P{\isacharparenright}\ {\isasymLongrightarrow}\ {\isacharparenleft}m\ {\isacharequal}\ n\ {\isasymLongrightarrow}\ P{\isacharparenright}\ {\isasymLongrightarrow}\ P%
 \end{isabelle}
 
 Now it is straightforward to derive the original version of

@@ -299,8 +299,8 @@ $t$\isa{{\isachardot}split{\isacharunderscore}asm}:%
 In contrast to splitting the conclusion, this actually creates two
 separate subgoals (which are solved by \isa{simp{\isacharunderscore}all}):
 \begin{isabelle}%
-\ {\isadigit{1}}{\isachardot}\ {\isasymlbrakk}xs\ {\isacharequal}\ {\isacharbrackleft}{\isacharbrackright}{\isacharsemicolon}\ ys\ {\isasymnoteq}\ {\isacharbrackleft}{\isacharbrackright}{\isasymrbrakk}\ {\isasymLongrightarrow}\ {\isacharbrackleft}{\isacharbrackright}\ {\isacharat}\ ys\ {\isasymnoteq}\ {\isacharbrackleft}{\isacharbrackright}\isanewline
-\ {\isadigit{2}}{\isachardot}\ {\isasymlbrakk}xs\ {\isasymnoteq}\ {\isacharbrackleft}{\isacharbrackright}{\isacharsemicolon}\ ys\ {\isacharequal}\ {\isacharbrackleft}{\isacharbrackright}{\isasymrbrakk}\ {\isasymLongrightarrow}\ xs\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackright}\ {\isasymnoteq}\ {\isacharbrackleft}{\isacharbrackright}%
+\ {\isadigit{1}}{\isachardot}\ xs\ {\isacharequal}\ {\isacharbrackleft}{\isacharbrackright}\ {\isasymLongrightarrow}\ ys\ {\isasymnoteq}\ {\isacharbrackleft}{\isacharbrackright}\ {\isasymLongrightarrow}\ {\isacharbrackleft}{\isacharbrackright}\ {\isacharat}\ ys\ {\isasymnoteq}\ {\isacharbrackleft}{\isacharbrackright}\isanewline
+\ {\isadigit{2}}{\isachardot}\ xs\ {\isasymnoteq}\ {\isacharbrackleft}{\isacharbrackright}\ {\isasymLongrightarrow}\ ys\ {\isacharequal}\ {\isacharbrackleft}{\isacharbrackright}\ {\isasymLongrightarrow}\ xs\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackright}\ {\isasymnoteq}\ {\isacharbrackleft}{\isacharbrackright}%
 \end{isabelle}
 If you need to split both in the assumptions and the conclusion,
 use $t$\isa{{\isachardot}splits} which subsumes $t$\isa{{\isachardot}split} and
