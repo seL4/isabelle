@@ -570,15 +570,23 @@ qed "rev_concat";
 
 section "nth";
 
-Goal "(x#xs)!n = (case n of 0 => x | Suc m => xs!m)";
-by (simp_tac (simpset() addsplits [nat.split]) 1);
-qed "nth_Cons";
+Goal "(x#xs)!0 = x";
+by Auto_tac;
+qed "nth_Cons_0";
+Addsimps [nth_Cons_0];
 
-Goal "!xs. (xs@ys)!n = (if n < length xs then xs!n else ys!(n - length xs))";
-by (induct_tac "n" 1);
+Goal "(x#xs)!(Suc n) = xs!n";
+by Auto_tac;
+qed "nth_Cons_Suc";
+Addsimps [nth_Cons_Suc];
+
+Delsimps (thms "nth.simps");
+
+Goal "!n. (xs@ys)!n = (if n < length xs then xs!n else ys!(n - length xs))";
+by (induct_tac "xs" 1);
  by (Asm_simp_tac 1);
  by (rtac allI 1);
- by (exhaust_tac "xs" 1);
+ by (exhaust_tac "n" 1);
   by Auto_tac;
 qed_spec_mp "nth_append";
 

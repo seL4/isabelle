@@ -122,12 +122,17 @@ primrec
 primrec
   drop_Nil  "drop n [] = []"
   drop_Cons "drop n (x#xs) = (case n of 0 => x#xs | Suc(m) => drop m xs)"
+  (* Warning: simpset does not contain this definition but separate theorems 
+     for n=0 / n=Suc k*)
 primrec
   take_Nil  "take n [] = []"
   take_Cons "take n (x#xs) = (case n of 0 => [] | Suc(m) => x # take m xs)"
-primrec
-  "xs!0 = hd xs"
-  "xs!(Suc n) = (tl xs)!n"
+  (* Warning: simpset does not contain this definition but separate theorems 
+     for n=0 / n=Suc k*)
+primrec 
+  nth_Cons  "(x#xs)!n = (case n of 0 => x | (Suc k) => xs!k)"
+  (* Warning: simpset does not contain this definition but separate theorems 
+     for n=0 / n=Suc k*)
 primrec
  "    [][i:=v] = []"
  "(x#xs)[i:=v] = (case i of 0     => v # xs 
@@ -141,6 +146,8 @@ primrec
 primrec
   "zip xs []     = []"
   "zip xs (y#ys) = (case xs of [] => [] | z#zs => (z,y)#zip zs ys)"
+  (* Warning: simpset does not contain this definition but separate theorems 
+     for xs=[] / xs=z#zs *)
 primrec
   "[i..0(] = []"
   "[i..(Suc j)(] = (if i <= j then [i..j(] @ [j] else [])"
@@ -154,7 +161,7 @@ primrec
   replicate_0   "replicate  0      x = []"
   replicate_Suc "replicate (Suc n) x = x # replicate n x"
 
-(** Lexcicographic orderings on lists **)
+(** Lexicographic orderings on lists **)
 
 consts
  lexn :: "('a * 'a)set => nat => ('a list * 'a list)set"
