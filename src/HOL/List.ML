@@ -1092,6 +1092,12 @@ by (Auto_tac);
 qed "list_all2_Cons2";
 
 Goalw [list_all2_def]
+ "list_all2 P (rev xs) (rev ys) = list_all2 P xs ys";
+by (asm_full_simp_tac (simpset() addsimps [zip_rev] addcongs [conj_cong]) 1);
+qed "list_all2_rev";
+AddIffs[list_all2_rev];
+
+Goalw [list_all2_def]
  "list_all2 P (xs@ys) zs = \
 \ (EX us vs. zs = us@vs & length us = length xs & length vs = length ys & \
 \            list_all2 P xs us & list_all2 P ys vs)";
