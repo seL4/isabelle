@@ -167,7 +167,7 @@ qed;
 
 lemma domino_finite: "d: domino ==> finite d";
 proof (induct set: domino);
-  fix i j;
+  fix i j :: nat;
   show "finite {(i, j), (i, j + 1)}"; by (intro Finites.intrs);
   show "finite {(i, j), (i + 1, j)}"; by (intro Finites.intrs);
 qed;
@@ -210,8 +210,7 @@ proof -;
 	have "??e (a Un t) b = ??e a b Un ??e t b"; by (rule evnodd_Un);
 	also; fix i j; assume "??e a b = {(i, j)}";
 	also; have "... Un ??e t b = insert (i, j) (??e t b)"; by simp;
-	finally; have "card (??e (a Un t) b) = card (insert (i, j) (??e t b))"; by simp;
-	also; have "... = Suc (card (??e t b))";
+	also; have "card ... = Suc (card (??e t b))";
 	proof (rule card_insert_disjoint);
 	  show "finite (??e t b)"; by (rule evnodd_finite, rule tiling_domino_finite);
 	  have "(i, j) : ??e a b"; by asm_simp;
