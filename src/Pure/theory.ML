@@ -34,14 +34,18 @@ sig
   include BASIC_THEORY
   (*theory extendsion primitives*)
   val add_classes	: (class * class list) list -> theory -> theory
+  val add_classes_i	: (class * class list) list -> theory -> theory
   val add_classrel	: (class * class) list -> theory -> theory
+  val add_classrel_i	: (class * class) list -> theory -> theory
   val add_defsort	: sort -> theory -> theory
+  val add_defsort_i	: sort -> theory -> theory
   val add_types		: (string * int * mixfix) list -> theory -> theory
   val add_tyabbrs	: (string * string list * string * mixfix) list
     -> theory -> theory
   val add_tyabbrs_i	: (string * string list * typ * mixfix) list
     -> theory -> theory
   val add_arities	: (string * sort list * sort) list -> theory -> theory
+  val add_arities_i	: (string * sort list * sort) list -> theory -> theory
   val add_consts	: (string * string * mixfix) list -> theory -> theory
   val add_consts_i	: (string * typ * mixfix) list -> theory -> theory
   val add_syntax	: (string * string * mixfix) list -> theory -> theory
@@ -63,6 +67,8 @@ sig
   val add_axioms_i	: (string * term) list -> theory -> theory
   val add_defs		: (string * string) list -> theory -> theory
   val add_defs_i	: (string * term) list -> theory -> theory
+  val add_path		: string -> theory -> theory
+  val add_space		: string * string list -> theory -> theory
   val add_name		: string -> theory -> theory
 
   val set_oracle	: (Sign.sg * exn -> term) -> theory -> theory
@@ -145,12 +151,16 @@ fun ext_sg extfun decls (thy as Theory {sign, ...}) =
   ext_thy thy (extfun decls sign) [];
 
 val add_classes      = ext_sg Sign.add_classes;
+val add_classes_i    = ext_sg Sign.add_classes_i;
 val add_classrel     = ext_sg Sign.add_classrel;
+val add_classrel_i   = ext_sg Sign.add_classrel_i;
 val add_defsort      = ext_sg Sign.add_defsort;
+val add_defsort_i    = ext_sg Sign.add_defsort_i;
 val add_types        = ext_sg Sign.add_types;
 val add_tyabbrs      = ext_sg Sign.add_tyabbrs;
 val add_tyabbrs_i    = ext_sg Sign.add_tyabbrs_i;
 val add_arities      = ext_sg Sign.add_arities;
+val add_arities_i    = ext_sg Sign.add_arities_i;
 val add_consts       = ext_sg Sign.add_consts;
 val add_consts_i     = ext_sg Sign.add_consts_i;
 val add_syntax       = ext_sg Sign.add_syntax;
@@ -162,6 +172,8 @@ val add_trfunsT      = ext_sg Sign.add_trfunsT;
 val add_tokentrfuns  = ext_sg Sign.add_tokentrfuns;
 val add_trrules      = ext_sg Sign.add_trrules;
 val add_trrules_i    = ext_sg Sign.add_trrules_i;
+val add_path         = ext_sg Sign.add_path;
+val add_space        = ext_sg Sign.add_space;
 val add_name         = ext_sg Sign.add_name;
 
 
@@ -261,7 +273,7 @@ fun clash_defns c_ty axms =
 
 fun dest_defn tm =
   let
-    fun err msg = raise_term msg [tm];
+    fun err msg = raise TERM (msg, [tm]);
 
     val (lhs, rhs) = Logic.dest_equals (Logic.strip_imp_concl tm)
       handle TERM _ => err "Not a meta-equality (==)";
