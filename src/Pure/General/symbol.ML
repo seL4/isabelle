@@ -87,9 +87,6 @@ fun is_ascii s = size s = 1 andalso ord s < 128;
 
 local
     fun wrap s = "\\<" ^ s ^ ">"
-    val pre_digits =
-	["zero","one","two","three","four",
-	 "five","six","seven","eight","nine"]
 
     val cal_letters =
 	["A","B","C","D","E","F","G","H","I","J","K","L","M",
@@ -119,12 +116,9 @@ local
 	goth_letters  @
 	greek_letters
 in
-val ext_digits  = map wrap pre_digits
 val ext_letters = map wrap pre_letters
-val ext_letdigs = ext_digits @ ext_letters
-fun is_ext_digit  s = String.isPrefix "\\<" s andalso s mem ext_digits
+
 fun is_ext_letter s = String.isPrefix "\\<" s andalso s mem ext_letters
-fun is_ext_letdig s = String.isPrefix "\\<" s andalso s mem ext_letdigs
 end
      
 fun is_letter s =
@@ -134,8 +128,7 @@ fun is_letter s =
     orelse is_ext_letter s
 
 fun is_digit s =
-    (size s = 1 andalso ord "0" <= ord s andalso ord s <= ord "9")
-    orelse is_ext_digit s
+    size s = 1 andalso ord "0" <= ord s andalso ord s <= ord "9"
 
 fun is_quasi "_" = true
   | is_quasi "'" = true
@@ -152,11 +145,11 @@ fun is_letdig s = is_quasi_letter s orelse is_digit s;
 
 fun is_symbolic s =
   size s > 2 andalso nth_elem_string (2, s) <> "^"
-  andalso not (is_ext_letdig s);
+  andalso not (is_ext_letter s);
 
 fun is_printable s =
   size s = 1 andalso ord space <= ord s andalso ord s <= ord "~" orelse
-  is_ext_letdig s orelse
+  is_ext_letter s orelse
   is_symbolic s;
 
 fun is_identifier s =
