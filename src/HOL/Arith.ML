@@ -154,8 +154,6 @@ qed_spec_mp "less_eq_Suc_add";
 Goal "n <= ((m + n)::nat)";
 by (induct_tac "m" 1);
 by (ALLGOALS Simp_tac);
-by (etac le_trans 1);
-by (rtac (lessI RS less_imp_le) 1);
 qed "le_add2";
 
 Goal "n <= ((n + m)::nat)";
@@ -183,12 +181,10 @@ bind_thm ("trans_less_add1", le_add1 RSN (2,less_le_trans));
 (*"i < j ==> i < m+j"*)
 bind_thm ("trans_less_add2", le_add2 RSN (2,less_le_trans));
 
-Goal "i+j < (k::nat) ==> i<k";
-by (etac rev_mp 1);
+Goal "i+j < (k::nat) --> i<k";
 by (induct_tac "j" 1);
 by (ALLGOALS Asm_simp_tac);
-by (blast_tac (claset() addDs [Suc_lessD]) 1);
-qed "add_lessD1";
+qed_spec_mp "add_lessD1";
 
 Goal "~ (i+j < (i::nat))";
 by (rtac notI 1);

@@ -615,5 +615,7 @@ structure Trans_Tac = Trans_Tac_Fun(Less_Arith);
 
 open Trans_Tac;
 
+simpset_ref () := (simpset() addSolver cut_trans_tac);
+
 (*** eliminates ~= in premises, which trans_tac cannot deal with ***)
 bind_thm("nat_neqE", nat_neq_iff RS iffD1 RS disjE);
