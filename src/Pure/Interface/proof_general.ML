@@ -205,8 +205,12 @@ end;
 
 local structure P = OuterParse and K = OuterSyntax.Keyword in
 
-val silent_undoP =	(* FIXME same name for compatibility with PG/Isabelle99 *)
+val old_undoP =	(* FIXME same name for compatibility with PG/Isabelle99 *)
   OuterSyntax.improper_command "undo" "undo last command (no output)" K.control
+    (Scan.succeed IsarCmd.undo);
+
+val undoP =
+  OuterSyntax.improper_command "ProofGeneral.undo" "undo last command (no output)" K.control
     (Scan.succeed IsarCmd.undo);
 
 val context_thy_onlyP =
@@ -234,7 +238,7 @@ val inform_file_retractedP =
     (P.name >> (fn name => Toplevel.imperative (fn () => inform_file_retracted name)));
 
 fun init_outer_syntax () = OuterSyntax.add_parsers
- [silent_undoP, restartP, kill_proofP, context_thy_onlyP, try_context_thy_onlyP,
+ [old_undoP, undoP, restartP, kill_proofP, context_thy_onlyP, try_context_thy_onlyP,
   inform_file_processedP, inform_file_retractedP];
 
 end;
