@@ -83,7 +83,6 @@ sig
   val implies: term
   val all: typ -> term
   val equals: typ -> term
-  val flexpair: typ -> term
   val strip_all_body: term -> term
   val strip_all_vars: term -> (string * typ) list
   val incr_bv: int * int * term -> term
@@ -135,6 +134,7 @@ sig
   val maxidx_of_typ: typ -> int
   val maxidx_of_typs: typ list -> int
   val maxidx_of_term: term -> int
+  val maxidx_of_terms: term list -> int
   val read_radixint: int * string list -> int * string list
   val read_int: string list -> int * string list
   val oct_char: string -> string
@@ -434,8 +434,6 @@ fun all T = Const("all", (T-->propT)-->propT);
 
 fun equals T = Const("==", T-->T-->propT);
 
-fun flexpair T = Const("=?=", T-->T-->propT);
-
 (* maps  !!x1...xn. t   to   t  *)
 fun strip_all_body (Const("all",_)$Abs(_,_,t))  =  strip_all_body t
   | strip_all_body t  =  t;
@@ -648,9 +646,9 @@ fun abstract_over (v,body) =
         | _ => u)
   in  abst(0,body)  end;
 
-fun lambda v t =
-  let val (x, T) = dest_Free v
-  in Abs (x, T, abstract_over (v, t)) end;
+fun lambda (v as Free (x, T)) t = Abs (x, T, abstract_over (v, t))
+  | lambda (v as Var ((x, _), T)) t = Abs (x, T, abstract_over (v, t))
+  | lambda v t = raise TERM ("lambda", [v, t]);
 
 (*Form an abstraction over a free variable.*)
 fun absfree (a,T,body) = Abs(a, T, abstract_over (Free(a,T), body));
@@ -725,6 +723,8 @@ fun maxidx_of_term (Const(_,T)) = maxidx_of_typ T
   | maxidx_of_term (Var ((_,i), T)) = Int.max(i, maxidx_of_typ T)
   | maxidx_of_term (Abs (_,T,u)) = Int.max(maxidx_of_term u, maxidx_of_typ T)
   | maxidx_of_term (f$t) = Int.max(maxidx_of_term f,  maxidx_of_term t);
+
+fun maxidx_of_terms ts = foldl Int.max (~1, map maxidx_of_term ts);
 
 
 (* Increment the index of all Poly's in T by k *)
