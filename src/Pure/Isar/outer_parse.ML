@@ -18,7 +18,6 @@ sig
   val long_ident: token list -> string * token list
   val sym_ident: token list -> string * token list
   val term_var: token list -> string * token list
-  val text_var: token list -> string * token list
   val type_ident: token list -> string * token list
   val type_var: token list -> string * token list
   val number: token list -> string * token list
@@ -121,7 +120,6 @@ val short_ident = kind OuterLex.Ident;
 val long_ident = kind OuterLex.LongIdent;
 val sym_ident = kind OuterLex.SymIdent;
 val term_var = kind OuterLex.Var;
-val text_var = kind OuterLex.TextVar;
 val type_ident = kind OuterLex.TypeIdent;
 val type_var = kind OuterLex.TypeVar;
 val number = kind OuterLex.Nat;
@@ -222,7 +220,7 @@ val const =
 
 (* terms *)
 
-val trm = short_ident || long_ident || sym_ident || term_var || text_var || number || string;
+val trm = short_ident || long_ident || sym_ident || term_var || number || string;
 
 val term = group "term" trm;
 val prop = group "proposition" trm;
@@ -245,7 +243,7 @@ fun keyword_symid is_symid = Scan.one (OuterLex.keyword_with is_symid) >> OuterL
 
 fun atom_arg is_symid blk =
   group "argument"
-    (position (short_ident || long_ident || sym_ident || term_var || text_var ||
+    (position (short_ident || long_ident || sym_ident || term_var ||
         type_ident || type_var || number) >> Args.ident ||
       position (keyword_symid is_symid) >> Args.keyword ||
       position string >> Args.string ||

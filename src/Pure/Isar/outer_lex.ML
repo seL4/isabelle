@@ -8,7 +8,7 @@ Outer lexical syntax for Isabelle/Isar.
 signature OUTER_LEX =
 sig
   datatype token_kind =
-    Command | Keyword | Ident | LongIdent | SymIdent | Var | TextVar | TypeIdent | TypeVar |
+    Command | Keyword | Ident | LongIdent | SymIdent | Var | TypeIdent | TypeVar |
     Nat | String | Verbatim | Ignore | Sync | EOF
   type token
   val str_of_kind: token_kind -> string
@@ -39,7 +39,7 @@ struct
 (* datatype token *)
 
 datatype token_kind =
-  Command | Keyword | Ident | LongIdent | SymIdent | Var | TextVar | TypeIdent | TypeVar |
+  Command | Keyword | Ident | LongIdent | SymIdent | Var | TypeIdent | TypeVar |
   Nat | String | Verbatim | Ignore | Sync | EOF;
 
 datatype token = Token of Position.T * (token_kind * string);
@@ -51,7 +51,6 @@ val str_of_kind =
   | LongIdent => "long identifier"
   | SymIdent => "symbolic identifier"
   | Var => "schematic variable"
-  | TextVar => "text variable"
   | TypeIdent => "type variable"
   | TypeVar => "schematic type variable"
   | Nat => "number"
@@ -210,7 +209,6 @@ fun scan (lex1, lex2) (pos, cs) =
         (Syntax.scan_longid >> token LongIdent ||
           Syntax.scan_id >> token Ident ||
           Syntax.scan_var >> token Var ||
-          $$ "?" ^^ $$ "?" ^^ Syntax.scan_id >> token TextVar ||
           Syntax.scan_tid >> token TypeIdent ||
           Syntax.scan_tvar >> token TypeVar ||
           Syntax.scan_nat >> token Nat ||
