@@ -8,12 +8,8 @@ The Knaster-Tarski Theorem
 
 Lfp = mono + Prod +
 
-global
-
 constdefs
   lfp :: ['a set=>'a set] => 'a set
   "lfp(f) == Inter({u. f(u) <= u})"    (*least fixed point*)
-
-local
 
 end

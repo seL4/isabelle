@@ -427,7 +427,7 @@ fun is_cong thm =
   let val {prop, ...} = rep_thm thm
   in case prop 
      of (Const("==>",_)$(Const("Trueprop",_)$ _) $
-         (Const("==",_) $ (Const ("cut",_) $ f $ R $ a $ x) $ _)) => false
+         (Const("==",_) $ (Const ("WF.cut",_) $ f $ R $ a $ x) $ _)) => false
       | _ => true
   end;
 
@@ -631,7 +631,7 @@ fun dest_impl tm =
   end;
 
 fun restricted t = is_some (S.find_term
-			    (fn (Const("cut",_)) =>true | _ => false) 
+			    (fn (Const("WF.cut",_)) =>true | _ => false) 
 			    t)
 
 fun CONTEXT_REWRITE_RULE (func, G, cut_lemma, congs) th =

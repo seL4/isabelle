@@ -12,26 +12,26 @@ Ord = HOL +
 axclass
   ord < term
 
-global
-
 syntax
   "op <"        :: ['a::ord, 'a] => bool             ("op <")
   "op <="       :: ['a::ord, 'a] => bool             ("op <=")
 
+global
+
 consts
   "op <"        :: ['a::ord, 'a] => bool             ("(_/ < _)"  [50, 51] 50)
   "op <="       :: ['a::ord, 'a] => bool             ("(_/ <= _)" [50, 51] 50)
-  mono          :: ['a::ord => 'b::ord] => bool       (*monotonicity*)
-  min, max      :: ['a::ord, 'a] => 'a
 
-  Least         :: ('a::ord=>bool) => 'a             (binder "LEAST " 10)
+local
 
 syntax (symbols)
   "op <="       :: ['a::ord, 'a] => bool             ("op \\<le>")
   "op <="       :: ['a::ord, 'a] => bool             ("(_/ \\<le> _)"  [50, 51] 50)
 
-
-local
+consts
+  mono          :: ['a::ord => 'b::ord] => bool      (*monotonicity*)
+  min, max      :: ['a::ord, 'a] => 'a
+  Least         :: ('a::ord=>bool) => 'a             (binder "LEAST " 10)
 
 defs
   mono_def      "mono(f) == (!A B. A <= B --> f(A) <= f(B))"
