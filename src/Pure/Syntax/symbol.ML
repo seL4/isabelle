@@ -203,7 +203,7 @@ val scan_id = Scan.one is_letter ^^ (Scan.any is_letdig >> implode);
 
 val scan =
   ($$ "\\" --| Scan.optional ($$ "\\") "") ^^ $$ "<" ^^
-    !! (fn cs => "Malformed symbolic character specification: \\" ^ "<" ^ beginning cs)
+    !! (fn (cs, _) => "Malformed symbolic character specification: \\" ^ "<" ^ beginning cs)
       (Scan.optional ($$ "^") "" ^^ scan_id ^^ $$ ">") ||
   Scan.one not_eof;
 

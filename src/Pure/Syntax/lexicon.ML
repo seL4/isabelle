@@ -228,8 +228,9 @@ val scan_chr =
 
 val scan_str =
   $$ "'" |-- $$ "'" |--
-    !! (fn cs => "Inner lexical error: malformed literal string at " ^ quote ("''" ^ beginning cs))
-      (Scan.repeat scan_chr --| $$ "'" --| $$ "'");
+    !! (fn (cs, _) => "Inner lexical error: malformed literal string at " ^
+      quote ("''" ^ beginning cs))
+    (Scan.repeat scan_chr --| $$ "'" --| $$ "'");
 
 
 fun implode_xstr cs = enclose "''" "''" (implode (map (fn "'" => "\\'" | c => c) cs));

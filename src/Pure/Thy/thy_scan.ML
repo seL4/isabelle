@@ -66,7 +66,7 @@ val scan_ctrl =
 val scan_dig = Scan.one Symbol.is_digit;
 
 val scan_esc =
-  keep_line ($$ "\\") ^^ !! (fn (n, _) => lex_err n "bad escape sequence in string")
+  keep_line ($$ "\\") ^^ !! (fn ((n, _), _) => lex_err n "bad escape sequence in string")
     (keep_line ($$ "n" || $$ "t" || $$ "\"" || $$ "\\" ||
       scan_ctrl || scan_dig ^^ scan_dig ^^ scan_dig) ||
       (Scan.repeat1 scan_blank >> implode) ^^ keep_line ($$ "\\"));
@@ -78,7 +78,7 @@ val scan_str =
 
 val scan_string =
   keep_line ($$ "\"") ^^
-  !! (fn (n, _) => lex_err n "missing quote at end of string")
+  !! (fn ((n, _), _) => lex_err n "missing quote at end of string")
     ((Scan.repeat scan_str >> implode) ^^ keep_line ($$ "\""));
 
 
@@ -91,7 +91,7 @@ val scan_verb =
 
 val scan_verbatim =
   keep_line ($$ "{" -- $$ "|") |--
-  !! (fn (n, _) => lex_err n "missing end of verbatim text")
+  !! (fn ((n, _), _) => lex_err n "missing end of verbatim text")
     ((Scan.repeat scan_verb >> implode) --| keep_line ($$ "|" -- $$ "}"));
 
 
@@ -106,7 +106,7 @@ val scan_cmt =
 
 val scan_comment =
   keep_line ($$ "(" -- $$ "*") |--
-  !! (fn (n, _) => lex_err n "missing end of comment")
+  !! (fn ((n, _), _) => lex_err n "missing end of comment")
     (Scan.pass 0 (Scan.repeat scan_cmt) |-- keep_line ($$ "*" -- $$ ")") >> K "");
 
 
