@@ -49,8 +49,8 @@ sig
   val drop_schematic: indexname * term option -> indexname * term option
   val add_binds: (indexname * string option) list -> context -> context
   val add_binds_i: (indexname * term option) list -> context -> context
-  val auto_bind_goal: term -> context -> context
-  val auto_bind_facts: string -> term list -> context -> context
+  val auto_bind_goal: term list -> context -> context
+  val auto_bind_facts: term list -> context -> context
   val match_bind: bool -> (string list * string) list -> context -> context
   val match_bind_i: bool -> (term list * term) list -> context -> context
   val read_propp: context * (string * (string list * string list)) list list
@@ -807,11 +807,9 @@ fun drop_schematic (b as (xi, Some t)) = if null (Term.term_vars t) then b else 
 val add_binds = gen_binds read_term;
 val add_binds_i = gen_binds cert_term;
 
-fun auto_bind_goal t ctxt =
-  ctxt |> add_binds_i (map drop_schematic (AutoBind.goal (sign_of ctxt) t));
-
-fun auto_bind_facts name ts ctxt =
-  ctxt |> add_binds_i (map drop_schematic (AutoBind.facts (sign_of ctxt) name ts));
+fun auto_bind f ts ctxt = ctxt |> add_binds_i (map drop_schematic (f (sign_of ctxt) ts));
+val auto_bind_goal = auto_bind AutoBind.goal;
+val auto_bind_facts = auto_bind AutoBind.facts;
 
 end;
 
@@ -1013,7 +1011,7 @@ fun add_assm (ctxt, ((name, attrs), props)) =
     val ths = map (fn th => ([th], [])) asms;
     val (ctxt', [(_, thms)]) =
       ctxt
-      |> auto_bind_facts name props
+      |> auto_bind_facts props
       |> have_thmss [((name, attrs), ths)];
   in (ctxt', (cprops, (name, asms), (name, thms))) end;
 
