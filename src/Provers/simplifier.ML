@@ -504,7 +504,7 @@ val simp_options =
   Scan.succeed asm_full_simp_tac);
 
 val cong_modifiers =
- [Args.$$$ congN -- Args.colon >> K (I, cong_add_local),
+ [Args.$$$ congN -- Args.colon >> K ((I, cong_add_local):Method.modifier),
   Args.$$$ congN -- Args.$$$ addN -- Args.colon >> K (I, cong_add_local),
   Args.$$$ congN -- Args.$$$ delN -- Args.colon >> K (I, cong_del_local)];
 
