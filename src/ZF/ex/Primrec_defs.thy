@@ -38,8 +38,9 @@ defs
             lam l:list(nat). list_case(0, 
                       %x xs. rec(x, f`xs, %y r. g ` Cons(r, Cons(y, xs))), l)"
   
-  ACK_def   "ACK(i) == rec(i, SC, 
-                      %z r. PREC (CONST (r`[1]), COMP(r,[PROJ(0)])))"
-
+primrec
+  ACK_0     "ACK(0) = SC"
+  ACK_succ  "ACK(succ(i)) = PREC (CONST (ACK(i) ` [1]),
+				  COMP(ACK(i), [PROJ(0)]))"
 
 end

@@ -324,7 +324,7 @@ val [aprem,bprem,limiti,step] = Goal
 by (rtac ([aprem,limiti] MRS Limit_VfromE) 1);
 by (rtac ([bprem,limiti] MRS Limit_VfromE) 1);
 by (res_inst_tac [("j1", "x Un xa Un 2")] (step RS exE) 1);
-by (DO_GOAL [etac conjE, etac Limit_VfromI, rtac limiti, atac] 5);
+by (blast_tac (claset() addIs [Limit_VfromI, limiti]) 5);
 by (etac (Vfrom_UnI2 RS Vfrom_UnI1) 4);
 by (etac (Vfrom_UnI1 RS Vfrom_UnI1) 3);
 by (rtac (succI1 RS UnI2) 2);

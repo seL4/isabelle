@@ -185,6 +185,7 @@ by (rtac (Ord_succ RS Ord_UN) 1);
 by (etac bspec 1);
 by (assume_tac 1);
 qed "Ord_rank";
+Addsimps [Ord_rank];
 
 val [major] = goal Epsilon.thy "Ord(i) ==> rank(i) = i";
 by (rtac (major RS trans_induct) 1);
@@ -195,8 +196,8 @@ qed "rank_of_Ord";
 Goal "a:b ==> rank(a) < rank(b)";
 by (res_inst_tac [("a1","b")] (rank RS ssubst) 1);
 by (etac (UN_I RS ltI) 1);
-by (rtac succI1 1);
-by (REPEAT (ares_tac [Ord_UN, Ord_succ, Ord_rank] 1));
+by (rtac Ord_UN 2);
+by Auto_tac;
 qed "rank_lt";
 
 val [major] = goal Epsilon.thy "a: eclose(b) ==> rank(a) < rank(b)";
@@ -210,17 +211,15 @@ Goal "a<=b ==> rank(a) le rank(b)";
 by (rtac subset_imp_le 1);
 by (stac rank 1);
 by (stac rank 1);
-by (etac UN_mono 1);
-by (REPEAT (resolve_tac [subset_refl, Ord_rank] 1));
+by Auto_tac;
 qed "rank_mono";
 
 Goal "rank(Pow(a)) = succ(rank(a))";
 by (rtac (rank RS trans) 1);
 by (rtac le_anti_sym 1);
-by (DO_GOAL [rtac (Ord_rank RS Ord_succ RS UN_least_le),
-             etac (PowD RS rank_mono RS succ_leI)] 1);
-by (DO_GOAL [rtac ([Pow_top, le_refl] MRS UN_upper_le),
-             REPEAT o rtac (Ord_rank RS Ord_succ)] 1);
+br UN_upper_le 2;
+br UN_least_le 1;
+by (auto_tac (claset() addIs [rank_mono], simpset()));
 qed "rank_Pow";
 
 Goal "rank(0) = 0";
