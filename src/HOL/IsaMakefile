@@ -7,7 +7,7 @@
 ## targets
 
 default: HOL
-images: HOL HOL-Real TLA
+images: HOL HOL-Real HOL-Hyperreal TLA
 
 #Note: keep targets sorted (except for HOL-Library)
 test: \
@@ -128,9 +128,9 @@ $(OUT)/HOL-Real: $(OUT)/HOL \
 
 ## HOL-Real-Hyperreal
 
-HOL-Real-Hyperreal: HOL-Real $(LOG)/HOL-Real-Hyperreal.gz
+HOL-Hyperreal: HOL-Real $(OUT)/HOL-Hyperreal
 
-$(LOG)/HOL-Real-Hyperreal.gz: $(OUT)/HOL-Real Hyperreal/ROOT.ML\
+$(OUT)/HOL-Hyperreal: $(OUT)/HOL-Real Hyperreal/ROOT.ML\
   Hyperreal/EvenOdd.ML Hyperreal/EvenOdd.thy Hyperreal/ExtraThms2.ML\
   Hyperreal/ExtraThms2.thy Hyperreal/Fact.ML Hyperreal/Fact.thy\
   Hyperreal/Filter.ML Hyperreal/Filter.thy Hyperreal/HRealAbs.ML\
@@ -151,7 +151,7 @@ $(LOG)/HOL-Real-Hyperreal.gz: $(OUT)/HOL-Real Hyperreal/ROOT.ML\
   Hyperreal/Transcendental.thy Hyperreal/Zorn.ML Hyperreal/Zorn.thy\
   Hyperreal/fuf.ML Hyperreal/hypreal_arith.ML \
   Hyperreal/hypreal_arith0.ML
-	@$(ISATOOL) usedir $(OUT)/HOL-Real Hyperreal
+	@cd Hyperreal; $(ISATOOL) usedir -b $(OUT)/HOL-Real HOL-Hyperreal
 
 
 ## HOL-Real-ex
@@ -610,7 +610,7 @@ $(LOG)/TLA-Memory.gz: $(OUT)/TLA TLA/Memory/MIParameters.thy \
 ## clean
 
 clean:
-	@rm -f  $(OUT)/HOL $(OUT)/HOL-Real $(OUT)/TLA \
+	@rm -f  $(OUT)/HOL $(OUT)/HOL-Real $(OUT)/HOL-Hyperreal $(OUT)/TLA \
 		$(LOG)/HOL.gz $(LOG)/HOL-Real.gz $(LOG)/TLA.gz \
 		$(LOG)/HOL-Isar_examples.gz $(LOG)/HOL-Induct.gz \
 		$(LOG)/HOL-ex.gz $(LOG)/HOL-Subst.gz $(LOG)/HOL-IMP.gz \
@@ -622,7 +622,6 @@ clean:
 		$(LOG)/HOL-MicroJava.gz $(LOG)/HOL-NanoJava.gz \
 		$(LOG)/HOL-IOA.gz $(LOG)/HOL-AxClasses \
 		$(LOG)/HOL-Lattice $(LOG)/HOL-Real-ex.gz \
-		$(LOG)/HOL-Real-Hyperreal.gz \
 		$(LOG)/HOL-Real-HahnBanach.gz $(LOG)/TLA-Inc.gz \
 		$(LOG)/TLA-Buffer.gz $(LOG)/TLA-Memory.gz \
 		$(LOG)/HOL-Library.gz $(LOG)/HOL-Unix.gz 
