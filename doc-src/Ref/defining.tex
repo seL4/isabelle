@@ -188,12 +188,19 @@ nonterminals:
   \verb!x<(y::nat)!.
 \end{warn}
 
-Isabelle's representation of mathematical languages is based on the simply
-typed $\lambda$-calculus\index{lambda calc@$\lambda$-calculus}.  All user
-defined logical types, namely those of class \cldx{logic}, refer to the
-nonterminal {\tt logic}. Thus they are automatically equipped with a basic
-syntax of types, identifiers, variables, parentheses, $\lambda$-abstractions
-and applications.
+\subsection{Logical types and default syntax}\label{logical-types}
+\index{lambda calc@$\lambda$-calculus}
+
+Isabelle's representation of mathematical languages is based on the
+simply typed $\lambda$-calculus.  All logical types, namely those of
+class \cldx{logic}, are automatically equipped with a basic syntax of
+types, identifiers, variables, parentheses, $\lambda$-abstraction and
+application.
+\begin{warn}
+  Isabelle combines the syntaxes for all types of class \cldx{logic} by
+  mapping all those types to the single nonterminal $logic$.  Thus all
+  productions of $logic$, in particular $id$, $var$ etc, become available.
+\end{warn}
 
 
 \subsection{Lexical matters}
@@ -488,11 +495,6 @@ Omitting the mixfix annotation completely, as in {\tt $c$ ::\ "$\sigma$"},
 is sensible only if~$c$ is an identifier.  Otherwise you will be unable to
 write terms involving~$c$.
 
-\medskip 
-There is something artificial about the representation of productions as
-mixfix declarations, but it is convenient, particularly for simple theory
-extensions.
-
 
 \subsection{Example: arithmetic expressions}
 \index{examples!of mixfix declarations}
@@ -539,6 +541,12 @@ Syntax.print_gram (syn_of EXP.thy);
 {\out exp = "-" exp[3]  => "-" (3)}
 \end{ttbox}
 
+Note that because {\tt exp} is not of class {\tt logic}, it has been retained
+as a separate nonterminal. This also entails that the syntax does not provide
+for identifiers or paranthesized expressions. Normally you would also want to
+add the declaration {\tt arities exp :: logic} and use {\tt consts} instead
+of {\tt syntax}. Try this as an exercise and study the changes in the
+grammar.
 
 \subsection{The mixfix template}
 Let us now take a closer look at the string $template$ appearing in mixfix
