@@ -433,4 +433,4 @@ goal Nat.thy "(Suc(n) <= Suc(m)) = (n <= m)";
 by (simp_tac (nat_ss0 addsimps [le_eq_less_or_eq]) 1);
 qed "Suc_le_mono";
 
-val nat_ss = nat_ss0 addsimps [le_refl];
+val nat_ss = nat_ss0 addsimps [le_refl,Suc_le_mono];

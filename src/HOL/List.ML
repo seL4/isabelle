@@ -36,7 +36,8 @@ val list_ss = arith_ss addsimps list.simps @
    map_Nil, map_Cons,
    flat_Nil, flat_Cons,
    list_all_Nil, list_all_Cons,
-   filter_Nil, filter_Cons];
+   filter_Nil, filter_Cons,
+   length_Nil, length_Cons];
 
 
 (** @ - append **)
@@ -117,6 +118,13 @@ by (list.induct_tac "xs" 1);
 by(ALLGOALS(asm_simp_tac (list_ss addsimps [append_assoc])));
 qed"flat_append";
 
+(** length **)
+
+goal List.thy "length(xs@ys) = length(xs)+length(ys)";
+by (list.induct_tac "xs" 1);
+by(ALLGOALS(asm_simp_tac list_ss));
+qed"length_append";
+
 (** nth **)
 
 val [nth_0,nth_Suc] = nat_recs nth_def; 
@@ -144,5 +152,5 @@ val list_ss = list_ss addsimps
   [not_Cons_self, append_assoc, append_Nil2, append_is_Nil, same_append_eq,
    mem_append, mem_filter,
    map_ident, map_append, map_compose,
-   flat_append, list_all_True, list_all_conj, nth_0, nth_Suc];
+   flat_append, length_append, list_all_True, list_all_conj, nth_0, nth_Suc];
 
