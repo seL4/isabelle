@@ -13,8 +13,10 @@ by (simp_tac (MC_ss addsimps reach_rws) 1);
 (*show the current proof state using the model checker syntax*)
 setmp print_mode ["Eindhoven"] pr ();
 
-(*actually invoke the model checker*)
-by (mc_tac 1);
+(* actually invoke the model checker *)
+(* try out after installing the model checker: see the README file *)
+
+(* by (mc_tac 1); *)
 
 (*qed "reach_ex_thm1";*)
 
