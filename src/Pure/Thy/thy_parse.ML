@@ -363,6 +363,7 @@ val trfun_args =
 (* axioms *)
 
 val mk_axms = mk_big_list o map (mk_pair o apfst quote);
+val mk_axms' = mk_big_list o map (mk_pair o rpair "[]" o mk_pair o apfst quote);
 
 fun mk_axiom_decls axms = (mk_axms axms, map fst axms);
 
@@ -392,8 +393,8 @@ val constaxiom_decls =
 (* axclass *)
 
 fun mk_axclass_decl ((c, cs), axms) =
-  (mk_pair (c, cs) ^ "\n" ^ mk_axms axms,
-    (strip_quotes c ^ "I") :: map fst axms);
+  (mk_pair (c, cs) ^ "\n" ^ mk_axms' axms,
+    strip_quotes c ^ "I" :: map fst axms);
 
 val axclass_decl = subclass -- repeat (ident -- !! string) >> mk_axclass_decl;
 
@@ -534,7 +535,7 @@ fun parse_thy (lex, sectab) chs = #1 (!! (theory_defn sectab) (tokenize lex chs)
 
 (* standard sections *)
 
-fun mk_val ax = "val " ^ ax ^ " = get_axiom thy " ^ quote ax ^ ";";
+fun mk_val ax = "val " ^ ax ^ " = PureThy.get_thm thy " ^ quote ax ^ ";";
 val mk_vals = cat_lines o map mk_val;
 
 fun mk_axm_sect "" (txt, axs) = (txt, mk_vals axs)
@@ -565,7 +566,7 @@ val pure_sections =
   axm_section "defs" "|> (PureThy.add_defs o map Thm.no_attributes)" axiom_decls,
   section "oracle" "|> Theory.add_oracle" oracle_decl,
   axm_section "constdefs" "|> Theory.add_consts" constaxiom_decls,
-  axm_section "axclass" "|> AxClass.add_axclass" axclass_decl,
+  axm_section "axclass" "|> (#1 ooo AxClass.add_axclass)" axclass_decl,
   section "instance" "" instance_decl,
   section "path" "|> Theory.add_path" name,
   section "global" "|> PureThy.global_path" empty_decl,
