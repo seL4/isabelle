@@ -1,0 +1,155 @@
+#!/bin/bash -norc
+#
+# $Id$
+#
+# makedist -- make Isabelle distribution.
+
+
+## global settings
+
+LOGICS="CCL CTT Cube FOL FOLP HOL HOLCF LCF LK Modal Provers Pure Sequents TFL Tools ZF"
+DOCS="Intro Ref Logics"
+
+CVSROOT=/isabelle/archive
+DISTBASE=~/tmp/isadist
+
+
+## diagnostics
+
+PRG=$(basename $0)
+
+function usage()
+{
+  echo
+  echo "Usage: $PRG VERSION"
+  echo
+  cat <<EOF
+  Make Isabelle distribution from the master sources at TUM.
+
+  VERSION may be either a tag like "Isabelle94-XX" that specifies the
+  release to be exported from the repository, or "-" to checkout the
+  current sources as an unofficial release.
+
+  Checklist for official releases (before running this script):
+
+    * Check that README files are up to date (should have \$Id$ lines).
+    * Check that Pure/ROOT.ML/version is up to date!
+    * Make sure that the repository version of Doc is consistent
+      (watch out for *.bbl, *.rao, *.ind)!
+EOF
+  #Wicked! We just won't tell other users ...
+  if [ $LOGNAME = paulson -o $LOGNAME = nipkow -o $LOGNAME = wenzelm ]; then
+    cat <<EOF
+    * Tag the current repository version, e.g.:
+        cvs rtag Isabelle94-XX isabelle
+      PLEASE DON'T DO THIS UNLESS YOU KNOW WHAT YOU'RE DOING!
+EOF
+  fi
+  cat <<EOF
+
+  After the distribution has been created succesfully, you might want
+  to run some makeall tests using different ML systems.
+  
+EOF
+  exit 1
+}
+
+function fail()
+{
+  echo "$1" >&2
+  exit 2
+}
+
+
+## process command line
+
+[ $# -ne 1 ] && usage
+
+VERSION="$1"
+shift
+
+
+## main
+
+# dist version
+
+DATE=$(date "+%d-%b-%Y")
+
+if [ "$VERSION" = "-" ]; then
+  DISTNAME=Isabelle_$DATE
+  EXPORT="checkout"
+  UNOFFICIAL=true
+else
+  DISTNAME="$VERSION"
+  EXPORT="export -r $VERSION"
+  UNOFFICIAL=""
+fi
+
+mkdir -p $DISTBASE || fail "Unable to create distribution base dir $DISTBASE!"
+[ -e $DISTBASE/$DISTNAME ] && fail "$DISTBASE/$DISTNAME already exists!"
+
+
+# export from repository
+
+echo
+echo "Exporting $DISTNAME from repository. Please be patient ..."
+echo
+
+cd $DISTBASE
+
+export CVSROOT
+cvs -f -q $EXPORT -d $DISTNAME isabelle
+
+
+# make docs
+
+for D in $DOCS
+do
+  cd $DISTBASE/$DISTNAME/Doc/$D
+  make dist
+done
+
+
+# prepare dist dir for release
+
+cd $DISTBASE/$DISTNAME
+
+find . -name CVS -exec rm -rf {} \;
+
+find Doc -name \*.dvi -exec mv {} Distribution/doc \;
+rm -rf Admin Doc examples index.html
+
+mkdir src
+mv $LOGICS src
+
+mv Distribution/* .
+rmdir Distribution
+
+if [ -n "$UNOFFICIAL" ]; then
+  {
+    echo
+    echo "IMPORTANT NOTE"
+    echo "=============="
+    echo
+    echo "This is an unofficial release of Isabelle, created by $LOGNAME $DATE."
+    echo
+  } >UNOFFICIAL
+fi
+
+
+# create archive
+
+cd $DISTBASE
+
+chown -R $LOGNAME:isabelle $DISTNAME
+chmod -R u+w $DISTNAME
+chmod -R g-w $DISTNAME
+
+tar cf - $DISTNAME | gzip >$DISTNAME.tar.gz
+
+
+# final note
+
+echo
+echo "That's it. You'll find the distribution in $DISTBASE."
+echo
