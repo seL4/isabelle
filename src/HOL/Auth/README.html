@@ -1,21 +1,23 @@
-<!-- $Id$ -->
 <HTML><HEAD><TITLE>HOL/Auth/README</TITLE></HEAD><BODY>
 
 <H1>Auth--The Inductive Approach to Verifying Security Protocols</H1>
 
 <P>Cryptographic protocols are of major importance, especially with the
-growing use of the Internet.  This directory demonstrates a new proof method,
-which is described in <A
+growing use of the Internet.  This directory demonstrates the ``inductive
+method'' of protocol verification, which is described in <A
 HREF="http://www.cl.cam.ac.uk/users/lcp/papers/protocols.html">various
 papers</A>.  The operational semantics of protocol participants is defined
-inductively.  
+inductively.
 
 <P>This directory contains proofs concerning
 
 <UL>
 <LI>three versions of the Otway-Rees protocol
 
-<LI>the Needham-Schroeder protocol (public-key and shared-key versions)
+<LI>the Needham-Schroeder shared-key protocol
+
+<LI>the Needham-Schroeder public-key protocol (original and with Lowe's
+modification)
 
 <LI>two versions of Kerberos: the simplified form published in the BAN paper
 	and also the full protocol (Kerberos IV)
@@ -26,10 +28,15 @@ inductively.
 <LI>a novel recursive authentication protocol 
 
 <LI>the Internet protocol TLS
+
+<LI>The certified e-mail protocol of Abadi et al.
 </UL>
 
+<P>Subdirectory <A HREF="Guard/">Guard</A> develops a theory of guardedness, by
+Frederic Blanqui, and includes proofs of some roving agent protocols.
+
 <HR>
-<P>Last modified 20 August 2002
+<P>Last modified $Date$
 
 <ADDRESS>
 <A
