@@ -1,0 +1,6 @@
+How to build TFL and run the Unify example.
+
+1. Invoke the current version of Isabelle-HOL.
+2. use "sys.sml";  
+3. cd examples/Subst
+4. use "ROOT.ML";
