@@ -64,7 +64,7 @@ qed_spec_mp "new_tv_compatible_gen";
 
 Goalw [gen_ML_def] "gen A t = gen_ML A t";
 by (induct_tac "t" 1);
-by (simp_tac (simpset() addsimps [free_tv_ML_scheme_list]) 1);
+ by (simp_tac (simpset() addsimps [free_tv_ML_scheme_list]) 1);
 by (asm_simp_tac (simpset() addsimps [free_tv_ML_scheme_list]) 1);
 qed "gen_eq_gen_ML";
 
