@@ -72,7 +72,7 @@ by (simp_tac (!simpset addsimps tiling.intrs) 1);
 by (asm_full_simp_tac (!simpset addsimps [Un_assoc,
 					  subset_empty_iff RS iff_sym]) 1);
 by (blast_tac (!claset addIs tiling.intrs) 1);
-bind_thm ("tiling_UnI", result() RS mp RS mp);
+qed_spec_mp "tiling_UnI";
 
 goal thy "!!t. t:tiling(domino) ==> Finite(t)";
 by (eresolve_tac [tiling.induct] 1);
