@@ -6,6 +6,7 @@
 Generic simplifier, suitable for most logics.
  
 *)
+
 infix 4 addsimps addeqcongs delsimps
         setsolver setloop setmksimps setsubgoaler;
 
@@ -35,120 +36,123 @@ sig
   val Asm_full_simp_tac: int -> tactic
 end;
 
-functor SimplifierFUN():SIMPLIFIER =
+functor SimplifierFun():SIMPLIFIER =
 struct
 
 datatype simpset =
-  SS of {mss: meta_simpset,
-         simps: thm list,
-         congs: thm list,
-         subgoal_tac: simpset -> int -> tactic,
-         finish_tac: thm list -> int -> tactic,
-         loop_tac: int -> tactic};
+  Simpset of {mss: meta_simpset,
+              simps: thm list,
+              congs: thm list,
+              subgoal_tac: simpset -> int -> tactic,
+              finish_tac: thm list -> int -> tactic,
+              loop_tac: int -> tactic};
 
 val empty_ss =
-  SS{mss=empty_mss,
-     simps= [],
-     congs= [],
-     subgoal_tac= K(K no_tac),
-     finish_tac= K(K no_tac),
-     loop_tac= K no_tac};
+  Simpset{mss=empty_mss,
+          simps= [],
+          congs= [],
+          subgoal_tac= K(K no_tac),
+          finish_tac= K(K no_tac),
+          loop_tac= K no_tac};
 
 val simpset = ref empty_ss;
 
-fun (SS{mss,simps,congs,subgoal_tac,finish_tac,...}) setloop loop_tac =
-  SS{mss=mss,
-     simps= simps,
-     congs= congs,
-     subgoal_tac= subgoal_tac,
-     finish_tac=finish_tac,
-     loop_tac= DETERM o loop_tac};
+fun (Simpset{mss,simps,congs,subgoal_tac,finish_tac,...}) setloop loop_tac =
+  Simpset{mss=mss,
+          simps= simps,
+          congs= congs,
+          subgoal_tac= subgoal_tac,
+          finish_tac=finish_tac,
+          loop_tac= DETERM o loop_tac};
 
-fun (SS{mss,simps,congs,subgoal_tac,loop_tac,...}) setsolver finish_tac =
-  SS{mss=mss,
-     simps= simps,
-     congs= congs,
-     subgoal_tac= subgoal_tac,
-     finish_tac=finish_tac,
-     loop_tac=loop_tac};
+fun (Simpset{mss,simps,congs,subgoal_tac,loop_tac,...}) setsolver finish_tac =
+  Simpset{mss=mss,
+          simps= simps,
+          congs= congs,
+          subgoal_tac= subgoal_tac,
+          finish_tac=finish_tac,
+          loop_tac=loop_tac};
 
-fun (SS{mss,simps,congs,finish_tac,loop_tac,...}) setsubgoaler subgoal_tac =
-  SS{mss=mss,
-     simps= simps,
-     congs= congs,
-     subgoal_tac= subgoal_tac,
-     finish_tac=finish_tac,
-     loop_tac=loop_tac};
+fun (Simpset{mss,simps,congs,finish_tac,loop_tac,...}) setsubgoaler
+    subgoal_tac =
+  Simpset{mss=mss,
+          simps= simps,
+          congs= congs,
+          subgoal_tac= subgoal_tac,
+          finish_tac=finish_tac,
+          loop_tac=loop_tac};
+     
+fun (Simpset{mss,simps,congs,subgoal_tac,finish_tac,loop_tac}) setmksimps
+    mk_simps =
+  Simpset{mss=Thm.set_mk_rews(mss,mk_simps),
+          simps= simps,
+          congs= congs,
+          subgoal_tac= subgoal_tac,
+          finish_tac=finish_tac,
+          loop_tac=loop_tac};
 
-fun (SS{mss,simps,congs,subgoal_tac,finish_tac,loop_tac}) setmksimps mk_simps =
-  SS{mss=Thm.set_mk_rews(mss,mk_simps),
-     simps= simps,
-     congs= congs,
-     subgoal_tac= subgoal_tac,
-     finish_tac=finish_tac,
-     loop_tac=loop_tac};
-
-fun (SS{mss,simps,congs,subgoal_tac,finish_tac,loop_tac}) addsimps rews =
+fun (Simpset{mss,simps,congs,subgoal_tac,finish_tac,loop_tac}) addsimps rews =
   let val rews' = flat(map (Thm.mk_rews_of_mss mss) rews) in
-  SS{mss= Thm.add_simps(mss,rews'),
-     simps= rews' @ simps,
-     congs= congs,
-     subgoal_tac= subgoal_tac,
-     finish_tac=finish_tac,
-     loop_tac=loop_tac}
+  Simpset{mss= Thm.add_simps(mss,rews'),
+          simps= rews' @ simps,
+          congs= congs,
+          subgoal_tac= subgoal_tac,
+          finish_tac=finish_tac,
+          loop_tac=loop_tac}
   end;
 
 fun Addsimps rews = (simpset := !simpset addsimps rews);
 
-fun (SS{mss,simps,congs,subgoal_tac,finish_tac,loop_tac}) delsimps rews =
+fun (Simpset{mss,simps,congs,subgoal_tac,finish_tac,loop_tac}) delsimps rews =
   let val rews' = flat(map (Thm.mk_rews_of_mss mss) rews) in
-  SS{mss= Thm.del_simps(mss,rews'),
-     simps= foldl (gen_rem eq_thm) (simps,rews'),
-     congs= congs,
-     subgoal_tac= subgoal_tac,
-     finish_tac=finish_tac,
-     loop_tac=loop_tac}
+  Simpset{mss= Thm.del_simps(mss,rews'),
+          simps= foldl (gen_rem eq_thm) (simps,rews'),
+          congs= congs,
+          subgoal_tac= subgoal_tac,
+          finish_tac=finish_tac,
+          loop_tac=loop_tac}
   end;
 
 fun Delsimps rews = (simpset := !simpset delsimps rews);
 
-fun (SS{mss,simps,congs,subgoal_tac,finish_tac,loop_tac}) addeqcongs newcongs =
-  SS{mss= Thm.add_congs(mss,newcongs),
-     simps= simps,
-     congs= newcongs @ congs,
-     subgoal_tac= subgoal_tac,
-     finish_tac=finish_tac,
-     loop_tac=loop_tac};
-
-fun merge_ss(SS{mss,simps,congs,subgoal_tac,finish_tac,loop_tac},
-             SS{simps=simps2,congs=congs2,...}) =
+fun (Simpset{mss,simps,congs,subgoal_tac,finish_tac,loop_tac}) addeqcongs
+    newcongs =
+  Simpset{mss= Thm.add_congs(mss,newcongs),
+          simps= simps,
+          congs= newcongs @ congs,
+          subgoal_tac= subgoal_tac,
+          finish_tac=finish_tac,
+          loop_tac=loop_tac};
+     
+fun merge_ss(Simpset{mss,simps,congs,subgoal_tac,finish_tac,loop_tac},
+             Simpset{simps=simps2,congs=congs2,...}) =
   let val simps' = gen_union eq_thm (simps,simps2)
       val congs' = gen_union eq_thm (congs,congs2)
       val mss' = Thm.set_mk_rews(empty_mss,Thm.mk_rews_of_mss mss)
       val mss' = Thm.add_simps(mss',simps')
       val mss' = Thm.add_congs(mss',congs')
-  in SS{mss=         mss',
-        simps=       simps,
-        congs=       congs',
-        subgoal_tac= subgoal_tac,
-        finish_tac=  finish_tac,
-        loop_tac=    loop_tac}
+  in Simpset{mss=         mss',
+             simps=       simps',
+             congs=       congs',
+             subgoal_tac= subgoal_tac,
+             finish_tac=  finish_tac,
+             loop_tac=    loop_tac}
   end;
 
-fun prems_of_ss(SS{mss,...}) = prems_of_mss mss;
+fun prems_of_ss(Simpset{mss,...}) = prems_of_mss mss;
 
-fun rep_ss(SS{simps,congs,...}) = {simps=simps,congs=congs};
+fun rep_ss(Simpset{simps,congs,...}) = {simps=simps,congs=congs};
 
 fun NEWSUBGOALS tac tacf =
   STATE(fn state0 =>
     tac THEN STATE(fn state1 => tacf(nprems_of state1 - nprems_of state0)));
 
 fun gen_simp_tac mode =
-  fn (SS{mss,simps,congs,subgoal_tac,finish_tac,loop_tac}) =>
+  fn (Simpset{mss,simps,congs,subgoal_tac,finish_tac,loop_tac}) =>
   let fun solve_all_tac mss =
-        let val ss = SS{mss=mss,simps=simps,congs=congs,
-                        subgoal_tac=subgoal_tac,
-                        finish_tac=finish_tac, loop_tac=loop_tac}
+        let val ss = Simpset{mss=mss,simps=simps,congs=congs,
+                             subgoal_tac=subgoal_tac,
+                             finish_tac=finish_tac, loop_tac=loop_tac}
             val solve1_tac =
               NEWSUBGOALS (subgoal_tac ss 1)
                           (fn n => if n<0 then all_tac else no_tac)
