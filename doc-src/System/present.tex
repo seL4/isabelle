@@ -305,15 +305,16 @@ Usage: latex [OPTIONS] [FILE]
 
   Options are:
     -o FORMAT    specify output format: dvi (default), dvi.gz, ps,
-                 ps.gz, pdf, or bbl
+                 ps.gz, pdf, bbl, png
 
   Run LaTeX (and related tools) on FILE (default root.tex),
   producing the specified output format.
 \end{ttbox}
 Appropriate {\LaTeX}-related programs are run on the input file, according to
-the given output format: \texttt{latex}, \texttt{pdflatex}, \texttt{bibtex},
-\texttt{dvips}.  The actual commands are determined from the settings
-environment (see \texttt{ISABELLE_LATEX} etc.).
+the given output format: \texttt{latex}, \texttt{pdflatex}, \texttt{dvips},
+\texttt{bibtex} (for \texttt{bbl}), and \texttt{thumbpdf} (for \texttt{png}).
+The actual commands are determined from the settings environment
+(\texttt{ISABELLE_LATEX} etc.).
 
 It is important to note that the {\LaTeX} inputs file space has to be properly
 setup to include the Isabelle styles.  Usually, this may be done by modifying
