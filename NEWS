@@ -139,6 +139,11 @@ New in this Isabelle release
 * ML: the legacy theory structures Int and List have been removed. They had
   conflicted with ML Basis Library structures having the same names.
 
+* 'refute' command added to search for (finite) countermodels.  Only works
+  for a fragment of HOL.  The installation of an external SAT solver is
+  highly recommended.  See "HOL/Refute.thy" for details.
+
+
 New in Isabelle2003 (May 2003)
 --------------------------------
 
