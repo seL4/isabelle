@@ -914,8 +914,7 @@ fun ys \\ xs = foldl (op \) (ys,xs);
 
 (*removing an element from a list -- possibly WITH duplicates*)
 fun gen_rem eq (xs, y) = filter_out (fn x => eq (x, y)) xs;
-
-fun gen_rems eq = foldl (gen_rem eq);
+fun gen_rems eq (xs, ys) = filter_out (fn x => gen_mem eq (x, ys)) xs;
 
 
 (*makes a list of the distinct members of the input; preserves order, takes
@@ -1019,7 +1018,7 @@ fun gen_merge_lists _ xs [] = xs
 
 fun gen_merge_lists' _ xs [] = xs
   | gen_merge_lists' _ [] ys = ys
-  | gen_merge_lists' eq xs ys = gen_rems eq (xs, ys) @ ys;
+  | gen_merge_lists' eq xs ys = gen_rems eq (ys, xs) @ xs;
 
 fun merge_lists xs ys = gen_merge_lists (op =) xs ys;
 fun merge_lists' xs ys = gen_merge_lists' (op =) xs ys;
