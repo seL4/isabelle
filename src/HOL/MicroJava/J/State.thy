@@ -8,21 +8,22 @@ State for evaluation of Java expressions and statements
 
 State = WellType +
 
-constdefs
-
-  the_Bool	:: "val \\<Rightarrow> bool"
- "the_Bool v  \\<equiv> \\<epsilon>b. v = Bool b"
-
-  the_Int	:: "val \\<Rightarrow> int"
- "the_Int  v  \\<equiv> \\<epsilon>i. v = Intg i"
-
-  the_Addr	:: "val \\<Rightarrow> loc"
- "the_Addr  v  \\<equiv> \\<epsilon>a. v = Addr a"
-
 consts
+  the_Bool	:: "val \\<Rightarrow> bool"
+  the_Int	:: "val \\<Rightarrow> int"
+  the_Addr	:: "val \\<Rightarrow> loc"
 
   defpval	:: "prim_ty \\<Rightarrow> val"	(* default value for primitive types *)
   default_val	:: "ty \\<Rightarrow> val"		(* default value for all types *)
+
+primrec
+ "the_Bool (Bool b) = b"
+
+primrec
+ "the_Int (Intg i) = i"
+
+primrec
+ "the_Addr (Addr a) = a"
 
 primrec
 	"defpval Void    = Unit"

@@ -38,7 +38,7 @@ by( forward_tac [cast_RefT2] 1);
 by( strip_tac1 1);
 by( dtac non_npD 1);
 by(  atac 1);
-by( rewrite_goals_tac [the_Addr_def,obj_ty_def]);
+by( rewrite_goals_tac [obj_ty_def]);
 by Auto_tac ;
 by(  ALLGOALS (rtac conf_AddrI));
 by     Auto_tac;

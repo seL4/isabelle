@@ -4,11 +4,6 @@
     Copyright   1999 Technische Universitaet Muenchen
 *)
 
-val the_Addr_Addr = prove_goalw thy [the_Addr_def] 
-	"the_Addr (Addr a) = a" (K [Auto_tac]);
-
-Addsimps [the_Addr_Addr];
-
 val obj_ty_def2 = prove_goalw thy [obj_ty_def] "obj_ty (C,fs) = Class C" 
 	(K [Simp_tac 1]);
 
