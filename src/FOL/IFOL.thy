@@ -117,19 +117,19 @@ subsection {* Lemmas and proof tools *}
 setup Simplifier.setup
 use "IFOL_lemmas.ML"
 
-declare impE [Pure.elim?]  iffD1 [Pure.elim?]  iffD2 [Pure.elim?]
-
 use "fologic.ML"
 use "hypsubstdata.ML"
 setup hypsubst_setup
 use "intprover.ML"
 
 
+subsubsection {* Intuitionistic Reasoning *}
+
 lemma impE':
   (assumes 1: "P --> Q" and 2: "Q ==> R" and 3: "P --> Q ==> P") R
 proof -
   from 3 and 1 have P .
-  with 1 have Q ..
+  with 1 have Q by (rule impE)
   with 2 show R .
 qed
 
@@ -156,21 +156,28 @@ ML_setup {*
 *}
 
 
+lemma iff_not_sym: "~ (Q <-> P) ==> ~ (P <-> Q)"
+  by rules
+
+lemmas [sym] = sym iff_sym not_sym iff_not_sym
+  and [Pure.elim?] = iffD1 iffD2 impE
+
+
 subsection {* Atomizing meta-level rules *}
 
 lemma atomize_all [atomize]: "(!!x. P(x)) == Trueprop (ALL x. P(x))"
 proof
   assume "!!x. P(x)"
-  show "ALL x. P(x)" by (rule allI)
+  show "ALL x. P(x)" ..
 next
   assume "ALL x. P(x)"
-  thus "!!x. P(x)" by (rule allE)
+  thus "!!x. P(x)" ..
 qed
 
 lemma atomize_imp [atomize]: "(A ==> B) == Trueprop (A --> B)"
 proof
-  assume r: "A ==> B"
-  show "A --> B" by (rule impI) (rule r)
+  assume "A ==> B"
+  thus "A --> B" ..
 next
   assume "A --> B" and A
   thus B by (rule mp)
@@ -200,7 +207,7 @@ next
   qed
 qed
 
-declare atomize_all [symmetric, rulify]  atomize_imp [symmetric, rulify]
+lemmas [symmetric, rulify] = atomize_all atomize_imp
 
 
 subsection {* Calculational rules *}
@@ -221,7 +228,5 @@ lemmas basic_trans_rules [trans] =
   rev_mp
   mp
   trans
-
-lemmas [Pure.elim?] = sym
 
 end
