@@ -542,7 +542,7 @@ fun axioms_of thy =
 fun name_thm (thy, name, th as Thm {sign, der, maxidx, shyps, hyps, prop}) = 
     if Sign.eq_sg (sign, sign_of thy) then
 	Thm {sign = sign, 
-	     der = Infer (Theorem(thy,name), []),	
+	     der = Infer (Theorem(thy,name), [der]),
 	     maxidx = maxidx,
 	     shyps = shyps, 
 	     hyps = hyps, 
