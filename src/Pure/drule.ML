@@ -76,6 +76,7 @@ sig
   val triv_forall_equality: thm
   val swap_prems_rl     : thm
   val equal_intr_rule   : thm
+  val inst              : string -> string -> thm -> thm
   val instantiate'      : ctyp option list -> cterm option list -> thm -> thm
   val incr_indexes      : int -> thm -> thm
   val incr_indexes_wrt  : int list -> ctyp list -> cterm list -> thm list -> thm -> thm
@@ -628,6 +629,10 @@ fun assume_goal ct = Thm.assume (mk_cgoal ct) RS rev_triv_goal;
 
 
 (** variations on instantiate **)
+
+(*shorthand for instantiating just one variable in the current theory*)
+fun inst x t = read_instantiate_sg (sign_of (the_context())) [(x,t)];
+
 
 (* collect vars *)
 
