@@ -19,6 +19,7 @@ time_use_thy "Multiquote";
 time_use_thy "Tuple";
 
 time_use_thy "NatSum";
+time_use_thy "Intuitionistic";
 time_use     "cla.ML";
 time_use     "mesontest.ML";
 time_use_thy "mesontest2";
