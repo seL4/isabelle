@@ -1288,7 +1288,9 @@ fun depth_tac cs lim i st = timing_depth_tac (startTiming()) cs lim i st;
 fun blast_tac cs i st = 
     ((DEEPEN (1,20) (timing_depth_tac (startTiming()) cs) 0) i 
      THEN flexflex_tac) st
-    handle TRANS s => (warning ("Blast_tac: " ^ s); Seq.empty);
+    handle TRANS s =>
+      ((if !trace then warning ("blast: " ^ s) else ()); 
+       Seq.empty);
 
 fun Blast_tac i = blast_tac (Data.claset()) i;
 
