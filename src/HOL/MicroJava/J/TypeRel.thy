@@ -189,8 +189,6 @@ apply  safe
 apply(erule (1) rtrancl_trans)
 done
 
-ML {* InductAttrib.print_global_rules(the_context()) *}
-ML {* set show_tags *}
 
 (*####theorem widen_trans: "\<lbrakk>G\<turnstile>S\<preceq>U; G\<turnstile>U\<preceq>T\<rbrakk> \<Longrightarrow> G\<turnstile>S\<preceq>T"
 proof -
