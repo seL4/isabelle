@@ -6,7 +6,7 @@
 Equivalence relations in Zermelo-Fraenkel Set Theory 
 *)
 
-EquivClass = Rel + Perm + 
+EquivClass = Trancl + Perm + 
 
 constdefs
 
