@@ -4,4 +4,7 @@
     Copyright   1994  University of Cambridge
 *)
 
-subset = Set
+theory subset = Set
+files "Tools/typedef_package.ML":
+
+end
