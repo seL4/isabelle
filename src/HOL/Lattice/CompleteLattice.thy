@@ -38,8 +38,8 @@ syntax (symbols)
   Meet :: "'a::complete_lattice set \<Rightarrow> 'a"    ("\<Sqinter>_" [90] 90)
   Join :: "'a::complete_lattice set \<Rightarrow> 'a"    ("\<Squnion>_" [90] 90)
 defs
-  Meet_def: "\<Sqinter>A \<equiv> SOME inf. is_Inf A inf"
-  Join_def: "\<Squnion>A \<equiv> SOME sup. is_Sup A sup"
+  Meet_def: "\<Sqinter>A \<equiv> THE inf. is_Inf A inf"
+  Join_def: "\<Squnion>A \<equiv> THE sup. is_Sup A sup"
 
 text {*
   Due to unique existence of bounds, the complete lattice operations
@@ -49,8 +49,8 @@ text {*
 lemma Meet_equality [elim?]: "is_Inf A inf \<Longrightarrow> \<Sqinter>A = inf"
 proof (unfold Meet_def)
   assume "is_Inf A inf"
-  thus "(SOME inf. is_Inf A inf) = inf"
-    by (rule some_equality) (rule is_Inf_uniq)
+  thus "(THE inf. is_Inf A inf) = inf"
+    by (rule the_equality) (rule is_Inf_uniq)
 qed
 
 lemma MeetI [intro?]:
@@ -62,8 +62,8 @@ lemma MeetI [intro?]:
 lemma Join_equality [elim?]: "is_Sup A sup \<Longrightarrow> \<Squnion>A = sup"
 proof (unfold Join_def)
   assume "is_Sup A sup"
-  thus "(SOME sup. is_Sup A sup) = sup"
-    by (rule some_equality) (rule is_Sup_uniq)
+  thus "(THE sup. is_Sup A sup) = sup"
+    by (rule the_equality) (rule is_Sup_uniq)
 qed
 
 lemma JoinI [intro?]:
@@ -80,8 +80,8 @@ text {*
 
 lemma is_Inf_Meet [intro?]: "is_Inf A (\<Sqinter>A)"
 proof (unfold Meet_def)
-  from ex_Inf
-  show "is_Inf A (SOME inf. is_Inf A inf)" ..
+  from ex_Inf obtain inf where "is_Inf A inf" ..
+  thus "is_Inf A (THE inf. is_Inf A inf)" by (rule theI) (rule is_Inf_uniq)
 qed
 
 lemma Meet_greatest [intro?]: "(\<And>a. a \<in> A \<Longrightarrow> x \<sqsubseteq> a) \<Longrightarrow> x \<sqsubseteq> \<Sqinter>A"
@@ -93,8 +93,8 @@ lemma Meet_lower [intro?]: "a \<in> A \<Longrightarrow> \<Sqinter>A \<sqsubseteq
 
 lemma is_Sup_Join [intro?]: "is_Sup A (\<Squnion>A)"
 proof (unfold Join_def)
-  from ex_Sup
-  show "is_Sup A (SOME sup. is_Sup A sup)" ..
+  from ex_Sup obtain sup where "is_Sup A sup" ..
+  thus "is_Sup A (THE sup. is_Sup A sup)" by (rule theI) (rule is_Sup_uniq)
 qed
 
 lemma Join_least [intro?]: "(\<And>a. a \<in> A \<Longrightarrow> a \<sqsubseteq> x) \<Longrightarrow> \<Squnion>A \<sqsubseteq> x"

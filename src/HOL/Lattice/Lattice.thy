@@ -31,8 +31,8 @@ syntax (symbols)
   meet :: "'a::lattice \<Rightarrow> 'a \<Rightarrow> 'a"  (infixl "\<sqinter>" 70)
   join :: "'a::lattice \<Rightarrow> 'a \<Rightarrow> 'a"  (infixl "\<squnion>" 65)
 defs
-  meet_def: "x && y \<equiv> SOME inf. is_inf x y inf"
-  join_def: "x || y \<equiv> SOME sup. is_sup x y sup"
+  meet_def: "x && y \<equiv> THE inf. is_inf x y inf"
+  join_def: "x || y \<equiv> THE sup. is_sup x y sup"
 
 text {*
   Due to unique existence of bounds, the lattice operations may be
@@ -42,8 +42,8 @@ text {*
 lemma meet_equality [elim?]: "is_inf x y inf \<Longrightarrow> x \<sqinter> y = inf"
 proof (unfold meet_def)
   assume "is_inf x y inf"
-  thus "(SOME inf. is_inf x y inf) = inf"
-    by (rule some_equality) (rule is_inf_uniq)
+  thus "(THE inf. is_inf x y inf) = inf"
+    by (rule the_equality) (rule is_inf_uniq)
 qed
 
 lemma meetI [intro?]:
@@ -53,8 +53,8 @@ lemma meetI [intro?]:
 lemma join_equality [elim?]: "is_sup x y sup \<Longrightarrow> x \<squnion> y = sup"
 proof (unfold join_def)
   assume "is_sup x y sup"
-  thus "(SOME sup. is_sup x y sup) = sup"
-    by (rule some_equality) (rule is_sup_uniq)
+  thus "(THE sup. is_sup x y sup) = sup"
+    by (rule the_equality) (rule is_sup_uniq)
 qed
 
 lemma joinI [intro?]: "x \<sqsubseteq> sup \<Longrightarrow> y \<sqsubseteq> sup \<Longrightarrow>
@@ -69,8 +69,8 @@ text {*
 
 lemma is_inf_meet [intro?]: "is_inf x y (x \<sqinter> y)"
 proof (unfold meet_def)
-  from ex_inf
-  show "is_inf x y (SOME inf. is_inf x y inf)" ..
+  from ex_inf obtain inf where "is_inf x y inf" ..
+  thus "is_inf x y (THE inf. is_inf x y inf)" by (rule theI) (rule is_inf_uniq)
 qed
 
 lemma meet_greatest [intro?]: "z \<sqsubseteq> x \<Longrightarrow> z \<sqsubseteq> y \<Longrightarrow> z \<sqsubseteq> x \<sqinter> y"
@@ -85,8 +85,8 @@ lemma meet_lower2 [intro?]: "x \<sqinter> y \<sqsubseteq> y"
 
 lemma is_sup_join [intro?]: "is_sup x y (x \<squnion> y)"
 proof (unfold join_def)
-  from ex_sup
-  show "is_sup x y (SOME sup. is_sup x y sup)" ..
+  from ex_sup obtain sup where "is_sup x y sup" ..
+  thus "is_sup x y (THE sup. is_sup x y sup)" by (rule theI) (rule is_sup_uniq)
 qed
 
 lemma join_least [intro?]: "x \<sqsubseteq> z \<Longrightarrow> y \<sqsubseteq> z \<Longrightarrow> x \<squnion> y \<sqsubseteq> z"
