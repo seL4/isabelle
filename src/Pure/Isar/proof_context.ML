@@ -39,6 +39,8 @@ sig
   val match_binds_i: (term list * term) list -> context -> context
   val bind_propp: context * (string * string list) -> context * term
   val bind_propp_i: context * (term * term list) -> context * term
+  val auto_bind_goal: term -> context -> context
+  val auto_bind_facts: term list -> context -> context
   val thms_closure: context -> xstring -> thm list option
   val get_thm: context -> string -> thm
   val get_thms: context -> string -> thm list
@@ -562,6 +564,12 @@ val bind_propp = gen_bind_propp (read_prop_pat, read_prop);
 val bind_propp_i = gen_bind_propp (cert_prop_pat, cert_prop);
 
 
+(* auto binds *)
+
+val auto_bind_goal = add_binds_i o AutoBind.goal;
+val auto_bind_facts = add_binds_i o AutoBind.facts;
+
+
 
 (** theorems **)
 
@@ -638,6 +646,7 @@ fun gen_assume prepp name attrs raw_prop_pats ctxt =
     val ths = map (fn th => ([th], [])) asms;
     val (ctxt'', (_, thms)) =
       ctxt'
+      |> auto_bind_facts props
       |> have_thmss name (attrs @ [Drule.tag_assumption]) ths;
 
     val ctxt''' =
