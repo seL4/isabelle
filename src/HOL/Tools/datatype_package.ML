@@ -8,7 +8,6 @@ Datatype package for Isabelle/HOL.
 
 signature BASIC_DATATYPE_PACKAGE =
 sig
-  val mutual_induct_tac : string list -> int -> tactic
   val induct_tac : string -> int -> tactic
   val exhaust_tac : string -> int -> tactic
   val distinct_simproc : simproc
@@ -170,8 +169,9 @@ fun occs_in_prems tacf vars =
 
 (* generic induction tactic for datatypes *)
 
-fun mutual_induct_tac vars i state =
+fun induct_tac s i state =
   let
+    val vars = Syntax.read_idents s;
     val (_, _, Bi, _) = dest_state (state, i);
     val {sign, ...} = rep_thm state;
     val tn = find_tname (hd vars) Bi;
@@ -184,8 +184,6 @@ fun mutual_induct_tac vars i state =
   in
     occs_in_prems (res_inst_tac insts induction) vars i state
   end;
-
-fun induct_tac var = mutual_induct_tac [var];
 
 (* generic exhaustion tactic for datatypes *)
 

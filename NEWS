@@ -17,6 +17,9 @@ complement;
 
 * HOL: the predicate "inj" is now defined by translation to "inj_on";
 
+* HOL/datatype: mutual_induct_tac no longer exists --
+  use induct_tac "x_1 ... x_n" instead of mutual_induct_tac ["x_1", ..., "x_n"]
+
 * HOL/typedef: fixed type inference for representing set; type
 arguments now have to occur explicitly on the rhs as type constraints;
 

@@ -12,7 +12,7 @@ Arithmetic and boolean expressions
 Goal
   "evala env (substa (Var(v := a')) a) = evala (env(v := evala env a')) a &  \
  \ evalb env (substb (Var(v := a')) b) = evalb (env(v := evala env a')) b";
-by (mutual_induct_tac ["a","b"] 1);
+by (induct_tac "a b" 1);
 by (ALLGOALS Asm_full_simp_tac);
 qed "subst1_aexp_bexp";
 
@@ -20,6 +20,6 @@ qed "subst1_aexp_bexp";
 Goal
   "evala env (substa s a) = evala (%x. evala env (s x)) a &  \
  \ evalb env (substb s b) = evalb (%x. evala env (s x)) b";
-by (mutual_induct_tac ["a","b"] 1);
+by (induct_tac "a b" 1);
 by (Auto_tac);
 qed "subst_all_aexp_bexp";
