@@ -585,3 +585,74 @@ qed_goalw "Least_Suc" Nat.thy [Least_def]
         Fast_tac 2,
         dtac Suc_mono 1,
         Fast_tac 1]);
+
+
+(*** Instantiation of transitivity prover ***)
+
+structure Less_Arith =
+struct
+val nat_leI = leI;
+val nat_leD = leD;
+val lessI = lessI;
+val zero_less_Suc = zero_less_Suc;
+val less_reflE = less_irrefl;
+val less_zeroE = less_zeroE;
+val less_incr = Suc_mono;
+val less_decr = Suc_less_SucD;
+val less_incr_rhs = Suc_mono RS Suc_lessD;
+val less_decr_lhs = Suc_lessD;
+val less_trans_Suc = less_trans_Suc;
+val leI = lessD RS (Suc_le_mono RS iffD1);
+val not_lessI = leI RS leD
+val not_leI = prove_goal Nat.thy "!!m::nat. n < m ==> ~ m <= n"
+  (fn _ => [etac swap2 1, etac leD 1]);
+val eqI = prove_goal Nat.thy "!!m. [| m < Suc n; n < Suc m |] ==> m=n"
+  (fn _ => [etac less_SucE 1,
+            fast_tac (HOL_cs addSDs [Suc_less_SucD] addSEs [less_irrefl]
+                             addDs [less_trans_Suc]) 1,
+            atac 1]);
+val leD = le_eq_less_Suc RS iffD1;
+val not_lessD = nat_leI RS leD;
+val not_leD = not_leE
+val eqD1 = prove_goal Nat.thy  "!!n. m = n ==> m < Suc n"
+ (fn _ => [etac subst 1, rtac lessI 1]);
+val eqD2 = sym RS eqD1;
+
+fun is_zero(t) =  t = Const("0",Type("nat",[]));
+
+fun nnb T = T = Type("fun",[Type("nat",[]),
+                            Type("fun",[Type("nat",[]),
+                                        Type("bool",[])])])
+
+fun decomp_Suc(Const("Suc",_)$t) = let val (a,i) = decomp_Suc t in (a,i+1) end
+  | decomp_Suc t = (t,0);
+
+fun decomp2(rel,T,lhs,rhs) =
+  if not(nnb T) then None else
+  let val (x,i) = decomp_Suc lhs
+      val (y,j) = decomp_Suc rhs
+  in case rel of
+       "op <"  => Some(x,i,"<",y,j)
+     | "op <=" => Some(x,i,"<=",y,j)
+     | "op ="  => Some(x,i,"=",y,j)
+     | _       => None
+  end;
+
+fun negate(Some(x,i,rel,y,j)) = Some(x,i,"~"^rel,y,j)
+
+fun decomp(_$(Const(rel,T)$lhs$rhs)) = decomp2(rel,T,lhs,rhs)
+  | decomp(_$(Const("not",_)$(Const(rel,T)$lhs$rhs))) =
+      negate(decomp2(rel,T,lhs,rhs))
+  | decomp _ = None
+
+end;
+
+structure Trans_Tac = Trans_Tac_Fun(Less_Arith);
+
+open Trans_Tac;
+
+(*** eliminates ~= in premises, which trans_tac cannot deal with ***)
+qed_goal "nat_neqE" Nat.thy
+  "[| (m::nat) ~= n; m < n ==> P; n < m ==> P |] ==> P"
+  (fn major::prems => [cut_facts_tac [less_linear] 1,
+                       REPEAT(eresolve_tac ([disjE,major RS notE]@prems) 1)]);
