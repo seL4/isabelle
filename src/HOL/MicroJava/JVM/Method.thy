@@ -12,13 +12,13 @@ Method = JVMState +
 
 datatype 
  meth_inv = 
-   Invokevirtual   mname (ty list)      (** inv. instance meth of an object **)
+   Invoke mname (ty list)      (** inv. instance meth of an object **)
  
 consts
  exec_mi :: "[meth_inv,(nat \\<times> 'c)prog,aheap,opstack,p_count] 
 		\\<Rightarrow> (xcpt option \\<times> frame list \\<times> opstack \\<times> p_count)" 
 primrec
- "exec_mi (Invokevirtual mn ps) G hp stk pc =
+ "exec_mi (Invoke mn ps) G hp stk pc =
 	(let n		= length ps;
 	     argsoref	= take (n+1) stk;
 	     oref	= last argsoref;
@@ -30,11 +30,14 @@ primrec
 	 (xp' , frs' , drop (n+1) stk , pc+1))"
 
 
-constdefs
- exec_mr :: "[opstack,frame list] \\<Rightarrow> frame list"
-"exec_mr stk0 frs \\<equiv>
-	 (let val			= hd stk0;
-	      (stk,loc,cn,met,pc) = hd frs
+datatype 
+ meth_ret = Return
+ 
+consts
+ exec_mr :: "[meth_ret,opstack,frame list] \\<Rightarrow> frame list"
+primrec
+  "exec_mr Return stk0 frs =
+	 (let val = hd stk0; (stk,loc,cn,met,pc) = hd frs
 	  in
 	  (val#stk,loc,cn,met,pc)#tl frs)"
 

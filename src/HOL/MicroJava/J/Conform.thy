@@ -23,10 +23,10 @@ constdefs
   oconf :: "'c prog \\<Rightarrow> aheap \\<Rightarrow> obj \\<Rightarrow> bool"      ("_,_\\<turnstile>_\\<surd>"     [51,51,51]    50)
  "G,h\\<turnstile>obj\\<surd> \\<equiv> G,h\\<turnstile>snd obj[\\<Colon>\\<preceq>]map_of (fields (G,fst obj))"
 
-  hconf :: "'c prog \\<Rightarrow> aheap \\<Rightarrow> bool"             ("_,_\\<turnstile>\\<surd>"      [51,51]       50)
- "G,h\\<turnstile>\\<surd>    \\<equiv> \\<forall>a obj. h a = Some obj \\<longrightarrow> G,h\\<turnstile>obj\\<surd>"
+  hconf :: "'c prog \\<Rightarrow> aheap \\<Rightarrow> bool"             ("_\\<turnstile>h _\\<surd>"      [51,51]       50)
+ "G\\<turnstile>h h\\<surd>    \\<equiv> \\<forall>a obj. h a = Some obj \\<longrightarrow> G,h\\<turnstile>obj\\<surd>"
 
   conforms :: "state \\<Rightarrow> javam env \\<Rightarrow> bool"	 ("_\\<Colon>\\<preceq>_"       [51,51]       50)
- "s\\<Colon>\\<preceq>E \\<equiv> prg E,heap s\\<turnstile>\\<surd> \\<and> prg E,heap s\\<turnstile>locals s[\\<Colon>\\<preceq>]localT E"
+ "s\\<Colon>\\<preceq>E \\<equiv> prg E\\<turnstile>h heap s\\<surd> \\<and> prg E,heap s\\<turnstile>locals s[\\<Colon>\\<preceq>]localT E"
 
 end

@@ -210,11 +210,11 @@ val oconf_objD = oconf_obj RS iffD1 RS spec RS spec RS mp;
 
 section "hconf";
 
-Goalw [hconf_def] "\\<lbrakk>G,h\\<turnstile>\\<surd>; h a = Some obj\\<rbrakk> \\<Longrightarrow> G,h\\<turnstile>obj\\<surd>";
+Goalw [hconf_def] "\\<lbrakk>G\\<turnstile>h h\\<surd>; h a = Some obj\\<rbrakk> \\<Longrightarrow> G,h\\<turnstile>obj\\<surd>";
 by (Fast_tac 1);
 qed "hconfD";
 
-Goalw [hconf_def] "\\<forall>a obj. h a=Some obj \\<longrightarrow> G,h\\<turnstile>obj\\<surd> \\<Longrightarrow> G,h\\<turnstile>\\<surd>";
+Goalw [hconf_def] "\\<forall>a obj. h a=Some obj \\<longrightarrow> G,h\\<turnstile>obj\\<surd> \\<Longrightarrow> G\\<turnstile>h h\\<surd>";
 by (Fast_tac 1);
 qed "hconfI";
 
@@ -222,7 +222,7 @@ qed "hconfI";
 section "conforms";
 
 val conforms_heapD = prove_goalw thy [conforms_def]
-	"(h, l)\\<Colon>\\<preceq>(G, lT) \\<Longrightarrow> G,h\\<turnstile>\\<surd>"
+	"(h, l)\\<Colon>\\<preceq>(G, lT) \\<Longrightarrow> G\\<turnstile>h h\\<surd>"
 	(fn prems => [cut_facts_tac prems 1, Asm_full_simp_tac 1]);
 
 val conforms_localD = prove_goalw thy [conforms_def]
@@ -230,12 +230,12 @@ val conforms_localD = prove_goalw thy [conforms_def]
 	cut_facts_tac prems 1, Asm_full_simp_tac 1]);
 
 val conformsI = prove_goalw thy [conforms_def] 
-"\\<lbrakk>G,h\\<turnstile>\\<surd>; G,h\\<turnstile>l[\\<Colon>\\<preceq>]lT\\<rbrakk> \\<Longrightarrow> (h, l)\\<Colon>\\<preceq>(G, lT)" (fn prems => [
+"\\<lbrakk>G\\<turnstile>h h\\<surd>; G,h\\<turnstile>l[\\<Colon>\\<preceq>]lT\\<rbrakk> \\<Longrightarrow> (h, l)\\<Colon>\\<preceq>(G, lT)" (fn prems => [
 	cut_facts_tac prems 1,
 	Simp_tac 1,
 	Auto_tac]);
 
-Goal "\\<lbrakk>(h,l)\\<Colon>\\<preceq>(G,lT); h\\<le>|h'; G,h'\\<turnstile>\\<surd> \\<rbrakk> \\<Longrightarrow> (h',l)\\<Colon>\\<preceq>(G,lT)";
+Goal "\\<lbrakk>(h,l)\\<Colon>\\<preceq>(G,lT); h\\<le>|h'; G\\<turnstile>h h'\\<surd> \\<rbrakk> \\<Longrightarrow> (h',l)\\<Colon>\\<preceq>(G,lT)";
 by( fast_tac (HOL_cs addDs [conforms_localD] 
   addSEs [conformsI, lconf_hext]) 1);
 qed "conforms_hext";

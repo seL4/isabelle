@@ -4,8 +4,6 @@
     Copyright   1999 Technische Universitaet Muenchen
 *)
 
-Addsimps [wt_MR_def];
-
 Goalw [wt_jvm_prog_def] "wt_jvm_prog G phi \\<Longrightarrow> (\\<exists>wt. wf_prog wt G)";
 by(Blast_tac 1);
 qed "wt_jvm_progD";

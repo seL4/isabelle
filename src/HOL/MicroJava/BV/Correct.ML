@@ -233,7 +233,7 @@ qed_spec_mp "oconf_imp_oconf_heap_update";
 (** hconf **)
 
 
-Goal "hp x = None \\<longrightarrow> G,hp\\<turnstile>\\<surd> \\<longrightarrow> G,hp\\<turnstile>obj\\<surd> \\<longrightarrow> G,hp(newref hp\\<mapsto>obj)\\<turnstile>\\<surd>";
+Goal "hp x = None \\<longrightarrow> G\\<turnstile>h hp\\<surd> \\<longrightarrow> G,hp\\<turnstile>obj\\<surd> \\<longrightarrow> G\\<turnstile>h hp(newref hp\\<mapsto>obj)\\<surd>";
 by (asm_full_simp_tac (simpset() addsplits [split_split] 
 				 addsimps [hconf_def]) 1);
  by (fast_tac (claset()addIs[oconf_imp_oconf_heap_newref] addss (simpset())) 1);
@@ -241,7 +241,7 @@ qed_spec_mp "hconf_imp_hconf_newref";
 
 
 Goal "map_of (fields (G, oT)) (F, D) = Some T \\<and> hp oloc = Some(oT,fs) \\<and> \
-\ G,hp\\<turnstile>v\\<Colon>\\<preceq>T \\<and> G,hp\\<turnstile>\\<surd> \\<longrightarrow> G,hp(oloc \\<mapsto> (oT, fs((F,D)\\<mapsto>v)))\\<turnstile>\\<surd>";
+\ G,hp\\<turnstile>v\\<Colon>\\<preceq>T \\<and> G\\<turnstile>h hp\\<surd> \\<longrightarrow> G\\<turnstile>h hp(oloc \\<mapsto> (oT, fs((F,D)\\<mapsto>v)))\\<surd>";
 by (asm_full_simp_tac (simpset() addsimps [hconf_def]) 1);
 by (fast_tac (claset() addIs 
         [oconf_imp_oconf_heap_update, oconf_imp_oconf_field_update]

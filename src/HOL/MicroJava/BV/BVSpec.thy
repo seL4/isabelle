@@ -148,7 +148,7 @@ primrec
 consts
  wt_MI :: "[meth_inv,jvm_prog,method_type,p_count,p_count] \\<Rightarrow> bool" 
 primrec
-"wt_MI (Invokevirtual mn fpTs) G phi max_pc pc =
+"wt_MI (Invoke mn fpTs) G phi max_pc pc =
 	(let (ST,LT) = phi ! pc
 	 in
          pc+1 < max_pc \\<and>
@@ -158,9 +158,10 @@ primrec
          (\\<exists>D rT b. cmethd (G,C) (mn,fpTs) = Some(D,rT,b) \\<and>
          G \\<turnstile> (rT # ST' , LT) <=s phi ! (pc+1))))"
 
-constdefs
- wt_MR	:: "[jvm_prog,ty,method_type,p_count] \\<Rightarrow> bool"
-"wt_MR G rT phi pc \\<equiv>
+consts
+ wt_MR	:: "[meth_ret,jvm_prog,ty,method_type,p_count] \\<Rightarrow> bool"
+primrec
+  "wt_MR Return G rT phi pc =
 	(let (ST,LT) = phi ! pc
 	 in
 	 (\\<exists>T ST'. ST = T # ST' \\<and> G \\<turnstile> T \\<preceq> rT))"
@@ -175,7 +176,7 @@ constdefs
 	| MO  ins \\<Rightarrow> wt_MO ins G phi max_pc pc
 	| CH  ins \\<Rightarrow> wt_CH ins G phi max_pc pc
 	| MI  ins \\<Rightarrow> wt_MI ins G phi max_pc pc
-	| MR      \\<Rightarrow> wt_MR     G rT phi pc
+	| MR  ins \\<Rightarrow> wt_MR ins G rT phi pc
 	| OS  ins \\<Rightarrow> wt_OS ins G phi max_pc pc
 	| BR  ins \\<Rightarrow> wt_BR ins G phi max_pc pc"
 

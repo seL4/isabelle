@@ -14,7 +14,7 @@ datatype
         | MO manipulate_object	
 	| CH check_object	
 	| MI meth_inv		
-	| MR
+	| MR meth_ret
 	| OS op_stack		
 	| BR branch
 
@@ -51,7 +51,7 @@ recdef exec "{}"
 		in
 		(xp',hp,frs'@(stk',loc,cn,ml,pc')#frs))
 
-    | MR     \\<Rightarrow> (let frs' = exec_mr stk frs in
+    | MR ins \\<Rightarrow> (let frs' = exec_mr ins stk frs in
 		(None,hp,frs'))
 
     | OS ins \\<Rightarrow> (let (stk',pc') = exec_os ins stk pc

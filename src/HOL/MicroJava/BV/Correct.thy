@@ -35,7 +35,7 @@ primrec
 	 in
          (\\<exists>rT maxl ins.
          cmethd (G,C) ml = Some(C,rT,(maxl,ins)) \\<and>
-	 (\\<exists>mn pTs k. pc = k+1 \\<and> ins!k = MI(Invokevirtual mn pTs) \\<and>
+	 (\\<exists>mn pTs k. pc = k+1 \\<and> ins!k = MI(Invoke mn pTs) \\<and>
          (mn,pTs) = ml0 \\<and> 
          (\\<exists>apTs D ST'.
          fst((phi C ml)!k) = (rev apTs) @ (Class D) # ST' \\<and>
@@ -49,6 +49,7 @@ primrec
 
 constdefs
  correct_state :: "[jvm_prog,prog_type,jvm_state] \\<Rightarrow> bool"
+                  ("_,_\\<turnstile>JVM _\\<surd>"  [51,51] 50)
 "correct_state G phi \\<equiv> \\<lambda>(xp,hp,frs).
    case xp of
      None \\<Rightarrow> (case frs of
@@ -57,7 +58,7 @@ constdefs
 		         in
                          \\<exists>rT maxl ins.
                          cmethd (G,C) ml = Some(C,rT,(maxl,ins)) \\<and>
-		         G,hp\\<turnstile>\\<surd> \\<and> 
+		         G\\<turnstile>h hp\\<surd> \\<and> 
 			 correct_frame G hp ((phi C ml) ! pc) maxl ins f \\<and> 
 		         correct_frames G hp phi rT C ml fs))
    | Some x \\<Rightarrow> True" 

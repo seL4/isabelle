@@ -25,7 +25,7 @@ datatype prim_ty       	(* primitive type, cf. 4.2 *)
 datatype ref_ty		(* reference type, cf. 4.3 *)
 	= NullT		(* null type, cf. 4.1 *)
 	| ClassT cname	(* class type *)
-and ty    		(* any type, cf. 4.1 *)
+datatype ty    		(* any type, cf. 4.1 *)
 	= PrimT prim_ty	(* primitive type *)
 	| RefT  ref_ty	(* reference type *)
 
