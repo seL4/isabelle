@@ -176,8 +176,8 @@ fun simplify_defn thy cs ss congs wfs id pats def0 =
                {f = f, R = R, rules = rules,
                 full_pats_TCs = full_pats_TCs,
                 TCs = TCs}
-       val rules' = map (standard o rulify) (R.CONJUNCTS rules)
-   in  {induct = meta_outer (rulify (induction RS spec')),
+       val rules' = map (standard o Rulify.rulify_no_asm) (R.CONJUNCTS rules)
+   in  {induct = meta_outer (Rulify.rulify_no_asm (induction RS spec')),
         rules = ListPair.zip(rules', rows),
         tcs = (termination_goals rules') @ tcs}
    end
