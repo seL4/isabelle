@@ -47,7 +47,6 @@ consts
 
   (* Infixes *)
 
-  o             :: ['b => 'c, 'a => 'b, 'a] => 'c   (infixl 55)
   "="           :: ['a, 'a] => bool                 (infixl 50)
   "&"           :: [bool, bool] => bool             (infixr 35)
   "|"           :: [bool, bool] => bool             (infixr 30)
@@ -180,7 +179,6 @@ rules
 defs
   (*misc definitions*)
   Let_def       "Let s f == f(s)"
-  o_def         "(f::'b=>'c) o g == (%(x::'a). f(g(x)))"
   if_def        "If P x y == @z::'a. (P=True --> z=x) & (P=False --> z=y)"
 
   (*arbitrary is completely unspecified, but is made to appear as a

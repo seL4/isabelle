@@ -606,10 +606,6 @@ qed "imageE";
 AddIs  [image_eqI];
 AddSEs [imageE]; 
 
-Goalw [o_def] "(f o g)``r = f``(g``r)";
-by (Blast_tac 1);
-qed "image_compose";
-
 Goal "f``(A Un B) = f``A Un f``B";
 by (Blast_tac 1);
 qed "image_Un";
