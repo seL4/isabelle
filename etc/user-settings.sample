@@ -1,8 +1,15 @@
 #
 # $Id$
 #
-# Isabelle user settings sample -- to be copied to ~/isabelle/etc/settings.
+# Isabelle user settings sample -- may be copied to ~/isabelle/etc/settings.
 #
+
+###
+### Compilation options
+###
+
+#ISABELLE_HTML=false
+
 
 ###
 ### Heap files
