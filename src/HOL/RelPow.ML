@@ -6,7 +6,7 @@
 
 open RelPow;
 
-goal RelPow.thy "R^1 = R";
+goal RelPow.thy "!!R:: ('a*'a)set. R^1 = R";
 by (Simp_tac 1);
 qed "rel_pow_1";
 Addsimps [rel_pow_1];
