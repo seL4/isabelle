@@ -9,25 +9,23 @@
 function findbin()
 {
   local DEFAULT="$1"
-  local BASE=""
+  local BASE=$(basename "$DEFAULT")
   local BINARY=""
 
-  if [ -f "$DEFAULT" ]; then	# preferred location
+  BINARY=$(type -path "$BASE")
+
+  if [ -n "$BINARY" ]; then
+    echo "using $BINARY" >&2
+    echo "$BINARY"
+    return
+  elif [ -f "$DEFAULT" ]; then
     echo "using $DEFAULT" >&2
     echo "$DEFAULT"
     return
-  else				# find in PATH
-    BASE=$(basename "$DEFAULT")
-    BINARY=$(type -path "$BASE")
-    if [ -n "$BINARY" ]; then
-      echo "using $BINARY" >&2
-      echo "$BINARY"
-      return
-    else
-      echo "WARNING: $BASE not found!" >&2
-      echo "$DEFAULT"
-      return
-    fi
+  else
+    echo "WARNING: $BASE not found!" >&2
+    echo "$DEFAULT"
+    return
   fi
 }
 
