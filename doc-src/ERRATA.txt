@@ -81,6 +81,18 @@ page 248: Pow has the rules
 	PowI     A<=B ==> A: Pow(B)
 	PowD     A: Pow(B) ==> A<=B
 
+page 251: split now has type [['a,'b] => 'c, 'a * 'b] => 'c
+Definition modified accordingly
+
+page 252: sum_case now has type ['a=>'c,'b=>'c, 'a+'b] =>'c
+Definition and rules modified accordingly
+
+page 254: nat_case now has type ['a, nat=>'a, nat] =>'a
+Definition modified accordingly
+
+page 256,258: list_case now takes the list as its last argument, not the
+first.
+
 page 259: HOL theory files may now include datatype declarations, primitive
 recursive function definitions, and (co)inductive definitions.  (These new
 sections are available separately as the file ml/HOL-extensions.dvi.gz,
