@@ -14,14 +14,6 @@ fun flatten_typ sign T =
     end;
 fun flatten_term sign t = Pretty.str_of (Sign.pretty_term sign t);
 
-(*Add constants to a theory*)
-infix addconsts;
-fun thy addconsts const_decs = 
-    extend_theory thy (space_implode "_" (flat (map #1 const_decs)) 
-		       ^ "_Theory")
-		  ([], [], [], [], [], const_decs, None) [];
-
-
 (*Make a definition, lhs==rhs, checking that vars on lhs contain *)
 fun mk_defpair sign (lhs,rhs) = 
   let val Const(name,_) = head_of lhs

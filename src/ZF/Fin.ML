@@ -16,7 +16,7 @@ Fin(univ(A)) <= univ(A)
 *)
 
 structure Fin = Inductive_Fun
- (val thy        = Arith.thy addconsts [(["Fin"],"i=>i")]
+ (val thy        = Arith.thy |> add_consts [("Fin", "i=>i", NoSyn)]
   val rec_doms   = [("Fin","Pow(A)")]
   val sintrs     = ["0 : Fin(A)",
                     "[| a: A;  b: Fin(A) |] ==> cons(a,b) : Fin(A)"]

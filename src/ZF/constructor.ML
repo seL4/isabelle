@@ -22,10 +22,9 @@ Features:
 signature CONSTRUCTOR =
   sig
   val thy        : theory		(*parent theory*)
-  val rec_specs  : (string * string * (string list * string)list) list
+  val rec_specs  : (string * string * (string list * string * mixfix)list) list
                       (*recursion ops, types, domains, constructors*)
   val rec_styp	 : string		(*common type of all recursion ops*)
-  val ext        : Syntax.sext option	(*syntax extension for new theory*)
   val sintrs     : string list		(*desired introduction rules*)
   val monos      : thm list		(*monotonicity of each M operator*)
   val type_intrs : thm list		(*type-checking intro rules*)
@@ -63,15 +62,21 @@ val dummy = assert_all Syntax.is_identifier rec_names
    (fn a => "Name of recursive set not an identifier: " ^ a);
 
 (*Expands multiple constant declarations*)
-fun pairtypes (cs,st) = map (rpair st) cs;
+fun flatten_consts ((names, typ, mfix) :: cs) =
+      let fun mk_const name = (name, typ, mfix)
+      in (map mk_const names) @ (flatten_consts cs) end
+  | flatten_consts [] = [];
 
 (*Constructors with types and arguments*)
 fun mk_con_ty_list cons_pairs = 
-  let fun mk_con_ty (a,st) =
-	  let val T = rdty st
-	      val args = mk_frees "xa" (binder_types T)
-	  in  (a,T,args) end
-  in  map mk_con_ty (flat (map pairtypes cons_pairs))  end;
+  let fun mk_con_ty (a, st, syn) =
+	  let val T = rdty st;
+	      val args = mk_frees "xa" (binder_types T);
+              val name = const_name a syn; (* adds "op" to infix constructors*)
+	  in (name, T, args) end;
+
+      fun pairtypes c = flatten_consts [c];
+  in map mk_con_ty (flat (map pairtypes cons_pairs))  end;
 
 val con_ty_lists = map (mk_con_ty_list o #3) rec_specs;
 
@@ -87,8 +92,8 @@ val npart = length rec_names;		(*number of mutually recursive parts*)
 
 (*Make constructor definition*)
 fun mk_con_defs (kpart, con_ty_list) = 
-  let val ncon = length con_ty_list	(*number of constructors*)
-      fun mk_def ((a,T,args), kcon) =	(*kcon = index of this constructor*)
+  let val ncon = length con_ty_list	   (*number of constructors*)
+      fun mk_def ((a,T,args), kcon) = (*kcon = index of this constructor*)
 	  mk_defpair sign 
 	     (list_comb (Const(a,T), args),
 	      mk_inject npart kpart (mk_inject ncon kcon (mk_tuple args)))
@@ -107,7 +112,7 @@ fun call_case case_list =
 
 (*Treatment of a single constructor*)
 fun add_case ((a,T,args), (opno,cases)) =
-    if Syntax.is_identifier a 
+    if Syntax.is_identifier a
     then (opno,   
 	  (Free(case_name ^ "_" ^ a, T), args) :: cases)
     else (opno+1, 
@@ -142,13 +147,15 @@ val big_case_def =
 val axpairs =
     big_case_def :: flat (map mk_con_defs ((1 upto npart) ~~ con_ty_lists));
 
-val const_decs = remove_mixfixes ext
-		   (([big_case_name], flatten_typ sign big_case_typ) :: 
-		    (big_rec_name ins rec_names, rec_styp) :: 
+val const_decs = flatten_consts
+		   (([big_case_name], flatten_typ sign big_case_typ, NoSyn) ::
+		    (big_rec_name ins rec_names, rec_styp, NoSyn) ::
 		    flat (map #3 rec_specs));
 
-val con_thy = extend_theory thy (big_rec_name ^ "_Constructors")
-    ([], [], [], [], [], const_decs, ext) axpairs;
+val con_thy = thy
+              |> add_consts const_decs
+              |> add_axioms axpairs
+              |> add_thyname (big_rec_name ^ "_Constructors");
 
 (*1st element is the case definition; others are the constructors*)
 val con_defs = map (get_axiom con_thy o #1) axpairs;

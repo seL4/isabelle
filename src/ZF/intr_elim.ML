@@ -207,8 +207,10 @@ val axpairs = map (mk_defpair sign)
 	 | _ => rec_tms ~~		(*define the sets as Parts*)
 		map (subst_atomic [(Free(X',iT),big_rec_tm)]) parts));
 
-val thy = extend_theory Ind.thy (big_rec_name ^ "_Inductive")
-    ([], [], [], [], [], [], None) axpairs;
+val thy = 
+  Ind.thy
+  |> add_axioms axpairs
+  |> add_thyname (big_rec_name ^ "_Inductive");
 
 val defs = map (get_axiom thy o #1) axpairs;
 
