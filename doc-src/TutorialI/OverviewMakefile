@@ -1,0 +1,31 @@
+
+## targets
+
+default: Overview
+images: 
+test: Overview
+
+all: images test
+
+
+## global settings
+
+SRC = $(ISABELLE_HOME)/src
+OUT = $(ISABELLE_OUTPUT)
+LOG = $(OUT)/log
+USEDIR = $(ISATOOL) usedir -i true -d dvi -D document
+
+
+## Overview
+
+Overview: $(LOG)/HOL-Overview.gz
+
+$(LOG)/HOL-Overview.gz: Overview/ROOT.ML Overview/document/root.tex Overview/*.thy
+	@$(USEDIR) HOL Overview
+
+
+## clean
+
+clean:
+	@rm -f $(LOG)/HOL-Overview.gz
+
