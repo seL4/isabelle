@@ -22,7 +22,7 @@ concerning theories. The most important sections are \S\ref{sec:mixfix} about
 mixfix declarations and \S\ref{sec:macros} describing the macro system. The
 concluding examples of \S\ref{sec:min_logics} are more concerned with the
 logical aspects of the definition of theories. Sections marked with * can be
-skipped on the first reading.
+skipped on first reading.
 
 
 
@@ -179,15 +179,14 @@ $logic$ &=& $ty$
 The parser does not process input strings directly, it rather operates on
 token lists provided by Isabelle's \rmindex{lexical analyzer} (the
 \bfindex{lexer}). There are two different kinds of tokens: {\bf
-literals}\indexbold{literal token}\indexbold{token!literal} and {\bf valued
-tokens}\indexbold{valued token}\indexbold{token!valued}.
+  delimiters}\indexbold{delimiter} and {\bf names}\indexbold{name}.
 
-Literals can be regarded as reserved words\index{reserved word} of the syntax
-and the user can add new ones, when extending theories. In
-Figure~\ref{fig:pure_gram} they appear in typewriter type, e.g.\ {\tt PROP},
+Delimiters can be regarded as reserved words\index{reserved word} of the
+syntax and the user can add new ones, when extending theories. In
+Figure~\ref{fig:pure_gram} they appear in typewriter font, e.g.\ {\tt PROP},
 {\tt ==}, {\tt =?=}, {\tt ;}.
 
-Valued tokens on the other hand have a fixed predefined syntax. The lexer
+Names on the other hand have a fixed predefined syntax. The lexer
 distinguishes four kinds of them: identifiers\index{identifier},
 unknowns\index{unknown}\index{scheme variable|see{unknown}}, type
 variables\index{type variable}, type unknowns\index{type unknown}\index{type
@@ -195,44 +194,41 @@ scheme variable|see{type unknown}}; they are denoted by $id$\index{id@$id$},
 $var$\index{var@$var$}, $tfree$\index{tfree@$tfree$},
 $tvar$\index{tvar@$tvar$}, respectively. Typical examples are {\tt x}, {\tt
 ?x7}, {\tt 'a}, {\tt ?'a3}, the exact syntax is:
-
-\begin{tabular}{rcl}
-$id$        & =   & $letter~quasiletter^*$ \\
-$var$       & =   & ${\tt ?}id ~~|~~ {\tt ?}id{\tt .}nat$ \\
-$tfree$     & =   & ${\tt '}id$ \\
-$tvar$      & =   & ${\tt ?}tfree ~~|~~ {\tt ?}tfree{\tt .}nat$ \\[1ex]
-
-$letter$    & =   & one of {\tt a}\dots {\tt z} {\tt A}\dots {\tt Z} \\
-$digit$     & =   & one of {\tt 0}\dots {\tt 9} \\
-$quasiletter$ & =  & $letter ~~|~~ digit ~~|~~ {\tt _} ~~|~~ {\tt '}$ \\
-$nat$       & =   & $digit^+$
-\end{tabular}
-
-A string of $var$ or $tvar$ describes an \rmindex{unknown} which is
-internally a pair of base name and index (\ML\ type \ttindex{indexname}).
-These components are either explicitly separated by a dot as in {\tt ?x.1} or
-{\tt ?x7.3} or directly run together as in {\tt ?x1}. The latter form is
-possible, if the base name does not end with digits. And if the index is 0,
-it may be dropped altogether: {\tt ?x} abbreviates {\tt ?x0} or {\tt ?x.0}.
+\begin{eqnarray*}
+id        & =   & letter~quasiletter^* \\
+var       & =   & \mbox{\tt ?}id ~~|~~ \mbox{\tt ?}id\mbox{\tt .}nat \\
+tfree     & =   & \mbox{\tt '}id \\
+tvar      & =   & \mbox{\tt ?}tfree ~~|~~
+                  \mbox{\tt ?}tfree\mbox{\tt .}nat \\[1ex]
+letter    & =   & \mbox{one of {\tt a}\dots {\tt z} {\tt A}\dots {\tt Z}} \\
+digit     & =   & \mbox{one of {\tt 0}\dots {\tt 9}} \\
+quasiletter & =  & letter ~~|~~ digit ~~|~~ \mbox{\tt _} ~~|~~ \mbox{\tt '} \\
+nat       & =   & digit^+
+\end{eqnarray*}
+A $var$ or $tvar$ describes an \rmindex{unknown} which is internally a pair
+of base name and index (\ML\ type \ttindex{indexname}).  These components are
+either explicitly separated by a dot as in {\tt ?x.1} or {\tt ?x7.3} or
+directly run together as in {\tt ?x1}. The latter form is possible, if the
+base name does not end with digits; if the index is 0, it may be dropped
+altogether: {\tt ?x} abbreviates {\tt ?x0} or {\tt ?x.0}.
 
 Note that $id$, $var$, $tfree$, $tvar$ are mutually disjoint, but it is
-perfectly legal that they overlap with the set of literal tokens (e.g.\ {\tt
-PROP}, {\tt ALL}, {\tt EX}).
+perfectly legal that they overlap with the set of delimiters (e.g.\ {\tt
+  PROP}, {\tt ALL}, {\tt EX}).
 
 The lexical analyzer translates input strings to token lists by repeatedly
 taking the maximal prefix of the input string that forms a valid token. A
-maximal prefix that is both a literal and a valued token is treated as a
-literal. Spaces, tabs and newlines are separators; they never occur within
-tokens.
+maximal prefix that is both a delimiter and a name is treated as a delimiter.
+Spaces, tabs and newlines are separators; they never occur within tokens.
 
-Note that literals need not necessarily be surrounded by white space to be
-recognized as separate. For example, if {\tt -} is a literal but {\tt --} is
-not, then the string {\tt --} is treated as two consecutive occurrences of
-{\tt -}. This is in contrast to \ML\ which would treat {\tt --} always as a
-single symbolic name. The consequence of Isabelle's more liberal scheme is
-that the same string may be parsed in different ways after extending the
-syntax: after adding {\tt --} as a literal, the input {\tt --} is treated as
-a single token.
+Note that delimiters need not necessarily be surrounded by white space to be
+recognized as separate. For example, if {\tt -} is a delimiter but {\tt --}
+is not, then the string {\tt --} is treated as two consecutive occurrences of
+{\tt -}. This is in contrast to \ML\ which always treats {\tt --} as a single
+symbolic name. The consequence of Isabelle's more liberal scheme is that the
+same string may be parsed in different ways after extending the syntax: after
+adding {\tt --} as a delimiter, the input {\tt --} is treated as a single
+token.
 
 
 \subsection{Inspecting syntax *}
@@ -251,15 +247,14 @@ displayed by the following functions: \index{*Syntax.print_syntax}
   Syntax.print_trans: Syntax.syntax -> unit
 \end{ttbox}
 {\tt Syntax.print_syntax} shows virtually all information contained in a
-syntax, therefore being quite verbose. Its output is divided into labeled
-sections. The syntax proper is represented by {\tt lexicon}, {\tt roots} and
-{\tt prods}. The rest refers to the manifold facilities to apply syntactic
-translations (macro expansion etc.).
+syntax. Its output is divided into labeled sections. The syntax proper is
+represented by {\tt lexicon}, {\tt roots} and {\tt prods}. The rest refers to
+the manifold facilities to apply syntactic translations (macro expansion
+etc.).
 
-To simplify coping with the verbosity of {\tt Syntax.print_syntax}, there are
-\ttindex{Syntax.print_gram} to print the syntax proper only and
-\ttindex{Syntax.print_trans} to print the translation related information
-only.
+To cope with the verbosity of {\tt Syntax.print_syntax}, there are
+\ttindex{Syntax.print_gram} and \ttindex{Syntax.print_trans} to print the
+syntax proper and the translation related information only.
 
 Let's have a closer look at part of Pure's syntax:
 \begin{ttbox}
@@ -284,9 +279,7 @@ Syntax.print_syntax (syn_of Pure.thy);
 \end{ttbox}
 
 \begin{description}
-  \item[\ttindex{lexicon}]
-    The set of literal tokens (i.e.\ reserved words, delimiters) used for
-    lexical analysis.
+  \item[\ttindex{lexicon}] The set of delimiters used for lexical analysis.
 
   \item[\ttindex{roots}]
     The legal syntactic categories to start parsing with. You name the
@@ -308,7 +301,7 @@ Syntax.print_syntax (syn_of Pure.thy);
 
   \item[\ttindex{prods}]
     The list of productions describing the precedence grammar. Nonterminals
-    $A@n$ are rendered in {\sc ascii} as {\tt $A$[$n$]}, literal tokens are
+    $A@n$ are rendered in {\sc ascii} as {\tt $A$[$n$]}, delimiters are
     quoted. Some productions have strings attached after an {\tt =>}. These
     strings later become the heads of parse trees, but they also play a vital
     role when terms are printed (see \S\ref{sec:asts}).
@@ -316,13 +309,13 @@ Syntax.print_syntax (syn_of Pure.thy);
     Productions which do not have string attached and thus do not create a
     new parse tree node are called {\bf copy productions}\indexbold{copy
     production}. They must have exactly one
-    argument\index{argument!production} (i.e.\ nonterminal or valued token)
+    argument\index{argument!production} (i.e.\ nonterminal or name token)
     on the right-hand side. The parse tree generated when parsing that
     argument is simply passed up as the result of parsing the whole copy
     production.
 
     A special kind of copy production is one where the argument is a
-    nonterminal and no additional syntactic sugar (literals) exists. It is
+    nonterminal and no additional syntactic sugar (delimiters) exists. It is
     called a \bfindex{chain production}. Chain productions should be seen as
     an abbreviation mechanism: conceptually, they are removed from the
     grammar by adding appropriate new rules. Precedence information attached
@@ -338,12 +331,12 @@ Syntax.print_syntax (syn_of Pure.thy);
     arcane matters (see \S\ref{sec:asts} and \S\ref{sec:tr_funs}).
 \end{description}
 
-Of course you may inspect the syntax of any theory using the above calling
+You may inspect the syntax of any theory using the above calling
 sequence. Beware that, as more and more material accumulates, the output
-becomes even more verbose. When extending syntaxes, new {\tt roots}, {\tt
-prods}, {\tt parse_rules} and {\tt print_rules} are appended to the end. The
-other lists are displayed sorted.
-
+becomes longer and longer.
+% When extending syntaxes, new {\tt roots}, {\tt prods}, {\tt parse_rules}
+% and {\tt print_rules} are appended to the end. The other lists are
+% displayed sorted.
 
 
 \section{Abstract syntax trees} \label{sec:asts}
@@ -387,25 +380,23 @@ discussed later.
 
 Asts are an intermediate form between the very raw parse trees and the typed
 $\lambda$-terms. An ast is either an atom (constant or variable) or a list of
-{\em at least two\/} subasts. Internally, they have type \ttindex{Syntax.ast}
-which is defined as: \index{*Constant} \index{*Variable} \index{*Appl}
+{\em at least two\/} subasts. Internally, they have type
+\ttindex{Syntax.ast}: \index{*Constant} \index{*Variable} \index{*Appl}
 \begin{ttbox}
-datatype ast =
-  Constant of string |
-  Variable of string |
-  Appl of ast list
+datatype ast = Constant of string
+             | Variable of string
+             | Appl of ast list
 \end{ttbox}
 
-Notation: We write constant atoms as quoted strings, variable atoms as
-non-quoted strings and applications as list of subasts separated by space and
-enclosed in parentheses. For example:
+We write constant atoms as quoted strings, variable atoms as non-quoted
+strings and applications as list of subasts separated by space and enclosed
+in parentheses. For example:
 \begin{ttbox}
   Appl [Constant "_constrain",
     Appl [Constant "_abs", Variable "x", Variable "t"],
     Appl [Constant "fun", Variable "'a", Variable "'b"]]
-  {\rm is written as} ("_constrain" ("_abs" x t) ("fun" 'a 'b))
 \end{ttbox}
-
+is written as {\tt ("_constrain" ("_abs" x t) ("fun" 'a 'b))}.
 Note that {\tt ()} and {\tt (f)} are both illegal.
 
 The resemblance of Lisp's S-expressions is intentional, but notice the two
@@ -447,8 +438,8 @@ Ignoring parse ast translations, the mapping
 $ast_of_pt$\index{ast_of_pt@$ast_of_pt$} from parse trees to asts is derived
 from the productions involved as follows:
 \begin{itemize}
-  \item Valued tokens: $ast_of_pt(t) = \Variable s$, where $t$ is an $id$,
-    $var$, $tfree$ or $tvar$ token, and $s$ its value.
+  \item Name tokens: $ast_of_pt(t) = \Variable s$, where $t$ is an $id$,
+    $var$, $tfree$ or $tvar$ token, and $s$ its associated string.
 
   \item Copy productions: $ast_of_pt(\ldots P \ldots) = ast_of_pt(P)$.
 
@@ -458,12 +449,10 @@ from the productions involved as follows:
     c) = \Appl{\Constant c,$ $ast_of_pt(P@1),$ $\ldots,$ $ast_of_pt(P@n)}$,
     where $n \ge 1$.
 \end{itemize}
-Thereby $P, P@1, \ldots, P@n$ denote sub parse trees or valued tokens and
-``\dots'' zero or more literal tokens. That means literal tokens are stripped
-and do not appear in asts.
-
+where $P, P@1, \ldots, P@n$ denote parse trees or name tokens and ``\dots''
+zero or more delimiters. Delimiters are stripped and do not appear in asts.
 The following table presents some simple examples:
-
+\begin{center}
 {\tt\begin{tabular}{ll}
 \rm input string    & \rm ast \\\hline
 "f"                 & f \\
@@ -473,8 +462,8 @@ The following table presents some simple examples:
 "f(x, y)"           & ("_appl" f ("_args" x y)) \\
 "f(x, y, z)"        & ("_appl" f ("_args" x ("_args" y z))) \\
 "\%x y.\ t"         & ("_lambda" ("_idts" x y) t) \\
-\end{tabular}}
-
+\end{tabular}}  
+\end{center}
 Some of these examples illustrate why further translations are desirable in
 order to provide some nice standard form of asts before macro expansion takes
 place. Hence the Pure syntax provides predefined parse ast
@@ -644,13 +633,12 @@ interpreted as follows:
     \dots \alpha@{n-1} \_ \alpha@n$, where each occurrence of \ttindex{_}
     denotes an argument\index{argument!mixfix} position and the strings
     $\alpha@i$ do not contain (non-escaped) {\tt _}. The $\alpha@i$ may
-    consist of delimiters\index{delimiter},
-    spaces\index{space (pretty printing)} or \rmindex{pretty printing}
-    annotations (see below).
+    consist of delimiters\index{delimiter}, spaces\index{space (pretty
+      printing)} or \rmindex{pretty printing} annotations (see below).
 
   \item $\tau$ specifies the syntactic categories of the arguments on the
     left-hand and of the right-hand side. Arguments may be nonterminals or
-    valued tokens. If $sy$ is of the form above, $\tau$ must be a nested
+    name tokens. If $sy$ is of the form above, $\tau$ must be a nested
     function type with at least $n$ argument positions, say $\tau = [\tau@1,
     \dots, \tau@n] \To \tau'$. The syntactic category of argument $i$ is
     derived from type $\tau@i$ (see $root_of_type$ in
@@ -737,10 +725,10 @@ following character sequences:
   \item[~\ttindex_~] An argument\index{argument!mixfix} position.
 
   \item[~$d$~] A \rmindex{delimiter}, i.e.\ a non-empty sequence of
-    non-special or escaped characters. Escaping a
-    character\index{escape character} means preceding it with a {\tt '}
-    (quote). Thus you have to write {\tt ''} if you really want a single
-    quote. Delimiters may never contain white space, though.
+    non-special or escaped characters. Escaping a character\index{escape
+      character} means preceding it with a {\tt '} (quote). Thus you have to
+    write {\tt ''} if you really want a single quote. Delimiters may never
+    contain white space, though.
 
   \item[~$s$~] A non-empty sequence of spaces\index{space (pretty printing)}
     for printing.
@@ -759,10 +747,10 @@ following character sequences:
     taken.
 \end{description}
 
-In terms of parsing, arguments are nonterminals or valued tokens, while
-delimiters are literal tokens. The other directives have only significance
-for printing. The \rmindex{pretty printing} mechanisms of Isabelle is
-essentially the one described in \cite{paulson91}.
+In terms of parsing, arguments are nonterminals or name tokens and
+delimiters are delimiters. The other directives have only significance for
+printing. The \rmindex{pretty printing} mechanisms of Isabelle is essentially
+the one described in \cite{paulson91}.
 
 
 \subsection{Infixes}
@@ -878,8 +866,8 @@ end
 \end{ttbox}
 
 This and the following theories are complete working examples, though they
-are fragmentary as they contain merely syntax. They are somewhat fashioned
-after {\tt ZF/zf.thy}, where you should look for a good real-world example.
+are fragmentary as they contain merely syntax. The full theory definition can
+be found in {\tt ZF/zf.thy}.
 
 {\tt SET} defines constants for set comprehension ({\tt Collect}),
 replacement ({\tt Replace}) and bounded universal quantification ({\tt
@@ -904,8 +892,9 @@ this section is to explain how Isabelle's macro system really works.
 \subsection{Specifying macros}
 
 Basically macros are rewrite rules on asts. But unlike other macro systems of
-various programming languages, Isabelle's macros work two way. Therefore a
-syntax contains two lists of rules: one for parsing and one for printing.
+various programming languages, Isabelle's macros work in both directions.
+Therefore a syntax contains two lists of rules: one for parsing and one for
+printing.
 
 The {\tt translations} section\index{translations section@{\tt translations}
 section} consists of a list of rule specifications of the form:
@@ -916,9 +905,9 @@ $string$}.
 \end{center}
 
 This specifies a \rmindex{parse rule} ({\tt =>}) a \rmindex{print rule} ({\tt
-<=}) or both ({\tt ==}). The two $string$s preceded by optional parenthesized
-$root$s denote the left-hand and right-hand side of the rule as `source
-code', i.e.\ in the usual syntax of terms.
+  <=}) or both ({\tt ==}). The two $string$s preceded by optional
+parenthesized $root$s are the left-hand and right-hand side of the rule in
+user-defined syntax.
 
 Rules are internalized wrt.\ an intermediate signature that is obtained from
 the parent theories' ones by adding all material of all sections preceding
@@ -1344,15 +1333,12 @@ names in the sources of Pure Isabelle for more examples.
 We continue Example~\ref{ex:prod_trans} by presenting the \ML\ sources of the
 parse translation for \ttindex{_K} and the print translation
 \ttindex{dependent_tr'}:
-
 \begin{ttbox}
 (* nondependent abstraction *)
-
 fun k_tr (*"_K"*) [t] = Abs ("x", dummyT, incr_boundvars 1 t)
-  | k_tr (*"_K"*) ts = raise_term "k_tr" ts;
+  | k_tr (*"_K"*) ts = raise TERM("k_tr",ts);
 
 (* dependent / nondependent quantifiers *)
-
 fun dependent_tr' (q, r) (A :: Abs (x, T, B) :: ts) =
       if 0 mem (loose_bnos B) then
         let val (x', B') = variant_abs (x, dummyT, B);
@@ -1361,11 +1347,15 @@ fun dependent_tr' (q, r) (A :: Abs (x, T, B) :: ts) =
       else list_comb (Const (r, dummyT) $ A $ B, ts)
   | dependent_tr' _ _ = raise Match;
 \end{ttbox}
+This text is taken from the Pure sources. Ordinary user translations
+would typically appear within the {\tt ML} section of the {\tt .thy} file. To
+link {\tt k_tr} into the parser requires the definition
+\begin{ttbox}
+val parse_translation = [("_K",k_tr)];
+\end{ttbox}
+For {\tt k_tr} this is not necessary, as it is built-in, but user-defined
+translation functions are added in exactly the same way.  \medskip
 
-This text is taken from the Pure sources, ordinary user translations would
-typically appear within the {\tt ML} section of the {\tt .thy} file.
-
-\medskip
 If {\tt k_tr} is called with exactly one argument $t$, it creates a new {\tt
 Abs} node with a body derived from $t$: loose {\tt Bound}s, i.e.\ those
 referring to outer {\tt Abs}s, are incremented using
