@@ -594,7 +594,10 @@ fun gen_inductive_cases prep_att prep_const prep_prop
     val cprops = map (Thm.cterm_of sign o prep_prop (ProofContext.init thy)) raw_props;
     val atts = map (prep_att thy) raw_atts;
     val thms = map (smart_mk_cases thy ss) cprops;
-  in thy |> IsarThy.have_theorems_i [(((name, atts), map Thm.no_attributes thms), comment)] end;
+  in
+    thy |>
+    IsarThy.have_theorems_i Drule.lemmaK [(((name, atts), map Thm.no_attributes thms), comment)]
+  end;
 
 val inductive_cases =
   gen_inductive_cases Attrib.global_attribute Sign.intern_const ProofContext.read_prop;

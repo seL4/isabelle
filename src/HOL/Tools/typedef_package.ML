@@ -216,8 +216,10 @@ val add_typedef_i_no_def = gen_add_typedef cert_term true;
 (* typedef_proof interface *)
 
 fun gen_typedef_proof prep_term ((name, typ, set), comment) int thy =
-  let val (_, goal, goal_pat, att) = prepare_typedef prep_term false name typ set thy;
-  in thy |> IsarThy.theorem_i ((("", [att]), (goal, ([goal_pat], []))), comment) int end;
+  let val (_, goal, goal_pat, att) = prepare_typedef prep_term false name typ set thy in
+    thy
+    |> IsarThy.theorem_i Drule.internalK ((("", [att]), (goal, ([goal_pat], []))), comment) int
+  end;
 
 val typedef_proof = gen_typedef_proof read_term;
 val typedef_proof_i = gen_typedef_proof cert_term;
