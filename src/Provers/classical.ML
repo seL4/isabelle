@@ -99,6 +99,8 @@ signature CLASSICAL =
   val Step_tac 		: int -> tactic
   val Fast_tac 		: int -> tactic
   val Best_tac 		: int -> tactic
+  val Slow_tac 		: int -> tactic
+  val Slow_best_tac     : int -> tactic
   val Deepen_tac	: int -> int -> tactic
 
   end;
@@ -605,6 +607,10 @@ fun Step_tac i = step_tac (!claset) i;
 fun Fast_tac i = fast_tac (!claset) i; 
 
 fun Best_tac i = best_tac (!claset) i; 
+
+fun Slow_tac i = slow_tac (!claset) i; 
+
+fun Slow_best_tac i = slow_best_tac (!claset) i; 
 
 fun Deepen_tac m = deepen_tac (!claset) m; 
 
