@@ -13,79 +13,23 @@ end;
 signature BROWSER_INFO =
 sig
   include BASIC_BROWSER_INFO
-  val init: bool -> string list -> string -> unit
+  val init: bool -> string list -> string -> Url.T option -> unit
   val finish: unit -> unit
   val theory_source: string -> (string, 'a) Source.source -> unit
-  val begin_theory: string -> string list -> (Path.T * bool) list -> unit
+  val begin_theory: string -> string list -> (Path.T * bool) list -> theory -> theory
   val end_theory: string -> unit
   val theorem: string -> thm -> unit
+  val setup: (theory -> theory) list
 end;
 
 structure BrowserInfo: BROWSER_INFO =
 struct
 
-
-(** global browser info state **)
-
-(* type theory_info *)
-
-type theory_info = {source: Buffer.T, html: Buffer.T, graph: Buffer.T};
-
-fun make_theory_info (source, html, graph) =
-  {source = source, html = html, graph = graph}: theory_info;
-
-val empty_theory_info = make_theory_info (Buffer.empty, Buffer.empty, Buffer.empty);
-fun map_theory_info f {source, html, graph} = make_theory_info (f (source, html, graph));
-
-
-(* type browser_info *)
-
-type browser_info = {theories: theory_info Symtab.table, index: Buffer.T};
-
-fun make_browser_info (theories, index) =
-  {theories = theories, index = index}: browser_info;
-
-val empty_browser_info = make_browser_info (Symtab.empty, Buffer.empty);
-fun map_browser_info f {theories, index} = make_browser_info (f (theories, index));
-
-
-(* state *)
-
-val browser_info = ref empty_browser_info;
-
-fun change_browser_info f = browser_info := map_browser_info f (! browser_info);
-
-fun init_theory_info name info = change_browser_info (fn (theories, index) =>
-  (Symtab.update ((name, info), theories), index));
-
-fun change_theory_info name f = change_browser_info (fn (theories, index) =>
-  (case Symtab.lookup (theories, name) of
-    None => (warning ("Browser info: cannot access theory document " ^ quote name);
-      (theories, index))
-  | Some info => (Symtab.update ((name, map_theory_info f info), theories), index)));
-
-
-fun add_index txt = change_browser_info (fn (theories, index) =>
-  (theories, Buffer.add txt index));
-
-fun add_source name txt = change_theory_info name (fn (source, html, graph) =>
-  (Buffer.add txt source, html, graph));
-
-fun add_html name txt = change_theory_info name (fn (source, html, graph) =>
-  (source, Buffer.add txt html, graph));
-
-fun add_graph name txt = change_theory_info name (fn (source, html, graph) =>
-  (source, html, Buffer.add txt graph));
-
-
-
-(** global session state **)
-
-(* paths *)
+(** paths **)
 
 val output_path = Path.variable "ISABELLE_BROWSER_INFO";
 
-fun top_path sess_path = Path.append (Path.appends (replicate (length sess_path) Path.parent));
+fun top_path sess_path offset = Path.append (Path.appends (replicate (offset + length sess_path) Path.parent));
 
 val html_ext = Path.ext "html";
 val html_path = html_ext o Path.basic;
@@ -97,24 +41,153 @@ val session_entries_path = Path.unpack ".session/entries";
 val pre_index_path = Path.unpack ".session/pre-index";
 
 
+(** additional theory data **)
+
+structure BrowserInfoArgs =
+struct
+  val name = "Pure/browser_info";
+  type T = {session: string list, is_local: bool};
+
+  val empty = {session = [], is_local = false};
+  val copy = I;
+  val prep_ext  = I;
+  fun merge _ = empty;
+  fun print _ _ = ();
+end;
+
+structure BrowserInfoData = TheoryDataFun(BrowserInfoArgs);
+val setup = [BrowserInfoData.init];
+fun get_info thy = if PureThy.get_name thy = "ProtoPure" then BrowserInfoArgs.empty
+  else BrowserInfoData.get thy;  (** FIXME!? **)
+
+(** graphs **)
+
+type graph_node =
+  {name: string, ID: string, dir: string, unfold: bool,
+   path: string, parents: string list};
+
+fun get_graph path = map (fn (a :: b :: c :: d :: e :: r) =>
+  {name = unenclose a, ID = unenclose b,
+   dir = unenclose c, unfold = (d = "+"),
+   path = unenclose (if d = "+" then e else d),
+   parents = map unenclose (fst (split_last (if d = "+" then tl r else r)))})
+     (map (filter_out (equal "") o space_explode " ") (split_lines (File.read path)));
+
+fun put_graph gr path = File.write path (cat_lines (map (fn {name, ID, dir, unfold, path, parents} =>
+  "\"" ^ name ^ "\" \"" ^ ID ^ "\" \"" ^ dir ^ (if unfold then "\" + \"" else "\" \"") ^
+  path ^ "\" > " ^ space_implode " " (map quote parents) ^ " ;") gr));
+
+fun dir_of sess = space_implode "/" (case sess of
+  [] => ["Pure"] | [x] => [x, "base"] | xs => xs);
+
+fun ID_of sess s = dir_of sess ^ "/" ^ s;
+
+(* retrieve graph data from theory loader database *)
+
+fun make_graph remote_path unfold curr_sess = map (fn name =>
+  let
+    val {session, is_local} = get_info (ThyInfo.theory name);
+    val path' = Path.append (Path.make session) (html_path name)
+  in
+    {name = name, ID = ID_of session name, dir = dir_of session,
+     path = if null session then "" else
+            if is_some remote_path andalso not is_local then
+              Url.pack (Url.append (the remote_path) (Url.file path'))
+            else Path.pack (top_path curr_sess 2 path'),
+     unfold = unfold andalso (length session = 1),
+     parents = map (fn s => ID_of (#session (get_info (ThyInfo.theory s))) s)
+       (ThyInfo.get_preds name)}
+  end) (ThyInfo.names ());
+
+fun add_graph_entry' (entry as {ID, ...}) (gr : graph_node list) =
+  filter_out (fn entry' => #ID entry' = ID) gr @ [entry];
+
+
+(** global browser info state **)
+
+(* type theory_info *)
+
+type theory_info = {source: Buffer.T, html: Buffer.T};
+
+fun make_theory_info (source, html) =
+  {source = source, html = html}: theory_info;
+
+val empty_theory_info = make_theory_info (Buffer.empty, Buffer.empty);
+fun map_theory_info f {source, html} = make_theory_info (f (source, html));
+
+ 
+(* type browser_info *)
+
+type browser_info = {theories: theory_info Symtab.table, index: Buffer.T,
+  graph: graph_node list, all_graph: graph_node list};
+
+fun make_browser_info (theories, index, graph, all_graph) =
+  {theories = theories, index = index, graph = graph, all_graph = all_graph}: browser_info;
+
+val empty_browser_info = make_browser_info (Symtab.empty, Buffer.empty, [], []);
+
+fun initial_browser_info remote_path graph_path curr_sess = make_browser_info
+  (Symtab.empty, Buffer.empty, make_graph remote_path false curr_sess,
+   if_none (try get_graph graph_path) (make_graph remote_path true [""]));
+
+fun map_browser_info f {theories, index, graph, all_graph} =
+  make_browser_info (f (theories, index, graph, all_graph));
+
+
+(* state *)
+
+val browser_info = ref empty_browser_info;
+
+fun change_browser_info f = browser_info := map_browser_info f (! browser_info);
+
+fun init_theory_info name info = change_browser_info (fn (theories, index, graph, all_graph) =>
+  (Symtab.update ((name, info), theories), index, graph, all_graph));
+
+fun change_theory_info name f = change_browser_info (fn (theories, index, graph, all_graph) =>
+  (case Symtab.lookup (theories, name) of
+    None => (warning ("Browser info: cannot access theory document " ^ quote name);
+      (theories, index, graph, all_graph))
+  | Some info => (Symtab.update ((name, map_theory_info f info), theories), index, graph, all_graph)));
+
+
+fun add_index txt = change_browser_info (fn (theories, index, graph, all_graph) =>
+  (theories, Buffer.add txt index, graph, all_graph));
+
+(** add entry to graph for current session **)
+fun add_graph_entry e = change_browser_info (fn (theories, index, graph, all_graph) =>
+  (theories, index, add_graph_entry' e graph, all_graph));
+
+(** add entry to graph for all sessions **)
+fun add_all_graph_entry e = change_browser_info (fn (theories, index, graph, all_graph) =>
+  (theories, index, graph, add_graph_entry' e all_graph));
+
+fun add_source name txt = change_theory_info name (fn (source, html) =>
+  (Buffer.add txt source, html));
+
+fun add_html name txt = change_theory_info name (fn (source, html) =>
+  (source, Buffer.add txt html));
+
+
+(** global session state **)
+
 (* session_info *)
 
 type session_info =
   {name: string, parent: string, session: string, path: string list,
-    html_prefix: Path.T, graph_prefix: Path.T};
+    html_prefix: Path.T, graph_path: Path.T, all_graph_path: Path.T, remote_path: Url.T option};
 
-fun make_session_info (name, parent, session, path, html_prefix, graph_prefix) =
+fun make_session_info (name, parent, session, path, html_prefix, graph_path, all_graph_path, remote_path) =
   {name = name, parent = parent, session = session, path = path,
-    html_prefix = html_prefix, graph_prefix = graph_prefix}: session_info;
+    html_prefix = html_prefix, graph_path = graph_path,
+    all_graph_path = all_graph_path, remote_path = remote_path}: session_info;
 
 
 (* state *)
 
 val session_info = ref (None: session_info option);
 
-fun with_session f = (case ! session_info of None => () | Some info => f info);
+fun with_session x f = (case ! session_info of None => x | Some info => f info);
 fun with_context f = f (PureThy.get_name (Context.the_context ()));
-
 
 
 (** HTML output **)
@@ -122,7 +195,7 @@ fun with_context f = f (PureThy.get_name (Context.the_context ()));
 (* maintain index *)
 
 val session_entries =
-  HTML.session_entries o map (fn name => (Path.append (Path.basic name) index_path, name));
+  HTML.session_entries o map (fn name => (Url.file (Path.append (Path.basic name) index_path), name));
 
 fun get_entries dir =
   split_lines (File.read (Path.append dir session_entries_path));
@@ -150,8 +223,8 @@ fun could_copy inpath outpath =
   if File.exists inpath then (File.copy inpath outpath; true)
   else false;
 
-fun init false _ _ = (browser_info := empty_browser_info; session_info := None)
-  | init true path name =
+fun init false _ _ _ = (browser_info := empty_browser_info; session_info := None)
+  | init true path name remote_path =
       let
         val parent_name = name_of_session (take (length path - 1, path));
         val session_name = name_of_session path;
@@ -159,6 +232,13 @@ fun init false _ _ = (browser_info := empty_browser_info; session_info := None)
         val out_path = Path.expand output_path;
         val html_prefix = Path.append out_path sess_prefix;
         val graph_prefix = Path.appends [out_path, Path.unpack "graph/data", sess_prefix];
+        val graph_path = Path.append graph_prefix (Path.basic "session.graph");
+        val graph_lnk = Url.file (top_path path 0 (Path.appends
+          [Path.unpack "graph/data", sess_prefix, Path.basic "medium.html"]));
+        val graph_up_lnk = (Url.file (top_path path 2 (Path.append sess_prefix index_path)), session_name);
+        val codebase = Url.file (top_path path 1 Path.current);
+        val all_graph_path = Path.appends [out_path, Path.unpack "graph/data",
+          Path.basic (hd path), Path.basic "all_sessions.graph"];
 
         val _ = (File.mkdir html_prefix; File.mkdir graph_prefix);
         fun prep_readme readme =
@@ -168,30 +248,33 @@ fun init false _ _ = (browser_info := empty_browser_info; session_info := None)
           end;
         val opt_readme =
           (case prep_readme "README.html" of None => prep_readme "README" | some => some);
-        val index_text = HTML.begin_index (Path.append Path.parent index_path, parent_name)
-          (index_path, session_name) opt_readme;
+        val index_text = HTML.begin_index (Url.file (Path.append Path.parent index_path), parent_name)
+          (Url.file index_path, session_name) (apsome Url.file opt_readme) graph_lnk;
       in
         File.mkdir (Path.append html_prefix session_path);
         File.write (Path.append html_prefix session_entries_path) "";
+        seq (fn (name, txt) => File.write (Path.append graph_prefix (Path.basic name)) txt)
+          (HTML.applet_pages session_name codebase graph_up_lnk (length path = 1));
         session_info := Some (make_session_info (name, parent_name, session_name, path,
-          html_prefix, graph_prefix));
-        browser_info := empty_browser_info;
+          html_prefix, graph_path, all_graph_path, remote_path));
+        browser_info := initial_browser_info remote_path all_graph_path path;
         add_index index_text
       end;
 
 
 (* finish session *)
 
-fun finish () = with_session (fn {name, html_prefix, graph_prefix, ...} =>
+fun finish () = with_session () (fn {name, html_prefix, graph_path, all_graph_path, path, ...} =>
   let
-    val {theories, index} = ! browser_info;
+    val {theories, index, graph, all_graph} = ! browser_info;
 
-    fun finish_node (a, {source = _, html, graph}) =
-      (Buffer.write (Path.append html_prefix (html_path a)) (Buffer.add HTML.end_theory html);
-        Buffer.write (Path.append graph_prefix (graph_path a)) graph);
+    fun finish_node (a, {source = _, html}) =
+      Buffer.write (Path.append html_prefix (html_path a)) (Buffer.add HTML.end_theory html);
   in
     seq finish_node (Symtab.dest theories);
     Buffer.write (Path.append html_prefix pre_index_path) index;
+    put_graph graph graph_path;
+    put_graph all_graph all_graph_path;
     create_index html_prefix;
     update_index (Path.append html_prefix Path.parent) name;
     browser_info := empty_browser_info;
@@ -201,19 +284,26 @@ fun finish () = with_session (fn {name, html_prefix, graph_prefix, ...} =>
 
 (* theory elements *)
 
-fun theory_source name src = with_session (fn _ =>
+fun theory_source name src = with_session () (fn _ =>
   (init_theory_info name empty_theory_info; add_source name (HTML.source src)));
 
 
 (* FIXME clean *)
 
-fun parent_link name =
-  if is_some (Symtab.lookup (#theories (! browser_info), name)) then (Some (html_path name), name)
-  else (None, name);
-
-fun begin_theory name raw_parents orig_files = with_session (fn {session, html_prefix, ...} =>
+fun parent_link remote_path curr_session name =
   let
-    val parents = map parent_link raw_parents;
+    val {session, is_local} = get_info (ThyInfo.theory name);
+    val path = Path.append (Path.make session) (html_path name)
+  in (if null session then None else
+     Some (if is_some remote_path andalso not is_local then
+       Url.append (the remote_path) (Url.file path)
+     else Url.file (top_path curr_session 0 path)), name)
+  end;
+
+fun begin_theory name raw_parents orig_files thy =
+  with_session thy (fn {session, path, html_prefix, remote_path, ...} =>
+  let
+    val parents = map (parent_link remote_path path) raw_parents;
     val ml_path = ThyLoad.ml_path name;
     val files = orig_files @		(* FIXME improve!? *)
       (if is_some (ThyLoad.check_file ml_path) then [(ml_path, true)] else []);
@@ -225,207 +315,38 @@ fun begin_theory name raw_parents orig_files = with_session (fn {session, html_p
             val base = Path.base path;
             val base_html = html_ext base;
           in
-            File.write (Path.append html_prefix base_html) (HTML.ml_file base (File.read path));
-            (Some base_html, raw_path, loadit)
+            File.write (Path.append html_prefix base_html) (HTML.ml_file (Url.file base) (File.read path));
+            (Some (Url.file base_html), Url.file raw_path, loadit)
           end
       | None => (warning ("Browser info: expected to find ML file" ^ quote (Path.pack raw_path));
-          (None, raw_path, loadit)));
+          (None, Url.file raw_path, loadit)));
 
     val files_html = map prep_file files;
-    fun prep_source (source, html, graph) =
+
+    fun prep_source (source, html) =
       let val txt =
-        HTML.begin_theory (index_path, session) name parents files_html (Buffer.content source)
-      in (Buffer.empty, Buffer.add txt html, graph) end;
+        HTML.begin_theory (Url.file index_path, session) name parents files_html (Buffer.content source)
+      in (Buffer.empty, Buffer.add txt html) end;
+
+    fun make_entry unfold all =
+      {name = name, ID = ID_of path name, dir = dir_of path, unfold = unfold,
+       path = Path.pack (top_path (if all then [""] else path) 2
+         (Path.append (Path.make path) (html_path name))),
+       parents = map (fn s => ID_of (#session (get_info (ThyInfo.theory s))) s) raw_parents};
+
   in
     change_theory_info name prep_source;
-    add_index (HTML.theory_entry (html_path name, name))
+    add_all_graph_entry (make_entry (length path = 1) true);
+    add_graph_entry (make_entry true false);
+    add_index (HTML.theory_entry (Url.file (html_path name), name));
+    BrowserInfoData.put {session = path, is_local = is_some remote_path} thy
   end);
 
 fun end_theory _ = ();
 
-fun theorem name thm = with_session (fn _ => with_context add_html (HTML.theorem name thm));
-fun section s = with_session (fn _ => with_context add_html (HTML.section s));
+fun theorem name thm = with_session () (fn _ => with_context add_html (HTML.theorem name thm));
+fun section s = with_session () (fn _ => with_context add_html (HTML.section s));
 
 
 end;
 
-
-(* FIXME
-
-(******************** Graph generation functions ************************)
-
-
-(*flag that indicates whether graph files should be generated*)
-val make_graph = ref false;
-
-
-(*file to use as basis for new graph files*)
-val graph_base_file = ref "";
-
-
-(*directory containing basic theories (gets label "base")*)
-val graph_root_dir = ref "";
-
-
-(*name of current graph file*)
-val graph_file = ref "";
-
-
-(*name of large graph file which also contains
-  theories defined in subdirectories *)
-val large_graph_file = ref "";
-
-
-(* initialize graph data generator *)
-fun init_graph usedir_arg =
-  let
-      (*create default graph containing only Pure, CPure and ProtoPure*)
-      fun default_graph outfile =
-        let val os = TextIO.openOut outfile;
-        in (TextIO.output(os,"\"ProtoPure\" \"ProtoPure\" \"Pure\" \"\" ;\n\
-                             \\"CPure\" \"CPure\" \"Pure\" \"\" > \"ProtoPure\" ;\n\
-                             \\"Pure\" \"Pure\" \"Pure\" \"\" > \"ProtoPure\" ;\n");
-            TextIO.closeOut os)
-        end;
-
-      (*copy graph file, adjust relative paths for theory files*)
-      fun copy_graph infile outfile unfold =
-        let val is = TextIO.openIn infile;
-            val (inp_dir, _) = split_filename infile;
-            val (outp_dir, _) = split_filename outfile;
-            val entries = map (BAD_space_explode " ")
-                            (BAD_space_explode "\n" (TextIO.inputAll is));
-
-            fun thyfile f = if f = "\"\"" then f else
-              let val (dir, name) =
-                    split_filename (implode (rev (tl (rev (tl (explode f))))));
-                  val abs_path = normalize_path (tack_on inp_dir dir);
-                  val rel_path = tack_on (relative_path outp_dir abs_path) name
-              in quote rel_path end;
-
-            fun process_entry (a::b::c::d::e::r) =
-              if d = "+" then
-                a::b::c::((if unfold then "+ " else "") ^ (thyfile e))::r
-              else
-                a::b::c::(thyfile d)::e::r;
-
-            val _  = TextIO.closeIn is;
-            val os = TextIO.openOut outfile;
-            val _  = TextIO.output(os, (cat_lines
-                          (map ((space_implode " ") o process_entry) entries)) ^ "\n");
-            val _  = TextIO.closeOut os;
-        in () end;
-
-      (*create html page which contains graph browser applet*)
-      fun mk_applet_page abs_path large other_graph =
-        let
-          val dir_name =
-            (if subdir_of (!original_path, !base_path) then "Isabelle/" else "") ^
-            (relative_path (normalize_path (tack_on (!graph_root_dir) "..")) (pwd ()));
-          val rel_codebase =
-            relative_path abs_path (tack_on (normalize_path (!output_dir)) "graph");
-          val rel_index_path = tack_on (relative_path
-            abs_path (tack_on (normalize_path (!output_dir)) "graph")) "index.html";
-          val outfile =
-            tack_on abs_path ((if large then "large" else "small") ^ ".html");
-          val os = TextIO.openOut outfile;
-          val _ = TextIO.output(os,
-            "<HTML><HEAD><TITLE>" ^ dir_name ^ "</TITLE></HEAD>\n\
-            \<BODY><H2>" ^ dir_name ^ "</H2>\n" ^
-            (if other_graph then
-              (if large then
-                 "View <A HREF=\"small.html\">small graph</A> without \
-                 \subdirectories<P>\n"
-               else
-                 "View <A HREF=\"large.html\">large graph</A> including \
-                 \all subdirectories<P>\n")
-             else "") ^
-            "<A HREF=\"" ^ rel_index_path ^ "\">Back</A> to index\n<HR>\n\
-            \<APPLET CODE=\"GraphBrowser/GraphBrowser.class\" \
-            \CODEBASE=\"" ^ rel_codebase ^ "\" WIDTH=550 HEIGHT=450>\n\
-            \<PARAM NAME=\"graphfile\" VALUE=\"" ^
-            (if large then "large.graph" else "small.graph") ^ "\">\n\
-            \</APPLET>\n<HR>\n</BODY></HTML>")
-          val _ = TextIO.closeOut os
-        in () end;
-
-      val gpath = graph_path (pwd ());
-
-  in
-    (make_graph := true;
-     base_path := normalize_path (!base_path);
-     mkdir gpath;
-     original_path := pwd ();
-     graph_file := tack_on gpath "small.graph";
-     graph_root_dir := (if usedir_arg = "." then pwd ()
-                        else normalize_path (tack_on (pwd ()) ".."));
-     (if (!graph_base_file) = "" then
-        (large_graph_file := tack_on gpath "large.graph";
-         default_graph (!graph_file);
-         default_graph (!large_graph_file);
-         mk_applet_page gpath false true;
-         mk_applet_page gpath true true)
-      else
-        (if subdir_of (fst (split_filename (!graph_file)),
-            (fst (split_filename (!graph_base_file))))
-         then
-           (copy_graph (!graph_base_file) (!graph_file) true;
-            mk_applet_page gpath false false)
-         else
-           (large_graph_file := tack_on gpath "large.graph";
-            mk_applet_page gpath false true;
-            mk_applet_page gpath true true;
-            copy_graph (!graph_base_file) (!graph_file) false;
-            copy_graph (!graph_base_file) (!large_graph_file) false)));
-     graph_base_file := (!graph_file))
-  end;
-
-
-(*add theory to graph definition file*)
-fun mk_graph tname abs_path = if not (!make_graph) then () else
-  let val parents =
-        map (fn (t, _) => tack_on (path_of t) t)
-          (filter (fn (_, {children,...}) => tname mem children)
-             (Symtab.dest(!loaded_thys)));
-
-      val dir_name = relative_path
-         (normalize_path (tack_on (!graph_root_dir) "..")) abs_path;
-
-      val dir_entry = "\"" ^ dir_name ^
-         (if (tack_on abs_path "") = (tack_on (!graph_root_dir) "")
-          then "/base\" + " else "\" ");
-
-      val thy_file = (tack_on (html_path abs_path) tname) ^ ".html";
-
-      val thy_ID = quote (tack_on abs_path tname);
-
-      val entry_str_1 = (quote tname) ^ " " ^ thy_ID ^ " " ^ dir_entry ^
-                (quote (relative_path (fst (split_filename (!graph_file))) thy_file)) ^
-                " > " ^ (space_implode " " (map quote parents)) ^ " ;\n" ;
-
-      val entry_str_2 = (quote tname) ^ " " ^ thy_ID ^ " " ^ dir_entry ^
-                (quote (relative_path (fst (split_filename (!large_graph_file))) thy_file)) ^
-                " > " ^ (space_implode " " (map quote parents)) ^ " ;\n" ;
-
-      fun exists_entry id infile =
-        let val is = TextIO.openIn(infile);
-            val IDs = map (hd o tl o (BAD_space_explode " "))
-                            (BAD_space_explode "\n" (TextIO.inputAll is));
-            val _ = TextIO.closeIn is
-        in id mem IDs end;
-
-      fun mk_entry outfile entry_str =
-        if exists_entry thy_ID outfile then ()
-        else
-          let val os = TextIO.openAppend outfile;
-              val _ = TextIO.output (os, entry_str);
-              val _ = TextIO.closeOut os;
-          in () end
-
-  in (mk_entry (!graph_file) entry_str_1;
-      mk_entry (!large_graph_file) entry_str_2) handle _ =>
-             (make_graph:=false;
-              warning ("Unable to write to graph file " ^ (!graph_file)))
-  end;
-
-*)

@@ -14,23 +14,24 @@ sig
   val name: string -> text
   val keyword: string -> text
   val file_name: string -> text
-  val file_path: Path.T -> text
+  val file_path: Url.T -> text
   val href_name: string -> text -> text
-  val href_path: Path.T -> text -> text
+  val href_path: Url.T -> text -> text
   val href_opt_name: string option -> text -> text
-  val href_opt_path: Path.T option -> text -> text
+  val href_opt_path: Url.T option -> text -> text
   val para: text -> text
   val preform: text -> text
   val verbatim: string -> text
-  val begin_index: Path.T * string -> Path.T * string -> Path.T option -> text
+  val begin_index: Url.T * string -> Url.T * string -> Url.T option -> Url.T -> text
   val end_index: text
-  val theory_entry: Path.T * string -> text
-  val session_entries: (Path.T * string) list -> text
+  val applet_pages: string -> Url.T -> Url.T * string -> bool -> (string * string) list
+  val theory_entry: Url.T * string -> text
+  val session_entries: (Url.T * string) list -> text
   val source: (string, 'a) Source.source -> text
-  val begin_theory: Path.T * string -> string -> (Path.T option * string) list ->
-    (Path.T option * Path.T * bool) list -> text -> text
+  val begin_theory: Url.T * string -> string -> (Url.T option * string) list ->
+    (Url.T option * Url.T * bool) list -> text -> text
   val end_theory: text
-  val ml_file: Path.T -> string -> text
+  val ml_file: Url.T -> string -> text
   val theorem: string -> thm -> text
   val section: string -> text
   val setup: (theory -> theory) list
@@ -108,13 +109,13 @@ val plain = output;
 fun name s = "<i>" ^ output s ^ "</i>";
 fun keyword s = "<b>" ^ output s ^ "</b>";
 fun file_name s = "<tt>" ^ output s ^ "</tt>";
-val file_path = file_name o Path.pack;
+val file_path = file_name o Url.pack;
 
 
 (* misc *)
 
 fun href_name s txt = "<a href=" ^ quote s ^ ">" ^ txt ^ "</a>";
-fun href_path path txt = href_name (Path.pack path) txt;
+fun href_path path txt = href_name (Url.pack path) txt;
 
 fun href_opt_name None txt = txt
   | href_opt_name (Some s) txt = href_name s txt;
@@ -146,12 +147,49 @@ fun up_link (up_path, up_name) =
 
 (* session index *)
 
-fun begin_index up (index_path, session) opt_readme =
-  begin_document ("Index of " ^ session) ^ up_link up ^
+fun begin_index up (index_path, session) opt_readme graph =
+  begin_document ("Index of " ^ session) ^
+  para ("View " ^ href_path graph "graph" ^ " of theories") ^ up_link up ^
   (case opt_readme of None => "" | Some p => href_path p "README") ^
   "\n<hr>\n\n<h2>Theories</h2>\n<ul>\n";
 
 val end_index = end_document;
+
+fun choice chs s = space_implode " " (map (fn (s', lnk) =>
+  enclose "[" "]" (if s = s' then keyword s' else href_name lnk s')) chs);
+
+fun applet_pages session codebase up alt_graph =
+  let
+    val choices = [("none", "small",  "small.html"),
+                   ("none", "medium", "medium.html"),
+                   ("none", "large",  "large.html"),
+                   ("all",  "small",  "small_all.html"),
+                   ("all",  "medium", "medium_all.html"),
+                   ("all",  "large",  "large_all.html")];
+
+    val sizes = [("small",  ("500", "400")),
+                 ("medium", ("650", "520")),
+                 ("large",  ("800", "640"))];
+
+    fun applet_page (gtype, size, name) =
+      let val (Some (width, height)) = assoc (sizes, size)
+      in (name, begin_document ("Theory dependencies of " ^ session) ^
+        (if alt_graph then
+           para ("View subsessions: " ^
+             choice (map (fn (x, _, z) => (x, z)) (filter (fn (_, y, _) => y = size) choices)) gtype)
+         else "") ^
+        para ("Browser size: " ^
+          choice (map (fn (_, y, z) => (y, z)) (filter (fn (x, _, _) => x = gtype) choices)) size) ^
+        up_link up ^ "\n<hr>\n<applet code=\"GraphBrowser/GraphBrowser.class\" \
+        \codebase=\"" ^ Url.pack codebase ^ "\" width=" ^ width ^ " height=" ^ height ^ ">\n\
+        \<param name=\"graphfile\" value=\"" ^
+        (if gtype = "all" then "all_sessions.graph" else "session.graph") ^ "\">\n\
+        \</applet>\n<hr>" ^ end_document)
+      end;
+
+  in
+    map applet_page (take (if alt_graph then 6 else 3, choices))
+  end;
 
 fun entry (p, s) = "<li>" ^ href_path p (plain s) ^ "\n";
 
@@ -191,7 +229,7 @@ val end_theory = end_document;
 (* ML file *)
 
 fun ml_file path str =
-  begin_document ("File " ^ Path.pack path) ^
+  begin_document ("File " ^ Url.pack path) ^
   "\n<hr>\n" ^ verbatim str ^ "\n<hr>\n" ^ end_document;
 
 
