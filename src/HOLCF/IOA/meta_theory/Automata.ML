@@ -6,9 +6,9 @@
 The I/O automata of Lynch and Tuttle.
 *)
 
-(* Has been removed from HOL-simpset, who knows why? *)
-Addsimps [Let_def];
+(* this modification of the simpset is local to this file *)
 Delsimps [split_paired_Ex];
+
 
 open reachable;
 
@@ -171,7 +171,7 @@ section "input_enabledness and par";
 goalw thy [input_enabled_def] 
 "!!A. [| compatible A B; input_enabled A; input_enabled B|] \
 \     ==> input_enabled (A||B)";
-by (asm_full_simp_tac (simpset() addsimps [inputs_of_par,trans_of_par]) 1);
+by (asm_full_simp_tac (simpset()addsimps[Let_def,inputs_of_par,trans_of_par])1);
 by (safe_tac set_cs);
 by (asm_full_simp_tac (simpset() addsimps [inp_is_act]) 1);
 by (asm_full_simp_tac (simpset() addsimps [inp_is_act]) 2);
@@ -403,9 +403,8 @@ qed "trans_of_par4";
 section "proof obligation generator for IOA requirements";  
 
 (* without assumptions on A and B because is_trans_of is also incorporated in ||def *)
-goalw thy [is_trans_of_def] 
-"is_trans_of (A||B)";
-by (simp_tac (simpset() addsimps [actions_of_par,trans_of_par]) 1);
+goalw thy [is_trans_of_def] "is_trans_of (A||B)";
+by (simp_tac (simpset() addsimps [Let_def,actions_of_par,trans_of_par]) 1);
 qed"is_trans_of_par";
 
 goalw thy [is_trans_of_def] 
@@ -416,7 +415,7 @@ qed"is_trans_of_restrict";
 goalw thy [is_trans_of_def,restrict_def,restrict_asig_def] 
 "!!A. is_trans_of A ==> is_trans_of (rename A f)";
 by (asm_full_simp_tac
-    (simpset() addsimps [actions_def,trans_of_def, asig_internals_def,
+    (simpset() addsimps [Let_def,actions_def,trans_of_def, asig_internals_def,
 			 asig_outputs_def,asig_inputs_def,externals_def,
 			 asig_of_def,rename_def,rename_set_def]) 1);
 by (Blast_tac 1);
@@ -445,18 +444,8 @@ by (asm_full_simp_tac (simpset() addsimps [is_asig_of_def,
      rename_def,rename_set_def,asig_internals_def,asig_outputs_def,
      asig_inputs_def,actions_def,is_asig_def,asig_of_def]) 1);
 by Auto_tac; 
-by (dres_inst_tac [("s","Some xb")] sym 1);
-by (rotate_tac ~1 1);
-by (Asm_full_simp_tac 1);
-by (best_tac (set_cs addEs [equalityCE]) 1);
-by (dres_inst_tac [("s","Some xb")] sym 1);
-by (rotate_tac ~1 1);
-by (Asm_full_simp_tac 1);
-by (best_tac (set_cs addEs [equalityCE]) 1);
-by (dres_inst_tac [("s","Some xb")] sym 1);
-by (rotate_tac ~1 1);
-by (Asm_full_simp_tac 1);
-by (best_tac (set_cs addEs [equalityCE]) 1);
+by   (ALLGOALS(dres_inst_tac [("s","Some ?x")] sym THEN' Asm_full_simp_tac));
+by   (ALLGOALS(best_tac (set_cs addEs [equalityCE])));
 qed"is_asig_of_rename";
 
 
@@ -488,4 +477,6 @@ by (asm_full_simp_tac (simpset() addsimps [ioa_triple_proj,asig_triple_proj,
           externals_def,restrict_def,restrict_asig_def,actions_def]) 1);
 by (auto_tac (claset() addEs [equalityCE],simpset()));
 qed"compatible_restrict";
- 
+
+
+Addsimps [split_paired_Ex];
