@@ -1158,9 +1158,10 @@ end;
 local
 
 fun intro_elim_tac netpair_of _ [] cs facts =
-      Method.same_tac facts THEN' FIRST' (map (biresolve_from_nets_tac o netpair_of) (get_nets cs))
+      Method.same_tac facts THEN'
+        (REPEAT1 o FIRST' (map (biresolve_from_nets_tac o netpair_of) (get_nets cs)))
   | intro_elim_tac _ res_tac rules _ facts =
-      Method.same_tac facts THEN' res_tac rules;
+      Method.same_tac facts THEN' (REPEAT1 o res_tac rules);
 
 val intro_tac = intro_elim_tac (fn (inet, _) => (inet, Net.empty)) resolve_tac;
 val elim_tac = intro_elim_tac (fn (_, enet) => (Net.empty, enet)) eresolve_tac;
