@@ -33,28 +33,93 @@ lemma Br_neq_left': "l \<in> bt(A) ==> (!!x r. Br(x, l, r) \<noteq> l)"
   apply auto
   done
 
-lemma Br_iff: "Br(a, l, r) = Br(a', l', r') <-> a = a' & l = l' & r = r'"
+lemma Br_iff: "Br(a,l,r) = Br(a',l',r') <-> a=a' & l=l' & r=r'"
   -- "Proving a freeness theorem."
   by (blast elim!: bt.free_elims)
 
-inductive_cases BrE: "Br(a, l, r) \<in> bt(A)"
+inductive_cases Br_in_bt: "Br(a,l,r) \<in> bt(A)"
   -- "An elimination rule, for type-checking."
 
 text {*
-@{thm[display] BrE[no_vars]}
-\rulename{BrE}
+@{thm[display] Br_in_bt[no_vars]}
 *};
+
+subsection{*Primitive recursion*}
+
+consts  n_nodes :: "i => i"
+primrec
+  "n_nodes(Lf) = 0"
+  "n_nodes(Br(a,l,r)) = succ(n_nodes(l) #+ n_nodes(r))"
+
+lemma n_nodes_type [simp]: "t \<in> bt(A) ==> n_nodes(t) \<in> nat"
+  by (induct_tac t, auto) 
+
+consts  n_nodes_aux :: "i => i"
+primrec
+  "n_nodes_aux(Lf) = (\<lambda>k \<in> nat. k)"
+  "n_nodes_aux(Br(a,l,r)) = 
+      (\<lambda>k \<in> nat. n_nodes_aux(r) `  (n_nodes_aux(l) ` succ(k)))"
+
+lemma n_nodes_aux_eq [rule_format]:
+     "t \<in> bt(A) ==> \<forall>k \<in> nat. n_nodes_aux(t)`k = n_nodes(t) #+ k"
+  by (induct_tac t, simp_all) 
+
+constdefs  n_nodes_tail :: "i => i"
+   "n_nodes_tail(t) == n_nodes_aux(t) ` 0"
+
+lemma "t \<in> bt(A) ==> n_nodes_tail(t) = n_nodes(t)"
+ by (simp add: n_nodes_tail_def n_nodes_aux_eq) 
+
+
+subsection {*Inductive definitions*}
+
+consts  Fin       :: "i=>i"
+inductive
+  domains   "Fin(A)" \<subseteq> "Pow(A)"
+  intros
+    emptyI:  "0 \<in> Fin(A)"
+    consI:   "[| a \<in> A;  b \<in> Fin(A) |] ==> cons(a,b) \<in> Fin(A)"
+  type_intros  empty_subsetI cons_subsetI PowI
+  type_elims   PowD [THEN revcut_rl]
+
+
+consts  acc :: "i => i"
+inductive
+  domains "acc(r)" \<subseteq> "field(r)"
+  intros
+    vimage:  "[| r-``{a}: Pow(acc(r)); a \<in> field(r) |] ==> a \<in> acc(r)"
+  monos      Pow_mono
+
+
+consts
+  llist  :: "i=>i";
+
+codatatype
+  "llist(A)" = LNil | LCons ("a \<in> A", "l \<in> llist(A)")
+
+
+(*Coinductive definition of equality*)
+consts
+  lleq :: "i=>i"
+
+(*Previously used <*> in the domain and variant pairs as elements.  But
+  standard pairs work just as well.  To use variant pairs, must change prefix
+  a q/Q to the Sigma, Pair and converse rules.*)
+coinductive
+  domains "lleq(A)" \<subseteq> "llist(A) * llist(A)"
+  intros
+    LNil:  "<LNil, LNil> \<in> lleq(A)"
+    LCons: "[| a \<in> A; <l,l'> \<in> lleq(A) |] 
+            ==> <LCons(a,l), LCons(a,l')> \<in> lleq(A)"
+  type_intros  llist.intros
+
 
 subsection{*Powerset example*}
 
-lemma Pow_mono: "A<=B  ==>  Pow(A) <= Pow(B)"
-  --{* @{subgoals[display,indent=0,margin=65]} *}
+lemma Pow_mono: "A\<subseteq>B  ==>  Pow(A) \<subseteq> Pow(B)"
 apply (rule subsetI)
-  --{* @{subgoals[display,indent=0,margin=65]} *}
 apply (rule PowI)
-  --{* @{subgoals[display,indent=0,margin=65]} *}
 apply (drule PowD)
-  --{* @{subgoals[display,indent=0,margin=65]} *}
 apply (erule subset_trans, assumption)
 done
 
@@ -76,7 +141,9 @@ apply (rule PowI)
   --{* @{subgoals[display,indent=0,margin=65]} *}
 apply (drule PowD)+
   --{* @{subgoals[display,indent=0,margin=65]} *}
-apply (rule Int_greatest, assumption+)
+apply (rule Int_greatest)
+  --{* @{subgoals[display,indent=0,margin=65]} *}
+apply (assumption+)
 done
 
 text{*Trying again from the beginning in order to use @{text blast}*}
@@ -84,20 +151,24 @@ lemma "Pow(A Int B) = Pow(A) Int Pow(B)"
 by blast
 
 
-lemma "C<=D ==> Union(C) <= Union(D)"
+lemma "C\<subseteq>D ==> Union(C) \<subseteq> Union(D)"
   --{* @{subgoals[display,indent=0,margin=65]} *}
 apply (rule subsetI)
   --{* @{subgoals[display,indent=0,margin=65]} *}
 apply (erule UnionE)
   --{* @{subgoals[display,indent=0,margin=65]} *}
 apply (rule UnionI)
-apply (erule subsetD, assumption, assumption)
   --{* @{subgoals[display,indent=0,margin=65]} *}
+apply (erule subsetD)
+  --{* @{subgoals[display,indent=0,margin=65]} *}
+apply assumption 
+  --{* @{subgoals[display,indent=0,margin=65]} *}
+apply assumption 
 done
 
-text{*Trying again from the beginning in order to prove from the definitions*}
+text{*A more abstract version of the same proof*}
 
-lemma "C<=D ==> Union(C) <= Union(D)"
+lemma "C\<subseteq>D ==> Union(C) \<subseteq> Union(D)"
   --{* @{subgoals[display,indent=0,margin=65]} *}
 apply (rule Union_least)
   --{* @{subgoals[display,indent=0,margin=65]} *}
@@ -107,15 +178,25 @@ apply (erule subsetD, assumption)
 done
 
 
-lemma "[| a:A;  f: A->B;  g: C->D;  A Int C = 0 |] ==> (f Un g)`a = f`a"
+lemma "[| a \<in> A;  f \<in> A->B;  g \<in> C->D;  A \<inter> C = 0 |] ==> (f \<union> g)`a = f`a"
   --{* @{subgoals[display,indent=0,margin=65]} *}
 apply (rule apply_equality)
   --{* @{subgoals[display,indent=0,margin=65]} *}
 apply (rule UnI1)
   --{* @{subgoals[display,indent=0,margin=65]} *}
-apply (rule apply_Pair, assumption+)
+apply (rule apply_Pair)
   --{* @{subgoals[display,indent=0,margin=65]} *}
-apply (rule fun_disjoint_Un, assumption+)
+apply assumption 
+  --{* @{subgoals[display,indent=0,margin=65]} *}
+apply assumption 
+  --{* @{subgoals[display,indent=0,margin=65]} *}
+apply (rule fun_disjoint_Un)
+  --{* @{subgoals[display,indent=0,margin=65]} *}
+apply assumption 
+  --{* @{subgoals[display,indent=0,margin=65]} *}
+apply assumption 
+  --{* @{subgoals[display,indent=0,margin=65]} *}
+apply assumption 
 done
 
 end
