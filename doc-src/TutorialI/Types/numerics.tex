@@ -4,7 +4,7 @@ Until now, our numerical have used the type of \textbf{natural numbers},
 zero  and successor, so it works well with inductive proofs and primitive
 recursive function definitions. Isabelle/HOL also provides the type
 \isa{int} of \textbf{integers}, which lack induction but support true
-subtraction. The logic HOL-Real\REMARK{now part of HOL?} also has the type \isa{real} of real
+subtraction. The logic HOL-Real also has the type \isa{real} of real
 numbers.  Isabelle has no subtyping,  so the numeric types are distinct and
 there are  functions to convert between them. 
 
@@ -25,10 +25,10 @@ causes case splits.
 
 The simplifier reduces arithmetic expressions in other
 ways, such as dividing through by common factors.  For problems that lie
-outside the scope of automation, the library has hundreds of
+outside the scope of automation, HOL provides hundreds of
 theorems about multiplication, division, etc., that can be brought to
-bear.  You can find find them by browsing the library or by using the Find
-button in Proof General.  A few lemmas are given below to show what
+bear.  You can locate them using Proof General's Find
+button.  A few lemmas are given below to show what
 is available.
 
 \subsection{Numeric Literals}
@@ -67,6 +67,21 @@ Carefully observe how Isabelle displays the subgoal:
 The type \isa{'a} given for the literal \isa{\#2} warns us that no numeric
 type has been specified.  The problem is underspecified.  Given a type
 constraint such as \isa{nat}, \isa{int} or \isa{real}, it becomes trivial.
+\end{warn}
+
+\begin{warn}
+Numeric literals are not constructors and therefore must not be used in
+patterns.  For example, this declaration is rejected:
+\begin{isabelle}
+\isacommand{recdef}\ h\ "\isacharbraceleft \isacharbraceright "\isanewline
+h\ \#3\ =\ \#2\isanewline
+h\ i\ \ =\ i
+\end{isabelle}
+
+You should use a conditional expression instead:
+\begin{isabelle}
+"h\ i\ =\ (if\ i\ =\ \#3\ then\ \#2\ else\ i)"
+\end{isabelle}
 \end{warn}
 
 
@@ -128,8 +143,9 @@ Various distributive laws concerning multiplication are available:
 \end{isabelle}
 
 \subsubsection{Division}
-The library contains the basic facts about quotient and remainder
-(including the analogous equation, \isa{div_if}):
+The infix operators \isa{div} and \isa{mod} are overloaded.
+Isabelle/HOL provides the basic facts about quotient and remainder
+on the natural numbers:
 \begin{isabelle}
 m\ mod\ n\ =\ (if\ m\ <\ n\ then\ m\ else\ (m\ -\ n)\ mod\ n)
 \rulename{mod_if}\isanewline
@@ -238,7 +254,7 @@ Here is the resulting subgoal:
 \subsection{The type of integers, {\tt\slshape int}}
 
 Reasoning methods resemble those for the natural numbers, but induction and
-the constant \isa{Suc} are not available.  The library provides many lemmas
+the constant \isa{Suc} are not available.  HOL provides many lemmas
 for proving inequalities involving integer multiplication and division,
 similar to those shown above for type~\isa{nat}.  
 
@@ -255,6 +271,12 @@ can be entered using the X-symbol package.  In ASCII, type \isa{abs x} to
 get \isa{\isasymbar x\isasymbar}.
 \end{warn}
 
+The \isa{arith} method can prove facts about \isa{abs} automatically, 
+though as it does so by case analysis, the cost can be exponential.
+\begin{isabelle}
+\isacommand{lemma}\ "\isasymlbrakk abs\ x\ <\ a;\ abs\ y\ <\ b\isasymrbrakk \ \isasymLongrightarrow \ abs\ x\ +\ abs\ y\ <\ (a\ +\ b\ ::\ int)"\isanewline
+\isacommand{by}\ arith
+\end{isabelle}
 
 Concerning simplifier tricks, we have no need to eliminate subtraction: it
 is well-behaved.  As with the natural numbers, the simplifier can sort the
@@ -308,7 +330,7 @@ The last two differ from their natural number analogues by requiring
 \isa{c} to be zero.  However, \isa{c} cannot be negative: a counterexample
 is
 $\isa{a} = 7$, $\isa{b} = 2$ and $\isa{c} = -3$, when the left-hand side of
-\isa{zdiv_zmult2_eq} is $-2$ while the right-hand side is $-1$.
+\isa{zdiv_zmult2_eq} is $-2$ while the right-hand side is~$-1$.
 
 
 \subsection{The type of real numbers, {\tt\slshape real}}
@@ -374,9 +396,11 @@ exponentiation:
 \rulename{realpow_abs}
 \end{isabelle}
 
-\emph{Note}: Type \isa{real} is only available in the logic HOL-Real\REMARK{now part of HOL?}, which
+\begin{warn}
+Type \isa{real} is only available in the logic HOL-Real, which
 is  HOL extended with the rather substantial development of the real
 numbers.  Base your theory upon theory \isa{Real}, not the usual \isa{Main}.
+\end{warn}
 
 Also distributed with Isabelle is HOL-Hyperreal,
 whose theory \isa{Hyperreal} defines the type \isa{hypreal} of non-standard
@@ -385,5 +409,5 @@ reals.  These
 small and infinitely large quantities; they facilitate proofs
 about limits, differentiation and integration~\cite{fleuriot-jcm}.  The
 development defines an infinitely large number, \isa{omega} and an
-infinitely small positive number, \isa{epsilon}.  Also available is the
-approximates relation, written $\approx$.
+infinitely small positive number, \isa{epsilon}.  The 
+relation $x\approx y$ means ``$x$ is infinitely close to~$y$''.
