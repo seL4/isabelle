@@ -15,6 +15,11 @@ ISABELLE_SETTINGS_PRESENT=true
 
 #normalize ISABELLE_HOME as passed by caller
 ISABELLE_HOME=$(cd "$ISABELLE_HOME"; echo "$PWD")
+if { echo -n "$ISABELLE_HOME" | fgrep " " >/dev/null; }
+then
+  echo 1>&2 "### White space in ISABELLE_HOME may cause strange problems later on!"
+  echo 1>&2 "### ISABELLE_HOME=\"$ISABELLE_HOME\""
+fi
 
 #key executables
 ISABELLE="$ISABELLE_HOME/bin/isabelle-process"
