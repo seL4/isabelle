@@ -543,63 +543,16 @@ proof
     by (auto dest: order_le_less_trans simp add: hrabs_def linorder_not_le)
 qed
 
-lemma hypreal_mult_1_right: "z * (1::hypreal) = z"
-  by (rule Ring_and_Field.mult_1_right)
-
-lemma hypreal_mult_minus_1 [simp]: "(- (1::hypreal)) * z = -z"
-by simp
-
-lemma hypreal_mult_minus_1_right [simp]: "z * (- (1::hypreal)) = -z"
-by (subst hypreal_mult_commute, simp)
-
-(*Used ONCE: in NSA.ML*)
-lemma hypreal_minus_distrib1: "-(y + -(x::hypreal)) = x + -y"
-by (simp add: hypreal_add_commute)
-
-(*Used ONCE: in Lim.ML*)
-lemma hypreal_eq_minus_iff3: "(x = y + z) = (x + -z = (y::hypreal))"
-by (auto simp add: hypreal_add_assoc)
-
 lemma hypreal_eq_minus_iff: "((x::hypreal) = y) = (x + - y = 0)"
 apply auto
 apply (rule Ring_and_Field.add_right_cancel [of _ "-y", THEN iffD1], auto)
 done
-
-(*Used 3 TIMES: in Lim.ML*)
-lemma hypreal_not_eq_minus_iff: "(x \<noteq> a) = (x + -a \<noteq> (0::hypreal))"
-by (auto dest: hypreal_eq_minus_iff [THEN iffD2])
 
 lemma hypreal_mult_left_cancel: "(c::hypreal) \<noteq> 0 ==> (c*a=c*b) = (a=b)"
 by auto
     
 lemma hypreal_mult_right_cancel: "(c::hypreal) \<noteq> 0 ==> (a*c=b*c) = (a=b)"
 by auto
-
-lemma hypreal_mult_not_0: "[| x \<noteq> 0; y \<noteq> 0 |] ==> x * y \<noteq> (0::hypreal)"
-by simp
-
-lemma hypreal_minus_inverse: "inverse(-x) = -inverse(x::hypreal)"
-  by (rule Ring_and_Field.inverse_minus_eq)
-
-lemma hypreal_inverse_distrib: "inverse(x*y) = inverse(x)*inverse(y::hypreal)"
-  by (rule Ring_and_Field.inverse_mult_distrib)
-
-
-subsection{* Division lemmas *}
-
-lemma hypreal_divide_one: "x/(1::hypreal) = x"
-by (simp add: hypreal_divide_def)
-
-
-(** As with multiplication, pull minus signs OUT of the / operator **)
-
-lemma hypreal_add_divide_distrib: "(x+y)/(z::hypreal) = x/z + y/z"
-  by (rule Ring_and_Field.add_divide_distrib)
-
-lemma hypreal_inverse_add:
-     "[|(x::hypreal) \<noteq> 0;  y \<noteq> 0 |]   
-      ==> inverse(x) + inverse(y) = (x + y)*inverse(x*y)"
-by (simp add: Ring_and_Field.inverse_add mult_assoc)
 
 
 subsection{*The Embedding @{term hypreal_of_real} Preserves Field and 
@@ -832,15 +785,11 @@ val hypreal_add_zero_left = thm "hypreal_add_zero_left";
 val hypreal_add_zero_right = thm "hypreal_add_zero_right";
 val hypreal_add_minus = thm "hypreal_add_minus";
 val hypreal_add_minus_left = thm "hypreal_add_minus_left";
-val hypreal_minus_distrib1 = thm "hypreal_minus_distrib1";
 val hypreal_mult_congruent2 = thm "hypreal_mult_congruent2";
 val hypreal_mult = thm "hypreal_mult";
 val hypreal_mult_commute = thm "hypreal_mult_commute";
 val hypreal_mult_assoc = thm "hypreal_mult_assoc";
 val hypreal_mult_1 = thm "hypreal_mult_1";
-val hypreal_mult_1_right = thm "hypreal_mult_1_right";
-val hypreal_mult_minus_1 = thm "hypreal_mult_minus_1";
-val hypreal_mult_minus_1_right = thm "hypreal_mult_minus_1_right";
 val hypreal_zero_not_eq_one = thm "hypreal_zero_not_eq_one";
 val hypreal_inverse_congruent = thm "hypreal_inverse_congruent";
 val hypreal_inverse = thm "hypreal_inverse";
@@ -848,14 +797,9 @@ val hypreal_mult_inverse = thm "hypreal_mult_inverse";
 val hypreal_mult_inverse_left = thm "hypreal_mult_inverse_left";
 val hypreal_mult_left_cancel = thm "hypreal_mult_left_cancel";
 val hypreal_mult_right_cancel = thm "hypreal_mult_right_cancel";
-val hypreal_mult_not_0 = thm "hypreal_mult_not_0";
-val hypreal_minus_inverse = thm "hypreal_minus_inverse";
-val hypreal_inverse_distrib = thm "hypreal_inverse_distrib";
 val hypreal_not_refl2 = thm "hypreal_not_refl2";
 val hypreal_less = thm "hypreal_less";
 val hypreal_eq_minus_iff = thm "hypreal_eq_minus_iff";
-val hypreal_eq_minus_iff3 = thm "hypreal_eq_minus_iff3";
-val hypreal_not_eq_minus_iff = thm "hypreal_not_eq_minus_iff";
 val hypreal_le = thm "hypreal_le";
 val hypreal_le_refl = thm "hypreal_le_refl";
 val hypreal_le_linear = thm "hypreal_le_linear";
@@ -872,9 +816,6 @@ val hypreal_of_real_one = thm "hypreal_of_real_one";
 val hypreal_of_real_zero = thm "hypreal_of_real_zero";
 val hypreal_of_real_inverse = thm "hypreal_of_real_inverse";
 val hypreal_of_real_divide = thm "hypreal_of_real_divide";
-val hypreal_divide_one = thm "hypreal_divide_one";
-val hypreal_add_divide_distrib = thm "hypreal_add_divide_distrib";
-val hypreal_inverse_add = thm "hypreal_inverse_add";
 val hypreal_zero_num = thm "hypreal_zero_num";
 val hypreal_one_num = thm "hypreal_one_num";
 val hypreal_omega_gt_zero = thm "hypreal_omega_gt_zero";

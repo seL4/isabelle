@@ -5,6 +5,9 @@
     Description : Power Series
 *)
 
+fun ARITH_PROVE str = prove_goal thy str
+                      (fn prems => [cut_facts_tac prems 1,arith_tac 1]);
+
 fun multr_by_tac x i = 
        let val cancel_thm = 
            CLAIM "[| (0::real)<z; x*z<y*z |] ==> x<y" 
@@ -272,7 +275,7 @@ qed "real_sqrt_ge_one";
 (*-------------------------------------------------------------------------*)
 
 Goal "summable (%n. inverse (real (fact n)) * x ^ n)";
-by (cut_facts_tac [zero_less_one RS real_dense] 1);
+by (cut_inst_tac [("'a","real")] (zero_less_one RS dense) 1);
 by (Step_tac 1);
 by (cut_inst_tac [("x","r")] reals_Archimedean3 1);
 by Auto_tac;
@@ -727,7 +730,7 @@ by (rtac ext 1);
 by (asm_full_simp_tac (simpset() addsimps [real_diff_def,
      right_distrib] @ add_ac @ mult_ac) 1);
 (* 46 *)
-by (dtac real_dense 1 THEN Step_tac 1);
+by (dtac dense 1 THEN Step_tac 1);
 by (ftac (real_less_sum_gt_zero) 1);
 by (dres_inst_tac [("f","%n. abs(c n) * real n * \
 \                    real (n - Suc 0) * (r ^ (n - 2))"),
@@ -2551,7 +2554,7 @@ qed "real_root_le_iff";
 Addsimps [real_root_le_iff];
 
 Goal "[| 0 <= x; 0 <= y |] ==> (root(Suc n) x = root(Suc n) y) = (x = y)";
-by (auto_tac (claset() addSIs [real_le_anti_sym],simpset()));
+by (auto_tac (claset() addSIs [order_antisym],simpset()));
 by (res_inst_tac [("n1","n")] (real_root_le_iff RS iffD1) 1);
 by (res_inst_tac [("n1","n")] (real_root_le_iff RS iffD1) 4);
 by Auto_tac;

@@ -573,7 +573,7 @@ lemma STAR_sin_pi_divide_HNatInfinite_approx_pi:
 apply (frule STAR_sin_Infinitesimal_divide
                [OF Infinitesimal_pi_divide_HNatInfinite 
                    pi_divide_HNatInfinite_not_zero])
-apply (auto simp add: hypreal_inverse_distrib)
+apply (auto simp add: inverse_mult_distrib)
 apply (rule approx_SReal_mult_cancel [of "inverse (hypreal_of_real pi)"])
 apply (auto intro: SReal_inverse simp add: divide_inverse mult_ac)
 done

@@ -508,7 +508,7 @@ by (res_inst_tac [("j","(e / 2) * abs(v - x)")] real_le_trans 1);
 by (Asm_full_simp_tac 2 THEN arith_tac 2);
 by (ALLGOALS (thin_tac "ALL xa. \
 \             xa ~= x & abs (xa + - x) < s --> \
-\             abs ((f xa + - f x) / (xa + - x) + - f' x) * 2 < e"));
+\             abs ((f xa - f x) / (xa - x) + - f' x) * 2 < e"));
 by (dres_inst_tac [("x","v")] spec 1 THEN Auto_tac);
 by (arith_tac 1);
 by (dres_inst_tac [("x","u")] spec 1 THEN Auto_tac);

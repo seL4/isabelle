@@ -154,7 +154,7 @@ done
 lemma SReal_dense:
      "[| (x::hypreal) \<in> Reals; y \<in> Reals;  x<y |] ==> \<exists>r \<in> Reals. x<r & r<y"
 apply (auto simp add: SReal_iff)
-apply (drule real_dense, safe)
+apply (drule dense, safe)
 apply (rule_tac x = "hypreal_of_real r" in bexI, auto)
 done
 
@@ -304,14 +304,11 @@ declare Infinitesimal_zero [iff]
 lemma hypreal_sum_of_halves: "x/(2::hypreal) + x/(2::hypreal) = x"
 by auto
 
-lemma hypreal_half_gt_zero: "0 < r ==> 0 < r/(2::hypreal)"
-by auto
-
 lemma Infinitesimal_add:
      "[| x \<in> Infinitesimal; y \<in> Infinitesimal |] ==> (x+y) \<in> Infinitesimal"
 apply (auto simp add: Infinitesimal_def)
 apply (rule hypreal_sum_of_halves [THEN subst])
-apply (drule hypreal_half_gt_zero)
+apply (drule half_gt_zero)
 apply (blast intro: hrabs_add_less hrabs_add_less SReal_divide_number_of)
 done
 
@@ -488,6 +485,9 @@ lemma approx_refl: "x @= x"
 by (simp add: approx_def Infinitesimal_def)
 declare approx_refl [iff]
 
+lemma hypreal_minus_distrib1: "-(y + -(x::hypreal)) = x + -y"
+by (simp add: hypreal_add_commute)
+
 lemma approx_sym: "x @= y ==> y @= x"
 apply (simp add: approx_def)
 apply (rule hypreal_minus_distrib1 [THEN subst])
@@ -562,7 +562,6 @@ val HFinite_bounded = thm "HFinite_bounded";
 val InfinitesimalD = thm "InfinitesimalD";
 val Infinitesimal_zero = thm "Infinitesimal_zero";
 val hypreal_sum_of_halves = thm "hypreal_sum_of_halves";
-val hypreal_half_gt_zero = thm "hypreal_half_gt_zero";
 val Infinitesimal_add = thm "Infinitesimal_add";
 val Infinitesimal_minus_iff = thm "Infinitesimal_minus_iff";
 val Infinitesimal_diff = thm "Infinitesimal_diff";

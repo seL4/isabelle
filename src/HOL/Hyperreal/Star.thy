@@ -180,7 +180,6 @@ by (simp add: starfun_n_def starfun_def)
 *)
 
 lemma hrabs_is_starext_rabs: "is_starext abs abs"
-
 apply (simp add: is_starext_def, safe)
 apply (rule_tac z = x in eq_Abs_hypreal)
 apply (rule_tac z = y in eq_Abs_hypreal, auto)
@@ -190,9 +189,10 @@ apply (auto dest!: spec simp add: hypreal_minus hrabs_def hypreal_zero_def hypre
 apply (arith | ultra)+
 done
 
-lemma Rep_hypreal_FreeUltrafilterNat: "[| X \<in> Rep_hypreal z; Y \<in> Rep_hypreal z |]
+lemma Rep_hypreal_FreeUltrafilterNat:
+     "[| X \<in> Rep_hypreal z; Y \<in> Rep_hypreal z |]
       ==> {n. X n = Y n} : FreeUltrafilterNat"
-apply (rule_tac z = z in eq_Abs_hypreal)
+apply (cases z)
 apply (auto, ultra)
 done
 
@@ -212,22 +212,25 @@ apply (simp add: hyprel_in_hypreal [THEN Abs_hypreal_inverse]
                  UN_equiv_class [OF equiv_hyprel starfun_congruent])
 done
 
+lemma starfun_if_eq:
+     "w \<noteq> hypreal_of_real x
+       ==> ( *f* (\<lambda>z. if z = x then a else g z)) w = ( *f* g) w" 
+apply (cases w) 
+apply (simp add: hypreal_of_real_def starfun, ultra)
+done
+
 (*-------------------------------------------
   multiplication: ( *f) x ( *g) = *(f x g)
  ------------------------------------------*)
 lemma starfun_mult: "( *f* f) xa * ( *f* g) xa = ( *f* (%x. f x * g x)) xa"
-apply (rule_tac z = xa in eq_Abs_hypreal)
-apply (auto simp add: starfun hypreal_mult)
-done
+by (cases xa, simp add: starfun hypreal_mult)
 declare starfun_mult [symmetric, simp]
 
 (*---------------------------------------
   addition: ( *f) + ( *g) = *(f + g)
  ---------------------------------------*)
 lemma starfun_add: "( *f* f) xa + ( *f* g) xa = ( *f* (%x. f x + g x)) xa"
-apply (rule_tac z = xa in eq_Abs_hypreal)
-apply (auto simp add: starfun hypreal_add)
-done
+by (cases xa, simp add: starfun hypreal_add)
 declare starfun_add [symmetric, simp]
 
 (*--------------------------------------------
@@ -235,7 +238,7 @@ declare starfun_add [symmetric, simp]
  -------------------------------------------*)
 
 lemma starfun_minus: "- ( *f* f) x = ( *f* (%x. - f x)) x"
-apply (rule_tac z = x in eq_Abs_hypreal)
+apply (cases x)
 apply (auto simp add: starfun hypreal_minus)
 done
 declare starfun_minus [symmetric, simp]
@@ -271,7 +274,7 @@ done
   NS extension of constant function
  --------------------------------------*)
 lemma starfun_const_fun: "( *f* (%x. k)) xa = hypreal_of_real  k"
-apply (rule_tac z = xa in eq_Abs_hypreal)
+apply (cases xa)
 apply (auto simp add: starfun hypreal_of_real_def)
 done
 
@@ -282,12 +285,12 @@ declare starfun_const_fun [simp]
  ----------------------------------------------------*)
 
 lemma starfun_Idfun_approx: "x @= hypreal_of_real a ==> ( *f* (%x. x)) x @= hypreal_of_real  a"
-apply (rule_tac z = x in eq_Abs_hypreal)
+apply (cases x)
 apply (auto simp add: starfun)
 done
 
 lemma starfun_Id: "( *f* (%x. x)) x = x"
-apply (rule_tac z = x in eq_Abs_hypreal)
+apply (cases x)
 apply (auto simp add: starfun)
 done
 declare starfun_Id [simp]
@@ -297,7 +300,6 @@ declare starfun_Id [simp]
  ----------------------------------------------------------------------*)
 
 lemma is_starext_starfun: "is_starext ( *f* f) f"
-
 apply (simp add: is_starext_def, auto)
 apply (rule_tac z = x in eq_Abs_hypreal)
 apply (rule_tac z = y in eq_Abs_hypreal)
@@ -309,7 +311,6 @@ done
  ----------------------------------------------------------------------*)
 
 lemma is_starfun_starext: "is_starext F f ==> F = *f* f"
-
 apply (simp add: is_starext_def)
 apply (rule ext)
 apply (rule_tac z = x in eq_Abs_hypreal)
@@ -336,12 +337,12 @@ by auto
 
 (* useful for NS definition of derivatives *)
 lemma starfun_lambda_cancel: "( *f* (%h. f (x + h))) xa  = ( *f* f) (hypreal_of_real  x + xa)"
-apply (rule_tac z = xa in eq_Abs_hypreal)
+apply (cases xa)
 apply (auto simp add: starfun hypreal_of_real_def hypreal_add)
 done
 
 lemma starfun_lambda_cancel2: "( *f* (%h. f(g(x + h)))) xa = ( *f* (f o g)) (hypreal_of_real x + xa)"
-apply (rule_tac z = xa in eq_Abs_hypreal)
+apply (cases xa)
 apply (auto simp add: starfun hypreal_of_real_def hypreal_add)
 done
 
@@ -370,13 +371,13 @@ lemma starfun_rabs_hrabs: "*f* abs = abs"
 by (rule hrabs_is_starext_rabs [THEN is_starext_starfun_iff [THEN iffD1], symmetric])
 
 lemma starfun_inverse_inverse: "( *f* inverse) x = inverse(x)"
-apply (rule_tac z = x in eq_Abs_hypreal)
+apply (cases x)
 apply (auto simp add: starfun hypreal_inverse hypreal_zero_def)
 done
 declare starfun_inverse_inverse [simp]
 
 lemma starfun_inverse: "inverse (( *f* f) x) = ( *f* (%x. inverse (f x))) x"
-apply (rule_tac z = x in eq_Abs_hypreal)
+apply (cases x)
 apply (auto simp add: starfun hypreal_inverse)
 done
 declare starfun_inverse [symmetric, simp]
@@ -386,7 +387,7 @@ by (simp add: divide_inverse)
 declare starfun_divide [symmetric, simp]
 
 lemma starfun_inverse2: "inverse (( *f* f) x) = ( *f* (%x. inverse (f x))) x"
-apply (rule_tac z = x in eq_Abs_hypreal)
+apply (cases x)
 apply (auto intro: FreeUltrafilterNat_subset dest!: FreeUltrafilterNat_Compl_mem simp add: starfun hypreal_inverse hypreal_zero_def)
 done
 
@@ -397,7 +398,7 @@ done
 lemma starfun_mem_starset:
       "( *f* f) x : *s* A ==> x : *s* {x. f x  \<in> A}"
 apply (simp add: starset_def)
-apply (rule_tac z = x in eq_Abs_hypreal)
+apply (cases x)
 apply (auto simp add: starfun)
 apply (rename_tac "X")
 apply (drule_tac x = "%n. f (X n) " in bspec)
@@ -446,7 +447,7 @@ lemma Infinitesimal_FreeUltrafilterNat_iff2:
       (\<exists>X \<in> Rep_hypreal(x).
         \<forall>m. {n. abs(X n) < inverse(real(Suc m))}
                 \<in>  FreeUltrafilterNat)"
-apply (rule eq_Abs_hypreal [of x])
+apply (cases x)
 apply (auto intro!: bexI lemma_hyprel_refl 
             simp add: Infinitesimal_hypreal_of_nat_iff hypreal_of_real_def
      hypreal_inverse hypreal_hrabs hypreal_less hypreal_of_nat_eq)

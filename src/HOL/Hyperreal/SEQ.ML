@@ -618,7 +618,7 @@ Goal
 \              |] ==> ALL n. ma <= n --> X n = X ma";
 by (Step_tac 1);
 by (dres_inst_tac [("y","X n")] isLubD2 1);
-by (ALLGOALS(blast_tac (claset() addDs [real_le_anti_sym])));
+by (ALLGOALS(blast_tac (claset() addDs [order_antisym])));
 qed "lemma_converg1";
 
 (*------------------------------------------------------------------- 
