@@ -142,7 +142,7 @@ gzip HOL/make$$.log
 
 echo
 echo
-echo '*****LCF in HOL (HOL)*****'
+echo '*****LCF in HOL (HOLCF)*****'
 (cd HOLCF;  make $NO $TEST > make$$.log)
 tail HOLCF/make$$.log
 gzip HOLCF/make$$.log
