@@ -216,7 +216,7 @@ val thelub_cfun = (lub_cfun RS thelubI);
 is_chain(?CCF1) ==> lub(range(?CCF1)) = fabs(%x. lub(range(%i. ?CCF1(i)[x])))
 *)
 
-val cpo_fun = prove_goal Cfun2.thy 
+val cpo_cfun = prove_goal Cfun2.thy 
   "is_chain(CCF::nat=>('a::pcpo->'b::pcpo)) ==> ? x. range(CCF) <<| x"
 (fn prems =>
 	[

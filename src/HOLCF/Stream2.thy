@@ -19,7 +19,7 @@ smap_def
 
 
 end
-
+      
 
 (*
 		smap[f][UU] = UU

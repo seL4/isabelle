@@ -387,6 +387,19 @@ fun fix_prover thy fixdef thm = prove_goal thy thm
         (rtac refl 1)
         ]);
 
+(* ------------------------------------------------------------------------ 
+
+given the definition
+
+smap_def
+  "smap = fix[LAM h f s. stream_when[LAM x l.scons[f[x]][h[f][l]]][s]]"
+
+use fix_prover for 
+
+val smap_def2 = fix_prover Stream2.thy smap_def 
+        "smap = (LAM f s. stream_when[LAM x l.scons[f[x]][smap[f][l]]][s])";
+
+   ------------------------------------------------------------------------ *)
 
 (* ------------------------------------------------------------------------ *)
 (* better access to definitions                                             *)
@@ -881,7 +894,7 @@ val adm_disj_lemma3 = prove_goal  Fix.thy
 	(rtac iffI 1),
 	(etac FalseE 2),
 	(rtac notE 1),
-	(etac less_not_sym 1),	
+	(etac (less_not_sym RS mp) 1),	
 	(atac 1),
 	(asm_simp_tac Cfun_ss  1),
 	(etac (is_chainE RS spec) 1),
@@ -921,7 +934,7 @@ val adm_disj_lemma4 = prove_goal  Fix.thy
 	(rtac iffI 1),
 	(etac FalseE 2),
 	(rtac notE 1),
-	(etac less_not_sym 1),	
+	(etac (less_not_sym RS mp) 1),	
 	(atac 1),
 	(asm_simp_tac nat_ss 1),
 	(dtac spec 1),

@@ -6,8 +6,8 @@
 Lemmas for theory porder.thy 
 *)
 
+open Porder0;
 open Porder;
-
 
 val box_less = prove_goal Porder.thy 
 "[| a << b; c << a; b << d|] ==> c << d"

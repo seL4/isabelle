@@ -57,7 +57,7 @@ val coind_lemma1 = prove_goal Coind.thy "iterator[n][smap[dsucc]][nats] =\
 \		 scons[n][iterator[dsucc[n]][smap[dsucc]][nats]]"
  (fn prems =>
 	[
-	(res_inst_tac [("s","n")] dnat_ind2 1),
+	(res_inst_tac [("s","n")] dnat_ind 1),
 	(simp_tac (HOLCF_ss addsimps (coind_rews @ stream_rews)) 1),
 	(simp_tac (HOLCF_ss addsimps (coind_rews @ stream_rews)) 1),
 	(rtac trans 1),

@@ -17,7 +17,10 @@ open Readthy;
 
 use_thy "Holcfb";
 use_thy "Void";
+
+use_thy "Porder0";
 use_thy "Porder";
+
 use_thy "Pcpo";
 
 use_thy "Fun1";
@@ -61,6 +64,8 @@ use_thy "Dnat";
 use_thy "Dnat2";
 use_thy "Stream";
 use_thy "Stream2";
+use_thy "Dlist";
+
 
 use "../Pure/install_pp.ML";
 print_depth 8;  
