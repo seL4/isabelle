@@ -84,7 +84,7 @@ qed_goalw "Ilift2"  Lift1.thy [Ilift_def,Iup_def]
 	(rtac refl 1)
 	]);
 
-Addsimps [Ilift1,Ilift2];
+val Lift0_ss = (simpset_of "Cfun3") addsimps [Ilift1,Ilift2];
 
 qed_goalw "less_lift1a"  Lift1.thy [less_lift_def,UU_lift_def]
 	"less_lift(UU_lift)(z)"

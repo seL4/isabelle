@@ -40,8 +40,8 @@ $(BIN)/HOLCF:   $(BIN)/HOL  $(FILES)
 $(BIN)/HOL:
 	cd ../HOL;  $(MAKE)
 
-EX_THYS = ex/Coind.thy ex/Hoare.thy \
-           ex/Loop.thy ex/Dagstuhl.thy 
+EX_THYS =  ex/Fix2.thy ex/Hoare.thy \
+           ex/Loop.thy  
 
 EX_FILES = ex/ROOT.ML ex/loeckx.ML $(EX_THYS) $(EX_THYS:.thy=.ML)
 
@@ -49,6 +49,22 @@ test:   ex/ROOT.ML  $(BIN)/HOLCF  $(EX_FILES)
 	case "$(COMP)" in \
 	poly*)	echo 'exit_use"ex/ROOT.ML"; quit();' | $(COMP) $(BIN)/HOLCF ;;\
 	sml*)	echo 'exit_use"ex/ROOT.ML"' | $(BIN)/HOLCF;;\
+	*)	echo Bad value for ISABELLECOMP: \
+                	$(COMP) is not poly or sml;;\
+	esac
+
+EXPLICIT_DOMAINS_THYS = explicit_domains/Coind.thy explicit_domains/Dlist.thy \
+			explicit_domains/Dnat2.thy explicit_domains/Stream.thy \
+			explicit_domains/Dagstuhl.thy explicit_domains/Dnat.thy\
+			explicit_domains/Focus_ex.thy explicit_domains/Stream2.thy
+
+EXPLICIT_DOMAINS_FILES = explicit_domains/ROOT.ML $(EXPLICIT_DOMAINS_THYS)\
+			 $(EXPLICIT_DOMAINS_THYS:.thy=.ML)
+
+test2:	explicit_domains/ROOT.ML  $(BIN)/HOLCF  $(EXPLICIT_DOMAINS_FILES) 
+	case "$(COMP)" in \
+	poly*)	echo 'exit_use"explicit_domains/ROOT.ML"; quit();' | $(COMP) $(BIN)/HOLCF ;;\
+	sml*)	echo 'exit_use"explicit_domains/ROOT.ML"' | $(BIN)/HOLCF;;\
 	*)	echo Bad value for ISABELLECOMP: \
                 	$(COMP) is not poly or sml;;\
 	esac

@@ -55,8 +55,8 @@ qed_goalw "monofun_Ilift1" Lift2.thy [monofun] "monofun(Ilift)"
 	(rtac (less_fun RS iffD2) 1),
 	(strip_tac 1),
 	(res_inst_tac [("p","xa")] liftE 1),
-	(Asm_simp_tac 1),
-	(Asm_simp_tac 1),
+        (asm_simp_tac Lift0_ss 1),
+        (asm_simp_tac Lift0_ss 1),
 	(etac monofun_cfun_fun 1)
 	]);
 
@@ -65,14 +65,14 @@ qed_goalw "monofun_Ilift2" Lift2.thy [monofun] "monofun(Ilift(f))"
 	[
 	(strip_tac 1),
 	(res_inst_tac [("p","x")] liftE 1),
-	(Asm_simp_tac 1),
-	(Asm_simp_tac 1),
+        (asm_simp_tac Lift0_ss 1),
+        (asm_simp_tac Lift0_ss 1),
 	(res_inst_tac [("p","y")] liftE 1),
 	(hyp_subst_tac 1),
 	(rtac notE 1),
 	(rtac less_lift2b 1),
 	(atac 1),
-	(Asm_simp_tac 1),
+        (asm_simp_tac Lift0_ss 1),
 	(rtac monofun_cfun_arg 1),
 	(hyp_subst_tac 1),
 	(etac (less_lift2c  RS iffD1) 1)
@@ -87,7 +87,7 @@ qed_goal "lift_lemma1" Lift2.thy  "z=Iup(x) ==> Iup(Ilift(LAM x.x)(z)) = z"
  (fn prems =>
 	[
 	(cut_facts_tac prems 1),
-	(Asm_simp_tac 1)
+        (asm_simp_tac Lift0_ss 1)
 	]);
 
 (* ------------------------------------------------------------------------ *)
