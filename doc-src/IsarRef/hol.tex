@@ -158,7 +158,7 @@ $\isarkeyword{inductive_cases}$ corresponds to the ML function
 \end{matharray}
 
 The $induct$ method provides a uniform interface to induction over datatypes,
-inductive sets, and recursive functions.  Basically, it is just an interface
+inductive sets, recursive functions etc.  Basically, it is just an interface
 to the $rule$ method applied to appropriate instances of the corresponding
 induction rules.
 
@@ -168,15 +168,18 @@ induction rules.
 
   inst: term term?
   ;
-  kind: ('type' | 'set' | 'function') ':' nameref
+  kind: ('type' | 'set' | 'function' | 'rule') ':' nameref
   ;
 \end{rail}
 
 \begin{descr}
 \item [$induct~insts~kind$] abbreviates method $rule~R$, where $R$ is the
-  induction rule of the type~/ set~/ function specified by $kind$ and
-  instantiated by $insts$.  The latter either consists of pairs $P$ $x$
-  (induction predicate and variable), where $P$ is optional.  If $kind$ is
+  induction rule specified by $kind$ and instantiated by $insts$.  The rule is
+  either that of some type, set, or recursive function (defined via TFL), or
+  given explicitly.
+  
+  The instantiation basically consists of a list of $P$ $x$ (induction
+  predicate and variable) specifications, where $P$ is optional.  If $kind$ is
   omitted, the default is to pick a datatype induction rule according to the
   type of some induction variable, which may not be omitted that case.
 \end{descr}
