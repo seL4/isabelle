@@ -26,24 +26,55 @@ end;
 structure ProofGeneral: PROOF_GENERAL =
 struct
 
-(** compile-time theory setup **)
-
-(* token translations *)
+(* print modes *)
 
 val proof_generalN = "ProofGeneral";
+val xsymbolsN = "xsymbols";
+
+val pgmlN = "PGML";
+fun pgml () = pgmlN mem_string ! print_mode;
+
+
+(* text output *)
+
+local
+
+fun xsymbols_output s =
+  if xsymbolsN mem_string ! print_mode andalso exists_string (equal "\\") s then
+    let val syms = Symbol.explode s
+    in (implode (map (fn "\\" => "\\\\" | c => c) syms), real (Symbol.length syms)) end
+  else (s, real (size s));
+
+fun pgml_output (s, len) =
+  if pgml () then (XML.text s, len)
+  else (s, len);
+
+in
+
+fun setup_xsymbols_output () =
+  Symbol.add_mode proof_generalN (pgml_output o xsymbols_output, Symbol.default_indent);
+
+end;
+
+
+(* token translations *)
 
 local
 
 val end_tag = oct_char "350";
-val tclass_tag = oct_char "351";
-val tfree_tag = oct_char "352";
-val tvar_tag = oct_char "353";
-val free_tag = oct_char "354";
-val bound_tag = oct_char "355";
-val var_tag = oct_char "356";
-val skolem_tag = oct_char "357";
+val class_tag = ("class", oct_char "351");
+val tfree_tag = ("tfree", oct_char "352");
+val tvar_tag = ("tvar", oct_char "353");
+val free_tag = ("free", oct_char "354");
+val bound_tag = ("bound", oct_char "355");
+val var_tag = ("var", oct_char "356");
+val skolem_tag = ("skolem", oct_char "357");
 
-fun tagit p x = (p ^ x ^ end_tag, real (Symbol.length (Symbol.explode x)));
+fun xml_atom kind x = XML.element "atom" [("kind", kind)] [XML.text x];
+
+fun tagit (kind, bg_tag) x =
+  (if pgml () then xml_atom kind x else bg_tag ^ x ^ end_tag,
+    real (Symbol.length (Symbol.explode x)));
 
 fun free_or_skolem x =
   (case try Syntax.dest_skolem x of
@@ -58,69 +89,74 @@ fun var_or_skolem s =
       | Some x' => tagit skolem_tag (Syntax.string_of_vname (x', i)))
   | _ => tagit var_tag s);
 
-in
-
 val proof_general_trans =
  Syntax.tokentrans_mode proof_generalN
-  [("class", tagit tclass_tag),
+  [("class", tagit class_tag),
    ("tfree", tagit tfree_tag),
    ("tvar", tagit tvar_tag),
    ("free", free_or_skolem),
    ("bound", tagit bound_tag),
    ("var", var_or_skolem)];
 
-end;
-
-
-(* setup *)
-
-val setup = [Theory.add_tokentrfuns proof_general_trans];
+in val setup = [Theory.add_tokentrfuns proof_general_trans] end;
 
 
 
-(** run-time operations **)
+(* messages and notification *)
 
-(* symbol output *)
+local
 
-fun xsymbols_output s =
-  if not (exists_string (equal "\\") s) then (s, real (size s))
-  else
-    let val syms = Symbol.explode s
-    in (implode (map (fn "\\" => "\\\\" | c => c) syms), real (Symbol.length syms)) end;
+fun decorated_output bg en prfx =
+  writeln_default o enclose bg en o prefix_lines prfx;
 
-fun setup_xsymbols_output () = Symbol.add_mode "xsymbols" (xsymbols_output, Symbol.default_indent);
+fun message kind bg en prfx s =
+  if pgml () then writeln_default (XML.element kind [] [prefix_lines prfx s])
+  else decorated_output bg en prfx s;
 
+val notify = message "notify" (oct_char "360") (oct_char "361") "";
 
-(* messages *)
-
-val plain_output = Library.std_output o suffix "\n";
-
-fun decorate_lines bg en "" = plain_output o enclose bg en
-  | decorate_lines bg en prfx = plain_output o enclose bg en o prefix_lines prfx;
+in
 
 fun setup_messages () =
- (priority_fn := decorate_lines (oct_char "360") (oct_char "361") "";
-  tracing_fn := decorate_lines (oct_char "360") (oct_char "361") (oct_char "375");
-  warning_fn := (decorate_lines (oct_char "362") (oct_char "363") "### ");
-  error_fn := (decorate_lines (oct_char "364") (oct_char "365") "*** "));
+ (writeln_fn := message "output" "" "" "";
+  priority_fn := message "information" (oct_char "360") (oct_char "361") "";
+  tracing_fn := message "tracing" (oct_char "360") (oct_char "361") (oct_char "375");
+  warning_fn := message "warning" (oct_char "362") (oct_char "363") "### ";
+  error_fn := message "error" (oct_char "364") (oct_char "365") "*** ");
 
+fun tell_clear_goals () = notify "Proof General, please clear the goals buffer.";
+fun tell_clear_response () = notify "Proof General, please clear the response buffer.";
+fun tell_file msg path = notify ("Proof General, " ^ msg ^ " " ^ quote (File.sysify_path path));
 
-(* notification *)
-
-fun tell_clear_goals () = priority "Proof General, please clear the goals buffer.";
-fun tell_clear_response () = priority "Proof General, please clear the response buffer.";
-fun tell_file msg path = priority ("Proof General, " ^ msg ^ " " ^ quote (File.sysify_path path));
+end;
 
 
 (* theory / proof state output *)
 
+local
+
+fun tmp_markers f =
+  setmp Display.current_goals_markers (oct_char "366", oct_char "367", "") f ();
+
+fun statedisplay prts =
+  writeln_default (XML.element "statedisplay" [] [Pretty.string_of (Pretty.chunks prts)]);
+
+fun print_current_goals n m st =
+  if pgml () then statedisplay (Display.pretty_current_goals n m st)
+  else tmp_markers (fn () => Display.print_current_goals_default n m st);
+
+fun print_state b st =
+  if pgml () then statedisplay (Toplevel.pretty_state b st)
+  else tmp_markers (fn () => Toplevel.print_state_default b st);
+
+in
+
 fun setup_state () =
- (Display.current_goals_markers :=
-    let
-      val begin_state = oct_char "366";
-      val end_state= oct_char "367";
-    in (begin_state, end_state, "") end;
+ (Display.print_current_goals_fn := print_current_goals;
+  Toplevel.print_state_fn := print_state;
   Toplevel.prompt_state_fn := (suffix (oct_char "372") o Toplevel.prompt_state_default));
+
+end;
 
 
 (* theory loader actions *)
@@ -209,7 +245,7 @@ fun restart isar =
   tell_clear_response ();
   welcome ());
 
-fun restart_loader () = ThyInfo.touch_all_thys (); (* FIXME ThyLoad.reset_path (!?) *)
+fun restart_loader () = (ThyInfo.touch_all_thys (); ThyLoad.reset_path);
 
 in
 
