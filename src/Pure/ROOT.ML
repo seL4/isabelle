@@ -65,6 +65,7 @@ structure AxClass = AxClassFun(structure Logic = Logic
 open BasicSyntax Thm Drule Tactical Tactic Goals;
 
 structure Pure = struct val thy = pure_thy end;
+structure CPure = struct val thy = cpure_thy end;
 
 (*Theory parser and loader*)
 cd "Thy";

@@ -20,7 +20,6 @@ sig
     val args: string
     val any: string
     val sprop: string
-    val applC: string
     val typ_to_nonterm: typ -> string
     datatype xsymb =
       Delim of string |
@@ -78,7 +77,6 @@ val logic = "logic";
 val logicT = Type (logic, []);
 
 val args = "args";
-val argsT = Type (args, []);
 
 val typeT = Type ("type", []);
 
@@ -91,7 +89,6 @@ val anyT = Type (any, []);
 
 (* constants *)
 
-val applC = "_appl";
 val constrainC = "_constrain";
 
 

@@ -163,7 +163,6 @@ fun unfold_ast_p c (y as Appl [Constant c', x, xs]) =
   | unfold_ast_p _ y = ([], y);
 
 
-
 (** normalization of asts **)
 
 (* tracing options *)

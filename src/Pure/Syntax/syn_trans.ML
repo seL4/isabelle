@@ -34,6 +34,7 @@ sig
     val abs_tr': term -> term
     val prop_tr': bool -> term -> term
     val appl_ast_tr': ast * ast list -> ast
+    val applC_ast_tr': ast * ast list -> ast
     val pt_to_ast: (string -> (ast list -> ast) option) -> parsetree -> ast
     val ast_to_term: (string -> (term list -> term) option) -> ast -> term
   end
@@ -51,8 +52,15 @@ open TypeExt Parser.Lexicon Parser.SynExt.Ast Parser.SynExt Parser;
 
 (* application *)
 
-fun appl_ast_tr (*"_appl"*) [f, args] = Appl (f :: unfold_ast "_args" args)
-  | appl_ast_tr (*"_appl"*) asts = raise_ast "appl_ast_tr" asts;
+fun appl_ast_tr [f, args] = Appl (f :: unfold_ast "_args" args)
+  | appl_ast_tr asts = raise_ast "appl_ast_tr" asts;
+
+fun applC_ast_tr [f, arg] =
+      let fun unfold_ast_c (y as Appl (Constant _ :: _)) = [y]
+            | unfold_ast_c (Appl xs) = xs
+            | unfold_ast_c y = [y];
+      in Appl ((unfold_ast_c f) @ [arg]) end
+  | applC_ast_tr asts = raise_ast "applC_ast_tr" asts;
 
 
 (* abstraction *)
@@ -123,6 +131,24 @@ fun bigimpl_ast_tr (*"_bigimpl"*) [asms, concl] =
 
 fun appl_ast_tr' (f, []) = raise_ast "appl_ast_tr'" [f]
   | appl_ast_tr' (f, args) = Appl [Constant "_appl", f, fold_ast "_args" args];
+
+fun applC_ast_tr' (f, []) = raise_ast "applC_ast_tr'" [f]
+  | applC_ast_tr' (f, arg::args) =
+      let (* fold curried function application *)
+          fun fold [] result = result
+            | fold (x :: xs) result =
+                fold xs (Appl [Constant "_applC", result, x]);
+      in fold args (Appl [Constant "_applC", f, arg]) end;
+(*
+        f a b c  ()
+        ("_applC" f a)
+
+        b c      ("_applC" f a)
+	("_applC" ("_applC" f a) b)
+
+        c	 ("_applC" ("_applC" f a) b)
+	("_applC" ("_applC" ("_applC" f a) b) c)
+*)
 
 
 (* abstraction *)
@@ -253,9 +279,11 @@ fun dependent_tr' (q, r) (A :: Abs (x, T, B) :: ts) =
 (** pure_trfuns **)
 
 val pure_trfuns =
- ([(applC, appl_ast_tr), ("_lambda", lambda_ast_tr), ("_idtyp", idtyp_ast_tr),
-    ("_bigimpl", bigimpl_ast_tr)],
-  [("_abs", abs_tr), ("_aprop", aprop_tr), ("_ofclass", ofclass_tr), ("_K", k_tr)],
+ ([("_appl", appl_ast_tr), ("_applC", applC_ast_tr),
+   ("_lambda", lambda_ast_tr), ("_idtyp", idtyp_ast_tr),
+   ("_bigimpl", bigimpl_ast_tr)],
+  [("_abs", abs_tr), ("_aprop", aprop_tr), ("_ofclass", ofclass_tr),
+   ("_K", k_tr)],
   [],
   [("_abs", abs_ast_tr'), ("_idts", idts_ast_tr'), ("==>", impl_ast_tr')]);
 

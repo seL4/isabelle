@@ -61,7 +61,9 @@ sig
     val add_name: string -> sg -> sg
     val make_draft: sg -> sg
     val merge: sg * sg -> sg
+    val proto_pure: sg
     val pure: sg
+    val cpure: sg
     val const_of_class: class -> string
     val class_of_const: string -> class
   end
@@ -179,10 +181,16 @@ val pprint_sg = Pretty.pprint o pretty_sg;
 
 (** pretty printing of terms and types **)
 
-fun pretty_term (Sg {syn, ...}) = Syntax.pretty_term syn;
+fun pretty_term (Sg {syn, stamps, ...}) =
+  let val curried = "CPure" mem (map ! stamps);
+  in Syntax.pretty_term curried syn end;
+
 fun pretty_typ (Sg {syn, ...}) = Syntax.pretty_typ syn;
 
-fun string_of_term (Sg {syn, ...}) = Syntax.string_of_term syn;
+fun string_of_term (Sg {syn, stamps, ...}) = 
+  let val curried = "CPure" mem (map ! stamps);
+  in Syntax.string_of_term curried syn end;
+
 fun string_of_typ (Sg {syn, ...}) = Syntax.string_of_typ syn;
 
 fun pprint_term sg = Pretty.pprint o Pretty.quote o (pretty_term sg);
@@ -516,7 +524,7 @@ fun merge (sg1, sg2) =
 
 (** the Pure signature **)
 
-val pure =
+val proto_pure =
   make_sign (Syntax.pure_syn, tsig0, Symtab.null) [] "#"
   |> add_types
    (("fun", 2, NoSyn) ::
@@ -537,7 +545,24 @@ val pure =
     ("==>", "[prop, prop] => prop", Mixfix ("(_ ==>/ _)", [2, 1], 1)),
     ("all", "('a => prop) => prop", Binder ("!!", 0, 0)),
     ("TYPE", "'a itself", NoSyn)]
+  |> add_name "ProtoPure";
+
+val pure = proto_pure
+  |> add_syntax
+   [("_appl",     "[('b => 'a), args] => logic",    Mixfix ("(1_/(1'(_')))",
+                                                    [max_pri, 0], max_pri)),
+    ("_appl",     "[('b => 'a), args] => aprop",    Mixfix ("(1_/(1'(_')))",
+                                                    [max_pri, 0], max_pri))]
   |> add_name "Pure";
 
+val cpure = proto_pure
+  |> add_syntax
+   [("_applC",     "[('b => 'a), 'c] => logic",     Mixfix ("(1_ (1_))",
+                                                    [max_pri-1, max_pri],
+                                                    max_pri-1)),
+    ("_applC",     "[('b => 'a), 'c] => aprop",     Mixfix ("(1_ (1_))",
+                                                    [max_pri-1, max_pri],
+                                                    max_pri-1))]
+  |> add_name "CPure";
 
 end;

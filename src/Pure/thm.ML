@@ -101,7 +101,9 @@ sig
   val parents_of	: theory -> theory list
   val prems_of		: thm -> term list
   val prems_of_mss	: meta_simpset -> thm list
+  val proto_pure_thy	: theory
   val pure_thy		: theory
+  val cpure_thy		: theory
   val read_def_cterm 	:
          Sign.sg * (indexname -> typ option) * (indexname -> sort option) ->
          string * typ -> cterm * (indexname * typ) list
@@ -294,10 +296,16 @@ fun axioms_of thy =
     (Symtab.dest (#new_axioms (rep_theory thy)));
 
 
-(* the Pure theory *)
+(* the Pure theories *)
+
+val proto_pure_thy =
+  Theory {sign = Sign.proto_pure, new_axioms = Symtab.null, parents = []};
 
 val pure_thy =
   Theory {sign = Sign.pure, new_axioms = Symtab.null, parents = []};
+
+val cpure_thy =
+  Theory {sign = Sign.cpure, new_axioms = Symtab.null, parents = []};
 
 
 
@@ -398,7 +406,7 @@ fun merge_thy_list mk_draft thys =
     | (None, false) => Theory {
         sign =
           (if mk_draft then Sign.make_draft else I)
-          (foldl add_sign (Sign.pure, thys)),
+          (foldl add_sign (Sign.proto_pure, thys)),
         new_axioms = Symtab.null,
         parents = thys})
   end;
@@ -496,9 +504,9 @@ fun forall_elim ct (th as Thm{sign,maxidx,hyps,prop}) : thm =
 
 (*Definition of the relation =?= *)
 val flexpair_def =
-  Thm{sign= Sign.pure, hyps= [], maxidx= 0,
+  Thm{sign= Sign.proto_pure, hyps= [], maxidx= 0,
       prop= term_of
-              (read_cterm Sign.pure
+              (read_cterm Sign.proto_pure
                  ("(?t =?= ?u) == (?t == ?u::?'a::{})", propT))};
 
 (*The reflexivity rule: maps  t   to the theorem   t==t   *)

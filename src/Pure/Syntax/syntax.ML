@@ -54,9 +54,9 @@ sig
   val read: syntax -> typ -> string -> term list
   val read_typ: syntax -> (indexname -> sort) -> string -> typ
   val simple_read_typ: string -> typ
-  val pretty_term: syntax -> term -> Pretty.T
+  val pretty_term: bool -> syntax -> term -> Pretty.T
   val pretty_typ: syntax -> typ -> Pretty.T
-  val string_of_term: syntax -> term -> string
+  val string_of_term: bool -> syntax -> term -> string
   val string_of_typ: syntax -> typ -> string
   val simple_string_of_typ: typ -> string
   val simple_pprint_typ: typ -> pprint_args -> unit
@@ -403,19 +403,20 @@ fun read_xrules syn xrules =
 
 (** pretty terms or typs **)
 
-fun pretty_t t_to_ast pretty_t (syn as Syntax tabs) t =
+fun pretty_t t_to_ast pretty_t curried (syn as Syntax tabs) t =
   let
     val {print_trtab, print_ruletab, print_ast_trtab, prtab, ...} = tabs;
     val ast = t_to_ast (lookup_trtab print_trtab) t;
   in
-    pretty_t prtab (lookup_trtab print_ast_trtab)
+    pretty_t curried prtab (lookup_trtab print_ast_trtab)
       (normalize_ast (lookup_ruletab print_ruletab) ast)
   end;
 
 val pretty_term = pretty_t term_to_ast pretty_term_ast;
-val pretty_typ = pretty_t typ_to_ast pretty_typ_ast;
+val pretty_typ = pretty_t typ_to_ast pretty_typ_ast false;
 
-fun string_of_term syn t = Pretty.string_of (pretty_term syn t);
+fun string_of_term curried syn t =
+  Pretty.string_of (pretty_term curried syn t);
 fun string_of_typ syn ty = Pretty.string_of (pretty_typ syn ty);
 
 val simple_string_of_typ = string_of_typ type_syn;

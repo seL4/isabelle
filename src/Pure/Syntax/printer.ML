@@ -25,9 +25,9 @@ sig
     val empty_prtab: prtab
     val extend_prtab: prtab -> xprod list -> prtab
     val merge_prtabs: prtab -> prtab -> prtab
-    val pretty_term_ast: prtab -> (string -> (ast list -> ast) option)
+    val pretty_term_ast: bool -> prtab -> (string -> (ast list -> ast) option)
       -> ast -> Pretty.T
-    val pretty_typ_ast: prtab -> (string -> (ast list -> ast) option)
+    val pretty_typ_ast: bool -> prtab -> (string -> (ast list -> ast) option)
       -> ast -> Pretty.T
   end
 end;
@@ -206,11 +206,12 @@ fun chain [Block (_, pr)] = chain pr
   | chain [Arg _] = true
   | chain _  = false;
 
-fun pretty prtab trf type_mode ast0 p0 =
+fun pretty prtab trf type_mode curried ast0 p0 =
   let
     val trans = apply_trans "print ast translation";
 
-    val appT = if type_mode then tappl_ast_tr' else appl_ast_tr';
+    val appT = if type_mode then tappl_ast_tr' else
+               if curried then applC_ast_tr' else appl_ast_tr';
 
     fun synT ([], args) = ([], args)
       | synT (Arg p :: symbs, t :: args) =
@@ -221,7 +222,7 @@ fun pretty prtab trf type_mode ast0 p0 =
             val (Ts, args') = synT (symbs, args);
           in
             if type_mode then (astT (t, p) @ Ts, args')
-            else (pretty prtab trf true t p @ Ts, args')
+            else (pretty prtab trf true curried t p @ Ts, args')
           end
       | synT (String s :: symbs, args) =
           let val (Ts, args') = synT (symbs, args);
@@ -281,14 +282,14 @@ fun pretty prtab trf type_mode ast0 p0 =
 
 (* pretty_term_ast *)
 
-fun pretty_term_ast prtab trf ast =
-  Pretty.blk (0, pretty prtab trf false ast 0);
+fun pretty_term_ast curried prtab trf ast =
+  Pretty.blk (0, pretty prtab trf false curried ast 0);
 
 
 (* pretty_typ_ast *)
 
-fun pretty_typ_ast prtab trf ast =
-  Pretty.blk (0, pretty prtab trf true ast 0);
+fun pretty_typ_ast _ prtab trf ast =
+  Pretty.blk (0, pretty prtab trf true false ast 0);
 
 
 end;

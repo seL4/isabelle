@@ -437,7 +437,7 @@ fun SUBGOAL goalfun i = Tactic(fn state =>
 (* (!!x. PROP ?V) ==> PROP ?V ;  contains NO TYPE VARIABLES.*)
 val dummy_quant_rl = 
   standard (forall_elim_var 0 (assume 
-                  (read_cterm Sign.pure ("!!x::prop. PROP V",propT))));
+                  (read_cterm Sign.proto_pure ("!!x::prop. PROP V",propT))));
 
 (* Prevent the subgoal's assumptions from becoming additional subgoals in the
    new proof state by enclosing them by a universal quantification *)

@@ -57,9 +57,20 @@ struct
 datatype basetype = Thy  of string
                   | File of string;
 
-val loaded_thys = ref (Symtab.make [("Pure", ThyInfo {path = "", children = [],
+val loaded_thys = ref (Symtab.make [("ProtoPure",
+                                     ThyInfo {path = "",
+                                       children = ["Pure", "CPure"],
+                                       thy_time = Some "", ml_time = Some "",
+                                       theory = Some proto_pure_thy,
+                                       thms = Symtab.null}),
+                                    ("Pure", ThyInfo {path = "", children = [],
                                        thy_time = Some "", ml_time = Some "",
                                        theory = Some pure_thy,
+                                       thms = Symtab.null}),
+                                    ("CPure", ThyInfo {path = "",
+                                       children = [],
+                                       thy_time = Some "", ml_time = Some "",
+                                       theory = Some cpure_thy,
                                        thms = Symtab.null})]);
 
 val loadpath = ref ["."];           (*default search path for theory files *)
@@ -91,10 +102,8 @@ fun get_thyinfo tname = Symtab.lookup (!loaded_thys, tname);
 fun already_loaded thy =
   let val t = get_thyinfo thy
   in if is_none t then false
-     else let val ThyInfo {thy_time, ml_time, ...} = the t
-          in if is_none thy_time orelse is_none ml_time then false
-             else true
-          end
+     else let val ThyInfo {theory, ...} = the t
+          in if is_none theory then false else true end
   end;
 
 (*Check if a theory file has changed since its last use.
@@ -323,21 +332,21 @@ fun update () =
             end
         | reload_changed [] = ();
 
-     (*Remove all theories that are no descendants of Pure.
+     (*Remove all theories that are no descendants of ProtoPure.
        If there are still children in the deleted theory's list
        schedule them for reloading *)
      fun collect_garbage not_garbage =
        let fun collect ((tname, ThyInfo {children, ...}) :: ts) =
                  if tname mem not_garbage then collect ts
-                 else (writeln ("Theory \"" ^ tname
-                         ^ "\" is no longer linked with Pure - removing it.");
+                 else (writeln ("Theory \"" ^ tname ^
+                       "\" is no longer linked with ProtoPure - removing it.");
                        remove_thy tname;
                        seq mark_outdated children)
              | collect [] = ()
 
        in collect (Symtab.dest (!loaded_thys)) end;
-  in collect_garbage ("Pure" :: (load_order ["Pure"] []));
-     reload_changed (load_order ["Pure"] [])
+  in collect_garbage ("ProtoPure" :: (load_order ["ProtoPure"] []));
+     reload_changed (load_order ["Pure", "CPure"] [])
   end;
 
 (*Merge theories to build a base for a new theory.
@@ -413,7 +422,7 @@ fun mk_base bases child mk_draft =
                 b :: (load_base bs))
             | load_base (File b :: bs) =
                (load b;
-                load_base bs)    (*don't add it to merge_theories' parameter *)
+                load_base bs)                    (*don't add it to mergelist *)
             | load_base [] = [];
 
           (*Get theory object for a loaded theory *)
@@ -435,7 +444,7 @@ fun store_theory (thy, tname) =
                           thy_time = thy_time, ml_time = ml_time,
                           theory = Some thy, thms = thms}
              | None => ThyInfo {path = "", children = [],
-                                thy_time = Some "", ml_time = Some "",
+                                thy_time = None, ml_time = None,
                                 theory = Some thy, thms = Symtab.null};
   in loaded_thys := Symtab.update ((tname, tinfo), !loaded_thys) end;
 

@@ -421,9 +421,7 @@ fun print_goals maxgoals state =
       (show_no_free_types := orig_no_freeTs; show_sorts := orig_sorts);
   in
     (show_no_free_types := true; show_sorts := false;
-
       Pretty.writeln (pretty_term B);
-
       if ngoals = 0 then writeln "No subgoals!"
       else if ngoals > maxgoals then
         (print_goals (1, take (maxgoals, As));
@@ -640,22 +638,22 @@ val size_of_thm = size_of_term o #prop o rep_thm;
 
 
 val reflexive_thm =
-  let val cx = cterm_of Sign.pure (Var(("x",0),TVar(("'a",0),logicS)))
+  let val cx = cterm_of Sign.proto_pure (Var(("x",0),TVar(("'a",0),logicS)))
   in Thm.reflexive cx end;
 
 val symmetric_thm =
-  let val xy = read_cterm Sign.pure ("x::'a::logic == y",propT)
+  let val xy = read_cterm Sign.proto_pure ("x::'a::logic == y",propT)
   in standard(Thm.implies_intr_hyps(Thm.symmetric(Thm.assume xy))) end;
 
 val transitive_thm =
-  let val xy = read_cterm Sign.pure ("x::'a::logic == y",propT)
-      val yz = read_cterm Sign.pure ("y::'a::logic == z",propT)
+  let val xy = read_cterm Sign.proto_pure ("x::'a::logic == y",propT)
+      val yz = read_cterm Sign.proto_pure ("y::'a::logic == z",propT)
       val xythm = Thm.assume xy and yzthm = Thm.assume yz
   in standard(Thm.implies_intr yz (Thm.transitive xythm yzthm)) end;
 
 (** Below, a "conversion" has type cterm -> thm **)
 
-val refl_cimplies = reflexive (cterm_of Sign.pure implies);
+val refl_cimplies = reflexive (cterm_of Sign.proto_pure implies);
 
 (*In [A1,...,An]==>B, rewrite the selected A's only -- for rewrite_goals_tac*)
 (*Do not rewrite flex-flex pairs*)
@@ -734,17 +732,17 @@ fun flexpair_abs_elim_list cts =
 (*** Some useful meta-theorems ***)
 
 (*The rule V/V, obtains assumption solving for eresolve_tac*)
-val asm_rl = trivial(read_cterm Sign.pure ("PROP ?psi",propT));
+val asm_rl = trivial(read_cterm Sign.proto_pure ("PROP ?psi",propT));
 
 (*Meta-level cut rule: [| V==>W; V |] ==> W *)
-val cut_rl = trivial(read_cterm Sign.pure
+val cut_rl = trivial(read_cterm Sign.proto_pure
         ("PROP ?psi ==> PROP ?theta", propT));
 
 (*Generalized elim rule for one conclusion; cut_rl with reversed premises:
      [| PROP V;  PROP V ==> PROP W |] ==> PROP W *)
 val revcut_rl =
-  let val V = read_cterm Sign.pure ("PROP V", propT)
-      and VW = read_cterm Sign.pure ("PROP V ==> PROP W", propT);
+  let val V = read_cterm Sign.proto_pure ("PROP V", propT)
+      and VW = read_cterm Sign.proto_pure ("PROP V ==> PROP W", propT);
   in  standard (implies_intr V
                 (implies_intr VW
                  (implies_elim (assume VW) (assume V))))
@@ -752,16 +750,16 @@ val revcut_rl =
 
 (*for deleting an unwanted assumption*)
 val thin_rl =
-  let val V = read_cterm Sign.pure ("PROP V", propT)
-      and W = read_cterm Sign.pure ("PROP W", propT);
+  let val V = read_cterm Sign.proto_pure ("PROP V", propT)
+      and W = read_cterm Sign.proto_pure ("PROP W", propT);
   in  standard (implies_intr V (implies_intr W (assume W)))
   end;
 
 (* (!!x. PROP ?V) == PROP ?V       Allows removal of redundant parameters*)
 val triv_forall_equality =
-  let val V  = read_cterm Sign.pure ("PROP V", propT)
-      and QV = read_cterm Sign.pure ("!!x::'a. PROP V", propT)
-      and x  = read_cterm Sign.pure ("x", TFree("'a",logicS));
+  let val V  = read_cterm Sign.proto_pure ("PROP V", propT)
+      and QV = read_cterm Sign.proto_pure ("!!x::'a. PROP V", propT)
+      and x  = read_cterm Sign.proto_pure ("x", TFree("'a",logicS));
   in  standard (equal_intr (implies_intr QV (forall_elim x (assume QV)))
                            (implies_intr V  (forall_intr x (assume V))))
   end;

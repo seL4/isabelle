@@ -139,8 +139,8 @@ fun syn_ext_consts logtypes const_decls =
 
 val pure_types =
   map (fn t => (t, 0, NoSyn))
-    (terminals @ [logic, "type", "types", "sort", "classes", args, "idt",
-      "idts", "aprop", "asms", any, sprop]);
+    (terminals @ [logic, "type", "types", "sort", "classes", args,
+      "idt", "idts", "aprop", "asms", any, sprop]);
 
 val pure_syntax =
  [("_lambda",   "[idts, 'a] => logic",            Mixfix ("(3%_./ _)", [], 0)),
@@ -154,8 +154,6 @@ val pure_syntax =
   ("_idts",     "[idt, idts] => idts",            Mixfix ("_/ _", [1, 0], 0)),
   ("",          "id => aprop",                    Delimfix "_"),
   ("",          "var => aprop",                   Delimfix "_"),
-  (applC,       "[('b => 'a), " ^ args ^ "] => aprop",
-    Mixfix ("(1_/(1'(_')))", [max_pri, 0], max_pri)),
   ("_aprop",    "aprop => prop",                  Delimfix "PROP _"),
   ("",          "prop => asms",                   Delimfix "_"),
   ("_asms",     "[prop, asms] => asms",           Delimfix "_;/ _"),
@@ -163,7 +161,6 @@ val pure_syntax =
   ("_ofclass",  "[type, logic] => prop",          Delimfix "(1OFCLASS/(1'(_,/ _')))"),
   ("_K",        "'a",                             NoSyn),
   ("",          "id => logic",                    Delimfix "_"),
-  ("",          "var => logic",                   Delimfix "_"),
-  ("_appl",     "[logic, args] => logic",         Mixfix ("(1_/(1'(_')))", [max_pri, 0], max_pri))]
+  ("",          "var => logic",                   Delimfix "_")]
 
 end;
