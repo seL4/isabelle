@@ -39,7 +39,7 @@ val nat_le_imp_lepoll = nat_le_imp_lepoll_lemma RS bspec RS mp |> standard;
 (* ********************************************************************** *)
 
 Goal "(A->X)=0 ==> X=0";
-by (fast_tac (claset() addSIs [equals0I] addEs [lam_type RSN (2, equals0E)]) 1);
+by (fast_tac (claset() addSIs [equals0I] addIs [lam_type]) 1);
 qed "fun_space_emptyD";
 
 (* used only in WO1_DC.ML *)

@@ -256,7 +256,7 @@ Addsimps [knat];  AddSIs [knat];
 AddSIs [Infinite];   (*if notI is removed!*)
 AddSEs [Infinite RS notE];
 
-AddEs [IntI RS (disjoint RS equals0E)];
+AddEs [[disjoint, IntI] MRS (equals0D RS notE)];
 
 (*use k = succ(l) *)
 val includes_l = simplify (FOL_ss addsimps [k_def]) includes;

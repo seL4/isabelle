@@ -91,8 +91,7 @@ by (fast_tac (claset() addSIs [lam_type, apply_type]) 1);
 val lemma1_2 = result();
 
 Goal "(PROD B:{(nat->Union(A))*C. C:A}. B) ~= 0 ==> (PROD B:A. B) ~= 0";
-by (fast_tac (claset() addSIs [equals0I,lemma1_1, lemma1_2]
-                addSEs [equals0E]) 1);
+by (fast_tac (claset() addSIs [equals0I,lemma1_1, lemma1_2]) 1);
 val lemma1 = result();
 
 Goal "0 ~: A ==> 0 ~: {(nat -> Union(A)) * C. C:A}";

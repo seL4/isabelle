@@ -13,7 +13,7 @@ val [prem] = goal thy "f : (PROD X:Pow(x) - {0}. X) ==>  \
 by (resolve_tac [bij_Least_HH_x RS bij_converse_bij] 1);
 by (rtac f_subsets_imp_UN_HH_eq_x 1);
 by (resolve_tac [lam_type RS apply_type] 1 THEN (assume_tac 2));
-by (fast_tac (claset() addSEs [equals0E] addSDs [prem RS apply_type]) 1);
+by (fast_tac (claset() addSDs [prem RS apply_type]) 1);
 by (fast_tac (claset() addSIs [prem RS Pi_weaken_type]) 1);
 val lemma1 = uresult() |> standard;
 
