@@ -54,7 +54,7 @@ echo Running on `hostname`
 echo Log files will be called make$$.log.gz
 
 case $FORCE.$EXEC in
-    on.on) (cd $ISABELLEBIN; rm -f Pure FOL ZF CCL LCF CTT LK Modal HOL CHOL HOLCF Cube FOLP)
+    on.on) (cd $ISABELLEBIN; rm -f Pure FOL ZF CCL LCF CTT LK Modal Old_HOL HOL HOLCF Cube FOLP)
 esac
 
 set +e			#no longer fail upon errors -- e.g. if a "make" fails
@@ -134,11 +134,11 @@ esac
 
 echo
 echo
-echo '*****Higher-Order Logic (HOL)*****'
-(cd HOL;  make $NO $TEST > make$$.log)
-tail HOL/make$$.log
-gzip HOL/make$$.log
-#cannot delete HOL yet... it is needed for HOLCF!
+echo '*****Higher-Order Logic (Old_HOL)*****'
+(cd Old_HOL;  make $NO $TEST > make$$.log)
+tail Old_HOL/make$$.log
+gzip Old_HOL/make$$.log
+#cannot delete Old_HOL yet... it is needed for HOLCF!
 
 echo
 echo
@@ -147,17 +147,17 @@ echo '*****LCF in HOL (HOLCF)*****'
 tail HOLCF/make$$.log
 gzip HOLCF/make$$.log
 case $CLEAN.$EXEC in
-    on.on)	rm $ISABELLEBIN/HOL $ISABELLEBIN/HOLCF
+    on.on)	rm $ISABELLEBIN/Old_HOL $ISABELLEBIN/HOLCF
 esac
 
 echo
 echo
-echo '*****Curried Higher-Order Logic (CHOL)*****'
-(cd CHOL;  make $NO $TEST > make$$.log)
-tail CHOL/make$$.log
-gzip CHOL/make$$.log
+echo '*****Curried Higher-Order Logic (HOL)*****'
+(cd HOL;  make $NO $TEST > make$$.log)
+tail HOL/make$$.log
+gzip HOL/make$$.log
 case $CLEAN.$EXEC in
-    on.on)	rm $ISABELLEBIN/CHOL
+    on.on)	rm $ISABELLEBIN/HOL
 esac
 
 echo
@@ -184,7 +184,7 @@ case $TEST.$EXEC in
     test.on)	echo
 	        echo '***** Now check the dates on the "test" files *****'
         	ls -lrt FOL/test ZF/test CCL/test LCF/test CTT/test\
-              	        LK/test Modal/test HOL/test CHOL/test HOLCF/test\
+              	        LK/test Modal/test Old_HOL/test HOL/test HOLCF/test\
                         Cube/test FOLP/test
 esac
 echo Finished at `date`
