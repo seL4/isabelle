@@ -635,7 +635,7 @@ information.
 \begin{rail}
   'subst' thmref
   ;
-  'split' thmrefs
+  'split' ('(' 'asm' ')')? thmrefs
   ;
 \end{rail}
 
@@ -650,6 +650,9 @@ while the Simplifier is the canonical tool for automated normalization (see
   which may be either a meta or object equality.
 \item [$hypsubst$] performs substitution using some assumption.
 \item [$split~thms$] performs single-step case splitting using rules $thms$.
+  By default, splitting is performed in the conclusion of a goal; the $asm$
+  option indicates to operate on assumptions instead.
+  
   Note that the $simp$ method already involves repeated application of split
   rules as declared in the current context (see \S\ref{sec:simp}).
 \item [$symmetric$] applies the symmetry rule of meta or object equality.
@@ -699,11 +702,12 @@ while the Simplifier is the canonical tool for automated normalization (see
 
 \subsection{Automated methods}\label{sec:classical-auto}
 
-\indexisarmeth{blast}\indexisarmeth{fast}\indexisarmeth{best}
-\indexisarmeth{safe}\indexisarmeth{clarify}
+\indexisarmeth{blast}\indexisarmeth{fast}\indexisarmeth{slow}
+\indexisarmeth{best}\indexisarmeth{safe}\indexisarmeth{clarify}
 \begin{matharray}{rcl}
   blast & : & \isarmeth \\
   fast & : & \isarmeth \\
+  slow & : & \isarmeth \\
   best & : & \isarmeth \\
   safe & : & \isarmeth \\
   clarify & : & \isarmeth \\
@@ -712,7 +716,7 @@ while the Simplifier is the canonical tool for automated normalization (see
 \begin{rail}
   'blast' ('!' ?) nat? (clamod * )
   ;
-  ('fast' | 'best' | 'clarify' | 'safe') ('!' ?) (clamod * )
+  ('fast' | 'slow' | 'best' | 'safe' | 'clarify') ('!' ?) (clamod * )
   ;
 
   clamod: (('intro' | 'elim' | 'dest') ('!' | () | '?') | 'del') ':' thmrefs
@@ -726,9 +730,10 @@ while the Simplifier is the canonical tool for automated normalization (see
   classical proof procedure in Isabelle that can handle actual object-logic
   rules as local assumptions ($fast$ etc.\ would just ignore non-atomic
   facts).
-\item [$fast$, $best$, $safe$, and $clarify$] refer to the generic classical
-  reasoner.  See \texttt{fast_tac}, \texttt{best_tac}, \texttt{safe_tac}, and
-  \texttt{clarify_tac} in \cite[\S11]{isabelle-ref} for more information.
+\item [$fast$, $slow$, $best$, $safe$, and $clarify$] refer to the generic
+  classical reasoner.  See \texttt{fast_tac}, \texttt{slow_tac},
+  \texttt{best_tac}, \texttt{safe_tac}, and \texttt{clarify_tac} in
+  \cite[\S11]{isabelle-ref} for more information.
 \end{descr}
 
 Any of above methods support additional modifiers of the context of classical
@@ -743,19 +748,21 @@ This is slightly less hazardous than for the Simplifier (see
 
 \subsection{Combined automated methods}
 
-\indexisarmeth{auto}\indexisarmeth{force}
-\indexisarmeth{clarsimp}\indexisarmeth{fastsimp}
+\indexisarmeth{auto}\indexisarmeth{force}\indexisarmeth{clarsimp}
+\indexisarmeth{fastsimp}\indexisarmeth{slowsimp}\indexisarmeth{bestsimp}
 \begin{matharray}{rcl}
   auto & : & \isarmeth \\
   force & : & \isarmeth \\
   clarsimp & : & \isarmeth \\
   fastsimp & : & \isarmeth \\
+  slowsimp & : & \isarmeth \\
+  bestsimp & : & \isarmeth \\
 \end{matharray}
 
 \begin{rail}
   'auto' '!'? (nat nat)? (clasimpmod * )
   ;
-  ('force' | 'clarsimp' | 'fastsimp') '!'? (clasimpmod * )
+  ('force' | 'clarsimp' | 'fastsimp' | 'slowsimp' | 'bestsimp') '!'? (clasimpmod * )
   ;
 
   clasimpmod: ('simp' (() | 'add' | 'del' | 'only') |
@@ -764,12 +771,12 @@ This is slightly less hazardous than for the Simplifier (see
 \end{rail}
 
 \begin{descr}
-\item [$auto$, $force$, $clarsimp$, $fastsimp$] provide access to Isabelle's
-  combined simplification and classical reasoning tactics.  These correspond
-  to \texttt{auto_tac}, \texttt{force_tac}, \texttt{clarsimp_tac}, and
-  \texttt{fast_tac} (with the Simplifier added as wrapper), see
-  \cite[\S11]{isabelle-ref} for more information.  The modifier arguments
-  correspond to those given in \S\ref{sec:simp} and
+\item [$auto$, $force$, $clarsimp$, $fastsimp$, $slowsimp$, and $bestsimp$]
+  provide access to Isabelle's combined simplification and classical reasoning
+  tactics.  These correspond to \texttt{auto_tac}, \texttt{force_tac},
+  \texttt{clarsimp_tac}, and Classical Reasoner tactics with the Simplifier
+  added as wrapper, see \cite[\S11]{isabelle-ref} for more information.  The
+  modifier arguments correspond to those given in \S\ref{sec:simp} and
   \S\ref{sec:classical-auto}.  Just note that the ones related to the
   Simplifier are prefixed by \railtterm{simp} here.
 
