@@ -77,7 +77,7 @@
   \item {\tt asm_simp_tac}, \bold{112}, 125
   \item {\tt asm_simplify}, 113
   \item associative-commutative operators, 118
-  \item {\tt assume}, \bold{43}
+  \item {\tt assume}, \bold{44}
   \item {\tt assume_ax}, 9, \bold{57}
   \item {\tt assume_tac}, \bold{18}, 131
   \item {\tt assumption}, \bold{47}
@@ -116,7 +116,7 @@
   \item {\tt Best_tac}, \bold{137}
   \item {\tt best_tac}, \bold{136}
   \item {\tt beta_conversion}, \bold{45}
-  \item {\tt bicompose}, \bold{47}
+  \item {\tt bicompose}, \bold{48}
   \item {\tt bimatch_tac}, \bold{24}
   \item {\tt bind_thm}, \bold{9}, 10, 38
   \item binders, \bold{78}
@@ -164,7 +164,7 @@
   \item {\tt compose_tac}, \bold{24}
   \item {\tt compSWrapper}, \bold{133}
   \item {\tt compWrapper}, \bold{133}
-  \item {\tt concl_of}, \bold{40}
+  \item {\tt concl_of}, \bold{41}
   \item {\tt COND}, \bold{33}
   \item congruence rules, 109
   \item {\tt Const}, \bold{60}, 86, 96
@@ -175,7 +175,7 @@
   \item {\tt context}, 103
   \item {\tt contr_tac}, \bold{138}
   \item {\tt could_unify}, \bold{26}
-  \item {\tt cprems_of}, \bold{40}
+  \item {\tt cprems_of}, \bold{41}
   \item {\tt cprop_of}, \bold{40}
   \item {\tt CPure} theory, 51
   \item {\tt CPure.thy}, \bold{58}
@@ -251,6 +251,7 @@
   \item equality, 99--102
   \item {\tt eres_inst_tac}, \bold{19}
   \item {\tt eresolve_tac}, \bold{17}
+    \subitem on other than first premise, 40
   \item {\tt ERROR}, 5
   \item {\tt error}, 5
   \item error messages, 5
@@ -304,8 +305,8 @@
   \item {\tt forall_elim_var}, \bold{46}
   \item {\tt forall_elim_vars}, \bold{46}
   \item {\tt forall_intr}, \bold{45}
-  \item {\tt forall_intr_frees}, \bold{45}
-  \item {\tt forall_intr_list}, \bold{45}
+  \item {\tt forall_intr_frees}, \bold{46}
+  \item {\tt forall_intr_list}, \bold{46}
   \item {\tt force_strip_shyps}, \bold{41}
   \item {\tt forw_inst_tac}, \bold{19}
   \item forward proof, 18, 38
@@ -364,7 +365,7 @@
   \item {\tt instance} section, 53
   \item {\tt instantiate}, \bold{46}
   \item {\tt instantiate'}, \bold{39}, 46
-  \item instantiation, 18, 39, 46
+  \item instantiation, 19, 39, 46
   \item {\tt INTLEAVE}, \bold{29}, 31
   \item {\tt INTLEAVE'}, 36
   \item {\tt invoke_oracle}, \bold{64}
@@ -403,9 +404,9 @@
   \item {\tt max_pri}, 68, \bold{74}
   \item {\tt merge_ss}, \bold{106}
   \item {\tt merge_theories}, \bold{58}
-  \item meta-assumptions, 34, 42, 43, 47
+  \item meta-assumptions, 34, 42, 44, 47
     \subitem printing of, 4
-  \item meta-equality, 43, 44
+  \item meta-equality, 43--45
   \item meta-implication, 43, 44
   \item meta-quantifiers, 43, 45
   \item meta-rewriting, 8, 13, 14, \bold{21}, 
@@ -461,7 +462,7 @@
   \item {\tt pop_proof}, \bold{15}
   \item {\tt pr}, \bold{11}
   \item {\tt premises}, \bold{8}, 15
-  \item {\tt prems_of}, \bold{40}
+  \item {\tt prems_of}, \bold{41}
   \item {\tt prems_of_ss}, \bold{110}
   \item pretty printing, 74, 76--77, 93
   \item {\tt Pretty.setdepth}, \bold{4}
@@ -541,7 +542,7 @@
   \item reading
     \subitem axioms, \see{{\tt assume_ax}}{51}
     \subitem goals, \see{proofs, starting}{7}
-  \item {\tt reflexive}, \bold{44}
+  \item {\tt reflexive}, \bold{45}
   \item {\tt ren}, \bold{13}
   \item {\tt rename_last_tac}, \bold{22}
   \item {\tt rename_params_rule}, \bold{48}
@@ -577,6 +578,7 @@
   \item {\tt rewtac}, \bold{20}
   \item {\tt RL}, \bold{38}
   \item {\tt RLN}, \bold{38}
+  \item {\tt rotate_prems}, \bold{40}
   \item {\tt rotate_proof}, \bold{15}
   \item {\tt rotate_tac}, \bold{23}
   \item {\tt RS}, \bold{38}
@@ -612,7 +614,7 @@
   \item {\tt settermless}, \bold{117}
   \item {\tt setWrapper}, \bold{133}
   \item shortcuts
-    \subitem for tactics, 19
+    \subitem for tactics, 20
     \subitem for {\tt by} commands, 11
   \item {\tt show_brackets}, \bold{4}
   \item {\tt show_consts}, \bold{4}
@@ -675,7 +677,7 @@
   \item subgoal module, 7--16
   \item {\tt subgoal_tac}, \bold{20}
   \item {\tt subgoals_of_brl}, \bold{24}
-  \item {\tt subgoals_tac}, \bold{20}
+  \item {\tt subgoals_tac}, \bold{21}
   \item {\tt subst} theorem, 99, \bold{102}
   \item substitution
     \subitem rules, 99
@@ -684,7 +686,7 @@
   \item {\tt swap_res_tac}, \bold{138}
   \item {\tt swapify}, \bold{138}
   \item {\tt sym} theorem, 100, \bold{102}
-  \item {\tt symmetric}, \bold{44}
+  \item {\tt symmetric}, \bold{45}
   \item {\tt syn_of}, \bold{72}
   \item syntax
     \subitem Pure, 68--73
@@ -717,7 +719,7 @@
     \subitem scanning for subgoals, 35
     \subitem searching, 32
   \item tactics, 17--28
-    \subitem assumption, \bold{18}, 19
+    \subitem assumption, \bold{18}, 20
     \subitem commands for applying, 8
     \subitem debugging, 15
     \subitem filtering results of, 31
@@ -725,11 +727,11 @@
     \subitem for contradiction, 138
     \subitem for inserting facts, 20
     \subitem for Modus Ponens, 138
-    \subitem instantiation, 18
+    \subitem instantiation, 19
     \subitem matching, 18
-    \subitem meta-rewriting, 19, \bold{21}
+    \subitem meta-rewriting, 20, \bold{21}
     \subitem primitives for coding, 26
-    \subitem resolution, \bold{17}, 19, 24, 25
+    \subitem resolution, \bold{17}, 20, 24, 25
     \subitem restricting to a subgoal, 34
     \subitem simplification, 112
     \subitem substitution, 99--102
