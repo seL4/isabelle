@@ -21,7 +21,9 @@ use "$ISABELLE_HOME/src/Provers/splitter.ML";
 use "$ISABELLE_HOME/src/Provers/hypsubst.ML";
 use "$ISABELLE_HOME/src/Provers/classical.ML";
 use "$ISABELLE_HOME/src/Provers/blast.ML";
-use "$ISABELLE_HOME/src/Provers/nat_transitive.ML";
+use "$ISABELLE_HOME/src/Provers/Arith/nat_transitive.ML";
+use "$ISABELLE_HOME/src/Provers/Arith/cancel_sums.ML";
+use "$ISABELLE_HOME/src/Provers/Arith/cancel_factor.ML";
 
 use "thy_data.ML";
 
@@ -37,6 +39,9 @@ use_thy "Sum";
 use_thy "Gfp";
 
 use "datatype.ML";
+use_thy "Arith";
+use "arith_data.ML";
+
 use "ind_syntax.ML";
 use "add_ind_def.ML";
 use_thy "intr_elim";
