@@ -286,9 +286,9 @@ fun decomp_simp thm =
   in (sign, prems, term_of lhs, elhs, term_of rhs, perm) end;
 
 fun decomp_simp' thm =
-  let val (_, _, _, elhs, rhs, _) = decomp_simp thm in
+  let val (_, _, lhs, _, rhs, _) = decomp_simp thm in
     if Thm.nprems_of thm > 0 then raise SIMPLIFIER ("Bad conditional rewrite rule", thm)
-    else (term_of elhs, rhs)
+    else (lhs, rhs)
   end;
 
 fun mk_eq_True (Mss{mk_rews={mk_eq_True,...},...}) thm =
