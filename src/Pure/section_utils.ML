@@ -1,42 +1,19 @@
-(*  Title: 	Pure/section_utils.ML
-    ID:         $Id$
-    Author: 	Lawrence C Paulson, Cambridge University Computer Laboratory
-    Copyright   1994  University of Cambridge
 
-Utilities for writing new theory sections.
-*)
+(* FIXME get rid of this!! *)
 
-fun ap t u = t$u;
-fun app t (u1,u2) = t $ u1 $ u2;
-
-(*Make distinct individual variables a1, a2, a3, ..., an. *)
-fun mk_frees a [] = []
-  | mk_frees a (T::Ts) = Free(a,T) :: mk_frees (bump_string a) Ts;
-
-
-(*Read an assumption in the given theory*)
-fun assume_read thy a = Thm.assume (read_cterm (Theory.sign_of thy) (a,propT));
 
 (*Read a term from string "b", with expected type T*)
 fun readtm sign T b = 
     read_cterm sign (b,T) |> term_of
     handle ERROR => error ("The error(s) above occurred for " ^ b);
 
-(*From HOL/ex/meson.ML: raises exception if no rules apply -- unlike RL*)
-fun tryres (th, rl::rls) = (th RS rl handle THM _ => tryres(th,rls))
-  | tryres (th, []) = raise THM("tryres", 0, [th]);
 
-fun gen_make_elim elim_rls rl = 
-      standard (tryres (rl, elim_rls @ [revcut_rl]));
+(* FIXME broken! *)
 
-(** String manipulation **)
-
-(*Skipping initial blanks, find the first identifier*)	(* FIXME *)
-fun scan_to_id s = 
+(*Skipping initial blanks, find the first identifier*)
+fun scan_to_id s =
     s |> Symbol.explode
     |> Scan.error (Scan.finite Symbol.stopper
       (!! (fn _ => "Expected to find an identifier in " ^ s)
         (Scan.any Symbol.is_blank |-- Syntax.scan_id)))
     |> #1;
-
-fun is_backslash c = c = "\\";
