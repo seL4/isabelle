@@ -1,6 +1,6 @@
 \begin{theindex}
 
-  \item {\tt browser} tool, 19
+  \item {\tt browser} tool, 18
 
   \indexspace
 
@@ -26,23 +26,23 @@
   \indexspace
 
   \item {\tt INSTALL}, 1
-  \item {\tt installfonts} tool, 14
+  \item {\tt installfonts} tool, 13
   \item {\tt ISABELLE} setting, 3
   \item {\tt Isabelle}, 1, 7
   \item {\tt isabelle}, 1, 4
-  \item {\tt ISABELLE_BROWSER_INFO} setting, 4, 17
+  \item {\tt ISABELLE_BROWSER_INFO} setting, 4, 16
   \item {\tt ISABELLE_DOCS} setting, 4
   \item {\tt ISABELLE_HOME} setting, 2, 3
   \item {\tt ISABELLE_HOME_USER} setting, 3
   \item {\tt ISABELLE_INSTALL_FONTS} setting, 4
-  \item {\tt ISABELLE_INSTALLFONTS} setting, 14
+  \item {\tt ISABELLE_INSTALLFONTS} setting, 13
   \item {\tt ISABELLE_INTERFACE} setting, 4, 7
   \item {\tt ISABELLE_LOGIC} setting, 4
   \item {\tt ISABELLE_OUTPUT} setting, 3, 4
   \item {\tt ISABELLE_PATH} setting, 3
   \item {\tt ISABELLE_TMP_PREFIX} setting, 4
   \item {\tt ISABELLE_TOOLS} setting, 4
-  \item {\tt ISABELLE_USEDIR_OPTIONS} setting, 4, 11, 17
+  \item {\tt ISABELLE_USEDIR_OPTIONS} setting, 4, 11, 16
   \item {\tt IsaMakefile}, 10, 11
   \item {\tt ISATOOL} setting, 3
   \item {\tt isatool}, 1, 6
@@ -50,29 +50,29 @@
   \indexspace
 
   \item {\tt make} tool, 10
-  \item {\tt makeall} tool, 10
+  \item {\tt makeall} tool, 11
   \item {\tt ML_HOME} setting, 3
   \item {\tt ML_OPTIONS} setting, 3
   \item {\tt ML_SYSTEM} setting, 3
 
   \indexspace
 
-  \item {\tt nonascii} tool, 15
+  \item {\tt nonascii} tool, 14
 
   \indexspace
 
   \item settings, \bold{1}
-  \item {\tt symbolinput} tool, 16
-  \item {\tt symbols}, 14
+  \item {\tt symbolinput} tool, 15
+  \item {\tt symbols}, 13
 
   \indexspace
 
-  \item theory browsing information, \bold{17}
-  \item theory graph browser, \bold{18}
+  \item theory browsing information, \bold{16}
+  \item theory graph browser, \bold{17}
 
   \indexspace
 
-  \item {\tt use_dir}, 18
+  \item {\tt use_dir}, 17
   \item {\tt usedir} tool, 11
 
 \end{theindex}

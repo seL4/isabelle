@@ -19,7 +19,7 @@ links to all theories in an index file. These indexes are themself
 linked with other indexes to represent the hierarchic structure of
 Isabelle's logics.
 
-In addition to the HTML files, Isabelle also generates \texttt{graph}
+In addition to the HTML files, Isabelle also generates \emph{graph}
 files that represent the theory hierarchy of a logic.  These graphs
 can be comfortably displayed by a graph browser Java applet embedded
 in the generated HTML pages. There is also a stand-alone version of
@@ -33,13 +33,13 @@ chapter.
 part of the Isabelle distribution, simply append ``\texttt{-i true}''
 to the \settdx{ISABELLE_USEDIR_OPTIONS} setting before making a logic.
 For example, to generate browsing information for {\FOL}, first add
-something like this to your private Isabelle settings file:
+something like this to your Isabelle settings file:
 \begin{ttbox}
 ISABELLE_USEDIR_OPTIONS="-i true"
 \end{ttbox}
 Then \texttt{cd} into the \texttt{src/FOL} directory of the Isabelle
-distribution and do an \texttt{isatool make} (or even \texttt{isatool
-  make test}).
+distribution and do \texttt{isatool make} (or even \texttt{isatool
+  make all}).
 
 \medskip The directory in which to store theory browsing information
 is determined by the \settdx{ISABELLE_BROWSER_INFO} setting.
@@ -58,7 +58,7 @@ examples may be accessed on the WWW at:
 \begin{ttbox}
 http://www4.informatik.tu-muenchen.de/~isabelle/library/
 \end{ttbox}
-Note that this is not necessarily consistent with your local sources!
+Of course, this is not necessarily consistent with your local version!
 
 To present your own theories on the WWW, simply copy the whole
 \texttt{ISABELLE_BROWSER_INFO} directory to your WWW server.
@@ -222,7 +222,7 @@ the corresponding node.
 
 \subsubsection*{The ``File'' menu}
 
-Please note that, due to Java security restrictions, this menu is not
+Please note that due to Java security restrictions this menu is not
 available in the applet version. The meaning of the menu items is as
 follows:
 \begin{description}

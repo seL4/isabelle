@@ -82,8 +82,8 @@ With the \texttt{-a} option, one may inspect the full process
 environment that Isabelle related programs are run in. This usually
 contains much more variables than are actually Isabelle settings.
 Normally, output is a list of lines of the form
-\mbox{$varname$\texttt{=}$value$}. The \texttt{-b} option causes only
-the values to be printed.
+\mbox{$name$\texttt{=}$value$}. The \texttt{-b} option causes only the
+values to be printed.
 
 
 \subsection*{Examples}
@@ -102,9 +102,9 @@ locate logic images:
 isatool getenv -b ISABELLE_PATH
 {\out /home/me/isabelle/heaps/smlnj-110:/usr/local/isabelle/heaps/smlnj-110}
 \end{ttbox}
-We used the \texttt{-b} option to suppress the \texttt{ISABELLE_PATH=}
-prefix.  The value above is what became of the following assignment in
-the default settings file:
+Here we have used the \texttt{-b} option to suppress the
+\texttt{ISABELLE_PATH=} prefix.  The value above is what became of the
+following assignment in the default settings file:
 \begin{ttbox}
 ISABELLE_PATH=\$ISABELLE_HOME_USER/heaps:\$ISABELLE_HOME/heaps
 \end{ttbox}
@@ -132,27 +132,29 @@ utility, see \S\ref{sec:tool-usedir}.
 
 \medskip The basic \texttt{IsaMakefile} convention is that the default
 target builds the actual logic, including its parents if appropriate.
-The \texttt{images} target is intended to build all logic images,
-while the \texttt{test} target shall build all related examples.  The
-\texttt{all} target shall build the images and run the examples.
+The \texttt{images} target is intended to build all local logic
+images, while the \texttt{test} target shall build all related
+examples.  The \texttt{all} target shall do \texttt{images} and
+\texttt{test}.
 
 
 \subsection*{Examples}
 
 Refer to the \texttt{IsaMakefile}s of the Isabelle distribution's
-object-logics as a model for your own developements.
+object-logics as a model for your own developements.  For example, see
+\texttt{src/FOL/IsaMakefile}.
 
 
 \section{Make all logics -- \texttt{isatool makeall}}
 
 The \tooldx{makeall} utility applies Isabelle make to all logic
-directories of the Isabelle distribution:
+directories of the distribution:
 \begin{ttbox}
 Usage: makeall [ARGS ...]
 
   Apply isatool make to all logics (passing ARGS).
 \end{ttbox}
-The arguments \texttt{ARGS} are just passed verbatim to any
+The arguments \texttt{ARGS} are just passed verbatim to each
 \texttt{make} invocation.
 
 
@@ -173,7 +175,7 @@ Usage: usedir LOGIC NAME
   information (HTML etc.) according to settings.
 \end{ttbox}
 
-The value of the \settdx{ISABELLE_USEDIR_OPTIONS} setting is
+Note that the value of the \settdx{ISABELLE_USEDIR_OPTIONS} setting is
 implicitly prefixed to \emph{any} \texttt{usedir} call. Since the
 \ttindex{IsaMakefile}s of all object-logics distributed with Isabelle
 just invoke \texttt{usedir} for the real work, one may control
@@ -195,22 +197,21 @@ the command line. This will be a batch session, running
 assumed that \texttt{ROOT.ML} contains all {\ML} commands required to
 build the logic.
 
-In example mode, on the other hand, \texttt{usedir} runs a read-only
+In example mode on the other hand, \texttt{usedir} runs a read-only
 session of \texttt{LOGIC} (typically just built before) and
 automatically runs \texttt{ROOT.ML} from within directory
-\texttt{NAME}.  I.e.\ it assumes that some file \texttt{ROOT.ML} in
-directory \texttt{NAME} contains appropriate {\ML} commands to run the
-desired examples.
+\texttt{NAME}.  It assumes that file \texttt{ROOT.ML} in directory
+\texttt{NAME} contains appropriate {\ML} commands to run the desired
+examples.
 
 \medskip The \texttt{-i} option controls theory browsing data
 generation. It may be explicitely turned on or off --- the last
-occurrence of some \texttt{-i} on the command line wins.
+occurrence of \texttt{-i} on the command line wins.
 
 \medskip Any \texttt{usedir} session is named by some \emph{session
   identifier}. These accumulate, documenting the way sessions depend
-on others. For example, consider \texttt{Pure/FOL/ZF/ex}, which refers
-to the examples of {\ZF} set theory, built upon {\FOL}, built upon
-{\Pure}.
+on others. For example, consider \texttt{Pure/FOL/ex}, which refers to
+the examples of {\FOL} which is built upon {\Pure}.
 
 The current session's identifier is by default just the base name of
 the \texttt{LOGIC} argument (in build mode), or of the \texttt{NAME}
@@ -221,4 +222,6 @@ argument (in example mode). This may be overridden explicitely via the
 \subsection*{Examples}
 
 Refer to the \texttt{IsaMakefile}s of the Isabelle distribution's
-object-logics as a model for your own developements.
+object-logics as a model for your own developements.  For example, see
+\texttt{src/FOL/IsaMakefile}.
+

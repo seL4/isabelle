@@ -49,9 +49,8 @@ intended to be set directly from the shell!
 Isabelle employs a somewhat more sophisticated scheme of
 \emph{settings files} --- one for site-wide defaults, another for
 optional user-specific modifications.  With all configuration
-variables in just a few places, this is considered much more
-maintainable and user-friendly than ordinary shell environment
-variables.
+variables in just a few places, this is much more maintainable and
+user-friendly than ordinary shell environment variables.
 
 In particular, we avoid the typical situation where prospective users
 of a software package are told to put this and that in their shell
@@ -121,7 +120,7 @@ environment references should be kept at a minimum.
 \end{itemize}
 
 \medskip The Isabelle settings scheme is basically quite simple, but
-non-trivial.  For debugging purposes, the generated environment may be
+non-trivial.  For debugging purposes, the resulting environment may be
 inspected with the \texttt{getenv} utility, see
 \S\ref{sec:tool-getenv}.
 
@@ -171,7 +170,8 @@ are marked with *.
   
 \item[\settdx{ISABELLE_BROWSER_INFO}] is the directory where theory
   browser information (HTML and graph data) is stored (see also
-  \S\ref{sec:info}).
+  \S\ref{sec:info}).  The default value is
+  \texttt{\$ISABELLE_HOME_USER/browser_info}.
 
 \item[\settdx{ISABELLE_LOGIC}] specifies the default logic to load if
   none is given explicitely by the user --- e.g.\ when running
@@ -201,8 +201,7 @@ are marked with *.
   
 \item[\settdx{ISABELLE_TMP_PREFIX}] is the prefix from which any
   \texttt{isabelle} session derives an individual directory for
-  temporary files.  The default is somewhere in \texttt{/tmp}; this
-  should not need to be changed under normal circumstances.
+  temporary files.  The default is somewhere in \texttt{/tmp}.
   
 \item[\settdx{ISABELLE_INTERFACE}] is an identifier that specifies the
   actual user interface that the capital \texttt{Isabelle} should
@@ -250,7 +249,7 @@ If the input heap file does not have write permission bits set, or the
 read-only. That is, the {\ML} world cannot be committed back into the
 logic image.  Otherwise, a writable session enables commits into
 either the input file, or into an alternative output heap file (in
-case this is given as the second argument).
+case this is given as the second argument on the command line).
 
 The read-write state of sessions is determined at startup only, it
 cannot be changed intermediately. Also note that heap images may
@@ -258,17 +257,17 @@ require considerable amounts of disk space. Users are responsible
 themselves to dispose their heap files when they are no longer needed.
 
 \medskip The \texttt{-w} option makes the output heap file read-only
-after terminating the Isabelle session.  Thus subsequent invocations
-cause logic image to be read-only automatically.
+after terminating.  Thus subsequent invocations cause the logic image
+to be read-only automatically.
 
 \medskip Using the \texttt{-e} option, arbitrary {\ML} code may be
 passed to the Isabelle session from the command line. Multiple
 \texttt{-e}'s are evaluated in order. Strange things may happen when
-errorneous {\ML} code is given. Also make sure that commands are
-terminated properly by semicolon.
+errorneous {\ML} code is given. Also make sure that the {\ML} commands
+are terminated properly by semicolon.
 
 \medskip The \texttt{-u} option is a shortcut for \texttt{-e}, passing
-\texttt{use"ROOT.ML";} to the {\ML} session.
+``\texttt{use"ROOT.ML";}'' to the {\ML} session.
 
 \medskip The \texttt{-m} option adds identifiers of print modes to be
 made active for this session. Typically, this is used by some user
@@ -339,7 +338,7 @@ run within the same settings environment as Isabelle proper, see
 \S\ref{sec:settings}.  The set of available tools is collected by
 isatool from the directories listed in the \texttt{ISABELLE_TOOLS}
 setting.  Do not try to call the scripts directly. Neither should you
-add the tools directories to your shell's search path.
+add the tool directories to your shell's search path.
 
 
 \medskip See chapter~\ref{ch:tools} for descriptions of most utilities
