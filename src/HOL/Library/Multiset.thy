@@ -16,12 +16,12 @@ subsection {* The type of multisets *}
 
 typedef 'a multiset = "{f::'a => nat. finite {x . 0 < f x}}"
 proof
-  show "(\<lambda>x. 0::nat) \<in> {f. finite {x. 0 < f x}}"
-    by simp
+  show "(\<lambda>x. 0::nat) \<in> ?multiset" by simp
 qed
 
 lemmas multiset_typedef [simp] =
-  Abs_multiset_inverse Rep_multiset_inverse Rep_multiset
+    Abs_multiset_inverse Rep_multiset_inverse Rep_multiset
+  and [simp] = Rep_multiset_inject [symmetric]
 
 constdefs
   Mempty :: "'a multiset"    ("{#}")
@@ -89,33 +89,6 @@ lemma diff_preserves_multiset [simp]:
   apply auto
   done
 
-text {*
- \medskip Injectivity of @{term Rep_multiset}.
-*}  (* FIXME typedef package (!?) *)
-
-lemma multiset_eq_conv_Rep_eq [simp]:
-    "(M = N) = (Rep_multiset M = Rep_multiset N)"
-  apply (rule iffI)
-   apply simp
-  apply (drule_tac f = Abs_multiset in arg_cong)
-  apply simp
-  done
-
-(* FIXME
-Goal
- "[| f : multiset; g : multiset |] ==> \
-\ (Abs_multiset f = Abs_multiset g) = (!x. f x = g x)";
-by (rtac iffI 1);
- by (dres_inst_tac [("f","Rep_multiset")] arg_cong 1);
- by (Asm_full_simp_tac 1);
-by (subgoal_tac "f = g" 1);
- by (Asm_simp_tac 1);
-by (rtac ext 1);
-by (Blast_tac 1);
-qed "Abs_multiset_eq";
-Addsimps [Abs_multiset_eq];
-*)
-
 
 subsection {* Algebraic properties of multisets *}
 
@@ -140,6 +113,13 @@ theorem union_lcomm: "M + (N + K) = N + (M + (K::'a multiset))"
   done
 
 theorems union_ac = union_assoc union_commute union_lcomm
+
+instance multiset :: ("term") plus_ac0
+  apply intro_classes
+    apply (rule union_commute)
+   apply (rule union_assoc)
+  apply simp
+  done
 
 
 subsubsection {* Difference *}
@@ -442,7 +422,7 @@ theorem multiset_partition: "M = {# x:M. P x #} + {# x:M. \<not> P x #}"
   apply auto
   done
 
-declare multiset_eq_conv_Rep_eq [simp del]
+declare Rep_multiset_inject [symmetric, simp del]
 declare multiset_typedef [simp del]
 
 theorem add_eq_conv_ex:
@@ -466,8 +446,7 @@ constdefs
   "mult r == (mult1 r)^+"
 
 lemma not_less_empty [iff]: "(M, {#}) \<notin> mult1 r"
-  apply (simp add: mult1_def)
-  done
+  by (simp add: mult1_def)
 
 lemma less_add: "(N, M0 + {#a#}) \<in> mult1 r ==>
     (\<exists>M. (M, M0) \<in> mult1 r \<and> N = M + {#a#}) \<or>
@@ -629,7 +608,7 @@ lemma mult_implies_one_step:
     apply (simp add: multiset_eq_conv_count_eq split: nat_diff_split)
    apply (simp (no_asm_use) add: trans_def)
    apply blast
-  apply (subgoal_tac "a :# (M0 +{#a#})")
+  apply (subgoal_tac "a :# (M0 + {#a#})")
    apply simp
   apply (simp (no_asm))
   done
@@ -775,6 +754,18 @@ theorem mult_less_le: "M < N = (M <= N \<and> M \<noteq> (N::'a::order multiset)
   apply auto
   done
 
+text {* Partial order. *}
+
+instance multiset :: (order) order
+  apply intro_classes
+     apply (rule mult_le_refl)
+    apply (erule mult_le_trans)
+    apply assumption
+   apply (erule mult_le_antisym)
+   apply assumption
+  apply (rule mult_less_le)
+  done
+
 
 subsubsection {* Monotonicity of multiset union *}
 
@@ -832,23 +823,6 @@ theorem union_upper1: "A <= A + (B::'a::order multiset)"
 
 theorem union_upper2: "B <= A + (B::'a::order multiset)"
   apply (subst union_commute, rule union_upper1)
-  done
-
-instance multiset :: (order) order
-  apply intro_classes
-     apply (rule mult_le_refl)
-    apply (erule mult_le_trans)
-    apply assumption
-   apply (erule mult_le_antisym)
-   apply assumption
-  apply (rule mult_less_le)
-  done
-
-instance multiset :: ("term") plus_ac0
-  apply intro_classes
-    apply (rule union_commute)
-   apply (rule union_assoc)
-  apply simp
   done
 
 end
