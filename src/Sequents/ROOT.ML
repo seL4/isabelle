@@ -11,12 +11,17 @@ writeln banner;
 
 print_depth 1;  
 
+use "~~/src/Provers/simplifier.ML";
+
 use_thy "Sequents";
 use "prover.ML";
 
 use_thy "LK";
+use "simpdata.ML";
+
 use_thy "ILL";
 
+use "modal.ML";
 use_thy "Modal0";
 use_thy"T";
 use_thy"S4";

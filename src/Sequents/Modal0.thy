@@ -1,10 +1,10 @@
-(*  Title:      Modal/modal0
+(*  Title:      Sequents/Modal0
     ID:         $Id$
     Author:     Martin Coen
     Copyright   1991  University of Cambridge
 *)
 
-Modal0 = LK +
+Modal0 = LK0 +
 
 consts
   box           :: "o=>o"       ("[]_" [50] 50)

@@ -26,7 +26,8 @@ Sequents: Pure $(OUT)/Sequents
 Pure:
 	@cd $(SRC)/Pure; $(ISATOOL) make Pure
 
-$(OUT)/Sequents: $(OUT)/Pure ILL.ML ILL.thy LK.ML LK.thy ROOT.ML S4.ML \
+$(OUT)/Sequents: $(OUT)/Pure ILL.ML ILL.thy LK0.ML LK0.thy LK.thy \
+  modal.ML ROOT.ML simpdata.ML S4.ML \
   S4.thy S43.ML S43.thy Sequents.thy T.ML T.thy prover.ML
 	@$(ISATOOL) usedir -b $(OUT)/Pure Sequents
 
@@ -46,7 +47,7 @@ $(LOG)/Sequents-ILL.gz: $(OUT)/Sequents ILL/ILL_kleene_lemmas.ML \
 Sequents-LK: Sequents $(LOG)/Sequents-LK.gz
 
 $(LOG)/Sequents-LK.gz: $(OUT)/Sequents LK/ROOT.ML LK/hardquant.ML \
-  LK/prop.ML LK/quant.ML
+  LK/prop.ML LK/quant.ML LK/Nat.thy LK/Nat.ML
 	@$(ISATOOL) usedir $(OUT)/Sequents LK
 
 

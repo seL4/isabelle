@@ -8,6 +8,8 @@ Classical First-Order Sequent Calculus
 
 Sequents = Pure +
 
+global
+
 types
   o 
 
@@ -39,7 +41,7 @@ syntax
  SeqContApp     :: "[seqobj,seqcont] => seqcont"        (",/ __")
   
  SeqO           :: "o => seqobj"                        ("_")
- SeqId          :: "id => seqobj"                       ("$_")
+ SeqId          :: "'a => seqobj"                       ("$_")
  SeqVar         :: "var => seqobj"                      ("$_")
 
 types
