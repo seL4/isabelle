@@ -185,19 +185,19 @@ apply auto
 done 
 
 lemma in_list_Suc_iff: 
-  "(xs : list (Suc n) A) = (? y:A. ? ys:list n A. xs = y#ys)"
+  "(xs : list (Suc n) A) = (\<exists>y\<in> A. \<exists>ys\<in> list n A. xs = y#ys)"
 apply (unfold list_def)
 apply (case_tac "xs")
 apply auto
 done 
 
 lemma Cons_in_list_Suc [iff]:
-  "(x#xs : list (Suc n) A) = (x:A & xs : list n A)";
+  "(x#xs : list (Suc n) A) = (x\<in> A & xs : list n A)";
 apply (simp add: in_list_Suc_iff)
 done 
 
 lemma list_not_empty:
-  "? a. a:A \<Longrightarrow> ? xs. xs : list n A";
+  "\<exists>a. a\<in> A \<Longrightarrow> \<exists>xs. xs : list n A";
 apply (induct "n")
  apply simp
 apply (simp add: in_list_Suc_iff)
@@ -248,7 +248,7 @@ qed
 
 
 lemma listt_update_in_list [simp, intro!]:
-  "\<lbrakk> xs : list n A; x:A \<rbrakk> \<Longrightarrow> xs[i := x] : list n A"
+  "\<lbrakk> xs : list n A; x\<in> A \<rbrakk> \<Longrightarrow> xs[i := x] : list n A"
 apply (unfold list_def)
 apply simp
 done 
@@ -306,7 +306,7 @@ apply (simp add: Listn.le_def list_all2_conv_all_nth)
 done
 
 lemma (in semilat) list_update_incr [rule_format]:
- "x:A \<Longrightarrow> set xs <= A \<longrightarrow> 
+ "x\<in> A \<Longrightarrow> set xs <= A \<longrightarrow> 
   (!i. i<size xs \<longrightarrow> xs <=[r] xs[i := x +_f xs!i])"
 apply (unfold unfold_lesub_list)
 apply (simp add: Listn.le_def list_all2_conv_all_nth)
@@ -330,8 +330,6 @@ apply (rule wf_UN)
  apply (rename_tac m n)
  apply (case_tac "m=n")
   apply simp
- apply (rule conjI)
-  apply (fast intro!: equals0I dest: not_sym)
  apply (fast intro!: equals0I dest: not_sym)
 apply clarify
 apply (rename_tac n)
@@ -342,15 +340,15 @@ apply (simp add: wf_eq_minimal)
 apply (simp (no_asm) add: length_Suc_conv cong: conj_cong)
 apply clarify
 apply (rename_tac M m)
-apply (case_tac "? x xs. size xs = k & x#xs : M")
+apply (case_tac "\<exists>x xs. size xs = k & x#xs : M")
  prefer 2
  apply (erule thin_rl)
  apply (erule thin_rl)
  apply blast
-apply (erule_tac x = "{a. ? xs. size xs = k & a#xs:M}" in allE)
+apply (erule_tac x = "{a. \<exists>xs. size xs = k & a#xs:M}" in allE)
 apply (erule impE)
  apply blast
-apply (thin_tac "? x xs. ?P x xs")
+apply (thin_tac "\<exists>x xs. ?P x xs")
 apply clarify
 apply (rename_tac maxA xs)
 apply (erule_tac x = "{ys. size ys = size xs & maxA#ys : M}" in allE)
@@ -435,8 +433,8 @@ apply (force simp add: semilat_le_err_OK2)
 done 
 
 lemma lift2_le_ub:
-  "\<lbrakk> semilat(err A, Err.le r, lift2 f); x:A; y:A; x +_f y = OK z; 
-      u:A; x <=_r u; y <=_r u \<rbrakk> \<Longrightarrow> z <=_r u"
+  "\<lbrakk> semilat(err A, Err.le r, lift2 f); x\<in> A; y\<in> A; x +_f y = OK z; 
+      u\<in> A; x <=_r u; y <=_r u \<rbrakk> \<Longrightarrow> z <=_r u"
 apply (unfold semilat_Def plussub_def err_def)
 apply (simp add: lift2_def)
 apply clarify
@@ -464,16 +462,16 @@ apply blast
 done 
 
 lemma lift2_eq_ErrD:
-  "\<lbrakk> x +_f y = Err; semilat(err A, Err.le r, lift2 f); x:A; y:A \<rbrakk> 
-  \<Longrightarrow> ~(? u:A. x <=_r u & y <=_r u)"
+  "\<lbrakk> x +_f y = Err; semilat(err A, Err.le r, lift2 f); x\<in> A; y\<in> A \<rbrakk> 
+  \<Longrightarrow> ~(\<exists>u\<in> A. x <=_r u & y <=_r u)"
   by (simp add: OK_plus_OK_eq_Err_conv [THEN iffD1])
 
 
 lemma coalesce_eq_Err_D [rule_format]:
   "\<lbrakk> semilat(err A, Err.le r, lift2 f) \<rbrakk> 
-  \<Longrightarrow> !xs. xs:list n A \<longrightarrow> (!ys. ys:list n A \<longrightarrow> 
+  \<Longrightarrow> !xs. xs\<in> list n A \<longrightarrow> (!ys. ys\<in> list n A \<longrightarrow> 
       coalesce (xs +[f] ys) = Err \<longrightarrow> 
-      ~(? zs:list n A. xs <=[r] zs & ys <=[r] zs))"
+      ~(\<exists>zs\<in> list n A. xs <=[r] zs & ys <=[r] zs))"
 apply (induct n)
  apply simp
 apply clarify
@@ -484,14 +482,14 @@ apply (simp split: err.split_asm add: lem Err.sup_def lift2_def)
 done 
 
 lemma closed_err_lift2_conv:
-  "closed (err A) (lift2 f) = (!x:A. !y:A. x +_f y : err A)"
+  "closed (err A) (lift2 f) = (\<forall>x\<in> A. \<forall>y\<in> A. x +_f y : err A)"
 apply (unfold closed_def)
 apply (simp add: err_def)
 done 
 
 lemma closed_map2_list [rule_format]:
   "closed (err A) (lift2 f) \<Longrightarrow> 
-  !xs. xs : list n A \<longrightarrow> (!ys. ys : list n A \<longrightarrow> 
+  \<forall>xs. xs : list n A \<longrightarrow> (\<forall>ys. ys : list n A \<longrightarrow> 
   map2 f xs ys : list n (err A))"
 apply (unfold map2_def)
 apply (induct n)

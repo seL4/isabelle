@@ -25,10 +25,8 @@ val [nat_case_0, nat_case_Suc] = thms "nat.cases";
 bind_thm ("nat_case_0", nat_case_0);
 bind_thm ("nat_case_Suc", nat_case_Suc);
 
-val LeastI = thm "LeastI";
 val Least_Suc = thm "Least_Suc";
 val Least_Suc2 = thm "Least_Suc2";
-val Least_le = thm "Least_le";
 val One_nat_def = thm "One_nat_def";
 val Suc_Suc_eq = thm "Suc_Suc_eq";
 val Suc_def = thm "Suc_def";
@@ -218,7 +216,6 @@ val not_gr0 = thm "not_gr0";
 val not_leE = thm "not_leE";
 val not_le_iff_less = thm "not_le_iff_less";
 val not_less0 = thm "not_less0";
-val not_less_Least = thm "not_less_Least";
 val not_less_eq = thm "not_less_eq";
 val not_less_iff_le = thm "not_less_iff_le";
 val not_less_less_Suc_eq = thm "not_less_less_Suc_eq";

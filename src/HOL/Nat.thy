@@ -564,11 +564,7 @@ lemma nat_induct2: "[|P 0; P (Suc 0); !!k. P k ==> P (Suc (Suc k))|] ==> P n"
   apply (blast intro: less_trans)+
   done
 
-subsection {* @{text LEAST} theorems for type @{typ nat} by specialization *}
-
-lemmas LeastI = wellorder_LeastI
-lemmas Least_le = wellorder_Least_le
-lemmas not_less_Least = wellorder_not_less_Least
+subsection {* @{text LEAST} theorems for type @{typ nat}*}
 
 lemma Least_Suc:
      "[| P n; ~ P 0 |] ==> (LEAST n. P n) = Suc (LEAST m. P(Suc m))"
