@@ -6,7 +6,7 @@
 Notions about functions.
 *)
 
-Fun = Inverse_Image + equalities + 
+Fun = Inverse_Image + Typedef + 
 
 instance set :: (term) order
                        (subset_refl,subset_trans,subset_antisym,psubset_eq)

@@ -103,11 +103,11 @@ $(OUT)/HOL: $(OUT)/Pure $(SRC)/Provers/quantifier1.ML \
   Tools/primrec_package.ML Tools/recdef_package.ML \
   Tools/record_package.ML Tools/split_rule.ML \
   Tools/svc_funcs.ML Tools/typedef_package.ML \
-  Transitive_Closure.thy Transitive_Closure_lemmas.ML Wellfounded_Recursion.ML \
-  Wellfounded_Recursion.thy Wellfounded_Relations.ML \
+  Transitive_Closure.thy Transitive_Closure_lemmas.ML Typedef.thy \
+  Wellfounded_Recursion.ML Wellfounded_Recursion.thy Wellfounded_Relations.ML \
   Wellfounded_Relations.thy arith_data.ML blastdata.ML cladata.ML \
-  equalities.ML equalities.thy hologic.ML meson_lemmas.ML mono.ML \
-  mono.thy simpdata.ML subset.ML subset.thy thy_syntax.ML
+  equalities.ML hologic.ML meson_lemmas.ML mono.ML \
+  simpdata.ML subset.ML thy_syntax.ML
 	@$(ISATOOL) usedir -b $(OUT)/Pure HOL
 
 

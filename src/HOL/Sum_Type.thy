@@ -6,7 +6,7 @@
 The disjoint sum of two types.
 *)
 
-Sum_Type = mono + Product_Type +
+Sum_Type = Product_Type +
 
 (* type definition *)
 
