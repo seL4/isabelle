@@ -24,24 +24,34 @@ New in this Isabelle release
   show_structs controls printing of implicit structures.  Typical
   applications of these concepts involve record types and locales.
 
-* Pure: syntax of terms, types etc. includes (*(*nested*) comments*).
-
-* Pure: 'advanced' translation functions (parse_translation etc.) may
-  depend on the signature of the theory context being presently used
-  for parsing/printing, see also isar-ref manual.
-
-* Pure: tuned internal renaming of symbolic identifiers -- attach
-  primes instead of base 26 numbers.
-
 * Pure: clear separation of logical types and nonterminals, where the
   latter may only occur in 'syntax' specifications or type
   abbreviations.  Before that distinction was only partially
   implemented via type class "logic" vs. "{}".  Potential
   INCOMPATIBILITY in rare cases of improper use of 'types'/'consts'
   instead of 'nonterminals'/'syntax'.  Some very exotic syntax
-  specifications requiring additional non-logical non-syntactic types
-  (apart from 'prop' vs. 'logic') may need to be reformulated with
-  duplicated 'consts'/'syntax' declarations (e.g. see Cube/Base.thy).
+  specifications may require further adaption (e.g. Cube/Base.thy).
+
+* Pure/Syntax: inner syntax includes (*(*nested*) comments*).
+
+* Pure/Syntax: pretty pinter now supports unbreakable blocks,
+  specified in mixfix annotations as "(00...)".
+
+* Pure/Syntax: 'advanced' translation functions (parse_translation
+  etc.) may depend on the signature of the theory context being
+  presently used for parsing/printing, see also isar-ref manual.
+
+* Pure: tuned internal renaming of symbolic identifiers -- attach
+  primes instead of base 26 numbers.
+
+* ML: all output via channels of writeln/warning/error etc. is now
+  passed through Output.output.  This gives interface builders a
+  chance to adapt text encodings in arbitrary manners (say as XML
+  entities); see the hook provided by Output.add_mode.  On the other
+  hand, results of Pretty.string_of/str_of (including string_of_term,
+  string_of_thm etc.) are still 'raw' (containing funny \<^raw...>
+  symbols), which requires separate application of Output.output
+  whenever strings are *not* passed on to writeln/warning/error etc.
 
 
 *** HOL ***
