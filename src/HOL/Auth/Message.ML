@@ -9,7 +9,8 @@ Inductive relations "parts", "analz" and "synth"
 
 open Message;
 
-AddIffs (msg.inject);
+AddIffs atomic.inject;
+AddIffs msg.inject;
 
 (*Holds because Friend is injective: thus cannot prove for all f*)
 goal thy "(Friend x : Friend``A) = (x:A)";
@@ -57,6 +58,10 @@ goalw thy [keysFor_def] "keysFor (insert (Nonce N) H) = keysFor H";
 by (Blast_tac 1);
 qed "keysFor_insert_Nonce";
 
+goalw thy [keysFor_def] "keysFor (insert (Number N) H) = keysFor H";
+by (Blast_tac 1);
+qed "keysFor_insert_Number";
+
 goalw thy [keysFor_def] "keysFor (insert (Key K) H) = keysFor H";
 by (Blast_tac 1);
 qed "keysFor_insert_Key";
@@ -75,7 +80,8 @@ by (Auto_tac());
 qed "keysFor_insert_Crypt";
 
 Addsimps [keysFor_empty, keysFor_Un, keysFor_UN1, 
-          keysFor_insert_Agent, keysFor_insert_Nonce, keysFor_insert_Key, 
+          keysFor_insert_Agent, keysFor_insert_Nonce, 
+	  keysFor_insert_Number, keysFor_insert_Key, 
           keysFor_insert_Hash, keysFor_insert_MPair, keysFor_insert_Crypt];
 AddSEs [keysFor_Un RS equalityD1 RS subsetD RS UnE,
 	keysFor_UN1 RS equalityD1 RS subsetD RS UN1_E];
@@ -247,6 +253,10 @@ goal thy "parts (insert (Nonce N) H) = insert (Nonce N) (parts H)";
 by (parts_tac 1);
 qed "parts_insert_Nonce";
 
+goal thy "parts (insert (Number N) H) = insert (Number N) (parts H)";
+by (parts_tac 1);
+qed "parts_insert_Number";
+
 goal thy "parts (insert (Key K) H) = insert (Key K) (parts H)";
 by (parts_tac 1);
 qed "parts_insert_Key";
@@ -275,7 +285,8 @@ by (etac parts.induct 1);
 by (ALLGOALS (blast_tac (!claset addIs [parts.Fst, parts.Snd])));
 qed "parts_insert_MPair";
 
-Addsimps [parts_insert_Agent, parts_insert_Nonce, parts_insert_Key, 
+Addsimps [parts_insert_Agent, parts_insert_Nonce, 
+	  parts_insert_Number, parts_insert_Key, 
           parts_insert_Hash, parts_insert_Crypt, parts_insert_MPair];
 
 
@@ -289,7 +300,8 @@ Addsimps [parts_image_Key];
 
 (*In any message, there is an upper bound N on its greatest nonce.*)
 goal thy "EX N. ALL n. N<=n --> Nonce n ~: parts {msg}";
-by (msg.induct_tac "msg" 1);
+by (induct_tac "msg" 1);
+by (induct_tac "atomic" 1);
 by (ALLGOALS (asm_simp_tac (!simpset addsimps [exI, parts_insert2])));
 (*MPair case: blast_tac works out the necessary sum itself!*)
 by (blast_tac (!claset addSEs [add_leE]) 2);
@@ -386,6 +398,10 @@ goal thy "analz (insert (Nonce N) H) = insert (Nonce N) (analz H)";
 by (analz_tac 1);
 qed "analz_insert_Nonce";
 
+goal thy "analz (insert (Number N) H) = insert (Number N) (analz H)";
+by (analz_tac 1);
+qed "analz_insert_Number";
+
 goal thy "analz (insert (Hash X) H) = insert (Hash X) (analz H)";
 by (analz_tac 1);
 qed "analz_insert_Hash";
@@ -450,7 +466,8 @@ by (ALLGOALS (asm_simp_tac (!simpset addsimps [analz_insert_Crypt,
                                                analz_insert_Decrypt])));
 qed "analz_Crypt_if";
 
-Addsimps [analz_insert_Agent, analz_insert_Nonce, analz_insert_Key, 
+Addsimps [analz_insert_Agent, analz_insert_Nonce, 
+	  analz_insert_Number, analz_insert_Key, 
           analz_insert_Hash, analz_insert_MPair, analz_Crypt_if];
 
 (*This rule supposes "for the sake of argument" that we have the key.*)
@@ -554,9 +571,9 @@ AddIs  synth.intrs;
 
 (*Can only produce a nonce or key if it is already known,
   but can synth a pair or encryption from its components...*)
-val mk_cases = synth.mk_cases msg.simps;
+val mk_cases = synth.mk_cases (atomic.simps @ msg.simps);
 
-(*NO Agent_synth, as any Agent name can be synthesized*)
+(*NO Agent_synth, as any Agent name can be synthesized.  Ditto for Number*)
 val Nonce_synth = mk_cases "Nonce n : synth H";
 val Key_synth   = mk_cases "Key K : synth H";
 val Hash_synth  = mk_cases "Hash X : synth H";
@@ -614,6 +631,10 @@ goal thy "Agent A : synth H";
 by (Blast_tac 1);
 qed "Agent_synth";
 
+goal thy "Number n : synth H";
+by (Blast_tac 1);
+qed "Number_synth";
+
 goal thy "(Nonce N : synth H) = (Nonce N : H)";
 by (Blast_tac 1);
 qed "Nonce_synth_eq";
@@ -626,7 +647,8 @@ goal thy "!!K. Key K ~: H ==> (Crypt K X : synth H) = (Crypt K X : H)";
 by (Blast_tac 1);
 qed "Crypt_synth_eq";
 
-Addsimps [Agent_synth, Nonce_synth_eq, Key_synth_eq, Crypt_synth_eq];
+Addsimps [Agent_synth, Number_synth, 
+	  Nonce_synth_eq, Key_synth_eq, Crypt_synth_eq];
 
 
 goalw thy [keysFor_def]
@@ -762,6 +784,10 @@ goalw thy [HPair_def] "Nonce N ~= Hash[X] Y";
 by (Simp_tac 1);
 qed "Nonce_neq_HPair";
 
+goalw thy [HPair_def] "Number N ~= Hash[X] Y";
+by (Simp_tac 1);
+qed "Number_neq_HPair";
+
 goalw thy [HPair_def] "Key K ~= Hash[X] Y";
 by (Simp_tac 1);
 qed "Key_neq_HPair";
@@ -774,7 +800,7 @@ goalw thy [HPair_def] "Crypt K X' ~= Hash[X] Y";
 by (Simp_tac 1);
 qed "Crypt_neq_HPair";
 
-val HPair_neqs = [Agent_neq_HPair, Nonce_neq_HPair, 
+val HPair_neqs = [Agent_neq_HPair, Nonce_neq_HPair, Number_neq_HPair, 
                   Key_neq_HPair, Hash_neq_HPair, Crypt_neq_HPair];
 
 AddIffs HPair_neqs;
@@ -835,11 +861,12 @@ fun insComm thy x y = read_instantiate_sg (sign_of thy) [("x",x), ("y",y)]
                           insert_commute;
 
 val pushKeys = map (insComm thy "Key ?K") 
-                   ["Agent ?C", "Nonce ?N", "Hash ?X", 
-                    "MPair ?X ?Y", "Crypt ?X ?K'"];
+                   ["Agent ?C", "Nonce ?N", "Number ?N", 
+		    "Hash ?X", "MPair ?X ?Y", "Crypt ?X ?K'"];
 
 val pushCrypts = map (insComm thy "Crypt ?X ?K") 
-                     ["Agent ?C", "Nonce ?N", "Hash ?X'", "MPair ?X' ?Y"];
+                     ["Agent ?C", "Nonce ?N", "Number ?N", 
+		      "Hash ?X'", "MPair ?X' ?Y"];
 
 (*Cannot be added with Addsimps -- we don't always want to re-order messages*)
 val pushes = pushKeys@pushCrypts;
@@ -885,7 +912,7 @@ fun spy_analz_tac i =
           THEN
           IF_UNSOLVED (Blast.depth_tac
 		       (!claset addIs [analz_insertI,
-				       impOfSubs analz_subset_parts]) 2 1))
+				       impOfSubs analz_subset_parts]) 4 1))
        ]) i);
 
 (** Useful in many uniqueness proofs **)

@@ -31,19 +31,33 @@ constdefs
 datatype  (*We allow any number of friendly agents*)
   agent = Server | Friend nat | Spy
 
-datatype  (*Messages are agent names, nonces, keys, pairs and encryptions*)
-  msg = Agent agent
-      | Nonce nat
-      | Key   key
-      | Hash  msg
-      | MPair msg msg
-      | Crypt key msg
+datatype  
+  atomic = AGENT  agent	(*Agent names*)
+         | NUMBER nat   (*Ordinary integers, timestamps, ...*)
+         | NONCE  nat   (*Unguessable nonces*)
+         | KEY    key   (*Crypto keys*)
+
+datatype
+  msg = Atomic atomic
+      | Hash   msg       (*Hashing*)
+      | MPair  msg msg   (*Compound messages*)
+      | Crypt  key msg   (*Encryption, public- or shared-key*)
 
 (*Allows messages of the form {|A,B,NA|}, etc...*)
 syntax
+  Agent          :: agent => msg
+  Number         :: nat   => msg
+  Nonce          :: nat   => msg
+  Key            :: key   => msg
   "@MTuple"      :: "['a, args] => 'a * 'b"       ("(2{|_,/ _|})")
 
 translations
+  "Agent x"       == "Atomic (AGENT x)"
+  "Number x"	  == "Atomic (NUMBER x)"
+  "Nonce x"	  == "Atomic (NONCE x)"
+  "Key x"	  == "Atomic (KEY x)"
+  "Key``x"	  == "Atomic `` (KEY `` x)"
+
   "{|x, y, z|}"   == "{|x, {|y, z|}|}"
   "{|x, y|}"      == "MPair x y"
 
@@ -83,13 +97,15 @@ inductive "analz H"
 
 (** Inductive definition of "synth" -- what can be built up from a set of
     messages.  A form of upward closure.  Pairs can be built, messages
-    encrypted with known keys.  Agent names may be quoted.  **)
+    encrypted with known keys.  Agent names are public domain.
+    Numbers can be guessed, but Nonces cannot be.  **)
 
 consts  synth   :: msg set => msg set
 inductive "synth H"
   intrs 
     Inj     "X: H ==> X: synth H"
     Agent   "Agent agt : synth H"
+    Number  "Number n  : synth H"
     Hash    "X: synth H ==> Hash X : synth H"
     MPair   "[| X: synth H;  Y: synth H |] ==> {|X,Y|} : synth H"
     Crypt   "[| X: synth H;  Key(K) : H |] ==> Crypt K X : synth H"
