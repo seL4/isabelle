@@ -57,8 +57,6 @@ fun mapbnd f =
 fun idx [] j     = ~10000
   | idx(i::is) j = if i=j then length is else idx is j;
 
-val nth_type = snd o nth_elem;
-
 fun at xs i = nth_elem (i,xs);
 
 fun mkabs (binders,is,t)  =
