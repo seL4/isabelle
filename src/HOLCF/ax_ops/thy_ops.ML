@@ -153,53 +153,70 @@ fun syn_decls curried sign ((name,typ,CInfixl(i))::tl) =
   | syn_decls curried sign (_::tl) = syn_decls curried sign tl
   | syn_decls _ _ [] = [];
 
+fun translate name vars rhs = 
+    Syntax.<-> ((Ast.mk_appl (Constant (mk_internal_name name)) 
+		 (map Variable vars)), 
+		rhs); 
+
 (* generating the translation rules. Called by add_ext_axioms(_i) *)
 local open Ast in 
 fun xrules_of true ((name,typ,CInfixl(i))::tail) = 
-    ((mk_appl (Constant (mk_internal_name name)) [Variable "A",Variable "B"]) <->
-     (mk_appl (Constant "@fapp") [(mk_appl (Constant "@fapp") [
-      Constant (mk_internal_name name),Variable "A"]),Variable "B"]))
+    translate name ["A","B"]
+     (mk_appl (Constant "@fapp") 
+      [(mk_appl (Constant "@fapp") 
+	[Constant (mk_internal_name name),Variable "A"]),Variable "B"])
     ::xrules_of true tail
   | xrules_of true ((name,typ,CInfixr(i))::tail) = 
-    ((mk_appl (Constant (mk_internal_name name)) [Variable "A",Variable "B"]) <->
-     (mk_appl (Constant "@fapp") [(mk_appl (Constant "@fapp") [
-      Constant (mk_internal_name name),Variable "A"]),Variable "B"]))
+    translate name ["A","B"]
+     (mk_appl (Constant "@fapp") 
+      [(mk_appl (Constant "@fapp") 
+	[Constant (mk_internal_name name),Variable "A"]),Variable "B"])
     ::xrules_of true tail
 (*####*)
-  | xrules_of true ((name,typ,CMixfix(_))::tail) = let
-        fun argnames n (Type("->" ,[_,t]))= chr n :: argnames (n+1) t
-        |   argnames _ _ = [];
-        val names = argnames (ord"A") typ;
-        in if names = [] then [] else [mk_appl (Constant name) (map Variable names)<->
-            foldl (fn (t,arg) => (mk_appl (Constant "@fapp") [t,Variable arg]))
-                  (Constant name,names)] end
+  | xrules_of true ((name,typ,CMixfix(_))::tail) = 
+        let fun argnames n (Type("->" ,[_,t]))= chr n :: argnames (n+1) t
+            |   argnames _ _ = [];
+            val names = argnames (ord"A") typ;
+        in if names = [] then [] else 
+	    [Syntax.<-> (mk_appl (Constant name) (map Variable names),
+			 foldl (fn (t,arg) => 
+				(mk_appl (Constant "@fapp") [t,Variable arg]))
+			 (Constant name,names))] 
+        end
     @xrules_of true tail
 (*####*)
   | xrules_of false ((name,typ,CInfixl(i))::tail) = 
-    ((mk_appl (Constant (mk_internal_name name)) [Variable "A",Variable "B"]) <->
+    translate name ["A","B"]
     (mk_appl (Constant "@fapp") [ Constant(mk_internal_name name),
-     (mk_appl (Constant "@ctuple") [Variable "A",Variable "B"])]))
+     (mk_appl (Constant "@ctuple") [Variable "A",Variable "B"])])
     ::xrules_of false tail
   | xrules_of false ((name,typ,CInfixr(i))::tail) = 
-    ((mk_appl (Constant (mk_internal_name name)) [Variable "A",Variable "B"]) <->
+    translate name ["A","B"]
     (mk_appl (Constant "@fapp") [ Constant(mk_internal_name name),
-     (mk_appl (Constant "@ctuple") [Variable "A",Variable "B"])]))
+     (mk_appl (Constant "@ctuple") [Variable "A",Variable "B"])])
     ::xrules_of false tail
 (*####*)
-  | xrules_of false ((name,typ,CMixfix(_))::tail) = let
-        fun foldr' f l =
-          let fun itr []  = raise LIST "foldr'"
-                | itr [a] = a
-                | itr (a::l) = f(a, itr l)
-          in  itr l end;
-        fun argnames n (Type("*" ,[_,t]))= chr n :: argnames (n+1) t
-        |   argnames n _ = [chr n];
-        val vars = map Variable (case typ of (Type("->" ,[t,_])) =>argnames (ord"A") t
-                                             | _ => []);
-        in if vars = [] then [] else [mk_appl (Constant name) vars <->
-            (mk_appl (Constant "@fapp") [Constant name, case vars of [v] => v
-                | args => mk_appl (Constant "@ctuple") [hd args,foldr' (fn (t,arg) => 
-                                mk_appl (Constant "_args") [t,arg]) (tl args)]])]
+  | xrules_of false ((name,typ,CMixfix(_))::tail) = 
+        let fun foldr' f l =
+	      let fun itr []  = raise LIST "foldr'"
+		    | itr [a] = a
+		    | itr (a::l) = f(a, itr l)
+	      in  itr l end;
+	    fun argnames n (Type("*" ,[_,t]))= chr n :: argnames (n+1) t
+	    |   argnames n _ = [chr n];
+	    val vars = map Variable (case typ of (Type("->" ,[t,_])) =>argnames (ord"A") t
+						 | _ => []);
+        in if vars = [] then [] else 
+	    [Syntax.<-> 
+	     (mk_appl (Constant name) vars,
+	      mk_appl (Constant "@fapp")
+	      [Constant name, 
+	       case vars of [v] => v
+	                 | args => mk_appl (Constant "@ctuple")
+			             [hd args,
+				      foldr' (fn (t,arg) => 
+					      mk_appl (Constant "_args")
+					      [t,arg]) (tl args)]])]
         end
     @xrules_of false tail
 (*####*)

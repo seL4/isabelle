@@ -311,12 +311,15 @@ val trans_pat =
   optional ("(" $$-- !! (name --$$ ")")) "\"logic\"" -- string >> mk_pair;
 
 val trans_arrow =
-  $$ "=>" >> K " |-> " ||
-  $$ "<=" >> K " <-| " ||
-  $$ "==" >> K " <-> ";
+  $$ "=>" >> K "Syntax.|-> " ||
+  $$ "<=" >> K "Syntax.<-| " ||
+  $$ "==" >> K "Syntax.<-> ";
 
-val trans_decls = repeat1 (trans_pat ^^ !! (trans_arrow ^^ trans_pat))
-  >> mk_big_list;
+val trans_line =
+    trans_pat -- !! (trans_arrow -- trans_pat) >>
+        (fn (left, (arr, right)) => arr ^ "(" ^ left ^ ",\t" ^ right ^ ")");
+
+val trans_decls = repeat1 trans_line >> mk_big_list;
 
 
 (* ML translations *)

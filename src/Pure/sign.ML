@@ -55,8 +55,8 @@ signature SIGN =
     (string * (term list -> term)) list *
     (string * (term list -> term)) list *
     (string * (ast list -> ast)) list -> sg -> sg
-  val add_trrules: (string * string) trrule list -> sg -> sg
-  val add_trrules_i: ast trrule list -> sg -> sg
+  val add_trrules: (string * string) Syntax.trrule list -> sg -> sg
+  val add_trrules_i: ast Syntax.trrule list -> sg -> sg
   val add_name: string -> sg -> sg
   val make_draft: sg -> sg
   val merge: sg * sg -> sg

@@ -224,8 +224,8 @@ in
       
       val xrules =
         let val (first_part, scnd_part) = calc_xrules 1 1 cons_list
-        in [("logic", "case x of " ^ first_part) <->
-             ("logic", tname ^ "_case " ^ scnd_part ^ " x")]
+        in [Syntax.<-> (("logic", "case x of " ^ first_part),
+			("logic", tname ^ "_case " ^ scnd_part ^ " x"))]
         end;
 
      (*type declarations for constructors*)
