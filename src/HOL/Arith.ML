@@ -475,6 +475,15 @@ by (ALLGOALS Asm_simp_tac);
 by (fast_tac (!claset addDs [Suc_leD]) 1);
 qed_spec_mp "add_leD1";
 
+goal Arith.thy "!!n::nat. m+k<=n ==> k<=n";
+by (full_simp_tac (!simpset addsimps [add_commute]) 1);
+by (etac add_leD1 1);
+qed_spec_mp "add_leD2";
+
+goal Arith.thy "!!n::nat. m+k<=n ==> m<=n & k<=n";
+by (fast_tac (!claset addDs [add_leD1, add_leD2]) 1);
+bind_thm ("add_leE", result() RS conjE);
+
 goal Arith.thy "!!k l::nat. [| k<l; m+l = k+n |] ==> m<n";
 by (safe_tac (!claset addSDs [less_eq_Suc_add]));
 by (asm_full_simp_tac
