@@ -307,21 +307,12 @@ Goalw [Diff_def, Disjoint_def] "Disjoint F (Diff G (Acts F))";
 by Auto_tac;
 qed "Diff_Disjoint";
 
-Goal "[| G : v localTo F;  Disjoint F G |] \
-\     ==> G : stable {s. v s = z}";
+Goal "[| G : v localTo F;  Disjoint F G |] ==> G : stable {s. v s = z}";
 by (asm_full_simp_tac 
     (simpset() addsimps [localTo_def, Diff_def, Disjoint_def,
 			 stable_def, constrains_def]) 1);
 by (Blast_tac 1);
 qed "localTo_imp_stable";
-
-Goal "[| F Join G : v localTo F;  (s,s') : act;  \
-\        act : Acts G;  Disjoint F G |] ==> v s' = v s";
-by (asm_full_simp_tac 
-    (simpset() addsimps [localTo_def, Diff_def, Disjoint_def,
-			 stable_def, constrains_def]) 1);
-by (Blast_tac 1);
-qed "localTo_imp_equals";
 
 Goalw [localTo_def, stable_def, constrains_def]
      "v localTo F <= (f o v) localTo F";
@@ -350,46 +341,62 @@ qed "self_localTo";
 
 (*** Higher-level rules involving localTo and Join ***)
 
+Goal "[| F : {s. P (v s)} co {s. P' (v s)};  G : v localTo F |]  \
+\     ==> F Join G : {s. P (v s)} co {s. P' (v s)}";
+by (asm_simp_tac (simpset() addsimps [Join_constrains]) 1);
+by (auto_tac (claset(), 
+	      simpset() addsimps [localTo_def, stable_def, constrains_def,
+				  Diff_def]));
+by (case_tac "act: Acts F" 1);
+by (Blast_tac 1);
+by (dtac bspec 1 THEN rtac Id_in_Acts 1);
+by (subgoal_tac "v x = v xa" 1);
+by Auto_tac;
+qed "constrains_localTo_constrains";
+
+Goalw [localTo_def, stable_def, constrains_def, Diff_def]
+     "[| G : v localTo F;  G : w localTo F |]  \
+\     ==> G : (%s. (v s, w s)) localTo F";
+by (Blast_tac 1);
+qed "localTo_pairfun";
+
 Goal "[| F : {s. P (v s) (w s)} co {s. P' (v s) (w s)};   \
-\        F Join G : v localTo F;       \
-\        F Join G : w localTo F;       \
-\        Disjoint F G |]               \
+\        G : v localTo F;       \
+\        G : w localTo F |]               \
 \     ==> F Join G : {s. P (v s) (w s)} co {s. P' (v s) (w s)}";
-by (auto_tac (claset(), simpset() addsimps [constrains_def]));
-by (REPEAT_FIRST (dtac localTo_imp_equals THEN' REPEAT1 o atac));
+by (res_inst_tac [("A", "{s. (%(x,y). P x y) (v s, w s)}"),
+		  ("A'", "{s. (%(x,y). P' x y) (v s, w s)}")] 
+    constrains_weaken 1);
+by (rtac (localTo_pairfun RSN (2, constrains_localTo_constrains)) 1);
 by Auto_tac;
 qed "constrains_localTo_constrains2";
 
 Goalw [stable_def]
      "[| F : stable {s. P (v s) (w s)};   \
-\        F Join G : v localTo F;       \
-\        F Join G : w localTo F;       \
-\        Disjoint F G |]               \
+\        G : v localTo F;  G : w localTo F |]               \
 \     ==> F Join G : stable {s. P (v s) (w s)}";
 by (blast_tac (claset() addIs [constrains_localTo_constrains2]) 1);
 qed "stable_localTo_stable2";
 
-
-Goal "(UN k. {s. f s = k}) = UNIV";
-by (Blast_tac 1);
-qed "UN_eq_UNIV";
-
 Goal "[| F : stable {s. v s <= w s};   \
 \        G : v localTo F;       \
-\        F Join G : Increasing w;      \
-\        Disjoint F G |]               \
+\        F Join G : Increasing w |]               \
 \     ==> F Join G : Stable {s. v s <= w s}";
-by (rewrite_goals_tac [stable_def, Stable_def, Increasing_def]);
-by (subgoal_tac "ALL k: UNIV. ?H : ({s. v s = k} Int ?AA) Co ?AA" 1);
-by (dtac ball_Constrains_UN 1);
-by (full_simp_tac (simpset() addsimps [UN_eq_UNIV]) 1);
-by (rtac ballI 1);
-by (subgoal_tac "F Join G : ({s. v s = k} Int {s. v s <= w s}) co \
-\                           ({s. v s = k} Un {s. v s <= w s})" 1);
-by (asm_simp_tac (simpset() addsimps [Join_constrains]) 2);
-by (fast_tac (claset() addIs [constrains_weaken] 
-                addEs [localTo_imp_stable RS stableD RS constrains_weaken]) 2);
-by (dtac (constrains_imp_Constrains RS Constrains_Int) 1 THEN etac INT_D 1);
-by (etac Constrains_weaken 2);
+by (auto_tac (claset(), 
+	      simpset() addsimps [stable_def, Stable_def, Increasing_def, 
+		    Constrains_def, Join_constrains, all_conj_distrib]));
+by (blast_tac (claset() addIs [constrains_weaken]) 1);
+(*The G case remains; proved like constrains_localTo_constrains*)
+by (auto_tac (claset(), 
+	      simpset() addsimps [localTo_def, stable_def, constrains_def,
+				  Diff_def]));
+by (case_tac "act: Acts F" 1);
+by (Blast_tac 1);
+by (thin_tac "ALL act:Acts F. ?P act" 1);
+by (thin_tac "ALL z. ALL act:Acts F. ?P z act" 1);
+by (dres_inst_tac [("x", "v xa")] spec 1 THEN dtac bspec 1 THEN rtac DiffI 1);
+by (assume_tac 1);
+by (Blast_tac 1);
+by (subgoal_tac "v x = v xa" 1);
 by Auto_tac;
 qed "Increasing_localTo_Stable";

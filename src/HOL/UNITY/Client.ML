@@ -114,6 +114,7 @@ by (full_simp_tac (simpset() addsimps [Join_localTo, self_localTo]) 2);
 by (fast_tac (claset() addEs [impOfSubs (rewrite_o localTo_imp_o_localTo)]
 	               addIs [Increasing_localTo_Stable, 
 			      stable_size_rel_le_giv]) 2);
+by (full_simp_tac (simpset() addsimps [Join_localTo]) 1);
 by (fast_tac (claset() addEs [impOfSubs (rewrite_o localTo_imp_o_localTo)]
 	               addIs [stable_localTo_stable2 RS stable_imp_Stable,
 			      stable_size_ask_le_rel]) 1);
@@ -133,7 +134,7 @@ by (force_tac (claset() addDs [impOfSubs Increasing_length,
 	       simpset()) 1);
 by (rtac (make_elim (lemma1 RS guaranteesD)) 1);
 by (Blast_tac 1);
-by (auto_tac (claset(), 
-	      simpset() addsimps [Always_eq_includes_reachable, giv_meets_ask_def]));
-by (ALLGOALS Force_tac);
+by (force_tac (claset(), 
+	       simpset() addsimps [Always_eq_includes_reachable, 
+				  giv_meets_ask_def]) 1);
 qed "client_correct";

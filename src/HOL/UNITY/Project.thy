@@ -8,4 +8,19 @@ Projections of state sets (also of actions and programs)
 Inheritance of GUARANTEES properties under extension
 *)
 
-Project = Extend
+Project = Extend +
+
+constdefs
+  projecting :: "['c program => 'c set, 'a*'b => 'c, 
+		  'a program, 'c program set, 'a program set] => bool"
+  "projecting C h F X' X ==
+     ALL G. extend h F Join G : X' --> F Join project (C G) h G : X"
+
+  extending :: "['c program => 'c set, 'a*'b => 'c, 'a program, 
+		 'c program set, 'c program set, 'a program set] => bool"
+  "extending C h F X' Y' Y ==
+     ALL G. F Join project (C G) h G : Y & extend h F Join G : X' &
+            Disjoint (extend h F) G
+            --> extend h F Join G : Y'"
+
+end

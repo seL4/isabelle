@@ -3,12 +3,9 @@
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1998  University of Cambridge
 
-THESE PROOFS CAN BE REPLACED BY INVOCATIONS OF RESULTS FROM EXTEND.ML
+Arrays of processes.  Many results are instances of those in Extend & Project.
 *)
 
-
-val image_eqI' = read_instantiate_sg (sign_of thy)
-                     [("x", "?ff(i := ?u)")] image_eqI;
 
 (*** Basic properties ***)
 
@@ -283,6 +280,13 @@ by (auto_tac (claset(),
 	      simpset() addsimps [invariant_def, lift_prog_stable]));
 qed "lift_prog_invariant";
 
+Goal "[| lift_prog i F : A co B |] \
+\     ==> F : (drop_set i A) co (drop_set i B)";
+by (asm_full_simp_tac
+    (simpset() addsimps [drop_set_correct, lift_prog_correct, 
+			 lift_export extend_constrains_project_set]) 1);
+qed "lift_prog_constrains_drop_set";
+
 (*This one looks strange!  Proof probably is by case analysis on i=j.
   If i~=j then lift_prog j (F j) does nothing to lift_set i, and the 
   premise ensures A<=B.*)
@@ -316,14 +320,14 @@ Goal "[| (UN act:acts. Domain act) <= drop_set i C; \
 by (asm_full_simp_tac
     (simpset() addsimps [drop_set_correct, drop_prog_correct, 
 			 lift_set_correct, lift_act_correct, 
-			 lift_export Diff_project_co]) 1);
-qed "Diff_drop_prog_co";
+			 lift_export Diff_project_constrains]) 1);
+qed "Diff_drop_prog_constrains";
 
 Goalw [stable_def]
      "[| (UN act:acts. Domain act) <= drop_set i C; \
 \        Diff G (lift_act i `` acts) : stable (lift_set i A) |]  \
 \     ==> Diff (drop_prog C i G) acts : stable A";
-by (etac Diff_drop_prog_co 1);
+by (etac Diff_drop_prog_constrains 1);
 by (assume_tac 1);
 qed "Diff_drop_prog_stable";
 
@@ -487,11 +491,3 @@ by (asm_simp_tac
     (simpset() addsimps [lift_set_correct, lift_prog_correct, 
 			 lift_export extend_guar_Always]) 1);
 qed "lift_prog_guar_Always";
-
-(*No analogue of this in Extend.ML!*)
-Goal "[| lift_prog i F : A co B |] \
-\     ==> F : (drop_set i A) co (drop_set i B)";
-by (auto_tac (claset(), 
-	      simpset() addsimps [constrains_def, drop_set_def]));
-by (force_tac (claset() addSIs [image_eqI'], simpset()) 1);
-qed "lift_prog_constrains_drop_set";

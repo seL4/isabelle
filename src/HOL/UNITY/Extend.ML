@@ -70,11 +70,16 @@ Goalw [extend_set_def] "A<=B ==> extend_set h A <= extend_set h B";
 by (Blast_tac 1);
 qed "extend_set_mono";
 
-Goalw [extend_set_def]
-     "z : extend_set h A = (f z : A)";
+Goalw [extend_set_def] "z : extend_set h A = (f z : A)";
 by (force_tac (claset() addIs  [h_f_g_eq RS sym], simpset()) 1);
 qed "mem_extend_set_iff";
 AddIffs [mem_extend_set_iff]; 
+
+Goalw [extend_set_def]
+    "(extend_set h A <= extend_set h B) = (A <= B)";
+by (Force_tac 1);
+qed "extend_set_strict_mono";
+AddIffs [extend_set_strict_mono];
 
 Goal "{s. P (f s)} = extend_set h {s. P s}";
 by Auto_tac;
@@ -177,6 +182,12 @@ by (Force_tac 1);
 qed "extend_act_inverse";
 Addsimps [extend_act_inverse];
 
+(*By subset_refl, a corollary is project_act C h (extend_act h act) <= act*)
+Goalw [extend_act_def, project_act_def]
+     "act' <= extend_act h act ==> project_act C h act' <= act";
+by (Force_tac 1);
+qed "subset_extend_act_D";
+
 Goal "inj (extend_act h)";
 by (rtac inj_on_inverseI 1);
 by (rtac extend_act_inverse 1);
@@ -189,11 +200,12 @@ by (Force_tac 1);
 qed "extend_act_Image";
 Addsimps [extend_act_Image];
 
-Goalw [extend_set_def, extend_act_def]
-    "(extend_set h A <= extend_set h B) = (A <= B)";
-by (Force_tac 1);
-qed "extend_set_strict_mono";
-Addsimps [extend_set_strict_mono];
+Goalw [extend_act_def] "(extend_act h act' <= extend_act h act) = (act'<=act)";
+by Auto_tac;
+qed "extend_act_strict_mono";
+
+AddIffs [extend_act_strict_mono, inj_extend_act RS inj_eq];
+(*The latter theorem is  (extend_act h act' = extend_act h act) = (act'=act) *)
 
 Goalw [extend_set_def, extend_act_def]
     "Domain (extend_act h act) = extend_set h (Domain act)";
@@ -225,6 +237,12 @@ by Auto_tac;
 qed "Domain_project_act";
 
 Addsimps [extend_act_Id, project_act_Id];
+
+Goal "(extend_act h act = Id) = (act = Id)";
+by Auto_tac;
+by (rewtac extend_act_def);
+by (ALLGOALS (blast_tac (claset() addEs [equalityE])));
+qed "extend_act_Id_iff";
 
 Goal "Id : extend_act h `` Acts F";
 by (auto_tac (claset() addSIs [extend_act_Id RS sym], 
@@ -326,25 +344,55 @@ Goal "(extend h F : invariant (extend_set h A)) = (F : invariant A)";
 by (asm_simp_tac (simpset() addsimps [invariant_def, extend_stable]) 1);
 qed "extend_invariant";
 
+(*Converse fails: A and B may differ in their extra variables*)
+Goal "extend h F : A co B ==> F : (project_set h A) co (project_set h B)";
+by (auto_tac (claset(), 
+	      simpset() addsimps [constrains_def, project_set_def]));
+by (Force_tac 1);
+qed "extend_constrains_project_set";
+
 
 (*** Diff, needed for localTo ***)
 
 Goal "(Diff (extend h G) (extend_act h `` acts)) = extend h (Diff G acts)";
 by (auto_tac (claset() addSIs [program_equalityI],
 	      simpset() addsimps [Diff_def,
-				  inj_extend_act RS image_set_diff RS sym]));
+				  inj_extend_act RS image_set_diff]));
 qed "Diff_extend_eq";
 
 Goal "(Diff (extend h G) (extend_act h `` acts) \
 \         : (extend_set h A) co (extend_set h B)) \
 \     = (Diff G acts : A co B)";
 by (simp_tac (simpset() addsimps [Diff_extend_eq, extend_constrains]) 1);
-qed "Diff_extend_co";
+qed "Diff_extend_constrains";
 
 Goal "(Diff (extend h G) (extend_act h `` acts) : stable (extend_set h A)) \
 \     = (Diff G acts : stable A)";
-by (simp_tac (simpset() addsimps [Diff_extend_co, stable_def]) 1);
+by (simp_tac (simpset() addsimps [Diff_extend_constrains, stable_def]) 1);
 qed "Diff_extend_stable";
+
+Goal "Diff (extend h G) (extend_act h `` acts) : A co B \
+\     ==> Diff G acts : (project_set h A) co (project_set h B)";
+by (asm_full_simp_tac (simpset() addsimps [Diff_extend_eq, 
+					   extend_constrains_project_set]) 1);
+qed "Diff_extend_constrains_project_set";
+
+Goalw [localTo_def]
+     "(extend h F : (v o f) localTo extend h H) = (F : v localTo H)";
+by (simp_tac (simpset() addsimps []) 1);
+(*A trick to strip both quantifiers*)
+by (res_inst_tac [("f", "All")] (ext RS arg_cong) 1);
+by (stac Collect_eq_extend_set 1);
+by (simp_tac (simpset() addsimps [Diff_extend_stable]) 1);
+qed "extend_localTo_extend_eq";
+
+Goal "Disjoint (extend h F) (extend h G) = Disjoint F G";
+by (simp_tac (simpset() addsimps [Disjoint_def,
+				  inj_extend_act RS image_Int RS sym]) 1);
+by (simp_tac (simpset() addsimps [image_subset_iff, extend_act_Id_iff]) 1);
+by (blast_tac (claset() addEs [equalityE]) 1);
+qed "Disjoint_extend_eq";
+Addsimps [Disjoint_extend_eq];
 
 (*** Weak safety primitives: Co, Stable ***)
 

@@ -31,6 +31,15 @@ Goalw [transient_def]
 by (Blast_tac 1);
 qed "transient_mem";
 
+Goalw [transient_def] "transient UNIV = {}";
+by Auto_tac;
+qed "transient_UNIV";
+
+Goalw [transient_def] "transient {} = UNIV";
+by Auto_tac;
+qed "transient_empty";
+Addsimps [transient_UNIV, transient_empty];
+
 
 (*** ensures ***)
 

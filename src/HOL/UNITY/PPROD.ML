@@ -6,9 +6,12 @@
 Abstraction over replicated components (PLam)
 General products of programs (Pi operation)
 
-It is not clear that any of this is good for anything.
+Probably some dead wood here!
 *)
 
+
+val image_eqI' = read_instantiate_sg (sign_of thy)
+                     [("x", "?ff(i := ?u)")] image_eqI;
 
 (*** Basic properties ***)
 

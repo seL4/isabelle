@@ -133,10 +133,20 @@ Goalw [constrains_def] "F : {} co B";
 by (Blast_tac 1);
 qed "constrains_empty";
 
-Goalw [constrains_def] "F : A co UNIV";
+Goalw [constrains_def] "(F : A co {}) = (A={})";
+by (Blast_tac 1);
+qed "constrains_empty2";
+
+Goalw [constrains_def] "(F : UNIV co B) = (B = UNIV)";
 by (Blast_tac 1);
 qed "constrains_UNIV";
-AddIffs [constrains_empty, constrains_UNIV];
+
+Goalw [constrains_def] "F : A co UNIV";
+by (Blast_tac 1);
+qed "constrains_UNIV2";
+
+AddIffs [constrains_empty, constrains_empty2, 
+	 constrains_UNIV, constrains_UNIV2];
 
 (*monotonic in 2nd argument*)
 Goalw [constrains_def]
@@ -166,6 +176,22 @@ Goalw [constrains_def]
     "ALL i:I. F : (A i) co (A' i) ==> F : (UN i:I. A i) co (UN i:I. A' i)";
 by (Blast_tac 1);
 qed "ball_constrains_UN";
+
+Goalw [constrains_def] "(A Un B) co C = (A co C) Int (B co C)";
+by (Blast_tac 1);
+qed "constrains_Un_distrib";
+
+Goalw [constrains_def] "(UN i:I. A i) co B = (INT i:I. A i co B)";
+by (Blast_tac 1);
+qed "constrains_UN_distrib";
+
+Goalw [constrains_def] "C co (A Int B) = (C co A) Int (C co B)";
+by (Blast_tac 1);
+qed "constrains_Int_distrib";
+
+Goalw [constrains_def] "A co (INT i:I. B i) = (INT i:I. A co B i)";
+by (Blast_tac 1);
+qed "constrains_INT_distrib";
 
 (** Intersection **)
 

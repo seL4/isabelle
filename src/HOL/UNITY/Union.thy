@@ -29,7 +29,8 @@ constdefs
   localTo :: ['a => 'b, 'a program] => 'a program set  (infixl 80)
     "v localTo F == {G. ALL z. Diff G (Acts F) : stable {s. v s = z}}"
 
-  (*Two programs with disjoint actions, except for identity actions *)
+  (*Two programs with disjoint actions, except for identity actions.
+    It's a weak property but still useful.*)
   Disjoint :: ['a program, 'a program] => bool
     "Disjoint F G == Acts F Int Acts G <= {Id}"
 

@@ -71,6 +71,16 @@ by (auto_tac (claset() addSWrapper record_split_wrapper,
 qed "inv_sysOfAlloc_eq";
 Addsimps [inv_sysOfAlloc_eq];
 
+
+(*SHOULD NOT BE NECESSARY????????????????
+Goal "!!z. (| allocGiv = allocGiv z, allocAsk = allocAsk z, \
+\             allocRel = allocRel z |) = z";
+by (auto_tac (claset() addSWrapper record_split_wrapper, 
+	      simpset()));
+qed "allocState_eq";
+Addsimps [allocState_eq];
+????*)
+
 (**SHOULD NOT BE NECESSARY: The various injections into the system
    state need to be treated symmetrically or done automatically*)
 Goalw [sysOfClient_def] "inj sysOfClient";
@@ -183,15 +193,14 @@ qed "Alloc_component_System";
 AddIffs [Network_component_System, Alloc_component_System];
 
 
-fun alloc_export th = good_map_sysOfAlloc RS export th;
+fun alloc_export th = good_map_sysOfAlloc RS export th |> simplify (simpset());
 
-fun client_export th = good_map_sysOfClient RS export th;
+fun client_export th = good_map_sysOfClient RS export th |> simplify (simpset());
 
 (* F : UNIV guarantees Increasing func
    ==> extend sysOfClient F : UNIV guarantees Increasing (func o client) *)
 val extend_Client_guar_Increasing =
-  client_export extend_guar_Increasing
-  |> simplify (simpset() addsimps [inv_sysOfClient_eq]);
+  client_export extend_guar_Increasing;
 
 (*NEED AUTOMATIC PROPAGATION of Alloc_Increasing*)
 Goal "i < Nclients \
@@ -221,6 +230,8 @@ by (blast_tac (claset() addIs [Network_Rel RS component_guaranteesD,
 			       System_Increasing_rel]) 1);
 qed "System_Increasing_allocRel";
 
+
+
 (*safety (1), step 3*)
 Goal "System : Always {s. sum (%i. (tokens o sub i o allocGiv) s) Nclients \
 \                  <= NbT + sum (%i. (tokens o sub i o allocRel) s) Nclients}";
@@ -230,14 +241,14 @@ by (res_inst_tac
 by (rtac Alloc_component_System 3);
 by (force_tac (claset(), simpset() addsimps [System_Increasing_allocRel]) 2);
 by (rtac (Alloc_Safety RS project_guarantees) 1);
-by Auto_tac;
 (*1: Increasing precondition*)
-by (stac (alloc_export project_Increasing) 1);
-by (force_tac
-    (claset(),
-     simpset() addsimps [o_def, alloc_export project_Increasing]) 1);
+br (ballI RS projecting_INT) 1;
+by (rtac (alloc_export projecting_Increasing RS projecting_weaken) 1);
+by Auto_tac;
+by (asm_full_simp_tac (simpset() addsimps [o_def]) 1);
 (*2: Always postcondition*)
-by (dtac (subset_refl RS alloc_export project_Always_D) 1);
+by (rtac ((alloc_export extending_Always RS extending_weaken)) 1);
+by Auto_tac;
 by (asm_full_simp_tac
      (simpset() addsimps [alloc_export Collect_eq_extend_set RS sym]) 1);
 qed "System_sum_bounded";

@@ -23,7 +23,7 @@ constdefs
     "project_set h C == {x. EX y. h(x,y) : C}"
 
   extend_act :: "['a*'b => 'c, ('a*'a) set] => ('c*'c) set"
-    "extend_act h act == UN (s,s'): act. UN y. {(h(s,y), h(s',y))}"
+    "extend_act h == %act. UN (s,s'): act. UN y. {(h(s,y), h(s',y))}"
 
   (*Argument C allows weak safety laws to be projected*)
   project_act :: "['c set, 'a*'b => 'c, ('c*'c) set] => ('a*'a) set"
