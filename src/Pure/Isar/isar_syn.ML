@@ -22,7 +22,7 @@ structure P = OuterParse and K = OuterSyntax.Keyword;
 
 val theoryP =
   OuterSyntax.command "theory" "begin theory" K.thy_begin
-    (OuterSyntax.theory_header >> (Toplevel.print oo IsarThy.theory));
+    (ThyHeader.args >> (Toplevel.print oo IsarThy.theory));
 
 val end_excursionP =
   OuterSyntax.command "end" "end current excursion" K.thy_end
@@ -36,43 +36,46 @@ val contextP =
 
 (** markup commands **)
 
-val headerP = OuterSyntax.markup_command "header" "theory header" K.diag
+val headerP = OuterSyntax.markup_command IsarOutput.Markup "header" "theory header" K.diag
   (P.comment >> IsarThy.add_header);
 
-val chapterP = OuterSyntax.markup_command "chapter" "chapter heading" K.thy_heading
-  (P.comment >> (Toplevel.theory o IsarThy.add_chapter));
+val chapterP = OuterSyntax.markup_command IsarOutput.Markup "chapter" "chapter heading"
+  K.thy_heading (P.comment >> (Toplevel.theory o IsarThy.add_chapter));
 
-val sectionP = OuterSyntax.markup_command "section" "section heading" K.thy_heading
-  (P.comment >> (Toplevel.theory o IsarThy.add_section));
+val sectionP = OuterSyntax.markup_command IsarOutput.Markup "section" "section heading"
+  K.thy_heading (P.comment >> (Toplevel.theory o IsarThy.add_section));
 
-val subsectionP = OuterSyntax.markup_command "subsection" "subsection heading" K.thy_heading
-  (P.comment >> (Toplevel.theory o IsarThy.add_subsection));
+val subsectionP = OuterSyntax.markup_command IsarOutput.Markup "subsection" "subsection heading"
+  K.thy_heading (P.comment >> (Toplevel.theory o IsarThy.add_subsection));
 
 val subsubsectionP =
-  OuterSyntax.markup_command "subsubsection" "subsubsection heading" K.thy_heading
-    (P.comment >> (Toplevel.theory o IsarThy.add_subsubsection));
+  OuterSyntax.markup_command IsarOutput.Markup "subsubsection" "subsubsection heading"
+  K.thy_heading (P.comment >> (Toplevel.theory o IsarThy.add_subsubsection));
 
-val textP = OuterSyntax.markup_env_command "text" "formal comment (theory)" K.thy_decl
-  (P.comment >> (Toplevel.theory o IsarThy.add_text));
+val textP = OuterSyntax.markup_command IsarOutput.MarkupEnv "text" "formal comment (theory)"
+  K.thy_decl (P.comment >> (Toplevel.theory o IsarThy.add_text));
 
-val text_rawP = OuterSyntax.verbatim_command "text_raw" "raw document preparation text"
-  K.thy_decl (P.comment >> (Toplevel.theory o IsarThy.add_text_raw));
+val text_rawP = OuterSyntax.markup_command IsarOutput.Verbatim "text_raw"
+  "raw document preparation text" K.thy_decl
+  (P.comment >> (Toplevel.theory o IsarThy.add_text_raw));
 
 
-val sectP = OuterSyntax.markup_command "sect" "formal comment (proof)" K.prf_decl
+val sectP = OuterSyntax.markup_command IsarOutput.Markup "sect" "formal comment (proof)" K.prf_decl
   (P.comment >> (Toplevel.print oo (Toplevel.proof o IsarThy.add_sect)));
 
-val subsectP = OuterSyntax.markup_command "subsect" "formal comment (proof)" K.prf_decl
-  (P.comment >> (Toplevel.print oo (Toplevel.proof o IsarThy.add_subsect)));
+val subsectP = OuterSyntax.markup_command IsarOutput.Markup "subsect" "formal comment (proof)"
+  K.prf_decl (P.comment >> (Toplevel.print oo (Toplevel.proof o IsarThy.add_subsect)));
 
-val subsubsectP = OuterSyntax.markup_command "subsubsect" "formal comment (proof)" K.prf_decl
+val subsubsectP = OuterSyntax.markup_command IsarOutput.Markup "subsubsect"
+  "formal comment (proof)" K.prf_decl
   (P.comment >> (Toplevel.print oo (Toplevel.proof o IsarThy.add_subsubsect)));
 
-val txtP = OuterSyntax.markup_env_command "txt" "formal comment (proof)" K.prf_decl
-  (P.comment >> (Toplevel.print oo (Toplevel.proof o IsarThy.add_txt)));
+val txtP = OuterSyntax.markup_command IsarOutput.MarkupEnv "txt" "formal comment (proof)"
+  K.prf_decl (P.comment >> (Toplevel.print oo (Toplevel.proof o IsarThy.add_txt)));
 
-val txt_rawP = OuterSyntax.verbatim_command "txt_raw" "raw document preparation text (proof)"
-  K.prf_decl (P.comment >> (Toplevel.print oo (Toplevel.proof o IsarThy.add_txt_raw)));
+val txt_rawP = OuterSyntax.markup_command IsarOutput.Verbatim "txt_raw"
+  "raw document preparation text (proof)" K.prf_decl
+  (P.comment >> (Toplevel.print oo (Toplevel.proof o IsarThy.add_txt_raw)));
 
 
 
