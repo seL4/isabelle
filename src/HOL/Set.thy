@@ -184,9 +184,9 @@ val ex_tr' = snd(mk_binder_tr' ("Ex","DUMMY"));
 
 fun setcompr_tr'[Abs(_,_,P)] =
   let fun ok(Const("Ex",_)$Abs(_,_,P),n) = ok(P,n+1)
-        | ok(Const("op &",_) $ (Const("op =",_) $ Bound(m) $ e) $ _, n) =
-            if n>0 andalso m=n andalso
-              ((0 upto (n-1)) subset add_loose_bnos(e,0,[]))
+        | ok(Const("op &",_) $ (Const("op =",_) $ Bound(m) $ e) $ P, n) =
+            if n>0 andalso m=n andalso not(loose_bvar1(P,n)) andalso
+               ((0 upto (n-1)) subset add_loose_bnos(e,0,[]))
             then () else raise Match
 
       fun tr'(_ $ abs) =
