@@ -1,7 +1,7 @@
 (*  Title:      HOL/Arith.ML
     ID:         $Id$
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
-    Copyright   1993  University of Cambridge
+    Copyright   1998  University of Cambridge
 
 Proofs about elementary arithmetic: addition, multiplication, etc.
 Some from the Hoare example from Norbert Galm
@@ -370,13 +370,10 @@ by (res_inst_tac [("m","i"),("n","j")] diff_induct 1);
 by (ALLGOALS Asm_simp_tac);
 qed "diff_diff_left";
 
-(* This is a trivial consequence of diff_diff_left;
-   could be got rid of if diff_diff_left were in the simpset...
-*)
-goal thy "(Suc m - n)-1 = m - n";
+goal Arith.thy "(Suc m - n) - Suc k = m - n - k";
 by (simp_tac (simpset() addsimps [diff_diff_left]) 1);
-qed "pred_Suc_diff";
-Addsimps [pred_Suc_diff];
+qed "Suc_diff_diff";
+Addsimps [Suc_diff_diff];
 
 goal thy "!!n. 0<n ==> n - Suc i < n";
 by (res_inst_tac [("n","n")] natE 1);
@@ -610,7 +607,7 @@ by (best_tac (claset() addDs [mult_less_mono2] addss simpset()) 1);
 qed "mult_eq_self_implies_10";
 
 
-(*** Subtraction laws -- from Clemens Ballarin ***)
+(*** Subtraction laws -- mostly from Clemens Ballarin ***)
 
 goal thy "!! a b c::nat. [| a < b; c <= a |] ==> a-c < b-c";
 by (subgoal_tac "c+(a-c) < c+(b-c)" 1);
@@ -649,6 +646,11 @@ by (Simp_tac 1);
 by (simp_tac (simpset() addsimps [less_add_Suc2, less_imp_le]) 1);
 by (Simp_tac 1);
 qed "le_add_diff";
+
+goal Arith.thy "!!i::nat. 0<k ==> j<i --> j+k-i < k";
+by (res_inst_tac [("m","j"),("n","i")] diff_induct 1);
+by (ALLGOALS Asm_simp_tac);
+qed_spec_mp "add_diff_less";
 
 
 
