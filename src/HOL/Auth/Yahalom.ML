@@ -78,8 +78,8 @@ qed "YM4_parts_sees_Enemy";
 
 (*Enemy never sees another agent's shared key! (unless it is leaked at start)*)
 goal thy 
- "!!evs. [| evs : yahalom;  A ~: bad |] ==> \
-\        Key (shrK A) ~: parts (sees Enemy evs)";
+ "!!evs. [| evs : yahalom;  A ~: bad |]    \
+\        ==> Key (shrK A) ~: parts (sees Enemy evs)";
 be yahalom.induct 1;
 bd (YM4_analz_sees_Enemy RS synth.Inj) 6;
 by (ALLGOALS Asm_simp_tac);
@@ -135,8 +135,8 @@ val lemma = result();
 
 (*Variant needed for the main theorem below*)
 goal thy 
- "!!evs. [| evs : yahalom;  length evs <= length evs' |] ==> \
-\        Key (newK evs') ~: parts (sees C evs)";
+ "!!evs. [| evs : yahalom;  length evs <= length evs' |]    \
+\        ==> Key (newK evs') ~: parts (sees C evs)";
 by (fast_tac (!claset addDs [lemma]) 1);
 qed "new_keys_not_seen";
 Addsimps [new_keys_not_seen];
@@ -180,8 +180,8 @@ by (ALLGOALS
 val lemma = result();
 
 goal thy 
- "!!evs. [| evs : yahalom;  length evs <= length evs' |] ==> \
-\        newK evs' ~: keysFor (parts (sees C evs))";
+ "!!evs. [| evs : yahalom;  length evs <= length evs' |]    \
+\        ==> newK evs' ~: keysFor (parts (sees C evs))";
 by (fast_tac (!claset addSDs [lemma] addss (!simpset)) 1);
 qed "new_keys_not_used";
 
@@ -344,3 +344,62 @@ by (fast_tac (!claset addSEs [less_irrefl]) 2);
 (*Fake*) (** LEVEL 10 **)
 by (enemy_analz_tac 1);
 qed "Enemy_not_see_encrypted_key";
+
+
+goal thy 
+ "!!evs. [| Crypt {|Agent A, Key K|} (shrK B) : analz (sees Enemy evs); \
+\           B ~: bad;  evs : yahalom |]                                 \
+\        ==> EX NA NB. Says Server A                                    \
+\                     {|Crypt {|Agent B, Key K,                         \
+\                               Nonce NA, Nonce NB|} (shrK A),          \
+\                       Crypt {|Agent A, Key K|} (shrK B)|}             \
+\                   : set_of_list evs";
+be rev_mp 1;
+be yahalom.induct 1;
+by (forward_tac [YM4_analz_sees_Enemy] 6);
+by (ALLGOALS (asm_simp_tac (!simpset setloop split_tac [expand_if])));
+(*YM4*)
+by (enemy_analz_tac 4);
+(*YM3*)
+by (Fast_tac 3);
+(*Fake*)
+by (enemy_analz_tac 2);
+(*Base case*)
+by (fast_tac (!claset addss (!simpset)) 1);
+qed "Enemy_analz_Server_msg";
+
+
+(*What can B deduce from receipt of YM4?  
+  NOT THAT THE NONCES AGREE (in this version).  But what does the Nonce
+	give us??*)
+goal thy 
+ "!!evs. [| Says A' B {|Crypt {|Agent A, Key K|} (shrK B),              \
+\                       Crypt (Nonce NB) K|} : set_of_list evs;         \
+\           B ~: bad;  evs : yahalom |]                                 \
+\        ==> EX NA NB. Says Server A                                    \
+\                     {|Crypt {|Agent B, Key K,                         \
+\                               Nonce NA, Nonce NB|} (shrK A),          \
+\                       Crypt {|Agent A, Key K|} (shrK B)|}             \
+\                   : set_of_list evs";
+be rev_mp 1;
+be yahalom.induct 1;
+by (forward_tac [YM4_analz_sees_Enemy] 6);
+by (ALLGOALS Asm_simp_tac);
+(*YM4*)
+by (fast_tac (!claset addSDs [Enemy_analz_Server_msg]) 3);
+(*YM3*)
+by (Fast_tac 2);
+(*Fake*)
+by (fast_tac (!claset addSDs [Enemy_analz_Server_msg]) 1);
+qed "YM4_imp_Says_Server_A";
+
+
+
+goal thy 
+ "!!evs. [| Says A' B {|Crypt {|Agent A, Key K|} (shrK B),              \
+\                       Crypt (Nonce NB) K|} : set_of_list evs;         \
+\           A ~: bad;  B ~: bad;  evs : yahalom |]                      \
+\        ==> Key K ~: analz (sees Enemy evs)";
+by (fast_tac (!claset addSDs [YM4_imp_Says_Server_A,
+			      Enemy_not_see_encrypted_key]) 1);
+qed "B_gets_secure_key";
