@@ -316,9 +316,18 @@ adjust names of cases and parameters of a rule.
   arith & : & \isarmeth \\
 \end{matharray}
 
+\begin{rail}
+  'arith' '!'?
+  ;
+\end{rail}
+
 The $arith$ method decides linear arithmetic problems (on types $nat$, $int$,
-$real$).  Note that a simpler (but faster) version of arithmetic reasoning is
-already performed by the Simplifier.
+$real$).  Any current facts are inserted into the goal before running the
+procedure.  The ``!''~argument causes the full context of assumptions to be
+included as well.
+
+Note that a simpler (but faster) version of arithmetic reasoning is already
+performed by the Simplifier.
 
 
 %%% Local Variables: 
