@@ -294,6 +294,30 @@ $(LOG)/HOL-MiniML.gz: $(OUT)/HOL MiniML/Generalize.ML \
 	@$(ISATOOL) usedir $(OUT)/HOL MiniML
 
 
+## HOL-MicroJava
+
+HOL-MicroJava: HOL $(LOG)/HOL-MicroJava.gz
+
+$(LOG)/HOL-MicroJava.gz: $(OUT)/HOL \
+  MicroJava/J/Conform.ML MicroJava/J/Conform.thy MicroJava/J/Decl.thy \
+  MicroJava/J/Eval.thy MicroJava/J/Eval.ML MicroJava/J/JBasis.ML \
+  MicroJava/J/JBasis.thy MicroJava/J/JTypeSafe.thy MicroJava/J/JTypeSafe.ML \
+  MicroJava/J/Prog.thy MicroJava/J/Prog.ML MicroJava/J/State.ML \
+  MicroJava/J/State.thy MicroJava/J/Term.thy MicroJava/J/Type.ML \
+  MicroJava/J/Type.thy MicroJava/J/TypeRel.ML MicroJava/J/TypeRel.thy \
+  MicroJava/J/WellForm.thy MicroJava/J/WellForm.ML \
+  MicroJava/J/WellType.ML MicroJava/J/WellType.thy \
+  MicroJava/JVM/Control.thy MicroJava/JVM/JVMExec.thy \
+  MicroJava/JVM/JVMState.thy MicroJava/JVM/LoadAndStore.thy \
+  MicroJava/JVM/Method.thy MicroJava/JVM/Method.ML \
+  MicroJava/JVM/Object.thy MicroJava/JVM/Opstack.thy \
+  MicroJava/JVM/Store.thy MicroJava/JVM/Store.ML \
+  MicroJava/BV/BVSpec.thy MicroJava/BV/BVSpec.ML \
+  MicroJava/BV/BVSpecTypeSafe.thy MicroJava/BV/BVSpecTypeSafe.ML \
+  MicroJava/BV/Convert.thy MicroJava/BV/Convert.ML \
+  MicroJava/BV/Correct.thy MicroJava/BV/Correct.ML
+	@$(ISATOOL) usedir $(OUT)/HOL MicroJava
+
 ## HOL-BCV
 
 HOL-BCV: HOL $(LOG)/HOL-BCV.gz
