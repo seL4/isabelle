@@ -28,6 +28,12 @@ Ursula Martin and Tobias Nipkow.
 \newblock In Mark~E. Stickel, editor, {\em 10th International Conference on
   Automated Deduction}, LNAI 449, pages 366--380. Springer, 1990.
 
+\bibitem{nipkow-patterns}
+Tobias Nipkow.
+\newblock Functional unification of higher-order patterns.
+\newblock In M.~Vardi, editor, {\em Eighth Annual Symposium on Logic in
+  Computer Science}, pages 64--74. {\sc ieee} Computer Society Press, 1993.
+
 \bibitem{nipkow-prehofer}
 Tobias Nipkow and Christian Prehofer.
 \newblock Type reconstruction for type classes.
