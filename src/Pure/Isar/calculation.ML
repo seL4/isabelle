@@ -142,7 +142,7 @@ fun calculate final opt_rules print state =
         (if final then
           state
           |> reset_calculation
-          |> Proof.simple_have_thms calculationN []
+          |> Proof.reset_thms calculationN
           |> Proof.simple_have_thms "" calc
           |> Proof.chain
         else
