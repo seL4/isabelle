@@ -313,10 +313,10 @@ text {*
   both to the machine and human readers at the same time.  Thus
   marginal comments and explanations may be kept at a minimum.  Even
   without proper coverage of human-readable proofs, Isabelle document
-  is very useful to produce formally derived texts.  Unstructured
-  proof scripts given here may be just ignored by readers, or
-  intentionally suppressed from the text by the writer (see also
-  \S\ref{sec:doc-prep-suppress}).
+  preparation is very useful to produce formally derived texts.
+  Unstructured proof scripts given here may be just ignored by
+  readers, or intentionally suppressed from the text by the writer
+  (see also \S\ref{sec:doc-prep-suppress}).
 
   \medskip The Isabelle document preparation system essentially acts
   as a front-end to {\LaTeX}.  After checking specifications and
@@ -333,11 +333,11 @@ text {*
   In contrast to the highly interactive mode of Isabelle/Isar theory
   development, the document preparation stage essentially works in
   batch-mode.  An Isabelle \bfindex{session} consists of a collection
-  of theory source files that contribute to a single output document
-  eventually.  Each session is derived from a single parent one,
-  usually an object-logic image like \texttt{HOL}.  This results in an
-  overall tree structure, which is reflected by the output location in
-  the file system (usually rooted at \verb,~/isabelle/browser_info,).
+  of theory source files that contribute to an output document
+  eventually.  Each session is derived from a single parent, usually
+  an object-logic image like \texttt{HOL}.  This results in an overall
+  tree structure, which is reflected by the output location in the
+  file system (usually rooted at \verb,~/isabelle/browser_info,).
 
   \medskip Here is the canonical arrangement of sources of a session
   called \texttt{MySession}:
@@ -364,11 +364,10 @@ text {*
   \verb,\input{session}, in \texttt{root.tex} does the job in most
   situations.
 
-  \item \texttt{IsaMakefile} outside of the directory
-  \texttt{MySession} holds appropriate dependencies and invocations of
-  Isabelle tools to control the batch job.  In fact, several sessions
-  may be controlled by the same \texttt{IsaMakefile}.  See also
-  \cite{isabelle-sys} for further details, especially on
+  \item \texttt{IsaMakefile} holds appropriate dependencies and
+  invocations of Isabelle tools to control the batch job.  In fact,
+  several sessions may be controlled by the same \texttt{IsaMakefile}.
+  See also \cite{isabelle-sys} for further details, especially on
   \texttt{isatool usedir} and \texttt{isatool make}.
 
   \end{itemize}
@@ -399,7 +398,7 @@ text {*
 
   \medskip One may now start to populate the directory
   \texttt{MySession}, and the file \texttt{MySession/ROOT.ML}
-  accordingly.  \texttt{MySession/document/root.tex} should be also
+  accordingly.  \texttt{MySession/document/root.tex} should also be
   adapted at some point; the default version is mostly
   self-explanatory.  Note that \verb,\isabellestyle, enables
   fine-tuning of the general appearance of characters and mathematical
@@ -433,7 +432,7 @@ text {*
   The large-scale structure of Isabelle documents follows existing
   {\LaTeX} conventions, with chapters, sections, subsubsections etc.
   The Isar language includes separate \bfindex{markup commands}, which
-  do not effect the formal content of a theory (or proof), but result
+  do not affect the formal meaning of a theory (or proof), but result
   in corresponding {\LaTeX} elements.
 
   There are separate markup commands depending on the textual context:
@@ -529,7 +528,7 @@ text {*
   serve technical purposes to mark certain oddities in the raw input
   text.  In contrast, \bfindex{formal comments} are portions of text
   that are associated with formal Isabelle/Isar commands
-  (\bfindex{marginal comments}), or as stanalone paragraphs within a
+  (\bfindex{marginal comments}), or as standalone paragraphs within a
   theory or proof context (\bfindex{text blocks}).
 
   \medskip Marginal comments are part of each command's concrete
@@ -650,7 +649,7 @@ text {\ttlbrace}*
   (cf.\ \S\ref{sec:doc-prep-symbols}).  Thus we achieve consistent
   mathematical notation in both the formal and informal parts of the
   document very easily.  Manual {\LaTeX} code would leave more control
-  over the type-setting, but is also slightly more tedious.
+  over the typesetting, but is also slightly more tedious.
 *}
 
 
@@ -659,7 +658,7 @@ subsection {* Interpretation of Symbols \label{sec:doc-prep-symbols} *}
 text {*
   As has been pointed out before (\S\ref{sec:syntax-symbols}),
   Isabelle symbols are the smallest syntactic entities --- a
-  straight-forward generalization of ASCII characters.  While Isabelle
+  straightforward generalization of ASCII characters.  While Isabelle
   does not impose any interpretation of the infinite collection of
   named symbols, {\LaTeX} documents show canonical glyphs for certain
   standard symbols \cite[appendix~A]{isabelle-sys}.
@@ -696,7 +695,7 @@ text {*
   example, \verb,\isabellestyle{it}, uses the italics text style to
   mimic the general appearance of the {\LaTeX} math mode; double
   quotes are not printed at all.  The resulting quality of
-  type-setting is quite good, so this should usually be the default
+  typesetting is quite good, so this should usually be the default
   style for real production work that gets distributed to a broader
   audience.
 *}
@@ -726,7 +725,7 @@ text {*
   no_document use_thy "T";
 \end{verbatim}
 
-  \medskip Theory output may be also suppressed in smaller portions.
+  \medskip Theory output may also be suppressed in smaller portions.
   For example, research articles, or slides usually do not include the
   formal content in full.  In order to delimit \bfindex{ignored
   material} special source comments
@@ -752,7 +751,7 @@ text {*
 
   \medskip
 
-  Text may be suppressed in a fine grained manner.  We may even drop
+  Text may be suppressed in a fine-grained manner.  We may even drop
   vital parts of a formal proof, pretending that things have been
   simpler than in reality.  For example, the following ``fully
   automatic'' proof is actually a fake:
@@ -769,12 +768,12 @@ text {*
 \end{verbatim}
 %(*
 
-  \medskip Ignoring portions of printed does demand some care by the
-  writer.  First of all, the writer is responsible not to obfuscate
-  the underlying formal development in an unduly manner.  It is fairly
-  easy to invalidate the remaining visible text, e.g.\ by referencing
-  questionable formal items (strange definitions, arbitrary axioms
-  etc.) that have been hidden from sight beforehand.
+  \medskip Ignoring portions of printed text does demand some care by
+  the writer.  First of all, the writer is responsible not to
+  obfuscate the underlying formal development in an unduly manner.  It
+  is fairly easy to invalidate the remaining visible text, e.g.\ by
+  referencing questionable formal items (strange definitions,
+  arbitrary axioms etc.) that have been hidden from sight beforehand.
 
   Authentic reports of formal theories, say as part of a library,
   usually should refrain from suppressing parts of the text at all.
