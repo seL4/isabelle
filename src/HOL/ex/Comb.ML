@@ -28,8 +28,8 @@ goalw Comb.thy [diamond_def]
     "!!r. [| diamond(r);  (x,y):r^* |] ==> \ 
 \         ALL y'. (x,y'):r --> (EX z. (y',z): r^* & (y,z): r)";
 by (etac rtrancl_induct 1);
-by (Fast_tac 1);
-by (slow_best_tac (!claset addIs [r_into_rtrancl RSN (2, rtrancl_trans)]
+by (Blast_tac 1);
+by (slow_best_tac (set_cs addIs [r_into_rtrancl RSN (2, rtrancl_trans)]
                            addSDs [spec_mp]) 1);
 val diamond_strip_lemmaE = result() RS spec RS mp RS exE;
 
@@ -37,44 +37,43 @@ val [major] = goal Comb.thy "diamond(r) ==> diamond(r^*)";
 by (rewtac diamond_def);  (*unfold only in goal, not in premise!*)
 by (rtac (impI RS allI RS allI) 1);
 by (etac rtrancl_induct 1);
-by (Fast_tac 1);
-by (ALLGOALS  (*Seems to be a brittle, undirected search*)
-    (slow_best_tac ((claset_of "Fun") addIs [r_into_rtrancl, rtrancl_trans]
-                           addEs [major RS diamond_strip_lemmaE])));
+by (Blast_tac 1);
+by (slow_best_tac  (*Seems to be a brittle, undirected search*)
+    (set_cs addIs [r_into_rtrancl RSN (2, rtrancl_trans)]
+            addEs [major RS diamond_strip_lemmaE]) 1);
 qed "diamond_rtrancl";
 
 
 (*** Results about Contraction ***)
-
-(** Non-contraction results **)
 
 (*Derive a case for each combinator constructor*)
 val K_contractE = contract.mk_cases comb.simps "K -1-> z";
 val S_contractE = contract.mk_cases comb.simps "S -1-> z";
 val Ap_contractE = contract.mk_cases comb.simps "x#y -1-> z";
 
-AddIs  contract.intrs;
+AddSIs [contract.K, contract.S];
+AddIs  [contract.Ap1, contract.Ap2];
 AddSEs [K_contractE, S_contractE, Ap_contractE];
 Unsafe_Addss  (!simpset);
 
 goalw Comb.thy [I_def] "!!z. I -1-> z ==> P";
-by (Fast_tac 1);
+by (Blast_tac 1);
 qed "I_contract_E";
 AddSEs [I_contract_E];
 
 goal Comb.thy "!!x z. K#x -1-> z ==> (EX x'. z = K#x' & x -1-> x')";
-by (Fast_tac 1);
+by (Blast_tac 1);
 qed "K1_contractD";
 AddSEs [K1_contractD];
 
 goal Comb.thy "!!x z. x ---> y ==> x#z ---> y#z";
 by (etac rtrancl_induct 1);
-by (ALLGOALS (best_tac (!claset addIs [r_into_rtrancl, rtrancl_trans])));
+by (ALLGOALS (blast_tac (!claset addIs [r_into_rtrancl, rtrancl_trans])));
 qed "Ap_reduce1";
 
 goal Comb.thy "!!x z. x ---> y ==> z#x ---> z#y";
 by (etac rtrancl_induct 1);
-by (ALLGOALS (best_tac (!claset addIs [r_into_rtrancl, rtrancl_trans])));
+by (ALLGOALS (blast_tac (!claset addIs [r_into_rtrancl, rtrancl_trans])));
 qed "Ap_reduce2";
 
 (** Counterexample to the diamond property for -1-> **)
@@ -84,15 +83,15 @@ by (rtac contract.K 1);
 qed "KIII_contract1";
 
 goalw Comb.thy [I_def] "K#I#(I#I) -1-> K#I#((K#I)#(K#I))";
-by (Fast_tac 1);
+by (Blast_tac 1);
 qed "KIII_contract2";
 
 goal Comb.thy "K#I#((K#I)#(K#I)) -1-> I";
-by (Fast_tac 1);
+by (Blast_tac 1);
 qed "KIII_contract3";
 
 goalw Comb.thy [diamond_def] "~ diamond(contract)";
-by (fast_tac (!claset addIs [KIII_contract1,KIII_contract2,KIII_contract3]) 1);
+by (blast_tac (!claset addIs [KIII_contract1,KIII_contract2,KIII_contract3]) 1);
 qed "not_diamond_contract";
 
 
@@ -111,18 +110,18 @@ Unsafe_Addss  (!simpset);
 (*** Basic properties of parallel contraction ***)
 
 goal Comb.thy "!!x z. K#x =1=> z ==> (EX x'. z = K#x' & x =1=> x')";
-by (Fast_tac 1);
+by (Blast_tac 1);
 qed "K1_parcontractD";
 AddSDs [K1_parcontractD];
 
 goal Comb.thy "!!x z. S#x =1=> z ==> (EX x'. z = S#x' & x =1=> x')";
-by (Fast_tac 1);
+by (Blast_tac 1);
 qed "S1_parcontractD";
 AddSDs [S1_parcontractD];
 
 goal Comb.thy
  "!!x y z. S#x#y =1=> z ==> (EX x' y'. z = S#x'#y' & x =1=> x' & y =1=> y')";
-by (Fast_tac 1);
+by (Blast_tac 1);
 qed "S2_parcontractD";
 AddSDs [S2_parcontractD];
 
@@ -133,7 +132,8 @@ AddSDs [S2_parcontractD];
 goalw Comb.thy [diamond_def] "diamond parcontract";
 by (rtac (impI RS allI RS allI) 1);
 by (etac parcontract.induct 1 THEN prune_params_tac);
-by (ALLGOALS Fast_tac);
+by (Step_tac 1);
+by (ALLGOALS Blast_tac);
 qed "diamond_parcontract";
 
 
@@ -143,25 +143,24 @@ goal Comb.thy "contract <= parcontract";
 by (rtac subsetI 1);
 by (split_all_tac 1);
 by (etac contract.induct 1);
-by (ALLGOALS Fast_tac);
+by (ALLGOALS Blast_tac);
 qed "contract_subset_parcontract";
 
 (*Reductions: simply throw together reflexivity, transitivity and
   the one-step reductions*)
 
-AddSIs [contract.K, contract.S];
 AddIs [Ap_reduce1, Ap_reduce2, r_into_rtrancl, rtrancl_trans];
 
 (*Example only: not used*)
 goalw Comb.thy [I_def] "I#x ---> x";
-by (Deepen_tac 0 1);
+by (Blast_tac 1);
 qed "reduce_I";
 
 goal Comb.thy "parcontract <= contract^*";
 by (rtac subsetI 1);
 by (split_all_tac 1);
 by (etac parcontract.induct 1 THEN prune_params_tac);
-by (ALLGOALS (Deepen_tac 0));
+by (ALLGOALS Blast_tac);
 qed "parcontract_subset_reduce";
 
 goal Comb.thy "contract^* = parcontract^*";
