@@ -25,7 +25,7 @@ goal thy "P(a) --> (EX y. a=y --> P(f(a)))";
 signature HYPSUBST_DATA =
   sig
   structure Simplifier : SIMPLIFIER
-  val dest_eq	       : term -> term*term
+  val dest_eq	       : term -> term*term*typ
   val eq_reflection    : thm		   (* a=b ==> a==b *)
   val imp_intr	       : thm		   (* (P ==> Q) ==> P-->Q *)
   val rev_mp	       : thm		   (* [| P;  P-->Q |] ==> Q *)
@@ -42,7 +42,7 @@ signature HYPSUBST =
   val gen_hyp_subst_tac      : bool -> int -> tactic
   val vars_gen_hyp_subst_tac : bool -> int -> tactic
   val eq_var                 : bool -> bool -> term -> int * bool
-  val inspect_pair           : bool -> bool -> term * term -> bool
+  val inspect_pair           : bool -> bool -> term * term * typ -> bool
   val mk_eqs                 : thm -> thm list
   val thin_leading_eqs_tac   : bool -> int -> int -> tactic
   end;
@@ -81,7 +81,10 @@ fun has_vars t = maxidx_of_term t <> ~1;
         but we can't check for this -- hence bnd and bound_hyp_subst_tac
   Prefer to eliminate Bound variables if possible.
   Result:  true = use as is,  false = reorient first *)
-fun inspect_pair bnd novars (t,u) =
+fun inspect_pair bnd novars (t,u,T) =
+  if novars andalso maxidx_of_typ T <> ~1 
+  then raise Match   (*variables in the type!*)
+  else
   case (contract t, contract u) of
        (Bound i, _) => if loose(i,u) orelse novars andalso has_vars u 
 		       then raise Match 

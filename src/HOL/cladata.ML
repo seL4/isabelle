@@ -14,7 +14,8 @@ structure Hypsubst_Data =
   struct
   structure Simplifier = Simplifier
   (*Take apart an equality judgement; otherwise raise Match!*)
-  fun dest_eq (Const("Trueprop",_) $ (Const("op =",_)  $ t $ u)) = (t,u);
+  fun dest_eq (Const("Trueprop",_) $ (Const("op =",T)  $ t $ u)) = 
+	(t, u, domain_type T)
   val eq_reflection = eq_reflection
   val imp_intr = impI
   val rev_mp = rev_mp
