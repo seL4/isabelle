@@ -15,7 +15,7 @@ reset global_names;
 print_depth 1;  
 
 use_thy "CTT";
-use "../Provers/typedsimp.ML";
+use "$ISABELLE_HOME/src/Provers/typedsimp.ML";
 use "rew.ML";
 use_thy "Arith";
 use_thy "Bool";

@@ -13,15 +13,15 @@ writeln banner;
 print_depth 1;
 
 (* Add user sections *)
-use "../Pure/section_utils.ML";
+use "$ISABELLE_HOME/src/Pure/section_utils.ML";
 use "thy_syntax.ML";
 
-use "../Provers/simplifier.ML";
-use "../Provers/splitter.ML";
-use "../Provers/hypsubst.ML";
-use "../Provers/classical.ML";
-use "../Provers/blast.ML";
-use "../Provers/nat_transitive.ML";
+use "$ISABELLE_HOME/src/Provers/simplifier.ML";
+use "$ISABELLE_HOME/src/Provers/splitter.ML";
+use "$ISABELLE_HOME/src/Provers/hypsubst.ML";
+use "$ISABELLE_HOME/src/Provers/classical.ML";
+use "$ISABELLE_HOME/src/Provers/blast.ML";
+use "$ISABELLE_HOME/src/Provers/nat_transitive.ML";
 
 use "thy_data.ML";
 
@@ -32,7 +32,7 @@ use "simpdata.ML";
 
 use_thy "Ord";
 use_thy "subset";
-use     "typedef.ML";
+use "typedef.ML";
 use_thy "Sum";
 use_thy "Gfp";
 

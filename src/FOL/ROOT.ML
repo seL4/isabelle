@@ -13,12 +13,12 @@ writeln banner;
 
 print_depth 1;  
 
-use "../Provers/simplifier.ML";
-use "../Provers/splitter.ML";
-use "../Provers/ind.ML";
-use "../Provers/hypsubst.ML";
-use "../Provers/classical.ML";
-use "../Provers/blast.ML";
+use "$ISABELLE_HOME/src/Provers/simplifier.ML";
+use "$ISABELLE_HOME/src/Provers/splitter.ML";
+use "$ISABELLE_HOME/src/Provers/ind.ML";
+use "$ISABELLE_HOME/src/Provers/hypsubst.ML";
+use "$ISABELLE_HOME/src/Provers/classical.ML";
+use "$ISABELLE_HOME/src/Provers/blast.ML";
 
 use_thy "IFOL";
 
