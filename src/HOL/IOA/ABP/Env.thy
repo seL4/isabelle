@@ -1,4 +1,5 @@
-(*  Title:      HOL/IOA/ABP/Impl.thy
+(*  Title:      HOL/IOA/example/Impl.thy
+by (Action.action.induct_tac "a" 1);
     ID:         $Id$
     Author:     Tobias Nipkow & Konrad Slind
     Copyright   1994  TU Muenchen

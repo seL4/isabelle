@@ -1,7 +1,7 @@
-(*  Title:      HOL/IOA/ABP/Spec.thy
+(*  Title:      HOL/IOA/example/Spec.thy
     ID:         $Id$
-    Author:     Tobias Nipkow & Olaf Mueller
-    Copyright   1995  TU Muenchen
+    Author:     Tobias Nipkow & Konrad Slind
+    Copyright   1994  TU Muenchen
 
 The specification of reliable transmission
 *)

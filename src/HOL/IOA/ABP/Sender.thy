@@ -1,7 +1,7 @@
-(*  Title:      HOL/IOA/ABP/Sender.thy
+(*  Title:      HOL/IOA/example/Sender.thy
     ID:         $Id$
     Author:     Tobias Nipkow & Konrad Slind
-    Copyright   1995  TU Muenchen
+    Copyright   1994  TU Muenchen
 
 The implementation: sender
 *)

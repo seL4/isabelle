@@ -1,9 +1,9 @@
-(*  Title:      HOL/IOA/ABP/Impl_finite.thy
+(*  Title:      HOL/IOA/example/Impl.thy
     ID:         $Id$
-    Author:     Tobias Nipkow & Olaf Mueller
-    Copyright   1995  TU Muenchen
+    Author:     Tobias Nipkow & Konrad Slind
+    Copyright   1994  TU Muenchen
 
-The finite implementation
+The implementation
 *)
 
 Impl_finite = Sender + Receiver +  Abschannel_finite +

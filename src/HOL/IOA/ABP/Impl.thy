@@ -1,7 +1,7 @@
-(*  Title:      HOL/IOA/ABP/Impl.thy
+(*  Title:      HOL/IOA/example/Impl.thy
     ID:         $Id$
-    Author:     Tobias Nipkow & Olaf Mueller
-    Copyright   1995  TU Muenchen
+    Author:     Tobias Nipkow & Konrad Slind
+    Copyright   1994  TU Muenchen
 
 The implementation
 *)
