@@ -154,7 +154,7 @@ proof (induct m);
 
   have "?B (Suc m) = ?t Un ?B m"; by (simp add: Sigma_Suc);
   also; have "... : ?T";
-  proof (rule tiling_Un [rulified]);
+  proof (rule tiling_Un [rule_format]);
     show "?t : ?T"; by (rule dominoes_tile_row);
     from hyp; show "?B m : ?T"; .;
     show "?t Int ?B m = {}"; by blast;

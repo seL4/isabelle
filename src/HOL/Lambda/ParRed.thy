@@ -70,13 +70,13 @@ lemma par_beta_subset_beta: "par_beta <= beta^*"
 
 subsection {* Misc properties of par-beta *}
 
-lemma par_beta_lift [rulified, simp]:
+lemma par_beta_lift [rule_format, simp]:
     "\<forall>t' n. t => t' --> lift t n => lift t' n"
   apply (induct_tac t)
     apply fastsimp+
   done
 
-lemma par_beta_subst [rulified]:
+lemma par_beta_subst [rule_format]:
     "\<forall>s s' t' n. s => s' --> t => t' --> t[s/n] => t'[s'/n]"
   apply (induct_tac t)
     apply (simp add: subst_Var)
@@ -110,7 +110,7 @@ recdef "cd" "measure size"
   "cd (Abs u $ t) = (cd u)[cd t/0]"
   "cd (Abs s) = Abs (cd s)"
 
-lemma par_beta_cd [rulified]:
+lemma par_beta_cd [rule_format]:
     "\<forall>t. s => t --> t => cd s"
   apply (induct_tac s rule: cd.induct)
       apply auto

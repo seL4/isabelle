@@ -74,7 +74,7 @@ lemma "\<exists>T U. e |- Abs (Abs (Abs (Var 2 $ Var 0 $ (Var 1 $ Var 0)))) : T 
 
 text {* Iterated function types *}
 
-lemma list_app_typeD [rulified]:
+lemma list_app_typeD [rule_format]:
     "\<forall>t T. e |- t $$ ts : T --> (\<exists>Ts. e |- t : Ts =>> T \<and> types e ts Ts)"
   apply (induct_tac ts)
    apply simp
@@ -90,7 +90,7 @@ lemma list_app_typeD [rulified]:
   apply simp
   done
 
-lemma list_app_typeI [rulified]:
+lemma list_app_typeI [rule_format]:
     "\<forall>t T Ts. e |- t : Ts =>> T --> types e ts Ts --> e |- t $$ ts : T"
   apply (induct_tac ts)
    apply (intro strip)
@@ -109,7 +109,7 @@ lemma list_app_typeI [rulified]:
   apply blast
   done
 
-lemma lists_types [rulified]:
+lemma lists_types [rule_format]:
     "\<forall>Ts. types e ts Ts --> ts \<in> lists {t. \<exists>T. e |- t : T}"
   apply (induct_tac ts)
    apply (intro strip)
@@ -129,19 +129,19 @@ lemma lists_types [rulified]:
 
 subsection {* Lifting preserves termination and well-typedness *}
 
-lemma lift_map [rulified, simp]:
+lemma lift_map [rule_format, simp]:
     "\<forall>t. lift (t $$ ts) i = lift t i $$ map (\<lambda>t. lift t i) ts"
   apply (induct_tac ts)
    apply simp_all
   done
 
-lemma subst_map [rulified, simp]:
+lemma subst_map [rule_format, simp]:
   "\<forall>t. subst (t $$ ts) u i = subst t u i $$ map (\<lambda>t. subst t u i) ts"
   apply (induct_tac ts)
    apply simp_all
   done
 
-lemma lift_IT [rulified, intro!]:
+lemma lift_IT [rule_format, intro!]:
     "t \<in> IT ==> \<forall>i. lift t i \<in> IT"
   apply (erule IT.induct)
     apply (rule allI)
@@ -161,7 +161,7 @@ lemma lift_IT [rulified, intro!]:
      apply auto
    done
 
-lemma lifts_IT [rulified]:
+lemma lifts_IT [rule_format]:
     "ts \<in> lists IT --> map (\<lambda>t. lift t 0) ts \<in> lists IT"
   apply (induct_tac ts)
    apply auto
@@ -180,7 +180,7 @@ lemma shift_env [simp]:
    apply simp_all
   done
 
-lemma lift_type' [rulified]:
+lemma lift_type' [rule_format]:
   "e |- t : T ==> \<forall>i U.
     (\<lambda>j. if j < i then e j
           else if j = i then U
@@ -202,7 +202,7 @@ lemma lift_type [intro!]:
    apply simp_all
   done
 
-lemma lift_types [rulified]:
+lemma lift_types [rule_format]:
   "\<forall>Ts. types e ts Ts -->
     types (\<lambda>j. if j < i then e j
                 else if j = i then U
@@ -219,7 +219,7 @@ lemma lift_types [rulified]:
 
 subsection {* Substitution lemmas *}
 
-lemma subst_lemma [rulified]:
+lemma subst_lemma [rule_format]:
   "e |- t : T ==> \<forall>e' i U u.
     e = (\<lambda>j. if j < i then e' j
               else if j = i then U
@@ -242,7 +242,7 @@ lemma subst_lemma [rulified]:
   apply fastsimp
   done
 
-lemma substs_lemma [rulified]:
+lemma substs_lemma [rule_format]:
   "e |- u : T ==>
     \<forall>Ts. types (\<lambda>j. if j < i then e j
                      else if j = i then T else e (j - 1)) ts Ts -->
@@ -265,7 +265,7 @@ lemma substs_lemma [rulified]:
 
 subsection {* Subject reduction *}
 
-lemma subject_reduction [rulified]:
+lemma subject_reduction [rule_format]:
     "e |- t : T ==> \<forall>t'. t -> t' --> e |- t' : T"
   apply (erule typing.induct)
     apply blast
@@ -290,7 +290,7 @@ lemma app_last: "(t $$ ts) $ u = t $$ (ts @ [u])"
   apply simp
   done
 
-lemma subst_Var_IT [rulified]: "r \<in> IT ==> \<forall>i j. r[Var i/j] \<in> IT"
+lemma subst_Var_IT [rule_format]: "r \<in> IT ==> \<forall>i j. r[Var i/j] \<in> IT"
   apply (erule IT.induct)
     txt {* Case @{term Var}: *}
     apply (intro strip)
@@ -347,7 +347,7 @@ lemma app_Var_IT: "t \<in> IT ==> t $ Var i \<in> IT"
 
 subsection {* Well-typed substitution preserves termination *}
 
-lemma subst_type_IT [rulified]:
+lemma subst_type_IT [rule_format]:
   "\<forall>t. t \<in> IT --> (\<forall>e T u i.
     (\<lambda>j. if j < i then e j
           else if j = i then U

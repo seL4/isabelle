@@ -94,10 +94,10 @@ lemmas myrule = simple[THEN spec, THEN mp, THEN mp];
 
 text{*\noindent
 or the wholesale stripping of @{text"\<forall>"} and
-@{text"\<longrightarrow>"} in the conclusion via @{text"rulified"} 
+@{text"\<longrightarrow>"} in the conclusion via @{text"rule_format"} 
 *};
 
-lemmas myrule = simple[rulified];
+lemmas myrule = simple[rule_format];
 
 text{*\noindent
 yielding @{thm"myrule"[no_vars]}.
@@ -105,7 +105,7 @@ You can go one step further and include these derivations already in the
 statement of your original lemma, thus avoiding the intermediate step:
 *};
 
-lemma myrule[rulified]:  "\<forall>y. A y \<longrightarrow> B y \<longrightarrow> B y & A y";
+lemma myrule[rule_format]:  "\<forall>y. A y \<longrightarrow> B y \<longrightarrow> B y & A y";
 (*<*)
 by blast;
 (*>*)
@@ -206,14 +206,14 @@ proofs.
 We can now derive the desired @{prop"i <= f i"} from @{text"f_incr"}:
 *};
 
-lemmas f_incr = f_incr_lem[rulified, OF refl];
+lemmas f_incr = f_incr_lem[rule_format, OF refl];
 
 text{*\noindent
 The final @{thm[source]refl} gets rid of the premise @{text"?k = f ?i"}. Again,
 we could have included this derivation in the original statement of the lemma:
 *};
 
-lemma f_incr[rulified, OF refl]: "\<forall>i. k = f i \<longrightarrow> i \<le> f i";
+lemma f_incr[rule_format, OF refl]: "\<forall>i. k = f i \<longrightarrow> i \<le> f i";
 (*<*)oops;(*>*)
 
 text{*

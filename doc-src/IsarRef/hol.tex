@@ -3,21 +3,24 @@
 
 \section{Miscellaneous attributes}
 
-\indexisaratt{rulified}
+\indexisaratt{rule-format}
 \begin{matharray}{rcl}
-  rulified & : & \isaratt \\
+  rule_format & : & \isaratt \\
 \end{matharray}
 
+\railalias{ruleformat}{rule\_format}
+\railterm{ruleformat}
+
 \begin{rail}
-  'rulified' ('(' noasm ')')?
+  ruleformat ('(' noasm ')')?
   ;
 \end{rail}
 
 \begin{descr}
   
-\item [$rulified$] causes a theorem to be put into standard object-rule form,
-  replacing implication and (bounded) universal quantification of HOL by the
-  corresponding meta-logical connectives.  By default, the result is fully
+\item [$rule_format$] causes a theorem to be put into standard object-rule
+  form, replacing implication and (bounded) universal quantification of HOL by
+  the corresponding meta-logical connectives.  By default, the result is fully
   normalized, including assumptions and conclusions at any depth.  The
   $no_asm$ option restricts the transformation to the conclusion of a rule.
 \end{descr}

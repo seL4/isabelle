@@ -18,13 +18,13 @@ lemma apps_eq_tail_conv [iff]: "(r $$ ts = s $$ ts) = (r = s)"
    apply auto
   done
 
-lemma Var_eq_apps_conv [rulified, iff]:
+lemma Var_eq_apps_conv [rule_format, iff]:
     "\<forall>s. (Var m = s $$ ss) = (Var m = s \<and> ss = [])"
   apply (induct_tac ss)
    apply auto
   done
 
-lemma Var_apps_eq_Var_apps_conv [rulified, iff]:
+lemma Var_apps_eq_Var_apps_conv [rule_format, iff]:
     "\<forall>ss. (Var m $$ rs = Var n $$ ss) = (m = n \<and> rs = ss)"
   apply (induct_tac rs rule: rev_induct)
    apply simp
@@ -69,7 +69,7 @@ lemma Abs_App_neq_Var_apps [iff]:
    apply auto
   done
 
-lemma Var_apps_neq_Abs_apps [rulified, iff]:
+lemma Var_apps_neq_Abs_apps [rule_format, iff]:
     "\<forall>ts. Var n $$ ts ~= Abs r $$ ss"
   apply (induct_tac ss rule: rev_induct)
    apply simp
@@ -103,7 +103,7 @@ lemma lem0: "[| (0::nat) < k; m <= n |] ==> m < n + k"
 
 text {* \medskip A customized induction schema for @{text "$$"}. *}
 
-lemma lem [rulified (no_asm)]:
+lemma lem [rule_format (no_asm)]:
   "[| !!n ts. \<forall>t \<in> set ts. P t ==> P (Var n $$ ts);
     !!u ts. [| P u; \<forall>t \<in> set ts. P t |] ==> P (Abs u $$ ts)
   |] ==> \<forall>t. size t = n --> P t"

@@ -96,7 +96,7 @@ lemma apps_preserves_beta2 [simp]:
   apply (blast intro: apps_preserves_beta rtrancl_into_rtrancl)
   done
 
-lemma apps_preserves_betas [rulified, simp]:
+lemma apps_preserves_betas [rule_format, simp]:
     "\<forall>ss. rs => ss --> r $$ rs -> r $$ ss"
   apply (induct_tac rs rule: rev_induct)
    apply simp

@@ -1046,10 +1046,11 @@ val rule_del_attr = (del_args rule_del_global, del_args rule_del_local);
 
 (* setup_attrs *)
 
-fun elimified x = Attrib.no_args (Drule.rule_attribute (K Data.make_elim)) x;
+fun elim_format x = Attrib.no_args (Drule.rule_attribute (K Data.make_elim)) x;
 
 val setup_attrs = Attrib.add_attributes
- [("elimified", (elimified, elimified), "destruct rule turned into elimination rule (classical)"),
+ [("elim_format", (elim_format, elim_format),
+    "destruct rule turned into elimination rule format (classical)"),
   (destN, cla_attr (op addXDs) (op addDs) (op addSDs), "declaration of destruction rule"),
   (elimN, cla_attr (op addXEs) (op addEs) (op addSEs), "declaration of elimination rule"),
   (introN, cla_attr (op addXIs) (op addIs) (op addSIs), "declaration of introduction rule"),

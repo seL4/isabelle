@@ -13,7 +13,7 @@ lemma PrimT_PrimT: "(G \<turnstile> xb \<preceq> PrimT p) = (xb = PrimT p)"
   by (auto elim: widen.elims)
 
 
-lemma sup_loc_some [rulified]:
+lemma sup_loc_some [rule_format]:
 "\<forall> y n. (G \<turnstile> b <=l y) \<longrightarrow> n < length y \<longrightarrow> y!n = Ok t \<longrightarrow> 
   (\<exists>t. b!n = Ok t \<and> (G \<turnstile> (b!n) <=o (y!n)))" (is "?P b")
 proof (induct (open) ?P b)
@@ -59,7 +59,7 @@ proof (induct "a")
 qed
  
 
-lemma append_length_n [rulified]: 
+lemma append_length_n [rule_format]: 
 "\<forall>n. n \<le> length x \<longrightarrow> (\<exists>a b. x = a@b \<and> length a = n)" (is "?P x")
 proof (induct (open) ?P x)
   show "?P []" by simp
@@ -78,7 +78,7 @@ proof (induct (open) ?P x)
       fix "n'" assume s: "n = Suc n'"
       with l 
       have  "n' \<le> length ls" by simp 
-      hence "\<exists>a b. ls = a @ b \<and> length a = n'" by (rule Cons [rulified])
+      hence "\<exists>a b. ls = a @ b \<and> length a = n'" by (rule Cons [rule_format])
       thus ?thesis
       proof elim
         fix a b 
@@ -254,7 +254,7 @@ proof -
         have "length list < length (fst s2)" 
           by (simp add: sup_state_length)
         hence "\<exists>a b c. (fst s2) = rev a @ b # c \<and> length a = length list"
-          by (rule rev_append_cons [rulified])
+          by (rule rev_append_cons [rule_format])
         thus ?thesis
           by -  (cases s2, elim exE conjE, simp, rule that) 
       qed

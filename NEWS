@@ -52,8 +52,8 @@ from A/r to A//r;
 
 * ZF: new treatment of arithmetic (nat & int) may break some old proofs;
 
-* Isar/Provers: intro/elim/dest attributes: changed
-intro/intro!/intro!!  flags to intro!/intro/intro? (in most cases, one
+* Isar/Provers: intro/elim/dest attributes changed; renamed
+intro/intro!/intro!! flags to intro!/intro/intro? (in most cases, one
 should have to change intro!! to intro? only); replaced "delrule" by
 "rule del";
 
@@ -61,7 +61,7 @@ should have to change intro!! to intro? only); replaced "delrule" by
 
 * Isar: renamed 'RS' attribute to 'THEN';
 
-* Isar: renamed some attributes (rulify -> rulified, elimify -> elimified, ...);
+* Isar: renamed some attributes (rulify -> rule_format, elimify -> elim_format, ...);
 
 * Isar/HOL: renamed "intrs" to "intros" in inductive definitions;
 
@@ -192,9 +192,10 @@ INCOMPATIBILITY); emulation of mk_cases feature for proof scripts:
 'inductive_cases' command and 'ind_cases' method; NOTE: use (cases
 (simplified)) method in proper proofs;
 
-* Provers: intro/elim/dest attributes: changed intro/intro!/intro!!
-flags to intro!/intro/intro? (in most cases, one should have to change
-intro!! to intro? only); replaced "delrule" by "rule del";
+* Provers: intro/elim/dest attributes changed; renamed
+intro/intro!/intro!! flags to intro!/intro/intro? (INCOMPATIBILITY, in
+most cases, one should have to change intro!! to intro? only);
+replaced "delrule" by "rule del";
 
 * names of theorems etc. may be natural numbers as well;
 
@@ -335,6 +336,9 @@ simplifier and classical reasoner simultaneously;
 
 
 *** General ***
+
+* Provers: delrules now handles destruct rules as well (no longer need
+explicit make_elim);
 
 * Provers: blast(_tac) now handles actual object-logic rules as
 assumptions; note that auto(_tac) uses blast(_tac) internally as well;

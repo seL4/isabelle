@@ -19,8 +19,8 @@ end;
 signature RULIFY =
 sig
   include BASIC_RULIFY
-  val rulified: 'a attribute
-  val rulified_no_asm: 'a attribute
+  val rule_format: 'a attribute
+  val rule_format_no_asm: 'a attribute
   val setup: (theory -> theory) list
 end;
 
@@ -38,11 +38,11 @@ val rulify_no_asm = tune o make_meta;
 
 (* attributes *)
 
-fun rulified x = Drule.rule_attribute (fn _ => rulify) x;
-fun rulified_no_asm x = Drule.rule_attribute (fn _ => rulify_no_asm) x;
+fun rule_format x = Drule.rule_attribute (fn _ => rulify) x;
+fun rule_format_no_asm x = Drule.rule_attribute (fn _ => rulify_no_asm) x;
 
-fun rulified_att x = Attrib.syntax
-  (Scan.lift (Args.parens (Args.$$$ "no_asm") >> K rulified_no_asm || Scan.succeed rulified)) x;
+fun rule_format_att x = Attrib.syntax
+  (Scan.lift (Args.parens (Args.$$$ "no_asm") >> K rule_format_no_asm || Scan.succeed rule_format)) x;
 
 
 (* qed commands *)
@@ -60,6 +60,6 @@ fun qed_goalw_spec_mp name thy defs s p =
 
 val setup =
  [Attrib.add_attributes
-  [("rulified", (rulified_att, rulified_att), "result put into standard rule form")]];
+  [("rule_format", (rule_format_att, rule_format_att), "result put into standard rule format")]];
 
 end;

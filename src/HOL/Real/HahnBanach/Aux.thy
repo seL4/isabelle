@@ -12,7 +12,7 @@ or elimination rules, respectively. *}
 
 lemmas [intro?] = isLub_isUb
 lemmas [intro?] = chainD 
-lemmas chainE2 = chainD2 [elimified]
+lemmas chainE2 = chainD2 [elim_format, standard]
 
 text_raw {* \medskip *}
 text{* Lemmas about sets. *}

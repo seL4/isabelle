@@ -161,7 +161,7 @@ proof -
     case None
     with wtl fits
     show ?thesis 
-      by - (rule wtl_inst_mono [elimified], (simp add: wtl_cert_def)+)
+      by - (rule wtl_inst_mono [elim_format], (simp add: wtl_cert_def)+)
   next
     case Some
     with wtl fits
@@ -406,7 +406,7 @@ lemma fits_imp_wtl_method_complete:
   "[| wt_method G C pTs rT mxl ins phi; fits ins cert phi |] ==> 
   wtl_method G C pTs rT mxl ins cert"
 by (simp add: wt_method_def wtl_method_def)
-   (rule wt_imp_wtl_inst_list [rulified, elimified], auto simp add: wt_start_def) 
+   (rule wt_imp_wtl_inst_list [rule_format, elim_format], auto simp add: wt_start_def) 
 
 
 lemma wtl_method_complete:
@@ -462,17 +462,17 @@ proof (simp only: wt_jvm_prog_def)
 
     from 1
     show "wtl_method G a ba ad ae bb (make_Cert G Phi a (ac, ba))"
-    proof (rule bspec [elimified], clarsimp)
+    proof (rule bspec [elim_format], clarsimp)
       assume ub : "unique b"
       assume m: "\<forall>(sig,rT,mb)\<in>set b. wf_mhead G sig rT \<and> 
                   (\<lambda>(maxl,b). wt_method G a (snd sig) rT maxl b (Phi a sig)) mb" 
       from m b
       show ?thesis
-      proof (rule bspec [elimified], clarsimp)
+      proof (rule bspec [elim_format], clarsimp)
         assume "wt_method G a ba ad ae bb (Phi a (ac, ba))"         
         with wfprog uG ub b 1
         show ?thesis
-          by - (rule wtl_method_complete [elimified], assumption+, 
+          by - (rule wtl_method_complete [elim_format], assumption+, 
                 simp add: make_Cert_def unique_epsilon)
       qed 
     qed

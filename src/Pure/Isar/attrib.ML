@@ -269,7 +269,7 @@ fun params x = syntax (Args.and_list1 (Scan.lift (Scan.repeat Args.name)) >> Rul
 (* misc rules *)
 
 fun standard x = no_args (Drule.rule_attribute (K Drule.standard)) x;
-fun elimified x = no_args (Drule.rule_attribute (K Tactic.make_elim)) x;
+fun elim_format x = no_args (Drule.rule_attribute (K Tactic.make_elim)) x;
 fun no_vars x = no_args (Drule.rule_attribute (K (#1 o Drule.freeze_thaw))) x;
 
 fun exported_global x = no_args (Drule.rule_attribute (Proof.export_thm o ProofContext.init)) x;
@@ -292,7 +292,7 @@ val pure_attributes =
   ("unfolded", (unfolded_global, unfolded_local), "unfolded definitions"),
   ("folded", (folded_global, folded_local), "folded definitions"),
   ("standard", (standard, standard), "result put into standard form"),
-  ("elimified", (elimified, elimified), "destruct rule turned into elimination rule"),
+  ("elim_format", (elim_format, elim_format), "destruct rule turned into elimination rule format"),
   ("no_vars", (no_vars, no_vars), "frozen schematic vars"),
   ("case_names", (case_names, case_names), "named rule cases"),
   ("params", (params, params), "named rule parameters"),

@@ -118,7 +118,7 @@ proof (rule order_antisym);
     proof;
       assume "n < f n";
       hence "Suc n <= f n"; by (rule Suc_leI);
-      hence "f (Suc n) <= f (f n)"; by (rule mono [rulified]);
+      hence "f (Suc n) <= f (f n)"; by (rule mono [rule_format]);
       also; have "... < f (Suc n)"; by (rule f_ax);
       finally; have "... < ..."; .; thus False; ..;
     qed;

@@ -227,7 +227,7 @@ lemma vs_sumD:
   "x \<in> U + V = (\<exists>u \<in> U. \<exists>v \<in> V. x = u + v)"
     by (unfold vs_sum_def) fast
 
-lemmas vs_sumE = vs_sumD [THEN iffD1, elimified, standard]
+lemmas vs_sumE = vs_sumD [THEN iffD1, elim_format, standard]
 
 lemma vs_sumI [intro?]: 
   "[| x \<in> U; y \<in> V; t= x + y |] ==> t \<in> U + V"

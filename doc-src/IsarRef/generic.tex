@@ -305,7 +305,7 @@ where the result is treated as an assumption.
 
 
 \indexisaratt{standard}
-\indexisaratt{elimified}
+\indexisaratt{elim-format}
 \indexisaratt{no-vars}
 
 \indexisaratt{THEN}\indexisaratt{COMP}
@@ -320,7 +320,7 @@ where the result is treated as an assumption.
   unfolded & : & \isaratt \\
   folded & : & \isaratt \\[0.5ex]
   standard & : & \isaratt \\
-  elimified & : & \isaratt \\
+  elim_format & : & \isaratt \\
   no_vars^* & : & \isaratt \\
   exported^* & : & \isaratt \\
 \end{matharray}
@@ -356,8 +356,8 @@ where the result is treated as an assumption.
   given meta-level definitions throughout a rule.
 \item [$standard$] puts a theorem into the standard form of object-rules, just
   as the ML function \texttt{standard} (see \cite[\S5]{isabelle-ref}).
-\item [$elimified$] turns an destruction rule into an elimination, just as the
-  ML function \texttt{make\_elim} (see \cite{isabelle-ref}).
+\item [$elim_format$] turns a destruction rule into elimination rule format;
+  see also the ML function \texttt{make\_elim} (see \cite{isabelle-ref}).
 \item [$no_vars$] replaces schematic variables by free ones; this is mainly
   for tuning output of pretty printed theorems.
 \item [$exported$] lifts a local result out of the current proof context,
