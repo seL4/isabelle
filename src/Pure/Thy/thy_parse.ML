@@ -177,8 +177,9 @@ fun mk_triple2 (x, (y, z)) = mk_triple (x, y, z);
 
 fun split_decls l = flat (map (fn (xs, y) => map (rpair y) xs) l);
 
-fun strip_quotes str =
-  implode (tl (take (size str - 1, explode str)));
+(*Remove the leading and trailing chararacters.  Actually called to
+  remove quotation marks.*)
+fun strip_quotes s = String.substring (s, 1, size s - 2);
 
 
 (* names *)
