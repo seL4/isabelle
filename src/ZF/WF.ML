@@ -1,9 +1,9 @@
 (*  Title:      ZF/wf.ML
     ID:         $Id$
     Author:     Tobias Nipkow and Lawrence C Paulson
-    Copyright   1992  University of Cambridge
+    Copyright   1998  University of Cambridge
 
-For wf.thy.  Well-founded Recursion
+Well-founded Recursion
 
 Derived first for transitive relations, and finally for arbitrary WF relations
 via wf_trancl and trans_trancl.
@@ -25,6 +25,7 @@ open WF;
 (** Equivalences between wf and wf_on **)
 
 goalw WF.thy [wf_def, wf_on_def] "!!A r. wf(r) ==> wf[A](r)";
+by (Clarify_tac 1);  (*essential for Blast_tac's efficiency*)
 by (Blast_tac 1);
 qed "wf_imp_wf_on";
 
@@ -37,11 +38,13 @@ by (blast_tac (claset() addIs [wf_imp_wf_on, wf_on_field_imp_wf]) 1);
 qed "wf_iff_wf_on_field";
 
 goalw WF.thy [wf_on_def, wf_def] "!!A B r. [| wf[A](r);  B<=A |] ==> wf[B](r)";
-by (Fast_tac 1);
+by (Clarify_tac 1);  (*essential for Blast_tac's efficiency*)
+by (Blast_tac 1);
 qed "wf_on_subset_A";
 
 goalw WF.thy [wf_on_def, wf_def] "!!A r s. [| wf[A](r);  s<=r |] ==> wf[A](s)";
-by (Fast_tac 1);
+by (Clarify_tac 1);  (*essential for Blast_tac's efficiency*)
+by (Blast_tac 1);
 qed "wf_on_subset_r";
 
 (** Introduction rules for wf_on **)
@@ -289,18 +292,19 @@ val prems = goal WF.thy
 by (REPEAT (ares_tac (prems @ [is_recfun_cut, unfold_the_recfun]) 1));
 qed "the_recfun_cut";
 
-(*NOT SUITABLE FOR REWRITING since it is recursive!*)
+(*NOT SUITABLE FOR REWRITING: it is recursive!*)
 goalw WF.thy [wftrec_def]
     "!!r. [| wf(r);  trans(r) |] ==> \
 \         wftrec(r,a,H) = H(a, lam x: r-``{a}. wftrec(r,x,H))";
 by (stac (rewrite_rule [is_recfun_def] unfold_the_recfun) 1);
-by (ALLGOALS (asm_simp_tac
-        (simpset() addsimps [vimage_singleton_iff RS iff_sym, the_recfun_cut])));
+by (ALLGOALS 
+    (asm_simp_tac
+     (simpset() addsimps [vimage_singleton_iff RS iff_sym, the_recfun_cut])));
 qed "wftrec";
 
 (** Removal of the premise trans(r) **)
 
-(*NOT SUITABLE FOR REWRITING since it is recursive!*)
+(*NOT SUITABLE FOR REWRITING: it is recursive!*)
 val [wfr] = goalw WF.thy [wfrec_def]
     "wf(r) ==> wfrec(r,a,H) = H(a, lam x:r-``{a}. wfrec(r,x,H))";
 by (stac (wfr RS wf_trancl RS wftrec) 1);
