@@ -37,6 +37,9 @@ axioms
 
 use "Public_lemmas.ML"
 
+lemma [simp]: "K \\<in> symKeys ==> invKey K = K"
+by (simp add: symKeys_def)
+
 (*Specialized methods*)
 
 method_setup possibility = {*
