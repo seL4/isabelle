@@ -1434,11 +1434,55 @@ apply (case_tac "b=0", simp)
 apply (simp add: nonzero_abs_divide) 
 done
 
-(*TOO DIFFICULT: 6 CASES
+lemma abs_leI: "[|a \<le> b; -a \<le> b|] ==> abs a \<le> (b::'a::ordered_ring)"
+by (simp add: abs_if)
+
+lemma le_minus_self_iff: "(a \<le> -a) = (a \<le> (0::'a::ordered_ring))"
+proof 
+  assume ale: "a \<le> -a"
+  show "a\<le>0"
+    apply (rule classical) 
+    apply (simp add: linorder_not_le) 
+    apply (blast intro: ale order_trans order_less_imp_le
+                        neg_0_le_iff_le [THEN iffD1]) 
+    done
+next
+  assume "a\<le>0"
+  hence "0 \<le> -a" by (simp only: neg_0_le_iff_le)
+  thus "a \<le> -a"  by (blast intro: prems order_trans) 
+qed
+
+lemma minus_le_self_iff: "(-a \<le> a) = (0 \<le> (a::'a::ordered_ring))"
+by (insert le_minus_self_iff [of "-a"], simp)
+
+lemma eq_minus_self_iff: "(a = -a) = (a = (0::'a::ordered_ring))"
+by (force simp add: order_eq_iff le_minus_self_iff minus_le_self_iff)
+
+lemma less_minus_self_iff: "(a < -a) = (a < (0::'a::ordered_ring))"
+by (simp add: order_less_le le_minus_self_iff eq_minus_self_iff)
+
+lemma abs_le_D1: "abs a \<le> b ==> a \<le> (b::'a::ordered_ring)"
+apply (simp add: abs_if split: split_if_asm)
+apply (rule order_trans [of _ "-a"]) 
+ apply (simp add: less_minus_self_iff order_less_imp_le, assumption)
+done
+
+lemma abs_le_D2: "abs a \<le> b ==> -a \<le> (b::'a::ordered_ring)"
+by (insert abs_le_D1 [of "-a"], simp)
+
+lemma abs_le_iff: "(abs a \<le> b) = (a \<le> b & -a \<le> (b::'a::ordered_ring))"
+by (blast intro: abs_leI dest: abs_le_D1 abs_le_D2)
+
+lemma abs_less_iff: "(abs a < b) = (a < b & -a < (b::'a::ordered_ring))" 
+apply (simp add: order_less_le abs_le_iff)  
+apply (auto simp add: abs_if minus_le_self_iff eq_minus_self_iff) 
+ apply (simp add:  linorder_not_less [symmetric]) 
+apply (simp add: le_minus_self_iff linorder_neq_iff) 
+apply (simp add:  linorder_not_less [symmetric]) 
+done
+
 lemma abs_triangle_ineq: "abs (a+b) \<le> abs a + abs (b::'a::ordered_ring)"
-apply (simp add: abs_if)
-apply (auto ); 
-*)
+by (force simp add: abs_le_iff abs_ge_self abs_ge_minus_self add_mono)
 
 lemma abs_mult_less:
      "[| abs a < c; abs b < d |] ==> abs a * abs b < c*(d::'a::ordered_ring)"

@@ -645,6 +645,9 @@ syntax (xsymbols)
   "op <="       :: "['a::ord, 'a] => bool"             ("(_/ \<le> _)"  [50, 51] 50)
 
 
+lemma Not_eq_iff: "((~P) = (~Q)) = (P = Q)"
+by blast
+
 subsubsection {* Monotonicity *}
 
 locale mono =
@@ -715,6 +718,9 @@ lemma order_less_asym: "x < (y::'a::order) ==> (~P ==> y < x) ==> P"
   apply (drule order_less_not_sym)
   apply (erule contrapos_np, simp)
   done
+
+lemma order_eq_iff: "!!x::'a::order. (x = y) = (x \<le> y & y \<le> x)"  
+by (blast intro: order_antisym)
 
 
 text {* Transitivity. *}

@@ -200,8 +200,8 @@ text {*REALS
 @{thm[display] realpow_abs[no_vars]}
 \rulename{realpow_abs}
 
-@{thm[display] real_dense[no_vars]}
-\rulename{real_dense}
+@{thm[display] dense[no_vars]}
+\rulename{dense}
 
 @{thm[display] realpow_abs[no_vars]}
 \rulename{realpow_abs}
@@ -218,16 +218,16 @@ text {*REALS
 @{thm[display] divide_divide_eq_left[no_vars]}
 \rulename{divide_divide_eq_left}
 
-@{thm[display] real_minus_divide_eq[no_vars]}
-\rulename{real_minus_divide_eq}
+@{thm[display] minus_divide_left[no_vars]}
+\rulename{minus_divide_left}
 
-@{thm[display] real_divide_minus_eq[no_vars]}
-\rulename{real_divide_minus_eq}
+@{thm[display] minus_divide_right[no_vars]}
+\rulename{minus_divide_right}
 
 This last NOT a simprule
 
-@{thm[display] real_add_divide_distrib[no_vars]}
-\rulename{real_add_divide_distrib}
+@{thm[display] add_divide_distrib[no_vars]}
+\rulename{add_divide_distrib}
 *}
 
 lemma "3/4 < (7/8 :: real)"

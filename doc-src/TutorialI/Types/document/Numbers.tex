@@ -277,7 +277,7 @@ a\ {\isacharasterisk}\ b\ mod\ c\ {\isacharequal}\ a\ {\isacharasterisk}\ {\isac
 \rulename{zmod_zmult2_eq}
 
 \begin{isabelle}%
-{\isasymbar}x\ {\isacharasterisk}\ y{\isasymbar}\ {\isacharequal}\ {\isasymbar}x{\isasymbar}\ {\isacharasterisk}\ {\isasymbar}y{\isasymbar}%
+{\isasymbar}a\ {\isacharasterisk}\ b{\isasymbar}\ {\isacharequal}\ {\isasymbar}a{\isasymbar}\ {\isacharasterisk}\ {\isasymbar}b{\isasymbar}%
 \end{isabelle}
 \rulename{abs_mult}%
 \end{isamarkuptext}%
@@ -325,9 +325,9 @@ REALS
 \rulename{realpow_abs}
 
 \begin{isabelle}%
-x\ {\isacharless}\ y\ {\isasymLongrightarrow}\ {\isasymexists}r{\isachardot}\ x\ {\isacharless}\ r\ {\isasymand}\ r\ {\isacharless}\ y%
+a\ {\isacharless}\ b\ {\isasymLongrightarrow}\ {\isasymexists}r{\isachardot}\ a\ {\isacharless}\ r\ {\isasymand}\ r\ {\isacharless}\ b%
 \end{isabelle}
-\rulename{real_dense}
+\rulename{dense}
 
 \begin{isabelle}%
 {\isasymbar}r\ {\isacharcircum}\ n{\isasymbar}\ {\isacharequal}\ {\isasymbar}r{\isasymbar}\ {\isacharcircum}\ n%
@@ -355,21 +355,21 @@ a\ {\isacharslash}\ b\ {\isacharslash}\ c\ {\isacharequal}\ a\ {\isacharslash}\ 
 \rulename{divide_divide_eq_left}
 
 \begin{isabelle}%
-{\isacharminus}\ x\ {\isacharslash}\ y\ {\isacharequal}\ {\isacharminus}\ {\isacharparenleft}x\ {\isacharslash}\ y{\isacharparenright}%
+{\isacharminus}\ {\isacharparenleft}a\ {\isacharslash}\ b{\isacharparenright}\ {\isacharequal}\ {\isacharminus}\ a\ {\isacharslash}\ b%
 \end{isabelle}
-\rulename{real_minus_divide_eq}
+\rulename{minus_divide_left}
 
 \begin{isabelle}%
-x\ {\isacharslash}\ {\isacharminus}\ y\ {\isacharequal}\ {\isacharminus}\ {\isacharparenleft}x\ {\isacharslash}\ y{\isacharparenright}%
+{\isacharminus}\ {\isacharparenleft}a\ {\isacharslash}\ b{\isacharparenright}\ {\isacharequal}\ a\ {\isacharslash}\ {\isacharminus}\ b%
 \end{isabelle}
-\rulename{real_divide_minus_eq}
+\rulename{minus_divide_right}
 
 This last NOT a simprule
 
 \begin{isabelle}%
-{\isacharparenleft}x\ {\isacharplus}\ y{\isacharparenright}\ {\isacharslash}\ z\ {\isacharequal}\ x\ {\isacharslash}\ z\ {\isacharplus}\ y\ {\isacharslash}\ z%
+{\isacharparenleft}a\ {\isacharplus}\ b{\isacharparenright}\ {\isacharslash}\ c\ {\isacharequal}\ a\ {\isacharslash}\ c\ {\isacharplus}\ b\ {\isacharslash}\ c%
 \end{isabelle}
-\rulename{real_add_divide_distrib}%
+\rulename{add_divide_distrib}%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{lemma}\ {\isachardoublequote}{\isadigit{3}}{\isacharslash}{\isadigit{4}}\ {\isacharless}\ {\isacharparenleft}{\isadigit{7}}{\isacharslash}{\isadigit{8}}\ {\isacharcolon}{\isacharcolon}\ real{\isacharparenright}{\isachardoublequote}\isanewline

@@ -93,7 +93,8 @@ subsection{*@{term abs}: Absolute Value, as an Integer*}
    but arith_tac is not parameterized by such simp rules
 *)
 
-lemma zabs_split: "P(abs(i::int)) = ((0 \<le> i --> P i) & (i < 0 --> P(-i)))"
+lemma zabs_split [arith_split]:
+     "P(abs(i::int)) = ((0 \<le> i --> P i) & (i < 0 --> P(-i)))"
 by (simp add: zabs_def)
 
 lemma zero_le_zabs [iff]: "0 \<le> abs (z::int)"
@@ -104,8 +105,6 @@ text{*This simplifies expressions of the form @{term "int n = z"} where
       z is an integer literal.*}
 declare int_eq_iff [of _ "number_of v", standard, simp]
 
-declare zabs_split [arith_split]
-
 lemma zabs_eq_iff:
     "(abs (z::int) = w) = (z = w \<and> 0 \<le> z \<or> z = -w \<and> z < 0)"
   by (auto simp add: zabs_def)
@@ -113,7 +112,7 @@ lemma zabs_eq_iff:
 lemma int_nat_eq [simp]: "int (nat z) = (if 0 \<le> z then z else 0)"
   by simp
 
-lemma split_nat[arith_split]:
+lemma split_nat [arith_split]:
   "P(nat(i::int)) = ((\<forall>n. i = int n \<longrightarrow> P n) & (i < 0 \<longrightarrow> P 0))"
   (is "?P = (?L & ?R)")
 proof (cases "i < 0")

@@ -397,7 +397,7 @@ directory \texttt{Real}.
 Density, however, is trivial to express:
 \begin{isabelle}
 x\ <\ y\ \isasymLongrightarrow \ \isasymexists r.\ x\ <\ r\ \isasymand \ r\ <\ y%
-\rulename{real_dense}
+\rulename{dense}
 \end{isabelle}
 
 Here is a selection of rules about the division operator.  The following
@@ -417,17 +417,17 @@ a\ /\ b\ /\ c\ =\ a\ /\ (b\ *\ c)
 Signs are extracted from quotients in the hope that complementary terms can
 then be cancelled:
 \begin{isabelle}
--\ x\ /\ y\ =\ -\ (x\ /\ y)
-\rulename{real_minus_divide_eq}\isanewline
-x\ /\ -\ y\ =\ -\ (x\ /\ y)
-\rulename{real_divide_minus_eq}
+-\ (a\ /\ b)\ =\ -\ a\ /\ b
+\rulename{minus_divide_left}\isanewline
+-\ (a\ /\ b)\ =\ a\ /\ -\ b
+\rulename{minus_divide_right}
 \end{isabelle}
 
 The following distributive law is available, but it is not installed as a
 simplification rule.
 \begin{isabelle}
-(x\ +\ y)\ /\ z\ =\ x\ /\ z\ +\ y\ /\ z%
-\rulename{real_add_divide_distrib}
+(a\ +\ b)\ /\ c\ =\ a\ /\ c\ +\ b\ /\ c%
+\rulename{add_divide_distrib}
 \end{isabelle}
 
 As with the other numeric types, the simplifier can sort the operands of
