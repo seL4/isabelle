@@ -25,6 +25,8 @@ end;
 signature PURE_THY =
 sig
   include BASIC_PURE_THY
+  val get_thms_closure: theory -> xstring -> thm list
+  val single_thm: string -> thm list -> thm
   val cond_extern_thm_sg: Sign.sg -> string -> xstring
   val thms_containing: theory -> string list -> (string * thm) list
   val store_thm: (bstring * thm) * theory attribute list -> theory -> theory * thm
@@ -115,23 +117,42 @@ fun print_theory thy =
 
 (** retrieve theorems **)
 
-(* get_thms etc. *)
+(* selections *)
 
-fun lookup_thms name thy =
-  let val ref {space, thms_tab, ...} = get_theorems thy
-  in Symtab.lookup (thms_tab, NameSpace.intern space name) end;
+fun the_thms _ (Some thms) = thms
+  | the_thms name None = error ("Unknown theorem(s) " ^ quote name);
 
-fun get_thms thy name =
-  (case get_first (lookup_thms name) (thy :: Theory.ancestors_of thy) of
-    None => raise THEORY ("Unknown theorem(s) " ^ quote name, [thy])
-  | Some thms => map (Thm.transfer thy) thms);
+fun single_thm _ [thm] = thm
+  | single_thm name _ = error ("Single theorem expected " ^ quote name);
 
-fun get_thm thy name =
-  (case get_thms thy name of
-    [thm] => thm
-  | _ => raise THEORY ("Single theorem expected " ^ quote name, [thy]));
+
+(* get_thms_closure -- statically scoped *)
+
+(*beware of proper order of evaluation!*)
+
+fun lookup_thms thy =
+  let
+    val sg_ref = Sign.self_ref (Theory.sign_of thy);
+    val ref {space, thms_tab, ...} = get_theorems thy;
+  in
+    fn name =>
+      apsome (map (Thm.transfer_sg (Sign.deref sg_ref)))  	(*semi-dynamic identity*)
+      (Symtab.lookup (thms_tab, NameSpace.intern space name))   (*static content*)
+  end;
+
+fun get_thms_closure thy =
+  let val closures = map lookup_thms (thy :: Theory.ancestors_of thy)
+  in fn name => the_thms name (get_first (fn f => f name) closures) end;
+
+
+(* get_thm etc. *)
+
+fun get_thms theory name =
+  get_first (fn thy => lookup_thms thy name) (theory :: Theory.ancestors_of theory)
+  |> the_thms name |> map (Thm.transfer theory);
 
 fun get_thmss thy names = flat (map (get_thms thy) names);
+fun get_thm thy name = single_thm name (get_thms thy name);
 
 
 (* thms_of *)
