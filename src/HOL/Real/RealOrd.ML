@@ -774,46 +774,9 @@ by (auto_tac (claset() addDs [inj_real_of_nat RS injD],
               simpset()));
 qed "real_of_nat_eq_cancel";
 
-(*------- lemmas -------*)
-context NatDef.thy;
-
-Goal "!!m. [| m < Suc n; n <= m |] ==> m = n";
-by (auto_tac (claset() addSDs [le_imp_less_or_eq] addIs [less_asym],
-	      simpset() addsimps [less_Suc_eq]));
-qed "lemma_nat_not_dense";
-
-Goal "!!m. [| m <= Suc n; n < m |] ==> m = Suc n";
-by (auto_tac (claset() addSDs [le_imp_less_or_eq] addIs [less_asym],
-	      simpset() addsimps [le_Suc_eq]));
-qed "lemma_nat_not_dense2";
-
-Goal "!!m. m < Suc n ==> ~ Suc n <= m";
-by (blast_tac (claset() addDs [less_le_trans] addIs [less_asym]) 1);
-qed "lemma_not_leI";
-
-(*------- lemmas -------*)
-context Arith.thy;
-
-Goal "n < Suc(m) ==> Suc(m)-n = Suc(m-n)";
-by (dtac rev_mp 1);
-by (res_inst_tac [("m","m"),("n","n")] diff_induct 1);
-by (ALLGOALS Asm_simp_tac);
-qed "Suc_diff_n";
-
-
-context thy;
-
-(* Goalw  [real_of_nat_def] 
-   "real_of_nat (n1 - n2) = real_of_nat n1 + -real_of_nat n2";*)
-
-Goal "n2 < n1 --> real_of_nat (n1 - n2) = real_of_nat n1 + (-real_of_nat n2)";
+Goal "n2 <= n1 --> real_of_nat (n1 - n2) = real_of_nat n1 + (-real_of_nat n2)";
 by (induct_tac "n1" 1);
-by (Step_tac 1 THEN dtac leI 1 THEN dtac sym 2);
-by (dtac lemma_nat_not_dense 1);
 by (auto_tac (claset(),
-	      simpset() addsimps [real_of_nat_Suc, real_of_nat_zero] @ 
-	                         real_add_ac
-                        delsimprocs Nat_Numeral_Simprocs.cancel_numerals));
-by (asm_full_simp_tac (simpset() addsimps [real_of_nat_one RS sym,
-					   real_of_nat_add,Suc_diff_n]) 1);
-qed "real_of_nat_minus";
+	      simpset() addsimps [Suc_diff_le, le_Suc_eq, real_of_nat_Suc, 
+				  real_of_nat_zero] @ real_add_ac));
+qed_spec_mp "real_of_nat_minus";
