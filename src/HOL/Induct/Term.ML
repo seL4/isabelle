@@ -38,7 +38,7 @@ bind_thm ("term_subset_sexp", ([term_mono, term_sexp] MRS subset_trans));
 val [major,minor] = goal Term.thy 
     "[| M: term(A);  \
 \       !!x zs. [| x: A;  zs: list(term(A));  zs: list({x. R(x)}) \
-\               |] ==> R(x$zs)  \
+\               |] ==> R (Scons x zs)  \
 \    |] ==> R(M)";
 by (rtac (major RS term.induct) 1);
 by (REPEAT (eresolve_tac ([minor] @
@@ -49,9 +49,9 @@ qed "Term_induct";
 (*Induction on term(A) followed by induction on list *)
 val major::prems = goal Term.thy
     "[| M: term(A);  \
-\       !!x.      [| x: A |] ==> R(x$NIL);  \
-\       !!x z zs. [| x: A;  z: term(A);  zs: list(term(A));  R(x$zs)  \
-\                 |] ==> R(x $ CONS z zs)  \
+\       !!x.      [| x: A |] ==> R (Scons x NIL);  \
+\       !!x z zs. [| x: A;  z: term(A);  zs: list(term(A));  R (Scons x zs)  \
+\                 |] ==> R (Scons x (CONS z zs))  \
 \    |] ==> R(M)";
 by (rtac (major RS Term_induct) 1);
 by (etac list.induct 1);
@@ -139,7 +139,7 @@ qed "Abs_map_lemma";
 
 val [prem1,prem2,A_subset_sexp] = goal Term.thy
     "[| M: sexp;  N: list(term(A));  A<=sexp |] ==> \
-\    Term_rec (M$N) d = d M N (Abs_map (%Z. Term_rec Z d) N)";
+\    Term_rec (Scons M N) d = d M N (Abs_map (%Z. Term_rec Z d) N)";
 by (rtac (Term_rec_unfold RS trans) 1);
 by (simp_tac (HOL_ss addsimps
       [Split,

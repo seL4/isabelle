@@ -31,7 +31,7 @@ consts
   Atom      :: "('a+nat) => 'a item"
   Leaf      :: 'a => 'a item
   Numb      :: nat => 'a item
-  "$"       :: ['a item, 'a item]=> 'a item   (infixr 60)
+  Scons     :: ['a item, 'a item]=> 'a item
   In0,In1   :: 'a item => 'a item
 
   ntrunc    :: [nat, 'a item] => 'a item
@@ -63,26 +63,26 @@ defs
 
   (*S-expression constructors*)
   Atom_def   "Atom == (%x. {Abs_Node((%k.0, x))})"
-  Scons_def  "M$N == (Push_Node(0) `` M) Un (Push_Node(Suc(0)) `` N)"
+  Scons_def  "Scons M N == (Push_Node(0) `` M) Un (Push_Node(Suc(0)) `` N)"
 
   (*Leaf nodes, with arbitrary or nat labels*)
   Leaf_def   "Leaf == Atom o Inl"
   Numb_def   "Numb == Atom o Inr"
 
   (*Injections of the "disjoint sum"*)
-  In0_def    "In0(M) == Numb(0) $ M"
-  In1_def    "In1(M) == Numb(Suc(0)) $ M"
+  In0_def    "In0(M) == Scons (Numb 0) M"
+  In1_def    "In1(M) == Scons (Numb 1) M"
 
   (*the set of nodes with depth less than k*)
   ndepth_def "ndepth(n) == (%(f,x). LEAST k. f(k)=0) (Rep_Node n)"
   ntrunc_def "ntrunc k N == {n. n:N & ndepth(n)<k}"
 
   (*products and sums for the "universe"*)
-  uprod_def  "A<*>B == UN x:A. UN y:B. { (x$y) }"
+  uprod_def  "A<*>B == UN x:A. UN y:B. { Scons x y }"
   usum_def   "A<+>B == In0``A Un In1``B"
 
   (*the corresponding eliminators*)
-  Split_def  "Split c M == @u. ? x y. M = x$y & u = c x y"
+  Split_def  "Split c M == @u. ? x y. M = Scons x y & u = c x y"
 
   Case_def   "Case c d M == @u.  (? x . M = In0(x) & u = c(x)) 
                               | (? y . M = In1(y) & u = d(y))"
@@ -92,7 +92,7 @@ defs
 
   diag_def   "diag(A) == UN x:A. {(x,x)}"
 
-  dprod_def  "r<**>s == UN (x,x'):r. UN (y,y'):s. {(x$y,x'$y')}"
+  dprod_def  "r<**>s == UN (x,x'):r. UN (y,y'):s. {(Scons x y, Scons x' y')}"
 
   dsum_def   "r<++>s == (UN (x,x'):r. {(In0(x),In0(x'))}) Un 
                        (UN (y,y'):s. {(In1(y),In1(y'))})"

@@ -6,7 +6,7 @@
 Terms over a given alphabet -- function applications; illustrates list functor
   (essentially the same type as in Trees & Forests)
 
-There is no constructor APP because it is simply cons ($) 
+There is no constructor APP because it is simply Scons
 *)
 
 Term = SList +
@@ -27,7 +27,7 @@ consts
 
 inductive "term(A)"
   intrs
-    APP_I "[| M: A;  N : list(term(A)) |] ==> M$N : term(A)"
+    APP_I "[| M: A;  N : list(term(A)) |] ==> Scons M N : term(A)"
   monos   "[list_mono]"
 
 defs
@@ -36,7 +36,7 @@ defs
   Abs_Tlist_def "Abs_Tlist == Abs_map(Abs_term)"
 
   (*defining the abstract constants*)
-  App_def       "App a ts == Abs_term(Leaf(a) $ Rep_Tlist(ts))"
+  App_def       "App a ts == Abs_term(Scons (Leaf a) (Rep_Tlist ts))"
 
   (*list recursion*)
   Term_rec_def  

@@ -82,7 +82,7 @@ qed "Node_Push_I";
 
 (** Scons vs Atom **)
 
-Goalw [Atom_def,Scons_def,Push_Node_def] "(M$N) ~= Atom(a)";
+Goalw [Atom_def,Scons_def,Push_Node_def] "Scons M N ~= Atom(a)";
 by (rtac notI 1);
 by (etac (equalityD2 RS subsetD RS UnE) 1);
 by (rtac singletonI 1);
@@ -112,7 +112,7 @@ by (rtac injI 1);
 by (etac (Atom_inject RS Inl_inject) 1);
 qed "inj_Leaf";
 
-val Leaf_inject = inj_Leaf RS injD;
+bind_thm ("Leaf_inject", inj_Leaf RS injD);
 AddSDs [Leaf_inject];
 
 Goalw [Numb_def,o_def] "inj(Numb)";
@@ -142,31 +142,31 @@ qed "Push_Node_inject";
 
 (** Injectiveness of Scons **)
 
-Goalw [Scons_def] "M$N <= M'$N' ==> M<=M'";
+Goalw [Scons_def] "Scons M N <= Scons M' N' ==> M<=M'";
 by (blast_tac (claset() addSDs [Push_Node_inject]) 1);
 qed "Scons_inject_lemma1";
 
-Goalw [Scons_def] "M$N <= M'$N' ==> N<=N'";
+Goalw [Scons_def] "Scons M N <= Scons M' N' ==> N<=N'";
 by (blast_tac (claset() addSDs [Push_Node_inject]) 1);
 qed "Scons_inject_lemma2";
 
-val [major] = goal Univ.thy "M$N = M'$N' ==> M=M'";
+val [major] = goal Univ.thy "Scons M N = Scons M' N' ==> M=M'";
 by (rtac (major RS equalityE) 1);
 by (REPEAT (ares_tac [equalityI, Scons_inject_lemma1] 1));
 qed "Scons_inject1";
 
-val [major] = goal Univ.thy "M$N = M'$N' ==> N=N'";
+val [major] = goal Univ.thy "Scons M N = Scons M' N' ==> N=N'";
 by (rtac (major RS equalityE) 1);
 by (REPEAT (ares_tac [equalityI, Scons_inject_lemma2] 1));
 qed "Scons_inject2";
 
 val [major,minor] = goal Univ.thy
-    "[| M$N = M'$N';  [| M=M';  N=N' |] ==> P \
+    "[| Scons M N = Scons M' N';  [| M=M';  N=N' |] ==> P \
 \    |] ==> P";
 by (rtac ((major RS Scons_inject2) RS ((major RS Scons_inject1) RS minor)) 1);
 qed "Scons_inject";
 
-Goal "(M$N = M'$N') = (M=M' & N=N')";
+Goal "(Scons M N = Scons M' N') = (M=M' & N=N')";
 by (blast_tac (claset() addSEs [Scons_inject]) 1);
 qed "Scons_Scons_eq";
 
@@ -174,7 +174,7 @@ qed "Scons_Scons_eq";
 
 (** Scons vs Leaf **)
 
-Goalw [Leaf_def,o_def] "(M$N) ~= Leaf(a)";
+Goalw [Leaf_def,o_def] "Scons M N ~= Leaf(a)";
 by (rtac Scons_not_Atom 1);
 qed "Scons_not_Leaf";
 bind_thm ("Leaf_not_Scons", Scons_not_Leaf RS not_sym);
@@ -184,7 +184,7 @@ AddIffs [Scons_not_Leaf, Leaf_not_Scons];
 
 (** Scons vs Numb **)
 
-Goalw [Numb_def,o_def] "(M$N) ~= Numb(k)";
+Goalw [Numb_def,o_def] "Scons M N ~= Numb(k)";
 by (rtac Scons_not_Atom 1);
 qed "Scons_not_Numb";
 bind_thm ("Numb_not_Scons", Scons_not_Numb RS not_sym);
@@ -257,7 +257,7 @@ by (rtac ntrunc_Atom 1);
 qed "ntrunc_Numb";
 
 Goalw [Scons_def,ntrunc_def]
-    "ntrunc (Suc k) (M$N) = ntrunc k M $ ntrunc k N";
+    "ntrunc (Suc k) (Scons M N) = Scons (ntrunc k M) (ntrunc k N)";
 by (safe_tac (claset() addSIs [imageI]));
 by (REPEAT (stac ndepth_Push_Node 3 THEN etac Suc_mono 3));
 by (REPEAT (rtac Suc_less_SucD 1 THEN 
@@ -297,14 +297,14 @@ Addsimps [ntrunc_one_In0, ntrunc_In0, ntrunc_one_In1, ntrunc_In1];
 
 (*** Cartesian Product ***)
 
-Goalw [uprod_def] "[| M:A;  N:B |] ==> (M$N) : A<*>B";
+Goalw [uprod_def] "[| M:A;  N:B |] ==> Scons M N : A<*>B";
 by (REPEAT (ares_tac [singletonI,UN_I] 1));
 qed "uprodI";
 
 (*The general elimination rule*)
 val major::prems = goalw Univ.thy [uprod_def]
     "[| c : A<*>B;  \
-\       !!x y. [| x:A;  y:B;  c=x$y |] ==> P \
+\       !!x y. [| x:A;  y:B;  c = Scons x y |] ==> P \
 \    |] ==> P";
 by (cut_facts_tac [major] 1);
 by (REPEAT (eresolve_tac [asm_rl,singletonE,UN_E] 1
@@ -313,7 +313,7 @@ qed "uprodE";
 
 (*Elimination of a pair -- introduces no eigenvariables*)
 val prems = goal Univ.thy
-    "[| (M$N) : A<*>B;      [| M:A;  N:B |] ==> P   \
+    "[| Scons M N : A<*>B;      [| M:A;  N:B |] ==> P   \
 \    |] ==> P";
 by (rtac uprodE 1);
 by (REPEAT (ares_tac prems 1 ORELSE eresolve_tac [Scons_inject,ssubst] 1));
@@ -416,7 +416,7 @@ Goalw [usum_def] "[| A<=A';  B<=B' |] ==> A<+>B <= A'<+>B'";
 by (Blast_tac 1);
 qed "usum_mono";
 
-Goalw [Scons_def] "[| M<=M';  N<=N' |] ==> M$N <= M'$N'";
+Goalw [Scons_def] "[| M<=M';  N<=N' |] ==> Scons M N <= Scons M' N'";
 by (Blast_tac 1);
 qed "Scons_mono";
 
@@ -431,7 +431,7 @@ qed "In1_mono";
 
 (*** Split and Case ***)
 
-Goalw [Split_def] "Split c (M$N) = c M N";
+Goalw [Split_def] "Split c (Scons M N) = c M N";
 by (Blast_tac  1);
 qed "Split";
 
@@ -452,11 +452,11 @@ Goalw [ntrunc_def] "ntrunc k (UN x. f(x)) = (UN x. ntrunc k (f x))";
 by (Blast_tac 1);
 qed "ntrunc_UN1";
 
-Goalw [Scons_def] "(UN x. f(x)) $ M = (UN x. f(x) $ M)";
+Goalw [Scons_def] "Scons (UN x. f x) M = (UN x. Scons (f x) M)";
 by (Blast_tac 1);
 qed "Scons_UN1_x";
 
-Goalw [Scons_def] "M $ (UN x. f(x)) = (UN x. M $ f(x))";
+Goalw [Scons_def] "Scons M (UN x. f x) = (UN x. Scons M (f x))";
 by (Blast_tac 1);
 qed "Scons_UN1_y";
 
@@ -489,14 +489,14 @@ qed "diagE";
 (*** Equality for Cartesian Product ***)
 
 Goalw [dprod_def]
-    "[| (M,M'):r;  (N,N'):s |] ==> (M$N, M'$N') : r<**>s";
+    "[| (M,M'):r;  (N,N'):s |] ==> (Scons M N, Scons M' N') : r<**>s";
 by (Blast_tac 1);
 qed "dprodI";
 
 (*The general elimination rule*)
 val major::prems = goalw Univ.thy [dprod_def]
     "[| c : r<**>s;  \
-\       !!x y x' y'. [| (x,x') : r;  (y,y') : s;  c = (x$y,x'$y') |] ==> P \
+\       !!x y x' y'. [| (x,x') : r;  (y,y') : s;  c = (Scons x y, Scons x' y') |] ==> P \
 \    |] ==> P";
 by (cut_facts_tac [major] 1);
 by (REPEAT_FIRST (eresolve_tac [asm_rl, UN_E, mem_splitE, singletonE]));

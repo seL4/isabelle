@@ -62,8 +62,8 @@ translations
 
 defs
   (* Defining the Concrete Constructors *)
-  NIL_def       "NIL == In0(Numb(0))"
-  CONS_def      "CONS M N == In1(M $ N)"
+  NIL_def       "NIL == In0 (Numb 0)"
+  CONS_def      "CONS M N == In1 (Scons M N)"
 
 inductive "list(A)"
   intrs

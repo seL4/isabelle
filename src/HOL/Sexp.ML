@@ -18,7 +18,7 @@ Goalw [sexp_case_def] "sexp_case c d e (Numb k) = d(k)";
 by (Blast_tac 1);
 qed "sexp_case_Numb";
 
-Goalw [sexp_case_def] "sexp_case c d e (M$N) = e M N";
+Goalw [sexp_case_def] "sexp_case c d e (Scons M N) = e M N";
 by (Blast_tac 1);
 qed "sexp_case_Scons";
 
@@ -41,7 +41,7 @@ Goal "range(Leaf) <= sexp";
 by (Blast_tac 1);
 qed "range_Leaf_subset_sexp";
 
-val [major] = goal Sexp.thy "M$N : sexp ==> M: sexp & N: sexp";
+val [major] = goal Sexp.thy "Scons M N : sexp ==> M: sexp & N: sexp";
 by (rtac (major RS setup_induction) 1);
 by (etac sexp.induct 1);
 by (ALLGOALS Blast_tac);
@@ -60,12 +60,12 @@ and trancl_pred_sexpD2 =
     pred_sexp_subset_Sigma RS trancl_subset_Sigma RS subsetD RS SigmaD2;
 
 Goalw [pred_sexp_def]
-    "!!M. [| M: sexp;  N: sexp |] ==> (M, M$N) : pred_sexp";
+    "!!M. [| M: sexp;  N: sexp |] ==> (M, Scons M N) : pred_sexp";
 by (Blast_tac 1);
 qed "pred_sexpI1";
 
 Goalw [pred_sexp_def]
-    "!!M. [| M: sexp;  N: sexp |] ==> (N, M$N) : pred_sexp";
+    "!!M. [| M: sexp;  N: sexp |] ==> (N, Scons M N) : pred_sexp";
 by (Blast_tac 1);
 qed "pred_sexpI2";
 
@@ -82,8 +82,8 @@ Addsimps (sexp.intrs @ [pred_sexp_t1, pred_sexp_t2,
 
 val major::prems = goalw Sexp.thy [pred_sexp_def]
     "[| p : pred_sexp;                                       \
-\       !!M N. [| p = (M, M$N);  M: sexp;  N: sexp |] ==> R; \
-\       !!M N. [| p = (N, M$N);  M: sexp;  N: sexp |] ==> R  \
+\       !!M N. [| p = (M, Scons M N);  M: sexp;  N: sexp |] ==> R; \
+\       !!M N. [| p = (N, Scons M N);  M: sexp;  N: sexp |] ==> R  \
 \    |] ==> R";
 by (cut_facts_tac [major] 1);
 by (REPEAT (eresolve_tac ([asm_rl,emptyE,insertE,UN_E]@prems) 1));
@@ -125,7 +125,7 @@ by (rtac sexp_case_Numb 1);
 qed "sexp_rec_Numb";
 
 Goal "[| M: sexp;  N: sexp |] ==> \
-\    sexp_rec (M$N) c d h = h M N (sexp_rec M c d h) (sexp_rec N c d h)";
+\    sexp_rec (Scons M N) c d h = h M N (sexp_rec M c d h) (sexp_rec N c d h)";
 by (rtac (sexp_rec_unfold RS trans) 1);
 by (asm_simp_tac (simpset() addsimps [pred_sexpI1, pred_sexpI2]) 1);
 qed "sexp_rec_Scons";

@@ -40,7 +40,7 @@ consts
 
 defs
      (*the concrete constants*)
-  TCONS_def     "TCONS M N == In0(M $ N)"
+  TCONS_def     "TCONS M N == In0 (Scons M N)"
   FNIL_def      "FNIL      == In1(NIL)"
   FCONS_def     "FCONS M N == In1(CONS M N)"
      (*the abstract constants*)
