@@ -68,6 +68,6 @@ val C_type_fst = prove_goal Denotation.thy
 
 val Gamma_bnd_mono = prove_goalw Denotation.thy [bnd_mono_def,Gamma_def]
 	"!!c. c:com ==> bnd_mono ((loc->nat)*(loc->nat),Gamma(b,c))"
-     (fn prems => [(fast_tac (comp_cs addSIs [compI] addEs [C_type]) 1)]);
+     (fn prems => [(best_tac (comp_cs addEs [C_type]) 1)]);
 
 (**** End ***)

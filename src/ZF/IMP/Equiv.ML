@@ -37,10 +37,10 @@ val op_type_intrs = Evala_type_intrs@Evalb_type_intrs@Evalc_type_intrs;
 
 val Aexp_elim_cases = 
    [
-    Evala.mk_cases Aexp.con_defs "<N(n),sigma,i> : evala",
-    Evala.mk_cases Aexp.con_defs "<X(x),sigma,i> : evala",
-    Evala.mk_cases Aexp.con_defs "<Op1(f,e),sigma,i> : evala",
-    Evala.mk_cases Aexp.con_defs "<Op2(f,a1,a2),sigma,i> : evala"
+    Evala.mk_cases Aexp.con_defs "<N(n),sigma> -a-> i",
+    Evala.mk_cases Aexp.con_defs "<X(x),sigma> -a-> i",
+    Evala.mk_cases Aexp.con_defs "<Op1(f,e),sigma> -a-> i",
+    Evala.mk_cases Aexp.con_defs "<Op2(f,a1,a2),sigma>  -a-> i"
    ];
 
 
@@ -69,12 +69,12 @@ val aexp2 = aexp_iff RS iffD2;
 
 val Bexp_elim_cases = 
    [
-    Evalb.mk_cases Bexp.con_defs "<true,sigma,x> : evalb",
-    Evalb.mk_cases Bexp.con_defs "<false,sigma,x> : evalb",
-    Evalb.mk_cases Bexp.con_defs "<ROp(f,a0,a1),sigma,x> : evalb",
-    Evalb.mk_cases Bexp.con_defs "<noti(b),sigma,x> : evalb",
-    Evalb.mk_cases Bexp.con_defs "<b0 andi b1,sigma,x> : evalb",
-    Evalb.mk_cases Bexp.con_defs "<b0 ori b1,sigma,x> : evalb"
+    Evalb.mk_cases Bexp.con_defs "<true,sigma> -b-> x",
+    Evalb.mk_cases Bexp.con_defs "<false,sigma> -b-> x",
+    Evalb.mk_cases Bexp.con_defs "<ROp(f,a0,a1),sigma> -b-> x",
+    Evalb.mk_cases Bexp.con_defs "<noti(b),sigma> -b-> x",
+    Evalb.mk_cases Bexp.con_defs "<b0 andi b1,sigma> -b-> x",
+    Evalb.mk_cases Bexp.con_defs "<b0 ori b1,sigma> -b-> x"
    ];
 
 
@@ -108,18 +108,17 @@ val bexp2 = prove_goal Equiv.thy
 
 
 
-
 val prems = goal Equiv.thy
 	"<c,sigma> -c-> sigma' ==> <sigma,sigma'> : C(c)";
 by (cut_facts_tac prems 1);
 
-by 
-(EVERY [(rtac (Evalc.mutual_induct RS spec RS spec RS spec RSN (2,rev_mp)) 1),
-(atac 1)]);
+(* start with rule induction *)
+be (Evalc.mutual_induct RS spec RS spec RS spec RSN (2,rev_mp)) 1;
 
-by (rewrite_tac C_rewrite_rules);
+by (rewrite_tac (Gamma_def::C_rewrite_rules));
 (* skip *)
-by (fast_tac (ZF_cs addSIs [idI]) 1);
+by (fast_tac comp_cs 1);
+
 (* assign *)
 by (asm_full_simp_tac (ZF_ss addsimps [aexp1,assign_type] @
                                       op_type_intrs) 1);
@@ -127,28 +126,19 @@ by (asm_full_simp_tac (ZF_ss addsimps [aexp1,assign_type] @
 by (fast_tac comp_cs 1);
 
 (* if *)
-by (fast_tac (ZF_cs addSIs [bexp1]
-                    addIs  [(fst_conv RS ssubst),UnI1]) 1);
-by (fast_tac (ZF_cs addSIs [bexp1]
-                    addIs  [(fst_conv RS ssubst),UnI2]) 1);
+by (fast_tac (ZF_cs addSIs [bexp1] addIs  [(fst_conv RS ssubst)]) 1);
+by (fast_tac (ZF_cs addSIs [bexp1] addIs  [(fst_conv RS ssubst)]) 1);
 
 (* while *)
-by (rtac (lfp_Tarski RS ssubst) 1);
-by (fast_tac (ZF_cs addSIs [Gamma_bnd_mono]) 1);
-by (rewrite_tac [Gamma_def]);
-by (fast_tac (ZF_cs addSIs [bexp1,idI]@Evalb_type_intrs
-                    addIs  [(fst_conv RS ssubst),UnI2]) 1);
+by (etac (rewrite_rule [Gamma_def] (Gamma_bnd_mono RS lfp_Tarski RS ssubst)) 1);
+by (fast_tac (comp_cs addSIs [bexp1,idI]@Evalb_type_intrs
+                      addIs  [(fst_conv RS ssubst)]) 1);
 
-by (rtac (lfp_Tarski RS ssubst) 1);
-by (fold_tac [Gamma_def]);
-by (fast_tac (ZF_cs addSIs [Gamma_bnd_mono]@Evalc_type_intrs) 1);
+by (etac (rewrite_rule [Gamma_def] (Gamma_bnd_mono RS lfp_Tarski RS ssubst)) 1);
 by (fast_tac (comp_cs addSIs [bexp1,compI]@Evalb_type_intrs
                       addIs  [(fst_conv RS ssubst)]) 1);
 
-val Lemma_5_6 = result();
-
-
-
+val com1 = result();
 
 
 val com_cs = ZF_cs addSIs [aexp2,bexp2,B_type,A_type]
@@ -162,22 +152,23 @@ val [prem] = goal Equiv.thy "c : com ==> ALL x. x:C(c) \
 br (prem RS Com.induct) 1;
 by (rewrite_tac C_rewrite_rules);
 by (safe_tac com_cs);
-
 by (ALLGOALS (asm_full_simp_tac ZF_ss));
+
 (* skip *)
 by (fast_tac com_cs 1);
+
 (* assign *)
 by (fast_tac com_cs 1);
+
 (* comp *)
 by (REPEAT (EVERY [(etac allE 1),(etac impE 1),(atac 1)]));
 by (asm_full_simp_tac ZF_ss 1);
 by (fast_tac com_cs 1);
+
 (* while *)
 by (EVERY [(forward_tac [Gamma_bnd_mono] 1),(etac induct 1),(atac 1)]);
-
 by (rewrite_goals_tac [Gamma_def]);  
 by (safe_tac com_cs);
-
 by (EVERY [(etac allE 1),(etac impE 1),(atac 1)]);
 by (ALLGOALS (asm_full_simp_tac ZF_ss));
 
@@ -186,22 +177,22 @@ by (ALLGOALS (fast_tac com_cs));
 val com2 = result();
 
 
-
 (**** Beweis der Aequivalenz ****)
-
 
 val com_iff_cs = ZF_cs addIs [C_subset RS subsetD]
                        addEs [com2 RS spec RS impE]
-                       addDs [Lemma_5_6];
+                       addDs [com1];
 
 goal Equiv.thy "ALL c:com.\
 \           C(c) = {io:(loc->nat)*(loc->nat). <c,fst(io)> -c-> snd(io)}";
 by (rtac ballI 1);
 by (rtac equalityI 1);
+
+(* => *)
 by (fast_tac com_iff_cs 1);
-(* Gegenrichtung ! *)
-by (safe_tac com_iff_cs);
-bd Lemma_5_6 1;
+
+(* <= *)
+by (REPEAT (step_tac com_iff_cs 1));
 by (asm_full_simp_tac ZF_ss 1);
 
 val Com_equivalence = result();

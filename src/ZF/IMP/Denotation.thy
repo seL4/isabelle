@@ -7,8 +7,8 @@
 Denotation = ZF + Assign + Aexp + Bexp + Com + 
 
 consts
-	A     :: "[i,i] => i"
-	B     :: "[i,i] => i"
+	A     :: "i => i => i"
+	B     :: "i => i => i"
 	C     :: "i => i"
 	Gamma :: "[i,i,i] => i"
 
