@@ -72,12 +72,12 @@ fun get_clauses thy s =
   in case Symtab.lookup (intros, s) of
       None => (case InductivePackage.get_inductive thy s of
         None => None
-      | Some ({names, ...}, {intrs, ...}) => Some (names, intrs))
+      | Some ({names, ...}, {intrs, ...}) => Some (names, preprocess thy intrs))
     | Some _ =>
         let val Some names = find_first
           (fn xs => s mem xs) (Graph.strong_conn graph)
-        in Some (names,
-          flat (map (fn s => the (Symtab.lookup (intros, s))) names))
+        in Some (names, preprocess thy
+          (flat (map (fn s => the (Symtab.lookup (intros, s))) names)))
         end
   end;
 
@@ -692,7 +692,7 @@ fun inductive_codegen thy gr dep brack (Const ("op :", _) $ t $ u) =
         None => list_of_indset thy gr dep brack t
       | Some eqns =>
           let
-            val gr' = mk_fun thy s eqns dep gr
+            val gr' = mk_fun thy s (preprocess thy eqns) dep gr
             val (gr'', ps) = foldl_map (invoke_codegen thy dep true) (gr', ts);
           in Some (gr'', mk_app brack (Pretty.str (mk_const_id
             (sign_of thy) s)) ps)

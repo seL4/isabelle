@@ -62,8 +62,8 @@ fun del (p as (thy, thm)) =
 fun get_equations thy (s, T) =
   (case Symtab.lookup (CodegenData.get thy, s) of
      None => []
-   | Some thms => filter (fn thm => is_instance thy T
-       (snd (const_of (prop_of thm)))) thms);
+   | Some thms => preprocess thy (filter (fn thm => is_instance thy T
+       (snd (const_of (prop_of thm)))) thms));
 
 fun mk_poly_id thy (s, T) = mk_const_id (sign_of thy) s ^
   (case get_defn thy s T of
@@ -133,9 +133,10 @@ fun add_rec_funs thy gr dep eqs =
   end;
 
 fun recfun_codegen thy gr dep brack t = (case strip_comb t of
-    (Const p, ts) => (case get_equations thy p of
-       [] => None
-     | eqns =>
+    (Const (p as (s, T)), ts) => (case (get_equations thy p, get_assoc_code thy s T) of
+       ([], _) => None
+     | (_, Some _) => None
+     | (eqns, None) =>
         let val (gr', ps) = foldl_map (invoke_codegen thy dep true) (gr, ts)
         in
           Some (add_rec_funs thy gr' dep (map prop_of eqns),
