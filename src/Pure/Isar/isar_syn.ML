@@ -462,7 +462,7 @@ val kill_proofP =
 
 val undoP =
   OuterSyntax.improper_command "undo" "undo last command" K.control
-    (Scan.succeed IsarCmd.undo);
+    (Scan.succeed (Toplevel.print o IsarCmd.undo));
 
 
 
@@ -581,15 +581,15 @@ val kill_thyP =
 
 val prP =
   OuterSyntax.improper_command "pr" "print current toplevel state" K.diag
-    (Scan.succeed (Toplevel.print o Toplevel.imperative (fn () => Toplevel.quiet := false)));
+    (Scan.option P.nat >> (Toplevel.print oo IsarCmd.pr));
 
 val disable_prP =
   OuterSyntax.improper_command "disable_pr" "disable printing of toplevel state" K.diag
-    (Scan.succeed (Toplevel.imperative (fn () => Toplevel.quiet := true)));
+    (Scan.succeed IsarCmd.disable_pr);
 
 val enable_prP =
   OuterSyntax.improper_command "enable_pr" "enable printing of toplevel state" K.diag
-    (Scan.succeed (Toplevel.imperative (fn () => Toplevel.quiet := false)));
+    (Scan.succeed IsarCmd.enable_pr);
 
 val commitP =
   OuterSyntax.improper_command "commit" "commit current session to ML database" K.diag
