@@ -1,4 +1,4 @@
-(*  Title:      Pure/Interface/proof_general.ML
+(*  Title:      Pure/proof_general.ML
     ID:         $Id$
     Author:     Markus Wenzel, TU Muenchen
     License:    GPL (GNU GENERAL PUBLIC LICENSE)
