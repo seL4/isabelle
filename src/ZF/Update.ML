@@ -33,3 +33,9 @@ by (Asm_simp_tac 1);
 qed "domain_update";
 Addsimps [domain_update];
 
+Goalw [update_def] "[| f: A -> B;  x : A;  y: B |] ==> f(x:=y) : A -> B";
+by (asm_simp_tac (simpset() addsimps [domain_of_fun, cons_absorb, 
+				      apply_funtype, lam_type]) 1);
+qed "update_type";
+
+
