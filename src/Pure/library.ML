@@ -370,9 +370,10 @@ fun radixstring (base, zerochar, num) =
   in implode (map chrof (radixpand (base, num))) end;
 
 
-fun string_of_int n =
-  if n < 0 then "~" ^ radixstring (10, "0", ~n) else radixstring (10, "0", n);
+val string_of_int = Int.toString;
 
+fun string_of_indexname (a,0) = a
+  | string_of_indexname (a,i) = a ^ "_" ^ Int.toString i;
 
 
 (** strings **)
