@@ -135,6 +135,9 @@ declare list.intros [simp,TC]
 (*An elimination rule, for type-checking*)
 inductive_cases ConsE: "Cons(a,l) : list(A)"
 
+lemma Cons_type_iff [simp]: "Cons(a,l) \<in> list(A) <-> a \<in> A & l \<in> list(A)"
+by (blast elim: ConsE) 
+
 (*Proving freeness results*)
 lemma Cons_iff: "Cons(a,l)=Cons(a',l') <-> a=a' & l=l'"
 by auto
@@ -420,8 +423,7 @@ apply (induct_tac "ls")
 apply (simp_all (no_asm_simp) add: list_add_app)
 done
 
-(** New induction rule **)
-
+(** New induction rules **)
 
 lemma list_append_induct:
     "[| l: list(A);
@@ -433,6 +435,29 @@ apply (erule rev_type [THEN list.induct], simp_all)
 done
 
 lemmas list_append_induct = list_append_induct [case_names Nil snoc, consumes 1]
+
+lemma list_complete_induct_lemma [rule_format]:
+ assumes ih: 
+    "\<And>l. [| l \<in> list(A); 
+             \<forall>l' \<in> list(A). length(l') < length(l) --> P(l')|] 
+          ==> P(l)"
+  shows "n \<in> nat ==> \<forall>l \<in> list(A). length(l) < n --> P(l)"
+apply (induct_tac n, simp)
+apply (blast intro: ih elim!: leE) 
+done
+
+theorem list_complete_induct:
+      "[| l \<in> list(A); 
+          \<And>l. [| l \<in> list(A); 
+                  \<forall>l' \<in> list(A). length(l') < length(l) --> P(l')|] 
+               ==> P(l)
+       |] ==> P(l)"
+apply (rule list_complete_induct_lemma [of A]) 
+   prefer 4 apply (rule le_refl, simp) 
+  apply blast 
+ apply simp 
+apply assumption
+done
 
 
 (*** Thanks to Sidi Ehmety for these results about min, take, etc. ***)
@@ -573,13 +598,11 @@ done
 
 lemma append_self_iff [simp]:
      "[| xs:list(A); ys:list(A); zs:list(A) |] ==> xs@ys=xs@zs <-> ys=zs"
-apply (simp (no_asm_simp))
-done
+by simp
 
 lemma append_self_iff2 [simp]:
      "[| xs:list(A); ys:list(A); zs:list(A) |] ==> ys@xs=zs@xs <-> ys=zs"
-apply (simp (no_asm_simp))
-done
+by simp
 
 (* Can also be proved from append_eq_append_iff2,
 but the proof requires two more hypotheses: x:A and y:A *)
@@ -597,8 +620,7 @@ done
 
 lemma append_right_is_self_iff [simp]:
      "[| xs:list(A); ys:list(A) |] ==> (xs@ys = ys) <-> (xs=Nil)"
-apply (simp (no_asm_simp) add: append_left_is_Nil_iff)
-done
+by (simp (no_asm_simp) add: append_left_is_Nil_iff)
 
 lemma append_right_is_self_iff2 [simp]:
      "[| xs:list(A); ys:list(A) |] ==> (ys = xs@ys) <-> (xs=Nil)"
@@ -630,8 +652,7 @@ done
 lemma rev_list_elim [rule_format]:
      "xs:list(A) ==>
       (xs=Nil --> P) --> (\<forall>ys \<in> list(A). \<forall>y \<in> A. xs =ys@[y] -->P)-->P"
-apply (erule list_append_induct, auto)
-done
+by (erule list_append_induct, auto)
 
 
 (** more theorems about drop **)
