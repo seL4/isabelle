@@ -237,6 +237,11 @@ rules are added to the simpset, as in primrec; rules may be named
 individually as well, resulting in a separate list of theorems for
 each equation;
 
+* HOL/While is a new theory that provides a while-combinator. It permits the
+definition of tail-recursive functions without the provision of a termination
+measure. The latter is necessary once the invariant proof rule for while is
+applied.
+
 * HOL: new (overloaded) notation for the set of elements below/above some
 element: {..u}, {..u(}, {l..}, {)l..}. See theory SetInterval.
 
