@@ -66,23 +66,18 @@ apply  (drule_tac [2] subcls1D)
 apply  auto
 done
 
-consts class_rec ::"'c prog \<times> cname \<Rightarrow> 
-        'a \<Rightarrow> (cname \<Rightarrow> fdecl list \<Rightarrow> 'c mdecl list \<Rightarrow> 'a \<Rightarrow> 'a) \<Rightarrow> 'a"
+constdefs
+  class_rec :: "'c prog \<Rightarrow> cname \<Rightarrow> 'a \<Rightarrow>
+    (cname \<Rightarrow> fdecl list \<Rightarrow> 'c mdecl list \<Rightarrow> 'a \<Rightarrow> 'a) \<Rightarrow> 'a"
+  "class_rec G == wfrec ((subcls1 G)^-1)
+    (\<lambda>r C t f. case class G C of
+         None \<Rightarrow> arbitrary
+       | Some (D,fs,ms) \<Rightarrow> 
+           f C fs ms (if C = Object then t else r D t f))"
 
-recdef class_rec "same_fst (\<lambda>G. wf ((subcls1 G)^-1)) (\<lambda>G. (subcls1 G)^-1)"
-      "class_rec (G,C) = (\<lambda>t f. case class G C of None \<Rightarrow> arbitrary 
-                         | Some (D,fs,ms) \<Rightarrow> if wf ((subcls1 G)^-1) then 
-      f C fs ms (if C = Object then t else class_rec (G,D) t f) else arbitrary)"
-(hints intro: subcls1I)
-
-declare class_rec.simps [simp del]
-
-
-lemma class_rec_lemma: "\<lbrakk> wf ((subcls1 G)^-1); class G C = Some (D,fs,ms)\<rbrakk> \<Longrightarrow>
- class_rec (G,C) t f = f C fs ms (if C=Object then t else class_rec (G,D) t f)";
-  apply (rule class_rec.simps [THEN trans [THEN fun_cong [THEN fun_cong]]])
-  apply simp
-  done
+lemma class_rec_lemma: "wf ((subcls1 G)^-1) \<Longrightarrow> class G C = Some (D,fs,ms) \<Longrightarrow>
+ class_rec G C t f = f C fs ms (if C=Object then t else class_rec G D t f)"
+  by (simp add: class_rec_def wfrec cut_apply [OF converseI [OF subcls1I]])
 
 consts
 
@@ -91,7 +86,7 @@ consts
   fields :: "'c prog \<times> cname => ((vname \<times> cname) \<times> ty) list" (* ###curry *)
 
 -- "methods of a class, with inheritance, overriding and hiding, cf. 8.4.6"
-defs method_def: "method \<equiv> \<lambda>(G,C). class_rec (G,C) empty (\<lambda>C fs ms ts.
+defs method_def: "method \<equiv> \<lambda>(G,C). class_rec G C empty (\<lambda>C fs ms ts.
                            ts ++ map_of (map (\<lambda>(s,m). (s,(C,m))) ms))"
 
 lemma method_rec_lemma: "[|class G C = Some (D,fs,ms); wf ((subcls1 G)^-1)|] ==>
@@ -105,7 +100,7 @@ done
 
 
 -- "list of fields of a class, including inherited and hidden ones"
-defs fields_def: "fields \<equiv> \<lambda>(G,C). class_rec (G,C) []    (\<lambda>C fs ms ts.
+defs fields_def: "fields \<equiv> \<lambda>(G,C). class_rec G C []    (\<lambda>C fs ms ts.
                            map (\<lambda>(fn,ft). ((fn,C),ft)) fs @ ts)"
 
 lemma fields_rec_lemma: "[|class G C = Some (D,fs,ms); wf ((subcls1 G)^-1)|] ==>
