@@ -402,12 +402,16 @@ by (rtac (p2 RS ext) 1);
 by (rtac (p1 RS FunsD) 1);
 qed "Funs_inv";
 
-val [p1, p2] = Goalw [o_def]
-     "[| f : Funs (range g); !!h. f = g o h ==> P |] ==> P";
-by (res_inst_tac [("h", "%x. @y. (f::'a=>'b) x = g y")] p2 1);
+val [p1, p2, p3] = Goalw [o_def]
+     "[| inj g; f : Funs (range g); !!h. f = g o h ==> P |] ==> P";
+by (res_inst_tac [("h", "%x. THE y. (f::'c=>'b) x = g y")] p3 1);
 by (rtac ext 1);
-by (rtac (p1 RS FunsD RS rangeE) 1);
-by (etac (exI RS (some_eq_ex RS iffD2)) 1);
+by (rtac (p2 RS FunsD RS rangeE) 1);
+by (rtac theI 1);
+by (atac 1);
+by (rtac (p1 RS injD) 1);
+by (etac (sym RS trans) 1);
+by (atac 1);
 qed "Funs_rangeE";
 
 Goal "a : S ==> (%x. a) : Funs S";
