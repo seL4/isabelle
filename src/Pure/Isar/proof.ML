@@ -8,6 +8,7 @@ Proof states and methods.
 signature BASIC_PROOF =
 sig
   val FINDGOAL: (int -> tactic) -> tactic
+  val HEADGOAL: (int -> tactic) -> tactic
 end;
 
 signature PROOF =
@@ -417,6 +418,8 @@ fun RANGE [] _ = all_tac
 fun FINDGOAL tac st =
   let fun find (i, n) = if i > n then no_tac else tac i APPEND find (i + 1, n)
   in find (1, nprems_of st) st end;
+
+fun HEADGOAL tac = tac 1;
 
 fun export_goal print_rule raw_rule inner state =
   let
