@@ -214,7 +214,7 @@ fun bigimpl_ast_tr (*"_bigimpl"*) [asms, concl] =
 
 (* explode atoms *)
 
-fun explode_tr (*"_explode"*) [consC, nilC, bit0, bit1, Free (str, _)] =
+fun explode_tr (*"_explode"*) (ts as [consC, nilC, bit0, bit1, txt]) =
       let
         fun mk_list [] = nilC
           | mk_list (t :: ts) = consC $ t $ mk_list ts;
@@ -225,6 +225,12 @@ fun explode_tr (*"_explode"*) [consC, nilC, bit0, bit1, Free (str, _)] =
 
         fun encode_char c =   (* FIXME leading 0s (?) *)
           mk_list (map encode_bit (radixpand (2, (ord c))));
+
+        val str =
+          (case txt of
+            Free (s, _) => s
+          | Const (s, _) => s
+          | _ => raise_term "explode_tr" ts);
       in
         mk_list (map encode_char (explode str))
       end
@@ -497,7 +503,7 @@ val pure_sext =
       Mixfix   ("_/ _",       "[idt, idts] => idts",           "_idts", [1, 0], 0),
       Delimfix ("_",          "id => aprop",                   ""),
       Delimfix ("_",          "var => aprop",                  ""),
-      Mixfix   ("(1_/(1'(_')))", "[('b => 'a), " ^ args ^ "] => aprop", applC, [max_pri, 0], max_pri),  (* FIXME lhs pri: 0 vs. max_pri *)
+      Mixfix   ("(1_/(1'(_')))", "[('b => 'a), " ^ args ^ "] => aprop", applC, [max_pri, 0], max_pri),
       Delimfix ("PROP _",     "aprop => prop",                 "_aprop"),
       Delimfix ("_",          "prop => asms",                  ""),
       Delimfix ("_;/ _",      "[prop, asms] => asms",          "_asms"),
