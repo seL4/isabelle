@@ -1,0 +1,11 @@
+
+Isabelle BUGS -- history of reported faults
+===========================================
+
+1.  Symptom: hyp_subst_tac does nothing if the selected equality involves type
+    unknowns.  Cause: it uses the simplifier, which ignores such equalities.
+    Fix: check for type unknowns in hypsubst/inspect_pair;  change interface
+    function dest_eq to return the type of the equality. (lcp, 5/11/97)
+
+2.  Symptom: read_instantiate_sg has problems instantiating types in some
+    simultaneous instantiations (Message-id: <199710301432.PAA20594@sirius.Informatik.Uni-Bremen.DE> on isabelle-users)
