@@ -15,7 +15,7 @@ sig
   include BASIC_BROWSER_INFO
   val init: bool -> string list -> string -> Url.T option * bool -> unit
   val finish: unit -> unit
-  val theory_source: string -> (string, 'a) Source.source -> unit
+  val theory_source: bool -> string -> (string, string list) Source.source * Position.T -> unit
   val begin_theory: string -> string list -> (Path.T * bool) list -> theory -> theory
   val end_theory: string -> unit
   val result: string -> string -> thm -> unit
@@ -304,7 +304,7 @@ fun finish () = with_session () (fn {name, html_prefix, graph_path, all_graph_pa
 
 (* theory elements *)
 
-fun theory_source name src = with_session () (fn _ =>
+fun theory_source is_old name (src, _) = with_session () (fn _ =>
   (init_theory_info name empty_theory_info; add_source name (HTML.source src)));
 
 
