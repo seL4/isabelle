@@ -15,7 +15,7 @@ sig
   val ss		: simpset	(*basic simpset of object-logtic*)
   val eq_reflection	: thm		(*object-equality to meta-equality*)
 
-  val thy		: theory	(*the theory of the group*)
+  val sg_ref 		: Sign.sg_ref	(*signature of the theory of the group*)
   val T			: typ		(*the type of group elements*)
 
   val zero		: term
@@ -129,7 +129,7 @@ open Data;
 
  val sum_conv = 
      Simplifier.mk_simproc "cancel_sums"
-       (map (Thm.read_cterm (Theory.sign_of Data.thy)) 
+       (map (Thm.read_cterm (Sign.deref sg_ref))
 	[("x + y", Data.T), ("x - y", Data.T)])
        sum_proc;
 
@@ -188,7 +188,7 @@ open Data;
 
  val rel_conv = 
      Simplifier.mk_simproc "cancel_relations"
-       (map (Thm.cterm_of (Theory.sign_of Data.thy) o Data.dest_eqI) eqI_rules)
+       (map (Thm.cterm_of (Sign.deref sg_ref) o Data.dest_eqI) eqI_rules)
        rel_proc;
 
 end;

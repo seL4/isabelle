@@ -13,7 +13,7 @@ signature ASSOC_FOLD_DATA =
 sig
   val ss		: simpset	(*basic simpset of object-logtic*)
   val eq_reflection	: thm		(*object-equality to meta-equality*)
-  val thy		: theory	(*the operator's theory*)
+  val sg_ref 		: Sign.sg_ref	(*the operator's signature*)
   val T			: typ		(*the operator's numeric type*)
   val plus		: term		(*the operator being folded*)
   val add_ac		: thm list      (*AC-rewrites for plus*)
@@ -69,7 +69,7 @@ struct
  
  val conv = 
      Simplifier.mk_simproc "assoc_fold"
-       [Thm.cterm_of (Theory.sign_of Data.thy)
+       [Thm.cterm_of (Sign.deref Data.sg_ref)
 	             (Data.plus $ Free("x",Data.T) $ Free("y",Data.T))]
        proc;
 
