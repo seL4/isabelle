@@ -69,7 +69,7 @@ sort :  id
 types : 'types' ( ( typeDecl ( () | '(' infix ')' ) ) + )
       ;
 
-infix : ( 'infixr' | 'infixl' ) nat
+infix : ( 'infixr' | 'infixl' ) (() | string) nat
       ;
 
 typeDecl : typevarlist name
@@ -104,7 +104,7 @@ mixfixConstDecl : constDecl (() | ( '(' mixfix ')' ))
 constDecl : ( name + ',') '::' (string | type);
 
 mixfix :  string ( () | ( () | ('[' (nat + ',') ']')) nat )
-       | ( 'infixr' | 'infixl' ) (() | string) nat
+       |  infix
        | 'binder' string nat ;
 
 trans : 'translations' ( pat ( '==' | '=>' | '<=' ) pat + )
