@@ -42,6 +42,7 @@ signature ZF_LEMMAS =
   val INT_E		: thm
   val INT_I		: thm
   val INT_cong		: thm
+  val INT_iff		: thm
   val lemmas_cs		: claset
   val PowD		: thm
   val PowI		: thm
@@ -74,6 +75,7 @@ signature ZF_LEMMAS =
   val UN_E		: thm
   val UN_I		: thm
   val UN_cong		: thm
+  val UN_iff		: thm
   end;
 
 
