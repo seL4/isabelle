@@ -288,13 +288,9 @@ list of the subgoals~1 to~$i-1$, subgoal~$i$, and the rest of the theorem
 \subsection{*Sort hypotheses} \label{sec:sort-hyps}
 \index{sort hypotheses}
 \begin{ttbox} 
-force_strip_shyps : bool ref \hfill{\bf initially true}
+strip_shyps         : thm -> thm
+strip_shyps_warning : thm -> thm
 \end{ttbox}
-
-\begin{ttdescription}
-\item[\ttindexbold{force_strip_shyps}]
-causes sort hypotheses to be deleted, printing a warning.
-\end{ttdescription}
 
 Isabelle's type variables are decorated with sorts, constraining them to
 certain ranges of types.  This has little impact when sorts only serve for
@@ -316,11 +312,22 @@ theorem's proof that no longer appear in the {\tt prop} or {\tt hyps}
 fields --- so-called {\em dangling\/} sort constraints.  These are the
 critical ones, asserting non-emptiness of the corresponding sorts.
  
-Isabelle tries to remove extraneous sorts from the {\tt shyps} field whenever
-non-emptiness can be established by looking at the theorem's signature: from
-the {\tt arities} information, etc.  Because its current implementation is
-highly incomplete, the flag shown above is available.  Setting it to true (the
-default) allows existing proofs to run.
+Isabelle automatically removes extraneous sorts from the {\tt shyps} field at
+the end of a proof, provided that non-emptiness can be established by looking
+at the theorem's signature: from the {\tt classes} and {\tt arities}
+information.  This operation is performed by \texttt{strip_shyps} and
+\texttt{strip_shyps_warning}.
+
+\begin{ttdescription}
+  
+\item[\ttindexbold{strip_shyps} $thm$] removes any extraneous sort hypotheses
+  that can be witnessed from the type signature.
+  
+\item[\ttindexbold{strip_shyps_warning}] is like \texttt{strip_shyps}, but
+  issues a warning message of any pending sort hypotheses that do not have a
+  (syntactic) witness.
+
+\end{ttdescription}
 
 
 \subsection{Tracing flags for unification}
