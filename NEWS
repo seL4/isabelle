@@ -100,6 +100,8 @@ diff -r Isabelle-2.6/elisp/isa-proofstate.el Isamode/elisp/isa-proofstate.el
 ---
 > (defconst proofstate-proofstart-regexp "^Level [0-9]+"
 
+* function bind_thms stores lists of theorems (cf. bind_thm);
+
 
 *** HOL ***
 
