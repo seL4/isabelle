@@ -165,18 +165,18 @@ end;
 
 local
 
+val spaces_quote = space_implode " " o map quote;
+
 fun tell_thm_deps ths =
   conditional (thm_depsN mem_string ! print_mode) (fn () =>
     let
-      val names = map Thm.name_of_thm ths;
-      val refs =
-        foldl (uncurry Proofterm.thms_of_proof) (Symtab.empty, map Thm.proof_of ths)
-        |> Symtab.keys;
-      val deps = refs \\ names \ "";
+      val names = map Thm.name_of_thm ths \ "";
+      val deps = Symtab.keys (foldl (uncurry Proofterm.thms_of_proof)
+          (Symtab.empty, map Thm.proof_of ths)) \ "";
     in
-      if null deps then ()
-      else notify ("Proof General, theorem dependencies are: "
-        ^ space_implode " " (map quote deps))    (* FIXME output names \ "" as well!? *)
+      if null names orelse null deps then ()
+      else notify ("Proof General, theorem dependencies of " ^ spaces_quote names ^ " are "
+        ^ spaces_quote deps)
     end);
 
 in
