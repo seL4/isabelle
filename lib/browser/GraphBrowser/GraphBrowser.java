@@ -152,7 +152,7 @@ public class GraphBrowser extends Applet {
 		} catch (ParseError exn) {
 			System.out.println("\nParse error in graph file:");
 			System.out.println(exn.getMessage());
-			System.out.println("\nSyntax:\n<vertexname> <dirname> [ + ] <path> [ < | > ] [ <vertexname> [ ... [ <vertexname> ] ... ] ] ;");
+			System.out.println("\nSyntax:\n<vertexname> <vertexID> <dirname> [ + ] <path> [ < | > ] [ <vertexID> [ ... [ <vertexID> ] ... ] ] ;");
 		}
 	}		
 
