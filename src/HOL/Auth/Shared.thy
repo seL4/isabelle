@@ -33,10 +33,8 @@ consts
   sees1 :: [agent, event] => msg set
 
 primrec sees1 event
-           (*First agent recalls all that it says, but NOT everything
-             that is sent to it; it must note such things if/when received*)
-  sees1_Says  "sees1 A (Says A' B X)  = (if A:{A',Spy} then {X} else {})"
-          (*part of A's internal state*)
+           (*Spy reads all traffic whether addressed to him or not*)
+  sees1_Says  "sees1 A (Says A' B X)  = (if A:{B,Spy} then {X} else {})"
 
 consts  
   sees :: [agent set, agent, event list] => msg set

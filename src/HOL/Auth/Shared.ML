@@ -125,17 +125,17 @@ AddSIs [sees_own_shrK, Spy_sees_lost];
 
 (** Specialized rewrite rules for (sees lost A (Says...#evs)) **)
 
-goal thy "sees lost A (Says A B X # evs) = insert X (sees lost A evs)";
+goal thy "sees lost B (Says A B X # evs) = insert X (sees lost B evs)";
 by (Simp_tac 1);
 qed "sees_own";
 
-goal thy "!!A. Server ~= A ==> \
-\              sees lost Server (Says A B X # evs) = sees lost Server evs";
+goal thy "!!A. Server ~= B ==> \
+\          sees lost Server (Says A B X # evs) = sees lost Server evs";
 by (Asm_simp_tac 1);
 qed "sees_Server";
 
-goal thy "!!A. Friend i ~= A ==> \
-\              sees lost (Friend i) (Says A B X # evs) = sees lost (Friend i) evs";
+goal thy "!!A. Friend i ~= B ==> \
+\          sees lost (Friend i) (Says A B X # evs) = sees lost (Friend i) evs";
 by (Asm_simp_tac 1);
 qed "sees_Friend";
 
@@ -169,8 +169,7 @@ by (Auto_tac ());
 qed_spec_mp "Says_imp_sees_Spy";
 
 goal thy  
- "!!evs. [| Says A B (Crypt X (shrK C)) : set_of_list evs;        \
-\           C   : lost |]                                         \
+ "!!evs. [| Says A B (Crypt X (shrK C)) : set_of_list evs;  C : lost |] \
 \        ==> X : analz (sees lost Spy evs)";
 by (fast_tac (!claset addSDs [Says_imp_sees_Spy RS analz.Inj]
                       addss (!simpset)) 1);
@@ -190,8 +189,7 @@ by (Auto_tac ());
 qed "initState_subset";
 
 goal thy "X : sees lost C evs --> \
-\          (EX A B. Says A B X : set_of_list evs) | \
-\          (EX A. X = Key (shrK A))";
+\          (EX A B. Says A B X : set_of_list evs) | (EX A. X = Key (shrK A))";
 by (list.induct_tac "evs" 1);
 by (ALLGOALS Asm_simp_tac);
 by (fast_tac (!claset addDs [impOfSubs initState_subset]) 1);
