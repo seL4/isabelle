@@ -568,7 +568,7 @@ apply (subst wfrec, assumption, clarify)
 apply (drule_tac x1=x and x="\<lambda>x\<in>r -`` {x}. wfrec(r, x, H)" 
        in rspec [THEN rspec]) 
 apply (simp_all add: function_lam) 
-apply (blast intro: dest: pair_components_in_M ) 
+apply (blast intro: lam_closed dest: pair_components_in_M ) 
 done
 
 text{*Eliminates one instance of replacement.*}

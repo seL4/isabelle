@@ -499,7 +499,7 @@ constdefs
     "is_eclose(M,A,Z) == \<forall>u[M]. u \<in> Z <-> mem_eclose(M,A,u)"
 
 
-locale (open) M_eclose = M_wfrank +
+locale (open) M_eclose = M_datatypes +
  assumes eclose_replacement1: 
    "M(A) ==> iterates_replacement(M, big_union(M), A)"
   and eclose_replacement2: 
@@ -569,22 +569,25 @@ text{*The condition @{term "Ord(i)"} lets us use the simpler
   @{text "trans_wfrec_abs"} rather than @{text "trans_wfrec_abs"},
   which I haven't even proved yet. *}
 theorem (in M_eclose) transrec_abs:
-  "[|Ord(i);  M(i);  M(z);
-     transrec_replacement(M,MH,i);  relativize2(M,MH,H);
+  "[|transrec_replacement(M,MH,i);  relativize2(M,MH,H);
+     Ord(i);  M(i);  M(z);
      \<forall>x[M]. \<forall>g[M]. function(g) --> M(H(x,g))|] 
    ==> is_transrec(M,MH,i,z) <-> z = transrec(i,H)" 
-by (simp add: trans_wfrec_abs transrec_replacement_def is_transrec_def
+apply (rotate_tac 2) 
+apply (simp add: trans_wfrec_abs transrec_replacement_def is_transrec_def
        transrec_def eclose_sing_Ord_eq wf_Memrel trans_Memrel relation_Memrel)
+done
 
 
 theorem (in M_eclose) transrec_closed:
-     "[|Ord(i);  M(i);  M(z);
-	transrec_replacement(M,MH,i);  relativize2(M,MH,H);
+     "[|transrec_replacement(M,MH,i);  relativize2(M,MH,H);
+	Ord(i);  M(i);  
 	\<forall>x[M]. \<forall>g[M]. function(g) --> M(H(x,g))|] 
       ==> M(transrec(i,H))"
-by (simp add: trans_wfrec_closed transrec_replacement_def is_transrec_def
+apply (rotate_tac 2) 
+apply (simp add: trans_wfrec_closed transrec_replacement_def is_transrec_def
        transrec_def eclose_sing_Ord_eq wf_Memrel trans_Memrel relation_Memrel)
-
+done
 
 
 subsection{*Absoluteness for the List Operator @{term length}*}
@@ -802,6 +805,17 @@ apply (case_tac "quasiformula(p)")
  apply (simp add: quasiformula_def, force) 
 apply (simp add: non_formula_case) 
 done
+
+text{*Compared with @{text formula_case_closed'}, the premise on @{term p} is
+      stronger while the other premises are weaker, incorporating typing 
+      information.*}
+lemma (in M_datatypes) formula_case_closed [intro,simp]:
+  "[|p \<in> formula; 
+     \<forall>x[M]. \<forall>y[M]. x\<in>nat --> y\<in>nat --> M(a(x,y)); 
+     \<forall>x[M]. \<forall>y[M]. x\<in>nat --> y\<in>nat --> M(b(x,y)); 
+     \<forall>x[M]. \<forall>y[M]. x\<in>formula --> y\<in>formula --> M(c(x,y)); 
+     \<forall>x[M]. x\<in>formula --> M(d(x))|] ==> M(formula_case(a,b,c,d,p))"
+by (erule formula.cases, simp_all) 
 
 lemma (in M_triv_axioms) formula_case_abs [simp]: 
      "[| relativize2(M,is_a,a); relativize2(M,is_b,b); 

@@ -96,9 +96,7 @@ fun triv_axioms_L th =
        ([transL, nonempty, upair_ax, Union_ax, power_ax, replacement, L_nat] 
         MRS (inst "M" "L" th));
 
-bind_thm ("ball_abs", triv_axioms_L (thm "M_triv_axioms.ball_abs"));
 bind_thm ("rall_abs", triv_axioms_L (thm "M_triv_axioms.rall_abs"));
-bind_thm ("bex_abs", triv_axioms_L (thm "M_triv_axioms.bex_abs"));
 bind_thm ("rex_abs", triv_axioms_L (thm "M_triv_axioms.rex_abs"));
 bind_thm ("ball_iff_equiv", triv_axioms_L (thm "M_triv_axioms.ball_iff_equiv"));
 bind_thm ("M_equalityI", triv_axioms_L (thm "M_triv_axioms.M_equalityI"));
@@ -144,9 +142,7 @@ bind_thm ("number1_abs", triv_axioms_L (thm "M_triv_axioms.number1_abs"));
 bind_thm ("number3_abs", triv_axioms_L (thm "M_triv_axioms.number3_abs"));
 *}
 
-declare ball_abs [simp] 
 declare rall_abs [simp] 
-declare bex_abs [simp] 
 declare rex_abs [simp] 
 declare empty_abs [simp] 
 declare subset_abs [simp] 

@@ -412,7 +412,7 @@ constdefs
 	\<forall>p[M]. p \<in> r <-> (\<exists>x[M]. x\<in>A & (\<exists>y[M]. y\<in>A & x\<in>y & pair(M,x,y,p)))"
 
 
-subsection{*Absoluteness for a transitive class model*}
+subsection{*Introducing a Transitive Class Model*}
 
 text{*The class M is assumed to be transitive and to satisfy some
       relativized ZF axioms*}
@@ -426,16 +426,8 @@ locale (open) M_triv_axioms =
       and replacement:      "replacement(M,P)"
       and M_nat [iff]:      "M(nat)"           (*i.e. the axiom of infinity*)
 
-lemma (in M_triv_axioms) ball_abs [simp]: 
-     "M(A) ==> (\<forall>x\<in>A. M(x) --> P(x)) <-> (\<forall>x\<in>A. P(x))" 
-by (blast intro: transM) 
-
 lemma (in M_triv_axioms) rall_abs [simp]: 
      "M(A) ==> (\<forall>x[M]. x\<in>A --> P(x)) <-> (\<forall>x\<in>A. P(x))" 
-by (blast intro: transM) 
-
-lemma (in M_triv_axioms) bex_abs [simp]: 
-     "M(A) ==> (\<exists>x\<in>A. M(x) & P(x)) <-> (\<exists>x\<in>A. P(x))" 
 by (blast intro: transM) 
 
 lemma (in M_triv_axioms) rex_abs [simp]: 
@@ -452,6 +444,9 @@ text{*Simplifies proofs of equalities when there's an iff-equality
 lemma (in M_triv_axioms) M_equalityI: 
      "[| !!x. M(x) ==> x\<in>A <-> x\<in>B; M(A); M(B) |] ==> A=B"
 by (blast intro!: equalityI dest: transM) 
+
+
+subsubsection{*Trivial Absoluteness Proofs: Empty Set, Pairs, etc.*}
 
 lemma (in M_triv_axioms) empty_abs [simp]: 
      "M(z) ==> empty(M,z) <-> z=0"
@@ -505,6 +500,8 @@ apply (rule iffI)
 apply (blast dest: transM) 
 done
 
+subsubsection{*Absoluteness for Unions and Intersections*}
+
 lemma (in M_triv_axioms) union_abs [simp]: 
      "[| M(a); M(b); M(z) |] ==> union(M,a,b,z) <-> z = a Un b"
 apply (simp add: union_def) 
@@ -554,6 +551,8 @@ lemma (in M_triv_axioms) succ_in_M_iff [iff]:
 apply (simp add: succ_def) 
 apply (blast intro: transM) 
 done
+
+subsubsection{*Absoluteness for Separation and Replacement*}
 
 lemma (in M_triv_axioms) separation_closed [intro,simp]:
      "[| separation(M,P); M(A) |] ==> M(Collect(A,P))"
@@ -621,10 +620,38 @@ apply (frule strong_replacement_closed, assumption)
 apply (auto dest: transM  simp add: Replace_conj_eq univalent_def) 
 done
 
-lemma (in M_triv_axioms) lam_closed [intro,simp]:
+subsubsection {*Absoluteness for @{term Lambda}*}
+
+constdefs
+ is_lambda :: "[i=>o, i, [i,i]=>o, i] => o"
+    "is_lambda(M, A, is_b, z) == 
+       \<forall>p[M]. p \<in> z <->
+        (\<exists>u[M]. \<exists>v[M]. u\<in>A & pair(M,u,v,p) & is_b(u,v))"
+
+lemma (in M_triv_axioms) lam_closed:
      "[| strong_replacement(M, \<lambda>x y. y = <x,b(x)>); M(A); \<forall>x\<in>A. M(b(x)) |]
       ==> M(\<lambda>x\<in>A. b(x))"
 by (simp add: lam_def, blast intro: RepFun_closed dest: transM) 
+
+text{*Better than @{text lam_closed}: has the formula @{term "x\<in>A"}*}
+lemma (in M_triv_axioms) lam_closed2:
+  "[|strong_replacement(M, \<lambda>x y. x\<in>A & y = \<langle>x, b(x)\<rangle>);
+     M(A); \<forall>m[M]. m\<in>A --> M(b(m))|] ==> M(Lambda(A,b))"
+apply (simp add: lam_def)
+apply (blast intro: RepFun_closed2 dest: transM)  
+done
+
+lemma (in M_triv_axioms) lambda_abs2 [simp]: 
+     "[| strong_replacement(M, \<lambda>x y. x\<in>A & y = \<langle>x, b(x)\<rangle>);
+         relativize1(M,is_b,b); M(A); \<forall>m[M]. m\<in>A --> M(b(m)); M(z) |] 
+      ==> is_lambda(M,A,is_b,z) <-> z = Lambda(A,b)"
+apply (simp add: relativize1_def is_lambda_def)
+apply (rule iffI)
+ prefer 2 apply (simp add: lam_def) 
+apply (rule M_equalityI)
+  apply (simp add: lam_def) 
+ apply (simp add: lam_closed2)+
+done
 
 lemma (in M_triv_axioms) image_abs [simp]: 
      "[| M(r); M(A); M(z) |] ==> image(M,r,A,z) <-> z = r``A"
@@ -647,6 +674,8 @@ lemma (in M_triv_axioms) powerset_imp_subset_Pow:
 apply (simp add: powerset_def) 
 apply (blast dest: transM) 
 done
+
+subsubsection{*Absoluteness for the Natural Numbers*}
 
 lemma (in M_triv_axioms) nat_into_M [intro]:
      "n \<in> nat ==> M(n)"
@@ -693,7 +722,26 @@ lemma (in M_triv_axioms) Inr_in_M_iff [iff]:
 by (simp add: Inr_def)
 
 
-subsection{*Absoluteness for ordinals*}
+subsection {*Absoluteness for Booleans*}
+
+lemma (in M_triv_axioms) bool_of_o_closed:
+     "M(bool_of_o(P))"
+by (simp add: bool_of_o_def) 
+
+lemma (in M_triv_axioms) and_closed:
+     "[| M(p); M(q) |] ==> M(p and q)"
+by (simp add: and_def cond_def) 
+
+lemma (in M_triv_axioms) or_closed:
+     "[| M(p); M(q) |] ==> M(p or q)"
+by (simp add: or_def cond_def) 
+
+lemma (in M_triv_axioms) not_closed:
+     "M(p) ==> M(not(p))"
+by (simp add: Bool.not_def cond_def) 
+
+
+subsection{*Absoluteness for Ordinals*}
 text{*These results constitute Theorem IV 5.1 of Kunen (page 126).*}
 
 lemma (in M_triv_axioms) lt_closed:

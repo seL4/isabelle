@@ -1114,7 +1114,7 @@ val eclose_replacement2 = thm "eclose_replacement2";
 val m_eclose = [eclose_replacement1, eclose_replacement2];
 
 fun eclose_L th =
-    kill_flex_triv_prems (m_eclose MRS (wfrank_L th));
+    kill_flex_triv_prems (m_eclose MRS (datatypes_L th));
 
 bind_thm ("eclose_closed", eclose_L (thm "M_eclose.eclose_closed"));
 bind_thm ("eclose_abs", eclose_L (thm "M_eclose.eclose_abs"));
