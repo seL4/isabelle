@@ -24,6 +24,7 @@ qed_goal "update_triv" thy "!!X. t k = Some x ==> t[k|->x] = t"
 	(K [rtac ext 1, Asm_simp_tac 1]);
 (*Addsimps [update_same, update_other, update_triv];*)
 
+
 section "++";
 
 goalw thy [override_def] "m ++ empty = m";
@@ -80,6 +81,12 @@ by (Blast_tac 1);
 qed "dom_update";
 Addsimps [dom_update];
 
+qed_goalw "finite_dom_map_of" Map.thy [dom_def] "finite (dom (map_of l))" (K[
+	list.induct_tac "l" 1,
+	 ALLGOALS Simp_tac,
+	stac (insert_Collect RS sym) 1,
+	Asm_simp_tac 1]);
+
 goalw thy [dom_def] "dom(m++n) = dom n Un dom m";
 by (Blast_tac 1);
 qed "dom_override";
@@ -91,3 +98,10 @@ goalw thy [ran_def] "ran empty = {}";
 by (Simp_tac 1);
 qed "ran_empty";
 Addsimps [ran_empty];
+
+goalw thy [ran_def] "!!X. m a = None ==> ran(m[a|->b]) = insert b (ran m)";
+by Auto_tac;
+by (subgoal_tac "~(aa = a)" 1);
+by Auto_tac;
+qed "ran_update";
+Addsimps [ran_update];
