@@ -7,8 +7,6 @@ Distributed Resource Management System: the Client
 *)
 
 
-claset_ref() := claset();
-
 Addsimps [Cli_prg_def RS def_prg_Init];
 program_defs_ref := [Cli_prg_def];
 
@@ -102,13 +100,15 @@ qed "transient_lemma";
 
 val rewrite_o = rewrite_rule [o_def];
 
+val Increasing_length = mono_length RS mono_Increasing_o;
+
 Goal "Cli_prg : \
 \      (Increasing giv Int (rel localTo Cli_prg) Int (ask localTo Cli_prg)) \
 \      guarantees Always ({s. size (ask s) <= Suc (size (rel s))} Int \
 \                            {s. size (rel s) <= size (giv s)})";
 by (rtac guaranteesI 1);
 by (Clarify_tac 1);
-by (dtac (impOfSubs (rewrite_o Increasing_size)) 1);
+by (dtac (impOfSubs (rewrite_o Increasing_length)) 1);
 by (rtac AlwaysI 1);
 by (Force_tac 1);
 by (rtac Stable_Int 1);
@@ -129,7 +129,7 @@ by (rtac guaranteesI 1);
 by (Clarify_tac 1);
 by (rtac Stable_transient_Always_LeadsTo 1);
 by (res_inst_tac [("k", "k")] transient_lemma 2);
-by (force_tac (claset() addDs [impOfSubs Increasing_size,
+by (force_tac (claset() addDs [impOfSubs Increasing_length,
 			       impOfSubs Increasing_Stable_less],
 	       simpset()) 1);
 by (rtac (make_elim (lemma1 RS guaranteesD)) 1);
