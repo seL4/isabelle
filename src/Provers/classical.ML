@@ -93,6 +93,7 @@ signature CLASSICAL =
   val AddSDs		: thm list -> unit
   val AddSEs		: thm list -> unit
   val AddSIs		: thm list -> unit
+  val Delrules		: thm list -> unit
   val Step_tac 		: int -> tactic
   val Fast_tac 		: int -> tactic
   val Best_tac 		: int -> tactic
@@ -551,6 +552,8 @@ fun AddSDs ts = (claset := !claset addSDs ts);
 fun AddSEs ts = (claset := !claset addSEs ts);
 
 fun AddSIs ts = (claset := !claset addSIs ts);
+
+fun Delrules ts = (claset := !claset delrules ts);
 
 (*Cannot have Safe_tac, as it takes no arguments; must delay dereferencing!*)
 
