@@ -9,6 +9,9 @@ New in this Isabelle version
 
 * HOL: Removed the obsolete syntax "Compl A"; use -A for set complement
 
+*** General ***
+
+* in locales, the "assumes" and "defines" parts may be omitted if empty;
 
 *** Internal programming interfaces ***
 
