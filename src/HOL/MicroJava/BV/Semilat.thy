@@ -166,6 +166,75 @@ lemma closed_UNIV [simp]: "closed UNIV f"
   by (simp add: closed_def)
 
 
+lemma plus_assoc [simp]:
+  assumes semi: "semilat (A,r,f)"
+  assumes a: "a \<in> A" and b: "b \<in> A" and c: "c \<in> A"
+  shows "a +_f (b +_f c) = a +_f b +_f c"
+proof -
+  have order: "order r" ..
+  note order_trans [OF order,trans]
+  note closedD [OF semilatDclosedI [OF semi], intro]
+  note semilat_ub1 [OF semi, intro]
+  note semilat_ub2 [OF semi, intro]
+  note semilat_lub [OF _ _ semi, intro]
+
+  from a b have ab: "a +_f b \<in> A" ..
+  from this c have abc: "(a +_f b) +_f c \<in> A" ..
+  from b c have bc: "b +_f c \<in> A" ..
+  from a this have abc': "a +_f (b +_f c) \<in> A" ..
+
+  from order show ?thesis
+  proof (rule order_antisym)
+    show "a +_f (b +_f c) <=_r (a +_f b) +_f c"
+    proof -      
+      from a b have "a <=_r a +_f b" .. 
+      also from ab c have "\<dots> <=_r \<dots> +_f c" ..
+      finally have "a<": "a <=_r (a +_f b) +_f c" .
+      from a b have "b <=_r a +_f b" ..
+      also from ab c have "\<dots> <=_r \<dots> +_f c" ..
+      finally have "b<": "b <=_r (a +_f b) +_f c" .
+      from ab c have "c<": "c <=_r (a +_f b) +_f c" ..    
+      from "b<" "c<" b c abc have "b +_f c <=_r (a +_f b) +_f c" ..
+      from "a<" this a bc abc show ?thesis ..
+    qed
+    show "(a +_f b) +_f c <=_r a +_f (b +_f c)" 
+    proof -
+      from b c have "b <=_r b +_f c" .. 
+      also from a bc have "\<dots> <=_r a +_f \<dots>" ..
+      finally have "b<": "b <=_r a +_f (b +_f c)" .
+      from b c have "c <=_r b +_f c" ..
+      also from a bc have "\<dots> <=_r a +_f \<dots>" ..
+      finally have "c<": "c <=_r a +_f (b +_f c)" .
+      from a bc have "a<": "a <=_r a +_f (b +_f c)" ..
+      from "a<" "b<" a b abc' have "a +_f b <=_r a +_f (b +_f c)" ..
+      from this "c<" ab c abc' show ?thesis ..
+    qed
+  qed
+qed
+
+lemma plus_com_lemma:
+  "\<lbrakk>semilat (A,r,f); a \<in> A; b \<in> A\<rbrakk> \<Longrightarrow> a +_f b <=_r b +_f a"
+proof -
+  assume semi: "semilat (A,r,f)" and a: "a \<in> A" and b: "b \<in> A"  
+  from semi b a have "a <=_r b +_f a" by (rule semilat_ub2)
+  moreover
+  from semi b a have "b <=_r b +_f a" by (rule semilat_ub1)
+  moreover
+  note semi a b
+  moreover
+  from semi b a have "b +_f a \<in> A" by (rule closedD [OF semilatDclosedI])
+  ultimately
+  show ?thesis by (rule semilat_lub)
+qed
+
+lemma plus_commutative:
+  "\<lbrakk>semilat (A,r,f); a \<in> A; b \<in> A\<rbrakk> \<Longrightarrow> a +_f b = b +_f a"
+  apply (frule semilatDorderI)
+  apply (erule order_antisym)
+  apply (rule plus_com_lemma, assumption+)
+  apply (rule plus_com_lemma, assumption+)
+  done
+
 lemma is_lubD:
   "is_lub r x y u \<Longrightarrow> is_ub r x y u & (!z. is_ub r x y z \<longrightarrow> (u,z):r)"
   by (simp add: is_lub_def)
