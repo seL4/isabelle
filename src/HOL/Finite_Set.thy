@@ -123,6 +123,10 @@ lemma finite_insert [simp]: "finite (insert a A) = finite A"
   apply (simp only: finite_Un, blast)
   done
 
+lemma finite_Union[simp, intro]:
+ "\<lbrakk> finite A; !!M. M \<in> A \<Longrightarrow> finite M \<rbrakk> \<Longrightarrow> finite(\<Union>A)"
+by (induct rule:finite_induct) simp_all
+
 lemma finite_empty_induct:
   "finite A ==>
   P A ==> (!!a A. finite A ==> a:A ==> P A ==> P (A - {a})) ==> P {}"

@@ -109,7 +109,7 @@ lemma Zero_neq_Suc: "0 = Suc m ==> R"
 
 text {* Injectiveness of @{term Suc} *}
 
-lemma inj_Suc: "inj Suc"
+lemma inj_Suc: "inj_on Suc N"
   apply (unfold Suc_def)
   apply (rule inj_onI)
   apply (drule inj_on_Abs_Nat [THEN inj_onD])

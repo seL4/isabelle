@@ -372,6 +372,10 @@ lemma Cons_eq_append_conv: "x#xs = ys@zs =
  (ys = [] & x#xs = zs | (EX ys'. x#ys' = ys & xs = ys'@zs))"
 by(cases ys) auto
 
+lemma append_eq_Cons_conv: "(ys@zs = x#xs) =
+ (ys = [] & zs = x#xs | (EX ys'. ys = x#ys' & ys'@zs = xs))"
+by(cases ys) auto
+
 
 text {* Trivial rules for solving @{text "@"}-equations automatically. *}
 
@@ -786,6 +790,41 @@ next
   done
 qed
 
+lemma length_filter_conv_card:
+ "length(filter p xs) = card{i. i < length xs & p(xs!i)}"
+proof (induct xs)
+  case Nil thus ?case by simp
+next
+  case (Cons x xs)
+  let ?S = "{i. i < length xs & p(xs!i)}"
+  have fin: "finite ?S" by(fast intro: bounded_nat_set_is_finite)
+  show ?case (is "?l = card ?S'")
+  proof (cases)
+    assume "p x"
+    hence eq: "?S' = insert 0 (Suc ` ?S)"
+      by(auto simp add: nth_Cons image_def split:nat.split elim:lessE)
+    have "length (filter p (x # xs)) = Suc(card ?S)"
+      using Cons by simp
+    also have "\<dots> = Suc(card(Suc ` ?S))" using fin
+      by (simp add: card_image inj_Suc)
+    also have "\<dots> = card ?S'" using eq fin
+      by (simp add:card_insert_if) (simp add:image_def)
+    finally show ?thesis .
+  next
+    assume "\<not> p x"
+    hence eq: "?S' = Suc ` ?S"
+      by(auto simp add: nth_Cons image_def split:nat.split elim:lessE)
+    have "length (filter p (x # xs)) = card ?S"
+      using Cons by simp
+    also have "\<dots> = card(Suc ` ?S)" using fin
+      by (simp add: card_image inj_Suc)
+    also have "\<dots> = card ?S'" using eq fin
+      by (simp add:card_insert_if)
+    finally show ?thesis .
+  qed
+qed
+
+
 subsection {* @{text concat} *}
 
 lemma concat_append [simp]: "concat (xs @ ys) = concat xs @ concat ys"
@@ -1181,6 +1220,10 @@ by simp
 
 declare zip_Cons [simp del]
 
+lemma zip_Cons1:
+ "zip (x#xs) ys = (case ys of [] \<Rightarrow> [] | y#ys \<Rightarrow> (x,y)#zip xs ys)"
+by(auto split:list.split)
+
 lemma length_zip [simp]:
 "!!xs. length (zip xs ys) = min (length xs) (length ys)"
 apply (induct ys, simp)
@@ -1414,6 +1457,17 @@ by (induct j) auto
 
 lemma upt_conv_Nil [simp]: "j <= i ==> [i..j(] = []"
 by (subst upt_rec) simp
+
+lemma upt_eq_Nil_conv[simp]: "([i..j(] = []) = (j = 0 \<or> j <= i)"
+by(induct j)simp_all
+
+lemma upt_eq_Cons_conv:
+ "!!x xs. ([i..j(] = x#xs) = (i < j & i = x & [i+1..j(] = xs)"
+apply(induct j)
+ apply simp
+apply(clarsimp simp add: append_eq_Cons_conv)
+apply arith
+done
 
 lemma upt_Suc_append: "i <= j ==> [i..(Suc j)(] = [i..j(]@[j]"
 -- {* Only needed if @{text upt_Suc} is deleted from the simpset. *}
@@ -1723,6 +1777,20 @@ by (auto simp add: sublist_def)
 lemma sublist_nil [simp]: "sublist [] A = []"
 by (auto simp add: sublist_def)
 
+lemma length_sublist:
+  "length(sublist xs I) = card{i. i < length xs \<and> i : I}"
+by(simp add: sublist_def length_filter_conv_card cong:conj_cong)
+
+lemma sublist_shift_lemma_Suc:
+  "!!is. map fst (filter (%p. P(Suc(snd p))) (zip xs is)) =
+         map fst (filter (%p. P(snd p)) (zip xs (map Suc is)))"
+apply(induct xs)
+ apply simp
+apply (case_tac "is")
+ apply simp
+apply simp
+done
+
 lemma sublist_shift_lemma:
      "map fst [p:zip xs [i..i + length xs(] . snd p : A] =
       map fst [p:zip xs [0..length xs(] . snd p + i : A]"
@@ -1743,8 +1811,35 @@ apply (induct l rule: rev_induct)
 apply (simp del: append_Cons add: append_Cons[symmetric] sublist_append)
 done
 
+lemma set_sublist: "!!I. set(sublist xs I) = {xs!i|i. i<size xs \<and> i \<in> I}"
+apply(induct xs)
+ apply simp
+apply(auto simp add:sublist_Cons nth_Cons split:nat.split elim: lessE)
+ apply(erule lessE)
+  apply auto
+apply(erule lessE)
+apply auto
+done
+
+lemma set_sublist_subset: "set(sublist xs I) \<subseteq> set xs"
+by(auto simp add:set_sublist)
+
+lemma notin_set_sublistI[simp]: "x \<notin> set xs \<Longrightarrow> x \<notin> set(sublist xs I)"
+by(auto simp add:set_sublist)
+
+lemma in_set_sublistD: "x \<in> set(sublist xs I) \<Longrightarrow> x \<in> set xs"
+by(auto simp add:set_sublist)
+
 lemma sublist_singleton [simp]: "sublist [x] A = (if 0 : A then [x] else [])"
 by (simp add: sublist_Cons)
+
+
+lemma distinct_sublistI[simp]: "!!I. distinct xs \<Longrightarrow> distinct(sublist xs I)"
+apply(induct xs)
+ apply simp
+apply(auto simp add:sublist_Cons)
+done
+
 
 lemma sublist_upt_eq_take [simp]: "sublist l {..<n} = take n l"
 apply (induct l rule: rev_induct, simp)
