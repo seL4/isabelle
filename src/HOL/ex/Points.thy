@@ -5,7 +5,7 @@
 
 theory Points = Main:;
 
-title {* Basic use of extensible records in HOL, including the famous points
+text {* Basic use of extensible records in HOL, including the famous points
  and coloured points. *};
 
 
