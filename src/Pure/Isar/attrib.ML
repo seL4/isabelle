@@ -33,6 +33,8 @@ sig
   val syntax: ('a * Args.T list -> 'a attribute * ('a * Args.T list)) -> Args.src -> 'a attribute
   val no_args: 'a attribute -> Args.src -> 'a attribute
   val add_del_args: 'a attribute -> 'a attribute -> Args.src -> 'a attribute
+  val read_inst': string option list * string option list -> ProofContext.context -> thm -> thm
+  val insts': Args.T list -> (string option list * string option list) * Args.T list
   val setup: (theory -> theory) list
 end;
 
@@ -197,26 +199,31 @@ val OF_local = syntax (local_thmss >> apply);
 
 (* where: named instantiations *)
 
-fun read_instantiate context_of insts x thm =
-  let
-    val ctxt = context_of x;
-    val sign = ProofContext.sign_of ctxt;
+fun read_instantiate _ [] _ thm = thm
+  | read_instantiate context_of insts x thm =
+      let
+        val ctxt = context_of x;
+        val sign = ProofContext.sign_of ctxt;
 
-    val vars = Drule.vars_of thm;
-    fun get_typ xi =
-      (case assoc (vars, xi) of
-        Some T => T
-      | None => error ("No such variable in theorem: " ^ Syntax.string_of_vname xi));
+        val vars = Drule.vars_of thm;
+        fun get_typ xi =
+          (case assoc (vars, xi) of
+            Some T => T
+          | None => error ("No such variable in theorem: " ^ Syntax.string_of_vname xi));
 
-    val (xs, ss) = Library.split_list insts;
-    val Ts = map get_typ xs;
+        val (xs, ss) = Library.split_list insts;
+        val Ts = map get_typ xs;
 
-    val (ts, envT) = ProofContext.read_termTs ctxt (ss ~~ Ts);
-    val cenvT = map (apsnd (Thm.ctyp_of sign)) envT;
-    val cenv =
-      map (fn (xi, t) => pairself (Thm.cterm_of sign) (Var (xi, fastype_of t), t))
-        (gen_distinct (fn ((x1, t1), (x2, t2)) => x1 = x2 andalso t1 aconv t2) (xs ~~ ts));
-  in Drule.instantiate (cenvT, cenv) thm end;
+        val (ts, envT) = ProofContext.read_termTs ctxt (ss ~~ Ts);
+        val cenvT = map (apsnd (Thm.ctyp_of sign)) envT;
+        val cenv =
+          map (fn (xi, t) => pairself (Thm.cterm_of sign) (Var (xi, fastype_of t), t))
+            (gen_distinct (fn ((x1, t1), (x2, t2)) => x1 = x2 andalso t1 aconv t2) (xs ~~ ts));
+      in
+        thm
+        |> Drule.instantiate (cenvT, cenv)
+        |> RuleCases.save thm
+      end;
 
 fun insts x = Args.and_list (Scan.lift (Args.var --| Args.$$$ "=" -- Args.name)) x;
 
@@ -228,23 +235,31 @@ val where_local = gen_where I;
 
 (* of: positional instantiations *)
 
-fun read_instantiate' context_of (args, concl_args) x thm =
-  let
-    fun zip_vars _ [] = []
-      | zip_vars (_ :: xs) (None :: opt_ts) = zip_vars xs opt_ts
-      | zip_vars ((x, _) :: xs) (Some t :: opt_ts) = (x, t) :: zip_vars xs opt_ts
-      | zip_vars [] _ = error "More instantiations than variables in theorem";
-    val insts =
-      zip_vars (Drule.vars_of_terms [#prop (Thm.rep_thm thm)]) args @
-      zip_vars (Drule.vars_of_terms [Thm.concl_of thm]) concl_args;
-  in read_instantiate context_of insts x thm end;
+fun read_instantiate' _ ([], []) _ thm = thm
+  | read_instantiate' context_of (args, concl_args) x thm =
+      let
+        fun zip_vars _ [] = []
+          | zip_vars (_ :: xs) (None :: opt_ts) = zip_vars xs opt_ts
+          | zip_vars ((x, _) :: xs) (Some t :: opt_ts) = (x, t) :: zip_vars xs opt_ts
+          | zip_vars [] _ = error "More instantiations than variables in theorem";
+        val insts =
+          zip_vars (Drule.vars_of_terms [#prop (Thm.rep_thm thm)]) args @
+          zip_vars (Drule.vars_of_terms [Thm.concl_of thm]) concl_args;
+      in
+        thm
+        |> read_instantiate context_of insts x
+        |> RuleCases.save thm
+      end;
 
-val concl = Args.$$$ "concl" -- Args.$$$ ":";
+val read_inst' = read_instantiate' I;
+
+val concl = Args.$$$ "concl" -- Args.colon;
 val inst_arg = Scan.unless concl Args.name_dummy;
 val inst_args = Scan.repeat inst_arg;
-fun insts' x = Scan.lift (inst_args -- Scan.optional (concl |-- Args.!!! inst_args) []) x;
+fun insts' x = (inst_args -- Scan.optional (concl |-- Args.!!! inst_args) []) x;
 
-fun gen_of context_of = syntax (insts' >> (Drule.rule_attribute o read_instantiate' context_of));
+fun gen_of context_of =
+  syntax (Scan.lift insts' >> (Drule.rule_attribute o read_instantiate' context_of));
 
 val of_global = gen_of ProofContext.init;
 val of_local = gen_of I;
