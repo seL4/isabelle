@@ -610,6 +610,9 @@ by (simp_tac (simpset() addsimps [diff_mult_distrib, mult_commute_k]) 1);
 qed "diff_mult_distrib2" ;
 (*NOT added as rewrites, since sometimes they are used from right-to-left*)
 
+bind_thms ("nat_distrib",
+  [add_mult_distrib, add_mult_distrib2, diff_mult_distrib, diff_mult_distrib2]);
+
 
 (*** Monotonicity of Multiplication ***)
 
