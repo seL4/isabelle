@@ -8,7 +8,6 @@ The integers as equivalence classes over nat*nat.
 Could also prove...
 "znegative(z) ==> $# zmagnitude(z) = $- z"
 "~ znegative(z) ==> $# zmagnitude(z) = z"
-$+ and $* are monotonic wrt $<
 *)
 
 AddSEs [quotientE];
@@ -241,9 +240,9 @@ qed "zminus_zminus_intify";
 
 Goalw [int_of_def] "$- ($#0) = $#0";
 by (simp_tac (simpset() addsimps [zminus]) 1);
-qed "zminus_0";
+qed "zminus_int0";
 
-Addsimps [zminus_zminus_intify, zminus_0];
+Addsimps [zminus_zminus_intify, zminus_int0];
 
 Goal "z : int ==> $- ($- z) = z";
 by (Asm_simp_tac 1);
@@ -327,12 +326,12 @@ qed "not_zneg_mag";
 Addsimps [not_zneg_mag];
 
 Goalw [int_def, znegative_def, int_of_def]
-     "[| z: int; znegative(z) |] ==> EX n:nat. z = $- ($# succ(n))"; 
+     "[| znegative(z); z: int |] ==> EX n:nat. z = $- ($# succ(n))"; 
 by (auto_tac(claset() addSDs [less_imp_succ_add], 
 	     simpset() addsimps [zminus, image_singleton_iff]));
 qed "zneg_int_of";
 
-Goal "[| z: int; znegative(z) |] ==> $# (zmagnitude(z)) = $- z"; 
+Goal "[| znegative(z); z: int |] ==> $# (zmagnitude(z)) = $- z"; 
 by (dtac zneg_int_of 1);
 by Auto_tac;
 qed "zneg_mag"; 
@@ -618,7 +617,7 @@ qed "zadd_zmult_distrib";
 Goal "w $* (z1 $+ z2) = (w $* z1) $+ (w $* z2)";
 by (simp_tac (simpset() addsimps [inst "z" "w" zmult_commute,
                                   zadd_zmult_distrib]) 1);
-qed "zadd_zmult_distrib_left";
+qed "zadd_zmult_distrib2";
 
 val int_typechecks =
     [int_of_type, zminus_type, zmagnitude_type, zadd_type, zmult_type];
@@ -630,20 +629,6 @@ Goal "z $- w : int";
 by (simp_tac (simpset() addsimps [zdiff_def]) 1);
 qed "zdiff_type";
 AddIffs [zdiff_type];  AddTCs [zdiff_type];
-
-Goal "$#0 $- x = $-x";
-by (simp_tac (simpset() addsimps [zdiff_def]) 1);
-qed "zdiff_int0";
-
-Goal "x $- $#0 = intify(x)";
-by (simp_tac (simpset() addsimps [zdiff_def]) 1);
-qed "zdiff_int0_right";
-
-Goal "x $- x = $#0";
-by (simp_tac (simpset() addsimps [zdiff_def]) 1);
-qed "zdiff_self";
-
-Addsimps [zdiff_int0, zdiff_int0_right, zdiff_self];
 
 Goal "$- (z $- y) = y $- z";
 by (simp_tac (simpset() addsimps [zdiff_def, zadd_commute])1);
@@ -695,11 +680,25 @@ qed "zless_linear";
 
 Goal "~ (z$<z)";
 by (auto_tac (claset(), 
-              simpset() addsimps  [zless_def, znegative_def, int_of_def]));  
+              simpset() addsimps  [zless_def, znegative_def, int_of_def,
+                                   zdiff_def]));  
 by (rotate_tac 2 1);
 by Auto_tac;  
 qed "zless_not_refl";
 AddIffs [zless_not_refl];
+
+Goal "[| x: int; y: int |] ==> (x ~= y) <-> (x $< y | y $< x)";
+by (cut_inst_tac [("z","x"),("w","y")] zless_linear 1);
+by Auto_tac;  
+qed "neq_iff_zless";
+
+Goal "w $< z ==> intify(w) ~= intify(z)";
+by Auto_tac;  
+by (subgoal_tac "~ (intify(w) $< intify(z))" 1);
+by (etac ssubst 2);
+by (Full_simp_tac 1);
+by Auto_tac;  
+qed "zless_imp_intify_neq";
 
 (*This lemma allows direct proofs of other <-properties*)
 Goalw [zless_def, znegative_def, zdiff_def, int_def] 
@@ -709,11 +708,11 @@ by (auto_tac (claset() addSDs [less_imp_succ_add],
 by (res_inst_tac [("x","k")] exI 1);
 by (etac add_left_cancel 1);
 by Auto_tac;  
-qed "zless_imp_succ_zadd_lemma";
+val lemma = result();
 
 Goal "w $< z ==> (EX n. w $+ $#(succ(n)) = intify(z))";
 by (subgoal_tac "intify(w) $< intify(z)" 1);
-by (dres_inst_tac [("w","intify(w)")] zless_imp_succ_zadd_lemma 1);
+by (dres_inst_tac [("w","intify(w)")] lemma 1);
 by Auto_tac;  
 qed "zless_imp_succ_zadd";
 
@@ -723,10 +722,10 @@ by (auto_tac (claset(),
               simpset() addsimps [zadd, zminus, int_of_def, image_iff]));  
 by (res_inst_tac [("x","0")] exI 1);
 by Auto_tac;  
-qed "zless_succ_zadd_lemma";
+val lemma = result();
 
 Goal "w $< w $+ $# succ(n)";
-by (cut_facts_tac [intify_in_int RS zless_succ_zadd_lemma] 1);
+by (cut_facts_tac [intify_in_int RS lemma] 1);
 by Auto_tac;  
 qed "zless_succ_zadd";
 
@@ -756,6 +755,14 @@ by (subgoal_tac "intify(x) $< intify(z)" 1);
 by (res_inst_tac [("y", "intify(y)")] zless_trans_lemma 2);
 by Auto_tac;  
 qed "zless_trans";
+
+Goal "z $< w ==> ~ (w $< z)";
+by (blast_tac (claset() addDs [zless_trans]) 1);
+qed "zless_not_sym";
+
+(* [| z $< w; ~ P ==> w $< z |] ==> P *)
+bind_thm ("zless_asym", zless_not_sym RS swap);
+
 
 (*** "Less Than or Equals", $<= ***)
 
@@ -795,16 +802,12 @@ qed "zless_zle_trans";
 Goal "~ (z $< w) <-> (w $<= z)";
 by (cut_inst_tac [("z","z"),("w","w")] zless_linear 1);
 by (auto_tac (claset() addDs [zless_trans], simpset() addsimps [zle_def]));  
-by (auto_tac (claset(), 
-            simpset() addsimps [zless_def, zdiff_def, zadd_def, zminus_def]));
-by (fold_tac [zless_def, zdiff_def, zadd_def, zminus_def]);
-by Auto_tac;  
+by (auto_tac (claset() addSDs [zless_imp_intify_neq],  simpset()));
 qed "not_zless_iff_zle";
 
 Goal "~ (z $<= w) <-> (w $< z)";
 by (simp_tac (simpset() addsimps [not_zless_iff_zle RS iff_sym]) 1);
 qed "not_zle_iff_zless";
-
 
 
 (*** More subtraction laws (for zcompare_rls) ***)
@@ -919,6 +922,19 @@ qed "zadd_left_cancel_zle";
 Addsimps [zadd_right_cancel_zle, zadd_left_cancel_zle];
 
 
+(*** Comparison laws ***)
+
+Goal "($- x $< $- y) <-> (y $< x)";
+by (simp_tac (simpset() addsimps [zless_def, zdiff_def] @ zadd_ac) 1);
+qed "zminus_zless_zminus"; 
+Addsimps [zminus_zless_zminus];
+
+Goal "($- x $<= $- y) <-> (y $<= x)";
+by (simp_tac (simpset() addsimps [not_zless_iff_zle RS iff_sym]) 1);
+qed "zminus_zle_zminus"; 
+Addsimps [zminus_zle_zminus];
+
+
 (*** More inequality lemmas ***)
 
 Goal "[| x: int;  y: int |] ==> (x = $- y) <-> (y = $- x)";
@@ -928,3 +944,34 @@ qed "equation_zminus";
 Goal "[| x: int;  y: int |] ==> ($- x = y) <-> ($- y = x)";
 by Auto_tac;
 qed "zminus_equation";
+
+Goal "(intify(x) = $- y) <-> (intify(y) = $- x)";
+by (cut_inst_tac [("x","intify(x)"), ("y","intify(y)")] equation_zminus 1);
+by Auto_tac;
+qed "equation_zminus_intify";
+
+Goal "($- x = intify(y)) <-> ($- y = intify(x))";
+by (cut_inst_tac [("x","intify(x)"), ("y","intify(y)")] zminus_equation 1);
+by Auto_tac;
+qed "zminus_equation_intify";
+
+
+(** The next several equations are permutative: watch out! **)
+
+Goal "(x $< $- y) <-> (y $< $- x)";
+by (simp_tac (simpset() addsimps [zless_def, zdiff_def] @ zadd_ac) 1);
+qed "zless_zminus"; 
+
+Goal "($- x $< y) <-> ($- y $< x)";
+by (simp_tac (simpset() addsimps [zless_def, zdiff_def] @ zadd_ac) 1);
+qed "zminus_zless"; 
+
+Goal "(x $<= $- y) <-> (y $<= $- x)";
+by (simp_tac (simpset() addsimps [not_zless_iff_zle RS iff_sym, 
+                                  zminus_zless]) 1);
+qed "zle_zminus"; 
+
+Goal "($- x $<= y) <-> ($- y $<= x)";
+by (simp_tac (simpset() addsimps [not_zless_iff_zle RS iff_sym, 
+                                  zless_zminus]) 1);
+qed "zminus_zle"; 

@@ -315,7 +315,7 @@ structure CombineNumeralsProd = CombineNumeralsFun(CombineNumeralsProdData);
   
 val combine_numerals_prod = 
     prep_simproc ("int_combine_numerals_prod",
-		  prep_pats ["i $* j", "i $* j"],
+		  prep_pats ["i $* j"],
 		  CombineNumeralsProd.proc);
 
 end;

@@ -260,6 +260,16 @@ Goal "$#0 = #0";
 by (Simp_tac 1);
 qed "int_of_0";
 
+Goal "$# succ(n) = #1 $+ $#n";
+by (simp_tac (simpset() addsimps [int_of_add RS sym, natify_succ]) 1);
+qed "int_of_succ";
+
+Goal "$- #0 = #0";
+by (Simp_tac 1);
+qed "zminus_0";
+
+Addsimps [zminus_0];
+
 Goal "#0 $+ z = intify(z)";
 by (Simp_tac 1);
 qed "zadd_0_intify";
@@ -302,6 +312,11 @@ by (rtac zmult_minus1 1);
 qed "zmult_minus1_right";
 
 Addsimps [zmult_minus1, zmult_minus1_right];
+
+(*beware!  LOOPS with int_combine_numerals simproc*)
+Goal "#2 $* z = z $+ z";
+by (simp_tac (simpset() addsimps [zadd_zmult_distrib]) 1);
+qed "zmult_2";
 
 
 (*** Simplification rules for comparison of binary numbers (N Voelker) ***)
@@ -470,3 +485,31 @@ qed "add_integ_of_diff2";
 
 Addsimps [add_integ_of_left, mult_integ_of_left,
 	  add_integ_of_diff1, add_integ_of_diff2]; 
+
+
+(** More for integer constants **)
+
+Addsimps [int_of_0, int_of_succ];
+
+Goal "#0 $- x = $-x";
+by (simp_tac (simpset() addsimps [zdiff_def]) 1);
+qed "zdiff0";
+
+Goal "x $- #0 = intify(x)";
+by (simp_tac (simpset() addsimps [zdiff_def]) 1);
+qed "zdiff0_right";
+
+Goal "x $- x = #0";
+by (simp_tac (simpset() addsimps [zdiff_def]) 1);
+qed "zdiff_self";
+
+Addsimps [zdiff0, zdiff0_right, zdiff_self];
+
+Goal "[| znegative(k); k: int |] ==> k $< #0";
+by (asm_simp_tac (simpset() addsimps [zless_def]) 1);
+qed "znegative_imp_zless_0";
+
+Goal "[| #0 $< k; k: int |] ==> znegative($-k)";
+by (asm_full_simp_tac (simpset() addsimps [zless_def]) 1);
+qed "zero_zless_imp_znegative_zminus";
+
