@@ -689,22 +689,6 @@ by (Full_simp_tac 1);
 qed "analz_synth";
 Addsimps [analz_analz_Un, analz_synth_Un, analz_synth];
 
-(*Hard to prove; still needed now that there's only one Spy?*)
-goal thy "analz (UN i. synth (H i)) = \
-\         analz (UN i. H i) Un (UN i. synth (H i))";
-by (rtac equalityI 1);
-by (rtac subsetI 1);
-by (etac analz.induct 1);
-by (blast_tac
-    (!claset addIs [impOfSubs synth_increasing,
-                    impOfSubs analz_mono]) 5);
-by (Blast_tac 1);
-by (blast_tac (!claset addIs [analz.Inj RS analz.Fst]) 1);
-by (blast_tac (!claset addIs [analz.Inj RS analz.Snd]) 1);
-by (blast_tac (!claset addIs [analz.Decrypt]) 1);
-qed "analz_UN1_synth";
-Addsimps [analz_UN1_synth];
-
 
 (** For reasoning about the Fake rule in traces **)
 
