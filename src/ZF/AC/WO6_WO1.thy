@@ -6,13 +6,6 @@ The proof of "WO6 ==> WO1".
 
 From the book "Equivalents of the Axiom of Choice" by Rubin & Rubin,
 pages 2-5
-
-
-  vv1_def "vv1(f,m,b) == if(f`b ~= 0,   \
-\          domain(uu(f, b, thing(f,b,g,d),   \
-\          LEAST d. domain(uu(f, b, thing(f,b,g,d), d)) ~= 0 &   \
-\          domain(uu(f,b, thing(f,b,g,d), d)) lepoll m)), 0)"
-
 *)
 
 WO6_WO1 = "rel_is_fun" + AC_Equiv + Let +
