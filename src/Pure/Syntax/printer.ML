@@ -102,7 +102,9 @@ fun typ_to_ast trf T = ast_of_termT trf (TypeExt.term_of_typ (! show_sorts) T);
 fun mark_freevars (t $ u) = mark_freevars t $ mark_freevars u
   | mark_freevars (Abs (x, T, t)) = Abs (x, T, mark_freevars t)
   | mark_freevars (t as Free _) = Lexicon.const "_free" $ t
-  | mark_freevars (t as Var _) =  Lexicon.const "_var" $ t
+  | mark_freevars (t as Var (xi, T)) =
+      if xi = SynExt.dddot_indexname then Const ("_DDDOT", T)
+      else Lexicon.const "_var" $ t
   | mark_freevars a = a;
 
 fun ast_of_term trf no_freeTs show_types show_sorts tm =
@@ -124,9 +126,7 @@ fun ast_of_term trf no_freeTs show_types show_sorts tm =
           let
             val (t1', seen') = prune_typs (t1, seen);
             val (t2', seen'') = prune_typs (t2, seen');
-          in
-            (t1' $ t2', seen'')
-          end;
+          in (t1' $ t2', seen'') end;
 
     fun ast_of tm =
       (case strip_comb tm of
