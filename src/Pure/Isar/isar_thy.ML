@@ -695,9 +695,9 @@ fun add_oracle ((name, txt), comment_ignore) =
 
 (* add_locale *)
 
-fun add_locale (name, imports, elems) thy =
-  Locale.add_locale name imports
-    (map (Locale.attribute (Attrib.local_attribute thy) o Comment.ignore) elems) thy;
+fun add_locale (name, import, body) thy =
+  Locale.add_locale name import
+    (map (Locale.attribute (Attrib.local_attribute thy) o Comment.ignore) body) thy;
 
 
 (* theory init and exit *)
