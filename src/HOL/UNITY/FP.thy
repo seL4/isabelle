@@ -3,10 +3,10 @@
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1998  University of Cambridge
 
-Fixed Point of a Program
-
 From Misra, "A Logic for Concurrent Programming", 1994
 *)
+
+header{*Fixed Point of a Program*}
 
 theory FP = UNITY:
 

@@ -22,6 +22,8 @@ inductive "elt CC F B"
   monos Pow_mono
 *)
 
+header{*Progress Under Allowable Sets*}
+
 theory ELT = Project:
 
 consts
@@ -91,8 +93,7 @@ by (blast intro: Collect_mem_givenBy givenBy_imp_eq_Collect)
 (*preserving v preserves properties given by v*)
 lemma preserves_givenBy_imp_stable:
      "[| F : preserves v;  D : givenBy v |] ==> F : stable D"
-apply (force simp add: preserves_subset_stable [THEN subsetD] givenBy_eq_Collect)
-done
+by (force simp add: preserves_subset_stable [THEN subsetD] givenBy_eq_Collect)
 
 lemma givenBy_o_subset: "givenBy (w o v) <= givenBy v"
 apply (simp (no_asm) add: givenBy_eq_Collect)
@@ -212,7 +213,7 @@ lemma leadsETo_weaken_R:
 apply (blast intro: subset_imp_leadsETo leadsETo_Trans)
 done
 
-lemma leadsETo_weaken_L [rule_format (no_asm)]:
+lemma leadsETo_weaken_L [rule_format]:
      "[| F : A leadsTo[CC] A'; B<=A |] ==> F : B leadsTo[CC] A'"
 apply (blast intro: leadsETo_Trans subset_imp_leadsETo)
 done
@@ -458,13 +459,13 @@ done
 
 lemmas empty_LeadsETo = empty_subsetI [THEN subset_imp_LeadsETo, standard]
 
-lemma LeadsETo_weaken_R [rule_format (no_asm)]:
+lemma LeadsETo_weaken_R [rule_format]:
      "[| F : A LeadsTo[CC] A';  A' <= B' |] ==> F : A LeadsTo[CC] B'"
 apply (simp (no_asm_use) add: LeadsETo_def)
 apply (blast intro: leadsETo_weaken_R)
 done
 
-lemma LeadsETo_weaken_L [rule_format (no_asm)]:
+lemma LeadsETo_weaken_L [rule_format]:
      "[| F : A LeadsTo[CC] A';  B <= A |] ==> F : B LeadsTo[CC] A'"
 apply (simp (no_asm_use) add: LeadsETo_def)
 apply (blast intro: leadsETo_weaken_L)

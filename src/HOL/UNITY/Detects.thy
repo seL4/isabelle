@@ -6,6 +6,8 @@
 Detects definition (Section 3.8 of Chandy & Misra) using LeadsTo
 *)
 
+header{*The Detects Relation*}
+
 theory Detects = FP + SubstAx:
 
 consts

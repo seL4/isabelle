@@ -3,10 +3,10 @@
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1998  University of Cambridge
 
-Unions of programs
-
 Partly from Misra's Chapter 5: Asynchronous Compositions of Programs
 *)
+
+header{*Unions of Programs*}
 
 theory Union = SubstAx + FP:
 
@@ -52,7 +52,7 @@ syntax (xsymbols)
   "@JOIN"   :: "[pttrn, 'a set, 'b set] => 'b set"       ("(3\<Squnion> _:_./ _)" 10)
 
 
-(** SKIP **)
+subsection{*SKIP*}
 
 lemma Init_SKIP [simp]: "Init SKIP = UNIV"
 by (simp add: SKIP_def)
@@ -66,7 +66,7 @@ by (auto simp add: SKIP_def)
 lemma reachable_SKIP [simp]: "reachable SKIP = UNIV"
 by (force elim: reachable.induct intro: reachable.intros)
 
-(** SKIP and safety properties **)
+subsection{*SKIP and safety properties*}
 
 lemma SKIP_in_constrains_iff [iff]: "(SKIP : A co B) = (A<=B)"
 by (unfold constrains_def, auto)
@@ -80,7 +80,7 @@ by (unfold stable_def, auto)
 declare SKIP_in_stable [THEN stable_imp_Stable, iff]
 
 
-(** Join **)
+subsection{*Join*}
 
 lemma Init_Join [simp]: "Init (F Join G) = Init F Int Init G"
 by (simp add: Join_def)
@@ -93,7 +93,7 @@ lemma AllowedActs_Join [simp]:
 by (auto simp add: Join_def)
 
 
-(** JN **)
+subsection{*JN*}
 
 lemma JN_empty [simp]: "(JN i:{}. F i) = SKIP"
 by (unfold JOIN_def SKIP_def, auto)
@@ -119,7 +119,7 @@ lemma JN_cong [cong]:
 by (simp add: JOIN_def)
 
 
-(** Algebraic laws **)
+subsection{*Algebraic laws*}
 
 lemma Join_commute: "F Join G = G Join F"
 by (simp add: Join_def Un_commute Int_commute)
@@ -156,7 +156,7 @@ done
 lemmas Join_ac = Join_assoc Join_left_absorb Join_commute Join_left_commute
 
 
-(*** JN laws ***)
+subsection{*JN laws*}
 
 (*Also follows by JN_insert and insert_absorb, but the proof is longer*)
 lemma JN_absorb: "k:I ==> F k Join (JN i:I. F i) = (JN i:I. F i)"
@@ -183,7 +183,7 @@ apply (rule program_equalityI, auto)
 done
 
 
-(*** Safety: co, stable, FP ***)
+subsection{*Safety: co, stable, FP*}
 
 (*Fails if I={} because it collapses to SKIP : A co B, i.e. to A<=B.  So an
   alternative precondition is A<=B, but most proofs using this rule require
@@ -245,7 +245,7 @@ lemma FP_JN: "FP (JN i:I. F i) = (INT i:I. FP (F i))"
 by (simp add: FP_def JN_stable INTER_def)
 
 
-(*** Progress: transient, ensures ***)
+subsection{*Progress: transient, ensures*}
 
 lemma JN_transient:
      "i : I ==>  
@@ -313,7 +313,7 @@ apply (blast intro: stable_Join_ensures1)
 done
 
 
-(*** the ok and OK relations ***)
+subsection{*the ok and OK relations*}
 
 lemma ok_SKIP1 [iff]: "SKIP ok F"
 by (auto simp add: ok_def)
@@ -357,7 +357,7 @@ lemma OK_imp_ok: "[| OK I F; i: I; j: I; i ~= j|] ==> (F i) ok (F j)"
 by (auto simp add: OK_iff_ok)
 
 
-(*** Allowed ***)
+subsection{*Allowed*}
 
 lemma Allowed_SKIP [simp]: "Allowed SKIP = UNIV"
 by (auto simp add: Allowed_def)
@@ -374,7 +374,8 @@ by (simp add: ok_def Allowed_def)
 lemma OK_iff_Allowed: "OK I F = (ALL i: I. ALL j: I-{i}. F i : Allowed(F j))"
 by (auto simp add: OK_iff_ok ok_iff_Allowed)
 
-(*** safety_prop, for reasoning about given instances of "ok" ***)
+subsection{*@{text safety_prop}, for reasoning about
+ given instances of "ok"*}
 
 lemma safety_prop_Acts_iff:
      "safety_prop X ==> (Acts G <= insert Id (UNION X Acts)) = (G : X)"

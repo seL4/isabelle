@@ -8,6 +8,8 @@ Weak Fairness versions of transient, ensures, leadsTo.
 From Misra, "A Logic for Concurrent Programming", 1994
 *)
 
+header{*Progress under Weak Fairness*}
+
 theory WFair = UNITY:
 
 constdefs
@@ -51,11 +53,10 @@ syntax (xsymbols)
   "op leadsTo" :: "['a set, 'a set] => 'a program set" (infixl "\<longmapsto>" 60)
 
 
-(*** transient ***)
+subsection{*transient*}
 
 lemma stable_transient_empty: 
     "[| F : stable A; F : transient A |] ==> A = {}"
-
 by (unfold stable_def constrains_def transient_def, blast)
 
 lemma transient_strengthen: 
@@ -81,7 +82,7 @@ lemma transient_empty [simp]: "transient {} = UNIV"
 by (unfold transient_def, auto)
 
 
-(*** ensures ***)
+subsection{*ensures*}
 
 lemma ensuresI: 
     "[| F : (A-B) co (A Un B); F : transient (A-B) |] ==> F : A ensures B"
@@ -117,7 +118,7 @@ lemma ensures_eq: "(A ensures B) = (A unless B) Int transient (A-B)"
 by (simp (no_asm) add: ensures_def unless_def)
 
 
-(*** leadsTo ***)
+subsection{*leadsTo*}
 
 lemma leadsTo_Basis [intro]: "F : A ensures B ==> F : A leadsTo B"
 apply (unfold leadsTo_def)
@@ -235,7 +236,7 @@ done
 lemma leadsTo_weaken_R: "[| F : A leadsTo A'; A'<=B' |] ==> F : A leadsTo B'"
 by (blast intro: subset_imp_leadsTo leadsTo_Trans)
 
-lemma leadsTo_weaken_L [rule_format (no_asm)]:
+lemma leadsTo_weaken_L [rule_format]:
      "[| F : A leadsTo A'; B<=A |] ==> F : B leadsTo A'"
 by (blast intro: leadsTo_Trans subset_imp_leadsTo)
 
@@ -372,7 +373,7 @@ apply (blast intro: leadsTo_weaken)
 done
 
 
-(*** Proving the induction rules ***)
+subsection{*Proving the induction rules*}
 
 (** The most general rule: r is any wf relation; f is any variant function **)
 
@@ -449,7 +450,7 @@ apply (blast intro: leadsTo_weaken_R diff_less_mono2)
 done
 
 
-(*** wlt ****)
+subsection{*wlt*}
 
 (*Misra's property W3*)
 lemma wlt_leadsTo: "F : (wlt F B) leadsTo B"
@@ -497,21 +498,33 @@ apply (rule_tac x = "UN A:S. f A" in exI)
 apply (auto intro: leadsTo_UN)
 (*Blast_tac says PROOF FAILED*)
 apply (rule_tac I1=S and A1="%i. f i - B" and A'1="%i. f i Un B" 
-       in constrains_UN [THEN constrains_weaken])
-apply (auto ); 
+       in constrains_UN [THEN constrains_weaken], auto) 
 done
 
 
 (*Misra's property W5*)
 lemma wlt_constrains_wlt: "F : (wlt F B - B) co (wlt F B)"
-apply (cut_tac F = F in wlt_leadsTo [THEN leadsTo_123], clarify)
-apply (subgoal_tac "Ba = wlt F B")
-prefer 2 apply (blast dest: leadsTo_eq_subset_wlt [THEN iffD1], clarify)
-apply (simp add: wlt_increasing Un_absorb2)
-done
+proof -
+  from wlt_leadsTo [of F B, THEN leadsTo_123]
+  show ?thesis
+  proof (elim exE conjE)
+(* assumes have to be in exactly the form as in the goal displayed at
+   this point.  Isar doesn't give you any automation. *)
+    fix C
+    assume wlt: "wlt F B \<subseteq> C"
+       and lt:  "F \<in> C leadsTo B"
+       and co:  "F \<in> C - B co C \<union> B"
+    have eq: "C = wlt F B"
+    proof -
+      from lt and wlt show ?thesis 
+           by (blast dest: leadsTo_eq_subset_wlt [THEN iffD1])
+    qed
+    from co show ?thesis by (simp add: eq wlt_increasing Un_absorb2)
+  qed
+qed
 
 
-(*** Completion: Binary and General Finite versions ***)
+subsection{*Completion: Binary and General Finite versions*}
 
 lemma completion_lemma :
      "[| W = wlt F (B' Un C);      

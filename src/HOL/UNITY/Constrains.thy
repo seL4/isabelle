@@ -6,6 +6,8 @@
 Weak safety relations: restricted to the set of reachable states.
 *)
 
+header{*Weak Safety*}
+
 theory Constrains = UNITY:
 
 consts traces :: "['a set, ('a * 'a)set set] => ('a * 'a list) set"
@@ -50,7 +52,7 @@ constdefs
     "Increasing f == INT z. Stable {s. z <= f s}"
 
 
-(*** traces and reachable ***)
+subsection{*traces and reachable*}
 
 lemma reachable_equiv_traces:
      "reachable F = {s. EX evs. (s,evs): traces (Init F) (Acts F)}"
@@ -82,7 +84,7 @@ apply (blast intro: reachable.intros)+
 done
 
 
-(*** Co ***)
+subsection{*Co*}
 
 (*F : B co B' ==> F : (reachable F Int B) co (reachable F Int B')*)
 lemmas constrains_reachable_Int =  
@@ -184,7 +186,7 @@ lemma Constrains_cancel:
 by (simp add: Constrains_eq_constrains constrains_def, blast)
 
 
-(*** Stable ***)
+subsection{*Stable*}
 
 (*Useful because there's no Stable_weaken.  [Tanja Vos]*)
 lemma Stable_eq: "[| F: Stable A; A = B |] ==> F : Stable B"
@@ -238,7 +240,7 @@ by (simp add: Stable_eq_stable)
 
 
 
-(*** Increasing ***)
+subsection{*Increasing*}
 
 lemma IncreasingD: 
      "F : Increasing f ==> F : Stable {s. x <= f s}"
@@ -265,14 +267,14 @@ lemmas Increasing_constant =
     increasing_constant [THEN increasing_imp_Increasing, standard, iff]
 
 
-(*** The Elimination Theorem.  The "free" m has become universally quantified!
-     Should the premise be !!m instead of ALL m ?  Would make it harder to use
-     in forward proof. ***)
+subsection{*The Elimination Theorem*}
+
+(*The "free" m has become universally quantified! Should the premise be !!m
+instead of ALL m ?  Would make it harder to use in forward proof.*)
 
 lemma Elimination: 
     "[| ALL m. F : {s. s x = m} Co (B m) |]  
      ==> F : {s. s x : M} Co (UN m:M. B m)"
-
 by (unfold Constrains_def constrains_def, blast)
 
 (*As above, but for the trivial case of a one-variable state, in which the
@@ -282,7 +284,7 @@ lemma Elimination_sing:
 by (unfold Constrains_def constrains_def, blast)
 
 
-(*** Specialized laws for handling Always ***)
+subsection{*Specialized laws for handling Always*}
 
 (** Natural deduction rules for "Always A" **)
 
@@ -340,7 +342,7 @@ lemma Always_weaken: "[| F : Always A; A <= B |] ==> F : Always B"
 by (auto simp add: Always_eq_includes_reachable)
 
 
-(*** "Co" rules involving Always ***)
+subsection{*"Co" rules involving Always*}
 
 lemma Always_Constrains_pre:
      "F : Always INV ==> (F : (INV Int A) Co A') = (F : A Co A')"

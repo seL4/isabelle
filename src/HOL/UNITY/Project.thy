@@ -8,6 +8,8 @@ Projections of state sets (also of actions and programs)
 Inheritance of GUARANTEES properties under extension
 *)
 
+header{*Projections of State Sets*}
+
 theory Project = Extend:
 
 constdefs
@@ -32,10 +34,10 @@ apply (auto simp add: extend_act_def project_act_def constrains_def)
 done
 
 
-(** Safety **)
+subsection{*Safety*}
 
 (*used below to prove Join_project_ensures*)
-lemma (in Extend) project_unless [rule_format (no_asm)]:
+lemma (in Extend) project_unless [rule_format]:
      "[| G : stable C;  project h C G : A unless B |]  
       ==> G : (C Int extend_set h A) unless (extend_set h B)"
 apply (simp add: unless_def project_constrains)
@@ -98,7 +100,7 @@ lemma (in Extend) project_constrains_D:
 by (simp add: project_constrains extend_constrains)
 
 
-(*** "projecting" and union/intersection (no converses) ***)
+subsection{*"projecting" and union/intersection (no converses)*}
 
 lemma projecting_Int: 
      "[| projecting C h F XA' XA;  projecting C h F XB' XB |]  
@@ -198,7 +200,7 @@ lemma (in Extend) extending_increasing:
 by (force simp only: extending_def Join_project_increasing)
 
 
-(** Reachability and project **)
+subsection{*Reachability and project*}
 
 (*In practice, C = reachable(...): the inclusion is equality*)
 lemma (in Extend) reachable_imp_reachable_project:
@@ -247,7 +249,7 @@ apply (simp (no_asm_simp) add: project_Stable_D)
 done
 
 
-(** Converse results for weak safety: benefits of the argument C *)
+subsection{*Converse results for weak safety: benefits of the argument C *}
 
 (*In practice, C = reachable(...): the inclusion is equality*)
 lemma (in Extend) reachable_project_imp_reachable:
@@ -329,8 +331,8 @@ lemma (in Extend) project_Increasing:
 apply (simp (no_asm_simp) add: Increasing_def project_Stable extend_set_eq_Collect)
 done
 
-(** A lot of redundant theorems: all are proved to facilitate reasoning
-    about guarantees. **)
+subsection{*A lot of redundant theorems: all are proved to facilitate reasoning
+    about guarantees.*}
 
 lemma (in Extend) projecting_Constrains: 
      "projecting (%G. reachable (extend h F Join G)) h F  
@@ -390,9 +392,9 @@ apply (blast intro: project_Increasing_D)
 done
 
 
-(*** leadsETo in the precondition (??) ***)
+subsection{*leadsETo in the precondition (??)*}
 
-(** transient **)
+subsubsection{*transient*}
 
 lemma (in Extend) transient_extend_set_imp_project_transient: 
      "[| G : transient (C Int extend_set h A);  G : stable C |]   
@@ -422,7 +424,7 @@ apply (unfold extend_act_def, blast)
 done
 
 
-(** ensures -- a primitive combining progress with safety **)
+subsubsection{*ensures -- a primitive combining progress with safety*}
 
 (*Used to prove project_leadsETo_I*)
 lemma (in Extend) ensures_extend_set_imp_project_ensures:
@@ -456,7 +458,7 @@ apply (force dest!: equalityD1
 done
 
 (*Used to prove project_leadsETo_D*)
-lemma (in Extend) Join_project_ensures [rule_format (no_asm)]:
+lemma (in Extend) Join_project_ensures [rule_format]:
      "[| project h C G ~: transient (A-B) | A<=B;   
          extend h F Join G : stable C;   
          F Join project h C G : A ensures B |]  
@@ -470,8 +472,8 @@ apply (auto dest: extend_transient [THEN iffD2]
             simp add: ensures_def Join_transient)
 done
 
-(** Lemma useful for both STRONG and WEAK progress, but the transient
-    condition's very strong **)
+text{*Lemma useful for both STRONG and WEAK progress, but the transient
+    condition's very strong*}
 
 (*The strange induction formula allows induction over the leadsTo
   assumption's non-atomic precondition*)
@@ -505,7 +507,7 @@ by (simp del: Join_stable    add: LeadsTo_def project_leadsTo_D_lemma
                                   project_set_reachable_extend_eq)
 
 
-(*** Towards project_Ensures_D ***)
+subsection{*Towards the theorem @{text project_Ensures_D}*}
 
 
 lemma (in Extend) act_subset_imp_project_act_subset: 
@@ -544,7 +546,7 @@ apply (drule subsetD, blast)
 apply (force simp add: split_extended_all)
 done
 
-lemma (in Extend) project_unless2 [rule_format (no_asm)]:
+lemma (in Extend) project_unless2 [rule_format]:
      "[| G : stable C;  project h C G : (project_set h C Int A) unless B |]  
       ==> G : (C Int extend_set h A) unless (extend_set h B)"
 by (auto dest: stable_constrains_Int intro: constrains_weaken
@@ -589,7 +591,7 @@ apply (auto simp add: project_set_reachable_extend_eq [symmetric])
 done
 
 
-(*** Guarantees ***)
+subsection{*Guarantees*}
 
 lemma (in Extend) project_act_Restrict_subset_project_act:
      "project_act h (Restrict C act) <= project_act h act"
@@ -641,9 +643,9 @@ done
 (*It seems that neither "guarantees" law can be proved from the other.*)
 
 
-(*** guarantees corollaries ***)
+subsection{*guarantees corollaries*}
 
-(** Some could be deleted: the required versions are easy to prove **)
+subsubsection{*Some could be deleted: the required versions are easy to prove*}
 
 lemma (in Extend) extend_guar_increasing:
      "[| F : UNIV guarantees increasing func;   
@@ -682,8 +684,8 @@ apply (blast intro: project_preserves_id_I
 done
 
 
-(** Guarantees with a leadsTo postcondition 
-    THESE ARE ALL TOO WEAK because G can't affect F's variables at all**)
+subsubsection{*Guarantees with a leadsTo postcondition 
+     ALL TOO WEAK because G can't affect F's variables at all**)
 
 lemma (in Extend) project_leadsTo_D:
      "[| F Join project h UNIV G : A leadsTo B;     

@@ -8,6 +8,8 @@ The basic UNITY theory (revised version, based upon the "co" operator)
 From Misra, "A Logic for Concurrent Programming", 1994
 *)
 
+header {*The Basic UNITY Theory*}
+
 theory UNITY = Main:
 
 typedef (Program)

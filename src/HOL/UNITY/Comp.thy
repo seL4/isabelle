@@ -13,6 +13,8 @@ Added: a strong form of the <= relation (component_of) and localize
 
 *)
 
+header{*Composition: Basic Primitives*}
+
 theory Comp = Union:
 
 instance program :: (type) ord ..
@@ -42,7 +44,7 @@ constdefs
   "funPair f g == %x. (f x, g x)"
 
 
-(*** component <= ***)
+subsection{*The component relation*}
 lemma componentI: 
      "H <= F | H <= G ==> H <= (F Join G)"
 apply (unfold component_def, auto)
@@ -76,8 +78,7 @@ by (unfold component_def, blast)
 
 lemma component_Join2: "G <= (F Join G)"
 apply (unfold component_def)
-apply (simp (no_asm) add: Join_commute)
-apply blast
+apply (simp add: Join_commute, blast)
 done
 
 lemma Join_absorb1: "F<=G ==> F Join G = G"
@@ -87,9 +88,7 @@ lemma Join_absorb2: "G<=F ==> F Join G = F"
 by (auto simp add: Join_ac component_def)
 
 lemma JN_component_iff: "((JOIN I F) <= H) = (ALL i: I. F i <= H)"
-apply (simp (no_asm) add: component_eq_subset)
-apply blast
-done
+by (simp add: component_eq_subset, blast)
 
 lemma component_JN: "i : I ==> (F i) <= (JN i:I. (F i))"
 apply (unfold component_def)
@@ -107,9 +106,7 @@ apply (blast intro!: program_equalityI)
 done
 
 lemma Join_component_iff: "((F Join G) <= H) = (F <= H & G <= H)"
-apply (simp (no_asm) add: component_eq_subset)
-apply blast
-done
+by (simp add: component_eq_subset, blast)
 
 lemma component_constrains: "[| F <= G; G : A co B |] ==> F : A co B"
 by (auto simp add: constrains_def component_eq_subset)
@@ -118,7 +115,7 @@ by (auto simp add: constrains_def component_eq_subset)
 lemmas program_less_le = strict_component_def [THEN meta_eq_to_obj_eq]
 
 
-(*** preserves ***)
+subsection{*The preserves property*}
 
 lemma preservesI: "(!!z. F : stable {s. v s = z}) ==> F : preserves v"
 by (unfold preserves_def, blast)
@@ -135,8 +132,7 @@ done
 
 lemma JN_preserves [iff]:
      "(JOIN I F : preserves v) = (ALL i:I. F i : preserves v)"
-apply (simp (no_asm) add: JN_stable preserves_def)
-apply blast
+apply (simp add: JN_stable preserves_def, blast)
 done
 
 lemma SKIP_preserves [iff]: "SKIP : preserves v"
@@ -153,16 +149,13 @@ declare preserves_funPair [THEN eqset_imp_iff, iff]
 
 
 lemma funPair_o_distrib: "(funPair f g) o h = funPair (f o h) (g o h)"
-apply (simp (no_asm) add: funPair_def o_def)
-done
+by (simp add: funPair_def o_def)
 
 lemma fst_o_funPair [simp]: "fst o (funPair f g) = f"
-apply (simp (no_asm) add: funPair_def o_def)
-done
+by (simp add: funPair_def o_def)
 
 lemma snd_o_funPair [simp]: "snd o (funPair f g) = g"
-apply (simp (no_asm) add: funPair_def o_def)
-done
+by (simp add: funPair_def o_def)
 
 lemma subset_preserves_o: "preserves v <= preserves (w o v)"
 by (force simp add: preserves_def stable_def constrains_def)
@@ -244,18 +237,13 @@ lemmas strict_component_of_eq =
 
 (** localize **)
 lemma localize_Init_eq [simp]: "Init (localize v F) = Init F"
-apply (unfold localize_def)
-apply (simp (no_asm))
-done
+by (simp add: localize_def)
 
 lemma localize_Acts_eq [simp]: "Acts (localize v F) = Acts F"
-apply (unfold localize_def)
-apply (simp (no_asm))
-done
+by (simp add: localize_def)
 
 lemma localize_AllowedActs_eq [simp]: 
  "AllowedActs (localize v F) = AllowedActs F Int (UN G:(preserves v). Acts G)"
-apply (unfold localize_def, auto)
-done
+by (unfold localize_def, auto)
 
 end

@@ -3,10 +3,12 @@
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1998  University of Cambridge
 
-Extending of state sets
+Extending of state setsExtending of state sets
   function f (forget)    maps the extended state to the original state
   function g (forgotten) maps the extended state to the "extending part"
 *)
+
+header{*Extending State Sets*}
 
 theory Extend = Guar:
 
@@ -60,7 +62,8 @@ locale Extend =
 (** These we prove OUTSIDE the locale. **)
 
 
-(*** Restrict [MOVE to Relation.thy?] ***)
+subsection{*Restrict*}
+(*MOVE to Relation.thy?*)
 
 lemma Restrict_iff [iff]: "((x,y): Restrict A r) = ((x,y): r & x: A)"
 by (unfold Restrict_def, blast)
@@ -130,7 +133,7 @@ apply (auto simp add: prem)
 done
 
 
-(*** Trivial properties of f, g, h ***)
+subsection{*Trivial properties of f, g, h*}
 
 lemma (in Extend) f_h_eq [simp]: "f(h(x,y)) = x" 
 by (simp add: f_def good_h [unfolded good_map_def, THEN conjunct2])
@@ -163,7 +166,7 @@ qed
 
 
 
-(*** extend_set: basic properties ***)
+subsection{*@{term extend_set}: basic properties*}
 
 lemma project_set_iff [iff]:
      "(x : project_set h C) = (EX y. h(x,y) : C)"
@@ -210,7 +213,7 @@ apply (unfold extend_set_def)
 apply (auto simp add: split_extended_all)
 done
 
-(*** project_set: basic properties ***)
+subsection{*@{term project_set}: basic properties*}
 
 (*project_set is simply image!*)
 lemma (in Extend) project_set_eq: "project_set h C = f ` C"
@@ -221,7 +224,7 @@ lemma (in Extend) project_set_I: "!!z. z : C ==> f z : project_set h C"
 by (auto simp add: split_extended_all)
 
 
-(*** More laws ***)
+subsection{*More laws*}
 
 (*Because A and B could differ on the "other" part of the state, 
    cannot generalize to 
@@ -265,7 +268,7 @@ lemma (in Extend) extend_set_subset_Compl_eq:
 by (unfold extend_set_def, auto)
 
 
-(*** extend_act ***)
+subsection{*@{term extend_act}*}
 
 (*Can't strengthen it to
   ((h(s,y), h(s',y')) : extend_act h act) = ((s, s') : act & y=y')
@@ -335,9 +338,9 @@ done
 
 
 
-(**** extend ****)
+subsection{*extend ****)
 
-(*** Basic properties ***)
+(*** Basic properties*}
 
 lemma Init_extend [simp]:
      "Init (extend h F) = extend_set h (Init F)"
@@ -451,7 +454,7 @@ lemma (in Extend) project_mono: "F <= G ==> project h C F <= project h C G"
 by (simp add: component_eq_subset, blast)
 
 
-(*** Safety: co, stable ***)
+subsection{*Safety: co, stable*}
 
 lemma (in Extend) extend_constrains:
      "(extend h F : (extend_set h A) co (extend_set h B)) =  
@@ -477,7 +480,7 @@ lemma (in Extend) extend_stable_project_set:
 by (simp add: stable_def extend_constrains_project_set)
 
 
-(*** Weak safety primitives: Co, Stable ***)
+subsection{*Weak safety primitives: Co, Stable*}
 
 lemma (in Extend) reachable_extend_f:
      "p : reachable (extend h F) ==> f p : reachable F"
@@ -570,7 +573,7 @@ lemma project_stable_project_set:
 by (simp add: stable_def project_constrains_project_set)
 
 
-(*** Progress: transient, ensures ***)
+subsection{*Progress: transient, ensures*}
 
 lemma (in Extend) extend_transient:
      "(extend h F : transient (extend_set h A)) = (F : transient A)"
@@ -591,7 +594,7 @@ apply (erule leadsTo_induct)
 apply (simp add: leadsTo_UN extend_set_Union)
 done
 
-(*** Proving the converse takes some doing! ***)
+subsection{*Proving the converse takes some doing!*}
 
 lemma (in Extend) slice_iff [iff]: "(x : slice C y) = (h(x,y) : C)"
 by (simp (no_asm) add: slice_def)
@@ -631,7 +634,7 @@ apply (simp (no_asm) add: project_set_is_UN_slice)
 apply (blast intro: leadsTo_UN)
 done
 
-lemma (in Extend) extend_leadsTo_slice [rule_format (no_asm)]:
+lemma (in Extend) extend_leadsTo_slice [rule_format]:
      "extend h F : AU leadsTo BU  
       ==> ALL y. F : (slice AU y) leadsTo (project_set h BU)"
 apply (erule leadsTo_induct)
@@ -656,7 +659,7 @@ by (simp add: LeadsTo_def reachable_extend_eq extend_leadsTo
               extend_set_Int_distrib [symmetric])
 
 
-(*** preserves ***)
+subsection{*preserves*}
 
 lemma (in Extend) project_preserves_I:
      "G : preserves (v o f) ==> project h C G : preserves v"
@@ -677,7 +680,7 @@ by (auto simp add: preserves_def extend_def extend_act_def stable_def
                    constrains_def g_def)
 
 
-(*** Guarantees ***)
+subsection{*Guarantees*}
 
 lemma (in Extend) project_extend_Join:
      "project h UNIV ((extend h F) Join G) = F Join (project h UNIV G)"

@@ -2,9 +2,9 @@
     ID:         $Id$
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   2000  University of Cambridge
-
-Renaming of state sets
 *)
+
+header{*Renaming of State Sets*}
 
 theory Rename = Extend:
 
@@ -42,7 +42,7 @@ lemma Init_rename [simp]: "Init (rename h F) = h`(Init F)"
 by (simp add: rename_def)
 
 
-(*** inverse properties ***)
+subsection{*inverse properties*}
 
 lemma extend_set_inv: 
      "bij h  
@@ -166,7 +166,7 @@ lemma bij_rename_iff [simp]: "bij (rename h) = bij h"
 by (blast intro: bij_rename bij_rename_imp_bij)
 
 
-(*** the lattice operations ***)
+subsection{*the lattice operations*}
 
 lemma rename_SKIP [simp]: "bij h ==> rename h SKIP = SKIP"
 by (simp add: rename_def Extend.extend_SKIP)
@@ -180,7 +180,7 @@ lemma rename_JN [simp]:
 by (simp add: rename_def Extend.extend_JN)
 
 
-(*** Strong Safety: co, stable ***)
+subsection{*Strong Safety: co, stable*}
 
 lemma rename_constrains: 
      "bij h ==> (rename h F : (h`A) co (h`B)) = (F : A co B)"
@@ -205,7 +205,7 @@ apply (simp add: increasing_def rename_stable [symmetric] bij_image_Collect_eq b
 done
 
 
-(*** Weak Safety: Co, Stable ***)
+subsection{*Weak Safety: Co, Stable*}
 
 lemma reachable_rename_eq: 
      "bij h ==> reachable (rename h F) = h ` (reachable F)"
@@ -230,7 +230,7 @@ by (simp add: Increasing_def rename_Stable [symmetric] bij_image_Collect_eq
               bij_is_surj [THEN surj_f_inv_f])
 
 
-(*** Progress: transient, ensures ***)
+subsection{*Progress: transient, ensures*}
 
 lemma rename_transient: 
      "bij h ==> (rename h F : transient (h`A)) = (F : transient A)"
@@ -290,7 +290,7 @@ lemma OK_rename_iff [simp]: "bij h ==> OK I (%i. rename h (F i)) = (OK I F)"
 by (simp add: Extend.OK_extend_iff rename_def)
 
 
-(*** "image" versions of the rules, for lifting "guarantees" properties ***)
+subsection{*"image" versions of the rules, for lifting "guarantees" properties*}
 
 (*All the proofs are similar.  Better would have been to prove one 
   meta-theorem, but how can we handle the polymorphism?  E.g. in 

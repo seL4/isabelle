@@ -6,6 +6,8 @@
 lift_prog, etc: replication of components and arrays of processes. 
 *)
 
+header{*Replication of Components*}
+
 theory Lift_prog = Rename:
 
 constdefs
@@ -38,9 +40,7 @@ constdefs
 declare insert_map_def [simp] delete_map_def [simp]
 
 lemma insert_map_inverse: "delete_map i (insert_map i x f) = f"
-apply (rule ext)
-apply (simp (no_asm))
-done
+by (rule ext, simp)
 
 lemma insert_map_delete_map_eq: "(insert_map i x (delete_map i g)) = g(i:=x)"
 apply (rule ext)
@@ -50,13 +50,11 @@ done
 (*** Injectiveness proof ***)
 
 lemma insert_map_inject1: "(insert_map i x f) = (insert_map i y g) ==> x=y"
-apply (drule_tac x = i in fun_cong)
-apply (simp (no_asm_use))
-done
+by (drule_tac x = i in fun_cong, simp)
 
 lemma insert_map_inject2: "(insert_map i x f) = (insert_map i y g) ==> f=g"
 apply (drule_tac f = "delete_map i" in arg_cong)
-apply (simp (no_asm_use) add: insert_map_inverse)
+apply (simp add: insert_map_inverse)
 done
 
 lemma insert_map_inject':
@@ -69,8 +67,7 @@ lemmas insert_map_inject = insert_map_inject' [THEN conjE, elim!]
 lemma lift_map_eq_iff [iff]: 
      "(lift_map i (s,(f,uu)) = lift_map i' (s',(f',uu')))  
       = (uu = uu' & insert_map i s f = insert_map i' s' f')"
-apply (unfold lift_map_def, auto)
-done
+by (unfold lift_map_def, auto)
 
 (*The !!s allows the automatic splitting of the bound variable*)
 lemma drop_map_lift_map_eq [simp]: "!!s. drop_map i (lift_map i s) = s"
@@ -91,9 +88,7 @@ apply (force simp add: insert_map_delete_map_eq)
 done
 
 lemma drop_map_inject [dest!]: "(drop_map i s) = (drop_map i s') ==> s=s'"
-apply (drule_tac f = "lift_map i" in arg_cong)
-apply (simp (no_asm_use))
-done
+by (drule_tac f = "lift_map i" in arg_cong, simp)
 
 lemma surj_lift_map: "surj (lift_map i)"
 apply (rule surjI)
@@ -101,8 +96,7 @@ apply (rule lift_map_drop_map_eq)
 done
 
 lemma bij_lift_map [iff]: "bij (lift_map i)"
-apply (simp (no_asm) add: bij_def inj_lift_map surj_lift_map)
-done
+by (simp add: bij_def inj_lift_map surj_lift_map)
 
 lemma inv_lift_map_eq [simp]: "inv (lift_map i) = drop_map i"
 by (rule inv_equality, auto)
@@ -115,8 +109,7 @@ by (simp del: inv_lift_map_eq add: inv_lift_map_eq [symmetric] bij_imp_bij_inv)
 
 (*sub's main property!*)
 lemma sub_apply [simp]: "sub i f = f i"
-apply (simp (no_asm) add: sub_def)
-done
+by (simp add: sub_def)
 
 (*** lift_set ***)
 
@@ -131,7 +124,7 @@ done
 (*Do we really need both this one and its predecessor?*)
 lemma lift_set_iff2 [iff]:
      "((f,uu) : lift_set i A) = ((f i, (delete_map i f, uu)) : A)"
-by (simp (no_asm_simp) add: lift_set_def mem_rename_set_iff drop_map_def)
+by (simp add: lift_set_def mem_rename_set_iff drop_map_def)
 
 
 lemma lift_set_mono: "A<=B ==> lift_set i A <= lift_set i B"
@@ -141,7 +134,7 @@ done
 
 lemma lift_set_Un_distrib: "lift_set i (A Un B) = lift_set i A Un lift_set i B"
 apply (unfold lift_set_def)
-apply (simp (no_asm_simp) add: image_Un)
+apply (simp add: image_Un)
 done
 
 lemma lift_set_Diff_distrib: "lift_set i (A-B) = lift_set i A - lift_set i B"
@@ -153,91 +146,71 @@ done
 (*** the lattice operations ***)
 
 lemma bij_lift [iff]: "bij (lift i)"
-apply (simp (no_asm) add: lift_def)
-done
+by (simp add: lift_def)
 
 lemma lift_SKIP [simp]: "lift i SKIP = SKIP"
-apply (unfold lift_def)
-apply (simp (no_asm_simp))
-done
+by (simp add: lift_def)
 
 lemma lift_Join [simp]: "lift i (F Join G) = lift i F Join lift i G"
-apply (unfold lift_def)
-apply (simp (no_asm_simp))
-done
+by (simp add: lift_def)
 
 lemma lift_JN [simp]: "lift j (JOIN I F) = (JN i:I. lift j (F i))"
-apply (unfold lift_def)
-apply (simp (no_asm_simp))
-done
+by (simp add: lift_def)
 
 (*** Safety: co, stable, invariant ***)
 
 lemma lift_constrains: 
      "(lift i F : (lift_set i A) co (lift_set i B)) = (F : A co B)"
-apply (unfold lift_def lift_set_def)
-apply (simp (no_asm_simp) add: rename_constrains)
-done
+by (simp add: lift_def lift_set_def rename_constrains)
 
 lemma lift_stable: 
      "(lift i F : stable (lift_set i A)) = (F : stable A)"
-apply (unfold lift_def lift_set_def)
-apply (simp (no_asm_simp) add: rename_stable)
-done
+by (simp add: lift_def lift_set_def rename_stable)
 
 lemma lift_invariant: 
      "(lift i F : invariant (lift_set i A)) = (F : invariant A)"
 apply (unfold lift_def lift_set_def)
-apply (simp (no_asm_simp) add: rename_invariant)
+apply (simp add: rename_invariant)
 done
 
 lemma lift_Constrains: 
      "(lift i F : (lift_set i A) Co (lift_set i B)) = (F : A Co B)"
 apply (unfold lift_def lift_set_def)
-apply (simp (no_asm_simp) add: rename_Constrains)
+apply (simp add: rename_Constrains)
 done
 
 lemma lift_Stable: 
      "(lift i F : Stable (lift_set i A)) = (F : Stable A)"
 apply (unfold lift_def lift_set_def)
-apply (simp (no_asm_simp) add: rename_Stable)
+apply (simp add: rename_Stable)
 done
 
 lemma lift_Always: 
      "(lift i F : Always (lift_set i A)) = (F : Always A)"
 apply (unfold lift_def lift_set_def)
-apply (simp (no_asm_simp) add: rename_Always)
+apply (simp add: rename_Always)
 done
 
 (*** Progress: transient, ensures ***)
 
 lemma lift_transient: 
      "(lift i F : transient (lift_set i A)) = (F : transient A)"
-
-apply (unfold lift_def lift_set_def)
-apply (simp (no_asm_simp) add: rename_transient)
-done
+by (simp add: lift_def lift_set_def rename_transient)
 
 lemma lift_ensures: 
      "(lift i F : (lift_set i A) ensures (lift_set i B)) =  
       (F : A ensures B)"
-apply (unfold lift_def lift_set_def)
-apply (simp (no_asm_simp) add: rename_ensures)
-done
+by (simp add: lift_def lift_set_def rename_ensures)
 
 lemma lift_leadsTo: 
      "(lift i F : (lift_set i A) leadsTo (lift_set i B)) =  
       (F : A leadsTo B)"
-apply (unfold lift_def lift_set_def)
-apply (simp (no_asm_simp) add: rename_leadsTo)
-done
+by (simp add: lift_def lift_set_def rename_leadsTo)
 
 lemma lift_LeadsTo: 
      "(lift i F : (lift_set i A) LeadsTo (lift_set i B)) =   
       (F : A LeadsTo B)"
-apply (unfold lift_def lift_set_def)
-apply (simp (no_asm_simp) add: rename_LeadsTo)
-done
+by (simp add: lift_def lift_set_def rename_LeadsTo)
 
 
 (** guarantees **)
@@ -245,10 +218,9 @@ done
 lemma lift_lift_guarantees_eq: 
      "(lift i F : (lift i ` X) guarantees (lift i ` Y)) =  
       (F : X guarantees Y)"
-
 apply (unfold lift_def)
 apply (subst bij_lift_map [THEN rename_rename_guarantees_eq, symmetric])
-apply (simp (no_asm_simp) add: o_def)
+apply (simp add: o_def)
 done
 
 lemma lift_guarantees_eq_lift_inv: "(lift i F : X guarantees Y) =  
@@ -266,14 +238,14 @@ by (simp add: bij_lift_map [THEN rename_guarantees_eq_rename_inv] lift_def)
   change function components other than i*)
 lemma lift_preserves_snd_I: "F : preserves snd ==> lift i F : preserves snd"
 apply (drule_tac w1=snd in subset_preserves_o [THEN subsetD])
-apply (simp (no_asm_simp) add: lift_def rename_preserves)
-apply (simp (no_asm_use) add: lift_map_def o_def split_def)
+apply (simp add: lift_def rename_preserves)
+apply (simp add: lift_map_def o_def split_def)
 done
 
 lemma delete_map_eqE':
      "(delete_map i g) = (delete_map i g') ==> EX x. g = g'(i:=x)"
 apply (drule_tac f = "insert_map i (g i) " in arg_cong)
-apply (simp (no_asm_use) add: insert_map_delete_map_eq)
+apply (simp add: insert_map_delete_map_eq)
 apply (erule exI)
 done
 
@@ -302,7 +274,8 @@ done
 lemma preserves_snd_lift_stable:
      "[| F : preserves snd;  i~=j |]  
       ==> lift j F : stable (lift_set i (A <*> UNIV))"
-apply (auto simp add: lift_def lift_set_def stable_def constrains_def rename_def extend_def mem_rename_set_iff)
+apply (auto simp add: lift_def lift_set_def stable_def constrains_def 
+                      rename_def extend_def mem_rename_set_iff)
 apply (auto dest!: preserves_imp_eq simp add: lift_map_def drop_map_def)
 apply (drule_tac x = i in fun_cong, auto)
 done
@@ -315,7 +288,8 @@ lemma constrains_imp_lift_constrains:
      ==> lift j (F j) : (lift_set i (A <*> UNIV)) co (lift_set i (B <*> UNIV))"
 apply (case_tac "i=j")
 apply (simp add: lift_def lift_set_def rename_constrains)
-apply (erule preserves_snd_lift_stable[THEN stableD, THEN constrains_weaken_R], assumption)
+apply (erule preserves_snd_lift_stable[THEN stableD, THEN constrains_weaken_R],
+       assumption)
 apply (erule constrains_imp_subset [THEN lift_set_mono])
 done
 
@@ -329,8 +303,9 @@ lemma insert_map_upd:
       (if i=j then insert_map i s f  
        else if i<j then insert_map j t (f(i:=s))  
        else insert_map j t (f(i - Suc 0 := s)))"
-apply (rule ext)
+apply (rule ext) 
 apply (simp split add: nat_diff_split) 
+ txt{*This simplification is VERY slow*}
 done
 
 lemma insert_map_eq_diff:
@@ -354,7 +329,8 @@ lemma lift_transient_eq_disj:
           (i=j & F : transient (A <*> UNIV) | A={})"
 apply (case_tac "i=j")
 apply (auto simp add: lift_transient)
-apply (auto simp add: lift_set_def lift_def transient_def rename_def extend_def Domain_extend_act)
+apply (auto simp add: lift_set_def lift_def transient_def rename_def 
+                      extend_def Domain_extend_act)
 apply (drule subsetD, blast, auto)
 apply (rename_tac s f uu s' f' uu')
 apply (subgoal_tac "f'=f & uu'=uu")
@@ -387,7 +363,8 @@ lemma lift_preserves_sub:
           (if i=j then F : preserves (v o fst) else True)"
 apply (drule subset_preserves_o [THEN subsetD])
 apply (simp add: lift_preserves_eq o_def drop_map_lift_map_eq)
-apply (simp cong del: if_weak_cong add: lift_map_def eq_commute split_def o_def, auto)
+apply (auto cong del: if_weak_cong 
+            simp add: lift_map_def eq_commute split_def o_def)
 done
 
 
@@ -443,7 +420,7 @@ lemma UNION_OK_lift_I:
          ALL i:I. UNION (preserves fst) Acts <= AllowedActs (F i) |]  
       ==> OK I (%i. lift i (F i))"
 apply (auto simp add: OK_def lift_def rename_def Extend.Acts_extend)
-apply (simp (no_asm) add: Extend.AllowedActs_extend project_act_extend_act)
+apply (simp add: Extend.AllowedActs_extend project_act_extend_act)
 apply (rename_tac "act")
 apply (subgoal_tac
        "{(x, x'). \<exists>s f u s' f' u'. 
@@ -468,6 +445,6 @@ by (simp add: lift_def Allowed_rename)
 
 lemma lift_image_preserves:
      "lift i ` preserves v = preserves (v o drop_map i)"
-by (simp (no_asm) add: rename_image_preserves lift_def inv_lift_map_eq)
+by (simp add: rename_image_preserves lift_def inv_lift_map_eq)
 
 end

@@ -2,9 +2,9 @@
     ID:         $Id$
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1998  University of Cambridge
-
-The "Follows" relation of Charpentier and Sivilotte
 *)
+
+header{*The Follows Relation of Charpentier and Sivilotte*}
 
 theory Follows = SubstAx + ListOrder + Multiset:
 
@@ -35,9 +35,8 @@ apply (erule LeadsTo_weaken)
 apply (blast intro: monoD order_trans)+
 done
 
-lemma Follows_constant: "F : (%s. c) Fols (%s. c)"
+lemma Follows_constant [iff]: "F : (%s. c) Fols (%s. c)"
 by (unfold Follows_def, auto)
-declare Follows_constant [iff]
 
 lemma mono_Follows_o: "mono h ==> f Fols g <= (h o f) Fols (h o g)"
 apply (unfold Follows_def, clarify)
@@ -60,28 +59,23 @@ apply (blast intro: order_trans LeadsTo_Trans)
 done
 
 
-(** Destructiom rules **)
+subsection{*Destruction rules*}
 
-lemma Follows_Increasing1: 
-     "F : f Fols g ==> F : Increasing f"
-
+lemma Follows_Increasing1: "F : f Fols g ==> F : Increasing f"
 apply (unfold Follows_def, blast)
 done
 
-lemma Follows_Increasing2: 
-     "F : f Fols g ==> F : Increasing g"
+lemma Follows_Increasing2: "F : f Fols g ==> F : Increasing g"
 apply (unfold Follows_def, blast)
 done
 
-lemma Follows_Bounded: 
-     "F : f Fols g ==> F : Always {s. f s <= g s}"
+lemma Follows_Bounded: "F : f Fols g ==> F : Always {s. f s <= g s}"
 apply (unfold Follows_def, blast)
 done
 
 lemma Follows_LeadsTo: 
      "F : f Fols g ==> F : {s. k <= g s} LeadsTo {s. k <= f s}"
-apply (unfold Follows_def, blast)
-done
+by (unfold Follows_def, blast)
 
 lemma Follows_LeadsTo_pfixLe:
      "F : f Fols g ==> F : {s. k pfixLe g s} LeadsTo {s. k pfixLe f s}"
@@ -107,7 +101,8 @@ lemma Always_Follows1:
 
 apply (unfold Follows_def Increasing_def Stable_def, auto)
 apply (erule_tac [3] Always_LeadsTo_weaken)
-apply (erule_tac A = "{s. z <= f s}" and A' = "{s. z <= f s}" in Always_Constrains_weaken, auto)
+apply (erule_tac A = "{s. z <= f s}" and A' = "{s. z <= f s}" 
+       in Always_Constrains_weaken, auto)
 apply (drule Always_Int_I, assumption)
 apply (force intro: Always_weaken)
 done
@@ -116,13 +111,14 @@ lemma Always_Follows2:
      "[| F : Always {s. g s = g' s}; F : f Fols g |] ==> F : f Fols g'"
 apply (unfold Follows_def Increasing_def Stable_def, auto)
 apply (erule_tac [3] Always_LeadsTo_weaken)
-apply (erule_tac A = "{s. z <= g s}" and A' = "{s. z <= g s}" in Always_Constrains_weaken, auto)
+apply (erule_tac A = "{s. z <= g s}" and A' = "{s. z <= g s}"
+       in Always_Constrains_weaken, auto)
 apply (drule Always_Int_I, assumption)
 apply (force intro: Always_weaken)
 done
 
 
-(** Union properties (with the subset ordering) **)
+subsection{*Union properties (with the subset ordering)*}
 
 (*Can replace "Un" by any sup.  But existing max only works for linorders.*)
 lemma increasing_Un: 
@@ -137,7 +133,8 @@ done
 lemma Increasing_Un: 
     "[| F : Increasing f;  F: Increasing g |]  
      ==> F : Increasing (%s. (f s) Un (g s))"
-apply (unfold Increasing_def Stable_def Constrains_def stable_def constrains_def, auto)
+apply (auto simp add: Increasing_def Stable_def Constrains_def
+                      stable_def constrains_def)
 apply (drule_tac x = "f xa" in spec)
 apply (drule_tac x = "g xa" in spec)
 apply (blast dest!: bspec)
@@ -147,8 +144,7 @@ done
 lemma Always_Un:
      "[| F : Always {s. f' s <= f s}; F : Always {s. g' s <= g s} |]  
       ==> F : Always {s. f' s Un g' s <= f s Un g s}"
-apply (simp add: Always_eq_includes_reachable, blast)
-done
+by (simp add: Always_eq_includes_reachable, blast)
 
 (*Lemma to re-use the argument that one variable increases (progress)
   while the other variable doesn't decrease (safety)*)
@@ -164,8 +160,7 @@ apply (rule LeadsTo_weaken)
 apply (rule PSP_Stable)
 apply (erule_tac x = "f s" in spec)
 apply (erule Stable_Int, assumption)
-apply blast
-apply blast
+apply blast+
 done
 
 lemma Follows_Un: 
@@ -180,12 +175,11 @@ apply (blast intro: Follows_Un_lemma [THEN LeadsTo_weaken])
 done
 
 
-(** Multiset union properties (with the multiset ordering) **)
+subsection{*Multiset union properties (with the multiset ordering)*}
 
 lemma increasing_union: 
     "[| F : increasing f;  F: increasing g |]  
      ==> F : increasing (%s. (f s) + (g s :: ('a::order) multiset))"
-
 apply (unfold increasing_def stable_def constrains_def, auto)
 apply (drule_tac x = "f xa" in spec)
 apply (drule_tac x = "g xa" in spec)
@@ -196,7 +190,8 @@ done
 lemma Increasing_union: 
     "[| F : Increasing f;  F: Increasing g |]  
      ==> F : Increasing (%s. (f s) + (g s :: ('a::order) multiset))"
-apply (unfold Increasing_def Stable_def Constrains_def stable_def constrains_def, auto)
+apply (auto simp add: Increasing_def Stable_def Constrains_def
+                      stable_def constrains_def)
 apply (drule_tac x = "f xa" in spec)
 apply (drule_tac x = "g xa" in spec)
 apply (drule bspec, assumption) 

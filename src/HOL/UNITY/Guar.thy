@@ -3,8 +3,6 @@
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1999  University of Cambridge
 
-Guarantees, etc.
-
 From Chandy and Sanders, "Reasoning About Program Composition",
 Technical Report 2000-003, University of Florida, 2000.
 
@@ -17,6 +15,8 @@ from Charpentier and Chandy "Theorems about Composition",
 Fifth International Conference on Mathematics of Program, 2000.
 
 *)
+
+header{*Guarantees Specifications*}
 
 theory Guar = Comp:
 
@@ -80,7 +80,7 @@ by (auto intro: ok_sym simp add: OK_iff_ok)
 
 
 (*** existential properties ***)
-lemma ex1 [rule_format (no_asm)]: 
+lemma ex1 [rule_format]: 
  "[| ex_prop X; finite GG |] ==>  
      GG Int X ~= {}--> OK GG (%G. G) -->(JN G:GG. G) : X"
 apply (unfold ex_prop_def)

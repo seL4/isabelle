@@ -6,6 +6,8 @@
 Weak LeadsTo relation (restricted to the set of reachable states)
 *)
 
+header{*Weak Progress*}
+
 theory SubstAx = WFair + Constrains:
 
 constdefs
@@ -27,7 +29,7 @@ apply (blast dest: psp_stable2 intro: leadsTo_weaken)
 done
 
 
-(*** Specialized laws for handling invariants ***)
+subsection{*Specialized laws for handling invariants*}
 
 (** Conjoining an Always property **)
 
@@ -46,7 +48,7 @@ lemmas Always_LeadsToI = Always_LeadsTo_pre [THEN iffD1, standard]
 lemmas Always_LeadsToD = Always_LeadsTo_post [THEN iffD2, standard]
 
 
-(*** Introduction rules: Basis, Trans, Union ***)
+subsection{*Introduction rules: Basis, Trans, Union*}
 
 lemma leadsTo_imp_LeadsTo: "F : A leadsTo B ==> F : A LeadsTo B"
 apply (simp add: LeadsTo_def)
@@ -67,7 +69,7 @@ apply (blast intro: leadsTo_UN)
 done
 
 
-(*** Derived rules ***)
+subsection{*Derived rules*}
 
 lemma LeadsTo_UNIV [simp]: "F : A LeadsTo UNIV"
 by (simp add: LeadsTo_def)
@@ -302,7 +304,7 @@ apply (rule LeadsTo_Diff)
 done
 
 
-(*** Induction rules ***)
+subsection{*Induction rules*}
 
 (** Meta or object quantifier ????? **)
 lemma LeadsTo_wf_induct:
@@ -368,7 +370,7 @@ apply (blast intro: LeadsTo_weaken_R diff_less_mono2)
 done
 
 
-(*** Completion: Binary and General Finite versions ***)
+subsection{*Completion: Binary and General Finite versions*}
 
 lemma Completion:
      "[| F : A LeadsTo (A' Un C);  F : A' Co (A' Un C);  

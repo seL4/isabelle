@@ -2,9 +2,9 @@
     ID:         $Id$
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   2003  University of Cambridge
-
-Inclusive UNITY theory
 *)
+
+header{*Comprehensive UNITY Theory*}
 
 theory UNITY_Main = Detects + PPROD + Follows
 files "UNITY_tactics.ML":
