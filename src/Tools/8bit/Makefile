@@ -243,7 +243,7 @@ a2isa:
 bin/isa2latex: c-sources/isa2latex/isa2latex
 	@echo "installing isa2latex"
 	@rm -f bin/isa2latex;\
-	ln -s ../c-sources/isa2latex/isa2latex bin/isa2latex
+	cp ../c-sources/isa2latex/isa2latex bin/isa2latex
 
 bin/a2isa: c-sources/a2isa/a2isa
 	@echo "installing a2isa"
