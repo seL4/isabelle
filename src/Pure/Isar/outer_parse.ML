@@ -71,6 +71,7 @@ sig
   val spec_opt_name: token list -> ((bstring * string) * Args.src list) * token list
   val xthm: token list -> (xstring * Args.src list) * token list
   val xthms1: token list -> (xstring * Args.src list) list * token list
+  val locale_expr: token list -> Locale.expr * token list
   val locale_element: token list -> Args.src Locale.element * token list
   val method: token list -> Method.text * token list
 end;
@@ -306,24 +307,34 @@ val xthms1 = Scan.repeat1 xthm;
 
 (* locale elements *)
 
-(* FIXME
-fun expr2 x = (xname >> Locale.Locale || $$$ "(" |-- !!! (expr0 --| $$$ ")")) x
-and expr1 x = (expr2 -- Scan.repeat1 uname >> Locale.Rename || expr2) x
-and expr0 x = (enum1 "+" expr1 >> (fn [e] => e | es => Locale.Merge es)) x;
-*)
-val expr0 = xname;
+local
 
 val loc_mixfix = $$$ "(" -- $$$ "structure" -- !!! ($$$ ")") >> K None || opt_mixfix >> Some;
+val loc_keyword = $$$ "fixes" || $$$ "assumes" || $$$ "defines" || $$$ "notes" || $$$ "uses";
+
+fun plus1 scan =
+  scan -- Scan.repeat ($$$ "+" |-- Scan.unless loc_keyword (!!! scan)) >> op ::;
+
+fun expr2 x = (xname >> Locale.Locale || $$$ "(" |-- !!! (expr0 --| $$$ ")")) x
+and expr1 x = (expr2 -- Scan.repeat1 uname >> Locale.Rename || expr2) x
+and expr0 x = (plus1 expr1 >> (fn [e] => e | es => Locale.Merge es)) x;
+
+in
+
+val locale_expr = expr0;
 
 val locale_element = group "locale element"
   ($$$ "fixes" |-- !!! (and_list1 (name -- Scan.option ($$$ "::" |-- typ) -- loc_mixfix
-    >> triple1)) >> Locale.Fixes ||
+    >> triple1)) >> (Locale.Elem o Locale.Fixes) ||
   $$$ "assumes" |-- !!! (and_list1 (opt_thm_name ":" -- Scan.repeat1 propp))
-    >> Locale.Assumes ||
+    >> (Locale.Elem o Locale.Assumes) ||
   $$$ "defines" |-- !!! (and_list1 (opt_thm_name ":" -- propp'))
-    >> Locale.Defines ||
-  $$$ "notes" |-- !!! (and_list1 (opt_thm_name "=" -- xthms1)) >> Locale.Notes ||
-  $$$ "uses" |-- !!! expr0 >> (Locale.Uses o Locale.Locale));
+    >> (Locale.Elem o Locale.Defines) ||
+  $$$ "notes" |-- !!! (and_list1 (opt_thm_name "=" -- xthms1))
+    >> (Locale.Elem o Locale.Notes) ||
+  $$$ "uses" |-- !!! locale_expr >> Locale.Expr);
+
+end;
 
 
 (* proof methods *)
