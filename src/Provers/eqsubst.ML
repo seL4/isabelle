@@ -117,8 +117,8 @@ fun eqsubst_tac instepthms i th =
    the first one, then the second etc *)
 fun eqsubst_meth inthms =
     Method.METHOD 
-      (fn facts =>
-          HEADGOAL (eqsubst_tac inthms THEN' Method.insert_tac facts));
+      (fn facts =>  (*first, insert chained facts*)
+          HEADGOAL (Method.insert_tac facts THEN' eqsubst_tac inthms));
 
 
 fun apply_subst_in_asm rule cfvs i th matchseq = 
@@ -184,8 +184,9 @@ fun eqsubst_asm_tac instepthms i th =
    the first one, then the second etc *)
 fun eqsubst_asm_meth inthms =
     Method.METHOD 
-      (fn facts =>
-          HEADGOAL (eqsubst_asm_tac inthms THEN' Method.insert_tac facts));
+      (fn facts =>  (*first, insert chained facts*)
+          HEADGOAL (Method.insert_tac facts THEN' eqsubst_asm_tac inthms));
+
 
 (* combination method that takes a flag (true indicates that subst
 should be done to an assumption, false = apply to the conclusion of
