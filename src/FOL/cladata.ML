@@ -21,7 +21,8 @@ structure Classical_Data =
   end;
 
 structure Cla = ClassicalFun(Classical_Data);
-open Cla;
+structure BasicClassical: BASIC_CLASSICAL = Cla;
+open BasicClassical;
 
 (*Better for fast_tac: needs no quantifier duplication!*)
 qed_goal "alt_ex1E" IFOL.thy
@@ -57,11 +58,10 @@ structure Blast_Data =
   val hyp_subst_tac = Hypsubst.blast_hyp_subst_tac
   val claset	= Cla.claset
   val rep_cs    = Cla.rep_cs
+  val cla_method' = Cla.cla_method'
   end;
 
 structure Blast = BlastFun(Blast_Data);
 
 val Blast_tac = Blast.Blast_tac
 and blast_tac = Blast.blast_tac;
-
-

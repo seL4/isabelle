@@ -76,6 +76,7 @@ structure Blast_Data =
   val hyp_subst_tac = Hypsubst.blast_hyp_subst_tac
   val claset	= Classical.claset
   val rep_cs    = Classical.rep_cs
+  val cla_method' = Classical.cla_method'
   end;
 
 structure Blast = BlastFun(Blast_Data);
