@@ -15,6 +15,7 @@ end;
 signature TOKEN_TRANS =
 sig
   include TOKEN_TRANS0
+  val standard_token_markers: string list
   val normal: string
   val bold: string
   val underline: string
@@ -53,6 +54,7 @@ fun tokentrans_mode m trs = map (fn (s, f) => (m, s, f)) trs;
 val standard_token_classes =
   ["class", "tfree", "tvar", "free", "bound", "var", "num", "xnum", "xstr"];
 
+val standard_token_markers = map (fn s => "_" ^ s) standard_token_classes;
 
 
 (** xterm output **)

@@ -99,7 +99,10 @@ fun typ_to_ast trf T = ast_of_termT trf (TypeExt.term_of_typ (! show_sorts) T);
 
 (** term_to_ast **)
 
-fun mark_freevars (t $ u) = mark_freevars t $ mark_freevars u
+fun mark_freevars ((t as Const (c, _)) $ u) =
+      if c mem_string TokenTrans.standard_token_markers then (t $ u)
+      else t $ mark_freevars u
+  | mark_freevars (t $ u) = mark_freevars t $ mark_freevars u
   | mark_freevars (Abs (x, T, t)) = Abs (x, T, mark_freevars t)
   | mark_freevars (t as Free _) = Lexicon.const "_free" $ t
   | mark_freevars (t as Var (xi, T)) =
