@@ -391,6 +391,7 @@ by (rtac (surjective_pairing RS subst) 1);
 by (assume_tac 1);
 qed "snd_imageE";
 
+
 (** Exhaustion rule for unit -- a degenerate form of induction **)
 
 Goalw [Unity_def]
@@ -402,7 +403,22 @@ qed "unit_eq";
 AddIs  [fst_imageI, snd_imageI, prod_fun_imageI];
 AddSEs [fst_imageE, snd_imageE, prod_fun_imageE];
 
-structure Prod_Syntax =
+
+(*simplification procedure for unit_eq; cannot use this rule directly -- loops!*)
+local
+  val unit_pat = Thm.cterm_of (sign_of thy) (Free ("x", HOLogic.unitT));
+  val unit_meta_eq = standard (mk_meta_eq unit_eq);
+  fun proc _ _ t =
+    if HOLogic.is_unit t then None
+    else Some unit_meta_eq;
+in
+  val unit_eq_proc = Simplifier.mk_simproc "unit_eq" [unit_pat] proc;
+end;
+
+Addsimprocs [unit_eq_proc];
+
+
+structure Prod_Syntax =		(* FIXME eliminate (use HOLogic instead!) *)
 struct
 
 val unitT = Type("unit",[]);
