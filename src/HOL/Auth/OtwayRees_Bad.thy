@@ -60,7 +60,8 @@ inductive otway
          (*Bob receives the Server's (?) message and compares the Nonces with
 	   those in the message he previously sent the Server.*)
     OR4  "[| evs4: otway;  A ~= B;
-             Says B Server {|Nonce NA, Agent A, Agent B, X', Nonce NB, X''|}
+             Says B Server {|Nonce NA, Agent A, Agent B, X', Nonce NB,
+                             Crypt (shrK B) {|Nonce NA, Agent A, Agent B|}|}
                : set evs4;
              Says S' B {|Nonce NA, X, Crypt (shrK B) {|Nonce NB, Key K|}|}
                : set evs4 |]
