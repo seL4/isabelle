@@ -349,8 +349,8 @@ writeln"Problem 43";
 goal FOL.thy "(ALL x. ALL y. q(x,y) <-> (ALL z. p(z,x) <-> p(z,y)))     \
 \         --> (ALL x. ALL y. q(x,y) <-> q(y,x))";
 by (Blast_tac 1);
-(*Other proofs: Can use Auto_tac(), whidh cheats by using rewriting!  
-  Deepen_tac alone it requires 253 secs.  Or
+(*Other proofs: Can use Auto_tac(), which cheats by using rewriting!  
+  Deepen_tac alone requires 253 secs.  Or
   by (mini_tac 1 THEN Deepen_tac 5 1);
 *)
 result();
