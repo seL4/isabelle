@@ -343,6 +343,10 @@ val letP =
     (P.and_list1 (P.enum1 "as" P.term -- (P.$$$ "=" |-- P.term) -- P.marg_comment)
       >> (Toplevel.print oo (Toplevel.proof o IsarThy.match_bind)));
 
+val caseP =
+  OuterSyntax.command "case" "invoke local context" K.prf_asm
+    (P.xname -- P.marg_comment >> (Toplevel.print oo (Toplevel.proof o IsarThy.invoke_case)));
+
 
 (* proof structure *)
 
@@ -505,8 +509,12 @@ val print_bindsP =
     (Scan.succeed IsarCmd.print_binds);
 
 val print_lthmsP =
-  OuterSyntax.improper_command "print_facts" "print local theorems of proof context" K.diag
+  OuterSyntax.improper_command "print_facts" "print facts of proof context" K.diag
     (Scan.succeed IsarCmd.print_lthms);
+
+val print_casesP =
+  OuterSyntax.improper_command "print_cases" "print cases of proof context" K.diag
+    (Scan.succeed IsarCmd.print_cases);
 
 val print_thmsP =
   OuterSyntax.improper_command "thm" "print theorems" K.diag (P.xthms1 >> IsarCmd.print_thms);
@@ -631,16 +639,16 @@ val parsers = [
   print_ast_translationP, token_translationP, oracleP,
   (*proof commands*)
   theoremP, lemmaP, showP, haveP, thusP, henceP, assumeP, presumeP,
-  defP, fixP, letP, thenP, thenceP, fromP, withP, noteP, beginP, endP,
-  nextP, qedP, terminal_proofP, immediate_proofP, default_proofP,
-  skip_proofP, forget_proofP, deferP, preferP, applyP, apply_endP,
-  proofP, alsoP, finallyP, backP, cannot_undoP, clear_undosP, redoP,
-  undos_proofP, kill_proofP, undoP,
+  defP, fixP, letP, caseP, thenP, thenceP, fromP, withP, noteP,
+  beginP, endP, nextP, qedP, terminal_proofP, immediate_proofP,
+  default_proofP, skip_proofP, forget_proofP, deferP, preferP, applyP,
+  apply_endP, proofP, alsoP, finallyP, backP, cannot_undoP,
+  clear_undosP, redoP, undos_proofP, kill_proofP, undoP,
   (*diagnostic commands*)
   pretty_setmarginP, print_commandsP, print_contextP, print_theoryP,
   print_syntaxP, print_theoremsP, print_attributesP, print_methodsP,
-  thms_containingP, print_bindsP, print_lthmsP, print_thmsP,
-  print_propP, print_termP, print_typeP,
+  thms_containingP, print_bindsP, print_lthmsP, print_casesP,
+  print_thmsP, print_propP, print_termP, print_typeP,
   (*system commands*)
   cdP, pwdP, use_thyP, use_thy_onlyP, update_thyP, update_thy_onlyP,
   touch_thyP, touch_all_thysP, touch_child_thysP, remove_thyP,
