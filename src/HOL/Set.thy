@@ -1108,6 +1108,9 @@ lemma Collect_neg_eq: "{x. \<not> P x} = - {x. P x}"
 lemma Collect_disj_eq: "{x. P x | Q x} = {x. P x} \<union> {x. Q x}"
   by blast
 
+lemma Collect_imp_eq: "{x. P x --> Q x} = -{x. P x} \<union> {x. Q x}"
+  by blast
+
 lemma Collect_conj_eq: "{x. P x & Q x} = {x. P x} \<inter> {x. Q x}"
   by blast
 
