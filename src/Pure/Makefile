@@ -31,7 +31,7 @@ SYNTAX_FILES =  Syntax/ROOT.ML	Syntax/ast.ML		Syntax/lexicon.ML\
 	Syntax/syn_ext.ML	Syntax/mixfix.ML
 
 THY_FILES = Thy/ROOT.ML		Thy/thy_scan.ML		Thy/thy_parse.ML\
-	Thy/thy_syn.ML		Thy/thy_read.ML
+	Thy/thy_syn.ML		Thy/thy_read.ML		Thy/thm_database.ML
 
 #Uses cp rather than make_database because Poly/ML allows only 3 levels
 $(BIN)/Pure:   $(FILES)  $(SYNTAX_FILES)  $(THY_FILES)  $(ML_DBASE)
