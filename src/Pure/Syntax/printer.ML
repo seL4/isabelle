@@ -178,6 +178,7 @@ datatype symb =
 
 type prtabs = (string * ((symb list * int * int) list) Symtab.table) list;
 
+
 (*find tab for mode*)
 fun get_tab prtabs mode =
   if_none (assoc (prtabs, mode)) Symtab.null;
@@ -191,7 +192,7 @@ fun get_fmts [] _ = []
   | get_fmts (tab :: tabs) a = Symtab.lookup_multi (tab, a) @ get_fmts tabs a;
 
 
-(* xprods_to_fmts *)
+(* xprod_to_fmt *)
 
 fun xprod_to_fmt (XProd (_, _, "", _)) = None
   | xprod_to_fmt (XProd (_, xsymbs, const, pri)) =
@@ -233,8 +234,6 @@ fun xprod_to_fmt (XProd (_, _, "", _)) = None
         | _ => sys_error "xprod_to_fmt: unbalanced blocks")
       end;
 
-fun xprods_to_fmts xprods = mapfilter xprod_to_fmt xprods;
-
 
 (* empty, extend, merge prtabs *)
 
@@ -242,9 +241,11 @@ val empty_prtabs = [];
 
 fun extend_prtabs prtabs mode xprods =
   let
-    val fmts = xprods_to_fmts xprods;
+    val fmts = rev (mapfilter xprod_to_fmt xprods);
     val tab = get_tab prtabs mode;
-    val new_tab = generic_extend (op =) Symtab.dest_multi Symtab.make_multi tab fmts;
+    val new_tab =
+      if null fmts then tab
+      else Symtab.make_multi (fmts @ Symtab.dest_multi tab)     (*prefer new entries*)
   in overwrite (prtabs, (mode, new_tab)) end;
 
 fun merge_prtabs prtabs1 prtabs2 =
@@ -253,7 +254,7 @@ fun merge_prtabs prtabs1 prtabs2 =
     fun merge mode =
       (mode,
         generic_merge (op =) Symtab.dest_multi Symtab.make_multi
-          (get_tab prtabs1 mode) (get_tab prtabs2 mode));
+          (get_tab prtabs2 mode) (get_tab prtabs1 mode));       (*prefer 2nd over 1st*)
   in
     map merge modes
   end;
