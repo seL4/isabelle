@@ -1833,7 +1833,7 @@ fun rewritec (prover,sign_reft,maxt)
               case proc signt prems eta_t of
                 None => (trace false "FAILED"; proc_rews eta_t ps)
               | Some raw_thm =>
-                 (trace_thm false ("Procedure " ^ quote name ^ " proved rewrite rule:") raw_thm;
+                 (trace_thm false ("Procedure " ^ quote name ^ " produced rewrite rule:") raw_thm;
                    (case rews (mk_procrule raw_thm) of
                      None => (trace false "IGNORED"; proc_rews eta_t ps)
                    | some => some)))
