@@ -299,7 +299,7 @@ Unions can be formed over the values of a given  set.  The syntax is
 x\isasymin A.\ B} in \textsc{ascii}. Indexed union satisfies this basic law:
 \begin{isabelle}
 (b\ \isasymin\
-(\isasymUnion x\isasymin A.\ B\ x))\ =\ (\isasymexists x\isasymin A.\
+(\isasymUnion \isactrlbsub x\isasymin A\isactrlesub \ B\ x) =\ (\isasymexists x\isasymin A.\
 b\ \isasymin\ B\ x)
 \rulenamedx{UN_iff}
 \end{isabelle}
@@ -310,13 +310,11 @@ quantifier.  Sometimes \isa{UN_I} must be applied explicitly:
 A;\ b\ \isasymin\
 B\ a\isasymrbrakk\ \isasymLongrightarrow\
 b\ \isasymin\
-({\isasymUnion}x\isasymin A.\
-B\ x)
+(\isasymUnion \isactrlbsub x\isasymin A\isactrlesub \ B\ x)
 \rulenamedx{UN_I}%
 \isanewline
 \isasymlbrakk b\ \isasymin\
-({\isasymUnion}x\isasymin A.\
-B\ x);\
+(\isasymUnion \isactrlbsub x\isasymin A\isactrlesub \ B\ x);\
 {\isasymAnd}x.\ {\isasymlbrakk}x\ \isasymin\
 A;\ b\ \isasymin\
 B\ x\isasymrbrakk\ \isasymLongrightarrow\
@@ -329,7 +327,7 @@ lets us express the union over a \emph{type}:
 \begin{isabelle}
 \ \ \ \ \
 ({\isasymUnion}x.\ B\ x)\ {\isasymrightleftharpoons}\
-({\isasymUnion}x{\isasymin}UNIV.\ B\ x)
+({\isasymUnion}\isactrlbsub x{\isasymin}UNIV\isactrlesub\ B\ x)
 \end{isabelle}
 %Abbreviations work as you might expect.  The term on the left-hand side of
 %the \isasymrightleftharpoons\ symbol is automatically translated to the right-hand side when the
@@ -351,8 +349,7 @@ x:\ A.\ B} and \isa{Inter\ C} in \textsc{ascii}.  Among others, these
 theorems are available:
 \begin{isabelle}
 (b\ \isasymin\
-({\isasymInter}x\isasymin A.\
-B\ x))\
+(\isasymInter \isactrlbsub x\isasymin A\isactrlesub \ B\ x))\
 =\
 ({\isasymforall}x\isasymin A.\
 b\ \isasymin\ B\ x)
@@ -1071,3 +1068,7 @@ greatest fixed point.  Exhibiting a bisimulation to prove the equality of
 two agents in a process algebra is an example of coinduction.
 The coinduction rule can be strengthened in various ways.
 \index{fixed points|)}
+
+%The section "Case Study: Verified Model Checking" is part of this chapter
+\input{CTL/ctl}  
+\endinput
