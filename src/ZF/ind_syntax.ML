@@ -17,13 +17,8 @@ struct
 val iT = Type("i",[])
 and oT = Type("o",[]);
 
-(*Given u expecting arguments of types [T1,...,Tn], create term of 
-  type T1*...*Tn => i using split*)
-fun ap_split split u [ ]   = Abs("null", iT, u)
-  | ap_split split u [_]   = u
-  | ap_split split u [_,_] = split $ u
-  | ap_split split u (T::Ts) = 
-      split $ (Abs("v", T, ap_split split (u $ Bound(length Ts - 2)) Ts));
+
+(** Logical constants **)
 
 val conj = Const("op &", [oT,oT]--->oT)
 and disj = Const("op |", [oT,oT]--->oT)
