@@ -383,6 +383,7 @@
   \item mixfix declarations, 50, 69--74
   \item {\tt mk_case_split_tac}, \bold{116}
   \item {\tt ML} section, 51, 91, 93
+  \item model checkers, 75
   \item {\tt mp} theorem, \bold{129}
   \item {\tt mp_tac}, \bold{128}
   \item {\tt MRL}, \bold{37}
