@@ -60,9 +60,6 @@ text{*
 @{thm[display] relpow.simps[no_vars]}
 \rulename{relpow.simps}
 
-@{thm[display] rtrancl_unfold[no_vars]}
-\rulename{rtrancl_unfold}
-
 @{thm[display] rtrancl_refl[no_vars]}
 \rulename{rtrancl_refl}
 
