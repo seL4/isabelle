@@ -107,7 +107,9 @@ $(LOG)/HOL-Real-HahnBanach.gz: $(OUT)/HOL-Real Real/HahnBanach/Aux.thy \
   Real/HahnBanach/README.html Real/HahnBanach/ROOT.ML \
   Real/HahnBanach/Subspace.thy Real/HahnBanach/VectorSpace.thy \
   Real/HahnBanach/ZornLemma.thy Real/HahnBanach/document/notation.tex \
-  Real/HahnBanach/document/root.bib Real/HahnBanach/document/root.tex
+  Real/HahnBanach/document/bbb.sty Real/HahnBanach/document/root.bib \
+  Real/HahnBanach/document/root.tex \
+  Real/HahnBanach/document/notation.tex
 	@cd Real; $(ISATOOL) usedir $(OUT)/HOL-Real HahnBanach
 
 
