@@ -21,6 +21,7 @@ use "pretty.ML";
 structure PureGeneral =
 struct
   structure Symtab = Symtab;
+  structure Graph = Graph;
   structure Object = Object;
   structure Seq = Seq;
   structure NameSpace = NameSpace;
