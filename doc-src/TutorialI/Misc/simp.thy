@@ -202,6 +202,7 @@ There is also the special method \isa{unfold}\index{*unfold (method)|bold}
 which merely unfolds
 one or several definitions, as in \isacommand{apply}\isa{(unfold xor_def)}.
 This is can be useful in situations where \isa{simp} does too much.
+Warning: \isa{unfold} acts on all subgoals!
 *}
 
 subsection{*Simplifying {\tt\slshape let}-Expressions*}
