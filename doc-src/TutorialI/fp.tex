@@ -257,7 +257,7 @@ see~\S\ref{nat-numerals}.
   \indexboldpos{\isasymle}{$HOL2arithrel} and
   \ttindexboldpos{<}{$HOL2arithrel} are overloaded, i.e.\ they are available
   not just for natural numbers but at other types as well (see
-  \S\ref{sec:TypeClasses}). For example, given the goal \isa{x+0 = x}, there
+  \S\ref{sec:overloading}). For example, given the goal \isa{x+0 = x}, there
   is nothing to indicate that you are talking about natural numbers.  Hence
   Isabelle can only infer that \isa{x} is of some arbitrary type where
   \isa{0} and \isa{+} are declared. As a consequence, you will be unable to
@@ -305,7 +305,7 @@ on properties of multiplication.
 \index{arithmetic|)}
 
 
-\subsection{Products}
+\subsection{Pairs}
 \input{Misc/document/pairs.tex}
 
 %FIXME move stuff below into section on proofs about products?
@@ -315,16 +315,16 @@ on properties of multiplication.
   of a term may differ, which can affect proofs. If you want to avoid this
   complication, use \isa{fst} and \isa{snd}, i.e.\ write
   \isa{\isasymlambda{}p.~fst p + snd p} instead of
-  \isa{\isasymlambda(x,y).~x + y}.  See~\S\ref{proofs-about-products} for
+  \isa{\isasymlambda(x,y).~x + y}.  See~\S\ref{sec:products} for
   theorem proving with tuple patterns.
 \end{warn}
 
-Note that products, like natural numbers, are datatypes, which means
+Note that products, like type \isa{nat}, are datatypes, which means
 in particular that \isa{induct_tac} and \isa{case_tac} are applicable to
-products (see \S\ref{proofs-about-products}).
+products (see \S\ref{sec:products}).
 
 Instead of tuples with many components (where ``many'' is not much above 2),
-it is far preferable to use record types (see \S\ref{sec:records}).
+it is far preferable to use records (see \S\ref{sec:records}).
 
 \section{Definitions}
 \label{sec:Definitions}

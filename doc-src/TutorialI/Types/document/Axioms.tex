@@ -2,8 +2,7 @@
 \begin{isabellebody}%
 \def\isabellecontext{Axioms}%
 %
-\isamarkupsubsection{Axioms%
-}
+\isamarkupsubsection{Axioms}
 %
 \begin{isamarkuptext}%
 Now we want to attach axioms to our classes. Then we can reason on the
@@ -12,8 +11,7 @@ just as in axiomatic mathematics. These ideas are demonstrated by means of
 our above ordering relations.%
 \end{isamarkuptext}%
 %
-\isamarkupsubsubsection{Partial orders%
-}
+\isamarkupsubsubsection{Partial orders}
 %
 \begin{isamarkuptext}%
 A \emph{partial order} is a subclass of \isa{ordrel}
@@ -88,8 +86,7 @@ theorems can be proved in the abstract and one does not need to repeat the
 proof for each instance.%
 \end{isamarkuptext}%
 %
-\isamarkupsubsubsection{Linear orders%
-}
+\isamarkupsubsubsection{Linear orders}
 %
 \begin{isamarkuptext}%
 If any two elements of a partial order are comparable it is a
@@ -115,8 +112,7 @@ later on, i.e.\ subclassing by proof. This is the topic of the following
 section.%
 \end{isamarkuptext}%
 %
-\isamarkupsubsubsection{Strict orders%
-}
+\isamarkupsubsubsection{Strict orders}
 %
 \begin{isamarkuptext}%
 An alternative axiomatization of partial orders takes \isa{{\isacharless}{\isacharless}} rather than
@@ -139,33 +135,64 @@ orders. The proof follows the ususal pattern:%
 \ \isacommand{apply}{\isacharparenleft}blast\ intro{\isacharcolon}\ refl{\isacharparenright}\isanewline
 \isacommand{done}%
 \begin{isamarkuptext}%
+The subclass relation must always be acyclic. Therefore Isabelle will
+complain if you also prove the relationship \isa{strord\ {\isacharless}\ parord}.%
+\end{isamarkuptext}%
+%
+\isamarkupsubsubsection{Multiple inheritance and sorts}
+%
+\begin{isamarkuptext}%
+A class may inherit from more than one direct superclass. This is called
+multiple inheritance and is certainly permitted. For example we could define
+the classes of well-founded orderings and well-orderings:%
+\end{isamarkuptext}%
+\isacommand{axclass}\ wford\ {\isacharless}\ parord\isanewline
+wford{\isacharcolon}\ {\isachardoublequote}wf\ {\isacharbraceleft}{\isacharparenleft}y{\isacharcomma}x{\isacharparenright}{\isachardot}\ y\ {\isacharless}{\isacharless}\ x{\isacharbraceright}{\isachardoublequote}\isanewline
+\isanewline
+\isacommand{axclass}\ wellord\ {\isacharless}\ linord{\isacharcomma}\ wford%
+\begin{isamarkuptext}%
 \noindent
-The result is the following subclass diagram:
+The last line expresses the usual definition: a well-ordering is a linear
+well-founded ordering. The result is the subclass diagram in
+Figure~\ref{fig:subclass}.
+
+\begin{figure}[htbp]
 \[
-\begin{array}{c}
-\isa{term}\\
-|\\
-\isa{ordrel}\\
-|\\
-\isa{strord}\\
-|\\
-\isa{parord}
+\begin{array}{r@ {}r@ {}c@ {}l@ {}l}
+& & \isa{term}\\
+& & |\\
+& & \isa{ordrel}\\
+& & |\\
+& & \isa{strord}\\
+& & |\\
+& & \isa{parord} \\
+& / & & \backslash \\
+\isa{linord} & & & & \isa{wford} \\
+& \backslash & & / \\
+& & \isa{wellord}
 \end{array}
 \]
+\caption{Subclass diagramm}
+\label{fig:subclass}
+\end{figure}
 
-In general, the subclass diagram must be acyclic. Therefore Isabelle will
-complain if you also prove the relationship \isa{strord\ {\isacharless}\ parord}.
-Multiple inheritance is however permitted.
+Since class \isa{wellord} does not introduce any new axioms, it can simply
+be viewed as the intersection of the two classes \isa{linord} and \isa{wford}. Such intersections need not be given a new name but can be created on
+the fly: the expression $\{C@1,\dots,C@n\}$, where the $C@i$ are classes,
+represents the intersection of the $C@i$. Such an expression is called a
+\bfindex{sort}, and sorts can appear in most places where we have only shown
+classes so far, for example in type constraints: \isa{{\isacharprime}a{\isacharcolon}{\isacharcolon}{\isacharbraceleft}linord{\isacharcomma}wford{\isacharbraceright}}.
+In fact, \isa{{\isacharprime}a{\isacharcolon}{\isacharcolon}ord} is short for \isa{{\isacharprime}a{\isacharcolon}{\isacharcolon}{\isacharbraceleft}ord{\isacharbraceright}}.
+However, we do not pursue this rarefied concept further.
 
-This finishes our demonstration of type classes based on orderings.  We
-remind our readers that \isa{Main} contains a much more developed theory of
+This concludes our demonstration of type classes based on orderings.  We
+remind our readers that \isa{Main} contains a theory of
 orderings phrased in terms of the usual \isa{{\isasymle}} and \isa{{\isacharless}}.
 It is recommended that, if possible,
 you base your own ordering relations on this theory.%
 \end{isamarkuptext}%
 %
-\isamarkupsubsubsection{Inconsistencies%
-}
+\isamarkupsubsubsection{Inconsistencies}
 %
 \begin{isamarkuptext}%
 The reader may be wondering what happens if we, maybe accidentally,

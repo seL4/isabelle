@@ -2,8 +2,7 @@
 \begin{isabellebody}%
 \def\isabellecontext{simp}%
 %
-\isamarkupsubsubsection{Simplification rules%
-}
+\isamarkupsubsubsection{Simplification rules}
 %
 \begin{isamarkuptext}%
 \indexbold{simplification rule}
@@ -40,8 +39,7 @@ indicate a badly designed theory.
 \end{warn}%
 \end{isamarkuptext}%
 %
-\isamarkupsubsubsection{The simplification method%
-}
+\isamarkupsubsubsection{The simplification method}
 %
 \begin{isamarkuptext}%
 \index{*simp (method)|bold}
@@ -57,8 +55,7 @@ only the first subgoal and may thus need to be repeated---use
 Note that \isa{simp} fails if nothing changes.%
 \end{isamarkuptext}%
 %
-\isamarkupsubsubsection{Adding and deleting simplification rules%
-}
+\isamarkupsubsubsection{Adding and deleting simplification rules}
 %
 \begin{isamarkuptext}%
 If a certain theorem is merely needed in a few proofs by simplification,
@@ -76,8 +73,7 @@ others:
 \end{quote}%
 \end{isamarkuptext}%
 %
-\isamarkupsubsubsection{Assumptions%
-}
+\isamarkupsubsubsection{Assumptions}
 %
 \begin{isamarkuptext}%
 \index{simplification!with/of assumptions}
@@ -127,8 +123,7 @@ Note that only one of the above options is allowed, and it must precede all
 other arguments.%
 \end{isamarkuptext}%
 %
-\isamarkupsubsubsection{Rewriting with definitions%
-}
+\isamarkupsubsubsection{Rewriting with definitions}
 %
 \begin{isamarkuptext}%
 \index{simplification!with definitions}
@@ -176,8 +171,7 @@ rule because this defeats the whole purpose of an abbreviation.
 \end{warn}%
 \end{isamarkuptext}%
 %
-\isamarkupsubsubsection{Simplifying let-expressions%
-}
+\isamarkupsubsubsection{Simplifying let-expressions}
 %
 \begin{isamarkuptext}%
 \index{simplification!of let-expressions}
@@ -196,8 +190,7 @@ of nested \isa{let}s one could even simlify with \isa{Let{\isacharunderscore}def
 default:%
 \end{isamarkuptext}%
 \isacommand{declare}\ Let{\isacharunderscore}def\ {\isacharbrackleft}simp{\isacharbrackright}%
-\isamarkupsubsubsection{Conditional equations%
-}
+\isamarkupsubsubsection{Conditional equations}
 %
 \begin{isamarkuptext}%
 So far all examples of rewrite rules were equations. The simplifier also
@@ -224,8 +217,7 @@ simplifies to \isa{xs\ {\isasymnoteq}\ {\isacharbrackleft}{\isacharbrackright}},
 assumption of the subgoal.%
 \end{isamarkuptext}%
 %
-\isamarkupsubsubsection{Automatic case splits%
-}
+\isamarkupsubsubsection{Automatic case splits}
 %
 \begin{isamarkuptext}%
 \indexbold{case splits}\index{*split|(}
@@ -318,8 +310,7 @@ $t$\isa{{\isachardot}split{\isacharunderscore}asm}. Analogously, there is \isa{i
 \index{*split|)}%
 \end{isamarkuptxt}%
 %
-\isamarkupsubsubsection{Arithmetic%
-}
+\isamarkupsubsubsection{Arithmetic}
 %
 \begin{isamarkuptext}%
 \index{arithmetic}
@@ -339,8 +330,7 @@ is proved by simplification, whereas the only slightly more complex%
 is not proved by simplification and requires \isa{arith}.%
 \end{isamarkuptext}%
 %
-\isamarkupsubsubsection{Tracing%
-}
+\isamarkupsubsubsection{Tracing}
 %
 \begin{isamarkuptext}%
 \indexbold{tracing the simplifier}

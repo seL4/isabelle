@@ -6,13 +6,13 @@
 \noindent
 Now that we have learned about rules and logic, we take another look at the
 finer points of induction. The two questions we answer are: what to do if the
-proposition to be proved is not directly amenable to induction, and how to
-utilize and even derive new induction schemas. We conclude with some slightly subtle
-examples of induction.%
+proposition to be proved is not directly amenable to induction
+(\S\ref{sec:ind-var-in-prems}), and how to utilize (\S\ref{sec:complete-ind})
+and even derive (\S\ref{sec:derive-ind}) new induction schemas. We conclude
+with an extended example of induction (\S\ref{sec:CTL-revisited}).%
 \end{isamarkuptext}%
 %
-\isamarkupsubsection{Massaging the proposition%
-}
+\isamarkupsubsection{Massaging the proposition}
 %
 \begin{isamarkuptext}%
 \label{sec:ind-var-in-prems}
@@ -123,8 +123,7 @@ Of course, all premises that share free variables with $t$ need to be pulled int
 the conclusion as well, under the \isa{{\isasymforall}}, again using \isa{{\isasymlongrightarrow}} as shown above.%
 \end{isamarkuptext}%
 %
-\isamarkupsubsection{Beyond structural and recursion induction%
-}
+\isamarkupsubsection{Beyond structural and recursion induction}
 %
 \begin{isamarkuptext}%
 \label{sec:complete-ind}
@@ -153,7 +152,7 @@ discouraged, because of the danger of inconsistencies. The above axiom does
 not introduce an inconsistency because, for example, the identity function
 satisfies it.}
 for \isa{f} it follows that \isa{n\ {\isasymle}\ f\ n}, which can
-be proved by induction on \isa{f\ n}. Following the recipy outlined
+be proved by induction on \isa{f\ n}. Following the recipe outlined
 above, we have to phrase the proposition as follows to allow induction:%
 \end{isamarkuptext}%
 \isacommand{lemma}\ f{\isacharunderscore}incr{\isacharunderscore}lem{\isacharcolon}\ {\isachardoublequote}{\isasymforall}i{\isachardot}\ k\ {\isacharequal}\ f\ i\ {\isasymlongrightarrow}\ i\ {\isasymle}\ f\ i{\isachardoublequote}%
@@ -242,8 +241,7 @@ which case the application is
 \end{quote}%
 \end{isamarkuptext}%
 %
-\isamarkupsubsection{Derivation of new induction schemas%
-}
+\isamarkupsubsection{Derivation of new induction schemas}
 %
 \begin{isamarkuptext}%
 \label{sec:derive-ind}
@@ -273,26 +271,18 @@ The elimination rule \isa{less{\isacharunderscore}SucE} expresses the case disti
 Now it is straightforward to derive the original version of
 \isa{nat{\isacharunderscore}less{\isacharunderscore}induct} by manipulting the conclusion of the above lemma:
 instantiate \isa{n} by \isa{Suc\ n} and \isa{m} by \isa{n} and
-remove the trivial condition \isa{n\ {\isacharless}\ Sc\ n}. Fortunately, this
+remove the trivial condition \isa{n\ {\isacharless}\ Suc\ n}. Fortunately, this
 happens automatically when we add the lemma as a new premise to the
 desired goal:%
 \end{isamarkuptext}%
 \isacommand{theorem}\ nat{\isacharunderscore}less{\isacharunderscore}induct{\isacharcolon}\ {\isachardoublequote}{\isacharparenleft}{\isasymAnd}n{\isacharcolon}{\isacharcolon}nat{\isachardot}\ {\isasymforall}m{\isacharless}n{\isachardot}\ P\ m\ {\isasymLongrightarrow}\ P\ n{\isacharparenright}\ {\isasymLongrightarrow}\ P\ n{\isachardoublequote}\isanewline
 \isacommand{by}{\isacharparenleft}insert\ induct{\isacharunderscore}lem{\isacharcomma}\ blast{\isacharparenright}%
 \begin{isamarkuptext}%
-Finally we should mention that HOL already provides the mother of all
-inductions, \textbf{well-founded
-induction}\indexbold{induction!well-founded}\index{well-founded
-induction|see{induction, well-founded}} (\isa{wf{\isacharunderscore}induct}):
-\begin{isabelle}%
-\ \ \ \ \ {\isasymlbrakk}wf\ r{\isacharsemicolon}\ {\isasymAnd}x{\isachardot}\ {\isasymforall}y{\isachardot}\ {\isacharparenleft}y{\isacharcomma}\ x{\isacharparenright}\ {\isasymin}\ r\ {\isasymlongrightarrow}\ P\ y\ {\isasymLongrightarrow}\ P\ x{\isasymrbrakk}\ {\isasymLongrightarrow}\ P\ a%
-\end{isabelle}
-where \isa{wf\ r} means that the relation \isa{r} is well-founded
-(see \S\ref{sec:well-founded}).
-For example, theorem \isa{nat{\isacharunderscore}less{\isacharunderscore}induct} can be viewed (and
-derived) as a special case of \isa{wf{\isacharunderscore}induct} where 
-\isa{r} is \isa{{\isacharless}} on \isa{nat}. The details can be found in the HOL library.
-For a mathematical account of well-founded induction see, for example, \cite{Baader-Nipkow}.%
+Finally we should remind the reader that HOL already provides the mother of
+all inductions, well-founded induction (see \S\ref{sec:Well-founded}).  For
+example theorem \isa{nat{\isacharunderscore}less{\isacharunderscore}induct} can be viewed (and derived) as
+a special case of \isa{wf{\isacharunderscore}induct} where \isa{r} is \isa{{\isacharless}} on
+\isa{nat}. The details can be found in the HOL library.%
 \end{isamarkuptext}%
 \end{isabellebody}%
 %%% Local Variables:

@@ -26,6 +26,10 @@ consts less :: "('a::ordrel) \<Rightarrow> 'a \<Rightarrow> bool"     (infixl "<
        le   :: "('a::ordrel) \<Rightarrow> 'a \<Rightarrow> bool"     (infixl "<<=" 50)
 
 text{*\noindent
+Note that only one occurrence of a type variable in a type needs to be
+constrained with a class; the constraint is propagated to the other
+occurrences automatically.
+
 So far there is not a single type of class @{text ordrel}. To breathe life
 into @{text ordrel} we need to declare a type to be an \bfindex{instance} of
 @{text ordrel}:

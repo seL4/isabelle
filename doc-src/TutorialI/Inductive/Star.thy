@@ -8,10 +8,9 @@ been said already? If not, explain induction!}
 
 A perfect example of an inductive definition is the reflexive transitive
 closure of a relation. This concept was already introduced in
-\S\ref{sec:rtrancl}, but it was not shown how it is defined. In fact,
-the operator @{text"^*"} is not defined inductively but via a least
-fixed point because at that point in the theory hierarchy
-inductive definitions are not yet available. But now they are:
+\S\ref{sec:Relations}, where the operator @{text"^*"} was
+defined as a least fixed point because
+inductive definitions were not yet available. But now they are:
 *}
 
 consts rtc :: "('a \<times> 'a)set \<Rightarrow> ('a \<times> 'a)set"   ("_*" [1000] 999)

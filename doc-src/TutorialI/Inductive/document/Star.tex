@@ -12,10 +12,9 @@ been said already? If not, explain induction!}
 
 A perfect example of an inductive definition is the reflexive transitive
 closure of a relation. This concept was already introduced in
-\S\ref{sec:rtrancl}, but it was not shown how it is defined. In fact,
-the operator \isa{{\isacharcircum}{\isacharasterisk}} is not defined inductively but via a least
-fixed point because at that point in the theory hierarchy
-inductive definitions are not yet available. But now they are:%
+\S\ref{sec:Relations}, where the operator \isa{{\isacharcircum}{\isacharasterisk}} was
+defined as a least fixed point because
+inductive definitions were not yet available. But now they are:%
 \end{isamarkuptext}%
 \isacommand{consts}\ rtc\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}{\isacharparenleft}{\isacharprime}a\ {\isasymtimes}\ {\isacharprime}a{\isacharparenright}set\ {\isasymRightarrow}\ {\isacharparenleft}{\isacharprime}a\ {\isasymtimes}\ {\isacharprime}a{\isacharparenright}set{\isachardoublequote}\ \ \ {\isacharparenleft}{\isachardoublequote}{\isacharunderscore}{\isacharasterisk}{\isachardoublequote}\ {\isacharbrackleft}{\isadigit{1}}{\isadigit{0}}{\isadigit{0}}{\isadigit{0}}{\isacharbrackright}\ {\isadigit{9}}{\isadigit{9}}{\isadigit{9}}{\isacharparenright}\isanewline
 \isacommand{inductive}\ {\isachardoublequote}r{\isacharasterisk}{\isachardoublequote}\isanewline

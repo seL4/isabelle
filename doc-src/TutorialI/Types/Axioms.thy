@@ -135,30 +135,11 @@ apply(simp_all (no_asm_use) add:less_le);
  apply(blast intro: refl);
 done
 
-text{*\noindent
-The result is the following subclass diagram:
-\[
-\begin{array}{c}
-\isa{term}\\
-|\\
-\isa{ordrel}\\
-|\\
-\isa{strord}\\
-|\\
-\isa{parord}
-\end{array}
-\]
-
-In general, the subclass diagram must be acyclic. Therefore Isabelle will
+text{*
+The subclass relation must always be acyclic. Therefore Isabelle will
 complain if you also prove the relationship @{text"strord < parord"}.
-Multiple inheritance is however permitted.
-
-This finishes our demonstration of type classes based on orderings.  We
-remind our readers that \isa{Main} contains a much more developed theory of
-orderings phrased in terms of the usual @{text"\<le>"} and @{text"<"}.
-It is recommended that, if possible,
-you base your own ordering relations on this theory.
 *}
+
 
 (*
 instance strord < parord
@@ -173,6 +154,61 @@ apply blast;apply blast;
 apply(blast intro: irrefl[THEN notE]);
 done
 *)
+
+subsubsection{*Multiple inheritance and sorts*}
+
+text{*
+A class may inherit from more than one direct superclass. This is called
+multiple inheritance and is certainly permitted. For example we could define
+the classes of well-founded orderings and well-orderings:
+*}
+
+axclass wford < parord
+wford: "wf {(y,x). y << x}"
+
+axclass wellord < linord, wford
+
+text{*\noindent
+The last line expresses the usual definition: a well-ordering is a linear
+well-founded ordering. The result is the subclass diagram in
+Figure~\ref{fig:subclass}.
+
+\begin{figure}[htbp]
+\[
+\begin{array}{r@ {}r@ {}c@ {}l@ {}l}
+& & \isa{term}\\
+& & |\\
+& & \isa{ordrel}\\
+& & |\\
+& & \isa{strord}\\
+& & |\\
+& & \isa{parord} \\
+& / & & \backslash \\
+\isa{linord} & & & & \isa{wford} \\
+& \backslash & & / \\
+& & \isa{wellord}
+\end{array}
+\]
+\caption{Subclass diagramm}
+\label{fig:subclass}
+\end{figure}
+
+Since class @{text wellord} does not introduce any new axioms, it can simply
+be viewed as the intersection of the two classes @{text linord} and @{text
+wford}. Such intersections need not be given a new name but can be created on
+the fly: the expression $\{C@1,\dots,C@n\}$, where the $C@i$ are classes,
+represents the intersection of the $C@i$. Such an expression is called a
+\bfindex{sort}, and sorts can appear in most places where we have only shown
+classes so far, for example in type constraints: @{text"'a::{linord,wford}"}.
+In fact, @{text"'a::ord"} is short for @{text"'a::{ord}"}.
+However, we do not pursue this rarefied concept further.
+
+This concludes our demonstration of type classes based on orderings.  We
+remind our readers that \isa{Main} contains a theory of
+orderings phrased in terms of the usual @{text"\<le>"} and @{text"<"}.
+It is recommended that, if possible,
+you base your own ordering relations on this theory.
+*}
 
 subsubsection{*Inconsistencies*}
 

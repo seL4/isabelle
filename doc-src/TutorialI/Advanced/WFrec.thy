@@ -21,32 +21,24 @@ third equation) or its first component stays the same and the second
 component decreases (as in the inner call in the third equation).
 
 In general, \isacommand{recdef} supports termination proofs based on
-arbitrary \emph{well-founded relations}, i.e.\ \emph{well-founded
+arbitrary well-founded relations as introduced in \S\ref{sec:Well-founded}.
+This is called \textbf{well-founded
 recursion}\indexbold{recursion!well-founded}\index{well-founded
-recursion|see{recursion, well-founded}}.  A relation $<$ is
-\bfindex{well-founded} if it has no infinite descending chain $\cdots <
-a@2 < a@1 < a@0$. Clearly, a function definition is total iff the set
-of all pairs $(r,l)$, where $l$ is the argument on the left-hand side
-of an equation and $r$ the argument of some recursive call on the
-corresponding right-hand side, induces a well-founded relation.  For a
-systematic account of termination proofs via well-founded relations
-see, for example, \cite{Baader-Nipkow}. The HOL library formalizes
-some of the theory of well-founded relations. For example
-@{prop"wf r"}\index{*wf|bold} means that relation @{term[show_types]"r::('a*'a)set"} is
-well-founded.
+recursion|see{recursion, well-founded}}. Clearly, a function definition is
+total iff the set of all pairs $(r,l)$, where $l$ is the argument on the
+left-hand side of an equation and $r$ the argument of some recursive call on
+the corresponding right-hand side, induces a well-founded relation.  For a
+systematic account of termination proofs via well-founded relations see, for
+example, \cite{Baader-Nipkow}.
 
-Each \isacommand{recdef} definition should be accompanied (after the
-name of the function) by a well-founded relation on the argument type
-of the function. For example, \isaindexbold{measure} is defined by
-@{prop[display]"measure(f::'a \<Rightarrow> nat) \<equiv> {(y,x). f y < f x}"}
-and it has been proved that @{term"measure f"} is always well-founded.
-
-In addition to @{term measure}, the library provides
-a number of further constructions for obtaining well-founded relations.
-Above we have already met @{text"<*lex*>"} of type
-@{typ[display,source]"('a \<times> 'a)set \<Rightarrow> ('b \<times> 'b)set \<Rightarrow> (('a \<times> 'b) \<times> ('a \<times> 'b))set"}
-Of course the lexicographic product can also be interated, as in the following
-function definition:
+Each \isacommand{recdef} definition should be accompanied (after the name of
+the function) by a well-founded relation on the argument type of the
+function.  The HOL library formalizes some of the most important
+constructions of well-founded relations (see \S\ref{sec:Well-founded}). For
+example, @{term"measure f"} is always well-founded, and the lexicographic
+product of two well-founded relations is again well-founded, which we relied
+on when defining Ackermann's function above.
+Of course the lexicographic product can also be interated:
 *}
 
 consts contrived :: "nat \<times> nat \<times> nat \<Rightarrow> nat"
@@ -58,20 +50,10 @@ recdef contrived
 "contrived(0,0,0)     = 0"
 
 text{*
-Lexicographic products of measure functions already go a long way. A
-further useful construction is the embedding of some type in an
-existing well-founded relation via the inverse image of a function:
-@{thm[display,show_types]inv_image_def[no_vars]}
-\begin{sloppypar}
-\noindent
-For example, @{term measure} is actually defined as @{term"inv_mage less_than"}, where
-@{term less_than} of type @{typ"(nat \<times> nat)set"} is the less-than relation on type @{typ nat}
-(as opposed to @{term"op <"}, which is of type @{typ"nat \<Rightarrow> nat \<Rightarrow> bool"}).
-\end{sloppypar}
-
-%Finally there is also {finite_psubset} the proper subset relation on finite sets
-
-All the above constructions are known to \isacommand{recdef}. Thus you
+Lexicographic products of measure functions already go a long
+way. Furthermore you may embedding some type in an
+existing well-founded relation via the inverse image construction @{term
+inv_image}. All these constructions are known to \isacommand{recdef}. Thus you
 will never have to prove well-foundedness of any relation composed
 solely of these building blocks. But of course the proof of
 termination of your function definition, i.e.\ that the arguments
@@ -87,18 +69,18 @@ recdef f "id(less_than)"
 "f 0 = 0"
 "f (Suc n) = f n"
 
-text{*
+text{*\noindent
 Since \isacommand{recdef} is not prepared for @{term id}, the identity
 function, this leads to the complaint that it could not prove
-@{prop"wf (id less_than)"}, the well-foundedness of @{term"id
-less_than"}. We should first have proved that @{term id} preserves well-foundedness
+@{prop"wf (id less_than)"}.
+We should first have proved that @{term id} preserves well-foundedness
 *}
 
 lemma wf_id: "wf r \<Longrightarrow> wf(id r)"
 by simp;
 
 text{*\noindent
-and should have added the following hint to our above definition:
+and should have appended the following hint to our above definition:
 *}
 (*<*)
 consts g :: "nat \<Rightarrow> nat"

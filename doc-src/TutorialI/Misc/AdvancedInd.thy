@@ -5,9 +5,10 @@ theory AdvancedInd = Main:;
 text{*\noindent
 Now that we have learned about rules and logic, we take another look at the
 finer points of induction. The two questions we answer are: what to do if the
-proposition to be proved is not directly amenable to induction, and how to
-utilize and even derive new induction schemas. We conclude with some slightly subtle
-examples of induction.
+proposition to be proved is not directly amenable to induction
+(\S\ref{sec:ind-var-in-prems}), and how to utilize (\S\ref{sec:complete-ind})
+and even derive (\S\ref{sec:derive-ind}) new induction schemas. We conclude
+with an extended example of induction (\S\ref{sec:CTL-revisited}).
 *};
 
 subsection{*Massaging the proposition*};
@@ -160,7 +161,7 @@ discouraged, because of the danger of inconsistencies. The above axiom does
 not introduce an inconsistency because, for example, the identity function
 satisfies it.}
 for @{term"f"} it follows that @{prop"n <= f n"}, which can
-be proved by induction on @{term"f n"}. Following the recipy outlined
+be proved by induction on @{term"f n"}. Following the recipe outlined
 above, we have to phrase the proposition as follows to allow induction:
 *};
 
@@ -278,7 +279,7 @@ The elimination rule @{thm[source]less_SucE} expresses the case distinction:
 Now it is straightforward to derive the original version of
 @{thm[source]nat_less_induct} by manipulting the conclusion of the above lemma:
 instantiate @{term"n"} by @{term"Suc n"} and @{term"m"} by @{term"n"} and
-remove the trivial condition @{prop"n < Sc n"}. Fortunately, this
+remove the trivial condition @{prop"n < Suc n"}. Fortunately, this
 happens automatically when we add the lemma as a new premise to the
 desired goal:
 *};
@@ -287,17 +288,11 @@ theorem nat_less_induct: "(\<And>n::nat. \<forall>m<n. P m \<Longrightarrow> P n
 by(insert induct_lem, blast);
 
 text{*
-Finally we should mention that HOL already provides the mother of all
-inductions, \textbf{well-founded
-induction}\indexbold{induction!well-founded}\index{well-founded
-induction|see{induction, well-founded}} (@{thm[source]wf_induct}):
-@{thm[display]wf_induct[no_vars]}
-where @{term"wf r"} means that the relation @{term r} is well-founded
-(see \S\ref{sec:well-founded}).
-For example, theorem @{thm[source]nat_less_induct} can be viewed (and
-derived) as a special case of @{thm[source]wf_induct} where 
-@{term r} is @{text"<"} on @{typ nat}. The details can be found in the HOL library.
-For a mathematical account of well-founded induction see, for example, \cite{Baader-Nipkow}.
+Finally we should remind the reader that HOL already provides the mother of
+all inductions, well-founded induction (see \S\ref{sec:Well-founded}).  For
+example theorem @{thm[source]nat_less_induct} can be viewed (and derived) as
+a special case of @{thm[source]wf_induct} where @{term r} is @{text"<"} on
+@{typ nat}. The details can be found in the HOL library.
 *};
 
 (*<*)

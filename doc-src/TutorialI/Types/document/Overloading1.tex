@@ -2,8 +2,7 @@
 \begin{isabellebody}%
 \def\isabellecontext{Overloading{\isadigit{1}}}%
 %
-\isamarkupsubsubsection{Controlled overloading with type classes%
-}
+\isamarkupsubsubsection{Controlled overloading with type classes}
 %
 \begin{isamarkuptext}%
 We now start with the theory of ordering relations, which we want to phrase
@@ -26,6 +25,10 @@ instances:%
 \ \ \ \ \ \ \ le\ \ \ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}{\isacharparenleft}{\isacharprime}a{\isacharcolon}{\isacharcolon}ordrel{\isacharparenright}\ {\isasymRightarrow}\ {\isacharprime}a\ {\isasymRightarrow}\ bool{\isachardoublequote}\ \ \ \ \ {\isacharparenleft}\isakeyword{infixl}\ {\isachardoublequote}{\isacharless}{\isacharless}{\isacharequal}{\isachardoublequote}\ {\isadigit{5}}{\isadigit{0}}{\isacharparenright}%
 \begin{isamarkuptext}%
 \noindent
+Note that only one occurrence of a type variable in a type needs to be
+constrained with a class; the constraint is propagated to the other
+occurrences automatically.
+
 So far there is not a single type of class \isa{ordrel}. To breathe life
 into \isa{ordrel} we need to declare a type to be an \bfindex{instance} of
 \isa{ordrel}:%
