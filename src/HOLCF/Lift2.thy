@@ -1,6 +1,6 @@
-(*  Title: 	HOLCF/lift2.thy
+(*  Title:      HOLCF/lift2.thy
     ID:         $Id$
-    Author: 	Franz Regensburger
+    Author:     Franz Regensburger
     Copyright   1993 Technische Universitaet Muenchen
 
 Class Instance u::(pcpo)po
@@ -17,7 +17,7 @@ rules
 
 (* instance of << for type ('a)u  *)
 
-inst_lift_po	"((op <<)::[('a)u,('a)u]=>bool) = less_lift"
+inst_lift_po    "((op <<)::[('a)u,('a)u]=>bool) = less_lift"
 
 end
 

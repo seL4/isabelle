@@ -1,6 +1,6 @@
-(*  Title: 	HOLCF/fun1.thy
+(*  Title:      HOLCF/fun1.thy
     ID:         $Id$
-    Author: 	Franz Regensburger
+    Author:     Franz Regensburger
     Copyright   1993  Technische Universitaet Muenchen
 
 
@@ -15,7 +15,7 @@ Fun1 = Pcpo +
 (* default class is still term *)
 
 consts
-  less_fun	:: "['a=>'b::po,'a=>'b] => bool"	
+  less_fun      :: "['a=>'b::po,'a=>'b] => bool"        
 
 defs
    (* definition of the ordering less_fun            *)

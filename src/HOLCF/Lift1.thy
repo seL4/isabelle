@@ -1,6 +1,6 @@
-(*  Title: 	HOLCF/Lift1.thy
+(*  Title:      HOLCF/Lift1.thy
     ID:         $Id$
-    Author: 	Franz Regensburger
+    Author:     Franz Regensburger
     Copyright   1993  Technische Universitaet Muenchen
 
 
@@ -14,12 +14,12 @@ Lift1 = Cfun3 + Sum +
 
 types "u" 1
 
-arities "u" :: (pcpo)term	
+arities "u" :: (pcpo)term       
 
 consts
 
-  Rep_Lift	:: "('a)u => (void + 'a)"
-  Abs_Lift	:: "(void + 'a) => ('a)u"
+  Rep_Lift      :: "('a)u => (void + 'a)"
+  Abs_Lift      :: "(void + 'a) => ('a)u"
 
   Iup           :: "'a => ('a)u"
   UU_lift       :: "('a)u"
@@ -31,8 +31,8 @@ rules
   (*faking a type definition... *)
   (* ('a)u is isomorphic to void + 'a  *)
 
-  Rep_Lift_inverse	"Abs_Lift(Rep_Lift(p)) = p"	
-  Abs_Lift_inverse	"Rep_Lift(Abs_Lift(p)) = p"
+  Rep_Lift_inverse      "Abs_Lift(Rep_Lift(p)) = p"     
+  Abs_Lift_inverse      "Rep_Lift(Abs_Lift(p)) = p"
 
    (*defining the abstract constants*)
 
@@ -43,11 +43,11 @@ defs
   Ilift_def     "Ilift(f)(x)== 
                 case Rep_Lift(x) of Inl(y) => UU | Inr(z) => f`z"
  
-  less_lift_def "less_lift(x1)(x2) == 		
-          (case Rep_Lift(x1) of 		
-               Inl(y1) => True 		
-             | Inr(y2) => 			
-                   (case Rep_Lift(x2) of Inl(z1) => False	
+  less_lift_def "less_lift(x1)(x2) ==           
+          (case Rep_Lift(x1) of                 
+               Inl(y1) => True          
+             | Inr(y2) =>                       
+                   (case Rep_Lift(x2) of Inl(z1) => False       
                                        | Inr(z2) => y2<<z2))"
 
 end

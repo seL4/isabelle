@@ -4,7 +4,7 @@
 Dagstuhl  =  Stream2 +
 
 consts
-	y  :: "'a"
+        y  :: "'a"
        YS  :: "'a stream"
        YYS :: "'a stream"
 

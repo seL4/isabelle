@@ -1,6 +1,6 @@
-(*  Title: 	HOLCF/tr2.thy
+(*  Title:      HOLCF/tr2.thy
     ID:         $Id$
-    Author: 	Franz Regensburger
+    Author:     Franz Regensburger
     Copyright   1993 Technische Universitaet Muenchen
 
 Introduce infix if_then_else_fi and boolean connectives andalso, orelse
@@ -9,15 +9,15 @@ Introduce infix if_then_else_fi and boolean connectives andalso, orelse
 Tr2 = Tr1 +
 
 consts
-	Icifte		:: "tr -> 'c -> 'c -> 'c"
-	trand		:: "tr -> tr -> tr"
-	tror		:: "tr -> tr -> tr"
-        neg		:: "tr -> tr"
+        Icifte          :: "tr -> 'c -> 'c -> 'c"
+        trand           :: "tr -> tr -> tr"
+        tror            :: "tr -> tr -> tr"
+        neg             :: "tr -> tr"
 
-syntax 	"@cifte"	:: "tr=>'c=>'c=>'c"
+syntax  "@cifte"        :: "tr=>'c=>'c=>'c"
                              ("(3If _/ (then _/ else _) fi)" 60)
-	"@andalso"	:: "tr => tr => tr" ("_ andalso _" [36,35] 35)
-	"@orelse"	:: "tr => tr => tr" ("_ orelse _"  [31,30] 30)
+        "@andalso"      :: "tr => tr => tr" ("_ andalso _" [36,35] 35)
+        "@orelse"       :: "tr => tr => tr" ("_ orelse _"  [31,30] 30)
  
 translations "x andalso y" == "trand`x`y"
              "x orelse y"  == "tror`x`y"

@@ -1,6 +1,6 @@
-(*  Title: 	HOLCF/one.thy
+(*  Title:      HOLCF/one.thy
     ID:         $Id$
-    Author: 	Franz Regensburger
+    Author:     Franz Regensburger
     Copyright   1993 Technische Universitaet Muenchen
 
 Introduce atomic type one = (void)u
@@ -23,17 +23,17 @@ types one 0
 arities one :: pcpo
 
 consts
-	abs_one		:: "(void)u -> one"
-	rep_one		:: "one -> (void)u"
-	one 		:: "one"
-	one_when 	:: "'c -> one -> 'c"
+        abs_one         :: "(void)u -> one"
+        rep_one         :: "one -> (void)u"
+        one             :: "one"
+        one_when        :: "'c -> one -> 'c"
 
 rules
-  abs_one_iso	"abs_one`(rep_one`u) = u"
-  rep_one_iso	"rep_one`(abs_one`x) = x"
+  abs_one_iso   "abs_one`(rep_one`u) = u"
+  rep_one_iso   "rep_one`(abs_one`x) = x"
 
 defs
-  one_def	"one == abs_one`(up`UU)"
+  one_def       "one == abs_one`(up`UU)"
   one_when_def "one_when == (LAM c u.lift`(LAM x.c)`(rep_one`u))"
 
 translations

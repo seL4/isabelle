@@ -1,6 +1,6 @@
-(*  Title: 	HOLCF/sprod2.thy
+(*  Title:      HOLCF/sprod2.thy
     ID:         $Id$
-    Author: 	Franz Regensburger
+    Author:     Franz Regensburger
     Copyright   1993 Technische Universitaet Muenchen
 
 Class Instance **::(pcpo,pcpo)po
@@ -16,7 +16,7 @@ rules
 
 (* instance of << for type ['a ** 'b]  *)
 
-inst_sprod_po	"((op <<)::['a ** 'b,'a ** 'b]=>bool) = less_sprod"
+inst_sprod_po   "((op <<)::['a ** 'b,'a ** 'b]=>bool) = less_sprod"
 
 end
 

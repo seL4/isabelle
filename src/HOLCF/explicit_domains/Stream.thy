@@ -1,6 +1,6 @@
 (* 
     ID:         $Id$
-    Author: 	Franz Regensburger
+    Author:     Franz Regensburger
     Copyright   1993 Technische Universitaet Muenchen
 
 Theory for streams without defined empty stream 
@@ -32,22 +32,22 @@ consts
 (* ----------------------------------------------------------------------- *)
 (* essential constants                                                     *)
 
-stream_rep	:: "('a stream) -> ('a ** ('a stream)u)"
-stream_abs	:: "('a ** ('a stream)u) -> ('a stream)"
+stream_rep      :: "('a stream) -> ('a ** ('a stream)u)"
+stream_abs      :: "('a ** ('a stream)u) -> ('a stream)"
 
 (* ----------------------------------------------------------------------- *)
 (* abstract constants and auxiliary constants                              *)
 
-stream_copy	:: "('a stream -> 'a stream) ->'a stream -> 'a stream"
+stream_copy     :: "('a stream -> 'a stream) ->'a stream -> 'a stream"
 
-scons		:: "'a -> 'a stream -> 'a stream"
-stream_when	:: "('a -> 'a stream -> 'b) -> 'a stream -> 'b"
-is_scons	:: "'a stream -> tr"
-shd		:: "'a stream -> 'a"
-stl		:: "'a stream -> 'a stream"
-stream_take	:: "nat => 'a stream -> 'a stream"
-stream_finite	:: "'a stream => bool"
-stream_bisim	:: "('a stream => 'a stream => bool) => bool"
+scons           :: "'a -> 'a stream -> 'a stream"
+stream_when     :: "('a -> 'a stream -> 'b) -> 'a stream -> 'b"
+is_scons        :: "'a stream -> tr"
+shd             :: "'a stream -> 'a"
+stl             :: "'a stream -> 'a stream"
+stream_take     :: "nat => 'a stream -> 'a stream"
+stream_finite   :: "'a stream => bool"
+stream_bisim    :: "('a stream => 'a stream => bool) => bool"
 
 rules
 
@@ -62,11 +62,11 @@ rules
 (* stream_abs is an isomorphism with inverse stream_rep                    *)
 (* identity is the least endomorphism on 'a stream                         *)
 
-stream_abs_iso	"stream_rep`(stream_abs`x) = x"
-stream_rep_iso	"stream_abs`(stream_rep`x) = x"
-stream_copy_def	"stream_copy == (LAM f. stream_abs oo 
- 		(ssplit`(LAM x y. (|x , (lift`(up oo f))`y|) )) oo stream_rep)"
-stream_reach	"(fix`stream_copy)`x = x"
+stream_abs_iso  "stream_rep`(stream_abs`x) = x"
+stream_rep_iso  "stream_abs`(stream_rep`x) = x"
+stream_copy_def "stream_copy == (LAM f. stream_abs oo 
+                (ssplit`(LAM x y. (|x , (lift`(up oo f))`y|) )) oo stream_rep)"
+stream_reach    "(fix`stream_copy)`x = x"
 
 defs
 (* ----------------------------------------------------------------------- *)
@@ -74,7 +74,7 @@ defs
 (* ----------------------------------------------------------------------- *)
 (* constructors                                                            *)
 
-scons_def	"scons == (LAM x l. stream_abs`(| x, up`l |))"
+scons_def       "scons == (LAM x l. stream_abs`(| x, up`l |))"
 
 (* ----------------------------------------------------------------------- *)
 (* discriminator functional                                                *)
@@ -85,9 +85,9 @@ stream_when_def
 (* ----------------------------------------------------------------------- *)
 (* discriminators and selectors                                            *)
 
-is_scons_def	"is_scons == stream_when`(LAM x l.TT)"
-shd_def		"shd == stream_when`(LAM x l.x)"
-stl_def		"stl == stream_when`(LAM x l.l)"
+is_scons_def    "is_scons == stream_when`(LAM x l.TT)"
+shd_def         "shd == stream_when`(LAM x l.x)"
+stl_def         "stl == stream_when`(LAM x l.l)"
 
 (* ----------------------------------------------------------------------- *)
 (* the taker for streams                                                   *)
@@ -96,7 +96,7 @@ stream_take_def "stream_take == (%n.iterate n stream_copy UU)"
 
 (* ----------------------------------------------------------------------- *)
 
-stream_finite_def	"stream_finite == (%s.? n.stream_take n `s=s)"
+stream_finite_def       "stream_finite == (%s.? n.stream_take n `s=s)"
 
 (* ----------------------------------------------------------------------- *)
 (* definition of bisimulation is determined by domain equation             *)
@@ -104,7 +104,7 @@ stream_finite_def	"stream_finite == (%s.? n.stream_take n `s=s)"
 
 stream_bisim_def "stream_bisim ==
 (%R.!s1 s2.
- 	R s1 s2 -->
+        R s1 s2 -->
   ((s1=UU & s2=UU) |
   (? x s11 s21. x~=UU & s1=scons`x`s11 & s2 = scons`x`s21 & R s11 s21)))"
 

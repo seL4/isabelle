@@ -1,7 +1,7 @@
-(*  Title:	HOLCF/ex/hoare.thy
+(*  Title:      HOLCF/ex/hoare.thy
     ID:         $Id$
-    Author: 	Franz Regensburger
-    Copyright	1993 Technische Universitaet Muenchen
+    Author:     Franz Regensburger
+    Copyright   1993 Technische Universitaet Muenchen
 
 Theory for an example by C.A.R. Hoare 
 
@@ -24,11 +24,11 @@ signature of this example
 Hoare = Tr2 +
 
 consts
-	b1:: "'a -> tr"
-	b2:: "'a -> tr"
-	 g:: "'a -> 'a"
-	p :: "'a -> 'a"
-	q :: "'a -> 'a"
+        b1:: "'a -> tr"
+        b2:: "'a -> tr"
+         g:: "'a -> 'a"
+        p :: "'a -> 'a"
+        q :: "'a -> 'a"
 
 defs
 

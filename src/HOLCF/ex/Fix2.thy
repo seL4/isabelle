@@ -1,7 +1,7 @@
-(*  Title:	HOLCF/ex/Fix2.thy
+(*  Title:      HOLCF/ex/Fix2.thy
     ID:         $Id$
-    Author: 	Franz Regensburger
-    Copyright	1995 Technische Universitaet Muenchen
+    Author:     Franz Regensburger
+    Copyright   1995 Technische Universitaet Muenchen
 
  Show that fix is the unique least fixed-point operator. 
  From axioms gix1_def,gix2_def it follows that fix = gix

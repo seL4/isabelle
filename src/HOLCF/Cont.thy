@@ -1,6 +1,6 @@
-(*  Title: 	HOLCF/cont.thy
+(*  Title:      HOLCF/cont.thy
     ID:         $Id$
-    Author: 	Franz Regensburger
+    Author:     Franz Regensburger
     Copyright   1993 Technische Universitaet Muenchen
 
     Results about continuity and monotonicity
@@ -19,19 +19,19 @@ Cont = Fun3 +
 default pcpo
 
 consts  
-	monofun :: "('a::po => 'b::po) => bool"	(* monotonicity    *)
-	contlub	:: "('a => 'b) => bool"		(* first cont. def *)
-	cont	:: "('a => 'b) => bool"		(* secnd cont. def *)
+        monofun :: "('a::po => 'b::po) => bool" (* monotonicity    *)
+        contlub :: "('a => 'b) => bool"         (* first cont. def *)
+        cont    :: "('a => 'b) => bool"         (* secnd cont. def *)
 
 defs 
 
-monofun		"monofun(f) == ! x y. x << y --> f(x) << f(y)"
+monofun         "monofun(f) == ! x y. x << y --> f(x) << f(y)"
 
-contlub		"contlub(f) == ! Y. is_chain(Y) --> 
-				f(lub(range(Y))) = lub(range(% i.f(Y(i))))"
+contlub         "contlub(f) == ! Y. is_chain(Y) --> 
+                                f(lub(range(Y))) = lub(range(% i.f(Y(i))))"
 
-cont		"cont(f)   == ! Y. is_chain(Y) --> 
-				range(% i.f(Y(i))) <<| f(lub(range(Y)))"
+cont            "cont(f)   == ! Y. is_chain(Y) --> 
+                                range(% i.f(Y(i))) <<| f(lub(range(Y)))"
 
 (* ------------------------------------------------------------------------ *)
 (* the main purpose of cont.thy is to show:                                 *)

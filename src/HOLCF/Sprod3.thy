@@ -1,6 +1,6 @@
-(*  Title: 	HOLCF/sprod3.thy
+(*  Title:      HOLCF/sprod3.thy
     ID:         $Id$
-    Author: 	Franz Regensburger
+    Author:     Franz Regensburger
     Copyright   1993 Technische Universitaet Muenchen
 
 Class instance of  ** for class pcpo
@@ -8,30 +8,30 @@ Class instance of  ** for class pcpo
 
 Sprod3 = Sprod2 +
 
-arities "**" :: (pcpo,pcpo)pcpo			(* Witness sprod2.ML *)
+arities "**" :: (pcpo,pcpo)pcpo                 (* Witness sprod2.ML *)
 
 consts  
-	spair        :: "'a -> 'b -> ('a**'b)" (* continuous strict pairing *)
-	sfst         :: "('a**'b)->'a"
-	ssnd         :: "('a**'b)->'b"
-	ssplit       :: "('a->'b->'c)->('a**'b)->'c"
+        spair        :: "'a -> 'b -> ('a**'b)" (* continuous strict pairing *)
+        sfst         :: "('a**'b)->'a"
+        ssnd         :: "('a**'b)->'b"
+        ssplit       :: "('a->'b->'c)->('a**'b)->'c"
 
 syntax  
-	"@stuple"    :: "['a, args] => 'a ** 'b"	("(1'(|_,/ _|'))")
+        "@stuple"    :: "['a, args] => 'a ** 'b"        ("(1'(|_,/ _|'))")
 
 translations
-	"(|x, y, z|)"   == "(|x, (|y, z|)|)"
-	"(|x, y|)"      == "spair`x`y"
+        "(|x, y, z|)"   == "(|x, (|y, z|)|)"
+        "(|x, y|)"      == "spair`x`y"
 
 rules 
 
-inst_sprod_pcpo	"(UU::'a**'b) = Ispair UU UU"
+inst_sprod_pcpo "(UU::'a**'b) = Ispair UU UU"
 
 defs
-spair_def	"spair  == (LAM x y.Ispair x y)"
-sfst_def	"sfst   == (LAM p.Isfst p)"
-ssnd_def	"ssnd   == (LAM p.Issnd p)"	
-ssplit_def	"ssplit == (LAM f. strictify`(LAM p.f`(sfst`p)`(ssnd`p)))"
+spair_def       "spair  == (LAM x y.Ispair x y)"
+sfst_def        "sfst   == (LAM p.Isfst p)"
+ssnd_def        "ssnd   == (LAM p.Issnd p)"     
+ssplit_def      "ssplit == (LAM f. strictify`(LAM p.f`(sfst`p)`(ssnd`p)))"
 
 (* start 8bit 1 *)
 (* end 8bit 1 *)

@@ -1,6 +1,6 @@
 (* 
     ID:         $Id$
-    Author: 	Franz Regensburger
+    Author:     Franz Regensburger
     Copyright   1993 Technische Universitaet Muenchen
 
 Additional constants for stream
@@ -10,7 +10,7 @@ Stream2 = Stream +
 
 consts
 
-smap		:: "('a -> 'b) -> 'a stream -> 'b stream"
+smap            :: "('a -> 'b) -> 'a stream -> 'b stream"
 
 defs
 
@@ -22,7 +22,7 @@ end
       
 
 (*
-		smap`f`UU = UU
+                smap`f`UU = UU
       x~=UU --> smap`f`(scons`x`xs) = scons `(f`x) `(smap`f`xs)
 
 *)

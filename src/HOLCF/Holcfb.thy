@@ -1,6 +1,6 @@
-(*  Title: 	HOLCF/holcfb.thy
+(*  Title:      HOLCF/holcfb.thy
     ID:         $Id$
-    Author: 	Franz Regensburger
+    Author:     Franz Regensburger
     Copyright   1993  Technische Universitaet Muenchen
 
 Basic definitions for the embedding of LCF into HOL.
@@ -10,7 +10,7 @@ Basic definitions for the embedding of LCF into HOL.
 Holcfb = Nat + 
 
 consts
-	theleast     :: "(nat=>bool)=>nat"
+        theleast     :: "(nat=>bool)=>nat"
 defs
 
 theleast_def    "theleast P == (@z.(P z & (!n.P n --> z<=n)))"

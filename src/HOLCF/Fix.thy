@@ -1,6 +1,6 @@
-(*  Title: 	HOLCF/fix.thy
+(*  Title:      HOLCF/fix.thy
     ID:         $Id$
-    Author: 	Franz Regensburger
+    Author:     Franz Regensburger
     Copyright   1993  Technische Universitaet Muenchen
 
 
@@ -30,7 +30,7 @@ adm_def       "adm P == !Y. is_chain(Y) -->
                         (!i.P(Y i)) --> P(lub(range Y))"
 
 admw_def      "admw P == !F. (!n.P (iterate n F UU)) -->
-			    P (lub(range (%i. iterate i F UU)))" 
+                            P (lub(range (%i. iterate i F UU)))" 
 
 chain_finite_def  "chain_finite (x::'a)==
                         !Y. is_chain (Y::nat=>'a) --> (? n.max_in_chain n Y)"

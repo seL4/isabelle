@@ -1,6 +1,6 @@
-(*  Title: 	HOLCF/tr1.thy
+(*  Title:      HOLCF/tr1.thy
     ID:         $Id$
-    Author: 	Franz Regensburger
+    Author:     Franz Regensburger
     Copyright   1993 Technische Universitaet Muenchen
 
 Introduce the domain of truth values tr = one ++ one
@@ -23,24 +23,24 @@ types tr 0
 arities tr :: pcpo
 
 consts
-	abs_tr		:: "one ++ one -> tr"
-	rep_tr		:: "tr -> one ++ one"
-	TT 		:: "tr"
-	FF		:: "tr"
-	tr_when 	:: "'c -> 'c -> tr -> 'c"
+        abs_tr          :: "one ++ one -> tr"
+        rep_tr          :: "tr -> one ++ one"
+        TT              :: "tr"
+        FF              :: "tr"
+        tr_when         :: "'c -> 'c -> tr -> 'c"
 
 rules
 
-  abs_tr_iso	"abs_tr`(rep_tr`u) = u"
-  rep_tr_iso	"rep_tr`(abs_tr`x) = x"
+  abs_tr_iso    "abs_tr`(rep_tr`u) = u"
+  rep_tr_iso    "rep_tr`(abs_tr`x) = x"
 
 defs
 
-  TT_def	"TT == abs_tr`(sinl`one)"
-  FF_def	"FF == abs_tr`(sinr`one)"
+  TT_def        "TT == abs_tr`(sinl`one)"
+  FF_def        "FF == abs_tr`(sinr`one)"
 
   tr_when_def "tr_when == 
-	(LAM e1 e2 t. sswhen`(LAM x.e1)`(LAM y.e2)`(rep_tr`t))"
+        (LAM e1 e2 t. sswhen`(LAM x.e1)`(LAM y.e2)`(rep_tr`t))"
 
 (* start 8bit 1 *)
 (* end 8bit 1 *)
