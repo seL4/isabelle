@@ -266,6 +266,7 @@ fun close_block (State (_, node :: nodes)) = State (node, nodes)
 
 fun print_state (state as State ({context, facts, mode, goal = _}, nodes)) =
   let
+    val ref (_, _, begin_goal) = Goals.current_goals_markers;
     val prt_tthm = Attribute.pretty_tthm;
 
     fun print_facts None = ()
@@ -277,7 +278,7 @@ fun print_state (state as State ({context, facts, mode, goal = _}, nodes)) =
 
     fun print_goal (i, ((kind, name, _, _), (_, thm))) =
       (writeln (kind_name kind ^ " " ^ quote name ^ levels_up (i div 1) ^ ":");	(* FIXME *)
-        Locale.print_goals (! goals_limit) thm);
+        Locale.print_goals_marker begin_goal (! goals_limit) thm);
   in
     writeln ("Nesting level: " ^ string_of_int (length nodes div 1));	(* FIXME *)
     writeln "";
