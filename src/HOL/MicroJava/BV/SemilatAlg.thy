@@ -142,6 +142,29 @@ proof (induct ls)
 qed
 
 
+lemma lub:
+  assumes sl: "semilat (A, r, f)" and "z \<in> A"
+  shows 
+  "\<And>y. y \<in> A \<Longrightarrow> set xs \<subseteq> A \<Longrightarrow> \<forall>x \<in> set xs. x <=_r z \<Longrightarrow> y <=_r z \<Longrightarrow> xs ++_f y <=_r z"
+proof (induct xs)
+  fix y assume "y <=_r z" thus "[] ++_f y <=_r z" by simp
+next
+  fix y l ls assume y: "y \<in> A" and "set (l#ls) \<subseteq> A"
+  then obtain l: "l \<in> A" and ls: "set ls \<subseteq> A" by auto
+  assume "\<forall>x \<in> set (l#ls). x <=_r z"
+  then obtain "l <=_r z" and lsz: "\<forall>x \<in> set ls. x <=_r z" by auto
+  assume "y <=_r z" have "l +_f y <=_r z" by (rule semilat_lub) 
+  moreover
+  from sl l y have "l +_f y \<in> A" by (fast intro: closedD)
+  moreover
+  assume "\<And>y. y \<in> A \<Longrightarrow> set ls \<subseteq> A \<Longrightarrow> \<forall>x \<in> set ls. x <=_r z \<Longrightarrow> y <=_r z
+          \<Longrightarrow> ls ++_f y <=_r z"
+  ultimately
+  have "ls ++_f (l +_f y) <=_r z" using ls lsz by - assumption
+  thus "(l#ls) ++_f y <=_r z" by simp
+qed
+
+
 lemma ub1': 
   "\<lbrakk>semilat (A, r, f); \<forall>(p,s) \<in> set S. s \<in> A; y \<in> A; (a,b) \<in> set S\<rbrakk> 
   \<Longrightarrow> b <=_r map snd [(p', t')\<in>S. p' = a] ++_f y" 
