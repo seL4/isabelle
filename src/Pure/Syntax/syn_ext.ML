@@ -151,13 +151,14 @@ datatype mfix = Mfix of string * typ * string * int list * int;
 
 (* typ_to_nonterm *)
 
+fun typ_to_nt _ (Type (c, _)) = c
+  | typ_to_nt default _ = default;
+
 (*get nonterminal for rhs*)
-fun typ_to_nonterm (Type (c, _)) = c
-  | typ_to_nonterm _ = any;
+val typ_to_nonterm = typ_to_nt any;
 
 (*get nonterminal for lhs*)
-fun typ_to_nonterm1 (Type (c, _)) = c
-  | typ_to_nonterm1 _ = logic;
+val typ_to_nonterm1 = typ_to_nt logic;
 
 
 (* mfix_to_xprod *)

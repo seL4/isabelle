@@ -212,7 +212,12 @@ val arity_decls = repeat1 (names1 --$$ "::" -- !! arity)
 val infxl = "infixl" $$-- !! nat >> cat "Infixl";
 val infxr = "infixr" $$-- !! nat >> cat "Infixr";
 
-val binder = "binder" $$-- !! (string -- nat) >> (cat "Binder" o mk_pair);
+fun mk_binder ((name, x), y) =
+  let val (p1, p2) = if y = "None" then ("0", x) else (x, y);
+  in mk_triple (name, p1, p2) end;
+
+val binder = "binder" $$-- !! (string -- nat -- optional nat "None") 
+             >> (cat "Binder" o mk_binder);
 
 val opt_pris = optional ("[" $$-- !! (list nat --$$ "]")) [] >> mk_list;
 

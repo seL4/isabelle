@@ -43,8 +43,7 @@ sig
     (string * (term list -> term)) list *
     (string * (term list -> term)) list *
     (string * (ast list -> ast)) list -> syntax
-  val extend_trrules: syntax ->
-    (bool -> term list * typ -> int * term * 'a) -> xrule list -> syntax
+  val extend_trrules: syntax -> xrule list -> syntax
   val merge_syntaxes: syntax -> syntax -> syntax
   val type_syn: syntax
   val pure_syn: syntax
@@ -303,7 +302,7 @@ fun test_read (Syntax tabs) root str =
 
 (* read_ast *)
 
-fun read_asts (Syntax tabs) print_msg xids root str =
+fun read_asts (Syntax tabs) xids root str =
   let
     val {lexicon, gram, parse_ast_trtab, logtypes, ...} = tabs;
     val root' = if root mem logtypes then logic else root;
@@ -311,7 +310,7 @@ fun read_asts (Syntax tabs) print_msg xids root str =
 
     fun show_pt pt = writeln (str_of_ast (pt_to_ast (K None) pt));
   in
-    if print_msg andalso length pts > 1 then
+    if length pts > 1 then
       (writeln ("Warning: Ambiguous input " ^ quote str);
        writeln "produces the following parse trees:"; seq show_pt pts)
     else ();
@@ -324,7 +323,7 @@ fun read_asts (Syntax tabs) print_msg xids root str =
 fun read (syn as Syntax tabs) ty str =
   let
     val {parse_ruletab, parse_trtab, ...} = tabs;
-    val asts = read_asts syn true false (typ_to_nonterm ty) str;
+    val asts = read_asts syn false (typ_to_nonterm ty) str;
   in
     map (ast_to_term (lookup_trtab parse_trtab))
       (map (normalize_ast (lookup_ruletab parse_ruletab)) asts)
@@ -348,10 +347,9 @@ fun read_typ syn def_sort str =
 fun simple_read_typ str = read_typ type_syn (K []) str;
 
 
-(* read rules *)
+(* read translation rules *)
 
-fun read_rule (syn as Syntax tabs) print_msg
-              (check_types: bool -> term list * typ -> int * term * 'a)
+fun read_xrule (syn as Syntax tabs)
               (xrule as ((_, lhs_src), (_, rhs_src))) =
   let
     val Syntax {consts, ...} = syn;
@@ -362,19 +360,12 @@ fun read_rule (syn as Syntax tabs) print_msg
       | constantify (Appl asts) = Appl (map constantify asts);
 
     fun read_pat (root, str) =
-      let val {parse_ruletab, parse_trtab, ...} = tabs;
-          val asts = read_asts syn print_msg true root str;
-          val ts = map (ast_to_term (lookup_trtab parse_trtab))
-                     (map (normalize_ast (lookup_ruletab parse_ruletab)) asts);
-
-          val idx = if length ts = 1 then 0
-            else (if print_msg then
-                    writeln ("This occured in syntax translation rule: " ^
-                             quote lhs_src ^ "  ->  " ^ quote rhs_src)
-                  else ();
-                  #1 (check_types print_msg (ts, Type (root, []))))
-      in constantify (nth_elem (idx, asts))
-           handle ERROR => error ("The error above occurred in " ^ quote str)
+      let val asts = read_asts syn true root str;
+      in if length asts > 1 then
+           error "Error: This should not happen while parsing a syntax \
+                  \translation rule."
+         else constantify (hd asts)
+            handle ERROR => error ("The error above occurred in " ^ quote str)
       end;
 
     val rule as (lhs, rhs) = (pairself read_pat) xrule;
@@ -393,7 +384,7 @@ datatype xrule =
   op <-| of (string * string) * (string * string) |
   op <-> of (string * string) * (string * string);
 
-fun read_xrules syn check_types xrules =
+fun read_xrules syn xrules =
   let
     fun right_rule (xpat1 |-> xpat2) = Some (xpat1, xpat2)
       | right_rule (xpat1 <-| xpat2) = None
@@ -402,12 +393,8 @@ fun read_xrules syn check_types xrules =
     fun left_rule (xpat1 |-> xpat2) = None
       | left_rule (xpat1 <-| xpat2) = Some (xpat2, xpat1)
       | left_rule (xpat1 <-> xpat2) = Some (xpat2, xpat1);
-
-    val rrules = mapfilter right_rule xrules;
-    val lrules = mapfilter left_rule xrules;
-  in
-    (map (read_rule syn true check_types) rrules,
-     map (read_rule syn (rrules = []) check_types) lrules)
+  in (map (read_xrule syn) (mapfilter right_rule xrules),
+      map (read_xrule syn) (mapfilter left_rule xrules))
   end;
 
 
@@ -451,7 +438,7 @@ val extend_consts = ext_syntax syn_ext_const_names;
 
 val extend_trfuns = ext_syntax syn_ext_trfuns;
 
-fun extend_trrules syn check_types xrules =
-  ext_syntax syn_ext_rules syn (read_xrules syn check_types xrules);
+fun extend_trrules syn xrules =
+  ext_syntax syn_ext_rules syn (read_xrules syn xrules);
 
 end;

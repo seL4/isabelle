@@ -428,9 +428,7 @@ fun ext_trfuns (syn, tsig, ctab) trfuns =
   (Syntax.extend_trfuns syn trfuns, tsig, ctab);
 
 fun ext_trrules (syn, tsig, ctab) xrules =
-  (Syntax.extend_trrules syn
-  (infer_types (Sg {tsig = tsig, const_tab = ctab, syn = syn, 
-                   stamps = [ref "#"]}) (K None) (K None)) xrules, tsig, ctab);
+  (Syntax.extend_trrules syn xrules, tsig, ctab);
 
 
 (* build signature *)
@@ -530,7 +528,7 @@ val pure =
    [("==", "['a::{}, 'a] => prop", Mixfix ("(_ ==/ _)", [3, 2], 2)),
     ("=?=", "['a::{}, 'a] => prop", Mixfix ("(_ =?=/ _)", [3, 2], 2)),
     ("==>", "[prop, prop] => prop", Mixfix ("(_ ==>/ _)", [2, 1], 1)),
-    ("all", "('a => prop) => prop", Binder ("!!", 0)),
+    ("all", "('a => prop) => prop", Binder ("!!", 0, 0)),
     ("TYPE", "'a itself", NoSyn)]
   |> add_name "Pure";
 
