@@ -22,3 +22,5 @@ fun svc_tac i st =
 	| Subscript       => Seq.empty;
 
 
+(*True if SVC appears to exist*)
+fun svc_enabled() = getenv "SVC_HOME" <> "";
