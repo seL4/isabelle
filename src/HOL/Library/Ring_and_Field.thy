@@ -1,6 +1,7 @@
 (*  Title:      HOL/Library/Ring_and_Field.thy
     ID:         $Id$
     Author:     Gertrud Bauer and Markus Wenzel, TU Muenchen
+    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 *)
 
 header {*

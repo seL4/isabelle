@@ -1,6 +1,7 @@
 (*  Title:      HOL/Library/List_Prefix.thy
     ID:         $Id$
     Author:     Tobias Nipkow and Markus Wenzel, TU Muenchen
+    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 *)
 
 header {*
