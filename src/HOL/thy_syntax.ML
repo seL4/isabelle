@@ -84,7 +84,7 @@ fun inductive_decl co =
     val ipairs = "intrs" $$-- repeat1 (ident -- !! string)
     fun optstring s = optional (s $$-- string) "\"[]\"" >> trim
   in
-    repeat1 string -- ipairs -- optstring "monos" -- optstring "con_defs"
+    repeat1 name -- ipairs -- optstring "monos" -- optstring "con_defs"
       >> mk_params
   end;
 

@@ -18,7 +18,7 @@ consts
   
   pred_sexp :: "('a item * 'a item)set"
 
-inductive "sexp"
+inductive sexp
   intrs
     LeafI  "Leaf(a): sexp"
     NumbI  "Numb(i): sexp"
