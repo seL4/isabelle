@@ -87,7 +87,7 @@ Isabelle now provides an ML infix operator for reverse function application:
   infix |>;
   fun (x |> f) = f x;
 
-Using this, theory extension really becomes a plasure, e.g.:
+Using this, theory extension really becomes a pleasure, e.g.:
 
   FOL.thy 
   |> add_consts
