@@ -34,20 +34,19 @@ exception NORMCONJ of string;
 
 fun interval_of_conj t = case t of
  Const("op &",_) $
-  (Const("op <=",_) $ l1 $(x as Free(xn,xT)))$
-  (Const("op <=",_) $ y $ u1) => 
+  (t1 as (Const("op <=",_) $ l1 $(x as Free(xn,xT))))$
+  (t2 as (Const("op <=",_) $ y $ u1)) => 
       if (x = y andalso type_of x = HOLogic.intT) 
-        then (x,(l1,u1)) 
-        else raise 
-	  (NORMCONJ "Not in normal form -- not the same variable")
-| Const("op &",_) $(Const("op <=",_) $ y $ u1)$
-  (Const("op <=",_) $ l1 $(x as Free(xn,xT))) =>
+        then [(x,(l1,u1))]
+        else (interval_of_conj t1) union (interval_of_conj t2)
+| Const("op &",_) $(t1 as (Const("op <=",_) $ y $ u1))$
+  (t2 as (Const("op <=",_) $ l1 $(x as Free(xn,xT)))) =>
       if (x = y andalso type_of x = HOLogic.intT) 
-        then (x,(l1,u1)) 
-        else raise 
-	  (NORMCONJ "Not in normal form -- not the same variable")
-|(Const("op <=",_) $ l $(x as Free(xn,xT))) => (x,(l,x))
-|(Const("op <=",_) $ (x as Free(xn,xT))$ u) => (x,(x,u))
+        then [(x,(l1,u1))]
+        else (interval_of_conj t1) union (interval_of_conj t2)
+|(Const("op <=",_) $ l $(x as Free(xn,xT))) => [(x,(l,HOLogic.false_const))]
+|(Const("op <=",_) $ (x as Free(xn,xT))$ u) => [(x,(HOLogic.false_const,u))]
+|Const("op &",_)$t1$t2 => (interval_of_conj t1) union (interval_of_conj t2)
 |_ => raise (NORMCONJ "Not in normal form - unknown conjunct");
 
 
@@ -57,22 +56,58 @@ fun interval_of_conj t = case t of
 (* the output will be a list of Var*interval*)
 
 val iT = HOLogic.intT;
-fun maxterm t1 t2 = Const("HOL.max",iT --> iT --> iT)$t1$t2;
-fun minterm t1 t2 = Const("HOL.min",iT --> iT --> iT)$t1$t2;
+fun  maxterm (Const("False",_)) t = t
+    |maxterm t (Const("False",_)) = t 
+    |maxterm t1 t2 = Const("HOL.max",iT --> iT --> iT)$t1$t2;
+
+fun  minterm (Const("False",_)) t = t
+    |minterm t (Const("False",_)) = t
+    |minterm t1 t2 = Const("HOL.min",iT --> iT --> iT)$t1$t2;
 
 fun intervals_of_premise p =  
   let val ps = map HOLogic.dest_Trueprop (Logic.strip_imp_prems p)
       fun tight [] = []
+         |tight ((x,(Const("False",_),Const("False",_)))::ls) = tight ls
+         |tight ((x,(l as Const("False",_),u))::ls) = 
+	   let val ls' = tight ls in
+	   case assoc (ls',x) of
+	   None => (x,(l,u))::ls'
+	   |Some (l',u') => 
+	   let 
+            val ln = l'
+            val un = 
+	     if (CooperDec.is_numeral u) andalso (CooperDec.is_numeral u') 
+	     then CooperDec.mk_numeral 
+		 (Int.min (CooperDec.dest_numeral u,CooperDec.dest_numeral u'))
+	     else (minterm u u')
+	   in (x,(ln,un))::(filter (fn p => not (fst p = x)) ls')
+	   end
+          end
+         |tight ((x,(l,u as Const("False",_)))::ls) = 
+	   let val ls' = tight ls in
+	   case assoc (ls',x) of
+	   None => (x,(l,u))::ls'
+	   |Some (l',u') => 
+	   let 
+            val ln = 
+	      if (CooperDec.is_numeral l) andalso (CooperDec.is_numeral l') 
+	      then CooperDec.mk_numeral 
+		(Int.max (CooperDec.dest_numeral l,CooperDec.dest_numeral l')) 
+	      else (maxterm l l')
+            val un = u'
+	   in (x,(ln,un))::(filter (fn p => not (fst p = x)) ls')
+	   end
+          end
          |tight ((x,(l,u))::ls) = 
 	   let val ls' = tight ls in
 	     case assoc (ls',x) of
 	      None => (x,(l,u))::ls'
-	     |Some (l',u') => let val ln = if (CooperDec.is_numeral l) andalso (CooperDec.is_numeral l') then CooperDec.mk_numeral (Int.min (CooperDec.dest_numeral l,CooperDec.dest_numeral l')) else (maxterm l l')
+	     |Some (l',u') => let val ln = if (CooperDec.is_numeral l) andalso (CooperDec.is_numeral l') then CooperDec.mk_numeral (Int.max (CooperDec.dest_numeral l,CooperDec.dest_numeral l')) else (maxterm l l')
 		 val un = if (CooperDec.is_numeral u) andalso (CooperDec.is_numeral u') then CooperDec.mk_numeral (Int.min (CooperDec.dest_numeral u,CooperDec.dest_numeral u')) else (minterm u u')
-		   in (x,(ln,un))::(filter (fn p => fst p = x) ls')
+		   in (x,(ln,un))::(filter (fn p => not (fst p = x)) ls')
 		   end
            end 
-  in tight (map interval_of_conj ps)
+  in tight (foldr (fn (p,l) => (interval_of_conj p) union l) (ps,[]))
 end ;
 
 fun exp_of_concl p = case p of
@@ -220,13 +255,71 @@ fun barith_tac i = ObjectLogic.atomize_tac i THEN (fn st =>
     val g = BasisLibrary.List.nth (prems_of st, i - 1)
     val sg = sign_of_thm st
     val ss = (simpset_of (theory "Barith")) addsimps [max_def,min_def]
-    val (ths,n) = simp_exp sg g
-    val cn = length ths - 1
-    fun conjIs thn j = EVERY (map (rtac conjI) (j upto (thn + j - 1)))
-    fun thtac thms j = EVERY (map 
+    val cg = cterm_of sg g
+    val mybinarith =
+      map thm ["Pls_0_eq", "Min_1_eq",
+               "bin_pred_Pls", "bin_pred_Min", "bin_pred_1",
+	       "bin_pred_0",            "bin_succ_Pls", "bin_succ_Min",
+	       "bin_succ_1", "bin_succ_0",
+               "bin_add_Pls", "bin_add_Min", "bin_add_BIT_0",
+	       "bin_add_BIT_10",
+               "bin_add_BIT_11", "bin_minus_Pls", "bin_minus_Min",
+	       "bin_minus_1",
+               "bin_minus_0", "bin_mult_Pls", "bin_mult_Min",
+	       "bin_mult_1", "bin_mult_0",
+               "bin_add_Pls_right", "bin_add_Min_right",
+	       "abs_zero", "abs_one",
+               "eq_number_of_eq",
+               "iszero_number_of_Pls", "nonzero_number_of_Min",
+	       "iszero_number_of_0", "iszero_number_of_1",
+               "less_number_of_eq_neg",
+               "not_neg_number_of_Pls", "neg_number_of_Min",
+	       "neg_number_of_BIT",
+               "le_number_of_eq"]
+
+     val myringarith =
+       [number_of_add RS sym, number_of_minus RS sym,
+	diff_number_of_eq, number_of_mult RS sym,
+	thm "zero_eq_Numeral0_nring", thm "one_eq_Numeral1_nring"]
+
+     val mynatarith =
+       [thm "zero_eq_Numeral0_nat", thm "one_eq_Numeral1_nat",
+	thm "add_nat_number_of", thm "diff_nat_number_of",
+	thm "mult_nat_number_of", thm "eq_nat_number_of", thm
+	  "less_nat_number_of"]
+	 
+     val mypowerarith =
+       [thm "nat_number_of", thm "zpower_number_of_even", thm
+	  "zpower_number_of_odd", thm "zpower_Pls", thm "zpower_Min"]
+
+     val myiflet = [if_False, if_True, thm "Let_def"]
+     val myifletcongs = [if_weak_cong, let_weak_cong]
+
+     val mysimpset = HOL_basic_ss 
+	 addsimps mybinarith 
+	 addsimps myringarith
+         addsimps mynatarith addsimps mypowerarith
+         addsimps myiflet addsimps simp_thms
+         addcongs myifletcongs
+
+    val simpset0 = HOL_basic_ss 
+	addsimps [thm "z_less_imp_le1", thm "z_eq_imp_le_conj"] 
+    val pre_thm = Seq.hd (EVERY (map TRY 
+	 [simp_tac simpset0 1, simp_tac mysimpset 1]) 
+			    (trivial cg))
+    val tac = case (prop_of pre_thm) of
+        Const ("==>", _) $ t1 $ _ =>
+      let  
+         val (ths,n) = simp_exp sg t1
+         val cn = length ths - 1
+         fun conjIs thn j = EVERY (map (rtac conjI) (j upto (thn + j - 1)))
+         fun thtac thms j = EVERY (map 
 	(fn t => rtac t j THEN assm_tac n j  
 	THEN (TRY (REPEAT_DETERM_N 2 (simp_tac ss j)))) thms)
-  in ((conjIs cn i) THEN (thtac ths i)) st
+      in ((conjIs cn i) THEN (thtac ths i))
+      end
+     |_ => assume_tac i
+     in (tac st)
 end);
 
 fun barith_args meth =
@@ -272,8 +365,8 @@ by(barith_tac 1);
 Goal "(x::int) <= 1& 1 <= x ==> (t::int) <= 8 ==>(x::int) <= 2& 0 <= x ==> 0 <= (y::int) & y <= 5 + 7 ==> 0 <= x - x  + x*x & x - x  + x*x<= 1";
 by(barith_tac 1);
 
-Goal "-1 <= (x::int) & x <= 1 ==> 0 <= (y::int) & y <= 5 + 7 ==> -4 <= x - x  + x*x";
-by(barith_tac 1);
+Goal "-1 <= (x::int) ==>  x <= 1 & 1 <= (z::int) ==> z <= 2+3 ==> 0 <= (y::int) & y <= 5 + 7 ==> -4 <= x - x  + x*x";
+by(Barith.barith_tac 1);
 
 Goal "[|(0::int) <= x & x <= 5 ; 0 <= (y::int) & y <= 7|]==> (0 <= x*x*x & x*x*x <= 125 ) & (0 <= x*x & x*x <= 100) & (0 <= x*x + x & x*x + x <= 30) & (0<= x*y & x*y <= 35)";
 by (barith_tac 1);
