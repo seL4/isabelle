@@ -175,6 +175,7 @@ datatype dtyp =
 
 (* information about datatypes *)
 
+(* index, datatype name, type arguments (DtTFree's), constructor name, types of constructor's arguments *)
 type descr = (int * (string * dtyp list * (string * dtyp list) list)) list;
 
 type datatype_info =
