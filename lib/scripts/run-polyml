@@ -44,7 +44,8 @@ if [ -z "$OUTFILE" ]; then
 elif [ "$INFILE" -ef "$OUTFILE" ]; then
   DB="$INFILE"
 elif [ -n "$COPYDB" ]; then
-  cp -f "$INFILE" "$OUTFILE" || fail_out
+  [ -f "$OUTFILE" ] && { rm -f "$OUTFILE" || fail_out }
+  cp "$INFILE" "$OUTFILE" || fail_out
   chmod +w "$OUTFILE" || fail_out
   DB="$OUTFILE"
 else
