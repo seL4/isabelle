@@ -50,6 +50,7 @@ sig
   val varify            : term -> term
   val unvarify          : term -> term
   val get_goal          : term -> int -> term
+  val goal_params       : term -> int -> term * term list
   val prems_of_goal     : term -> int -> term list
   val concl_of_goal     : term -> int -> term
 end;
@@ -339,7 +340,7 @@ fun unvarify (Const(a,T))    = Const(a, Type.unvarifyT T)
 
 (*Get subgoal i*)
 fun get_goal st i = List.nth (strip_imp_prems st, i-1)
-  handle Subscript => error "get_goal: Goal number out of range";
+  handle Subscript => error "Goal number out of range";
 
 (*reverses parameters for substitution*)
 fun goal_params st i =
