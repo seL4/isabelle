@@ -8,6 +8,5 @@ Top theory for HOLCF system
 
 *)
 
-HOLCF = Tr2 
-
+HOLCF = Tr2
 

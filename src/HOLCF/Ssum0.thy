@@ -51,5 +51,7 @@ defs   (*defining the abstract constants*)
 			&(!a. a~=UU & s=Isinl(a) --> z=f`a)  
 			&(!b. b~=UU & s=Isinr(b) --> z=g`b)"  
 
+(* start 8bit 1 *)
+(* end 8bit 1 *)
 end
 

@@ -347,3 +347,4 @@ qed_goal "lift3" Lift3.thy "lift`up`x=x"
 (* ------------------------------------------------------------------------ *)
 
 val lift_rews = [lift1,lift2,defined_up];
+

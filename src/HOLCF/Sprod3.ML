@@ -675,8 +675,10 @@ qed_goalw "ssplit3" Sprod3.thy [ssplit_def]
 (* install simplifier for Sprod                                             *)
 (* ------------------------------------------------------------------------ *)
 
+val Sprod_rews = [strict_spair1,strict_spair2,strict_sfst1,strict_sfst2,
+		strict_ssnd1,strict_ssnd2,sfst2,ssnd2,defined_spair,
+		ssplit1,ssplit2];
+
 Addsimps [strict_spair1,strict_spair2,strict_sfst1,strict_sfst2,
 	  strict_ssnd1,strict_ssnd2,sfst2,ssnd2,
 	  ssplit1,ssplit2];
-
-

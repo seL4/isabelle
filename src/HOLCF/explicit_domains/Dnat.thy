@@ -1,4 +1,4 @@
-(*  Title: 	HOLCF/dnat.thy
+(*  Title: 	HOLCF/Dnat.thy
     ID:         $Id$
     Author: 	Franz Regensburger
     Copyright   1993 Technische Universitaet Muenchen

@@ -36,6 +36,53 @@ cfst_def	"cfst   == (LAM p.fst(p))"
 csnd_def	"csnd   == (LAM p.snd(p))"	
 csplit_def	"csplit == (LAM f p.f`(cfst`p)`(csnd`p))"
 
+
+
+(* introduce syntax for
+
+   Let <x,y> = e1; z = E2 in E3
+
+   and
+
+   ¤<x,y,z>.e
+*)
+
+types
+  Cletbinds  Cletbind 
+
+consts
+  CLet           :: "'a -> ('a -> 'b) -> 'b"
+
+syntax
+  (* syntax for Let *) 
+
+  "_Cbind"  :: "[pttrn, 'a] => Cletbind"             ("(2_ =/ _)" 10)
+  ""        :: "Cletbind => Cletbinds"               ("_")
+  "_Cbinds" :: "[Cletbind, Cletbinds] => Cletbinds"  ("_;/ _")
+  "_CLet"   :: "[Cletbinds, 'a] => 'a"                ("(Let (_)/ in (_))" 10)
+
+translations
+  (* translation for Let *)
+  "_CLet (_Cbinds b bs) e"  == "_CLet b (_CLet bs e)"
+  "Let x = a in e"          == "CLet`a`(LAM x.e)"
+
+defs
+  (* Misc Definitions *)
+  CLet_def       "CLet == LAM s. LAM f.f`s"
+
+
+syntax
+  (* syntax for LAM <x,y,z>.E *)
+  "@Cpttrn"  :: "[pttrn,pttrns] => pttrn"              ("<_,/_>")
+
+translations
+  (* translations for LAM <x,y,z>.E *)
+  "LAM <x,y,zs>.b"   == "csplit`(LAM x.LAM <y,zs>.b)"
+  "LAM <x,y>.b"      == "csplit`(LAM x.LAM y.b)"
+  (* reverse translation <= does not work yet !! *)
+
+(* start 8bit 1 *)
+(* end 8bit 1 *)
 end
 
 

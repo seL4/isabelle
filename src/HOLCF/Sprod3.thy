@@ -33,6 +33,9 @@ sfst_def	"sfst   == (LAM p.Isfst p)"
 ssnd_def	"ssnd   == (LAM p.Issnd p)"	
 ssplit_def	"ssplit == (LAM f. strictify`(LAM p.f`(sfst`p)`(ssnd`p)))"
 
+(* start 8bit 1 *)
+(* end 8bit 1 *)
+
 end
 
 

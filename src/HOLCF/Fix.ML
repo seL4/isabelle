@@ -341,6 +341,19 @@ qed_goalw "fix_least" Fix.thy [fix_def] "F`x = x ==> fix`F << x"
 	]);
 
 
+qed_goal "fix_eqI" Fix.thy
+"[| F`x = x; !z. F`z = z --> x << z |] ==> x = fix`F"
+ (fn prems =>
+	[
+	(cut_facts_tac prems 1),
+	(rtac antisym_less 1),
+	(etac allE 1),
+	(etac mp 1),
+	(rtac (fix_eq RS sym) 1),
+	(etac fix_least 1)
+	]);
+
+
 qed_goal "fix_eq2" Fix.thy "f == fix`F ==> f = F`f"
  (fn prems =>
 	[

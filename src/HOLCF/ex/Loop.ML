@@ -1,4 +1,4 @@
-(*  Title:	HOLCF/ex/loop.ML
+(*  Title:	HOLCF/ex/Loop.ML
     ID:         $Id$
     Author: 	Franz Regensburger
     Copyright	1993 Technische Universitaet Muenchen
@@ -38,8 +38,6 @@ val while_unfold = prove_goal Loop.thy
 	(fix_tac5  while_def2 1),
 	(Simp_tac 1)
 	]);
-
-val HOLCF_ss = simpset_of "HOLCF";
 
 val while_unfold2 = prove_goal Loop.thy 
 	"!x.while`b`g`x = while`b`g`(iterate k (step`b`g) x)"

@@ -1,4 +1,4 @@
-(*  Title:	HOLCF/ex/loop.thy
+(*  Title:	HOLCF/ex/Loop.thy
     ID:         $Id$
     Author: 	Franz Regensburger
     Copyright	1993 Technische Universitaet Muenchen

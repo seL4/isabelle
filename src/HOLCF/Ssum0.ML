@@ -389,5 +389,3 @@ qed_goalw "Iwhen3" Ssum0.thy [Iwhen_def]
 (* ------------------------------------------------------------------------ *)
 
 Addsimps [(strict_IsinlIsinr RS sym),Iwhen1,Iwhen2,Iwhen3];
-
-

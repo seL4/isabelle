@@ -2,10 +2,10 @@ HOLCF: A higher order version of LCF based on Isabelle HOL
 ==========================================================
 
 Author:     Franz Regensburger
-Copyright   1993,1994 Technische Universitaet Muenchen
+Copyright   1995 Technische Universitaet Muenchen
 
-Version: 1.5
-Date: 14.10.94
+Version: 2.0
+Date: 16.08.95
 
 A detailed description of the entire development can be found in 
 
@@ -19,3 +19,6 @@ Changes:
 28.06.95 The old uncurried version of HOLCF is no longer supported
 	 in the distribution.
  
+18.08.95 added sections axioms, ops, domain, genertated
+	 and 8bit support
+

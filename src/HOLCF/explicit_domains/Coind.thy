@@ -1,4 +1,4 @@
-(*  Title: 	HOLCF/coind.thy
+(*  Title: 	HOLCF/Coind.thy
     ID:         $Id$
     Author: 	Franz Regensburger
     Copyright   1993 Technische Universitaet Muenchen

@@ -137,8 +137,6 @@ val q_def3 = prove_goal Hoare.thy
 
 (** --------- proves about iterations of p and q ---------- **)
 
-val HOLCF_ss = simpset_of "HOLCF";
-
 val hoare_lemma9 = prove_goal Hoare.thy 
 "(! m. m< Suc k --> b1`(iterate m g x)=TT) -->\
 \  p`(iterate k g x)=p`x"

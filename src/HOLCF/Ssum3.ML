@@ -724,4 +724,8 @@ qed_goal "sswhen4" Ssum3.thy
 (* install simplifier for Ssum                                              *)
 (* ------------------------------------------------------------------------ *)
 
-Addsimps [strict_sinl,strict_sinr,sswhen1,sswhen2,sswhen3];
+val Ssum_rews = [strict_sinl,strict_sinr,defined_sinl,defined_sinr,
+		sswhen1,sswhen2,sswhen3];
+
+Addsimps [strict_sinl,strict_sinr,defined_sinl,defined_sinr,
+		sswhen1,sswhen2,sswhen3];

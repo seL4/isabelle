@@ -314,3 +314,4 @@ qed_goalw "csplit3" Cprod3.thy [csplit_def]
 
 Addsimps [cfst2,csnd2,csplit2];
 
+val Cprod_rews = [cfst2,csnd2,csplit2];

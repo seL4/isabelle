@@ -24,6 +24,12 @@ defs
 	up_def		"up     == (LAM x.Iup(x))"
 	lift_def	"lift   == (LAM f p.Ilift(f)(p))"
 
+translations
+"case l of up`x => t1" == "lift`(LAM x.t1)`l"
+
+(* start 8bit 1 *)
+(* end 8bit 1 *)
+
 end
 
 

@@ -39,4 +39,12 @@ trans_less	"[|x<<y ; y<<z |] ==> x<<z"
 
 inst_void_po	"((op <<)::[void,void]=>bool) = less_void"
 
+(* start 8bit 1 *)
+(* end 8bit 1 *)
+
 end 
+
+
+
+
+

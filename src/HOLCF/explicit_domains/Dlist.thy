@@ -1,4 +1,4 @@
-(*  Title: 	HOLCF/dlist.thy
+(*  Title: 	HOLCF/Dlist.thy
 
     Author: 	Franz Regensburger
     ID:         $ $

@@ -47,4 +47,11 @@ defs
   (*defining the abstract constants*)
   less_cfun_def		"less_cfun fo1 fo2 == ( fapp fo1 << fapp fo2 )"
 
+(* start 8bit 1 *)
+(* end 8bit 1 *)
+
+
 end
+
+(* start 8bit 2 *)
+(* end 8bit 2 *)

@@ -1,4 +1,4 @@
-(*  Title: 	HOLCF/dlist.ML
+(*  Title: 	HOLCF/Dlist.ML
     Author: 	Franz Regensburger
     ID:         $ $
     Copyright   1994 Technische Universitaet Muenchen

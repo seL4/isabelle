@@ -1,0 +1,25 @@
+
+Um diese Erweiterung zu installieren, gen\"ugt es nat\"urlich nicht, die
+Sourcefiles nach {\tt isabelle/src/HOLCF} zu kopieren, 
+es mu\ss\ au\ss erdem ROOT.ML
+folgenderma\ss en abge\"andert werden:\\
+Die Zeile 
+\begin{verbatim}
+init_thy_reader();
+\end{verbatim}
+wird ersetzt durch die Zeilen 
+\begin{verbatim}
+use "holcflogic.ML";
+use "thy_axioms.ML";
+use "thy_ops.ML";
+use "thy_syntax.ML";
+\end{verbatim}
+abschliessend wird die {\tt HOLCF}--Database neu erzeugt:\\
+{\tt make -f Makefile}\\
+(Vorraussetzung ist nat\"urlich, da\ss\ die {\tt ISABELLE...}--Environment
+Variablen korrekt, wie im Makefile beschrieben, gesetzt sind.)
+
+Die Installation ist damit abgeschlossen.
+
+
+ 

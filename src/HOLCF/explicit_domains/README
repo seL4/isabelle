@@ -1,0 +1,22 @@
+(*
+    ID:         $Id$
+    Author: 	Franz Regensburger
+    Copyright   1995 Technische Universitaet Muenchen
+
+*)
+
+The files contained in this directory are examples for the
+explicit construction of domains. The technique used is described
+in the thesis
+
+	HOLCF: Eine konservative Erweiterung von HOL um LCF
+
+The thesis is available via the web using URL
+
+	http://www4.informatik.tu-muenchen.de/~regensbu/papers.html
+
+
+The same construction is automatically performed if you use the
+type definition package of David Oheimb. See subdirectory HOLCF/domains
+for more details.
+

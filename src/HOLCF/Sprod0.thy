@@ -50,5 +50,8 @@ defs
 					(p=Ispair UU UU  --> z=UU)
 		&(! a b. ~a=UU & ~b=UU & p=Ispair a b    --> z=b)"  
 
+(* start 8bit 1 *)
+(* end 8bit 1 *)
+
 end
 

@@ -343,7 +343,6 @@ qed_goal "Issnd2" Sprod0.thy "~x=UU ==>Issnd(Ispair x y)=y"
 Addsimps [strict_Isfst1,strict_Isfst2,strict_Issnd1,strict_Issnd2,
 	  Isfst2,Issnd2];
 
-
 qed_goal "defined_IsfstIssnd" Sprod0.thy 
 	"p~=Ispair UU UU ==> Isfst p ~= UU & Issnd p ~= UU"
  (fn prems =>
