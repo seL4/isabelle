@@ -101,15 +101,13 @@ fun cases_tac (ctxt, (open_parms, (insts, opt_rule))) facts =
         |> Drule.cterm_instantiate) r |> rpair (RuleCases.get r);
 
     val ruleq =
-      (case (facts, insts, opt_rule) of
-        ([], [], None) => Seq.single (RuleCases.add Data.cases_default)
-      | (_, _, None) =>
-          let val rules = find_casesS ctxt facts @ find_casesT ctxt insts in
-            if null rules then error "Unable to figure out cases rule" else ();
+      (case opt_rule of
+        None =>
+          let val rules = find_casesS ctxt facts @ find_casesT ctxt insts @ [Data.cases_default] in
             Method.trace ctxt rules;
             Seq.flat (Seq.map (Seq.try inst_rule) (Seq.of_list rules))
           end
-      | (_, _, Some r) => Seq.single (inst_rule r));
+      | Some r => Seq.single (inst_rule r));
 
     fun prep_rule (th, (cases, n)) = Seq.map (apsnd (rpair (drop (n, facts))) o rpair cases)
       (Method.multi_resolves (take (n, facts)) [th]);
@@ -117,7 +115,7 @@ fun cases_tac (ctxt, (open_parms, (insts, opt_rule))) facts =
 
 in
 
-val cases_meth = Method.METHOD_CASES o (HEADGOAL oo cases_tac);
+val cases_meth = Method.METHOD_CASES o ((Seq.DETERM o HEADGOAL) oo cases_tac);
 
 end;
 
@@ -291,7 +289,7 @@ fun induct_tac (ctxt, (open_parms, (insts, opt_rule))) facts =
 
 in
 
-val induct_meth = Method.RAW_METHOD_CASES o (HEADGOAL oo induct_tac);
+val induct_meth = Method.RAW_METHOD_CASES o ((Seq.DETERM o HEADGOAL) oo induct_tac);
 
 end;
 
