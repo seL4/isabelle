@@ -2,23 +2,25 @@
     ID:         $Id$
     Author:     Tobias Nipkow and Markus Wenzel, TU Muenchen
 
-Mixfix declarations, infixes, binders. Part of the Pure syntax.
+Mixfix declarations, infixes, binders. Also parts of the Pure syntax.
 *)
 
 signature MIXFIX0 =
-  sig
+sig
   datatype mixfix =
     NoSyn |
     Mixfix of string * int list * int |
     Delimfix of string |
+    InfixlName of string * int |
+    InfixrName of string * int |
     Infixl of int |
     Infixr of int |
     Binder of string * int * int
   val max_pri: int
-  end;
+end;
 
 signature MIXFIX1 =
-  sig
+sig
   include MIXFIX0
   val type_name: string -> mixfix -> string
   val const_name: string -> mixfix -> string
@@ -26,19 +28,24 @@ signature MIXFIX1 =
   val pure_syntax: (string * string * mixfix) list
   val pure_appl_syntax: (string * string * mixfix) list
   val pure_applC_syntax: (string * string * mixfix) list
-  end;
+  val pure_symfont_syntax: (string * string * mixfix) list
+end;
 
 signature MIXFIX =
-  sig
+sig
   include MIXFIX1
-  val syn_ext_types: string list -> (string * int * mixfix) list -> SynExt.syn_ext
-  val syn_ext_consts: string list -> (string * typ * mixfix) list -> SynExt.syn_ext
-  end;
+  val syn_ext_types: string list -> (string * int * mixfix) list
+    -> SynExt.syn_ext
+  val syn_ext_consts: string list -> (string * typ * mixfix) list
+    -> SynExt.syn_ext
+end;
+
 
 structure Mixfix : MIXFIX =
 struct
 
 open Lexicon SynExt Ast SynTrans;
+
 
 (** mixfix declarations **)
 
@@ -46,6 +53,8 @@ datatype mixfix =
   NoSyn |
   Mixfix of string * int list * int |
   Delimfix of string |
+  InfixlName of string * int |
+  InfixrName of string * int |
   Infixl of int |
   Infixr of int |
   Binder of string * int * int;
@@ -60,15 +69,16 @@ fun strip ("'" :: c :: cs) = c :: strip cs
 
 val strip_esc = implode o strip o explode;
 
-
-fun type_name t (Infixl _) = strip_esc t
+fun type_name t (InfixlName _) = t
+  | type_name t (InfixrName _) = t
+  | type_name t (Infixl _) = strip_esc t
   | type_name t (Infixr _) = strip_esc t
   | type_name t _ = t;
 
-fun infix_name c = "op " ^ strip_esc c;
-
-fun const_name c (Infixl _) = infix_name c
-  | const_name c (Infixr _) = infix_name c
+fun const_name c (InfixlName _) = c
+  | const_name c (InfixrName _) = c
+  | const_name c (Infixl _) = "op " ^ strip_esc c
+  | const_name c (Infixr _) = "op " ^ strip_esc c
   | const_name c _ = c;
 
 
@@ -78,15 +88,19 @@ fun syn_ext_types logtypes type_decls =
   let
     fun name_of (t, _, mx) = type_name t mx;
 
-    fun mk_infix t p1 p2 p3 =
-      Mfix ("(_ " ^ t ^ "/ _)", [typeT, typeT] ---> typeT,
-        strip_esc t, [p1, p2], p3);
+    fun mk_infix sy t p1 p2 p3 =
+      Mfix ("(_ " ^ sy ^ "/ _)", [typeT, typeT] ---> typeT, t, [p1, p2], p3);
 
-    fun mfix_of (_, _, NoSyn) = None
-      | mfix_of (t, 2, Infixl p) = Some (mk_infix t p (p + 1) p)
-      | mfix_of (t, 2, Infixr p) = Some (mk_infix t (p + 1) p p)
-      | mfix_of decl = error ("Bad mixfix declaration for type " ^
-          quote (name_of decl));
+    fun mfix_of decl =
+      let val t = name_of decl in
+        (case decl of
+          (_, _, NoSyn) => None
+        | (_, 2, InfixlName (sy, p)) => Some (mk_infix t sy p (p + 1) p)
+        | (_, 2, InfixrName (sy, p)) => Some (mk_infix t sy (p + 1) p p)
+        | (sy, 2, Infixl p) => Some (mk_infix t sy p (p + 1) p)
+        | (sy, 2, Infixr p) => Some (mk_infix t sy (p + 1) p p)
+        | _ => error ("Bad mixfix declaration for type " ^ quote t))
+      end;
 
     val mfix = mapfilter mfix_of type_decls;
     val xconsts = map name_of type_decls;
@@ -109,13 +123,19 @@ fun syn_ext_consts logtypes const_decls =
           [Type ("idts", []), ty2] ---> ty3
       | binder_typ c _ = error ("Bad type of binder " ^ quote c);
 
-    fun mfix_of (_, _, NoSyn) = []
-      | mfix_of (c, ty, Mixfix (sy, ps, p)) = [Mfix (sy, ty, c, ps, p)]
-      | mfix_of (c, ty, Delimfix sy) = [Mfix (sy, ty, c, [], max_pri)]
-      | mfix_of (sy, ty, Infixl p) = mk_infix sy ty (infix_name sy) p (p + 1) p
-      | mfix_of (sy, ty, Infixr p) = mk_infix sy ty (infix_name sy) (p + 1) p p
-      | mfix_of (c, ty, Binder (sy, p, q)) =
-          [Mfix ("(3" ^ sy ^ "_./ _)", binder_typ c ty, sy, [0, p], q)];
+    fun mfix_of decl =
+      let val c = name_of decl in
+        (case decl of
+          (_, _, NoSyn) => []
+        | (_, ty, Mixfix (sy, ps, p)) => [Mfix (sy, ty, c, ps, p)]
+        | (_, ty, Delimfix sy) => [Mfix (sy, ty, c, [], max_pri)]
+        | (_, ty, InfixlName (sy, p)) => mk_infix sy ty c p (p + 1) p
+        | (_, ty, InfixrName (sy, p)) => mk_infix sy ty c (p + 1) p p
+        | (sy, ty, Infixl p) => mk_infix sy ty c p (p + 1) p
+        | (sy, ty, Infixr p) => mk_infix sy ty c (p + 1) p p
+        | (_, ty, Binder (sy, p, q)) =>
+            [Mfix ("(3" ^ sy ^ "_./ _)", binder_typ c ty, sy, [0, p], q)])
+    end;
 
     fun binder (c, _, Binder (sy, _, _)) = Some (sy, c)
       | binder _ = None;
@@ -158,23 +178,25 @@ val pure_syntax =
   ("_ofclass",  "[type, logic] => prop",          Delimfix "(1OFCLASS/(1'(_,/ _')))"),
   ("_K",        "'a",                             NoSyn),
   ("",          "id => logic",                    Delimfix "_"),
-  ("",          "var => logic",                   Delimfix "_")]
+  ("",          "var => logic",                   Delimfix "_")];
 
 val pure_appl_syntax =
- [("_appl",     "[('b => 'a), args] => logic",    Mixfix ("(1_/(1'(_')))",
-                                                    [max_pri, 0], max_pri)),
-  ("_appl",     "[('b => 'a), args] => aprop",    Mixfix ("(1_/(1'(_')))",
-                                                    [max_pri, 0], max_pri))];
+ [("_appl",     "[('b => 'a), args] => logic",    Mixfix ("(1_/(1'(_')))", [max_pri, 0], max_pri)),
+  ("_appl",     "[('b => 'a), args] => aprop",    Mixfix ("(1_/(1'(_')))", [max_pri, 0], max_pri))];
 
 val pure_applC_syntax =
  [("",           "'a => cargs",                   Delimfix "_"),
-  ("_cargs",     "['a, cargs] => cargs",          Mixfix ("_/ _",
-                                                   [max_pri, max_pri],
-                                                   max_pri)),
-  ("_applC",     "[('b => 'a), cargs] => logic",  Mixfix ("(1_/ _)",
-                                                   [max_pri, max_pri],
-                                                   max_pri-1)),
-  ("_applC",     "[('b => 'a), cargs] => aprop",  Mixfix ("(1_/ _)",
-                                                   [max_pri, max_pri],
-                                                   max_pri-1))];
+  ("_cargs",     "['a, cargs] => cargs",          Mixfix ("_/ _", [max_pri, max_pri], max_pri)),
+  ("_applC",     "[('b => 'a), cargs] => logic",  Mixfix ("(1_/ _)", [max_pri, max_pri], max_pri - 1)),
+  ("_applC",     "[('b => 'a), cargs] => aprop",  Mixfix ("(1_/ _)", [max_pri, max_pri], max_pri - 1))];
+
+val pure_symfont_syntax =
+ [("fun",      "[type, type] => type",            Mixfix ("(_/ \\{Rightarrow} _)", [1, 0], 0)),
+  ("_bracket", "[types, type] => type",           Mixfix ("([_]/ \\{Rightarrow} _)", [0, 0], 0)),
+  ("_lambda",  "[idts, 'a] => logic",             Mixfix ("(3\\{lambda}_./ _)", [], 0)),
+  ("==>",      "[prop, prop] => prop",            InfixrName ("\\{Midarrow}\\{Rightarrow}", 1)),
+  ("_bigimpl", "[asms, prop] => prop",            Mixfix ("((3\\{ldbrak} _ \\{rdbrak})/ \\{Midarrow}\\{Rightarrow} _)", [0, 1], 1)),
+  ("==",       "['a::{}, 'a] => prop",            InfixrName ("\\{equiv}", 2)),
+  ("!!",       "[idts, prop] => prop",            Mixfix ("(3\\{Vee}_./ _)", [0, 0], 0))];
+
 end;
