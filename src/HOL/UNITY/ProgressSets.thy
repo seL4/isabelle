@@ -318,12 +318,18 @@ by (simp add: progress_set_def lattice_def closed_def)
 
 
 
-subsubsection {*Derived Relation from a Lattice*}
+subsubsection {*Lattices and Relations*}
 text{*From Meier's thesis, section 4.5.3*}
 
 constdefs
   relcl :: "'a set set => ('a * 'a) set"
+    -- {*Derived relation from a lattice*}
     "relcl L == {(x,y). y \<in> cl L {x}}"
+  
+  latticeof :: "('a * 'a) set => 'a set set"
+    -- {*Derived lattice from a relation: the set of upwards-closed sets*}
+    "latticeof r == {X. \<forall>s t. s \<in> X & (s,t) \<in> r --> t \<in> X}"
+
 
 lemma relcl_refl: "(a,a) \<in> relcl L"
 by (simp add: relcl_def subset_cl [THEN subsetD])
@@ -340,13 +346,58 @@ by (simp add: reflI relcl_def subset_cl [THEN subsetD])
 lemma trans_relcl: "lattice L ==> trans (relcl L)"
 by (blast intro: relcl_trans transI)
 
-text{*Related to equation (4.71) of Meier's thesis*}
+lemma lattice_latticeof: "lattice (latticeof r)"
+by (auto simp add: lattice_def latticeof_def)
+
+lemma lattice_singletonI:
+     "[|lattice L; !!s. s \<in> X ==> {s} \<in> L|] ==> X \<in> L"
+apply (cut_tac UN_singleton [of X]) 
+apply (erule subst) 
+apply (simp only: UN_in_lattice) 
+done
+
+text{*Equation (4.71) of Meier's thesis.  He gives no proof.*}
+lemma cl_latticeof:
+     "[|refl UNIV r; trans r|] 
+      ==> cl (latticeof r) X = {t. \<exists>s. s\<in>X & (s,t) \<in> r}" 
+apply (rule equalityI) 
+ apply (rule cl_least) 
+  apply (simp (no_asm_use) add: latticeof_def trans_def, blast)
+ apply (simp add: latticeof_def refl_def, blast)
+apply (simp add: latticeof_def, clarify)
+apply (unfold cl_def, blast) 
+done
+
+text{*Related to (4.71).*}
 lemma cl_eq_Collect_relcl:
      "lattice L ==> cl L X = {t. \<exists>s. s\<in>X & (s,t) \<in> relcl L}" 
-apply (cut_tac UN_singleton [of X, symmetric]) 
-apply (erule ssubst) 
+apply (cut_tac UN_singleton [of X]) 
+apply (erule subst) 
 apply (force simp only: relcl_def cl_UN)
 done
+
+text{*Meier's theorem of section 4.5.3*}
+theorem latticeof_relcl_eq: "lattice L ==> latticeof (relcl L) = L"
+apply (rule equalityI) 
+ prefer 2 apply (force simp add: latticeof_def relcl_def cl_def, clarify) 
+apply (rename_tac X)
+apply (rule cl_subset_in_lattice)   
+ prefer 2 apply assumption
+apply (drule cl_ident_iff [OF lattice_latticeof, THEN iffD2])
+apply (drule equalityD1)   
+apply (rule subset_trans) 
+ prefer 2 apply assumption
+apply (thin_tac "?U \<subseteq> X") 
+apply (cut_tac A=X in UN_singleton) 
+apply (erule subst) 
+apply (simp only: cl_UN lattice_latticeof 
+                  cl_latticeof [OF refl_relcl trans_relcl]) 
+apply (simp add: relcl_def) 
+done
+
+theorem relcl_latticeof_eq:
+     "[|refl UNIV r; trans r|] ==> relcl (latticeof r) = r"
+by (simp add: relcl_def cl_latticeof, blast)
 
 
 subsubsection {*Decoupling Theorems*}
@@ -421,7 +472,7 @@ constdefs
            cl L (T \<inter> wp act M) \<subseteq> T \<inter> (B \<union> wp act (cl L (T\<inter>M)))"
 
 
-lemma commutativity1:
+lemma commutativity1_lemma:
   assumes commutes: "commutes F T B L" 
       and lattice:  "lattice L"
       and BL: "B \<in> L"
@@ -438,6 +489,20 @@ apply (erule subset_trans)
 apply (simp add: cl_ident)
 apply (blast intro: rev_subsetD [OF _ wp_mono]) 
 done
+
+lemma commutativity1:
+  assumes leadsTo: "F \<in> A leadsTo B"
+      and lattice:  "lattice L"
+      and BL: "B \<in> L"
+      and TL: "T \<in> L"
+      and Fstable: "F \<in> stable T"
+      and Gco: "!!X. X\<in>L ==> G \<in> X-B co X"
+      and commutes: "commutes F T B L" 
+  shows "F\<squnion>G \<in> T\<inter>A leadsTo B"
+by (rule progress_set_Union [OF leadsTo _ Fstable subset_refl BL Gco],
+    simp add: progress_set_def commutativity1_lemma commutes lattice BL TL) 
+
+
 
 text{*Possibly move to Relation.thy, after @{term single_valued}*}
 constdefs
@@ -462,8 +527,8 @@ by (force simp add: in_wp_iff funof_eq)
 subsubsection{*Commutativity of Functions and Relation*}
 text{*Thesis, page 109*}
 
-(*FIXME: this proof is an unGodly mess*)
-lemma commutativity2:
+(*FIXME: this proof is an ungodly mess*)
+lemma commutativity2_lemma:
   assumes dcommutes: 
         "\<forall>act \<in> Acts F. 
          \<forall>s \<in> T. \<forall>t. (s,t) \<in> relcl L --> 
@@ -478,8 +543,8 @@ lemma commutativity2:
 apply (simp add: commutes_def, clarify)  
 apply (rename_tac t)
 apply (subgoal_tac "\<exists>s. (s,t) \<in> relcl L & s \<in> T \<inter> wp act M") 
- prefer 2 apply (force simp add: cl_eq_Collect_relcl [OF lattice], simp) 
-apply clarify 
+ prefer 2 
+ apply (force simp add: cl_eq_Collect_relcl [OF lattice], simp, clarify) 
 apply (subgoal_tac "\<forall>u\<in>L. s \<in> u --> t \<in> u") 
  prefer 2 
  apply (intro ballI impI) 
@@ -503,5 +568,26 @@ apply (subgoal_tac "t \<in> B | t \<in> wp act (cl L (T\<inter>M))")
  apply (blast intro: funof_imp_wp determ) 
 apply (blast intro: TL cl_mono [THEN [2] rev_subsetD])  
 done
+
+
+lemma commutativity2:
+  assumes leadsTo: "F \<in> A leadsTo B"
+      and dcommutes: 
+        "\<forall>act \<in> Acts F. 
+         \<forall>s \<in> T. \<forall>t. (s,t) \<in> relcl L --> 
+                      s \<in> B | t \<in> B | (funof act s, funof act t) \<in> relcl L"
+      and determ: "!!act. act \<in> Acts F ==> single_valued act"
+      and total: "!!act. act \<in> Acts F ==> Domain act = UNIV"
+      and lattice:  "lattice L"
+      and BL: "B \<in> L"
+      and TL: "T \<in> L"
+      and Fstable: "F \<in> stable T"
+      and Gco: "!!X. X\<in>L ==> G \<in> X-B co X"
+  shows "F\<squnion>G \<in> T\<inter>A leadsTo B"
+apply (rule commutativity1 [OF leadsTo lattice]) 
+apply (simp_all add: Gco commutativity2_lemma dcommutes determ total
+                     lattice BL TL Fstable)
+done
+
 
 end
