@@ -2200,37 +2200,11 @@ apply(rule ACIfSLlin_axioms.intro)
 apply(auto simp:max_def)
 done
 
-lemma partial_order_order:
- "partial_order (op \<le> :: 'a::order \<Rightarrow> 'a \<Rightarrow> bool)"
-apply(rule partial_order.intro)
-apply(simp_all)
-done
-
-lemma lower_semilattice_lin_min:
-  "lower_semilattice(op \<le>) (min :: 'a::linorder \<Rightarrow> 'a \<Rightarrow> 'a)"
-apply(rule lower_semilattice.intro)
-apply(rule partial_order_order)
-apply(rule lower_semilattice_axioms.intro)
-apply(simp add:min_def linorder_not_le order_less_imp_le)
-apply(simp add:min_def linorder_not_le order_less_imp_le)
-apply(simp add:min_def linorder_not_le order_less_imp_le)
-done
-
-lemma upper_semilattice_lin_min:
-  "upper_semilattice(op \<le>) (max :: 'a::linorder \<Rightarrow> 'a \<Rightarrow> 'a)"
-apply(rule upper_semilattice.intro)
-apply(rule partial_order_order)
-apply(rule upper_semilattice_axioms.intro)
-apply(simp add: max_def linorder_not_le order_less_imp_le)
-apply(simp add: max_def linorder_not_le order_less_imp_le)
-apply(simp add: max_def linorder_not_le order_less_imp_le)
-done
-
 lemma Lattice_min_max: "Lattice (op \<le>) (min :: 'a::linorder \<Rightarrow> 'a \<Rightarrow> 'a) max"
 apply(rule Lattice.intro)
 apply(rule partial_order_order)
 apply(rule lower_semilattice.axioms[OF lower_semilattice_lin_min])
-apply(rule upper_semilattice.axioms[OF upper_semilattice_lin_min])
+apply(rule upper_semilattice.axioms[OF upper_semilattice_lin_max])
 done
 
 lemma Distrib_Lattice_min_max:
@@ -2238,23 +2212,8 @@ lemma Distrib_Lattice_min_max:
 apply(rule Distrib_Lattice.intro)
 apply(rule partial_order_order)
 apply(rule lower_semilattice.axioms[OF lower_semilattice_lin_min])
-apply(rule upper_semilattice.axioms[OF upper_semilattice_lin_min])
-apply(rule distrib_lattice_axioms.intro)
-apply(rule_tac x=x and y=y in linorder_le_cases)
-apply(rule_tac x=x and y=z in linorder_le_cases)
-apply(rule_tac x=y and y=z in linorder_le_cases)
-apply(simp add:min_def max_def)
-apply(simp add:min_def max_def)
-apply(rule_tac x=y and y=z in linorder_le_cases)
-apply(simp add:min_def max_def)
-apply(simp add:min_def max_def)
-apply(rule_tac x=x and y=z in linorder_le_cases)
-apply(rule_tac x=y and y=z in linorder_le_cases)
-apply(simp add:min_def max_def)
-apply(simp add:min_def max_def)
-apply(rule_tac x=y and y=z in linorder_le_cases)
-apply(simp add:min_def max_def)
-apply(simp add:min_def max_def)
+apply(rule upper_semilattice.axioms[OF upper_semilattice_lin_max])
+apply(rule distrib_lattice.axioms[OF distrib_lattice_min_max])
 done
 
 text{* Now we instantiate the recursion equations and declare them
