@@ -21,14 +21,6 @@ open DatatypeAux;
 
 exception RecError of string;
 
-(* FIXME: move? *)
-
-fun dest_eq (Const ("Trueprop", _) $ (Const ("op =", _) $ lhs $ rhs)) = (lhs, rhs)
-  | dest_eq t = raise TERM ("dest_eq", [t])
-
-fun dest_Type (Type x) = x
-  | dest_Type T = raise TYPE ("dest_Type", [T], []);
-
 fun primrec_err s = error ("Primrec definition error:\n" ^ s);
 fun primrec_eq_err sign s eq =
   primrec_err (s ^ "\nin equation\n" ^ Sign.string_of_term sign eq);
@@ -37,9 +29,11 @@ fun primrec_eq_err sign s eq =
 
 fun process_eqn sign (eq, rec_fns) = 
   let
-    val (lhs, rhs) = if null (term_vars eq) then
-        dest_eq eq handle _ => raise RecError "not a proper equation"
-      else raise RecError "illegal schematic variable(s)";
+    val (lhs, rhs) = 
+	if null (term_vars eq) then
+	    HOLogic.dest_eq (HOLogic.dest_Trueprop eq)
+	      handle _ => raise RecError "not a proper equation"
+	else raise RecError "illegal schematic variable(s)";
 
     val (recfun, args) = strip_comb lhs;
     val (fname, _) = dest_Const recfun handle _ => 
