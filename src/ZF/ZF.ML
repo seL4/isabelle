@@ -6,8 +6,6 @@
 Basic introduction and elimination rules for Zermelo-Fraenkel Set Theory 
 *)
 
-open ZF;
-
 (*Useful examples:  singletonI RS subst_elem,  subst_elem RSN (2,IntI) *)
 Goal "[| b:A;  a=b |] ==> a:A";
 by (etac ssubst 1);
@@ -127,6 +125,9 @@ val set_mp_tac = dtac subsetD THEN' assume_tac;
 (*Sometimes useful with premises in this order*)
 qed_goal "rev_subsetD" ZF.thy "!!A B c. [| c:A; A<=B |] ==> c:B"
  (fn _=> [ Blast_tac 1 ]);
+
+(*Converts A<=B to x:A ==> x:B*)
+fun impOfSubs th = th RSN (2, rev_subsetD);
 
 qed_goal "contra_subsetD" ZF.thy "!!c. [| A <= B; c ~: B |] ==> c ~: A"
  (fn _=> [ Blast_tac 1 ]);
@@ -475,3 +476,45 @@ qed_goal "Union_in_Pow" ZF.thy
     "!!Y. Y : Pow(Pow(A)) ==> Union(Y) : Pow(A)"
  (fn _ => [Blast_tac 1]);
 
+
+local
+val (bspecT, bspec') = make_new_spec bspec
+in
+
+fun RSbspec th =
+  (case concl_of th of
+     _ $ (Const("Ball",_) $ _ $ Abs(a,_,_)) =>
+         let val ca = cterm_of (#sign(rep_thm th)) (Var((a,0),bspecT))
+         in th RS forall_elim ca bspec' end
+  | _ => raise THM("RSbspec",0,[th]));
+
+val normalize_thm_ZF = normalize_thm [RSspec,RSbspec,RSmp];
+
+fun qed_spec_mp name =
+  let val thm = normalize_thm_ZF (result())
+  in bind_thm(name, thm) end;
+
+fun qed_goal_spec_mp name thy s p = 
+      bind_thm (name, normalize_thm_ZF (prove_goal thy s p));
+
+fun qed_goalw_spec_mp name thy defs s p = 
+      bind_thm (name, normalize_thm_ZF (prove_goalw thy defs s p));
+
+end;
+
+
+(* attributes *)
+
+local
+
+fun gen_rulify x = 
+    Attrib.no_args (Drule.rule_attribute (K (normalize_thm_ZF))) x;
+
+in
+
+val attrib_setup =
+ [Attrib.add_attributes
+  [("rulify", (gen_rulify, gen_rulify), 
+    "put theorem into standard rule form")]];
+
+end;
