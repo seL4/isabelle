@@ -86,9 +86,9 @@ lemma inv_not_1:
 
 lemma inv_not_p_minus_1_aux: "[a * (p - 1) = 1] (mod p) = [a = p - 1] (mod p)"
   apply (unfold zcong_def)
-  apply (simp add: zdiff_zdiff_eq zdiff_zdiff_eq2 zdiff_zmult_distrib2)
+  apply (simp add: Ring_and_Field.diff_diff_eq diff_diff_eq2 zdiff_zmult_distrib2)
   apply (rule_tac s = "p dvd -((a + 1) + (p * -a))" in trans)
-   apply (simp add: zmult_commute zminus_zdiff_eq)
+   apply (simp add: mult_commute)
   apply (subst zdvd_zminus_iff)
   apply (subst zdvd_reduce)
   apply (rule_tac s = "p dvd (a + 1) + (p * -1)" in trans)

@@ -89,7 +89,7 @@ defs
 
 
 
-(*** Uniqueness and monotonicity of quotients and remainders ***)
+subsection{*Uniqueness and Monotonicity of Quotients and Remainders*}
 
 lemma unique_quotient_lemma:
      "[| b*q' + r'  <= b*q + r;  0 <= r';  0 < b;  r < b |]  
@@ -129,7 +129,9 @@ apply (blast intro: unique_quotient)
 done
 
 
-(*** Correctness of posDivAlg, the division algorithm for a>=0 and b>0 ***)
+subsection{*Correctness of posDivAlg, the Algorithm for Non-Negative Dividends*}
+
+text{*And positive divisors*}
 
 lemma adjust_eq [simp]:
      "adjust b (q,r) = 
@@ -160,7 +162,9 @@ apply (auto simp add: zadd_zmult_distrib2 Let_def)
 done
 
 
-(*** Correctness of negDivAlg, the division algorithm for a<0 and b>0 ***)
+subsection{*Correctness of negDivAlg, the Algorithm for Negative Dividends*}
+
+text{*And positive divisors*}
 
 declare negDivAlg.simps [simp del]
 
@@ -186,7 +190,7 @@ apply (auto simp add: zadd_zmult_distrib2 Let_def)
 done
 
 
-(*** Existence shown by proving the division algorithm to be correct ***)
+subsection{*Existence Shown by Proving the Division Algorithm to be Correct*}
 
 (*the case a=0*)
 lemma quorem_0: "b ~= 0 ==> quorem ((0,b), (0,0))"
@@ -211,8 +215,8 @@ by (force simp add: linorder_neq_iff quorem_0 divAlg_def quorem_neg
 (** Arbitrary definitions for division by zero.  Useful to simplify 
     certain equations **)
 
-lemma DIVISION_BY_ZERO: "a div (0::int) = 0 & a mod (0::int) = a"
-by (simp add: div_def mod_def divAlg_def posDivAlg.simps)  (*NOT for adding to default simpset*)
+lemma DIVISION_BY_ZERO [simp]: "a div (0::int) = 0 & a mod (0::int) = a"
+by (simp add: div_def mod_def divAlg_def posDivAlg.simps)  
 
 (** Basic laws about division and remainder **)
 
@@ -311,7 +315,7 @@ apply (subst quorem_div_mod [THEN quorem_neg, simplified, THEN quorem_mod],
        auto)
 done
 
-(*** div, mod and unary minus ***)
+subsection{*div, mod and unary minus*}
 
 lemma zminus1_lemma:
      "quorem((a,b),(q,r))  
@@ -349,7 +353,7 @@ lemma zmod_zminus2_eq_if:
 by (simp add: zmod_zminus1_eq_if zmod_zminus2)
 
 
-(*** division of a number by itself ***)
+subsection{*Division of a Number by Itself*}
 
 lemma self_quotient_aux1: "[| (0::int) < a; a = r + a*q; r < a |] ==> 1 <= q"
 apply (subgoal_tac "0 < a*q")
@@ -385,7 +389,7 @@ apply (simp add: quorem_div_mod [THEN self_remainder])
 done
 
 
-(*** Computation of division and remainder ***)
+subsection{*Computation of Division and Remainder*}
 
 lemma zdiv_zero [simp]: "(0::int) div b = 0"
 by (simp add: div_def divAlg_def)
@@ -486,7 +490,7 @@ declare posDivAlg_eqn [of concl: 1 "number_of w", standard, simp]
 declare negDivAlg_eqn [of concl: 1 "number_of w", standard, simp]
 
 
-(*** Monotonicity in the first argument (divisor) ***)
+subsection{*Monotonicity in the First Argument (Dividend)*}
 
 lemma zdiv_mono1: "[| a <= a';  0 < (b::int) |] ==> a div b <= a' div b"
 apply (cut_tac a = a and b = b in zmod_zdiv_equality)
@@ -507,7 +511,7 @@ apply (simp_all)
 done
 
 
-(*** Monotonicity in the second argument (dividend) ***)
+subsection{*Monotonicity in the Second Argument (Divisor)*}
 
 lemma q_pos_lemma:
      "[| 0 <= b'*q' + r'; r' < b';  0 < b' |] ==> 0 <= (q'::int)"
@@ -574,7 +578,7 @@ apply (simp_all)
 done
 
 
-(*** More algebraic laws for div and mod ***)
+subsection{*More Algebraic Laws for div and mod*}
 
 (** proving (a*b) div c = a * (b div c) + a * (b mod c) **)
 
@@ -686,7 +690,7 @@ apply (simp add: zmod_zadd1_eq)
 done
 
 
-(*** proving  a div (b*c) = (a div b) div c ***)
+subsection{*Proving  @{term "a div (b*c) = (a div b) div c"} *}
 
 (*The condition c>0 seems necessary.  Consider that 7 div ~6 = ~2 but
   7 div 2 div ~3 = 3 div ~3 = ~1.  The subcase (a div b) mod c = 0 seems
@@ -700,7 +704,7 @@ apply (simp add: zdiff_zmult_distrib2)
 apply (rule order_le_less_trans)
 apply (erule_tac [2] zmult_zless_mono1)
 apply (rule zmult_zle_mono2_neg)
-apply (auto simp add: zcompare_rls zadd_commute [of 1]
+apply (auto simp add: compare_rls zadd_commute [of 1]
                       add1_zle_eq pos_mod_bound)
 done
 
@@ -722,13 +726,13 @@ apply (simp add: zdiff_zmult_distrib2)
 apply (rule order_less_le_trans)
 apply (erule zmult_zless_mono1)
 apply (rule_tac [2] zmult_zle_mono2)
-apply (auto simp add: zcompare_rls zadd_commute [of 1]
+apply (auto simp add: compare_rls zadd_commute [of 1]
                       add1_zle_eq pos_mod_bound)
 done
 
 lemma zmult2_lemma: "[| quorem ((a,b), (q,r));  b ~= 0;  0 < c |]  
       ==> quorem ((a, b*c), (q div c, b*(q mod c) + r))"
-by (auto simp add: zmult_ac quorem_def linorder_neq_iff
+by (auto simp add: mult_ac quorem_def linorder_neq_iff
                    int_0_less_mult_iff zadd_zmult_distrib2 [symmetric] 
                    zmult2_lemma_aux1 zmult2_lemma_aux2 zmult2_lemma_aux3 zmult2_lemma_aux4)
 
@@ -744,7 +748,7 @@ apply (force simp add: quorem_div_mod [THEN zmult2_lemma, THEN quorem_mod])
 done
 
 
-(*** Cancellation of common factors in div ***)
+subsection{*Cancellation of Common Factors in div*}
 
 lemma zdiv_zmult_zmult1_aux1: "[| (0::int) < b;  c ~= 0 |] ==> (c*a) div (c*b) = a div b"
 by (subst zdiv_zmult2_eq, auto)
@@ -766,7 +770,7 @@ done
 
 
 
-(*** Distribution of factors over mod ***)
+subsection{*Distribution of Factors over mod*}
 
 lemma zmod_zmult_zmult1_aux1: "[| (0::int) < b;  c ~= 0 |] ==> (c*a) mod (c*b) = c * (a mod b)"
 by (subst zmod_zmult2_eq, auto)
@@ -788,7 +792,7 @@ apply (auto simp add: zmult_commute)
 done
 
 
-subsection {*splitting rules for div and mod*}
+subsection {*Splitting Rules for div and mod*}
 
 text{*The proofs of the two lemmas below are essentially identical*}
 
@@ -853,7 +857,7 @@ declare split_zdiv [of _ _ "number_of k", simplified, standard, arith_split]
 declare split_zmod [of _ _ "number_of k", simplified, standard, arith_split]
 
 
-subsection{*Speeding up the division algorithm with shifting*}
+subsection{*Speeding up the Division Algorithm with Shifting*}
 
 (** computing div by shifting **)
 
@@ -986,7 +990,7 @@ lemma neg_imp_zdiv_neg_iff: "b < (0::int) ==> (a div b < 0) = (0 < a)"
 by (simp add: linorder_not_le [symmetric] neg_imp_zdiv_nonneg_iff)
 
 
-subsection {* Divides relation *}
+subsection {* The Divides Relation *}
 
 lemma zdvd_iff_zmod_eq_0: "(m dvd n) = (n mod m = (0::int))"
 by(simp add:dvd_def zmod_eq_0_iff)
@@ -1046,7 +1050,7 @@ lemma zdvd_zdiffD: "k dvd m - n ==> k dvd n ==> k dvd (m::int)"
 
 lemma zdvd_zmult: "k dvd (n::int) ==> k dvd m * n"
   apply (unfold dvd_def)
-  apply (blast intro: zmult_left_commute)
+  apply (blast intro: mult_left_commute)
   done
 
 lemma zdvd_zmult2: "k dvd (m::int) ==> k dvd m * n"
@@ -1077,7 +1081,7 @@ lemma zdvd_zmultD: "j * k dvd n ==> k dvd (n::int)"
 lemma zdvd_zmult_mono: "i dvd m ==> j dvd (n::int) ==> i * j dvd m * n"
   apply (unfold dvd_def, clarify)
   apply (rule_tac x = "k * ka" in exI)
-  apply (simp add: zmult_ac)
+  apply (simp add: mult_ac)
   done
 
 lemma zdvd_reduce: "(k dvd n + k * m) = (k dvd (n::int))"

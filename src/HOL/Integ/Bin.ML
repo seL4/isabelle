@@ -207,7 +207,7 @@ Addsimps (map (inst "k" "number_of ?v")
 (** Special-case simplification for small constants **)
 
 Goal "-1 * z = -(z::int)";
-by (simp_tac (simpset() addsimps zcompare_rls@[int_Suc0_eq_1, zmult_zminus]) 1);
+by (simp_tac (simpset() addsimps compare_rls@[int_Suc0_eq_1, zmult_zminus]) 1);
 qed "zmult_minus1";
 
 Goal "z * -1 = -(z::int)";
@@ -243,7 +243,7 @@ Goalw [iszero_def]
   "((number_of x::int) = number_of y) = \
 \  iszero (number_of (bin_add x (bin_minus y)))"; 
 by (simp_tac (simpset()
-                 addsimps zcompare_rls @ [number_of_add, number_of_minus]) 1); 
+                 addsimps compare_rls @ [number_of_add, number_of_minus]) 1); 
 qed "eq_number_of_eq"; 
 
 Goalw [iszero_def] "iszero ((number_of bin.Pls)::int)"; 
@@ -261,7 +261,7 @@ Goalw [iszero_def]
 by (int_case_tac "number_of w" 1); 
 by (ALLGOALS 
     (asm_simp_tac 
-     (simpset() addsimps zcompare_rls @ 
+     (simpset() addsimps compare_rls @ 
   	                 [zero_reorient, zminus_zadd_distrib RS sym, 
                           int_Suc0_eq_1 RS sym, zadd_int]))); 
 qed "iszero_number_of_BIT"; 
@@ -299,7 +299,7 @@ by (Asm_simp_tac 1);
 by (int_case_tac "number_of w" 1); 
 by (ALLGOALS (asm_simp_tac 
 	      (simpset() addsimps [int_Suc0_eq_1 RS sym, zadd_int, 
-                         neg_eq_less_0, symmetric zdiff_def] @ zcompare_rls)));
+                         neg_eq_less_0, symmetric zdiff_def] @ compare_rls)));
 qed "neg_number_of_BIT"; 
 
 

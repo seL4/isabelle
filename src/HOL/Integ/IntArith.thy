@@ -202,8 +202,7 @@ subsection{*Intermediate value theorems*}
 lemma int_val_lemma:
      "(\<forall>i<n::nat. abs(f(i+1) - f i) \<le> 1) -->  
       f 0 \<le> k --> k \<le> f n --> (\<exists>i \<le> n. f i = (k::int))"
-apply (induct_tac "n")
- apply (simp (no_asm_simp))
+apply (induct_tac "n", simp)
 apply (intro strip)
 apply (erule impE, simp)
 apply (erule_tac x = n in allE, simp)
@@ -293,9 +292,9 @@ done
 
 lemma zmult_eq_1_iff: "(m*n = (1::int)) = ((m = 1 & n = 1) | (m = -1 & n = -1))"
 apply (case_tac "0<m")
-apply (simp (no_asm_simp) add: pos_zmult_eq_1_iff)
+apply (simp add: pos_zmult_eq_1_iff)
 apply (case_tac "m=0")
-apply (simp (no_asm_simp) del: number_of_reorient)
+apply (simp del: number_of_reorient)
 apply (subgoal_tac "0 < -m")
 apply (drule_tac n = "-n" in pos_zmult_eq_1_iff, auto)
 done
@@ -303,22 +302,26 @@ done
 
 subsection{*More about nat*}
 
+(*Analogous to zadd_int*)
+lemma zdiff_int: "n \<le> m ==> int m - int n = int (m-n)"
+by (induct m n rule: diff_induct, simp_all)
+
 lemma nat_add_distrib:
      "[| (0::int) \<le> z;  0 \<le> z' |] ==> nat (z+z') = nat z + nat z'"
 apply (rule inj_int [THEN injD])
-apply (simp (no_asm_simp) add: zadd_int [symmetric])
+apply (simp add: zadd_int [symmetric])
 done
 
 lemma nat_diff_distrib:
      "[| (0::int) \<le> z';  z' \<le> z |] ==> nat (z-z') = nat z - nat z'"
 apply (rule inj_int [THEN injD])
-apply (simp (no_asm_simp) add: zdiff_int [symmetric] nat_le_eq_zle)
+apply (simp add: zdiff_int [symmetric] nat_le_eq_zle)
 done
 
 lemma nat_mult_distrib: "(0::int) \<le> z ==> nat (z*z') = nat z * nat z'"
 apply (case_tac "0 \<le> z'")
 apply (rule inj_int [THEN injD])
-apply (simp (no_asm_simp) add: zmult_int [symmetric] int_0_le_mult_iff)
+apply (simp add: zmult_int [symmetric] int_0_le_mult_iff)
 apply (simp add: zmult_le_0_iff)
 done
 

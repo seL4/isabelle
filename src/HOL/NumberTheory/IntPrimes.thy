@@ -305,7 +305,7 @@ lemma zcong_cancel:
    apply (rule_tac [!] zrelprime_zdvd_zmult)
      apply (simp_all add: zdiff_zmult_distrib)
   apply (subgoal_tac "m dvd (-(a * k - b * k))")
-   apply (simp add: zminus_zdiff_eq)
+   apply simp
   apply (subst zdvd_zminus_iff, assumption)
   done
 
@@ -380,7 +380,7 @@ lemma zcong_zless_unique:
   apply (unfold zcong_def dvd_def)
   apply (rule_tac x = "a mod m" in exI, auto)
   apply (rule_tac x = "-(a div m)" in exI)
-  apply (simp add:zdiff_eq_eq eq_zdiff_eq zadd_commute)
+  apply (simp add: diff_eq_eq eq_diff_eq add_commute)
   done
 
 lemma zcong_iff_lin: "([a = b] (mod m)) = (\<exists>k. b = a + m * k)"
@@ -395,7 +395,7 @@ lemma zgcd_zcong_zgcd:
 
 lemma zcong_zmod_aux:
      "a - b = (m::int) * (a div m - b div m) + (a mod m - b mod m)"
-  by(simp add: zdiff_zmult_distrib2 zadd_zdiff_eq eq_zdiff_eq zadd_ac)
+  by(simp add: zdiff_zmult_distrib2 add_diff_eq eq_diff_eq add_ac)
 
 lemma zcong_zmod: "[a = b] (mod m) = [a mod m = b mod m] (mod m)"
   apply (unfold zcong_def)
@@ -505,7 +505,7 @@ lemma xzgcda_linear_aux2:
     ==> (r' mod r) = (s' - (r' div r) * s) * m + (t' - (r' div r) * t) * (n::int)"
   apply (rule trans)
    apply (rule_tac [2] xzgcda_linear_aux1 [symmetric])
-  apply (simp add: eq_zdiff_eq zmult_commute)
+  apply (simp add: eq_diff_eq mult_commute)
   done
 
 lemma order_le_neq_implies_less: "(x::'a::order) \<le> y ==> x \<noteq> y ==> x < y"

@@ -395,7 +395,7 @@ lemma  dvd_modd_pinf: "((d::int) dvd d1) ==>
   apply(clarsimp)
   apply(rename_tac n m)
   apply(rule_tac x = "m - n*k" in exI)
-  apply(simp add:int_distrib zmult_ac)
+  apply(simp add:int_distrib mult_ac)
   done
 
 lemma  not_dvd_modd_pinf: "((d::int) dvd d1) ==>
@@ -405,11 +405,11 @@ lemma  not_dvd_modd_pinf: "((d::int) dvd d1) ==>
   apply(clarsimp)
   apply(rename_tac n m)
   apply(erule_tac x = "m - n*k" in allE)
-  apply(simp add:int_distrib zmult_ac)
+  apply(simp add:int_distrib mult_ac)
   apply(clarsimp)
   apply(rename_tac n m)
   apply(erule_tac x = "m + n*k" in allE)
-  apply(simp add:int_distrib zmult_ac)
+  apply(simp add:int_distrib mult_ac)
   done
 
 (*=============================================================================*)
@@ -462,7 +462,7 @@ apply(simp add:int_distrib)
 apply(clarsimp)
 apply(rename_tac n m)
 apply(rule_tac x = "m + n*k" in exI)
-apply(simp add:int_distrib zmult_ac)
+apply(simp add:int_distrib mult_ac)
 done
 
 
@@ -473,11 +473,11 @@ apply(rule iffI)
 apply(clarsimp)
 apply(rename_tac n m)
 apply(erule_tac x = "m + n*k" in allE)
-apply(simp add:int_distrib zmult_ac)
+apply(simp add:int_distrib mult_ac)
 apply(clarsimp)
 apply(rename_tac n m)
 apply(erule_tac x = "m - n*k" in allE)
-apply(simp add:int_distrib zmult_ac)
+apply(simp add:int_distrib mult_ac)
 done
 
 
@@ -626,7 +626,7 @@ proof
   assume ?LHS
   then obtain x where P: "P x" ..
   have "x mod d = x - (x div d)*d"
-    by(simp add:zmod_zdiv_equality zmult_ac eq_zdiff_eq)
+    by(simp add:zmod_zdiv_equality mult_ac eq_diff_eq)
   hence Pmod: "P x = P(x mod d)" using modd by simp
   show ?RHS
   proof (cases)
@@ -661,7 +661,7 @@ proof
   assume ?LHS
   then obtain x where P: "P x" ..
   have "x mod d = x + (-(x div d))*d"
-    by(simp add:zmod_zdiv_equality zmult_ac eq_zdiff_eq)
+    by(simp add:zmod_zdiv_equality mult_ac eq_diff_eq)
   hence Pmod: "P x = P(x mod d)" using modd by (simp only:)
   show ?RHS
   proof (cases)
@@ -702,7 +702,7 @@ next
     have "P x \<longrightarrow> P (x - i * d)" using step.hyps by blast
     also have "\<dots> \<longrightarrow> P(x - (i + 1) * d)"
       using minus[THEN spec, of "x - i * d"]
-      by (simp add:int_distrib zdiff_zdiff_eq[symmetric])
+      by (simp add:int_distrib Ring_and_Field.diff_diff_eq[symmetric])
     ultimately show "P x \<longrightarrow> P(x - (i + 1) * d)" by blast
   qed
 qed
@@ -864,12 +864,12 @@ proof
     apply(drule_tac f = "op * k" in arg_cong)
     apply(simp only:int_distrib)
     apply(rule_tac x = "d" in exI)
-    apply(simp only:zmult_ac)
+    apply(simp only:mult_ac)
     done
 next
   assume ?Q
   then obtain d where "k * c * n + k * t = (k*m)*d" by(fastsimp simp:dvd_def)
-  hence "(c * n + t) * k = (m*d) * k" by(simp add:int_distrib zmult_ac)
+  hence "(c * n + t) * k = (m*d) * k" by(simp add:int_distrib mult_ac)
   hence "((c * n + t) * k) div k = ((m*d) * k) div k" by(rule arg_cong[of _ _ "%t. t div k"])
   hence "c*n+t = m*d" by(simp add: zdiv_zmult_self1[OF not0[symmetric]])
   thus ?P by(simp add:dvd_def)
@@ -879,10 +879,10 @@ lemma ac_lt_eq: assumes gr0: "0 < (k::int)"
 shows "((m::int) < (c*n+t)) = (k*m <((k*c)*n+(k*t)))" (is "?P = ?Q")
 proof
   assume P: ?P
-  show ?Q using zmult_zless_mono2[OF P gr0] by(simp add: int_distrib zmult_ac)
+  show ?Q using zmult_zless_mono2[OF P gr0] by(simp add: int_distrib mult_ac)
 next
   assume ?Q
-  hence "0 < k*(c*n + t - m)" by(simp add: int_distrib zmult_ac)
+  hence "0 < k*(c*n + t - m)" by(simp add: int_distrib mult_ac)
   with gr0 have "0 < (c*n + t - m)" by(simp add:int_0_less_mult_iff)
   thus ?P by(simp)
 qed
@@ -896,7 +896,7 @@ proof
     done
 next
   assume ?Q
-  hence "m * k = (c*n + t) * k" by(simp add:int_distrib zmult_ac)
+  hence "m * k = (c*n + t) * k" by(simp add:int_distrib mult_ac)
   hence "((m) * k) div k = ((c*n + t) * k) div k" by(rule arg_cong[of _ _ "%t. t div k"])
   thus ?P by(simp add: zdiv_zmult_self1[OF not0[symmetric]])
 qed
@@ -904,9 +904,9 @@ qed
 lemma ac_pi_eq: assumes gr0: "0 < (k::int)" shows "(~((0::int) < (c*n + t))) = (0 < ((-k)*c)*n + ((-k)*t + k))"
 proof -
   have "(~ (0::int) < (c*n + t)) = (0<1-(c*n + t))" by arith
-  also have  "(1-(c*n + t)) = (-1*c)*n + (-t+1)" by(simp add: int_distrib zmult_ac)
+  also have  "(1-(c*n + t)) = (-1*c)*n + (-t+1)" by(simp add: int_distrib mult_ac)
   also have "0<(-1*c)*n + (-t+1) = (0 < (k*(-1*c)*n) + (k*(-t+1)))" by(rule ac_lt_eq[of _ 0,OF gr0,simplified])
-  also have "(k*(-1*c)*n) + (k*(-t+1)) = ((-k)*c)*n + ((-k)*t + k)" by(simp add: int_distrib zmult_ac)
+  also have "(k*(-1*c)*n) + (k*(-t+1)) = ((-k)*c)*n + ((-k)*t + k)" by(simp add: int_distrib mult_ac)
   finally show ?thesis .
 qed
 
@@ -963,7 +963,7 @@ theorem zdvd_int: "(x dvd y) = (int x dvd int y)"
   apply (simp add: linorder_not_le)
   apply (drule zmult_zless_mono2_neg [OF iffD2 [OF zero_less_int_conv]])
   apply assumption
-  apply (simp add: zmult_ac)
+  apply (simp add: mult_ac)
   done
 
 theorem number_of1: "(0::int) <= number_of n \<Longrightarrow> (0::int) <= number_of (n BIT b)"

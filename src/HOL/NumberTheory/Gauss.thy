@@ -479,7 +479,7 @@ theorem (in GAUSS) pre_gauss_lemma:
     then have "[gsetprod id A * (-1)^(card E) = gsetprod id A * 
         (-1)^(card E) * a^(card A) * (-1)^(card E)](mod p)";
       apply (rule zcong_trans)
-      by (simp add: a zmult_commute zmult_left_commute)
+      by (simp add: a mult_commute mult_left_commute)
     then have "[gsetprod id A * (-1)^(card E) = gsetprod id A * 
         a^(card A)](mod p)";
       apply (rule zcong_trans)

@@ -5,6 +5,10 @@
 Simprocs and decision procedure for linear arithmetic.
 *)
 
+val zadd_ac = thms "Ring_and_Field.add_ac";
+val zmult_ac = thms "Ring_and_Field.mult_ac";
+
+
 Addsimps [int_numeral_0_eq_0, int_numeral_1_eq_1];
 
 (*** Simprocs for numeric literals ***)
@@ -12,15 +16,15 @@ Addsimps [int_numeral_0_eq_0, int_numeral_1_eq_1];
 (** Combining of literal coefficients in sums of products **)
 
 Goal "(x < y) = (x-y < (0::int))";
-by (simp_tac (simpset() addsimps zcompare_rls) 1);
+by (simp_tac (simpset() addsimps compare_rls) 1);
 qed "zless_iff_zdiff_zless_0";
 
 Goal "(x = y) = (x-y = (0::int))";
-by (simp_tac (simpset() addsimps zcompare_rls) 1);
+by (simp_tac (simpset() addsimps compare_rls) 1);
 qed "eq_iff_zdiff_eq_0";
 
 Goal "(x <= y) = (x-y <= (0::int))";
-by (simp_tac (simpset() addsimps zcompare_rls) 1);
+by (simp_tac (simpset() addsimps compare_rls) 1);
 qed "zle_iff_zdiff_zle_0";
 
 

@@ -1027,13 +1027,6 @@ val real_divide_divide2_eq = thm"real_divide_divide2_eq";
 val real_minus_divide_eq = thm"real_minus_divide_eq";
 val real_divide_minus_eq = thm"real_divide_minus_eq";
 val real_add_divide_distrib = thm"real_add_divide_distrib";
-
-val diff_less_eq = thm"diff_less_eq";
-val less_diff_eq = thm"less_diff_eq";
-val diff_eq_eq = thm"diff_eq_eq";
-val diff_le_eq = thm"diff_le_eq";
-val le_diff_eq = thm"le_diff_eq";
-val compare_rls = thms "compare_rls";
 *}
 
 end

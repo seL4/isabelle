@@ -3,13 +3,14 @@
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1996  University of Cambridge
 
-The integers as equivalence classes over nat*nat.
 *)
+
+header{*The Integers as Equivalence Classes over Pairs of Natural Numbers*}
 
 theory IntDef = Equiv + NatArith:
 constdefs
-  intrel      :: "((nat * nat) * (nat * nat)) set"
-  "intrel == {p. EX x1 y1 x2 y2. p=((x1::nat,y1),(x2,y2)) & x1+y2 = x2+y1}"
+  intrel :: "((nat * nat) * (nat * nat)) set"
+    "intrel == {p. \<exists>x1 y1 x2 y2. p = ((x1,y1),(x2,y2)) & x1+y2 = x2+y1}"
 
 typedef (Integ)
   int = "UNIV//intrel"
@@ -22,17 +23,13 @@ instance int :: plus ..
 instance int :: times ..
 instance int :: minus ..
 
-defs
-  zminus_def:
-    "- Z == Abs_Integ(UN (x,y):Rep_Integ(Z). intrel``{(y,x)})"
-
 constdefs
 
   int :: "nat => int"
   "int m == Abs_Integ(intrel `` {(m,0)})"
 
   neg   :: "int => bool"
-  "neg(Z) == EX x y. x<y & (x,y::nat):Rep_Integ(Z)"
+  "neg(Z) == \<exists>x y. x<y & (x,y::nat):Rep_Integ(Z)"
 
   (*For simplifying equalities*)
   iszero :: "int => bool"
@@ -40,12 +37,14 @@ constdefs
   
 defs (overloaded)
   
+  zminus_def:    "- Z == Abs_Integ(\<Union>(x,y) \<in> Rep_Integ(Z). intrel``{(y,x)})"
+
   Zero_int_def:  "0 == int 0"
-  One_int_def:  "1 == int 1"
+  One_int_def:   "1 == int 1"
 
   zadd_def:
    "z + w == 
-       Abs_Integ(UN (x1,y1):Rep_Integ(z). UN (x2,y2):Rep_Integ(w).   
+       Abs_Integ(\<Union>(x1,y1) \<in> Rep_Integ(z). \<Union>(x2,y2) \<in> Rep_Integ(w).   
 		 intrel``{(x1+x2, y1+y2)})"
 
   zdiff_def:  "z - (w::int) == z + (-w)"
@@ -56,10 +55,10 @@ defs (overloaded)
 
   zmult_def:
    "z * w == 
-       Abs_Integ(UN (x1,y1):Rep_Integ(z). UN (x2,y2):Rep_Integ(w).   
+       Abs_Integ(\<Union>(x1,y1) \<in> Rep_Integ(z). \<Union>(x2,y2) \<in> Rep_Integ(w).   
 		 intrel``{(x1*x2 + y1*y2, x1*y2 + y1*x2)})"
 
-lemma intrel_iff [simp]: "(((x1,y1),(x2,y2)): intrel) = (x1+y2 = x2+y1)"
+lemma intrel_iff [simp]: "(((x1,y1),(x2,y2)) \<in>  intrel) = (x1+y2 = x2+y1)"
 by (unfold intrel_def, blast)
 
 lemma equiv_intrel: "equiv UNIV intrel"
@@ -171,7 +170,7 @@ apply (simp (no_asm_simp) add: zadd add_assoc)
 done
 
 (*For AC rewriting*)
-lemma zadd_left_commute: "x + (y + z) = y + ((x + z)::int)"
+lemma zadd_left_commute: "x + (y + z) = y + ((x + z)  ::int)"
   apply (rule mk_left_commute [of "op +"])
   apply (rule zadd_assoc)
   apply (rule zadd_commute)
@@ -179,6 +178,8 @@ lemma zadd_left_commute: "x + (y + z) = y + ((x + z)::int)"
 
 (*Integer addition is an AC operator*)
 lemmas zadd_ac = zadd_assoc zadd_commute zadd_left_commute
+
+lemmas zmult_ac = Ring_and_Field.mult_ac
 
 lemma zadd_int: "(int m) + (int n) = int (m + n)"
 by (simp add: int_def zadd)
@@ -278,16 +279,6 @@ apply (rule_tac z = z3 in eq_Abs_Integ)
 apply (simp (no_asm_simp) add: add_mult_distrib2 zmult add_ac mult_ac)
 done
 
-(*For AC rewriting*)
-lemma zmult_left_commute: "x * (y * z) = y * ((x * z)::int)"
-  apply (rule mk_left_commute [of "op *"])
-  apply (rule zmult_assoc)
-  apply (rule zmult_commute)
-  done
-
-(*Integer multiplication is an AC operator*)
-lemmas zmult_ac = zmult_assoc zmult_commute zmult_left_commute
-
 lemma zadd_zmult_distrib: "((z1::int) + z2) * w = (z1 * w) + (z2 * w)"
 apply (rule_tac z = z1 in eq_Abs_Integ)
 apply (rule_tac z = z2 in eq_Abs_Integ)
@@ -340,7 +331,7 @@ by (rule trans [OF zmult_commute zmult_1])
 
 (*This lemma allows direct proofs of other <-properties*)
 lemma zless_iff_Suc_zadd: 
-    "(w < z) = (EX n. z = w + int(Suc n))"
+    "(w < z) = (\<exists>n. z = w + int(Suc n))"
 apply (unfold zless_def neg_def zdiff_def int_def)
 apply (rule_tac z = z in eq_Abs_Integ)
 apply (rule_tac z = w in eq_Abs_Integ, clarify)
@@ -465,84 +456,21 @@ apply (simp add: zle_def int_neq_iff)
 apply (blast elim!: zless_asym)
 done
 
-
-(*** Subtraction laws ***)
-
-lemma zadd_zdiff_eq: "x + (y - z) = (x + y) - (z::int)"
-by (simp add: zdiff_def zadd_ac)
-
-lemma zdiff_zadd_eq: "(x - y) + z = (x + z) - (y::int)"
-by (simp add: zdiff_def zadd_ac)
-
-lemma zdiff_zdiff_eq: "(x - y) - z = x - (y + (z::int))"
-by (simp add: zdiff_def zadd_ac)
-
-lemma zdiff_zdiff_eq2: "x - (y - z) = (x + z) - (y::int)"
-by (simp add: zdiff_def zadd_ac)
-
-lemma zdiff_zless_eq: "(x-y < z) = (x < z + (y::int))"
-apply (unfold zless_def zdiff_def)
-apply (simp add: zadd_ac)
-done
-
-lemma zless_zdiff_eq: "(x < z-y) = (x + (y::int) < z)"
-apply (unfold zless_def zdiff_def)
-apply (simp add: zadd_ac)
-done
-
-lemma zdiff_zle_eq: "(x-y <= z) = (x <= z + (y::int))"
-apply (unfold zle_def)
-apply (simp add: zless_zdiff_eq)
-done
-
-lemma zle_zdiff_eq: "(x <= z-y) = (x + (y::int) <= z)"
-apply (unfold zle_def)
-apply (simp add: zdiff_zless_eq)
-done
-
-lemma zdiff_eq_eq: "(x-y = z) = (x = z + (y::int))"
-by (auto simp add: zdiff_def zadd_assoc Zero_int_def [symmetric])
-
-lemma eq_zdiff_eq: "(x = z-y) = (x + (y::int) = z)"
-by (auto simp add: zdiff_def zadd_assoc Zero_int_def [symmetric])
-
-(*This list of rewrites simplifies (in)equalities by bringing subtractions
-  to the top and then moving negative terms to the other side.  
-  Use with zadd_ac*)
-lemmas zcompare_rls =
-     zdiff_def [symmetric]
-     zadd_zdiff_eq zdiff_zadd_eq zdiff_zdiff_eq zdiff_zdiff_eq2 
-     zdiff_zless_eq zless_zdiff_eq zdiff_zle_eq zle_zdiff_eq 
-     zdiff_eq_eq eq_zdiff_eq
-
-
-(** Cancellation laws **)
-
 lemma zadd_left_cancel [simp]: "!!w::int. (z + w' = z + w) = (w' = w)"
 apply safe
 apply (drule_tac f = "%x. x + (-z) " in arg_cong)
 apply (simp add: Zero_int_def [symmetric] zadd_ac)
 done
 
-lemma zadd_right_cancel [simp]: "!!z::int. (w' + z = w + z) = (w' = w)"
-by (simp add: zadd_ac)
+instance int :: order
+proof qed (assumption | rule zle_refl zle_trans zle_anti_sym int_less_le)+
 
+instance int :: plus_ac0
+proof qed (rule zadd_commute zadd_assoc zadd_0)+
 
-(** For the cancellation simproc.
-    The idea is to cancel like terms on opposite sides by subtraction **)
+instance int :: linorder
+proof qed (rule zle_linear)
 
-lemma zless_eqI: "(x::int) - y = x' - y' ==> (x<y) = (x'<y')"
-by (simp add: zless_def)
-
-lemma zle_eqI: "(x::int) - y = x' - y' ==> (y<=x) = (y'<=x')"
-apply (drule zless_eqI)
-apply (simp (no_asm_simp) add: zle_def)
-done
-
-lemma zeq_eqI: "(x::int) - y = x' - y' ==> (x=y) = (x'=y')"
-apply safe
-apply (simp_all add: eq_zdiff_eq zdiff_eq_eq)
-done
 
 ML
 {*
@@ -578,6 +506,7 @@ val zadd_commute = thm "zadd_commute";
 val zadd_assoc = thm "zadd_assoc";
 val zadd_left_commute = thm "zadd_left_commute";
 val zadd_ac = thms "zadd_ac";
+val zmult_ac = thms "zmult_ac";
 val zadd_int = thm "zadd_int";
 val zadd_int_left = thm "zadd_int_left";
 val int_Suc = thm "int_Suc";
@@ -597,8 +526,6 @@ val zmult = thm "zmult";
 val zmult_zminus = thm "zmult_zminus";
 val zmult_commute = thm "zmult_commute";
 val zmult_assoc = thm "zmult_assoc";
-val zmult_left_commute = thm "zmult_left_commute";
-val zmult_ac = thms "zmult_ac";
 val zadd_zmult_distrib = thm "zadd_zmult_distrib";
 val zmult_zminus_right = thm "zmult_zminus_right";
 val zadd_zmult_distrib2 = thm "zadd_zmult_distrib2";
@@ -636,22 +563,15 @@ val zle_linear = thm "zle_linear";
 val zle_trans = thm "zle_trans";
 val zle_anti_sym = thm "zle_anti_sym";
 val int_less_le = thm "int_less_le";
-val zadd_zdiff_eq = thm "zadd_zdiff_eq";
-val zdiff_zadd_eq = thm "zdiff_zadd_eq";
-val zdiff_zdiff_eq = thm "zdiff_zdiff_eq";
-val zdiff_zdiff_eq2 = thm "zdiff_zdiff_eq2";
-val zdiff_zless_eq = thm "zdiff_zless_eq";
-val zless_zdiff_eq = thm "zless_zdiff_eq";
-val zdiff_zle_eq = thm "zdiff_zle_eq";
-val zle_zdiff_eq = thm "zle_zdiff_eq";
-val zdiff_eq_eq = thm "zdiff_eq_eq";
-val eq_zdiff_eq = thm "eq_zdiff_eq";
-val zcompare_rls = thms "zcompare_rls";
 val zadd_left_cancel = thm "zadd_left_cancel";
-val zadd_right_cancel = thm "zadd_right_cancel";
-val zless_eqI = thm "zless_eqI";
-val zle_eqI = thm "zle_eqI";
-val zeq_eqI = thm "zeq_eqI";
+
+val diff_less_eq = thm"diff_less_eq";
+val less_diff_eq = thm"less_diff_eq";
+val eq_diff_eq = thm"eq_diff_eq";
+val diff_eq_eq = thm"diff_eq_eq";
+val diff_le_eq = thm"diff_le_eq";
+val le_diff_eq = thm"le_diff_eq";
+val compare_rls = thms "compare_rls";
 *}
 
 end
