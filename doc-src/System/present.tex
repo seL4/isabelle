@@ -80,9 +80,9 @@ section: string -> unit
 
 \medskip
 
-In order to present your own theories on the web, simply copy the whole
-\texttt{ISABELLE_BROWSER_INFO} directory to your WWW server, after generating
-browser info like this:
+In order to present your own theories on the web, simply copy the
+corresponding subdirectory from \texttt{ISABELLE_BROWSER_INFO} to your WWW
+server, after having generated browser info like this:
 \begin{ttbox}
 isatool usedir -i true HOL Foo
 \end{ttbox}
@@ -126,8 +126,8 @@ Isabelle tool called \tooldx{browser}:
 \begin{ttbox}
 Usage: browser [GRAPHFILE]
 \end{ttbox}
-When no filename is specified, the browser automatically changes to
-the directory \texttt{ISABELLE_BROWSER_INFO/graph/data}.
+When no filename is specified, the browser automatically changes to the
+directory \texttt{ISABELLE_BROWSER_INFO}.
 
 \medskip The applet version of the browser can be invoked by opening the {\tt
   index.html} file in the directory \texttt{ISABELLE_BROWSER_INFO} from your
