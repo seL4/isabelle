@@ -236,7 +236,7 @@ val scan_str =
 fun implode_xstr cs = enclose "''" "''" (implode (map (fn "'" => "\\'" | c => c) cs));
 
 fun explode_xstr str =
-  #1 (Scan.error (Scan.finite Symbol.eof scan_str) (Symbol.explode str));
+  #1 (Scan.error (Scan.finite Symbol.stopper scan_str) (Symbol.explode str));
 
 
 
@@ -263,7 +263,7 @@ fun tokenize lex xids chs =
       scan_str >> (Some o StrSy o implode_xstr) ||
       Scan.one Symbol.is_blank >> K None;
   in
-    (case Scan.error (Scan.finite Symbol.eof (Scan.repeat scan_token)) chs of
+    (case Scan.error (Scan.finite Symbol.stopper (Scan.repeat scan_token)) chs of
       (toks, []) => mapfilter I toks @ [EndToken]
     | (_, cs) => error ("Inner lexical error at: " ^ quote (implode cs)))
   end;
@@ -297,7 +297,7 @@ fun scan_vname chrs =
 (* indexname *)
 
 fun indexname cs =
-  (case Scan.error (Scan.finite Symbol.eof (Scan.option scan_vname)) cs of
+  (case Scan.error (Scan.finite Symbol.stopper (Scan.option scan_vname)) cs of
     (Some xi, []) => xi
   | _ => error ("Lexical error in variable name: " ^ quote (implode cs)));
 
@@ -317,7 +317,7 @@ fun read_var str =
       $$ "?" |-- scan_vname >> var ||
       Scan.any Symbol.not_eof >> (free o implode);
   in
-    #1 (Scan.error (Scan.finite Symbol.eof scan) (Symbol.explode str))
+    #1 (Scan.error (Scan.finite Symbol.stopper scan) (Symbol.explode str))
   end;
 
 

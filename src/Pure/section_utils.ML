@@ -34,7 +34,7 @@ fun gen_make_elim elim_rls rl =
 (*Skipping initial blanks, find the first identifier*)	(* FIXME *)
 fun scan_to_id s = 
     s |> Symbol.explode
-    |> Scan.error (Scan.finite Symbol.eof
+    |> Scan.error (Scan.finite Symbol.stopper
       (!! (fn _ => "Expected to find an identifier in " ^ s)
         (Scan.any Symbol.is_blank |-- Syntax.scan_id)))
     |> #1;

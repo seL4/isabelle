@@ -12,6 +12,7 @@ sig
   val eof: symbol
   val is_eof: symbol -> bool
   val not_eof: symbol -> bool
+  val stopper: symbol * (symbol -> bool)
   val is_ascii: symbol -> bool
   val is_letter: symbol -> bool
   val is_digit: symbol -> bool
@@ -170,6 +171,7 @@ val eof = "";
 
 fun is_eof s = s = eof;
 fun not_eof s = s <> eof;
+val stopper = (eof, is_eof);
 
 fun is_ascii s = size s = 1 andalso ord s < 128;
 
@@ -217,7 +219,7 @@ fun no_syms [] = true
 fun sym_explode str =
   let val chs = explode str in
     if no_syms chs then chs     (*tune trivial case*)
-    else map symbol (#1 (Scan.error (Scan.finite eof (Scan.repeat scan)) chs))
+    else map symbol (#1 (Scan.error (Scan.finite stopper (Scan.repeat scan)) chs))
   end;
 
 
