@@ -83,11 +83,12 @@ types_code
   cname ("string")
   vnam ("string")
   mname ("string")
-  loc ("int")
+  loc_ ("int")
 
 consts_code
-  "new_Addr" ("new'_addr {* %x. case x of None => True | Some y => False *}/ {* None *}")
+  "new_Addr" ("new'_addr {* %x. case x of None => True | Some y => False *}/ {* None *}/ {* Loc *}")
   "cast_ok" ("true????")
+  "match_exception_entry" ("true????")
 
   "wf" ("true?")
 
@@ -104,8 +105,8 @@ consts_code
   "next_nam" ("\"next\"")
 
 ML {*
-fun new_addr p none hp =
-  let fun nr i = if p (hp i) then (i, none) else nr (i+1);
+fun new_addr p none loc hp =
+  let fun nr i = if p (hp (loc i)) then (loc i, none) else nr (i+1);
   in nr 0 end;
 *}
 
@@ -170,4 +171,3 @@ ML {* exec (example_prg, the it) *}
 ML {* exec (example_prg, the it) *}
 
 end
-

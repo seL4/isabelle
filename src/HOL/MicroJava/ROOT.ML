@@ -7,7 +7,7 @@ add_path "BV";
 use_thy "JTypeSafe";
 use_thy "Example";
 use_thy "JListExample";
-(* use_thy "JVMListExample"; *)
+use_thy "JVMListExample";
 use_thy "BVSpecTypeSafe";
 use_thy "JVM";
 use_thy "LBVSpec"; 
