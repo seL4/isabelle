@@ -367,15 +367,13 @@ by (asm_full_simp_tac
     (simpset() addsimps [Acts_Join, image_Un, image_compose RS sym, o_def]) 1);
 qed "extend_Join_eq_extend_D";
 
-Goal "F : X guarantees Y \
-\     ==> extend h F : (extend h `` X) guarantees (extend h `` Y)";
+Goal "F : X guar Y ==> extend h F : (extend h `` X) guar (extend h `` Y)";
 by (rtac guaranteesI 1);
 by Auto_tac;
 by (blast_tac (claset() addDs [extend_Join_eq_extend_D, guaranteesD]) 1);
 qed "guarantees_imp_extend_guarantees";
 
-Goal "extend h F : (extend h `` X) guarantees (extend h `` Y) \
-\     ==> F : X guarantees Y";
+Goal "extend h F : (extend h `` X) guar (extend h `` Y) ==> F : X guar Y";
 by (rtac guaranteesI 1);
 by (rewrite_goals_tac [guarantees_def, component_def]);
 by Auto_tac;
@@ -386,8 +384,7 @@ by (blast_tac (claset() addSDs [inj_extend RS inj_image_mem_iff RS iffD1]) 2);
 by Auto_tac;
 qed "extend_guarantees_imp_guarantees";
 
-Goal "(extend h F : (extend h `` X) guarantees (extend h `` Y)) \
-\     = (F : X guarantees Y)";
+Goal "(extend h F : (extend h `` X) guar (extend h `` Y)) = (F : X guar Y)";
 by (blast_tac (claset() addIs [guarantees_imp_extend_guarantees,
 			       extend_guarantees_imp_guarantees]) 1);
 qed "extend_guarantees_eq";

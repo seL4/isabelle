@@ -111,42 +111,54 @@ qed "uv_prop_finite";
 (*** guarantees ***)
 
 (*This equation is more intuitive than the official definition*)
-Goal "(F : X guarantees Y) = \
+Goal "(F : X guar Y) = \
 \     (ALL G. F Join G : X & Disjoint F G --> F Join G : Y)";
 by (simp_tac (simpset() addsimps [guarantees_def, component_eq]) 1);
 by (Blast_tac 1);
 qed "guarantees_eq";
 
-Goalw [guarantees_def] "X <= Y ==> X guarantees Y = UNIV";
+Goalw [guarantees_def] "X <= Y ==> X guar Y = UNIV";
 by (Blast_tac 1);
 qed "subset_imp_guarantees_UNIV";
 
 (*Equivalent to subset_imp_guarantees_UNIV but more intuitive*)
-Goalw [guarantees_def] "X <= Y ==> F : X guarantees Y";
+Goalw [guarantees_def] "X <= Y ==> F : X guar Y";
 by (Blast_tac 1);
 qed "subset_imp_guarantees";
 
 (*Remark at end of section 4.1*)
-Goalw [guarantees_def] "ex_prop Y = (Y = UNIV guarantees Y)";
+Goalw [guarantees_def] "ex_prop Y = (Y = UNIV guar Y)";
 by (simp_tac (simpset() addsimps [ex_prop_equiv]) 1);
 by (blast_tac (claset() addEs [equalityE]) 1);
 qed "ex_prop_equiv2";
 
-Goalw [guarantees_def]
-     "(INT X:XX. X guarantees Y) = (UN X:XX. X) guarantees Y";
-by (Blast_tac 1);
-qed "INT_guarantees_left";
+(** Distributive laws.  Re-orient to perform miniscoping **)
 
 Goalw [guarantees_def]
-     "(INT Y:YY. X guarantees Y) = X guarantees (INT Y:YY. Y)";
+     "(UN X:XX. X) guar Y = (INT X:XX. X guar Y)";
 by (Blast_tac 1);
-qed "INT_guarantees_right";
+qed "guarantees_UN_left";
 
-Goalw [guarantees_def] "(X guarantees Y) = (UNIV guarantees (-X Un Y))";
+Goalw [guarantees_def]
+    "(X Un Y) guar Z = (X guar Z) Int (Y guar Z)";
+by (Blast_tac 1);
+qed "guarantees_Un_left";
+
+Goalw [guarantees_def]
+     "X guar (INT Y:YY. Y) = (INT Y:YY. X guar Y)";
+by (Blast_tac 1);
+qed "guarantees_INT_right";
+
+Goalw [guarantees_def]
+    "Z guar (X Int Y) = (Z guar X) Int (Z guar Y)";
+by (Blast_tac 1);
+qed "guarantees_Int_right";
+
+Goalw [guarantees_def] "(X guar Y) = (UNIV guar (-X Un Y))";
 by (Blast_tac 1);
 qed "shunting";
 
-Goalw [guarantees_def] "(X guarantees Y) = -Y guarantees -X";
+Goalw [guarantees_def] "(X guar Y) = -Y guar -X";
 by (Blast_tac 1);
 qed "contrapositive";
 
@@ -155,41 +167,41 @@ qed "contrapositive";
 **)
 
 Goalw [guarantees_def]
-    "[| F : V guarantees X;  F : (X Int Y) guarantees Z |]\
-\    ==> F : (V Int Y) guarantees Z";
+    "[| F : V guar X;  F : (X Int Y) guar Z |]\
+\    ==> F : (V Int Y) guar Z";
 by (Blast_tac 1);
 qed "combining1";
 
 Goalw [guarantees_def]
-    "[| F : V guarantees (X Un Y);  F : Y guarantees Z |]\
-\    ==> F : V guarantees (X Un Z)";
+    "[| F : V guar (X Un Y);  F : Y guar Z |]\
+\    ==> F : V guar (X Un Z)";
 by (Blast_tac 1);
 qed "combining2";
 
 (** The following two follow Chandy-Sanders, but the use of object-quantifiers
     does not suit Isabelle... **)
 
-(*Premise should be (!!i. i: I ==> F: X guarantees Y i) *)
+(*Premise should be (!!i. i: I ==> F: X guar Y i) *)
 Goalw [guarantees_def]
-     "ALL i:I. F : X guarantees (Y i) ==> F : X guarantees (INT i:I. Y i)";
+     "ALL i:I. F : X guar (Y i) ==> F : X guar (INT i:I. Y i)";
 by (Blast_tac 1);
 qed "all_guarantees";
 
-(*Premises should be [| F: X guarantees Y i; i: I |] *)
+(*Premises should be [| F: X guar Y i; i: I |] *)
 Goalw [guarantees_def]
-     "EX i:I. F : X guarantees (Y i) ==> F : X guarantees (UN i:I. Y i)";
+     "EX i:I. F : X guar (Y i) ==> F : X guar (UN i:I. Y i)";
 by (Blast_tac 1);
 qed "ex_guarantees";
 
 val prems = Goal
      "(!!G. [| F Join G : X;  Disjoint F G |] ==> F Join G : Y) \
-\     ==> F : X guarantees Y";
+\     ==> F : X guar Y";
 by (simp_tac (simpset() addsimps [guarantees_def, component_eq]) 1);
 by (blast_tac (claset() addIs prems) 1);
 qed "guaranteesI";
 
 Goalw [guarantees_def, component_def]
-     "[| F : X guarantees Y;  F Join G : X |] ==> F Join G : Y";
+     "[| F : X guar Y;  F Join G : X |] ==> F Join G : Y";
 by (Blast_tac 1);
 qed "guaranteesD";
 
