@@ -291,7 +291,7 @@ BEGIN_HI_TABLE
 
 # set theory, HOL
 >  "\ :\ "		":"		"\hspace{.1ex}\mbox{$\in$}\hspace{.1ex}"#"\mbox{$\in$}"
->  "\ \subseteq\ "	" \subseteq "	"\mbox{$\subseteq$}" 
+>  "\ \subseteq\ "	" <= "		"\mbox{$\subseteq$}" 
 >  "\ Int\ "		" Int "		"\mbox{$\cap$}" 
 >  "\ Un\ "		" Un "		"\mbox{$\cup$}" 
 >  "Inter\ "		"INT "		"\mbox{$\bigcap$}"
