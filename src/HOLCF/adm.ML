@@ -104,10 +104,10 @@ fun prove_cont tac sign s T prems params (l, ts as ((t, _)::_)) =
          | mk_all ((a,T)::Ts) t = (all T) $ (Abs (a, T, mk_all Ts t));
        val t = HOLogic.mk_Trueprop((Const (cont_name, contT)) $ (Abs(s, T, t)));
        val t' = mk_all params (Logic.list_implies (prems, t));
-       val thm = prove_goalw_cterm [] (cterm_of sign t')
-                  (fn ps => [cut_facts_tac ps 1, tac 1])
+       val thm = transform_error (fn () => prove_goalw_cterm [] (cterm_of sign t')
+                  (fn ps => [cut_facts_tac ps 1, tac 1])) ()
   in (ts, thm)::l end
-  handle _ => l;
+  handle ERROR_MESSAGE _ => l;
 
 
 (*** instantiation of adm_subst theorem (a bit tricky) ***)
