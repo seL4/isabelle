@@ -6,8 +6,6 @@
 Derived WF relations: inverse image, lexicographic product, measure, ...
 *)
 
-open WF_Rel;
-
 
 (*----------------------------------------------------------------------------
  * "Less than" on the natural numbers
@@ -157,3 +155,50 @@ by (rtac selectI2EX 1);
  by (Blast_tac 1);
 by (Blast_tac 1);
 qed "wf_iff_no_infinite_down_chain";
+
+(*----------------------------------------------------------------------------
+ * Weakly decreasing sequences (w.r.t. some well-founded order) stabilize.
+ *---------------------------------------------------------------------------*)
+
+Goal "[| ! i. (f (Suc i), f i) : r^* |] ==> (f (i+k), f i) : r^*";
+by (induct_tac "k" 1);
+ by (ALLGOALS Simp_tac);
+by (blast_tac (claset() addIs [rtrancl_trans]) 1);
+val lemma = result();
+
+Goal "[| ! i. (f (Suc i), f i) : r^*; wf (r^+) |] \
+\     ==> ! m. f m = x --> (? i. ! k. f (m+i+k) = f (m+i))";
+by (etac wf_induct 1);
+by (Clarify_tac 1);
+by (case_tac "? j. (f (m+j), f m) : r^+" 1);
+ by (Clarify_tac 1);
+ by (subgoal_tac "? i. ! k. f ((m+j)+i+k) = f ((m+j)+i)" 1);
+  by (Clarify_tac 1);
+  by (res_inst_tac [("x","j+i")] exI 1);
+  by (asm_full_simp_tac (simpset() addsimps add_ac) 1);
+ by (Blast_tac 1);
+by (res_inst_tac [("x","0")] exI 1);
+by (Clarsimp_tac 1);
+by (dres_inst_tac [("i","m"), ("k","k")] lemma 1);
+by (fast_tac (claset() addDs [rtranclE,rtrancl_into_trancl1]) 1);
+val lemma = result();
+
+Goal "[| ! i. (f (Suc i), f i) : r^*; wf (r^+) |] \
+\     ==> ? i. ! k. f (i+k) = f i";
+by (dres_inst_tac [("x","0")] (lemma RS spec) 1);
+by Auto_tac;
+qed "wf_weak_decr_stable";
+
+(* special case: <= *)
+
+Goal "(m, n) : pred_nat^* = (m <= n)";
+by (simp_tac (simpset() addsimps [less_eq, reflcl_trancl RS sym] 
+                        delsimps [reflcl_trancl]) 1);
+by (arith_tac 1);
+qed "le_eq";
+
+Goal "[| ! i. f (Suc i) <= ((f i)::nat) |] ==> ? i. ! k. f (i+k) = f i";
+by (res_inst_tac [("r","pred_nat")] wf_weak_decr_stable 1);
+by (asm_simp_tac (simpset() addsimps [le_eq]) 1);
+by (REPEAT (resolve_tac [wf_trancl,wf_pred_nat] 1));
+qed "weak_decr_stable";
