@@ -13,8 +13,7 @@ theory JVMInstructions = JVMState:
 datatype 
   instr = Load nat                  (* load from local variable *)
         | Store nat                 (* store into local variable *)
-        | Bipush int                (* push int *)
-        | Aconst_null               (* push null *)
+        | LitPush val               (* push a literal (constant) *)
         | New cname                 (* create object *)
         | Getfield vname cname	  	(* Fetch field from object *)
         | Putfield vname cname		  (* Set field in object     *)

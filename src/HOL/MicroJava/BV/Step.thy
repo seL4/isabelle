@@ -17,8 +17,7 @@ step' :: "instr \<times> jvm_prog \<times> state_type => state_type"
 recdef step' "{}"
 "step' (Load idx,  G, (ST, LT))          = (ok_val (LT ! idx) # ST, LT)"
 "step' (Store idx, G, (ts#ST, LT))       = (ST, LT[idx:= OK ts])"
-"step' (Bipush i, G, (ST, LT))           = (PrimT Integer # ST, LT)"
-"step' (Aconst_null, G, (ST, LT))        = (NT#ST,LT)"
+"step' (LitPush v, G, (ST, LT))           = (the (typeof (\<lambda>v. None) v) # ST, LT)"
 "step' (Getfield F C, G, (oT#ST, LT))    = (snd (the (field (G,C) F)) # ST, LT)"
 "step' (Putfield F C, G, (vT#oT#ST, LT)) = (ST,LT)"
 "step' (New C, G, (ST,LT))               = (Class C # ST, LT)"
@@ -52,9 +51,8 @@ recdef app' "{}"
                                                     (snd s) ! idx \<noteq> Err \<and> 
                                                     maxs < length (fst s))"
 "app' (Store idx, G, maxs, rT, (ts#ST, LT))       = (idx < length LT)"
-"app' (Bipush i, G, maxs, rT, s)                  = (maxs < length (fst s))"
-"app' (Aconst_null, G, maxs, rT, s)               = (maxs < length (fst s))"
-"app' (Getfield F C, G, maxs, rT, (oT#ST, LT))    = (is_class G C \<and> 
+"app' (LitPush v, G, maxs, rT, s)                  = (maxs < length (fst s) \<and> typeof (\<lambda>t. None) v \<noteq> None)"
+"app' (Getfield F C, G, maxs, rT, (oT#ST, LT))    = (is_class G C \<and>
                                               field (G,C) F \<noteq> None \<and>
                                               fst (the (field (G,C) F)) = C \<and>
                                               G \<turnstile> oT \<preceq> (Class C))"
@@ -99,8 +97,7 @@ succs :: "instr => p_count => p_count list"
 primrec 
 "succs (Load idx) pc         = [pc+1]"
 "succs (Store idx) pc        = [pc+1]"
-"succs (Bipush i) pc         = [pc+1]"
-"succs (Aconst_null) pc      = [pc+1]"
+"succs (LitPush v) pc        = [pc+1]"
 "succs (Getfield F C) pc     = [pc+1]"
 "succs (Putfield F C) pc     = [pc+1]"
 "succs (New C) pc            = [pc+1]"
@@ -157,13 +154,9 @@ lemma appStore[simp]:
 "(app (Store idx) G maxs rT (Some s)) = (\<exists> ts ST LT. s = (ts#ST,LT) \<and> idx < length LT)"
   by (cases s, cases "2 < length (fst s)", auto dest: 1 2 simp add: app_def)
 
-lemma appBipush[simp]:
-"(app (Bipush i) G maxs rT (Some s)) = (maxs < length (fst s))"
-  by (simp add: app_def)
-
-lemma appAconst[simp]:
-"(app Aconst_null G maxs rT (Some s)) = (maxs < length (fst s))"
-  by (simp add: app_def)
+lemma appLitPush[simp]:
+"(app (LitPush v) G maxs rT (Some s)) = (maxs < length (fst s) \<and> typeof (\<lambda>v. None) v \<noteq> None)"
+  by (cases s, simp add: app_def)
 
 lemma appGetField[simp]:
 "(app (Getfield F C) G maxs rT (Some s)) = 
@@ -283,10 +276,15 @@ proof (cases (open) s)
     hence "\<exists>apTs X ST. a = rev apTs @ X # ST \<and> length apTs = length fpTs" 
       by blast
     with app
-    show ?thesis by (auto simp add: app_def) blast
+    show ?thesis 
+      by (unfold app_def, clarsimp) blast
   qed
-  with Pair have "?app s ==> ?P s" by simp
-  thus ?thesis by (auto simp add: app_def)
+  with Pair 
+  have "?app s ==> ?P s" by simp
+  moreover
+  have "?P s \<Longrightarrow> ?app s" by (unfold app_def) clarsimp
+  ultimately
+  show ?thesis by blast
 qed 
 
 lemma step_Some:

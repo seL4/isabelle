@@ -59,23 +59,19 @@ apply (blast intro: approx_loc_imp_approx_loc_subst
 done
 
 
-lemma conf_Intg_Integer [iff]:
-  "G,h \<turnstile> Intg i ::\<preceq> PrimT Integer"
-by (simp add: conf_def)
-
-
-lemma Bipush_correct:
+lemma LitPush_correct:
 "[| wf_prog wt G;
     method (G,C) sig = Some (C,rT,maxs,maxl,ins); 
-    ins!pc = Bipush i; 
+    ins!pc = LitPush v;
     wt_instr (ins!pc) G rT (phi C sig) maxs (length ins) pc; 
     Some state' = exec (G, None, hp, (stk,loc,C,sig,pc)#frs);
     G,phi \<turnstile>JVM (None, hp, (stk,loc,C,sig,pc)#frs)\<surd> |]
 ==> G,phi \<turnstile>JVM state'\<surd>"
 apply (clarsimp simp add: defs1 approx_val_def sup_PTS_eq map_eq_Cons)
-apply (blast intro: approx_stk_imp_approx_stk_sup 
+apply (blast dest: conf_litval intro: conf_widen approx_stk_imp_approx_stk_sup 
                     approx_loc_imp_approx_loc_sup)
 done
+
 
 lemma NT_subtype_conv:
   "G \<turnstile> NT \<preceq> T = (T=NT \<or> (\<exists>C. T = Class C))"
@@ -92,21 +88,6 @@ proof -
     by (force intro: null dest: l)
 qed
 
-lemma Aconst_null_correct:
-"[| wf_prog wt G;
-    method (G,C) sig = Some (C,rT,maxs,maxl,ins); 
-    ins!pc =  Aconst_null; 
-    wt_instr (ins!pc) G rT (phi C sig) maxs (length ins) pc; 
-    Some state' = exec (G, None, hp, (stk,loc,C,sig,pc)#frs); 
-    G,phi \<turnstile>JVM (None, hp, (stk,loc,C,sig,pc)#frs)\<surd> |] 
-==> G,phi \<turnstile>JVM state'\<surd>"
-apply (clarsimp simp add: defs1 map_eq_Cons)
-apply (rule conjI)
- apply (force simp add: approx_val_Null NT_subtype_conv)
-apply (blast intro: approx_stk_imp_approx_stk_sup 
-                    approx_loc_imp_approx_loc_sup)
-done
-
 
 lemma Cast_conf2:
   "[| wf_prog ok G; G,h\<turnstile>v::\<preceq>RefT rt; cast_ok G C h v; 
@@ -118,7 +99,7 @@ apply (elim exE disjE)
  apply (simp add: null)
 apply (clarsimp simp add: conf_def obj_ty_def)
 apply (cases v)
-apply (auto intro: null rtrancl_trans)
+apply (auto intro: rtrancl_trans)
 done
 
 
@@ -605,16 +586,15 @@ lemma instr_correct:
 apply (frule wt_jvm_prog_impl_wt_instr_cor)
 apply assumption+
 apply (cases "ins!pc")
-prefer 9
+prefer 8
 apply (rule Invoke_correct, assumption+)
-prefer 9
+prefer 8
 apply (rule Return_correct, assumption+)
 
 apply (unfold wt_jvm_prog_def)
 apply (rule Load_correct, assumption+)
 apply (rule Store_correct, assumption+)
-apply (rule Bipush_correct, assumption+)
-apply (rule Aconst_null_correct, assumption+)
+apply (rule LitPush_correct, assumption+)
 apply (rule New_correct, assumption+)
 apply (rule Getfield_correct, assumption+)
 apply (rule Putfield_correct, assumption+)

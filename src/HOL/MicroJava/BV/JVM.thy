@@ -50,7 +50,6 @@ theorem exec_pres_type:
  apply fastsimp
  apply fastsimp
  apply fastsimp
- apply fastsimp
  apply clarsimp
  defer
  apply fastsimp

@@ -143,11 +143,7 @@ proof -
         by - (cases s2, auto simp add: map_eq_Cons sup_loc_Cons2 
                                        sup_loc_length sup_state_conv)
     next
-      case Bipush
-      with G app
-      show ?thesis by simp 
-    next
-      case Aconst_null
+      case LitPush
       with G app
       show ?thesis by simp
     next
@@ -355,17 +351,12 @@ proof (cases s1, cases s2)
     show ?thesis
       by (clarsimp simp add: sup_state_conv sup_loc_update)
   next
-    case Bipush
+    case LitPush
     with G s step app1 app2
     show ?thesis
       by (clarsimp simp add: sup_state_Cons1)
   next
     case New
-    with G s step app1 app2
-    show ?thesis
-      by (clarsimp simp add: sup_state_Cons1)
-  next
-    case Aconst_null
     with G s step app1 app2
     show ?thesis
       by (clarsimp simp add: sup_state_Cons1)
