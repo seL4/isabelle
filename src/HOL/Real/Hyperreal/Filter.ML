@@ -342,7 +342,7 @@ qed "Compl_empty_eq";
 
 Addsimps [Compl_empty_eq];
 
-val [prem] = goal thy "~ finite (UNIV:: 'a set) ==> \
+val [prem] = goal (the_context ()) "~ finite (UNIV:: 'a set) ==> \
 \            {A:: 'a set. finite (- A)} : Filter UNIV";
 by (cut_facts_tac [prem] 1);
 by (rtac mem_FiltersetI2 1);
@@ -365,13 +365,13 @@ by (dres_inst_tac [("X","X")] not_finite_UNIV_disjI 1);
 by (Blast_tac 1);
 qed "not_finite_UNIV_Compl";
 
-val [prem] = goal thy "~ finite (UNIV:: 'a set) ==> \
+val [prem] = goal (the_context ()) "~ finite (UNIV:: 'a set) ==> \
 \            !X: {A:: 'a set. finite (- A)}. ~ finite X";
 by (cut_facts_tac [prem] 1);
 by (auto_tac (claset() addDs [not_finite_UNIV_disjI],simpset()));
 qed "mem_cofinite_Filter_not_finite";
 
-val [prem] = goal thy "~ finite (UNIV:: 'a set) ==> \
+val [prem] = goal (the_context ()) "~ finite (UNIV:: 'a set) ==> \
 \            {A:: 'a set. finite (- A)} : Freefilter UNIV";
 by (cut_facts_tac [prem] 1);
 by (rtac mem_FreefiltersetI2 1);

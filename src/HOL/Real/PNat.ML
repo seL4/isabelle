@@ -1,9 +1,9 @@
-(*  Title       : PNat.ML
+(*  Title       : HOL/Real/PNat.ML
     ID          : $Id$
     Author      : Jacques D. Fleuriot
     Copyright   : 1998  University of Cambridge
-    Description : The positive naturals -- proofs 
-                : mainly as in Nat.thy
+
+The positive naturals -- proofs mainly as in theory Nat.
 *)
 
 Goal "mono(%X. {1} Un (Suc``X))";
@@ -30,14 +30,14 @@ qed "two_RepI";
 
 (*** Induction ***)
 
-val major::prems = goal thy
+val major::prems = goal (the_context ())
     "[| i: pnat;  P(1);   \
 \       !!j. [| j: pnat; P(j) |] ==> P(Suc(j)) |]  ==> P(i)";
 by (rtac ([pnat_def, pnat_fun_mono, major] MRS def_induct) 1);
 by (blast_tac (claset() addIs prems) 1);
 qed "PNat_induct";
 
-val prems = goalw thy [pnat_one_def,pnat_Suc_def]
+val prems = goalw (the_context ()) [pnat_one_def,pnat_Suc_def]
     "[| P(1p);   \
 \       !!n. P(n) ==> P(pSuc n) |]  ==> P(n)";
 by (rtac (Rep_pnat_inverse RS subst) 1);   
@@ -50,7 +50,7 @@ qed "pnat_induct";
 fun pnat_ind_tac a i = 
   res_inst_tac [("n",a)] pnat_induct i  THEN  rename_last_tac a [""] (i+1);
 
-val prems = goal thy
+val prems = goal (the_context ())
     "[| !!x. P x 1p;  \
 \       !!y. P 1p (pSuc y);  \
 \       !!x y. [| P x y |] ==> P (pSuc x) (pSuc y)  \
@@ -63,7 +63,7 @@ by (REPEAT (ares_tac (prems@[allI]) 1 ORELSE etac spec 1));
 qed "pnat_diff_induct";
 
 (*Case analysis on the natural numbers*)
-val prems = goal thy 
+val prems = goal (the_context ())
     "[| n=1p ==> P;  !!x. n = pSuc(x) ==> P |] ==> P";
 by (subgoal_tac "n=1p | (EX x. n = pSuc(x))" 1);
 by (fast_tac (claset() addSEs prems) 1);
@@ -340,7 +340,7 @@ Goal "n <= (n::pnat)";
 by (simp_tac (simpset() addsimps [pnat_le_eq_less_or_eq]) 1);
 qed "pnat_le_refl";
 
-val prems = goal thy "!!i. [| i <= j; j < k |] ==> i < (k::pnat)";
+val prems = goal (the_context ()) "!!i. [| i <= j; j < k |] ==> i < (k::pnat)";
 by (dtac pnat_le_imp_less_or_eq 1);
 by (blast_tac (claset() addIs [pnat_less_trans]) 1);
 qed "pnat_le_less_trans";
@@ -384,7 +384,7 @@ Goalw [Least_def]
 by (simp_tac (simpset() addsimps [lemma]) 1);
 qed "Least_pnat_def";
 
-val [prem1,prem2] = goalw thy [Least_pnat_def]
+val [prem1,prem2] = goalw (the_context ()) [Least_pnat_def]
     "[| P(k::pnat);  !!x. x<k ==> ~P(x) |] ==> (LEAST x. P(x)) = k";
 by (rtac select_equality 1);
 by (blast_tac (claset() addSIs [prem1,prem2]) 1);
@@ -647,7 +647,7 @@ by (auto_tac (claset() addIs [pnat_mult_cancel1 RS iffD2],
     simpset() addsimps [pnat_mult_left_commute]));
 qed "pnat_same_multI2";
 
-val [prem] = goal thy
+val [prem] = goal (the_context ())
     "(!!u. z = Abs_pnat(u) ==> P) ==> P";
 by (cut_inst_tac [("x1","z")] 
     (rewrite_rule [pnat_def] (Rep_pnat RS Abs_pnat_inverse)) 1);
@@ -706,7 +706,7 @@ by (auto_tac (claset(),simpset()
 qed "pnat_of_nat_less_iff";
 Addsimps [pnat_of_nat_less_iff RS sym];
 
-goalw PNat.thy [pnat_mult_def,pnat_of_nat_def] 
+Goalw [pnat_mult_def,pnat_of_nat_def] 
       "pnat_of_nat n1 * pnat_of_nat n2 = \
 \      pnat_of_nat (n1 * n2 + n1 + n2)";
 by (auto_tac (claset(),simpset() addsimps [mult_Rep_pnat_mult,

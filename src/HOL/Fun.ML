@@ -460,12 +460,13 @@ local
           if v aconv x then Some g else gen_fun_upd (find g) T v w
       |   find t = None
       in (dest_fun_T1 T, gen_fun_upd (find f) T x y) end
+  val ss = simpset ();
   val fun_upd_prover = K [rtac eq_reflection 1, rtac ext 1, 
-                          simp_tac (simpset_of Fun.thy) 1]
+                          simp_tac ss 1]
   fun mk_eq_cterm sg T l r = Thm.cterm_of sg (equals T $ l $ r)
 in 
   val fun_upd2_simproc = Simplifier.mk_simproc "fun_upd2"
-   [Thm.read_cterm (sign_of Fun.thy) ("f(v:=w,x:=y)", HOLogic.termT)] 
+   [Thm.read_cterm (sign_of (the_context ())) ("f(v:=w,x:=y)", HOLogic.termT)]
    (fn sg => (K (fn t => case find_double t of (T,None)=> None | (T,Some rhs)=> 
        Some (prove_goalw_cterm [] (mk_eq_cterm sg T t rhs) fun_upd_prover))))
 end;

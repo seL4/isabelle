@@ -72,7 +72,7 @@ bind_thm ("measure_induct", measure_induct);
  * Wellfoundedness of lexicographic combinations
  *---------------------------------------------------------------------------*)
 
-val [wfa,wfb] = goalw thy [wf_def,lex_prod_def]
+val [wfa,wfb] = goalw (the_context ()) [wf_def,lex_prod_def]
  "[| wf(ra); wf(rb) |] ==> wf(ra <*lex*> rb)";
 by (EVERY1 [rtac allI,rtac impI]);
 by (simp_tac (HOL_basic_ss addsimps [split_paired_All]) 1);

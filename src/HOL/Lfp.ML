@@ -1,12 +1,10 @@
-(*  Title:      HOL/lfp.ML
+(*  Title:      HOL/Lfp.ML
     ID:         $Id$
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1992  University of Cambridge
 
-The Knaster-Tarski Theorem
+The Knaster-Tarski Theorem.
 *)
-
-open Lfp;
 
 (*** Proof of Knaster-Tarski Theorem ***)
 
@@ -57,7 +55,7 @@ bind_thm ("induct2",
 
 (** Definition forms of lfp_Tarski and induct, to control unfolding **)
 
-val [rew,mono] = goal Lfp.thy "[| h==lfp(f);  mono(f) |] ==> h = f(h)";
+val [rew,mono] = goal (the_context ()) "[| h==lfp(f);  mono(f) |] ==> h = f(h)";
 by (rewtac rew);
 by (rtac (mono RS lfp_Tarski) 1);
 qed "def_lfp_Tarski";

@@ -275,7 +275,7 @@ by (asm_simp_tac (wf_super_ss addcongs [if_cong]) 1);
 qed_spec_mp "is_recfun_equal";
 
 
-val prems as [wfr,transr,recfa,recgb,_] = goalw WF.thy [cut_def]
+val prems as [wfr,transr,recfa,recgb,_] = goalw (the_context ()) [cut_def]
     "[| wf(r);  trans(r); \
 \       is_recfun r H a f;  is_recfun r H b g;  (b,a):r |] ==> \
 \    cut f r b = g";
@@ -342,7 +342,7 @@ qed "wfrec";
 (*---------------------------------------------------------------------------
  * This form avoids giant explosions in proofs.  NOTE USE OF == 
  *---------------------------------------------------------------------------*)
-val rew::prems = goal thy
+val rew::prems = goal (the_context ())
     "[| f==wfrec r H;  wf(r) |] ==> f(a) = H (cut f r a) a";
 by (rewtac rew);
 by (REPEAT (resolve_tac (prems@[wfrec]) 1));

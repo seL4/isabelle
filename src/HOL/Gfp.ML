@@ -1,12 +1,10 @@
-(*  Title:      HOL/gfp
+(*  Title:      HOL/Gfp.ML
     ID:         $Id$
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1993  University of Cambridge
 
 The Knaster-Tarski Theorem for greatest fixed points.
 *)
-
-open Gfp;
 
 (*** Proof of Knaster-Tarski Theorem using gfp ***)
 
@@ -16,7 +14,7 @@ Goalw [gfp_def] "[| X <= f(X) |] ==> X <= gfp(f)";
 by (etac (CollectI RS Union_upper) 1);
 qed "gfp_upperbound";
 
-val prems = goalw Gfp.thy [gfp_def]
+val prems = goalw (the_context ()) [gfp_def]
     "[| !!u. u <= f(u) ==> u<=X |] ==> gfp(f) <= X";
 by (REPEAT (ares_tac ([Union_least]@prems) 1));
 by (etac CollectD 1);
@@ -44,7 +42,7 @@ by (rtac (gfp_upperbound RS subsetD) 1);
 by Auto_tac;
 qed "weak_coinduct";
 
-val [prem,mono] = goal Gfp.thy
+val [prem,mono] = goal (the_context ())
     "[| X <= f(X Un gfp(f));  mono(f) |] ==>  \
 \    X Un gfp(f) <= f(X Un gfp(f))";
 by (rtac (prem RS Un_least) 1);
@@ -59,7 +57,7 @@ by (rtac (coinduct_lemma RSN (2, weak_coinduct)) 1);
 by (REPEAT (ares_tac [UnI1, Un_least] 1));
 qed "coinduct";
 
-val [mono,prem] = goal Gfp.thy
+val [mono,prem] = goal (the_context ())
     "[| mono(f);  a: gfp(f) |] ==> a: f(X Un gfp(f))";
 by (rtac (mono RS mono_Un RS subsetD) 1);
 by (rtac (mono RS gfp_lemma2 RS subsetD RS UnI2) 1);
@@ -74,7 +72,7 @@ Goal "mono(f) ==> mono(%x. f(x) Un X Un B)";
 by (REPEAT (ares_tac [subset_refl, monoI, Un_mono] 1 ORELSE etac monoD 1));
 qed "coinduct3_mono_lemma";
 
-val [prem,mono] = goal Gfp.thy
+val [prem,mono] = goal (the_context ())
     "[| X <= f(lfp(%x. f(x) Un X Un gfp(f)));  mono(f) |] ==> \
 \    lfp(%x. f(x) Un X Un gfp(f)) <= f(lfp(%x. f(x) Un X Un gfp(f)))";
 by (rtac subset_trans 1);
@@ -98,12 +96,12 @@ qed "coinduct3";
 
 (** Definition forms of gfp_Tarski and coinduct, to control unfolding **)
 
-val [rew,mono] = goal Gfp.thy "[| A==gfp(f);  mono(f) |] ==> A = f(A)";
+val [rew,mono] = goal (the_context ()) "[| A==gfp(f);  mono(f) |] ==> A = f(A)";
 by (rewtac rew);
 by (rtac (mono RS gfp_Tarski) 1);
 qed "def_gfp_Tarski";
 
-val rew::prems = goal Gfp.thy
+val rew::prems = goal (the_context ())
     "[| A==gfp(f);  mono(f);  a:X;  X <= f(X Un A) |] ==> a: A";
 by (rewtac rew);
 by (REPEAT (ares_tac (map (rewrite_rule [rew]) prems @ [coinduct]) 1));
@@ -118,7 +116,7 @@ by (rtac def_coinduct 1);
 by (REPEAT (ares_tac (prems @ [subsetI,CollectI]) 1));
 qed "def_Collect_coinduct";
 
-val rew::prems = goal Gfp.thy
+val rew::prems = goal (the_context ())
     "[| A==gfp(f); mono(f);  a:X;  X <= f(lfp(%x. f(x) Un X Un A)) |] ==> a: A";
 by (rewtac rew);
 by (REPEAT (ares_tac (map (rewrite_rule [rew]) prems @ [coinduct3]) 1));

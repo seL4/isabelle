@@ -104,7 +104,7 @@ by (res_inst_tac [("x","A-{a}")] exI 1);
 by (Blast_tac 1);
 qed "mk_disjoint_insert";
 
-bind_thm ("insert_Collect", prove_goal thy 
+bind_thm ("insert_Collect", prove_goal (the_context ())
 	  "insert a (Collect P) = {u. u ~= a --> P u}" (K [Auto_tac]));
 
 Goal "u: A ==> (UN x:A. insert a (B x)) = insert a (UN x:A. B x)";
@@ -900,7 +900,7 @@ qed "distinct_lemma";
 
 (** Miniscoping: pushing in big Unions and Intersections **)
 local
-  fun prover s = prove_goal thy s (fn _ => [Blast_tac 1])
+  fun prover s = prove_goal (the_context ()) s (fn _ => [Blast_tac 1])
 in
 val UN_simps = map prover 
     ["!!C. c: C ==> (UN x:C. insert a (B x)) = insert a (UN x:C. B x)",

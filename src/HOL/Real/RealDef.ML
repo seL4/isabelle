@@ -35,7 +35,7 @@ Goalw [realrel_def]
 by (Blast_tac 1);
 qed "realrelE_lemma";
 
-val [major,minor] = goal thy
+val [major,minor] = goal (the_context ())
   "[| p: realrel;  \
 \     !!x1 y1 x2 y2. [| p = ((x1,y1),(x2,y2));  x1+y2 = x2+y1 \
 \                    |] ==> Q |] ==> Q";
@@ -94,7 +94,7 @@ by Safe_tac;
 by (Asm_full_simp_tac 1);
 qed "inj_real_of_preal";
 
-val [prem] = goal thy
+val [prem] = goal (the_context ())
     "(!!x y. z = Abs_real(realrel^^{(x,y)}) ==> P) ==> P";
 by (res_inst_tac [("x1","z")] 
     (rewrite_rule [real_def] Rep_real RS quotientE) 1);

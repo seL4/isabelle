@@ -130,7 +130,7 @@ qed_spec_mp "posDivAlg_correct";
 
 (*Proving negDivAlg's termination condition*)
 val [tc] = negDivAlg.tcs;
-goalw_cterm [] (cterm_of (sign_of thy) (HOLogic.mk_Trueprop tc));
+goalw_cterm [] (cterm_of (sign_of (the_context ())) (HOLogic.mk_Trueprop tc));
 by Auto_tac;
 val lemma = result();
 
@@ -425,7 +425,7 @@ Goal "[| a < #0;  b <= #0 |] ==> a mod b = snd (negateSnd(posDivAlg(-a,-b)))";
 by (asm_simp_tac (simpset() addsimps [mod_def, divAlg_def]) 1);
 qed "mod_neg_neg";
 
-Addsimps (map (read_instantiate_sg (sign_of IntDiv.thy)
+Addsimps (map (read_instantiate_sg (sign_of (the_context ()))
 	       [("a", "number_of ?v"), ("b", "number_of ?w")])
 	  [div_pos_pos, div_neg_pos, div_pos_neg, div_neg_neg,
 	   mod_pos_pos, mod_neg_pos, mod_pos_neg, mod_neg_neg,
@@ -835,8 +835,7 @@ Goal "number_of (v BIT b) div number_of (w BIT False) = \
 \         (if ~b | (#0::int) <= number_of w                   \
 \          then number_of v div (number_of w)    \
 \          else (number_of v + (#1::int)) div (number_of w))";
-by (simp_tac (simpset_of Int.thy
-			 addsimps [zadd_assoc, number_of_BIT]) 1);
+by (simp_tac (simpset_of Int.thy addsimps [zadd_assoc, number_of_BIT]) 1);
 by (asm_simp_tac (simpset()
                   delsimps bin_arith_extra_simps@bin_rel_simps
 		  addsimps [zdiv_zmult_zmult1,
@@ -895,8 +894,7 @@ Goal "number_of (v BIT b) mod number_of (w BIT False) = \
 \               then #2 * (number_of v mod number_of w) + #1    \
 \               else #2 * ((number_of v + (#1::int)) mod number_of w) - #1  \
 \          else #2 * (number_of v mod number_of w))";
-by (simp_tac (simpset_of Int.thy
-			 addsimps [zadd_assoc, number_of_BIT]) 1);
+by (simp_tac (simpset_of Int.thy addsimps [zadd_assoc, number_of_BIT]) 1);
 by (asm_simp_tac (simpset()
 		  delsimps bin_arith_extra_simps@bin_rel_simps
 		  addsimps [zmod_zmult_zmult1,
