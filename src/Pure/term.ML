@@ -154,6 +154,7 @@ sig
   val add_term_vars: term * term list -> term list
   val term_vars: term -> term list
   val exists_Const: (string * typ -> bool) -> term -> bool
+  val exists_subterm: (term -> bool) -> term -> bool
   val compress_type: typ -> typ
   val compress_term: term -> term
 end;
@@ -728,6 +729,14 @@ fun exists_Const P t = let
 	|   ex (Abs (_, _, t)) = ex t
 	|   ex _               = false
     in ex t end;
+
+fun exists_subterm P =
+  let fun ex t = P t orelse
+                 (case t of
+                    u $ v        => ex u orelse ex v
+                  | Abs(_, _, u) => ex u
+                  | _            => false)
+  in ex end;
 
 (*map classes, tycons*)
 fun map_typ f g (Type (c, Ts)) = Type (g c, map (map_typ f g) Ts)

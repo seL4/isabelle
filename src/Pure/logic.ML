@@ -161,11 +161,7 @@ fun dest_inclass (t as Const (c_class, _) $ ty) =
 
 (*Does t occur in u?  Or is alpha-convertible to u?
   The term t must contain no loose bound variables*)
-fun t occs u = (t aconv u) orelse 
-      (case u of
-          Abs(_,_,body) => t occs body
-	| f$t' => t occs f  orelse  t occs t'
-	| _ => false);
+fun t occs u = exists_subterm (fn s => t aconv s) u;
 
 (*Close up a formula over all free variables by quantification*)
 fun close_form A =
@@ -327,11 +323,18 @@ fun looptest sign prems lhs rhs =
    (exists (apl (lhs, op occs)) (rhs :: prems))
   orelse
    (null prems andalso
-    Pattern.matches (#tsig (Sign.rep_sg sign)) (lhs, rhs));
-(*the condition "null prems" in the last case is necessary because
+    Pattern.matches (#tsig (Sign.rep_sg sign)) (lhs, rhs))
+  orelse
+   (case lhs of
+      (f as Free _) $ (Var _) => exists (fn p => f occs p) prems orelse
+                                 (null prems andalso f occs rhs)
+    | _ => false);
+(*the condition "null prems" in the last cases is necessary because
   conditional rewrites with extra variables in the conditions may terminate
   although the rhs is an instance of the lhs. Example:
   ?m < ?n ==> f(?n) == f(?m)*)
+(*FIXME: proper test: lhs does not match a subterm of a premise
+                      and does not match a subterm of the rhs if null prems *)
 
 fun rewrite_rule_extra_vars prems elhs erhs =
   if not ((term_vars erhs) subset
