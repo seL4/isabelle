@@ -97,6 +97,8 @@ Goalw [inv_def] "inj(f) ==> inv f (f x) = x";
 by (etac inj_select 1);
 qed "inv_f_f";
 
+Addsimps [inv_f_f];
+
 (* Useful??? *)
 val [oneone,minor] = Goal
     "[| inj(f); !!y. y: range(f) ==> P(inv f y) |] ==> P(x)";
@@ -138,6 +140,17 @@ by (Blast_tac 1);
 qed "subset_inj_on";
 
 
+(** surj **)
+
+val [major] = Goalw [surj_def] "(!! x. g(f x) = x) ==> surj g";
+by (blast_tac (claset() addIs [major RS sym]) 1);
+qed "surjI";
+
+Goalw [surj_def] "surj f ==> range f = UNIV";
+by Auto_tac;
+qed "surj_range";
+
+
 (*** Lemmas about injective functions and inv ***)
 
 Goalw [o_def] "[| inj_on f A;  inj_on g (range f) |] ==> inj_on (g o f) A";
@@ -148,15 +161,23 @@ Goalw [inv_def] "y : range(f) ==> f(inv f y) = y";
 by (fast_tac (claset() addIs [selectI]) 1);
 qed "f_inv_f";
 
+Goal "surj f ==> f(inv f y) = y";
+by (asm_simp_tac (simpset() addsimps [f_inv_f, surj_range]) 1);
+qed "surj_f_inv_f";
+
 Goal "[| inv f x = inv f y;  x: range(f);  y: range(f) |] ==> x=y";
 by (rtac (arg_cong RS box_equals) 1);
 by (REPEAT (ares_tac [f_inv_f] 1));
 qed "inv_injective";
 
-Goal "[| inj(f);  A<=range(f) |] ==> inj_on (inv f) A";
+Goal "A <= range(f) ==> inj_on (inv f) A";
 by (fast_tac (claset() addIs [inj_onI] 
-                      addEs [inv_injective,injD]) 1);
+                       addEs [inv_injective, injD]) 1);
 qed "inj_on_inv";
+
+Goal "surj f ==> inj (inv f)";
+by (asm_simp_tac (simpset() addsimps [inj_on_inv, surj_range]) 1);
+qed "surj_imp_inj_inv";
 
 Goalw [inj_on_def]
    "[| inj_on f C;  A<=C;  B<=C |] ==> f``(A Int B) = f``A Int f``B";
@@ -176,11 +197,9 @@ Goalw [inj_on_def] "inj f ==> f``(A-B) = f``A - f``B";
 by (Blast_tac 1);
 qed "image_set_diff";
 
-
-val [major] = Goalw [surj_def] "(!! x. g(f x) = x) ==> surj g";
-by (blast_tac (claset() addIs [major RS sym]) 1);
-qed "surjI";
-
+Goalw [image_def] "inj(f) ==> inv(f)``(f``X) = X";
+by Auto_tac;
+qed "inv_image_comp";
 
 val set_cs = claset() delrules [equalityI];
 
