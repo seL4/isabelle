@@ -20,6 +20,8 @@ MAIL=$HOME/bin/pmail
 
 LOGPREFIX=$HOME/log
 MASTERLOG=$LOGPREFIX/isatest.log
+ERRORLOG=$HOME/var/error.log
+RUNNING=$HOME/var/run
 DISTPREFIX=$HOME/isadist
 MAKEDIST=$HOME/bin/makedist
 MAKEALL=$HOME/bin/isatest-makeall
@@ -48,6 +50,10 @@ function fail()
 }
 
 ## main
+
+# cleanup old error log and test-still-running files
+rm -f $ERRORLOG
+rm -f $RUNNING/*.runnning
 
 export DISTPREFIX
 
