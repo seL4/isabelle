@@ -7,14 +7,14 @@
 # DESCRIPTION: Build distribution and run isatest-make for lots of platforms.
 
 ## global settings
-LOGPREFIX=~
+LOGPREFIX=~/log
 DISTPREFIX=~/isadist
 MAKEDIST=~/bin/makedist
 
 SUN=sunbroy2
 AT=atbroy37
 
-SSH="ssh -1 -f"
+SSH="ssh -f"
 
 ## diagnostics
 
@@ -43,9 +43,6 @@ export DISTPREFIX
 DATE=$(date "+%d-%b-%Y")
 DISTLOG=$LOGPREFIX/isatest-makedist-$DATE.log
 
-# get newest version of makedist:
-# cvs -d sunbroy2:/usr/proj/isabelle-repository/archive co isabelle/Admin > $COUTLOG
-
 echo ------------------- preparing test release --- `date` --- $HOSTNAME > $DISTLOG 2>&1
 
 echo "### cleaning up old dist directory"  >> $DISTLOG 2>&1
@@ -69,10 +66,10 @@ echo ------------------- prepared test successfully --- `date` --- $HOSTNAME >> 
 ## spawn test runs
 
 # run tests in parallel on multiprocessor sun 
-$SSH $SUN sun-poly   
-$SSH $SUN sun-sml
+$SSH $SUN "$MAKEDIST $DISTPREFIX ~/settings/sun-poly"
+$SSH $SUN "$MAKEDIST $DISTPREFIX ~/settings/sun-sml"
 
 # run tests sequentially on x86
-$SSH $AT at-poly at-sml
+$SSH $AT "$MAKEDIST $DISTPREFIX ~/settings/at-poly ~/settings/at-sml"
 
 ## end

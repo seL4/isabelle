@@ -58,12 +58,14 @@ for SETTINGS in $@; do
 
     echo ------------------- starting test --- `date` --- $HOSTNAME > $TESTLOG 2>&1
 
-    cp -v $SETTINGS $DISTPREFIX/Isabelle/etc/settings >> $TESTLOG 2>&1 
+    cp $DISTPREFIX/Isabelle/etc/settings $DISTPREFIX/Isabelle/etc/settings.save-$SHORT
+    cat $SETTINGS >> $DISTPREFIX/Isabelle/etc/settings
     $DISTPREFIX/Isabelle/bin/isatool makeall all >> $TESTLOG 2>&1 
 
     if [ $? -eq 0 ]
     then
         echo ------------------- test successfull --- `date` --- $HOSTNAME >> $TESTLOG 2>&1
+        mv $DISTPREFIX/Isabelle/etc/settings-$SHORT $DISTPREFIX/Isabelle/etc/settings
         gzip -f $TESTLOG
     else
         echo ------------------- test FAILED --- `date` --- $HOSTNAME >> $TESTLOG 2>&1
