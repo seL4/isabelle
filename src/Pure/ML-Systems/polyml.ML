@@ -21,9 +21,9 @@ use "basis.ML";
 fun startTiming() = System.processtime ();
 
 (*Finish timing and return string*)
-fun endTiming before = 
-  "User + GC: " ^ 
-  makestring (real (System.processtime () - before) / 10.0) ^ 
+fun endTiming before =
+  "User + GC: " ^
+  makestring (real (System.processtime () - before) / 10.0) ^
   " secs";
 
 
@@ -65,6 +65,14 @@ fun use_text verbose txt =
 
 
 
+(** interrupts **)      (*Note: may get into race conditions*)
+
+fun mask_interrupt f x = f x;
+fun unmask_interrupt f x = f x;
+fun exhibit_interrupt f x = f x;
+
+
+
 (** OS related **)
 
 local
@@ -96,7 +104,7 @@ fun execute command =
 (* file handling *)
 
 (*get time of last modification; if file doesn't exist return an empty string*)
-fun file_info "" = ""		(* FIXME !? *)
+fun file_info "" = ""           (* FIXME !? *)
   | file_info name = Int.toString (System.filedate name) handle _ => "";
 
 structure OS =
