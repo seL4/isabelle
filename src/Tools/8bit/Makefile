@@ -55,6 +55,9 @@ HYPER_R=20
 
 CONFIGFIlES = config/Makefile config/key-table.inp config/conv-tables.inp
 
+#path stem to isabelle source, used by patcher
+STEM = /usr/stud/oheimb/isabelle/
+
 ###############################################
 # configuration for configuration files in ./config
 ###############################################
@@ -110,15 +113,19 @@ all:  $(CONFIGFIlES)\
 	bin/isa_gnu_emacs bin/isa_xemacs bin/isavim bin/isaaxe\
 	bin/isaterm bin/isa_xmosaic bin/isapal bin/codetable bin/patcher\
 	fonts/install keyboard/install\
-	manual
+	isa-patches/HOL/add-HOL.cfg isa-patches/HOL/clean-HOL.cfg\
+	isa-patches/HOL/extract-HOL.cfg\
+	isa-patches/HOLCF/add-HOLCF.cfg isa-patches/HOLCF/clean-HOLCF.cfg\
+	isa-patches/HOLCF/extract-HOLCF.cfg\
+	manual\
 
 # ----------------------------------------------------
 
 clean:
-	cd bin; rm -f *
+	cd bin; rm -f a2isa codetable gen-* isa* patcher
 	cd c-sources/a2isa; $(GMAKE) clean
 	cd c-sources/isa2latex; $(GMAKE) clean
-	cd doc; rm -f *.log *.aux
+	cd doc; $(GMAKE) clean
 
 ###############################################
 # internal targets        
@@ -367,7 +374,26 @@ keyboard/install: Makefile
 		-e "s#^HYPER_R\s*=.*#HYPER_R=$(HYPER_R)#g;"\
 		install
 
+isa-patches/HOL/add-HOL.cfg: Makefile
+	@cd isa-patches/HOL;\
+	$(PERL) -pi -e "s#^STEM\s*\".*#STEM \"$(STEM)\"#g;" add-HOL.cfg
+isa-patches/HOL/clean-HOL.cfg: Makefile
+	@cd isa-patches/HOL;\
+	$(PERL) -pi -e "s#^STEM\s*\".*#STEM \"$(STEM)\"#g;" clean-HOL.cfg
+isa-patches/HOL/extract-HOL.cfg: Makefile
+	@cd isa-patches/HOL;\
+	$(PERL) -pi -e "s#^STEM\s*\".*#STEM \"$(STEM)\"#g;" extract-HOL.cfg
+isa-patches/HOLCF/add-HOLCF.cfg: Makefile
+	@cd isa-patches/HOLCF;\
+	$(PERL) -pi -e "s#^STEM\s*\".*#STEM \"$(STEM)\"#g;" add-HOLCF.cfg
+isa-patches/HOLCF/clean-HOLCF.cfg: Makefile
+	@cd isa-patches/HOLCF;\
+	$(PERL) -pi -e "s#^STEM\s*\".*#STEM \"$(STEM)\"#g;" clean-HOLCF.cfg
+isa-patches/HOLCF/extract-HOLCF.cfg: Makefile
+	@cd isa-patches/HOLCF;\
+	$(PERL) -pi -e "s#^STEM\s*\".*#STEM \"$(STEM)\"#g;" extract-HOLCF.cfg
+
 # ----------------------------------------------------
 
 manual:
-	@cd doc; $(GMAKE) manual.dvi clean
+	@cd doc; $(GMAKE) manual.dvi
