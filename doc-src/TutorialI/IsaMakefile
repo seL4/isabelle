@@ -138,7 +138,8 @@ $(LOG)/HOL-CTL.gz: $(OUT)/HOL CTL/Base.thy CTL/PDL.thy CTL/CTL.thy CTL/CTLind.th
 HOL-Inductive: HOL $(LOG)/HOL-Inductive.gz
 
 $(LOG)/HOL-Inductive.gz: $(OUT)/HOL Inductive/ROOT.ML \
-  Inductive/Even.thy Inductive/Star.thy Inductive/AB.thy Inductive/Advanced.thy
+  Inductive/Even.thy Inductive/Mutual.thy Inductive/Star.thy Inductive/AB.thy \
+  Inductive/Advanced.thy
 	$(USEDIR) Inductive
 	@rm -f tutorial.dvi
 
