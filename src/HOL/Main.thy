@@ -96,8 +96,8 @@ subsection {* Configuration of the code generator *}
 
 types_code
   "bool"  ("bool")
-  "*"     ("prod")
-  "list"  ("list")
+  "*"     ("(_ */ _)")
+  "list"  ("_ list")
 
 consts_code
   "op ="    ("(_ =/ _)")
@@ -115,5 +115,5 @@ consts_code
 
   "Nil"     ("[]")
   "Cons"    ("(_ ::/ _)")
-  
+
 end
