@@ -1,12 +1,16 @@
 % rail.sty - style file to support railroad diagrams
 %
 % 09-Jul-90 L. Rooijakkers
-% 08-Oct-90 L. Rooijakkers      fixed centering bug when \rail@tmpc<0.
-% 07-Feb-91 L. Rooijakkers      added \railoptions command, indexing
-% 08-Feb-91 L. Rooijakkers      minor fixes
-% 28-Jun-94 K. Barthelmann      turned into LaTeX2e package
-% 08-Dec-96 K. Barthelmann      replaced \@writefile
-% 13-Dec-96 K. Barthelmann      cleanup
+% 08-Oct-90 L. Rooijakkers	fixed centering bug when \rail@tmpc<0.
+% 07-Feb-91 L. Rooijakkers	added \railoptions command, indexing
+% 08-Feb-91 L. Rooijakkers	minor fixes
+% 28-Jun-94 K. Barthelmann	turned into LaTeX2e package
+% 08-Dec-96 K. Barthelmann	replaced \@writefile
+% 13-Dec-96 K. Barthelmann	cleanup
+% 22-Feb-98 K. Barthelmann	fixed catcodes of special characters
+% 18-Apr-98 K. Barthelmann	fixed \par handling
+% 19-May-98 J. Olsson		Added new macros to support arrow heads.
+% 26-Jul-98 K. Barthelmann	changed \par to output newlines
 %
 % This style file needs to be used in conjunction with the 'rail'
 % program. Running LaTeX as 'latex file' produces file.rai, which should be
@@ -20,7 +24,7 @@
 % of the railroad diagrams.
 
 \NeedsTeXFormat{LaTeX2e}
-\ProvidesPackage{rail}[1996/12/13]
+\ProvidesPackage{rail}[1998/05/19]
 
 % railroad diagram formatting parameters (user level)
 % all of these are copied into their internal versions by \railinit
@@ -163,15 +167,22 @@
 % \rail@param : declarations for list environment
 %
 % \railparam{TEXT} : sets \rail@param to TEXT
-
-\def\rail@param{}
+%
+% \rail@reserved : characters reserved for grammar
 
 \newcommand\railparam[1]{
-\def\rail@param{#1}
+\def\rail@param{
+  \setlength\leftmargin{0pt}\setlength\rightmargin{0pt}
+  \setlength\labelwidth{0pt}\setlength\labelsep{0pt}
+  \setlength\itemindent{0pt}\setlength\listparindent{0pt}
+  #1
 }
+}
+\railparam{}
 
-% \rail@tokenfont : format setup for \railtoken identifiers
-%
+\newtoks\rail@reserved
+\rail@reserved={:;|*+?[]()'"}
+
 % \rail@termfont : format setup for terminals
 %
 % \rail@nontfont : format setup for nonterminals
@@ -192,7 +203,6 @@
 %
 % \railindexfont{TEXT} : set index entry format setup to TEXT
 
-\def\rail@tokenfont{\ttfamily\upshape}
 \def\rail@termfont{\ttfamily\upshape}
 \def\rail@nontfont{\rmfamily\upshape}
 \def\rail@annofont{\rmfamily\itshape}
@@ -235,13 +245,21 @@
 % \railalias{IDENT}{TEXT} : format IDENT as TEXT. defines \rail@t@IDENT as
 %                           TEXT.
 %
+% \railtoken{IDENT}{TEXT} : abbreviates \railalias{IDENT}{TEXT}\railterm{IDENT}
+%                           (for backward compatibility)
+%
+% \rail@setcodes : guards special characters
+%
+% \rail@makeother{CHARACTER} : sets \catcode of CHARACTER to "other"
+%                              used inside a loop for \rail@setcodes
+%
 % \rail@nr : railroad diagram counter
 %
 % \ifrail@match : current \rail@i{NR}{TEXT} matches
 %
 % \rail@first : actions to be done first. read in .rao file,
 %               open .rai file if \@filesw true, undefine \rail@first.
-%               executed from \begin{rail} and \railtoken.
+%               executed from \begin{rail}, \railoptions and \railterm.
 %
 % \rail@i{NR}{TEXT} : defines \rail@i@NR as TEXT. written to the .rai
 %                     file by \rail, read from the .rao file by
@@ -264,6 +282,18 @@
 %
 % \ifrail@all : checked at the end of the document
 
+\def\rail@makeother#1{
+  \expandafter\catcode\expandafter`\csname\string #1\endcsname=12
+}
+
+\def\rail@setcodes{
+\let\par=\relax
+\let\\=\relax
+\expandafter\@tfor\expandafter\rail@symbol\expandafter:\expandafter=%
+  \the\rail@reserved
+\do{\expandafter\rail@makeother\rail@symbol}
+}
+
 \newcount\rail@nr
 
 \newif\ifrail@all
@@ -272,9 +302,12 @@
 \newif\ifrail@match
 
 \def\rail@first{
+\begingroup
 \makeatletter
+\rail@setcodes
 \InputIfFileExists{\jobname.rao}{}{\PackageInfo{rail}{No file \jobname.rao}}
 \makeatother
+\endgroup
 \if@filesw
 \newwrite\tf@rai
 \immediate\openout\tf@rai=\jobname.rai
@@ -283,19 +316,23 @@
 }
 
 \long\def\rail@body#1\end{
-\begingroup
-\let\\=\relax
+{
+\newlinechar=`^^J
+\def\par{\string\par^^J}
+\rail@write{\string\rail@i{\number\rail@nr}{#1}}
+}
 \xdef\rail@i@{#1}
-\rail@write{\string\rail@i{\number\rail@nr}{\rail@i@}}
-\endgroup
 \end
 }
 
 \newenvironment{rail}{
 \global\advance\rail@nr by 1
 \rail@first
+\begingroup
+\rail@setcodes
 \rail@body
 }{
+\endgroup
 \rail@matchtrue
 \@ifundefined{rail@o@\number\rail@nr}{\rail@matchfalse}{}
 \expandafter\ifx\csname rail@i@\number\rail@nr\endcsname\rail@i@
@@ -332,13 +369,17 @@
 \expandafter\def\csname rail@t@#1\endcsname{#2}
 }
 
+\newcommand\railtoken[2]{\railalias{#1}{#2}\railterm{#1}}
+
 \long\def\rail@i#1#2{
 \expandafter\gdef\csname rail@i@#1\endcsname{#2}
 }
 
 \def\rail@o#1#2{
 \expandafter\gdef\csname rail@o@#1\endcsname{
-\begin{list}{}{\rail@param}#2\end{list}
+\begin{list}{}{\rail@param}
+#2
+\end{list}
 }
 }
 
@@ -346,7 +387,7 @@
 
 \def\rail@p#1{}
 
-\def\rail@write#1{\@ifundefined{tf@rai}{}{\immediate\write\tf@rai{#1}}}
+\long\def\rail@write#1{\@ifundefined{tf@rai}{}{\immediate\write\tf@rai{#1}}}
 
 \def\rail@warn{
 \PackageWarningNoLine{rail}{Railroad diagram(s) may have changed.
@@ -378,8 +419,13 @@
 % \rail@tmpc : temporary count
 %
 % \rail@put : put at (\rail@x,\rail@y)
+% \rail@vput : put vector at (\rail@x,\rail@y)
 %
 % \rail@eline : end line by drawing from \rail@ex to \rail@x
+%
+% \rail@vreline : end line by drawing a vector from \rail@x to \rail@ex
+%
+% \rail@vleline : end line by drawing a vector from \rail@ex to \rail@x
 %
 % \rail@sety{LEVEL} : set \rail@y to level LEVEL
 
@@ -395,10 +441,24 @@
 
 \def\rail@put{\put(\number\rail@x,\number\rail@y)}
 
+\def\rail@vput{\put(\number\rail@ex,\number\rail@y)}
+
 \def\rail@eline{
 \rail@tmpb=\rail@x
 \advance\rail@tmpb by -\rail@ex
 \rail@put{\line(-1,0){\number\rail@tmpb}}
+}
+
+\def\rail@vreline{
+\rail@tmpb=\rail@x
+\advance\rail@tmpb by -\rail@ex
+\rail@vput{\vector(1,0){\number\rail@tmpb}}
+}
+
+\def\rail@vleline{
+\rail@tmpb=\rail@x
+\advance\rail@tmpb by -\rail@ex
+\rail@put{\vector(-1,0){\number\rail@tmpb}}
 }
 
 \def\rail@sety#1{
@@ -414,7 +474,7 @@
 % \rail@expand{IDENT} : expand IDENT
 
 \def\rail@begin#1#2{
-\item[]
+\item
 \begin{minipage}[t]{\linewidth}
 \ifx\@empty#2\else
 {\rail@namefont \rail@expand{#2}}\\*[\railnamesep]
@@ -437,34 +497,84 @@
 \end{minipage}
 }
 
+\def\rail@vend{
+\advance\rail@x by \rail@extra
+\rail@vreline
+\end{picture}
+\end{minipage}
+}
+
 \def\rail@expand#1{\@ifundefined{rail@t@#1}{#1}{\csname rail@t@#1\endcsname}}
 
 % \rail@token{TEXT}[ANNOT] : format token TEXT with annotation
+% \rail@ltoken{TEXT}[ANNOT] : format token TEXT with annotation, arrow left
+% \rail@rtoken{TEXT}[ANNOT] : format token TEXT with annotation, arrow right
 %
 % \rail@ctoken{TEXT}[ANNOT] : format token TEXT centered with annotation
+% \rail@lctoken{TEXT}[ANNOT] : format token TEXT centered with annotation, arrow left
+% \rail@rctoken{TEXT}[ANNOT] : format token TEXT centered with annotation, arrow right
 %
 % \rail@nont{TEXT}[ANNOT] : format nonterminal TEXT with annotation
+% \rail@lnont{TEXT}[ANNOT] : format nonterminal TEXT with annotation, arrow left
+% \rail@rnont{TEXT}[ANNOT] : format nonterminal TEXT with annotation. arrow right
 %
 % \rail@cnont{TEXT}[ANNOT] : format nonterminal TEXT centered with annotation
+% \rail@lcnont{TEXT}[ANNOT] : format nonterminal TEXT centered with annotation,
+%                             arrow left
+% \rail@rcnont{TEXT}[ANNOT] : format nonterminal TEXT centered with annotation,
+%                             arrow right
 %
 % \rail@term{TEXT}[ANNOT] : format terminal TEXT with annotation
+% \rail@lterm{TEXT}[ANNOT] : format terminal TEXT with annotation, arrow left
+% \rail@rterm{TEXT}[ANNOT] : format terminal TEXT with annotation, arrow right
 %
 % \rail@cterm{TEXT}[ANNOT] : format terminal TEXT centered with annotation
+% \rail@lcterm{TEXT}[ANNOT] : format terminal TEXT centered with annotation, arrow left
+% \rail@rcterm{TEXT}[ANNOT] : format terminal TEXT centered with annotation,
+%                             arrow right
 %
 % \rail@annote[TEXT] : format TEXT as annotation
 
 \def\rail@token#1[#2]{
 \rail@setbox{%
-{\rail@tokenfont \rail@expand{#1}}\ifx\@empty#2\else\ {\rail@annofont #2}\fi
+{\rail@termfont \rail@expand{#1}}\ifx\@empty#2\else\ {\rail@annofont #2}\fi
 }
 \rail@oval
 }
 
+\def\rail@ltoken#1[#2]{
+\rail@setbox{%
+{\rail@termfont \rail@expand{#1}}\ifx\@empty#2\else\ {\rail@annofont #2}\fi
+}
+\rail@vloval
+}
+
+\def\rail@rtoken#1[#2]{
+\rail@setbox{%
+{\rail@termfont \rail@expand{#1}}\ifx\@empty#2\else\ {\rail@annofont #2}\fi
+}
+\rail@vroval
+}
+
 \def\rail@ctoken#1[#2]{
 \rail@setbox{%
-{\rail@tokenfont \rail@expand{#1}}\ifx\@empty#2\else\ {\rail@annofont #2}\fi
+{\rail@termfont \rail@expand{#1}}\ifx\@empty#2\else\ {\rail@annofont #2}\fi
 }
 \rail@coval
+}
+
+\def\rail@lctoken#1[#2]{
+\rail@setbox{%
+{\rail@termfont \rail@expand{#1}}\ifx\@empty#2\else\ {\rail@annofont #2}\fi
+}
+\rail@vlcoval
+}
+
+\def\rail@rctoken#1[#2]{
+\rail@setbox{%
+{\rail@termfont \rail@expand{#1}}\ifx\@empty#2\else\ {\rail@annofont #2}\fi
+}
+\rail@vrcoval
 }
 
 \def\rail@nont#1[#2]{
@@ -474,11 +584,39 @@
 \rail@frame
 }
 
+\def\rail@lnont#1[#2]{
+\rail@setbox{%
+{\rail@nontfont \rail@expand{#1}}\ifx\@empty#2\else\ {\rail@annofont #2}\fi
+}
+\rail@vlframe
+}
+
+\def\rail@rnont#1[#2]{
+\rail@setbox{%
+{\rail@nontfont \rail@expand{#1}}\ifx\@empty#2\else\ {\rail@annofont #2}\fi
+}
+\rail@vrframe
+}
+
 \def\rail@cnont#1[#2]{
 \rail@setbox{%
 {\rail@nontfont \rail@expand{#1}}\ifx\@empty#2\else\ {\rail@annofont #2}\fi
 }
 \rail@cframe
+}
+
+\def\rail@lcnont#1[#2]{
+\rail@setbox{%
+{\rail@nontfont \rail@expand{#1}}\ifx\@empty#2\else\ {\rail@annofont #2}\fi
+}
+\rail@vlcframe
+}
+
+\def\rail@rcnont#1[#2]{
+\rail@setbox{%
+{\rail@nontfont \rail@expand{#1}}\ifx\@empty#2\else\ {\rail@annofont #2}\fi
+}
+\rail@vrcframe
 }
 
 \def\rail@term#1[#2]{
@@ -488,11 +626,39 @@
 \rail@oval
 }
 
+\def\rail@lterm#1[#2]{
+\rail@setbox{%
+{\rail@termfont #1}\ifx\@empty#2\else\ {\rail@annofont #2}\fi
+}
+\rail@vloval
+}
+
+\def\rail@rterm#1[#2]{
+\rail@setbox{%
+{\rail@termfont #1}\ifx\@empty#2\else\ {\rail@annofont #2}\fi
+}
+\rail@vroval
+}
+
 \def\rail@cterm#1[#2]{
 \rail@setbox{%
 {\rail@termfont #1}\ifx\@empty#2\else\ {\rail@annofont #2}\fi
 }
 \rail@coval
+}
+
+\def\rail@lcterm#1[#2]{
+\rail@setbox{%
+{\rail@termfont #1}\ifx\@empty#2\else\ {\rail@annofont #2}\fi
+}
+\rail@vlcoval
+}
+
+\def\rail@rcterm#1[#2]{
+\rail@setbox{%
+{\rail@termfont #1}\ifx\@empty#2\else\ {\rail@annofont #2}\fi
+}
+\rail@vrcoval
 }
 
 \def\rail@annote[#1]{
@@ -505,14 +671,26 @@
 % \rail@setbox{TEXT} : set \rail@box to TEXT, set \rail@tmpa to width
 %
 % \rail@oval : format \rail@box of width \rail@tmpa inside an oval
+% \rail@vloval : format \rail@box of width \rail@tmpa inside an oval, vector left
+% \rail@vroval : format \rail@box of width \rail@tmpa inside an oval, vector right
 %
 % \rail@coval : same as \rail@oval, but centered between \rail@x and
 %               \rail@mx
+% \rail@vlcoval : same as \rail@oval, but centered between \rail@x and
+%                 \rail@mx, vector left
+% \rail@vrcoval : same as \rail@oval, but centered between \rail@x and
+%                 \rail@mx, vector right
 %
 % \rail@frame : format \rail@box of width \rail@tmpa inside a frame
+% \rail@vlframe : format \rail@box of width \rail@tmpa inside a frame, vector left
+% \rail@vrframe : format \rail@box of width \rail@tmpa inside a frame, vector right
 %
 % \rail@cframe : same as \rail@frame, but centered between \rail@x and
 %                \rail@mx
+% \rail@vlcframe : same as \rail@frame, but centered between \rail@x and
+%                  \rail@mx, vector left
+% \rail@vrcframe : same as \rail@frame, but centered between \rail@x and
+%                  \rail@mx, vector right
 %
 % \rail@text : format \rail@box of width \rail@tmpa above the line
 
@@ -527,6 +705,41 @@
 \def\rail@oval{
 \advance\rail@x by \rail@boxlf
 \rail@eline
+\advance\rail@tmpa by \rail@ovalsp
+\ifnum\rail@tmpa<\rail@boxht\rail@tmpa=\rail@boxht\fi
+\rail@tmpb=\rail@tmpa
+\divide\rail@tmpb by 2
+\advance\rail@y by -\rail@boxhht
+\rail@put{\makebox(\number\rail@tmpa,\number\rail@boxht){\box\rail@box}}
+\advance\rail@y by \rail@boxhht
+\advance\rail@x by \rail@tmpb
+\rail@put{\oval(\number\rail@tmpa,\number\rail@boxht)}
+\advance\rail@x by \rail@tmpb
+\rail@ex=\rail@x
+\advance\rail@x by \rail@boxrt
+}
+
+\def\rail@vloval{
+\advance\rail@x by \rail@boxlf
+\rail@eline
+\advance\rail@tmpa by \rail@ovalsp
+\ifnum\rail@tmpa<\rail@boxht\rail@tmpa=\rail@boxht\fi
+\rail@tmpb=\rail@tmpa
+\divide\rail@tmpb by 2
+\advance\rail@y by -\rail@boxhht
+\rail@put{\makebox(\number\rail@tmpa,\number\rail@boxht){\box\rail@box}}
+\advance\rail@y by \rail@boxhht
+\advance\rail@x by \rail@tmpb
+\rail@put{\oval(\number\rail@tmpa,\number\rail@boxht)}
+\advance\rail@x by \rail@tmpb
+\rail@ex=\rail@x
+\advance\rail@x by \rail@boxrt
+\rail@vleline
+}
+
+\def\rail@vroval{
+\advance\rail@x by \rail@boxlf
+\rail@vreline
 \advance\rail@tmpa by \rail@ovalsp
 \ifnum\rail@tmpa<\rail@boxht\rail@tmpa=\rail@boxht\fi
 \rail@tmpb=\rail@tmpa
@@ -557,9 +770,68 @@
 \rail@oval
 }
 
+\def\rail@vlcoval{
+\rail@tmpb=\rail@tmpa
+\advance\rail@tmpb by \rail@ovalsp
+\ifnum\rail@tmpb<\rail@boxht\rail@tmpb=\rail@boxht\fi
+\advance\rail@tmpb by \rail@boxlf
+\advance\rail@tmpb by \rail@boxrt
+\rail@tmpc=\rail@mx
+\advance\rail@tmpc by -\rail@x
+\advance\rail@tmpc by -\rail@tmpb
+\divide\rail@tmpc by 2
+\ifnum\rail@tmpc>0
+\advance\rail@x by \rail@tmpc
+\fi
+\rail@vloval
+}
+
+\def\rail@vrcoval{
+\rail@tmpb=\rail@tmpa
+\advance\rail@tmpb by \rail@ovalsp
+\ifnum\rail@tmpb<\rail@boxht\rail@tmpb=\rail@boxht\fi
+\advance\rail@tmpb by \rail@boxlf
+\advance\rail@tmpb by \rail@boxrt
+\rail@tmpc=\rail@mx
+\advance\rail@tmpc by -\rail@x
+\advance\rail@tmpc by -\rail@tmpb
+\divide\rail@tmpc by 2
+\ifnum\rail@tmpc>0
+\advance\rail@x by \rail@tmpc
+\fi
+\rail@vroval
+}
+
 \def\rail@frame{
 \advance\rail@x by \rail@boxlf
 \rail@eline
+\advance\rail@tmpa by \rail@framesp
+\ifnum\rail@tmpa<\rail@boxht\rail@tmpa=\rail@boxht\fi
+\advance\rail@y by -\rail@boxhht
+\rail@put{\framebox(\number\rail@tmpa,\number\rail@boxht){\box\rail@box}}
+\advance\rail@y by \rail@boxhht
+\advance\rail@x by \rail@tmpa
+\rail@ex=\rail@x
+\advance\rail@x by \rail@boxrt
+}
+
+\def\rail@vlframe{
+\advance\rail@x by \rail@boxlf
+\rail@eline
+\advance\rail@tmpa by \rail@framesp
+\ifnum\rail@tmpa<\rail@boxht\rail@tmpa=\rail@boxht\fi
+\advance\rail@y by -\rail@boxhht
+\rail@put{\framebox(\number\rail@tmpa,\number\rail@boxht){\box\rail@box}}
+\advance\rail@y by \rail@boxhht
+\advance\rail@x by \rail@tmpa
+\rail@ex=\rail@x
+\advance\rail@x by \rail@boxrt
+\rail@vleline
+}
+
+\def\rail@vrframe{
+\advance\rail@x by \rail@boxlf
+\rail@vreline
 \advance\rail@tmpa by \rail@framesp
 \ifnum\rail@tmpa<\rail@boxht\rail@tmpa=\rail@boxht\fi
 \advance\rail@y by -\rail@boxhht
@@ -584,6 +856,38 @@
 \advance\rail@x by \rail@tmpc
 \fi
 \rail@frame
+}
+
+\def\rail@vlcframe{
+\rail@tmpb=\rail@tmpa
+\advance\rail@tmpb by \rail@framesp
+\ifnum\rail@tmpb<\rail@boxht\rail@tmpb=\rail@boxht\fi
+\advance\rail@tmpb by \rail@boxlf
+\advance\rail@tmpb by \rail@boxrt
+\rail@tmpc=\rail@mx
+\advance\rail@tmpc by -\rail@x
+\advance\rail@tmpc by -\rail@tmpb
+\divide\rail@tmpc by 2
+\ifnum\rail@tmpc>0
+\advance\rail@x by \rail@tmpc
+\fi
+\rail@vlframe
+}
+
+\def\rail@vrcframe{
+\rail@tmpb=\rail@tmpa
+\advance\rail@tmpb by \rail@framesp
+\ifnum\rail@tmpb<\rail@boxht\rail@tmpb=\rail@boxht\fi
+\advance\rail@tmpb by \rail@boxlf
+\advance\rail@tmpb by \rail@boxrt
+\rail@tmpc=\rail@mx
+\advance\rail@tmpc by -\rail@x
+\advance\rail@tmpc by -\rail@tmpb
+\divide\rail@tmpc by 2
+\ifnum\rail@tmpc>0
+\advance\rail@x by \rail@tmpc
+\fi
+\rail@vrframe
 }
 
 \def\rail@text{
