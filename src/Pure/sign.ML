@@ -308,7 +308,7 @@ fun infer_types sg types sorts used freeze (ts, T) =
      | Ambigs(us) =>
          (warn();
           let val old_show_brackets = !show_brackets
-              val _ = show_brackets := true;
+              val dummy = show_brackets := true;
               val errs = cat_lines(map show_term us)
           in show_brackets := old_show_brackets;
              error("Error: More than one term is type correct:\n" ^ errs)
@@ -553,12 +553,16 @@ val pure = proto_pure
 
 val cpure = proto_pure
   |> add_syntax
-   [("_applC",     "[('b => 'a), 'c] => logic",     Mixfix ("_/ _",
-                                                    [max_pri-1, max_pri],
-                                                    max_pri-1)),
-    ("_applC",     "[('b => 'a), 'c] => aprop",     Mixfix ("_/ _",
-                                                    [max_pri-1, max_pri],
-                                                    max_pri-1))]
+   [("",           "'a => cargs",                   Delimfix "_"),
+    ("_cargs",     "['a, cargs] => cargs",          Mixfix ("_/ _",
+                                                     [max_pri, max_pri],
+                                                     max_pri)),
+    ("_applC",     "[('b => 'a), cargs] => logic",  Mixfix ("(1_/ _)",
+                                                     [max_pri, max_pri],
+                                                     max_pri-1)),
+    ("_applC",     "[('b => 'a), cargs] => aprop",  Mixfix ("(1_/ _)",
+                                                     [max_pri, max_pri],
+                                                     max_pri-1))]
   |> add_name "CPure";
 
 end;

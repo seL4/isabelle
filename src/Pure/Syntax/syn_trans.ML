@@ -55,7 +55,7 @@ open TypeExt Parser.Lexicon Parser.SynExt.Ast Parser.SynExt Parser;
 fun appl_ast_tr [f, args] = Appl (f :: unfold_ast "_args" args)
   | appl_ast_tr asts = raise_ast "appl_ast_tr" asts;
 
-fun applC_ast_tr (asts as (f::args)) = Appl asts
+fun applC_ast_tr [f, args] = Appl (f :: unfold_ast "_cargs" args)
   | applC_ast_tr asts = raise_ast "applC_ast_tr" asts;
 
 
@@ -129,12 +129,8 @@ fun appl_ast_tr' (f, []) = raise_ast "appl_ast_tr'" [f]
   | appl_ast_tr' (f, args) = Appl [Constant "_appl", f, fold_ast "_args" args];
 
 fun applC_ast_tr' (f, []) = raise_ast "applC_ast_tr'" [f]
-  | applC_ast_tr' (f, arg::args) =
-      let (* fold curried function application *)
-          fun fold [] result = result
-            | fold (x :: xs) result =
-                fold xs (Appl [Constant "_applC", result, x]);
-      in fold args (Appl [Constant "_applC", f, arg]) end;
+  | applC_ast_tr' (f, args) =
+      Appl [Constant "_applC", f, fold_ast "_cargs" args];
 
 
 (* abstraction *)
@@ -289,20 +285,8 @@ fun pt_to_ast trf pt =
     (*translate pt bottom-up*)
     fun ast_of (Node (a, pts)) = trans a (map ast_of pts)
       | ast_of (Tip tok) = Variable (str_of_token tok);
-
-    (*unfold curried application top-down (needed for CPure)*)
-    fun unfold_applC (Node ("_applC", pts)) =
-          let (*translate (applC(applC(f,a),b),c) to (f,a,b,c)*)
-              fun unfold [Node ("_applC", pts), arg] = (unfold pts) @ [arg]
-                | unfold n = n
-          in Node ("_applC", map unfold_applC (unfold pts))
-                                (*top "_applC" is removed by applC_ast_tr;
-                                  note that arguments are unfolded separately*)
-          end
-      | unfold_applC (Node (a, pts)) = Node (a, map unfold_applC pts)
-      | unfold_applC tip = tip
   in
-    ast_of (unfold_applC pt)
+    ast_of pt
   end;
 
 

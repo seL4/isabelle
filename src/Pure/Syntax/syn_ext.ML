@@ -18,6 +18,7 @@ sig
   local open Ast in
     val logic: string
     val args: string
+    val cargs: string
     val any: string
     val sprop: string
     val typ_to_nonterm: typ -> string
@@ -77,6 +78,7 @@ val logic = "logic";
 val logicT = Type (logic, []);
 
 val args = "args";
+val cargs = "cargs";
 
 val typeT = Type ("type", []);
 
