@@ -70,15 +70,6 @@ by (rtac (refl RS disjI1) 1);
 by (Blast_tac 1);
 qed "natE";
 
-(*Install 'automatic' induction tactic, pretending nat is a datatype *)
-(*except for induct_tac and exhaust_tac, everything is dummy*)
-datatypes := [("nat",{case_const = Bound 0, case_rewrites = [],
-  constructors = [], induct_tac = nat_ind_tac,
-  exhaustion = natE,
-  exhaust_tac = fn v => ALLNEWSUBGOALS (res_inst_tac [("n",v)] natE)
-                                       (rotate_tac ~1),
-  nchotomy = ProtoPure.flexpair_def, case_cong = ProtoPure.flexpair_def})];
-
 
 (*** Isomorphisms: Abs_Nat and Rep_Nat ***)
 
