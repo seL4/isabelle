@@ -270,6 +270,7 @@ by (Action.action.induct_tac "a" 1);
 by (ALLGOALS (simp_tac ((!simpset addsimps [externals_def]) setloop (split_tac [expand_if]))));
 qed"env_unchanged";
 
+Delsimps [Collect_False_empty];
 
 goal Correctness.thy "compat_ioas srch_ioa rsch_ioa"; 
 by (simp_tac (!simpset addsimps [compat_ioas_def,compat_asigs_def,Int_def,empty_def]) 1);
