@@ -1,4 +1,4 @@
-(*  Title:      HOLCF/porder.thy
+(*  Title:      HOLCF/Porder.thy
     ID:         $Id$
     Author:     Franz Regensburger
     License:    GPL (GNU GENERAL PUBLIC LICENSE)

@@ -1,4 +1,4 @@
-(*  Title:      HOLCF/Cfun1.thy
+(*  Title:      HOLCF/Cfun.thy
     ID:         $Id$
     Author:     Franz Regensburger
     License:    GPL (GNU GENERAL PUBLIC LICENSE)

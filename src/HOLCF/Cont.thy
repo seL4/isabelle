@@ -1,4 +1,4 @@
-(*  Title:      HOLCF/cont.thy
+(*  Title:      HOLCF/Cont.thy
     ID:         $Id$
     Author:     Franz Regensburger
     License:    GPL (GNU GENERAL PUBLIC LICENSE)
