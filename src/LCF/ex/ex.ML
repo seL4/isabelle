@@ -7,6 +7,9 @@ Some examples from Lawrence Paulson's book Logic and Computation.
 *)
 
 
+val add_axioms = PureThy.add_axioms o map Attribute.none;
+
+
 (***  Section 10.4  ***)
 
 val ex_thy =
@@ -16,7 +19,7 @@ val ex_thy =
     ("G", "'a => 'a", NoSyn),
     ("H", "'a => 'a", NoSyn),
     ("K", "('a => 'a) => ('a => 'a)", NoSyn)]
-  |> PureThy.add_store_axioms
+  |> add_axioms
    [("P_strict", "P(UU) = UU"),
     ("K", "K = (%h x. P(x) => x | h(h(G(x))))"),
     ("H", "H = FIX(K)")]
@@ -61,7 +64,7 @@ val ex_thy =
     ("G", "'a => 'a", NoSyn),
     ("H", "'a => 'b => 'b", NoSyn),
     ("K", "('a => 'b => 'b) => ('a => 'b => 'b)", NoSyn)]
-  |> PureThy.add_store_axioms
+  |> add_axioms
    [("F_strict", "F(UU) = UU"),
     ("K", "K = (%h x y. P(x) => y | F(h(G(x),y)))"),
     ("H", "H = FIX(K)")]
@@ -90,7 +93,7 @@ val ex_thy =
   |> Theory.add_consts
    [("s", "'a => 'a", NoSyn),
     ("p", "'a => 'a => 'a", NoSyn)]
-  |> PureThy.add_store_axioms
+  |> add_axioms
    [("p_strict", "p(UU) = UU"),
     ("p_s", "p(s(x),y) = s(p(x,y))")]
   |> Theory.add_name "fix ex";
