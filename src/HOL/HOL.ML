@@ -123,6 +123,9 @@ qed_goalw "notI" HOL.thy [not_def] "(P ==> False) ==> ~P"
 qed_goalw "notE" HOL.thy [not_def] "[| ~P;  P |] ==> R"
  (fn prems => [rtac (prems MRS mp RS FalseE) 1]);
 
+qed_goal "rev_notE" HOL.thy "!!P R. [| P; ~P |] ==> R"
+ (fn _ => [REPEAT (ares_tac [notE] 1)]);
+
 
 (** Implication **)
 section "-->";
