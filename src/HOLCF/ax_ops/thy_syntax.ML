@@ -2,13 +2,7 @@
     ID:         $Id$
     Author:     Tobias Mayr
 
-Installation of the additional theory file sections for HOLCF: axioms , ops 
-There's an elaborate but german description of this extension
-and a short english description of the new sections,
-write to mayrt@informatik.tu-muenchen.de.
-
-TODO:
-
+Additional thy file sections for HOLCF: axioms, ops.
 *)
 
 (* use "holcflogics.ML"; 
