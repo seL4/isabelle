@@ -19,45 +19,15 @@ goal thy
 by (expr.induct_tac "e" 1);
 (* case Var(n) *)
 by (simp_tac (!simpset addsplits [expand_option_bind,expand_if]) 1);
-by (strip_tac 1);
-by (etac conjE 1);
-by (etac conjE 1);
-by (dtac sym 1);
-by (dtac sym 1);
-by (dtac sym 1);
-by (Asm_full_simp_tac 1);
 (* case Abs e *)
 by (simp_tac (!simpset addsplits [expand_option_bind]) 1);
 by (fast_tac (HOL_cs addDs [Suc_leD]) 1);
 (* case App e1 e2 *)
 by (simp_tac (!simpset addsplits [expand_option_bind]) 1);
-by (strip_tac 1);
-by (rename_tac "S t n1 S1 t1 n2 S2 S3 t2 m" 1);
-by (eres_inst_tac [("x","A")] allE 1);
-by (eres_inst_tac [("x","n")] allE 1);
-by (eres_inst_tac [("x","$ S A")] allE 1);
-by (eres_inst_tac [("x","S")] allE 1);
-by (eres_inst_tac [("x","t")] allE 1);
-by (eres_inst_tac [("x","n1")] allE 1);
-by (eres_inst_tac [("x","n1")] allE 1);
-by (asm_full_simp_tac (!simpset addsimps [eq_sym_conv]) 1);
-by (etac conjE 1);
-by (eres_inst_tac [("x","S1")] allE 1);
-by (eres_inst_tac [("x","t1")] allE 1);
-by (eres_inst_tac [("x","n2")] allE 1);
-by (etac conjE 1);
-by (res_inst_tac [("j","n1")] le_trans 1); 
-by (Asm_simp_tac 1);
-by (Asm_simp_tac 1);
+by(blast_tac (!claset addIs [le_SucI,le_trans]) 1);
 (* case LET e1 e2 *)
 by (simp_tac (!simpset addsplits [expand_option_bind]) 1);
-by (strip_tac 1);
-by (rename_tac "A n1 S t2 m1 S2 t3 m2 S3 t1 m" 1);
-by (REPEAT (etac conjE 1));
-by (REPEAT (etac allE 1));
-by (mp_tac 1);
-by (mp_tac 1);
-by (best_tac (!claset addEs [le_trans]) 1);
+by(blast_tac (!claset addIs [le_trans]) 1);
 qed_spec_mp "W_var_ge";
 
 Addsimps [W_var_ge];
@@ -113,16 +83,9 @@ by (expr.induct_tac "e" 1);
 (* case Var n *)
 by (simp_tac (!simpset addsplits [expand_option_bind,expand_if]) 1);
 by (strip_tac 1);
-by (REPEAT (etac conjE 1));
-by (rtac conjI 1);
-by (dtac sym 1);
-by (Asm_full_simp_tac 1);
-by (dtac sym 1);
-by (dtac sym 1);
-by (dtac sym 1);
 by (dtac new_tv_nth_nat_A 1);
 by (assume_tac 1);
-by (Asm_full_simp_tac 1);
+by (Asm_simp_tac 1);
 (* case Abs e *)
 by (simp_tac (!simpset addsimps [new_tv_subst,new_tv_Suc_list] 
     addsplits [expand_option_bind]) 1);
@@ -134,17 +97,17 @@ by (fast_tac (HOL_cs addss (!simpset
 (* case App e1 e2 *)
 by (simp_tac (!simpset addsplits [expand_option_bind]) 1);
 by (strip_tac 1);
-by (rename_tac "S t n1 S1 t1 n2 S2 S3 t2 m" 1);
+by (rename_tac "S1 t1 n1 S2 t2 n2 S3" 1);
 by (eres_inst_tac [("x","n")] allE 1);
 by (eres_inst_tac [("x","A")] allE 1);
-by (eres_inst_tac [("x","S")] allE 1);
-by (eres_inst_tac [("x","t")] allE 1);
+by (eres_inst_tac [("x","S1")] allE 1);
+by (eres_inst_tac [("x","t1")] allE 1);
 by (eres_inst_tac [("x","n1")] allE 1);
 by (eres_inst_tac [("x","n1")] allE 1);
 by (asm_full_simp_tac (!simpset addsimps [eq_sym_conv] delsimps all_simps) 1);
-by (eres_inst_tac [("x","$ S A")] allE 1);
-by (eres_inst_tac [("x","S1")] allE 1);
-by (eres_inst_tac [("x","t1")] allE 1);
+by (eres_inst_tac [("x","$S1 A")] allE 1);
+by (eres_inst_tac [("x","S2")] allE 1);
+by (eres_inst_tac [("x","t2")] allE 1);
 by (eres_inst_tac [("x","n2")] allE 1);
 by ( asm_full_simp_tac (!simpset addsimps [o_def,rotate_Some]) 1);
 by (rtac conjI 1);
@@ -173,52 +136,28 @@ by (best_tac (HOL_cs addSIs [lessI RS less_imp_le RS new_tv_le,new_tv_subst_te]
 by (fast_tac (HOL_cs addDs [W_var_geD] addIs
      [new_scheme_list_le,new_tv_subst_scheme_list,new_tv_le]
      addss (!simpset)) 1);
-(* case LET e1 e2 *)
+(* 41: case LET e1 e2 *)
 by (simp_tac (!simpset addsplits [expand_option_bind]) 1);
 by (strip_tac 1);
-by (rename_tac "n1 A S1 t1 n2 S2 t2 m2 S t m" 1);
-by (REPEAT (etac conjE 1));
-by (eres_inst_tac [("x","n1")] allE 1);
-by (eres_inst_tac [("x","A")] allE 1);
-by (eres_inst_tac [("x","S1")] allE 1);
-by (eres_inst_tac [("x","t1")] allE 1);
-by (rotate_tac 1 1);
-by (eres_inst_tac [("x","n2")] allE 1);
-by (mp_tac 1);
-by (mp_tac 1);
+by(EVERY1[etac allE,etac allE,etac allE,etac allE,etac allE,mp_tac,mp_tac]);
 by (etac conjE 1);
-by (asm_full_simp_tac (!simpset addsimps [eq_sym_conv] delsimps all_simps) 1);
-by (dtac sym 1);
-by (eres_inst_tac [("x","n2")] allE 1);
-by (eres_inst_tac [("x","gen ($ S1 A) t1 # $ S1 A")] allE 1);
-by (eres_inst_tac [("x","S2")] allE 1);
-by (eres_inst_tac [("x","t2")] allE 1);
-by (eres_inst_tac [("x","m2")] allE 1);
-by (subgoal_tac "new_tv n2 (gen ($ S1 A) t1 # $ S1 A)" 1);
-by (mp_tac 1);
-by (mp_tac 1);
+by(EVERY[etac allE 1,etac allE 1,etac allE 1,etac allE 1,etac allE 1,
+         etac impE 1, mp_tac 2]);
+by (SELECT_GOAL(rewtac new_tv_def)1);
+by (Asm_simp_tac 1);
+by (REPEAT(dtac W_var_ge 1));
+by (rtac allI 1);
+by (strip_tac 1);
+by (SELECT_GOAL(rewtac free_tv_subst) 1);
+by (dtac (free_tv_app_subst_scheme_list RS subsetD) 1);
+by (best_tac (!claset addEs [less_le_trans]) 1);
 by (etac conjE 1);
 by (rtac conjI 1);
-by (simp_tac (!simpset addsimps [o_def]) 1);
 by (rtac new_tv_subst_comp_2 1);
-by (res_inst_tac [("n","n2")] new_tv_subst_le 1);
-by (etac W_var_ge 1);
+by (etac (W_var_ge RS new_tv_subst_le) 1);
 by (assume_tac 1);
 by (assume_tac 1);
 by (assume_tac 1);
-by (rewtac new_tv_def);
-by (Asm_simp_tac 1);
-by (dtac W_var_ge 1);
-by (rtac allI 1);
-by (rename_tac "p" 1);
-by (strip_tac 1);
-by (rewtac free_tv_subst);
-by (dtac (free_tv_app_subst_scheme_list RS subsetD) 1);
-fun restrict_prems is tacf =
-  METAHYPS(fn prems =>
-    let val iprems = map (fn i => nth_elem(i,prems)) is
-    in cut_facts_tac iprems 1 THEN tacf 1 end);
-by (restrict_prems [0,4,8,9] (best_tac (!claset addEs [less_le_trans])) 1);
 qed_spec_mp "new_tv_W";
 
 goal thy "!!sch. (v ~: free_tv sch) --> (v : free_tv (bound_typ_inst (TVar o S) sch)) --> (? x. v = S x)";
@@ -241,15 +180,10 @@ by (expr.induct_tac "e" 1);
 by (simp_tac (!simpset addsimps
     [free_tv_subst] addsplits [expand_option_bind,expand_if]) 1);
 by (strip_tac 1);
-by (REPEAT (etac conjE 1));
-by (hyp_subst_tac 1);
-by (asm_full_simp_tac (!simpset addsimps [dom_def,cod_def,id_subst_def]) 1);
 by (case_tac "v : free_tv (nth nat A)" 1);
 by (Asm_full_simp_tac 1);
-by (strip_tac 1);
 by (dtac free_tv_bound_typ_inst1 1);
 by (simp_tac (!simpset addsimps [o_def]) 1);
-by (rotate_tac 3 1);
 by (etac exE 1);
 by (rotate_tac 3 1);
 by (Asm_full_simp_tac 1);

@@ -341,7 +341,6 @@ goal SList.thy
 \                        (!y ys. xs=y#ys --> P(f y ys)))";
 by (list_ind_tac "xs" 1);
 by (ALLGOALS Asm_simp_tac);
-by (Fast_tac 1);
 qed "expand_list_case2";
 
 

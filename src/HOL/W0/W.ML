@@ -65,7 +65,6 @@ by (etac conjE 1);
 by (eres_inst_tac [("x","sa")] allE 1);
 by (eres_inst_tac [("x","ta")] allE 1);
 by (eres_inst_tac [("x","nb")] allE 1);
-by (etac conjE 1);
 by (res_inst_tac [("j","na")] le_trans 1); 
 by (Asm_simp_tac 1);
 by (Asm_simp_tac 1);
