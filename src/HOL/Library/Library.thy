@@ -3,6 +3,7 @@ theory Library
 imports
   Accessible_Part
   Continuity
+  EfficientNat
   FuncSet
   List_Prefix
   Multiset
