@@ -168,7 +168,9 @@ mkdir -p "$LOGDIR"
 
 PARENT=$(basename "$LOGIC")
 
-[ -z "$BUILD" ] && cd "$NAME"
+if [ -z "$BUILD" ]; then
+  cd "$NAME" || fail "Bad session directory '$NAME'"
+fi
 
 if [ "$DOCUMENT" != false ]; then
   DOC="$DOCUMENT"
