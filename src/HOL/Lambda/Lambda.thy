@@ -150,7 +150,7 @@ lemma subst_subst [rule_format]:
     apply (simp_all
       add: diff_Suc subst_Var lift_lift [symmetric] lift_subst_lt
       split: nat.split)
-  apply (auto elim: nat_neqE)
+  apply (auto simp add: linorder_neq_iff)
   done
 
 
