@@ -36,8 +36,6 @@ sig
   val the_locale: theory -> string -> locale
   val attribute: ('att -> context attribute) -> ('typ, 'term, 'thm, 'att) elem_expr
     -> ('typ, 'term, 'thm, context attribute) elem_expr
-  val locale_facts: theory -> xstring -> thm list
-  val locale_facts_i: theory -> string -> thm list
   val read_context_statement: xstring option -> context attribute element list ->
     (string * (string list * string list)) list list -> context ->
     string option * cterm list * context * context * (term * (term list * term list)) list list
@@ -408,20 +406,20 @@ fun activate_elem _ ((ctxt, axs), Fixes fixes) = ((ctxt |> ProofContext.add_fixe
       let
         val ts = flat (map (map #1 o #2) asms);
         val n = length ts;
-        val (ctxt', res) =
+        val (ctxt', _) =
           ctxt |> ProofContext.fix_frees ts
           |> ProofContext.assume_i (export_axioms (Library.take (n, axs))) asms;
-      in ((ctxt', Library.drop (n, axs)), map (rpair false) res) end
+      in ((ctxt', Library.drop (n, axs)), []) end
   | activate_elem _ ((ctxt, axs), Defines defs) =
-      let val (ctxt', res) =
+      let val (ctxt', _) =
         ctxt |> ProofContext.assume_i ProofContext.export_def
           (defs |> map (fn ((name, atts), (t, ps)) =>
             let val (c, t') = ProofContext.cert_def ctxt t
             in ((if name = "" then Thm.def_name c else name, atts), [(t', (ps, []))]) end))
-      in ((ctxt', axs), map (rpair false) res) end
+      in ((ctxt', axs), []) end
   | activate_elem is_ext ((ctxt, axs), Notes facts) =
       let val (ctxt', res) = ctxt |> ProofContext.have_thmss_i facts
-      in ((ctxt', axs), map (rpair is_ext) res) end;
+      in ((ctxt', axs), if is_ext then res else []) end;
 
 fun activate_elems ((name, ps), elems) (ctxt, axs) =
   let val ((ctxt', axs'), res) =
@@ -698,13 +696,12 @@ fun prep_context_statement prep_expr prep_elemss prep_facts
       context fixed_params (raw_import_elemss @ raw_elemss) raw_concl;
 
     val n = length raw_import_elemss;
-    val ((import_ctxt, axioms'), (import_elemss, import_facts)) =
+    val ((import_ctxt, axioms'), (import_elemss, _)) =
       activate_facts prep_facts ((context, axioms), Library.take (n, all_elemss));
-    val ((ctxt, _), (elemss, facts)) =
+    val ((ctxt, _), (elemss, _)) =
       activate_facts prep_facts ((import_ctxt, axioms'), Library.drop (n, all_elemss));
   in
-    ((((import_ctxt, (import_elemss, import_facts)),
-      (ctxt, (elemss, facts))), (parms, spec, defs)), concl)
+    ((((import_ctxt, import_elemss), (ctxt, elemss)), (parms, spec, defs)), concl)
   end;
 
 val gen_context = prep_context_statement intern_expr read_elemss get_facts;
@@ -717,21 +714,13 @@ fun gen_statement prep_locale prep_ctxt raw_locale elems concl ctxt =
     val ((view_statement, view_axioms), fixed_params, import) =
       (case locale of None => (([], []), [], empty)
       | Some name =>
-        let val {view, params = (ps, _), ...} = the_locale thy name
-        in (view, param_types ps, Locale name) end);
+          let val {view, params = (ps, _), ...} = the_locale thy name
+          in (view, param_types ps, Locale name) end);
     val ((((locale_ctxt, _), (elems_ctxt, _)), _), concl') =
       prep_ctxt false view_axioms fixed_params import elems concl ctxt;
   in (locale, view_statement, locale_ctxt, elems_ctxt, concl') end;
 
-fun gen_facts prep_locale thy name =
-  let val ((((_, (_, facts)), _), _), _) = thy |> ProofContext.init
-    |> gen_context_i false [] [] (Locale (prep_locale (Theory.sign_of thy) name)) [] [];
-  in flat (map (#2 o #1) facts) end;
-
 in
-
-val locale_facts = gen_facts intern;
-val locale_facts_i = gen_facts (K I);
 
 fun read_context x y z = #1 (gen_context true [] [] x y [] z);
 fun cert_context x y z = #1 (gen_context_i true [] [] x y [] z);
@@ -749,7 +738,7 @@ end;
 fun print_locale thy import body =
   let
     val thy_ctxt = ProofContext.init thy;
-    val (((_, (import_elemss, _)), (ctxt, (elemss, _))), _) = read_context import body thy_ctxt;
+    val (((_, import_elemss), (ctxt, elemss)), _) = read_context import body thy_ctxt;
     val all_elems = flat (map #2 (import_elemss @ elemss));
 
     val prt_typ = Pretty.quote o ProofContext.pretty_typ ctxt;
@@ -839,8 +828,8 @@ fun add_thmss loc args (thy, ctxt) =
     val thy' = put_facts loc args' thy;
     val {view = (_, view_axioms), ...} = the_locale thy loc;
     val ((ctxt', _), (_, facts')) =
-      activate_facts (K I) ((ctxt, view_axioms), [((loc, []), [Notes args'])]);
-  in ((thy', ctxt'), map #1 facts') end;
+      activate_facts (K I) ((ctxt, view_axioms), [(("", []), [Notes args'])]);
+  in ((thy', ctxt'), facts') end;
 
 end;
 
@@ -850,7 +839,7 @@ end;
 local
 
 val introN = "intro";
-val axiomsN = "_axioms";
+val axiomsN = "axioms";
 
 fun atomize_spec sign ts =
   let
@@ -866,12 +855,12 @@ fun aprop_tr' n c = (c, fn args =>
   if length args = n then Syntax.const "_aprop" $ Term.list_comb (Syntax.free c, args)
   else raise Match);
 
-fun def_pred bname parms defs ts ts' thy =
+fun def_pred bname parms defs ts norm_ts thy =
   let
     val sign = Theory.sign_of thy;
     val name = Sign.full_name sign bname;
 
-    val (body, bodyT, body_eq) = atomize_spec sign ts';
+    val (body, bodyT, body_eq) = atomize_spec sign norm_ts;
     val env = Term.add_term_free_names (body, []);
     val xs = filter (fn (x, _) => x mem_string env) parms;
     val Ts = map #2 xs;
@@ -893,10 +882,10 @@ fun def_pred bname parms defs ts ts' thy =
     val defs_sign = Theory.sign_of defs_thy;
     val cert = Thm.cterm_of defs_sign;
 
-    val intro = Tactic.prove_standard defs_sign [] ts' statement (fn _ =>
+    val intro = Tactic.prove_standard defs_sign [] norm_ts statement (fn _ =>
       Tactic.rewrite_goals_tac [pred_def] THEN
       Tactic.compose_tac (false, body_eq RS Drule.equal_elim_rule1, 1) 1 THEN
-      Tactic.compose_tac (false, Drule.conj_intr_list (map (Thm.assume o cert) ts'), 0) 1);
+      Tactic.compose_tac (false, Drule.conj_intr_list (map (Thm.assume o cert) norm_ts), 0) 1);
 
     val conjuncts =
       Drule.equal_elim_rule1 OF [Thm.symmetric body_eq,
@@ -928,18 +917,18 @@ fun define_preds bname (parms, ((exts, exts'), (ints, ints')), defs) elemss thy 
       if Library.null exts then (thy, (elemss, []))
       else
         let
-          val aname = bname ^ axiomsN;
+          val aname = if Library.null ints then bname else bname ^ "_" ^ axiomsN;
           val (def_thy, (statement, intro, axioms)) =
             thy |> def_pred aname parms defs exts exts';
           val elemss' = change_elemss axioms elemss @
-            [(("", []), [Assumes [((aname, []), [(statement, ([], []))])]])];
+            [(("", []), [Assumes [((bname ^ "_" ^ axiomsN, []), [(statement, ([], []))])]])];
         in
           def_thy |> have_thmss_qualified "" aname
             [((introN, [ContextRules.intro_query_global None]), [([intro], [])])]
           |> #1 |> rpair (elemss', [statement])
         end;
     val (thy'', view) =
-      if Library.null more_ts andalso Library.null ints then (thy', ([], []))
+      if Library.null ints then (thy', ([], []))
       else
         let
           val (def_thy, (statement, intro, axioms)) =
@@ -947,7 +936,8 @@ fun define_preds bname (parms, ((exts, exts'), (ints, ints')), defs) elemss thy 
           val cstatement = Thm.cterm_of (Theory.sign_of def_thy) statement;
         in
           def_thy |> have_thmss_qualified "" bname
-            [((introN, [ContextRules.intro_query_global None]), [([intro], [])])]
+            [((introN, [ContextRules.intro_query_global None]), [([intro], [])]),
+             ((axiomsN, []), [(map Drule.standard axioms, [])])]
           |> #1 |> rpair ([cstatement], axioms)
         end;
   in (thy'', (elemss', view)) end;
@@ -967,7 +957,7 @@ fun gen_add_locale prep_ctxt prep_expr do_pred bname raw_import raw_body thy =
       error ("Duplicate definition of locale " ^ quote name));
 
     val thy_ctxt = ProofContext.init thy;
-    val (((import_ctxt, (import_elemss, _)), (body_ctxt, (body_elemss, _))), text) =
+    val (((import_ctxt, import_elemss), (body_ctxt, body_elemss)), text) =
       prep_ctxt raw_import raw_body thy_ctxt;
     val elemss = import_elemss @ body_elemss;
 
@@ -975,12 +965,13 @@ fun gen_add_locale prep_ctxt prep_expr do_pred bname raw_import raw_body thy =
       if do_pred then thy |> define_preds bname text elemss
       else (thy, (elemss, ([], [])));
     val pred_ctxt = ProofContext.init pred_thy;
-    val ((ctxt, _), (_, facts)) = activate_facts (K I) ((pred_ctxt, view_axioms), elemss')
+
+    val ((ctxt, _), (_, facts)) = activate_facts (K I) ((pred_ctxt, view_axioms), elemss');
     val export = ProofContext.export_standard view_statement ctxt pred_ctxt;
+    val facts' = facts |> map (fn (a, ths) => ((a, []), [(map export ths, [])]));
   in
     pred_thy
-    |> have_thmss_qualified "" name (facts |> filter #2 |> map (fn ((a, ths), _) =>
-      ((a, []), [(map export ths, [])]))) |> #1
+    |> have_thmss_qualified "" name facts' |> #1
     |> declare_locale name
     |> put_locale name (make_locale view (prep_expr sign raw_import)
         (map (fn e => (e, stamp ())) (flat (map #2 (filter (equal "" o #1 o #1) elemss'))))
