@@ -208,8 +208,8 @@ prove "de_Morgan_disj" "(~(P | Q)) = (~P & ~Q)";
 prove "de_Morgan_conj" "(~(P & Q)) = (~P | ~Q)";
 prove "not_imp" "(~(P --> Q)) = (P & ~Q)";
 prove "not_iff" "(P~=Q) = (P = (~Q))";
-prove "not1_or" "(~P | Q) = (P --> Q)";
-prove "not2_or" "(P | ~Q) = (Q --> P)"; (* changes orientation :-( *)
+prove "disj_not1" "(~P | Q) = (P --> Q)";
+prove "disj_not2" "(P | ~Q) = (Q --> P)"; (* changes orientation :-( *)
 
 (*Avoids duplication of subgoals after expand_if, when the true and false 
   cases boil down to the same thing.*) 
@@ -410,7 +410,7 @@ val HOL_ss =
        if_True, if_False, if_cancel, if_eq_cancel,
        o_apply, imp_disjL, conj_assoc, disj_assoc,
        de_Morgan_conj, de_Morgan_disj, imp_disj1, imp_disj2, not_imp,
-       not1_or, not_all, not_ex, cases_simp]
+       disj_not1, not_all, not_ex, cases_simp]
      @ ex_simps @ all_simps @ simp_thms)
      addsimprocs [defALL_regroup,defEX_regroup]
      addcongs [imp_cong];

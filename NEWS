@@ -23,6 +23,8 @@ New in Isabelle??? (FIXME)
 
 *** HOL ***
 
+* added disj_not1 = "(~P | Q) = (P --> Q)" to the default simpset
+
 * HOL/Arithmetic: removed 'pred' (predecessor) function;
 
 * Simplifier:

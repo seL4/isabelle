@@ -97,7 +97,7 @@ qed_goal "WriteInner_enabled" Memory.thy
              ALLGOALS
 	        (action_simp_tac 
                     (simpset() addsimps [WriteInner_def,GoodWrite_def,BadWrite_def,
-					WrRequest_def] delsimps [not1_or])
+					WrRequest_def] delsimps [disj_not1])
                     [] [base_enabled,Pair_inject])
             ]);
 
