@@ -26,7 +26,5 @@ time_use_thy "Comp";
 loadpath := "../Auth" :: !loadpath;  (*to find Public.thy*)
 use_thy"NSP_Bad";
 
-(*
 loadpath := "../Lex" :: !loadpath;   (*to find Prefix.thy*)
 use_thy"Client";
-*)
