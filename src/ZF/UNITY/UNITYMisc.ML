@@ -7,11 +7,6 @@ Some miscellaneous and add-hoc set theory concepts.
 
 *)
 
-Goalw [greaterThan_def]
-"i:greaterThan(k,A) <-> i:A & k<i";
-by Auto_tac;
-qed "greaterThan_iff";
-
 (** Ad-hoc set-theory rules **)
 
 Goal "Union(B) Int A = (UN b:B. b Int A)";
@@ -21,11 +16,6 @@ qed "Int_Union_Union";
 Goal "A Int Union(B) = (UN b:B. A Int b)";
 by Auto_tac;
 qed "Int_Union_Union2";
-
-Goal "A Un B - (A - B) = B";
-by (Blast_tac 1);
-qed "Un_Diff_Diff";
-AddIffs [Un_Diff_Diff];
 
 
 (** Needed in State theory for the current definition of variables 
@@ -38,22 +28,17 @@ by (assume_tac 1);
 qed "list_nat_into_univ";
 
 
-(** Simplication rules for Collect; ????
-  At least change to "{x:A. P(x)} Int A = {x : A Int B. P(x)} **)
+(** Simplication rules for Collect **)
 
-Goal "{x:A. P(x)} Int A = {x:A. P(x)}";
+(*Currently unused*)
+Goal "{x:A. P(x)} Int B = {x : A Int B. P(x)}";
 by Auto_tac;
-qed "Collect_Int2";
+qed "Collect_Int_left";
 
-Goal "A Int {x:A. P(x)} = {x:A. P(x)}";
+(*Currently unused*)
+Goal "A Int {x:B. P(x)} = {x : A Int B. P(x)}";
 by Auto_tac;
-qed "Collect_Int3";
-
-(*????????????????*)
-AddIffs [Collect_Int2, Collect_Int3];
-
-
-(*for main ZF????*)
+qed "Collect_Int_right";
 
 Goal "{x:A. P(x) | Q(x)} = Collect(A, P) Un Collect(A, Q)";
 by Auto_tac;

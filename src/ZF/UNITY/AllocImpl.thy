@@ -28,7 +28,7 @@ axioms
 constdefs
   alloc_giv_act :: i
   "alloc_giv_act ==
-       {<s, t> : state*state.
+       {<s, t> \<in> state*state.
 	\<exists>k. k = length(s`giv) &
             t = s(giv := s`giv @ [nth(k, s`ask)],
 		  available_tok := s`available_tok #- nth(k, s`ask)) &
@@ -36,13 +36,13 @@ constdefs
 
   alloc_rel_act :: i
   "alloc_rel_act ==
-       {<s, t> : state*state.
+       {<s, t> \<in> state*state.
         t = s(available_tok := s`available_tok #+ nth(s`NbR, s`rel),
 	      NbR := succ(s`NbR)) &
   	s`NbR < length(s`rel)}"
 
   (*The initial condition s`giv=[] is missing from the
-    original definition -- S. O. Ehmety *)
+    original definition: S. O. Ehmety *)
   alloc_prog :: i
   "alloc_prog ==
        mk_program({s:state. s`available_tok=NbT & s`NbR=0 & s`giv=Nil},
@@ -146,8 +146,8 @@ apply (simp (no_asm_simp) add: take_succ)
 done
 
 lemma giv_Bounded_lemma2:
-"[| G \<in> program; alloc_prog ok G; alloc_prog Join G \<in> Incr(lift(rel)) |]
-  ==> alloc_prog Join G \<in> Stable({s\<in>state. s`NbR \<le> length(s`rel)} \<inter>
+"[| G \<in> program; alloc_prog ok G; alloc_prog \<squnion> G \<in> Incr(lift(rel)) |]
+  ==> alloc_prog \<squnion> G \<in> Stable({s\<in>state. s`NbR \<le> length(s`rel)} \<inter>
    {s\<in>state. s`available_tok #+ tokens(s`giv) =
     NbT #+ tokens(take(s`NbR, s`rel))})"
 apply (cut_tac giv_Bounded_lamma1)
@@ -203,11 +203,11 @@ done
   asked for*)
 lemma alloc_prog_ask_prefix_giv:
      "alloc_prog \<in> Incr(lift(ask)) guarantees
-                   Always({s\<in>state. <s`giv, s`ask>:prefix(tokbag)})"
+                   Always({s\<in>state. <s`giv, s`ask> \<in> prefix(tokbag)})"
 apply (auto intro!: AlwaysI simp add: guar_def)
 apply (subgoal_tac "G \<in> preserves (lift (giv))")
  prefer 2 apply (simp add: alloc_prog_ok_iff)
-apply (rule_tac P = "%x y. <x,y>:prefix(tokbag)" and A = "list(nat)"
+apply (rule_tac P = "%x y. <x,y> \<in> prefix(tokbag)" and A = "list(nat)"
        in stable_Join_Stable)
 apply constrains
  prefer 2 apply (simp add: lift_def, clarify)
@@ -220,7 +220,7 @@ subsubsection{*First, we lead up to a proof of Lemma 49, page 28.*}
 
 lemma alloc_prog_transient_lemma:
      "[|G \<in> program; k\<in>nat|]
-      ==> alloc_prog Join G \<in>
+      ==> alloc_prog \<squnion> G \<in>
              transient({s\<in>state. k \<le> length(s`rel)} \<inter>
              {s\<in>state. succ(s`NbR) = k})"
 apply auto
@@ -238,7 +238,7 @@ done
 
 lemma alloc_prog_rel_Stable_NbR_lemma:
     "[| G \<in> program; alloc_prog ok G; k\<in>nat |]
-     ==> alloc_prog Join G \<in> Stable({s\<in>state . k \<le> succ(s ` NbR)})"
+     ==> alloc_prog \<squnion> G \<in> Stable({s\<in>state . k \<le> succ(s ` NbR)})"
 apply (auto intro!: stable_imp_Stable simp add: alloc_prog_ok_iff, constrains, auto)
 apply (blast intro: le_trans leI)
 apply (drule_tac f = "lift (NbR)" and A = nat in preserves_imp_increasing)
@@ -250,11 +250,11 @@ done
 
 lemma alloc_prog_NbR_LeadsTo_lemma:
      "[| G \<in> program; alloc_prog ok G;
-	 alloc_prog Join G \<in> Incr(lift(rel)); k\<in>nat |]
-      ==> alloc_prog Join G \<in>
+	 alloc_prog \<squnion> G \<in> Incr(lift(rel)); k\<in>nat |]
+      ==> alloc_prog \<squnion> G \<in>
 	    {s\<in>state. k \<le> length(s`rel)} \<inter> {s\<in>state. succ(s`NbR) = k}
 	    LeadsTo {s\<in>state. k \<le> s`NbR}"
-apply (subgoal_tac "alloc_prog Join G \<in> Stable ({s\<in>state. k \<le> length (s`rel)})")
+apply (subgoal_tac "alloc_prog \<squnion> G \<in> Stable ({s\<in>state. k \<le> length (s`rel)})")
 apply (drule_tac [2] a = k and g1 = length in imp_Increasing_comp [THEN Increasing_imp_Stable])
 apply (rule_tac [2] mono_length)
     prefer 3 apply simp
@@ -269,9 +269,9 @@ apply (auto dest: not_lt_imp_le elim: lt_asym simp add: le_iff)
 done
 
 lemma alloc_prog_NbR_LeadsTo_lemma2 [rule_format]:
-    "[| G \<in> program; alloc_prog ok G; alloc_prog Join G \<in> Incr(lift(rel));
+    "[| G \<in> program; alloc_prog ok G; alloc_prog \<squnion> G \<in> Incr(lift(rel));
         k\<in>nat; n \<in> nat; n < k |]
-      ==> alloc_prog Join G \<in>
+      ==> alloc_prog \<squnion> G \<in>
 	    {s\<in>state . k \<le> length(s ` rel)} \<inter> {s\<in>state . s ` NbR = n}
 	       LeadsTo {x \<in> state. k \<le> length(x`rel)} \<inter>
 		 (\<Union>m \<in> greater_than(n). {x \<in> state. x ` NbR=m})"
@@ -279,7 +279,7 @@ apply (unfold greater_than_def)
 apply (rule_tac A' = "{x \<in> state. k \<le> length(x`rel)} \<inter> {x \<in> state. n < x`NbR}"
        in LeadsTo_weaken_R)
 apply safe
-apply (subgoal_tac "alloc_prog Join G \<in> Stable ({s\<in>state. k \<le> length (s`rel) }) ")
+apply (subgoal_tac "alloc_prog \<squnion> G \<in> Stable ({s\<in>state. k \<le> length (s`rel) }) ")
 apply (drule_tac [2] a = k and g1 = length in imp_Increasing_comp [THEN Increasing_imp_Stable])
 apply (rule_tac [2] mono_length)
     prefer 3 apply simp
@@ -301,9 +301,9 @@ by (force simp add: lt_def)
 (* Lemma 49, page 28 *)
 
 lemma alloc_prog_NbR_LeadsTo_lemma3:
-  "[|G \<in> program; alloc_prog ok G; alloc_prog Join G \<in> Incr(lift(rel));
+  "[|G \<in> program; alloc_prog ok G; alloc_prog \<squnion> G \<in> Incr(lift(rel));
      k\<in>nat|]
-   ==> alloc_prog Join G \<in>
+   ==> alloc_prog \<squnion> G \<in>
            {s\<in>state. k \<le> length(s`rel)} LeadsTo {s\<in>state. k \<le> s`NbR}"
 (* Proof by induction over the difference between k and n *)
 apply (rule_tac f = "\<lambda>s\<in>state. k #- s`NbR" in LessThan_induct)
@@ -326,8 +326,8 @@ subsubsection{*Towards proving lemma 50, page 29*}
 
 lemma alloc_prog_giv_Ensures_lemma:
 "[| G \<in> program; k\<in>nat; alloc_prog ok G;
-  alloc_prog Join G \<in> Incr(lift(ask)) |] ==>
-  alloc_prog Join G \<in>
+  alloc_prog \<squnion> G \<in> Incr(lift(ask)) |] ==>
+  alloc_prog \<squnion> G \<in>
   {s\<in>state. nth(length(s`giv), s`ask) \<le> s`available_tok} \<inter>
   {s\<in>state.  k < length(s`ask)} \<inter> {s\<in>state. length(s`giv)=k}
   Ensures {s\<in>state. ~ k <length(s`ask)} Un {s\<in>state. length(s`giv) \<noteq> k}"
@@ -360,7 +360,7 @@ done
 
 lemma alloc_prog_giv_Stable_lemma:
 "[| G \<in> program; alloc_prog ok G; k\<in>nat |]
-  ==> alloc_prog Join G \<in> Stable({s\<in>state . k \<le> length(s`giv)})"
+  ==> alloc_prog \<squnion> G \<in> Stable({s\<in>state . k \<le> length(s`giv)})"
 apply (auto intro!: stable_imp_Stable simp add: alloc_prog_ok_iff, constrains)
 apply (auto intro: leI)
 apply (drule_tac f = "lift (giv)" and g = length in imp_preserves_comp)
@@ -374,15 +374,15 @@ done
 
 lemma alloc_prog_giv_LeadsTo_lemma:
 "[| G \<in> program; alloc_prog ok G;
-    alloc_prog Join G \<in> Incr(lift(ask)); k\<in>nat |]
- ==> alloc_prog Join G \<in>
+    alloc_prog \<squnion> G \<in> Incr(lift(ask)); k\<in>nat |]
+ ==> alloc_prog \<squnion> G \<in>
 	{s\<in>state. nth(length(s`giv), s`ask) \<le> s`available_tok} \<inter>
 	{s\<in>state.  k < length(s`ask)} \<inter>
 	{s\<in>state. length(s`giv) = k}
 	LeadsTo {s\<in>state. k < length(s`giv)}"
-apply (subgoal_tac "alloc_prog Join G \<in> {s\<in>state. nth (length(s`giv), s`ask) \<le> s`available_tok} \<inter> {s\<in>state. k < length(s`ask) } \<inter> {s\<in>state. length(s`giv) = k} LeadsTo {s\<in>state. ~ k <length(s`ask) } Un {s\<in>state. length(s`giv) \<noteq> k}")
+apply (subgoal_tac "alloc_prog \<squnion> G \<in> {s\<in>state. nth (length(s`giv), s`ask) \<le> s`available_tok} \<inter> {s\<in>state. k < length(s`ask) } \<inter> {s\<in>state. length(s`giv) = k} LeadsTo {s\<in>state. ~ k <length(s`ask) } Un {s\<in>state. length(s`giv) \<noteq> k}")
 prefer 2 apply (blast intro: alloc_prog_giv_Ensures_lemma [THEN LeadsTo_Basis])
-apply (subgoal_tac "alloc_prog Join G \<in> Stable ({s\<in>state. k < length(s`ask) }) ")
+apply (subgoal_tac "alloc_prog \<squnion> G \<in> Stable ({s\<in>state. k < length(s`ask) }) ")
 apply (drule PSP_Stable, assumption)
 apply (rule LeadsTo_weaken)
 apply (rule PSP_Stable)
@@ -400,12 +400,12 @@ done
   (NbT) does not exceed the number currently available.*)
 lemma alloc_prog_Always_lemma:
 "[| G \<in> program; alloc_prog ok G;
-    alloc_prog Join G \<in> Incr(lift(ask));
-    alloc_prog Join G \<in> Incr(lift(rel)) |]
-  ==> alloc_prog Join G \<in>
+    alloc_prog \<squnion> G \<in> Incr(lift(ask));
+    alloc_prog \<squnion> G \<in> Incr(lift(rel)) |]
+  ==> alloc_prog \<squnion> G \<in>
         Always({s\<in>state. tokens(s`giv) \<le> tokens(take(s`NbR, s`rel)) -->
                 NbT \<le> s`available_tok})"
-apply (subgoal_tac "alloc_prog Join G \<in> Always ({s\<in>state. s`NbR \<le> length(s`rel) } \<inter> {s\<in>state. s`available_tok #+ tokens(s`giv) = NbT #+ tokens(take (s`NbR, s`rel))}) ")
+apply (subgoal_tac "alloc_prog \<squnion> G \<in> Always ({s\<in>state. s`NbR \<le> length(s`rel) } \<inter> {s\<in>state. s`available_tok #+ tokens(s`giv) = NbT #+ tokens(take (s`NbR, s`rel))}) ")
 apply (rule_tac [2] AlwaysI)
 apply (rule_tac [3] giv_Bounded_lemma2, auto)
 apply (rule Always_weaken, assumption, auto)
@@ -448,11 +448,11 @@ locale alloc_progress =
  fixes G
  assumes Gprog [intro,simp]: "G \<in> program"
      and okG [iff]:          "alloc_prog ok G"
-     and Incr_rel [intro]:   "alloc_prog Join G \<in> Incr(lift(rel))"
-     and Incr_ask [intro]:   "alloc_prog Join G \<in> Incr(lift(ask))"
-     and safety:   "alloc_prog Join G
+     and Incr_rel [intro]:   "alloc_prog \<squnion> G \<in> Incr(lift(rel))"
+     and Incr_ask [intro]:   "alloc_prog \<squnion> G \<in> Incr(lift(ask))"
+     and safety:   "alloc_prog \<squnion> G
                       \<in> Always(\<Inter>k \<in> nat. {s\<in>state. nth(k, s`ask) \<le> NbT})"
-     and progress: "alloc_prog Join G
+     and progress: "alloc_prog \<squnion> G
                       \<in> (\<Inter>k\<in>nat. {s\<in>state. k \<le> tokens(s`giv)} LeadsTo
                         {s\<in>state. k \<le> tokens(s`rel)})"
 
@@ -461,7 +461,7 @@ locale alloc_progress =
   will eventually recognize that they've been released.*)
 lemma (in alloc_progress) tokens_take_NbR_lemma:
  "k \<in> tokbag
-  ==> alloc_prog Join G \<in>
+  ==> alloc_prog \<squnion> G \<in>
         {s\<in>state. k \<le> tokens(s`rel)}
         LeadsTo {s\<in>state. k \<le> tokens(take(s`NbR, s`rel))}"
 apply (rule single_LeadsTo_I, safe)
@@ -480,7 +480,7 @@ done
   LeadsTo *)
 lemma (in alloc_progress) tokens_take_NbR_lemma2:
      "k \<in> tokbag
-      ==> alloc_prog Join G \<in>
+      ==> alloc_prog \<squnion> G \<in>
 	    {s\<in>state. tokens(s`giv) = k}
 	    LeadsTo {s\<in>state. k \<le> tokens(take(s`NbR, s`rel))}"
 apply (rule LeadsTo_Trans)
@@ -493,7 +493,7 @@ done
 (*Third step in proof of (31): by PSP with the fact that giv increases *)
 lemma (in alloc_progress) length_giv_disj:
      "[| k \<in> tokbag; n \<in> nat |]
-      ==> alloc_prog Join G \<in>
+      ==> alloc_prog \<squnion> G \<in>
 	    {s\<in>state. length(s`giv) = n & tokens(s`giv) = k}
 	    LeadsTo
 	      {s\<in>state. (length(s`giv) = n & tokens(s`giv) = k &
@@ -513,7 +513,7 @@ done
 (*Fourth step in proof of (31): we apply lemma (51) *)
 lemma (in alloc_progress) length_giv_disj2:
      "[|k \<in> tokbag; n \<in> nat|]
-      ==> alloc_prog Join G \<in>
+      ==> alloc_prog \<squnion> G \<in>
 	    {s\<in>state. length(s`giv) = n & tokens(s`giv) = k}
 	    LeadsTo
 	      {s\<in>state. (length(s`giv) = n & NbT \<le> s`available_tok) |
@@ -526,7 +526,7 @@ done
   k\<in>nat *)
 lemma (in alloc_progress) length_giv_disj3:
      "n \<in> nat
-      ==> alloc_prog Join G \<in>
+      ==> alloc_prog \<squnion> G \<in>
 	    {s\<in>state. length(s`giv) = n}
 	    LeadsTo
 	      {s\<in>state. (length(s`giv) = n & NbT \<le> s`available_tok) |
@@ -541,7 +541,7 @@ done
   assumption that ask increases *)
 lemma (in alloc_progress) length_ask_giv:
  "[|k \<in> nat;  n < k|]
-  ==> alloc_prog Join G \<in>
+  ==> alloc_prog \<squnion> G \<in>
         {s\<in>state. length(s`ask) = k & length(s`giv) = n}
         LeadsTo
           {s\<in>state. (NbT \<le> s`available_tok & length(s`giv) < length(s`ask) &
@@ -564,7 +564,7 @@ done
 (*Seventh step in proof of (31): no request (ask[k]) exceeds NbT *)
 lemma (in alloc_progress) length_ask_giv2:
      "[|k \<in> nat;  n < k|]
-      ==> alloc_prog Join G \<in>
+      ==> alloc_prog \<squnion> G \<in>
 	    {s\<in>state. length(s`ask) = k & length(s`giv) = n}
 	    LeadsTo
 	      {s\<in>state. (nth(length(s`giv), s`ask) \<le> s`available_tok &
@@ -581,7 +581,7 @@ done
 (*Eighth step in proof of (31): by 50, we get |giv| > n. *)
 lemma (in alloc_progress) extend_giv:
      "[| k \<in> nat;  n < k|]
-      ==> alloc_prog Join G \<in>
+      ==> alloc_prog \<squnion> G \<in>
 	    {s\<in>state. length(s`ask) = k & length(s`giv) = n}
 	    LeadsTo {s\<in>state. n < length(s`giv)}"
 apply (rule LeadsTo_Un_duplicate)
@@ -597,7 +597,7 @@ done
   we can't expect |ask| to remain fixed until |giv| increases.*)
 lemma (in alloc_progress) alloc_prog_ask_LeadsTo_giv:
  "k \<in> nat
-  ==> alloc_prog Join G \<in>
+  ==> alloc_prog \<squnion> G \<in>
         {s\<in>state. k \<le> length(s`ask)} LeadsTo {s\<in>state. k \<le> length(s`giv)}"
 (* Proof by induction over the difference between k and n *)
 apply (rule_tac f = "\<lambda>s\<in>state. k #- length(s`giv)" in LessThan_induct)
@@ -622,9 +622,9 @@ done
 (*Final lemma: combine previous result with lemma (30)*)
 lemma (in alloc_progress) final:
      "h \<in> list(tokbag)
-      ==> alloc_prog Join G \<in>
-	    {s\<in>state. <h, s`ask> \<in> prefix(tokbag)} LeadsTo
-	    {s\<in>state. <h, s`giv> \<in> prefix(tokbag)}"
+      ==> alloc_prog \<squnion> G
+            \<in> {s\<in>state. <h, s`ask> \<in> prefix(tokbag)} LeadsTo
+	      {s\<in>state. <h, s`giv> \<in> prefix(tokbag)}"
 apply (rule single_LeadsTo_I)
  prefer 2 apply simp
 apply (rename_tac s0)

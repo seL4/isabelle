@@ -8,8 +8,4 @@ Some miscellaneous and add-hoc set theory concepts.
 
 
 
-UNITYMisc = Main +
-constdefs
-  greaterThan :: [i,i]=> i
-  "greaterThan(u,A) == {x:A. u<x}"
-end
+UNITYMisc = Main

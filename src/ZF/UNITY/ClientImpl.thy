@@ -8,6 +8,22 @@ Distributed Resource Management System:  Client Implementation
 
 
 theory ClientImpl = AllocBase + Guar:
+
+(*????MOVE UP*)
+method_setup constrains = {*
+    Method.ctxt_args (fn ctxt =>
+        Method.METHOD (fn facts =>
+            gen_constrains_tac (Classical.get_local_claset ctxt,
+                               Simplifier.get_local_simpset ctxt) 1)) *}
+    "for proving safety properties"
+
+(*For using "disjunction" (union over an index set) to eliminate a variable.
+  ????move way up*)
+lemma UN_conj_eq: "\<forall>s\<in>state. f(s) \<in> A
+      ==> (\<Union>k\<in>A. {s\<in>state. P(s) & f(s) = k}) = {s\<in>state. P(s)}"
+by blast
+
+
 consts
   ask :: i (* input history:  tokens requested *)
   giv :: i (* output history: tokens granted *)
@@ -65,20 +81,6 @@ constdefs
 
 declare type_assumes [simp] default_val_assumes [simp]
 (* This part should be automated *)
-
-(*????MOVE UP*)
-method_setup constrains = {*
-    Method.ctxt_args (fn ctxt =>
-        Method.METHOD (fn facts =>
-            gen_constrains_tac (Classical.get_local_claset ctxt,
-                               Simplifier.get_local_simpset ctxt) 1)) *}
-    "for proving safety properties"
-
-(*For using "disjunction" (union over an index set) to eliminate a variable.
-  ????move way up*)
-lemma UN_conj_eq: "\<forall>s\<in>state. f(s) \<in> A
-      ==> (\<Union>k\<in>A. {s\<in>state. P(s) & f(s) = k}) = {s\<in>state. P(s)}"
-by blast
 
 lemma ask_value_type [simp,TC]: "s \<in> state ==> s`ask \<in> list(nat)"
 apply (unfold state_def)
@@ -164,7 +166,7 @@ With no Substitution Axiom, we must prove the two invariants simultaneously. *)
 
 lemma ask_Bounded_lemma: 
 "[| client_prog ok G; G \<in> program |] 
-      ==> client_prog Join G \<in>    
+      ==> client_prog \<squnion> G \<in>    
               Always({s \<in> state. s`tok \<le> NbT}  Int   
                       {s \<in> state. \<forall>elt \<in> set_of_list(s`ask). elt \<le> NbT})"
 apply (rotate_tac -1)
@@ -194,15 +196,15 @@ lemma client_prog_stable_rel_le_giv:
 by (constrains, auto)
 
 lemma client_prog_Join_Stable_rel_le_giv: 
-"[| client_prog Join G \<in> Incr(lift(giv)); G \<in> preserves(lift(rel)) |]  
-    ==> client_prog Join G \<in> Stable({s \<in> state. <s`rel, s`giv> \<in> prefix(nat)})"
+"[| client_prog \<squnion> G \<in> Incr(lift(giv)); G \<in> preserves(lift(rel)) |]  
+    ==> client_prog \<squnion> G \<in> Stable({s \<in> state. <s`rel, s`giv> \<in> prefix(nat)})"
 apply (rule client_prog_stable_rel_le_giv [THEN Increasing_preserves_Stable])
 apply (auto simp add: lift_def)
 done
 
 lemma client_prog_Join_Always_rel_le_giv:
-     "[| client_prog Join G \<in> Incr(lift(giv)); G \<in> preserves(lift(rel)) |]  
-    ==> client_prog Join G  \<in> Always({s \<in> state. <s`rel, s`giv> \<in> prefix(nat)})"
+     "[| client_prog \<squnion> G \<in> Incr(lift(giv)); G \<in> preserves(lift(rel)) |]  
+    ==> client_prog \<squnion> G  \<in> Always({s \<in> state. <s`rel, s`giv> \<in> prefix(nat)})"
 by (force intro!: AlwaysI client_prog_Join_Stable_rel_le_giv)
 
 lemma def_act_eq:
@@ -243,8 +245,8 @@ apply (auto dest: prefix_type [THEN subsetD])
 done
 
 lemma induct_lemma: 
-"[| client_prog Join G \<in> Incr(lift(giv)); client_prog ok G; G \<in> program |]  
-  ==> client_prog Join G \<in>  
+"[| client_prog \<squnion> G \<in> Incr(lift(giv)); client_prog ok G; G \<in> program |]  
+  ==> client_prog \<squnion> G \<in>  
   {s \<in> state. s`rel = k & <k,h> \<in> strict_prefix(nat)  
    & <h, s`giv> \<in> prefix(nat) & h pfixGe s`ask}   
         LeadsTo {s \<in> state. <k, s`rel> \<in> strict_prefix(nat)  
@@ -272,8 +274,8 @@ apply (auto intro: strict_prefix_is_prefix [THEN iffD1, THEN conjunct1]
 done
 
 lemma rel_progress_lemma: 
-"[| client_prog Join G  \<in> Incr(lift(giv)); client_prog ok G; G \<in> program |]  
-  ==> client_prog Join G  \<in>  
+"[| client_prog \<squnion> G  \<in> Incr(lift(giv)); client_prog ok G; G \<in> program |]  
+  ==> client_prog \<squnion> G  \<in>  
      {s \<in> state. <s`rel, h> \<in> strict_prefix(nat)  
            & <h, s`giv> \<in> prefix(nat) & h pfixGe s`ask}   
                       LeadsTo {s \<in> state. <h, s`rel> \<in> prefix(nat)}"
@@ -301,11 +303,12 @@ apply (erule diff_le_self [THEN ltD])
 done
 
 lemma progress_lemma: 
-"[| client_prog Join G \<in> Incr(lift(giv)); client_prog ok G; G \<in> program |] 
- ==> client_prog Join G  \<in>  
-      {s \<in> state. <h, s`giv> \<in> prefix(nat) & h pfixGe s`ask}   
-      LeadsTo  {s \<in> state. <h, s`rel> \<in> prefix(nat)}"
-apply (rule client_prog_Join_Always_rel_le_giv [THEN Always_LeadsToI], assumption)
+"[| client_prog \<squnion> G \<in> Incr(lift(giv)); client_prog ok G; G \<in> program |] 
+ ==> client_prog \<squnion> G
+       \<in> {s \<in> state. <h, s`giv> \<in> prefix(nat) & h pfixGe s`ask}   
+         LeadsTo  {s \<in> state. <h, s`rel> \<in> prefix(nat)}"
+apply (rule client_prog_Join_Always_rel_le_giv [THEN Always_LeadsToI], 
+       assumption)
 apply (force simp add: client_prog_ok_iff)
 apply (rule LeadsTo_weaken_L) 
 apply (rule LeadsTo_Un [OF rel_progress_lemma 
