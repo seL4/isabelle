@@ -2,7 +2,7 @@
 #
 # $Id$
 #
-# build - compile parts of the Isabelle system
+# build - compile the Isabelle system and object-logics
 
 
 ## settings
@@ -23,6 +23,7 @@ function usage()
   echo
   echo "  Options are:"
   echo "    -a           all logics"
+  echo "    -b           batch mode"
   echo
   echo "  Compile the named LOGICS (default $DEFAULT_LOGIC), or all object logics"
   echo "  in the distribution."
@@ -42,12 +43,16 @@ function fail()
 # options
 
 ALL=""
+BATCH=""
 
-while getopts "a" OPT
+while getopts "ab" OPT
 do
   case "$OPT" in
     a)
       ALL=true
+      ;;
+    b)
+      BATCH=true
       ;;
     \?)
       usage
@@ -67,29 +72,32 @@ LOGICS="$@"
 
 # tell the user about current values
 
-echo
-echo "                *****************************"
-echo "                * Welcome to Isabelle build *"
-echo "                *****************************"
-echo
-echo "Please check $ISABELLE_HOME/etc/settings"
-[ -f $ISABELLE_HOME_USER/etc/settings ] && echo "AND $ISABELLE_HOME_USER/etc/settings"
-echo "to make sure that Isabelle's ML system settings are appropriate."
-echo
-echo "Your current values are:"
-echo
-
-echo "  ML_SYSTEM=$ML_SYSTEM"
-echo "  ML_HOME=$ML_HOME"
-echo "  ML_OPTIONS=$ML_OPTIONS"
+if [ -z "$BATCH" ]; then
+  echo
+  echo "                *****************************"
+  echo "                * Welcome to Isabelle build *"
+  echo "                *****************************"
+  echo
+  echo "Please check $ISABELLE_HOME/etc/settings"
+  [ -f $ISABELLE_HOME_USER/etc/settings ] && echo "AND $ISABELLE_HOME_USER/etc/settings"
+  echo "to make sure that Isabelle's ML system settings are appropriate."
+  echo
+  echo "Your current values are:"
+  echo
+  echo "  ML_SYSTEM=$ML_SYSTEM"
+  echo "  ML_HOME=$ML_HOME"
+  echo "  ML_OPTIONS=$ML_OPTIONS"
+fi
 
 
 # check logics
 
-echo
-echo
-echo "Press RETURN to start compilation (including parents) of:"
-echo
+if [ -z "$BATCH" ]; then
+  echo
+  echo
+  echo "Press RETURN to start compilation (including parents) of:"
+  echo
+fi
 
 [ -z "$LOGICS" ] && LOGICS=$DEFAULT_LOGIC
 
@@ -110,9 +118,19 @@ else
   done
 fi
 
-echo " " $LOGICS
-echo
-read
+if [ -z "$BATCH" ]; then
+  echo " " $LOGICS
+  echo
+  read
+else
+  echo
+  echo -n "Isabelle build started at "; date
+  echo "logics:" $LOGICS
+  echo "ML_SYSTEM=$ML_SYSTEM"
+  echo "ML_HOME=$ML_HOME"
+  echo "ML_OPTIONS=$ML_OPTIONS"
+  echo
+fi
 
 
 # build it
@@ -123,3 +141,8 @@ for L in $LOGICS
 do
   ( cd $ISABELLE_HOME/src/$L; $ISATOOL make )
 done
+
+if [ -n "$BATCH" ]; then
+  echo
+  echo -n "Isabelle build finished at "; date
+fi
