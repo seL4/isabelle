@@ -20,7 +20,8 @@ HOL:
 	@cd $(SRC)/HOL; $(ISATOOL) make HOL
 
 styles:
-	@$(ISATOOL) latex -o sty
+	@$(ISATOOL) latex -o sty >/dev/null
+	@rm -f pdfsetup.sty
 	@rm -f */document/isabelle.sty
 	@rm -f */document/isabellesym.sty
 	@rm -f */document/pdfsetup.sty
