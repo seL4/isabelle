@@ -14,7 +14,7 @@ consts     tiling :: "'a set set => 'a set set"
 inductive "tiling A"
   intrs
     empty  "{} : tiling A"
-    Un     "[| a: A;  t: tiling A;  a <= -t |] ==> a Un t : tiling A"
+    Un     "[| a: A;  t: tiling A;  a Int t = {} |] ==> a Un t : tiling A"
 
 consts    domino :: "(nat*nat)set set"
 inductive domino
@@ -23,7 +23,7 @@ inductive domino
     vertl  "{(i, j), (Suc i, j)} : domino"
 
 constdefs
-  colored  :: "nat => (nat*nat)set"
-   "colored b == {(i,j). (i+j) mod #2 = b}"
+  coloured  :: "nat => (nat*nat)set"
+   "coloured b == {(i,j). (i+j) mod #2 = b}"
 
 end
