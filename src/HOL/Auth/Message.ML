@@ -477,6 +477,10 @@ qed "analz_cut";
    "!!H. Y: analz (insert X H) ==> X: analz H --> Y: analz H"
 *)
 
+goal thy "!!H. X: analz H ==> analz (insert X H) = analz H";
+by (blast_tac (!claset addIs [analz_cut, analz_insertI]) 1);
+qed "analz_insert_eq";
+
 
 (** A congruence rule for "analz" **)
 
