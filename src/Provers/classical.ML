@@ -83,6 +83,7 @@ sig
   val addSE2            : claset * (string * thm) -> claset
   val appSWrappers	: claset -> wrapper
   val appWrappers	: claset -> wrapper
+  val trace_rules	: bool ref
 
   val claset_ref_of_sg: Sign.sg -> claset ref
   val claset_ref_of: theory -> claset ref
@@ -164,11 +165,12 @@ sig
   val safe_elim_local: Proof.context attribute
   val safe_intro_local: Proof.context attribute
   val delrule_local: Proof.context attribute
-  val trace_rules: bool ref
+  val cla_modifiers: (Args.T list -> (Proof.context attribute * Args.T list)) list
+  val cla_method: (claset -> tactic) -> Args.src -> Proof.context -> Proof.method
+  val cla_method': (claset -> int -> tactic) -> Args.src -> Proof.context -> Proof.method
   val single_tac: claset -> tthm list -> int -> tactic
   val setup: (theory -> theory) list
 end;
-
 
 structure ClasetThyData: CLASET_THY_DATA =
 struct
@@ -201,7 +203,7 @@ end;
 end;
 
 
-functor ClassicalFun(Data: CLASSICAL_DATA): CLASSICAL = 
+functor ClassicalFun(Data: CLASSICAL_DATA): CLASSICAL =
 struct
 
 local open ClasetThyData Data in
@@ -975,15 +977,16 @@ val single = Method.METHOD (FIRSTGOAL o (fn facts => CLASET' (fn cs => single_ta
 
 (** automatic methods **)
 
-val cla_args =
-  Method.only_sectioned_args
-   [Args.$$$ destN -- bang >> K haz_dest_local,
-    Args.$$$ destN >> K safe_dest_local,
-    Args.$$$ elimN -- bang >> K haz_elim_local,
-    Args.$$$ elimN >> K safe_elim_local,
-    Args.$$$ introN -- bang >> K haz_intro_local,
-    Args.$$$ introN >> K safe_intro_local,
-    Args.$$$ delN >> K delrule_local];
+val cla_modifiers =
+ [Args.$$$ destN -- bang >> K haz_dest_local,
+  Args.$$$ destN >> K safe_dest_local,
+  Args.$$$ elimN -- bang >> K haz_elim_local,
+  Args.$$$ elimN >> K safe_elim_local,
+  Args.$$$ introN -- bang >> K haz_intro_local,
+  Args.$$$ introN >> K safe_intro_local,
+  Args.$$$ delN >> K delrule_local];
+
+val cla_args = Method.only_sectioned_args cla_modifiers;
 
 fun cla_meth tac ctxt = Method.METHOD0 (tac (get_local_claset ctxt));
 fun cla_meth' tac ctxt = Method.METHOD0 (FIRSTGOAL (tac (get_local_claset ctxt)));
