@@ -59,7 +59,9 @@ struct
   string, may be of the following form:
     (a) ASCII symbols: a
     (b) printable symbols: \<ident>
-    (c) control symbols: \<^ctrlident>
+    (c) control symbols: \<^ident>
+    (d) raw control symbols: \<^raw...>, where "..." may be any printable
+        character excluding ">"
 
   output is subject to the print_mode variable (default: verbatim),
   actual interpretation in display is up to front-end tools;
@@ -207,11 +209,12 @@ fun scanner msg scan chs =
 
 val scan_id = Scan.one is_letter ^^ (Scan.any is_letdig >> implode);
 val scan_ctrlid = Scan.one is_letter ^^ (Scan.any is_ctrl_letter >> implode);
+val scan_rawctrlid = $$ "r" ^^ $$ "a" ^^ $$ "w" ^^ scan_ctrlid;
 
 val scan =
   $$ "\\" ^^ $$ "<" ^^
     !! (fn (cs, _) => "Malformed symbolic character specification: \\" ^ "<" ^ beginning cs)
-       ((($$ "^" ^^ scan_ctrlid) || scan_id) ^^ $$ ">") ||
+       ((($$ "^" ^^ (scan_rawctrlid || scan_id)) || scan_id) ^^ $$ ">") ||
   Scan.one not_eof;
 
 (* source *)
@@ -260,9 +263,8 @@ val escape = Scan.repeat
       Scan.optional ($$ "^") "" ^^ scan_id ^^ $$ ">") ||
    Scan.one not_eof) >> implode;
 
-fun default_output s =
-  if not (exists_string (equal "\\") s) then string_size s
-  else string_size (fst (Scan.finite stopper escape (explode s)));
+
+val default_output = string_size
 
 fun default_indent (_: string, k) = spaces k;
 
@@ -290,7 +292,9 @@ fun get_mode () =
 
 fun output_width x = #1 (get_mode ()) x;
 val output = #1 o output_width;
-val plain_output = #1 o default_output;
+fun plain_output s =   
+  if not (exists_string (equal "\\") s) then s
+  else fst (Scan.finite stopper escape (explode s));
 
 fun indent x = #2 (get_mode ()) x;
 
