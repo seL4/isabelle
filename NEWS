@@ -155,7 +155,9 @@ hints on converting existing sources:
 * HOL/record:
   - removed old "make" and "make_scheme" operations -- INCOMPATIBILITY;
   - removed "more" class (simply use "term") -- INCOMPATIBILITY;
-  - provides cases/induct rules for use with corresponding Isar methods;
+  - provides cases/induct rules for use with corresponding Isar
+    methods (for concrete records, record schemes, concrete more
+    parts, schematic more parts -- in that order);
   - new derived operations "make" (for adding fields of current
     record), "extend" to promote fixed record to record scheme, and
     "truncate" for the reverse; cf. theorems "derived_defs", which are
@@ -245,6 +247,10 @@ output of nested => (types); the default behavior is "type_brackets";
 
 * syntax: builtin parse translation for "_constify" turns valued
 tokens into AST constants;
+
+* syntax: prefer later print_translation functions; potential
+INCOMPATIBILITY: need to reverse declarations of multiple translation
+functions for same constant;
 
 * system: refrain from any attempt at filtering input streams; no
 longer support ``8bit'' encoding of old isabelle font, instead proper
