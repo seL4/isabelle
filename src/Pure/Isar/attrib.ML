@@ -227,7 +227,7 @@ fun read_instantiate context_of insts x thm =
     val cenv =
       map (fn (xi, t) => pairself (Thm.cterm_of sign) (Var (xi, fastype_of t), t))
         (gen_distinct (fn ((x1, t1), (x2, t2)) => x1 = x2 andalso t1 aconv t2) (xs ~~ ts));
-  in Thm.instantiate (cenvT, cenv) thm end;
+  in Drule.instantiate (cenvT, cenv) thm end;
 
 fun insts x = Args.and_list (Scan.lift (Args.var --| Args.$$$ "=" -- Args.name)) x;
 
