@@ -126,18 +126,14 @@ qed "Says_Server_message_form";
 
 (*If the encrypted message appears then it originated with the Server*)
 goal thy
- "!!evs. [| Crypt (shrK A) {|NA, Agent B, Key K, X|}                   \
-\            : parts (sees Spy evs);                              \
-\           A ~: lost;  evs : ns_shared |]                        \
-\         ==> X = (Crypt (shrK B) {|Key K, Agent A|}) &                \
-\             Says Server A                                            \
-\              (Crypt (shrK A) {|NA, Agent B, Key K,                   \
-\                                Crypt (shrK B) {|Key K, Agent A|}|})  \
-\             : set evs";
+ "!!evs. [| Crypt (shrK A) {|NA, Agent B, Key K, X|}                    \
+\            : parts (sees Spy evs);                                    \
+\           A ~: lost;  evs : ns_shared |]                              \
+\         ==> Says Server A (Crypt (shrK A) {|NA, Agent B, Key K, X|})  \
+\               : set evs";
 by (etac rev_mp 1);
 by (parts_induct_tac 1);
 by (Fake_parts_insert_tac 1);
-by (Auto_tac());
 qed "A_trusts_NS2";
 
 
@@ -146,15 +142,15 @@ qed "A_trusts_NS2";
   Use Says_Server_message_form if applicable.*)
 goal thy 
  "!!evs. [| Says S A (Crypt (shrK A) {|Nonce NA, Agent B, Key K, X|})      \
-\            : set evs;          evs : ns_shared |]                   \
+\              : set evs;                                                  \
+\           evs : ns_shared |]                                             \
 \        ==> (K ~: range shrK & X = (Crypt (shrK B) {|Key K, Agent A|}))   \
 \            | X : analz (sees Spy evs)";
 by (case_tac "A : lost" 1);
 by (fast_tac (!claset addSDs [Says_imp_sees_Spy RS analz.Inj]
                       addss (!simpset)) 1);
 by (forward_tac [Says_imp_sees_Spy RS parts.Inj] 1);
-by (blast_tac (!claset addEs  partsEs
-                      addSDs [A_trusts_NS2, Says_Server_message_form]) 1);
+by (blast_tac (!claset addSDs [A_trusts_NS2, Says_Server_message_form]) 1);
 qed "Says_S_message_form";
 
 
@@ -304,7 +300,7 @@ qed "Spy_not_see_encrypted_key";
 
 (**** Guarantees available at various stages of protocol ***)
 
-A_trusts_NS2 RS conjunct2 RS Spy_not_see_encrypted_key;
+A_trusts_NS2 RS Spy_not_see_encrypted_key;
 
 
 (*If the encrypted message appears then it originated with the Server*)
