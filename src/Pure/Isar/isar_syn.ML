@@ -37,37 +37,38 @@ val contextP =
 
 
 
-(** formal comments **)
+(** markup commands **)
 
-val headerP = OuterSyntax.command "header" "theory header" K.diag
+val headerP = OuterSyntax.markup_command "header" "theory header" K.diag
   (P.comment >> IsarThy.add_header);
 
-val chapterP = OuterSyntax.command "chapter" "chapter heading" K.thy_heading
+val chapterP = OuterSyntax.markup_command "chapter" "chapter heading" K.thy_heading
   (P.comment >> (Toplevel.theory o IsarThy.add_chapter));
 
-val sectionP = OuterSyntax.command "section" "section heading" K.thy_heading
+val sectionP = OuterSyntax.markup_command "section" "section heading" K.thy_heading
   (P.comment >> (Toplevel.theory o IsarThy.add_section));
 
-val subsectionP = OuterSyntax.command "subsection" "subsection heading" K.thy_heading
+val subsectionP = OuterSyntax.markup_command "subsection" "subsection heading" K.thy_heading
   (P.comment >> (Toplevel.theory o IsarThy.add_subsection));
 
-val subsubsectionP = OuterSyntax.command "subsubsection" "subsubsection heading" K.thy_heading
-  (P.comment >> (Toplevel.theory o IsarThy.add_subsubsection));
+val subsubsectionP =
+  OuterSyntax.markup_command "subsubsection" "subsubsection heading" K.thy_heading
+    (P.comment >> (Toplevel.theory o IsarThy.add_subsubsection));
 
-val textP = OuterSyntax.command "text" "formal comment (theory)" K.thy_decl
+val textP = OuterSyntax.markup_command "text" "formal comment (theory)" K.thy_decl
   (P.comment >> (Toplevel.theory o IsarThy.add_text));
 
 
-val sectP = OuterSyntax.command "sect" "formal comment (proof)" K.prf_decl
+val sectP = OuterSyntax.markup_command "sect" "formal comment (proof)" K.prf_decl
   (P.comment >> (Toplevel.print oo (Toplevel.proof o IsarThy.add_sect)));
 
-val subsectP = OuterSyntax.command "subsect" "formal comment (proof)" K.prf_decl
+val subsectP = OuterSyntax.markup_command "subsect" "formal comment (proof)" K.prf_decl
   (P.comment >> (Toplevel.print oo (Toplevel.proof o IsarThy.add_subsect)));
 
-val subsubsectP = OuterSyntax.command "subsubsect" "formal comment (proof)" K.prf_decl
+val subsubsectP = OuterSyntax.markup_command "subsubsect" "formal comment (proof)" K.prf_decl
   (P.comment >> (Toplevel.print oo (Toplevel.proof o IsarThy.add_subsubsect)));
 
-val txtP = OuterSyntax.command "txt" "formal comment (proof)" K.prf_decl
+val txtP = OuterSyntax.markup_command "txt" "formal comment (proof)" K.prf_decl
   (P.comment >> (Toplevel.print oo (Toplevel.proof o IsarThy.add_txt)));
 
 
