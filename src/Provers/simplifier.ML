@@ -451,15 +451,9 @@ val delN = "del";
 val onlyN = "only";
 val otherN = "other";
 
-fun simp_att change =
-  (Args.$$$ addN >> K (op addsimps) ||
-    Args.$$$ delN >> K (op delsimps) ||
-    Scan.succeed (op addsimps))
-  >> change
-  |> Scan.lift
-  |> Attrib.syntax;
-
-val simp_attr = (simp_att change_global_ss, simp_att change_local_ss);
+val simp_attr =
+ (Attrib.add_del_args simp_add_global simp_del_global,
+  Attrib.add_del_args simp_add_local simp_del_local);
 
 
 (* conversions *)

@@ -124,7 +124,8 @@ fun mk_mono thm =
     else [thm]
   end;
 
-(* mono add/del *)
+
+(* attributes *)
 
 local
 
@@ -136,24 +137,13 @@ fun del_mono thm rules = Library.gen_rems Thm.eq_thm (rules, mk_mono thm);
 fun mk_att f g (x, thm) = (f (g thm) x, thm);
 
 in
-
-val mono_add_global = mk_att map_rules_global add_mono;
-val mono_del_global = mk_att map_rules_global del_mono;
-
+  val mono_add_global = mk_att map_rules_global add_mono;
+  val mono_del_global = mk_att map_rules_global del_mono;
 end;
 
-
-(* concrete syntax *)
-
-val monoN = "mono";
-val addN = "add";
-val delN = "del";
-
-fun mono_att add del =
-  Attrib.syntax (Scan.lift (Args.$$$ addN >> K add || Args.$$$ delN >> K del || Scan.succeed add));
-
 val mono_attr =
-  (mono_att mono_add_global mono_del_global, mono_att Attrib.undef_local_attribute Attrib.undef_local_attribute);
+ (Attrib.add_del_args mono_add_global mono_del_global,
+  Attrib.add_del_args Attrib.undef_local_attribute Attrib.undef_local_attribute);
 
 
 
@@ -824,8 +814,9 @@ fun add_inductive verbose coind c_strings srcs intro_srcs raw_monos raw_con_defs
 
 (* setup theory *)
 
-val setup = [InductiveData.init,
-             Attrib.add_attributes [(monoN, mono_attr, "monotonicity rule")]];
+val setup =
+ [InductiveData.init,
+  Attrib.add_attributes [("mono", mono_attr, "monotonicity rule")]];
 
 
 (* outer syntax *)

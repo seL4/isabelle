@@ -398,33 +398,26 @@ fun Delsplits splits = (Simplifier.simpset_ref() :=
 (* attributes *)
 
 val splitN = "split";
-val addN = "add";
-val delN = "del";
-
-fun split_att change =
-  (Args.$$$ addN >> K (op addsplits) ||
-    Args.$$$ delN >> K (op delsplits) ||
-    Scan.succeed (op addsplits))
-  >> change
-  |> Scan.lift
-  |> Attrib.syntax;
-
-val setup_attrs = Attrib.add_attributes
- [(splitN, (split_att Simplifier.change_global_ss, split_att Simplifier.change_local_ss),
-    "declare splitter rule")];
 
 val split_add_global = Simplifier.change_global_ss (op addsplits);
 val split_del_global = Simplifier.change_global_ss (op delsplits);
 val split_add_local = Simplifier.change_local_ss (op addsplits);
 val split_del_local = Simplifier.change_local_ss (op delsplits);
 
+val split_attr =
+ (Attrib.add_del_args split_add_global split_del_global,
+  Attrib.add_del_args split_add_local split_del_local);
+
+val setup_attrs =
+  Attrib.add_attributes [(splitN, split_attr, "declare splitter rule")];
+
 
 (* method modifiers *)
 
 val split_modifiers =
  [Args.$$$ splitN -- Args.$$$ ":" >> K ((I, split_add_local): Method.modifier),
-  Args.$$$ splitN -- Args.$$$ addN -- Args.$$$ ":" >> K (I, split_add_local),
-  Args.$$$ splitN -- Args.$$$ delN -- Args.$$$ ":" >> K (I, split_del_local)];
+  Args.$$$ splitN -- Args.$$$ "add" -- Args.$$$ ":" >> K (I, split_add_local),
+  Args.$$$ splitN -- Args.$$$ "del" -- Args.$$$ ":" >> K (I, split_del_local)];
 
 
 

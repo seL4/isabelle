@@ -91,15 +91,9 @@ val trans_del_local = mk_att LocalCalculation.map (Library.apfst o NetRules.dele
 
 (* concrete syntax *)
 
-val transN = "trans";
-val addN = "add";
-val delN = "del";
-
-fun trans_att add del =
-  Attrib.syntax (Scan.lift (Args.$$$ addN >> K add || Args.$$$ delN >> K del || Scan.succeed add));
-
 val trans_attr =
-  (trans_att trans_add_global trans_del_global, trans_att trans_add_local trans_del_local);
+ (Attrib.add_del_args trans_add_global trans_del_global,
+  Attrib.add_del_args trans_add_local trans_del_local);
 
 
 
@@ -181,7 +175,7 @@ fun ultimately print = collect true print;
 (** theory setup **)
 
 val setup = [GlobalCalculation.init, LocalCalculation.init,
-  Attrib.add_attributes [(transN, trans_attr, "declare transitivity rule")]];
+  Attrib.add_attributes [("trans", trans_attr, "declare transitivity rule")]];
 
 
 end;
