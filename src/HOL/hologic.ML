@@ -71,6 +71,7 @@ sig
   val number_of_const: typ -> term
   val int_of: int list -> int
   val dest_binum: term -> int
+  val mk_bin   : int -> term
 end;
 
 
@@ -289,5 +290,20 @@ fun bin_of (Const ("Numeral.bin.Pls", _)) = []
   | bin_of t = raise TERM("bin_of", [t]);
 
 val dest_binum = int_of o bin_of;
+
+fun mk_bit 0 = false_const
+  | mk_bit 1 = true_const
+  | mk_bit _ = sys_error "mk_bit";
+
+fun mk_bin n =
+  let
+    fun bin_of 0  = []
+      | bin_of ~1 = [~1]
+      | bin_of n  = (n mod 2) :: bin_of (n div 2);
+
+    fun term_of []   = pls_const
+      | term_of [~1] = min_const
+      | term_of (b :: bs) = bit_const $ term_of bs $ mk_bit b;
+    in term_of (bin_of n) end;
 
 end;

@@ -24,7 +24,7 @@ val add_rules =
          real_mult_minus_1, real_mult_minus_1_right];
 
 val simprocs = [Real_Times_Assoc.conv, Real_Numeral_Simprocs.combine_numerals]@
-               Real_Numeral_Simprocs.cancel_numerals;
+               Real_Numeral_Simprocs.cancel_numerals(* @ real_cancel_numeral_factors*);
 
 val mono_ss = simpset() addsimps
                 [real_add_le_mono,real_add_less_mono,
@@ -47,17 +47,26 @@ val real_arith_simproc_pats =
   map (fn s => Thm.read_cterm (Theory.sign_of (the_context ())) (s, HOLogic.boolT))
       ["(m::real) < n","(m::real) <= n", "(m::real) = n"];
 
+fun cvar(th,_ $ (_ $ _ $ var)) = cterm_of (#sign(rep_thm th)) var;
+
+val real_mult_mono_thms =
+ [(rotate_prems 1 real_mult_less_mono2,
+   cvar(real_mult_less_mono2, hd(prems_of real_mult_less_mono2))),
+  (real_mult_le_mono2,
+   cvar(real_mult_le_mono2, hd(tl(prems_of real_mult_le_mono2))))]
+
 in
 
 val fast_real_arith_simproc = mk_simproc
   "fast_real_arith" real_arith_simproc_pats Fast_Arith.lin_arith_prover;
 
 val real_arith_setup =
- [Fast_Arith.map_data (fn {add_mono_thms, inj_thms, lessD, simpset} =>
+ [Fast_Arith.map_data (fn {add_mono_thms, mult_mono_thms, inj_thms, lessD, simpset} =>
    {add_mono_thms = add_mono_thms @ add_mono_thms_real,
+    mult_mono_thms = mult_mono_thms @ real_mult_mono_thms,
     inj_thms = inj_thms, (*FIXME: add real*)
     lessD = lessD,  (*We don't change LA_Data_Ref.lessD because the real ordering is dense!*)
-    simpset = simpset addsimps simps@add_rules
+    simpset = simpset addsimps (True_implies_equals :: add_rules @ simps)
                       addsimprocs simprocs
                       addcongs [if_weak_cong]}),
   arith_discrete ("RealDef.real",false),

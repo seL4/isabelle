@@ -262,8 +262,7 @@ struct
 
 (*Utilities*)
 
-fun mk_numeral n = HOLogic.number_of_const HOLogic.realT $ 
-                   NumeralSyntax.mk_bin n;
+fun mk_numeral n = HOLogic.number_of_const HOLogic.realT $ HOLogic.mk_bin n;
 
 (*Decodes a binary real constant*)
 fun dest_numeral (Const("Numeral.number_of", _) $ w) = 

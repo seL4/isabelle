@@ -88,8 +88,7 @@ struct
 
 (*Utilities*)
 
-fun mk_numeral n = HOLogic.number_of_const HOLogic.natT $
-                   NumeralSyntax.mk_bin n;
+fun mk_numeral n = HOLogic.number_of_const HOLogic.natT $ HOLogic.mk_bin n;
 
 (*Decodes a unary or binary numeral to a NATURAL NUMBER*)
 fun dest_numeral (Const ("0", _)) = 0
@@ -466,8 +465,9 @@ val simprocs = [Nat_Times_Assoc.conv,
 in
 
 val nat_simprocs_setup =
- [Fast_Arith.map_data (fn {add_mono_thms, inj_thms, lessD, simpset} =>
-   {add_mono_thms = add_mono_thms, inj_thms = inj_thms, lessD = lessD,
+ [Fast_Arith.map_data (fn {add_mono_thms, mult_mono_thms, inj_thms, lessD, simpset} =>
+   {add_mono_thms = add_mono_thms, mult_mono_thms = mult_mono_thms,
+    inj_thms = inj_thms, lessD = lessD,
     simpset = simpset addsimps add_rules
                       addsimps basic_renamed_arith_simps
                       addsimprocs simprocs})];

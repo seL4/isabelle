@@ -79,8 +79,7 @@ struct
 
 (*Utilities*)
 
-fun mk_numeral n = HOLogic.number_of_const HOLogic.intT $ 
-                   NumeralSyntax.mk_bin n;
+fun mk_numeral n = HOLogic.number_of_const HOLogic.intT $ HOLogic.mk_bin n;
 
 (*Decodes a binary INTEGER*)
 fun dest_numeral (Const("Numeral.number_of", _) $ w) = 
@@ -416,8 +415,9 @@ val add_mono_thms_int =
 in
 
 val int_arith_setup =
- [Fast_Arith.map_data (fn {add_mono_thms, inj_thms, lessD, simpset} =>
+ [Fast_Arith.map_data (fn {add_mono_thms, mult_mono_thms, inj_thms, lessD, simpset} =>
    {add_mono_thms = add_mono_thms @ add_mono_thms_int,
+    mult_mono_thms = mult_mono_thms,
     inj_thms = [zle_int RS iffD2,int_int_eq RS iffD2] @ inj_thms,
     lessD = lessD @ [add1_zle_eq RS iffD2],
     simpset = simpset addsimps add_rules

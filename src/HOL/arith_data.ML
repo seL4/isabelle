@@ -299,8 +299,14 @@ fun nT (Type("fun",[N,_])) = N = HOLogic.natT
   | nT _ = false;
 
 fun add_atom(t,m,(p,i)) = (case assoc(p,t) of None => ((t,m)::p,i)
-                           | Some n => (overwrite(p,(t,n+m:int)), i));
+                           | Some n => (overwrite(p,(t,ratadd(n,m))), i));
 
+exception Zero;
+
+fun rat_of_term(numt,dent) =
+  let val num = HOLogic.dest_binum numt and den = HOLogic.dest_binum dent
+  in if den = 0 then raise Zero else int_ratdiv(num,den) end;
+ 
 fun decomp2 inj_consts (rel,lhs,rhs) =
 
 let
@@ -308,30 +314,44 @@ let
 fun poly(Const("op +",_) $ s $ t, m, pi) = poly(s,m,poly(t,m,pi))
   | poly(all as Const("op -",T) $ s $ t, m, pi) =
       if nT T then add_atom(all,m,pi)
-      else poly(s,m,poly(t,~1*m,pi))
-  | poly(Const("uminus",_) $ t, m, pi) = poly(t,~1*m,pi)
+      else poly(s,m,poly(t,ratneg m,pi))
+  | poly(Const("uminus",_) $ t, m, pi) = poly(t,ratneg m,pi)
   | poly(Const("0",_), _, pi) = pi
-  | poly(Const("Suc",_)$t, m, (p,i)) = poly(t, m, (p,i+m))
+  | poly(Const("Suc",_)$t, m, (p,i)) = poly(t, m, (p,ratadd(i,m)))
   | poly(all as Const("op *",_) $ (Const("Numeral.number_of",_)$c) $ t, m, pi)=
-      (poly(t,m*HOLogic.dest_binum c,pi)
+      (poly(t,ratmul(m, rat_of_int(HOLogic.dest_binum c)),pi)
        handle TERM _ => add_atom(all,m,pi))
   | poly(all as Const("op *",_) $ t $ (Const("Numeral.number_of",_)$c), m, pi)=
-      (poly(t,m*HOLogic.dest_binum c,pi)
+      (poly(t,ratmul(m, rat_of_int(HOLogic.dest_binum c)),pi)
        handle TERM _ => add_atom(all,m,pi))
+  | poly(Const("op *",_) $ (Const("HOL.divide",_) $ (Const("Numeral.number_of",_)$numt) $
+                                               (Const("Numeral.number_of",_)$dent)) $ t, m, pi) =
+      poly(t,ratmul(m,rat_of_term(numt,dent)),pi)
+  | poly(Const("op *",_) $ t $ (Const("HOL.divide",_) $ (Const("Numeral.number_of",_)$numt) $
+                                               (Const("Numeral.number_of",_)$dent)), m, pi) =
+      poly(t,ratmul(m,rat_of_term(numt,dent)),pi)
+  | poly(all as Const("HOL.divide",_) $ t $ (Const("Numeral.number_of",_)$dent), m, pi) =
+      let val den = HOLogic.dest_binum dent
+      in if den = 0 then raise Zero else poly(t,ratmul(m, ratinv(rat_of_int den)),pi) end
   | poly(all as Const("Numeral.number_of",_)$t,m,(p,i)) =
-     ((p,i + m*HOLogic.dest_binum t)
+     ((p,ratadd(i,ratmul(m,rat_of_int(HOLogic.dest_binum t))))
       handle TERM _ => add_atom(all,m,(p,i)))
+  | poly(Const("HOL.divide",_) $ (Const("Numeral.number_of",_)$numt) $
+                                 (Const("Numeral.number_of",_)$dent), m, (p,i)) =
+      (p,ratadd(i,ratmul(m,rat_of_term(numt,dent))))
   | poly(all as Const f $ x, m, pi) =
       if f mem inj_consts then poly(x,m,pi) else add_atom(all,m,pi)
   | poly x  = add_atom x;
 
-  val (p,i) = poly(lhs,1,([],0)) and (q,j) = poly(rhs,1,([],0))
+  val (p,i) = poly(lhs,rat_of_int 1,([],rat_of_int 0))
+  and (q,j) = poly(rhs,rat_of_int 1,([],rat_of_int 0))
+
   in case rel of
        "op <"  => Some(p,i,"<",q,j)
      | "op <=" => Some(p,i,"<=",q,j)
      | "op ="  => Some(p,i,"=",q,j)
      | _       => None
-  end;
+  end handle Zero => None;
 
 fun negate(Some(x,i,rel,y,j,d)) = Some(x,i,"~"^rel,y,j,d)
   | negate None = None;
@@ -354,6 +374,8 @@ fun decomp2 data (_$(Const(rel,T)$lhs$rhs)) = decomp1 data (T,(rel,lhs,rhs))
 fun decomp sg =
   let val {discrete, inj_consts, ...} = ArithTheoryData.get_sg sg
   in decomp2 (discrete,inj_consts) end
+
+fun number_of(n,T) = HOLogic.number_of_const T $ (HOLogic.mk_bin n)
 
 end;
 
@@ -384,8 +406,9 @@ in
 
 val init_lin_arith_data =
  Fast_Arith.setup @
- [Fast_Arith.map_data (fn {add_mono_thms, inj_thms, lessD, simpset = _} =>
+ [Fast_Arith.map_data (fn {add_mono_thms, mult_mono_thms, inj_thms, lessD, simpset = _} =>
    {add_mono_thms = add_mono_thms @ add_mono_thms_nat,
+    mult_mono_thms = mult_mono_thms,
     inj_thms = inj_thms,
     lessD = lessD @ [Suc_leI],
     simpset = HOL_basic_ss addsimps add_rules addsimprocs nat_cancel_sums_add}),

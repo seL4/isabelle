@@ -10,7 +10,6 @@ theory HOL/Numeral.
 signature NUMERAL_SYNTAX =
 sig
   val dest_bin : term -> int
-  val mk_bin   : int -> term
   val setup    : (theory -> theory) list
 end;
 
@@ -19,10 +18,6 @@ struct
 
 
 (* bits *)
-
-fun mk_bit 0 = HOLogic.false_const
-  | mk_bit 1 = HOLogic.true_const
-  | mk_bit _ = sys_error "mk_bit";
 
 fun dest_bit (Const ("False", _)) = 0
   | dest_bit (Const ("True", _)) = 1
@@ -34,17 +29,6 @@ fun dest_bit (Const ("False", _)) = 0
 fun prefix_len _ [] = 0
   | prefix_len pred (x :: xs) =
       if pred x then 1 + prefix_len pred xs else 0;
-
-fun mk_bin n =
-  let
-    fun bin_of 0  = []
-      | bin_of ~1 = [~1]
-      | bin_of n  = (n mod 2) :: bin_of (n div 2);
-
-    fun term_of []   = HOLogic.pls_const
-      | term_of [~1] = HOLogic.min_const
-      | term_of (b :: bs) = HOLogic.bit_const $ term_of bs $ mk_bit b;
-    in term_of (bin_of n) end;
 
 (*we consider all "spellings"; Min is likely to be declared elsewhere*)
 fun bin_of (Const ("Pls", _)) = []
@@ -74,7 +58,7 @@ fun dest_bin_str tm =
 (* translation of integer numeral tokens to and from bitstrings *)
 
 fun numeral_tr (*"_Numeral"*) [t as Free (str, _)] =
-      (Syntax.const "Numeral.number_of" $ mk_bin (Syntax.read_xnum str))
+      (Syntax.const "Numeral.number_of" $ HOLogic.mk_bin (Syntax.read_xnum str))
   | numeral_tr (*"_Numeral"*) ts = raise TERM ("numeral_tr", ts);
 
 fun numeral_tr' show_sorts (*"number_of"*) (Type ("fun", [_, T])) (t :: ts) =

@@ -45,8 +45,8 @@ Addsimps [int_nat_number_of];
 
 
 val nat_bin_arith_setup =
- [Fast_Arith.map_data (fn {add_mono_thms, inj_thms, lessD, simpset} =>
-   {add_mono_thms = add_mono_thms,
+ [Fast_Arith.map_data (fn {add_mono_thms, mult_mono_thms, inj_thms, lessD, simpset} =>
+   {add_mono_thms = add_mono_thms, mult_mono_thms = mult_mono_thms,
     inj_thms = inj_thms,
     lessD = lessD,
     simpset = simpset addsimps [int_nat_number_of,
