@@ -106,24 +106,24 @@ local
 
   fun gen_all th = forall_elim_vars (#maxidx(rep_thm th)+1) th;
 
-  val simp_thms = map prover
-   [ "(x=x) = True",
-     "(~True) = False", "(~False) = True", "(~ ~ P) = P",
-     "(~P) ~= P", "P ~= (~P)", "(P ~= Q) = (P = (~Q))",
-     "(True=P) = P", "(P=True) = P",
-     "(True --> P) = P", "(False --> P) = True", 
-     "(P --> True) = True", "(P --> P) = True",
-     "(P --> False) = (~P)", "(P --> ~P) = (~P)",
-     "(P & True) = P", "(True & P) = P", 
-     "(P & False) = False", "(False & P) = False", "(P & P) = P",
-     "(P | True) = True", "(True | P) = True", 
-     "(P | False) = P", "(False | P) = P", "(P | P) = P",
-     "((~P) = (~Q)) = (P=Q)",
-     "(!x.P) = P", "(? x.P) = P", "? x. x=t", 
-     "(? x. x=t & P(x)) = P(t)", "(? x. t=x & P(x)) = P(t)", 
-     "(! x. x=t --> P(x)) = P(t)", "(! x. t=x --> P(x)) = P(t)" ];
-
 in
+
+val simp_thms = map prover
+ [ "(x=x) = True",
+   "(~True) = False", "(~False) = True", "(~ ~ P) = P",
+   "(~P) ~= P", "P ~= (~P)", "(P ~= Q) = (P = (~Q))",
+   "(True=P) = P", "(P=True) = P",
+   "(True --> P) = P", "(False --> P) = True", 
+   "(P --> True) = True", "(P --> P) = True",
+   "(P --> False) = (~P)", "(P --> ~P) = (~P)",
+   "(P & True) = P", "(True & P) = P", 
+   "(P & False) = False", "(False & P) = False", "(P & P) = P",
+   "(P | True) = True", "(True | P) = True", 
+   "(P | False) = P", "(False | P) = P", "(P | P) = P",
+   "((~P) = (~Q)) = (P=Q)",
+   "(!x.P) = P", "(? x.P) = P", "? x. x=t", 
+   "(? x. x=t & P(x)) = P(t)", "(? x. t=x & P(x)) = P(t)", 
+   "(! x. x=t --> P(x)) = P(t)", "(! x. t=x --> P(x)) = P(t)" ];
 
 val meta_eq_to_obj_eq = prove_goal HOL.thy "x==y ==> x=y"
   (fn [prem] => [rewtac prem, rtac refl 1]);
@@ -200,17 +200,6 @@ val all_simps = map prover
                  "(ALL x. P | Q x)   = (P | (ALL x.Q x))",
                  "(ALL x. P x --> Q) = ((EX x.P x) --> Q)",
                  "(ALL x. P --> Q x) = (P --> (ALL x.Q x))"];
-
-val HOL_ss = empty_ss
-      setmksimps (mksimps mksimps_pairs)
-      setsolver (fn prems => resolve_tac (TrueI::refl::prems) ORELSE' atac
-                             ORELSE' etac FalseE)
-      setsubgoaler asm_simp_tac
-      addsimps ([if_True, if_False, o_apply, imp_disj, conj_assoc, disj_assoc,
-                 cases_simp]
-        @ ex_simps @ all_simps @ simp_thms)
-      addcongs [imp_cong];
-
 
 (*In general it seems wrong to add distributive laws by default: they
   might cause exponential blow-up.  But imp_disj has been in for a while
@@ -316,6 +305,17 @@ prove "imp_ex" "((? x. P x) --> Q) = (! x. P x --> Q)";
 
 prove "ex_disj_distrib" "(? x. P(x) | Q(x)) = ((? x. P(x)) | (? x. Q(x)))";
 prove "all_conj_distrib" "(!x. P(x) & Q(x)) = ((! x. P(x)) & (! x. Q(x)))";
+
+
+val HOL_ss = empty_ss
+      setmksimps (mksimps mksimps_pairs)
+      setsolver (fn prems => resolve_tac (TrueI::refl::prems) ORELSE' atac
+                             ORELSE' etac FalseE)
+      setsubgoaler asm_simp_tac
+      addsimps ([if_True, if_False, o_apply, imp_disj, conj_assoc, disj_assoc,
+                 de_Morgan_conj, de_Morgan_disj, not_all, not_ex, cases_simp]
+        @ ex_simps @ all_simps @ simp_thms)
+      addcongs [imp_cong];
 
 
 qed_goal "if_cancel" HOL.thy "(if c then x else x) = x"
