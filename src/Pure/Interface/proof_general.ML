@@ -9,7 +9,12 @@ signature PROOF_GENERAL =
 sig
   val write_keywords: unit -> unit
   val setup: (theory -> theory) list
+  val help: unit -> unit
+  val show_context: unit -> theory
+  val kill_goal: unit -> unit
+  val repeat_undo: int -> unit
   val init: bool -> unit
+  val isa_restart: unit -> unit
 end;
 
 structure ProofGeneral: PROOF_GENERAL =
@@ -91,12 +96,15 @@ val setup = [Theory.add_tokentrfuns proof_general_trans];
 
 
 
-(** run-time initialization **)
+(** run-time operations **)
 
 (* messages *)
 
-fun decorate_lines bg en "" = std_output o suffix "\n" o enclose bg en
-  | decorate_lines bg en prfx = std_output o suffix "\n" o enclose bg en o prefix_lines prfx;
+val plain_output = std_output o suffix "\n";
+val plain_writeln = Library.setmp writeln_fn plain_output;
+
+fun decorate_lines bg en "" = plain_output o enclose bg en
+  | decorate_lines bg en prfx = plain_output o enclose bg en o prefix_lines prfx;
 
 fun setup_messages () =
  (writeln_fn := (decorate_lines (oct_char "360") (oct_char "361") "");
@@ -106,16 +114,19 @@ fun setup_messages () =
 
 (* theory / proof state *)
 
-fun setup_state () =
+fun print_current_goals n max th = plain_writeln (Goals.print_current_goals_default n max) th;
+
+fun setup_state isar =
   (current_goals_markers :=
     let
       val begin_state = oct_char "366";
       val end_state= oct_char "367";
       val begin_goal = oct_char "370";
     in (begin_state, end_state, begin_goal) end;
-  Toplevel.print_state_fn :=
-    (Library.setmp writeln_fn (std_output o suffix "\n") Toplevel.print_state_default);
-  Toplevel.prompt_state_fn := (suffix (oct_char "372") o Toplevel.prompt_state_default));
+  if isar then
+   (Toplevel.print_state_fn := plain_writeln Toplevel.print_state_default;
+    Toplevel.prompt_state_fn := (suffix (oct_char "372") o Toplevel.prompt_state_default))
+  else Goals.print_current_goals_fn := print_current_goals);
 
 
 (* theory loader actions *)
@@ -124,24 +135,50 @@ local
 
 fun tell_pg msg name = writeln ("Proof General, " ^ msg ^ " " ^ quote name);
 
-fun trace_action ThyInfo.Update name = tell_pg "this theory is loaded:" name
-  | trace_action ThyInfo.Outdate name = tell_pg "you can unlock the theory" name
-  | trace_action ThyInfo.Remove name = tell_pg "you can unlock the theory" name;
+fun isa_action action name =
+  let val files = map (File.sysify_path o #1) (ThyInfo.loaded_files name) in
+    if action = ThyInfo.Update then seq (tell_pg "this file is loaded:") files
+    else seq (tell_pg "you can unlock the file") files
+  end;
+
+fun isar_action action name =
+  if action = ThyInfo.Update then tell_pg "this theory is loaded:" name
+  else tell_pg "you can unlock the theory" name;
 
 in
-  fun setup_thy_loader () = ThyInfo.add_hook trace_action;
+  fun setup_thy_loader isar = ThyInfo.add_hook (if isar then isar_action else isa_action);
 end;
+
+
+(* some top-level commands for ProofGeneral/isa *)
+
+val help = writeln o Session.welcome;
+val show_context = Context.the_context;
+
+fun kill_goal () =
+  (Goal "PROP no_goal_supplied"; writeln ("Proof General, please clear the goals buffer."));
+
+fun repeat_undo 0 = ()
+  | repeat_undo n = (undo(); repeat_undo (n - 1));
+
+
+fun isa_restart () =
+ (ml_prompts (">" ^ oct_char "372") ("-" ^ oct_char "373");
+  ThyInfo.touch_all_thys ();
+  kill_goal ();
+  writeln ("Proof General, please clear the response buffer.");
+  writeln "Isabelle Proof General: Isabelle process ready!");
 
 
 (* init *)
 
 fun init isar =
  (setup_messages ();
-  setup_state ();
-  setup_thy_loader ();
+  setup_state isar;
+  setup_thy_loader isar;
   print_mode := [proof_generalN];
   set quick_and_dirty;
-  if isar then Isar.sync_main () else ());
+  if isar then Isar.sync_main () else isa_restart ());
 
 
 end;
