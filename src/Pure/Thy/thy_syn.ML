@@ -16,7 +16,7 @@ sig
   val add_syntax: string list ->
     (string * (ThyParse.token list -> (string * string) * ThyParse.token list)) list
     -> unit
-  val get_lexicon: unit -> Scan.lexicon;
+  val get_lexicon: unit -> Scan.lexicon
   val load_thy: string -> string list -> unit
 end;
 
