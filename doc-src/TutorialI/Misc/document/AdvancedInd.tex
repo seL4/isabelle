@@ -86,16 +86,16 @@ application of modus ponens and \isa{spec}:%
 \begin{isamarkuptext}%
 \noindent
 or the wholesale stripping of \isa{{\isasymforall}} and
-\isa{{\isasymlongrightarrow}} in the conclusion via \isa{rulified}%
+\isa{{\isasymlongrightarrow}} in the conclusion via \isa{rule{\isacharunderscore}format}%
 \end{isamarkuptext}%
-\isacommand{lemmas}\ myrule\ {\isacharequal}\ simple{\isacharbrackleft}rulified{\isacharbrackright}%
+\isacommand{lemmas}\ myrule\ {\isacharequal}\ simple{\isacharbrackleft}rule{\isacharunderscore}format{\isacharbrackright}%
 \begin{isamarkuptext}%
 \noindent
 yielding \isa{{\isasymlbrakk}A\ y{\isacharsemicolon}\ B\ y{\isasymrbrakk}\ {\isasymLongrightarrow}\ B\ y\ {\isasymand}\ A\ y}.
 You can go one step further and include these derivations already in the
 statement of your original lemma, thus avoiding the intermediate step:%
 \end{isamarkuptext}%
-\isacommand{lemma}\ myrule{\isacharbrackleft}rulified{\isacharbrackright}{\isacharcolon}\ \ {\isachardoublequote}{\isasymforall}y{\isachardot}\ A\ y\ {\isasymlongrightarrow}\ B\ y\ {\isasymlongrightarrow}\ B\ y\ {\isacharampersand}\ A\ y{\isachardoublequote}%
+\isacommand{lemma}\ myrule{\isacharbrackleft}rule{\isacharunderscore}format{\isacharbrackright}{\isacharcolon}\ \ {\isachardoublequote}{\isasymforall}y{\isachardot}\ A\ y\ {\isasymlongrightarrow}\ B\ y\ {\isasymlongrightarrow}\ B\ y\ {\isacharampersand}\ A\ y{\isachardoublequote}%
 \begin{isamarkuptext}%
 \bigskip
 
@@ -185,13 +185,13 @@ proofs.
 
 We can now derive the desired \isa{i\ {\isasymle}\ f\ i} from \isa{f{\isacharunderscore}incr}:%
 \end{isamarkuptext}%
-\isacommand{lemmas}\ f{\isacharunderscore}incr\ {\isacharequal}\ f{\isacharunderscore}incr{\isacharunderscore}lem{\isacharbrackleft}rulified{\isacharcomma}\ OF\ refl{\isacharbrackright}%
+\isacommand{lemmas}\ f{\isacharunderscore}incr\ {\isacharequal}\ f{\isacharunderscore}incr{\isacharunderscore}lem{\isacharbrackleft}rule{\isacharunderscore}format{\isacharcomma}\ OF\ refl{\isacharbrackright}%
 \begin{isamarkuptext}%
 \noindent
 The final \isa{refl} gets rid of the premise \isa{{\isacharquery}k\ {\isacharequal}\ f\ {\isacharquery}i}. Again,
 we could have included this derivation in the original statement of the lemma:%
 \end{isamarkuptext}%
-\isacommand{lemma}\ f{\isacharunderscore}incr{\isacharbrackleft}rulified{\isacharcomma}\ OF\ refl{\isacharbrackright}{\isacharcolon}\ {\isachardoublequote}{\isasymforall}i{\isachardot}\ k\ {\isacharequal}\ f\ i\ {\isasymlongrightarrow}\ i\ {\isasymle}\ f\ i{\isachardoublequote}%
+\isacommand{lemma}\ f{\isacharunderscore}incr{\isacharbrackleft}rule{\isacharunderscore}format{\isacharcomma}\ OF\ refl{\isacharbrackright}{\isacharcolon}\ {\isachardoublequote}{\isasymforall}i{\isachardot}\ k\ {\isacharequal}\ f\ i\ {\isasymlongrightarrow}\ i\ {\isasymle}\ f\ i{\isachardoublequote}%
 \begin{isamarkuptext}%
 \begin{exercise}
 From the above axiom and lemma for \isa{f} show that \isa{f} is the
