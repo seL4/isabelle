@@ -388,10 +388,14 @@ goal thy "insert (Key K) (Key``KK Un C) = Key `` (insert K KK) Un C";
 by (Blast_tac 1);
 qed "insert_Key_image";
 
+(*Reverse the normal simplification of "image" to build up (not break down)
+  the set of keys.  Use analz_insert_eq with (Un_upper2 RS analz_mono) to
+  erase occurrences of forwarded message components (X).*)
 val analz_image_freshK_ss = 
      !simpset delsimps [image_insert, image_Un]
-              addsimps ([image_insert RS sym, image_Un RS sym,
-                         Key_not_used, 
+              addsimps ([analz_insert_eq, Key_not_used, 
+			 impOfSubs (Un_upper2 RS analz_mono),
+                         image_insert RS sym, image_Un RS sym,
                          insert_Key_singleton, subset_Compl_range,
                          insert_Key_image, Un_assoc RS sym]
                         @disj_comms)

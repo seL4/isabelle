@@ -1112,8 +1112,7 @@ fun depth_tac cs lim i st =
 		| cell => Sequence.seqof(fn()=> cell))
      in prove (sign, cs, [initBranch (mkGoal concl :: hyps, lim)], cont)
      end
-     handle Subscript => Sequence.null
-	  | PROVE     => Sequence.null);
+     handle PROVE     => Sequence.null);
 
 fun blast_tac cs = (DEEPEN (1,20) (depth_tac cs) 0);
 

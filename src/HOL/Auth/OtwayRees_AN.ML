@@ -179,10 +179,9 @@ by (etac otway.induct 1);
 by analz_sees_tac;
 by (REPEAT_FIRST (resolve_tac [allI, impI]));
 by (REPEAT_FIRST (rtac analz_image_freshK_lemma ));
-(*14 seconds*)
 by (ALLGOALS (asm_simp_tac analz_image_freshK_ss));
-(*OR4, Fake*) 
-by (EVERY (map spy_analz_tac [3,2]));
+(*Fake*) 
+by (spy_analz_tac 2);
 (*Base*)
 by (Blast_tac 1);
 qed_spec_mp "analz_image_freshK";
@@ -285,16 +284,18 @@ by (etac otway.induct 1);
 by analz_sees_tac;
 by (ALLGOALS
     (asm_simp_tac (!simpset addcongs [conj_cong] 
-                            addsimps [not_parts_not_analz,
-                                      analz_insert_freshK]
+                            addsimps [analz_insert_eq, not_parts_not_analz, 
+				      analz_insert_freshK]
                             setloop split_tac [expand_if])));
+(*Oops*)
+by (blast_tac (!claset addSDs [unique_session_keys]) 4);
+(*OR4*) 
+by (Blast_tac 3);
 (*OR3*)
 by (blast_tac (!claset addSEs sees_Spy_partsEs
                        addIs [impOfSubs analz_subset_parts]) 2);
-(*Oops*) 
-by (blast_tac (!claset addDs [unique_session_keys]) 3);
-(*OR4, Fake*) 
-by (REPEAT_FIRST spy_analz_tac);
+(*Fake*) 
+by (spy_analz_tac 1);
 val lemma = result() RS mp RS mp RSN(2,rev_notE);
 
 goal thy 

@@ -221,8 +221,8 @@ by (REPEAT_FIRST (resolve_tac [allI, impI]));
 by (REPEAT_FIRST (rtac analz_image_freshK_lemma ));
 (*Takes 24 secs*)
 by (ALLGOALS (asm_simp_tac analz_image_freshK_ss));
-(*NS4, Fake*) 
-by (EVERY (map spy_analz_tac [3,2]));
+(*Fake*) 
+by (spy_analz_tac 2);
 (*Base*)
 by (Blast_tac 1);
 qed_spec_mp "analz_image_freshK";
@@ -283,15 +283,18 @@ by (etac ns_shared.induct 1);
 by analz_sees_tac;
 by (ALLGOALS 
     (asm_simp_tac 
-     (!simpset addsimps ([not_parts_not_analz, analz_insert_freshK] @ pushes)
+     (!simpset addsimps ([analz_insert_eq, not_parts_not_analz, 
+			  analz_insert_freshK] @ pushes)
                setloop split_tac [expand_if])));
-(*NS4, Fake*) 
-by (EVERY (map spy_analz_tac [4,1]));
+(*Oops*)
+by (blast_tac (!claset addDs [unique_session_keys]) 5);
+(*NS4*) 
+by (Blast_tac 4);
 (*NS2*)
 by (blast_tac (!claset addSEs sees_Spy_partsEs
-                       addIs [parts_insertI, impOfSubs analz_subset_parts]) 1);
-(*Oops*)
-by (blast_tac (!claset addDs [unique_session_keys]) 2);
+                       addIs [parts_insertI, impOfSubs analz_subset_parts]) 2);
+(*Fake*) 
+by (spy_analz_tac 1);
 (*NS3*) (**LEVEL 6 **)
 by (step_tac (!claset delrules [impCE]) 1);
 by (forward_tac [Says_imp_sees_Spy' RS parts.Inj RS A_trusts_NS2] 1);

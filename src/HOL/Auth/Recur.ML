@@ -268,8 +268,8 @@ by (ALLGOALS
      (analz_image_freshK_ss addsimps [resp_analz_image_freshK_lemma])));
 (*Base*)
 by (Blast_tac 1);
-(*RA4, RA2, Fake*) 
-by (REPEAT (spy_analz_tac 1));
+(*Fake*) 
+by (spy_analz_tac 1);
 val raw_analz_image_freshK = result();
 qed_spec_mp "analz_image_freshK";
 
