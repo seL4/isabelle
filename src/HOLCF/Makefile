@@ -41,7 +41,8 @@ $(BIN)/HOLCF:   $(BIN)/HOL  $(FILES)
 		     | $(COMP) $(BIN)/HOL ;\
 		echo 'use"ROOT";' | $(COMP) $(BIN)/HOLCF ;;\
 	sml*)	echo 'use"ROOT.ML"; xML"$(BIN)/HOLCF" banner;' | $(BIN)/HOL ;;\
-	*)	echo Bad value for ISABELLECOMP;;\
+	*)	echo Bad value for ISABELLECOMP: \
+                	$(COMP) is not poly or sml;;\
 	esac
 
 $(BIN)/HOL:
@@ -51,7 +52,8 @@ test:   ex/ROOT.ML  $(BIN)/HOLCF  $(EX_FILES)
 	case "$(COMP)" in \
 	poly*)	echo 'use"ex/ROOT.ML"; quit();' | $(COMP) $(BIN)/HOLCF ;;\
 	sml*)	echo 'use"ex/ROOT.ML"' | $(BIN)/HOLCF;;\
-	*)	echo Bad value for ISABELLECOMP;;\
+	*)	echo Bad value for ISABELLECOMP: \
+                	$(COMP) is not poly or sml;;\
 	esac
 
 .PRECIOUS:  $(BIN)/HOL  $(BIN)/HOLCF 

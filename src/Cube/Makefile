@@ -27,7 +27,8 @@ $(BIN)/Cube:   $(BIN)/Pure  $(FILES)
 			| $(COMP) $(BIN)/Pure;\
 		echo 'open PolyML; use"ROOT";' | $(COMP) $(BIN)/Cube ;;\
 	sml*)	echo 'use"ROOT.ML"; xML"$(BIN)/Cube" banner;' | $(BIN)/Pure ;;\
-	*)	echo Bad value for ISABELLECOMP;;\
+	*)	echo Bad value for ISABELLECOMP: \
+                	$(COMP) is not poly or sml;;\
 	esac
 
 $(BIN)/Pure:
@@ -37,7 +38,8 @@ test:   ex.ML $(BIN)/Cube
 	case "$(COMP)" in \
 	poly*)	echo 'use"ex.ML"; quit();' | $(COMP) $(BIN)/Cube ;;\
 	sml*)	echo 'use"ex.ML";' | $(BIN)/Cube;;\
-	*)	echo Bad value for ISABELLECOMP;;\
+	*)	echo Bad value for ISABELLECOMP: \
+                	$(COMP) is not poly or sml;;\
 	esac
 
 .PRECIOUS:  $(BIN)/Pure  $(BIN)/Cube 

@@ -35,7 +35,8 @@ $(BIN)/CCL:   $(BIN)/FOL  $(SET_FILES)  $(CCL_FILES)
 	poly*)	cp $(BIN)/FOL $(BIN)/CCL;\
 		echo 'open PolyML; use"ROOT";' | $(COMP) $(BIN)/CCL ;;\
 	sml*)	echo 'use"ROOT.ML"; xML"$(BIN)/CCL" banner;' | $(BIN)/FOL;;\
-	*)	echo Bad value for ISABELLECOMP;;\
+	*)	echo Bad value for ISABELLECOMP: \
+                	$(COMP) is not poly or sml;;\
 	esac
 
 $(BIN)/FOL:
@@ -45,7 +46,8 @@ test:   ex/ROOT.ML  $(BIN)/CCL  $(EX_FILES)
 	case "$(COMP)" in \
 	poly*)	echo 'use"ex/ROOT.ML"; quit();' | $(COMP) $(BIN)/CCL ;;\
 	sml*)	echo 'use"ex/ROOT.ML";' | $(BIN)/CCL;;\
-	*)	echo Bad value for ISABELLECOMP;;\
+	*)	echo Bad value for ISABELLECOMP: \
+                	$(COMP) is not poly or sml;;\
 	esac
 
 .PRECIOUS:  $(BIN)/FOL $(BIN)/CCL 

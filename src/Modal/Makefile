@@ -27,7 +27,8 @@ $(BIN)/Modal:   $(BIN)/LK  $(FILES)
 	poly*)	cp $(BIN)/LK $(BIN)/Modal;\
 		echo 'open PolyML; use"ROOT";' | $(COMP) $(BIN)/Modal ;;\
 	sml*)	echo 'use"ROOT.ML"; xML"$(BIN)/Modal" banner;' | $(BIN)/LK;;\
-	*)	echo Bad value for ISABELLECOMP;;\
+	*)	echo Bad value for ISABELLECOMP: \
+                	$(COMP) is not poly or sml;;\
 	esac
 
 $(BIN)/LK:
@@ -37,7 +38,8 @@ test:   ex/ROOT.ML  $(BIN)/Modal  $(EX_FILES)
 	case "$(COMP)" in \
 	poly*)	echo 'use"ex/ROOT.ML"; quit();' | $(COMP) $(BIN)/Modal ;;\
 	sml*)	echo 'use"ex/ROOT.ML";' | $(BIN)/Modal;;\
-	*)	echo Bad value for ISABELLECOMP;;\
+	*)	echo Bad value for ISABELLECOMP: \
+                	$(COMP) is not poly or sml;;\
 	esac
 
 .PRECIOUS:  $(BIN)/LK $(BIN)/Modal 

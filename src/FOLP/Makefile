@@ -31,7 +31,8 @@ $(BIN)/FOLP:   $(BIN)/Pure  $(FILES)
 			| $(COMP) $(BIN)/Pure;\
 		echo 'open PolyML; use"ROOT";' | $(COMP) $(BIN)/FOLP;;\
 	sml*)	echo 'use"ROOT.ML"; xML"$(BIN)/FOLP" banner;' | $(BIN)/Pure;;\
-	*)	echo Bad value for ISABELLECOMP;;\
+	*)	echo Bad value for ISABELLECOMP: \
+                	$(COMP) is not poly or sml;;\
 	esac
 
 $(BIN)/Pure:
@@ -41,7 +42,8 @@ test:   ex/ROOT.ML  $(BIN)/FOLP  $(EX_FILES)
 	case "$(COMP)" in \
 	poly*)	echo 'use"ex/ROOT.ML"; quit();' | $(COMP) $(BIN)/FOLP ;;\
 	sml*)	echo 'use"ex/ROOT.ML";' | $(BIN)/FOLP;;\
-	*)	echo Bad value for ISABELLECOMP;;\
+	*)	echo Bad value for ISABELLECOMP: \
+                	$(COMP) is not poly or sml;;\
 	esac
 
 .PRECIOUS:   $(BIN)/Pure  $(BIN)/FOLP 

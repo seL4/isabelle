@@ -26,7 +26,8 @@ $(BIN)/LCF:   $(BIN)/FOL  $(FILES)
 	poly*)	cp $(BIN)/FOL $(BIN)/LCF;\
 		echo 'open PolyML; use"ROOT";' | $(COMP) $(BIN)/LCF ;;\
 	sml*)	echo 'use"ROOT.ML"; xML"$(BIN)/LCF" banner;' | $(BIN)/FOL;;\
-	*)	echo Bad value for ISABELLECOMP;;\
+	*)	echo Bad value for ISABELLECOMP: \
+                	$(COMP) is not poly or sml;;\
 	esac
 
 (BIN)/FOL:
@@ -36,7 +37,8 @@ test:   ex.ML  $(BIN)/LCF
 	case "$(COMP)" in \
 	poly*)	echo 'use"ex.ML"; quit();' | $(COMP) $(BIN)/LCF ;;\
 	sml*)	echo 'use"ex.ML";' | $(BIN)/LCF;;\
-	*)	echo Bad value for ISABELLECOMP;;\
+	*)	echo Bad value for ISABELLECOMP: \
+                	$(COMP) is not poly or sml;;\
 	esac
 
 .PRECIOUS:   $(BIN)/FOL  $(BIN)/LCF 
