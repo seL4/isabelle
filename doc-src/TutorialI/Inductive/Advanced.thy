@@ -15,23 +15,14 @@ step[intro!]: "\<lbrakk>\<forall>t \<in> set args. t \<in> gterms F;  f \<in> F\
 lemma gterms_mono: "F\<subseteq>G \<Longrightarrow> gterms F \<subseteq> gterms G"
 apply clarify
 apply (erule gterms.induct)
+txt{*
+@{subgoals[display,indent=0,margin=65]}
+*};
 apply blast
 done
 
+
 text{*
-The situation after induction
-
-proof\ {\isacharparenleft}prove{\isacharparenright}{\isacharcolon}\ step\ {\isadigit{2}}\isanewline
-\isanewline
-goal\ {\isacharparenleft}lemma{\isacharparenright}{\isacharcolon}\isanewline
-F\ {\isasymsubseteq}\ G\ {\isasymLongrightarrow}\ gterms\ F\ {\isasymsubseteq}\ gterms\ G\isanewline
-\ {\isadigit{1}}{\isachardot}\ {\isasymAnd}x\ args\ f{\isachardot}\isanewline
-\ \ \ \ \ \ \ {\isasymlbrakk}F\ {\isasymsubseteq}\ G{\isacharsemicolon}\ {\isasymforall}t{\isasymin}set\ args{\isachardot}\ t\ {\isasymin}\ gterms\ F\ {\isasymand}\ t\ {\isasymin}\ gterms\ G{\isacharsemicolon}\ f\ {\isasymin}\ F{\isasymrbrakk}\isanewline
-\ \ \ \ \ \ \ {\isasymLongrightarrow}\ Apply\ f\ args\ {\isasymin}\ gterms\ G
-*}
-
-text{* We completely forgot about "rule inversion". 
-
 @{thm[display] even.cases[no_vars]}
 \rulename{even.cases}
 
@@ -68,26 +59,12 @@ text{*this is what we get:
 lemma gterms_IntI [rule_format]:
      "t \<in> gterms F \<Longrightarrow> t \<in> gterms G \<longrightarrow> t \<in> gterms (F\<inter>G)"
 apply (erule gterms.induct)
+txt{*
+@{subgoals[display,indent=0,margin=65]}
+*};
 apply blast
 done
 
-
-text{*
-Subgoal after induction.  How would we cope without rule inversion?
-
-pr(latex xsymbols symbols)
-
-proof\ {\isacharparenleft}prove{\isacharparenright}{\isacharcolon}\ step\ {\isadigit{1}}\isanewline
-\isanewline
-goal\ {\isacharparenleft}lemma\ gterms{\isacharunderscore}IntI{\isacharparenright}{\isacharcolon}\isanewline
-t\ {\isasymin}\ gterms\ F\ {\isasymLongrightarrow}\ t\ {\isasymin}\ gterms\ G\ {\isasymlongrightarrow}\ t\ {\isasymin}\ gterms\ {\isacharparenleft}F\ {\isasyminter}\ G{\isacharparenright}\isanewline
-\ {\isadigit{1}}{\isachardot}\ {\isasymAnd}args\ f{\isachardot}\isanewline
-\ \ \ \ \ \ \ {\isasymlbrakk}{\isasymforall}t{\isasymin}set\ args{\isachardot}\ t\ {\isasymin}\ gterms\ F\ {\isasymand}\ {\isacharparenleft}t\ {\isasymin}\ gterms\ G\ {\isasymlongrightarrow}\ t\ {\isasymin}\ gterms\ {\isacharparenleft}F\ {\isasyminter}\ G{\isacharparenright}{\isacharparenright}{\isacharsemicolon}\isanewline
-\ \ \ \ \ \ \ \ \ \ f\ {\isasymin}\ F{\isasymrbrakk}\isanewline
-\ \ \ \ \ \ \ {\isasymLongrightarrow}\ Apply\ f\ args\ {\isasymin}\ gterms\ G\ {\isasymlongrightarrow}\ Apply\ f\ args\ {\isasymin}\ gterms\ {\isacharparenleft}F\ {\isasyminter}\ G{\isacharparenright}
-
-
-*}
 
 text{*
 @{thm[display] mono_Int[no_vars]}
@@ -126,53 +103,37 @@ monos lists_mono
 
 lemma "well_formed_gterm arity \<subseteq> well_formed_gterm' arity"
 apply clarify
+txt{*
+The situation after clarify
+@{subgoals[display,indent=0,margin=65]}
+*};
 apply (erule well_formed_gterm.induct)
+txt{*
+note the induction hypothesis!
+@{subgoals[display,indent=0,margin=65]}
+*};
 apply auto
 done
 
 
-text{*
-The situation after clarify (note the induction hypothesis!)
-
-pr(latex xsymbols symbols)
-
-proof\ {\isacharparenleft}prove{\isacharparenright}{\isacharcolon}\ step\ {\isadigit{2}}\isanewline
-\isanewline
-goal\ {\isacharparenleft}lemma{\isacharparenright}{\isacharcolon}\isanewline
-well{\isacharunderscore}formed{\isacharunderscore}gterm\ arity\ {\isasymsubseteq}\ well{\isacharunderscore}formed{\isacharunderscore}gterm{\isacharprime}\ arity\isanewline
-\ {\isadigit{1}}{\isachardot}\ {\isasymAnd}x\ args\ f{\isachardot}\isanewline
-\ \ \ \ \ \ \ {\isasymlbrakk}{\isasymforall}t{\isasymin}set\ args{\isachardot}\isanewline
-\ \ \ \ \ \ \ \ \ \ \ t\ {\isasymin}\ well{\isacharunderscore}formed{\isacharunderscore}gterm\ arity\ {\isasymand}\ t\ {\isasymin}\ well{\isacharunderscore}formed{\isacharunderscore}gterm{\isacharprime}\ arity{\isacharsemicolon}\isanewline
-\ \ \ \ \ \ \ \ \ \ length\ args\ {\isacharequal}\ arity\ f{\isasymrbrakk}\isanewline
-\ \ \ \ \ \ \ {\isasymLongrightarrow}\ Apply\ f\ args\ {\isasymin}\ well{\isacharunderscore}formed{\isacharunderscore}gterm{\isacharprime}\ arity
-*}
-
 
 lemma "well_formed_gterm' arity \<subseteq> well_formed_gterm arity"
 apply clarify
+txt{*
+The situation after clarify
+@{subgoals[display,indent=0,margin=65]}
+*};
 apply (erule well_formed_gterm'.induct)
+txt{*
+note the induction hypothesis!
+@{subgoals[display,indent=0,margin=65]}
+*};
 apply auto
 done
 
 
 text{*
 @{thm[display] lists_Int_eq[no_vars]}
-\rulename{lists_Int_eq}
-
-The situation after clarify (note the strange induction hypothesis!)
-
-pr(latex xsymbols symbols)
-
-proof\ {\isacharparenleft}prove{\isacharparenright}{\isacharcolon}\ step\ {\isadigit{2}}\isanewline
-\isanewline
-goal\ {\isacharparenleft}lemma{\isacharparenright}{\isacharcolon}\isanewline
-well{\isacharunderscore}formed{\isacharunderscore}gterm{\isacharprime}\ arity\ {\isasymsubseteq}\ well{\isacharunderscore}formed{\isacharunderscore}gterm\ arity\isanewline
-\ {\isadigit{1}}{\isachardot}\ {\isasymAnd}x\ args\ f{\isachardot}\isanewline
-\ \ \ \ \ \ \ {\isasymlbrakk}args\isanewline
-\ \ \ \ \ \ \ \ {\isasymin}\ lists\isanewline
-\ \ \ \ \ \ \ \ \ \ \ {\isacharparenleft}well{\isacharunderscore}formed{\isacharunderscore}gterm{\isacharprime}\ arity\ {\isasyminter}\ {\isacharbraceleft}u{\isachardot}\ u\ {\isasymin}\ well{\isacharunderscore}formed{\isacharunderscore}gterm\ arity{\isacharbraceright}{\isacharparenright}{\isacharsemicolon}\isanewline
-\ \ \ \ \ \ \ \ \ \ length\ args\ {\isacharequal}\ arity\ f{\isasymrbrakk}\isanewline
-\ \ \ \ \ \ \ {\isasymLongrightarrow}\ Apply\ f\ args\ {\isasymin}\ well{\isacharunderscore}formed{\isacharunderscore}gterm\ arity
 *}
 
 text{* the rest isn't used: too complicated.  OK for an exercise though.*}
