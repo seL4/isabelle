@@ -96,7 +96,7 @@ qed_goal "refl_less_sprod" Sprod1.thy "less_sprod p p"
         (res_inst_tac [("p","p")] IsprodE 1),
         (etac less_sprod1a 1),
         (hyp_subst_tac 1),
-        (rtac (less_sprod1b RS ssubst) 1),
+        (stac less_sprod1b 1),
         (rtac defined_Ispair 1),
         (REPEAT (fast_tac (HOL_cs addIs [refl_less]) 1))
         ]);
@@ -146,7 +146,7 @@ qed_goal "trans_less_sprod" Sprod1.thy
         (hyp_subst_tac 1),
         (res_inst_tac [("Q","p2=Ispair(UU::'a)(UU::'b)")]
                  (excluded_middle RS disjE) 1),
-        (rtac (defined_Ispair RS less_sprod1b RS ssubst) 1),
+        (stac (defined_Ispair RS less_sprod1b) 1),
         (REPEAT (atac 1)),
         (rtac conjI 1),
         (res_inst_tac [("y","Isfst(p2)")] trans_less 1),

@@ -73,7 +73,7 @@ val major::prems = goal Finite.thy
 \       !!x y. [| x: A;  y: Fin(A);  x:y;  P(y) |] ==> P(y-{x}) \
 \    |] ==> c<=b --> P(b-c)";
 by (rtac (major RS Fin_induct) 1);
-by (rtac (Diff_cons RS ssubst) 2);
+by (stac Diff_cons 2);
 by (ALLGOALS (asm_simp_tac (Fin_ss addsimps (prems@[Diff_0, cons_subset_iff, 
                                 Diff_subset RS Fin_subset]))));
 qed "Fin_0_induct_lemma";

@@ -184,7 +184,7 @@ val [major] = goal ZF.thy
     "(!!x. x:A ==> EX! y. Q(x,y)) ==> EX f. ALL x:A. Q(x, f`x)";
 by (res_inst_tac [("x", "lam x: A. THE y. Q(x,y)")] exI 1);
 by (rtac ballI 1);
-by (rtac (beta RS ssubst) 1);
+by (stac beta 1);
 by (assume_tac 1);
 by (etac (major RS theI) 1);
 qed "lam_theI";

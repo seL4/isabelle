@@ -154,7 +154,7 @@ val prems = goal Epsilon.thy
     "[| !!x u. [| x:eclose({a});  u: Pi(x,B) |] ==> H(x,u) : B(x)   \
 \    |]  ==> transrec(a,H) : B(a)";
 by (res_inst_tac [("i", "a")] (arg_in_eclose_sing RS eclose_induct) 1);
-by (rtac (transrec RS ssubst) 1);
+by (stac transrec 1);
 by (REPEAT (ares_tac (prems @ [lam_type]) 1 ORELSE etac bspec 1));
 qed "transrec_type";
 
@@ -177,13 +177,13 @@ qed "Ord_transrec_type";
 
 (*NOT SUITABLE FOR REWRITING -- RECURSIVE!*)
 goal Epsilon.thy "rank(a) = (UN y:a. succ(rank(y)))";
-by (rtac (rank_def RS def_transrec RS ssubst) 1);
+by (stac (rank_def RS def_transrec) 1);
 by (simp_tac ZF_ss 1);
 qed "rank";
 
 goal Epsilon.thy "Ord(rank(a))";
 by (eps_ind_tac "a" 1);
-by (rtac (rank RS ssubst) 1);
+by (stac rank 1);
 by (rtac (Ord_succ RS Ord_UN) 1);
 by (etac bspec 1);
 by (assume_tac 1);
@@ -191,7 +191,7 @@ qed "Ord_rank";
 
 val [major] = goal Epsilon.thy "Ord(i) ==> rank(i) = i";
 by (rtac (major RS trans_induct) 1);
-by (rtac (rank RS ssubst) 1);
+by (stac rank 1);
 by (asm_simp_tac (ZF_ss addsimps [Ord_equality]) 1);
 qed "rank_of_Ord";
 
@@ -211,8 +211,8 @@ qed "eclose_rank_lt";
 
 goal Epsilon.thy "!!a b. a<=b ==> rank(a) le rank(b)";
 by (rtac subset_imp_le 1);
-by (rtac (rank RS ssubst) 1);
-by (rtac (rank RS ssubst) 1);
+by (stac rank 1);
+by (stac rank 1);
 by (etac UN_mono 1);
 by (REPEAT (resolve_tac [subset_refl, Ord_rank] 1));
 qed "rank_mono";
@@ -243,7 +243,7 @@ goal Epsilon.thy "rank(Union(A)) = (UN x:A. rank(x))";
 by (rtac equalityI 1);
 by (rtac (rank_mono RS le_imp_subset RS UN_least) 2);
 by (etac Union_upper 2);
-by (rtac (rank RS ssubst) 1);
+by (stac rank 1);
 by (rtac UN_least 1);
 by (etac UnionE 1);
 by (rtac subset_trans 1);

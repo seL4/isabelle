@@ -179,7 +179,7 @@ val hoare_lemma24 = prove_goal Hoare.thy
         (simp_tac HOLCF_ss 1),
         (etac mp 1),
         (strip_tac 1),
-	(fast_tac (HOL_cs addSDs [less_Suc_eq RS iffD1]) 1)]);
+        (fast_tac (HOL_cs addSDs [less_Suc_eq RS iffD1]) 1)]);
 
 (* -------- results about p for case (? k. b1`(iterate k g x)~=TT) ------- *)
 
@@ -275,14 +275,14 @@ val fernpass_lemma = prove_goal Hoare.thy
  (fn prems =>
         [
         (cut_facts_tac prems 1),
-        (rtac (p_def2 RS ssubst) 1),
+        (stac p_def2 1),
         (rtac fix_ind 1),
         (rtac adm_all 1),
         (rtac allI 1),
         (rtac adm_eq 1),
         (cont_tacR 1),
         (rtac allI 1),
-        (rtac (strict_fapp1 RS ssubst) 1),
+        (stac strict_fapp1 1),
         (rtac refl 1),
         (Simp_tac 1),
         (rtac allI 1),
@@ -309,14 +309,14 @@ val hoare_lemma17 = prove_goal Hoare.thy
  (fn prems =>
         [
         (cut_facts_tac prems 1),
-        (rtac (q_def2 RS ssubst) 1),
+        (stac q_def2 1),
         (rtac fix_ind 1),
         (rtac adm_all 1),
         (rtac allI 1),
         (rtac adm_eq 1),
         (cont_tacR 1),
         (rtac allI 1),
-        (rtac (strict_fapp1 RS ssubst) 1),
+        (stac strict_fapp1 1),
         (rtac refl 1),
         (rtac allI 1),
         (Simp_tac 1),
@@ -351,14 +351,14 @@ val hoare_lemma20 = prove_goal Hoare.thy
  (fn prems =>
         [
         (cut_facts_tac prems 1),
-        (rtac (q_def2 RS ssubst) 1),
+        (stac q_def2 1),
         (rtac fix_ind 1),
         (rtac adm_all 1),
         (rtac allI 1),
         (rtac adm_eq 1),
         (cont_tacR 1),
         (rtac allI 1),
-        (rtac (strict_fapp1 RS ssubst) 1),
+        (stac strict_fapp1 1),
         (rtac refl 1),
         (rtac allI 1),
         (Simp_tac 1),
@@ -383,7 +383,7 @@ val hoare_lemma22 = prove_goal Hoare.thy
  (fn prems =>
         [
         (cut_facts_tac prems 1),
-        (rtac (q_def3 RS ssubst) 1),
+        (stac q_def3 1),
         (asm_simp_tac HOLCF_ss 1)
         ]);
 
@@ -437,7 +437,7 @@ val hoare_lemma27 = prove_goal Hoare.thy
         (Simp_tac 1),
         (strip_tac 1),
         (etac conjE 1),
-        (rtac (q_def3 RS ssubst) 1),
+        (stac q_def3 1),
         (asm_simp_tac HOLCF_ss 1),
         (hyp_subst_tac 1),
         (Simp_tac 1),
@@ -467,18 +467,18 @@ val hoare_lemma23 = prove_goal Hoare.thy
  (fn prems =>
         [
         (cut_facts_tac prems 1),
-        (rtac (hoare_lemma16 RS ssubst) 1),
+        (stac hoare_lemma16 1),
         (atac 1),
         (rtac (hoare_lemma19 RS disjE) 1),
         (atac 1),
-        (rtac (hoare_lemma18 RS ssubst) 1),
+        (stac hoare_lemma18 1),
         (atac 1),
-        (rtac (hoare_lemma22 RS ssubst) 1),
+        (stac hoare_lemma22 1),
         (atac 1),
         (rtac refl 1),
-        (rtac (hoare_lemma21 RS ssubst) 1),
+        (stac hoare_lemma21 1),
         (atac 1),
-        (rtac (hoare_lemma21 RS ssubst) 1),
+        (stac hoare_lemma21 1),
         (atac 1),
         (rtac refl 1)
         ]);
@@ -493,7 +493,7 @@ val hoare_lemma29 = prove_goal Hoare.thy
         (rtac (hoare_lemma5 RS disjE) 1),
         (atac 1),
         (rtac refl 1),
-        (rtac (hoare_lemma11 RS mp RS ssubst) 1),
+        (stac (hoare_lemma11 RS mp) 1),
         (atac 1),
         (rtac conjI 1),
         (rtac refl 1),
@@ -504,17 +504,17 @@ val hoare_lemma29 = prove_goal Hoare.thy
         (rtac refl 1),
         (atac 1),
         (rtac refl 1),
-        (rtac (hoare_lemma12 RS mp RS ssubst) 1),
+        (stac (hoare_lemma12 RS mp) 1),
         (atac 1),
         (rtac conjI 1),
         (rtac refl 1),
         (atac 1),
-        (rtac (hoare_lemma22 RS ssubst) 1),
-        (rtac (hoare_lemma28 RS ssubst) 1),
+        (stac hoare_lemma22 1),
+        (stac hoare_lemma28 1),
         (atac 1),
         (rtac refl 1),
         (rtac sym 1),
-        (rtac (hoare_lemma27 RS mp RS ssubst) 1),
+        (stac (hoare_lemma27 RS mp) 1),
         (atac 1),
         (rtac conjI 1),
         (rtac refl 1),
@@ -528,7 +528,7 @@ val hoare_main = prove_goal Hoare.thy "q oo p = q"
  (fn prems =>
         [
         (rtac ext_cfun 1),
-        (rtac (cfcomp2 RS ssubst) 1),
+        (stac cfcomp2 1),
         (rtac (hoare_lemma3 RS disjE) 1),
         (etac hoare_lemma23 1),
         (etac hoare_lemma29 1)

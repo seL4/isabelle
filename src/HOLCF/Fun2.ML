@@ -15,7 +15,7 @@ open Fun2;
 qed_goalw "minimal_fun"  Fun2.thy [UU_fun_def] "UU_fun << f"
 (fn prems =>
         [
-        (rtac (inst_fun_po RS ssubst) 1),
+        (stac inst_fun_po 1),
         (rewtac less_fun_def),
         (fast_tac (HOL_cs addSIs [minimal]) 1)
         ]);
@@ -27,7 +27,7 @@ qed_goalw "minimal_fun"  Fun2.thy [UU_fun_def] "UU_fun << f"
 qed_goal "less_fun"  Fun2.thy  "(f1 << f2) = (! x. f1(x) << f2(x))"
 (fn prems =>
         [
-        (rtac (inst_fun_po RS ssubst) 1),
+        (stac inst_fun_po 1),
         (fold_goals_tac [less_fun_def]),
         (rtac refl 1)
         ]);
@@ -80,12 +80,12 @@ qed_goal "lub_fun"  Fun2.thy
         (rtac conjI 1),
         (rtac ub_rangeI 1),
         (rtac allI 1),
-        (rtac (less_fun RS ssubst) 1),
+        (stac less_fun 1),
         (rtac allI 1),
         (rtac is_ub_thelub 1),
         (etac ch2ch_fun 1),
         (strip_tac 1),
-        (rtac (less_fun RS ssubst) 1),
+        (stac less_fun 1),
         (rtac allI 1),
         (rtac is_lub_thelub 1),
         (etac ch2ch_fun 1),

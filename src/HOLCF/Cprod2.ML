@@ -13,8 +13,8 @@ qed_goal "less_cprod3a" Cprod2.thy
  (fn prems =>
         [
         (cut_facts_tac prems 1),
-        (rtac (inst_cprod_po RS ssubst) 1),
-        (rtac (less_cprod1b RS ssubst) 1),
+        (stac inst_cprod_po 1),
+        (stac less_cprod1b 1),
         (hyp_subst_tac 1),
         (Asm_simp_tac  1)
         ]);
@@ -23,7 +23,7 @@ qed_goal "less_cprod3b" Cprod2.thy
  "(p1 << p2) = (fst(p1)<<fst(p2) & snd(p1)<<snd(p2))"
  (fn prems =>
         [
-        (rtac (inst_cprod_po RS ssubst) 1),
+        (stac inst_cprod_po 1),
         (rtac less_cprod1b 1)
         ]);
 

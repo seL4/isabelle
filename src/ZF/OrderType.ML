@@ -116,7 +116,7 @@ qed "Ord_ordermap";
 
 goalw OrderType.thy [ordertype_def]
     "!!r. well_ord(A,r) ==> Ord(ordertype(A,r))";
-by (rtac ([ordermap_type, subset_refl] MRS image_fun RS ssubst) 1);
+by (stac ([ordermap_type, subset_refl] MRS image_fun) 1);
 by (rtac (Ord_is_Transset RSN (2,OrdI)) 1);
 by (fast_tac (ZF_cs addIs [Ord_ordermap]) 2);
 by (rewrite_goals_tac [Transset_def,well_ord_def]);

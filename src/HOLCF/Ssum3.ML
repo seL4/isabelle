@@ -226,7 +226,7 @@ qed_goal "ssum_lemma12" Ssum3.thy
         (rtac (chain_mono2 RS exE) 1),
         (atac 2),
         (rtac chain_UU_I_inverse2 1),
-        (rtac (inst_ssum_pcpo RS ssubst) 1),
+        (stac inst_ssum_pcpo 1),
         (etac swap 1),
         (rtac inject_Isinl 1),
         (rtac trans 1),
@@ -244,14 +244,14 @@ qed_goal "ssum_lemma12" Ssum3.thy
         (rtac Iwhen2 1),
         (res_inst_tac [("Pa","Y(i)=UU")] swap 1),
         (fast_tac HOL_cs 1),
-        (rtac (inst_ssum_pcpo RS ssubst) 1),
+        (stac inst_ssum_pcpo 1),
         (res_inst_tac [("t","Y(i)")] ssubst 1),
         (atac 1),
         (fast_tac HOL_cs 1),
-        (rtac (Iwhen2 RS ssubst) 1),
+        (stac Iwhen2 1),
         (res_inst_tac [("Pa","Y(i)=UU")] swap 1),
         (fast_tac HOL_cs 1),
-        (rtac (inst_ssum_pcpo RS ssubst) 1),
+        (stac inst_ssum_pcpo 1),
         (res_inst_tac [("t","Y(i)")] ssubst 1),
         (atac 1),
         (fast_tac HOL_cs 1),
@@ -285,7 +285,7 @@ qed_goal "ssum_lemma13" Ssum3.thy
         (rtac (chain_mono2 RS exE) 1),
         (atac 2),
         (rtac chain_UU_I_inverse2 1),
-        (rtac (inst_ssum_pcpo RS ssubst) 1),
+        (stac inst_ssum_pcpo 1),
         (etac swap 1),
         (rtac inject_Isinr 1),
         (rtac trans 1),
@@ -305,17 +305,17 @@ qed_goal "ssum_lemma13" Ssum3.thy
         (res_inst_tac [("Pa","Y(i)=UU")] swap 1),
         (fast_tac HOL_cs 1),
         (dtac notnotD 1),
-        (rtac (inst_ssum_pcpo RS ssubst) 1),
-        (rtac (strict_IsinlIsinr RS ssubst) 1),
+        (stac inst_ssum_pcpo 1),
+        (stac strict_IsinlIsinr 1),
         (res_inst_tac [("t","Y(i)")] ssubst 1),
         (atac 1),
         (fast_tac HOL_cs 1),
-        (rtac (Iwhen3 RS ssubst) 1),
+        (stac Iwhen3 1),
         (res_inst_tac [("Pa","Y(i)=UU")] swap 1),
         (fast_tac HOL_cs 1),
         (dtac notnotD 1),
-        (rtac (inst_ssum_pcpo RS ssubst) 1),
-        (rtac (strict_IsinlIsinr RS ssubst) 1),
+        (stac inst_ssum_pcpo 1),
+        (stac strict_IsinlIsinr 1),
         (res_inst_tac [("t","Y(i)")] ssubst 1),
         (atac 1),
         (fast_tac HOL_cs 1),
@@ -425,7 +425,7 @@ qed_goal "defined_sinl" Ssum3.thy
         (cut_facts_tac prems 1),
         (etac swap 1),
         (rtac inject_sinl 1),
-        (rtac (strict_sinl RS ssubst) 1),
+        (stac strict_sinl 1),
         (etac notnotD 1)
         ]);
 
@@ -436,7 +436,7 @@ qed_goal "defined_sinr" Ssum3.thy
         (cut_facts_tac prems 1),
         (etac swap 1),
         (rtac inject_sinr 1),
-        (rtac (strict_sinr RS ssubst) 1),
+        (stac strict_sinr 1),
         (etac notnotD 1)
         ]);
 
@@ -445,7 +445,7 @@ qed_goalw "Exh_Ssum1" Ssum3.thy [sinl_def,sinr_def]
  (fn prems =>
         [
         (asm_simp_tac (Ssum0_ss addsimps [cont_Isinr,cont_Isinl]) 1),
-        (rtac (inst_ssum_pcpo RS ssubst) 1),
+        (stac inst_ssum_pcpo 1),
         (rtac Exh_Ssum 1)
         ]);
 
@@ -458,7 +458,7 @@ qed_goalw "ssumE" Ssum3.thy [sinl_def,sinr_def]
         [
         (rtac IssumE 1),
         (resolve_tac prems 1),
-        (rtac (inst_ssum_pcpo RS ssubst) 1),
+        (stac inst_ssum_pcpo 1),
         (atac 1),
         (resolve_tac prems 1),
         (atac 2),
@@ -476,11 +476,11 @@ qed_goalw "ssumE2" Ssum3.thy [sinl_def,sinr_def]
         [
         (rtac IssumE2 1),
         (resolve_tac prems 1),
-        (rtac (beta_cfun RS ssubst) 1),
+        (stac beta_cfun 1),
         (rtac cont_Isinl 1),
         (atac 1),
         (resolve_tac prems 1),
-        (rtac (beta_cfun RS ssubst) 1),
+        (stac beta_cfun 1),
         (rtac cont_Isinr 1),
         (atac 1)
         ]);
@@ -489,14 +489,14 @@ qed_goalw "sswhen1" Ssum3.thy [sswhen_def,sinl_def,sinr_def]
         "sswhen`f`g`UU = UU"
  (fn prems =>
         [
-        (rtac (inst_ssum_pcpo RS ssubst) 1),
-        (rtac (beta_cfun RS ssubst) 1),
+        (stac inst_ssum_pcpo 1),
+        (stac beta_cfun 1),
         (REPEAT (resolve_tac (cont_lemmas @ [cont_Iwhen1,cont_Iwhen2,
                 cont_Iwhen3,cont2cont_CF1L]) 1)),
-        (rtac (beta_cfun RS ssubst) 1),
+        (stac beta_cfun 1),
         (REPEAT (resolve_tac (cont_lemmas @ [cont_Iwhen1,cont_Iwhen2,
                 cont_Iwhen3,cont2cont_CF1L]) 1)),
-        (rtac (beta_cfun RS ssubst) 1),
+        (stac beta_cfun 1),
         (REPEAT (resolve_tac (cont_lemmas @ [cont_Iwhen1,cont_Iwhen2,
                 cont_Iwhen3,cont2cont_CF1L]) 1)),
         (simp_tac Ssum0_ss  1)
@@ -507,16 +507,16 @@ qed_goalw "sswhen2" Ssum3.thy [sswhen_def,sinl_def,sinr_def]
  (fn prems =>
         [
         (cut_facts_tac prems 1),
-        (rtac (beta_cfun RS ssubst) 1),
+        (stac beta_cfun 1),
         (REPEAT (resolve_tac (cont_lemmas @ [cont_Iwhen1,cont_Iwhen2,
                 cont_Iwhen3,cont_Isinl,cont_Isinr,cont2cont_CF1L]) 1)),
-        (rtac (beta_cfun RS ssubst) 1),
+        (stac beta_cfun 1),
         (REPEAT (resolve_tac (cont_lemmas @ [cont_Iwhen1,cont_Iwhen2,
                 cont_Iwhen3,cont_Isinl,cont_Isinr,cont2cont_CF1L]) 1)),
-        (rtac (beta_cfun RS ssubst) 1),
+        (stac beta_cfun 1),
         (REPEAT (resolve_tac (cont_lemmas @ [cont_Iwhen1,cont_Iwhen2,
                 cont_Iwhen3,cont_Isinl,cont_Isinr,cont2cont_CF1L]) 1)),
-        (rtac (beta_cfun RS ssubst) 1),
+        (stac beta_cfun 1),
         (REPEAT (resolve_tac (cont_lemmas @ [cont_Iwhen1,cont_Iwhen2,
                 cont_Iwhen3,cont_Isinl,cont_Isinr,cont2cont_CF1L]) 1)),
         (asm_simp_tac Ssum0_ss  1)
@@ -529,16 +529,16 @@ qed_goalw "sswhen3" Ssum3.thy [sswhen_def,sinl_def,sinr_def]
  (fn prems =>
         [
         (cut_facts_tac prems 1),
-        (rtac (beta_cfun RS ssubst) 1),
+        (stac beta_cfun 1),
         (REPEAT (resolve_tac (cont_lemmas @ [cont_Iwhen1,cont_Iwhen2,
                 cont_Iwhen3,cont_Isinl,cont_Isinr,cont2cont_CF1L]) 1)),
-        (rtac (beta_cfun RS ssubst) 1),
+        (stac beta_cfun 1),
         (REPEAT (resolve_tac (cont_lemmas @ [cont_Iwhen1,cont_Iwhen2,
                 cont_Iwhen3,cont_Isinl,cont_Isinr,cont2cont_CF1L]) 1)),
-        (rtac (beta_cfun RS ssubst) 1),
+        (stac beta_cfun 1),
         (REPEAT (resolve_tac (cont_lemmas @ [cont_Iwhen1,cont_Iwhen2,
                 cont_Iwhen3,cont_Isinl,cont_Isinr,cont2cont_CF1L]) 1)),
-        (rtac (beta_cfun RS ssubst) 1),
+        (stac beta_cfun 1),
         (REPEAT (resolve_tac (cont_lemmas @ [cont_Iwhen1,cont_Iwhen2,
                 cont_Iwhen3,cont_Isinl,cont_Isinr,cont2cont_CF1L]) 1)),
         (asm_simp_tac Ssum0_ss  1)
@@ -549,10 +549,10 @@ qed_goalw "less_ssum4a" Ssum3.thy [sinl_def,sinr_def]
         "(sinl`x << sinl`y) = (x << y)"
  (fn prems =>
         [
-        (rtac (beta_cfun RS ssubst) 1),
+        (stac beta_cfun 1),
         (REPEAT (resolve_tac (cont_lemmas @ [cont_Iwhen1,cont_Iwhen2,
                 cont_Iwhen3,cont_Isinl,cont_Isinr,cont2cont_CF1L]) 1)),
-        (rtac (beta_cfun RS ssubst) 1),
+        (stac beta_cfun 1),
         (REPEAT (resolve_tac (cont_lemmas @ [cont_Iwhen1,cont_Iwhen2,
                 cont_Iwhen3,cont_Isinl,cont_Isinr,cont2cont_CF1L]) 1)),
         (rtac less_ssum3a 1)
@@ -562,10 +562,10 @@ qed_goalw "less_ssum4b" Ssum3.thy [sinl_def,sinr_def]
         "(sinr`x << sinr`y) = (x << y)"
  (fn prems =>
         [
-        (rtac (beta_cfun RS ssubst) 1),
+        (stac beta_cfun 1),
         (REPEAT (resolve_tac (cont_lemmas @ [cont_Iwhen1,cont_Iwhen2,
                 cont_Iwhen3,cont_Isinl,cont_Isinr,cont2cont_CF1L]) 1)),
-        (rtac (beta_cfun RS ssubst) 1),
+        (stac beta_cfun 1),
         (REPEAT (resolve_tac (cont_lemmas @ [cont_Iwhen1,cont_Iwhen2,
                 cont_Iwhen3,cont_Isinl,cont_Isinr,cont2cont_CF1L]) 1)),
         (rtac less_ssum3b 1)
@@ -575,10 +575,10 @@ qed_goalw "less_ssum4c" Ssum3.thy [sinl_def,sinr_def]
         "(sinl`x << sinr`y) = (x = UU)"
  (fn prems =>
         [
-        (rtac (beta_cfun RS ssubst) 1),
+        (stac beta_cfun 1),
         (REPEAT (resolve_tac (cont_lemmas @ [cont_Iwhen1,cont_Iwhen2,
                 cont_Iwhen3,cont_Isinl,cont_Isinr,cont2cont_CF1L]) 1)),
-        (rtac (beta_cfun RS ssubst) 1),
+        (stac beta_cfun 1),
         (REPEAT (resolve_tac (cont_lemmas @ [cont_Iwhen1,cont_Iwhen2,
                 cont_Iwhen3,cont_Isinl,cont_Isinr,cont2cont_CF1L]) 1)),
         (rtac less_ssum3c 1)
@@ -588,10 +588,10 @@ qed_goalw "less_ssum4d" Ssum3.thy [sinl_def,sinr_def]
         "(sinr`x << sinl`y) = (x = UU)"
  (fn prems =>
         [
-        (rtac (beta_cfun RS ssubst) 1),
+        (stac beta_cfun 1),
         (REPEAT (resolve_tac (cont_lemmas @ [cont_Iwhen1,cont_Iwhen2,
                 cont_Iwhen3,cont_Isinl,cont_Isinr,cont2cont_CF1L]) 1)),
-        (rtac (beta_cfun RS ssubst) 1),
+        (stac beta_cfun 1),
         (REPEAT (resolve_tac (cont_lemmas @ [cont_Iwhen1,cont_Iwhen2,
                 cont_Iwhen3,cont_Isinl,cont_Isinr,cont2cont_CF1L]) 1)),
         (rtac less_ssum3d 1)
@@ -613,13 +613,13 @@ qed_goalw "thelub_ssum2a" Ssum3.thy [sinl_def,sinr_def,sswhen_def]
  (fn prems =>
         [
         (cut_facts_tac prems 1),
-        (rtac (beta_cfun RS ssubst) 1),
+        (stac beta_cfun 1),
         (REPEAT (resolve_tac (cont_lemmas @ [cont_Iwhen1,cont_Iwhen2,           cont_Iwhen3,cont_Isinl,cont_Isinr,cont2cont_CF1L]) 1)),
-        (rtac (beta_cfun RS ssubst) 1),
+        (stac beta_cfun 1),
         (REPEAT (resolve_tac (cont_lemmas @ [cont_Iwhen1,cont_Iwhen2,           cont_Iwhen3,cont_Isinl,cont_Isinr,cont2cont_CF1L]) 1)),
-        (rtac (beta_cfun RS ssubst) 1),
+        (stac beta_cfun 1),
         (REPEAT (resolve_tac (cont_lemmas @ [cont_Iwhen1,cont_Iwhen2,           cont_Iwhen3,cont_Isinl,cont_Isinr,cont2cont_CF1L]) 1)),
-        (rtac (beta_cfun RS ext RS ssubst) 1),
+        (stac (beta_cfun RS ext) 1),
         (REPEAT (resolve_tac (cont_lemmas @ [cont_Iwhen1,cont_Iwhen2,           cont_Iwhen3,cont_Isinl,cont_Isinr,cont2cont_CF1L]) 1)),
         (rtac thelub_ssum1a 1),
         (atac 1),
@@ -638,16 +638,16 @@ qed_goalw "thelub_ssum2b" Ssum3.thy [sinl_def,sinr_def,sswhen_def]
  (fn prems =>
         [
         (cut_facts_tac prems 1),
-        (rtac (beta_cfun RS ssubst) 1),
+        (stac beta_cfun 1),
         (REPEAT (resolve_tac (cont_lemmas @ [cont_Iwhen1,cont_Iwhen2,
                 cont_Iwhen3,cont_Isinl,cont_Isinr,cont2cont_CF1L]) 1)),
-        (rtac (beta_cfun RS ssubst) 1),
+        (stac beta_cfun 1),
         (REPEAT (resolve_tac (cont_lemmas @ [cont_Iwhen1,cont_Iwhen2,
                 cont_Iwhen3,cont_Isinl,cont_Isinr,cont2cont_CF1L]) 1)),
-        (rtac (beta_cfun RS ssubst) 1),
+        (stac beta_cfun 1),
         (REPEAT (resolve_tac (cont_lemmas @ [cont_Iwhen1,cont_Iwhen2,
                 cont_Iwhen3,cont_Isinl,cont_Isinr,cont2cont_CF1L]) 1)),
-        (rtac (beta_cfun RS ext RS ssubst) 1),
+        (stac (beta_cfun RS ext) 1),
         (REPEAT (resolve_tac (cont_lemmas @ [cont_Iwhen1,cont_Iwhen2,
                 cont_Iwhen3,cont_Isinl,cont_Isinr,cont2cont_CF1L]) 1)),
         (rtac thelub_ssum1b 1),

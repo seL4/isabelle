@@ -110,8 +110,8 @@ goalw List.thy [drop_def]
     "!!i. i:nat ==> drop(succ(i), Cons(a,l)) = drop(i,l)";
 by (etac nat_induct 1);
 by (simp_tac (nat_ss addsimps [tl_Cons]) 1);
-by (rtac (rec_succ RS ssubst) 1);
-by (rtac (rec_succ RS ssubst) 1);
+by (stac rec_succ 1);
+by (stac rec_succ 1);
 by (asm_simp_tac ZF_ss 1);
 qed "drop_succ_Cons";
 
@@ -219,7 +219,7 @@ val [set_of_list_Nil,set_of_list_Cons] = list_recs set_of_list_def;
 
 goalw List.thy [set_of_list_def] 
     "!!l. l: list(A) ==> set_of_list(l) : Pow(A)";
-be list_rec_type 1;
+by (etac list_rec_type 1);
 by (ALLGOALS (fast_tac ZF_cs));
 qed "set_of_list_type";
 
@@ -228,7 +228,7 @@ goal List.thy
 \         set_of_list (xs@ys) = set_of_list(xs) Un set_of_list(ys)";
 by (etac list.induct 1);
 by (ALLGOALS (asm_simp_tac (ZF_ss addsimps [set_of_list_Nil,set_of_list_Cons,
-					    app_Nil,app_Cons,Un_cons])));
+                                            app_Nil,app_Cons,Un_cons])));
 qed "set_of_list_append";
 
 

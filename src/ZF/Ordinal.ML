@@ -532,7 +532,7 @@ qed "Un_upper2_le";
 (*Replacing k by succ(k') yields the similar rule for le!*)
 goal Ordinal.thy "!!i j k. [| i<k;  j<k |] ==> i Un j < k";
 by (res_inst_tac [("i","i"),("j","j")] Ord_linear_le 1);
-by (rtac (Un_commute RS ssubst) 4);
+by (stac Un_commute 4);
 by (asm_full_simp_tac (ZF_ss addsimps [le_subset_iff, subset_Un_iff]) 4);
 by (asm_full_simp_tac (ZF_ss addsimps [le_subset_iff, subset_Un_iff]) 3);
 by (REPEAT (eresolve_tac [asm_rl, ltE] 1));
@@ -555,7 +555,7 @@ qed "Un_least_mem_iff";
 (*Replacing k by succ(k') yields the similar rule for le!*)
 goal Ordinal.thy "!!i j k. [| i<k;  j<k |] ==> i Int j < k";
 by (res_inst_tac [("i","i"),("j","j")] Ord_linear_le 1);
-by (rtac (Int_commute RS ssubst) 4);
+by (stac Int_commute 4);
 by (asm_full_simp_tac (ZF_ss addsimps [le_subset_iff, subset_Int_iff]) 4);
 by (asm_full_simp_tac (ZF_ss addsimps [le_subset_iff, subset_Int_iff]) 3);
 by (REPEAT (eresolve_tac [asm_rl, ltE] 1));

@@ -15,7 +15,7 @@ open Lift2;
 qed_goal "minimal_lift" Lift2.thy "UU_lift << z"
  (fn prems =>
         [
-        (rtac (inst_lift_po RS ssubst) 1),
+        (stac inst_lift_po 1),
         (rtac less_lift1a 1)
         ]);
 
@@ -26,14 +26,14 @@ qed_goal "minimal_lift" Lift2.thy "UU_lift << z"
 qed_goal "less_lift2b" Lift2.thy "~ Iup(x) << UU_lift"
  (fn prems =>
         [
-        (rtac (inst_lift_po RS ssubst) 1),
+        (stac inst_lift_po 1),
         (rtac less_lift1b 1)
         ]);
 
 qed_goal "less_lift2c" Lift2.thy "(Iup(x)<<Iup(y)) = (x<<y)"
  (fn prems =>
         [
-        (rtac (inst_lift_po RS ssubst) 1),
+        (stac inst_lift_po 1),
         (rtac less_lift1c 1)
         ]);
 

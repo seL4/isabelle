@@ -162,7 +162,7 @@ qed_goal "eq_UU_iff" Pcpo.thy "(x=UU)=(x<<UU)"
 qed_goal "UU_I" Pcpo.thy "x << UU ==> x = UU"
  (fn prems =>
         [
-        (rtac (eq_UU_iff RS ssubst) 1),
+        (stac eq_UU_iff 1),
         (resolve_tac prems 1)
         ]);
 
@@ -251,7 +251,7 @@ qed_goal "chain_mono2" Pcpo.thy
 qed_goal "unique_void2" Pcpo.thy "(x::void)=UU"
  (fn prems =>
         [
-        (rtac (inst_void_pcpo RS ssubst) 1),
+        (stac inst_void_pcpo 1),
         (rtac (Rep_Void_inverse RS subst) 1),
         (rtac (Rep_Void_inverse RS subst) 1),
         (rtac arg_cong 1),

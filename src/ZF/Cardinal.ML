@@ -200,7 +200,7 @@ by (etac rev_mp 1);
 by (trans_ind_tac "i" [] 1);
 by (rtac impI 1);
 by (rtac classical 1);
-by (EVERY1 [rtac (Least_equality RS ssubst), assume_tac, assume_tac]);
+by (EVERY1 [stac Least_equality, assume_tac, assume_tac]);
 by (assume_tac 2);
 by (fast_tac (ZF_cs addSEs [ltE]) 1);
 qed "LeastI";
@@ -211,7 +211,7 @@ by (etac rev_mp 1);
 by (trans_ind_tac "i" [] 1);
 by (rtac impI 1);
 by (rtac classical 1);
-by (EVERY1 [rtac (Least_equality RS ssubst), assume_tac, assume_tac]);
+by (EVERY1 [stac Least_equality, assume_tac, assume_tac]);
 by (etac le_refl 2);
 by (fast_tac (ZF_cs addEs [ltE, lt_trans1] addIs [leI, ltI]) 1);
 qed "Least_le";
@@ -299,7 +299,7 @@ qed "Card_cardinal_eq";
 (* Could replace the  ~(j eqpoll i)  by  ~(i lepoll j) *)
 val prems = goalw Cardinal.thy [Card_def,cardinal_def]
     "[| Ord(i);  !!j. j<i ==> ~(j eqpoll i) |] ==> Card(i)";
-by (rtac (Least_equality RS ssubst) 1);
+by (stac Least_equality 1);
 by (REPEAT (ares_tac ([refl,eqpoll_refl]@prems) 1));
 qed "CardI";
 
@@ -481,7 +481,7 @@ qed "nat_eqpoll_iff";
 (*The object of all this work: every natural number is a (finite) cardinal*)
 goalw Cardinal.thy [Card_def,cardinal_def]
     "!!n. n: nat ==> Card(n)";
-by (rtac (Least_equality RS ssubst) 1);
+by (stac Least_equality 1);
 by (REPEAT_FIRST (ares_tac [eqpoll_refl, nat_into_Ord, refl]));
 by (asm_simp_tac (ZF_ss addsimps [lt_nat_in_nat RS nat_eqpoll_iff]) 1);
 by (fast_tac (ZF_cs addSEs [lt_irrefl]) 1);
@@ -549,7 +549,7 @@ by (etac eqpoll_imp_lepoll 1);
 qed "Ord_nat_eqpoll_iff";
 
 goalw Cardinal.thy [Card_def,cardinal_def] "Card(nat)";
-by (rtac (Least_equality RS ssubst) 1);
+by (stac Least_equality 1);
 by (REPEAT_FIRST (ares_tac [eqpoll_refl, Ord_nat, refl]));
 by (etac ltE 1);
 by (asm_simp_tac (ZF_ss addsimps [eqpoll_iff, lt_not_lepoll, ltI]) 1);

@@ -157,7 +157,7 @@ qed "subset_iff_id";
 
 goalw Perm.thy [inj_def] "!!f. f: inj(A,B) ==> converse(f) : range(f)->A";
 by (asm_simp_tac (ZF_ss addsimps [Pi_iff, function_def]) 1);
-by (eresolve_tac [CollectE] 1);
+by (etac CollectE 1);
 by (asm_simp_tac (ZF_ss addsimps [apply_iff]) 1);
 by (fast_tac (ZF_cs addDs [fun_is_rel]) 1);
 qed "inj_converse_fun";
@@ -192,7 +192,7 @@ qed "right_inverse";
 
 goal Perm.thy "!!f. [| f: bij(A,B);  b: B |] ==> f`(converse(f)`b) = b";
 by (fast_tac (ZF_cs addss
-	      (ZF_ss addsimps [bij_def, right_inverse, surj_range])) 1);
+              (ZF_ss addsimps [bij_def, right_inverse, surj_range])) 1);
 qed "right_inverse_bij";
 
 (** Converses of injections, surjections, bijections **)
@@ -207,12 +207,12 @@ qed "inj_converse_inj";
 goal Perm.thy "!!f A B. f: inj(A,B) ==> converse(f): surj(range(f), A)";
 by (ITER_DEEPEN (has_fewer_prems 1)
     (ares_tac [f_imp_surjective, inj_converse_fun, left_inverse,
-	       inj_is_fun, range_of_fun RS apply_type]));
+               inj_is_fun, range_of_fun RS apply_type]));
 qed "inj_converse_surj";
 
 goalw Perm.thy [bij_def] "!!f A B. f: bij(A,B) ==> converse(f): bij(B,A)";
 by (fast_tac (ZF_cs addEs [surj_range RS subst, inj_converse_inj,
-			   inj_converse_surj]) 1);
+                           inj_converse_surj]) 1);
 qed "bij_converse_bij";
 
 
@@ -307,7 +307,7 @@ goal Perm.thy "!!f g. [| g: A->B;  f: B->C |] ==> (f O g) : A->C";
 by (asm_full_simp_tac
     (ZF_ss addsimps [Pi_def, comp_function, Pow_iff, comp_rel]
            setloop etac conjE) 1);
-by (rtac (range_rel_subset RS domain_comp_eq RS ssubst) 1 THEN assume_tac 2);
+by (stac (range_rel_subset RS domain_comp_eq) 1 THEN assume_tac 2);
 by (fast_tac ZF_cs 1);
 qed "comp_fun";
 
@@ -470,7 +470,7 @@ goal Perm.thy
     "!!f g. [| f: bij(A,B);  g: bij(C,D);  A Int C = 0;  B Int D = 0 |] ==> \
 \           (f Un g) : bij(A Un C, B Un D)";
 by (rtac invertible_imp_bijective 1);
-by (rtac (converse_Un RS ssubst) 1);
+by (stac converse_Un 1);
 by (REPEAT (ares_tac [fun_disjoint_Un, bij_is_fun, bij_converse_bij] 1));
 qed "bij_disjoint_Un";
 
@@ -533,7 +533,7 @@ goalw Perm.thy [inj_def]
     "!!f. [| f: inj(A,B);  a~:A;  b~:B |]  ==> \
 \         cons(<a,b>,f) : inj(cons(a,A), cons(b,B))";
 by (fast_tac (ZF_cs  addIs [apply_type]
-	             addss (ZF_ss addsimps [fun_extend, fun_extend_apply2,
-					    fun_extend_apply1]) ) 1);
+                     addss (ZF_ss addsimps [fun_extend, fun_extend_apply2,
+                                            fun_extend_apply1]) ) 1);
 qed "inj_extend";
 

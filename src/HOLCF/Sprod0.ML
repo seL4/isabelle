@@ -225,7 +225,7 @@ qed_goal "strict_Isfst1" Sprod0.thy
         "Isfst(Ispair UU y) = UU"
 (fn prems =>
         [
-        (rtac (strict_Ispair1 RS ssubst) 1),
+        (stac strict_Ispair1 1),
         (rtac strict_Isfst 1),
         (rtac refl 1)
         ]);
@@ -234,7 +234,7 @@ qed_goal "strict_Isfst2" Sprod0.thy
         "Isfst(Ispair x UU) = UU"
 (fn prems =>
         [
-        (rtac (strict_Ispair2 RS ssubst) 1),
+        (stac strict_Ispair2 1),
         (rtac strict_Isfst 1),
         (rtac refl 1)
         ]);
@@ -259,7 +259,7 @@ qed_goal "strict_Issnd1" Sprod0.thy
         "Issnd(Ispair UU y) = UU"
 (fn prems =>
         [
-        (rtac (strict_Ispair1 RS ssubst) 1),
+        (stac strict_Ispair1 1),
         (rtac strict_Issnd 1),
         (rtac refl 1)
         ]);
@@ -268,7 +268,7 @@ qed_goal "strict_Issnd2" Sprod0.thy
         "Issnd(Ispair x UU) = UU"
 (fn prems =>
         [
-        (rtac (strict_Ispair2 RS ssubst) 1),
+        (stac strict_Ispair2 1),
         (rtac strict_Issnd 1),
         (rtac refl 1)
         ]);

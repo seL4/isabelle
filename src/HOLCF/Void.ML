@@ -19,7 +19,7 @@ qed_goalw "VoidI" Void.thy [UU_void_Rep_def,Void_def]
  " UU_void_Rep : Void"
 (fn prems =>
         [
-        (rtac (mem_Collect_eq RS ssubst) 1),
+        (stac mem_Collect_eq 1),
         (rtac refl 1)
         ]);
 

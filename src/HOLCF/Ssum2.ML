@@ -16,7 +16,7 @@ qed_goal "less_ssum3a" Ssum2.thy
         "(Isinl(x) << Isinl(y)) = (x << y)"
  (fn prems =>
         [
-        (rtac (inst_ssum_po RS ssubst) 1),
+        (stac inst_ssum_po 1),
         (rtac less_ssum2a 1)
         ]);
 
@@ -24,7 +24,7 @@ qed_goal "less_ssum3b" Ssum2.thy
         "(Isinr(x) << Isinr(y)) = (x << y)"
  (fn prems =>
         [
-        (rtac (inst_ssum_po RS ssubst) 1),
+        (stac inst_ssum_po 1),
         (rtac less_ssum2b 1)
         ]);
 
@@ -32,7 +32,7 @@ qed_goal "less_ssum3c" Ssum2.thy
         "(Isinl(x) << Isinr(y)) = (x = UU)"
  (fn prems =>
         [
-        (rtac (inst_ssum_po RS ssubst) 1),
+        (stac inst_ssum_po 1),
         (rtac less_ssum2c 1)
         ]);
 
@@ -40,7 +40,7 @@ qed_goal "less_ssum3d" Ssum2.thy
         "(Isinr(x) << Isinl(y)) = (x = UU)"
  (fn prems =>
         [
-        (rtac (inst_ssum_po RS ssubst) 1),
+        (stac inst_ssum_po 1),
         (rtac less_ssum2d 1)
         ]);
 
@@ -57,7 +57,7 @@ qed_goal "minimal_ssum" Ssum2.thy "Isinl(UU) << s"
         (rtac (less_ssum3a RS iffD2) 1),
         (rtac minimal 1),
         (hyp_subst_tac 1),
-        (rtac (strict_IsinlIsinr RS ssubst) 1),
+        (stac strict_IsinlIsinr 1),
         (rtac (less_ssum3b RS iffD2) 1),
         (rtac minimal 1)
         ]);

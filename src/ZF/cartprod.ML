@@ -18,7 +18,7 @@ signature PR =                  (** Description of a Cartesian product **)
   val fsplitE   : thm                   (*elim rule; apparently never used*)
   end;
 
-signature CARTPROD =		(** Derived syntactic functions for produts **)
+signature CARTPROD =            (** Derived syntactic functions for produts **)
   sig
   val ap_split : typ -> typ -> term -> term
   val factors : typ -> typ list
@@ -52,8 +52,8 @@ fun factors (Type("*", [T1,T2])) = factors T1 @ factors T2
 
 (*Make a well-typed instance of "split"*)
 fun split_const T = Const(Pr.split_name, 
-			  [[Ind_Syntax.iT, Ind_Syntax.iT]--->T, 
-			   Ind_Syntax.iT] ---> T);
+                          [[Ind_Syntax.iT, Ind_Syntax.iT]--->T, 
+                           Ind_Syntax.iT] ---> T);
 
 (*In ap_split S T u, term u expects separate arguments for the factors of S,
   with result type T.  The call creates a new term expecting one argument
@@ -61,9 +61,9 @@ fun split_const T = Const(Pr.split_name,
 fun ap_split (Type("*", [T1,T2])) T3 u   = 
        split_const T3 $ 
        Abs("v", Ind_Syntax.iT, (*Not T1, as it involves pseudo-product types*)
-	   ap_split T2 T3
-	   ((ap_split T1 (factors T2 ---> T3) (incr_boundvars 1 u)) $ 
-	    Bound 0))
+           ap_split T2 T3
+           ((ap_split T1 (factors T2 ---> T3) (incr_boundvars 1 u)) $ 
+            Bound 0))
   | ap_split T T3 u = u;
 
 (*Makes a nested tuple from a list, following the product type structure*)
@@ -78,11 +78,11 @@ val remove_split = rewrite_rule [Pr.split_eq];
 (*Uncurries any Var involving pseudo-product type T1 in the rule*)
 fun split_rule_var (t as Var(v, Type("fun",[T1,T2])), rl) =
       let val T' = factors T1 ---> T2
-	  val newt = ap_split T1 T2 (Var(v,T'))
-	  val cterm = Thm.cterm_of (#sign(rep_thm rl))
+          val newt = ap_split T1 T2 (Var(v,T'))
+          val cterm = Thm.cterm_of (#sign(rep_thm rl))
       in
-	  remove_split (instantiate ([], [(cterm (Var(v, Ind_Syntax.iT-->T2)), 
-					   cterm newt)]) rl)
+          remove_split (instantiate ([], [(cterm (Var(v, Ind_Syntax.iT-->T2)), 
+                                           cterm newt)]) rl)
       end
   | split_rule_var (t,rl) = rl;
 

@@ -10,7 +10,7 @@ open Univ;
 
 (*NOT SUITABLE FOR REWRITING -- RECURSIVE!*)
 goal Univ.thy "Vfrom(A,i) = A Un (UN j:i. Pow(Vfrom(A,j)))";
-by (rtac (Vfrom_def RS def_transrec RS ssubst) 1);
+by (stac (Vfrom_def RS def_transrec) 1);
 by (simp_tac ZF_ss 1);
 qed "Vfrom";
 
@@ -19,8 +19,8 @@ qed "Vfrom";
 goal Univ.thy "!!A B. A<=B ==> ALL j. i<=j --> Vfrom(A,i) <= Vfrom(B,j)";
 by (eps_ind_tac "i" 1);
 by (rtac (impI RS allI) 1);
-by (rtac (Vfrom RS ssubst) 1);
-by (rtac (Vfrom RS ssubst) 1);
+by (stac Vfrom 1);
+by (stac Vfrom 1);
 by (etac Un_mono 1);
 by (rtac UN_mono 1);
 by (assume_tac 1);
@@ -38,15 +38,15 @@ bind_thm ("Vfrom_mono", (Vfrom_mono_lemma RS spec RS mp));
 
 goal Univ.thy "Vfrom(A,x) <= Vfrom(A,rank(x))";
 by (eps_ind_tac "x" 1);
-by (rtac (Vfrom RS ssubst) 1);
-by (rtac (Vfrom RS ssubst) 1);
+by (stac Vfrom 1);
+by (stac Vfrom 1);
 by (fast_tac (ZF_cs addSIs [rank_lt RS ltD]) 1);
 qed "Vfrom_rank_subset1";
 
 goal Univ.thy "Vfrom(A,rank(x)) <= Vfrom(A,x)";
 by (eps_ind_tac "x" 1);
-by (rtac (Vfrom RS ssubst) 1);
-by (rtac (Vfrom RS ssubst) 1);
+by (stac Vfrom 1);
+by (stac Vfrom 1);
 by (rtac (subset_refl RS Un_mono) 1);
 by (rtac UN_least 1);
 (*expand rank(x1) = (UN y:x1. succ(rank(y))) in assumptions*)
@@ -70,25 +70,25 @@ qed "Vfrom_rank_eq";
 (*** Basic closure properties ***)
 
 goal Univ.thy "!!x y. y:x ==> 0 : Vfrom(A,x)";
-by (rtac (Vfrom RS ssubst) 1);
+by (stac Vfrom 1);
 by (fast_tac ZF_cs 1);
 qed "zero_in_Vfrom";
 
 goal Univ.thy "i <= Vfrom(A,i)";
 by (eps_ind_tac "i" 1);
-by (rtac (Vfrom RS ssubst) 1);
+by (stac Vfrom 1);
 by (fast_tac ZF_cs 1);
 qed "i_subset_Vfrom";
 
 goal Univ.thy "A <= Vfrom(A,i)";
-by (rtac (Vfrom RS ssubst) 1);
+by (stac Vfrom 1);
 by (rtac Un_upper1 1);
 qed "A_subset_Vfrom";
 
 bind_thm ("A_into_Vfrom", A_subset_Vfrom RS subsetD);
 
 goal Univ.thy "!!A a i. a <= Vfrom(A,i) ==> a: Vfrom(A,succ(i))";
-by (rtac (Vfrom RS ssubst) 1);
+by (stac Vfrom 1);
 by (fast_tac ZF_cs 1);
 qed "subset_mem_Vfrom";
 
@@ -121,7 +121,7 @@ qed "succ_in_Vfrom";
 (*** 0, successor and limit equations fof Vfrom ***)
 
 goal Univ.thy "Vfrom(A,0) = A";
-by (rtac (Vfrom RS ssubst) 1);
+by (stac Vfrom 1);
 by (fast_tac eq_cs 1);
 qed "Vfrom_0";
 
@@ -138,14 +138,14 @@ qed "Vfrom_succ_lemma";
 goal Univ.thy "Vfrom(A,succ(i)) = A Un Pow(Vfrom(A,i))";
 by (res_inst_tac [("x1", "succ(i)")] (Vfrom_rank_eq RS subst) 1);
 by (res_inst_tac [("x1", "i")] (Vfrom_rank_eq RS subst) 1);
-by (rtac (rank_succ RS ssubst) 1);
+by (stac rank_succ 1);
 by (rtac (Ord_rank RS Vfrom_succ_lemma) 1);
 qed "Vfrom_succ";
 
 (*The premise distinguishes this from Vfrom(A,0);  allowing X=0 forces
   the conclusion to be Vfrom(A,Union(X)) = A Un (UN y:X. Vfrom(A,y)) *)
 val [prem] = goal Univ.thy "y:X ==> Vfrom(A,Union(X)) = (UN y:X. Vfrom(A,y))";
-by (rtac (Vfrom RS ssubst) 1);
+by (stac Vfrom 1);
 by (rtac equalityI 1);
 (*first inclusion*)
 by (rtac Un_least 1);
@@ -155,11 +155,11 @@ by (rtac UN_least 1);
 by (etac UnionE 1);
 by (rtac subset_trans 1);
 by (etac UN_upper 2);
-by (rtac (Vfrom RS ssubst) 1);
+by (stac Vfrom 1);
 by (etac ([UN_upper, Un_upper2] MRS subset_trans) 1);
 (*opposite inclusion*)
 by (rtac UN_least 1);
-by (rtac (Vfrom RS ssubst) 1);
+by (stac Vfrom 1);
 by (fast_tac ZF_cs 1);
 qed "Vfrom_Union";
 
@@ -170,7 +170,7 @@ qed "Vfrom_Union";
 val [limiti] = goal Univ.thy
     "Limit(i) ==> Vfrom(A,i) = (UN y:i. Vfrom(A,y))";
 by (rtac (limiti RS (Limit_has_0 RS ltD) RS Vfrom_Union RS subst) 1);
-by (rtac (limiti RS Limit_Union_eq RS ssubst) 1);
+by (stac (limiti RS Limit_Union_eq) 1);
 by (rtac refl 1);
 qed "Limit_Vfrom_eq";
 
@@ -269,7 +269,7 @@ bind_thm ("sum_subset_VLimit", [sum_mono, sum_VLimit] MRS subset_trans);
 
 goal Univ.thy "!!i A. Transset(A) ==> Transset(Vfrom(A,i))";
 by (eps_ind_tac "i" 1);
-by (rtac (Vfrom RS ssubst) 1);
+by (stac Vfrom 1);
 by (fast_tac (ZF_cs addSIs [Transset_Union_family, Transset_Un,
                             Transset_Pow]) 1);
 qed "Transset_Vfrom";
@@ -365,7 +365,7 @@ goalw Univ.thy [Pi_def]
 by (dtac Transset_Vfrom 1);
 by (rtac subset_mem_Vfrom 1);
 by (rtac (Collect_subset RS subset_trans) 1);
-by (rtac (Vfrom RS ssubst) 1);
+by (stac Vfrom 1);
 by (rtac (subset_trans RS subset_trans) 1);
 by (rtac Un_upper2 3);
 by (rtac (succI1 RS UN_upper) 2);
@@ -386,7 +386,7 @@ qed "fun_in_VLimit";
 (*** The set Vset(i) ***)
 
 goal Univ.thy "Vset(i) = (UN j:i. Pow(Vset(j)))";
-by (rtac (Vfrom RS ssubst) 1);
+by (stac Vfrom 1);
 by (fast_tac eq_cs 1);
 qed "Vset";
 
@@ -398,9 +398,9 @@ val Transset_Vset = Transset_0 RS Transset_Vfrom;
 
 val [ordi] = goal Univ.thy "Ord(i) ==> ALL b. b : Vset(i) --> rank(b) < i";
 by (rtac (ordi RS trans_induct) 1);
-by (rtac (Vset RS ssubst) 1);
+by (stac Vset 1);
 by (safe_tac ZF_cs);
-by (rtac (rank RS ssubst) 1);
+by (stac rank 1);
 by (rtac UN_succ_least_lt 1);
 by (fast_tac ZF_cs 2);
 by (REPEAT (ares_tac [ltI] 1));
@@ -412,7 +412,7 @@ bind_thm ("VsetD", (Vset_rank_imp1 RS spec RS mp));
 val [ordi] = goal Univ.thy "Ord(i) ==> ALL b. rank(b) : i --> b : Vset(i)";
 by (rtac (ordi RS trans_induct) 1);
 by (rtac allI 1);
-by (rtac (Vset RS ssubst) 1);
+by (stac Vset 1);
 by (fast_tac (ZF_cs addSIs [rank_lt RS ltD]) 1);
 qed "Vset_rank_imp2";
 
@@ -433,7 +433,7 @@ by (rtac (Ord_rank RS Vset_Ord_rank_iff) 1);
 qed "Vset_rank_iff";
 
 goal Univ.thy "!!i. Ord(i) ==> rank(Vset(i)) = i";
-by (rtac (rank RS ssubst) 1);
+by (stac rank 1);
 by (rtac equalityI 1);
 by (safe_tac ZF_cs);
 by (EVERY' [rtac UN_I, 
@@ -471,7 +471,7 @@ val rank_ss = ZF_ss
 
 (*NOT SUITABLE FOR REWRITING: recursive!*)
 goalw Univ.thy [Vrec_def] "Vrec(a,H) = H(a, lam x:Vset(rank(a)). Vrec(x,H))";
-by (rtac (transrec RS ssubst) 1);
+by (stac transrec 1);
 by (simp_tac (ZF_ss addsimps [Ord_rank, Ord_succ, VsetD RS ltD RS beta, 
                               VsetI RS beta, le_refl]) 1);
 qed "Vrec";
@@ -511,7 +511,7 @@ val [aprem, iprem] = goal Univ.thy
     "[| a <= univ(X);                           \
 \       !!i. i:nat ==> a Int Vfrom(X,i) <= b    \
 \    |] ==> a <= b";
-by (rtac (aprem RS subset_univ_eq_Int RS ssubst) 1);
+by (stac (aprem RS subset_univ_eq_Int) 1);
 by (rtac UN_least 1);
 by (etac iprem 1);
 qed "univ_Int_Vfrom_subset";

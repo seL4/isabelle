@@ -18,9 +18,9 @@ open Holcfb;
 (* val de_morgan2 = de_Morgan_conj RS sym;   "(~a | ~b)=(~(a & b))" *)
 
 
-(* val notall2ex = not_all 		     "(~ (!x.P(x))) = (? x.~P(x))" *)
+(* val notall2ex = not_all                   "(~ (!x.P(x))) = (? x.~P(x))" *)
 
-(* val notex2all = not_ex		     "(~ (? x.P(x))) = (!x.~P(x))" *)
+(* val notex2all = not_ex                    "(~ (? x.P(x))) = (!x.~P(x))" *)
 
 
 (* val selectI3 =  select_eq_Ex RS iffD2   "(? x. P(x)) ==> P(@ x.P(x))" *)

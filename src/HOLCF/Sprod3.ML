@@ -98,7 +98,7 @@ qed_goal "contlub_Ispair1" Sprod3.thy "contlub(Ispair)"
         (strip_tac 1),
         (rtac (expand_fun_eq RS iffD2) 1),
         (strip_tac 1),
-        (rtac (lub_fun RS thelubI RS ssubst) 1),
+        (stac (lub_fun RS thelubI) 1),
         (etac (monofun_Ispair1 RS ch2ch_monofun) 1),
         (rtac trans 1),
         (rtac (thelub_sprod RS sym) 2),
@@ -237,7 +237,7 @@ qed_goal "contlub_Isfst" Sprod3.thy "contlub(Isfst)"
         [
         (rtac contlubI 1),
         (strip_tac 1),
-        (rtac (lub_sprod RS thelubI RS ssubst) 1),
+        (stac (lub_sprod RS thelubI) 1),
         (atac 1),
         (res_inst_tac [("Q","lub(range(%i. Issnd(Y(i))))=UU")]  
                 (excluded_middle RS disjE) 1),
@@ -253,16 +253,16 @@ qed_goal "contlub_Isfst" Sprod3.thy "contlub(Isfst)"
         (rtac strict_Isfst 1),
         (rtac swap 1),
         (etac (defined_IsfstIssnd RS conjunct2) 2),
-	(fast_tac (HOL_cs addSDs [monofun_Issnd RS ch2ch_monofun RS 
-				  chain_UU_I RS spec]) 1)
-	]);
+        (fast_tac (HOL_cs addSDs [monofun_Issnd RS ch2ch_monofun RS 
+                                  chain_UU_I RS spec]) 1)
+        ]);
 
 qed_goal "contlub_Issnd" Sprod3.thy "contlub(Issnd)"
 (fn prems =>
         [
         (rtac contlubI 1),
         (strip_tac 1),
-        (rtac (lub_sprod RS thelubI RS ssubst) 1),
+        (stac (lub_sprod RS thelubI) 1),
         (atac 1),
         (res_inst_tac [("Q","lub(range(%i. Isfst(Y(i))))=UU")]
          (excluded_middle RS disjE) 1),
@@ -278,8 +278,8 @@ qed_goal "contlub_Issnd" Sprod3.thy "contlub(Issnd)"
         (rtac swap 1),
         (etac (defined_IsfstIssnd RS conjunct1) 2),
         (fast_tac (HOL_cs addSDs [monofun_Isfst RS ch2ch_monofun RS
-				  chain_UU_I RS spec]) 1)
-	]);
+                                  chain_UU_I RS spec]) 1)
+        ]);
 
 qed_goal "cont_Isfst" Sprod3.thy "cont(Isfst)"
 (fn prems =>
@@ -319,12 +319,12 @@ qed_goalw "beta_cfun_sprod" Sprod3.thy [spair_def]
         "(LAM x y.Ispair x y)`a`b = Ispair a b"
  (fn prems =>
         [
-        (rtac (beta_cfun RS ssubst) 1),
+        (stac beta_cfun 1),
         (cont_tac 1),
         (rtac cont_Ispair2 1),
         (rtac cont2cont_CF1L 1),
         (rtac cont_Ispair1 1),
-        (rtac (beta_cfun RS ssubst) 1),
+        (stac beta_cfun 1),
         (rtac cont_Ispair2 1),
         (rtac refl 1)
         ]);
@@ -366,7 +366,7 @@ qed_goalw "strict_spair" Sprod3.thy [spair_def]
 qed_goalw "strict_spair1" Sprod3.thy [spair_def] "(|UU,b|) = UU"
  (fn prems =>
         [
-        (rtac (beta_cfun_sprod RS ssubst) 1),
+        (stac beta_cfun_sprod 1),
         (rtac trans 1),
         (rtac (inst_sprod_pcpo RS sym) 2),
         (rtac strict_Ispair1 1)
@@ -375,7 +375,7 @@ qed_goalw "strict_spair1" Sprod3.thy [spair_def] "(|UU,b|) = UU"
 qed_goalw "strict_spair2" Sprod3.thy [spair_def] "(|a,UU|) = UU"
  (fn prems =>
         [
-        (rtac (beta_cfun_sprod RS ssubst) 1),
+        (stac beta_cfun_sprod 1),
         (rtac trans 1),
         (rtac (inst_sprod_pcpo RS sym) 2),
         (rtac strict_Ispair2 1)
@@ -408,8 +408,8 @@ qed_goalw "defined_spair" Sprod3.thy [spair_def]
  (fn prems =>
         [
         (cut_facts_tac prems 1),
-        (rtac (beta_cfun_sprod RS ssubst) 1),
-        (rtac (inst_sprod_pcpo RS ssubst) 1),
+        (stac beta_cfun_sprod 1),
+        (stac inst_sprod_pcpo 1),
         (etac defined_Ispair 1),
         (atac 1)
         ]);
@@ -420,7 +420,7 @@ qed_goalw "Exh_Sprod2" Sprod3.thy [spair_def]
         [
         (rtac (Exh_Sprod RS disjE) 1),
         (rtac disjI1 1),
-        (rtac (inst_sprod_pcpo RS ssubst) 1),
+        (stac inst_sprod_pcpo 1),
         (atac 1),
         (rtac disjI2 1),
         (etac exE 1),
@@ -428,7 +428,7 @@ qed_goalw "Exh_Sprod2" Sprod3.thy [spair_def]
         (rtac exI 1),
         (rtac exI 1),
         (rtac conjI 1),
-        (rtac (beta_cfun_sprod RS ssubst) 1),
+        (stac beta_cfun_sprod 1),
         (fast_tac HOL_cs 1),
         (fast_tac HOL_cs 1)
         ]);
@@ -440,12 +440,12 @@ qed_goalw "sprodE" Sprod3.thy [spair_def]
         [
         (rtac IsprodE 1),
         (resolve_tac prems 1),
-        (rtac (inst_sprod_pcpo RS ssubst) 1),
+        (stac inst_sprod_pcpo 1),
         (atac 1),
         (resolve_tac prems 1),
         (atac 2),
         (atac 2),
-        (rtac (beta_cfun_sprod RS ssubst) 1),
+        (stac beta_cfun_sprod 1),
         (atac 1)
         ]);
 
@@ -455,7 +455,7 @@ qed_goalw "strict_sfst" Sprod3.thy [sfst_def]
  (fn prems =>
         [
         (cut_facts_tac prems 1),
-        (rtac (beta_cfun RS ssubst) 1),
+        (stac beta_cfun 1),
         (rtac cont_Isfst 1),
         (rtac strict_Isfst 1),
         (rtac (inst_sprod_pcpo RS subst) 1),
@@ -466,8 +466,8 @@ qed_goalw "strict_sfst1" Sprod3.thy [sfst_def,spair_def]
         "sfst`(|UU,y|) = UU"
  (fn prems =>
         [
-        (rtac (beta_cfun_sprod RS ssubst) 1),
-        (rtac (beta_cfun RS ssubst) 1),
+        (stac beta_cfun_sprod 1),
+        (stac beta_cfun 1),
         (rtac cont_Isfst 1),
         (rtac strict_Isfst1 1)
         ]);
@@ -476,8 +476,8 @@ qed_goalw "strict_sfst2" Sprod3.thy [sfst_def,spair_def]
         "sfst`(|x,UU|) = UU"
  (fn prems =>
         [
-        (rtac (beta_cfun_sprod RS ssubst) 1),
-        (rtac (beta_cfun RS ssubst) 1),
+        (stac beta_cfun_sprod 1),
+        (stac beta_cfun 1),
         (rtac cont_Isfst 1),
         (rtac strict_Isfst2 1)
         ]);
@@ -487,7 +487,7 @@ qed_goalw "strict_ssnd" Sprod3.thy [ssnd_def]
  (fn prems =>
         [
         (cut_facts_tac prems 1),
-        (rtac (beta_cfun RS ssubst) 1),
+        (stac beta_cfun 1),
         (rtac cont_Issnd 1),
         (rtac strict_Issnd 1),
         (rtac (inst_sprod_pcpo RS subst) 1),
@@ -498,8 +498,8 @@ qed_goalw "strict_ssnd1" Sprod3.thy [ssnd_def,spair_def]
         "ssnd`(|UU,y|) = UU"
  (fn prems =>
         [
-        (rtac (beta_cfun_sprod RS ssubst) 1),
-        (rtac (beta_cfun RS ssubst) 1),
+        (stac beta_cfun_sprod 1),
+        (stac beta_cfun 1),
         (rtac cont_Issnd 1),
         (rtac strict_Issnd1 1)
         ]);
@@ -508,8 +508,8 @@ qed_goalw "strict_ssnd2" Sprod3.thy [ssnd_def,spair_def]
         "ssnd`(|x,UU|) = UU"
  (fn prems =>
         [
-        (rtac (beta_cfun_sprod RS ssubst) 1),
-        (rtac (beta_cfun RS ssubst) 1),
+        (stac beta_cfun_sprod 1),
+        (stac beta_cfun 1),
         (rtac cont_Issnd 1),
         (rtac strict_Issnd2 1)
         ]);
@@ -519,8 +519,8 @@ qed_goalw "sfst2" Sprod3.thy [sfst_def,spair_def]
  (fn prems =>
         [
         (cut_facts_tac prems 1),
-        (rtac (beta_cfun_sprod RS ssubst) 1),
-        (rtac (beta_cfun RS ssubst) 1),
+        (stac beta_cfun_sprod 1),
+        (stac beta_cfun 1),
         (rtac cont_Isfst 1),
         (etac Isfst2 1)
         ]);
@@ -530,8 +530,8 @@ qed_goalw "ssnd2" Sprod3.thy [ssnd_def,spair_def]
  (fn prems =>
         [
         (cut_facts_tac prems 1),
-        (rtac (beta_cfun_sprod RS ssubst) 1),
-        (rtac (beta_cfun RS ssubst) 1),
+        (stac beta_cfun_sprod 1),
+        (stac beta_cfun 1),
         (rtac cont_Issnd 1),
         (etac Issnd2 1)
         ]);
@@ -542,9 +542,9 @@ qed_goalw "defined_sfstssnd" Sprod3.thy [sfst_def,ssnd_def,spair_def]
  (fn prems =>
         [
         (cut_facts_tac prems 1),
-        (rtac (beta_cfun RS ssubst) 1),
+        (stac beta_cfun 1),
         (rtac cont_Issnd 1),
-        (rtac (beta_cfun RS ssubst) 1),
+        (stac beta_cfun 1),
         (rtac cont_Isfst 1),
         (rtac defined_IsfstIssnd 1),
         (rtac (inst_sprod_pcpo RS subst) 1),
@@ -556,10 +556,10 @@ qed_goalw "surjective_pairing_Sprod2" Sprod3.thy
         [sfst_def,ssnd_def,spair_def] "(|sfst`p , ssnd`p|) = p"
  (fn prems =>
         [
-        (rtac (beta_cfun_sprod RS ssubst) 1),
-        (rtac (beta_cfun RS ssubst) 1),
+        (stac beta_cfun_sprod 1),
+        (stac beta_cfun 1),
         (rtac cont_Issnd 1),
-        (rtac (beta_cfun RS ssubst) 1),
+        (stac beta_cfun 1),
         (rtac cont_Isfst 1),
         (rtac (surjective_pairing_Sprod RS sym) 1)
         ]);
@@ -570,13 +570,13 @@ qed_goalw "less_sprod5b" Sprod3.thy [sfst_def,ssnd_def,spair_def]
  (fn prems =>
         [
         (cut_facts_tac prems 1),
-        (rtac (beta_cfun RS ssubst) 1),
+        (stac beta_cfun 1),
         (rtac cont_Issnd 1),
-        (rtac (beta_cfun RS ssubst) 1),
+        (stac beta_cfun 1),
         (rtac cont_Issnd 1),
-        (rtac (beta_cfun RS ssubst) 1),
+        (stac beta_cfun 1),
         (rtac cont_Isfst 1),
-        (rtac (beta_cfun RS ssubst) 1),
+        (stac beta_cfun 1),
         (rtac cont_Isfst 1),
         (rtac less_sprod3b 1),
         (rtac (inst_sprod_pcpo RS subst) 1),
@@ -602,10 +602,10 @@ qed_goalw "lub_sprod2" Sprod3.thy [sfst_def,ssnd_def,spair_def]
  (fn prems =>
         [
         (cut_facts_tac prems 1),
-        (rtac (beta_cfun_sprod RS ssubst) 1),
-        (rtac (beta_cfun RS ext RS ssubst) 1),
+        (stac beta_cfun_sprod 1),
+        (stac (beta_cfun RS ext) 1),
         (rtac cont_Issnd 1),
-        (rtac (beta_cfun RS ext RS ssubst) 1),
+        (stac (beta_cfun RS ext) 1),
         (rtac cont_Isfst 1),
         (rtac lub_sprod 1),
         (resolve_tac prems 1)
@@ -623,9 +623,9 @@ qed_goalw "ssplit1" Sprod3.thy [ssplit_def]
         "ssplit`f`UU=UU"
  (fn prems =>
         [
-        (rtac (beta_cfun RS ssubst) 1),
+        (stac beta_cfun 1),
         (cont_tacR 1),
-        (rtac (strictify1 RS ssubst) 1),
+        (stac strictify1 1),
         (rtac refl 1)
         ]);
 
@@ -633,17 +633,17 @@ qed_goalw "ssplit2" Sprod3.thy [ssplit_def]
         "[|x~=UU;y~=UU|] ==> ssplit`f`(|x,y|)= f`x`y"
  (fn prems =>
         [
-        (rtac (beta_cfun RS ssubst) 1),
+        (stac beta_cfun 1),
         (cont_tacR 1),
-        (rtac (strictify2 RS ssubst) 1),
+        (stac strictify2 1),
         (rtac defined_spair 1),
         (resolve_tac prems 1),
         (resolve_tac prems 1),
-        (rtac (beta_cfun RS ssubst) 1),
+        (stac beta_cfun 1),
         (cont_tacR 1),
-        (rtac (sfst2 RS ssubst) 1),
+        (stac sfst2 1),
         (resolve_tac prems 1),
-        (rtac (ssnd2 RS ssubst) 1),
+        (stac ssnd2 1),
         (resolve_tac prems 1),
         (rtac refl 1)
         ]);
@@ -653,7 +653,7 @@ qed_goalw "ssplit3" Sprod3.thy [ssplit_def]
   "ssplit`spair`z=z"
  (fn prems =>
         [
-        (rtac (beta_cfun RS ssubst) 1),
+        (stac beta_cfun 1),
         (cont_tacR 1),
         (case_tac "z=UU" 1),
         (hyp_subst_tac 1),
@@ -661,7 +661,7 @@ qed_goalw "ssplit3" Sprod3.thy [ssplit_def]
         (rtac trans 1),
         (rtac strictify2 1),
         (atac 1),
-        (rtac (beta_cfun RS ssubst) 1),
+        (stac beta_cfun 1),
         (cont_tacR 1),
         (rtac surjective_pairing_Sprod2 1)
         ]);

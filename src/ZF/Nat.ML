@@ -21,12 +21,12 @@ val nat_unfold = nat_bnd_mono RS (nat_def RS def_lfp_Tarski);
 (** Type checking of 0 and successor **)
 
 goal Nat.thy "0 : nat";
-by (rtac (nat_unfold RS ssubst) 1);
+by (stac nat_unfold 1);
 by (rtac (singletonI RS UnI1) 1);
 qed "nat_0I";
 
 val prems = goal Nat.thy "n : nat ==> succ(n) : nat";
-by (rtac (nat_unfold RS ssubst) 1);
+by (stac nat_unfold 1);
 by (rtac (RepFunI RS UnI2) 1);
 by (resolve_tac prems 1);
 qed "nat_succI";

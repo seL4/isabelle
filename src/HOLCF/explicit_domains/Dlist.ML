@@ -427,10 +427,10 @@ fun prover reach defs thm  = prove_goalw Dlist.thy defs thm
         [
         (res_inst_tac [("t","l1")] (reach RS subst) 1),
         (res_inst_tac [("t","l2")] (reach RS subst) 1),
-        (rtac (fix_def2 RS ssubst) 1),
-        (rtac (contlub_cfun_fun RS ssubst) 1),
+        (stac fix_def2 1),
+        (stac contlub_cfun_fun 1),
         (rtac is_chain_iterate 1),
-        (rtac (contlub_cfun_fun RS ssubst) 1),
+        (stac contlub_cfun_fun 1),
         (rtac is_chain_iterate 1),
         (rtac lub_equal 1),
         (rtac (is_chain_iterate RS ch2ch_fappL) 1),

@@ -379,9 +379,9 @@ qed_goal "contlub_CF2" Cont.thy
  (fn prems =>
         [
         (cut_facts_tac prems 1),
-        (rtac ((hd prems) RS cont2contlub RS contlubE RS spec RS mp RS ssubst) 1),
+        (stac ((hd prems) RS cont2contlub RS contlubE RS spec RS mp) 1),
         (atac 1),
-        (rtac (thelub_fun RS ssubst) 1),
+        (stac thelub_fun 1),
         (rtac ((hd prems) RS cont2mono RS ch2ch_monofun) 1),
         (atac 1),
         (rtac trans 1),
@@ -456,7 +456,7 @@ qed_goal "cont2cont_CF1L" Cont.thy
         (rtac ((hd prems) RS cont2contlub RS 
                 contlubE RS spec RS mp RS ssubst) 1),
         (atac 1),
-        (rtac (thelub_fun RS ssubst) 1),
+        (stac thelub_fun 1),
         (rtac ch2ch_monofun 1),
         (etac cont2mono 1),
         (atac 1),
@@ -489,7 +489,7 @@ qed_goal "cont2cont_CF1L_rev" Cont.thy
         (rtac contlubI 1),
         (strip_tac 1),
         (rtac ext 1),
-        (rtac (thelub_fun RS ssubst) 1),
+        (stac thelub_fun 1),
         (rtac (cont2mono RS allI RS mono2mono_MF1L_rev RS ch2ch_monofun) 1),
         (etac spec 1),
         (atac 1),

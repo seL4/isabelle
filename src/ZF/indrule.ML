@@ -83,8 +83,8 @@ val _ = seq (writeln o Sign.string_of_term sign) ind_prems;
 val min_ss = empty_ss
       setmksimps (map mk_meta_eq o ZF_atomize o gen_all)
       setsolver  (fn prems => resolve_tac (triv_rls@prems) 
-			      ORELSE' assume_tac
-			      ORELSE' etac FalseE);
+                              ORELSE' assume_tac
+                              ORELSE' etac FalseE);
 
 val quant_induct = 
     prove_goalw_cterm part_rec_defs 
@@ -118,13 +118,13 @@ val elem_tuple = CP.mk_tuple Pr.pair elem_type elem_frees;
 fun mk_predpair rec_tm = 
   let val rec_name = (#1 o dest_Const o head_of) rec_tm
       val pfree = Free(pred_name ^ "_" ^ rec_name,
-		       elem_factors ---> Ind_Syntax.oT)
+                       elem_factors ---> Ind_Syntax.oT)
       val qconcl = 
         foldr Ind_Syntax.mk_all 
-	  (elem_frees, 
-	   Ind_Syntax.imp $ 
-	   (Ind_Syntax.mem_const $ elem_tuple $ rec_tm)
-	         $ (list_comb (pfree, elem_frees)))
+          (elem_frees, 
+           Ind_Syntax.imp $ 
+           (Ind_Syntax.mem_const $ elem_tuple $ rec_tm)
+                 $ (list_comb (pfree, elem_frees)))
   in  (CP.ap_split elem_type Ind_Syntax.oT pfree, 
        qconcl)  
   end;
@@ -141,15 +141,15 @@ val induct_concl =
     Ind_Syntax.mk_tprop
       (Ind_Syntax.mk_all_imp
        (big_rec_tm,
-	Abs("z", Ind_Syntax.iT, 
-	    fold_bal (app Ind_Syntax.conj) 
-	    (map mk_rec_imp (Inductive.rec_tms~~preds)))))
+        Abs("z", Ind_Syntax.iT, 
+            fold_bal (app Ind_Syntax.conj) 
+            (map mk_rec_imp (Inductive.rec_tms~~preds)))))
 and mutual_induct_concl =
  Ind_Syntax.mk_tprop(fold_bal (app Ind_Syntax.conj) qconcls);
 
 val lemma_tac = FIRST' [eresolve_tac [asm_rl, conjE, PartE, mp],
-			resolve_tac [allI, impI, conjI, Part_eqI],
-			dresolve_tac [spec, mp, Pr.fsplitD]];
+                        resolve_tac [allI, impI, conjI, Part_eqI],
+                        dresolve_tac [spec, mp, Pr.fsplitD]];
 
 val lemma = (*makes the link between the two induction rules*)
     prove_goalw_cterm part_rec_defs 
@@ -157,7 +157,7 @@ val lemma = (*makes the link between the two induction rules*)
           (fn prems =>
            [cut_facts_tac prems 1, 
             REPEAT (rewrite_goals_tac [Pr.split_eq] THEN
-		    lemma_tac 1)]);
+                    lemma_tac 1)]);
 
 (*Mutual induction follows by freeness of Inl/Inr.*)
 
@@ -190,10 +190,10 @@ fun mutual_ind_tac [] 0 = all_tac
            IF_UNSOLVED (*simp_tac may have finished it off!*)
              ((*simplify assumptions*)
               (*some risk of excessive simplification here -- might have
-	        to identify the bare minimum set of rewrites*)
+                to identify the bare minimum set of rewrites*)
               full_simp_tac 
-	         (mut_ss addsimps (conj_simps @ imp_simps @ quant_simps)) 1
-	      THEN
+                 (mut_ss addsimps (conj_simps @ imp_simps @ quant_simps)) 1
+              THEN
               (*unpackage and use "prem" in the corresponding place*)
               REPEAT (rtac impI 1)  THEN
               rtac (rewrite_rule all_defs prem) 1  THEN
@@ -225,7 +225,7 @@ val mutual_induct_fsplit =
 val inst = 
     case elem_frees of [_] => I
        | _ => instantiate ([], [(cterm_of sign (Var(("x",1), Ind_Syntax.iT)), 
-				 cterm_of sign elem_tuple)]);
+                                 cterm_of sign elem_tuple)]);
 
 (*strip quantifier and the implication*)
 val induct0 = inst (quant_induct RS spec RSN (2,rev_mp));
@@ -236,8 +236,8 @@ in
   (*strip quantifier*)
   val induct = standard 
                   (CP.split_rule_var
-		    (Var((pred_name,2), elem_type --> Ind_Syntax.oT),
-		     induct0));
+                    (Var((pred_name,2), elem_type --> Ind_Syntax.oT),
+                     induct0));
 
   (*Just "True" unless there's true mutual recursion.  This saves storage.*)
   val mutual_induct = 

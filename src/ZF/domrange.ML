@@ -79,7 +79,7 @@ qed_goalw "rangeE" ZF.thy [range_def]
 
 qed_goalw "range_subset" ZF.thy [range_def] "range(A*B) <= B"
  (fn _ =>
-  [ (rtac (converse_prod RS ssubst) 1),
+  [ (stac converse_prod 1),
     (rtac domain_subset 1) ]);
 
 

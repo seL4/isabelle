@@ -207,7 +207,7 @@ bind_thm ("underD", (vimage_singleton_iff RS iffD1));
 
 val [major] = goalw WF.thy [is_recfun_def]
     "is_recfun(r,a,H,f) ==> f: r-``{a} -> range(f)";
-by (rtac (major RS ssubst) 1);
+by (stac major 1);
 by (rtac (lamI RS rangeI RS lam_type) 1);
 by (assume_tac 1);
 qed "is_recfun_type";
@@ -300,7 +300,7 @@ qed "the_recfun_cut";
 goalw WF.thy [wftrec_def]
     "!!r. [| wf(r);  trans(r) |] ==> \
 \         wftrec(r,a,H) = H(a, lam x: r-``{a}. wftrec(r,x,H))";
-by (rtac (rewrite_rule [is_recfun_def] unfold_the_recfun RS ssubst) 1);
+by (stac (rewrite_rule [is_recfun_def] unfold_the_recfun) 1);
 by (ALLGOALS (asm_simp_tac
         (ZF_ss addsimps [vimage_singleton_iff RS iff_sym, the_recfun_cut])));
 qed "wftrec";
@@ -310,7 +310,7 @@ qed "wftrec";
 (*NOT SUITABLE FOR REWRITING since it is recursive!*)
 val [wfr] = goalw WF.thy [wfrec_def]
     "wf(r) ==> wfrec(r,a,H) = H(a, lam x:r-``{a}. wfrec(r,x,H))";
-by (rtac (wfr RS wf_trancl RS wftrec RS ssubst) 1);
+by (stac (wfr RS wf_trancl RS wftrec) 1);
 by (rtac trans_trancl 1);
 by (rtac (vimage_pair_mono RS restrict_lam_eq RS subst_context) 1);
 by (etac r_into_trancl 1);
@@ -330,7 +330,7 @@ val prems = goal WF.thy
 \       !!x u. [| x: A;  u: Pi(r-``{x}, B) |] ==> H(x,u) : B(x)   \
 \    |] ==> wfrec(r,a,H) : B(a)";
 by (res_inst_tac [("a","a")] wf_induct2 1);
-by (rtac (wfrec RS ssubst) 4);
+by (stac wfrec 4);
 by (REPEAT (ares_tac (prems@[lam_type]) 1
      ORELSE eresolve_tac [spec RS mp, underD] 1));
 qed "wfrec_type";

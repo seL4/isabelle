@@ -40,7 +40,7 @@ qed_goal "contlub_pair1" Cprod3.thy "contlub(Pair)"
         (strip_tac 1),
         (rtac (expand_fun_eq RS iffD2) 1),
         (strip_tac 1),
-        (rtac (lub_fun RS thelubI RS ssubst) 1),
+        (stac (lub_fun RS thelubI) 1),
         (etac (monofun_pair1 RS ch2ch_monofun) 1),
         (rtac trans 1),
         (rtac (thelub_cprod RS sym) 2),
@@ -101,7 +101,7 @@ qed_goal "contlub_fst" Cprod3.thy "contlub(fst)"
         [
         (rtac contlubI 1),
         (strip_tac 1),
-        (rtac (lub_cprod RS thelubI RS ssubst) 1),
+        (stac (lub_cprod RS thelubI) 1),
         (atac 1),
         (Simp_tac 1)
         ]);
@@ -111,7 +111,7 @@ qed_goal "contlub_snd" Cprod3.thy "contlub(snd)"
         [
         (rtac contlubI 1),
         (strip_tac 1),
-        (rtac (lub_cprod RS thelubI RS ssubst) 1),
+        (stac (lub_cprod RS thelubI) 1),
         (atac 1),
         (Simp_tac 1)
         ]);
@@ -147,12 +147,12 @@ qed_goalw "beta_cfun_cprod" Cprod3.thy [cpair_def]
         "(LAM x y.(x,y))`a`b = (a,b)"
  (fn prems =>
         [
-        (rtac (beta_cfun RS ssubst) 1),
+        (stac beta_cfun 1),
         (cont_tac 1),
         (rtac cont_pair2 1),
         (rtac cont2cont_CF1L 1),
         (rtac cont_pair1 1),
-        (rtac (beta_cfun RS ssubst) 1),
+        (stac beta_cfun 1),
         (rtac cont_pair2 1),
         (rtac refl 1)
         ]);
@@ -211,8 +211,8 @@ qed_goalw "cfst2" Cprod3.thy [cfst_def,cpair_def]
  (fn prems =>
         [
         (cut_facts_tac prems 1),
-        (rtac (beta_cfun_cprod RS ssubst) 1),
-        (rtac (beta_cfun RS ssubst) 1),
+        (stac beta_cfun_cprod 1),
+        (stac beta_cfun 1),
         (rtac cont_fst 1),
         (Simp_tac  1)
         ]);
@@ -222,8 +222,8 @@ qed_goalw "csnd2" Cprod3.thy [csnd_def,cpair_def]
  (fn prems =>
         [
         (cut_facts_tac prems 1),
-        (rtac (beta_cfun_cprod RS ssubst) 1),
-        (rtac (beta_cfun RS ssubst) 1),
+        (stac beta_cfun_cprod 1),
+        (stac beta_cfun 1),
         (rtac cont_snd 1),
         (Simp_tac  1)
         ]);
@@ -232,10 +232,10 @@ qed_goalw "surjective_pairing_Cprod2" Cprod3.thy
         [cfst_def,csnd_def,cpair_def] "<cfst`p , csnd`p> = p"
  (fn prems =>
         [
-        (rtac (beta_cfun_cprod RS ssubst) 1),
-        (rtac (beta_cfun RS ssubst) 1),
+        (stac beta_cfun_cprod 1),
+        (stac beta_cfun 1),
         (rtac cont_snd 1),
-        (rtac (beta_cfun RS ssubst) 1),
+        (stac beta_cfun 1),
         (rtac cont_fst 1),
         (rtac (surjective_pairing RS sym) 1)
         ]);
@@ -245,13 +245,13 @@ qed_goalw "less_cprod5b" Cprod3.thy [cfst_def,csnd_def,cpair_def]
  " (p1 << p2) = (cfst`p1 << cfst`p2 & csnd`p1 << csnd`p2)"
  (fn prems =>
         [
-        (rtac (beta_cfun RS ssubst) 1),
+        (stac beta_cfun 1),
         (rtac cont_snd 1),
-        (rtac (beta_cfun RS ssubst) 1),
+        (stac beta_cfun 1),
         (rtac cont_snd 1),
-        (rtac (beta_cfun RS ssubst) 1),
+        (stac beta_cfun 1),
         (rtac cont_fst 1),
-        (rtac (beta_cfun RS ssubst) 1),
+        (stac beta_cfun 1),
         (rtac cont_fst 1),
         (rtac less_cprod3b 1)
         ]);
@@ -274,10 +274,10 @@ qed_goalw "lub_cprod2" Cprod3.thy [cfst_def,csnd_def,cpair_def]
  (fn prems =>
         [
         (cut_facts_tac prems 1),
-        (rtac (beta_cfun_cprod RS ssubst) 1),
-        (rtac (beta_cfun RS ext RS ssubst) 1),
+        (stac beta_cfun_cprod 1),
+        (stac (beta_cfun RS ext) 1),
         (rtac cont_snd 1),
-        (rtac (beta_cfun RS ext RS ssubst) 1),
+        (stac (beta_cfun RS ext) 1),
         (rtac cont_fst 1),
         (rtac lub_cprod 1),
         (atac 1)
@@ -293,7 +293,7 @@ qed_goalw "csplit2" Cprod3.thy [csplit_def]
         "csplit`f`<x,y> = f`x`y"
  (fn prems =>
         [
-        (rtac (beta_cfun RS ssubst) 1),
+        (stac beta_cfun 1),
         (cont_tacR 1),
         (Simp_tac 1),
         (simp_tac (!simpset addsimps [cfst2,csnd2]) 1)
@@ -303,7 +303,7 @@ qed_goalw "csplit3" Cprod3.thy [csplit_def]
   "csplit`cpair`z=z"
  (fn prems =>
         [
-        (rtac (beta_cfun RS ssubst) 1),
+        (stac beta_cfun 1),
         (cont_tacR 1),
         (simp_tac (!simpset addsimps [surjective_pairing_Cprod2]) 1)
         ]);

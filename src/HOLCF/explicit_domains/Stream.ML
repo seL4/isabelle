@@ -311,20 +311,20 @@ val stream_rews = [stream_iso_strict RS conjunct1,
 
 fun prover reach defs thm  = prove_goalw Stream.thy defs thm
  (fn prems =>
-	[
-	(res_inst_tac [("t","s1")] (reach RS subst) 1),
-	(res_inst_tac [("t","s2")] (reach RS subst) 1),
-	(rtac (fix_def2 RS ssubst) 1),
-	(rtac (contlub_cfun_fun RS ssubst) 1),
-	(rtac is_chain_iterate 1),
-	(rtac (contlub_cfun_fun RS ssubst) 1),
-	(rtac is_chain_iterate 1),
-	(rtac lub_equal 1),
-	(rtac (is_chain_iterate RS ch2ch_fappL) 1),
-	(rtac (is_chain_iterate RS ch2ch_fappL) 1),
-	(rtac allI 1),
-	(resolve_tac prems 1),
-	]);
+        [
+        (res_inst_tac [("t","s1")] (reach RS subst) 1),
+        (res_inst_tac [("t","s2")] (reach RS subst) 1),
+        (stac fix_def2 1),
+        (stac contlub_cfun_fun 1),
+        (rtac is_chain_iterate 1),
+        (stac contlub_cfun_fun 1),
+        (rtac is_chain_iterate 1),
+        (rtac lub_equal 1),
+        (rtac (is_chain_iterate RS ch2ch_fappL) 1),
+        (rtac (is_chain_iterate RS ch2ch_fappL) 1),
+        (rtac allI 1),
+        (resolve_tac prems 1),
+        ]);
 
 val stream_take_lemma = prover stream_reach  [stream_take_def]
         "(!!n.stream_take n`s1 = stream_take n`s2) ==> s1=s2";
@@ -334,9 +334,9 @@ qed_goal "stream_reach2" Stream.thy  "lub(range(%i.stream_take i`s))=s"
  (fn prems =>
         [
         (res_inst_tac [("t","s")] (stream_reach RS subst) 1),
-        (rtac (fix_def2 RS ssubst) 1),
+        (stac fix_def2 1),
         (rewtac stream_take_def),
-        (rtac (contlub_cfun_fun RS ssubst) 1),
+        (stac contlub_cfun_fun 1),
         (rtac is_chain_iterate 1),
         (rtac refl 1)
         ]);
@@ -640,9 +640,9 @@ qed_goal "stream_take_lemma5" Stream.thy
         (strip_tac 1),
         (res_inst_tac [("s","s")] streamE 1),
         (hyp_subst_tac 1),
-        (rtac (iterate_Suc2 RS ssubst) 1),
+        (stac iterate_Suc2 1),
         (asm_simp_tac (!simpset addsimps stream_rews) 1),
-        (rtac (iterate_Suc2 RS ssubst) 1),
+        (stac iterate_Suc2 1),
         (asm_simp_tac (!simpset addsimps stream_rews) 1),
         (etac allE 1),
         (etac mp 1),
@@ -664,7 +664,7 @@ qed_goal "stream_take_lemma6" Stream.thy
         (hyp_subst_tac 1),
         (asm_simp_tac (!simpset addsimps stream_rews) 1),
         (hyp_subst_tac 1),
-        (rtac (iterate_Suc2 RS ssubst) 1),
+        (stac iterate_Suc2 1),
         (asm_simp_tac (!simpset addsimps stream_rews) 1)
         ]);
 
@@ -833,7 +833,7 @@ qed_goal "adm_not_stream_finite" Stream.thy "adm(%s. ~ stream_finite(s))"
         (REPEAT(resolve_tac adm_thms 1)),
         (rtac  cont_iterate2 1),
         (rtac allI 1),
-        (rtac (stream_finite_lemma8 RS ssubst) 1),
+        (stac stream_finite_lemma8 1),
         (fast_tac HOL_cs 1)
         ]);
 

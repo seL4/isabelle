@@ -15,14 +15,14 @@ open Lift3;
 qed_goal "less_lift3b" Lift3.thy "~ Iup(x) << UU"
  (fn prems =>
         [
-        (rtac (inst_lift_pcpo RS ssubst) 1),
+        (stac inst_lift_pcpo 1),
         (rtac less_lift2b 1)
         ]);
 
 qed_goal "defined_Iup2" Lift3.thy "Iup(x) ~= UU"
  (fn prems =>
         [
-        (rtac (inst_lift_pcpo RS ssubst) 1),
+        (stac inst_lift_pcpo 1),
         (rtac defined_Iup 1)
         ]);
 
@@ -83,11 +83,11 @@ qed_goal "contlub_Ilift2" Lift3.thy "contlub(Ilift(f))"
         (rtac contlubI 1),
         (strip_tac 1),
         (rtac disjE 1),
-        (rtac (thelub_lift1a RS ssubst) 2),
+        (stac thelub_lift1a 2),
         (atac 2),
         (atac 2),
         (asm_simp_tac Lift0_ss 2),
-        (rtac (thelub_lift1b RS ssubst) 3),
+        (stac thelub_lift1b 3),
         (atac 3),
         (atac 3),
         (fast_tac HOL_cs 1),
@@ -100,7 +100,7 @@ qed_goal "contlub_Ilift2" Lift3.thy "contlub(Ilift(f))"
         (dtac spec 2),
         (etac spec 2),
         (atac 2),
-        (rtac (contlub_cfun_arg RS ssubst) 1),
+        (stac contlub_cfun_arg 1),
         (etac (monofun_Ilift2 RS ch2ch_monofun) 1),
         (rtac lub_equal2 1),
         (rtac (monofun_fapp2 RS ch2ch_monofun) 2),
@@ -120,7 +120,7 @@ qed_goal "contlub_Ilift2" Lift3.thy "contlub(Ilift(f))"
         (asm_simp_tac Lift0_ss 2),
         (res_inst_tac [("P","Y(i) = UU")] notE 1),
         (fast_tac HOL_cs 1),
-        (rtac (inst_lift_pcpo RS ssubst) 1),
+        (stac inst_lift_pcpo 1),
         (atac 1)
         ]);
 
@@ -149,7 +149,7 @@ qed_goalw "Exh_Lift1" Lift3.thy [up_def] "z = UU | (? x. z = up`x)"
  (fn prems =>
         [
         (simp_tac (Lift0_ss addsimps [cont_Iup]) 1),
-        (rtac (inst_lift_pcpo RS ssubst) 1),
+        (stac inst_lift_pcpo 1),
         (rtac Exh_Lift 1)
         ]);
 
@@ -185,11 +185,11 @@ qed_goalw "liftE1" Lift3.thy [up_def]
 qed_goalw "lift1" Lift3.thy [up_def,lift_def] "lift`f`UU=UU"
  (fn prems =>
         [
-        (rtac (inst_lift_pcpo RS ssubst) 1),
-        (rtac (beta_cfun RS ssubst) 1),
+        (stac inst_lift_pcpo 1),
+        (stac beta_cfun 1),
         (REPEAT (resolve_tac (cont_lemmas @ [cont_Iup,cont_Ilift1,
                 cont_Ilift2,cont2cont_CF1L]) 1)),
-        (rtac (beta_cfun RS ssubst) 1),
+        (stac beta_cfun 1),
         (REPEAT (resolve_tac (cont_lemmas @ [cont_Iup,cont_Ilift1,
                 cont_Ilift2,cont2cont_CF1L]) 1)),
         (simp_tac (Lift0_ss addsimps [cont_Iup,cont_Ilift1,cont_Ilift2]) 1)
@@ -198,12 +198,12 @@ qed_goalw "lift1" Lift3.thy [up_def,lift_def] "lift`f`UU=UU"
 qed_goalw "lift2" Lift3.thy [up_def,lift_def] "lift`f`(up`x)=f`x"
  (fn prems =>
         [
-        (rtac (beta_cfun RS ssubst) 1),
+        (stac beta_cfun 1),
         (rtac cont_Iup 1),
-        (rtac (beta_cfun RS ssubst) 1),
+        (stac beta_cfun 1),
         (REPEAT (resolve_tac (cont_lemmas @ [cont_Iup,cont_Ilift1,
                 cont_Ilift2,cont2cont_CF1L]) 1)),
-        (rtac (beta_cfun RS ssubst) 1),
+        (stac beta_cfun 1),
         (rtac cont_Ilift2 1),
         (simp_tac (Lift0_ss addsimps [cont_Iup,cont_Ilift1,cont_Ilift2]) 1)
         ]);
@@ -229,14 +229,14 @@ qed_goalw "thelub_lift2a" Lift3.thy [up_def,lift_def]
  (fn prems =>
         [
         (cut_facts_tac prems 1),
-        (rtac (beta_cfun RS ssubst) 1),
+        (stac beta_cfun 1),
         (REPEAT (resolve_tac (cont_lemmas @ [cont_Iup,cont_Ilift1,
                 cont_Ilift2,cont2cont_CF1L]) 1)),
-        (rtac (beta_cfun RS ssubst) 1),
+        (stac beta_cfun 1),
         (REPEAT (resolve_tac (cont_lemmas @ [cont_Iup,cont_Ilift1,
                 cont_Ilift2,cont2cont_CF1L]) 1)),
 
-        (rtac (beta_cfun RS ext RS ssubst) 1),
+        (stac (beta_cfun RS ext) 1),
         (REPEAT (resolve_tac (cont_lemmas @ [cont_Iup,cont_Ilift1,
                 cont_Ilift2,cont2cont_CF1L]) 1)),
         (rtac thelub_lift1a 1),
@@ -257,7 +257,7 @@ qed_goalw "thelub_lift2b" Lift3.thy [up_def,lift_def]
  (fn prems =>
         [
         (cut_facts_tac prems 1),
-        (rtac (inst_lift_pcpo RS ssubst) 1),
+        (stac inst_lift_pcpo 1),
         (rtac thelub_lift1b 1),
         (atac 1),
         (strip_tac 1),

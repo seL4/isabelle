@@ -28,7 +28,7 @@ val from = prove_goal Coind.thy "from`n = scons`n`(from`(dsucc`n))"
  (fn prems =>
         [
         (rtac trans 1),
-        (rtac (from_def2 RS ssubst) 1),
+        (stac from_def2 1),
         (Simp_tac 1),
         (rtac refl 1)
         ]);
@@ -38,7 +38,7 @@ val from1 = prove_goal Coind.thy "from`UU = UU"
  (fn prems =>
         [
         (rtac trans 1),
-        (rtac (from RS ssubst) 1),
+        (stac from 1),
         (resolve_tac  stream_constrdef 1),
         (rtac refl 1)
         ]);
@@ -119,17 +119,17 @@ val nats_eq_from = prove_goal Coind.thy "nats = from`dzero"
         (etac conjE 1),
         (hyp_subst_tac 1),
         (rtac conjI 1),
-        (rtac (coind_lemma1 RS ssubst) 1),
-        (rtac (from RS ssubst) 1),
+        (stac coind_lemma1 1),
+        (stac from 1),
         (asm_simp_tac (!simpset addsimps stream_rews) 1),
         (res_inst_tac [("x","dsucc`n")] exI 1),
         (rtac conjI 1),
         (rtac trans 1),
-        (rtac (coind_lemma1 RS ssubst) 1),
+        (stac coind_lemma1 1),
         (asm_simp_tac (!simpset addsimps stream_rews) 1),
         (rtac refl 1),
         (rtac trans 1),
-        (rtac (from RS ssubst) 1),
+        (stac from 1),
         (asm_simp_tac (!simpset addsimps stream_rews) 1),
         (rtac refl 1),
         (res_inst_tac [("x","dzero")] exI 1),

@@ -23,7 +23,7 @@ prove_goalw Tr1.thy [TT_def] "~TT << UU"
         (rtac (rep_tr_iso RS subst) 1),
         (rtac (rep_tr_iso RS subst) 1),
         (rtac cfun_arg_cong 1),
-        (rtac ((abs_tr_iso RS allI) RS ((rep_tr_iso RS allI) RS iso_strict )            RS conjunct2 RS ssubst) 1),
+        (stac ((abs_tr_iso RS allI) RS ((rep_tr_iso RS allI) RS iso_strict )            RS conjunct2) 1),
         (etac (eq_UU_iff RS ssubst) 1)
         ]),
 prove_goalw Tr1.thy [FF_def] "~FF << UU"
@@ -36,7 +36,7 @@ prove_goalw Tr1.thy [FF_def] "~FF << UU"
         (rtac (rep_tr_iso RS subst) 1),
         (rtac (rep_tr_iso RS subst) 1),
         (rtac cfun_arg_cong 1),
-        (rtac ((abs_tr_iso RS allI) RS ((rep_tr_iso RS allI) RS iso_strict )            RS conjunct2 RS ssubst) 1),
+        (stac ((abs_tr_iso RS allI) RS ((rep_tr_iso RS allI) RS iso_strict )            RS conjunct2) 1),
         (etac (eq_UU_iff RS ssubst) 1)
         ]),
 prove_goalw Tr1.thy [FF_def,TT_def] "~TT << FF"

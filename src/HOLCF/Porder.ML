@@ -62,7 +62,7 @@ qed_goalw "chain_mono" Porder.thy [is_chain]
         (nat_ind_tac "y" 1),
         (rtac impI 1),
         (etac less_zeroE 1),
-        (rtac (less_Suc_eq RS ssubst) 1),
+        (stac less_Suc_eq 1),
         (strip_tac 1),
         (etac disjE 1),
         (rtac trans_less 1),
@@ -108,7 +108,7 @@ qed_goal "lubI" Porder.thy "(? x. M <<| x) ==> M <<| lub(M)"
 (fn prems =>
         [
         (cut_facts_tac prems 1),
-        (rtac (lub RS ssubst) 1),
+        (stac lub 1),
         (etac (select_eq_Ex RS iffD2) 1)
         ]);
 
@@ -123,7 +123,7 @@ qed_goal "lub_eq" Porder.thy
         "(? x. M <<| x)  = M <<| lub(M)"
 (fn prems => 
         [
-        (rtac (lub RS ssubst) 1),
+        (stac lub 1),
         (rtac (select_eq_Ex RS subst) 1),
         (rtac refl 1)
         ]);
@@ -134,7 +134,7 @@ qed_goal "thelubI"  Porder.thy " M <<| l ==> lub(M) = l"
         [
         (cut_facts_tac prems 1), 
         (rtac unique_lub 1),
-        (rtac (lub RS ssubst) 1),
+        (stac lub 1),
         (etac selectI 1),
         (atac 1)
         ]);
@@ -217,7 +217,7 @@ bind_thm ("is_lub_lub", is_lubE RS conjunct2 RS spec RS mp);
 qed_goal "less_void" Porder.thy "((u1::void) << u2) = (u1 = u2)"
 (fn prems =>
         [
-        (rtac (inst_void_po RS ssubst) 1),
+        (stac inst_void_po 1),
         (rewtac less_void_def),
         (rtac iffI 1),
         (rtac injD 1),
@@ -234,7 +234,7 @@ qed_goal "less_void" Porder.thy "((u1::void) << u2) = (u1 = u2)"
 qed_goal "minimal_void" Porder.thy      "UU_void << x"
 (fn prems =>
         [
-        (rtac (inst_void_po RS ssubst) 1),
+        (stac inst_void_po 1),
         (rewtac less_void_def),
         (simp_tac (!simpset addsimps [unique_void]) 1)
         ]);
@@ -249,7 +249,7 @@ qed_goalw "lub_void"  Porder.thy [is_lub] "M <<| UU_void"
         (rtac conjI 1),
         (rewtac is_ub),
         (strip_tac 1),
-        (rtac (inst_void_po RS ssubst) 1),
+        (stac inst_void_po 1),
         (rewtac less_void_def),
         (simp_tac (!simpset addsimps [unique_void]) 1),
         (strip_tac 1),

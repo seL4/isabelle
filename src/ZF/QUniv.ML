@@ -19,7 +19,7 @@ qed "Transset_includes_summands";
 
 val [prem] = goalw QUniv.thy [sum_def]
     "Transset(C) ==> (A+B) Int C <= (A Int C) + (B Int C)";
-by (rtac (Int_Un_distrib RS ssubst) 1);
+by (stac Int_Un_distrib 1);
 by (fast_tac (ZF_cs addSDs [prem RS Transset_Pair_D]) 1);
 qed "Transset_sum_Int_subset";
 
@@ -201,7 +201,7 @@ qed "product_Int_Vfrom_subset";
 goalw QUniv.thy [QPair_def,sum_def]
  "!!X. Transset(X) ==>          \
 \      <a;b> Int Vfrom(X, succ(i))  <=  <a Int Vfrom(X,i);  b Int Vfrom(X,i)>";
-by (rtac (Int_Un_distrib RS ssubst) 1);
+by (stac Int_Un_distrib 1);
 by (rtac Un_mono 1);
 by (REPEAT (ares_tac [product_Int_Vfrom_subset RS subset_trans,
                       [Int_lower1, subset_refl] MRS Sigma_mono] 1));
@@ -226,7 +226,7 @@ goal QUniv.thy
 \      |] ==> <a;b> Int Vset(i)  <=  (UN j:i. <a Int Vset(j); b Int Vset(j)>)";
 by (etac Ord_cases 1 THEN REPEAT_FIRST hyp_subst_tac);
 (*0 case*)
-by (rtac (Vfrom_0 RS ssubst) 1);
+by (stac Vfrom_0 1);
 by (fast_tac ZF_cs 1);
 (*succ(j) case*)
 by (rtac (Transset_0 RS QPair_Int_Vfrom_succ_subset RS subset_trans) 1);

@@ -23,7 +23,7 @@ qed_goalw "antisym_less_fun" Fun1.thy [less_fun_def]
 (fn prems =>
         [
         (cut_facts_tac prems 1),
-        (rtac (expand_fun_eq RS ssubst) 1),
+        (stac expand_fun_eq 1),
         (fast_tac (HOL_cs addSIs [antisym_less]) 1)
         ]);
 

@@ -4,7 +4,7 @@
 
 val prems = goalw Fix.thy [Ifix_def]
 "Ifix F= lub (range (%i.%G.iterate i G UU)) F";
-by (rtac (thelub_fun RS ssubst) 1);
+by (stac thelub_fun 1);
 by (rtac ch2ch_fun 1);
 back();
 by (rtac refl 2);
@@ -59,7 +59,7 @@ by (subgoal_tac
         "(% i.iterate i f UU) = (%j.(LAM f. iterate j f UU)`f)" 1);
 by (etac arg_cong 1);
 by (rtac ext 1);
-by (rtac (beta_cfun RS ssubst) 1);
+by (stac beta_cfun 1);
 by (rtac  cont2cont_CF1L 1);
 by (rtac cont_iterate 1);
 by (rtac refl 1);
@@ -67,10 +67,10 @@ by (rtac cont_lubcfun 1);
 by (rtac is_chainI 1);
 by (strip_tac 1);
 by (rtac less_cfun2 1);
-by (rtac (beta_cfun RS ssubst) 1);
+by (stac beta_cfun 1);
 by (rtac  cont2cont_CF1L 1);
 by (rtac cont_iterate 1);
-by (rtac (beta_cfun RS ssubst) 1);
+by (stac beta_cfun 1);
 by (rtac  cont2cont_CF1L 1);
 by (rtac cont_iterate 1);
 by (rtac (is_chain_iterate RS is_chainE RS spec) 1);
@@ -81,7 +81,7 @@ val cont_Ifix2 = result();
 val prems = goal Fix.thy  
 "(% i.iterate i f UU) = (%j.(LAM f. iterate j f UU)`f)";
 by (rtac ext 1);
-by (rtac (beta_cfun RS ssubst) 1);
+by (stac beta_cfun 1);
 by (rtac  cont2cont_CF1L 1);
 by (rtac cont_iterate 1);
 by (rtac refl 1);
@@ -91,7 +91,7 @@ val prems = goal Fix.thy
 " Ifix = (%f.lub(range(%j.(LAM f.iterate j f UU)`f)))";
 by (rtac ext 1);
 by (rewtac Ifix_def ); 
-by (rtac (fix_lemma1 RS ssubst) 1);
+by (stac fix_lemma1 1);
 by (rtac refl 1);
 val fix_lemma2 = result();
 
@@ -102,15 +102,15 @@ val it = "is_chain ?F ==> cont (%x. lub (range (%j. ?F j`x)))" : thm
 *)
 
 val prems = goal Fix.thy "cont Ifix";
-by (rtac ( fix_lemma2  RS ssubst) 1);
+by (stac fix_lemma2 1);
 by (rtac cont_lubcfun 1);
 by (rtac is_chainI 1);
 by (strip_tac 1);
 by (rtac less_cfun2 1);
-by (rtac (beta_cfun RS ssubst) 1);
+by (stac beta_cfun 1);
 by (rtac  cont2cont_CF1L 1);
 by (rtac cont_iterate 1);
-by (rtac (beta_cfun RS ssubst) 1);
+by (stac beta_cfun 1);
 by (rtac  cont2cont_CF1L 1);
 by (rtac cont_iterate 1);
 by (rtac (is_chain_iterate RS is_chainE RS spec) 1);

@@ -34,7 +34,7 @@ goal Cardinal_AC.thy
     "!!A. [| |A|=|B|;  |C|=|D|;  A Int C = 0;  B Int D = 0 |] ==> \
 \         |A Un C| = |B Un D|";
 by (asm_full_simp_tac (ZF_ss addsimps [cardinal_eqpoll_iff, 
-				       eqpoll_disjoint_Un]) 1);
+                                       eqpoll_disjoint_Un]) 1);
 qed "cardinal_disjoint_Un";
 
 goal Cardinal_AC.thy "!!A B. A lepoll B ==> |A| le |B|";

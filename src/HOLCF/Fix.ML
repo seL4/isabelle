@@ -31,10 +31,10 @@ qed_goal "iterate_Suc2" Fix.thy "iterate (Suc n) F x = iterate n F (F`x)"
         [
         (nat_ind_tac "n" 1),
         (Simp_tac 1),
-	(rtac (iterate_Suc RS ssubst) 1),
-	(rtac (iterate_Suc RS ssubst) 1),
-	(etac ssubst 1),
-	(rtac refl 1)
+        (stac iterate_Suc 1),
+        (stac iterate_Suc 1),
+        (etac ssubst 1),
+        (rtac refl 1)
         ]);
 
 (* ------------------------------------------------------------------------ *)
@@ -74,7 +74,7 @@ qed_goal "is_chain_iterate" Fix.thy
 qed_goalw "Ifix_eq" Fix.thy  [Ifix_def] "Ifix F =F`(Ifix F)"
  (fn prems =>
         [
-        (rtac (contlub_cfun_arg RS ssubst) 1),
+        (stac contlub_cfun_arg 1),
         (rtac is_chain_iterate 1),
         (rtac antisym_less 1),
         (rtac lub_mono 1),
@@ -146,7 +146,7 @@ qed_goalw "contlub_iterate" Fix.thy  [contlub] "contlub(iterate(i))"
         (rtac (lub_const RS thelubI RS sym) 1),
         (Asm_simp_tac 1),
         (rtac ext 1),
-        (rtac (thelub_fun RS ssubst) 1),
+        (stac thelub_fun 1),
         (rtac is_chainI 1),
         (rtac allI 1),
         (rtac (less_fun RS iffD2) 1),
@@ -159,7 +159,7 @@ qed_goalw "contlub_iterate" Fix.thy  [contlub] "contlub(iterate(i))"
         (rtac ch2ch_fun 1),
         (rtac (monofun_iterate RS ch2ch_monofun) 1),
         (atac 1),
-        (rtac (thelub_fun RS ssubst) 1),
+        (stac thelub_fun 1),
         (rtac (monofun_iterate RS ch2ch_monofun) 1),
         (atac 1),
         (rtac contlub_cfun  1),
@@ -266,7 +266,7 @@ qed_goal "contlub_Ifix_lemma1" Fix.thy
         (rtac (monofun_iterate RS ch2ch_monofun) 1),
         (atac 1),
         (rtac fun_cong 1),
-        (rtac (contlub_iterate RS contlubE RS spec RS mp RS ssubst) 1),
+        (stac (contlub_iterate RS contlubE RS spec RS mp) 1),
         (atac 1),
         (rtac refl 1)
         ]);
@@ -310,7 +310,7 @@ qed_goalw "contlub_Ifix" Fix.thy  [contlub,Ifix_def] "contlub(Ifix)"
  (fn prems =>
         [
         (strip_tac 1),
-        (rtac (contlub_Ifix_lemma1 RS ext RS ssubst) 1),
+        (stac (contlub_Ifix_lemma1 RS ext) 1),
         (atac 1),
         (etac ex_lub_iterate 1)
         ]);
@@ -488,15 +488,15 @@ qed_goal "fix_ind"  Fix.thy
  (fn prems =>
         [
         (cut_facts_tac prems 1),
-        (rtac (fix_def2 RS ssubst) 1),
+        (stac fix_def2 1),
         (rtac (adm_def2 RS iffD1 RS spec RS mp RS mp) 1),
         (atac 1),
         (rtac is_chain_iterate 1),
         (rtac allI 1),
         (nat_ind_tac "i" 1),
-        (rtac (iterate_0 RS ssubst) 1),
+        (stac iterate_0 1),
         (atac 1),
-        (rtac (iterate_Suc RS ssubst) 1),
+        (stac iterate_Suc 1),
         (resolve_tac prems 1),
         (atac 1)
         ]);
@@ -510,7 +510,7 @@ qed_goal "wfix_ind"  Fix.thy
  (fn prems =>
         [
         (cut_facts_tac prems 1),
-        (rtac (fix_def2 RS ssubst) 1),
+        (stac fix_def2 1),
         (rtac (admw_def2 RS iffD1 RS spec RS mp) 1),
         (atac 1),
         (rtac allI 1),
@@ -531,7 +531,7 @@ qed_goalw "adm_max_in_chain"  Fix.thy  [adm_def]
         (rtac mp 1),
         (etac spec 1),
         (atac 1),
-        (rtac (lub_finch1 RS thelubI RS ssubst) 1),
+        (stac (lub_finch1 RS thelubI) 1),
         (atac 1),
         (atac 1),
         (etac spec 1)
@@ -598,9 +598,9 @@ qed_goalw "flat_void" Fix.thy [is_flat_def] "is_flat(UU::void)"
         ]);
 
 qed_goalw "flat_eq" Fix.thy [is_flat_def] 
-	"[| is_flat (x::'a); (a::'a) ~= UU |] ==> a << b = (a = b)" (fn prems=>[
-	(cut_facts_tac prems 1),
-	(fast_tac (HOL_cs addIs [refl_less]) 1)]);
+        "[| is_flat (x::'a); (a::'a) ~= UU |] ==> a << b = (a = b)" (fn prems=>[
+        (cut_facts_tac prems 1),
+        (fast_tac (HOL_cs addIs [refl_less]) 1)]);
 
 (* ------------------------------------------------------------------------ *)
 (* lemmata for improved admissibility introdution rule                      *)
@@ -611,35 +611,35 @@ qed_goal "infinite_chain_adm_lemma" Porder.thy
 \  (!!Y. [| is_chain Y; !i. P (Y i); ~ finite_chain Y |] ==> P (lub (range Y)))\
 \ |] ==> P (lub (range Y))"
  (fn prems => [
-	cut_facts_tac prems 1,
-	case_tac "finite_chain Y" 1,
-	 eresolve_tac prems 2, atac 2, atac 2,
-	rewtac finite_chain_def,
-	safe_tac HOL_cs,
-	etac (lub_finch1 RS thelubI RS ssubst) 1, atac 1, etac spec 1]);
+        cut_facts_tac prems 1,
+        case_tac "finite_chain Y" 1,
+         eresolve_tac prems 2, atac 2, atac 2,
+        rewtac finite_chain_def,
+        safe_tac HOL_cs,
+        etac (lub_finch1 RS thelubI RS ssubst) 1, atac 1, etac spec 1]);
 
 qed_goal "increasing_chain_adm_lemma" Porder.thy 
 "[|is_chain Y; !i. P (Y i); \
 \  (!!Y. [| is_chain Y; !i. P (Y i); !i. ? j. i < j & Y i ~= Y j & Y i << Y j|]\
 \ ==> P (lub (range Y))) |] ==> P (lub (range Y))"
  (fn prems => [
-	cut_facts_tac prems 1,
-	etac infinite_chain_adm_lemma 1, atac 1, etac thin_rl 1,
-	rewtac finite_chain_def,
-	safe_tac HOL_cs,
-	etac swap 1,
-	rewtac max_in_chain_def,
-	resolve_tac prems 1, atac 1, atac 1,
-	fast_tac (HOL_cs addDs [le_imp_less_or_eq] 
-			 addEs [chain_mono RS mp]) 1]);
+        cut_facts_tac prems 1,
+        etac infinite_chain_adm_lemma 1, atac 1, etac thin_rl 1,
+        rewtac finite_chain_def,
+        safe_tac HOL_cs,
+        etac swap 1,
+        rewtac max_in_chain_def,
+        resolve_tac prems 1, atac 1, atac 1,
+        fast_tac (HOL_cs addDs [le_imp_less_or_eq] 
+                         addEs [chain_mono RS mp]) 1]);
 
 qed_goalw "admI" Fix.thy [adm_def]
  "(!!Y. [| is_chain Y; !i. P (Y i); !i. ? j. i < j & Y i ~= Y j & Y i << Y j |]\
 \ ==> P(lub (range Y))) ==> adm P" 
  (fn prems => [
-	strip_tac 1,
-	etac increasing_chain_adm_lemma 1, atac 1,
-	eresolve_tac prems 1, atac 1, atac 1]);
+        strip_tac 1,
+        etac increasing_chain_adm_lemma 1, atac 1,
+        eresolve_tac prems 1, atac 1, atac 1]);
 
 
 (* ------------------------------------------------------------------------ *)
@@ -881,7 +881,7 @@ qed_goal "adm_subst"  Fix.thy
         (cut_facts_tac prems 1),
         (rtac (adm_def2 RS iffD2) 1),
         (strip_tac 1),
-        (rtac (cont2contlub RS contlubE RS spec RS mp RS ssubst) 1),
+        (stac (cont2contlub RS contlubE RS spec RS mp) 1),
         (atac 1),
         (atac 1),
         (rtac (adm_def2 RS iffD1 RS spec RS mp RS mp) 1),
@@ -1000,7 +1000,7 @@ local
         (hyp_subst_tac 1),
         (Asm_simp_tac 1),
         (Asm_simp_tac 1),
-	(asm_simp_tac (!simpset addsimps [less_Suc_eq]) 1)
+        (asm_simp_tac (!simpset addsimps [less_Suc_eq]) 1)
         ]);
 
   val adm_disj_lemma4 = prove_goal Fix.thy
@@ -1012,14 +1012,14 @@ local
         (rtac allI 1),
         (res_inst_tac [("m","n"),("n","Suc(i)")] nat_less_cases 1),
         (res_inst_tac[("s","Y(Suc(i))"),
-		      ("t","if n<Suc(i) then Y(Suc(i)) else Y n")] ssubst 1),
+                      ("t","if n<Suc(i) then Y(Suc(i)) else Y n")] ssubst 1),
         (Asm_simp_tac 1),
         (etac allE 1),
         (rtac mp 1),
         (atac 1),
         (Asm_simp_tac 1),
         (res_inst_tac[("s","Y(n)"),
-		      ("t","if n<Suc(i) then Y(Suc(i)) else Y(n)")] ssubst 1),
+                      ("t","if n<Suc(i) then Y(Suc(i)) else Y(n)")] ssubst 1),
         (Asm_simp_tac 1),
         (hyp_subst_tac 1),
         (dtac spec 1),
@@ -1027,7 +1027,7 @@ local
         (atac 1),
         (Asm_simp_tac 1),
         (res_inst_tac [("s","Y(n)"),
-		       ("t","if n < Suc(i) then Y(Suc(i)) else Y(n)")]ssubst 1),
+                       ("t","if n < Suc(i) then Y(Suc(i)) else Y(n)")]ssubst 1),
         (res_inst_tac [("s","False"),("t","n < Suc(i)")] ssubst 1),
         (rtac iffI 1),
         (etac FalseE 2),
@@ -1061,7 +1061,7 @@ local
         (rtac (not_less_eq RS iffD2) 1),
         (atac 1),
         (atac 1),
-        (rtac (if_False RS ssubst) 1),
+        (stac if_False 1),
         (rtac refl 1)
         ]);
 
@@ -1230,14 +1230,14 @@ qed_goal "adm_imp"  Fix.thy
 
 qed_goal "adm_not_conj"  Fix.thy  
 "[| adm (%x. ~ P x); adm (%x. ~ Q x) |] ==> adm (%x. ~ (P x & Q x))"(fn prems=>[
-	cut_facts_tac prems 1,
-	subgoal_tac 
-	"(%x. ~ (P x & Q x)) = (%x. ~ P x | ~ Q x)" 1,
-	rtac ext 2,
-	fast_tac HOL_cs 2,
-	etac ssubst 1,
-	etac adm_disj 1,
-	atac 1]);
+        cut_facts_tac prems 1,
+        subgoal_tac 
+        "(%x. ~ (P x & Q x)) = (%x. ~ P x | ~ Q x)" 1,
+        rtac ext 2,
+        fast_tac HOL_cs 2,
+        etac ssubst 1,
+        etac adm_disj 1,
+        atac 1]);
 
 val adm_thms = [adm_imp,adm_disj,adm_eq,adm_not_UU,adm_UU_not_less,
         adm_all2,adm_not_less,adm_not_free,adm_not_conj,adm_conj,adm_less];

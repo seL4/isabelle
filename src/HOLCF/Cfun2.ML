@@ -15,7 +15,7 @@ open Cfun2;
 qed_goal "less_cfun" Cfun2.thy "( f1 << f2 ) = (fapp(f1) << fapp(f2))"
 (fn prems =>
         [
-        (rtac (inst_cfun_po RS ssubst) 1),
+        (stac inst_cfun_po 1),
         (fold_goals_tac [less_cfun_def]),
         (rtac refl 1)
         ]);
@@ -27,8 +27,8 @@ qed_goal "less_cfun" Cfun2.thy "( f1 << f2 ) = (fapp(f1) << fapp(f2))"
 qed_goalw "minimal_cfun" Cfun2.thy [UU_cfun_def] "UU_cfun << f"
 (fn prems =>
         [
-        (rtac (less_cfun RS ssubst) 1),
-        (rtac (Abs_Cfun_inverse2 RS ssubst) 1),
+        (stac less_cfun 1),
+        (stac Abs_Cfun_inverse2 1),
         (rtac cont_const 1),
         (fold_goals_tac [UU_fun_def]),
         (rtac minimal_fun 1)
@@ -112,10 +112,10 @@ qed_goal "monofun_cfun" Cfun2.thy
 
 
 qed_goal "strictI" Cfun2.thy "f`x = UU ==> f`UU = UU" (fn prems => [
-	cut_facts_tac prems 1,
-	rtac (eq_UU_iff RS iffD2) 1,
-	etac subst 1,
-	rtac (minimal RS monofun_cfun_arg) 1]);
+        cut_facts_tac prems 1,
+        rtac (eq_UU_iff RS iffD2) 1,
+        etac subst 1,
+        rtac (minimal RS monofun_cfun_arg) 1]);
 
 
 (* ------------------------------------------------------------------------ *)
@@ -184,7 +184,7 @@ qed_goal "cont_lubcfun" Cfun2.thy
         (etac lub_cfun_mono 1),
         (rtac contlubI 1),
         (strip_tac 1),
-        (rtac (contlub_cfun_arg RS ext RS ssubst) 1),
+        (stac (contlub_cfun_arg RS ext) 1),
         (atac 1),
         (etac ex_lubcfun 1),
         (atac 1)
@@ -203,14 +203,14 @@ qed_goal "lub_cfun" Cfun2.thy
         (rtac conjI 1),
         (rtac ub_rangeI 1),  
         (rtac allI 1),
-        (rtac (less_cfun RS ssubst) 1),
-        (rtac (Abs_Cfun_inverse2 RS ssubst) 1),
+        (stac less_cfun 1),
+        (stac Abs_Cfun_inverse2 1),
         (etac cont_lubcfun 1),
         (rtac (lub_fun RS is_lubE RS conjunct1 RS ub_rangeE RS spec) 1),
         (etac (monofun_fapp1 RS ch2ch_monofun) 1),
         (strip_tac 1),
-        (rtac (less_cfun RS ssubst) 1),
-        (rtac (Abs_Cfun_inverse2 RS ssubst) 1),
+        (stac less_cfun 1),
+        (stac Abs_Cfun_inverse2 1),
         (etac cont_lubcfun 1),
         (rtac (lub_fun RS is_lubE RS conjunct2 RS spec RS mp) 1),
         (etac (monofun_fapp1 RS ch2ch_monofun) 1),
@@ -255,9 +255,9 @@ qed_goal "semi_monofun_fabs" Cfun2.thy
  (fn prems =>
         [
         (rtac (less_cfun RS iffD2) 1),
-        (rtac (Abs_Cfun_inverse2 RS ssubst) 1),
+        (stac Abs_Cfun_inverse2 1),
         (resolve_tac prems 1),
-        (rtac (Abs_Cfun_inverse2 RS ssubst) 1),
+        (stac Abs_Cfun_inverse2 1),
         (resolve_tac prems 1),
         (resolve_tac prems 1)
         ]);

@@ -450,7 +450,7 @@ by (ALLGOALS (asm_simp_tac arith_ss));
 qed "add_le_self";
 
 goal Arith.thy "!!m n. [| m:nat;  n:nat |] ==> m le n #+ m";
-by (rtac (add_commute RS ssubst) 1);
+by (stac add_commute 1);
 by (REPEAT (ares_tac [add_le_self] 1));
 qed "add_le_self2";
 
@@ -468,8 +468,8 @@ qed "add_lt_mono1";
 goal Arith.thy "!!i j k l. [| i<j; k<l; j:nat; l:nat |] ==> i#+k < j#+l";
 by (rtac (add_lt_mono1 RS lt_trans) 1);
 by (REPEAT (eresolve_tac [asm_rl, lt_nat_in_nat] 1));
-by (EVERY [rtac (add_commute RS ssubst) 1,
-           rtac (add_commute RS ssubst) 3,
+by (EVERY [stac add_commute 1,
+           stac add_commute 3,
            rtac add_lt_mono1 5]);
 by (REPEAT (eresolve_tac [asm_rl, lt_nat_in_nat] 1));
 qed "add_lt_mono";
@@ -496,8 +496,8 @@ goal Arith.thy
     "!!i j k. [| i le j; k le l; j:nat; l:nat |] ==> i#+k le j#+l";
 by (rtac (add_le_mono1 RS le_trans) 1);
 by (REPEAT (eresolve_tac [asm_rl, lt_nat_in_nat, nat_succI] 1));
-by (EVERY [rtac (add_commute RS ssubst) 1,
-           rtac (add_commute RS ssubst) 3,
+by (EVERY [stac add_commute 1,
+           stac add_commute 3,
            rtac add_le_mono1 5]);
 by (REPEAT (eresolve_tac [asm_rl, lt_nat_in_nat, nat_succI] 1));
 qed "add_le_mono";
@@ -516,8 +516,8 @@ goal Arith.thy
     "!!i j k. [| i le j; k le l; j:nat; l:nat |] ==> i#*k le j#*l";
 by (rtac (mult_le_mono1 RS le_trans) 1);
 by (REPEAT (eresolve_tac [asm_rl, lt_nat_in_nat, nat_succI] 1));
-by (EVERY [rtac (mult_commute RS ssubst) 1,
-           rtac (mult_commute RS ssubst) 3,
+by (EVERY [stac mult_commute 1,
+           stac mult_commute 3,
            rtac mult_le_mono1 5]);
 by (REPEAT (eresolve_tac [asm_rl, lt_nat_in_nat, nat_succI] 1));
 qed "mult_le_mono";

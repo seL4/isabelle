@@ -70,8 +70,8 @@ qed_goalw "Ilift1"  Lift1.thy [Ilift_def,UU_lift_def]
         "Ilift(f)(UU_lift)=UU"
  (fn prems =>
         [
-        (rtac (Abs_Lift_inverse RS ssubst) 1),
-        (rtac (sum_case_Inl RS ssubst) 1),
+        (stac Abs_Lift_inverse 1),
+        (stac sum_case_Inl 1),
         (rtac refl 1)
         ]);
 
@@ -79,8 +79,8 @@ qed_goalw "Ilift2"  Lift1.thy [Ilift_def,Iup_def]
         "Ilift(f)(Iup(x))=f`x"
  (fn prems =>
         [
-        (rtac (Abs_Lift_inverse RS ssubst) 1),
-        (rtac (sum_case_Inr RS ssubst) 1),
+        (stac Abs_Lift_inverse 1),
+        (stac sum_case_Inr 1),
         (rtac refl 1)
         ]);
 
@@ -90,8 +90,8 @@ qed_goalw "less_lift1a"  Lift1.thy [less_lift_def,UU_lift_def]
         "less_lift(UU_lift)(z)"
  (fn prems =>
         [
-        (rtac (Abs_Lift_inverse RS ssubst) 1),
-        (rtac (sum_case_Inl RS ssubst) 1),
+        (stac Abs_Lift_inverse 1),
+        (stac sum_case_Inl 1),
         (rtac TrueI 1)
         ]);
 
@@ -102,10 +102,10 @@ qed_goalw "less_lift1b"  Lift1.thy [Iup_def,less_lift_def,UU_lift_def]
         (rtac notI 1),
         (rtac iffD1 1),
         (atac 2),
-        (rtac (Abs_Lift_inverse RS ssubst) 1),
-        (rtac (Abs_Lift_inverse RS ssubst) 1),
-        (rtac (sum_case_Inr RS ssubst) 1),
-        (rtac (sum_case_Inl RS ssubst) 1),
+        (stac Abs_Lift_inverse 1),
+        (stac Abs_Lift_inverse 1),
+        (stac sum_case_Inr 1),
+        (stac sum_case_Inl 1),
         (rtac refl 1)
         ]);
 
@@ -113,10 +113,10 @@ qed_goalw "less_lift1c"  Lift1.thy [Iup_def,less_lift_def,UU_lift_def]
         "less_lift (Iup x) (Iup y)=(x<<y)"
  (fn prems =>
         [
-        (rtac (Abs_Lift_inverse RS ssubst) 1),
-        (rtac (Abs_Lift_inverse RS ssubst) 1),
-        (rtac (sum_case_Inr RS ssubst) 1),
-        (rtac (sum_case_Inr RS ssubst) 1),
+        (stac Abs_Lift_inverse 1),
+        (stac Abs_Lift_inverse 1),
+        (stac sum_case_Inr 1),
+        (stac sum_case_Inr 1),
         (rtac refl 1)
         ]);
 

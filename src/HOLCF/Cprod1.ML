@@ -80,7 +80,7 @@ qed_goal "antisym_less_cprod" Cprod1.thy
         (dtac less_cprod2c 1),
         (etac conjE 1),
         (etac conjE 1),
-        (rtac (Pair_eq RS ssubst) 1),
+        (stac Pair_eq 1),
         (fast_tac (HOL_cs addSIs [antisym_less]) 1)
         ]);
 
@@ -98,7 +98,7 @@ qed_goal "trans_less_cprod" Cprod1.thy
         (hyp_subst_tac 1),
         (dtac less_cprod2c 1),
         (dtac less_cprod2c 1),
-        (rtac (less_cprod1b RS ssubst) 1),
+        (stac less_cprod1b 1),
         (Simp_tac 1),
         (etac conjE 1),
         (etac conjE 1),

@@ -24,7 +24,7 @@ val smap_def2 = fix_prover2 Stream2.thy smap_def
 qed_goal "smap1" Stream2.thy "smap`f`UU = UU"
  (fn prems =>
         [
-        (rtac (smap_def2 RS ssubst) 1),
+        (stac smap_def2 1),
         (simp_tac (!simpset addsimps stream_when) 1)
         ]);
 
@@ -34,7 +34,7 @@ qed_goal "smap2" Stream2.thy
         [
         (cut_facts_tac prems 1),
         (rtac trans 1),
-        (rtac (smap_def2 RS ssubst) 1),
+        (stac smap_def2 1),
         (asm_simp_tac (!simpset addsimps stream_rews) 1),
         (rtac refl 1)
         ]);

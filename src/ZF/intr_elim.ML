@@ -98,7 +98,7 @@ val rec_typechecks =
 fun intro_tacsf disjIn prems = 
   [(*insert prems and underlying sets*)
    cut_facts_tac prems 1,
-   DETERM (rtac (unfold RS ssubst) 1),
+   DETERM (stac unfold 1),
    REPEAT (resolve_tac [Part_eqI,CollectI] 1),
    (*Now 2-3 subgoals: typechecking, the disjunction, perhaps equality.*)
    rtac disjIn 2,

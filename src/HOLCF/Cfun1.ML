@@ -15,7 +15,7 @@ open Cfun1;
 qed_goalw "CfunI" Cfun1.thy [Cfun_def] "(% x.x):Cfun"
  (fn prems =>
         [
-        (rtac (mem_Collect_eq RS ssubst) 1),
+        (stac mem_Collect_eq 1),
         (rtac cont_id 1)
         ]);
 

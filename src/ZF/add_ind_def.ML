@@ -194,10 +194,10 @@ fun add_constructs_def (rec_names, con_ty_lists) thy =
     (*Combine split terms using case; yields the case operator for one part*)
     fun call_case case_list = 
       let fun call_f (free,[]) = Abs("null", iT, free)
-	    | call_f (free,args) =
+            | call_f (free,args) =
                   CP.ap_split (foldr1 CP.mk_prod (map (#2 o dest_Free) args))
-		              Ind_Syntax.iT 
-			      free 
+                              Ind_Syntax.iT 
+                              free 
       in  fold_bal (app Su.elim) (map call_f case_list)  end;
 
     (** Generating function variables for the case definition
