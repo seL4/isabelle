@@ -342,10 +342,11 @@ fun transaction f thy =
       |> Theory.prep_ext
       |> Theory.add_name ("#" ^ name ^ ":" ^ string_of_int generation)  (* FIXME !!?? *)
       |> put_info {name = name, generation = generation + 1};
+    val (thy', opt_exn) = (transform_error f thy, None) handle exn => (thy, Some exn);
   in
-    (transform_error f thy, false, None) handle exn =>
-      if Sign.is_stale (Theory.sign_of thy) then (copy_thy, true, Some exn)
-      else (thy, false, Some exn)
+    if Sign.is_stale (Theory.sign_of thy') then
+      (copy_thy, true, opt_exn)
+    else (thy', false, opt_exn)
   end;
 
 
