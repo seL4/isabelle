@@ -1,108 +1,53 @@
-(*  Title:      HOLCF/Lift.ML
-    ID:         $Id$
-    Author:     Olaf Mueller
-    Copyright   1997 Technische Universitaet Muenchen
 
-Theorems for Lift.thy
-*)
+(* legacy ML bindings *)
 
+structure lift =
+struct
+  val distinct = thms "lift.distinct";
+  val inject = thms "lift.inject";
+  val exhaust = thm "lift.exhaust";
+  val cases = thms "lift.cases";
+  val split = thm "lift.split";
+  val split_asm = thm "lift.split_asm";
+  val induct = thm "lift.induct";
+  val recs = thms "lift.recs";
+  val simps = thms "lift.simps";
+  val size = thms "lift.size";
+end;
 
-(* ---------------------------------------------------------- *)
-    section"Continuity Proofs for flift1, flift2, if";
-(* ---------------------------------------------------------- *)
-(* need the instance into flat *)
-
-
-(* flift1 is continuous in its argument itself*)
-Goal "cont (lift_case UU f)"; 
-by (rtac flatdom_strict2cont 1);
-by (Simp_tac 1);
-qed"cont_flift1_arg";
-
-(* flift1 is continuous in a variable that occurs only 
-   in the Def branch *)
-
-Goal "!!f. [| !! a. cont (%y. (f y) a) |] ==> \
-\          cont (%y. lift_case UU (f y))";
-by (rtac cont2cont_CF1L_rev 1);
-by (strip_tac 1);
-by (res_inst_tac [("x","y")] Lift_cases 1);
-by (Asm_simp_tac 1);
-by (fast_tac (HOL_cs addss simpset()) 1);
-qed"cont_flift1_not_arg";
-
-(* flift1 is continuous in a variable that occurs either 
-   in the Def branch or in the argument *)
-
-Goal "!!f. [| !! a. cont (%y. (f y) a); cont g|] ==> \
-\   cont (%y. lift_case UU (f y) (g y))";
-by (res_inst_tac [("tt","g")] cont2cont_app 1);
-by (rtac cont_flift1_not_arg 1);
-by Auto_tac;
-by (rtac cont_flift1_arg 1);
-qed"cont_flift1_arg_and_not_arg";
-
-(* flift2 is continuous in its argument itself *)
-
-Goal "cont (lift_case UU (%y. Def (f y)))";
-by (rtac flatdom_strict2cont 1);
-by (Simp_tac 1);
-qed"cont_flift2_arg";
-
-
-(* ---------------------------------------------------------- *)
-(*    Extension of cont_tac and installation of simplifier    *)
-(* ---------------------------------------------------------- *)
-
-bind_thm("cont2cont_CF1L_rev2",allI RS cont2cont_CF1L_rev);
-
-val cont_lemmas_ext = [cont_flift1_arg,cont_flift2_arg,
-                       cont_flift1_arg_and_not_arg,cont2cont_CF1L_rev2, 
-                       cont_Rep_CFun_app,cont_Rep_CFun_app_app,cont_if];
-
-val cont_lemmas2 =  cont_lemmas1 @ cont_lemmas_ext;
-                 
-Addsimps cont_lemmas_ext;         
-
-fun cont_tac  i = resolve_tac cont_lemmas2 i;
-fun cont_tacR i = REPEAT (cont_tac i);
-
-fun cont_tacRs i = simp_tac (simpset() addsimps [flift1_def,flift2_def]) i THEN
-                  REPEAT (cont_tac i);
-
-
-simpset_ref() := simpset() addSolver
-  (mk_solver "cont_tac" (K (DEPTH_SOLVE_1 o cont_tac)));
-
-
-
-(* ---------------------------------------------------------- *)
-              section"flift1, flift2";
-(* ---------------------------------------------------------- *)
-
-
-Goal "flift1 f$(Def x) = (f x)";
-by (simp_tac (simpset() addsimps [flift1_def]) 1);
-qed"flift1_Def";
-
-Goal "flift2 f$(Def x) = Def (f x)";
-by (simp_tac (simpset() addsimps [flift2_def]) 1);
-qed"flift2_Def";
-
-Goal "flift1 f$UU = UU";
-by (simp_tac (simpset() addsimps [flift1_def]) 1);
-qed"flift1_UU";
-
-Goal "flift2 f$UU = UU";
-by (simp_tac (simpset() addsimps [flift2_def]) 1);
-qed"flift2_UU";
-
-Addsimps [flift1_Def,flift2_Def,flift1_UU,flift2_UU];
-
-Goal "x~=UU ==> (flift2 f)$x~=UU";
-by (def_tac 1);
-qed"flift2_nUU";
-
-Addsimps [flift2_nUU];
-
-
+val Def_not_UU = thm "Def_not_UU";
+val DefE = thm "DefE";
+val DefE2 = thm "DefE2";
+val Def_inject_less_eq = thm "Def_inject_less_eq";
+val Def_less_is_eq = thm "Def_less_is_eq";
+val Lift_cases = thm "Lift_cases";
+val Lift_exhaust = thm "Lift_exhaust";
+val UU_lift_def = thm "UU_lift_def";
+val Undef_eq_UU = thm "Undef_eq_UU";
+val chain_mono2_po = thm "chain_mono2_po";
+val cont2cont_CF1L_rev2 = thm "cont2cont_CF1L_rev2";
+val cont_Rep_CFun_app = thm "cont_Rep_CFun_app";
+val cont_Rep_CFun_app_app = thm "cont_Rep_CFun_app_app";
+val cont_flift1_arg = thm "cont_flift1_arg";
+val cont_flift1_arg_and_not_arg = thm "cont_flift1_arg_and_not_arg";
+val cont_flift1_not_arg = thm "cont_flift1_not_arg";
+val cont_flift2_arg = thm "cont_flift2_arg";
+val cont_if = thm "cont_if";
+val cpo_lift = thm "cpo_lift";
+val flat_imp_chfin_poo = thm "flat_imp_chfin_poo";
+val flift1_Def = thm "flift1_Def";
+val flift1_UU = thm "flift1_UU";
+val flift1_def = thm "flift1_def";
+val flift2_Def = thm "flift2_Def";
+val flift2_UU = thm "flift2_UU";
+val flift2_def = thm "flift2_def";
+val flift2_nUU = thm "flift2_nUU";
+val inst_lift_pcpo = thm "inst_lift_pcpo";
+val inst_lift_po = thm "inst_lift_po";
+val least_lift = thm "least_lift";
+val less_lift = thm "less_lift";
+val less_lift_def = thm "less_lift_def";
+val liftpair_def = thm "liftpair_def";
+val minimal_lift = thm "minimal_lift";
+val notUndef_I = thm "notUndef_I";
+val not_Undef_is_Def = thm "not_Undef_is_Def";
