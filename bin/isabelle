@@ -1,8 +1,8 @@
 #!/bin/bash
 #
-# Basic Isabelle startup script.
-#
 # $Id$
+#
+# Basic Isabelle startup script.
 
 
 ## settings
@@ -110,7 +110,7 @@ fi
 
 ## check ML system
 
-[ -z "$ML_SYSTEM" ] && fail "Missing ML system settings! Sorry, no Isabelle."
+[ -z "$ML_SYSTEM" ] && fail "Missing ML system settings! Unable to run Isabelle."
 
 
 ## input heap file
@@ -126,12 +126,21 @@ case "$INPUT" in
     [ ! -f "$INFILE" ] && fail "Bad heap file file: \"$INFILE\""
     ;;
   *)
+    ISA_PATH=""
     INFILE=""
     for DIR in $(echo $ISABELLE_PATH | tr : " ")
     do
+      ISA_PATH="$ISA_PATH $DIR/$ML_SYSTEM-$PLATFORM"
       [ -z "$INFILE" -a -f $DIR/$ML_SYSTEM-$PLATFORM/$INPUT ] && INFILE=$DIR/$ML_SYSTEM-$PLATFORM/$INPUT
     done
-    [ -z "$INFILE" ] && fail "Unknown logic: \"$INPUT\""
+    if [ -z "$INFILE" ]; then
+      echo "Unknown logic \"$INPUT\" -- no heap file found in:"
+      for DIR in $ISA_PATH
+      do
+        echo "  $DIR"
+      done
+      exit 2
+    fi
     ;;
 esac
 
