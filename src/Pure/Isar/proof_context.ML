@@ -64,8 +64,9 @@ sig
   val bind_propp_i: context * (term * (term list * term list))
     -> context * (term * (context -> context))
   val get_thm: context -> string -> thm
+  val get_thm_closure: context -> string -> thm
   val get_thms: context -> string -> thm list
-  val get_thmss: context -> string list -> thm list
+  val get_thms_closure: context -> string -> thm list
   val put_thm: string * thm -> context -> context
   val put_thms: string * thm list -> context -> context
   val put_thmss: (string * thm list) list -> context -> context
@@ -838,18 +839,23 @@ val bind_propp_i = gen_bind_propp cert_propp;
 
 (* get_thm(s) *)
 
-fun get_thm (ctxt as Context {thy, thms, ...}) name =
-  (case Symtab.lookup (thms, name) of
-    Some (Some [th]) => Thm.transfer thy th
-  | Some (Some _) => raise CONTEXT ("Single theorem expected: " ^ quote name, ctxt)
-  | _ => (PureThy.get_thm thy name handle THEORY (msg, _) => raise CONTEXT (msg, ctxt)));
+(*beware of proper order of evaluation!*)
 
-fun get_thms (ctxt as Context {thy, thms, ...}) name =
-  (case Symtab.lookup (thms, name) of
-    Some (Some ths) => map (Thm.transfer thy) ths
-  | _ => (PureThy.get_thms thy name handle THEORY (msg, _) => raise CONTEXT (msg, ctxt)));
+fun retrieve_thms f g (ctxt as Context {thy, thms, ...}) =
+  let
+    val sg_ref = Sign.self_ref (Theory.sign_of thy);
+    val get_from_thy = f thy;
+  in
+    fn name =>
+      (case Symtab.lookup (thms, name) of
+        Some (Some ths) => map (Thm.transfer_sg (Sign.deref sg_ref)) ths
+      | _ => get_from_thy name) |> g name
+  end;
 
-fun get_thmss ctxt names = flat (map (get_thms ctxt) names);
+val get_thm = retrieve_thms PureThy.get_thms PureThy.single_thm;
+val get_thm_closure = retrieve_thms PureThy.get_thms_closure PureThy.single_thm;
+val get_thms = retrieve_thms PureThy.get_thms (K I);
+val get_thms_closure = retrieve_thms PureThy.get_thms_closure (K I);
 
 
 (* put_thm(s) *)
