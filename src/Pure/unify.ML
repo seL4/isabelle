@@ -479,7 +479,9 @@ fun MATCH (env, (rbinder,t,u), dpairs)
 fun ff_assign(env, rbinder, t, u) : Envir.env = 
 let val (v,T) = get_eta_var(rbinder,0,t)
 in if occurs_terms (ref[], env, v, [u]) then raise ASSIGN
-   else let val env = unify_types(body_type env T,fastype env (rbinder,u),env)
+   else let val env = unify_types(body_type env T,
+				  fastype env (rbinder,u),
+				  env)
 	in Envir.vupdate ((v, rlist_abs(rbinder, u)), env) end
 end;
 
@@ -495,31 +497,41 @@ fun flexargs ([],[],[]) = [] : flarg list
 
 
 (*If an argument contains a banned Bound, then it should be deleted.
-  But if the path is flexible, this is difficult; the code gives up!*)
-exception CHANGE and CHANGE_FAIL;   (*rigid and flexible occurrences*)
+  But if the only path is flexible, this is difficult; the code gives up!
+  In  %x y.?a(x) =?= %x y.?b(?c(y)) should we instantiate ?b or ?c *)
+exception CHANGE_FAIL;   (*flexible occurrence of banned variable*)
 
 
-(*Squash down indices at level >=lev to delete the js from a term.
-  flex should initially be false, since the empty path is rigid.*)
-fun change_bnos (lev, js, flex) t = 
+(*Check whether the 'banned' bound var indices occur rigidly in t*)
+fun rigid_bound (lev, banned) t = 
   let val (head,args) = strip_comb t 
-      val flex' = flex orelse is_Var head
-      val head' = case head of
-	    Bound i => 
-		if i<lev then Bound i
-		else  if (i-lev) mem js  
-                      then  if flex then raise CHANGE_FAIL
-                                    else raise CHANGE
-		else  Bound (i - length (filter (fn j => j < i-lev) js))
-	  | Abs (a,T,t) => Abs (a, T, change_bnos(lev+1, js, flex) t)
-	  | _ => head
-  in  list_comb (head', map (change_bnos (lev, js, flex')) args)
+  in  
+      case head of
+	  Bound i => (i-lev) mem banned  orelse
+	      	     exists (rigid_bound (lev, banned)) args
+	| Var _ => false	(*no rigid occurrences here!*)
+	| Abs (_,_,u) => 
+	       rigid_bound(lev+1, banned) u  orelse
+	       exists (rigid_bound (lev, banned)) args
+	| _ => exists (rigid_bound (lev, banned)) args
   end;
 
+(*Squash down indices at level >=lev to delete the banned from a term.*)
+fun change_bnos banned =
+  let fun change lev (Bound i) = 
+	    if i<lev then Bound i
+	    else  if (i-lev) mem banned  
+		  then raise CHANGE_FAIL (**flexible occurrence: give up**)
+	    else  Bound (i - length (filter (fn j => j < i-lev) banned))
+	| change lev (Abs (a,T,t)) = Abs (a, T, change(lev+1) t)
+	| change lev (t$u) = change lev t $ change lev u
+	| change lev t = t
+  in  change 0  end;
 
 (*Change indices, delete the argument if it contains a banned Bound*)
-fun change_arg js ({j,t,T}, args) : flarg list =
-    {j=j, t= change_bnos(0,js,false)t, T=T} :: args    handle CHANGE => args;
+fun change_arg banned ({j,t,T}, args) : flarg list =
+    if rigid_bound (0, banned) t  then  args	(*delete argument!*)
+    else  {j=j, t= change_bnos banned t, T=T} :: args;
 
 
 (*Sort the arguments to create assignments if possible:
@@ -570,8 +582,8 @@ fun clean_ffpair ((rbinder, t, u), (env,tpairs)) =
   let val loot = loose_bnos t  and  loou = loose_bnos u
       fun add_index (((a,T), j), (bnos, newbinder)) = 
             if  j mem loot  andalso  j mem loou 
-            then  (bnos, (a,T)::newbinder)
-            else  (j::bnos, newbinder);
+            then  (bnos, (a,T)::newbinder)	(*needed by both: keep*)
+            else  (j::bnos, newbinder);		(*remove*)
       val indices = 0 upto (length rbinder - 1);
       val (banned,rbin') = foldr add_index (rbinder~~indices, ([],[]));
       val (env', t') = clean_term banned (env, t);
