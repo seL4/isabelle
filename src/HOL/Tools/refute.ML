@@ -1141,11 +1141,11 @@ struct
 			(* unit -> (interpretation * model * arguments) option *)
 			fun interpret_groundtype () =
 			let
-				val size = (if T = Term.propT then 2 else (the o assoc) (typs, T))  (* the model MUST specify a size for ground types *)
-				val next = (if size=2 then next_idx+1 else next_idx+size)  (* optimization for types with size 2 *)
-				val _    = (if next-1>maxvars andalso maxvars>0 then raise MAXVARS_EXCEEDED else ())  (* check if 'maxvars' is large enough *)
+				val size = (if T = Term.propT then 2 else (the o assoc) (typs, T))                      (* the model MUST specify a size for ground types *)
+				val next = (if size=1 then next_idx else if size=2 then next_idx+1 else next_idx+size)  (* optimization for types with size 1 or 2 *)
+				val _    = (if next-1>maxvars andalso maxvars>0 then raise MAXVARS_EXCEEDED else ())    (* check if 'maxvars' is large enough *)
 				(* prop_formula list *)
-				val fms  = (if size=2 then [BoolVar next_idx, Not (BoolVar next_idx)]
+				val fms  = (if size=1 then [True] else if size=2 then [BoolVar next_idx, Not (BoolVar next_idx)]
 					else (map BoolVar (next_idx upto (next_idx+size-1))))
 				(* interpretation *)
 				val intr = Leaf fms
@@ -1155,7 +1155,7 @@ struct
 				(* prop_formula list -> prop_formula *)
 				fun exactly_one_true xs = SAnd (PropLogic.exists xs, one_of_two_false xs)
 				(* prop_formula *)
-				val wf   = (if size=2 then True else exactly_one_true fms)
+				val wf   = (if size=1 then True else if size=2 then True else exactly_one_true fms)
 			in
 				(* extend the model, increase 'next_idx', add well-formedness condition *)
 				Some (intr, (typs, (t, intr)::terms), {maxvars = maxvars, next_idx = next, bounds = bounds, wellformed = SAnd (wellformed, wf)})
@@ -1327,7 +1327,7 @@ struct
 	in
 	(* ------------------------------------------------------------------------- *)
 	(* Providing interpretations directly is more efficient than unfolding the   *)
-	(* logical constants.  IN HOL however, logical constants can themselves be   *)
+	(* logical constants.  In HOL however, logical constants can themselves be   *)
 	(* arguments.  "All" and "Ex" are then translated just like any other        *)
 	(* constant, with the relevant axiom being added by 'collect_axioms'.        *)
 	(* ------------------------------------------------------------------------- *)
@@ -1509,10 +1509,10 @@ struct
 							(* recursively compute the size of the datatype *)
 							val size     = size_of_dtyp typs' descr typ_assoc constrs
 							val next_idx = #next_idx args
-							val next     = (if size=2 then next_idx+1 else next_idx+size)  (* optimization for types with size 2 *)
+							val next     = (if size=1 then next_idx else if size=2 then next_idx+1 else next_idx+size)  (* optimization for types with size 1 or size 2 *)
 							val _        = (if next-1>(#maxvars args) andalso (#maxvars args)>0 then raise MAXVARS_EXCEEDED else ())  (* check if 'maxvars' is large enough *)
 							(* prop_formula list *)
-							val fms      = (if size=2 then [BoolVar next_idx, Not (BoolVar next_idx)]
+							val fms      = (if size=1 then [True] else if size=2 then [BoolVar next_idx, Not (BoolVar next_idx)]
 								else (map BoolVar (next_idx upto (next_idx+size-1))))
 							(* interpretation *)
 							val intr     = Leaf fms
@@ -1522,7 +1522,7 @@ struct
 							(* prop_formula list -> prop_formula *)
 							fun exactly_one_true xs = SAnd (PropLogic.exists xs, one_of_two_false xs)
 							(* prop_formula *)
-							val wf       = (if size=2 then True else exactly_one_true fms)
+							val wf       = (if size=1 then True else if size=2 then True else exactly_one_true fms)
 						in
 							(* extend the model, increase 'next_idx', add well-formedness condition *)
 							Some (intr, (typs, (t, intr)::terms), {maxvars = #maxvars args, next_idx = next, bounds = #bounds args, wellformed = SAnd (#wellformed args, wf)})

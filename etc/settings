@@ -224,8 +224,8 @@ XSYMBOL_HOME=$(choosefrom \
 # Einhoven model checker
 #EINDHOVEN_HOME=/usr/local/bin
 
-# ZChaff, Version 2003.12.04 (SAT Solver)
-#ZCHAFF_HOME=/usr/local/bin
+# ZChaff, Version 2004.05.13 (SAT Solver)
+ZCHAFF_HOME=/home/webertj/bin
 
 # BerkMin561 (SAT Solver)
 #BERKMIN_HOME=/usr/local/bin
