@@ -6,7 +6,7 @@ Extensible records with structural subtyping in HOL.  See
 Tools/record_package.ML for the actual implementation.
 *)
 
-Record = Prod +
+Record = Datatype +
 
 
 (* concrete syntax *)
@@ -43,9 +43,7 @@ syntax
 (* type class for record extensions *)
 
 axclass more < term
-
 instance unit :: more
-instance "*" :: (term, more) more
 
 
 (* initialize the package *)
