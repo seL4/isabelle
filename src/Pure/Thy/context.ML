@@ -13,6 +13,8 @@ sig
   val get_context: unit -> theory
   val context: theory -> unit
   val reset_context: unit -> unit
+  val thm: xstring -> thm
+  val thms: xstring -> thm list
 end;
 
 signature CONTEXT =
@@ -25,7 +27,7 @@ structure Context: CONTEXT =
 struct
 
 
-(* session *)
+(** session **)
 
 val current_session = ref ([]: string list);
 
@@ -34,7 +36,8 @@ fun add_session s = current_session := ! current_session @ [s];
 fun reset_session () = current_session := [];
 
 
-(* theory context *)
+
+(** theory context **)
 
 val current_theory = ref (None: theory option);
 
@@ -47,8 +50,16 @@ fun context thy = current_theory := Some thy;
 fun reset_context () = current_theory := None;
 
 
+(* map context *)
+
 nonfix >>;
 fun >> f = current_theory := Some (f (get_context ()));
+
+
+(* retrieve thms *)
+
+fun thm name = PureThy.get_thm (get_context ()) name;
+fun thms name = PureThy.get_thms (get_context ()) name;
 
 
 end;
