@@ -746,3 +746,25 @@ by (simp_tac (simpset() addsimps [linorder_not_le RS sym]) 1);
 by (force_tac (claset() addDs [zmult_zless_mono1], 
 	       simpset() addsimps [order_le_less]) 1);
 qed "pos_imp_zmult_pos_iff";
+
+(** <= versions of the theorems above **)
+
+Goal "(m::int) < #0 ==> (m*n <= #0) = (#0 <= n)";
+by (asm_simp_tac (simpset() addsimps [linorder_not_less RS sym,
+				      neg_imp_zmult_pos_iff]) 1);
+qed "neg_imp_zmult_nonpos_iff";
+
+Goal "(m::int) < #0 ==> (#0 <= m*n) = (n <= #0)";
+by (asm_simp_tac (simpset() addsimps [linorder_not_less RS sym,
+				      neg_imp_zmult_neg_iff]) 1);
+qed "neg_imp_zmult_nonneg_iff";
+
+Goal "#0 < (m::int) ==> (m*n <= #0) = (n <= #0)";
+by (asm_simp_tac (simpset() addsimps [linorder_not_less RS sym,
+				      pos_imp_zmult_pos_iff]) 1);
+qed "pos_imp_zmult_nonpos_iff";
+
+Goal "#0 < (m::int) ==> (#0 <= m*n) = (#0 <= n)";
+by (asm_simp_tac (simpset() addsimps [linorder_not_less RS sym,
+				      pos_imp_zmult_neg_iff]) 1);
+qed "pos_imp_zmult_nonneg_iff";
