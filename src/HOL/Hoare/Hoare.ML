@@ -1,4 +1,4 @@
-(*  Title:      HOL/Hoare/Hoare.ML
+(*  Title:      hoare_vcg.thy
     ID:         $Id$
     Author:     Leonor Prensa Nieto & Tobias Nipkow
     Copyright   1998 TUM
@@ -24,7 +24,7 @@ qed "SeqRule";
 Goalw [Valid_def]
  "[| p <= {s. (s:b --> s:w) & (s~:b --> s:w')}; \
 \    Valid w c1 q; Valid w' c2 q |] \
-\ ==> Valid p (IF b THEN c1 ELSE c2 FI) q";
+\ ==> Valid p (Cond b c1 c2) q";
 by (Asm_simp_tac 1);
 by (Blast_tac 1);
 qed "CondRule";
@@ -39,7 +39,7 @@ val lemma = result() RS spec RS spec RS mp RS mp;
 
 Goalw [Valid_def]
  "[| p <= i; Valid (i Int b) c i;  i Int (-b) <= q |] \
-\ ==> Valid p (WHILE b INV {i} DO c OD) q";
+\ ==> Valid p (While b i c) q";
 by (Asm_simp_tac 1);
 by (Clarify_tac 1);
 by (dtac lemma 1);
@@ -133,7 +133,7 @@ end;
 (** input does not suffer any unexpected transformation                     **)
 (*****************************************************************************)
 
-val Compl_Collect = prove_goal thy "-(Collect b) = {x. ~(b x)}"
+val Compl_Collect = prove_goal (the_context ()) "-(Collect b) = {x. ~(b x)}"
     (fn _ => [Fast_tac 1]);
 
 (**Simp_tacs**)
@@ -208,3 +208,13 @@ and HoareRuleTac Mlem tac pre_cond i st = st |>
 fun hoare_tac tac i thm =
   let val Mlem = Mset(thm)
   in SELECT_GOAL(EVERY[HoareRuleTac Mlem tac true 1]) i thm end;
+
+
+(* proof method setup *)
+
+val hoare_method =
+  Method.METHOD (fn facts => HEADGOAL (Method.insert_tac facts THEN' hoare_tac (K all_tac)));
+
+val hoare_setup =
+ [Method.add_methods
+  [("hoare", Method.no_args hoare_method, "verification condition generator for Hoare logic")]];
