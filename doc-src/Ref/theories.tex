@@ -484,21 +484,29 @@ setenv MAKE_HTML
 make
 \end{ttbox}
 
-When using ML databases made this way to load additional theories or
-derive other databases from them, you have to be aware that HTML
-generation remains activated. Also be especially careful when making
+The databases made this way do not differ from the ones made with an
+unset {\tt MAKE_HTML}; in particular no HTML files are written if the
+database is used to manually load a theory.
+
+As you will see below, the HTML generation is controlled by a boolean
+reference variable. If you want to make databases which define this
+variable's value as {\tt true} and where therefore HTML files are
+written each time {\tt use_thy} is invoked, you have to set {\tt
+MAKE_HTML} to ``{\tt true}'':
+
+\begin{ttbox}
+cd FOL
+setenv MAKE_HTML true
+make
+\end{ttbox}
+
+All theories loaded from within the {\tt FOL} database and all
+databases derived from it will now cause HTML files to be written.
+This behaviour can be changed by assigning a value of {\tt false} to
+the boolean reference variable {\tt make_html}. Be careful when making
 such databases publicly available since it means that your users might
 get into trouble that they don't expect, like IO exceptions caused by
 insufficient write access.
-
-The reason is that the boolean reference variable {\tt make_html} (see
-below) is set. Therefore HTML files are generated unless you assign a
-value of {\tt false} to {\tt make_html}.
-
-This is not influenced by the environment variable {\tt MAKE_HTML},
-because the only place where it is used is in the makefile where it
-determines the initial value of {\tt make_html} for a newly made
-database.
 
 As some of Isabelle's logics are based on others (e.g. {\tt ZF} on
 {\tt FOL}) and because the HTML files list a theory's ancestors, you
@@ -546,7 +554,7 @@ file with information about the theories read since the last use of
 make_html} is {\tt false} nothing is done.
 
 The indexes made by this function also contain a link to the {\tt
-README} file if there exists one in the directory were the index is
+README} file if there exists one in the directory where the index is
 stored. If there's a {\tt README.html} file it is used instead of
 {\tt README}.
 
@@ -556,7 +564,7 @@ The above functions could be used in the following way:
 
 \begin{ttbox}
 init_html();
-{\out Setting path for index.html to "/home/stud/clasohm/isabelle/HOL"}
+{\out Setting path for index.html to "/home/clasohm/isabelle/HOL"}
 use_thy "List";
 \dots
 finish_html();
