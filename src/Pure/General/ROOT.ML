@@ -5,6 +5,7 @@ Library of general tools --- prefer this over the 'Standard ML Library'.
 *)
 
 use "table.ML";
+use "output.ML";
 use "scan.ML";
 use "source.ML";
 use "symbol.ML";
@@ -22,12 +23,12 @@ use "url.ML";
 use "file.ML";
 use "buffer.ML";
 use "history.ML";
-use "pretty.ML";
 use "xml.ML";
 
 structure PureGeneral =
 struct
   structure Symtab = Symtab;
+  structure Output = Output;
   structure Graph = Graph;
   structure Object = Object;
   structure Seq = Seq;
@@ -41,6 +42,5 @@ struct
   structure File = File;
   structure Buffer = Buffer;
   structure History = History;
-  structure Pretty = Pretty;
   structure XML = XML;
 end;
