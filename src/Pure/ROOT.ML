@@ -45,20 +45,12 @@ use "display.ML";
 use "pure_thy.ML";
 use "drule.ML";
 use "meta_simplifier.ML";
-use "locale.ML";
 use "tctical.ML";
 use "search.ML";
 use "tactic.ML";
-use "goals.ML";
-use "object_logic.ML";
 
 (*proof term operations*)
-cd "Proof";
-use "reconstruct.ML";
-use "proof_syntax.ML";
-use "proof_rewrite_rules.ML";
-use "proofchecker.ML";
-cd "..";
+cd "Proof"; use "ROOT.ML"; cd "..";
 
 (*theory system operations*)
 cd "Thy"; use "ROOT.ML"; cd "..";
@@ -66,9 +58,8 @@ cd "Thy"; use "ROOT.ML"; cd "..";
 (*the Isar subsystem*)
 cd "Isar"; use "ROOT.ML"; cd "..";
 
+use "goals.ML";
 use "axclass.ML";
-
-(*code generator*)
 use "codegen.ML";
 
 (*external interfaces*)
