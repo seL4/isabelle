@@ -181,30 +181,32 @@ theories $TB@1$ \dots $TB@n$.  Calling \ttindexbold{use_thy}~{\tt"}{\it
 loading}  Any of the parent theories that have not been loaded yet are read now
 by recursive {\tt use_thy} calls until either an already loaded theory or {\tt
   Pure} is reached.  Therefore one can read a complete logic by just one {\tt
-use_thy} call if all theories are linked appropriatly.  Afterwards an {\ML}
+use_thy} call if all theories are linked appropriately.  Afterwards an {\ML}
 structure~$TF$ containing a component {\tt thy} for the new theory and
 components $r@1$ \dots $r@n$ for the rules is declared; it also contains the
 definitions of the {\tt ML} section if any. Unless
 \ttindexbold{delete_tmpfiles} is set to {\tt false}, {\tt.}{\it tf}{\tt.thy.ML}
-is deleted if no errors occured. Finally the file {\it tf}{\tt.ML} is read, if
+is deleted if no errors occurred. Finally the file {\it tf}{\tt.ML} is read, if
 it exists; this file normally contains proofs involving the new theory.
 
 
 \subsection{Filenames and paths}
 \indexbold{filenames}
 
-The files the theory definition resides in must have the lower case name of
-the theory with ".thy" or ".ML" appended.  On the other hand \ttindex{use_thy}'s
-parameter has to be the exact theory name.  Optionally the name can be
-preceeded by a path to specify the directory where the files can be found.  If
-no path is provided the reference variable \ttindexbold{loadpath} is used which
-contains a list of paths that are searched in the given order.  After the
-".thy"-file for a theory has been found, the same path is used to locate the
-(optional) ".ML"-file.  (You might note that it is also possible to only
-provide a ".ML"- but no ".thy"-file.  In this case an \ML{} structure with the
-theory's name has to be created in the ".ML" file.  If both the ".thy"-file
-and a structure declaration in the ".ML"-file exist the declaration in the
-latter file is used.  See {\tt ZF/ex/llist.ML} for an example.)
+The files defining the theory must have the lower case name of the theory
+with {\tt".thy"} or {\tt".ML"} appended.  On the other hand
+\ttindex{use_thy}'s parameter has to be the exact theory name.  Optionally
+the name can be preceded by a path to specify the directory where the
+files can be found.  If no path is provided the reference variable
+\ttindexbold{loadpath} is used which contains a list of paths that are
+searched in the given order.  After the {\tt".thy"}-file for a theory has
+been found, the same path is used to locate the (optional) {\tt".ML"}-file.
+
+It is also possible to provide only a {\tt".ML"}-file, with no
+{\tt".thy"}-file.  In this case the {\tt".ML"}-file must declare an \ML{}
+structure having the theory's name.  If both the {\tt".thy"}-file and a
+structure declaration in the {\tt".ML"}-file exist, then the latter
+declaration is used.  See {\tt ZF/ex/llist.ML} for an example.
 
 
 \subsection{Reloading a theory}
@@ -218,7 +220,7 @@ time of last modification is compared to the internal data and {\tt use_thy}
 stops if they are equal. In case the files have been moved, {\tt use_thy}
 searches them the same way a new theory would be searched for.  After all these
 tests have been passed, the theory is reloaded and all theories that depend on
-it (i.e. that have its name in their $theoryDef$) are marked as out-of-date.
+it (those that have its name in their $theoryDef$) are marked as out-of-date.
 
 As changing a theory often makes it necessary to reload all theories that
 (indirectly) depend on it, \ttindexbold{update} should be used instead of {\tt
