@@ -212,10 +212,7 @@ by (resolve_tac prems 1);
 by (REPEAT (resolve_tac (prems RL [equalityD1,equalityD2]) 1));
 qed "equalityE";
 
-(*This could be tried.  Most things build fine with it.  However, some proofs
-  become very slow or even fail.
-  AddEs [equalityE];
-*)
+AddEs [equalityE];
 
 val major::prems = Goal
     "[| A = B;  [| c:A; c:B |] ==> P;  [| c~:A; c~:B |] ==> P |]  ==>  P";
@@ -294,9 +291,6 @@ qed "equals0I";
 Goal "A={} ==> a ~: A";
 by (Blast_tac 1) ;
 qed "equals0D";
-
-(* [| A = {};  a : A |] ==> R *)
-AddDs [equals0D, sym RS equals0D];
 
 Goalw [Ball_def] "Ball {} P = True";
 by (Simp_tac 1);
