@@ -22,6 +22,7 @@ function usage()
   echo "Usage: $PRG [OPTIONS] [INPUT] [OUTPUT]"
   echo
   echo "  Options are:"
+  echo "    -I           startup Isar interaction mode"
   echo "    -e MLTEXT    pass MLTEXT to the ML session"
   echo "    -m MODE      add print mode for output"
   echo "    -q           non-interactive session"
@@ -54,9 +55,12 @@ TERMINATE=""
 READONLY=""
 NOWRITE=""
 
-while getopts "e:m:qruw" OPT
+while getopts "Ie:m:qruw" OPT
 do
   case "$OPT" in
+    I)
+      MLTEXT="$MLTEXT OuterSyntax.main();"
+      ;;
     e)
       MLTEXT="$MLTEXT $OPTARG"
       ;;
