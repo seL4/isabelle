@@ -95,16 +95,16 @@ sig
     -> theory -> state
   val chain: state -> state
   val from_facts: thm list -> state -> state
-  val show: (bool -> state -> state) -> (state -> state Seq.seq)
+  val show: (bool -> state -> state) -> (state -> state Seq.seq) -> bool
     -> ((string * context attribute list) * (string * (string list * string list)) list) list
     -> bool -> state -> state
-  val show_i: (bool -> state -> state) -> (state -> state Seq.seq)
+  val show_i: (bool -> state -> state) -> (state -> state Seq.seq) -> bool
     -> ((string * context attribute list) * (term * (term list * term list)) list) list
     -> bool -> state -> state
-  val have: (state -> state Seq.seq)
+  val have: (state -> state Seq.seq) -> bool
     -> ((string * context attribute list) * (string * (string list * string list)) list) list
     -> state -> state
-  val have_i: (state -> state Seq.seq)
+  val have_i: (state -> state Seq.seq) -> bool
     -> ((string * context attribute list) * (term * (term list * term list)) list) list
     -> state -> state
   val at_bottom: state -> bool
@@ -170,7 +170,7 @@ datatype node =
    {context: context,
     facts: thm list option,
     mode: mode,
-    goal: (goal * (state -> state Seq.seq)) option}
+    goal: (goal * ((state -> state Seq.seq) * bool)) option}
 and state =
   State of
     node *              (*current*)
@@ -402,13 +402,13 @@ fun check_sign sg state =
 
 fun gen_refine current_context meth_fun state =
   let
-    val (goal_ctxt, (_, ((result, (facts, thm)), f))) = find_goal state;
+    val (goal_ctxt, (_, ((result, (facts, thm)), x))) = find_goal state;
     val Method meth = meth_fun (if current_context then context_of state else goal_ctxt);
 
     fun refn (thm', cases) =
       state
       |> check_sign (Thm.sign_of_thm thm')
-      |> map_goal (ProofContext.add_cases cases) (K ((result, (facts, thm')), f));
+      |> map_goal (ProofContext.add_cases cases) (K ((result, (facts, thm')), x));
   in Seq.map refn (meth facts thm) end;
 
 in
@@ -438,13 +438,13 @@ fun refine_tac rule =
 
 fun export_goal inner print_rule raw_rule state =
   let
-    val (outer, (_, ((result, (facts, thm)), f))) = find_goal state;
+    val (outer, (_, ((result, (facts, thm)), x))) = find_goal state;
     val exp_tac = ProofContext.export true inner outer;
     fun exp_rule rule =
       let
         val _ = print_rule outer rule;
         val thmq = FINDGOAL (refine_tac rule) thm;
-      in Seq.map (fn th => map_goal I (K ((result, (facts, th)), f)) state) thmq end;
+      in Seq.map (fn th => map_goal I (K ((result, (facts, th)), x)) state) thmq end;
   in raw_rule |> exp_tac |> (Seq.flat o Seq.map exp_rule) end;
 
 fun export_goals inner print_rule raw_rules =
@@ -555,8 +555,8 @@ fun gen_using_thmss f args state =
   |> assert_backward
   |> map_context_result (f (map (pair ("", [])) args))
   |> (fn (st, named_facts) =>
-    let val (_, (_, ((result, (facts, thm)), f))) = find_goal st;
-    in st |> map_goal I (K ((result, (facts @ flat (map snd named_facts), thm)), f)) end);
+    let val (_, (_, ((result, (facts, thm)), x))) = find_goal st;
+    in st |> map_goal I (K ((result, (facts @ flat (map snd named_facts), thm)), x)) end);
 
 in
 
@@ -655,7 +655,7 @@ fun from_facts facts state =
 
 val rule_contextN = "rule_context";
 
-fun setup_goal opt_block prepp autofix kind after_qed names raw_propp state =
+fun setup_goal opt_block prepp autofix kind after_qed pr names raw_propp state =
   let
     val (state', (propss, gen_binds)) =
       state
@@ -680,7 +680,8 @@ fun setup_goal opt_block prepp autofix kind after_qed names raw_propp state =
       commas (map (ProofContext.string_of_term (context_of state')) vars));
     state'
     |> map_context (autofix props)
-    |> put_goal (Some (((kind, names, propss), ([], goal)), after_qed o map_context gen_binds))
+    |> put_goal (Some (((kind, names, propss), ([], goal)),
+      (after_qed o map_context gen_binds, pr)))
     |> map_context (ProofContext.add_cases
      (if length props = 1 then
       RuleCases.make true (Thm.sign_of_thm goal, Thm.prop_of goal) [rule_contextN]
@@ -706,7 +707,7 @@ fun global_goal prep kind raw_locale a elems concl thy =
     |> map_context (K elems_ctxt)
     |> setup_goal I ProofContext.bind_propp_schematic_i ProofContext.fix_frees
       (Theorem {kind = kind, theory_spec = (a, map (snd o fst) concl), locale_spec = locale_spec})
-      Seq.single (map (fst o fst) concl) propp
+      Seq.single true (map (fst o fst) concl) propp
   end;
 
 val multi_theorem = global_goal Locale.read_context_statement;
@@ -714,14 +715,14 @@ val multi_theorem_i = global_goal Locale.cert_context_statement;
 
 
 (*local goals*)
-fun local_goal' prepp kind (check: bool -> state -> state) f args int state =
+fun local_goal' prepp kind (check: bool -> state -> state) f pr args int state =
   state
   |> setup_goal open_block prepp (K I) (kind (map (snd o fst) args))
-    f (map (fst o fst) args) (map snd args)
+    f pr (map (fst o fst) args) (map snd args)
   |> warn_extra_tfrees state
   |> check int;
 
-fun local_goal prepp kind f args = local_goal' prepp kind (K I) f args false;
+fun local_goal prepp kind f pr args = local_goal' prepp kind (K I) f pr args false;
 
 val show = local_goal' ProofContext.bind_propp Show;
 val show_i = local_goal' ProofContext.bind_propp_i Show;
@@ -765,7 +766,7 @@ fun end_proof bot state =
 
 fun finish_local (print_result, print_rule) state =
   let
-    val (goal_ctxt, (((kind, names, tss), (_, raw_thm)), after_qed)) = current_goal state;
+    val (goal_ctxt, (((kind, names, tss), (_, raw_thm)), (after_qed, pr))) = current_goal state;
     val outer_state = state |> close_block;
     val outer_ctxt = context_of outer_state;
 
@@ -777,11 +778,13 @@ fun finish_local (print_result, print_rule) state =
 
     val (attss, opt_solve) =
       (case kind of
-        Show attss => (attss, export_goals goal_ctxt print_rule results)
+        Show attss => (attss,
+          export_goals goal_ctxt (if pr then print_rule else (K (K ()))) results)
       | Have attss => (attss, Seq.single)
       | _ => err_malformed "finish_local" state);
   in
-    print_result goal_ctxt (kind_name (sign_of state) kind, names ~~ Library.unflat tss results);
+    conditional pr (fn () => print_result goal_ctxt
+      (kind_name (sign_of state) kind, names ~~ Library.unflat tss results));
     outer_state
     |> auto_bind_facts (ProofContext.generalize goal_ctxt outer_ctxt ts)
     |> (fn st => Seq.map (fn res =>
