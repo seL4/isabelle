@@ -14,7 +14,7 @@ init_thy_reader();
 print_depth 1;  
 use_thy "Cube";
 
-use "../Pure/install_pp.ML";
+init_pps ();
 print_depth 8;
 
 val Cube_build_completed = ();  (*indicate successful build*)

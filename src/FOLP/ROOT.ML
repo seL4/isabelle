@@ -75,7 +75,7 @@ val FOLP_dup_cs = prop_cs addSIs [allI] addIs [exCI,ex1I]
 
 use "simpdata.ML";
 
-use "../Pure/install_pp.ML";
+init_pps ();
 print_depth 8;
 
 val FOLP_build_completed = ();  (*indicate successful build*)

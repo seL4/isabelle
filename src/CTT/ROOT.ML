@@ -20,7 +20,7 @@ use "rew.ML";
 use_thy "Arith";
 use_thy "Bool";
 
-use "../Pure/install_pp.ML";
+init_pps ();
 print_depth 8;
 
 val CTT_build_completed = ();   (*indicate successful build*)
