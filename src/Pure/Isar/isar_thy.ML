@@ -123,6 +123,12 @@ sig
     * Comment.text -> ProofHistory.T -> ProofHistory.T
   val hence_i: ((string * Proof.context attribute list) * (term * (term list * term list)))
     * Comment.text -> ProofHistory.T -> ProofHistory.T
+  val obtain: ((string list * string option) * Comment.text) list
+    * (((string * Args.src list) * (string * (string list * string list)) list)
+      * Comment.text) list -> ProofHistory.T -> ProofHistory.T
+  val obtain_i: ((string list * typ option) * Comment.text) list
+    * (((string * Proof.context attribute list) * (term * (term list * term list)) list)
+      * Comment.text) list -> ProofHistory.T -> ProofHistory.T
   val begin_block: Comment.text -> ProofHistory.T -> ProofHistory.T
   val next_block: Comment.text -> ProofHistory.T -> ProofHistory.T
   val end_block: Comment.text -> ProofHistory.T -> ProofHistory.T
@@ -424,8 +430,8 @@ val assume      = multi_statement Proof.assume o map Comment.ignore;
 val assume_i    = multi_statement_i Proof.assume_i o map Comment.ignore;
 val presume     = multi_statement Proof.presume o map Comment.ignore;
 val presume_i   = multi_statement_i Proof.presume_i o map Comment.ignore;
-val local_def   = local_statement LocalDefs.def I o Comment.ignore;
-val local_def_i = local_statement LocalDefs.def_i I o Comment.ignore;
+val local_def   = local_statement Proof.def I o Comment.ignore;
+val local_def_i = local_statement Proof.def_i I o Comment.ignore;
 val show        = local_statement' (Proof.show check_goal Seq.single) I o Comment.ignore;
 val show_i      = local_statement_i' (Proof.show_i check_goal Seq.single) I o Comment.ignore;
 val have        = local_statement (Proof.have Seq.single) I o Comment.ignore;
@@ -434,6 +440,13 @@ val thus        = local_statement' (Proof.show check_goal Seq.single) Proof.chai
 val thus_i      = local_statement_i' (Proof.show_i check_goal Seq.single) Proof.chain o Comment.ignore;
 val hence       = local_statement (Proof.have Seq.single) Proof.chain o Comment.ignore;
 val hence_i     = local_statement_i (Proof.have_i Seq.single) Proof.chain o Comment.ignore;
+
+fun obtain (xs, asms) = ProofHistory.applys (fn state =>
+  Obtain.obtain (map Comment.ignore xs)
+    (map (multi_local_attribute state) (map Comment.ignore asms)) state);
+
+fun obtain_i (xs, asms) = ProofHistory.applys (fn state =>
+  Obtain.obtain_i (map Comment.ignore xs) (map Comment.ignore asms) state);
 
 end;
 

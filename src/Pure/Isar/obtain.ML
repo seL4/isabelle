@@ -20,12 +20,12 @@ proof texts.
 
 signature OBTAIN =
 sig
-  val obtain: ((string list * string option) * Comment.text) list
-    * (((string * Args.src list) * (string * (string list * string list)) list)
-      * Comment.text) list -> ProofHistory.T -> ProofHistory.T
-  val obtain_i: ((string list * typ option) * Comment.text) list
-    * (((string * Proof.context attribute list) * (term * (term list * term list)) list)
-      * Comment.text) list -> ProofHistory.T -> ProofHistory.T
+  val obtain: (string list * string option) list ->
+    ((string * Proof.context attribute list) * (string * (string list * string list)) list) list
+    -> Proof.state -> Proof.state Seq.seq
+  val obtain_i: (string list * typ option) list ->
+    ((string * Proof.context attribute list) * (term * (term list * term list)) list) list
+    -> Proof.state -> Proof.state Seq.seq
 end;
 
 structure Obtain: OBTAIN =
@@ -62,7 +62,7 @@ fun export_obtain state parms rule _ cprops thm =
 
 val thatN = "that";
 
-fun gen_obtain prep_vars prep_propp prep_att (raw_vars, raw_asms) state =
+fun gen_obtain prep_vars prep_propp raw_vars raw_asms state =
   let
     val _ = Proof.assert_forward_or_chain state;
     val chain_facts = if Proof.is_chain state then Proof.the_facts state else [];
@@ -70,17 +70,14 @@ fun gen_obtain prep_vars prep_propp prep_att (raw_vars, raw_asms) state =
     val sign = Theory.sign_of thy;
 
     (*obtain vars*)
-    val (vars_ctxt, vars) =
-      foldl_map prep_vars (Proof.context_of state, map Comment.ignore raw_vars);
+    val (vars_ctxt, vars) = foldl_map prep_vars (Proof.context_of state, raw_vars);
     val xs = flat (map fst vars);
     val fix_ctxt = vars_ctxt |> ProofContext.fix_i vars;
 
     (*obtain asms*)
-    val (asms_ctxt, proppss) = prep_propp (fix_ctxt, map (snd o Comment.ignore) raw_asms);
+    val (asms_ctxt, proppss) = prep_propp (fix_ctxt, map snd raw_asms);
     val asm_props = flat (map (map fst) proppss);
-
-    fun prep_asm ((name, src), propps) = ((name, map (prep_att thy) src), propps);
-    val asms = map2 prep_asm (map (fst o Comment.ignore) raw_asms, proppss);
+    val asms = map fst raw_asms ~~ proppss;
 
     val _ = ProofContext.warn_extra_tfrees fix_ctxt asms_ctxt;
 
@@ -118,31 +115,8 @@ fun gen_obtain prep_vars prep_propp prep_att (raw_vars, raw_asms) state =
       |> Method.refine (Method.Basic (K (Method.insert (Proof.the_facts state')))))
   end;
 
+val obtain = gen_obtain ProofContext.read_vars ProofContext.read_propp;
+val obtain_i = gen_obtain ProofContext.cert_vars ProofContext.cert_propp;
 
-val obtain = ProofHistory.applys o
-  (gen_obtain ProofContext.read_vars ProofContext.read_propp Attrib.local_attribute);
-
-val obtain_i = ProofHistory.applys o
-  (gen_obtain ProofContext.cert_vars ProofContext.cert_propp (K I));
-
-
-
-(** outer syntax **)
-
-local structure P = OuterParse and K = OuterSyntax.Keyword in
-
-val obtainP =
-  OuterSyntax.command "obtain" "generalized existence"
-    K.prf_asm_goal
-    (Scan.optional
-      (P.and_list1 (Scan.repeat1 P.name -- Scan.option (P.$$$ "::" |-- P.typ) -- P.marg_comment)
-        --| P.$$$ "where") [] --
-      P.and_list1 (P.opt_thm_name ":" -- Scan.repeat1 P.propp -- P.marg_comment)
-    >> (Toplevel.print oo (Toplevel.proof o obtain)));
-
-val _ = OuterSyntax.add_keywords ["where"];
-val _ = OuterSyntax.add_parsers [obtainP];
-
-end;
 
 end;

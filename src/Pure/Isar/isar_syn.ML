@@ -338,6 +338,11 @@ val noteP =
 
 (* proof context *)
 
+val fixP =
+  OuterSyntax.command "fix" "fix variables (Skolem constants)" K.prf_asm
+    (P.and_list1 (Scan.repeat1 P.name -- Scan.option (P.$$$ "::" |-- P.typ) -- P.marg_comment)
+      >> (Toplevel.print oo (Toplevel.proof o IsarThy.fix)));
+
 val assumeP =
   OuterSyntax.command "assume" "assume propositions" K.prf_asm
     (P.and_list1 (P.opt_thm_name ":" -- Scan.repeat1 P.propp -- P.marg_comment)
@@ -353,10 +358,14 @@ val defP =
     (P.opt_thm_name ":" -- (P.name -- ((P.$$$ "\\<equiv>" || P.$$$ "==") |-- P.!!! P.termp))
       -- P.marg_comment >> (Toplevel.print oo (Toplevel.proof o IsarThy.local_def)));
 
-val fixP =
-  OuterSyntax.command "fix" "fix variables (Skolem constants)" K.prf_asm
-    (P.and_list1 (Scan.repeat1 P.name -- Scan.option (P.$$$ "::" |-- P.typ) -- P.marg_comment)
-      >> (Toplevel.print oo (Toplevel.proof o IsarThy.fix)));
+val obtainP =
+  OuterSyntax.command "obtain" "generalized existence"
+    K.prf_asm_goal
+    (Scan.optional
+      (P.and_list1 (Scan.repeat1 P.name -- Scan.option (P.$$$ "::" |-- P.typ) -- P.marg_comment)
+        --| P.$$$ "where") [] --
+      P.and_list1 (P.opt_thm_name ":" -- Scan.repeat1 P.propp -- P.marg_comment)
+    >> (Toplevel.print oo (Toplevel.proof o IsarThy.obtain)));
 
 val letP =
   OuterSyntax.command "let" "bind text variables" K.prf_decl
@@ -689,7 +698,7 @@ val keywords =
  ["!", "!!", "%", "%%", "(", ")", "+", ",", "--", ":", "::", ";", "<",
   "<=", "=", "==", "=>", "?", "[", "]", "and", "binder", "concl",
   "files", "in", "infix", "infixl", "infixr", "is", "output", "overloaded",
-  "|", "\\<equiv>", "\\<rightharpoonup>", "\\<leftharpoondown>",
+  "where", "|", "\\<equiv>", "\\<rightharpoonup>", "\\<leftharpoondown>",
   "\\<rightleftharpoons>", "\\<subseteq>"];
 
 val parsers = [
@@ -707,9 +716,9 @@ val parsers = [
   typed_print_translationP, print_ast_translationP,
   token_translationP, oracleP,
   (*proof commands*)
-  theoremP, lemmaP, corollaryP, showP, haveP, thusP, henceP, assumeP,
-  presumeP, defP, fixP, letP, caseP, thenP, fromP, withP, noteP,
-  beginP, endP, nextP, qedP, terminal_proofP, default_proofP,
+  theoremP, lemmaP, corollaryP, showP, haveP, thusP, henceP, fixP,
+  assumeP, presumeP, defP, obtainP, letP, caseP, thenP, fromP, withP,
+  noteP, beginP, endP, nextP, qedP, terminal_proofP, default_proofP,
   immediate_proofP, done_proofP, skip_proofP, forget_proofP, deferP,
   preferP, applyP, apply_endP, proofP, alsoP, finallyP, moreoverP,
   ultimatelyP, backP, cannot_undoP, clear_undosP, redoP, undos_proofP,
