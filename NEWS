@@ -149,10 +149,16 @@ instead of "inverse";
 
 * directory HOL/UNITY: Chandy and Misra's UNITY formalism;
 
+* calling (stac rew i) now fails if "rew" has no effect on the goal
+  [previously, this check worked only if the rewrite rule was unconditional]
+
 
 *** ZF ***
 
 * in  let x=t in u(x), neither t nor u(x) has to be an FOL term.
+
+* calling (stac rew i) now fails if "rew" has no effect on the goal
+  [previously, this check worked only if the rewrite rule was unconditional]
 
 
 *** Internal programming interfaces ***
@@ -169,6 +175,8 @@ cterm -> thm;
 
 * Pure: several new basic modules made available for general use, see
 also src/Pure/README;
+
+* new tactical CHANGED_GOAL for checking that a tactic modifies a subgoal
 
 
 
