@@ -3,7 +3,7 @@
     Author:     Franz Regensburger
     Copyright   1993 Technische Universitaet Muenchen
 
-Lemmas for one.thy 
+Lemmas for One.thy 
 *)
 
 open One;
@@ -41,28 +41,18 @@ qed_goal "oneE" One.thy
 (* distinctness for type one : stored in a list                             *)
 (* ------------------------------------------------------------------------ *)
 
-val dist_less_one = [
-prove_goalw One.thy [one_def] "~one << UU"
- (fn prems =>
-        [
+qed_goalw "dist_less_one" One.thy [one_def] "~one << UU" (fn prems => [
         (rtac classical2 1),
         (rtac less_up4b 1),
         (rtac (rep_one_iso RS subst) 1),
         (rtac (rep_one_iso RS subst) 1),
         (rtac monofun_cfun_arg 1),
         (etac ((abs_one_iso RS allI) RS ((rep_one_iso RS allI) RS iso_strict ) 
-                RS conjunct2 RS ssubst) 1)
-        ])
-];
+                RS conjunct2 RS ssubst) 1)]);
 
-val  dist_eq_one = [prove_goal One.thy "one~=UU"
- (fn prems =>
-        [
+qed_goal "dist_eq_one" One.thy "one~=UU" (fn prems => [
         (rtac not_less2not_eq 1),
-        (resolve_tac dist_less_one 1)
-        ])];
-
-val dist_eq_one = dist_eq_one @ (map (fn thm => (thm RS not_sym)) dist_eq_one);
+        (rtac dist_less_one 1)]);
 
 (* ------------------------------------------------------------------------ *)
 (* one is flat                                                              *)
@@ -76,7 +66,7 @@ qed_goalw "flat_one" One.thy [flat_def] "flat one"
         (res_inst_tac [("p","x")] oneE 1),
         (Asm_simp_tac 1),
         (res_inst_tac [("p","y")] oneE 1),
-        (asm_simp_tac (!simpset addsimps dist_less_one) 1),
+        (asm_simp_tac (!simpset addsimps [dist_less_one]) 1),
         (Asm_simp_tac 1)
         ]);
 
@@ -96,3 +86,4 @@ fun prover s =  prove_goalw One.thy [one_when_def,one_def] s
 
 val one_when = map prover ["one_when`x`UU = UU","one_when`x`one = x"];
 
+Addsimps (dist_less_one::dist_eq_one::one_when);

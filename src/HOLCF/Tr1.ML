@@ -19,7 +19,7 @@ prove_goalw Tr1.thy [TT_def] "~TT << UU"
         (rtac classical2 1),
         (rtac defined_sinl 1),
         (rtac not_less2not_eq 1),
-        (resolve_tac dist_less_one 1),
+        (rtac dist_less_one 1),
         (rtac (rep_tr_iso RS subst) 1),
         (rtac (rep_tr_iso RS subst) 1),
         (rtac cfun_arg_cong 1),
@@ -32,7 +32,7 @@ prove_goalw Tr1.thy [FF_def] "~FF << UU"
         (rtac classical2 1),
         (rtac defined_sinr 1),
         (rtac not_less2not_eq 1),
-        (resolve_tac dist_less_one 1),
+        (rtac dist_less_one 1),
         (rtac (rep_tr_iso RS subst) 1),
         (rtac (rep_tr_iso RS subst) 1),
         (rtac cfun_arg_cong 1),
@@ -45,7 +45,7 @@ prove_goalw Tr1.thy [FF_def,TT_def] "~TT << FF"
         (rtac classical2 1),
         (rtac (less_ssum4c RS iffD1) 2),
         (rtac not_less2not_eq 1),
-        (resolve_tac dist_less_one 1),
+        (rtac dist_less_one 1),
         (rtac (rep_tr_iso RS subst) 1),
         (rtac (rep_tr_iso RS subst) 1),
         (etac monofun_cfun_arg 1)
@@ -56,7 +56,7 @@ prove_goalw Tr1.thy [FF_def,TT_def] "~FF << TT"
         (rtac classical2 1),
         (rtac (less_ssum4d RS iffD1) 2),
         (rtac not_less2not_eq 1),
-        (resolve_tac dist_less_one 1),
+        (rtac dist_less_one 1),
         (rtac (rep_tr_iso RS subst) 1),
         (rtac (rep_tr_iso RS subst) 1),
         (etac monofun_cfun_arg 1)
@@ -145,14 +145,11 @@ qed_goalw "flat_tr" Tr1.thy [flat_def] "flat TT"
 (* properties of tr_when                                                    *) 
 (* ------------------------------------------------------------------------ *)
 
-fun prover s =  prove_goalw Tr1.thy [tr_when_def,TT_def,FF_def] s
- (fn prems =>
-        [
+fun prover s = prove_goalw Tr1.thy [tr_when_def,TT_def,FF_def] s (fn prems => [
         (Simp_tac 1),
-        (simp_tac (!simpset addsimps [(rep_tr_iso ),
+        (simp_tac (!simpset addsimps [rep_tr_iso,
                 (abs_tr_iso RS allI) RS ((rep_tr_iso RS allI) 
-                RS iso_strict) RS conjunct1]@dist_eq_one)1)
-        ]);
+                RS iso_strict) RS conjunct1]) 1)]);
 
 val tr_when = map prover [
                         "tr_when`x`y`UU = UU",
