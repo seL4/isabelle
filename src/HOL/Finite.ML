@@ -566,7 +566,6 @@ by (asm_simp_tac (simpset() addsimps [card_image, Pow_insert]) 1);
 by (rewtac inj_on_def);
 by (blast_tac (claset() addSEs [equalityE]) 1);
 qed "card_Pow";
-Addsimps [card_Pow];
 
 
 (*Relates to equivalence classes.   Based on a theorem of F. Kammueller's.
