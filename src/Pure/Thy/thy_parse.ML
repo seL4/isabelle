@@ -231,14 +231,14 @@ val opt_mixfix = opt_syn (mixfix || infxl || infxr || binder);
 
 (* types *)
 
-(*Parse an identifier, but only if it is not followed by colons or a comma;
+(*Parse an identifier, but only if it is not followed by "::", "=" or ",";
   the exclusion of a postfix comma can be controlled to allow expressions
   like "(id, id)" but disallow ones like "'a => id id,id :: ..."*)
 fun ident_no_colon _ [] = eof_err()
   | ident_no_colon allow_comma ((Ident, s, n) :: (rest as (Keyword, s2, n2) ::
                                 toks)) =
-      if s2 = "::" orelse (not allow_comma andalso s2 = ",") then
-        syn_err (name_of_kind Ident) (quote s2) n2
+      if s2 = "::" orelse s2 = "=" orelse (not allow_comma andalso s2 = ",")
+      then syn_err (name_of_kind Ident) (quote s2) n2
       else (s, rest)
   | ident_no_colon _ ((Ident, s, n) :: toks) = (s, toks)
   | ident_no_colon _ ((k, s, n) :: _) =
