@@ -34,7 +34,7 @@ rules
 
 defs
   one_def       "one == abs_one`(up`UU)"
-  one_when_def "one_when == (LAM c u.lift`(LAM x.c)`(rep_one`u))"
+  one_when_def "one_when == (LAM c u.fup`(LAM x.c)`(rep_one`u))"
 
 translations
   "case l of one => t1" == "one_when`t1`l"

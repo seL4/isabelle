@@ -27,7 +27,7 @@ THYS = Holcfb.thy Void.thy Porder.thy Pcpo.thy \
        Cprod1.thy Cprod2.thy Cprod3.thy \
        Sprod0.thy Sprod1.thy Sprod2.thy Sprod3.thy \
        Ssum0.thy Ssum1.thy Ssum2.thy Ssum3.thy \
-       Lift1.thy Lift2.thy Lift3.thy Fix.thy ccc1.thy One.thy \
+       Up1.thy Up2.thy Up3.thy Fix.thy ccc1.thy One.thy \
        Tr1.thy Tr2.thy HOLCF.thy 
 
 FILES = ROOT.ML Porder0.thy  $(THYS) $(THYS:.thy=.ML)

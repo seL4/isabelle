@@ -148,6 +148,9 @@ qed_goal "lub_mono3" Pcpo.thy "[|is_chain(Y::nat=>'a::pcpo);is_chain(X);\
 (* usefull lemmas about UU                                                  *)
 (* ------------------------------------------------------------------------ *)
 
+val eq_UU_sym = prove_goal Pcpo.thy "(UU = x) = (x = UU)" (fn _ => [
+	fast_tac HOL_cs 1]);
+
 qed_goal "eq_UU_iff" Pcpo.thy "(x=UU)=(x<<UU)"
  (fn prems =>
         [

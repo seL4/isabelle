@@ -1,4 +1,4 @@
-(*  Title:      HOLCF/one.thy
+(*  Title:      HOLCF/One.ML
     ID:         $Id$
     Author:     Franz Regensburger
     Copyright   1993 Technische Universitaet Muenchen
@@ -15,7 +15,7 @@ open One;
 qed_goalw "Exh_one" One.thy [one_def] "z=UU | z = one"
  (fn prems =>
         [
-        (res_inst_tac [("p","rep_one`z")] liftE1 1),
+        (res_inst_tac [("p","rep_one`z")] upE1 1),
         (rtac disjI1 1),
         (rtac ((abs_one_iso RS allI) RS ((rep_one_iso RS allI) RS iso_strict )
                 RS conjunct2 RS subst) 1),
@@ -46,7 +46,7 @@ prove_goalw One.thy [one_def] "~one << UU"
  (fn prems =>
         [
         (rtac classical3 1),
-        (rtac less_lift4b 1),
+        (rtac less_up4b 1),
         (rtac (rep_one_iso RS subst) 1),
         (rtac (rep_one_iso RS subst) 1),
         (rtac monofun_cfun_arg 1),
@@ -68,7 +68,7 @@ val dist_eq_one = dist_eq_one @ (map (fn thm => (thm RS not_sym)) dist_eq_one);
 (* one is flat                                                              *)
 (* ------------------------------------------------------------------------ *)
 
-qed_goalw "flat_one" One.thy [is_flat_def] "is_flat(one)"
+qed_goalw "flat_one" One.thy [flat_def] "flat one"
  (fn prems =>
         [
         (rtac allI 1),

@@ -3,11 +3,11 @@
     Author:     Franz Regensburger
     Copyright   1993 Technische Universitaet Muenchen
 
-Merge Theories Cprof, Sprod, Ssum, Lift, Fix and
+Merge Theories Cprof, Sprod, Ssum, Up, Fix and
 define constants for categorical reasoning
 *)
 
-ccc1 = Cprod3 + Sprod3 + Ssum3 + Lift3 + Fix +
+ccc1 = Cprod3 + Sprod3 + Ssum3 + Up3 + Fix +
 
 consts
         ID      :: "'a -> 'a"

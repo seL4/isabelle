@@ -549,8 +549,8 @@ qed_goalw "adm_chain_finite"  Fix.thy  [chain_finite_def]
 (* flat types are chain_finite                                              *)
 (* ------------------------------------------------------------------------ *)
 
-qed_goalw "flat_imp_chain_finite"  Fix.thy  [is_flat_def,chain_finite_def]
-        "is_flat(x::'a)==>chain_finite(x::'a)"
+qed_goalw "flat_imp_chain_finite"  Fix.thy  [flat_def,chain_finite_def]
+        "flat(x::'a)==>chain_finite(x::'a)"
  (fn prems =>
         [
         (rewtac max_in_chain_def),
@@ -587,9 +587,9 @@ qed_goalw "flat_imp_chain_finite"  Fix.thy  [is_flat_def,chain_finite_def]
 
 
 bind_thm ("adm_flat", flat_imp_chain_finite RS adm_chain_finite);
-(* is_flat(?x::?'a) ==> adm(?P::?'a => bool) *)
+(* flat(?x::?'a) ==> adm(?P::?'a => bool) *)
 
-qed_goalw "flat_void" Fix.thy [is_flat_def] "is_flat(UU::void)"
+qed_goalw "flat_void" Fix.thy [flat_def] "flat(UU::void)"
  (fn prems =>
         [
         (strip_tac 1),
@@ -597,8 +597,8 @@ qed_goalw "flat_void" Fix.thy [is_flat_def] "is_flat(UU::void)"
         (rtac unique_void2 1)
         ]);
 
-qed_goalw "flat_eq" Fix.thy [is_flat_def] 
-        "[| is_flat (x::'a); (a::'a) ~= UU |] ==> a << b = (a = b)" (fn prems=>[
+qed_goalw "flat_eq" Fix.thy [flat_def] 
+        "[| flat (x::'a); (a::'a) ~= UU |] ==> a << b = (a = b)" (fn prems=>[
         (cut_facts_tac prems 1),
         (fast_tac (HOL_cs addIs [refl_less]) 1)]);
 
@@ -719,9 +719,9 @@ qed_goalw "chfin2chfin"  Fix.thy  [chain_finite_def]
         (atac 1)
         ]);
 
-qed_goalw "flat2flat"  Fix.thy  [is_flat_def]
-"!!f g.[|is_flat(x::'a); !y.f`(g`y)=(y::'b) ; !x.g`(f`x)=(x::'a) |] \
-\ ==> is_flat(y::'b)"
+qed_goalw "flat2flat"  Fix.thy  [flat_def]
+"!!f g.[|flat(x::'a); !y.f`(g`y)=(y::'b) ; !x.g`(f`x)=(x::'a) |] \
+\ ==> flat(y::'b)"
  (fn prems =>
         [
         (strip_tac 1),
@@ -750,8 +750,8 @@ qed_goalw "flat2flat"  Fix.thy  [is_flat_def]
 (* a result about functions with flat codomain                               *)
 (* ------------------------------------------------------------------------- *)
 
-qed_goalw "flat_codom" Fix.thy [is_flat_def]
-"[|is_flat(y::'b);f`(x::'a)=(c::'b)|] ==> f`(UU::'a)=(UU::'b) | (!z.f`(z::'a)=c)"
+qed_goalw "flat_codom" Fix.thy [flat_def]
+"[|flat(y::'b);f`(x::'a)=(c::'b)|] ==> f`(UU::'a)=(UU::'b) | (!z.f`(z::'a)=c)"
  (fn prems =>
         [
         (cut_facts_tac prems 1),
