@@ -304,7 +304,7 @@ lemma finite_trancl: "finite (r^+) = finite r"
    apply (rule trancl_subset_Field2 [THEN finite_subset])
    apply (rule finite_SigmaI)
     prefer 3
-    apply (blast intro: r_into_trancl finite_subset)
+    apply (blast intro: r_into_trancl' finite_subset)
    apply (auto simp add: finite_Field)
   done
 

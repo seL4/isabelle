@@ -25,9 +25,13 @@ inductive "r^*"
     rtrancl_refl [intro!, CPure.intro!, simp]: "(a, a) : r^*"
     rtrancl_into_rtrancl [CPure.intro]: "(a, b) : r^* ==> (b, c) : r ==> (a, c) : r^*"
 
-constdefs
+consts
   trancl :: "('a \<times> 'a) set => ('a \<times> 'a) set"    ("(_^+)" [1000] 999)
-  "r^+ ==  r O rtrancl r"
+
+inductive "r^+"
+  intros
+    r_into_trancl [intro, CPure.intro]: "(a, b) : r ==> (a, b) : r^+"
+    trancl_into_trancl [CPure.intro]: "(a, b) : r^+ ==> (b, c) : r ==> (a,c) : r^+"
 
 syntax
   "_reflcl" :: "('a \<times> 'a) set => ('a \<times> 'a) set"    ("(_^=)" [1000] 999)
@@ -213,59 +217,44 @@ lemma r_comp_rtrancl_eq: "r O r^* = r^* O r"
 
 subsection {* Transitive closure *}
 
-lemma trancl_mono: "p \<in> r^+ ==> r \<subseteq> s ==> p \<in> s^+"
-  apply (unfold trancl_def)
-  apply (blast intro: rtrancl_mono [THEN subsetD])
+lemma trancl_mono: "!!p. p \<in> r^+ ==> r \<subseteq> s ==> p \<in> s^+"
+  apply (simp only: split_tupled_all)
+  apply (erule trancl.induct)
+  apply (rules dest: subsetD)+
   done
+
+lemma r_into_trancl': "!!p. p : r ==> p : r^+"
+  by (simp only: split_tupled_all) (erule r_into_trancl)
 
 text {*
   \medskip Conversions between @{text trancl} and @{text rtrancl}.
 *}
 
-lemma trancl_into_rtrancl: "!!p. p \<in> r^+ ==> p \<in> r^*"
-  apply (unfold trancl_def)
-  apply (simp only: split_tupled_all)
-  apply (erule rel_compEpair)
-  apply (assumption | rule rtrancl_into_rtrancl)+
-  done
+lemma trancl_into_rtrancl: "(a, b) \<in> r^+ ==> (a, b) \<in> r^*"
+  by (erule trancl.induct) rules+
 
-lemma r_into_trancl [intro]: "!!p. p \<in> r ==> p \<in> r^+"
-  -- {* @{text "r^+"} contains @{text r} *}
-  apply (unfold trancl_def)
-  apply (simp only: split_tupled_all)
-  apply (assumption | rule rel_compI rtrancl_refl)+
-  done
-
-lemma rtrancl_into_trancl1: "(a, b) \<in> r^* ==> (b, c) \<in> r ==> (a, c) \<in> r^+"
-  -- {* intro rule by definition: from @{text rtrancl} and @{text r} *}
-  by (auto simp add: trancl_def)
+lemma rtrancl_into_trancl1: assumes r: "(a, b) \<in> r^*"
+  shows "!!c. (b, c) \<in> r ==> (a, c) \<in> r^+" using r
+  by induct rules+
 
 lemma rtrancl_into_trancl2: "[| (a,b) : r;  (b,c) : r^* |]   ==>  (a,c) : r^+"
   -- {* intro rule from @{text r} and @{text rtrancl} *}
   apply (erule rtranclE)
-   apply (blast intro: r_into_trancl)
+   apply rules
   apply (rule rtrancl_trans [THEN rtrancl_into_trancl1])
    apply (assumption | rule r_into_rtrancl)+
   done
 
-lemma trancl_induct:
-  "[| (a,b) : r^+;
-      !!y.  [| (a,y) : r |] ==> P(y);
-      !!y z.[| (a,y) : r^+;  (y,z) : r;  P(y) |] ==> P(z)
-   |] ==> P(b)"
+lemma trancl_induct [consumes 1, induct set: trancl]:
+  assumes a: "(a,b) : r^+"
+  and cases: "!!y. (a, y) : r ==> P y"
+    "!!y z. (a,y) : r^+ ==> (y, z) : r ==> P y ==> P z"
+  shows "P b"
   -- {* Nice induction rule for @{text trancl} *}
 proof -
-  assume major: "(a, b) : r^+"
-  case rule_context
-  show ?thesis
-    apply (rule major [unfolded trancl_def, THEN rel_compEpair])
-    txt {* by induction on this formula *}
-    apply (subgoal_tac "ALL z. (y,z) : r --> P (z)")
-     txt {* now solve first subgoal: this formula is sufficient *}
-     apply blast
-    apply (erule rtrancl_induct)
-    apply (blast intro: rtrancl_into_trancl1 prems)+
-    done
+  from a have "a = a --> P b"
+    by (induct "%x y. x = a --> P y" a b) (rules intro: cases)+
+  thus ?thesis by rules
 qed
 
 lemma trancl_trans_induct:
@@ -278,44 +267,25 @@ proof -
   assume major: "(x,y) : r^+"
   case rule_context
   show ?thesis
-    by (blast intro: r_into_trancl major [THEN trancl_induct] prems)
+    by (rules intro: r_into_trancl major [THEN trancl_induct] prems)
 qed
 
-lemma tranclE:
-  "[| (a::'a,b) : r^+;
-      (a,b) : r ==> P;
-      !!y.[| (a,y) : r^+;  (y,b) : r |] ==> P
-   |] ==> P"
-  -- {* elimination of @{text "r^+"} -- \emph{not} an induction rule *}
-proof -
-  assume major: "(a::'a,b) : r^+"
-  case rule_context
-  show ?thesis
-    apply (subgoal_tac "(a::'a, b) : r | (EX y. (a,y) : r^+ & (y,b) : r)")
-     apply (erule asm_rl disjE exE conjE prems)+
-    apply (rule major [unfolded trancl_def, THEN rel_compEpair])
-    apply (erule rtranclE)
-     apply blast
-    apply (blast intro!: rtrancl_into_trancl1)
-    done
-qed
+inductive_cases tranclE: "(a, b) : r^+"
 
 lemma trans_trancl: "trans(r^+)"
   -- {* Transitivity of @{term "r^+"} *}
-  -- {* Proved by unfolding since it uses transitivity of @{text rtrancl} *}
-  apply (unfold trancl_def)
-  apply (rule transI)
-  apply (erule rel_compEpair)+
-  apply (rule rtrancl_into_rtrancl [THEN rtrancl_trans [THEN rel_compI]])
-  apply assumption+
-  done
+proof (rule transI)
+  fix x y z
+  assume "(x, y) \<in> r^+"
+  assume "(y, z) \<in> r^+"
+  thus "(x, z) \<in> r^+" by induct (rules!)+
+qed
 
 lemmas trancl_trans = trans_trancl [THEN transD, standard]
 
-lemma rtrancl_trancl_trancl: "(x, y) \<in> r^* ==> (y, z) \<in> r^+ ==> (x, z) \<in> r^+"
-  apply (unfold trancl_def)
-  apply (blast intro: rtrancl_trans)
-  done
+lemma rtrancl_trancl_trancl: assumes r: "(x, y) \<in> r^*"
+  shows "!!z. (y, z) \<in> r^+ ==> (x, z) \<in> r^+" using r
+  by induct (rules intro: trancl_trans)+
 
 lemma trancl_into_trancl2: "(a, b) \<in> r ==> (b, c) \<in> r^+ ==> (a, c) \<in> r^+"
   by (erule transD [OF trans_trancl r_into_trancl])
@@ -334,17 +304,21 @@ lemma trancl_insert:
     [THEN [2] rev_subsetD] rtrancl_trancl_trancl rtrancl_into_trancl2)
   done
 
-lemma trancl_converse: "(r^-1)^+ = (r^+)^-1"
-  apply (unfold trancl_def)
-  apply (simp add: rtrancl_converse converse_rel_comp)
-  apply (simp add: rtrancl_converse [symmetric] r_comp_rtrancl_eq)
+lemma trancl_converseI: "(x, y) \<in> (r^+)^-1 ==> (x, y) \<in> (r^-1)^+"
+  apply (drule converseD)
+  apply (erule trancl.induct)
+  apply (rules intro: converseI trancl_trans)+
   done
 
-lemma trancl_converseI: "(x, y) \<in> (r^+)^-1 ==> (x,y) \<in> (r^-1)^+"
-  by (simp add: trancl_converse)
-
 lemma trancl_converseD: "(x, y) \<in> (r^-1)^+ ==> (x, y) \<in> (r^+)^-1"
-  by (simp add: trancl_converse)
+  apply (rule converseI)
+  apply (erule trancl.induct)
+  apply (rules dest: converseD intro: trancl_trans)+
+  done
+
+lemma trancl_converse: "(r^-1)^+ = (r^+)^-1"
+  by (fastsimp simp add: split_tupled_all
+    intro!: trancl_converseI trancl_converseD)
 
 lemma converse_trancl_induct:
   "[| (a,b) : r^+; !!y. (y,b) : r ==> P(y);
@@ -385,8 +359,10 @@ lemma trancl_subset_Sigma_aux:
   done
 
 lemma trancl_subset_Sigma: "r \<subseteq> A \<times> A ==> r^+ \<subseteq> A \<times> A"
-  apply (unfold trancl_def)
-  apply (blast dest!: trancl_subset_Sigma_aux)
+  apply (rule subsetI)
+  apply (simp only: split_tupled_all)
+  apply (erule tranclE)
+  apply (blast dest!: trancl_into_rtrancl trancl_subset_Sigma_aux)+
   done
 
 lemma reflcl_trancl [simp]: "(r^+)^= = r^*"
@@ -475,7 +451,6 @@ lemmas transitive_closure_trans [trans] =
 declare trancl_into_rtrancl [elim]
 
 declare rtranclE [cases set: rtrancl]
-declare trancl_induct [induct set: trancl]
 declare tranclE [cases set: trancl]
 
 end
