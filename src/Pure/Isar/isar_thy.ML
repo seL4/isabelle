@@ -79,6 +79,10 @@ sig
     -> ProofHistory.T -> ProofHistory.T
   val assume_i: (string * Proof.context attribute list * (term * term list) list) * Comment.text
     -> ProofHistory.T -> ProofHistory.T
+  val presume: (string * Args.src list * (string * string list) list) * Comment.text
+    -> ProofHistory.T -> ProofHistory.T
+  val presume_i: (string * Proof.context attribute list * (term * term list) list) * Comment.text
+    -> ProofHistory.T -> ProofHistory.T
   val show: (string * Args.src list * (string * string list)) * Comment.text
     -> ProofHistory.T -> ProofHistory.T
   val show_i: (string * Proof.context attribute list * (term * term list)) * Comment.text
@@ -259,8 +263,10 @@ val theorem   = global_statement Proof.theorem o Comment.ignore;
 val theorem_i = global_statement_i Proof.theorem_i o Comment.ignore;
 val lemma     = global_statement Proof.lemma o Comment.ignore;
 val lemma_i   = global_statement_i Proof.lemma_i o Comment.ignore;
-val assume    = local_statement false Proof.assume I o Comment.ignore;
-val assume_i  = local_statement_i false Proof.assume_i I o Comment.ignore;
+val assume    = local_statement false (Proof.assume assume_tac) I o Comment.ignore;
+val assume_i  = local_statement_i false (Proof.assume_i assume_tac) I o Comment.ignore;
+val presume   = local_statement false (Proof.assume (K all_tac)) I o Comment.ignore;
+val presume_i = local_statement_i false (Proof.assume_i (K all_tac)) I o Comment.ignore;
 val show      = local_statement true Proof.show I o Comment.ignore;
 val show_i    = local_statement_i true Proof.show_i I o Comment.ignore;
 val have      = local_statement true Proof.have I o Comment.ignore;

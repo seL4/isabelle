@@ -292,6 +292,11 @@ val assumeP =
     ((P.opt_thm_name ":" -- Scan.repeat1 propp >> P.triple1) -- P.marg_comment
       >> (Toplevel.print oo (Toplevel.proof o IsarThy.assume)));
 
+val presumeP =
+  OuterSyntax.command "presume" "assume propositions, to be established later" K.prf_decl
+    ((P.opt_thm_name ":" -- Scan.repeat1 propp >> P.triple1) -- P.marg_comment
+      >> (Toplevel.print oo (Toplevel.proof o IsarThy.presume)));
+
 val fixP =
   OuterSyntax.command "fix" "fix variables (Skolem constants)" K.prf_decl
     (Scan.repeat1 (P.name -- Scan.option (P.$$$ "::" |-- P.typ)) -- P.marg_comment
@@ -345,12 +350,12 @@ val default_proofP =
 
 (* proof steps *)
 
-val refineP =
-  OuterSyntax.improper_command "refine" "unstructured backward proof step, ignoring facts"
+val applyP =
+  OuterSyntax.improper_command "apply" "unstructured backward proof step, ignoring facts"
     K.prf_script (P.method >> (Toplevel.print oo (Toplevel.proof o IsarThy.tac)));
 
-val then_refineP =
-  OuterSyntax.improper_command "then_refine" "unstructured backward proof step, using facts"
+val then_applyP =
+  OuterSyntax.improper_command "then_apply" "unstructured backward proof step, using facts"
     K.prf_script (P.method >> (Toplevel.print oo (Toplevel.proof o IsarThy.then_tac)));
 
 val proofP =
@@ -541,10 +546,10 @@ val parsers = [
   print_translationP, typed_print_translationP,
   print_ast_translationP, token_translationP, oracleP,
   (*proof commands*)
-  theoremP, lemmaP, showP, haveP, thusP, henceP, assumeP, fixP, letP,
-  thenP, fromP, noteP, beginP, endP, nextP, qed_withP, qedP,
-  terminal_proofP, immediate_proofP, default_proofP, refineP,
-  then_refineP, proofP, alsoP, finallyP, backP, prevP, upP, topP,
+  theoremP, lemmaP, showP, haveP, thusP, henceP, assumeP, presumeP,
+  fixP, letP, thenP, fromP, noteP, beginP, endP, nextP, qed_withP,
+  qedP, terminal_proofP, immediate_proofP, default_proofP, applyP,
+  then_applyP, proofP, alsoP, finallyP, backP, prevP, upP, topP,
   cannot_undoP, clear_undoP, redoP, undos_proofP, kill_proofP, undoP,
   (*diagnostic commands*)
   print_commandsP, print_theoryP, print_syntaxP, print_attributesP,
