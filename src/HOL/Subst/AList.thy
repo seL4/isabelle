@@ -9,14 +9,15 @@ Association lists.
 AList = List + 
 
 consts
-
   alist_rec  :: "[('a*'b)list, 'c, ['a, 'b, ('a*'b)list, 'c]=>'c] => 'c"
   assoc      :: "['a,'b,('a*'b) list] => 'b"
 
-defs
+primrec
+  "alist_rec [] c d = c"
+  "alist_rec (p # al) c d = d (fst p) (snd p) al (alist_rec al c d)"
 
-  alist_rec_def "alist_rec al b c == list_rec b (split c) al"
-
-  assoc_def   "assoc v d al == alist_rec al d (%x y xs g. if v=x then y else g)"
+primrec
+  "assoc v d [] = d"
+  "assoc v d (p # al) = (if v = fst p then snd p else assoc v d al)"
 
 end
