@@ -101,5 +101,5 @@ else
     -xrm "*VT100*font5:" \
     -xrm "*fontMenu*font6*Label:" \
     -xrm "*VT100*font6:" \
-    -e $ISABELLE -m symbols $PASS "$@"
+    -e $ISABELLE -m isabelle_font -m symbols $PASS "$@"
 fi
