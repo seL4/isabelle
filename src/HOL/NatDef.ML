@@ -77,7 +77,7 @@ datatypes := [("nat",{case_const = Bound 0, case_rewrites = [],
   exhaustion = natE,
   exhaust_tac = fn v => ALLNEWSUBGOALS (res_inst_tac [("n",v)] natE)
                                        (rotate_tac ~1),
-  nchotomy = flexpair_def, case_cong = flexpair_def})];
+  nchotomy = ProtoPure.flexpair_def, case_cong = ProtoPure.flexpair_def})];
 
 
 (*** Isomorphisms: Abs_Nat and Rep_Nat ***)
