@@ -1,0 +1,58 @@
+#
+# $Id$
+#
+# IsaMakefile for HOLCF
+#
+
+#### Base system
+
+OUT = $(ISABELLE_OUTPUT_DIR)
+
+THYS = Void.thy Porder.thy Pcpo.thy \
+       Fun1.thy Fun2.thy Fun3.thy \
+       Cfun1.thy Cfun2.thy Cfun3.thy Cont.thy \
+       Cprod1.thy Cprod2.thy Cprod3.thy \
+       Sprod0.thy Sprod1.thy Sprod2.thy Sprod3.thy \
+       Ssum0.thy Ssum1.thy Ssum2.thy Ssum3.thy \
+       Up1.thy Up2.thy Up3.thy Fix.thy ccc1.thy One.thy \
+       Tr1.thy Tr2.thy Lift1.thy Lift2.thy Lift2.thy HOLCF.thy
+
+FILES = ROOT.ML Porder0.thy  $(THYS) $(THYS:.thy=.ML)
+
+$(OUT)/HOLCF: $(OUT)/HOL $(FILES)
+	@$(ISABELLE) -e "make_html := $(ISABELLE_HTML);" -qu -c $(OUT)/HOL HOLCF
+	@chmod -w $@
+
+$(OUT)/HOL:
+	@cd ../HOL; $(ISATOOL) make
+
+
+
+#### Tests and examples
+
+## Miscellaneous examples
+
+EX_THYS = ex/Fix2.thy ex/Hoare.thy \
+	  ex/Loop.thy
+
+EX_FILES = ex/ROOT.ML ex/loeckx.ML $(EX_THYS) $(EX_THYS:.thy=.ML)
+
+test: ex/ROOT.ML $(OUT)/HOLCF $(EX_FILES)
+	@$(ISATOOL) testdir $(OUT)/HOLCF ex
+
+
+## Explicit domains
+
+EXPLICIT_DOMAINS_THYS = explicit_domains/Coind.thy explicit_domains/Dlist.thy \
+			explicit_domains/Dnat2.thy explicit_domains/Stream.thy \
+			explicit_domains/Dagstuhl.thy explicit_domains/Dnat.thy \
+			explicit_domains/Focus_ex.thy explicit_domains/Stream2.thy
+
+EXPLICIT_DOMAINS_FILES = explicit_domains/ROOT.ML $(EXPLICIT_DOMAINS_THYS) \
+			 $(EXPLICIT_DOMAINS_THYS:.thy=.ML)
+
+test2: explicit_domains/ROOT.ML $(OUT)/HOLCF $(EXPLICIT_DOMAINS_FILES)
+	@$(ISATOOL) testdir $(OUT)/HOLCF explicit_domains
+
+
+.PRECIOUS: $(OUT)/HOL $(OUT)/HOLCF
