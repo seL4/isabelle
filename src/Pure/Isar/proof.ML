@@ -28,6 +28,7 @@ sig
   val reset_thms: string -> state -> state
   val the_facts: state -> thm list
   val the_fact: state -> thm
+  val get_goal: state -> context * (thm list * thm)
   val goal_facts: (state -> thm list) -> state -> state
   val use_facts: state -> state
   val reset_facts: state -> state
@@ -248,6 +249,10 @@ local
     | find i (State (Node {goal = None, ...}, node :: nodes)) = find (i + 1) (State (node, nodes))
     | find _ (state as State (_, [])) = err_malformed "find_goal" state;
 in val find_goal = find 0 end;
+
+fun get_goal state =
+  let val (ctxt, (_, ((_, x), _))) = find_goal state
+  in (ctxt, x) end;
 
 fun put_goal goal = map_current (fn (ctxt, facts, mode, _) => (ctxt, facts, mode, goal));
 
