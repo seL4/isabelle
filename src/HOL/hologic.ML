@@ -70,6 +70,9 @@ sig
   val intT: typ
   val mk_int: int -> term
   val realT: typ
+  val bitT: typ
+  val B0_const: term
+  val B1_const: term
   val binT: typ
   val pls_const: term
   val min_const: term
@@ -80,6 +83,7 @@ sig
   val dest_binum: term -> int
   val mk_bin: int -> term
   val mk_bin_from_intinf: IntInf.int -> term
+  val bin_of : term -> int list
   val mk_list: ('a -> term) -> typ -> 'a list -> term
   val dest_list: term -> term list
 end;
@@ -289,9 +293,14 @@ fun dest_nat (Const ("0", _)) = 0
 
 val binT = Type ("Numeral.bin", []);
 
+val bitT = Type ("Numeral.bit", []);
+
+val B0_const = Const ("Numeral.bit.B0", bitT);
+val B1_const =  Const ("Numeral.bit.B1", bitT);
+
 val pls_const = Const ("Numeral.Pls", binT)
 and min_const = Const ("Numeral.Min", binT)
-and bit_const = Const ("Numeral.Bit", [binT, boolT] ---> binT);
+and bit_const = Const ("Numeral.Bit", [binT, bitT] ---> binT);
 
 fun number_of_const T = Const ("Numeral.number_of", binT --> T);
 
@@ -302,31 +311,25 @@ fun int_of [] = 0
 fun intinf_of [] = IntInf.fromInt 0
   | intinf_of (b :: bs) = IntInf.+ (IntInf.fromInt b, IntInf.*(IntInf.fromInt 2, intinf_of bs));
 
-fun dest_bit (Const ("False", _)) = 0
-  | dest_bit (Const ("True", _)) = 1
+(*When called from a print translation, the Numeral qualifier will probably have
+  been removed from Bit, bin.B0, etc.*)
+fun dest_bit (Const ("Numeral.bit.B0", _)) = 0
+  | dest_bit (Const ("Numeral.bit.B1", _)) = 1
+  | dest_bit (Const ("bit.B0", _)) = 0
+  | dest_bit (Const ("bit.B1", _)) = 1
   | dest_bit t = raise TERM("dest_bit", [t]);
 
 fun bin_of (Const ("Numeral.Pls", _)) = []
   | bin_of (Const ("Numeral.Min", _)) = [~1]
   | bin_of (Const ("Numeral.Bit", _) $ bs $ b) = dest_bit b :: bin_of bs
+  | bin_of (Const ("Bit", _) $ bs $ b) = dest_bit b :: bin_of bs
   | bin_of t = raise TERM("bin_of", [t]);
 
 val dest_binum = int_of o bin_of;
 
-fun mk_bit 0 = false_const
-  | mk_bit 1 = true_const
+fun mk_bit 0 = B0_const
+  | mk_bit 1 = B1_const
   | mk_bit _ = sys_error "mk_bit";
-
-fun mk_bin n =
-  let
-    fun bin_of 0  = []
-      | bin_of ~1 = [~1]
-      | bin_of n  = (n mod 2) :: bin_of (n div 2);
-
-    fun term_of []   = pls_const
-      | term_of [~1] = min_const
-      | term_of (b :: bs) = bit_const $ term_of bs $ mk_bit b;
-    in term_of (bin_of n) end;
 
 fun mk_bin_from_intinf  n =
     let
@@ -334,7 +337,7 @@ fun mk_bin_from_intinf  n =
 	val minus_one = IntInf.fromInt ~1
 	val two = IntInf.fromInt 2
 
-	fun mk_bit n = if n = zero then false_const else true_const
+	fun mk_bit n = if n = zero then B0_const else B1_const
 								 
 	fun bin_of n = 
 	    if n = zero then pls_const
@@ -350,6 +353,9 @@ fun mk_bin_from_intinf  n =
     in 
 	bin_of n
     end
+
+val mk_bin = mk_bin_from_intinf o IntInf.fromInt;
+
 
 (* int *)
 

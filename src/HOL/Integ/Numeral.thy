@@ -7,12 +7,13 @@
 header{*Arithmetic on Binary Integers*}
 
 theory Numeral
-imports IntDef
-files "Tools/numeral_syntax.ML"
+imports IntDef Datatype
+files "../Tools/numeral_syntax.ML"
 begin
 
 text{* The file @{text numeral_syntax.ML} hides the constructors Pls and Min.
    Only qualified access Numeral.Pls and Numeral.Min is allowed.
+   The datatype constructors bit.B0 and bit.B1 are similarly hidden.
    We do not hide Bit because we need the BIT infix syntax.*}
 
 text{*This formalization defines binary arithmetic in terms of the integers
@@ -31,6 +32,12 @@ typedef (Bin)
   bin = "UNIV::int set"
     by (auto)
 
+
+text{*This datatype avoids the use of type @{typ bool}, which would make
+all of the rewrite rules higher-order. If the use of datatype causes
+problems, this two-element type can easily be formalized using typedef.*}
+datatype bit = B0 | B1
+
 constdefs
   Pls :: "bin"
    "Pls == Abs_Bin 0"
@@ -38,9 +45,9 @@ constdefs
   Min :: "bin"
    "Min == Abs_Bin (- 1)"
 
-  Bit :: "[bin,bool] => bin"    (infixl "BIT" 90)
+  Bit :: "[bin,bit] => bin"    (infixl "BIT" 90)
    --{*That is, 2w+b*}
-   "w BIT b == Abs_Bin ((if b then 1 else 0) + Rep_Bin w + Rep_Bin w)"
+   "w BIT b == Abs_Bin ((case b of B0 => 0 | B1 => 1) + Rep_Bin w + Rep_Bin w)"
 
 
 axclass
@@ -56,7 +63,7 @@ syntax
 
 translations
   "Numeral0" == "number_of Numeral.Pls"
-  "Numeral1" == "number_of (Numeral.Pls BIT True)"
+  "Numeral1" == "number_of (Numeral.Pls BIT bit.B1)"
 
 
 setup NumeralSyntax.setup
@@ -105,49 +112,49 @@ lemmas Bin_simps =
        Pls_def Min_def Bit_def Abs_Bin_inverse Rep_Bin_inverse Bin_def
 
 text{*Removal of leading zeroes*}
-lemma Pls_0_eq [simp]: "Numeral.Pls BIT False = Numeral.Pls"
+lemma Pls_0_eq [simp]: "Numeral.Pls BIT bit.B0 = Numeral.Pls"
 by (simp add: Bin_simps)
 
-lemma Min_1_eq [simp]: "Numeral.Min BIT True = Numeral.Min"
+lemma Min_1_eq [simp]: "Numeral.Min BIT bit.B1 = Numeral.Min"
 by (simp add: Bin_simps)
 
 subsection{*The Functions @{term bin_succ},  @{term bin_pred} and @{term bin_minus}*}
 
-lemma bin_succ_Pls [simp]: "bin_succ Numeral.Pls = Numeral.Pls BIT True"
+lemma bin_succ_Pls [simp]: "bin_succ Numeral.Pls = Numeral.Pls BIT bit.B1"
 by (simp add: Bin_simps) 
 
 lemma bin_succ_Min [simp]: "bin_succ Numeral.Min = Numeral.Pls"
 by (simp add: Bin_simps) 
 
-lemma bin_succ_1 [simp]: "bin_succ(w BIT True) = (bin_succ w) BIT False"
+lemma bin_succ_1 [simp]: "bin_succ(w BIT bit.B1) = (bin_succ w) BIT bit.B0"
 by (simp add: Bin_simps add_ac) 
 
-lemma bin_succ_0 [simp]: "bin_succ(w BIT False) = w BIT True"
+lemma bin_succ_0 [simp]: "bin_succ(w BIT bit.B0) = w BIT bit.B1"
 by (simp add: Bin_simps add_ac) 
 
 lemma bin_pred_Pls [simp]: "bin_pred Numeral.Pls = Numeral.Min"
 by (simp add: Bin_simps) 
 
-lemma bin_pred_Min [simp]: "bin_pred Numeral.Min = Numeral.Min BIT False"
+lemma bin_pred_Min [simp]: "bin_pred Numeral.Min = Numeral.Min BIT bit.B0"
 by (simp add: Bin_simps diff_minus) 
 
-lemma bin_pred_1 [simp]: "bin_pred(w BIT True) = w BIT False"
+lemma bin_pred_1 [simp]: "bin_pred(w BIT bit.B1) = w BIT bit.B0"
 by (simp add: Bin_simps) 
 
-lemma bin_pred_0 [simp]: "bin_pred(w BIT False) = (bin_pred w) BIT True"
+lemma bin_pred_0 [simp]: "bin_pred(w BIT bit.B0) = (bin_pred w) BIT bit.B1"
 by (simp add: Bin_simps diff_minus add_ac) 
 
 lemma bin_minus_Pls [simp]: "bin_minus Numeral.Pls = Numeral.Pls"
 by (simp add: Bin_simps) 
 
-lemma bin_minus_Min [simp]: "bin_minus Numeral.Min = Numeral.Pls BIT True"
+lemma bin_minus_Min [simp]: "bin_minus Numeral.Min = Numeral.Pls BIT bit.B1"
 by (simp add: Bin_simps) 
 
 lemma bin_minus_1 [simp]:
-     "bin_minus (w BIT True) = bin_pred (bin_minus w) BIT True"
+     "bin_minus (w BIT bit.B1) = bin_pred (bin_minus w) BIT bit.B1"
 by (simp add: Bin_simps add_ac diff_minus) 
 
- lemma bin_minus_0 [simp]: "bin_minus(w BIT False) = (bin_minus w) BIT False"
+ lemma bin_minus_0 [simp]: "bin_minus(w BIT bit.B0) = (bin_minus w) BIT bit.B0"
 by (simp add: Bin_simps) 
 
 
@@ -161,15 +168,15 @@ lemma bin_add_Min [simp]: "bin_add Numeral.Min w = bin_pred w"
 by (simp add: Bin_simps diff_minus add_ac) 
 
 lemma bin_add_BIT_11 [simp]:
-     "bin_add (v BIT True) (w BIT True) = bin_add v (bin_succ w) BIT False"
+     "bin_add (v BIT bit.B1) (w BIT bit.B1) = bin_add v (bin_succ w) BIT bit.B0"
 by (simp add: Bin_simps add_ac)
 
 lemma bin_add_BIT_10 [simp]:
-     "bin_add (v BIT True) (w BIT False) = (bin_add v w) BIT True"
+     "bin_add (v BIT bit.B1) (w BIT bit.B0) = (bin_add v w) BIT bit.B1"
 by (simp add: Bin_simps add_ac)
 
 lemma bin_add_BIT_0 [simp]:
-     "bin_add (v BIT False) (w BIT y) = bin_add v w BIT y"
+     "bin_add (v BIT bit.B0) (w BIT y) = bin_add v w BIT y"
 by (simp add: Bin_simps add_ac)
 
 lemma bin_add_Pls_right [simp]: "bin_add w Numeral.Pls = w"
@@ -185,10 +192,10 @@ lemma bin_mult_Min [simp]: "bin_mult Numeral.Min w = bin_minus w"
 by (simp add: Bin_simps) 
 
 lemma bin_mult_1 [simp]:
-     "bin_mult (v BIT True) w = bin_add ((bin_mult v w) BIT False) w"
+     "bin_mult (v BIT bit.B1) w = bin_add ((bin_mult v w) BIT bit.B0) w"
 by (simp add: Bin_simps add_ac left_distrib)
 
-lemma bin_mult_0 [simp]: "bin_mult (v BIT False) w = (bin_mult v w) BIT False"
+lemma bin_mult_0 [simp]: "bin_mult (v BIT bit.B0) w = (bin_mult v w) BIT bit.B0"
 by (simp add: Bin_simps left_distrib)
 
 
@@ -221,7 +228,7 @@ by (simp add: number_of_eq Bin_simps)
 text{*The correctness of shifting.  But it doesn't seem to give a measurable
   speed-up.*}
 lemma double_number_of_BIT:
-     "(1+1) * number_of w = (number_of (w BIT False) ::'a::number_ring)"
+     "(1+1) * number_of w = (number_of (w BIT bit.B0) ::'a::number_ring)"
 by (simp add: number_of_eq Bin_simps left_distrib) 
 
 text{*Converting numerals 0 and 1 to their abstract versions*}
@@ -264,9 +271,9 @@ lemma number_of_Min: "number_of Numeral.Min = (- 1::'a::number_ring)"
 by (simp add: number_of_eq Bin_simps) 
 
 lemma number_of_BIT:
-     "number_of(w BIT x) = (if x then 1 else (0::'a::number_ring)) +
+     "number_of(w BIT x) = (case x of bit.B0 => 0 | bit.B1 => (1::'a::number_ring)) +
 	                   (number_of w) + (number_of w)"
-by (simp add: number_of_eq Bin_simps) 
+by (simp add: number_of_eq Bin_simps split: bit.split) 
 
 
 
@@ -346,19 +353,18 @@ by (simp add: number_of_eq Ints_def)
 
 lemma iszero_number_of_BIT:
      "iszero (number_of (w BIT x)::'a) = 
-      (~x & iszero (number_of w::'a::{ordered_idom,number_ring}))"
+      (x=bit.B0 & iszero (number_of w::'a::{ordered_idom,number_ring}))"
 by (simp add: iszero_def number_of_eq Bin_simps double_eq_0_iff 
-              Ints_odd_nonzero Ints_def)
+              Ints_odd_nonzero Ints_def split: bit.split)
 
 lemma iszero_number_of_0:
-     "iszero (number_of (w BIT False) :: 'a::{ordered_idom,number_ring}) = 
+     "iszero (number_of (w BIT bit.B0) :: 'a::{ordered_idom,number_ring}) = 
       iszero (number_of w :: 'a)"
 by (simp only: iszero_number_of_BIT simp_thms)
 
 lemma iszero_number_of_1:
-     "~ iszero (number_of (w BIT True)::'a::{ordered_idom,number_ring})"
-by (simp only: iszero_number_of_BIT simp_thms)
-
+     "~ iszero (number_of (w BIT bit.B1)::'a::{ordered_idom,number_ring})"
+by (simp add: iszero_number_of_BIT) 
 
 
 subsection{*The Less-Than Relation*}
@@ -417,7 +423,7 @@ lemma neg_number_of_BIT:
      "neg (number_of (w BIT x)::'a) = 
       neg (number_of w :: 'a::{ordered_idom,number_ring})"
 by (simp add: neg_def number_of_eq Bin_simps double_less_0_iff
-              Ints_odd_less_0 Ints_def)
+              Ints_odd_less_0 Ints_def split: bit.split)
 
 
 text{*Less-Than or Equals*}
@@ -457,8 +463,9 @@ lemmas bin_arith_extra_simps =
        diff_number_of_eq abs_number_of 
 
 text{*For making a minimal simpset, one must include these default simprules.
-  Also include @{text simp_thms} or at least @{term "(~False)=True"} *}
+  Also include @{text simp_thms} *}
 lemmas bin_arith_simps = 
+       Numeral.bit.distinct
        Pls_0_eq Min_1_eq
        bin_pred_Pls bin_pred_Min bin_pred_1 bin_pred_0
        bin_succ_Pls bin_succ_Min bin_succ_1 bin_succ_0

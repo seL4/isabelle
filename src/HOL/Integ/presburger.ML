@@ -75,6 +75,7 @@ fun term_typed_consts t = add_term_typed_consts(t,[]);
 
 (* SOME Types*)
 val bT = HOLogic.boolT;
+val bitT = HOLogic.bitT;
 val iT = HOLogic.intT;
 val binT = HOLogic.binT;
 val nT = HOLogic.natT;
@@ -120,7 +121,9 @@ val allowed_consts =
    ("HOL.max", nT --> nT --> nT),
    ("HOL.min", nT --> nT --> nT),
 
-   ("Numeral.Bit", binT --> bT --> binT),
+   ("Numeral.bit.B0", bitT),
+   ("Numeral.bit.B1", bitT),
+   ("Numeral.Bit", binT --> bitT --> binT),
    ("Numeral.Pls", binT),
    ("Numeral.Min", binT),
    ("Numeral.number_of", binT --> iT),

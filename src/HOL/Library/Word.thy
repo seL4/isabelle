@@ -2608,12 +2608,12 @@ consts
 
 primrec
   fast_bv_to_nat_Nil: "fast_bv_to_nat_helper [] bin = bin"
-  fast_bv_to_nat_Cons: "fast_bv_to_nat_helper (b#bs) bin = fast_bv_to_nat_helper bs (bin BIT (bit_case False True b))"
+  fast_bv_to_nat_Cons: "fast_bv_to_nat_helper (b#bs) bin = fast_bv_to_nat_helper bs (bin BIT (bit_case bit.B0 bit.B1 b))"
 
-lemma fast_bv_to_nat_Cons0: "fast_bv_to_nat_helper (\<zero>#bs) bin = fast_bv_to_nat_helper bs (bin BIT False)"
+lemma fast_bv_to_nat_Cons0: "fast_bv_to_nat_helper (\<zero>#bs) bin = fast_bv_to_nat_helper bs (bin BIT bit.B0)"
   by simp
 
-lemma fast_bv_to_nat_Cons1: "fast_bv_to_nat_helper (\<one>#bs) bin = fast_bv_to_nat_helper bs (bin BIT True)"
+lemma fast_bv_to_nat_Cons1: "fast_bv_to_nat_helper (\<one>#bs) bin = fast_bv_to_nat_helper bs (bin BIT bit.B1)"
   by simp
 
 lemma fast_bv_to_nat_def: "bv_to_nat bs == number_of (fast_bv_to_nat_helper bs Numeral.Pls)"

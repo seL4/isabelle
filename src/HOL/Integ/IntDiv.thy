@@ -29,14 +29,14 @@ constdefs
 
 text{*algorithm for the case @{text "a\<ge>0, b>0"}*}
 consts posDivAlg :: "int*int => int*int"
-recdef posDivAlg "inv_image less_than (%(a,b). nat(a - b + 1))"
+recdef posDivAlg "measure (%(a,b). nat(a - b + 1))"
     "posDivAlg (a,b) =
        (if (a<b | b\<le>0) then (0,a)
         else adjust b (posDivAlg(a, 2*b)))"
 
 text{*algorithm for the case @{text "a<0, b>0"}*}
 consts negDivAlg :: "int*int => int*int"
-recdef negDivAlg "inv_image less_than (%(a,b). nat(- a - b))"
+recdef negDivAlg "measure (%(a,b). nat(- a - b))"
     "negDivAlg (a,b) =
        (if (0\<le>a+b | b\<le>0) then (-1,a+b)
         else adjust b (negDivAlg(a, 2*b)))"
@@ -904,12 +904,13 @@ lemma not_0_le_lemma: "~ 0 \<le> x ==> x \<le> (0::int)"
 by auto
 
 lemma zdiv_number_of_BIT[simp]:
-     "number_of (v BIT b) div number_of (w BIT False) =  
-          (if ~b | (0::int) \<le> number_of w                    
+     "number_of (v BIT b) div number_of (w BIT bit.B0) =  
+          (if b=bit.B0 | (0::int) \<le> number_of w                    
            then number_of v div (number_of w)     
            else (number_of v + (1::int)) div (number_of w))"
 apply (simp only: number_of_eq Bin_simps UNIV_I split: split_if) 
-apply (simp add: zdiv_zmult_zmult1 pos_zdiv_mult_2 neg_zdiv_mult_2 add_ac)
+apply (simp add: zdiv_zmult_zmult1 pos_zdiv_mult_2 neg_zdiv_mult_2 add_ac 
+            split: bit.split)
 done
 
 
@@ -943,17 +944,16 @@ apply (simp only: zmod_zminus_zminus diff_minus minus_add_distrib [symmetric])
 done
 
 lemma zmod_number_of_BIT [simp]:
-     "number_of (v BIT b) mod number_of (w BIT False) =  
-          (if b then  
-                if (0::int) \<le> number_of w  
+     "number_of (v BIT b) mod number_of (w BIT bit.B0) =  
+      (case b of
+          bit.B0 => 2 * (number_of v mod number_of w)
+        | bit.B1 => if (0::int) \<le> number_of w  
                 then 2 * (number_of v mod number_of w) + 1     
-                else 2 * ((number_of v + (1::int)) mod number_of w) - 1   
-           else 2 * (number_of v mod number_of w))"
-apply (simp only: number_of_eq Bin_simps UNIV_I split: split_if) 
+                else 2 * ((number_of v + (1::int)) mod number_of w) - 1)"
+apply (simp only: number_of_eq Bin_simps UNIV_I split: bit.split) 
 apply (simp add: zmod_zmult_zmult1 pos_zmod_mult_2 
                  not_0_le_lemma neg_zmod_mult_2 add_ac)
 done
-
 
 
 subsection{*Quotients of Signs*}

@@ -482,16 +482,17 @@ done
 lemma eq_number_of_BIT_BIT:
      "((number_of (v BIT x) ::int) = number_of (w BIT y)) =  
       (x=y & (((number_of v) ::int) = number_of w))"
-by (simp only: simp_thms number_of_BIT lemma1 lemma2 eq_commute
+apply (simp only: number_of_BIT lemma1 lemma2 eq_commute
                OrderedGroup.add_left_cancel add_assoc OrderedGroup.add_0
-            split add: split_if cong: imp_cong) 
-
+            split add: bit.split) 
+apply simp
+done
 
 lemma eq_number_of_BIT_Pls:
      "((number_of (v BIT x) ::int) = Numeral0) =  
-      (x=False & (((number_of v) ::int) = Numeral0))"
+      (x=bit.B0 & (((number_of v) ::int) = Numeral0))"
 apply (simp only: simp_thms  add: number_of_BIT number_of_Pls eq_commute
-            split add: split_if cong: imp_cong)
+            split add: bit.split cong: imp_cong)
 apply (rule_tac x = "number_of v" in spec, safe)
 apply (simp_all (no_asm_use))
 apply (drule_tac f = "%x. x mod 2" in arg_cong)
@@ -500,9 +501,9 @@ done
 
 lemma eq_number_of_BIT_Min:
      "((number_of (v BIT x) ::int) = number_of Numeral.Min) =  
-      (x=True & (((number_of v) ::int) = number_of Numeral.Min))"
+      (x=bit.B1 & (((number_of v) ::int) = number_of Numeral.Min))"
 apply (simp only: simp_thms  add: number_of_BIT number_of_Min eq_commute
-            split add: split_if cong: imp_cong)
+            split add: bit.split cong: imp_cong)
 apply (rule_tac x = "number_of v" in spec, auto)
 apply (drule_tac f = "%x. x mod 2" in arg_cong, auto)
 done
@@ -532,7 +533,7 @@ declare power_nat_number_of [of _ "number_of w", standard, simp]
 text{*For the integers*}
 
 lemma zpower_number_of_even:
-     "(z::int) ^ number_of (w BIT False) =  
+     "(z::int) ^ number_of (w BIT bit.B0) =  
       (let w = z ^ (number_of w) in  w*w)"
 apply (simp del: nat_number_of  add: nat_number_of_def number_of_BIT Let_def)
 apply (simp only: number_of_add) 
@@ -542,7 +543,7 @@ apply (auto simp add: nat_mult_distrib power_even_eq power2_eq_square)
 done
 
 lemma zpower_number_of_odd:
-     "(z::int) ^ number_of (w BIT True) =  
+     "(z::int) ^ number_of (w BIT bit.B1) =  
           (if (0::int) <= number_of w                    
            then (let w = z ^ (number_of w) in  z*w*w)    
            else 1)"
@@ -587,8 +588,8 @@ lemma nat_number_of_Min: "number_of Numeral.Min = (0::nat)"
   apply (simp add: neg_nat)
   done
 
-lemma nat_number_of_BIT_True:
-  "number_of (w BIT True) =
+lemma nat_number_of_BIT_1:
+  "number_of (w BIT bit.B1) =
     (if neg (number_of w :: int) then 0
      else let n = number_of w in Suc (n + n))"
   apply (simp only: nat_number_of_def Let_def split: split_if)
@@ -596,22 +597,24 @@ lemma nat_number_of_BIT_True:
    apply (simp add: neg_nat neg_number_of_BIT)
   apply (rule int_int_eq [THEN iffD1])
   apply (simp only: not_neg_nat neg_number_of_BIT int_Suc zadd_int [symmetric] simp_thms)
-  apply (simp only: number_of_BIT if_True zadd_assoc)
+  apply (simp only: number_of_BIT zadd_assoc split: bit.split)
+  apply simp
   done
 
-lemma nat_number_of_BIT_False:
-    "number_of (w BIT False) = (let n::nat = number_of w in n + n)"
+lemma nat_number_of_BIT_0:
+    "number_of (w BIT bit.B0) = (let n::nat = number_of w in n + n)"
   apply (simp only: nat_number_of_def Let_def)
   apply (cases "neg (number_of w :: int)")
    apply (simp add: neg_nat neg_number_of_BIT)
   apply (rule int_int_eq [THEN iffD1])
   apply (simp only: not_neg_nat neg_number_of_BIT int_Suc zadd_int [symmetric] simp_thms)
-  apply (simp only: number_of_BIT if_False zadd_0 zadd_assoc)
+  apply (simp only: number_of_BIT zadd_assoc)
+  apply simp
   done
 
 lemmas nat_number =
   nat_number_of_Pls nat_number_of_Min
-  nat_number_of_BIT_True nat_number_of_BIT_False
+  nat_number_of_BIT_1 nat_number_of_BIT_0
 
 lemma Let_Suc [simp]: "Let (Suc n) f == f (Suc n)"
   by (simp add: Let_def)
@@ -780,8 +783,6 @@ val zpower_number_of_even = thm"zpower_number_of_even";
 val zpower_number_of_odd = thm"zpower_number_of_odd";
 val nat_number_of_Pls = thm"nat_number_of_Pls";
 val nat_number_of_Min = thm"nat_number_of_Min";
-val nat_number_of_BIT_True = thm"nat_number_of_BIT_True";
-val nat_number_of_BIT_False = thm"nat_number_of_BIT_False";
 val Let_Suc = thm"Let_Suc";
 
 val nat_number = thms"nat_number";

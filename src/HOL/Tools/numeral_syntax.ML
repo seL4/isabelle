@@ -15,29 +15,15 @@ structure NumeralSyntax: NUMERAL_SYNTAX =
 struct
 
 
-(* bits *)
-
-fun dest_bit (Const ("False", _)) = 0
-  | dest_bit (Const ("True", _)) = 1
-  | dest_bit _ = raise Match;
-
-
 (* bit strings *)   (*we try to handle superfluous leading digits nicely*)
 
 fun prefix_len _ [] = 0
   | prefix_len pred (x :: xs) =
       if pred x then 1 + prefix_len pred xs else 0;
 
-fun bin_of (Const ("Numeral.Pls", _)) = []
-  | bin_of (Const ("Numeral.Min", _)) = [~1]
-  | bin_of (Const ("Bit", _) $ bs $ b) = dest_bit b :: bin_of bs
-  | bin_of _ = raise Match;
-
-val dest_bin = HOLogic.int_of o bin_of;
-
 fun dest_bin_str tm =
   let
-    val rev_digs = bin_of tm;
+    val rev_digs = HOLogic.bin_of tm handle TERM _ => raise Match
     val (sign, zs) =
       (case rev rev_digs of
         ~1 :: bs => ("-", prefix_len (equal 1) bs)
@@ -70,7 +56,8 @@ fun numeral_tr' show_sorts (*"number_of"*) (Type ("fun", [_, T])) (t :: ts) =
 
 val setup =
  [Theory.hide_consts false ["Numeral.Pls", "Numeral.Min"],
-  Theory.add_trfuns ([], [("_Numeral", numeral_tr)], [], []),
+  Theory.hide_consts false ["Numeral.bit.B0", "Numeral.bit.B1"],
+   Theory.add_trfuns ([], [("_Numeral", numeral_tr)], [], []),
   Theory.add_trfunsT [("number_of", numeral_tr'), ("Numeral.number_of", numeral_tr')]];
 
 end;
