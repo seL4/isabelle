@@ -8,14 +8,14 @@ Distributed Resource Management System: the Client
 Addsimps [type_assumes, default_val_assumes];
 (* This part should be automated *)
 
-Goalw [state_def] "s:state ==> s`ask:list(nat)";
+Goalw [state_def] "s \\<in> state ==> s`ask \\<in> list(nat)";
 by (dres_inst_tac [("a", "ask")] apply_type 1);
 by Auto_tac;
 qed "ask_value_type";
 AddTCs [ask_value_type];
 Addsimps [ask_value_type];
 
-Goalw [state_def] "s:state ==> s`giv:list(nat)";
+Goalw [state_def] "s \\<in> state ==> s`giv \\<in> list(nat)";
 by (dres_inst_tac [("a", "giv")] apply_type 1);
 by Auto_tac;
 qed "giv_value_type";
@@ -23,14 +23,14 @@ AddTCs [giv_value_type];
 Addsimps [giv_value_type];
 
 Goalw [state_def]
-"s:state ==> s`rel:list(nat)";
+"s \\<in> state ==> s`rel \\<in> list(nat)";
 by (dres_inst_tac [("a", "rel")] apply_type 1);
 by Auto_tac;
 qed "rel_value_type";
 AddTCs [rel_value_type];
 Addsimps [rel_value_type];
 
-Goalw [state_def] "s:state ==> s`tok:nat";
+Goalw [state_def] "s \\<in> state ==> s`tok \\<in> nat";
 by (dres_inst_tac [("a", "tok")] apply_type 1);
 by Auto_tac;
 qed "tok_value_type";
@@ -39,7 +39,7 @@ Addsimps [tok_value_type];
 
 (** The Client Program **)
 
-Goalw [client_prog_def] "client_prog:program";
+Goalw [client_prog_def] "client_prog \\<in> program";
 by (Simp_tac 1);
 qed "client_type";
 Addsimps [client_type];
@@ -52,14 +52,14 @@ program_defs_ref := [client_prog_def];
 Addsimps (map simp_of_act [client_rel_act_def, 
 client_tok_act_def, client_ask_act_def]);
 
-Goal "ALL G:program. (client_prog ok G) <-> \
-\  (G:preserves(lift(rel)) & G:preserves(lift(ask)) & \
-\   G:preserves(lift(tok)) &  client_prog:Allowed(G))";
+Goal "\\<forall>G \\<in> program. (client_prog ok G) <-> \
+\  (G \\<in> preserves(lift(rel)) & G \\<in> preserves(lift(ask)) & \
+\   G \\<in> preserves(lift(tok)) &  client_prog \\<in> Allowed(G))";
 by (auto_tac (claset(), 
      simpset() addsimps [ok_iff_Allowed, client_prog_def RS def_prg_Allowed]));  
 qed "client_prog_ok_iff";
 
-Goal "client_prog:(INT x:var-{ask, rel, tok}. preserves(lift(x)))";
+Goal "client_prog:(\\<Inter>x \\<in> var-{ask, rel, tok}. preserves(lift(x)))";
 by (rtac Inter_var_DiffI 1);
 by (rtac ballI 2);
 by (rtac preservesI 2);
@@ -98,10 +98,10 @@ qed "NbT_pos2";
 With no Substitution Axiom, we must prove the two invariants simultaneously. *)
 
 Goal 
-"[| client_prog ok G; G:program |]\
+"[| client_prog ok G; G \\<in> program |]\
 \     ==> client_prog Join G :  \
-\             Always({s:state. s`tok le NbT}  Int  \
-\                     {s:state. ALL elt:set_of_list(s`ask). elt le NbT})";
+\             Always({s \\<in> state. s`tok le NbT}  Int  \
+\                     {s \\<in> state. \\<forall>elt \\<in> set_of_list(s`ask). elt le NbT})";
 by (rotate_tac ~1 1);
 by (auto_tac (claset(), simpset() addsimps [client_prog_ok_iff]));
 by (rtac (invariantI RS stable_Join_Always2) 1);
@@ -122,8 +122,8 @@ qed "ask_Bounded_lemma";
 (* Export version, with no mention of tok in the postcondition, but
   unfortunately tok must be declared local.*)
 Goal 
-"client_prog: program guarantees \
-\            Always({s:state. ALL elt: set_of_list(s`ask). elt le NbT})";
+"client_prog \\<in> program guarantees \
+\            Always({s \\<in> state. \\<forall>elt \\<in> set_of_list(s`ask). elt le NbT})";
 by (rtac guaranteesI 1);
 by (etac (ask_Bounded_lemma RS Always_weaken) 1);
 by Auto_tac;
@@ -132,25 +132,25 @@ qed "client_prog_ask_Bounded";
 (*** Towards proving the liveness property ***)
 
 Goal 
-"client_prog: stable({s:state. <s`rel, s`giv>:prefix(nat)})";
+"client_prog \\<in> stable({s \\<in> state. <s`rel, s`giv>:prefix(nat)})";
 by (constrains_tac 1);
 by Auto_tac;
 qed "client_prog_stable_rel_le_giv";
 
 Goal
-"[| client_prog Join G: Incr(lift(giv)); G:preserves(lift(rel)) |] \
-\   ==> client_prog Join G:  Stable({s:state. <s`rel, s`giv>:prefix(nat)})";
+"[| client_prog Join G \\<in> Incr(lift(giv)); G \\<in> preserves(lift(rel)) |] \
+\   ==> client_prog Join G \\<in> Stable({s \\<in> state. <s`rel, s`giv>:prefix(nat)})";
 by (rtac (client_prog_stable_rel_le_giv RS Increasing_preserves_Stable) 1);
 by (auto_tac (claset(), simpset() addsimps [lift_def]));
 qed "client_prog_Join_Stable_rel_le_giv";
 
-Goal "[| client_prog Join G: Incr(lift(giv)); G:preserves(lift(rel)) |] \
-\   ==> client_prog Join G : Always({s:state. <s`rel, s`giv>:prefix(nat)})";
+Goal "[| client_prog Join G \\<in> Incr(lift(giv)); G \\<in> preserves(lift(rel)) |] \
+\   ==> client_prog Join G  \\<in> Always({s \\<in> state. <s`rel, s`giv>:prefix(nat)})";
 by (force_tac (claset() addSIs [AlwaysI, client_prog_Join_Stable_rel_le_giv], 
             simpset()) 1);
 qed "client_prog_Join_Always_rel_le_giv";
 
-Goal "xs:list(A) ==> xs@[a]=xs --> False";
+Goal "xs \\<in> list(A) ==> xs@[a]=xs --> False";
 by (etac list.induct 1);
 by Auto_tac;
 qed "list_app_lemma";
@@ -164,8 +164,8 @@ by Auto_tac;
 qed "act_subset";
 
 Goal 
-"client_prog: \
-\ transient({s:state. s`rel = k & <k, h>:strict_prefix(nat) \
+"client_prog \\<in> \
+\ transient({s \\<in> state. s`rel = k & <k, h>:strict_prefix(nat) \
 \  & <h, s`giv>:prefix(nat) & h pfixGe s`ask})";
 by (res_inst_tac [("act", "client_rel_act")] transientI 1);
 by (simp_tac (simpset() addsimps 
@@ -186,7 +186,7 @@ by (blast_tac (claset() addIs [lt_trans2, prefix_length_le,
 by (blast_tac (claset() addIs [lt_trans2, prefix_length_le,
                                strict_prefix_length_lt]) 1);
 by (full_simp_tac (simpset() addsimps [gen_prefix_iff_nth]) 1);
-by (ALLGOALS(subgoal_tac "h:list(nat)"));
+by (ALLGOALS(subgoal_tac "h \\<in> list(nat)"));
 by (ALLGOALS(asm_simp_tac (simpset() addsimps [prefix_type RS subsetD RS SigmaD1])));
 by (auto_tac (claset(), 
               simpset() addsimps [prefix_def, Ge_def]));
@@ -203,11 +203,11 @@ by (auto_tac (claset() addDs [prefix_type RS subsetD], simpset()));
 qed "strict_prefix_is_prefix";
 
 Goal 
-"[| client_prog Join G: Incr(lift(giv)); client_prog ok G; G:program |] \
-\ ==> client_prog Join G: \
-\ {s:state. s`rel = k & <k,h>:strict_prefix(nat) \
+"[| client_prog Join G \\<in> Incr(lift(giv)); client_prog ok G; G \\<in> program |] \
+\ ==> client_prog Join G \\<in> \
+\ {s \\<in> state. s`rel = k & <k,h>:strict_prefix(nat) \
 \  & <h , s`giv>:prefix(nat) & h pfixGe s`ask}  \
-\       LeadsTo {s:state. <k, s`rel>:strict_prefix(nat) \
+\       LeadsTo {s \\<in> state. <k, s`rel>:strict_prefix(nat) \
 \                         & <s`rel, s`giv>:prefix(nat) & \
 \                                 <h, s`giv>:prefix(nat) & \
 \               h pfixGe s`ask}";
@@ -237,12 +237,12 @@ by (auto_tac (claset() addIs [strict_prefix_is_prefix RS iffD1 RS conjunct1,
 qed "induct_lemma";
 
 Goal 
-"[| client_prog Join G : Incr(lift(giv)); client_prog ok G; G:program |] \
-\ ==> client_prog Join G : \
-\    {s:state. <s`rel, h>:strict_prefix(nat) \
+"[| client_prog Join G  \\<in> Incr(lift(giv)); client_prog ok G; G \\<in> program |] \
+\ ==> client_prog Join G  \\<in> \
+\    {s \\<in> state. <s`rel, h>:strict_prefix(nat) \
 \          & <h, s`giv>:prefix(nat) & h pfixGe s`ask}  \
-\                     LeadsTo {s:state. <h, s`rel>:prefix(nat)}";
-by (res_inst_tac [("f", "lam x:state. length(h) #- length(x`rel)")] 
+\                     LeadsTo {s \\<in> state. <h, s`rel>:prefix(nat)}";
+by (res_inst_tac [("f", "\\<lambda>x \\<in> state. length(h) #- length(x`rel)")] 
                                  LessThan_induct 1);
 by (auto_tac (claset(), simpset() addsimps [vimage_def]));
 by (rtac single_LeadsTo_I 1);
@@ -258,7 +258,7 @@ by (resolve_tac [converseI] 2);
 by (asm_full_simp_tac (simpset() addsimps [lam_def]) 2);
 by (REPEAT (dtac strict_prefix_length_lt 2));
 by (asm_full_simp_tac (simpset() addsimps [length_type, lam_def]) 2);
-by (ALLGOALS(subgoal_tac "h:list(nat)"));
+by (ALLGOALS(subgoal_tac "h \\<in> list(nat)"));
 by (ALLGOALS(asm_simp_tac (simpset() addsimps [prefix_type RS subsetD RS SigmaD1])));
 by (dtac less_imp_succ_add 2);
 by (dtac less_imp_succ_add 3);
@@ -272,10 +272,10 @@ by (auto_tac (claset() addIs [strict_prefix_is_prefix RS iffD2]
 qed "rel_progress_lemma";
 
 Goal 
-"[| client_prog Join G: Incr(lift(giv)); client_prog ok G; G:program |] ==> \
-\ client_prog Join G : \
-\  {s:state. <h, s`giv>:prefix(nat) & h pfixGe s`ask}  \
-\              LeadsTo {s:state. <h, s`rel>:prefix(nat)}";
+"[| client_prog Join G \\<in> Incr(lift(giv)); client_prog ok G; G \\<in> program |] ==> \
+\ client_prog Join G  \\<in> \
+\  {s \\<in> state. <h, s`giv>:prefix(nat) & h pfixGe s`ask}  \
+\              LeadsTo {s \\<in> state. <h, s`rel>:prefix(nat)}";
 by (rtac (client_prog_Join_Always_rel_le_giv RS Always_LeadsToI) 1);
 by (rtac ([rel_progress_lemma, subset_refl RS subset_imp_LeadsTo] MRS 
     LeadsTo_Un RS LeadsTo_weaken_L) 3);
@@ -289,9 +289,9 @@ qed "progress_lemma";
 
 (*Progress property: all tokens that are given will be released*)
 Goal 
-"client_prog: Incr(lift(giv))  guarantees  \
-\     (INT h:list(nat). {s:state. <h, s`giv>:prefix(nat) &\
-\             h pfixGe s`ask} LeadsTo {s:state. <h, s`rel>:prefix(nat)})";
+"client_prog \\<in> Incr(lift(giv))  guarantees  \
+\     (\\<Inter>h \\<in> list(nat). {s \\<in> state. <h, s`giv>:prefix(nat) &\
+\             h pfixGe s`ask} LeadsTo {s \\<in> state. <h, s`rel>:prefix(nat)})";
 by (rtac guaranteesI 1);
 by (Clarify_tac 1);
 by (blast_tac (claset() addIs [progress_lemma]) 1);

@@ -16,7 +16,7 @@ val default_val_assumes  = thm "default_val_assumes";
 Addsimps [var_assumes, default_val_assumes,  type_assumes];
 
 Goalw [state_def]
-"s:state ==> s`In:list(A)";
+"s \\<in> state ==> s`In \\<in> list(A)";
 by (dres_inst_tac [("a", "In")] apply_type 1);
 by Auto_tac;
 qed "In_value_type";
@@ -24,7 +24,7 @@ AddTCs [In_value_type];
 Addsimps [In_value_type];
 
 Goalw [state_def]
-"s:state ==> s`iIn:list(nat)";
+"s \\<in> state ==> s`iIn \\<in> list(nat)";
 by (dres_inst_tac [("a", "iIn")] apply_type 1);
 by Auto_tac;
 qed "iIn_value_type";
@@ -32,7 +32,7 @@ AddTCs [iIn_value_type];
 Addsimps [iIn_value_type];
 
 Goalw [state_def]
-"s:state ==> s`Out(n):list(A)";
+"s \\<in> state ==> s`Out(n):list(A)";
 by (dres_inst_tac [("a", "Out(n)")] apply_type 1);
 by Auto_tac;
 qed "Out_value_type";
@@ -41,7 +41,7 @@ Addsimps [Out_value_type];
 
 val distrib = thm "distr_spec";
 
-Goal "D:program";
+Goal "D \\<in> program";
 by (cut_facts_tac [distrib] 1);
 by (auto_tac (claset(), simpset() addsimps 
            [distr_spec_def, distr_allowed_acts_def]));
@@ -49,9 +49,9 @@ qed "D_in_program";
 Addsimps [D_in_program];
 AddTCs [D_in_program];
 
-Goal "G:program ==> \
+Goal "G \\<in> program ==> \
 \   D ok G <-> \
-\  ((ALL n:nat. G:preserves(lift(Out(n)))) & D:Allowed(G))";
+\  ((\\<forall>n \\<in> nat. G \\<in> preserves(lift(Out(n)))) & D \\<in> Allowed(G))";
 by (cut_facts_tac [distrib] 1);
 by (auto_tac (claset(), 
      simpset() addsimps [INT_iff, distr_spec_def, distr_allowed_acts_def, 
@@ -66,9 +66,9 @@ qed "D_ok_iff";
 Goal 
 "D : ((lift(In) IncreasingWrt prefix(A)/list(A)) Int \
 \     (lift(iIn) IncreasingWrt prefix(nat)/list(nat)) Int \
-\     Always({s:state. ALL elt:set_of_list(s`iIn). elt<Nclients})) \
+\     Always({s \\<in> state. \\<forall>elt \\<in> set_of_list(s`iIn). elt<Nclients})) \
 \     guarantees \
-\         (INT n: Nclients. lift(Out(n)) IncreasingWrt \
+\         (\\<Inter>n \\<in> Nclients. lift(Out(n)) IncreasingWrt \
 \                           prefix(A)/list(A))";
 by (cut_facts_tac [D_in_program, distrib] 1);
 by (full_simp_tac (simpset() addsimps [distr_spec_def, distr_follows_def]) 1); 
@@ -80,17 +80,17 @@ qed "distr_Increasing_Out";
 val state_AlwaysI2 = state_AlwaysI RS Always_weaken;
 
 Goal
-"[| ALL n:nat. G:preserves(lift(Out(n))); \
-\  D Join G:Always({s:state. \
-\         ALL elt:set_of_list(s`iIn). elt < Nclients}) |] \
+"[| \\<forall>n \\<in> nat. G \\<in> preserves(lift(Out(n))); \
+\  D Join G \\<in> Always({s \\<in> state. \
+\         \\<forall>elt \\<in> set_of_list(s`iIn). elt < Nclients}) |] \
 \ ==> D Join G : Always \
-\         ({s:state. msetsum(%n. bag_of (sublist(s`In, \
-\                      {k:nat. k < length(s`iIn) &\
+\         ({s \\<in> state. msetsum(%n. bag_of (sublist(s`In, \
+\                      {k \\<in> nat. k < length(s`iIn) &\
 \                         nth(k, s`iIn)= n})), \
 \                        Nclients, A) = \
 \             bag_of(sublist(s`In, length(s`iIn)))})";
 by (cut_facts_tac [D_in_program] 1);
-by (subgoal_tac "G:program" 1);
+by (subgoal_tac "G \\<in> program" 1);
 by (blast_tac (claset() addDs [preserves_type RS subsetD]) 2);
 by (etac ([asm_rl, state_AlwaysI2] MRS (Always_Diff_Un_eq RS iffD1)) 1);
 by Auto_tac;
@@ -100,7 +100,7 @@ by (Blast_tac 1);
 by (Asm_simp_tac 1);
 by (asm_full_simp_tac (simpset() addsimps [set_of_list_conv_nth]) 1); 
 by (subgoal_tac
-    "(UN i: Nclients. {k:nat. k < length(x`iIn) & nth(k, x`iIn) = i}) = \
+    "(\\<Union>i \\<in> Nclients. {k \\<in> nat. k < length(x`iIn) & nth(k, x`iIn) = i}) = \
 \    length(x`iIn)" 1);
 by (Asm_simp_tac 1);
 by (resolve_tac [equalityI] 1);
@@ -119,9 +119,9 @@ qed "distr_bag_Follows_lemma";
 Goal
  "D : ((lift(In) IncreasingWrt prefix(A)/list(A)) Int \
 \      (lift(iIn) IncreasingWrt prefix(nat)/list(nat)) Int  \
-\       Always({s:state. ALL elt: set_of_list(s`iIn). elt < Nclients})) \
+\       Always({s \\<in> state. \\<forall>elt \\<in> set_of_list(s`iIn). elt < Nclients})) \
 \     guarantees  \
-\      (INT n: Nclients. \
+\      (\\<Inter>n \\<in> Nclients. \
 \       (%s. msetsum(%i. bag_of(s`Out(i)),  Nclients, A)) \
 \       Fols \
 \       (%s. bag_of(sublist(s`In, length(s`iIn)))) \

@@ -36,28 +36,29 @@ constdefs
   
   client_rel_act ::i
     "client_rel_act ==
-     {<s,t>:state*state. EX nrel:nat. nrel = length(s`rel)
-		    &  t = s(rel:=(s`rel)@[nth(nrel, s`giv)]) &
-                  nrel < length(s`giv) &
-                  nth(nrel, s`ask) le nth(nrel, s`giv)}"
+     {<s,t> \\<in> state*state.
+      \\<exists>nrel \\<in> nat. nrel = length(s`rel) &
+                   t = s(rel:=(s`rel)@[nth(nrel, s`giv)]) &
+                   nrel < length(s`giv) &
+                   nth(nrel, s`ask) le nth(nrel, s`giv)}"
   
   (** Choose a new token requirement **)
-  (** Including s'=s suppresses fairness, allowing the non-trivial part
+  (** Including t=s suppresses fairness, allowing the non-trivial part
       of the action to be ignored **)
 
   client_tok_act :: i
- "client_tok_act == {<s,t>:state*state. t=s |
-		 (t = s(tok:=succ(s`tok mod NbT)))}"
+ "client_tok_act == {<s,t> \\<in> state*state. t=s |
+		     t = s(tok:=succ(s`tok mod NbT))}"
 
   client_ask_act :: i
-  "client_ask_act == {<s,t>:state*state. t=s | (t=s(ask:=s`ask@[s`tok]))}"
+  "client_ask_act == {<s,t> \\<in> state*state. t=s | (t=s(ask:=s`ask@[s`tok]))}"
   
   client_prog :: i
   "client_prog ==
-   mk_program({s:state. s`tok le NbT & s`giv = Nil &
+   mk_program({s \\<in> state. s`tok le NbT & s`giv = Nil &
 	               s`ask = Nil & s`rel = Nil},
                     {client_rel_act, client_tok_act, client_ask_act},
-                   UN G: preserves(lift(rel)) Int
+                   \\<Union>G \\<in> preserves(lift(rel)) Int
 			 preserves(lift(ask)) Int
 	                 preserves(lift(tok)).  Acts(G))"
 end

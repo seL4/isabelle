@@ -15,7 +15,7 @@ val default_val_assumes  = thm "default_val_assumes";
 Addsimps [var_assumes, default_val_assumes,  type_assumes];
 
 Goalw [state_def]
-"s:state ==> s`In(n):list(A)";
+"s \\<in> state ==> s`In(n):list(A)";
 by (dres_inst_tac [("a", "In(n)")] apply_type 1);
 by Auto_tac;
 qed "In_value_type";
@@ -23,7 +23,7 @@ AddTCs [In_value_type];
 Addsimps [In_value_type];
 
 Goalw [state_def]
-"s:state ==> s`Out:list(A)";
+"s \\<in> state ==> s`Out \\<in> list(A)";
 by (dres_inst_tac [("a", "Out")] apply_type 1);
 by Auto_tac;
 qed "Out_value_type";
@@ -31,7 +31,7 @@ AddTCs [Out_value_type];
 Addsimps [Out_value_type];
 
 Goalw [state_def]
-"s:state ==> s`iOut:list(nat)";
+"s \\<in> state ==> s`iOut \\<in> list(nat)";
 by (dres_inst_tac [("a", "iOut")] apply_type 1);
 by Auto_tac;
 qed "Out_value_type";
@@ -41,7 +41,7 @@ Addsimps [Out_value_type];
 
 val merge = thm "merge_spec";
 
-Goal "M:program";
+Goal "M \\<in> program";
 by (cut_facts_tac [merge] 1);
 by (auto_tac (claset() addDs [guarantees_type RS subsetD], 
               simpset() addsimps [merge_spec_def, merge_increasing_def]));
@@ -58,20 +58,20 @@ by (auto_tac (claset(), simpset() addsimps
 qed "merge_Allowed";
 
 Goal 
-"G:program ==> \
-\ M ok G <-> (G:preserves(lift(Out)) &  \
-\      G:preserves(lift(iOut)) & M:Allowed(G))";
+"G \\<in> program ==> \
+\ M ok G <-> (G \\<in> preserves(lift(Out)) &  \
+\      G \\<in> preserves(lift(iOut)) & M \\<in> Allowed(G))";
 by (cut_facts_tac [merge] 1); 
 by (auto_tac (claset(), simpset() 
          addsimps [merge_Allowed, ok_iff_Allowed]));  
 qed "M_ok_iff";
 
 Goal
-"[| G:preserves(lift(Out)); G:preserves(lift(iOut)); \
-\  M:Allowed(G) |] ==> \
-\ M Join G:Always({s:state. length(s`Out)=length(s`iOut)})";
+"[| G \\<in> preserves(lift(Out)); G \\<in> preserves(lift(iOut)); \
+\  M \\<in> Allowed(G) |] ==> \
+\ M Join G \\<in> Always({s \\<in> state. length(s`Out)=length(s`iOut)})";
 by (ftac (preserves_type RS subsetD) 1);
-by (subgoal_tac "G:program" 1);
+by (subgoal_tac "G \\<in> program" 1);
 by (assume_tac 2);
 by (ftac M_ok_iff 1);
 by (cut_facts_tac [merge] 1);
@@ -80,9 +80,9 @@ by (force_tac (claset() addDs [guaranteesD],
 qed "merge_Always_Out_eq_iOut";
 
 Goal 
-"[| G:preserves(lift(iOut)); G:preserves(lift(Out)); \
-\   M:Allowed(G) |] ==> \
-\ M Join G: Always({s:state. ALL elt:set_of_list(s`iOut). elt<Nclients})";
+"[| G \\<in> preserves(lift(iOut)); G \\<in> preserves(lift(Out)); \
+\   M \\<in> Allowed(G) |] ==> \
+\ M Join G: Always({s \\<in> state. \\<forall>elt \\<in> set_of_list(s`iOut). elt<Nclients})";
 by (ftac (preserves_type RS subsetD) 1);
 by (ftac M_ok_iff 1);
 by (cut_facts_tac [merge] 1);
@@ -91,11 +91,11 @@ by (force_tac (claset() addDs [guaranteesD],
 qed "merge_Bounded";
 
 Goal 
-"[| G:preserves(lift(iOut)); \
-\   G: preserves(lift(Out)); M:Allowed(G) |] \
+"[| G \\<in> preserves(lift(iOut)); \
+\   G: preserves(lift(Out)); M \\<in> Allowed(G) |] \
 \ ==> M Join G : Always \
-\   ({s:state. msetsum(%i. bag_of(sublist(s`Out, \
-\     {k:nat. k < length(s`iOut) & nth(k, s`iOut)=i})), \
+\   ({s \\<in> state. msetsum(%i. bag_of(sublist(s`Out, \
+\     {k \\<in> nat. k < length(s`iOut) & nth(k, s`iOut)=i})), \
 \                  Nclients, A) = bag_of(s`Out)})";
 by (rtac ([[merge_Always_Out_eq_iOut, merge_Bounded] MRS Always_Int_I,
            state_AlwaysI RS Always_weaken] MRS (Always_Diff_Un_eq RS iffD1)) 1)
@@ -105,7 +105,7 @@ by (stac (bag_of_sublist_UN_disjoint RS sym) 1);
 by (auto_tac (claset(), simpset() 
               addsimps [nat_into_Finite, set_of_list_conv_nth])); 
 by (subgoal_tac
-    "(UN i:Nclients. {k:nat. k < length(x`iOut) & nth(k, x`iOut) = i}) = length(x`iOut)" 1);
+    "(\\<Union>i \\<in> Nclients. {k \\<in> nat. k < length(x`iOut) & nth(k, x`iOut) = i}) = length(x`iOut)" 1);
 by Auto_tac;
 by (resolve_tac [equalityI] 1);
 by (blast_tac (claset() addDs [ltD]) 1); 
@@ -121,7 +121,7 @@ by (blast_tac (claset() addDs [ltD]) 1);
 qed "merge_bag_Follows_lemma";
 
 Goal
-"M : (INT n:Nclients. lift(In(n)) IncreasingWrt prefix(A)/list(A)) \
+"M : (\\<Inter>n \\<in> Nclients. lift(In(n)) IncreasingWrt prefix(A)/list(A)) \
 \       guarantees  \
 \ (%s. bag_of(s`Out)) Fols \
 \ (%s. msetsum(%i. bag_of(s`In(i)),Nclients, A)) Wrt MultLe(A, r)/Mult(A)";

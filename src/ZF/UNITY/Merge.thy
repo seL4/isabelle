@@ -20,40 +20,40 @@ constdefs
   (*spec (11)*)
   merge_eq_Out :: [i, i] =>i
   "merge_eq_Out(Out, iOut) == program guarantees
-         Always({s:state. length(s`Out) = length(s`iOut)})"
+         Always({s \\<in> state. length(s`Out) = length(s`iOut)})"
 
   (*spec (12)*)
   merge_bounded :: i=>i
   "merge_bounded(iOut) == program guarantees
-         Always({s:state. ALL elt:set_of_list(s`iOut). elt<Nclients})"
+         Always({s \\<in> state. \\<forall>elt \\<in> set_of_list(s`iOut). elt<Nclients})"
   
   (*spec (13)*)
   (* Parameter A represents the type of tokens *)
   merge_follows :: [i, i=>i, i, i] =>i
     "merge_follows(A, In, Out, iOut) ==
-     (INT n:Nclients. lift(In(n)) IncreasingWrt prefix(A)/list(A))
+     (\\<Inter>n \\<in> Nclients. lift(In(n)) IncreasingWrt prefix(A)/list(A))
 		   guarantees
-     (INT n:Nclients. 
-        (%s. sublist(s`Out, {k:nat. k < length(s`iOut) &
+     (\\<Inter>n \\<in> Nclients. 
+        (%s. sublist(s`Out, {k \\<in> nat. k < length(s`iOut) &
                       nth(k, s`iOut) = n})) Fols lift(In(n))
          Wrt prefix(A)/list(A))"
 
   (*spec: preserves part*)
   merge_preserves :: [i=>i] =>i
-    "merge_preserves(In) == INT n:nat. preserves(lift(In(n)))"
+    "merge_preserves(In) == \\<Inter>n \\<in> nat. preserves(lift(In(n)))"
 
 (* environmental constraints*)
   merge_allowed_acts :: [i, i] =>i
   "merge_allowed_acts(Out, iOut) ==
-         {F:program. AllowedActs(F) =
-            cons(id(state), (UN G:preserves(lift(Out)) Int
-                                  preserves(lift(iOut)). Acts(G)))}"
+         {F \\<in> program. AllowedActs(F) =
+            cons(id(state), (\\<Union>G \\<in> preserves(lift(Out)) \\<inter>
+                                   preserves(lift(iOut)). Acts(G)))}"
   
   merge_spec :: [i, i =>i, i, i]=>i
   "merge_spec(A, In, Out, iOut) ==
-   merge_increasing(A, Out, iOut) Int merge_eq_Out(Out, iOut) Int
-   merge_bounded(iOut) Int  merge_follows(A, In, Out, iOut)
-   Int merge_allowed_acts(Out, iOut) Int merge_preserves(In)"
+   merge_increasing(A, Out, iOut) \\<inter> merge_eq_Out(Out, iOut) \\<inter>
+   merge_bounded(iOut) \\<inter>  merge_follows(A, In, Out, iOut)
+   \\<inter> merge_allowed_acts(Out, iOut) \\<inter> merge_preserves(In)"
 
 (** State definitions.  OUTPUT variables are locals **)
 locale Merge =
@@ -63,16 +63,16 @@ locale Merge =
         A  :: i    (*the type of items being merged *)
         M :: i
  assumes
-    var_assumes       "(ALL n. In(n):var) & Out:var & iOut:var"
-    all_distinct_vars "ALL n. all_distinct([In(n), Out, iOut])"
-    type_assumes      "(ALL n. type_of(In(n))=list(A))&
+    var_assumes       "(\\<forall>n. In(n):var) & Out \\<in> var & iOut \\<in> var"
+    all_distinct_vars "\\<forall>n. all_distinct([In(n), Out, iOut])"
+    type_assumes      "(\\<forall>n. type_of(In(n))=list(A))&
 		       type_of(Out)=list(A) &
                        type_of(iOut)=list(nat)"
-   default_val_assumes "(ALL n. default_val(In(n))=Nil) &
+   default_val_assumes "(\\<forall>n. default_val(In(n))=Nil) &
                         default_val(Out)=Nil &
                         default_val(iOut)=Nil"
 
-   merge_spec  "M:merge_spec(A, In, Out, iOut)"
+   merge_spec  "M \\<in> merge_spec(A, In, Out, iOut)"
 end
 
   
