@@ -17,6 +17,7 @@ sig
   val parent: T
   val root: T
   val absolute: T -> bool
+  val base: T -> string
   val append: T -> T -> T
 end;
 
@@ -29,39 +30,43 @@ datatype T = Path of string list;
 
 val current = Path [];
 val parent = Path [".."];
-val root = Path [""];
+val root = Path ["/"];
 
-fun absolute (Path ("" :: _)) = true
+fun absolute (Path ("/" :: _)) = true
   | absolute _ = false;
+
+fun base (Path []) = ""
+  | base (Path xs) = snd (split_last xs);
 
 
 (* append and norm *)
 
 (*append non-normal path (2n arg) to reversed normal one, result is normal*)
 fun rev_app xs [] = rev xs
-  | rev_app _ ("" :: ys) = rev_app [""] ys
+  | rev_app _ ("/" :: ys) = rev_app ["/"] ys
   | rev_app xs ("." :: ys) = rev_app xs ys
   | rev_app [] (".." :: ys) = rev_app [".."] ys
   | rev_app (xs as ".." :: _) (".." :: ys) = rev_app (".." :: xs) ys
-  | rev_app (xs as "" :: _) (".." :: ys) = rev_app xs ys
+  | rev_app (xs as "/" :: _) (".." :: ys) = rev_app xs ys
   | rev_app (_ :: xs) (".." :: ys) = rev_app xs ys
   | rev_app xs (y :: ys) = rev_app (y :: xs) ys;
 
 fun norm path = rev_app [] path;
+
 fun append (Path xs) (Path ys) = Path (rev_app (rev xs) ys);
 
 
 (* pack and unpack *)
 
 fun pack (Path []) = "."
-  | pack (path as Path xs) =
-      (if absolute path then "/" else "") ^ space_implode "/" xs;
+  | pack (Path ("/" :: xs)) = "/" ^ space_implode "/" xs
+  | pack (Path xs) = space_implode "/" xs;
 
 fun unpack str =
   Path (norm
     (case space_explode "/" str of
       [""] => []
-    | "" :: xs => "" :: filter (not_equal "") xs
+    | "" :: xs => "/" :: filter (not_equal "") xs
     | xs => filter (not_equal "") xs));
 
 
