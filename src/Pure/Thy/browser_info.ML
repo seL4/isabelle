@@ -9,6 +9,72 @@ Functions for generating theory browsing information
 (i.e. *.html and *.graph - files).
 *)
 
+
+(** filenames and paths **)             (* FIXME FIXME FIXME eliminate!!! *)
+
+(*BAD_space_explode "." "h.e..l.lo"; gives ["h", "e", "l", "lo"]*)
+fun BAD_space_explode sep s =
+  let fun divide [] "" = []
+        | divide [] part = [part]
+        | divide (c::s) part =
+            if c = sep then
+              (if part = "" then divide s "" else part :: divide s "")
+            else divide s (part ^ c)
+  in divide (explode s) "" end;
+
+(*Convert UNIX filename of the form "path/file" to "path/" and "file";
+  if filename contains no slash, then it returns "" and "file"*)
+val split_filename =
+  (pairself implode) o take_suffix (not_equal "/") o explode;
+
+val base_name = #2 o split_filename;
+
+(*Merge splitted filename (path and file);
+  if path does not end with one a slash is appended*)
+fun tack_on "" name = name
+  | tack_on path name =
+      if last_elem (explode path) = "/" then path ^ name
+      else path ^ "/" ^ name;
+
+(*Remove the extension of a filename, i.e. the part after the last '.'*)
+val remove_ext = implode o #1 o take_suffix (not_equal ".") o explode;
+
+(*Make relative path to reach an absolute location from a different one*)
+fun relative_path cur_path dest_path =
+  let (*Remove common beginning of both paths and make relative path*)
+      fun mk_relative [] [] = []
+        | mk_relative [] ds = ds
+        | mk_relative cs [] = map (fn _ => "..") cs
+        | mk_relative (c::cs) (d::ds) =
+            if c = d then mk_relative cs ds
+            else ".." :: map (fn _ => "..") cs @ (d::ds);
+  in if cur_path = "" orelse hd (explode cur_path) <> "/" orelse
+        dest_path = "" orelse hd (explode dest_path) <> "/" then
+       error "Relative or empty path passed to relative_path"
+     else ();
+     space_implode "/" (mk_relative (BAD_space_explode "/" cur_path)
+                                    (BAD_space_explode "/" dest_path))
+  end;
+
+(*Determine if absolute path1 is a subdirectory of absolute path2*)
+fun subdir_of (path1, path2) =
+  if hd (explode path1) <> "/" orelse hd (explode path2) <> "/" then
+    error "Relative or empty path passed to subdir_of"
+  else (BAD_space_explode "/" path2) prefix (BAD_space_explode "/" path1);
+
+fun absolute_path cwd file =
+  let fun rm_points [] result = rev result
+        | rm_points (".."::ds) result = rm_points ds (tl result)
+        | rm_points ("."::ds) result = rm_points ds result
+        | rm_points (d::ds) result = rm_points ds (d::result);
+  in if file = "" then ""
+     else if hd (explode file) = "/" then file
+     else "/" ^ space_implode "/"
+                  (rm_points (BAD_space_explode "/" (tack_on cwd file)) [])
+  end;
+
+
+
 signature BROWSER_INFO =
 sig
   val output_dir       : string ref
@@ -64,13 +130,6 @@ val base_path = ref (
   "/" ^ space_implode "/" (rev (tl (tl (rev (BAD_space_explode "/" (OS.FileSys.getDir ())))))));
 
 
-(* copy contents of file *)  (* FIXME: move to library?*)
-
-fun copy_file infile outfile =
-  if not (file_exists infile) then ()
-  else write_file outfile (read_file infile);
-
-
 
 (******************** HTML generation functions *************************)
 
@@ -92,7 +151,7 @@ local
   fun make_path q p =
     let val outp_dir = normalize_path (!output_dir);
         val base = if q = "" then outp_dir else tack_on outp_dir q;
-        val rpath = if p subdir_of (!base_path) then relative_path (!base_path) p
+        val rpath = if subdir_of (p, !base_path) then relative_path (!base_path) p
                     else relative_path (normalize_path (!home_path)) p;
     in tack_on base rpath end
 in
@@ -329,7 +388,7 @@ fun thyfile2html tname thy_path = if not (!make_html) then () else
      else ();
      cur_htmlfile := Some (TextIO.openOut (tack_on tpath (tname ^ ".html")));
      cur_has_title := false;
-     if file_exists (tack_on thy_path (tname ^ ".ML")) 
+     if File.exists (tack_on thy_path (tname ^ ".ML")) 
        then ml2html tname thy_path else ();
      TextIO.output (the (!cur_htmlfile), gettext (tack_on thy_path tname ^ ".thy"));
 
@@ -389,7 +448,7 @@ fun mk_html tname abs_path old_parents = if not (!make_html) then () else
               val tpath = tack_on rel_path tname;
 
               val fname = tack_on path (t ^ "_sub.html");
-              val out = if file_exists fname then
+              val out = if File.exists fname then
                           TextIO.openAppend fname  handle e  =>
                             (warning ("Unable to write to file " ^
                                       fname); raise e)
@@ -455,16 +514,18 @@ fun init_html () =
      original_path := cwd;
      index_path := html_path cwd;
      package :=
-        (if cwd subdir_of (!base_path) then
+        (if subdir_of (cwd, !base_path) then
           relative_path (!base_path) cwd
          else base_name cwd);
 
-     (*Copy README files to html directory
-       FIXME: let usedir do this job*)
-     copy_file (tack_on cwd "README.html") (tack_on (!index_path) "README.html");
-     copy_file (tack_on cwd "README") (tack_on (!index_path) "README");
 
-     if cwd subdir_of (!base_path) then ()
+     (*copy README files to html directory*)  (* FIXME let usedir do this job !?*)
+     handle_error
+       (File.copy (tack_on cwd "README.html")) (tack_on (!index_path) "README.html");
+     handle_error
+       (File.copy (tack_on cwd "README")) (tack_on (!index_path) "README");
+
+     if subdir_of (cwd, !base_path) then ()
      else warning "The current working directory seems to be no \
                   \subdirectory of\nIsabelle's main directory. \
                   \Please ensure that base_path's value is correct.\n";
@@ -507,7 +568,7 @@ fun finish_html () = if not (!make_html) then () else
       (*Find out in which subdirectory of Isabelle's main directory the
         index.html is placed; if original_path is no subdirectory of base_path
         then take the last directory of index_path*)
-      val inside_isabelle = (!original_path) subdir_of (!base_path);
+      val inside_isabelle = subdir_of (!original_path, !base_path);
       val subdir =
         if inside_isabelle then relative_path (html_path (!base_path)) (!index_path)
         else base_name (!index_path);
@@ -518,7 +579,7 @@ fun finish_html () = if not (!make_html) then () else
       fun find_super_index [] n = ("", n)
         | find_super_index (p::ps) n =
           let val index_path = "/" ^ space_implode "/" (rev ps);
-          in if file_exists (index_path ^ "/index.html") then (index_path, n)
+          in if File.exists (index_path ^ "/index.html") then (index_path, n)
              else if length subdirs - n > 0 then find_super_index ps (n+1)
              else ("", n)
           end;
@@ -565,9 +626,9 @@ fun finish_html () = if not (!make_html) then () else
           else if level = 0 then "Isabelle logics"
           else space_implode "/" (take (level, subdirs))))) ^
        "\n" ^
-       (if file_exists (tack_on (!index_path) "README.html") then
+       (if File.exists (tack_on (!index_path) "README.html") then
           "<BR>View the <A HREF = \"README.html\">README</A> file.\n"
-        else if file_exists (tack_on (!index_path) "README") then
+        else if File.exists (tack_on (!index_path) "README") then
           "<BR>View the <A HREF = \"README\">README</A> file.\n"
         else "") ^
        "<HR>" ^ implode (map main_entry theories) ^ "<!-->");
@@ -676,7 +737,7 @@ fun init_graph usedir_arg =
       fun mk_applet_page abs_path large other_graph =
         let
           val dir_name =
-            (if (!original_path) subdir_of (!base_path) then "Isabelle/" else "") ^
+            (if subdir_of (!original_path, !base_path) then "Isabelle/" else "") ^
             (relative_path (normalize_path (tack_on (!graph_root_dir) "..")) (pwd ()));
           val rel_codebase = 
             relative_path abs_path (tack_on (normalize_path (!output_dir)) "graph");
@@ -722,8 +783,8 @@ fun init_graph usedir_arg =
          mk_applet_page gpath false true;
          mk_applet_page gpath true true)
       else
-        (if (fst (split_filename (!graph_file))) subdir_of
-            (fst (split_filename (!graph_base_file)))
+        (if subdir_of (fst (split_filename (!graph_file)),
+            (fst (split_filename (!graph_base_file))))
          then
            (copy_graph (!graph_base_file) (!graph_file) true;
             mk_applet_page gpath false false)
@@ -783,5 +844,6 @@ fun mk_graph tname abs_path = if not (!make_graph) then () else
              (make_graph:=false;
               warning ("Unable to write to graph file " ^ (!graph_file)))
   end;
+
 
 end;
