@@ -9,6 +9,7 @@ local
   val common_setup =
     Locale.setup @
     HTML.setup @
+    ObjectLogic.setup @
     ProofContext.setup @
     Attrib.setup @
     InductAttrib.setup @
