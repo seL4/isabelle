@@ -3,36 +3,45 @@
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1991  University of Cambridge
 
-Compatibility file for Poly/ML (versions 2.x and 3.x).
+Compatibility file for Poly/ML (version 4.0).
 *)
-
-open PolyML ExtendedIO;
-
-(*needs the Basis Library emulation*)
-use "basis.ML";
-
-
-structure String =
-struct
-  fun substring (s,i,j) = StringBuiltIns.substring (s, i+1, j)
-                          handle Substring => raise Subscript
-  fun isPrefix s1 s2 = (s1 = substring(s2,0, size s1))
-                       handle Subscript => false
-end;
-
 
 (** ML system related **)
 
-(** Compiler-independent timing functions **)
+(* old Poly/ML emulation *)
+
+local
+  val orig_exit = exit;
+in
+  open PolyML;
+  val exit = orig_exit;
+  fun quit () = exit 0;
+end;
+
+
+(* restore old-style character / string functions *)
+
+val ord = SML90.ord;
+val chr = SML90.chr;
+val explode = SML90.explode;
+val implode = SML90.implode;
+
 
 (*Note start point for timing*)
-fun startTiming() = System.processtime ();
+fun startTiming() =
+  let val CPUtimer = Timer.startCPUTimer();
+      val time = Timer.checkCPUTimer(CPUtimer)
+  in  (CPUtimer,time)  end;
 
 (*Finish timing and return string*)
-fun endTiming before =
-  "User + GC: " ^
-  makestring (real (System.processtime () - before) / 10.0) ^
-  " secs";
+fun endTiming (CPUtimer, {sys,usr}) =
+  let open Time  (*...for Time.toString, Time.+ and Time.- *)
+      val {sys=sys2,usr=usr2} = Timer.checkCPUTimer(CPUtimer)
+  in  "User " ^ toString (usr2-usr) ^
+      "  All "^ toString (sys2-sys + usr2-usr) ^
+      " secs"
+      handle Time => ""
+  end;
 
 
 (* prompts *)
@@ -42,7 +51,7 @@ fun ml_prompts p1 p2 = (PolyML.Compiler.prompt1 := p1; PolyML.Compiler.prompt2 :
 
 (* toplevel pretty printing (see also Pure/install_pp.ML) *)
 
-fun make_pp _ pprint (str, blk, brk, en) obj =
+fun make_pp _ pprint (str, blk, brk, en) _ _ obj =
   pprint obj (str, fn ind => blk (ind, false), fn wd => brk (wd, 0),
     fn () => brk (99999, 0), en);
 
@@ -80,13 +89,46 @@ fun use_text (print, err) verbose txt =
     if verbose then print (output ()) else ()
   end;
 
+end;
 
 
-(** interrupts **)      (*Note: may get into race conditions*)
 
-fun mask_interrupt f x = f x;
-fun unmask_interrupt f x = f x;
-fun exhibit_interrupt f x = f x;
+(** interrupts **)
+
+exception Interrupt = SML90.Interrupt;
+
+local
+
+datatype 'a result =
+  Result of 'a |
+  Exn of exn;
+
+fun capture f x = Result (f x) handle exn => Exn exn;
+
+fun release (Result x) = x
+  | release (Exn exn) = raise exn;
+
+
+val sig_int = 2;
+
+fun change_signal new_handler f x =
+  let
+    (*RACE wrt. other signals*)
+    val old_handler = Signal.signal (sig_int, new_handler);
+    val result = capture f x;
+    val _ = Signal.signal (sig_int, old_handler);
+  in release result end;
+
+val default_handler = Signal.SIG_HANDLE (fn _ => Process.interruptConsoleProcesses ());
+
+in
+
+val _ = Signal.signal (sig_int, default_handler);
+
+fun mask_interrupt f = change_signal Signal.SIG_IGN f;
+fun exhibit_interrupt f = change_signal default_handler f;
+
+end;
 
 
 
@@ -95,40 +137,36 @@ fun exhibit_interrupt f x = f x;
 (* system command execution *)
 
 (*execute Unix command which doesn't take any input from stdin and
-  sends its output to stdout*)
+  sends its output to stdout; could be done more easily by Unix.execute,
+  but that function doesn't use the PATH*)
 fun execute command =
   let
-    val (is, os) =  ExtendedIO.execute command;
-    val _ = close_out os;
-    val result = input (is, 999999);
-  in close_in is; result end;
+    val tmp_name = OS.FileSys.tmpName ();
+    val is = (OS.Process.system (command ^ " > " ^ tmp_name); TextIO.openIn tmp_name);
+    val result = TextIO.inputAll is;
+  in
+    TextIO.closeIn is;
+    OS.FileSys.remove tmp_name;
+    result
+  end;
 
-fun system cmd = (print (execute cmd); 0);	(* FIXME rc not available *)
+(*plain version; with return code*)
+fun system cmd =
+  if OS.Process.isSuccess (OS.Process.system cmd) then 0 else 1;
 
 
 (* file handling *)
 
 (*get time of last modification*)
-fun file_info name = Int.toString (System.filedate name) handle _ => "";
-
-structure OS =
-struct
-  structure FileSys =
-  struct
-    val chDir = PolyML.cd;
-    fun remove name = (execute ("rm " ^ name); ());
-    fun getDir () = drop_last_char (execute "pwd");
-  end;
-end;
+fun file_info name = Time.toString (OS.FileSys.modTime name) handle _ => "";
 
 
 (* getenv *)
 
-fun getenv var = drop_last_char
-  (execute ("env | grep '^" ^ var ^ "=' | sed -e 's/" ^ var ^ "=//'"));
-
-
-end;
+fun getenv var =
+  (case OS.Process.getEnv var of
+    NONE => ""
+  | SOME txt => txt);
 
 
 (* non-ASCII input (see also Thy/use.ML) *)
