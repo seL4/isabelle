@@ -271,3 +271,14 @@ Goal "abs(x - y) < -y ==> x < (#0::real)";
 by (auto_tac (claset(),simpset() addsimps [abs_interval_iff]));
 qed "abs_diff_less_imp_gt_zero4";
 
+Goalw [abs_real_def] 
+     " abs(x) <= abs(x + (-y)) + abs((y::real))";
+by Auto_tac;
+qed "abs_triangle_ineq_minus_cancel";
+
+Goal "abs ((x::real) + y + (-l + -m)) <= abs(x + -l) + abs(y + -m)";
+by (full_simp_tac (simpset() addsimps [real_add_assoc]) 1);
+by (res_inst_tac [("x1","y")] (real_add_left_commute RS ssubst) 1);
+by (rtac (real_add_assoc RS subst) 1);
+by (rtac abs_triangle_ineq 1);
+qed "abs_sum_triangle_ineq";

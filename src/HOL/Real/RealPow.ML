@@ -107,6 +107,11 @@ by (auto_tac (claset(),simpset() addsimps [abs_mult,
 qed "abs_realpow_minus_one";
 Addsimps [abs_realpow_minus_one];
 
+Goal "abs((#-1) ^ n) = (#1::real)";
+by (rtac (simplify (simpset()) abs_realpow_minus_one) 1);
+qed "abs_realpow_minus_one2";
+Addsimps [abs_realpow_minus_one2];
+
 Goal "((r::real) * s) ^ n = (r ^ n) * (s ^ n)";
 by (induct_tac "n" 1);
 by (auto_tac (claset(),simpset() addsimps real_mult_ac));

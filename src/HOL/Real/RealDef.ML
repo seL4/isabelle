@@ -422,10 +422,6 @@ by (full_simp_tac (simpset() addsimps [real_minus_mult_eq2 RS sym,
 				       real_minus_mult_eq1 RS sym]) 1);
 qed "real_minus_mult_commute";
 
-(*-----------------------------------------------------------------------------
-
- ----------------------------------------------------------------------------*)
-
 (** Lemmas **)
 
 Goal "(z::real) + v = z' + v' ==> z + (v + w) = z' + (v' + w)";
@@ -653,9 +649,6 @@ qed "real_less_not_sym";
 (* [| x < y;  ~P ==> y < x |] ==> P *)
 bind_thm ("real_less_asym", real_less_not_sym RS swap);
 
-(****)(****)(****)(****)(****)(****)(****)(****)(****)(****)
-    (****** Map and more real_less ******)
-(*** mapping from preal into real ***)
 Goalw [real_of_preal_def] 
      "real_of_preal ((z1::preal) + z2) = \
 \     real_of_preal z1 + real_of_preal z2";

@@ -428,6 +428,12 @@ by (rtac (real_of_posnat_gt_zero RS real_rinv_gt_zero) 1);
 qed "real_of_posnat_rinv_gt_zero";
 Addsimps [real_of_posnat_rinv_gt_zero];
 
+Goal "real_of_preal (preal_of_prat (prat_of_pnat (pnat_of_nat N))) = \
+\     real_of_nat (Suc N)";
+by (simp_tac (simpset() addsimps [real_of_nat_def,real_of_posnat_Suc,
+    real_add_assoc,(real_of_posnat_def RS meta_eq_to_obj_eq) RS sym]) 1);
+qed "real_of_preal_real_of_nat_Suc";
+
 Goal "x+x = x*(1r+1r)";
 by (simp_tac (simpset() addsimps [real_add_mult_distrib2]) 1);
 qed "real_add_self";
