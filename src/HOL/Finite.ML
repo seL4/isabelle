@@ -144,20 +144,68 @@ Addsimps[finite_insert];
 bind_thm ("finite_Diff", Diff_subset RS finite_subset);
 Addsimps [finite_Diff];
 
+goal Finite.thy "finite(A-{a}) = finite(A)";
+by (case_tac "a:A" 1);
+br (finite_insert RS sym RS trans) 1;
+by (stac insert_Diff 1);
+by (ALLGOALS Asm_simp_tac);
+qed "finite_Diff_singleton";
+AddIffs [finite_Diff_singleton];
+
 (*The image of a finite set is finite*)
 goal Finite.thy "!!F. finite F ==> finite(h``F)";
 by (etac finite_induct 1);
 by (ALLGOALS Asm_simp_tac);
 qed "finite_imageI";
 
-(*The powerset of a finite set is finite*)
-goal Finite.thy "!!A. finite A ==> finite(Pow A)";
+goal Finite.thy "!!A. finite B ==> !A. B = f``A --> inj_onto f A --> finite A";
+by (etac finite_induct 1);
+by (ALLGOALS Asm_simp_tac);
+by (Step_tac 1);
+by (subgoal_tac "A={}" 1);
+by (blast_tac (!claset addSEs [equalityE]) 2);
+by (subgoal_tac "EX y:A. f y = x & F = f``(A-{y})" 2);
+by (Step_tac 1);
+bw inj_onto_def;
+by (Blast_tac 2);
+by (ALLGOALS Asm_simp_tac);
+by (thin_tac "ALL A. ?PP(A)" 1);
+by (forward_tac [[equalityD1, insertI1] MRS subsetD] 1);
+by (Step_tac 1);
+by (res_inst_tac [("x","xa")] bexI 1);
+by (ALLGOALS Asm_simp_tac);
+be equalityE 1;
+br equalityI 1;
+by (Blast_tac 2);
+by (Best_tac 1);
+val lemma = result();
+
+goal Finite.thy "!!A. [| finite(f``A);  inj_onto f A |] ==> finite A";
+bd lemma 1;
+by (Blast_tac 1);
+qed "finite_imageD";
+
+
+(** The powerset of a finite set **)
+
+goal Finite.thy "!!A. finite(Pow A) ==> finite A";
+by (subgoal_tac "finite ((%x.{x})``A)" 1);
+br finite_subset 2;
+ba 3;
+by (ALLGOALS
+    (fast_tac (!claset addSDs [rewrite_rule [inj_onto_def] finite_imageD])));
+val lemma = result();
+
+goal Finite.thy "finite(Pow A) = finite A";
+br iffI 1;
+be lemma 1;
+(*Opposite inclusion: finite A ==> finite (Pow A) *)
 by (etac finite_induct 1);
 by (ALLGOALS 
     (asm_simp_tac
      (!simpset addsimps [finite_UnI, finite_imageI, Pow_insert])));
-qed "finite_PowI";
-AddSIs [finite_PowI];
+qed "finite_Pow_iff";
+AddIffs [finite_Pow_iff];
 
 val major::prems = goalw Finite.thy [finite_def]
     "[| finite A;                                       \
@@ -391,3 +439,27 @@ by (case_tac "A=F" 1);
 by (Asm_simp_tac 1);
 by (Asm_simp_tac 1);
 qed_spec_mp "psubset_card" ;
+
+
+(*Relates to equivalence classes.   Based on a theorem of F. Kammüller's.
+  The "finite C" premise is redundant*)
+goal thy "!!C. finite C ==> finite (Union C) --> \
+\          (! c : C. k dvd card c) -->  \
+\          (! c1: C. ! c2: C. c1 ~= c2 --> c1 Int c2 = {}) \
+\          --> k dvd card(Union C)";
+by (etac finite_induct 1);
+by (ALLGOALS Asm_simp_tac);
+by (strip_tac 1);
+by (REPEAT (etac conjE 1));
+by (stac card_Un_disjoint 1);
+by (ALLGOALS
+    (asm_full_simp_tac (!simpset
+			 addsimps [dvd_add, disjoint_eq_subset_Compl])));
+by (thin_tac "?PP-->?QQ" 1);
+by (thin_tac "!c:F. ?PP(c)" 1);
+by (thin_tac "!c:F. ?PP(c) & ?QQ(c)" 1);
+by (Step_tac 1);
+by (ball_tac 1);
+by (Blast_tac 1);
+qed_spec_mp "dvd_partition";
+
