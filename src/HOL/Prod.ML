@@ -183,6 +183,11 @@ by (split_all_tac 1);
 by (Asm_simp_tac 1);
 qed "Pair_fst_snd_eq";
 
+Goal "fst p = fst q ==> snd p = snd q ==> p = q";
+by (asm_simp_tac (simpset() addsimps [Pair_fst_snd_eq]) 1);
+qed "prod_eqI";
+AddXIs [prod_eqI];
+
 (*Prevents simplification of c: much faster*)
 Goal "p=q ==> split c p = split c q";
 by (etac arg_cong 1);
