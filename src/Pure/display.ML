@@ -7,34 +7,34 @@ Printing of theories, theorems, etc.
 *)
 
 signature DISPLAY =
-  sig
-  val pprint_cterm	: cterm -> pprint_args -> unit
-  val pprint_ctyp	: ctyp -> pprint_args -> unit
-  val pprint_theory	: theory -> pprint_args -> unit
-  val pprint_thm	: thm -> pprint_args -> unit
-  val pretty_ctyp	: ctyp -> Pretty.T
-  val pretty_cterm	: cterm -> Pretty.T
+sig
+  val show_hyps		: bool ref
   val pretty_thm	: thm -> Pretty.T
-  val print_cterm	: cterm -> unit
-  val print_ctyp	: ctyp -> unit
-  val show_consts	: bool ref
-  val print_goals	: int -> thm -> unit
-  val pretty_name_space : string * NameSpace.T -> Pretty.T
-  val print_syntax	: theory -> unit
-  val print_theory	: theory -> unit
-  val print_data	: theory -> string -> unit
+  val string_of_thm	: thm -> string
+  val pprint_thm	: thm -> pprint_args -> unit
   val print_thm		: thm -> unit
   val prth		: thm -> thm
   val prthq		: thm Seq.seq -> thm Seq.seq
   val prths		: thm list -> thm list
-  val show_hyps		: bool ref
-  val string_of_cterm	: cterm -> string
+  val pretty_ctyp	: ctyp -> Pretty.T
+  val pprint_ctyp	: ctyp -> pprint_args -> unit
   val string_of_ctyp	: ctyp -> string
-  val string_of_thm	: thm -> string
-  end;
+  val print_ctyp	: ctyp -> unit
+  val pretty_cterm	: cterm -> Pretty.T
+  val pprint_cterm	: cterm -> pprint_args -> unit
+  val string_of_cterm	: cterm -> string
+  val print_cterm	: cterm -> unit
+  val pretty_theory	: theory -> Pretty.T
+  val pprint_theory	: theory -> pprint_args -> unit
+  val print_syntax	: theory -> unit
+  val print_data	: theory -> string -> unit
+  val print_theory	: theory -> unit
+  val pretty_name_space : string * NameSpace.T -> Pretty.T
+  val show_consts	: bool ref
+  val print_goals	: int -> thm -> unit
+end;
 
-
-structure Display : DISPLAY =
+structure Display: DISPLAY =
 struct
 
 (*If false, hypotheses are printed as dots*)
@@ -102,6 +102,7 @@ val print_cterm = writeln o string_of_cterm;
 
 (** print theory **)
 
+val pretty_theory = Sign.pretty_sg o sign_of;
 val pprint_theory = Sign.pprint_sg o sign_of;
 
 val print_syntax = Syntax.print_syntax o syn_of;
