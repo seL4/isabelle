@@ -4,9 +4,11 @@
     Copyright   1998  University of Cambridge
 
 Common declarations for Chandy and Charpentier's Allocator
+
+with_path "../Induct" time_use_thy "AllocBase";
 *)
 
-AllocBase = Rename + Follows + 
+AllocBase = Rename + Follows + MultisetOrder +
 
 consts
   NbT      :: nat       (*Number of tokens in system*)
@@ -26,5 +28,8 @@ consts sum_below :: "[nat=>'a, nat] => ('a::plus_ac0)"
 primrec 
   sum_below_0    "sum_below f 0 = 0"
   sum_below_Suc  "sum_below f (Suc n) = f(n) + sum_below f n"
+
+constdefs sublist :: "['a list, nat set] => 'a list"
+    "sublist l A == map fst (filter (%p. snd p : A) (zip l [0..size l(]))"
 
 end
