@@ -253,9 +253,6 @@ by (rotate_tac 3 1);
 by (etac exE 1);
 by (rotate_tac 3 1);
 by (Asm_full_simp_tac 1);
-by (asm_full_simp_tac (!simpset addsimps [add_commute]) 1);
-by (dtac add_lessD1 1);
-by (fast_tac (!claset addIs [less_irrefl]) 1);
 (* case Abs e *)
 by (asm_full_simp_tac (!simpset addsimps
     [free_tv_subst] setloop (split_tac [expand_option_bind]) delsimps all_simps) 1);
