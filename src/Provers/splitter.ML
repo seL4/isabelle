@@ -19,6 +19,14 @@ where splits = [P(elim(...)) == rhs, ...]
 fun mk_case_split_tac iffD =
 let
 
+
+(************************************************************
+   Create lift-theorem "trlift" :
+
+   [| !! x. Q(x)==R(x) ; P(R) == C |] ==> P(Q)==C
+
+*************************************************************)
+ 
 val lift =
   let val ct = read_cterm (#sign(rep_thm iffD))
            ("[| !!x::'b::logic. Q(x) == R(x) |] ==> \
@@ -31,6 +39,17 @@ val trlift = lift RS transitive_thm;
 val _ $ (Var(P,PT)$_) $ _ = concl_of trlift;
 
 
+(************************************************************************ 
+   Set up term for instantiation of P in the lift-theorem
+   
+   Ts    : types of parameters (i.e. variables bound by meta-quantifiers)
+   t     : lefthand side of meta-equality in subgoal
+           the lift theorem is applied to (see select)
+   pos   : "path" leading to abstraction, coded as a list
+   T     : type of body of P(...)
+   maxi  : maximum index of Vars
+*************************************************************************)
+
 fun mk_cntxt Ts t pos T maxi =
   let fun var (t,i) = Var(("X",i),type_of1(Ts,t));
       fun down [] t i = Bound 0
@@ -42,6 +61,36 @@ fun mk_cntxt Ts t pos T maxi =
       in list_comb(h,v1@[down ps u (i+length ts)]@v2) end;
   in Abs("", T, down (rev pos) t maxi) end;
 
+
+(************************************************************************ 
+   Set up term for instantiation of P in the split-theorem
+   P(...) == rhs
+
+   Ts    : types of parameters (i.e. variables bound by meta-quantifiers)
+   t     : lefthand side of meta-equality in subgoal
+           the split theorem is applied to (see select)
+   pos   : "path" leading to body of P(...), coded as a list
+   T     : type of body of P(...)
+   maxi  : maximum index of Vars
+
+   bvars : type of variables bound by other than meta-quantifiers
+*************************************************************************)
+
+fun mk_cntxt_splitthm Ts t pos T maxi =
+  let fun down [] t i bvars = Bound (length bvars)
+        | down (p::ps) (Abs(v,T2,t)) i bvars = Abs(v,T2,down ps t i (T2::bvars))
+        | down (p::ps) t i bvars =
+            let val vars = map Bound (0 upto ((length bvars)-1))
+                val (h,ts) = strip_comb t
+                fun var (t,i) = list_comb(Var(("X",i),bvars ---> (type_of1(bvars @ Ts,t))),vars);
+                val v1 = map var (take(p,ts) ~~ (i upto (i+p-1)))
+                val u::us = drop(p,ts)
+                val v2 = map var (us ~~ ((i+p) upto (i+length(ts)-2)))
+            in list_comb(h,v1@[down ps u (i+length ts) bvars]@v2) end;
+  in Abs("",T,down (rev pos) t maxi []) end;
+
+
+(* add all loose bound variables in t to list is *)
 fun add_lbnos(is,t) = add_loose_bnos(t,0,is);
 
 (* check if the innermost quantifier that needs to be removed
@@ -51,14 +100,55 @@ fun type_test(T,lbnos,apsns) =
   let val (_,U,_) = nth_elem(min lbnos,apsns)
   in T=U end;
 
-fun mk_split_pack(thm,T,n,ts,apsns) =
+(*************************************************************************
+   Create a "split_pack".
+
+   thm   : the relevant split-theorem, i.e. P(...) == rhs , where P(...)
+           is of the form
+           P( Const(key,...) $ t_1 $ ... $ t_n )      (e.g. key = "if")
+   T     : type of P(...)
+   n     : number of arguments expected by Const(key,...)
+   ts    : list of arguments actually found
+   apsns : list of tuples of the form (T,U,pos), one tuple for each
+           abstraction that is encountered on the way to the position where 
+           Const(key, ...) $ ...  occurs, where
+           T   : type of the variable bound by the abstraction
+           U   : type of the abstraction's body
+           pos : "path" leading to the body of the abstraction
+   pos   : "path" leading to the position where Const(key, ...) $ ...  occurs.
+   TB    : type of  Const(key,...) $ t_1 $ ... $ t_n
+
+   A split pack is a tuple of the form
+   (thm, apsns, pos, TB)
+   Note : apsns is reversed, so that the outermost quantifier's position
+          comes first ! If the terms in ts don't contain variables bound
+          by other than meta-quantifiers, apsns is empty, because no further
+          lifting is required before applying the split-theorem.
+******************************************************************************) 
+
+fun mk_split_pack(thm,T,n,ts,apsns,pos,TB) =
   if n > length ts then []
   else let val lev = length apsns
            val lbnos = foldl add_lbnos ([],take(n,ts))
            val flbnos = filter (fn i => i < lev) lbnos
-       in if null flbnos then [(thm,[])]
-          else if type_test(T,flbnos,apsns) then [(thm, rev apsns)] else []
+       in if null flbnos then [(thm,[],pos,TB)]
+          else if type_test(T,flbnos,apsns) then [(thm, rev apsns,pos,TB)] else []
        end;
+
+
+(****************************************************************************
+   Recursively scans term for occurences of Const(key,...) $ ...
+   Returns a list of "split-packs" (one for each occurence of Const(key,...) )
+
+   cmap : association list of split-theorems that should be tried.
+          The elements have the format (key,(thm,T,n)) , where
+          key : the theorem's key constant ( Const(key,...) $ ... )
+          thm : the theorem itself
+          T   : type of P( Const(key,...) $ ... )
+          n   : number of arguments expected by Const(key,...)
+   Ts   : types of parameters
+   t    : the term to be scanned
+******************************************************************************)
 
 fun split_posns cmap Ts t =
   let fun posns Ts pos apsns (Abs(_,T,t)) =
@@ -70,21 +160,48 @@ fun split_posns cmap Ts t =
                 val a = case h of
                   Const(c,_) =>
                     (case assoc(cmap,c) of
-                       Some(thm,T,n) => mk_split_pack(thm,T,n,ts,apsns)
+                       Some(thm,T,n) => mk_split_pack(thm,T,n,ts,apsns,pos,type_of1(Ts,t))
                      | None => [])
                 | _ => []
              in snd(foldl iter ((0,a),ts)) end
   in posns Ts [] [] t end;
 
+
 fun nth_subgoal i thm = nth_elem(i-1,prems_of thm);
 
-fun shorter((_,ps),(_,qs)) = length ps <= length qs;
+fun shorter((_,ps,pos,_),(_,qs,qos,_)) =
+  let val ms = length ps and ns = length qs
+  in ms < ns orelse (ms = ns andalso length pos >= length qos) end;
+
+
+(************************************************************
+   call split_posns with appropriate parameters
+*************************************************************)
 
 fun select cmap state i =
   let val goali = nth_subgoal i state
       val Ts = rev(map #2 (Logic.strip_params goali))
       val _ $ t $ _ = Logic.strip_assums_concl goali;
   in (Ts,t,sort shorter (split_posns cmap Ts t)) end;
+
+
+(*************************************************************
+   instantiate lift theorem
+
+   if t is of the form
+   ... ( Const(...,...) $ Abs( .... ) ) ...
+   then
+   P = %a.  ... ( Const(...,...) $ a ) ...
+   where a has type T --> U
+
+   Ts      : types of parameters
+   t       : lefthand side of meta-equality in subgoal
+             the split theorem is applied to (see cmap)
+   T,U,pos : see mk_split_pack
+   state   : current proof state
+   lift    : the lift theorem
+   i       : no. of subgoal
+**************************************************************)
 
 fun inst_lift Ts t (T,U,pos) state lift i =
   let val sg = #sign(rep_thm state)
@@ -98,6 +215,38 @@ fun inst_lift Ts t (T,U,pos) state lift i =
   in instantiate (ixncTs, [(cP',cu)]) lift end;
 
 
+(*************************************************************
+   instantiate split theorem
+
+   Ts    : types of parameters
+   t     : lefthand side of meta-equality in subgoal
+           the split theorem is applied to (see cmap)
+   pos   : "path" to the body of P(...)
+   thm   : the split theorem
+   TB    : type of body of P(...)
+   state : current proof state
+**************************************************************)
+
+fun inst_split Ts t pos thm TB state =
+  let val _$((Var(P2,PT2))$_)$_ = concl_of thm
+      val sg = #sign(rep_thm state)
+      val tsig = #tsig(Sign.rep_sg sg)
+      val cntxt = mk_cntxt_splitthm Ts t pos TB (#maxidx(rep_thm thm))
+      val cu = cterm_of sg cntxt
+      val uT = #T(rep_cterm cu)
+      val cP' = cterm_of sg (Var(P2,uT))
+      val ixnTs = Type.typ_match tsig ([],(PT2,uT));
+      val ixncTs = map (fn (x,y) => (x,ctyp_of sg y)) ixnTs;
+  in instantiate (ixncTs, [(cP',cu)]) thm end;
+
+
+(*****************************************************************************
+   The split-tactic
+   
+   splits : list of split-theorems to be tried
+   i      : number of subgoal the tactic should be applied to
+*****************************************************************************)
+
 fun split_tac [] i = no_tac
   | split_tac splits i =
   let fun const(thm) = let val _$(t as _$lhs)$_ = concl_of thm
@@ -109,9 +258,9 @@ fun split_tac [] i = no_tac
             let val (Ts,t,splits) = select cmap state i
             in case splits of
                  [] => no_tac
-               | (thm,apsns)::_ =>
+               | (thm,apsns,pos,TB)::_ =>
                    (case apsns of
-                      [] => rtac thm i
+                      [] => STATE(fn state => rtac (inst_split Ts t pos thm TB state) i)
                     | p::_ => EVERY[STATE(lift Ts t p),
                                     rtac reflexive_thm (i+1),
                                     STATE lift_split])
