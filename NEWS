@@ -100,6 +100,8 @@ lib/logo/isabelle-{small,tiny}.xpm;
 * isatool install - install binaries with absolute references to
 ISABELLE_HOME/bin;
 
+* print mode 'emacs' reserved for Isamode;
+
 
 *** HOL ***
 
