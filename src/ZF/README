@@ -9,8 +9,37 @@ type: use "ROOT.ML";
 
 Makefile -- compiles the files under Poly/ML or SML of New Jersey
 
+IMP -- subdirectory containing a semantics equivalence proof between
+operational and denotational definitions of a simple programming language.
+To execute, enter an ML image containing ZF and type:   use "IMP/ROOT.ML";
+
 ex -- subdirectory containing examples.  To execute them, enter an ML image
 containing ZF and type:    use "ex/ROOT.ML";
+
+Isabelle/ZF formalizes the greater part of elementary set theory, including
+relations, functions, injections, surjections, ordinals and cardinals.
+Results proved include Cantor's Theorem, the Recursion Theorem, the
+Schroeder-Bernstein Theorem, and (assuming AC) the Wellordering Theorem.
+
+Isabelle/ZF also provides theories of lists, trees, etc., for formalizing
+computational notions.  It supports inductive definitions of
+infinite-branching trees for any cardinality of branching.
+
+Useful references for Isabelle/ZF:
+
+	Lawrence C. Paulson,
+	Set theory for verification: I. From foundations to functions.
+	J. Automated Reasoning 11 (1993), 353-389.
+
+	Lawrence C. Paulson,
+	Set theory for verification: II. Induction and recursion.
+	Report 312, Computer Lab (1993).
+
+	Lawrence C. Paulson,
+	A fixedpoint approach to implementing (co)inductive definitions.  
+	In: A. Bundy (editor),
+	CADE-12: 12th International Conference on Automated Deduction,
+	(Springer LNAI 814, 1994), 148-161.
 
 Useful references on ZF set theory:
 
@@ -20,3 +49,7 @@ Useful references on ZF set theory:
 
 	Keith J. Devlin,
 	Fundamentals of Contemporary Set Theory (Springer, 1979)
+
+	Kenneth Kunen
+	Set Theory: An Introduction to Independence Proofs
+	(North-Holland, 1980)

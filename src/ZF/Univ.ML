@@ -85,6 +85,8 @@ by (rtac (Vfrom RS ssubst) 1);
 by (rtac Un_upper1 1);
 val A_subset_Vfrom = result();
 
+val A_into_Vfrom = A_subset_Vfrom RS subsetD |> standard;
+
 goal Univ.thy "!!A a i. a <= Vfrom(A,i) ==> a: Vfrom(A,succ(i))";
 by (rtac (Vfrom RS ssubst) 1);
 by (fast_tac ZF_cs 1);
@@ -249,7 +251,9 @@ val nat_subset_Vfrom_Limit =
     [nat_le_Limit RS le_imp_subset, i_subset_Vfrom] MRS subset_trans 
 	|> standard;
 
-val nat_into_Vfrom_Limit = standard (nat_subset_Vfrom_Limit RS subsetD);
+goal Univ.thy "!!i. [| n: nat;  Limit(i) |] ==> n : Vfrom(A,i)";
+by (REPEAT (ares_tac [nat_subset_Vfrom_Limit RS subsetD] 1));
+val nat_into_Vfrom_Limit = result();
 
 (** Closure under disjoint union **)
 

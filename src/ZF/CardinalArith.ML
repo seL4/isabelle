@@ -334,6 +334,10 @@ by (etac (nat_succ_lepoll RS eqpollI) 1);
 by (rtac (subset_succI RS subset_imp_lepoll) 1);
 val nat_succ_eqpoll = result();
 
+goalw CardinalArith.thy [InfCard_def] "InfCard(nat)";
+by (fast_tac (ZF_cs addIs [Card_nat, le_refl, Card_is_Ord]) 1);
+val InfCard_nat = result();
+
 goalw CardinalArith.thy [InfCard_def] "!!K. InfCard(K) ==> Card(K)";
 by (etac conjunct1 1);
 val InfCard_is_Card = result();
@@ -635,3 +639,9 @@ goal CardinalArith.thy
 by (asm_simp_tac 
     (ZF_ss addsimps [lt_csucc_iff, Card_cardinal_eq, Card_is_Ord]) 1);
 val Card_lt_csucc_iff = result();
+
+goalw CardinalArith.thy [InfCard_def]
+    "!!K. InfCard(K) ==> InfCard(csucc(K))";
+by (asm_simp_tac (ZF_ss addsimps [Card_csucc, Card_is_Ord, 
+				  lt_csucc RS leI RSN (2,le_trans)]) 1);
+val InfCard_csucc = result();

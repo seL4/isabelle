@@ -115,7 +115,7 @@ by (eresolve_tac [conjunct2] 1);
 by (asm_simp_tac (ZF_ss addsimps [left_inverse]) 1);
 val cardinal_UN_le = result();
 
-
+(*The same again, using csucc*)
 goal Cardinal_AC.thy
     "!!K. [| InfCard(K);  ALL i:K. |X(i)| < csucc(K) |] ==> \
 \         |UN i:K. X(i)| < csucc(K)";
@@ -123,3 +123,15 @@ by (asm_full_simp_tac
     (ZF_ss addsimps [Card_lt_csucc_iff, cardinal_UN_le, 
 		     InfCard_is_Card, Card_cardinal]) 1);
 val cardinal_UN_lt_csucc = result();
+
+(*The same again, for a union of ordinals*)
+goal Cardinal_AC.thy
+    "!!K. [| InfCard(K);  ALL i:K. j(i) < csucc(K) |] ==> \
+\         (UN i:K. j(i)) < csucc(K)";
+by (resolve_tac [cardinal_UN_lt_csucc RS Card_lt_imp_lt] 1);
+by (assume_tac 1);
+by (fast_tac (ZF_cs addIs [Ord_cardinal_le RS lt_trans1] addEs [ltE]) 1);
+by (fast_tac (ZF_cs addSIs [Ord_UN] addEs [ltE]) 1);
+by (eresolve_tac [InfCard_is_Card RS Card_is_Ord RS Card_csucc] 1);
+val cardinal_UN_Ord_lt_csucc = result();
+

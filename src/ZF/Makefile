@@ -24,12 +24,12 @@ FILES = ROOT.ML ZF.thy ZF.ML upair.ML subset.ML pair.ML domrange.ML \
 	ind_syntax.ML intr_elim.ML indrule.ML inductive.ML coinductive.ML \
 	equalities.ML Perm.thy Perm.ML Rel.thy Rel.ML Trancl.thy Trancl.ML \
 	WF.thy WF.ML Order.thy Order.ML Ordinal.thy Ordinal.ML \
+	Epsilon.thy Epsilon.ML Arith.thy Arith.ML Univ.thy Univ.ML \
+	QUniv.thy QUniv.ML constructor.ML Datatype.thy Datatype.ML  \
 	OrderArith.thy OrderArith.ML OrderType.thy OrderType.ML \
 	Cardinal.thy Cardinal.ML CardinalArith.thy CardinalArith.ML \
-	Cardinal_AC.thy Cardinal_AC.ML \
+	Cardinal_AC.thy Cardinal_AC.ML InfDatatype.thy InfDatatype.ML \
 	Zorn0.thy Zorn0.ML Zorn.thy Zorn.ML Nat.thy Nat.ML Fin.ML \
-	Epsilon.thy Epsilon.ML Arith.thy Arith.ML Univ.thy Univ.ML \
-	QUniv.thy QUniv.ML constructor.ML Datatype.ML  \
 	List.ML ListFn.thy ListFn.ML
 
 IMP_FILES = IMP/ROOT.ML IMP/Aexp.ML IMP/Aexp.thy IMP/Assign.ML IMP/Assign.thy\
@@ -46,7 +46,7 @@ EX_FILES = ex/ROOT.ML ex/Acc.ML ex/Bin.ML ex/BinFn.ML ex/BinFn.thy\
 	   ex/misc.ML ex/ParContract.ML ex/Primrec0.ML ex/Primrec0.thy\
 	   ex/Prop.ML ex/PropLog.ML ex/PropLog.thy ex/Ramsey.ML ex/Ramsey.thy\
 	   ex/Rmap.ML ex/Term.ML ex/TermFn.ML ex/TermFn.thy \
-	   ex/Ntree.ML ex/Ntree.thy \
+	   ex/Ntree.ML ex/Brouwer.ML \
 	   ex/TF.ML ex/TF_Fn.ML ex/TF_Fn.thy ex/twos_compl.ML
 
 #Uses cp rather than make_database because Poly/ML allows only 3 levels
@@ -62,7 +62,9 @@ $(BIN)/ZF:   $(BIN)/FOL  $(FILES)
 $(BIN)/FOL:
 	cd ../FOL;  $(MAKE)
 
-test:   ex/ROOT.ML  $(BIN)/ZF  $(IMP_FILES) $(EX_FILES)
+#Directory IMP also tests the system
+#Load ex/ROOT.ML last since it creates the file "test"
+test:   $(BIN)/ZF  $(IMP_FILES) $(EX_FILES)
 	case "$(COMP)" in \
 	poly*)	echo 'use"IMP/ROOT.ML"; use"ex/ROOT.ML"; quit();' | \
 			$(COMP) $(BIN)/ZF ;;\
