@@ -1,7 +1,7 @@
 
 % $Id$
 
-\chapter{Miscellaneous tools}
+\chapter{Miscellaneous tools} \label{ch:tools}
 
 Subsequently we describe various Isabelle related utilities --- in
 alphabetical order.
@@ -124,13 +124,16 @@ Usage: isatool make [ARGS ...]
   ARGS are directly passed to the system make program.
 \end{ttbox}
 Note that the Isabelle settings environment is also active. Thus one
-may refer to its values within the \ttindex{IsaMakefile}, e.g.\
+may refer to its values within the \ttindex{IsaMakefile}, e.g.\ 
 \texttt{\$(ISABELLE_OUTPUT)}. Furthermore, programs started from the
-make file also inherit this environment.
+make file also inherit this environment.  Typically,
+\texttt{IsaMakefile}s defer the real work to the \texttt{usedir}
+utility, see \S\ref{sec:tool-usedir}.
 
-Typically, \texttt{IsaMakefile}s defer the real work to the
-\texttt{usedir} utility, see \S\ref{sec:tool-usedir}.
-
+\medskip The basic \texttt{IsaMakefile} convention is that the default
+target builds the actual logic, including its parents if absent (but
+not if just out of date). Furthermore, the \texttt{test} target shall
+build the logic \emph{and} run it on all distributed examples.
 
 
 \section{Running complete logics --- \texttt{isatool usedir}} \label{sec:tool-usedir}
@@ -152,7 +155,7 @@ Usage: isatool usedir LOGIC NAME
 \end{ttbox}
 
 The value of the \settdx{ISABELLE_USEDIR_OPTIONS} setting is
-implicitely prefixed to \emph{any} \texttt{usedir} call. Since the
+implicitly prefixed to \emph{any} \texttt{usedir} call. Since the
 \ttindex{IsaMakefile}s of all object-logics distributed with Isabelle
 just invoke \texttt{usedir} for the real work, one may control
 compilation options globally via above variable. In particular,
@@ -162,19 +165,20 @@ disabled this way.
 
 \subsection*{Options}
 
-There are two slightly different modes of operation: \emph{build} mode
-(enabled through the \texttt{-b} option) and \emph{example} mode.
+Basically, there are two different modes of operation: \emph{build
+  mode} (enabled through the \texttt{-b} option) and \emph{example
+  mode}.
 
 Calling \texttt{usedir} with \texttt{-b} runs \texttt{isabelle} with
-input image \texttt{LOGIC} and output to \texttt{NAME}, as provided as
-arguments. This will be a batch session, executing just
-\texttt{use_dir".";}\index{*use_dir}, and then quitting. It is assumed
+input image \texttt{LOGIC} and output to \texttt{NAME}, as provided on
+the command line. This will be a batch session, executing just
+\texttt{use_dir".";}\index{*use_dir} and then quitting. It is assumed
 that there is a file \texttt{ROOT.ML} in the current directory
 containing all {\ML} commands required to build the logic.
 
 In example mode, on the other hand, \texttt{usedir} runs a read-only
 session of \texttt{LOGIC} (typically just built before) and does an
-automatic \texttt{use_dir"NAME";}. I.e.\ it assumes that some file
+automatic \texttt{use_dir"NAME";} I.e.\ it assumes that some file
 \texttt{ROOT.ML} in directory \texttt{NAME} contains appropriate {\ML}
 commands to run the desired examples.
 
@@ -183,13 +187,13 @@ generation. It may be explicitely turned on or off --- the last
 occurrence of some \texttt{-h} on the command line wins.
 
 \medskip Any \texttt{usedir} session is named by some \emph{session
-  identifier}. These may accumulate, documenting the way sessions
-depend on others. For example, consider \texttt{Pure/FOL/ZF/ex}, which
-refers the examples of {\ZF} set theory, built upon {\FOL}, built upon
+  identifier}. These accumulate, documenting the way sessions depend
+on others. For example, consider \texttt{Pure/FOL/ZF/ex}, which refers
+to the examples of {\ZF} set theory, built upon {\FOL}, built upon
 {\Pure}.
 
 The current session's identifier is by default just the base name of
-the \texttt{LOGIC} argument (in build mode), or the \texttt{NAME}
+the \texttt{LOGIC} argument (in build mode), or of the \texttt{NAME}
 argument (in example mode). This may be overridden explicitely via the
 \texttt{-s} option.
 
