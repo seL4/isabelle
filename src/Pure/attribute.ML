@@ -10,6 +10,7 @@ sig
   type tag
   type tthm
   type 'a attribute
+  val show_tags: bool ref
 end;
 
 signature ATTRIBUTE =
@@ -70,12 +71,14 @@ fun applys (x_ths, atts) = foldl_map (Library.apply atts) x_ths;
 
 (* display tagged theorems *)
 
+val show_tags = ref false;
+
 fun pretty_tag (name, args) = Pretty.strs (name :: args);
 val pretty_tags = Pretty.list "[" "]" o map pretty_tag;
 
-fun pretty_tthm (thm, []) = Pretty.quote (Display.pretty_thm thm)
-  | pretty_tthm (thm, tags) = Pretty.block
-      [Pretty.quote (Display.pretty_thm thm), Pretty.brk 1, pretty_tags tags];
+fun pretty_tthm (thm, tags) =
+  if null tags orelse not (! show_tags) then Pretty.quote (Display.pretty_thm thm)
+  else Pretty.block [Pretty.quote (Display.pretty_thm thm), Pretty.brk 1, pretty_tags tags];
 
 fun pretty_tthms [th] = pretty_tthm th
   | pretty_tthms ths = Pretty.block (Pretty.fbreaks (map pretty_tthm ths));
