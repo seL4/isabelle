@@ -62,6 +62,23 @@ scripts, while still benefitting from proper handling of non-atomic
 statements; NB: major inductive premises need to be put first, all the
 rest of the goal is passed through the induction;
 
+- 'induct' proper support for mutual induction involving non-atomic
+rule statements (uses the new concept of simultaneous goals, see
+below);
+
+* Pure: support multiple simultaneous goal statements, for example
+"have a: A and b: B" (same for 'theorem' etc.); being a pure
+meta-level mechanism, this acts as if several individual goals had
+been stated separately; in particular common proof methods need to be
+repeated in order to cover all claims; note that a single elimination
+step is *not* sufficient to establish the two conjunctions, so this
+fails:
+
+  assume "A & B" then have A and B ..   (*".." fails*)
+
+better use "obtain" in situations as above; alternative refer to
+multi-step methods like 'auto', 'simp_all', 'blast+' etc.;
+
 * Pure: proper integration with ``locales''; unlike the original
 version by Florian Kammueller, Isar locales package high-level proof
 contexts rather than raw logical ones (e.g. we admit to include
