@@ -117,8 +117,12 @@ qed "inj_select";
 Goalw [inv_def] "inj(f) ==> inv f (f x) = x";
 by (etac inj_select 1);
 qed "inv_f_f";
-
 Addsimps [inv_f_f];
+
+Goal "[| inj(f);  f x = y |] ==> inv f y = x";
+by (etac subst 1);
+by (etac inv_f_f 1);
+qed "inv_f_eq";
 
 (* Useful??? *)
 val [oneone,minor] = Goal
