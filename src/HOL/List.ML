@@ -477,6 +477,8 @@ Addsimps [set_filter];
 
 Goal "set[i..j(] = {k. i <= k & k < j}";
 by (induct_tac "j" 1);
+by (ALLGOALS Asm_simp_tac);
+by (etac ssubst 1);
 by Auto_tac;
 by (arith_tac 1);
 qed "set_upt";
