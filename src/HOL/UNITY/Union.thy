@@ -6,6 +6,8 @@
 Unions of programs
 
 Partly from Misra's Chapter 5: Asynchronous Compositions of Programs
+
+Do we need a Meet operator?  (Aka Intersection)
 *)
 
 Union = SubstAx + FP +
@@ -32,9 +34,12 @@ constdefs
     "Disjoint F G == Acts F Int Acts G <= {Id}"
 
 syntax
+  "@JOIN1"     :: [pttrns, 'b set] => 'b set         ("(3JN _./ _)" 10)
   "@JOIN"      :: [pttrn, 'a set, 'b set] => 'b set  ("(3JN _:_./ _)" 10)
 
 translations
   "JN x:A. B"   == "JOIN A (%x. B)"
+  "JN x y. B"   == "JN x. JN y. B"
+  "JN x. B"     == "JOIN UNIV (%x. B)"
 
 end
