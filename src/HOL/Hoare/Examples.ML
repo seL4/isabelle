@@ -67,8 +67,6 @@ by (hoare_tac 1);
 
 by (simp_tac ((simpset_of Arith.thy) addsimps [pow_0]) 3);
 
-by Safe_tac;
-
 by (subgoal_tac "a*a=a pow 2" 1);
 by (Asm_simp_tac 1);
 by (stac pow_pow_reduce 1);
@@ -77,16 +75,12 @@ by (subgoal_tac "(b div 2)*2=b" 1);
 by (subgoal_tac "0<2" 2);
 by (dres_inst_tac [("m","b")] mod_div_equality 2);
 
-by (ALLGOALS (asm_full_simp_tac ((simpset_of Arith.thy) addsimps [pow_0,pow_Suc,mult_assoc])));
+by (ALLGOALS(asm_full_simp_tac(simpset() addsimps[pow_0,pow_Suc,mult_assoc])));
 
-by (subgoal_tac "b~=0" 1);
 by (res_inst_tac [("n","b")] natE 1);
-by (res_inst_tac [("Q","b mod 2 ~= 0")] not_imp_swap 3);
-by (assume_tac 4);
-
-by (ALLGOALS (asm_full_simp_tac ((simpset_of Arith.thy) addsimps [pow_0,pow_Suc,mult_assoc])));
-by (rtac mod_less 1);
-by (Simp_tac 1);
+by (hyp_subst_tac 1);
+by (asm_full_simp_tac (simpset() addsimps [mod_less]) 1);
+by (asm_simp_tac (simpset() addsimps [pow_Suc]) 1);
 
 qed "power_by_mult";
 

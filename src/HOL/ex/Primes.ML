@@ -23,7 +23,7 @@ open Primes;
     and induction rule **)
 
 Tfl.tgoalw thy [] gcd.rules;
-by (simp_tac (simpset() addsimps [mod_less_divisor, zero_less_eq]) 1);
+by (simp_tac (simpset() addsimps [mod_less_divisor]) 1);
 val tc = result();
 
 val gcd_eq = tc RS hd gcd.rules;
@@ -37,6 +37,7 @@ qed "gcd_0";
 goal thy "!!m. 0<n ==> gcd(m,n) = gcd (n, m mod n)";
 by (rtac (gcd_eq RS trans) 1);
 by (asm_simp_tac (simpset() addsplits [expand_if]) 1);
+by (Blast_tac 1);
 qed "gcd_less_0";
 Addsimps [gcd_0, gcd_less_0];
 
@@ -52,8 +53,7 @@ qed "gcd_0_dvd_0";
 goal thy "(gcd(m,n) dvd m) & (gcd(m,n) dvd n)";
 by (res_inst_tac [("u","m"),("v","n")] gcd_induct 1);
 by (case_tac "n=0" 1);
-by (ALLGOALS 
-    (asm_simp_tac (simpset() addsimps [mod_less_divisor,zero_less_eq])));
+by (ALLGOALS (asm_full_simp_tac (simpset() addsimps [mod_less_divisor])));
 by (blast_tac (claset() addDs [dvd_mod_imp_dvd]) 1);
 qed "gcd_divides_both";
 
@@ -62,9 +62,7 @@ qed "gcd_divides_both";
 goal thy "!!k. (f dvd m) --> (f dvd n) --> f dvd gcd(m,n)";
 by (res_inst_tac [("u","m"),("v","n")] gcd_induct 1);
 by (case_tac "n=0" 1);
-by (ALLGOALS 
-    (asm_simp_tac (simpset() addsimps [dvd_mod, mod_less_divisor,
-				      zero_less_eq])));
+by (ALLGOALS(asm_full_simp_tac(simpset() addsimps[dvd_mod,mod_less_divisor])));
 qed_spec_mp "gcd_greatest";
 
 (*Function gcd yields the Greatest Common Divisor*)
@@ -83,8 +81,8 @@ by (res_inst_tac [("u","m"),("v","n")] gcd_induct 1);
 by (case_tac "k=0" 1);
 by (case_tac "n=0" 2);
 by (ALLGOALS 
-    (asm_simp_tac (simpset() addsimps [mod_less_divisor, zero_less_eq,
-				      mod_geq, mod_mult_distrib2])));
+    (asm_full_simp_tac (simpset() addsimps
+       [mod_less_divisor, mod_geq, mod_mult_distrib2])));
 qed "gcd_mult_distrib2";
 
 (*This theorem leads immediately to a proof of the uniqueness of factorization.

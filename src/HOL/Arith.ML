@@ -536,6 +536,7 @@ by (induct_tac "m" 1);
 by (induct_tac "n" 2);
 by (ALLGOALS Asm_simp_tac);
 qed "zero_less_mult_iff";
+Addsimps [zero_less_mult_iff];
 
 goal Arith.thy "(m*n = 1) = (m=1 & n=1)";
 by (induct_tac "m" 1);
@@ -544,6 +545,7 @@ by (induct_tac "n" 1);
 by (Simp_tac 1);
 by (fast_tac (claset() addss simpset()) 1);
 qed "mult_eq_1_iff";
+Addsimps [mult_eq_1_iff];
 
 goal Arith.thy "!!k. 0<k ==> (m*k < n*k) = (m<n)";
 by (safe_tac (claset() addSIs [mult_less_mono1]));
@@ -594,8 +596,7 @@ by (dtac sym 1);
 by (rtac disjCI 1);
 by (rtac nat_less_cases 1 THEN assume_tac 2);
 by (fast_tac (claset() addSEs [less_SucE] addss simpset()) 1);
-by (best_tac (claset() addDs [mult_less_mono2] 
-                      addss (simpset() addsimps [zero_less_eq RS sym])) 1);
+by (best_tac (claset() addDs [mult_less_mono2] addss simpset()) 1);
 qed "mult_eq_self_implies_10";
 
 

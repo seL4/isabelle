@@ -223,7 +223,7 @@ goal thy "!!k b. b<2 ==> k mod 2 = b | k mod 2 = (if b=1 then 0 else 1)";
 by (subgoal_tac "k mod 2 < 2" 1);
 by (asm_simp_tac (simpset() addsimps [mod_less_divisor]) 2);
 by (asm_simp_tac (simpset() addsplits [expand_if]) 1);
-by (Blast_tac 1);
+by Safe_tac;
 qed "mod2_cases";
 
 goal thy "Suc(Suc(m)) mod 2 = m mod 2";
@@ -234,12 +234,19 @@ by (ALLGOALS (asm_simp_tac (simpset() addsimps [mod_Suc])));
 qed "mod2_Suc_Suc";
 Addsimps [mod2_Suc_Suc];
 
+(* FIXME: this thm is subsumed by the next one. Get rid of it. *)
 goal thy "!!m. m mod 2 ~= 0 ==> m mod 2 = 1";
 by (subgoal_tac "m mod 2 < 2" 1);
 by (asm_simp_tac (simpset() addsimps [mod_less_divisor]) 2);
-by (safe_tac (claset() addSEs [lessE]));
-by (ALLGOALS (blast_tac (claset() addIs [sym])));
+by (Asm_full_simp_tac 1);
+by (trans_tac 1);
 qed "mod2_neq_0";
+
+goal Divides.thy "(0 < m mod 2) = (m mod 2 = 1)";
+by (rtac iffI 1);
+by(ALLGOALS (asm_full_simp_tac (simpset() addsimps [mod2_neq_0])));
+qed "mod2_gr_0";
+Addsimps [mod2_gr_0];
 
 goal thy "(m+m) mod 2 = 0";
 by (induct_tac "m" 1);
@@ -356,10 +363,10 @@ by (asm_simp_tac (simpset() addsimps [diff_mult_distrib2,
                                      mult_mod_distrib, add_mult_distrib2]) 1);
 qed "dvd_mod";
 
-goal thy "!!k. [| k dvd (m mod n); k dvd n; n~=0 |] ==> k dvd m";
+goal thy "!!k. [| k dvd (m mod n); k dvd n; 0<n |] ==> k dvd m";
 by (subgoal_tac "k dvd ((m div n)*n + m mod n)" 1);
 by (asm_simp_tac (simpset() addsimps [dvd_add, dvd_mult]) 2);
-by (asm_full_simp_tac (simpset() addsimps [mod_div_equality, zero_less_eq]) 1);
+by (asm_full_simp_tac (simpset() addsimps [mod_div_equality]) 1);
 qed "dvd_mod_imp_dvd";
 
 goalw thy [dvd_def]  "!!k m n. [| (k*m) dvd (k*n); 0<k |] ==> m dvd n";

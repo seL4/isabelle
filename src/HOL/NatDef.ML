@@ -291,15 +291,33 @@ by (res_inst_tac [("n","n")] natE 1);
 by (cut_facts_tac prems 1);
 by (ALLGOALS Asm_full_simp_tac);
 qed "gr_implies_not0";
-Addsimps [gr_implies_not0];
 
-qed_goal "zero_less_eq" thy "0 < n = (n ~= 0)" (fn _ => [
-        rtac iffI 1,
-        etac gr_implies_not0 1,
-        rtac natE 1,
-        contr_tac 1,
-        etac ssubst 1,
-        rtac zero_less_Suc 1]);
+goal thy "(n ~= 0) = (0 < n)";
+br iffI 1;
+ by(etac gr_implies_not0 2);
+by(rtac natE 1);
+ by(contr_tac 1);
+by(etac ssubst 1);
+by(rtac zero_less_Suc 1);
+qed "neq0_conv";
+Addsimps [neq0_conv];
+AddSDs [neq0_conv RS iffD1];
+
+bind_thm("gr0I", notI RS (neq0_conv RS iffD1));
+
+goal thy "(~(0 < n)) = (n=0)";
+br iffI 1;
+ be swap 1;
+ by(ALLGOALS Asm_full_simp_tac);
+qed "not_gr0";
+Addsimps [not_gr0];
+
+goal thy "!!m. m<n ==> 0 < n";
+by (dtac gr_implies_not0 1);
+by (Asm_full_simp_tac 1);
+qed "gr_implies_gr0";
+Addsimps [gr_implies_gr0];
+
 
 (** Inductive (?) properties **)
 

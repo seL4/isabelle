@@ -215,12 +215,13 @@ by (rtac refl 1);
 by (etac less_zeroE 1);
 qed "ndepth_K0";
 
-goal Univ.thy "k < Suc(LEAST x. f(x)=0) --> nat_case (Suc i) f k ~= 0";
+goal Univ.thy "k < Suc(LEAST x. f(x)=0) --> 0 < nat_case (Suc i) f k";
 by (nat_ind_tac "k" 1);
 by (ALLGOALS Simp_tac);
 by (rtac impI 1);
-by (etac not_less_Least 1);
-qed "ndepth_Push_lemma";
+by (dtac not_less_Least 1);
+by (Asm_full_simp_tac 1);
+val lemma = result();
 
 goalw Univ.thy [ndepth_def,Push_Node_def]
     "ndepth (Push_Node i n) = Suc(ndepth(n))";
@@ -233,7 +234,7 @@ by (rtac Least_equality 1);
 by (rewtac Push_def);
 by (rtac (nat_case_Suc RS trans) 1);
 by (etac LeastI 1);
-by (etac (ndepth_Push_lemma RS mp) 1);
+by (asm_simp_tac (simpset() addsimps [lemma]) 1);
 qed "ndepth_Push_Node";
 
 
