@@ -20,13 +20,15 @@ X-Symbol;
 
 *** Isar ***
 
-* renamed "antecedent" case to "rule_context";
-
 * improved proof by cases and induction:
   - moved induct/cases attributes to Pure;
   - added 'print_induct_rules' (covered by help item in Proof General > 3.3);
   - generic setup instantiated for FOL and HOL;
   - removed obsolete "(simplified)" and "(stripped)" options;
+
+* Pure: renamed "antecedent" case to "rule_context";
+
+* Pure: fixed 'token_translation' command;
 
 * HOL: 'recdef' now fails on unfinished automated proofs, use
 "(permissive)" option to recover old behavior;
