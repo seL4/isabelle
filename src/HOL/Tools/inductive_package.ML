@@ -402,9 +402,7 @@ fun add_cases_induct no_elim no_ind names elims induct induct_cases =
 
     fun induct_spec (name, th) =
       (("", th), [RuleCases.case_names induct_cases, InductMethod.induct_set_global name]);
-    val induct_specs =
-      if no_ind then []
-      else map induct_spec (project_rules names induct);
+    val induct_specs = if no_ind then [] else map induct_spec (project_rules names induct);
   in PureThy.add_thms (cases_specs @ induct_specs) end;
 
 
@@ -605,7 +603,7 @@ fun prove_indrule cs cTs sumT rec_const params intr_ts mono
 (** definitional introduction of (co)inductive sets **)
 
 fun add_ind_def verbose declare_consts alt_name coind no_elim no_ind cs
-    atts intros monos con_defs thy params paramTs cTs cnames =
+    atts intros monos con_defs thy params paramTs cTs cnames induct_cases =
   let
     val _ = if verbose then message ("Proofs for " ^ coind_prefix coind ^ "inductive set(s) " ^
       commas_quote cnames) else ();
@@ -696,7 +694,7 @@ fun add_ind_def verbose declare_consts alt_name coind no_elim no_ind cs
       |> PureThy.add_thms ((intr_names ~~ intrs) ~~ intr_atts)
       |> (if no_elim then I else PureThy.add_thmss [(("elims", elims), [])])
       |> (if no_ind then I else PureThy.add_thms
-        [((coind_prefix coind ^ "induct", induct), [])])
+        [((coind_prefix coind ^ "induct", induct), [RuleCases.case_names induct_cases])])
       |> Theory.parent_path;
     val intrs' = PureThy.get_thms thy'' "intrs";
     val elims' = if no_elim then elims else PureThy.get_thms thy'' "elims";  (* FIXME improve *)
@@ -717,7 +715,7 @@ fun add_ind_def verbose declare_consts alt_name coind no_elim no_ind cs
 (** axiomatic introduction of (co)inductive sets **)
 
 fun add_ind_axm verbose declare_consts alt_name coind no_elim no_ind cs
-    atts intros monos con_defs thy params paramTs cTs cnames =
+    atts intros monos con_defs thy params paramTs cTs cnames induct_cases =
   let
     val rec_name = if alt_name = "" then space_implode "_" cnames else alt_name;
 
@@ -747,7 +745,8 @@ fun add_ind_axm verbose declare_consts alt_name coind no_elim no_ind cs
     val thy'' =
       thy'
       |> PureThy.add_thmss [(("elims", elims), [])]
-      |> (if coind then I else PureThy.add_thms [(("induct", induct), [])])
+      |> (if coind then I else PureThy.add_thms [(("induct", induct),
+          [RuleCases.case_names induct_cases])])
       |> PureThy.add_thms ((intr_names ~~ intrs) ~~ intr_atts)
       |> Theory.parent_path;
     val induct' = if coind then raw_induct else PureThy.get_thm thy'' "induct";
@@ -785,15 +784,16 @@ fun add_inductive_i verbose declare_consts alt_name coind no_elim no_ind cs
     val cnames = map Sign.base_name full_cnames;
 
     val _ = seq (check_rule sign cs o snd o fst) intros;
+    val induct_cases = map (#1 o #1) intros;
 
     val (thy1, result) =
       (if ! quick_and_dirty then add_ind_axm else add_ind_def)
         verbose declare_consts alt_name coind no_elim no_ind cs atts intros monos
-        con_defs thy params paramTs cTs cnames;
+        con_defs thy params paramTs cTs cnames induct_cases;
     val thy2 = thy1
       |> put_inductives full_cnames ({names = full_cnames, coind = coind}, result)
-      |> add_cases_induct no_elim no_ind full_cnames
-        (#elims result) (#induct result) (map (#1 o #1) intros);
+      |> add_cases_induct no_elim (no_ind orelse coind) full_cnames
+          (#elims result) (#induct result) induct_cases;
   in (thy2, result) end;
 
 
