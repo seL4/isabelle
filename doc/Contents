@@ -14,5 +14,6 @@ Logics
   logics-ZF     Isabelle's Logics: FOL and ZF
 
 Specific Topics
+  sugar         LaTeX sugar for proof documents
   axclass       Tutorial on Axiomatic Type Classes
   ind-defs      (Co)Inductive Definitions in ZF
