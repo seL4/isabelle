@@ -21,7 +21,6 @@ dvi: $(NAME).dvi
 $(NAME).dvi: $(FILES) isabelle_hol.eps
 	touch $(NAME).ind
 	$(LATEX) $(NAME)
-	$(RAIL) $(NAME)
 	$(BIBTEX) $(NAME)
 	$(LATEX) $(NAME)
 	$(LATEX) $(NAME)
