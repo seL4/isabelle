@@ -16,15 +16,16 @@ text {*
 
 types assn = "state => bool"
 
-constdefs hoare_valid :: "[assn,com,assn] => bool" ("|= {(1_)}/ (_)/ {(1_)}" 50)
- "|= {A} c {B} == !s t. A s & D c $(Discr s) = Def t --> B t"
+constdefs
+  hoare_valid :: "[assn, com, assn] => bool"    ("|= {(1_)}/ (_)/ {(1_)}" 50)
+  "|= {A} c {B} == \<forall>s t. A s \<and> D c $(Discr s) = Def t --> B t"
 
 lemma WHILE_rule_sound:
-  "|= {A} c {A} ==> |= {A} \<WHILE> b \<DO> c {%s. A s & ~b s}"
+    "|= {A} c {A} ==> |= {A} \<WHILE> b \<DO> c {\<lambda>s. A s \<and> \<not> b s}"
   apply (unfold hoare_valid_def)
   apply (simp (no_asm))
   apply (rule fix_ind)
-    apply (simp (no_asm)) -- "simplifier with enhanced adm-tactic"
+    apply (simp (no_asm)) -- "simplifier with enhanced @{text adm}-tactic"
    apply (simp (no_asm))
   apply (simp (no_asm))
   apply blast
