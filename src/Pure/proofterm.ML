@@ -51,6 +51,8 @@ sig
   val incr_pboundvars : int -> int -> proof -> proof
   val prf_loose_bvar1 : proof -> int -> bool
   val prf_loose_Pbvar1 : proof -> int -> bool
+  val prf_add_loose_bnos : int -> int -> proof ->
+    int list * int list -> int list * int list
   val norm_proof : Envir.env -> proof -> proof
   val norm_proof' : Envir.env -> proof -> proof
   val prf_subst_bounds : term list -> proof -> proof
@@ -341,6 +343,23 @@ fun prf_loose_Pbvar1 (PBound i) k = i = k
   | prf_loose_Pbvar1 (AbsP (_, _, prf)) k = prf_loose_Pbvar1 prf (k+1)
   | prf_loose_Pbvar1 (Abst (_, _, prf)) k = prf_loose_Pbvar1 prf k
   | prf_loose_Pbvar1 _ _ = false;
+
+fun prf_add_loose_bnos plev tlev (PBound i) (is, js) =
+      if i < plev then (is, js) else ((i-plev) ins is, js)
+  | prf_add_loose_bnos plev tlev (prf1 %% prf2) p =
+      prf_add_loose_bnos plev tlev prf2
+        (prf_add_loose_bnos plev tlev prf1 p)
+  | prf_add_loose_bnos plev tlev (prf % opt) (is, js) =
+      prf_add_loose_bnos plev tlev prf (case opt of
+          None => (is, ~1 ins js)
+        | Some t => (is, add_loose_bnos (t, tlev, js)))
+  | prf_add_loose_bnos plev tlev (AbsP (_, opt, prf)) (is, js) =
+      prf_add_loose_bnos (plev+1) tlev prf (case opt of
+          None => (is, ~1 ins js)
+        | Some t => (is, add_loose_bnos (t, tlev, js)))
+  | prf_add_loose_bnos plev tlev (Abst (_, _, prf)) p =
+      prf_add_loose_bnos plev (tlev+1) prf p
+  | prf_add_loose_bnos _ _ _ _ = ([], []);
 
 
 (**** substitutions ****)
@@ -856,46 +875,73 @@ exception PMatch;
 
 (** see pattern.ML **)
 
-fun fomatch Ts tmatch =
+fun flt i = filter (fn n => n < i);
+
+fun fomatch Ts tymatch j =
   let
     fun mtch (instsp as (tyinsts, insts)) = fn
         (Var (ixn, T), t)  =>
-	  (tmatch (tyinsts, fn () => (T, fastype_of1 (Ts, t))), (ixn, t)::insts)
+          if j>0 andalso not (null (flt j (loose_bnos t)))
+          then raise PMatch
+          else (tymatch (tyinsts, fn () => (T, fastype_of1 (Ts, t))),
+            (ixn, t) :: insts)
       | (Free (a, T), Free (b, U)) =>
-	  if a=b then (tmatch (tyinsts, K (T, U)), insts) else raise PMatch
+	  if a=b then (tymatch (tyinsts, K (T, U)), insts) else raise PMatch
       | (Const (a, T), Const (b, U))  =>
-	  if a=b then (tmatch (tyinsts, K (T, U)), insts) else raise PMatch
+	  if a=b then (tymatch (tyinsts, K (T, U)), insts) else raise PMatch
       | (f $ t, g $ u) => mtch (mtch instsp (f, g)) (t, u)
+      | (Bound i, Bound j) => if i=j then instsp else raise PMatch
       | _ => raise PMatch
   in mtch end;
 
-fun match_proof Ts tmatch =
+fun match_proof Ts tymatch =
   let
-    fun mtch (inst as (pinst, tinst as (tyinsts, insts))) = fn
-        (Hyp (Var (ixn, _)), prf) => ((ixn, prf)::pinst, tinst)
-      | (prf1 % opt1, prf2 % opt2) =>
-          let val inst' as (pinst, tinst) = mtch inst (prf1, prf2)
-          in (case (opt1, opt2) of
-                (None, _) => inst'
-              | (Some _, None) => raise PMatch
-              | (Some t, Some u) => (pinst, fomatch Ts tmatch tinst (t, Envir.beta_norm u)))
-          end
-      | (prf1 %% prf2, prf1' %% prf2') =>
-          mtch (mtch inst (prf1, prf1')) (prf2, prf2')
-      | (PThm ((name1, _), _, prop1, None), PThm ((name2, _), _, prop2, _)) =>
-          if name1=name2 andalso prop1=prop2 then inst else raise PMatch
-      | (PThm ((name1, _), _, prop1, Some Ts), PThm ((name2, _), _, prop2, Some Us)) =>
+    fun optmatch _ inst (None, _) = inst
+      | optmatch _ _ (Some _, None) = raise PMatch
+      | optmatch mtch inst (Some x, Some y) = mtch inst (x, y)
+
+    fun matcht Ts j (pinst, tinst) (t, u) =
+      (pinst, fomatch Ts tymatch j tinst (t, Envir.beta_norm u));
+    fun matchT (pinst, (tyinsts, insts)) p =
+      (pinst, (tymatch (tyinsts, K p), insts));
+    fun matchTs inst (Ts, Us) = foldl (uncurry matchT) (inst, Ts ~~ Us);
+
+    fun mtch Ts i j (pinst, tinst) (Hyp (Var (ixn, _)), prf) =
+          if i = 0 andalso j = 0 then ((ixn, prf) :: pinst, tinst)
+          else (case apfst (flt i) (apsnd (flt j)
+                  (prf_add_loose_bnos 0 0 prf ([], []))) of
+              ([], []) => ((ixn, incr_pboundvars (~i) (~j) prf) :: pinst, tinst)
+            | ([], _) => if j = 0 then
+                   ((ixn, incr_pboundvars (~i) (~j) prf) :: pinst, tinst)
+                 else raise PMatch
+            | _ => raise PMatch)
+      | mtch Ts i j (pinst, tinst) (Hyp (Var (ixn, _)), prf) =
+          ((ixn, prf) :: pinst, tinst)
+      | mtch Ts i j inst (prf1 % opt1, prf2 % opt2) =
+          optmatch (matcht Ts j) (mtch Ts i j inst (prf1, prf2)) (opt1, opt2)
+      | mtch Ts i j inst (prf1 %% prf2, prf1' %% prf2') =
+          mtch Ts i j (mtch Ts i j inst (prf1, prf1')) (prf2, prf2')
+      | mtch Ts i j inst (Abst (_, opT, prf1), Abst (_, opU, prf2)) =
+          mtch (if_none opU dummyT :: Ts) i (j+1)
+            (optmatch matchT inst (opT, opU)) (prf1, prf2)
+      | mtch Ts i j inst (prf1, Abst (_, opU, prf2)) =
+          mtch (if_none opU dummyT :: Ts) i (j+1) inst
+            (incr_pboundvars 0 1 prf1 %> Bound 0, prf2)
+      | mtch Ts i j inst (AbsP (_, opt, prf1), AbsP (_, opu, prf2)) =
+          mtch Ts (i+1) j (optmatch (matcht Ts j) inst (opt, opu)) (prf1, prf2)
+      | mtch Ts i j inst (prf1, AbsP (_, _, prf2)) =
+          mtch Ts (i+1) j inst (incr_pboundvars 1 0 prf1 %% PBound 0, prf2)
+      | mtch Ts i j inst (PThm ((name1, _), _, prop1, opTs),
+            PThm ((name2, _), _, prop2, opUs)) =
           if name1=name2 andalso prop1=prop2 then
-            (pinst, (foldl (tmatch o apsnd K) (tyinsts, Ts ~~ Us), insts))
+            optmatch matchTs inst (opTs, opUs)
           else raise PMatch
-      | (PAxm (s1, _, None), PAxm (s2, _, _)) =>
-          if s1=s2 then inst else raise PMatch
-      | (PAxm (s1, _, Some Ts), PAxm (s2, _, Some Us)) =>
-          if s1=s2 then
-            (pinst, (foldl (tmatch o apsnd K) (tyinsts, Ts ~~ Us), insts))
+      | mtch Ts i j inst (PAxm (s1, _, opTs), PAxm (s2, _, opUs)) =
+          if s1=s2 then optmatch matchTs inst (opTs, opUs)
           else raise PMatch
-      | _ => raise PMatch
-  in mtch end;
+      | mtch _ _ _ inst (PBound i, PBound j) = if i = j then inst else raise PMatch
+      | mtch _ _ _ _ _ = raise PMatch
+  in mtch Ts 0 0 end;
 
 fun prf_subst (pinst, (tyinsts, insts)) =
   let
@@ -928,14 +974,14 @@ fun prf_subst (pinst, (tyinsts, insts)) =
 
 (**** rewriting on proof terms ****)
 
-fun rewrite_prf tmatch (rules, procs) prf =
+fun rewrite_prf tymatch (rules, procs) prf =
   let
     fun rew _ (Abst (_, _, body) % Some t) = Some (prf_subst_bounds [t] body)
       | rew _ (AbsP (_, _, body) %% prf) = Some (prf_subst_pbounds [prf] body)
       | rew Ts prf = (case get_first (fn (_, r) => r Ts prf) procs of
           Some prf' => Some prf'
         | None => get_first (fn (prf1, prf2) => Some (prf_subst
-            (match_proof Ts tmatch ([], (Vartab.empty, [])) (prf1, prf)) prf2)
+            (match_proof Ts tymatch ([], (Vartab.empty, [])) (prf1, prf)) prf2)
                handle PMatch => None) rules);
 
     fun rew0 Ts (prf as AbsP (_, _, prf' %% PBound 0)) =
