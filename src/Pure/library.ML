@@ -747,7 +747,9 @@ val error_fn = ref(fn s => TextIO.output
 		            (TextIO.stdOut, "\n*** " ^ s ^ "\n\n"));
 
 exception ERROR;
-fun error msg = (!error_fn msg; raise ERROR);
+fun error msg = (!error_fn msg;
+		 TextIO.flushOut TextIO.stdOut; 
+		 raise ERROR);
 fun sys_error msg = (!error_fn "*** SYSTEM ERROR ***"; error msg);
 
 fun assert p msg = if p then () else error msg;
