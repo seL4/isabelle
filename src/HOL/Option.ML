@@ -53,20 +53,19 @@ qed_goalw "option_map_Some" thy [option_map_def]
 	"option_map f (Some x) = Some (f x)" (K [Simp_tac 1]);
 Addsimps [option_map_None, option_map_Some];
 
-val option_map_SomeD = prove_goalw thy [option_map_def]
-	"!!x. option_map f x = Some y ==> ? z. x = Some z & f z = y" (K [
-	optionE_tac "x" 1,
-	 Auto_tac]);
+val option_map_eq_Some = prove_goalw thy [option_map_def]
+	"(option_map f xo = Some y) = (? z. xo = Some z & f z = y)" 
+ (K [asm_full_simp_tac (simpset() addsplits [split_option_case]) 1]);
+AddSDs[option_map_eq_Some RS iffD1];
+Addsimps [option_map_eq_Some];
 
 section "o2s";
 
 val elem_o2s = prove_goal thy "!!X. x : o2s xo = (xo = Some x)"
- (K [	optionE_tac "xo" 1,
-	 Auto_tac]);
+ (K [optionE_tac "xo" 1, Auto_tac]);
 AddSDs [elem_o2s RS iffD1];
 Addsimps [elem_o2s];
 
 val o2s_empty_eq = prove_goal thy "(o2s xo = {}) = (xo = None)"
- (K [	optionE_tac "xo" 1,
-	 Auto_tac]);
+ (K [optionE_tac "xo" 1, Auto_tac]);
 Addsimps [o2s_empty_eq];
