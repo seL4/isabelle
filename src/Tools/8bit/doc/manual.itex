@@ -57,11 +57,15 @@ set theory of \bt{HOL}.
 
 \label{ex}
 Without graphical characters, the operator is defined as follows.
+
+\pagebreak
+
 \I@isa
 consts	
     	Ball	:: "'a set => ('a => bool) => bool"
 syntax
-	"@Ball"	:: "pttrn => 'a set => bool => bool"	("(3!_:_./ _)" 10)
+	"@Ball"	:: "pttrn => 'a set => bool => bool"
+						("(3!_:_./ _)" 10)
 translations
 		"!x:A. P" == "Ball A (%x. P)"
 defs
@@ -75,7 +79,8 @@ Using the graphical font (and assuming a corresponding re-formulation of
 consts
 	Ball	:: "'a set ë ('a ë bool) ë bool"
 syntax
-	"GBall"	:: "pttrn ë 'a set ë bool ë bool"	("(3Â_Î_./ _)" 10)
+	"GBall"	:: "pttrn ë 'a set ë bool ë bool"
+						("(3Â_Î_./ _)" 10)
 translations
 		"ÂxÎA. P" == "Ball A (³x. P)"
 defs
@@ -99,7 +104,8 @@ augmented with a graphical version by the following definition.
 
 \I@isa
 syntax
-	"GBall"	:: "pttrn => 'a set => bool => bool"	("(3Â_Î_./ _)" 10)
+	"GBall"	:: "pttrn => 'a set => bool => bool"
+						("(3Â_Î_./ _)" 10)
 translations
 		"ÂxÎA. P" == "!x:A. P"
 \I@isa
@@ -110,6 +116,8 @@ displayed in the new graphical form. The additional level of syntax
 translations introduced in this way may interfere with other translation rules
 and should therefore be designed carefully.
 
+
+\pagebreak
 
 \subsection{User commands}
 \label{commands}
@@ -215,6 +223,8 @@ appropriate \LaTeX\ commands, and handing through the rest (almost) verbatim.
 For example, this manual itself is converted to a \bt{.tex} file by \\
 \bt{isa2latex -x -e -o manual.tex doc/manual.itex}
 
+\pagebreak
+
 \subsection{Conversion modes}
 
 To handle the different parts of an input file, \bt{isa2latex} has several 
@@ -273,6 +283,8 @@ If the \bt{-x} option is given:
 \I@isa
 
 
+\pagebreak
+
 \subsection{Ambiguity problems}
 \label{ambig}
 
@@ -291,14 +303,14 @@ to prohibit it even if a blank character follows, you may insert a double
 \I@\E\E@\E@@\I@, i.e. the string becomes `\I@|\E\E@\E@@\E\E@\E@@ \I@'. 
 
 You may also redefine the critical entries of the conversion tables in the file
-\bt{config/conv-tables.inp}. The entry for the `\I@|\I@' character
+\bt{config/conv-tables.inp}. The entry for the `\I@|\I@' character, for example,
 looks like
 \I@isa
 >  "\|\ "		"|"		"\mbox{$\vee$}" 
 \I@isa
 The first string, which (as described by the verbose comments in that file)
 is the lex expression for the ASCII input, could be adapted to require an 
-additional blank character before the `\I@|\I@', for example.
+additional blank character before the `\I@|\I@'.
 
 Most of these amibiguity problems can be avoided if you decide to employ the
 graphical font for your Isabelle source files. In this case, we recommend 
@@ -318,6 +330,7 @@ convert a problematic ASCII file containing Isabelle source, first apply
 to generate a better output than in the example conversion given in subsection
 \ref{conv}.
 
+\pagebreak
 
 \section{Technical issues}
 
@@ -362,13 +375,58 @@ Configure the \bt{Makefile} there, then run \bt{gmake clean}
 If you want to adapt the configuration of the font (keyboard bindings or
 conversion tables used by \bt{isa2latex}), change directory to\\
 \bt{\$ISABELLE8BIT/config} ,
-edit the files \bt{key-table.inp} respectively \bt{conv-tables.inp},
+edit the files \bt{key-table.inp} and \bt{conv-tables.inp} 
+as described below, 
 and run \bt{gmake} in this directory to generate new versions of 
 \bt{isa2latex}, editor support, and documentation.
 
 For adapting the conversion table of \bt{a2isa}, change directory to \\
 \bt{\$ISABELLE8BIT/c-sources/a2isa}, edit the file \bt{lex.x}
 accordingly, and run \bt{gmake} there.
+
+%%%% FRANZ
+\subsubsection{Configuring conversion tables and keyboard bindings}
+%\label{subsub:gens}
+
+The 8bit package comes along with several perl%
+\footnote{the scripts are written in perl4. In order to run them with later
+  versions of perl, you have to patch the scripts in some places since perl4
+  and later versions differ in the way they expand backslashes.} scripts that
+allow you to configure the package for your own needs in a convenient way.
+
+Keyboard bindings and the major behaviour of the converter \bt{isa2latex} are
+controlled by the two configuration files \bt{key-table.inp} and
+\bt{conv-tables.inp} which reside in the directory \bt{\$ISABELLE8BIT/config}.
+As these files contain a lot of comments, their formats are rather 
+self explanatory.
+
+To change the conversions performed by \bt{isa2latex}, you just
+have to alter the file \bt{conv-tables.inp}. This file mainly contains the
+conversion tables for single characters in the code ranges 32 -- 127 and
+(usually) 161 -- 255.  The last part of the configuration file describes how the
+lexical analyser of the converter \bt{isa2latex} treats special character
+sequences. It is most likely that you change this part of the configuration
+file. 
+In order to activate your changes, you have to run the Makefile with \bt{gmake}.
+This invokes the perl script \bt{gen-isa2latex} with \bt{conv-tables.inp} as
+an argument. See the man page on \bt{gen-isa2latex} for more details about
+command line arguments. According to the configuration file, the perl script
+patches specific portions of the C source of the 
+converter in the directory \bt{\$ISABELLE8BIT/c-sources/isa2latex} and
+calls the C compiler to generate a new binary for \bt{isa2latex}.
+
+If you want to alter the keyboard bindings for the various editors and the
+terminal, you have to change the configuration file \bt{key-table.inp}. 
+The file contains as its main part a table relating keystrokes to the 
+keyboard codes to be generated. Then run the Makefile with \bt{gmake}.
+For every editor that the 8bit package supports, \bt{gmake} starts a perl script
+that patches the start up file for the specific editor. For example, for the 
+\bt{vim} editor the script \bt{gen-isavim} is started, which patches the shell 
+script
+\bt{\$ISABELLE8BIT/vim/isavim}.  As the last action, the perl script
+\bt{gen-isadoc} is invoked which generates some \bt{.dvi} files for reference
+cards which document the new keyboard mapping.
+%%%% FRANZ
 
 \subsection{Management of alternative sources}
 
@@ -379,10 +437,9 @@ mechanism is provided as follows. Encapsulate each section of your files dealing
 solely with the 8bit font with suitable begin and end pragmas (some pair of 
 unique comment lines) and configure three configuration files analogously to\\
 \bt{\$ISABELLE8BIT/isa-patches/HOL/\{extract|clean|add\}-HOL.cfg}.
-Then you can call the \bt{patcher} with the first file to extract and store to
+You can call the \bt{patcher} than with the first file to extract and store to
 a file, the second to remove, and the third to re-add the 8bit section of the
 Isabelle files. See also the man page of \bt{patcher}.
-
 
 \end{document}
 
