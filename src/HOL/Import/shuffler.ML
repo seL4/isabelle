@@ -132,8 +132,8 @@ val imp_comm =
 val def_norm =
     let
 	val cert = cterm_of (sign_of ProtoPure.thy)
-	val aT = TFree("'a",logicS)
-	val bT = TFree("'b",logicS)
+	val aT = TFree("'a",[])
+	val bT = TFree("'b",[])
 	val v = Free("v",aT)
 	val P = Free("P",aT-->bT)
 	val Q = Free("Q",aT-->bT)
@@ -159,8 +159,8 @@ val def_norm =
 val all_comm =
     let
 	val cert = cterm_of (sign_of ProtoPure.thy)
-	val xT = TFree("'a",logicS)
-	val yT = TFree("'b",logicS)
+	val xT = TFree("'a",[])
+	val yT = TFree("'b",[])
 	val P = Free("P",xT-->yT-->propT)
 	val lhs = all xT $ (Abs("x",xT,all yT $ (Abs("y",yT,P $ Bound 1 $ Bound 0))))
 	val rhs = all yT $ (Abs("y",yT,all xT $ (Abs("x",xT,P $ Bound 0 $ Bound 1))))
@@ -404,7 +404,7 @@ fun eta_expand sg assumes origt =
     end
     handle e => (writeln "eta_expand internal error";print_exn e)
 
-fun mk_tfree s = TFree("'"^s,logicS)
+fun mk_tfree s = TFree("'"^s,[])
 val xT = mk_tfree "a"
 val yT = mk_tfree "b"
 val P  = Var(("P",0),xT-->yT-->propT)
@@ -495,8 +495,6 @@ fun norm_term thy t =
     end
     handle e => (writeln "norm_term internal error"; print_sign_exn (sign_of thy) e)
 
-fun is_logic_var sg v =
-    Type.of_sort (Sign.tsig_of sg) (type_of v,logicS)
 
 (* Closes a theorem with respect to free and schematic variables (does
 not touch type variables, though). *)
@@ -505,10 +503,9 @@ fun close_thm th =
     let
 	val sg = sign_of_thm th
 	val c = prop_of th
-	val all_vars = add_term_frees (c,add_term_vars(c,[]))
-	val all_rel_vars = filter (is_logic_var sg) all_vars
+	val vars = add_term_frees (c,add_term_vars(c,[]))
     in
-	Drule.forall_intr_list (map (cterm_of sg) all_rel_vars) th
+	Drule.forall_intr_list (map (cterm_of sg) vars) th
     end
     handle e => (writeln "close_thm internal error"; print_exn e)
 
@@ -572,10 +569,9 @@ succeeds, Some theorem is returned, otherwise None.  *)
 fun set_prop thy t =
     let
 	val sg = sign_of thy
-	val all_vars = add_term_frees (t,add_term_vars (t,[]))
-	val all_rel_vars = filter (is_logic_var sg) all_vars
+	val vars = add_term_frees (t,add_term_vars (t,[]))
 	val closed_t = foldr (fn (v,body) => let val vT = type_of v
-					     in all vT $ (Abs("x",vT,abstract_over(v,body))) end) (all_rel_vars,t)
+					     in all vT $ (Abs("x",vT,abstract_over(v,body))) end) (vars,t)
 	val rew_th = norm_term thy closed_t
 	val rhs = snd (dest_equals (cprop_of rew_th))
 
@@ -596,7 +592,7 @@ fun set_prop thy t =
 			val closed_th = equal_elim (symmetric rew_th) mod_th
 		    in
 			message ("Shuffler.set_prop succeeded by " ^ name);
-			Some (name,forall_elim_list (map (cterm_of sg) all_rel_vars) closed_th)
+			Some (name,forall_elim_list (map (cterm_of sg) vars) closed_th)
 		    end
 		  | None => process thms
 	    end

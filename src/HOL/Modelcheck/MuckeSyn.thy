@@ -32,7 +32,7 @@ syntax (Mucke output)
   "ALL "        :: [idts, bool] => bool                 ("'((3forall _./ _)')" [0, 10] 10)
   "EX "         :: [idts, bool] => bool                 ("'((3exists _./ _)')" [0, 10] 10)
 
-  "_lambda"	:: [idts, 'a::logic] => 'b::logic	("(3L _./ _)" 10)
+  "_lambda"	:: [idts, 'a] => 'b  			("(3L _./ _)" 10)
   "_applC"	:: [('b => 'a), cargs] => aprop		("(1_/ '(_'))" [1000,1000] 999)
   "_cargs" 	:: ['a, cargs] => cargs         	("_,/ _" [1000,1000] 1000)
 

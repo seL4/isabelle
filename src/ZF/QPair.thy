@@ -31,7 +31,7 @@ constdefs
   qsnd :: "i => i"
     "qsnd(p) == THE b. EX a. p=<a;b>"
 
-  qsplit    :: "[[i, i] => 'a, i] => 'a::logic"  (*for pattern-matching*)
+  qsplit    :: "[[i, i] => 'a, i] => 'a::{}"  (*for pattern-matching*)
     "qsplit(c,p) == c(qfst(p), qsnd(p))"
 
   qconverse :: "i => i"

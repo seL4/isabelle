@@ -214,9 +214,6 @@ fun put_axclass_info c info thy =
 
 (* errors *)
 
-fun err_not_logic c =
-  error ("Axiomatic class " ^ quote c ^ " not subclass of " ^ quote logicC);
-
 fun err_bad_axsort ax c =
   error ("Sort constraint in axiom " ^ quote ax ^ " not supersort of " ^ quote c);
 
@@ -243,19 +240,16 @@ fun ext_axclass prep_class prep_axm prep_att (bclass, raw_super_classes) raw_axi
     (*prepare abstract axioms*)
     fun abs_axm ax =
       if null (term_tfrees ax) then
-        Logic.mk_implies (Logic.mk_inclass (aT logicS, class), ax)
+        Logic.mk_implies (Logic.mk_inclass (aT [], class), ax)
       else map_term_tfrees (K (aT [class])) ax;
     val abs_axms = map (abs_axm o #2) axms;
-
-    (*prepare introduction rule*)
-    val _ = if Sign.subsort class_sign ([class], logicS) then () else err_not_logic class;
 
     fun axm_sort (name, ax) =
       (case term_tfrees ax of
         [] => []
       | [(_, S)] => if Sign.subsort class_sign ([class], S) then S else err_bad_axsort name class
       | _ => err_bad_tfrees name);
-    val axS = Sign.certify_sort class_sign (logicC :: flat (map axm_sort axms));
+    val axS = Sign.certify_sort class_sign (flat (map axm_sort axms));
 
     val int_axm = Logic.close_form o map_term_tfrees (K (aT axS));
     fun inclass c = Logic.mk_inclass (aT axS, c);

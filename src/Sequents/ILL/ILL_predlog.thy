@@ -7,12 +7,7 @@
 ILL_predlog  =  ILL +
 
 types
-
     plf
-    
-arities
-
-    plf :: logic
     
 consts
 

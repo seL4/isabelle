@@ -11,7 +11,7 @@ text{*Allows quantification over any term having sort @{text logic}.  Used to
 quantify over classes.  Yields a proposition rather than a FOL formula.*}
 
 constdefs
-  ex :: "(('a::logic) => prop) => prop"            (binder "?? " 0)
+  ex :: "(('a::{}) => prop) => prop"            (binder "?? " 0)
   "ex(P) == (!!Q. (!!x. PROP P(x) ==> PROP Q) ==> PROP Q)"
 
 syntax (xsymbols)

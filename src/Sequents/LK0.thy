@@ -13,11 +13,8 @@ LK0 = Sequents +
 
 global
 
-classes
-  term < logic
-
-default
-  term
+classes term
+default term
 
 consts
 

@@ -13,9 +13,6 @@ types
   t
   o
 
-arities
-   i,t,o :: logic
-
 consts
   (*Types*)
   F,T       :: "t"          (*F is empty, T contains one element*)

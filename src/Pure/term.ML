@@ -76,8 +76,6 @@ sig
   val foldl_aterms: ('a * term -> 'a) -> 'a * term -> 'a
   val foldl_map_aterms: ('a * term -> 'a * term) -> 'a * term -> 'a * term
   val dummyT: typ
-  val logicC: class
-  val logicS: sort
   val itselfT: typ -> typ
   val a_itselfT: typ
   val propT: typ
@@ -415,11 +413,8 @@ in iter end
 
 (** Connectives of higher order logic **)
 
-val logicC: class = "logic";
-val logicS: sort = [logicC];
-
 fun itselfT ty = Type ("itself", [ty]);
-val a_itselfT = itselfT (TFree ("'a", logicS));
+val a_itselfT = itselfT (TFree ("'a", []));
 
 val propT : typ = Type("prop",[]);
 

@@ -34,7 +34,7 @@ val proofT = Type ("proof", []);
 val paramT = Type ("param", []);
 val paramsT = Type ("params", []);
 val idtT = Type ("idt", []);
-val aT = TFree ("'a", ["logic"]);
+val aT = TFree ("'a", []);
 
 (** constants for theorems and axioms **)
 
@@ -49,9 +49,8 @@ fun add_proof_syntax sg =
   sg
   |> Sign.copy
   |> Sign.add_path "/"
-  |> Sign.add_defsort_i ["logic"]
+  |> Sign.add_defsort_i []
   |> Sign.add_types [("proof", 0, NoSyn)]
-  |> Sign.add_arities [("proof", [], "logic")]
   |> Sign.add_consts_i
       [("Appt", [proofT, aT] ---> proofT, Mixfix ("(1_ %/ _)", [4, 5], 4)),
        ("AppP", [proofT, proofT] ---> proofT, Mixfix ("(1_ %%/ _)", [4, 5], 4)),

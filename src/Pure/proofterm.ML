@@ -685,8 +685,8 @@ fun bicompose_proof Bs oldAs newAs A n rprf sprf =
 
 (***** axioms for equality *****)
 
-val aT = TFree ("'a", ["logic"]);
-val bT = TFree ("'b", ["logic"]);
+val aT = TFree ("'a", []);
+val bT = TFree ("'b", []);
 val x = Free ("x", aT);
 val y = Free ("y", aT);
 val z = Free ("z", aT);

@@ -42,12 +42,11 @@ fun add_syntax thy =
   |> Theory.copy
   |> Theory.root_path
   |> Theory.add_types [("Type", 0, NoSyn), ("Null", 0, NoSyn)]
-  |> Theory.add_arities [("Type", [], "logic"), ("Null", [], "logic")]
   |> Theory.add_consts
-      [("typeof", "'b::logic => Type", NoSyn),
-       ("Type", "'a::logic itself => Type", NoSyn),
+      [("typeof", "'b::{} => Type", NoSyn),
+       ("Type", "'a::{} itself => Type", NoSyn),
        ("Null", "Null", NoSyn),
-       ("realizes", "'a::logic => 'b::logic => 'b", NoSyn)];
+       ("realizes", "'a::{} => 'b::{} => 'b", NoSyn)];
 
 val nullT = Type ("Null", []);
 val nullt = Const ("Null", nullT);

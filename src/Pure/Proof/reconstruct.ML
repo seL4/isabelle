@@ -162,7 +162,7 @@ fun make_constraints_cprf sg env cprf =
       | mk_cnstrts env Ts Hs vTs (Abst (s, opT, cprf)) =
           let
             val (env', T) = (case opT of
-              None => mk_tvar (env, logicS) | Some T => (env, T));
+              None => mk_tvar (env, []) | Some T => (env, T));
             val (t, prf, cnstrts, env'', vTs') =
               mk_cnstrts env' (T::Ts) (map (incr_boundvars 1) Hs) vTs cprf;
           in (Const ("all", (T --> propT) --> propT) $ Abs (s, T, t), Abst (s, Some T, prf),
@@ -216,7 +216,7 @@ fun make_constraints_cprf sg env cprf =
                end
            | (u, prf, cnstrts, env', vTs') =>
                let
-                 val (env1, T) = mk_tvar (env', ["logic"]);
+                 val (env1, T) = mk_tvar (env', []);
                  val (env2, v) = mk_var env1 Ts (T --> propT);
                  val (env3, t) = mk_var env2 Ts T
                in

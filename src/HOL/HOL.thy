@@ -14,7 +14,7 @@ subsection {* Primitive logic *}
 
 subsubsection {* Core syntax *}
 
-classes type < logic
+classes type
 defaultsort type
 
 global

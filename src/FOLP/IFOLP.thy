@@ -10,16 +10,12 @@ IFOLP = Pure +
 
 global
 
-classes term < logic
-
+classes term
 default term
 
 types
   p
   o
-
-arities
-  p,o :: logic
 
 consts  
       (*** Judgements ***)

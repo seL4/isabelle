@@ -615,7 +615,7 @@ fun record_type_abbr_tr' default_tr' abbr alphas zeta lastExt schemeT sg tm =
       val tsig = Sign.tsig_of sg
 
       fun mk_type_abbr subst name alphas = 
-          let val abbrT = Type (name, map (fn a => TVar ((a,0),logicS)) alphas);
+          let val abbrT = Type (name, map (fn a => TVar ((a, 0), [])) alphas);
           in Syntax.term_of_typ (! Syntax.show_sorts) (Envir.norm_type subst abbrT) end;    
 
       fun unify rT T = fst (Type.unify tsig (Vartab.empty,0) (Type.varifyT rT,T))

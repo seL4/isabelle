@@ -20,7 +20,7 @@ text {*
 
 subsection {* Pure Logic *}
 
-classes type \<subseteq> logic
+classes type
 defaultsort type
 
 typedecl o

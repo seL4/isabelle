@@ -14,9 +14,6 @@ global
 types
   o 
 
-arities
-  o :: logic
-
 
 (* Sequences *)
 

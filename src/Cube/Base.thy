@@ -10,8 +10,6 @@ Base = Pure +
 
 types
   term
-arities
-  term :: logic
 
 types
   context  typing

@@ -13,7 +13,7 @@ subsection {* Syntax and axiomatic basis *}
 
 global
 
-classes "term" < logic
+classes "term"
 defaultsort "term"
 
 typedecl o
@@ -264,7 +264,7 @@ subsection {* ``Let'' declarations *}
 nonterminals letbinds letbind
 
 constdefs
-  Let :: "['a::logic, 'a => 'b] => ('b::logic)"
+  Let :: "['a::{}, 'a => 'b] => ('b::{})"
     "Let(s, f) == f(s)"
 
 syntax

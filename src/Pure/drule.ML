@@ -548,16 +548,16 @@ fun store_thm_open name thm = hd (PureThy.smart_store_thms_open (name, [thm]));
 fun store_standard_thm_open name thm = store_thm_open name (standard' thm);
 
 val reflexive_thm =
-  let val cx = cterm_of proto_sign (Var(("x",0),TVar(("'a",0),logicS)))
+  let val cx = cterm_of proto_sign (Var(("x",0),TVar(("'a",0),[])))
   in store_standard_thm_open "reflexive" (Thm.reflexive cx) end;
 
 val symmetric_thm =
-  let val xy = read_prop "x::'a::logic == y"
+  let val xy = read_prop "x == y"
   in store_standard_thm_open "symmetric" (Thm.implies_intr_hyps (Thm.symmetric (Thm.assume xy))) end;
 
 val transitive_thm =
-  let val xy = read_prop "x::'a::logic == y"
-      val yz = read_prop "y::'a::logic == z"
+  let val xy = read_prop "x == y"
+      val yz = read_prop "y == z"
       val xythm = Thm.assume xy and yzthm = Thm.assume yz
   in store_standard_thm_open "transitive" (Thm.implies_intr yz (Thm.transitive xythm yzthm)) end;
 
@@ -698,7 +698,7 @@ val remdups_rl =
 val norm_hhf_eq =
   let
     val cert = Thm.cterm_of proto_sign;
-    val aT = TFree ("'a", Term.logicS);
+    val aT = TFree ("'a", []);
     val all = Term.all aT;
     val x = Free ("x", aT);
     val phi = Free ("phi", propT);

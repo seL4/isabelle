@@ -32,6 +32,11 @@ New in this Isabelle release
   instead of 'nonterminals'/'syntax'.  Some very exotic syntax
   specifications may require further adaption (e.g. Cube/Base.thy).
 
+* Pure: removed obsolete type class "logic", use the top sort {}
+  instead.  Note that non-logical types should be declared as
+  'nonterminals' rather than 'types'.  INCOMPATIBILITY for new
+  object-logic specifications.
+
 * Pure/Syntax: inner syntax includes (*(*nested*) comments*).
 
 * Pure/Syntax: pretty pinter now supports unbreakable blocks,

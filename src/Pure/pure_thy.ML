@@ -500,17 +500,7 @@ fun add_typedecls decls thy =
     fun type_of (raw_name, vs, mx) =
       if null (duplicates vs) then (raw_name, length vs, mx)
       else error ("Duplicate parameters in type declaration: " ^ quote raw_name);
-
-    fun arity_of (raw_name, len, mx) =
-      (full (Syntax.type_name raw_name mx), replicate len logicS, logicS);
-
-    val types = map type_of decls;
-    val arities = map arity_of types;
-  in
-    thy
-    |> Theory.add_types types
-    |> Theory.add_arities_i arities
-  end;
+  in thy |> Theory.add_types (map type_of decls) end;
 
 
 
@@ -531,12 +521,6 @@ val proto_pure =
     ("prop", 0, NoSyn),
     ("itself", 1, NoSyn),
     ("dummy", 0, NoSyn)]
-  |> Theory.add_classes_i [(logicC, [])]
-  |> Theory.add_defsort_i logicS
-  |> Theory.add_arities_i
-   [("fun", [logicS, logicS], logicS),
-    ("prop", [], logicS),
-    ("itself", [logicS], logicS)]
   |> Theory.add_nonterminals Syntax.pure_nonterms
   |> Theory.add_syntax Syntax.pure_syntax
   |> Theory.add_modesyntax (Symbol.xsymbolsN, true) Syntax.pure_xsym_syntax
@@ -544,17 +528,17 @@ val proto_pure =
    [("==>", "[prop, prop] => prop", Delimfix "op ==>"),
     (Term.dummy_patternN, "aprop", Delimfix "'_")]
   |> Theory.add_consts
-   [("==", "['a::{}, 'a] => prop", InfixrName ("==", 2)),
+   [("==", "['a, 'a] => prop", InfixrName ("==", 2)),
     ("==>", "[prop, prop] => prop", Mixfix ("(_/ ==> _)", [2, 1], 1)),
     ("all", "('a => prop) => prop", Binder ("!!", 0, 0)),
     ("Goal", "prop => prop", NoSyn),
     ("TYPE", "'a itself", NoSyn),
     (Term.dummy_patternN, "'a", Delimfix "'_")]
   |> Theory.add_finals_i false
-    [Const("==",[TFree("'a",[]),TFree("'a",[])]--->propT),
-     Const("==>",[propT,propT]--->propT),
-     Const("all",(TFree("'a",logicS)-->propT)-->propT),
-     Const("TYPE",a_itselfT)]
+    [Const("==", [TFree ("'a", []), TFree ("'a", [])] ---> propT),
+     Const("==>", [propT, propT] ---> propT),
+     Const("all", (TFree("'a", []) --> propT) --> propT),
+     Const("TYPE", a_itselfT)]
   |> Theory.add_modesyntax ("", false)
     (Syntax.pure_syntax_output @ Syntax.pure_appl_syntax)
   |> Theory.add_trfuns Syntax.pure_trfuns

@@ -103,7 +103,7 @@ fun foldl_pretyps f (x, PConst (_, T)) = f (x, T)
 (* pretyp(s)_of *)
 
 fun anyT S = TFree ("'_dummy_", S);
-val logicT = anyT logicS;
+val logicT = anyT [];
 
 (*indicate polymorphic Vars*)
 fun polymorphicT T = Type ("_polymorphic_", [T]);

@@ -61,7 +61,7 @@ consts
   Pair  :: "[i, i] => i"
   fst   :: "i => i"
   snd   :: "i => i"
-  split :: "[[i, i] => 'a, i] => 'a::logic"  --{*for pattern-matching*}
+  split :: "[[i, i] => 'a, i] => 'a::{}"  --{*for pattern-matching*}
 
 text {*Sigma and Pi Operators *}
 consts
