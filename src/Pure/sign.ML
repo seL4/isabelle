@@ -817,7 +817,8 @@ fun put_data (kind, e) = map_data (fn d => Data.put d kind e);
 fun print_data (Sg {data, ...}) kind = Data.print data kind;
 
 (*prepare extension*)
-val prep_ext = map_data Data.prep_ext;
+fun prep_ext sg =
+  map_data Data.prep_ext sg |> add_path "/";
 
 
 
