@@ -45,10 +45,11 @@ val bex_disj_distrib =
     prover "(EX x:A. P(x) | Q(x)) <-> ((EX x:A. P(x)) | (EX x:A. Q(x)))";
 
 val Rep_simps = map prover
-    ["{x:0. P(x)} = 0",
+    ["{x. y:0, R(x,y)} = 0",	(*Replace*)
+     "{x:0. P(x)} = 0",		(*Collect*)
      "{x:A. False} = 0",
      "{x:A. True} = A",
-     "RepFun(0,f) = 0",
+     "RepFun(0,f) = 0",		(*RepFun*)
      "RepFun(succ(i),f) = cons(f(i), RepFun(i,f))",
      "RepFun(cons(a,B),f) = cons(f(a), RepFun(B,f))"]
 

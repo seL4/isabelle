@@ -49,6 +49,11 @@ qed_goal "converse_empty" ZF.thy "converse(0) = 0"
 
 Addsimps [converse_prod, converse_empty];
 
+val converse_subset_iff = prove_goal ZF.thy
+  "!!z. A <= Sigma(X,Y) ==> converse(A) <= converse(B) <-> A <= B"
+ (fn _=> [ (Blast_tac 1) ]);
+
+
 (*** domain ***)
 
 qed_goalw "domain_iff" ZF.thy [domain_def]

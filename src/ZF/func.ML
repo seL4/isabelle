@@ -234,6 +234,20 @@ qed "eta";
 
 Addsimps [eta];
 
+val fun_extension_iff = prove_goal ZF.thy
+  "!!z. [| f:Pi(A,B); g:Pi(A,C) |] ==> (ALL a:A. f`a = g`a) <-> f=g"
+ (fn _=> [ (blast_tac (claset() addIs [fun_extension]) 1) ]);
+
+(*thanks to Mark Staples*)
+val fun_subset_eq = prove_goal ZF.thy
+    "!!z. [| f:Pi(A,B); g:Pi(A,C) |] ==> f <= g <-> (f = g)"
+ (fn _=> 
+  [ (rtac iffI 1), (asm_full_simp_tac ZF_ss 2),
+    (rtac fun_extension 1), (REPEAT (atac 1)),
+    (dtac (apply_Pair RSN (2,subsetD)) 1), (REPEAT (atac 1)),
+    (rtac (apply_equality RS sym) 1), (REPEAT (atac 1)) ]);
+
+
 (*Every element of Pi(A,B) may be expressed as a lambda abstraction!*)
 val prems = goal ZF.thy
     "[| f: Pi(A,B);        \

@@ -247,6 +247,11 @@ AddSIs [idI];
 AddIs  [compI];
 AddSEs [compE,idE];
 
+Goal "converse(R O S) = converse(S) O converse(R)";
+by (Blast_tac 1);
+qed "converse_comp";
+
+
 (** Domain and Range -- see Suppes, section 3.1 **)
 
 (*Boyer et al., Set Theory in First-Order Logic, JAR 2 (1986), 287-327*)
