@@ -5,6 +5,10 @@
 The parser for theory files.
 *)
 
+(* FIXME tmp *)
+val global_names = ref true;
+
+
 infix 5 -- --$$ $$-- ^^;
 infix 3 >>;
 infix 0 ||;
@@ -409,6 +413,11 @@ val instance_decl =
   >> (fn ((x, y), z) => (cat_lines [x, y, z]));
 
 
+(* global *)
+
+val global_decl = empty >> K "\"/\"";
+
+
 
 (** theory syntax **)
 
@@ -435,12 +444,12 @@ val header = ident --$$ "=" -- enum1 "+" base >> mk_header;
 
 (* extension *)
 
-fun mk_extension ((begin, txts), mltxt) =
+fun mk_extension (txts, mltxt) =
   let
     val cat_sects = space_implode "\n\n" o filter_out (equal "");
     val (extxts, postxts) = split_list txts;
   in
-    (begin, cat_sects extxts, cat_sects postxts, mltxt)
+    (cat_sects extxts, cat_sects postxts, mltxt)
   end;
 
 fun sect tab ((Keyword, s, n) :: toks) =
@@ -450,19 +459,16 @@ fun sect tab ((Keyword, s, n) :: toks) =
   | sect _ ((_, s, n) :: _) = syn_err "section" s n
   | sect _ [] = eof_err ();
 
-val opt_begin =
-  optional ("begin" $$-- optional name "" >> Some) None;
-
 fun extension sectab = "+" $$-- !!
-  (opt_begin -- (repeat (sect sectab) --$$ "end") --
-    optional ("ML" $$-- verbatim) "") >> mk_extension;
+  (repeat (sect sectab) --$$ "end" -- optional ("ML" $$-- verbatim) "")
+    >> mk_extension;
 
-fun opt_extension sectab = optional (extension sectab) (None, "", "", "");
+fun opt_extension sectab = optional (extension sectab) ("", "", "");
 
 
 (* theory definition *)
 
-fun mk_structure tname ((thy_name, old_thys), (begin, extxt, postxt, mltxt)) =
+fun mk_structure tname ((thy_name, old_thys), (extxt, postxt, mltxt)) =
   if thy_name <> tname then
     error ("Filename \"" ^ tname ^ ".thy\" and theory name "
       ^ quote thy_name ^ " are different")
@@ -478,12 +484,8 @@ fun mk_structure tname ((thy_name, old_thys), (begin, extxt, postxt, mltxt)) =
     ^ mltxt ^ "\n\
     \\n\
     \val thy = thy\n\
-    \\n\
-    \|> Theory.add_path \"/\"\n" ^
-    (case begin of
-      None => (warning ("Flat name space for theory " ^ tname ^ "?  Consider begin ..."); "")
-    | Some "" => "|> Theory.add_path " ^ quote tname ^ "\n"
-    | Some path => "|> Theory.add_path " ^ path ^ "\n") ^
+    \\n" ^
+    (if ! global_names then "" else "|> Theory.add_path " ^ quote tname ^ "\n") ^
     "\n\
     \|> Theory.add_trfuns\n"
     ^ trfun_args ^ "\n\
@@ -528,8 +530,9 @@ fun section name pretxt parse =
 
 
 val pure_keywords =
- ["end", "ML", "mixfix", "infixr", "infixl", "begin", "binder", "output", "=",
-  "+", ",", "<", "{", "}", "(", ")", "[", "]", "::", "==", "=>", "<="];
+ ["end", "ML", "mixfix", "infixr", "infixl", "binder", "global",
+  "output", "=", "+", ",", "<", "{", "}", "(", ")", "[", "]", "::",
+  "==", "=>", "<="];
 
 val pure_sections =
  [section "classes" "|> Theory.add_classes" class_decls,
@@ -545,7 +548,8 @@ val pure_sections =
   axm_section "constdefs" "|> Theory.add_consts" constaxiom_decls,
   axm_section "axclass" "|> AxClass.add_axclass" axclass_decl,
   section "instance" "" instance_decl,
-  section "path" "|> Theory.add_path" name];
+  section "path" "|> Theory.add_path" name,
+  section "global" "|> Theory.add_path" global_decl];
 
 
 end;
