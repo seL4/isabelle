@@ -238,9 +238,12 @@ val prep_ext         = ext_sign (K Sign.prep_ext) ();
 fun err_in_axm name =
   error ("The error(s) above occurred in axiom " ^ quote name);
 
-fun no_vars tm =
-  if null (term_vars tm) andalso null (term_tvars tm) then tm
-  else error "Illegal schematic variable(s) in term";
+fun no_vars sg tm = (case (term_vars tm, term_tvars tm) of
+    ([], []) => tm
+  | (ts, ixns) => error (Pretty.string_of (Pretty.block (Pretty.breaks
+      (Pretty.str "Illegal schematic variable(s) in term:" ::
+       map (Sign.pretty_term sg) ts @
+       map (Sign.pretty_typ sg o TVar) ixns)))));
 
 fun cert_axm sg (name, raw_tm) =
   let
@@ -250,7 +253,7 @@ fun cert_axm sg (name, raw_tm) =
   in
     Term.no_dummy_patterns t handle TERM (msg, _) => error msg;
     assert (T = propT) "Term not of type prop";
-    (name, no_vars t)
+    (name, no_vars sg t)
   end;
 
 (*some duplication of code with read_def_cterm*)
@@ -266,7 +269,7 @@ fun read_axm sg name_str = read_def_axm (sg, K None, K None) [] name_str;
 fun inferT_axm sg (name, pre_tm) =
   let
     val (t, _) = Sign.infer_types sg (K None) (K None) [] true ([pre_tm], propT);
-  in (name, no_vars t) end
+  in (name, no_vars sg t) end
   handle ERROR => err_in_axm name;
 
 
