@@ -198,7 +198,6 @@ lemma decomp_propa:
   apply clarify  
   apply simp
   apply (rule conjI) 
-   apply (simp add: nth_list_update)
    apply blast
   apply (simp add: nth_list_update)
   apply blast
