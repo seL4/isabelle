@@ -6,7 +6,7 @@
 \indexisaratt{rule-format}\indexisaratt{split-format}
 \begin{matharray}{rcl}
   rule_format & : & \isaratt \\
-  split_format & : & \isaratt \\
+  split_format^* & : & \isaratt \\
 \end{matharray}
 
 \railalias{ruleformat}{rule\_format}
@@ -33,11 +33,12 @@
   
 \item [$split_format~\vec p@1 \dots \vec p@n$] puts tuple objects into
   canonical form as specified by the arguments given; $\vec p@i$ refers to
-  occurrences in premise $i$ of the rule.
+  occurrences in premise $i$ of the rule.  The $split_format~(complete)$ form
+  causes \emph{all} arguments in function applications to be represented
+  canonically according to their tuple type structure.
   
-  The $split_format~(complete)$ form causes \emph{all} arguments in function
-  applications to be represented canonically according to their tuple type
-  structure.
+  Note that these operations tend to invent funny names for new local
+  parameters to be introduced.
 
 \end{descr}
 
