@@ -208,11 +208,24 @@ lemma greaterThanLessThan_iff [simp]:
   "(i : {)l..u(}) = (l < i & i < u)"
 by (simp add: greaterThanLessThan_def)
 
+lemma greaterThanLessThan_0 [simp]: "{)l..0::nat(} == {}"
+by (simp add: greaterThanLessThan_def)
+
+lemma greaterThanLessThan_Suc_greaterThanAtMost:
+  "{)l..Suc n(} = {)l..n}"
+by (auto simp add: greaterThanLessThan_def greaterThanAtMost_def)
+
 (* atLeastLessThan *)
 
 lemma atLeastLessThan_iff [simp]:
   "(i : {l..u(}) = (l <= i & i < u)"
 by (simp add: atLeastLessThan_def)
+
+lemma atLeastLessThan_0 [simp]: "{l..0::nat(} == {}"
+by (simp add: atLeastLessThan_def)
+
+lemma atLeastLessThan_Suc_atLeastAtMost: "{l..Suc n(} = {l..n}"
+by (auto simp add: atLeastLessThan_def atLeastAtMost_def)
 
 (* greaterThanAtMost *)
 
@@ -225,6 +238,7 @@ by (simp add: greaterThanAtMost_def)
 lemma atLeastAtMost_iff [simp]:
   "(i : {l..u}) = (l <= i & i <= u)"
 by (simp add: atLeastAtMost_def)
+
 
 (* The above four lemmas could be declared as iffs.
    If we do so, a call to blast in Hyperreal/Star.ML, lemma STAR_Int
