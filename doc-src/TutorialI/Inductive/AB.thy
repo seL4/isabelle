@@ -104,7 +104,7 @@ right increases or decreases the difference by 1, we must have passed through
 intermediate value theorem @{thm[source]nat0_intermed_int_val}
 @{thm[display]nat0_intermed_int_val[no_vars]}
 where @{term f} is of type @{typ"nat \<Rightarrow> int"}, @{typ int} are the integers,
-@{term abs} is the absolute value function, and @{term"#1::int"} is the
+@{text"\<bar>.\<bar>"} is the absolute value function, and @{term"#1::int"} is the
 integer 1 (see \S\ref{sec:numbers}).
 
 First we show that the our specific function, the difference between the
@@ -116,15 +116,12 @@ roles of @{term a}'s and @{term b}'s interchanged.
 *}
 
 lemma step1: "\<forall>i < size w.
-  abs((int(size[x\<in>take (i+1) w.  P x]) -
-       int(size[x\<in>take (i+1) w. \<not>P x]))
-      -
-      (int(size[x\<in>take i w.  P x]) -
-       int(size[x\<in>take i w. \<not>P x]))) \<le> #1";
+  \<bar>(int(size[x\<in>take (i+1) w. P x])-int(size[x\<in>take (i+1) w. \<not>P x]))
+   - (int(size[x\<in>take i w. P x])-int(size[x\<in>take i w. \<not>P x]))\<bar> \<le> #1"
 
 txt{*\noindent
 The lemma is a bit hard to read because of the coercion function
-@{term[source]"int::nat \<Rightarrow> int"}. It is required because @{term size} returns
+@{term[source]"int :: nat \<Rightarrow> int"}. It is required because @{term size} returns
 a natural number, but @{text-} on @{typ nat} will do the wrong thing.
 Function @{term take} is predefined and @{term"take i xs"} is the prefix of
 length @{term i} of @{term xs}; below we als need @{term"drop i xs"}, which
@@ -149,17 +146,15 @@ lemma part1:
   \<exists>i\<le>size w. size[x\<in>take i w. P x] = size[x\<in>take i w. \<not>P x]+1";
 
 txt{*\noindent
-This is proved with the help of the intermediate value theorem, instantiated
-appropriately and with its first premise disposed of by lemma
-@{thm[source]step1}.
+This is proved by force with the help of the intermediate value theorem,
+instantiated appropriately and with its first premise disposed of by lemma
+@{thm[source]step1}:
 *}
 
 apply(insert nat0_intermed_int_val[OF step1, of "P" "w" "#1"]);
-apply simp;
-by(simp del:int_Suc add:zdiff_eq_eq sym[OF int_Suc]);
+by force;
 
 text{*\noindent
-The additional lemmas are needed to mediate between @{typ nat} and @{typ int}.
 
 Lemma @{thm[source]part1} tells us only about the prefix @{term"take i w"}.
 The suffix @{term"drop i w"} is dealt with in the following easy lemma:

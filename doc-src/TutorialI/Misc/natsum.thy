@@ -32,7 +32,7 @@ The usual arithmetic operations \ttindexboldpos{+}{$HOL2arithfun},
 Isabelle does not prove this completely automatically. Note that @{term 1}
 and @{term 2} are available as abbreviations for the corresponding
 @{term Suc}-expressions. If you need the full set of numerals,
-see~\S\ref{nat-numerals}.
+see~\S\ref{sec:numerals}.
 
 \begin{warn}
   The constant \ttindexbold{0} and the operations

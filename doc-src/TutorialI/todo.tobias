@@ -1,13 +1,9 @@
 Implementation
 ==============
 
-Why is comp needed in addition to op O?
-Explain in syntax section!
+Relation: comp -> composition
 
 replace "simp only split" by "split_tac".
-
-arithmetic: allow mixed nat/int formulae
--> simplify proof of part1 in Inductive/AB.thy
 
 Add map_cong?? (upto 10% slower)
 
@@ -29,6 +25,9 @@ More predefined functions for datatypes: map?
 
 Induction rules for int: int_le/ge_induct?
 Needed for ifak example. But is that example worth it?
+
+Komischerweise geht das Splitten von _Annahmen_ auch mit simp_tac, was
+ein generelles Feature ist, das man vielleicht mal abstellen sollte.
 
 proper mutual simplification
 
@@ -61,8 +60,6 @@ Appendix: Lexical: long ids.
 Warning: infixes automatically become reserved words!
 
 Forward ref from blast proof of Puzzle (AdvancedInd) to Isar proof?
-
-mention split_split in advanced pair section.
 
 recdef with nested recursion: either an example or at least a pointer to the
 literature. In Recdef/termination.thy, at the end.

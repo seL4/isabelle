@@ -11,7 +11,7 @@ section is concerned with introducing some syntactic sugar to overcome this
 problem: pattern matching with tuples.
 *}
 
-subsection{*Notation*}
+subsection{*Pattern matching with tuples*}
 
 text{*
 It is possible to use (nested) tuples as patterns in $\lambda$-abstractions,
