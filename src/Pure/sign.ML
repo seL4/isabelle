@@ -62,6 +62,7 @@ sig
     val add_name: string -> sg -> sg
     val make_draft: sg -> sg
     val merge: sg * sg -> sg
+    val nonempty_sort: sg * sort list * sort -> bool
     val proto_pure: sg
     val pure: sg
     val cpure: sg
@@ -550,5 +551,12 @@ val pure = proto_pure
 val cpure = proto_pure
   |> add_syntax Syntax.pure_applC_syntax
   |> add_name "CPure";
+
+(**
+Emptiness-test for sorts: does there exist a type of sort 'sort' whose
+vars have sorts contained in 'sorts'?
+Trivial approximation at the moment.
+**)
+fun nonempty_sort(_,sorts,sort) = exists (fn s => sort subset s) sorts;
 
 end;
