@@ -426,6 +426,10 @@ val undoP =
 
 (** diagnostic commands (for interactive mode only) **)
 
+val pretty_setmarginP =
+  OuterSyntax.improper_command "pretty_setmargin" "change default margin for pretty printing"
+    K.diag (P.nat >> IsarCmd.pretty_setmargin);
+
 val print_commandsP =
   OuterSyntax.improper_command "help" "print outer syntax (global)" K.diag
     (Scan.succeed (Toplevel.imperative OuterSyntax.print_outer_syntax));
@@ -567,9 +571,9 @@ val parsers = [
   skip_proofP, applyP, then_applyP, proofP, alsoP, finallyP, backP,
   cannot_undoP, clear_undoP, redoP, undos_proofP, kill_proofP, undoP,
   (*diagnostic commands*)
-  print_commandsP, print_theoryP, print_syntaxP, print_attributesP,
-  print_methodsP, print_theoremsP, print_bindsP, print_lthmsP,
-  print_thmsP, print_propP, print_termP, print_typeP,
+  pretty_setmarginP, print_commandsP, print_theoryP, print_syntaxP,
+  print_attributesP, print_methodsP, print_theoremsP, print_bindsP,
+  print_lthmsP, print_thmsP, print_propP, print_termP, print_typeP,
   (*system commands*)
   cdP, pwdP, use_thyP, use_thy_onlyP, update_thyP, update_thy_onlyP,
   touch_thyP, touch_all_thysP, remove_thyP, prP, commitP, quitP,

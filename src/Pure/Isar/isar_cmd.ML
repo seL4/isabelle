@@ -31,6 +31,7 @@ sig
   val use_thy_only: string -> Toplevel.transition -> Toplevel.transition
   val update_thy: string -> Toplevel.transition -> Toplevel.transition
   val update_thy_only: string -> Toplevel.transition -> Toplevel.transition
+  val pretty_setmargin: int -> Toplevel.transition -> Toplevel.transition
   val print_theory: Toplevel.transition -> Toplevel.transition
   val print_syntax: Toplevel.transition -> Toplevel.transition
   val print_theorems: Toplevel.transition -> Toplevel.transition
@@ -117,7 +118,13 @@ val pwd = Toplevel.imperative print_cd;
 fun use_thy name = Toplevel.imperative (fn () => Context.save ThyInfo.use_thy name);
 fun use_thy_only name = Toplevel.imperative (fn () => Context.save ThyInfo.use_thy_only name);
 fun update_thy name = Toplevel.imperative (fn () => Context.save ThyInfo.update_thy name);
-fun update_thy_only name = Toplevel.imperative (fn () => Context.save ThyInfo.update_thy_only name);
+fun update_thy_only name =
+  Toplevel.imperative (fn () => Context.save ThyInfo.update_thy_only name);
+
+
+(* pretty_setmargin *)
+
+fun pretty_setmargin n = Toplevel.imperative (fn () => Pretty.setmargin n);
 
 
 (* print theory contents *)
