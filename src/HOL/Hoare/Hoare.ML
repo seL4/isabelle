@@ -163,7 +163,7 @@ fun set2pred i thm = let fun mk_string [] = ""
           (EVERY [rtac subsetI i, 
                   rtac CollectI i,
                   dtac CollectD i,
-                  (TRY(split_all_tac i)) THEN_MAYBE 
+                  (TRY(split_all_tac i)) THEN_MAYBE
                   ((rename_tac var_string i) THEN
                    (full_simp_tac (HOL_basic_ss addsimps [split]) i)) ])) thm
       end;
@@ -179,7 +179,8 @@ fun set2pred i thm = let fun mk_string [] = ""
 fun MaxSimpTac tac = FIRST'[rtac subset_refl, set2pred THEN_MAYBE' tac];
 
 fun BasicSimpTac tac =
-  simp_tac (HOL_basic_ss addsimps [mem_Collect_eq,split])
+  simp_tac
+    (HOL_basic_ss addsimps [mem_Collect_eq,split] addsimprocs [record_simproc])
   THEN_MAYBE' MaxSimpTac tac;
 
 (** HoareRuleTac **)
@@ -217,4 +218,4 @@ val hoare_method =
 
 val hoare_setup =
  [Method.add_methods
-  [("hoare", Method.no_args hoare_method, "verification condition generator for Hoare logic")]];
+  [("hoare_vcg", Method.no_args hoare_method, "verification condition generator for Hoare logic")]];
