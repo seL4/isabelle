@@ -233,7 +233,11 @@ text {*
   exhibited directly as context parameters; logically this corresponds
   to a curried predicate definition:
 
-  @{thm [display] group_context_axioms_def [no_vars]}
+  @{thm [display] group_context_def [no_vars]}
+
+  The corresponding introduction rule is as follows:
+
+  @{thm [display] group_context.intro [no_vars]}
 
   Occasionally, this ``externalized'' version of the informal idea of
   classes of tuple structures may cause some inconveniences,

@@ -45,7 +45,7 @@ struct
 
 val product_typeN = "Record.product_type";
 
-val product_typeI = thm "product_typeI";
+val product_type_intro = thm "product_type.intro";
 val product_type_inject = thm "product_type.inject";
 val product_type_conv1 = thm "product_type.conv1";
 val product_type_conv2 = thm "product_type.conv2";
@@ -621,7 +621,7 @@ fun field_definitions fields names xs alphas zeta moreT more vars named_vars thy
       |>>> (PureThy.add_defs_i false o map Thm.no_attributes) dest_specs1
       |>>> (PureThy.add_defs_i false o map Thm.no_attributes) dest_specs2;
 
-    val prod_types = map (fn (((a, b), c), d) => product_typeI OF [a, b, c, d])
+    val prod_types = map (fn (((a, b), c), d) => product_type_intro OF [a, b, c, d])
       (typedefs ~~ field_defs ~~ dest_defs1 ~~ dest_defs2);
 
 
