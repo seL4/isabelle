@@ -862,8 +862,8 @@ by (blast_tac (claset() addIs [trans_le_add1]) 1);
 qed_spec_mp "start_le_sum";
 
 Goal "n : set ns ==> n <= foldl op+ 0 ns";
-by (auto_tac (claset() addIs [start_le_sum],
-             simpset() addsimps [in_set_conv_decomp]));
+by (force_tac (claset() addIs [start_le_sum],
+              simpset() addsimps [in_set_conv_decomp]) 1);
 qed "elem_le_sum";
 
 Goal "!m. (foldl op+ m ns = 0) = (m=0 & (!n : set ns. n=0))";

@@ -266,8 +266,6 @@ Addsimps [setsum_0];
 Goal "finite F ==> setsum f F = Suc n --> (? a:F. 0 < f a)";
 be finite_induct 1;
 by(Auto_tac);
-by(asm_full_simp_tac
-    (simpset() delsimps [setsum_0] addsimps [setsum_0 RS sym]) 1);
 val lemma = result();
 
 Goal "[| setsum f F = Suc n; finite F |] ==> ? a:F. 0 < f a";

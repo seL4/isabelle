@@ -43,6 +43,7 @@ Goalw [step1_def]
  "(ys,xs) : step1 r & vs=us | ys=xs & (vs,us) : step1 r \
 \ ==> (ys@vs,xs@us) : step1 r";
 by (Auto_tac);
+ by (Blast_tac 1);
 by (blast_tac (claset() addIs [append_eq_appendI]) 1);
 qed "append_step1I";
 

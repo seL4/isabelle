@@ -154,7 +154,7 @@ qed "commutation";
 
 Goal "u~v ==> ALL w. u~w --> v~w --> regular(w) --> (u|>w) ~ (v|>w)";
 by (etac Scomp.induct 1);
-by Auto_tac;
+by (ALLGOALS Force_tac);
 qed_spec_mp "residuals_preserve_comp";
 
 

@@ -77,7 +77,7 @@ val parts_induct_tac =
 
 Goal "s : reachable Nprg ==> (Key (priK A) : parts (spies s)) = (A : bad)";
 by (etac reachable.induct 1);
-by Auto_tac;
+by (ALLGOALS Force_tac);
 qed "Spy_see_priK";
 Addsimps [Spy_see_priK];
 

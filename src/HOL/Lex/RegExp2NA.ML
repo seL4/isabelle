@@ -84,13 +84,13 @@ AddIffs [True_in_step_union,False_in_step_union];
 Goal
  "!p. (True#p,q):steps (union L R) w = (? r. q = True # r & (p,r):steps L w)";
 by (induct_tac "w" 1);
-by Auto_tac;
+by (ALLGOALS Force_tac);
 qed_spec_mp "lift_True_over_steps_union";
 
 Goal 
  "!p. (False#p,q):steps (union L R) w = (? r. q = False#r & (p,r):steps R w)";
 by (induct_tac "w" 1);
-by Auto_tac;
+by (ALLGOALS Force_tac);
 qed_spec_mp "lift_False_over_steps_union";
 
 AddIffs [lift_True_over_steps_union,lift_False_over_steps_union];
@@ -177,7 +177,7 @@ AddIffs [True_step_conc, False_step_conc];
 Goal
  "!p. (False#p,q): steps (conc L R) w = (? r. q=False#r & (p,r): steps R w)";
 by (induct_tac "w" 1);
-by Auto_tac;
+by (ALLGOALS Force_tac);
 qed_spec_mp "False_steps_conc";
 AddIffs [False_steps_conc];
 

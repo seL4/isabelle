@@ -172,7 +172,7 @@ by Auto_tac;
 qed "zmagnitude_int_of";
 
 Goalw [zmagnitude_def] "n: nat ==> zmagnitude($~ $# n) = n";
-by (auto_tac(claset() addDs [not_znegative_imp_zero], simpset()));
+by (force_tac(claset() addDs [not_znegative_imp_zero], simpset())1);
 qed "zmagnitude_zminus_int_of";
 
 Addsimps [zmagnitude_int_of, zmagnitude_zminus_int_of];

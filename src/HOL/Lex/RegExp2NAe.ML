@@ -137,13 +137,15 @@ AddIffs [True_epsclosure_union,False_epsclosure_union];
 Goal
  "!p. (True#p,q):steps (union L R) w = (? r. q = True # r & (p,r):steps L w)";
 by (induct_tac "w" 1);
-by Auto_tac;
+ by Auto_tac;
+by (Force_tac 1);
 qed_spec_mp "lift_True_over_steps_union";
 
 Goal 
  "!p. (False#p,q):steps (union L R) w = (? r. q = False#r & (p,r):steps R w)";
 by (induct_tac "w" 1);
-by Auto_tac;
+ by Auto_tac;
+by (Force_tac 1);
 qed_spec_mp "lift_False_over_steps_union";
 
 AddIffs [lift_True_over_steps_union,lift_False_over_steps_union];

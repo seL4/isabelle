@@ -470,7 +470,7 @@ by Safe_tac;
 by (asm_full_simp_tac
     (simpset() addsimps [zadd, zminus, Image_iff, Bex_def]) 1);
 by (res_inst_tac [("m1", "x+ya"), ("n1", "xa+y")] (less_linear RS disjE) 1);
-by (auto_tac (claset(), simpset() addsimps add_ac));
+by (ALLGOALS (force_tac (claset(), simpset() addsimps add_ac)));
 qed "zless_linear";
 
 Goal "!!w::int. (w ~= z) = (w<z | z<w)";

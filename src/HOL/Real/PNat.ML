@@ -294,8 +294,8 @@ qed "Rep_pnat_le_one";
 Goalw [pnat_less_def]
      "!! (z1::nat). z1 < z2  ==> ? z3. z1 + Rep_pnat z3 = z2";
 by (dtac less_imp_add_positive 1);
-by (auto_tac (claset() addSIs [Abs_pnat_inverse],
-	      simpset() addsimps [Collect_pnat_gt_0]));
+by (force_tac (claset() addSIs [Abs_pnat_inverse],
+	       simpset() addsimps [Collect_pnat_gt_0]) 1);
 qed "lemma_less_ex_sum_Rep_pnat";
 
 

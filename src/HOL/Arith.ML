@@ -212,10 +212,10 @@ bind_thm ("add_leE", result() RS conjE);
 
 (*needs !!k for add_ac to work*)
 Goal "!!k:: nat. [| k<l;  m+l = k+n |] ==> m<n";
-by (auto_tac (claset(),
+by (force_tac (claset(),
 	      simpset() delsimps [add_Suc_right]
 	                addsimps [less_iff_Suc_add,
-				  add_Suc_right RS sym] @ add_ac));
+				  add_Suc_right RS sym] @ add_ac) 1);
 qed "less_add_eq_less";
 
 

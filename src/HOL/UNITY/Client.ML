@@ -119,10 +119,12 @@ by (rtac guaranteesI 1);
 by (Clarify_tac 1);
 by (dtac (impOfSubs increasing_length) 1);
 by (invariant_tac 1);
-by (Force_tac 1);
+ by (Force_tac 1);
 by (dtac (Acts_Cli_Join_eq RS iffD1) 1);
-by (auto_tac (claset() addD2 ("x",localTo_imp_equals), simpset()));
-by (force_tac (claset(),
+by Auto_tac;
+ by (TRYALL (dtac localTo_imp_equals THEN' atac));
+     by (auto_tac (claset() addD2 ("x",localTo_imp_equals), simpset()));
+by (force_tac (claset() addD2 ("x",localTo_imp_equals),
 	       simpset() addsimps [increasing_def, Acts_Join, stable_def, 
 				   constrains_def]) 1);
 val lemma1 = result();
@@ -136,20 +138,27 @@ Goal "Cli_prg : \
 by (rtac guaranteesI 1);
 by (Clarify_tac 1);
 by (rtac Stable_transient_reachable_LeadsTo 1);
-by (res_inst_tac [("k", "k")] transient_lemma 2);
-by (rtac stable_imp_Stable 1);
-by (dtac (impOfSubs increasing_length) 1);
-by (force_tac (claset(),
-	       simpset() addsimps [increasing_def, 
+  by (res_inst_tac [("k", "k")] transient_lemma 2);
+ by (rtac stable_imp_Stable 1);
+ by (dtac (impOfSubs increasing_length) 1);
+ by (force_tac (claset(),
+ 	        simpset() addsimps [increasing_def, 
 				   stable_def, constrains_def]) 1);
 (** LEVEL 7 **)
-(*         Invariant (Cli_prg Join G)
-              (- {s. k < length (giv s)} Un {s. k < length (rel s)} Un
-               {s. length (giv s) = Suc k &
-                   length (rel s) = k & ask s ! k <= giv s ! k})
+(*
+ 1. !!G. [| Cli_prg Join G : invariant giv_meets_ask;
+            Cli_prg Join G : ask localTo Cli_prg;
+            Cli_prg Join G : increasing giv;
+            Cli_prg Join G : rel localTo Cli_prg |]
+         ==> reachable (Cli_prg Join G)
+             <= - {s. k < length (giv s)} Un {s. k < length (rel s)} Un
+                {s. length (giv s) = Suc k &
+                    length (rel s) = k & ask s ! k <= giv s ! k}
+x
 *)
 by (rtac (make_elim (lemma1 RS guaranteesD)) 1);
-by (Blast_tac 1);
+ by (Blast_tac 1);
 by (auto_tac (claset() addSDs [invariant_includes_reachable],
 	      simpset() addsimps [giv_meets_ask_def]));
+by (ALLGOALS Force_tac);
 qed "client_correct";
