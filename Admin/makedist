@@ -9,40 +9,42 @@
 
 LOGICS="CCL CTT Cube FOL FOLP HOL HOLCF LCF Provers Pure Sequents TFL ZF"
 
-CVSROOT=/usr/proj/isabelle-repository/archive
+export CVSROOT=/usr/proj/isabelle-repository/archive
 DISTPREFIX=~/tmp/isadist
+
+umask 022
+newgrp isabelle
 
 
 ## diagnostics
 
-PRG=$(basename $0)
-THIS=$(cd $(dirname "$0"); echo $PWD)
+PRG=$(basename "$0")
+THIS=$(cd $(dirname "$0"); echo "$PWD")
 
 function usage()
 {
-  echo
-  echo "Usage: $PRG VERSION"
-  echo
+  echo "###"
+  echo "### Usage: $PRG VERSION"
+  echo "###"
   cat <<EOF
   Make Isabelle distribution from the master sources at TUM.
 
-  VERSION may be either a tag like "Isabelle94-XX" that specifies the
+  VERSION may be either a tag like "Isabelle99-XX" that specifies the
   release to be exported from the repository, or "-" to checkout the
-  current sources as an unofficial release.
+  current sources as an unofficial release, or "--" to produce a
+  tentative release from the present copy of the Isabelle repository.
 
   Checklist for official releases (before running this script):
 
     * Check release name and date in NEWS!
     * Check that README files are up to date (should have Id: lines).
     * Check Admin/index.html.
-    * Make sure that encoding info is consistent (fixencoding)!
-    * Check ML_SYSTEM defaults!
 EOF
   #Wicked! We just won't tell other users ...
   if [ $LOGNAME = paulson -o $LOGNAME = nipkow -o $LOGNAME = wenzelm -o $LOGNAME = berghofe ]; then
     cat <<EOF
     * Tag the current repository version, e.g.:
-        cvs -d $CVSROOT rtag Isabelle94-XX isabelle
+        cvs -d $CVSROOT rtag Isabelle99-XX isabelle
       PLEASE DON'T DO THIS UNLESS YOU KNOW WHAT YOU'RE DOING!
 EOF
   fi
@@ -64,7 +66,7 @@ function fail()
 
 ## process command line
 
-[ $# -ne 1 ] && usage
+[ "$#" -ne 1 ] && usage
 
 VERSION="$1"
 shift
@@ -77,45 +79,53 @@ shift
 DATE=$(date "+%d-%b-%Y")
 DISTDATE=$(date "+%B %Y")
 
-if [ "$VERSION" = "-" ]; then
-  DISTNAME=Isabelle_$DATE
+if [ "$VERSION" = "--" ]; then
+  DISTNAME="Isabelle_$DATE_test"
   DISTVERSION="$DISTNAME"
-  EXPORT="checkout -P"
+  EXPORT="$THIS/cvs-copy $THIS/.. $DISTNAME"
+  UNOFFICIAL=""
+elif [ "$VERSION" = "-" ]; then
+  DISTNAME="Isabelle_$DATE"
+  DISTVERSION="$DISTNAME"
+  EXPORT="cvs -f -q checkout -P -d $DISTNAME isabelle"
   UNOFFICIAL=true
 else
   DISTNAME="$VERSION"
   DISTVERSION="$DISTNAME: $DISTDATE"
-  EXPORT="export -r $VERSION"
+  EXPORT="cvs -f -q export -r $VERSION -d $DISTNAME isabelle"
   UNOFFICIAL=""
 fi
 
-DISTBASE=$DISTPREFIX/dist-$DISTNAME
-mkdir -p $DISTBASE || fail "Unable to create distribution base dir $DISTBASE!"
-[ -e $DISTBASE/$DISTNAME ] && fail "$DISTBASE/$DISTNAME already exists!"
-[ -e $DISTBASE/pdf/$DISTNAME ] && fail "$DISTBASE/pdf/$DISTNAME already exists!"
+DISTBASE="$DISTPREFIX/dist-$DISTNAME"
+mkdir -p "$DISTBASE" || fail "Unable to create distribution base dir $DISTBASE!"
+[ -e "$DISTBASE/$DISTNAME" ] && fail "$DISTBASE/$DISTNAME already exists!"
+[ -e "$DISTBASE/pdf/$DISTNAME" ] && fail "$DISTBASE/pdf/$DISTNAME already exists!"
 
 
-# export from repository
+# export repository
 
-echo
-echo "Exporting $DISTNAME from repository. Please be patient ..."
-echo
+echo "###"
+echo "### Exporting $DISTNAME ..."
+echo "###"
 
-cd $DISTBASE
+cd "$DISTBASE"
 
-export CVSROOT
-cvs -f -q $EXPORT -d $DISTNAME isabelle
+$EXPORT
 find . -name CVS -exec rm -rf {} \;
 
 
-# make docs
+# build docs
 
-cd $DISTBASE/$DISTNAME/Doc
+echo "###"
+echo "### Building docs ..."
+echo "###"
+
+cd "$DISTBASE/$DISTNAME/Doc"
 PDFLATEX=$(type -path pdflatex)
 
 for DOC in $(cat Contents)
 do
-  cd $DOC
+  cd "$DOC"
   make dvi
   [ -n "$PDFLATEX" ] && make clean pdf
   cd ..
@@ -124,13 +134,14 @@ done
 
 # make WWW pages
 
-export DISTNAME
-(cd $DISTBASE/$DISTNAME/Admin/page; make clean; make dist; cd dist; cp * $DISTBASE)
+#FIXME
+#export DISTNAME
+#( cd "$DISTBASE/$DISTNAME/Admin/page"; make clean; make dist; cd dist; cp * "$DISTBASE"; )
 
 
 # prepare dist dir for release
 
-cd $DISTBASE/$DISTNAME
+cd "$DISTBASE/$DISTNAME"
 
 MOVE=$(find Doc \( -type f -a \( -name \*.dvi -o -name \*.eps -o -name \*.ps -o -name \*.pdf \) -a -print \) | grep -v 'gfx/.*pdf')
 mv -f $MOVE Distribution/doc
@@ -170,38 +181,44 @@ rm -rf Admin
 
 # create archive
 
-cd $DISTBASE
+echo "###"
+echo "### Creating archives ..."
+echo "###"
 
-chown -R $LOGNAME:isabelle $DISTNAME
-chmod -R u+w $DISTNAME
+cd "$DISTBASE"
+
+chown -R "$LOGNAME" "$DISTNAME"
+chgrp -R isabelle "$DISTNAME"
+chmod -R u+w "$DISTNAME"
+chmod -R g=o "$DISTNAME"
 
 TAR=tar
 type -path gtar >/dev/null && TAR=gtar
 
-mkdir -p pdf/$DISTNAME/doc
-mv $DISTNAME/doc/*.pdf pdf/$DISTNAME/doc
+mkdir -p "pdf/$DISTNAME/doc"
+mv "$DISTNAME/doc/"*.pdf "pdf/$DISTNAME/doc"
 
-$TAR cf $DISTNAME.tar $DISTNAME
-( cd pdf; $TAR cf ../${DISTNAME}_pdf.tar $DISTNAME; )
+"$TAR" cf "$DISTNAME.tar" "$DISTNAME"
+( cd pdf; "$TAR" cf "../${DISTNAME}_pdf.tar" "$DISTNAME"; )
 
-mv pdf/$DISTNAME/doc/*.pdf $DISTNAME/doc
-rmdir pdf/$DISTNAME/doc pdf/$DISTNAME pdf
+mv "pdf/$DISTNAME/doc/"*.pdf "$DISTNAME/doc"
+rmdir "pdf/$DISTNAME/doc" "pdf/$DISTNAME" pdf
 
-gzip $DISTNAME.tar
-gzip ${DISTNAME}_pdf.tar
+gzip "$DISTNAME.tar"
+gzip "${DISTNAME}_pdf.tar"
 
 
 # cleanup dist
 
-mv $DISTNAME ${DISTNAME}-old
-mkdir $DISTNAME
+mv "$DISTNAME" "${DISTNAME}-old"
+mkdir "$DISTNAME"
 
-mv ${DISTNAME}-old/lib/logo/isabelle.gif .
-mv ${DISTNAME}-old/README.html ${DISTNAME}-old/INSTALL $DISTNAME
-mkdir $DISTNAME/doc && \
-  mv ${DISTNAME}-old/doc/*.pdf ${DISTNAME}-old/doc/Contents $DISTNAME/doc
+mv "${DISTNAME}-old/lib/logo/isabelle.gif" .
+mv "${DISTNAME}-old/README.html" "${DISTNAME}-old/INSTALL" "$DISTNAME"
+mkdir "$DISTNAME/doc"
+mv "${DISTNAME}-old/doc/"*.pdf "${DISTNAME}-old/doc/Contents" "$DISTNAME/doc"
 
-rm -rf ${DISTNAME}-old
+rm -rf "${DISTNAME}-old"
 
 
 # prepare web pages
@@ -212,6 +229,6 @@ rm -rf ${DISTNAME}-old
 
 # final note
 
-echo
-echo "That's it. You'll find the distribution in $DISTBASE."
-echo
+echo "###"
+echo "### Finished. You will find the distribution in $DISTBASE."
+echo "###"
