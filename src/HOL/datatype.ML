@@ -138,6 +138,9 @@ fun trans_recs _ _ [] = error("No primrec equations.")
 in
   fun add_datatype (typevars, tname, cons_list') thy = 
     let
+      val dummy = if length cons_list' < dtK then ()
+                  else require_thy thy "Nat" "datatype";
+      
       fun typid(dtRek(_,id)) = id
         | typid(dtVar s) = implode (tl (explode s))
         | typid(dtTyp(_,id)) = id;

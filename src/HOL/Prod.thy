@@ -79,14 +79,13 @@ defs
 
 (** unit **)
 
-typedef (Unit)
-  unit = "{p. p = True}"
+typedef  unit = "{p. p = True}"
 
 consts
   "()"          :: unit                           ("'(')")
 
 defs
-  Unity_def     "() == Abs_Unit True"
+  Unity_def     "() == Abs_unit True"
 
 end
 
