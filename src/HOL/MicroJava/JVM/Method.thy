@@ -40,7 +40,7 @@ consts
 primrec
   "exec_mr Return stk0 frs =
 	(if frs=[] then []
-         else let val = hd stk0; (stk,loc,cn,met,pc) = hd frs
-	      in (val#stk,loc,cn,met,pc)#tl frs)"
+         else let val = hd stk0; (stk,loc,C,sig,pc) = hd frs
+	      in (val#stk,loc,C,sig,pc)#tl frs)"
 
 end

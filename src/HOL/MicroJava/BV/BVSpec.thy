@@ -188,10 +188,10 @@ constdefs
 
 
  wt_method :: "[jvm_prog,cname,ty list,ty,nat,instr list,method_type] \\<Rightarrow> bool"
- "wt_method G cn pTs rT mxl ins phi \\<equiv>
+ "wt_method G C pTs rT mxl ins phi \\<equiv>
 	let max_pc = length ins
         in
-	0 < max_pc \\<and> wt_start G cn pTs mxl phi \\<and> 
+	0 < max_pc \\<and> wt_start G C pTs mxl phi \\<and> 
 	(\\<forall>pc. pc<max_pc \\<longrightarrow> wt_instr (ins ! pc) G rT phi max_pc pc)"
 
  wt_jvm_prog :: "[jvm_prog,prog_type] \\<Rightarrow> bool"

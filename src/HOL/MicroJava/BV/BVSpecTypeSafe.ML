@@ -607,8 +607,8 @@ qed_spec_mp "BV_correct";
 
 
 Goal
-"\\<lbrakk> wt_jvm_prog G phi; G \\<turnstile> s0 -jvm\\<rightarrow> (None,hp,(stk,loc,cn,sig,pc)#frs); G,phi \\<turnstile>JVM s0 \\<surd>\\<rbrakk> \
-\ \\<Longrightarrow>  approx_stk G hp stk (fst (((phi  cn)  sig) ! pc)) \\<and> approx_loc G hp loc (snd (((phi  cn)  sig) ! pc)) ";
+"\\<lbrakk> wt_jvm_prog G phi; G \\<turnstile> s0 -jvm\\<rightarrow> (None,hp,(stk,loc,C,sig,pc)#frs); G,phi \\<turnstile>JVM s0 \\<surd>\\<rbrakk> \
+\ \\<Longrightarrow>  approx_stk G hp stk (fst (((phi  C)  sig) ! pc)) \\<and> approx_loc G hp loc (snd (((phi  C)  sig) ! pc)) ";
 bd BV_correct 1;
 ba 1;
 ba 1;
