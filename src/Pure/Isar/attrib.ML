@@ -33,8 +33,6 @@ sig
   val syntax: ('a * Args.T list -> 'a attribute * ('a * Args.T list)) -> Args.src -> 'a attribute
   val no_args: 'a attribute -> Args.src -> 'a attribute
   val add_del_args: 'a attribute -> 'a attribute -> Args.src -> 'a attribute
-  val read_inst': string option list * string option list -> ProofContext.context -> thm -> thm
-  val insts': Args.T list -> (string option list * string option list) * Args.T list
   val setup: (theory -> theory) list
 end;
 
@@ -250,8 +248,6 @@ fun read_instantiate' _ ([], []) _ thm = thm
         |> read_instantiate context_of insts x
         |> RuleCases.save thm
       end;
-
-val read_inst' = read_instantiate' I;
 
 val concl = Args.$$$ "concl" -- Args.colon;
 val inst_arg = Scan.unless concl Args.name_dummy;
