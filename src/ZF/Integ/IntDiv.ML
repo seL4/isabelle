@@ -57,14 +57,14 @@ by (rtac (zle_zdiff_iff RS iffD1) 1);
 by Auto_tac;
 qed "zneg_or_0_add_zneg_or_0_imp_zneg_or_0";
 
-
 Goal "[| #0 $< k; k \\<in> int |] ==> 0 < zmagnitude(k)";
 by (dtac zero_zless_imp_znegative_zminus 1);
 by (dtac zneg_int_of 2);
 by (auto_tac (claset(), simpset() addsimps [inst "x" "k" zminus_equation]));  
 by (subgoal_tac "0 < zmagnitude($# succ(x))" 1);
 by (Asm_full_simp_tac 1);
-by (asm_full_simp_tac (simpset_of Arith.thy addsimps [zmagnitude_int_of]) 1);
+by (asm_full_simp_tac (FOL_ss addsimps [zmagnitude_int_of]) 1);
+by (Asm_full_simp_tac 1); 
 qed "zero_lt_zmagnitude";
 
 

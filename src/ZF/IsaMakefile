@@ -28,7 +28,7 @@ ZF: FOL $(OUT)/ZF
 FOL:
 	@cd $(SRC)/FOL; $(ISATOOL) make FOL
 
-$(OUT)/ZF: $(OUT)/FOL AC.thy Arith.ML Arith.thy ArithSimp.ML	\
+$(OUT)/ZF: $(OUT)/FOL AC.thy Arith.thy ArithSimp.ML	\
   ArithSimp.thy Bool.ML Bool.thy Cardinal.ML Cardinal.thy		\
   CardinalArith.ML CardinalArith.thy Cardinal_AC.thy \
   Datatype.ML Datatype.thy Epsilon.ML Epsilon.thy Finite.ML Finite.thy	\
@@ -45,9 +45,9 @@ $(OUT)/ZF: $(OUT)/FOL AC.thy Arith.ML Arith.thy ArithSimp.ML	\
   Sum.thy Tools/cartprod.ML Tools/datatype_package.ML			\
   Tools/ind_cases.ML Tools/induct_tacs.ML Tools/inductive_package.ML	\
   Tools/numeral_syntax.ML Tools/primrec_package.ML Tools/typechk.ML	\
-  Trancl.ML Trancl.thy Univ.ML Univ.thy Update.ML Update.thy WF.ML	\
+  Trancl.ML Trancl.thy Univ.thy Update.ML Update.thy WF.ML	\
   WF.thy ZF.ML ZF.thy Zorn.thy arith_data.ML domrange.ML	\
-  domrange.thy equalities.ML equalities.thy func.ML func.thy		\
+  domrange.thy equalities.ML equalities.thy func.thy		\
   ind_syntax.ML mono.ML mono.thy pair.ML pair.thy simpdata.ML		\
   subset.ML subset.thy thy_syntax.ML upair.ML upair.thy
 	@$(ISATOOL) usedir -b -r $(OUT)/FOL ZF

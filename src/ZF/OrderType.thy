@@ -180,8 +180,7 @@ done
 lemma ordermap_mono:
      "[| <w,x>: r;  wf[A](r);  w: A; x: A |]
       ==> ordermap(A,r)`w : ordermap(A,r)`x"
-apply (erule_tac x1 = x in ordermap_unfold [THEN ssubst], assumption)
-apply blast
+apply (erule_tac x1 = x in ordermap_unfold [THEN ssubst], assumption, blast)
 done
 
 (*linearity of r is crucial here*)
