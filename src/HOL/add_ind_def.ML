@@ -47,7 +47,7 @@ signature ADD_INDUCTIVE_DEF =
 (*Declares functions to add fixedpoint/constructor defs to a theory*)
 functor Add_inductive_def_Fun (Fp: FP) : ADD_INDUCTIVE_DEF =
 struct
-open Logic Ind_Syntax;
+open Ind_Syntax;
 
 (*internal version*)
 fun add_fp_def_i (rec_tms, intr_tms) thy = 
@@ -91,7 +91,7 @@ fun add_fp_def_i (rec_tms, intr_tms) thy =
     val domTs = summands (dest_setT (body_type recT));
 	        (*alternative defn: map (dest_setT o fastype_of) rec_tms *)
     val dom_sumT = fold_bal mk_sum domTs;
-    val dom_set   = mk_setT dom_sumT;
+    val dom_set  = mk_setT dom_sumT;
 
     val freez   = Free(z, dom_sumT)
     and freeX   = Free(X, dom_set);
@@ -103,7 +103,7 @@ fun add_fp_def_i (rec_tms, intr_tms) thy =
 
     (*Makes a disjunct from an introduction rule*)
     fun lfp_part intr = (*quantify over rule's free vars except parameters*)
-      let val prems = map dest_tprop (strip_imp_prems intr)
+      let val prems = map dest_tprop (Logic.strip_imp_prems intr)
 	  val _ = seq (fn rec_hd => seq (chk_prem rec_hd) prems) rec_hds
 	  val exfrees = term_frees intr \\ rec_params
 	  val zeq = eq_const dom_sumT $ freez $ (#1 (rule_concl intr))
@@ -129,9 +129,6 @@ fun add_fp_def_i (rec_tms, intr_tms) thy =
 			  mk_Collect(z, dom_sumT, 
 				     fold_bal (app disj) part_intrs))
 
-    val _ = seq (fn rec_hd => deny (rec_hd occs lfp_rhs) 
-			       "Illegal occurrence of recursion operator")
-	     rec_hds;
 
     (*** Make the new theory ***)
 
@@ -153,6 +150,12 @@ fun add_fp_def_i (rec_tms, intr_tms) thy =
 
     val _ = seq (writeln o Sign.string_of_term sign o #2) axpairs
   
+    (*Detect occurrences of operator, even with other types!*)
+    val _ = (case rec_names inter (add_term_names (lfp_rhs,[])) of
+	       [] => ()
+	     | x::_ => error ("Illegal occurrence of recursion op: " ^ x ^
+                               "\n\t*Consider adding type constraints*"))
+
   in  thy |> add_defs_i axpairs  end
 
 
