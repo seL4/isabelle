@@ -905,12 +905,39 @@ fun transitive_closure [] = []
       in (x, zs) :: map step qs end;
 
 
+(** Recommended by Stephen K. Park and Keith W. Miller, 
+      Random number generators: good ones are hard to find,
+      CACM 31 (1988), 1192-1201. 
+    Real number version for systems with 46-bit mantissae
+    Computes  (a*seed) mod m ;  should be applied to integers only! **)
+local val a = 16807.0  and  m = 2147483647.0
+in  fun nextrandom seed =
+          let val t = a*seed
+          in  t - m * real(floor(t/m))  end
+end;
+
 (* generating identifiers *)
 
 local
   val a = ord "a" and z = ord "z" and A = ord "A" and Z = ord "Z"
   and k0 = ord "0" and k9 = ord "9"
+
+  val seedr = ref 10000.0;
 in
+
+(*Maps 0-63 to A-Z, a-z, 0-9 or _ or ' for generating random identifiers*)
+fun newid n = 
+  let fun char i =
+               if i<26 then chr (A+i)
+          else if i<52 then chr (a+i-26)
+          else if i<62 then chr (k0+i-52)
+          else if i=62 then "_"
+          else  (*i=63*)    "'"
+  in  implode (map char (radixpand (64,n)))  end;
+
+(*Randomly generated identifiers with given prefix; MUST start with a letter*)
+fun gensym pre = pre ^ 
+                 (#1(newid (floor (!seedr)), seedr := nextrandom (!seedr)))
 
 (*Increment a list of letters like a reversed base 26 number.
   If head is "z", bumps chars in tail.
