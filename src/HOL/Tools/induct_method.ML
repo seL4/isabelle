@@ -29,7 +29,7 @@ val kind =
 
 (* induct_rule *)
 
-fun kind_rule Type = (#induction oo DatatypePackage.datatype_info, Sign.intern_tycon)
+fun kind_rule Type = (#induction oo DatatypePackage.datatype_info_err, Sign.intern_tycon)
   | kind_rule Set = ((#induct o #2) oo InductivePackage.get_inductive, Sign.intern_const)
   | kind_rule Function = (#induct oo RecdefPackage.get_recdef, Sign.intern_const);
 
