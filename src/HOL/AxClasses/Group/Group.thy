@@ -3,7 +3,7 @@
     Author:     Markus Wenzel, TU Muenchen
 *)
 
-Group = Sigs + Set +
+Group = Sigs + Fun +
 
 (* semigroups *)
 
@@ -15,9 +15,9 @@ axclass
 (* groups *)
 
 axclass
-  group < one, inv, semigroup
+  group < one, inverse, semigroup
   left_unit     "1 * x = x"
-  left_inv      "inv x * x = 1"
+  left_inverse  "inverse x * x = 1"
 
 
 (* abelian groups *)

@@ -11,36 +11,36 @@ GroupInsts = GroupDefs +
 (* bool *)
 
 instance
-  bool :: semigroup                     (bool_assoc)
+  bool :: semigroup              (bool_assoc)
 instance
-  bool :: monoid                        (bool_assoc, bool_left_unit, bool_right_unit)
+  bool :: monoid                 (bool_assoc, bool_left_unit, bool_right_unit)
 instance
-  bool :: group                         (bool_left_unit, bool_left_inv)
+  bool :: group                  (bool_left_unit, bool_left_inverse)
 instance
-  bool :: agroup                        (bool_commut)
+  bool :: agroup                 (bool_commut)
 
 
 (* cartesian products *)
 
 instance
-  "*" :: (semigroup, semigroup) semigroup       (prod_assoc)
+  "*" :: (semigroup, semigroup) semigroup   (prod_assoc)
 instance
-  "*" :: (monoid, monoid) monoid                (prod_assoc, prod_left_unit, prod_right_unit)
+  "*" :: (monoid, monoid) monoid  (prod_assoc, prod_left_unit, prod_right_unit)
 instance
-  "*" :: (group, group) group                   (prod_left_unit, prod_left_inv)
+  "*" :: (group, group) group               (prod_left_unit, prod_left_inverse)
 instance
-  "*" :: (agroup, agroup) agroup                (prod_commut)
+  "*" :: (agroup, agroup) agroup            (prod_commut)
 
 
 (* function spaces *)
 
 instance
-  fun :: (term, semigroup) semigroup            (fun_assoc)
+  fun :: (term, semigroup) semigroup        (fun_assoc)
 instance
-  fun :: (term, monoid) monoid                  (fun_assoc, fun_left_unit, fun_right_unit)
+  fun :: (term, monoid) monoid       (fun_assoc, fun_left_unit, fun_right_unit)
 instance
-  fun :: (term, group) group                    (fun_left_unit, fun_left_inv)
+  fun :: (term, group) group                (fun_left_unit, fun_left_inverse)
 instance
-  fun :: (term, agroup) agroup                  (fun_commut)
+  fun :: (term, agroup) agroup              (fun_commut)
 
 end

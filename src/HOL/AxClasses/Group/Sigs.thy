@@ -6,13 +6,13 @@
 Sigs = HOL +
 
 axclass
-  inv < term
+  inverse < term
 
 axclass
   one < term
 
 consts
-  "inv" :: "'a::inv => 'a"
-  "1"   :: "'a::one"                    ("1")
+  inverse :: 'a::inverse => 'a
+  "1"     :: 'a::one                    ("1")
 
 end

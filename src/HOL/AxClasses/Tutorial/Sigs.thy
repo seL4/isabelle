@@ -9,7 +9,7 @@ Sigs = HOL +
 
 consts
   "<*>"         :: "['a, 'a] => 'a"             (infixl 70)
-  "inv"         :: "'a => 'a"
+  inverse       :: "'a => 'a"
   "1"           :: "'a"                         ("1")
 
 end

@@ -19,7 +19,7 @@ axclass
 axclass
   group < semigroup
   left_unit     "1 <*> x = x"
-  left_inv      "inv x <*> x = 1"
+  left_inverse  "inverse x <*> x = 1"
 
 
 (* abelian groups *)
