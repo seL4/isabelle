@@ -138,6 +138,8 @@ rmdir Distribution
 
 ( cd lib/browser; make; )
 
+cp doc/isabelle*.eps lib/logo
+
 
 if [ -n "$UNOFFICIAL" ]; then
   {
