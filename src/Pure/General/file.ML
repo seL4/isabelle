@@ -19,6 +19,7 @@ sig
   val read: Path.T -> string
   val write: Path.T -> string -> unit
   val append: Path.T -> string -> unit
+  val system_command: string -> unit
   val copy: Path.T -> Path.T -> unit
   eqtype info
   val info: Path.T -> info option
