@@ -24,12 +24,17 @@ structure P = OuterParse;
 (* scan header *)
 
 fun scan_header get_lex scan (src, pos) =
-  src
-  |> Symbol.source false
-  |> T.source false (fn () => (get_lex (), Scan.empty_lexicon)) pos
-  |> T.source_proper
-  |> Source.source T.stopper (Scan.single scan) None
-  |> (fst o the o Source.get_single);
+  let val res =
+    src
+    |> Symbol.source false
+    |> T.source false (fn () => (get_lex (), Scan.empty_lexicon)) pos
+    |> T.source_proper
+    |> Source.source T.stopper (Scan.single scan) None
+    |> Source.get_single;
+  in
+    (case res of Some (x, _) => x
+    | None => error ("Unexpected end of input" ^ Position.str_of pos))
+  end;
 
 
 (* keywords *)
