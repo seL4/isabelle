@@ -43,6 +43,10 @@ Goalw [lessThan_def, atLeast_def, le_def]
 by (Blast_tac 1);
 qed "Compl_lessThan";
 
+Goal "{k} - lessThan k = {k}";
+by (Blast_tac 1);
+qed "single_Diff_lessThan";
+Addsimps [single_Diff_lessThan];
 
 (*** greaterThan ***)
 
