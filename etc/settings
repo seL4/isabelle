@@ -32,7 +32,7 @@ if [ -n "$POLYML_HOME" -a -e "$POLYML_HOME/bin/polyml-version" ]; then
 elif [ -e /usr/bin/poly -a -e /usr/lib/poly ]; then
   # maybe a shrink-wrapped polyml on x86-linux ...
 
-  # Poly/ML 3.x, 4.0, 4.1, 4.1.x
+  # Poly/ML 4.0, 4.1, 4.1.x
   # include version number, needed for choosing right options
   ML_SYSTEM=polyml-4.1.3    
   # processor/OS type
