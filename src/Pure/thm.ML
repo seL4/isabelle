@@ -440,28 +440,36 @@ fun add_ctyp ((v,ctyp), (sign',vTs)) =
   let val {T,sign} = Sign.rep_ctyp ctyp
   in (Sign.merge(sign,sign'), (v,T)::vTs) end;
 
-fun duplicates t = findrep (map (#1 o dest_Var) (term_vars t));
-
 (*Left-to-right replacements: ctpairs = [...,(vi,ti),...].
   Instantiates distinct Vars by terms of same type.
   Normalizes the new theorem! *)
 fun instantiate (vcTs,ctpairs)  (th as Thm{sign,maxidx,hyps,prop}) = 
   let val (newsign,tpairs) = foldr add_ctpair (ctpairs, (sign,[]));
       val (newsign,vTs) = foldr add_ctyp (vcTs, (newsign,[]));
-      val prop = Type.inst_term_tvars(#tsig(Sign.rep_sg newsign),vTs) prop;
-      val newprop = Envir.norm_term (Envir.empty 0) (subst_atomic tpairs prop)
+      val newprop = 
+	    Envir.norm_term (Envir.empty 0) 
+	      (subst_atomic tpairs 
+	       (Type.inst_term_tvars(#tsig(Sign.rep_sg newsign),vTs) prop))
       val newth = Thm{sign= newsign, hyps= hyps,
 		      maxidx= maxidx_of_term newprop, prop= newprop}
-  in  if not(instl_ok(map #1 tpairs)) orelse not(null(findrep(map #1 vTs)))
-      then raise THM("instantiate: not distinct Vars", 0, [th])
-      else case duplicates newprop of
-	     [] => newth
-	   | ix::_ => raise THM("instantiate: conflicting types for " ^
-				Syntax.string_of_vname ix ^ "\n", 0, [newth])
+  in  if not(instl_ok(map #1 tpairs)) 
+      then raise THM("instantiate: variables not distinct", 0, [th])
+      else if not(null(findrep(map #1 vTs)))
+      then raise THM("instantiate: type variables not distinct", 0, [th])
+      else (*Check types of Vars for agreement*)
+      case findrep (map (#1 o dest_Var) (term_vars newprop)) of
+	  ix::_ => raise THM("instantiate: conflicting types for variable " ^
+			     Syntax.string_of_vname ix ^ "\n", 0, [newth])
+	| [] => 
+	     case findrep (map #1 (term_tvars newprop)) of
+	     ix::_ => raise THM
+		    ("instantiate: conflicting sorts for type variable " ^
+		     Syntax.string_of_vname ix ^ "\n", 0, [newth])
+        | [] => newth
   end
   handle TERM _ => 
            raise THM("instantiate: incompatible signatures",0,[th])
-       | TYPE _ => raise THM("instantiate: types", 0, [th]);
+       | TYPE _ => raise THM("instantiate: type conflict", 0, [th]);
 
 
 (*The trivial implication A==>A, justified by assume and forall rules.
