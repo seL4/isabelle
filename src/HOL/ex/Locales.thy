@@ -1,6 +1,6 @@
 (*  Title:      HOL/ex/Locales.thy
     ID:         $Id$
-    Author:     Markus Wenzel, LMU Muenchen
+    Author:     Markus Wenzel, LMU München
     License:    GPL (GNU GENERAL PUBLIC LICENSE)
 *)
 
@@ -18,7 +18,7 @@ subsection {* Overview *}
 
 text {*
   Locales provide a mechanism for encapsulating local contexts.  The
-  original version due to Florian Kamm\"uller \cite{Kamm-et-al:1999}
+  original version due to Florian Kammüller \cite{Kamm-et-al:1999}
   refers directly to the raw meta-logic of Isabelle.  Semantically, a
   locale is just a (curried) predicate of the pure meta-logic
   \cite{Paulson:1989}.
@@ -94,7 +94,7 @@ text {*
   shown here.
 *}
 
-locale group =
+locale group_context =
   fixes prod :: "'a \<Rightarrow> 'a \<Rightarrow> 'a"    (infixl "\<cdot>" 70)
     and inv :: "'a \<Rightarrow> 'a"    ("(_\<inv>)" [1000] 999)
     and one :: 'a    ("\<one>")
@@ -102,7 +102,7 @@ locale group =
     and left_inv: "x\<inv> \<cdot> x = \<one>"
     and left_one: "\<one> \<cdot> x = x"
 
-locale abelian_group = group +
+locale abelian_group_context = group_context +
   assumes commute: "x \<cdot> y = y \<cdot> x"
 
 text {*
@@ -112,7 +112,7 @@ text {*
   locale; a second copy is exported to the enclosing theory context.
 *}
 
-theorem (in group)
+theorem (in group_context)
   right_inv: "x \<cdot> x\<inv> = \<one>"
 proof -
   have "x \<cdot> x\<inv> = \<one> \<cdot> (x \<cdot> x\<inv>)" by (simp only: left_one)
@@ -126,7 +126,7 @@ proof -
   finally show ?thesis .
 qed
 
-theorem (in group)
+theorem (in group_context)
   right_one: "x \<cdot> \<one> = x"
 proof -
   have "x \<cdot> \<one> = x \<cdot> (x\<inv> \<cdot> x)" by (simp only: left_inv)
@@ -142,7 +142,7 @@ text {*
   these are discharged when the proof is finished.
 *}
 
-theorem (in group)
+theorem (in group_context)
   (assumes eq: "e \<cdot> x = x")
   one_equality: "\<one> = e"
 proof -
@@ -154,7 +154,7 @@ proof -
   finally show ?thesis .
 qed
 
-theorem (in group)
+theorem (in group_context)
   (assumes eq: "x' \<cdot> x = \<one>")
   inv_equality: "x\<inv> = x'"
 proof -
@@ -166,7 +166,7 @@ proof -
   finally show ?thesis .
 qed
 
-theorem (in group)
+theorem (in group_context)
   inv_prod: "(x \<cdot> y)\<inv> = y\<inv> \<cdot> x\<inv>"
 proof (rule inv_equality)
   show "(y\<inv> \<cdot> x\<inv>) \<cdot> (x \<cdot> y) = \<one>"
@@ -186,7 +186,7 @@ text {*
   group} and the additional assumption of @{text abelian_group}.
 *}
 
-theorem (in abelian_group)
+theorem (in abelian_group_context)
   inv_prod': "(x \<cdot> y)\<inv> = x\<inv> \<cdot> y\<inv>"
 proof -
   have "(x \<cdot> y)\<inv> = y\<inv> \<cdot> x\<inv>" by (rule inv_prod)
@@ -207,13 +207,13 @@ text {*
   follow.
 *}
 
-theorem (in group)
+theorem (in group_context)
   inv_inv: "(x\<inv>)\<inv> = x"
 proof (rule inv_equality)
   show "x \<cdot> x\<inv> = \<one>" by (simp only: right_inv)
 qed
 
-theorem (in group)
+theorem (in group_context)
   (assumes eq: "x\<inv> = y\<inv>")
   inv_inject: "x = y"
 proof -
@@ -263,7 +263,7 @@ record 'a group = "'a semigroup" +
 
 text {*
   The mixfix annotations above include a special ``structure index
-  indicator'' @{text \<index>} that makes grammer productions dependent on
+  indicator'' @{text \<index>} that makes gammer productions dependent on
   certain parameters that have been declared as ``structure'' in a
   locale context later on.  Thus we achieve casual notation as
   encountered in informal mathematics, e.g.\ @{text "x \<cdot> y"} for
@@ -275,11 +275,11 @@ text {*
   internally.
 *}
 
-locale semigroup_struct =
+locale semigroup =
   fixes S :: "'a group"    (structure)
   assumes assoc: "(x \<cdot> y) \<cdot> z = x \<cdot> (y \<cdot> z)"
 
-locale group_struct = semigroup_struct G +
+locale group = semigroup G +
   assumes left_inv: "x\<inv> \<cdot> x = \<one>"
     and left_one: "\<one> \<cdot> x = x"
 
@@ -294,13 +294,12 @@ text {*
   of locale facts will get qualified accordingly, e.g. @{text S.assoc}
   versus @{text G.assoc}.
 
-  \medskip We may now proceed to prove results within @{text
-  group_struct} just as before for @{text group}.  The subsequent
-  proof texts are exactly the same as despite the more advanced
-  internal arrangement.
+  \medskip We may now proceed to prove results within @{text group}
+  just as before for @{text group}.  The subsequent proof texts are
+  exactly the same as despite the more advanced internal arrangement.
 *}
 
-theorem (in group_struct)
+theorem (in group)
   right_inv: "x \<cdot> x\<inv> = \<one>"
 proof -
   have "x \<cdot> x\<inv> = \<one> \<cdot> (x \<cdot> x\<inv>)" by (simp only: left_one)
@@ -314,7 +313,7 @@ proof -
   finally show ?thesis .
 qed
 
-theorem (in group_struct)
+theorem (in group)
   right_one: "x \<cdot> \<one> = x"
 proof -
   have "x \<cdot> \<one> = x \<cdot> (x\<inv> \<cdot> x)" by (simp only: left_inv)
@@ -325,28 +324,26 @@ proof -
 qed
 
 text {*
-  FIXME
-  \medskip Several implicit structures may be active at the same time
-  (say up to 3 in practice).  The concrete syntax facility for locales
-  actually maintains indexed dummies @{text "\<struct>\<^sub>1"}, @{text
-  "\<struct>\<^sub>2"}, @{text "\<struct>\<^sub>3"}, \dots (@{text \<struct>} is the same as
-  @{text "\<struct>\<^sub>1"}).  So we are able to provide concrete syntax to
-  cover the 2nd and 3rd group structure as well.
+  \medskip Several implicit structures may be active at the same time.
+  The concrete syntax facility for locales actually maintains indexed
+  structures that may be references implicitly --- via mixfix
+  annotations that have been decorated by an ``index argument''
+  (@{text \<index>}).
 
-  \medskip The following synthetic example demonstrates how to refer
-  to several structures of type @{text group} succinctly; one might
-  also think of working with several renamed versions of the @{text
-  group_struct} locale above.
+  The following synthetic example demonstrates how to refer to several
+  structures of type @{text group} succinctly.  We work with two
+  versions of the @{text group} locale above.
 *}
 
-lemma
-  (fixes G :: "'a group" (structure)
-    and H :: "'a group" (structure))  (* FIXME (uses group_struct G + group_struct H) *)
-  True
-proof
-  have "x \<cdot> y \<cdot> \<one> = prod G (prod G x y) (one G)" ..
-  have "x \<cdot>\<^sub>2 y \<cdot>\<^sub>2 \<one>\<^sub>2 = prod H (prod H x y) (one H)" ..
-  have "x \<cdot> \<one>\<^sub>2 = prod G x (one H)" ..
-qed
+lemma (uses group G + group H)
+  "x \<cdot> y \<cdot> \<one> = prod G (prod G x y) (one G)" and
+  "x \<cdot>\<^sub>2 y \<cdot>\<^sub>2 \<one>\<^sub>2 = prod H (prod H x y) (one H)" and
+  "x \<cdot> \<one>\<^sub>2 = prod G x (one H)" by (rule refl)+
+
+text {*
+  Note that the trivial statements above need to be given as a
+  simultaneous goal in order to have type-inference make the implicit
+  typing of structures @{text G} and @{text H} agree.
+*}
 
 end
