@@ -68,6 +68,20 @@ by (fast_tac (rel_cs addIs prems) 1);
 by (fast_tac (rel_cs addIs prems) 1);
 qed "rtrancl_induct";
 
+val prems = goal Trancl.thy
+ "[| ((a,b),(c,d)) : r^*; P a b; \
+\    !!x y z u.[| ((a,b),(x,y)) : r^*;  ((x,y),(z,u)) : r;  P x y |] ==> P z u\
+\ |] ==> P c d";
+by(res_inst_tac[("R","P")]splitD 1);
+by(res_inst_tac[("P","split P")]rtrancl_induct 1);
+brs prems 1;
+by(Simp_tac 1);
+brs prems 1;
+by(split_all_tac 1);
+by(Asm_full_simp_tac 1);
+by(REPEAT(ares_tac prems 1));
+qed "rtrancl_induct2";
+
 (*transitivity of transitive closure!! -- by induction.*)
 goalw Trancl.thy [trans_def] "trans(r^*)";
 by (safe_tac HOL_cs);
@@ -150,6 +164,28 @@ by (hyp_subst_tac 1);
 by (etac rtrancl_converseD 1);
 qed "rtrancl_converse";
 
+val major::prems = goal Trancl.thy
+    "[| (a,b) : r^*; P(b); \
+\       !!y z.[| (y,z) : r;  (z,b) : r^*;  P(z) |] ==> P(y) |]  \
+\     ==> P(a)";
+br ((major RS converseI RS rtrancl_converseI) RS rtrancl_induct) 1;
+ brs prems 1;
+by(fast_tac (HOL_cs addIs prems addSEs[converseD]addSDs[rtrancl_converseD])1);
+qed "converse_rtrancl_induct";
+
+val prems = goal Trancl.thy
+ "[| ((a,b),(c,d)) : r^*; P c d; \
+\    !!x y z u.[| ((x,y),(z,u)) : r;  ((z,u),(c,d)) : r^*;  P z u |] ==> P x y\
+\ |] ==> P a b";
+by(res_inst_tac[("R","P")]splitD 1);
+by(res_inst_tac[("P","split P")]converse_rtrancl_induct 1);
+brs prems 1;
+by(Simp_tac 1);
+brs prems 1;
+by(split_all_tac 1);
+by(Asm_full_simp_tac 1);
+by(REPEAT(ares_tac prems 1));
+qed "converse_rtrancl_induct2";
 
 
 (**** The relation trancl ****)
