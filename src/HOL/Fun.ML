@@ -64,22 +64,17 @@ qed "UNION_o";
 
 
 section "inj";
+(**NB: inj now just translates to inj_on**)
 
 (*** inj(f): f is a one-to-one function ***)
 
-val prems = Goalw [inj_def]
-    "[| !! x y. f(x) = f(y) ==> x=y |] ==> inj(f)";
-by (blast_tac (claset() addIs prems) 1);
-qed "injI";
+(*for Tools/datatype_rep_proofs*)
+val [prem] = Goalw [inj_on_def]
+    "(!! x. ALL y. f(x) = f(y) --> x=y) ==> inj(f)";
+by (blast_tac (claset() addIs [prem RS spec RS mp]) 1);
+qed "datatype_injI";
 
-val [major] = Goal "(!!x. g(f(x)) = x) ==> inj(f)";
-by (rtac injI 1);
-by (etac (arg_cong RS box_equals) 1);
-by (rtac major 1);
-by (rtac major 1);
-qed "inj_inverseI";
-
-Goalw [inj_def] "[| inj(f); f(x) = f(y) |] ==> x=y";
+Goalw [inj_on_def] "[| inj(f); f(x) = f(y) |] ==> x=y";
 by (Blast_tac 1);
 qed "injD";
 
@@ -116,6 +111,7 @@ val prems = Goalw [inj_on_def]
     "(!! x y. [| f(x) = f(y);  x:A;  y:A |] ==> x=y) ==> inj_on f A";
 by (blast_tac (claset() addIs prems) 1);
 qed "inj_onI";
+val injI = inj_onI;                  (*for compatibility*)
 
 val [major] = Goal 
     "(!!x. x:A ==> g(f(x)) = x) ==> inj_on f A";
@@ -123,6 +119,7 @@ by (rtac inj_onI 1);
 by (etac (apply_inverse RS trans) 1);
 by (REPEAT (eresolve_tac [asm_rl,major] 1));
 qed "inj_on_inverseI";
+val inj_inverseI = inj_on_inverseI;   (*for compatibility*)
 
 Goalw [inj_on_def] "[| inj_on f A;  f(x)=f(y);  x:A;  y:A |] ==> x=y";
 by (Blast_tac 1);
@@ -141,21 +138,17 @@ by (Blast_tac 1);
 qed "subset_inj_on";
 
 
-(*** Lemmas about inj ***)
+(*** Lemmas about injective functions and inv ***)
 
-Goalw [o_def] "[| inj(f);  inj_on g (range f) |] ==> inj(g o f)";
-by (fast_tac (claset() addIs [injI] addEs [injD, inj_onD]) 1);
-qed "comp_inj";
-
-Goal "inj(f) ==> inj_on f A";
-by (blast_tac (claset() addIs [injD, inj_onI]) 1);
-qed "inj_imp";
+Goalw [o_def] "[| inj_on f A;  inj_on g (range f) |] ==> inj_on (g o f) A";
+by (fast_tac (claset() addIs [inj_onI] addEs [inj_onD]) 1);
+qed "comp_inj_on";
 
 Goalw [inv_def] "y : range(f) ==> f(inv f y) = y";
 by (fast_tac (claset() addIs [selectI]) 1);
 qed "f_inv_f";
 
-Goal "[| inv f x=inv f y; x: range(f);  y: range(f) |] ==> x=y";
+Goal "[| inv f x = inv f y;  x: range(f);  y: range(f) |] ==> x=y";
 by (rtac (arg_cong RS box_equals) 1);
 by (REPEAT (ares_tac [f_inv_f] 1));
 qed "inv_injective";
@@ -175,14 +168,13 @@ Goalw [inj_on_def]
 by (Blast_tac 1);
 qed "inj_on_image_set_diff";
 
-Goalw [inj_def] "inj f ==> f``(A Int B) = f``A Int f``B";
+Goalw [inj_on_def] "inj f ==> f``(A Int B) = f``A Int f``B";
 by (Blast_tac 1);
 qed "image_Int";
 
-Goalw [inj_def] "inj f ==> f``(A-B) = f``A - f``B";
+Goalw [inj_on_def] "inj f ==> f``(A-B) = f``A - f``B";
 by (Blast_tac 1);
 qed "image_set_diff";
-
 
 
 val [major] = Goalw [surj_def] "(!! x. g(f x) = x) ==> surj g";

@@ -94,8 +94,8 @@ bind_thm ("Atom_not_Scons", Scons_not_Atom RS not_sym);
 
 (** Atomic nodes **)
 
-Goalw [Atom_def, inj_def] "inj(Atom)";
-by (blast_tac (claset() addSIs [Node_K0_I] addSDs [Abs_Node_inject]) 1);
+Goalw [Atom_def] "inj(Atom)";
+by (blast_tac (claset() addSIs [injI, Node_K0_I] addSDs [Abs_Node_inject]) 1);
 qed "inj_Atom";
 val Atom_inject = inj_Atom RS injD;
 
@@ -367,12 +367,12 @@ qed "In1_eq";
 
 AddIffs [In0_eq, In1_eq];
 
-Goalw [inj_def] "inj In0";
-by (Blast_tac 1);
+Goal "inj In0";
+by (blast_tac (claset() addSIs [injI]) 1);
 qed "inj_In0";
 
-Goalw [inj_def] "inj In1";
-by (Blast_tac 1);
+Goal "inj In1";
+by (blast_tac (claset() addSIs [injI]) 1);
 qed "inj_In1";
 
 

@@ -32,7 +32,6 @@ val (_ $ (_ $ (_ $ (distinct_f $ _) $ _))) = hd (prems_of distinct_lemma);
 
 val image_name = Sign.intern_const (sign_of Set.thy) "op ``";
 val UNIV_name = Sign.intern_const (sign_of Set.thy) "UNIV";
-val inj_name = Sign.intern_const (sign_of Fun.thy) "inj";
 val inj_on_name = Sign.intern_const (sign_of Fun.thy) "inj_on";
 val inv_name = Sign.intern_const (sign_of Fun.thy) "inv";
 
@@ -238,17 +237,25 @@ fun representation_proofs flat_names (dt_info : datatype_info Symtab.table)
         val AbsT = Univ_elT --> T;
         val Abs_name = Sign.intern_const sg ("Abs_" ^ s);
 
-        val inj_on_Abs_thm = prove_goalw_cterm [] (cterm_of sg
-          (HOLogic.mk_Trueprop (Const (inj_on_name, [AbsT, UnivT] ---> HOLogic.boolT) $
-            Const (Abs_name, AbsT) $ Const (rep_set_name, UnivT))))
+        val inj_Abs_thm = 
+	    prove_goalw_cterm [] 
+	      (cterm_of sg
+	       (HOLogic.mk_Trueprop 
+		(Const (inj_on_name, [AbsT, UnivT] ---> HOLogic.boolT) $
+		 Const (Abs_name, AbsT) $ Const (rep_set_name, UnivT))))
               (fn _ => [rtac inj_on_inverseI 1, etac thm1 1]);
 
-        val inj_Rep_thm = prove_goalw_cterm [] (cterm_of sg
-          (HOLogic.mk_Trueprop (Const (inj_name, RepT --> HOLogic.boolT) $
-            Const (Rep_name, RepT))))
+        val setT = HOLogic.mk_setT T
+
+        val inj_Rep_thm =
+	    prove_goalw_cterm []
+	      (cterm_of sg
+	       (HOLogic.mk_Trueprop
+		(Const (inj_on_name, [RepT, setT] ---> HOLogic.boolT) $
+		 Const (Rep_name, RepT) $ Const (UNIV_name, setT))))
               (fn _ => [rtac inj_inverseI 1, rtac thm2 1])
 
-      in (inj_on_Abs_thm, inj_Rep_thm) end;
+      in (inj_Abs_thm, inj_Rep_thm) end;
 
     val newT_iso_inj_thms = map prove_newT_iso_inj_thm
       (new_type_names ~~ newT_iso_axms ~~ newTs ~~
@@ -409,17 +416,20 @@ fun representation_proofs flat_names (dt_info : datatype_info Symtab.table)
                       TRY (hyp_subst_tac 1),
                       rtac refl 1])])])]);
 
-        val inj_thms'' = map (fn r =>
-          r RS (allI RS (inj_def RS meta_eq_to_obj_eq RS iffD2)))
-            (split_conj_thm inj_thm);
+        val inj_thms'' = map (fn r => r RS datatype_injI)
+                             (split_conj_thm inj_thm);
 
-        val elem_thm = prove_goalw_cterm [] (cterm_of (sign_of thy5)
-          (HOLogic.mk_Trueprop (mk_conj ind_concl2))) (fn _ =>
-            [indtac induction 1,
-             rewrite_goals_tac rewrites,
-             REPEAT (EVERY
-               [resolve_tac rep_intrs 1,
-                REPEAT ((atac 1) ORELSE (resolve_tac elem_thms 1))])]);
+        val elem_thm = 
+	    prove_goalw_cterm []
+	      (cterm_of (sign_of thy5)
+	       (HOLogic.mk_Trueprop (mk_conj ind_concl2)))
+	      (fn _ =>
+	       [indtac induction 1,
+		rewrite_goals_tac rewrites,
+		REPEAT (EVERY
+			[resolve_tac rep_intrs 1,
+			 REPEAT ((atac 1) ORELSE
+				 (resolve_tac elem_thms 1))])]);
 
       in (inj_thms @ inj_thms'', elem_thms @ (split_conj_thm elem_thm))
       end;

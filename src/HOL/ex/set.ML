@@ -112,21 +112,13 @@ by (EVERY1[stac surj_iff_full_range, stac range_if_then_else,
 by (Blast_tac 1);
 qed "surj_if_then_else";
 
-val [injf,injg,compl,bij] = 
-goal Lfp.thy
-    "[| inj_on f X;  inj_on g (-X);  -(f``X) = g``(-X); \
-\       bij = (%z. if z:X then f(z) else g(z)) |] ==> \
-\       inj(bij) & surj(bij)";
-val f_eq_gE = make_elim (compl RS disj_lemma);
-by (stac bij 1);
-by (rtac conjI 1);
-by (rtac (compl RS surj_if_then_else) 2);
-by (rewtac inj_def);
-by (cut_facts_tac [injf,injg] 1);
-by (EVERY1 [rtac allI, rtac allI, stac split_if, rtac conjI, stac split_if]);
-by (fast_tac (claset() addEs  [inj_onD, sym RS f_eq_gE]) 1);
-by (stac split_if 1);
-by (fast_tac (claset() addEs  [inj_onD, f_eq_gE]) 1);
+Goalw [inj_on_def]
+     "[| inj_on f X;  inj_on g (-X);  -(f``X) = g``(-X); \
+\        bij = (%z. if z:X then f(z) else g(z)) |]       \
+\     ==> inj(bij) & surj(bij)";
+by (asm_simp_tac (simpset() addsimps [surj_if_then_else]) 1);
+   (*PROOF FAILED if inj_onD*)
+by (blast_tac (claset() addDs [disj_lemma, sym RSN (2,disj_lemma)]) 1);
 qed "bij_if_then_else";
 
 Goal "? X. X = - (g``(- (f``X)))";
@@ -136,12 +128,13 @@ by (REPEAT (ares_tac [monoI, image_mono, Compl_anti_mono] 1));
 qed "decomposition";
 
 val [injf,injg] = goal Lfp.thy 
-   "[| inj(f:: 'a=>'b);  inj(g:: 'b=>'a) |] ==> \
+   "[| inj (f:: 'a=>'b);  inj (g:: 'b=>'a) |] ==> \
 \   ? h:: 'a=>'b. inj(h) & surj(h)";
 by (rtac (decomposition RS exE) 1);
 by (rtac exI 1);
 by (rtac bij_if_then_else 1);
-by (EVERY [rtac refl 4, rtac (injf RS inj_imp) 1,
+by (rtac refl 4);
+by (EVERY [rtac ([subset_UNIV,injf] MRS subset_inj_on) 1,
            rtac (injg RS inj_on_inv) 1]);
 by (EVERY1 [etac ssubst, stac double_complement, rtac subsetI,
             etac imageE, etac ssubst, rtac rangeI]);

@@ -6,8 +6,6 @@
 Set theory for higher-order logic.  A set is simply a predicate.
 *)
 
-open Set;
-
 section "Relating predicates and sets";
 
 Addsimps [Collect_mem_eq];

@@ -10,17 +10,11 @@ Fun = Vimage + equalities +
 
 instance set :: (term) order
                        (subset_refl,subset_trans,subset_antisym,psubset_eq)
-consts
-
-  id          ::  'a => 'a
-  o           :: ['b => 'c, 'a => 'b, 'a] => 'c   (infixl 55)
-  inj, surj   :: ('a => 'b) => bool                   (*inj/surjective*)
-  inj_on      :: ['a => 'b, 'a set] => bool
-  inv         :: ('a => 'b) => ('b => 'a)
-  fun_upd  :: "('a => 'b) => 'a => 'b => ('a => 'b)"
-
 nonterminals
   updbinds  updbind
+
+consts
+  fun_upd  :: "('a => 'b) => 'a => 'b => ('a => 'b)"
 
 syntax
 
@@ -36,15 +30,32 @@ translations
   "f(x:=y)"                     == "fun_upd f x y"
 
 defs
+  fun_upd_def "f(a:=b) == % x. if x=a then b else f x"
 
-  id_def	"id             == %x. x"
-  o_def   	"f o g          == %x. f(g(x))"
-  inj_def	"inj f          == ! x y. f(x)=f(y) --> x=y"
-  inj_on_def	"inj_on f A     == ! x:A. ! y:A. f(x)=f(y) --> x=y"
-  surj_def	"surj f         == ! y. ? x. y=f(x)"
-  inv_def	"inv(f::'a=>'b) == % y. @x. f(x)=y"
-  fun_upd_def	"f(a:=b)        == % x. if x=a then b else f x"
+  
+constdefs
+  id ::  'a => 'a
+    "id == %x. x"
 
+  o  :: ['b => 'c, 'a => 'b, 'a] => 'c   (infixl 55)
+    "f o g == %x. f(g(x))"
+
+  inj_on :: ['a => 'b, 'a set] => bool
+    "inj_on f A == ! x:A. ! y:A. f(x)=f(y) --> x=y"
+
+  surj :: ('a => 'b) => bool                   (*surjective*)
+    "surj f == ! y. ? x. y=f(x)"
+  
+  inv :: ('a => 'b) => ('b => 'a)
+    "inv(f::'a=>'b) == % y. @x. f(x)=y"
+  
+
+
+syntax
+  inj   :: ('a => 'b) => bool                   (*injective*)
+
+translations
+  "inj f" == "inj_on f UNIV"
 
 (*The Pi-operator, by Florian Kammueller*)
   
