@@ -17,7 +17,9 @@ function usage()
   echo "  Options are:"
   echo "    -B           build mode with THIS_IS_ISABELLE_BUILD indication"
   echo "    -P PATH      set path for remote theory browsing information"
+  echo "    -c BOOL      clean document source after build (default true)"
   echo "    -b           build mode (output heap image, using current dir)"
+  echo "    -d FORMAT    build document as FORMAT (default false)"
   echo "    -i BOOL      generate theory browsing information,"
   echo "                 i.e. HTML / graph data (default false)"
   echo "    -r           reset session path"
@@ -37,6 +39,8 @@ function usage()
 # options
 
 BUILD=""
+CLEANDOC=true
+DOCUMENT=false
 INFO=false
 RESET=false
 SESSION=""
@@ -45,7 +49,7 @@ RPATH=""
 function getoptions()
 {
   OPTIND=1
-  while getopts "BP:bi:rs:" OPT
+  while getopts "BP:bc:d:i:rs:" OPT
   do
     case "$OPT" in
       B)
@@ -54,6 +58,12 @@ function getoptions()
         ;;
       b)
         BUILD=true
+        ;;
+      c)
+        CLEANDOC="$OPTARG"
+        ;;
+      d)
+        DOCUMENT="$OPTARG"
         ;;
       i)
         INFO="$OPTARG"
@@ -119,9 +129,16 @@ mkdir -p "$LOGDIR"
 
 # run isabelle
 
-SECONDS=0
-
 PARENT=$(basename "$LOGIC")
+
+[ -z "$BUILD" ] && cd "$NAME"
+
+if [ "$DOCUMENT" != false -a -d document -a -f document/root.tex ]
+then DOC="$DOCUMENT"
+else DOC=""; fi
+
+
+SECONDS=0
 
 if [ -n "$BUILD" ]; then
   ITEM="$SESSION"
@@ -129,7 +146,7 @@ if [ -n "$BUILD" ]; then
   LOG="$LOGDIR/$ITEM"
 
   $ISABELLE \
-    -e "Session.use_dir $RESET $INFO \"$PARENT\" \"$SESSION\" \"$RPATH\";" \
+    -e "Session.use_dir $RESET $INFO \"$DOC\" \"$PARENT\" \"$SESSION\" \"$RPATH\";" \
     -q -w $LOGIC $NAME > $LOG 2>&1
   RC=$?
 else
@@ -137,9 +154,8 @@ else
   echo "Running $ITEM ..."
   LOG="$LOGDIR/$ITEM"
 
-  cd "$NAME"
   $ISABELLE \
-    -e "Session.use_dir $RESET $INFO \"$PARENT\" \"$SESSION\" \"$RPATH\"; quit();" \
+    -e "Session.use_dir $RESET $INFO \"$DOC\" \"$PARENT\" \"$SESSION\" \"$RPATH\"; quit();" \
     -r -q $LOGIC > $LOG 2>&1
   RC=$?
   cd ..
