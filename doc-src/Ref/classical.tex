@@ -470,10 +470,11 @@ proof.  While \texttt{blast_tac} starts with a bound of zero and increases it
 successively to~20, \texttt{Blast.depth_tac} applies a user-supplied search bound.
 \begin{ttdescription}
 \item[\ttindexbold{blast_tac} $cs$ $i$] tries to prove
-  subgoal~$i$ using iterative deepening to increase the search bound.
+  subgoal~$i$, increasing the search bound using iterative
+  deepening~\cite{korf85}. 
   
 \item[\ttindexbold{Blast.depth_tac} $cs$ $lim$ $i$] tries
-  to prove subgoal~$i$ using a search bound of $lim$.  Often a slow
+  to prove subgoal~$i$ using a search bound of $lim$.  Sometimes a slow
   proof using \texttt{blast_tac} can be made much faster by supplying the
   successful search bound to this tactic instead.
   
