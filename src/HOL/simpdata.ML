@@ -70,9 +70,9 @@ val simp_thms = [not_not] @ map prover
    "(? x. x=t & P(x)) = P(t)",          (*essential for termination!!*)
    "(! x. t=x --> P(x)) = P(t)" ];      (*covers a stray case*)
 
-val imp_cong = impI RSN
+val imp_cong = standard(impI RSN
     (2, prove_goal (the_context ()) "(P=P')--> (P'--> (Q=Q'))--> ((P-->Q) = (P'-->Q'))"
-        (fn _=> [(Blast_tac 1)]) RS mp RS mp);
+        (fn _=> [(Blast_tac 1)]) RS mp RS mp));
 
 (*Miniscoping: pushing in existential quantifiers*)
 val ex_simps = map prover
@@ -109,6 +109,7 @@ end;
 bind_thms ("ex_simps", ex_simps);
 bind_thms ("all_simps", all_simps);
 bind_thm ("not_not", not_not);
+bind_thm ("imp_cong", imp_cong);
 
 (* Elimination of True from asumptions: *)
 
