@@ -158,6 +158,12 @@ hints on converting existing sources:
 
   - remove all special provisions on numerals in proofs;
 
+* HOL: the class of all HOL types is now called "type" rather than
+"term"; INCOMPATIBILITY, need to adapt references to this type class
+in axclass/classes, instance/arities, and (usually rare) occurrences
+in typings (of consts etc.); internally the class is called
+"HOL.type", ML programs should refer to HOLogic.typeS;
+
 * HOL/record package improvements:
   - new derived operations "fields" to build a partial record section,
     "extend" to promote a fixed record to a record scheme, and
