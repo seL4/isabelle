@@ -3,6 +3,5 @@
 #Pathnames will have to be modified for your site
 ISABELLEBIN=/homes/`whoami`/bin
 ISABELLECOMP=sml
-ISABELLEMAKE=Makefile.NJ
-export ISABELLEBIN ISABELLECOMP ISABELLEMAKE
+export ISABELLEBIN ISABELLECOMP 
 nohup make-all $*

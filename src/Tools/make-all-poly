@@ -4,6 +4,5 @@
 ML_DBASE=/usr/groups/theory/poly/`arch`/ML_dbase
 ISABELLEBIN=/homes/`whoami`/bin
 ISABELLECOMP="poly -noDisplay -h 15000"
-ISABELLEMAKE=Makefile
-export ML_DBASE ISABELLEBIN ISABELLECOMP ISABELLEMAKE
+export ML_DBASE ISABELLEBIN ISABELLECOMP 
 nohup make-all $*
