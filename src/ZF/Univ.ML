@@ -391,7 +391,8 @@ qed "Pow_in_Vfrom";
 
 goal Univ.thy
   "!!a. [| a: Vfrom(A,i);  Limit(i);  Transset(A) |] ==> Pow(a) : Vfrom(A,i)";
-by (blast_tac (claset() addEs [Limit_VfromE]
+(*Blast_tac: PROOF FAILED*)
+by (fast_tac (claset() addEs [Limit_VfromE]
 		       addIs [Limit_has_succ, Pow_in_Vfrom, Limit_VfromI]) 1);
 qed "Pow_in_VLimit";
 
