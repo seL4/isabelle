@@ -564,9 +564,9 @@ fun finish_html () = if not (!make_html) then () else
           else space_implode "/" (take (level, subdirs))))) ^
        "\n" ^
        (if file_exists (tack_on (!index_path) "README.html") then
-          "<BR>View the <A HREF = \"README.html\">ReadMe</A> file.\n"
+          "<BR>View the <A HREF = \"README.html\">README</A> file.\n"
         else if file_exists (tack_on (!index_path) "README") then
-          "<BR>View the <A HREF = \"README\">ReadMe</A> file.\n"
+          "<BR>View the <A HREF = \"README\">README</A> file.\n"
         else "") ^
        "<HR>" ^ implode (map main_entry theories) ^ "<!-->");
      TextIO.closeOut out;
