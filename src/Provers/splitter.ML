@@ -11,7 +11,7 @@ infix 4 addsplits delsplits;
 signature SPLITTER_DATA =
 sig
   structure Simplifier: SIMPLIFIER
-  val mk_meta_eq    : thm -> thm
+  val mk_eq         : thm -> thm
   val meta_eq_to_iff: thm (* "x == y ==> x = y"                    *)
   val iffD          : thm (* "[| P = Q; Q |] ==> P"                *)
   val disjE         : thm (* "[| P | Q; P ==> R; Q ==> R |] ==> R" *)
@@ -47,7 +47,7 @@ val Const ("==>", _) $ (Const ("Trueprop", _) $
 
 fun split_format_err() = error("Wrong format for split rule");
 
-fun split_thm_info thm = case concl_of (Data.mk_meta_eq thm) of
+fun split_thm_info thm = case concl_of (Data.mk_eq thm) of
      Const("==", _)$(Var _$t)$c =>
         (case strip_comb t of
            (Const(a,_),_) => (a,case c of (Const(s,_)$_)=>s=const_not|_=> false)
@@ -288,7 +288,7 @@ fun inst_split Ts t tt thm TB state i =
 
 fun split_tac [] i = no_tac
   | split_tac splits i =
-  let val splits = map Data.mk_meta_eq splits;
+  let val splits = map Data.mk_eq splits;
       fun const(thm) =
             (case concl_of thm of _$(t as _$lhs)$_ =>
                (case strip_comb lhs of (Const(a,_),args) =>

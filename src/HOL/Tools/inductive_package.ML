@@ -341,14 +341,14 @@ fun prove_indrule cs cTs sumT rec_const params intr_ts mono
            HOLogic.Collect_const (HOLogic.dest_setT (fastype_of c)) $
              nth_elem (find_index_eq c cs, preds)))))
         (fn _ => [rtac vimage_Collect 1, rewrite_goals_tac
-           (map meta_eq [sum_case_Inl, sum_case_Inr]),
+           (map mk_meta_eq [sum_case_Inl, sum_case_Inr]),
           rtac refl 1])) cs;
 
     val induct = prove_goalw_cterm [] (cterm_of sign
       (Logic.list_implies (ind_prems, ind_concl))) (fn prems =>
         [rtac (impI RS allI) 1,
          DETERM (etac (mono RS (fp_def RS def_induct)) 1),
-         rewrite_goals_tac (map meta_eq (vimage_Int::vimage_simps)),
+         rewrite_goals_tac (map mk_meta_eq (vimage_Int::vimage_simps)),
          fold_goals_tac rec_sets_defs,
          (*This CollectE and disjE separates out the introduction rules*)
          REPEAT (FIRSTGOAL (eresolve_tac [CollectE, disjE])),
@@ -356,7 +356,7 @@ fun prove_indrule cs cTs sumT rec_const params intr_ts mono
            some premise involves disjunction.*)
          REPEAT (FIRSTGOAL (eresolve_tac [IntE, CollectE, exE, conjE] 
                      ORELSE' hyp_subst_tac)),
-         rewrite_goals_tac (map meta_eq [sum_case_Inl, sum_case_Inr]),
+         rewrite_goals_tac (map mk_meta_eq [sum_case_Inl, sum_case_Inr]),
          EVERY (map (fn prem =>
            DEPTH_SOLVE_1 (ares_tac [prem, conjI, refl] 1)) prems)]);
 
@@ -366,7 +366,7 @@ fun prove_indrule cs cTs sumT rec_const params intr_ts mono
          REPEAT (EVERY
            [REPEAT (resolve_tac [conjI, impI] 1),
             TRY (dtac vimageD 1), etac allE 1, dtac mp 1, atac 1,
-            rewrite_goals_tac (map meta_eq [sum_case_Inl, sum_case_Inr]),
+            rewrite_goals_tac (map mk_meta_eq [sum_case_Inl, sum_case_Inr]),
             atac 1])])
 
   in standard (split_rule (induct RS lemma))
@@ -451,7 +451,7 @@ fun add_ind_def verbose declare_consts alt_name coind no_elim no_ind cs
       prove_elims cs cTs params intr_ts unfold rec_sets_defs thy';
     val raw_induct = if no_ind then TrueI else
       if coind then standard (rule_by_tactic
-        (rewrite_tac [meta_eq vimage_Un] THEN
+        (rewrite_tac [mk_meta_eq vimage_Un] THEN
           fold_tac rec_sets_defs) (mono RS (fp_def RS def_Collect_coinduct)))
       else
         prove_indrule cs cTs sumT rec_const params intr_ts mono fp_def

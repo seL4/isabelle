@@ -85,7 +85,7 @@ val _ = if !Ind_Syntax.trace then
   simplifications.  If the premises get simplified, then the proofs could 
   fail.  *)
 val min_ss = empty_ss
-      setmksimps (map mk_meta_eq o ZF_atomize o gen_all)
+      setmksimps (map mk_eq o ZF_atomize o gen_all)
       setSolver  (fn prems => resolve_tac (triv_rls@prems) 
                               ORELSE' assume_tac
                               ORELSE' etac FalseE);

@@ -98,7 +98,7 @@ AddEs  [rev_oallE];
 val Ord_atomize = atomize (("oall", [ospec])::ZF_conn_pairs, 
                            ZF_mem_pairs);
 
-simpset_ref() := simpset() setmksimps (map mk_meta_eq o Ord_atomize o gen_all)
+simpset_ref() := simpset() setmksimps (map mk_eq o Ord_atomize o gen_all)
                         addsimps [oall_simp, ltD RS beta]
                         addcongs [oall_cong, oex_cong, OUN_cong];
 

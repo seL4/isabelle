@@ -79,7 +79,7 @@ fun proc sg _ lhs =
 	handle ERROR =>
 	error("The error(s) above occurred while trying to prove " ^
 	      string_of_cterm ct)
-  in Some (meta_eq thm) end
+  in Some (mk_meta_eq thm) end
   handle Cancel => None;
 
 
