@@ -546,11 +546,11 @@ by (blast intro: analz_mono [THEN [2] rev_subsetD])
 
 
 lemma symKey_compromise:
-     "evs \<in> set_pur ==>
+     "evs \<in> set_pur \<Longrightarrow>
       (\<forall>SK KK. SK \<in> symKeys \<longrightarrow>
-        (\<forall>K \<in> KK. K \<notin> range(\<lambda>C. priEK C)) -->
-               (Key SK \<in> analz (Key`KK Un (knows Spy evs))) =
-               (SK \<in> KK | Key SK \<in> analz (knows Spy evs)))"
+        (\<forall>K \<in> KK. K \<notin> range(\<lambda>C. priEK C)) \<longrightarrow>
+               (Key SK \<in> analz (Key`KK \<union> (knows Spy evs))) =
+               (SK \<in> KK \<or> Key SK \<in> analz (knows Spy evs)))"
 apply (erule set_pur.induct)
 apply (rule_tac [!] allI)+
 apply (rule_tac [!] impI [THEN Key_analz_image_Key_lemma, THEN impI])+
