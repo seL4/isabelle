@@ -6,4 +6,4 @@
 Arithmetic lemmas.
 *)
 
-Lemmas = NatArith
+Lemmas = Main

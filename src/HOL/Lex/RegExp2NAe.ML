@@ -408,7 +408,7 @@ qed_spec_mp "start_conc";
 
 Goalw [conc_def]
  "!L R. fin(conc L R) p = (? s. p = False#s & fin R s)";
-by (simp_tac (simpset() addsplits [list.split]) 1);
+by (simp_tac (simpset() addsplits [thm"list.split"]) 1);
 qed_spec_mp "final_conc";
 
 Goal

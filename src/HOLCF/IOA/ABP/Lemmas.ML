@@ -37,16 +37,14 @@ val de_morgan = result();
 
 (* Lists *)
 
-val list_ss = simpset_of List.thy;
-
-goal List.thy "hd(l@m) = (if l~=[] then hd(l) else hd(m))";
+Goal "hd(l@m) = (if l~=[] then hd(l) else hd(m))";
 by (induct_tac "l" 1);
-by (simp_tac list_ss 1);
-by (simp_tac list_ss 1);
+by (Simp_tac 1);
+by (Simp_tac 1);
 val hd_append =result();
 
-goal List.thy "l ~= [] --> (? x xs. l = (x#xs))";
+Goal "l ~= [] --> (? x xs. l = (x#xs))";
  by (induct_tac "l" 1);
- by (simp_tac list_ss 1);
+ by (Simp_tac 1);
  by (Fast_tac 1);
 qed"cons_not_nil";

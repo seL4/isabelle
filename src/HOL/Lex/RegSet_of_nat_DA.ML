@@ -135,7 +135,7 @@ Goal
  "!i j xs. xs : regset d i j k = \
 \          ((!n:set(butlast(trace d i xs)). n < k) & deltas d xs i = j)";
 by (induct_tac "k" 1);
- by (simp_tac (simpset() addcongs [conj_cong] addsplits [list.split]) 1);
+ by (simp_tac (simpset() addcongs [conj_cong] addsplits [thm"list.split"]) 1);
 by (strip_tac 1);
 by (asm_simp_tac (simpset() addsimps [conc_def]) 1);
 by (rtac iffI 1);

@@ -1,40 +1,6 @@
 
 (** legacy ML bindings **)
 
-structure List =
-struct
-
-val thy = the_context ();
-
-structure list =
-struct
-  val distinct = thms "list.distinct";
-  val inject = thms "list.inject";
-  val exhaust = thm "list.exhaust";
-  val cases = thms "list.cases";
-  val split = thm "list.split";
-  val split_asm = thm "list.split_asm";
-  val induct = thm "list.induct";
-  val recs = thms "list.recs";
-  val simps = thms "list.simps";
-  val size = thms "list.size";
-end;
-
-structure lists =
-struct
-  val intrs = thms "lists.intros";
-  val elims = thms "lists.cases";
-  val elim = thm "lists.cases";
-  val induct = thm "lists.induct";
-  val mk_cases = InductivePackage.the_mk_cases (the_context ()) "List.lists";
-  val [Nil, Cons] = intrs;
-end;
-
-end;
-
-open List;
-
-
 val Cons_eq_appendI = thm "Cons_eq_appendI";
 val Cons_in_lex = thm "Cons_in_lex";
 val Nil2_notin_lex = thm "Nil2_notin_lex";

@@ -101,7 +101,7 @@ New in this Isabelle release
   - INCOMPATIBILITY: many type-specific instances of laws proved in 
     Ring_and_Field are no longer available.
 
-* Type "rat" of the rational numbers is now availabe in HOL-Complex.
+* Type "rat" of the rational numbers is now available in HOL-Complex.
 
 * Records:
   - Record types are now by default printed with their type abbreviation
@@ -119,8 +119,6 @@ New in this Isabelle release
 
 * HOL-Algebra: new locale "ring" for non-commutative rings.
 
-* SET-Protocol: formalization and verification of the SET protocol suite;
-
 * HOL-ex: InductiveInvariant_examples illustrates advanced recursive function
  defintions, thanks to Sava Krsti\'{c} and John Matthews.
 
@@ -131,6 +129,8 @@ New in this Isabelle release
   Similarly for "\<Union>x. B", and for \<Inter> instead of \<Union>.
   The subscript version is also accepted as input syntax.
 
+* ML: the legacy theory structures Int and List have been removed. They had
+  conflicted with ML Basis Library structures having the same names.
 
 New in Isabelle2003 (May 2003)
 --------------------------------

@@ -41,26 +41,26 @@ fun rotate n i = EVERY(replicate n (etac revcut_rl i));
 
 Goal "(reduce(l)=[]) = (l=[])";  
 by (induct_tac "l" 1);
-by (auto_tac (claset(), simpset() addsplits [list.split]));
+by (auto_tac (claset(), simpset() addsplits [thm"list.split"]));
 val l_iff_red_nil = result();
 
 Goal "s~=[] --> hd(s)=hd(reduce(s))";
 by (induct_tac "s" 1);
-by (auto_tac (claset(), simpset() addsplits [list.split]));
+by (auto_tac (claset(), simpset() addsplits [thm"list.split"]));
 qed"hd_is_reduce_hd";
 
 (* to be used in the following Lemma *)
 Goal "l~=[] --> reverse(reduce(l))~=[]";
 by (induct_tac "l" 1);
-by (auto_tac (claset(), simpset() addsplits [list.split]));
+by (auto_tac (claset(), simpset() addsplits [thm"list.split"]));
 qed_spec_mp "rev_red_not_nil";
 
 (* shows applicability of the induction hypothesis of the following Lemma 1 *)
 Goal "l~=[] ==> hd(reverse(reduce(a#l))) = hd(reverse(reduce(l)))";
  by (Simp_tac 1);
- by (asm_full_simp_tac (list_ss addsplits [list.split]
+ by (auto_tac (claset(), HOL_ss addsplits [thm"list.split"]
                                 addsimps [reverse_Cons,hd_append,
-					  rev_red_not_nil])  1);
+					  rev_red_not_nil]));
 qed"last_ind_on_first";
 
 val impl_ss = simpset() delsimps [reduce_Cons];
@@ -106,7 +106,7 @@ Goal "s~=[] ==>  \
 by (cut_inst_tac [("l","s")] cons_not_nil 1);
 by (Asm_full_simp_tac 1);
 by (REPEAT (etac exE 1));
-by (auto_tac (claset(), simpset() addsplits [list.split]));
+by (auto_tac (claset(), simpset() addsplits [thm"list.split"]));
 val reduce_tl =result();
 
 
@@ -145,12 +145,12 @@ qed"channel_abstraction";
 Addsplits [split_if]; 
 
 Goal "is_weak_ref_map reduce srch_ioa srch_fin_ioa";
-by (simp_tac (list_ss addsimps [srch_fin_ioa_def,rsch_fin_ioa_def,
+by (simp_tac (HOL_ss addsimps [srch_fin_ioa_def,rsch_fin_ioa_def,
  srch_ioa_def,rsch_ioa_def,rename_through_pmap,channel_abstraction]) 1);
 qed"sender_abstraction";
 
 Goal "is_weak_ref_map reduce rsch_ioa rsch_fin_ioa";
-by (simp_tac (list_ss addsimps [srch_fin_ioa_def,rsch_fin_ioa_def,
+by (simp_tac (HOL_ss addsimps [srch_fin_ioa_def,rsch_fin_ioa_def,
  srch_ioa_def,rsch_ioa_def,rename_through_pmap,channel_abstraction]) 1);
 qed"receiver_abstraction";
 

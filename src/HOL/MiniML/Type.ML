@@ -373,7 +373,7 @@ qed "bound_tv_subst_scheme";
 Addsimps [bound_tv_subst_scheme];
 
 Goal "!!A::type_scheme list. bound_tv ($ S A) = bound_tv A";
-by (rtac list.induct 1);
+by (rtac (thm"list.induct") 1);
 by (Simp_tac 1);
 by (Asm_simp_tac 1);
 qed "bound_tv_subst_scheme_list";
@@ -627,7 +627,7 @@ qed "subst_TVar_scheme";
 Addsimps [subst_TVar_scheme];
 
 Goal "!!A::type_scheme list. $ TVar A = A";
-by (rtac list.induct 1);
+by (rtac (thm"list.induct") 1);
 by (ALLGOALS (asm_full_simp_tac (simpset() addsimps [app_subst_list])));
 qed "subst_TVar_scheme_list";
 

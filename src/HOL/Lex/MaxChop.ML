@@ -80,7 +80,7 @@ by (simp_tac (simpset() addsimps [Let_def,rewrite_rule[is_maxsplitter_def]prem]
                         addsplits [split_split]) 1);
 by (Clarify_tac 1);
 by (rename_tac "xs1 ys1 xss1 ys" 1);
-by (split_asm_tac [list.split_asm] 1);
+by (split_asm_tac [thm "list.split_asm"] 1);
  by (Asm_full_simp_tac 1);
  by (full_simp_tac (simpset() addsimps [is_maxpref_def]) 1);
  by (blast_tac (claset() addIs [thm "prefix_append" RS iffD2]) 1);
