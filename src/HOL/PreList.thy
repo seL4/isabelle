@@ -1,4 +1,4 @@
-(*  Title:      HOL/List.thy
+(*  Title:      HOL/PreList.thy
     ID:         $Id$
     Author:     Tobias Nipkow
     Copyright   2000 TU Muenchen
@@ -16,5 +16,8 @@ declare case_split [cases type: bool]
 
 (*belongs to theory Wellfounded_Recursion*)
 declare wf_induct [induct set: wf]
+
+(*belongs to theory Datatype_Universe; hides popular names *)
+hide const Node Atom Leaf Numb Lim Funs Split Case
 
 end

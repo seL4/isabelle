@@ -1,6 +1,11 @@
+(*  Title:      HOL/Main.thy
+    ID:         $Id$
+    Author:     Tobias Nipkow
+    Copyright   2000 TU Muenchen
 
-(*theory Main includes everything; note that theory
-  PreList already includes most HOL theories*)
+Theory Main includes everything.
+Note that theory PreList already includes most HOL theories.
+*)
 
 theory Main = Map + String:
 
