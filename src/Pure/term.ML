@@ -1076,8 +1076,17 @@ fun no_dummy_patterns tm =
   if not (foldl_aterms (fn (b, t) => b orelse is_dummy_pattern t) (false, tm)) then tm
   else raise TERM ("Illegal occurrence of '_' dummy pattern", [tm]);
 
-val replace_dummy_patterns = foldl_map_aterms (fn (i, t) =>
-  if is_dummy_pattern t then (i + 1, Var (("_dummy_", i), fastype_of t)) else (i, t));
+fun replace_dummy Ts (i, Const ("dummy_pattern", T)) =
+      (i + 1, list_comb (Var (("_dummy_", i), Ts ---> T), map Bound (0 upto length Ts - 1)))
+  | replace_dummy Ts (i, Abs (x, T, t)) =
+      let val (i', t') = replace_dummy (T :: Ts) (i, t)
+      in (i', Abs (x, T, t')) end
+  | replace_dummy Ts (i, t $ u) =
+      let val (i', t') = replace_dummy Ts (i, t); val (i'', u') = replace_dummy Ts (i', u)
+      in (i'', t' $ u') end
+  | replace_dummy _ (i, a) = (i, a);
+
+val replace_dummy_patterns = replace_dummy [];
 
 fun is_replaced_dummy_pattern ("_dummy_", _) = true
   | is_replaced_dummy_pattern _ = false;
