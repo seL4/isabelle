@@ -515,8 +515,7 @@ goalw Order.thy [mono_map_def]
 by (rtac well_ord_mono_ord_isoI 1);
 by (resolve_tac [converse_ord_iso_map RS subst] 4);
 by (asm_simp_tac 
-    (ZF_ss addsimps [ord_iso_map_subset RS converse_converse, 
-                     domain_converse, range_converse]) 4);
+    (ZF_ss addsimps [ord_iso_map_subset RS converse_converse]) 4);
 by (REPEAT (ares_tac [ord_iso_map_mono_map] 3));
 by (ALLGOALS (etac well_ord_subset));
 by (ALLGOALS (resolve_tac [domain_ord_iso_map, range_ord_iso_map]));

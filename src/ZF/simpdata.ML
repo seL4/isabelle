@@ -75,6 +75,7 @@ val ZF_simps =
      succI1, succ_not_0, succ_not_0 RS not_sym, succ_inject_iff,
      ball_simp, if_true, if_false, 
      beta, eta, restrict, fst_conv, snd_conv, split, Pair_iff, singleton_iff,
+     converse_iff, domain_converse, range_converse,
      Sigma_empty1, Sigma_empty2, triv_RepFun, subset_refl];
 
 (*Sigma_cong, Pi_cong NOT included by default since they cause

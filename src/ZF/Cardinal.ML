@@ -744,8 +744,7 @@ goal Nat.thy "!!n. n:nat ==> wf[n](converse(Memrel(n)))";
 by (etac nat_induct 1);
 by (fast_tac (ZF_cs addIs [wf_onI]) 1);
 by (rtac wf_onI 1);
-by (asm_full_simp_tac
-    (ZF_ss addsimps [wf_on_def, wf_def, converse_iff, Memrel_iff]) 1);
+by (asm_full_simp_tac (ZF_ss addsimps [wf_on_def, wf_def, Memrel_iff]) 1);
 by (excluded_middle_tac "x:Z" 1);
 by (dres_inst_tac [("x", "x")] bspec 2 THEN assume_tac 2);
 by (fast_tac (ZF_cs addSEs [mem_irrefl] addEs [mem_asym]) 2);

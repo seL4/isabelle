@@ -156,9 +156,7 @@ qed "subset_iff_id";
 (*** Converse of a function ***)
 
 goalw Perm.thy [inj_def] "!!f. f: inj(A,B) ==> converse(f) : range(f)->A";
-by (asm_simp_tac 
-    (ZF_ss addsimps [Pi_iff, function_def, 
-		     domain_converse, converse_iff]) 1);
+by (asm_simp_tac (ZF_ss addsimps [Pi_iff, function_def]) 1);
 by (eresolve_tac [CollectE] 1);
 by (asm_simp_tac (ZF_ss addsimps [apply_iff]) 1);
 by (fast_tac (ZF_cs addDs [fun_is_rel]) 1);
