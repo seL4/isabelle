@@ -58,7 +58,7 @@ primrec "t([]  [|->]bs) = t"
         "t(a#as[|->]bs) = t(a|->hd bs)(as[|->]tl bs)"
 
 
-section {* empty *}
+subsection {* empty *}
 
 lemma empty_upd_none[simp]: "empty(x := None) = empty"
 apply (rule ext)
@@ -72,7 +72,7 @@ apply (rule ext)
 apply (simp (no_asm) split add: sum.split)
 done
 
-section {* map\_upd *}
+subsection {* map\_upd *}
 
 lemma map_upd_triv: "t k = Some x ==> t(k|->x) = t"
 apply (rule ext)
@@ -95,7 +95,7 @@ done
 
 
 (* FIXME: what is this sum_case nonsense?? *)
-section {* sum\_case and empty/map\_upd *}
+subsection {* sum\_case and empty/map\_upd *}
 
 lemma sum_case_map_upd_empty[simp]:
  "sum_case (m(k|->y)) empty =  (sum_case m empty)(Inl k|->y)"
@@ -116,7 +116,7 @@ apply (simp (no_asm) split add: sum.split)
 done
 
 
-section {* map\_upds *}
+subsection {* map\_upds *}
 
 lemma map_upd_upds_conv_if:
  "!!x y ys f. (f(x|->y))(xs [|->] ys) =
@@ -137,7 +137,7 @@ apply(induct xs)
 apply(simp add: fun_upd_apply map_upd_upds_conv_if split:split_if)
 done
 
-section {* chg\_map *}
+subsection {* chg\_map *}
 
 lemma chg_map_new[simp]: "m a = None   ==> chg_map f a m = m"
 apply (unfold chg_map_def)
@@ -150,7 +150,7 @@ apply auto
 done
 
 
-section {* map\_of *}
+subsection {* map\_of *}
 
 lemma map_of_SomeD [rule_format (no_asm)]: "map_of xs k = Some y --> (k,y):set xs"
 apply (induct_tac "xs")
@@ -191,7 +191,7 @@ apply auto
 done
 
 
-section {* option\_map related *}
+subsection {* option\_map related *}
 
 lemma option_map_o_empty[simp]: "option_map f o empty = empty"
 apply (rule ext)
@@ -205,7 +205,7 @@ apply (simp (no_asm))
 done
 
 
-section {* ++ *}
+subsection {* ++ *}
 
 lemma override_empty[simp]: "m ++ empty = m"
 apply (unfold override_def)
@@ -261,7 +261,7 @@ done
 declare fun_upd_apply [simp]
 
 
-section {* dom *}
+subsection {* dom *}
 
 lemma domI: "m a = Some b ==> a : dom m"
 apply (unfold dom_def)
@@ -295,6 +295,11 @@ apply blast
 done
 *)
 
+lemma dom_map_of: "dom(map_of xys) = {x. \<exists>y. (x,y) : set xys}"
+apply(induct xys)
+apply(auto simp del:fun_upd_apply)
+done
+
 lemma finite_dom_map_of: "finite (dom (map_of l))"
 apply (unfold dom_def)
 apply (induct_tac "l")
@@ -313,7 +318,7 @@ lemma dom_overwrite[simp]:
  "dom(f(g|A)) = (dom f  - {a. a : A - dom g}) Un {a. a : A Int dom g}"
 by(auto simp add: dom_def overwrite_def)
 
-section {* ran *}
+subsection {* ran *}
 
 lemma ran_empty[simp]: "ran empty = {}"
 apply (unfold ran_def)
@@ -327,7 +332,7 @@ apply (subgoal_tac "~ (aa = a) ")
 apply auto
 done
 
-section {* map\_le *}
+subsection {* map\_le *}
 
 lemma map_le_empty [simp]: "empty \<subseteq>\<^sub>m g"
 by(simp add:map_le_def)
