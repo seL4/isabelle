@@ -287,6 +287,8 @@ if(P,x,y);
 
 *** Internal programming interfaces ***
 
+* tuned simplifier trace output; new flag debug_simp;
+
 * structures Vartab / Termtab (instances of TableFun) offer efficient
 tables indexed by indexname_ord / term_ord (compatible with aconv);
 
