@@ -14,7 +14,6 @@ use "~~/src/Provers/simplifier.ML";
 use "~~/src/Provers/splitter.ML";
 use "~~/src/Provers/ind.ML";
 use "~~/src/Provers/hypsubst.ML";
-use "~~/src/Provers/rulify.ML";
 use "~~/src/Provers/induct_method.ML";
 use "~~/src/Provers/make_elim.ML";
 use "~~/src/Provers/classical.ML";

@@ -148,10 +148,10 @@ local
 
 fun atomize_cterm ct =
   Thm.cterm_fun
-    (ObjectLogic.drop_judgment (#sign (Thm.rep_cterm ct))) (full_rewrite_cterm Data.atomize ct);
+    (ObjectLogic.drop_judgment (#sign (Thm.rep_cterm ct))) (rewrite_cterm true Data.atomize ct);
 
 val atomize_tac = Tactic.rewrite_goal_tac Data.atomize;
-val rulify_cterm = full_rewrite_cterm Data.rulify2 o full_rewrite_cterm Data.rulify1;
+val rulify_cterm = rewrite_cterm true Data.rulify2 o rewrite_cterm true Data.rulify1;
 
 val rulify_tac =
   Tactic.rewrite_goal_tac Data.rulify1 THEN'

@@ -364,20 +364,3 @@ structure Clasimp = ClasimpFun
 open Clasimp;
 
 val FOL_css = (FOL_cs, FOL_ss);
-
-
-(* rulify setup *)
-
-local
-  val ss = FOL_basic_ss addsimps
-    [Drule.norm_hhf_eq, Thm.symmetric (thm "atomize_all"), Thm.symmetric (thm "atomize_imp")];
-in
-
-structure Rulify = RulifyFun
- (val make_meta = Simplifier.simplify ss
-  val full_make_meta = Simplifier.full_simplify ss);
-
-structure BasicRulify: BASIC_RULIFY = Rulify;
-open BasicRulify;
-
-end;

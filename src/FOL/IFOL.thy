@@ -158,4 +158,6 @@ next
   thus "x == y" by (rule eq_reflection)
 qed
 
+declare atomize_all [symmetric, rulify]  atomize_imp [symmetric, rulify]
+
 end

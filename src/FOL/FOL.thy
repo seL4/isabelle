@@ -35,8 +35,6 @@ setup simpsetup
 setup "Simplifier.method_setup Splitter.split_modifiers"
 setup Splitter.setup
 setup Clasimp.setup
-setup Rulify.setup
-
 
 
 subsection {* Proof by cases and induction *}
