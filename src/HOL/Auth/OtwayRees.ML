@@ -493,18 +493,18 @@ qed "Agent_not_see_encrypted_key";
 (**** Authenticity properties relating to NB ****)
 
 (*Only OR2 can have caused such a part of a message to appear.  We do not
-  know anything about X'.*)
+  know anything about X: it does NOT have to have the right form.*)
 goal thy 
  "!!evs. [| B ~: lost;  evs : otway lost |]                    \
 \        ==> Crypt {|NA, NB, Agent A, Agent B|} (shrK B)       \
 \             : parts (sees lost Spy evs) -->                  \
-\            (EX X'. Says B Server                             \
-\             {|NA, Agent A, Agent B, X',                      \
+\            (EX X. Says B Server                              \
+\             {|NA, Agent A, Agent B, X,                       \
 \               Crypt {|NA, NB, Agent A, Agent B|} (shrK B)|}  \
 \             : set_of_list evs)";
 by (parts_induct_tac 1);
 by (auto_tac (!claset, !simpset addcongs [conj_cong]));
-qed_spec_mp "Crypt_imp_OR2";
+bind_thm ("Crypt_imp_OR2", result() RSN (2,rev_mp) RS exE);
 
 
 (** The Nonce NB uniquely identifies B's  message. **)
@@ -556,12 +556,9 @@ by (fast_tac (!claset addSIs [parts_insertI]
                       addSEs partsEs
                       addEs [Says_imp_old_nonces RS less_irrefl]
                       addss (!simpset)) 1);
-(*OR3 and OR4*)  (** LEVEL 5 **)
 (*OR4*)
-by (REPEAT (Safe_step_tac 2));
-by (rtac (Crypt_imp_OR2 RS exE) 2);
-by (REPEAT (fast_tac (!claset addEs partsEs) 2));
-(*OR3*)  (** LEVEL 8 **)
+by (fast_tac (!claset addSEs [MPair_parts, Crypt_imp_OR2]) 2);
+(*OR3*)
 by (step_tac (!claset delrules [disjCI, impCE]) 1);
 by (fast_tac (!claset delrules [conjI] (*stop split-up*)) 3); 
 by (fast_tac (!claset addSDs [Says_imp_sees_Spy RS parts.Inj]
@@ -598,36 +595,38 @@ qed "B_trust_OR3";
 B_trust_OR3 RS Spy_not_see_encrypted_key;
 
 
-(** A session key uniquely identifies a pair of senders in the message
-    encrypted by a good agent C.  NEEDED?  INTERESTING?**)
 goal thy 
- "!!evs. evs : otway lost ==>                                           \
-\      EX A B. ALL C N.                                                 \
-\         C ~: lost -->                                                 \
-\         Crypt {|N, Key K|} (shrK C) : parts (sees lost Spy evs) -->   \
-\         C=A | C=B";
-by (Simp_tac 1);        (*Miniscoping*)
+ "!!evs. [| B ~: lost;  evs : otway lost |]                    \
+\        ==> Says Server B                                                 \
+\              {|NA, Crypt {|NA, Key K|} (shrK A),                         \
+\                Crypt {|NB, Key K|} (shrK B)|} : set_of_list evs -->      \
+\            (EX X. Says B Server {|NA, Agent A, Agent B, X,              \
+\                            Crypt {|NA, NB, Agent A, Agent B|}     \
+\                                  (shrK B)|}                       \
+\            : set_of_list evs)";
 by (etac otway.induct 1);
-by analz_Fake_tac;
-(*spy_analz_tac just does not work here: it is an entirely different proof!*)
-by (ALLGOALS 
-    (asm_simp_tac (!simpset addsimps [all_conj_distrib, ex_disj_distrib,
-                                      imp_conjR, parts_insert_sees,
-                                      parts_insert2])));
-by (REPEAT_FIRST (etac exE));
-(*OR3: extraction of K = newK evsa to global context...*) (** LEVEL 6 **)
-by (expand_case_tac "K = ?y" 4);
-by (REPEAT (ares_tac [exI] 5));
-(*...we prove this case by contradiction: the key is too new!*)
-by (fast_tac (!claset addSEs partsEs
-                      addEs [Says_imp_old_keys RS less_irrefl]
-                      addss (!simpset)) 4);
-(*Base, Fake, OR2, OR4*)
-by (REPEAT_FIRST ex_strip_tac);
-by (dtac synth.Inj 4);
-by (dtac synth.Inj 3);
-(*Now in effect there are three Fake cases*)
-by (REPEAT_FIRST (best_tac (!claset addDs [impOfSubs Fake_parts_insert]
-                                    delrules [disjCI, disjE]
-                                    addss (!simpset))));
-qed "key_identifies_senders";
+by (Auto_tac());
+bd (Says_imp_sees_Spy RS parts.Inj) 1;
+by (fast_tac (!claset addSEs [MPair_parts, Crypt_imp_OR2]) 1);
+bind_thm ("OR3_imp_OR2", result() RSN (2,rev_mp) RS exE);
+
+
+(*After getting and checking OR4, agent A can trust that B has been active.
+  We could probably prove that X has the expected form, but that is not
+  strictly necessary for authentication.*)
+goal thy 
+ "!!evs. [| Says B' A {|NA, Crypt {|NA, Key K|} (shrK A)|}         \
+\            : set_of_list evs;                                    \
+\           Says A B {|NA, Agent A, Agent B,                       \
+\                      Crypt {|NA, Agent A, Agent B|} (shrK A)|}   \
+\            : set_of_list evs;                                    \
+\           A ~: lost;  A ~= Spy;  B ~: lost;  evs : otway lost |] \
+\        ==> EX NB X. Says B Server {|NA, Agent A, Agent B, X,     \
+\                            Crypt {|NA, NB, Agent A, Agent B|}    \
+\                                  (shrK B)|}                      \
+\            : set_of_list evs";
+by (fast_tac (!claset addSDs  [A_trust_OR4]
+	              addSEs [OR3_imp_OR2]) 1);
+qed "A_auths_B";
+
+
