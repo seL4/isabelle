@@ -131,6 +131,12 @@ qed "n_not_Suc_n";
 
 bind_thm ("Suc_n_not_n", n_not_Suc_n RS not_sym);
 
+goal thy "!!n. n ~= 0 ==> EX m. n = Suc m";
+br natE 1;
+by (REPEAT (Blast_tac 1));
+qed "not0_implies_Suc";
+
+
 (*** nat_case -- the selection operator for nat ***)
 
 goalw thy [nat_case_def] "nat_case a f 0 = a";
@@ -141,24 +147,10 @@ goalw thy [nat_case_def] "nat_case a f (Suc k) = f(k)";
 by (blast_tac (!claset addIs [select_equality]) 1);
 qed "nat_case_Suc";
 
-(** Introduction rules for 'pred_nat' **)
-
-goalw thy [pred_nat_def] "(n, Suc(n)) : pred_nat";
-by (Blast_tac 1);
-qed "pred_natI";
-
-val major::prems = goalw thy [pred_nat_def]
-    "[| p : pred_nat;  !!x n. [| p = (n, Suc(n)) |] ==> R \
-\    |] ==> R";
-by (rtac (major RS CollectE) 1);
-by (REPEAT (eresolve_tac ([asm_rl,exE]@prems) 1));
-qed "pred_natE";
-
-goalw thy [wf_def] "wf(pred_nat)";
+goalw thy [wf_def, pred_nat_def] "wf(pred_nat)";
 by (strip_tac 1);
 by (nat_ind_tac "x" 1);
-by (blast_tac (!claset addSEs [mp, pred_natE]) 2);
-by (blast_tac (!claset addSEs [mp, pred_natE]) 1);
+by (ALLGOALS Blast_tac);
 qed "wf_pred_nat";
 
 
@@ -185,7 +177,7 @@ qed "nat_rec_0";
 
 goal thy "nat_rec c h (Suc n) = h n (nat_rec c h n)";
 by (rtac (nat_rec_unfold RS trans) 1);
-by (simp_tac (!simpset addsimps [nat_case_Suc, pred_natI, cut_apply]) 1);
+by (simp_tac (!simpset addsimps [nat_case_Suc, pred_nat_def, cut_apply]) 1);
 qed "nat_rec_Suc";
 
 (*These 2 rules ease the use of primitive recursion.  NOTE USE OF == *)
@@ -216,8 +208,8 @@ by (resolve_tac prems 1);
 by (resolve_tac prems 1);
 qed "less_trans";
 
-goalw thy [less_def] "n < Suc(n)";
-by (rtac (pred_natI RS r_into_trancl) 1);
+goalw thy [less_def, pred_nat_def] "n < Suc(n)";
+by (simp_tac (!simpset addsimps [r_into_trancl]) 1);
 qed "lessI";
 AddIffs [lessI];
 
@@ -255,13 +247,13 @@ by (blast_tac (!claset addSEs [less_irrefl]) 1);
 qed "less_not_refl2";
 
 
-val major::prems = goalw thy [less_def]
+val major::prems = goalw thy [less_def, pred_nat_def]
     "[| i<k;  k=Suc(i) ==> P;  !!j. [| i<j;  k=Suc(j) |] ==> P \
 \    |] ==> P";
 by (rtac (major RS tranclE) 1);
+by (ALLGOALS Full_simp_tac); 
 by (REPEAT_FIRST (bound_hyp_subst_tac ORELSE'
-                  eresolve_tac (prems@[pred_natE, Pair_inject])));
-by (rtac refl 1);
+                  eresolve_tac (prems@[asm_rl, Pair_inject])));
 qed "lessE";
 
 goal thy "~ n<0";

@@ -66,7 +66,7 @@ defs
   (*nat operations and recursion*)
   nat_case_def  "nat_case a f n == @z.  (n=0 --> z=a)  
                                         & (!x. n=Suc x --> z=f(x))"
-  pred_nat_def  "pred_nat == {p. ? n. p = (n, Suc n)}"
+  pred_nat_def  "pred_nat == {(m,n). n = Suc m}"
 
   less_def      "m<n == (m,n):trancl(pred_nat)"
 
