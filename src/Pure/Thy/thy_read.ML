@@ -139,7 +139,11 @@ val loaded_thys =
                    ]);
 
 (*Default search path for theory files*)
-val loadpath = ref ["."];              
+val loadpath = ref ["."];
+
+(*Directory given as parameter to use_thy. This is temporarily added to
+  loadpath while the theory's ancestors are loaded.*)
+val tmp_loadpath = ref [] : string list ref;
 
 (*ML files to be read by init_thy_reader; they normally contain redefinitions
   of functions accessing reference variables inside READTHY*)
@@ -273,7 +277,7 @@ fun find_file "" name =
                 else
                   find_it paths
            | find_it [] = ""
-      in find_it (!loadpath) end
+      in find_it (!tmp_loadpath @ !loadpath) end
   | find_file path name =
       if file_exists (tack_on path name) then tack_on path name
                                          else "";
@@ -290,7 +294,8 @@ fun get_filenames path name =
                           else if file_exists (tack_on thy_path (name ^ ".ML"))
                           then tack_on thy_path (name ^ ".ML")
                           else "";
-            val searched_dirs = if path = "" then (!loadpath) else [path]
+            val searched_dirs = if path = "" then (!tmp_loadpath @ !loadpath)
+                                             else [path]
         in if thy_file = "" andalso ml_file = "" then
              error ("Could not find file \"" ^ name ^ ".thy\" or \""
                     ^ name ^ ".ML\" for theory \"" ^ name ^ "\"\n"
@@ -598,10 +603,18 @@ val set_current_thy = put_thydata false;
   they were last read;
   loaded_thys is a thy_info list ref containing all theories that have
   completly been read by this and preceeding use_thy calls.
-  If a theory changed since its last use its children are marked as changed *)
-fun use_thy name =
+  tmp_loadpath is temporarily added to loadpath while the ancestors of a
+  theory that the user specified as e.g. "ex/Nat" are loaded. Because of
+  raised exceptions we cannot guarantee that it's value is always valid.
+  Therefore this has to be assured by the first parameter of use_thy1 which
+  is "true" if use_thy gets invoked by mk_base and "false" else.
+*)
+fun use_thy1 tmp_loadpath_valid name =
   let
     val (path, tname) = split_filename name;
+    val dummy = (tmp_loadpath :=
+      (if not tmp_loadpath_valid then (if path = "" then [] else [path])
+       else !tmp_loadpath));
     val (thy_file, ml_file) = get_filenames path tname;
     val (abs_path, _) = if thy_file = "" then split_filename ml_file
                         else split_filename thy_file;
@@ -792,6 +805,8 @@ fun use_thy name =
       )
   end;
 
+val use_thy = use_thy1 false;
+
 fun time_use_thy tname = timeit(fn()=>
    (writeln("\n**** Starting Theory " ^ tname ^ " ****");
     use_thy tname;
@@ -799,9 +814,9 @@ fun time_use_thy tname = timeit(fn()=>
    );
 
 (*Load all thy or ML files that have been changed and also
-  all theories that depend on them *)
+  all theories that depend on them.*)
 fun update () =
-  let (*List theories in the order they have to be loaded *)
+  let (*List theories in the order they have to be loaded in.*)
       fun load_order [] result = result
         | load_order thys result =
             let fun next_level [] = []
@@ -814,11 +829,11 @@ fun update () =
             end;
 
       fun reload_changed (t :: ts) =
-            let fun abspath () = case get_thyinfo t of
-                                     Some (ThyInfo {path, ...}) => path
-                                   | None => "";
+            let val abspath = case get_thyinfo t of
+                                  Some (ThyInfo {path, ...}) => path
+                                | None => "";
 
-                val (thy_file, ml_file) = get_filenames (abspath ()) t;
+                val (thy_file, ml_file) = get_filenames abspath t;
                 val (thy_uptodate, ml_uptodate) =
                         thy_unchanged t thy_file ml_file;
             in if thy_uptodate andalso ml_uptodate then ()
@@ -839,7 +854,8 @@ fun update () =
                        seq mark_outdated children)
              | collect [] = ()
        in collect (Symtab.dest (!loaded_thys)) end;
-  in collect_garbage ("ProtoPure" :: (load_order ["ProtoPure"] []));
+  in tmp_loadpath := [];
+     collect_garbage ("ProtoPure" :: (load_order ["ProtoPure"] []));
      reload_changed (load_order ["Pure", "CPure"] [])
   end;
 
@@ -899,7 +915,7 @@ fun mk_base bases child mk_draft =
                if thy_loaded then ()
                else (writeln ("Autoloading theory " ^ (quote base)
                               ^ " (used by " ^ (quote child) ^ ")");
-                     use_thy base)
+                     use_thy1 true base)
               )
           end;
 
