@@ -177,33 +177,39 @@ val print_cases = Toplevel.keep (ProofContext.print_cases o Proof.context_of o T
 
 (* print theorems / types / terms / props *)
 
-fun print_thms (ms, args) = Toplevel.keep (fn state =>
-  let val st = Toplevel.node_case Proof.init_state Proof.enter_forward state in
-    with_modes ms (fn () => Pretty.writeln (Proof.pretty_thms (IsarThy.get_thmss args st)))
-  end);
+fun string_of_thms state ms args = with_modes ms (fn () =>
+  Pretty.string_of (Proof.pretty_thms (IsarThy.get_thmss args state)));
 
-fun print_type (ms, s) = Toplevel.keep (fn state =>
+fun string_of_prop state ms s =
   let
-    val sign = Toplevel.sign_of state;
-    val T = ProofContext.read_typ (Toplevel.context_of state) s;
-  in with_modes ms (fn () => Pretty.writeln (Pretty.quote (Sign.pretty_typ sign T))) end);
+    val sign = Proof.sign_of state;
+    val prop = ProofContext.read_prop (Proof.context_of state) s;
+  in with_modes ms (fn () => Pretty.string_of (Pretty.quote (Sign.pretty_term sign prop))) end;
 
-fun print_term (ms, s) = Toplevel.keep (fn state =>
+fun string_of_term state ms s =
   let
-    val sign = Toplevel.sign_of state;
-    val t = ProofContext.read_term (Toplevel.context_of state) s;
+    val sign = Proof.sign_of state;
+    val t = ProofContext.read_term (Proof.context_of state) s;
     val T = Term.type_of t;
   in
-    with_modes ms (fn () => Pretty.writeln
+    with_modes ms (fn () => Pretty.string_of
       (Pretty.block [Pretty.quote (Sign.pretty_term sign t), Pretty.fbrk,
         Pretty.str "::", Pretty.brk 1, Pretty.quote (Sign.pretty_typ sign T)]))
-  end);
+  end;
 
-fun print_prop (ms, s) = Toplevel.keep (fn state =>
+fun string_of_type state ms s =
   let
-    val sign = Toplevel.sign_of state;
-    val prop = ProofContext.read_prop (Toplevel.context_of state) s;
-  in with_modes ms (fn () => Pretty.writeln (Pretty.quote (Sign.pretty_term sign prop))) end);
+    val sign = Proof.sign_of state;
+    val T = ProofContext.read_typ (Proof.context_of state) s;
+  in with_modes ms (fn () => Pretty.string_of (Pretty.quote (Sign.pretty_typ sign T))) end;
+
+fun print_item string_of (x, y) = Toplevel.keep (fn state =>
+  writeln (string_of (Toplevel.node_case Proof.init_state Proof.enter_forward state) x y));
+
+val print_thms = print_item string_of_thms;
+val print_prop = print_item string_of_prop;
+val print_term = print_item string_of_term;
+val print_type = print_item string_of_type;
 
 
 end;
