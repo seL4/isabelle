@@ -52,6 +52,7 @@ struct
 
 structure P = OuterParse
 
+
 (* PGIP messaging mode (independent of PGML output) *)
 
 val pgip_active = ref false;
@@ -248,7 +249,9 @@ end
 local
     val display_area = ("area", "display")
     val message_area = ("area", "message")
-    val tracing_category = ("category", "tracing")
+    val internal_category = ("messagecategory", "internal")
+    val info_category = ("messagecategory", "information")
+    val tracing_category = ("messagecategory", "tracing")
     val urgent_indication = ("urgent", "y")
     val nonfatal = ("fatality", "nonfatal")
     val fatal = ("fatality", "fatal")
@@ -267,6 +270,12 @@ fun setup_messages () =
 
   tracing_fn := message "normalresponse"  [message_area, tracing_category]
 			(oct_char "360" ^ oct_char "375") (oct_char "361") "";
+
+  info_fn := message "normalresponse" [message_area, info_category]
+			(oct_char "362") (oct_char "363") "+++ ";
+
+  debug_fn := message "normalresponse" [message_area, internal_category]
+			(oct_char "362") (oct_char "363") "+++ ";
 
   warning_fn := message "errorresponse"    [nonfatal]
 			(oct_char "362") (oct_char "363") "### ";
@@ -898,14 +907,51 @@ fun xmls_of_transition (name,str,toks) =
 	   markup_text str "spuriouscmd")
    end 
 
-fun xmls_of_impropers [] = []
-  | xmls_of_impropers toks = 
+fun markup_toks [] _ = []
+  | markup_toks toks x = markup_text (implode (map OuterLex.unparse toks)) x
+
+fun markup_comment_whs [] = []
+  | markup_comment_whs (toks as t::ts) = (* this would be a lot neater if we could match on toks! *)
     let 
-	val (whs,rest) = take_prefix (not o OuterLex.is_proper) toks
-	fun markup [] _ = []
-	  | markup toks x = markup_text (implode (map OuterLex.unparse toks)) x
+	val (prewhs,rest) = take_prefix (OuterLex.is_kind OuterLex.Space) toks
+    in 
+	if (prewhs <> []) then
+	    XML.text (implode (map OuterLex.unparse prewhs))
+	    :: (markup_comment_whs rest)
+	else 
+	    (markup_text (OuterLex.unparse t) "comment") @
+	    (markup_comment_whs ts)
+    end
+
+fun xmls_pre_cmd [] = ([],[])
+  | xmls_pre_cmd toks = 
+    let 
+	(* an extra token is needed to terminate the command *)
+	val sync = OuterSyntax.scan "\\<^sync>";
+	val spaceP = Scan.bulk (Scan.one (fn t =>not (OuterLex.is_proper t)) >> OuterLex.val_of) >> implode
+	val text_with_whs = 
+	    ((spaceP || Scan.succeed "") --
+	     (P.short_ident || P.long_ident || P.sym_ident || P.string || P.number || P.verbatim) >> op^)
+	     -- (spaceP || Scan.succeed "") >> op^
+	val (prewhs,rest1) = take_prefix (not o OuterLex.is_proper) (toks@sync)
+        (* NB: this collapses  litcomment,(litcomment|whitespace)* to a single litcomment *)
+	val (_,rest2) = (Scan.bulk (P.$$$ "--" |-- text_with_whs) >> implode || Scan.succeed "") rest1
+	val (postwhs,rest3) = take_prefix (not o OuterLex.is_proper) rest2
     in
-	(markup whs "comment") @ (markup rest "unparseable")
+	((markup_comment_whs prewhs) @
+	 (if (length rest2 = length rest1)  then []
+	  else markup_text (implode 
+				(map OuterLex.unparse (take (length rest1 - length rest2, rest1))))
+	       "litcomment") @
+	 (markup_comment_whs postwhs),
+	 take (length rest3 - 1,rest3))
+    end
+
+fun xmls_of_impropers toks = 
+    let 
+	val (xmls,rest) = xmls_pre_cmd toks
+    in
+	xmls @ (markup_toks rest "unparseable")
     end
     
 fun markup_unparseable str = markup_text str "unparseable" 
@@ -916,6 +962,7 @@ end
 local
     (* we have to weave together the whitespace/comments with proper tokens 
        to reconstruct the input. *)
+    (* TODO: see if duplicating isar_output/parse_thy can help here *)
 
     fun match_tokens ([],us,vs) = (rev vs,us)  (* used, unused *)
       | match_tokens (t::ts,w::ws,vs) = 
@@ -930,19 +977,18 @@ in
 	 | parse_loop ([],itoks,xmls) = xmls @ (xmls_of_impropers itoks)
 	 | parse_loop ((nm,toks,_)::trs,itoks,xmls) =
 	   let 
-	       (* first proper token is command, except FIXME for -- *)
-	       val (prewhs,cmditoks') = take_prefix (not o OuterLex.is_proper) itoks
+	       (* first proper token after whitespace/litcomment/whitespace is command *)
+	       val (xmls_pre_cmd,cmditoks') = xmls_pre_cmd itoks
 	       val (cmdtok,itoks') = case cmditoks' of x::xs => (x,xs)
-						  | _ => error("proof_general/parse_loop impossible") 
+						     | _ => error("proof_general/parse_loop impossible") 
 	       val (utoks,itoks'') = match_tokens (toks,itoks',[])
                (* FIXME: should take trailing [w/s+] semicolon too in utoks *)
 
 	       val str = implode (map OuterLex.unparse (cmdtok::utoks))
 
-	       val xmls_whs = xmls_of_impropers prewhs 
 	       val xmls_tr  = xmls_of_transition (nm,str,toks)
 	   in
-	       parse_loop(trs,itoks'',xmls @ xmls_whs @ xmls_tr)
+	       parse_loop(trs,itoks'',xmls @ xmls_pre_cmd @ xmls_tr)
 	   end
     in
 	(let val toks = OuterSyntax.scan str
@@ -1071,7 +1117,8 @@ fun process_pgip_element pgipxml = (case pgipxml of
 | (xml as (XML.Elem (elem, attrs, data))) => 
   (case elem of
        (* protocol config *)
-       "askpgip"  	=> (usespgip (); send_pgip_config ())
+       "askpgip"  	=> (pgip_emacs_compatibility_flag:=false; (* PG>=3.6 or other PGIP interface *)
+			    usespgip (); send_pgip_config ())
      | "askpgml"  	=> usespgml ()
      (* proverconfig *)
      | "askprefs" 	=> hasprefs ()
@@ -1092,7 +1139,7 @@ fun process_pgip_element pgipxml = (case pgipxml of
      | "closegoal"      => isarscript data
      | "giveupgoal"     => isarscript data
      | "postponegoal"   => isarscript data
-     | "comment"	=> isarscript data
+     | "comment"	=> isarscript data  (* NB: should be ignored, but process anyway *)
      | "litcomment"     => isarscript data
      | "spuriouscmd"    => isarscript data
      | "badcmd"		=> isarscript data
@@ -1152,14 +1199,8 @@ fun process_pgip_tree xml =
 	    (error (msg ^ "\nPGIP error occured in XML text below:\n" ^ 
 		    (XML.string_of_tree xml))))
 
-(* for export to Emacs *)
-(* val process_pgip = process_pgip_tree o XML.tree_of_string; *)
-(* FIXME: for temporary compatibility with PG 3.4, we engage special characters
-   during output *)
-fun process_pgip s = 
-    (pgip_emacs_compatibility_flag := true;
-     process_pgip_tree (XML.tree_of_string s);
-     pgip_emacs_compatibility_flag := false)
+val process_pgip = process_pgip_tree o XML.tree_of_string;
+
 end
 
 
@@ -1277,7 +1318,8 @@ fun init_setup isar pgip =
   print_mode := proof_generalN :: (! print_mode \ proof_generalN);
   if pgip then 
       print_mode := pgmlN :: (pgmlatomsN :: (! print_mode \ pgmlN \ pgmlatomsN)) 
-    else ();
+    else 
+	pgip_emacs_compatibility_flag := true;  (* assume this for PG <3.6 compatibility *)
   set quick_and_dirty;
   ThmDeps.enable ();
   set_prompts isar pgip;
@@ -1291,7 +1333,8 @@ fun init isar =
 		    Isar.sync_main ()) else isa_restart ());
 
 fun init_pgip false = panic "Sorry, PGIP not supported for Isabelle/classic mode."
-  | init_pgip true = (init_setup true true; pgip_toplevel tty_src);
+  | init_pgip true = (init_setup true true; 
+		      pgip_toplevel tty_src);
 
 
 
