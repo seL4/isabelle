@@ -3,6 +3,14 @@ Isabelle Binary Distribution
 
 %body%
 
+<p>
+
+The binary distribution is designed for easy installation of Isabelle
+and related tools (Proof General and X-Symbol) on common platforms.
+There is no manual intervention requires, no need to edit config files
+etc. by hand.
+
+
 <h2>(1) Linux/x86 systems with RPM</h2>
 
 This is the binary distribution of <!-- _GP_ distname --> for

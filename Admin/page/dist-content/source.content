@@ -21,7 +21,8 @@ This is the complete source distribution of <!-- _GP_ distname -->.
 
 Please see the Isabelle <!-- _GP_ href(distname . "/README.html",
 "README") --> and <!-- _GP_ href(distname . "/INSTALL", "INSTALL") -->
-files for more information.
+files for more information.  See the <!-- _GP_ href(distname
+. "/NEWS", "NEWS") --> file for a history user-relevant changes.
 
 <p>
 
