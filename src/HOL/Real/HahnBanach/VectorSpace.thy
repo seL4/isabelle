@@ -292,11 +292,11 @@ qed
 
 lemma vs_add_minus_cancel [simp]:  
   "[| is_vectorspace V; x \<in> V; y \<in> V |] ==> x + (- x + y) = y" 
-  by (simp add: vs_add_assoc [RS sym] del: vs_add_commute) 
+  by (simp add: vs_add_assoc [symmetric] del: vs_add_commute) 
 
 lemma vs_minus_add_cancel [simp]: 
   "[| is_vectorspace V; x \<in> V; y \<in> V |] ==> - x + (x + y) = y" 
-  by (simp add: vs_add_assoc [RS sym] del: vs_add_commute) 
+  by (simp add: vs_add_assoc [symmetric] del: vs_add_commute) 
 
 lemma vs_minus_add_distrib [simp]:  
   "[| is_vectorspace V; x \<in> V; y \<in> V |] 
@@ -323,7 +323,7 @@ proof
     by (simp! only: vs_add_assoc vs_neg_closed)
   also assume "x + y = x + z"
   also have "- x + (x + z) = - x + x + z" 
-    by (simp! only: vs_add_assoc [RS sym] vs_neg_closed)
+    by (simp! only: vs_add_assoc [symmetric] vs_neg_closed)
   also have "... = z" by (simp!)
   finally show ?R .
 qed force
@@ -336,7 +336,7 @@ lemma vs_add_right_cancel:
 lemma vs_add_assoc_cong: 
   "[| is_vectorspace V; x \<in> V; y \<in> V; x' \<in> V; y' \<in> V; z \<in> V |] 
   ==> x + y = x' + y' ==> x + (y + z) = x' + (y' + z)"
-  by (simp only: vs_add_assoc [RS sym]) 
+  by (simp only: vs_add_assoc [symmetric]) 
 
 lemma vs_mult_left_commute: 
   "[| is_vectorspace V; x \<in> V; y \<in> V; z \<in> V |] 
@@ -504,7 +504,7 @@ proof -
   proof
     assume l: ?L
     have "x + z = 0" 
-    proof (rule vs_add_left_cancel [RS iffD1])
+    proof (rule vs_add_left_cancel [THEN iffD1])
       have "y + (x + z) = x + (y + z)" by (simp!)
       also note l
       also have "y = y + 0" by (simp!)

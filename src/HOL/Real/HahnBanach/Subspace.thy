@@ -227,7 +227,7 @@ lemma vs_sumD:
   "x \<in> U + V = (\<exists>u \<in> U. \<exists>v \<in> V. x = u + v)"
     by (unfold vs_sum_def) fast
 
-lemmas vs_sumE = vs_sumD [RS iffD1, elimify]
+lemmas vs_sumE = vs_sumD [THEN iffD1, elimify, standard]
 
 lemma vs_sumI [intro?]: 
   "[| x \<in> U; y \<in> V; t= x + y |] ==> t \<in> U + V"
@@ -343,7 +343,7 @@ proof
   qed
 
   show "v1 = v2"
-  proof (rule vs_add_minus_eq [RS sym])
+  proof (rule vs_add_minus_eq [symmetric])
     show "v2 - v1 = 0" by (rule Int_singletonD [OF _ v' v])
     show "v1 \<in> E" ..
     show "v2 \<in> E" ..
@@ -372,7 +372,7 @@ proof
     show "H \<inter> (lin x') = {0}" 
     proof
       show "H \<inter> lin x' <= {0}" 
-      proof (intro subsetI, elim IntE, rule singleton_iff[RS iffD2])
+      proof (intro subsetI, elim IntE, rule singleton_iff [THEN iffD2])
         fix x assume "x \<in> H" "x \<in> lin x'" 
         thus "x = 0"
         proof (unfold lin_def, elim CollectE exE conjE)
@@ -406,7 +406,7 @@ proof
   from c show "y1 = y2" by simp
   
   show  "a1 = a2" 
-  proof (rule vs_mult_right_cancel [RS iffD1])
+  proof (rule vs_mult_right_cancel [THEN iffD1])
     from c show "a1 \<cdot> x' = a2 \<cdot> x'" by simp
   qed
 qed

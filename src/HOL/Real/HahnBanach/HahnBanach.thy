@@ -271,7 +271,7 @@ proof -
                   by (simp add: Let_def)
                 also have 
                   "(x, #0) = (SOME (y, a). x = y + a \<cdot> x' \<and> y \<in> H)"
-                  by (rule decomp_H'_H [RS sym]) (simp! add: x')+
+                  by (rule decomp_H'_H [symmetric]) (simp! add: x')+
                 also have 
                   "(let (y,a) = (SOME (y,a). x = y + a \<cdot> x' \<and> y \<in> H)
                     in h y + a * xi) = h' x" by (simp!)
@@ -328,7 +328,7 @@ is_seminorm E p; \<forall>x \<in> F. |f x| <= p x |]
 proof -
 assume "is_vectorspace E" "is_subspace F E" "is_seminorm E p" 
 "is_linearform F f"  "\<forall>x \<in> F. |f x| <= p x"
-have "\<forall>x \<in> F. f x <= p x"  by (rule abs_ineq_iff [RS iffD1])
+have "\<forall>x \<in> F. f x <= p x"  by (rule abs_ineq_iff [THEN iffD1])
 hence "\<exists>g. is_linearform E g \<and> (\<forall>x \<in> F. g x = f x) 
           \<and> (\<forall>x \<in> E. g x <= p x)"
 by (simp! only: HahnBanach)

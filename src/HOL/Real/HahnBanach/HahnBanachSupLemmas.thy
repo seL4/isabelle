@@ -333,7 +333,7 @@ proof -
       also assume "graph G g = x"
       also have "... \<in> c" .
       hence "x \<subseteq> \<Union>c" by fast
-      also have [RS sym]: "graph H h = \<Union>c" .
+      also have [symmetric]: "graph H h = \<Union>c" .
       finally show ?thesis .
     qed
   qed
@@ -476,7 +476,7 @@ proof
     fix H' h' 
     assume "x \<in> H'" "graph H' h' \<subseteq> graph H h" 
       and a: "\<forall>x \<in> H'. h' x <= p x"
-    have [RS sym]: "h' x = h x" ..
+    have [symmetric]: "h' x = h x" ..
     also from a have "h' x <= p x " ..
     finally show ?thesis .  
   qed
@@ -522,7 +522,7 @@ proof -
       show "- p x <= h x"
       proof (rule real_minus_le)
 	from h have "- h x = h (- x)"
-          by (rule linearform_neg [RS sym])
+          by (rule linearform_neg [symmetric])
 	also from r have "... <= p (- x)" by (simp!)
 	also have "... = p x" 
         proof (rule seminorm_minus)

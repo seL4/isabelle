@@ -79,7 +79,7 @@ proof (unfold domain_def funct_def graph_def, auto)
   show "\<exists>y. (a, y) \<in> g" ..
   assume uniq: "!!x y z. (x, y) \<in> g ==> (x, z) \<in> g ==> z = y"
   show "b = (SOME y. (a, y) \<in> g)"
-  proof (rule select_equality [RS sym])
+  proof (rule select_equality [symmetric])
     fix y assume "(a, y) \<in> g" show "y = b" by (rule uniq)
   qed
 qed

@@ -185,9 +185,9 @@ proof -;
       also; have "... = (h y1 + a1 * xi) + (h y2 + a2 * xi)"; 
         by simp;
       also; have "h y1 + a1 * xi = h' x1";
-        by (rule h'_definite [RS sym]);
+        by (rule h'_definite [symmetric]);
       also; have "h y2 + a2 * xi = h' x2"; 
-        by (rule h'_definite [RS sym]);
+        by (rule h'_definite [symmetric]);
       finally; show ?thesis; .;
     qed;
  
@@ -229,7 +229,7 @@ proof -;
       also; from vs y1'; have "... = c * (h y1 + a1 * xi)"; 
 	by (simp add: real_add_mult_distrib2 real_mult_assoc);
       also; have "h y1 + a1 * xi = h' x1"; 
-        by (rule h'_definite [RS sym]);
+        by (rule h'_definite [symmetric]);
       finally; show ?thesis; .;
     qed;
   qed;
@@ -300,7 +300,7 @@ proof;
       also; from nz vs y; have "... = p (y + a \<cdot> x0)";
         by (simp add: vs_add_mult_distrib1);
       also; from nz vs y; have "a * (h (rinv a \<cdot> y)) =  h y";
-        by (simp add: linearform_mult [RS sym]);
+        by (simp add: linearform_mult [symmetric]);
       finally; have "a * xi <= p (y + a \<cdot> x0) - h y"; .;
 
       hence "h y + a * xi <= h y + p (y + a \<cdot> x0) - h y";
@@ -329,7 +329,7 @@ proof;
       also; from nz vs y; have "... = p (y + a \<cdot> x0)";
         by (simp add: vs_add_mult_distrib1);
       also; from nz vs y; have "a * h (rinv a \<cdot> y) = h y";
-        by (simp add: linearform_mult [RS sym]); 
+        by (simp add: linearform_mult [symmetric]); 
       finally; have "a * xi <= p (y + a \<cdot> x0) - h y"; .;
  
       hence "h y + a * xi <= h y + (p (y + a \<cdot> x0) - h y)";
