@@ -153,7 +153,7 @@
   \item {\tt commit}, \bold{2}
   \item {\tt COMP}, \bold{46}
   \item {\tt compose}, \bold{46}
-  \item {\tt compose_tac}, \bold{22}
+  \item {\tt compose_tac}, \bold{23}
   \item {\tt compSWrapper}, \bold{124}
   \item {\tt compWrapper}, \bold{124}
   \item {\tt concl_of}, \bold{39}
@@ -206,11 +206,14 @@
   \item destruct-resolution, 17
   \item {\tt DETERM}, \bold{32}
   \item discrimination nets, \bold{24}
+  \item {\tt distinct_subgoals_tac}, \bold{22}
   \item {\tt dmatch_tac}, \bold{17}
   \item {\tt dres_inst_tac}, \bold{18}
   \item {\tt dresolve_tac}, \bold{17}
   \item {\tt dtac}, \bold{19}
   \item {\tt dummyT}, 82, 83, 93
+  \item duplicate subgoals
+    \subitem removing, 22
 
   \indexspace
 
@@ -289,7 +292,7 @@
   \item {\tt frs}, \bold{11}
   \item {\tt Full_simp_tac}, \bold{100}, 105
   \item {\tt full_simp_tac}, 105, \bold{106}
-  \item {\tt fun} type, 60
+  \item {\textit {fun}} type, 60
   \item function applications, \bold{57}
 
   \indexspace
@@ -404,7 +407,7 @@
 
   \indexspace
 
-  \item {\tt o} type, 76
+  \item {\textit {o}} type, 76
   \item {\tt op} symbol, 73
   \item {\tt option} ML type, 26
   \item oracles, 61--62
@@ -470,8 +473,8 @@
     \subitem starting, 6
     \subitem timing, 10
   \item {\tt PROP} symbol, 65
+  \item {\textit {prop}} type, 60, 66
   \item {\tt prop} nonterminal, \bold{64}, 76
-  \item {\tt prop} type, 60, 66
   \item {\tt prove_goal}, 10, \bold{13}
   \item {\tt prove_goalw}, \bold{13}
   \item {\tt prove_goalw_cterm}, \bold{13}
@@ -767,8 +770,8 @@
   \item {\tt tvar} nonterminal, \bold{66, 67}, 80, 87
   \item {\tt typ} ML type, 60
   \item {\tt Type}, \bold{60}
+  \item {\textit {type}} type, 71
   \item {\tt type} nonterminal, \bold{66}
-  \item {\tt type} type, 71
   \item type constraints, 66, 74, 83
   \item type constructors, \bold{60}
   \item type identifiers, 66
