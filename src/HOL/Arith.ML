@@ -557,6 +557,16 @@ by (asm_full_simp_tac (simpset() addsimps [mult_commute]) 1);
 qed "mult_less_cancel1";
 Addsimps [mult_less_cancel1, mult_less_cancel2];
 
+goal Arith.thy "(Suc k * m < Suc k * n) = (m < n)";
+br mult_less_cancel1 1;
+by (Simp_tac 1);
+qed "Suc_mult_less_cancel1";
+
+goalw Arith.thy [le_def] "(Suc k * m <= Suc k * n) = (m <= n)";
+by (simp_tac (simpset_of HOL.thy) 1);
+br Suc_mult_less_cancel1 1;
+qed "Suc_mult_le_cancel1";
+
 goal Arith.thy "!!k. 0<k ==> (m*k = n*k) = (m=n)";
 by (cut_facts_tac [less_linear] 1);
 by Safe_tac;
@@ -570,6 +580,11 @@ by (dtac mult_cancel2 1);
 by (asm_full_simp_tac (simpset() addsimps [mult_commute]) 1);
 qed "mult_cancel1";
 Addsimps [mult_cancel1, mult_cancel2];
+
+goal Arith.thy "(Suc k * m = Suc k * n) = (m = n)";
+br mult_cancel1 1;
+by (Simp_tac 1);
+qed "Suc_mult_cancel1";
 
 
 (** Lemma for gcd **)
