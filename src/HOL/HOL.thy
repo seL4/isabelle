@@ -13,16 +13,16 @@ subsection {* Primitive logic *}
 
 subsubsection {* Core syntax *}
 
-global
+classes type < logic
+defaultsort type
 
-classes "term" < logic
-defaultsort "term"
+global
 
 typedecl bool
 
 arities
-  bool :: "term"
-  fun :: ("term", "term") "term"
+  bool :: type
+  fun :: (type, type) type
 
 judgment
   Trueprop      :: "bool => prop"                   ("(_)" 5)
@@ -145,12 +145,12 @@ defs
 
 subsubsection {* Generic algebraic operations *}
 
-axclass zero < "term"
-axclass one < "term"
-axclass plus < "term"
-axclass minus < "term"
-axclass times < "term"
-axclass inverse < "term"
+axclass zero < type
+axclass one < type
+axclass plus < type
+axclass minus < type
+axclass times < type
+axclass inverse < type
 
 global
 
@@ -528,7 +528,7 @@ setup InductMethod.setup
 subsection {* Order signatures and orders *}
 
 axclass
-  ord < "term"
+  ord < type
 
 syntax
   "op <"        :: "['a::ord, 'a] => bool"             ("op <")

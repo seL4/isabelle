@@ -9,7 +9,7 @@ Temporal Logic of Steps -- tailored for I/O automata.
 		       
 TLS = IOA + TL + 
 
-default term
+default type
 
 types
 

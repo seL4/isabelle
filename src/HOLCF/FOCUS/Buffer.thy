@@ -21,7 +21,7 @@ Slides available from http://isabelle.in.tum.de/HOLCF/1-Buffer.ps.gz
 Buffer = FOCUS + 
 
 types   D
-arities D::term
+arities D :: type
 
 datatype
 

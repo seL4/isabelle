@@ -6,10 +6,10 @@
 Auxiliary definitions needed in Priority.thy
 *)
 
-PriorityAux  =  Main +
+PriorityAux = Main +
 
 types vertex
-arities vertex::term
+arities vertex :: type
   
 constdefs
   (* symmetric closure: removes the orientation of a relation *)

@@ -8,7 +8,7 @@ Refinement Mappings in HOLCF/IOA.
 
 RefMappings = Traces  +
 
-default term
+default type
 
 consts
 

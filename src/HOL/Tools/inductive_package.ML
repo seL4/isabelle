@@ -838,7 +838,7 @@ fun add_inductive_i verbose declare_consts alt_name coind no_elim no_ind cs pre_
 fun add_inductive verbose coind c_strings intro_srcs raw_monos thy =
   let
     val sign = Theory.sign_of thy;
-    val cs = map (term_of o Thm.read_cterm sign o rpair HOLogic.termT) c_strings;
+    val cs = map (term_of o HOLogic.read_cterm sign) c_strings;
 
     val intr_names = map (fst o fst) intro_srcs;
     fun read_rule s = Thm.read_cterm sign (s, propT)

@@ -15,7 +15,7 @@ Examples: range(f^n) = A and Range(R^n) = B need constraints.
 Relation_Power = Nat +
 
 instance
-  set :: (term) {power}   (* only ('a * 'a) set should be in power! *)
+  set :: (type) power   (* only ('a * 'a) set should be in power! *)
 
 primrec (relpow)
   "R^0 = Id"
@@ -23,7 +23,7 @@ primrec (relpow)
 
 
 instance
-  fun :: (term,term)power   (* only 'a => 'a should be in power! *)
+  fun :: (type, type) power   (* only 'a => 'a should be in power! *)
 
 primrec (funpow)
   "f^0 = id"

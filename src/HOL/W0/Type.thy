@@ -10,7 +10,7 @@ Type = Maybe +
 
 (* new class for structures containing type variables *)
 classes
-        type_struct < term 
+        type_struct < type
 
 (* type expressions *)
 datatype
@@ -23,7 +23,7 @@ types
 arities
         typ::type_struct
         list::(type_struct)type_struct
-        fun::(term,type_struct)type_struct
+        fun::(type,type_struct)type_struct
 
 (* substitutions *)
 

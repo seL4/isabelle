@@ -19,7 +19,7 @@ instance nat :: order (le_refl,le_trans,le_anti_sym,nat_less_le)
 instance nat :: linorder (nat_le_linear)
 instance nat :: wellorder (wf_less)
 
-axclass power < term
+axclass power < type
 
 consts
   power :: ['a::power, nat] => 'a            (infixr "^" 80)

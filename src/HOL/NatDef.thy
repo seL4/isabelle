@@ -12,13 +12,8 @@ NatDef = Wellfounded_Recursion +
 
 (** type ind **)
 
-global
-
-types
-  ind
-
-arities
-  ind :: term
+types ind
+arities ind :: type
 
 consts
   Zero_Rep      :: ind
@@ -42,6 +37,8 @@ inductive Nat'
 intrs
   Zero_RepI "Zero_Rep : Nat'"
   Suc_RepI  "i : Nat' ==> Suc_Rep i : Nat'"
+
+global
 
 typedef (Nat)
   nat = "Nat'"   (Nat'.Zero_RepI)

@@ -9,50 +9,49 @@
 %
 \begin{isamarkuptext}%
 \medskip\noindent There is still a feature of Isabelle's type system
- left that we have not yet discussed.  When declaring polymorphic
- constants \isa{c\ {\isasymColon}\ {\isasymsigma}}, the type variables occurring in \isa{{\isasymsigma}}
- may be constrained by type classes (or even general sorts) in an
- arbitrary way.  Note that by default, in Isabelle/HOL the declaration
- \isa{{\isasymodot}\ {\isasymColon}\ {\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a} is actually an abbreviation for \isa{{\isasymodot}\ {\isasymColon}\ {\isacharprime}a{\isasymColon}term\ {\isasymRightarrow}\ {\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a} Since class \isa{term} is the universal
- class of HOL, this is not really a constraint at all.
+  left that we have not yet discussed.  When declaring polymorphic
+  constants \isa{c\ {\isasymColon}\ {\isasymsigma}}, the type variables occurring in \isa{{\isasymsigma}}
+  may be constrained by type classes (or even general sorts) in an
+  arbitrary way.  Note that by default, in Isabelle/HOL the
+  declaration \isa{{\isasymodot}\ {\isasymColon}\ {\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a} is actually an abbreviation
+  for \isa{{\isasymodot}\ {\isasymColon}\ {\isacharprime}a{\isasymColon}type\ {\isasymRightarrow}\ {\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a} Since class \isa{type} is the
+  universal class of HOL, this is not really a constraint at all.
 
  The \isa{product} class below provides a less degenerate example of
  syntactic type classes.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{axclass}\isanewline
-\ \ product\ {\isasymsubseteq}\ {\isachardoublequote}term{\isachardoublequote}\isanewline
+\ \ product\ {\isasymsubseteq}\ type\isanewline
 \isamarkupfalse%
 \isacommand{consts}\isanewline
 \ \ product\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}{\isacharprime}a{\isasymColon}product\ {\isasymRightarrow}\ {\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a{\isachardoublequote}\ \ \ \ {\isacharparenleft}\isakeyword{infixl}\ {\isachardoublequote}{\isasymodot}{\isachardoublequote}\ {\isadigit{7}}{\isadigit{0}}{\isacharparenright}\isamarkupfalse%
 %
 \begin{isamarkuptext}%
-Here class \isa{product} is defined as subclass of \isa{term}
- without any additional axioms.  This effects in logical equivalence
- of \isa{product} and \isa{term}, as is reflected by the trivial
- introduction rule generated for this definition.
+Here class \isa{product} is defined as subclass of \isa{type}
+  without any additional axioms.  This effects in logical equivalence
+  of \isa{product} and \isa{type}, as is reflected by the trivial
+  introduction rule generated for this definition.
 
- \medskip So what is the difference of declaring \isa{{\isasymodot}\ {\isasymColon}\ {\isacharprime}a{\isasymColon}product\ {\isasymRightarrow}\ {\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a} vs.\ declaring \isa{{\isasymodot}\ {\isasymColon}\ {\isacharprime}a{\isasymColon}term\ {\isasymRightarrow}\ {\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a}
- anyway?  In this particular case where \isa{product\ {\isasymequiv}\ term}, it
- should be obvious that both declarations are the same from the
- logic's point of view.  It even makes the most sense to remove sort
- constraints from constant declarations, as far as the purely logical
- meaning is concerned \cite{Wenzel:1997:TPHOL}.
+  \medskip So what is the difference of declaring \isa{{\isasymodot}\ {\isasymColon}\ {\isacharprime}a{\isasymColon}product\ {\isasymRightarrow}\ {\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a} vs.\ declaring \isa{{\isasymodot}\ {\isasymColon}\ {\isacharprime}a{\isasymColon}type\ {\isasymRightarrow}\ {\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a} anyway?  In this particular case where \isa{product\ {\isasymequiv}\ type}, it should be obvious that both declarations are the same
+  from the logic's point of view.  It even makes the most sense to
+  remove sort constraints from constant declarations, as far as the
+  purely logical meaning is concerned \cite{Wenzel:1997:TPHOL}.
 
- On the other hand there are syntactic differences, of course.
- Constants \isa{{\isasymodot}} on some type \isa{{\isasymtau}} are rejected by the
- type-checker, unless the arity \isa{{\isasymtau}\ {\isasymColon}\ product} is part of the
- type signature.  In our example, this arity may be always added when
- required by means of an $\INSTANCE$ with the default proof $\DDOT$.
+  On the other hand there are syntactic differences, of course.
+  Constants \isa{{\isasymodot}} on some type \isa{{\isasymtau}} are rejected by the
+  type-checker, unless the arity \isa{{\isasymtau}\ {\isasymColon}\ product} is part of the
+  type signature.  In our example, this arity may be always added when
+  required by means of an $\INSTANCE$ with the default proof $\DDOT$.
 
- \medskip Thus, we may observe the following discipline of using
- syntactic classes.  Overloaded polymorphic constants have their type
- arguments restricted to an associated (logically trivial) class
- \isa{c}.  Only immediately before \emph{specifying} these constants
- on a certain type \isa{{\isasymtau}} do we instantiate \isa{{\isasymtau}\ {\isasymColon}\ c}.
+  \medskip Thus, we may observe the following discipline of using
+  syntactic classes.  Overloaded polymorphic constants have their type
+  arguments restricted to an associated (logically trivial) class
+  \isa{c}.  Only immediately before \emph{specifying} these
+  constants on a certain type \isa{{\isasymtau}} do we instantiate \isa{{\isasymtau}\ {\isasymColon}\ c}.
 
- This is done for class \isa{product} and type \isa{bool} as
- follows.%
+  This is done for class \isa{product} and type \isa{bool} as
+  follows.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{instance}\ bool\ {\isacharcolon}{\isacharcolon}\ product\ \isamarkupfalse%
@@ -85,7 +84,8 @@ The definition \isa{prod{\isacharunderscore}bool{\isacharunderscore}def} becomes
  ``providing operations'' or even ``names of functions''.%
 \end{isamarkuptext}%
 \isamarkuptrue%
-\isacommand{end}\isamarkupfalse%
+\isacommand{end}\isanewline
+\isamarkupfalse%
 \end{isabellebody}%
 %%% Local Variables:
 %%% mode: latex

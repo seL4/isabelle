@@ -169,8 +169,7 @@ val bin_simps = [numeral_0_eq_0 RS sym, numeral_1_eq_1 RS sym,
                 bin_arith_simps @ bin_rel_simps;
 
 fun prep_simproc (name, pats, proc) = Simplifier.mk_simproc name pats proc;
-fun prep_pat s = Thm.read_cterm (Theory.sign_of (the_context ()))
-                                (s, HOLogic.termT);
+fun prep_pat s = HOLogic.read_cterm (Theory.sign_of (the_context ())) s;
 val prep_pats = map prep_pat;
 
 

@@ -58,7 +58,7 @@ fun add_typedecls decls thy =
     val full = Sign.full_name (Theory.sign_of thy);
 
     fun arity_of (raw_name, args, mx) =
-      (full (Syntax.type_name raw_name mx), replicate (length args) HOLogic.termS, HOLogic.termS);
+      (full (Syntax.type_name raw_name mx), replicate (length args) HOLogic.typeS, HOLogic.typeS);
   in
     if can (Theory.assert_super HOL.thy) thy then
       thy
@@ -97,7 +97,7 @@ fun prove_nonempty thy cset goal (witn1_tac, witn_names, witn_thms, witn2_tac) =
 (* prepare_typedef *)
 
 fun read_term sg used s =
-  #1 (Thm.read_def_cterm (sg, K None, K None) used true (s, HOLogic.termT));
+  #1 (Thm.read_def_cterm (sg, K None, K None) used true (s, HOLogic.typeT));
 
 fun cert_term sg _ t = Thm.cterm_of sg t handle TERM (msg, _) => error msg;
 
@@ -125,7 +125,7 @@ fun prepare_typedef prep_term def name (t, vs, mx) raw_set opt_morphs thy =
     val goal_pat = mk_nonempty (Var (vname, setT));
 
     (*lhs*)
-    val lhs_tfrees = map (fn v => (v, if_none (assoc (rhs_tfrees, v)) HOLogic.termS)) vs;
+    val lhs_tfrees = map (fn v => (v, if_none (assoc (rhs_tfrees, v)) HOLogic.typeS)) vs;
     val tname = Syntax.type_name t mx;
     val full_tname = full tname;
     val newT = Type (full_tname, map TFree lhs_tfrees);
@@ -162,7 +162,9 @@ fun prepare_typedef prep_term def name (t, vs, mx) raw_set opt_morphs thy =
           fun make th = Drule.standard (th OF [type_definition]);
           val (theory'', [Rep, Rep_inverse, Abs_inverse, Rep_inject, Abs_inject,
               Rep_cases, Abs_cases, Rep_induct, Abs_induct]) =
-            theory' |> PureThy.add_thms
+            theory'
+            |> Theory.add_path name
+            |> PureThy.add_thms
               ([((Rep_name, make Rep), []),
                 ((Rep_name ^ "_inverse", make Rep_inverse), []),
                 ((Abs_name ^ "_inverse", make Abs_inverse), []),
@@ -175,7 +177,8 @@ fun prepare_typedef prep_term def name (t, vs, mx) raw_set opt_morphs thy =
                 ((Rep_name ^ "_induct", make Rep_induct),
                   [RuleCases.case_names [Rep_name], InductAttrib.induct_set_global full_name]),
                 ((Abs_name ^ "_induct", make Abs_induct),
-                  [RuleCases.case_names [Abs_name], InductAttrib.induct_type_global full_tname])]);
+                  [RuleCases.case_names [Abs_name], InductAttrib.induct_type_global full_tname])])
+            |>> Theory.parent_path;
           val result = {type_definition = type_definition, set_def = set_def,
             Rep = Rep, Rep_inverse = Rep_inverse, Abs_inverse = Abs_inverse,
             Rep_inject = Rep_inject, Abs_inject = Abs_inject, Rep_cases = Rep_cases,

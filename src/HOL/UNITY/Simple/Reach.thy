@@ -11,7 +11,7 @@ Reach = FP + SubstAx +
 types   vertex
         state = "vertex=>bool"
 
-arities vertex :: term
+arities vertex :: type
 
 consts
   init ::  "vertex"

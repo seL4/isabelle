@@ -10,7 +10,7 @@ FOCUS streams (with lifted elements)
 
 Fstream = Stream + 
 
-default term
+default type
 
 types 'a fstream = ('a lift) stream
 

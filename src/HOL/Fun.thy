@@ -8,7 +8,7 @@ Notions about functions.
 
 Fun = Typedef +
 
-instance set :: (term) order
+instance set :: (type) order
                        (subset_refl,subset_trans,subset_antisym,psubset_eq)
 consts
   fun_upd  :: "('a => 'b) => 'a => 'b => ('a => 'b)"

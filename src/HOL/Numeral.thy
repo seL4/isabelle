@@ -14,7 +14,7 @@ datatype
       | Bit bin bool    (infixl "BIT" 90)
 
 axclass
-  number < "term"      (*for numeric types: nat, int, real, ...*)
+  number < type  -- {* for numeric types: nat, int, real, \dots *}
 
 consts
   number_of :: "bin => 'a::number"

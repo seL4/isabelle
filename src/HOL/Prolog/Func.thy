@@ -4,7 +4,7 @@ Func = HOHH +
 
 types tm
 
-arities tm :: term
+arities tm :: type
 
 consts	abs	:: (tm => tm) => tm
 	app	:: tm => tm => tm

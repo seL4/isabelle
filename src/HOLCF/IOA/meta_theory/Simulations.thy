@@ -8,7 +8,7 @@ Simulations in HOLCF/IOA.
 
 Simulations = RefCorrectness  +
 
-default term
+default type
 
 consts
 

@@ -16,7 +16,7 @@ types
       aexp  = state => val
       bexp  = state => bool
 
-arities loc :: term
+arities loc :: type
 
 datatype
   com = SKIP

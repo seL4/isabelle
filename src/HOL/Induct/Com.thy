@@ -12,7 +12,7 @@ types loc
       state = "loc => nat"
       n2n2n = "nat => nat => nat"
 
-arities loc :: term
+arities loc :: type
 
 datatype
   exp = N nat

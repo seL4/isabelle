@@ -9,14 +9,14 @@ theory Semigroups = Main:
 consts
   times :: "'a => 'a => 'a"    (infixl "[*]" 70)
 
-axclass semigroup < "term"
+axclass semigroup < type
   assoc: "(x [*] y) [*] z = x [*] (y [*] z)"
 
 
 consts
   plus :: "'a => 'a => 'a"    (infixl "[+]" 70)
 
-axclass plus_semigroup < "term"
+axclass plus_semigroup < type
   assoc: "(x [+] y) [+] z = x [+] (y [+] z)"
 
 end

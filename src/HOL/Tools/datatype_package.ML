@@ -365,7 +365,7 @@ fun distinct_proc sg _ (t as Const ("op =", _) $ t1 $ t2) =
    | _ => None)
   | distinct_proc sg _ _ = None;
 
-val distinct_pats = [Thm.read_cterm (Theory.sign_of HOL.thy) ("s = t", HOLogic.termT)];
+val distinct_pats = [HOLogic.read_cterm (Theory.sign_of HOL.thy) "s = t"];
 val distinct_simproc = mk_simproc distinctN distinct_pats distinct_proc;
 
 val dist_ss = HOL_ss addsimprocs [distinct_simproc];
@@ -460,7 +460,7 @@ fun add_datatype_axm flat_names new_type_names descr sorts types_syntax constr_s
           (constrs ~~ constr_syntax')) ((hd descr) ~~ newTs ~~ constr_syntax);
 
     val rec_result_Ts = map TFree (variantlist (replicate (length descr') "'t", used) ~~
-      replicate (length descr') HOLogic.termS);
+      replicate (length descr') HOLogic.typeS);
 
     val reccomb_fn_Ts = flat (map (fn (i, (_, _, constrs)) =>
       map (fn (_, cargs) =>
@@ -484,7 +484,7 @@ fun add_datatype_axm flat_names new_type_names descr sorts types_syntax constr_s
     val size_names = DatatypeProp.indexify_names
       (map (fn T => name_of_typ T ^ "_size") (drop (length (hd descr), recTs)));
 
-    val freeT = TFree (variant used "'t", HOLogic.termS);
+    val freeT = TFree (variant used "'t", HOLogic.typeS);
     val case_fn_Ts = map (fn (i, (_, _, constrs)) =>
       map (fn (_, cargs) =>
         let val Ts = map (typ_of_dtyp descr' sorts) cargs

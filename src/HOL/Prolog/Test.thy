@@ -3,10 +3,10 @@
 Test = HOHH +
 
 types nat
-arities nat :: term
+arities nat :: type
 
 types 'a list
-arities list :: (term) term
+arities list :: (type) type
 
 consts Nil   :: 'a list		 	 		 ("[]")
        Cons  :: 'a => 'a list => 'a list		 (infixr "#"  65)
@@ -20,7 +20,7 @@ translations
   "[x]"         == "x#[]"
 
 types   person
-arities person  :: term
+arities person  :: type
 
 consts  
 	append  :: ['a list, 'a list, 'a list]		  => bool

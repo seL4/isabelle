@@ -47,9 +47,9 @@ constdefs
   set_of :: "'a multiset => 'a set"
   "set_of M == {x. x :# M}"
 
-instance multiset :: ("term") plus ..
-instance multiset :: ("term") minus ..
-instance multiset :: ("term") zero ..
+instance multiset :: (type) plus ..
+instance multiset :: (type) minus ..
+instance multiset :: (type) zero ..
 
 defs (overloaded)
   union_def: "M + N == Abs_multiset (\<lambda>a. Rep_multiset M a + Rep_multiset N a)"
@@ -114,7 +114,7 @@ theorem union_lcomm: "M + (N + K) = N + (M + (K::'a multiset))"
 
 theorems union_ac = union_assoc union_commute union_lcomm
 
-instance multiset :: ("term") plus_ac0
+instance multiset :: (type) plus_ac0
   apply intro_classes
     apply (rule union_commute)
    apply (rule union_assoc)
@@ -660,7 +660,7 @@ theorem one_step_implies_mult:
 
 subsubsection {* Partial-order properties *}
 
-instance multiset :: ("term") ord ..
+instance multiset :: (type) ord ..
 
 defs (overloaded)
   less_multiset_def: "M' < M == (M', M) \<in> mult {(x', x). x' < x}"

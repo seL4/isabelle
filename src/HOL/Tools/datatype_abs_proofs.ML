@@ -120,7 +120,7 @@ fun prove_primrec_thms flat_names new_type_names descr sorts
           (1 upto (length descr'))));
 
     val rec_result_Ts = map TFree (variantlist (replicate (length descr') "'t", used) ~~
-      replicate (length descr') HOLogic.termS);
+      replicate (length descr') HOLogic.typeS);
 
     val reccomb_fn_Ts = flat (map (fn (i, (_, _, constrs)) =>
       map (fn (_, cargs) =>
@@ -302,7 +302,7 @@ fun prove_case_thms flat_names new_type_names descr sorts reccomb_names primrec_
     val recTs = get_rec_types descr' sorts;
     val used = foldr add_typ_tfree_names (recTs, []);
     val newTs = take (length (hd descr), recTs);
-    val T' = TFree (variant used "'t", HOLogic.termS);
+    val T' = TFree (variant used "'t", HOLogic.typeS);
 
     fun mk_dummyT (DtRec _) = T'
       | mk_dummyT (DtType ("fun", [T, _])) = typ_of_dtyp descr' sorts T --> T'

@@ -90,7 +90,7 @@
   \item bisimulations, 106
   \item \isa {blast} (method), 79--80, 82
   \item \isa {bool} (type), 4, 5
-  \item boolean expressions example, 19--22
+  \item boolean expressions example, 20--22
   \item \isa {bspec} (theorem), \bold{98}
   \item \isacommand{by} (command), 63
 
@@ -213,7 +213,7 @@
   \item flags, 5, 6, 33
     \subitem setting and resetting, 5
   \item \isa {force} (method), 81, 82
-  \item formulae, 5
+  \item formulae, 5--6
   \item forward proof, 82--88
   \item \isa {frule} (method), 73
   \item \isa {frule_tac} (method), 66
@@ -254,7 +254,7 @@
   \item \isa {if} expressions, 5, 6
     \subitem simplification of, 33
     \subitem splitting of, 31, 49
-  \item if-and-only-if, 5
+  \item if-and-only-if, 6
   \item \isa {iff} (attribute), 80, 92, 120
   \item \isa {iffD1} (theorem), \bold{84}
   \item \isa {iffD2} (theorem), \bold{84}
@@ -266,7 +266,7 @@
   \item \isa {impI} (theorem), \bold{62}
   \item implication, 62--63
   \item \isa {ind_cases} (method), 121
-  \item \isa {induct_tac} (method), 12, 19, 52, 178
+  \item \isa {induct_tac} (method), 12, 19, 51, 178
   \item induction, 174--181
     \subitem complete, 176
     \subitem deriving new schemas, 178
@@ -326,7 +326,7 @@
   \item least number operator, \see{\protect\isa{LEAST}}{75}
   \item \isacommand {lemma} (command), 13
   \item \isacommand {lemmas} (command), 83, 92
-  \item \isa {length} (symbol), 17
+  \item \isa {length} (symbol), 18
   \item \isa {length_induct}, \bold{178}
   \item \isa {less_than} (constant), 104
   \item \isa {less_than_iff} (theorem), \bold{104}
@@ -336,9 +336,10 @@
   \item lexicographic product, \bold{105}, 166
   \item {\texttt{lfp}}
     \subitem applications of, \see{CTL}{106}
+  \item Library, 4
   \item linear arithmetic, 22--24, 139
   \item \isa {List} (theory), 17
-  \item \isa {list} (type), 4, 9, 17
+  \item \isa {list} (type), 5, 9, 17
   \item \isa {list.split} (theorem), 32
   \item \isa {lists_mono} (theorem), \bold{127}
   \item Lowe, Gavin, 184--185
@@ -351,7 +352,7 @@
   \item measure functions, 47, 104
   \item \isa {measure_def} (theorem), \bold{105}
   \item meta-logic, \bold{70}
-  \item methods, \bold{15}
+  \item methods, \bold{16}
   \item \isa {min} (constant), 23, 24
   \item \isa {mod} (symbol), 23
   \item \isa {mod_div_equality} (theorem), \bold{141}
@@ -377,8 +378,8 @@
   \item negation, 63--65
   \item \isa {Nil} (constant), 9
   \item \isa {no_asm} (modifier), 29
-  \item \isa {no_asm_simp} (modifier), 29
-  \item \isa {no_asm_use} (modifier), 29
+  \item \isa {no_asm_simp} (modifier), 30
+  \item \isa {no_asm_use} (modifier), 30
   \item non-standard reals, 145
   \item \isa {None} (constant), \bold{24}
   \item \isa {notE} (theorem), \bold{63}
@@ -426,7 +427,7 @@
 
   \indexspace
 
-  \item quantifiers, 5
+  \item quantifiers, 6
     \subitem and inductive definitions, 125--127
     \subitem existential, 72
     \subitem for sets, 98
@@ -483,7 +484,7 @@
 
   \item \isa {safe} (method), 81, 82
   \item safe rules, \bold{80}
-  \item \isa {set} (type), 4, 95
+  \item \isa {set} (type), 5, 95
   \item set comprehensions, 97--98
   \item \isa {set_ext} (theorem), \bold{96}
   \item sets, 95--99
@@ -495,7 +496,7 @@
   \item \isa {simp} (attribute), 11, 28
   \item \isa {simp} (method), \bold{28}
   \item \isa {simp} del (attribute), 28
-  \item \isa {simp_all} (method), 28, 37
+  \item \isa {simp_all} (method), 29, 37
   \item simplification, 27--33, 163--166
     \subitem of \isa{let}-expressions, 31
     \subitem with definitions, 30
@@ -569,7 +570,7 @@
   \item tuples, \see{pairs and tuples}{1}
   \item \isacommand {typ} (command), 16
   \item type constraints, \bold{6}
-  \item type constructors, 4
+  \item type constructors, 5
   \item type inference, \bold{5}
   \item type synonyms, 25
   \item type variables, 5
@@ -597,14 +598,14 @@
     \subitem indexed, 98
   \item \isa {Union_iff} (theorem), \bold{98}
   \item \isa {unit} (type), 24
-  \item unknowns, 6, \bold{58}
+  \item unknowns, 7, \bold{58}
   \item unsafe rules, \bold{80}
   \item updating a function, \bold{99}
 
   \indexspace
 
-  \item variables, 6--7
-    \subitem schematic, 6
+  \item variables, 7
+    \subitem schematic, 7
     \subitem type, 5
   \item \isa {vimage_def} (theorem), \bold{101}
 

@@ -138,8 +138,7 @@ end);
 
 (** prepare nat_cancel simprocs **)
 
-fun prep_pat s = Thm.read_cterm (Theory.sign_of (the_context ())) 
-                                (s, HOLogic.termT);
+fun prep_pat s = HOLogic.read_cterm (Theory.sign_of (the_context ())) s;
 val prep_pats = map prep_pat;
 
 fun prep_simproc (name, pats, proc) = Simplifier.mk_simproc name pats proc;

@@ -9,7 +9,7 @@ Definition of class porder (partial order).
 Porder0 = Main +
 
 	(* introduce a (syntactic) class for the constant << *)
-axclass sq_ord<term
+axclass sq_ord < type
 
 	(* characteristic constant << for po *)
 consts

@@ -9,7 +9,7 @@ Denotational semantics of commands in HOLCF
 Denotational = HOLCF + Natural +
 
 constdefs
-   dlift :: "(('a::term) discr -> 'b::pcpo) => ('a lift -> 'b)"
+   dlift :: "(('a::type) discr -> 'b::pcpo) => ('a lift -> 'b)"
   "dlift f == (LAM x. case x of UU => UU | Def(y) => f$(Discr y))"
 
 consts D :: "com => state discr -> state lift"

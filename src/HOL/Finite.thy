@@ -18,7 +18,7 @@ inductive "Finites"
 syntax finite :: 'a set => bool
 translations  "finite A"  ==  "A : Finites"
 
-axclass	finite<term
+axclass	finite < type
   finite "finite UNIV"
 
 (* This definition, although traditional, is ugly to work with

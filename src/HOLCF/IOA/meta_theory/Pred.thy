@@ -8,7 +8,7 @@ Logical Connectives lifted to predicates.
 	       
 Pred = Main +
 
-default term
+default type
 
 types
 

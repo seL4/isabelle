@@ -13,7 +13,7 @@ Fun1 = Pcpo +
 instance flat<chfin (flat_imp_chfin)
 
 (* to make << defineable: *)
-instance fun  :: (term,sq_ord)sq_ord
+instance fun  :: (type, sq_ord) sq_ord
 
 defs
   less_fun_def "(op <<) == (%f1 f2.!x. f1 x << f2 x)"  

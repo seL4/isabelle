@@ -21,7 +21,7 @@ types
   ('a,'r) channel = (PrIds => ('a,'r) chan) stfun
 
 arities
-  chan :: (term,term) term
+  chan :: (type,type) type
 
 consts
   (* data-level functions *)

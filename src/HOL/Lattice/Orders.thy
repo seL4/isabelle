@@ -18,7 +18,7 @@ text {*
   required to be related (in either direction).
 *}
 
-axclass leq < "term"
+axclass leq < type
 consts
   leq :: "'a::leq \<Rightarrow> 'a \<Rightarrow> bool"  (infixl "[=" 50)
 syntax (xsymbols)
@@ -249,7 +249,7 @@ text {*
   orders need \emph{not} be linear in general.
 *}
 
-instance fun :: ("term", leq) leq ..
+instance fun :: (type, leq) leq ..
 
 defs (overloaded)
   leq_fun_def: "f \<sqsubseteq> g \<equiv> \<forall>x. f x \<sqsubseteq> g x"
@@ -260,7 +260,7 @@ lemma leq_funI [intro?]: "(\<And>x. f x \<sqsubseteq> g x) \<Longrightarrow> f \
 lemma leq_funD [dest?]: "f \<sqsubseteq> g \<Longrightarrow> f x \<sqsubseteq> g x"
   by (unfold leq_fun_def) blast
 
-instance fun :: ("term", quasi_order) quasi_order
+instance fun :: (type, quasi_order) quasi_order
 proof
   fix f g h :: "'a \<Rightarrow> 'b::quasi_order"
   show "f \<sqsubseteq> f"
@@ -276,7 +276,7 @@ proof
   qed
 qed
 
-instance fun :: ("term", partial_order) partial_order
+instance fun :: (type, partial_order) partial_order
 proof
   fix f g :: "'a \<Rightarrow> 'b::partial_order"
   assume fg: "f \<sqsubseteq> g" and gf: "g \<sqsubseteq> f"

@@ -20,7 +20,7 @@ Fifth International Conference on Mathematics of Program, 2000.
 
 Guar = Comp +
 
-instance program :: (term) order
+instance program :: (type) order
                     (component_refl, component_trans, component_antisym,
                      program_less_le)
 

@@ -8,7 +8,7 @@ Discrete CPOs.
 
 Discrete1 = Discrete0 +
 
-instance discr :: (term)po
+instance discr :: (type) po
   (less_discr_refl,less_discr_trans,less_discr_antisym)
 
 end

@@ -349,7 +349,7 @@ structure Bin_Simprocs =
   fun prove_conv_nohyps name tacs sg = prove_conv name tacs sg []
 
   fun prep_simproc (name, pats, proc) = Simplifier.mk_simproc name pats proc
-  fun prep_pat s = Thm.read_cterm (Theory.sign_of (the_context())) (s, HOLogic.termT)
+  fun prep_pat s = HOLogic.read_cterm (Theory.sign_of (the_context())) s
   val prep_pats = map prep_pat
 
   fun is_numeral (Const("Numeral.number_of", _) $ w) = true

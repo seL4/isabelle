@@ -15,7 +15,7 @@ types
 
 arities
 
-  multiset :: (term) term
+  multiset :: (type) type
 
 consts
 

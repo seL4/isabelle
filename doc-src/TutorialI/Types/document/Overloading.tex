@@ -2,16 +2,16 @@
 \begin{isabellebody}%
 \def\isabellecontext{Overloading}%
 \isamarkupfalse%
-\isacommand{instance}\ list\ {\isacharcolon}{\isacharcolon}\ {\isacharparenleft}{\isachardoublequote}term{\isachardoublequote}{\isacharparenright}ordrel\isanewline
+\isacommand{instance}\ list\ {\isacharcolon}{\isacharcolon}\ {\isacharparenleft}type{\isacharparenright}ordrel\isanewline
 \isamarkupfalse%
 \isacommand{by}\ intro{\isacharunderscore}classes\isamarkupfalse%
 %
 \begin{isamarkuptext}%
 \noindent
 This \isacommand{instance} declaration can be read like the declaration of
-a function on types.  The constructor \isa{list} maps types of class \isa{term} (all HOL types), to types of class \isa{ordrel};
+a function on types.  The constructor \isa{list} maps types of class \isa{type} (all HOL types), to types of class \isa{ordrel};
 in other words,
-if \isa{ty\ {\isacharcolon}{\isacharcolon}\ term} then \isa{ty\ list\ {\isacharcolon}{\isacharcolon}\ ordrel}.
+if \isa{ty\ {\isacharcolon}{\isacharcolon}\ type} then \isa{ty\ list\ {\isacharcolon}{\isacharcolon}\ ordrel}.
 Of course we should also define the meaning of \isa{{\isacharless}{\isacharless}{\isacharequal}} and
 \isa{{\isacharless}{\isacharless}} on lists:%
 \end{isamarkuptext}%

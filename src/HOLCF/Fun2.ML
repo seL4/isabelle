@@ -2,8 +2,6 @@
     ID:         $Id$
     Author:     Franz Regensburger
     License:    GPL (GNU GENERAL PUBLIC LICENSE)
-
-Class Instance =>::(term,po)po
 *)
 
 (* for compatibility with old HOLCF-Version *)
@@ -13,7 +11,7 @@ by (rtac refl 1);
 qed "inst_fun_po";
 
 (* ------------------------------------------------------------------------ *)
-(* Type 'a::term => 'b::pcpo is pointed                                     *)
+(* Type 'a::type => 'b::pcpo is pointed                                     *)
 (* ------------------------------------------------------------------------ *)
 
 Goal "(%z. UU) << x";
@@ -48,7 +46,7 @@ qed "ch2ch_fun";
 (* upper bounds of function chains yield upper bound in the po range        *)
 (* ------------------------------------------------------------------------ *)
 
-Goal "range(S::nat=>('a::term => 'b::po)) <| u ==> range(%i. S i x) <| u(x)";
+Goal "range(S::nat=>('a::type => 'b::po)) <| u ==> range(%i. S i x) <| u(x)";
 by (rtac ub_rangeI 1);
 by (dtac ub_rangeD 1);
 by (asm_full_simp_tac (simpset() addsimps [less_fun]) 1);
@@ -56,10 +54,10 @@ by Auto_tac;
 qed "ub2ub_fun";
 
 (* ------------------------------------------------------------------------ *)
-(* Type 'a::term => 'b::pcpo is chain complete                              *)
+(* Type 'a::type => 'b::pcpo is chain complete                              *)
 (* ------------------------------------------------------------------------ *)
 
-Goal "chain(S::nat=>('a::term => 'b::cpo)) ==> \
+Goal "chain(S::nat=>('a::type => 'b::cpo)) ==> \
 \        range(S) <<| (% x. lub(range(% i. S(i)(x))))";
 by (rtac is_lubI 1);
 by (rtac ub_rangeI 1);
@@ -78,7 +76,7 @@ qed "lub_fun";
 bind_thm ("thelub_fun", lub_fun RS thelubI);
 (* chain ?S1 ==> lub (range ?S1) = (%x. lub (range (%i. ?S1 i x))) *)
 
-Goal "chain(S::nat=>('a::term => 'b::cpo)) ==> ? x. range(S) <<| x";
+Goal "chain(S::nat=>('a::type => 'b::cpo)) ==> ? x. range(S) <<| x";
 by (rtac exI 1);
 by (etac lub_fun 1);
 qed "cpo_fun";

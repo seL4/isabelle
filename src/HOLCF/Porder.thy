@@ -18,8 +18,7 @@ consts
         finite_chain :: "(nat=>'a::po)=>bool"
 
 syntax
-
-  "@LUB"	:: "(('b::term) => 'a) => 'a"	(binder "LUB " 10)
+  "@LUB"	:: "('b => 'a) => 'a"	(binder "LUB " 10)
 
 translations
 

@@ -9,7 +9,7 @@ Abstraction Theory -- tailored for I/O automata.
 		       
 Abstraction = LiveIOA + 
 
-default term
+default type
 
 
 consts

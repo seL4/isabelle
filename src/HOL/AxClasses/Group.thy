@@ -14,12 +14,12 @@ consts
   one :: 'a
 
 
-axclass monoid < "term"
+axclass monoid < type
   assoc:      "(x [*] y) [*] z = x [*] (y [*] z)"
   left_unit:  "one [*] x = x"
   right_unit: "x [*] one = x"
 
-axclass semigroup < "term"
+axclass semigroup < type
   assoc: "(x [*] y) [*] z = x [*] (y [*] z)"
 
 axclass group < semigroup

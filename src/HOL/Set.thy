@@ -17,7 +17,7 @@ subsection {* Basic syntax *}
 global
 
 typedecl 'a set
-arities set :: ("term") "term"
+arities set :: (type) type
 
 consts
   "{}"          :: "'a set"                             ("{}")
@@ -42,8 +42,8 @@ consts
 
 local
 
-instance set :: ("term") ord ..
-instance set :: ("term") minus ..
+instance set :: (type) ord ..
+instance set :: (type) minus ..
 
 
 subsection {* Additional concrete syntax *}

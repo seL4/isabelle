@@ -2,15 +2,13 @@
     ID:         $Id$
     Author:     Franz Regensburger
     License:    GPL (GNU GENERAL PUBLIC LICENSE)
-
-Class Instance =>::(term,po)po
 *)
 
 Fun2 = Fun1 + 
 
-(* default class is still term !*)
+(* default class is still type!*)
 
-instance fun  :: (term,po)po (refl_less_fun,antisym_less_fun,trans_less_fun)
+instance fun  :: (type, po) po (refl_less_fun,antisym_less_fun,trans_less_fun)
 
 end
 

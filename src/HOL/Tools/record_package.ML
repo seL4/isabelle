@@ -493,7 +493,7 @@ fun add_parents thy None parents = parents
 
 local
 
-val sel_upd_pat = [Thm.read_cterm (Theory.sign_of HOL.thy) ("s (u k r)", HOLogic.termT)];
+val sel_upd_pat = [HOLogic.read_cterm (Theory.sign_of HOL.thy) "s (u k r)"];
 
 fun proc sg _ t =
   (case t of (sel as Const (s, _)) $ ((upd as Const (u, _)) $ k $ r) =>
@@ -560,7 +560,7 @@ val record_split_method =
 fun field_typedefs zeta moreT names theory =
   let
     val alpha = "'a";
-    val aT = TFree (alpha, HOLogic.termS);
+    val aT = TFree (alpha, HOLogic.typeS);
     val UNIV = HOLogic.mk_UNIV (HOLogic.mk_prodT (aT, moreT));
 
     fun type_def (thy, name) =
@@ -581,7 +581,7 @@ fun field_definitions fields names xs alphas zeta moreT more vars named_vars thy
     val base = Sign.base_name;
     val full_path = Sign.full_name_path sign;
 
-    val xT = TFree (variant alphas "'x", HOLogic.termS);
+    val xT = TFree (variant alphas "'x", HOLogic.typeS);
 
 
     (* prepare declarations and definitions *)
@@ -683,7 +683,7 @@ fun record_definition (args, bname) parent (parents: parent_info list) bfields t
     val all_named_vars = parent_named_vars @ named_vars;
 
     val zeta = variant alphas "'z";
-    val moreT = TFree (zeta, HOLogic.termS);
+    val moreT = TFree (zeta, HOLogic.typeS);
     val more = Free (moreN, moreT);
     val full_moreN = full moreN;
     fun more_part t = mk_more t full_moreN;

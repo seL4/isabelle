@@ -17,7 +17,7 @@ types
     stpred   = "bool stfun"
 
 arities
-  state :: term
+  state :: type
 
 instance
   state :: world

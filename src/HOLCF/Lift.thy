@@ -4,11 +4,11 @@
     License:    GPL (GNU GENERAL PUBLIC LICENSE)
 *)
 
-header {* Lifting types of class term to flat pcpo's *}
+header {* Lifting types of class type to flat pcpo's *}
 
 theory Lift = Cprod3:
 
-defaultsort "term"
+defaultsort type
 
 
 typedef 'a lift = "UNIV :: 'a option set" ..
@@ -19,12 +19,12 @@ constdefs
   Def :: "'a => 'a lift"
   "Def x == Abs_lift (Some x)"
 
-instance lift :: ("term") sq_ord ..
+instance lift :: (type) sq_ord ..
 
 defs (overloaded)
   less_lift_def: "x << y == (x=y | x=Undef)"
 
-instance lift :: ("term") po
+instance lift :: (type) po
 proof
   fix x y z :: "'a lift"
   show "x << x" by (unfold less_lift_def) blast
@@ -111,7 +111,7 @@ theorem cpo_lift: "chain (Y::nat => 'a lift) ==> EX x. range Y <<| x"
   apply (blast intro: lub_finch1)
   done
 
-instance lift :: ("term") pcpo
+instance lift :: (type) pcpo
   apply intro_classes
    apply (erule cpo_lift)
   apply (rule least_lift)
@@ -153,7 +153,7 @@ subsection {* Further operations *}
 consts
  flift1      :: "('a => 'b::pcpo) => ('a lift -> 'b)"
  flift2      :: "('a => 'b)       => ('a lift -> 'b lift)"
- liftpair    ::"'a::term lift * 'b::term lift => ('a * 'b) lift"
+ liftpair    ::"'a::type lift * 'b::type lift => ('a * 'b) lift"
 
 defs
  flift1_def:
@@ -219,7 +219,7 @@ lemma Def_less_is_eq [simp]: "Def x << y = (Def x = y)"
 
 subsection {* Lift is flat *}
 
-instance lift :: ("term") flat
+instance lift :: (type) flat
 proof
   show "ALL x y::'a lift. x << y --> x = UU | x = y"
     by (simp add: less_lift)

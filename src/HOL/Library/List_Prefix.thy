@@ -13,13 +13,13 @@ theory List_Prefix = Main:
 
 subsection {* Prefix order on lists *}
 
-instance list :: ("term") ord ..
+instance list :: (type) ord ..
 
 defs (overloaded)
   prefix_def: "xs \<le> ys == \<exists>zs. ys = xs @ zs"
   strict_prefix_def: "xs < ys == xs \<le> ys \<and> xs \<noteq> (ys::'a list)"
 
-instance list :: ("term") order
+instance list :: (type) order
   by intro_classes (auto simp add: prefix_def strict_prefix_def)
 
 lemma prefixI [intro?]: "ys = xs @ zs ==> xs \<le> ys"

@@ -17,7 +17,7 @@ types
   temporal = behavior form
 
 arities
-  behavior    :: term
+  behavior    :: type
 
 instance
   behavior    :: world

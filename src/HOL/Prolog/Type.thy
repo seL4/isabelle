@@ -4,7 +4,7 @@ Type = Func +
 
 types ty
 
-arities ty :: term
+arities ty :: type
 
 consts  bool	:: ty
 	nat	:: ty

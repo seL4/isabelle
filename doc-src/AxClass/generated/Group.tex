@@ -9,12 +9,12 @@
 %
 \begin{isamarkuptext}%
 \medskip\noindent The meta-level type system of Isabelle supports
- \emph{intersections} and \emph{inclusions} of type classes. These
- directly correspond to intersections and inclusions of type
- predicates in a purely set theoretic sense. This is sufficient as a
- means to describe simple hierarchies of structures.  As an
- illustration, we use the well-known example of semigroups, monoids,
- general groups and Abelian groups.%
+  \emph{intersections} and \emph{inclusions} of type classes. These
+  directly correspond to intersections and inclusions of type
+  predicates in a purely set theoretic sense. This is sufficient as a
+  means to describe simple hierarchies of structures.  As an
+  illustration, we use the well-known example of semigroups, monoids,
+  general groups and Abelian groups.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -24,7 +24,7 @@
 %
 \begin{isamarkuptext}%
 First we declare some polymorphic constants required later for the
- signature parts of our structures.%
+  signature parts of our structures.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{consts}\isanewline
@@ -34,32 +34,33 @@ First we declare some polymorphic constants required later for the
 %
 \begin{isamarkuptext}%
 \noindent Next we define class \isa{monoid} of monoids with
- operations \isa{{\isasymodot}} and \isa{{\isasymunit}}.  Note that multiple class
- axioms are allowed for user convenience --- they simply represent the
- conjunction of their respective universal closures.%
+  operations \isa{{\isasymodot}} and \isa{{\isasymunit}}.  Note that multiple class
+  axioms are allowed for user convenience --- they simply represent
+  the conjunction of their respective universal closures.%
 \end{isamarkuptext}%
 \isamarkuptrue%
-\isacommand{axclass}\ monoid\ {\isasymsubseteq}\ {\isachardoublequote}term{\isachardoublequote}\isanewline
+\isacommand{axclass}\ monoid\ {\isasymsubseteq}\ type\isanewline
 \ \ assoc{\isacharcolon}\ {\isachardoublequote}{\isacharparenleft}x\ {\isasymodot}\ y{\isacharparenright}\ {\isasymodot}\ z\ {\isacharequal}\ x\ {\isasymodot}\ {\isacharparenleft}y\ {\isasymodot}\ z{\isacharparenright}{\isachardoublequote}\isanewline
 \ \ left{\isacharunderscore}unit{\isacharcolon}\ {\isachardoublequote}{\isasymunit}\ {\isasymodot}\ x\ {\isacharequal}\ x{\isachardoublequote}\isanewline
 \ \ right{\isacharunderscore}unit{\isacharcolon}\ {\isachardoublequote}x\ {\isasymodot}\ {\isasymunit}\ {\isacharequal}\ x{\isachardoublequote}\isamarkupfalse%
 %
 \begin{isamarkuptext}%
-\noindent So class \isa{monoid} contains exactly those types \isa{{\isasymtau}} where \isa{{\isasymodot}\ {\isasymColon}\ {\isasymtau}\ {\isasymRightarrow}\ {\isasymtau}\ {\isasymRightarrow}\ {\isasymtau}} and \isa{{\isasymunit}\ {\isasymColon}\ {\isasymtau}} are
- specified appropriately, such that \isa{{\isasymodot}} is associative and
- \isa{{\isasymunit}} is a left and right unit element for the \isa{{\isasymodot}}
- operation.%
+\noindent So class \isa{monoid} contains exactly those types
+  \isa{{\isasymtau}} where \isa{{\isasymodot}\ {\isasymColon}\ {\isasymtau}\ {\isasymRightarrow}\ {\isasymtau}\ {\isasymRightarrow}\ {\isasymtau}} and \isa{{\isasymunit}\ {\isasymColon}\ {\isasymtau}}
+  are specified appropriately, such that \isa{{\isasymodot}} is associative and
+  \isa{{\isasymunit}} is a left and right unit element for the \isa{{\isasymodot}}
+  operation.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
 \begin{isamarkuptext}%
 \medskip Independently of \isa{monoid}, we now define a linear
- hierarchy of semigroups, general groups and Abelian groups.  Note
- that the names of class axioms are automatically qualified with each
- class name, so we may re-use common names such as \isa{assoc}.%
+  hierarchy of semigroups, general groups and Abelian groups.  Note
+  that the names of class axioms are automatically qualified with each
+  class name, so we may re-use common names such as \isa{assoc}.%
 \end{isamarkuptext}%
 \isamarkuptrue%
-\isacommand{axclass}\ semigroup\ {\isasymsubseteq}\ {\isachardoublequote}term{\isachardoublequote}\isanewline
+\isacommand{axclass}\ semigroup\ {\isasymsubseteq}\ type\isanewline
 \ \ assoc{\isacharcolon}\ {\isachardoublequote}{\isacharparenleft}x\ {\isasymodot}\ y{\isacharparenright}\ {\isasymodot}\ z\ {\isacharequal}\ x\ {\isasymodot}\ {\isacharparenleft}y\ {\isasymodot}\ z{\isacharparenright}{\isachardoublequote}\isanewline
 \isanewline
 \isamarkupfalse%
@@ -73,9 +74,9 @@ First we declare some polymorphic constants required later for the
 %
 \begin{isamarkuptext}%
 \noindent Class \isa{group} inherits associativity of \isa{{\isasymodot}}
- from \isa{semigroup} and adds two further group axioms. Similarly,
- \isa{agroup} is defined as the subset of \isa{group} such that
- for all of its elements \isa{{\isasymtau}}, the operation \isa{{\isasymodot}\ {\isasymColon}\ {\isasymtau}\ {\isasymRightarrow}\ {\isasymtau}\ {\isasymRightarrow}\ {\isasymtau}} is even commutative.%
+  from \isa{semigroup} and adds two further group axioms. Similarly,
+  \isa{agroup} is defined as the subset of \isa{group} such that
+  for all of its elements \isa{{\isasymtau}}, the operation \isa{{\isasymodot}\ {\isasymColon}\ {\isasymtau}\ {\isasymRightarrow}\ {\isasymtau}\ {\isasymRightarrow}\ {\isasymtau}} is even commutative.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -85,19 +86,16 @@ First we declare some polymorphic constants required later for the
 %
 \begin{isamarkuptext}%
 In a sense, axiomatic type classes may be viewed as \emph{abstract
- theories}.  Above class definitions gives rise to abstract axioms
- \isa{assoc}, \isa{left{\isacharunderscore}unit}, \isa{left{\isacharunderscore}inverse}, \isa{commute}, where any of these contain a type variable \isa{{\isacharprime}a\ {\isasymColon}\ c}
- that is restricted to types of the corresponding class \isa{c}.
- \emph{Sort constraints} like this express a logical precondition for
- the whole formula.  For example, \isa{assoc} states that for all
- \isa{{\isasymtau}}, provided that \isa{{\isasymtau}\ {\isasymColon}\ semigroup}, the operation
- \isa{{\isasymodot}\ {\isasymColon}\ {\isasymtau}\ {\isasymRightarrow}\ {\isasymtau}\ {\isasymRightarrow}\ {\isasymtau}} is associative.
+  theories}.  Above class definitions gives rise to abstract axioms
+  \isa{assoc}, \isa{left{\isacharunderscore}unit}, \isa{left{\isacharunderscore}inverse}, \isa{commute}, where any of these contain a type variable \isa{{\isacharprime}a\ {\isasymColon}\ c} that is restricted to types of the corresponding class \isa{c}.  \emph{Sort constraints} like this express a logical
+  precondition for the whole formula.  For example, \isa{assoc}
+  states that for all \isa{{\isasymtau}}, provided that \isa{{\isasymtau}\ {\isasymColon}\ semigroup}, the operation \isa{{\isasymodot}\ {\isasymColon}\ {\isasymtau}\ {\isasymRightarrow}\ {\isasymtau}\ {\isasymRightarrow}\ {\isasymtau}} is associative.
 
- \medskip From a technical point of view, abstract axioms are just
- ordinary Isabelle theorems, which may be used in proofs without
- special treatment.  Such ``abstract proofs'' usually yield new
- ``abstract theorems''.  For example, we may now derive the following
- well-known laws of general groups.%
+  \medskip From a technical point of view, abstract axioms are just
+  ordinary Isabelle theorems, which may be used in proofs without
+  special treatment.  Such ``abstract proofs'' usually yield new
+  ``abstract theorems''.  For example, we may now derive the following
+  well-known laws of general groups.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{theorem}\ group{\isacharunderscore}right{\isacharunderscore}inverse{\isacharcolon}\ {\isachardoublequote}x\ {\isasymodot}\ x{\isasyminv}\ {\isacharequal}\ {\isacharparenleft}{\isasymunit}{\isasymColon}{\isacharprime}a{\isasymColon}group{\isacharparenright}{\isachardoublequote}\isanewline
@@ -150,8 +148,8 @@ In a sense, axiomatic type classes may be viewed as \emph{abstract
 \isacommand{qed}\isamarkupfalse%
 %
 \begin{isamarkuptext}%
-\noindent With \isa{group{\isacharunderscore}right{\isacharunderscore}inverse} already available, \isa{group{\isacharunderscore}right{\isacharunderscore}unit}\label{thm:group-right-unit} is now established much
- easier.%
+\noindent With \isa{group{\isacharunderscore}right{\isacharunderscore}inverse} already available, \isa{group{\isacharunderscore}right{\isacharunderscore}unit}\label{thm:group-right-unit} is now established
+  much easier.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{theorem}\ group{\isacharunderscore}right{\isacharunderscore}unit{\isacharcolon}\ {\isachardoublequote}x\ {\isasymodot}\ {\isasymunit}\ {\isacharequal}\ {\isacharparenleft}x{\isasymColon}{\isacharprime}a{\isasymColon}group{\isacharparenright}{\isachardoublequote}\isanewline
@@ -185,8 +183,8 @@ In a sense, axiomatic type classes may be viewed as \emph{abstract
 %
 \begin{isamarkuptext}%
 \medskip Abstract theorems may be instantiated to only those types
- \isa{{\isasymtau}} where the appropriate class membership \isa{{\isasymtau}\ {\isasymColon}\ c} is
- known at Isabelle's type signature level.  Since we have \isa{agroup\ {\isasymsubseteq}\ group\ {\isasymsubseteq}\ semigroup} by definition, all theorems of \isa{semigroup} and \isa{group} are automatically inherited by \isa{group} and \isa{agroup}.%
+  \isa{{\isasymtau}} where the appropriate class membership \isa{{\isasymtau}\ {\isasymColon}\ c} is
+  known at Isabelle's type signature level.  Since we have \isa{agroup\ {\isasymsubseteq}\ group\ {\isasymsubseteq}\ semigroup} by definition, all theorems of \isa{semigroup} and \isa{group} are automatically inherited by \isa{group} and \isa{agroup}.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -196,12 +194,11 @@ In a sense, axiomatic type classes may be viewed as \emph{abstract
 %
 \begin{isamarkuptext}%
 From the definition, the \isa{monoid} and \isa{group} classes
- have been independent.  Note that for monoids, \isa{right{\isacharunderscore}unit} had
- to be included as an axiom, but for groups both \isa{right{\isacharunderscore}unit}
- and \isa{right{\isacharunderscore}inverse} are derivable from the other axioms.  With
- \isa{group{\isacharunderscore}right{\isacharunderscore}unit} derived as a theorem of group theory (see
- page~\pageref{thm:group-right-unit}), we may now instantiate \isa{monoid\ {\isasymsubseteq}\ semigroup} and \isa{group\ {\isasymsubseteq}\ monoid} properly as
- follows (cf.\ \figref{fig:monoid-group}).
+  have been independent.  Note that for monoids, \isa{right{\isacharunderscore}unit}
+  had to be included as an axiom, but for groups both \isa{right{\isacharunderscore}unit} and \isa{right{\isacharunderscore}inverse} are derivable from the other
+  axioms.  With \isa{group{\isacharunderscore}right{\isacharunderscore}unit} derived as a theorem of group
+  theory (see page~\pageref{thm:group-right-unit}), we may now
+  instantiate \isa{monoid\ {\isasymsubseteq}\ semigroup} and \isa{group\ {\isasymsubseteq}\ monoid} properly as follows (cf.\ \figref{fig:monoid-group}).
 
  \begin{figure}[htbp]
    \begin{center}
@@ -213,7 +210,7 @@ From the definition, the \isa{monoid} and \isa{group} classes
        \put(15,5){\makebox(0,0){\isa{agroup}}}
        \put(15,25){\makebox(0,0){\isa{group}}}
        \put(15,45){\makebox(0,0){\isa{semigroup}}}
-       \put(30,65){\makebox(0,0){\isa{term}}} \put(50,45){\makebox(0,0){\isa{monoid}}}
+       \put(30,65){\makebox(0,0){\isa{type}}} \put(50,45){\makebox(0,0){\isa{monoid}}}
      \end{picture}
      \hspace{4em}
      \begin{picture}(30,90)(0,0)
@@ -223,7 +220,7 @@ From the definition, the \isa{monoid} and \isa{group} classes
        \put(15,25){\makebox(0,0){\isa{group}}}
        \put(15,45){\makebox(0,0){\isa{monoid}}}
        \put(15,65){\makebox(0,0){\isa{semigroup}}}
-       \put(15,85){\makebox(0,0){\isa{term}}}
+       \put(15,85){\makebox(0,0){\isa{type}}}
      \end{picture}
      \caption{Monoids and groups: according to definition, and by proof}
      \label{fig:monoid-group}
@@ -266,14 +263,14 @@ From the definition, the \isa{monoid} and \isa{group} classes
 %
 \begin{isamarkuptext}%
 \medskip The $\INSTANCE$ command sets up an appropriate goal that
- represents the class inclusion (or type arity, see
- \secref{sec:inst-arity}) to be proven (see also
- \cite{isabelle-isar-ref}).  The initial proof step causes
- back-chaining of class membership statements wrt.\ the hierarchy of
- any classes defined in the current theory; the effect is to reduce to
- the initial statement to a number of goals that directly correspond
- to any class axioms encountered on the path upwards through the class
- hierarchy.%
+  represents the class inclusion (or type arity, see
+  \secref{sec:inst-arity}) to be proven (see also
+  \cite{isabelle-isar-ref}).  The initial proof step causes
+  back-chaining of class membership statements wrt.\ the hierarchy of
+  any classes defined in the current theory; the effect is to reduce
+  to the initial statement to a number of goals that directly
+  correspond to any class axioms encountered on the path upwards
+  through the class hierarchy.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -283,16 +280,16 @@ From the definition, the \isa{monoid} and \isa{group} classes
 %
 \begin{isamarkuptext}%
 So far we have covered the case of the form $\INSTANCE$~\isa{c\isactrlsub {\isadigit{1}}\ {\isasymsubseteq}\ c\isactrlsub {\isadigit{2}}}, namely \emph{abstract instantiation} ---
- $c@1$ is more special than \isa{c\isactrlsub {\isadigit{1}}} and thus an instance
- of \isa{c\isactrlsub {\isadigit{2}}}.  Even more interesting for practical
- applications are \emph{concrete instantiations} of axiomatic type
- classes.  That is, certain simple schemes \isa{{\isacharparenleft}{\isasymalpha}\isactrlsub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ {\isasymalpha}\isactrlsub n{\isacharparenright}\ t\ {\isasymColon}\ c} of class membership may be established at the
- logical level and then transferred to Isabelle's type signature
- level.
+  $c@1$ is more special than \isa{c\isactrlsub {\isadigit{1}}} and thus an instance
+  of \isa{c\isactrlsub {\isadigit{2}}}.  Even more interesting for practical
+  applications are \emph{concrete instantiations} of axiomatic type
+  classes.  That is, certain simple schemes \isa{{\isacharparenleft}{\isasymalpha}\isactrlsub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ {\isasymalpha}\isactrlsub n{\isacharparenright}\ t\ {\isasymColon}\ c} of class membership may be established at the
+  logical level and then transferred to Isabelle's type signature
+  level.
 
- \medskip As a typical example, we show that type \isa{bool} with
- exclusive-or as \isa{{\isasymodot}} operation, identity as \isa{{\isasyminv}}, and
- \isa{False} as \isa{{\isasymunit}} forms an Abelian group.%
+  \medskip As a typical example, we show that type \isa{bool} with
+  exclusive-or as \isa{{\isasymodot}} operation, identity as \isa{{\isasyminv}}, and
+  \isa{False} as \isa{{\isasymunit}} forms an Abelian group.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{defs}\ {\isacharparenleft}\isakeyword{overloaded}{\isacharparenright}\isanewline
@@ -302,17 +299,17 @@ So far we have covered the case of the form $\INSTANCE$~\isa{c\isactrlsub {\isad
 %
 \begin{isamarkuptext}%
 \medskip It is important to note that above $\DEFS$ are just
- overloaded meta-level constant definitions, where type classes are
- not yet involved at all.  This form of constant definition with
- overloading (and optional recursion over the syntactic structure of
- simple types) are admissible as definitional extensions of plain HOL
- \cite{Wenzel:1997:TPHOL}.  The Haskell-style type system is not
- required for overloading.  Nevertheless, overloaded definitions are
- best applied in the context of type classes.
+  overloaded meta-level constant definitions, where type classes are
+  not yet involved at all.  This form of constant definition with
+  overloading (and optional recursion over the syntactic structure of
+  simple types) are admissible as definitional extensions of plain HOL
+  \cite{Wenzel:1997:TPHOL}.  The Haskell-style type system is not
+  required for overloading.  Nevertheless, overloaded definitions are
+  best applied in the context of type classes.
 
- \medskip Since we have chosen above $\DEFS$ of the generic group
- operations on type \isa{bool} appropriately, the class membership
- \isa{bool\ {\isasymColon}\ agroup} may be now derived as follows.%
+  \medskip Since we have chosen above $\DEFS$ of the generic group
+  operations on type \isa{bool} appropriately, the class membership
+  \isa{bool\ {\isasymColon}\ agroup} may be now derived as follows.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{instance}\ bool\ {\isacharcolon}{\isacharcolon}\ agroup\isanewline
@@ -337,19 +334,19 @@ So far we have covered the case of the form $\INSTANCE$~\isa{c\isactrlsub {\isad
 \isacommand{qed}\isamarkupfalse%
 %
 \begin{isamarkuptext}%
-The result of an $\INSTANCE$ statement is both expressed as a theorem
- of Isabelle's meta-logic, and as a type arity of the type signature.
- The latter enables type-inference system to take care of this new
- instance automatically.
+The result of an $\INSTANCE$ statement is both expressed as a
+  theorem of Isabelle's meta-logic, and as a type arity of the type
+  signature.  The latter enables type-inference system to take care of
+  this new instance automatically.
 
- \medskip We could now also instantiate our group theory classes to
- many other concrete types.  For example, \isa{int\ {\isasymColon}\ agroup}
- (e.g.\ by defining \isa{{\isasymodot}} as addition, \isa{{\isasyminv}} as negation
- and \isa{{\isasymunit}} as zero) or \isa{list\ {\isasymColon}\ {\isacharparenleft}term{\isacharparenright}\ semigroup}
- (e.g.\ if \isa{{\isasymodot}} is defined as list append).  Thus, the
- characteristic constants \isa{{\isasymodot}}, \isa{{\isasyminv}}, \isa{{\isasymunit}}
- really become overloaded, i.e.\ have different meanings on different
- types.%
+  \medskip We could now also instantiate our group theory classes to
+  many other concrete types.  For example, \isa{int\ {\isasymColon}\ agroup}
+  (e.g.\ by defining \isa{{\isasymodot}} as addition, \isa{{\isasyminv}} as negation
+  and \isa{{\isasymunit}} as zero) or \isa{list\ {\isasymColon}\ {\isacharparenleft}type{\isacharparenright}\ semigroup}
+  (e.g.\ if \isa{{\isasymodot}} is defined as list append).  Thus, the
+  characteristic constants \isa{{\isasymodot}}, \isa{{\isasyminv}}, \isa{{\isasymunit}}
+  really become overloaded, i.e.\ have different meanings on different
+  types.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -359,14 +356,14 @@ The result of an $\INSTANCE$ statement is both expressed as a theorem
 %
 \begin{isamarkuptext}%
 As already mentioned above, overloading in the simply-typed HOL
- systems may include recursion over the syntactic structure of types.
- That is, definitional equations \isa{c\isactrlsup {\isasymtau}\ {\isasymequiv}\ t} may also
- contain constants of name \isa{c} on the right-hand side --- if
- these have types that are structurally simpler than \isa{{\isasymtau}}.
+  systems may include recursion over the syntactic structure of types.
+  That is, definitional equations \isa{c\isactrlsup {\isasymtau}\ {\isasymequiv}\ t} may also
+  contain constants of name \isa{c} on the right-hand side --- if
+  these have types that are structurally simpler than \isa{{\isasymtau}}.
 
- This feature enables us to \emph{lift operations}, say to Cartesian
- products, direct sums or function spaces.  Subsequently we lift
- \isa{{\isasymodot}} component-wise to binary products \isa{{\isacharprime}a\ {\isasymtimes}\ {\isacharprime}b}.%
+  This feature enables us to \emph{lift operations}, say to Cartesian
+  products, direct sums or function spaces.  Subsequently we lift
+  \isa{{\isasymodot}} component-wise to binary products \isa{{\isacharprime}a\ {\isasymtimes}\ {\isacharprime}b}.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{defs}\ {\isacharparenleft}\isakeyword{overloaded}{\isacharparenright}\isanewline
@@ -374,8 +371,8 @@ As already mentioned above, overloading in the simply-typed HOL
 %
 \begin{isamarkuptext}%
 It is very easy to see that associativity of \isa{{\isasymodot}} on \isa{{\isacharprime}a}
- and \isa{{\isasymodot}} on \isa{{\isacharprime}b} transfers to \isa{{\isasymodot}} on \isa{{\isacharprime}a\ {\isasymtimes}\ {\isacharprime}b}.  Hence the binary type constructor \isa{{\isasymodot}} maps semigroups to
- semigroups.  This may be established formally as follows.%
+  and \isa{{\isasymodot}} on \isa{{\isacharprime}b} transfers to \isa{{\isasymodot}} on \isa{{\isacharprime}a\ {\isasymtimes}\ {\isacharprime}b}.  Hence the binary type constructor \isa{{\isasymodot}} maps semigroups
+  to semigroups.  This may be established formally as follows.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{instance}\ {\isacharasterisk}\ {\isacharcolon}{\isacharcolon}\ {\isacharparenleft}semigroup{\isacharcomma}\ semigroup{\isacharparenright}\ semigroup\isanewline
@@ -396,12 +393,13 @@ It is very easy to see that associativity of \isa{{\isasymodot}} on \isa{{\isach
 %
 \begin{isamarkuptext}%
 Thus, if we view class instances as ``structures'', then overloaded
- constant definitions with recursion over types indirectly provide
- some kind of ``functors'' --- i.e.\ mappings between abstract
- theories.%
+  constant definitions with recursion over types indirectly provide
+  some kind of ``functors'' --- i.e.\ mappings between abstract
+  theories.%
 \end{isamarkuptext}%
 \isamarkuptrue%
-\isacommand{end}\isamarkupfalse%
+\isacommand{end}\isanewline
+\isamarkupfalse%
 \end{isabellebody}%
 %%% Local Variables:
 %%% mode: latex

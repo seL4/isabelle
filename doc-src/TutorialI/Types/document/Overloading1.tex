@@ -14,14 +14,13 @@ to avoid clashes with \isa{{\isacharless}} and \isa{{\isasymle}} in theory \isa{
 introduce the class \isa{ordrel}:%
 \end{isamarkuptext}%
 \isamarkuptrue%
-\isacommand{axclass}\ ordrel\ {\isacharless}\ {\isachardoublequote}term{\isachardoublequote}\isamarkupfalse%
+\isacommand{axclass}\ ordrel\ {\isacharless}\ type\isamarkupfalse%
 %
 \begin{isamarkuptext}%
 \noindent
 This introduces a new class \isa{ordrel} and makes it a subclass of
-the predefined class \isa{term}, which
-is the class of all HOL types.\footnote{The quotes around \isa{term}
-simply avoid the clash with the command \isacommand{term}.}
+the predefined class \isa{type}, which
+is the class of all HOL types.
 This is a degenerate form of axiomatic type class without any axioms.
 Its sole purpose is to restrict the use of overloaded constants to meaningful
 instances:%

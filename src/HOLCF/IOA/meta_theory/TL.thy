@@ -8,7 +8,7 @@ A General Temporal Logic.
 	       
 TL = Pred + Sequence +  
 
-default term
+default type
 
 types
 

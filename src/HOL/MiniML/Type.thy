@@ -9,7 +9,7 @@ MiniML-types and type substitutions.
 Type = Maybe + 
 
 (* new class for structures containing type variables *)
-axclass  type_struct < term 
+axclass  type_struct < type
 
 
 (* type expressions *)
@@ -33,7 +33,7 @@ primrec
 instance  typ::type_struct
 instance  type_scheme::type_struct  
 instance  list::(type_struct)type_struct
-instance  fun::(term,type_struct)type_struct
+instance  fun::(type,type_struct)type_struct
 
 
 (* free_tv s: the type variables occuring freely in the type structure s *)

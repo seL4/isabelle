@@ -16,7 +16,7 @@ Added: a strong form of the <= relation (component_of) and localize
 Comp = Union +
 
 instance
-  program :: (term)ord
+  program :: (type) ord
 
 defs
   component_def   "F <= H == EX G. F Join G = H"

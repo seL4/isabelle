@@ -403,7 +403,7 @@ val simplify_meta_eq =
  	  real_mult_0, real_mult_0_right, real_mult_1, real_mult_1_right];
 
 fun prep_simproc (name, pats, proc) = Simplifier.mk_simproc name pats proc;
-fun prep_pat s = Thm.read_cterm (Theory.sign_of (the_context ())) (s, HOLogic.termT);
+fun prep_pat s = HOLogic.read_cterm (Theory.sign_of (the_context ())) s;
 val prep_pats = map prep_pat;
 
 structure CancelNumeralsCommon =

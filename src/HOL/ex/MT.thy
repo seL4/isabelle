@@ -31,19 +31,19 @@ types
   TyEnv
 
 arities 
-  Const :: term
+  Const :: type
 
-  ExVar :: term
-  Ex :: term
+  ExVar :: type
+  Ex :: type
 
-  TyConst :: term
-  Ty :: term
+  TyConst :: type
+  Ty :: type
 
-  Clos :: term
-  Val :: term
+  Clos :: type
+  Val :: type
 
-  ValEnv :: term
-  TyEnv :: term
+  ValEnv :: type
+  TyEnv :: type
 
 consts
   c_app :: [Const, Const] => Const

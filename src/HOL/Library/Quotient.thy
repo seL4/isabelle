@@ -23,7 +23,7 @@ text {*
  "\<sim> :: 'a => 'a => bool"}.
 *}
 
-axclass eqv \<subseteq> "term"
+axclass eqv \<subseteq> type
 consts
   eqv :: "('a::eqv) => 'a => bool"    (infixl "\<sim>" 50)
 

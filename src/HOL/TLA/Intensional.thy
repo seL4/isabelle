@@ -13,12 +13,12 @@ on top of HOL, with lifting of constants and functions.
 Intensional  =  Main +
 
 axclass
-  world < term
+  world < type
 
 (** abstract syntax **)
 
 types
-  ('w,'a) expr = 'w => 'a               (* intention: 'w::world, 'a::term *)
+  ('w,'a) expr = 'w => 'a               (* intention: 'w::world, 'a::type *)
   'w form = ('w, bool) expr
 
 consts

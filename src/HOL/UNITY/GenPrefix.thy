@@ -27,7 +27,7 @@ inductive "genPrefix(r)"
 
     append  "(xs,ys) : genPrefix(r) ==> (xs, ys@zs) : genPrefix(r)"
 
-instance list :: (term)ord
+instance list :: (type)ord
 
 defs
   prefix_def        "xs <= zs  ==  (xs,zs) : genPrefix Id"

@@ -13,7 +13,7 @@ Examples of Program Composition Illustrating the Use of Universal Properties
 
 Counterc =  Comp +
 types state
-arities state :: term
+arities state :: type
 
 consts
   C :: "state=>int"

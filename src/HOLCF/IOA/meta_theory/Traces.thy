@@ -9,7 +9,7 @@ Executions and Traces of I/O automata in HOLCF.
 		       
 Traces = Sequence + Automata +
 
-default term
+default type
  
 types  
    ('a,'s)pairs            =    "('a * 's) Seq"

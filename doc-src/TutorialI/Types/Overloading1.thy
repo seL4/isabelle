@@ -10,13 +10,12 @@ Main}. To restrict the application of @{text"<<"} and @{text"<<="} we
 introduce the class @{text ordrel}:
 *}
 
-axclass ordrel < "term"
+axclass ordrel < type
 
 text{*\noindent
 This introduces a new class @{text ordrel} and makes it a subclass of
-the predefined class @{text term}, which
-is the class of all HOL types.\footnote{The quotes around @{text term}
-simply avoid the clash with the command \isacommand{term}.}
+the predefined class @{text type}, which
+is the class of all HOL types.
 This is a degenerate form of axiomatic type class without any axioms.
 Its sole purpose is to restrict the use of overloaded constants to meaningful
 instances:

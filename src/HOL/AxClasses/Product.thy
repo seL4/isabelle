@@ -6,7 +6,7 @@
 
 theory Product = Main:
 
-axclass product < "term"
+axclass product < type
 
 consts
   product :: "'a::product => 'a => 'a"    (infixl "[*]" 70)

@@ -125,7 +125,7 @@ qed "h_f_g_eq";
 
 (** A sequence of proof steps borrowed from Provers/split_paired_all.ML **)
 
-val cT = TFree ("'c", ["term"]);
+val cT = TFree ("'c", HOLogic.typeS);
 
 (* "PROP P x == PROP P (h (f x, g x))" *)
 val lemma1 = Thm.combination

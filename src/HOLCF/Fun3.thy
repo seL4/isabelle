@@ -8,10 +8,10 @@ Class instance of  => (fun) for class pcpo
 
 Fun3 = Fun2 +
 
-(* default class is still term *)
+(* default class is still type *)
 
-instance fun  :: (term,cpo)cpo         (cpo_fun)
-instance fun  :: (term,pcpo)pcpo       (least_fun)
+instance fun  :: (type, cpo) cpo         (cpo_fun)
+instance fun  :: (type, pcpo)pcpo       (least_fun)
 
 end
 

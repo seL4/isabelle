@@ -11,7 +11,7 @@ Divides = NatArith +
 (*We use the same class for div and mod;
   moreover, dvd is defined whenever multiplication is*)
 axclass
-  div < term
+  div < type
 
 instance  nat :: div
 instance  nat :: plus_ac0 (add_commute,add_assoc,add_0)

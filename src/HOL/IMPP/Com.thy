@@ -12,7 +12,7 @@ types	 val = nat   (* for the meta theory, this may be anything, but with
                         current Isabelle, types cannot be refined later *)
 types	 glb
          loc
-arities	 (*val,*)glb,loc :: term
+arities	 (*val,*)glb,loc :: type
 consts   Arg, Res :: loc
 
 datatype vname  = Glb glb | Loc loc
@@ -21,14 +21,14 @@ types	 globs  = glb => val
 datatype state  = st globs locals
 (* for the meta theory, the following would be sufficient:
 types    state
-arities  state::term
+arities  state::type
 consts   st:: [globs , locals] => state
 *)
 types	 aexp   = state => val
 	 bexp   = state => bool
 
 types	pname
-arities	pname  :: term
+arities	pname  :: type
 
 datatype com
       = SKIP

@@ -519,7 +519,7 @@ proof
   qed
 qed
 
-instance fun :: ("term", lattice) lattice
+instance fun :: (type, lattice) lattice
 proof
   fix f g :: "'a \<Rightarrow> 'b::lattice"
   show "\<exists>inf. is_inf f g inf" by rule (rule is_inf_fun) (* FIXME @{text "from \<dots> show \<dots> .."} does not work!? unification incompleteness!? *)

@@ -8,7 +8,7 @@ Correctness Proof.
 
 Correctness = SimCorrectness + Spec + Impl + 
 
-default term
+default type
 
 consts
 

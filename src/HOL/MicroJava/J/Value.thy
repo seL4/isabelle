@@ -9,7 +9,6 @@ header "Java Values"
 theory Value = Type:
 
 typedecl loc (* locations, i.e. abstract references on objects *)
-arities loc :: "term"
 
 datatype val
   = Unit        (* dummy result value of void methods *)

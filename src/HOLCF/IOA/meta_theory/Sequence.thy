@@ -8,9 +8,9 @@ Sequences over flat domains with lifted elements.
 
 Sequence = Seq + 
 
-default term
+default type
 
-types 'a Seq = ('a::term lift)seq
+types 'a Seq = ('a::type lift)seq
 
 consts
 
@@ -88,6 +88,5 @@ rules
 
 (* for test purposes should be deleted FIX !! *)
 adm_all    "adm f"
-
 
 end

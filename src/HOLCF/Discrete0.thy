@@ -8,11 +8,11 @@ Discrete CPOs.
 
 Discrete0 = Cont + Datatype +
 
-datatype 'a discr = Discr "'a :: term"
+datatype 'a discr = Discr "'a :: type"
 
-instance discr :: (term)sq_ord
+instance discr :: (type) sq_ord
 
 defs
-less_discr_def "((op <<)::('a::term)discr=>'a discr=>bool)  ==  op ="
+less_discr_def "((op <<)::('a::type)discr=>'a discr=>bool)  ==  op ="
 
 end

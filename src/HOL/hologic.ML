@@ -7,9 +7,9 @@ Abstract syntax operations for HOL.
 
 signature HOLOGIC =
 sig
-  val termC: class
-  val termS: sort
-  val termT: typ
+  val typeS: sort
+  val typeT: typ
+  val read_cterm: Sign.sg -> string -> cterm
   val boolN: string
   val boolT: typ
   val false_const: term
@@ -80,11 +80,12 @@ end;
 structure HOLogic: HOLOGIC =
 struct
 
-(* basics *)
+(* HOL syntax *)
 
-val termC: class = "term";
-val termS: sort = [termC];
-val termT = TypeInfer.anyT termS;
+val typeS: sort = ["HOL.type"];
+val typeT = TypeInfer.anyT typeS;
+
+fun read_cterm sg s = Thm.read_cterm sg (s, typeT);
 
 
 (* bool and set *)
