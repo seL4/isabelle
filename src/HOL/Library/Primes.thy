@@ -188,12 +188,13 @@ text {*
 *}
 
 lemma prime_dvd_mult: "p \<in> prime ==> p dvd m * n ==> p dvd m \<or> p dvd n"
-  apply (blast intro: relprime_dvd_mult prime_imp_relprime)
-  done
+  by (blast intro: relprime_dvd_mult prime_imp_relprime)
 
 lemma prime_dvd_square: "p \<in> prime ==> p dvd m^Suc (Suc 0) ==> p dvd m"
-  apply (auto dest: prime_dvd_mult)
-  done
+  by (auto dest: prime_dvd_mult)
+
+lemma prime_dvd_power_two: "p \<in> prime ==> p dvd m\<twosuperior> ==> p dvd m"
+  by (rule prime_dvd_square) (simp_all add: power_two)
 
 
 text {* \medskip Addition laws *}
