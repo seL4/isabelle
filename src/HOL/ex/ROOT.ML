@@ -31,7 +31,7 @@ if_svc_enabled time_use_thy "svc_test";
 
 (*basic use of extensible records*)
 time_use_thy "MonoidGroup";
-time_use_thy "Points";
+time_use_thy "Records";
 
 (*groups via locales*)
 time_use_thy "PiSets";
