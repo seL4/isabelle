@@ -230,7 +230,6 @@ goal Bin.thy
   by (ALLGOALS(asm_simp_tac 
                (simpset() addsimps[zminus_zadd_distrib RS sym, 
                                 znat_add RS sym]))); 
-  by (stac eq_False_conv 1); 
   by (rtac notI 1); 
   by (dres_inst_tac [("f","(% z. z +  $# Suc (Suc (n + n)))")] arg_cong 1); 
   by (Asm_full_simp_tac 1); 

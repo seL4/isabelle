@@ -220,15 +220,8 @@ goalw thy [le_type_scheme_def,is_bound_typ_instance] "(sch <= FVar n) = (sch = F
 by (type_scheme.induct_tac "sch" 1);
   by (Simp_tac 1);
  by (Simp_tac 1);
- by (SELECT_GOAL Safe_tac 1);
- by (eres_inst_tac [("x","TVar n -> TVar n")] allE 1);
- by (Asm_full_simp_tac 1);
  by (Fast_tac 1);
 by (Asm_full_simp_tac 1);
-by (rtac iffI 1);
- by (eres_inst_tac [("x","bound_typ_inst S type_scheme1 -> bound_typ_inst S type_scheme2")] allE 1);
- by (Asm_full_simp_tac 1);
- by (Fast_tac 1);
 by (Fast_tac 1);
 qed "le_FVar";
 Addsimps [le_FVar];
