@@ -9,22 +9,22 @@ header {*  Square roots of primes are irrational *}
 theory Sqrt_Irrational = Real + Primes:
 
 syntax (xsymbols)                        (* FIXME move to main HOL (!?) *)
-  "_square" :: "'a \<Rightarrow> 'a"  ("(_\<twosuperior>)" [1000] 999)
+  "_square" :: "'a => 'a"  ("(_\<twosuperior>)" [1000] 999)
 syntax (HTML output)
-  "_square" :: "'a \<Rightarrow> 'a"  ("(_\<twosuperior>)" [1000] 999)
+  "_square" :: "'a => 'a"  ("(_\<twosuperior>)" [1000] 999)
 syntax (output)
-  "_square" :: "'a \<Rightarrow> 'a"  ("(_^2)" [1000] 999)
+  "_square" :: "'a => 'a"  ("(_^2)" [1000] 999)
 translations
-  "x\<twosuperior>" \<rightleftharpoons> "x^2"
+  "x\<twosuperior>" == "x^2"
 
 
 subsection {* The set of rational numbers *}
 
 constdefs
   rationals :: "real set"    ("\<rat>")
-  "\<rat> \<equiv> {x. \<exists>m n. n \<noteq> 0 \<and> \<bar>x\<bar> = real (m::nat) / real (n::nat)}"
+  "\<rat> == {x. \<exists>m n. n \<noteq> 0 \<and> \<bar>x\<bar> = real (m::nat) / real (n::nat)}"
 
-theorem rationals_rep: "x \<in> \<rat> \<Longrightarrow>
+theorem rationals_rep: "x \<in> \<rat> ==>
   \<exists>m n. n \<noteq> 0 \<and> \<bar>x\<bar> = real m / real n \<and> gcd (m, n) = 1"
 proof -
   assume "x \<in> \<rat>"
@@ -47,8 +47,8 @@ proof -
   proof -
     from gcd have "real ?k / real ?l = real (?gcd * ?k) / real (?gcd * ?l)"
       by (simp add: real_mult_div_cancel1)
-    also from gcd_k gcd_l have "\<dots> = real m / real n" by simp
-    also from x_rat have "\<dots> = \<bar>x\<bar>" ..
+    also from gcd_k gcd_l have "... = real m / real n" by simp
+    also from x_rat have "... = \<bar>x\<bar>" ..
     finally show ?thesis ..
   qed
   moreover
@@ -62,8 +62,8 @@ proof -
   ultimately show ?thesis by blast
 qed
 
-lemma [elim?]: "r \<in> \<rat> \<Longrightarrow>
-    (\<And>m n. n \<noteq> 0 \<Longrightarrow> \<bar>r\<bar> = real m / real n \<Longrightarrow> gcd (m, n) = 1 \<Longrightarrow> C) \<Longrightarrow> C"
+lemma [elim?]: "r \<in> \<rat> ==>
+    (!!m n. n \<noteq> 0 ==> \<bar>r\<bar> = real m / real n ==> gcd (m, n) = 1 ==> C) ==> C"
   by (insert rationals_rep) blast
 
 
@@ -74,7 +74,7 @@ text {*
   irrational.
 *}
 
-theorem sqrt_prime_irrational: "x\<twosuperior> = real p \<Longrightarrow> p \<in> prime \<Longrightarrow> x \<notin> \<rat>"
+theorem sqrt_prime_irrational: "x\<twosuperior> = real p ==> p \<in> prime ==> x \<notin> \<rat>"
 proof
   assume x_sqrt: "x\<twosuperior> = real p"
   assume p_prime: "p \<in> prime"
@@ -86,7 +86,7 @@ proof
   proof -
     from n x_rat have "real m = \<bar>x\<bar> * real n" by simp
     hence "real (m\<twosuperior>) = x\<twosuperior> * real (n\<twosuperior>)" by (simp split: abs_split)
-    also from x_sqrt have "\<dots> = real (p * n\<twosuperior>)" by simp
+    also from x_sqrt have "... = real (p * n\<twosuperior>)" by simp
     finally show ?thesis ..
   qed
   have "p dvd m \<and> p dvd n"
@@ -114,7 +114,7 @@ text {*
   this formally :-).
 *}
 
-theorem "x\<twosuperior> = real 2 \<Longrightarrow> x \<notin> \<rat>"
+theorem "x\<twosuperior> = real 2 ==> x \<notin> \<rat>"
 proof (rule sqrt_prime_irrational)
   {
     fix m assume dvd: "m dvd 2"
@@ -131,7 +131,7 @@ text {*
   structure, it is probably closer to proofs seen in mathematics.
 *}
 
-theorem "x\<twosuperior> = real p \<Longrightarrow> p \<in> prime \<Longrightarrow> x \<notin> \<rat>"
+theorem "x\<twosuperior> = real p ==> p \<in> prime ==> x \<notin> \<rat>"
 proof
   assume x_sqrt: "x\<twosuperior> = real p"
   assume p_prime: "p \<in> prime"
@@ -141,7 +141,7 @@ proof
     n: "n \<noteq> 0" and x_rat: "\<bar>x\<bar> = real m / real n" and gcd: "gcd (m, n) = 1" ..
   from n x_rat have "real m = \<bar>x\<bar> * real n" by simp
   hence "real (m\<twosuperior>) = x\<twosuperior> * real (n\<twosuperior>)" by (simp split: abs_split)
-  also from x_sqrt have "\<dots> = real (p * n\<twosuperior>)" by simp
+  also from x_sqrt have "... = real (p * n\<twosuperior>)" by simp
   finally have eq: "m\<twosuperior> = p * n\<twosuperior>" ..
   hence "p dvd m\<twosuperior>" ..
   with p_prime have dvd_m: "p dvd m" by (rule prime_dvd_square)
