@@ -217,11 +217,12 @@ text {*
 *}
 
 syntax
-  "_quote"       :: "'b => ('a => 'b)"                  ("(.'(_').)" [0] 1000)
-  "_antiquote"   :: "('a => 'b) => 'b"                  ("\<acute>_" [1000] 1000)
-  "_Subst"       :: "'a bexp \<Rightarrow> 'b \<Rightarrow> idt \<Rightarrow> 'a bexp"  ("_[_'/\<acute>_]" [1000] 999)
-  "_Assert"      :: "'a => 'a set"                      ("(.{_}.)" [0] 1000)
-  "_Assign"      :: "idt => 'b => 'a com"               ("(\<acute>_ :=/ _)" [70, 65] 61)
+  "_quote"       :: "'b => ('a => 'b)"       ("(.'(_').)" [0] 1000)
+  "_antiquote"   :: "('a => 'b) => 'b"       ("\<acute>_" [1000] 1000)
+  "_Subst"       :: "'a bexp \<Rightarrow> 'b \<Rightarrow> idt \<Rightarrow> 'a bexp"
+        ("_[_'/\<acute>_]" [1000] 999)
+  "_Assert"      :: "'a => 'a set"           ("(.{_}.)" [0] 1000)
+  "_Assign"      :: "idt => 'b => 'a com"    ("(\<acute>_ :=/ _)" [70, 65] 61)
   "_Cond"        :: "'a bexp => 'a com => 'a com => 'a com"
         ("(0IF _/ THEN _/ ELSE _/ FI)" [0, 0, 0] 61)
   "_While_inv"   :: "'a bexp => 'a assn => 'a com => 'a com"
