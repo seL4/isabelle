@@ -661,7 +661,7 @@ in
     (tag_rule internal_tag (standard (Thm.equal_elim G_def (Thm.assume G))));
 end;
 
-val mk_cgoal = Thm.capply (Thm.cterm_of proto_sign (Const ("Goal", propT --> propT)));
+val mk_cgoal = Thm.capply (Thm.cterm_of proto_sign Logic.goal_const);
 fun assume_goal ct = Thm.assume (mk_cgoal ct) RS rev_triv_goal;
 
 
