@@ -119,19 +119,17 @@ text{*
 text{*
 illustrates Union as well as image
 *}
+
 lemma "f`A \<union> g`A = (\<Union>x\<in>A. {f x, g x})"
-  apply (blast)
-  done
+by blast
 
 lemma "f ` {(x,y). P x y} = {f(x,y) | x y. P x y}"
-  apply (blast)
-  done
+by blast
 
 text{*actually a macro!*}
 
 lemma "range f = f`UNIV"
-  apply (blast)
-  done
+by blast
 
 
 text{*
