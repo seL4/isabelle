@@ -1,6 +1,0 @@
-#! /bin/sh
-# $Id$
-#Remove useless files from subdirectories
-
-find . \( -name log -o -name make\*.log\* -o -name test -o -name .\*.thy.ML \) -print \
-  | xargs rm
