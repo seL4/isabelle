@@ -10,6 +10,9 @@
 # source bashrc, we're called by cron
 . ~/.bashrc
 
+# produce empty list for patterns like isatest-*.log if no 
+# such file exists 
+shopt -s nullglob
 
 ## global settings
 
@@ -90,8 +93,8 @@ if [ -e $ERRORLOG ]; then
     echo "Have a nice day," >> $TMP
     echo "  isatest" >> $TMP
 
-    cd $ERRORDIR
     for R in $MAILTO; do
+        LOGS=$ERRORDIR/isatest*.log
         $MAIL "isabelle test failed" $R $TMP *.log
     done
 
