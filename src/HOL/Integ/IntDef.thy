@@ -35,19 +35,19 @@ constdefs
   
 defs
   zadd_def
-   "Z1 + Z2 == 
-       Abs_Integ(UN p1:Rep_Integ(Z1). UN p2:Rep_Integ(Z2).   
+   "z + w == 
+       Abs_Integ(UN p1:Rep_Integ(z). UN p2:Rep_Integ(w).   
            split (%x1 y1. split (%x2 y2. intrel^^{(x1+x2, y1+y2)}) p2) p1)"
 
-  zdiff_def "Z1 - Z2 == Z1 + -(Z2::int)"
+  zdiff_def "z - w == z + -(w::int)"
 
-  zless_def "Z1<Z2 == neg(Z1 - Z2)"
+  zless_def "z<w == neg(z - w)"
 
-  zle_def   "Z1 <= (Z2::int) == ~(Z2 < Z1)"
+  zle_def   "z <= (w::int) == ~(w < z)"
 
   zmult_def
-   "Z1 * Z2 == 
-       Abs_Integ(UN p1:Rep_Integ(Z1). UN p2:Rep_Integ(Z2). split (%x1 y1.   
+   "z * w == 
+       Abs_Integ(UN p1:Rep_Integ(z). UN p2:Rep_Integ(w). split (%x1 y1.   
            split (%x2 y2. intrel^^{(x1*x2 + y1*y2, x1*y2 + y1*x2)}) p2) p1)"
 
 end

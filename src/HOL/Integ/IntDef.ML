@@ -131,7 +131,7 @@ by (asm_simp_tac (simpset() addsimps [zminus]) 1);
 qed "zminus_zminus";
 Addsimps [zminus_zminus];
 
-Goal "inj(uminus::int=>int)";
+Goal "inj(%z::int. -z)";
 by (rtac injI 1);
 by (dres_inst_tac [("f","uminus")] arg_cong 1);
 by (Asm_full_simp_tac 1);
@@ -218,6 +218,10 @@ Goalw [int_def] "(int m) + (int n) = int (m + n)";
 by (simp_tac (simpset() addsimps [zadd]) 1);
 qed "zadd_int";
 
+Goal "(int m) + (int n + z) = int (m + n) + z";
+by (simp_tac (simpset() addsimps [zadd_int, zadd_assoc RS sym]) 1);
+qed "zadd_int_left";
+
 Goal "int (Suc m) = int 1 + (int m)";
 by (simp_tac (simpset() addsimps [zadd_int]) 1);
 qed "int_Suc";
@@ -235,15 +239,15 @@ qed "zadd_nat0_right";
 Goalw [int_def] "z + (- z) = int 0";
 by (res_inst_tac [("z","z")] eq_Abs_Integ 1);
 by (asm_simp_tac (simpset() addsimps [zminus, zadd, add_commute]) 1);
-qed "zadd_zminus_inverse_nat";
+qed "zadd_zminus_inverse";
 
 Goal "(- z) + z = int 0";
 by (rtac (zadd_commute RS trans) 1);
-by (rtac zadd_zminus_inverse_nat 1);
-qed "zadd_zminus_inverse_nat2";
+by (rtac zadd_zminus_inverse 1);
+qed "zadd_zminus_inverse2";
 
 Addsimps [zadd_nat0, zadd_nat0_right,
-	  zadd_zminus_inverse_nat, zadd_zminus_inverse_nat2];
+	  zadd_zminus_inverse, zadd_zminus_inverse2];
 
 Goal "z + (- z + w) = (w::int)";
 by (simp_tac (simpset() addsimps [zadd_assoc RS sym]) 1);
@@ -263,7 +267,11 @@ Goal "x - int 0 = x";
 by (simp_tac (simpset() addsimps [zdiff_def]) 1);
 qed "zdiff_nat0_right";
 
-Addsimps [zdiff_nat0, zdiff_nat0_right];
+Goal "x - x = int 0";
+by (simp_tac (simpset() addsimps [zdiff_def]) 1);
+qed "zdiff_self";
+
+Addsimps [zdiff_nat0, zdiff_nat0_right, zdiff_self];
 
 
 (** Lemmas **)
@@ -442,7 +450,7 @@ by (REPEAT (assume_tac 1));
 qed "zless_not_refl";
 
 (* z<z ==> R *)
-bind_thm ("zless_irrefl", (zless_not_refl RS notE));
+bind_thm ("zless_irrefl", zless_not_refl RS notE);
 AddSEs [zless_irrefl];
 
 Goal "z<w ==> w ~= (z::int)";
@@ -529,11 +537,11 @@ Goal "w <= (w::int)";
 by (simp_tac (simpset() addsimps [integ_le_less]) 1);
 qed "zle_refl";
 
+AddIffs [le_refl];
+
 Goalw [zle_def] "z < w ==> z <= (w::int)";
 by (blast_tac (claset() addEs [zless_asym]) 1);
 qed "zless_imp_zle";
-
-Addsimps [zle_refl, zless_imp_zle];
 
 (* Axiom 'linorder_linear' of class 'linorder': *)
 Goal "(z::int) <= w | w <= z";
@@ -643,20 +651,21 @@ qed "zadd_right_cancel";
 Addsimps [zadd_right_cancel];
 
 
-Goal "(w < z + int 1) = (w<z | w=z)";
-by (auto_tac (claset(),
-	      simpset() addsimps [zless_iff_Suc_zadd, zadd_assoc, zadd_int]));
-by (cut_inst_tac [("m","n")] int_Suc 1);
-by (exhaust_tac "n" 1);
-by Auto_tac;
-by (full_simp_tac (simpset() addsimps zadd_ac) 1);
-by (asm_full_simp_tac (simpset() addsimps [zadd_assoc RS sym]) 1);
-qed "zless_add_nat1_eq";
+(** For the cancellation simproc.
+    The idea is to cancel like terms on opposite sides by subtraction **)
 
+Goal "(x::int) - y = x' - y' ==> (x<y) = (x'<y')";
+by (asm_simp_tac (simpset() addsimps [zless_def]) 1);
+qed "zless_eqI";
 
-Goal "(w + int 1 <= z) = (w<z)";
-by (simp_tac (simpset() addsimps [zle_def, zless_add_nat1_eq]) 1);
-by (auto_tac (claset() addIs [zle_anti_sym] addEs [zless_asym],
-	      simpset() addsimps [symmetric zle_def]));
-qed "add_nat1_zle_eq";
+Goal "(x::int) - y = x' - y' ==> (y<=x) = (y'<=x')";
+by (dtac zless_eqI 1);
+by (asm_simp_tac (simpset() addsimps [zle_def]) 1);
+qed "zle_eqI";
+
+Goal "(x::int) - y = x' - y' ==> (x=y) = (x'=y')";
+by Safe_tac;
+by (ALLGOALS
+    (asm_full_simp_tac (simpset() addsimps [eq_zdiff_eq, zdiff_eq_eq])));
+qed "zeq_eqI";
 
