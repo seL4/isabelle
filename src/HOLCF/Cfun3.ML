@@ -214,7 +214,7 @@ Addsimps cont_lemmas1;
 (* function application _[_]  is strict in its first arguments              *)
 (* ------------------------------------------------------------------------ *)
 
-qed_goal "strict_fapp1" thy "(UU::'a->'b)`x = (UU::'b)"
+qed_goal "strict_fapp1" thy "(UU::'a::cpo->'b)`x = (UU::'b)"
  (fn prems =>
         [
         (stac inst_cfun_pcpo 1),

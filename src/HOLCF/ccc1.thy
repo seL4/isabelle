@@ -12,8 +12,8 @@ ccc1 = Cprod3 + Sprod3 + Ssum3 + Up3 + Fix +
 instance flat<chfin (flat_subclass_chfin)
 
 consts
-        ID      :: "'a -> 'a"
-        cfcomp  :: "('b->'c)->('a->'b)->'a->'c"
+        ID      :: "('a::cpo) -> 'a"
+        cfcomp  :: "('b->'c)->(('a::cpo)->('b::cpo))->'a->('c::cpo)"
 
 syntax  "@oo"   :: "('b->'c)=>('a->'b)=>'a->'c" ("_ oo _" [101,100] 100)
      

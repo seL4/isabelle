@@ -1,0 +1,32 @@
+(*  Title:      HOLCF/Discrete1.ML
+    ID:         $Id$
+    Author:     Tobias Nipkow
+    Copyright   1997 TUM
+
+Proves that 'a discr is a cpo
+*)
+
+goalw thy [po_def,less_discr_def] "((x::('a::term)discr) << y) = (x=y)";
+br refl 1;
+qed "discr_less_eq";
+AddIffs [discr_less_eq];
+
+goalw thy [is_chain]
+ "!!S::nat=>('a::term)discr. is_chain S ==> S i = S 0";
+by(nat_ind_tac "i" 1);
+ br refl 1;
+be subst 1;
+br sym 1;
+by(Fast_tac 1);
+qed "discr_chain0";
+
+goal thy
+ "!!S::nat=>('a::term)discr. is_chain(S) ==> range(S) = {S 0}";
+by(fast_tac (!claset addEs [discr_chain0]) 1);
+qed "discr_chain_range0";
+Addsimps [discr_chain_range0];
+
+goalw thy [is_lub,is_ub]
+ "!!S. is_chain S ==> ? x::('a::term)discr. range(S) <<| x";
+by(Asm_simp_tac 1);
+qed "discr_cpo";

@@ -136,6 +136,12 @@ qed_goal "thelubI" thy "M <<| l ==> lub(M) = l"
         ]);
 
 
+goal thy "lub{x} = x";
+br thelubI 1;
+by(simp_tac (!simpset addsimps [is_lub,is_ub]) 1);
+qed "lub_singleton";
+Addsimps [lub_singleton];
+
 (* ------------------------------------------------------------------------ *)
 (* access to some definition as inference rule                              *)
 (* ------------------------------------------------------------------------ *)
@@ -244,8 +250,7 @@ qed_goal "bin_chain" thy "x<<y ==> is_chain (%i. if i=0 then x else y)"
         (rtac allI 1),
         (nat_ind_tac "i" 1),
         (Asm_simp_tac 1),
-        (Asm_simp_tac 1),
-        (rtac refl_less 1)
+        (Asm_simp_tac 1)
         ]);
 
 qed_goalw "bin_chainmax" thy [max_in_chain_def,le_def]

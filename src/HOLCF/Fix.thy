@@ -15,10 +15,10 @@ consts
 iterate	:: "nat=>('a->'a)=>'a=>'a"
 Ifix	:: "('a->'a)=>'a"
 fix	:: "('a->'a)->'a"
-adm		:: "('a=>bool)=>bool"
+adm		:: "('a::cpo=>bool)=>bool"
 admw		:: "('a=>bool)=>bool"
-chain_finite	:: "'a=>bool"
-flat		:: "'a=>bool" (* should be called flat, for consistency *)
+chain_finite	:: "'a::cpo=>bool"
+flat		:: "'a=>bool"
 
 defs
 
@@ -32,8 +32,8 @@ adm_def       "adm P == !Y. is_chain(Y) -->
 admw_def      "admw P == !F. (!n.P (iterate n F UU)) -->
                             P (lub(range (%i. iterate i F UU)))" 
 
-chain_finite_def  "chain_finite (x::'a)==
-                        !Y. is_chain (Y::nat=>'a) --> (? n.max_in_chain n Y)"
+chain_finite_def  "chain_finite (x::'a::cpo)==
+                   !Y. is_chain (Y::nat=>'a::cpo) --> (? n.max_in_chain n Y)"
 
 flat_def	  "flat (x::'a) == ! x y. (x::'a) << y --> (x = UU) | (x=y)"
 

@@ -16,6 +16,7 @@ THYS = Porder.thy Porder0.thy Pcpo.thy \
        Ssum0.thy Ssum1.thy Ssum2.thy Ssum3.thy \
        Up1.thy Up2.thy Up3.thy Fix.thy ccc1.thy \
        One.thy Tr.thy\
+       Discrete0.thy Discrete1.thy Discrete.thy\
        Lift1.thy Lift2.thy Lift3.thy HOLCF.thy 
 
 ONLYTHYS = Lift.thy

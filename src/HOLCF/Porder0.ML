@@ -13,6 +13,8 @@ qed_goalw "refl_less" thy [ po_def ] "x << x"
         (fast_tac (HOL_cs addSIs [ax_refl_less]) 1)
         ]);
 
+AddIffs [refl_less];
+
 qed_goalw "antisym_less" thy [ po_def ] "[| x << y; y << x |] ==> x = y"
 (fn prems =>
         [

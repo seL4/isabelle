@@ -1,0 +1,16 @@
+(*  Title:      HOLCF/Discrete0.thy
+    ID:         $Id$
+    Author:     Tobias Nipkow
+    Copyright   1997 TUM
+
+Discrete CPOs
+*)
+
+Discrete0 = Cont +
+
+datatype 'a discr = Discr 'a
+
+defs
+less_discr_def "(less::('a::term)discr=>'a discr=>bool)  ==  op ="
+
+end

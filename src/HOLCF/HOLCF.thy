@@ -8,5 +8,4 @@ Top theory for HOLCF system
 
 *)
 
-HOLCF = One + Tr
-
+HOLCF = Discrete + One + Tr

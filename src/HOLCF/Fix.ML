@@ -690,7 +690,7 @@ qed_goal "flatdom_strict2cont" thy
 	]);
 
 qed_goal "chfin_fappR" thy 
-    "[| is_chain (Y::nat => 'a->'b); chain_finite(x::'b) |] ==> \
+    "[| is_chain (Y::nat => 'a::cpo->'b); chain_finite(x::'b) |] ==> \
 \    !s. ? n. lub(range(Y))`s = Y n`s" 
 (fn prems => 
 	[
@@ -702,7 +702,8 @@ qed_goal "chfin_fappR" thy
 	]);
 
 qed_goalw "adm_chfindom" thy [adm_def]
-	    "chain_finite (x::'b) ==> adm (%(u::'a->'b). P(u`s))" (fn prems => [
+    "chain_finite (x::'b) ==> adm (%(u::'a::cpo->'b). P(u`s))"
+    (fn prems => [
 	cut_facts_tac prems 1,
 	strip_tac 1,
 	dtac chfin_fappR 1,
@@ -1095,7 +1096,7 @@ local
         ]);
 
   val adm_disj_lemma5 = prove_goal thy
-  "!!Y::nat=>'a. [| is_chain(Y); ! j. i < j --> Q(Y(j)) |] ==>\
+  "!!Y::nat=>'a::cpo. [| is_chain(Y); ! j. i < j --> Q(Y(j)) |] ==>\
   \       lub(range(Y)) = lub(range(%m. if m< Suc(i) then Y(Suc(i)) else Y m))"
  (fn prems =>
         [
@@ -1108,7 +1109,7 @@ local
         ]);
 
   val adm_disj_lemma6 = prove_goal thy
-  "[| is_chain(Y::nat=>'a); ? i. ! j. i < j --> Q(Y(j)) |] ==>\
+  "[| is_chain(Y::nat=>'a::cpo); ? i. ! j. i < j --> Q(Y(j)) |] ==>\
   \         ? X. is_chain(X) & (! n. Q(X(n))) & lub(range(Y)) = lub(range(X))"
  (fn prems =>
         [
@@ -1127,7 +1128,7 @@ local
         ]);
 
   val adm_disj_lemma7 = prove_goal thy 
-  "[| is_chain(Y::nat=>'a); ! i. ? j. i < j & P(Y(j))  |] ==>\
+  "[| is_chain(Y::nat=>'a::cpo); ! i. ? j. i < j & P(Y(j))  |] ==>\
   \         is_chain(%m. Y(Least(%j. m<j & P(Y(j)))))"
  (fn prems =>
         [
@@ -1161,7 +1162,7 @@ local
         ]);
 
   val adm_disj_lemma9 = prove_goal thy
-  "[| is_chain(Y::nat=>'a); ! i. ? j. i < j & P(Y(j)) |] ==>\
+  "[| is_chain(Y::nat=>'a::cpo); ! i. ? j. i < j & P(Y(j)) |] ==>\
   \         lub(range(Y)) = lub(range(%m. Y(Least(%j. m<j & P(Y(j))))))"
  (fn prems =>
         [
@@ -1192,7 +1193,7 @@ local
         ]);
 
   val adm_disj_lemma10 = prove_goal thy
-  "[| is_chain(Y::nat=>'a); ! i. ? j. i < j & P(Y(j)) |] ==>\
+  "[| is_chain(Y::nat=>'a::cpo); ! i. ? j. i < j & P(Y(j)) |] ==>\
   \         ? X. is_chain(X) & (! n. P(X(n))) & lub(range(Y)) = lub(range(X))"
  (fn prems =>
         [
