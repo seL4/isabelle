@@ -18,7 +18,7 @@ test: \
   HOL-Complex-ex \
   HOL-CTL \
   HOL-Extraction \
-      HOL-Real-HahnBanach \
+      HOL-Complex-HahnBanach \
   HOL-Hoare \
   HOL-HoareParallel \
   HOL-IMP \
@@ -113,11 +113,11 @@ $(OUT)/HOL: $(OUT)/Pure $(SRC)/Provers/quantifier1.ML \
 
 
 
-## HOL-Real-HahnBanach
+## HOL-Complex-HahnBanach
 
-HOL-Real-HahnBanach: HOL-Complex $(LOG)/HOL-Real-HahnBanach.gz
+HOL-Complex-HahnBanach: HOL-Complex $(LOG)/HOL-Complex-HahnBanach.gz
 
-$(LOG)/HOL-Real-HahnBanach.gz: $(OUT)/HOL-Real Real/HahnBanach/Aux.thy \
+$(LOG)/HOL-Complex-HahnBanach.gz: $(OUT)/HOL-Complex Real/HahnBanach/Aux.thy \
   Real/HahnBanach/Bounds.thy Real/HahnBanach/FunctionNorm.thy \
   Real/HahnBanach/FunctionOrder.thy Real/HahnBanach/HahnBanach.thy \
   Real/HahnBanach/HahnBanachExtLemmas.thy	\
