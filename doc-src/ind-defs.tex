@@ -1,5 +1,5 @@
 \documentstyle[a4,alltt,iman,extra,proof209,12pt]{article}
-\newif\ifshort
+\newif\ifshort%''Short'' means a published version, not the documentation
 \shortfalse%%%%%\shorttrue
 
 \title{A Fixedpoint Approach to\\ 
@@ -170,7 +170,8 @@ codatatypes.  It allows use of any operators that have been proved monotone,
 thus accepting all provably monotone inductive definitions, including
 iterated definitions.
 
-The package has been implemented in Isabelle~\cite{isabelle-intro} using
+The package has been implemented in
+Isabelle~\cite{paulson-markt,paulson-isa-book} using 
 \textsc{zf} set theory \cite{paulson-set-I,paulson-set-II}; part of it has
 since been ported to Isabelle/\textsc{hol} (higher-order logic).  The
 recursion equations are specified as introduction rules for the mutually
@@ -1299,9 +1300,10 @@ a simple imperative language.  A single theory file contains three datatype
 definitions (of arithmetic expressions, boolean expressions and commands) and
 three inductive definitions (the corresponding operational rules).  Using
 different techniques, Nipkow~\cite{nipkow-CR} and Rasmussen~\cite{rasmussen95}
-have both proved the Church-Rosser theorem.  A datatype specifies the set of
-$\lambda$-terms, while inductive definitions specify several reduction
-relations.
+have both proved the Church-Rosser theorem; inductive definitions specify
+several reduction relations on $\lambda$-terms.  Recently, I have applied
+inductive definitions to the analysis of cryptographic
+protocols~\cite{paulson-markt}. 
 
 To demonstrate coinductive definitions, Frost~\cite{frost95} has proved the
 consistency of the dynamic and static semantics for a small functional
