@@ -11,23 +11,6 @@ should be based on general 'fold' on indices?
 *)
 
 
-(*** extra nat theorems ***)
-
-Goal "[| k <= i; i <= k |] ==> i = (k::nat)";
-by (rtac diffs0_imp_equal 1);
-by (ALLGOALS (stac diff_is_0_eq)); 
-by Auto_tac;
-qed "le_le_imp_eq";
-
-Goal "m~=n --> m<=n --> m<(n::nat)";
-by (induct_tac "n" 1);
-by Auto_tac;
-by (subgoal_tac "m = Suc n" 1);
-by (rtac le_le_imp_eq 2);
-by Auto_tac;
-qed_spec_mp "neq_le_imp_less";
-
-
 (*** funprod and funsum ***)
 
 Goal "(ALL i. i <= n --> #0 < mf i) --> #0 < funprod mf 0 n";
@@ -73,18 +56,14 @@ Goal "k<=j --> j<=(k+l) --> \
 \     (ALL i. k<=i & i<=(k+l) & i~=j --> (f i) = #0) --> \
 \     (funsum f k l) = (f j)";
 by (induct_tac "l" 1);
-by (ALLGOALS Simp_tac); 
-by (ALLGOALS (REPEAT o (rtac impI)));
-by (case_tac "Suc (k+n) = j" 2);
-by (subgoal_tac "funsum f k n = #0" 2);
-by (rtac funsum_zero 3);
-by (subgoal_tac "f (Suc (k+n)) = #0" 4);
-by (subgoal_tac "k=j" 1);
-by (Clarify_tac 4);
-by (subgoal_tac "j<=k+n" 5);
-by (subgoal_tac "j<Suc (k+n)" 6);
-by (rtac neq_le_imp_less 7);
-by (ALLGOALS Asm_simp_tac); 
+by (ALLGOALS Clarify_tac);
+by (subgoal_tac "k=j" 1 THEN ALLGOALS Asm_simp_tac);
+by (case_tac "Suc (k+n) = j" 1);
+by (subgoal_tac "funsum f k n = #0" 1);
+by (rtac funsum_zero 2);
+by (subgoal_tac "f (Suc (k+n)) = #0" 3);
+by (subgoal_tac "j<=k+n" 3);
+by (arith_tac 4);
 by Auto_tac;
 qed_spec_mp "funsum_oneelem";
 
@@ -121,10 +100,6 @@ qed_spec_mp "zcong_funprod";
 
 (* Chinese: Existence *)
 
-Goal "[| 0<n; i<n |] ==> Suc (i+(n-Suc(i))) = n";
-by (arith_tac 1);
-val suclemma = result();
-
 Goal "[| 0<n; i<=n; m_cond n mf; km_cond n kf mf |] \
 \     ==> EX! x. #0<=x & x<(mf i) & \
 \                [(kf i)*(mhf mf n i)*x = bf i] (mod mf i)";
@@ -132,25 +107,17 @@ by (rtac zcong_lineq_unique 1);
 by (stac zgcd_zmult_cancel 2);
 by (rewrite_goals_tac [m_cond_def,km_cond_def,mhf_def]);
 by (ALLGOALS Asm_simp_tac);
-by Auto_tac;  
+by Safe_tac; 
 by (stac zgcd_zmult_cancel 3);
-by (Asm_simp_tac 3);
 by (ALLGOALS (rtac funprod_zgcd));
 by Safe_tac;
 by (ALLGOALS Asm_full_simp_tac);
-by (subgoal_tac "i<=n" 1);
-by (res_inst_tac [("j","n-1")] le_trans 2);
-by (subgoal_tac "i~=n" 1);
-by (subgoal_tac "ia<=n" 5);
-by (res_inst_tac [("j","i-1")] le_trans 6);
-by (res_inst_tac [("j","n-1")] le_trans 7);
-by (subgoal_tac "ia~=i" 5);
-by (subgoal_tac "ia<=n" 10);
-by (stac (suclemma RS sym) 11);
-by (assume_tac 13);
-by (rtac neq_le_imp_less 12);
-by (rtac diff_le_mono 8);
-by (ALLGOALS (asm_full_simp_tac (simpset() addsimps [le_pred_eq])));
+by (subgoal_tac "ia<=n" 3);
+by (arith_tac 4);
+by (subgoal_tac "i<n" 1);
+by (arith_tac 2);
+by (case_tac "i" 2);
+by (ALLGOALS Asm_full_simp_tac);
 qed "unique_xi_sol";
 
 Goalw [mhf_def] "[| 0<n; i<=n; j<=n; j~=i |] ==> (mf j) dvd (mhf mf n i)";
@@ -161,18 +128,11 @@ by (case_tac "j<i" 3);
 by (rtac zdvd_zmult2 3);
 by (rtac zdvd_zmult 4);
 by (ALLGOALS (rtac funprod_zdvd));
-by Auto_tac;
-by (stac suclemma 4);
-by (stac le_pred_eq 2);
-by (stac le_pred_eq 1);
-by (rtac neq_le_imp_less 2);
-by (rtac neq_le_imp_less 8);
-by (rtac pred_less_imp_le 6);
-by (rtac neq_le_imp_less 6);
-by Auto_tac;
+by (ALLGOALS arith_tac);
 val lemma = result();
 
-Goalw [x_sol_def] "[| 0<n; i<=n |] \
+Goalw [x_sol_def]
+     "[| 0<n; i<=n |] \
 \     ==> (x_sol n kf bf mf) mod (mf i) = \
 \         (xilin_sol i n kf bf mf)*(mhf mf n i) mod (mf i)";
 by (stac funsum_mod 1);
