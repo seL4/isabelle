@@ -32,9 +32,9 @@ signature INDUCTIVE_PACKAGE =
 sig
   val quiet_mode: bool ref
   val unify_consts: Sign.sg -> term list -> term list -> term list * term list
-  val get_inductive: theory -> string ->
-    {names: string list, coind: bool} * {defs: thm list, elims: thm list, raw_induct: thm,
-      induct: thm, intrs: thm list, mk_cases: string -> thm, mono: thm, unfold: thm}
+  val get_inductive: theory -> string -> ({names: string list, coind: bool} *
+    {defs: thm list, elims: thm list, raw_induct: thm, induct: thm,
+     intrs: thm list, mk_cases: string -> thm, mono: thm, unfold: thm}) option
   val print_inductives: theory -> unit
   val mono_add_global: theory attribute
   val mono_del_global: theory attribute
@@ -90,10 +90,7 @@ val print_inductives = InductiveData.print;
 
 (* get and put data *)
 
-fun get_inductive thy name =
-  (case Symtab.lookup (fst (InductiveData.get thy), name) of
-    Some info => info
-  | None => error ("Unknown (co)inductive set " ^ quote name));
+fun get_inductive thy name = Symtab.lookup (fst (InductiveData.get thy), name);
 
 fun put_inductives names info thy =
   let
@@ -497,16 +494,20 @@ fun mk_cases elims s =
 
 fun gen_inductive_cases prep_att prep_const prep_prop
     ((((name, raw_atts), raw_set), raw_props), comment) thy =
-  let
-    val sign = Theory.sign_of thy;
-
-    val atts = map (prep_att thy) raw_atts;
-    val (_, {elims, ...}) = get_inductive thy (prep_const sign raw_set);
-    val cprops = map (Thm.cterm_of sign o prep_prop (ProofContext.init thy)) raw_props;
-    val thms = map (mk_cases_i true elims (Simplifier.simpset_of thy)) cprops;
-  in
-    thy
-    |> IsarThy.have_theorems_i (((name, atts), map Thm.no_attributes thms), comment)
+  let val sign = Theory.sign_of thy;
+  in (case get_inductive thy (prep_const sign raw_set) of
+      None => error ("Unknown (co)inductive set " ^ quote name)
+    | Some (_, {elims, ...}) =>
+        let
+          val atts = map (prep_att thy) raw_atts;
+          val cprops = map
+            (Thm.cterm_of sign o prep_prop (ProofContext.init thy)) raw_props;
+          val thms = map
+            (mk_cases_i true elims (Simplifier.simpset_of thy)) cprops;
+        in
+          thy |> IsarThy.have_theorems_i
+            (((name, atts), map Thm.no_attributes thms), comment)
+        end)
   end;
 
 val inductive_cases =
