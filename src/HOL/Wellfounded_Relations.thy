@@ -133,7 +133,7 @@ lemma wf_iff_acyclic_if_finite: "finite r ==> wf r = acyclic r"
 by (blast intro: finite_acyclic_wf wf_acyclic)
 
 
-subsubsection{*Wellfoundedness of same\_fst*}
+subsubsection{*Wellfoundedness of @{term same_fst}*}
 
 lemma same_fstI [intro!]:
      "[| P x; (y',y) : R x |] ==> ((x,y'),(x,y)) : same_fst P R"
