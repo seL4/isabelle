@@ -100,7 +100,6 @@ by (subgoal_tac "! w y. f`<x, w> = <y, w>  --> z << w" 1);
 by (rtac sym 1);
 by (rtac fix_eqI 1);
 by (asm_simp_tac HOLCF_ss 1);
-by (etac sym 1);
 by (rtac allI 1);
 by (simp_tac HOLCF_ss 1);
 by (strip_tac 1);

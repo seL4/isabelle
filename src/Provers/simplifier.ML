@@ -8,8 +8,8 @@ for the actual meta level rewriting engine.
 
 infix 4
   setsubgoaler setloop addloop setSSolver addSSolver setSolver
-  addSolver setmksimps addsimps delsimps addeqcongs deleqcongs
-  settermless addsimprocs delsimprocs;
+  addSolver addsimps delsimps addeqcongs deleqcongs
+  setmksimps setmkeqTrue setmksym settermless addsimprocs delsimprocs;
 
 
 signature SIMPLIFIER =
@@ -35,6 +35,8 @@ sig
   val setSolver:    simpset * (thm list -> int -> tactic) -> simpset
   val addSolver:    simpset * (thm list -> int -> tactic) -> simpset
   val setmksimps:   simpset * (thm -> thm list) -> simpset
+  val setmkeqTrue:  simpset * (thm -> thm option) -> simpset
+  val setmksym:     simpset * (thm -> thm option) -> simpset
   val settermless:  simpset * (term * term -> bool) -> simpset
   val addsimps:     simpset * thm list -> simpset
   val delsimps:     simpset * thm list -> simpset
@@ -111,7 +113,8 @@ fun make_ss (mss, subgoal_tac, loop_tacs, finish_tac, unsafe_finish_tac) =
     finish_tac = finish_tac, unsafe_finish_tac = unsafe_finish_tac};
 
 val empty_ss =
-  make_ss (Thm.empty_mss, K (K no_tac), [], K (K no_tac), K (K no_tac));
+  let val mss = Thm.set_mk_sym(Thm.empty_mss, Some o symmetric_fun)
+  in make_ss (mss, K (K no_tac), [], K (K no_tac), K (K no_tac)) end;
 
 fun rep_ss (Simpset args) = args;
 fun prems_of_ss (Simpset {mss, ...}) = Thm.prems_of_mss mss;
@@ -170,6 +173,16 @@ fun (Simpset {mss, subgoal_tac, loop_tacs, finish_tac, unsafe_finish_tac})
 fun (Simpset {mss, subgoal_tac, loop_tacs, finish_tac, unsafe_finish_tac})
     setmksimps mk_simps =
   make_ss (Thm.set_mk_rews (mss, map (Thm.strip_shyps o Drule.zero_var_indexes) o mk_simps),
+    subgoal_tac, loop_tacs, finish_tac, unsafe_finish_tac);
+
+fun (Simpset {mss, subgoal_tac, loop_tacs, finish_tac, unsafe_finish_tac})
+    setmkeqTrue mk_eq_True =
+  make_ss (Thm.set_mk_eq_True (mss, mk_eq_True),
+    subgoal_tac, loop_tacs, finish_tac, unsafe_finish_tac);
+
+fun (Simpset {mss, subgoal_tac, loop_tacs, finish_tac, unsafe_finish_tac})
+    setmksym mksym =
+  make_ss (Thm.set_mk_sym (mss, mksym),
     subgoal_tac, loop_tacs, finish_tac, unsafe_finish_tac);
 
 fun (Simpset {mss, subgoal_tac, loop_tacs,  finish_tac, unsafe_finish_tac})

@@ -83,13 +83,11 @@ local
 in
 
   fun mk_meta_eq r = r RS eq_reflection;
+  fun mk_meta_eq_True r = Some(r RS meta_eq_to_obj_eq RS P_imp_P_eq_True);
 
   fun mk_meta_eq_simp r = case concl_of r of
           Const("==",_)$_$_ => r
-      |   _$(Const("op =",_)$lhs$rhs) =>
-             (case fst(Logic.rewrite_rule_ok (#sign(rep_thm r)) (prems_of r) lhs rhs) of
-                None => mk_meta_eq r
-              | Some _ => r RS P_imp_P_eq_True)
+      |   _$(Const("op =",_)$lhs$rhs) => mk_meta_eq r
       |   _$(Const("Not",_)$_) => r RS not_P_imp_P_eq_False
       |   _ => r RS P_imp_P_eq_True;
   (* last 2 lines requires all formulae to be of the from Trueprop(.) *)
@@ -386,7 +384,8 @@ fun   safe_solver prems = FIRST'[match_tac (reflexive_thm::TrueI::prems),
 val HOL_basic_ss = empty_ss setsubgoaler asm_simp_tac
 			    setSSolver   safe_solver
 			    setSolver  unsafe_solver
-			    setmksimps (mksimps mksimps_pairs);
+			    setmksimps (mksimps mksimps_pairs)
+			    setmkeqTrue mk_meta_eq_True;
 
 val HOL_ss = 
     HOL_basic_ss addsimps 
