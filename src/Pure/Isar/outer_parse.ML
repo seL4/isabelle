@@ -96,8 +96,8 @@ fun cut kind scan =
       | err (toks, Some msg) = kind ^ get_pos toks ^ ": " ^ msg;
   in Scan.!! err scan end;
 
-val !!! = cut "Outer syntax error";
-val !!!! = cut "Corrupted outer syntax in presentation";
+fun !!! scan = cut "Outer syntax error" scan;
+fun !!!! scan = cut "Corrupted outer syntax in presentation" scan;
 
 
 
