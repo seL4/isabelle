@@ -183,6 +183,14 @@ Goal "surj f ==> inj (inv f)";
 by (asm_simp_tac (simpset() addsimps [inj_on_inv, surj_range]) 1);
 qed "surj_imp_inj_inv";
 
+Goal "f``(A Int B) <= f``A Int f``B";
+by (Blast_tac 1);
+qed "image_Int_subset";
+
+Goal "f``A - f``B <= f``(A - B)";
+by (Blast_tac 1);
+qed "image_diff_subset";
+
 Goalw [inj_on_def]
    "[| inj_on f C;  A<=C;  B<=C |] ==> f``(A Int B) = f``A Int f``B";
 by (Blast_tac 1);
