@@ -188,7 +188,7 @@ qed "mono_map_is_fun";
 
 goalw Order.thy [mono_map_def, inj_def] 
     "!!f. [| linear(A,r);  wf[B](s);  f: mono_map(A,r,B,s) |] ==> f: inj(A,B)";
-by (step_tac (!claset) 1);
+by (Clarify_tac 1);
 by (linear_case_tac 1);
 by (REPEAT 
     (EVERY [eresolve_tac [wf_on_not_refl RS notE] 1,
@@ -542,7 +542,7 @@ goal Order.thy
 by (forward_tac [well_ord_is_wf] 1);
 by (rewrite_goals_tac [wf_on_def, wf_def]);
 by (dres_inst_tac [("x", "A-domain(ord_iso_map(A,r,B,s))")] spec 1);
-by (step_tac (!claset) 1);
+by Safe_tac;
 (*The first case: the domain equals A*)
 by (rtac (domain_ord_iso_map RS equalityI) 1);
 by (etac (Diff_eq_0_iff RS iffD1) 1);

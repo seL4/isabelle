@@ -28,10 +28,7 @@ by (rtac Pow_mono 1);
 by (etac (bspec RS spec RS mp) 1);
 by (assume_tac 1);
 by (rtac subset_refl 1);
-qed "Vfrom_mono_lemma";
-
-(*  [| A<=B; i<=x |] ==> Vfrom(A,i) <= Vfrom(B,x)  *)
-bind_thm ("Vfrom_mono", (Vfrom_mono_lemma RS spec RS mp));
+qed_spec_mp "Vfrom_mono";
 
 
 (** A fundamental equality: Vfrom does not require ordinals! **)
@@ -420,21 +417,18 @@ by (stac rank 1);
 by (rtac UN_succ_least_lt 1);
 by (Blast_tac 2);
 by (REPEAT (ares_tac [ltI] 1));
-qed "Vset_rank_imp1";
-
-(*  [| Ord(i); x : Vset(i) |] ==> rank(x) < i  *)
-bind_thm ("VsetD", (Vset_rank_imp1 RS spec RS mp));
+qed_spec_mp "VsetD";
 
 val [ordi] = goal Univ.thy "Ord(i) ==> ALL b. rank(b) : i --> b : Vset(i)";
 by (rtac (ordi RS trans_induct) 1);
 by (rtac allI 1);
 by (stac Vset 1);
 by (blast_tac (!claset addSIs [rank_lt RS ltD]) 1);
-qed "Vset_rank_imp2";
+val lemma = result();
 
 goal Univ.thy "!!x i. rank(x)<i ==> x : Vset(i)";
 by (etac ltE 1);
-by (etac (Vset_rank_imp2 RS spec RS mp) 1);
+by (etac (lemma RS spec RS mp) 1);
 by (assume_tac 1);
 qed "VsetI";
 

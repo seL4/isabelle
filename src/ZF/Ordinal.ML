@@ -403,10 +403,7 @@ by (trans_ind_tac "i" prems 1);
 by (rtac (impI RS allI) 1);
 by (trans_ind_tac "j" [] 1);
 by (DEPTH_SOLVE (Step_tac 1 ORELSE Ord_trans_tac 1));
-qed "Ord_linear_lemma";
-
-(*"[| Ord(i); Ord(x) |] ==> i:x | i=x | x:i"*)
-bind_thm ("Ord_linear", Ord_linear_lemma RS spec RS mp);
+qed_spec_mp "Ord_linear";
 
 (*The trichotomy law for ordinals!*)
 val ordi::ordj::prems = goalw Ordinal.thy [lt_def]

@@ -508,7 +508,7 @@ qed "lepoll_imp_lesspoll_succ";
 
 goalw Cardinal.thy [lesspoll_def, lepoll_def, eqpoll_def, bij_def]
       "!!m. [| A lesspoll succ(m); m:nat |] ==> A lepoll m";
-by (step_tac (!claset) 1);
+by (Clarify_tac 1);
 by (blast_tac (!claset addSIs [inj_not_surj_succ]) 1);
 qed "lesspoll_succ_imp_lepoll";
 

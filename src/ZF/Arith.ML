@@ -434,7 +434,7 @@ qed "mod2_cases";
 goal Arith.thy "!!m. m:nat ==> succ(succ(m)) mod 2 = m mod 2";
 by (subgoal_tac "m mod 2: 2" 1);
 by (asm_simp_tac (!simpset addsimps [mod_less_divisor RS ltD]) 2);
-by (asm_simp_tac (!simpset addsimps [mod_succ] setloop step_tac (!claset)) 1);
+by (asm_simp_tac (!simpset addsimps [mod_succ] setloop Step_tac) 1);
 qed "mod2_succ_succ";
 
 goal Arith.thy "!!m. m:nat ==> (m#+m) mod 2 = 0";
@@ -588,7 +588,7 @@ goal Arith.thy  (* add_le_elim1 *)
 by (etac rev_mp 1);
 by (eres_inst_tac [("n","n")] nat_induct 1);
 by (Asm_simp_tac 1);
-by (Step_tac 1);
+by Safe_tac;
 by (asm_full_simp_tac (!simpset addsimps [not_le_iff_lt,nat_into_Ord]) 1);
 by (etac lt_asym 1);
 by (assume_tac 1);

@@ -403,9 +403,7 @@ by (asm_simp_tac (!simpset addsimps [rvimage_iff, rmult_iff, Memrel_iff,
 by (safe_tac (!claset addSEs [mem_irrefl] 
                     addSIs [Un_upper1_le, Un_upper2_le]));
 by (ALLGOALS (asm_simp_tac (!simpset addsimps [lt_def, succI2, Ord_succ])));
-val csquareD_lemma = result();
-
-bind_thm ("csquareD", csquareD_lemma RS mp);
+qed_spec_mp "csquareD";
 
 goalw CardinalArith.thy [pred_def]
  "!!K. z<K ==> pred(K*K, <z,z>, csquare_rel(K)) <= succ(z)*succ(z)";
@@ -713,7 +711,7 @@ goal CardinalArith.thy
     "!!n. n: nat ==> ALL A. A eqpoll n --> A : Fin(A)";
 by (etac nat_induct 1);
 by (simp_tac (!simpset addsimps (eqpoll_0_iff::Fin.intrs)) 1);
-by (step_tac (!claset) 1);
+by (Clarify_tac 1);
 by (subgoal_tac "EX u. u:A" 1);
 by (etac exE 1);
 by (resolve_tac [Diff_sing_eqpoll RS revcut_rl] 1);

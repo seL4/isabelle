@@ -712,9 +712,9 @@ goalw OrderType.thy [omult_def]
 \        EX j' i'. k = j**i' ++ j' & j'<j & i'<i";
 by (asm_full_simp_tac (!simpset addsimps [ordertype_pred_unfold, 
                                        well_ord_rmult, well_ord_Memrel]) 1);
-by (step_tac (!claset addSEs [ltE]) 1);
+by (safe_tac (!claset addSEs [ltE]));
 by (asm_simp_tac (!simpset addsimps [ordertype_pred_Pair_lemma, ltI,
-                                  symmetric omult_def]) 1);
+				     symmetric omult_def]) 1);
 by (blast_tac (!claset addIs [ltI]) 1);
 qed "lt_omult";
 
