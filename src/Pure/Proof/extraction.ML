@@ -80,8 +80,8 @@ fun add_rule (r as (_, (lhs, _)), {next, rs, net} : rules) =
   {next = next - 1, rs = r :: rs, net = Net.insert_term
      ((Pattern.eta_contract lhs, (next, r)), net, K false)};
 
-fun (merge_rules : rules -> rules -> rules)
-  {next, rs = rs1, net} {next = next2, rs = rs2, ...} =
+fun merge_rules
+  ({next, rs = rs1, net} : rules) ({next = next2, rs = rs2, ...} : rules) =
   foldr add_rule (rs2 \\ rs1, {next = next, rs = rs1, net = net});
 
 fun condrew sign rules procs =
@@ -618,7 +618,6 @@ fun extract thms thy =
               (fst (Proofterm.freeze_thaw_prf (ProofRewriteRules.rewrite_terms
                 (Pattern.rewrite_term (Sign.tsig_of (sign_of thy)) []
                   [rlz_proc']) prf)))))), []) thy)
-      | add_thm (_, thy) = thy
 
   in thy |>
     Theory.absolute_path |>
