@@ -1,9 +1,9 @@
-(*  Title:      FOL/simpdata
+(*  Title:      FOL/simpdata.ML
     ID:         $Id$
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1994  University of Cambridge
 
-Simplification data for FOL
+Simplification data for FOL.
 *)
 
 
@@ -356,3 +356,19 @@ structure Clasimp = ClasimpFun
 open Clasimp;
 
 val FOL_css = (FOL_cs, FOL_ss);
+
+
+(* rulify setup *)
+
+local
+  val ss = FOL_basic_ss addsimps (Drule.norm_hhf_eq :: map Thm.symmetric (thms "atomize"));
+in
+
+structure Rulify = RulifyFun
+ (val make_meta = Simplifier.simplify ss
+  val full_make_meta = Simplifier.full_simplify ss);
+
+structure BasicRulify: BASIC_RULIFY = Rulify;
+open BasicRulify;
+
+end;
