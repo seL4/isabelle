@@ -256,7 +256,7 @@ qed
 subsection {* Complete lattices are lattices *}
 
 text {*
-  Complete lattices (with general bounds) available are indeed plain
+  Complete lattices (with general bounds available) are indeed plain
   lattices as well.  This holds due to the connection of general
   versus binary bounds that has been formally established in
   \S\ref{sec:gen-bin-bounds}.
