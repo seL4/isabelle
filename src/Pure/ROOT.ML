@@ -33,6 +33,7 @@ use "pattern.ML";
 use "unify.ML";
 use "net.ML";
 use "logic.ML";
+use "theory.ML";
 use "thm.ML";
 use "drule.ML";
 use "tctical.ML";
@@ -40,8 +41,8 @@ use "tactic.ML";
 use "goals.ML";
 use "axclass.ML";
 
-structure Pure = struct val thy = pure_thy end;
-structure CPure = struct val thy = cpure_thy end;
+structure Pure  = struct val thy = Theory.pure_thy end;
+structure CPure = struct val thy = Theory.cpure_thy end;
 
 (*Theory parser and loader*)
 cd "Thy";

@@ -6,8 +6,8 @@ Set up automatic toplevel pretty printing.
 
 fun init_pps () =
   use_string
-   ["install_pp (make_pp [\"Thm\", \"thm\"] pprint_thm);",
-    "install_pp (make_pp [\"Thm\", \"theory\"] pprint_theory);",
+   ["install_pp (make_pp [\"Theory\", \"theory\"] pprint_theory);",
+    "install_pp (make_pp [\"Thm\", \"thm\"] pprint_thm);",
     "install_pp (make_pp [\"Thm\", \"cterm\"] pprint_cterm);",
     "install_pp (make_pp [\"Thm\", \"ctyp\"] pprint_ctyp);",
     "install_pp (make_pp [\"Sign\", \"sg\"] Sign.pprint_sg);",
