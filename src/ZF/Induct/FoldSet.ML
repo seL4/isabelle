@@ -89,8 +89,8 @@ by (forw_inst_tac [("a", "Cb")]
 by (asm_simp_tac (simpset() addsimps 
     [Fin_into_Finite RS Finite_imp_cardinal_cons])  1);
 by (rtac impI 1);
-(** LEVEL 10 **)
-by (case_tac "x=xb" 1 THEN Auto_tac);
+(** LEVEL 14 **)
+by (case_tac "x=xb" 1 THEN Auto_tac); (*SLOW*)
 by (asm_full_simp_tac (simpset() addsimps [cons_lemma1]) 1);
 by (REPEAT(thin_tac "ALL x:A. ?u(x)" 1) THEN Blast_tac 1);
 (*case x ~= xb*)
@@ -104,9 +104,9 @@ by (subgoal_tac "|Ca| le |Cb|" 1);
 by (rtac succ_le_imp_le 2);
 by (hyp_subst_tac 2);
 by (subgoal_tac "Finite(cons(xb, Cb)) & x:cons(xb, Cb) " 2);
-by (asm_simp_tac (simpset() addsimps [Finite_imp_succ_cardinal_Diff, 
+by (asm_full_simp_tac (simpset() addsimps [Finite_imp_succ_cardinal_Diff, 
                        Fin_into_Finite RS Finite_imp_cardinal_cons]) 2);
-by (asm_simp_tac (simpset() addsimps [thm "Fin.consI" RS Fin_into_Finite]) 2);
+by (asm_simp_tac (simpset() addsimps [Fin_into_Finite]) 2);
 by (res_inst_tac [("C1", "Ca-{xb}"), ("e1","e"), ("A1", "A"), ("f1", "f")] 
     (Fin_imp_fold_set RS exE) 1);
 by (blast_tac (claset() addIs [Diff_subset RS Fin_subset]) 1);
@@ -337,12 +337,10 @@ qed "setsum_Un_disjoint";
 
 Goal "Finite(I) ==> (ALL i:I. Finite(C(i))) --> Finite(RepFun(I, C))";
 by (etac Finite_induct 1);
-by (auto_tac (claset(), simpset() addsimps [Finite_0]));
-by (stac (cons_eq RS sym) 1);
-by (auto_tac (claset() addIs [Finite_Un, Finite_cons, Finite_0], simpset()));
+by Auto_tac;
 qed_spec_mp "Finite_RepFun";
 
-Goal "!!I. Finite(I) \
+Goal "Finite(I) \
 \     ==> (ALL i:I. Finite(C(i))) --> \
 \         (ALL i:I. ALL j:I. i~=j --> C(i) Int C(j) = 0) --> \
 \         setsum(f, UN i:I. C(i)) = setsum (%i. setsum(f, C(i)), I)"; 
