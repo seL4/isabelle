@@ -109,6 +109,14 @@ especially important for locales);
 * Pure: "sorry" no longer requires quick_and_dirty in interactive
 mode;
 
+* Pure/obtain: the formal conclusion "thesis", being marked as
+``internal'', may no longer be reference directly in the text;
+potential INCOMPATIBILITY, may need to use "?thesis" in rare
+situations;
+
+* Pure: generic 'sym' attribute which declares a rule both as pure
+'elim?' and for the 'symmetric' operation;
+
 * Pure/Provers/classical: simplified integration with pure rule
 attributes and methods; the classical "intro?/elim?/dest?"
 declarations coincide with the pure ones; the "rule" method no longer
@@ -116,6 +124,9 @@ includes classically swapped intros; "intro" and "elim" methods no
 longer pick rules from the context; also got rid of ML declarations
 AddXIs/AddXEs/AddXDs; all of this has some potential for
 INCOMPATIBILITY;
+
+* Provers/classical: attribute 'swapped' produces classical inversions
+of introduction rules;
 
 * Provers/simplifier: 'simplified' attribute may refer to explicit
 rules instead of full simplifier context; 'iff' attribute handles
@@ -128,6 +139,9 @@ conditional rules;
 
 * HOL: 'inductive' no longer features separate (collective) attributes
 for 'intros' (was found too confusing);
+
+* HOL: properly declared induction rules less_induct and
+wf_induct_rule;
 
 * HOLCF: domain package adapted to new-style theories, e.g. see
 HOLCF/ex/Dnat.thy;
