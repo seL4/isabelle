@@ -132,6 +132,16 @@ lemma quotient_eq_iff:
   done
 
 
+lemma quotient_empty [simp]: "{}//r = {}"
+by(simp add: quotient_def)
+
+lemma quotient_is_empty [iff]: "(A//r = {}) = (A = {})"
+by(simp add: quotient_def)
+
+lemma quotient_is_empty2 [iff]: "({} = A//r) = (A = {})"
+by(simp add: quotient_def)
+
+
 subsection {* Defining unary operations upon equivalence classes *}
 
 text{*A congruence-preserving function*}
