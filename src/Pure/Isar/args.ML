@@ -181,7 +181,6 @@ and args1 blk x =
   ((Scan.repeat1
     (Scan.repeat1 (atom_arg blk) ||
       paren_args "(" ")" args ||
-      paren_args "{" "}" args ||
       paren_args "[" "]" args)) >> flat) x;
 
 

@@ -76,8 +76,8 @@ fun output_tok (Basic tok) =
       let val s = T.val_of tok in
         if invisible_token tok then ""
         else if T.is_kind T.Command tok then
-          if s = "{{" then "{\\isabeginblock}"
-          else if s = "}}" then "{\\isaendblock}"
+          if s = "{" then "{\\isabeginblock}"
+          else if s = "}" then "{\\isaendblock}"
           else "\\isacommand{" ^ output_syms s ^ "}"
         else if T.is_kind T.Keyword tok andalso Syntax.is_identifier s then
           "\\isakeyword{" ^ output_syms s ^ "}"

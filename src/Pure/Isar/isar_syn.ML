@@ -348,11 +348,11 @@ val caseP =
 (* proof structure *)
 
 val beginP =
-  OuterSyntax.command "{{" "begin explicit proof block" K.prf_block
+  OuterSyntax.command "{" "begin explicit proof block" K.prf_block
     (Scan.succeed (Toplevel.print o Toplevel.proof IsarThy.begin_block));
 
 val endP =
-  OuterSyntax.command "}}" "end explicit proof block" K.prf_block
+  OuterSyntax.command "}" "end explicit proof block" K.prf_block
     (Scan.succeed (Toplevel.print o Toplevel.proof IsarThy.end_block));
 
 val nextP =
@@ -630,7 +630,7 @@ val welcomeP =
 val keywords =
  ["!", "!!", "%", "%%", "(", ")", "+", ",", "--", ":", "::", ";", "<",
   "<=", "=", "==", "=>", "?", "[", "]", "and", "binder", "concl",
-  "files", "in", "infixl", "infixr", "is", "output", "{", "|", "}"];
+  "files", "in", "infixl", "infixr", "is", "output", "|"];
 
 val parsers = [
   (*theory structure*)

@@ -139,15 +139,17 @@ every hope, who enter here.
 
 \subsection{Type classes, sorts and arities}
 
-The syntax of sorts and arities is given directly at the outer level.  Note
-that this is in contrast to types and terms (see \ref{sec:types-terms}).
+Classes are specified by plain names.  Sorts have a very simple inner syntax,
+which is either a single class name $c$ or a list $\{c@1, \dots, c@n\}$
+referring to the intersection of these classes.  The syntax of type arities is
+given directly at the outer level.
 
 \indexouternonterm{sort}\indexouternonterm{arity}\indexouternonterm{simplearity}
 \indexouternonterm{classdecl}
 \begin{rail}
   classdecl: name ('<' (nameref + ','))?
   ;
-  sort: nameref | lbrace (nameref * ',') rbrace
+  sort: nameref
   ;
   arity: ('(' (sort + ',') ')')? sort
   ;
@@ -252,7 +254,7 @@ attribute argument specifications may be any sequence of atomic entities
 \begin{rail}
   atom: nameref | typefree | typevar | var | nat | keyword
   ;
-  arg: atom | '(' args ')' | '[' args ']' | lbrace args rbrace
+  arg: atom | '(' args ')' | '[' args ']'
   ;
   args: arg *
   ;

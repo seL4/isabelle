@@ -911,7 +911,7 @@ the latter are calculational proofs (see \S\ref{sec:calculation}).
 
 \subsection{Block structure}
 
-\indexisarcmd{next}\indexisarcmd{\{\{}\indexisarcmd{\}\}}
+\indexisarcmd{next}\indexisarcmd{\{}\indexisarcmd{\}}
 \begin{matharray}{rcl}
   \NEXT & : & \isartrans{proof(state)}{proof(state)} \\
   \BG & : & \isartrans{proof(state)}{proof(state)} \\
@@ -933,9 +933,8 @@ as well.  These typically achieve a stronger forward style of reasoning.
 \begin{descr}
 \item [$\NEXT$] switches to a fresh block within a sub-proof, resetting the
   local context to the initial one.
-\item [$\isarkeyword{\{\{}$ and $\isarkeyword{\}\}}$] explicitly open and
-  close blocks.  Any current facts pass through ``$\isarkeyword{\{\{}$''
-  unchanged, while ``$\isarkeyword{\}\}}$'' causes any result to be
+\item [$\BG$ and $\EN$] explicitly open and close blocks.  Any current facts
+  pass through ``$\BG$'' unchanged, while ``$\EN$'' causes any result to be
   \emph{exported} into the enclosing context.  Thus fixed variables are
   generalized, assumptions discharged, and local definitions unfolded (cf.\ 
   \S\ref{sec:proof-context}).  There is no difference of $\ASSUMENAME$ and
