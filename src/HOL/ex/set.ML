@@ -86,8 +86,8 @@ qed "surj_if_then_else";
 
 Goalw [inj_on_def]
      "[| inj_on f X;  inj_on g (-X);  -(f``X) = g``(-X); \
-\        bij = (%z. if z:X then f(z) else g(z)) |]       \
-\     ==> inj(bij) & surj(bij)";
+\        h = (%z. if z:X then f(z) else g(z)) |]       \
+\     ==> inj(h) & surj(h)";
 by (asm_simp_tac (simpset() addsimps [surj_if_then_else]) 1);
    (*PROOF FAILED if inj_onD*)
 by (blast_tac (claset() addDs [disj_lemma, sym RSN (2,disj_lemma)]) 1);
