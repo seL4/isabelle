@@ -4,13 +4,13 @@
     Copyright   1992  University of Cambridge
 
 Basic library: functions, options, pairs, booleans, lists, integers,
-strings, lists as sets, association lists, generic tables, balanced trees,
-orders, input / output, timing, filenames, misc functions.
+strings, lists as sets, association lists, generic tables, balanced
+trees, orders, diagnostics, timing, misc functions.
 *)
 
-infix |> ~~ \ \\ orelf ins ins_string ins_int orf andf prefix upto downto
-      mem mem_int mem_string union union_int union_string  
-      inter inter_int inter_string subset subset_int subset_string subdir_of;
+infix |> ~~ \ \\ ins ins_string ins_int orf andf prefix upto downto
+  mem mem_int mem_string union union_int union_string inter inter_int
+  inter_string subset subset_int subset_string;
 
 
 structure Library =
@@ -27,15 +27,9 @@ fun K x y = x;
 (*reverse apply*)
 fun (x |> f) = f x;
 
-(*combine two functions forming the union of their domains*)
-fun (f orelf g) = fn x => f x handle Match => g x;
-
 (*application of (infix) operator to its left or right argument*)
 fun apl (x, f) y = f (x, y);
 fun apr (f, y) x = f (x, y);
-
-(*functional for pairs*)
-fun pairself f (x, y) = (f x, f y);
 
 (*function exponentiation: f(...(f x)...) with n applications of f*)
 fun funpow n f x =
@@ -61,6 +55,7 @@ exception OPTION;
 fun the (Some x) = x
   | the None = raise OPTION;
 
+(*strict!*)
 fun if_none None y = y
   | if_none (Some x) _ = x;
 
@@ -97,9 +92,10 @@ fun eq_snd ((_, y1), (_, y2)) = y1 = y2;
 
 fun swap (x, y) = (y, x);
 
-(*apply the function to a component of a pair*)
+(*apply function to components*)
 fun apfst f (x, y) = (f x, y);
 fun apsnd f (x, y) = (x, f y);
+fun pairself f (x, y) = (f x, f y);
 
 
 
@@ -114,28 +110,10 @@ fun not_equal x y = x <> y;
 (* operators for combining predicates *)
 
 fun (p orf q) = fn x => p x orelse q x;
-
 fun (p andf q) = fn x => p x andalso q x;
-
-fun notf p x = not (p x);
 
 
 (* predicates on lists *)
-
-fun orl [] = false
-  | orl (x :: xs) = x orelse orl xs;
-
-fun andl [] = true
-  | andl (x :: xs) = x andalso andl xs;
-
-(*Several object-logics declare theories named List or Option, hiding the
-  eponymous basis library structures.*)
-structure Basis_Library =
-    struct
-    structure List = List
-    and       Option = Option
-    end;
-
 
 (*exists pred [x1, ..., xn] ===> pred x1 orelse ... orelse pred xn*)
 fun exists (pred: 'a -> bool) : 'a list -> bool =
@@ -156,6 +134,7 @@ fun set flag = (flag := true; true);
 fun reset flag = (flag := false; false);
 fun toggle flag = (flag := not (! flag); ! flag);
 
+(*temporarily set flag, handling errors*)
 fun setmp flag value f x =
   let
     val orig_value = ! flag;
@@ -243,17 +222,21 @@ fun split_last [] = raise LIST "split_last"
   | split_last [x] = ([], x)
   | split_last (x :: xs) = apfst (cons x) (split_last xs);
 
-
 (*find the position of an element in a list*)
-fun find_index (pred: 'a->bool) : 'a list -> int =
-  let fun find _ []      = ~1
-        | find n (x::xs) = if pred x then n else find (n+1) xs
+fun find_index pred =
+  let fun find _ [] = ~1
+        | find n (x :: xs) = if pred x then n else find (n + 1) xs;
   in find 0 end;
-fun find_index_eq x = find_index (equal x);
+
+val find_index_eq = find_index o equal;
+
+(*find first element satisfying predicate*)
+fun find_first _ [] = None
+  | find_first pred (x :: xs) =
+      if pred x then Some x else find_first pred xs;
 
 (*flatten a list of lists to a list*)
 fun flat (ls: 'c list list) : 'c list = foldr (op @) (ls, []);
-
 
 (*like Lisp's MAPC -- seq proc [x1, ..., xn] evaluates
   (proc x1; ...; proc xn) for side effects*)
@@ -261,7 +244,6 @@ fun seq (proc: 'a -> unit) : 'a list -> unit =
   let fun seqf [] = ()
         | seqf (x :: xs) = (proc x; seqf xs)
   in seqf end;
-
 
 (*separate s [x1, x2, ..., xn]  ===>  [x1, s, x2, s, ..., s, xn]*)
 fun separate s (x :: (xs as _ :: _)) = x :: s :: separate s xs
@@ -287,18 +269,12 @@ fun filter (pred: 'a->bool) : 'a list -> 'a list =
 
 fun filter_out f = filter (not o f);
 
-
 fun mapfilter (f: 'a -> 'b option) ([]: 'a list) = [] : 'b list
   | mapfilter f (x :: xs) =
       (case f x of
         None => mapfilter f xs
       | Some y => y :: mapfilter f xs);
 
-
-fun find_first pred = let
-  fun f [] = None
-  |   f (x :: xs) = if pred x then Some x else f  xs
-  in f end;
 
 (* lists of pairs *)
 
@@ -319,7 +295,6 @@ fun forall2 _ ([], []) = true
 fun [] ~~ [] = []
   | (x :: xs) ~~ (y :: ys) = (x, y) :: (xs ~~ ys)
   | _ ~~ _ = raise LIST "~~";
-
 
 (*inverse of ~~; the old 'split':
   [(x1, y1), ..., (xn, yn)]  ===>  ([x1, ..., xn], [y1, ..., yn])*)
@@ -396,6 +371,7 @@ fun string_of_indexname (a,0) = a
   | string_of_indexname (a,i) = a ^ "_" ^ Int.toString i;
 
 
+
 (** strings **)
 
 fun is_letter ch =
@@ -420,7 +396,6 @@ val is_letdig = is_quasi_letter orf is_digit;
 (*printable chars*)
 fun is_printable c = ord c > ord " " andalso ord c <= ord "~";
 
-
 (*lower all chars of string*)
 val to_lower =
   let
@@ -430,14 +405,13 @@ val to_lower =
       else ch;
   in implode o (map lower) o explode end;
 
-
 (*enclose in brackets*)
 fun enclose lpar rpar str = lpar ^ str ^ rpar;
 
 (*simple quoting (does not escape special chars)*)
 val quote = enclose "\"" "\"";
 
-(*space_implode "..." (explode "hello"); gives "h...e...l...l...o"*)
+(*space_implode "..." (explode "hello") = "h...e...l...l...o"*)
 fun space_implode a bs = implode (separate a bs);
 
 val commas = space_implode ", ";
@@ -446,17 +420,7 @@ val commas_quote = commas o map quote;
 (*concatenate messages, one per line, into a string*)
 val cat_lines = space_implode "\n";
 
-(*BAD_space_explode "." "h.e..l.lo"; gives ["h", "e", "l", "lo"]*)
-fun BAD_space_explode sep s =
-  let fun divide [] "" = []
-        | divide [] part = [part]
-        | divide (c::s) part =
-            if c = sep then
-              (if part = "" then divide s "" else part :: divide s "")
-            else divide s (part ^ c)
-  in divide (explode s) "" end;
-
-(*space_explode "." "h.e..l.lo"; gives ["h", "e", "", "l", "lo"]*)
+(*space_explode "." "h.e..l.lo" = ["h", "e", "", "l", "lo"]*)
 fun space_explode _ "" = []
   | space_explode sep str =
       let
@@ -798,7 +762,7 @@ fun warning s = !warning_fn s;
 
 (*print error message and abort to top level*)
 exception ERROR;
-fun error_msg s = !error_fn s;			(*promise to raise ERROR later!*)
+fun error_msg s = !error_fn s;	  (*promise to raise ERROR later!*)
 fun error s = (error_msg s; raise ERROR);
 fun sys_error msg = (error_msg " !! SYSTEM ERROR !!\n"; error msg);
 
@@ -806,14 +770,13 @@ fun assert p msg = if p then () else error msg;
 fun deny p msg = if p then error msg else ();
 
 (*Assert pred for every member of l, generating a message if pred fails*)
-fun assert_all pred l msg_fn = 
+fun assert_all pred l msg_fn =
   let fun asl [] = ()
-        | asl (x::xs) = if pred x then asl xs
-                        else error (msg_fn x)
-  in  asl l  end;
+        | asl (x::xs) = if pred x then asl xs else error (msg_fn x)
+  in asl l end;
 
 
-(* handle errors (capturing messages) *)
+(* handle errors capturing messages *)
 
 datatype 'a error =
   Error of string |
@@ -825,63 +788,11 @@ fun handle_error f x =
     fun capture s = buffer := ! buffer ^ s ^ "\n";
     val result = Some (setmp error_fn capture f x) handle ERROR => None;
   in
-    case result of
+    (case result of
       None => Error (! buffer)
-    | Some y => OK y
+    | Some y => OK y)
   end;
 
-
-(* read / write files *)
-
-fun read_file name =
-  let
-    val instream  = TextIO.openIn name;
-    val intext = TextIO.inputAll instream;
-  in
-    TextIO.closeIn instream;
-    intext
-  end;
-
-fun write_file name txt =
-  let val outstream = TextIO.openOut name in
-    TextIO.output (outstream, txt);
-    TextIO.closeOut outstream
-  end;
-
-fun append_file name txt =
-  let val outstream = TextIO.openAppend name in
-    TextIO.output (outstream, txt);
-    TextIO.closeOut outstream
-  end;
-
-
-(*for the "test" target in IsaMakefiles -- signifies successful termination*)
-fun maketest msg =
-  (writeln msg; write_file "test" "Test examples ran successfully\n");
-
-
-(*print a list surrounded by the brackets lpar and rpar, with comma separator
-  print nothing for empty list*)
-fun print_list (lpar, rpar, pre: 'a -> unit) (l : 'a list) =
-  let fun prec x = (prs ","; pre x)
-  in
-    (case l of
-      [] => ()
-    | x::l => (prs lpar; pre x; seq prec l; prs rpar))
-  end;
-
-(*print a list of items separated by newlines*)
-fun print_list_ln (pre: 'a -> unit) : 'a list -> unit =
-  seq (fn x => (pre x; writeln ""));
-
-
-val print_int = prs o string_of_int;
-
-
-(* output to LaTeX / xdvi *)
-fun latex s =
-  execute ("( cd /tmp ; echo \"" ^ s ^
-    "\" | isa2latex -s > $$.tex ; latex $$.tex ; xdvi $$.dvi ; rm $$.* ) > /dev/null &");
 
 
 (** timing **)
@@ -892,69 +803,6 @@ fun timeit x = cond_timeit true x;
 (*timed application function*)
 fun timeap f x = timeit (fn () => f x);
 
-(*timed "use" function, printing filenames*)
-fun time_use fname = timeit (fn () =>
-  (writeln ("\n**** Starting " ^ fname ^ " ****"); use fname;
-   writeln ("\n**** Finished " ^ fname ^ " ****")));
-
-(*use the file, but exit with error code if errors found.*)
-fun exit_use fname = use fname handle _ => exit 1;
-
-
-(** filenames and paths **)
-
-(*Convert UNIX filename of the form "path/file" to "path/" and "file";
-  if filename contains no slash, then it returns "" and "file"*)
-val split_filename =
-  (pairself implode) o take_suffix (not_equal "/") o explode;
-
-val base_name = #2 o split_filename;
-
-(*Merge splitted filename (path and file);
-  if path does not end with one a slash is appended*)
-fun tack_on "" name = name
-  | tack_on path name =
-      if last_elem (explode path) = "/" then path ^ name
-      else path ^ "/" ^ name;
-
-(*Remove the extension of a filename, i.e. the part after the last '.'*)
-val remove_ext = implode o #1 o take_suffix (not_equal ".") o explode;
-
-(*Make relative path to reach an absolute location from a different one*)
-fun relative_path cur_path dest_path =
-  let (*Remove common beginning of both paths and make relative path*)
-      fun mk_relative [] [] = []
-        | mk_relative [] ds = ds
-        | mk_relative cs [] = map (fn _ => "..") cs
-        | mk_relative (c::cs) (d::ds) =
-            if c = d then mk_relative cs ds
-            else ".." :: map (fn _ => "..") cs @ (d::ds);
-  in if cur_path = "" orelse hd (explode cur_path) <> "/" orelse
-        dest_path = "" orelse hd (explode dest_path) <> "/" then
-       error "Relative or empty path passed to relative_path"
-     else ();
-     space_implode "/" (mk_relative (BAD_space_explode "/" cur_path)
-                                    (BAD_space_explode "/" dest_path))
-  end;
-
-(*Determine if absolute path1 is a subdirectory of absolute path2*)
-fun path1 subdir_of path2 =
-  if hd (explode path1) <> "/" orelse hd (explode path2) <> "/" then
-    error "Relative or empty path passed to subdir_of"
-  else (BAD_space_explode "/" path2) prefix (BAD_space_explode "/" path1);
-
-fun absolute_path cwd file =
-  let fun rm_points [] result = rev result
-        | rm_points (".."::ds) result = rm_points ds (tl result)
-        | rm_points ("."::ds) result = rm_points ds result
-        | rm_points (d::ds) result = rm_points ds (d::result);
-  in if file = "" then ""
-     else if hd (explode file) = "/" then file
-     else "/" ^ space_implode "/"
-                  (rm_points (BAD_space_explode "/" (tack_on cwd file)) [])
-  end;
-
-fun file_exists file = (file_info file <> "");
 
 
 (** misc functions **)
@@ -1112,9 +960,12 @@ fun scanwords is_let cs =
             in implode lets :: scanwords is_let rest end;
   in scan1 (#2 (take_prefix (not o is_let) cs)) end;
 
-end;
 
-(*Variable-branching trees: for proof terms*)
+
+(* Variable-branching trees: for proof terms etc. *)
 datatype 'a mtree = Join of 'a * 'a mtree list;
+
+
+end;
 
 open Library;
