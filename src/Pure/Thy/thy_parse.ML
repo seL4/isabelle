@@ -57,10 +57,9 @@ sig
   val pure_keywords: string list
   val pure_sections:
     (string * (token list -> (string * string) * token list)) list
-  val pure_syntax: syntax
 end;
 
-functor ThyParseFun(structure Symtab: SYMTAB and ThyScan: THY_SCAN)(*: THY_PARSE *) = (* FIXME *)
+functor ThyParseFun(structure Symtab: SYMTAB and ThyScan: THY_SCAN): THY_PARSE =
 struct
 
 open ThyScan;
@@ -230,8 +229,8 @@ fun mk_type_decl (((xs, t), None), syn) =
       [(pars (commas [t, mk_list xs, rhs, syn]), true)];
 
 fun mk_type_decls tys =
-  "also add_types\n" ^ mk_big_list (keyfilter tys false) ^ "\n\n\
-  \also add_tyabbrs\n" ^ mk_big_list (keyfilter tys true);
+  "|> add_types\n" ^ mk_big_list (keyfilter tys false) ^ "\n\n\
+  \|> add_tyabbrs\n" ^ mk_big_list (keyfilter tys true);
 
 
 val old_type_decl = names -- nat -- opt_infix >> mk_old_type_decl;
@@ -307,6 +306,14 @@ fun mk_axclass_decl ((c, cs), axms) =
     (strip_quotes c ^ "I") :: map fst axms);
 
 val axclass_decl = subclass -- repeat (ident -- !! string) >> mk_axclass_decl;
+
+
+(* sigclass *)
+
+fun mk_sigclass_decl ((c, cs), consts) = 
+  (mk_pair (c, cs) ^ "\n" ^ consts, [strip_quotes c ^ "I"]);
+
+val sigclass_decl = subclass -- optional const_decls "[]" >> mk_sigclass_decl;
 
 
 (* instance *)
@@ -385,12 +392,12 @@ fun mk_structure ((thy_name, old_thys), Some (extxt, postxt, mltxt)) =
       ^ mltxt ^ "\n\
       \\n\
       \val thy = " ^ old_thys ^ "\n\n\
-      \also add_trfuns\n"
+      \|> add_trfuns\n"
       ^ trfun_args ^ "\n\
       \\n"
       ^ extxt ^ "\n\
       \\n\
-      \also add_thyname " ^ quote thy_name ^ ";\n\
+      \|> add_thyname " ^ quote thy_name ^ ";\n\
       \\n\
       \\n"
       ^ postxt ^ "\n\
@@ -430,27 +437,26 @@ fun section name pretxt parse =
 val pure_keywords =
  ["classes", "default", "types", "arities", "consts", "syntax",
   "translations", "MLtrans", "MLtext", "rules", "defns", "axclass",
-  "instance", "end", "ML", "mixfix", "infixr", "infixl", "binder", "=", "+",
-  ",", "<", "{", "}", "(", ")", "[", "]", "::", "==", "=>", "<="];
+  "sigclass", "instance", "end", "ML", "mixfix", "infixr", "infixl",
+  "binder", "=", "+", ",", "<", "{", "}", "(", ")", "[", "]", "::",
+  "==", "=>", "<="];
 
 val pure_sections =
- [section "classes" "also add_classes" class_decls,
-  section "default" "also add_defsort" sort,
+ [section "classes" "|> add_classes" class_decls,
+  section "default" "|> add_defsort" sort,
   ("types", type_decls),
-  section "arities" "also add_arities" arity_decls,
-  section "consts" "also add_consts" const_decls,
-  section "syntax" "also add_syntax" const_decls,
-  section "translations" "also add_trrules" trans_decls,
-  section "MLtrans" "also add_trfuns" mltrans,
+  section "arities" "|> add_arities" arity_decls,
+  section "consts" "|> add_consts" const_decls,
+  section "syntax" "|> add_syntax" const_decls,
+  section "translations" "|> add_trrules" trans_decls,
+  section "MLtrans" "|> add_trfuns" mltrans,
   ("MLtext", verbatim >> rpair ""),
-  axm_section "rules" "also add_axioms" axiom_decls,
-  axm_section "defns" "also add_defns" axiom_decls,
-  axm_section "axclass" "also add_axclass" axclass_decl,
-  section "instance" "also add_instance" instance_decl];
+  axm_section "rules" "|> add_axioms" axiom_decls,
+  axm_section "defns" "|> add_defns" axiom_decls,
+  axm_section "axclass" "|> add_axclass" axclass_decl,
+  axm_section "sigclass" "|> add_sigclass" sigclass_decl,
+  section "instance" "|> add_instance" instance_decl];
 
-
-(* FIXME -> thy_read.ML *)
-val pure_syntax = make_syntax pure_keywords pure_sections;
 
 end;
 
