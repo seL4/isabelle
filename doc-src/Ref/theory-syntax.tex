@@ -36,6 +36,7 @@ section : classes
         | trans
         | defs
         | rules
+        | oracle
         ;
 
 classes : 'classes' ( ( id (  ()
@@ -99,6 +100,9 @@ rules : 'rules' (( id string ) + )
 
 defs : 'defs' (( id string ) + )
      ;
+
+oracle : 'oracle' name
+       ;
 
 ml : 'ML' text
    ;

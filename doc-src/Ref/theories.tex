@@ -124,6 +124,10 @@ definitions; here is an explanation of the constituent parts:
 \item[$constdefs$] combines the declaration of constants and their
   definition. The first $string$ is the type, the second the definition.
 
+\item[$oracle$] links the theory to a trusted external reasoner.  It is
+  allowed to create theorems, but each theorem carries a proof object
+  describing the oracle invocation.  See \S\ref{sec:oracles} for details.
+
 \item[$ml$] \index{*ML section}
   consists of \ML\ code, typically for parse and print translation functions.
 \end{description}
@@ -916,4 +920,102 @@ certifies $T$ with respect to signature~$sign$.
 decomposes $cT$ as a record containing the type itself and its signature.
 \end{ttdescription}
 
+
+\section{Oracles: calling external reasoners }
+\label{sec:oracles}
+\index{oracles|(}
+
+Oracles allow Isabelle to take advantage of external reasoners such as
+arithmetic decision procedures, model checkers, fast tautology checkers or
+computer algebra systems.  Invoked as an oracle, an external reasoner can
+create arbitrary Isabelle theorems.  It is your responsibility to ensure that
+the external reasoner is as trustworthy as your application requires.
+Isabelle's proof objects~(\S\ref{sec:proofObjects}) record how each theorem
+depends upon oracle calls.
+
+\begin{ttbox}
+     invoke_oracle : theory * Sign.sg * exn -> thm
+     set_oracle    : Sign.sg -> typ -> string
+\end{ttbox}
+\begin{ttdescription}
+\item[\ttindexbold{invoke_oracle} ($thy$, $sign$, $exn$)] invokes the oracle
+  of theory $thy$ passing the information contained in the exception value
+  $exn$ and creating a theorem having signature $sign$.  Errors arise if $thy$
+  does not have an oracle, if the oracle rejects its arguments or if its
+  result is ill-typed.
+
+\item[\ttindexbold{set_oracle} $fn$ $thy$] sets the oracle of theory $thy$ to
+  be $fn$.  It is seldom called explicitly, as there is syntax for oracles in
+  theory files.  A theory can have at most one oracle.
+\end{ttdescription}
+
+A curious feature of {\ML} exceptions is that they are ordinary constructors.
+The {\ML} type {\tt exn} is a datatype that can be extended at any time.  (See
+my {\em {ML} for the Working Programmer}~\cite{paulson-ml2}, especially
+page~136.)  The oracle mechanism takes advantage of this to allow an oracle to
+take any information whatever.
+
+There must be some way of invoking the external reasoner from \ML, either
+because it is coded in {\ML} or via an operating system interface.  Isabelle
+expects the {\ML} function to take two arguments: a signature and an
+exception.
+\begin{itemize}
+\item The signature will typically be that of a desendant of the theory
+  declaring the oracle.  The oracle will use it to distinguish constants from
+  variables, etc., and it will be attached to the generated theorems.
+
+\item The exception is used to pass arbitrary information to the oracle.  This
+  information must contain a full description of the problem to be solved by
+  the external reasoner, including any additional information that might be
+  required.  The oracle may raise the exception to indicate that it cannot
+  solve the specified problem.
+\end{itemize}
+
+A trivial example is provided on directory {\tt FOL/ex}.  This oracle
+generates tautologies of the form $P\bimp\cdots\bimp P$, with an even number
+of $P$s. 
+
+File {\tt declIffOracle.ML} begins by declaring a new exception constructor
+for the oracle the information it requires: here, just an integer.  It
+contains some code (suppressed below) for creating the tautologies, and
+finally declares the oracle function itself:
+\begin{ttbox}
+exception IffOracleExn of int;
+\(\vdots\)
+fun mk_iff_oracle (sign, IffOracleExn n) = 
+    if n>0 andalso n mod 2 = 0 
+    then Trueprop $ mk_iff n
+    else raise IffOracleExn n;
+\end{ttbox}
+Observe the function two arguments, the signature {\tt sign} and the exception
+given as a pattern.  The function checks its argument for validity.  If $n$ is
+positive and even then it creates a tautology containing $n$ occurrences
+of~$P$.  Otherwise it signals error by raising its own exception.  Errors may
+be signalled by other means, such as returning the theorem {\tt True}.
+Please ensure that the oracle's result is correctly typed; Isabelle will
+reject ill-typed theorems by raising a cryptic exception at top level.
+
+The theory file {\tt IffOracle.thy} packages up the function above as an
+oracle.  The first line indicates that the new theory depends upon the file
+{\tt declIffOracle.ML} (which declares the {\ML} code) as well as on \FOL.
+The second line informs Isabelle that this theory has an oracle given by the
+function {\tt mk_iff_oracle}.
+\begin{ttbox}
+IffOracle = "declIffOracle" + FOL +
+oracle mk_iff_oracle
+end
+\end{ttbox}
+Because a theory can have at most one oracle, the theory itself serves to
+identify the oracle.
+
+Here are some examples of invoking the oracle.  An argument of 10 is allowed,
+but one of 5 is forbidden:
+\begin{ttbox}
+invoke_oracle (IffOracle.thy, sign_of IffOracle.thy, IffOracleExn 10);
+{\out  "P <-> P <-> P <-> P <-> P <-> P <-> P <-> P <-> P <-> P" : thm}
+invoke_oracle (IffOracle.thy, sign_of IffOracle.thy, IffOracleExn 5); 
+{\out Exception- IffOracleExn 5 raised}
+\end{ttbox}
+
+\index{oracles|)}
 \index{theories|)}
