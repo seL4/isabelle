@@ -281,9 +281,6 @@ sig
   val partition_list: (int -> 'a -> bool) -> int -> int -> 'a list -> 'a list list
   val transitive_closure: (string * string list) list -> (string * string list) list
   val gensym: string -> string
-  val bump_int_list: string list -> string list
-  val bump_list: string list * string -> string list
-  val bump_string: string -> string
   val scanwords: (string -> bool) -> string list -> string list
   datatype 'a mtree = Join of 'a * 'a mtree list
 end;
@@ -1356,49 +1353,6 @@ in
 fun gensym pre = pre ^ (#1(newid (!seedr), inc seedr));
 
 end;
-
-
-local
-(*Identifies those character codes legal in identifiers.
-  chould use Basis Library character functions if Poly/ML provided characters*)
-fun idCode k = (ord "a" <= k andalso k < ord "z") orelse
-               (ord "A" <= k andalso k < ord "Z") orelse
-               (ord "0" <= k andalso k < ord "9");
-
-val idCodeVec = Vector.tabulate (256, idCode);
-
-in
-
-(*Increment a list of letters like a reversed base 26 number.
-  If head is "z", bumps chars in tail.
-  Digits are incremented as if they were integers.
-  "_" and "'" are not changed.
-  For making variants of identifiers.*)
-
-fun bump_int_list(c::cs) =
-        if c="9" then "0" :: bump_int_list cs
-        else
-        if "0" <= c andalso c < "9" then chr(ord(c)+1) :: cs
-        else "1" :: c :: cs
-  | bump_int_list([]) = error("bump_int_list: not an identifier");
-
-fun bump_list([], d) = [d]
-  | bump_list(["'"], d) = [d, "'"]
-  | bump_list("z"::cs, _) = "a" :: bump_list(cs, "a")
-  | bump_list("Z"::cs, _) = "A" :: bump_list(cs, "A")
-  | bump_list("9"::cs, _) = "0" :: bump_int_list cs
-  | bump_list(c::cs, _) =
-        let val k = ord(c)
-        in if Vector.sub(idCodeVec,k) then chr(k+1) :: cs
-           else
-           if c="'" orelse c="_" then c :: bump_list(cs, "")
-           else error("bump_list: not legal in identifier: " ^
-                      implode(rev(c::cs)))
-        end;
-
-end;
-
-fun bump_string s : string = implode (rev (bump_list(rev(explode s), "")));
 
 
 (* lexical scanning *)
