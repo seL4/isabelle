@@ -13,6 +13,7 @@ sig
   val show_types: bool ref
   val show_no_free_types: bool ref
   val show_all_types: bool ref
+  val pp_show_brackets: Pretty.pp -> Pretty.pp
 end;
 
 signature PRINTER =
@@ -44,6 +45,10 @@ val show_sorts = ref false;
 val show_brackets = ref false;
 val show_no_free_types = ref false;
 val show_all_types = ref false;
+
+fun pp_show_brackets pp = Pretty.pp (setmp show_brackets true (Pretty.term pp))
+  (Pretty.typ pp) (Pretty.sort pp) (Pretty.classrel pp) (Pretty.arity pp);
+
 
 
 (** misc utils **)
@@ -293,10 +298,15 @@ fun pretty tabs trf tokentrf type_mode curried ast0 p0 =
           let
             val (bTs, args') = synT (bsymbs, args);
             val (Ts, args'') = synT (symbs, args');
-          in (Pretty.blk (i, bTs) :: Ts, args'') end
+            val T =
+              if i < 0 then Pretty.unbreakable (Pretty.block bTs)
+              else Pretty.blk (i, bTs);
+          in (T :: Ts, args'') end
       | synT (Break i :: symbs, args) =
-          let val (Ts, args') = synT (symbs, args);
-          in ((if i < 0 then Pretty.fbrk else Pretty.brk i) :: Ts, args') end
+          let
+            val (Ts, args') = synT (symbs, args);
+            val T = if i < 0 then Pretty.fbrk else Pretty.brk i;
+          in (T :: Ts, args') end
       | synT (_ :: _, []) = sys_error "synT"
 
     and parT (pr, args, p, p': int) = #1 (synT
