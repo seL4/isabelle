@@ -843,17 +843,11 @@ qed "Pow_empty";
 Addsimps [Pow_empty];
 
 Goal "Pow (insert a A) = Pow A Un (insert a `` Pow A)";
-by Safe_tac;
-by (etac swap 1);
-by (res_inst_tac [("x", "x-{a}")] image_eqI 1);
-by (ALLGOALS Blast_tac);
+by (blast_tac (claset() addIs [inst "x" "?u-{a}" image_eqI]) 1);
 qed "Pow_insert";
 
 Goal "Pow (- A) = {-B |B. A: Pow B}";
-by Safe_tac;
-by (Blast_tac 2);
-by (res_inst_tac [("x", "-x")] exI 1);
-by (ALLGOALS Blast_tac);
+by (blast_tac (claset() addIs [inst "x" "- ?u" exI]) 1);
 qed "Pow_Compl";
 
 Goal "Pow UNIV = UNIV";
