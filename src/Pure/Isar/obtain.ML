@@ -51,7 +51,7 @@ fun disch_obtained state parms rule cprops thm =
     if not (null bads) then
       raise Proof.STATE ("Conclusion contains obtained parameters: " ^
         space_implode " " (map (Sign.string_of_term sign) bads), state)
-    else if not (AutoBind.is_judgment (Logic.strip_assums_concl prop)) then
+    else if not (ObjectLogic.is_judgment sign (Logic.strip_assums_concl prop)) then
       raise Proof.STATE ("Conclusions of 'obtain' context must be object-logic judgments", state)
     else (Tactic.rtac thm' THEN' RANGE elim_tacs) 1 rule
   end;
@@ -67,6 +67,7 @@ fun gen_obtain prep_vars prep_propp prep_att (raw_vars, raw_asms) state =
     val _ = Proof.assert_forward_or_chain state;
     val chain_facts = if Proof.is_chain state then Proof.the_facts state else [];
     val thy = Proof.theory_of state;
+    val sign = Theory.sign_of thy;
 
     (*obtain vars*)
     val (vars_ctxt, vars) =
@@ -86,7 +87,7 @@ fun gen_obtain prep_vars prep_propp prep_att (raw_vars, raw_asms) state =
     (*that_prop*)
     val thesisN = Term.variant xs AutoBind.thesisN;
     val bound_thesis =
-      ProofContext.bind_skolem fix_ctxt [thesisN] (AutoBind.atomic_judgment thy thesisN);
+      ProofContext.bind_skolem fix_ctxt [thesisN] (ObjectLogic.fixed_judgment sign thesisN);
 
     fun occs_var x = Library.get_first (fn t =>
       ProofContext.find_free t (ProofContext.get_skolem fix_ctxt x)) asm_props;

@@ -251,8 +251,8 @@ fun add_modesyntax mode = Theory.add_modesyntax mode o map Comment.ignore;
 fun add_modesyntax_i mode = Theory.add_modesyntax_i mode o map Comment.ignore;
 val add_trrules = Theory.add_trrules o map Comment.ignore;
 val add_trrules_i = Theory.add_trrules_i o map Comment.ignore;
-val add_judgment = AutoBind.add_judgment o Comment.ignore;
-val add_judgment_i = AutoBind.add_judgment_i o Comment.ignore;
+val add_judgment = ObjectLogic.add_judgment o Comment.ignore;
+val add_judgment_i = ObjectLogic.add_judgment_i o Comment.ignore;
 
 
 (* axioms and defs *)

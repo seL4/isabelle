@@ -693,8 +693,11 @@ fun drop_schematic (b as (xi, Some t)) = if null (Term.term_vars t) then b else 
 val add_binds = gen_binds read_term;
 val add_binds_i = gen_binds cert_term;
 
-val auto_bind_goal = add_binds_i o map drop_schematic o AutoBind.goal;
-val auto_bind_facts = (add_binds_i o map drop_schematic) oo AutoBind.facts;
+fun auto_bind_goal t ctxt =
+  ctxt |> add_binds_i (map drop_schematic (AutoBind.goal (sign_of ctxt) t));
+
+fun auto_bind_facts name ts ctxt =
+  ctxt |> add_binds_i (map drop_schematic (AutoBind.facts (sign_of ctxt) name ts));
 
 end;
 
