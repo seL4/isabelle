@@ -27,6 +27,9 @@ sig
   val sym:		thm (* x = y ==> y = x *)
   val decomp: term ->
              ((term * int)list * int * string * (term * int)list * int)option
+  val mkEqTrue: thm -> thm
+  val mk_Trueprop: term -> term
+  val neg_prop: term -> term * bool
   val simp: thm -> thm
   val is_False: thm -> bool
   val is_nat: typ list * term -> bool
@@ -38,6 +41,13 @@ decomp(`x Rel y') should yield (p,i,Rel,q,j)
          p/q is the decomposition of the sum terms x/y into a list
          of summand * multiplicity pairs and a constant summand.
 
+mkEqTrue(P) = `P == True'
+
+neg_prop(t) = (nt,neg) if t is wrapped up in Trueprop and
+  nt is the (logically) negated version of t, where the negation
+  of a negative term is the term itself (no double negation!);
+  neg = `t is already negated'.
+
 simp must reduce contradictory <= to False.
    It should also cancel common summands to keep <= reduced;
    otherwise <= can grow to massive proportions.
@@ -48,6 +58,7 @@ mk_nat_thm(t) = "0 <= t"
 
 signature FAST_LIN_ARITH =
 sig
+  val lin_arith_prover: Sign.sg -> thm list -> term -> thm option
   val     lin_arith_tac:             int -> tactic
   val cut_lin_arith_tac: thm list -> int -> tactic
 end;
@@ -223,7 +234,7 @@ with 0 <= n.
 local
  exception FalseE of thm
 in
-fun mkproof sg asms just =
+fun mkthm sg asms just =
   let val atoms = foldl (fn (ats,(lhs,_,_,rhs,_)) =>
                             map fst lhs  union  (map fst rhs  union  ats))
                         ([], mapfilter (LA_Data.decomp o concl_of) asms)
@@ -287,32 +298,51 @@ fun abstract pTs items =
   in mapfilter (mklineq atoms) items @ mapfilter (mknat pTs ixs) iatoms end;
 
 (* Ordinary refutation *)
-fun refute1_tac pTs items =
-  let val lineqs = abstract pTs items
-  in case elim lineqs of
-       None => K no_tac
-     | Some(Lineq(_,_,_,j)) =>
-         fn i => fn state => 
-         let val sg = #sign(rep_thm state)
-         in resolve_tac [LA_Data.notI,LA_Data.ccontr] i THEN
-            METAHYPS (fn asms => rtac (mkproof sg asms j) 1) i
-         end state
-  end;
+fun refute1(pTs,items) =
+  (case elim (abstract pTs items) of
+       None => []
+     | Some(Lineq(_,_,_,j)) => [j]);
+
+fun refute1_tac(i,just) =
+  fn state =>
+    let val sg = #sign(rep_thm state)
+    in resolve_tac [LA_Data.notI,LA_Data.ccontr] i THEN
+       METAHYPS (fn asms => rtac (mkthm sg asms just) 1) i
+    end
+    state;
 
 (* Double refutation caused by equality in conclusion *)
-fun refute2_tac pTs items (rhs,i,_,lhs,j) nHs =
+fun refute2(pTs,items, (rhs,i,_,lhs,j), nHs) =
   (case elim (abstract pTs (items@[((rhs,i,"<",lhs,j),nHs)])) of
-    None => K no_tac
+    None => []
   | Some(Lineq(_,_,_,j1)) =>
       (case elim (abstract pTs (items@[((lhs,j,"<",rhs,i),nHs)])) of
-        None => K no_tac
-      | Some(Lineq(_,_,_,j2)) =>
-          fn i => fn state => 
-          let val sg = #sign(rep_thm state)
-          in rtac LA_Data.ccontr i THEN etac LA_Data.neqE i THEN
-             METAHYPS (fn asms => rtac (mkproof sg asms j1) 1) i THEN
-             METAHYPS (fn asms => rtac (mkproof sg asms j2) 1) i
-          end state));
+        None => []
+      | Some(Lineq(_,_,_,j2)) => [j1,j2]));
+
+fun refute2_tac(i,just1,just2) =
+  fn state => 
+    let val sg = #sign(rep_thm state)
+    in rtac LA_Data.ccontr i THEN rotate_tac ~1 i THEN etac LA_Data.neqE i THEN
+       METAHYPS (fn asms => rtac (mkthm sg asms just1) 1) i THEN
+       METAHYPS (fn asms => rtac (mkthm sg asms just2) 1) i
+    end
+    state;
+
+fun prove(pTs,Hs,concl) =
+let val nHs = length Hs
+    val ixHs = Hs ~~ (0 upto (nHs-1))
+    val Hitems = mapfilter (fn (h,i) => case LA_Data.decomp h of
+                                 None => None | Some(it) => Some(it,i)) ixHs
+in case LA_Data.decomp concl of
+     None => if null Hitems then [] else refute1(pTs,Hitems)
+   | Some(citem as (r,i,rel,l,j)) =>
+       if rel = "="
+       then refute2(pTs,Hitems,citem,nHs)
+       else let val neg::rel0 = explode rel
+                val nrel = if neg = "~" then implode rel0 else "~"^rel
+            in refute1(pTs, Hitems@[((r,i,nrel,l,j),nHs)]) end
+end;
 
 (*
 Fast but very incomplete decider. Only premises and conclusions
@@ -321,20 +351,48 @@ that are already (negated) (in)equations are taken into account.
 val lin_arith_tac = SUBGOAL (fn (A,n) =>
   let val pTs = rev(map snd (Logic.strip_params A))
       val Hs = Logic.strip_assums_hyp A
-      val nHs = length Hs
-      val His = Hs ~~ (0 upto (nHs-1))
-      val Hitems = mapfilter (fn (h,i) => case LA_Data.decomp h of
-                                 None => None | Some(it) => Some(it,i)) His
-  in case LA_Data.decomp(Logic.strip_assums_concl A) of
-       None => if null Hitems then no_tac else refute1_tac pTs Hitems n
-     | Some(citem as (r,i,rel,l,j)) =>
-         if rel = "="
-         then refute2_tac pTs Hitems citem nHs n
-         else let val neg::rel0 = explode rel
-                  val nrel = if neg = "~" then implode rel0 else "~"^rel
-              in refute1_tac pTs (Hitems@[((r,i,nrel,l,j),nHs)]) n end
+      val concl = Logic.strip_assums_concl A
+  in case prove(pTs,Hs,concl) of
+       [j] => refute1_tac(n,j)
+     | [j1,j2] => refute2_tac(n,j1,j2)
+     | _ => no_tac
   end);
 
 fun cut_lin_arith_tac thms i = cut_facts_tac thms i THEN lin_arith_tac i;
+
+fun prover1(just,sg,thms,concl) =
+let val (nconcl,neg) = LA_Data.neg_prop concl
+    val cnconcl = cterm_of sg nconcl
+    val Fthm = mkthm sg (thms @ [assume cnconcl]) just
+    val contr = if neg then LA_Data.notI else LA_Data.ccontr
+in Some(LA_Data.mkEqTrue ((implies_intr cnconcl Fthm) COMP contr)) end
+handle _ => None;
+
+(* handle thm with equality conclusion *)
+fun prover2(just1,just2,sg,thms,concl) =
+let val (nconcl,_) = LA_Data.neg_prop concl (* m ~= n *)
+    val cnconcl = cterm_of sg nconcl
+    val neqthm = assume cnconcl
+    val casethm = neqthm COMP LA_Data.neqE (* [|m<n ==> R; n<m ==> R|] ==> R *)
+    val [lessimp1,lessimp2] = prems_of casethm
+    val less1 = fst(Logic.dest_implies lessimp1) (* m<n *)
+    and less2 = fst(Logic.dest_implies lessimp2) (* n<m *)
+    val cless1 = cterm_of sg less1 and cless2 = cterm_of sg less2
+    val thm1 = mkthm sg (thms @ [assume cless1]) just1
+    and thm2 = mkthm sg (thms @ [assume cless2]) just2
+    val dthm1 = implies_intr cless1 thm1 and dthm2 = implies_intr cless2 thm2
+    val thm = dthm2 COMP (dthm1 COMP casethm)
+in Some(LA_Data.mkEqTrue ((implies_intr cnconcl thm) COMP LA_Data.ccontr)) end
+handle _ => None;
+
+(* FIXME: forward proof of equalities missing! *)
+fun lin_arith_prover sg thms concl =
+let val Hs = map (#prop o rep_thm) thms
+    val Tconcl = LA_Data.mk_Trueprop concl
+in case prove([],Hs,Tconcl) of
+     [j] => prover1(j,sg,thms,Tconcl)
+   | [j1,j2] => prover2(j1,j2,sg,thms,Tconcl)
+   | _ => None
+end;
 
 end;
