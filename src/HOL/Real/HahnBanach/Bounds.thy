@@ -11,13 +11,13 @@ subsection {* The sets of lower and upper bounds *}
 
 constdefs
   is_LowerBound :: "('a::order) set => 'a set => 'a => bool"
-  "is_LowerBound A B == \\<lambda>x. x \\<in> A \\<and> (\\<forall>y \\<in> B. x <= y)"
+  "is_LowerBound A B == \<lambda>x. x \<in> A \<and> (\<forall>y \<in> B. x <= y)"
    
   LowerBounds :: "('a::order) set => 'a set => 'a set"
   "LowerBounds A B == Collect (is_LowerBound A B)"
 
   is_UpperBound :: "('a::order) set => 'a set => 'a => bool"
-  "is_UpperBound A B == \\<lambda>x. x \\<in> A \\<and> (\\<forall>y \\<in> B. y <= x)"
+  "is_UpperBound A B == \<lambda>x. x \<in> A \<and> (\<forall>y \<in> B. y <= x)"
  
   UpperBounds :: "('a::order) set => 'a set => 'a set"
   "UpperBounds A B == Collect (is_UpperBound A B)"
@@ -33,9 +33,9 @@ syntax
     ("(3LOWER'_BOUNDS _./ _)" 10)
 
 translations
-  "UPPER_BOUNDS x:A. P" == "UpperBounds A (Collect (\\<lambda>x. P))"
+  "UPPER_BOUNDS x:A. P" == "UpperBounds A (Collect (\<lambda>x. P))"
   "UPPER_BOUNDS x. P" == "UPPER_BOUNDS x:UNIV. P"
-  "LOWER_BOUNDS x:A. P" == "LowerBounds A (Collect (\\<lambda>x. P))"
+  "LOWER_BOUNDS x:A. P" == "LowerBounds A (Collect (\<lambda>x. P))"
   "LOWER_BOUNDS x. P" == "LOWER_BOUNDS x:UNIV. P"
 
 
@@ -86,7 +86,7 @@ constdefs
 (*<*)
 constdefs
   is_Inf :: "('a::order) set => 'a set => 'a => bool"
-  "is_Inf A B x == x \\<in> A \\<and>  is_Greatest (LowerBounds A B) x"
+  "is_Inf A B x == x \<in> A \<and>  is_Greatest (LowerBounds A B) x"
 
   Inf :: "('a::order) set => 'a set => 'a"
   "Inf A B == Eps (is_Inf A B)"
@@ -102,9 +102,9 @@ syntax
     ("(3INF _./ _)" 10)
 
 translations
-  "SUP x:A. P" == "Sup A (Collect (\\<lambda>x. P))"
+  "SUP x:A. P" == "Sup A (Collect (\<lambda>x. P))"
   "SUP x. P" == "SUP x:UNIV. P"
-  "INF x:A. P" == "Inf A (Collect (\\<lambda>x. P))"
+  "INF x:A. P" == "Inf A (Collect (\<lambda>x. P))"
   "INF x. P" == "INF x:UNIV. P"
 (*>*)
 text{* The supremum of $B$ is less than any upper bound
@@ -115,16 +115,16 @@ lemma sup_le_ub: "isUb A B y ==> is_Sup A B s ==> s <= y"
 
 text {* The supremum $B$ is an upper bound for $B$. *}
 
-lemma sup_ub: "y \\<in> B ==> is_Sup A B s ==> y <= s"
+lemma sup_ub: "y \<in> B ==> is_Sup A B s ==> y <= s"
   by (unfold is_Sup_def, rule isLubD2)
 
 text{* The supremum of a non-empty set $B$ is greater
 than a lower bound of $B$. *}
 
 lemma sup_ub1: 
-  "[| \\<forall>y \\<in> B. a <= y; is_Sup A B s; x \\<in> B |] ==> a <= s"
+  "[| \<forall>y \<in> B. a <= y; is_Sup A B s; x \<in> B |] ==> a <= s"
 proof - 
-  assume "\\<forall>y \\<in> B. a <= y" "is_Sup A B s" "x \\<in> B"
+  assume "\<forall>y \<in> B. a <= y" "is_Sup A B s" "x \<in> B"
   have "a <= x" by (rule bspec)
   also have "x <= s" by (rule sup_ub)
   finally show "a <= s" .

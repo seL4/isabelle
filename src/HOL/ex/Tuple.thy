@@ -37,12 +37,12 @@ syntax
   "_tuple_type"      :: "type => tuple_type_args => type"            ("(_ */ _)" [21, 20] 20)
 
 syntax (symbols)
-  "_tuple_type_args" :: "type => tuple_type_args => tuple_type_args" ("_ \\<times>/ _" [21, 20] 20)
-  "_tuple_type"      :: "type => tuple_type_args => type"          ("(_ \\<times>/ _)" [21, 20] 20)
+  "_tuple_type_args" :: "type => tuple_type_args => tuple_type_args" ("_ \<times>/ _" [21, 20] 20)
+  "_tuple_type"      :: "type => tuple_type_args => type"          ("(_ \<times>/ _)" [21, 20] 20)
 
 syntax (HTML output)
-  "_tuple_type_args" :: "type => tuple_type_args => tuple_type_args" ("_ \\<times>/ _" [21, 20] 20)
-  "_tuple_type"      :: "type => tuple_type_args => type"          ("(_ \\<times>/ _)" [21, 20] 20)
+  "_tuple_type_args" :: "type => tuple_type_args => tuple_type_args" ("_ \<times>/ _" [21, 20] 20)
+  "_tuple_type"      :: "type => tuple_type_args => type"          ("(_ \<times>/ _)" [21, 20] 20)
 
 translations
   (type) "'a * 'b" == (type) "('a, ('b, unit) prod) prod"
