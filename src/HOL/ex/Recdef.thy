@@ -31,7 +31,7 @@ recdef finiteRchain "measure (%(R,l).size l)"
 
 consts qsort   ::"('a => 'a => bool) * 'a list => 'a list"
 recdef qsort "measure (size o snd)"
-    simpset "simpset() addsimps [le_eq_less_Suc RS sym, filter_size]"
+    simpset "simpset() addsimps [le_eq_less_Suc RS sym, length_filter]"
     "qsort(ord, [])    = []"
     "qsort(ord, x#rst) = qsort(ord, filter(Not o ord x) rst)  
                          @ [x] @   
