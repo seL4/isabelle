@@ -17,11 +17,11 @@ consts
   ssplit	:: "('a->'b->'c)->('a**'b)->'c"
 
 syntax  
-  "@stuple"	:: "['a, args] => 'a ** 'b"	("(1'(|_,/ _|'))")
+  "@stuple"	:: "['a, args] => 'a ** 'b"	("(1'(:_,/ _:'))")
 
 translations
-        "(|x, y, z|)"   == "(|x, (|y, z|)|)"
-        "(|x, y|)"      == "spair`x`y"
+        "(:x, y, z:)"   == "(:x, (:y, z:):)"
+        "(:x, y:)"      == "spair`x`y"
 
 defs
 spair_def       "spair  == (LAM x y. Ispair x y)"
@@ -30,6 +30,3 @@ ssnd_def        "ssnd   == (LAM p. Issnd p)"
 ssplit_def      "ssplit == (LAM f. strictify`(LAM p. f`(sfst`p)`(ssnd`p)))"
 
 end
-
-
-

@@ -303,7 +303,7 @@ qed_goal "cont_Issnd" thy "cont(Issnd)"
         (rtac contlub_Issnd 1)
         ]);
 
-qed_goal "spair_eq" thy "[|x1=x2;y1=y2|] ==> (|x1,y1|) = (|x2,y2|)"
+qed_goal "spair_eq" thy "[|x1=x2;y1=y2|] ==> (:x1,y1:) = (:x2,y2:)"
  (fn prems =>
         [
         (cut_facts_tac prems 1),
@@ -327,7 +327,7 @@ qed_goalw "beta_cfun_sprod" thy [spair_def]
         ]);
 
 qed_goalw "inject_spair" thy [spair_def]
-        "[| aa~=UU ; ba~=UU ; (|a,b|)=(|aa,ba|) |] ==> a=aa & b=ba"
+        "[| aa~=UU ; ba~=UU ; (:a,b:)=(:aa,ba:) |] ==> a=aa & b=ba"
  (fn prems =>
         [
         (cut_facts_tac prems 1),
@@ -338,7 +338,7 @@ qed_goalw "inject_spair" thy [spair_def]
         (rtac beta_cfun_sprod 1)
         ]);
 
-qed_goalw "inst_sprod_pcpo2" thy [spair_def] "UU = (|UU,UU|)"
+qed_goalw "inst_sprod_pcpo2" thy [spair_def] "UU = (:UU,UU:)"
  (fn prems =>
         [
         (rtac sym 1),
@@ -349,7 +349,7 @@ qed_goalw "inst_sprod_pcpo2" thy [spair_def] "UU = (|UU,UU|)"
         ]);
 
 qed_goalw "strict_spair" thy [spair_def] 
-        "(a=UU | b=UU) ==> (|a,b|)=UU"
+        "(a=UU | b=UU) ==> (:a,b:)=UU"
  (fn prems =>
         [
         (cut_facts_tac prems 1),
@@ -360,7 +360,7 @@ qed_goalw "strict_spair" thy [spair_def]
         (etac strict_Ispair 1)
         ]);
 
-qed_goalw "strict_spair1" thy [spair_def] "(|UU,b|) = UU"
+qed_goalw "strict_spair1" thy [spair_def] "(:UU,b:) = UU"
  (fn prems =>
         [
         (stac beta_cfun_sprod 1),
@@ -369,7 +369,7 @@ qed_goalw "strict_spair1" thy [spair_def] "(|UU,b|) = UU"
         (rtac strict_Ispair1 1)
         ]);
 
-qed_goalw "strict_spair2" thy [spair_def] "(|a,UU|) = UU"
+qed_goalw "strict_spair2" thy [spair_def] "(:a,UU:) = UU"
  (fn prems =>
         [
         (stac beta_cfun_sprod 1),
@@ -379,7 +379,7 @@ qed_goalw "strict_spair2" thy [spair_def] "(|a,UU|) = UU"
         ]);
 
 qed_goalw "strict_spair_rev" thy [spair_def]
-        "(|x,y|)~=UU ==> ~x=UU & ~y=UU"
+        "(:x,y:)~=UU ==> ~x=UU & ~y=UU"
  (fn prems =>
         [
         (cut_facts_tac prems 1),
@@ -390,7 +390,7 @@ qed_goalw "strict_spair_rev" thy [spair_def]
         ]);
 
 qed_goalw "defined_spair_rev" thy [spair_def]
- "(|a,b|) = UU ==> (a = UU | b = UU)"
+ "(:a,b:) = UU ==> (a = UU | b = UU)"
  (fn prems =>
         [
         (cut_facts_tac prems 1),
@@ -401,7 +401,7 @@ qed_goalw "defined_spair_rev" thy [spair_def]
         ]);
 
 qed_goalw "defined_spair" thy [spair_def]
-        "[|a~=UU; b~=UU|] ==> (|a,b|) ~= UU"
+        "[|a~=UU; b~=UU|] ==> (:a,b:) ~= UU"
  (fn prems =>
         [
         (cut_facts_tac prems 1),
@@ -412,7 +412,7 @@ qed_goalw "defined_spair" thy [spair_def]
         ]);
 
 qed_goalw "Exh_Sprod2" thy [spair_def]
-        "z=UU | (? a b. z=(|a,b|) & a~=UU & b~=UU)"
+        "z=UU | (? a b. z=(:a,b:) & a~=UU & b~=UU)"
  (fn prems =>
         [
         (rtac (Exh_Sprod RS disjE) 1),
@@ -432,7 +432,7 @@ qed_goalw "Exh_Sprod2" thy [spair_def]
 
 
 qed_goalw "sprodE" thy [spair_def]
-"[|p=UU ==> Q;!!x y. [|p=(|x,y|);x~=UU ; y~=UU|] ==> Q|] ==> Q"
+"[|p=UU ==> Q;!!x y. [|p=(:x,y:);x~=UU ; y~=UU|] ==> Q|] ==> Q"
 (fn prems =>
         [
         (rtac IsprodE 1),
@@ -460,7 +460,7 @@ qed_goalw "strict_sfst" thy [sfst_def]
         ]);
 
 qed_goalw "strict_sfst1" thy [sfst_def,spair_def] 
-        "sfst`(|UU,y|) = UU"
+        "sfst`(:UU,y:) = UU"
  (fn prems =>
         [
         (stac beta_cfun_sprod 1),
@@ -470,7 +470,7 @@ qed_goalw "strict_sfst1" thy [sfst_def,spair_def]
         ]);
  
 qed_goalw "strict_sfst2" thy [sfst_def,spair_def] 
-        "sfst`(|x,UU|) = UU"
+        "sfst`(:x,UU:) = UU"
  (fn prems =>
         [
         (stac beta_cfun_sprod 1),
@@ -492,7 +492,7 @@ qed_goalw "strict_ssnd" thy [ssnd_def]
         ]);
 
 qed_goalw "strict_ssnd1" thy [ssnd_def,spair_def] 
-        "ssnd`(|UU,y|) = UU"
+        "ssnd`(:UU,y:) = UU"
  (fn prems =>
         [
         (stac beta_cfun_sprod 1),
@@ -502,7 +502,7 @@ qed_goalw "strict_ssnd1" thy [ssnd_def,spair_def]
         ]);
 
 qed_goalw "strict_ssnd2" thy [ssnd_def,spair_def] 
-        "ssnd`(|x,UU|) = UU"
+        "ssnd`(:x,UU:) = UU"
  (fn prems =>
         [
         (stac beta_cfun_sprod 1),
@@ -512,7 +512,7 @@ qed_goalw "strict_ssnd2" thy [ssnd_def,spair_def]
         ]);
 
 qed_goalw "sfst2" thy [sfst_def,spair_def] 
-        "y~=UU ==>sfst`(|x,y|)=x"
+        "y~=UU ==>sfst`(:x,y:)=x"
  (fn prems =>
         [
         (cut_facts_tac prems 1),
@@ -523,7 +523,7 @@ qed_goalw "sfst2" thy [sfst_def,spair_def]
         ]);
 
 qed_goalw "ssnd2" thy [ssnd_def,spair_def] 
-        "x~=UU ==>ssnd`(|x,y|)=y"
+        "x~=UU ==>ssnd`(:x,y:)=y"
  (fn prems =>
         [
         (cut_facts_tac prems 1),
@@ -550,7 +550,7 @@ qed_goalw "defined_sfstssnd" thy [sfst_def,ssnd_def,spair_def]
  
 
 qed_goalw "surjective_pairing_Sprod2" thy 
-        [sfst_def,ssnd_def,spair_def] "(|sfst`p , ssnd`p|) = p"
+        [sfst_def,ssnd_def,spair_def] "(:sfst`p , ssnd`p:) = p"
  (fn prems =>
         [
         (stac beta_cfun_sprod 1),
@@ -564,7 +564,7 @@ qed_goalw "surjective_pairing_Sprod2" thy
 
 qed_goalw "lub_sprod2" thy [sfst_def,ssnd_def,spair_def]
 "[|chain(S)|] ==> range(S) <<| \
-\ (| lub(range(%i. sfst`(S i))), lub(range(%i. ssnd`(S i))) |)"
+\ (: lub(range(%i. sfst`(S i))), lub(range(%i. ssnd`(S i))) :)"
  (fn prems =>
         [
         (cut_facts_tac prems 1),
@@ -582,7 +582,7 @@ bind_thm ("thelub_sprod2", lub_sprod2 RS thelubI);
 (*
  "chain ?S1 ==>
  lub (range ?S1) =
- (|lub (range (%i. sfst`(?S1 i))), lub (range (%i. ssnd`(?S1 i)))|)" : thm
+ (:lub (range (%i. sfst`(?S1 i))), lub (range (%i. ssnd`(?S1 i))):)" : thm
 *)
 
 qed_goalw "ssplit1" thy [ssplit_def]
@@ -596,7 +596,7 @@ qed_goalw "ssplit1" thy [ssplit_def]
         ]);
 
 qed_goalw "ssplit2" thy [ssplit_def]
-        "[|x~=UU;y~=UU|] ==> ssplit`f`(|x,y|)= f`x`y"
+        "[|x~=UU;y~=UU|] ==> ssplit`f`(:x,y:)= f`x`y"
  (fn prems =>
         [
         (stac beta_cfun 1),
