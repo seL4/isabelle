@@ -344,14 +344,16 @@ fun find_first_coeff past u [] = raise TERM("find_first_coeff", [])
 (*Simplify #1*n and n*#1 to n*)
 val add_0s = map rename_numerals
                  [real_add_zero_left, real_add_zero_right];
-val mult_1s = map rename_numerals
-                  [real_mult_1, real_mult_1_right, 
-		   real_mult_minus_1, real_mult_minus_1_right];
+val mult_plus_1s = map rename_numerals
+                      [real_mult_1, real_mult_1_right];
+val mult_minus_1s = map rename_numerals
+                      [real_mult_minus_1, real_mult_minus_1_right];
+val mult_1s = mult_plus_1s @ mult_minus_1s;
 
 (*To perform binary arithmetic*)
 val bin_simps =
     [add_real_number_of, real_add_number_of_left, minus_real_number_of, 
-     diff_real_number_of] @ 
+     diff_real_number_of, mult_real_number_of, real_mult_number_of_left] @ 
     bin_arith_simps @ bin_rel_simps;
 
 (*To evaluate binary negations of coefficients*)

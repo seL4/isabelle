@@ -37,7 +37,7 @@ defs
   "R - (S::real) == R + - S"
 
   real_inverse_def
-  "inverse (R::real) == (@S. R ~= 0 & S*R = 1r)"
+  "inverse (R::real) == (SOME S. (R = 0 & S = 0) | S * R = 1r)"
 
   real_divide_def
   "R / (S::real) == R * inverse S"

@@ -419,7 +419,7 @@ Goal "x < 0 ==> inverse (x::real) < 0";
 by (ftac real_not_refl2 1);
 by (dtac (real_minus_zero_less_iff RS iffD2) 1);
 by (rtac (real_minus_zero_less_iff RS iffD1) 1);
-by (dtac (real_minus_inverse RS sym) 1);
+by (stac (real_minus_inverse RS sym) 1);
 by (auto_tac (claset() addIs [real_inverse_gt_zero], simpset()));
 qed "real_inverse_less_zero";
 
@@ -503,14 +503,6 @@ qed "real_mult_less_iff2";
 Addsimps [real_mult_less_iff1,real_mult_less_iff2];
 
 (* 05/00 *)
-Goalw [real_le_def] "[| (0::real) < z; x*z<=y*z |] ==> x<=y";
-by (Auto_tac);
-qed "real_mult_le_cancel1";
-
-Goalw [real_le_def] "[| (0::real) < z; z*x<=z*y |] ==> x<=y";
-by (Auto_tac);
-qed "real_mult_le_cancel2";
-
 Goalw [real_le_def] "(0::real) < z ==> (x*z <= y*z) = (x <= y)";
 by (Auto_tac);
 qed "real_mult_le_cancel_iff1";
@@ -708,16 +700,6 @@ by (assume_tac 1);
 by (asm_full_simp_tac (simpset() addsimps [real_not_refl2 RS 
          not_sym RS real_mult_inv_left,real_mult_assoc RS sym]) 1);
 qed "real_inverse_less_swap";
-
-Goal "[| 0 < r; 0 < x|] ==> (r < x) = (inverse x < inverse (r::real))";
-by (auto_tac (claset() addIs [real_inverse_less_swap],simpset()));
-by (res_inst_tac [("t","r")] (real_inverse_inverse RS subst) 1);
-by (etac (real_not_refl2 RS not_sym) 1);
-by (res_inst_tac [("t","x")] (real_inverse_inverse RS subst) 1);
-by (etac (real_not_refl2 RS not_sym) 1);
-by (auto_tac (claset() addIs [real_inverse_less_swap],
-	      simpset() addsimps [real_inverse_gt_zero]));
-qed "real_inverse_less_iff";
 
 Goal "r < r + inverse (real_of_posnat n)";
 by (res_inst_tac [("C","-r")] real_less_add_left_cancel 1);

@@ -9,11 +9,11 @@ SEQ = NatStar + HyperPow +
 constdefs
 
   (* Standard definition of convergence of sequence *)           
-  LIMSEQ :: [nat=>real,real] => bool    ("((_)/ ----> (_))" 60)
+  LIMSEQ :: [nat=>real,real] => bool    ("((_)/ ----> (_))" [60, 60] 60)
   "X ----> L == (ALL r. #0 < r --> (EX no. ALL n. no <= n --> abs (X n + -L) < r))"
   
   (* Nonstandard definition of convergence of sequence *)
-  NSLIMSEQ :: [nat=>real,real] => bool    ("((_)/ ----NS> (_))" 60)
+  NSLIMSEQ :: [nat=>real,real] => bool    ("((_)/ ----NS> (_))" [60, 60] 60)
   "X ----NS> L == (ALL N: HNatInfinite. (*fNat* X) N @= hypreal_of_real L)"
 
   (* define value of limit using choice operator*)

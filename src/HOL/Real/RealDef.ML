@@ -488,9 +488,9 @@ by (auto_tac (claset(),
     @ preal_add_ac @ preal_mult_ac));
 qed "real_mult_inv_right_ex";
 
-Goal "!!(x::real). x ~= 0 ==> EX y. y*x = 1r";
-by (asm_simp_tac (simpset() addsimps [real_mult_commute,
-				      real_mult_inv_right_ex]) 1);
+Goal "x ~= 0 ==> EX y. y*x = 1r";
+by (dtac real_mult_inv_right_ex 1); 
+by (auto_tac (claset(), simpset() addsimps [real_mult_commute]));  
 qed "real_mult_inv_left_ex";
 
 Goalw [real_inverse_def] "x ~= 0 ==> inverse(x)*x = 1r";
@@ -499,23 +499,40 @@ by (Step_tac 1);
 by (rtac someI2 1);
 by Auto_tac;
 qed "real_mult_inv_left";
+Addsimps [real_mult_inv_left];
 
 Goal "x ~= 0 ==> x*inverse(x) = 1r";
-by (auto_tac (claset() addIs [real_mult_commute RS subst],
-              simpset() addsimps [real_mult_inv_left]));
+by (stac real_mult_commute 1);
+by (auto_tac (claset(), simpset() addsimps [real_mult_inv_left]));
 qed "real_mult_inv_right";
+Addsimps [real_mult_inv_right];
+
+(** Inverse of zero!  Useful to simplify certain equations **)
+
+Goalw [real_inverse_def] "inverse 0 = (0::real)";
+by (rtac someI2 1);
+by (auto_tac (claset(), simpset() addsimps [real_zero_not_eq_one]));  
+qed "INVERSE_ZERO";
+
+Goal "a / (0::real) = 0";
+by (simp_tac (simpset() addsimps [real_divide_def, INVERSE_ZERO]) 1);
+qed "DIVISION_BY_ZERO";  (*NOT for adding to default simpset*)
+
+fun real_div_undefined_case_tac s i =
+  case_tac s i THEN 
+  asm_simp_tac (simpset() addsimps [DIVISION_BY_ZERO, INVERSE_ZERO]) i;
+
 
 Goal "(c::real) ~= 0 ==> (c*a=c*b) = (a=b)";
 by Auto_tac;
 by (dres_inst_tac [("f","%x. x*inverse c")] arg_cong 1);
-by (asm_full_simp_tac (simpset() addsimps [real_mult_inv_right] @ real_mult_ac)  1);
+by (asm_full_simp_tac (simpset() addsimps real_mult_ac)  1);
 qed "real_mult_left_cancel";
     
 Goal "(c::real) ~= 0 ==> (a*c=b*c) = (a=b)";
 by (Step_tac 1);
 by (dres_inst_tac [("f","%x. x*inverse c")] arg_cong 1);
-by (asm_full_simp_tac
-    (simpset() addsimps [real_mult_inv_right] @ real_mult_ac)  1);
+by (asm_full_simp_tac (simpset() addsimps real_mult_ac)  1);
 qed "real_mult_right_cancel";
 
 Goal "c*a ~= c*b ==> a ~= b";
@@ -531,11 +548,8 @@ by (ftac real_mult_inv_left_ex 1);
 by (etac exE 1);
 by (rtac someI2 1);
 by (auto_tac (claset(),
-	      simpset() addsimps [real_mult_0,
-    real_zero_not_eq_one]));
+	      simpset() addsimps [real_mult_0, real_zero_not_eq_one]));
 qed "real_inverse_not_zero";
-
-Addsimps [real_mult_inv_left,real_mult_inv_right];
 
 Goal "[| x ~= 0; y ~= 0 |] ==> x * y ~= (0::real)";
 by (Step_tac 1);
@@ -545,11 +559,13 @@ qed "real_mult_not_zero";
 
 bind_thm ("real_mult_not_zeroE",real_mult_not_zero RS notE);
 
-Goal "x ~= 0 ==> inverse(inverse (x::real)) = x";
+Goal "inverse(inverse (x::real)) = x";
+by (real_div_undefined_case_tac "x=0" 1);
 by (res_inst_tac [("c1","inverse x")] (real_mult_right_cancel RS iffD1) 1);
 by (etac real_inverse_not_zero 1);
 by (auto_tac (claset() addDs [real_inverse_not_zero],simpset()));
 qed "real_inverse_inverse";
+Addsimps [real_inverse_inverse];
 
 Goalw [real_inverse_def] "inverse(1r) = 1r";
 by (cut_facts_tac [real_zero_not_eq_one RS 
@@ -559,13 +575,16 @@ by (auto_tac (claset(),
 qed "real_inverse_1";
 Addsimps [real_inverse_1];
 
-Goal "x ~= 0 ==> inverse(-x) = -inverse(x::real)";
+Goal "inverse(-x) = -inverse(x::real)";
+by (real_div_undefined_case_tac "x=0" 1);
 by (res_inst_tac [("c1","-x")] (real_mult_right_cancel RS iffD1) 1);
 by (stac real_mult_inv_left 2);
 by Auto_tac;
 qed "real_minus_inverse";
 
-Goal "[| x ~= 0; y ~= 0 |] ==> inverse(x*y) = inverse(x)*inverse(y::real)";
+Goal "inverse(x*y) = inverse(x)*inverse(y::real)";
+by (real_div_undefined_case_tac "x=0" 1);
+by (real_div_undefined_case_tac "y=0" 1);
 by (forw_inst_tac [("y","y")] real_mult_not_zero 1 THEN assume_tac 1);
 by (res_inst_tac [("c1","x")] (real_mult_left_cancel RS iffD1) 1);
 by (auto_tac (claset(),simpset() addsimps [real_mult_assoc RS sym]));
@@ -573,6 +592,52 @@ by (res_inst_tac [("c1","y")] (real_mult_left_cancel RS iffD1) 1);
 by (auto_tac (claset(),simpset() addsimps [real_mult_left_commute]));
 by (asm_simp_tac (simpset() addsimps [real_mult_assoc RS sym]) 1);
 qed "real_inverse_distrib";
+
+Goal "(x::real) * (y/z) = (x*y)/z";
+by (simp_tac (simpset() addsimps [real_divide_def, real_mult_assoc]) 1); 
+qed "real_times_divide1_eq";
+
+Goal "(y/z) * (x::real) = (y*x)/z";
+by (simp_tac (simpset() addsimps [real_divide_def]@real_mult_ac) 1); 
+qed "real_times_divide2_eq";
+
+Addsimps [real_times_divide1_eq, real_times_divide2_eq];
+
+Goal "(x::real) / (y/z) = (x*z)/y";
+by (simp_tac (simpset() addsimps [real_divide_def, real_inverse_distrib]@
+                                 real_mult_ac) 1); 
+qed "real_divide_divide1_eq";
+
+Goal "((x::real) / y) / z = x/(y*z)";
+by (simp_tac (simpset() addsimps [real_divide_def, real_inverse_distrib, 
+                                  real_mult_assoc]) 1); 
+qed "real_divide_divide2_eq";
+
+Addsimps [real_divide_divide1_eq, real_divide_divide2_eq];
+
+(** As with multiplication, pull minus signs OUT of the / operator **)
+
+Goal "(-x) / (y::real) = - (x/y)";
+by (simp_tac (simpset() addsimps [real_divide_def]) 1); 
+qed "real_minus_divide_eq";
+Addsimps [real_minus_divide_eq];
+
+Goal "(x / -(y::real)) = - (x/y)";
+by (simp_tac (simpset() addsimps [real_divide_def, real_minus_inverse]) 1); 
+qed "real_divide_minus_eq";
+Addsimps [real_divide_minus_eq];
+
+Goal "(x+y)/(z::real) = x/z + y/z";
+by (simp_tac (simpset() addsimps [real_divide_def, real_add_mult_distrib]) 1); 
+qed "real_add_divide_distrib";
+
+(*The following would e.g. convert (x+y)/2 to x/2 + y/2.  Sometimes that
+  leads to cancellations in x or y, but is also prevents "multiplying out"
+  the 2 in e.g. (x+y)/2 = 5.
+  
+Addsimps [inst "z" "number_of ?w" real_add_divide_distrib];
+**)
+
 
 (*---------------------------------------------------------
      Theorems for ordering

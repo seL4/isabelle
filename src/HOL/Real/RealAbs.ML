@@ -90,15 +90,14 @@ by (auto_tac (claset() addSDs [order_antisym],
 	      simpset() addsimps [real_0_le_mult_iff]));
 qed "abs_mult";
 
-Goalw [abs_real_def] "x~= (#0::real) ==> abs(inverse(x)) = inverse(abs(x))";
+Goalw [abs_real_def] "abs(inverse(x::real)) = inverse(abs(x))";
+by (real_div_undefined_case_tac "x=0" 1);
 by (auto_tac (claset(), 
-              simpset() addsimps [real_le_less] @ 
-	    (map rename_numerals [real_minus_inverse, real_inverse_gt_zero])));
-by (etac (rename_numerals (real_inverse_less_zero RSN (2,real_less_asym))) 1);
-by (arith_tac 1);
+              simpset() addsimps [real_minus_inverse, real_le_less] @ 
+	          (map rename_numerals [INVERSE_ZERO, real_inverse_gt_zero])));
 qed "abs_inverse";
 
-Goal "y ~= #0 ==> abs (x * inverse y) = (abs x) * inverse (abs (y::real))";
+Goal "abs (x * inverse y) = (abs x) * inverse (abs (y::real))";
 by (asm_simp_tac (simpset() addsimps [abs_mult, abs_inverse]) 1);
 qed "abs_mult_inverse";
 
@@ -233,6 +232,12 @@ Goalw [abs_real_def] "(abs x <= (#0::real)) = (x = #0)";
 by Auto_tac;
 qed "abs_le_zero_iff";
 Addsimps [abs_le_zero_iff];
+
+Goal "((#0::real) < abs x) = (x ~= 0)";
+by (simp_tac (simpset() addsimps [abs_real_def]) 1);
+by (arith_tac 1);
+qed "real_0_less_abs_iff";
+Addsimps [real_0_less_abs_iff];
 
 Goal "abs (real_of_nat x) = real_of_nat x";
 by (auto_tac (claset() addIs [abs_eqI1],simpset()

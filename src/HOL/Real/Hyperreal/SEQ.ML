@@ -1155,11 +1155,11 @@ by (asm_full_simp_tac (simpset() addsimps [LIMSEQ_NSLIMSEQ_iff]) 1);
 by (etac NSLIMSEQ_imp_Suc 1);
 qed "LIMSEQ_imp_Suc";
 
-Goal "(%n. f(Suc n) ----> l) = (f ----> l)";
+Goal "((%n. f(Suc n)) ----> l) = (f ----> l)";
 by (blast_tac (claset() addIs [LIMSEQ_imp_Suc,LIMSEQ_Suc]) 1);
 qed "LIMSEQ_Suc_iff";
 
-Goal "(%n. f(Suc n) ----NS> l) = (f ----NS> l)";
+Goal "((%n. f(Suc n)) ----NS> l) = (f ----NS> l)";
 by (blast_tac (claset() addIs [NSLIMSEQ_imp_Suc,NSLIMSEQ_Suc]) 1);
 qed "NSLIMSEQ_Suc_iff";
 
@@ -1215,7 +1215,8 @@ by (forward_tac [real_less_trans] 1 THEN assume_tac 1);
 by (forw_inst_tac [("x","f n")] (rename_numerals real_inverse_gt_zero) 1);
 by (asm_simp_tac (simpset() addsimps [abs_eqI2]) 1);
 by (res_inst_tac [("t","r")] (real_inverse_inverse RS subst) 1);
-by (auto_tac (claset() addIs [real_inverse_less_iff RS iffD1], simpset()));
+by (auto_tac (claset() addIs [real_inverse_less_iff RS iffD2], 
+              simpset() delsimps [real_inverse_inverse]));
 qed "LIMSEQ_inverse_zero";
 
 Goal "ALL y. EX N. ALL n. N <= n --> y < f(n) \

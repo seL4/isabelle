@@ -11,12 +11,15 @@ Lim = SEQ + RealAbs +
          Limits, continuity and differentiation: standard and NS definitions
       -----------------------------------------------------------------------*)
 constdefs
-      LIM :: [real=>real,real,real] => bool    ("((_)/ -- (_)/ --> (_))" 60)
-      "f -- a --> L == (ALL r. #0 < r --> 
-                          (EX s. #0 < s & (ALL x. (#0 < abs(x + -a) & (abs(x + -a) < s)
-                                --> abs(f x + -L) < r))))"
+      LIM :: [real=>real,real,real] => bool
+                                    ("((_)/ -- (_)/ --> (_))" [60, 0, 60] 60)
+      "f -- a --> L ==
+         ALL r. #0 < r --> 
+                 (EX s. #0 < s & (ALL x. (x ~= a & (abs(x + -a) < s)
+                              --> abs(f x + -L) < r)))"
 
-      NSLIM :: [real=>real,real,real] => bool  ("((_)/ -- (_)/ --NS> (_))" 60)
+      NSLIM :: [real=>real,real,real] => bool
+                                  ("((_)/ -- (_)/ --NS> (_))" [60, 0, 60] 60)
       "f -- a --NS> L == (ALL x. (x ~= hypreal_of_real a & 
                           x @= hypreal_of_real a --> (*f* f) x @= hypreal_of_real L))"   
 
@@ -29,10 +32,12 @@ constdefs
                                (*f* f) y @= hypreal_of_real (f a))"
       
       (* differentiation: D is derivative of function f at x *)
-      deriv:: [real=>real,real,real] => bool   ("(DERIV (_)/ (_)/ :> (_))" 60)
+      deriv:: [real=>real,real,real] => bool
+                                ("(DERIV (_)/ (_)/ :> (_))" [60, 0, 60] 60)
       "DERIV f x :> D == ((%h. (f(x + h) + -f(x))*inverse(h)) -- #0 --> D)"
 
-      nsderiv :: [real=>real,real,real] => bool   ("(NSDERIV (_)/ (_)/ :> (_))" 60)
+      nsderiv :: [real=>real,real,real] => bool
+                                ("(NSDERIV (_)/ (_)/ :> (_))" [60, 0, 60] 60)
       "NSDERIV f x :> D == (ALL h: Infinitesimal - {0}. 
                             ((*f* f)(hypreal_of_real x + h) + 
                              -hypreal_of_real (f x))*inverse(h) @= hypreal_of_real D)"
