@@ -254,6 +254,16 @@ There are three basic simplification tactics:
   one.  Working from left to right, it uses each assumption in the
   simplification of those following.
 \end{ttdescription}
+\begin{warn}
+  Since \verb$asm_full_simp_tac$ works from left to right, it sometimes
+misses opportunities for simplification: given the subgoal
+\begin{ttbox}
+{\out [| P(f(a)); f(a) = t |] ==> ...}
+\end{ttbox}
+\verb$asm_full_simp_tac$ will not simplify the first assumption using the
+second but will leave the assumptions unchanged. See
+\S\ref{sec:reordering-asms} for ways around this problem.
+\end{warn}
 Using the simplifier effectively may take a bit of experimentation.  The
 tactics can be traced with the ML command \verb$trace_simp := true$.  To
 remind yourself of what is in a simpset, use the function \verb$rep_ss$ to
@@ -417,6 +427,40 @@ by (asm_simp_tac (add_ss addsimps [prem]) 1);
 {\out No subgoals!}
 \end{ttbox}
 
+\subsection{Reordering assumptions}
+\label{sec:reordering-asms}
+\index{assumptions!reordering}
+
+As mentioned above, \ttindex{asm_full_simp_tac} may require the assumptions
+to be permuted to be more effective. Given the subgoal
+\begin{ttbox}
+{\out 1. [| P(f(a)); Q; f(a) = t; R |] ==> S}
+\end{ttbox}
+we can rotate the assumptions two positions to the right
+\begin{ttbox}
+by (rotate_tac ~2 1);
+\end{ttbox}
+to obtain
+\begin{ttbox}
+{\out 1. [| f(a) = t; R; P(f(a)); Q |] ==> S}
+\end{ttbox}
+which enables \verb$asm_full_simp_tac$ to simplify \verb$P(f(a))$ to
+\verb$P(t)$.
+
+Since rotation alone cannot produce arbitrary permutations, you can also pick
+out a particular assumption which needs to be rewritten and move it the the
+right end of the assumptions. In the above case rotation can be replaced by
+\begin{ttbox}
+by (dres_inst_tac [("psi","P(f(a))")] asm_rl 1);
+\end{ttbox}
+which is more directed and leads to
+\begin{ttbox}
+{\out 1. [| Q; f(a) = t; R; P(f(a)) |] ==> S}
+\end{ttbox}
+
+Note that reordering assumptions usually leads to brittle proofs and should
+therefore be avoided. Future versions of \verb$asm_full_simp_tac$ may remove
+the need for such manipulations.
 
 \section{Permutative rewrite rules}
 \index{rewrite rules!permutative|(}
