@@ -49,8 +49,8 @@ val load_path = ref [Path.current];
 fun change_path f = load_path := f (! load_path);
 
 fun show_path () = map Path.pack (! load_path);
-fun add_path s = change_path (cons (Path.unpack s));
 fun del_path s = change_path (filter_out (equal (Path.unpack s)));
+fun add_path s = (del_path s; change_path (cons (Path.unpack s)));
 fun reset_path () = load_path := [Path.current];
 fun with_paths ss f x = Library.setmp load_path (! load_path @ map Path.unpack ss) f x;
 fun with_path s f x = with_paths [s] f x;
