@@ -10,8 +10,7 @@ Addsimps [Suc_le_lessD];
 Delsimps (ex_simps @ all_simps);
 
 (* correctness of W with respect to has_type *)
-Goal
-        "!a s t m n . Ok (s,t,m) = W e a n --> $s a |- e :: t";
+Goal "!a s t m n . Ok (s,t,m) = W e a n --> $s a |- e :: t";
 by (expr.induct_tac "e" 1);
 (* case Var n *)
 by (Asm_simp_tac 1);
@@ -41,8 +40,7 @@ val has_type_casesE = map(has_type.mk_cases expr.simps)
 
 
 (* the resulting type variable is always greater or equal than the given one *)
-Goal
-        "!a n s t m. W e a n  = Ok (s,t,m) --> n<=m";
+Goal "!a n s t m. W e a n  = Ok (s,t,m) --> n<=m";
 by (expr.induct_tac "e" 1);
 (* case Var(n) *)
 by (fast_tac (HOL_cs addss simpset()) 1);
@@ -72,8 +70,7 @@ qed_spec_mp "W_var_ge";
 
 Addsimps [W_var_ge];
 
-Goal
-        "!! s. Ok (s,t,m) = W e a n ==> n<=m";
+Goal "Ok (s,t,m) = W e a n ==> n<=m";
 by (asm_full_simp_tac (simpset() addsimps [eq_sym_conv]) 1);
 qed "W_var_geD";
 
@@ -152,8 +149,7 @@ by (fast_tac (HOL_cs addDs [W_var_geD]
 qed_spec_mp "new_tv_W";
 
 
-Goal
-     "!n a s t m v. W e a n = Ok (s,t,m) -->            \
+Goal "!n a s t m v. W e a n = Ok (s,t,m) -->            \
 \         (v:free_tv s | v:free_tv t) --> v<n --> v:free_tv a";
 by (expr.induct_tac "e" 1);
 (* case Var n *)
@@ -361,8 +357,7 @@ by (fast_tac (set_cs addDs [codD,subst_comp_tel RSN (2,trans),
 by (Fast_tac 1);
 qed_spec_mp "W_complete_lemma";
 
-Goal
- "!!e. [] |- e :: t' ==>  (? s t. (? m. W e [] n = Ok(s,t,m)) &  \
+Goal "[] |- e :: t' ==>  (? s t. (? m. W e [] n = Ok(s,t,m)) &  \
 \                                 (? r. t' = $r t))";
 by (cut_inst_tac [("a","[]"),("s'","id_subst"),("e","e"),("t'","t'")]
                 W_complete_lemma 1);

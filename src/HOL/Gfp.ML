@@ -3,7 +3,7 @@
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1993  University of Cambridge
 
-For gfp.thy.  The Knaster-Tarski Theorem for greatest fixed points.
+The Knaster-Tarski Theorem for greatest fixed points.
 *)
 
 open Gfp;
@@ -12,9 +12,8 @@ open Gfp;
 
 (* gfp(f) is the least upper bound of {u. u <= f(u)} *)
 
-val prems = goalw Gfp.thy [gfp_def] "[| X <= f(X) |] ==> X <= gfp(f)";
-by (rtac (CollectI RS Union_upper) 1);
-by (resolve_tac prems 1);
+Goalw [gfp_def] "[| X <= f(X) |] ==> X <= gfp(f)";
+by (etac (CollectI RS Union_upper) 1);
 qed "gfp_upperbound";
 
 val prems = goalw Gfp.thy [gfp_def]
@@ -40,10 +39,9 @@ qed "gfp_Tarski";
 (*** Coinduction rules for greatest fixed points ***)
 
 (*weak version*)
-val prems = goal Gfp.thy
-    "[| a: X;  X <= f(X) |] ==> a : gfp(f)";
+Goal "[| a: X;  X <= f(X) |] ==> a : gfp(f)";
 by (rtac (gfp_upperbound RS subsetD) 1);
-by (REPEAT (ares_tac prems 1));
+by Auto_tac;
 qed "weak_coinduct";
 
 val [prem,mono] = goal Gfp.thy
@@ -56,8 +54,7 @@ by (rtac (mono RS mono_Un) 1);
 qed "coinduct_lemma";
 
 (*strong version, thanks to Coen & Frost*)
-Goal
-    "!!X. [| mono(f);  a: X;  X <= f(X Un gfp(f)) |] ==> a : gfp(f)";
+Goal "[| mono(f);  a: X;  X <= f(X Un gfp(f)) |] ==> a : gfp(f)";
 by (rtac (coinduct_lemma RSN (2, weak_coinduct)) 1);
 by (REPEAT (ares_tac [UnI1, Un_least] 1));
 qed "coinduct";
@@ -127,16 +124,6 @@ val rew::prems = goal Gfp.thy
 by (rewtac rew);
 by (REPEAT (ares_tac (map (rewrite_rule [rew]) prems @ [coinduct3]) 1));
 qed "def_coinduct3";
-
-(*Monotonicity of gfp!*)
-val prems = goal Gfp.thy
-    "[| mono(f);  !!Z. f(Z)<=g(Z) |] ==> gfp(f) <= gfp(g)";
-by (rtac gfp_upperbound 1);
-by (rtac subset_trans 1);
-by (rtac gfp_lemma2 1);
-by (resolve_tac prems 1);
-by (resolve_tac prems 1);
-val gfp_mono = result();
 
 (*Monotonicity of gfp!*)
 val [prem] = goal Gfp.thy "[| !!Z. f(Z)<=g(Z) |] ==> gfp(f) <= gfp(g)";

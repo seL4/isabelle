@@ -8,7 +8,7 @@ Addsimps [mgu_eq,mgu_mg,mgu_free];
 
 (* mgu does not introduce new type variables *)
 Goalw [new_tv_def] 
-      "!! n. [|mgu t1 t2 = Ok u; new_tv n t1; new_tv n t2|] ==> \
+      "[|mgu t1 t2 = Ok u; new_tv n t1; new_tv n t2|] ==> \
 \            new_tv n u";
 by (fast_tac (set_cs addDs [mgu_free]) 1);
 qed "mgu_new";
@@ -56,7 +56,7 @@ qed "free_tv_id_subst";
 Addsimps [free_tv_id_subst];
 
 Goalw [dom_def,cod_def,UNION_def,Bex_def]
-  "!!v. [| v : free_tv(s n); v~=n |] ==> v : cod s";
+  "[| v : free_tv(s n); v~=n |] ==> v : cod s";
 by (Simp_tac 1);
 by (safe_tac (empty_cs addSIs [exI,conjI,notI]));
 by (assume_tac 2);
@@ -190,7 +190,7 @@ qed_spec_mp "new_tv_list_le";
 Addsimps [lessI RS less_imp_le RS new_tv_list_le];
 
 Goal
-  "!! n. [| n<=m; new_tv n (s::subst) |] ==> new_tv m s";
+  "[| n<=m; new_tv n (s::subst) |] ==> new_tv m s";
 by (asm_full_simp_tac (simpset() addsimps [new_tv_subst]) 1);
 by (rtac conjI 1);
 by (slow_tac (HOL_cs addIs [le_trans]) 1);
@@ -203,7 +203,7 @@ Addsimps [lessI RS less_imp_le RS new_tv_subst_le];
 
 (* new_tv property remains if a substitution is applied *)
 Goal
-  "!!n. [| n<m; new_tv m (s::subst) |] ==> new_tv m (s n)";
+  "[| n<m; new_tv m (s::subst) |] ==> new_tv m (s n)";
 by (asm_full_simp_tac (simpset() addsimps [new_tv_subst]) 1);
 qed "new_tv_subst_var";
 
@@ -233,13 +233,13 @@ qed "new_tv_Suc_list";
 
 (* composition of substitutions preserves new_tv proposition *)
 Goal 
-     "!! n. [| new_tv n (s::subst); new_tv n r |] ==> \
+     "[| new_tv n (s::subst); new_tv n r |] ==> \
 \           new_tv n (($ r) o s)";
 by (asm_full_simp_tac (simpset() addsimps [new_tv_subst]) 1);
 qed "new_tv_subst_comp_1";
 
 Goal
-     "!! n. [| new_tv n (s::subst); new_tv n r |] ==>  \ 
+     "[| new_tv n (s::subst); new_tv n r |] ==>  \ 
 \     new_tv n (%v.$ r (s v))";
 by (asm_full_simp_tac (simpset() addsimps [new_tv_subst]) 1);
 qed "new_tv_subst_comp_2";
@@ -248,7 +248,7 @@ Addsimps [new_tv_subst_comp_1,new_tv_subst_comp_2];
 
 (* new type variables do not occur freely in a type structure *)
 Goalw [new_tv_def] 
-      "!!n. new_tv n ts ==> n~:(free_tv ts)";
+      "new_tv n ts ==> n~:(free_tv ts)";
 by (fast_tac (HOL_cs addEs [less_irrefl]) 1);
 qed "new_tv_not_free_tv";
 Addsimps [new_tv_not_free_tv];
@@ -285,8 +285,7 @@ by (fast_tac (HOL_cs addss simpset()) 1);
 by (fast_tac (HOL_cs addss simpset()) 1);
 qed_spec_mp "eq_free_eq_subst_te";
 
-Goal
-  "$s1 (ts::typ list) = $s2 ts --> n:(free_tv ts) --> s1 n = s2 n";
+Goal "$s1 (ts::typ list) = $s2 ts --> n:(free_tv ts) --> s1 n = s2 n";
 by (list.induct_tac "ts" 1);
 (* case [] *)
 by (fast_tac (HOL_cs addss simpset()) 1);
@@ -294,8 +293,7 @@ by (fast_tac (HOL_cs addss simpset()) 1);
 by (fast_tac (HOL_cs addIs [eq_subst_te_eq_free] addss (simpset())) 1);
 qed_spec_mp "eq_subst_tel_eq_free";
 
-Goal
-  "(!n. n:(free_tv ts) --> s1 n = s2 n) --> $s1 (ts::typ list) = $s2 ts";
+Goal "(!n. n:(free_tv ts) --> s1 n = s2 n) --> $s1 (ts::typ list) = $s2 ts";
 by (list.induct_tac "ts" 1); 
 (* case [] *)
 by (fast_tac (HOL_cs addss simpset()) 1);
@@ -305,29 +303,26 @@ qed_spec_mp "eq_free_eq_subst_tel";
 
 (* some useful theorems *)
 Goalw [free_tv_subst] 
-      "!!v. v : cod s ==> v : free_tv s";
+      "v : cod s ==> v : free_tv s";
 by (fast_tac set_cs 1);
 qed "codD";
  
 Goalw [free_tv_subst,dom_def] 
-      "!! x. x ~: free_tv s ==> s x = TVar x";
+      "x ~: free_tv s ==> s x = TVar x";
 by (fast_tac set_cs 1);
 qed "not_free_impl_id";
 
-Goalw [new_tv_def] 
-      "!! n. [| new_tv n t; m:free_tv t |] ==> m<n";
+Goalw [new_tv_def] "[| new_tv n t; m:free_tv t |] ==> m<n";
 by (fast_tac HOL_cs 1 );
 qed "free_tv_le_new_tv";
 
-Goal
-     "free_tv (s (v::nat)) <= insert v (cod s)";
+Goal "free_tv (s (v::nat)) <= insert v (cod s)";
 by (expand_case_tac "v:dom s" 1);
 by (fast_tac (set_cs addss (simpset() addsimps [cod_def])) 1);
 by (fast_tac (set_cs addss (simpset() addsimps [dom_def])) 1);
 qed "free_tv_subst_var";
 
-Goal 
-     "free_tv ($ s (t::typ)) <= cod s Un free_tv t";
+Goal "free_tv ($ s (t::typ)) <= cod s Un free_tv t";
 by (typ.induct_tac "t" 1);
 (* case TVar n *)
 by (simp_tac (simpset() addsimps [free_tv_subst_var]) 1);
@@ -335,8 +330,7 @@ by (simp_tac (simpset() addsimps [free_tv_subst_var]) 1);
 by (fast_tac (set_cs addss simpset()) 1);
 qed "free_tv_app_subst_te";     
 
-Goal 
-     "free_tv ($ s (ts::typ list)) <= cod s Un free_tv ts";
+Goal "free_tv ($ s (ts::typ list)) <= cod s Un free_tv ts";
 by (list.induct_tac "ts" 1);
 (* case [] *)
 by (Simp_tac 1);

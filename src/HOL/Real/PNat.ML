@@ -241,7 +241,7 @@ qed "pnat_no_add_ident";
   (*** pnat_less ***)
 
 Goalw [pnat_less_def] 
-      "!!x. [| x < (y::pnat); y < z |] ==> x < z";
+      "[| x < (y::pnat); y < z |] ==> x < z";
 by ((etac less_trans 1) THEN assume_tac 1);
 qed "pnat_less_trans";
 
@@ -259,7 +259,7 @@ qed "pnat_less_not_refl";
 bind_thm ("pnat_less_irrefl",pnat_less_not_refl RS notE);
 
 Goalw [pnat_less_def] 
-     "!!x. x < (y::pnat) ==> x ~= y";
+     "x < (y::pnat) ==> x ~= y";
 by Auto_tac;
 qed "pnat_less_not_refl2";
 
@@ -279,7 +279,7 @@ qed "Rep_pnat_not_less_one";
 bind_thm ("Rep_pnat_less_oneE",Rep_pnat_not_less_one RS notE);
 
 Goalw [pnat_less_def] 
-     "!!x. x < (y::pnat) ==> Rep_pnat y ~= 1";
+     "x < (y::pnat) ==> Rep_pnat y ~= 1";
 by (auto_tac (claset(),simpset() 
     addsimps [Rep_pnat_not_less_one] delsimps [less_one]));
 qed "Rep_pnat_gt_implies_not0";
@@ -526,7 +526,7 @@ by (auto_tac (claset() addIs [add_less_mono],
 qed "pnat_add_less_mono";
 
 Goalw [pnat_less_def]
-     "!!f. [| !!i j::pnat. i<j ==> f(i) < f(j);       \
+"!!f. [| !!i j::pnat. i<j ==> f(i) < f(j);       \
 \        i <= j                                 \
 \     |] ==> f(i) <= (f(j)::pnat)";
 by (auto_tac (claset() addSDs [inj_Rep_pnat RS injD],

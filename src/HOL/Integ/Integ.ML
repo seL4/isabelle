@@ -551,7 +551,7 @@ val zpred_n_not_n = n_not_zpred_n RS not_sym;
 (* Theorems about less and less_equal *)
 
 Goalw [zless_def, znegative_def, zdiff_def, znat_def] 
-    "!!w. w<z ==> ? n. z = w + $#(Suc(n))";
+    "w<z ==> ? n. z = w + $#(Suc(n))";
 by (res_inst_tac [("z","z")] eq_Abs_Integ 1);
 by (res_inst_tac [("z","w")] eq_Abs_Integ 1);
 by Safe_tac;

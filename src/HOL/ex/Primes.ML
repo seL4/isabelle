@@ -90,7 +90,7 @@ qed "is_gcd_unique";
 
 (*USED??*)
 Goalw [is_gcd_def]
-    "!!m n. [| is_gcd m a b; k dvd a; k dvd b |] ==> k dvd m";
+    "[| is_gcd m a b; k dvd a; k dvd b |] ==> k dvd m";
 by (Blast_tac 1);
 qed "is_gcd_dvd";
 

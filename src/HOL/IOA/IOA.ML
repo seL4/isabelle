@@ -20,7 +20,7 @@ Goal
   qed "ioa_triple_proj";
 
 Goalw [ioa_def,state_trans_def,actions_def, is_asig_def]
-  "!!A. [| IOA(A); (s1,a,s2):trans_of(A) |] ==> a:actions(asig_of(A))";
+  "[| IOA(A); (s1,a,s2):trans_of(A) |] ==> a:actions(asig_of(A))";
   by (REPEAT(etac conjE 1));
   by (EVERY1[etac allE, etac impE, atac]);
   by (Asm_full_simp_tac 1);
@@ -118,7 +118,7 @@ qed "starts_of_par";
 
 (* Every state in an execution is reachable *)
 Goalw [reachable_def] 
-"!!A. ex:executions(A) ==> !n. reachable A (snd ex n)";
+"ex:executions(A) ==> !n. reachable A (snd ex n)";
   by (Fast_tac 1);
 qed "states_of_exec_reachable";
 
@@ -161,13 +161,13 @@ by (Fast_tac 1);
 qed"externals_of_par"; 
 
 Goalw [externals_def,actions_def,compat_ioas_def,compat_asigs_def]
- "!! a. [| compat_ioas A1 A2; a:externals(asig_of(A1))|] ==> a~:internals(asig_of(A2))";
+ "[| compat_ioas A1 A2; a:externals(asig_of(A1))|] ==> a~:internals(asig_of(A2))";
 by (Asm_full_simp_tac 1);
 by (best_tac (claset() addEs [equalityCE]) 1);
 qed"ext1_is_not_int2";
 
 Goalw [externals_def,actions_def,compat_ioas_def,compat_asigs_def]
- "!! a. [| compat_ioas A2 A1 ; a:externals(asig_of(A1))|] ==> a~:internals(asig_of(A2))";
+ "[| compat_ioas A2 A1 ; a:externals(asig_of(A1))|] ==> a~:internals(asig_of(A2))";
 by (Asm_full_simp_tac 1);
 by (best_tac (claset() addEs [equalityCE]) 1);
 qed"ext2_is_not_int1";

@@ -12,7 +12,7 @@ Delrules [equalityI];
 (*** Proving that ratrel is an equivalence relation ***)
 
 Goal
-    "!! x1. [| (x1::pnat) * y2 = x2 * y1; x2 * y3 = x3 * y2 |] \
+    "[| (x1::pnat) * y2 = x2 * y1; x2 * y3 = x3 * y2 |] \
 \            ==> x1 * y3 = x3 * y1";        
 by (res_inst_tac [("k1","y2")] (pnat_mult_cancel1 RS iffD1) 1);
 by (auto_tac (claset(), simpset() addsimps [pnat_mult_assoc RS sym]));
@@ -30,7 +30,7 @@ by (Fast_tac 1);
 qed "ratrel_iff";
 
 Goalw [ratrel_def]
-    "!!x1 x2. [| x1 * y2 = x2 * y1 |] ==> ((x1,y1),(x2,y2)): ratrel";
+    "[| x1 * y2 = x2 * y1 |] ==> ((x1,y1),(x2,y2)): ratrel";
 by (Fast_tac  1);
 qed "ratrelI";
 
@@ -143,8 +143,7 @@ Goalw [prat_pnat_def] "qinv($# (Abs_pnat 1)) = $#(Abs_pnat 1)";
 by (simp_tac (simpset() addsimps [qinv]) 1);
 qed "qinv_1";
 
-Goal 
-     "!!(x1::pnat). [| x1 * y2 = x2 * y1 |] ==> \
+Goal "!!(x1::pnat). [| x1 * y2 = x2 * y1 |] ==> \
 \     (x * y1 + x1 * ya) * (ya * y2) = (x * y2 + x2 * ya) * (ya * y1)";
 by (auto_tac (claset() addSIs [pnat_same_multI2],
        simpset() addsimps [pnat_add_mult_distrib,
@@ -367,17 +366,15 @@ Goalw [prat_less_def]
 by (Fast_tac 1);
 qed "prat_lessE_lemma";
 
-Goal 
-     "!! Q1. [| Q1 < (Q2::prat); \
-\        !! (Q3::prat). Q1 + Q3 = Q2 ==> P |] \
-\     ==> P";
+Goal "!!P. [| Q1 < (Q2::prat); \
+\             !! (Q3::prat). Q1 + Q3 = Q2 ==> P |] \
+\          ==> P";
 by (dtac (prat_lessE_lemma RS mp) 1);
 by Auto_tac;
 qed "prat_lessE";
 
 (* qless is a strong order i.e nonreflexive and transitive *)
-Goal 
-     "!!(q1::prat). [| q1 < q2; q2 < q3 |] ==> q1 < q3";
+Goal "!!(q1::prat). [| q1 < q2; q2 < q3 |] ==> q1 < q3";
 by (REPEAT(dtac (prat_lessE_lemma RS mp) 1));
 by (REPEAT(etac exE 1));
 by (hyp_subst_tac 1);
@@ -653,14 +650,14 @@ by (fast_tac (claset() addDs [prat_le_imp_less_or_eq]) 1);
 qed "not_less_not_eq_prat_less";
 
 Goalw [prat_less_def] 
-      "!!x. [| x1 < y1; x2 < y2 |] ==> x1 + x2 < y1 + (y2::prat)";
+      "[| x1 < y1; x2 < y2 |] ==> x1 + x2 < y1 + (y2::prat)";
 by (REPEAT(etac exE 1));
 by (res_inst_tac [("x","T+Ta")] exI 1);
 by (auto_tac (claset(),simpset() addsimps prat_add_ac));
 qed "prat_add_less_mono";
 
 Goalw [prat_less_def] 
-      "!!x. [| x1 < y1; x2 < y2 |] ==> x1 * x2 < y1 * (y2::prat)";
+      "[| x1 < y1; x2 < y2 |] ==> x1 * x2 < y1 * (y2::prat)";
 by (REPEAT(etac exE 1));
 by (res_inst_tac [("x","T*Ta+T*x2+x1*Ta")] exI 1);
 by (auto_tac (claset(),simpset() addsimps prat_add_ac @ 

@@ -109,7 +109,7 @@ by (REPEAT (resolve_tac prems 1));
 qed "inj_on_contraD";
 
 Goalw [inj_on_def]
-    "!!A B. [| A<=B; inj_on f B |] ==> inj_on f A";
+    "[| A<=B; inj_on f B |] ==> inj_on f A";
 by (Blast_tac 1);
 qed "subset_inj_on";
 
@@ -117,7 +117,7 @@ qed "subset_inj_on";
 (*** Lemmas about inj ***)
 
 Goalw [o_def]
-    "!!f g. [| inj(f);  inj_on g (range f) |] ==> inj(g o f)";
+    "[| inj(f);  inj_on g (range f) |] ==> inj(g o f)";
 by (fast_tac (claset() addIs [injI] addEs [injD, inj_onD]) 1);
 qed "comp_inj";
 
@@ -141,12 +141,12 @@ by (fast_tac (claset() addIs [inj_onI]
 qed "inj_on_inv";
 
 Goalw [inj_on_def]
-   "!!f. [| inj_on f C;  A<=C;  B<=C |] ==> f``(A Int B) = f``A Int f``B";
+   "[| inj_on f C;  A<=C;  B<=C |] ==> f``(A Int B) = f``A Int f``B";
 by (Blast_tac 1);
 qed "inj_on_image_Int";
 
 Goalw [inj_on_def]
-   "!!f. [| inj_on f C;  A<=C;  B<=C |] ==> f``(A-B) = f``A - f``B";
+   "[| inj_on f C;  A<=C;  B<=C |] ==> f``(A-B) = f``A - f``B";
 by (Blast_tac 1);
 qed "inj_on_image_set_diff";
 

@@ -681,8 +681,7 @@ Goalw [psubset_def] "!!A::'a set. [| A <= B; A ~= B |] ==> A<B";
 by (Blast_tac 1);
 qed "psubsetI";
 
-Goalw [psubset_def]
-    "!!x. A < insert x B ==> (x ~: A) & A<=B | x:A & A-{x}<B";
+Goalw [psubset_def] "A < insert x B ==> (x ~: A) & A<=B | x:A & A-{x}<B";
 by Auto_tac;
 qed "psubset_insertD";
 

@@ -27,17 +27,15 @@ val prems = goal MT.thy "P a b ==> P (fst (a,b)) (snd (a,b))";
 by (simp_tac (simpset() addsimps prems) 1);
 qed "infsys_p1";
 
-val prems = goal MT.thy "!!a b. P (fst (a,b)) (snd (a,b)) ==> P a b";
+Goal "P (fst (a,b)) (snd (a,b)) ==> P a b";
 by (Asm_full_simp_tac 1);
 qed "infsys_p2";
 
-val prems = goal MT.thy 
- "!!a. P a b c ==> P (fst(fst((a,b),c))) (snd(fst ((a,b),c))) (snd ((a,b),c))";
+Goal "P a b c ==> P (fst(fst((a,b),c))) (snd(fst ((a,b),c))) (snd ((a,b),c))";
 by (Asm_full_simp_tac 1);
 qed "infsys_pp1";
 
-val prems = goal MT.thy 
- "!!a. P (fst(fst((a,b),c))) (snd(fst((a,b),c))) (snd((a,b),c)) ==> P a b c";
+Goal "P (fst(fst((a,b),c))) (snd(fst((a,b),c))) (snd((a,b),c)) ==> P a b c";
 by (Asm_full_simp_tac 1);
 qed "infsys_pp2";
 
@@ -154,51 +152,46 @@ by (rewtac eval_fun_def);
 by (blast_tac (claset() addSIs [exI]) 1);
 qed "eval_const";
 
-val prems = goalw MT.thy [eval_def, eval_rel_def] 
+Goalw [eval_def, eval_rel_def] 
   "ev:ve_dom(ve) ==> ve |- e_var(ev) ---> ve_app ve ev";
-by (cut_facts_tac prems 1);
 by (rtac lfp_intro2 1);
 by (rtac eval_fun_mono 1);
 by (rewtac eval_fun_def);
 by (blast_tac (claset() addSIs [exI]) 1);
 qed "eval_var2";
 
-val prems = goalw MT.thy [eval_def, eval_rel_def] 
+Goalw [eval_def, eval_rel_def] 
   "ve |- fn ev => e ---> v_clos(<|ev,e,ve|>)";
-by (cut_facts_tac prems 1);
 by (rtac lfp_intro2 1);
 by (rtac eval_fun_mono 1);
 by (rewtac eval_fun_def);
 by (blast_tac (claset() addSIs [exI]) 1);
 qed "eval_fn";
 
-val prems = goalw MT.thy [eval_def, eval_rel_def] 
+Goalw [eval_def, eval_rel_def] 
   " cl = <| ev1, e, ve + {ev2 |-> v_clos(cl)} |> ==> \
 \   ve |- fix ev2(ev1) = e ---> v_clos(cl)";
-by (cut_facts_tac prems 1);
 by (rtac lfp_intro2 1);
 by (rtac eval_fun_mono 1);
 by (rewtac eval_fun_def);
 by (blast_tac (claset() addSIs [exI]) 1);
 qed "eval_fix";
 
-val prems = goalw MT.thy [eval_def, eval_rel_def]
+Goalw [eval_def, eval_rel_def]
   " [| ve |- e1 ---> v_const(c1); ve |- e2 ---> v_const(c2) |] ==> \
 \   ve |- e1 @ e2 ---> v_const(c_app c1 c2)";
-by (cut_facts_tac prems 1);
 by (rtac lfp_intro2 1);
 by (rtac eval_fun_mono 1);
 by (rewtac eval_fun_def);
 by (blast_tac (claset() addSIs [exI]) 1);
 qed "eval_app1";
 
-val prems = goalw MT.thy [eval_def, eval_rel_def] 
+Goalw [eval_def, eval_rel_def] 
   " [|  ve |- e1 ---> v_clos(<|xm,em,vem|>); \
 \       ve |- e2 ---> v2; \
 \       vem + {xm |-> v2} |- em ---> v \
 \   |] ==> \
 \   ve |- e1 @ e2 ---> v";
-by (cut_facts_tac prems 1);
 by (rtac lfp_intro2 1);
 by (rtac eval_fun_mono 1);
 by (rewtac eval_fun_def);
@@ -270,7 +263,7 @@ qed "elab_fun_mono";
 (* Introduction rules *)
 
 Goalw [elab_def, elab_rel_def] 
-  "!!te. c isof ty ==> te |- e_const(c) ===> ty";
+  "c isof ty ==> te |- e_const(c) ===> ty";
 by (rtac lfp_intro2 1);
 by (rtac elab_fun_mono 1);
 by (rewtac elab_fun_def);
@@ -278,7 +271,7 @@ by (blast_tac (claset() addSIs [exI]) 1);
 qed "elab_const";
 
 Goalw [elab_def, elab_rel_def] 
-  "!!te. x:te_dom(te) ==> te |- e_var(x) ===> te_app te x";
+  "x:te_dom(te) ==> te |- e_var(x) ===> te_app te x";
 by (rtac lfp_intro2 1);
 by (rtac elab_fun_mono 1);
 by (rewtac elab_fun_def);
@@ -286,7 +279,7 @@ by (blast_tac (claset() addSIs [exI]) 1);
 qed "elab_var";
 
 Goalw [elab_def, elab_rel_def] 
-  "!!te. te + {x |=> ty1} |- e ===> ty2 ==> te |- fn x => e ===> ty1->ty2";
+  "te + {x |=> ty1} |- e ===> ty2 ==> te |- fn x => e ===> ty1->ty2";
 by (rtac lfp_intro2 1);
 by (rtac elab_fun_mono 1);
 by (rewtac elab_fun_def);
@@ -294,7 +287,7 @@ by (blast_tac (claset() addSIs [exI]) 1);
 qed "elab_fn";
 
 Goalw [elab_def, elab_rel_def]
-  "!!te. te + {f |=> ty1->ty2} + {x |=> ty1} |- e ===> ty2 ==> \
+  "te + {f |=> ty1->ty2} + {x |=> ty1} |- e ===> ty2 ==> \
 \        te |- fix f(x) = e ===> ty1->ty2";
 by (rtac lfp_intro2 1);
 by (rtac elab_fun_mono 1);
@@ -303,7 +296,7 @@ by (blast_tac (claset() addSIs [exI]) 1);
 qed "elab_fix";
 
 Goalw [elab_def, elab_rel_def] 
-  "!!te. [| te |- e1 ===> ty1->ty2; te |- e2 ===> ty1 |] ==> \
+  "[| te |- e1 ===> ty1->ty2; te |- e2 ===> ty1 |] ==> \
 \        te |- e1 @ e2 ===> ty2";
 by (rtac lfp_intro2 1);
 by (rtac elab_fun_mono 1);
@@ -425,8 +418,7 @@ val prems = goal MT.thy "te |- e ===> t ==> (e = e_const(c) --> c isof t)";
 by (elab_e_elim_tac prems);
 qed "elab_const_elim_lem";
 
-val prems = goal MT.thy "te |- e_const(c) ===> t ==> c isof t";
-by (cut_facts_tac prems 1);
+Goal "te |- e_const(c) ===> t ==> c isof t";
 by (dtac elab_const_elim_lem 1);
 by (Blast_tac 1);
 qed "elab_const_elim";
@@ -436,9 +428,7 @@ val prems = goal MT.thy
 by (elab_e_elim_tac prems);
 qed "elab_var_elim_lem";
 
-val prems = goal MT.thy 
-  "te |- e_var(ev) ===> t ==> t=te_app te ev & ev : te_dom(te)";
-by (cut_facts_tac prems 1);
+Goal "te |- e_var(ev) ===> t ==> t=te_app te ev & ev : te_dom(te)";
 by (dtac elab_var_elim_lem 1);
 by (Blast_tac 1);
 qed "elab_var_elim";
@@ -451,10 +441,9 @@ val prems = goal MT.thy
 by (elab_e_elim_tac prems);
 qed "elab_fn_elim_lem";
 
-val prems = goal MT.thy 
+Goal 
   " te |- fn x1 => e1 ===> t ==> \
 \   (? t1 t2. t=t1->t2 & te + {x1 |=> t1} |- e1 ===> t2)";
-by (cut_facts_tac prems 1);
 by (dtac elab_fn_elim_lem 1);
 by (Blast_tac 1);
 qed "elab_fn_elim";
@@ -466,10 +455,9 @@ val prems = goal MT.thy
 by (elab_e_elim_tac prems);
 qed "elab_fix_elim_lem";
 
-val prems = goal MT.thy 
+Goal 
   " te |- fix ev1(ev2) = e1 ===> t ==> \
 \   (? t1 t2. t=t1->t2 & te + {ev1 |=> t1->t2} + {ev2 |=> t1} |- e1 ===> t2)";
-by (cut_facts_tac prems 1);
 by (dtac elab_fix_elim_lem 1);
 by (Blast_tac 1);
 qed "elab_fix_elim";
@@ -480,9 +468,8 @@ val prems = goal MT.thy
 by (elab_e_elim_tac prems);
 qed "elab_app_elim_lem";
 
-val prems = goal MT.thy
+Goal
  "te |- e1 @ e2 ===> t2 ==> (? t1 . te |- e1 ===> t1->t2 & te |- e2 ===> t1)"; 
-by (cut_facts_tac prems 1);
 by (dtac elab_app_elim_lem 1);
 by (Blast_tac 1);
 qed "elab_app_elim";
@@ -505,9 +492,7 @@ qed "mono_hasty_fun";
 
 (* First strong indtroduction (co-induction) rule for hasty_rel *)
 
-val prems =
 Goalw [hasty_rel_def] "c isof t ==> (v_const(c),t) : hasty_rel";
-by (cut_facts_tac prems 1);
 by (rtac gfp_coind2 1);
 by (rewtac MT.hasty_fun_def);
 by (rtac CollectI 1);
@@ -518,7 +503,7 @@ qed "hasty_rel_const_coind";
 
 (* Second strong introduction (co-induction) rule for hasty_rel *)
 
-val prems = goalw MT.thy [hasty_rel_def]
+Goalw [hasty_rel_def]
   " [|  te |- fn ev => e ===> t; \
 \       ve_dom(ve) = te_dom(te); \
 \       ! ev1. \
@@ -526,7 +511,6 @@ val prems = goalw MT.thy [hasty_rel_def]
 \         (ve_app ve ev1,te_app te ev1) : {(v_clos(<|ev,e,ve|>),t)} Un hasty_rel \
 \   |] ==> \
 \   (v_clos(<|ev,e,ve|>),t) : hasty_rel";
-by (cut_facts_tac prems 1);
 by (rtac gfp_coind2 1);
 by (rewtac hasty_fun_def);
 by (rtac CollectI 1);
@@ -579,7 +563,7 @@ by (etac hasty_rel_const_coind 1);
 qed "hasty_const";
 
 Goalw [hasty_def,hasty_env_def] 
- "!!t. te |- fn ev => e ===> t & ve hastyenv te ==> v_clos(<|ev,e,ve|>) hasty t";
+ "te |- fn ev => e ===> t & ve hastyenv te ==> v_clos(<|ev,e,ve|>) hasty t";
 by (rtac hasty_rel_clos_coind 1);
 by (ALLGOALS (blast_tac (claset() delrules [equalityI])));
 qed "hasty_clos";
@@ -587,7 +571,7 @@ qed "hasty_clos";
 (* Elimination on constants for hasty *)
 
 Goalw [hasty_def] 
-  "!!v. v hasty t ==> (!c.(v = v_const(c) --> c isof t))";  
+  "v hasty t ==> (!c.(v = v_const(c) --> c isof t))";  
 by (rtac hasty_rel_elim 1);
 by (ALLGOALS (blast_tac (v_ext_cs HOL_cs)));
 qed "hasty_elim_const_lem";
@@ -599,17 +583,16 @@ qed "hasty_elim_const";
 
 (* Elimination on closures for hasty *)
 
-val prems = goalw MT.thy [hasty_env_def,hasty_def] 
+Goalw [hasty_env_def,hasty_def] 
   " v hasty t ==> \
 \   ! x e ve. \
 \     v=v_clos(<|x,e,ve|>) --> (? te. te |- fn x => e ===> t & ve hastyenv te)";
-by (cut_facts_tac prems 1);
 by (rtac hasty_rel_elim 1);
 by (ALLGOALS (blast_tac (v_ext_cs HOL_cs)));
 qed "hasty_elim_clos_lem";
 
 Goal 
-  "!!t. v_clos(<|ev,e,ve|>) hasty t ==>  \
+  "v_clos(<|ev,e,ve|>) hasty t ==>  \
 \       ? te. te |- fn ev => e ===> t & ve hastyenv te ";
 by (dtac hasty_elim_clos_lem 1);
 by (Blast_tac 1);
@@ -620,7 +603,7 @@ qed "hasty_elim_clos";
 (* ############################################################ *)
 
 Goal
-  "!!ve. [| ve hastyenv te; v hasty t |] ==> \
+  "[| ve hastyenv te; v hasty t |] ==> \
 \        ve + {ev |-> v} hastyenv te + {ev |=> t}";
 by (rewtac hasty_env_def);
 by (asm_full_simp_tac (simpset() delsimps mem_simps
@@ -637,27 +620,27 @@ qed "hasty_env1";
 (* ############################################################ *)
 
 Goal 
-  "!!t. [| ve hastyenv te ; te |- e_const(c) ===> t |] ==> v_const(c) hasty t";
+  "[| ve hastyenv te ; te |- e_const(c) ===> t |] ==> v_const(c) hasty t";
 by (dtac elab_const_elim 1);
 by (etac hasty_const 1);
 qed "consistency_const";
 
 Goalw [hasty_env_def]
-  "!!t. [| ev : ve_dom(ve); ve hastyenv te ; te |- e_var(ev) ===> t |] ==> \
+  "[| ev : ve_dom(ve); ve hastyenv te ; te |- e_var(ev) ===> t |] ==> \
 \       ve_app ve ev hasty t";
 by (dtac elab_var_elim 1);
 by (Blast_tac 1);
 qed "consistency_var";
 
 Goal
-  "!!t. [| ve hastyenv te ; te |- fn ev => e ===> t |] ==> \
+  "[| ve hastyenv te ; te |- fn ev => e ===> t |] ==> \
 \       v_clos(<| ev, e, ve |>) hasty t";
 by (rtac hasty_clos 1);
 by (Blast_tac 1);
 qed "consistency_fn";
 
 Goalw [hasty_env_def,hasty_def]
-  "!!t. [| cl = <| ev1, e, ve + { ev2 |-> v_clos(cl) } |>; \
+  "[| cl = <| ev1, e, ve + { ev2 |-> v_clos(cl) } |>; \
 \      ve hastyenv te ; \
 \      te |- fix ev2  ev1  = e ===> t \
 \   |] ==> \
@@ -684,7 +667,7 @@ by (Blast_tac 1);
 qed "consistency_fix";
 
 Goal 
-  "!!t. [| ! t te. ve hastyenv te --> te |- e1 ===> t --> v_const(c1) hasty t;\
+  "[| ! t te. ve hastyenv te --> te |- e1 ===> t --> v_const(c1) hasty t;\
 \      ! t te. ve hastyenv te  --> te |- e2 ===> t --> v_const(c2) hasty t; \
 \      ve hastyenv te ; te |- e1 @ e2 ===> t \
 \   |] ==> \
@@ -700,7 +683,7 @@ by (Blast_tac 1);
 qed "consistency_app1";
 
 Goal 
-  "!!t.  [| ! t te. \
+  "[| ! t te. \
 \        ve hastyenv te  --> \
 \        te |- e1 ===> t --> v_clos(<|evm, em, vem|>) hasty t; \
 \      ! t te. ve hastyenv te  --> te |- e2 ===> t --> v2 hasty t; \
@@ -726,13 +709,13 @@ by (dtac elab_fn_elim 1);
 by (blast_tac (claset() addIs [hasty_env1] addSDs [t_fun_inj]) 1);
 qed "consistency_app2";
 
-val [major] = goal MT.thy 
+Goal
   "ve |- e ---> v ==> \
 \  (! t te. ve hastyenv te --> te |- e ===> t --> v hasty t)";
 
 (* Proof by induction on the structure of evaluations *)
 
-by (rtac (major RS eval_ind) 1);
+by (etac eval_ind 1);
 by Safe_tac;
 by (DEPTH_SOLVE 
     (ares_tac [consistency_const, consistency_var, consistency_fn,
@@ -743,9 +726,8 @@ qed "consistency";
 (* The Basic Consistency theorem                                *)
 (* ############################################################ *)
 
-val prems = goalw MT.thy [isof_env_def,hasty_env_def] 
+Goalw [isof_env_def,hasty_env_def] 
   "ve isofenv te ==> ve hastyenv te";
-by (cut_facts_tac prems 1);
 by Safe_tac;
 by (etac allE 1);
 by (etac impE 1);
@@ -756,9 +738,8 @@ by (dtac hasty_const 1);
 by (Asm_simp_tac 1);
 qed "basic_consistency_lem";
 
-val prems = goal MT.thy
+Goal
   "[| ve isofenv te; ve |- e ---> v_const(c); te |- e ===> t |] ==> c isof t";
-by (cut_facts_tac prems 1);
 by (rtac hasty_elim_const 1);
 by (dtac consistency 1);
 by (blast_tac (claset() addSIs [basic_consistency_lem]) 1);

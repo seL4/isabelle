@@ -67,9 +67,8 @@ qed "eval_induct";
   the execution (c,s) -[eval Int {...}]-> s1 assures us that execution is
   functional on the argument (c,s).
 *)
-Goal
-    "!!x. (c,s) -[eval Int {((e,s),(n,s')). Unique (e,s) (n,s') eval}]-> s1 \
-\         ==> (ALL s2. (c,s) -[eval]-> s2 --> s2=s1)";
+Goal "(c,s) -[eval Int {((e,s),(n,s')). Unique (e,s) (n,s') eval}]-> s1 \
+\     ==> (ALL s2. (c,s) -[eval]-> s2 --> s2=s1)";
 by (etac exec.induct 1);
 by (ALLGOALS Full_simp_tac);
 by (Blast_tac 3);

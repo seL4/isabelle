@@ -166,8 +166,7 @@ qed_goal "sum_case_weak_cong" Sum.thy
 
 (** Rules for the Part primitive **)
 
-Goalw [Part_def]
-    "!!a b A h. [| a : A;  a=h(b) |] ==> a : Part A h";
+Goalw [Part_def] "[| a : A;  a=h(b) |] ==> a : Part A h";
 by (Blast_tac 1);
 qed "Part_eqI";
 

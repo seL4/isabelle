@@ -86,7 +86,7 @@ bind_thm ("insert_Collect", prove_goal thy
 	"insert a (Collect P) = {u. u ~= a --> P u}" (K [Auto_tac]));
 
 Goal
-    "!!A. A~={} ==> (UN x:A. insert a (B x)) = insert a (UN x:A. B x)";
+    "A~={} ==> (UN x:A. insert a (B x)) = insert a (UN x:A. B x)";
 by (Blast_tac 1);
 qed "UN_insert_distrib";
 
@@ -477,8 +477,7 @@ by (Blast_tac 1);
 qed "INT_insert";
 Addsimps[INT_insert];
 
-Goal
-    "!!A. A~={} ==> (INT x:A. insert a (B x)) = insert a (INT x:A. B x)";
+Goal "A~={} ==> (INT x:A. insert a (B x)) = insert a (INT x:A. B x)";
 by (Blast_tac 1);
 qed "INT_insert_distrib";
 

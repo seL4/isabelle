@@ -42,12 +42,12 @@ by (blast_tac (claset() addSDs [leastPD2,setgeD]) 1);
 qed "leastPD3";
 
 Goalw [isLub_def,isUb_def,leastP_def] 
-      "!!x. isLub R S x ==> S *<= x";
+      "isLub R S x ==> S *<= x";
 by (Step_tac 1);
 qed "isLubD1";
 
 Goalw [isLub_def,isUb_def,leastP_def] 
-      "!!x. isLub R S x ==> x: R";
+      "isLub R S x ==> x: R";
 by (Step_tac 1);
 qed "isLubD1a";
 
@@ -68,7 +68,7 @@ by (assume_tac 1);
 qed "isLubI1";
 
 Goalw [isLub_def,leastP_def] 
-      "!!x. [| isUb R S x; x <=* Collect (isUb R S) |] ==> isLub R S x";
+      "[| isUb R S x; x <=* Collect (isUb R S) |] ==> isLub R S x";
 by (Step_tac 1);
 qed "isLubI2";
 

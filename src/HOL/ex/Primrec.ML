@@ -195,9 +195,8 @@ qed_spec_mp "PROJ_case";
 
 (** COMP case **)
 
-Goal
- "!!fs. fs : lists(PRIMREC Int {f. EX kf. ALL l. f l < ack(kf, list_add l)}) \
-\      ==> EX k. ALL l. list_add (map(%f. f l) fs) < ack(k, list_add l)";
+Goal "fs : lists(PRIMREC Int {f. EX kf. ALL l. f l < ack(kf, list_add l)}) \
+\     ==> EX k. ALL l. list_add (map(%f. f l) fs) < ack(k, list_add l)";
 by (etac lists.induct 1);
 by (res_inst_tac [("x","0")] exI 1 THEN Asm_simp_tac 1);
 by Safe_tac;
@@ -206,9 +205,9 @@ by (blast_tac (claset() addIs [add_less_mono, ack_add_bound, less_trans]) 1);
 qed "COMP_map_lemma";
 
 Goalw [COMP_def]
- "!!g. [| ALL l. g l < ack(kg, list_add l);           \
-\         fs: lists(PRIMREC Int {f. EX kf. ALL l. f l < ack(kf, list_add l)}) \
-\      |] ==> EX k. ALL l. COMP g fs  l < ack(k, list_add l)";
+ "[| ALL l. g l < ack(kg, list_add l);           \
+\    fs: lists(PRIMREC Int {f. EX kf. ALL l. f l < ack(kf, list_add l)}) \
+\ |] ==> EX k. ALL l. COMP g fs  l < ack(k, list_add l)";
 by (forward_tac [impOfSubs (Int_lower1 RS lists_mono)] 1);
 by (etac (COMP_map_lemma RS exE) 1);
 by (rtac exI 1);
@@ -221,9 +220,9 @@ qed "COMP_case";
 (** PREC case **)
 
 Goalw [PREC_def]
- "!!f g. [| ALL l. f l + list_add l < ack(kf, list_add l); \
-\           ALL l. g l + list_add l < ack(kg, list_add l)  \
-\        |] ==> PREC f g l + list_add l < ack(Suc(kf+kg), list_add l)";
+ "[| ALL l. f l + list_add l < ack(kf, list_add l); \
+\    ALL l. g l + list_add l < ack(kg, list_add l)  \
+\ |] ==> PREC f g l + list_add l < ack(Suc(kf+kg), list_add l)";
 by (exhaust_tac "l" 1);
 by (ALLGOALS Asm_simp_tac);
 by (blast_tac (claset() addIs [less_trans]) 1);
@@ -244,10 +243,9 @@ by (rtac (le_add2 RS ack_le_mono1 RS le_less_trans) 1);
 by (etac ack_less_mono2 1);
 qed "PREC_case_lemma";
 
-Goal
- "!!f g. [| ALL l. f l < ack(kf, list_add l);        \
-\           ALL l. g l < ack(kg, list_add l)         \
-\        |] ==> EX k. ALL l. PREC f g l< ack(k, list_add l)";
+Goal "[| ALL l. f l < ack(kf, list_add l);        \
+\        ALL l. g l < ack(kg, list_add l)         \
+\     |] ==> EX k. ALL l. PREC f g l< ack(k, list_add l)";
 by (rtac exI 1);
 by (rtac allI 1);
 by (rtac ([le_add1, PREC_case_lemma] MRS le_less_trans) 1);

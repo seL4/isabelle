@@ -165,12 +165,12 @@ val List_rec_unfold = standard
 (** pred_sexp lemmas **)
 
 Goalw [CONS_def,In1_def]
-    "!!M. [| M: sexp;  N: sexp |] ==> (M, CONS M N) : pred_sexp^+";
+    "[| M: sexp;  N: sexp |] ==> (M, CONS M N) : pred_sexp^+";
 by (Asm_simp_tac 1);
 qed "pred_sexp_CONS_I1";
 
 Goalw [CONS_def,In1_def]
-    "!!M. [| M: sexp;  N: sexp |] ==> (N, CONS M N) : pred_sexp^+";
+    "[| M: sexp;  N: sexp |] ==> (N, CONS M N) : pred_sexp^+";
 by (Asm_simp_tac 1);
 qed "pred_sexp_CONS_I2";
 

@@ -25,7 +25,7 @@ val [_, spec_mp] = [spec] RL [mp];
 
 (*Strip lemma.  The induction hyp is all but the last diamond of the strip.*)
 Goalw [diamond_def]
-    "!!r. [| diamond(r);  (x,y):r^* |] ==> \ 
+    "[| diamond(r);  (x,y):r^* |] ==> \ 
 \         ALL y'. (x,y'):r --> (EX z. (y',z): r^* & (y,z): r)";
 by (etac rtrancl_induct 1);
 by (Blast_tac 1);
@@ -118,8 +118,7 @@ by (Blast_tac 1);
 qed "S1_parcontractD";
 AddSDs [S1_parcontractD];
 
-Goal
- "!!x y z. S#x#y =1=> z ==> (EX x' y'. z = S#x'#y' & x =1=> x' & y =1=> y')";
+Goal "S#x#y =1=> z ==> (EX x' y'. z = S#x'#y' & x =1=> x' & y =1=> y')";
 by (Blast_tac 1);
 qed "S2_parcontractD";
 AddSDs [S2_parcontractD];

@@ -73,7 +73,7 @@ by (Blast_tac 1);
 qed "Node_K0_I";
 
 Goalw [Node_def,Push_def]
-    "!!p. p: Node ==> apfst (Push i) p : Node";
+    "p: Node ==> apfst (Push i) p : Node";
 by (blast_tac (claset() addSIs [apfst_conv, nat_case_Suc RS trans]) 1);
 qed "Node_Push_I";
 
@@ -489,7 +489,7 @@ qed "diagE";
 (*** Equality for Cartesian Product ***)
 
 Goalw [dprod_def]
-    "!!r s. [| (M,M'):r;  (N,N'):s |] ==> (M$N, M'$N') : r<**>s";
+    "[| (M,M'):r;  (N,N'):s |] ==> (M$N, M'$N') : r<**>s";
 by (Blast_tac 1);
 qed "dprodI";
 

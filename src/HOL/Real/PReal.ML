@@ -50,21 +50,21 @@ by (auto_tac (claset() addIs [(equals0I RS sym)],
 qed "mem_Rep_preal_Ex";
 
 Goalw [preal_def] 
-      "!!A. [| {} < A; A < {q::prat. True}; \
+      "[| {} < A; A < {q::prat. True}; \
 \              (!y: A. ((!z. z < y --> z: A) & \
 \                        (? u: A. y < u))) |] ==> A : preal";
 by (Fast_tac 1);
 qed "prealI1";
     
 Goalw [preal_def] 
-      "!!A. [| {} < A; A < {q::prat. True}; \
+      "[| {} < A; A < {q::prat. True}; \
 \              !y: A. (!z. z < y --> z: A); \
 \              !y: A. (? u: A. y < u) |] ==> A : preal";
 by (Best_tac 1);
 qed "prealI2";
 
 Goalw [preal_def] 
-      "!!A. A : preal ==> {} < A & A < {q::prat. True} & \
+      "A : preal ==> {} < A & A < {q::prat. True} & \
 \                         (!y: A. ((!z. z < y --> z: A) & \
 \                                  (? u: A. y < u)))";
 by (Fast_tac 1);
@@ -76,38 +76,31 @@ AddSIs [prealI1,prealI2];
 Addsimps [Abs_preal_inverse];
 
 
-Goalw [preal_def] 
-      "!!A. A : preal ==> {} < A";
+Goalw [preal_def] "A : preal ==> {} < A";
 by (Fast_tac 1);
 qed "prealE_lemma1";
 
-Goalw [preal_def] 
-      "!!A. A : preal ==> A < {q::prat. True}";
+Goalw [preal_def] "A : preal ==> A < {q::prat. True}";
 by (Fast_tac 1);
 qed "prealE_lemma2";
 
-Goalw [preal_def] 
-      "!!A. A : preal ==> !y: A. (!z. z < y --> z: A)";
+Goalw [preal_def] "A : preal ==> !y: A. (!z. z < y --> z: A)";
 by (Fast_tac 1);
 qed "prealE_lemma3";
 
-Goal 
-      "!!A. [| A : preal; y: A |] ==> (!z. z < y --> z: A)";
+Goal "[| A : preal; y: A |] ==> (!z. z < y --> z: A)";
 by (fast_tac (claset() addSDs [prealE_lemma3]) 1);
 qed "prealE_lemma3a";
 
-Goal 
-      "!!A. [| A : preal; y: A; z < y |] ==> z: A";
+Goal "[| A : preal; y: A; z < y |] ==> z: A";
 by (fast_tac (claset() addSDs [prealE_lemma3a]) 1);
 qed "prealE_lemma3b";
 
-Goalw [preal_def] 
-      "!!A. A : preal ==> !y: A. (? u: A. y < u)";
+Goalw [preal_def] "A : preal ==> !y: A. (? u: A. y < u)";
 by (Fast_tac 1);
 qed "prealE_lemma4";
 
-Goal 
-      "!!A. [| A : preal; y: A |] ==> ? u: A. y < u";
+Goal "[| A : preal; y: A |] ==> ? u: A. y < u";
 by (fast_tac (claset() addSDs [prealE_lemma4]) 1);
 qed "prealE_lemma4a";
 
@@ -177,10 +170,9 @@ Goalw [preal_less_def]
 by (Fast_tac  1);
 qed "preal_lessE_lemma";
 
-Goal 
-     "!! R1. [| R1 < (R2::preal); \
-\               (Rep_preal(R1) < Rep_preal(R2)) ==> P |] \
-\     ==> P";
+Goal "!!P. [| R1 < (R2::preal); \
+\             (Rep_preal(R1) < Rep_preal(R2)) ==> P |] \
+\          ==> P";
 by (dtac (preal_lessE_lemma RS mp) 1);
 by Auto_tac;
 qed "preal_lessE";
@@ -445,14 +437,14 @@ qed_goal "preal_add_assoc_swap" thy "(z::preal) + (v + w) = v + (z + w)"
 
  (** lemmas **)
 Goalw [preal_add_def] 
-      "!!R. z: Rep_preal(R+S) ==> \
+      "z: Rep_preal(R+S) ==> \
 \           ? x: Rep_preal(R). ? y: Rep_preal(S). z = x + y";
 by (dtac (preal_mem_add_set RS Abs_preal_inverse RS subst) 1);
 by (Fast_tac 1);
 qed "mem_Rep_preal_addD";
 
 Goalw [preal_add_def] 
-      "!!R. ? x: Rep_preal(R). ? y: Rep_preal(S). z = x + y \
+      "? x: Rep_preal(R). ? y: Rep_preal(S). z = x + y \
 \      ==> z: Rep_preal(R+S)";
 by (rtac (preal_mem_add_set RS Abs_preal_inverse RS ssubst) 1);
 by (Fast_tac 1);
@@ -464,14 +456,14 @@ by (fast_tac (claset() addSIs [mem_Rep_preal_addD,mem_Rep_preal_addI]) 1);
 qed "mem_Rep_preal_add_iff";
 
 Goalw [preal_mult_def] 
-      "!!R. z: Rep_preal(R*S) ==> \
+      "z: Rep_preal(R*S) ==> \
 \           ? x: Rep_preal(R). ? y: Rep_preal(S). z = x * y";
 by (dtac (preal_mem_mult_set RS Abs_preal_inverse RS subst) 1);
 by (Fast_tac 1);
 qed "mem_Rep_preal_multD";
 
 Goalw [preal_mult_def] 
-      "!!R. ? x: Rep_preal(R). ? y: Rep_preal(S). z = x * y \
+      "? x: Rep_preal(R). ? y: Rep_preal(S). z = x * y \
 \      ==> z: Rep_preal(R*S)";
 by (rtac (preal_mem_mult_set RS Abs_preal_inverse RS ssubst) 1);
 by (Fast_tac 1);
@@ -774,14 +766,14 @@ qed "preal_self_less_add_right";
 (*** Properties of <= ***)
 
 Goalw [preal_le_def,psubset_def,preal_less_def] 
-                     "!!w. z<=w ==> ~(w<(z::preal))";
+                     "z<=w ==> ~(w<(z::preal))";
 by (auto_tac  (claset() addDs [equalityI],simpset()));
 qed "preal_leD";
 
 val preal_leE = make_elim preal_leD;
 
 Goalw [preal_le_def,psubset_def,preal_less_def]
-                   "!!z. ~ z <= w ==> w<(z::preal)";
+                   "~ z <= w ==> w<(z::preal)";
 by (cut_inst_tac [("r1.0","w"),("r2.0","z")] preal_linear 1);
 by (auto_tac  (claset(),simpset() addsimps [preal_less_def,psubset_def]));
 qed "not_preal_leE";
@@ -795,7 +787,7 @@ by (fast_tac (claset() addSIs [preal_leI,preal_leD]) 1);
 qed "preal_less_le_iff";
 
 Goalw [preal_le_def,preal_less_def,psubset_def] 
-                  "!!z. z < w ==> z <= (w::preal)";
+                  "z < w ==> z <= (w::preal)";
 by (Fast_tac 1);
 qed "preal_less_imp_le";
 
@@ -878,7 +870,7 @@ qed "psubsetD";
 
 (** Part 1 of Dedekind sections def **)
 Goalw [preal_less_def]
-     "!!A. A < B ==> \
+     "A < B ==> \
 \     ? q. q : {d. ? n. n ~: Rep_preal(A) & n + d : Rep_preal(B)}";
 by (EVERY1[dtac lemma_psubset_mem, etac exE, etac conjE]);
 by (dres_inst_tac [("x1","B")] (Rep_preal RS prealE_lemma4a) 1);
@@ -886,7 +878,7 @@ by (auto_tac (claset(),simpset() addsimps [prat_less_def]));
 qed "lemma_ex_mem_less_left_add1";
 
 Goal
-     "!!A. A < B ==> \
+     "A < B ==> \
 \       {} < {d. ? n. n ~: Rep_preal(A) & n + d : Rep_preal(B)}";
 by (dtac lemma_ex_mem_less_left_add1 1);
 by (auto_tac (claset() addSIs [psubsetI] addEs [equalityCE],simpset()));
@@ -1074,16 +1066,14 @@ qed "preal_add_less_iff2";
 
 Addsimps [preal_add_less_iff2];
 
-Goal 
-      "!!x1. [| x1 < y1; x2 < y2 |] ==> x1 + x2 < y1 + (y2::preal)";
+Goal "[| x1 < y1; x2 < y2 |] ==> x1 + x2 < y1 + (y2::preal)";
 by (auto_tac (claset() addSDs [preal_less_add_left_Ex],
     simpset() addsimps  preal_add_ac));
 by (rtac (preal_add_assoc RS subst) 1);
 by (rtac preal_self_less_add_right 1);
 qed "preal_add_less_mono";
 
-Goal 
-      "!!x1. [| x1 < y1; x2 < y2 |] ==> x1 * x2 < y1 * (y2::preal)";
+Goal "[| x1 < y1; x2 < y2 |] ==> x1 * x2 < y1 * (y2::preal)";
 by (auto_tac (claset() addSDs [preal_less_add_left_Ex],
               simpset() addsimps [preal_add_mult_distrib,
               preal_add_mult_distrib2,preal_self_less_add_left,

@@ -79,7 +79,7 @@ by (Blast_tac 1);
 val lemma1 = result();
 
 Goalw [wf_def]
-    "!!r. (! Q x. x:Q --> (? z:Q. ! y. (y,z):r --> y~:Q)) ==> wf r";
+    "(! Q x. x:Q --> (? z:Q. ! y. (y,z):r --> y~:Q)) ==> wf r";
 by (Clarify_tac 1);
 by (dres_inst_tac [("x", "{x. ~ P x}")] spec 1);
 by (Blast_tac 1);
@@ -140,7 +140,7 @@ val acyclicI = prove_goalw WF.thy [acyclic_def]
 "!!r. !x. (x, x) ~: r^+ ==> acyclic r" (K [atac 1]);
 
 Goalw [acyclic_def]
- "!!r. wf r ==> acyclic r";
+ "wf r ==> acyclic r";
 by (blast_tac (claset() addEs [wf_trancl RS wf_irrefl]) 1);
 qed "wf_acyclic";
 
@@ -171,7 +171,7 @@ qed "cut_apply";
 (*** is_recfun ***)
 
 Goalw [is_recfun_def,cut_def]
-    "!!f. [| is_recfun r H a f;  ~(b,a):r |] ==> f(b) = arbitrary";
+    "[| is_recfun r H a f;  ~(b,a):r |] ==> f(b) = arbitrary";
 by (etac ssubst 1);
 by (asm_simp_tac HOL_ss 1);
 qed "is_recfun_undef";
@@ -261,7 +261,7 @@ val th = rewrite_rule[is_recfun_def]
                      (trans_trancl RSN (2,(wf_trancl RS unfold_the_recfun)));
 
 Goalw [wfrec_def]
-    "!!r. wf(r) ==> wfrec r H a = H (cut (wfrec r H) r a) a";
+    "wf(r) ==> wfrec r H a = H (cut (wfrec r H) r a) a";
 by (rtac H_cong 1);
 by (rtac refl 2);
 by (simp_tac (HOL_ss addsimps [cuts_eq]) 1);
@@ -297,7 +297,7 @@ qed "wfrec";
 
 (*--------------Old proof-----------------------------------------------------
 Goalw [wfrec_def]
-    "!!r. wf(r) ==> wfrec r H a = H (cut (wfrec r H) r a) a";
+    "wf(r) ==> wfrec r H a = H (cut (wfrec r H) r a) a";
 by (etac (wf_trancl RS wftrec RS ssubst) 1);
 by (rtac trans_trancl 1);
 by (rtac (refl RS H_cong) 1);    (*expose the equality of cuts*)

@@ -144,7 +144,7 @@ Addsimps [finite_UnionI];
 (** Sigma of finite sets **)
 
 Goalw [Sigma_def]
- "!!A. [| finite A; !a:A. finite(B a) |] ==> finite(SIGMA a:A. B a)";
+ "[| finite A; !a:A. finite(B a) |] ==> finite(SIGMA a:A. B a)";
 by (blast_tac (claset() addSIs [finite_UnionI]) 1);
 bind_thm("finite_SigmaI", ballI RSN (2,result()));
 Addsimps [finite_SigmaI];
@@ -212,7 +212,7 @@ by (asm_simp_tac (simpset() addsimps [Collect_conv_insert, less_Suc_eq]
 qed "finite_has_card";
 
 Goal
-  "!!A.[| x ~: A; insert x A = {f i|i. i<n} |] ==> \
+  "[| x ~: A; insert x A = {f i|i. i<n} |] ==> \
 \  ? m::nat. m<n & (? g. A = {g i|i. i<m})";
 by (res_inst_tac [("n","n")] natE 1);
  by (hyp_subst_tac 1);
@@ -303,7 +303,7 @@ by (Asm_full_simp_tac 1);
 val lemma = result();
 
 Goalw [card_def]
-  "!!A. [| finite A; x ~: A |] ==> card(insert x A) = Suc(card A)";
+  "[| finite A; x ~: A |] ==> card(insert x A) = Suc(card A)";
 by (etac lemma 1);
 by (assume_tac 1);
 qed "card_insert_disjoint";
@@ -396,8 +396,7 @@ Addsimps [card_Pow];
 
 
 (*Proper subsets*)
-Goalw [psubset_def]
-    "!!B. finite B ==> !A. A < B --> card(A) < card(B)";
+Goalw [psubset_def] "finite B ==> !A. A < B --> card(A) < card(B)";
 by (etac finite_induct 1);
 by (Simp_tac 1);
 by (Clarify_tac 1);

@@ -49,8 +49,7 @@ by (ALLGOALS Asm_simp_tac);
 qed "sorted_append";
 Addsimps [sorted_append];
 
-Goal 
- "!!le. [| total(le); transf(le) |] ==>  sorted le (qsort le xs)";
+Goal "[| total(le); transf(le) |] ==>  sorted le (qsort le xs)";
 by (res_inst_tac[("xs","xs"),("p","le")]Qsort.qsort_ind 1);
 by (ALLGOALS Asm_simp_tac);
 by (rewrite_goals_tac [Sorting.total_def,Sorting.transf_def]);

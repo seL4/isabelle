@@ -29,7 +29,7 @@ Addsimps [pair_in_id_conv];
 (** Composition of two relations **)
 
 Goalw [comp_def]
-    "!!r s. [| (a,b):s; (b,c):r |] ==> (a,c) : r O s";
+    "[| (a,b):s; (b,c):r |] ==> (a,c) : r O s";
 by (Blast_tac 1);
 qed "compI";
 
@@ -72,8 +72,7 @@ Goal "[| r'<=r; s'<=s |] ==> (r' O s') <= (r O s)";
 by (Blast_tac 1);
 qed "comp_mono";
 
-Goal
-    "!!r s. [| s <= A Times B;  r <= B Times C |] ==> (r O s) <= A Times C";
+Goal "[| s <= A Times B;  r <= B Times C |] ==> (r O s) <= A Times C";
 by (Blast_tac 1);
 qed "comp_subset_Sigma";
 
@@ -84,8 +83,7 @@ val prems = goalw thy [trans_def]
 by (REPEAT (ares_tac (prems@[allI,impI]) 1));
 qed "transI";
 
-Goalw [trans_def]
-    "!!r. [| trans(r);  (a,b):r;  (b,c):r |] ==> (a,c):r";
+Goalw [trans_def] "[| trans(r);  (a,b):r;  (b,c):r |] ==> (a,c):r";
 by (Blast_tac 1);
 qed "transD";
 

@@ -32,7 +32,7 @@ qed "llist_unfold";
 ***)
 
 Goalw [list_Fun_def]
-    "!!M. [| M : X;  X <= list_Fun A (X Un llist(A)) |] ==>  M : llist(A)";
+    "[| M : X;  X <= list_Fun A (X Un llist(A)) |] ==>  M : llist(A)";
 by (etac llist.coinduct 1);
 by (etac (subsetD RS CollectD) 1);
 by (assume_tac 1);
@@ -44,7 +44,7 @@ qed "list_Fun_NIL_I";
 AddIffs [list_Fun_NIL_I];
 
 Goalw [list_Fun_def,CONS_def]
-    "!!M N. [| M: A;  N: X |] ==> CONS M N : list_Fun A X";
+    "[| M: A;  N: X |] ==> CONS M N : list_Fun A X";
 by (Fast_tac 1);
 qed "list_Fun_CONS_I";
 Addsimps [list_Fun_CONS_I];
@@ -52,7 +52,7 @@ AddSIs   [list_Fun_CONS_I];
 
 (*Utilise the "strong" part, i.e. gfp(f)*)
 Goalw (llist.defs @ [list_Fun_def])
-    "!!M N. M: llist(A) ==> M : list_Fun A (X Un llist(A))";
+    "M: llist(A) ==> M : list_Fun A (X Un llist(A))";
 by (etac (llist.mono RS gfp_fun_UnI2) 1);
 qed "list_Fun_llist_I";
 
@@ -195,7 +195,7 @@ by (REPEAT (ares_tac basic_monos 1));
 qed "LListD_Fun_mono";
 
 Goalw [LListD_Fun_def]
-    "!!M. [| M : X;  X <= LListD_Fun r (X Un LListD(r)) |] ==>  M : LListD(r)";
+    "[| M : X;  X <= LListD_Fun r (X Un LListD(r)) |] ==>  M : LListD(r)";
 by (etac LListD.coinduct 1);
 by (etac (subsetD RS CollectD) 1);
 by (assume_tac 1);
@@ -206,13 +206,13 @@ by (Fast_tac 1);
 qed "LListD_Fun_NIL_I";
 
 Goalw [LListD_Fun_def,CONS_def]
- "!!x. [| x:A;  (M,N):s |] ==> (CONS x M, CONS x N) : LListD_Fun (diag A) s";
+ "[| x:A;  (M,N):s |] ==> (CONS x M, CONS x N) : LListD_Fun (diag A) s";
 by (Fast_tac 1);
 qed "LListD_Fun_CONS_I";
 
 (*Utilise the "strong" part, i.e. gfp(f)*)
 Goalw (LListD.defs @ [LListD_Fun_def])
-    "!!M N. M: LListD(r) ==> M : LListD_Fun r (X Un LListD(r))";
+    "M: LListD(r) ==> M : LListD_Fun r (X Un LListD(r))";
 by (etac (LListD.mono RS gfp_fun_UnI2) 1);
 qed "LListD_Fun_LListD_I";
 
@@ -236,7 +236,7 @@ by (REPEAT (resolve_tac [equalityI, LListD_subset_diag,
 qed "LListD_eq_diag";
 
 Goal 
-    "!!M N. M: llist(A) ==> (M,M) : LListD_Fun (diag A) (X Un diag(llist(A)))";
+    "M: llist(A) ==> (M,M) : LListD_Fun (diag A) (X Un diag(llist(A)))";
 by (rtac (LListD_eq_diag RS subst) 1);
 by (rtac LListD_Fun_LListD_I 1);
 by (asm_simp_tac (simpset() addsimps [LListD_eq_diag, diagI]) 1);
@@ -247,7 +247,7 @@ qed "LListD_Fun_diag_I";
       [also admits true equality]
    Replace "A" by some particular set, like {x.True}??? *)
 Goal 
-    "!!r. [| (M,N) : r;  r <= LListD_Fun (diag A) (r Un diag(llist(A))) \
+    "[| (M,N) : r;  r <= LListD_Fun (diag A) (r Un diag(llist(A))) \
 \         |] ==>  M=N";
 by (rtac (LListD_subset_diag RS subsetD RS diagE) 1);
 by (etac LListD_coinduct 1);
@@ -539,7 +539,7 @@ Addsimps [Lappend_NIL, Lappend_NIL2];
 
 (*weak co-induction: bisimulation and case analysis on both variables*)
 Goal
-    "!!M N. [| M: llist(A); N: llist(A) |] ==> Lappend M N: llist(A)";
+    "[| M: llist(A); N: llist(A) |] ==> Lappend M N: llist(A)";
 by (res_inst_tac
     [("X", "UN u:llist(A). UN v: llist(A). {Lappend u v}")] llist_coinduct 1);
 by (Fast_tac 1);
@@ -552,7 +552,7 @@ qed "Lappend_type";
 
 (*strong co-induction: bisimulation and case analysis on one variable*)
 Goal
-    "!!M N. [| M: llist(A); N: llist(A) |] ==> Lappend M N: llist(A)";
+    "[| M: llist(A); N: llist(A) |] ==> Lappend M N: llist(A)";
 by (res_inst_tac [("X", "(%u. Lappend u N)``llist(A)")] llist_coinduct 1);
 by (etac imageI 1);
 by (rtac image_subsetI 1);
@@ -620,7 +620,7 @@ qed "def_llist_corec";
 (*** Deriving llist_equalityI -- llist equality is a bisimulation ***)
 
 Goalw [LListD_Fun_def]
-    "!!r A. r <= (llist A) Times (llist A) ==> \
+    "r <= (llist A) Times (llist A) ==> \
 \           LListD_Fun (diag A) r <= (llist A) Times (llist A)";
 by (stac llist_unfold 1);
 by (simp_tac (simpset() addsimps [NIL_def, CONS_def]) 1);
@@ -654,7 +654,7 @@ qed "prod_fun_range_eq_diag";
 
 (*Surprisingly hard to prove.  Used with lfilter*)
 Goalw [llistD_Fun_def, prod_fun_def]
-    "!!A B. A<=B ==> llistD_Fun A <= llistD_Fun B";
+    "A<=B ==> llistD_Fun A <= llistD_Fun B";
 by Auto_tac;
 by (rtac image_eqI 1);
 by (fast_tac (claset() addss (simpset())) 1);
@@ -693,7 +693,7 @@ qed "llistD_Fun_LCons_I";
 
 (*Utilise the "strong" part, i.e. gfp(f)*)
 Goalw [llistD_Fun_def]
-     "!!l. (l,l) : llistD_Fun(r Un range(%x.(x,x)))";
+     "(l,l) : llistD_Fun(r Un range(%x.(x,x)))";
 by (rtac (Rep_llist_inverse RS subst) 1);
 by (rtac prod_fun_imageI 1);
 by (stac image_Un 1);

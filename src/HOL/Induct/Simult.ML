@@ -56,7 +56,7 @@ qed "TF_induct";
 
 (*This lemma replaces a use of subgoal_tac to prove tree_forest_induct*)
 Goalw [Part_def]
- "!!A.  ! M: TF(A). (M: Part (TF A) In0 --> P(M)) & \
+ "! M: TF(A). (M: Part (TF A) In0 --> P(M)) & \
 \                   (M: Part (TF A) In1 --> Q(M)) \
 \  ==> (! M: Part (TF A) In0. P(M)) & (! M: Part (TF A) In1. Q(M))";
 by (Blast_tac 1);
@@ -135,7 +135,7 @@ AddIs [TF_I, uprodI, usum_In0I, usum_In1I];
 AddSEs [Scons_inject];
 
 Goalw TF_Rep_defs
-    "!!A. [| a: A;  M: Part (TF A) In1 |] ==> TCONS a M : Part (TF A) In0";
+    "[| a: A;  M: Part (TF A) In1 |] ==> TCONS a M : Part (TF A) In0";
 by (Blast_tac 1);
 qed "TCONS_I";
 
@@ -145,7 +145,7 @@ by (Blast_tac 1);
 qed "FNIL_I";
 
 Goalw TF_Rep_defs
-    "!!A. [| M: Part (TF A) In0;  N: Part (TF A) In1 |] ==> \
+    "[| M: Part (TF A) In0;  N: Part (TF A) In1 |] ==> \
 \         FCONS M N : Part (TF A) In1";
 by (Blast_tac 1);
 qed "FCONS_I";
@@ -244,7 +244,7 @@ val TF_rec_unfold = (wf_pred_sexp RS wf_trancl) RS
 (** conversion rules for TF_rec **)
 
 Goalw [TCONS_def]
-    "!!M N. [| M: sexp;  N: sexp |] ==>         \
+    "[| M: sexp;  N: sexp |] ==>         \
 \           TF_rec (TCONS M N) b c d = b M N (TF_rec N b c d)";
 by (rtac (TF_rec_unfold RS trans) 1);
 by (simp_tac (simpset() addsimps [Case_In0, Split]) 1);
@@ -257,7 +257,7 @@ by (simp_tac (HOL_ss addsimps [Case_In1, List_case_NIL]) 1);
 qed "TF_rec_FNIL";
 
 Goalw [FCONS_def]
- "!!M N. [| M: sexp;  N: sexp |] ==>    \
+ "[| M: sexp;  N: sexp |] ==>    \
 \        TF_rec (FCONS M N) b c d = d M N (TF_rec M b c d) (TF_rec N b c d)";
 by (rtac (TF_rec_unfold RS trans) 1);
 by (simp_tac (HOL_ss addsimps [Case_In1, List_case_CONS]) 1);

@@ -8,8 +8,7 @@ open Real;
 
 (*** Proving that realrel is an equivalence relation ***)
 
-Goal
-    "!! x1. [| (x1::preal) + y2 = x2 + y1; x2 + y3 = x3 + y2 |] \
+Goal "[| (x1::preal) + y2 = x2 + y1; x2 + y3 = x3 + y2 |] \
 \            ==> x1 + y3 = x3 + y1";        
 by (res_inst_tac [("C","y2")] preal_add_right_cancel 1);
 by (rotate_tac 1 1 THEN dtac sym 1);
@@ -27,7 +26,7 @@ by (Fast_tac 1);
 qed "realrel_iff";
 
 Goalw [realrel_def]
-    "!!x1 x2. [| x1 + y2 = x2 + y1 |] ==> ((x1,y1),(x2,y2)): realrel";
+    "[| x1 + y2 = x2 + y1 |] ==> ((x1,y1),(x2,y2)): realrel";
 by (Fast_tac  1);
 qed "realrelI";
 
@@ -504,13 +503,13 @@ by (Fast_tac 1);
 qed "real_less_iff";
 
 Goalw [real_less_def]
- "!!P. [| x1 + y2 < x2 + y1; (x1,y1::preal):Rep_real(P); \
+ "[| x1 + y2 < x2 + y1; (x1,y1::preal):Rep_real(P); \
 \         (x2,y2):Rep_real(Q) |] ==> P < (Q::real)";
 by (Fast_tac 1);
 qed "real_lessI";
 
 Goalw [real_less_def]
-     "!! R1. [| R1 < (R2::real); \
+ "!!P. [| R1 < (R2::real); \
 \         !!x1 x2 y1 y2. x1 + y2 < x2 + y1 ==> P; \
 \         !!x1 y1. (x1,y1::preal):Rep_real(R1) ==> P; \ 
 \         !!x2 y2. (x2,y2::preal):Rep_real(R2) ==> P |] \
@@ -519,7 +518,7 @@ by Auto_tac;
 qed "real_lessE";
 
 Goalw [real_less_def]
- "!!R1. R1 < (R2::real) ==> (EX x1 y1 x2 y2. x1 + y2 < x2 + y1 & \
+ "R1 < (R2::real) ==> (EX x1 y1 x2 y2. x1 + y2 < x2 + y1 & \
 \                                  (x1,y1::preal):Rep_real(R1) & \
 \                                  (x2,y2):Rep_real(R2))";
 by (Fast_tac 1);
@@ -636,7 +635,7 @@ by (auto_tac (claset() addSDs [preal_less_add_left_Ex],
 by (auto_tac (claset(),simpset() addsimps [preal_add_commute]));
 qed "real_preal_trichotomy";
 
-Goal "!!x. [| !!m. x = %#m ==> P; \
+Goal "!!P. [| !!m. x = %#m ==> P; \
 \             x = 0r ==> P; \
 \             !!m. x = %~(%#m) ==> P |] ==> P";
 by (cut_inst_tac [("x","x")] real_preal_trichotomy 1);
@@ -781,9 +780,8 @@ by (auto_tac (claset() addSDs [preal_le_anti_sym],
                real_preal_zero_less,real_preal_minus_less_all]));
 qed "real_linear";
 
-Goal
-    "!!(R1::real). [| R1 < R2 ==> P;  R1 = R2 ==> P; \
-\          R2 < R1 ==> P |] ==> P";
+Goal "!!(R1::real). [| R1 < R2 ==> P;  R1 = R2 ==> P; \
+\                      R2 < R1 ==> P |] ==> P";
 by (cut_inst_tac [("R1.0","R1"),("R2.0","R2")] real_linear 1);
 by Auto_tac;
 qed "real_linear_less2";
@@ -1172,7 +1170,7 @@ by (auto_tac (claset() addIs [real_add_order,
 qed "real_le_add_order";
 
 Goal 
-      "!!x. [| R1 < S1; R2 < S2 |] ==> R1 + R2 < S1 + (S2::real)";
+      "[| R1 < S1; R2 < S2 |] ==> R1 + R2 < S1 + (S2::real)";
 by (dtac (real_less_iffdef RS iffD2) 1);
 by (dtac (real_less_iffdef RS iffD2) 1);
 by (rtac (real_less_iffdef RS iffD1) 1);
@@ -1456,8 +1454,7 @@ qed "real_nat_rinv_eq_iff";
 (*------------------------------------------------------------------
      lemmas about upper bounds and least upper bound
  ------------------------------------------------------------------*)
-Goalw [real_ub_def] 
-          "!!S. [| real_ub u S; x : S |] ==> x <= u";
+Goalw [real_ub_def] "[| real_ub u S; x : S |] ==> x <= u";
 by Auto_tac;
 qed "real_ubD";
 

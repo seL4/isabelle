@@ -281,7 +281,7 @@ qed "trans_trancl";
 bind_thm ("trancl_trans", trans_trancl RS transD);
 
 Goalw [trancl_def]
-  "!!r. [| (x,y):r^*; (y,z):r^+ |] ==> (x,z):r^+";
+  "[| (x,y):r^*; (y,z):r^+ |] ==> (x,z):r^+";
 by (blast_tac (claset() addIs [rtrancl_trans,r_into_rtrancl]) 1);
 qed "rtrancl_trancl_trancl";
 
@@ -329,8 +329,7 @@ by (rtac (refl RS disjI1) 1);
 by (Blast_tac 1);
 val lemma = result();
 
-Goalw [trancl_def]
-    "!!r. r <= A Times A ==> r^+ <= A Times A";
+Goalw [trancl_def] "r <= A Times A ==> r^+ <= A Times A";
 by (blast_tac (claset() addSDs [lemma]) 1);
 qed "trancl_subset_Sigma";
 
