@@ -1,0 +1,229 @@
+\begin{isabelle}%
+%
+\begin{isamarkuptext}%
+\noindent
+Now that we have learned about rules and logic, we take another look at the
+finer points of induction. The two questions we answer are: what to do if the
+proposition to be proved is not directly amenable to induction, and how to
+utilize and even derive new induction schemas.%
+\end{isamarkuptext}%
+%
+\isamarkupsubsection{Massaging the proposition\label{sec:ind-var-in-prems}}
+%
+\begin{isamarkuptext}%
+\noindent
+So far we have assumed that the theorem we want to prove is already in a form
+that is amenable to induction, but this is not always the case:%
+\end{isamarkuptext}%
+\isacommand{lemma}\ {"}xs\ {\isasymnoteq}\ []\ {\isasymLongrightarrow}\ hd(rev\ xs)\ =\ last\ xs{"}\isanewline
+\isacommand{apply}(induct\_tac\ xs)%
+\begin{isamarkuptxt}%
+\noindent
+(where \isa{hd} and \isa{last} return the first and last element of a
+non-empty list)
+produces the warning
+\begin{quote}\tt
+Induction variable occurs also among premises!
+\end{quote}
+and leads to the base case
+\begin{isabellepar}%
+\ 1.\ xs\ {\isasymnoteq}\ []\ {\isasymLongrightarrow}\ hd\ (rev\ [])\ =\ last\ []
+\end{isabellepar}%
+which, after simplification, becomes
+\begin{isabellepar}%
+\ 1.\ xs\ {\isasymnoteq}\ []\ {\isasymLongrightarrow}\ hd\ []\ =\ last\ []
+\end{isabellepar}%
+We cannot prove this equality because we do not know what \isa{hd} and
+\isa{last} return when applied to \isa{[]}.
+
+The point is that we have violated the above warning. Because the induction
+formula is only the conclusion, the occurrence of \isa{xs} in the premises is
+not modified by induction. Thus the case that should have been trivial
+becomes unprovable. Fortunately, the solution is easy:
+\begin{quote}
+\emph{Pull all occurrences of the induction variable into the conclusion
+using \isa{\isasymlongrightarrow}.}
+\end{quote}
+This means we should prove%
+\end{isamarkuptxt}%
+\isacommand{lemma}\ hd\_rev:\ {"}xs\ {\isasymnoteq}\ []\ {\isasymlongrightarrow}\ hd(rev\ xs)\ =\ last\ xs{"}%
+\begin{isamarkuptext}%
+\noindent
+This time, induction leaves us with the following base case
+\begin{isabellepar}%
+\ 1.\ []\ {\isasymnoteq}\ []\ {\isasymlongrightarrow}\ hd\ (rev\ [])\ =\ last\ []
+\end{isabellepar}%
+which is trivial, and \isa{auto} finishes the whole proof.
+
+If \isa{hd\_rev} is meant to be simplification rule, you are done. But if you
+really need the \isa{\isasymLongrightarrow}-version of \isa{hd\_rev}, for
+example because you want to apply it as an introduction rule, you need to
+derive it separately, by combining it with modus ponens:%
+\end{isamarkuptext}%
+\isacommand{lemmas}\ hd\_revI\ =\ hd\_rev[THEN\ mp]%
+\begin{isamarkuptext}%
+\noindent
+which yields the lemma we originally set out to prove.
+
+In case there are multiple premises $A@1$, \dots, $A@n$ containing the
+induction variable, you should turn the conclusion $C$ into
+\[ A@1 \longrightarrow \cdots A@n \longrightarrow C \]
+(see the remark?? in \S\ref{??}).
+Additionally, you may also have to universally quantify some other variables,
+which can yield a fairly complex conclusion.
+Here is a simple example (which is proved by \isa{blast}):%
+\end{isamarkuptext}%
+\isacommand{lemma}\ simple:\ {"}{\isasymforall}\ y.\ A\ y\ {\isasymlongrightarrow}\ B\ y\ {\isasymlongrightarrow}\ B\ y\ \&\ A\ y{"}%
+\begin{isamarkuptext}%
+\noindent
+You can get the desired lemma by explicit
+application of modus ponens and \isa{spec}:%
+\end{isamarkuptext}%
+\isacommand{lemmas}\ myrule\ =\ simple[THEN\ spec,\ THEN\ mp,\ THEN\ mp]%
+\begin{isamarkuptext}%
+\noindent
+or the wholesale stripping of \isa{\isasymforall} and
+\isa{\isasymlongrightarrow} in the conclusion via \isa{rulify}%
+\end{isamarkuptext}%
+\isacommand{lemmas}\ myrule\ =\ simple[rulify]%
+\begin{isamarkuptext}%
+\noindent
+yielding \isa{{\isasymlbrakk}\mbox{?A}\ \mbox{?y};\ \mbox{?B}\ \mbox{?y}{\isasymrbrakk}\ {\isasymLongrightarrow}\ \mbox{?B}\ \mbox{?y}\ {\isasymand}\ \mbox{?A}\ \mbox{?y}}.
+You can go one step further and include these derivations already in the
+statement of your original lemma, thus avoiding the intermediate step:%
+\end{isamarkuptext}%
+\isacommand{lemma}\ myrule[rulify]:\ \ {"}{\isasymforall}\ y.\ A\ y\ {\isasymlongrightarrow}\ B\ y\ {\isasymlongrightarrow}\ B\ y\ \&\ A\ y{"}%
+\begin{isamarkuptext}%
+\bigskip
+
+A second reason why your proposition may not be amenable to induction is that
+you want to induct on a whole term, rather than an individual variable. In
+general, when inducting on some term $t$ you must rephrase the conclusion as
+\[ \forall y@1 \dots y@n.~ x = t \longrightarrow C \] where $y@1 \dots y@n$
+are the free variables in $t$ and $x$ is new, and perform induction on $x$
+afterwards. An example appears below.%
+\end{isamarkuptext}%
+%
+\isamarkupsubsection{Beyond structural induction}
+%
+\begin{isamarkuptext}%
+So far, inductive proofs where by structural induction for
+primitive recursive functions and recursion induction for total recursive
+functions. But sometimes structural induction is awkward and there is no
+recursive function in sight either that could furnish a more appropriate
+induction schema. In such cases some existing standard induction schema can
+be helpful. We show how to apply such induction schemas by an example.
+
+Structural induction on \isa{nat} is
+usually known as ``mathematical induction''. There is also ``complete
+induction'', where you must prove $P(n)$ under the assumption that $P(m)$
+holds for all $m<n$. In Isabelle, this is the theorem \isa{less\_induct}:
+\begin{quote}
+
+\begin{isabelle}%
+({\isasymAnd}\mbox{n}.\ {\isasymforall}\mbox{m}.\ \mbox{m}\ <\ \mbox{n}\ {\isasymlongrightarrow}\ \mbox{?P}\ \mbox{m}\ {\isasymLongrightarrow}\ \mbox{?P}\ \mbox{n})\ {\isasymLongrightarrow}\ \mbox{?P}\ \mbox{?n}
+\end{isabelle}%
+
+\end{quote}
+Here is an example of its application.%
+\end{isamarkuptext}%
+\isacommand{consts}\ f\ ::\ {"}nat\ =>\ nat{"}\isanewline
+\isacommand{axioms}\ f\_ax:\ {"}f(f(n))\ <\ f(Suc(n)){"}%
+\begin{isamarkuptext}%
+\noindent
+From the above axiom\footnote{In general, the use of axioms is strongly
+discouraged, because of the danger of inconsistencies. The above axiom does
+not introduce an inconsistency because, for example, the identity function
+satisfies it.}
+for \isa{f} it follows that \isa{\mbox{n}\ {\isasymle}\ f\ \mbox{n}}, which can
+be proved by induction on \isa{f\ \mbox{n}}. Following the recipy outlined
+above, we have to phrase the proposition as follows to allow induction:%
+\end{isamarkuptext}%
+\isacommand{lemma}\ f\_incr\_lem:\ {"}{\isasymforall}i.\ k\ =\ f\ i\ {\isasymlongrightarrow}\ i\ {\isasymle}\ f\ i{"}%
+\begin{isamarkuptxt}%
+\noindent
+To perform induction on \isa{k} using \isa{less\_induct}, we use the same
+general induction method as for recursion induction (see
+\S\ref{sec:recdef-induction}):%
+\end{isamarkuptxt}%
+\isacommand{apply}(induct\_tac\ k\ rule:less\_induct)%
+\begin{isamarkuptxt}%
+\noindent
+which leaves us with the following proof state:
+\begin{isabellepar}%
+\ 1.\ {\isasymAnd}\mbox{n}.\ {\isasymforall}\mbox{m}.\ \mbox{m}\ <\ \mbox{n}\ {\isasymlongrightarrow}\ ({\isasymforall}\mbox{i}.\ \mbox{m}\ =\ f\ \mbox{i}\ {\isasymlongrightarrow}\ \mbox{i}\ {\isasymle}\ f\ \mbox{i})\isanewline
+\ \ \ \ \ \ \ {\isasymLongrightarrow}\ {\isasymforall}\mbox{i}.\ \mbox{n}\ =\ f\ \mbox{i}\ {\isasymlongrightarrow}\ \mbox{i}\ {\isasymle}\ f\ \mbox{i}
+\end{isabellepar}%
+After stripping the \isa{\isasymforall i}, the proof continues with a case
+distinction on \isa{i}. The case \isa{i = 0} is trivial and we focus on the
+other case:
+\begin{isabellepar}%
+\ 1.\ {\isasymAnd}\mbox{n}\ \mbox{i}\ \mbox{nat}.\isanewline
+\ \ \ \ \ \ \ {\isasymlbrakk}{\isasymforall}\mbox{m}.\ \mbox{m}\ <\ \mbox{n}\ {\isasymlongrightarrow}\ ({\isasymforall}\mbox{i}.\ \mbox{m}\ =\ f\ \mbox{i}\ {\isasymlongrightarrow}\ \mbox{i}\ {\isasymle}\ f\ \mbox{i});\ \mbox{i}\ =\ Suc\ \mbox{nat}{\isasymrbrakk}\isanewline
+\ \ \ \ \ \ \ {\isasymLongrightarrow}\ \mbox{n}\ =\ f\ \mbox{i}\ {\isasymlongrightarrow}\ \mbox{i}\ {\isasymle}\ f\ \mbox{i}
+\end{isabellepar}%%
+\end{isamarkuptxt}%
+\isacommand{by}(blast\ intro!:\ f\_ax\ Suc\_leI\ intro:le\_less\_trans)%
+\begin{isamarkuptext}%
+\noindent
+It is not surprising if you find the last step puzzling.
+The proof goes like this (writing \isa{j} instead of \isa{nat}).
+Since \isa{\mbox{i}\ =\ Suc\ \mbox{j}} it suffices to show
+\isa{\mbox{j}\ <\ f\ (Suc\ \mbox{j})} (by \isa{Suc\_leI}: \isa{\mbox{?m}\ <\ \mbox{?n}\ {\isasymLongrightarrow}\ Suc\ \mbox{?m}\ {\isasymle}\ \mbox{?n}}). This is
+proved as follows. From \isa{f\_ax} we have \isa{f\ (f\ \mbox{j})\ <\ f\ (Suc\ \mbox{j})}
+(1) which implies \isa{f\ \mbox{j}\ {\isasymle}\ f\ (f\ \mbox{j})} (by the induction hypothesis).
+Using (1) once more we obtain \isa{f\ \mbox{j}\ <\ f\ (Suc\ \mbox{j})} (2) by transitivity
+(\isa{le_less_trans}: \isa{{\isasymlbrakk}\mbox{?i}\ {\isasymle}\ \mbox{?j};\ \mbox{?j}\ <\ \mbox{?k}{\isasymrbrakk}\ {\isasymLongrightarrow}\ \mbox{?i}\ <\ \mbox{?k}}).
+Using the induction hypothesis once more we obtain \isa{\mbox{j}\ {\isasymle}\ f\ \mbox{j}}
+which, together with (2) yields \isa{\mbox{j}\ <\ f\ (Suc\ \mbox{j})} (again by
+\isa{le_less_trans}).
+
+This last step shows both the power and the danger of automatic proofs: they
+will usually not tell you how the proof goes, because it can be very hard to
+translate the internal proof into a human-readable format. Therefore
+\S\ref{sec:part2?} introduces a language for writing readable yet concise
+proofs.
+
+We can now derive the desired \isa{\mbox{i}\ {\isasymle}\ f\ \mbox{i}} from \isa{f\_incr}:%
+\end{isamarkuptext}%
+\isacommand{lemmas}\ f\_incr\ =\ f\_incr\_lem[rulify,\ OF\ refl]%
+\begin{isamarkuptext}%
+The final \isa{refl} gets rid of the premise \isa{?k = f ?i}. Again, we could
+have included this derivation in the original statement of the lemma:%
+\end{isamarkuptext}%
+\isacommand{lemma}\ f\_incr[rulify,\ OF\ refl]:\ {"}{\isasymforall}i.\ k\ =\ f\ i\ {\isasymlongrightarrow}\ i\ {\isasymle}\ f\ i{"}%
+\begin{isamarkuptext}%
+\begin{exercise}
+From the above axiom and lemma for \isa{f} show that \isa{f} is the identity.
+\end{exercise}
+
+In general, \isa{induct\_tac} can be applied with any rule \isa{r}
+whose conclusion is of the form \isa{?P ?x1 \dots ?xn}, in which case the
+format is
+\begin{ttbox}
+apply(induct_tac y1 ... yn rule: r)
+\end{ttbox}\index{*induct_tac}%
+where \isa{y1}, \dots, \isa{yn} are variables in the first subgoal.
+In fact, \isa{induct\_tac} even allows the conclusion of
+\isa{r} to be an (iterated) conjunction of formulae of the above form, in
+which case the application is
+\begin{ttbox}
+apply(induct_tac y1 ... yn and ... and z1 ... zm rule: r)
+\end{ttbox}
+
+Finally we should mention that HOL already provides the mother of all
+inductions, \emph{wellfounded induction} (\isa{wf\_induct}):
+\begin{quote}
+
+\begin{isabelle}%
+{\isasymlbrakk}wf\ \mbox{?r};\ {\isasymAnd}\mbox{x}.\ {\isasymforall}\mbox{y}.\ (\mbox{y},\ \mbox{x})\ {\isasymin}\ \mbox{?r}\ {\isasymlongrightarrow}\ \mbox{?P}\ \mbox{y}\ {\isasymLongrightarrow}\ \mbox{?P}\ \mbox{x}{\isasymrbrakk}\ {\isasymLongrightarrow}\ \mbox{?P}\ \mbox{?a}
+\end{isabelle}%
+
+\end{quote}
+For details see the library.%
+\end{isamarkuptext}%
+\end{isabelle}%
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: "root"
+%%% End:
