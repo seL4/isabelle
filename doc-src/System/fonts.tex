@@ -133,6 +133,23 @@ definitions, symbols appear only in mixfix annotations (using the
 \textsc{ascii}.  Thus users with \textsc{ascii}-only facilities will still be
 able to read your files.
 
+
+\section{Remove unreadable symbol names from sources --- \texttt{isatool unsymbolize}}
+
+The \tooldx{unsymbolize} utility tunes Isabelle theory sources to improve
+readability for plain ASCII output (e.g.\ in mail communication).  Most
+notably, \texttt{unsymbolize} replaces arrow symbols such as
+\verb|\<Longrightarrow>| by \verb|==>|.
+\begin{ttbox}
+Usage: unsymbolize [FILES|DIRS...]
+
+  Recursively find .thy/.ML files, removing unreadable symbol names.
+  Note: this is an ad-hoc script; there is no systematic way to replace
+  symbols independently of the inner syntax of a theory!
+
+  Renames old versions of FILES by appending "~~".
+\end{ttbox}
+
 %%% Local Variables: 
 %%% mode: latex
 %%% TeX-master: "system"
