@@ -611,6 +611,12 @@ fun overwrite (al, p as (key, _)) =
         | over [] = [p]
   in over al end;
 
+fun gen_overwrite eq (al, p as (key, _)) =
+  let fun over ((q as (keyi, _)) :: pairs) =
+            if eq (keyi, key) then p :: pairs else q :: (over pairs)
+        | over [] = [p]
+  in over al end;
+
 
 
 (** generic tables **)
