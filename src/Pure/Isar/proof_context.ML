@@ -13,6 +13,7 @@ sig
   exception CONTEXT of string * context
   val theory_of: context -> theory
   val sign_of: context -> Sign.sg
+  val syntax_of: context -> Syntax.syntax * string list * string list  (* FIXME *)
   val fixed_names_of: context -> string list
   val assumptions_of: context -> (cterm list * exporter) list
   val prems_of: context -> thm list
@@ -100,6 +101,7 @@ sig
   val add_cases: (string * RuleCases.T) list -> context -> context
   val apply_case: RuleCases.T -> context -> context * ((indexname * term option) list * term list)
   val show_hyps: bool ref
+  val add_syntax: (string * typ option * mixfix option) list -> context -> context
   val pretty_term: context -> term -> Pretty.T
   val pretty_typ: context -> typ -> Pretty.T
   val pretty_sort: context -> sort -> Pretty.T
@@ -108,6 +110,7 @@ sig
   val string_of_term: context -> term -> string
   val verbose: bool ref
   val setmp_verbose: ('a -> 'b) -> 'a -> 'b
+  val print_syntax: context -> unit
   val print_binds: context -> unit
   val print_lthms: context -> unit
   val print_cases: context -> unit
@@ -137,32 +140,34 @@ type exporter = bool -> cterm list -> thm -> thm Seq.seq;
 
 datatype context =
   Context of
-   {thy: theory,                                                        (*current theory*)
-    data: Object.T Symtab.table,                                        (*user data*)
+   {thy: theory,                                           (*current theory*)
+    syntax: Syntax.syntax * string list * string list,     (*syntax with structs and mixfixed*)
+    data: Object.T Symtab.table,                           (*user data*)
     asms:
-      ((cterm list * exporter) list *                                   (*assumes: A ==> _*)
+      ((cterm list * exporter) list *                      (*assumes: A ==> _*)
         (string * thm list) list) *
-      ((string * string) list * string list),                           (*fixes: !!x. _*)
-    binds: (term * typ) option Vartab.table,                            (*term bindings*)
-    thms: thm list option Symtab.table,                                 (*local thms*)
-    cases: (string * RuleCases.T) list,                                 (*local contexts*)
+      ((string * string) list * string list),              (*fixes: !!x. _*)
+    binds: (term * typ) option Vartab.table,               (*term bindings*)
+    thms: thm list option Symtab.table,                    (*local thms*)
+    cases: (string * RuleCases.T) list,                    (*local contexts*)
     defs:
-      typ Vartab.table *                                                (*type constraints*)
-      sort Vartab.table *                                               (*default sorts*)
-      (string list * term list Symtab.table)};                          (*used type variables*)
+      typ Vartab.table *                                   (*type constraints*)
+      sort Vartab.table *                                  (*default sorts*)
+      (string list * term list Symtab.table)};             (*used type variables*)
 
 exception CONTEXT of string * context;
 
 
-fun make_context (thy, data, asms, binds, thms, cases, defs) =
-  Context {thy = thy, data = data, asms = asms, binds = binds, thms = thms,
-    cases = cases, defs = defs};
+fun make_context (thy, syntax, data, asms, binds, thms, cases, defs) =
+  Context {thy = thy, syntax = syntax, data = data, asms = asms, binds = binds,
+    thms = thms, cases = cases, defs = defs};
 
-fun map_context f (Context {thy, data, asms, binds, thms, cases, defs}) =
-  make_context (f (thy, data, asms, binds, thms, cases, defs));
+fun map_context f (Context {thy, syntax, data, asms, binds, thms, cases, defs}) =
+  make_context (f (thy, syntax, data, asms, binds, thms, cases, defs));
 
 fun theory_of (Context {thy, ...}) = thy;
 val sign_of = Theory.sign_of o theory_of;
+fun syntax_of (Context {syntax, ...}) = syntax;
 
 fun fixes_of (Context {asms = (_, (fixes, _)), ...}) = fixes;
 val fixed_names_of = map #2 o fixes_of;
@@ -254,16 +259,17 @@ fun print_data kind ctxt =
 
 fun put_data kind f x ctxt =
  (lookup_data ctxt kind;
-  ctxt |> map_context (fn (thy, data, asms, binds, thms, cases, defs) =>
-    (thy, Symtab.update ((Object.name_of_kind kind, f x), data), asms, binds, thms, cases, defs)));
+  map_context (fn (thy, syntax, data, asms, binds, thms, cases, defs) =>
+    (thy, syntax, Symtab.update ((Object.name_of_kind kind, f x), data),
+      asms, binds, thms, cases, defs)) ctxt);
 
 
 (* init context *)
 
 fun init thy =
   let val data = Symtab.map (fn (_, (f, _)) => f thy) (ProofDataData.get thy) in
-    make_context (thy, data, (([], []), ([], [])), Vartab.empty, Symtab.empty, [],
-      (Vartab.empty, Vartab.empty, ([], Symtab.empty)))
+    make_context (thy, (Theory.syn_of thy, [], []), data, (([], []), ([], [])), Vartab.empty,
+      Symtab.empty, [], (Vartab.empty, Vartab.empty, ([], Symtab.empty)))
   end;
 
 
@@ -288,7 +294,7 @@ fun def_type (Context {binds, defs = (types, _, _), ...}) is_pat xi =
 local
 
 fun read_typ_aux read ctxt s =
-  transform_error (read (sign_of ctxt, def_sort ctxt)) s
+  transform_error (read (#1 (syntax_of ctxt)) (sign_of ctxt, def_sort ctxt)) s
     handle ERROR_MESSAGE msg => raise CONTEXT (msg, ctxt);
 
 fun cert_typ_aux cert ctxt raw_T =
@@ -297,8 +303,8 @@ fun cert_typ_aux cert ctxt raw_T =
 
 in
 
-val read_typ = read_typ_aux Sign.read_typ;
-val read_typ_no_norm = read_typ_aux Sign.read_typ_no_norm;
+val read_typ = read_typ_aux Sign.read_typ';
+val read_typ_no_norm = read_typ_aux Sign.read_typ_no_norm';
 val cert_typ = cert_typ_aux Sign.certify_typ;
 val cert_typ_no_norm = cert_typ_aux Sign.certify_typ_no_norm;
 
@@ -356,16 +362,20 @@ fun extern_skolem ctxt =
 
 (* read / certify wrt. signature *)     (*exception ERROR*) (*exception TERM*)
 
-fun read_def_termTs freeze sg (types, sorts, used) sTs =
-  Sign.read_def_terms (sg, types, sorts) used freeze sTs;
+fun read_def_termTs freeze syn sg (types, sorts, used) sTs =
+  Sign.read_def_terms' syn (sg, types, sorts) used freeze sTs;
 
-fun read_def_termT freeze sg defs sT = apfst hd (read_def_termTs freeze sg defs [sT]);
+fun read_def_termT freeze syn sg defs sT = apfst hd (read_def_termTs freeze syn sg defs [sT]);
 
-fun read_term_sg freeze sg defs s = #1 (read_def_termT freeze sg defs (s, TypeInfer.logicT));
-fun read_prop_sg freeze sg defs s = #1 (read_def_termT freeze sg defs (s, propT));
-fun read_terms_sg freeze sg defs =
-  #1 o read_def_termTs freeze sg defs o map (rpair TypeInfer.logicT);
-fun read_props_sg freeze sg defs = #1 o read_def_termTs freeze sg defs o map (rpair propT);
+fun read_term_sg freeze syn sg defs s =
+  #1 (read_def_termT freeze syn sg defs (s, TypeInfer.logicT));
+
+fun read_prop_sg freeze syn sg defs s = #1 (read_def_termT freeze syn sg defs (s, propT));
+
+fun read_terms_sg freeze syn sg defs =
+  #1 o read_def_termTs freeze syn sg defs o map (rpair TypeInfer.logicT);
+
+fun read_props_sg freeze syn sg defs = #1 o read_def_termTs freeze syn sg defs o map (rpair propT);
 
 
 fun cert_term_sg sg t = Thm.term_of (Thm.cterm_of sg t);
@@ -426,7 +436,8 @@ fun reject_dummies ctxt t = Term.no_dummy_patterns t
 local
 
 fun gen_read read app is_pat schematic (ctxt as Context {defs = (_, _, (used, _)), ...}) s =
-  (transform_error (read (sign_of ctxt) (def_type ctxt is_pat, def_sort ctxt, used)) s
+  (transform_error (read (#1 (syntax_of ctxt))
+      (sign_of ctxt) (def_type ctxt is_pat, def_sort ctxt, used)) s
     handle TERM (msg, _) => raise CONTEXT (msg, ctxt)
     | ERROR_MESSAGE msg => raise CONTEXT (msg, ctxt))
   |> app (intern_skolem ctxt)
@@ -494,8 +505,8 @@ fun ins_skolem def_ty = foldr
       Some T => Vartab.update (((x, ~1), T), types)
     | None => types));
 
-fun map_defaults f = map_context (fn (thy, data, asms, binds, thms, cases, defs) =>
-  (thy, data, asms, binds, thms, cases, f defs));
+fun map_defaults f = map_context (fn (thy, syntax, data, asms, binds, thms, cases, defs) =>
+  (thy, syntax, data, asms, binds, thms, cases, f defs));
 
 fun declare_syn (ctxt, t) =
   ctxt
@@ -518,9 +529,69 @@ end;
 
 
 
-(** pretty printing **)  (* FIXME observe local syntax *)
+(** local syntax **)
 
-val pretty_term = Sign.pretty_term o sign_of;
+val fixedN = "\\<^fixed>";
+val structN = "\\<^struct>";
+
+
+(* add_syntax *)
+
+local
+
+val aT = TFree ("'a", logicS);
+
+fun mixfix x None mx = (fixedN ^ x, replicate (Syntax.mixfix_args mx) aT ---> aT, mx)
+  | mixfix x (Some T) mx = (fixedN ^ x, T, mx);
+
+fun prep_mixfix (_, _, None) = None
+  | prep_mixfix (x, opt_T, Some mx) = Some (mixfix x opt_T mx);
+
+fun prep_mixfix' (_, _, None) = None
+  | prep_mixfix' (x, _, Some Syntax.NoSyn) = None
+  | prep_mixfix' (x, opt_T, _) = Some (x, mixfix x opt_T (Syntax.Delimfix x));
+
+fun fixed_tr x = (fixedN ^ x, curry Term.list_comb (Syntax.free x));
+
+fun prep_struct (x, _, None) = Some x
+  | prep_struct _ = None;
+
+in
+
+fun add_syntax decls =
+  map_context (fn (thy, (syn, structs, mixfixed), data, asms, binds, thms, cases, defs) =>
+    let
+      val structs' = mapfilter prep_struct decls @ structs;
+      val mxs = mapfilter prep_mixfix decls;
+      val (fixed, mxs_output) = Library.split_list (mapfilter prep_mixfix' decls);
+      val trs = map fixed_tr fixed;
+      val syn' = syn
+        |> Syntax.extend_const_gram ("", false) mxs_output
+        |> Syntax.extend_const_gram ("", true) mxs
+        |> Syntax.extend_trfuns ([], trs, [], []);
+    in (thy, (syn', structs', fixed @ mixfixed), data, asms, binds, thms, cases, defs) end)
+
+end;
+
+
+(* annotate_term *)  (* FIXME structs *)
+
+fun annotate_term ctxt =
+  let
+    val (_, structs, mixfixed) = syntax_of ctxt;
+    fun annotate (t as Free (x, T)) = if x mem_string mixfixed then Const (fixedN ^ x, T) else t
+      | annotate (t $ u) = annotate t $ annotate u
+      | annotate (Abs (x, T, t)) = Abs (x, T, annotate t)
+      | annotate a = a;
+  in annotate end;
+
+
+
+(** pretty printing **)
+
+fun pretty_term ctxt =
+  Sign.pretty_term' (#1 (syntax_of ctxt)) (sign_of ctxt) o annotate_term ctxt;
+
 val pretty_typ = Sign.pretty_typ o sign_of;
 val pretty_sort = Sign.pretty_sort o sign_of;
 
@@ -529,7 +600,8 @@ val string_of_term = Pretty.string_of oo pretty_term;
 val show_hyps = ref false;
 
 fun pretty_thm ctxt thm =
-  if ! show_hyps then setmp Display.show_hyps true Display.pretty_thm_no_quote thm
+  if ! show_hyps then setmp Display.show_hyps true (fn () =>
+    Display.pretty_thm_aux (pretty_sort ctxt) (pretty_term ctxt) false thm) ()
   else pretty_term ctxt (#prop (Thm.rep_thm thm));
 
 fun pretty_thms ctxt [th] = pretty_thm ctxt th
@@ -630,8 +702,8 @@ fun export is_goal inner outer =
 
 fun del_bind (ctxt, xi) =
   ctxt
-  |> map_context (fn (thy, data, asms, binds, thms, cases, defs) =>
-      (thy, data, asms, Vartab.update ((xi, None), binds), thms, cases, defs));
+  |> map_context (fn (thy, syntax, data, asms, binds, thms, cases, defs) =>
+      (thy, syntax, data, asms, Vartab.update ((xi, None), binds), thms, cases, defs));
 
 fun upd_bind (ctxt, ((x, i), t)) =
   let
@@ -642,8 +714,8 @@ fun upd_bind (ctxt, ((x, i), t)) =
   in
     ctxt
     |> declare_term t'
-    |> map_context (fn (thy, data, asms, binds, thms, cases, defs) =>
-        (thy, data, asms, Vartab.update (((x, i), Some (t', T)), binds), thms, cases, defs))
+    |> map_context (fn (thy, syntax, data, asms, binds, thms, cases, defs) =>
+      (thy, syntax, data, asms, Vartab.update (((x, i), Some (t', T)), binds), thms, cases, defs))
   end;
 
 fun del_upd_bind (ctxt, (xi, None)) = del_bind (ctxt, xi)
@@ -819,8 +891,8 @@ val get_thms_closure = retrieve_thms PureThy.get_thms_closure (K I);
 
 fun put_thms ("", _) = I
   | put_thms (name, ths) = map_context
-      (fn (thy, data, asms, binds, thms, cases, defs) =>
-        (thy, data, asms, binds, Symtab.update ((name, Some ths), thms), cases, defs));
+      (fn (thy, syntax, data, asms, binds, thms, cases, defs) =>
+        (thy, syntax, data, asms, binds, Symtab.update ((name, Some ths), thms), cases, defs));
 
 fun put_thm (name, th) = put_thms (name, [th]);
 
@@ -830,8 +902,8 @@ fun put_thmss [] ctxt = ctxt
 
 (* reset_thms *)
 
-fun reset_thms name = map_context (fn (thy, data, asms, binds, thms, cases, defs) =>
-  (thy, data, asms, binds, Symtab.update ((name, None), thms), cases, defs));
+fun reset_thms name = map_context (fn (thy, syntax, data, asms, binds, thms, cases, defs) =>
+  (thy, syntax, data, asms, binds, Symtab.update ((name, None), thms), cases, defs));
 
 
 (* have_thmss *)
@@ -920,10 +992,9 @@ fun gen_assms prepp exp args ctxt =
     val cprops = flat (map #1 results);
     val asmss = map #2 results;
     val thmss = map #3 results;
-    val ctxt3 =
-      ctxt2
-      |> map_context (fn (thy, data, ((asms_ct, asms_th), fixes), binds, thms, cases, defs) =>
-        (thy, data, ((asms_ct @ [(cprops, exp)], asms_th @ asmss), fixes), binds, thms,
+    val ctxt3 = ctxt2 |> map_context
+      (fn (thy, syntax, data, ((asms_ct, asms_th), fixes), binds, thms, cases, defs) =>
+        (thy, syntax, data, ((asms_ct @ [(cprops, exp)], asms_th @ asmss), fixes), binds, thms,
           cases, defs));
     val ctxt4 = ctxt3 |> put_thms ("prems", prems_of ctxt3);
   in (warn_extra_tfrees ctxt ctxt4, thmss) end;
@@ -962,8 +1033,8 @@ end;
 
 local
 
-fun map_vars f = map_context (fn (thy, data, (assumes, vars), binds, thms, cases, defs) =>
-  (thy, data, (assumes, f vars), binds, thms, cases, defs));
+fun map_vars f = map_context (fn (thy, syntax, data, (assumes, vars), binds, thms, cases, defs) =>
+  (thy, syntax, data, (assumes, f vars), binds, thms, cases, defs));
 
 fun err_dups ctxt xs = raise CONTEXT ("Duplicate variable(s): " ^ commas_quote xs, ctxt);
 
@@ -1038,8 +1109,8 @@ fun get_case (ctxt as Context {cases, ...}) name xs =
   | Some c => prep_case ctxt name xs c);
 
 
-fun add_cases xs = map_context (fn (thy, data, asms, binds, thms, cases, defs) =>
-  (thy, data, asms, binds, thms, rev (filter_out (equal "" o #1) xs) @ cases, defs));
+fun add_cases xs = map_context (fn (thy, syntax, data, asms, binds, thms, cases, defs) =>
+  (thy, syntax, data, asms, binds, thms, rev (filter_out (equal "" o #1) xs) @ cases, defs));
 
 
 
@@ -1059,6 +1130,11 @@ fun pretty_items prt name items =
     if null items andalso not (! verbose) then []
     else [Pretty.big_list name (map prt_itms items)]
   end;
+
+
+(* local syntax *)
+
+val print_syntax = Syntax.print_syntax o #1 o syntax_of;
 
 
 (* term bindings *)
