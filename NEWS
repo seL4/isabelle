@@ -80,11 +80,10 @@ logics (again);
 
 *** HOL ***
 
-* HOL/TLA: Stephan Merz's formalization of Lamport's Temporal Logic of
-Actions;
+* HOL/TLA: Stephan Merz's formalization of Lamport's Temporal Logic of Actions;
 
 * HOL/Auth: new protocol proofs including some for the Internet
-protocol TLS;
+  protocol TLS;
 
 * HOL/Map: new theory of `maps' a la VDM.
 
@@ -95,10 +94,25 @@ protocol TLS;
 * HOL/simplifier: terms of the form
   `? x. P1(x) & ... & Pn(x) & x=t & Q1(x) & ... Qn(x)' (or t=x)
   are rewritten to
-  `P1(t) & ... & Pn(t) & Q1(t) & ... Qn(t)'
+  `P1(t) & ... & Pn(t) & Q1(t) & ... Qn(t)',
+  and those of the form
+  `! x. P1(x) & ... & Pn(x) & x=t & Q1(x) & ... Qn(x) --> R(x)' (or t=x)
+  are rewritten to
+  `P1(t) & ... & Pn(t) & Q1(t) & ... Qn(t) --> R(t)',
 
-* HOL/Lists: the function "set_of_list" has been renamed "set" (and
-its theorems too);
+* HOL/datatype
+  Each datatype `t' now comes with a theorem `split_t_case' of the form
+
+  P(t_case f1 ... fn x) =
+     ( (!y1 ... ym1. x = C1 y1 ... ym1 --> P(f1 y1 ... ym1)) &
+        ...
+        (!y1 ... ymn. x = Cn y1 ... ymn --> P(f1 y1 ... ymn))
+     )
+
+  which can be added to a simpset via `addsplits'.
+
+* HOL/Lists: the function "set_of_list" has been renamed "set"
+  (and its theorems too);
 
 
 *** HOLCF ***
