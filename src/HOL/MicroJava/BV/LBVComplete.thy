@@ -6,10 +6,12 @@
 
 header {* Completeness of the LBV *}
 
-theory LBVComplete = LBVSpec:;
+theory LBVComplete = BVSpec + LBVSpec:
 
-ML_setup {* bind_thm ("widen_RefT", widen_RefT) *};
-ML_setup {* bind_thm ("widen_RefT2", widen_RefT2) *};
+
+ML_setup {* bind_thm ("widen_RefT", widen_RefT) *}
+ML_setup {* bind_thm ("widen_RefT2", widen_RefT2) *}
+
 
 constdefs
   is_approx :: "['a option list, 'a list] \\<Rightarrow> bool"
@@ -18,14 +20,14 @@ constdefs
   
   contains_dead :: "[instr list, certificate, method_type, p_count] \\<Rightarrow> bool"
   "contains_dead ins cert phi pc \\<equiv>
-    (((\\<exists> branch. ins!pc = (Goto branch)) \\<or> ins!pc = Return) \\<or>
-     (\\<exists>m l. ins!pc = Invoke m l)) \\<longrightarrow> Suc pc < length phi \\<longrightarrow>
-      cert ! (Suc pc) = Some (phi ! Suc pc)"
+     Suc pc \\<notin> succs (ins!pc) pc \\<and> Suc pc < length phi \\<longrightarrow>
+     cert ! (Suc pc) = Some (phi ! Suc pc)"
 
   contains_targets :: "[instr list, certificate, method_type, p_count] \\<Rightarrow> bool"
-  "contains_targets ins cert phi pc \\<equiv> 
-    \\<forall> branch. (ins!pc = (Goto branch) \\<or> ins!pc = (Ifcmpeq branch)) \\<longrightarrow>
-        (let pc' = nat (int pc+branch) in pc' < length phi \\<longrightarrow> cert!pc' = Some (phi!pc'))" 
+  "contains_targets ins cert phi pc \\<equiv> (
+     \\<forall> pc' \\<in> succs (ins!pc) pc. pc' \\<noteq> Suc pc \\<and> pc' < length phi \\<longrightarrow> 
+     cert!pc' = Some (phi!pc'))" 
+
 
   fits :: "[instr list, certificate, method_type] \\<Rightarrow> bool"
   "fits ins cert phi \\<equiv> is_approx cert phi \\<and> length ins < length phi \\<and>
@@ -34,28 +36,21 @@ constdefs
                                    contains_targets ins cert phi pc)"
 
   is_target :: "[instr list, p_count] \\<Rightarrow> bool" 
-  "is_target ins pc \\<equiv> 
-     \\<exists> pc' branch. pc' < length ins \\<and> 
-                   (ins ! pc' = (Ifcmpeq branch) \\<or> ins ! pc' = (Goto branch)) \\<and> 
-                   pc = (nat(int pc'+branch))"
-  
-  maybe_dead :: "[instr list, p_count] \\<Rightarrow> bool"
-  "maybe_dead ins pc \\<equiv>
-     \\<exists> pc'. pc = pc'+1 \\<and> ((\\<exists> branch. ins!pc' = (Goto branch)) \\<or>
-                          ins!pc' = Return \\<or>
-                          (\\<exists>m l. ins!pc' = Invoke m l))"
+  "is_target ins pc \\<equiv> \\<exists> pc'. pc' < length ins \\<and> pc \\<in> succs (ins!pc') pc'"
 
+  maybe_dead :: "[instr list, p_count] \\<Rightarrow> bool"
+  "maybe_dead ins pc \\<equiv> \\<exists> pc'. pc = pc'+1 \\<and> pc \\<notin> succs (ins!pc') pc'"
 
   mdot :: "[instr list, p_count] \\<Rightarrow> bool"
-  "mdot ins pc \\<equiv> maybe_dead ins pc \\<or> is_target ins pc";
+  "mdot ins pc \\<equiv> maybe_dead ins pc \\<or> is_target ins pc"
 
 
 consts
-  option_filter_n :: "['a list, nat \\<Rightarrow> bool, nat] \\<Rightarrow> 'a option list";
+  option_filter_n :: "['a list, nat \\<Rightarrow> bool, nat] \\<Rightarrow> 'a option list"
 primrec 
   "option_filter_n []    P n = []"  
   "option_filter_n (h#t) P n = (if (P n) then Some h # option_filter_n t P (n+1) 
-                                         else None   # option_filter_n t P (n+1))";  
+                                         else None   # option_filter_n t P (n+1))"  
   
 constdefs 
   option_filter :: "['a list, nat \\<Rightarrow> bool] \\<Rightarrow> 'a option list" 
@@ -68,678 +63,267 @@ constdefs
   "make_Cert G Phi \\<equiv>  \\<lambda> C sig.
     let (C,x,y,mdecls) = \\<epsilon> (Cl,x,y,mdecls). (Cl,x,y,mdecls) \\<in> set G \\<and> Cl = C in
       let (sig,rT,maxl,b) = \\<epsilon> (sg,rT,maxl,b). (sg,rT,maxl,b) \\<in> set mdecls \\<and> sg = sig in
-        make_cert b (Phi C sig)";
+        make_cert b (Phi C sig)"
   
 
-lemma length_ofn: "\\<forall>n. length (option_filter_n l P n) = length l";
-  by (induct l) auto;
+lemma length_ofn: "\\<forall>n. length (option_filter_n l P n) = length l"
+  by (induct l) auto
 
 lemma is_approx_option_filter_n:
-"\\<forall>n. is_approx (option_filter_n a P n) a" (is "?P a");
-proof (induct a);
-  show "?P []"; by (auto simp add: is_approx_def);
+"\\<forall>n. is_approx (option_filter_n a P n) a" (is "?P a")
+proof (induct a)
+  show "?P []" by (auto simp add: is_approx_def)
 
-  fix l ls;
-  assume Cons: "?P ls";
+  fix l ls
+  assume Cons: "?P ls"
 
-  show "?P (l#ls)";
-  proof (unfold is_approx_def, intro allI conjI impI);
-    fix n;
-    show "length (option_filter_n (l # ls) P n) = length (l # ls)"; 
-      by (simp only: length_ofn);
+  show "?P (l#ls)"
+  proof (unfold is_approx_def, intro allI conjI impI)
+    fix n
+    show "length (option_filter_n (l # ls) P n) = length (l # ls)" 
+      by (simp only: length_ofn)
     
-    fix m;
-    assume "m < length (option_filter_n (l # ls) P n)";
-    hence m: "m < Suc (length ls)"; by (simp only: length_ofn) simp;
+    fix m
+    assume "m < length (option_filter_n (l # ls) P n)"
+    hence m: "m < Suc (length ls)" by (simp only: length_ofn) simp
  
     show "option_filter_n (l # ls) P n ! m = None \\<or>
-          option_filter_n (l # ls) P n ! m = Some ((l # ls) ! m)"; 
-    proof (cases "m");
-      assume "m = 0";
-      with m; show ?thesis; by simp;
-    next;
-      fix m'; assume Suc: "m = Suc m'";
-      from Cons;
-      show ?thesis;
-      proof (unfold is_approx_def, elim allE impE conjE);
-        from m Suc;
-        show "m' < length (option_filter_n ls P (Suc n))"; by (simp add: length_ofn);
+          option_filter_n (l # ls) P n ! m = Some ((l # ls) ! m)" 
+    proof (cases "m")
+      assume "m = 0"
+      with m show ?thesis by simp
+    next
+      fix m' assume Suc: "m = Suc m'"
+      from Cons
+      show ?thesis
+      proof (unfold is_approx_def, elim allE impE conjE)
+        from m Suc
+        show "m' < length (option_filter_n ls P (Suc n))" by (simp add: length_ofn)
 
         assume "option_filter_n ls P (Suc n) ! m' = None \\<or> 
-                option_filter_n ls P (Suc n) ! m' = Some (ls ! m')";
-        with m Suc;
-        show ?thesis; by auto;
-      qed;
-    qed;
-  qed;
-qed;
-
-lemma is_approx_option_filter: "is_approx (option_filter l P) l"; 
-  by (simp add: option_filter_def is_approx_option_filter_n);
-
-lemma option_filter_Some:
-"\\<lbrakk>n < length l; P n\\<rbrakk> \\<Longrightarrow> option_filter l P ! n = Some (l!n)";
-proof -;
-  
-  assume 1: "n < length l" "P n";
-
-  have "\\<forall>n n'. n < length l \\<longrightarrow> P (n+n') \\<longrightarrow>  option_filter_n l P n' ! n = Some (l!n)"
-    (is "?P l");
-  proof (induct l);
-    show "?P []"; by simp;
-
-    fix l ls; assume Cons: "?P ls";
-    show "?P (l#ls)";
-    proof (intro);
-      fix n n';
-      assume l: "n < length (l # ls)";
-      assume P: "P (n + n')";
-      show "option_filter_n (l # ls) P n' ! n = Some ((l # ls) ! n)";
-      proof (cases "n");
-        assume "n=0";
-        with P; show ?thesis; by simp;
-      next;
-        fix m; assume "n = Suc m";
-        with l P Cons;
-        show ?thesis; by simp;
-      qed;
-    qed;
-  qed;
-
-  with 1;
-  show ?thesis; by (auto simp add: option_filter_def);
-qed;
-
-lemma option_filter_contains_dead:
-"contains_dead ins (option_filter phi (mdot ins)) phi pc"; 
-  by (auto intro: option_filter_Some simp add: contains_dead_def mdot_def maybe_dead_def);
-
-lemma option_filter_contains_targets:
-"pc < length ins \\<Longrightarrow> contains_targets ins (option_filter phi (mdot ins)) phi pc";
-proof (simp add: contains_targets_def, intro allI impI conjI); 
-
-  fix branch;
-  assume 1: "ins ! pc = Goto branch" 
-            "nat (int pc + branch) < length phi"
-            "pc < length ins";
-
-  show "option_filter phi (mdot ins) ! nat (int pc + branch) = Some (phi ! nat (int pc + branch))";
-  proof (rule option_filter_Some);
-    from 1; show "nat (int pc + branch) < length phi"; by simp;
-    from 1;
-    have "is_target ins (nat (int pc + branch))"; by (auto simp add: is_target_def);
-    thus "mdot ins (nat (int pc + branch))"; by (simp add: mdot_def);
-  qed;
-
-next;
-  fix branch;
-  assume 2: "ins ! pc = Ifcmpeq branch" 
-            "nat (int pc + branch) < length phi"
-            "pc < length ins";
-
-  show "option_filter phi (mdot ins) ! nat (int pc + branch) = Some (phi ! nat (int pc + branch))";
-  proof (rule option_filter_Some);
-    from 2; show "nat (int pc + branch) < length phi"; by simp;
-    from 2;
-    have "is_target ins (nat (int pc + branch))"; by (auto simp add: is_target_def);
-    thus "mdot ins (nat (int pc + branch))"; by (simp add: mdot_def);
-  qed;
-
-qed;
-
-
-lemma fits_make_cert:
-  "length ins < length phi \\<Longrightarrow> fits ins (make_cert ins phi) phi";
-proof -;
-  assume l: "length ins < length phi";
-
-  thus "fits ins (make_cert ins phi) phi";
-  proof (unfold fits_def make_cert_def, intro conjI allI impI);
-    show "is_approx (option_filter phi (mdot ins)) phi"; by (rule is_approx_option_filter);
-    show "length ins < length phi"; .;
-
-    fix pc;
-    show "contains_dead ins (option_filter phi (mdot ins)) phi pc"; by (rule option_filter_contains_dead);
-    
-    assume "pc < length ins"; 
-    thus "contains_targets ins (option_filter phi (mdot ins)) phi pc"; by (rule option_filter_contains_targets);
-  qed;
-qed;
-
-
-
-lemma append_length_n: "\\<forall>n. n \\<le> length x \\<longrightarrow> (\\<exists>a b. x = a@b \\<and> length a = n)" (is "?P x");
-proof (induct "?P" "x");
-  show "?P []"; by simp;
-
-  fix l ls; assume Cons: "?P ls";
-
-  show "?P (l#ls)";
-  proof (intro allI impI);
-    fix n;
-    assume l: "n \\<le> length (l # ls)";
-
-    show "\\<exists>a b. l # ls = a @ b \\<and> length a = n"; 
-    proof (cases n);
-      assume "n=0"; thus ?thesis; by simp;
-    next;
-      fix "n'"; assume s: "n = Suc n'";
-      with l; 
-      have  "n' \\<le> length ls"; by simp; 
-      hence "\\<exists>a b. ls = a @ b \\<and> length a = n'"; by (rule Cons [rulify]);
-      thus ?thesis;
-      proof elim;
-        fix a b; 
-        assume "ls = a @ b" "length a = n'";
-        with s;
-        have "l # ls = (l#a) @ b \\<and> length (l#a) = n"; by simp;
-        thus ?thesis; by blast;
-      qed;
-    qed;
-  qed;
-qed;
-
-
-
-lemma rev_append_cons:
-"\\<lbrakk>n < length x\\<rbrakk> \\<Longrightarrow> \\<exists>a b c. x = (rev a) @ b # c \\<and> length a = n";
-proof -;
-  assume n: "n < length x";
-  hence "n \\<le> length x"; by simp;
-  hence "\\<exists>a b. x = a @ b \\<and> length a = n"; by (rule append_length_n [rulify]);
-  thus ?thesis;
-  proof elim;
-    fix r d; assume x: "x = r@d" "length r = n";
-    with n;
-    have "\\<exists>b c. d = b#c"; by (simp add: neq_Nil_conv);
-    
-    thus ?thesis; 
-    proof elim;
-      fix b c; 
-      assume "d = b#c";
-      with x;
-      have "x = (rev (rev r)) @ b # c \\<and> length (rev r) = n"; by simp;
-      thus ?thesis; by blast;
-    qed;
-  qed;
-qed;
-
-lemma widen_NT: "G \\<turnstile> b \\<preceq> NT \\<Longrightarrow> b = NT";
-proof (cases b); 
-  case RefT;
-  thus "G\\<turnstile>b\\<preceq>NT \\<Longrightarrow> b = NT"; by - (cases ref_ty, auto);
-qed auto;
-
-lemma widen_Class: "G \\<turnstile> b \\<preceq> Class C \\<Longrightarrow> \\<exists>r. b = RefT r";
-by (cases b) auto;
-
-lemma all_widen_is_sup_loc:
-"\\<forall>b. length a = length b \\<longrightarrow> (\\<forall>x\\<in>set (zip a b). x \\<in> widen G) = (G \\<turnstile> (map Some a) <=l (map Some b))" 
- (is "\\<forall>b. length a = length b \\<longrightarrow> ?Q a b" is "?P a");
-proof (induct "a");
-  show "?P []"; by simp;
-
-  fix l ls; assume Cons: "?P ls";
-
-  show "?P (l#ls)"; 
-  proof (intro allI impI);
-    fix b; 
-    assume "length (l # ls) = length (b::ty list)"; 
-    with Cons;
-    show "?Q (l # ls) b"; by - (cases b, auto);
-  qed;
-qed;
-
-lemma method_inv_pseudo_mono:
-"\\<lbrakk>fits ins cert phi; i = ins!pc; i = Invoke mname list; pc < length ins; 
-  wf_prog wf_mb G;   G \\<turnstile> (x, y) <=s s1; wtl_inst (ins!pc) G rT s1 s1' cert mpc pc\\<rbrakk> 
- \\<Longrightarrow> \\<exists>s2'. wtl_inst i G rT (x, y) s2' cert mpc pc \\<and> \
-          ((G \\<turnstile> s2' <=s s1') \\<or> (\\<exists> s. cert ! (Suc pc) = Some s \\<and> (G \\<turnstile> s2' <=s s)))";
-proof -
-  assume fits: "fits ins cert phi" and
-         i: "i = ins ! pc" "i = Invoke mname list" and
-         pc: "pc < length ins" and
-         wfp: "wf_prog wf_mb G" and
-         "wtl_inst (ins!pc) G rT s1 s1' cert mpc pc" and
-         lt: "G \\<turnstile> (x, y) <=s s1";
- 
-  thus ?thesis
-  proof (clarsimp_tac simp del: split_paired_Ex)
-    fix apTs X  ST' y' s;
-
-    assume G: "G \\<turnstile> (x, y) <=s (rev apTs @ X # ST', y')";
-    assume lapTs: "length apTs = length list";
-    assume "cert ! Suc pc = Some s"; 
-    assume wtl: "s = s1' \\<and> X = NT \\<or>
-            G \\<turnstile> s1' <=s s \\<and>
-            (\\<exists>C. X = Class C \\<and>
-                 (\\<forall>x\\<in>set (zip apTs list). x \\<in> widen G) \\<and>
-                 (\\<exists>D rT. (\\<exists>b. method (G, C) (mname, list) = Some (D, rT, b)) \\<and>
-                         (rT # ST', y') = s1'))" (is "?NT \\<or> ?ClassC");
-    
-    from G;
-    have "\\<exists>a b c. x = rev a @ b # c \\<and> length a = length apTs";
-      by - (rule rev_append_cons, simp add: sup_state_length_fst);
-
-    thus "\\<exists>s2'. (\\<exists>apTs X ST'.
-                   x = rev apTs @ X # ST' \\<and>
-                   length apTs = length list \\<and>
-                   (s = s2' \\<and> X = NT \\<or>
-                    G \\<turnstile> s2' <=s s \\<and>
-                    (\\<exists>C. X = Class C \\<and>
-                         (\\<forall>x\\<in>set (zip apTs list). x \\<in> widen G) \\<and>
-                         (\\<exists>D rT. (\\<exists>b. method (G, C) (mname, list) = Some (D, rT, b)) \\<and>
-                                 (rT # ST', y) = s2')))) \\<and>
-               (G \\<turnstile> s2' <=s s1' \\<or> G \\<turnstile> s2' <=s s)" (is "\\<exists>s2'. ?P s2'"); 
-    proof elim;
-      fix a b c;
-      assume rac: "x = rev a @ b # c"; 
-      with G;
-      have x: "G \\<turnstile> (rev a @ b # c, y) <=s (rev apTs @ X # ST', y')"; by simp;
-
-      assume l: "length a = length apTs";
-      hence "length (rev a) = length (rev apTs)"; by simp;
-
-      with x;
-      have "G \\<turnstile> (rev a, y) <=s (rev apTs, y') \\<and> G \\<turnstile> (b # c, y) <=s (X # ST', y')";
-        by - (rule sup_state_append_fst [elimify], blast+);
-
-      hence x2: "G \\<turnstile> (a, y) <=s (apTs, y') \\<and> G \\<turnstile> b\\<preceq>X \\<and> G \\<turnstile> (c, y) <=s (ST', y')";
-        by (simp add: sup_state_rev_fst sup_state_Cons1);
-
-      show ?thesis 
-      proof (cases "X = NT");
-        case True;
-        with x2;
-        have "b = NT"; by (clarsimp_tac simp add: widen_NT);
-
-        with rac l lapTs;
-        have "?P s"; by auto;
-        thus ?thesis; by blast;
-
-      next;
-        case False;
-
-        with wtl; 
-        have "\\<exists>C. X = Class C"; by clarsimp_tac;
-        with x2;
-        have "\\<exists>r. b = RefT r"; by (auto simp add: widen_Class);
-        
-        thus ?thesis;
-        proof elim;
-          fix r;
-          assume b: "b = RefT r"; 
-          show ?thesis;
-          proof (cases r);
-            case NullT;
-            with b rac x2 l lapTs wtl False;
-            have "?P s"; by auto;
-            thus ?thesis; by blast;
-          next;
-            case ClassT;
-
-            from False wtl;
-            have wtlC: "?ClassC"; by simp;
-
-            with b ClassT;
-            show ?thesis;
-            proof (elim exE conjE);
-              fix C D rT body;
-              assume ClassC: "X = Class C";
-              assume zip: "\\<forall>x\\<in>set (zip apTs list). x \\<in> widen G";
-              assume s1': "(rT # ST', y') = s1'";
-              assume s: "G \\<turnstile> s1' <=s s";
-              assume method: "method (G, C) (mname, list) = Some (D, rT, body)";  
-
-              from ClassC b ClassT x2;
-              have "G \\<turnstile> cname \\<preceq>C C"; by simp;
-              with method wfp;
-              have "\\<exists>D' rT' b'. method (G, cname) (mname, list) = Some (D', rT', b') \\<and> G \\<turnstile> rT'\\<preceq>rT";
-                by - (rule subcls_widen_methd, blast);
-              
-              thus ?thesis;
-              proof elim;
-                fix D' rT' body';
-                assume method': "method (G, cname) (mname, list) = Some (D', rT', body')" "G\\<turnstile>rT'\\<preceq>rT";
-
-                have "?P (rT'#c,y)" (is "(\\<exists> apTs X ST'. ?A apTs X ST') \\<and> ?B"); 
-                proof (intro conjI);
-                  from s1' method' x2;
-                  show "?B"; by (auto simp add: sup_state_Cons1);
-
-                  from b ClassT rac l lapTs method'; 
-                  have "?A a (Class cname) c"; 
-                  proof (simp, intro conjI);
-
-                    from method' x2;
-                    have s': "G \\<turnstile> (rT' # c, y) <=s (rT # ST', y')"; 
-                      by (auto simp add: sup_state_Cons1);
-                    from s s1';
-                    have "G \\<turnstile> (rT # ST', y') <=s s"; by simp;
-                    with s'; 
-                    show "G \\<turnstile> (rT' # c, y) <=s s"; by (rule sup_state_trans);
-
-                    from x2;
-                    have 1: "G \\<turnstile> map Some a <=l map Some apTs"; by (simp add: sup_state_def); 
-                    from lapTs zip;
-                    have "G \\<turnstile> map Some apTs <=l map Some list"; by (simp add: all_widen_is_sup_loc);
-                    with 1;
-                    have "G \\<turnstile> map Some a <=l map Some list"; by (rule sup_loc_trans);
-                    with l lapTs;
-                    show "\\<forall>x\\<in>set (zip a list). x \\<in> widen G"; by (simp add: all_widen_is_sup_loc);
-
-                  qed;
-                  thus "\\<exists> apTs X ST'. ?A apTs X ST'"; by blast;
-                qed;
-                thus ?thesis; by blast;
-              qed
-            qed 
-          qed
-        qed
+                option_filter_n ls P (Suc n) ! m' = Some (ls ! m')"
+        with m Suc
+        show ?thesis by auto
       qed
     qed
   qed
 qed
 
-lemma sup_loc_some:
-"\\<forall> y n. (G \\<turnstile> b <=l y) \\<longrightarrow> n < length y \\<longrightarrow> y!n = Some t \\<longrightarrow> (\\<exists>t. b!n = Some t \\<and> (G \\<turnstile> (b!n) <=o (y!n)))" (is "?P b");
-proof (induct "?P" b);
-  show "?P []"; by simp;
+lemma is_approx_option_filter: "is_approx (option_filter l P) l" 
+  by (simp add: option_filter_def is_approx_option_filter_n)
 
-  case Cons;
-  show "?P (a#list)";
-  proof (clarsimp_tac simp add: list_all2_Cons1 sup_loc_def);
-    fix z zs n;
-    assume * : 
-      "G \\<turnstile> a <=o z" "list_all2 (sup_ty_opt G) list zs" 
-      "n < Suc (length zs)" "(z # zs) ! n = Some t";
-
-    show "(\\<exists>t. (a # list) ! n = Some t) \\<and> G \\<turnstile>(a # list) ! n <=o Some t"; 
-    proof (cases n); 
-      case 0;
-      with *; show ?thesis; by (simp add: sup_ty_opt_some);
-    next;
-      case Suc;
-      with Cons *;
-      show ?thesis; by (simp add: sup_loc_def);
-    qed;
-  qed;
-qed;
-
-lemma mono_load: 
-"\\<lbrakk>G \\<turnstile> (a, b) <=s (x, y); n < length y; y!n = Some t\\<rbrakk> \\<Longrightarrow> \\<exists>ts. b!n = Some ts \\<and> G \\<turnstile> (ts#a, b) <=s (t#x, y)";
-proof (clarsimp_tac simp add: sup_state_def);
-  assume "G  \\<turnstile> b <=l y" "n < length y" "y!n = Some t";
-  thus "\\<exists>ts. b ! n = Some ts \\<and> G\\<turnstile>ts\\<preceq>t";
-   by (rule sup_loc_some [rulify, elimify], clarsimp_tac);
-qed;
+lemma option_filter_Some:
+"\\<lbrakk>n < length l; P n\\<rbrakk> \\<Longrightarrow> option_filter l P ! n = Some (l!n)"
+proof -
   
-lemma mono_store:
-"\\<lbrakk>G \\<turnstile> (a, b) <=s (ts # ST', y); n < length y\\<rbrakk> \\<Longrightarrow> 
-  \\<exists> t a'. a = t#a' \\<and> G \\<turnstile> (a', b[n := Some t]) <=s (ST', y[n := Some ts])";
-proof (clarsimp_tac simp add: sup_state_def sup_loc_Cons2);
-  fix Y YT';
-  assume * : "n < length y" "G \\<turnstile> b <=l y" "G \\<turnstile>Y <=o Some ts" "G \\<turnstile> YT' <=l map Some ST'";
-  assume "map Some a = Y # YT'";
-  hence "map Some (tl a) = YT' \\<and> Some (hd a) = Y \\<and> (\\<exists>y yt. a = y # yt)";
-    by (rule map_hd_tl);
-  with *; 
-  show "\\<exists>t a'. a = t # a' \\<and> G \\<turnstile> map Some a' <=l map Some ST' \\<and> G \\<turnstile> b[n := Some t] <=l y[n := Some ts]";
-    by (clarsimp_tac simp add: sup_loc_update);
-qed;
+  assume 1: "n < length l" "P n"
 
+  have "\\<forall>n n'. n < length l \\<longrightarrow> P (n+n') \\<longrightarrow>  option_filter_n l P n' ! n = Some (l!n)"
+    (is "?P l")
+  proof (induct l)
+    show "?P []" by simp
 
-lemma PrimT_PrimT: "(G \\<turnstile> xb \\<preceq> PrimT p) = (xb = PrimT p)";
-proof;
-  show "xb = PrimT p \\<Longrightarrow> G \\<turnstile> xb \\<preceq> PrimT p"; by blast;
-
-  show "G\\<turnstile> xb \\<preceq> PrimT p \\<Longrightarrow> xb = PrimT p";
-  proof (cases xb);
-    fix prim;
-    assume "xb = PrimT prim" "G\\<turnstile>xb\\<preceq>PrimT p";
-    thus ?thesis; by simp;
-  next;
-    fix ref;
-    assume "G\\<turnstile>xb\\<preceq>PrimT p" "xb = RefT ref";
-    thus ?thesis; by simp (rule widen_RefT [elimify], auto);
-  qed;
-qed;
-
-
-lemma wtl_inst_pseudo_mono:
-"\\<lbrakk>wtl_inst i G rT s1 s1' cert mpc pc; fits ins cert phi; pc < length ins; wf_prog wf_mb G; 
-  G \\<turnstile> s2 <=s s1; i = ins!pc\\<rbrakk> \\<Longrightarrow> 
- \\<exists> s2'. wtl_inst (ins!pc) G rT s2 s2' cert mpc pc \\<and> (G \\<turnstile> s2' <=s s1' \\<or> (\\<exists>s. cert!(Suc pc) = Some s \\<and> G \\<turnstile> s2' <=s s))";
-proof (simp only:);
-  assume 1 : "wtl_inst (ins ! pc) G rT s1 s1' cert mpc pc" "G \\<turnstile> s2 <=s s1" "pc < length ins";
-  assume 2 : "fits ins cert phi" "wf_prog wf_mb G" "i = ins!pc";
-
-  have 3: "\\<exists> a b. s2 = (a,b)"; by simp;
-
-  show ?thesis; 
-  proof (cases "ins ! pc", insert 1, insert 3);
-
-    case Load
-    with 1 3 
-    show ?thesis; by (elim, clarsimp_tac) (rule mono_load [elimify], auto simp add: sup_state_length_snd);
-  next
-    case Store;
-    with 1 3; 
-    show ?thesis; by (elim, clarsimp_tac) (rule mono_store [elimify], auto simp add: sup_state_length_snd);
-  next
-    case Getfield;
-    with 1 3;
-    show ?thesis;
-    proof (elim, clarsimp_tac simp add: sup_state_Cons2);       
-      fix oT x;
-      assume "G \\<turnstile> x \\<preceq> oT" "G \\<turnstile> oT \\<preceq> Class cname"; 
-      show "G \\<turnstile> x \\<preceq> Class cname"; by (rule widen_trans);
-    qed;
-  next
-    case Putfield;
-    with 1 3;
-    show ?thesis;
-    proof (elim, clarsimp_tac simp add: sup_state_Cons2);       
-      fix x xa vT oT T;
-      assume "G \\<turnstile> x \\<preceq> vT" "G \\<turnstile> vT \\<preceq> T";
-      hence * : "G \\<turnstile> x \\<preceq> T"; by (rule widen_trans);
-
-      assume "G \\<turnstile> xa \\<preceq> oT" "G \\<turnstile> oT \\<preceq> Class cname"; 
-      hence "G \\<turnstile> xa \\<preceq> Class cname"; by (rule widen_trans);
-      
-      with *
-      show "(G \\<turnstile> xa \\<preceq> Class cname) \\<and> (G \\<turnstile> x \\<preceq> T)"; by blast;
-    qed
-  next
-    case Checkcast;
-    with 1 3;
-    show ?thesis; by (elim, clarsimp_tac simp add: sup_state_Cons2) (rule widen_RefT2);
-  next
-    case Invoke;
-    with 1 2 3;
-    show ?thesis; by elim (rule method_inv_pseudo_mono [elimify], simp+); 
-  next    
-    case Return;
-    with 1 3;
-    show ?thesis; 
-    proof (elim, clarsimp_tac simp add: sup_state_Cons2 simp del: split_paired_Ex);
-      fix x T;
-      assume "G\\<turnstile>x\\<preceq>T" "G\\<turnstile>T\\<preceq>rT";
-      thus "G\\<turnstile>x\\<preceq>rT"; by (rule widen_trans);
-    qed 
-  next
-    case Goto;
-    with 1 3;
-    show ?thesis;
-    proof (elim, clarsimp_tac simp del: split_paired_Ex);
-      fix a b x y;
-      assume "G \\<turnstile> (a, b) <=s s1" "G \\<turnstile> s1 <=s (x, y)";
-      thus "G \\<turnstile> (a, b) <=s (x, y)"; by (rule sup_state_trans);
-    qed
-  next
-    case Ifcmpeq;
-    with 1 3;
-    show ?thesis
-    proof (elim, clarsimp_tac simp add: sup_state_Cons2, intro conjI);
-      fix xt' b ST' y c d;
-      assume "G \\<turnstile> (xt', b) <=s (ST', y)" "G \\<turnstile> (ST', y) <=s (c, d)";
-      thus "G \\<turnstile> (xt', b) <=s (c, d)"; by (rule sup_state_trans);
-    next;
-      fix ts ts' x xa;
-      assume * :
-        "(\\<exists>p. ts = PrimT p \\<and> ts' = PrimT p) \\<or> (\\<exists>r. ts = RefT r) \\<and> (\\<exists>r'. ts' = RefT r')";
-      
-      assume x: "G\\<turnstile>x\\<preceq>ts" "G\\<turnstile>xa\\<preceq>ts'";
-      
-      show "(\\<exists>p. x = PrimT p \\<and> xa = PrimT p) \\<or> (\\<exists>r. x = RefT r) \\<and> (\\<exists>r'. xa = RefT r')"; 
-      proof (cases x);
-        case PrimT;
-        with * x;
-        show ?thesis; by (auto simp add: PrimT_PrimT);
-      next;
-        case RefT;
-        hence 1: "\\<exists>r. x = RefT r"; by blast;
-        
-        have "\\<exists>r'. xa = RefT r'";
-        proof (cases xa); 
-          case PrimT;
-          with RefT * x;
-          have "False"; by auto (rule widen_RefT [elimify], auto); 
-          thus ?thesis; by blast;
-        qed blast;
-
-        with 1
-        show ?thesis by blast
+    fix l ls assume Cons: "?P ls"
+    show "?P (l#ls)"
+    proof (intro)
+      fix n n'
+      assume l: "n < length (l # ls)"
+      assume P: "P (n + n')"
+      show "option_filter_n (l # ls) P n' ! n = Some ((l # ls) ! n)"
+      proof (cases "n")
+        assume "n=0"
+        with P show ?thesis by simp
+      next
+        fix m assume "n = Suc m"
+        with l P Cons
+        show ?thesis by simp
       qed
     qed
-  qed (elim, clarsimp_tac simp add: sup_state_Cons1 sup_state_Cons2 PrimT_PrimT)+
+  qed
+
+  with 1
+  show ?thesis by (auto simp add: option_filter_def)
 qed
+
+lemma option_filter_contains_dead:
+"contains_dead ins (option_filter phi (mdot ins)) phi pc" 
+  by (auto intro: option_filter_Some simp add: contains_dead_def mdot_def maybe_dead_def)
+
+lemma option_filter_contains_targets:
+"pc < length ins \\<Longrightarrow> contains_targets ins (option_filter phi (mdot ins)) phi pc"
+proof (unfold contains_targets_def, clarsimp)
  
-lemma wtl_inst_last_mono:
-"\\<lbrakk>wtl_inst i G rT s1 s1' cert (Suc pc) pc; G \\<turnstile> s2 <=s s1\\<rbrakk> \\<Longrightarrow> 
- \\<exists>s2'. wtl_inst i G rT s2 s2' cert (Suc pc) pc \\<and> (G \\<turnstile> s2' <=s s1')";
-proof -;
-  assume * : "wtl_inst i G rT s1 s1' cert (Suc pc) pc" "G \\<turnstile> s2 <=s s1";
+  fix pc'
+  assume "pc < length ins" 
+         "pc' \\<in> succs (ins ! pc) pc" 
+         "pc' \\<noteq> Suc pc" and
+    pc': "pc' < length phi"
+
+  hence "is_target ins pc'" by (auto simp add: is_target_def)
+
+  with pc'
+  show "option_filter phi (mdot ins) ! pc' = Some (phi ! pc')"
+    by (auto intro: option_filter_Some simp add: mdot_def)
+qed
   
-  show ?thesis
-  proof (cases i, insert *)
-    case Return with *
-    show ?thesis 
-      by (clarsimp_tac simp del: split_paired_Ex simp add: sup_state_Cons2)
-        (rule widen_trans, blast+);
-  next
-    case Goto with *
-    show ?thesis
-      by (clarsimp_tac simp del: split_paired_Ex simp add: sup_state_Cons2)
-         (rule sup_state_trans, blast+);
-  qed auto
+
+lemma fits_make_cert:
+  "length ins < length phi \\<Longrightarrow> fits ins (make_cert ins phi) phi"
+proof -
+  assume l: "length ins < length phi"
+
+  thus "fits ins (make_cert ins phi) phi"
+  proof (unfold fits_def make_cert_def, intro conjI allI impI)
+    show "is_approx (option_filter phi (mdot ins)) phi" 
+      by (rule is_approx_option_filter)
+
+    show "length ins < length phi" .
+
+    fix pc
+    show "contains_dead ins (option_filter phi (mdot ins)) phi pc" 
+      by (rule option_filter_contains_dead)
+    
+    assume "pc < length ins" 
+    thus "contains_targets ins (option_filter phi (mdot ins)) phi pc" 
+      by (rule option_filter_contains_targets)
+  qed
 qed
 
+lemma fitsD: 
+"\\<lbrakk>fits ins cert phi; pc' \\<in> succs (ins!pc) pc; pc' \\<noteq> Suc pc; pc < length ins; pc' < length ins\\<rbrakk> 
+  \\<Longrightarrow> cert!pc' = Some (phi!pc')"
+by (clarsimp simp add: fits_def contains_dead_def contains_targets_def)
 
-lemma wtl_option_last_mono:
-"\\<lbrakk>wtl_inst_option i G rT s1 s1' cert mpc pc; mpc = Suc pc; G \\<turnstile> s2 <=s s1\\<rbrakk> \\<Longrightarrow> 
- \\<exists>s2'. wtl_inst_option i G rT s2 s2' cert mpc pc \\<and> (G \\<turnstile> s2' <=s s1')";
-proof (simp only: ); 
-  assume G: "G \\<turnstile> s2 <=s s1";
-  assume w: "wtl_inst_option i G rT s1 s1' cert (Suc pc) pc"; 
+lemma fitsD2:
+"\\<lbrakk>fits ins cert phi; Suc pc \\<notin> succs (ins!pc) pc;  pc < length ins\\<rbrakk> 
+  \\<Longrightarrow> cert ! Suc pc = Some (phi ! Suc pc)"
+by (clarsimp simp add: fits_def contains_dead_def contains_targets_def)
+
+
+
+lemmas [trans] = sup_state_trans
+
+lemma wtl_inst_mono:
+"\\<lbrakk>wtl_inst i G rT s1 s1' cert mpc pc; fits ins cert phi; pc < length ins; wf_prog wf_mb G; 
+  G \\<turnstile> s2 <=s s1; i = ins!pc\\<rbrakk> \\<Longrightarrow> 
+ \\<exists> s2'. wtl_inst (ins!pc) G rT s2 s2' cert mpc pc \\<and> (G \\<turnstile> s2' <=s s1')";
+proof -
+  assume pc:   "pc < length ins" "i = ins!pc"
+  assume wtl:  "wtl_inst i G rT s1 s1' cert mpc pc"
+  assume fits: "fits ins cert phi"
+  assume G:    "G \\<turnstile> s2 <=s s1"
   
-  show "\\<exists>s2'. wtl_inst_option i G rT s2 s2' cert (Suc pc) pc \\<and> (G \\<turnstile> s2' <=s s1')";
-  proof (cases "cert!pc");
-    case None;
-    with G w;
-    show ?thesis; by (simp add: wtl_inst_option_def wtl_inst_last_mono del: split_paired_Ex); 
-  next;
-    case Some;
-    with G w;
-    have o: "G \\<turnstile> s1 <=s a \\<and> wtl_inst i G rT a s1' cert (Suc pc) pc"; 
-      by (simp add: wtl_inst_option_def);
-    hence w' : "wtl_inst i G rT a s1' cert (Suc pc) pc"; ..;
+  let "?step s" = "step (i, G, s)"
 
-    from o G;
-    have G' : "G \\<turnstile> s2 <=s a"; by - (rule sup_state_trans, blast+); 
+  from wtl G
+  have app: "app (i, G, rT, s2)" by (auto simp add: wtl_inst_def app_mono)
+  
+  from wtl G
+  have step: "succs i pc \\<noteq> {} \\<Longrightarrow> G \\<turnstile> the (?step s2) <=s the (?step s1)" 
+    by - (drule step_mono, auto simp add: wtl_inst_def)
+  
+  with app
+  have some: "succs i pc \\<noteq> {} \\<Longrightarrow> ?step s2 \\<noteq> None" by (simp add: app_step_some)
 
-    from o;
-    have "\\<exists>s2'. wtl_inst i G rT a s2' cert (Suc pc) pc \\<and> G \\<turnstile> s2' <=s s1'";
-      by elim (rule wtl_inst_last_mono, auto);
+  {
+    fix pc'
+    assume 0: "pc' \\<in> succs i pc" "pc' \\<noteq> pc+1"
+    hence "succs i pc \\<noteq> {}" by auto
+    hence "G \\<turnstile> the (?step s2) <=s the (?step s1)" by (rule step)
+    also 
+    from wtl 0
+    have "G \\<turnstile> the (?step s1) <=s the (cert!pc')"
+      by (auto simp add: wtl_inst_def) 
+    finally
+    have "G\\<turnstile> the (?step s2) <=s the (cert!pc')" .
+  } note cert = this
+    
+  have "\\<exists>s2'. wtl_inst i G rT s2 s2' cert mpc pc \\<and> G \\<turnstile> s2' <=s s1'"
+  proof (cases "pc+1 \\<in> succs i pc")
+    case True
+    with wtl
+    have s1': "s1' = the (?step s1)" by (simp add: wtl_inst_def)
 
-    with Some w G';
-    show ?thesis; by (auto simp add: wtl_inst_option_def);  
-  qed;
-qed;
+    have "wtl_inst i G rT s2 (the (?step s2)) cert mpc pc \\<and> G \\<turnstile> (the (?step s2)) <=s s1'" 
+      (is "?wtl \\<and> ?G")
+    proof
+      from True s1'
+      show ?G by (auto intro: step)
 
+      from True app wtl
+      show ?wtl
+        by (clarsimp intro: cert simp add: wtl_inst_def)
+    qed
+    thus ?thesis by blast
+  next
+    case False
+    with wtl
+    have "s1' = the (cert ! Suc pc)" by (simp add: wtl_inst_def)
+
+    with False app wtl
+    have "wtl_inst i G rT s2 s1' cert mpc pc \\<and> G \\<turnstile> s1' <=s s1'"
+      by (clarsimp intro: cert simp add: wtl_inst_def)
+
+    thus ?thesis by blast
+  qed
+  
+  with pc show ?thesis by simp
+qed
+    
+    
 lemma wt_instr_imp_wtl_inst:
 "\\<lbrakk>wt_instr (ins!pc) G rT phi max_pc pc; fits ins cert phi;
   pc < length ins; length ins = max_pc\\<rbrakk> \\<Longrightarrow> 
   \\<exists> s. wtl_inst (ins!pc) G rT (phi!pc) s cert max_pc pc \\<and> G \\<turnstile> s <=s phi ! Suc pc";
 proof -
-  assume * : "wt_instr (ins!pc) G rT phi max_pc pc" "fits ins cert phi"
-             "pc < length ins" "length ins = max_pc"
+  assume wt:   "wt_instr (ins!pc) G rT phi max_pc pc" 
+  assume fits: "fits ins cert phi"
+  assume pc:   "pc < length ins" "length ins = max_pc"
 
-  have xy: "\\<exists> x y. phi!pc = (x,y)" by simp
+  from wt 
+  have app: "app (ins!pc, G, rT, phi!pc)" by (simp add: wt_instr_def);
+
+  from wt pc
+  have pc': "!!pc'. pc' \\<in> succs (ins!pc) pc \\<Longrightarrow> pc' < length ins"
+    by (simp add: wt_instr_def)
+
+  let ?s' = "the (step (ins!pc,G, phi!pc))"
+
+  from wt
+  have G: "!!pc'. pc' \\<in> succs (ins!pc) pc \\<Longrightarrow> G \\<turnstile> ?s' <=s phi ! pc'"
+    by (simp add: wt_instr_def)
+
+  from wt fits pc
+  have cert: "!!pc'. \\<lbrakk>pc' \\<in> succs (ins!pc) pc; pc' < max_pc; pc' \\<noteq> pc+1\\<rbrakk> 
+    \\<Longrightarrow> cert!pc' \\<noteq> None \\<and> G \\<turnstile> ?s' <=s the (cert!pc')"
+    by (auto dest: fitsD simp add: wt_instr_def simp del: split_paired_Ex)
 
   show ?thesis
-  proof (cases "ins!pc", insert *, insert xy);
-    case Return with * xy
-    show ?thesis
-      by (elim, clarsimp_tac simp add: fits_def contains_dead_def simp del: split_paired_Ex);
-  next
-    case Goto with * xy
-    show ?thesis; 
-      by (clarsimp_tac simp add: fits_def contains_dead_def contains_targets_def simp del: split_paired_Ex);
-  next
-    case Ifcmpeq with * xy
-    show ?thesis; 
-      by (clarsimp_tac simp add: fits_def contains_dead_def contains_targets_def simp del: split_paired_Ex);    
-  next
-    case Invoke with * xy
-    show ?thesis
-    proof (elim, clarsimp_tac simp del: split_paired_Ex)
-      fix y apTs X ST'; 
-      assume pc : "Suc pc < length ins"; 
-      assume phi : "phi ! pc = (rev apTs @ X # ST', y)" "length apTs = length list";
-      assume ** :
-        "X = NT \\<or> (\\<exists>C. X = Class C \\<and>
-        (\\<forall>x\\<in>set (zip apTs list). x \\<in> widen G) \\<and>
-        (\\<exists>D rT. (\\<exists>b. method (G, C) (mname, list) = Some (D, rT, b)) \\<and> G \\<turnstile> (rT # ST', y) <=s phi ! Suc pc))"
-      (is "?NT \\<or> ?CL"); 
-        
-      from Invoke pc *;
-      have cert: "cert ! Suc pc = Some (phi ! Suc pc)"; by (clarsimp_tac simp add: fits_def contains_dead_def); 
+  proof (cases "pc+1 \\<in> succs (ins!pc) pc")
+    case True
 
-      show "\\<exists>s. (\\<exists>apTsa Xa ST'a.
-                rev apTs @ X # ST' = rev apTsa @ Xa # ST'a \\<and>
-                length apTsa = length list \\<and>
-                 (\\<exists>s''. cert ! Suc pc = Some s'' \\<and>
-                        (s'' = s \\<and> Xa = NT \\<or>
-                         G \\<turnstile> s <=s s'' \\<and>
-                         (\\<exists>C. Xa = Class C \\<and>
-                              (\\<forall>x\\<in>set (zip apTsa list). x \\<in> widen G) \\<and>
-                              (\\<exists>D rT. (\\<exists>b. method (G, C) (mname, list) = Some (D, rT, b)) \\<and> (rT # ST'a, y) = s))))) \\<and>
-                G \\<turnstile> s <=s phi ! Suc pc" (is "\\<exists>s. ?P s");  
-      proof (cases "X=NT"); 
-        case True
-        with cert phi **
-        have "?P (phi ! Suc pc)" by (force simp del: split_paired_Ex)
-        thus ?thesis by blast
-      next
-        case False
-        with **
+    have "wtl_inst (ins!pc) G rT (phi!pc) ?s' cert max_pc pc \\<and> G \\<turnstile> ?s' <=s phi ! Suc pc" (is "?wtl \\<and> ?G")
+    proof 
+      from True
+      show "G \\<turnstile> ?s' <=s phi ! Suc pc"  by (simp add: G)
 
-        have "?CL" by simp
-
-        thus ?thesis
-        proof (elim exE conjE);
-          fix C D rT b;
-          assume "X = Class C" "\\<forall>x\\<in>set (zip apTs list). x \\<in> widen G" 
-                 "G \\<turnstile> (rT # ST', y) <=s phi ! Suc pc"
-                 "method (G, C) (mname, list) = Some (D, rT, b)";
-          with cert phi;
-          have "?P (rT #ST', y)" by (force simp del: split_paired_Ex)
-          thus ?thesis by blast
-        qed
-      qed
+      from True fits app pc cert pc'
+      show "?wtl"
+        by (auto simp add: wtl_inst_def)
     qed
-  qed (elim, force)+
+
+    thus ?thesis by blast
+    
+  next    
+    let ?s'' = "the (cert ! Suc pc)"
+
+    case False
+    with fits app pc cert pc'
+    have "wtl_inst (ins ! pc) G rT (phi ! pc) ?s'' cert max_pc pc \\<and> G \\<turnstile> ?s'' <=s phi ! Suc pc" 
+      by (auto dest: fitsD2 simp add: wtl_inst_def)
+
+    thus ?thesis by blast
+  qed
 qed
 
   
@@ -764,51 +348,49 @@ proof -
     case Some;
 
     from fits; 
-    have "pc < length phi"; by (clarsimp_tac simp add: fits_def);
+    have "pc < length phi"; by (clarsimp simp add: fits_def);
     with fits Some;
     have "cert ! pc = Some (phi!pc)"; by (auto simp add: fits_def is_approx_def);
      
     with *; 
     show ?thesis; by (simp add: wtl_inst_option_def);
-  qed;
-qed;
+  qed
+qed
 
 
-lemma wtl_option_pseudo_mono:
+lemma wtl_option_mono:
 "\\<lbrakk>wtl_inst_option i G rT s1 s1' cert mpc pc;  fits ins cert phi; pc < length ins; 
   wf_prog wf_mb G; G \\<turnstile> s2 <=s s1; i = ins!pc\\<rbrakk> \\<Longrightarrow> 
- \\<exists> s2'. wtl_inst_option (ins!pc) G rT s2 s2' cert mpc pc \\<and> 
-        (G \\<turnstile> s2' <=s s1' \\<or> (\\<exists>s. cert!(Suc pc) = Some s \\<and> G \\<turnstile> s2' <=s s))";
-proof -;
+ \\<exists> s2'. wtl_inst_option (ins!pc) G rT s2 s2' cert mpc pc \\<and> (G \\<turnstile> s2' <=s s1')"
+proof -
   assume wtl:  "wtl_inst_option i G rT s1 s1' cert mpc pc" and
          fits: "fits ins cert phi" "pc < length ins"
-               "wf_prog wf_mb G" "G \\<turnstile> s2 <=s s1" "i = ins!pc";
+               "wf_prog wf_mb G" "G \\<turnstile> s2 <=s s1" "i = ins!pc"
 
-  show ?thesis;
-  proof (cases "cert!pc");
-    case None;
+  show ?thesis
+  proof (cases "cert!pc")
+    case None
     with wtl fits;
     show ?thesis; 
-      by - (rule wtl_inst_pseudo_mono [elimify], (simp add: wtl_inst_option_def)+);
-  next;
-    case Some;
+      by - (rule wtl_inst_mono [elimify], (simp add: wtl_inst_option_def)+);
+  next
+    case Some
     with wtl fits;
 
-    have G: "G \\<turnstile> s2 <=s a";
-     by - (rule sup_state_trans, (simp add: wtl_inst_option_def)+);
+    have G: "G \\<turnstile> s2 <=s a"
+     by - (rule sup_state_trans, (simp add: wtl_inst_option_def)+)
 
-    from Some wtl;
-    have "wtl_inst i G rT a s1' cert mpc pc"; by (simp add: wtl_inst_option_def);
+    from Some wtl
+    have "wtl_inst i G rT a s1' cert mpc pc"; by (simp add: wtl_inst_option_def)
 
-    with G fits;
-    have "\\<exists> s2'. wtl_inst (ins!pc) G rT a s2' cert mpc pc \\<and> 
-                 (G \\<turnstile> s2' <=s s1' \\<or> (\\<exists>s. cert!(Suc pc) = Some s \\<and> G \\<turnstile> s2' <=s s))";
-      by - (rule wtl_inst_pseudo_mono, (simp add: wtl_inst_option_def)+);
+    with G fits
+    have "\\<exists> s2'. wtl_inst (ins!pc) G rT a s2' cert mpc pc \\<and> (G \\<turnstile> s2' <=s s1')"
+      by - (rule wtl_inst_mono, (simp add: wtl_inst_option_def)+);
     
     with Some G;
     show ?thesis; by (simp add: wtl_inst_option_def);
   qed
-qed;
+qed
 
 
 (* main induction over instruction list *)
@@ -854,7 +436,7 @@ next;
 
       with Nil 1 2 5;
       have "\\<exists>s'. wtl_inst_option a G rT s s' cert (Suc (length l)) pc";
-        by elim (rule wtl_option_pseudo_mono [elimify], force+); 
+        by elim (rule wtl_option_mono [elimify], force+); 
 
       with Nil 2;
       show ?thesis; by auto;
@@ -875,15 +457,15 @@ next;
         by - (rule wt_instr_imp_wtl_option [elimify], assumption+, simp+);
 
       hence "\\<exists>s1. wtl_inst_option a G rT s s1 cert (Suc (pc + length list)) pc \\<and>
-                  (G \\<turnstile> s1 <=s (phi ! (Suc pc)) \\<or> (\\<exists>s. cert ! Suc pc = Some s \\<and> G \\<turnstile> s1 <=s s))";
+                  (G \\<turnstile> s1 <=s (phi ! (Suc pc)))" (* \\<or> (\\<exists>s. cert ! Suc pc = Some s \\<and> G \\<turnstile> s1 <=s s))"; *)
       proof elim; 
         fix s1';
         assume "wtl_inst_option a G rT (phi!pc) s1' cert (Suc (pc + length list)) pc" and
             a :"G \\<turnstile> s1' <=s phi ! Suc pc";
         with 1 2 5;
         have "\\<exists>s1. wtl_inst_option a G rT s s1 cert (Suc (pc + length list)) pc \\<and>
-                   ((G \\<turnstile> s1 <=s s1') \\<or> (\\<exists>s. cert ! Suc pc = Some s \\<and> G \\<turnstile> s1 <=s s))";
-          by - (rule wtl_option_pseudo_mono [elimify], simp+);
+                   ((G \\<turnstile> s1 <=s s1'))" (* \\<or> (\\<exists>s. cert ! Suc pc = Some s \\<and> G \\<turnstile> s1 <=s s))"; *)
+          by - (rule wtl_option_mono [elimify], simp+);
 
         with a;
         show ?thesis;
@@ -892,51 +474,23 @@ next;
           assume "G \\<turnstile> s1 <=s s1'" "G \\<turnstile> s1' <=s phi ! Suc pc";
           show "G \\<turnstile> s1 <=s phi ! Suc pc"; by (rule sup_state_trans);
         qed auto;
-      qed;
+      qed
 
-      thus ?thesis;
+      thus ?thesis
       proof (elim exE conjE); 
         fix s1;
         assume wto: "wtl_inst_option a G rT s s1 cert (Suc (pc + length list)) pc"; 
-        assume Gs1: "G \\<turnstile> s1 <=s phi ! Suc pc \\<or> (\\<exists>s. cert ! Suc pc = Some s \\<and> G \\<turnstile> s1 <=s s)";
+        assume Gs1: "G \\<turnstile> s1 <=s phi ! Suc pc" (* \\<or> (\\<exists>s. cert ! Suc pc = Some s \\<and> G \\<turnstile> s1 <=s s)"; *)
         
-        have "\\<exists>s'. wtl_inst_list list G rT s1 s' cert ((Suc pc)+length list) (Suc pc)"; 
-        proof (cases "G \\<turnstile> s1 <=s phi ! Suc pc");
-          case True;
-          with Gs1;
-          have "G \\<turnstile> s1 <=s phi ! Suc pc"; by simp;
-          with *;
-          show ?thesis; by blast;
-        next;
-          case False;
-          with Gs1;
-          have "\\<exists>c. cert ! Suc pc = Some c \\<and> G \\<turnstile> s1 <=s c"; by simp;
-          thus ?thesis;
-          proof elim;
-            from 1 2 Cons Cons2;
-            have "Suc pc < length phi";  by (clarsimp_tac simp add: fits_def is_approx_def); 
+        with *
+        have "\\<exists>s'. wtl_inst_list list G rT s1 s' cert ((Suc pc)+length list) (Suc pc)";  by blast
 
-            with 1;
-            have cert: "cert ! (Suc pc) = None \\<or> cert ! (Suc pc) = Some (phi ! Suc pc)"; 
-              by (clarsimp_tac simp add: fits_def is_approx_def); 
-
-            fix c;
-            assume "cert ! Suc pc = Some c"; 
-            with cert;
-            have c: "c = phi ! Suc pc"; by simp;
-            assume "G \\<turnstile> s1 <=s c";
-            with c;
-            have "G \\<turnstile> s1 <=s phi ! Suc pc"; by simp;
-            with *;
-            show ?thesis; by blast;
-          qed;
-        qed;
         with wto;
         show ?thesis; by (auto simp del: split_paired_Ex);
-      qed;
-    qed; 
-  qed;
-qed;
+      qed
+    qed
+  qed
+qed
 
 
 lemma fits_imp_wtl_method_complete:
@@ -991,12 +545,12 @@ proof (simp only: wt_jvm_prog_def);
 
     from 1;
     show "wtl_method G a ba ad ae bb (make_Cert G Phi a (ac, ba))";
-    proof (rule bspec [elimify], clarsimp_tac);
+    proof (rule bspec [elimify], clarsimp);
       assume ub : "unique b";
       assume m: "\\<forall>(sig,rT,mb)\\<in>set b. wf_mhead G sig rT \\<and> (\\<lambda>(maxl,b). wt_method G a (snd sig) rT maxl b (Phi a sig)) mb"; 
       from m b;
       show ?thesis;
-      proof (rule bspec [elimify], clarsimp_tac);
+      proof (rule bspec [elimify], clarsimp);
         assume "wt_method G a ba ad ae bb (Phi a (ac, ba))";         
         with wfprog uG ub b 1;
         show ?thesis;
@@ -1004,6 +558,7 @@ proof (simp only: wt_jvm_prog_def);
       qed; 
     qed;
   qed;
-qed;
+qed
 
-end;
+
+end
