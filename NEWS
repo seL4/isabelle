@@ -10,9 +10,17 @@ New in this Isabelle version
 * HOL: the constant for f``x is now "image" rather than "op ``".
 
 
+*** Isar ***
+
+* names of theorems, assumptions etc. may be natural numbers as well;
+
+* new 'obtain' language element supports generalized existence proofs;
+
+
 *** HOL ***
 
-* Algebra: new theory of rings and univariate polynomials, by Clemens Ballarin
+* Algebra: new theory of rings and univariate polynomials, by Clemens
+Ballarin;
 
 
 
