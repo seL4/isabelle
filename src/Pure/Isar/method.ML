@@ -49,6 +49,8 @@ sig
   val only_sectioned_args:
     (Args.T list -> modifier * Args.T list) list ->
     (Proof.context -> Proof.method) -> Args.src -> Proof.context -> Proof.method
+  val thms_ctxt_args: (thm list -> Proof.context -> Proof.method)
+    -> Args.src -> Proof.context -> Proof.method
   val thms_args: (thm list -> Proof.method) -> Args.src -> Proof.context -> Proof.method
   datatype text =
     Basic of (Proof.context -> Proof.method) |
@@ -297,7 +299,8 @@ fun sectioned_args args ss f src ctxt =
 fun bang_sectioned_args ss f = sectioned_args Args.bang_facts ss f;
 fun only_sectioned_args ss f = sectioned_args (Scan.succeed ()) ss (fn () => f);
 
-fun thms_args f = sectioned_args (thmss []) [] (fn ths => fn _ => f ths);
+fun thms_ctxt_args f = sectioned_args (thmss []) [] f;
+fun thms_args f = thms_ctxt_args (K o f);
 
 end;
 
