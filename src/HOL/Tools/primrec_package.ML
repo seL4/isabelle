@@ -311,7 +311,7 @@ fun add_primrec_i alt_name eqns_atts thy =
       |> Theory.parent_path
   in
     (foldl (fn (thy, (fname, _, _, tname)) =>
-       put_primrec fname (tname, simps') thy) (thy''', defs), simps')
+       put_primrec fname (tname, simps) thy) (thy''', defs), simps')
   end;
 
 
