@@ -28,6 +28,7 @@ sig
   val is_symbolic: symbol -> bool
   val is_printable: symbol -> bool
   val length: symbol list -> int
+  val strip_blanks: string -> string
   val beginning: symbol list -> string
   val scan: string list -> symbol * string list
   val scanner: string -> (symbol list -> 'a * symbol list) -> symbol list -> 'a
@@ -114,6 +115,9 @@ fun sym_length ss = foldl (fn (n, s) =>
     (case Library.try String.substring (s, 2, 4) of
       Some s' => if s' = "long" orelse s' = "Long" then 2 else 1
     | None => 1)) + n) (0, ss);
+
+fun strip_blanks s =
+  implode (#1 (Library.take_suffix is_blank (#2 (Library.take_prefix is_blank (explode s)))));
 
 
 (* beginning *)
