@@ -33,7 +33,7 @@ fun prove_nonempty cset thms usr_tac =
     val tac =
       TRY (rewrite_goals_tac (filter is_def thms)) THEN
       TRY (REPEAT_FIRST (resolve_tac (filter_out is_def thms))) THEN
-      if_none usr_tac (TRY (ALLGOALS (fast_tac set_cs)));
+      if_none usr_tac (TRY (ALLGOALS Fast_tac));
   in
     prove_goalw_cterm [] goal (K [tac])
   end
@@ -103,6 +103,7 @@ fun ext_typedef prep_term name (t, vs, mx) raw_set axms thms usr_tac thy =
     if null errs then ()
     else error (cat_lines errs);
 
+    writeln("Proving nonemptiness of " ^ quote name ^ " ...");
     prove_nonempty cset (map (get_axiom thy) axms @ thms) usr_tac;
 
     thy
