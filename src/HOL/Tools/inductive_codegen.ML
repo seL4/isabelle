@@ -36,19 +36,14 @@ fun warn thm = warning ("InductiveCodegen: Not a proper clause:\n" ^
   string_of_thm thm);
 
 fun add (p as (thy, thm)) =
-  let
-    val tsig = Sign.tsig_of (sign_of thy);
-    val tab = CodegenData.get thy;
-    val matches = curry (Pattern.matches tsig o pairself concl_of);
-
+  let val tab = CodegenData.get thy;
   in (case concl_of thm of
       _ $ (Const ("op :", _) $ _ $ t) => (case head_of t of
         Const (s, _) => (CodegenData.put (Symtab.update ((s,
-          filter_out (matches thm) (if_none (Symtab.lookup (tab, s)) []) @
-            [thm]), tab)) thy, thm)
+          if_none (Symtab.lookup (tab, s)) [] @ [thm]), tab)) thy, thm)
       | _ => (warn thm; p))
     | _ => (warn thm; p))
-  end handle Pattern.Pattern => (warn thm; p);
+  end;
 
 fun get_clauses thy s =
   (case Symtab.lookup (CodegenData.get thy, s) of
