@@ -166,7 +166,7 @@ fun add_const_idx ((next, table), tthm as (thm, _)) =
   in (next + 1, foldl add (table, consts)) end;
 
 fun make_const_idx thm_tab =
-  foldl (foldl add_const_idx) ((0, Symtab.empty), map snd (Symtab.dest thm_tab));
+  Symtab.foldl (fn (x, (_, ths)) => foldl add_const_idx (x, ths)) ((0, Symtab.empty), thm_tab);
 
 
 (* lookup index *)
