@@ -1003,6 +1003,15 @@ val arith_tac =
   refute_tac (K true) (REPEAT o split_tac[nat_diff_split,split_min,split_max])
              ((REPEAT_DETERM o etac linorder_neqE) THEN' fast_arith_tac);
 
+
+(* proof method setup *)
+
+val arith_method = Method.METHOD (fn facts => FIRSTGOAL (Method.same_tac facts THEN' arith_tac));
+
+val arith_setup =
+ [Method.add_methods
+  [("arith", Method.no_args arith_method, "decide linear arithmethic")]];
+
 (*---------------------------------------------------------------------------*)
 (* End of proof procedures. Now go and USE them!                             *)
 (*---------------------------------------------------------------------------*)

@@ -11,6 +11,9 @@ Could <*> be generalized to a general summation (Sigma)?
 
 Univ = Arith + Sum +
 
+setup arith_setup
+
+
 (** lists, trees will be sets of nodes **)
 
 global
