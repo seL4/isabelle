@@ -23,6 +23,13 @@ use "mixfix.ML";
 use "printer.ML";
 use "syntax.ML";
 
-(*hiding: only the most basic features are opened*)
-structure BasicSyntax: BASIC_SYNTAX = Syntax;
-open BasicSyntax;
+(*hiding private stuff*)
+structure Lexicon = Hidden;
+structure TokenTrans = Hidden;
+structure Ast = Hidden;
+structure SynExt = Hidden;
+structure Parser = Hidden;
+structure TypeExt = Hidden;
+structure SynTrans = Hidden;
+structure Mixfix = Hidden;
+structure Printer = Hidden;
