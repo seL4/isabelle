@@ -16,6 +16,7 @@ files
 setup InductMethod.setup
 setup InductivePackage.setup
 setup DatatypePackage.setup
+setup PrimrecPackage.setup
 
 theorems [mono] =
    subset_refl imp_refl disj_mono conj_mono ex_mono all_mono
