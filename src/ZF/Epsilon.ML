@@ -269,14 +269,6 @@ by (rtac (consI1 RS consI2 RS rank_lt RS lt_trans) 1);
 by (rtac (consI1 RS consI2 RS rank_lt) 1);
 qed "rank_pair2";
 
-goalw (merge_theories(Epsilon.thy,Sum.thy)) [Inl_def] "rank(a) < rank(Inl(a))";
-by (rtac rank_pair2 1);
-val rank_Inl = result();
-
-goalw (merge_theories(Epsilon.thy,Sum.thy)) [Inr_def] "rank(a) < rank(Inr(a))";
-by (rtac rank_pair2 1);
-val rank_Inr = result();
-
 (*** Corollaries of leastness ***)
 
 goal Epsilon.thy "!!A B. A:B ==> eclose(A)<=eclose(B)";

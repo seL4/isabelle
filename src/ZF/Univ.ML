@@ -470,6 +470,14 @@ qed "Int_Vset_subset";
 
 (** Set up an environment for simplification **)
 
+goalw Univ.thy [Inl_def] "rank(a) < rank(Inl(a))";
+by (rtac rank_pair2 1);
+qed "rank_Inl";
+
+goalw Univ.thy [Inr_def] "rank(a) < rank(Inr(a))";
+by (rtac rank_pair2 1);
+qed "rank_Inr";
+
 val rank_rls = [rank_Inl, rank_Inr, rank_pair1, rank_pair2];
 val rank_trans_rls = rank_rls @ (rank_rls RLN (2, [lt_trans]));
 
