@@ -47,7 +47,9 @@ href="http://www4.in.tum.de/~nipkow/LNCS2283/">LNCS 2283</a>.
 
 The <strong><!-- _GP_ distname --></strong> distribution is available
 from several <a href="dist/index.html">mirror sites</a>.  It includes
-source and binary packages and browsable documentation.
+source and binary packages and browsable documentation. There is also
+a nightly generated <a href="http://isabelle.in.tum.de/devel/">development 
+snapshot</a> available.
 
 <p>
 

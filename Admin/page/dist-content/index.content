@@ -7,7 +7,7 @@ Isabelle Distribution Area
 %body%
 <p>
 
-<h2>Mirror sites (in alphabetical order)</h2>
+<h2>Stable Release, mirror sites (in alphabetical order)</h2>
 
 <ul>	
 
@@ -23,3 +23,15 @@ href="http://ftp.research.bell-labs.com/dist/smlnj/isabelle/packages.html">New
 Jersey (USA)</a>
 
 </ul>
+
+
+&nbsp;
+
+<p>
+
+<h2>Development Snapshot</h2>
+
+For the curious we provide a nightly generated CVS <a
+href="http://isabelle.in.tum.de/devel/">development snapshot</a> of
+Isabelle. It is not as well tested as the stable release available
+from the mirrors above and there is no guarantee that it works.
