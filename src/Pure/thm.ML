@@ -681,7 +681,11 @@ fun forall_elim ct (th as Thm{sign,der,maxidx,hyps,prop,...}) : thm =
                            shyps = [],
 			   hyps = hyps,  
 			   prop = betapply(A,t)})
-                 in nodup_Vars thm "forall_elim"; thm end
+                 in if maxt >= 0 andalso maxidx >= 0
+		    then nodup_Vars thm "forall_elim" 
+		    else () (*no new Vars: no expensive check!*) ; 
+                    thm 
+                 end
         | _ => raise THM("forall_elim: not quantified", 0, [th])
   end
   handle TERM _ =>
@@ -749,7 +753,11 @@ fun transitive th1 th2 =
 		     shyps = [],
 		     hyps = hyps1 union hyps2,
 		     prop = eq$t1$t2})
-               in nodup_Vars thm "transitive"; thm end
+                 in if max1 >= 0 andalso max2 >= 0
+		    then nodup_Vars thm "transitive" 
+		    else () (*no new Vars: no expensive check!*) ; 
+                    thm 
+                 end
      | _ =>  err"premises"
   end;
 
@@ -851,7 +859,11 @@ fun combination th1 th2 =
 			    shyps = shyps1 union shyps2,
 			    hyps = hyps1 union hyps2,
 			    prop = Logic.mk_equals(f$t, g$u)}
-          in nodup_Vars thm "combination"; thm end
+          in if max1 >= 0 andalso max2 >= 0
+             then nodup_Vars thm "combination" 
+	     else () (*no new Vars: no expensive check!*) ; 
+	     thm 
+          end
      | _ =>  raise THM("combination: premises", 0, [th1,th2])
   end;
 
