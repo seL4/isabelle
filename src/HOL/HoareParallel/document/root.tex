@@ -18,6 +18,26 @@
 \author{Leonor Prensa Nieto}
 \maketitle
 
+\begin{abstract}\noindent
+  In the following theories a formalization of the Owicki-Gries and
+  the rely-guarantee methods is presented. These methods are widely
+  used for correctness proofs of parallel imperative programs with
+  shared variables.  We define syntax, semantics and proof rules in
+  Isabelle/HOL.  The proof rules also provide for programs
+  parameterized in the number of parallel components. Their
+  correctness w.r.t.\ the semantics is proven.  Completeness proofs
+  for both methods are extended to the new case of parameterized
+  programs. (These proofs have not been formalized in Isabelle. They
+  can be found in~\cite{Prensa-PhD}.)  Using this formalizations we
+  verify several non-trivial examples for parameterized and
+  non-parameterized programs.  For the automatic generation of
+  verification conditions with the Owicki-Gries method we define a
+  tactic based on the proof rules.  The most involved examples are the
+  verification of two garbage-collection algorithms, the second one
+  parameterized in the number of mutators.
+
+\end{abstract}
+
 \pagestyle{plain}
 \thispagestyle{empty}
 \tableofcontents

@@ -1,4 +1,6 @@
 
+header {* \section{Concrete Syntax} *}
+
 theory RG_Syntax = RG_Hoare + Quote_Antiquote:
 
 syntax

@@ -18,7 +18,7 @@ translations
 
 inductive rghoare
 intros
-  Basic: "\<lbrakk> pre \<subseteq> {s. f s \<in> post}; {(s,t). s \<in> pre \<and> t=f s} \<subseteq> guar; 
+  Basic: "\<lbrakk> pre \<subseteq> {s. f s \<in> post}; {(s,t). s \<in> pre \<and> (t=f s \<or> t=s)} \<subseteq> guar; 
             stable pre rely; stable post rely \<rbrakk> 
            \<Longrightarrow> \<turnstile> Basic f sat [pre, rely, guar, post]"
 
