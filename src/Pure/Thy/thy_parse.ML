@@ -451,7 +451,7 @@ fun extension sectab = "+" $$-- !! (repeat (sect sectab) --$$ "end") --
 
 (* theory definition *)
 
-fun mk_structure tname ((thy_name, old_thys), opt_txts) =
+fun mk_structure tname (((thy_name, old_thys), has_begin), opt_txts) =
   if thy_name <> tname then
     error ("Filename \"" ^ tname ^ ".thy\" and theory name "
       ^ quote thy_name ^ " are different")
@@ -469,7 +469,9 @@ fun mk_structure tname ((thy_name, old_thys), opt_txts) =
         ^ mltxt ^ "\n\
         \\n\
         \val thy = thy\n\
-        \\n\
+        \\n" ^
+        (if has_begin then "Theory.add_path " ^ quote tname else "") ^
+        "\n\
         \|> Theory.add_trfuns\n"
         ^ trfun_args ^ "\n\
         \|> Theory.add_trfunsT typed_print_translation \n\
@@ -507,7 +509,8 @@ fun mk_structure tname ((thy_name, old_thys), opt_txts) =
 
 
 fun theory_defn sectab tname =
-  header -- optional (extension sectab >> Some) None -- eof
+  header -- optional ($$ "begin" >> K true) false --
+    optional (extension sectab >> Some) None -- eof
   >> (mk_structure tname o #1);
 
 fun parse_thy (lex, sectab) tname str =
@@ -530,7 +533,7 @@ fun section name pretxt parse =
 
 
 val pure_keywords =
- ["end", "ML", "mixfix", "infixr", "infixl", "binder", "output", "=",
+ ["end", "ML", "mixfix", "infixr", "infixl", "begin", "binder", "output", "=",
   "+", ",", "<", "{", "}", "(", ")", "[", "]", "::", "==", "=>", "<="];
 
 val pure_sections =
