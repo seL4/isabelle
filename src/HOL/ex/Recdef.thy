@@ -87,4 +87,16 @@ recdef fqsort "measure (size o snd)"
       in  
       fqsort(ord,less)@[x]@fqsort(ord,more))"
 
+(* silly example which demonstrates the occasional need for additional
+   congruence rules (here: map_cong from List). If the congruence rule is
+   removed, an unprovable termination condition is generated!
+   Termination not proved automatically; see the ML file.
+   TFL requires (%x.mapf x) instead of mapf.
+*)
+consts mapf :: nat => nat list
+recdef mapf "measure(%m.m)"
+congs "[map_cong]"
+"mapf 0 = []"
+"mapf (Suc n) = concat(map (%x.mapf x) (replicate n n))"
+
 end

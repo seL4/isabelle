@@ -33,3 +33,18 @@ by (res_inst_tac [("u","x")] g.induct 1);
 by (ALLGOALS (asm_simp_tac (!simpset addsimps [g_terminates])));
 qed "g_zero";
 
+(*** the contrived `mapf' ***)
+
+(* proving the termination condition: *)
+val [tc] = mapf.tcs;
+goalw_cterm [] (cterm_of (sign_of thy) (HOLogic.mk_Trueprop tc));
+br allI 1;
+by(case_tac "n=0" 1);
+by(ALLGOALS Asm_simp_tac);
+val lemma = result();
+
+(* removing the termination condition from the generated thms: *)
+val [mapf_0,mapf_Suc] = mapf.rules;
+val mapf_Suc = lemma RS mapf_Suc;
+
+val mapf_induct = lemma RS mapf.induct;
