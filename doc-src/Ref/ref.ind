@@ -65,7 +65,7 @@
   \item {\tt APPEND}, \bold{29}, 31
   \item {\tt APPEND'}, 36
   \item {\tt Appl}, 83
-  \item {\tt aprop} nonterminal, \bold{70}
+  \item {\tt aprop} nonterminal, \bold{68}
   \item {\tt ares_tac}, \bold{20}
   \item {\tt args} nonterminal, 93
   \item {\tt Arith} theory, 118
