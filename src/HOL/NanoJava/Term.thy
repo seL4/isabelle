@@ -11,9 +11,6 @@ theory Term = Main:
 typedecl cname  (* class name *)
 typedecl vnam   (* variable or field name *)
 typedecl mname  (* method name *)
-arities  cname :: "term"
-         vnam  :: "term"
-         mname :: "term"
 types   imname = "cname \<times> mname"
 
 datatype vname  (* variable for special names *)

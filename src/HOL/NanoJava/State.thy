@@ -15,7 +15,6 @@ constdefs
 
 text {* locations, i.e.\ abstract references to objects *}
 typedecl loc 
-arities  loc :: "term"
 
 datatype val
   = Null        (* null reference *)
