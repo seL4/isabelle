@@ -23,6 +23,8 @@ New in Isabelle??? (FIXME)
 
 *** HOL ***
 
+* New directory HOL/UNITY: Chandy and Misra's UNITY formalism
+
 * split_all_tac now fails if there is nothing to split
   split_all_tac has moved within claset() from usafe wrappers to safe wrappers
 
