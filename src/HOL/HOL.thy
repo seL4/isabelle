@@ -56,7 +56,7 @@ nonterminals
   case_syn  cases_syn
 
 syntax
-  ~=            :: "['a, 'a] => bool"                    (infixl 50)
+  "_not_equal"  :: "['a, 'a] => bool"                    (infixl "~=" 50)
   "_The"        :: "[pttrn, bool] => 'a"                 ("(3THE _./ _)" [0, 10] 10)
 
   "_bind"       :: "[pttrn, 'a] => letbind"              ("(2_ =/ _)" 10)
@@ -77,14 +77,14 @@ translations
 
 syntax (output)
   "="           :: "['a, 'a] => bool"                    (infix 50)
-  "~="          :: "['a, 'a] => bool"                    (infix 50)
+  "_not_equal"  :: "['a, 'a] => bool"                    (infix "~=" 50)
 
 syntax (xsymbols)
   Not           :: "bool => bool"                        ("\<not> _" [40] 40)
   "op &"        :: "[bool, bool] => bool"                (infixr "\<and>" 35)
   "op |"        :: "[bool, bool] => bool"                (infixr "\<or>" 30)
   "op -->"      :: "[bool, bool] => bool"                (infixr "\<longrightarrow>" 25)
-  "op ~="       :: "['a, 'a] => bool"                    (infix "\<noteq>" 50)
+  "_not_equal"  :: "['a, 'a] => bool"                    (infix "\<noteq>" 50)
   "ALL "        :: "[idts, bool] => bool"                ("(3\<forall>_./ _)" [0, 10] 10)
   "EX "         :: "[idts, bool] => bool"                ("(3\<exists>_./ _)" [0, 10] 10)
   "EX! "        :: "[idts, bool] => bool"                ("(3\<exists>!_./ _)" [0, 10] 10)
@@ -92,7 +92,7 @@ syntax (xsymbols)
 (*"_case2"      :: "[case_syn, cases_syn] => cases_syn"  ("_/ \\<orelse> _")*)
 
 syntax (xsymbols output)
-  "op ~="       :: "['a, 'a] => bool"                    (infix "\<noteq>" 50)
+  "_not_equal"  :: "['a, 'a] => bool"                    (infix "\<noteq>" 50)
 
 syntax (HTML output)
   Not           :: "bool => bool"                        ("\<not> _" [40] 40)
