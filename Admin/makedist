@@ -149,8 +149,8 @@ if [ -n "$UNOFFICIAL" ]; then
   } >UNOFFICIAL
 fi
 
-perl -pi -e "s/Internal working version of Isabelle/$DISTVERSION/" src/Pure/ROOT.ML
-perl -pi -e "s/an internal working version of Isabelle/$DISTVERSION/" README.html
+perl -pi -e "s/Isabelle repository/$DISTVERSION/" src/Pure/ROOT.ML
+perl -pi -e "s/the internal repository version of Isabelle/$DISTVERSION/" README.html
 lynx -dump README.html >README
 
 

@@ -3,12 +3,11 @@
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1993  University of Cambridge
 
-Root file for Pure Isabelle: all modules in proper order for loading.
-Loads Pure Isabelle into an empty ML database (see also README).
+Root file for Pure Isabelle.
 *)
 
 val banner = "Pure Isabelle";
-val version = "Internal working version of Isabelle";
+val version = "Isabelle repository";
 
 print_depth 1;
 ml_prompts "> " "# ";
