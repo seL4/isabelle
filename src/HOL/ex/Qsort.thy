@@ -10,7 +10,7 @@ Qsort = Sorting +
 consts qsort :: "((['a,'a] => bool) * 'a list) => 'a list"
 
 recdef qsort "measure (size o snd)"
-    simpset "simpset() addsimps [less_Suc_eq_le]"
+    simpset "simpset() addsimps [length_filter RS le_less_trans]"
     
     "qsort(le, [])   = []"
     
