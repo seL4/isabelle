@@ -36,6 +36,14 @@ fun forall (pred: 'a -> bool) : 'a list -> bool =
   in boolf end;
 
 
+(** curried equality **)
+
+fun equal x y = (x = y);
+
+fun not_equal x y = x <> y;
+
+
+
 (*** Lists ***)
 
 exception LIST of string;
