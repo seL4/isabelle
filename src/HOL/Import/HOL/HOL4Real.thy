@@ -272,10 +272,6 @@ lemma REAL_LT_NEGTOTAL: "ALL x::real. x = (0::real) | (0::real) < x | (0::real) 
 lemma REAL_LE_NEGTOTAL: "ALL x::real. (0::real) <= x | (0::real) <= - x"
   by (import real REAL_LE_NEGTOTAL)
 
-lemma REAL_LE_MUL: "ALL (x::real) y::real.
-   (0::real) <= x & (0::real) <= y --> (0::real) <= x * y"
-  by (import real REAL_LE_MUL)
-
 lemma REAL_LT_ADDNEG: "ALL (x::real) (y::real) z::real. (y < x + - z) = (y + z < x)"
   by (import real REAL_LT_ADDNEG)
 
@@ -285,8 +281,11 @@ lemma REAL_LT_ADDNEG2: "ALL (x::real) (y::real) z::real. (x + - y < z) = (x < z 
 lemma REAL_LT_ADD1: "ALL (x::real) y::real. x <= y --> x < y + (1::real)"
   by (import real REAL_LT_ADD1)
 
-lemma REAL_LE_DOUBLE: "ALL x::real. ((0::real) <= x + x) = ((0::real) <= x)"
-  by (import real REAL_LE_DOUBLE)
+lemma REAL_SUB_ADD2: "ALL (x::real) y::real. y + (x - y) = x"
+  by (import real REAL_SUB_ADD2)
+
+lemma REAL_ADD_SUB: "ALL (x::real) y::real. x + y - x = y"
+  by (import real REAL_ADD_SUB)
 
 lemma REAL_NEG_EQ: "ALL (x::real) y::real. (- x = y) = (x = - y)"
   by (import real REAL_NEG_EQ)
@@ -690,9 +689,6 @@ lemma SUM_PERMUTE_0: "ALL n p.
 
 lemma SUM_CANCEL: "ALL f n d. real.sum (n, d) (%n. f (Suc n) - f n) = f (n + d) - f n"
   by (import real SUM_CANCEL)
-
-lemma REAL_LE_RNEG: "ALL (x::real) y::real. (x <= - y) = (x + y <= (0::real))"
-  by (import real REAL_LE_RNEG)
 
 lemma REAL_EQ_RDIV_EQ: "ALL (x::real) (xa::real) xb::real.
    (0::real) < xb --> (x = xa / xb) = (x * xb = xa)"
