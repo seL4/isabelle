@@ -104,10 +104,12 @@ $logic$ &=& {\tt(} $logic$ {\tt)} \\
       &$|$& $logic^{(4)}$ {\tt::} $type$ & (3) \\
       &$|$& $id$ ~~$|$~~ $var$
     ~~$|$~~ $logic^{(\infty)}$ {\tt(} $any$ {\tt,} \dots {\tt,} $any$ {\tt)} \\
-      &$|$& {\tt \%} $idts$ {\tt.} $any^{(3)}$ & (3) \\\\
+      &$|$& {\tt \%} $pttrns$ {\tt.} $any^{(3)}$ & (3) \\\\
 $idts$ &=& $idt$ ~~$|$~~ $idt^{(1)}$ $idts$ \\\\
 $idt$ &=& $id$ ~~$|$~~ {\tt(} $idt$ {\tt)} \\
     &$|$& $id$ {\tt ::} $type$ & (0) \\\\
+$pttrns$ &=& $pttrn$ ~~$|$~~ $pttrn^{(1)}$ $pttrns$ \\\\
+$pttrn$ &=& $idt$ \\\\
 $type$ &=& {\tt(} $type$ {\tt)} \\
      &$|$& $tid$ ~~$|$~~ $tvar$ ~~$|$~~ $tid$ {\tt::} $sort$
        ~~$|$~~ $tvar$ {\tt::} $sort$ \\
@@ -164,6 +166,10 @@ nonterminals:
 
   \item[\ndxbold{idts}] denotes a list of identifiers, possibly constrained
     by types.
+    
+  \item[\ndxbold{pttrn}, \ndxbold{pttrns}] denote patterns for
+    abstraction, cases etc.  Initially the same as $idt$ and $idts$,
+    these are indetended to be augmented by user extensions.
 
   \item[\ndxbold{type}] denotes types of the meta-logic.
 
