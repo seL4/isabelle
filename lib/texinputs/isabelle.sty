@@ -10,8 +10,8 @@
 
 \newcommand{\isabellestyle}{}
 \newenvironment{isabelle}{%
-\newdimen\outerparindent\outerparindent=\parindent\parindent=0pt%
-\newdimen\outerparskip\outerparskip=\parskip\parskip=0.5ex%
+\newdimen\@parindent\@parindent\parindent\parindent0pt%
+\newdimen\@parskip\@parskip\parskip\parskip0.5ex%
 \small\tt\slshape\isabellestyle\mbox{}}{}
 \newcommand{\isanewline}{\mbox{}\\\mbox{}}
 
@@ -30,7 +30,7 @@
 \newcommand{\isaendblock}{\isakeyword{\}}}
 
 \newcommand{\isapar}[1]{%
-{\parindent=\outerparindent\parskip=\outerparskip\par\medskip #1}\par\smallskip}
+{\parindent\@parindent\parskip\@parskip\par\medskip #1}\par\smallskip}
 \newcommand{\isamarkupheader}[1]{#1}
 
 \newcommand{\isamarkupchapter}[1]{\chapter{#1}}
