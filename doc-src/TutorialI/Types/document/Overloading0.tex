@@ -2,13 +2,16 @@
 \begin{isabellebody}%
 \def\isabellecontext{Overloading{\isadigit{0}}}%
 %
-\isamarkupsubsubsection{An initial example}
-%
 \begin{isamarkuptext}%
 We start with a concept that is required for type classes but already
 useful on its own: \emph{overloading}. Isabelle allows overloading: a
-constant may have multiple definitions at non-overlapping types. For example,
-if we want to introduce the notion of an \emph{inverse} at arbitrary types we
+constant may have multiple definitions at non-overlapping types.%
+\end{isamarkuptext}%
+%
+\isamarkupsubsubsection{An initial example}
+%
+\begin{isamarkuptext}%
+If we want to introduce the notion of an \emph{inverse} for arbitrary types we
 give it a polymorphic type%
 \end{isamarkuptext}%
 \isacommand{consts}\ inverse\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}{\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a{\isachardoublequote}%
@@ -26,7 +29,7 @@ Isabelle will not complain because the three definitions do not overlap: no
 two of the three types \isa{bool}, \isa{{\isacharprime}a\ set} and \isa{{\isacharprime}a\ {\isasymtimes}\ {\isacharprime}b} have a
 common instance. What is more, the recursion in \isa{inverse{\isacharunderscore}pair} is
 benign because the type of \isa{inverse} becomes smaller: on the left it is
-\isa{{\isacharprime}a\ {\isasymtimes}\ {\isacharprime}b\ {\isasymRightarrow}\ {\isacharprime}a\ {\isasymtimes}\ {\isacharprime}b} but on the right \isa{{\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a} and \isa{{\isacharprime}b\ {\isasymRightarrow}\ {\isacharprime}b}. The \isa{{\isacharparenleft}overloaded{\isacharparenright}} tells Isabelle that the definitions do
+\isa{{\isacharprime}a\ {\isasymtimes}\ {\isacharprime}b\ {\isasymRightarrow}\ {\isacharprime}a\ {\isasymtimes}\ {\isacharprime}b} but on the right \isa{{\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a} and \isa{{\isacharprime}b\ {\isasymRightarrow}\ {\isacharprime}b}. The annotation \isa{{\isacharparenleft}overloaded{\isacharparenright}} tells Isabelle that the definitions do
 intentionally define \isa{inverse} only at instances of its declared type
 \isa{{\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a} --- this merely supresses warnings to that effect.
 

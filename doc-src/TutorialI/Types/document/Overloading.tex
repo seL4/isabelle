@@ -5,8 +5,11 @@
 \isacommand{by}\ intro{\isacharunderscore}classes%
 \begin{isamarkuptext}%
 \noindent
-This means. Of course we should also define the meaning of \isa{{\isacharless}{\isacharless}{\isacharequal}} and
-\isa{{\isacharless}{\isacharless}} on lists.%
+This \isacommand{instance} declaration can be read like the declaration of
+a function on types: the constructor \isa{list} maps types of class \isa{term}, i.e.\ all HOL types, to types of class \isa{ordrel}, i.e.\
+if \isa{ty\ {\isacharcolon}{\isacharcolon}\ term} then \isa{ty\ list\ {\isacharcolon}{\isacharcolon}\ ordrel}.
+Of course we should also define the meaning of \isa{{\isacharless}{\isacharless}{\isacharequal}} and
+\isa{{\isacharless}{\isacharless}} on lists:%
 \end{isamarkuptext}%
 \isacommand{defs}\ {\isacharparenleft}\isakeyword{overloaded}{\isacharparenright}\isanewline
 prefix{\isacharunderscore}def{\isacharcolon}\isanewline

@@ -5,7 +5,7 @@ subsubsection{*Controlled overloading with type classes*}
 text{*
 We now start with the theory of ordering relations, which we want to phrase
 in terms of the two binary symbols @{text"<<"} and @{text"<<="}: they have
-been chosen to avoid clashes with @{text"\<le>"} and @{text"<"} in theory @{text
+been chosen to avoid clashes with @{text"<"} and @{text"\<le>"} in theory @{text
 Main}. To restrict the application of @{text"<<"} and @{text"<<="} we
 introduce the class @{text ordrel}:
 *}
@@ -13,27 +13,52 @@ introduce the class @{text ordrel}:
 axclass ordrel < "term"
 
 text{*\noindent
+This introduces a new class @{text ordrel} and makes it a subclass of
+the predefined class @{text term}\footnote{The quotes around @{text term}
+simply avoid the clash with the command \isacommand{term}.}; @{text term}
+is the class of all HOL types, like ``Object'' in Java.
 This is a degenerate form of axiomatic type class without any axioms.
 Its sole purpose is to restrict the use of overloaded constants to meaningful
 instances:
 *}
 
-consts
-  "<<"        :: "('a::ordrel) \<Rightarrow> 'a \<Rightarrow> bool"             (infixl 50)
-  "<<="       :: "('a::ordrel) \<Rightarrow> 'a \<Rightarrow> bool"             (infixl 50)
+consts less :: "('a::ordrel) \<Rightarrow> 'a \<Rightarrow> bool"     (infixl "<<"  50)
+       le   :: "('a::ordrel) \<Rightarrow> 'a \<Rightarrow> bool"     (infixl "<<=" 50)
+
+text{*\noindent
+So far there is not a single type of class @{text ordrel}. To breathe life
+into @{text ordrel} we need to declare a type to be an \bfindex{instance} of
+@{text ordrel}:
+*}
 
 instance bool :: ordrel
+
+txt{*\noindent
+Command \isacommand{instance} actually starts a proof, namely that
+@{typ bool} satisfies all axioms of @{text ordrel}.
+There are none, but we still need to finish that proof, which we do
+by invoking a fixed predefined method:
+*}
+
 by intro_classes
+
+text{*\noindent
+More interesting \isacommand{instance} proofs will arise below
+in the context of proper axiomatic type classes.
+
+Althoug terms like @{prop"False <<= P"} are now legal, we still need to say
+what the relation symbols actually mean at type @{typ bool}:
+*}
 
 defs (overloaded)
 le_bool_def:  "P <<= Q \<equiv> P \<longrightarrow> Q"
 less_bool_def: "P << Q \<equiv> \<not>P \<and> Q"
 
-text{*
-Now @{prop"False <<= False"} is provable
+text{*\noindent
+Now @{prop"False <<= P"} is provable
 *}
 
-lemma "False <<= False"
+lemma "False <<= P"
 by(simp add: le_bool_def)
 
 text{*\noindent

@@ -1,11 +1,13 @@
 (*<*)theory Overloading0 = Main:(*>*)
 
-subsubsection{*An initial example*}
-
 text{* We start with a concept that is required for type classes but already
 useful on its own: \emph{overloading}. Isabelle allows overloading: a
-constant may have multiple definitions at non-overlapping types. For example,
-if we want to introduce the notion of an \emph{inverse} at arbitrary types we
+constant may have multiple definitions at non-overlapping types. *}
+
+subsubsection{*An initial example*}
+
+text{*
+If we want to introduce the notion of an \emph{inverse} for arbitrary types we
 give it a polymorphic type *}
 
 consts inverse :: "'a \<Rightarrow> 'a"
@@ -25,7 +27,7 @@ two of the three types @{typ bool}, @{typ"'a set"} and @{typ"'a \<times> 'b"} ha
 common instance. What is more, the recursion in @{thm[source]inverse_pair} is
 benign because the type of @{term inverse} becomes smaller: on the left it is
 @{typ"'a \<times> 'b \<Rightarrow> 'a \<times> 'b"} but on the right @{typ"'a \<Rightarrow> 'a"} and @{typ"'b \<Rightarrow>
-'b"}. The @{text"(overloaded)"} tells Isabelle that the definitions do
+'b"}. The annotation @{text"(overloaded)"} tells Isabelle that the definitions do
 intentionally define @{term inverse} only at instances of its declared type
 @{typ"'a \<Rightarrow> 'a"} --- this merely supresses warnings to that effect.
 

@@ -1,0 +1,186 @@
+%
+\begin{isabellebody}%
+\def\isabellecontext{Axioms}%
+%
+\isamarkupsubsection{Axioms}
+%
+\begin{isamarkuptext}%
+Now we want to attach axioms to our classes. Then we can reason on the
+level of classes and the results will be applicable to all types in a class,
+just as in axiomatic mathematics. These ideas are demonstrated by means of
+our above ordering relations.%
+\end{isamarkuptext}%
+%
+\isamarkupsubsubsection{Partial orders}
+%
+\begin{isamarkuptext}%
+A \emph{partial order} is a subclass of \isa{ordrel}
+where certain axioms need to hold:%
+\end{isamarkuptext}%
+\isacommand{axclass}\ parord\ {\isacharless}\ ordrel\isanewline
+refl{\isacharcolon}\ \ \ \ {\isachardoublequote}x\ {\isacharless}{\isacharless}{\isacharequal}\ x{\isachardoublequote}\isanewline
+trans{\isacharcolon}\ \ \ {\isachardoublequote}{\isasymlbrakk}\ x\ {\isacharless}{\isacharless}{\isacharequal}\ y{\isacharsemicolon}\ y\ {\isacharless}{\isacharless}{\isacharequal}\ z\ {\isasymrbrakk}\ {\isasymLongrightarrow}\ x\ {\isacharless}{\isacharless}{\isacharequal}\ z{\isachardoublequote}\isanewline
+antisym{\isacharcolon}\ {\isachardoublequote}{\isasymlbrakk}\ x\ {\isacharless}{\isacharless}{\isacharequal}\ y{\isacharsemicolon}\ y\ {\isacharless}{\isacharless}{\isacharequal}\ x\ {\isasymrbrakk}\ {\isasymLongrightarrow}\ x\ {\isacharequal}\ y{\isachardoublequote}\isanewline
+less{\isacharunderscore}le{\isacharcolon}\ {\isachardoublequote}x\ {\isacharless}{\isacharless}\ y\ {\isacharequal}\ {\isacharparenleft}x\ {\isacharless}{\isacharless}{\isacharequal}\ y\ {\isasymand}\ x\ {\isasymnoteq}\ y{\isacharparenright}{\isachardoublequote}%
+\begin{isamarkuptext}%
+\noindent
+The first three axioms are the familiar ones, and the final one
+requires that \isa{{\isacharless}{\isacharless}} and \isa{{\isacharless}{\isacharless}{\isacharequal}} are related as expected.
+Note that behind the scenes, Isabelle has restricted the axioms to class
+\isa{parord}. For example, this is what \isa{refl} really looks like:
+\isa{{\isacharparenleft}{\isacharquery}x{\isasymColon}{\isacharquery}{\isacharprime}a{\isacharparenright}\ {\isacharless}{\isacharless}{\isacharequal}\ {\isacharquery}x}.
+
+We can now prove simple theorems in this abstract setting, for example
+that \isa{{\isacharless}{\isacharless}} is not symmetric:%
+\end{isamarkuptext}%
+\isacommand{lemma}\ {\isacharbrackleft}simp{\isacharbrackright}{\isacharcolon}\ {\isachardoublequote}{\isacharparenleft}x{\isacharcolon}{\isacharcolon}{\isacharprime}a{\isacharcolon}{\isacharcolon}parord{\isacharparenright}\ {\isacharless}{\isacharless}\ y\ {\isasymLongrightarrow}\ {\isacharparenleft}{\isasymnot}\ y\ {\isacharless}{\isacharless}\ x{\isacharparenright}\ {\isacharequal}\ True{\isachardoublequote}%
+\begin{isamarkuptxt}%
+\noindent
+The conclusion is not simply \isa{{\isasymnot}\ y\ {\isacharless}{\isacharless}\ x} because the preprocessor
+of the simplifier would turn this into \isa{{\isacharparenleft}y\ {\isacharless}{\isacharless}\ x{\isacharparenright}\ {\isacharequal}\ False}, thus yielding
+a nonterminating rewrite rule. In the above form it is a generally useful
+rule.
+The type constraint is necessary because otherwise Isabelle would only assume
+\isa{{\isacharprime}a{\isacharcolon}{\isacharcolon}ordrel} (as required in the type of \isa{{\isacharless}{\isacharless}}), in
+which case the proposition is not a theorem.  The proof is easy:%
+\end{isamarkuptxt}%
+\isacommand{by}{\isacharparenleft}simp\ add{\isacharcolon}less{\isacharunderscore}le\ antisym{\isacharparenright}%
+\begin{isamarkuptext}%
+We could now continue in this vein and develop a whole theory of
+results about partial orders. Eventually we will want to apply these results
+to concrete types, namely the instances of the class. Thus we first need to
+prove that the types in question, for example \isa{bool}, are indeed
+instances of \isa{parord}:%
+\end{isamarkuptext}%
+\isacommand{instance}\ bool\ {\isacharcolon}{\isacharcolon}\ parord\isanewline
+\isacommand{apply}\ intro{\isacharunderscore}classes%
+\begin{isamarkuptxt}%
+\noindent
+This time \isa{intro{\isacharunderscore}classes} leaves us with the four axioms,
+specialized to type \isa{bool}, as subgoals:
+\begin{isabelle}%
+OFCLASS{\isacharparenleft}bool{\isacharcomma}\ parord{\isacharunderscore}class{\isacharparenright}\isanewline
+\ {\isadigit{1}}{\isachardot}\ {\isasymAnd}x{\isasymColon}bool{\isachardot}\ x\ {\isacharless}{\isacharless}{\isacharequal}\ x\isanewline
+\ {\isadigit{2}}{\isachardot}\ {\isasymAnd}{\isacharparenleft}x{\isasymColon}bool{\isacharparenright}\ {\isacharparenleft}y{\isasymColon}bool{\isacharparenright}\ z{\isasymColon}bool{\isachardot}\ {\isasymlbrakk}x\ {\isacharless}{\isacharless}{\isacharequal}\ y{\isacharsemicolon}\ y\ {\isacharless}{\isacharless}{\isacharequal}\ z{\isasymrbrakk}\ {\isasymLongrightarrow}\ x\ {\isacharless}{\isacharless}{\isacharequal}\ z\isanewline
+\ {\isadigit{3}}{\isachardot}\ {\isasymAnd}{\isacharparenleft}x{\isasymColon}bool{\isacharparenright}\ y{\isasymColon}bool{\isachardot}\ {\isasymlbrakk}x\ {\isacharless}{\isacharless}{\isacharequal}\ y{\isacharsemicolon}\ y\ {\isacharless}{\isacharless}{\isacharequal}\ x{\isasymrbrakk}\ {\isasymLongrightarrow}\ x\ {\isacharequal}\ y\isanewline
+\ {\isadigit{4}}{\isachardot}\ {\isasymAnd}{\isacharparenleft}x{\isasymColon}bool{\isacharparenright}\ y{\isasymColon}bool{\isachardot}\ {\isacharparenleft}x\ {\isacharless}{\isacharless}\ y{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}x\ {\isacharless}{\isacharless}{\isacharequal}\ y\ {\isasymand}\ x\ {\isasymnoteq}\ y{\isacharparenright}%
+\end{isabelle}
+Fortunately, the proof is easy for blast, once we have unfolded the definitions
+of \isa{{\isacharless}{\isacharless}} and \isa{{\isacharless}{\isacharless}{\isacharequal}} at \isa{bool}:%
+\end{isamarkuptxt}%
+\isacommand{apply}{\isacharparenleft}simp{\isacharunderscore}all\ {\isacharparenleft}no{\isacharunderscore}asm{\isacharunderscore}use{\isacharparenright}\ only{\isacharcolon}\ le{\isacharunderscore}bool{\isacharunderscore}def\ less{\isacharunderscore}bool{\isacharunderscore}def{\isacharparenright}\isanewline
+\isacommand{by}{\isacharparenleft}blast{\isacharcomma}\ blast{\isacharcomma}\ blast{\isacharcomma}\ blast{\isacharparenright}%
+\begin{isamarkuptext}%
+\noindent
+Can you figure out why we have to include \isa{{\isacharparenleft}no{\isacharunderscore}asm{\isacharunderscore}use{\isacharparenright}}?
+
+We can now apply our single lemma above in the context of booleans:%
+\end{isamarkuptext}%
+\isacommand{lemma}\ {\isachardoublequote}{\isacharparenleft}P{\isacharcolon}{\isacharcolon}bool{\isacharparenright}\ {\isacharless}{\isacharless}\ Q\ {\isasymLongrightarrow}\ {\isasymnot}{\isacharparenleft}Q\ {\isacharless}{\isacharless}\ P{\isacharparenright}{\isachardoublequote}\isanewline
+\isacommand{by}\ simp%
+\begin{isamarkuptext}%
+\noindent
+The effect is not stunning but demonstrates the principle.  It also shows
+that tools like the simplifier can deal with generic rules as well. Moreover,
+it should be clear that the main advantage of the axiomatic method is that
+theorems can be proved in the abstract and one does not need to repeat the
+proof for each instance.%
+\end{isamarkuptext}%
+%
+\isamarkupsubsubsection{Linear orders}
+%
+\begin{isamarkuptext}%
+If any two elements of a partial order are comparable it is a
+\emph{linear} or \emph{total} order:%
+\end{isamarkuptext}%
+\isacommand{axclass}\ linord\ {\isacharless}\ parord\isanewline
+total{\isacharcolon}\ {\isachardoublequote}x\ {\isacharless}{\isacharless}{\isacharequal}\ y\ {\isasymor}\ y\ {\isacharless}{\isacharless}{\isacharequal}\ x{\isachardoublequote}%
+\begin{isamarkuptext}%
+\noindent
+By construction, \isa{linord} inherits all axioms from \isa{parord}.
+Therefore we can show that totality can be expressed in terms of \isa{{\isacharless}{\isacharless}}
+as follows:%
+\end{isamarkuptext}%
+\isacommand{lemma}\ {\isachardoublequote}{\isasymAnd}x{\isacharcolon}{\isacharcolon}{\isacharprime}a{\isacharcolon}{\isacharcolon}linord{\isachardot}\ x{\isacharless}{\isacharless}y\ {\isasymor}\ x{\isacharequal}y\ {\isasymor}\ y{\isacharless}{\isacharless}x{\isachardoublequote}\isanewline
+\isacommand{apply}{\isacharparenleft}simp\ add{\isacharcolon}\ less{\isacharunderscore}le{\isacharparenright}\isanewline
+\isacommand{apply}{\isacharparenleft}insert\ total{\isacharparenright}\isanewline
+\isacommand{apply}\ blast\isanewline
+\isacommand{done}%
+\begin{isamarkuptext}%
+Linear orders are an example of subclassing by construction, which is the most
+common case. It is also possible to prove additional subclass relationships
+later on, i.e.\ subclassing by proof. This is the topic of the following
+section.%
+\end{isamarkuptext}%
+%
+\isamarkupsubsubsection{Strict orders}
+%
+\begin{isamarkuptext}%
+An alternative axiomatization of partial orders takes \isa{{\isacharless}{\isacharless}} rather than
+\isa{{\isacharless}{\isacharless}{\isacharequal}} as the primary concept. The result is a \emph{strict} order:%
+\end{isamarkuptext}%
+\isacommand{axclass}\ strord\ {\isacharless}\ ordrel\isanewline
+irrefl{\isacharcolon}\ \ \ \ \ {\isachardoublequote}{\isasymnot}\ x\ {\isacharless}{\isacharless}\ x{\isachardoublequote}\isanewline
+less{\isacharunderscore}trans{\isacharcolon}\ {\isachardoublequote}{\isasymlbrakk}\ x\ {\isacharless}{\isacharless}\ y{\isacharsemicolon}\ y\ {\isacharless}{\isacharless}\ z\ {\isasymrbrakk}\ {\isasymLongrightarrow}\ x\ {\isacharless}{\isacharless}\ z{\isachardoublequote}\isanewline
+le{\isacharunderscore}less{\isacharcolon}\ \ \ \ {\isachardoublequote}x\ {\isacharless}{\isacharless}{\isacharequal}\ y\ {\isacharequal}\ {\isacharparenleft}x\ {\isacharless}{\isacharless}\ y\ {\isasymor}\ x\ {\isacharequal}\ y{\isacharparenright}{\isachardoublequote}%
+\begin{isamarkuptext}%
+\noindent
+It is well known that partial orders are the same as strict orders. Let us
+prove one direction, namely that partial orders are a subclass of strict
+orders. The proof follows the ususal pattern:%
+\end{isamarkuptext}%
+\isacommand{instance}\ parord\ {\isacharless}\ strord\isanewline
+\isacommand{apply}\ intro{\isacharunderscore}classes\isanewline
+\isacommand{apply}{\isacharparenleft}simp{\isacharunderscore}all\ {\isacharparenleft}no{\isacharunderscore}asm{\isacharunderscore}use{\isacharparenright}\ add{\isacharcolon}less{\isacharunderscore}le{\isacharparenright}\isanewline
+\ \ \isacommand{apply}{\isacharparenleft}blast\ intro{\isacharcolon}\ trans\ antisym{\isacharparenright}\isanewline
+\ \isacommand{apply}{\isacharparenleft}blast\ intro{\isacharcolon}\ refl{\isacharparenright}\isanewline
+\isacommand{done}%
+\begin{isamarkuptext}%
+\noindent
+The result is the following subclass diagram:
+\[
+\begin{array}{c}
+\isa{term}\\
+|\\
+\isa{ordrel}\\
+|\\
+\isa{strord}\\
+|\\
+\isa{parord}
+\end{array}
+\]
+
+In general, the subclass diagram must be acyclic. Therefore Isabelle will
+complain if you also prove the relationship \isa{strord\ {\isacharless}\ parord}.
+Multiple inheritance is however permitted.
+
+This finishes our demonstration of type classes based on orderings.  We
+remind our readers that \isa{Main} contains a much more developed theory of
+orderings phrased in terms of the usual \isa{{\isasymle}} and \isa{{\isacharless}}.
+It is recommended that, if possible,
+you base your own ordering relations on this theory.%
+\end{isamarkuptext}%
+%
+\isamarkupsubsubsection{Inconsistencies}
+%
+\begin{isamarkuptext}%
+The reader may be wondering what happens if we, maybe accidentally,
+attach an inconsistent set of axioms to a class. So far we have always
+avoided to add new axioms to HOL for fear of inconsistencies and suddenly it
+seems that we are throwing all caution to the wind. So why is there no
+problem?
+
+The point is that by construction, all type variables in the axioms of an
+\isacommand{axclass} are automatically constrained with the class being
+defined (as shown for axiom \isa{refl} above). These constraints are
+always carried around and Isabelle takes care that they are never lost,
+unless the type variable is instantiated with a type that has been shown to
+belong to that class. Thus you may be able to prove \isa{False}
+from your axioms, but Isabelle will remind you that this
+theorem has the hidden hypothesis that the class is non-empty.%
+\end{isamarkuptext}%
+\end{isabellebody}%
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: "root"
+%%% End:

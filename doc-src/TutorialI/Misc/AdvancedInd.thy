@@ -57,6 +57,7 @@ by(induct_tac xs, auto);
 
 text{*\noindent
 This time, induction leaves us with the following base case
+%{goals[goals_limit=1,display]}
 \begin{isabelle}
 \ 1.\ []\ {\isasymnoteq}\ []\ {\isasymlongrightarrow}\ hd\ (rev\ [])\ =\ last\ []
 \end{isabelle}

@@ -4,7 +4,9 @@
 %
 \begin{isamarkuptext}%
 Of course this is not the only possible definition of the two relations.
-Componentwise%
+Componentwise comparison of lists of equal length also makes sense. This time
+the elements of the list must also be of class \isa{ordrel} to permit their
+comparison:%
 \end{isamarkuptext}%
 \isacommand{instance}\ list\ {\isacharcolon}{\isacharcolon}\ {\isacharparenleft}ordrel{\isacharparenright}ordrel\isanewline
 \isacommand{by}\ intro{\isacharunderscore}classes\isanewline
@@ -13,11 +15,11 @@ Componentwise%
 le{\isacharunderscore}list{\isacharunderscore}def{\isacharcolon}\ {\isachardoublequote}xs\ {\isacharless}{\isacharless}{\isacharequal}\ {\isacharparenleft}ys{\isacharcolon}{\isacharcolon}{\isacharprime}a{\isacharcolon}{\isacharcolon}ordrel\ list{\isacharparenright}\ {\isasymequiv}\isanewline
 \ \ \ \ \ \ \ \ \ \ \ \ \ \ size\ xs\ {\isacharequal}\ size\ ys\ {\isasymand}\ {\isacharparenleft}{\isasymforall}i{\isacharless}size\ xs{\isachardot}\ xs{\isacharbang}i\ {\isacharless}{\isacharless}{\isacharequal}\ ys{\isacharbang}i{\isacharparenright}{\isachardoublequote}%
 \begin{isamarkuptext}%
+\noindent
+The infix function \isa{{\isacharbang}} yields the nth element of a list.
 %However, we retract the componetwise comparison of lists and return
-
-Note: only one definition because based on name.%
+%Note: only one definition because based on name.%
 \end{isamarkuptext}%
-\isanewline
 \end{isabellebody}%
 %%% Local Variables:
 %%% mode: latex
