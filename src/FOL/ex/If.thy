@@ -2,9 +2,9 @@
     ID:         $Id$
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1991  University of Cambridge
-
-First-Order Logic: the 'if' example.
 *)
+
+header {* First-Order Logic: the 'if' example *}
 
 theory If = FOL:
 
@@ -49,16 +49,15 @@ by (simp add: if_def, blast)
 text{*An invalid formula.  High-level rules permit a simpler diagnosis*}
 lemma "if(if(P,Q,R), A, B) <-> if(P, if(Q,A,B), if(R,B,A))"
 apply auto
-(*The next step will fail unless subgoals remain*)
+  -- {*The next step will fail unless subgoals remain*}
 apply (tactic all_tac)
 oops
 
 text{*Trying again from the beginning in order to prove from the definitions*}
 lemma "if(if(P,Q,R), A, B) <-> if(P, if(Q,A,B), if(R,B,A))"
 apply (simp add: if_def, auto) 
-(*The next step will fail unless subgoals remain*)
+  -- {*The next step will fail unless subgoals remain*}
 apply (tactic all_tac)
 oops
-
 
 end

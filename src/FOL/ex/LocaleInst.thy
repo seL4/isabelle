@@ -12,7 +12,7 @@ theory LocaleInst = FOL:
 
 ML {* set show_hyps *}
 
-section {* Locale without assumptions *}
+subsection {* Locale without assumptions *}
 
 locale L1 = notes rev_conjI [intro] = conjI [THEN iffD1 [OF conj_commute]]
 
@@ -32,7 +32,7 @@ proof -
   then show "A & B" ..
 qed
 
-section {* Simple locale with assumptions *}
+subsection {* Simple locale with assumptions *}
 
 typedecl i
 arities  i :: "term"
@@ -66,7 +66,7 @@ proof -
   show ?thesis by (simp only: my.OP.AC)  (* or simply AC *)
 qed
 
-section {* Nested locale with assumptions *}
+subsection {* Nested locale with assumptions *}
 
 locale L3 =
   fixes OP (infixl "+" 60)
@@ -102,7 +102,7 @@ proof -
   show ?thesis by (simp only: my.OP.AC)  (* or simply AC *)
 qed
 
-section {* Locale with definition *}
+subsection {* Locale with definition *}
 
 text {* This example is admittedly not very creative :-) *}
 
@@ -119,7 +119,7 @@ proof -
   show ?thesis by (rule lem)  (* lem instantiated to True *)
 qed
 
-section {* Instantiation in a context with target *}
+subsection {* Instantiation in a context with target *}
 
 lemma (in L4)  (* Target might confuse instantiation command. *)
   fixes A (infixl "$" 60)

@@ -168,7 +168,7 @@ qed
 
 text {*
   For a set of natural numbers to be infinite, it is enough
-  to know that for any number larger than some $k$, there
+  to know that for any number larger than some @{text k}, there
   is some larger number that is an element of the set.
 *}
 
@@ -198,8 +198,8 @@ by simp
 
 text {*
   Every infinite set contains a countable subset. More precisely
-  we show that a set $S$ is infinite if and only if there exists 
-  an injective function from the naturals into $S$.
+  we show that a set @{text S} is infinite if and only if there exists 
+  an injective function from the naturals into @{text S}.
 *}
 
 lemma range_inj_infinite:
@@ -215,9 +215,9 @@ qed
 text {*
   The ``only if'' direction is harder because it requires the
   construction of a sequence of pairwise different elements of
-  an infinite set $S$. The idea is to construct a sequence of
-  non-empty and infinite subsets of $S$ obtained by successively
-  removing elements of $S$.
+  an infinite set @{text S}. The idea is to construct a sequence of
+  non-empty and infinite subsets of @{text S} obtained by successively
+  removing elements of @{text S}.
 *}
 
 lemma linorder_injI:
