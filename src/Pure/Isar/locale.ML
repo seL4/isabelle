@@ -215,8 +215,8 @@ fun inst_thm [] th = th
         val {sign, hyps, prop, maxidx, ...} = Thm.rep_thm th;
         val cert = Thm.cterm_of sign;
         val certT = Thm.ctyp_of sign;
-        val occs = foldr Term.add_term_tfree_names (prop :: hyps, []);
-        val env' = filter (fn ((a, _), _) => a mem_string occs) env;
+        val tfrees = foldr Term.add_term_tfree_names (prop :: hyps, []);
+        val env' = filter (fn ((a, _), _) => a mem_string tfrees) env;
       in
         if null env' then th
         else
