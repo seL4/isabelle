@@ -7,32 +7,12 @@ New in this Isabelle version
 
 *** Overview of INCOMPATIBILITIES (see below for more details) ***
 
-* several changes of proof tools (see next section);
+* several changes of proof tools;
 
-* HOL/datatype:
-  - Theories using datatypes must now have Datatype.thy as an
-    ancestor.
-  - The specific <typename>.induct_tac no longer exists - use the
-    generic induct_tac instead.
-  - natE has been renamed to nat.exhaustion - use exhaust_tac
-    instead of res_inst_tac ... natE. Note that the variable
-    names in nat.exhaustion differ from the names in natE, this
-    may cause some "fragile" proofs to fail.
-  - the theorems split_<typename>_case and split_<typename>_case_asm
-    have been renamed to <typename>.split and <typename>.split_asm.
-  - Since default sorts are no longer ignored by the package,
-    some datatype definitions may have to be annotated with
-    explicit sort constraints.
-  - Primrec definitions no longer require function name and type
-    of recursive argument.
-  Use isatool fixdatatype to adapt your theories and proof scripts
-  to the new package (as usual, backup your sources first!).
+* HOL: major changes to the inductive and datatype packages;
 
-* HOL/inductive requires Inductive.thy as an ancestor; `inj_onto' is
-now called `inj_on' (which makes more sense);
-
-* HOL/Relation: renamed the relational operator r^-1 to 'converse'
-from 'inverse' (for compatibility with ZF and some literature);
+* HOL: renamed r^-1 to 'converse' from 'inverse'; `inj_onto' is now
+called `inj_on';
 
 
 *** Proof tools ***
@@ -91,14 +71,14 @@ aimed to solve the given subgoal completely;
 
 *** General ***
 
-* new toplevel commands `Goal' and `Goalw' that improve upon `goal'
+* new top-level commands `Goal' and `Goalw' that improve upon `goal'
 and `goalw': the theory is no longer needed as an explicit argument -
 the current theory context is used; assumptions are no longer returned
 at the ML-level unless one of them starts with ==> or !!; it is
-recommended to convert to these new commands using isatool fixgoal (as
-usual, backup your sources first!);
+recommended to convert to these new commands using isatool fixgoal
+(backup your sources first!);
 
-* new toplevel commands 'thm' and 'thms' for retrieving theorems from
+* new top-level commands 'thm' and 'thms' for retrieving theorems from
 the current theory context, and 'theory' to lookup stored theories;
 
 * new theory section 'nonterminals' for purely syntactic types;
@@ -112,32 +92,74 @@ lib/logo/isabelle-{small,tiny}.xpm;
 
 *** HOL ***
 
-* HOL/datatype package reorganized and improved: now supports mutually
-  recursive datatypes such as
+* HOL/inductive package reorganized and improved: now supports mutual
+definitions such as:
 
-    datatype
-      'a aexp = IF_THEN_ELSE ('a bexp) ('a aexp) ('a aexp)
-              | SUM ('a aexp) ('a aexp)
-              | DIFF ('a aexp) ('a aexp)
-              | NUM 'a
-    and
-      'a bexp = LESS ('a aexp) ('a aexp)
-              | AND ('a bexp) ('a bexp)
-              | OR ('a bexp) ('a bexp)
+  inductive EVEN ODD
+    intrs
+      null "0 : EVEN"
+      oddI "n : EVEN ==> Suc n : ODD"
+      evenI "n : ODD ==> Suc n : EVEN"
 
-  as well as indirectly recursive datatypes such as
+new theorem list "elims" contains an elimination rule for each of the
+recursive sets; inductive definitions now handle disjunctive premises
+correctly (also ZF);
 
-    datatype
-      ('a, 'b) term = Var 'a
-                    | App 'b ((('a, 'b) term) list)
+INCOMPATIBILITIES: requires Inductive as an ancestor; component
+"mutual_induct" no longer exists - the induction rule is always
+contained in "induct";
 
-  The new tactic
 
-    mutual_induct_tac [<var_1>, ..., <var_n>] i
+* HOL/datatype package re-implemented and greatly improved: now
+supports mutually recursive datatypes such as:
 
-  performs induction on mutually / indirectly recursive datatypes.
-  Primrec equations are now stored in theory and can be accessed
-  via <function_name>.simps
+  datatype
+    'a aexp = IF_THEN_ELSE ('a bexp) ('a aexp) ('a aexp)
+            | SUM ('a aexp) ('a aexp)
+            | DIFF ('a aexp) ('a aexp)
+            | NUM 'a
+  and
+    'a bexp = LESS ('a aexp) ('a aexp)
+            | AND ('a bexp) ('a bexp)
+            | OR ('a bexp) ('a bexp)
+
+as well as indirectly recursive datatypes such as:
+
+  datatype
+    ('a, 'b) term = Var 'a
+                  | App 'b ((('a, 'b) term) list)
+
+The new tactic  mutual_induct_tac [<var_1>, ..., <var_n>] i  performs
+induction on mutually / indirectly recursive datatypes.
+
+Primrec equations are now stored in theory and can be accessed via
+<function_name>.simps.
+
+INCOMPATIBILITIES:
+
+  - Theories using datatypes must now have theory Datatype as an
+    ancestor.
+  - The specific <typename>.induct_tac no longer exists - use the
+    generic induct_tac instead.
+  - natE has been renamed to nat.exhaustion - use exhaust_tac
+    instead of res_inst_tac ... natE. Note that the variable
+    names in nat.exhaustion differ from the names in natE, this
+    may cause some "fragile" proofs to fail.
+  - The theorems split_<typename>_case and split_<typename>_case_asm
+    have been renamed to <typename>.split and <typename>.split_asm.
+  - Since default sorts of type variables are now handled correctly,
+    some datatype definitions may have to be annotated with explicit
+    sort constraints.
+  - Primrec definitions no longer require function name and type
+    of recursive argument.
+
+Consider using isatool fixdatatype to adapt your theories and proof
+scripts to the new package (backup your sources first!).
+
+
+* HOL/record package: now includes concrete syntax for record types,
+terms, updates; still lacks important theorems, like surjective
+pairing and split;
 
 * reorganized the main HOL image: HOL/Integ and String loaded by
 default; theory Main includes everything;
@@ -160,24 +182,12 @@ unit_abs_eta_conv is added in order to counter the effect of
 unit_eq_proc on (%u::unit. f u), replacing it by f rather than by
 %u.f();
 
-* HOL/record package: now includes concrete syntax for record types,
-terms, updates; still lacks important theorems, like surjective
-pairing and split;
+* HOL/Fun INCOMPATIBILITY: `inj_onto' is now called `inj_on' (which
+makes more sense);
 
-* HOL/inductive package reorganized and improved: now supports mutual
-definitions such as
-
-  inductive EVEN ODD
-    intrs
-      null "0 : EVEN"
-      oddI "n : EVEN ==> Suc n : ODD"
-      evenI "n : ODD ==> Suc n : EVEN"
-
-new component "elims" of the structure created by the package contains
-an elimination rule for each of the recursive sets; requires
-Inductive.thy as an ancestor; component "mutual_induct" no longer
-exists - the induction rule is always contained in "induct"; inductive
-definitions now handle disjunctive premises correctly (also ZF);
+* HOL/Relation INCOMPATIBILITY: renamed the relational operator r^-1
+to 'converse' from 'inverse' (for compatibility with ZF and some
+literature);
 
 * HOL/recdef can now declare non-recursive functions, with {} supplied as
 the well-founded relation;
