@@ -106,6 +106,10 @@ qed_goal "Sigma_empty2" ZF.thy "A*0 = 0"
 
 Addsimps [Sigma_empty1, Sigma_empty2];
 
+Goal "A*B=0 <-> A=0 | B=0";
+by (Blast_tac 1);
+qed "Sigma_empty_iff";
+
 
 (*** Projections: fst, snd ***)
 
