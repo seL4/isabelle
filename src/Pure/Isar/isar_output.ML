@@ -18,6 +18,7 @@ sig
   datatype markup = Markup | MarkupEnv | Verbatim
   val interest_level: int ref
   val modes: string list ref
+  val eval_antiquote: Scan.lexicon -> Toplevel.state -> string * Position.T -> string
   val parse_thy: (markup -> OuterLex.token list -> OuterLex.token * OuterLex.token list) ->
     Scan.lexicon -> Toplevel.transition list -> (OuterLex.token, 'a) Source.source ->
       (Toplevel.transition * (Toplevel.state -> Buffer.T -> Buffer.T)) list * Buffer.T
