@@ -310,7 +310,7 @@ in
 
 val _ = add_commands
  [("text", args (Scan.lift Args.name) (output_with (K pretty_text))),
-  ("thm", args Attrib.local_thms (output_with pretty_thm)),
+  ("thm", args Attrib.local_thmss (output_with pretty_thm)),
   ("prop", args Args.local_prop (output_with pretty_term)),
   ("term", args Args.local_term (output_with pretty_term)),
   ("typ", args Args.local_typ_no_norm (output_with pretty_typ)),
