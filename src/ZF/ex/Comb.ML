@@ -17,8 +17,32 @@ HOL system proofs may be found in
 
 open Comb;
 
+(*** Transitive closure preserves the Church-Rosser property ***)
+
+goalw Comb.thy [diamond_def]
+    "!!x y r. [| diamond(r);  <x,y>:r^+ |] ==> \
+\    ALL y'. <x,y'>:r --> (EX z. <y',z>: r^+ & <y,z>: r)";
+by (etac trancl_induct 1);
+by (blast_tac (!claset addIs [r_into_trancl]) 1);
+by (slow_best_tac (!claset addSDs [spec RS mp]
+                           addIs  [r_into_trancl, trans_trancl RS transD]) 1);
+val diamond_strip_lemmaE = result() RS spec RS mp RS exE;
+
+val [major] = goal Comb.thy "diamond(r) ==> diamond(r^+)";
+by (rewtac diamond_def);  (*unfold only in goal, not in premise!*)
+by (rtac (impI RS allI RS allI) 1);
+by (etac trancl_induct 1);
+by (ALLGOALS (*Seems to be a brittle, undirected search*)
+    (slow_best_tac (!claset addIs [r_into_trancl, trans_trancl RS transD]
+                            addEs [major RS diamond_strip_lemmaE])));
+qed "diamond_trancl";
+
+
 val [_,_,comb_Ap] = comb.intrs;
 val Ap_E = comb.mk_cases comb.con_defs "p#q : comb";
+
+AddSIs comb.intrs;
+AddSEs comb.free_SEs;
 
 
 (*** Results about Contraction ***)
@@ -38,19 +62,20 @@ bind_thm ("reduction_refl",
 bind_thm ("rtrancl_into_rtrancl2",
     (r_into_rtrancl RS (trans_rtrancl RS transD)));
 
-val reduction_rls = [reduction_refl, contract.K, contract.S, 
-                     contract.K RS rtrancl_into_rtrancl2,
+AddSIs [reduction_refl, contract.K, contract.S];
+
+val reduction_rls = [contract.K RS rtrancl_into_rtrancl2,
                      contract.S RS rtrancl_into_rtrancl2,
                      contract.Ap1 RS rtrancl_into_rtrancl2,
                      contract.Ap2 RS rtrancl_into_rtrancl2];
 
 (*Example only: not used*)
 goalw Comb.thy [I_def] "!!p. p:comb ==> I#p ---> p";
-by (REPEAT (ares_tac (comb.intrs @ reduction_rls) 1));
+by (blast_tac (!claset addIs reduction_rls) 1);
 qed "reduce_I";
 
 goalw Comb.thy [I_def] "I: comb";
-by (REPEAT (ares_tac comb.intrs 1));
+by (Blast_tac 1);
 qed "comb_I";
 
 (** Non-contraction results **)
@@ -60,11 +85,8 @@ val K_contractE = contract.mk_cases comb.con_defs "K -1-> r";
 val S_contractE = contract.mk_cases comb.con_defs "S -1-> r";
 val Ap_contractE = contract.mk_cases comb.con_defs "p#q -1-> r";
 
-AddSIs comb.intrs;
-AddIs  contract.intrs;
-AddSEs [contract_combD1,contract_combD2];     (*type checking*)
+AddIs  [contract.Ap1, contract.Ap2];
 AddSEs [K_contractE, S_contractE, Ap_contractE];
-AddSEs comb.free_SEs;
 
 goalw Comb.thy [I_def] "!!r. I -1-> r ==> P";
 by (Blast_tac 1);
@@ -80,7 +102,7 @@ by (dtac (field_contract_eq RS equalityD1 RS subsetD) 1);
 by (etac rtrancl_induct 1);
 by (blast_tac (!claset addIs reduction_rls) 1);
 by (etac (trans_rtrancl RS transD) 1);
-by (fast_tac (!claset addIs reduction_rls) 1);
+by (blast_tac (!claset addIs (contract_combD2::reduction_rls)) 1);
 qed "Ap_reduce1";
 
 goal Comb.thy "!!p r. [| p ---> q;  r: comb |] ==> r#p ---> r#q";
@@ -89,7 +111,7 @@ by (dtac (field_contract_eq RS equalityD1 RS subsetD) 1);
 by (etac rtrancl_induct 1);
 by (blast_tac (!claset addIs reduction_rls) 1);
 by (etac (trans_rtrancl RS transD) 1);
-by (fast_tac (!claset addIs reduction_rls) 1);
+by (blast_tac (!claset addIs (contract_combD2::reduction_rls)) 1);
 qed "Ap_reduce2";
 
 (** Counterexample to the diamond property for -1-> **)
@@ -108,7 +130,7 @@ qed "KIII_contract3";
 
 goalw Comb.thy [diamond_def] "~ diamond(contract)";
 by (blast_tac (!claset addIs [KIII_contract1,KIII_contract2,KIII_contract3]
-                    addSEs [I_contract_E]) 1);
+                       addSEs [I_contract_E]) 1);
 qed "not_diamond_contract";
 
 
@@ -130,11 +152,8 @@ val K_parcontractE = parcontract.mk_cases comb.con_defs "K =1=> r";
 val S_parcontractE = parcontract.mk_cases comb.con_defs "S =1=> r";
 val Ap_parcontractE = parcontract.mk_cases comb.con_defs "p#q =1=> r";
 
-AddSIs comb.intrs;
 AddIs  parcontract.intrs;
 AddSEs [Ap_E, K_parcontractE, S_parcontractE, Ap_parcontractE];
-AddSEs [parcontract_combD1, parcontract_combD2];     (*type checking*)
-AddSEs comb.free_SEs;
 
 (*** Basic properties of parallel contraction ***)
 
@@ -156,29 +175,9 @@ goalw Comb.thy [diamond_def] "diamond(parcontract)";
 by (rtac (impI RS allI RS allI) 1);
 by (etac parcontract.induct 1);
 by (ALLGOALS 
-    (fast_tac (!claset addSDs [K1_parcontractD,S2_parcontractD])));
+    (blast_tac (!claset addSDs [K1_parcontractD, S2_parcontractD]
+                        addIs  [parcontract_combD2])));
 qed "diamond_parcontract";
-
-(*** Transitive closure preserves the Church-Rosser property ***)
-
-goalw Comb.thy [diamond_def]
-    "!!x y r. [| diamond(r);  <x,y>:r^+ |] ==> \
-\    ALL y'. <x,y'>:r --> (EX z. <y',z>: r^+ & <y,z>: r)";
-by (etac trancl_induct 1);
-by (blast_tac (!claset addIs [r_into_trancl]) 1);
-by (slow_best_tac (!claset addSDs [spec RS mp]
-                           addIs  [r_into_trancl, trans_trancl RS transD]) 1);
-val diamond_strip_lemmaE = result() RS spec RS mp RS exE;
-
-val [major] = goal Comb.thy "diamond(r) ==> diamond(r^+)";
-by (rewtac diamond_def);  (*unfold only in goal, not in premise!*)
-by (rtac (impI RS allI RS allI) 1);
-by (etac trancl_induct 1);
-by (ALLGOALS
-    (slow_best_tac (!claset addIs [r_into_trancl, trans_trancl RS transD]
-                          addEs [major RS diamond_strip_lemmaE])));
-qed "diamond_trancl";
-
 
 (*** Equivalence of p--->q and p===>q ***)
 
@@ -202,11 +201,10 @@ by (etac parcontract.induct 1);
 by (blast_tac (!claset addIs reduction_rls) 1);
 by (blast_tac (!claset addIs reduction_rls) 1);
 by (blast_tac (!claset addIs reduction_rls) 1);
-by (rtac (trans_rtrancl RS transD) 1);
-by (ALLGOALS 
-    (blast_tac 
-     (!claset addIs [Ap_reduce1, Ap_reduce2, parcontract_combD1,
-		     parcontract_combD2])));
+by (blast_tac 
+    (!claset addIs [trans_rtrancl RS transD,
+		    Ap_reduce1, Ap_reduce2, parcontract_combD1,
+		    parcontract_combD2]) 1);
 qed "parcontract_imp_reduce";
 
 goal Comb.thy "!!p q. p===>q ==> p--->q";
