@@ -83,9 +83,6 @@ val distrib_simps  = map prove_fun
 
 (** Conversion into rewrite rules **)
 
-fun gen_all th = forall_elim_vars (#maxidx(rep_thm th)+1) th;
-
-
 (*Make atomic rewrite rules*)
 fun atomize r =
  case concl_of r of
@@ -243,7 +240,7 @@ val LK_basic_ss =
   empty_ss setsubgoaler asm_simp_tac
     setSSolver (mk_solver "safe" safe_solver)
     setSolver (mk_solver "unsafe" unsafe_solver)
-    setmksimps (map mk_meta_eq o atomize o gen_all)
+    setmksimps (map mk_meta_eq o atomize o forall_elim_vars_safe)
     setmkcong mk_meta_cong;
 
 val LK_simps =

@@ -68,8 +68,6 @@ bind_thms ("distrib_simps", map int_prove_fun
 
 (** Conversion into rewrite rules **)
 
-fun gen_all th = forall_elim_vars (#maxidx(rep_thm th)+1) th;
-
 bind_thm ("P_iff_F", int_prove_fun "~P ==> (P <-> False)");
 bind_thm ("iff_reflection_F", P_iff_F RS iff_reflection);
 
@@ -123,7 +121,7 @@ fun mk_atomize pairs =
          | _ => [th])
   in atoms end;
 
-fun mksimps pairs = (map mk_eq o mk_atomize pairs o gen_all);
+fun mksimps pairs = (map mk_eq o mk_atomize pairs o forall_elim_vars_safe);
 
 (*** Classical laws ***)
 
