@@ -51,9 +51,7 @@ withtype rhss_ref = (token option * (refsymb list * string * int) list) list ref
 (* convert productions to reference grammar with lookaheads and eliminate
    chain productions *)
 fun mk_gram prods =
-  let val _ = writeln "Building new grammar...";
-
-      (*get reference on list of all possible rhss for nonterminal lhs
+  let (*get reference on list of all possible rhss for nonterminal lhs
         (if it doesn't exist a new one is created and added to the nonterminal
          list)*)
       fun get_rhss ref_prods lhs =
@@ -277,13 +275,15 @@ fun extend_gram (gram1 as Gram (prods1, _)) _ xprods2 =
     val prods2 = distinct (map prod_of xprods2);
   in
     if prods2 subset prods1 then gram1
-    else mk_gram (extend_list prods1 prods2)
+    else (writeln "Building new grammar...";
+          mk_gram (extend_list prods1 prods2))
   end;
 
 fun merge_grams (gram1 as Gram (prods1, _)) (gram2 as Gram (prods2, _)) =
   if prods2 subset prods1 then gram1
   else if prods1 subset prods2 then gram2
-  else mk_gram (merge_lists prods1 prods2);
+  else (writeln "Building new grammar...";
+        mk_gram (merge_lists prods1 prods2));
 
 
 (* pretty_gram *)
