@@ -139,8 +139,8 @@ local
       "val thy = thy;\nend;\nval thy = thy\n"
     end;
 
-  fun mk_thmss namess = "(map (PureThy.get_thmss thy) " ^ mk_list (map mk_list namess) ^ ")";
-  fun mk_thm name = "(PureThy.get_thm thy " ^ name ^ ")";
+  fun mk_thmss namess = mk_list (map (mk_list o map (mk_pair o rpair "[]")) namess);
+  fun mk_thm name = mk_pair (name, "[]");
 
   fun mk_rep_dt_string (((names, distinct), inject), induct) =
     ";\nlocal\n\
