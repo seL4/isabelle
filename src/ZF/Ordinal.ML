@@ -87,7 +87,7 @@ qed "Transset_Inter_family";
 (*** Natural Deduction rules for Ord ***)
 
 val prems = goalw Ordinal.thy [Ord_def]
-    "[| Transset(i);  !!x. x:i ==> Transset(x) |]  ==>  Ord(i) ";
+    "[| Transset(i);  !!x. x:i ==> Transset(x) |]  ==>  Ord(i)";
 by (REPEAT (ares_tac (prems@[ballI,conjI]) 1));
 qed "OrdI";
 
@@ -623,7 +623,7 @@ by (REPEAT (eresolve_tac [asm_rl, leprem RS ltE] 1
 qed "le_implies_UN_le_UN";
 
 goal Ordinal.thy "!!i. Ord(i) ==> (UN y:i. succ(y)) = i";
-by (fast_tac (!claset addEs [Ord_trans]) 1);
+by (best_tac (!claset addEs [Ord_trans]) 1);
 qed "Ord_equality";
 
 (*Holds for all transitive sets, not just ordinals*)

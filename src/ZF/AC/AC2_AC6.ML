@@ -78,7 +78,7 @@ val lemma = result();
 goalw thy AC_defs "!!Z. AC1 ==> AC4";
 by (REPEAT (resolve_tac [allI, impI] 1));
 by (REPEAT (eresolve_tac [allE, lemma RSN (2, impE), exE] 1));
-by (fast_tac (!claset addSIs [lam_type] addSEs [apply_type]) 1);
+by (best_tac (!claset addSIs [lam_type] addSEs [apply_type]) 1);
 qed "AC1_AC4";
 
 
