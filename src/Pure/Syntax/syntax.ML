@@ -60,6 +60,7 @@ sig
   val string_of_typ: syntax -> typ -> string
   val simple_string_of_typ: typ -> string
   val simple_pprint_typ: typ -> pprint_args -> unit
+  val ambiguity_level: int ref
 end;
 
 functor SyntaxFun(structure Symtab: SYMTAB and TypeExt: TYPE_EXT
@@ -302,6 +303,8 @@ fun test_read (Syntax tabs) root str =
 
 (* read_ast *)
 
+val ambiguity_level = ref 1;
+
 fun read_asts (Syntax tabs) xids root str =
   let
     val {lexicon, gram, parse_ast_trtab, logtypes, ...} = tabs;
@@ -310,9 +313,10 @@ fun read_asts (Syntax tabs) xids root str =
 
     fun show_pt pt = writeln (str_of_ast (pt_to_ast (K None) pt));
   in
-    if length pts > 1 then
+    if length pts > !ambiguity_level then
       (writeln ("Warning: Ambiguous input " ^ quote str);
-       writeln "produces the following parse trees:"; seq show_pt pts)
+       writeln "produces the following parse trees:";
+       seq show_pt pts)
     else ();
     map (pt_to_ast (lookup_trtab parse_ast_trtab)) pts
   end;
