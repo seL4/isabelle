@@ -42,8 +42,6 @@ mkfin_def
   "mkfin s == if Partial s then @t. Finite t & s = t @@ UU
                            else s"
 
-(* should be in Option as option_lift1, and option_map should be renamed to 
-   option_lift2 *)
 option_lift_def
   "option_lift f s y == case y of None => s | Some x => (f x)"
 
@@ -77,6 +75,8 @@ validTE_def
 
 validIOA_def
   "validIOA A P == ! ex : executions A . (ex |== P)"
+
+
 
 rules
 

@@ -188,8 +188,6 @@ Goal "Zip`(x>>xs)`(y>>ys)= (x,y) >> Zip`xs`ys";
 by (rtac trans 1);
 by (stac Zip_unfold 1);
 by (Simp_tac 1);
-(* FIX: Why Simp_tac 2 times. Does continuity in simpflication make job sometimes not 
-  completely ready ? *)
 by (simp_tac (simpset() addsimps [Cons_def]) 1);
 qed"Zip_cons";
 
@@ -213,25 +211,6 @@ Addsimps [Filter_UU,Filter_nil,Filter_cons,
           Dropwhile_UU, Dropwhile_nil, Dropwhile_cons,
           Zip_UU1,Zip_UU2,Zip_nil,Zip_cons_nil,Zip_cons];
 
-
-(*
-
-Can Filter with HOL predicate directly be defined as fixpoint ?
-
-Goal "Filter2 P = (LAM tr. case tr of  \
- \         nil   => nil \
- \       | x##xs => (case x of Undef => UU | Def y => \
-\                   (if P y then y>>(Filter2 P`xs) else Filter2 P`xs)))";
-by (rtac trans 1);
-by (rtac fix_eq2 1);
-by (rtac Filter2_def 1);
-by (rtac beta_cfun 1);
-by (Simp_tac 1);
-
-is also possible, if then else has to be proven continuous and it would be nice if a case for 
-Seq would be available.
-
-*)
 
 
 (* ------------------------------------------------------------------------------------- *)
@@ -524,7 +503,7 @@ qed"nilConc";
 
 Addsimps [nilConc];
 
-(* FIX: should be same as nil_is_Conc2 when all nils are turned to right side !! *)
+(* should be same as nil_is_Conc2 when all nils are turned to right side !! *)
 Goal "(nil = x @@ y) = ((x::'a Seq)= nil & y = nil)";
 by (Seq_case_simp_tac "x" 1);
 by Auto_tac;
@@ -1155,7 +1134,7 @@ Goal "Filter P`(Filter Q`s) = Filter (%x. P x & Q x)`s";
 by (res_inst_tac [("A1","%x. True") 
                  ,("Q1","%x.~(P x & Q x)"),("x1","s")]
                  (take_lemma_induct RS mp) 1);
-(* FIX: better support for A = %x. True *)
+(* better support for A = %x. True *)
 by (Fast_tac 3);
 by (asm_full_simp_tac (simpset() addsimps [Filter_lemma1]) 1);
 by (asm_full_simp_tac (simpset() addsimps [Filter_lemma2,Filter_lemma3]) 1);

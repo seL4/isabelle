@@ -56,18 +56,3 @@ qed"live_implements";
 
 
 (*
-
-(* Classical Fairness and Fairness by Temporal Formula coincide *)
- 
-Goal "!! ex. Finite (snd ex) ==> \
-\          (ex |== WF A acts) = (~ Enabled A acts (laststate ex))";
-
-In 3 steps:
-
-1) []<>P and <>[]P mean both P (Last`s)
-2) Transform this to executions and laststate
-3) plift is used to show that plift (laststate ex) : acts == False. 
-
-
-
-*)

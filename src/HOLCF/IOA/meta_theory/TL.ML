@@ -11,7 +11,7 @@ Goal "[] <> (.~ P) = (.~ <> [] P)";
 by (rtac ext 1);
 by (simp_tac (simpset() addsimps [Diamond_def,NOT_def,Box_def])1);
 by Auto_tac;
-qed"simple_try";
+qed"simple";
 
 Goal "nil |= [] P";
 by (asm_full_simp_tac (simpset() addsimps [satisfies_def,
@@ -73,27 +73,6 @@ by (simp_tac (simpset() addsimps [satisfies_def,IMPLIES_def,Box_def])1);
 qed"normalT";
 
 
-(*
-Goal "s |= <> F .& <> G .--> (<> (F .& <> G) .| <> (G .& <> F))";
-by (simp_tac (simpset() addsimps [satisfies_def,IMPLIES_def,AND_def,OR_def,Diamond_def2])1);
-by (rtac impI 1);
-by (etac conjE 1);
-by (etac exE 1);
-by (etac exE 1);
-
-
-by (rtac disjI1 1);
-
-Goal "!!s. [| tsuffix s1 s ; tsuffix s2 s|] ==> tsuffix s2 s1 | tsuffix s1 s2";
-by (asm_full_simp_tac (simpset() addsimps [tsuffix_def,suffix_def])1);
-by (REPEAT (etac conjE 1));
-by (REPEAT (etac exE 1));
-by (REPEAT (etac conjE 1));
-by (hyp_subst_tac 1);
-
-*)
-
-
 section "TLA Rules by Lamport";
 
 (* ---------------------------------------------------------------- *)
@@ -112,8 +91,6 @@ Goal "!! P. valid P ==> validT ([] (Init P))";
 by (rtac STL1a 1);
 by (etac STL1b 1);
 qed"STL1";
-
-
 
 (* Note that unlift and HD is not at all used !!! *)
 Goal "!! P. valid (P .--> Q)  ==> validT ([] (Init P) .--> [] (Init Q))";
@@ -174,7 +151,6 @@ Goalw [Next_def,satisfies_def,Box_def,NOT_def,IMPLIES_def]
  "s |= [] (F .--> Next F) .--> F .--> []F";
 by (Asm_full_simp_tac 1);
 by Auto_tac;
-
 
 by (asm_full_simp_tac (simpset() addsimps [tsuffix_def,suffix_def])1);
 by Auto_tac;

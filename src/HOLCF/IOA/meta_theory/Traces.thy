@@ -66,13 +66,6 @@ consts
   Scheds        ::  "('a,'s)ioa => 'a schedule_module"
   Traces        ::  "('a,'s)ioa => 'a trace_module"
 
-(*
-(* FIX: introduce good symbol *)
-syntax (symbols)
-
-  "op <<|"       ::"[('a,'s1)ioa, ('a,'s2)ioa] => bool" (infixr "\\<parallel>" 10)
-*)
-
 
 defs
 
@@ -144,7 +137,8 @@ fin_often_def
 
 (* Note that partial execs cannot be wfair as the inf_often predicate in the 
    else branch prohibits it. However they can be sfair in the case when all W 
-   are only finitely often enabled: FIX Is this the right model? *)
+   are only finitely often enabled: Is this the right model?  
+   See LiveIOA for solution conforming with the literature and superseding this one *)
 wfair_ex_def
   "wfair_ex A ex == ! W : wfair_of A.  
                       if   Finite (snd ex) 

@@ -5,8 +5,6 @@
 
 A General Temporal Logic
 
-Version 2: Interface directly after Sequeces, i.e. predicates and predicate transformers are in HOL
-
 *)   
 
 

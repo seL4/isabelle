@@ -39,7 +39,8 @@ is_fair_ref_map_def
 
 rules
 (* Axioms for fair trace inclusion proof support, not for the correctness proof
-   of refeinment mappings ! *)
+   of refinement mappings ! 
+   Note: Everything is superseded by LiveIOA.thy! *)
 
 corresp_laststate
   "Finite ex ==> laststate (corresp_ex A f (s,ex)) = f (laststate (s,ex))"

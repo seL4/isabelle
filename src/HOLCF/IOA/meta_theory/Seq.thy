@@ -104,16 +104,6 @@ szip_def
              | x##xs => (case t2 of 
                           nil => UU 
                         | y##ys => <x,y>##(h`xs`ys))))"
- 
-(*
-nproj_def 
- "nproj == (%n tr.HD`(iterate n TL tr))"   
-
-
-sproj_def 
- "sproj == (%n tr.iterate n TL tr)"   
-*)
-
 
 Partial_def
   "Partial x  == (seq_finite x) & ~(Finite x)"

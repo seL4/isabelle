@@ -70,12 +70,12 @@ rules
 ex2seq_abs_cex
   "ex2seq (cex_abs h ex) = cex_absSeq h (ex2seq ex)" 
 
-(* analog to the proved thm strength_Box  *)
+(* analog to the proved thm strength_Box - proof skipped as trivial *)
 weak_Box
 "temp_weakening P Q h 
  ==> temp_weakening ([] P) ([] Q) h"
 
-(* analog to the proved thm strength_Next  *)
+(* analog to the proved thm strength_Next - proof skipped as trivial *)
 weak_Next
 "temp_weakening P Q h 
  ==> temp_weakening (Next P) (Next Q) h"

@@ -4,7 +4,7 @@
     Copyright   1997  TU Muenchen
 
 Temporal Logic of Steps -- tailored for I/O automata
-*)   
+*)    
 
 (* global changes to simpset() and claset(), repeated from Traces.ML *)
 Delsimps (ex_simps @ all_simps);
@@ -70,16 +70,11 @@ Delsimps [ex2seqC_UU,ex2seqC_nil,ex2seqC_cons];
 Addsimps [ex2seq_UU,ex2seq_nil, ex2seq_cons];  
 
 
-
-
 Goal "ex2seq exec ~= UU & ex2seq exec ~= nil";
 by (pair_tac "exec" 1);
 by (Seq_case_simp_tac "y" 1);
 by (pair_tac "a" 1);
 qed"ex2seq_nUUnnil";
-
-
-Goal "ex |== [] P .--> P";
 
 
 (* ----------------------------------------------------------- *)

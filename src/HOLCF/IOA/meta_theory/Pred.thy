@@ -1,13 +1,9 @@
-(*  Title:      HOLCF/IOA/meta_theory/TLS.thy
+(*  Title:      HOLCF/IOA/meta_theory/Pred.thy
     ID:         $Id$
     Author:     Olaf M"uller
     Copyright   1997  TU Muenchen
 
 Logical Connectives lifted to predicates.
-
-ToDo:
-
-<--> einfuehren.
 
 *)   
 	       

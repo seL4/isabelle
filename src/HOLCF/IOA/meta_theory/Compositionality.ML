@@ -25,8 +25,7 @@ by (REPEAT (asm_full_simp_tac (simpset()
 qed"Filter_actAisFilter_extA";
 
 
-(* the next two theorems are only necessary, as there is no theorem ext (A||B) = ext (B||A)
-    or even better A||B= B||A, FIX *)
+(* the next two theorems are only necessary, as there is no theorem ext (A||B) = ext (B||A) *)
 
 Goal "!! A. [|eA --> A ; eB & ~eA --> ~A|] ==> (eB | eA) --> A=eA";
 by Auto_tac;

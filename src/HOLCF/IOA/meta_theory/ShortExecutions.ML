@@ -179,36 +179,6 @@ qed_spec_mp"Cut_prefixcl_nFinite";
 
 
 
-(*
-
-Goal "Finite s --> (? y. s = Cut P s @@ y)";
-by (strip_tac 1);
-by (rtac exI 1);
-by (resolve_tac seq.take_lemmas 1);
-by (rtac mp 1);
-by (assume_tac 2);
-by (thin_tac' 1 1);
-by (res_inst_tac [("x","s")] spec 1);
-by (rtac less_induct 1);
-by (strip_tac 1);
-ren "na n s" 1;
-by (case_tac "Forall (%x. ~ P x) s" 1);
-by (rtac (seq_take_lemma RS iffD2 RS spec) 1);
-by (asm_full_simp_tac (simpset() addsimps [Cut_nil]) 1);
-(* main case *)
-by (dtac divide_Seq3 1);
-by (REPEAT (etac exE 1));
-by (REPEAT (etac conjE 1));
-by (hyp_subst_tac 1);
-by (asm_full_simp_tac (simpset() addsimps [Cut_Cons,Conc_assoc]) 1);
-by (rtac take_reduction 1);
-
-qed_spec_mp"Cut_prefixcl_Finite";
-
-*)
-
-
-
 Goal "!!ex .is_exec_frag A (s,ex) ==> is_exec_frag A (s,Cut P ex)";
 by (case_tac "Finite ex" 1);
 by (cut_inst_tac [("s","ex"),("P","P")] Cut_prefixcl_Finite 1);

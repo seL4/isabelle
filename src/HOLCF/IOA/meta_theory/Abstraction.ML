@@ -185,29 +185,6 @@ by (Asm_full_simp_tac 1);
 by (pair_induct_tac "xs" [] 1);
 qed"traces_coincide_abs";
 
-(* 
-FIX: Is this needed anywhere? 
-
-Goalw [cex_abs_def]
- "!!f.[| is_abstraction h C A |] ==>\
-\ !s. reachable C s & is_exec_frag C (s,xs) \
-\ --> is_exec_frag A (cex_abs h (s,xs))"; 
-
-by (Asm_full_simp_tac 1);
-by (pair_induct_tac "xs" [is_exec_frag_def] 1);
-(* main case *)
-by (safe_tac set_cs);
-(* Stepd correspond to each other *)
-by (asm_full_simp_tac (simpset() addsimps [is_abstraction_def])1);
-(* IH *)
-(* reachable_n looping, therefore apply it manually *)
-by (eres_inst_tac [("x","y")] allE 1);
-by (Asm_full_simp_tac 1);
-by (forward_tac [reachable.reachable_n] 1);
-by (assume_tac 1);
-by (Asm_full_simp_tac 1);
-qed_spec_mp"correp_is_exec_abs";
-*) 
 
 (* Does not work with abstraction_is_ref_map as proof of abs_safety, because
    is_live_abstraction includes temp_strengthening which is necessarily based
@@ -403,6 +380,8 @@ by Auto_tac;
 qed"ex2seq_tsuffix";
 
 
+(* FIX: NAch Sequence.ML bringen *)
+
 Goal "(Map f`s = nil) = (s=nil)";
 by (Seq_case_simp_tac "s" 1);
 qed"Mapnil";
@@ -539,26 +518,6 @@ by (Seq_case_simp_tac "y" 1);
 by (pair_tac "a" 1);
 qed"weak_Init";
 
-
-(*
-
-(* analog to strengthening thm above, with analog lemmas used  *)
-
-Goalw [state_weakening_def]
-"!! h. [| temp_weakening P Q h |]\
-\      ==> temp_weakening ([] P) ([] Q) h";
-by (asm_full_simp_tac (simpset() addsimps [temp_weakening_def2,
-         temp_sat_def,satisfies_def,Box_def])1);
-
-(* analog to strengthening thm above, with analog lemmas used  *)
-
-Goalw [state_weakening_def]
-"!! h. [| temp_weakening P Q h |]\
-\      ==> temp_weakening (Next P) (Next Q) h";
-by (asm_full_simp_tac (simpset() addsimps [temp_weakening_def2,
-         temp_sat_def,satisfies_def,Next_def])1);
-
-*)
 
 (* ---------------------------------------------------------------- *)
 (*             Localizing Temproal Strengthenings - 3               *)

@@ -460,7 +460,7 @@ by Auto_tac;
 by (REPEAT (best_tac (set_cs addEs [equalityCE]) 1));
 qed"compatible_par";
 
-(* FIX: better derive by previous one and compat_commute *)
+(*  better derive by previous one and compat_commute *)
 Goalw [compatible_def]
 "!! A. [|compatible A C; compatible B C |]==> compatible (A||B) C";
 by (asm_full_simp_tac (simpset() addsimps [internals_of_par, 

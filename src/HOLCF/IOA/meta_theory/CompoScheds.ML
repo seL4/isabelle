@@ -179,7 +179,7 @@ qed"lemma_2_1b";
 (*             Schedules of A||B have only  A- or B-actions              *)
 (* --------------------------------------------------------------------- *)
 
-(* FIX: very similar to lemma_1_1c, but it is not checking if every action element of 
+(* very similar to lemma_1_1c, but it is not checking if every action element of 
    an ex is in A or B, but after projecting it onto the action schedule. Of course, this
    is the same proposition, but we cannot change this one, when then rather lemma_1_1c  *)
 

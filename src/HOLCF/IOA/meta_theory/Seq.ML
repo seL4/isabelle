@@ -376,7 +376,6 @@ Goal "sforall P (sfilter`P`x)";
 by (simp_tac (simpset() addsimps [sforall_def]) 1);
 by (res_inst_tac[("x","x")] seq.ind 1);
 (* adm *)
-(* FIX should be refined in _one_ tactic *)
 by (simp_tac (simpset() addsimps [adm_trick_1]) 1);
 (* base cases *)
 by (Simp_tac 1);
@@ -459,64 +458,4 @@ by (etac seq.finite_ind 1);
 by (Asm_full_simp_tac 1);
 qed"seq_finite_ind";
 
-
-
-
-(*
-(* -----------------------------------------------------------------
-   Fr"uhere Herleitung des endlichen Induktionsprinzips 
-   aus dem seq_finite Induktionsprinzip.
-   Problem bei admissibility von Finite-->seq_finite!
-   Deshalb Finite jetzt induktiv und nicht mehr rekursiv definiert! 
-   ------------------------------------------------------------------ *)
-
-Goal "seq_finite nil";
-by (simp_tac (simpset() addsimps [seq.sfinite_def]) 1);
-by (res_inst_tac [("x","Suc 0")] exI 1);
-by (simp_tac (simpset() addsimps seq.rews) 1);
-qed"seq_finite_nil";
-
-Goal "seq_finite UU";
-by (simp_tac (simpset() addsimps [seq.sfinite_def]) 1);
-qed"seq_finite_UU";
-
-Addsimps[seq_finite_nil,seq_finite_UU];
-
-goal HOL.thy "(B-->A) --> (A--> (B-->C))--> (B--> C)";
-by (fast_tac HOL_cs 1);
-qed"logic_lemma";
-
-
-Goal "!!P.[| P nil; \
-\                !!a t. [|a~=UU;Finite t; P t|] ==> P (a##t)|]\
-\            ==> Finite x --> P x";
-
-by (rtac (logic_lemma RS mp RS mp) 1);
-by (rtac trf_impl_tf 1);
-by (rtac seq_finite_ind 1);
-by (simp_tac (simpset() addsimps [Finite_def]) 1);
-by (simp_tac (simpset() addsimps [Finite_def]) 1);
-by (asm_full_simp_tac (simpset() addsimps [Finite_def]) 1);
-qed"Finite_ind";
-
-
-Goal "Finite tr --> seq_finite tr";
-by (rtac seq.ind 1);
-(* adm *)
-(* hier grosses Problem !!!!!!!!!!!!!!! *)
-
-by (simp_tac (simpset() addsimps [Finite_def]) 2);
-by (simp_tac (simpset() addsimps [Finite_def]) 2);
-
-(* main case *)
-by (asm_full_simp_tac (simpset() addsimps [Finite_def,seq.sfinite_def]) 2);
-by (rtac impI 2);
-by (rotate_tac 2 2);
-by (Asm_full_simp_tac 2);
-by (etac exE 2);
-by (res_inst_tac [("x","Suc n")] exI 2);
-by (asm_full_simp_tac (simpset() addsimps seq.rews) 2);
-qed"tf_is_trf";
-
-*)
 
