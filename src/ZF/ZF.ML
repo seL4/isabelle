@@ -8,6 +8,20 @@ Basic introduction and elimination rules for Zermelo-Fraenkel Set Theory
 
 open ZF;
 
+exception CS_DATA of claset;
+
+let fun merge [] = CS_DATA empty_cs
+      | merge cs = let val cs = map (fn CS_DATA x => x) cs;
+                   in CS_DATA (foldl merge_cs (hd cs, tl cs)) end;
+
+    fun put (CS_DATA cs) = claset := cs;
+
+    fun get () = CS_DATA (!claset);
+in add_thydata "ZF"
+     ("claset", ThyMethods {merge = merge, put = put, get = get})
+end;
+
+claset:=empty_cs;
 
 (*Useful examples:  singletonI RS subst_elem,  subst_elem RSN (2,IntI) *)
 goal ZF.thy "!!a b A. [| b:A;  a=b |] ==> a:A";
@@ -446,3 +460,6 @@ qed_goal "cantor" ZF.thy "EX S: Pow(A). ALL x:A. b(x) ~= S"
 qed_goal "Union_in_Pow" ZF.thy
     "!!Y. Y : Pow(Pow(A)) ==> Union(Y) : Pow(A)"
  (fn _ => [fast_tac lemmas_cs 1]);
+
+
+add_thy_reader_file "thy_data.ML";
