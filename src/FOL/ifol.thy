@@ -1,3 +1,11 @@
+(*  Title: 	FOL/ifol.thy
+    ID:         $Id$
+    Author: 	Lawrence C Paulson, Cambridge University Computer Laboratory
+    Copyright   1993  University of Cambridge
+
+Intuitionistic first-order logic
+*)
+
 IFOL = Pure + 
 
 classes term < logic
@@ -10,18 +18,23 @@ arities o :: logic
 
 consts	
     Trueprop	::	"o => prop"		("(_)" [0] 5)
-    True,False	::	"o"
+    True, False	::	"o"
   (*Connectives*)
-    "="		::	"['a,'a] => o"		(infixl 50)
+    "=", "~="	::	"['a,'a] => o"		(infixl 50)
+
     Not		::	"o => o"		("~ _" [40] 40)
     "&"		::	"[o,o] => o"		(infixr 35)
     "|"		::	"[o,o] => o"		(infixr 30)
     "-->"	::	"[o,o] => o"		(infixr 25)
     "<->"	::	"[o,o] => o"		(infixr 25)
+  
   (*Quantifiers*)
     All		::	"('a => o) => o"	(binder "ALL " 10)
     Ex		::	"('a => o) => o"	(binder "EX " 10)
     Ex1		::	"('a => o) => o"	(binder "EX! " 10)
+
+translations
+    "x ~= y"    == "~ (x=y)"
 
 rules
 
@@ -47,8 +60,8 @@ FalseE		"False ==> P"
 
   (*Definitions*)
 
-True_def	"True == False-->False"
-not_def		"~P == P-->False"
+True_def	"True  == False-->False"
+not_def		"~P    == P-->False"
 iff_def		"P<->Q == (P-->Q) & (Q-->P)"
 
   (*Unique existence*)
