@@ -95,8 +95,7 @@ lemmas L_nat = Ord_in_L [OF Ord_nat]
 
 theorem M_trivial_L: "PROP M_trivial(L)"
   apply (rule M_trivial.intro)
-        apply (erule (1) transL)
-       apply (rule nonempty)
+       apply (erule (1) transL)
       apply (rule upair_ax)
      apply (rule Union_ax)
     apply (rule power_ax)

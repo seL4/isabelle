@@ -110,6 +110,9 @@ apply (safe intro!: ltI Ord_nat)
 apply (erule ltD)
 done
 
+lemma naturals_not_limit: "a \<in> nat ==> ~ Limit(a)"
+by (induct a rule: nat_induct, auto)
+
 lemma succ_natD [dest!]: "succ(i): nat ==> i: nat"
 by (rule Ord_trans [OF succI1], auto)
 

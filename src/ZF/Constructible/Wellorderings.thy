@@ -33,13 +33,11 @@ constdefs
   wellfounded :: "[i=>o,i]=>o"
     --{*EVERY non-empty set has an @{text r}-minimal element*}
     "wellfounded(M,r) == 
-	\<forall>x[M]. ~ empty(M,x) 
-                 --> (\<exists>y[M]. y\<in>x & ~(\<exists>z[M]. z\<in>x & <z,y> \<in> r))"
+	\<forall>x[M]. x\<noteq>0 --> (\<exists>y[M]. y\<in>x & ~(\<exists>z[M]. z\<in>x & <z,y> \<in> r))"
   wellfounded_on :: "[i=>o,i,i]=>o"
     --{*every non-empty SUBSET OF @{text A} has an @{text r}-minimal element*}
     "wellfounded_on(M,A,r) == 
-	\<forall>x[M]. ~ empty(M,x) --> subset(M,x,A)
-                 --> (\<exists>y[M]. y\<in>x & ~(\<exists>z[M]. z\<in>x & <z,y> \<in> r))"
+	\<forall>x[M]. x\<noteq>0 --> x\<subseteq>A --> (\<exists>y[M]. y\<in>x & ~(\<exists>z[M]. z\<in>x & <z,y> \<in> r))"
 
   wellordered :: "[i=>o,i,i]=>o"
     --{*linear and wellfounded on @{text A}*}
@@ -123,15 +121,6 @@ apply (simp (no_asm_use) add: wellfounded_on_def)
 apply (drule_tac x="{z\<in>A. z\<in>A --> ~P(z)}" in rspec)
 apply (blast intro: transM)+
 done
-
-text{*The assumption @{term "r \<subseteq> A*A"} justifies strengthening the induction
-      hypothesis by removing the restriction to @{term A}.*}
-lemma (in M_basic) wellfounded_on_induct2: 
-     "[| a\<in>A;  wellfounded_on(M,A,r);  M(A);  r \<subseteq> A*A;  
-       separation(M, \<lambda>x. x\<in>A --> ~P(x));  
-       \<forall>x\<in>A. M(x) & (\<forall>y. <y,x> \<in> r --> P(y)) --> P(x) |]
-      ==> P(a)";
-by (rule wellfounded_on_induct, assumption+, blast)
 
 
 subsubsection {*Kunen's lemma IV 3.14, page 123*}
@@ -297,13 +286,13 @@ lemma (in M_basic) wellordered_asym:
 by (simp add: wellordered_def, blast dest: wellfounded_on_asym)
 
 
-text{*Surely a shorter proof using lemmas in @{text Order}?
-     Like @{text well_ord_iso_preserving}?*}
+text{*Can't use @{text well_ord_iso_preserving} because it needs the
+strong premise @{term "well_ord(A,r)"}*}
 lemma (in M_basic) ord_iso_pred_imp_lt:
      "[| f \<in> ord_iso(Order.pred(A,x,r), r, i, Memrel(i));
-       g \<in> ord_iso(Order.pred(A,y,r), r, j, Memrel(j));
-       wellordered(M,A,r);  x \<in> A;  y \<in> A; M(A); M(r); M(f); M(g); M(j);
-       Ord(i); Ord(j); \<langle>x,y\<rangle> \<in> r |]
+         g \<in> ord_iso(Order.pred(A,y,r), r, j, Memrel(j));
+         wellordered(M,A,r);  x \<in> A;  y \<in> A; M(A); M(r); M(f); M(g); M(j);
+         Ord(i); Ord(j); \<langle>x,y\<rangle> \<in> r |]
       ==> i < j"
 apply (frule wellordered_is_trans_on, assumption)
 apply (frule_tac y=y in transM, assumption) 
@@ -351,9 +340,8 @@ constdefs
    "obase(M,A,r,z) == 
 	\<forall>a[M]. 
          a \<in> z <-> 
-          (a\<in>A & (\<exists>x[M]. \<exists>g[M]. \<exists>mx[M]. \<exists>par[M]. 
-                   ordinal(M,x) & membership(M,x,mx) & pred_set(M,A,a,r,par) &
-                   order_isomorphism(M,par,r,x,mx,g)))"
+          (a\<in>A & (\<exists>x[M]. \<exists>g[M]. Ord(x) & 
+                   order_isomorphism(M,Order.pred(A,a,r),r,x,Memrel(x),g)))"
 
 
   omap :: "[i=>o,i,i,i] => o"  
