@@ -27,6 +27,11 @@ fun endTiming before =
   " secs";
 
 
+(* prompts *)
+
+fun ml_prompts p1 p2 = (PolyML.Compiler.prompt1 := p1; PolyML.Compiler.prompt1 := p2);
+
+
 (* toplevel pretty printing (see also Pure/install_pp.ML) *)
 
 fun make_pp _ pprint (str, blk, brk, en) obj =

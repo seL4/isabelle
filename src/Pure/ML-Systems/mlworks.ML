@@ -38,6 +38,10 @@ fun print_depth n = ();
 fun make_pp path pprint = ();
 fun install_pp _ = ();
 
+(*prompts*)
+(*n.a.??*)
+fun ml_prompts p1 p2 = ();
+
 
 (** Compiler-independent timing functions **)
 

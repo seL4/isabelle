@@ -34,9 +34,6 @@ fun print_depth n =
  (Compiler.Control.Print.printDepth := n div 2;
   Compiler.Control.Print.printLength := n);
 
-(*Poly/ML-like prompts*)
-Compiler.Control.primaryPrompt := "> ";
-Compiler.Control.secondaryPrompt := "# ";
 
 
 (** Compiler-independent timing functions **)
@@ -57,6 +54,12 @@ fun endTiming (CPUtimer, {gc,sys,usr}) =
       " secs"
       handle Time => ""
   end;
+
+
+(* prompts *)
+
+fun ml_prompts p1 p2 =
+  (Compiler.Control.primaryPrompt := p1; Compiler.Control.secondaryPrompt := p2);
 
 
 (* toplevel pretty printing (see also Pure/install_pp.ML) *)

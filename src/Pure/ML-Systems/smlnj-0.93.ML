@@ -56,6 +56,9 @@ fun endTiming start =
 end;
 
 
+(* prompts *)
+
+fun ml_prompts p1 p2 = ();
 
 
 (* toplevel pretty printing (see also Pure/install_pp.ML) *)
