@@ -267,8 +267,7 @@ fun use_thy1 tmp_loadpath_valid name =
              Use.use ml_file);
 
        (*Store theory again because it could have been redefined*)
-       use_strings
-         ["val _ = store_theory (" ^ tname ^ ".thy, " ^ quote tname ^ ");"];
+       use_strings ["val _ = store_theory " ^ tname ^ ".thy;"];
 
        (*Add theory to list of all loaded theories (for index.html)
          and add it to its parents' sub-charts*)
