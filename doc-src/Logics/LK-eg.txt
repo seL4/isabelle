@@ -3,7 +3,7 @@
 Pretty.setmargin 72;  (*existing macros just allow this margin*)
 print_depth 0;
 
-Context LK.thy;
+context LK.thy;
 
 Goal "|- EX y. ALL x. P(y)-->P(x)";
 by (resolve_tac [exR] 1);
