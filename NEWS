@@ -171,8 +171,10 @@ New in this Isabelle release
 
 * HOL: There is new syntax for summation over finite sets:
 
-  '\<Sum>x | P. e' is the same as 'setsum (%x. e) {x. P}'
-  '\<Sum>x<k. e'   is the same as 'setsum (%x. e) {..<k}'
+  '\<Sum>x | P. e'    is the same as  'setsum (%x. e) {x. P}'
+  '\<Sum>x=a..b. e'   is the same as  'setsum (%x. e) {a..b}'
+  '\<Sum>x=a..<b. e'  is the same as  'setsum (%x. e) {a..<b}'
+  '\<Sum>x<k. e'      is the same as  'setsum (%x. e) {..<k}'
 
   Function 'Summation' over nat is gone, its syntax '\<Sum>i<k. e'
   now translates into 'setsum' as above.
