@@ -46,6 +46,7 @@ signature PRETTY =
   val indent: int -> T -> T
   val string_of: T -> string
   val writeln: T -> unit
+  val writelns: T list -> unit
   val str_of: T -> string
   val pprint: T -> pprint_args -> unit
   val setdepth: int -> unit
@@ -223,6 +224,7 @@ fun prune dp e = if dp > 0 then pruning dp e else e;
 
 fun string_of e = Buffer.content (#tx (format ([prune (! depth) e], (Buffer.empty, 0), 0) empty));
 val writeln = writeln o string_of;
+fun writelns [] = () | writelns es = writeln (chunks es);
 
 
 (*Create a single flat string: no line breaking*)
