@@ -198,24 +198,18 @@ qed_goalw "the_equality" thy [the_def]
  (fn [pa,eq] =>
   [ (fast_tac (claset() addSIs [pa] addEs [eq RS subst]) 1) ]);
 
+AddIs [the_equality];
+
 (* Only use this if you already know EX!x. P(x) *)
 qed_goal "the_equality2" thy
     "!!P. [| EX! x. P(x);  P(a) |] ==> (THE x. P(x)) = a"
- (fn _ =>
-  [ (deepen_tac (claset() addSIs [the_equality]) 1 1) ]);
+ (fn _ => [ (Blast_tac 1) ]);
 
 qed_goal "theI" thy "EX! x. P(x) ==> P(THE x. P(x))"
  (fn [major]=>
   [ (rtac (major RS ex1E) 1),
     (resolve_tac [major RS the_equality2 RS ssubst] 1),
     (REPEAT (assume_tac 1)) ]);
-
-(*Easier to apply than theI: conclusion has only one occurrence of P*)
-qed_goal "theI2" thy
-    "[| EX! x. P(x);  !!x. P(x) ==> Q(x) |] ==> Q(THE x. P(x))"
- (fn prems => [ resolve_tac prems 1, 
-                rtac theI 1, 
-                resolve_tac prems 1 ]);
 
 (*the_cong is no longer necessary: if (ALL y.P(y)<->Q(y)) then 
   (THE x.P(x))  rewrites to  (THE x. Q(x))  *)
@@ -226,14 +220,26 @@ qed_goalw "the_0" thy [the_def]
  (fn _ => [ (blast_tac (claset() addSEs [ReplaceE]) 1) ]);
 
 
+(*Easier to apply than theI: conclusion has only one occurrence of P*)
+val prems = 
+Goal "[| ~ Q(0) ==> EX! x. P(x);  !!x. P(x) ==> Q(x) |] ==> Q(THE x. P(x))";
+by (rtac classical 1);
+by (resolve_tac prems 1);
+by (rtac theI 1);
+by (rtac classical 1);
+by (resolve_tac prems 1);
+be (the_0 RS subst) 1;
+ba 1;
+qed "theI2";
+
 (*** if -- a conditional expression for formulae ***)
 
 Goalw [if_def] "if(True,a,b) = a";
-by (blast_tac (claset() addSIs [the_equality]) 1);
+by (Blast_tac 1);
 qed "if_true";
 
 Goalw [if_def] "if(False,a,b) = b";
-by (blast_tac (claset() addSIs [the_equality]) 1);
+by (Blast_tac 1);
 qed "if_false";
 
 (*Never use with case splitting, or if P is known to be true or false*)
@@ -244,12 +250,12 @@ qed "if_cong";
 
 (*Not needed for rewriting, since P would rewrite to True anyway*)
 Goalw [if_def] "P ==> if(P,a,b) = a";
-by (blast_tac (claset() addSIs [the_equality]) 1);
+by (Blast_tac 1);
 qed "if_P";
 
 (*Not needed for rewriting, since P would rewrite to False anyway*)
 Goalw [if_def] "~P ==> if(P,a,b) = b";
-by (blast_tac (claset() addSIs [the_equality]) 1);
+by (Blast_tac 1);
 qed "if_not_P";
 
 Addsimps [if_true, if_false];
