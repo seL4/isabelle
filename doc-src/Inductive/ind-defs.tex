@@ -582,7 +582,7 @@ inductive
   domains   "listn(A)" <= "nat*list(A)"
   intrs
     NilI  "<0,Nil>: listn(A)"
-    ConsI "[| a: A;  <n,l>: listn(A) |] ==> <succ(n), Cons(a,l)>: listn(A)"
+    ConsI "[| a:A; <n,l>:listn(A) |] ==> <succ(n), Cons(a,l)>: listn(A)"
   type_intrs "nat_typechecks @ list.intrs"
 end
 \end{ttbox}
@@ -696,15 +696,17 @@ fixedpoint for the introduction rules
 \]
 To make this coinductive definition, the theory file includes (after the
 declaration of $\llist(A)$) the following lines:
+\bgroup\leftmargini=\parindent
 \begin{ttbox}
 consts    lleq :: i=>i
 coinductive
   domains "lleq(A)" <= "llist(A) * llist(A)"
   intrs
     LNil  "<LNil,LNil> : lleq(A)"
-    LCons "[| a:A; <l,l'>: lleq(A) |] ==> <LCons(a,l),LCons(a,l')>: lleq(A)"
+    LCons "[| a:A; <l,l'>:lleq(A) |] ==> <LCons(a,l),LCons(a,l')>: lleq(A)"
   type_intrs  "llist.intrs"
 \end{ttbox}
+\egroup
 The domain of $\lleq(A)$ is $\llist(A)\times\llist(A)$.  The type-checking
 rules include the introduction rules for $\llist(A)$, whose 
 declaration is discussed below (\S\ref{lists-sec}).
@@ -830,27 +832,29 @@ each operation on primitive recursive functions combined just two functions.
 
 \begin{figure}
 \begin{ttbox}
-Primrec = List +
-consts
-  primrec :: i
-  SC      :: i
-  \(\vdots\)
+Primrec_defs = Main +
+consts SC :: i
+ \(\vdots\)
 defs
-  SC_def    "SC == lam l:list(nat).list_case(0, \%x xs.succ(x), l)"
-  \(\vdots\)
+ SC_def    "SC == lam l:list(nat).list_case(0, \%x xs.succ(x), l)"
+ \(\vdots\)
+end
+
+Primrec = Primrec_defs +
+consts prim_rec :: i
 inductive
-  domains "primrec" <= "list(nat)->nat"
-  intrs
-    SC       "SC : primrec"
-    CONST    "k: nat ==> CONST(k) : primrec"
-    PROJ     "i: nat ==> PROJ(i) : primrec"
-    COMP     "[| g: primrec; fs: list(primrec) |] ==> COMP(g,fs): primrec"
-    PREC     "[| f: primrec; g: primrec |] ==> PREC(f,g): primrec"
-  monos       list_mono
-  con_defs    SC_def, CONST_def, PROJ_def, COMP_def, PREC_def
-  type_intrs "nat_typechecks @ list.intrs @                      
-              [lam_type, list_case_type, drop_type, map_type,    
-               apply_type, rec_type]"
+ domains "primrec" <= "list(nat)->nat"
+ intrs
+   SC     "SC : primrec"
+   CONST  "k: nat ==> CONST(k) : primrec"
+   PROJ   "i: nat ==> PROJ(i) : primrec"
+   COMP   "[| g: primrec; fs: list(primrec) |] ==> COMP(g,fs): primrec"
+   PREC   "[| f: primrec; g: primrec |] ==> PREC(f,g): primrec"
+ monos       list_mono
+ con_defs    SC_def, CONST_def, PROJ_def, COMP_def, PREC_def
+ type_intrs "nat_typechecks @ list.intrs @                      
+             [lam_type, list_case_type, drop_type, map_type,    
+              apply_type, rec_type]"
 end
 \end{ttbox}
 \hrule
@@ -937,7 +941,7 @@ set $\quniv(A)$, which contains~$A$ and furthermore contains $\pair{a;b}$,
 $\QInl(a)$ and $\QInr(b)$ for $a$, $b\in\quniv(A)$.  In a typical codatatype
 definition with set parameters $A_1$, \ldots, $A_k$, a suitable domain is
 $\quniv(A_1\un\cdots\un A_k)$.  Details are published
-elsewhere~\cite{paulson-final}.
+elsewhere~\cite{paulson-mscs}.
 
 \subsection{The case analysis operator}
 The (co)datatype package automatically defines a case analysis operator,
@@ -1000,7 +1004,7 @@ can be overridden.
 \ifshort
 Now $\lst(A)$ is a datatype and enjoys the usual induction rule.
 \else
-Since $\lst(A)$ is a datatype, it enjoys a structural induction rule, {\tt
+Since $\lst(A)$ is a datatype, it has a structural induction rule, {\tt
   list.induct}:
 \[ \infer{P(x)}{x\in\lst(A) & P(\Nil)
         & \infer*{P(\Cons(a,l))}{[a\in A & l\in\lst(A) & P(l)]_{a,l}} }
@@ -1079,7 +1083,7 @@ The basic induction rule is called {\tt tree\_forest.induct}:
          \right]_{t,f}} }
 \] 
 This rule establishes a single predicate for $\TF(A)$, the union of the
-recursive sets.  Although such reasoning is sometimes useful
+recursive sets.  Although such reasoning can be useful
 \cite[\S4.5]{paulson-set-II}, a proper mutual induction rule should establish
 separate predicates for $\tree(A)$ and $\forest(A)$.  The package calls this
 rule {\tt tree\_forest.mutual\_induct}.  Observe the usage of $P$ and $Q$ in
@@ -1292,7 +1296,7 @@ get non-well-founded objects, but it does not seem easy to mechanize.
 Isabelle/\textsc{zf} instead uses a variant notion of ordered pairing, which
 can be generalized to a variant notion of function.  Elsewhere I have
 proved that this simple approach works (yielding final coalgebras) for a broad
-class of definitions~\cite{paulson-final}.
+class of definitions~\cite{paulson-mscs}.
 
 Several large studies make heavy use of inductive definitions.  L\"otzbeyer
 and Sandner have formalized two chapters of a semantics book~\cite{winskel93},
@@ -1318,15 +1322,12 @@ definition uses most of the package's novel features.
 The approach is not restricted to set theory.  It should be suitable for any
 logic that has some notion of set and the Knaster-Tarski theorem.  I have
 ported the (co)inductive definition package from Isabelle/\textsc{zf} to
-Isabelle/\textsc{hol} (higher-order logic).  V\"olker~\cite{voelker95}
-is investigating how to port the (co)datatype package.  \textsc{hol}
-represents sets by unary predicates; defining the corresponding types may
-cause complications.
+Isabelle/\textsc{hol} (higher-order logic).  
 
 
 \begin{footnotesize}
 \bibliographystyle{springer}
-\bibliography{string-abbrv,atp,theory,funprog,isabelle,crossref}
+\bibliography{../manual}
 \end{footnotesize}
 %%%%%\doendnotes
 
