@@ -19,7 +19,8 @@ consts tiling :: "'a set set => 'a set set"
 inductive "tiling A"
   intros
     empty [simp, intro]: "{} \<in> tiling A"
-    Un [simp, intro]: "a \<in> A ==> t \<in> tiling A ==> a \<inter> t = {} ==> a \<union> t \<in> tiling A"
+    Un [simp, intro]:    "[| a \<in> A; t \<in> tiling A; a \<inter> t = {} |] 
+                          ==> a \<union> t \<in> tiling A"
 
 consts domino :: "(nat \<times> nat) set set"
 inductive domino
@@ -27,39 +28,41 @@ inductive domino
     horiz [simp]: "{(i, j), (i, Suc j)} \<in> domino"
     vertl [simp]: "{(i, j), (Suc i, j)} \<in> domino"
 
+text {* \medskip Sets of squares of the given colour*}
+
 constdefs
   coloured :: "nat => (nat \<times> nat) set"
    "coloured b == {(i, j). (i + j) mod 2 = b}"
 
+syntax whites  :: "(nat \<times> nat) set"
+       blacks  :: "(nat \<times> nat) set"
+
+translations
+  "whites" == "coloured 0"
+  "blacks" == "coloured (Suc 0)"
+
 
 text {* \medskip The union of two disjoint tilings is a tiling *}
 
-lemma tiling_UnI [rule_format, intro]:
-  "t \<in> tiling A ==> u \<in> tiling A --> t \<inter> u = {} --> t \<union> u \<in> tiling A"
-  apply (erule tiling.induct)
-   prefer 2
-   apply (simp add: Un_assoc)
-  apply auto
+lemma tiling_UnI [intro]:
+     "[|t \<in> tiling A; u \<in> tiling A; t \<inter> u = {} |] ==>  t \<union> u \<in> tiling A"
+  apply (induct set: tiling)
+  apply (auto simp add: Un_assoc)
   done
 
 
 text {* \medskip Chess boards *}
 
 lemma Sigma_Suc1 [simp]:
-  "lessThan (Suc n) \<times> B = ({n} \<times> B) \<union> ((lessThan n) \<times> B)"
-  apply (unfold lessThan_def)
-  apply auto
-  done
+     "lessThan (Suc n) \<times> B = ({n} \<times> B) \<union> ((lessThan n) \<times> B)"
+  by (auto simp add: lessThan_def)
 
 lemma Sigma_Suc2 [simp]:
-  "A \<times> lessThan (Suc n) = (A \<times> {n}) \<union> (A \<times> (lessThan n))"
-  apply (unfold lessThan_def)
-  apply auto
-  done
+     "A \<times> lessThan (Suc n) = (A \<times> {n}) \<union> (A \<times> (lessThan n))"
+  by (auto simp add: lessThan_def)
 
 lemma sing_Times_lemma: "({i} \<times> {n}) \<union> ({i} \<times> {m}) = {(i, m), (i, n)}"
-  apply auto
-  done
+  by auto
 
 lemma dominoes_tile_row [intro!]: "{i} \<times> lessThan (2 * n) \<in> tiling domino"
   apply (induct n)
@@ -69,48 +72,40 @@ lemma dominoes_tile_row [intro!]: "{i} \<times> lessThan (2 * n) \<in> tiling do
   done
 
 lemma dominoes_tile_matrix: "(lessThan m) \<times> lessThan (2 * n) \<in> tiling domino"
-  apply (induct m)
-   apply auto
-  done
+  by (induct m, auto)
 
 
 text {* \medskip @{term coloured} and Dominoes *}
 
 lemma coloured_insert [simp]:
-  "coloured b \<inter> (insert (i, j) t) =
-   (if (i + j) mod 2 = b then insert (i, j) (coloured b \<inter> t)
-    else coloured b \<inter> t)"
-  apply (unfold coloured_def)
-  apply auto
-  done
+     "coloured b \<inter> (insert (i, j) t) =
+      (if (i + j) mod 2 = b then insert (i, j) (coloured b \<inter> t)
+       else coloured b \<inter> t)"
+  by (auto simp add: coloured_def)
 
 lemma domino_singletons:
-  "d \<in> domino ==>
-    (\<exists>i j. coloured 0 \<inter> d = {(i, j)}) \<and>
-    (\<exists>m n. coloured 1 \<inter> d = {(m, n)})"
+     "d \<in> domino ==>
+       (\<exists>i j. whites \<inter> d = {(i, j)}) \<and>
+       (\<exists>m n. blacks \<inter> d = {(m, n)})";
   apply (erule domino.cases)
    apply (auto simp add: mod_Suc)
   done
 
 lemma domino_finite [simp]: "d \<in> domino ==> finite d"
-  apply (erule domino.cases)
-   apply auto
-  done
+  by (erule domino.cases, auto)
 
 
 text {* \medskip Tilings of dominoes *}
 
 lemma tiling_domino_finite [simp]: "t \<in> tiling domino ==> finite t"
-  apply (induct set: tiling)
-   apply auto
-  done
+  by (induct set: tiling, auto)
 
 declare
   Int_Un_distrib [simp]
   Diff_Int_distrib [simp]
 
 lemma tiling_domino_0_1:
-  "t \<in> tiling domino ==> card (coloured 0 \<inter> t) = card (coloured (Suc 0) \<inter> t)"
+     "t \<in> tiling domino ==> card(whites \<inter> t) = card(blacks \<inter> t)"
   apply (induct set: tiling)
    apply (drule_tac [2] domino_singletons)
    apply auto
@@ -124,14 +119,14 @@ lemma tiling_domino_0_1:
 text {* \medskip Final argument is surprisingly complex *}
 
 theorem gen_mutil_not_tiling:
-  "t \<in> tiling domino ==>
-    (i + j) mod 2 = 0 ==> (m + n) mod 2 = 0 ==>
-    {(i, j), (m, n)} \<subseteq> t
-  ==> (t - {(i, j)} - {(m, n)}) \<notin> tiling domino"
+       "t \<in> tiling domino ==>
+	 (i + j) mod 2 = 0 ==> (m + n) mod 2 = 0 ==>
+	 {(i, j), (m, n)} \<subseteq> t
+       ==> (t - {(i, j)} - {(m, n)}) \<notin> tiling domino"
   apply (rule notI)
   apply (subgoal_tac
-    "card (coloured 0 \<inter> (t - {(i, j)} - {(m, n)})) <
-      card (coloured (Suc 0) \<inter> (t - {(i, j)} - {(m, n)}))")
+          "card (whites \<inter> (t - {(i, j)} - {(m, n)})) <
+           card (blacks \<inter> (t - {(i, j)} - {(m, n)}))")
    apply (force simp only: tiling_domino_0_1)
   apply (simp add: tiling_domino_0_1 [symmetric])
   apply (simp add: coloured_def card_Diff2_less)
@@ -140,8 +135,8 @@ theorem gen_mutil_not_tiling:
 text {* Apply the general theorem to the well-known case *}
 
 theorem mutil_not_tiling:
-  "t = lessThan (2 * Suc m) \<times> lessThan (2 * Suc n)
-    ==> t - {(0, 0)} - {(Suc (2 * m), Suc (2 * n))} \<notin> tiling domino"
+       "t = lessThan (2 * Suc m) \<times> lessThan (2 * Suc n)
+	 ==> t - {(0, 0)} - {(Suc (2 * m), Suc (2 * n))} \<notin> tiling domino"
   apply (rule gen_mutil_not_tiling)
      apply (blast intro!: dominoes_tile_matrix)
     apply auto
