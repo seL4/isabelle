@@ -50,8 +50,6 @@ val put = Theory.put_data kind Data;
 
 end;
 
-(* FIXME deactivated due to Provers/classical.ML legacy code
 (*hide private data access functions*)
 structure Sign: SIGN = Sign;
 structure Theory: THEORY = Theory;
-*)
