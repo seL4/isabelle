@@ -281,7 +281,7 @@ qed "psp_stable";
 
 Goal "[| leadsTo acts A A'; stable acts B |] \
 \   ==> leadsTo acts (B Int A) (B Int A')";
-by (asm_simp_tac (simpset() addsimps (psp_stable::Int_ac)) 1);
+by (asm_simp_tac (simpset() addsimps psp_stable::Int_ac) 1);
 qed "psp_stable2";
 
 Goalw [ensures_def, constrains_def]
@@ -306,7 +306,7 @@ qed "psp";
 
 Goal "[| leadsTo acts A A'; constrains acts B B'; id: acts |] \
 \   ==> leadsTo acts (B Int A) ((B Int A') Un (B' - B))";
-by (asm_simp_tac (simpset() addsimps (psp::Int_ac)) 1);
+by (asm_simp_tac (simpset() addsimps psp::Int_ac) 1);
 qed "psp2";
 
 

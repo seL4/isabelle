@@ -217,6 +217,8 @@ by (asm_full_simp_tac
 			 Int_assoc RS sym]) 1);
 qed "Invariant_ConstrainsI";
 
+(* [| Invariant prg INV; Constrains prg (INV Int A) A |]
+   ==> Stable prg A *)
 bind_thm ("Invariant_StableI", Invariant_ConstrainsI RS StableI);
 
 Goal "[| Invariant prg INV;  Constrains prg A A' |]   \

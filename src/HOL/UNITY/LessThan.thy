@@ -4,6 +4,8 @@
     Copyright   1998  University of Cambridge
 
 lessThan, greaterThan, atLeast, atMost
+
+Could generalize to any linear ordering?
 *)
 
 LessThan = Main +

@@ -31,9 +31,9 @@ by (REPEAT (resolve_tac [exI,bexI] 1));
 by (res_inst_tac [("act", "NS3")] reachable.Acts 2);
 by (res_inst_tac [("act", "NS2")] reachable.Acts 3);
 by (res_inst_tac [("act", "NS1")] reachable.Acts 4);
-br reachable.Init 5;
+by (rtac reachable.Init 5);
 by (ALLGOALS Asm_simp_tac);
-by (REPEAT_FIRST (resolve_tac [exI]));
+by (REPEAT_FIRST (rtac exI ));
 by possibility_tac;
 result();
 
@@ -75,7 +75,7 @@ val parts_induct_tac =
 *)
 
 Goal "s : reachable Nprg ==> (Key (priK A) : parts (spies s)) = (A : bad)";
-be reachable.induct 1;
+by (etac reachable.induct 1);
 by Auto_tac;
 qed "Spy_see_priK";
 Addsimps [Spy_see_priK];

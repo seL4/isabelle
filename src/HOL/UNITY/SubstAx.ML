@@ -267,7 +267,7 @@ qed "PSP_stable";
 
 Goal "[| LeadsTo prg A A'; Stable prg B |] \
 \     ==> LeadsTo prg (B Int A) (B Int A')";
-by (asm_simp_tac (simpset() addsimps (PSP_stable::Int_ac)) 1);
+by (asm_simp_tac (simpset() addsimps PSP_stable::Int_ac) 1);
 qed "PSP_stable2";
 
 Goalw [LeadsTo_def, Constrains_def]
@@ -278,7 +278,7 @@ qed "PSP";
 
 Goal "[| LeadsTo prg A A'; Constrains prg B B'; id: Acts prg |] \
 \     ==> LeadsTo prg (B Int A) ((B Int A') Un (B' - B))";
-by (asm_simp_tac (simpset() addsimps (PSP::Int_ac)) 1);
+by (asm_simp_tac (simpset() addsimps PSP::Int_ac) 1);
 qed "PSP2";
 
 Goalw [Unless_def]

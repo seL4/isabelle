@@ -66,9 +66,9 @@ Goal "(INT i:{i. i <= n}. A i) = \
 by (induct_tac "n" 1);
 by (Asm_simp_tac 1);
 by (asm_simp_tac
-    (simpset() addsimps (Int_ac @
-			 [Int_Un_distrib, Int_Un_distrib2, lemma,
-			  Collect_less_Suc_insert, Collect_le_Suc_insert])) 1);
+    (simpset() addsimps Int_ac @
+			[Int_Un_distrib, Int_Un_distrib2, lemma,
+			 Collect_less_Suc_insert, Collect_le_Suc_insert]) 1);
 qed "INT_le_equals_Int";
 
 Goal "(INT i:{i. i <= Suc n}. A i) = \
@@ -88,6 +88,6 @@ by (rtac ([zeroprem, allprem RS ball_constrains_INT] MRS
     constrains_Int RS constrains_weaken) 1);
 by (simp_tac (simpset() addsimps [Collect_le_Int_equals, 
 				  Int_assoc, INT_absorb]) 1);
-by (simp_tac (simpset() addsimps ([INT_le_Suc_equals_Int])) 1);
+by (simp_tac (simpset() addsimps [INT_le_Suc_equals_Int]) 1);
 result();
 
