@@ -23,7 +23,7 @@ structure Blast_Data =
   val hyp_subst_tac = Hypsubst.blast_hyp_subst_tac
   val claset	= Classical.claset
   val rep_cs    = Classical.rep_cs
-  val atomize	= [thm "all_eq", thm "imp_eq"]
+  val atomize	= thms "atomize"
   val cla_modifiers = Classical.cla_modifiers;
   val cla_meth' = Classical.cla_meth'
   end;
