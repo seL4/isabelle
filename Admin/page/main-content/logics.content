@@ -1,8 +1,8 @@
 %title%
-About Isabelle
+Isabelle's Logics
 
 %body%
-<h2>What is Isabelle?</h2>
+<h3>What is Isabelle?</h3>
 
 Isabelle can be viewed from two main perspectives.  On the one hand it
 may serve as a generic framework for rapid prototyping of deductive
@@ -11,7 +11,7 @@ systems.  On the other hand, major existing logics like
 ready to use for sizable applications.
 
 
-<h3>Isabelle's Logics</h3>
+<h2>Isabelle's Logics</h2>
 
 The Isabelle distribution includes a large body of object logics and
 other examples (see the <a href="library/">Isabelle theory

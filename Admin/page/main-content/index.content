@@ -13,7 +13,7 @@ Munich (<a href="http://www.in.tum.de/~nipkow/">Tobias Nipkow</a>).
 
 <p>
 
-These pages provide <a href="about.html">general information on Isabelle</a>, more specific
+These pages provide general information on Isabelle, more specific
 information is available from the local pages
 
 <ul>
@@ -44,6 +44,12 @@ Visit the <a href="dist/">download page</a>.
   href="dist/binary.html">binary packages</a>, and <a
   href="dist/docs.html">documentation</a>. 
   The current version is <strong>{ISABELLE}</strong>.
+
+<p>
+
+You can also browse the main Isabelle logics
+<a href="library/HOL/">HOL</a>, <a href="library/HOLCF/">HOLCF</a>, 
+<a href="library/FOL/">FOL</a> and <a href="library/ZF/">ZF</a> online.
 
 <p>
 &nbsp;
