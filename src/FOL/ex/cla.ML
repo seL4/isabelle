@@ -468,8 +468,7 @@ result();
 
 writeln"Problem 58  NOT PROVED AUTOMATICALLY";
 goal FOL.thy "(ALL x y. f(x)=g(y)) --> (ALL x y. f(f(x))=f(g(y)))";
-val f_cong = read_instantiate [("t","f")] subst_context;
-by (fast_tac (FOL_cs addIs [f_cong]) 1);
+by (fast_tac (FOL_cs addEs [subst_context]) 1);
 result();
 
 writeln"Problem 59";
