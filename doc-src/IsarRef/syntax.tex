@@ -75,9 +75,9 @@ syntax as presented in \cite{isabelle-ref}.
   longident & = & ident\verb,.,ident~\dots~ident \\
   symident & = & sym^+ ~|~ symbol \\
   nat & = & digit^+ \\
-  var & = & \verb,?,ident ~|~ \verb,?,ident\verb,.,nat \\
+  var & = & ident ~|~ \verb,?,ident ~|~ \verb,?,ident\verb,.,nat \\
   typefree & = & \verb,',ident \\
-  typevar & = & \verb,?,typefree ~|~ \verb,?,typefree\verb,.,nat \\
+  typevar & = & typefree ~|~ \verb,?,typefree ~|~ \verb,?,typefree\verb,.,nat \\
   string & = & \verb,", ~\dots~ \verb,", \\
   verbatim & = & \verb,{*, ~\dots~ \verb,*}, \\
 \end{matharray}
