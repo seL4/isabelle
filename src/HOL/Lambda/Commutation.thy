@@ -138,6 +138,8 @@ lemma Church_Rosser_confluent: "Church_Rosser R = confluent R"
 
 subsection {* Newman's lemma *}
 
+(* Proof by Stefan Berghofer *)
+
 theorem newman:
   assumes wf: "wf (R\<inverse>)"
   and lc: "\<And>a b c. (a, b) \<in> R \<Longrightarrow> (a, c) \<in> R \<Longrightarrow>
@@ -180,6 +182,50 @@ proof -
 	from bv vw have "(b, w) \<in> R\<^sup>*" by (rule rtrancl_trans)
 	with cw show ?thesis by rules
       qed
+    qed
+  qed
+qed
+
+(* Partly automated by Tobias Nipkow. Takes 2 minutes (2002). *)
+
+text{* This is the maximal amount of automation possible at the moment. *}
+
+theorem newman:
+  assumes wf: "wf (R\<inverse>)"
+  and lc: "\<And>a b c. (a, b) \<in> R \<Longrightarrow> (a, c) \<in> R \<Longrightarrow>
+    \<exists>d. (b, d) \<in> R\<^sup>* \<and> (c, d) \<in> R\<^sup>*"
+  shows "\<And>b c. (a, b) \<in> R\<^sup>* \<Longrightarrow> (a, c) \<in> R\<^sup>* \<Longrightarrow>
+               \<exists>d. (b, d) \<in> R\<^sup>* \<and> (c, d) \<in> R\<^sup>*"
+using wf
+proof induct
+  case (less x b c)
+  have IH: "\<And>y b c. \<lbrakk>(y,x) \<in> R\<inverse>; (y,b) \<in> R\<^sup>*; (y,c) \<in> R\<^sup>*\<rbrakk>
+                     \<Longrightarrow> \<exists>d. (b,d) \<in> R\<^sup>* \<and> (c,d) \<in> R\<^sup>*" by(rule less)
+  have xc: "(x, c) \<in> R\<^sup>*" .
+  have xb: "(x, b) \<in> R\<^sup>*" .
+  thus ?case
+  proof (rule converse_rtranclE)
+    assume "x = b"
+    with xc have "(b, c) \<in> R\<^sup>*" by simp
+    thus ?thesis by rules
+  next
+    fix y
+    assume xy: "(x, y) \<in> R"
+    assume yb: "(y, b) \<in> R\<^sup>*"
+    from xc show ?thesis
+    proof (rule converse_rtranclE)
+      assume "x = c"
+      with xb have "(c, b) \<in> R\<^sup>*" by simp
+      thus ?thesis by rules
+    next
+      fix y'
+      assume y'c: "(y', c) \<in> R\<^sup>*"
+      assume xy': "(x, y') \<in> R"
+      with xy obtain u where u: "(y, u) \<in> R\<^sup>*" "(y', u) \<in> R\<^sup>*"
+	by (blast dest:lc)
+      from yb u y'c show ?thesis
+	by(blast intro:rtrancl_trans
+                 dest:IH[OF xy[symmetric]] IH[OF xy'[symmetric]])
     qed
   qed
 qed
