@@ -58,6 +58,11 @@ compound formulae) and does not know about `min' and `max', and `-' on
 NB: At the moment, these decision procedures do not cope with mixed nat/int
 formulae where the two parts interact, such as `m < n ==> int(m) < int(n)'.
 
+* HOL/TLA (Lamport's Temporal Logic of Actions): major reorganization
+-- avoids syntactic ambiguities and treats state, transition, and
+temporal levels more uniformly; introduces INCOMPATIBILITIES due to
+changed syntax and (many) tactics;
+
 
 *** Internal programming interfaces ***
 
@@ -69,10 +74,9 @@ include \n in its semantics, forcing writeln to add one
 uncoditionally; replaced prs_fn by writeln_fn; consider std_output:
 string -> unit if you really want to output text without newline;
 
-* HOL/TLA (Lamport's Temporal Logic of Actions): major reorganization
--- avoids syntactic ambiguities and treats state, transition, and
-temporal levels more uniformly; introduces INCOMPATIBILITIES due to
-changed syntax and (many) tactics;
+* Symbol.output subject to print mode; INCOMPATIBILITY: defaults to
+plain output, interface builders may have to enable 'isabelle_font'
+mode to get Isabelle font glyphs as before;
 
 
 *** ZF ***
