@@ -17,6 +17,8 @@ function usage()
   echo "  Options are:"
   echo "    -b           build mode (output heap image, use dir \".\")"
   echo "    -c           force copying of heap file (for Poly/ML)"
+  echo "    -g BOOL      generate theory graph data (default false)"
+  echo "    -h BOOL      generate theory HTML data (default false)"
   echo "    -s NAME      override session NAME"
   echo
   echo "  Build object-logic or run examples. Also creates browsing"
@@ -32,26 +34,41 @@ function usage()
 
 BUILD=""
 COPYDB=""
+GRAPH=false
+HTML=false
 SESSION=""
 
-while getopts "bcs:" OPT
-do
-  case "$OPT" in
-    b)
-      BUILD=true
-      ;;
-    c)
-      COPYDB="-c"
-      ;;
-    s)
-      SESSION="$OPTARG"
-      ;;
-    \?)
-      usage
-      ;;
-  esac
-done
+function getoptions()
+{
+  OPTIND=1
+  while getopts "bcg:h:s:" OPT
+  do
+    case "$OPT" in
+      b)
+        BUILD=true
+        ;;
+      c)
+        COPYDB="-c"
+        ;;
+      g)
+        GRAPH="$OPTARG"
+        ;;
+      h)
+        HTML="$OPTARG"
+        ;;
+      s)
+        SESSION="$OPTARG"
+        ;;
+      \?)
+        usage
+        ;;
+    esac
+  done
+}
 
+getoptions $ISABELLE_USEDIR_OPTIONS
+
+getoptions "$@"
 shift $(($OPTIND - 1))
 
 
@@ -70,13 +87,13 @@ NAME="$1"; shift
 
 if [ -n "$BUILD" ]; then
   exec $ISABELLE \
-    -e "make_html := $ISABELLE_HTML;" \
+    -e "make_html := $HTML;" \
     -e "set_session\"$SESSION\";" \
     -e "exit_use_dir\".\";" \
     -q $COPYDB $LOGIC $NAME
 else
   exec $ISABELLE \
-    -e "make_html := $ISABELLE_HTML;" \
+    -e "make_html := $HTML;" \
     -e "set_session\"$SESSION\";" \
     -e "exit_use_dir\"$NAME\"; quit();" \
     -r -q $LOGIC
