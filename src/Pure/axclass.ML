@@ -103,8 +103,7 @@ fun dest_classrel tm =
 
 fun mk_arity (t, ss, c) =
   let
-    val names = tl (variantlist (replicate (length ss + 1) "'", []));
-    val tfrees = ListPair.map TFree (names, ss);
+    val tfrees = ListPair.map TFree (Term.invent_names (length ss + 1) "'", ss);
   in Logic.mk_inclass (Type (t, tfrees), c) end;
 
 fun dest_arity tm =

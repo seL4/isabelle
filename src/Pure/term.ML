@@ -174,6 +174,7 @@ end;
 signature TERM =
 sig
   include BASIC_TERM
+  val invent_names: int -> string -> string list
   val indexname_ord: indexname * indexname -> order
   val typ_ord: typ * typ -> order
   val typs_ord: typ list * typ list -> order
@@ -734,6 +735,8 @@ fun variantlist ([], used) = []
   | variantlist(b::bs, used) = 
       let val b' = variant used b
       in  b' :: variantlist (bs, b'::used)  end;
+
+fun invent_names n prfx = Library.tl (variantlist (Library.replicate (n + 1) prfx, []));
 
 
 
