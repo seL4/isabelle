@@ -25,6 +25,8 @@ sig
   val dest_fieldT: typ -> (string * typ) * typ
   val dest_fieldTs: typ -> (string * typ) list
   val last_fieldT: typ -> (string * typ) option
+  val last_field: Sign.sg -> string -> (string * typ) option
+  val get_parents: Sign.sg -> string -> string list
   val mk_field: (string * term) * term -> term
   val mk_fst: term -> term
   val mk_snd: term -> term
@@ -44,7 +46,7 @@ sig
   val record_split_simp_tac: (term -> bool) -> int -> tactic
 end;
 
-structure RecordPackage :RECORD_PACKAGE =
+structure RecordPackage: RECORD_PACKAGE =
 struct
 
 
@@ -352,7 +354,7 @@ val record_type_tr' =
 
 (* record_type_abbr_tr' tries to reconstruct the record name type abbreviation from *)
 (* the (nested) field types.                                                        *)
-fun record_type_abbr_tr' sg abbr alphas zeta lastF recT rec_schemeT tm =
+fun record_type_abbr_tr' sg abbr alphas zeta lastF rec_schemeT tm =
   let
       (* tm is term representation of a (nested) field type. We first reconstruct the      *)
       (* type from tm so that we can continue on the type level rather then the term level.*)
@@ -387,9 +389,9 @@ fun record_type_abbr_tr' sg abbr alphas zeta lastF recT rec_schemeT tm =
   end
 
      
-fun gen_record_type_abbr_tr' sg abbr alphas zeta lastF recT rec_schemeT name =
+fun gen_record_type_abbr_tr' sg abbr alphas zeta lastF rec_schemeT name =
   let val name_sfx = suffix field_typeN name
-      val tr' = record_type_abbr_tr' sg abbr alphas zeta lastF recT rec_schemeT 
+      val tr' = record_type_abbr_tr' sg abbr alphas zeta lastF rec_schemeT 
   in (name_sfx, fn [t,u] => tr' (Syntax.const name_sfx $ t $ u) | _ => raise Match) end;
       
 val record_tr' =
@@ -597,7 +599,20 @@ fun add_record_splits name thmP thy =
 fun get_splits sg name =
   Symtab.lookup (#splits (RecordsData.get_sg sg), name);
 
+(* last field of a record *)
+fun last_field sg name =
+      case Symtab.lookup (#records (RecordsData.get_sg sg),name) of
+        Some r => Some (hd (rev (#fields r)))
+      | None => None;
 
+(* get parent names *)
+fun get_parents sg name =
+     (case Symtab.lookup (#records (RecordsData.get_sg sg),name) of
+         Some r => (case #parent r of
+                     Some (_,p) => p::get_parents sg p
+                   | None => [])
+      | None => [])
+       
 (* parent records *)
 
 fun add_parents thy None parents = parents
@@ -624,6 +639,7 @@ fun add_parents thy None parents = parents
         add_parents thy parent'
           (make_parent_info name fields' field_inducts field_cases field_splits simps::parents)
       end;
+
 
 
 (** record simprocs **)
@@ -916,7 +932,7 @@ fun field_typedefs zeta moreT names theory =
 
 (* field_definitions *)
 
-fun field_definitions fields names xs alphas zeta moreT more vars named_vars thy =
+fun field_definitions fields names alphas zeta moreT more vars thy =
   let
     val sign = Theory.sign_of thy;
     val base = Sign.base_name;
@@ -1063,12 +1079,12 @@ fun record_definition (args, bname) parent (parents: parent_info list) raw_field
 	let val fldnames = if parent_len = 0 then (tl names) else names;
         in print_translation_field_types (distinct (flat (map NameSpace.accesses' fldnames))) 
         end;
-                          
+
     fun record_type_abbr_tr's thy =
-	let val trnames = (distinct (flat (map NameSpace.accesses' [hd all_names])))
+	let val trnames = NameSpace.accesses' (hd all_names)
             val sg = Theory.sign_of thy
 	in map (gen_record_type_abbr_tr' 
-                 sg bname alphas zeta (hd (rev names)) (recT 0) (rec_schemeT 0)) trnames end;   
+                 sg bname alphas zeta (hd (rev names)) (rec_schemeT 0)) trnames end;   
 
     (* prepare declarations *)
 
@@ -1196,7 +1212,7 @@ fun record_definition (args, bname) parent (parents: parent_info list) raw_field
     val (fields_thy, field_simps, field_injects, field_splits, field_inducts, field_cases) =
       thy
       |> Theory.add_path bname
-      |> field_definitions fields names xs alphas zeta moreT more vars named_vars;
+      |> field_definitions fields names alphas zeta moreT more vars;
 
     val all_field_inducts = flat (map #field_inducts parents) @ field_inducts;
     val all_field_cases = flat (map #field_cases parents) @ field_cases;
