@@ -783,9 +783,13 @@ fun read_file name =
   end;
 
 fun write_file name txt =
-  let
-    val outstream = TextIO.openOut name;
-  in
+  let val outstream = TextIO.openOut name in
+    TextIO.output (outstream, txt);
+    TextIO.closeOut outstream
+  end;
+
+fun append_file name txt =
+  let val outstream = TextIO.openAppend name in
     TextIO.output (outstream, txt);
     TextIO.closeOut outstream
   end;
