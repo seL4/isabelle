@@ -79,7 +79,7 @@ defs
 
 (** unit **)
 
-typedef  unit = "{p. p = True}"
+typedef  unit = "{True}"
 
 consts
   "()"          :: unit                           ("'(')")

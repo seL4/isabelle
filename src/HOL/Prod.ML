@@ -302,7 +302,7 @@ qed "snd_imageE";
 
 goalw Prod.thy [Unity_def]
     "u = ()";
-by (stac (rewrite_rule [unit_def] Rep_unit RS CollectD RS sym) 1);
+by (stac (rewrite_rule [unit_def] Rep_unit RS singletonD RS sym) 1);
 by (rtac (Rep_unit_inverse RS sym) 1);
 qed "unit_eq";
  
