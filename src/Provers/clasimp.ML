@@ -155,7 +155,8 @@ in
 val op addIffs =
   foldl (addIff Classical.addSDs Classical.addSEs Classical.addSIs Simplifier.addsimps);
 val addIffs' =
-  foldl (addIff Classical.addXDs Classical.addXEs Classical.addXIs (fn (ss, _) => ss));
+  foldl (addIff Classical.addXDs Classical.addXEs Classical.addXIs
+    ((fn (ss, _) => ss): Simplifier.simpset * thm list -> Simplifier.simpset));
 val op delIffs = foldl delIff;
 
 fun AddIffs thms = store_clasimp ((Classical.claset (), Simplifier.simpset ()) addIffs thms);
