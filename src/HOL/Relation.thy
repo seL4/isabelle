@@ -20,9 +20,6 @@ constdefs
   rel_comp  :: "[('b * 'c) set, ('a * 'b) set] => ('a * 'c) set"  (infixr "O" 60)
   "r O s == {(x,z). EX y. (x, y) : s & (y, z) : r}"
 
-  fun_rel_comp :: "['a => 'b, ('b * 'c) set] => ('a => 'c) set"
-  "fun_rel_comp f R == {g. ALL x. (f x, g x) : R}"
-
   Image :: "[('a * 'b) set, 'a set] => 'b set"                (infixl "``" 90)
   "r `` s == {y. EX x:s. (x,y):r}"
 
@@ -139,20 +136,6 @@ lemma rel_comp_mono: "r' \<subseteq> r ==> s' \<subseteq> s ==> (r' O s') \<subs
 lemma rel_comp_subset_Sigma:
     "s \<subseteq> A \<times> B ==> r \<subseteq> B \<times> C ==> (r O s) \<subseteq> A \<times> C"
   by blast
-
-
-subsection {* Composition of function and relation *}
-
-lemma fun_rel_comp_mono: "A \<subseteq> B ==> fun_rel_comp f A \<subseteq> fun_rel_comp f B"
-  by (unfold fun_rel_comp_def) fast
-
-lemma fun_rel_comp_unique:
-  "ALL x. EX! y. (f x, y) : R ==> EX! g. g : fun_rel_comp f R"
-  apply (unfold fun_rel_comp_def)
-  apply (rule_tac a = "%x. THE y. (f x, y) : R" in ex1I)
-  apply (fast dest!: theI')
-  apply (fast intro: ext the1_equality [symmetric])
-  done
 
 
 subsection {* Reflexivity *}
