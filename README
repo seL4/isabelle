@@ -25,11 +25,12 @@ according to your site configuration.  See file make-all-nj for an example
 using the Bourne shell, sh.
 
 ISABELLEBIN is the directory to hold Poly/ML databases or New Jersey ML
-images.  When using Poly/ML, ISABELLEBIN must be an absolute pathname (one
-starting with "/").
+images.  This directory *must* be different from the Isabelle source
+directory.  When using Poly/ML, ISABELLEBIN must be an absolute pathname
+(one starting with "/").
 
-ML_DBASE is an *absolute* pathname to the initial Poly/ML database (not
-required for New Jersey ML).
+ML_DBASE is an *absolute* pathname to the initial Poly/ML database.  It is not
+required for New Jersey ML.
 
 ISABELLECOMP is the ML compiler, typically "poly -noDisplay" or "sml".  If
 ISABELLECOMP begins with the letters "poly" then the Makefiles assume that
@@ -52,6 +53,7 @@ Other important files include...
   make-all-poly		sample make-all invocation for Poly/ML
   make-all-nj		sample make-all invocation for SML of NJ
   change_simp		shell script to help convert sources to new simplifier
+  conv-theory-files.pl  perl script to rename old theory files
   expandshort		shell script to expand "shortcuts" in files
   prove_goal.el       	Emacs command to change proof format
   xlisten		shell script for running Isabelle under X
@@ -125,4 +127,4 @@ T. U. Muenchen			Fax:   +49-89-2105-8183
 D-80290 Muenchen
 Germany
 
-Last updated 13 May 1994
+Last updated 20 May 1994
