@@ -191,8 +191,9 @@ intro!! to intro? only);
 
 * names of theorems etc. may be natural numbers as well;
 
-* 'pr' command: optional goals_limit argument; no longer prints theory
-contexts, but only proof states;
+* 'pr' command: optional arguments for goals_limit and
+ProofContext.prems_limit; no longer prints theory contexts, but only
+proof states;
 
 * diagnostic commands 'pr', 'thm', 'prop', 'term', 'typ' admit
 additional print modes to be specified; e.g. "pr(latex)" will print
