@@ -51,7 +51,7 @@ sig
   val theory_header: token list -> (string * string list * (string * bool) list) * token list
   val deps_thy: string -> Path.T -> string list * Path.T list
   val load_thy: string -> bool -> bool -> Path.T -> unit
-  val isar: bool -> Toplevel.isar
+  val isar: bool -> bool -> Toplevel.isar
 end;
 
 structure OuterSyntax: OUTER_SYNTAX =
@@ -334,10 +334,10 @@ fun load_thy name ml time path =
 
 (* interactive source of state transformers *)
 
-fun isar term =
+fun isar term no_pos =
   Source.tty
   |> Symbol.source true
-  |> OuterLex.source true get_lexicons (Position.line_name 1 "stdin")
+  |> OuterLex.source true get_lexicons (if no_pos then Position.none else Position.line_name 1 "stdin")
   |> source term true get_parser;
 
 
@@ -346,18 +346,20 @@ fun isar term =
 
 (* main loop *)
 
-fun gen_loop term = (Context.reset_context (); Toplevel.loop (isar term));
+fun gen_loop term no_pos =
+ (Context.reset_context ();
+  Toplevel.loop (isar term no_pos));
 
-fun gen_main term =
+fun gen_main term no_pos =
  (Toplevel.set_state Toplevel.toplevel;
   ml_prompts "ML> " "ML# ";
   writeln (Session.welcome ());
-  gen_loop term);
+  gen_loop term no_pos);
 
-fun main () = gen_main false;
-fun loop () = gen_loop false;
-fun sync_main () = gen_main true;
-fun sync_loop () = gen_loop true;
+fun main () = gen_main false false;
+fun loop () = gen_loop false false;
+fun sync_main () = gen_main true true;
+fun sync_loop () = gen_loop true true;
 
 
 (* help *)
