@@ -60,7 +60,7 @@ end;
 
 end; (* local *)
 
-Delsimps lift.simps;
+Delsimps Lift1.lift.simps;
 Delsimps [inst_lift_pcpo];
 Addsimps [inst_lift_pcpo RS sym];
 Addsimps lift.simps;
