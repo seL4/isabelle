@@ -18,6 +18,7 @@ sig
   val is_absolute: T -> bool
   val is_basic: T -> bool
   val append: T -> T -> T
+  val appends: T list -> T
   val pack: T -> string
   val unpack: string -> T
   val base: T -> T
@@ -80,6 +81,7 @@ fun rev_app xs [] = rev xs
   | rev_app xs (y :: ys) = rev_app (y :: xs) ys;
 
 fun append (Path xs) (Path ys) = Path (rev_app (rev xs) ys);
+fun appends paths = foldl (uncurry append) (current, paths);
 fun norm path = rev_app [] path;
 
 
