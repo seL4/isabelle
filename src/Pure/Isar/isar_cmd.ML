@@ -32,6 +32,7 @@ sig
   val update_thy: string -> Toplevel.transition -> Toplevel.transition
   val update_thy_only: string -> Toplevel.transition -> Toplevel.transition
   val pretty_setmargin: int -> Toplevel.transition -> Toplevel.transition
+  val print_context: Toplevel.transition -> Toplevel.transition
   val print_theory: Toplevel.transition -> Toplevel.transition
   val print_syntax: Toplevel.transition -> Toplevel.transition
   val print_theorems: Toplevel.transition -> Toplevel.transition
@@ -127,8 +128,9 @@ fun update_thy_only name =
 fun pretty_setmargin n = Toplevel.imperative (fn () => Pretty.setmargin n);
 
 
-(* print theory contents *)
+(* print theory *)
 
+val print_context = Toplevel.keep Toplevel.print_state_context;
 val print_theory = Toplevel.keep (PureThy.print_theory o Toplevel.theory_of);
 val print_syntax = Toplevel.keep (Display.print_syntax o Toplevel.theory_of);
 val print_theorems = Toplevel.keep (PureThy.print_theorems o Toplevel.theory_of);

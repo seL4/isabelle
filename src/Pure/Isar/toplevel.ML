@@ -12,6 +12,7 @@ sig
   val toplevel: state
   val prompt_state_default: state -> string
   val prompt_state_fn: (state -> string) ref
+  val print_state_context: state -> unit
   val print_state_default: state -> unit
   val print_state_fn: (state -> unit) ref
   val print_state: state -> unit
@@ -74,10 +75,16 @@ datatype node =
 fun str_of_node (Theory _) = "in theory mode"
   | str_of_node (Proof _) = "in proof mode";
 
-fun print_node (Theory thy) = Pretty.writeln (Pretty.block
-      [Pretty.str "Theory:", Pretty.brk 1, Pretty.str (PureThy.get_name thy),
-        Pretty.str " =", Pretty.brk 1, Display.pretty_theory thy])
-  | print_node (Proof prf) = Proof.print_state (ProofHistory.position prf) (ProofHistory.current prf);
+fun print_ctxt thy = Pretty.writeln (Pretty.block
+  [Pretty.str "Theory:", Pretty.brk 1, Pretty.str (PureThy.get_name thy),
+    Pretty.str " =", Pretty.brk 1, Display.pretty_theory thy]);
+
+fun print_node_ctxt (Theory thy) = print_ctxt thy
+  | print_node_ctxt (Proof prf) = print_ctxt (Proof.theory_of (ProofHistory.current prf));
+
+fun print_node (Theory thy) = print_ctxt thy
+  | print_node (Proof prf) = Proof.print_state (ProofHistory.position prf)
+      (ProofHistory.current prf);
 
 
 (* datatype state *)
@@ -100,15 +107,17 @@ val prompt_state_fn = ref prompt_state_default;
 fun prompt_state state = ! prompt_state_fn state;
 
 
-(* print_state hook *)
+(* print state *)
 
-fun print_topnode (State []) = ()
-  | print_topnode (State ((node, _) :: _)) = print_node (History.current node);
+fun print_topnode _ (State []) = ()
+  | print_topnode prt (State ((node, _) :: _)) = prt (History.current node);
+
+val print_state_context = print_topnode print_node_ctxt;
 
 fun print_state_default state =
   let val ref (begin_state, end_state, _) = Goals.current_goals_markers in
     if begin_state = "" then () else writeln begin_state;
-    print_topnode state;
+    print_topnode print_node state;
     if end_state = "" then () else writeln end_state
   end;
 
