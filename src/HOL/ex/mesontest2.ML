@@ -36,14 +36,6 @@ by (best_prolog_tac size_of_subgoals horns);
 
 writeln"File HOL/ex/meson-test.";
 
-context Main.thy;
-
-(*Deep unifications can be required, esp. during transformation to clauses*)
-val orig_trace_bound = !Unify.trace_bound
-and orig_search_bound = !Unify.search_bound;
-Unify.trace_bound := 20;
-Unify.search_bound := 40;
-
 (**** Interactive examples ****)
 
 (*Generate nice names for Skolem functions*)
@@ -166,7 +158,7 @@ writeln"Problem 66";
 Goal (axjoin([axa,axb,axc,axd], "\\<forall>x. T(i x(n(n x)))"));
 by (meson_tac 1);  
 result();
-(*SLOW: 37s on a 1.8MHz machine
+(*SLOW: 17s on griffon
      208346 inferences so far.  Searching to depth 23 *)
 
 writeln"Problem 67";  
@@ -194,8 +186,6 @@ fun prove_hard arg = if even_hard_ones then prove arg else TrueI;
 
 set timing;
 
-context Main.thy;
-
 (* ========================================================================= *)
 (* 100 problems selected from the TPTP library                               *)
 (* ========================================================================= *)
@@ -203,8 +193,9 @@ context Main.thy;
 (*
  * Original timings for John Harrison's MESON_TAC.
  * Timings below on a 600MHz Pentium III (perch)
+ * Some timings below refer to griffon, which is a dual 2.5GHz Power Mac G5.
  * 
- * A few variable names have been primed to avoid clashing with constants.
+ * A few variable names have been changed to avoid clashing with constants.
  *
  * Changed numeric constants e.g. 0, 1, 2... to num0, num1, num2...
  *
@@ -313,12 +304,12 @@ context Main.thy;
  * TOP005-2    139.8    Lemma 1e [Wick & McCune, 1989]
  *)
 
-(*51194 inferences so far.  Searching to depth 13.  232.9 secs*)
-val BOO003_1 = prove_hard
- ("(\\<forall>X. equal(X::'a,X)) &  \
+val EQU001_0_ax = "(\\<forall>X. equal(X::'a,X)) &  \
 \  (\\<forall>Y X. equal(X::'a,Y) --> equal(Y::'a,X)) & \
-\  (\\<forall>Y X Z. equal(X::'a,Y) & equal(Y::'a,Z) --> equal(X::'a,Z)) &  \
-\  (\\<forall>X Y. sum(X::'a,Y,add(X::'a,Y))) & \
+\  (\\<forall>Y X Z. equal(X::'a,Y) & equal(Y::'a,Z) --> equal(X::'a,Z))";
+
+val BOO002_0_ax =
+  "(\\<forall>X Y. sum(X::'a,Y,add(X::'a,Y))) & \
 \  (\\<forall>X Y. product(X::'a,Y,multiply(X::'a,Y))) &        \
 \  (\\<forall>Y X Z. sum(X::'a,Y,Z) --> sum(Y::'a,X,Z)) &       \
 \  (\\<forall>Y X Z. product(X::'a,Y,Z) --> product(Y::'a,X,Z)) &       \
@@ -339,8 +330,10 @@ val BOO003_1 = prove_hard
 \  (\\<forall>X. product(INVERSE(X),X,additive_identity)) &     \
 \  (\\<forall>X. product(X::'a,INVERSE(X),additive_identity)) &     \
 \  (\\<forall>X Y U V. sum(X::'a,Y,U) & sum(X::'a,Y,V) --> equal(U::'a,V)) &        \
-\  (\\<forall>X Y U V. product(X::'a,Y,U) & product(X::'a,Y,V) --> equal(U::'a,V)) &        \
-\  (\\<forall>X Y W Z. equal(X::'a,Y) & sum(X::'a,W,Z) --> sum(Y::'a,W,Z)) &        \
+\  (\\<forall>X Y U V. product(X::'a,Y,U) & product(X::'a,Y,V) --> equal(U::'a,V))";
+
+val BOO002_0_eq =
+  " (\\<forall>X Y W Z. equal(X::'a,Y) & sum(X::'a,W,Z) --> sum(Y::'a,W,Z)) &        \
 \  (\\<forall>X W Y Z. equal(X::'a,Y) & sum(W::'a,X,Z) --> sum(W::'a,Y,Z)) &        \
 \  (\\<forall>X W Z Y. equal(X::'a,Y) & sum(W::'a,Z,X) --> sum(W::'a,Z,Y)) &        \
 \  (\\<forall>X Y W Z. equal(X::'a,Y) & product(X::'a,W,Z) --> product(Y::'a,W,Z)) &        \
@@ -350,182 +343,42 @@ val BOO003_1 = prove_hard
 \  (\\<forall>X W Y. equal(X::'a,Y) --> equal(add(W::'a,X),add(W::'a,Y))) & \
 \  (\\<forall>X Y W. equal(X::'a,Y) --> equal(multiply(X::'a,W),multiply(Y::'a,W))) &       \
 \  (\\<forall>X W Y. equal(X::'a,Y) --> equal(multiply(W::'a,X),multiply(W::'a,Y))) &       \
-\  (\\<forall>X Y. equal(X::'a,Y) --> equal(INVERSE(X),INVERSE(Y))) &       \
-\  (~product(x::'a,x,x)) --> False",
+\  (\\<forall>X Y. equal(X::'a,Y) --> equal(INVERSE(X),INVERSE(Y)))";
+
+(*51194 inferences so far.  Searching to depth 13.  232.9 secs*)
+val BOO003_1 = prove_hard
+ (EQU001_0_ax ^ "&" ^ BOO002_0_ax ^ "&" ^ BOO002_0_eq ^ 
+" & (~product(x::'a,x,x)) --> False",
   meson_tac 1);
 
 (*51194 inferences so far.  Searching to depth 13. 204.6 secs
   Strange! The previous problem also has 51194 inferences at depth 13.  They
    must be very similar!*)
 val BOO004_1 = prove_hard
- ("(\\<forall>X. equal(X::'a,X)) &  \
-\  (\\<forall>Y X. equal(X::'a,Y) --> equal(Y::'a,X)) & \
-\  (\\<forall>Y X Z. equal(X::'a,Y) & equal(Y::'a,Z) --> equal(X::'a,Z)) &  \
-\  (\\<forall>X Y. sum(X::'a,Y,add(X::'a,Y))) & \
-\  (\\<forall>X Y. product(X::'a,Y,multiply(X::'a,Y))) &        \
-\  (\\<forall>Y X Z. sum(X::'a,Y,Z) --> sum(Y::'a,X,Z)) &       \
-\  (\\<forall>Y X Z. product(X::'a,Y,Z) --> product(Y::'a,X,Z)) &       \
-\  (\\<forall>X. sum(additive_identity::'a,X,X)) &  \
-\  (\\<forall>X. sum(X::'a,additive_identity,X)) &  \
-\  (\\<forall>X. product(multiplicative_identity::'a,X,X)) &        \
-\  (\\<forall>X. product(X::'a,multiplicative_identity,X)) &        \
-\  (\\<forall>Y Z X V3 V1 V2 V4. product(X::'a,Y,V1) & product(X::'a,Z,V2) & sum(Y::'a,Z,V3) & product(X::'a,V3,V4) --> sum(V1::'a,V2,V4)) &        \
-\  (\\<forall>Y Z V1 V2 X V3 V4. product(X::'a,Y,V1) & product(X::'a,Z,V2) & sum(Y::'a,Z,V3) & sum(V1::'a,V2,V4) --> product(X::'a,V3,V4)) &        \
-\  (\\<forall>Y Z V3 X V1 V2 V4. product(Y::'a,X,V1) & product(Z::'a,X,V2) & sum(Y::'a,Z,V3) & product(V3::'a,X,V4) --> sum(V1::'a,V2,V4)) &        \
-\  (\\<forall>Y Z V1 V2 V3 X V4. product(Y::'a,X,V1) & product(Z::'a,X,V2) & sum(Y::'a,Z,V3) & sum(V1::'a,V2,V4) --> product(V3::'a,X,V4)) &        \
-\  (\\<forall>Y Z X V3 V1 V2 V4. sum(X::'a,Y,V1) & sum(X::'a,Z,V2) & product(Y::'a,Z,V3) & sum(X::'a,V3,V4) --> product(V1::'a,V2,V4)) &    \
-\  (\\<forall>Y Z V1 V2 X V3 V4. sum(X::'a,Y,V1) & sum(X::'a,Z,V2) & product(Y::'a,Z,V3) & product(V1::'a,V2,V4) --> sum(X::'a,V3,V4)) &    \
-\  (\\<forall>Y Z V3 X V1 V2 V4. sum(Y::'a,X,V1) & sum(Z::'a,X,V2) & product(Y::'a,Z,V3) & sum(V3::'a,X,V4) --> product(V1::'a,V2,V4)) &    \
-\  (\\<forall>Y Z V1 V2 V3 X V4. sum(Y::'a,X,V1) & sum(Z::'a,X,V2) & product(Y::'a,Z,V3) & product(V1::'a,V2,V4) --> sum(V3::'a,X,V4)) &    \
-\  (\\<forall>X. sum(INVERSE(X),X,multiplicative_identity)) &   \
-\  (\\<forall>X. sum(X::'a,INVERSE(X),multiplicative_identity)) &   \
-\  (\\<forall>X. product(INVERSE(X),X,additive_identity)) &     \
-\  (\\<forall>X. product(X::'a,INVERSE(X),additive_identity)) &     \
-\  (\\<forall>X Y U V. sum(X::'a,Y,U) & sum(X::'a,Y,V) --> equal(U::'a,V)) &        \
-\  (\\<forall>X Y U V. product(X::'a,Y,U) & product(X::'a,Y,V) --> equal(U::'a,V)) &        \
-\  (\\<forall>X Y W Z. equal(X::'a,Y) & sum(X::'a,W,Z) --> sum(Y::'a,W,Z)) &        \
-\  (\\<forall>X W Y Z. equal(X::'a,Y) & sum(W::'a,X,Z) --> sum(W::'a,Y,Z)) &        \
-\  (\\<forall>X W Z Y. equal(X::'a,Y) & sum(W::'a,Z,X) --> sum(W::'a,Z,Y)) &        \
-\  (\\<forall>X Y W Z. equal(X::'a,Y) & product(X::'a,W,Z) --> product(Y::'a,W,Z)) &        \
-\  (\\<forall>X W Y Z. equal(X::'a,Y) & product(W::'a,X,Z) --> product(W::'a,Y,Z)) &        \
-\  (\\<forall>X W Z Y. equal(X::'a,Y) & product(W::'a,Z,X) --> product(W::'a,Z,Y)) &        \
-\  (\\<forall>X Y W. equal(X::'a,Y) --> equal(add(X::'a,W),add(Y::'a,W))) & \
-\  (\\<forall>X W Y. equal(X::'a,Y) --> equal(add(W::'a,X),add(W::'a,Y))) & \
-\  (\\<forall>X Y W. equal(X::'a,Y) --> equal(multiply(X::'a,W),multiply(Y::'a,W))) &       \
-\  (\\<forall>X W Y. equal(X::'a,Y) --> equal(multiply(W::'a,X),multiply(W::'a,Y))) &       \
-\  (\\<forall>X Y. equal(X::'a,Y) --> equal(INVERSE(X),INVERSE(Y))) &       \
-\  (~sum(x::'a,x,x)) --> False",
+ (EQU001_0_ax ^ "&" ^ BOO002_0_ax ^ "&" ^ BOO002_0_eq ^
+  " & (~sum(x::'a,x,x)) --> False",
   meson_tac 1);
 
 (*74799 inferences so far.  Searching to depth 13.  290.0 secs*)
 val BOO005_1 = prove_hard
- ("(\\<forall>X. equal(X::'a,X)) &  \
-\  (\\<forall>Y X. equal(X::'a,Y) --> equal(Y::'a,X)) & \
-\  (\\<forall>Y X Z. equal(X::'a,Y) & equal(Y::'a,Z) --> equal(X::'a,Z)) &  \
-\  (\\<forall>X Y. sum(X::'a,Y,add(X::'a,Y))) & \
-\  (\\<forall>X Y. product(X::'a,Y,multiply(X::'a,Y))) &        \
-\  (\\<forall>Y X Z. sum(X::'a,Y,Z) --> sum(Y::'a,X,Z)) &       \
-\  (\\<forall>Y X Z. product(X::'a,Y,Z) --> product(Y::'a,X,Z)) &       \
-\  (\\<forall>X. sum(additive_identity::'a,X,X)) &  \
-\  (\\<forall>X. sum(X::'a,additive_identity,X)) &  \
-\  (\\<forall>X. product(multiplicative_identity::'a,X,X)) &        \
-\  (\\<forall>X. product(X::'a,multiplicative_identity,X)) &        \
-\  (\\<forall>Y Z X V3 V1 V2 V4. product(X::'a,Y,V1) & product(X::'a,Z,V2) & sum(Y::'a,Z,V3) & product(X::'a,V3,V4) --> sum(V1::'a,V2,V4)) &        \
-\  (\\<forall>Y Z V1 V2 X V3 V4. product(X::'a,Y,V1) & product(X::'a,Z,V2) & sum(Y::'a,Z,V3) & sum(V1::'a,V2,V4) --> product(X::'a,V3,V4)) &        \
-\  (\\<forall>Y Z V3 X V1 V2 V4. product(Y::'a,X,V1) & product(Z::'a,X,V2) & sum(Y::'a,Z,V3) & product(V3::'a,X,V4) --> sum(V1::'a,V2,V4)) &        \
-\  (\\<forall>Y Z V1 V2 V3 X V4. product(Y::'a,X,V1) & product(Z::'a,X,V2) & sum(Y::'a,Z,V3) & sum(V1::'a,V2,V4) --> product(V3::'a,X,V4)) &        \
-\  (\\<forall>Y Z X V3 V1 V2 V4. sum(X::'a,Y,V1) & sum(X::'a,Z,V2) & product(Y::'a,Z,V3) & sum(X::'a,V3,V4) --> product(V1::'a,V2,V4)) &    \
-\  (\\<forall>Y Z V1 V2 X V3 V4. sum(X::'a,Y,V1) & sum(X::'a,Z,V2) & product(Y::'a,Z,V3) & product(V1::'a,V2,V4) --> sum(X::'a,V3,V4)) &    \
-\  (\\<forall>Y Z V3 X V1 V2 V4. sum(Y::'a,X,V1) & sum(Z::'a,X,V2) & product(Y::'a,Z,V3) & sum(V3::'a,X,V4) --> product(V1::'a,V2,V4)) &    \
-\  (\\<forall>Y Z V1 V2 V3 X V4. sum(Y::'a,X,V1) & sum(Z::'a,X,V2) & product(Y::'a,Z,V3) & product(V1::'a,V2,V4) --> sum(V3::'a,X,V4)) &    \
-\  (\\<forall>X. sum(INVERSE(X),X,multiplicative_identity)) &   \
-\  (\\<forall>X. sum(X::'a,INVERSE(X),multiplicative_identity)) &   \
-\  (\\<forall>X. product(INVERSE(X),X,additive_identity)) &     \
-\  (\\<forall>X. product(X::'a,INVERSE(X),additive_identity)) &     \
-\  (\\<forall>X Y U V. sum(X::'a,Y,U) & sum(X::'a,Y,V) --> equal(U::'a,V)) &        \
-\  (\\<forall>X Y U V. product(X::'a,Y,U) & product(X::'a,Y,V) --> equal(U::'a,V)) &        \
-\  (\\<forall>X Y W Z. equal(X::'a,Y) & sum(X::'a,W,Z) --> sum(Y::'a,W,Z)) &        \
-\  (\\<forall>X W Y Z. equal(X::'a,Y) & sum(W::'a,X,Z) --> sum(W::'a,Y,Z)) &        \
-\  (\\<forall>X W Z Y. equal(X::'a,Y) & sum(W::'a,Z,X) --> sum(W::'a,Z,Y)) &        \
-\  (\\<forall>X Y W Z. equal(X::'a,Y) & product(X::'a,W,Z) --> product(Y::'a,W,Z)) &        \
-\  (\\<forall>X W Y Z. equal(X::'a,Y) & product(W::'a,X,Z) --> product(W::'a,Y,Z)) &        \
-\  (\\<forall>X W Z Y. equal(X::'a,Y) & product(W::'a,Z,X) --> product(W::'a,Z,Y)) &        \
-\  (\\<forall>X Y W. equal(X::'a,Y) --> equal(add(X::'a,W),add(Y::'a,W))) & \
-\  (\\<forall>X W Y. equal(X::'a,Y) --> equal(add(W::'a,X),add(W::'a,Y))) & \
-\  (\\<forall>X Y W. equal(X::'a,Y) --> equal(multiply(X::'a,W),multiply(Y::'a,W))) &       \
-\  (\\<forall>X W Y. equal(X::'a,Y) --> equal(multiply(W::'a,X),multiply(W::'a,Y))) &       \
-\  (\\<forall>X Y. equal(X::'a,Y) --> equal(INVERSE(X),INVERSE(Y))) &       \
-\  (~sum(x::'a,multiplicative_identity,multiplicative_identity)) --> False",
+ (EQU001_0_ax ^ "&" ^ BOO002_0_ax ^ "&" ^ BOO002_0_eq ^
+  " & (~sum(x::'a,multiplicative_identity,multiplicative_identity)) --> False",
   meson_tac 1);
 
 (*74799 inferences so far.  Searching to depth 13.  314.6 secs*)
 val BOO006_1 = prove_hard
- ("(\\<forall>X. equal(X::'a,X)) &  \
-\  (\\<forall>Y X. equal(X::'a,Y) --> equal(Y::'a,X)) & \
-\  (\\<forall>Y X Z. equal(X::'a,Y) & equal(Y::'a,Z) --> equal(X::'a,Z)) &  \
-\  (\\<forall>X Y. sum(X::'a,Y,add(X::'a,Y))) & \
-\  (\\<forall>X Y. product(X::'a,Y,multiply(X::'a,Y))) &        \
-\  (\\<forall>Y X Z. sum(X::'a,Y,Z) --> sum(Y::'a,X,Z)) &       \
-\  (\\<forall>Y X Z. product(X::'a,Y,Z) --> product(Y::'a,X,Z)) &       \
-\  (\\<forall>X. sum(additive_identity::'a,X,X)) &  \
-\  (\\<forall>X. sum(X::'a,additive_identity,X)) &  \
-\  (\\<forall>X. product(multiplicative_identity::'a,X,X)) &        \
-\  (\\<forall>X. product(X::'a,multiplicative_identity,X)) &        \
-\  (\\<forall>Y Z X V3 V1 V2 V4. product(X::'a,Y,V1) & product(X::'a,Z,V2) & sum(Y::'a,Z,V3) & product(X::'a,V3,V4) --> sum(V1::'a,V2,V4)) &        \
-\  (\\<forall>Y Z V1 V2 X V3 V4. product(X::'a,Y,V1) & product(X::'a,Z,V2) & sum(Y::'a,Z,V3) & sum(V1::'a,V2,V4) --> product(X::'a,V3,V4)) &        \
-\  (\\<forall>Y Z V3 X V1 V2 V4. product(Y::'a,X,V1) & product(Z::'a,X,V2) & sum(Y::'a,Z,V3) & product(V3::'a,X,V4) --> sum(V1::'a,V2,V4)) &        \
-\  (\\<forall>Y Z V1 V2 V3 X V4. product(Y::'a,X,V1) & product(Z::'a,X,V2) & sum(Y::'a,Z,V3) & sum(V1::'a,V2,V4) --> product(V3::'a,X,V4)) &        \
-\  (\\<forall>Y Z X V3 V1 V2 V4. sum(X::'a,Y,V1) & sum(X::'a,Z,V2) & product(Y::'a,Z,V3) & sum(X::'a,V3,V4) --> product(V1::'a,V2,V4)) &    \
-\  (\\<forall>Y Z V1 V2 X V3 V4. sum(X::'a,Y,V1) & sum(X::'a,Z,V2) & product(Y::'a,Z,V3) & product(V1::'a,V2,V4) --> sum(X::'a,V3,V4)) &    \
-\  (\\<forall>Y Z V3 X V1 V2 V4. sum(Y::'a,X,V1) & sum(Z::'a,X,V2) & product(Y::'a,Z,V3) & sum(V3::'a,X,V4) --> product(V1::'a,V2,V4)) &    \
-\  (\\<forall>Y Z V1 V2 V3 X V4. sum(Y::'a,X,V1) & sum(Z::'a,X,V2) & product(Y::'a,Z,V3) & product(V1::'a,V2,V4) --> sum(V3::'a,X,V4)) &    \
-\  (\\<forall>X. sum(INVERSE(X),X,multiplicative_identity)) &   \
-\  (\\<forall>X. sum(X::'a,INVERSE(X),multiplicative_identity)) &   \
-\  (\\<forall>X. product(INVERSE(X),X,additive_identity)) &     \
-\  (\\<forall>X. product(X::'a,INVERSE(X),additive_identity)) &     \
-\  (\\<forall>X Y U V. sum(X::'a,Y,U) & sum(X::'a,Y,V) --> equal(U::'a,V)) &        \
-\  (\\<forall>X Y U V. product(X::'a,Y,U) & product(X::'a,Y,V) --> equal(U::'a,V)) &        \
-\  (\\<forall>X Y W Z. equal(X::'a,Y) & sum(X::'a,W,Z) --> sum(Y::'a,W,Z)) &        \
-\  (\\<forall>X W Y Z. equal(X::'a,Y) & sum(W::'a,X,Z) --> sum(W::'a,Y,Z)) &        \
-\  (\\<forall>X W Z Y. equal(X::'a,Y) & sum(W::'a,Z,X) --> sum(W::'a,Z,Y)) &        \
-\  (\\<forall>X Y W Z. equal(X::'a,Y) & product(X::'a,W,Z) --> product(Y::'a,W,Z)) &        \
-\  (\\<forall>X W Y Z. equal(X::'a,Y) & product(W::'a,X,Z) --> product(W::'a,Y,Z)) &        \
-\  (\\<forall>X W Z Y. equal(X::'a,Y) & product(W::'a,Z,X) --> product(W::'a,Z,Y)) &        \
-\  (\\<forall>X Y W. equal(X::'a,Y) --> equal(add(X::'a,W),add(Y::'a,W))) & \
-\  (\\<forall>X W Y. equal(X::'a,Y) --> equal(add(W::'a,X),add(W::'a,Y))) & \
-\  (\\<forall>X Y W. equal(X::'a,Y) --> equal(multiply(X::'a,W),multiply(Y::'a,W))) &       \
-\  (\\<forall>X W Y. equal(X::'a,Y) --> equal(multiply(W::'a,X),multiply(W::'a,Y))) &       \
-\  (\\<forall>X Y. equal(X::'a,Y) --> equal(INVERSE(X),INVERSE(Y))) &       \
-\  (~product(x::'a,additive_identity,additive_identity)) --> False",
+ (EQU001_0_ax ^ "&" ^ BOO002_0_ax ^ "&" ^ BOO002_0_eq ^
+  " & (~product(x::'a,additive_identity,additive_identity)) --> False",
   meson_tac 1);
 
 (*5 inferences so far.  Searching to depth 5.  1.3 secs*)
 val BOO011_1 = prove
- ("(\\<forall>X. equal(X::'a,X)) &  \
-\  (\\<forall>Y X. equal(X::'a,Y) --> equal(Y::'a,X)) & \
-\  (\\<forall>Y X Z. equal(X::'a,Y) & equal(Y::'a,Z) --> equal(X::'a,Z)) &  \
-\  (\\<forall>X Y. sum(X::'a,Y,add(X::'a,Y))) & \
-\  (\\<forall>X Y. product(X::'a,Y,multiply(X::'a,Y))) &        \
-\  (\\<forall>Y X Z. sum(X::'a,Y,Z) --> sum(Y::'a,X,Z)) &       \
-\  (\\<forall>Y X Z. product(X::'a,Y,Z) --> product(Y::'a,X,Z)) &       \
-\  (\\<forall>X. sum(additive_identity::'a,X,X)) &  \
-\  (\\<forall>X. sum(X::'a,additive_identity,X)) &  \
-\  (\\<forall>X. product(multiplicative_identity::'a,X,X)) &        \
-\  (\\<forall>X. product(X::'a,multiplicative_identity,X)) &        \
-\  (\\<forall>Y Z X V3 V1 V2 V4. product(X::'a,Y,V1) & product(X::'a,Z,V2) & sum(Y::'a,Z,V3) & product(X::'a,V3,V4) --> sum(V1::'a,V2,V4)) &        \
-\  (\\<forall>Y Z V1 V2 X V3 V4. product(X::'a,Y,V1) & product(X::'a,Z,V2) & sum(Y::'a,Z,V3) & sum(V1::'a,V2,V4) --> product(X::'a,V3,V4)) &        \
-\  (\\<forall>Y Z V3 X V1 V2 V4. product(Y::'a,X,V1) & product(Z::'a,X,V2) & sum(Y::'a,Z,V3) & product(V3::'a,X,V4) --> sum(V1::'a,V2,V4)) &        \
-\  (\\<forall>Y Z V1 V2 V3 X V4. product(Y::'a,X,V1) & product(Z::'a,X,V2) & sum(Y::'a,Z,V3) & sum(V1::'a,V2,V4) --> product(V3::'a,X,V4)) &        \
-\  (\\<forall>Y Z X V3 V1 V2 V4. sum(X::'a,Y,V1) & sum(X::'a,Z,V2) & product(Y::'a,Z,V3) & sum(X::'a,V3,V4) --> product(V1::'a,V2,V4)) &    \
-\  (\\<forall>Y Z V1 V2 X V3 V4. sum(X::'a,Y,V1) & sum(X::'a,Z,V2) & product(Y::'a,Z,V3) & product(V1::'a,V2,V4) --> sum(X::'a,V3,V4)) &    \
-\  (\\<forall>Y Z V3 X V1 V2 V4. sum(Y::'a,X,V1) & sum(Z::'a,X,V2) & product(Y::'a,Z,V3) & sum(V3::'a,X,V4) --> product(V1::'a,V2,V4)) &    \
-\  (\\<forall>Y Z V1 V2 V3 X V4. sum(Y::'a,X,V1) & sum(Z::'a,X,V2) & product(Y::'a,Z,V3) & product(V1::'a,V2,V4) --> sum(V3::'a,X,V4)) &    \
-\  (\\<forall>X. sum(INVERSE(X),X,multiplicative_identity)) &   \
-\  (\\<forall>X. sum(X::'a,INVERSE(X),multiplicative_identity)) &   \
-\  (\\<forall>X. product(INVERSE(X),X,additive_identity)) &     \
-\  (\\<forall>X. product(X::'a,INVERSE(X),additive_identity)) &     \
-\  (\\<forall>X Y U V. sum(X::'a,Y,U) & sum(X::'a,Y,V) --> equal(U::'a,V)) &        \
-\  (\\<forall>X Y U V. product(X::'a,Y,U) & product(X::'a,Y,V) --> equal(U::'a,V)) &        \
-\  (\\<forall>X Y W Z. equal(X::'a,Y) & sum(X::'a,W,Z) --> sum(Y::'a,W,Z)) &        \
-\  (\\<forall>X W Y Z. equal(X::'a,Y) & sum(W::'a,X,Z) --> sum(W::'a,Y,Z)) &        \
-\  (\\<forall>X W Z Y. equal(X::'a,Y) & sum(W::'a,Z,X) --> sum(W::'a,Z,Y)) &        \
-\  (\\<forall>X Y W Z. equal(X::'a,Y) & product(X::'a,W,Z) --> product(Y::'a,W,Z)) &        \
-\  (\\<forall>X W Y Z. equal(X::'a,Y) & product(W::'a,X,Z) --> product(W::'a,Y,Z)) &        \
-\  (\\<forall>X W Z Y. equal(X::'a,Y) & product(W::'a,Z,X) --> product(W::'a,Z,Y)) &        \
-\  (\\<forall>X Y W. equal(X::'a,Y) --> equal(add(X::'a,W),add(Y::'a,W))) & \
-\  (\\<forall>X W Y. equal(X::'a,Y) --> equal(add(W::'a,X),add(W::'a,Y))) & \
-\  (\\<forall>X Y W. equal(X::'a,Y) --> equal(multiply(X::'a,W),multiply(Y::'a,W))) &       \
-\  (\\<forall>X W Y. equal(X::'a,Y) --> equal(multiply(W::'a,X),multiply(W::'a,Y))) &       \
-\  (\\<forall>X Y. equal(X::'a,Y) --> equal(INVERSE(X),INVERSE(Y))) &       \
-\  (~equal(INVERSE(additive_identity),multiplicative_identity)) --> False",
+ (EQU001_0_ax ^ "&" ^ BOO002_0_ax ^ "&" ^ BOO002_0_eq ^
+  " & (~equal(INVERSE(additive_identity),multiplicative_identity)) --> False",
   meson_tac 1);
 
-(*4007 inferences so far.  Searching to depth 9.  13 secs*)
-val CAT001_3 = prove_hard
- ("(\\<forall>X. equal(X::'a,X)) &  \
-\  (\\<forall>Y X. equal(X::'a,Y) --> equal(Y::'a,X)) & \
-\  (\\<forall>Y X Z. equal(X::'a,Y) & equal(Y::'a,Z) --> equal(X::'a,Z)) &  \
-\  (\\<forall>Y X. equivalent(X::'a,Y) --> there_exists(X)) &       \
+val CAT003_0_ax = 
+  "(\\<forall>Y X. equivalent(X::'a,Y) --> there_exists(X)) &       \
 \  (\\<forall>X Y. equivalent(X::'a,Y) --> equal(X::'a,Y)) &    \
 \  (\\<forall>X Y. there_exists(X) & equal(X::'a,Y) --> equivalent(X::'a,Y)) &  \
 \  (\\<forall>X. there_exists(domain(X)) --> there_exists(X)) & \
@@ -541,8 +394,10 @@ val CAT001_3 = prove_hard
 \  (\\<forall>Y X. there_exists(compos(X::'a,Y)) --> there_exists(codomain(X))) &  \
 \  (\\<forall>X Y. there_exists(f1(X::'a,Y)) | equal(X::'a,Y)) &       \
 \  (\\<forall>X Y. equal(X::'a,f1(X::'a,Y)) | equal(Y::'a,f1(X::'a,Y)) | equal(X::'a,Y)) &        \
-\  (\\<forall>X Y. equal(X::'a,f1(X::'a,Y)) & equal(Y::'a,f1(X::'a,Y)) --> equal(X::'a,Y)) &        \
-\  (\\<forall>X Y. equal(X::'a,Y) & there_exists(X) --> there_exists(Y)) &  \
+\  (\\<forall>X Y. equal(X::'a,f1(X::'a,Y)) & equal(Y::'a,f1(X::'a,Y)) --> equal(X::'a,Y))";
+
+val CAT003_0_eq = 
+  "(\\<forall>X Y. equal(X::'a,Y) & there_exists(X) --> there_exists(Y)) &  \
 \  (\\<forall>X Y Z. equal(X::'a,Y) & equivalent(X::'a,Z) --> equivalent(Y::'a,Z)) &        \
 \  (\\<forall>X Z Y. equal(X::'a,Y) & equivalent(Z::'a,X) --> equivalent(Z::'a,Y)) &        \
 \  (\\<forall>X Y. equal(X::'a,Y) --> equal(domain(X),domain(Y))) & \
@@ -550,7 +405,11 @@ val CAT001_3 = prove_hard
 \  (\\<forall>X Y Z. equal(X::'a,Y) --> equal(compos(X::'a,Z),compos(Y::'a,Z))) & \
 \  (\\<forall>X Z Y. equal(X::'a,Y) --> equal(compos(Z::'a,X),compos(Z::'a,Y))) & \
 \  (\\<forall>A B C. equal(A::'a,B) --> equal(f1(A::'a,C),f1(B::'a,C))) &   \
-\  (\\<forall>D F' E. equal(D::'a,E) --> equal(f1(F'::'a,D),f1(F'::'a,E))) &        \
+\  (\\<forall>D F' E. equal(D::'a,E) --> equal(f1(F'::'a,D),f1(F'::'a,E)))";
+
+(*4007 inferences so far.  Searching to depth 9.  13 secs*)
+val CAT001_3 = prove
+ (EQU001_0_ax ^ "&" ^ CAT003_0_ax ^ "&" ^ CAT003_0_eq ^ " &        \
 \  (there_exists(compos(a::'a,b))) &       \
 \  (\\<forall>Y X Z. equal(compos(compos(a::'a,b),X),Y) & equal(compos(compos(a::'a,b),Z),Y) --> equal(X::'a,Z)) &      \
 \  (there_exists(compos(b::'a,h))) &       \
@@ -560,35 +419,7 @@ val CAT001_3 = prove_hard
 
 (*245 inferences so far.  Searching to depth 7.  1.0 secs*)
 val CAT003_3 = prove
- ("(\\<forall>X. equal(X::'a,X)) &  \
-\  (\\<forall>Y X. equal(X::'a,Y) --> equal(Y::'a,X)) & \
-\  (\\<forall>Y X Z. equal(X::'a,Y) & equal(Y::'a,Z) --> equal(X::'a,Z)) &  \
-\  (\\<forall>Y X. equivalent(X::'a,Y) --> there_exists(X)) &       \
-\  (\\<forall>X Y. equivalent(X::'a,Y) --> equal(X::'a,Y)) &    \
-\  (\\<forall>X Y. there_exists(X) & equal(X::'a,Y) --> equivalent(X::'a,Y)) &  \
-\  (\\<forall>X. there_exists(domain(X)) --> there_exists(X)) & \
-\  (\\<forall>X. there_exists(codomain(X)) --> there_exists(X)) &       \
-\  (\\<forall>Y X. there_exists(compos(X::'a,Y)) --> there_exists(domain(X))) &    \
-\  (\\<forall>X Y. there_exists(compos(X::'a,Y)) --> equal(domain(X),codomain(Y))) &       \
-\  (\\<forall>X Y. there_exists(domain(X)) & equal(domain(X),codomain(Y)) --> there_exists(compos(X::'a,Y))) &     \
-\  (\\<forall>X Y Z. equal(compos(X::'a,compos(Y::'a,Z)),compos(compos(X::'a,Y),Z))) &  \
-\  (\\<forall>X. equal(compos(X::'a,domain(X)),X)) &       \
-\  (\\<forall>X. equal(compos(codomain(X),X),X)) &     \
-\  (\\<forall>X Y. equivalent(X::'a,Y) --> there_exists(Y)) &       \
-\  (\\<forall>X Y. there_exists(X) & there_exists(Y) & equal(X::'a,Y) --> equivalent(X::'a,Y)) &        \
-\  (\\<forall>Y X. there_exists(compos(X::'a,Y)) --> there_exists(codomain(X))) &  \
-\  (\\<forall>X Y. there_exists(f1(X::'a,Y)) | equal(X::'a,Y)) &       \
-\  (\\<forall>X Y. equal(X::'a,f1(X::'a,Y)) | equal(Y::'a,f1(X::'a,Y)) | equal(X::'a,Y)) &        \
-\  (\\<forall>X Y. equal(X::'a,f1(X::'a,Y)) & equal(Y::'a,f1(X::'a,Y)) --> equal(X::'a,Y)) &        \
-\  (\\<forall>X Y. equal(X::'a,Y) & there_exists(X) --> there_exists(Y)) &  \
-\  (\\<forall>X Y Z. equal(X::'a,Y) & equivalent(X::'a,Z) --> equivalent(Y::'a,Z)) &        \
-\  (\\<forall>X Z Y. equal(X::'a,Y) & equivalent(Z::'a,X) --> equivalent(Z::'a,Y)) &        \
-\  (\\<forall>X Y. equal(X::'a,Y) --> equal(domain(X),domain(Y))) & \
-\  (\\<forall>X Y. equal(X::'a,Y) --> equal(codomain(X),codomain(Y))) &     \
-\  (\\<forall>X Y Z. equal(X::'a,Y) --> equal(compos(X::'a,Z),compos(Y::'a,Z))) & \
-\  (\\<forall>X Z Y. equal(X::'a,Y) --> equal(compos(Z::'a,X),compos(Z::'a,Y))) & \
-\  (\\<forall>A B C. equal(A::'a,B) --> equal(f1(A::'a,C),f1(B::'a,C))) &   \
-\  (\\<forall>D F' E. equal(D::'a,E) --> equal(f1(F'::'a,D),f1(F'::'a,E))) &        \
+ (EQU001_0_ax ^ "&" ^ CAT003_0_ax ^ "&" ^ CAT003_0_eq ^ " &        \
 \  (there_exists(compos(a::'a,b))) &       \
 \  (\\<forall>Y X Z. equal(compos(X::'a,compos(a::'a,b)),Y) & equal(compos(Z::'a,compos(a::'a,b)),Y) --> equal(X::'a,Z)) &      \
 \  (there_exists(h)) &  \
@@ -596,12 +427,8 @@ val CAT003_3 = prove
 \  (~equal(g::'a,h)) --> False",
   meson_tac 1);
 
-(*54288 inferences so far.  Searching to depth 14.  118.0 secs*)
-val CAT005_1 = prove_hard
- ("(\\<forall>X. equal(X::'a,X)) &  \
-\  (\\<forall>Y X. equal(X::'a,Y) --> equal(Y::'a,X)) & \
-\  (\\<forall>Y X Z. equal(X::'a,Y) & equal(Y::'a,Z) --> equal(X::'a,Z)) &  \
-\  (\\<forall>X Y. defined(X::'a,Y) --> product(X::'a,Y,compos(X::'a,Y))) &        \
+val CAT001_0_ax =
+  "(\\<forall>X Y. defined(X::'a,Y) --> product(X::'a,Y,compos(X::'a,Y))) &        \
 \  (\\<forall>Z X Y. product(X::'a,Y,Z) --> defined(X::'a,Y)) & \
 \  (\\<forall>X Xy Y Z. product(X::'a,Y,Xy) & defined(Xy::'a,Z) --> defined(Y::'a,Z)) &     \
 \  (\\<forall>Y Xy Z X Yz. product(X::'a,Y,Xy) & product(Y::'a,Z,Yz) & defined(Xy::'a,Z) --> defined(X::'a,Yz)) &       \
@@ -618,8 +445,10 @@ val CAT005_1 = prove_hard
 \  (\\<forall>X. product(codomain(X),X,X)) &    \
 \  (\\<forall>X Y. defined(X::'a,Y) & identity_map(X) --> product(X::'a,Y,Y)) & \
 \  (\\<forall>Y X. defined(X::'a,Y) & identity_map(Y) --> product(X::'a,Y,X)) & \
-\  (\\<forall>X Y Z W. product(X::'a,Y,Z) & product(X::'a,Y,W) --> equal(Z::'a,W)) &        \
-\  (\\<forall>X Y Z W. equal(X::'a,Y) & product(X::'a,Z,W) --> product(Y::'a,Z,W)) &        \
+\  (\\<forall>X Y Z W. product(X::'a,Y,Z) & product(X::'a,Y,W) --> equal(Z::'a,W))";
+
+val CAT001_0_eq =
+  "(\\<forall>X Y Z W. equal(X::'a,Y) & product(X::'a,Z,W) --> product(Y::'a,Z,W)) &        \
 \  (\\<forall>X Z Y W. equal(X::'a,Y) & product(Z::'a,X,W) --> product(Z::'a,Y,W)) &        \
 \  (\\<forall>X Z W Y. equal(X::'a,Y) & product(Z::'a,W,X) --> product(Z::'a,W,Y)) &        \
 \  (\\<forall>X Y. equal(X::'a,Y) --> equal(domain(X),domain(Y))) & \
@@ -628,7 +457,11 @@ val CAT005_1 = prove_hard
 \  (\\<forall>X Y Z. equal(X::'a,Y) & defined(X::'a,Z) --> defined(Y::'a,Z)) &      \
 \  (\\<forall>X Z Y. equal(X::'a,Y) & defined(Z::'a,X) --> defined(Z::'a,Y)) &      \
 \  (\\<forall>X Z Y. equal(X::'a,Y) --> equal(compos(Z::'a,X),compos(Z::'a,Y))) & \
-\  (\\<forall>X Y Z. equal(X::'a,Y) --> equal(compos(X::'a,Z),compos(Y::'a,Z))) & \
+\  (\\<forall>X Y Z. equal(X::'a,Y) --> equal(compos(X::'a,Z),compos(Y::'a,Z)))";
+
+(*54288 inferences so far.  Searching to depth 14.  118.0 secs*)
+val CAT005_1 = prove_hard
+ (EQU001_0_ax ^ "&" ^ CAT001_0_ax ^ "&" ^ CAT001_0_eq ^ " & \
 \  (defined(a::'a,d)) &     \
 \  (identity_map(d)) &  \
 \  (~equal(domain(a),d)) --> False",
@@ -636,75 +469,15 @@ val CAT005_1 = prove_hard
 
 
 (*1728 inferences so far.  Searching to depth 10.  5.8 secs*)
-val CAT007_1 = prove_hard
- ("(\\<forall>X. equal(X::'a,X)) &  \
-\  (\\<forall>Y X. equal(X::'a,Y) --> equal(Y::'a,X)) & \
-\  (\\<forall>Y X Z. equal(X::'a,Y) & equal(Y::'a,Z) --> equal(X::'a,Z)) &  \
-\  (\\<forall>X Y. defined(X::'a,Y) --> product(X::'a,Y,compos(X::'a,Y))) &        \
-\  (\\<forall>Z X Y. product(X::'a,Y,Z) --> defined(X::'a,Y)) & \
-\  (\\<forall>X Xy Y Z. product(X::'a,Y,Xy) & defined(Xy::'a,Z) --> defined(Y::'a,Z)) &     \
-\  (\\<forall>Y Xy Z X Yz. product(X::'a,Y,Xy) & product(Y::'a,Z,Yz) & defined(Xy::'a,Z) --> defined(X::'a,Yz)) &       \
-\  (\\<forall>Xy Y Z X Yz Xyz. product(X::'a,Y,Xy) & product(Xy::'a,Z,Xyz) & product(Y::'a,Z,Yz) --> product(X::'a,Yz,Xyz)) &   \
-\  (\\<forall>Z Yz X Y. product(Y::'a,Z,Yz) & defined(X::'a,Yz) --> defined(X::'a,Y)) &     \
-\  (\\<forall>Y X Yz Xy Z. product(Y::'a,Z,Yz) & product(X::'a,Y,Xy) & defined(X::'a,Yz) --> defined(Xy::'a,Z)) &       \
-\  (\\<forall>Yz X Y Xy Z Xyz. product(Y::'a,Z,Yz) & product(X::'a,Yz,Xyz) & product(X::'a,Y,Xy) --> product(Xy::'a,Z,Xyz)) &   \
-\  (\\<forall>Y X Z. defined(X::'a,Y) & defined(Y::'a,Z) & identity_map(Y) --> defined(X::'a,Z)) &  \
-\  (\\<forall>X. identity_map(domain(X))) &     \
-\  (\\<forall>X. identity_map(codomain(X))) &   \
-\  (\\<forall>X. defined(X::'a,domain(X))) &        \
-\  (\\<forall>X. defined(codomain(X),X)) &      \
-\  (\\<forall>X. product(X::'a,domain(X),X)) &      \
-\  (\\<forall>X. product(codomain(X),X,X)) &    \
-\  (\\<forall>X Y. defined(X::'a,Y) & identity_map(X) --> product(X::'a,Y,Y)) & \
-\  (\\<forall>Y X. defined(X::'a,Y) & identity_map(Y) --> product(X::'a,Y,X)) & \
-\  (\\<forall>X Y Z W. product(X::'a,Y,Z) & product(X::'a,Y,W) --> equal(Z::'a,W)) &        \
-\  (\\<forall>X Y Z W. equal(X::'a,Y) & product(X::'a,Z,W) --> product(Y::'a,Z,W)) &        \
-\  (\\<forall>X Z Y W. equal(X::'a,Y) & product(Z::'a,X,W) --> product(Z::'a,Y,W)) &        \
-\  (\\<forall>X Z W Y. equal(X::'a,Y) & product(Z::'a,W,X) --> product(Z::'a,W,Y)) &        \
-\  (\\<forall>X Y. equal(X::'a,Y) --> equal(domain(X),domain(Y))) & \
-\  (\\<forall>X Y. equal(X::'a,Y) --> equal(codomain(X),codomain(Y))) &     \
-\  (\\<forall>X Y. equal(X::'a,Y) & identity_map(X) --> identity_map(Y)) &  \
-\  (\\<forall>X Y Z. equal(X::'a,Y) & defined(X::'a,Z) --> defined(Y::'a,Z)) &      \
-\  (\\<forall>X Z Y. equal(X::'a,Y) & defined(Z::'a,X) --> defined(Z::'a,Y)) &      \
-\  (\\<forall>X Z Y. equal(X::'a,Y) --> equal(compos(Z::'a,X),compos(Z::'a,Y))) & \
-\  (\\<forall>X Y Z. equal(X::'a,Y) --> equal(compos(X::'a,Z),compos(Y::'a,Z))) & \
+val CAT007_1 = prove
+ (EQU001_0_ax ^ "&" ^ CAT001_0_ax ^ "&" ^ CAT001_0_eq ^ " & \
 \  (equal(domain(a),codomain(b))) &     \
 \  (~defined(a::'a,b)) --> False",
   meson_tac 1);
 
 (*82895 inferences so far.  Searching to depth 13.  355 secs*)
 val CAT018_1 = prove_hard
- ("(\\<forall>X. equal(X::'a,X)) &  \
-\  (\\<forall>Y X. equal(X::'a,Y) --> equal(Y::'a,X)) & \
-\  (\\<forall>Y X Z. equal(X::'a,Y) & equal(Y::'a,Z) --> equal(X::'a,Z)) &  \
-\  (\\<forall>X Y. defined(X::'a,Y) --> product(X::'a,Y,compos(X::'a,Y))) &        \
-\  (\\<forall>Z X Y. product(X::'a,Y,Z) --> defined(X::'a,Y)) & \
-\  (\\<forall>X Xy Y Z. product(X::'a,Y,Xy) & defined(Xy::'a,Z) --> defined(Y::'a,Z)) &     \
-\  (\\<forall>Y Xy Z X Yz. product(X::'a,Y,Xy) & product(Y::'a,Z,Yz) & defined(Xy::'a,Z) --> defined(X::'a,Yz)) &       \
-\  (\\<forall>Xy Y Z X Yz Xyz. product(X::'a,Y,Xy) & product(Xy::'a,Z,Xyz) & product(Y::'a,Z,Yz) --> product(X::'a,Yz,Xyz)) &   \
-\  (\\<forall>Z Yz X Y. product(Y::'a,Z,Yz) & defined(X::'a,Yz) --> defined(X::'a,Y)) &     \
-\  (\\<forall>Y X Yz Xy Z. product(Y::'a,Z,Yz) & product(X::'a,Y,Xy) & defined(X::'a,Yz) --> defined(Xy::'a,Z)) &       \
-\  (\\<forall>Yz X Y Xy Z Xyz. product(Y::'a,Z,Yz) & product(X::'a,Yz,Xyz) & product(X::'a,Y,Xy) --> product(Xy::'a,Z,Xyz)) &   \
-\  (\\<forall>Y X Z. defined(X::'a,Y) & defined(Y::'a,Z) & identity_map(Y) --> defined(X::'a,Z)) &  \
-\  (\\<forall>X. identity_map(domain(X))) &     \
-\  (\\<forall>X. identity_map(codomain(X))) &   \
-\  (\\<forall>X. defined(X::'a,domain(X))) &        \
-\  (\\<forall>X. defined(codomain(X),X)) &      \
-\  (\\<forall>X. product(X::'a,domain(X),X)) &      \
-\  (\\<forall>X. product(codomain(X),X,X)) &    \
-\  (\\<forall>X Y. defined(X::'a,Y) & identity_map(X) --> product(X::'a,Y,Y)) & \
-\  (\\<forall>Y X. defined(X::'a,Y) & identity_map(Y) --> product(X::'a,Y,X)) & \
-\  (\\<forall>X Y Z W. product(X::'a,Y,Z) & product(X::'a,Y,W) --> equal(Z::'a,W)) &        \
-\  (\\<forall>X Y Z W. equal(X::'a,Y) & product(X::'a,Z,W) --> product(Y::'a,Z,W)) &        \
-\  (\\<forall>X Z Y W. equal(X::'a,Y) & product(Z::'a,X,W) --> product(Z::'a,Y,W)) &        \
-\  (\\<forall>X Z W Y. equal(X::'a,Y) & product(Z::'a,W,X) --> product(Z::'a,W,Y)) &        \
-\  (\\<forall>X Y. equal(X::'a,Y) --> equal(domain(X),domain(Y))) & \
-\  (\\<forall>X Y. equal(X::'a,Y) --> equal(codomain(X),codomain(Y))) &     \
-\  (\\<forall>X Y. equal(X::'a,Y) & identity_map(X) --> identity_map(Y)) &  \
-\  (\\<forall>X Y Z. equal(X::'a,Y) & defined(X::'a,Z) --> defined(Y::'a,Z)) &      \
-\  (\\<forall>X Z Y. equal(X::'a,Y) & defined(Z::'a,X) --> defined(Z::'a,Y)) &      \
-\  (\\<forall>X Z Y. equal(X::'a,Y) --> equal(compos(Z::'a,X),compos(Z::'a,Y))) & \
-\  (\\<forall>X Y Z. equal(X::'a,Y) --> equal(compos(X::'a,Z),compos(Y::'a,Z))) & \
+ (EQU001_0_ax ^ "&" ^ CAT001_0_ax ^ "&" ^ CAT001_0_eq ^ " & \
 \  (defined(a::'a,b)) &     \
 \  (defined(b::'a,c)) &     \
 \  (~defined(a::'a,compos(b::'a,c))) --> False",
@@ -712,9 +485,7 @@ val CAT018_1 = prove_hard
 
 (*1118 inferences so far.  Searching to depth 8.  2.3 secs*)
 val COL001_2 = prove
- ("(\\<forall>X. equal(X::'a,X)) &  \
-\  (\\<forall>Y X. equal(X::'a,Y) --> equal(Y::'a,X)) & \
-\  (\\<forall>Y X Z. equal(X::'a,Y) & equal(Y::'a,Z) --> equal(X::'a,Z)) &  \
+ (EQU001_0_ax ^ " &  \
 \  (\\<forall>X Y Z. equal(apply(apply(apply(s::'a,X),Y),Z),apply(apply(X::'a,Z),apply(Y::'a,Z)))) &        \
 \  (\\<forall>Y X. equal(apply(apply(k::'a,X),Y),X)) &      \
 \  (\\<forall>X Y Z. equal(apply(apply(apply(b::'a,X),Y),Z),apply(X::'a,apply(Y::'a,Z)))) & \
@@ -727,9 +498,7 @@ val COL001_2 = prove
 
 (*500 inferences so far.  Searching to depth 8.  0.9 secs*)
 val COL023_1 = prove
- ("(\\<forall>X. equal(X::'a,X)) &  \
-\  (\\<forall>Y X. equal(X::'a,Y) --> equal(Y::'a,X)) & \
-\  (\\<forall>Y X Z. equal(X::'a,Y) & equal(Y::'a,Z) --> equal(X::'a,Z)) &  \
+ (EQU001_0_ax ^ " &  \
 \  (\\<forall>X Y Z. equal(apply(apply(apply(b::'a,X),Y),Z),apply(X::'a,apply(Y::'a,Z)))) & \
 \  (\\<forall>X Y Z. equal(apply(apply(apply(n::'a,X),Y),Z),apply(apply(apply(X::'a,Z),Y),Z))) &        \
 \  (\\<forall>A B C. equal(A::'a,B) --> equal(apply(A::'a,C),apply(B::'a,C))) &     \
@@ -738,10 +507,8 @@ val COL023_1 = prove
   meson_tac 1);
 
 (*3018 inferences so far.  Searching to depth 10.  4.3 secs*)
-val COL032_1 = prove_hard
- ("(\\<forall>X. equal(X::'a,X)) &  \
-\  (\\<forall>Y X. equal(X::'a,Y) --> equal(Y::'a,X)) & \
-\  (\\<forall>Y X Z. equal(X::'a,Y) & equal(Y::'a,Z) --> equal(X::'a,Z)) &  \
+val COL032_1 = prove
+ (EQU001_0_ax ^ " &  \
 \  (\\<forall>X. equal(apply(m::'a,X),apply(X::'a,X))) &        \
 \  (\\<forall>Y X Z. equal(apply(apply(apply(q::'a,X),Y),Z),apply(Y::'a,apply(X::'a,Z)))) & \
 \  (\\<forall>A B C. equal(A::'a,B) --> equal(apply(A::'a,C),apply(B::'a,C))) &     \
@@ -752,9 +519,7 @@ val COL032_1 = prove_hard
 
 (*381878 inferences so far.  Searching to depth 13.  670.4 secs*)
 val COL052_2 = prove_hard
- ("(\\<forall>X. equal(X::'a,X)) &  \
-\  (\\<forall>Y X. equal(X::'a,Y) --> equal(Y::'a,X)) & \
-\  (\\<forall>Y X Z. equal(X::'a,Y) & equal(Y::'a,Z) --> equal(X::'a,Z)) &  \
+ (EQU001_0_ax ^ " &  \
 \  (\\<forall>X Y W. equal(response(compos(X::'a,Y),W),response(X::'a,response(Y::'a,W)))) &       \
 \  (\\<forall>X Y. agreeable(X) --> equal(response(X::'a,common_bird(Y)),response(Y::'a,common_bird(Y)))) &     \
 \  (\\<forall>Z X. equal(response(X::'a,Z),response(compatible(X),Z)) --> agreeable(X)) &   \
@@ -772,9 +537,7 @@ val COL052_2 = prove_hard
 
 (*13201 inferences so far.  Searching to depth 11.  31.9 secs*)
 val COL075_2 = prove_hard
- ("(\\<forall>X. equal(X::'a,X)) &  \
-\  (\\<forall>Y X. equal(X::'a,Y) --> equal(Y::'a,X)) & \
-\  (\\<forall>Y X Z. equal(X::'a,Y) & equal(Y::'a,Z) --> equal(X::'a,Z)) &  \
+ (EQU001_0_ax ^ " &  \
 \  (\\<forall>Y X. equal(apply(apply(k::'a,X),Y),X)) &      \
 \  (\\<forall>X Y Z. equal(apply(apply(apply(abstraction::'a,X),Y),Z),apply(apply(X::'a,apply(k::'a,Z)),apply(Y::'a,Z)))) &     \
 \  (\\<forall>D E F'. equal(D::'a,E) --> equal(apply(D::'a,F'),apply(E::'a,F'))) &  \
@@ -892,12 +655,10 @@ val COM003_2 = prove
 \  (algorithm_program_decides(c4)) --> False",
   meson_tac 1);
 
-(****************SLOW
-2100398 inferences so far.  Searching to depth 12.  No proof after 30 mins.
-val COM004_1 = prove
- ("(\\<forall>X. equal(X::'a,X)) &  \
-\  (\\<forall>Y X. equal(X::'a,Y) --> equal(Y::'a,X)) & \
-\  (\\<forall>Y X Z. equal(X::'a,Y) & equal(Y::'a,Z) --> equal(X::'a,Z)) &  \
+(*2100398 inferences so far.  Searching to depth 12.  
+  1256s (21 mins) on griffon*)
+val COM004_1 = prove_hard
+ (EQU001_0_ax ^ " &  \
 \  (\\<forall>C D P Q X Y. failure_node(X::'a,or(C::'a,P)) & failure_node(Y::'a,or(D::'a,Q)) & contradictory(P::'a,Q) & siblings(X::'a,Y) --> failure_node(parent_of(X::'a,Y),or(C::'a,D))) &   \
 \  (\\<forall>X. contradictory(negate(X),X)) &  \
 \  (\\<forall>X. contradictory(X::'a,negate(X))) &  \
@@ -921,14 +682,9 @@ val COM004_1 = prove
 \  (equal(n_right::'a,right_child_of(n))) & \
 \  (\\<forall>Z. ~failure_node(Z::'a,or(EMPTY::'a,EMPTY))) --> False",
   meson_tac 1);
-****************)
 
-(*179 inferences so far.  Searching to depth 7.  3.9 secs*)
-val GEO003_1 = prove_hard
- ("(\\<forall>X. equal(X::'a,X)) &  \
-\  (\\<forall>Y X. equal(X::'a,Y) --> equal(Y::'a,X)) & \
-\  (\\<forall>Y X Z. equal(X::'a,Y) & equal(Y::'a,Z) --> equal(X::'a,Z)) &  \
-\  (\\<forall>X Y. between(X::'a,Y,X) --> equal(X::'a,Y)) &     \
+val GEO001_0_ax =
+  "(\\<forall>X Y. between(X::'a,Y,X) --> equal(X::'a,Y)) &     \
 \  (\\<forall>V X Y Z. between(X::'a,Y,V) & between(Y::'a,Z,V) --> between(X::'a,Y,Z)) &    \
 \  (\\<forall>Y X V Z. between(X::'a,Y,Z) & between(X::'a,Y,V) --> equal(X::'a,Y) | between(X::'a,Z,V) | between(X::'a,V,Z)) &    \
 \  (\\<forall>Y X. equidistant(X::'a,Y,Y,X)) &      \
@@ -947,8 +703,10 @@ val GEO003_1 = prove_hard
 \  (~between(lower_dimension_point_3::'a,lower_dimension_point_1,lower_dimension_point_2)) &        \
 \  (\\<forall>Z X Y W V. equidistant(X::'a,W,X,V) & equidistant(Y::'a,W,Y,V) & equidistant(Z::'a,W,Z,V) --> between(X::'a,Y,Z) | between(Y::'a,Z,X) | between(Z::'a,X,Y) | equal(W::'a,V)) &     \
 \  (\\<forall>X Y Z X1 Z1 V. equidistant(V::'a,X,V,X1) & equidistant(V::'a,Z,V,Z1) & between(V::'a,X,Z) & between(X::'a,Y,Z) --> equidistant(V::'a,Y,Z,continuous(X::'a,Y,Z,X1,Z1,V))) &        \
-\  (\\<forall>X Y Z X1 V Z1. equidistant(V::'a,X,V,X1) & equidistant(V::'a,Z,V,Z1) & between(V::'a,X,Z) & between(X::'a,Y,Z) --> between(X1::'a,continuous(X::'a,Y,Z,X1,Z1,V),Z1)) &    \
-\  (\\<forall>X Y W Z. equal(X::'a,Y) & between(X::'a,W,Z) --> between(Y::'a,W,Z)) &        \
+\  (\\<forall>X Y Z X1 V Z1. equidistant(V::'a,X,V,X1) & equidistant(V::'a,Z,V,Z1) & between(V::'a,X,Z) & between(X::'a,Y,Z) --> between(X1::'a,continuous(X::'a,Y,Z,X1,Z1,V),Z1))";
+
+val GEO001_0_eq =
+  "(\\<forall>X Y W Z. equal(X::'a,Y) & between(X::'a,W,Z) --> between(Y::'a,W,Z)) &        \
 \  (\\<forall>X W Y Z. equal(X::'a,Y) & between(W::'a,X,Z) --> between(W::'a,Y,Z)) &        \
 \  (\\<forall>X W Z Y. equal(X::'a,Y) & between(W::'a,Z,X) --> between(W::'a,Z,Y)) &        \
 \  (\\<forall>X Y V W Z. equal(X::'a,Y) & equidistant(X::'a,V,W,Z) --> equidistant(Y::'a,V,W,Z)) &  \
@@ -979,16 +737,17 @@ val GEO003_1 = prove_hard
 \  (\\<forall>X V1 V2 Y V3 V4 V5. equal(X::'a,Y) --> equal(continuous(V1::'a,V2,X,V3,V4,V5),continuous(V1::'a,V2,Y,V3,V4,V5))) &    \
 \  (\\<forall>X V1 V2 V3 Y V4 V5. equal(X::'a,Y) --> equal(continuous(V1::'a,V2,V3,X,V4,V5),continuous(V1::'a,V2,V3,Y,V4,V5))) &    \
 \  (\\<forall>X V1 V2 V3 V4 Y V5. equal(X::'a,Y) --> equal(continuous(V1::'a,V2,V3,V4,X,V5),continuous(V1::'a,V2,V3,V4,Y,V5))) &    \
-\  (\\<forall>X V1 V2 V3 V4 V5 Y. equal(X::'a,Y) --> equal(continuous(V1::'a,V2,V3,V4,V5,X),continuous(V1::'a,V2,V3,V4,V5,Y))) &    \
+\  (\\<forall>X V1 V2 V3 V4 V5 Y. equal(X::'a,Y) --> equal(continuous(V1::'a,V2,V3,V4,V5,X),continuous(V1::'a,V2,V3,V4,V5,Y)))";
+
+
+(*179 inferences so far.  Searching to depth 7.  3.9 secs*)
+val GEO003_1 = prove
+ (EQU001_0_ax ^ "&" ^ GEO001_0_ax ^ "&" ^ GEO001_0_eq ^ " &    \
 \  (~between(a::'a,b,b)) --> False",
   meson_tac 1);
 
-(*4272 inferences so far.  Searching to depth 10.  29.4 secs*)
-val GEO017_2 = prove_hard
- ("(\\<forall>X. equal(X::'a,X)) &  \
-\  (\\<forall>Y X. equal(X::'a,Y) --> equal(Y::'a,X)) & \
-\  (\\<forall>Y X Z. equal(X::'a,Y) & equal(Y::'a,Z) --> equal(X::'a,Z)) &  \
-\  (\\<forall>Y X. equidistant(X::'a,Y,Y,X)) &      \
+val GEO002_ax_eq =
+  "(\\<forall>Y X. equidistant(X::'a,Y,Y,X)) &      \
 \  (\\<forall>X Y Z V V2 W. equidistant(X::'a,Y,Z,V) & equidistant(X::'a,Y,V2,W) --> equidistant(Z::'a,V,V2,W)) &   \
 \  (\\<forall>Z X Y. equidistant(X::'a,Y,Z,Z) --> equal(X::'a,Y)) &     \
 \  (\\<forall>X Y W V. between(X::'a,Y,extension(X::'a,Y,W,V))) &       \
@@ -1037,67 +796,19 @@ val GEO017_2 = prove_hard
 \  (\\<forall>X V1 V2 Y V3 V4 V5. equal(X::'a,Y) --> equal(continuous(V1::'a,V2,X,V3,V4,V5),continuous(V1::'a,V2,Y,V3,V4,V5))) &    \
 \  (\\<forall>X V1 V2 V3 Y V4 V5. equal(X::'a,Y) --> equal(continuous(V1::'a,V2,V3,X,V4,V5),continuous(V1::'a,V2,V3,Y,V4,V5))) &    \
 \  (\\<forall>X V1 V2 V3 V4 Y V5. equal(X::'a,Y) --> equal(continuous(V1::'a,V2,V3,V4,X,V5),continuous(V1::'a,V2,V3,V4,Y,V5))) &    \
-\  (\\<forall>X V1 V2 V3 V4 V5 Y. equal(X::'a,Y) --> equal(continuous(V1::'a,V2,V3,V4,V5,X),continuous(V1::'a,V2,V3,V4,V5,Y))) &    \
+\  (\\<forall>X V1 V2 V3 V4 V5 Y. equal(X::'a,Y) --> equal(continuous(V1::'a,V2,V3,V4,V5,X),continuous(V1::'a,V2,V3,V4,V5,Y)))";
+
+
+(*4272 inferences so far.  Searching to depth 10.  29.4 secs*)
+val GEO017_2 = prove_hard
+ (EQU001_0_ax ^ "&" ^ GEO002_ax_eq ^ "  &    \
 \  (equidistant(u::'a,v,w,x)) &     \
 \  (~equidistant(u::'a,v,x,w)) --> False",
   meson_tac 1);
 
-(****************SLOW
-382903 inferences so far.  Searching to depth 9.  No proof after 35 minutes.
+(*382903 inferences so far.  Searching to depth 9. 1022s (17 mins) on griffon*)
 val GEO027_3 = prove_hard
- ("(\\<forall>X. equal(X::'a,X)) &  \
-\  (\\<forall>Y X. equal(X::'a,Y) --> equal(Y::'a,X)) & \
-\  (\\<forall>Y X Z. equal(X::'a,Y) & equal(Y::'a,Z) --> equal(X::'a,Z)) &  \
-\  (\\<forall>Y X. equidistant(X::'a,Y,Y,X)) &      \
-\  (\\<forall>X Y Z V V2 W. equidistant(X::'a,Y,Z,V) & equidistant(X::'a,Y,V2,W) --> equidistant(Z::'a,V,V2,W)) &   \
-\  (\\<forall>Z X Y. equidistant(X::'a,Y,Z,Z) --> equal(X::'a,Y)) &     \
-\  (\\<forall>X Y W V. between(X::'a,Y,extension(X::'a,Y,W,V))) &       \
-\  (\\<forall>X Y W V. equidistant(Y::'a,extension(X::'a,Y,W,V),W,V)) & \
-\  (\\<forall>X1 Y1 X Y Z V Z1 V1. equidistant(X::'a,Y,X1,Y1) & equidistant(Y::'a,Z,Y1,Z1) & equidistant(X::'a,V,X1,V1) & equidistant(Y::'a,V,Y1,V1) & between(X::'a,Y,Z) & between(X1::'a,Y1,Z1) --> equal(X::'a,Y) | equidistant(Z::'a,V,Z1,V1)) &   \
-\  (\\<forall>X Y. between(X::'a,Y,X) --> equal(X::'a,Y)) &     \
-\  (\\<forall>U V W X Y. between(U::'a,V,W) & between(Y::'a,X,W) --> between(V::'a,inner_pasch(U::'a,V,W,X,Y),Y)) &     \
-\  (\\<forall>V W X Y U. between(U::'a,V,W) & between(Y::'a,X,W) --> between(X::'a,inner_pasch(U::'a,V,W,X,Y),U)) &     \
-\  (~between(lower_dimension_point_1::'a,lower_dimension_point_2,lower_dimension_point_3)) &        \
-\  (~between(lower_dimension_point_2::'a,lower_dimension_point_3,lower_dimension_point_1)) &        \
-\  (~between(lower_dimension_point_3::'a,lower_dimension_point_1,lower_dimension_point_2)) &        \
-\  (\\<forall>Z X Y W V. equidistant(X::'a,W,X,V) & equidistant(Y::'a,W,Y,V) & equidistant(Z::'a,W,Z,V) --> between(X::'a,Y,Z) | between(Y::'a,Z,X) | between(Z::'a,X,Y) | equal(W::'a,V)) &     \
-\  (\\<forall>U V W X Y. between(U::'a,W,Y) & between(V::'a,W,X) --> equal(U::'a,W) | between(U::'a,V,euclid1(U::'a,V,W,X,Y))) &   \
-\  (\\<forall>U V W X Y. between(U::'a,W,Y) & between(V::'a,W,X) --> equal(U::'a,W) | between(U::'a,X,euclid2(U::'a,V,W,X,Y))) &   \
-\  (\\<forall>U V W X Y. between(U::'a,W,Y) & between(V::'a,W,X) --> equal(U::'a,W) | between(euclid1(U::'a,V,W,X,Y),Y,euclid2(U::'a,V,W,X,Y))) &  \
-\  (\\<forall>U V V1 W X X1. equidistant(U::'a,V,U,V1) & equidistant(U::'a,X,U,X1) & between(U::'a,V,X) & between(V::'a,W,X) --> between(V1::'a,continuous(U::'a,V,V1,W,X,X1),X1)) &    \
-\  (\\<forall>U V V1 W X X1. equidistant(U::'a,V,U,V1) & equidistant(U::'a,X,U,X1) & between(U::'a,V,X) & between(V::'a,W,X) --> equidistant(U::'a,W,U,continuous(U::'a,V,V1,W,X,X1))) &        \
-\  (\\<forall>X Y W Z. equal(X::'a,Y) & between(X::'a,W,Z) --> between(Y::'a,W,Z)) &        \
-\  (\\<forall>X W Y Z. equal(X::'a,Y) & between(W::'a,X,Z) --> between(W::'a,Y,Z)) &        \
-\  (\\<forall>X W Z Y. equal(X::'a,Y) & between(W::'a,Z,X) --> between(W::'a,Z,Y)) &        \
-\  (\\<forall>X Y V W Z. equal(X::'a,Y) & equidistant(X::'a,V,W,Z) --> equidistant(Y::'a,V,W,Z)) &  \
-\  (\\<forall>X V Y W Z. equal(X::'a,Y) & equidistant(V::'a,X,W,Z) --> equidistant(V::'a,Y,W,Z)) &  \
-\  (\\<forall>X V W Y Z. equal(X::'a,Y) & equidistant(V::'a,W,X,Z) --> equidistant(V::'a,W,Y,Z)) &  \
-\  (\\<forall>X V W Z Y. equal(X::'a,Y) & equidistant(V::'a,W,Z,X) --> equidistant(V::'a,W,Z,Y)) &  \
-\  (\\<forall>X Y V1 V2 V3 V4. equal(X::'a,Y) --> equal(inner_pasch(X::'a,V1,V2,V3,V4),inner_pasch(Y::'a,V1,V2,V3,V4))) &   \
-\  (\\<forall>X V1 Y V2 V3 V4. equal(X::'a,Y) --> equal(inner_pasch(V1::'a,X,V2,V3,V4),inner_pasch(V1::'a,Y,V2,V3,V4))) &   \
-\  (\\<forall>X V1 V2 Y V3 V4. equal(X::'a,Y) --> equal(inner_pasch(V1::'a,V2,X,V3,V4),inner_pasch(V1::'a,V2,Y,V3,V4))) &   \
-\  (\\<forall>X V1 V2 V3 Y V4. equal(X::'a,Y) --> equal(inner_pasch(V1::'a,V2,V3,X,V4),inner_pasch(V1::'a,V2,V3,Y,V4))) &   \
-\  (\\<forall>X V1 V2 V3 V4 Y. equal(X::'a,Y) --> equal(inner_pasch(V1::'a,V2,V3,V4,X),inner_pasch(V1::'a,V2,V3,V4,Y))) &   \
-\  (\\<forall>A B C D E F'. equal(A::'a,B) --> equal(euclid1(A::'a,C,D,E,F'),euclid1(B::'a,C,D,E,F'))) &    \
-\  (\\<forall>G I' H J K' L. equal(G::'a,H) --> equal(euclid1(I'::'a,G,J,K',L),euclid1(I'::'a,H,J,K',L))) & \
-\  (\\<forall>M O_ P N Q R. equal(M::'a,N) --> equal(euclid1(O_::'a,P,M,Q,R),euclid1(O_::'a,P,N,Q,R))) &       \
-\  (\\<forall>S' U V W T' X. equal(S'::'a,T') --> equal(euclid1(U::'a,V,W,S',X),euclid1(U::'a,V,W,T',X))) & \
-\  (\\<forall>Y A1 B1 C1 D1 Z. equal(Y::'a,Z) --> equal(euclid1(A1::'a,B1,C1,D1,Y),euclid1(A1::'a,B1,C1,D1,Z))) &   \
-\  (\\<forall>E1 F1 G1 H1 I1 J1. equal(E1::'a,F1) --> equal(euclid2(E1::'a,G1,H1,I1,J1),euclid2(F1::'a,G1,H1,I1,J1))) &     \
-\  (\\<forall>K1 M1 L1 N1 O1 P1. equal(K1::'a,L1) --> equal(euclid2(M1::'a,K1,N1,O1,P1),euclid2(M1::'a,L1,N1,O1,P1))) &     \
-\  (\\<forall>Q1 S1 T1 R1 U1 V1. equal(Q1::'a,R1) --> equal(euclid2(S1::'a,T1,Q1,U1,V1),euclid2(S1::'a,T1,R1,U1,V1))) &     \
-\  (\\<forall>W1 Y1 Z1 A2 X1 B2. equal(W1::'a,X1) --> equal(euclid2(Y1::'a,Z1,A2,W1,B2),euclid2(Y1::'a,Z1,A2,X1,B2))) &     \
-\  (\\<forall>C2 E2 F2 G2 H2 D2. equal(C2::'a,D2) --> equal(euclid2(E2::'a,F2,G2,H2,C2),euclid2(E2::'a,F2,G2,H2,D2))) &     \
-\  (\\<forall>X Y V1 V2 V3. equal(X::'a,Y) --> equal(extension(X::'a,V1,V2,V3),extension(Y::'a,V1,V2,V3))) &        \
-\  (\\<forall>X V1 Y V2 V3. equal(X::'a,Y) --> equal(extension(V1::'a,X,V2,V3),extension(V1::'a,Y,V2,V3))) &        \
-\  (\\<forall>X V1 V2 Y V3. equal(X::'a,Y) --> equal(extension(V1::'a,V2,X,V3),extension(V1::'a,V2,Y,V3))) &        \
-\  (\\<forall>X V1 V2 V3 Y. equal(X::'a,Y) --> equal(extension(V1::'a,V2,V3,X),extension(V1::'a,V2,V3,Y))) &        \
-\  (\\<forall>X Y V1 V2 V3 V4 V5. equal(X::'a,Y) --> equal(continuous(X::'a,V1,V2,V3,V4,V5),continuous(Y::'a,V1,V2,V3,V4,V5))) &    \
-\  (\\<forall>X V1 Y V2 V3 V4 V5. equal(X::'a,Y) --> equal(continuous(V1::'a,X,V2,V3,V4,V5),continuous(V1::'a,Y,V2,V3,V4,V5))) &    \
-\  (\\<forall>X V1 V2 Y V3 V4 V5. equal(X::'a,Y) --> equal(continuous(V1::'a,V2,X,V3,V4,V5),continuous(V1::'a,V2,Y,V3,V4,V5))) &    \
-\  (\\<forall>X V1 V2 V3 Y V4 V5. equal(X::'a,Y) --> equal(continuous(V1::'a,V2,V3,X,V4,V5),continuous(V1::'a,V2,V3,Y,V4,V5))) &    \
-\  (\\<forall>X V1 V2 V3 V4 Y V5. equal(X::'a,Y) --> equal(continuous(V1::'a,V2,V3,V4,X,V5),continuous(V1::'a,V2,V3,V4,Y,V5))) &    \
-\  (\\<forall>X V1 V2 V3 V4 V5 Y. equal(X::'a,Y) --> equal(continuous(V1::'a,V2,V3,V4,V5,X),continuous(V1::'a,V2,V3,V4,V5,Y))) &    \
+ (EQU001_0_ax ^ "&" ^ GEO002_ax_eq ^ " &    \
 \  (\\<forall>U V. equal(reflection(U::'a,V),extension(U::'a,V,U,V))) & \
 \  (\\<forall>X Y Z. equal(X::'a,Y) --> equal(reflection(X::'a,Z),reflection(Y::'a,Z))) &   \
 \  (\\<forall>A1 C1 B1. equal(A1::'a,B1) --> equal(reflection(C1::'a,A1),reflection(C1::'a,B1))) &  \
@@ -1124,63 +835,11 @@ val GEO027_3 = prove_hard
 \  (~equal(u::'a,v)) &      \
 \  (~equal(w::'a,extension(u::'a,v,v,w))) --> False",
   meson_tac 1);
-****************)
+
 
 (*313884 inferences so far.  Searching to depth 10.  887 secs: 15 mins.*)
 val GEO058_2 = prove_hard
- ("(\\<forall>X. equal(X::'a,X)) &  \
-\  (\\<forall>Y X. equal(X::'a,Y) --> equal(Y::'a,X)) & \
-\  (\\<forall>Y X Z. equal(X::'a,Y) & equal(Y::'a,Z) --> equal(X::'a,Z)) &  \
-\  (\\<forall>Y X. equidistant(X::'a,Y,Y,X)) &      \
-\  (\\<forall>X Y Z V V2 W. equidistant(X::'a,Y,Z,V) & equidistant(X::'a,Y,V2,W) --> equidistant(Z::'a,V,V2,W)) &   \
-\  (\\<forall>Z X Y. equidistant(X::'a,Y,Z,Z) --> equal(X::'a,Y)) &     \
-\  (\\<forall>X Y W V. between(X::'a,Y,extension(X::'a,Y,W,V))) &       \
-\  (\\<forall>X Y W V. equidistant(Y::'a,extension(X::'a,Y,W,V),W,V)) & \
-\  (\\<forall>X1 Y1 X Y Z V Z1 V1. equidistant(X::'a,Y,X1,Y1) & equidistant(Y::'a,Z,Y1,Z1) & equidistant(X::'a,V,X1,V1) & equidistant(Y::'a,V,Y1,V1) & between(X::'a,Y,Z) & between(X1::'a,Y1,Z1) --> equal(X::'a,Y) | equidistant(Z::'a,V,Z1,V1)) &   \
-\  (\\<forall>X Y. between(X::'a,Y,X) --> equal(X::'a,Y)) &     \
-\  (\\<forall>U V W X Y. between(U::'a,V,W) & between(Y::'a,X,W) --> between(V::'a,inner_pasch(U::'a,V,W,X,Y),Y)) &     \
-\  (\\<forall>V W X Y U. between(U::'a,V,W) & between(Y::'a,X,W) --> between(X::'a,inner_pasch(U::'a,V,W,X,Y),U)) &     \
-\  (~between(lower_dimension_point_1::'a,lower_dimension_point_2,lower_dimension_point_3)) &        \
-\  (~between(lower_dimension_point_2::'a,lower_dimension_point_3,lower_dimension_point_1)) &        \
-\  (~between(lower_dimension_point_3::'a,lower_dimension_point_1,lower_dimension_point_2)) &        \
-\  (\\<forall>Z X Y W V. equidistant(X::'a,W,X,V) & equidistant(Y::'a,W,Y,V) & equidistant(Z::'a,W,Z,V) --> between(X::'a,Y,Z) | between(Y::'a,Z,X) | between(Z::'a,X,Y) | equal(W::'a,V)) &     \
-\  (\\<forall>U V W X Y. between(U::'a,W,Y) & between(V::'a,W,X) --> equal(U::'a,W) | between(U::'a,V,euclid1(U::'a,V,W,X,Y))) &   \
-\  (\\<forall>U V W X Y. between(U::'a,W,Y) & between(V::'a,W,X) --> equal(U::'a,W) | between(U::'a,X,euclid2(U::'a,V,W,X,Y))) &   \
-\  (\\<forall>U V W X Y. between(U::'a,W,Y) & between(V::'a,W,X) --> equal(U::'a,W) | between(euclid1(U::'a,V,W,X,Y),Y,euclid2(U::'a,V,W,X,Y))) &  \
-\  (\\<forall>U V V1 W X X1. equidistant(U::'a,V,U,V1) & equidistant(U::'a,X,U,X1) & between(U::'a,V,X) & between(V::'a,W,X) --> between(V1::'a,continuous(U::'a,V,V1,W,X,X1),X1)) &    \
-\  (\\<forall>U V V1 W X X1. equidistant(U::'a,V,U,V1) & equidistant(U::'a,X,U,X1) & between(U::'a,V,X) & between(V::'a,W,X) --> equidistant(U::'a,W,U,continuous(U::'a,V,V1,W,X,X1))) &        \
-\  (\\<forall>X Y W Z. equal(X::'a,Y) & between(X::'a,W,Z) --> between(Y::'a,W,Z)) &        \
-\  (\\<forall>X W Y Z. equal(X::'a,Y) & between(W::'a,X,Z) --> between(W::'a,Y,Z)) &        \
-\  (\\<forall>X W Z Y. equal(X::'a,Y) & between(W::'a,Z,X) --> between(W::'a,Z,Y)) &        \
-\  (\\<forall>X Y V W Z. equal(X::'a,Y) & equidistant(X::'a,V,W,Z) --> equidistant(Y::'a,V,W,Z)) &  \
-\  (\\<forall>X V Y W Z. equal(X::'a,Y) & equidistant(V::'a,X,W,Z) --> equidistant(V::'a,Y,W,Z)) &  \
-\  (\\<forall>X V W Y Z. equal(X::'a,Y) & equidistant(V::'a,W,X,Z) --> equidistant(V::'a,W,Y,Z)) &  \
-\  (\\<forall>X V W Z Y. equal(X::'a,Y) & equidistant(V::'a,W,Z,X) --> equidistant(V::'a,W,Z,Y)) &  \
-\  (\\<forall>X Y V1 V2 V3 V4. equal(X::'a,Y) --> equal(inner_pasch(X::'a,V1,V2,V3,V4),inner_pasch(Y::'a,V1,V2,V3,V4))) &   \
-\  (\\<forall>X V1 Y V2 V3 V4. equal(X::'a,Y) --> equal(inner_pasch(V1::'a,X,V2,V3,V4),inner_pasch(V1::'a,Y,V2,V3,V4))) &   \
-\  (\\<forall>X V1 V2 Y V3 V4. equal(X::'a,Y) --> equal(inner_pasch(V1::'a,V2,X,V3,V4),inner_pasch(V1::'a,V2,Y,V3,V4))) &   \
-\  (\\<forall>X V1 V2 V3 Y V4. equal(X::'a,Y) --> equal(inner_pasch(V1::'a,V2,V3,X,V4),inner_pasch(V1::'a,V2,V3,Y,V4))) &   \
-\  (\\<forall>X V1 V2 V3 V4 Y. equal(X::'a,Y) --> equal(inner_pasch(V1::'a,V2,V3,V4,X),inner_pasch(V1::'a,V2,V3,V4,Y))) &   \
-\  (\\<forall>A B C D E F'. equal(A::'a,B) --> equal(euclid1(A::'a,C,D,E,F'),euclid1(B::'a,C,D,E,F'))) &    \
-\  (\\<forall>G I' H J K' L. equal(G::'a,H) --> equal(euclid1(I'::'a,G,J,K',L),euclid1(I'::'a,H,J,K',L))) & \
-\  (\\<forall>M O_ P N Q R. equal(M::'a,N) --> equal(euclid1(O_::'a,P,M,Q,R),euclid1(O_::'a,P,N,Q,R))) &       \
-\  (\\<forall>S' U V W T' X. equal(S'::'a,T') --> equal(euclid1(U::'a,V,W,S',X),euclid1(U::'a,V,W,T',X))) & \
-\  (\\<forall>Y A1 B1 C1 D1 Z. equal(Y::'a,Z) --> equal(euclid1(A1::'a,B1,C1,D1,Y),euclid1(A1::'a,B1,C1,D1,Z))) &   \
-\  (\\<forall>E1 F1 G1 H1 I1 J1. equal(E1::'a,F1) --> equal(euclid2(E1::'a,G1,H1,I1,J1),euclid2(F1::'a,G1,H1,I1,J1))) &     \
-\  (\\<forall>K1 M1 L1 N1 O1 P1. equal(K1::'a,L1) --> equal(euclid2(M1::'a,K1,N1,O1,P1),euclid2(M1::'a,L1,N1,O1,P1))) &     \
-\  (\\<forall>Q1 S1 T1 R1 U1 V1. equal(Q1::'a,R1) --> equal(euclid2(S1::'a,T1,Q1,U1,V1),euclid2(S1::'a,T1,R1,U1,V1))) &     \
-\  (\\<forall>W1 Y1 Z1 A2 X1 B2. equal(W1::'a,X1) --> equal(euclid2(Y1::'a,Z1,A2,W1,B2),euclid2(Y1::'a,Z1,A2,X1,B2))) &     \
-\  (\\<forall>C2 E2 F2 G2 H2 D2. equal(C2::'a,D2) --> equal(euclid2(E2::'a,F2,G2,H2,C2),euclid2(E2::'a,F2,G2,H2,D2))) &     \
-\  (\\<forall>X Y V1 V2 V3. equal(X::'a,Y) --> equal(extension(X::'a,V1,V2,V3),extension(Y::'a,V1,V2,V3))) &        \
-\  (\\<forall>X V1 Y V2 V3. equal(X::'a,Y) --> equal(extension(V1::'a,X,V2,V3),extension(V1::'a,Y,V2,V3))) &        \
-\  (\\<forall>X V1 V2 Y V3. equal(X::'a,Y) --> equal(extension(V1::'a,V2,X,V3),extension(V1::'a,V2,Y,V3))) &        \
-\  (\\<forall>X V1 V2 V3 Y. equal(X::'a,Y) --> equal(extension(V1::'a,V2,V3,X),extension(V1::'a,V2,V3,Y))) &        \
-\  (\\<forall>X Y V1 V2 V3 V4 V5. equal(X::'a,Y) --> equal(continuous(X::'a,V1,V2,V3,V4,V5),continuous(Y::'a,V1,V2,V3,V4,V5))) &    \
-\  (\\<forall>X V1 Y V2 V3 V4 V5. equal(X::'a,Y) --> equal(continuous(V1::'a,X,V2,V3,V4,V5),continuous(V1::'a,Y,V2,V3,V4,V5))) &    \
-\  (\\<forall>X V1 V2 Y V3 V4 V5. equal(X::'a,Y) --> equal(continuous(V1::'a,V2,X,V3,V4,V5),continuous(V1::'a,V2,Y,V3,V4,V5))) &    \
-\  (\\<forall>X V1 V2 V3 Y V4 V5. equal(X::'a,Y) --> equal(continuous(V1::'a,V2,V3,X,V4,V5),continuous(V1::'a,V2,V3,Y,V4,V5))) &    \
-\  (\\<forall>X V1 V2 V3 V4 Y V5. equal(X::'a,Y) --> equal(continuous(V1::'a,V2,V3,V4,X,V5),continuous(V1::'a,V2,V3,V4,Y,V5))) &    \
-\  (\\<forall>X V1 V2 V3 V4 V5 Y. equal(X::'a,Y) --> equal(continuous(V1::'a,V2,V3,V4,V5,X),continuous(V1::'a,V2,V3,V4,V5,Y))) &    \
+ (EQU001_0_ax ^ "&" ^ GEO002_ax_eq ^ " &    \
 \  (\\<forall>U V. equal(reflection(U::'a,V),extension(U::'a,V,U,V))) & \
 \  (\\<forall>X Y Z. equal(X::'a,Y) --> equal(reflection(X::'a,Z),reflection(Y::'a,Z))) &   \
 \  (\\<forall>A1 C1 B1. equal(A1::'a,B1) --> equal(reflection(C1::'a,A1),reflection(C1::'a,B1))) &  \
@@ -1198,51 +857,35 @@ val GEO079_1 = prove
 \  (~eq(a::'a,c,b,c,a,d)) --> False",
   meson_tac 1);
 
-(****************SLOW
-2032008 inferences so far.  Searching to depth 16.  No proof after 30 minutes.
-val GRP001_1 = prove_hard
- ("(\\<forall>X. equal(X::'a,X)) &  \
-\  (\\<forall>Y X. equal(X::'a,Y) --> equal(Y::'a,X)) & \
-\  (\\<forall>Y X Z. equal(X::'a,Y) & equal(Y::'a,Z) --> equal(X::'a,Z)) &  \
-\  (\\<forall>X. product(identity::'a,X,X)) &       \
+val GRP003_0_ax =
+  "(\\<forall>X. product(identity::'a,X,X)) &       \
 \  (\\<forall>X. product(X::'a,identity,X)) &       \
 \  (\\<forall>X. product(INVERSE(X),X,identity)) &      \
 \  (\\<forall>X. product(X::'a,INVERSE(X),identity)) &      \
 \  (\\<forall>X Y. product(X::'a,Y,multiply(X::'a,Y))) &        \
 \  (\\<forall>X Y Z W. product(X::'a,Y,Z) & product(X::'a,Y,W) --> equal(Z::'a,W)) &        \
 \  (\\<forall>Y U Z X V W. product(X::'a,Y,U) & product(Y::'a,Z,V) & product(U::'a,Z,W) --> product(X::'a,V,W)) &       \
-\  (\\<forall>Y X V U Z W. product(X::'a,Y,U) & product(Y::'a,Z,V) & product(X::'a,V,W) --> product(U::'a,Z,W)) &       \
-\  (\\<forall>X Y. equal(X::'a,Y) --> equal(INVERSE(X),INVERSE(Y))) &       \
+\  (\\<forall>Y X V U Z W. product(X::'a,Y,U) & product(Y::'a,Z,V) & product(X::'a,V,W) --> product(U::'a,Z,W))";
+
+val GRP003_0_eq =
+  "(\\<forall>X Y. equal(X::'a,Y) --> equal(INVERSE(X),INVERSE(Y))) &       \
 \  (\\<forall>X Y W. equal(X::'a,Y) --> equal(multiply(X::'a,W),multiply(Y::'a,W))) &       \
 \  (\\<forall>X W Y. equal(X::'a,Y) --> equal(multiply(W::'a,X),multiply(W::'a,Y))) &       \
 \  (\\<forall>X Y W Z. equal(X::'a,Y) & product(X::'a,W,Z) --> product(Y::'a,W,Z)) &        \
 \  (\\<forall>X W Y Z. equal(X::'a,Y) & product(W::'a,X,Z) --> product(W::'a,Y,Z)) &        \
-\  (\\<forall>X W Z Y. equal(X::'a,Y) & product(W::'a,Z,X) --> product(W::'a,Z,Y)) &        \
+\  (\\<forall>X W Z Y. equal(X::'a,Y) & product(W::'a,Z,X) --> product(W::'a,Z,Y))";
+
+(*2032008 inferences so far. Searching to depth 16. 658s (11 mins) on griffon*)
+val GRP001_1 = prove_hard
+ (EQU001_0_ax ^ "&" ^ GRP003_0_ax ^ "&" ^ GRP003_0_eq ^ " &        \
 \  (\\<forall>X. product(X::'a,X,identity)) &       \
 \  (product(a::'a,b,c)) &   \
 \  (~product(b::'a,a,c)) --> False",
   meson_tac 1);
-****************)
 
 (*2386 inferences so far.  Searching to depth 11.  8.7 secs*)
-val GRP008_1 = prove_hard
- ("(\\<forall>X. equal(X::'a,X)) &  \
-\  (\\<forall>Y X. equal(X::'a,Y) --> equal(Y::'a,X)) & \
-\  (\\<forall>Y X Z. equal(X::'a,Y) & equal(Y::'a,Z) --> equal(X::'a,Z)) &  \
-\  (\\<forall>X. product(identity::'a,X,X)) &       \
-\  (\\<forall>X. product(X::'a,identity,X)) &       \
-\  (\\<forall>X. product(INVERSE(X),X,identity)) &      \
-\  (\\<forall>X. product(X::'a,INVERSE(X),identity)) &      \
-\  (\\<forall>X Y. product(X::'a,Y,multiply(X::'a,Y))) &        \
-\  (\\<forall>X Y Z W. product(X::'a,Y,Z) & product(X::'a,Y,W) --> equal(Z::'a,W)) &        \
-\  (\\<forall>Y U Z X V W. product(X::'a,Y,U) & product(Y::'a,Z,V) & product(U::'a,Z,W) --> product(X::'a,V,W)) &       \
-\  (\\<forall>Y X V U Z W. product(X::'a,Y,U) & product(Y::'a,Z,V) & product(X::'a,V,W) --> product(U::'a,Z,W)) &       \
-\  (\\<forall>X Y. equal(X::'a,Y) --> equal(INVERSE(X),INVERSE(Y))) &       \
-\  (\\<forall>X Y W. equal(X::'a,Y) --> equal(multiply(X::'a,W),multiply(Y::'a,W))) &       \
-\  (\\<forall>X W Y. equal(X::'a,Y) --> equal(multiply(W::'a,X),multiply(W::'a,Y))) &       \
-\  (\\<forall>X Y W Z. equal(X::'a,Y) & product(X::'a,W,Z) --> product(Y::'a,W,Z)) &        \
-\  (\\<forall>X W Y Z. equal(X::'a,Y) & product(W::'a,X,Z) --> product(W::'a,Y,Z)) &        \
-\  (\\<forall>X W Z Y. equal(X::'a,Y) & product(W::'a,Z,X) --> product(W::'a,Z,Y)) &        \
+val GRP008_1 = prove
+ (EQU001_0_ax ^ "&" ^ GRP003_0_ax ^ "&" ^ GRP003_0_eq ^ " &        \
 \  (\\<forall>A B. equal(A::'a,B) --> equal(h(A),h(B))) &   \
 \  (\\<forall>C D. equal(C::'a,D) --> equal(j(C),j(D))) &   \
 \  (\\<forall>A B. equal(A::'a,B) & q(A) --> q(B)) &        \
@@ -1254,23 +897,7 @@ val GRP008_1 = prove_hard
 
 (*8625 inferences so far.  Searching to depth 11.  20 secs*)
 val GRP013_1 = prove_hard
- ("(\\<forall>X. equal(X::'a,X)) &  \
-\  (\\<forall>Y X. equal(X::'a,Y) --> equal(Y::'a,X)) & \
-\  (\\<forall>Y X Z. equal(X::'a,Y) & equal(Y::'a,Z) --> equal(X::'a,Z)) &  \
-\  (\\<forall>X. product(identity::'a,X,X)) &       \
-\  (\\<forall>X. product(X::'a,identity,X)) &       \
-\  (\\<forall>X. product(INVERSE(X),X,identity)) &      \
-\  (\\<forall>X. product(X::'a,INVERSE(X),identity)) &      \
-\  (\\<forall>X Y. product(X::'a,Y,multiply(X::'a,Y))) &        \
-\  (\\<forall>X Y Z W. product(X::'a,Y,Z) & product(X::'a,Y,W) --> equal(Z::'a,W)) &        \
-\  (\\<forall>Y U Z X V W. product(X::'a,Y,U) & product(Y::'a,Z,V) & product(U::'a,Z,W) --> product(X::'a,V,W)) &       \
-\  (\\<forall>Y X V U Z W. product(X::'a,Y,U) & product(Y::'a,Z,V) & product(X::'a,V,W) --> product(U::'a,Z,W)) &       \
-\  (\\<forall>X Y. equal(X::'a,Y) --> equal(INVERSE(X),INVERSE(Y))) &       \
-\  (\\<forall>X Y W. equal(X::'a,Y) --> equal(multiply(X::'a,W),multiply(Y::'a,W))) &       \
-\  (\\<forall>X W Y. equal(X::'a,Y) --> equal(multiply(W::'a,X),multiply(W::'a,Y))) &       \
-\  (\\<forall>X Y W Z. equal(X::'a,Y) & product(X::'a,W,Z) --> product(Y::'a,W,Z)) &        \
-\  (\\<forall>X W Y Z. equal(X::'a,Y) & product(W::'a,X,Z) --> product(W::'a,Y,Z)) &        \
-\  (\\<forall>X W Z Y. equal(X::'a,Y) & product(W::'a,Z,X) --> product(W::'a,Z,Y)) &        \
+ (EQU001_0_ax ^ "&" ^ GRP003_0_ax ^ "&" ^ GRP003_0_eq ^ " &        \
 \  (\\<forall>A. product(A::'a,A,identity)) &       \
 \  (product(a::'a,b,c)) &   \
 \  (product(INVERSE(a),INVERSE(b),d)) & \
@@ -1279,37 +906,21 @@ val GRP013_1 = prove_hard
   meson_tac 1);
 
 (*2448 inferences so far.  Searching to depth 10.  7.2 secs*)
-val GRP037_3 = prove_hard
- ("(\\<forall>X. equal(X::'a,X)) &  \
-\  (\\<forall>Y X. equal(X::'a,Y) --> equal(Y::'a,X)) & \
-\  (\\<forall>Y X Z. equal(X::'a,Y) & equal(Y::'a,Z) --> equal(X::'a,Z)) &  \
-\  (\\<forall>X. product(identity::'a,X,X)) &       \
-\  (\\<forall>X. product(X::'a,identity,X)) &       \
-\  (\\<forall>X. product(INVERSE(X),X,identity)) &      \
-\  (\\<forall>X. product(X::'a,INVERSE(X),identity)) &      \
-\  (\\<forall>X Y. product(X::'a,Y,multiply(X::'a,Y))) &        \
-\  (\\<forall>X Y Z W. product(X::'a,Y,Z) & product(X::'a,Y,W) --> equal(Z::'a,W)) &        \
-\  (\\<forall>Y U Z X V W. product(X::'a,Y,U) & product(Y::'a,Z,V) & product(U::'a,Z,W) --> product(X::'a,V,W)) &       \
-\  (\\<forall>Y X V U Z W. product(X::'a,Y,U) & product(Y::'a,Z,V) & product(X::'a,V,W) --> product(U::'a,Z,W)) &       \
-\  (\\<forall>X Y. equal(X::'a,Y) --> equal(INVERSE(X),INVERSE(Y))) &       \
-\  (\\<forall>X Y W. equal(X::'a,Y) --> equal(multiply(X::'a,W),multiply(Y::'a,W))) &       \
-\  (\\<forall>X W Y. equal(X::'a,Y) --> equal(multiply(W::'a,X),multiply(W::'a,Y))) &       \
-\  (\\<forall>X Y W Z. equal(X::'a,Y) & product(X::'a,W,Z) --> product(Y::'a,W,Z)) &        \
-\  (\\<forall>X W Y Z. equal(X::'a,Y) & product(W::'a,X,Z) --> product(W::'a,Y,Z)) &        \
-\  (\\<forall>X W Z Y. equal(X::'a,Y) & product(W::'a,Z,X) --> product(W::'a,Z,Y)) &        \
+val GRP037_3 = prove
+ (EQU001_0_ax ^ "&" ^ GRP003_0_ax ^ "&" ^ GRP003_0_eq ^ " &        \
 \  (\\<forall>A B C. subgroup_member(A) & subgroup_member(B) & product(A::'a,INVERSE(B),C) --> subgroup_member(C)) &        \
 \  (\\<forall>A B. equal(A::'a,B) & subgroup_member(A) --> subgroup_member(B)) &    \
-\  (\\<forall>A. subgroup_member(A) --> product(another_identity::'a,A,A)) &        \
-\  (\\<forall>A. subgroup_member(A) --> product(A::'a,another_identity,A)) &        \
-\  (\\<forall>A. subgroup_member(A) --> product(A::'a,another_inverse(A),another_identity)) &       \
-\  (\\<forall>A. subgroup_member(A) --> product(another_inverse(A),A,another_identity)) &       \
-\  (\\<forall>A. subgroup_member(A) --> subgroup_member(another_inverse(A))) &  \
-\  (\\<forall>A B. equal(A::'a,B) --> equal(another_inverse(A),another_inverse(B))) &       \
+\  (\\<forall>A. subgroup_member(A) --> product(Gidentity::'a,A,A)) &        \
+\  (\\<forall>A. subgroup_member(A) --> product(A::'a,Gidentity,A)) &        \
+\  (\\<forall>A. subgroup_member(A) --> product(A::'a,Ginverse(A),Gidentity)) &       \
+\  (\\<forall>A. subgroup_member(A) --> product(Ginverse(A),A,Gidentity)) &       \
+\  (\\<forall>A. subgroup_member(A) --> subgroup_member(Ginverse(A))) &  \
+\  (\\<forall>A B. equal(A::'a,B) --> equal(Ginverse(A),Ginverse(B))) &       \
 \  (\\<forall>A C D B. product(A::'a,B,C) & product(A::'a,D,C) --> equal(D::'a,B)) &        \
 \  (\\<forall>B C D A. product(A::'a,B,C) & product(D::'a,B,C) --> equal(D::'a,A)) &        \
 \  (subgroup_member(a)) &       \
-\  (subgroup_member(another_identity)) &        \
-\  (~equal(INVERSE(a),another_inverse(a))) --> False",
+\  (subgroup_member(Gidentity)) &        \
+\  (~equal(INVERSE(a),Ginverse(a))) --> False",
   meson_tac 1);
 
 (*163 inferences so far.  Searching to depth 11.  0.3 secs*)
@@ -1337,7 +948,7 @@ val GRP034_4 = prove
   meson_tac 1);
 
 (*3287 inferences so far.  Searching to depth 14.  3.5 secs*)
-val GRP047_2 = prove_hard
+val GRP047_2 = prove
  ("(\\<forall>X. product(identity::'a,X,X)) &       \
 \  (\\<forall>X. product(INVERSE(X),X,identity)) &      \
 \  (\\<forall>X Y. product(X::'a,Y,multiply(X::'a,Y))) &        \
@@ -1362,18 +973,16 @@ val GRP130_1_002 = prove_hard
 \  (\\<forall>Z1 Z2 Y X. product(X::'a,Y,Z1) & product(X::'a,Z1,Z2) --> product(Z2::'a,Y,X)) --> False",
   meson_tac 1);
 
-(*3468 inferences so far.  Searching to depth 10.  9.1 secs*)
-val GRP156_1 = prove_hard
- ("(\\<forall>X. equal(X::'a,X)) &  \
-\  (\\<forall>Y X. equal(X::'a,Y) --> equal(Y::'a,X)) & \
-\  (\\<forall>Y X Z. equal(X::'a,Y) & equal(Y::'a,Z) --> equal(X::'a,Z)) &  \
-\  (\\<forall>X. equal(multiply(identity::'a,X),X)) &       \
+val GRP004_0_ax =
+  "(\\<forall>X. equal(multiply(identity::'a,X),X)) &       \
 \  (\\<forall>X. equal(multiply(INVERSE(X),X),identity)) &      \
 \  (\\<forall>X Y Z. equal(multiply(multiply(X::'a,Y),Z),multiply(X::'a,multiply(Y::'a,Z)))) &      \
 \  (\\<forall>A B. equal(A::'a,B) --> equal(INVERSE(A),INVERSE(B))) &       \
 \  (\\<forall>C D E. equal(C::'a,D) --> equal(multiply(C::'a,E),multiply(D::'a,E))) &       \
-\  (\\<forall>F' H G. equal(F'::'a,G) --> equal(multiply(H::'a,F'),multiply(H::'a,G))) &    \
-\  (\\<forall>Y X. equal(greatest_lower_bound(X::'a,Y),greatest_lower_bound(Y::'a,X))) &        \
+\  (\\<forall>F' H G. equal(F'::'a,G) --> equal(multiply(H::'a,F'),multiply(H::'a,G)))";
+
+val GRP004_2_ax =
+  "(\\<forall>Y X. equal(greatest_lower_bound(X::'a,Y),greatest_lower_bound(Y::'a,X))) &        \
 \  (\\<forall>Y X. equal(least_upper_bound(X::'a,Y),least_upper_bound(Y::'a,X))) &      \
 \  (\\<forall>X Y Z. equal(greatest_lower_bound(X::'a,greatest_lower_bound(Y::'a,Z)),greatest_lower_bound(greatest_lower_bound(X::'a,Y),Z))) &      \
 \  (\\<forall>X Y Z. equal(least_upper_bound(X::'a,least_upper_bound(Y::'a,Z)),least_upper_bound(least_upper_bound(X::'a,Y),Z))) &  \
@@ -1390,69 +999,47 @@ val GRP156_1 = prove_hard
 \  (\\<forall>A B C. equal(A::'a,B) --> equal(least_upper_bound(A::'a,C),least_upper_bound(B::'a,C))) &     \
 \  (\\<forall>A C B. equal(A::'a,B) --> equal(least_upper_bound(C::'a,A),least_upper_bound(C::'a,B))) &     \
 \  (\\<forall>A B C. equal(A::'a,B) --> equal(multiply(A::'a,C),multiply(B::'a,C))) &       \
-\  (\\<forall>A C B. equal(A::'a,B) --> equal(multiply(C::'a,A),multiply(C::'a,B))) &       \
+\  (\\<forall>A C B. equal(A::'a,B) --> equal(multiply(C::'a,A),multiply(C::'a,B)))";
+
+(*3468 inferences so far.  Searching to depth 10.  9.1 secs*)
+val GRP156_1 = prove
+ (EQU001_0_ax ^ "&" ^ GRP004_0_ax ^ "&" ^ GRP004_2_ax ^ " &       \
 \  (equal(least_upper_bound(a::'a,b),b)) &  \
 \  (~equal(greatest_lower_bound(multiply(a::'a,c),multiply(b::'a,c)),multiply(a::'a,c))) --> False",
   meson_tac 1);
 
 (*4394 inferences so far.  Searching to depth 10.  8.2 secs*)
-val GRP168_1 = prove_hard
- ("(\\<forall>X. equal(X::'a,X)) &  \
-\  (\\<forall>Y X. equal(X::'a,Y) --> equal(Y::'a,X)) & \
-\  (\\<forall>Y X Z. equal(X::'a,Y) & equal(Y::'a,Z) --> equal(X::'a,Z)) &  \
-\  (\\<forall>X. equal(multiply(identity::'a,X),X)) &       \
-\  (\\<forall>X. equal(multiply(INVERSE(X),X),identity)) &      \
-\  (\\<forall>X Y Z. equal(multiply(multiply(X::'a,Y),Z),multiply(X::'a,multiply(Y::'a,Z)))) &      \
-\  (\\<forall>A B. equal(A::'a,B) --> equal(INVERSE(A),INVERSE(B))) &       \
-\  (\\<forall>C D E. equal(C::'a,D) --> equal(multiply(C::'a,E),multiply(D::'a,E))) &       \
-\  (\\<forall>F' H G. equal(F'::'a,G) --> equal(multiply(H::'a,F'),multiply(H::'a,G))) &    \
-\  (\\<forall>Y X. equal(greatest_lower_bound(X::'a,Y),greatest_lower_bound(Y::'a,X))) &        \
-\  (\\<forall>Y X. equal(least_upper_bound(X::'a,Y),least_upper_bound(Y::'a,X))) &      \
-\  (\\<forall>X Y Z. equal(greatest_lower_bound(X::'a,greatest_lower_bound(Y::'a,Z)),greatest_lower_bound(greatest_lower_bound(X::'a,Y),Z))) &      \
-\  (\\<forall>X Y Z. equal(least_upper_bound(X::'a,least_upper_bound(Y::'a,Z)),least_upper_bound(least_upper_bound(X::'a,Y),Z))) &  \
-\  (\\<forall>X. equal(least_upper_bound(X::'a,X),X)) &     \
-\  (\\<forall>X. equal(greatest_lower_bound(X::'a,X),X)) &  \
-\  (\\<forall>Y X. equal(least_upper_bound(X::'a,greatest_lower_bound(X::'a,Y)),X)) &   \
-\  (\\<forall>Y X. equal(greatest_lower_bound(X::'a,least_upper_bound(X::'a,Y)),X)) &   \
-\  (\\<forall>Y X Z. equal(multiply(X::'a,least_upper_bound(Y::'a,Z)),least_upper_bound(multiply(X::'a,Y),multiply(X::'a,Z)))) &        \
-\  (\\<forall>Y X Z. equal(multiply(X::'a,greatest_lower_bound(Y::'a,Z)),greatest_lower_bound(multiply(X::'a,Y),multiply(X::'a,Z)))) &  \
-\  (\\<forall>Y Z X. equal(multiply(least_upper_bound(Y::'a,Z),X),least_upper_bound(multiply(Y::'a,X),multiply(Z::'a,X)))) &        \
-\  (\\<forall>Y Z X. equal(multiply(greatest_lower_bound(Y::'a,Z),X),greatest_lower_bound(multiply(Y::'a,X),multiply(Z::'a,X)))) &  \
-\  (\\<forall>A B C. equal(A::'a,B) --> equal(greatest_lower_bound(A::'a,C),greatest_lower_bound(B::'a,C))) &       \
-\  (\\<forall>A C B. equal(A::'a,B) --> equal(greatest_lower_bound(C::'a,A),greatest_lower_bound(C::'a,B))) &       \
-\  (\\<forall>A B C. equal(A::'a,B) --> equal(least_upper_bound(A::'a,C),least_upper_bound(B::'a,C))) &     \
-\  (\\<forall>A C B. equal(A::'a,B) --> equal(least_upper_bound(C::'a,A),least_upper_bound(C::'a,B))) &     \
-\  (\\<forall>A B C. equal(A::'a,B) --> equal(multiply(A::'a,C),multiply(B::'a,C))) &       \
-\  (\\<forall>A C B. equal(A::'a,B) --> equal(multiply(C::'a,A),multiply(C::'a,B))) &       \
+val GRP168_1 = prove
+ (EQU001_0_ax ^ "&" ^ GRP004_0_ax ^ "&" ^ GRP004_2_ax ^ " &       \
 \  (equal(least_upper_bound(a::'a,b),b)) &  \
 \  (~equal(least_upper_bound(multiply(INVERSE(c),multiply(a::'a,c)),multiply(INVERSE(c),multiply(b::'a,c))),multiply(INVERSE(c),multiply(b::'a,c)))) --> False",
   meson_tac 1);
 
-(*250258 inferences so far.  Searching to depth 16.  406.2 secs*)
-val HEN003_3 = prove_hard
- ("(\\<forall>X. equal(X::'a,X)) &  \
-\  (\\<forall>Y X. equal(X::'a,Y) --> equal(Y::'a,X)) & \
-\  (\\<forall>Y X Z. equal(X::'a,Y) & equal(Y::'a,Z) --> equal(X::'a,Z)) &  \
-\  (\\<forall>X Y. less_equal(X::'a,Y) --> equal(divide(X::'a,Y),zero)) &       \
-\  (\\<forall>X Y. equal(divide(X::'a,Y),zero) --> less_equal(X::'a,Y)) &       \
-\  (\\<forall>Y X. less_equal(divide(X::'a,Y),X)) & \
-\  (\\<forall>X Y Z. less_equal(divide(divide(X::'a,Z),divide(Y::'a,Z)),divide(divide(X::'a,Y),Z))) &       \
+val HEN002_0_ax =
+  "(\\<forall>X Y. less_equal(X::'a,Y) --> equal(Divide(X::'a,Y),zero)) &       \
+\  (\\<forall>X Y. equal(Divide(X::'a,Y),zero) --> less_equal(X::'a,Y)) &       \
+\  (\\<forall>Y X. less_equal(Divide(X::'a,Y),X)) & \
+\  (\\<forall>X Y Z. less_equal(Divide(Divide(X::'a,Z),Divide(Y::'a,Z)),Divide(Divide(X::'a,Y),Z))) &       \
 \  (\\<forall>X. less_equal(zero::'a,X)) &  \
 \  (\\<forall>X Y. less_equal(X::'a,Y) & less_equal(Y::'a,X) --> equal(X::'a,Y)) &  \
-\  (\\<forall>X. less_equal(X::'a,identity)) &      \
-\  (\\<forall>A B C. equal(A::'a,B) --> equal(divide(A::'a,C),divide(B::'a,C))) &   \
-\  (\\<forall>D F' E. equal(D::'a,E) --> equal(divide(F'::'a,D),divide(F'::'a,E))) &        \
+\  (\\<forall>X. less_equal(X::'a,identity))";
+
+val HEN002_0_eq =
+  "(\\<forall>A B C. equal(A::'a,B) --> equal(Divide(A::'a,C),Divide(B::'a,C))) &   \
+\  (\\<forall>D F' E. equal(D::'a,E) --> equal(Divide(F'::'a,D),Divide(F'::'a,E))) &        \
 \  (\\<forall>G H I'. equal(G::'a,H) & less_equal(G::'a,I') --> less_equal(H::'a,I')) &     \
-\  (\\<forall>J L K'. equal(J::'a,K') & less_equal(L::'a,J) --> less_equal(L::'a,K')) &     \
-\  (~equal(divide(a::'a,a),zero)) --> False",
+\  (\\<forall>J L K'. equal(J::'a,K') & less_equal(L::'a,J) --> less_equal(L::'a,K'))";
+
+(*250258 inferences so far.  Searching to depth 16.  406.2 secs*)
+val HEN003_3 = prove_hard
+ (EQU001_0_ax ^ "&" ^ HEN002_0_ax ^ "&" ^ HEN002_0_eq ^ " &     \
+\  (~equal(Divide(a::'a,a),zero)) --> False",
   meson_tac 1);
 
 
 (*202177 inferences so far.  Searching to depth 14.  451 secs*)
 val HEN007_2 = prove_hard
- ("(\\<forall>X. equal(X::'a,X)) &  \
-\  (\\<forall>Y X. equal(X::'a,Y) --> equal(Y::'a,X)) & \
-\  (\\<forall>Y X Z. equal(X::'a,Y) & equal(Y::'a,Z) --> equal(X::'a,Z)) &  \
+ (EQU001_0_ax ^ " &  \
 \  (\\<forall>X Y. less_equal(X::'a,Y) --> quotient(X::'a,Y,zero)) &    \
 \  (\\<forall>X Y. quotient(X::'a,Y,zero) --> less_equal(X::'a,Y)) &    \
 \  (\\<forall>Y Z X. quotient(X::'a,Y,Z) --> less_equal(Z::'a,X)) &     \
@@ -1460,15 +1047,15 @@ val HEN007_2 = prove_hard
 \  (\\<forall>X. less_equal(zero::'a,X)) &  \
 \  (\\<forall>X Y. less_equal(X::'a,Y) & less_equal(Y::'a,X) --> equal(X::'a,Y)) &  \
 \  (\\<forall>X. less_equal(X::'a,identity)) &      \
-\  (\\<forall>X Y. quotient(X::'a,Y,divide(X::'a,Y))) & \
+\  (\\<forall>X Y. quotient(X::'a,Y,Divide(X::'a,Y))) & \
 \  (\\<forall>X Y Z W. quotient(X::'a,Y,Z) & quotient(X::'a,Y,W) --> equal(Z::'a,W)) &      \
 \  (\\<forall>X Y W Z. equal(X::'a,Y) & quotient(X::'a,W,Z) --> quotient(Y::'a,W,Z)) &      \
 \  (\\<forall>X W Y Z. equal(X::'a,Y) & quotient(W::'a,X,Z) --> quotient(W::'a,Y,Z)) &      \
 \  (\\<forall>X W Z Y. equal(X::'a,Y) & quotient(W::'a,Z,X) --> quotient(W::'a,Z,Y)) &      \
 \  (\\<forall>X Z Y. equal(X::'a,Y) & less_equal(Z::'a,X) --> less_equal(Z::'a,Y)) &        \
 \  (\\<forall>X Y Z. equal(X::'a,Y) & less_equal(X::'a,Z) --> less_equal(Y::'a,Z)) &        \
-\  (\\<forall>X Y W. equal(X::'a,Y) --> equal(divide(X::'a,W),divide(Y::'a,W))) &   \
-\  (\\<forall>X W Y. equal(X::'a,Y) --> equal(divide(W::'a,X),divide(W::'a,Y))) &   \
+\  (\\<forall>X Y W. equal(X::'a,Y) --> equal(Divide(X::'a,W),Divide(Y::'a,W))) &   \
+\  (\\<forall>X W Y. equal(X::'a,Y) --> equal(Divide(W::'a,X),Divide(W::'a,Y))) &   \
 \  (\\<forall>X. quotient(X::'a,identity,zero)) &   \
 \  (\\<forall>X. quotient(zero::'a,X,zero)) &       \
 \  (\\<forall>X. quotient(X::'a,X,zero)) &  \
@@ -1483,70 +1070,42 @@ val HEN007_2 = prove_hard
 
 (*60026 inferences so far.  Searching to depth 12.  42.2 secs*)
 val HEN008_4 = prove_hard
- ("(\\<forall>X. equal(X::'a,X)) &  \
-\  (\\<forall>Y X. equal(X::'a,Y) --> equal(Y::'a,X)) & \
-\  (\\<forall>Y X Z. equal(X::'a,Y) & equal(Y::'a,Z) --> equal(X::'a,Z)) &  \
-\  (\\<forall>X Y. less_equal(X::'a,Y) --> equal(divide(X::'a,Y),zero)) &       \
-\  (\\<forall>X Y. equal(divide(X::'a,Y),zero) --> less_equal(X::'a,Y)) &       \
-\  (\\<forall>Y X. less_equal(divide(X::'a,Y),X)) & \
-\  (\\<forall>X Y Z. less_equal(divide(divide(X::'a,Z),divide(Y::'a,Z)),divide(divide(X::'a,Y),Z))) &       \
-\  (\\<forall>X. less_equal(zero::'a,X)) &  \
-\  (\\<forall>X Y. less_equal(X::'a,Y) & less_equal(Y::'a,X) --> equal(X::'a,Y)) &  \
-\  (\\<forall>X. less_equal(X::'a,identity)) &      \
-\  (\\<forall>A B C. equal(A::'a,B) --> equal(divide(A::'a,C),divide(B::'a,C))) &   \
-\  (\\<forall>D F' E. equal(D::'a,E) --> equal(divide(F'::'a,D),divide(F'::'a,E))) &        \
-\  (\\<forall>G H I'. equal(G::'a,H) & less_equal(G::'a,I') --> less_equal(H::'a,I')) &     \
-\  (\\<forall>J L K'. equal(J::'a,K') & less_equal(L::'a,J) --> less_equal(L::'a,K')) &     \
-\  (\\<forall>X. equal(divide(X::'a,identity),zero)) &      \
-\  (\\<forall>X. equal(divide(zero::'a,X),zero)) &  \
-\  (\\<forall>X. equal(divide(X::'a,X),zero)) &     \
-\  (equal(divide(a::'a,zero),a)) &  \
+ (EQU001_0_ax ^ "&" ^ HEN002_0_ax ^ "&" ^ HEN002_0_eq ^ " &     \
+\  (\\<forall>X. equal(Divide(X::'a,identity),zero)) &      \
+\  (\\<forall>X. equal(Divide(zero::'a,X),zero)) &  \
+\  (\\<forall>X. equal(Divide(X::'a,X),zero)) &     \
+\  (equal(Divide(a::'a,zero),a)) &  \
 \  (\\<forall>Y X Z. less_equal(X::'a,Y) & less_equal(Y::'a,Z) --> less_equal(X::'a,Z)) &   \
-\  (\\<forall>X Z Y. less_equal(divide(X::'a,Y),Z) --> less_equal(divide(X::'a,Z),Y)) & \
-\  (\\<forall>Y Z X. less_equal(X::'a,Y) --> less_equal(divide(Z::'a,Y),divide(Z::'a,X))) & \
+\  (\\<forall>X Z Y. less_equal(Divide(X::'a,Y),Z) --> less_equal(Divide(X::'a,Z),Y)) & \
+\  (\\<forall>Y Z X. less_equal(X::'a,Y) --> less_equal(Divide(Z::'a,Y),Divide(Z::'a,X))) & \
 \  (less_equal(a::'a,b)) &  \
-\  (~less_equal(divide(a::'a,c),divide(b::'a,c))) --> False",
+\  (~less_equal(Divide(a::'a,c),Divide(b::'a,c))) --> False",
   meson_tac 1);
 
 
 (*3160 inferences so far.  Searching to depth 11.  3.5 secs*)
-val HEN009_5 = prove_hard
- ("(\\<forall>X. equal(X::'a,X)) &  \
-\  (\\<forall>Y X. equal(X::'a,Y) --> equal(Y::'a,X)) & \
-\  (\\<forall>Y X Z. equal(X::'a,Y) & equal(Y::'a,Z) --> equal(X::'a,Z)) &  \
-\  (\\<forall>Y X. equal(divide(divide(X::'a,Y),X),zero)) & \
-\  (\\<forall>X Y Z. equal(divide(divide(divide(X::'a,Z),divide(Y::'a,Z)),divide(divide(X::'a,Y),Z)),zero)) &       \
-\  (\\<forall>X. equal(divide(zero::'a,X),zero)) &  \
-\  (\\<forall>X Y. equal(divide(X::'a,Y),zero) & equal(divide(Y::'a,X),zero) --> equal(X::'a,Y)) &  \
-\  (\\<forall>X. equal(divide(X::'a,identity),zero)) &      \
-\  (\\<forall>A B C. equal(A::'a,B) --> equal(divide(A::'a,C),divide(B::'a,C))) &   \
-\  (\\<forall>D F' E. equal(D::'a,E) --> equal(divide(F'::'a,D),divide(F'::'a,E))) &        \
-\  (\\<forall>Y X Z. equal(divide(X::'a,Y),zero) & equal(divide(Y::'a,Z),zero) --> equal(divide(X::'a,Z),zero)) &   \
-\  (\\<forall>X Z Y. equal(divide(divide(X::'a,Y),Z),zero) --> equal(divide(divide(X::'a,Z),Y),zero)) & \
-\  (\\<forall>Y Z X. equal(divide(X::'a,Y),zero) --> equal(divide(divide(Z::'a,Y),divide(Z::'a,X)),zero)) & \
-\  (~equal(divide(identity::'a,a),divide(identity::'a,divide(identity::'a,divide(identity::'a,a))))) &  \
-\  (equal(divide(identity::'a,a),b)) &      \
-\  (equal(divide(identity::'a,b),c)) &      \
-\  (equal(divide(identity::'a,c),d)) &      \
+val HEN009_5 = prove
+ (EQU001_0_ax ^ " &  \
+\  (\\<forall>Y X. equal(Divide(Divide(X::'a,Y),X),zero)) & \
+\  (\\<forall>X Y Z. equal(Divide(Divide(Divide(X::'a,Z),Divide(Y::'a,Z)),Divide(Divide(X::'a,Y),Z)),zero)) &       \
+\  (\\<forall>X. equal(Divide(zero::'a,X),zero)) &  \
+\  (\\<forall>X Y. equal(Divide(X::'a,Y),zero) & equal(Divide(Y::'a,X),zero) --> equal(X::'a,Y)) &  \
+\  (\\<forall>X. equal(Divide(X::'a,identity),zero)) &      \
+\  (\\<forall>A B C. equal(A::'a,B) --> equal(Divide(A::'a,C),Divide(B::'a,C))) &   \
+\  (\\<forall>D F' E. equal(D::'a,E) --> equal(Divide(F'::'a,D),Divide(F'::'a,E))) &        \
+\  (\\<forall>Y X Z. equal(Divide(X::'a,Y),zero) & equal(Divide(Y::'a,Z),zero) --> equal(Divide(X::'a,Z),zero)) &   \
+\  (\\<forall>X Z Y. equal(Divide(Divide(X::'a,Y),Z),zero) --> equal(Divide(Divide(X::'a,Z),Y),zero)) & \
+\  (\\<forall>Y Z X. equal(Divide(X::'a,Y),zero) --> equal(Divide(Divide(Z::'a,Y),Divide(Z::'a,X)),zero)) & \
+\  (~equal(Divide(identity::'a,a),Divide(identity::'a,Divide(identity::'a,Divide(identity::'a,a))))) &  \
+\  (equal(Divide(identity::'a,a),b)) &      \
+\  (equal(Divide(identity::'a,b),c)) &      \
+\  (equal(Divide(identity::'a,c),d)) &      \
 \  (~equal(b::'a,d)) --> False",
   meson_tac 1);
 
 (*970373 inferences so far.  Searching to depth 17.  890.0 secs*)
 val HEN012_3 = prove_hard
- ("(\\<forall>X. equal(X::'a,X)) &  \
-\  (\\<forall>Y X. equal(X::'a,Y) --> equal(Y::'a,X)) & \
-\  (\\<forall>Y X Z. equal(X::'a,Y) & equal(Y::'a,Z) --> equal(X::'a,Z)) &  \
-\  (\\<forall>X Y. less_equal(X::'a,Y) --> equal(divide(X::'a,Y),zero)) &       \
-\  (\\<forall>X Y. equal(divide(X::'a,Y),zero) --> less_equal(X::'a,Y)) &       \
-\  (\\<forall>Y X. less_equal(divide(X::'a,Y),X)) & \
-\  (\\<forall>X Y Z. less_equal(divide(divide(X::'a,Z),divide(Y::'a,Z)),divide(divide(X::'a,Y),Z))) &       \
-\  (\\<forall>X. less_equal(zero::'a,X)) &  \
-\  (\\<forall>X Y. less_equal(X::'a,Y) & less_equal(Y::'a,X) --> equal(X::'a,Y)) &  \
-\  (\\<forall>X. less_equal(X::'a,identity)) &      \
-\  (\\<forall>A B C. equal(A::'a,B) --> equal(divide(A::'a,C),divide(B::'a,C))) &   \
-\  (\\<forall>D F' E. equal(D::'a,E) --> equal(divide(F'::'a,D),divide(F'::'a,E))) &        \
-\  (\\<forall>G H I'. equal(G::'a,H) & less_equal(G::'a,I') --> less_equal(H::'a,I')) &     \
-\  (\\<forall>J L K'. equal(J::'a,K') & less_equal(L::'a,J) --> less_equal(L::'a,K')) &     \
+ (EQU001_0_ax ^ "&" ^ HEN002_0_ax ^ "&" ^ HEN002_0_eq ^ " &     \
 \  (~less_equal(a::'a,a)) --> False",
   meson_tac 1);
 
@@ -1612,7 +1171,7 @@ val LCL143_1 = prove
   meson_tac 1);
 
 (*5245 inferences so far.  Searching to depth 12.  4.6 secs*)
-val LCL182_1 = prove_hard
+val LCL182_1 = prove
  ("(\\<forall>A. axiom(or(not(or(A,A)),A))) &   \
 \  (\\<forall>B A. axiom(or(not(A),or(B,A)))) & \
 \  (\\<forall>B A. axiom(or(not(or(A,B)),or(B,A)))) &   \
@@ -1638,7 +1197,7 @@ val LCL200_1 = prove
   meson_tac 1);
 
 (*5849 inferences so far.  Searching to depth 12.  5.6 secs*)
-val LCL215_1 = prove_hard
+val LCL215_1 = prove
  ("(\\<forall>A. axiom(or(not(or(A,A)),A))) &   \
 \  (\\<forall>B A. axiom(or(not(A),or(B,A)))) & \
 \  (\\<forall>B A. axiom(or(not(or(A,B)),or(B,A)))) &   \
@@ -1660,9 +1219,7 @@ val LCL230_2 = prove
 
 (*119585 inferences so far.  Searching to depth 14.  262.4 secs*)
 val LDA003_1 = prove_hard
- ("(\\<forall>X. equal(X::'a,X)) &  \
-\  (\\<forall>Y X. equal(X::'a,Y) --> equal(Y::'a,X)) & \
-\  (\\<forall>Y X Z. equal(X::'a,Y) & equal(Y::'a,Z) --> equal(X::'a,Z)) &  \
+ (EQU001_0_ax ^ " &  \
 \  (\\<forall>Y X Z. equal(f(X::'a,f(Y::'a,Z)),f(f(X::'a,Y),f(X::'a,Z)))) &     \
 \  (\\<forall>X Y. left(X::'a,f(X::'a,Y))) &    \
 \  (\\<forall>Y X Z. left(X::'a,Y) & left(Y::'a,Z) --> left(X::'a,Z)) &     \
@@ -1731,7 +1288,7 @@ val MSC005_1 = prove
   meson_tac 1);
 
 (*19116 inferences so far.  Searching to depth 16.  15.9 secs*)
-val MSC006_1 = prove_hard
+val MSC006_1 = prove
  ("(\\<forall>Y X Z. p(X::'a,Y) & p(Y::'a,Z) --> p(X::'a,Z)) &      \
 \  (\\<forall>Y X Z. q(X::'a,Y) & q(Y::'a,Z) --> q(X::'a,Z)) &      \
 \  (\\<forall>Y X. q(X::'a,Y) --> q(Y::'a,X)) & \
@@ -1757,56 +1314,44 @@ val NUM001_1 = prove
 \  (~equal(add(add(a::'a,b),c),add(a::'a,add(b::'a,c)))) --> False",
   meson_tac 1);
 
-(*20717 inferences so far.  Searching to depth 11.  13.7 secs*)
-val NUM021_1 = prove_hard
- ("(\\<forall>X. equal(X::'a,X)) &  \
-\  (\\<forall>Y X. equal(X::'a,Y) --> equal(Y::'a,X)) & \
-\  (\\<forall>Y X Z. equal(X::'a,Y) & equal(Y::'a,Z) --> equal(X::'a,Z)) &  \
-\  (\\<forall>A. equal(add(A::'a,num0),A)) &   \
+val NUM001_0_ax =
+  "(\\<forall>A. equal(add(A::'a,num0),A)) &   \
 \  (\\<forall>A B. equal(add(A::'a,successor(B)),successor(add(A::'a,B)))) &    \
 \  (\\<forall>A. equal(multiply(A::'a,num0),num0)) &      \
 \  (\\<forall>B A. equal(multiply(A::'a,successor(B)),add(multiply(A::'a,B),A))) &      \
 \  (\\<forall>A B. equal(successor(A),successor(B)) --> equal(A::'a,B)) &   \
-\  (\\<forall>A B. equal(A::'a,B) --> equal(successor(A),successor(B))) &   \
-\  (\\<forall>A C B. less(A::'a,B) & less(C::'a,A) --> less(C::'a,B)) &     \
+\  (\\<forall>A B. equal(A::'a,B) --> equal(successor(A),successor(B)))";
+
+val NUM001_1_ax =
+  "(\\<forall>A C B. less(A::'a,B) & less(C::'a,A) --> less(C::'a,B)) &     \
 \  (\\<forall>A B C. equal(add(successor(A),B),C) --> less(B::'a,C)) &      \
-\  (\\<forall>A B. less(A::'a,B) --> equal(add(successor(predecessor_of_1st_minus_2nd(B::'a,A)),A),B)) &        \
-\  (\\<forall>A B. divides(A::'a,B) --> less(A::'a,B) | equal(A::'a,B)) &  \
+\  (\\<forall>A B. less(A::'a,B) --> equal(add(successor(predecessor_of_1st_minus_2nd(B::'a,A)),A),B))";
+
+val NUM001_2_ax =
+  "(\\<forall>A B. divides(A::'a,B) --> less(A::'a,B) | equal(A::'a,B)) &  \
 \  (\\<forall>A B. less(A::'a,B) --> divides(A::'a,B)) &        \
-\  (\\<forall>A B. equal(A::'a,B) --> divides(A::'a,B)) &       \
-\  (less(b::'a,c)) &        \
-\  (~less(b::'a,a)) &       \
-\  (divides(c::'a,a)) &     \
-\  (\\<forall>A. ~equal(successor(A),num0)) --> False",
+\  (\\<forall>A B. equal(A::'a,B) --> divides(A::'a,B))";
+
+(*20717 inferences so far.  Searching to depth 11.  13.7 secs*)
+val NUM021_1 = prove
+ (EQU001_0_ax ^ "&" ^ NUM001_0_ax ^ "&" ^ NUM001_1_ax ^ "&" ^ NUM001_2_ax ^
+ "& (less(b::'a,c)) &        \
+\   (~less(b::'a,a)) &       \
+\   (divides(c::'a,a)) &     \
+\   (\\<forall>A. ~equal(successor(A),num0)) --> False",
   meson_tac 1);
 
 (*26320 inferences so far.  Searching to depth 10.  26.4 secs*)
 val NUM024_1 = prove_hard
- ("(\\<forall>X. equal(X::'a,X)) &  \
-\  (\\<forall>Y X. equal(X::'a,Y) --> equal(Y::'a,X)) & \
-\  (\\<forall>Y X Z. equal(X::'a,Y) & equal(Y::'a,Z) --> equal(X::'a,Z)) &  \
-\  (\\<forall>A. equal(add(A::'a,num0),A)) &   \
-\  (\\<forall>A B. equal(add(A::'a,successor(B)),successor(add(A::'a,B)))) &    \
-\  (\\<forall>A. equal(multiply(A::'a,num0),num0)) &      \
-\  (\\<forall>B A. equal(multiply(A::'a,successor(B)),add(multiply(A::'a,B),A))) &      \
-\  (\\<forall>A B. equal(successor(A),successor(B)) --> equal(A::'a,B)) &   \
-\  (\\<forall>A B. equal(A::'a,B) --> equal(successor(A),successor(B))) &   \
-\  (\\<forall>A C B. less(A::'a,B) & less(C::'a,A) --> less(C::'a,B)) &     \
-\  (\\<forall>A B C. equal(add(successor(A),B),C) --> less(B::'a,C)) &      \
-\  (\\<forall>A B. less(A::'a,B) --> equal(add(successor(predecessor_of_1st_minus_2nd(B::'a,A)),A),B)) &        \
+ (EQU001_0_ax ^ "&" ^ NUM001_0_ax ^ "&" ^ NUM001_1_ax ^ " &        \
 \  (\\<forall>B A. equal(add(A::'a,B),add(B::'a,A))) &  \
 \  (\\<forall>B A C. equal(add(A::'a,B),add(C::'a,B)) --> equal(A::'a,C)) & \
 \  (less(a::'a,a)) &        \
 \  (\\<forall>A. ~equal(successor(A),num0)) --> False",
   meson_tac 1);
 
-
-(*1345 inferences so far.  Searching to depth 7.  23.3 secs.  BIG*)
-val NUM180_1 = prove_hard
- ("(\\<forall>X. equal(X::'a,X)) &  \
-\  (\\<forall>Y X. equal(X::'a,Y) --> equal(Y::'a,X)) & \
-\  (\\<forall>Y X Z. equal(X::'a,Y) & equal(Y::'a,Z) --> equal(X::'a,Z)) &  \
-\  (\\<forall>X U Y. subclass(X::'a,Y) & member(U::'a,X) --> member(U::'a,Y)) &     \
+val SET004_0_ax =
+  "(\\<forall>X U Y. subclass(X::'a,Y) & member(U::'a,X) --> member(U::'a,Y)) &     \
 \  (\\<forall>X Y. member(not_subclass_element(X::'a,Y),X) | subclass(X::'a,Y)) &      \
 \  (\\<forall>X Y. member(not_subclass_element(X::'a,Y),Y) --> subclass(X::'a,Y)) &     \
 \  (\\<forall>X. subclass(X::'a,universal_class)) & \
@@ -1896,8 +1441,10 @@ val NUM180_1 = prove_hard
 \  (\\<forall>Xh Xf1 Xf2. homomorphism(Xh::'a,Xf1,Xf2) --> compatible(Xh::'a,Xf1,Xf2)) &        \
 \  (\\<forall>Xf2 Xh Xf1 X Y. homomorphism(Xh::'a,Xf1,Xf2) & member(ordered_pair(X::'a,Y),domain_of(Xf1)) --> equal(apply(Xf2::'a,ordered_pair(apply(Xh::'a,X),apply(Xh::'a,Y))),apply(Xh::'a,apply(Xf1::'a,ordered_pair(X::'a,Y))))) & \
 \  (\\<forall>Xh Xf1 Xf2. operation(Xf1) & operation(Xf2) & compatible(Xh::'a,Xf1,Xf2) --> member(ordered_pair(not_homomorphism1(Xh::'a,Xf1,Xf2),not_homomorphism2(Xh::'a,Xf1,Xf2)),domain_of(Xf1)) | homomorphism(Xh::'a,Xf1,Xf2)) &  \
-\  (\\<forall>Xh Xf1 Xf2. operation(Xf1) & operation(Xf2) & compatible(Xh::'a,Xf1,Xf2) & equal(apply(Xf2::'a,ordered_pair(apply(Xh::'a,not_homomorphism1(Xh::'a,Xf1,Xf2)),apply(Xh::'a,not_homomorphism2(Xh::'a,Xf1,Xf2)))),apply(Xh::'a,apply(Xf1::'a,ordered_pair(not_homomorphism1(Xh::'a,Xf1,Xf2),not_homomorphism2(Xh::'a,Xf1,Xf2))))) --> homomorphism(Xh::'a,Xf1,Xf2)) &     \
-\  (\\<forall>D E F'. equal(D::'a,E) --> equal(apply(D::'a,F'),apply(E::'a,F'))) &  \
+\  (\\<forall>Xh Xf1 Xf2. operation(Xf1) & operation(Xf2) & compatible(Xh::'a,Xf1,Xf2) & equal(apply(Xf2::'a,ordered_pair(apply(Xh::'a,not_homomorphism1(Xh::'a,Xf1,Xf2)),apply(Xh::'a,not_homomorphism2(Xh::'a,Xf1,Xf2)))),apply(Xh::'a,apply(Xf1::'a,ordered_pair(not_homomorphism1(Xh::'a,Xf1,Xf2),not_homomorphism2(Xh::'a,Xf1,Xf2))))) --> homomorphism(Xh::'a,Xf1,Xf2))";
+
+val SET004_0_eq =
+  "(\\<forall>D E F'. equal(D::'a,E) --> equal(apply(D::'a,F'),apply(E::'a,F'))) &  \
 \  (\\<forall>G I' H. equal(G::'a,H) --> equal(apply(I'::'a,G),apply(I'::'a,H))) &  \
 \  (\\<forall>J K'. equal(J::'a,K') --> equal(cantor(J),cantor(K'))) &      \
 \  (\\<forall>L M. equal(L::'a,M) --> equal(complement(L),complement(M))) & \
@@ -1961,8 +1508,10 @@ val NUM180_1 = prove_hard
 \  (\\<forall>H7 I7. equal(H7::'a,I7) & operation(H7) --> operation(I7)) &  \
 \  (\\<forall>J7 K7. equal(J7::'a,K7) & single_valued_class(J7) --> single_valued_class(K7)) &      \
 \  (\\<forall>L7 M7 N7. equal(L7::'a,M7) & subclass(L7::'a,N7) --> subclass(M7::'a,N7)) &   \
-\  (\\<forall>O7 Q7 P7. equal(O7::'a,P7) & subclass(Q7::'a,O7) --> subclass(Q7::'a,P7)) &   \
-\  (\\<forall>X. subclass(compose_class(X),cross_product(universal_class::'a,universal_class))) &   \
+\  (\\<forall>O7 Q7 P7. equal(O7::'a,P7) & subclass(Q7::'a,O7) --> subclass(Q7::'a,P7))"; 
+
+val SET004_1_ax =
+  "(\\<forall>X. subclass(compose_class(X),cross_product(universal_class::'a,universal_class))) &   \
 \  (\\<forall>X Y Z. member(ordered_pair(Y::'a,Z),compose_class(X)) --> equal(compos(X::'a,Y),Z)) &    \
 \  (\\<forall>Y Z X. member(ordered_pair(Y::'a,Z),cross_product(universal_class::'a,universal_class)) & equal(compos(X::'a,Y),Z) --> member(ordered_pair(Y::'a,Z),compose_class(X))) & \
 \  (subclass(composition_function::'a,cross_product(universal_class::'a,cross_product(universal_class::'a,universal_class)))) &     \
@@ -1982,15 +1531,19 @@ val NUM180_1 = prove_hard
 \  (\\<forall>X Y Xf. maps(Xf::'a,X,Y) --> function(Xf)) &  \
 \  (\\<forall>Y Xf X. maps(Xf::'a,X,Y) --> equal(domain_of(Xf),X)) &        \
 \  (\\<forall>X Xf Y. maps(Xf::'a,X,Y) --> subclass(range_of(Xf),Y)) &      \
-\  (\\<forall>Xf Y. function(Xf) & subclass(range_of(Xf),Y) --> maps(Xf::'a,domain_of(Xf),Y)) &     \
-\  (\\<forall>L M. equal(L::'a,M) --> equal(compose_class(L),compose_class(M))) &   \
+\  (\\<forall>Xf Y. function(Xf) & subclass(range_of(Xf),Y) --> maps(Xf::'a,domain_of(Xf),Y))";
+
+val SET004_1_eq =
+  "(\\<forall>L M. equal(L::'a,M) --> equal(compose_class(L),compose_class(M))) &   \
 \  (\\<forall>N2 O2. equal(N2::'a,O2) --> equal(single_valued1(N2),single_valued1(O2))) &   \
 \  (\\<forall>P2 Q2. equal(P2::'a,Q2) --> equal(single_valued2(P2),single_valued2(Q2))) &   \
 \  (\\<forall>R2 S2. equal(R2::'a,S2) --> equal(single_valued3(R2),single_valued3(S2))) &   \
 \  (\\<forall>X2 Y2 Z2 A3. equal(X2::'a,Y2) & maps(X2::'a,Z2,A3) --> maps(Y2::'a,Z2,A3)) &  \
 \  (\\<forall>B3 D3 C3 E3. equal(B3::'a,C3) & maps(D3::'a,B3,E3) --> maps(D3::'a,C3,E3)) &  \
-\  (\\<forall>F3 H3 I3 G3. equal(F3::'a,G3) & maps(H3::'a,I3,F3) --> maps(H3::'a,I3,G3)) &  \
-\  (\\<forall>X. equal(union(X::'a,INVERSE(X)),symmetrization_of(X))) &     \
+\  (\\<forall>F3 H3 I3 G3. equal(F3::'a,G3) & maps(H3::'a,I3,F3) --> maps(H3::'a,I3,G3))";
+
+val NUM004_0_ax =
+  "(\\<forall>X. equal(union(X::'a,INVERSE(X)),symmetrization_of(X))) &     \
 \  (\\<forall>X Y. irreflexive(X::'a,Y) --> subclass(restrct(X::'a,Y,Y),complement(identity_relation))) &      \
 \  (\\<forall>X Y. subclass(restrct(X::'a,Y,Y),complement(identity_relation)) --> irreflexive(X::'a,Y)) &      \
 \  (\\<forall>Y X. connected(X::'a,Y) --> subclass(cross_product(Y::'a,Y),union(identity_relation::'a,symmetrization_of(X)))) &     \
@@ -2035,8 +1588,10 @@ val NUM180_1 = prove_hard
 \  (\\<forall>X Y. equal(apply(recursion(X::'a,successor_relation,union_of_range_map),Y),ordinal_add(X::'a,Y))) &       \
 \  (\\<forall>X Y. equal(recursion(null_class::'a,apply(add_relation::'a,X),union_of_range_map),ordinal_multiply(X::'a,Y))) &       \
 \  (\\<forall>X. member(X::'a,omega) --> equal(integer_of(X),X)) &  \
-\  (\\<forall>X. member(X::'a,omega) | equal(integer_of(X),null_class)) &  \
-\  (\\<forall>D E. equal(D::'a,E) --> equal(integer_of(D),integer_of(E))) & \
+\  (\\<forall>X. member(X::'a,omega) | equal(integer_of(X),null_class))";
+
+val NUM004_0_eq =
+  "(\\<forall>D E. equal(D::'a,E) --> equal(integer_of(D),integer_of(E))) & \
 \  (\\<forall>F' G H. equal(F'::'a,G) --> equal(least(F'::'a,H),least(G::'a,H))) &  \
 \  (\\<forall>I' K' J. equal(I'::'a,J) --> equal(least(K'::'a,I'),least(K'::'a,J))) &       \
 \  (\\<forall>L M N. equal(L::'a,M) --> equal(not_well_ordering(L::'a,N),not_well_ordering(M::'a,N))) &     \
@@ -2066,284 +1621,27 @@ val NUM180_1 = prove_hard
 \  (\\<forall>N3 O3 P3. equal(N3::'a,O3) & transitive(N3::'a,P3) --> transitive(O3::'a,P3)) &       \
 \  (\\<forall>Q3 S3 R3. equal(Q3::'a,R3) & transitive(S3::'a,Q3) --> transitive(S3::'a,R3)) &       \
 \  (\\<forall>T3 U3 V3. equal(T3::'a,U3) & well_ordering(T3::'a,V3) --> well_ordering(U3::'a,V3)) & \
-\  (\\<forall>W3 Y3 X3. equal(W3::'a,X3) & well_ordering(Y3::'a,W3) --> well_ordering(Y3::'a,X3)) & \
-\  (~subclass(limit_ordinals::'a,ordinal_numbers)) --> False",
+\  (\\<forall>W3 Y3 X3. equal(W3::'a,X3) & well_ordering(Y3::'a,W3) --> well_ordering(Y3::'a,X3))";
+
+(*1345 inferences so far.  Searching to depth 7.  23.3 secs.  BIG*)
+val NUM180_1 = prove
+ (EQU001_0_ax ^ "&" ^ SET004_0_ax ^ "&" ^ SET004_0_eq ^ "&" ^ 
+  SET004_1_ax ^ "&" ^ SET004_1_eq ^ "&" ^ NUM004_0_ax ^ "&" ^ NUM004_0_eq ^
+   " &  (~subclass(limit_ordinals::'a,ordinal_numbers)) --> False",
   meson_tac 1);
 
 
 (*0 inferences so far.  Searching to depth 0.  16.8 secs.  BIG*)
-val NUM228_1 = prove_hard
- ("(\\<forall>X. equal(X::'a,X)) &  \
-\  (\\<forall>Y X. equal(X::'a,Y) --> equal(Y::'a,X)) & \
-\  (\\<forall>Y X Z. equal(X::'a,Y) & equal(Y::'a,Z) --> equal(X::'a,Z)) &  \
-\  (\\<forall>X U Y. subclass(X::'a,Y) & member(U::'a,X) --> member(U::'a,Y)) &     \
-\  (\\<forall>X Y. member(not_subclass_element(X::'a,Y),X) | subclass(X::'a,Y)) &      \
-\  (\\<forall>X Y. member(not_subclass_element(X::'a,Y),Y) --> subclass(X::'a,Y)) &     \
-\  (\\<forall>X. subclass(X::'a,universal_class)) & \
-\  (\\<forall>X Y. equal(X::'a,Y) --> subclass(X::'a,Y)) &      \
-\  (\\<forall>Y X. equal(X::'a,Y) --> subclass(Y::'a,X)) &      \
-\  (\\<forall>X Y. subclass(X::'a,Y) & subclass(Y::'a,X) --> equal(X::'a,Y)) &      \
-\  (\\<forall>X U Y. member(U::'a,unordered_pair(X::'a,Y)) --> equal(U::'a,X) | equal(U::'a,Y)) &      \
-\  (\\<forall>X Y. member(X::'a,universal_class) --> member(X::'a,unordered_pair(X::'a,Y))) &       \
-\  (\\<forall>X Y. member(Y::'a,universal_class) --> member(Y::'a,unordered_pair(X::'a,Y))) &       \
-\  (\\<forall>X Y. member(unordered_pair(X::'a,Y),universal_class)) &       \
-\  (\\<forall>X. equal(unordered_pair(X::'a,X),singleton(X))) &     \
-\  (\\<forall>X Y. equal(unordered_pair(singleton(X),unordered_pair(X::'a,singleton(Y))),ordered_pair(X::'a,Y))) &      \
-\  (\\<forall>V Y U X. member(ordered_pair(U::'a,V),cross_product(X::'a,Y)) --> member(U::'a,X)) &  \
-\  (\\<forall>U X V Y. member(ordered_pair(U::'a,V),cross_product(X::'a,Y)) --> member(V::'a,Y)) &  \
-\  (\\<forall>U V X Y. member(U::'a,X) & member(V::'a,Y) --> member(ordered_pair(U::'a,V),cross_product(X::'a,Y))) &    \
-\  (\\<forall>X Y Z. member(Z::'a,cross_product(X::'a,Y)) --> equal(ordered_pair(first(Z),second(Z)),Z)) &      \
-\  (subclass(element_relation::'a,cross_product(universal_class::'a,universal_class))) &        \
-\  (\\<forall>X Y. member(ordered_pair(X::'a,Y),element_relation) --> member(X::'a,Y)) &        \
-\  (\\<forall>X Y. member(ordered_pair(X::'a,Y),cross_product(universal_class::'a,universal_class)) & member(X::'a,Y) --> member(ordered_pair(X::'a,Y),element_relation)) &     \
-\  (\\<forall>Y Z X. member(Z::'a,intersection(X::'a,Y)) --> member(Z::'a,X)) &     \
-\  (\\<forall>X Z Y. member(Z::'a,intersection(X::'a,Y)) --> member(Z::'a,Y)) &     \
-\  (\\<forall>Z X Y. member(Z::'a,X) & member(Z::'a,Y) --> member(Z::'a,intersection(X::'a,Y))) &       \
-\  (\\<forall>Z X. ~(member(Z::'a,complement(X)) & member(Z::'a,X))) &  \
-\  (\\<forall>Z X. member(Z::'a,universal_class) --> member(Z::'a,complement(X)) | member(Z::'a,X)) &      \
-\  (\\<forall>X Y. equal(complement(intersection(complement(X),complement(Y))),union(X::'a,Y))) &   \
-\  (\\<forall>X Y. equal(intersection(complement(intersection(X::'a,Y)),complement(intersection(complement(X),complement(Y)))),difference(X::'a,Y))) &  \
-\  (\\<forall>Xr X Y. equal(intersection(Xr::'a,cross_product(X::'a,Y)),restrct(Xr::'a,X,Y))) &    \
-\  (\\<forall>Xr X Y. equal(intersection(cross_product(X::'a,Y),Xr),restrct(Xr::'a,X,Y))) &    \
-\  (\\<forall>Z X. ~(equal(restrct(X::'a,singleton(Z),universal_class),null_class) & member(Z::'a,domain_of(X)))) &    \
-\  (\\<forall>Z X. member(Z::'a,universal_class) --> equal(restrct(X::'a,singleton(Z),universal_class),null_class) | member(Z::'a,domain_of(X))) &        \
-\  (\\<forall>X. subclass(rotate(X),cross_product(cross_product(universal_class::'a,universal_class),universal_class))) &   \
-\  (\\<forall>V W U X. member(ordered_pair(ordered_pair(U::'a,V),W),rotate(X)) --> member(ordered_pair(ordered_pair(V::'a,W),U),X)) &   \
-\  (\\<forall>U V W X. member(ordered_pair(ordered_pair(V::'a,W),U),X) & member(ordered_pair(ordered_pair(U::'a,V),W),cross_product(cross_product(universal_class::'a,universal_class),universal_class)) --> member(ordered_pair(ordered_pair(U::'a,V),W),rotate(X))) & \
-\  (\\<forall>X. subclass(flip(X),cross_product(cross_product(universal_class::'a,universal_class),universal_class))) &     \
-\  (\\<forall>V U W X. member(ordered_pair(ordered_pair(U::'a,V),W),flip(X)) --> member(ordered_pair(ordered_pair(V::'a,U),W),X)) &     \
-\  (\\<forall>U V W X. member(ordered_pair(ordered_pair(V::'a,U),W),X) & member(ordered_pair(ordered_pair(U::'a,V),W),cross_product(cross_product(universal_class::'a,universal_class),universal_class)) --> member(ordered_pair(ordered_pair(U::'a,V),W),flip(X))) &   \
-\  (\\<forall>Y. equal(domain_of(flip(cross_product(Y::'a,universal_class))),INVERSE(Y))) & \
-\  (\\<forall>Z. equal(domain_of(INVERSE(Z)),range_of(Z))) &    \
-\  (\\<forall>Z X Y. equal(first(not_subclass_element(restrct(Z::'a,X,singleton(Y)),null_class)),domain(Z::'a,X,Y))) & \
-\  (\\<forall>Z X Y. equal(second(not_subclass_element(restrct(Z::'a,singleton(X),Y),null_class)),rng(Z::'a,X,Y))) & \
-\  (\\<forall>Xr X. equal(range_of(restrct(Xr::'a,X,universal_class)),image_(Xr::'a,X))) &      \
-\  (\\<forall>X. equal(union(X::'a,singleton(X)),successor(X))) &   \
-\  (subclass(successor_relation::'a,cross_product(universal_class::'a,universal_class))) &      \
-\  (\\<forall>X Y. member(ordered_pair(X::'a,Y),successor_relation) --> equal(successor(X),Y)) &    \
-\  (\\<forall>X Y. equal(successor(X),Y) & member(ordered_pair(X::'a,Y),cross_product(universal_class::'a,universal_class)) --> member(ordered_pair(X::'a,Y),successor_relation)) & \
-\  (\\<forall>X. inductive(X) --> member(null_class::'a,X)) &       \
-\  (\\<forall>X. inductive(X) --> subclass(image_(successor_relation::'a,X),X)) &    \
-\  (\\<forall>X. member(null_class::'a,X) & subclass(image_(successor_relation::'a,X),X) --> inductive(X)) &     \
-\  (inductive(omega)) & \
-\  (\\<forall>Y. inductive(Y) --> subclass(omega::'a,Y)) &  \
-\  (member(omega::'a,universal_class)) &    \
-\  (\\<forall>X. equal(domain_of(restrct(element_relation::'a,universal_class,X)),sum_class(X))) & \
-\  (\\<forall>X. member(X::'a,universal_class) --> member(sum_class(X),universal_class)) &  \
-\  (\\<forall>X. equal(complement(image_(element_relation::'a,complement(X))),powerClass(X))) &     \
-\  (\\<forall>U. member(U::'a,universal_class) --> member(powerClass(U),universal_class)) &        \
-\  (\\<forall>Yr Xr. subclass(compos(Yr::'a,Xr),cross_product(universal_class::'a,universal_class))) & \
-\  (\\<forall>Z Yr Xr Y. member(ordered_pair(Y::'a,Z),compos(Yr::'a,Xr)) --> member(Z::'a,image_(Yr::'a,image_(Xr::'a,singleton(Y))))) &     \
-\  (\\<forall>Y Z Yr Xr. member(Z::'a,image_(Yr::'a,image_(Xr::'a,singleton(Y)))) & member(ordered_pair(Y::'a,Z),cross_product(universal_class::'a,universal_class)) --> member(ordered_pair(Y::'a,Z),compos(Yr::'a,Xr))) &  \
-\  (\\<forall>X. single_valued_class(X) --> subclass(compos(X::'a,INVERSE(X)),identity_relation)) &        \
-\  (\\<forall>X. subclass(compos(X::'a,INVERSE(X)),identity_relation) --> single_valued_class(X)) &        \
-\  (\\<forall>Xf. function(Xf) --> subclass(Xf::'a,cross_product(universal_class::'a,universal_class))) &       \
-\  (\\<forall>Xf. function(Xf) --> subclass(compos(Xf::'a,INVERSE(Xf)),identity_relation)) &       \
-\  (\\<forall>Xf. subclass(Xf::'a,cross_product(universal_class::'a,universal_class)) & subclass(compos(Xf::'a,INVERSE(Xf)),identity_relation) --> function(Xf)) & \
-\  (\\<forall>Xf X. function(Xf) & member(X::'a,universal_class) --> member(image_(Xf::'a,X),universal_class)) & \
-\  (\\<forall>X. equal(X::'a,null_class) | member(regular(X),X)) & \
-\  (\\<forall>X. equal(X::'a,null_class) | equal(intersection(X::'a,regular(X)),null_class)) & \
-\  (\\<forall>Xf Y. equal(sum_class(image_(Xf::'a,singleton(Y))),apply(Xf::'a,Y))) &     \
-\  (function(choice)) & \
-\  (\\<forall>Y. member(Y::'a,universal_class) --> equal(Y::'a,null_class) | member(apply(choice::'a,Y),Y)) &      \
-\  (\\<forall>Xf. one_to_one(Xf) --> function(Xf)) &    \
-\  (\\<forall>Xf. one_to_one(Xf) --> function(INVERSE(Xf))) &   \
-\  (\\<forall>Xf. function(INVERSE(Xf)) & function(Xf) --> one_to_one(Xf)) &    \
-\  (equal(intersection(cross_product(universal_class::'a,universal_class),intersection(cross_product(universal_class::'a,universal_class),complement(compos(complement(element_relation),INVERSE(element_relation))))),subset_relation)) &     \
-\  (equal(intersection(INVERSE(subset_relation),subset_relation),identity_relation)) &  \
-\  (\\<forall>Xr. equal(complement(domain_of(intersection(Xr::'a,identity_relation))),diagonalise(Xr))) &   \
-\  (\\<forall>X. equal(intersection(domain_of(X),diagonalise(compos(INVERSE(element_relation),X))),cantor(X))) &       \
-\  (\\<forall>Xf. operation(Xf) --> function(Xf)) &     \
-\  (\\<forall>Xf. operation(Xf) --> equal(cross_product(domain_of(domain_of(Xf)),domain_of(domain_of(Xf))),domain_of(Xf))) &    \
-\  (\\<forall>Xf. operation(Xf) --> subclass(range_of(Xf),domain_of(domain_of(Xf)))) &  \
-\  (\\<forall>Xf. function(Xf) & equal(cross_product(domain_of(domain_of(Xf)),domain_of(domain_of(Xf))),domain_of(Xf)) & subclass(range_of(Xf),domain_of(domain_of(Xf))) --> operation(Xf)) &   \
-\  (\\<forall>Xf1 Xf2 Xh. compatible(Xh::'a,Xf1,Xf2) --> function(Xh)) &    \
-\  (\\<forall>Xf2 Xf1 Xh. compatible(Xh::'a,Xf1,Xf2) --> equal(domain_of(domain_of(Xf1)),domain_of(Xh))) &  \
-\  (\\<forall>Xf1 Xh Xf2. compatible(Xh::'a,Xf1,Xf2) --> subclass(range_of(Xh),domain_of(domain_of(Xf2)))) &        \
-\  (\\<forall>Xh Xh1 Xf1 Xf2. function(Xh) & equal(domain_of(domain_of(Xf1)),domain_of(Xh)) & subclass(range_of(Xh),domain_of(domain_of(Xf2))) --> compatible(Xh1::'a,Xf1,Xf2)) &   \
-\  (\\<forall>Xh Xf2 Xf1. homomorphism(Xh::'a,Xf1,Xf2) --> operation(Xf1)) &        \
-\  (\\<forall>Xh Xf1 Xf2. homomorphism(Xh::'a,Xf1,Xf2) --> operation(Xf2)) &        \
-\  (\\<forall>Xh Xf1 Xf2. homomorphism(Xh::'a,Xf1,Xf2) --> compatible(Xh::'a,Xf1,Xf2)) &        \
-\  (\\<forall>Xf2 Xh Xf1 X Y. homomorphism(Xh::'a,Xf1,Xf2) & member(ordered_pair(X::'a,Y),domain_of(Xf1)) --> equal(apply(Xf2::'a,ordered_pair(apply(Xh::'a,X),apply(Xh::'a,Y))),apply(Xh::'a,apply(Xf1::'a,ordered_pair(X::'a,Y))))) & \
-\  (\\<forall>Xh Xf1 Xf2. operation(Xf1) & operation(Xf2) & compatible(Xh::'a,Xf1,Xf2) --> member(ordered_pair(not_homomorphism1(Xh::'a,Xf1,Xf2),not_homomorphism2(Xh::'a,Xf1,Xf2)),domain_of(Xf1)) | homomorphism(Xh::'a,Xf1,Xf2)) &  \
-\  (\\<forall>Xh Xf1 Xf2. operation(Xf1) & operation(Xf2) & compatible(Xh::'a,Xf1,Xf2) & equal(apply(Xf2::'a,ordered_pair(apply(Xh::'a,not_homomorphism1(Xh::'a,Xf1,Xf2)),apply(Xh::'a,not_homomorphism2(Xh::'a,Xf1,Xf2)))),apply(Xh::'a,apply(Xf1::'a,ordered_pair(not_homomorphism1(Xh::'a,Xf1,Xf2),not_homomorphism2(Xh::'a,Xf1,Xf2))))) --> homomorphism(Xh::'a,Xf1,Xf2)) &     \
-\  (\\<forall>D E F'. equal(D::'a,E) --> equal(apply(D::'a,F'),apply(E::'a,F'))) &  \
-\  (\\<forall>G I' H. equal(G::'a,H) --> equal(apply(I'::'a,G),apply(I'::'a,H))) &  \
-\  (\\<forall>J K'. equal(J::'a,K') --> equal(cantor(J),cantor(K'))) &      \
-\  (\\<forall>L M. equal(L::'a,M) --> equal(complement(L),complement(M))) & \
-\  (\\<forall>N O_ P. equal(N::'a,O_) --> equal(compos(N::'a,P),compos(O_::'a,P))) & \
-\  (\\<forall>Q S' R. equal(Q::'a,R) --> equal(compos(S'::'a,Q),compos(S'::'a,R))) &      \
-\  (\\<forall>T' U V. equal(T'::'a,U) --> equal(cross_product(T'::'a,V),cross_product(U::'a,V))) &  \
-\  (\\<forall>W Y X. equal(W::'a,X) --> equal(cross_product(Y::'a,W),cross_product(Y::'a,X))) &     \
-\  (\\<forall>Z A1. equal(Z::'a,A1) --> equal(diagonalise(Z),diagonalise(A1))) &    \
-\  (\\<forall>B1 C1 D1. equal(B1::'a,C1) --> equal(difference(B1::'a,D1),difference(C1::'a,D1))) &  \
-\  (\\<forall>E1 G1 F1. equal(E1::'a,F1) --> equal(difference(G1::'a,E1),difference(G1::'a,F1))) &  \
-\  (\\<forall>H1 I1 J1 K1. equal(H1::'a,I1) --> equal(domain(H1::'a,J1,K1),domain(I1::'a,J1,K1))) & \
-\  (\\<forall>L1 N1 M1 O1. equal(L1::'a,M1) --> equal(domain(N1::'a,L1,O1),domain(N1::'a,M1,O1))) & \
-\  (\\<forall>P1 R1 S1 Q1. equal(P1::'a,Q1) --> equal(domain(R1::'a,S1,P1),domain(R1::'a,S1,Q1))) & \
-\  (\\<forall>T1 U1. equal(T1::'a,U1) --> equal(domain_of(T1),domain_of(U1))) &     \
-\  (\\<forall>V1 W1. equal(V1::'a,W1) --> equal(first(V1),first(W1))) &     \
-\  (\\<forall>X1 Y1. equal(X1::'a,Y1) --> equal(flip(X1),flip(Y1))) &       \
-\  (\\<forall>Z1 A2 B2. equal(Z1::'a,A2) --> equal(image_(Z1::'a,B2),image_(A2::'a,B2))) &    \
-\  (\\<forall>C2 E2 D2. equal(C2::'a,D2) --> equal(image_(E2::'a,C2),image_(E2::'a,D2))) &    \
-\  (\\<forall>F2 G2 H2. equal(F2::'a,G2) --> equal(intersection(F2::'a,H2),intersection(G2::'a,H2))) &      \
-\  (\\<forall>I2 K2 J2. equal(I2::'a,J2) --> equal(intersection(K2::'a,I2),intersection(K2::'a,J2))) &      \
-\  (\\<forall>L2 M2. equal(L2::'a,M2) --> equal(INVERSE(L2),INVERSE(M2))) & \
-\  (\\<forall>N2 O2 P2 Q2. equal(N2::'a,O2) --> equal(not_homomorphism1(N2::'a,P2,Q2),not_homomorphism1(O2::'a,P2,Q2))) &   \
-\  (\\<forall>R2 T2 S2 U2. equal(R2::'a,S2) --> equal(not_homomorphism1(T2::'a,R2,U2),not_homomorphism1(T2::'a,S2,U2))) &   \
-\  (\\<forall>V2 X2 Y2 W2. equal(V2::'a,W2) --> equal(not_homomorphism1(X2::'a,Y2,V2),not_homomorphism1(X2::'a,Y2,W2))) &   \
-\  (\\<forall>Z2 A3 B3 C3. equal(Z2::'a,A3) --> equal(not_homomorphism2(Z2::'a,B3,C3),not_homomorphism2(A3::'a,B3,C3))) &   \
-\  (\\<forall>D3 F3 E3 G3. equal(D3::'a,E3) --> equal(not_homomorphism2(F3::'a,D3,G3),not_homomorphism2(F3::'a,E3,G3))) &   \
-\  (\\<forall>H3 J3 K3 I3. equal(H3::'a,I3) --> equal(not_homomorphism2(J3::'a,K3,H3),not_homomorphism2(J3::'a,K3,I3))) &   \
-\  (\\<forall>L3 M3 N3. equal(L3::'a,M3) --> equal(not_subclass_element(L3::'a,N3),not_subclass_element(M3::'a,N3))) &      \
-\  (\\<forall>O3 Q3 P3. equal(O3::'a,P3) --> equal(not_subclass_element(Q3::'a,O3),not_subclass_element(Q3::'a,P3))) &      \
-\  (\\<forall>R3 S3 T3. equal(R3::'a,S3) --> equal(ordered_pair(R3::'a,T3),ordered_pair(S3::'a,T3))) &      \
-\  (\\<forall>U3 W3 V3. equal(U3::'a,V3) --> equal(ordered_pair(W3::'a,U3),ordered_pair(W3::'a,V3))) &      \
-\  (\\<forall>X3 Y3. equal(X3::'a,Y3) --> equal(powerClass(X3),powerClass(Y3))) & \
-\  (\\<forall>Z3 A4 B4 C4. equal(Z3::'a,A4) --> equal(rng(Z3::'a,B4,C4),rng(A4::'a,B4,C4))) &   \
-\  (\\<forall>D4 F4 E4 G4. equal(D4::'a,E4) --> equal(rng(F4::'a,D4,G4),rng(F4::'a,E4,G4))) &   \
-\  (\\<forall>H4 J4 K4 I4. equal(H4::'a,I4) --> equal(rng(J4::'a,K4,H4),rng(J4::'a,K4,I4))) &   \
-\  (\\<forall>L4 M4. equal(L4::'a,M4) --> equal(range_of(L4),range_of(M4))) &       \
-\  (\\<forall>N4 O4. equal(N4::'a,O4) --> equal(regular(N4),regular(O4))) & \
-\  (\\<forall>P4 Q4 R4 S4. equal(P4::'a,Q4) --> equal(restrct(P4::'a,R4,S4),restrct(Q4::'a,R4,S4))) &     \
-\  (\\<forall>T4 V4 U4 W4. equal(T4::'a,U4) --> equal(restrct(V4::'a,T4,W4),restrct(V4::'a,U4,W4))) &     \
-\  (\\<forall>X4 Z4 A5 Y4. equal(X4::'a,Y4) --> equal(restrct(Z4::'a,A5,X4),restrct(Z4::'a,A5,Y4))) &     \
-\  (\\<forall>B5 C5. equal(B5::'a,C5) --> equal(rotate(B5),rotate(C5))) &   \
-\  (\\<forall>D5 E5. equal(D5::'a,E5) --> equal(second(D5),second(E5))) &   \
-\  (\\<forall>F5 G5. equal(F5::'a,G5) --> equal(singleton(F5),singleton(G5))) &     \
-\  (\\<forall>H5 I5. equal(H5::'a,I5) --> equal(successor(H5),successor(I5))) &     \
-\  (\\<forall>J5 K5. equal(J5::'a,K5) --> equal(sum_class(J5),sum_class(K5))) &     \
-\  (\\<forall>L5 M5 N5. equal(L5::'a,M5) --> equal(union(L5::'a,N5),union(M5::'a,N5))) &    \
-\  (\\<forall>O5 Q5 P5. equal(O5::'a,P5) --> equal(union(Q5::'a,O5),union(Q5::'a,P5))) &    \
-\  (\\<forall>R5 S5 T5. equal(R5::'a,S5) --> equal(unordered_pair(R5::'a,T5),unordered_pair(S5::'a,T5))) &  \
-\  (\\<forall>U5 W5 V5. equal(U5::'a,V5) --> equal(unordered_pair(W5::'a,U5),unordered_pair(W5::'a,V5))) &  \
-\  (\\<forall>X5 Y5 Z5 A6. equal(X5::'a,Y5) & compatible(X5::'a,Z5,A6) --> compatible(Y5::'a,Z5,A6)) &      \
-\  (\\<forall>B6 D6 C6 E6. equal(B6::'a,C6) & compatible(D6::'a,B6,E6) --> compatible(D6::'a,C6,E6)) &      \
-\  (\\<forall>F6 H6 I6 G6. equal(F6::'a,G6) & compatible(H6::'a,I6,F6) --> compatible(H6::'a,I6,G6)) &      \
-\  (\\<forall>J6 K6. equal(J6::'a,K6) & function(J6) --> function(K6)) &    \
-\  (\\<forall>L6 M6 N6 O6. equal(L6::'a,M6) & homomorphism(L6::'a,N6,O6) --> homomorphism(M6::'a,N6,O6)) &  \
-\  (\\<forall>P6 R6 Q6 S6. equal(P6::'a,Q6) & homomorphism(R6::'a,P6,S6) --> homomorphism(R6::'a,Q6,S6)) &  \
-\  (\\<forall>T6 V6 W6 U6. equal(T6::'a,U6) & homomorphism(V6::'a,W6,T6) --> homomorphism(V6::'a,W6,U6)) &  \
-\  (\\<forall>X6 Y6. equal(X6::'a,Y6) & inductive(X6) --> inductive(Y6)) &  \
-\  (\\<forall>Z6 A7 B7. equal(Z6::'a,A7) & member(Z6::'a,B7) --> member(A7::'a,B7)) &       \
-\  (\\<forall>C7 E7 D7. equal(C7::'a,D7) & member(E7::'a,C7) --> member(E7::'a,D7)) &       \
-\  (\\<forall>F7 G7. equal(F7::'a,G7) & one_to_one(F7) --> one_to_one(G7)) &        \
-\  (\\<forall>H7 I7. equal(H7::'a,I7) & operation(H7) --> operation(I7)) &  \
-\  (\\<forall>J7 K7. equal(J7::'a,K7) & single_valued_class(J7) --> single_valued_class(K7)) &      \
-\  (\\<forall>L7 M7 N7. equal(L7::'a,M7) & subclass(L7::'a,N7) --> subclass(M7::'a,N7)) &   \
-\  (\\<forall>O7 Q7 P7. equal(O7::'a,P7) & subclass(Q7::'a,O7) --> subclass(Q7::'a,P7)) &   \
-\  (\\<forall>X. subclass(compose_class(X),cross_product(universal_class::'a,universal_class))) &   \
-\  (\\<forall>X Y Z. member(ordered_pair(Y::'a,Z),compose_class(X)) --> equal(compos(X::'a,Y),Z)) &    \
-\  (\\<forall>Y Z X. member(ordered_pair(Y::'a,Z),cross_product(universal_class::'a,universal_class)) & equal(compos(X::'a,Y),Z) --> member(ordered_pair(Y::'a,Z),compose_class(X))) & \
-\  (subclass(composition_function::'a,cross_product(universal_class::'a,cross_product(universal_class::'a,universal_class)))) &     \
-\  (\\<forall>X Y Z. member(ordered_pair(X::'a,ordered_pair(Y::'a,Z)),composition_function) --> equal(compos(X::'a,Y),Z)) &        \
-\  (\\<forall>X Y. member(ordered_pair(X::'a,Y),cross_product(universal_class::'a,universal_class)) --> member(ordered_pair(X::'a,ordered_pair(Y::'a,compos(X::'a,Y))),composition_function)) &    \
-\  (subclass(domain_relation::'a,cross_product(universal_class::'a,universal_class))) & \
-\  (\\<forall>X Y. member(ordered_pair(X::'a,Y),domain_relation) --> equal(domain_of(X),Y)) &       \
-\  (\\<forall>X. member(X::'a,universal_class) --> member(ordered_pair(X::'a,domain_of(X)),domain_relation)) &  \
-\  (\\<forall>X. equal(first(not_subclass_element(compos(X::'a,INVERSE(X)),identity_relation)),single_valued1(X))) &       \
-\  (\\<forall>X. equal(second(not_subclass_element(compos(X::'a,INVERSE(X)),identity_relation)),single_valued2(X))) &      \
-\  (\\<forall>X. equal(domain(X::'a,image_(INVERSE(X),singleton(single_valued1(X))),single_valued2(X)),single_valued3(X))) & \
-\  (equal(intersection(complement(compos(element_relation::'a,complement(identity_relation))),element_relation),singleton_relation)) &     \
-\  (subclass(application_function::'a,cross_product(universal_class::'a,cross_product(universal_class::'a,universal_class)))) &     \
-\  (\\<forall>Z Y X. member(ordered_pair(X::'a,ordered_pair(Y::'a,Z)),application_function) --> member(Y::'a,domain_of(X))) &       \
-\  (\\<forall>X Y Z. member(ordered_pair(X::'a,ordered_pair(Y::'a,Z)),application_function) --> equal(apply(X::'a,Y),Z)) &  \
-\  (\\<forall>Z X Y. member(ordered_pair(X::'a,ordered_pair(Y::'a,Z)),cross_product(universal_class::'a,cross_product(universal_class::'a,universal_class))) & member(Y::'a,domain_of(X)) --> member(ordered_pair(X::'a,ordered_pair(Y::'a,apply(X::'a,Y))),application_function)) &    \
-\  (\\<forall>X Y Xf. maps(Xf::'a,X,Y) --> function(Xf)) &  \
-\  (\\<forall>Y Xf X. maps(Xf::'a,X,Y) --> equal(domain_of(Xf),X)) &        \
-\  (\\<forall>X Xf Y. maps(Xf::'a,X,Y) --> subclass(range_of(Xf),Y)) &      \
-\  (\\<forall>Xf Y. function(Xf) & subclass(range_of(Xf),Y) --> maps(Xf::'a,domain_of(Xf),Y)) &     \
-\  (\\<forall>L M. equal(L::'a,M) --> equal(compose_class(L),compose_class(M))) &   \
-\  (\\<forall>N2 O2. equal(N2::'a,O2) --> equal(single_valued1(N2),single_valued1(O2))) &   \
-\  (\\<forall>P2 Q2. equal(P2::'a,Q2) --> equal(single_valued2(P2),single_valued2(Q2))) &   \
-\  (\\<forall>R2 S2. equal(R2::'a,S2) --> equal(single_valued3(R2),single_valued3(S2))) &   \
-\  (\\<forall>X2 Y2 Z2 A3. equal(X2::'a,Y2) & maps(X2::'a,Z2,A3) --> maps(Y2::'a,Z2,A3)) &  \
-\  (\\<forall>B3 D3 C3 E3. equal(B3::'a,C3) & maps(D3::'a,B3,E3) --> maps(D3::'a,C3,E3)) &  \
-\  (\\<forall>F3 H3 I3 G3. equal(F3::'a,G3) & maps(H3::'a,I3,F3) --> maps(H3::'a,I3,G3)) &  \
-\  (\\<forall>X. equal(union(X::'a,INVERSE(X)),symmetrization_of(X))) &     \
-\  (\\<forall>X Y. irreflexive(X::'a,Y) --> subclass(restrct(X::'a,Y,Y),complement(identity_relation))) &      \
-\  (\\<forall>X Y. subclass(restrct(X::'a,Y,Y),complement(identity_relation)) --> irreflexive(X::'a,Y)) &      \
-\  (\\<forall>Y X. connected(X::'a,Y) --> subclass(cross_product(Y::'a,Y),union(identity_relation::'a,symmetrization_of(X)))) &     \
-\  (\\<forall>X Y. subclass(cross_product(Y::'a,Y),union(identity_relation::'a,symmetrization_of(X))) --> connected(X::'a,Y)) &     \
-\  (\\<forall>Xr Y. transitive(Xr::'a,Y) --> subclass(compos(restrct(Xr::'a,Y,Y),restrct(Xr::'a,Y,Y)),restrct(Xr::'a,Y,Y))) &       \
-\  (\\<forall>Xr Y. subclass(compos(restrct(Xr::'a,Y,Y),restrct(Xr::'a,Y,Y)),restrct(Xr::'a,Y,Y)) --> transitive(Xr::'a,Y)) &       \
-\  (\\<forall>Xr Y. asymmetric(Xr::'a,Y) --> equal(restrct(intersection(Xr::'a,INVERSE(Xr)),Y,Y),null_class)) &        \
-\  (\\<forall>Xr Y. equal(restrct(intersection(Xr::'a,INVERSE(Xr)),Y,Y),null_class) --> asymmetric(Xr::'a,Y)) &        \
-\  (\\<forall>Xr Y Z. equal(segment(Xr::'a,Y,Z),domain_of(restrct(Xr::'a,Y,singleton(Z))))) &  \
-\  (\\<forall>X Y. well_ordering(X::'a,Y) --> connected(X::'a,Y)) &     \
-\  (\\<forall>Y Xr U. well_ordering(Xr::'a,Y) & subclass(U::'a,Y) --> equal(U::'a,null_class) | member(least(Xr::'a,U),U)) &   \
-\  (\\<forall>Y V Xr U. well_ordering(Xr::'a,Y) & subclass(U::'a,Y) & member(V::'a,U) --> member(least(Xr::'a,U),U)) &  \
-\  (\\<forall>Y Xr U. well_ordering(Xr::'a,Y) & subclass(U::'a,Y) --> equal(segment(Xr::'a,U,least(Xr::'a,U)),null_class)) &    \
-\  (\\<forall>Y V U Xr. ~(well_ordering(Xr::'a,Y) & subclass(U::'a,Y) & member(V::'a,U) & member(ordered_pair(V::'a,least(Xr::'a,U)),Xr))) &        \
-\  (\\<forall>Xr Y. connected(Xr::'a,Y) & equal(not_well_ordering(Xr::'a,Y),null_class) --> well_ordering(Xr::'a,Y)) &      \
-\  (\\<forall>Xr Y. connected(Xr::'a,Y) --> subclass(not_well_ordering(Xr::'a,Y),Y) | well_ordering(Xr::'a,Y)) &   \
-\  (\\<forall>V Xr Y. member(V::'a,not_well_ordering(Xr::'a,Y)) & equal(segment(Xr::'a,not_well_ordering(Xr::'a,Y),V),null_class) & connected(Xr::'a,Y) --> well_ordering(Xr::'a,Y)) &  \
-\  (\\<forall>Xr Y Z. section(Xr::'a,Y,Z) --> subclass(Y::'a,Z)) &      \
-\  (\\<forall>Xr Z Y. section(Xr::'a,Y,Z) --> subclass(domain_of(restrct(Xr::'a,Z,Y)),Y)) &    \
-\  (\\<forall>Xr Y Z. subclass(Y::'a,Z) & subclass(domain_of(restrct(Xr::'a,Z,Y)),Y) --> section(Xr::'a,Y,Z)) &    \
-\  (\\<forall>X. member(X::'a,ordinal_numbers) --> well_ordering(element_relation::'a,X)) &     \
-\  (\\<forall>X. member(X::'a,ordinal_numbers) --> subclass(sum_class(X),X)) &      \
-\  (\\<forall>X. well_ordering(element_relation::'a,X) & subclass(sum_class(X),X) & member(X::'a,universal_class) --> member(X::'a,ordinal_numbers)) &      \
-\  (\\<forall>X. well_ordering(element_relation::'a,X) & subclass(sum_class(X),X) --> member(X::'a,ordinal_numbers) | equal(X::'a,ordinal_numbers)) &      \
-\  (equal(union(singleton(null_class),image_(successor_relation::'a,ordinal_numbers)),kind_1_ordinals)) &    \
-\  (equal(intersection(complement(kind_1_ordinals),ordinal_numbers),limit_ordinals)) &  \
-\  (\\<forall>X. subclass(rest_of(X),cross_product(universal_class::'a,universal_class))) & \
-\  (\\<forall>V U X. member(ordered_pair(U::'a,V),rest_of(X)) --> member(U::'a,domain_of(X))) & \
-\  (\\<forall>X U V. member(ordered_pair(U::'a,V),rest_of(X)) --> equal(restrct(X::'a,U,universal_class),V)) & \
-\  (\\<forall>U V X. member(U::'a,domain_of(X)) & equal(restrct(X::'a,U,universal_class),V) --> member(ordered_pair(U::'a,V),rest_of(X))) &        \
-\  (subclass(rest_relation::'a,cross_product(universal_class::'a,universal_class))) &   \
-\  (\\<forall>X Y. member(ordered_pair(X::'a,Y),rest_relation) --> equal(rest_of(X),Y)) &   \
-\  (\\<forall>X. member(X::'a,universal_class) --> member(ordered_pair(X::'a,rest_of(X)),rest_relation)) &      \
-\  (\\<forall>X Z. member(X::'a,recursion_equation_functions(Z)) --> function(Z)) & \
-\  (\\<forall>Z X. member(X::'a,recursion_equation_functions(Z)) --> function(X)) & \
-\  (\\<forall>Z X. member(X::'a,recursion_equation_functions(Z)) --> member(domain_of(X),ordinal_numbers)) &        \
-\  (\\<forall>Z X. member(X::'a,recursion_equation_functions(Z)) --> equal(compos(Z::'a,rest_of(X)),X)) &      \
-\  (\\<forall>X Z. function(Z) & function(X) & member(domain_of(X),ordinal_numbers) & equal(compos(Z::'a,rest_of(X)),X) --> member(X::'a,recursion_equation_functions(Z))) &   \
-\  (subclass(union_of_range_map::'a,cross_product(universal_class::'a,universal_class))) &      \
-\  (\\<forall>X Y. member(ordered_pair(X::'a,Y),union_of_range_map) --> equal(sum_class(range_of(X)),Y)) &  \
-\  (\\<forall>X Y. member(ordered_pair(X::'a,Y),cross_product(universal_class::'a,universal_class)) & equal(sum_class(range_of(X)),Y) --> member(ordered_pair(X::'a,Y),union_of_range_map)) &       \
-\  (\\<forall>X Y. equal(apply(recursion(X::'a,successor_relation,union_of_range_map),Y),ordinal_add(X::'a,Y))) &       \
-\  (\\<forall>X Y. equal(recursion(null_class::'a,apply(add_relation::'a,X),union_of_range_map),ordinal_multiply(X::'a,Y))) &       \
-\  (\\<forall>X. member(X::'a,omega) --> equal(integer_of(X),X)) &  \
-\  (\\<forall>X. member(X::'a,omega) | equal(integer_of(X),null_class)) &  \
-\  (\\<forall>D E. equal(D::'a,E) --> equal(integer_of(D),integer_of(E))) & \
-\  (\\<forall>F' G H. equal(F'::'a,G) --> equal(least(F'::'a,H),least(G::'a,H))) &  \
-\  (\\<forall>I' K' J. equal(I'::'a,J) --> equal(least(K'::'a,I'),least(K'::'a,J))) &       \
-\  (\\<forall>L M N. equal(L::'a,M) --> equal(not_well_ordering(L::'a,N),not_well_ordering(M::'a,N))) &     \
-\  (\\<forall>O_ Q P. equal(O_::'a,P) --> equal(not_well_ordering(Q::'a,O_),not_well_ordering(Q::'a,P))) &     \
-\  (\\<forall>R S' T'. equal(R::'a,S') --> equal(ordinal_add(R::'a,T'),ordinal_add(S'::'a,T'))) &   \
-\  (\\<forall>U W V. equal(U::'a,V) --> equal(ordinal_add(W::'a,U),ordinal_add(W::'a,V))) & \
-\  (\\<forall>X Y Z. equal(X::'a,Y) --> equal(ordinal_multiply(X::'a,Z),ordinal_multiply(Y::'a,Z))) &       \
-\  (\\<forall>A1 C1 B1. equal(A1::'a,B1) --> equal(ordinal_multiply(C1::'a,A1),ordinal_multiply(C1::'a,B1))) &      \
-\  (\\<forall>F1 G1 H1 I1. equal(F1::'a,G1) --> equal(recursion(F1::'a,H1,I1),recursion(G1::'a,H1,I1))) &   \
-\  (\\<forall>J1 L1 K1 M1. equal(J1::'a,K1) --> equal(recursion(L1::'a,J1,M1),recursion(L1::'a,K1,M1))) &   \
-\  (\\<forall>N1 P1 Q1 O1. equal(N1::'a,O1) --> equal(recursion(P1::'a,Q1,N1),recursion(P1::'a,Q1,O1))) &   \
-\  (\\<forall>R1 S1. equal(R1::'a,S1) --> equal(recursion_equation_functions(R1),recursion_equation_functions(S1))) &       \
-\  (\\<forall>T1 U1. equal(T1::'a,U1) --> equal(rest_of(T1),rest_of(U1))) & \
-\  (\\<forall>V1 W1 X1 Y1. equal(V1::'a,W1) --> equal(segment(V1::'a,X1,Y1),segment(W1::'a,X1,Y1))) &       \
-\  (\\<forall>Z1 B2 A2 C2. equal(Z1::'a,A2) --> equal(segment(B2::'a,Z1,C2),segment(B2::'a,A2,C2))) &       \
-\  (\\<forall>D2 F2 G2 E2. equal(D2::'a,E2) --> equal(segment(F2::'a,G2,D2),segment(F2::'a,G2,E2))) &       \
-\  (\\<forall>H2 I2. equal(H2::'a,I2) --> equal(symmetrization_of(H2),symmetrization_of(I2))) &     \
-\  (\\<forall>J2 K2 L2. equal(J2::'a,K2) & asymmetric(J2::'a,L2) --> asymmetric(K2::'a,L2)) &       \
-\  (\\<forall>M2 O2 N2. equal(M2::'a,N2) & asymmetric(O2::'a,M2) --> asymmetric(O2::'a,N2)) &       \
-\  (\\<forall>P2 Q2 R2. equal(P2::'a,Q2) & connected(P2::'a,R2) --> connected(Q2::'a,R2)) & \
-\  (\\<forall>S2 U2 T2. equal(S2::'a,T2) & connected(U2::'a,S2) --> connected(U2::'a,T2)) & \
-\  (\\<forall>V2 W2 X2. equal(V2::'a,W2) & irreflexive(V2::'a,X2) --> irreflexive(W2::'a,X2)) &     \
-\  (\\<forall>Y2 A3 Z2. equal(Y2::'a,Z2) & irreflexive(A3::'a,Y2) --> irreflexive(A3::'a,Z2)) &     \
-\  (\\<forall>B3 C3 D3 E3. equal(B3::'a,C3) & section(B3::'a,D3,E3) --> section(C3::'a,D3,E3)) &    \
-\  (\\<forall>F3 H3 G3 I3. equal(F3::'a,G3) & section(H3::'a,F3,I3) --> section(H3::'a,G3,I3)) &    \
-\  (\\<forall>J3 L3 M3 K3. equal(J3::'a,K3) & section(L3::'a,M3,J3) --> section(L3::'a,M3,K3)) &    \
-\  (\\<forall>N3 O3 P3. equal(N3::'a,O3) & transitive(N3::'a,P3) --> transitive(O3::'a,P3)) &       \
-\  (\\<forall>Q3 S3 R3. equal(Q3::'a,R3) & transitive(S3::'a,Q3) --> transitive(S3::'a,R3)) &       \
-\  (\\<forall>T3 U3 V3. equal(T3::'a,U3) & well_ordering(T3::'a,V3) --> well_ordering(U3::'a,V3)) & \
-\  (\\<forall>W3 Y3 X3. equal(W3::'a,X3) & well_ordering(Y3::'a,W3) --> well_ordering(Y3::'a,X3)) & \
-\  (~function(z)) &     \
-\  (~equal(recursion_equation_functions(z),null_class)) --> False",
+val NUM228_1 = prove
+ (EQU001_0_ax ^ "&" ^ SET004_0_ax ^ "&" ^ SET004_0_eq ^ "&" ^ 
+  SET004_1_ax ^ "&" ^ SET004_1_eq ^ "&" ^ NUM004_0_ax ^ "&" ^ NUM004_0_eq ^
+ " & (~function(z)) &     \
+\    (~equal(recursion_equation_functions(z),null_class)) --> False",
   meson_tac 1);
 
 
 (*4868 inferences so far.  Searching to depth 12.  4.3 secs*)
-val PLA002_1 = prove_hard
+val PLA002_1 = prove
  ("(\\<forall>Situation1 Situation2. warm(Situation1) | cold(Situation2)) &    \
 \  (\\<forall>Situation. at(a::'a,Situation) --> at(b::'a,walk(b::'a,Situation))) & \
 \  (\\<forall>Situation. at(a::'a,Situation) --> at(b::'a,drive(b::'a,Situation))) &        \
@@ -2363,9 +1661,8 @@ val PLA002_1 = prove_hard
 \  (\\<forall>S'. ~at(a::'a,S')) --> False",
   meson_tac 1);
 
-(*190 inferences so far.  Searching to depth 10.  0.6 secs*)
-val PLA006_1 = prove
- ("(\\<forall>X Y State. holds(X::'a,State) & holds(Y::'a,State) --> holds(and'(X::'a,Y),State)) &  \
+val PLA001_0_ax =
+  "(\\<forall>X Y State. holds(X::'a,State) & holds(Y::'a,State) --> holds(and'(X::'a,Y),State)) &  \
 \  (\\<forall>State X. holds(EMPTY::'a,State) & holds(clear(X),State) & differ(X::'a,table) --> holds(holding(X),do(pickup(X),State))) &        \
 \  (\\<forall>Y X State. holds(on(X::'a,Y),State) & holds(clear(X),State) & holds(EMPTY::'a,State) --> holds(clear(Y),do(pickup(X),State))) &   \
 \  (\\<forall>Y State X Z. holds(on(X::'a,Y),State) & differ(X::'a,Z) --> holds(on(X::'a,Y),do(pickup(Z),State))) & \
@@ -2374,8 +1671,10 @@ val PLA006_1 = prove
 \  (\\<forall>X Y State. holds(holding(X),State) & holds(clear(Y),State) --> holds(on(X::'a,Y),do(putdown(X::'a,Y),State))) &   \
 \  (\\<forall>X Y State. holds(holding(X),State) & holds(clear(Y),State) --> holds(clear(X),do(putdown(X::'a,Y),State))) &  \
 \  (\\<forall>Z W X Y State. holds(on(X::'a,Y),State) --> holds(on(X::'a,Y),do(putdown(Z::'a,W),State))) &  \
-\  (\\<forall>X State Z Y. holds(clear(Z),State) & differ(Z::'a,Y) --> holds(clear(Z),do(putdown(X::'a,Y),State))) &    \
-\  (\\<forall>Y X. differ(Y::'a,X) --> differ(X::'a,Y)) &       \
+\  (\\<forall>X State Z Y. holds(clear(Z),State) & differ(Z::'a,Y) --> holds(clear(Z),do(putdown(X::'a,Y),State)))";
+
+val PLA001_1_ax =
+  "(\\<forall>Y X. differ(Y::'a,X) --> differ(X::'a,Y)) &       \
 \  (differ(a::'a,b)) &      \
 \  (differ(a::'a,c)) &      \
 \  (differ(a::'a,d)) &      \
@@ -2394,113 +1693,30 @@ val PLA006_1 = prove
 \  (holds(clear(b),s0)) &       \
 \  (holds(clear(c),s0)) &       \
 \  (holds(EMPTY::'a,s0)) &  \
-\  (\\<forall>State. holds(clear(table),State)) &       \
-\  (\\<forall>State. ~holds(on(c::'a,table),State)) --> False",
+\  (\\<forall>State. holds(clear(table),State))";
+
+(*190 inferences so far.  Searching to depth 10.  0.6 secs*)
+val PLA006_1 = prove
+ (PLA001_0_ax ^ "&" ^ PLA001_1_ax ^ 
+  "& (\\<forall>State. ~holds(on(c::'a,table),State)) --> False",
   meson_tac 1);
 
 (*190 inferences so far.  Searching to depth 10.  0.5 secs*)
 val PLA017_1 = prove
- ("(\\<forall>X Y State. holds(X::'a,State) & holds(Y::'a,State) --> holds(and'(X::'a,Y),State)) &  \
-\  (\\<forall>State X. holds(EMPTY::'a,State) & holds(clear(X),State) & differ(X::'a,table) --> holds(holding(X),do(pickup(X),State))) &        \
-\  (\\<forall>Y X State. holds(on(X::'a,Y),State) & holds(clear(X),State) & holds(EMPTY::'a,State) --> holds(clear(Y),do(pickup(X),State))) &   \
-\  (\\<forall>Y State X Z. holds(on(X::'a,Y),State) & differ(X::'a,Z) --> holds(on(X::'a,Y),do(pickup(Z),State))) & \
-\  (\\<forall>State X Z. holds(clear(X),State) & differ(X::'a,Z) --> holds(clear(X),do(pickup(Z),State))) & \
-\  (\\<forall>X Y State. holds(holding(X),State) & holds(clear(Y),State) --> holds(EMPTY::'a,do(putdown(X::'a,Y),State))) &     \
-\  (\\<forall>X Y State. holds(holding(X),State) & holds(clear(Y),State) --> holds(on(X::'a,Y),do(putdown(X::'a,Y),State))) &   \
-\  (\\<forall>X Y State. holds(holding(X),State) & holds(clear(Y),State) --> holds(clear(X),do(putdown(X::'a,Y),State))) &  \
-\  (\\<forall>Z W X Y State. holds(on(X::'a,Y),State) --> holds(on(X::'a,Y),do(putdown(Z::'a,W),State))) &  \
-\  (\\<forall>X State Z Y. holds(clear(Z),State) & differ(Z::'a,Y) --> holds(clear(Z),do(putdown(X::'a,Y),State))) &    \
-\  (\\<forall>Y X. differ(Y::'a,X) --> differ(X::'a,Y)) &       \
-\  (differ(a::'a,b)) &      \
-\  (differ(a::'a,c)) &      \
-\  (differ(a::'a,d)) &      \
-\  (differ(a::'a,table)) &  \
-\  (differ(b::'a,c)) &      \
-\  (differ(b::'a,d)) &      \
-\  (differ(b::'a,table)) &  \
-\  (differ(c::'a,d)) &      \
-\  (differ(c::'a,table)) &  \
-\  (differ(d::'a,table)) &  \
-\  (holds(on(a::'a,table),s0)) &    \
-\  (holds(on(b::'a,table),s0)) &    \
-\  (holds(on(c::'a,d),s0)) &        \
-\  (holds(on(d::'a,table),s0)) &    \
-\  (holds(clear(a),s0)) &       \
-\  (holds(clear(b),s0)) &       \
-\  (holds(clear(c),s0)) &       \
-\  (holds(EMPTY::'a,s0)) &  \
-\  (\\<forall>State. holds(clear(table),State)) &       \
-\  (\\<forall>State. ~holds(on(a::'a,c),State)) --> False",
+ (PLA001_0_ax ^ "&" ^ PLA001_1_ax ^ 
+  "& (\\<forall>State. ~holds(on(a::'a,c),State)) --> False",
   meson_tac 1);
 
 (*13732 inferences so far.  Searching to depth 16.  9.8 secs*)
-val PLA022_1 = prove_hard
- ("(\\<forall>X Y State. holds(X::'a,State) & holds(Y::'a,State) --> holds(and'(X::'a,Y),State)) &  \
-\  (\\<forall>State X. holds(EMPTY::'a,State) & holds(clear(X),State) & differ(X::'a,table) --> holds(holding(X),do(pickup(X),State))) &        \
-\  (\\<forall>Y X State. holds(on(X::'a,Y),State) & holds(clear(X),State) & holds(EMPTY::'a,State) --> holds(clear(Y),do(pickup(X),State))) &   \
-\  (\\<forall>Y State X Z. holds(on(X::'a,Y),State) & differ(X::'a,Z) --> holds(on(X::'a,Y),do(pickup(Z),State))) & \
-\  (\\<forall>State X Z. holds(clear(X),State) & differ(X::'a,Z) --> holds(clear(X),do(pickup(Z),State))) & \
-\  (\\<forall>X Y State. holds(holding(X),State) & holds(clear(Y),State) --> holds(EMPTY::'a,do(putdown(X::'a,Y),State))) &     \
-\  (\\<forall>X Y State. holds(holding(X),State) & holds(clear(Y),State) --> holds(on(X::'a,Y),do(putdown(X::'a,Y),State))) &   \
-\  (\\<forall>X Y State. holds(holding(X),State) & holds(clear(Y),State) --> holds(clear(X),do(putdown(X::'a,Y),State))) &  \
-\  (\\<forall>Z W X Y State. holds(on(X::'a,Y),State) --> holds(on(X::'a,Y),do(putdown(Z::'a,W),State))) &  \
-\  (\\<forall>X State Z Y. holds(clear(Z),State) & differ(Z::'a,Y) --> holds(clear(Z),do(putdown(X::'a,Y),State))) &    \
-\  (\\<forall>Y X. differ(Y::'a,X) --> differ(X::'a,Y)) &       \
-\  (differ(a::'a,b)) &      \
-\  (differ(a::'a,c)) &      \
-\  (differ(a::'a,d)) &      \
-\  (differ(a::'a,table)) &  \
-\  (differ(b::'a,c)) &      \
-\  (differ(b::'a,d)) &      \
-\  (differ(b::'a,table)) &  \
-\  (differ(c::'a,d)) &      \
-\  (differ(c::'a,table)) &  \
-\  (differ(d::'a,table)) &  \
-\  (holds(on(a::'a,table),s0)) &    \
-\  (holds(on(b::'a,table),s0)) &    \
-\  (holds(on(c::'a,d),s0)) &        \
-\  (holds(on(d::'a,table),s0)) &    \
-\  (holds(clear(a),s0)) &       \
-\  (holds(clear(b),s0)) &       \
-\  (holds(clear(c),s0)) &       \
-\  (holds(EMPTY::'a,s0)) &  \
-\  (\\<forall>State. holds(clear(table),State)) &       \
-\  (\\<forall>State. ~holds(and'(on(c::'a,d),on(a::'a,c)),State)) --> False",
+val PLA022_1 = prove
+ (PLA001_0_ax ^ "&" ^ PLA001_1_ax ^ 
+  "& (\\<forall>State. ~holds(and'(on(c::'a,d),on(a::'a,c)),State)) --> False",
   meson_tac 1);
 
 (*217 inferences so far.  Searching to depth 13.  0.7 secs*)
 val PLA022_2 = prove
- ("(\\<forall>X Y State. holds(X::'a,State) & holds(Y::'a,State) --> holds(and'(X::'a,Y),State)) &  \
-\  (\\<forall>State X. holds(EMPTY::'a,State) & holds(clear(X),State) & differ(X::'a,table) --> holds(holding(X),do(pickup(X),State))) &        \
-\  (\\<forall>Y X State. holds(on(X::'a,Y),State) & holds(clear(X),State) & holds(EMPTY::'a,State) --> holds(clear(Y),do(pickup(X),State))) &   \
-\  (\\<forall>Y State X Z. holds(on(X::'a,Y),State) & differ(X::'a,Z) --> holds(on(X::'a,Y),do(pickup(Z),State))) & \
-\  (\\<forall>State X Z. holds(clear(X),State) & differ(X::'a,Z) --> holds(clear(X),do(pickup(Z),State))) & \
-\  (\\<forall>X Y State. holds(holding(X),State) & holds(clear(Y),State) --> holds(EMPTY::'a,do(putdown(X::'a,Y),State))) &     \
-\  (\\<forall>X Y State. holds(holding(X),State) & holds(clear(Y),State) --> holds(on(X::'a,Y),do(putdown(X::'a,Y),State))) &   \
-\  (\\<forall>X Y State. holds(holding(X),State) & holds(clear(Y),State) --> holds(clear(X),do(putdown(X::'a,Y),State))) &  \
-\  (\\<forall>Z W X Y State. holds(on(X::'a,Y),State) --> holds(on(X::'a,Y),do(putdown(Z::'a,W),State))) &  \
-\  (\\<forall>X State Z Y. holds(clear(Z),State) & differ(Z::'a,Y) --> holds(clear(Z),do(putdown(X::'a,Y),State))) &    \
-\  (\\<forall>Y X. differ(Y::'a,X) --> differ(X::'a,Y)) &       \
-\  (differ(a::'a,b)) &      \
-\  (differ(a::'a,c)) &      \
-\  (differ(a::'a,d)) &      \
-\  (differ(a::'a,table)) &  \
-\  (differ(b::'a,c)) &      \
-\  (differ(b::'a,d)) &      \
-\  (differ(b::'a,table)) &  \
-\  (differ(c::'a,d)) &      \
-\  (differ(c::'a,table)) &  \
-\  (differ(d::'a,table)) &  \
-\  (holds(on(a::'a,table),s0)) &    \
-\  (holds(on(b::'a,table),s0)) &    \
-\  (holds(on(c::'a,d),s0)) &        \
-\  (holds(on(d::'a,table),s0)) &    \
-\  (holds(clear(a),s0)) &       \
-\  (holds(clear(b),s0)) &       \
-\  (holds(clear(c),s0)) &       \
-\  (holds(EMPTY::'a,s0)) &  \
-\  (\\<forall>State. holds(clear(table),State)) &       \
-\  (\\<forall>State. ~holds(and'(on(a::'a,c),on(c::'a,d)),State)) --> False",
+ (PLA001_0_ax ^ "&" ^ PLA001_1_ax ^ 
+  "& (\\<forall>State. ~holds(and'(on(a::'a,c),on(c::'a,d)),State)) --> False",
   meson_tac 1);
 
 (*948 inferences so far.  Searching to depth 18.  1.1 secs*)
@@ -2521,12 +1737,9 @@ val PRV001_1 = prove
 \  (\\<forall>W. ~(q4(a::'a,b,W) & less_or_equal(a::'a,W) & less_or_equal(b::'a,W) & less_or_equal(W::'a,b))) --> False",
   meson_tac 1);
 
-(*21 inferences so far.  Searching to depth 5.  0.4 secs*)
-val PRV003_1 = prove
- ("(\\<forall>X. equal(X::'a,X)) &  \
-\  (\\<forall>Y X. equal(X::'a,Y) --> equal(Y::'a,X)) & \
-\  (\\<forall>Y X Z. equal(X::'a,Y) & equal(Y::'a,Z) --> equal(X::'a,Z)) &  \
-\  (\\<forall>X. equal(predecessor(successor(X)),X)) &  \
+(*PRV is now called SWV (software verification) *)
+val SWV001_1_ax =
+  "(\\<forall>X. equal(predecessor(successor(X)),X)) &  \
 \  (\\<forall>X. equal(successor(predecessor(X)),X)) &  \
 \  (\\<forall>X Y. equal(predecessor(X),predecessor(Y)) --> equal(X::'a,Y)) &       \
 \  (\\<forall>X Y. equal(successor(X),successor(Y)) --> equal(X::'a,Y)) &   \
@@ -2537,10 +1750,16 @@ val PRV003_1 = prove
 \  (\\<forall>X. ~LESS_THAN(X::'a,X)) &     \
 \  (\\<forall>Y X. ~(LESS_THAN(X::'a,Y) & LESS_THAN(Y::'a,X))) &        \
 \  (\\<forall>Y X Z. equal(X::'a,Y) & LESS_THAN(X::'a,Z) --> LESS_THAN(Y::'a,Z)) &  \
-\  (\\<forall>Y Z X. equal(X::'a,Y) & LESS_THAN(Z::'a,X) --> LESS_THAN(Z::'a,Y)) &  \
-\  (\\<forall>X Y. equal(X::'a,Y) --> equal(predecessor(X),predecessor(Y))) &       \
+\  (\\<forall>Y Z X. equal(X::'a,Y) & LESS_THAN(Z::'a,X) --> LESS_THAN(Z::'a,Y))";
+
+val SWV001_0_eq =
+  "(\\<forall>X Y. equal(X::'a,Y) --> equal(predecessor(X),predecessor(Y))) &       \
 \  (\\<forall>X Y. equal(X::'a,Y) --> equal(successor(X),successor(Y))) &   \
-\  (\\<forall>X Y. equal(X::'a,Y) --> equal(a(X),a(Y))) &   \
+\  (\\<forall>X Y. equal(X::'a,Y) --> equal(a(X),a(Y)))";
+
+(*21 inferences so far.  Searching to depth 5.  0.4 secs*)
+val PRV003_1 = prove
+ (EQU001_0_ax ^ "&" ^ SWV001_1_ax ^ "&" ^ SWV001_0_eq ^ " &   \
 \  (~LESS_THAN(n::'a,j)) &  \
 \  (LESS_THAN(k::'a,j)) &   \
 \  (~LESS_THAN(k::'a,i)) &  \
@@ -2554,24 +1773,7 @@ val PRV003_1 = prove
 
 (*584 inferences so far.  Searching to depth 7.  1.1 secs*)
 val PRV005_1 = prove
- ("(\\<forall>X. equal(X::'a,X)) &  \
-\  (\\<forall>Y X. equal(X::'a,Y) --> equal(Y::'a,X)) & \
-\  (\\<forall>Y X Z. equal(X::'a,Y) & equal(Y::'a,Z) --> equal(X::'a,Z)) &  \
-\  (\\<forall>X. equal(predecessor(successor(X)),X)) &  \
-\  (\\<forall>X. equal(successor(predecessor(X)),X)) &  \
-\  (\\<forall>X Y. equal(predecessor(X),predecessor(Y)) --> equal(X::'a,Y)) &       \
-\  (\\<forall>X Y. equal(successor(X),successor(Y)) --> equal(X::'a,Y)) &   \
-\  (\\<forall>X. LESS_THAN(predecessor(X),X)) & \
-\  (\\<forall>X. LESS_THAN(X::'a,successor(X))) &   \
-\  (\\<forall>X Y Z. LESS_THAN(X::'a,Y) & LESS_THAN(Y::'a,Z) --> LESS_THAN(X::'a,Z)) &      \
-\  (\\<forall>X Y. LESS_THAN(X::'a,Y) | LESS_THAN(Y::'a,X) | equal(X::'a,Y)) &    \
-\  (\\<forall>X. ~LESS_THAN(X::'a,X)) &     \
-\  (\\<forall>Y X. ~(LESS_THAN(X::'a,Y) & LESS_THAN(Y::'a,X))) &        \
-\  (\\<forall>Y X Z. equal(X::'a,Y) & LESS_THAN(X::'a,Z) --> LESS_THAN(Y::'a,Z)) &  \
-\  (\\<forall>Y Z X. equal(X::'a,Y) & LESS_THAN(Z::'a,X) --> LESS_THAN(Z::'a,Y)) &  \
-\  (\\<forall>X Y. equal(X::'a,Y) --> equal(predecessor(X),predecessor(Y))) &       \
-\  (\\<forall>X Y. equal(X::'a,Y) --> equal(successor(X),successor(Y))) &   \
-\  (\\<forall>X Y. equal(X::'a,Y) --> equal(a(X),a(Y))) &   \
+ (EQU001_0_ax ^ "&" ^ SWV001_1_ax ^ "&" ^ SWV001_0_eq ^ " &   \
 \  (~LESS_THAN(n::'a,k)) &  \
 \  (~LESS_THAN(k::'a,l)) &  \
 \  (~LESS_THAN(k::'a,i)) &  \
@@ -2584,25 +1786,8 @@ val PRV005_1 = prove
   meson_tac 1);
 
 (*2343 inferences so far.  Searching to depth 8.  3.5 secs*)
-val PRV006_1 = prove_hard
- ("(\\<forall>X. equal(X::'a,X)) &  \
-\  (\\<forall>Y X. equal(X::'a,Y) --> equal(Y::'a,X)) & \
-\  (\\<forall>Y X Z. equal(X::'a,Y) & equal(Y::'a,Z) --> equal(X::'a,Z)) &  \
-\  (\\<forall>X. equal(predecessor(successor(X)),X)) &  \
-\  (\\<forall>X. equal(successor(predecessor(X)),X)) &  \
-\  (\\<forall>X Y. equal(predecessor(X),predecessor(Y)) --> equal(X::'a,Y)) &       \
-\  (\\<forall>X Y. equal(successor(X),successor(Y)) --> equal(X::'a,Y)) &   \
-\  (\\<forall>X. LESS_THAN(predecessor(X),X)) & \
-\  (\\<forall>X. LESS_THAN(X::'a,successor(X))) &   \
-\  (\\<forall>X Y Z. LESS_THAN(X::'a,Y) & LESS_THAN(Y::'a,Z) --> LESS_THAN(X::'a,Z)) &      \
-\  (\\<forall>X Y. LESS_THAN(X::'a,Y) | LESS_THAN(Y::'a,X) | equal(X::'a,Y)) &    \
-\  (\\<forall>X. ~LESS_THAN(X::'a,X)) &     \
-\  (\\<forall>Y X. ~(LESS_THAN(X::'a,Y) & LESS_THAN(Y::'a,X))) &        \
-\  (\\<forall>Y X Z. equal(X::'a,Y) & LESS_THAN(X::'a,Z) --> LESS_THAN(Y::'a,Z)) &  \
-\  (\\<forall>Y Z X. equal(X::'a,Y) & LESS_THAN(Z::'a,X) --> LESS_THAN(Z::'a,Y)) &  \
-\  (\\<forall>X Y. equal(X::'a,Y) --> equal(predecessor(X),predecessor(Y))) &       \
-\  (\\<forall>X Y. equal(X::'a,Y) --> equal(successor(X),successor(Y))) &   \
-\  (\\<forall>X Y. equal(X::'a,Y) --> equal(a(X),a(Y))) &   \
+val PRV006_1 = prove
+ (EQU001_0_ax ^ "&" ^ SWV001_1_ax ^ "&" ^ SWV001_0_eq ^ " &   \
 \  (~LESS_THAN(n::'a,m)) &  \
 \  (LESS_THAN(i::'a,m)) &   \
 \  (LESS_THAN(i::'a,n)) &   \
@@ -2650,9 +1835,7 @@ val PUZ012_1 = prove
 
 (*35 inferences so far.  Searching to depth 5.  3.2 secs*)
 val PUZ020_1 = prove
- ("(\\<forall>X. equal(X::'a,X)) &  \
-\  (\\<forall>Y X. equal(X::'a,Y) --> equal(Y::'a,X)) & \
-\  (\\<forall>Y X Z. equal(X::'a,Y) & equal(Y::'a,Z) --> equal(X::'a,Z)) &  \
+ (EQU001_0_ax ^ " &  \
 \  (\\<forall>A B. equal(A::'a,B) --> equal(statement_by(A),statement_by(B))) &     \
 \  (\\<forall>X. person(X) --> knight(X) | knave(X)) & \
 \  (\\<forall>X. ~(person(X) & knight(X) & knave(X))) & \
@@ -2729,6 +1912,38 @@ val PUZ029_1 = prove
 \  (balloonist(piggy)) --> False",
   meson_tac 1);
 
+val RNG001_0_ax =
+  "(\\<forall>X. sum(additive_identity::'a,X,X)) &  \
+\  (\\<forall>X. sum(X::'a,additive_identity,X)) &  \
+\  (\\<forall>X Y. product(X::'a,Y,multiply(X::'a,Y))) &        \
+\  (\\<forall>X Y. sum(X::'a,Y,add(X::'a,Y))) & \
+\  (\\<forall>X. sum(additive_inverse(X),X,additive_identity)) &        \
+\  (\\<forall>X. sum(X::'a,additive_inverse(X),additive_identity)) &        \
+\  (\\<forall>Y U Z X V W. sum(X::'a,Y,U) & sum(Y::'a,Z,V) & sum(U::'a,Z,W) --> sum(X::'a,V,W)) &       \
+\  (\\<forall>Y X V U Z W. sum(X::'a,Y,U) & sum(Y::'a,Z,V) & sum(X::'a,V,W) --> sum(U::'a,Z,W)) &       \
+\  (\\<forall>Y X Z. sum(X::'a,Y,Z) --> sum(Y::'a,X,Z)) &       \
+\  (\\<forall>Y U Z X V W. product(X::'a,Y,U) & product(Y::'a,Z,V) & product(U::'a,Z,W) --> product(X::'a,V,W)) &       \
+\  (\\<forall>Y X V U Z W. product(X::'a,Y,U) & product(Y::'a,Z,V) & product(X::'a,V,W) --> product(U::'a,Z,W)) &       \
+\  (\\<forall>Y Z X V3 V1 V2 V4. product(X::'a,Y,V1) & product(X::'a,Z,V2) & sum(Y::'a,Z,V3) & product(X::'a,V3,V4) --> sum(V1::'a,V2,V4)) &        \
+\  (\\<forall>Y Z V1 V2 X V3 V4. product(X::'a,Y,V1) & product(X::'a,Z,V2) & sum(Y::'a,Z,V3) & sum(V1::'a,V2,V4) --> product(X::'a,V3,V4)) &        \
+\  (\\<forall>Y Z V3 X V1 V2 V4. product(Y::'a,X,V1) & product(Z::'a,X,V2) & sum(Y::'a,Z,V3) & product(V3::'a,X,V4) --> sum(V1::'a,V2,V4)) &        \
+\  (\\<forall>Y Z V1 V2 V3 X V4. product(Y::'a,X,V1) & product(Z::'a,X,V2) & sum(Y::'a,Z,V3) & sum(V1::'a,V2,V4) --> product(V3::'a,X,V4)) &        \
+\  (\\<forall>X Y U V. sum(X::'a,Y,U) & sum(X::'a,Y,V) --> equal(U::'a,V)) &        \
+\  (\\<forall>X Y U V. product(X::'a,Y,U) & product(X::'a,Y,V) --> equal(U::'a,V))";
+
+val RNG001_0_eq =
+  "(\\<forall>X Y. equal(X::'a,Y) --> equal(additive_inverse(X),additive_inverse(Y))) &     \
+\  (\\<forall>X Y W. equal(X::'a,Y) --> equal(add(X::'a,W),add(Y::'a,W))) & \
+\  (\\<forall>X W Y. equal(X::'a,Y) --> equal(add(W::'a,X),add(W::'a,Y))) & \
+\  (\\<forall>X Y W Z. equal(X::'a,Y) & sum(X::'a,W,Z) --> sum(Y::'a,W,Z)) &        \
+\  (\\<forall>X W Y Z. equal(X::'a,Y) & sum(W::'a,X,Z) --> sum(W::'a,Y,Z)) &        \
+\  (\\<forall>X W Z Y. equal(X::'a,Y) & sum(W::'a,Z,X) --> sum(W::'a,Z,Y)) &        \
+\  (\\<forall>X Y W. equal(X::'a,Y) --> equal(multiply(X::'a,W),multiply(Y::'a,W))) &       \
+\  (\\<forall>X W Y. equal(X::'a,Y) --> equal(multiply(W::'a,X),multiply(W::'a,Y))) &       \
+\  (\\<forall>X Y W Z. equal(X::'a,Y) & product(X::'a,W,Z) --> product(Y::'a,W,Z)) &        \
+\  (\\<forall>X W Y Z. equal(X::'a,Y) & product(W::'a,X,Z) --> product(W::'a,Y,Z)) &        \
+\  (\\<forall>X W Z Y. equal(X::'a,Y) & product(W::'a,Z,X) --> product(W::'a,Z,Y))";
+
 (*93620 inferences so far.  Searching to depth 24.  65.9 secs*)
 val RNG001_3 = prove_hard
  ("(\\<forall>X. sum(additive_identity::'a,X,X)) &  \
@@ -2741,19 +1956,8 @@ val RNG001_3 = prove_hard
 \  (~product(a::'a,additive_identity,additive_identity)) --> False",
   meson_tac 1);
 
-
-(****************SLOW
-3057170 inferences so far.  Searching to depth 16.  No proof after 45 minutes.
-val RNG001_5 = prove_hard
- ("(\\<forall>X. equal(X::'a,X)) &  \
-\  (\\<forall>Y X. equal(X::'a,Y) --> equal(Y::'a,X)) & \
-\  (\\<forall>Y X Z. equal(X::'a,Y) & equal(Y::'a,Z) --> equal(X::'a,Z)) &  \
-\  (\\<forall>X. sum(additive_identity::'a,X,X)) &  \
-\  (\\<forall>X. sum(X::'a,additive_identity,X)) &  \
-\  (\\<forall>X Y. product(X::'a,Y,multiply(X::'a,Y))) &        \
-\  (\\<forall>X Y. sum(X::'a,Y,add(X::'a,Y))) & \
-\  (\\<forall>X. sum(additive_inverse(X),X,additive_identity)) &        \
-\  (\\<forall>X. sum(X::'a,additive_inverse(X),additive_identity)) &        \
+val RNG_other_ax =
+  "(\\<forall>X. sum(X::'a,additive_inverse(X),additive_identity)) &        \
 \  (\\<forall>Y U Z X V W. sum(X::'a,Y,U) & sum(Y::'a,Z,V) & sum(U::'a,Z,W) --> sum(X::'a,V,W)) &       \
 \  (\\<forall>Y X V U Z W. sum(X::'a,Y,U) & sum(Y::'a,Z,V) & sum(X::'a,V,W) --> sum(U::'a,Z,W)) &       \
 \  (\\<forall>Y X Z. sum(X::'a,Y,Z) --> sum(Y::'a,X,Z)) &       \
@@ -2773,16 +1977,27 @@ val RNG001_5 = prove_hard
 \  (\\<forall>X Y W. equal(X::'a,Y) --> equal(multiply(X::'a,W),multiply(Y::'a,W))) &       \
 \  (\\<forall>X Y W Z. equal(X::'a,Y) & product(X::'a,W,Z) --> product(Y::'a,W,Z)) &        \
 \  (\\<forall>X W Y Z. equal(X::'a,Y) & product(W::'a,X,Z) --> product(W::'a,Y,Z)) &        \
-\  (\\<forall>X W Z Y. equal(X::'a,Y) & product(W::'a,Z,X) --> product(W::'a,Z,Y)) &        \
-\  (~product(a::'a,additive_identity,additive_identity)) --> False",
+\  (\\<forall>X W Z Y. equal(X::'a,Y) & product(W::'a,Z,X) --> product(W::'a,Z,Y))";
+
+
+(****************SLOW
+76385914 inferences so far.  Searching to depth 18
+No proof after 5 1/2 hours! (griffon)
+val RNG001_5 = prove_hard
+ (EQU001_0_ax ^ " &  \
+\  (\\<forall>X. sum(additive_identity::'a,X,X)) &  \
+\  (\\<forall>X. sum(X::'a,additive_identity,X)) &  \
+\  (\\<forall>X Y. product(X::'a,Y,multiply(X::'a,Y))) &        \
+\  (\\<forall>X Y. sum(X::'a,Y,add(X::'a,Y))) & \
+\  (\\<forall>X. sum(additive_inverse(X),X,additive_identity)) &  " ^ 
+  RNG_other_ax ^ 
+ " & (~product(a::'a,additive_identity,additive_identity)) --> False",
   meson_tac 1);
 ****************)
 
 (*0 inferences so far.  Searching to depth 0.  0.5 secs*)
 val RNG011_5 = prove
- ("(\\<forall>X. equal(X::'a,X)) &  \
-\  (\\<forall>Y X. equal(X::'a,Y) --> equal(Y::'a,X)) & \
-\  (\\<forall>Y X Z. equal(X::'a,Y) & equal(Y::'a,Z) --> equal(X::'a,Z)) &  \
+ (EQU001_0_ax ^ " &  \
 \  (\\<forall>A B C. equal(A::'a,B) --> equal(add(A::'a,C),add(B::'a,C))) & \
 \  (\\<forall>D F' E. equal(D::'a,E) --> equal(add(F'::'a,D),add(F'::'a,E))) &      \
 \  (\\<forall>G H. equal(G::'a,H) --> equal(additive_inverse(G),additive_inverse(H))) &     \
@@ -2819,9 +2034,7 @@ val RNG011_5 = prove
 
 (*202 inferences so far.  Searching to depth 8.  0.6 secs*)
 val RNG023_6 = prove
- ("(\\<forall>X. equal(X::'a,X)) &  \
-\  (\\<forall>Y X. equal(X::'a,Y) --> equal(Y::'a,X)) & \
-\  (\\<forall>Y X Z. equal(X::'a,Y) & equal(Y::'a,Z) --> equal(X::'a,Z)) &  \
+ (EQU001_0_ax ^ " &  \
 \  (\\<forall>Y X. equal(add(X::'a,Y),add(Y::'a,X))) &  \
 \  (\\<forall>X Y Z. equal(add(X::'a,add(Y::'a,Z)),add(add(X::'a,Y),Z))) &  \
 \  (\\<forall>X. equal(add(additive_identity::'a,X),X)) &   \
@@ -2852,9 +2065,7 @@ val RNG023_6 = prove
 
 (*0 inferences so far.  Searching to depth 0.  0.6 secs*)
 val RNG028_2 = prove
- ("(\\<forall>X. equal(X::'a,X)) &  \
-\  (\\<forall>Y X. equal(X::'a,Y) --> equal(Y::'a,X)) & \
-\  (\\<forall>Y X Z. equal(X::'a,Y) & equal(Y::'a,Z) --> equal(X::'a,Z)) &  \
+ (EQU001_0_ax ^ " &  \
 \  (\\<forall>X. equal(add(additive_identity::'a,X),X)) &   \
 \  (\\<forall>X. equal(multiply(additive_identity::'a,X),additive_identity)) &      \
 \  (\\<forall>X. equal(multiply(X::'a,additive_identity),additive_identity)) &      \
@@ -2891,28 +2102,7 @@ val RNG028_2 = prove
 val RNG038_2 = prove
  ("(\\<forall>X. sum(X::'a,additive_identity,X)) &  \
 \  (\\<forall>X Y. product(X::'a,Y,multiply(X::'a,Y))) &        \
-\  (\\<forall>X Y. sum(X::'a,Y,add(X::'a,Y))) & \
-\  (\\<forall>X. sum(X::'a,additive_inverse(X),additive_identity)) &        \
-\  (\\<forall>Y U Z X V W. sum(X::'a,Y,U) & sum(Y::'a,Z,V) & sum(U::'a,Z,W) --> sum(X::'a,V,W)) &       \
-\  (\\<forall>Y X V U Z W. sum(X::'a,Y,U) & sum(Y::'a,Z,V) & sum(X::'a,V,W) --> sum(U::'a,Z,W)) &       \
-\  (\\<forall>Y X Z. sum(X::'a,Y,Z) --> sum(Y::'a,X,Z)) &       \
-\  (\\<forall>Y U Z X V W. product(X::'a,Y,U) & product(Y::'a,Z,V) & product(U::'a,Z,W) --> product(X::'a,V,W)) &       \
-\  (\\<forall>Y X V U Z W. product(X::'a,Y,U) & product(Y::'a,Z,V) & product(X::'a,V,W) --> product(U::'a,Z,W)) &       \
-\  (\\<forall>Y Z X V3 V1 V2 V4. product(X::'a,Y,V1) & product(X::'a,Z,V2) & sum(Y::'a,Z,V3) & product(X::'a,V3,V4) --> sum(V1::'a,V2,V4)) &        \
-\  (\\<forall>Y Z V1 V2 X V3 V4. product(X::'a,Y,V1) & product(X::'a,Z,V2) & sum(Y::'a,Z,V3) & sum(V1::'a,V2,V4) --> product(X::'a,V3,V4)) &        \
-\  (\\<forall>Y Z V3 X V1 V2 V4. product(Y::'a,X,V1) & product(Z::'a,X,V2) & sum(Y::'a,Z,V3) & product(V3::'a,X,V4) --> sum(V1::'a,V2,V4)) &        \
-\  (\\<forall>Y Z V1 V2 V3 X V4. product(Y::'a,X,V1) & product(Z::'a,X,V2) & sum(Y::'a,Z,V3) & sum(V1::'a,V2,V4) --> product(V3::'a,X,V4)) &        \
-\  (\\<forall>X Y U V. sum(X::'a,Y,U) & sum(X::'a,Y,V) --> equal(U::'a,V)) &        \
-\  (\\<forall>X Y U V. product(X::'a,Y,U) & product(X::'a,Y,V) --> equal(U::'a,V)) &        \
-\  (\\<forall>X Y. equal(X::'a,Y) --> equal(additive_inverse(X),additive_inverse(Y))) &     \
-\  (\\<forall>X Y W. equal(X::'a,Y) --> equal(add(X::'a,W),add(Y::'a,W))) & \
-\  (\\<forall>X Y W Z. equal(X::'a,Y) & sum(X::'a,W,Z) --> sum(Y::'a,W,Z)) &        \
-\  (\\<forall>X W Y Z. equal(X::'a,Y) & sum(W::'a,X,Z) --> sum(W::'a,Y,Z)) &        \
-\  (\\<forall>X W Z Y. equal(X::'a,Y) & sum(W::'a,Z,X) --> sum(W::'a,Z,Y)) &        \
-\  (\\<forall>X Y W. equal(X::'a,Y) --> equal(multiply(X::'a,W),multiply(Y::'a,W))) &       \
-\  (\\<forall>X Y W Z. equal(X::'a,Y) & product(X::'a,W,Z) --> product(Y::'a,W,Z)) &        \
-\  (\\<forall>X W Y Z. equal(X::'a,Y) & product(W::'a,X,Z) --> product(W::'a,Y,Z)) &        \
-\  (\\<forall>X W Z Y. equal(X::'a,Y) & product(W::'a,Z,X) --> product(W::'a,Z,Y)) &        \
+\  (\\<forall>X Y. sum(X::'a,Y,add(X::'a,Y))) & " ^ RNG_other_ax ^ " &      \
 \  (\\<forall>X. product(additive_identity::'a,X,additive_identity)) &      \
 \  (\\<forall>X. product(X::'a,additive_identity,additive_identity)) &      \
 \  (\\<forall>X Y. equal(X::'a,additive_identity) --> product(X::'a,h(X::'a,Y),Y)) &        \
@@ -2922,21 +2112,8 @@ val RNG038_2 = prove
   meson_tac 1);
 
 (*2660 inferences so far.  Searching to depth 10.  7.0 secs*)
-val RNG040_2 = prove_hard
- ("(\\<forall>X. equal(X::'a,X)) &  \
-\  (\\<forall>Y X. equal(X::'a,Y) --> equal(Y::'a,X)) & \
-\  (\\<forall>Y X Z. equal(X::'a,Y) & equal(Y::'a,Z) --> equal(X::'a,Z)) &  \
-\  (\\<forall>X Y. equal(X::'a,Y) --> equal(additive_inverse(X),additive_inverse(Y))) &     \
-\  (\\<forall>X Y W. equal(X::'a,Y) --> equal(add(X::'a,W),add(Y::'a,W))) & \
-\  (\\<forall>X W Y. equal(X::'a,Y) --> equal(add(W::'a,X),add(W::'a,Y))) & \
-\  (\\<forall>X Y W Z. equal(X::'a,Y) & sum(X::'a,W,Z) --> sum(Y::'a,W,Z)) &        \
-\  (\\<forall>X W Y Z. equal(X::'a,Y) & sum(W::'a,X,Z) --> sum(W::'a,Y,Z)) &        \
-\  (\\<forall>X W Z Y. equal(X::'a,Y) & sum(W::'a,Z,X) --> sum(W::'a,Z,Y)) &        \
-\  (\\<forall>X Y W. equal(X::'a,Y) --> equal(multiply(X::'a,W),multiply(Y::'a,W))) &       \
-\  (\\<forall>X W Y. equal(X::'a,Y) --> equal(multiply(W::'a,X),multiply(W::'a,Y))) &       \
-\  (\\<forall>X Y W Z. equal(X::'a,Y) & product(X::'a,W,Z) --> product(Y::'a,W,Z)) &        \
-\  (\\<forall>X W Y Z. equal(X::'a,Y) & product(W::'a,X,Z) --> product(W::'a,Y,Z)) &        \
-\  (\\<forall>X W Z Y. equal(X::'a,Y) & product(W::'a,Z,X) --> product(W::'a,Z,Y)) &        \
+val RNG040_2 = prove
+ (EQU001_0_ax ^ "&" ^ RNG001_0_eq ^ " &        \
 \  (\\<forall>X. sum(additive_identity::'a,X,X)) &  \
 \  (\\<forall>X. sum(X::'a,additive_identity,X)) &  \
 \  (\\<forall>X Y. product(X::'a,Y,multiply(X::'a,Y))) &        \
@@ -2967,37 +2144,7 @@ val RNG040_2 = prove_hard
 
 (*8991 inferences so far.  Searching to depth 9.  22.2 secs*)
 val RNG041_1 = prove_hard
- ("(\\<forall>X. equal(X::'a,X)) &  \
-\  (\\<forall>Y X. equal(X::'a,Y) --> equal(Y::'a,X)) & \
-\  (\\<forall>Y X Z. equal(X::'a,Y) & equal(Y::'a,Z) --> equal(X::'a,Z)) &  \
-\  (\\<forall>X. sum(additive_identity::'a,X,X)) &  \
-\  (\\<forall>X. sum(X::'a,additive_identity,X)) &  \
-\  (\\<forall>X Y. product(X::'a,Y,multiply(X::'a,Y))) &        \
-\  (\\<forall>X Y. sum(X::'a,Y,add(X::'a,Y))) & \
-\  (\\<forall>X. sum(additive_inverse(X),X,additive_identity)) &        \
-\  (\\<forall>X. sum(X::'a,additive_inverse(X),additive_identity)) &        \
-\  (\\<forall>Y U Z X V W. sum(X::'a,Y,U) & sum(Y::'a,Z,V) & sum(U::'a,Z,W) --> sum(X::'a,V,W)) &       \
-\  (\\<forall>Y X V U Z W. sum(X::'a,Y,U) & sum(Y::'a,Z,V) & sum(X::'a,V,W) --> sum(U::'a,Z,W)) &       \
-\  (\\<forall>Y X Z. sum(X::'a,Y,Z) --> sum(Y::'a,X,Z)) &       \
-\  (\\<forall>Y U Z X V W. product(X::'a,Y,U) & product(Y::'a,Z,V) & product(U::'a,Z,W) --> product(X::'a,V,W)) &       \
-\  (\\<forall>Y X V U Z W. product(X::'a,Y,U) & product(Y::'a,Z,V) & product(X::'a,V,W) --> product(U::'a,Z,W)) &       \
-\  (\\<forall>Y Z X V3 V1 V2 V4. product(X::'a,Y,V1) & product(X::'a,Z,V2) & sum(Y::'a,Z,V3) & product(X::'a,V3,V4) --> sum(V1::'a,V2,V4)) &        \
-\  (\\<forall>Y Z V1 V2 X V3 V4. product(X::'a,Y,V1) & product(X::'a,Z,V2) & sum(Y::'a,Z,V3) & sum(V1::'a,V2,V4) --> product(X::'a,V3,V4)) &        \
-\  (\\<forall>Y Z V3 X V1 V2 V4. product(Y::'a,X,V1) & product(Z::'a,X,V2) & sum(Y::'a,Z,V3) & product(V3::'a,X,V4) --> sum(V1::'a,V2,V4)) &        \
-\  (\\<forall>Y Z V1 V2 V3 X V4. product(Y::'a,X,V1) & product(Z::'a,X,V2) & sum(Y::'a,Z,V3) & sum(V1::'a,V2,V4) --> product(V3::'a,X,V4)) &        \
-\  (\\<forall>X Y U V. sum(X::'a,Y,U) & sum(X::'a,Y,V) --> equal(U::'a,V)) &        \
-\  (\\<forall>X Y U V. product(X::'a,Y,U) & product(X::'a,Y,V) --> equal(U::'a,V)) &        \
-\  (\\<forall>X Y. equal(X::'a,Y) --> equal(additive_inverse(X),additive_inverse(Y))) &     \
-\  (\\<forall>X Y W. equal(X::'a,Y) --> equal(add(X::'a,W),add(Y::'a,W))) & \
-\  (\\<forall>X W Y. equal(X::'a,Y) --> equal(add(W::'a,X),add(W::'a,Y))) & \
-\  (\\<forall>X Y W Z. equal(X::'a,Y) & sum(X::'a,W,Z) --> sum(Y::'a,W,Z)) &        \
-\  (\\<forall>X W Y Z. equal(X::'a,Y) & sum(W::'a,X,Z) --> sum(W::'a,Y,Z)) &        \
-\  (\\<forall>X W Z Y. equal(X::'a,Y) & sum(W::'a,Z,X) --> sum(W::'a,Z,Y)) &        \
-\  (\\<forall>X Y W. equal(X::'a,Y) --> equal(multiply(X::'a,W),multiply(Y::'a,W))) &       \
-\  (\\<forall>X W Y. equal(X::'a,Y) --> equal(multiply(W::'a,X),multiply(W::'a,Y))) &       \
-\  (\\<forall>X Y W Z. equal(X::'a,Y) & product(X::'a,W,Z) --> product(Y::'a,W,Z)) &        \
-\  (\\<forall>X W Y Z. equal(X::'a,Y) & product(W::'a,X,Z) --> product(W::'a,Y,Z)) &        \
-\  (\\<forall>X W Z Y. equal(X::'a,Y) & product(W::'a,Z,X) --> product(W::'a,Z,Y)) &        \
+ (EQU001_0_ax ^ "&" ^ RNG001_0_ax ^ "&" ^ RNG001_0_eq ^ " &        \
 \  (\\<forall>A B. equal(A::'a,B) --> equal(h(A),h(B))) &   \
 \  (\\<forall>A. product(additive_identity::'a,A,additive_identity)) &      \
 \  (\\<forall>A. product(A::'a,additive_identity,additive_identity)) &      \
@@ -3012,9 +2159,7 @@ val RNG041_1 = prove_hard
 
 (*101319 inferences so far.  Searching to depth 14.  76.0 secs*)
 val ROB010_1 = prove_hard
- ("(\\<forall>X. equal(X::'a,X)) &  \
-\  (\\<forall>Y X. equal(X::'a,Y) --> equal(Y::'a,X)) & \
-\  (\\<forall>Y X Z. equal(X::'a,Y) & equal(Y::'a,Z) --> equal(X::'a,Z)) &  \
+ (EQU001_0_ax ^ " &  \
 \  (\\<forall>Y X. equal(add(X::'a,Y),add(Y::'a,X))) &  \
 \  (\\<forall>X Y Z. equal(add(add(X::'a,Y),Z),add(X::'a,add(Y::'a,Z)))) &  \
 \  (\\<forall>Y X. equal(negate(add(negate(add(X::'a,Y)),negate(add(X::'a,negate(Y))))),X)) &   \
@@ -3027,10 +2172,8 @@ val ROB010_1 = prove_hard
 
 
 (*6933 inferences so far.  Searching to depth 12.  5.1 secs*)
-val ROB013_1 = prove_hard
- ("(\\<forall>X. equal(X::'a,X)) &  \
-\  (\\<forall>Y X. equal(X::'a,Y) --> equal(Y::'a,X)) & \
-\  (\\<forall>Y X Z. equal(X::'a,Y) & equal(Y::'a,Z) --> equal(X::'a,Z)) &  \
+val ROB013_1 = prove
+ (EQU001_0_ax ^ " &  \
 \  (\\<forall>Y X. equal(add(X::'a,Y),add(Y::'a,X))) &  \
 \  (\\<forall>X Y Z. equal(add(add(X::'a,Y),Z),add(X::'a,add(Y::'a,Z)))) &  \
 \  (\\<forall>Y X. equal(negate(add(negate(add(X::'a,Y)),negate(add(X::'a,negate(Y))))),X)) &   \
@@ -3043,9 +2186,7 @@ val ROB013_1 = prove_hard
 
 (*6614 inferences so far.  Searching to depth 11.  20.4 secs*)
 val ROB016_1 = prove_hard
- ("(\\<forall>X. equal(X::'a,X)) &  \
-\  (\\<forall>Y X. equal(X::'a,Y) --> equal(Y::'a,X)) & \
-\  (\\<forall>Y X Z. equal(X::'a,Y) & equal(Y::'a,Z) --> equal(X::'a,Z)) &  \
+ (EQU001_0_ax ^ " &  \
 \  (\\<forall>Y X. equal(add(X::'a,Y),add(Y::'a,X))) &  \
 \  (\\<forall>X Y Z. equal(add(add(X::'a,Y),Z),add(X::'a,add(Y::'a,Z)))) &  \
 \  (\\<forall>Y X. equal(negate(add(negate(add(X::'a,Y)),negate(add(X::'a,negate(Y))))),X)) &   \
@@ -3068,9 +2209,7 @@ val ROB016_1 = prove_hard
 
 (*14077 inferences so far.  Searching to depth 11.  32.8 secs*)
 val ROB021_1 = prove_hard
- ("(\\<forall>X. equal(X::'a,X)) &  \
-\  (\\<forall>Y X. equal(X::'a,Y) --> equal(Y::'a,X)) & \
-\  (\\<forall>Y X Z. equal(X::'a,Y) & equal(Y::'a,Z) --> equal(X::'a,Z)) &  \
+ (EQU001_0_ax ^ " &  \
 \  (\\<forall>Y X. equal(add(X::'a,Y),add(Y::'a,X))) &  \
 \  (\\<forall>X Y Z. equal(add(add(X::'a,Y),Z),add(X::'a,add(Y::'a,Z)))) &  \
 \  (\\<forall>Y X. equal(negate(add(negate(add(X::'a,Y)),negate(add(X::'a,negate(Y))))),X)) &   \
@@ -3103,7 +2242,7 @@ val SET005_1 = prove_hard
 
 
 (*6450 inferences so far.  Searching to depth 14.  4.2 secs*)
-val SET009_1 = prove_hard
+val SET009_1 = prove
  ("(\\<forall>Subset Element Superset. member(Element::'a,Subset) & subset(Subset::'a,Superset) --> member(Element::'a,Superset)) & \
 \  (\\<forall>Superset Subset. subset(Subset::'a,Superset) | member(member_of_1_not_of_2(Subset::'a,Superset),Subset)) &       \
 \  (\\<forall>Subset Superset. member(member_of_1_not_of_2(Subset::'a,Superset),Superset) --> subset(Subset::'a,Superset)) &    \
@@ -3124,9 +2263,7 @@ val SET009_1 = prove_hard
 
 (*34726 inferences so far.  Searching to depth 6.  2420 secs: 40 mins! BIG*)
 val SET025_4 = prove_hard
- ("(\\<forall>X. equal(X::'a,X)) &  \
-\  (\\<forall>Y X. equal(X::'a,Y) --> equal(Y::'a,X)) & \
-\  (\\<forall>Y X Z. equal(X::'a,Y) & equal(Y::'a,Z) --> equal(X::'a,Z)) &  \
+ (EQU001_0_ax ^ " &  \
 \  (\\<forall>Y X. member(X::'a,Y) --> little_set(X)) &     \
 \  (\\<forall>X Y. little_set(f1(X::'a,Y)) | equal(X::'a,Y)) & \
 \  (\\<forall>X Y. member(f1(X::'a,Y),X) | member(f1(X::'a,Y),Y) | equal(X::'a,Y)) &      \
@@ -3420,17 +2557,15 @@ val SYN034_1 = prove
 
 (*30 inferences so far.  Searching to depth 6.  0.2 secs*)
 val SYN071_1 = prove
- ("(\\<forall>X. equal(X::'a,X)) &  \
-\  (\\<forall>Y X. equal(X::'a,Y) --> equal(Y::'a,X)) & \
-\  (\\<forall>Y X Z. equal(X::'a,Y) & equal(Y::'a,Z) --> equal(X::'a,Z)) &  \
+ (EQU001_0_ax ^ " &  \
 \  (equal(a::'a,b) | equal(c::'a,d)) & \
 \  (equal(a::'a,c) | equal(b::'a,d)) & \
 \  (~equal(a::'a,d)) &      \
 \  (~equal(b::'a,c)) --> False",
   meson_tac 1);
 
-(****************SLOW
-655670 inferences so far.  Searching to depth 44.  No proof after 10 minutes.
+(*1897410 inferences so far.  Searching to depth 48
+  206s, nearly 4 mins on griffon.*)
 val SYN349_1 = prove_hard
  ("(\\<forall>X Y. f(w(X),g(X::'a,Y)) --> f(X::'a,g(X::'a,Y))) &    \
 \  (\\<forall>X Y. f(X::'a,g(X::'a,Y)) --> f(w(X),g(X::'a,Y))) &    \
@@ -3443,7 +2578,6 @@ val SYN349_1 = prove_hard
 \  (\\<forall>Y X. f(Y::'a,g(X::'a,Y)) & f(g(X::'a,Y),w(X)) --> f(X::'a,g(X::'a,Y)) | f(g(X::'a,Y),Y)) &       \
 \  (\\<forall>Y X. ~(f(X::'a,g(X::'a,Y)) & f(g(X::'a,Y),Y) & f(Y::'a,g(X::'a,Y)) & f(g(X::'a,Y),w(X)))) --> False",
   meson_tac 1);
-****************)
 
 (*398 inferences so far.  Searching to depth 12.  0.4 secs*)
 val SYN352_1 = prove
@@ -3457,7 +2591,7 @@ val SYN352_1 = prove
   meson_tac 1);
 
 (*5336 inferences so far.  Searching to depth 15.  5.3 secs*)
-val TOP001_2 = prove_hard
+val TOP001_2 = prove
  ("(\\<forall>Vf U. element_of_set(U::'a,union_of_members(Vf)) --> element_of_set(U::'a,f1(Vf::'a,U))) &    \
 \  (\\<forall>U Vf. element_of_set(U::'a,union_of_members(Vf)) --> element_of_collection(f1(Vf::'a,U),Vf)) &    \
 \  (\\<forall>U Uu1 Vf. element_of_set(U::'a,Uu1) & element_of_collection(Uu1::'a,Vf) --> element_of_set(U::'a,union_of_members(Vf))) &     \
@@ -3481,7 +2615,7 @@ val TOP002_2 = prove
   meson_tac 1);
 
 (*0 inferences so far.  Searching to depth 0.  6.5 secs.  BIG*)
-val TOP004_1 = prove_hard
+val TOP004_1 = prove
  ("(\\<forall>Vf U. element_of_set(U::'a,union_of_members(Vf)) --> element_of_set(U::'a,f1(Vf::'a,U))) &    \
 \  (\\<forall>U Vf. element_of_set(U::'a,union_of_members(Vf)) --> element_of_collection(f1(Vf::'a,U),Vf)) &    \
 \  (\\<forall>U Uu1 Vf. element_of_set(U::'a,Uu1) & element_of_collection(Uu1::'a,Vf) --> element_of_set(U::'a,union_of_members(Vf))) &     \
@@ -3582,11 +2716,11 @@ val TOP004_1 = prove_hard
 \  (\\<forall>Vt Vf X. open_covering(Vf::'a,X,Vt) --> equal_sets(union_of_members(Vf),X)) & \
 \  (\\<forall>Vt Vf X. topological_space(X::'a,Vt) & subset_collections(Vf::'a,Vt) & equal_sets(union_of_members(Vf),X) --> open_covering(Vf::'a,X,Vt)) &   \
 \  (\\<forall>X Vt. compact_space(X::'a,Vt) --> topological_space(X::'a,Vt)) &  \
-\  (\\<forall>X Vt Vf1. compact_space(X::'a,Vt) & open_covering(Vf1::'a,X,Vt) --> finite(f23(X::'a,Vt,Vf1))) &      \
+\  (\\<forall>X Vt Vf1. compact_space(X::'a,Vt) & open_covering(Vf1::'a,X,Vt) --> finite'(f23(X::'a,Vt,Vf1))) &      \
 \  (\\<forall>X Vt Vf1. compact_space(X::'a,Vt) & open_covering(Vf1::'a,X,Vt) --> subset_collections(f23(X::'a,Vt,Vf1),Vf1)) &      \
 \  (\\<forall>Vf1 X Vt. compact_space(X::'a,Vt) & open_covering(Vf1::'a,X,Vt) --> open_covering(f23(X::'a,Vt,Vf1),X,Vt)) &  \
 \  (\\<forall>X Vt. topological_space(X::'a,Vt) --> compact_space(X::'a,Vt) | open_covering(f24(X::'a,Vt),X,Vt)) & \
-\  (\\<forall>Uu24 X Vt. topological_space(X::'a,Vt) & finite(Uu24) & subset_collections(Uu24::'a,f24(X::'a,Vt)) & open_covering(Uu24::'a,X,Vt) --> compact_space(X::'a,Vt)) &      \
+\  (\\<forall>Uu24 X Vt. topological_space(X::'a,Vt) & finite'(Uu24) & subset_collections(Uu24::'a,f24(X::'a,Vt)) & open_covering(Uu24::'a,X,Vt) --> compact_space(X::'a,Vt)) &      \
 \  (\\<forall>Va X Vt. compact_set(Va::'a,X,Vt) --> topological_space(X::'a,Vt)) &      \
 \  (\\<forall>Vt Va X. compact_set(Va::'a,X,Vt) --> subset_sets(Va::'a,X)) &    \
 \  (\\<forall>X Vt Va. compact_set(Va::'a,X,Vt) --> compact_space(Va::'a,subspace_topology(X::'a,Vt,Va))) & \
