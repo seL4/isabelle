@@ -52,7 +52,7 @@ function fail()
 
 export DISTPREFIX
 
-DATE=$(date "+%d-%b-%Y")
+DATE=$(date "+%Y-%m-%d")
 DISTLOG=$LOGPREFIX/isatest-makedist-$DATE.log
 
 echo ------------------- preparing test release --- `date` --- $HOSTNAME > $DISTLOG 2>&1
