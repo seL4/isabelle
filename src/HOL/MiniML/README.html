@@ -1,44 +1,18 @@
-<HTML><HEAD><TITLE>HOL/MiniML/ReadMe</TITLE></HEAD><BODY>
-<H1>Type Inference for MiniML (without <kbd>let</kbd>)</H1>
+<HTML><HEAD><TITLE>HOL/MiniML/README</TITLE></HEAD>
+<BODY>
 
-This theory formalizes the basic type inference algorithm underlying all
-typed functional programming languages. This algorithm is called
-<kbd>W</kbd>, its more imperative variant is called <kbd>I</kbd>. Both were
-first described in
-<P>
-<KBD>
-@article{Milner-Poly,author="Robin Milner",
-title="A Theory of Type Polymorphism in Programming",
-journal="J. Comp.\ Sys.\ Sci.",year=1978,volume=17,pages="348--375"}
-</KBD>
-<P>
-which also proves their correctness.  The first completeness proof was given
-in
-<P>
-<KBD>
-@phdthesis{Damas-PhD,author={Luis Manuel Martins Damas},
-title={Type Assignment in Programming Languages},
-school={Department of Computer Science, University of Edinburgh},year=1985}
-</KBD>
-<P>
-The Isabelle proofs are based on
-<P>
-<KBD>
-@phdthesis{Nazareth-PhD,author={Dieter Nazareth},
-title={A Polymorphic Sort System for Axiomatic Specification Languages},
-school={Institut f\"ur Informatik, Technische Universit{\"a}t M{\"u}nchen},
-year=1995,note={Technical Report {TUM-I9515}}}
-</KBD>
+<H1>Type Inference for MiniML (without <kb>let<kb>)</H1>
+
+This theory defines the type inference rules and the type inference algorithm
+<em>W</em> for simply-typed lambda terms due to Milner. It proves the
+soundness and completeness of <em>W</em> w.r.t. to the rules. An optimized
+version <em>I</em> is shown equivalent to <em>W</em> (one direction only).
+
 <P>
 
-<H2>M.Sc./Diplom Project</H2>
-
-Task: extend MiniML with a <kbd>let</kbd>-construct and polymorphic types. We
-are looking for an enthusiastic student with some basic knowledge of
-functional programming who is not afraid of logic and proofs.  Sounds
-interesting? Then contact <A
-HREF="http://www4.informatik.tu-muenchen.de/~nipkow/">Tobias Nipkow</A> or <A
-HREF="http://www4.informatik.tu-muenchen.de/~pusch/">Cornelia Pusch</A>.
+A report describing the theory is found here:<br>
+<A HREF = "http://www4.informatik.tu-muenchen.de/~nipkow/pubs/W0.html">
+Formal Verification of Algorithm W: The Monomorphic Case</A>.
 
 </BODY>
 </HTML>
