@@ -20,10 +20,13 @@ bind_thm ("constrains_reachable_Int",
 	  rewrite_rule [stable_def] stable_reachable RS 
 	  constrains_Int);
 
-Goalw [Constrains_def]
-    "constrains (Acts F) A A' ==> Constrains F A A'";
+Goalw [Constrains_def] "constrains (Acts F) A A' ==> Constrains F A A'";
 by (etac constrains_reachable_Int 1);
 qed "constrains_imp_Constrains";
+
+Goalw [stable_def, Stable_def] "stable (Acts F) A ==> Stable F A";
+by (etac constrains_imp_Constrains 1);
+qed "stable_imp_Stable";
 
 val prems = Goal
     "(!!act s s'. [| act: Acts F;  (s,s') : act;  s: A |] ==> s': A') \
