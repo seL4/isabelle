@@ -34,7 +34,7 @@ back();
 back();
 back();
 
-Goalw [add_def] "0+n = n";
+Goalw [add_def] "\\<zero>+n = n";
 by (rtac rec_0 1);
 qed "add_0";
 
@@ -50,7 +50,7 @@ by (Simp_tac 1);
 by (Asm_simp_tac 1);
 qed "add_assoc";
 
-Goal "m+0 = m";
+Goal "m+\\<zero> = m";
 by (res_inst_tac [("n","m")] induct 1);
 by (Simp_tac 1);
 by (Asm_simp_tac 1);

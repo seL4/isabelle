@@ -15,33 +15,30 @@
  \url{http://isabelle.in.tum.de/library/FOL/ex/NatClass.html}}%
 \end{isamarkuptext}%
 \isacommand{consts}\isanewline
-\ \ zero\ {\isacharcolon}{\isacharcolon}\ {\isacharprime}a\ \ \ \ {\isacharparenleft}{\isachardoublequote}\isadigit{0}{\isachardoublequote}{\isacharparenright}\isanewline
+\ \ zero\ {\isacharcolon}{\isacharcolon}\ {\isacharprime}a\ \ \ \ {\isacharparenleft}{\isachardoublequote}{\isasymzero}{\isachardoublequote}{\isacharparenright}\isanewline
 \ \ Suc\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}{\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a{\isachardoublequote}\isanewline
 \ \ rec\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}{\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a\ {\isasymRightarrow}\ {\isacharparenleft}{\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a{\isacharparenright}\ {\isasymRightarrow}\ {\isacharprime}a{\isachardoublequote}\isanewline
 \isanewline
-\isacommand{axclass}\isanewline
-\ \ nat\ {\isacharless}\ {\isachardoublequote}term{\isachardoublequote}\isanewline
-\ \ induct{\isacharcolon}\ \ \ \ \ {\isachardoublequote}P{\isacharparenleft}\isadigit{0}{\isacharparenright}\ {\isasymLongrightarrow}\ {\isacharparenleft}{\isasymAnd}x{\isachardot}\ P{\isacharparenleft}x{\isacharparenright}\ {\isasymLongrightarrow}\ P{\isacharparenleft}Suc{\isacharparenleft}x{\isacharparenright}{\isacharparenright}{\isacharparenright}\ {\isasymLongrightarrow}\ P{\isacharparenleft}n{\isacharparenright}{\isachardoublequote}\isanewline
+\isacommand{axclass}\ nat\ {\isacharless}\ {\isachardoublequote}term{\isachardoublequote}\isanewline
+\ \ induct{\isacharcolon}\ {\isachardoublequote}P{\isacharparenleft}{\isasymzero}{\isacharparenright}\ {\isasymLongrightarrow}\ {\isacharparenleft}{\isasymAnd}x{\isachardot}\ P{\isacharparenleft}x{\isacharparenright}\ {\isasymLongrightarrow}\ P{\isacharparenleft}Suc{\isacharparenleft}x{\isacharparenright}{\isacharparenright}{\isacharparenright}\ {\isasymLongrightarrow}\ P{\isacharparenleft}n{\isacharparenright}{\isachardoublequote}\isanewline
 \ \ Suc{\isacharunderscore}inject{\isacharcolon}\ {\isachardoublequote}Suc{\isacharparenleft}m{\isacharparenright}\ {\isacharequal}\ Suc{\isacharparenleft}n{\isacharparenright}\ {\isasymLongrightarrow}\ m\ {\isacharequal}\ n{\isachardoublequote}\isanewline
-\ \ Suc{\isacharunderscore}neq{\isacharunderscore}\isadigit{0}{\isacharcolon}\ \ {\isachardoublequote}Suc{\isacharparenleft}m{\isacharparenright}\ {\isacharequal}\ \isadigit{0}\ {\isasymLongrightarrow}\ R{\isachardoublequote}\isanewline
-\ \ rec{\isacharunderscore}\isadigit{0}{\isacharcolon}\ \ \ \ \ \ {\isachardoublequote}rec{\isacharparenleft}\isadigit{0}{\isacharcomma}\ a{\isacharcomma}\ f{\isacharparenright}\ {\isacharequal}\ a{\isachardoublequote}\isanewline
-\ \ rec{\isacharunderscore}Suc{\isacharcolon}\ \ \ \ {\isachardoublequote}rec{\isacharparenleft}Suc{\isacharparenleft}m{\isacharparenright}{\isacharcomma}\ a{\isacharcomma}\ f{\isacharparenright}\ {\isacharequal}\ f{\isacharparenleft}m{\isacharcomma}\ rec{\isacharparenleft}m{\isacharcomma}\ a{\isacharcomma}\ f{\isacharparenright}{\isacharparenright}{\isachardoublequote}\isanewline
+\ \ Suc{\isacharunderscore}neq{\isacharunderscore}\isadigit{0}{\isacharcolon}\ {\isachardoublequote}Suc{\isacharparenleft}m{\isacharparenright}\ {\isacharequal}\ {\isasymzero}\ {\isasymLongrightarrow}\ R{\isachardoublequote}\isanewline
+\ \ rec{\isacharunderscore}\isadigit{0}{\isacharcolon}\ {\isachardoublequote}rec{\isacharparenleft}{\isasymzero}{\isacharcomma}\ a{\isacharcomma}\ f{\isacharparenright}\ {\isacharequal}\ a{\isachardoublequote}\isanewline
+\ \ rec{\isacharunderscore}Suc{\isacharcolon}\ {\isachardoublequote}rec{\isacharparenleft}Suc{\isacharparenleft}m{\isacharparenright}{\isacharcomma}\ a{\isacharcomma}\ f{\isacharparenright}\ {\isacharequal}\ f{\isacharparenleft}m{\isacharcomma}\ rec{\isacharparenleft}m{\isacharcomma}\ a{\isacharcomma}\ f{\isacharparenright}{\isacharparenright}{\isachardoublequote}\isanewline
 \isanewline
 \isacommand{constdefs}\isanewline
 \ \ add\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}{\isacharprime}a{\isacharcolon}{\isacharcolon}nat\ {\isasymRightarrow}\ {\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a{\isachardoublequote}\ \ \ \ {\isacharparenleft}\isakeyword{infixl}\ {\isachardoublequote}{\isacharplus}{\isachardoublequote}\ \isadigit{6}\isadigit{0}{\isacharparenright}\isanewline
 \ \ {\isachardoublequote}m\ {\isacharplus}\ n\ {\isasymequiv}\ rec{\isacharparenleft}m{\isacharcomma}\ n{\isacharcomma}\ {\isasymlambda}x\ y{\isachardot}\ Suc{\isacharparenleft}y{\isacharparenright}{\isacharparenright}{\isachardoublequote}%
 \begin{isamarkuptext}%
-This is an abstract version of the plain $Nat$ theory in
+This is an abstract version of the plain \isa{Nat} theory in
  FOL.\footnote{See
  \url{http://isabelle.in.tum.de/library/FOL/ex/Nat.html}} Basically,
- we have just replaced all occurrences of type $nat$ by $\alpha$ and
- used the natural number axioms to define class $nat$.  There is only
- a minor snag, that the original recursion operator $rec$ had to be
- made monomorphic.
+ we have just replaced all occurrences of type \isa{nat} by \isa{{\isacharprime}a} and used the natural number axioms to define class \isa{nat}.
+ There is only a minor snag, that the original recursion operator
+ \isa{rec} had to be made monomorphic.
 
- Thus class $nat$ contains exactly those types $\tau$ that are
- isomorphic to ``the'' natural numbers (with signature $0$, $Suc$,
- $rec$).
+ Thus class \isa{nat} contains exactly those types \isa{{\isasymtau}} that
+ are isomorphic to ``the'' natural numbers (with signature \isa{{\isasymzero}}, \isa{Suc}, \isa{rec}).
 
  \medskip What we have done here can be also viewed as \emph{type
  specification}.  Of course, it still remains open if there is some

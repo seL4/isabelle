@@ -8,45 +8,40 @@
 \medskip\noindent An axiomatic type class is simply a class of types
  that all meet certain properties, which are also called \emph{class
  axioms}. Thus, type classes may be also understood as type predicates
- --- i.e.\ abstractions over a single type argument $\alpha$.  Class
+ --- i.e.\ abstractions over a single type argument \isa{{\isacharprime}a}.  Class
  axioms typically contain polymorphic constants that depend on this
- type $\alpha$.  These \emph{characteristic constants} behave like
- operations associated with the ``carrier'' type $\alpha$.
+ type \isa{{\isacharprime}a}.  These \emph{characteristic constants} behave like
+ operations associated with the ``carrier'' type \isa{{\isacharprime}a}.
 
  We illustrate these basic concepts by the following formulation of
  semigroups.%
 \end{isamarkuptext}%
 \isacommand{consts}\isanewline
-\ \ times\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}{\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a{\isachardoublequote}\ \ \ \ {\isacharparenleft}\isakeyword{infixl}\ {\isachardoublequote}{\isasymOtimes}{\isachardoublequote}\ \isadigit{7}\isadigit{0}{\isacharparenright}\isanewline
-\isacommand{axclass}\isanewline
-\ \ semigroup\ {\isacharless}\ {\isachardoublequote}term{\isachardoublequote}\isanewline
-\ \ assoc{\isacharcolon}\ {\isachardoublequote}{\isacharparenleft}x\ {\isasymOtimes}\ y{\isacharparenright}\ {\isasymOtimes}\ z\ {\isacharequal}\ x\ {\isasymOtimes}\ {\isacharparenleft}y\ {\isasymOtimes}\ z{\isacharparenright}{\isachardoublequote}%
+\ \ times\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}{\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a{\isachardoublequote}\ \ \ \ {\isacharparenleft}\isakeyword{infixl}\ {\isachardoublequote}{\isasymodot}{\isachardoublequote}\ \isadigit{7}\isadigit{0}{\isacharparenright}\isanewline
+\isacommand{axclass}\ semigroup\ {\isacharless}\ {\isachardoublequote}term{\isachardoublequote}\isanewline
+\ \ assoc{\isacharcolon}\ {\isachardoublequote}{\isacharparenleft}x\ {\isasymodot}\ y{\isacharparenright}\ {\isasymodot}\ z\ {\isacharequal}\ x\ {\isasymodot}\ {\isacharparenleft}y\ {\isasymodot}\ z{\isacharparenright}{\isachardoublequote}%
 \begin{isamarkuptext}%
-\noindent Above we have first declared a polymorphic constant $\TIMES
- :: \alpha \To \alpha \To \alpha$ and then defined the class
- $semigroup$ of all types $\tau$ such that $\TIMES :: \tau \To \tau
- \To \tau$ is indeed an associative operator.  The $assoc$ axiom
- contains exactly one type variable, which is invisible in the above
- presentation, though.  Also note that free term variables (like $x$,
- $y$, $z$) are allowed for user convenience --- conceptually all of
- these are bound by outermost universal quantifiers.
+\noindent Above we have first declared a polymorphic constant \isa{{\isasymodot}\ {\isasymColon}\ {\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a} and then defined the class \isa{semigroup} of
+ all types \isa{{\isasymtau}} such that \isa{{\isasymodot}\ {\isasymColon}\ {\isasymtau}\ {\isasymRightarrow}\ {\isasymtau}\ {\isasymRightarrow}\ {\isasymtau}} is indeed an
+ associative operator.  The \isa{assoc} axiom contains exactly one
+ type variable, which is invisible in the above presentation, though.
+ Also note that free term variables (like \isa{x}, \isa{y}, \isa{z}) are allowed for user convenience --- conceptually all of these
+ are bound by outermost universal quantifiers.
 
  \medskip In general, type classes may be used to describe
- \emph{structures} with exactly one carrier $\alpha$ and a fixed
+ \emph{structures} with exactly one carrier \isa{{\isacharprime}a} and a fixed
  \emph{signature}.  Different signatures require different classes.
- Below, class $plus_semigroup$ represents semigroups of the form
- $(\tau, \PLUS^\tau)$, while the original $semigroup$ would correspond
- to semigroups $(\tau, \TIMES^\tau)$.%
+ Below, class \isa{plus{\isacharunderscore}semigroup} represents semigroups of the form
+ \isa{{\isacharparenleft}{\isasymtau}{\isacharcomma}\ {\isasymoplus}{\isacharparenright}}, while the original \isa{semigroup} would
+ correspond to semigroups \isa{{\isacharparenleft}{\isasymtau}{\isacharcomma}\ {\isasymodot}{\isacharparenright}}.%
 \end{isamarkuptext}%
 \isacommand{consts}\isanewline
-\ \ plus\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}{\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a{\isachardoublequote}\ \ \ \ {\isacharparenleft}\isakeyword{infixl}\ {\isachardoublequote}{\isasymOplus}{\isachardoublequote}\ \isadigit{7}\isadigit{0}{\isacharparenright}\isanewline
-\isacommand{axclass}\isanewline
-\ \ plus{\isacharunderscore}semigroup\ {\isacharless}\ {\isachardoublequote}term{\isachardoublequote}\isanewline
-\ \ assoc{\isacharcolon}\ {\isachardoublequote}{\isacharparenleft}x\ {\isasymOplus}\ y{\isacharparenright}\ {\isasymOplus}\ z\ {\isacharequal}\ x\ {\isasymOplus}\ {\isacharparenleft}y\ {\isasymOplus}\ z{\isacharparenright}{\isachardoublequote}%
+\ \ plus\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}{\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a{\isachardoublequote}\ \ \ \ {\isacharparenleft}\isakeyword{infixl}\ {\isachardoublequote}{\isasymoplus}{\isachardoublequote}\ \isadigit{7}\isadigit{0}{\isacharparenright}\isanewline
+\isacommand{axclass}\ plus{\isacharunderscore}semigroup\ {\isacharless}\ {\isachardoublequote}term{\isachardoublequote}\isanewline
+\ \ assoc{\isacharcolon}\ {\isachardoublequote}{\isacharparenleft}x\ {\isasymoplus}\ y{\isacharparenright}\ {\isasymoplus}\ z\ {\isacharequal}\ x\ {\isasymoplus}\ {\isacharparenleft}y\ {\isasymoplus}\ z{\isacharparenright}{\isachardoublequote}%
 \begin{isamarkuptext}%
-\noindent Even if classes $plus_semigroup$ and $semigroup$ both
- represent semigroups in a sense, they are certainly not quite the
- same.%
+\noindent Even if classes \isa{plus{\isacharunderscore}semigroup} and \isa{semigroup} both represent semigroups in a sense, they are certainly
+ not quite the same.%
 \end{isamarkuptext}%
 \isacommand{end}\end{isabellebody}%
 %%% Local Variables:

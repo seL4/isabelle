@@ -15,34 +15,33 @@ text {*
 *}
 
 consts
-  zero :: 'a    ("0")
-  Suc :: "'a \\<Rightarrow> 'a"
-  rec :: "'a \\<Rightarrow> 'a \\<Rightarrow> ('a \\<Rightarrow> 'a \\<Rightarrow> 'a) \\<Rightarrow> 'a"
+  zero :: 'a    ("\<zero>")
+  Suc :: "'a \<Rightarrow> 'a"
+  rec :: "'a \<Rightarrow> 'a \<Rightarrow> ('a \<Rightarrow> 'a \<Rightarrow> 'a) \<Rightarrow> 'a"
 
-axclass
-  nat < "term"
-  induct:     "P(0) \\<Longrightarrow> (\\<And>x. P(x) \\<Longrightarrow> P(Suc(x))) \\<Longrightarrow> P(n)"
-  Suc_inject: "Suc(m) = Suc(n) \\<Longrightarrow> m = n"
-  Suc_neq_0:  "Suc(m) = 0 \\<Longrightarrow> R"
-  rec_0:      "rec(0, a, f) = a"
-  rec_Suc:    "rec(Suc(m), a, f) = f(m, rec(m, a, f))"
+axclass nat < "term"
+  induct: "P(\<zero>) \<Longrightarrow> (\<And>x. P(x) \<Longrightarrow> P(Suc(x))) \<Longrightarrow> P(n)"
+  Suc_inject: "Suc(m) = Suc(n) \<Longrightarrow> m = n"
+  Suc_neq_0: "Suc(m) = \<zero> \<Longrightarrow> R"
+  rec_0: "rec(\<zero>, a, f) = a"
+  rec_Suc: "rec(Suc(m), a, f) = f(m, rec(m, a, f))"
 
 constdefs
-  add :: "'a::nat \\<Rightarrow> 'a \\<Rightarrow> 'a"    (infixl "+" 60)
-  "m + n \\<equiv> rec(m, n, \\<lambda>x y. Suc(y))"
+  add :: "'a::nat \<Rightarrow> 'a \<Rightarrow> 'a"    (infixl "+" 60)
+  "m + n \<equiv> rec(m, n, \<lambda>x y. Suc(y))"
 
 text {*
- This is an abstract version of the plain $Nat$ theory in
+ This is an abstract version of the plain @{text Nat} theory in
  FOL.\footnote{See
  \url{http://isabelle.in.tum.de/library/FOL/ex/Nat.html}} Basically,
- we have just replaced all occurrences of type $nat$ by $\alpha$ and
- used the natural number axioms to define class $nat$.  There is only
- a minor snag, that the original recursion operator $rec$ had to be
- made monomorphic.
+ we have just replaced all occurrences of type @{text nat} by @{typ
+ 'a} and used the natural number axioms to define class @{text nat}.
+ There is only a minor snag, that the original recursion operator
+ @{term rec} had to be made monomorphic.
 
- Thus class $nat$ contains exactly those types $\tau$ that are
- isomorphic to ``the'' natural numbers (with signature $0$, $Suc$,
- $rec$).
+ Thus class @{text nat} contains exactly those types @{text \<tau>} that
+ are isomorphic to ``the'' natural numbers (with signature @{term
+ \<zero>}, @{term Suc}, @{term rec}).
 
  \medskip What we have done here can be also viewed as \emph{type
  specification}.  Of course, it still remains open if there is some

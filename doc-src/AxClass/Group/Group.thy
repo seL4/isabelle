@@ -4,7 +4,7 @@ header {* Basic group theory *}
 theory Group = Main:
 
 text {*
- \medskip\noindent The meta-type system of Isabelle supports
+ \medskip\noindent The meta-level type system of Isabelle supports
  \emph{intersections} and \emph{inclusions} of type classes. These
  directly correspond to intersections and inclusions of type
  predicates in a purely set theoretic sense. This is sufficient as a
@@ -21,56 +21,53 @@ text {*
 *}
 
 consts
-  times :: "'a => 'a => 'a"    (infixl "\<Otimes>" 70)
-  inverse :: "'a => 'a"        ("(_\<inv>)" [1000] 999)
-  one :: 'a                    ("\<unit>")
+  times :: "'a \<Rightarrow> 'a \<Rightarrow> 'a"    (infixl "\<odot>" 70)
+  inverse :: "'a \<Rightarrow> 'a"    ("(_\<inv>)" [1000] 999)
+  one :: 'a    ("\<unit>")
 
 text {*
- \noindent Next we define class $monoid$ of monoids with operations
- $\TIMES$ and $1$.  Note that multiple class axioms are allowed for
- user convenience --- they simply represent the conjunction of their
- respective universal closures.
+ \noindent Next we define class @{text monoid} of monoids with
+ operations @{text \<odot>} and @{text \<unit>}.  Note that multiple class
+ axioms are allowed for user convenience --- they simply represent the
+ conjunction of their respective universal closures.
 *}
 
-axclass
-  monoid < "term"
-  assoc:      "(x \<Otimes> y) \<Otimes> z = x \<Otimes> (y \<Otimes> z)"
-  left_unit:  "\<unit> \<Otimes> x = x"
-  right_unit: "x \<Otimes> \<unit> = x"
+axclass monoid < "term"
+  assoc: "(x \<odot> y) \<odot> z = x \<odot> (y \<odot> z)"
+  left_unit: "\<unit> \<odot> x = x"
+  right_unit: "x \<odot> \<unit> = x"
 
 text {*
- \noindent So class $monoid$ contains exactly those types $\tau$ where
- $\TIMES :: \tau \To \tau \To \tau$ and $1 :: \tau$ are specified
- appropriately, such that $\TIMES$ is associative and $1$ is a left
- and right unit element for the $\TIMES$ operation.
+ \noindent So class @{text monoid} contains exactly those types @{text
+ \<tau>} where @{text "\<odot> \<Colon> \<tau> \<Rightarrow> \<tau> \<Rightarrow> \<tau>"} and @{text "\<unit> \<Colon> \<tau>"} are
+ specified appropriately, such that @{text \<odot>} is associative and
+ @{text \<unit>} is a left and right unit element for the @{text \<odot>}
+ operation.
 *}
 
 text {*
- \medskip Independently of $monoid$, we now define a linear hierarchy
- of semigroups, general groups and Abelian groups.  Note that the
- names of class axioms are automatically qualified with each class
- name, so we may re-use common names such as $assoc$.
+ \medskip Independently of @{text monoid}, we now define a linear
+ hierarchy of semigroups, general groups and Abelian groups.  Note
+ that the names of class axioms are automatically qualified with each
+ class name, so we may re-use common names such as @{text assoc}.
 *}
 
-axclass
-  semigroup < "term"
-  assoc: "(x \<Otimes> y) \<Otimes> z = x \<Otimes> (y \<Otimes> z)"
+axclass semigroup < "term"
+  assoc: "(x \<odot> y) \<odot> z = x \<odot> (y \<odot> z)"
 
-axclass
-  group < semigroup
-  left_unit:    "\<unit> \<Otimes> x = x"
-  left_inverse: "x\<inv> \<Otimes> x = \<unit>"
+axclass group < semigroup
+  left_unit: "\<unit> \<odot> x = x"
+  left_inverse: "x\<inv> \<odot> x = \<unit>"
 
-axclass
-  agroup < group
-  commute: "x \<Otimes> y = y \<Otimes> x"
+axclass agroup < group
+  commute: "x \<odot> y = y \<odot> x"
 
 text {*
- \noindent Class $group$ inherits associativity of $\TIMES$ from
- $semigroup$ and adds two further group axioms. Similarly, $agroup$
- is defined as the subset of $group$ such that for all of its elements
- $\tau$, the operation $\TIMES :: \tau \To \tau \To \tau$ is even
- commutative.
+ \noindent Class @{text group} inherits associativity of @{text \<odot>}
+ from @{text semigroup} and adds two further group axioms. Similarly,
+ @{text agroup} is defined as the subset of @{text group} such that
+ for all of its elements @{text \<tau>}, the operation @{text "\<odot> \<Colon> \<tau> \<Rightarrow> \<tau> \<Rightarrow> \<tau>"}
+ is even commutative.
 *}
 
 
@@ -79,13 +76,13 @@ subsection {* Abstract reasoning *}
 text {*
  In a sense, axiomatic type classes may be viewed as \emph{abstract
  theories}.  Above class definitions gives rise to abstract axioms
- $assoc$, $left_unit$, $left_inverse$, $commute$, where any of these
- contain a type variable $\alpha :: c$ that is restricted to types of
- the corresponding class $c$.  \emph{Sort constraints} like this
- express a logical precondition for the whole formula.  For example,
- $assoc$ states that for all $\tau$, provided that $\tau ::
- semigroup$, the operation $\TIMES :: \tau \To \tau \To \tau$ is
- associative.
+ @{text assoc}, @{text left_unit}, @{text left_inverse}, @{text
+ commute}, where any of these contain a type variable @{text "'a \<Colon> c"}
+ that is restricted to types of the corresponding class @{text c}.
+ \emph{Sort constraints} like this express a logical precondition for
+ the whole formula.  For example, @{text assoc} states that for all
+ @{text \<tau>}, provided that @{text "\<tau> \<Colon> semigroup"}, the operation
+ @{text "\<odot> \<Colon> \<tau> \<Rightarrow> \<tau> \<Rightarrow> \<tau>"} is associative.
 
  \medskip From a technical point of view, abstract axioms are just
  ordinary Isabelle theorems, which may be used in proofs without
@@ -94,21 +91,21 @@ text {*
  well-known laws of general groups.
 *}
 
-theorem group_right_inverse: "x \<Otimes> x\<inv> = (\<unit>\\<Colon>'a\\<Colon>group)"
+theorem group_right_inverse: "x \<odot> x\<inv> = (\<unit>\<Colon>'a\<Colon>group)"
 proof -
-  have "x \<Otimes> x\<inv> = \<unit> \<Otimes> (x \<Otimes> x\<inv>)"
+  have "x \<odot> x\<inv> = \<unit> \<odot> (x \<odot> x\<inv>)"
     by (simp only: group.left_unit)
-  also have "... = \<unit> \<Otimes> x \<Otimes> x\<inv>"
+  also have "... = \<unit> \<odot> x \<odot> x\<inv>"
     by (simp only: semigroup.assoc)
-  also have "... = (x\<inv>)\<inv> \<Otimes> x\<inv> \<Otimes> x \<Otimes> x\<inv>"
+  also have "... = (x\<inv>)\<inv> \<odot> x\<inv> \<odot> x \<odot> x\<inv>"
     by (simp only: group.left_inverse)
-  also have "... = (x\<inv>)\<inv> \<Otimes> (x\<inv> \<Otimes> x) \<Otimes> x\<inv>"
+  also have "... = (x\<inv>)\<inv> \<odot> (x\<inv> \<odot> x) \<odot> x\<inv>"
     by (simp only: semigroup.assoc)
-  also have "... = (x\<inv>)\<inv> \<Otimes> \<unit> \<Otimes> x\<inv>"
+  also have "... = (x\<inv>)\<inv> \<odot> \<unit> \<odot> x\<inv>"
     by (simp only: group.left_inverse)
-  also have "... = (x\<inv>)\<inv> \<Otimes> (\<unit> \<Otimes> x\<inv>)"
+  also have "... = (x\<inv>)\<inv> \<odot> (\<unit> \<odot> x\<inv>)"
     by (simp only: semigroup.assoc)
-  also have "... = (x\<inv>)\<inv> \<Otimes> x\<inv>"
+  also have "... = (x\<inv>)\<inv> \<odot> x\<inv>"
     by (simp only: group.left_unit)
   also have "... = \<unit>"
     by (simp only: group.left_inverse)
@@ -116,18 +113,18 @@ proof -
 qed
 
 text {*
- \noindent With $group_right_inverse$ already available,
- $group_right_unit$\label{thm:group-right-unit} is now established
- much easier.
+ \noindent With @{text group_right_inverse} already available, @{text
+ group_right_unit}\label{thm:group-right-unit} is now established much
+ easier.
 *}
 
-theorem group_right_unit: "x \<Otimes> \<unit> = (x\\<Colon>'a\\<Colon>group)"
+theorem group_right_unit: "x \<odot> \<unit> = (x\<Colon>'a\<Colon>group)"
 proof -
-  have "x \<Otimes> \<unit> = x \<Otimes> (x\<inv> \<Otimes> x)"
+  have "x \<odot> \<unit> = x \<odot> (x\<inv> \<odot> x)"
     by (simp only: group.left_inverse)
-  also have "... = x \<Otimes> x\<inv> \<Otimes> x"
+  also have "... = x \<odot> x\<inv> \<odot> x"
     by (simp only: semigroup.assoc)
-  also have "... = \<unit> \<Otimes> x"
+  also have "... = \<unit> \<odot> x"
     by (simp only: group_right_inverse)
   also have "... = x"
     by (simp only: group.left_unit)
@@ -136,24 +133,25 @@ qed
 
 text {*
  \medskip Abstract theorems may be instantiated to only those types
- $\tau$ where the appropriate class membership $\tau :: c$ is known at
- Isabelle's type signature level.  Since we have $agroup \subseteq
- group \subseteq semigroup$ by definition, all theorems of $semigroup$
- and $group$ are automatically inherited by $group$ and $agroup$.
+ @{text \<tau>} where the appropriate class membership @{text "\<tau> \<Colon> c"} is
+ known at Isabelle's type signature level.  Since we have @{text
+ "agroup \<subseteq> group \<subseteq> semigroup"} by definition, all theorems of @{text
+ semigroup} and @{text group} are automatically inherited by @{text
+ group} and @{text agroup}.
 *}
 
 
 subsection {* Abstract instantiation *}
 
 text {*
- From the definition, the $monoid$ and $group$ classes have been
- independent.  Note that for monoids, $right_unit$ had to be included
- as an axiom, but for groups both $right_unit$ and $right_inverse$ are
- derivable from the other axioms.  With $group_right_unit$ derived as
- a theorem of group theory (see page~\pageref{thm:group-right-unit}),
- we may now instantiate $monoid \subseteq semigroup$ and $group
- \subseteq monoid$ properly as follows
- (cf.\ \figref{fig:monoid-group}).
+ From the definition, the @{text monoid} and @{text group} classes
+ have been independent.  Note that for monoids, @{text right_unit} had
+ to be included as an axiom, but for groups both @{text right_unit}
+ and @{text right_inverse} are derivable from the other axioms.  With
+ @{text group_right_unit} derived as a theorem of group theory (see
+ page~\pageref{thm:group-right-unit}), we may now instantiate @{text
+ "monoid \<subseteq> semigroup"} and @{text "group \<subseteq> monoid"} properly as
+ follows (cf.\ \figref{fig:monoid-group}).
 
  \begin{figure}[htbp]
    \begin{center}
@@ -162,20 +160,20 @@ text {*
      \begin{picture}(65,90)(0,-10)
        \put(15,10){\line(0,1){10}} \put(15,30){\line(0,1){10}}
        \put(15,50){\line(1,1){10}} \put(35,60){\line(1,-1){10}}
-       \put(15,5){\makebox(0,0){$agroup$}}
-       \put(15,25){\makebox(0,0){$group$}}
-       \put(15,45){\makebox(0,0){$semigroup$}}
-       \put(30,65){\makebox(0,0){$term$}} \put(50,45){\makebox(0,0){$monoid$}}
+       \put(15,5){\makebox(0,0){@{text agroup}}}
+       \put(15,25){\makebox(0,0){@{text group}}}
+       \put(15,45){\makebox(0,0){@{text semigroup}}}
+       \put(30,65){\makebox(0,0){@{text "term"}}} \put(50,45){\makebox(0,0){@{text monoid}}}
      \end{picture}
      \hspace{4em}
      \begin{picture}(30,90)(0,0)
        \put(15,10){\line(0,1){10}} \put(15,30){\line(0,1){10}}
        \put(15,50){\line(0,1){10}} \put(15,70){\line(0,1){10}}
-       \put(15,5){\makebox(0,0){$agroup$}}
-       \put(15,25){\makebox(0,0){$group$}}
-       \put(15,45){\makebox(0,0){$monoid$}}
-       \put(15,65){\makebox(0,0){$semigroup$}}
-       \put(15,85){\makebox(0,0){$term$}}
+       \put(15,5){\makebox(0,0){@{text agroup}}}
+       \put(15,25){\makebox(0,0){@{text group}}}
+       \put(15,45){\makebox(0,0){@{text monoid}}}
+       \put(15,65){\makebox(0,0){@{text semigroup}}}
+       \put(15,85){\makebox(0,0){@{text term}}}
      \end{picture}
      \caption{Monoids and groups: according to definition, and by proof}
      \label{fig:monoid-group}
@@ -185,30 +183,30 @@ text {*
 
 instance monoid < semigroup
 proof intro_classes
-  fix x y z :: "'a\\<Colon>monoid"
-  show "x \<Otimes> y \<Otimes> z = x \<Otimes> (y \<Otimes> z)"
+  fix x y z :: "'a\<Colon>monoid"
+  show "x \<odot> y \<odot> z = x \<odot> (y \<odot> z)"
     by (rule monoid.assoc)
 qed
 
 instance group < monoid
 proof intro_classes
-  fix x y z :: "'a\\<Colon>group"
-  show "x \<Otimes> y \<Otimes> z = x \<Otimes> (y \<Otimes> z)"
+  fix x y z :: "'a\<Colon>group"
+  show "x \<odot> y \<odot> z = x \<odot> (y \<odot> z)"
     by (rule semigroup.assoc)
-  show "\<unit> \<Otimes> x = x"
+  show "\<unit> \<odot> x = x"
     by (rule group.left_unit)
-  show "x \<Otimes> \<unit> = x"
+  show "x \<odot> \<unit> = x"
     by (rule group_right_unit)
 qed
 
 text {*
  \medskip The $\isakeyword{instance}$ command sets up an appropriate
  goal that represents the class inclusion (or type arity, see
- \secref{sec:inst-arity}) to be proven
- (see also \cite{isabelle-isar-ref}).  The $intro_classes$ proof
- method does back-chaining of class membership statements wrt.\ the
- hierarchy of any classes defined in the current theory; the effect is
- to reduce to the initial statement to a number of goals that directly
+ \secref{sec:inst-arity}) to be proven (see also
+ \cite{isabelle-isar-ref}).  The @{text intro_classes} proof method
+ does back-chaining of class membership statements wrt.\ the hierarchy
+ of any classes defined in the current theory; the effect is to reduce
+ to the initial statement to a number of goals that directly
  correspond to any class axioms encountered on the path upwards
  through the class hierarchy.
 *}
@@ -226,15 +224,15 @@ text {*
  class membership may be established at the logical level and then
  transferred to Isabelle's type signature level.
 
- \medskip As a typical example, we show that type $bool$ with
- exclusive-or as $\TIMES$ operation, identity as $\isasyminv$, and
- $False$ as $1$ forms an Abelian group.
+ \medskip As a typical example, we show that type @{typ bool} with
+ exclusive-or as @{text \<odot>} operation, identity as @{text \<inv>}, and
+ @{term False} as @{text \<unit>} forms an Abelian group.
 *}
 
 defs (overloaded)
-  times_bool_def:   "x \<Otimes> y \\<equiv> x \\<noteq> (y\\<Colon>bool)"
-  inverse_bool_def: "x\<inv> \\<equiv> x\\<Colon>bool"
-  unit_bool_def:    "\<unit> \\<equiv> False"
+  times_bool_def: "x \<odot> y \<equiv> x \<noteq> (y\<Colon>bool)"
+  inverse_bool_def: "x\<inv> \<equiv> x\<Colon>bool"
+  unit_bool_def: "\<unit> \<equiv> False"
 
 text {*
  \medskip It is important to note that above $\DEFS$ are just
@@ -247,18 +245,18 @@ text {*
  best applied in the context of type classes.
 
  \medskip Since we have chosen above $\DEFS$ of the generic group
- operations on type $bool$ appropriately, the class membership $bool
- :: agroup$ may be now derived as follows.
+ operations on type @{typ bool} appropriately, the class membership
+ @{text "bool \<Colon> agroup"} may be now derived as follows.
 *}
 
 instance bool :: agroup
 proof (intro_classes,
     unfold times_bool_def inverse_bool_def unit_bool_def)
   fix x y z
-  show "((x \\<noteq> y) \\<noteq> z) = (x \\<noteq> (y \\<noteq> z))" by blast
-  show "(False \\<noteq> x) = x" by blast
-  show "(x \\<noteq> x) = False" by blast
-  show "(x \\<noteq> y) = (y \\<noteq> x)" by blast
+  show "((x \<noteq> y) \<noteq> z) = (x \<noteq> (y \<noteq> z))" by blast
+  show "(False \<noteq> x) = x" by blast
+  show "(x \<noteq> x) = False" by blast
+  show "(x \<noteq> y) = (y \<noteq> x)" by blast
 qed
 
 text {*
@@ -268,12 +266,13 @@ text {*
  care of this new instance automatically.
 
  \medskip We could now also instantiate our group theory classes to
- many other concrete types.  For example, $int :: agroup$ (e.g.\ by
- defining $\TIMES$ as addition, $\isasyminv$ as negation and $1$ as
- zero) or $list :: (term)semigroup$ (e.g.\ if $\TIMES$ is defined as
- list append).  Thus, the characteristic constants $\TIMES$,
- $\isasyminv$, $1$ really become overloaded, i.e.\ have different
- meanings on different types.
+ many other concrete types.  For example, @{text "int \<Colon> agroup"}
+ (e.g.\ by defining @{text \<odot>} as addition, @{text \<inv>} as negation
+ and @{text \<unit>} as zero) or @{text "list \<Colon> (term) semigroup"}
+ (e.g.\ if @{text \<odot>} is defined as list append).  Thus, the
+ characteristic constants @{text \<odot>}, @{text \<inv>}, @{text \<unit>}
+ really become overloaded, i.e.\ have different meanings on different
+ types.
 *}
 
 
@@ -288,27 +287,27 @@ text {*
 
  This feature enables us to \emph{lift operations}, say to Cartesian
  products, direct sums or function spaces.  Subsequently we lift
- $\TIMES$ component-wise to binary products $\alpha \times \beta$.
+ @{text \<odot>} component-wise to binary products @{typ "'a \<times> 'b"}.
 *}
 
 defs (overloaded)
-  times_prod_def: "p \<Otimes> q \\<equiv> (fst p \<Otimes> fst q, snd p \<Otimes> snd q)"
+  times_prod_def: "p \<odot> q \<equiv> (fst p \<odot> fst q, snd p \<odot> snd q)"
 
 text {*
- It is very easy to see that associativity of $\TIMES^\alpha$ and
- $\TIMES^\beta$ transfers to ${\TIMES}^{\alpha \times \beta}$.  Hence
- the binary type constructor $\times$ maps semigroups to semigroups.
- This may be established formally as follows.
+ It is very easy to see that associativity of @{text \<odot>} on @{typ 'a}
+ and @{text \<odot>} on @{typ 'b} transfers to @{text \<odot>} on @{typ "'a \<times> 'b"}.
+ Hence the binary type constructor @{text \<odot>} maps semigroups to
+ semigroups.  This may be established formally as follows.
 *}
 
 instance * :: (semigroup, semigroup) semigroup
 proof (intro_classes, unfold times_prod_def)
-  fix p q r :: "'a\\<Colon>semigroup \\<times> 'b\\<Colon>semigroup"
+  fix p q r :: "'a\<Colon>semigroup \<times> 'b\<Colon>semigroup"
   show
-    "(fst (fst p \<Otimes> fst q, snd p \<Otimes> snd q) \<Otimes> fst r,
-      snd (fst p \<Otimes> fst q, snd p \<Otimes> snd q) \<Otimes> snd r) =
-       (fst p \<Otimes> fst (fst q \<Otimes> fst r, snd q \<Otimes> snd r),
-        snd p \<Otimes> snd (fst q \<Otimes> fst r, snd q \<Otimes> snd r))"
+    "(fst (fst p \<odot> fst q, snd p \<odot> snd q) \<odot> fst r,
+      snd (fst p \<odot> fst q, snd p \<odot> snd q) \<odot> snd r) =
+       (fst p \<odot> fst (fst q \<odot> fst r, snd q \<odot> snd r),
+        snd p \<odot> snd (fst q \<odot> fst r, snd q \<odot> snd r))"
     by (simp add: semigroup.assoc)
 qed
 

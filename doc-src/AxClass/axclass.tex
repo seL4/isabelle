@@ -1,15 +1,13 @@
 
 \documentclass[12pt,a4paper,fleqn]{report}
-\usepackage{graphicx,../iman,../extra,../isar,../pdfsetup}
+\usepackage{graphicx,../iman,../extra,../isar}
 \usepackage{generated/isabelle,generated/isabellesym}
+\usepackage{../pdfsetup}  % last one!
 
-\newcommand{\TIMES}{\cdot}
-\newcommand{\PLUS}{\oplus}
-\newcommand{\isasymOtimes}{\emph{$\cdot$}}
-\newcommand{\isasymOplus}{\emph{$\oplus$}}
+\isabellestyle{it}
 \newcommand{\isasyminv}{\emph{${}^{-1}$}}
 \newcommand{\isasymunit}{\emph{$1$}}
-
+\newcommand{\isasymzero}{\emph{$0$}}
 
 \newcommand{\secref}[1]{\S\ref{#1}}
 \newcommand{\figref}[1]{figure~\ref{#1}}
