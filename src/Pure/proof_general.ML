@@ -323,7 +323,7 @@ fun usespgml () =
 (* NB: the default returned here is actually the current value, so
    repeated uses of <askprefs> will not work correctly. *)
 fun show_options () = issue_pgip (map 
-  (fn (name, (descr, (ty, get, _))) => (XML.element "haspref"
+  (fn (name, (descr, (ty, get, _))) => (XML.element "oldhaspref"
     [("type", ty), ("descr", descr), ("default", get ())] [name])) (!options));
 
 fun set_option name value = (case assoc (!options, name) of
