@@ -12,7 +12,6 @@ case  ${HOST} in
     mkdir -p $DEST
     ;;
   *.cl.cam.ac.uk)
-    USER=paulson
     DEST=/anfs/www/html/Research/HVG/Isabelle/dist
     ;;
   *)
@@ -22,4 +21,4 @@ case  ${HOST} in
 esac
 
 rsync --rsh ssh --rsync-path /usr/local/dist/bin/rsync -va \
-  $USER@sunbroy30.informatik.tu-muenchen.de:/home/html/isabelle/html-data/dist/. $DEST/.
+  rsync://sunbroy30.informatik.tu-muenchen.de:8730/isabelle-dist/. $DEST/.

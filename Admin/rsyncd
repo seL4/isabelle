@@ -1,0 +1,9 @@
+#!/bin/bash
+#
+# rsync server start script
+#
+# $Id$
+#
+
+rsync --daemon --config=/usr/proj/isabelle/rsyncd.conf --port=8730
+
