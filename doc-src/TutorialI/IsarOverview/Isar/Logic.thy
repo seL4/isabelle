@@ -60,7 +60,7 @@ text{*\noindent
 The operational reading: the \isakeyword{assume}-\isakeyword{show} block
 proves @{prop"A \<Longrightarrow> A"},
 which rule @{thm[source]impI} turns into the desired @{prop"A \<longrightarrow> A"}.
-However, this text is much too detailled for comfort. Therefore Isar
+However, this text is much too detailed for comfort. Therefore Isar
 implements the following principle:
 \begin{quote}\em
 Command \isakeyword{proof} automatically tries to select an introduction rule
@@ -193,7 +193,7 @@ It is worth examining this text in detail because it exhibits a number of new co
 
 For a start, this is the first time we have proved intermediate propositions
 (\isakeyword{have}) on the way to the final \isakeyword{show}. This is the
-norm in any nontrival proof where one cannot bridge the gap between the
+norm in any nontrivial proof where one cannot bridge the gap between the
 assumptions and the conclusion in one step. Both \isakeyword{have}s above are
 proved automatically via @{thm[source]conjE} triggered by
 \isakeyword{from}~@{text ab}.
@@ -247,7 +247,7 @@ proof
 qed
 text{*\noindent Apart from demonstrating the strangeness of classical
 arguments by contradiction, this example also introduces two new
-abbrebviations:
+abbreviations:
 \begin{center}
 \begin{tabular}{lcl}
 \isakeyword{hence} &=& \isakeyword{then} \isakeyword{have} \\
@@ -331,7 +331,7 @@ frequent usage is as follows:
 \end{center}
 \medskip
 
-Sometimes it is necessary to supress the implicit application of rules in a
+Sometimes it is necessary to suppress the implicit application of rules in a
 \isakeyword{proof}. For example \isakeyword{show}~@{prop"A \<or> B"} would
 trigger $\lor$-introduction, requiring us to prove @{prop A}. A simple
 ``@{text"-"}'' prevents this \emph{faut pas}: *}
@@ -354,7 +354,7 @@ proof. The pair \isakeyword{fix}-\isakeyword{show} corresponds to @{text"\<And>"
 (the universal quantifier at the
 meta-level) just like \isakeyword{assume}-\isakeyword{show} corresponds to
 @{text"\<Longrightarrow>"}. Here is a sample proof, annotated with the rules that are
-applied implictly: *}
+applied implicitly: *}
 lemma assumes P: "\<forall>x. P x" shows "\<forall>x. P(f x)"
 proof  -- "@{thm[source]allI}: @{thm allI[no_vars]}"
   fix a
@@ -602,7 +602,7 @@ qed
 
 text{* \noindent Of course we could again have written
 \isakeyword{thus}~@{text ?case} instead of giving the term explicitly
-but we wanted to use @{term i} somewehere.
+but we wanted to use @{term i} somewhere.
 
 Let us now tackle a more ambitious lemma: proving complete induction
 @{prop[display,indent=5]"(\<And>n. (\<And>m. m < n \<Longrightarrow> P m) \<Longrightarrow> P n) \<Longrightarrow> P n"}
@@ -627,7 +627,7 @@ next
   qed
 qed
 text{* \noindent Let us first examine the statement of the lemma.
-In contrast to the style advertized in the
+In contrast to the style advertised in the
 Tutorial~\cite{LNCS2283}, structured Isar proofs do not need to
 introduce @{text"\<forall>"} or @{text"\<longrightarrow>"} into a theorem to strengthen it
 for induction --- we use @{text"\<And>"} and @{text"\<Longrightarrow>"} instead. This
@@ -645,7 +645,7 @@ looks confusing at first and reveals that the very suggestive @{text"(Suc
 n)"} used above is not the whole truth. The variable names after the case
 name (here: @{term Suc}) are the names of the parameters of that subgoal. So
 far the only parameters where the arguments to the constructor, but now we
-have an additonal parameter coming from the @{text"\<And>m"} in the main
+have an additional parameter coming from the @{text"\<And>m"} in the main
 \isakeyword{shows} clause. Thus @{text"(Suc n m)"} does not mean that
 constructor @{term Suc} is applied to two arguments but that the two
 parameters in the @{term Suc} case are to be named @{text n} and @{text
@@ -701,12 +701,20 @@ base case is trivial. In the assumptions for the induction step we can
 see very clearly how things fit together and permit ourselves the
 obvious forward step @{text"IH[OF B]"}. *}
 
+subsection{*More induction*}
+
+text{* We close the section by demonstrating how arbitrary induction rules
+are applied. As a simple example we have chose recursion induction, i.e.\
+induction based on a recursive function definition. The example is an unusual
+definition of rotation of a list: *}
+
 consts rot :: "'a list \<Rightarrow> 'a list"
 recdef rot "measure length"
 "rot [] = []"
 "rot [x] = [x]"
 "rot (x#y#zs) = y # rot(x#zs)"
 
+text{* The proof is trivial: all three cases go through by simplification.*}
 lemma "length(rot xs) = length xs" (is "?P xs")
 proof (induct xs rule: rot.induct)
   show "?P []" by simp
@@ -716,5 +724,12 @@ next
   fix x y zs assume "?P (x#zs)"
   thus "?P (x#y#zs)" by simp
 qed
+
+text{*\noindent This schema works for arbitrary induction rules instead of
+@{thm[source]rot.induct}.
+
+Of course the above proof is simple enough that it could be condensed to*}
+(*<*)lemma "length(rot xs) = length xs"(*>*)
+by (induct xs rule: rot.induct, simp_all)
 
 (*<*)end(*>*)
