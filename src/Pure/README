@@ -7,6 +7,7 @@ is the basis for all object-logics:
 
   IsaMakefile	compiles the Pure system (use isatool make)
   ML-Systems/   compatibility files for various ML systems
+  General/	general tools
   Syntax/     	the syntax module
   Thy/          the theory file parser and loader
   ./		the actual meta logic implementation (see ROOT.ML)
@@ -15,12 +16,12 @@ Isabelle programmers may want to have a look at the following generic
 modules:
 
   Library	basic library (see library.ML)
-  TableFun	efficient tables (see table.ML)
-  Seq		unbounded sequences (see seq.ML)
+  TableFun	efficient tables (see General/table.ML)
+  Seq		unbounded sequences (see General/seq.ML)
   Pretty	pretty printing module (see Syntax/pretty.ML)
   Scan		scanner toolbox (see Syntax/scan.ML)
   Source	co-algebraic data sources (see Syntax/source.ML)
   Symbol	generalized characters (see Syntax/symbol.ML)
-  Path		abstract algebra of file paths (see Thy/path.ML)
-  File		file system operations (see Thy/file.ML)
-  NameSpace	hierarchically structured name spaces (see name_space.ML)
+  Path		abstract algebra of file paths (see General/path.ML)
+  File		file system operations (see General/file.ML)
+  NameSpace	hierarchically structured name spaces (see General/name_space.ML)
