@@ -76,7 +76,7 @@ function check_root () { [ -f "$FILEBASE.tex" ] || fail "Bad file '$FILE'"; }
 function run_latex () { $ISABELLE_LATEX "\\nonstopmode\\input{$FILEBASE.tex}"; }
 function run_pdflatex () { $ISABELLE_PDFLATEX "\\nonstopmode\\input{$FILEBASE.tex}"; }
 function run_bibtex () { $ISABELLE_BIBTEX </dev/null "$FILEBASE"; }
-function run_dvips () { $ISABELLE_DVIPS -o "$FILEBASE.ps" "$FILEBASE.dvi"; }
+function run_dvips () { $ISABELLE_DVIPS -q -o "$FILEBASE.ps" "$FILEBASE.dvi"; }
 function run_thumbpdf () { [ -n "$ISABELLE_THUMBPDF" ] && $ISABELLE_THUMBPDF "$FILEBASE"; }
 
 function update_styles ()
