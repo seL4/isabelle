@@ -151,16 +151,6 @@ fun isar_atp' (thms, thm) =
 
 local
 
-fun retr_thms ([]:MetaSimplifier.rrule list) = []
-	  | retr_thms (r::rs) = (#thm r)::(retr_thms rs);
-
-
-fun snds [] = []
-  |   snds ((x,y)::l) = y::(snds l);
-
-
-
-
 fun get_thms_cs claset =
     let val clsset = rep_cs claset
 	val safeEs = #safeEs clsset
