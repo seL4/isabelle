@@ -1,5 +1,5 @@
 (* ID:         $Id$ *)
-theory Numbers = Main:
+theory Numbers = Real:
 
 ML "Pretty.setmargin 64"
 
@@ -167,13 +167,38 @@ Division, remainder of negatives
 \rulename{abs_mult}
 *}  
 
-(*NO REALS YET;  Needs HOL-Real as parent
-For the reals, perhaps just a few results to indicate what is there.
+text {*REALS
 
 @{thm[display] realpow_abs[no_vars]}
 \rulename{realpow_abs}
 
-More once rinv (the most important constant) is sorted.
-*)  
+@{thm[display] real_dense[no_vars]}
+\rulename{real_dense}
+
+@{thm[display] realpow_abs[no_vars]}
+\rulename{realpow_abs}
+
+@{thm[display] real_times_divide1_eq[no_vars]}
+\rulename{real_times_divide1_eq}
+
+@{thm[display] real_times_divide2_eq[no_vars]}
+\rulename{real_times_divide2_eq}
+
+@{thm[display] real_divide_divide1_eq[no_vars]}
+\rulename{real_divide_divide1_eq}
+
+@{thm[display] real_divide_divide2_eq[no_vars]}
+\rulename{real_divide_divide2_eq}
+
+@{thm[display] real_minus_divide_eq[no_vars]}
+\rulename{real_minus_divide_eq}
+
+@{thm[display] real_divide_minus_eq[no_vars]}
+\rulename{real_divide_minus_eq}
+
+This last NOT a simprule
+
+real_add_divide_distrib
+*}
 
 end
