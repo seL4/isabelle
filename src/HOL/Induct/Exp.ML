@@ -19,8 +19,8 @@ val eval_elim_cases =
 AddSEs eval_elim_cases;
 
 
-Goal "(X x, s[n/x]) -|-> (n, s[n/x])";
-by (rtac (assign_same RS subst) 1 THEN resolve_tac eval.intrs 1);
+Goal "(X x, s(x:=n)) -|-> (n, s(x:=n))";
+by (rtac (fun_upd_same RS subst) 1 THEN resolve_tac eval.intrs 1);
 qed "var_assign_eval";
 
 AddSIs [var_assign_eval];
@@ -66,33 +66,32 @@ qed "eval_induct";
   the execution (c,s) -[eval Int {...}]-> s1 assures us that execution is
   functional on the argument (c,s).
 *)
-Goal "(c,s) -[eval Int {((e,s),(n,s')). Unique (e,s) (n,s') eval}]-> s1 \
+Goal "(c,s) -[eval Int {((e,s),(n,t)). ALL nt'. (e,s) -|-> nt' --> (n,t)=nt'}]-> s1 \
 \     ==> (ALL s2. (c,s) -[eval]-> s2 --> s2=s1)";
 by (etac exec.induct 1);
 by (ALLGOALS Full_simp_tac);
-by (Blast_tac 3);
-by (Blast_tac 1);
-by (rewtac Unique_def);
-by (Blast_tac 1);
-by (Blast_tac 1);
-by (Blast_tac 1);
-by (blast_tac (claset() addEs [exec_WHILE_case]) 1);
+      by (Blast_tac 1);
+     by (Force_tac 1);
+    by (Blast_tac 1);
+   by (Blast_tac 1);
+  by (Blast_tac 1);
+ by (blast_tac (claset() addEs [exec_WHILE_case]) 1);
 by (thin_tac "(?c,s2) -[?ev]-> s3" 1);
 by (Clarify_tac 1);
 by (etac exec_WHILE_case 1);
-by (ALLGOALS Fast_tac);         (*Blast_tac: proof fails*)
+ by (ALLGOALS Blast_tac);
 qed "com_Unique";
 
 
 (*Expression evaluation is functional, or deterministic*)
-Goalw [Function_def] "Function eval";
-by (strip_tac 1);
+Goalw [univalent_def] "univalent eval";
+by (EVERY1[rtac allI, rtac allI, rtac impI]);
 by (split_all_tac 1);
 by (etac eval_induct 1);
 by (dtac com_Unique 4);
-by (ALLGOALS (full_simp_tac (simpset() addsimps [Unique_def])));
+by (ALLGOALS Full_simp_tac);
 by (ALLGOALS Blast_tac);
-qed "Function_eval";
+qed "univalent_eval";
 
 
 Goal "(e,s) -|-> (v,s') ==> (e = N n) --> (v=n & s'=s)";
@@ -215,11 +214,12 @@ qed "valof_skip";
 
 (** Equivalence of  VALOF x:=e RESULTIS x  and  e **)
 
+Delsimps [fun_upd_apply];
 Goal "(e',s) -|-> (v,s'') ==> \
 \              (e' = VALOF x:=e RESULTIS X x) --> \
-\              (EX s'. (e, s) -|-> (v,s') & (s'' = s'[v/x]))";
+\              (EX s'. (e, s) -|-> (v,s') & (s'' = s'(x:=v)))";
 by (etac eval_induct 1);
-by (ALLGOALS Asm_simp_tac);
+   by (ALLGOALS Asm_simp_tac);
 by (thin_tac "?PP-->?QQ" 1);
 by (Clarify_tac 1);
 by (Simp_tac 1);
@@ -228,6 +228,6 @@ bind_thm ("valof_assign1", refl RSN (2, result() RS mp));
 
 
 Goal "(e,s) -|-> (v,s') ==> \
-\              (VALOF x:=e RESULTIS X x, s) -|-> (v,s'[v/x])";
+\              (VALOF x:=e RESULTIS X x, s) -|-> (v,s'(x:=v))";
 by (Blast_tac 1);
 qed "valof_assign2";

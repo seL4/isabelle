@@ -30,29 +30,15 @@ Unify.trace_bound := 30;
 Unify.search_bound := 60;
 
 (*Command execution is functional (deterministic) provided evaluation is*)
-Goal "Function ev ==> Function(exec ev)";
-by (simp_tac (simpset() addsimps [Function_def, Unique_def]) 1);
+Goal "univalent ev ==> univalent(exec ev)";
+by (simp_tac (simpset() addsimps [univalent_def]) 1);
 by (REPEAT (rtac allI 1));
 by (rtac impI 1);
 by (etac exec.induct 1);
 by (Blast_tac 3);
 by (Blast_tac 1);
-by (rewrite_goals_tac [Function_def, Unique_def]);
+by (rewrite_goals_tac [univalent_def]);
 by (REPEAT (blast_tac (claset() addEs [exec_WHILE_case]) 1));
-qed "Function_exec";
+qed "univalent_exec";
 
-
-Goalw [assign_def] "(s[v/x])x = v";
-by (Simp_tac 1);
-qed "assign_same";
-
-Goalw [assign_def] "y~=x ==> (s[v/x])y = s y";
-by (Asm_simp_tac 1);
-qed "assign_different";
-
-Goalw [assign_def] "s[s x/x] = s";
-by (rtac ext 1);
-by (Simp_tac 1);
-qed "assign_triv";
-
-Addsimps [assign_same, assign_different, assign_triv];
+Addsimps [fun_upd_same, fun_upd_other];

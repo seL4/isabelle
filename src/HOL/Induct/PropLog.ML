@@ -56,21 +56,6 @@ val thms_falseE = weaken_right RS (thms.DN RS thms.MP);
 (* [| H |- p->false;  H |- p;  q: pl |] ==> H |- q *)
 bind_thm ("thms_notE", (thms.MP RS thms_falseE));
 
-(** The function eval **)
-
-Goalw [eval_def] "tt[[false]] = False";
-by (Simp_tac 1);
-qed "eval_false";
-
-Goalw [eval_def] "tt[[#v]] = (v:tt)";
-by (Simp_tac 1);
-qed "eval_var";
-
-Goalw [eval_def] "tt[[p->q]] = (tt[[p]]-->tt[[q]])";
-by (Simp_tac 1);
-qed "eval_imp";
-
-Addsimps [eval_false, eval_var, eval_imp];
 
 (*Soundness of the rules wrt truth-table semantics*)
 Goalw [sat_def] "H |- p ==> H |= p";

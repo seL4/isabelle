@@ -14,7 +14,6 @@ consts
   thms :: 'a pl set => 'a pl set
   "|-"  :: ['a pl set, 'a pl] => bool   (infixl 50)
   "|="  :: ['a pl set, 'a pl] => bool   (infixl 50)
-  eval2 :: ['a pl, 'a set] => bool
   eval  :: ['a set, 'a pl] => bool      ("_[[_]]" [100,0] 100)
   hyps  :: ['a pl, 'a set] => 'a pl set
 
@@ -31,17 +30,16 @@ inductive "thms(H)"
 
 defs
   sat_def  "H |= p  ==  (!tt. (!q:H. tt[[q]]) --> tt[[p]])"
-  eval_def "tt[[p]] == eval2 p tt"
 
 primrec
-  "eval2(false) = (%x. False)"
-  "eval2(#v) = (%tt. v:tt)"
-  "eval2(p->q) = (%tt. eval2 p tt-->eval2 q tt)"
+         "tt[[false]] = False"
+         "tt[[#v]]    = (v:tt)"
+eval_imp "tt[[p->q]]  = (tt[[p]] --> tt[[q]])"
 
 primrec
-  "hyps(false) = (%tt.{})"
-  "hyps(#v) = (%tt.{if v:tt then #v else #v->false})"
-  "hyps(p->q) = (%tt. hyps p tt Un hyps q tt)"
+  "hyps false  tt = {}"
+  "hyps (#v)   tt = {if v:tt then #v else #v->false}"
+  "hyps (p->q) tt = hyps p tt Un hyps q tt"
 
 end
 
