@@ -463,6 +463,14 @@ qed "insertCI";
 AddSIs [insertCI]; 
 AddSEs [insertE];
 
+Goal "A <= insert x B ==> A <= B & x ~: A | (? B'. A = insert x B' & B' <= B)";
+by (case_tac "x:A" 1);
+by  (Fast_tac 2);
+br  disjI2 1;
+by (res_inst_tac [("x","A-{x}")] exI 1);
+by (Fast_tac 1);
+qed "subset_insertD";
+
 section "Singletons, using insert";
 
 Goal "a : {a}";
@@ -487,6 +495,15 @@ qed "singleton_inject";
 AddSIs [singletonI];   
 AddSDs [singleton_inject];
 AddSEs [singletonE];
+
+Goal "{b} = insert a A = (a = b & A <= {a})";
+by (safe_tac (claset() addSEs [equalityE]));
+by   (ALLGOALS Blast_tac);
+qed "singleton_insert_inj_eq";
+
+Goal "A <= {x} ==> A={} | A = {x}";
+by (Fast_tac 1);
+qed "subset_singletonD";
 
 Goal "{x. x=a} = {a}";
 by (Blast_tac 1);
