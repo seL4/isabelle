@@ -6,7 +6,7 @@
 The Fibonacci function.  Demonstrates the use of recdef.
 *)
 
-Fib = Divides + Primes +
+Fib = Primes +
 
 consts fib  :: "nat => nat"
 recdef fib "less_than"

@@ -4,7 +4,7 @@
     Copyright	2000  University of Cambridge
 *)
 
-IntPrimes = Main + IntDiv + Primes +
+IntPrimes = Primes +
 
 consts
   xzgcda   :: "int*int*int*int*int*int*int*int => int*int*int"
