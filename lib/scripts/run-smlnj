@@ -41,8 +41,9 @@ if [ -z "$OUTFILE" ]; then
 elif [ -n "$INFILE" -a ! "$INFILE" -ef "$OUTFILE" ]; then
   [ -f "$OUTFILE" ] && { rm -f "$OUTFILE" || fail_out }
   cp "$INFILE" "$OUTFILE" || fail_out
-  chmod +w "$OUTFILE" || fail_out
 fi
+
+[ -n "$OUTFILE" ] && { chmod +w "$OUTFILE" || fail_out }
 
 MLTEXT="$EXIT $COMMIT $MLTEXT"
 MLEXIT="commit();"
