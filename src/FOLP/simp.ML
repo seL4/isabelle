@@ -600,7 +600,7 @@ fun mk_congs thy = flat o map (mk_cong_thy thy);
 
 fun mk_typed_congs thy =
 let val sg = sign_of thy;
-    val S0 = Type.defaultS(#tsig(Sign.rep_sg sg))
+    val S0 = Sign.defaultS sg;
     fun readfT(f,s) =
         let val T = incr_tvar 9 (Sign.read_typ(sg,K(Some(S0))) s);
             val t = case Sign.const_type sg f of
