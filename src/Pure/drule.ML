@@ -703,17 +703,18 @@ fun flexpair_abs_elim_list cts =
     flexpair_intr o equal_abs_elim_list cts o flexpair_elim;
 
 
-(*** GOAL (PROP A) <==> PROP A ***)
+(*** Goal (PROP A) <==> PROP A ***)
 
 local
-  val A = read_prop "PROP A";
-  val G = read_prop "GOAL (PROP A)";
+  val cert = Thm.cterm_of proto_sign;
+  val A = Free ("A", propT);
+  val G = Logic.mk_goal A;
   val (G_def, _) = freeze_thaw ProtoPure.Goal_def;
 in
-  val triv_goal = store_thm "triv_goal"
-    (tag_rule internal_tag (standard (Thm.equal_elim (Thm.symmetric G_def) (Thm.assume A))));
-  val rev_triv_goal = store_thm "rev_triv_goal"
-    (tag_rule internal_tag (standard (Thm.equal_elim G_def (Thm.assume G))));
+  val triv_goal = store_thm "triv_goal" (tag_rule internal_tag (standard
+      (Thm.equal_elim (Thm.symmetric G_def) (Thm.assume (cert A)))));
+  val rev_triv_goal = store_thm "rev_triv_goal" (tag_rule internal_tag (standard
+      (Thm.equal_elim G_def (Thm.assume (cert G)))));
 end;
 
 val mk_cgoal = Thm.capply (Thm.cterm_of proto_sign Logic.goal_const);

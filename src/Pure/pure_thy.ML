@@ -137,7 +137,7 @@ fun lookup_thms thy =
     val ref {space, thms_tab, ...} = get_theorems thy;
   in
     fn name =>
-      apsome (map (Thm.transfer_sg (Sign.deref sg_ref)))  	(*semi-dynamic identity*)
+      apsome (map (Thm.transfer_sg (Sign.deref sg_ref)))        (*semi-dynamic identity*)
       (Symtab.lookup (thms_tab, NameSpace.intern space name))   (*static content*)
   end;
 
@@ -474,7 +474,7 @@ val proto_pure =
     ("=?=", "['a::{}, 'a] => prop", InfixrName ("=?=", 2)),
     ("==>", "[prop, prop] => prop", Mixfix ("(_/ ==> _)", [2, 1], 1)),
     ("all", "('a => prop) => prop", Binder ("!!", 0, 0)),
-    ("Goal", "prop => prop", Mixfix ("GOAL _", [1000], 999)),
+    ("Goal", "prop => prop", NoSyn),
     ("TYPE", "'a itself", NoSyn),
     (Term.dummy_patternN, "'a", Delimfix "'_")]
   |> Theory.add_modesyntax ("", false)
@@ -482,8 +482,9 @@ val proto_pure =
       :: Syntax.pure_appl_syntax)
   |> local_path
   |> (#1 oo (add_defs false o map Thm.no_attributes))
-   [("flexpair_def", "(t =?= u) == (t == u::'a::{})"),
-    ("Goal_def", "GOAL (PROP A) == PROP A")]
+   [("flexpair_def", "(t =?= u) == (t == u::'a::{})")]
+  |> (#1 oo (add_defs_i false o map Thm.no_attributes))
+   [("Goal_def", let val A = Free ("A", propT) in Logic.mk_equals (Logic.mk_goal A, A) end)]
   |> (#1 o add_thmss [(("nothing", []), [])])
   |> end_theory;
 
