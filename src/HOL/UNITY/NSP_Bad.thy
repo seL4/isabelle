@@ -3,7 +3,7 @@
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1996  University of Cambridge
 
-loadpath := "../Auth" :: !loadpath; use_thy"NSP_Bad";
+add_path "../Auth"; use_thy"NSP_Bad";
 
 Security protocols in UNITY: Needham-Schroeder, public keys (flawed version).
 

@@ -9,5 +9,5 @@ HOL_build_completed;    (*Make examples fail if HOL did*)
 writeln"Root file for HOL/Lambda";
 
 time_use_thy "Eta";
-loadpath := [".","../Induct"];
+add_path "../Induct";
 time_use_thy "InductTermi";
