@@ -296,54 +296,80 @@ lemma Says_to_Gets:
      "Says A B X # evs \<in> set_pur ==> Gets B X # Says A B X # evs \<in> set_pur"
 by (rule set_pur.Reception, auto)
 
-(* Possibility for UNSIGNED purchases*)
+text{*Possibility for UNSIGNED purchases. Note that we need to ensure
+that XID differs from OrderDesc and PurchAmt, since it is supposed to be
+a unique number!*}
 lemma possibility_Uns:
-     "[| CardSecret k = 0;
-        \<forall>evs. (@ No. Nonce No \<notin> used evs) \<notin> range CardSecret;
-        \<forall>evs. (@ No. Nonce No \<notin> used evs) \<notin> range PANSecret;
-        \<forall>evs. (@ Nn. Number Nn \<notin> used evs) \<notin> range CardSecret;
-        \<forall>evs. (@ Nn. Number Nn \<notin> used evs) \<notin> range PANSecret
-     |] ==> \<exists>LID_M. \<exists>XID. \<exists>Chall_C.
-             \<exists>evs \<in> set_pur.
-            Says (Merchant i) (Cardholder k)
-                 (sign (priSK (Merchant i))
-          {|Number LID_M, Number XID, Nonce Chall_C, Hash (Number PurchAmt)|})
-                  \<in> set evs"
+    "[| CardSecret k = 0;
+        C = Cardholder k;  M = Merchant i;
+	Key KC \<notin> used []; Key KM \<notin> used []; Key KP \<notin> used []; 
+	KC \<in> symKeys; KM \<in> symKeys; KP \<in> symKeys; 
+	KC < KM; KM < KP;
+	Nonce Chall_C \<notin> used []; Chall_C \<notin> range CardSecret \<union> range PANSecret;
+        Nonce Chall_M \<notin> used []; Chall_M \<notin> range CardSecret \<union> range PANSecret;
+	Chall_C < Chall_M; 
+        Number LID_M \<notin> used []; LID_M \<notin> range CardSecret \<union> range PANSecret;
+        Number XID \<notin> used []; XID \<notin> range CardSecret \<union> range PANSecret;
+        LID_M < XID; XID < OrderDesc; OrderDesc < PurchAmt |] 
+   ==> \<exists>evs \<in> set_pur.
+          Says M C
+               (sign (priSK M)
+                    {|Number LID_M, Number XID, Nonce Chall_C, 
+                      Hash (Number PurchAmt)|})
+                  \<in> set evs" 
 apply (intro exI bexI)
 apply (rule_tac [2]
-        set_pur.Nil [THEN set_pur.Start, 
-                     THEN set_pur.PInitReq, THEN Says_to_Gets, 
-                     THEN set_pur.PInitRes, THEN Says_to_Gets,
-                     THEN set_pur.PReqUns, THEN Says_to_Gets, 
-                     THEN set_pur.AuthReq, THEN Says_to_Gets, 
-                     THEN set_pur.AuthResUns, THEN Says_to_Gets, 
-                     THEN set_pur.PRes])
-apply (possibility, erule spec)+
+	set_pur.Nil
+         [THEN set_pur.Start [of _ LID_M C k M i _ _ _ OrderDesc PurchAmt], 
+	  THEN set_pur.PInitReq [of concl: C M LID_M Chall_C],
+          THEN Says_to_Gets, 
+	  THEN set_pur.PInitRes [of concl: M C LID_M XID Chall_C Chall_M], 
+          THEN Says_to_Gets,
+	  THEN set_pur.PReqUns [of concl: C M KC],
+          THEN Says_to_Gets, 
+	  THEN set_pur.AuthReq [of concl: M "PG j" KM LID_M XID], 
+          THEN Says_to_Gets, 
+	  THEN set_pur.AuthResUns [of concl: "PG j" M KP LID_M XID],
+          THEN Says_to_Gets, 
+	  THEN set_pur.PRes]) 
+apply (tactic "basic_possibility_tac")
+apply (simp_all add: used_Cons symKeys_neq_imp_neq) 
 done
 
 lemma possibility_S:
-     "[| CardSecret k \<noteq> 0;
-        \<forall>evs. (@ No. Nonce No \<notin> used evs) \<notin> range CardSecret;
-        \<forall>evs. (@ No. Nonce No \<notin> used evs) \<notin> range PANSecret;
-        \<forall>evs. (@ Nn. Number Nn \<notin> used evs) \<notin> range CardSecret;
-        \<forall>evs. (@ Nn. Number Nn \<notin> used evs) \<notin> range PANSecret
-     |] ==> \<exists>LID_M. \<exists>XID. \<exists>Chall_C.
-             \<exists>evs \<in> set_pur.
-            Says (Merchant i) (Cardholder k)
-                 (sign (priSK (Merchant i))
-          {|Number LID_M, Number XID, Nonce Chall_C, Hash (Number PurchAmt)|})
-                  \<in> set evs"
+    "[| CardSecret k \<noteq> 0;
+        C = Cardholder k;  M = Merchant i;
+	Key KC \<notin> used []; Key KM \<notin> used []; Key KP \<notin> used []; 
+	KC \<in> symKeys; KM \<in> symKeys; KP \<in> symKeys; 
+	KC < KM; KM < KP;
+	Nonce Chall_C \<notin> used []; Chall_C \<notin> range CardSecret \<union> range PANSecret;
+        Nonce Chall_M \<notin> used []; Chall_M \<notin> range CardSecret \<union> range PANSecret;
+	Chall_C < Chall_M; 
+        Number LID_M \<notin> used []; LID_M \<notin> range CardSecret \<union> range PANSecret;
+        Number XID \<notin> used []; XID \<notin> range CardSecret \<union> range PANSecret;
+        LID_M < XID; XID < OrderDesc; OrderDesc < PurchAmt |] 
+   ==>  \<exists>evs \<in> set_pur.
+            Says M C
+                 (sign (priSK M) {|Number LID_M, Number XID, Nonce Chall_C, 
+                                   Hash (Number PurchAmt)|})
+               \<in> set evs"
 apply (intro exI bexI)
 apply (rule_tac [2]
-        set_pur.Nil [THEN set_pur.Start, 
-                     THEN set_pur.PInitReq, THEN Says_to_Gets, 
-                     THEN set_pur.PInitRes, THEN Says_to_Gets,
-                     THEN set_pur.PReqS, THEN Says_to_Gets, 
-                     THEN set_pur.AuthReq, THEN Says_to_Gets, 
-                     THEN set_pur.AuthResS, THEN Says_to_Gets, 
-                     THEN set_pur.PRes])
-apply possibility    --{*39 seconds on a 1.8GHz machine*}
-apply ((erule spec)+, auto)
+	set_pur.Nil
+         [THEN set_pur.Start [of _ LID_M C k M i _ _ _ OrderDesc PurchAmt], 
+	  THEN set_pur.PInitReq [of concl: C M LID_M Chall_C],
+          THEN Says_to_Gets, 
+	  THEN set_pur.PInitRes [of concl: M C LID_M XID Chall_C Chall_M], 
+          THEN Says_to_Gets,
+	  THEN set_pur.PReqS [of concl: C M _ _ KC],
+          THEN Says_to_Gets, 
+	  THEN set_pur.AuthReq [of concl: M "PG j" KM LID_M XID], 
+          THEN Says_to_Gets, 
+	  THEN set_pur.AuthResS [of concl: "PG j" M KP LID_M XID],
+          THEN Says_to_Gets, 
+	  THEN set_pur.PRes]) 
+apply (tactic "basic_possibility_tac")
+apply (auto simp add: used_Cons symKeys_neq_imp_neq) 
 done
 
 (*General facts about message reception*)

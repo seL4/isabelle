@@ -250,25 +250,22 @@ lemma possibility_CR6:
                cert (CA i) (pubSK (CA i)) onlySig (priSK RCA)|})
           \<in> set evs"
 apply (intro exI bexI)
-apply (rule_tac [2] ?NC1.8 = NC1 and ?NC1.10 = NC1
-                and ?NC2.4 = NC2 and ?NC2.6 = NC2
-                and ?NC3.0 = NC3 and ?NC3.2 = NC3
-                and NCA2 = NCA and NCA4 = NCA
-                and CardSecret = CardSecret and CardSecret2 = CardSecret
-                and ?KC1.4 = KC1 and ?KC1.6 = KC1
-                and ?KC2.0 = KC2 and ?KC2.2 = KC2
-                and ?KC3.0 = KC3 and ?KC3.2 = KC3
-       in
-       set_cr.Nil [THEN set_cr.SET_CR1, THEN Says_to_Gets, 
-                   THEN set_cr.SET_CR2, THEN Says_to_Gets, 
-                   THEN set_cr.SET_CR3, THEN Says_to_Gets, 
-                   THEN set_cr.SET_CR4, THEN Says_to_Gets, 
-                   THEN set_cr.SET_CR5, THEN Says_to_Gets, 
-                   THEN set_cr.SET_CR6])
+apply (rule_tac [2] 
+       set_cr.Nil 
+        [THEN set_cr.SET_CR1 [of concl: C i NC1], 
+         THEN Says_to_Gets, 
+	 THEN set_cr.SET_CR2 [of concl: i C NC1], 
+	 THEN Says_to_Gets,  
+	 THEN set_cr.SET_CR3 [of concl: C i KC1 _ NC2], 
+	 THEN Says_to_Gets,  
+	 THEN set_cr.SET_CR4 [of concl: i C NC2 NCA], 
+	 THEN Says_to_Gets,  
+	 THEN set_cr.SET_CR5 [of concl: C i KC3 NC3 KC2 CardSecret],
+	 THEN Says_to_Gets,  
+	 THEN set_cr.SET_CR6 [of concl: i C KC2]])
+apply (tactic "basic_possibility_tac")
 apply (simp_all (no_asm_simp) add: symKeys_neq_imp_neq)
-apply auto
 done
-
 
 text{*General facts about message reception*}
 lemma Gets_imp_Says:

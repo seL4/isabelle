@@ -9,17 +9,6 @@ theory PublicSET = EventSET:
 
 subsection{*Symmetric and Asymmetric Keys*}
 
-axioms
-  Key_supply_ax:
-      "finite KK ==> \<exists>K. K \<notin> KK & Key K \<notin> used evs & K \<in> symKeys"
-  --{*Unlike the corresponding property of nonces, this cannot be proved.
-    We have infinitely many agents and there is nothing to stop their
-    keys from exhausting all the natural numbers.  The axiom
-    assumes that their keys are dispersed so as to leave room for infinitely
-    many fresh session keys.  We could, alternatively, restrict agents to
-    an unspecified finite number.*}
-
-
 text{*definitions influenced by the wish to assign asymmetric keys 
   - since the beginning - only to RCA and CAs, namely we need a partial 
   function on type Agent*}
@@ -322,8 +311,7 @@ declare knows_Spy_pubEK_i [THEN analz.Inj, iff]
 text{*Spy sees private keys of bad agents! [and obviously public keys too]*}
 lemma knows_Spy_bad_privateKey [intro!]:
      "A \<in> bad ==> Key (invKey (publicKey b A)) \<in> knows Spy evs"
-apply (rule initState_subset_knows [THEN subsetD], simp)
-done
+by (rule initState_subset_knows [THEN subsetD], simp)
 
 
 subsection{*Fresh Nonces for Possibility Theorems*}
@@ -351,52 +339,12 @@ apply (rule someI, fast)
 done
 
 
-subsection{*Fresh Numbers for Possibility Theorems*}
-
-lemma Number_notin_initState [iff]: "Number N \<notin> parts (initState B)"
-by (induct_tac "B", auto)
-
-lemma Number_notin_used_empty [simp]: "Number N \<notin> used []"
-by (simp add: used_Nil)
-
-text{*In any trace, there is an upper bound N on the greatest number in use.*}
-lemma Number_supply_lemma: "\<exists>N. \<forall>n. N<=n --> Number n \<notin> used evs"
-apply (induct_tac "evs")
-apply (rule_tac x = 0 in exI)
-apply (simp_all add: used_Cons split add: event.split, safe)
-apply (rule msg_Number_supply [THEN exE], blast elim!: add_leE)+
-done
-
-lemma Number_supply1: "\<exists>N. Number N \<notin> used evs"
-by (rule Number_supply_lemma [THEN exE], blast)
-
-lemma Number_supply: "Number (@ N. Number N \<notin> used evs) \<notin> used evs"
-apply (rule Number_supply_lemma [THEN exE])
-apply (rule someI, fast)
-done
-
-
-subsection{*Fresh Keys for Possibility Theorems*}
-
-lemma Key_supply1: "\<exists>K. Key K \<notin> used evs & K \<in> symKeys"
-by (rule Finites.emptyI [THEN Key_supply_ax, THEN exE], blast)
-
-lemma Key_supply:
-     "(@K. K \<in> symKeys & Key K \<notin> used evs) \<in> symKeys &  
-      Key (@K. K \<in> symKeys & Key K \<notin> used evs) \<notin> used evs"
-apply (rule Finites.emptyI [THEN Key_supply_ax, THEN exE])
-apply (rule someI, blast)
-done
-
-
 subsection{*Specialized Methods for Possibility Theorems*}
 
 ML
 {*
 val Nonce_supply1 = thm "Nonce_supply1";
 val Nonce_supply = thm "Nonce_supply";
-val Key_supply = thm "Key_supply";
-val Number_supply = thm "Number_supply";
 
 val used_Says = thm "used_Says";
 val used_Notes = thm "used_Notes";
@@ -407,9 +355,7 @@ fun gen_possibility_tac ss state = state |>
     (ALLGOALS (simp_tac (ss delsimps [used_Says,used_Notes]))
      THEN
      REPEAT_FIRST (eq_assume_tac ORELSE' 
-                   resolve_tac [refl, conjI, Nonce_supply, Number_supply,
-                                Key_supply RS conjunct1,
-                                Key_supply RS conjunct2]))
+                   resolve_tac [refl, conjI, Nonce_supply]))
 
 (*Tactic for possibility theorems (ML script version)*)
 fun possibility_tac state = gen_possibility_tac (simpset()) state
