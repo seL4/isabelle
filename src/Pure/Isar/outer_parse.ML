@@ -306,7 +306,7 @@ val xthms1 = Scan.repeat1 xthm;
 val loc_mixfix = $$$ "(" -- $$$ "structure" -- !!! ($$$ ")") >> K None || opt_mixfix >> Some;
 
 val locale_element =
-  $$$ "fixes" |-- !!! (and_list1 (name -- ($$$ "::" |-- typ) -- loc_mixfix >> triple1))
+  $$$ "fixes" |-- !!! (and_list1 (name -- Scan.option ($$$ "::" |-- typ) -- loc_mixfix >> triple1))
     >> Locale.Fixes ||
   $$$ "assumes" |-- !!! (and_list1 (opt_thm_name ":" -- Scan.repeat1 propp))
     >> Locale.Assumes ||
