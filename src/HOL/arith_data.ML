@@ -231,6 +231,12 @@ fun arith_inj_const c = ArithTheoryData.map (fn {splits,inj_consts,discrete,pres
   {splits = splits, inj_consts = c :: inj_consts, discrete = discrete, presburger = presburger});
 
 
+(* A FIXME to avoid excessive case splits when ~= is split into < and >:
+   ignore ~= altogether.
+*)
+
+val ignore_neq = ref false;
+
 structure LA_Data_Ref: LIN_ARITH_DATA =
 struct
 
@@ -333,7 +339,8 @@ and (q,j) = poly(rhs,rat_of_int 1,([],rat_of_int 0))
      | _       => None
   end handle Zero => None;
 
-fun negate(Some(x,i,rel,y,j,d)) = Some(x,i,"~"^rel,y,j,d)
+fun negate(Some(x,i,rel,y,j,d)) =
+      if rel = "=" andalso !ignore_neq then None else Some(x,i,"~"^rel,y,j,d)
   | negate None = None;
 
 fun decomp1 (discrete,inj_consts) (T,xxx) =
