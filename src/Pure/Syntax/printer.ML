@@ -19,6 +19,7 @@ sig
   include PRINTER0
   val term_to_ast: (string -> (typ -> term list -> term) option) -> term -> Ast.ast
   val typ_to_ast: (string -> (typ -> term list -> term) option) -> typ -> Ast.ast
+  val sort_to_ast: (string -> (typ -> term list -> term) option) -> sort -> Ast.ast
   type prtabs
   val empty_prtabs: prtabs
   val extend_prtabs: prtabs -> string -> SynExt.xprod list -> prtabs
@@ -71,7 +72,7 @@ fun simple_ast_of (Const (c, _)) = Constant c
 
 
 
-(** typ_to_ast **)
+(** sort_to_ast, typ_to_ast **)
 
 fun ast_of_termT trf tm =
   let
@@ -83,7 +84,7 @@ fun ast_of_termT trf tm =
           (case strip_comb t of
             (Const (a, _), args) => trans a args
           | (f, args) => Appl (map ast_of (f :: args)))
-      | ast_of t = raise_term "ast_of_termT: bad term encoding of type" [t]
+      | ast_of t = raise TERM ("ast_of_termT: bad term encoding of type", [t])
     and trans a args =
       (case trf a of
         Some f => ast_of (apply_trans "print translation" a (uncurry f) (dummyT, args))
@@ -93,6 +94,7 @@ fun ast_of_termT trf tm =
     ast_of tm
   end;
 
+fun sort_to_ast trf S = ast_of_termT trf (term_of_sort S);
 fun typ_to_ast trf T = ast_of_termT trf (term_of_typ (! show_sorts) T);
 
 
@@ -346,7 +348,7 @@ fun pretty tabs trf tokentrf type_mode curried ast0 p0 =
       | astT (Appl ((c as Constant a) :: (args as _ :: _)), p) =
           combT (c, a, args, p)
       | astT (Appl (f :: (args as _ :: _)), p) = astT (appT (f, args), p)
-      | astT (ast as Appl _, _) = raise_ast "pretty: malformed ast" [ast];
+      | astT (ast as Appl _, _) = raise AST ("pretty: malformed ast", [ast]);
   in
     astT (ast0, p0)
   end;
