@@ -720,7 +720,7 @@ lemma (in ACe) fold_Un_Int:
     fold f e A \<cdot> fold f e B = fold f e (A Un B) \<cdot> fold f e (A Int B)"
   apply (induct set: Finites)
    apply simp
-  apply (simp add: AC ACe.axioms ACe_axioms_def
+  apply (simp add: AC ACe_axioms ACe_axioms_def
     LC_axioms_def LC.fold_insert insert_absorb Int_insert_left)
   done
 
