@@ -178,7 +178,7 @@ and close (olds: less list) ([]:less list) = olds
 (* recognize and solve trivial goal *)
 fun triv_sol(x,i,y,j,_) =
   if x=y andalso i<j
-  then Some(Incr1(Incr2(Thm([],Less.lessI),i),j-i)) else
+  then Some(Incr1(Incr2(Thm([],Less.lessI),i),j-i-1)) else
   if Less.is_zero(x) andalso i<j
   then Some(Incr1(Incr2(Thm([],Less.zero_less_Suc),i),j-i-1))
   else None;
