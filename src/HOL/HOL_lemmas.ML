@@ -422,6 +422,8 @@ qed_goal "case_split_thm" (the_context ()) "[| P ==> Q; ~P ==> Q |] ==> Q"
   (fn [p1,p2] => [rtac (excluded_middle RS disjE) 1,
                   etac p2 1, etac p1 1]);
 
+bind_thm ("case_split", case_split_thm);
+
 fun case_tac a = res_inst_tac [("P",a)] case_split_thm;
 
 
