@@ -10,6 +10,10 @@ Should be executed in subdirectory HOLCF.
 val banner = "HOLCF with sections axioms,ops,domain,generated";
 init_thy_reader();
 
+fun qed_spec_mp name =
+  let val thm = normalize_thm [RSspec,RSmp] (result())
+  in bind_thm(name, thm) end;
+
 (* start 8bit 1 *)
 val banner = 
         "HOLCF with sections axioms,ops,domain,generated and 8bit characters";
