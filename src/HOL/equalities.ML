@@ -776,6 +776,11 @@ by (res_inst_tac [("x", "x-{a}")] image_eqI 1);
 by (ALLGOALS Blast_tac);
 qed "Pow_insert";
 
+Goal "Pow UNIV = UNIV";
+by (Blast_tac 1);
+qed "Pow_UNIV";
+Addsimps [Pow_UNIV];
+
 (** for datatypes **)
 Goal "f x ~= f y ==> x ~= y";
 by (Fast_tac 1);
