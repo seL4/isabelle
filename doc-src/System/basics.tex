@@ -357,21 +357,25 @@ own, of course.
 
 \section{The Isabelle interface wrapper --- \texttt{Isabelle}} \label{sec:interface}
 
-Isabelle is a generic theorem prover, even w.r.t.\ its user interface.
-The \ttindex{Isabelle} command (note the capital \texttt{I}) provides
-a uniform way for end-users to invoke a certain interface. Which one
-to actually start is determined by the \settdx{ISABELLE_INTERFACE}
-setting variable. Currently, the following are recognized:
+Isabelle is a generic theorem prover, even w.r.t.\ its user interface.  The
+\ttindex{Isabelle} command (note the capital \texttt{I}) provides a uniform
+way for end-users to invoke a certain interface; which one to start actually
+is determined by the \settdx{ISABELLE_INTERFACE} setting variable.
+
+Basically, there are two ways to specify an interface: either by giving an
+identifier that the Isabelle distribution knows about, or specifying an actual
+path name (containing a slash ``\texttt{/}'') of some executable.  Currently,
+the following interface identifiers are recognized:
 \begin{ttdescription}
 \item[none] is just a pass-through to \texttt{isabelle}. Thus
   \texttt{Isabelle} basically becomes an alias for \texttt{isabelle}.
 
 \item[xterm] refers to a simple xterm based interface which is part of
   the Isabelle distribution.
-
-\item[emacs] refers to David Aspinall's \emph{Isamode} for emacs.
-  Isabelle just provides a wrapper for this, the actual Isamode
-  distribution is available elsewhere.
+  
+\item[emacs] refers to David Aspinall's \emph{Isamode}\index{user
+    interface!Isamode} for emacs.  Isabelle just provides a wrapper for this,
+  the actual Isamode distribution is available elsewhere \cite{isamode}.
 \end{ttdescription}
 
 The factory default for \texttt{ISABELLE_INTERFACE} is \texttt{xterm}.
@@ -384,6 +388,21 @@ variables underlined.
 
 There are some more options available.  Just pass \texttt{-?} to the
 \texttt{xterm} interface to have its usage printed.
+
+\medskip
+
+ProofGeneral\index{user interface!ProofGeneral} of LFCS Edinburgh is another,
+much more advanced interface.  It supports both classic Isabelle (as
+\texttt{ProofGeneral/isa}) and Isabelle/Isar (as \texttt{ProofGeneral/isar}).
+Note that the latter is slightly better supported, and more robust.
+ProofGeneral already ships with appropriate executable scripts to be run as
+Isabelle interface.  Thus a typical setup of ProofGeneral for Isabelle/Isar
+would be like this:
+\begin{ttbox}
+ISABELLE_INTERFACE=\$ISABELLE_HOME/contrib/ProofGeneral/isar/interface
+PROOFGENERAL_OPTIONS="-p emacs -u true"
+\end{ttbox}
+See \cite{proofgeneral} for more information on ProofGeneral.
 
 
 %%% Local Variables:
