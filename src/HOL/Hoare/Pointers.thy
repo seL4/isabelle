@@ -94,28 +94,6 @@ by(simp add:list_hd_not_in_tl)
 
 section"Hoare logic"
 
-consts fac :: "nat \<Rightarrow> nat"
-primrec
-"fac 0 = 1"
-"fac (Suc n) = Suc n * fac n"
-
-lemma [simp]: "1 \<le> i \<Longrightarrow> fac (i - Suc 0) * i = fac i"
-by(induct i, simp_all)
-
-lemma "|- VARS i f.
- {True}
- i := (1::nat); f := 1;
- WHILE i <= n INV {f = fac(i - 1) & 1 <= i & i <= n+1}
- DO f := f*i; i := i+1 OD
- {f = fac n}"
-apply vcg_simp
-apply(subgoal_tac "i = Suc n")
-apply simp
-apply arith
-done
-
-
-
 subsection"List reversal"
 
 lemma "|- VARS tl p q r. 
