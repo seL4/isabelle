@@ -402,6 +402,9 @@ goalw thy [le_def] "(m <= n) = (m < Suc n)";
 by (rtac not_less_eq 1);
 qed "le_eq_less_Suc";
 
+(*  m<=n ==> m < Suc n  *)
+bind_thm ("le_imp_less_Suc", le_eq_less_Suc RS iffD1);
+
 goalw thy [le_def] "0 <= n";
 by (rtac not_less0 1);
 qed "le0";
@@ -464,7 +467,7 @@ qed "not_leE";
 goalw thy [le_def] "!!m. m < n ==> Suc(m) <= n";
 by (simp_tac (!simpset addsimps [less_Suc_eq]) 1);
 by (blast_tac (!claset addSEs [less_irrefl,less_asym]) 1);
-qed "lessD";
+qed "Suc_leI";  (*formerly called lessD*)
 
 goalw thy [le_def] "!!m. Suc(m) <= n ==> m <= n";
 by (asm_full_simp_tac (!simpset addsimps [less_Suc_eq]) 1);
@@ -479,7 +482,7 @@ by (Blast_tac 1);
 qed "Suc_le_lessD";
 
 goal thy "(Suc m <= n) = (m < n)";
-by (blast_tac (!claset addIs [lessD, Suc_le_lessD]) 1);
+by (blast_tac (!claset addIs [Suc_leI, Suc_le_lessD]) 1);
 qed "Suc_le_eq";
 
 goalw thy [le_def] "!!m. m <= n ==> m <= Suc n";
@@ -493,6 +496,8 @@ goalw thy [le_def] "!!m. m < n ==> m <= (n::nat)";
 by (blast_tac (!claset addEs [less_asym]) 1);
 qed "less_imp_le";
 
+(** Equivalence of m<=n and  m<n | m=n **)
+
 goalw thy [le_def] "!!m. m <= n ==> m < n | m=(n::nat)";
 by (cut_facts_tac [less_linear] 1);
 by (blast_tac (!claset addEs [less_irrefl,less_asym]) 1);
@@ -503,7 +508,7 @@ by (cut_facts_tac [less_linear] 1);
 by (blast_tac (!claset addSEs [less_irrefl] addEs [less_asym]) 1);
 qed "less_or_eq_imp_le";
 
-goal thy "(x <= (y::nat)) = (x < y | x=y)";
+goal thy "(m <= (n::nat)) = (m < n | m=n)";
 by (REPEAT(ares_tac [iffI,less_or_eq_imp_le,le_imp_less_or_eq] 1));
 qed "le_eq_less_or_eq";
 
@@ -642,7 +647,7 @@ val less_decr = Suc_less_SucD;
 val less_incr_rhs = Suc_mono RS Suc_lessD;
 val less_decr_lhs = Suc_lessD;
 val less_trans_Suc = less_trans_Suc;
-val leI = lessD RS (Suc_le_mono RS iffD1);
+val leI = Suc_leI RS (Suc_le_mono RS iffD1);
 val not_lessI = leI RS leD
 val not_leI = prove_goal thy "!!m::nat. n < m ==> ~ m <= n"
   (fn _ => [etac swap2 1, etac leD 1]);

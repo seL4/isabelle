@@ -68,7 +68,7 @@ by (assume_tac 2);
 by (rtac (Suc_diff_n RS sym) 1);
 by (rtac le_less_trans 1);
 by (etac (not_less_eq RS subst) 2);
-by (rtac (hd ([diff_less_Suc RS lessD] RL [Suc_le_mono RS subst])) 1);
+by (rtac (hd ([diff_less_Suc RS Suc_leI] RL [Suc_le_mono RS subst])) 1);
 qed "diff_add_not_assoc";
 
 val prems=goal Arith.thy "~n<k ==> (m + n) - k = m + ((n - k)::nat)";
