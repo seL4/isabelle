@@ -21,7 +21,8 @@ local
     Present.setup @
     Isamode.setup @
     ProofGeneral.setup @
-    Codegen.setup;
+    Codegen.setup @
+    Goals.setup;
 in
   structure Pure =
   struct
