@@ -3,10 +3,10 @@
 # Author: Markus Wenzel, TU Muenchen
 # License: GPL (GNU GENERAL PUBLIC LICENSE)
 #
-# fixclasimp.pl - fix references to implicit claset and simpset
+# fixsome.pl - fix references to implicit claset and simpset
 #
 
-sub fixclasimp {
+sub fixsome {
     my ($file) = @_;
 
     open (FILE, $file) || die $!;
@@ -40,6 +40,6 @@ sub fixclasimp {
 ## main
 
 foreach $file (@ARGV) {
-  eval { &fixclasimp($file); };
-  if ($@) { print STDERR "*** fixclasimp $file: ", $@, "\n"; }
+  eval { &fixsome($file); };
+  if ($@) { print STDERR "*** fixsome $file: ", $@, "\n"; }
 }
