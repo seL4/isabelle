@@ -37,6 +37,14 @@ New in this Isabelle release
 
   - The simplifier trace now shows the names of the applied rewrite rules
 
+  - You can limit the number of recursive invocations of the simplifier
+    during conditional rewriting (where the simplifie tries to solve the
+    conditions before applying the rewrite rule):
+    ML "simp_depth_limit := n"
+    where n is an integer. Thus you can force termination where previously
+    the simplifier would diverge.
+
+
 * Pure: New flag for triggering if the overall goal of a proof state should
 be printed:
    PG menu: Isabelle/Isar -> Settigs -> Show Main Goal
