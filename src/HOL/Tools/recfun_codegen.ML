@@ -23,7 +23,7 @@ struct
   val empty = Symtab.empty;
   val copy = I;
   val prep_ext = I;
-  val merge = Symtab.merge_multi Drule.eq_thm_prop;
+  val merge = Symtab.merge_multi' Drule.eq_thm_prop;
   fun print _ _ = ();
 end;
 
@@ -31,6 +31,7 @@ structure CodegenData = TheoryDataFun(CodegenArgs);
 
 val prop_of = #prop o rep_thm;
 val dest_eqn = HOLogic.dest_eq o HOLogic.dest_Trueprop;
+val lhs_of = fst o dest_eqn o prop_of;
 val const_of = dest_Const o head_of o fst o dest_eqn;
 
 fun warn thm = warning ("RecfunCodegen: Not a proper equation:\n" ^
@@ -38,32 +39,39 @@ fun warn thm = warning ("RecfunCodegen: Not a proper equation:\n" ^
 
 fun add (p as (thy, thm)) =
   let
-    val tsig = Sign.tsig_of (sign_of thy);
     val tab = CodegenData.get thy;
     val (s, _) = const_of (prop_of thm);
-
-    val matches = curry
-      (Pattern.matches tsig o pairself (fst o dest_eqn o prop_of));
-
-  in (CodegenData.put (Symtab.update ((s,
-    filter_out (matches thm) (if_none (Symtab.lookup (tab, s)) []) @ [thm]),
-      tab)) thy, thm)
-  end handle TERM _ => (warn thm; p) | Pattern.Pattern => (warn thm; p);
+  in
+    if Pattern.pattern (lhs_of thm) then
+      (CodegenData.put (Symtab.update ((s,
+        thm :: if_none (Symtab.lookup (tab, s)) []), tab)) thy, thm)
+    else (warn thm; p)
+  end handle TERM _ => (warn thm; p);
 
 fun del (p as (thy, thm)) =
   let
     val tab = CodegenData.get thy;
     val (s, _) = const_of (prop_of thm);
-  in (CodegenData.put (Symtab.update ((s,
-    gen_rem eq_thm (if_none (Symtab.lookup (tab, s)) [], thm)),
-      tab)) thy, thm)
+  in case Symtab.lookup (tab, s) of
+      None => p
+    | Some thms => (CodegenData.put (Symtab.update ((s,
+        gen_rem eq_thm (thms, thm)), tab)) thy, thm)
   end handle TERM _ => (warn thm; p);
+
+fun del_redundant thy eqs [] = eqs
+  | del_redundant thy eqs (eq :: eqs') =
+    let
+      val tsig = Sign.tsig_of (sign_of thy);
+      val matches = curry
+        (Pattern.matches tsig o pairself lhs_of)
+    in del_redundant thy (eq :: eqs) (filter_out (matches eq) eqs') end;
 
 fun get_equations thy (s, T) =
   (case Symtab.lookup (CodegenData.get thy, s) of
      None => []
-   | Some thms => preprocess thy (filter (fn thm => is_instance thy T
-       (snd (const_of (prop_of thm)))) thms));
+   | Some thms => preprocess thy (del_redundant thy []
+       (filter (fn thm => is_instance thy T
+         (snd (const_of (prop_of thm)))) thms)));
 
 fun mk_poly_id thy (s, T) = mk_const_id (sign_of thy) s ^
   (case get_defn thy s T of
