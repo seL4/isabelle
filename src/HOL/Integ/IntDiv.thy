@@ -841,8 +841,8 @@ apply (erule disjE)
 done
 
 (* Enable arith to deal with div 2 and mod 2: *)
-declare split_zdiv [of _ 2, simplified, arith_split]
-declare split_zmod [of _ 2, simplified, arith_split]
+declare split_zdiv [of _ _ "number_of k", simplified, standard, arith_split]
+declare split_zmod [of _ _ "number_of k", simplified, standard, arith_split]
 
 
 subsection{*Speeding up the division algorithm with shifting*}
