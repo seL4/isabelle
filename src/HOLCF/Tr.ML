@@ -134,7 +134,6 @@ qed"Def_bool1";
 
 goal thy "(Def x = FF) = (~x)";
 by (simp_tac (simpset() addsimps [FF_def]) 1);
-by (fast_tac HOL_cs 1);
 qed"Def_bool2";
 
 goal thy "(Def x = TT) = x";
