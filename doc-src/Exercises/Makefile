@@ -1,8 +1,14 @@
-all: gen tex
+all: gen pdf
 
 gen: g2000 g2001 g2002
 
-tex:
+dvi: gen
+	latex exercises
+	bibtex exercises
+	latex exercises
+	latex exercises
+
+pdf: gen
 	pdflatex exercises
 	bibtex exercises
 	pdflatex exercises
