@@ -633,9 +633,9 @@ qed "InfCard_cadd_eq";
 
 goalw CardinalArith.thy [jump_cardinal_def] "Ord(jump_cardinal(K))";
 by (rtac (Ord_is_Transset RSN (2,OrdI)) 1);
-by (safe_tac (ZF_cs addSIs [Ord_ordertype]));
+by (fast_tac (ZF_cs addSIs [Ord_ordertype]) 2);
 by (rewtac Transset_def);
-by (safe_tac ZF_cs);
+by (safe_tac subset_cs);
 by (asm_full_simp_tac (ZF_ss addsimps [ordertype_pred_unfold]) 1);
 by (safe_tac ZF_cs);
 by (rtac UN_I 1);

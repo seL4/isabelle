@@ -79,19 +79,19 @@ qed "pmap_empI";
 goalw Map.thy [map_owr_def,PMap_def,TMap_def] 
   "!! A.[| m:PMap(A,B); a:A; b:B |]  ==> map_owr(m,a,b):PMap(A,B)";
 by (safe_tac ZF_cs);
-by (asm_full_simp_tac if_ss 1 THEN fast_tac ZF_cs 1);
+by (ALLGOALS (asm_full_simp_tac (ZF_ss addsimps [if_iff])));
 by (fast_tac ZF_cs 1);
-by (asm_full_simp_tac (ZF_ss addsimps [if_iff]) 1);
 by (fast_tac ZF_cs 1);
+by (fast_tac ZF_cs 1);
+
 by (rtac (excluded_middle RS disjE) 1);
 by (etac image_Sigma1 1);
-by (safe_tac upair_cs);    (*This claset knows nothing about domain(m).*)
-by (asm_full_simp_tac (ZF_ss addsimps [qbeta]) 1);
-by (asm_simp_tac (ZF_ss addsimps [qbeta] setloop split_tac [expand_if]) 1);
-by (safe_tac FOL_cs);
-by (asm_full_simp_tac (ZF_ss addsimps [qbeta]) 1);
 by (dres_inst_tac [("psi", "?uu ~: B")] asm_rl 1);
-by (asm_full_simp_tac (ZF_ss addsimps [qbeta]) 1);
+by (asm_full_simp_tac
+ (ZF_ss addsimps [qbeta] setloop split_tac [expand_if]) 1);
+by (safe_tac FOL_cs);
+by (dres_inst_tac [("psi", "?uu ~: B")] asm_rl 3);
+by (ALLGOALS (asm_full_simp_tac ZF_ss));
 by (fast_tac ZF_cs 1);
 qed "pmap_owrI";
 
