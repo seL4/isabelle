@@ -20,6 +20,7 @@ signature ZF_LEMMAS =
   val bexI		: thm
   val bex_cong		: thm
   val bspec		: thm
+  val cantor		: thm
   val CollectD1		: thm
   val CollectD2		: thm
   val CollectE		: thm
@@ -479,6 +480,17 @@ val subset0_cs = FOL_cs
 
 (*Standard claset*)
 val lemmas_cs = subset0_cs addSIs [subsetI] addEs [subsetCE];
+
+(*** Cantor's Theorem: There is no surjection from a set to its powerset. ***)
+
+val cantor_cs = FOL_cs   (*precisely the rules needed for the proof*)
+  addSIs [ballI, CollectI, PowI, subsetI] addIs [bexI]
+  addSEs [CollectE, equalityCE];
+
+(*The search is undirected; similar proof attempts may fail.
+  b represents ANY map, such as (lam x:A.b(x)): A->Pow(A). *)
+val cantor = prove_goal ZF.thy "EX S: Pow(A). ALL x:A. b(x) ~= S"
+ (fn _ => [best_tac cantor_cs 1]);
 
 (*Lemma for the inductive definition in Zorn.thy*)
 val Union_in_Pow = prove_goal ZF.thy
