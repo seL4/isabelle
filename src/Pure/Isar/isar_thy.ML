@@ -346,8 +346,10 @@ val end_block = ProofHistory.applys Proof.end_block;
 
 (* shuffle state *)
 
-fun defer i = ProofHistory.applys (Method.refine (Method.Basic (K (Method.defer i))));
-fun prefer i = ProofHistory.applys (Method.refine (Method.Basic (K (Method.prefer i))));
+fun shuffle meth i = Method.refine_no_facts (Method.Basic (K (meth i))) o Proof.assert_no_chain;
+
+fun defer i = ProofHistory.applys (shuffle Method.defer i);
+fun prefer i = ProofHistory.applys (shuffle Method.prefer i);
 
 
 (* backward steps *)
