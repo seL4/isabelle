@@ -94,22 +94,32 @@ fun condrew sign rules procs =
 
     fun rew tm =
       Pattern.rewrite_term tsig [] (condrew' :: procs) tm
-    and condrew' tm = get_first (fn (_, (prems, (tm1, tm2))) =>
+    and condrew' tm =
       let
-        fun ren t = if_none (Term.rename_abs tm1 tm t) t;
-        val inc = Logic.incr_indexes ([], maxidx_of_term tm + 1);
-        val env as (Tenv, tenv) = Pattern.match tsig (inc tm1, tm);
-        val prems' = map (pairself (subst_vars env o inc o ren)) prems;
-        val env' = Envir.Envir
-          {maxidx = foldl Int.max
-            (~1, map (Int.max o pairself maxidx_of_term) prems'),
-           iTs = Vartab.make Tenv, asol = Vartab.make tenv};
-        val env'' = foldl (fn (env, p) =>
-          Pattern.unify (sign, env, [pairself rew p])) (env', prems')
-      in Some (Envir.norm_term env'' (inc (ren tm2)))
-      end handle Pattern.MATCH => None | Pattern.Unif => None)
-        (sort (Int.compare o pairself fst)
-          (Net.match_term rules (Pattern.eta_contract tm)));
+        val cache = ref ([] : (term * term) list);
+        fun lookup f x = (case assoc (!cache, x) of
+            None =>
+              let val y = f x
+              in (cache := (x, y) :: !cache; y) end
+          | Some y => y);
+      in
+        get_first (fn (_, (prems, (tm1, tm2))) =>
+        let
+          fun ren t = if_none (Term.rename_abs tm1 tm t) t;
+          val inc = Logic.incr_indexes ([], maxidx_of_term tm + 1);
+          val env as (Tenv, tenv) = Pattern.match tsig (inc tm1, tm);
+          val prems' = map (pairself (subst_vars env o inc o ren)) prems;
+          val env' = Envir.Envir
+            {maxidx = foldl Int.max
+              (~1, map (Int.max o pairself maxidx_of_term) prems'),
+             iTs = Vartab.make Tenv, asol = Vartab.make tenv};
+          val env'' = foldl (fn (env, p) =>
+            Pattern.unify (sign, env, [pairself (lookup rew) p])) (env', prems')
+        in Some (Envir.norm_term env'' (inc (ren tm2)))
+        end handle Pattern.MATCH => None | Pattern.Unif => None)
+          (sort (Int.compare o pairself fst)
+            (Net.match_term rules (Pattern.eta_contract tm)))
+      end;
 
   in rew end;
 
