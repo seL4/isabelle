@@ -13,13 +13,13 @@ by (rtac (transrec2_def RS def_transrec RS trans) 1);
 by (simp_tac ZF_ss 1);
 val transrec2_0 = result();
 
-goal thy "(THE j. succ(i)=succ(j)) = i";
-by (fast_tac (OrdQuant_cs addSIs [the_equality]) 1);
-val THE_succ_eq = result();
+goal thy "(THE j. i=j) = i";
+by (fast_tac (ZF_cs addSIs [the_equality]) 1);
+val THE_eq = result();
 
 goal thy "transrec2(succ(i),a,b) = b(i, transrec2(i,a,b))";
 by (rtac (transrec2_def RS def_transrec RS trans) 1);
-by (simp_tac (ZF_ss addsimps [succ_not_0, THE_succ_eq, if_P]
+by (simp_tac (ZF_ss addsimps [succ_not_0, THE_eq, if_P]
                     setsolver K (fast_tac FOL_cs)) 1);
 val transrec2_succ = result();
 
