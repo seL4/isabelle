@@ -60,6 +60,18 @@ load "Timer";
 
 use "ML-Systems/cpu-timer-gc.ML";
 
+(* bounded time execution *)
+
+(* FIXME proper implementation available? *)
+
+structure TimeLimit : sig
+   exception TimeOut
+   val timeLimit : Time.time -> ('a -> 'b) -> 'a -> 'b
+end = struct
+   exception TimeOut
+   fun timeLimit t f x =
+      f x;
+end;
 
 (* ML command execution *)
 
