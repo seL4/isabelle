@@ -153,7 +153,8 @@ datatype context =
     defs:
       typ Vartab.table *                                   (*type constraints*)
       sort Vartab.table *                                  (*default sorts*)
-      (string list * term list Symtab.table)};             (*used type variables*)
+      string list *                                        (*used type variables*)
+      term list Symtab.table};                             (*type variable occurrences*)
 
 exception CONTEXT of string * context;
 
@@ -173,7 +174,7 @@ fun vars_of (Context {asms = (_, vars), ...}) = vars;
 val fixes_of = #1 o vars_of;
 val fixed_names_of = map #2 o fixes_of;
 fun is_fixed (Context {asms = (_, (fixes, _)), ...}) x = exists (equal x o #2) fixes;
-fun used_table (Context {defs = (_, _, (_, tab)), ...}) = tab;
+fun type_occs (Context {defs = (_, _, _, tab), ...}) = tab;
 
 fun assumptions_of (Context {asms = ((asms, _), _), ...}) = asms;
 fun prems_of (Context {asms = ((_, prems), _), ...}) = flat (map #2 prems);
@@ -271,7 +272,7 @@ fun put_data kind f x ctxt =
 fun init thy =
   let val data = Symtab.map (fn (_, (f, _)) => f thy) (ProofDataData.get thy) in
     make_context (thy, (Theory.syn_of thy, [], []), data, (([], []), ([], [])), Vartab.empty,
-      Symtab.empty, [], (Vartab.empty, Vartab.empty, ([], Symtab.empty)))
+      Symtab.empty, [], (Vartab.empty, Vartab.empty, [], Symtab.empty))
   end;
 
 
@@ -375,9 +376,9 @@ end;
 
 (** default sorts and types **)
 
-fun def_sort (Context {defs = (_, sorts, _), ...}) xi = Vartab.lookup (sorts, xi);
+fun def_sort (Context {defs = (_, sorts, _, _), ...}) xi = Vartab.lookup (sorts, xi);
 
-fun def_type (Context {binds, defs = (types, _, _), ...}) is_pat xi =
+fun def_type (Context {binds, defs = (types, _, _, _), ...}) is_pat xi =
   (case Vartab.lookup (types, xi) of
     None =>
       if is_pat then None else
@@ -534,7 +535,7 @@ fun reject_dummies ctxt t = Term.no_dummy_patterns t
 
 local
 
-fun gen_read read app is_pat schematic (ctxt as Context {defs = (_, _, (used, _)), ...}) s =
+fun gen_read read app is_pat schematic (ctxt as Context {defs = (_, _, used, _), ...}) s =
   (transform_error (read (syn_of ctxt)
       (sign_of ctxt) (def_type ctxt is_pat, def_sort ctxt, used)) s
     handle TERM (msg, _) => raise CONTEXT (msg, ctxt)
@@ -595,8 +596,10 @@ val ins_sorts = foldl_types (foldl_atyps
     | (sorts, _) => sorts));
 
 val ins_used = foldl_term_types (fn t => foldl_atyps
-  (fn ((used, tab), TFree (x, _)) => (x ins used, Symtab.update_multi ((x, t), tab))
-    | (used, _) => used));
+  (fn (used, TFree (x, _)) => x ins_string used | (used, _) => used));
+
+val ins_occs = foldl_term_types (fn t => foldl_atyps
+  (fn (tab, TFree (x, _)) => Symtab.update_multi ((x, t), tab) | (tab, _) => tab));
 
 fun ins_skolem def_ty = foldr
   (fn ((x, x'), types) =>
@@ -609,14 +612,15 @@ fun map_defaults f = map_context (fn (thy, syntax, data, asms, binds, thms, case
 
 fun declare_syn (ctxt, t) =
   ctxt
-  |> map_defaults (fn (types, sorts, used) => (ins_types (types, t), sorts, used))
-  |> map_defaults (fn (types, sorts, used) => (types, ins_sorts (sorts, t), used));
+  |> map_defaults (fn (types, sorts, used, occ) => (ins_types (types, t), sorts, used, occ))
+  |> map_defaults (fn (types, sorts, used, occ) => (types, ins_sorts (sorts, t), used, occ))
+  |> map_defaults (fn (types, sorts, used, occ) => (types, sorts, ins_used (used, t), occ));
 
 fun declare_occ (ctxt as Context {asms = (_, (fixes, _)), ...}, t) =
   declare_syn (ctxt, t)
-  |> map_defaults (fn (types, sorts, used) => (types, sorts, ins_used (used, t)))
-  |> map_defaults (fn (types, sorts, used) =>
-      (ins_skolem (fn x => Vartab.lookup (types, (x, ~1))) (fixes, types), sorts, used));
+  |> map_defaults (fn (types, sorts, used, occ) => (types, sorts, used, ins_occs (occ, t)))
+  |> map_defaults (fn (types, sorts, used, occ) =>
+      (ins_skolem (fn x => Vartab.lookup (types, (x, ~1))) (fixes, types), sorts, used, occ));
 
 in
 
@@ -653,15 +657,15 @@ fun pretty_thms ctxt [th] = pretty_thm ctxt th
 (* warn_extra_tfrees *)
 
 fun warn_extra_tfrees
-    (ctxt1 as Context {defs = (_, _, (names1, tab1)), ...})
-    (ctxt2 as Context {defs = (_, _, (names2, tab2)), ...}) =
+    (ctxt1 as Context {defs = (_, _, _, occ1), ...})
+    (ctxt2 as Context {defs = (_, _, _, occ2), ...}) =
   let
     fun known_tfree a (Type (_, Ts)) = exists (known_tfree a) Ts
       | known_tfree a (TFree (a', _)) = a = a'
       | known_tfree _ _ = false;
 
     val extras =
-      Library.gen_rems Library.eq_fst (Symtab.dest tab2, Symtab.dest tab1)
+      Library.gen_rems Library.eq_fst (Symtab.dest occ2, Symtab.dest occ1)
       |> map (fn (a, ts) => map (pair a) (mapfilter (try (#1 o Term.dest_Free)) ts)) |> flat
       |> mapfilter (fn (a, x) =>
           (case def_type ctxt1 false (x, ~1) of None => Some (a, x)
@@ -684,9 +688,9 @@ fun gen_tfrees inner outer =
     fun still_fixed (Free (x, _)) = not (x mem_string extra_fixes)
       | still_fixed _ = false;
     fun add (gen, (a, xs)) =
-      if is_some (Symtab.lookup (used_table outer, a)) orelse exists still_fixed xs
+      if is_some (Symtab.lookup (type_occs outer, a)) orelse exists still_fixed xs
       then gen else a :: gen;
-  in Symtab.foldl add ([], used_table inner) end;
+  in Symtab.foldl add ([], type_occs inner) end;
 
 fun generalizeT inner outer =
   let
@@ -1277,7 +1281,7 @@ fun pretty_asms ctxt =
 
 (* main context *)
 
-fun pretty_context (ctxt as Context {cases, defs = (types, sorts, (used, _)), ...}) =
+fun pretty_context (ctxt as Context {cases, defs = (types, sorts, used, _), ...}) =
   let
     val prt_term = pretty_term ctxt;
     val prt_typ = pretty_typ ctxt;
