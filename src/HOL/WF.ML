@@ -131,6 +131,9 @@ AddIffs [wf_insert];
 
 (*** acyclic ***)
 
+val acyclicI = prove_goalw WF.thy [acyclic_def] 
+"!!r. !x. (x, x) ~: r^+ ==> acyclic r" (K [atac 1]);
+
 goalw WF.thy [acyclic_def]
  "!!r. wf r ==> acyclic r";
 by (blast_tac (claset() addEs [wf_trancl RS wf_irrefl]) 1);
