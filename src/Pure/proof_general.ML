@@ -51,7 +51,7 @@ fun xsymbols_output s =
   if xsymbolsN mem_string ! print_mode andalso exists_string (equal "\\") s then
     let val syms = Symbol.explode s
     in (implode (map xsym_output syms), real (Symbol.length syms)) end
-  else (s, real (size s));
+  else Symbol.default_output s;
 
 fun pgml_output (s, len) =
   if pgml () then (XML.text s, len)

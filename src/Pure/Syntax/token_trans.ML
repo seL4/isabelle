@@ -76,7 +76,7 @@ val purple = "\^[[35m";
 val cyan = "\^[[36m";
 val white = "\^[[37m";
 
-fun style (ref s) x = (s ^ x ^ normal, real (size x));
+fun style (ref s) x = Output.output_width x |> apfst (enclose s normal);
 
 
 (* print modes "xterm" and "xterm_color" *)
@@ -116,7 +116,7 @@ val xterm_trans =
 (** standard token translations **)
 
 val token_translation =
-  map (fn s => ("", s, fn x => (x, real (size x)))) standard_token_classes @
+  map (fn s => ("", s, Output.output_width)) standard_token_classes @
   xterm_trans;
 
 
