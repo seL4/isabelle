@@ -33,10 +33,11 @@ subsection {* Record Basics *}
 
 text {*
   Record types are not primitive in Isabelle and have a delicate
-  internal representation based on nested copies of the primitive
-  product type.  A \commdx{record} declaration introduces a new record
-  type scheme by specifying its fields, which are packaged internally
-  to hold up the perception of the record as a distinguished entity.
+  internal representation \cite{NaraschewskiW-TPHOLs98}, based on
+  nested copies of the primitive product type.  A \commdx{record}
+  declaration introduces a new record type scheme by specifying its
+  fields, which are packaged internally to hold up the perception of
+  the record as a distinguished entity.  Here is a simply example.
 *}
 
 record point =
@@ -56,9 +57,8 @@ constdefs
 text {*
   We see above the ASCII notation for record brackets.  You can also
   use the symbolic brackets @{text \<lparr>} and @{text \<rparr>}.  Record type
-  expressions can be written directly as well, without referring to
-  previously declared names (which happen to be mere type
-  abbreviations):
+  expressions can be also written directly with individual fields.
+  The type name above is merely an abbreviations.
 *}
 
 constdefs
@@ -80,7 +80,7 @@ text {*
   The \emph{update}\index{update!record} operation is functional.  For
   example, @{term "p\<lparr>Xcoord := 0\<rparr>"} is a record whose @{text Xcoord}
   value is zero and whose @{text Ycoord} value is copied from~@{text
-  p}.  Updates are also simplified automatically:
+  p}.  Updates of explicit records are also simplified automatically:
 *}
 
 lemma "\<lparr>Xcoord = a, Ycoord = b\<rparr>\<lparr>Xcoord := 0\<rparr> =
@@ -112,7 +112,7 @@ record cpoint = point +
 
 text {*
   The fields of this new type are @{text Xcoord}, @{text Ycoord} and
-  @{text col}, in that order:
+  @{text col}, in that order.
 *}
 
 constdefs
@@ -121,15 +121,15 @@ constdefs
 
 text {*
   We can define generic operations that work on arbitrary instances of
-  a record scheme, e.g.\ covering @{typ point}, @{typ cpoint} and any
+  a record scheme, e.g.\ covering @{typ point}, @{typ cpoint}, and any
   further extensions.  Every record structure has an implicit
   pseudo-field, \cdx{more}, that keeps the extension as an explicit
   value.  Its type is declared as completely polymorphic:~@{typ 'a}.
   When a fixed record value is expressed using just its standard
   fields, the value of @{text more} is implicitly set to @{text "()"},
   the empty tuple, which has type @{typ unit}.  Within the record
-  brackets, you can refer to the @{text more} field by writing @{text
-  "\<dots>"} (three dots):
+  brackets, you can refer to the @{text more} field by writing
+  ``@{text "\<dots>"}'' (three dots):
 *}
 
 lemma "Xcoord \<lparr>Xcoord = a, Ycoord = b, \<dots> = p\<rparr> = a"
@@ -137,10 +137,10 @@ lemma "Xcoord \<lparr>Xcoord = a, Ycoord = b, \<dots> = p\<rparr> = a"
 
 text {*
   This lemma applies to any record whose first two fields are @{text
-  Xcoord} and~@{text Ycoord}.  Note that @{text "\<lparr>Xcoord = a, Ycoord =
-  b, \<dots> = ()\<rparr>"} is really the same as @{text "\<lparr>Xcoord = a, Ycoord =
-  b\<rparr>"}.  Selectors and updates are always polymorphic wrt.\ the @{text
-  more} part of a record scheme, its value is just ignored (for
+  Xcoord} and~@{text Ycoord}.  Note that @{text "\<lparr>Xcoord = a, Ycoord
+  = b, \<dots> = ()\<rparr>"} is exactly the same as @{text "\<lparr>Xcoord = a, Ycoord
+  = b\<rparr>"}.  Selectors and updates are always polymorphic wrt.\ the
+  @{text more} part of a record scheme, its value is just ignored (for
   select) or copied (for update).
 
   The @{text more} pseudo-field may be manipulated directly as well,
@@ -151,15 +151,15 @@ lemma "point.more cpt1 = \<lparr>col = Green\<rparr>"
   by (simp add: cpt1_def)
 
 text {*
-  We see that the colour attached to this @{typ point} is a
+  We see that the colour part attached to this @{typ point} is a
   (rudimentary) record in its own right, namely @{text "\<lparr>col =
   Green\<rparr>"}.  In order to select or update @{text col}, this fragment
   needs to be put back into the context of the parent type scheme, say
   as @{text more} part of another @{typ point}.
 
   To define generic operations, we need to know a bit more about
-  records.  Our definition of @{typ point} above generated two type
-  abbreviations:
+  records.  Our definition of @{typ point} above has generated two
+  type abbreviations:
 
   \medskip
   \begin{tabular}{l}
@@ -195,8 +195,8 @@ text {*
 
 constdefs
   incX :: "'a point_scheme \<Rightarrow> 'a point_scheme"
-  "incX r \<equiv> \<lparr>Xcoord = Xcoord r + 1,
-    Ycoord = Ycoord r, \<dots> = point.more r\<rparr>"
+  "incX r \<equiv>
+    \<lparr>Xcoord = Xcoord r + 1, Ycoord = Ycoord r, \<dots> = point.more r\<rparr>"
 
 text {*
   Generic theorems can be proved about generic methods.  This trivial
@@ -222,8 +222,8 @@ subsection {* Record Equality *}
 
 text {*
   Two records are equal\index{equality!of records} if all pairs of
-  corresponding fields are equal.  Record equalities are simplified
-  automatically:
+  corresponding fields are equal.  Concrete record equalities are
+  simplified automatically:
 *}
 
 lemma "(\<lparr>Xcoord = a, Ycoord = b\<rparr> = \<lparr>Xcoord = a', Ycoord = b'\<rparr>) =
@@ -311,8 +311,8 @@ text {*
   The generic cases method does not admit references to locally bound
   parameters of a goal.  In longer proof scripts one might have to
   fall back on the primitive @{text rule_tac} used together with the
-  internal representation rules of records.  E.g.\ the above use of
-  @{text "(cases r)"} would become @{text "(rule_tac r = r in
+  internal field representation rules of records.  E.g.\ the above use
+  of @{text "(cases r)"} would become @{text "(rule_tac r = r in
   point.cases_scheme)"}.
 *}
 
