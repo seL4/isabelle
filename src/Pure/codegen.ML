@@ -242,7 +242,7 @@ fun gen_mk_id kind rename sg s =
     fun check_str [] = ""
       | check_str (" " :: xs) = "_" ^ check_str xs
       | check_str (x :: xs) =
-          (if Symbol.is_letter x orelse Symbol.is_digit x orelse x="_" then x
+          (if Symbol.is_letdig x then x
            else "_" ^ string_of_int (ord x)) ^ check_str xs
   in
     (if not (Symbol.is_letter x) then "id" else "") ^ check_str xs
