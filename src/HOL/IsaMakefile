@@ -8,7 +8,7 @@
 
 default: HOL
 images: HOL HOL-Real TLA
-test: HOL-Subst HOL-Induct HOL-IMP HOL-Hoare HOL-Lex HOL-Algebra \
+test: HOL-Subst HOL-Induct HOL-IMP HOL-IMPP HOL-Hoare HOL-Lex HOL-Algebra \
   HOL-Auth HOL-UNITY HOL-Modelcheck HOL-Lambda HOL-W0 HOL-MiniML HOL-BCV \
   HOL-MicroJava HOL-IOA HOL-AxClasses-Group HOL-AxClasses-Lattice \
   HOL-AxClasses-Tutorial HOL-Quot HOL-ex HOL-Isar_examples HOL-Real-ex \
