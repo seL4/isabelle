@@ -1016,7 +1016,7 @@ bind_thm ("Rp_cont", embRp RS projpair_p_cont);
 bind_thm ("embRp_eq", embRp RS projpair_eq);
 bind_thm ("embRp_rel", embRp RS projpair_rel);
 
-AddTCs [Rp_cont];
+AddTCs [emb_cont, Rp_cont];
 
 val id_apply = prove_goalw Perm.thy [id_def]
     "!!z. x:A ==> id(A)`x = x"
@@ -2154,6 +2154,8 @@ Goalw [commute_def]  (* commute_emb *)
 by (Fast_tac 1);
 qed "commute_emb";
 
+AddTCs [commute_emb];
+
 Goalw [commute_def]  (* commute_eq *)
   "[| commute(DD,ee,E,r); m le n; m:nat; n:nat |] ==>   \
 \  r(n) O eps(DD,ee,m,n) = r(m) ";
@@ -2414,8 +2416,7 @@ Goal "[| commute(DD,ee,E,r); commute(DD,ee,G,f);   \
 \     (lam na:nat. (f(na) O Rp(DD ` na, E, r(na))) O r(n))";
 by (rtac fun_extension 1);
 by (fast_tac (claset() addIs [lam_type]) 1);
-by (asm_simp_tac 
-     (simpset() setSolver type_solver_tac (tcset() addTCs [emb_cont, commute_emb])) 2);
+by (Asm_simp_tac 2);
 by (fast_tac (claset() addIs [lam_type]) 1);
 val lemma = result();
 

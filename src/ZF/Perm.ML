@@ -178,7 +178,7 @@ qed "left_inverse_lemma";
 
 Goal "[| f: inj(A,B);  a: A |] ==> converse(f)`(f`a) = a";
 by (blast_tac (claset() addIs [left_inverse_lemma, inj_converse_fun,
-			      inj_is_fun]) 1);
+			       inj_is_fun]) 1);
 qed "left_inverse";
 
 val left_inverse_bij = bij_is_inj RS left_inverse;
@@ -195,12 +195,11 @@ by (rtac right_inverse_lemma 1);
 by (REPEAT (ares_tac [inj_converse_fun,inj_is_fun] 1));
 qed "right_inverse";
 
-(*Cannot add [left_inverse, right_inverse] to default simpset: there are too
-  many ways of expressing sufficient conditions.*)
+Addsimps [left_inverse, right_inverse];
+
 
 Goal "[| f: bij(A,B);  b: B |] ==> f`(converse(f)`b) = b";
-by (fast_tac (claset() addss
-	      (simpset() addsimps [bij_def, right_inverse, surj_range])) 1);
+by (force_tac (claset(), simpset() addsimps [bij_def, surj_range]) 1);
 qed "right_inverse_bij";
 
 (** Converses of injections, surjections, bijections **)
@@ -213,8 +212,9 @@ by (REPEAT (assume_tac 1));
 qed "inj_converse_inj";
 
 Goal "f: inj(A,B) ==> converse(f): surj(range(f), A)";
-by (blast_tac (claset() addIs [f_imp_surjective, inj_converse_fun, left_inverse,
-			      inj_is_fun, range_of_fun RS apply_type]) 1);
+by (blast_tac (claset() addIs [f_imp_surjective, inj_converse_fun, 
+			       left_inverse,
+			       inj_is_fun, range_of_fun RS apply_type]) 1);
 qed "inj_converse_surj";
 
 Goalw [bij_def] "f: bij(A,B) ==> converse(f): bij(B,A)";
@@ -352,7 +352,7 @@ Goal "[| g: inj(A,B);  f: inj(B,C) |] ==> (f O g) : inj(A,C)";
 by (res_inst_tac [("d", "%y. converse(g) ` (converse(f) ` y)")]
     f_imp_injective 1);
 by (REPEAT (ares_tac [comp_fun, inj_is_fun] 1));
-by (asm_simp_tac (simpset() addsimps [left_inverse] 
+by (asm_simp_tac (simpset()  
 		  setSolver
 		  type_solver_tac (tcset() addTCs [inj_is_fun])) 1);
 qed "comp_inj";
@@ -468,9 +468,8 @@ Goal "[| f: inj(A,B);  g: inj(C,D);  B Int D = 0 |] \
 \     ==> (lam a: A Un C. if a:A then f`a else g`a) : inj(A Un C, B Un D)";
 by (res_inst_tac [("d","%z. if z:B then converse(f)`z else converse(g)`z")]
         lam_injective 1);
-by (ALLGOALS 
-    (asm_simp_tac (simpset() addsimps [inj_is_fun RS apply_type, left_inverse] 
-                         setloop (split_tac [split_if] ORELSE' etac UnE))));
+by (auto_tac (claset(),
+	      simpset() addsimps [inj_is_fun RS apply_type]));
 by (blast_tac (claset() addIs [inj_is_fun RS apply_type]) 1);
 qed "inj_disjoint_Un";
 

@@ -20,8 +20,8 @@ by (fast_tac (claset() addIs [LeastI2, nat_into_Ord RS Ord_in_Ord,
 by (etac domainE 1);
 by (forward_tac [inj_is_fun RS apply_type] 1 THEN (atac 1));
 by (rtac LeastI2 1);
-by (REPEAT (fast_tac (claset() addSEs [nat_into_Ord RS Ord_in_Ord]
-              addss (simpset() addsimps [left_inverse])) 1));
+by (auto_tac (claset() addSEs [nat_into_Ord RS Ord_in_Ord],
+	      simpset()));
 qed "lepoll_m_imp_domain_lepoll_m";
 
 goalw Cardinal.thy [function_def]

@@ -85,8 +85,7 @@ by (res_inst_tac
       [("d", "case(%w. Inl(converse(f)`w), %y. Inr(converse(fa)`y))")] 
       lam_injective 1);
 by (typecheck_tac (tcset() addTCs [inj_is_fun]));
-by (etac sumE 1);
-by (ALLGOALS (asm_simp_tac (simpset() addsimps [left_inverse])));
+by Auto_tac;
 qed "sum_lepoll_mono";
 
 Goalw [cadd_def]
@@ -251,8 +250,7 @@ by (res_inst_tac [("x", "lam <w,y>:A*B. <f`w, fa`y>")] exI 1);
 by (res_inst_tac [("d", "%<w,y>.<converse(f)`w, converse(fa)`y>")] 
                   lam_injective 1);
 by (typecheck_tac (tcset() addTCs [inj_is_fun]));
-by (etac SigmaE 1);
-by (asm_simp_tac (simpset() addsimps [left_inverse]) 1);
+by Auto_tac;
 qed "prod_lepoll_mono";
 
 Goalw [cmult_def]
@@ -329,9 +327,7 @@ by (fast_tac (claset() addSIs [if_type, apply_type]
 by (asm_simp_tac 
     (simpset() addsimps [inj_is_fun RS apply_rangeI,
 			 inj_converse_fun RS apply_rangeI,
-			 inj_converse_fun RS apply_funtype,
-			 left_inverse, right_inverse, nat_0I, nat_succI, 
-			 nat_case_0, nat_case_succ]) 1);
+			 inj_converse_fun RS apply_funtype]) 1);
 qed "nat_cons_lepoll";
 
 Goal "nat lepoll A ==> cons(u,A) eqpoll A";

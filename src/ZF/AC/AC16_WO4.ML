@@ -76,10 +76,7 @@ qed "infinite_Un";
 Goal "[| ~(EX x:A. f`x=y); f : inj(A, B); y:B |]  \
 \     ==> (lam a:succ(A). if(a=A, y, f`a)) : inj(succ(A), B)";
 by (res_inst_tac [("d","%z. if(z=y, A, converse(f)`z)")] lam_injective 1);
-by (ALLGOALS
-    (asm_simp_tac 
-     (simpset() addsimps [inj_is_fun RS apply_type, left_inverse] 
-      setloop (split_tac [split_if] ORELSE' Step_tac))));
+by (auto_tac (claset(), simpset() addsimps [inj_is_fun RS apply_type]));
 qed "succ_not_lepoll_lemma";
 
 Goalw [lepoll_def, eqpoll_def, bij_def, surj_def]

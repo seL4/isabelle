@@ -532,6 +532,11 @@ Goal "succ(i) le succ(j) ==> i le j";
 by (blast_tac (claset() addSDs [succ_leE]) 1);
 qed "succ_le_imp_le";
 
+Goal "[| i <= j;  j<k;  Ord(i) |] ==> i<k";
+by (resolve_tac [subset_imp_le RS lt_trans1] 1);
+by (REPEAT (eresolve_tac [asm_rl, ltE] 1));
+qed "lt_subset_trans";
+
 (** Union and Intersection **)
 
 Goal "[| Ord(i); Ord(j) |] ==> i le i Un j";

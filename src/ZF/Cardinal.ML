@@ -562,7 +562,7 @@ by (res_inst_tac [("d","%z. if z:B then converse(f)`z else a")]
     lam_injective 1);
 by (asm_simp_tac (simpset() addsimps [inj_is_fun RS apply_type, cons_iff]
                         setloop etac consE') 1);
-by (asm_simp_tac (simpset() addsimps [inj_is_fun RS apply_type, left_inverse]
+by (asm_simp_tac (simpset() addsimps [inj_is_fun RS apply_type]
                         setloop etac consE') 1);
 qed "cons_lepoll_cong";
 
@@ -616,10 +616,9 @@ by (res_inst_tac [("c", "%x. if x:A then f`x else x"),
 by (blast_tac (claset() addSIs [if_type, inj_is_fun RS apply_type]) 1);
 by (asm_simp_tac 
     (simpset() addsimps [inj_converse_fun RS apply_funtype]) 1);
-by (asm_simp_tac (simpset() addsimps [inj_is_fun RS apply_rangeI, left_inverse]
+by (asm_simp_tac (simpset() addsimps [inj_is_fun RS apply_rangeI]
                         setloop etac UnE') 1);
-by (asm_simp_tac 
-    (simpset() addsimps [inj_converse_fun RS apply_funtype, right_inverse]) 1);
+by (asm_simp_tac (simpset() addsimps [inj_converse_fun RS apply_funtype]) 1);
 by (Blast_tac 1);
 qed "inj_disjoint_eqpoll";
 

@@ -240,6 +240,13 @@ Goalw [ord_iso_def]
 by (Blast_tac 1);
 qed "ord_iso_apply";
 
+(*Rewriting with bijections and converse (function inverse)*)
+val bij_inverse_ss = 
+    simpset() setSolver 
+      type_solver_tac (tcset() addTCs [ord_iso_is_bij, bij_is_inj, 
+				       inj_is_fun, comp_fun, comp_bij])
+          addsimps [right_inverse_bij];
+
 Goalw [ord_iso_def] 
     "[| f: ord_iso(A,r,B,s);  <x,y>: s;  x:B;  y:B |] ==> \
 \         <converse(f) ` x, converse(f) ` y> : r";
@@ -247,15 +254,9 @@ by (etac CollectE 1);
 by (etac (bspec RS bspec RS iffD2) 1);
 by (REPEAT (eresolve_tac [asm_rl, 
                           bij_converse_bij RS bij_is_fun RS apply_type] 1));
-by (asm_simp_tac (simpset() addsimps [right_inverse_bij]) 1);
+by (asm_simp_tac bij_inverse_ss 1);
 qed "ord_iso_converse";
 
-
-(*Rewriting with bijections and converse (function inverse)*)
-val bij_inverse_ss = 
-    simpset() setSolver 
-      type_solver_tac (tcset() addTCs [ord_iso_is_bij, bij_is_fun, comp_fun, comp_bij])
-          addsimps [right_inverse_bij, left_inverse_bij];
 
 (** Symmetry and Transitivity Rules **)
 
@@ -323,7 +324,7 @@ by Safe_tac;
 by (dres_inst_tac [("x1", "f`x"), ("x", "f`xa")] (bspec RS bspec) 1);
 by (safe_tac (claset() addSEs [bij_is_fun RS apply_type]));
 by (dres_inst_tac [("t", "op `(converse(f))")] subst_context 1);
-by (asm_full_simp_tac (simpset() addsimps [left_inverse_bij]) 1);
+by (asm_full_simp_tac bij_inverse_ss 1);
 qed "linear_ord_iso";
 
 Goalw [wf_on_def, wf_def, ord_iso_def]

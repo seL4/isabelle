@@ -124,9 +124,7 @@ by (res_inst_tac [("c", "%z. <LEAST i. z:X(i), f ` (LEAST i. z:X(i)) ` z>"),
 by (ALLGOALS ball_tac);
 by (blast_tac (claset() addIs [inj_is_fun RS apply_type]
                         addDs [apply_type]) 1);
-by (dtac apply_type 1);
-by (etac conjunct2 1);
-by (asm_simp_tac (simpset() addsimps [left_inverse]) 1);
+by Auto_tac;
 qed "cardinal_UN_le";
 
 
@@ -155,20 +153,13 @@ qed "cardinal_UN_Ord_lt_csucc";
     set need not be a cardinal.  Surprisingly complicated proof!
 **)
 
-(*Saves checking Ord(j) below*)
-goal Ordinal.thy "!!i j. [| i <= j;  j<k;  Ord(i) |] ==> i<k";
-by (resolve_tac [subset_imp_le RS lt_trans1] 1);
-by (REPEAT (eresolve_tac [asm_rl, ltE] 1));
-qed "lt_subset_trans";
-
 (*Work backwards along the injection from W into K, given that W~=0.*)
 Goal "[| f: inj(A,B);  a:A |] ==>           \
 \     (UN x:A. C(x)) <= (UN y:B. C(if y: range(f) then converse(f)`y else a))";
 by (rtac UN_least 1);
 by (res_inst_tac [("x1", "f`x")] (UN_upper RSN (2,subset_trans)) 1);
 by (eresolve_tac [inj_is_fun RS apply_type] 2 THEN assume_tac 2);
-by (asm_simp_tac 
-    (simpset() addsimps [inj_is_fun RS apply_rangeI, left_inverse]) 1);
+by (asm_simp_tac (simpset() addsimps [inj_is_fun RS apply_rangeI]) 1);
 val inj_UN_subset = result();
 
 (*Simpler to require |W|=K; we'd have a bijection; but the theorem would
