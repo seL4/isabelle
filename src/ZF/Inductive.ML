@@ -29,14 +29,15 @@ structure Standard_Prod =
   struct
   val sigma     = Const("Sigma", [iT, iT-->iT]--->iT)
   val pair      = Const("Pair", [iT,iT]--->iT)
-  val split_const       = Const("split", [[iT,iT]--->iT, iT]--->iT)
-  val fsplit_const      = Const("split", [[iT,iT]--->oT, iT]--->oT)
+  val split_name = "split"
   val pair_iff  = Pair_iff
   val split_eq  = split
   val fsplitI   = splitI
   val fsplitD   = splitD
   val fsplitE   = splitE
   end;
+
+structure Standard_CP = CartProd_Fun (Standard_Prod);
 
 structure Standard_Sum =
   struct
@@ -64,8 +65,9 @@ let
 
   structure Indrule = 
       Indrule_Fun (structure Inductive=Inductive and 
-                   Pr=Standard_Prod and Su=Standard_Sum and 
-                       Intr_elim=Intr_elim)
+                   Pr=Standard_Prod and CP=Standard_CP and
+                   Su=Standard_Sum and 
+                   Intr_elim=Intr_elim)
 in 
    struct 
    val thy      = Intr_elim.thy
@@ -81,7 +83,8 @@ end;
 
 
 structure Ind = Add_inductive_def_Fun
-    (structure Fp=Lfp and Pr=Standard_Prod and Su=Standard_Sum);
+    (structure Fp=Lfp and Pr=Standard_Prod and CP=Standard_CP
+     and Su=Standard_Sum);
 
 
 structure Gfp =
@@ -98,14 +101,15 @@ structure Quine_Prod =
   struct
   val sigma     = Const("QSigma", [iT, iT-->iT]--->iT)
   val pair      = Const("QPair", [iT,iT]--->iT)
-  val split_const       = Const("qsplit", [[iT,iT]--->iT, iT]--->iT)
-  val fsplit_const      = Const("qsplit", [[iT,iT]--->oT, iT]--->oT)
+  val split_name = "qsplit"
   val pair_iff  = QPair_iff
   val split_eq  = qsplit
   val fsplitI   = qsplitI
   val fsplitD   = qsplitD
   val fsplitE   = qsplitE
   end;
+
+structure Quine_CP = CartProd_Fun (Quine_Prod);
 
 structure Quine_Sum =
   struct
@@ -136,7 +140,8 @@ functor CoInd_section_Fun
 let
   structure Intr_elim = 
       Intr_elim_Fun(structure Inductive=Inductive and Fp=Gfp and 
-                    Pr=Quine_Prod and Su=Quine_Sum);
+                    Pr=Quine_Prod and CP=Standard_CP and
+                    Su=Quine_Sum);
 in
    struct
    val thy      = Intr_elim.thy
@@ -151,5 +156,6 @@ in
 end;
 
 structure CoInd = 
-    Add_inductive_def_Fun(structure Fp=Gfp and Pr=Quine_Prod and Su=Quine_Sum);
+    Add_inductive_def_Fun(structure Fp=Gfp and Pr=Quine_Prod and CP=Quine_CP
+                          and Su=Quine_Sum);
 
