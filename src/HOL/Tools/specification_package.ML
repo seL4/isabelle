@@ -9,7 +9,7 @@ Package for defining constants by specification.
 signature SPECIFICATION_PACKAGE =
 sig
     val quiet_mode: bool ref
-    val add_specification_i: (bstring * xstring * bool) list
+    val add_specification_i: string option -> (bstring * xstring * bool) list
 			     -> theory * thm -> theory * thm
 end
 
@@ -35,27 +35,67 @@ fun choice_const T = Const("Hilbert_Choice.Eps",(T-->HOLogic.boolT)-->T)
 
 (* Actual code *)
 
-fun proc_exprop [] arg = arg
-  | proc_exprop ((thname,cname,covld)::cos) (thy,thm) =
-    case concl_of thm of
-	Const("Trueprop",_) $ (Const("Ex",_) $ P) =>
-	let
-	    val ctype = domain_type (type_of P)
-	    val cname_full = Sign.intern_const (sign_of thy) cname
-	    val cdefname = if thname = ""
-			   then Thm.def_name (Sign.base_name cname)
-			   else thname
-	    val def_eq = Logic.mk_equals (Const(cname_full,ctype),choice_const ctype $  P)
-	    val (thy',thms) = PureThy.add_defs_i covld [((cdefname,def_eq),[])] thy
-	    val thm' = [thm,hd thms] MRS helper
-	in
-	    proc_exprop cos (thy',thm')
-	end
-      | _ => raise THM ("Internal error: Bad specification theorem",0,[thm])
+local
+    fun mk_definitional [] arg = arg
+      | mk_definitional ((thname,cname,covld)::cos) (thy,thm) =
+	case HOLogic.dest_Trueprop (concl_of thm) of
+	    Const("Ex",_) $ P =>
+	    let
+		val ctype = domain_type (type_of P)
+		val cname_full = Sign.intern_const (sign_of thy) cname
+		val cdefname = if thname = ""
+			       then Thm.def_name (Sign.base_name cname)
+			       else thname
+		val def_eq = Logic.mk_equals (Const(cname_full,ctype),choice_const ctype $  P)
+		val (thy',thms) = PureThy.add_defs_i covld [((cdefname,def_eq),[])] thy
+		val thm' = [thm,hd thms] MRS helper
+	    in
+		mk_definitional cos (thy',thm')
+	    end
+	  | _ => raise THM ("Internal error: Bad specification theorem",0,[thm])
 
-fun add_specification_i cos arg =
+    fun mk_axiomatic axname cos arg =
+	let
+	    fun process [] (thy,tm) =
+		let
+		    val (thy',thms) = PureThy.add_axioms_i [((axname,HOLogic.mk_Trueprop tm),[])] thy
+		in
+		    (thy',hd thms)
+		end
+	      | process ((thname,cname,covld)::cos) (thy,tm) =
+		case tm of
+		    Const("Ex",_) $ P =>
+		    let
+			val ctype = domain_type (type_of P)
+			val cname_full = Sign.intern_const (sign_of thy) cname
+			val cdefname = if thname = ""
+				       then Thm.def_name (Sign.base_name cname)
+				       else thname
+			val co = Const(cname_full,ctype)
+			val def = Logic.mk_implies(HOLogic.mk_Trueprop HOLogic.false_const,
+						   Logic.mk_equals (co,choice_const ctype $ P))
+			val (thy',_) = PureThy.add_defs_i covld [((cdefname,def),[])] thy
+			val tm' = case P of
+				      Abs(_, _, bodt) => subst_bound (co, bodt)
+				    | _ => P $ co
+		    in
+			process cos (thy',tm')
+		    end
+		  | _ => raise TERM ("Internal error: Bad specification theorem",[tm])
+	in
+	    process cos arg
+	end
+
+in
+fun proc_exprop axiomatic cos arg =
+    case axiomatic of
+	Some axname => mk_axiomatic axname cos (apsnd (HOLogic.dest_Trueprop o concl_of) arg)
+      | None => mk_definitional cos arg
+end
+
+fun add_specification_i axiomatic cos arg =
     arg |> apsnd freezeT
-	|> proc_exprop cos
+	|> proc_exprop axiomatic cos
 	|> apsnd standard
 
 (* Collect all intances of constants in term *)
@@ -80,7 +120,7 @@ fun unvarify t fmap =
 
 (* The syntactic meddling needed to setup add_specification for work *)
 
-fun process_spec cos alt_props int thy =
+fun process_spec axiomatic cos alt_props int thy =
     let
 	fun zip3 [] [] [] = []
 	  | zip3 (x::xs) (y::ys) (z::zs) = (x,y,z)::zip3 xs ys zs
@@ -204,7 +244,7 @@ fun process_spec cos alt_props int thy =
 	    end
     in
 	IsarThy.theorem_i Drule.internalK
-	    (("",[add_specification_i (zip3 (names:string list) (cnames:string list) (overloaded:bool list)),post_process]),
+	    (("",[add_specification_i axiomatic (zip3 names cnames overloaded),post_process]),
 	     (HOLogic.mk_Trueprop ex_prop,([],[]))) int thy
     end
 
@@ -225,9 +265,21 @@ val specification_decl =
 val specificationP =
   OuterSyntax.command "specification" "define constants by specification" K.thy_goal
     (specification_decl >> (fn (cos,alt_props) =>
-			       Toplevel.print o (Toplevel.theory_to_proof (process_spec cos alt_props))))
+			       Toplevel.print o (Toplevel.theory_to_proof
+						     (process_spec None cos alt_props))))
 
-val _ = OuterSyntax.add_parsers [specificationP]
+val ax_specification_decl =
+    P.name --
+    (P.$$$ "(" |-- Scan.repeat1 (opt_name -- P.term -- opt_overloaded) --| P.$$$ ")" --
+	   Scan.repeat1 (P.opt_thm_name ":" -- P.prop))
+
+val ax_specificationP =
+  OuterSyntax.command "ax_specification" "define constants by specification" K.thy_goal
+    (ax_specification_decl >> (fn (axname,(cos,alt_props)) =>
+			       Toplevel.print o (Toplevel.theory_to_proof
+						     (process_spec (Some axname) cos alt_props))))
+
+val _ = OuterSyntax.add_parsers [specificationP,ax_specificationP]
 
 end
 
