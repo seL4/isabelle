@@ -34,25 +34,27 @@ The simplest way to apply the classical reasoner (to subgoal~$i$) is to type
 by (Blast_tac \(i\));
 \end{ttbox}
 This command quickly proves most simple formulas of the predicate calculus or
-set theory.  To attempt to prove \emph{all} subgoals using a combination of
+set theory.  To attempt to prove subgoals using a combination of
 rewriting and classical reasoning, try
 \begin{ttbox}
-by Auto_tac;
+auto();                         \emph{\textrm{applies to all subgoals}}
+force i;                        \emph{\textrm{applies to one subgoal}}
 \end{ttbox}
 To do all obvious logical steps, even if they do not prove the
 subgoal, type one of the following:
 \begin{ttbox}
+by Safe_tac;                   \emph{\textrm{applies to all subgoals}}
 by (Clarify_tac \(i\));        \emph{\textrm{applies to one subgoal}}
-by Safe_tac;               \emph{\textrm{applies to all subgoals}}
 \end{ttbox}
+
+
 You need to know how the classical reasoner works in order to use it
-effectively.  There are many tactics to choose from, including {\tt
-  Fast_tac} and \texttt{Best_tac}.
+effectively.  There are many tactics to choose from, including 
+{\tt Fast_tac} and \texttt{Best_tac}.
 
 We shall first discuss the underlying principles, then present the
-classical reasoner.  Finally, we shall see how to instantiate it for
-new logics.  The logics \FOL, \ZF, {\HOL} and {\HOLCF} have it already
-installed.
+classical reasoner.  Finally, we shall see how to instantiate it for new logics.
+The logics \FOL, \ZF, {\HOL} and {\HOLCF} have it already installed.
 
 
 \section{The sequent calculus}
@@ -312,6 +314,22 @@ elim-resolution.  In a classical set, rules are sorted by the number of new
 subgoals they will yield; rules that generate the fewest subgoals will be
 tried first (see \S\ref{biresolve_tac}).
 
+For elimination and destruction rules there are variants of the add operations
+adding a rule in a way such that it is applied only if also its second premise
+can be unified with an assumption of the current proof state:
+\begin{ttbox}
+addSE2      : claset * (string * thm) -> claset           \hfill{\bf infix 4}
+addSD2      : claset * (string * thm) -> claset           \hfill{\bf infix 4}
+addE2       : claset * (string * thm) -> claset           \hfill{\bf infix 4}
+addD2       : claset * (string * thm) -> claset           \hfill{\bf infix 4}
+\end{ttbox}
+\begin{warn}
+  A rule to be added in this special way must be given a name, which is used 
+  to delete it again -- when desired -- using \texttt{delSWrappers} or 
+  \texttt{delWrappers}, respectively. This is because these add operations
+  are implemented as wrappers (see \ref{sec:modifying-search} below).
+\end{warn}
+
 
 \subsection{Modifying the search step}
 \label{sec:modifying-search}
@@ -328,10 +346,10 @@ you to modify this basic proof strategy by applying two lists of arbitrary
 {\bf wrapper tacticals} to it. 
 The first wrapper list, which is considered to contain safe wrappers only, 
 affects \ttindex{safe_step_tac} and all the tactics that call it.  
-The second one, which may contain unsafe wrappers, affects \ttindex{step_tac}, 
-\ttindex{slow_step_tac}, and the tactics that call them.
+The second one, which may contain unsafe wrappers, affects the unsafe parts
+of \ttindex{step_tac}, \ttindex{slow_step_tac}, and the tactics that call them.
 A wrapper transforms each step of the search, for example 
-by invoking other tactics before or alternatively to the original step tactic. 
+by attempting other tactics before or after the original step tactic. 
 All members of a wrapper list are applied in turn to the respective step tactic.
 
 Initially the two wrapper lists are empty, which means no modification of the
@@ -363,12 +381,12 @@ adds a new wrapper, which should yield a safe tactic,
 to modify the existing safe step tactic.
 
 \item[$cs$ addSbefore $(name,tac)$] \indexbold{*addSbefore}
-adds the given tactic as safe wrapper, such that it is
-applied {\em before} each safe step of the search.
+adds the given tactic as a safe wrapper, such that it is tried 
+{\em before} each safe step of the search.
 
 \item[$cs$ addSaltern $(name,tac)$] \indexbold{*addSaltern}
-adds the given tactic as safe wrapper, such that it is
-applied when a safe step of the search would fail.
+adds the given tactic as a safe wrapper, such that it is tried 
+when a safe step of the search would fail.
 
 \item[$cs$ delSWrapper $name$] \indexbold{*delSWrapper}
 deletes the safe wrapper with the given name.
@@ -377,12 +395,12 @@ deletes the safe wrapper with the given name.
 adds a new wrapper to modify the existing (unsafe) step tactic.
 
 \item[$cs$ addbefore $(name,tac)$] \indexbold{*addbefore}
-adds the given tactic as unsafe wrapper, such that it is
-applied {\em before} each step of the search.
+adds the given tactic as an unsafe wrapper, such that it its result is 
+concatenated {\em before} the result of each unsafe step.
 
 \item[$cs$ addaltern $(name,tac)$] \indexbold{*addaltern}
-adds the given tactic as unsafe wrapper, such that it is
-applied when a step of the search would fail.
+adds the given tactic as an unsafe wrapper, such that it its result is 
+concatenated {\em after} the result of each unsafe step.
 
 \item[$cs$ delWrapper $name$] \indexbold{*delWrapper}
 deletes the unsafe wrapper with the given name.
@@ -397,18 +415,13 @@ simplified, before the each unsafe step of the search.
 
 \end{ttdescription}
 
-\index{simplification!from classical reasoner} The wrapper tacticals
-underly the operators addss and addSss, which are used as primitives 
-for the automatic tactics described in \S\ref{sec:automatic-tactics}.
-Strictly speaking, both operators are not part of the classical reasoner. 
-They should be defined when the simplifier is installed:
-\begin{ttbox}
-infix 4 addSss addss;
-fun  cs addSss ss = cs addSaltern ("safe_asm_full_simp_tac",
-                         CHANGED o (safe_asm_full_simp_tac ss));
-fun  cs addss  ss = cs addbefore  ("asm_full_simp_tac", 
-                                    asm_full_simp_tac ss);
-\end{ttbox}
+\index{simplification!from classical reasoner} 
+Strictly speaking, the operators \texttt{addss} and \texttt{addSss}
+are not part of the classical reasoner.
+, which are used as primitives 
+for the automatic tactics described in \S\ref{sec:automatic-tactics}, are
+implemented as wrapper tacticals.
+they  
 \begin{warn}
 Being defined as wrappers, these operators are inappropriate for adding more 
 than one simpset at a time: the simpset added last overwrites any earlier ones.
@@ -426,6 +439,7 @@ that use the default claset; see \S\ref{sec:current-claset}.
 \begin{ttbox} 
 clarify_tac      : claset -> int -> tactic
 clarify_step_tac : claset -> int -> tactic
+clarsimp_tac     : clasimpset -> int -> tactic
 \end{ttbox}
 Use these when the automatic tactics fail.  They perform all the obvious
 logical inferences that do not split the subgoal.  The result is a
@@ -434,13 +448,15 @@ instantiating quantifiers yourself.
 \begin{ttdescription}
 \item[\ttindexbold{clarify_tac} $cs$ $i$] performs a series of safe steps on
 subgoal~$i$ by repeatedly calling \texttt{clarify_step_tac}.
-
 \item[\ttindexbold{clarify_step_tac} $cs$ $i$] performs a safe step on
   subgoal~$i$.  No splitting step is applied; for example, the subgoal $A\conj
   B$ is left as a conjunction.  Proof by assumption, Modus Ponens, etc., may be
   performed provided they do not instantiate unknowns.  Assumptions of the
   form $x=t$ may be eliminated.  The user-supplied safe wrapper tactical is
   applied.
+\item[\ttindexbold{clarsimp_tac} $cs$ $i$] acts like \texttt{clarify_tac}, but
+also does simplification with the given simpset. Still note that if the simpset 
+includes a splitter for the premises, the subgoal may be split.
 \end{ttdescription}
 
 
@@ -629,6 +645,7 @@ Best_tac         : int -> tactic
 Deepen_tac       : int -> int -> tactic
 Clarify_tac      : int -> tactic
 Clarify_step_tac : int -> tactic
+Clarsimp_tac     : int -> tactic
 Safe_tac         :        tactic
 Safe_step_tac    : int -> tactic
 Step_tac         : int -> tactic
@@ -710,12 +727,11 @@ elim-resolution).
 
 \section{Setting up the classical reasoner}\label{sec:classical-setup}
 \index{classical reasoner!setting up}
-Isabelle's classical object-logics, including \texttt{FOL} and \texttt{HOL}, have
-the classical reasoner already set up.  When defining a new classical logic,
-you should set up the reasoner yourself.  It consists of the \ML{} functor
-\ttindex{ClassicalFun}, which takes the argument
-signature \texttt{
-                  CLASSICAL_DATA}:
+Isabelle's classical object-logics, including \texttt{FOL} and \texttt{HOL}, 
+have the classical reasoner already set up.  
+When defining a new classical logic, you should set up the reasoner yourself.  
+It consists of the \ML{} functor \ttindex{ClassicalFun}, which takes the 
+argument signature \texttt{CLASSICAL_DATA}:
 \begin{ttbox} 
 signature CLASSICAL_DATA =
   sig
@@ -756,7 +772,20 @@ them according to its fixed strategy.  The functor resides in {\tt
 
 \index{classical reasoner|)}
 
+\section{Setting up the combination with the simplifier}
+\label{sec:clasimp-setup}
 
+To combine the classical reasoner and the simplifier, we simply call the 
+\ML{} functor \ttindex{ClasimpFun} that assembles the parts as required. 
+It takes a structure (of signature \texttt{CLASIMP_DATA}) as
+argment, which can be contructed on the fly:
+\begin{ttbox}
+structure Clasimp = ClasimpFun
+ (structure Simplifier = Simplifier 
+        and Classical  = Classical 
+        and Blast      = Blast);
+\end{ttbox}
+%
 %%% Local Variables: 
 %%% mode: latex
 %%% TeX-master: "ref"
