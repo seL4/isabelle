@@ -25,6 +25,7 @@ end;
 signature PURE_THY =
 sig
   include BASIC_PURE_THY
+  val get_thm_closure: theory -> xstring -> thm
   val get_thms_closure: theory -> xstring -> thm list
   val single_thm: string -> thm list -> thm
   val cond_extern_thm_sg: Sign.sg -> string -> xstring
@@ -126,7 +127,7 @@ fun single_thm _ [thm] = thm
   | single_thm name _ = error ("Single theorem expected " ^ quote name);
 
 
-(* get_thms_closure -- statically scoped *)
+(* get_thm(s)_closure -- statically scoped versions *)
 
 (*beware of proper order of evaluation!*)
 
@@ -143,6 +144,10 @@ fun lookup_thms thy =
 fun get_thms_closure thy =
   let val closures = map lookup_thms (thy :: Theory.ancestors_of thy)
   in fn name => the_thms name (get_first (fn f => f name) closures) end;
+
+fun get_thm_closure thy =
+  let val get = get_thms_closure thy
+  in fn name => single_thm name (get name) end;
 
 
 (* get_thm etc. *)
