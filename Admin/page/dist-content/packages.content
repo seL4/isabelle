@@ -32,14 +32,9 @@ href="http://www.xemacs.org">XEmacs-21</a> (preferably with MULE).
 We provide a complete set of packages for Isabelle, Proof General and
 X-Symbol.  While XEmacs-21 is not included here, most operating system
 distributions already provide a suitable package, although not
-installed by default.
-
-<p>
-
-Some of the packages below are platform dependent.  We include binary
-packages for Linux/x86, Solaris/Sparc, and Darwin/PPC (MacOS X).
-Isabelle also works with different Standard ML implementations (and
-further platforms).
+installed by default.  Some of the packages below are platform
+dependent; we include binaries for Linux/x86, Solaris/Sparc, and
+Darwin/PPC (MacOS X).
 
 <p>
 
@@ -87,10 +82,10 @@ Isabelle should be reasonable for most circumstances.
 
 <p>
 
-A typical Linux/x86 site installation of Isabelle/HOL would be
-arranged as follows.  By using GNU <tt>tar</tt>, the archives are
-uncompressed and unpacked into the <tt>/usr/local</tt> directory (this
-location may be changed to anything appropriate).
+A typical Linux/x86 site installation of Isabelle/HOL works as
+follows.  By using GNU <tt>tar</tt>, the archives are uncompressed and
+unpacked into the <tt>/usr/local</tt> directory (this location may be
+changed to anything appropriate).
 
 <p>
 

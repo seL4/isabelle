@@ -25,8 +25,8 @@ $infile  = $ARGV[0];
 $outfile = $ARGV[1];
 
 $fileHeader = "<ul>\n";
-$lineHeader = "  <li> ";
-$lineEnd    = "  </li>\n";
+$lineHeader = "  <li>";
+$lineEnd    = "</li>\n";
 $fileFooter = "</ul>\n";
 
 open(IN, "<$infile") || die "cannot read input file <$infile>";
