@@ -18,10 +18,6 @@ sig
   local open Ast in
     val logic: string
     val args: string
-    val idT: typ
-    val varT: typ
-    val tidT: typ
-    val tvarT: typ
     val applC: string
     val typ_to_nonterm: typ -> string
     datatype xsymb =
@@ -49,8 +45,13 @@ sig
       (string * (ast list -> ast)) list * (string * (term list -> term)) list *
       (string * (term list -> term)) list * (string * (ast list -> ast)) list
       -> (ast * ast) list * (ast * ast) list -> syn_ext
-    val syn_ext_rules: string list -> (ast * ast) list * (ast * ast) list -> syn_ext
     val syn_ext_roots: string list -> string list -> syn_ext
+    val syn_ext_const_names: string list -> string list -> syn_ext
+    val syn_ext_rules: string list -> (ast * ast) list * (ast * ast) list -> syn_ext
+    val syn_ext_trfuns: string list ->
+      (string * (ast list -> ast)) list * (string * (term list -> term)) list *
+      (string * (term list -> term)) list * (string * (ast list -> ast)) list
+      -> syn_ext
   end
 end;
 
@@ -77,14 +78,6 @@ val argsT = Type (args, []);
 val typeT = Type ("type", []);
 
 val funT = Type ("fun", []);
-
-
-(* terminals *)
-
-val idT = Type (id, []);
-val varT = Type (var, []);
-val tidT = Type (tid, []);
-val tvarT = Type (tvar, []);
 
 
 (* constants *)
@@ -292,7 +285,7 @@ fun syn_ext all_roots new_roots mfixes consts trfuns rules =
       Mfix ("_", to --> change_name from "_A", "", [0], 0);
 
     (* Make parentheses production for 'hidden' and 'automatic' nonterminal *)
-    fun parents T = 
+    fun parents T =
       if T = typeT then
         [Mfix ("'(_')", T --> T, "", [0], max_pri)]
       else
@@ -300,7 +293,7 @@ fun syn_ext all_roots new_roots mfixes consts trfuns rules =
          Mfix ("'(_')", change_name T "_A" --> change_name T "_A", "", [0], max_pri)];
 
     fun mkappl T =
-      Mfix ("(1_/(1'(_')))", [funT, argsT] ---> change_name T "_A", applC, 
+      Mfix ("(1_/(1'(_')))", [funT, argsT] ---> change_name T "_A", applC,
             [max_pri, 0], max_pri);
 
     fun mkid T =
@@ -310,7 +303,7 @@ fun syn_ext all_roots new_roots mfixes consts trfuns rules =
       Mfix ("_", varT --> change_name T "_A", "", [], max_pri);
 
     fun constrain T =
-      Mfix ("_::_", [T, typeT] ---> change_name T "_A", constrainC, 
+      Mfix ("_::_", [T, typeT] ---> change_name T "_A", constrainC,
             [4, 0], 3)
 
     fun unhide T =
@@ -332,7 +325,7 @@ fun syn_ext all_roots new_roots mfixes consts trfuns rules =
   in
     SynExt {
       roots = new_roots,
-      xprods = (map (hide_xprod (all_roots \\ ["logic", "type"])) xprods) 
+      xprods = (map (hide_xprod (all_roots \\ ["logic", "type"])) xprods)
                @ xprods',    (* hide only productions that weren't created
                                 automatically *)
       consts = filter is_xid (consts union mfix_consts),
@@ -345,13 +338,17 @@ fun syn_ext all_roots new_roots mfixes consts trfuns rules =
   end;
 
 
-(* syn_ext_rules, syn_ext_roots *)
+fun syn_ext_roots roots new_roots =
+  syn_ext roots new_roots [] [] ([], [], [], []) ([], []);
+
+fun syn_ext_const_names roots cs =
+  syn_ext roots [] [] cs ([], [], [], []) ([], []);
 
 fun syn_ext_rules roots rules =
   syn_ext roots [] [] [] ([], [], [], []) rules;
 
-fun syn_ext_roots all_roots new_roots =
-  syn_ext all_roots new_roots [] [] ([], [], [], []) ([], []);
+fun syn_ext_trfuns roots trfuns =
+  syn_ext roots [] [] [] trfuns ([], []);
 
 
 end;
