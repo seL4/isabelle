@@ -400,8 +400,7 @@ val HOL_basic_ss = empty_ss setsubgoaler asm_simp_tac
 			    setSSolver   safe_solver
 			    setSolver  unsafe_solver
 			    setmksimps (mksimps mksimps_pairs)
-			    setmkeqTrue mk_meta_eq_True
-                            addsplits [expand_if];
+			    setmkeqTrue mk_meta_eq_True;
 
 val HOL_ss = 
     HOL_basic_ss addsimps 
@@ -413,7 +412,8 @@ val HOL_ss =
        disj_not1, not_all, not_ex, cases_simp]
      @ ex_simps @ all_simps @ simp_thms)
      addsimprocs [defALL_regroup,defEX_regroup]
-     addcongs [imp_cong];
+     addcongs [imp_cong]
+     addsplits [expand_if];
 
 qed_goal "if_distrib" HOL.thy
   "f(if c then x else y) = (if c then f x else f y)" 
