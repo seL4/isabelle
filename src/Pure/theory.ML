@@ -260,7 +260,7 @@ fun no_vars sg tm = (case (term_vars tm, term_tvars tm) of
 
 fun cert_axm sg (name, raw_tm) =
   let
-    val (t, T, _) = Sign.certify_term sg raw_tm
+    val (t, T, _) = Sign.certify_term (Sign.pp sg) sg raw_tm
       handle TYPE (msg, _, _) => error msg
            | TERM (msg, _) => error msg;
   in
@@ -273,15 +273,15 @@ fun cert_axm sg (name, raw_tm) =
 fun read_def_axm (sg, types, sorts) used (name, str) =
   let
     val ts = Syntax.read (Sign.syn_of sg) propT str;
-    val (t, _) = Sign.infer_types sg types sorts used true (ts, propT);
+    val (t, _) = Sign.infer_types (Sign.pp sg) sg types sorts used true (ts, propT);
   in cert_axm sg (name, t) end
   handle ERROR => err_in_axm name;
 
 fun read_axm sg name_str = read_def_axm (sg, K None, K None) [] name_str;
 
 fun inferT_axm sg (name, pre_tm) =
-  let
-    val (t, _) = Sign.infer_types sg (K None) (K None) [] true ([pre_tm], propT);
+  let val (t, _) = Sign.infer_types (Sign.pp sg) sg
+    (K None) (K None) [] true ([pre_tm], propT);
   in (name, no_vars sg t) end
   handle ERROR => err_in_axm name;
 
@@ -510,7 +510,7 @@ fun ext_finals prep_term overloaded raw_terms thy =
 
 local
   fun read_term sg = Sign.simple_read_term sg TypeInfer.logicT;
-  val cert_term = #1 oo Sign.certify_term;
+  fun cert_term sg = #1 o Sign.certify_term (Sign.pp sg) sg;
 in
 val add_finals = ext_finals read_term;
 val add_finals_i = ext_finals cert_term;

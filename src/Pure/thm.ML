@@ -176,7 +176,7 @@ fun ctyp_of_term (Cterm {sign_ref, T, ...}) = Ctyp {sign_ref = sign_ref, T = T};
 
 (*create a cterm by checking a "raw" term with respect to a signature*)
 fun cterm_of sign tm =
-  let val (t, T, maxidx) = Sign.certify_term sign tm
+  let val (t, T, maxidx) = Sign.certify_term (Sign.pp sign) sign tm
   in  Cterm {sign_ref = Sign.self_ref sign, t = t, T = T, maxidx = maxidx}
   end;
 
@@ -972,8 +972,8 @@ fun instantiate ([], []) th = th
   | instantiate (vcTs,ctpairs) (th as Thm{sign_ref,der,maxidx,hyps,shyps,tpairs=dpairs,prop}) =
   let val (newsign_ref,tpairs) = foldr add_ctpair (ctpairs, (sign_ref,[]));
       val (newsign_ref,vTs) = foldr add_ctyp (vcTs, (newsign_ref,[]));
-      val tsig = Sign.tsig_of (Sign.deref newsign_ref);
-      fun subst t = subst_atomic tpairs (Type.inst_term_tvars tsig vTs t);
+      fun subst t =
+        subst_atomic tpairs (Sign.inst_term_tvars (Sign.deref newsign_ref) vTs t);
       val newprop = subst prop;
       val newdpairs = map (pairself subst) dpairs;
       val newth =
@@ -1460,7 +1460,8 @@ fun invoke_oracle thy raw_name =
       let
         val sign_ref' = Sign.merge_refs (Sign.self_ref sg, Sign.self_ref sign);
         val sign' = Sign.deref sign_ref';
-        val (prop, T, maxidx) = Sign.certify_term sign' (oracle (sign', exn));
+        val (prop, T, maxidx) =
+          Sign.certify_term (Sign.pp sign') sign' (oracle (sign', exn));
       in
         if T <> propT then
           raise THM ("Oracle's result must have type prop: " ^ name, 0, [])

@@ -7,8 +7,6 @@ Type classes and sorts.
 
 signature SORTS =
 sig
-  val str_of_sort: sort -> string
-  val str_of_arity: string * sort list * sort -> string
   val eq_sort: sort * sort -> bool
   val mem_sort: sort * sort list -> bool
   val subset_sort: sort list * sort list -> bool
@@ -31,8 +29,8 @@ sig
   val of_sort: classes * arities -> typ * sort -> bool
   exception DOMAIN of string * class
   val mg_domain: classes * arities -> string -> sort -> sort list  (*exception DOMAIN*)
-  val witness_sorts: classes * arities -> string list
-    -> sort list -> sort list -> (typ * sort) list
+  val witness_sorts: classes * arities -> string list ->
+    sort list -> sort list -> (typ * sort) list
 end;
 
 structure Sorts: SORTS =
@@ -51,16 +49,6 @@ struct
 
   (types already defined in Pure/term.ML)
 *)
-
-
-(* simple printing -- lacks pretty printing, translations etc. *)
-
-fun str_of_sort [c] = c
-  | str_of_sort cs = Library.enclose "{" "}" (Library.commas cs);
-
-fun str_of_arity (t, [], S) = t ^ " :: " ^ str_of_sort S
-  | str_of_arity (t, Ss, S) = t ^ " :: " ^
-      Library.enclose "(" ")" (Library.commas (map str_of_sort Ss)) ^ " " ^ str_of_sort S;
 
 
 (* equality, membership and insertion of sorts *)
@@ -190,7 +178,9 @@ fun of_sort (classes, arities) =
 
 (** witness_sorts **)
 
-fun witness_sorts_aux (classes, arities) log_types hyps sorts =
+local
+
+fun witness_aux (classes, arities) log_types hyps sorts =
   let
     val top_witn = (propT, []);
     fun le S1 S2 = sort_le classes (S1, S2);
@@ -229,6 +219,10 @@ fun witness_sorts_aux (classes, arities) log_types hyps sorts =
 
   in witn_sorts [] (([], []), sorts) end;
 
+fun str_of_sort [c] = c
+  | str_of_sort cs = enclose "{" "}" (commas cs);
+
+in
 
 fun witness_sorts (classes, arities) log_types hyps sorts =
   let
@@ -237,7 +231,8 @@ fun witness_sorts (classes, arities) log_types hyps sorts =
       | check_result (Some (T, S)) =
           if of_sort (classes, arities) (T, S) then Some (T, S)
           else sys_error ("Sorts.witness_sorts: bad witness for sort " ^ str_of_sort S);
-  in mapfilter check_result (#2 (witness_sorts_aux (classes, arities) log_types hyps sorts)) end;
+  in mapfilter check_result (#2 (witness_aux (classes, arities) log_types hyps sorts)) end;
 
+end;
 
 end;

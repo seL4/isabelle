@@ -10,14 +10,13 @@ sig
   val anyT: sort -> typ
   val logicT: typ
   val polymorphicT: typ -> typ
-  val appl_error: (term -> Pretty.T) -> (typ -> Pretty.T)
-    -> string -> term -> typ -> term -> typ -> string list
+  val appl_error: Pretty.pp -> string -> term -> typ -> term -> typ -> string list
   val constrain: term -> typ -> term
   val param: int -> string * sort -> typ
   val paramify_dummies: int * typ -> int * typ
   val get_sort: Type.tsig -> (indexname -> sort option) -> (sort -> sort)
     -> (indexname * sort) list -> indexname -> sort
-  val infer_types: (term -> Pretty.T) -> (typ -> Pretty.T)
+  val infer_types: Pretty.pp
     -> Type.tsig -> (string -> typ option) -> (indexname -> typ option)
     -> (indexname -> sort option) -> (string -> string) -> (typ -> typ)
     -> (sort -> sort) -> string list -> bool -> typ list -> term list
@@ -253,16 +252,16 @@ fun typs_terms_of used mk_var prfx (Ts, ts) =
 exception NO_UNIFIER of string;
 
 
-fun unify classes arities =
+fun unify pp classes arities =
   let
 
     (* adjust sorts of parameters *)
 
     fun not_in_sort x S' S =
-      "Variable " ^ x ^ "::" ^ Sorts.str_of_sort S' ^ " not of sort " ^
-        Sorts.str_of_sort S ^ ".";
+      "Variable " ^ x ^ "::" ^ Pretty.string_of_sort pp S' ^ " not of sort " ^
+        Pretty.string_of_sort pp S;
 
-    fun no_domain (a, c) = "No way to get " ^ a ^ "::" ^ c ^ ".";
+    fun no_domain (a, c) = "No way to get " ^ Pretty.string_of_arity pp (a, [], [c]);
 
     fun meet (_, []) = ()
       | meet (Link (r as (ref (Param S'))), S) =
@@ -304,7 +303,7 @@ fun unify classes arities =
       | unif (T, Link (ref U)) = unif (T, U)
       | unif (PType (a, Ts), PType (b, Us)) =
           if a <> b then
-            raise NO_UNIFIER ("Clash of types " ^ quote a ^ " and " ^ quote b ^ ".")
+            raise NO_UNIFIER ("Clash of types " ^ quote a ^ " and " ^ quote b)
           else seq2 unif (Ts, Us)
       | unif (T, U) = if T = U then () else raise NO_UNIFIER "";
 
@@ -314,24 +313,26 @@ fun unify classes arities =
 
 (** type inference **)
 
-fun appl_error prt prT why t T u U =
+fun appl_error pp why t T u U =
  ["Type error in application: " ^ why,
   "",
   Pretty.string_of (Pretty.block
-    [Pretty.str "Operator:", Pretty.brk 2, prt t, Pretty.str " ::", Pretty.brk 1, prT T]),
+    [Pretty.str "Operator:", Pretty.brk 2, Pretty.term pp t,
+      Pretty.str " ::", Pretty.brk 1, Pretty.typ pp T]),
   Pretty.string_of (Pretty.block
-    [Pretty.str "Operand:", Pretty.brk 3, prt u, Pretty.str " ::", Pretty.brk 1, prT U]),
+    [Pretty.str "Operand:", Pretty.brk 3, Pretty.term pp u,
+      Pretty.str " ::", Pretty.brk 1, Pretty.typ pp U]),
   ""];
 
 
 (* infer *)                                     (*DESTRUCTIVE*)
 
-fun infer prt prT classes arities =
+fun infer pp classes arities =
   let
     (* errors *)
 
     fun unif_failed msg =
-      "Type unification failed" ^ (if msg = "" then "." else ": " ^ msg) ^ "\n";
+      "Type unification failed" ^ (if msg = "" then "" else ": " ^ msg) ^ "\n";
 
     fun prep_output bs ts Ts =
       let
@@ -349,10 +350,9 @@ fun infer prt prT classes arities =
         val ([t', u'], [T', U']) = prep_output bs [t, u] [T, U];
         val why =
           (case T' of
-            Type ("fun", _) => "Incompatible operand type."
-          | _ => "Operator not of function type.");
-        val text = unif_failed msg ^
-                   cat_lines (appl_error prt prT why t' T' u' U');
+            Type ("fun", _) => "Incompatible operand type"
+          | _ => "Operator not of function type");
+        val text = unif_failed msg ^ cat_lines (appl_error pp why t' T' u' U');
       in raise TYPE (text, [T', U'], [t', u']) end;
 
     fun err_constraint msg bs t T U =
@@ -361,17 +361,17 @@ fun infer prt prT classes arities =
         val text = cat_lines
          [unif_failed msg,
           "Cannot meet type constraint:", "",
-          Pretty.string_of
-           (Pretty.block [Pretty.str "Term:", Pretty.brk 2, prt t',
-                          Pretty.str " ::", Pretty.brk 1, prT T']),
-          Pretty.string_of
-           (Pretty.block [Pretty.str "Type:", Pretty.brk 2, prT U']), ""];
+          Pretty.string_of (Pretty.block
+           [Pretty.str "Term:", Pretty.brk 2, Pretty.term pp t',
+            Pretty.str " ::", Pretty.brk 1, Pretty.typ pp T']),
+          Pretty.string_of (Pretty.block
+           [Pretty.str "Type:", Pretty.brk 2, Pretty.typ pp U']), ""];
       in raise TYPE (text, [T', U'], [t']) end;
 
 
     (* main *)
 
-    val unif = unify classes arities;
+    val unif = unify pp classes arities;
 
     fun inf _ (PConst (_, T)) = T
       | inf _ (PFree (_, T)) = T
@@ -397,7 +397,7 @@ fun infer prt prT classes arities =
 
 (* basic_infer_types *)
 
-fun basic_infer_types prt prT const_type classes arities used freeze is_param ts Ts =
+fun basic_infer_types pp const_type classes arities used freeze is_param ts Ts =
   let
     (*convert to preterms/typs*)
     val (Tps, Ts') = pretyps_of (K true) ([], Ts);
@@ -405,7 +405,7 @@ fun basic_infer_types prt prT const_type classes arities used freeze is_param ts
 
     (*run type inference*)
     val tTs' = ListPair.map Constraint (ts', Ts');
-    val _ = seq (fn t => (infer prt prT classes arities t; ())) tTs';
+    val _ = seq (fn t => (infer pp classes arities t; ())) tTs';
 
     (*collect result unifier*)
     fun ch_var (xi, Link (r as ref (Param S))) = (r := PTVar (xi, S); None)
@@ -452,11 +452,9 @@ fun get_sort tsig def_sort map_sort raw_env =
       xi = xi' andalso Type.eq_sort tsig (S, S');
 
     val env = gen_distinct eq (map (apsnd map_sort) raw_env);
-    val _ =
-      (case gen_duplicates eq_fst env of
-        [] => ()
-      | dups => error ("Inconsistent sort constraints for type variable(s) " ^
-          commas (map (quote o Syntax.string_of_vname' o fst) dups)));
+    val _ = (case gen_duplicates eq_fst env of [] => ()
+      | dups => error ("Inconsistent sort constraints for type variable(s) "
+          ^ commas_quote (map (Syntax.string_of_vname' o fst) dups)));
 
     fun get xi =
       (case (assoc (env, xi), def_sort xi) of
@@ -516,7 +514,7 @@ fun decode_types tsig is_const def_type def_sort map_const map_type map_sort tm 
   used: list of already used type variables
   freeze: if true then generated parameters are turned into TFrees, else TVars*)
 
-fun infer_types prt prT tsig const_type def_type def_sort
+fun infer_types pp tsig const_type def_type def_sort
     map_const map_type map_sort used freeze pat_Ts raw_ts =
   let
     val {classes, arities, ...} = Type.rep_tsig tsig;
@@ -524,7 +522,7 @@ fun infer_types prt prT tsig const_type def_type def_sort
     val is_const = is_some o const_type;
     val raw_ts' =
       map (decode_types tsig is_const def_type def_sort map_const map_type map_sort) raw_ts;
-    val (ts, Ts, unifier) = basic_infer_types prt prT const_type
+    val (ts, Ts, unifier) = basic_infer_types pp const_type
       classes arities used freeze is_param raw_ts' pat_Ts';
   in (ts, unifier) end;
 

@@ -78,36 +78,38 @@ sig
   val pretty_term': Syntax.syntax -> sg -> term -> Pretty.T
   val pretty_typ: sg -> typ -> Pretty.T
   val pretty_sort: sg -> sort -> Pretty.T
-  val pretty_classrel: sg -> class * class -> Pretty.T
-  val pretty_arity: sg -> string * sort list * sort -> Pretty.T
+  val pretty_classrel: sg -> class list -> Pretty.T
+  val pretty_arity: sg -> arity -> Pretty.T
   val string_of_term: sg -> term -> string
   val string_of_typ: sg -> typ -> string
   val string_of_sort: sg -> sort -> string
-  val str_of_sort: sg -> sort -> string
-  val str_of_classrel: sg -> class * class -> string
-  val str_of_arity: sg -> string * sort list * sort -> string
+  val string_of_classrel: sg -> class list -> string
+  val string_of_arity: sg -> arity -> string
   val pprint_term: sg -> term -> pprint_args -> unit
   val pprint_typ: sg -> typ -> pprint_args -> unit
+  val pp: sg -> Pretty.pp
   val certify_class: sg -> class -> class
   val certify_sort: sg -> sort -> sort
   val certify_typ: sg -> typ -> typ
   val certify_typ_raw: sg -> typ -> typ
   val certify_tyname: sg -> string -> string
   val certify_const: sg -> string -> string
-  val certify_term: sg -> term -> term * typ * int
+  val certify_term: Pretty.pp -> sg -> term -> term * typ * int
   val read_sort: sg -> string -> sort
   val read_raw_typ: sg * (indexname -> sort option) -> string -> typ
   val read_typ: sg * (indexname -> sort option) -> string -> typ
   val read_typ': Syntax.syntax -> sg * (indexname -> sort option) -> string -> typ
   val read_typ_raw': Syntax.syntax -> sg * (indexname -> sort option) -> string -> typ
-  val infer_types: sg -> (indexname -> typ option) ->
+  val inst_typ_tvars: sg -> (indexname * typ) list -> typ -> typ
+  val inst_term_tvars: sg -> (indexname * typ) list -> term -> term
+  val infer_types: Pretty.pp -> sg -> (indexname -> typ option) ->
     (indexname -> sort option) -> string list -> bool
     -> xterm list * typ -> term * (indexname * typ) list
-  val infer_types_simult: sg -> (indexname -> typ option) ->
+  val infer_types_simult: Pretty.pp -> sg -> (indexname -> typ option) ->
     (indexname -> sort option) -> string list -> bool
     -> (xterm list * typ) list -> term list * (indexname * typ) list
-  val read_def_terms':
-    Syntax.syntax -> sg * (indexname -> typ option) * (indexname -> sort option) ->
+  val read_def_terms': Pretty.pp -> Syntax.syntax ->
+    sg * (indexname -> typ option) * (indexname -> sort option) ->
     string list -> bool -> (string * typ) list -> term list * (indexname * typ) list
   val read_def_terms:
     sg * (indexname -> typ option) * (indexname -> sort option) ->
@@ -335,6 +337,7 @@ val of_sort = Type.of_sort o tsig_of;
 val witness_sorts = Type.witness_sorts o tsig_of;
 val universal_witness = Type.universal_witness o tsig_of;
 val typ_instance = Type.typ_instance o tsig_of;
+
 
 
 (** signature data **)
@@ -603,8 +606,8 @@ fun pretty_sort (sg as Sg (_, {spaces, ...})) S =
   Syntax.pretty_sort (syn_of sg)
     (if ! NameSpace.long_names then S else extrn_sort spaces S);
 
-fun pretty_classrel sg (c1, c2) = Pretty.block
-  [pretty_sort sg [c1], Pretty.str " <", Pretty.brk 1, pretty_sort sg [c2]];
+fun pretty_classrel sg cs = Pretty.block (flat
+  (separate [Pretty.str " <", Pretty.brk 1] (map (single o pretty_sort sg o single) cs)));
 
 fun pretty_arity sg (t, Ss, S) =
   let
@@ -617,16 +620,17 @@ fun pretty_arity sg (t, Ss, S) =
       ([Pretty.str (t' ^ " ::"), Pretty.brk 1] @ dom @ [pretty_sort sg S])
   end;
 
-fun string_of_term sg t = Pretty.string_of (pretty_term sg t);
-fun string_of_typ sg T = Pretty.string_of (pretty_typ sg T);
-fun string_of_sort sg S = Pretty.string_of (pretty_sort sg S);
-
-fun str_of_sort sg S = Pretty.str_of (pretty_sort sg S);
-fun str_of_classrel sg c1_c2 = Pretty.str_of (pretty_classrel sg c1_c2);
-fun str_of_arity sg ar = Pretty.str_of (pretty_arity sg ar);
+val string_of_term = Pretty.string_of oo pretty_term;
+val string_of_typ = Pretty.string_of oo pretty_typ;
+val string_of_sort = Pretty.string_of oo pretty_sort;
+val string_of_classrel = Pretty.string_of oo pretty_classrel;
+val string_of_arity = Pretty.string_of oo pretty_arity;
 
 fun pprint_term sg = Pretty.pprint o Pretty.quote o (pretty_term sg);
 fun pprint_typ sg = Pretty.pprint o Pretty.quote o (pretty_typ sg);
+
+fun pp sg = Pretty.pp (pretty_term sg) (pretty_typ sg) (pretty_sort sg)
+  (pretty_classrel sg) (pretty_arity sg);
 
 
 
@@ -741,17 +745,15 @@ fun nodup_vars tm =
   in nodups (([], []), ([], [])) tm; tm end;
 
 (*compute and check type of the term*)
-fun type_check sg tm =
+fun type_check pp sg tm =
   let
-    val prt = setmp Syntax.show_brackets true (pretty_term sg);
-    val prT = pretty_typ sg;
-
     fun err_appl why bs t T u U =
       let
         val xs = map Free bs;           (*we do not rename here*)
         val t' = subst_bounds (xs, t);
         val u' = subst_bounds (xs, u);
-        val text = cat_lines (TypeInfer.appl_error prt prT why t' T u' U);
+        val text = cat_lines
+          (TypeInfer.appl_error (Syntax.pp_show_brackets pp) why t' T u' U);
       in raise TYPE (text, [T, U], [t', u']) end;
 
     fun typ_of (_, Const (_, T)) = T
@@ -764,13 +766,13 @@ fun type_check sg tm =
           let val T = typ_of (bs, t) and U = typ_of (bs, u) in
             (case T of
               Type ("fun", [T1, T2]) =>
-                if T1 = U then T2 else err_appl "Incompatible operand type." bs t T u U
-            | _ => err_appl "Operator not of function type." bs t T u U)
+                if T1 = U then T2 else err_appl "Incompatible operand type" bs t T u U
+            | _ => err_appl "Operator not of function type" bs t T u U)
           end;
 
   in typ_of ([], tm) end;
 
-fun certify_term sg tm =
+fun certify_term pp sg tm =
   let
     val _ = check_stale sg;
 
@@ -779,7 +781,7 @@ fun certify_term sg tm =
 
     fun err msg = raise TYPE (msg, [], [tm']);
 
-    fun show_const a T = quote a ^ " :: " ^ quote (string_of_typ sg T);
+    fun show_const a T = quote a ^ " :: " ^ Pretty.string_of_typ pp T;
 
     fun check_atoms (t $ u) = (check_atoms t; check_atoms u)
       | check_atoms (Abs (_, _, t)) = check_atoms t
@@ -795,8 +797,15 @@ fun certify_term sg tm =
   in
     check_atoms tm';
     nodup_vars tm';
-    (tm', type_check sg tm', maxidx_of_term tm')
+    (tm', type_check pp sg tm', maxidx_of_term tm')
   end;
+
+
+
+(** instantiation **)
+
+fun inst_typ_tvars sg = Type.inst_typ_tvars (pp sg) (tsig_of sg);
+fun inst_term_tvars sg = Type.inst_term_tvars (pp sg) (tsig_of sg);
 
 
 
@@ -812,19 +821,17 @@ fun certify_term sg tm =
   typs: expected types
 *)
 
-fun infer_types_simult sg def_type def_sort used freeze args =
+fun infer_types_simult pp sg def_type def_sort used freeze args =
   let
     val tsig = tsig_of sg;
-    val prt = setmp Syntax.show_brackets true (pretty_term sg);
-    val prT = pretty_typ sg;
 
     val termss = foldr multiply (map fst args, [[]]);
     val typs =
       map (fn (_, T) => certify_typ sg T handle TYPE (msg, _, _) => error msg) args;
 
-    fun infer ts = OK
-      (TypeInfer.infer_types prt prT tsig (const_type sg) def_type def_sort
-        (intern_const sg) (intern_tycons sg) (intern_sort sg) used freeze typs ts)
+    fun infer ts = OK (TypeInfer.infer_types (Syntax.pp_show_brackets pp) tsig
+        (const_type sg) def_type def_sort (intern_const sg) (intern_tycons sg)
+        (intern_sort sg) used freeze typs ts)
       handle TYPE (msg, _, _) => Error msg;
 
     val err_results = map infer termss;
@@ -847,27 +854,27 @@ fun infer_types_simult sg def_type def_sort used freeze args =
           \You may still want to disambiguate your grammar or your input."
       else (); hd results)
     else (ambig_msg (); error ("More than one term is type correct:\n" ^
-      (cat_lines (map (Pretty.string_of o prt) (flat (map fst results))))))
+      cat_lines (map (Pretty.string_of_term pp) (flat (map fst results)))))
   end;
 
 
-fun infer_types sg def_type def_sort used freeze tsT =
-  apfst hd (infer_types_simult sg def_type def_sort used freeze [tsT]);
+fun infer_types pp sg def_type def_sort used freeze tsT =
+  apfst hd (infer_types_simult pp sg def_type def_sort used freeze [tsT]);
 
 
 (** read_def_terms **)
 
 (*read terms, infer types*)
-fun read_def_terms' syn (sign, types, sorts) used freeze sTs =
+fun read_def_terms' pp syn (sign, types, sorts) used freeze sTs =
   let
     fun read (s, T) =
       let val T' = certify_typ sign T handle TYPE (msg, _, _) => error msg
       in (Syntax.read syn T' s, T') end;
     val tsTs = map read sTs;
-  in infer_types_simult sign types sorts used freeze tsTs end;
+  in infer_types_simult pp sign types sorts used freeze tsTs end;
 
 fun read_def_terms (sign, types, sorts) =
-  read_def_terms' (syn_of sign) (sign, types, sorts);
+  read_def_terms' (pp sign) (syn_of sign) (sign, types, sorts);
 
 fun simple_read_term sign T s =
   (read_def_terms (sign, K None, K None) [] true [(s, T)]
@@ -946,7 +953,7 @@ fun ext_ars int prep_sort sg (syn, tsig, ctab, (path, spaces), data) arities =
     val prepS = prep_sort sg syn tsig spaces;
     fun prep_arity (c, Ss, S) =
       (if int then intrn spaces typeK c else c, map prepS Ss, prepS S);
-    val tsig' = Type.add_arities (map prep_arity arities) tsig;
+    val tsig' = Type.add_arities (pp sg) (map prep_arity arities) tsig;
     val log_types = Type.logical_types tsig';
   in
     (map_syntax (Syntax.extend_log_types log_types) syn,
@@ -1027,16 +1034,16 @@ fun ext_classes int sg (syn, tsig, ctab, (path, spaces), data) classes =
   in
     ext_consts_i sg
       (map_syntax (Syntax.extend_consts names) syn,
-        Type.add_classes classes' tsig, ctab, (path, spaces'), data)
+        Type.add_classes (pp sg) classes' tsig, ctab, (path, spaces'), data)
     consts
   end;
 
 
 (* add to classrel *)
 
-fun ext_classrel int _ (syn, tsig, ctab, (path, spaces), data) pairs =
+fun ext_classrel int sg (syn, tsig, ctab, (path, spaces), data) pairs =
   let val intrn = if int then map (pairself (intrn_class spaces)) else I in
-    (syn, Type.add_classrel (intrn pairs) tsig, ctab, (path, spaces), data)
+    (syn, Type.add_classrel (pp sg) (intrn pairs) tsig, ctab, (path, spaces), data)
   end;
 
 
@@ -1213,7 +1220,7 @@ fun nontriv_merge (sg1, sg2) =
       val stamps = merge_stamps stamps1 stamps2;
       val syntax = Syntax.merge_syntaxes syntax1 syntax2;
       val trfuns = merge_trfuns trfuns1 trfuns2;
-      val tsig = Type.merge_tsigs (tsig1, tsig2);
+      val tsig = Type.merge_tsigs (pp sg1) (tsig1, tsig2);   (* FIXME improve pp *)
       val consts = Symtab.merge eq_snd (consts1, consts2)
         handle Symtab.DUPS cs => err_dup_consts cs;
 

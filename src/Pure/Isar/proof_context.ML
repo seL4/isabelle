@@ -15,13 +15,20 @@ sig
   exception CONTEXT of string * context
   val theory_of: context -> theory
   val sign_of: context -> Sign.sg
-  val syntax_of: context -> Syntax.syntax * string list * string list
+  val is_fixed: context -> string -> bool
   val fixed_names_of: context -> string list
   val assumptions_of: context -> (cterm list * exporter) list
   val prems_of: context -> thm list
   val print_proof_data: theory -> unit
   val init: theory -> context
-  val is_fixed: context -> string -> bool
+  val pretty_term: context -> term -> Pretty.T
+  val pretty_typ: context -> typ -> Pretty.T
+  val pretty_sort: context -> sort -> Pretty.T
+  val pp: context -> Pretty.pp
+  val pretty_thm: context -> thm -> Pretty.T
+  val pretty_thms: context -> thm list -> Pretty.T
+  val pretty_fact: context -> string * thm list -> Pretty.T
+  val string_of_term: context -> term -> string
   val default_type: context -> string -> typ option
   val used_types: context -> string list
   val read_typ: context -> string -> typ
@@ -123,13 +130,6 @@ sig
   val add_cases: (string * RuleCases.T) list -> context -> context
   val apply_case: RuleCases.T -> context
     -> context * ((indexname * term option) list * (string * term list) list)
-  val pretty_term: context -> term -> Pretty.T
-  val pretty_typ: context -> typ -> Pretty.T
-  val pretty_sort: context -> sort -> Pretty.T
-  val pretty_thm: context -> thm -> Pretty.T
-  val pretty_thms: context -> thm list -> Pretty.T
-  val pretty_fact: context -> string * thm list -> Pretty.T
-  val string_of_term: context -> term -> string
   val verbose: bool ref
   val setmp_verbose: ('a -> 'b) -> 'a -> 'b
   val print_syntax: context -> unit
@@ -379,6 +379,33 @@ end;
 
 
 
+(** pretty printing **)
+
+fun pretty_term ctxt = Sign.pretty_term' (syn_of ctxt) (sign_of ctxt) o context_tr' ctxt;
+val pretty_typ = Sign.pretty_typ o sign_of;
+val pretty_sort = Sign.pretty_sort o sign_of;
+
+fun pp ctxt = Pretty.pp (pretty_term ctxt) (pretty_typ ctxt) (pretty_sort ctxt)
+  (Sign.pretty_classrel (sign_of ctxt)) (Sign.pretty_arity (sign_of ctxt));
+
+val string_of_term = Pretty.string_of oo pretty_term;
+
+fun pretty_thm ctxt thm =
+  if ! Display.show_hyps then
+    Display.pretty_thm_aux (pretty_sort ctxt, pretty_term ctxt) false thm
+  else pretty_term ctxt (Thm.prop_of thm);
+
+fun pretty_thms ctxt [th] = pretty_thm ctxt th
+  | pretty_thms ctxt ths = Pretty.blk (0, Pretty.fbreaks (map (pretty_thm ctxt) ths));
+
+fun pretty_fact ctxt ("", ths) = pretty_thms ctxt ths
+  | pretty_fact ctxt (a, [th]) =
+      Pretty.block [Pretty.str (a ^ ":"), Pretty.brk 1, pretty_thm ctxt th]
+  | pretty_fact ctxt (a, ths) =
+      Pretty.block (Pretty.fbreaks (Pretty.str (a ^ ":") :: map (pretty_thm ctxt) ths));
+
+
+
 (** default sorts and types **)
 
 fun def_sort (Context {defs = (_, sorts, _, _), ...}) xi = Vartab.lookup (sorts, xi);
@@ -474,28 +501,29 @@ fun extern_skolem ctxt =
 
 (* read / certify wrt. signature *)     (*exception ERROR*) (*exception TERM*)
 
-fun read_def_termTs freeze syn sg (types, sorts, used) sTs =
-  Sign.read_def_terms' syn (sg, types, sorts) used freeze sTs;
+fun read_def_termTs freeze pp syn sg (types, sorts, used) sTs =
+  Sign.read_def_terms' pp syn (sg, types, sorts) used freeze sTs;
 
-fun read_def_termT freeze syn sg defs sT = apfst hd (read_def_termTs freeze syn sg defs [sT]);
+fun read_def_termT freeze pp syn sg defs sT =
+  apfst hd (read_def_termTs freeze pp syn sg defs [sT]);
 
-fun read_term_sg freeze syn sg defs s =
-  #1 (read_def_termT freeze syn sg defs (s, TypeInfer.logicT));
+fun read_term_sg freeze pp syn sg defs s =
+  #1 (read_def_termT freeze pp syn sg defs (s, TypeInfer.logicT));
 
-fun read_prop_sg freeze syn sg defs s = #1 (read_def_termT freeze syn sg defs (s, propT));
+fun read_prop_sg freeze pp syn sg defs s =
+  #1 (read_def_termT freeze pp syn sg defs (s, propT));
 
-fun read_terms_sg freeze syn sg defs =
-  #1 o read_def_termTs freeze syn sg defs o map (rpair TypeInfer.logicT);
+fun read_terms_sg freeze pp syn sg defs =
+  #1 o read_def_termTs freeze pp syn sg defs o map (rpair TypeInfer.logicT);
 
-fun read_props_sg freeze syn sg defs = #1 o read_def_termTs freeze syn sg defs o map (rpair propT);
+fun read_props_sg freeze pp syn sg defs =
+  #1 o read_def_termTs freeze pp syn sg defs o map (rpair propT);
 
 
-fun cert_term_sg sg t = Thm.term_of (Thm.cterm_of sg t);
+fun cert_term_sg pp sg t = #1 (Sign.certify_term pp sg t);
 
-fun cert_prop_sg sg tm =
-  let
-    val ctm = Thm.cterm_of sg tm;
-    val {t, T, ...} = Thm.rep_cterm ctm;
+fun cert_prop_sg pp sg tm =
+  let val (t, T, _) = Sign.certify_term pp sg tm
   in if T = propT then t else raise TERM ("Term not of type prop", [t]) end;
 
 
@@ -556,7 +584,7 @@ fun gen_read' read app pattern dummies schematic
     val sorts = append_env (def_sort ctxt) more_sorts;
     val used = used_types ctxt @ more_used;
   in
-    (transform_error (read (syn_of ctxt) (sign_of ctxt) (types, sorts, used)) s
+    (transform_error (read (pp ctxt) (syn_of ctxt) (sign_of ctxt) (types, sorts, used)) s
       handle TERM (msg, _) => raise CONTEXT (msg, ctxt)
         | ERROR_MESSAGE msg => raise CONTEXT (msg, ctxt))
     |> app (intern_skolem ctxt internal)
@@ -595,7 +623,8 @@ local
 
 fun gen_cert cert pattern schematic ctxt t = t
   |> (if pattern then I else norm_term ctxt schematic)
-  |> (fn t' => cert (sign_of ctxt) t' handle TERM (msg, _) => raise CONTEXT (msg, ctxt));
+  |> (fn t' => cert (pp ctxt) (sign_of ctxt) t'
+    handle TERM (msg, _) => raise CONTEXT (msg, ctxt));
 
 in
 
@@ -658,30 +687,6 @@ fun declare_terms ts ctxt = foldl declare_occ (ctxt, ts);
 fun declare_terms_syntax ts ctxt = foldl declare_syn (ctxt, ts);
 
 end;
-
-
-
-(** pretty printing **)
-
-fun pretty_term ctxt = Sign.pretty_term' (syn_of ctxt) (sign_of ctxt) o context_tr' ctxt;
-val pretty_typ = Sign.pretty_typ o sign_of;
-val pretty_sort = Sign.pretty_sort o sign_of;
-
-val string_of_term = Pretty.string_of oo pretty_term;
-
-fun pretty_thm ctxt thm =
-  if ! Display.show_hyps then
-    Display.pretty_thm_aux (pretty_sort ctxt, pretty_term ctxt) false thm
-  else pretty_term ctxt (Thm.prop_of thm);
-
-fun pretty_thms ctxt [th] = pretty_thm ctxt th
-  | pretty_thms ctxt ths = Pretty.blk (0, Pretty.fbreaks (map (pretty_thm ctxt) ths));
-
-fun pretty_fact ctxt ("", ths) = pretty_thms ctxt ths
-  | pretty_fact ctxt (a, [th]) =
-      Pretty.block [Pretty.str (a ^ ":"), Pretty.brk 1, pretty_thm ctxt th]
-  | pretty_fact ctxt (a, ths) =
-      Pretty.block (Pretty.fbreaks (Pretty.str (a ^ ":") :: map (pretty_thm ctxt) ths));
 
 
 
