@@ -29,7 +29,8 @@ function usage()
   echo "  Options are:"
   echo "    -a           all logics"
   echo "    -b           batch mode"
-  echo "    -t           run tests"
+  echo "    -i           make images"
+  echo "    -t           make test"
   echo
   echo "  Compile the named LOGICS (default $ISABELLE_LOGIC), or all object logics"
   echo "  in the distribution."
@@ -50,9 +51,10 @@ function fail()
 
 ALL=""
 BATCH=""
+IMAGES=""
 TEST=""
 
-while getopts "abt" OPT
+while getopts "abit" OPT
 do
   case "$OPT" in
     a)
@@ -60,6 +62,9 @@ do
       ;;
     b)
       BATCH=true
+      ;;
+    i)
+      IMAGES=images
       ;;
     t)
       TEST=test
@@ -155,7 +160,7 @@ export THIS_IS_ISABELLE_BUILD=true
 
 for L in $MAKE_LOGICS
 do
-  ( cd $ISABELLE_HOME/src/$L; $ISATOOL make images $TEST )
+  ( cd $ISABELLE_HOME/src/$L; $ISATOOL make $IMAGES $TEST )
 done
 
 echo -n "Finished at "; date
