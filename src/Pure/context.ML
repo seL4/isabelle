@@ -22,6 +22,10 @@ sig
   val pass_theory: theory -> ('a -> 'b) -> 'a -> 'b * theory
   val save: ('a -> 'b) -> 'a -> 'b
   val >> : (theory -> theory) -> unit
+  val use_mltext: string -> bool -> theory option -> unit
+  val use_mltext_theory: string -> bool -> theory -> theory
+  val use_let: string -> string -> string -> theory -> theory
+  val use_setup: string -> theory -> theory
 end;
 
 structure Context: CONTEXT =
@@ -61,6 +65,20 @@ fun save f x = setmp (get_context ()) f x;
 
 nonfix >>;
 fun >> f = set_context (Some (f (the_context ())));
+
+
+(* use ML text *)
+
+fun use_mltext txt verb opt_thy = setmp opt_thy (use_text writeln verb) txt;
+fun use_mltext_theory txt verb thy = #2 (pass_theory thy (use_text writeln verb) txt);
+
+fun use_context txt = use_mltext_theory ("Context.>> (" ^ txt ^ ");") false;
+
+fun use_let name body txt =
+  use_context ("let val " ^ name ^ " = " ^ txt ^ " in\n" ^ body ^ " end");
+
+val use_setup =
+  use_let "setup: (theory -> theory) list" "Library.apply setup";
 
 
 end;
