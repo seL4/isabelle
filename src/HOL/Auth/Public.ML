@@ -77,11 +77,6 @@ qed "Spy_sees_lost";
 AddIffs [sees_pubK];
 AddSIs  [sees_own_priK, Spy_sees_lost];
 
-(*Added for Yahalom/lost_tac*)
-goal thy "!!A. [| Crypt (pubK A) X : analz (sees lost Spy evs);  A: lost |] \
-\              ==> X : analz (sees lost Spy evs)";
-by (blast_tac (!claset addSDs [analz.Decrypt]) 1);
-qed "Crypt_Spy_analz_lost";
 
 (** Specialized rewrite rules for (sees lost A (Says...#evs)) **)
 
@@ -133,18 +128,23 @@ qed_spec_mp "Says_imp_sees_Spy";
   items known to be fresh*)
 val sees_Spy_partsEs = make_elim (Says_imp_sees_Spy RS parts.Inj):: partsEs;
 
-goal thy  
- "!!evs. [| Says A B (Crypt (pubK C) X) : set_of_list evs;  C : lost |] \
-\        ==> X : analz (sees lost Spy evs)";
-by (blast_tac (!claset addSDs [Says_imp_sees_Spy RS analz.Inj]) 1);
-qed "Says_Crypt_lost";
+(*For not_lost_tac*)
+goal thy "!!A. [| Crypt (pubK A) X : analz (sees lost Spy evs);  A: lost |] \
+\              ==> X : analz (sees lost Spy evs)";
+by (blast_tac (!claset addSDs [analz.Decrypt]) 1);
+qed "Crypt_Spy_analz_lost";
 
-goal thy  
- "!!evs. [| Says A B (Crypt (pubK C) X) : set_of_list evs;        \
-\           X ~: analz (sees lost Spy evs) |]                     \
-\        ==> C ~: lost";
-by (blast_tac (!claset addSDs [Says_imp_sees_Spy RS analz.Inj]) 1);
-qed "Says_Crypt_not_lost";
+(*Prove that the agent is uncompromised by the confidentiality of 
+  a component of a message she's said.*)
+fun not_lost_tac s =
+    case_tac ("(" ^ s ^ ") : lost") THEN'
+    SELECT_GOAL 
+      (REPEAT_DETERM (dtac (Says_imp_sees_Spy RS analz.Inj) 1) THEN
+       REPEAT_DETERM (etac MPair_analz 1) THEN
+       THEN_BEST_FIRST 
+         (dres_inst_tac [("A", s)] Crypt_Spy_analz_lost 1 THEN assume_tac 1)
+         (has_fewer_prems 1, size_of_thm)
+         (Step_tac 1));
 
 Addsimps [sees_own, sees_Server, sees_Friend, sees_Spy];
 Delsimps [sees_Cons];   (**** NOTE REMOVAL -- laws above are cleaner ****)
