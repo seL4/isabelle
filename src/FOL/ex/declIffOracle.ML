@@ -15,10 +15,13 @@ val oT = Type("o",[]);
 
 val iff = Const("op <->", [oT,oT]--->oT);
 
-fun mk_iff 0 = Const("True", oT)
+fun mk_iff 1 = Free("P", oT)
   | mk_iff n = iff $ Free("P", oT) $ mk_iff (n-1);
 
 val Trueprop = Const("Trueprop",oT-->propT);
 
-(*Oracle makes tautologies of the form "P <-> P <-> P <-> P <-> True"*)
-fun mk_iff_oracle (sign, IffOracleExn n) = Trueprop $ mk_iff (2*n);
+(*Oracle makes tautologies of the form "P <-> P <-> P <-> P"*)
+fun mk_iff_oracle (sign, IffOracleExn n) = 
+    if n>0 andalso n mod 2 = 0 
+    then Trueprop $ mk_iff n
+    else raise IffOracleExn n;
