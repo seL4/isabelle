@@ -42,9 +42,8 @@ fun subst_apps (_,_) [] t = t
                    \ in recursive application on rhs"
               in 
                 (case assoc (pairs,xk) of 
-                   None => raise RecError 
-                     ("illegal occurence of " ^ fname ^ " on rhs")
-                 | Some(U) => list_comb(U,map subst (ls @ rs)))
+                   None   => list_comb(f, map subst b)
+                 | Some U => list_comb(U, map subst (ls @ rs)))
               end
           else list_comb(f, map subst b)
         end
@@ -393,16 +392,12 @@ in
              ,list_comb(rec_comb
                         , fns @ map Bound (0 ::(length ls downto 1))));
           val sg = sign_of thy;
-          val defpair =  mk_defpair (Const(fname,dummyT),rhs)
+          val defpair = (fname ^ "_" ^ tname ^ "_def",
+                         Logic.mk_equals (Const(fname,dummyT), rhs))
           val defpairT as (_, _ $ Const(_,T) $ _ ) = inferT_axm sg defpair;
           val varT = Type.varifyT T;
           val ftyp = the (Sign.const_type sg fname);
-        in
-          if Type.typ_instance (#tsig(Sign.rep_sg sg), ftyp, varT)
-          then add_defs_i [defpairT] thy
-          else error("Primrec definition error: \ntype of " ^ fname 
-                     ^ " is not instance of type deduced from equations")
-        end;
+        in add_defs_i [defpairT] thy end;
 
     in
       datatypes := map (fn (x,_,_) => x) cons_list' @ (!datatypes);

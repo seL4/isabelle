@@ -171,9 +171,13 @@ end;
 
 fun mk_primrec_decl ((fname, tname), axms) =
   let
+    (*Isolate type name from the structure's identifier it may be stored in*)
+    val tname' = implode (snd (take_suffix (not_equal ".") (explode tname)));
+
     fun mk_prove (name, eqn) =
       "val " ^ name ^ " = store_thm (" ^ quote name
-      ^ ", prove_goalw thy [get_def thy " ^ fname ^ "] " ^ eqn ^ "\n\
+      ^ ", prove_goalw thy [get_def thy "
+      ^ (quote (strip_quotes fname ^ "_" ^ tname')) ^ "] " ^ eqn ^ "\n\
       \  (fn _ => [Simp_tac 1]));";
 
     val axs = mk_list (map (fn (n, a) => mk_pair (quote n, a)) axms);
