@@ -140,7 +140,7 @@ val prems = Goalw [quotient_def]
 \    ==> (UN x:X. b(x)) : B";
 by (cut_facts_tac prems 1);
 by Safe_tac;
-by (asm_simp_tac (simpset() addsimps (UN_equiv_class::prems)) 1);
+by (asm_simp_tac (simpset() addsimps UN_equiv_class::prems) 1);
 qed "UN_equiv_class_type";
 
 (*Sufficient conditions for injectiveness.  Could weaken premises!
