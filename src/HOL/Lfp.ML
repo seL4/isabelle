@@ -8,6 +8,8 @@ The Knaster-Tarski Theorem.
 
 (*** Proof of Knaster-Tarski Theorem ***)
 
+val lfp_def = thm "lfp_def";
+
 (* lfp(f) is the greatest lower bound of {u. f(u) <= u} *)
 
 Goalw [lfp_def] "f(A) <= A ==> lfp(f) <= A";

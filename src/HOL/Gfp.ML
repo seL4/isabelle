@@ -8,6 +8,8 @@ The Knaster-Tarski Theorem for greatest fixed points.
 
 (*** Proof of Knaster-Tarski Theorem using gfp ***)
 
+val gfp_def = thm "gfp_def";
+
 (* gfp(f) is the least upper bound of {u. u <= f(u)} *)
 
 Goalw [gfp_def] "[| X <= f(X) |] ==> X <= gfp(f)";

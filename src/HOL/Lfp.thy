@@ -6,10 +6,10 @@
 The Knaster-Tarski Theorem
 *)
 
-Lfp = Product_Type +
+theory Lfp = Product_Type:
 
 constdefs
-  lfp :: ['a set=>'a set] => 'a set
+  lfp :: "['a set \<Rightarrow> 'a set] \<Rightarrow> 'a set"
   "lfp(f) == Inter({u. f(u) <= u})"    (*least fixed point*)
 
 end
