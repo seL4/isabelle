@@ -8,252 +8,272 @@ header {* \isaheader{The Lightweight Bytecode Verifier} *}
 
 theory LBVSpec = SemilatAlg + Opt:
 
-
-syntax
-  "@lesuberropt" :: "'a option err \<Rightarrow> 'a ord \<Rightarrow> 'a option err \<Rightarrow> 'a option err ord"
-  ("_ \<le>|_ _" [50,50,51] 50) 
-
-  "@superropt" :: "'a option err \<Rightarrow> 'a ebinop \<Rightarrow> 'a option err \<Rightarrow> 'a option err binop"
-  ("_ +|_ _" [50,50,51] 50)
-  
-  "@supsuperropt" :: "'a option err list \<Rightarrow> 'a ebinop \<Rightarrow> 'a option err \<Rightarrow> 'a option err binop"
-  ("_ ++|_ _" [50,50,51] 50)
-
-translations
-  "a \<le>|r b" == "a <=_(Err.le (Opt.le r)) b"  
-  "a +|f b" == "a +_(Err.lift2 (Opt.sup f)) b"
-  "a ++|f b" == "a ++_(Err.lift2 (Opt.sup f)) b"
-
-
 types
-  's certificate = "'s option list"   
-  's steptype    = "'s option err step_type"
+  's certificate = "'s list"   
 
 consts
-merge :: "'s certificate \<Rightarrow> 's ebinop \<Rightarrow> 's ord \<Rightarrow> nat \<Rightarrow> 
-          (nat \<times> 's option err) list \<Rightarrow> 's option err \<Rightarrow> 's option err"
+merge :: "'s certificate \<Rightarrow> 's binop \<Rightarrow> 's ord \<Rightarrow> 's \<Rightarrow> nat \<Rightarrow> (nat \<times> 's) list \<Rightarrow> 's \<Rightarrow> 's"
 primrec
-"merge cert f r pc []     x = x"
-"merge cert f r pc (s#ss) x = (let (pc',s') = s in
-                               merge cert f r pc ss (if pc'=pc+1 then (s' +|f x)
-                                                     else if s' \<le>|r (OK (cert!pc')) then x
-                                                     else Err))"
+"merge cert f r T pc []     x = x"
+"merge cert f r T pc (s#ss) x = merge cert f r T pc ss (let (pc',s') = s in 
+                                  if pc'=pc+1 then s' +_f x
+                                  else if s' <=_r (cert!pc') then x
+                                  else T)"
 
 constdefs
-wtl_inst :: "'s certificate \<Rightarrow> 's ebinop \<Rightarrow> 's ord \<Rightarrow> 
-             's steptype \<Rightarrow> nat \<Rightarrow> 's option \<Rightarrow> 's option err"
-"wtl_inst cert f r step pc s \<equiv> merge cert f r pc (step pc (OK s)) (OK (cert!(pc+1)))"
+wtl_inst :: "'s certificate \<Rightarrow> 's binop \<Rightarrow> 's ord \<Rightarrow> 's \<Rightarrow>
+             's step_type \<Rightarrow> nat \<Rightarrow> 's \<Rightarrow> 's"
+"wtl_inst cert f r T step pc s \<equiv> merge cert f r T pc (step pc s) (cert!(pc+1))"
 
-wtl_cert :: "'s certificate \<Rightarrow> 's ebinop \<Rightarrow> 's ord \<Rightarrow> 
-             's steptype \<Rightarrow> nat \<Rightarrow> 's option \<Rightarrow> 's option err"
-"wtl_cert cert f r step pc s \<equiv>
-  case cert!pc of 
-    None    \<Rightarrow> wtl_inst cert f r step pc s
-  | Some s' \<Rightarrow> if OK s \<le>|r (OK (Some s')) then wtl_inst cert f r step pc (Some s') else Err"
+wtl_cert :: "'s certificate \<Rightarrow> 's binop \<Rightarrow> 's ord \<Rightarrow> 's \<Rightarrow> 's \<Rightarrow>
+             's step_type \<Rightarrow> nat \<Rightarrow> 's \<Rightarrow> 's"
+"wtl_cert cert f r T B step pc s \<equiv>
+  if cert!pc = B then 
+    wtl_inst cert f r T step pc s
+  else
+    if s <=_r (cert!pc) then wtl_inst cert f r T step pc (cert!pc) else T"
 
 consts 
-wtl_inst_list :: "'a list \<Rightarrow> 's certificate \<Rightarrow> 's ebinop \<Rightarrow> 's ord \<Rightarrow> 
-                  's steptype \<Rightarrow> nat \<Rightarrow> 's option \<Rightarrow> 's option err"
+wtl_inst_list :: "'a list \<Rightarrow> 's certificate \<Rightarrow> 's binop \<Rightarrow> 's ord \<Rightarrow> 's \<Rightarrow> 's \<Rightarrow>
+                  's step_type \<Rightarrow> nat \<Rightarrow> 's \<Rightarrow> 's"
 primrec
-"wtl_inst_list []      cert f r step pc s = OK s"
-"wtl_inst_list (i#ins) cert f r step pc s = 
-  (let s' = wtl_cert cert f r step pc s in
-   strict (wtl_inst_list ins cert f r step (pc+1)) s')"
-
+"wtl_inst_list []      cert f r T B step pc s = s"
+"wtl_inst_list (i#ins) cert f r T B step pc s = 
+    (let s' = wtl_cert cert f r T B step pc s in
+      if s' = T \<or> s = T then T else wtl_inst_list ins cert f r T B step (pc+1) s')"
 
 
 constdefs
-  cert_ok :: "'s certificate \<Rightarrow> nat \<Rightarrow> 's set \<Rightarrow> bool"
-  "cert_ok cert n A \<equiv> (\<forall>i < n. cert!i \<in> opt A) \<and> (cert!n = None)"
+  cert_ok :: "'s certificate \<Rightarrow> nat \<Rightarrow> 's \<Rightarrow> 's \<Rightarrow> 's set \<Rightarrow> bool"
+  "cert_ok cert n T B A \<equiv> (\<forall>i < n. cert!i \<in> A \<and> cert!i \<noteq> T) \<and> (cert!n = B)"
 
-lemma cert_okD1:
-  "cert_ok cert n A \<Longrightarrow> pc < n \<Longrightarrow> cert!pc \<in> opt A"
+constdefs
+  bottom :: "'a ord \<Rightarrow> 'a \<Rightarrow> bool"
+  "bottom r B \<equiv> \<forall>x. B <=_r x"
+
+
+locale lbv = semilat +
+  fixes T :: "'a" ("\<top>") 
+  fixes B :: "'a" ("\<bottom>") 
+  fixes step :: "'a step_type" 
+  assumes top: "top r \<top>"
+  assumes T_A: "\<top> \<in> A"
+  assumes bot: "bottom r \<bottom>" 
+  assumes B_A: "\<bottom> \<in> A"
+
+  fixes merge :: "'a certificate \<Rightarrow> nat \<Rightarrow> (nat \<times> 'a) list \<Rightarrow> 'a \<Rightarrow> 'a"
+  defines mrg_def: "merge cert \<equiv> LBVSpec.merge cert f r \<top>"
+
+  fixes wti :: "'a certificate \<Rightarrow> nat \<Rightarrow> 'a \<Rightarrow> 'a"
+  defines wti_def: "wti cert \<equiv> wtl_inst cert f r \<top> step"
+ 
+  fixes wtc :: "'a certificate \<Rightarrow> nat \<Rightarrow> 'a \<Rightarrow> 'a"
+  defines wtc_def: "wtc cert \<equiv> wtl_cert cert f r \<top> \<bottom> step"
+
+  fixes wtl :: "'b list \<Rightarrow> 'a certificate \<Rightarrow> nat \<Rightarrow> 'a \<Rightarrow> 'a"
+  defines wtl_def: "wtl ins cert \<equiv> wtl_inst_list ins cert f r \<top> \<bottom> step"
+
+
+lemma (in lbv) wti:
+  "wti c pc s \<equiv> merge c pc (step pc s) (c!(pc+1))"
+  by (simp add: wti_def mrg_def wtl_inst_def)
+
+lemma (in lbv) wtc: 
+  "wtc c pc s \<equiv> if c!pc = \<bottom> then wti c pc s else if s <=_r c!pc then wti c pc (c!pc) else \<top>"
+  by (unfold wtc_def wti_def wtl_cert_def)
+
+
+lemma cert_okD1 [intro?]:
+  "cert_ok c n T B A \<Longrightarrow> pc < n \<Longrightarrow> c!pc \<in> A"
   by (unfold cert_ok_def) fast
 
-lemma cert_okD2:
-  "cert_ok cert n A \<Longrightarrow> cert!n = None"
+lemma cert_okD2 [intro?]:
+  "cert_ok c n T B A \<Longrightarrow> c!n = B"
   by (simp add: cert_ok_def)
 
-lemma cert_okD3:
-  "cert_ok cert n A \<Longrightarrow> pc < n \<Longrightarrow> cert!Suc pc \<in> opt A"
+lemma cert_okD3 [intro?]:
+  "cert_ok c n T B A \<Longrightarrow> B \<in> A \<Longrightarrow> pc < n \<Longrightarrow> c!Suc pc \<in> A"
   by (drule Suc_leI) (auto simp add: le_eq_less_or_eq dest: cert_okD1 cert_okD2)
 
+lemma cert_okD4 [intro?]:
+  "cert_ok c n T B A \<Longrightarrow> pc < n \<Longrightarrow> c!pc \<noteq> T"
+  by (simp add: cert_ok_def)
 
 declare Let_def [simp]
 
 section "more semilattice lemmas"
 
-(*
-lemma sup_top [simp]:
-  assumes sl:  "semilat (A,r,f)" 
-  assumes set: "x \<in> A"  "t \<in> A"  
-  assumes top: "top r t" 
-  shows "x +_f t = t"
+
+lemma (in lbv) sup_top [simp, elim]:
+  assumes x: "x \<in> A" 
+  shows "x +_f \<top> = \<top>"
 proof -
-  from sl have "order r" ..
-  moreover from top have "x +_f t <=_r t" ..
-  moreover from sl set have "t <=_r x +_f t" by simp 
-  ultimately show ?thesis by (rule order_antisym)
+  from top have "x +_f \<top> <=_r \<top>" ..
+  moreover from x have "\<top> <=_r x +_f \<top>" ..
+  ultimately show ?thesis ..
 qed
   
-lemma plusplussup_top:
-  "semilat (A,r,f) \<Longrightarrow> top r Err \<Longrightarrow> set xs \<subseteq> A \<Longrightarrow> Err \<in> A \<Longrightarrow> xs ++_f Err = Err"
+lemma (in lbv) plusplussup_top [simp, elim]:
+  "set xs \<subseteq> A \<Longrightarrow> xs ++_f \<top> = \<top>"
   by (induct xs) auto
-*)
 
-lemma err_semilatDorderI [simp, intro]:
-  "err_semilat (A,r,f) \<Longrightarrow> order r"
-  apply (simp add: Err.sl_def)
-  apply (rule order_le_err [THEN iffD1])
-  apply (rule semilat.orderI)
-  apply assumption
-  done
 
-lemma err_opt_semilat [simp,elim]:
-  "err_semilat (A,r,f) \<Longrightarrow> semilat (err (opt A), Err.le (Opt.le r), lift2 (Opt.sup f))"
+
+lemma (in semilat) pp_ub1':
+  assumes S: "snd`set S \<subseteq> A" 
+  assumes y: "y \<in> A" and ab: "(a, b) \<in> set S" 
+  shows "b <=_r map snd [(p', t')\<in>S . p' = a] ++_f y"
 proof -
-  assume "err_semilat (A,r,f)"
-  hence "err_semilat (Opt.esl (A,r,f))" ..
-  thus ?thesis by (simp add: Err.sl_def Opt.esl_def)
-qed
+  from S have "\<forall>(x,y) \<in> set S. y \<in> A" by auto
+  with semilat y ab show ?thesis by - (rule ub1')
+qed 
 
-lemma plusplus_erropt_Err [simp]:
-  "xs ++|f Err = Err"
-  by (induct xs) auto
+lemma (in lbv) bottom_le [simp, intro]:
+  "\<bottom> <=_r x"
+  by (insert bot) (simp add: bottom_def)
+
+lemma (in lbv) le_bottom [simp]:
+  "x <=_r \<bottom> = (x = \<bottom>)"
+  by (blast intro: antisym_r)
+
 
 
 section "merge"
 
-lemma merge_Err [simp]:
-  "merge cert f r pc ss Err = Err"
+lemma (in lbv) merge_Nil [simp]:
+  "merge c pc [] x = x" by (simp add: mrg_def)
+
+lemma (in lbv) merge_Cons [simp]:
+  "merge c pc (l#ls) x = merge c pc ls (if fst l=pc+1 then snd l +_f x
+                                        else if snd l <=_r (c!fst l) then x
+                                        else \<top>)"
+  by (simp add: mrg_def split_beta)
+
+lemma (in lbv) merge_Err [simp]:
+  "snd`set ss \<subseteq> A \<Longrightarrow> merge c pc ss \<top> = \<top>"
   by (induct ss) auto
 
-lemma merge_ok:
-  "\<And>x. merge cert f r pc ss x = OK s \<Longrightarrow> 
-  \<forall>(pc',s') \<in> set ss. (pc' \<noteq> pc+1 \<longrightarrow> s' \<le>|r (OK (cert!pc')))"
-  (is "\<And>x. ?merge ss x \<Longrightarrow> ?P ss")
+lemma (in lbv) merge_not_top:
+  "\<And>x. snd`set ss \<subseteq> A \<Longrightarrow> merge c pc ss x \<noteq> \<top> \<Longrightarrow> 
+  \<forall>(pc',s') \<in> set ss. (pc' \<noteq> pc+1 \<longrightarrow> s' <=_r (c!pc'))"
+  (is "\<And>x. ?set ss \<Longrightarrow> ?merge ss x \<Longrightarrow> ?P ss")
 proof (induct ss)
   show "?P []" by simp
 next
-  fix x l ls assume merge: "?merge (l#ls) x"
+  fix x ls l
+  assume "?set (l#ls)" then obtain set: "snd`set ls \<subseteq> A" by simp
+  assume merge: "?merge (l#ls) x" 
   moreover
   obtain pc' s' where [simp]: "l = (pc',s')" by (cases l)
   ultimately
-  obtain x' where "?merge ls x'" by simp  
-  assume "\<And>x. ?merge ls x \<Longrightarrow> ?P ls" hence "?P ls" .
+  obtain x' where "?merge ls x'" by simp 
+  assume "\<And>x. ?set ls \<Longrightarrow> ?merge ls x \<Longrightarrow> ?P ls" hence "?P ls" .
   moreover
-  from merge
-  have "pc' \<noteq> pc+1 \<longrightarrow> s' \<le>|r (OK (cert!pc'))" by (simp split: split_if_asm)
+  from merge set
+  have "pc' \<noteq> pc+1 \<longrightarrow> s' <=_r (c!pc')" by (simp split: split_if_asm)
   ultimately
   show "?P (l#ls)" by simp
 qed
 
 
-lemma merge_def:
-  assumes semi: "err_semilat (A,r,f)" 
+lemma (in lbv) merge_def:
   shows 
-  "\<And>x. x \<in> err (opt A) \<Longrightarrow> \<forall>(pc', s') \<in> set ss. s' \<in> err (opt A) \<Longrightarrow>
-  merge cert f r pc ss x = 
-  (if \<forall>(pc',s') \<in> set ss. (pc' \<noteq> pc+1 \<longrightarrow> s' \<le>|r (OK (cert!pc'))) then
-    map snd [(p',t') \<in> ss. p'=pc+1] ++|f x
-  else Err)" 
+  "\<And>x. x \<in> A \<Longrightarrow> snd`set ss \<subseteq> A \<Longrightarrow>
+  merge c pc ss x = 
+  (if \<forall>(pc',s') \<in> set ss. pc'\<noteq>pc+1 \<longrightarrow> s' <=_r c!pc' then
+    map snd [(p',t') \<in> ss. p'=pc+1] ++_f x
+  else \<top>)" 
   (is "\<And>x. _ \<Longrightarrow> _ \<Longrightarrow> ?merge ss x = ?if ss x" is "\<And>x. _ \<Longrightarrow> _ \<Longrightarrow> ?P ss x")
 proof (induct ss)
   fix x show "?P [] x" by simp
 next 
-  fix x assume x: "x \<in> err (opt A)" 
-  fix l::"nat \<times> 'a option err" and ls  
-  assume "\<forall>(pc', s') \<in> set (l#ls). s' \<in> err (opt A)"
-  then obtain l: "snd l \<in> err (opt A)" and ls: "\<forall>(pc', s') \<in> set ls. s' \<in> err (opt A)" by auto
-  assume "\<And>x. x \<in> err (opt A) \<Longrightarrow> \<forall>(pc',s') \<in> set ls. s' \<in> err (opt A) \<Longrightarrow> ?P ls x" 
-  hence IH: "\<And>x. x \<in> err (opt A) \<Longrightarrow> ?P ls x" .
+  fix x assume x: "x \<in> A" 
+  fix l::"nat \<times> 'a" and ls  
+  assume "snd`set (l#ls) \<subseteq> A"
+  then obtain l: "snd l \<in> A" and ls: "snd`set ls \<subseteq> A" by auto
+  assume "\<And>x. x \<in> A \<Longrightarrow> snd`set ls \<subseteq> A \<Longrightarrow> ?P ls x" 
+  hence IH: "\<And>x. x \<in> A \<Longrightarrow> ?P ls x" .
   obtain pc' s' where [simp]: "l = (pc',s')" by (cases l)
   hence "?merge (l#ls) x = ?merge ls 
-    (if pc'=pc+1 then s' +|f x else if s' \<le>|r (OK (cert!pc')) then x else Err)"
+    (if pc'=pc+1 then s' +_f x else if s' <=_r c!pc' then x else \<top>)"
     (is "?merge (l#ls) x = ?merge ls ?if'")
     by simp 
   also have "\<dots> = ?if ls ?if'" 
   proof -
-    from l have "s' \<in> err (opt A)" by simp
-    with x semi have "(s' +|f x) \<in> err (opt A)"
-      by (fast intro: semilat.closedI closedD)
-    with x have "?if' \<in> err (opt A)" by auto
+    from l have "s' \<in> A" by simp
+    with x have "s' +_f x \<in> A" by simp
+    with x have "?if' \<in> A" by auto
     hence "?P ls ?if'" by (rule IH) thus ?thesis by simp
   qed
   also have "\<dots> = ?if (l#ls) x"
-    proof (cases "\<forall>(pc', s')\<in>set (l#ls). pc' \<noteq> pc + 1 \<longrightarrow> s' \<le>|r OK (cert ! pc')")
+    proof (cases "\<forall>(pc', s')\<in>set (l#ls). pc'\<noteq>pc+1 \<longrightarrow> s' <=_r c!pc'")
       case True
-      hence "\<forall>(pc', s')\<in>set ls. pc' \<noteq> pc + 1 \<longrightarrow> s' \<le>|r (OK (cert ! pc'))" by auto
+      hence "\<forall>(pc', s')\<in>set ls. pc'\<noteq>pc+1 \<longrightarrow> s' <=_r c!pc'" by auto
       moreover
       from True have 
-        "map snd [(p',t')\<in>ls . p'=pc+1] ++|f ?if' = 
-        (map snd [(p',t')\<in>l#ls . p'=pc+1] ++|f x)"
+        "map snd [(p',t')\<in>ls . p'=pc+1] ++_f ?if' = 
+        (map snd [(p',t')\<in>l#ls . p'=pc+1] ++_f x)"
         by simp
       ultimately
       show ?thesis using True by simp
     next
-      case False thus ?thesis by auto
+      case False 
+      moreover
+      from ls have "set (map snd [(p', t')\<in>ls . p' = Suc pc]) \<subseteq> A" by auto
+      ultimately show ?thesis by auto
     qed
   finally show "?P (l#ls) x" .
 qed
 
-lemma merge_ok_s:
-  assumes sl: "err_semilat (A,r,f)" 
-  assumes x:  "x \<in> err (opt A)"
-  assumes ss: "\<forall>(pc', s') \<in> set ss. s' \<in> err (opt A)"
-  assumes m:  "merge cert f r pc ss x = OK s"
-  shows "merge cert f r pc ss x = (map snd [(p',t') \<in> ss. p'=pc+1] ++|f x)"
+lemma (in lbv) merge_not_top_s:
+  assumes x:  "x \<in> A" and ss: "snd`set ss \<subseteq> A"
+  assumes m:  "merge c pc ss x \<noteq> \<top>"
+  shows "merge c pc ss x = (map snd [(p',t') \<in> ss. p'=pc+1] ++_f x)"
 proof -
-  from m have "\<forall>(pc',s') \<in> set ss. (pc' \<noteq> pc+1 \<longrightarrow> s' \<le>|r (OK (cert!pc')))" 
-    by (rule merge_ok)
-  with sl x ss m show ?thesis by - (drule merge_def, auto split: split_if_asm)
+  from ss m have "\<forall>(pc',s') \<in> set ss. (pc' \<noteq> pc+1 \<longrightarrow> s' <=_r c!pc')" 
+    by (rule merge_not_top)
+  with x ss m show ?thesis by - (drule merge_def, auto split: split_if_asm)
 qed
 
 section "wtl-inst-list"
 
 lemmas [iff] = not_Err_eq
 
-lemma wtl_Cons:
-  "wtl_inst_list (i#is) cert f r step pc s \<noteq> Err = 
-  (\<exists>s'. wtl_cert cert f r step pc s = OK s' \<and> 
-        wtl_inst_list is cert f r step (pc+1) s' \<noteq> Err)"
+lemma (in lbv) wtl_Nil [simp]: "wtl [] c pc s = s" 
+  by (simp add: wtl_def)
+
+lemma (in lbv) wtl_Cons [simp]: 
+  "wtl (i#is) c pc s = 
+  (let s' = wtc c pc s in if s' = \<top> \<or> s = \<top> then \<top> else wtl is c (pc+1) s')"
+  by (simp add: wtl_def wtc_def)
+
+lemma (in lbv) wtl_Cons_not_top:
+  "wtl (i#is) c pc s \<noteq> \<top> = 
+  (wtc c pc s \<noteq> \<top> \<and> s \<noteq> T \<and> wtl is c (pc+1) (wtc c pc s) \<noteq> \<top>)"
   by (auto simp del: split_paired_Ex)
 
-lemma wtl_append:
-"\<forall>s pc. (wtl_inst_list (a@b) cert f r step pc s = OK s') =
-   (\<exists>s''. wtl_inst_list a cert f r step pc s = OK s'' \<and> 
-          wtl_inst_list b cert f r step (pc+length a) s'' = OK s')" 
-  (is "\<forall>s pc. ?C s pc a" is "?P a")
-proof (induct ?P a)
-  show "?P []" by simp
-next
-  fix x xs  assume IH: "?P xs"
-  show "?P (x#xs)"
-  proof (intro allI)
-    fix s pc 
-    show "?C s pc (x#xs)"
-    proof (cases "wtl_cert cert f r step pc s")
-      case Err thus ?thesis by simp
-    next
-      case (OK s0)
-      with IH have "?C s0 (pc+1) xs" by blast
-      thus ?thesis by (simp!)
-    qed
-  qed
-qed
+lemma (in lbv) wtl_top [simp]:  "wtl ls c pc \<top> = \<top>"
+  by (cases ls) auto
 
-lemma wtl_take:
-  "wtl_inst_list is cert f r step pc s = OK s'' \<Longrightarrow>
-   \<exists>s'. wtl_inst_list (take pc' is) cert f r step pc s = OK s'"
-  (is "?wtl is = _ \<Longrightarrow> _")
+lemma (in lbv) wtl_not_top:
+  "wtl ls c pc s \<noteq> \<top> \<Longrightarrow> s \<noteq> \<top>"
+  by (cases "s=\<top>") auto
+
+lemma (in lbv) wtl_append [simp]:
+  "\<And>pc s. wtl (a@b) c pc s = wtl b c (pc+length a) (wtl a c pc s)"
+  by (induct a) auto
+
+lemma (in lbv) wtl_take:
+  "wtl is c pc s \<noteq> \<top> \<Longrightarrow> wtl (take pc' is) c pc s \<noteq> \<top>"
+  (is "?wtl is \<noteq> _ \<Longrightarrow> _")
 proof -
-  assume "?wtl is = OK s''"
-  hence "?wtl (take pc' is @ drop pc' is) = OK s''" by simp
-  thus ?thesis by (auto simp add: wtl_append simp del: append_take_drop_id)
+  assume "?wtl is \<noteq> \<top>"
+  hence "?wtl (take pc' is @ drop pc' is) \<noteq> \<top>" by simp  
+  thus ?thesis by (auto dest!: wtl_not_top simp del: append_take_drop_id)
 qed
 
 lemma take_Suc:
-  "\<forall>n. n < length l --> take (Suc n) l = (take n l)@[l!n]" (is "?P l")
+  "\<forall>n. n < length l \<longrightarrow> take (Suc n) l = (take n l)@[l!n]" (is "?P l")
 proof (induct l)
   show "?P []" by simp
 next
@@ -266,137 +286,96 @@ next
   qed
 qed
 
-lemma wtl_Suc:
-  assumes "wtl_inst_list (take pc is) cert f r step 0 s = OK s'"
-           "wtl_cert cert f r step pc s' = OK s''" and
-      suc: "pc+1 < length is"
-  shows "wtl_inst_list (take (pc+1) is) cert f r step 0 s = OK s''"    
+lemma (in lbv) wtl_Suc:
+  assumes suc: "pc+1 < length is"
+  assumes wtl: "wtl (take pc is) c 0 s \<noteq> \<top>"
+  shows "wtl (take (pc+1) is) c 0 s = wtc c pc (wtl (take pc is) c 0 s)"
 proof -
   from suc have "take (pc+1) is=(take pc is)@[is!pc]" by (simp add: take_Suc)
-  thus ?thesis by (simp! add: wtl_append min_def)
+  with suc wtl show ?thesis by (simp add: min_def)
 qed
 
-lemma wtl_all:
-  assumes
-  all: "wtl_inst_list is cert f r step 0 s \<noteq> Err" (is "?wtl is \<noteq> _") and
-  pc:  "pc < length is"
-  shows
-  "\<exists>s' s''. wtl_inst_list (take pc is) cert f r step 0 s = OK s' \<and> 
-            wtl_cert cert f r step pc s' = OK s''"
+lemma (in lbv) wtl_all:
+  assumes all: "wtl is c 0 s \<noteq> \<top>" (is "?wtl is \<noteq> _") 
+  assumes pc:  "pc < length is"
+  shows  "wtc c pc (wtl (take pc is) c 0 s) \<noteq> \<top>"
 proof -
   from pc have "0 < length (drop pc is)" by simp
   then  obtain i r where Cons: "drop pc is = i#r" 
     by (auto simp add: neq_Nil_conv simp del: length_drop)
   hence "i#r = drop pc is" ..
-  with all have take: "?wtl (take pc is@i#r) \<noteq> Err" by simp 
+  with all have take: "?wtl (take pc is@i#r) \<noteq> \<top>" by simp 
   from pc have "is!pc = drop pc is ! 0" by simp
   with Cons have "is!pc = i" by simp
-  with take pc show ?thesis by (auto simp add: wtl_append min_def)
+  with take pc show ?thesis by (auto simp add: min_def split: split_if_asm)
 qed
 
 section "preserves-type"
 
-lemma merge_pres:
-  assumes semi: "err_semilat (A,r,f)"
-  assumes s0_A: "\<forall>(pc', s')\<in>set ss. s' \<in> err (opt A)"
-  assumes x_A:  "x \<in> err (opt A)"
-  assumes merge:"merge cert f r pc ss x = OK s'"
-  shows "s' \<in> opt A"
+lemma (in lbv) merge_pres:
+  assumes s0: "snd`set ss \<subseteq> A" and x: "x \<in> A"
+  shows "merge c pc ss x \<in> A"
 proof -
-  from s0_A
-  have "set (map snd [(p', t')\<in>ss . p'=pc+1]) \<subseteq> err (opt A)" by auto
-  with semi x_A
-  have "(map snd [(p', t')\<in>ss . p'=pc+1] ++|f x) \<in> err (opt A)"
+  from s0 have "set (map snd [(p', t')\<in>ss . p'=pc+1]) \<subseteq> A" by auto
+  with x  have "(map snd [(p', t')\<in>ss . p'=pc+1] ++_f x) \<in> A"
     by (auto intro!: plusplus_closed)
-  also {
-    note merge
-    also from semi x_A s0_A
-    have "merge cert f r pc ss x = 
-      (if \<forall>(pc', s')\<in>set ss. pc' \<noteq> pc + 1 \<longrightarrow> s' \<le>|r (OK (cert!pc'))
-      then map snd [(p', t')\<in>ss . p'=pc+1] ++|f x else Err)"
-      by (rule merge_def)
-    finally have "(map snd [(p', t')\<in>ss . p'=pc+1] ++|f x) = OK s'" 
-      by (simp split: split_if_asm)
-  } 
-  finally show ?thesis by simp
+  with s0 x show ?thesis by (simp add: merge_def T_A)
 qed
   
 
+lemma pres_typeD2:
+  "pres_type step n A \<Longrightarrow> s \<in> A \<Longrightarrow> p < n \<Longrightarrow> snd`set (step p s) \<subseteq> A"
+  by auto (drule pres_typeD)
 
-lemma wtl_inst_pres [intro?]:
-  assumes semi: "err_semilat (A,r,f)"
-  assumes pres: "pres_type step n (err (opt A))" 
-  assumes cert: "cert!(pc+1) \<in> opt A"
-  assumes s_A:  "s \<in> opt A"
-  assumes pc:   "pc < n"
-  assumes wtl:  "wtl_inst cert f r step pc s = OK s'"
-  shows "s' \<in> opt A"
+
+lemma (in lbv) wti_pres [intro?]:
+  assumes pres: "pres_type step n A" 
+  assumes cert: "c!(pc+1) \<in> A"
+  assumes s_pc: "s \<in> A" "pc < n"
+  shows "wti c pc s \<in> A"
 proof -
-  from pres pc s_A
-  have "\<forall>(q, s')\<in>set (step pc (OK s)). s' \<in> err (opt A)"
-    by (unfold pres_type_def) blast
-  moreover
-  from cert have "OK (cert!(pc+1)) \<in> err (opt A)" by simp
-  moreover
-  from wtl
-  have "merge cert f r pc (step pc (OK s)) (OK (cert!(pc+1))) = OK s'"  
-    by (unfold wtl_inst_def) simp
-  ultimately
-  show "s' \<in> opt A" using semi by - (rule merge_pres)
+  from pres s_pc have "snd`set (step pc s) \<subseteq> A" by (rule pres_typeD2)
+  with cert show ?thesis by (simp add: wti merge_pres)
 qed
 
 
-lemma wtl_cert_pres:
-  assumes "err_semilat (A,r,f)"
-  assumes "pres_type step n (err (opt A))"
-  assumes "cert!pc \<in> opt A" and "cert!(pc+1) \<in> opt A"
-  assumes "s \<in> opt A" and "pc < n"
-  assumes wtc: "wtl_cert cert f r step pc s = OK s'"
-  shows "s' \<in> opt A"            
+lemma (in lbv) wtc_pres:
+  assumes "pres_type step n A"
+  assumes "c!pc \<in> A" and "c!(pc+1) \<in> A"
+  assumes "s \<in> A" and "pc < n"
+  shows "wtc c pc s \<in> A"
 proof -
-  have "wtl_inst cert f r step pc s = OK s' \<Longrightarrow> s' \<in> opt A" ..
-  moreover
-  have "wtl_inst cert f r step pc (cert!pc) = OK s' \<Longrightarrow> s' \<in> opt A" ..
-  ultimately
-  show ?thesis using wtc
-    by (unfold wtl_cert_def) (simp split: option.splits split_if_asm)
+  have "wti c pc s \<in> A" ..
+  moreover have "wti c pc (c!pc) \<in> A" ..
+  ultimately show ?thesis using T_A by (simp add: wtc) 
 qed
 
-lemma wtl_inst_list_pres:
-  assumes semi: "err_semilat (A,r,f)"
-  assumes pres: "pres_type step (length is) (err (opt A))"
-  assumes cert: "cert_ok cert (length is) A"
-  assumes s:    "s \<in> opt A" 
-  assumes all:  "wtl_inst_list is cert f r step 0 s \<noteq> Err"
-  shows "\<And>s'. pc < length is \<Longrightarrow> wtl_inst_list (take pc is) cert f r step 0 s = OK s'
-         \<Longrightarrow> s' \<in> opt A" (is "\<And>s'. ?len pc \<Longrightarrow> ?wtl pc s' \<Longrightarrow> ?A s'")
+
+lemma (in lbv) wtl_pres:
+  assumes pres: "pres_type step (length is) A"
+  assumes cert: "cert_ok c (length is) \<top> \<bottom> A"
+  assumes s:    "s \<in> A" 
+  assumes all:  "wtl is c 0 s \<noteq> \<top>"
+  shows "pc < length is \<Longrightarrow> wtl (take pc is) c 0 s \<in> A"
+  (is "?len pc \<Longrightarrow> ?wtl pc \<in> A")
 proof (induct pc)
-  from s show "\<And>s'. ?wtl 0 s' \<Longrightarrow> ?A s'" by simp
+  from s show "?wtl 0 \<in> A" by simp
 next
-  fix s' n
-  assume "Suc n < length is" 
-  then obtain "n < length is" by simp  
-  with all obtain s1 s2 where
-    "wtl_inst_list (take n is) cert f r step 0 s = OK s1" 
-    "wtl_cert cert f r step n s1 = OK s2"
-    by - (drule wtl_all, auto)
-    
-  assume "?wtl (Suc n) s'"
+  fix n assume "Suc n < length is"
+  then obtain n: "n < length is" by simp  
+  assume "n < length is \<Longrightarrow> ?wtl n \<in> A"
+  hence "?wtl n \<in> A" .
+  moreover
+  from cert have "c!n \<in> A" by (rule cert_okD1)
   moreover
   have n1: "n+1 < length is" by simp
-  hence "?wtl (n+1) s2" by - (rule wtl_Suc)
+  with cert have "c!(n+1) \<in> A" by (rule cert_okD1)
   ultimately
-  have [simp]: "s2 = s'" by simp
-  
-  assume IH: "\<And>s'. n < length is \<Longrightarrow> ?wtl n s' \<Longrightarrow> s' \<in> opt A"
-  hence "s1 \<in> opt A" .
-  moreover
-  from cert have "cert!n \<in> opt A" by (rule cert_okD1)
-  moreover
-  from cert n1 have "cert!(n+1) \<in> opt A" by (rule cert_okD1)
-  ultimately
-  have "s2 \<in> opt A" using semi pres by - (rule wtl_cert_pres)
-  thus "s' \<in> opt A" by simp
+  have "wtc c n (?wtl n) \<in> A" by - (rule wtc_pres)
+  also
+  from all n have "?wtl n \<noteq> \<top>" by - (rule wtl_take)
+  with n1 have "wtc c n (?wtl n) = ?wtl (n+1)" by (rule wtl_Suc [symmetric])
+  finally  show "?wtl (Suc n) \<in> A" by simp
 qed
 
 
