@@ -11,6 +11,13 @@ open Message;
 
 AddIffs (msg.inject);
 
+(*Holds because Friend is injective: thus cannot prove for all f*)
+goal thy "(Friend x : Friend``A) = (x:A)";
+by (Auto_tac());
+qed "Friend_image_eq";
+Addsimps [Friend_image_eq];
+
+
 (** Inverse of keys **)
 
 goal thy "!!K K'. (invKey K = invKey K') = (K=K')";
@@ -72,6 +79,11 @@ Addsimps [keysFor_empty, keysFor_Un, keysFor_UN1,
           keysFor_insert_Hash, keysFor_insert_MPair, keysFor_insert_Crypt];
 AddSEs [keysFor_Un RS equalityD1 RS subsetD RS UnE,
 	keysFor_UN1 RS equalityD1 RS subsetD RS UN1_E];
+
+goalw thy [keysFor_def] "keysFor (Key``E) = {}";
+by (Auto_tac ());
+qed "keysFor_image_Key";
+Addsimps [keysFor_image_Key];
 
 goalw thy [keysFor_def] "!!H. Crypt K X : H ==> invKey K : keysFor H";
 by (Blast_tac 1);
@@ -272,8 +284,19 @@ by (Auto_tac());
 by (etac parts.induct 1);
 by (Auto_tac());
 qed "parts_image_Key";
-
 Addsimps [parts_image_Key];
+
+
+(*In any message, there is an upper bound N on its greatest nonce.*)
+goal thy "EX N. ALL n. N<=n --> Nonce n ~: parts {msg}";
+by (msg.induct_tac "msg" 1);
+by (ALLGOALS (asm_simp_tac (!simpset addsimps [exI, parts_insert2])));
+(*MPair case: blast_tac works out the necessary sum itself!*)
+by (blast_tac (!claset addSEs [add_leE]) 2);
+(*Nonce case*)
+by (res_inst_tac [("x","N + Suc nat")] exI 1);
+by (fast_tac (!claset addSEs [add_leE] addaltern trans_tac) 1);
+qed "msg_Nonce_supply";
 
 
 (**** Inductive relation "analz" ****)
@@ -884,3 +907,10 @@ goal Set.thy "A Un (B Un A) = B Un A";
 by (Blast_tac 1);
 val Un_absorb3 = result();
 Addsimps [Un_absorb3];
+
+Addsimps [Un_insert_left, Un_insert_right];
+
+(*By default only o_apply is built-in.  But in the presence of eta-expansion
+  this means that some terms displayed as (f o g) will be rewritten, and others
+  will not!*)
+Addsimps [o_def];
