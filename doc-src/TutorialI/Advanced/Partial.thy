@@ -62,9 +62,9 @@ As a simple example we define division on @{typ nat}:
 *}
 
 consts divi :: "nat \<times> nat \<Rightarrow> nat"
-recdef (permissive) divi "measure(\<lambda>(m,n). m)"
-  "divi(m,n) = (if n = 0 then arbitrary else
-                if m < n then 0 else divi(m-n,n)+1)"  (* FIXME hide permissive!? *)
+recdef divi "measure(\<lambda>(m,n). m)"
+  "divi(m,0) = arbitrary"
+  "divi(m,n) = (if m < n then 0 else divi(m-n,n)+1)"
 
 text{*\noindent Of course we could also have defined
 @{term"divi(m,0)"} to be some specific number, for example 0. The
@@ -75,12 +75,12 @@ standard mathematical division function.
 As a more substantial example we consider the problem of searching a graph.
 For simplicity our graph is given by a function @{term f} of
 type @{typ"'a \<Rightarrow> 'a"} which
-maps each node to its successor; the graph is really a tree.
+maps each node to its successor; the graph has out-degree 1.
 The task is to find the end of a chain, modelled by a node pointing to
 itself. Here is a first attempt:
 @{prop[display]"find(f,x) = (if f x = x then x else find(f, f x))"}
-This may be viewed as a fixed point finder or as one half of the well known
-\emph{Union-Find} algorithm.
+This may be viewed as a fixed point finder or as the second half of the well
+known \emph{Union-Find} algorithm.
 The snag is that it may not terminate if @{term f} has non-trivial cycles.
 Phrased differently, the relation
 *}

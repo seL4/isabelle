@@ -74,9 +74,9 @@ As a simple example we define division on \isa{nat}:%
 \isamarkuptrue%
 \isacommand{consts}\ divi\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}nat\ {\isasymtimes}\ nat\ {\isasymRightarrow}\ nat{\isachardoublequote}\isanewline
 \isamarkupfalse%
-\isacommand{recdef}\ {\isacharparenleft}\isakeyword{permissive}{\isacharparenright}\ divi\ {\isachardoublequote}measure{\isacharparenleft}{\isasymlambda}{\isacharparenleft}m{\isacharcomma}n{\isacharparenright}{\isachardot}\ m{\isacharparenright}{\isachardoublequote}\isanewline
-\ \ {\isachardoublequote}divi{\isacharparenleft}m{\isacharcomma}n{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}if\ n\ {\isacharequal}\ {\isadigit{0}}\ then\ arbitrary\ else\isanewline
-\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ if\ m\ {\isacharless}\ n\ then\ {\isadigit{0}}\ else\ divi{\isacharparenleft}m{\isacharminus}n{\isacharcomma}n{\isacharparenright}{\isacharplus}{\isadigit{1}}{\isacharparenright}{\isachardoublequote}\isamarkupfalse%
+\isacommand{recdef}\ divi\ {\isachardoublequote}measure{\isacharparenleft}{\isasymlambda}{\isacharparenleft}m{\isacharcomma}n{\isacharparenright}{\isachardot}\ m{\isacharparenright}{\isachardoublequote}\isanewline
+\ \ {\isachardoublequote}divi{\isacharparenleft}m{\isacharcomma}{\isadigit{0}}{\isacharparenright}\ {\isacharequal}\ arbitrary{\isachardoublequote}\isanewline
+\ \ {\isachardoublequote}divi{\isacharparenleft}m{\isacharcomma}n{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}if\ m\ {\isacharless}\ n\ then\ {\isadigit{0}}\ else\ divi{\isacharparenleft}m{\isacharminus}n{\isacharcomma}n{\isacharparenright}{\isacharplus}{\isadigit{1}}{\isacharparenright}{\isachardoublequote}\isamarkupfalse%
 %
 \begin{isamarkuptext}%
 \noindent Of course we could also have defined
@@ -88,14 +88,14 @@ standard mathematical division function.
 As a more substantial example we consider the problem of searching a graph.
 For simplicity our graph is given by a function \isa{f} of
 type \isa{{\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a} which
-maps each node to its successor; the graph is really a tree.
+maps each node to its successor; the graph has out-degree 1.
 The task is to find the end of a chain, modelled by a node pointing to
 itself. Here is a first attempt:
 \begin{isabelle}%
 \ \ \ \ \ find\ {\isacharparenleft}f{\isacharcomma}\ x{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}if\ f\ x\ {\isacharequal}\ x\ then\ x\ else\ find\ {\isacharparenleft}f{\isacharcomma}\ f\ x{\isacharparenright}{\isacharparenright}%
 \end{isabelle}
-This may be viewed as a fixed point finder or as one half of the well known
-\emph{Union-Find} algorithm.
+This may be viewed as a fixed point finder or as the second half of the well
+known \emph{Union-Find} algorithm.
 The snag is that it may not terminate if \isa{f} has non-trivial cycles.
 Phrased differently, the relation%
 \end{isamarkuptext}%

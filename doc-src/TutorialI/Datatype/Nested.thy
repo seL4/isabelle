@@ -66,8 +66,8 @@ the fact that the identity substitution does not change a term needs to be
 strengthened and proved as follows:
 *}
 
-lemma "subst  Var t  = (t ::('v,'f)term)  \<and>
-        substs Var ts = (ts::('v,'f)term list)";
+lemma subst_id(*<*)(*referred to from ABexpr*)(*>*): "subst  Var t  = (t ::('v,'f)term)  \<and>
+                  substs Var ts = (ts::('v,'f)term list)";
 apply(induct_tac t and ts, simp_all);
 done
 
@@ -102,6 +102,34 @@ where @{term"map"} is the standard list function such that
 insists on the conjunctive format. Fortunately, we can easily \emph{prove}
 that the suggested equation holds:
 *}
+(*<*)
+(* Exercise 1: *)
+lemma "subst  ((subst f) \<circ> g) t  = subst  f (subst g t) \<and>
+       substs ((subst f) \<circ> g) ts = substs f (substs g ts)"
+apply (induct_tac t and ts)
+apply (simp_all)
+done
+
+(* Exercise 2: *)
+
+consts trev :: "('v,'f) term \<Rightarrow> ('v,'f) term"
+       trevs:: "('v,'f) term list \<Rightarrow> ('v,'f) term list"
+primrec
+"trev (Var v)    = Var v"
+"trev (App f ts) = App f (trevs ts)"
+
+"trevs [] = []"
+"trevs (t#ts) = (trevs ts) @ [(trev t)]" 
+
+lemma [simp]: "\<forall> ys. trevs (xs @ ys) = (trevs ys) @ (trevs xs)" 
+apply (induct_tac xs, auto)
+done
+
+lemma "trev (trev t) = (t::('v,'f)term) \<and> 
+       trevs (trevs ts) = (ts::('v,'f)term list)"
+apply (induct_tac t and ts, simp_all)
+done
+(*>*)
 
 lemma [simp]: "subst s (App f ts) = App f (map (subst s) ts)"
 apply(induct_tac ts, simp_all)
@@ -130,6 +158,4 @@ Of course, you may also combine mutual and nested recursion of datatypes. For ex
 constructor @{text Sum} in \S\ref{sec:datatype-mut-rec} could take a list of
 expressions as its argument: @{text Sum}~@{typ[quotes]"'a aexp list"}.
 *}
-(*<*)
-end
-(*>*)
+(*<*)end(*>*)

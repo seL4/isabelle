@@ -70,8 +70,8 @@ the fact that the identity substitution does not change a term needs to be
 strengthened and proved as follows:%
 \end{isamarkuptext}%
 \isamarkuptrue%
-\isacommand{lemma}\ {\isachardoublequote}subst\ \ Var\ t\ \ {\isacharequal}\ {\isacharparenleft}t\ {\isacharcolon}{\isacharcolon}{\isacharparenleft}{\isacharprime}v{\isacharcomma}{\isacharprime}f{\isacharparenright}term{\isacharparenright}\ \ {\isasymand}\isanewline
-\ \ \ \ \ \ \ \ substs\ Var\ ts\ {\isacharequal}\ {\isacharparenleft}ts{\isacharcolon}{\isacharcolon}{\isacharparenleft}{\isacharprime}v{\isacharcomma}{\isacharprime}f{\isacharparenright}term\ list{\isacharparenright}{\isachardoublequote}\isanewline
+\isacommand{lemma}\ subst{\isacharunderscore}id{\isacharcolon}\ {\isachardoublequote}subst\ \ Var\ t\ \ {\isacharequal}\ {\isacharparenleft}t\ {\isacharcolon}{\isacharcolon}{\isacharparenleft}{\isacharprime}v{\isacharcomma}{\isacharprime}f{\isacharparenright}term{\isacharparenright}\ \ {\isasymand}\isanewline
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ substs\ Var\ ts\ {\isacharequal}\ {\isacharparenleft}ts{\isacharcolon}{\isacharcolon}{\isacharparenleft}{\isacharprime}v{\isacharcomma}{\isacharprime}f{\isacharparenright}term\ list{\isacharparenright}{\isachardoublequote}\isanewline
 \isamarkupfalse%
 \isacommand{apply}{\isacharparenleft}induct{\isacharunderscore}tac\ t\ \isakeyword{and}\ ts{\isacharcomma}\ simp{\isacharunderscore}all{\isacharparenright}\isanewline
 \isamarkupfalse%
@@ -114,6 +114,19 @@ insists on the conjunctive format. Fortunately, we can easily \emph{prove}
 that the suggested equation holds:%
 \end{isamarkuptext}%
 \isamarkuptrue%
+\isamarkupfalse%
+\isamarkupfalse%
+\isamarkupfalse%
+\isamarkupfalse%
+\isamarkupfalse%
+\isamarkupfalse%
+\isamarkupfalse%
+\isamarkupfalse%
+\isamarkupfalse%
+\isamarkupfalse%
+\isamarkupfalse%
+\isanewline
+\isamarkupfalse%
 \isacommand{lemma}\ {\isacharbrackleft}simp{\isacharbrackright}{\isacharcolon}\ {\isachardoublequote}subst\ s\ {\isacharparenleft}App\ f\ ts{\isacharparenright}\ {\isacharequal}\ App\ f\ {\isacharparenleft}map\ {\isacharparenleft}subst\ s{\isacharparenright}\ ts{\isacharparenright}{\isachardoublequote}\isanewline
 \isamarkupfalse%
 \isacommand{apply}{\isacharparenleft}induct{\isacharunderscore}tac\ ts{\isacharcomma}\ simp{\isacharunderscore}all{\isacharparenright}\isanewline

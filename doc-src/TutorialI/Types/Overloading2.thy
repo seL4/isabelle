@@ -19,8 +19,8 @@ The infix function @{text"!"} yields the nth element of a list.
 
 \begin{warn}
 A type constructor can be instantiated in only one way to
-a given type class.  For example, our two instantiations of \isa{list} must
-reside in separate theories with disjoint scopes.\REMARK{Tobias, please check}
+a given type class.  For example, our two instantiations of @{text list} must
+reside in separate theories with disjoint scopes.
 \end{warn}
 *}
 

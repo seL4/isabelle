@@ -61,13 +61,9 @@ text{*\label{sec:typedef}
 Now we come to the most general means of safely introducing a new type, the
 \textbf{type definition}. All other means, for example
 \isacommand{datatype}, are based on it. The principle is extremely simple:
-any non-empty subset of an existing type can be turned into a new type.  Thus
-a type definition is merely a notational device: you introduce a new name for
-a subset of an existing type. This does not add any logical power to HOL,
-because you could base all your work directly on the subset of the existing
-type. However, the resulting theories could easily become indigestible
-because instead of implicit types you would have explicit sets in your
-formulae.
+any non-empty subset of an existing type can be turned into a new type.
+More precisely, the new type is specified to be isomorphic to some
+non-empty subset of an existing type.
 
 Let us work a simple example, the definition of a three-element type.
 It is easily represented by the first three natural numbers:
@@ -87,9 +83,9 @@ by simp
 
 text{*
 This type definition introduces the new type @{typ three} and asserts
-that it is a copy of the set @{term"{0,1,2}"}. This assertion
+that it is a copy of the set @{term"{0::nat,1,2}"}. This assertion
 is expressed via a bijection between the \emph{type} @{typ three} and the
-\emph{set} @{term"{0,1,2}"}. To this end, the command declares the following
+\emph{set} @{term"{0::nat,1,2}"}. To this end, the command declares the following
 constants behind the scenes:
 \begin{center}
 \begin{tabular}{rcl}
@@ -131,7 +127,7 @@ Rep_three} are inverses of each other:
 %
 From this example it should be clear what \isacommand{typedef} does
 in general given a name (here @{text three}) and a set
-(here @{term"{n. n\<le>2}"}).
+(here @{term"{n::nat. n\<le>2}"}).
 
 Our next step is to define the basic functions expected on the new type.
 Although this depends on the type at hand, the following strategy works well:
@@ -246,7 +242,7 @@ The attentive reader has realized long ago that the
 above lengthy definition can be collapsed into one line:
 *}
 
-datatype three' = A | B | C
+datatype better_three = A | B | C
 
 text{*\noindent
 In fact, the \isacommand{datatype} command performs internally more or less

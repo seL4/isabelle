@@ -123,9 +123,50 @@ where each variable $x@i$ is of type $\tau@i$. Induction is started by
   Prove that @{text"norma"}
   preserves the value of an expression and that the result of @{text"norma"}
   is really normal, i.e.\ no more @{term"And"}s and @{term"Neg"}s occur in
-  it.  ({\em Hint:} proceed as in \S\ref{sec:boolex}).
+  it.  ({\em Hint:} proceed as in \S\ref{sec:boolex} and read the discussion
+  of type annotations following lemma @{text subst_id} below).
 \end{exercise}
 *}
-(*<*) 
+(*<*)
+consts norma :: "'a aexp \<Rightarrow> 'a aexp"
+       normb :: "'a bexp \<Rightarrow> 'a aexp \<Rightarrow> 'a aexp \<Rightarrow> 'a aexp"
+
+primrec
+"norma (IF b t e)   = (normb b (norma t) (norma e))"
+"norma (Sum a1 a2)  = Sum (norma a1) (norma a2)" 
+"norma (Diff a1 a2) = Diff (norma a1) (norma a2)"
+"norma (Var v)      = Var v"
+"norma (Num n)      = Num n"
+            
+"normb (Less a1 a2) t e = IF (Less (norma a1) (norma a2)) t e"
+"normb (And b1 b2)  t e = normb b1 (normb b2 t e) e"
+"normb (Neg b)      t e = normb b e t"
+
+lemma " evala (norma a) env = evala a env 
+      \<and> (\<forall> t e. evala (normb b t e) env = evala (IF b t e) env)"
+apply (induct_tac a and b)
+apply (simp_all)
+done
+
+consts normala :: "'a aexp \<Rightarrow> bool"
+       normalb :: "'b bexp \<Rightarrow> bool"
+
+primrec
+"normala (IF b t e)   = (normalb b \<and> normala t \<and> normala e)"
+"normala (Sum a1 a2)  = (normala a1 \<and> normala a2)"
+"normala (Diff a1 a2) = (normala a1 \<and> normala a2)"
+"normala (Var v)      = True"
+"normala (Num n)      = True"
+
+"normalb (Less a1 a2) = (normala a1 \<and> normala a2)"
+"normalb (And b1 b2)  = False"
+"normalb (Neg b)      = False"
+
+lemma "normala (norma (a::'a aexp)) \<and>
+       (\<forall> (t::'a aexp) e. (normala t \<and> normala e) \<longrightarrow> normala (normb b t e))"
+apply (induct_tac a and b)
+apply (auto)
+done
+
 end
 (*>*)

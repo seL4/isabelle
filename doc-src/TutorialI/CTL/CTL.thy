@@ -455,17 +455,16 @@ apply (simp add:pcons_PathI)
 done
 *)
 (*>*)
-text{*
-Let us close this section with a few words about the executability of our model checkers.
-It is clear that if all sets are finite, they can be represented as lists and the usual
-set operations are easily implemented. Only @{term lfp} requires a little thought.
-Fortunately, the
-Library\footnote{See theory \isa{While_Combinator}.}~\cite{isabelle-HOL-lib}
-provides a theorem stating that 
-in the case of finite sets and a monotone function~@{term F},
-the value of \mbox{@{term"lfp F"}} can be computed by iterated application of @{term F} to~@{term"{}"} until
-a fixed point is reached. It is actually possible to generate executable functional programs
+
+text{* Let us close this section with a few words about the executability of
+our model checkers.  It is clear that if all sets are finite, they can be
+represented as lists and the usual set operations are easily
+implemented. Only @{term lfp} requires a little thought.  Fortunately, theory
+@{text While_Combinator} in the Library~\cite{isabelle-HOL-lib} provides a
+theorem stating that in the case of finite sets and a monotone
+function~@{term F}, the value of \mbox{@{term"lfp F"}} can be computed by
+iterated application of @{term F} to~@{term"{}"} until a fixed point is
+reached. It is actually possible to generate executable functional programs
 from HOL definitions, but that is beyond the scope of the tutorial.%
-\index{CTL|)}
-*}
+\index{CTL|)} *}
 (*<*)end(*>*)
