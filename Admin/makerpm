@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -x
 #
 # $Id$
 #
@@ -64,9 +64,8 @@ tar -xpzf "$ARCHIVE_FULL"
 # build
 
 cd "$TMP/BUILD$ROOT/$ISABELLE_NAME"
-( PATH=/bin:$PATH; ./configure )
-./build -b $LOGICS
-./bin/isatool install -d "$ISABELLE_HOME" -p "$TMP/BUILD$BIN"
+( PATH=/bin:$PATH; BASH_PATH=/bin/bash PERL_PATH=/usr/bin/perl ./configure )
+./build -bi $LOGICS
 COMPILER=$(./bin/isatool getenv -b ML_IDENTIFIER)
 
 
@@ -96,6 +95,7 @@ Group:		Applications/Math
 Copyright:	University of Cambridge Computer Laboratory
 Url:		http://www.cl.cam.ac.uk/Research/HVG/Isabelle/
 Packager:	Markus Wenzel <wenzelm@in.tum.de>
+Prefix:		$ROOT
 BuildRoot:	$TMP/BUILD
 
 %description
@@ -142,12 +142,23 @@ Isabelle's meta logic: Isabelle/Pure.  There are quite a lot of
 syntactic and deductive tools available in generic Isabelle.  Isabelle
 proof tools provide a high degree of automation.
 
+
 %package	HOL
 Summary:	Isabelle Theorem Proving Environment -- Higher-Order Logic
 Group:		Applications/Math
 Requires:       isabelle
 %description HOL
 This package contains a binary image of the HOL object-logic for Isabelle.
+
+
+%package	HOL-Real
+Summary:	Isabelle Theorem Proving Environment -- Higher-Order Logic
+Group:		Applications/Math
+Requires:       isabelle
+%description HOL-Real
+This package contains a binary image of the HOL object-logic for Isabelle,
+including support for real numbers.
+
 
 %package	ZF
 Summary:	Isabelle Theorem Proving Environment -- Zermelo-Fraenkel set theory
@@ -156,22 +167,38 @@ Requires:       isabelle
 %description ZF
 This package contains a binary image of the ZF object-logic for Isabelle.
 
+
 %prep
 
 %build
 
 %install
 
+%post
+\$RPM_INSTALL_PREFIX/$ISABELLE_NAME/bin/isatool install -p $BIN
+
+%post HOL
+%post HOL-Real
+%post ZF
+
+%postun
+rm -f $BIN/Isabelle $BIN/isabelle $BIN/isatool
+
+%postun HOL
+%postun HOL-Real
+%postun ZF
+
+
 %files HOL
 $ISABELLE_HOME/heaps/${COMPILER}/HOL
+
+%files HOL-Real
+$ISABELLE_HOME/heaps/${COMPILER}/HOL-Real
 
 %files ZF
 $ISABELLE_HOME/heaps/${COMPILER}/ZF
 
 %files
-$BIN/Isabelle
-$BIN/isabelle
-$BIN/isatool
 EOF
 
 for F in $(ls -1 | grep -v heaps | grep -v browser_info)
@@ -190,8 +217,9 @@ rpm --rcfile "$TMP/rpmrc" -bb "$TMP/SPECS/isabelle.spec"
 mkdir -p "$DISTBASE/rpm"
 cd "$TMP/RPMS/i386"
 cp "isabelle-$RPMVERSION-1.i386.rpm" "$DISTBASE/rpm/isabelle.rpm"
-cp "isabelle-HOL-$RPMVERSION-1.i386.rpm" "$DISTBASE/rpm/isa-HOL.rpm"
-cp "isabelle-ZF-$RPMVERSION-1.i386.rpm" "$DISTBASE/rpm/isa-ZF.rpm"
+cp "isabelle-HOL-$RPMVERSION-1.i386.rpm" "$DISTBASE/rpm/isabelle-HOL.i386.rpm"
+cp "isabelle-HOL-$RPMVERSION-1.i386.rpm" "$DISTBASE/rpm/isabelle-HOL-Real.i386.rpm"
+cp "isabelle-ZF-$RPMVERSION-1.i386.rpm" "$DISTBASE/rpm/isabelle-ZF.i386.rpm"
 
 # clean up
 cd /
