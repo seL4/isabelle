@@ -43,7 +43,7 @@ EOF
   if [ $LOGNAME = paulson -o $LOGNAME = nipkow -o $LOGNAME = wenzelm ]; then
     cat <<EOF
     * Tag the current repository version, e.g.:
-        cvs rtag Isabelle94-XX isabelle
+        cvs -d $CVSROOT rtag Isabelle94-XX isabelle
       PLEASE DON'T DO THIS UNLESS YOU KNOW WHAT YOU'RE DOING!
 EOF
   fi
