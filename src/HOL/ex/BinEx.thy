@@ -77,6 +77,10 @@ apply simp  oops
 lemma "(i + j + -12 + (k::int)) - -15 = y"
 apply simp  oops
 
+lemma "- (2*i) + 3  + (2*i + 4) = (0::int)"
+apply simp  oops
+
+
 
 subsection {* Arithmetic Method Tests *}
 
