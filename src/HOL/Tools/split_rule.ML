@@ -128,9 +128,10 @@ fun split_rule_goal xss rl =
 (* attribute syntax *)
 
 fun split_format x = Attrib.syntax
-  (Args.mode "complete" >> K (Drule.rule_attribute (K complete_split_rule)) ||
-    Args.and_list1 (Scan.lift (Scan.repeat Args.name))
-      >> (fn xss => Drule.rule_attribute (K (split_rule_goal xss)))) x;
+  (Scan.lift (Args.parens (Args.$$$ "complete"))
+    >> K (Drule.rule_attribute (K complete_split_rule)) ||
+  Args.and_list1 (Scan.lift (Scan.repeat Args.name))
+    >> (fn xss => Drule.rule_attribute (K (split_rule_goal xss)))) x;
 
 val setup =
  [Attrib.add_attributes
