@@ -514,7 +514,7 @@ val mss_ref = ref [] : meta_simpset list ref;
 val thm_ref = ref [] : thm list ref;
 val tracing = ref false;
 
-fun say s = if !tracing then TextIO.output (TextIO.stdOut, s) else ();
+fun say s = if !tracing then prs s else ();
 
 fun print_thms s L = 
    (say s; 
