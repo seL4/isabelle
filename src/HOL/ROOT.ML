@@ -19,6 +19,7 @@ use "thy_syntax.ML";
 use "../Provers/splitter.ML";
 use "../Provers/hypsubst.ML";
 use "../Provers/classical.ML";
+use "../Provers/blast.ML";
 use "../Provers/nat_transitive.ML";
 
 
