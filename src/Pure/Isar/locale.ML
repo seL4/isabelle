@@ -65,7 +65,8 @@ sig
   val add_thmss: string -> ((string * thm list) * context attribute list) list ->
     theory * context -> (theory * context) * (string * thm list) list
   val prune_prems: theory -> thm -> thm
-  val instantiate: string -> string -> thm list option -> context -> context
+  val instantiate: string -> string * context attribute list
+    -> thm list option -> context -> context
   val setup: (theory -> theory) list
 end;
 
@@ -1040,7 +1041,7 @@ end;
 
 (** CB: experimental instantiation mechanism **)
 
-fun instantiate loc_name prfx raw_inst ctxt =
+fun instantiate loc_name (prfx, attribs) raw_inst ctxt =
   let
     val thy = ProofContext.theory_of ctxt;
     val sign = Theory.sign_of thy;
@@ -1052,11 +1053,12 @@ fun instantiate loc_name prfx raw_inst ctxt =
     val {view = (_, axioms), params = (ps, _), ...} =
       the_locale thy (intern sign loc_name);
     val fixed_params = param_types ps;
+    val init = ProofContext.init thy;
     val (ids, raw_elemss) =
-          flatten (ctxt, intern_expr sign) ([], Expr (Locale loc_name));
+          flatten (init, intern_expr sign) ([], Expr (Locale loc_name));
     val ((parms, all_elemss, concl),
          (spec as (_, (ints, _)), (xs, env, defs))) =
-      read_elemss false (* do_close *) ctxt
+      read_elemss false (* do_close *) init
         fixed_params (* could also put [] here??? *) raw_elemss
         [] (* concl *);
 
@@ -1077,7 +1079,15 @@ fun instantiate loc_name prfx raw_inst ctxt =
     val args = case inst of
             None => []
           | Some thm => thm |> prop_of |> ObjectLogic.drop_judgment sign
-              |> Term.strip_comb |> snd;
+              |> Term.strip_comb
+              |>> (fn t as (Const (s, _)) => if (intern sign loc_name = s)
+                        then t
+                        else error ("Constant " ^ quote loc_name ^
+                          " expected but constant " ^ quote s ^ " was found")
+                    | t => error ("Constant " ^ quote loc_name ^ " expected \
+                          \but term " ^ quote (Sign.string_of_term sign t) ^
+                          " was found"))
+              |> snd;
     val cargs = map cert args;
 
     (* process parameters: match their types with those of arguments *)
@@ -1093,7 +1103,8 @@ fun instantiate loc_name prfx raw_inst ctxt =
     val arg_types = map Term.fastype_of args;
     val Tenv = foldl (Type.typ_match tsig)
           (Vartab.empty, v_param_types ~~ arg_types)
-          handle Library.LIST "~~" => error "Number of parameters does not match number of arguments of chained fact";
+          handle Library.LIST "~~" => error "Number of parameters does not \
+            \match number of arguments of chained fact";
     (* get their sorts *)
     val tfrees = foldr Term.add_typ_tfrees (param_types, []);
     val Tenv' = map
@@ -1143,7 +1154,7 @@ fun instantiate loc_name prfx raw_inst ctxt =
         val hyps = #hyps (rep_thm thm);
         val ass = map (fn ax => (prop_of ax, ax)) axioms;
         val axs' = foldl (fn (axs, hyp) => 
-              (case assoc (ass, hyp) of None => axs
+              (case gen_assoc (op aconv) (ass, hyp) of None => axs
                  | Some ax => axs @ [ax])) ([], hyps);
         val thm' = Drule.satisfy_hyps axs' thm;
         (* instantiate types *)
@@ -1165,17 +1176,26 @@ fun instantiate loc_name prfx raw_inst ctxt =
                   end;
       in thm''' end;
 
+    val prefix_fact =
+      if prfx = "" then I
+      else (fn "" => ""
+             | s => NameSpace.append prfx s);
+
     fun inst_elem (ctxt, (Ext _)) = ctxt
       | inst_elem (ctxt, (Int (Notes facts))) =
               (* instantiate fact *)
           let val facts' =
-              map (apsnd (map (apfst (map inst_thm')))) facts
+                map (apsnd (map (apfst (map inst_thm')))) facts
+		handle THM (msg, n, thms) => error ("Exception THM " ^
+		  string_of_int n ^ " raised\n" ^
+		  "Note: instantiate does not support old-style locales \
+                  \declared with (open)\n" ^ msg ^ "\n" ^
+		  cat_lines (map string_of_thm thms))
               (* rename fact *)
-              val facts'' =
-              map (apfst (apfst (fn "" => ""
-                                  | s => NameSpace.append prfx s)))
-                  facts'
-          in fst (ProofContext.have_thmss_i facts'' ctxt)
+              val facts'' = map (apfst (apfst prefix_fact)) facts'
+              (* add attributes *)
+              val facts''' = map (apfst (apsnd (fn atts => atts @ attribs))) facts''
+          in fst (ProofContext.have_thmss_i facts''' ctxt)
           end
       | inst_elem (ctxt, (Int _)) = ctxt;
 
@@ -1412,6 +1432,8 @@ end;
 local
 
 fun gen_add_locale prep_ctxt prep_expr do_pred bname raw_import raw_body thy =
+  (* CB: do_pred = false means old-style locale, declared with (open).
+     Old-style locales don't define predicates. *)
   let
     val sign = Theory.sign_of thy;
     val name = Sign.full_name sign bname;

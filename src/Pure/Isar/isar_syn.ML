@@ -359,8 +359,7 @@ val usingP =
 
 val instantiateP =
   OuterSyntax.command "instantiate" "instantiate locale" K.prf_decl
-    (P.name --| P.$$$ ":" -- P.xname
-(*    (P.xname -- (P.$$$ "[" |-- P.name --| P.$$$ "]") *)
+    (P.opt_thm_name ":" -- P.xname
       >> (Toplevel.print oo (Toplevel.proof o IsarThy.instantiate_locale)));
 
 

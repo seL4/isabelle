@@ -65,7 +65,8 @@ sig
     (thm list * context attribute list) list) list -> state -> state
   val using_thmss: ((xstring * context attribute list) list) list -> state -> state
   val using_thmss_i: ((thm list * context attribute list) list) list -> state -> state
-  val instantiate_locale: string * string -> state -> state
+  val instantiate_locale: string * (string * context attribute list) -> state
+    -> state
   val fix: (string list * string option) list -> state -> state
   val fix_i: (string list * typ option) list -> state -> state
   val assm: ProofContext.exporter
@@ -569,15 +570,14 @@ end;
 
 (* locale instantiation *)
 
-fun instantiate_locale (loc_name, prfx) state = let
-    val ctxt = context_of state;
+fun instantiate_locale (loc_name, prfx_attribs) state = let
     val facts = if is_chain state then get_facts state else None;
   in
     state
     |> assert_forward_or_chain
     |> enter_forward
     |> reset_facts
-    |> map_context (Locale.instantiate loc_name prfx facts)
+    |> map_context (Locale.instantiate loc_name prfx_attribs facts)
   end;
 
 (* fix *)
