@@ -9,15 +9,13 @@ TODO:
   - smash_unifiers: ever invents new vars (???);
 *)
 
-(* FIXME tmp *)
-val proof_debug = ref false;
-
 signature PROOF_CONTEXT =
 sig
   type context
   exception CONTEXT of string * context
   val theory_of: context -> theory
   val sign_of: context -> Sign.sg
+  val verbose: bool ref
   val print_binds: context -> unit
   val print_thms: context -> unit
   val print_context: context -> unit
@@ -108,8 +106,8 @@ val sign_of = Theory.sign_of o theory_of;
 
 (** print context information **)
 
-(* FIXME tmp*)
-fun debug f x = if ! proof_debug then f x else ();
+val verbose = ref false;
+fun verb f x = if ! verbose then f x else ();
 
 fun print_items prt name items =
   let
@@ -170,15 +168,15 @@ fun print_context (ctxt as Context {thy, data = _, asms = (assumes, (fixes, _)),
     val prt_defT = prt_atom prt_var prt_typ;
     val prt_defS = prt_atom prt_varT prt_sort;
   in
-    debug Pretty.writeln pretty_thy;
+    verb Pretty.writeln pretty_thy;
     Pretty.writeln (Pretty.big_list "Fixed variables:" (map prt_fix (rev fixes)));
     print_items (prt_term o #prop o Thm.rep_thm) "Assumptions:" assumes;
-    debug print_binds ctxt;
-    debug print_thms ctxt;
-    debug Pretty.writeln (Pretty.big_list "Type constraints:" (map prt_defT (Vartab.dest types)));
-    debug Pretty.writeln (Pretty.big_list "Default sorts:" (map prt_defS (Vartab.dest sorts)));
-    debug writeln ("Maxidx: " ^ string_of_int maxidx);
-    debug Pretty.writeln (Pretty.strs ("Used type variable names:" :: used))
+    verb print_binds ctxt;
+    verb print_thms ctxt;
+    verb Pretty.writeln (Pretty.big_list "Type constraints:" (map prt_defT (Vartab.dest types)));
+    verb Pretty.writeln (Pretty.big_list "Default sorts:" (map prt_defS (Vartab.dest sorts)));
+    verb writeln ("Maxidx: " ^ string_of_int maxidx);
+    verb Pretty.writeln (Pretty.strs ("Used type variable names:" :: used))
   end;
 
 
