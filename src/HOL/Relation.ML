@@ -25,6 +25,19 @@ by (Blast_tac 1);
 qed "pair_in_Id_conv";
 Addsimps [pair_in_Id_conv];
 
+Goalw [refl_def] "reflexive Id";
+by Auto_tac;
+qed "reflexive_Id";
+
+(*A strange result, since Id is also symmetric.*)
+Goalw [antisym_def] "antisym Id";
+by Auto_tac;
+qed "antisym_Id";
+
+Goalw [trans_def] "trans Id";
+by Auto_tac;
+qed "trans_Id";
+
 
 (** Diagonal relation: indentity restricted to some set **)
 
@@ -107,6 +120,28 @@ qed "comp_mono";
 Goal "[| s <= A Times B;  r <= B Times C |] ==> (r O s) <= A Times C";
 by (Blast_tac 1);
 qed "comp_subset_Sigma";
+
+(** Natural deduction for refl(r) **)
+
+val prems = Goalw [refl_def]
+    "[| r <= A Times A;  !! x. x:A ==> (x,x):r |] ==> refl A r";
+by (REPEAT (ares_tac (prems@[ballI,conjI]) 1));
+qed "reflI";
+
+Goalw [refl_def] "[| refl A r; a:A |] ==> (a,a):r";
+by (Blast_tac 1);
+qed "reflD";
+
+(** Natural deduction for antisym(r) **)
+
+val prems = Goalw [antisym_def]
+    "(!! x y. [| (x,y):r;  (y,x):r |] ==> x=y) ==> antisym(r)";
+by (REPEAT (ares_tac (prems@[allI,impI]) 1));
+qed "antisymI";
+
+Goalw [antisym_def] "[| antisym(r);  (a,b):r;  (b,a):r |] ==> a=b";
+by (Blast_tac 1);
+qed "antisymD";
 
 (** Natural deduction for trans(r) **)
 
