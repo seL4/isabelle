@@ -177,7 +177,7 @@ $TAR cf $DISTNAME.tar $DISTNAME
 ( cd pdf; $TAR cf ../${DISTNAME}_pdf.tar $DISTNAME; )
 
 mv pdf/$DISTNAME/doc/*.pdf $DISTNAME/doc
-rmdir pdf/$DISTNAME/doc pdf/$DISTNAME
+rmdir pdf/$DISTNAME/doc pdf/$DISTNAME pdf
 
 UNPACKED_SIZE=$[ $(cat $DISTNAME.tar ${DISTNAME}_pdf.tar | wc -c) / 1024 ]
 
