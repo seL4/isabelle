@@ -18,17 +18,17 @@ $(BIN)/Auth:   $(BIN)/HOL  $(FILES)
 	poly*)	echo 'make_database"$(BIN)/Auth"; quit();'  \
 		  | $(COMP) $(BIN)/HOL;\
                 if [ "$${MAKE_HTML}" = "true" ]; \
-                then echo 'open PolyML; make_html := true; exit_use"DB-ROOT.ML";' \
+                then echo 'open PolyML; init_html(); exit_use"DB-ROOT.ML";' \
                        | $(COMP) $(BIN)/Auth;\
 		elif [ "$${MAKE_HTML-undefined}" != "undefined" ]; \
-                then echo 'open PolyML; make_html := true; exit_use"DB-ROOT.ML";                               make_html := false;' | $(COMP) $(BIN)/Auth;\
+                then echo 'open PolyML; init_html(); exit_use"DB-ROOT.ML";                               make_html := false;' | $(COMP) $(BIN)/Auth;\
                 else echo 'open PolyML; exit_use"DB-ROOT.ML";' \
                        | $(COMP) $(BIN)/Auth;\
                 fi;;\
 	sml*)	if [ "$${MAKE_HTML}" = "true" ]; \
-                then echo 'make_html := true; exit_use"DB-ROOT.ML";                                            xML"$(BIN)/Auth" banner;' | $(BIN)/HOL;\
+                then echo 'init_html(); exit_use"DB-ROOT.ML";                                            xML"$(BIN)/Auth" banner;' | $(BIN)/HOL;\
                 elif [ "$${MAKE_HTML-undefined}" != "undefined" ];\
-                then echo 'make_html := true; exit_use"DB-ROOT.ML";                                            make_html := false; xML"$(BIN)/Auth" banner;' \
+                then echo 'init_html(); exit_use"DB-ROOT.ML";                                            make_html := false; xML"$(BIN)/Auth" banner;' \
                        | $(BIN)/HOL;\
                 else echo 'exit_use"DB-ROOT.ML"; xML"$(BIN)/Auth" banner;' \
                        | $(BIN)/HOL;\
