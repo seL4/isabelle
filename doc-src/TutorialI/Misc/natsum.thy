@@ -49,7 +49,7 @@ see~\S\ref{sec:numerals}.
   to prove the goal (although it may take you some time to realize what has
   happened if @{text show_types} is not set).  In this particular example,
   you need to include an explicit type constraint, for example
-  @{prop"x+0 = (x::nat)"}. If there is enough contextual information this
+  @{text"x+0 = (x::nat)"}. If there is enough contextual information this
   may not be necessary: @{prop"Suc x = x"} automatically implies
   @{text"x::nat"} because @{term Suc} is not overloaded.
 \end{warn}

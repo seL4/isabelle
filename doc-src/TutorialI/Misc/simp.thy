@@ -136,28 +136,28 @@ enough lemmas that characterize the concept sufficiently for us to forget the
 original definition. For example, given
 *}
 
-constdefs exor :: "bool \<Rightarrow> bool \<Rightarrow> bool"
-         "exor A B \<equiv> (A \<and> \<not>B) \<or> (\<not>A \<and> B)";
+constdefs xor :: "bool \<Rightarrow> bool \<Rightarrow> bool"
+         "xor A B \<equiv> (A \<and> \<not>B) \<or> (\<not>A \<and> B)";
 
 text{*\noindent
 we may want to prove
 *}
 
-lemma "exor A (\<not>A)";
+lemma "xor A (\<not>A)";
 
 txt{*\noindent
 Typically, the opening move consists in \emph{unfolding} the definition(s), which we need to
 get started, but nothing else:\indexbold{*unfold}\indexbold{definition!unfolding}
 *}
 
-apply(simp only:exor_def);
+apply(simp only:xor_def);
 
 txt{*\noindent
 In this particular case, the resulting goal
 @{subgoals[display,indent=0]}
 can be proved by simplification. Thus we could have proved the lemma outright by
-*}(*<*)oops;lemma "exor A (\<not>A)";(*>*)
-apply(simp add: exor_def)
+*}(*<*)oops;lemma "xor A (\<not>A)";(*>*)
+apply(simp add: xor_def)
 (*<*)done(*>*)
 text{*\noindent
 Of course we can also unfold definitions in the middle of a proof.

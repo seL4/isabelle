@@ -12,29 +12,29 @@ readability of theories.  Synonyms can be used just like any other
 type:%
 \end{isamarkuptext}%
 \isacommand{consts}\ nand\ {\isacharcolon}{\isacharcolon}\ gate\isanewline
-\ \ \ \ \ \ \ exor\ {\isacharcolon}{\isacharcolon}\ gate%
+\ \ \ \ \ \ \ xor\ \ {\isacharcolon}{\isacharcolon}\ gate%
+\isamarkupsubsection{Constant definitions%
+}
+%
 \begin{isamarkuptext}%
-\subsection{Constant definitions}
-\label{sec:ConstDefinitions}
-\indexbold{definition}
-
-The above constants \isa{nand} and \isa{exor} are non-recursive and can
+\label{sec:ConstDefinitions}\indexbold{definition}%
+The above constants \isa{nand} and \isa{xor} are non-recursive and can
 therefore be defined directly by%
 \end{isamarkuptext}%
 \isacommand{defs}\ nand{\isacharunderscore}def{\isacharcolon}\ {\isachardoublequote}nand\ A\ B\ {\isasymequiv}\ {\isasymnot}{\isacharparenleft}A\ {\isasymand}\ B{\isacharparenright}{\isachardoublequote}\isanewline
-\ \ \ \ \ exor{\isacharunderscore}def{\isacharcolon}\ {\isachardoublequote}exor\ A\ B\ {\isasymequiv}\ A\ {\isasymand}\ {\isasymnot}B\ {\isasymor}\ {\isasymnot}A\ {\isasymand}\ B{\isachardoublequote}%
+\ \ \ \ \ xor{\isacharunderscore}def{\isacharcolon}\ \ {\isachardoublequote}xor\ A\ B\ \ {\isasymequiv}\ A\ {\isasymand}\ {\isasymnot}B\ {\isasymor}\ {\isasymnot}A\ {\isasymand}\ B{\isachardoublequote}%
 \begin{isamarkuptext}%
 \noindent%
 where \isacommand{defs}\indexbold{*defs} is a keyword and
-\isa{nand{\isacharunderscore}def} and \isa{exor{\isacharunderscore}def} are user-supplied names.
+\isa{nand{\isacharunderscore}def} and \isa{xor{\isacharunderscore}def} are user-supplied names.
 The symbol \indexboldpos{\isasymequiv}{$IsaEq} is a special form of equality
 that must be used in constant definitions.
 Declarations and definitions can also be merged%
 \end{isamarkuptext}%
 \isacommand{constdefs}\ nor\ {\isacharcolon}{\isacharcolon}\ gate\isanewline
 \ \ \ \ \ \ \ \ \ {\isachardoublequote}nor\ A\ B\ {\isasymequiv}\ {\isasymnot}{\isacharparenleft}A\ {\isasymor}\ B{\isacharparenright}{\isachardoublequote}\isanewline
-\ \ \ \ \ \ \ \ \ \ exor{\isadigit{2}}\ {\isacharcolon}{\isacharcolon}\ gate\isanewline
-\ \ \ \ \ \ \ \ \ {\isachardoublequote}exor{\isadigit{2}}\ A\ B\ {\isasymequiv}\ {\isacharparenleft}A\ {\isasymor}\ B{\isacharparenright}\ {\isasymand}\ {\isacharparenleft}{\isasymnot}A\ {\isasymor}\ {\isasymnot}B{\isacharparenright}{\isachardoublequote}%
+\ \ \ \ \ \ \ \ \ \ xor{\isadigit{2}}\ {\isacharcolon}{\isacharcolon}\ gate\isanewline
+\ \ \ \ \ \ \ \ \ {\isachardoublequote}xor{\isadigit{2}}\ A\ B\ {\isasymequiv}\ {\isacharparenleft}A\ {\isasymor}\ B{\isacharparenright}\ {\isasymand}\ {\isacharparenleft}{\isasymnot}A\ {\isasymor}\ {\isasymnot}B{\isacharparenright}{\isachardoublequote}%
 \begin{isamarkuptext}%
 \noindent\indexbold{*constdefs}%
 in which case the default name of each definition is $f$\isa{{\isacharunderscore}def}, where

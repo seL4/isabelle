@@ -51,7 +51,7 @@ see~\S\ref{sec:numerals}.
   to prove the goal (although it may take you some time to realize what has
   happened if \isa{show{\isacharunderscore}types} is not set).  In this particular example,
   you need to include an explicit type constraint, for example
-  \isa{x\ {\isacharplus}\ {\isadigit{0}}\ {\isacharequal}\ x}. If there is enough contextual information this
+  \isa{x{\isacharplus}{\isadigit{0}}\ {\isacharequal}\ {\isacharparenleft}x{\isacharcolon}{\isacharcolon}nat{\isacharparenright}}. If there is enough contextual information this
   may not be necessary: \isa{Suc\ x\ {\isacharequal}\ x} automatically implies
   \isa{x{\isacharcolon}{\isacharcolon}nat} because \isa{Suc} is not overloaded.
 \end{warn}

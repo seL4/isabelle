@@ -140,19 +140,19 @@ concepts. Of course we need to expand the definitions initially to derive
 enough lemmas that characterize the concept sufficiently for us to forget the
 original definition. For example, given%
 \end{isamarkuptext}%
-\isacommand{constdefs}\ exor\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}bool\ {\isasymRightarrow}\ bool\ {\isasymRightarrow}\ bool{\isachardoublequote}\isanewline
-\ \ \ \ \ \ \ \ \ {\isachardoublequote}exor\ A\ B\ {\isasymequiv}\ {\isacharparenleft}A\ {\isasymand}\ {\isasymnot}B{\isacharparenright}\ {\isasymor}\ {\isacharparenleft}{\isasymnot}A\ {\isasymand}\ B{\isacharparenright}{\isachardoublequote}%
+\isacommand{constdefs}\ xor\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}bool\ {\isasymRightarrow}\ bool\ {\isasymRightarrow}\ bool{\isachardoublequote}\isanewline
+\ \ \ \ \ \ \ \ \ {\isachardoublequote}xor\ A\ B\ {\isasymequiv}\ {\isacharparenleft}A\ {\isasymand}\ {\isasymnot}B{\isacharparenright}\ {\isasymor}\ {\isacharparenleft}{\isasymnot}A\ {\isasymand}\ B{\isacharparenright}{\isachardoublequote}%
 \begin{isamarkuptext}%
 \noindent
 we may want to prove%
 \end{isamarkuptext}%
-\isacommand{lemma}\ {\isachardoublequote}exor\ A\ {\isacharparenleft}{\isasymnot}A{\isacharparenright}{\isachardoublequote}%
+\isacommand{lemma}\ {\isachardoublequote}xor\ A\ {\isacharparenleft}{\isasymnot}A{\isacharparenright}{\isachardoublequote}%
 \begin{isamarkuptxt}%
 \noindent
 Typically, the opening move consists in \emph{unfolding} the definition(s), which we need to
 get started, but nothing else:\indexbold{*unfold}\indexbold{definition!unfolding}%
 \end{isamarkuptxt}%
-\isacommand{apply}{\isacharparenleft}simp\ only{\isacharcolon}exor{\isacharunderscore}def{\isacharparenright}%
+\isacommand{apply}{\isacharparenleft}simp\ only{\isacharcolon}xor{\isacharunderscore}def{\isacharparenright}%
 \begin{isamarkuptxt}%
 \noindent
 In this particular case, the resulting goal
@@ -161,7 +161,7 @@ In this particular case, the resulting goal
 \end{isabelle}
 can be proved by simplification. Thus we could have proved the lemma outright by%
 \end{isamarkuptxt}%
-\isacommand{apply}{\isacharparenleft}simp\ add{\isacharcolon}\ exor{\isacharunderscore}def{\isacharparenright}%
+\isacommand{apply}{\isacharparenleft}simp\ add{\isacharcolon}\ xor{\isacharunderscore}def{\isacharparenright}%
 \begin{isamarkuptext}%
 \noindent
 Of course we can also unfold definitions in the middle of a proof.
