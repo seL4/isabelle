@@ -104,8 +104,7 @@ end;
 
 (* params *)
 
-fun rename_params xss thm =
-  #1 (foldl (fn ((th, i), xs) => (Thm.rename_params_rule (xs, i) th, i + 1)) ((thm, 1), xss))
+fun rename_params xss thm = foldln Thm.rename_params_rule xss thm
   |> save thm;
 
 fun params xss = Drule.rule_attribute (K (rename_params xss));

@@ -85,6 +85,7 @@ sig
   val foldr: ('a * 'b -> 'b) -> 'a list * 'b -> 'b
   val foldr1: ('a * 'a -> 'a) -> 'a list -> 'a
   val foldl_map: ('a * 'b -> 'a * 'c) -> 'a * 'b list -> 'a * 'c list
+  val foldln: ('a * int -> 'b -> 'b) -> 'a list -> 'b -> 'b
   val length: 'a list -> int
   val take: int * 'a list -> 'a list
   val drop: int * 'a list -> 'a list
@@ -477,6 +478,7 @@ fun foldl_map _ (x, []) = (x, [])
         val (x'', ys') = foldl_map f (x', ys);
       in (x'', y' :: ys') end;
 
+fun foldln f xs e = fst (foldl (fn ((e,i), x) => (f (x,i) e, i+1)) ((e,1),xs));
 
 (* basic list functions *)
 
