@@ -31,7 +31,7 @@ fun prove_nonempty cset thms usr_tac =
     val tac =
       TRY (rewrite_goals_tac (filter is_def thms)) THEN
       TRY (REPEAT_FIRST (resolve_tac (filter_out is_def thms))) THEN
-      if_none usr_tac (TRY (ALLGOALS Fast_tac));
+      if_none usr_tac (TRY (ALLGOALS (CLASET' blast_tac)));
   in
     prove_goalw_cterm [] goal (K [tac])
   end
