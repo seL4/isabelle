@@ -20,17 +20,11 @@ FILES = ROOT.ML add_ind_def.ML datatype.ML hologic.ML \
 	$(NAMES:%=%.thy) $(NAMES:%=%.ML)
 
 $(OUT)/HOL: $(OUT)/Pure $(FILES)
-	@$(ISABELLE_HOME)/bin/isabelle -e "make_html := $(ISABELLE_HTML);" -qu Pure HOL
+	@$(ISABELLE) -e "make_html := $(ISABELLE_HTML);" -qu $(OUT)/Pure HOL
 	@chmod -w $@
 
 $(OUT)/Pure:
-	@cd ../Pure; $(ISABELLE_HOME)/bin/isatool make
-
-
-
-#### Tests and examples
-
-ISABELLE=$(ISABELLE_HOME)/bin/isabelle -e "make_html := $(ISABELLE_HTML);" -rq
+	@cd ../Pure; $(ISATOOL) make
 
 
 ## TFL (requires integration into HOL proper)
@@ -40,8 +34,11 @@ TFL_FILES = ../TFL/ROOT.ML ../TFL/sys.sml \
             $(TFL_NAMES:%=../TFL/%.sig) $(TFL_NAMES:%=../TFL/%.sml)
 
 TFL:	$(OUT)/HOL $(TFL_FILES)
-	$(ISABELLE) -e 'exit_use_dir"../TFL"; quit();' HOL
+	@$(ISABELLE) -e 'exit_use_dir"../TFL"; quit();' HOL
 
+
+
+#### Tests and examples
 
 ## IMP-semantics example
 
@@ -49,7 +46,7 @@ IMP_NAMES = Expr Com Natural Transition Denotation Hoare VC
 IMP_FILES = IMP/ROOT.ML $(IMP_NAMES:%=IMP/%.thy) $(IMP_NAMES:%=IMP/%.ML)
 
 IMP:	$(OUT)/HOL $(IMP_FILES)
-	$(ISABELLE) -e 'exit_use_dir"IMP"; quit();' HOL
+	@$(ISATOOL) testdir $(OUT)/HOL IMP
 
 
 ## Hoare logic
@@ -59,7 +56,7 @@ Hoare_FILES = Hoare/ROOT.ML $(Hoare_NAMES:%=Hoare/%.thy) \
 	      $(Hoare_NAMES:%=Hoare/%.ML)
 
 Hoare:	$(OUT)/HOL $(Hoare_FILES)
-	$(ISABELLE) -e 'exit_use_dir"Hoare"; quit();' HOL
+	@$(ISATOOL) testdir $(OUT)/HOL Hoare
 
 
 ## The integers in HOL
@@ -70,7 +67,7 @@ INTEG_FILES = Integ/ROOT.ML \
 	      $(INTEG_NAMES:%=Integ/%.thy) $(INTEG_NAMES:%=Integ/%.ML)
 
 Integ:	$(OUT)/HOL $(INTEG_FILES)
-	$(ISABELLE) -e 'exit_use_dir"Integ"; quit();' HOL
+	@$(ISATOOL) testdir $(OUT)/HOL Integ
 
 
 ## I/O Automata
@@ -89,19 +86,19 @@ IOA_FILES = IOA/NTP/ROOT.ML IOA/ABP/ROOT.ML IOA/NTP/Spec.thy \
  $(IOA_MT_NAMES:%=IOA/meta_theory/%.thy) $(IOA_MT_NAMES:%=IOA/meta_theory/%.ML)
 
 IOA:	$(OUT)/HOL $(IOA_FILES)
-	$(ISABELLE) -e 'exit_use_dir"IOA/NTP"; quit();' HOL
-	$(ISABELLE) -e 'exit_use_dir"IOA/ABP"; quit();' HOL
+	@$(ISATOOL) testdir $(OUT)/HOL IOA/NTP
+	@$(ISATOOL) testdir $(OUT)/HOL IOA/ABP
 
 
 ## Authentication & Security Protocols
 
 Auth_NAMES = Message Shared NS_Shared OtwayRees OtwayRees_AN OtwayRees_Bad \
-	     WooLam Yahalom Yahalom2 Public NS_Public_Bad NS_Public
+	     Recur WooLam Yahalom Yahalom2 Public NS_Public_Bad NS_Public
 
 AUTH_FILES = Auth/ROOT.ML $(AUTH_NAMES:%=Auth/%.thy) $(AUTH_NAMES:%=Auth/%.ML)
 
 Auth:	$(OUT)/HOL $(AUTH_FILES)
-	$(ISABELLE) -e 'exit_use_dir"Auth"; quit();' HOL
+	@$(ISATOOL) testdir $(OUT)/HOL Auth
 
 
 ## Properties of substitutions
@@ -112,7 +109,7 @@ SUBST_FILES = Subst/ROOT.ML \
 	      $(SUBST_NAMES:%=Subst/%.thy) $(SUBST_NAMES:%=Subst/%.ML)
 
 Subst:	$(OUT)/HOL $(SUBST_FILES)
-	$(ISABELLE) -e 'exit_use_dir"Subst"; quit();' HOL
+	@$(ISATOOL) testdir $(OUT)/HOL Subst
 
 
 ## Confluence of Lambda-calculus
@@ -123,7 +120,7 @@ LAMBDA_FILES = Lambda/ROOT.ML \
 	      $(LAMBDA_NAMES:%=Lambda/%.thy) $(LAMBDA_NAMES:%=Lambda/%.ML)
 
 Lambda:	 $(OUT)/HOL $(LAMBDA_FILES)
-	$(ISABELLE) -e 'exit_use_dir"Lambda"; quit();' HOL
+	@$(ISATOOL) testdir $(OUT)/HOL Lambda
 
 
 ## Type inference for MiniML
@@ -134,7 +131,7 @@ MINIML_FILES = MiniML/ROOT.ML \
 	      $(MINIML_NAMES:%=MiniML/%.thy) $(MINIML_NAMES:%=MiniML/%.ML)
 
 MiniML: $(OUT)/HOL $(MINIML_FILES)
-	$(ISABELLE) -e 'exit_use_dir"MiniML"; quit();' HOL
+	@$(ISATOOL) testdir $(OUT)/HOL MiniML
 
 
 ## Lexical analysis
@@ -145,7 +142,7 @@ LEX_FILES = Lex/ROOT.ML \
 	    $(LEX_NAMES:%=Lex/%.thy) $(LEX_NAMES:%=Lex/%.ML)
 
 Lex:	$(OUT)/HOL $(LEX_FILES)
-	$(ISABELLE) -e 'exit_use_dir"Lex"; quit();' HOL
+	@$(ISATOOL) testdir $(OUT)/HOL Lex
 
 
 ## Miscellaneous examples
@@ -157,7 +154,7 @@ EX_FILES = ex/ROOT.ML ex/cla.ML ex/meson.ML ex/mesontest.ML ex/rel.ML \
 	   ex/set.ML $(EX_NAMES:%=ex/%.thy) $(EX_NAMES:%=ex/%.ML)
 
 ex:	$(OUT)/HOL $(EX_FILES)
-	$(ISABELLE) -e 'exit_use_dir"ex"; quit();' HOL
+	@$(ISATOOL) testdir $(OUT)/HOL ex
 
 
 ## Full test
