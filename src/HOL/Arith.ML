@@ -151,6 +151,7 @@ val mult_ac = [mult_assoc,mult_commute,mult_left_commute];
 
 qed_goal "diff_self_eq_0" Arith.thy "m - m = 0"
  (fn _ => [nat_ind_tac "m" 1, ALLGOALS Asm_simp_tac]);
+Addsimps [diff_self_eq_0];
 
 (*Addition is the inverse of subtraction: if n<=m then n+(m-n) = m. *)
 val [prem] = goal Arith.thy "[| ~ m<n |] ==> n+(m-n) = (m::nat)";

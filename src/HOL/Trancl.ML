@@ -86,6 +86,16 @@ by (fast_tac (set_cs addIs prems) 2);
 by (REPEAT (eresolve_tac ([asm_rl,exE,disjE,conjE]@prems) 1));
 qed "rtranclE";
 
+goal Trancl.thy "!!R. (y,z):R^* ==> !x. (x,y):R --> (x,z):R^*";
+be rtrancl_induct 1;
+by(fast_tac (HOL_cs addIs [r_into_rtrancl]) 1);
+by(fast_tac (HOL_cs addEs [rtrancl_into_rtrancl]) 1);
+val lemma = result();
+
+goal Trancl.thy  "!!R. [| (x,y) : R;  (y,z) : R^* |] ==> (x,z) : R^*";
+by(fast_tac (HOL_cs addDs [lemma]) 1);
+qed "rtrancl_into_rtrancl2";
+
 
 (**** The relation trancl ****)
 

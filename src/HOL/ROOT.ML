@@ -27,10 +27,9 @@ use_thy "Ord";
 use_thy "subset";
 use     "hologic.ML";
 use     "typedef.ML";
-use_thy "Prod";
 use_thy "Sum";
 use_thy "Gfp";
-use_thy "Nat";
+use_thy "RelPow";
 
 use "datatype.ML";
 use "ind_syntax.ML";
