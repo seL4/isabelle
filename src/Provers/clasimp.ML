@@ -149,7 +149,8 @@ fun force i = by (Force_tac i);
 
 (* methods *)
 
-fun get_local_clasimpset ctxt = (Classical.get_local_claset ctxt, Simplifier.get_local_simpset ctxt);
+fun get_local_clasimpset ctxt =
+  (Classical.get_local_claset ctxt, Simplifier.get_local_simpset ctxt);
 
 val clasimp_modifiers = Classical.cla_modifiers @ Simplifier.simp_modifiers;
 val clasimp_args = Method.only_sectioned_args clasimp_modifiers;
@@ -166,7 +167,7 @@ val clasimp_method' = clasimp_args o clasimp_meth';
 
 val setup =
  [Method.add_methods
-   [("clarsimp", clasimp_method' clarsimp_tac, "clarsimp"),
+   [("clarsimp", clasimp_method' clarsimp_tac, "clarsimp (improper!)"),
     ("auto", clasimp_method auto_tac, "auto"),
     ("force", clasimp_method' force_tac, "force"),
     ("brute_force", clasimp_method (ALLGOALS o force_tac), "force all goals")]];

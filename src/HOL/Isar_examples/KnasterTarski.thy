@@ -8,13 +8,31 @@ Typical textbook proof example.
 
 theory KnasterTarski = Main:;
 
+text {*
+
+ According to the book ``Introduction to Lattices and Order'' (by
+ B. A. Davey and H. A. Priestley, CUP 1990), the Knaster-Tarski
+ fixpoint theorem is as follows (pages 93--94).  Note that we have
+ dualized their argument, and tuned the notation a little bit.
+
+ \paragraph{The Knaster-Tarski Fixpoint Theorem.}  Let $L$ be a
+ complete lattice and $f \colon L \to L$ an order-preserving map.
+ Then $\bigwedge \{ x \in L \mid f(x) \le x \}$ is a fixpoint of $f$.
+
+ \textbf{Proof.} Let $H = \{x \in L \mid f(x) \le x\}$ and $a =
+ \bigwedge H$.  For all $x \in H$ we have $a \le x$, so $f(a) \le f(x)
+ \le x$.  Thus $f(a)$ is a lower bound of $H$, whence $f(a) \le a$.
+ We now use this inequality to prove the reverse one (!) and thereby
+ complete the proof that $a$ is a fixpoint.  Since $f$ is
+ order-preserving, $f(f(a)) \le f(a)$.  This says $f(a) \in H$, so $a
+ \le f(a)$.
+*};
 
 text {*
- The proof of Knaster-Tarski below closely follows the presentation in
- 'Introduction to Lattices' and Order by Davey/Priestley, pages
- 93--94.  All of their narration has been rephrased in terms of formal
- Isar language elements.  Just as many textbook-style proofs, there is
- a strong bias towards forward reasoning, and little hierarchical
+ Our proof below closely follows this presentation.  Virtually all of
+ the prose narration has been rephrased in terms of formal Isar
+ language elements.  Just as many textbook-style proofs, there is a
+ strong bias towards forward reasoning, and little hierarchical
  structure.
 *};
 

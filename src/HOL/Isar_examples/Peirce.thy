@@ -17,7 +17,7 @@ proof;
     have ab: "A --> B";
     proof;
       assume a: A;
-      from not_a a; show B; ..;
+      show B; by contradiction;
     qed;
 
     from aba ab; show A; ..;
