@@ -25,13 +25,14 @@ type pprint_args = (string -> unit) * (int -> unit) * (int -> unit) *
   (unit -> unit) * (unit -> unit);
 
 signature PRETTY =
-  sig
+sig
   type T
   val raw_str: string * real -> T
   val str: string -> T
   val brk: int -> T
   val fbrk: T
   val blk: int * T list -> T
+  val unbreakable: T -> T
   val quote: T -> T
   val commas: T list -> T list
   val breaks: T list -> T list
@@ -52,7 +53,21 @@ signature PRETTY =
   val setdepth: int -> unit
   val setmargin: int -> unit
   val setmp_margin: int -> ('a -> 'b) -> 'a -> 'b
-  end;
+  type pp
+  val pp: (term -> T) -> (typ -> T) -> (sort -> T) ->
+    (class list -> T) -> (arity -> T)  -> pp
+  val pp_undef: pp
+  val term: pp -> term -> T
+  val typ: pp -> typ -> T
+  val sort: pp -> sort -> T
+  val classrel: pp -> class list -> T
+  val arity: pp -> arity -> T
+  val string_of_term: pp -> term -> string
+  val string_of_typ: pp -> typ -> string
+  val string_of_sort: pp -> sort -> string
+  val string_of_classrel: pp -> class list -> string
+  val string_of_arity: pp -> arity -> string
+end;
 
 structure Pretty : PRETTY =
 struct
@@ -69,7 +84,7 @@ datatype T =
 
 (** output text **)
 
-val output_spaces = Symbol.output o Symbol.spaces;
+val output_spaces = Output.output o Symbol.spaces;
 val add_indent = Buffer.add o output_spaces;
 fun set_indent wd = Buffer.empty |> add_indent wd;
 
@@ -80,7 +95,7 @@ val empty =
   nl = 0};
 
 fun newline {tx, ind, pos, nl} =
- {tx = Buffer.add (Symbol.output "\n") tx,
+ {tx = Buffer.add (Output.output "\n") tx,
   ind = Buffer.empty,
   pos = 0,
   nl = nl + 1};
@@ -95,7 +110,7 @@ fun blanks wd = string (output_spaces wd, wd);
 
 fun indentation (buf, len) {tx, ind, pos, nl} =
   let val s = Buffer.content buf in
-   {tx = Buffer.add (Symbol.indent (s, len)) tx,
+   {tx = Buffer.add (Output.indent (s, len)) tx,
     ind = Buffer.add s ind,
     pos = pos + len,
     nl = nl}
@@ -162,14 +177,14 @@ fun format ([], _, _) text = text
           end);
 
 
-(*** Exported functions to create formatting expressions ***)
+(** Exported functions to create formatting expressions **)
 
 fun length (Block (_, _, len)) = len
   | length (String (_, len)) = len
   | length (Break(_, wd)) = wd;
 
 fun raw_str (s, len) = String (s, Real.round len);
-val str = String o apsnd Real.round o Symbol.output_width;
+val str = String o apsnd Real.round o Output.output_width;
 
 fun brk wd = Break (false, wd);
 val fbrk = Break (true, 2);
@@ -179,6 +194,10 @@ fun blk (indent, es) =
     fun sum([], k) = k
       | sum(e :: es, k) = sum (es, length e + k);
   in Block (es, indent, sum (es, 0)) end;
+
+fun unbreakable (Break (_, wd)) = String (output_spaces wd, wd)
+  | unbreakable (Block (es, indent, wd)) = Block (map unbreakable es, indent, wd)
+  | unbreakable (e as String _) = e;
 
 
 (* utils *)
@@ -208,7 +227,8 @@ fun indent 0 prt = prt
   | indent n prt = blk (0, [str (Symbol.spaces n), prt]);
 
 
-(*** Pretty printing with depth limitation ***)
+
+(** Pretty printing with depth limitation **)
 
 val depth       = ref 0;        (*maximum depth; 0 means no limit*)
 
@@ -222,7 +242,10 @@ fun pruning dp (Block(bes,indent,wd)) =
 
 fun prune dp e = if dp > 0 then pruning dp e else e;
 
-fun string_of e = Buffer.content (#tx (format ([prune (! depth) e], (Buffer.empty, 0), 0) empty));
+fun string_of e =
+  Buffer.content (#tx (format ([prune (! depth) e], (Buffer.empty, 0), 0) empty))
+  |> Output.raw;
+
 val writeln = writeln o string_of;
 fun writelns [] = () | writelns es = writeln (chunks es);
 
@@ -234,7 +257,7 @@ fun str_of prt =
       | s_of (String (s, _)) = s
       | s_of (Break (false, wd)) = output_spaces wd
       | s_of (Break (true, _)) = output_spaces 1;
-  in s_of (prune (! depth) prt) end;
+  in Output.raw (s_of (prune (! depth) prt)) end;
 
 (*part of the interface to the ML toplevel pretty printers*)
 fun pprint prt (put_str, begin_blk, put_brk, put_fbrk, end_blk) =
@@ -249,5 +272,31 @@ fun pprint prt (put_str, begin_blk, put_brk, put_fbrk, end_blk) =
     pp (prune (! depth) prt)
   end;
 
+
+
+(** abstract pretty printing context **)
+
+datatype pp =
+  PP of (term -> T) * (typ -> T) * (sort -> T) * (class list -> T) * (arity -> T);
+
+fun pp f1 f2 f3 f4 f5 = PP (f1, f2, f3, f4, f5);
+
+fun pp_fun f (PP x) = f x;
+
+val term     = pp_fun #1;
+val typ      = pp_fun #2;
+val sort     = pp_fun #3;
+val classrel = pp_fun #4;
+val arity    = pp_fun #5;
+
+val string_of_term     = string_of oo term;
+val string_of_typ      = string_of oo typ;
+val string_of_sort     = string_of oo sort;
+val string_of_classrel = string_of oo classrel;
+val string_of_arity    = string_of oo arity;
+
+fun undef kind _ = str ("*** UNABLE TO PRINT " ^ kind ^ " ***");
+val pp_undef =
+  pp (undef "term") (undef "typ") (undef "sort") (undef "classrel") (undef "arity");
 
 end;
