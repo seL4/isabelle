@@ -26,14 +26,14 @@ inductive par_beta
   intros
     var [simp, intro!]: "Var n => Var n"
     abs [simp, intro!]: "s => t ==> Abs s => Abs t"
-    app [simp, intro!]: "[| s => s'; t => t' |] ==> s $ t => s' $ t'"
-    beta [simp, intro!]: "[| s => s'; t => t' |] ==> (Abs s) $ t => s'[t'/0]"
+    app [simp, intro!]: "[| s => s'; t => t' |] ==> s \<degree> t => s' \<degree> t'"
+    beta [simp, intro!]: "[| s => s'; t => t' |] ==> (Abs s) \<degree> t => s'[t'/0]"
 
 inductive_cases par_beta_cases [elim!]:
   "Var n => t"
   "Abs s => Abs t"
-  "(Abs s) $ t => u"
-  "s $ t => u"
+  "(Abs s) \<degree> t => u"
+  "s \<degree> t => u"
   "Abs s => t"
 
 
@@ -105,9 +105,9 @@ consts
   "cd" :: "dB => dB"
 recdef "cd" "measure size"
   "cd (Var n) = Var n"
-  "cd (Var n $ t) = Var n $ cd t"
-  "cd ((s1 $ s2) $ t) = cd (s1 $ s2) $ cd t"
-  "cd (Abs u $ t) = (cd u)[cd t/0]"
+  "cd (Var n \<degree> t) = Var n \<degree> cd t"
+  "cd ((s1 \<degree> s2) \<degree> t) = cd (s1 \<degree> s2) \<degree> cd t"
+  "cd (Abs u \<degree> t) = (cd u)[cd t/0]"
   "cd (Abs s) = Abs (cd s)"
 
 lemma par_beta_cd [rule_format]:

@@ -15,7 +15,7 @@ consts
   free :: "dB => nat => bool"
 primrec
   "free (Var j) i = (j = i)"
-  "free (s $ t) i = (free s i \<or> free t i)"
+  "free (s \<degree> t) i = (free s i \<or> free t i)"
   "free (Abs s) i = free s (i + 1)"
 
 consts
@@ -32,14 +32,14 @@ translations
 
 inductive eta
   intros
-    eta [simp, intro]: "\<not> free s 0 ==> Abs (s $ Var 0) -e> s[dummy/0]"
-    appL [simp, intro]: "s -e> t ==> s $ u -e> t $ u"
-    appR [simp, intro]: "s -e> t ==> u $ s -e> u $ t"
+    eta [simp, intro]: "\<not> free s 0 ==> Abs (s \<degree> Var 0) -e> s[dummy/0]"
+    appL [simp, intro]: "s -e> t ==> s \<degree> u -e> t \<degree> u"
+    appR [simp, intro]: "s -e> t ==> u \<degree> s -e> u \<degree> t"
     abs [simp, intro]: "s -e> t ==> Abs s -e> Abs t"
 
 inductive_cases eta_cases [elim!]:
   "Abs s -e> z"
-  "s $ t -e> u"
+  "s \<degree> t -e> u"
   "Var i -e> t"
 
 
@@ -118,18 +118,18 @@ lemma rtrancl_eta_Abs: "s -e>> s' ==> Abs s -e>> Abs s'"
    apply (blast intro: rtrancl_refl rtrancl_into_rtrancl)+
   done
 
-lemma rtrancl_eta_AppL: "s -e>> s' ==> s $ t -e>> s' $ t"
+lemma rtrancl_eta_AppL: "s -e>> s' ==> s \<degree> t -e>> s' \<degree> t"
   apply (erule rtrancl_induct)
    apply (blast intro: rtrancl_refl rtrancl_into_rtrancl)+
   done
 
-lemma rtrancl_eta_AppR: "t -e>> t' ==> s $ t -e>> s $ t'"
+lemma rtrancl_eta_AppR: "t -e>> t' ==> s \<degree> t -e>> s \<degree> t'"
   apply (erule rtrancl_induct)
    apply (blast intro: rtrancl_refl rtrancl_into_rtrancl)+
   done
 
 lemma rtrancl_eta_App:
-    "[| s -e>> s'; t -e>> t' |] ==> s $ t -e>> s' $ t'"
+    "[| s -e>> s'; t -e>> t' |] ==> s \<degree> t -e>> s' \<degree> t'"
   apply (blast intro!: rtrancl_eta_AppL rtrancl_eta_AppR intro: rtrancl_trans)
   done
 
@@ -189,7 +189,7 @@ lemma confluent_beta_eta: "confluent (beta \<union> eta)"
 
 subsection "Implicit definition of eta"
 
-text {* @{term "Abs (lift s 0 $ Var 0) -e> s"} *}
+text {* @{term "Abs (lift s 0 \<degree> Var 0) -e> s"} *}
 
 lemma not_free_iff_lifted [rule_format]:
     "\<forall>i. (\<not> free s i) = (\<exists>t. s = lift t i)"
@@ -218,7 +218,7 @@ lemma not_free_iff_lifted [rule_format]:
    apply (rule iffI)
     apply (elim conjE exE)
     apply (rename_tac u1 u2)
-    apply (rule_tac x = "u1 $ u2" in exI)
+    apply (rule_tac x = "u1 \<degree> u2" in exI)
     apply simp
    apply (erule exE)
    apply (erule rev_mp)
@@ -244,8 +244,8 @@ lemma not_free_iff_lifted [rule_format]:
   done
 
 theorem explicit_is_implicit:
-  "(\<forall>s u. (\<not> free s 0) --> R (Abs (s $ Var 0)) (s[u/0])) =
-    (\<forall>s. R (Abs (lift s 0 $ Var 0)) s)"
+  "(\<forall>s u. (\<not> free s 0) --> R (Abs (s \<degree> Var 0)) (s[u/0])) =
+    (\<forall>s. R (Abs (lift s 0 \<degree> Var 0)) s)"
   apply (auto simp add: not_free_iff_lifted)
   done
 

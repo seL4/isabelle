@@ -19,16 +19,16 @@ consts
 
 inductive IT
   intros
-    Var [intro]: "rs : lists IT ==> Var n $$ rs : IT"
+    Var [intro]: "rs : lists IT ==> Var n \<degree>\<degree> rs : IT"
     Lambda [intro]: "r : IT ==> Abs r : IT"
-    Beta [intro]: "(r[s/0]) $$ ss : IT ==> s : IT ==> (Abs r $ s) $$ ss : IT"
+    Beta [intro]: "(r[s/0]) \<degree>\<degree> ss : IT ==> s : IT ==> (Abs r \<degree> s) \<degree>\<degree> ss : IT"
 
 
 subsection {* Every term in IT terminates *}
 
 lemma double_induction_lemma [rule_format]:
   "s : termi beta ==> \<forall>t. t : termi beta -->
-    (\<forall>r ss. t = r[s/0] $$ ss --> Abs r $ s $$ ss : termi beta)"
+    (\<forall>r ss. t = r[s/0] \<degree>\<degree> ss --> Abs r \<degree> s \<degree>\<degree> ss : termi beta)"
   apply (erule acc_induct)
   apply (erule thin_rl)
   apply (rule allI)
@@ -65,19 +65,19 @@ subsection {* Every terminating term is in IT *}
 
 declare Var_apps_neq_Abs_apps [THEN not_sym, simp]
 
-lemma [simp, THEN not_sym, simp]: "Var n $$ ss \<noteq> Abs r $ s $$ ts"
+lemma [simp, THEN not_sym, simp]: "Var n \<degree>\<degree> ss \<noteq> Abs r \<degree> s \<degree>\<degree> ts"
   apply (simp add: foldl_Cons [symmetric] del: foldl_Cons)
   done
 
 lemma [simp]:
-  "(Abs r $ s $$ ss = Abs r' $ s' $$ ss') = (r = r' \<and> s = s' \<and> ss = ss')"
+  "(Abs r \<degree> s \<degree>\<degree> ss = Abs r' \<degree> s' \<degree>\<degree> ss') = (r = r' \<and> s = s' \<and> ss = ss')"
   apply (simp add: foldl_Cons [symmetric] del: foldl_Cons)
   done
 
 inductive_cases [elim!]:
-  "Var n $$ ss : IT"
+  "Var n \<degree>\<degree> ss : IT"
   "Abs t : IT"
-  "Abs r $ s $$ ts : IT"
+  "Abs r \<degree> s \<degree>\<degree> ts : IT"
 
 theorem termi_implies_IT: "r : termi beta ==> r : IT"
   apply (erule acc_induct)
@@ -96,7 +96,7 @@ theorem termi_implies_IT: "r : termi beta ==> r : IT"
    apply (drule ex_step1I, assumption)
    apply clarify
    apply (rename_tac us)
-   apply (erule_tac x = "Var n $$ us" in allE)
+   apply (erule_tac x = "Var n \<degree>\<degree> us" in allE)
    apply force
    apply (rename_tac u ts)
    apply (case_tac ts)
@@ -110,7 +110,7 @@ theorem termi_implies_IT: "r : termi beta ==> r : IT"
    apply (erule mp)
    apply clarify
    apply (rename_tac t)
-   apply (erule_tac x = "Abs u $ t $$ ss" in allE)
+   apply (erule_tac x = "Abs u \<degree> t \<degree>\<degree> ss" in allE)
    apply force
    done
 

@@ -13,11 +13,8 @@ subsection {* Lambda-terms in de Bruijn notation and substitution *}
 
 datatype dB =
     Var nat
-  | App dB dB (infixl "$" 200)
+  | App dB dB (infixl "\<degree>" 200)
   | Abs dB
-
-syntax (symbols)
-  App :: "dB => dB => dB"    (infixl "\<^sub>\<degree>" 200)
 
 consts
   subst :: "[dB, dB, nat] => dB"  ("_[_'/_]" [300, 0, 0] 300)
@@ -25,13 +22,13 @@ consts
 
 primrec
   "lift (Var i) k = (if i < k then Var i else Var (i + 1))"
-  "lift (s $ t) k = lift s k $ lift t k"
+  "lift (s \<degree> t) k = lift s k \<degree> lift t k"
   "lift (Abs s) k = Abs (lift s (k + 1))"
 
 primrec  (* FIXME base names *)
   subst_Var: "(Var i)[s/k] =
     (if k < i then Var (i - 1) else if i = k then s else Var i)"
-  subst_App: "(t $ u)[s/k] = t[s/k] $ u[s/k]"
+  subst_App: "(t \<degree> u)[s/k] = t[s/k] \<degree> u[s/k]"
   subst_Abs: "(Abs t)[s/k] = Abs (t[lift s 0 / k+1])"
 
 declare subst_Var [simp del]
@@ -44,13 +41,13 @@ consts
 
 primrec
   "liftn n (Var i) k = (if i < k then Var i else Var (i + n))"
-  "liftn n (s $ t) k = liftn n s k $ liftn n t k"
+  "liftn n (s \<degree> t) k = liftn n s k \<degree> liftn n t k"
   "liftn n (Abs s) k = Abs (liftn n s (k + 1))"
 
 primrec
   "substn (Var i) s k =
     (if k < i then Var (i - 1) else if i = k then liftn k s 0 else Var i)"
-  "substn (t $ u) s k = substn t s k $ substn u s k"
+  "substn (t \<degree> u) s k = substn t s k \<degree> substn u s k"
   "substn (Abs t) s k = Abs (substn t s (k + 1))"
 
 
@@ -68,15 +65,15 @@ translations
 
 inductive beta
   intros
-    beta [simp, intro!]: "Abs s $ t -> s[t/0]"
-    appL [simp, intro!]: "s -> t ==> s $ u -> t $ u"
-    appR [simp, intro!]: "s -> t ==> u $ s -> u $ t"
+    beta [simp, intro!]: "Abs s \<degree> t -> s[t/0]"
+    appL [simp, intro!]: "s -> t ==> s \<degree> u -> t \<degree> u"
+    appR [simp, intro!]: "s -> t ==> u \<degree> s -> u \<degree> t"
     abs [simp, intro!]: "s -> t ==> Abs s -> Abs t"
 
 inductive_cases beta_cases [elim!]:
   "Var i -> t"
   "Abs r -> s"
-  "s $ t -> u"
+  "s \<degree> t -> u"
 
 declare if_not_P [simp] not_less_eq [simp]
   -- {* don't add @{text "r_into_rtrancl[intro!]"} *}
@@ -91,19 +88,19 @@ lemma rtrancl_beta_Abs [intro!]:
   done
 
 lemma rtrancl_beta_AppL:
-    "s ->> s' ==> s $ t ->> s' $ t"
+    "s ->> s' ==> s \<degree> t ->> s' \<degree> t"
   apply (erule rtrancl_induct)
    apply (blast intro: rtrancl_into_rtrancl)+
   done
 
 lemma rtrancl_beta_AppR:
-    "t ->> t' ==> s $ t ->> s $ t'"
+    "t ->> t' ==> s \<degree> t ->> s \<degree> t'"
   apply (erule rtrancl_induct)
    apply (blast intro: rtrancl_into_rtrancl)+
   done
 
 lemma rtrancl_beta_App [intro]:
-    "[| s ->> s'; t ->> t' |] ==> s $ t ->> s' $ t'"
+    "[| s ->> s'; t ->> t' |] ==> s \<degree> t ->> s' \<degree> t'"
   apply (blast intro!: rtrancl_beta_AppL rtrancl_beta_AppR
     intro: rtrancl_trans)
   done
