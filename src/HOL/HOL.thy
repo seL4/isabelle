@@ -7,7 +7,8 @@ Higher-Order Logic.
 *)
 
 theory HOL = CPure
-files ("HOL_lemmas.ML") ("cladata.ML") ("blastdata.ML") ("simpdata.ML"):
+files ("HOL_lemmas.ML") ("cladata.ML") ("blastdata.ML") ("simpdata.ML") 
+      ("Tools/meson.ML"):
 
 
 (** Core syntax **)
@@ -220,5 +221,7 @@ use "simpdata.ML"	setup Simplifier.setup
 			setup "Simplifier.method_setup Splitter.split_modifiers" setup simpsetup
                         setup Splitter.setup setup Clasimp.setup setup iff_attrib_setup
 			setup attrib_setup
+
+use "Tools/meson.ML"
 
 end
