@@ -187,37 +187,15 @@ structure Induction = InductionFun(struct val spec=IFOL.spec end);
 
 open Simplifier Induction;
 
-(*** Integration of simplifier with classical reasoner ***)
-
-(*Add a simpset to a classical set!*)
-infix 4 addss;
-fun cs addss ss = cs addbefore asm_full_simp_tac ss 1;
-
-fun Addss ss = (claset := !claset addbefore asm_full_simp_tac ss 1);
-
-(*Designed to be idempotent, except if best_tac instantiates variables
-  in some of the subgoals*)
-fun auto_tac (cs,ss) = 
-    ALLGOALS (asm_full_simp_tac ss) THEN
-    REPEAT (safe_tac cs THEN ALLGOALS (asm_full_simp_tac ss)) THEN
-    REPEAT (FIRSTGOAL (best_tac (cs addss ss))) THEN
-    prune_params_tac;
-
-fun Auto_tac() = auto_tac (!claset, !simpset);
-
-fun auto() = by (Auto_tac());
-
-
 (*Add congruence rules for = or <-> (instead of ==) *)
-infix 4 addcongs;
+infix 4 addcongs delcongs;
 fun ss addcongs congs =
         ss addeqcongs (congs RL [eq_reflection,iff_reflection]);
+fun ss delcongs congs =
+        ss deleqcongs (congs RL [eq_reflection,iff_reflection]);
 
 fun Addcongs congs = (simpset := !simpset addcongs congs);
-
-(*Add a simpset to a classical set!*)
-infix 4 addss;
-fun cs addss ss = cs addbefore asm_full_simp_tac ss 1;
+fun Delcongs congs = (simpset := !simpset delcongs congs);
 
 val IFOL_simps =
    [refl RS P_iff_T] @ conj_simps @ disj_simps @ not_simps @ 
@@ -226,15 +204,19 @@ val IFOL_simps =
 val notFalseI = int_prove_fun "~False";
 val triv_rls = [TrueI,refl,iff_refl,notFalseI];
 
-val IFOL_ss = 
-  empty_ss 
-  setmksimps (map mk_meta_eq o atomize o gen_all)
-  setsolver  (fn prems => resolve_tac (triv_rls@prems) 
-                          ORELSE' assume_tac
-                          ORELSE' etac FalseE)
-  setsubgoaler asm_simp_tac
-  addsimps IFOL_simps
-  addcongs [imp_cong];
+fun unsafe_solver prems = FIRST'[resolve_tac (triv_rls@prems),
+				 atac, etac FalseE];
+(*No premature instantiation of variables during simplification*)
+fun   safe_solver prems = FIRST'[match_tac (triv_rls@prems),
+				 eq_assume_tac, ematch_tac [FalseE]];
+
+val FOL_basic_ss = empty_ss setsubgoaler asm_simp_tac
+			    setSSolver   safe_solver
+			    setSolver  unsafe_solver
+			    setmksimps (map mk_meta_eq o atomize o gen_all);
+
+val IFOL_ss = FOL_basic_ss addsimps IFOL_simps
+			   addcongs [imp_cong];
 
 val cla_simps = 
     [de_Morgan_conj, de_Morgan_disj, not_all, not_ex, cases_simp] @
@@ -267,3 +249,79 @@ end;
 
 
 add_thy_reader_file "thy_data.ML";
+
+
+
+
+(*** Integration of simplifier with classical reasoner ***)
+
+(* rot_eq_tac rotates the first equality premise of subgoal i to the front,
+   fails if there is no equaliy or if an equality is already at the front *)
+fun rot_eq_tac i = let
+  fun is_eq (Const ("Trueprop", _) $ (Const("op ="  ,_) $ _ $ _)) = true
+  |   is_eq (Const ("Trueprop", _) $ (Const("op <->",_) $ _ $ _)) = true
+  |   is_eq _ = false;
+  fun find_eq n [] = None
+  |   find_eq n (t :: ts) = if (is_eq t) then Some n else find_eq (n + 1) ts;
+  fun rot_eq state = let val (_, _, Bi, _) = dest_state (state, i) in
+	    (case find_eq 0 (Logic.strip_assums_hyp Bi) of
+	      None   => no_tac
+	    | Some 0 => no_tac
+	    | Some n => rotate_tac n i) end;
+in STATE rot_eq end;
+
+
+fun safe_asm_more_full_simp_tac ss = TRY o rot_eq_tac THEN' 
+				     safe_asm_full_simp_tac ss;
+(*an unsatisfactory fix for the incomplete asm_full_simp_tac!
+  better: asm_really_full_simp_tac, a yet to be implemented version of
+			asm_full_simp_tac that applies all equalities in the
+			premises to all the premises *)
+
+(*Add a simpset to a classical set!*)
+infix 4 addss;
+fun cs addss ss = cs addSaltern (CHANGED o (safe_asm_more_full_simp_tac ss));
+
+(*old version, for compatibility with unstable old proofs*)
+infix 4 unsafe_addss;
+fun cs unsafe_addss ss = cs addbefore asm_full_simp_tac ss;
+
+fun Addss ss = (claset := !claset addss ss);
+
+(*Designed to be idempotent, except if best_tac instantiates variables
+  in some of the subgoals*)
+(*old version, for compatibility with unstable old proofs*)
+fun unsafe_auto_tac (cs,ss) = 
+    ALLGOALS (asm_full_simp_tac ss) THEN
+    REPEAT (safe_tac cs THEN ALLGOALS (asm_full_simp_tac ss)) THEN
+    REPEAT (FIRSTGOAL (best_tac (cs addss ss))) THEN
+    prune_params_tac;
+
+type clasimpset = (claset * simpset);
+
+val FOL_css = (FOL_cs, FOL_ss);
+
+fun pair_upd1 f ((a,b),x) = (f(a,x), b);
+fun pair_upd2 f ((a,b),x) = (a, f(b,x));
+
+infix 4 addSIs2 addSEs2 addSDs2 addIs2 addEs2 addDs2
+	addsimps2 delsimps2 addcongs2 delcongs2;
+val op addSIs2   = pair_upd1 (op addSIs);
+val op addSEs2   = pair_upd1 (op addSEs);
+val op addSDs2   = pair_upd1 (op addSDs);
+val op addIs2    = pair_upd1 (op addIs );
+val op addEs2    = pair_upd1 (op addEs );
+val op addDs2    = pair_upd1 (op addDs );
+val op addsimps2 = pair_upd2 (op addsimps);
+val op delsimps2 = pair_upd2 (op delsimps);
+val op addcongs2 = pair_upd2 (op addcongs);
+val op delcongs2 = pair_upd2 (op delcongs);
+
+fun auto_tac (cs,ss) = let val cs' = cs addss ss in
+EVERY [	TRY (safe_tac cs'),
+	REPEAT (FIRSTGOAL (fast_tac cs')),
+	prune_params_tac] end;
+
+fun Auto_tac () = auto_tac (!claset, !simpset);
+
+fun auto () = by (Auto_tac ());
