@@ -34,7 +34,7 @@ qed_goal "trE" thy
 (* tactic for tr-thms with case split                                       *)
 (* ------------------------------------------------------------------------ *)
 
-val tr_defs = [andalso_def,orelse_def,neg_def,ifte_def,TT_def,FF_def];
+bind_thms ("tr_defs", [andalso_def,orelse_def,neg_def,ifte_def,TT_def,FF_def]);
 
 fun prover t =  prove_goal thy t
  (fn prems =>
@@ -48,45 +48,45 @@ fun prover t =  prove_goal thy t
 (* distinctness for type tr                                                 *) 
 (* ------------------------------------------------------------------------ *)
 
-val dist_less_tr = map prover [
+bind_thms ("dist_less_tr", map prover [
 			"~TT << UU",
 			"~FF << UU",
 			"~TT << FF",
 			"~FF << TT"
-                        ];
+                        ]);
 
 val dist_eq_tr = map prover ["TT~=UU","FF~=UU","TT~=FF"];
-val dist_eq_tr = dist_eq_tr @ (map (fn thm => (thm RS not_sym)) dist_eq_tr);
+bind_thms ("dist_eq_tr", dist_eq_tr @ (map (fn thm => (thm RS not_sym)) dist_eq_tr));
 
 (* ------------------------------------------------------------------------ *) 
 (* lemmas about andalso, orelse, neg and if                                 *) 
 (* ------------------------------------------------------------------------ *)
 
-val andalso_thms = map prover [
+bind_thms ("andalso_thms", map prover [
                         "(TT andalso y) = y",
                         "(FF andalso y) = FF",
                         "(UU andalso y) = UU",
 			"(y andalso TT) = y",
 		  	"(y andalso y) = y"
-                        ];
+                        ]);
 
-val orelse_thms = map prover [
+bind_thms ("orelse_thms", map prover [
                         "(TT orelse y) = TT",
                         "(FF orelse y) = y",
                         "(UU orelse y) = UU",
                         "(y orelse FF) = y",
-			"(y orelse y) = y"];
+			"(y orelse y) = y"]);
 
-val neg_thms = map prover [
+bind_thms ("neg_thms", map prover [
                         "neg`TT = FF",
                         "neg`FF = TT",
                         "neg`UU = UU"
-                        ];
+                        ]);
 
-val ifte_thms = map prover [
+bind_thms ("ifte_thms", map prover [
                         "If UU then e1 else e2 fi = UU",
                         "If FF then e1 else e2 fi = e2",
-                        "If TT then e1 else e2 fi = e1"];
+                        "If TT then e1 else e2 fi = e1"]);
 
 Addsimps (dist_less_tr @ dist_eq_tr @ andalso_thms @ 
 	  orelse_thms @ neg_thms @ ifte_thms);
@@ -173,7 +173,7 @@ by (res_inst_tac [("p","x")] trE 1);
 by (TRYALL (Asm_full_simp_tac));
 qed"adm_trick_2";
 
-val adm_tricks = [adm_trick_1,adm_trick_2];
+bind_thms ("adm_tricks", [adm_trick_1,adm_trick_2]);
 
 
 Goal "cont(f) ==> adm (%x. (f x)~=TT)";
