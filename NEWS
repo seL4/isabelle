@@ -7,9 +7,14 @@ New in this Isabelle version
 
 *** General Changes ***
 
-* Simplifier:
+* new toplevel commands `Goal' and `Goalw' that improve upon `goal'
+and `goalw': the theory is no longer needed as an explicit argument -
+the current theory is used; assumptions are no longer returned at the
+ML-level unless one of them starts with ==> or !!; it is recommended
+to convert to these new commands using isatool fixgoal (as usual,
+backup your sources first!);
 
- -Asm_full_simp_tac is now more aggressive:
+* Simplifier: Asm_full_simp_tac is now more aggressive.
   1. It will sometimes reorient premises if that increases their power to
      simplify.
   2. It does no longer proceed strictly from left to right but may also
@@ -29,24 +34,11 @@ warning).
   delWrapper, delSWrapper: claset *  string            -> claset
   getWrapper is renamed to appWrappers, getSWrapper to appSWrappers;
 
-* new toplevel commands `Goal' and `Goalw' that improve upon `goal' and
-`goalw': the theory is no longer needed as an explicit argument - the current
-theory is used; assumptions are no longer returned at the ML-level unless one
-of them starts with ==> or !!. It is recommended to convert to these new
-commands.
-
 * inductive definitions now handle disjunctive premises correctly (HOL
 and ZF);
 
 * new toplevel commands 'thm' and 'thms' for retrieving theorems from
 the current theory context;
-
-* new toplevel commands `Goal' and `Goalw' that improve upon `goal'
-and `goalw': the theory is no longer needed as an explicit argument -
-the current theory is used; assumptions are no longer returned at the
-ML-level unless one of them starts with ==> or !!; it is recommended
-to convert to these new commands using isatool fixgoal (as usual,
-backup your sources first!);
 
 * new theory section 'nonterminals';
 
