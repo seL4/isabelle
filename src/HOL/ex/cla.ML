@@ -386,7 +386,7 @@ by (res_inst_tac [("x","a")] allE 1);
 by (assume_tac 1);
 by (res_inst_tac [("x","b")] allE 1);
 by (assume_tac 1);
-by (Blast_tac 1);
+by (Fast_tac 1);    (*Blast_tac's treatment of equality can't do it*)
 result();
 
 writeln"Problem 50";  

@@ -418,7 +418,7 @@ qed "elab_elim";
 fun elab_e_elim_tac p = 
   ( (rtac elab_elim 1) THEN 
     (resolve_tac p 1) THEN 
-    (REPEAT (blast_tac (e_ext_cs HOL_cs) 1))
+    (REPEAT (fast_tac (e_ext_cs HOL_cs) 1))
   );
 
 val prems = goal MT.thy "te |- e ===> t ==> (e = e_const(c) --> c isof t)";
