@@ -8,13 +8,12 @@
 
 default: HOL
 images: HOL HOL-Real TLA
-test: HOL-Isar_examples HOL-Induct HOL-Lambda HOL-ex HOL-Subst HOL-IMP HOL-IMPP \
-  HOL-NumberTheory HOL-Hoare HOL-Lex HOL-Algebra \
-  HOL-Auth HOL-UNITY HOL-Modelcheck \
-  HOL-Prolog HOL-W0 HOL-MiniML HOL-BCV HOL-MicroJava \
-  HOL-IOA HOL-AxClasses-Group HOL-AxClasses-Lattice \
-  HOL-AxClasses-Tutorial HOL-Real-ex \
-  HOL-Real-HahnBanach TLA-Inc TLA-Buffer TLA-Memory
+
+test: HOL-Isar_examples HOL-Induct HOL-Lambda HOL-AxClasses HOL-ex HOL-Subst HOL-IMP \
+  HOL-IMPP HOL-NumberTheory HOL-Hoare HOL-Lex HOL-Algebra HOL-Auth \
+  HOL-UNITY HOL-Modelcheck HOL-Prolog HOL-W0 HOL-MiniML HOL-BCV \
+  HOL-MicroJava HOL-IOA HOL-Real-ex HOL-Real-HahnBanach \
+  TLA-Inc TLA-Buffer TLA-Memory
 
 all: images test
 
@@ -398,42 +397,13 @@ $(LOG)/HOL-IOA.gz: $(OUT)/HOL IOA/Asig.ML IOA/Asig.thy IOA/IOA.ML \
 	@$(ISATOOL) usedir $(OUT)/HOL IOA
 
 
-## HOL-AxClasses-Group
+## HOL-AxClasses
 
-HOL-AxClasses-Group: HOL $(LOG)/HOL-AxClasses-Group.gz
+HOL-AxClasses: HOL $(LOG)/HOL-AxClasses.gz
 
-$(LOG)/HOL-AxClasses-Group.gz: $(OUT)/HOL AxClasses/Group/Group.ML \
-  AxClasses/Group/Group.thy AxClasses/Group/GroupDefs.ML \
-  AxClasses/Group/GroupDefs.thy AxClasses/Group/GroupInsts.thy \
-  AxClasses/Group/Monoid.thy AxClasses/Group/MonoidGroupInsts.thy \
-  AxClasses/Group/ROOT.ML AxClasses/Group/Sigs.thy
-	@$(ISATOOL) usedir -s AxClasses-Group $(OUT)/HOL AxClasses/Group
-
-
-## HOL-AxClasses-Lattice
-
-HOL-AxClasses-Lattice: HOL $(LOG)/HOL-AxClasses-Lattice.gz
-
-$(LOG)/HOL-AxClasses-Lattice.gz: $(OUT)/HOL AxClasses/Lattice/CLattice.ML \
-  AxClasses/Lattice/CLattice.thy AxClasses/Lattice/LatInsts.ML \
-  AxClasses/Lattice/LatInsts.thy AxClasses/Lattice/LatMorph.ML \
-  AxClasses/Lattice/LatMorph.thy AxClasses/Lattice/LatPreInsts.ML \
-  AxClasses/Lattice/LatPreInsts.thy AxClasses/Lattice/Lattice.ML \
-  AxClasses/Lattice/Lattice.thy AxClasses/Lattice/OrdDefs.ML \
-  AxClasses/Lattice/OrdDefs.thy AxClasses/Lattice/OrdInsts.thy \
-  AxClasses/Lattice/Order.ML AxClasses/Lattice/Order.thy \
-  AxClasses/Lattice/ROOT.ML
-	@$(ISATOOL) usedir -s AxClasses-Lattice $(OUT)/HOL AxClasses/Lattice
-
-
-## HOL-AxClasses-Tutorial
-
-HOL-AxClasses-Tutorial: HOL $(LOG)/HOL-AxClasses-Tutorial.gz
-
-$(LOG)/HOL-AxClasses-Tutorial.gz: $(OUT)/HOL \
-  AxClasses/Tutorial/Group.thy AxClasses/Tutorial/Product.thy \
-  AxClasses/Tutorial/ROOT.ML AxClasses/Tutorial/Semigroups.thy
-	@$(ISATOOL) usedir -s AxClasses-Tutorial $(OUT)/HOL AxClasses/Tutorial
+$(LOG)/HOL-AxClasses.gz: $(OUT)/HOL AxClasses/Group.thy \
+  AxClasses/Product.thy AxClasses/ROOT.ML AxClasses/Semigroups.thy
+	@$(ISATOOL) usedir $(OUT)/HOL AxClasses
 
 
 ## HOL-ex
@@ -531,8 +501,7 @@ clean:
 		$(LOG)/HOL-Modelcheck.gz $(LOG)/HOL-Lambda.gz \
 		$(LOG)/HOL-W0.gz $(LOG)/HOL-MiniML.gz \
 		$(LOG)/HOL-BCV.gz $(LOG)/HOL-MicroJava.gz \
-		$(LOG)/HOL-IOA.gz $(LOG)/HOL-AxClasses-Group.gz \
-		$(LOG)/HOL-AxClasses-Lattice.gz	\
-		$(LOG)/HOL-AxClasses-Tutorial.gz $(LOG)/HOL-Real-ex.gz \
+		$(LOG)/HOL-IOA.gz $(LOG)/HOL-AxClasses \
+		$(LOG)/HOL-Real-ex.gz \
 		$(LOG)/HOL-Real-HahnBanach.gz $(LOG)/TLA-Inc.gz \
 		$(LOG)/TLA-Buffer.gz $(LOG)/TLA-Memory.gz
