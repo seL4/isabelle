@@ -77,7 +77,9 @@ by (rtac exI 1);
 by (etac id_subset_inj 1);
 qed "subset_imp_lepoll";
 
-val lepoll_refl = subset_refl RS subset_imp_lepoll;
+bind_thm ("lepoll_refl", subset_refl RS subset_imp_lepoll);
+
+bind_thm ("le_imp_lepoll", le_imp_subset RS subset_imp_lepoll);
 
 goalw Cardinal.thy [eqpoll_def, bij_def, lepoll_def]
     "!!X Y. X eqpoll Y ==> X lepoll Y";
@@ -114,11 +116,38 @@ qed "lepoll_0_is_0";
 (*0 lepoll Y*)
 bind_thm ("empty_lepollI", empty_subsetI RS subset_imp_lepoll);
 
+goal Cardinal.thy "A lepoll 0 <-> A=0";
+by (fast_tac (ZF_cs addIs [lepoll_0_is_0, lepoll_refl]) 1);
+qed "lepoll_0_iff";
+
 (*A eqpoll 0 ==> A=0*)
 bind_thm ("eqpoll_0_is_0",  eqpoll_imp_lepoll RS lepoll_0_is_0);
 
+goal Cardinal.thy "A eqpoll 0 <-> A=0";
+by (fast_tac (ZF_cs addIs [eqpoll_0_is_0, eqpoll_refl]) 1);
+qed "eqpoll_0_iff";
+
+goalw Cardinal.thy [eqpoll_def] 
+    "!!A. [| A eqpoll B;  C eqpoll D;  A Int C = 0;  B Int D = 0 |] ==> \
+\         A Un C eqpoll B Un D";
+by (fast_tac (ZF_cs addIs [bij_disjoint_Un]) 1);
+qed "eqpoll_disjoint_Un";
+
 
 (*** lesspoll: contributions by Krzysztof Grabczewski ***)
+
+goalw Cardinal.thy [lesspoll_def] "!!A. A lesspoll B ==> A lepoll B";
+by (fast_tac ZF_cs 1);
+qed "lesspoll_imp_lepoll";
+
+goalw Cardinal.thy [lepoll_def]
+        "!!A. [| A lepoll B; well_ord(B,r) |] ==> EX s. well_ord(A,s)";
+by (fast_tac (ZF_cs addSEs [well_ord_rvimage]) 1);
+qed "lepoll_well_ord";
+
+goalw Cardinal.thy [lesspoll_def] "A lepoll B <-> A lesspoll B | A eqpoll B";
+by (fast_tac (ZF_cs addSIs [eqpollI] addSEs [eqpollE]) 1);
+qed "lepoll_iff_leqpoll";
 
 goalw Cardinal.thy [inj_def, surj_def] 
   "!!f. [| f : inj(A, succ(m)); f ~: surj(A, succ(m)) |] ==> EX f. f:inj(A,m)";
@@ -221,8 +250,8 @@ val prems = goal Cardinal.thy
 by (simp_tac (FOL_ss addsimps prems) 1);
 qed "Least_cong";
 
-(*Need AC to prove   X lepoll Y ==> |X| le |Y| ; 
-  see well_ord_lepoll_imp_Card_le  *)
+(*Need AC to get X lepoll Y ==> |X| le |Y|;  see well_ord_lepoll_imp_Card_le
+  Converse also requires AC, but see well_ord_cardinal_eqE*)
 goalw Cardinal.thy [eqpoll_def,cardinal_def] "!!X Y. X eqpoll Y ==> |X| = |Y|";
 by (rtac Least_cong 1);
 by (fast_tac (ZF_cs addEs [comp_bij,bij_converse_bij]) 1);
@@ -236,6 +265,7 @@ by (etac Ord_ordertype 2);
 by (etac (ordermap_bij RS bij_converse_bij RS bij_imp_eqpoll) 1);
 qed "well_ord_cardinal_eqpoll";
 
+(* Ord(A) ==> |A| eqpoll A *)
 bind_thm ("Ord_cardinal_eqpoll", well_ord_Memrel RS well_ord_cardinal_eqpoll);
 
 goal Cardinal.thy
@@ -244,6 +274,11 @@ by (rtac (eqpoll_sym RS eqpoll_trans) 1);
 by (etac well_ord_cardinal_eqpoll 1);
 by (asm_simp_tac (ZF_ss addsimps [well_ord_cardinal_eqpoll]) 1);
 qed "well_ord_cardinal_eqE";
+
+goal Cardinal.thy
+    "!!X Y. [| well_ord(X,r);  well_ord(Y,s) |] ==> |X| = |Y| <-> X eqpoll Y";
+by (fast_tac (ZF_cs addSEs [cardinal_cong, well_ord_cardinal_eqE]) 1);
+qed "well_ord_cardinal_eqpoll_iff";
 
 
 (** Observations from Kunen, page 28 **)
@@ -286,6 +321,11 @@ by (etac subst 2);
 by (ALLGOALS assume_tac);
 qed "Card_iff_initial";
 
+goalw Cardinal.thy [lesspoll_def] "!!a. [| Card(a); i<a |] ==> i lesspoll a";
+by (dresolve_tac [Card_iff_initial RS iffD1] 1);
+by (fast_tac (ZF_cs addSEs [leI RS le_imp_lepoll]) 1);
+qed "lt_Card_imp_lesspoll";
+
 goal Cardinal.thy "Card(0)";
 by (rtac (Ord_0 RS CardI) 1);
 by (fast_tac (ZF_cs addSEs [ltE]) 1);
@@ -316,9 +356,9 @@ qed "Card_cardinal";
 (*Kunen's Lemma 10.5*)
 goal Cardinal.thy "!!i j. [| |i| le j;  j le i |] ==> |j| = |i|";
 by (rtac (eqpollI RS cardinal_cong) 1);
-by (etac (le_imp_subset RS subset_imp_lepoll) 1);
+by (etac le_imp_lepoll 1);
 by (rtac lepoll_trans 1);
-by (etac (le_imp_subset RS subset_imp_lepoll) 2);
+by (etac le_imp_lepoll 2);
 by (rtac (eqpoll_sym RS eqpoll_imp_lepoll) 1);
 by (rtac Ord_cardinal_eqpoll 1);
 by (REPEAT (eresolve_tac [ltE, Ord_succD] 1));
@@ -356,6 +396,32 @@ by (asm_simp_tac (ZF_ss addsimps
                   [Card_lt_iff, Card_is_Ord, Ord_cardinal, 
                    not_lt_iff_le RS iff_sym]) 1);
 qed "Card_le_iff";
+
+(*Can use AC or finiteness to discharge first premise*)
+goal Cardinal.thy
+    "!!A B. [| well_ord(B,r);  A lepoll B |] ==> |A| le |B|";
+by (res_inst_tac [("i","|A|"),("j","|B|")] Ord_linear_le 1);
+by (REPEAT_FIRST (ares_tac [Ord_cardinal, le_eqI]));
+by (rtac (eqpollI RS cardinal_cong) 1 THEN assume_tac 1);
+by (rtac lepoll_trans 1);
+by (rtac (well_ord_cardinal_eqpoll RS eqpoll_sym RS eqpoll_imp_lepoll) 1);
+by (assume_tac 1);
+by (etac (le_imp_lepoll RS lepoll_trans) 1);
+by (rtac eqpoll_imp_lepoll 1);
+by (rewtac lepoll_def);
+by (etac exE 1);
+by (rtac well_ord_cardinal_eqpoll 1);
+by (etac well_ord_rvimage 1);
+by (assume_tac 1);
+qed "well_ord_lepoll_imp_Card_le";
+
+
+goal Cardinal.thy "!!A. [| A lepoll i; Ord(i) |] ==> |A| le i";
+br le_trans 1;
+be (well_ord_Memrel RS well_ord_lepoll_imp_Card_le) 1;
+ba 1;
+be Ord_cardinal_le 1;
+qed "lepoll_cardinal_le";
 
 
 (*** The finite cardinals ***)
@@ -395,7 +461,7 @@ by (eres_inst_tac [("n","n")] natE 1);
 by (asm_simp_tac (ZF_ss addsimps [lepoll_def, inj_def, 
                                   succI1 RS Pi_empty2]) 1);
 by (fast_tac (ZF_cs addSIs [succ_leI] addSDs [succ_lepoll_succD]) 1);
-val nat_lepoll_imp_le_lemma = result();
+qed "nat_lepoll_imp_le_lemma";
 
 bind_thm ("nat_lepoll_imp_le", nat_lepoll_imp_le_lemma RS bspec RS mp);
 
@@ -407,6 +473,7 @@ by (fast_tac (ZF_cs addIs [nat_lepoll_imp_le, le_anti_sym]
                     addSEs [eqpollE]) 1);
 qed "nat_eqpoll_iff";
 
+(*The object of all this work: every natural number is a (finite) cardinal*)
 goalw Cardinal.thy [Card_def,cardinal_def]
     "!!n. n: nat ==> Card(n)";
 by (rtac (Least_equality RS ssubst) 1);
@@ -527,6 +594,11 @@ goalw Cardinal.thy [succ_def] "{a} eqpoll 1";
 by (fast_tac (ZF_cs addSIs [eqpoll_refl RS cons_eqpoll_cong]) 1);
 qed "singleton_eqpoll_1";
 
+goal Cardinal.thy "|{a}| = 1";
+by (resolve_tac [singleton_eqpoll_1 RS cardinal_cong RS trans] 1);
+by (simp_tac (arith_ss addsimps [nat_into_Card RS Card_cardinal_eq]) 1);
+qed "cardinal_singleton";
+
 (*Congruence law for  succ  under equipollence*)
 goalw Cardinal.thy [succ_def]
     "!!A B. A eqpoll B ==> succ(A) eqpoll succ(B)";
@@ -597,8 +669,21 @@ by (dtac lepoll_0_is_0 1);
 by (fast_tac (eq_cs addEs [equalityE]) 1);
 qed "lepoll_1_is_sing";
 
+goalw Cardinal.thy [lepoll_def] "A Un B lepoll A+B";
+by (res_inst_tac [("x","lam x: A Un B. if (x:A,Inl(x),Inr(x))")] exI 1);
+by (res_inst_tac [("d","%z. snd(z)")] lam_injective 1);
+by (split_tac [expand_if] 1);
+by (fast_tac (ZF_cs addSIs [InlI, InrI]) 1);
+by (asm_full_simp_tac (ZF_ss addsimps [Inl_def, Inr_def]
+		       setloop split_tac [expand_if]) 1);
+qed "Un_lepoll_sum";
+
 
 (*** Finite and infinite sets ***)
+
+goalw Cardinal.thy [Finite_def] "Finite(0)";
+by (fast_tac (ZF_cs addSIs [eqpoll_refl, nat_0I]) 1);
+qed "Finite_0";
 
 goalw Cardinal.thy [Finite_def]
     "!!A. [| A lepoll n;  n:nat |] ==> Finite(A)";
@@ -615,6 +700,8 @@ by (fast_tac (ZF_cs addSEs [eqpollE]
                      rewrite_rule [Finite_def] lepoll_nat_imp_Finite]) 1);
 qed "lepoll_Finite";
 
+bind_thm ("Finite_Diff", Diff_subset RS subset_imp_lepoll RS lepoll_Finite);
+
 goalw Cardinal.thy [Finite_def] "!!x. Finite(x) ==> Finite(cons(y,x))";
 by (excluded_middle_tac "y:x" 1);
 by (asm_simp_tac (ZF_ss addsimps [cons_absorb]) 2);
@@ -623,11 +710,11 @@ by (rtac bexI 1);
 by (etac nat_succI 2);
 by (asm_simp_tac 
     (ZF_ss addsimps [succ_def, cons_eqpoll_cong, mem_not_refl]) 1);
-qed "Finite_imp_cons_Finite";
+qed "Finite_cons";
 
 goalw Cardinal.thy [succ_def] "!!x. Finite(x) ==> Finite(succ(x))";
-by (etac Finite_imp_cons_Finite 1);
-qed "Finite_imp_succ_Finite";
+by (etac Finite_cons 1);
+qed "Finite_succ";
 
 goalw Cardinal.thy [Finite_def] 
       "!!i. [| Ord(i);  ~ Finite(i) |] ==> nat le i";
@@ -635,6 +722,12 @@ by (eresolve_tac [Ord_nat RSN (2,Ord_linear2)] 1);
 by (assume_tac 2);
 by (fast_tac (ZF_cs addSIs [eqpoll_refl] addSEs [ltE]) 1);
 qed "nat_le_infinite_Ord";
+
+goalw Cardinal.thy [Finite_def, eqpoll_def]
+    "!!A. Finite(A) ==> EX r. well_ord(A,r)";
+by (fast_tac (ZF_cs addIs [well_ord_rvimage, bij_is_inj, well_ord_Memrel, 
+			   nat_into_Ord]) 1);
+qed "Finite_imp_well_ord";
 
 
 (*Krzysztof Grabczewski's proof that the converse of a finite, well-ordered

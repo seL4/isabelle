@@ -26,6 +26,17 @@ by (rtac well_ord_cardinal_eqE 1);
 by (REPEAT_SOME assume_tac);
 qed "cardinal_eqE";
 
+goal Cardinal_AC.thy "|X| = |Y| <-> X eqpoll Y";
+by (fast_tac (ZF_cs addSEs [cardinal_cong, cardinal_eqE]) 1);
+qed "cardinal_eqpoll_iff";
+
+goal Cardinal_AC.thy
+    "!!A. [| |A|=|B|;  |C|=|D|;  A Int C = 0;  B Int D = 0 |] ==> \
+\         |A Un C| = |B Un D|";
+by (asm_full_simp_tac (ZF_ss addsimps [cardinal_eqpoll_iff, 
+				       eqpoll_disjoint_Un]) 1);
+qed "cardinal_disjoint_Un";
+
 goal Cardinal_AC.thy "!!A B. A lepoll B ==> |A| le |B|";
 by (resolve_tac [AC_well_ord RS exE] 1);
 by (etac well_ord_lepoll_imp_Card_le 1);

@@ -3,7 +3,7 @@
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1992  University of Cambridge
 
-For arith.thy.  Arithmetic operators and their definitions
+Arithmetic operators and their definitions
 
 Proofs about elementary arithmetic: addition, multiplication, etc.
 
@@ -41,8 +41,6 @@ by (rtac (major RS nat_induct) 1);
 by (ALLGOALS
     (asm_simp_tac (ZF_ss addsimps (prems@[rec_0,rec_succ]))));
 qed "rec_type";
-
-val nat_le_refl = nat_into_Ord RS le_refl;
 
 val nat_typechecks = [rec_type, nat_0I, nat_1I, nat_succI, Ord_nat];
 
@@ -170,7 +168,6 @@ val [eqn,knat] = goal Arith.thy
 by (rtac (eqn RS rev_mp) 1);
 by (nat_ind_tac "k" [knat] 1);
 by (ALLGOALS (simp_tac arith_ss));
-by (fast_tac ZF_cs 1);
 qed "add_left_cancel";
 
 (*** Multiplication ***)
@@ -247,6 +244,15 @@ by (res_inst_tac [("m","m"),("n","n")] diff_induct 1);
 by (ALLGOALS (asm_simp_tac arith_ss));
 qed "add_diff_inverse";
 
+(*Proof is IDENTICAL to that above*)
+goal Arith.thy "!!m n. [| n le m;  m:nat |] ==> succ(m) #- n = succ(m#-n)";
+by (forward_tac [lt_nat_in_nat] 1);
+by (etac nat_succI 1);
+by (etac rev_mp 1);
+by (res_inst_tac [("m","m"),("n","n")] diff_induct 1);
+by (ALLGOALS (asm_simp_tac arith_ss));
+qed "diff_succ";
+
 (*Subtraction is the inverse of addition. *)
 val [mnat,nnat] = goal Arith.thy
     "[| m:nat;  n:nat |] ==> (n#+m) #- n = m";
@@ -265,7 +271,6 @@ val [mnat,nnat] = goal Arith.thy
 by (rtac (nnat RS nat_induct) 1);
 by (ALLGOALS (asm_simp_tac (arith_ss addsimps [mnat])));
 qed "diff_add_0";
-
 
 (*** Remainder ***)
 
@@ -321,7 +326,7 @@ by (rtac (div_def RS def_transrec RS trans) 1);
 by (asm_simp_tac div_ss 1);
 qed "div_geq";
 
-(*Main Result.*)
+(*A key result*)
 goal Arith.thy
     "!!m n. [| 0<n;  m:nat;  n:nat |] ==> (m div n)#*n #+ m mod n = m";
 by (etac complete_induct 1);
@@ -334,6 +339,59 @@ by (asm_full_simp_tac
                          mod_geq, div_geq, add_assoc,
                          div_termination RS ltD, add_diff_inverse]) 1);
 qed "mod_div_equality";
+
+(*** Further facts about mod (mainly for mutilated checkerboard ***)
+
+goal Arith.thy
+    "!!m n. [| 0<n;  m:nat;  n:nat |] ==> \
+\           succ(m) mod n = if(succ(m mod n) = n, 0, succ(m mod n))";
+by (etac complete_induct 1);
+by (excluded_middle_tac "succ(x)<n" 1);
+(*case x<n*)
+by (asm_simp_tac (arith_ss addsimps [mod_less, nat_le_refl RS lt_trans,
+				     succ_neq_self]) 2);
+by (asm_simp_tac (arith_ss addsimps [ltD RS mem_imp_not_eq]) 2);
+(*case n le x*)
+by (asm_full_simp_tac
+     (arith_ss addsimps [not_lt_iff_le, nat_into_Ord, mod_geq]) 1);
+be leE 1;
+by (asm_simp_tac (arith_ss addsimps [div_termination RS ltD, diff_succ, 
+				     mod_geq]) 1);
+by (asm_simp_tac (arith_ss addsimps [mod_less, diff_self_eq_0]) 1);
+qed "mod_succ";
+
+goal Arith.thy "!!m n. [| 0<n;  m:nat;  n:nat |] ==> m mod n < n";
+by (etac complete_induct 1);
+by (excluded_middle_tac "x<n" 1);
+(*case x<n*)
+by (asm_simp_tac (arith_ss addsimps [mod_less]) 2);
+(*case n le x*)
+by (asm_full_simp_tac
+     (arith_ss addsimps [not_lt_iff_le, nat_into_Ord,
+                         mod_geq, div_termination RS ltD]) 1);
+qed "mod_less_divisor";
+
+
+goal Arith.thy
+    "!!k b. [| k: nat; b<2 |] ==> k mod 2 = b | k mod 2 = if(b=1,0,1)";
+by (subgoal_tac "k mod 2: 2" 1);
+by (asm_simp_tac (arith_ss addsimps [mod_less_divisor RS ltD]) 2);
+by (dresolve_tac [ltD] 1);
+by (asm_simp_tac (ZF_ss setloop split_tac [expand_if]) 1);
+by (fast_tac ZF_cs 1);
+qed "mod2_cases";
+
+goal Arith.thy "!!m. m:nat ==> succ(succ(m)) mod 2 = m mod 2";
+by (subgoal_tac "m mod 2: 2" 1);
+by (asm_simp_tac (arith_ss addsimps [mod_less_divisor RS ltD]) 2);
+by (asm_simp_tac (arith_ss addsimps [mod_succ] setloop step_tac ZF_cs) 1);
+qed "mod2_succ_succ";
+
+goal Arith.thy "!!m. m:nat ==> (m#+m) mod 2 = 0";
+by (eresolve_tac [nat_induct] 1);
+by (simp_tac (arith_ss addsimps [mod_less]) 1);
+by (asm_simp_tac (arith_ss addsimps [mod2_succ_succ, add_succ_right]) 1);
+qed "mod2_add_self";
 
 
 (**** Additional theorems about "le" ****)
@@ -395,3 +453,8 @@ by (EVERY [rtac (add_commute RS ssubst) 1,
            rtac add_le_mono1 5]);
 by (REPEAT (eresolve_tac [asm_rl, lt_nat_in_nat, nat_succI] 1));
 qed "add_le_mono";
+
+val arith_ss0 = arith_ss
+and arith_ss = arith_ss addsimps [add_0_right, add_succ_right,
+				  mult_0_right, mult_succ_right,
+				  mod_less, mod_geq, div_less, div_geq];

@@ -156,6 +156,15 @@ qed_goal "consCI" ZF.thy "(a~:B ==> a=b) ==> a: cons(b,B)"
   [ (rtac (disjCI RS (cons_iff RS iffD2)) 1),
     (etac prem 1) ]);
 
+qed_goal "cons_neq_0" ZF.thy "cons(a,B)=0 ==> P"
+ (fn [major]=>
+  [ (rtac (major RS equalityD1 RS subsetD RS emptyE) 1),
+    (rtac consI1 1) ]);
+
+(*Useful for rewriting*)
+qed_goal "cons_not_0" ZF.thy "cons(a,B) ~= 0"
+ (fn _=> [ (rtac notI 1), (etac cons_neq_0 1) ]);
+
 (*** Singletons - using cons ***)
 
 qed_goal "singletonI" ZF.thy "a : {a}"
@@ -307,6 +316,10 @@ qed_goal "succ_not_0" ZF.thy "succ(n) ~= 0"
 
 (* succ(c) <= B ==> c : B *)
 val succ_subsetD = succI1 RSN (2,subsetD);
+
+(* succ(b) ~= b *)
+bind_thm ("succ_neq_self", succI1 RS mem_imp_not_eq RS not_sym);
+
 
 qed_goal "succ_inject" ZF.thy "!!m n. succ(m) = succ(n) ==> m=n"
  (fn _ =>
