@@ -22,7 +22,7 @@ rules
 
 (* instance of << for type ['a::term => 'b::po]  *)
 
-inst_fun_po	"(op <<)::['a=>'b::po,'a=>'b::po ]=>bool = less_fun"
+inst_fun_po	"((op <<)::['a=>'b::po,'a=>'b::po ]=>bool) = less_fun"
 
 (* definitions *)
 (* The least element in type 'a::term => 'b::pcpo *)

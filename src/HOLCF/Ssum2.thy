@@ -15,7 +15,7 @@ rules
 
 (* instance of << for type ['a ++ 'b]  *)
 
-inst_ssum_po	"(op <<)::['a ++ 'b,'a ++ 'b]=>bool = less_ssum"
+inst_ssum_po	"((op <<)::['a ++ 'b,'a ++ 'b]=>bool) = less_ssum"
 
 end
 

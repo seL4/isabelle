@@ -19,7 +19,7 @@ rules
 
 (* instance of << for type ['a -> 'b]  *)
 
-inst_cfun_po	"(op <<)::['a->'b,'a->'b]=>bool = less_cfun"
+inst_cfun_po	"((op <<)::['a->'b,'a->'b]=>bool) = less_cfun"
 
 (* definitions *)
 (* The least element in type 'a->'b *)

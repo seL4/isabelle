@@ -28,12 +28,12 @@ rules
 
 minimal		"UU << x"			(* witness is minimal_void *)
 
-cpo		"is_chain(S) ==> ? x. range(S) <<| x::('a::pcpo)" 
+cpo		"is_chain(S) ==> ? x. range(S) <<| (x::('a::pcpo))" 
 						(* witness is cpo_void     *)
 						(* needs explicit type     *)
 
 (* instance of UU for the prototype void *)
 
-inst_void_pcpo	"UU::void = UU_void"
+inst_void_pcpo	"(UU::void) = UU_void"
 
 end 

@@ -22,7 +22,7 @@ consts
 
 rules 
 
-inst_cprod_pcpo	"UU::'a*'b = <UU,UU>"
+inst_cprod_pcpo	"(UU::'a*'b) = <UU,UU>"
 
 cpair_def	"cpair  == (LAM x y.<x,y>)"
 cfst_def	"cfst   == (LAM p.fst(p))"

@@ -67,7 +67,7 @@ val prems = goal Fix.thy "[| !!a.a:A ==> INCL(P(a)) |] ==> INCL(%x.ALL a:A.P(a,x
 by (fast_tac (set_cs addSIs ([inclI] @ (prems RL [inclD]))) 1);;
 val ball_INCL = result();
 
-goal Fix.thy "INCL(%x.a(x) = b(x)::'a::prog)";
+goal Fix.thy "INCL(%x.a(x) = (b(x)::'a::prog))";
 by (simp_tac (term_ss addsimps [eq_iff]) 1);
 by (REPEAT (resolve_tac [conj_INCL,po_INCL] 1));
 val eq_INCL = result();

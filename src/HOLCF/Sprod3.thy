@@ -20,7 +20,7 @@ consts
 
 rules 
 
-inst_sprod_pcpo	"UU::'a**'b = Ispair(UU,UU)"
+inst_sprod_pcpo	"(UU::'a**'b) = Ispair(UU,UU)"
 spair_def	"spair  == (LAM x y.Ispair(x,y))"
 sfst_def	"sfst   == (LAM p.Isfst(p))"
 ssnd_def	"ssnd   == (LAM p.Issnd(p))"	

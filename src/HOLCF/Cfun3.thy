@@ -17,7 +17,7 @@ consts
 
 rules 
 
-inst_cfun_pcpo	"UU::'a->'b = UU_cfun"
+inst_cfun_pcpo	"(UU::'a->'b) = UU_cfun"
 
 Istrictify_def	"Istrictify(f,x) == (@z.\
 \			  ( x=UU --> z = UU)\

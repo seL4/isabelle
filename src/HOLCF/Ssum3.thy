@@ -17,7 +17,7 @@ consts
 
 rules 
 
-inst_ssum_pcpo	"UU::'a++'b = Isinl(UU)"
+inst_ssum_pcpo	"(UU::'a++'b) = Isinl(UU)"
 
 sinl_def	"sinl   == (LAM x.Isinl(x))"
 sinr_def	"sinr   == (LAM x.Isinr(x))"

@@ -65,7 +65,7 @@ val less_anti_sym = prove_goal thy "[| x << y; y << x |] ==> x=y"
 		      REPEAT(rstac(conjI::prems)1)]);
 
 val ext = prove_goal thy
-	"(!!x::'a::cpo. f(x)=g(x)::'b::cpo) ==> (%x.f(x))=(%x.g(x))"
+	"(!!x::'a::cpo. f(x)=(g(x)::'b::cpo)) ==> (%x.f(x))=(%x.g(x))"
 	(fn [prem] => [REPEAT(rstac[less_anti_sym, less_ext, allI,
 				    prem RS eq_imp_less1,
 				    prem RS eq_imp_less2]1)]);

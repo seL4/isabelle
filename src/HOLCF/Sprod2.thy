@@ -16,7 +16,7 @@ rules
 
 (* instance of << for type ['a ** 'b]  *)
 
-inst_sprod_po	"(op <<)::['a ** 'b,'a ** 'b]=>bool = less_sprod"
+inst_sprod_po	"((op <<)::['a ** 'b,'a ** 'b]=>bool) = less_sprod"
 
 end
 

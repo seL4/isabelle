@@ -36,7 +36,7 @@ chain_finite_def  "chain_finite(x::'a)==\
 \                        !Y. is_chain(Y::nat=>'a) --> (? n.max_in_chain(n,Y))"
 
 flat_def          "flat(x::'a) ==\
-\                        ! x y. x::'a << y --> (x = UU) | (x=y)"
+\                        ! x y. (x::'a) << y --> (x = UU) | (x=y)"
 
 end
 

@@ -17,7 +17,7 @@ rules
 
 (* instance of << for type ('a)u  *)
 
-inst_lift_po	"(op <<)::[('a)u,('a)u]=>bool = less_lift"
+inst_lift_po	"((op <<)::[('a)u,('a)u]=>bool) = less_lift"
 
 end
 

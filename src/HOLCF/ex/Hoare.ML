@@ -90,7 +90,7 @@ val hoare_lemma8 = prove_goal HOLCF.thy
 	]);
 
 val hoare_lemma28 = prove_goal HOLCF.thy 
-"b1[y::'a]=UU::tr ==> b1[UU] = UU"
+"b1[y::'a]=(UU::tr) ==> b1[UU] = UU"
  (fn prems =>
 	[
 	(cut_facts_tac prems 1),

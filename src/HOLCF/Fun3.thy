@@ -15,7 +15,7 @@ arities fun  :: (term,pcpo)pcpo		(* Witness fun2.ML *)
 
 rules 
 
-inst_fun_pcpo	"UU::'a=>'b::pcpo = UU_fun"
+inst_fun_pcpo	"(UU::'a=>'b::pcpo) = UU_fun"
 
 end
 

@@ -37,6 +37,6 @@ trans_less	"[|x<<y ; y<<z |] ==> x<<z"
 
 (* instance of << for the prototype void *)
 
-inst_void_po	"(op <<)::[void,void]=>bool = less_void"
+inst_void_po	"((op <<)::[void,void]=>bool) = less_void"
 
 end 

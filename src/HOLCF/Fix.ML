@@ -1138,17 +1138,17 @@ val adm_thms = [adm_impl,adm_disj,adm_eq,adm_not_UU,adm_UU_not_less,
 (* ------------------------------------------------------------------------- *)
 
 val flat_codom = prove_goalw Fix.thy [flat_def]
-"[|flat(y::'b);f[x::'a]=(c::'b)|] ==> f[UU::'a]=UU::'b | (!z.f[z::'a]=c)"
+"[|flat(y::'b);f[x::'a]=(c::'b)|] ==> f[UU::'a]=(UU::'b) | (!z.f[z::'a]=c)"
  (fn prems =>
 	[
 	(cut_facts_tac prems 1),
-	(res_inst_tac [("Q","f[x::'a]=UU::'b")] classical2 1),
+	(res_inst_tac [("Q","f[x::'a]=(UU::'b)")] classical2 1),
 	(rtac disjI1 1),
 	(rtac UU_I 1),
 	(res_inst_tac [("s","f[x]"),("t","UU::'b")] subst 1),
 	(atac 1),
 	(rtac (minimal RS monofun_cfun_arg) 1),
-	(res_inst_tac [("Q","f[UU::'a]=UU::'b")] classical2 1),
+	(res_inst_tac [("Q","f[UU::'a]=(UU::'b)")] classical2 1),
 	(etac disjI1 1),
 	(rtac disjI2 1),
 	(rtac allI 1),

@@ -77,7 +77,7 @@ val chain_mono3 = prove_goal  Porder.thy
 (* ------------------------------------------------------------------------ *)
 
 val nat_less_cases = prove_goal Porder.thy 
-	"[| m::nat < n ==> P(n,m); m=n ==> P(n,m);n < m ==> P(n,m)|]==>P(n,m)"
+	"[| (m::nat) < n ==> P(n,m); m=n ==> P(n,m);n < m ==> P(n,m)|]==>P(n,m)"
 ( fn prems =>
 	[
 	(res_inst_tac [("m1","n"),("n1","m")] (less_linear RS disjE) 1),
@@ -236,7 +236,7 @@ val is_lub_lub = (is_lubE RS conjunct2 RS spec RS mp);
 (* a technical argument about << on void                                    *)
 (* ------------------------------------------------------------------------ *)
 
-val less_void = prove_goal Porder.thy "(u1::void << u2) = (u1 = u2)"
+val less_void = prove_goal Porder.thy "((u1::void) << u2) = (u1 = u2)"
 (fn prems =>
 	[
 	(rtac (inst_void_po RS ssubst) 1),
@@ -289,7 +289,7 @@ val thelub_void = (lub_void RS thelubI);
 (* ------------------------------------------------------------------------ *)
 
 val cpo_void = prove_goal Porder.thy
-	"is_chain(S::nat=>void) ==> ? x. range(S) <<| x "
+	"is_chain((S::nat=>void)) ==> ? x. range(S) <<| x "
 (fn prems =>
 	[
 	(cut_facts_tac prems 1),

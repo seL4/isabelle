@@ -14,7 +14,7 @@ end;
 structure Fix:FIX =
 struct
 
-val adm_eq = prove_goal LCF.thy "adm(%x.t(x)=u(x)::'a::cpo)"
+val adm_eq = prove_goal LCF.thy "adm(%x.t(x)=(u(x)::'a::cpo))"
 	(fn _ => [rewrite_goals_tac [eq_def],
 		  REPEAT(rstac[adm_conj,adm_less]1)]);
 

@@ -13,7 +13,7 @@ open Pcpo;
 (* ------------------------------------------------------------------------ *)
 
 val thelubE = prove_goal  Pcpo.thy 
-	"[| is_chain(S);lub(range(S)) = l::'a::pcpo|] ==> range(S) <<| l "
+	"[| is_chain(S);lub(range(S)) = (l::'a::pcpo)|] ==> range(S) <<| l "
 (fn prems =>
 	[
 	(cut_facts_tac prems 1), 
@@ -256,7 +256,7 @@ val chain_mono2 = prove_goal Pcpo.thy
 (* uniqueness in void                                                       *)
 (* ------------------------------------------------------------------------ *)
 
-val unique_void2 = prove_goal Pcpo.thy "x::void=UU"
+val unique_void2 = prove_goal Pcpo.thy "(x::void)=UU"
  (fn prems =>
 	[
 	(rtac (inst_void_pcpo RS ssubst) 1),

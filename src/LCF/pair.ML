@@ -8,7 +8,7 @@ val ppair = read_instantiate [("z","p::'a*'b")] surj_pairing;
 val qpair = read_instantiate [("z","q::'a*'b")] surj_pairing;
 in
 val PROD_less = prove_goal LCF.thy
-	"p::'a*'b << q <-> FST(p) << FST(q) & SND(p) << SND(q)"
+	"(p::'a*'b) << q <-> FST(p) << FST(q) & SND(p) << SND(q)"
 	(fn _ => [EVERY1[rtac iffI,
 		  rtac conjI, etac less_ap_term, etac less_ap_term,
 		  rtac (ppair RS subst), rtac (qpair RS subst),
