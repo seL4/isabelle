@@ -745,3 +745,20 @@ qed "psubset_subset_trans";
 Goal"[| (A::'a set) <= B; B < C|] ==> A < C";
 by (auto_tac (claset(), simpset() addsimps [psubset_eq]));
 qed "subset_psubset_trans";
+
+
+(* attributes *)
+
+local
+
+fun gen_rulify_prems x =
+  Attrib.no_args (Drule.rule_attribute (fn _ => (standard o
+    rule_by_tactic (REPEAT (ALLGOALS (resolve_tac [allI, ballI, impI])))))) x;
+
+in
+
+val rulify_prems_attrib_setup =
+ [Attrib.add_attributes
+  [("rulify_prems", (gen_rulify_prems, gen_rulify_prems), "put theorem into standard rule form")]];
+
+end;

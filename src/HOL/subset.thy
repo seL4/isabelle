@@ -7,4 +7,6 @@
 theory subset = Set
 files "Tools/typedef_package.ML":
 
+setup rulify_prems_attrib_setup
+
 end
