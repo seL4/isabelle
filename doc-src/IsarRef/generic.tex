@@ -837,14 +837,15 @@ This is slightly less hazardous than for the Simplifier (see
   methods such as $rule$).
 \item [$rule~del$] deletes introduction, elimination, or destruction rules from
   the context.
-\item [$iff$] declares a ``safe'' rule to the context in several ways. 
-  The rule is declared as a rewrite rule to the Simplifier. Furthermore, it is 
+\item [$iff$] declares a (possibly conditional) ``safe'' rule to the context in
+  several ways.   The rule is declared as a rewrite rule to the Simplifier. 
+  Furthermore, it is 
   declared in several ways (depending on its structure) to the Classical 
   Reasoner for aggressive use, which would normally be indicated by ``!'').
   If the rule is an equivalence, the two corresponding implications are 
   declared as introduction and destruction rules. Otherwise, a warning is issued
   and if the rule is an inequality, the corresponding negation elimination rule
-  is declared, else the rule itself is declared as an introduction.
+  is declared, else the rule itself is declared as an introduction rule.
   
   The ``?'' version of $iff$ declares ``extra'' Classical Reasoner rules only,
   and omits the Simplifier declaration.  Thus the declaration does not have
