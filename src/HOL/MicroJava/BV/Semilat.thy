@@ -195,8 +195,7 @@ apply (unfold is_lub_def is_ub_def)
 apply (case_tac "(y,x) : r^*")
  apply (case_tac "(y,x') : r^*")
   apply blast
- apply (blast intro: r_into_rtrancl elim: converse_rtranclE
-               dest: single_valuedD)
+ apply (blast elim: converse_rtranclE dest: single_valuedD)
 apply (rule exI)
 apply (rule conjI)
  apply (blast intro: rtrancl_into_rtrancl2 dest: single_valuedD)
