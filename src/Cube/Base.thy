@@ -9,25 +9,33 @@ Barendregt's Lambda-Cube.
 Base = Pure +
 
 types
-  term  context  typing
-
+  term
 arities
   term :: logic
 
+types
+  context  typing
+nonterminals
+  context_ typing_
+
 consts
   Abs, Prod     :: "[term, term => term] => term"
-  Trueprop      :: "[context, typing] => prop"          ("(_/ |- _)")
-  MT_context    :: "context"                            ("")
-  Context       :: "[typing, context] => context"       ("_ _")
+  Trueprop      :: "[context, typing] => prop"
+  MT_context    :: "context"
+  Context       :: "[typing, context] => context"
   star          :: "term"                               ("*")
   box           :: "term"                               ("[]")
   "^"           :: "[term, term] => term"               (infixl 20)
-  Has_type      :: "[term, term] => typing"             ("(_:/ _)" [0, 0] 5)
+  Has_type      :: "[term, term] => typing"
 
 syntax
-  Trueprop1     :: "typing => prop"                     ("(_)")
-  ""            :: "id => context"                      ("_ ")
-  ""            :: "var => context"                     ("_ ")
+  Trueprop      :: "[context_, typing_] => prop"        ("(_/ |- _)")
+  Trueprop1     :: "typing_ => prop"                    ("(_)")
+  ""            :: "id => context_"                     ("_")
+  ""            :: "var => context_"                    ("_")
+  MT_context    :: "context_"                           ("")
+  Context       :: "[typing_, context_] => context_"    ("_ _")
+  Has_type      :: "[term, term] => typing_"            ("(_:/ _)" [0, 0] 5)
   Lam           :: "[idt, term, term] => term"          ("(3Lam _:_./ _)" [0, 0, 0] 10)
   Pi            :: "[idt, term, term] => term"          ("(3Pi _:_./ _)" [0, 0] 10)
   "->"          :: "[term, term] => term"               (infixr 10)
@@ -39,7 +47,7 @@ translations
   "A -> B"      => "Prod(A, _K(B))"
 
 syntax (xsymbols)
-  Trueprop      :: "[context, typing] => prop"          ("(_/ \\<turnstile> _)")
+  Trueprop      :: "[context_, typing_] => prop"        ("(_/ \\<turnstile> _)")
   box           :: "term"                               ("\\<box>")
   Lam           :: "[idt, term, term] => term"          ("(3\\<Lambda>_:_./ _)" [0, 0, 0] 10)
   Pi            :: "[idt, term, term] => term"          ("(3\\<Pi>_:_./ _)" [0, 0] 10)
