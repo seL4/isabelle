@@ -67,12 +67,6 @@ val scan_esc =
   scan_ctrl || scan_dig ^^ scan_dig ^^ scan_dig ||
   scan_blanks1 ^^ $$ "\\";
 
-fun warn_unprintable c n =
-  (if not (is_printable c) then
-    warning ("Unprintable char \"\\" ^ string_of_int (ord c) ^
-      "\" in string at line " ^ string_of_int n)
-  else (); c);
-
 fun string ("\"" :: cs) n = (["\""], cs, n)
   | string ("\\" :: cs) n =
       (case optional scan_esc cs of
@@ -81,7 +75,7 @@ fun string ("\"" :: cs) n = (["\""], cs, n)
   | string ("\n" :: cs) n = cons_fst " " (string cs (n + 1))
   | string (c :: cs) n = 
       if is_blank c then cons_fst " " (string cs n)
-      else cons_fst (warn_unprintable c n) (string cs n)
+      else cons_fst c (string cs n)
   | string [] n = lex_err n "missing quote at end of string";
 
 
