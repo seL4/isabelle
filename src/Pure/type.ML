@@ -29,7 +29,8 @@ sig
   val extend_tsig: type_sig ->
     (class * class list) list * sort * (string list * int) list *
     (string list * (sort list * class)) list -> type_sig
-  val ext_subclass: type_sig -> (class * class) list -> type_sig
+  val ext_tsig_subclass: type_sig -> (class * class) list -> type_sig
+  val ext_tsig_defsort: type_sig -> sort -> type_sig
   val ext_tsig_abbrs: type_sig -> (string * (indexname list * typ)) list
     -> type_sig
   val merge_tsigs: type_sig * type_sig -> type_sig
@@ -134,9 +135,8 @@ fun defaultS (TySg {default, ...}) = default;
 fun undcl_class c = "Undeclared class " ^ quote c;
 val err_undcl_class = error o undcl_class;
 
-(* FIXME not yet checked? *)
-fun err_dup_class c =
-  error ("Duplicate declaration of class " ^ quote c);
+fun err_dup_classes cs =
+  error ("Duplicate declaration of class(es) " ^ commas_quote cs);
 
 fun undcl_type c = "Undeclared type constructor " ^ quote c;
 val err_undcl_type = error o undcl_type;
@@ -334,11 +334,11 @@ fun typ_match tsig =
           (case assoc (subs, v) of
             None => ((v, (check_has_sort (tsig, T, S); T)) :: subs
               handle TYPE _ => raise TYPE_MATCH)
-          | Some U => if U = T then subs else raise TYPE_MATCH)   (* FIXME ??? *)
+          | Some U => if U = T then subs else raise TYPE_MATCH)
       | match (subs, (Type (a, Ts), Type (b, Us))) =
           if a <> b then raise TYPE_MATCH
           else foldl match (subs, Ts ~~ Us)
-      | match (subs, (TFree x, TFree y)) =      (* FIXME assert equal sorts, don't compare sorts *)
+      | match (subs, (TFree x, TFree y)) =
           if x = y then subs else raise TYPE_MATCH
       | match _ = raise TYPE_MATCH;
   in match end;
@@ -346,13 +346,6 @@ fun typ_match tsig =
 
 fun typ_instance (tsig, T, U) =
   (typ_match tsig ([], (U, T)); true) handle TYPE_MATCH => false;
-
-
-(*(* FIXME old *)
-fun typ_instance (tsig, T, U) =
-  let val x = typ_match tsig ([], (U, T)) in true end
-    handle TYPE_MATCH => false;
-*)
 
 
 
@@ -433,61 +426,29 @@ fun cert_typ tsig ty =
 
 
 
-(** extend type signature **)
+(** merge type signatures **)
 
-(* 'add_class' adds a new class to the list of all existing classes *)
+(*'assoc_union' merges two association lists if the contents associated
+  the keys are lists*)
 
-fun add_class (classes, (s, _)) =
-  if s mem classes then error("Class " ^ s ^ " declared twice.")
-  else s :: classes;
-
-(* 'add_subclass' adds a tuple consisiting of a new class (the new class
-   has already been inserted into the 'classes' list) and its
-   superclasses (they must be declared in 'classes' too) to the 'subclass'
-   list of the given type signature;
-   furthermore all inherited superclasses according to the superclasses
-   brought with are inserted and there is a check that there are no
-   cycles (i.e. C <= D <= C, with C <> D); *)
-
-fun add_subclass classes (subclass, (s, ges)) =
-let fun upd (subclass, s') = if s' mem classes then
-        let val ges' = the (assoc (subclass, s))
-        in case assoc (subclass, s') of
-             Some sups => if s mem sups
-                           then error(" Cycle :" ^ s^" <= "^ s'^" <= "^ s )
-                           else overwrite (subclass, (s, sups union ges'))
-           | None => subclass
-         end
-         else err_undcl_class(s')
-in foldl upd (subclass@[(s, ges)], ges) end;
+fun assoc_union (as1, []) = as1
+  | assoc_union (as1, (key, l2) :: as2) =
+      (case assoc (as1, key) of
+        Some l1 => assoc_union (overwrite (as1, (key, l1 union l2)), as2)
+      | None => assoc_union ((key, l2) :: as1, as2));
 
 
-(* 'extend_classes' inserts all new classes into the corresponding
-   lists ('classes', 'subclass') if possible *)
+(* merge subclass *)
 
-fun extend_classes (classes, subclass, newclasses) =
-  if newclasses = [] then (classes, subclass) else
-  let val classes' = foldl add_class (classes, newclasses);
-      val subclass' = foldl (add_subclass classes') (subclass, newclasses);
-  in (classes', subclass') end;
-
-
-(* ext_subclass *) (* FIXME check, test *)
-
-(* FIXME disallow (c, c) (?) *)
-
-fun ext_subclass tsig pairs =
-  let
-    val TySg {classes, subclass, default, args, abbrs, coreg} = tsig;
-
-    val subclass' = foldl (add_subclass classes)
-      (subclass, map (fn (c1, c2) => (c1, [c2])) pairs);
-  in
-    make_tsig (classes, subclass', default, args, abbrs, coreg)
+fun merge_subclass (subclass1, subclass2) =
+  let val subclass = transitive_closure (assoc_union (subclass1, subclass2)) in
+    if exists (op mem) subclass then
+      error ("Cyclic class structure!")   (* FIXME improve msg, raise TERM *)
+    else subclass
   end;
 
 
-(* Coregularity *)
+(* coregularity *)
 
 (* 'is_unique_decl' checks if there exists just one declaration t:(Ss)C *)
 
@@ -532,6 +493,129 @@ fun restr2 classes (subclass, coreg) (t, (s, w)) =
 fun varying_decls t =
   error ("Type constructor " ^ quote t ^ " has varying number of arguments");
 
+
+(* 'merge_coreg' builds the union of two 'coreg' lists;
+   it only checks the two restriction conditions and inserts afterwards
+   all elements of the second list into the first one *)
+
+fun merge_coreg classes subclass1 =
+  let fun test_ar classes (t, ars1) (coreg1, (s, w)) =
+        (is_unique_decl coreg1 (t, (s, w));
+         restr2 classes (subclass1, coreg1) (t, (s, w));
+         overwrite (coreg1, (t, (s, w) ins ars1)));
+
+      fun merge_c (coreg1, (c as (t, ars2))) = case assoc (coreg1, t) of
+          Some(ars1) => foldl (test_ar classes (t, ars1)) (coreg1, ars2)
+        | None => c::coreg1
+  in foldl merge_c end;
+
+fun merge_args (args, (t, n)) =
+  (case assoc (args, t) of
+    Some m => if m = n then args else varying_decls t
+  | None => (t, n) :: args);
+
+(* FIXME raise TERM *)
+fun merge_abbrs (abbrs1, abbrs2) =
+  let
+    val abbrs = abbrs1 union abbrs2;
+    val names = map fst abbrs;
+  in
+    (case duplicates names of
+      [] => abbrs
+    | dups => error ("Duplicate declaration of type abbreviations: " ^
+        commas_quote dups))
+  end;
+
+
+(* 'merge_tsigs' takes the above declared functions to merge two type
+  signatures *)
+
+fun merge_tsigs(TySg{classes=classes1, default=default1, subclass=subclass1, args=args1,
+           coreg=coreg1, abbrs=abbrs1},
+          TySg{classes=classes2, default=default2, subclass=subclass2, args=args2,
+           coreg=coreg2, abbrs=abbrs2}) =
+  let val classes' = classes1 union classes2;
+      val subclass' = merge_subclass (subclass1, subclass2);
+      val args' = foldl merge_args (args1, args2)
+      val coreg' = merge_coreg classes' subclass' (coreg1, coreg2);
+      val default' = min_sort subclass' (default1 @ default2);
+      val abbrs' = merge_abbrs(abbrs1, abbrs2);
+  in TySg{classes=classes' , default=default', subclass=subclass', args=args',
+          coreg=coreg' , abbrs = abbrs' }
+  end;
+
+
+
+(*** extend type signatures ***)
+
+(** add classes **)
+
+(* FIXME use? *)
+fun add_classes classes cs =
+  (case cs inter classes of
+    [] => cs @ classes
+  | dups => err_dup_classes cs);
+
+
+(* 'add_class' adds a new class to the list of all existing classes *)
+
+fun add_class (classes, (s, _)) =
+  if s mem classes then error("Class " ^ s ^ " declared twice.")
+  else s :: classes;
+
+
+(*'add_subclass' adds a tuple consisting of a new class (the new class has
+  already been inserted into the 'classes' list) and its superclasses (they
+  must be declared in 'classes' too) to the 'subclass' list of the given type
+  signature; furthermore all inherited superclasses according to the
+  superclasses brought with are inserted and there is a check that there are
+  no cycles (i.e. C <= D <= C, with C <> D);*)
+
+fun add_subclass classes (subclass, (s, ges)) =
+let fun upd (subclass, s') = if s' mem classes then
+        let val ges' = the (assoc (subclass, s))
+        in case assoc (subclass, s') of
+             Some sups => if s mem sups
+                           then error(" Cycle :" ^ s^" <= "^ s'^" <= "^ s )
+                           else overwrite (subclass, (s, sups union ges'))
+           | None => subclass
+         end
+         else err_undcl_class(s')
+in foldl upd (subclass@[(s, ges)], ges) end;
+
+
+(* 'extend_classes' inserts all new classes into the corresponding
+   lists ('classes', 'subclass') if possible *)
+
+fun extend_classes (classes, subclass, newclasses) =
+  if newclasses = [] then (classes, subclass) else
+  let val classes' = foldl add_class (classes, newclasses);
+      val subclass' = foldl (add_subclass classes') (subclass, newclasses);
+  in (classes', subclass') end;
+
+
+(* ext_tsig_subclass *)
+
+fun ext_tsig_subclass tsig pairs =
+  let
+    val TySg {classes, subclass, default, args, abbrs, coreg} = tsig;
+
+    (* FIXME clean! *)
+    val subclass' =
+      merge_subclass (subclass, map (fn (c1, c2) => (c1, [c2])) pairs);
+  in
+    make_tsig (classes, subclass', default, args, abbrs, coreg)
+  end;
+
+
+(* ext_tsig_defsort *)
+
+fun ext_tsig_defsort (TySg {classes, subclass, args, abbrs, coreg, ...}) default =
+  make_tsig (classes, subclass, default, args, abbrs, coreg);
+
+
+
+(** add arities **)
 
 (* 'coregular' checks
    - the two restriction conditions 'is_unique_decl' and 'restr2'
@@ -580,6 +664,9 @@ fun close (coreg, subclass) =
       fun ext (s, l) = (s, foldl (check (map #1 l)) (l, l));
   in map ext coreg end;
 
+
+(** add types **)
+
 fun add_types (aca, (ts, n)) =
   let
     fun add_type ((args, coreg, abbrs), t) =
@@ -596,14 +683,13 @@ fun add_types (aca, (ts, n)) =
   end;
 
 
-(* add type abbreviations *)    (* FIXME test *)
+
+(** add type abbreviations **)
 
 fun abbr_errors tsig (a, (lhs_vs, rhs)) =
   let
     val TySg {args, abbrs, ...} = tsig;
     val rhs_vs = map #1 (typ_tvars rhs);
-
-
     val show_idxs = commas_quote o map fst;
 
     val dup_lhs_vars =
@@ -629,9 +715,7 @@ fun abbr_errors tsig (a, (lhs_vs, rhs)) =
   end;
 
 fun add_abbr (tsig, abbr as (a, _)) =
-  let
-    val TySg {classes, subclass, default, args, coreg, abbrs} = tsig;
-  in
+  let val TySg {classes, subclass, default, args, coreg, abbrs} = tsig in
     (case abbr_errors tsig abbr of
       [] => make_tsig (classes, subclass, default, args, abbr :: abbrs, coreg)
     | errs => (seq writeln errs;
@@ -640,42 +724,6 @@ fun add_abbr (tsig, abbr as (a, _)) =
 
 fun ext_tsig_abbrs tsig abbrs = foldl add_abbr (tsig, abbrs);
 
-
-(***
-(* FIXME old *)
-
-(* check_abbr *)
-
-fun check_abbr ((a, (lhs_vs, U)), tsig as TySg {args, abbrs, ...}) =
-  let
-    val rhs_vs = map #1 (add_typ_tvars (U, []));
-    fun err_abbr a = "Error in type abbreviation " ^ quote a;
-  in
-    if not (rhs_vs subset lhs_vs)
-    then [err_abbr a, ("Extra variables on rhs")]
-    else
-      (case duplicates lhs_vs of
-        dups as _ :: _ =>
-          [err_abbr a, "Duplicate variables on lhs: " ^ commas (map (quote o #1) dups)]
-      | [] =>
-        if is_some (assoc (args, a)) then
-          [err_abbr a, ("A type with this name already exists")]
-        else if is_some (assoc (abbrs, a)) then
-          [err_abbr a, ("An abbreviation with this name already exists")]
-        else
-          (case typ_errors tsig (U, []) of
-            [] => []
-          | errs => err_abbr a :: errs))
-  end;
-
-fun add_abbr (tsig as TySg {classes, default, subclass, args, coreg, abbrs}, newabbr) =
-  (case check_abbr (newabbr, tsig) of
-    [] => TySg {classes = classes, default = default, subclass = subclass,
-      args = args, coreg = coreg, abbrs = newabbr :: abbrs}
-  | errs => error (cat_lines errs));
-
-fun ext_tsig_abbrs tsig abbrs = foldl add_abbr (tsig, abbrs);
-***)
 
 
 (* 'extend_tsig' takes the above described check- and extend-functions to
@@ -686,90 +734,19 @@ fun extend_tsig (TySg{classes, default, subclass, args, coreg, abbrs})
   let
     val (classes', subclass') = extend_classes(classes, subclass, newclasses);
     val (args', coreg', _) = foldl add_types ((args, coreg, abbrs), types);
+
     val old_coreg = map #1 coreg;
-    fun is_old c =
-      if c mem old_coreg then ()
-      else err_undcl_type c;
-    fun is_new c =
-      if c mem old_coreg
-      then twice c else ();
     val coreg'' =
       foldl (coregular (classes', subclass', args'))
         (coreg', min_domain subclass' arities);
     val coreg''' = close (coreg'', subclass');
+
     val default' = if null newdefault then default else newdefault;
   in
     TySg {classes = classes', subclass = subclass', default = default',
       args = args', coreg = coreg''', abbrs = abbrs}
   end;
 
-
-
-(** merge type signatures **)
-
-(* 'assoc_union' merges two association lists if the contents associated
-   the keys are lists *)
-
-fun assoc_union (as1, []) = as1
-  | assoc_union (as1, (key, l2)::as2) = case assoc (as1, key) of
-        Some(l1) => assoc_union (overwrite(as1, (key, l1 union l2)), as2)
-      | None => assoc_union ((key, l2)::as1, as2);
-
-
-fun trcl r =
-  let val r' = transitive_closure r
-  in if exists (op mem) r' then error("Cyclic class structure!") else r' end;
-
-
-(* 'merge_coreg' builds the union of two 'coreg' lists;
-   it only checks the two restriction conditions and inserts afterwards
-   all elements of the second list into the first one *)
-
-fun merge_coreg classes subclass1 =
-  let fun test_ar classes (t, ars1) (coreg1, (s, w)) =
-        (is_unique_decl coreg1 (t, (s, w));
-         restr2 classes (subclass1, coreg1) (t, (s, w));
-         overwrite (coreg1, (t, (s, w) ins ars1)));
-
-      fun merge_c (coreg1, (c as (t, ars2))) = case assoc (coreg1, t) of
-          Some(ars1) => foldl (test_ar classes (t, ars1)) (coreg1, ars2)
-        | None => c::coreg1
-  in foldl merge_c end;
-
-fun merge_args (args, (t, n)) =
-  (case assoc (args, t) of
-    Some m => if m = n then args else varying_decls t
-  | None => (t, n) :: args);
-
-(* FIXME raise ... *)
-fun merge_abbrs (abbrs1, abbrs2) =
-  let
-    val abbrs = abbrs1 union abbrs2;
-    val names = map fst abbrs;
-  in
-    (case duplicates names of
-      [] => abbrs
-    | dups => error ("Duplicate declaration of type abbreviations: " ^
-        commas_quote dups))
-  end;
-
-
-(* 'merge_tsigs' takes the above declared functions to merge two type
-  signatures *)
-
-fun merge_tsigs(TySg{classes=classes1, default=default1, subclass=subclass1, args=args1,
-           coreg=coreg1, abbrs=abbrs1},
-          TySg{classes=classes2, default=default2, subclass=subclass2, args=args2,
-           coreg=coreg2, abbrs=abbrs2}) =
-  let val classes' = classes1 union classes2;
-      val subclass' = trcl (assoc_union (subclass1, subclass2));
-      val args' = foldl merge_args (args1, args2)
-      val coreg' = merge_coreg classes' subclass' (coreg1, coreg2);
-      val default' = min_sort subclass' (default1 @ default2);
-      val abbrs' = merge_abbrs(abbrs1, abbrs2);
-  in TySg{classes=classes' , default=default', subclass=subclass', args=args',
-          coreg=coreg' , abbrs = abbrs' }
-  end;
 
 
 
