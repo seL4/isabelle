@@ -92,6 +92,8 @@ fun mk_Pair (t1, t2) =
       and T2 = fastype_of t2
   in Const ("Pair", [T1, T2] ---> mk_prodT (T1,T2)) $ t1 $ t2  end;
 
+val mk_eq = HOLogic.mk_Trueprop o HOLogic.mk_eq;
+
 fun dest_prodT (Type ("*", [T1, T2])) = (T1, T2)
   | dest_prodT T = raise TYPE ("dest_prodT: product type expected", [T], []);
 
@@ -109,11 +111,16 @@ fun updateT T recT = T --> recT --> recT;
 val base_free = Free o apfst base;
 val make_scheme_name = "make_scheme";
 val make_name = "make";
-val update_suffix = "_update";
+fun def_suffix s = s ^ "_def";
+fun update_suffix s = s ^ "_update";
 fun make_schemeC full make_schemeT = Const (full make_scheme_name, make_schemeT);
 fun makeC full makeT = Const (full make_name, makeT);
+fun make_args_scheme full make_schemeT base_frees z = 
+  list_comb (make_schemeC full make_schemeT, base_frees) $ z;
+fun make_args full makeT base_frees = 
+  list_comb (makeC full makeT, base_frees); 
 fun selC s T recT = Const (s, selT T recT);
-fun updateC full s T recT = Const (full (base s ^ update_suffix), updateT T recT);
+fun updateC s T recT = Const (update_suffix s, updateT T recT);
 fun frees xs = foldr add_typ_tfree_names (xs, []);
 
 
@@ -127,7 +134,7 @@ fun decls make_schemeT makeT selT updateT recT current_fields =
       val make_decl = (make_name, makeT, NoSyn);
       val sel_decls = map (fn (c, T) => (c, selT T recT, NoSyn)) current_fields;
       val update_decls = 
-        map (fn (c, T) => (c ^ update_suffix, updateT T recT, NoSyn)) current_fields
+        map (fn (c, T) => (update_suffix c, updateT T recT, NoSyn)) current_fields
   in 
     make_scheme_decl :: make_decl :: sel_decls @ update_decls
   end;
@@ -140,12 +147,12 @@ fun make_defs make_schemeT makeT base_frees z thy =
   let
     val sign = sign_of thy;
     val full = Sign.full_name sign;
-    val make_args_scheme = list_comb (make_schemeC full make_schemeT, base_frees) $ z;
-    val make_args = list_comb (makeC full makeT, base_frees); 
     val make_scheme_def = 
-      mk_defpair (make_args_scheme, foldr mk_Pair (base_frees, z));
+      mk_defpair (make_args_scheme full make_schemeT base_frees z, 
+                  foldr mk_Pair (base_frees, z));
     val make_def = 
-      mk_defpair (make_args, foldr mk_Pair (base_frees, unit))
+      mk_defpair (make_args full makeT base_frees, 
+                  foldr mk_Pair (base_frees, unit))
   in
     make_scheme_def :: [make_def]
   end;
@@ -166,8 +173,6 @@ fun sel_defs recT r all_fields current_fullfields =
 (*update*)
 fun update_defs recT r all_fields current_fullfields thy = 
   let
-    val sign = sign_of thy;
-    val full = Sign.full_name sign;
     val len_all_fields = length all_fields;
     fun sel_last r = funpow len_all_fields ap_snd r;
     fun update_def_s (s, T) = 
@@ -175,12 +180,72 @@ fun update_defs recT r all_fields current_fullfields thy =
         if s = s' then base_free (s, T) else selC s' T' recT $ r)
         all_fields
       in
-        mk_defpair (updateC full s T recT $ base_free (s, T) $ r,
+        mk_defpair (updateC s T recT $ base_free (s, T) $ r,
                     foldr mk_Pair (updates, sel_last r)) 
       end;
   in 
     map update_def_s current_fullfields 
   end
+
+
+(* theorems for make, selectors and update *)
+ 
+(*preparations*)
+fun get_all_selector_defs all_fields full thy = 
+  map (fn (s, T) => get_axiom thy (def_suffix s)) all_fields; 
+fun get_all_update_defs all_fields full thy = 
+  map (fn (s, T) => get_axiom thy (def_suffix (update_suffix s))) all_fields;
+fun get_make_scheme_def full thy = get_axiom thy (full (def_suffix make_scheme_name));
+fun get_make_def full thy = get_axiom thy (full (def_suffix make_name));
+fun all_rec_defs all_fields full thy = 
+  get_make_scheme_def full thy :: get_make_def full thy :: 
+  get_all_selector_defs all_fields full thy @ get_all_update_defs all_fields full thy; 
+fun prove_goal_s goal_s all_fields full thy = 
+  map (fn (s,T) => 
+         (prove_goalw_cterm (all_rec_defs all_fields full thy) 
+                            (cterm_of (sign_of thy) (mk_eq (goal_s (s,T))))
+                            (K [simp_tac (HOL_basic_ss addsimps [fst_conv,snd_conv]) 1])))
+      all_fields;
+
+(*si (make(_scheme) x1 ... xi ... xn) = xi*)
+fun sel_make_scheme_thms recT make_schemeT base_frees z all_fields full thy = 
+  let     
+    fun sel_make_scheme_s (s, T) = 
+        (selC s T recT $ make_args_scheme full make_schemeT base_frees z, base_free(s,T)) 
+  in
+    prove_goal_s sel_make_scheme_s all_fields full thy
+  end;
+
+fun sel_make_thms recT_unitT makeT base_frees all_fields full thy = 
+  let     
+    fun sel_make_s (s, T) = 
+        (selC s T recT_unitT $ make_args full makeT base_frees, Free(base s,T)) 
+  in
+    prove_goal_s sel_make_s all_fields full thy
+  end;
+
+(*si_update xia (make(_scheme) x1 ... xi ... xn) = (make x1 ... xia ... xn)*)
+fun update_make_scheme_thms recT make_schemeT base_frees z all_fields full thy = 
+  let 
+    fun update_make_scheme_s (s, T) = 
+     (updateC s T recT $ base_free(s ^ "'", T) $ 
+        make_args_scheme full make_schemeT base_frees z, 
+      make_args_scheme full make_schemeT 
+        (map (fn t => if t = base_free(s, T) then base_free(s ^ "'", T) else t) base_frees) z)
+  in 
+    prove_goal_s update_make_scheme_s all_fields full thy
+  end;
+
+fun update_make_thms recT_unitT makeT base_frees all_fields full thy = 
+  let 
+    fun update_make_s (s, T) = 
+     (updateC s T recT_unitT $ base_free(s ^ "'", T) $ 
+        make_args full makeT base_frees, 
+      make_args full makeT 
+        (map (fn t => if t = base_free(s, T) then base_free(s ^ "'", T) else t) base_frees))
+  in 
+    prove_goal_s update_make_s all_fields full thy
+  end;
 
 
 
@@ -275,15 +340,29 @@ fun ext_record (args, name) opt_parent current_fields thy =
   in
     if not (null errors) 
       then error (cat_lines errors) else 
+      let val thy = 
         thy |> Theory.add_path ".."
-            |> Theory.add_tyabbrs_i [(name, tfrees @ [zeta], recT, NoSyn)]  
+            |> Theory.add_tyabbrs_i [(name ^ "_scheme", tfrees @ [zeta], recT, NoSyn)]  
+            |> Theory.add_tyabbrs_i [(name, tfrees, recT_unitT, NoSyn)]  
             |> Theory.add_path name
             |> Theory.add_consts_i (decls make_schemeT makeT selT updateT recT current_fields)
             |> Theory.add_defs_i 
                   ((make_defs make_schemeT makeT base_frees z thy) @ 
                    (sel_defs recT r all_fields current_fullfields) @
                    (update_defs recT r all_fields current_fullfields thy))
+      in 
+        thy |> PureThy.store_thmss 
+                 [("record_simps", 
+                   sel_make_scheme_thms recT make_schemeT base_frees z all_fields full thy @  
+                   sel_make_thms recT_unitT makeT base_frees all_fields full thy @
+                   update_make_scheme_thms recT make_schemeT base_frees z all_fields full thy @
+                   update_make_thms recT_unitT makeT base_frees all_fields full thy )] 
             |> Theory.add_path ".." 
+      end
+
+(* @ update_make_thms @ 
+                     update_update_thms @ sel_update_thms)]  *)
+
   end;
 
 
@@ -347,6 +426,5 @@ fun cert_typ sign ass T =
 
 val add_record = add_record_aux read_typ read_parent;
 val add_record_i = add_record_aux cert_typ (K I);
-
 
 end; 
