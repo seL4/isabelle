@@ -110,7 +110,7 @@ necessary because the built-in arithmetic prover often succeeds without
 such tricks.
 *}
 
-subsection{*How It Works*}
+subsection{*How it Works*}
 
 text{*\label{sec:SimpHow}
 Roughly speaking, the simplifier proceeds bottom-up (subterms are simplified

@@ -117,7 +117,7 @@ presented so far, we are ready to prove a few simple theorems. This will
 illustrate not just the basic proof commands but also the typical proof
 process.
 
-\subsubsection*{Main goal: @{text"rev(rev xs) = xs"}.}
+\subsubsection*{Main Goal: @{text"rev(rev xs) = xs"}.}
 
 Our goal is to show that reversing a list twice produces the original
 list. The input line
