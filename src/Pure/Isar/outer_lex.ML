@@ -9,7 +9,7 @@ signature OUTER_LEX =
 sig
   datatype token_kind =
     Command | Keyword | Ident | LongIdent | SymIdent | Var | TypeIdent | TypeVar |
-    Nat | String | Verbatim | Ignore | Sync | EOF
+    Nat | String | Verbatim | Space | Comment | Sync | EOF
   type token
   val str_of_kind: token_kind -> string
   val stopper: token * (token -> bool)
@@ -27,7 +27,7 @@ sig
     Position.T * Symbol.symbol list -> token * (Position.T * Symbol.symbol list)
   val source: bool -> (unit -> (Scan.lexicon * Scan.lexicon)) ->
     Position.T -> (Symbol.symbol, 'a) Source.source ->
-    (token, (token, Position.T * (Symbol.symbol, 'a) Source.source) Source.source) Source.source
+    (token, Position.T * (Symbol.symbol, 'a) Source.source) Source.source
 end;
 
 structure OuterLex: OUTER_LEX =
@@ -40,7 +40,7 @@ struct
 
 datatype token_kind =
   Command | Keyword | Ident | LongIdent | SymIdent | Var | TypeIdent | TypeVar |
-  Nat | String | Verbatim | Ignore | Sync | EOF;
+  Nat | String | Verbatim | Space | Comment | Sync | EOF;
 
 datatype token = Token of Position.T * (token_kind * string);
 
@@ -56,7 +56,8 @@ val str_of_kind =
   | Nat => "number"
   | String => "string"
   | Verbatim => "verbatim text"
-  | Ignore => "ignored text"
+  | Space => "white space"
+  | Comment => "comment text"
   | Sync => "sync marker"
   | EOF => "end-of-file";
 
@@ -93,7 +94,8 @@ fun keyword_with pred (Token (_, (Keyword, x))) = pred x
 
 fun name_of (Token (_, (k, _))) = str_of_kind k;
 
-fun is_proper (Token (_, (Ignore, _))) = false
+fun is_proper (Token (_, (Space, _))) = false
+  | is_proper (Token (_, (Comment, _))) = false
   | is_proper _ = true;
 
 
@@ -139,7 +141,7 @@ val is_sid = is_symid orf Syntax.is_identifier;
 (* scan strings *)
 
 val scan_str =
-  scan_blank >> K Symbol.space ||
+  scan_blank ||
   keep_line ($$ "\\" |-- Scan.one (Symbol.not_sync andf Symbol.not_eof)) ||
   keep_line (Scan.one (not_equal "\\" andf not_equal "\"" andf
     Symbol.not_sync andf Symbol.not_eof));
@@ -168,8 +170,8 @@ val scan_verbatim =
 val is_space = Symbol.is_blank andf not_equal "\n";
 
 val scan_space =
-  keep_line (Scan.any1 is_space) |-- Scan.optional (incr_line ($$ "\n")) "" ||
-  keep_line (Scan.any is_space) |-- incr_line ($$ "\n");
+  (keep_line (Scan.any1 is_space) -- Scan.optional (incr_line ($$ "\n")) "" ||
+    keep_line (Scan.any is_space) -- incr_line ($$ "\n")) >> (fn (cs, c) => implode cs ^ c);
 
 
 (* scan nested comments *)
@@ -185,7 +187,7 @@ val scan_comment =
   keep_line ($$ "(" -- $$ "*") |--
     !! (lex_err (K "missing end of comment"))
       (change_prompt
-        (Scan.pass 0 (Scan.repeat scan_cmt) |-- keep_line ($$ "*" -- $$ ")") >> K ""));
+        (Scan.pass 0 (Scan.repeat scan_cmt >> implode) --| keep_line ($$ "*" -- $$ ")")));
 
 
 (* scan token *)
@@ -193,14 +195,13 @@ val scan_comment =
 fun scan (lex1, lex2) (pos, cs) =
   let
     fun token k x = Token (pos, (k, x));
-    fun ignore _ = token Ignore "";
     fun sync _ = token Sync Symbol.sync;
 
     val scanner =
       scan_string >> token String ||
       scan_verbatim >> token Verbatim ||
-      scan_space >> ignore ||
-      scan_comment >> ignore ||
+      scan_space >> token Space ||
+      scan_comment >> token Comment ||
       keep_line (Scan.one Symbol.is_sync >> sync) ||
       keep_line (Scan.max token_leq
         (Scan.max token_leq
@@ -223,8 +224,7 @@ fun recover xs = keep_line (Scan.any1 is_junk) xs;
 
 fun source do_recover get_lex pos src =
   Source.source' pos Symbol.stopper (Scan.bulk (fn xs => scan (get_lex ()) xs))
-    (if do_recover then Some recover else None) src
-  |> Source.filter is_proper;
+    (if do_recover then Some recover else None) src;
 
 
 end;
