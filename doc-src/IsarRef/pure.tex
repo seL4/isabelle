@@ -268,7 +268,7 @@ preceding the actual theory definition.
 \end{matharray}
 
 \begin{rail}
-  'syntax' ('(' name 'output'? ')')? (constdecl +)
+  'syntax' ('(' ( name | 'output' | name 'output' ) ')')? (constdecl +)
   ;
   'translations' (transpat ('==' | '=>' | '<=') transpat comment? +)
   ;
@@ -1155,7 +1155,7 @@ These diagnostic commands assist interactive development.  Note that $undo$
 does not apply here, the theory or proof configuration is not changed.
 
 \begin{rail}
-  'pr' modes? nat?
+  'pr' modes? nat? (',' nat)?
   ;
   'thm' modes? thmrefs
   ;
@@ -1171,17 +1171,18 @@ does not apply here, the theory or proof configuration is not changed.
 \end{rail}
 
 \begin{descr}
-\item [$\isarkeyword{pr}~n$] prints the current proof state (if present),
-  including the proof context, current facts and goals.  The optional argument
-  $n$ affects the implicit limit of goals to be displayed, which is initially
-  10.  Omitting the limit leaves the current value unchanged.
+\item [$\isarkeyword{pr}~goals, prems$] prints the current proof state (if
+  present), including the proof context, current facts and goals.  The
+  optional limit arguments affect the number of goals and premises to be
+  displayed, which is initially 10 for both.  Omitting limit values leaves the
+  current setting unchanged.
 \item [$\isarkeyword{thm}~\vec a$] retrieves theorems from the current theory
   or proof context.  Note that any attributes included in the theorem
   specifications are applied to a temporary context derived from the current
   theory or proof; the result is discarded, i.e.\ attributes involved in $\vec
   a$ do not have any permanent effect.
-\item [$\isarkeyword{term}~t$, $\isarkeyword{prop}~\phi$] read, type-check and
-  print terms or propositions according to the current theory or proof
+\item [$\isarkeyword{term}~t$ and $\isarkeyword{prop}~\phi$] read, type-check
+  and print terms or propositions according to the current theory or proof
   context; the inferred type of $t$ is output as well.  Note that these
   commands are also useful in inspecting the current environment of term
   abbreviations.
