@@ -510,6 +510,9 @@ by (blast dest: inj_mapD intro: inj_mapI)
 lemma map_idI: "(\<And>x. x \<in> set xs \<Longrightarrow> f x = x) \<Longrightarrow> map f xs = xs"
 by (induct xs, auto)
 
+lemma map_fun_upd [simp]: "y \<notin> set xs \<Longrightarrow> map (f(y:=v)) xs = map f xs"
+by (induct xs) auto
+
 subsection {* @{text rev} *}
 
 lemma rev_append [simp]: "rev (xs @ ys) = rev ys @ rev xs"
@@ -681,6 +684,12 @@ apply (induct "xs", simp)
 apply (case_tac n, auto)
 done
 
+lemma nth_append_length [simp]: "(xs @ x # ys) ! length xs = x"
+by (induct "xs") auto
+
+lemma nth_append_length_plus[simp]: "(xs @ ys) ! (length xs + n) = ys ! n"
+by (induct "xs") auto
+
 lemma nth_map [simp]: "!!n. n < length xs ==> (map f xs)!n = f(xs!n)"
 apply (induct xs, simp)
 apply (case_tac n, auto)
@@ -730,7 +739,7 @@ lemma list_update_overwrite [simp]:
 "!!i. i < size xs ==> xs[i:=x, i:=y] = xs[i:=y]"
 by (induct xs) (auto split: nat.split)
 
-lemma list_update_id[simp]: "!!i. i < length xs \<Longrightarrow> xs[i := xs!i] = xs"
+lemma list_update_id[simp]: "!!i. i < length xs ==> xs[i := xs!i] = xs"
 apply (induct xs, simp)
 apply(simp split:nat.splits)
 done
@@ -744,6 +753,10 @@ lemma list_update_append1:
 apply (induct xs, simp)
 apply(simp split:nat.split)
 done
+
+lemma list_update_length [simp]:
+ "(xs @ x # ys)[length xs := y] = (xs @ y # ys)"
+by (induct xs, auto)
 
 lemma update_zip:
 "!!i xy xs. length xs = length ys ==>
@@ -1187,11 +1200,20 @@ lemma list_all2_mono [intro?]:
   done
 
 
-subsection {* @{text foldl} *}
+subsection {* @{text foldl} and @{text foldr} *}
 
 lemma foldl_append [simp]:
 "!!a. foldl f a (xs @ ys) = foldl f (foldl f a xs) ys"
 by (induct xs) auto
+
+lemma foldr_append[simp]: "foldr f (xs @ ys) a = foldr f xs (foldr f ys a)"
+by (induct xs) auto
+
+lemma foldr_foldl: "foldr f xs a = foldl (%x y. f y x) a (rev xs)"
+by (induct xs) auto
+
+lemma foldl_foldr: "foldl f a xs = foldr (%x y. f y x) (rev xs) a"
+by (simp add: foldr_foldl [of "%x y. f y x" "rev xs"])
 
 text {*
 Note: @{text "n \<le> foldl (op +) n ns"} looks simpler, but is more

@@ -15,21 +15,6 @@ theory AuxLemmas = JBasis:
 
 
 
-lemma foldr_foldl: "foldr f xs a = foldl (\<lambda> x y. (f y x)) a (rev xs)"
-by (induct xs, simp, simp)
-
-lemma foldl_foldr: "foldl f a xs = foldr (\<lambda> x y. (f y x)) (rev xs) a"
-by (simp add: foldr_foldl [of "(\<lambda> x y. (f y x))" "(rev xs)"])
-
-lemma foldr_append: "foldr f (xs @ ys) a = foldr f xs (foldr f ys a)"
-by (induct xs, auto)
-
-lemma app_nth_len [simp]: "(pre @ a # post) ! length pre = a"
-by (induct "pre") auto
-
-lemma app_nth_len_plus [simp]: "(pre @ post) ! ((length pre) + n) = post ! n"
-by (induct "pre") auto
-
 lemma app_nth_greater_len [rule_format (no_asm), simp]:
  "\<forall> ind. length pre \<le> ind \<longrightarrow> (pre @ a # post) ! (Suc ind) = (pre @ post) ! ind"
 apply (induct "pre")
@@ -38,10 +23,6 @@ apply (case_tac ind)
 apply auto
 done
 
-lemma list_update_length [simp]: "(xs @ a# ys)[length xs := b] = (xs @ b# ys)"
-by (induct xs, auto)
-
-
 lemma length_takeWhile: "v \<in> set xs \<Longrightarrow> length (takeWhile (%z. z~=v) xs) < length xs"
 by (induct xs, auto)
 
@@ -49,9 +30,6 @@ lemma nth_length_takeWhile [simp]:
   "v \<in> set xs \<Longrightarrow> xs ! (length (takeWhile (%z. z~=v) xs)) = v"
 by (induct xs, auto)
 
-
-lemma map_fun_upd [simp]: "y \<notin> set xs \<Longrightarrow> map (f(y:=v)) xs = map f xs"
-by (induct xs, auto)
 
 lemma map_list_update [simp]:
   "\<lbrakk> x \<in> set xs; distinct xs\<rbrakk> \<Longrightarrow> 
