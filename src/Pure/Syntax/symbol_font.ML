@@ -158,7 +158,7 @@ local
         let
           val (name, cs') = (scan_id -- $$ ">" >> #1) cs handle LEXICAL_ERROR
             => error ("Malformed symbolic char specification: \"\\<" ^ implode cs ^ "\"");
-          val c = the (char name) handle OPTION _
+          val c = the (char name) handle OPTION
             => error ("Unknown symbolic char name: " ^ quote name);
         in (c, cs') end
     | scan_symbol _ = raise LEXICAL_ERROR;
