@@ -59,8 +59,9 @@ structure Intr_elim =
     Intr_elim_Fun(structure Inductive=Inductive and Fp=Lfp and 
 		  Pr=Standard_Prod and Su=Standard_Sum);
 
-structure Indrule = Indrule_Fun (structure Inductive=Inductive and 
-		                 Pr=Standard_Prod and Intr_elim=Intr_elim);
+structure Indrule = 
+    Indrule_Fun (structure Inductive=Inductive and 
+		 Pr=Standard_Prod and Su=Standard_Sum and Intr_elim=Intr_elim);
 
 open Intr_elim Indrule
 end;
@@ -68,29 +69,6 @@ end;
 
 structure Ind = Add_inductive_def_Fun
     (structure Fp=Lfp and Pr=Standard_Prod and Su=Standard_Sum);
-
-
-signature INDUCTIVE_STRING =
-  sig
-  val thy_name   : string 		(*name of the new theory*)
-  val rec_doms   : (string*string) list	(*recursion terms and their domains*)
-  val sintrs     : string list		(*desired introduction rules*)
-  end;
-
-
-(*For upwards compatibility: can be called directly from ML*)
-functor Inductive_Fun
- (Inductive: sig include INDUCTIVE_STRING INDUCTIVE_ARG end)
-   : sig include INTR_ELIM INDRULE end =
-Ind_section_Fun
-   (open Inductive Ind_Syntax
-    val sign = sign_of thy;
-    val rec_tms = map (readtm sign iT o #1) rec_doms
-    and domts   = map (readtm sign iT o #2) rec_doms
-    and intr_tms = map (readtm sign propT) sintrs;
-    val thy = thy |> Ind.add_fp_def_i(rec_tms, domts, intr_tms) 
-                  |> add_thyname thy_name);
-
 
 
 local open Ind_Syntax
@@ -157,32 +135,16 @@ structure CoInd =
     Add_inductive_def_Fun(structure Fp=Gfp and Pr=Quine_Prod and Su=Quine_Sum);
 
 
-(*For upwards compatibility: can be called directly from ML*)
-functor CoInductive_Fun
- (Inductive: sig include INDUCTIVE_STRING INDUCTIVE_ARG end)
-   : sig include INTR_ELIM COINDRULE end =
-CoInd_section_Fun
-   (open Inductive Ind_Syntax
-    val sign = sign_of thy;
-    val rec_tms = map (readtm sign iT o #1) rec_doms
-    and domts   = map (readtm sign iT o #2) rec_doms
-    and intr_tms = map (readtm sign propT) sintrs;
-    val thy = thy |> CoInd.add_fp_def_i(rec_tms, domts, intr_tms) 
-                  |> add_thyname thy_name);
-
-
-
 (*For installing the theory section.   co is either "" or "Co"*)
 fun inductive_decl co =
   let open ThyParse Ind_Syntax
       fun mk_intr_name (s,_) =  (*the "op" cancels any infix status*)
 	  if Syntax.is_identifier s then "op " ^ s  else "_"
-      fun mk_params (((((domains: (string*string) list, ipairs), 
+      fun mk_params ((((((rec_tms, sdom_sum), ipairs), 
 			monos), con_defs), type_intrs), type_elims) =
         let val big_rec_name = space_implode "_" 
-		             (map (scan_to_id o trim o #1) domains)
-	    and srec_tms = mk_list (map #1 domains)
-            and sdoms    = mk_list (map #2 domains)
+		             (map (scan_to_id o trim) rec_tms)
+	    and srec_tms = mk_list rec_tms
 	    and sintrs   = mk_big_list (map snd ipairs)
             val stri_name = big_rec_name ^ "_Intrnl"
         in
@@ -194,19 +156,20 @@ fun inductive_decl co =
 	               "Inductive definition " ^ big_rec_name ^ "\"\n\
             \  val rec_tms\t= map (readtm (sign_of thy) iT) "
 	                     ^ srec_tms ^ "\n\
-            \  and domts\t= map (readtm (sign_of thy) iT) "
-	                     ^ sdoms ^ "\n\
+            \  and dom_sum\t= readtm (sign_of thy) iT " ^ sdom_sum ^ "\n\
             \  and intr_tms\t= map (readtm (sign_of thy) propT)\n"
 	                     ^ sintrs ^ "\n\
             \  end\n\
             \ end;\n\n\
             \val thy = thy |> " ^ co ^ "Ind.add_fp_def_i \n    (" ^ 
 	       stri_name ^ ".rec_tms, " ^
-               stri_name ^ ".domts, " ^
+               stri_name ^ ".dom_sum, " ^
                stri_name ^ ".intr_tms)"
            ,
 	    "structure " ^ big_rec_name ^ " =\n\
             \  struct\n\
+            \  val _ = writeln \"Proofs for " ^ co ^ 
+	               "Inductive definition " ^ big_rec_name ^ "\"\n\
             \  structure Result = " ^ co ^ "Ind_section_Fun\n\
             \  (open " ^ stri_name ^ "\n\
             \   val thy\t\t= thy\n\
@@ -219,7 +182,7 @@ fun inductive_decl co =
             \  end\n"
 	   )
 	end
-      val domains = "domains" $$-- repeat1 (string --$$ "<=" -- !! string)
+      val domains = "domains" $$-- enum1 "+" string --$$ "<=" -- !! string
       val ipairs  = "intrs"   $$-- repeat1 (ident -- !! string)
       fun optstring s = optional (s $$-- string) "\"[]\"" >> trim
   in domains -- ipairs -- optstring "monos" -- optstring "con_defs"
