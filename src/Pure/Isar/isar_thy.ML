@@ -74,7 +74,6 @@ sig
   val with_facts_i: (thm * Proof.context attribute list) list * Comment.text
     -> ProofHistory.T -> ProofHistory.T
   val chain: Comment.text -> ProofHistory.T -> ProofHistory.T
-  val export_chain: Comment.text -> ProofHistory.T -> ProofHistory.T
   val fix: ((string list * string option) * Comment.text) list -> ProofHistory.T -> ProofHistory.T
   val fix_i: ((string list * typ option) * Comment.text) list -> ProofHistory.T -> ProofHistory.T
   val match_bind: ((string list * string) * Comment.text) list -> ProofHistory.T -> ProofHistory.T
@@ -281,7 +280,6 @@ val with_facts = gen_from_facts (local_have_thmss add_thmss) o Comment.ignore;
 val with_facts_i = gen_from_facts (gen_have_thmss_i add_thmss) o Comment.ignore;
 
 fun chain comment_ignore = ProofHistory.apply Proof.chain;
-fun export_chain comment_ignore = ProofHistory.applys Proof.export_chain;
 
 
 (* context *)
