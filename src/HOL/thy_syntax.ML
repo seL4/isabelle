@@ -44,8 +44,7 @@ val record_decl =
 
 (** (co)inductive **)
 
-(*co is either "" or "Co"*)
-fun inductive_decl co =
+fun inductive_decl coind =
   let
     fun mk_intr_name (s, _) =   (*the "op" cancels any infix status*)
       if Syntax.is_identifier s then "op " ^ s else "_";
@@ -53,39 +52,28 @@ fun inductive_decl co =
       let val big_rec_name = space_implode "_" (map (scan_to_id o trim) recs)
           and srec_tms = mk_list recs
           and sintrs   = mk_big_list (map snd ipairs)
-          val intrnl_name = big_rec_name ^ "_Intrnl"
       in
-         (";\n\n\
-          \structure " ^ intrnl_name ^ " =\n\
-          \  struct\n\
-          \  val _ = writeln \"" ^ co ^
-                     "Inductive definition " ^ big_rec_name ^ "\"\n\
-          \  val rec_tms\t= map (readtm (sign_of thy) Ind_Syntax.termTVar) "
-                           ^ srec_tms ^ "\n\
-          \  and intr_tms\t= map (readtm (sign_of thy) propT)\n"
-                           ^ sintrs ^ "\n\
-          \  end;\n\n\
-          \val thy = thy |> " ^ co ^ "Ind.add_fp_def_i \n    (" ^
-             intrnl_name ^ ".rec_tms, " ^
-             intrnl_name ^ ".intr_tms)"
-         ,
-          "structure " ^ big_rec_name ^ " =\n\
-          \ let\n\
-          \  val _ = writeln \"Proofs for " ^ co ^ 
-                     "Inductive definition " ^ big_rec_name ^ "\"\n\
-          \  structure Result = " ^ co ^ "Ind_section_Fun\n\
-          \\t  (open " ^ intrnl_name ^ "\n\
-          \\t   val thy\t\t= thy\n\
-          \\t   val monos\t\t= " ^ monos ^ "\n\
-          \\t   val con_defs\t\t= " ^ con_defs ^ ");\n\n\
-          \ in\n\
-          \  struct\n\
-          \  val " ^ mk_list (map mk_intr_name ipairs) ^ " = Result.intrs;\n\
-          \  open Result\n\
-          \  end\n\
-          \ end;\n\n\
-          \structure " ^ intrnl_name ^ " = struct end;\n\n"
-         )
+        ";\n\n\
+        \local\n\
+        \val (thy, {defs, mono, unfold, intrs, elims, mk_cases, induct, ...}) =\n\
+        \  InductivePackage.add_inductive true " ^
+        (if coind then "true " else "false ") ^ srec_tms ^ " " ^
+         sintrs ^ " " ^ monos ^ " " ^ con_defs ^ " thy;\n\
+        \in\n\
+        \structure " ^ big_rec_name ^ " =\n\
+        \struct\n\
+        \  val defs = defs;\n\
+        \  val mono = mono;\n\
+        \  val unfold = unfold;\n\
+        \  val intrs = intrs;\n\
+        \  val elims = elims;\n\
+        \  val elim = hd elims;\n\
+        \  val " ^ (if coind then "co" else "") ^ "induct = induct;\n\
+        \  val mk_cases = mk_cases;\n\
+        \  val " ^ mk_list (map mk_intr_name ipairs) ^ " = intrs;\n\
+        \end;\n\
+        \val thy = thy;\nend;\n\
+        \val thy = thy\n"
       end
     val ipairs = "intrs" $$-- repeat1 (ident -- !! string)
     fun optstring s = optional (s $$-- string >> trim) "[]"
@@ -93,7 +81,6 @@ fun inductive_decl co =
     repeat1 name -- ipairs -- optstring "monos" -- optstring "con_defs"
       >> mk_params
   end;
-
 
 
 (** datatype **)
@@ -293,10 +280,10 @@ in
 val _ = ThySyn.add_syntax
  ["intrs", "monos", "con_defs", "congs", "simpset", "|"]
  [axm_section "typedef" "|> TypedefPackage.add_typedef" typedef_decl,
-  (section "record" "|> RecordPackage.add_record" record_decl),
-  ("inductive", inductive_decl ""),
-  ("coinductive", inductive_decl "Co"),
-  (section "datatype" "" datatype_decl),
+  section "record" "|> RecordPackage.add_record" record_decl,
+  section "inductive" "" (inductive_decl false),
+  section "coinductive" "" (inductive_decl true),
+  section "datatype" "" datatype_decl,
   ("primrec", primrec_decl),
   ("recdef", rec_decl)];
 

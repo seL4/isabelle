@@ -42,17 +42,18 @@ $(OUT)/HOL: $(OUT)/Pure $(SRC)/Provers/Arith/cancel_sums.ML \
   Integ/Bin.ML Integ/Bin.thy  Integ/Equiv.ML Integ/Equiv.thy \
   Integ/Integ.ML Integ/Integ.thy Integ/ROOT.ML \
   Arith.ML Arith.thy Divides.ML Divides.thy Finite.ML Finite.thy \
-  Fun.ML Fun.thy Gfp.ML Gfp.thy HOL.ML HOL.thy Inductive.ML \
+  Fun.ML Fun.thy Gfp.ML Gfp.thy HOL.ML HOL.thy \
   Inductive.thy Lfp.ML Lfp.thy List.ML List.thy Map.ML Map.thy Nat.ML \
   Nat.thy NatDef.ML NatDef.thy Option.ML Option.thy Ord.ML Ord.thy \
   Power.ML Power.thy Prod.ML Prod.thy Record.thy ROOT.ML RelPow.ML \
   RelPow.thy Relation.ML Relation.thy Set.ML Set.thy Sexp.ML Sexp.thy \
   Sum.ML Sum.thy Tools/record_package.ML Tools/typedef_package.ML \
+  Tools/inductive_package.ML \
   Trancl.ML Trancl.thy Univ.ML Univ.thy \
   Update.ML Update.thy Vimage.ML Vimage.thy WF.ML \
-  WF.thy WF_Rel.ML WF_Rel.thy add_ind_def.ML arith_data.ML cladata.ML \
-  datatype.ML equalities.ML equalities.thy hologic.ML ind_syntax.ML \
-  indrule.ML indrule.thy intr_elim.ML intr_elim.thy mono.ML mono.thy \
+  WF.thy WF_Rel.ML WF_Rel.thy arith_data.ML cladata.ML \
+  datatype.ML equalities.ML equalities.thy hologic.ML \
+  mono.ML mono.thy \
   simpdata.ML subset.ML subset.thy thy_data.ML thy_syntax.ML
 	@$(ISATOOL) usedir -b $(OUT)/Pure HOL
 

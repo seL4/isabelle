@@ -36,8 +36,7 @@ use "simpdata.ML";
 use_thy "Ord";
 use_thy "subset";
 use "Tools/typedef_package.ML";
-use_thy "Sum";
-use_thy "Gfp";
+use_thy "Inductive";
 
 use "Tools/record_package.ML";
 use_thy "Record";
@@ -46,11 +45,7 @@ use "datatype.ML";
 use_thy "Arith";
 use "arith_data.ML";
 
-use "ind_syntax.ML";
-use "add_ind_def.ML";
-use_thy "intr_elim";
-use_thy "indrule";
-use_thy "Inductive";
+use "Tools/inductive_package.ML";
 
 use_thy "RelPow";
 use_thy "Finite";
