@@ -279,8 +279,10 @@ fun cond_display prt =
     Pretty.str_of prt
     |> enclose "\\isa{" "}";
 
+fun tweak_line s =
+  if ! display then s else Symbol.strip_blanks s;
 
-val pretty_text = Pretty.chunks o map Pretty.str o Library.split_lines;
+val pretty_text = Pretty.chunks o map Pretty.str o map tweak_line o Library.split_lines;
 
 val pretty_source =
   pretty_text o space_implode " " o map Args.string_of o #2 o #1 o Args.dest_src;
