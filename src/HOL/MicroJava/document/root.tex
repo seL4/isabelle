@@ -10,12 +10,13 @@
 \addtolength{\voffset}{-2cm}
 \addtolength{\textheight}{4cm}
 
+\renewcommand{\thesubsection}{\arabic{subsection}}
+\renewcommand{\isamarkupheader}[1]{\newpage\subsection{#1}}
+
 \pagestyle{headings}
 
 \begin{document}
-
 \tableofcontents
 \newpage
 \input{session}
 \end{document}
-
