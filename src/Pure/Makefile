@@ -52,4 +52,8 @@ $(BIN)/Pure:   $(FILES)  $(SYNTAX_FILES)  $(THY_FILES)  $(ML_DBASE)
                 	$(COMP) is not poly or sml;;\
 	esac
 
+
+test: $(BIN)/Pure
+	
+
 .PRECIOUS:  $(BIN)/Pure  
