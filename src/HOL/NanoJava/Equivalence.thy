@@ -68,10 +68,10 @@ subsection "Soundness"
 
 declare exec_elim_cases [elim!] eval_elim_cases [elim!]
 
-lemma Impl_nvalid_0: "\<Turnstile>0: (P,Impl C m,Q)"
+lemma Impl_nvalid_0: "\<Turnstile>0: (P,Impl M,Q)"
 by (clarsimp simp add: nvalid_def2)
 
-lemma Impl_nvalid_Suc: "\<Turnstile>n: (P,body C m,Q) \<Longrightarrow> \<Turnstile>Suc n: (P,Impl C m,Q)"
+lemma Impl_nvalid_Suc: "\<Turnstile>n: (P,body M,Q) \<Longrightarrow> \<Turnstile>Suc n: (P,Impl M,Q)"
 by (clarsimp simp add: nvalid_def2)
 
 lemma nvalid_SucD: "\<And>t. \<Turnstile>Suc n:t \<Longrightarrow> \<Turnstile>n:t"
@@ -88,8 +88,8 @@ apply clarsimp+
 done
 
 lemma Impl_sound_lemma: 
-"\<lbrakk>\<forall>n. Ball (A \<union> B) (nvalid n) \<longrightarrow> Ball (\<Union>z. split (f z) ` ms) (nvalid n);
-          (C, m) \<in> ms; Ball A (nvalid na); Ball B (nvalid na)\<rbrakk> \<Longrightarrow> nvalid na (f z C m)"
+"\<lbrakk>\<forall>z n. Ball (A \<union> B) (nvalid n) \<longrightarrow> Ball (f z ` Ms) (nvalid n); 
+M\<in>Ms; Ball A (nvalid na); Ball B (nvalid na)\<rbrakk> \<Longrightarrow> nvalid na (f z M)"
 by blast
 
 lemma all_conjunct2: "\<forall>l. P' l \<and> P l \<Longrightarrow> \<forall>l. P l"
@@ -124,7 +124,7 @@ apply (clarsimp del: Meth_elim_cases) (* Call *)
 apply (tactic "smp_tac 1 1", tactic "smp_tac 3 1", tactic "smp_tac 0 1")
 apply (tactic "smp_tac 2 1", tactic "smp_tac 3 1", tactic "smp_tac 0 1")
 apply (tactic "smp_tac 4 1", tactic "smp_tac 2 1", fast)
-apply (clarsimp del: Impl_elim_cases) (* Meth *)
+apply (force del: Impl_elim_cases) (* Meth *)
 defer
 prefer 4 apply blast (*  Conseq *)
 prefer 4 apply blast (* eConseq *)
@@ -134,12 +134,16 @@ apply blast
 apply blast
 (* Impl *)
 apply (rule allI)
+apply (rule_tac x=z in spec)
 apply (induct_tac "n")
 apply  (clarify intro!: Impl_nvalid_0)
 apply (clarify  intro!: Impl_nvalid_Suc)
 apply (drule nvalids_SucD)
+apply (simp only: all_simps)
 apply (erule (1) impE)
-apply (drule (4) Impl_sound_lemma)
+apply (drule (2) Impl_sound_lemma)
+apply  blast
+apply assumption
 done
 
 theorem hoare_sound: "{} \<turnstile> {P} c {Q} \<Longrightarrow> \<Turnstile> {P} c {Q}"
@@ -204,7 +208,7 @@ apply (drule (1) exec_exec_max)
 apply (blast del: exec_elim_cases)
 done
 
-lemma MGF_lemma: "\<forall>C m z. A |\<turnstile> {MGT (Impl C m) z} \<Longrightarrow> 
+lemma MGF_lemma: "\<forall>M z. A |\<turnstile> {MGT (Impl M) z} \<Longrightarrow> 
  (\<forall>z. A |\<turnstile> {MGT c z}) \<and> (\<forall>z. A |\<turnstile>\<^sub>e MGT\<^sub>e e z)"
 apply (simp add: MGT_def MGTe_def)
 apply (rule stmt_expr.induct)
@@ -250,7 +254,7 @@ apply (rule allI)
 apply (drule spec, drule spec, erule hoare_ehoare.Conseq)
 apply blast
 
-apply blast
+apply (simp add: split_paired_all)
 
 apply (rule eConseq1 [OF hoare_ehoare.NewC])
 apply blast
@@ -281,7 +285,7 @@ apply (drule (2) eval_eval_exec_max)
 apply (fast del: Impl_elim_cases)
 done
 
-lemma MGF_Impl: "{} |\<turnstile> {MGT (Impl C m) z}"
+lemma MGF_Impl: "{} |\<turnstile> {MGT (Impl M) z}"
 apply (unfold MGT_def)
 apply (rule Impl1)
 apply  (rule_tac [2] UNIV_I)

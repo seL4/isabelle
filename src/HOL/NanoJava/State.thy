@@ -10,8 +10,8 @@ theory State = TypeRel:
 
 constdefs
 
-  body :: "cname => mname => stmt"
- "body C m \<equiv> bdy (the (method C m))"
+  body :: "imname => stmt"
+ "body \<equiv> \<lambda>(C,m). bdy (the (method C m))"
 
 text {* locations, i.e.\ abstract references to objects *}
 typedecl loc 
@@ -53,8 +53,11 @@ translations
 
 constdefs
 
+  reset_locs     :: "state => state"
+ "reset_locs s \<equiv> s (| locals := empty |)"
+
   init_locs     :: "cname => mname => state => state"
- "init_locs C m s \<equiv> s (| locals:=init_vars (map_of (lcl (the (method C m))))|)"
+ "init_locs C m s \<equiv> s (| locals:=init_vars (map_of (lcl (the (method C m)))) |)"
 
 text {* The first parameter of @{term set_locs} is of type @{typ state} 
         rather than @{typ locals} in order to keep @{typ locals} private.*}

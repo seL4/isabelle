@@ -14,6 +14,7 @@ typedecl mname  (* method name *)
 arities  cname :: "term"
          vnam  :: "term"
          mname :: "term"
+types   imname = "cname \<times> mname"
 
 datatype vname  (* variable for special names *)
   = This        (* This pointer *)
@@ -29,7 +30,7 @@ datatype stmt
   | LAss vname expr        ("_ :== _"           [99,   95] 94) (* local ass. *)
   | FAss expr  vnam expr   ("_.._:==_"          [95,99,95] 94) (* field ass. *)
   | Meth cname mname       (* virtual method *)
-  | Impl cname mname       (* method implementation *)
+  | Impl      imname       (* method implementation *)
 and expr
   = NewC cname       ("new _"        [   99] 95) (* object creation  *)
   | Cast cname expr                              (* type cast        *)

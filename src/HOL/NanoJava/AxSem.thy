@@ -77,19 +77,20 @@ intros
 
   Call: "[| A |-e {P} e1 {Q}; \<forall>a. A |-e {Q a} e2 {R a};
     \<forall>a p l. A |- {\<lambda>s'. \<exists>s. R a p s \<and> l = s \<and> 
-                    s' = lupd(This\<mapsto>a)(lupd(Param\<mapsto>p)(init_locs C m s))}
+                    s' = lupd(This\<mapsto>a)(lupd(Param\<mapsto>p)(reset_locs s))}
                   Meth C m {\<lambda>s. S (s<Res>) (set_locs l s)} |] ==>
              A |-e {P} {C}e1..m(e2) {S}"
 
-  Meth: "\<forall>D. A |- {\<lambda>s. \<exists>a. s<This> = Addr a \<and> D=obj_class s a \<and> D <=C C \<and> P s}
-                  Impl D m {Q} ==>
+  Meth: "\<forall>D. A |- {\<lambda>s'. \<exists>s a. s<This> = Addr a \<and> D = obj_class s a \<and> D <=C C \<and> 
+                        P s \<and> s' = init_locs D m s}
+                  Impl (D,m) {Q} ==>
              A |- {P} Meth C m {Q}"
 
   (*\<Union>z instead of \<forall>z in the conclusion and
       z restricted to type state due to limitations of the inductive package *)
-  Impl: "A\<union>   (\<Union>z::state. (\<lambda>(C,m). (P z C m, Impl C m, Q z C m))`ms) ||- 
-               (\<Union>z::state. (\<lambda>(C,m). (P z C m, body C m, Q z C m))`ms) ==>
-         A ||- (\<Union>z::state. (\<lambda>(C,m). (P z C m, Impl C m, Q z C m))`ms)"
+  Impl: "\<forall>z::state. A\<union> (\<Union>z. (\<lambda>M. (P z M, Impl M, Q z M))`Ms) ||- 
+                            (\<lambda>M. (P z M, body M, Q z M))`Ms ==>
+                      A ||- (\<lambda>M. (P z M, Impl M, Q z M))`Ms"
 
 (* structural rules *)
 
@@ -99,14 +100,13 @@ intros
 
   ConjE: "[|A ||- C; c \<in> C |] ==> A ||- {c}"
 
-  (* z restricted to type state due to limitations of the inductive package *)
   Conseq:"[| \<forall>z::state. A |- {P' z} c {Q' z};
-             \<forall>s t. (\<forall>z::state. P' z s --> Q' z t) --> (P s --> Q t) |] ==>
+             \<forall>s t. (\<forall>z. P' z s --> Q' z t) --> (P s --> Q t) |] ==>
             A |- {P} c {Q }"
 
   (* z restricted to type state due to limitations of the inductive package *)
  eConseq:"[| \<forall>z::state. A |-e {P' z} c {Q' z};
-             \<forall>s v t. (\<forall>z::state. P' z s --> Q' z v t) --> (P s --> Q v t) |] ==>
+             \<forall>s v t. (\<forall>z. P' z s --> Q' z v t) --> (P s --> Q v t) |] ==>
             A |-e {P} c {Q }"
 
 
@@ -147,22 +147,12 @@ done
 lemma Union: "A |\<turnstile> (\<Union>z. C z) = (\<forall>z. A |\<turnstile> C z)"
 by (auto intro: hoare_ehoare.ConjI hoare_ehoare.ConjE)
 
-lemma Impl': 
-  "\<forall>z. A\<union> (\<Union>z. (\<lambda>(C,m). (P z C m, Impl C m, Q (z::state) C m))`ms) ||- 
-                (\<lambda>(C,m). (P z C m, body C m, Q (z::state) C m))`ms ==>
-       A    ||- (\<lambda>(C,m). (P z C m, Impl C m, Q (z::state) C m))`ms"
-apply (drule Union[THEN iffD2])
-apply (drule hoare_ehoare.Impl)
-apply (drule Union[THEN iffD1])
-apply (erule spec)
-done
-
 lemma Impl1: 
-   "\<lbrakk>\<forall>z. A\<union> (\<Union>z. (\<lambda>(C,m). (P z C m, Impl C m, Q (z::state) C m))`ms) ||- 
-                 (\<lambda>(C,m). (P z C m, body C m, Q (z::state) C m))`ms; 
-    (C,m)\<in> ms\<rbrakk> \<Longrightarrow> 
-         A             |- {P z C m} Impl C m {Q (z::state) C m}"
-apply (drule Impl')
+   "\<lbrakk>\<forall>z::state. A\<union> (\<Union>z. (\<lambda>M. (P z M, Impl M, Q z M))`Ms) |\<turnstile> 
+                        (\<lambda>M. (P z M, body M, Q z M))`Ms; 
+    M \<in> Ms\<rbrakk> \<Longrightarrow> 
+                A         \<turnstile>  {P z M} Impl M {Q z M}"
+apply (drule hoare_ehoare.Impl)
 apply (erule Weaken)
 apply (auto del: image_eqI intro: rev_image_eqI)
 done

@@ -54,15 +54,15 @@ inductive exec eval intros
             s -Cast C e>v-n-> s'"
 
   Call: "[| s0 -e1>a-n-> s1; s1 -e2>p-n-> s2; 
-            lupd(This\<mapsto>a)(lupd(Param\<mapsto>p)(init_locs C m s2)) -Meth C m-n-> s3
+            lupd(This\<mapsto>a)(lupd(Param\<mapsto>p)(reset_locs s2)) -Meth C m-n-> s3
      |] ==> s0 -{C}e1..m(e2)>s3<Res>-n-> set_locs s2 s3"
 
-  Meth: "[| s<This> = Addr a; obj_class s a\<preceq>C C;
-            s -Impl (obj_class s a) m-n-> s' |] ==>
+  Meth: "[| s<This> = Addr a; D = obj_class s a; D\<preceq>C C;
+            init_locs D m s -Impl (D,m)-n-> s' |] ==>
             s -Meth C m-n-> s'"
 
-  Impl: "   s -body C m-n-> s' ==>
-            s -Impl C m-Suc n-> s'"
+  Impl: "   s -body M-n-> s' ==>
+            s -Impl M-Suc n-> s'"
 
 
 inductive_cases exec_elim_cases':
@@ -73,7 +73,7 @@ inductive_cases exec_elim_cases':
 				  "s -x:==e           -n\<rightarrow> t"
 				  "s -e1..f:==e2      -n\<rightarrow> t"
 inductive_cases Meth_elim_cases:  "s -Meth C m-n\<rightarrow> t"
-inductive_cases Impl_elim_cases:  "s -Impl C m-n\<rightarrow> t"
+inductive_cases Impl_elim_cases:  "s -Impl   M-n\<rightarrow> t"
 lemmas exec_elim_cases = exec_elim_cases' Meth_elim_cases Impl_elim_cases
 inductive_cases eval_elim_cases:
 				  "s -new C         \<succ>v-n\<rightarrow> t"
@@ -115,7 +115,7 @@ lemma eval_eval_exec_max:
 apply (drule (1) eval_eval_max, erule thin_rl)
 by (fast intro: exec_mono eval_mono le_maxI1 le_maxI2)
 
-lemma Impl_body_eq: "(\<lambda>t. \<exists>n. z -Impl C m-n\<rightarrow> t) = (\<lambda>t. \<exists>n. z -body C m-n\<rightarrow> t)"
+lemma Impl_body_eq: "(\<lambda>t. \<exists>n. z -Impl M-n\<rightarrow> t) = (\<lambda>t. \<exists>n. z -body M-n\<rightarrow> t)"
 apply (rule ext)
 apply (fast elim: exec_elim_cases intro: exec_eval.Impl)
 done
