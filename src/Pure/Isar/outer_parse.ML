@@ -300,7 +300,7 @@ val xthms1 = Scan.repeat1 xthm;
 local
 
 val loc_mixfix = $$$ "(" -- $$$ "structure" -- !!! ($$$ ")") >> K None || opt_mixfix >> Some;
-val loc_keyword = $$$ "fixes" || $$$ "assumes" || $$$ "defines" || $$$ "notes" || $$$ "uses";
+val loc_keyword = $$$ "fixes" || $$$ "assumes" || $$$ "defines" || $$$ "notes" || $$$ "includes";
 
 fun plus1 scan =
   scan -- Scan.repeat ($$$ "+" |-- Scan.unless loc_keyword (!!! scan)) >> op ::;
@@ -324,7 +324,7 @@ val locale_element = group "locale element"
     >> (Locale.Elem o Locale.Defines) ||
   $$$ "notes" |-- !!! (and_list1 (opt_thm_name "=" -- xthms1))
     >> (Locale.Elem o Locale.Notes) ||
-  $$$ "uses" |-- !!! locale_expr >> Locale.Expr);
+  $$$ "includes" |-- !!! locale_expr >> Locale.Expr);
 
 end;
 

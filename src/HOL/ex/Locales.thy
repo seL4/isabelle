@@ -336,7 +336,8 @@ text {*
 *}
 
 lemma
-  uses group G + group H
+  includes group G
+  includes group H
   shows "x \<cdot> y \<cdot> \<one> = prod G (prod G x y) (one G)" and
   "x \<cdot>\<^sub>2 y \<cdot>\<^sub>2 \<one>\<^sub>2 = prod H (prod H x y) (one H)" and
   "x \<cdot> \<one>\<^sub>2 = prod G x (one H)" by (rule refl)+
