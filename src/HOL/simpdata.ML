@@ -410,16 +410,16 @@ fun pair_upd2 f ((a,b),x) = (a, f(b,x));
 
 infix 4 addSIs2 addSEs2 addSDs2 addIs2 addEs2 addDs2
 	addsimps2 delsimps2 addcongs2 delcongs2;
-val op addSIs2   = pair_upd1 (op addSIs);
-val op addSEs2   = pair_upd1 (op addSEs);
-val op addSDs2   = pair_upd1 (op addSDs);
-val op addIs2    = pair_upd1 (op addIs );
-val op addEs2    = pair_upd1 (op addEs );
-val op addDs2    = pair_upd1 (op addDs );
-val op addsimps2 = pair_upd2 (op addsimps);
-val op delsimps2 = pair_upd2 (op delsimps);
-val op addcongs2 = pair_upd2 (op addcongs);
-val op delcongs2 = pair_upd2 (op delcongs);
+fun op addSIs2   arg = pair_upd1 (op addSIs) arg;
+fun op addSEs2   arg = pair_upd1 (op addSEs) arg;
+fun op addSDs2   arg = pair_upd1 (op addSDs) arg;
+fun op addIs2    arg = pair_upd1 (op addIs ) arg;
+fun op addEs2    arg = pair_upd1 (op addEs ) arg;
+fun op addDs2    arg = pair_upd1 (op addDs ) arg;
+fun op addsimps2 arg = pair_upd2 (op addsimps) arg;
+fun op delsimps2 arg = pair_upd2 (op delsimps) arg;
+fun op addcongs2 arg = pair_upd2 (op addcongs) arg;
+fun op delcongs2 arg = pair_upd2 (op delcongs) arg;
 
 fun auto_tac (cs,ss) = let val cs' = cs addss ss in
 EVERY [	TRY (safe_tac cs'),
