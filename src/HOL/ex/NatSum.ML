@@ -7,6 +7,7 @@ Summing natural numbers, squares and cubes.  Could be continued...
 Demonstrates permutative rewriting.
 *)
 
+Delsimprocs nat_cancel;
 Addsimps add_ac;
 Addsimps [add_mult_distrib, add_mult_distrib2];
 
