@@ -382,6 +382,7 @@ fun subst_atomic [] t = t : term
 		           Some u => u  |  None => t)
       in  subst t  end;
 
+(*Substitute for type Vars in a type*)
 fun typ_subst_TVars iTs T = if null iTs then T else
   let fun subst(Type(a,Ts)) = Type(a, map subst Ts)
 	| subst(T as TFree _) = T
@@ -389,8 +390,10 @@ fun typ_subst_TVars iTs T = if null iTs then T else
             (case assoc(iTs,ixn) of None => T | Some(U) => U)
   in subst T end;
 
+(*Substitute for type Vars in a term*)
 val subst_TVars = map_term_types o typ_subst_TVars;
 
+(*Substitute for Vars in a term; see also envir/norm_term*)
 fun subst_Vars itms t = if null itms then t else
   let fun subst(v as Var(ixn,_)) =
             (case assoc(itms,ixn) of None => v | Some t => t)
@@ -399,6 +402,7 @@ fun subst_Vars itms t = if null itms then t else
         | subst(t) = t
   in subst t end;
 
+(*Substitute for type/term Vars in a term; see also envir/norm_term*)
 fun subst_vars(iTs,itms) = if null iTs then subst_Vars itms else
   let fun subst(Const(a,T)) = Const(a,typ_subst_TVars iTs T)
         | subst(Free(a,T)) = Free(a,typ_subst_TVars iTs T)
