@@ -10,7 +10,8 @@ open Set;
 
 section "Relating predicates and sets";
 
-AddIffs [mem_Collect_eq];
+Addsimps [Collect_mem_eq];
+AddIffs  [mem_Collect_eq];
 
 goal Set.thy "!!a. P(a) ==> a : {x.P(x)}";
 by (Asm_simp_tac 1);
