@@ -21,9 +21,6 @@
 #     -noexec	don't execute, just check settings and IsaMakefiles
 
 
-. $ISABELLE_HOME/lib/scripts/getplatform
-export ISABELLE_OUTPUT_DIR="$ISABELLE_OUTPUT/$ML_SYSTEM-$PLATFORM"
-
 set -e			#fail immediately upon errors
 
 # process command line switches
