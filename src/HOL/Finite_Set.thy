@@ -2,7 +2,6 @@
     ID:         $Id$
     Author:     Tobias Nipkow, Lawrence C Paulson and Markus Wenzel
                 Additions by Jeremy Avigad in Feb 2004
-    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 *)
 
 header {* Finite sets *}
@@ -780,8 +779,8 @@ lemma setsum_insert [simp]:
   by (simp add: setsum_def
     LC.fold_insert [OF LC.intro] add_left_commute)
 
-lemma setsum_reindex [rule_format]: "finite B ==>
-                  inj_on f B --> setsum h (f ` B) = setsum (h \<circ> f) B"
+lemma setsum_reindex [rule_format]:
+     "finite B ==> inj_on f B --> setsum h (f ` B) = setsum (h \<circ> f) B"
 apply (rule finite_induct, assumption, force)
 apply (rule impI, auto)
 apply (simp add: inj_on_def)
@@ -789,15 +788,11 @@ apply (subgoal_tac "f x \<notin> f ` F")
 apply (subgoal_tac "finite (f ` F)")
 apply (auto simp add: setsum_insert)
 apply (simp add: inj_on_def)
-  done
+done
 
-lemma setsum_reindex_id: "finite B ==> inj_on f B ==>
-    setsum f B = setsum id (f ` B)"
+lemma setsum_reindex_id:
+     "finite B ==> inj_on f B ==> setsum f B = setsum id (f ` B)"
 by (auto simp add: setsum_reindex id_o)
-
-lemma setsum_reindex_cong: "finite A ==> inj_on f A ==>
-    B = f ` A ==> g = h \<circ> f ==> setsum h B = setsum g A"
-  by (frule setsum_reindex, assumption, simp)
 
 lemma setsum_cong:
   "A = B ==> (!!x. x:B ==> f x = g x) ==> setsum f A = setsum g B"
@@ -816,6 +811,11 @@ lemma setsum_cong:
   apply (erule (1) notE impE)
   apply (simp add: Ball_def del:insert_Diff_single)
   done
+
+lemma setsum_reindex_cong:
+     "[|finite A; inj_on f A; B = f ` A; !!a. g a = h (f a)|] 
+      ==> setsum h B = setsum g A"
+  by (simp add: setsum_reindex cong: setsum_cong) 
 
 lemma setsum_0: "setsum (%i. 0) A = 0"
   apply (case_tac "finite A")
@@ -1345,7 +1345,7 @@ lemma card_inj_on_le:
     "[|inj_on f A; f ` A \<subseteq> B; finite B |] ==> card A \<le> card B"
 apply (subgoal_tac "finite A") 
  apply (force intro: card_mono simp add: card_image [symmetric])
-apply (blast intro: Finite_Set.finite_imageD dest: finite_subset) 
+apply (blast intro: finite_imageD dest: finite_subset) 
 done
 
 lemma card_bij_eq:
