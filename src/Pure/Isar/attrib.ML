@@ -241,7 +241,7 @@ fun read_instantiate' _ ([], []) _ thm = thm
           | zip_vars ((x, _) :: xs) (Some t :: opt_ts) = (x, t) :: zip_vars xs opt_ts
           | zip_vars [] _ = error "More instantiations than variables in theorem";
         val insts =
-          zip_vars (Drule.vars_of_terms [#prop (Thm.rep_thm thm)]) args @
+          zip_vars (Drule.vars_of_terms [Thm.prop_of thm]) args @
           zip_vars (Drule.vars_of_terms [Thm.concl_of thm]) concl_args;
       in
         thm
@@ -288,7 +288,7 @@ fun rule_format_att x = syntax
 (* misc rules *)
 
 fun standard x = no_args (Drule.rule_attribute (K Drule.standard)) x;
-fun norm_hhf x = no_args (Drule.rule_attribute (K Tactic.norm_hhf)) x;
+fun norm_hhf x = no_args (Drule.rule_attribute (K Tactic.norm_hhf_rule)) x;
 fun elim_format x = no_args (Drule.rule_attribute (K Tactic.make_elim)) x;
 fun no_vars x = no_args (Drule.rule_attribute (K (#1 o Drule.freeze_thaw))) x;
 

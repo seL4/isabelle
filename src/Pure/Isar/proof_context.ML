@@ -652,7 +652,7 @@ val string_of_term = Pretty.string_of oo pretty_term;
 fun pretty_thm ctxt thm =
   if ! Display.show_hyps then
     Display.pretty_thm_aux (pretty_sort ctxt, pretty_term ctxt) false thm
-  else pretty_term ctxt (#prop (Thm.rep_thm thm));
+  else pretty_term ctxt (Thm.prop_of thm);
 
 fun pretty_thms ctxt [th] = pretty_thm ctxt th
   | pretty_thms ctxt ths = Pretty.blk (0, Pretty.fbreaks (map (pretty_thm ctxt) ths));
@@ -724,7 +724,7 @@ fun export is_goal inner outer =
     val asms = Library.drop (length (assumptions_of outer), assumptions_of inner);
     val exp_asms = map (fn (cprops, exp) => exp is_goal cprops) asms;
   in fn thm => thm
-    |> Tactic.norm_hhf
+    |> Tactic.norm_hhf_rule
     |> Seq.EVERY (rev exp_asms)
     |> Seq.map (fn rule =>
       let
@@ -734,7 +734,7 @@ fun export is_goal inner outer =
       in
         rule
         |> Drule.forall_intr_list frees
-        |> Tactic.norm_hhf
+        |> Tactic.norm_hhf_rule
         |> (#1 o Drule.tvars_intr_list tfrees)
       end)
   end;
@@ -1038,7 +1038,7 @@ local
 fun add_assm (ctxt, ((name, attrs), props)) =
   let
     val cprops = map (Thm.cterm_of (sign_of ctxt)) props;
-    val asms = map (Tactic.norm_hhf o Thm.assume) cprops;
+    val asms = map (Tactic.norm_hhf_rule o Thm.assume) cprops;
 
     val ths = map (fn th => ([th], [])) asms;
     val (ctxt', [(_, thms)]) =
