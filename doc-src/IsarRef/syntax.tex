@@ -17,8 +17,8 @@ proofs).  As a general rule, inner syntax entities may occur only as
 within a theory, while \texttt{x + y} is not.
 
 \begin{warn}
-  Note that classic Isabelle theories used to fake parts of the inner type
-  syntax, with rather complicated rules when quotes may be omitted.  Despite
+  Note that classic Isabelle theories used to fake parts of the inner syntax
+  of types, with rather complicated rules when quotes may be omitted.  Despite
   the minor drawback of requiring quotes more often, the syntax of
   Isabelle/Isar is simpler and more robust in that respect.
 \end{warn}
@@ -69,11 +69,11 @@ The body of \texttt{verbatim} may consist of any text not containing
 ``\verb|*}|''.
 
 Comments take the form \texttt{(*~\dots~*)} and may be
-nested\footnote{Proof~General may get confused by nested comments.}, just as
-in ML. Note that these are \emph{source} comments only, which are stripped
-after lexical analysis of the input.  The Isar document syntax also provides
-\emph{formal comments} that are actually part of the text (see
-\S\ref{sec:comments}).
+nested\footnote{Proof~General may occasionally get confused by nested
+  comments.}, just as in ML. Note that these are \emph{source} comments only,
+which are stripped after lexical analysis of the input.  The Isar document
+syntax also provides \emph{formal comments} that are actually part of the text
+(see \S\ref{sec:comments}).
 
 
 \section{Common syntax entities}
