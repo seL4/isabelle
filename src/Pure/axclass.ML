@@ -60,8 +60,8 @@ val get_axioms = mapfilter o get_ax;
 
 val is_def = Logic.is_equals o #prop o rep_thm;
 
-fun witnesses thy axms thms =
-  map (get_axiom thy) axms @ thms @ filter is_def (map snd (axioms_of thy));
+fun witnesses thy names thms =
+  flat (map (PureThy.get_thms thy) names) @ thms @ filter is_def (map snd (axioms_of thy));
 
 
 
@@ -287,7 +287,7 @@ val prove_arity =
 fun intrn_classrel sg c1_c2 =
   pairself (Sign.intern_class sg) c1_c2;
 
-fun ext_inst_subclass int raw_c1_c2 axms thms usr_tac thy =
+fun ext_inst_subclass int raw_c1_c2 names thms usr_tac thy =
   let
     val c1_c2 =
       if int then intrn_classrel (sign_of thy) raw_c1_c2
@@ -296,20 +296,20 @@ fun ext_inst_subclass int raw_c1_c2 axms thms usr_tac thy =
     writeln ("Proving class inclusion " ^
       quote (Sign.str_of_classrel (sign_of thy) c1_c2) ^ " ...");
     add_classrel_thms
-      [prove_subclass thy c1_c2 (witnesses thy axms thms) usr_tac] thy
+      [prove_subclass thy c1_c2 (witnesses thy names thms) usr_tac] thy
   end;
 
 
 fun intrn_arity sg intrn (t, Ss, x) =
   (Sign.intern_tycon sg t, map (Sign.intern_sort sg) Ss, intrn sg x);
 
-fun ext_inst_arity int (raw_t, raw_Ss, raw_cs) axms thms usr_tac thy =
+fun ext_inst_arity int (raw_t, raw_Ss, raw_cs) names thms usr_tac thy =
   let
     val sign = sign_of thy;
     val (t, Ss, cs) =
       if int then intrn_arity sign Sign.intern_sort (raw_t, raw_Ss, raw_cs)
       else (raw_t, raw_Ss, raw_cs);
-    val wthms = witnesses thy axms thms;
+    val wthms = witnesses thy names thms;
     fun prove c =
      (writeln ("Proving type arity " ^
         quote (Sign.str_of_arity sign (t, Ss, [c])) ^ " ...");
