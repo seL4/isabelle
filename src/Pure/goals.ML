@@ -42,6 +42,7 @@ signature GOALS =
   val goal		: theory -> string -> thm list
   val goalw		: theory -> thm list -> string -> thm list
   val goalw_cterm	: thm list -> cterm -> thm list
+  val current_goals_markers: (string * string * string) ref
   val print_current_goals_default: (int -> int -> thm -> unit)
   val print_current_goals_fn : (int -> int -> thm -> unit) ref
   val pop_proof		: unit -> thm list
@@ -271,8 +272,15 @@ fun pop [] = error"Cannot go back past the beginning of the proof!"
 
 
 (*Print goals of current level*)
+val current_goals_markers = ref ("", "", "");
+
 fun print_current_goals_default n max th =
-  (writeln ("Level " ^ string_of_int n); print_goals max th);
+  let val ref (begin_state, end_state, begin_goal) = current_goals_markers in
+    writeln begin_state;
+    writeln ("Level " ^ string_of_int n);
+    Locale.print_goals_marker begin_goal max th;
+    writeln end_state
+  end;
 
 val print_current_goals_fn = ref print_current_goals_default;
 

@@ -19,6 +19,7 @@ signature BASIC_LOCALE =
 sig
   val print_locales: theory -> unit
   val print_goals: int -> thm -> unit
+  val print_goals_marker: string -> int -> thm -> unit
 end;
 
 signature LOCALE =
@@ -476,7 +477,7 @@ local
 
 in
 
-  fun print_goals maxgoals state =
+  fun print_goals_marker begin_goal maxgoals state =
     let
       val {sign, ...} = rep_thm state;
 
@@ -505,7 +506,7 @@ in
 
       fun print_subgoals (_, []) = ()
         | print_subgoals (n, A :: As) = (Pretty.writeln (Pretty.blk (0,
-            [Pretty.str (" " ^ string_of_int n ^ ". "), prt_term A]));
+            [Pretty.str (begin_goal ^ " " ^ string_of_int n ^ ". "), prt_term A]));
               print_subgoals (n + 1, As));
 
       val print_ffpairs =
@@ -539,6 +540,8 @@ in
           (setmp show_sorts false print_gs))
      (! show_types orelse ! show_sorts, ! show_sorts)
   end;
+
+  val print_goals = print_goals_marker "";
 
 end;
 
