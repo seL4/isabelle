@@ -372,10 +372,10 @@ local
                           simp_tac ss 1]
   fun mk_eq_cterm sg T l r = Thm.cterm_of sg (equals T $ l $ r)
 in 
-  val fun_upd2_simproc = Simplifier.mk_simproc "fun_upd2"
-   [HOLogic.read_cterm (sign_of (the_context ())) "f(v := w, x := y)"]
-   (fn sg => (K (fn t => case find_double t of (T,None)=> None | (T,Some rhs)=> 
-       Some (prove_goalw_cterm [] (mk_eq_cterm sg T t rhs) fun_upd_prover))))
+  val fun_upd2_simproc =
+    Simplifier.simproc (Theory.sign_of (the_context ())) "fun_upd2" ["f(v := w, x := y)"]
+    (fn sg => fn _ => fn t => case find_double t of (T, None) => None | (T, Some rhs) =>
+        Some (prove_goalw_cterm [] (mk_eq_cterm sg T t rhs) fun_upd_prover));
 end;
 Addsimprocs[fun_upd2_simproc];
 

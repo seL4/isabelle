@@ -29,13 +29,11 @@ text {*
 *}
 
 ML_setup {*
-  local
-    val unit_pat = Thm.cterm_of (Theory.sign_of (the_context ())) (Free ("x", HOLogic.unitT));
-    val unit_meta_eq = standard (mk_meta_eq (thm "unit_eq"));
-    fun proc _ _ t =
-      if HOLogic.is_unit t then None
-      else Some unit_meta_eq
-  in val unit_eq_proc = Simplifier.mk_simproc "unit_eq" [unit_pat] proc end;
+  val unit_eq_proc =
+    let val unit_meta_eq = mk_meta_eq (thm "unit_eq") in
+      Simplifier.simproc (Theory.sign_of (the_context ())) "unit_eq" ["x::unit"]
+      (fn _ => fn _ => fn t => if HOLogic.is_unit t then None else Some unit_meta_eq)
+    end;
 
   Addsimprocs [unit_eq_proc];
 *}
@@ -341,12 +339,7 @@ local
   fun metaeq sg lhs rhs = mk_meta_eq (prove_goalw_cterm []
         (cterm_of sg (HOLogic.mk_Trueprop (HOLogic.mk_eq (lhs,rhs))))
         (K [simp_tac (HOL_basic_ss addsimps [cond_split_eta]) 1]));
-  val sign = sign_of (the_context ());
-  fun simproc name patstr =
-    Simplifier.mk_simproc name [HOLogic.read_cterm sign patstr];
 
-  val beta_patstr = "split f z";
-  val  eta_patstr = "split f";
   fun beta_term_pat k i (Abs (_, _, t)) = beta_term_pat (k+1) i t
   |   beta_term_pat k i (t $ u) = Pair_pat k i (t $ u) orelse
                         (beta_term_pat k i t andalso beta_term_pat k i u)
@@ -368,8 +361,10 @@ local
         | None => None)
   |   eta_proc _ _ _ = None;
 in
-  val split_beta_proc = simproc "split_beta" beta_patstr beta_proc;
-  val split_eta_proc  = simproc "split_eta"   eta_patstr  eta_proc;
+  val split_beta_proc = Simplifier.simproc (Theory.sign_of (the_context ()))
+    "split_beta" ["split f z"] beta_proc;
+  val split_eta_proc = Simplifier.simproc (Theory.sign_of (the_context ()))
+    "split_eta" ["split f"] eta_proc;
 end;
 
 Addsimprocs [split_beta_proc, split_eta_proc];

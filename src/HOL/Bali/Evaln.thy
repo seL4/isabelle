@@ -260,7 +260,7 @@ let
   fun pred (_ $ (Const ("Pair",_) $ _ $ (Const ("Pair", _) $ _ $ 
     (Const ("Pair", _) $ _ $ (Const ("Pair", _) $ x $ _ )))) $ _ ) = is_Inj x
 in
-  make_simproc name lhs pred (thm name)
+  cond_simproc name lhs pred (thm name)
 end;
 
 val evaln_expr_proc = enf "expr" "In1l" "\<exists>v.  w=In1 v  \<and> G\<turnstile>s \<midarrow>t-\<succ>v \<midarrow>n\<rightarrow> s'";
@@ -350,7 +350,7 @@ local
        (Const ("Pair", _) $ _ $ x)))) $ _ ) = is_Some x
 in
   val evaln_abrupt_proc = 
- make_simproc "evaln_abrupt" "G\<turnstile>(Some xc,s) \<midarrow>e\<succ>\<midarrow>n\<rightarrow> (w,s')" pred (thm "evaln_abrupt")
+ cond_simproc "evaln_abrupt" "G\<turnstile>(Some xc,s) \<midarrow>e\<succ>\<midarrow>n\<rightarrow> (w,s')" pred (thm "evaln_abrupt")
 end;
 Addsimprocs [evaln_abrupt_proc]
 *}

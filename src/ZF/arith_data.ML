@@ -12,7 +12,7 @@ sig
   val nat_cancel: simproc list
   (*tools for use in similar applications*)
   val gen_trans_tac: thm -> thm option -> tactic
-  val prove_conv: string -> tactic list -> Sign.sg -> 
+  val prove_conv: string -> tactic list -> Sign.sg ->
                   thm list -> term * term -> thm option
   val simplify_meta_eq: thm list -> thm -> thm
   (*debugging*)
@@ -63,7 +63,7 @@ fun mk_eq_iff(t,u) =
 
 (*We remove equality assumptions because they confuse the simplifier and
   because only type-checking assumptions are necessary.*)
-fun is_eq_thm th = 
+fun is_eq_thm th =
     can FOLogic.dest_eq (FOLogic.dest_Trueprop (#prop (rep_thm th)));
 
 fun add_chyps chyps ct = Drule.list_implies (map cprop_of chyps, ct);
@@ -75,17 +75,15 @@ fun prove_conv name tacs sg hyps (t,u) =
       val goal = Logic.list_implies (map (#prop o Thm.rep_thm) hyps',
         FOLogic.mk_Trueprop (mk_eq_iff (t, u)));
   in Some (hyps' MRS Tactic.prove sg [] [] goal (K (EVERY tacs)))
-      handle ERROR_MESSAGE msg => 
-	(warning (msg ^ "\nCancellation failed: no typing information? (" ^ name ^ ")"); None)
+      handle ERROR_MESSAGE msg =>
+        (warning (msg ^ "\nCancellation failed: no typing information? (" ^ name ^ ")"); None)
   end;
 
-fun prep_simproc (name, pats, proc) = Simplifier.mk_simproc name pats proc;
-fun prep_pat s = Thm.read_cterm (Theory.sign_of (the_context ()))
-                      (s, TypeInfer.anyT ["logic"]);
-val prep_pats = map prep_pat;
+fun prep_simproc (name, pats, proc) =
+  Simplifier.simproc (Theory.sign_of (the_context ())) name pats proc;
 
 
-(*** Use CancelNumerals simproc without binary numerals, 
+(*** Use CancelNumerals simproc without binary numerals,
      just for cancellation ***)
 
 val mk_times = FOLogic.mk_binop "Arith.mult";
@@ -132,9 +130,9 @@ val natifys = [natify_0, natify_ident, add_natify1, add_natify2,
 (*Final simplification: cancel + and **)
 fun simplify_meta_eq rules =
     mk_meta_eq o
-    simplify (FOL_ss addeqcongs[eq_cong2,iff_cong2] 
+    simplify (FOL_ss addeqcongs[eq_cong2,iff_cong2]
                      delsimps iff_simps (*these could erase the whole rule!*)
-		     addsimps rules);
+                     addsimps rules);
 
 val final_rules = add_0s @ mult_1s @ [mult_0, mult_0_right];
 
@@ -158,7 +156,7 @@ structure CancelNumeralsCommon =
 (** The functor argumnets are declared as separate structures
     so that they can be exported to ease debugging. **)
 
-structure EqCancelNumeralsData = 
+structure EqCancelNumeralsData =
   struct
   open CancelNumeralsCommon
   val prove_conv = prove_conv "nateq_cancel_numerals"
@@ -171,7 +169,7 @@ structure EqCancelNumeralsData =
 
 structure EqCancelNumerals = CancelNumeralsFun(EqCancelNumeralsData);
 
-structure LessCancelNumeralsData = 
+structure LessCancelNumeralsData =
   struct
   open CancelNumeralsCommon
   val prove_conv = prove_conv "natless_cancel_numerals"
@@ -184,7 +182,7 @@ structure LessCancelNumeralsData =
 
 structure LessCancelNumerals = CancelNumeralsFun(LessCancelNumeralsData);
 
-structure DiffCancelNumeralsData = 
+structure DiffCancelNumeralsData =
   struct
   open CancelNumeralsCommon
   val prove_conv = prove_conv "natdiff_cancel_numerals"
@@ -199,26 +197,25 @@ structure DiffCancelNumerals = CancelNumeralsFun(DiffCancelNumeralsData);
 
 
 val nat_cancel =
-      map prep_simproc
-       [("nateq_cancel_numerals",
-	 prep_pats ["l #+ m = n", "l = m #+ n",
-		    "l #* m = n", "l = m #* n",
-		    "succ(m) = n", "m = succ(n)"],
-	 EqCancelNumerals.proc),
-	("natless_cancel_numerals",
-	 prep_pats ["l #+ m < n", "l < m #+ n",
-		    "l #* m < n", "l < m #* n",
-		    "succ(m) < n", "m < succ(n)"],
-	 LessCancelNumerals.proc),
-	("natdiff_cancel_numerals",
-	 prep_pats ["(l #+ m) #- n", "l #- (m #+ n)",
-		    "(l #* m) #- n", "l #- (m #* n)",
-		    "succ(m) #- n", "m #- succ(n)"],
-	 DiffCancelNumerals.proc)];
+  map prep_simproc
+   [("nateq_cancel_numerals",
+     ["l #+ m = n", "l = m #+ n",
+      "l #* m = n", "l = m #* n",
+      "succ(m) = n", "m = succ(n)"],
+     EqCancelNumerals.proc),
+    ("natless_cancel_numerals",
+     ["l #+ m < n", "l < m #+ n",
+      "l #* m < n", "l < m #* n",
+      "succ(m) < n", "m < succ(n)"],
+     LessCancelNumerals.proc),
+    ("natdiff_cancel_numerals",
+     ["(l #+ m) #- n", "l #- (m #+ n)",
+      "(l #* m) #- n", "l #- (m #* n)",
+      "succ(m) #- n", "m #- succ(n)"],
+     DiffCancelNumerals.proc)];
 
 end;
 
-(*Install the simprocs!*)
 Addsimprocs ArithData.nat_cancel;
 
 

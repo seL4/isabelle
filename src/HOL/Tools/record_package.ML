@@ -499,34 +499,26 @@ fun add_parents thy None parents = parents
 
 (** record simproc **)
 
-local
-
-val sel_upd_pat = [HOLogic.read_cterm (Theory.sign_of HOL.thy) "s (u k r)"];
-
-fun proc sg _ t =
-  (case t of (sel as Const (s, _)) $ ((upd as Const (u, _)) $ k $ r) =>
-    (case get_selectors sg s of Some () =>
-      (case get_updates sg u of Some u_name =>
-        let
-          fun mk_free x t = Free (x, fastype_of t);
-          val k' = mk_free "k" k;
-          val r' = mk_free "r" r;
-          val t' = sel $ (upd $ k' $ r');
-          fun prove prop =
-            Tactic.prove sg ["k", "r"] [] prop (K (simp_all_tac (get_simpset sg) []));
-        in
-          if u_name = s then Some (prove (Logic.mk_equals (t', k')))
-          else Some (prove (Logic.mk_equals (t', sel $ r')))
-        end
-      | None => None)
-    | None => None)
-  | _ => None);
-
-in
-
-val record_simproc = Simplifier.mk_simproc "record_simp" sel_upd_pat proc;
-
-end;
+val record_simproc =
+  Simplifier.simproc (Theory.sign_of HOL.thy) "record_simp" ["s (u k r)"]
+    (fn sg => fn _ => fn t =>
+      (case t of (sel as Const (s, _)) $ ((upd as Const (u, _)) $ k $ r) =>
+        (case get_selectors sg s of Some () =>
+          (case get_updates sg u of Some u_name =>
+            let
+              fun mk_free x t = Free (x, fastype_of t);
+              val k' = mk_free "k" k;
+              val r' = mk_free "r" r;
+              val t' = sel $ (upd $ k' $ r');
+              fun prove prop =
+                Tactic.prove sg ["k", "r"] [] prop (K (simp_all_tac (get_simpset sg) []));
+            in
+              if u_name = s then Some (prove (Logic.mk_equals (t', k')))
+              else Some (prove (Logic.mk_equals (t', sel $ r')))
+            end
+          | None => None)
+        | None => None)
+      | _ => None));
 
 
 

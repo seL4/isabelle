@@ -367,8 +367,8 @@ fun distinct_proc sg _ (t as Const ("op =", _) $ t1 $ t2) =
    | _ => None)
   | distinct_proc sg _ _ = None;
 
-val distinct_pats = [HOLogic.read_cterm (Theory.sign_of HOL.thy) "s = t"];
-val distinct_simproc = mk_simproc distinctN distinct_pats distinct_proc;
+val distinct_simproc =
+  Simplifier.simproc (Theory.sign_of HOL.thy) distinctN ["s = t"] distinct_proc;
 
 val dist_ss = HOL_ss addsimprocs [distinct_simproc];
 

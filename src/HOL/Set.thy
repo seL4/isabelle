@@ -297,29 +297,25 @@ lemma ball_one_point2 [simp]: "(ALL x:A. a = x --> P x) = (a:A --> P a)"
   by blast
 
 ML_setup {*
-  let
+  local
     val Ball_def = thm "Ball_def";
     val Bex_def = thm "Bex_def";
-
-    val ex_pattern = Thm.read_cterm (Theory.sign_of (the_context ()))
-      ("EX x:A. P x & Q x", HOLogic.boolT);
 
     val prove_bex_tac =
       rewrite_goals_tac [Bex_def] THEN Quantifier1.prove_one_point_ex_tac;
     val rearrange_bex = Quantifier1.rearrange_bex prove_bex_tac;
 
-    val all_pattern = Thm.read_cterm (Theory.sign_of (the_context ()))
-      ("ALL x:A. P x --> Q x", HOLogic.boolT);
-
     val prove_ball_tac =
       rewrite_goals_tac [Ball_def] THEN Quantifier1.prove_one_point_all_tac;
     val rearrange_ball = Quantifier1.rearrange_ball prove_ball_tac;
-
-    val defBEX_regroup = mk_simproc "defined BEX" [ex_pattern] rearrange_bex;
-    val defBALL_regroup = mk_simproc "defined BALL" [all_pattern] rearrange_ball;
   in
-    Addsimprocs [defBALL_regroup, defBEX_regroup]
+    val defBEX_regroup = Simplifier.simproc (Theory.sign_of (the_context ()))
+      "defined BEX" ["EX x:A. P x & Q x"] rearrange_bex;
+    val defBALL_regroup = Simplifier.simproc (Theory.sign_of (the_context ()))
+      "defined BALL" ["ALL x:A. P x --> Q x"] rearrange_ball;
   end;
+
+  Addsimprocs [defBALL_regroup, defBEX_regroup];
 *}
 
 

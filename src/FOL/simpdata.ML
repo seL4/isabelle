@@ -266,20 +266,13 @@ end);
 
 end;
 
-local
-
-val ex_pattern =
-  read_cterm (Theory.sign_of (the_context ())) ("EX x. P(x)", FOLogic.oT)
-
-val all_pattern =
-  read_cterm (Theory.sign_of (the_context ())) ("ALL x. P(x)", FOLogic.oT)
-
-in
 val defEX_regroup =
-  mk_simproc "defined EX" [ex_pattern] Quantifier1.rearrange_ex;
+  Simplifier.simproc (Theory.sign_of (the_context ()))
+    "defined EX" ["EX x. P(x)"] Quantifier1.rearrange_ex;
+
 val defALL_regroup =
-  mk_simproc "defined ALL" [all_pattern] Quantifier1.rearrange_all;
-end;
+  Simplifier.simproc (Theory.sign_of (the_context ()))
+    "defined ALL" ["ALL x. P(x)"] Quantifier1.rearrange_all;
 
 
 (*** Case splitting ***)

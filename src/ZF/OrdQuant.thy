@@ -388,34 +388,27 @@ val Ord_atomize =
 simpset_ref() := simpset() setmksimps (map mk_eq o Ord_atomize o gen_all);
 *}
 
-text{*Setting up the one-point-rule simproc*}
-ML
-{*
+text {* Setting up the one-point-rule simproc *}
 
-let
-val ex_pattern = Thm.read_cterm (Theory.sign_of (the_context ()))
-                                ("EX x[M]. P(x) & Q(x)", FOLogic.oT)
+ML_setup {*
+local
 
-val prove_rex_tac = rewtac rex_def THEN
-                    Quantifier1.prove_one_point_ex_tac;
-
+val prove_rex_tac = rewtac rex_def THEN Quantifier1.prove_one_point_ex_tac;
 val rearrange_bex = Quantifier1.rearrange_bex prove_rex_tac;
 
-val all_pattern = Thm.read_cterm (Theory.sign_of (the_context ()))
-                                 ("ALL x[M]. P(x) --> Q(x)", FOLogic.oT)
-
-val prove_rall_tac = rewtac rall_def THEN
-                     Quantifier1.prove_one_point_all_tac;
-
+val prove_rall_tac = rewtac rall_def THEN Quantifier1.prove_one_point_all_tac;
 val rearrange_ball = Quantifier1.rearrange_ball prove_rall_tac;
 
-val defREX_regroup = mk_simproc "defined REX" [ex_pattern] rearrange_bex;
-val defRALL_regroup = mk_simproc "defined RALL" [all_pattern] rearrange_ball;
 in
 
-Addsimprocs [defRALL_regroup,defREX_regroup]
+val defREX_regroup = Simplifier.simproc (Theory.sign_of (the_context ()))
+  "defined REX" ["EX x[M]. P(x) & Q(x)"] rearrange_bex;
+val defRALL_regroup = Simplifier.simproc (Theory.sign_of (the_context ()))
+  "defined RALL" ["ALL x[M]. P(x) --> Q(x)"] rearrange_ball;
 
 end;
+
+Addsimprocs [defRALL_regroup,defREX_regroup];
 *}
 
 end

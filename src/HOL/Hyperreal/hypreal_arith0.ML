@@ -44,11 +44,6 @@ val add_mono_thms_hypreal =
      "(i <= j) & (k < l)  ==> i + k < j + (l::hypreal)",
      "(i < j) & (k < l)   ==> i + k < j + (l::hypreal)"];
 
-val hypreal_arith_simproc_pats =
-  map (fn s => Thm.read_cterm (Theory.sign_of (the_context ()))
-       (s, HOLogic.boolT))
-      ["(m::hypreal) < n", "(m::hypreal) <= n", "(m::hypreal) = n"];
-
 fun cvar(th,_ $ (_ $ _ $ var)) = cterm_of (#sign(rep_thm th)) var;
 
 val hypreal_mult_mono_thms =
@@ -59,8 +54,10 @@ val hypreal_mult_mono_thms =
 
 in
 
-val fast_hypreal_arith_simproc = mk_simproc
-  "fast_hypreal_arith" hypreal_arith_simproc_pats Fast_Arith.lin_arith_prover;
+val fast_hypreal_arith_simproc =
+  Simplifier.simproc (Theory.sign_of (the_context ()))
+    "fast_hypreal_arith" ["(m::hypreal) < n", "(m::hypreal) <= n", "(m::hypreal) = n"]
+    Fast_Arith.lin_arith_prover;
 
 val hypreal_arith_setup =
  [Fast_Arith.map_data (fn {add_mono_thms, mult_mono_thms, inj_thms, lessD, simpset} =>

@@ -348,9 +348,8 @@ structure Bin_Simprocs =
   (*version without the hyps argument*)
   fun prove_conv_nohyps name tacs sg = prove_conv name tacs sg []
 
-  fun prep_simproc (name, pats, proc) = Simplifier.mk_simproc name pats proc
-  fun prep_pat s = HOLogic.read_cterm (Theory.sign_of (the_context())) s
-  val prep_pats = map prep_pat
+  fun prep_simproc (name, pats, proc) =
+    Simplifier.simproc (Theory.sign_of (the_context())) name pats proc;
 
   fun is_numeral (Const("Numeral.number_of", _) $ w) = true
     | is_numeral _ = false
@@ -380,19 +379,19 @@ structure Bin_Simprocs =
   val eval_numerals = 
     map prep_simproc
      [("int_add_eval_numerals",
-       prep_pats ["(m::int) + 1", "(m::int) + number_of v"], 
+       ["(m::int) + 1", "(m::int) + number_of v"], 
        IntAbstractNumerals.proc (number_of_add RS sym)),
       ("int_diff_eval_numerals",
-       prep_pats ["(m::int) - 1", "(m::int) - number_of v"], 
+       ["(m::int) - 1", "(m::int) - number_of v"], 
        IntAbstractNumerals.proc diff_number_of_eq),
       ("int_eq_eval_numerals",
-       prep_pats ["(m::int) = 0", "(m::int) = 1", "(m::int) = number_of v"], 
+       ["(m::int) = 0", "(m::int) = 1", "(m::int) = number_of v"], 
        IntAbstractNumerals.proc eq_number_of_eq),
       ("int_less_eval_numerals",
-       prep_pats ["(m::int) < 0", "(m::int) < 1", "(m::int) < number_of v"], 
+       ["(m::int) < 0", "(m::int) < 1", "(m::int) < number_of v"], 
        IntAbstractNumerals.proc less_number_of_eq_neg),
       ("int_le_eval_numerals",
-       prep_pats ["(m::int) <= 0", "(m::int) <= 1", "(m::int) <= number_of v"],
+       ["(m::int) <= 0", "(m::int) <= 1", "(m::int) <= number_of v"],
        IntAbstractNumerals.proc le_number_of_eq_not_less)]
 
   (*reorientation simprules using ==, for the following simproc*)
@@ -413,9 +412,7 @@ structure Bin_Simprocs =
 		| Const("Numeral.number_of", _) $ _ => meta_number_of_reorient)
 
   val reorient_simproc = 
-      prep_simproc ("reorient_simproc",
-	            prep_pats ["0=x", "1=x", "number_of w = x"], 
-                    reorient_proc)
+      prep_simproc ("reorient_simproc", ["0=x", "1=x", "number_of w = x"], reorient_proc)
 
   end;
 

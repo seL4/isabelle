@@ -97,9 +97,7 @@ struct
 
 
  val conv = 
-     Simplifier.mk_simproc "data_free"
-       [Thm.read_cterm (sign_of ZF.thy) ("(x::i) = y", FOLogic.oT)]
-       proc;
+     Simplifier.simproc (Theory.sign_of ZF.thy) "data_free" ["(x::i) = y"] proc;
 end;
 
 

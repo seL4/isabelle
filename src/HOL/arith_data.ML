@@ -138,28 +138,20 @@ end);
 
 (** prepare nat_cancel simprocs **)
 
-fun prep_pat s = HOLogic.read_cterm (Theory.sign_of (the_context ())) s;
-val prep_pats = map prep_pat;
-
-fun prep_simproc (name, pats, proc) = Simplifier.mk_simproc name pats proc;
-
-val eq_pats = prep_pats ["(l::nat) + m = n", "(l::nat) = m + n", "Suc m = n", 
-                         "m = Suc n"];
-val less_pats = prep_pats ["(l::nat) + m < n", "(l::nat) < m + n", "Suc m < n",
-                           "m < Suc n"];
-val le_pats = prep_pats ["(l::nat) + m <= n", "(l::nat) <= m + n", 
-                         "Suc m <= n", "m <= Suc n"];
-val diff_pats = prep_pats ["((l::nat) + m) - n", "(l::nat) - (m + n)", 
-                           "Suc m - n", "m - Suc n"];
+fun prep_simproc (name, pats, proc) =
+  Simplifier.simproc (Theory.sign_of (the_context ())) name pats proc;
 
 val nat_cancel_sums_add = map prep_simproc
-  [("nateq_cancel_sums",   eq_pats,   EqCancelSums.proc),
-   ("natless_cancel_sums", less_pats, LessCancelSums.proc),
-   ("natle_cancel_sums",   le_pats,   LeCancelSums.proc)];
+  [("nateq_cancel_sums",
+     ["(l::nat) + m = n", "(l::nat) = m + n", "Suc m = n", "m = Suc n"], EqCancelSums.proc),
+   ("natless_cancel_sums",
+     ["(l::nat) + m < n", "(l::nat) < m + n", "Suc m < n", "m < Suc n"], LessCancelSums.proc),
+   ("natle_cancel_sums",
+     ["(l::nat) + m <= n", "(l::nat) <= m + n", "Suc m <= n", "m <= Suc n"], LeCancelSums.proc)];
 
 val nat_cancel_sums = nat_cancel_sums_add @
-  [prep_simproc("natdiff_cancel_sums", diff_pats, DiffCancelSums.proc)];
-
+  [prep_simproc ("natdiff_cancel_sums",
+    ["((l::nat) + m) - n", "(l::nat) - (m + n)", "Suc m - n", "m - Suc n"], DiffCancelSums.proc)];
 
 end;
 
@@ -393,15 +385,10 @@ val init_lin_arith_data =
 
 end;
 
+val fast_nat_arith_simproc =
+  Simplifier.simproc (Theory.sign_of (the_context ())) "fast_nat_arith"
+    ["(m::nat) < n","(m::nat) <= n", "(m::nat) = n"] Fast_Arith.lin_arith_prover;
 
-local
-val nat_arith_simproc_pats =
-  map (fn s => Thm.read_cterm (Theory.sign_of (the_context ())) (s, HOLogic.boolT))
-      ["(m::nat) < n","(m::nat) <= n", "(m::nat) = n"];
-in
-val fast_nat_arith_simproc = mk_simproc
-  "fast_nat_arith" nat_arith_simproc_pats Fast_Arith.lin_arith_prover;
-end;
 
 (* Because of fast_nat_arith_simproc, the arithmetic solver is really only
 useful to detect inconsistencies among the premises for subgoals which are

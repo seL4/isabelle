@@ -238,12 +238,8 @@ structure NatAbstractNumerals = AbstractNumeralsFun (NatAbstractNumeralsData)
 
 val nat_eval_numerals = 
   map Bin_Simprocs.prep_simproc
-   [("nat_div_eval_numerals",
-     Bin_Simprocs.prep_pats ["(Suc 0) div m"],
-     NatAbstractNumerals.proc div_nat_number_of),
-    ("nat_mod_eval_numerals",
-     Bin_Simprocs.prep_pats ["(Suc 0) mod m"],
-     NatAbstractNumerals.proc mod_nat_number_of)];
+   [("nat_div_eval_numerals", ["(Suc 0) div m"], NatAbstractNumerals.proc div_nat_number_of),
+    ("nat_mod_eval_numerals", ["(Suc 0) mod m"], NatAbstractNumerals.proc mod_nat_number_of)];
 
 Addsimprocs nat_eval_numerals;
 

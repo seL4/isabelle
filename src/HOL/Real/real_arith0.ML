@@ -43,10 +43,6 @@ val add_mono_thms_real =
      "(i <= j) & (k < l)  ==> i + k < j + (l::real)",
      "(i < j) & (k < l)   ==> i + k < j + (l::real)"];
 
-val real_arith_simproc_pats =
-  map (fn s => Thm.read_cterm (Theory.sign_of (the_context ())) (s, HOLogic.boolT))
-      ["(m::real) < n","(m::real) <= n", "(m::real) = n"];
-
 fun cvar(th,_ $ (_ $ _ $ var)) = cterm_of (#sign(rep_thm th)) var;
 
 val real_mult_mono_thms =
@@ -57,8 +53,9 @@ val real_mult_mono_thms =
 
 in
 
-val fast_real_arith_simproc = mk_simproc
-  "fast_real_arith" real_arith_simproc_pats Fast_Arith.lin_arith_prover;
+val fast_real_arith_simproc = Simplifier.simproc (Theory.sign_of (the_context ()))
+  "fast_real_arith" ["(m::real) < n","(m::real) <= n", "(m::real) = n"]
+  Fast_Arith.lin_arith_prover;
 
 val real_arith_setup =
  [Fast_Arith.map_data (fn {add_mono_thms, mult_mono_thms, inj_thms, lessD, simpset} =>

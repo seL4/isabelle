@@ -16,6 +16,10 @@ sig
   type simproc
   val mk_simproc: string -> cterm list
     -> (Sign.sg -> thm list -> term -> thm option) -> simproc
+  val simproc: Sign.sg -> string -> string list
+    -> (Sign.sg -> thm list -> term -> thm option) -> simproc
+  val simproc_i: Sign.sg -> string -> term list
+    -> (Sign.sg -> thm list -> term -> thm option) -> simproc
   type solver
   val mk_solver: string -> (thm list -> int -> tactic) -> solver
   type simpset
@@ -125,6 +129,10 @@ datatype simproc =
 
 fun mk_simproc name lhss proc =
   Simproc (name, map (Thm.cterm_fun Logic.varify) lhss, proc, stamp ());
+
+fun simproc sg name ss =
+  mk_simproc name (map (fn s => Thm.read_cterm sg (s, TypeInfer.logicT)) ss);
+fun simproc_i sg name = mk_simproc name o map (Thm.cterm_of sg);
 
 fun rep_simproc (Simproc args) = args;
 

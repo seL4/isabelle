@@ -19,11 +19,9 @@ section "misc"
 
 declare same_fstI [intro!] (*### TO HOL/Wellfounded_Relations *)
 
-(* ###TO HOL/???.ML?? *)
 ML {*
-fun make_simproc name pat pred thm = Simplifier.mk_simproc name
-   [Thm.read_cterm (Thm.sign_of_thm thm) (pat, HOLogic.typeT)] 
-   (K (K (fn s => if pred s then None else Some (standard (mk_meta_eq thm)))))
+fun cond_simproc name pat pred thm = Simplifier.simproc (Thm.sign_of_thm thm) name [pat]
+  (fn _ => fn _ => fn t => if pred t then None else Some (mk_meta_eq thm));
 *}
 
 declare split_if_asm  [split] option.split [split] option.split_asm [split]

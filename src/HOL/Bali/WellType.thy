@@ -620,7 +620,7 @@ let
      _ $ (Const ("Pair", _) $ _ $ (Const ("Pair", _) $ _ $
        x))) $ _ )) = is_Inj x
 in
-  make_simproc name lhs pred (thm name)
+  cond_simproc name lhs pred (thm name)
 end
 
 val wt_expr_proc  = wt_fun "wt_expr_eq"  "In1l" "\<exists>T.  U=Inl T  \<and> E,dt\<Turnstile>t\<Colon>-T"

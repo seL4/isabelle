@@ -11,17 +11,17 @@ Rewriting for ZF set theory: specialized extraction of rewrites from theorems
 (*Should False yield False<->True, or should it solve goals some other way?*)
 
 (*Analyse a theorem to atomic rewrite rules*)
-fun atomize (conn_pairs, mem_pairs) th = 
+fun atomize (conn_pairs, mem_pairs) th =
   let fun tryrules pairs t =
           case head_of t of
-              Const(a,_) => 
+              Const(a,_) =>
                 (case assoc(pairs,a) of
                      Some rls => flat (map (atomize (conn_pairs, mem_pairs))
                                        ([th] RL rls))
                    | None     => [th])
             | _ => [th]
-  in case concl_of th of 
-         Const("Trueprop",_) $ P => 
+  in case concl_of th of
+         Const("Trueprop",_) $ P =>
             (case P of
                  Const("op :",_) $ a $ b => tryrules mem_pairs b
                | Const("True",_)         => []
@@ -32,13 +32,13 @@ fun atomize (conn_pairs, mem_pairs) th =
 
 (*Analyse a rigid formula*)
 val ZF_conn_pairs =
-  [("Ball",     [bspec]), 
+  [("Ball",     [bspec]),
    ("All",      [spec]),
    ("op -->",   [mp]),
    ("op &",     [conjunct1,conjunct2])];
 
 (*Analyse a:b, where b is rigid*)
-val ZF_mem_pairs = 
+val ZF_mem_pairs =
   [("Collect",  [CollectD1,CollectD2]),
    ("op -",     [DiffD1,DiffD2]),
    ("op Int",   [IntD1,IntD2])];
@@ -55,8 +55,8 @@ simpset_ref() :=
 (** Splitting IFs in the assumptions **)
 
 Goal "P(if Q then x else y) <-> (~((Q & ~P(x)) | (~Q & ~P(y))))";
-by (Simp_tac 1); 
-qed "split_if_asm";   
+by (Simp_tac 1);
+qed "split_if_asm";
 
 bind_thms ("if_splits", [split_if, split_if_asm]);
 
@@ -65,8 +65,8 @@ bind_thms ("if_splits", [split_if, split_if_asm]);
 
 local
   (*For proving rewrite rules*)
-  fun prover s = (print s;prove_goalw (the_context ()) [Inter_def] s 
-                  (fn _ => [Simp_tac 1, 
+  fun prover s = (print s;prove_goalw (the_context ()) [Inter_def] s
+                  (fn _ => [Simp_tac 1,
                             ALLGOALS (blast_tac (claset() addSIs[equalityI]))]));
 
 in
@@ -86,7 +86,7 @@ val ball_simps = map prover
      "(ALL x:Collect(A,Q).P(x)) <-> (ALL x:A. Q(x) --> P(x))",
      "(~(ALL x:A. P(x))) <-> (EX x:A. ~P(x))"];
 
-val ball_conj_distrib = 
+val ball_conj_distrib =
     prover "(ALL x:A. P(x) & Q(x)) <-> ((ALL x:A. P(x)) & (ALL x:A. Q(x)))";
 
 val bex_simps = map prover
@@ -104,14 +104,14 @@ val bex_simps = map prover
      "(EX x:Collect(A,Q).P(x)) <-> (EX x:A. Q(x) & P(x))",
      "(~(EX x:A. P(x))) <-> (ALL x:A. ~P(x))"];
 
-val bex_disj_distrib = 
+val bex_disj_distrib =
     prover "(EX x:A. P(x) | Q(x)) <-> ((EX x:A. P(x)) | (EX x:A. Q(x)))";
 
 val Rep_simps = map prover
-    ["{x. y:0, R(x,y)} = 0",	(*Replace*)
-     "{x:0. P(x)} = 0",		(*Collect*)
+    ["{x. y:0, R(x,y)} = 0",    (*Replace*)
+     "{x:0. P(x)} = 0",         (*Collect*)
      "{x:A. P} = (if P then A else 0)",
-     "RepFun(0,f) = 0",		(*RepFun*)
+     "RepFun(0,f) = 0",         (*RepFun*)
      "RepFun(succ(i),f) = cons(f(i), RepFun(i,f))",
      "RepFun(cons(a,B),f) = cons(f(a), RepFun(B,f))"]
 
@@ -124,7 +124,7 @@ val misc_simps = map prover
      "Inter({b}) = b"]
 
 
-val UN_simps = map prover 
+val UN_simps = map prover
     ["(UN x:C. cons(a, B(x))) = (if C=0 then 0 else cons(a, UN x:C. B(x)))",
      "(UN x:C. A(x) Un B)   = (if C=0 then 0 else (UN x:C. A(x)) Un B)",
      "(UN x:C. A Un B(x))   = (if C=0 then 0 else A Un (UN x:C. B(x)))",
@@ -145,10 +145,10 @@ val INT_simps = map prover
      "(INT x:C. A(x) Un B)  = (if C=0 then 0 else (INT x:C. A(x)) Un B)",
      "(INT x:C. A Un B(x))  = (if C=0 then 0 else A Un (INT x:C. B(x)))"];
 
-(** The _extend_simps rules are oriented in the opposite direction, to 
+(** The _extend_simps rules are oriented in the opposite direction, to
     pull UN and INT outwards. **)
 
-val UN_extend_simps = map prover 
+val UN_extend_simps = map prover
     ["cons(a, UN x:C. B(x)) = (if C=0 then {a} else (UN x:C. cons(a, B(x))))",
      "(UN x:C. A(x)) Un B   = (if C=0 then B else (UN x:C. A(x) Un B))",
      "A Un (UN x:C. B(x))   = (if C=0 then A else (UN x:C. A Un B(x)))",
@@ -220,30 +220,25 @@ Addsimps [bex_triv_one_point1,bex_triv_one_point2,
           ball_one_point1,ball_one_point2];
 
 
-let
-val ex_pattern = Thm.read_cterm (Theory.sign_of (the_context ()))
-    ("EX x:A. P(x) & Q(x)",FOLogic.oT)
+local
 
-val prove_bex_tac = rewtac Bex_def THEN
-                    Quantifier1.prove_one_point_ex_tac;
-
+val prove_bex_tac = rewtac Bex_def THEN Quantifier1.prove_one_point_ex_tac;
 val rearrange_bex = Quantifier1.rearrange_bex prove_bex_tac;
 
-val all_pattern = Thm.read_cterm (Theory.sign_of (the_context ()))
-    ("ALL x:A. P(x) --> Q(x)",FOLogic.oT)
-
-val prove_ball_tac = rewtac Ball_def THEN 
-                     Quantifier1.prove_one_point_all_tac;
-
+val prove_ball_tac = rewtac Ball_def THEN Quantifier1.prove_one_point_all_tac;
 val rearrange_ball = Quantifier1.rearrange_ball prove_ball_tac;
 
-val defBEX_regroup = mk_simproc "defined BEX" [ex_pattern] rearrange_bex;
-val defBALL_regroup = mk_simproc "defined BALL" [all_pattern] rearrange_ball;
 in
 
-Addsimprocs [defBALL_regroup,defBEX_regroup]
+val defBEX_regroup = Simplifier.simproc (Theory.sign_of (the_context ()))
+  "defined BEX" ["EX x:A. P(x) & Q(x)"] rearrange_bex;
+
+val defBALL_regroup = Simplifier.simproc (Theory.sign_of (the_context ()))
+  "defined BALL" ["ALL x:A. P(x) --> Q(x)"] rearrange_ball;
 
 end;
+
+Addsimprocs [defBALL_regroup, defBEX_regroup];
 
 
 val ZF_ss = simpset();

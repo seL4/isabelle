@@ -1,7 +1,7 @@
-(* Title:HOL/List.thy
-   ID: $Id$
-   Author: Tobias Nipkow
-   Copyright 1994 TU Muenchen
+(*  Title:      HOL/List.thy
+    ID:         $Id$
+    Author:     Tobias Nipkow
+    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 *)
 
 header {* The datatype of finite lists *}
@@ -367,50 +367,50 @@ val append_Cons = thm "append_Cons";
 val append1_eq_conv = thm "append1_eq_conv";
 val append_same_eq = thm "append_same_eq";
 
-val list_eq_pattern =
-Thm.read_cterm (Theory.sign_of (the_context ())) ("(xs::'a list) = ys",HOLogic.boolT)
-
 fun last (cons as Const("List.list.Cons",_) $ _ $ xs) =
-(case xs of Const("List.list.Nil",_) => cons | _ => last xs)
-| last (Const("List.op @",_) $ _ $ ys) = last ys
-| last t = t
+  (case xs of Const("List.list.Nil",_) => cons | _ => last xs)
+  | last (Const("List.op @",_) $ _ $ ys) = last ys
+  | last t = t;
 
 fun list1 (Const("List.list.Cons",_) $ _ $ Const("List.list.Nil",_)) = true
-| list1 _ = false
+  | list1 _ = false;
 
 fun butlast ((cons as Const("List.list.Cons",_) $ x) $ xs) =
-(case xs of Const("List.list.Nil",_) => xs | _ => cons $ butlast xs)
-| butlast ((app as Const("List.op @",_) $ xs) $ ys) = app $ butlast ys
-| butlast xs = Const("List.list.Nil",fastype_of xs)
+  (case xs of Const("List.list.Nil",_) => xs | _ => cons $ butlast xs)
+  | butlast ((app as Const("List.op @",_) $ xs) $ ys) = app $ butlast ys
+  | butlast xs = Const("List.list.Nil",fastype_of xs);
 
 val rearr_tac =
-simp_tac (HOL_basic_ss addsimps [append_assoc,append_Nil,append_Cons])
+  simp_tac (HOL_basic_ss addsimps [append_assoc, append_Nil, append_Cons]);
 
 fun list_eq sg _ (F as (eq as Const(_,eqT)) $ lhs $ rhs) =
-let
-val lastl = last lhs and lastr = last rhs
-fun rearr conv =
-let val lhs1 = butlast lhs and rhs1 = butlast rhs
-val Type(_,listT::_) = eqT
-val appT = [listT,listT] ---> listT
-val app = Const("List.op @",appT)
-val F2 = eq $ (app$lhs1$lastl) $ (app$rhs1$lastr)
-val ct = cterm_of sg (HOLogic.mk_Trueprop(HOLogic.mk_eq(F,F2)))
-val thm = prove_goalw_cterm [] ct (K [rearr_tac 1])
-handle ERROR =>
-error("The error(s) above occurred while trying to prove " ^
-string_of_cterm ct)
-in Some((conv RS (thm RS trans)) RS eq_reflection) end
+  let
+    val lastl = last lhs and lastr = last rhs;
+    fun rearr conv =
+      let
+        val lhs1 = butlast lhs and rhs1 = butlast rhs;
+        val Type(_,listT::_) = eqT
+        val appT = [listT,listT] ---> listT
+        val app = Const("List.op @",appT)
+        val F2 = eq $ (app$lhs1$lastl) $ (app$rhs1$lastr)
+        val ct = cterm_of sg (HOLogic.mk_Trueprop(HOLogic.mk_eq(F,F2)))
+        val thm = prove_goalw_cterm [] ct (K [rearr_tac 1])
+          handle ERROR =>
+            error("The error(s) above occurred while trying to prove " ^
+              string_of_cterm ct);
+      in Some ((conv RS (thm RS trans)) RS eq_reflection) end;
 
-in if list1 lastl andalso list1 lastr
- then rearr append1_eq_conv
- else
- if lastl aconv lastr
- then rearr append_same_eq
- else None
-end
+  in
+    if list1 lastl andalso list1 lastr then rearr append1_eq_conv
+    else if lastl aconv lastr then rearr append_same_eq
+    else None
+  end;
+
 in
-val list_eq_simproc = mk_simproc "list_eq" [list_eq_pattern] list_eq
+
+val list_eq_simproc =
+  Simplifier.simproc (Theory.sign_of (the_context ())) "list_eq" ["(xs::'a list) = ys"] list_eq;
+
 end;
 
 Addsimprocs [list_eq_simproc];
@@ -1363,6 +1363,7 @@ by (cases n) simp_all
 lemmas [simp] = take_Cons'[of "number_of v",standard]
                 drop_Cons'[of "number_of v",standard]
                 nth_Cons'[of _ _ "number_of v",standard]
+
 
 subsection {* Characters and strings *}
 

@@ -11,12 +11,12 @@ Performs constant folding when the literals are separated, as in 3+n+4.
 
 signature ASSOC_FOLD_DATA =
 sig
-  val ss		: simpset	(*basic simpset of object-logtic*)
-  val eq_reflection	: thm		(*object-equality to meta-equality*)
-  val sg_ref 		: Sign.sg_ref	(*the operator's signature*)
-  val T			: typ		(*the operator's numeric type*)
-  val plus		: term		(*the operator being folded*)
-  val add_ac		: thm list      (*AC-rewrites for plus*)
+  val ss                : simpset       (*basic simpset of object-logtic*)
+  val eq_reflection     : thm           (*object-equality to meta-equality*)
+  val sg_ref            : Sign.sg_ref   (*the operator's signature*)
+  val T                 : typ           (*the operator's numeric type*)
+  val plus              : term          (*the operator being folded*)
+  val add_ac            : thm list      (*AC-rewrites for plus*)
 end;
 
 
@@ -26,11 +26,11 @@ struct
  val assoc_ss = Data.ss addsimps Data.add_ac;
 
  (*prove while suppressing timing information*)
- fun prove name ct tacf = 
+ fun prove name ct tacf =
      setmp Library.timing false (prove_goalw_cterm [] ct) tacf
      handle ERROR =>
-	 error(name ^ " simproc:\nfailed to prove " ^ string_of_cterm ct);
-                
+         error(name ^ " simproc:\nfailed to prove " ^ string_of_cterm ct);
+
  exception Assoc_fail;
 
  fun mk_sum []  = raise Assoc_fail
@@ -39,13 +39,13 @@ struct
  (*Separate the literals from the other terms being combined*)
  fun sift_terms (t, (lits,others)) =
      case t of
-	  Const("Numeral.number_of", _) $ _ =>
-	      (t::lits, others)         (*new literal*)
-	| (f as Const _) $ x $ y =>
-	      if f = Data.plus 
+          Const("Numeral.number_of", _) $ _ =>
+              (t::lits, others)         (*new literal*)
+        | (f as Const _) $ x $ y =>
+              if f = Data.plus
               then sift_terms (x, sift_terms (y, (lits,others)))
-	      else (lits, t::others)    (*arbitrary summand*)
-	| _ => (lits, t::others);
+              else (lits, t::others)    (*arbitrary summand*)
+        | _ => (lits, t::others);
 
  val trace = ref false;
 
@@ -53,25 +53,23 @@ struct
  fun proc sg _ lhs =
    let fun show t = string_of_cterm (Thm.cterm_of sg t)
        val _ = if !trace then tracing ("assoc_fold simproc: LHS = " ^ show lhs)
-	       else ()
+               else ()
        val (lits,others) = sift_terms (lhs, ([],[]))
        val _ = if length lits < 2
                then raise Assoc_fail (*we can't reduce the number of terms*)
-               else ()  
+               else ()
        val rhs = Data.plus $ mk_sum lits $ mk_sum others
        val _ = if !trace then tracing ("RHS = " ^ show rhs) else ()
-       val th = prove "assoc_fold" 
-	           (Thm.cterm_of sg (Logic.mk_equals (lhs, rhs)))
-		   (fn _ => [rtac Data.eq_reflection 1,
-			     simp_tac assoc_ss 1])
+       val th = prove "assoc_fold"
+                   (Thm.cterm_of sg (Logic.mk_equals (lhs, rhs)))
+                   (fn _ => [rtac Data.eq_reflection 1,
+                             simp_tac assoc_ss 1])
    in Some th end
    handle Assoc_fail => None;
- 
- val conv = 
-     Simplifier.mk_simproc "assoc_fold"
-       [Thm.cterm_of (Sign.deref Data.sg_ref)
-	             (Data.plus $ Free("x",Data.T) $ Free("y",Data.T))]
-       proc;
+
+ val conv =
+     Simplifier.simproc_i (Sign.deref Data.sg_ref) "assoc_fold"
+       [Data.plus $ Free ("x", Data.T) $ Free ("y",Data.T)] proc;
 
 end;
 
